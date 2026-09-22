@@ -63,6 +63,22 @@ export type SnapshotPayloadT = {
   settings: SnapshotSettingsT
 }
 
+// A kosztorys with nothing in it — the shape „wyczyść kosztorys" writes and the shape a szablon is
+// born with. `settings` is the caller's, because those two disagree about it and only about it: a new
+// szablon carries the defaults, a cleared kosztorys takes its coefficients from the investment and
+// passes zeros it never reads. Written out twice, the four empty arrays were four chances to forget
+// one and hand a partial payload to a reader that types them as required.
+export function emptySnapshotPayload(settings: SnapshotSettingsT): SnapshotPayloadT {
+  return {
+    schemaVersion: SNAPSHOT_SCHEMA_VERSION,
+    sections: [],
+    items: [],
+    stages: [],
+    progress: [],
+    settings,
+  }
+}
+
 // What a STORED payload may actually look like, as opposed to what today's serializer writes. A row
 // captured before a column existed simply has no key there, so every field the restore path defaults
 // is optional HERE — which is what makes each `??` on that path load-bearing to tsc. Under the strict

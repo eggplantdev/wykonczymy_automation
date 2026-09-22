@@ -3,6 +3,7 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import {
+  claimPresetMirror,
   deletePreset,
   getPreset,
   insertPreset,
@@ -196,7 +197,7 @@ describe.skipIf(!ENV_READY)('deletePreset / renamePreset (DB)', () => {
       ...emptyPayload,
       sections: [{ id: 1, name: 'Nowa sekcja', displayOrder: 0, color: null }],
     }
-    expect(await updatePresetPayload(db, { id, createdBy: null, payload: filled })).toBe(true)
+    expect(await updatePresetPayload(db, { id, payload: filled })).toBe(true)
 
     const stored = await getPreset(db, id)
     expect(stored?.payload.sections.map((section) => section.name)).toEqual(['Nowa sekcja'])
@@ -208,10 +209,92 @@ describe.skipIf(!ENV_READY)('deletePreset / renamePreset (DB)', () => {
     const id = await makePreset('crud-fixture-deleted-under-us')
     await deletePreset(db, id)
 
-    expect(await updatePresetPayload(db, { id, createdBy: null, payload: emptyPayload })).toBe(
-      false,
-    )
+    expect(await updatePresetPayload(db, { id, payload: emptyPayload })).toBe(false)
     expect((await listPresets(db)).some((preset) => preset.id === id)).toBe(false)
+  })
+
+  // Under autosave this runs unattended on every mutation, so „who created this szablon" would
+  // drift into „who last hit a key" if the write touched created_by.
+  it('leaves created_by alone and stamps updated_at', async () => {
+    const author = await db.execute(sql`SELECT id FROM users ORDER BY id LIMIT 1`)
+    const createdBy = author.rows[0] ? Number(author.rows[0].id) : null
+    const id = await insertPreset(db, {
+      name: 'crud-fixture-authored',
+      createdBy,
+      payload: emptyPayload,
+    })
+    if (id == null) throw new Error('fixture preset already exists — stale run?')
+
+    await updatePresetPayload(db, { id, payload: emptyPayload })
+
+    expect((await listPresets(db)).find((preset) => preset.id === id)?.createdBy).toBe(createdBy)
+    const stamps = await db.execute(sql`SELECT updated_at FROM kosztorys_presets WHERE id = ${id}`)
+    expect(stamps.rows[0]?.updated_at).not.toBeNull()
+  })
+
+  // The throttle is a CLAIM, not a read: two concurrent mutations both pass a „has the window
+  // elapsed" SELECT, and only one may own the window.
+  it('claims the mirror window once and refuses until it elapses', async () => {
+    const id = await makePreset('crud-fixture-throttled')
+
+    expect(await claimPresetMirror(db, id)).toBe(true)
+    expect(await claimPresetMirror(db, id)).toBe(false)
+
+    await db.execute(
+      sql`UPDATE kosztorys_presets SET mirrored_at = now() - interval '1 hour' WHERE id = ${id}`,
+    )
+    expect(await claimPresetMirror(db, id)).toBe(true)
+  })
+
+  it('claims nothing for a szablon that is gone', async () => {
+    const id = await makePreset('crud-fixture-claim-gone')
+    await deletePreset(db, id)
+
+    expect(await claimPresetMirror(db, id)).toBe(false)
+  })
+
+  // The listing sorts by the last edit, because that is the figure that moves under autosave — a
+  // szablon is created once and worked on for weeks. The trap is the szablony that predate the
+  // column: they carry no `updated_at` at all, and a plain DESC would drop them out of the view.
+  // `legacy` fakes one by nulling the stamp back out, because creating a szablon now stamps it.
+  it('sorts by the last edit and keeps a never-edited szablon in the list', async () => {
+    const stale = await makePreset('crud-fixture-order-stale')
+    const fresh = await makePreset('crud-fixture-order-fresh')
+    const legacy = await makePreset('crud-fixture-order-legacy')
+
+    await db.execute(
+      sql`UPDATE kosztorys_presets SET updated_at = now() - interval '2 days' WHERE id = ${stale}`,
+    )
+    await db.execute(sql`UPDATE kosztorys_presets SET updated_at = now() WHERE id = ${fresh}`)
+    await db.execute(sql`UPDATE kosztorys_presets SET updated_at = NULL WHERE id = ${legacy}`)
+
+    const ours = (await listPresets(db)).filter((preset) =>
+      [stale, fresh, legacy].includes(preset.id),
+    )
+
+    expect(ours.map((preset) => preset.id)).toEqual([fresh, stale, legacy])
+    expect(ours.find((preset) => preset.id === legacy)?.updatedAt).toBeNull()
+    expect(ours.find((preset) => preset.id === fresh)?.updatedAt).not.toBeNull()
+  })
+
+  // A szablon created a second ago is the one the owner is about to open, so it belongs at the TOP
+  // of a list sorted by last edit — not in the NULLS-LAST tail reserved for rows predating the
+  // column. Renaming is an edit too: the list is what it drives, so a rename has to move the row.
+  it('stamps the modification date on creation and on a rename', async () => {
+    const created = await makePreset('crud-fixture-stamp-created')
+
+    const stamps = await db.execute(
+      sql`SELECT updated_at FROM kosztorys_presets WHERE id = ${created}`,
+    )
+    expect(stamps.rows[0]?.updated_at).not.toBeNull()
+
+    await db.execute(
+      sql`UPDATE kosztorys_presets SET updated_at = now() - interval '2 days' WHERE id = ${created}`,
+    )
+    expect(await renamePreset(db, created, 'crud-fixture-stamp-renamed')).toBe(true)
+
+    const after = await listPresets(db)
+    expect(after[0]?.id).toBe(created)
   })
 
   // The collision guard lives in SQL, so a partial write would be a szablon renamed onto a name it

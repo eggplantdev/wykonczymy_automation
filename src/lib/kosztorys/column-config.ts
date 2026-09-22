@@ -1,6 +1,10 @@
 import type { PriceViewT } from '@/lib/kosztorys/calc'
-import { PLANE_LABELS } from '@/lib/kosztorys/constants'
-import { ALL_PLANE_PRICE_KEYS, planePriceKeyParts } from '@/lib/kosztorys/plane-price-keys'
+import { PLANE_LABELS, TOOL_PLANES } from '@/lib/kosztorys/constants'
+import {
+  ALL_PLANE_PRICE_KEYS,
+  planePriceKey,
+  planePriceKeyParts,
+} from '@/lib/kosztorys/plane-price-keys'
 import {
   STAGES_COLUMN_GROUP,
   STAGE_VALUE_GROSS_COLUMN_GROUP,
@@ -167,9 +171,10 @@ export const DISCOUNT_COLUMN_IDS: ReadonlySet<string> = new Set([
 //
 // Its reach is column IDENTITY, not price plane: `price`/`net`/`gross` are allowlisted and compute at
 // whatever `view` is active, so this set does NOT by itself keep a subcontractor figure off the page.
-// It is half a lock — the other half pins the plane, see `assertDisclosurePair`. (The subcontractor-
-// only `priceMode` is absent here too, but that is defence in depth; it is never assembled at the
-// client plane in the first place.)
+// It is half a lock — the other half pins the plane, see `assertDisclosurePair`. `priceMode` is
+// absent here and that absence is load-bearing, not belt-and-braces: the szablon workbench reads
+// the client plane and assembles the column anyway (`assembleV2Columns`), so this list is the only
+// thing keeping a contractor's price source off a client's document.
 //
 // Written as groups because the settings dialog offers the same columns as ticks and needs headings
 // for them; the allowlist below is their flattening, so a column cannot be offerable-but-barred (or
@@ -215,6 +220,37 @@ export const CLIENT_VIEW_GROUPS: readonly ClientViewGroupT[] = [
 export const PREVIEW_VISIBLE_COLUMNS: ReadonlySet<string> = new Set(
   CLIENT_VIEW_GROUPS.flatMap((group) => group.keys),
 )
+
+// The workbench's column list — exactly what a szablon carries to the next job. The rest of the
+// grid (przedmiar, etapy, rabat, wartości, postęp) is not „hidden" here and not „read-only": it is
+// simply absent, because a value typed into a szablon would arrive nowhere — `serializeKosztorysAsPreset`
+// zeroes it on every save. A column added later is absent from the workbench until someone
+// deliberately writes it in here, and that is the intended default side.
+//
+// This list is BOTH the ceiling and the floor (see `selectV2Columns`): the map of hidden columns is
+// one per browser, so a tick set on an ordinary kosztorys must neither add a column here nor take
+// one away — the workbench has no picker to answer it with.
+//
+// Full ids, never the base key (see `basePriceKey`) — hence the per-plane „Źródło ceny wykonawcy"
+// entries, built from TOOL_PLANES so a third plane cannot arrive with one of its two columns
+// missing. That source IS part of the skeleton a szablon carries (`serializeKosztorysAsPreset`
+// keeps the override), which is why the mode is here while the RATE beside it is not: a rate starts
+// hidden everywhere and the workbench has no picker, so listing it would put a figure on screen
+// nobody asked for. Picking „kwota stała" still freezes whatever the coefficient currently yields,
+// so the choice is usable without it; adjusting that frozen kwota is what waits for the picker.
+//
+// No `priceGross` either (owner ruling, 2026-09-22), and for a sharper reason than „not needed": it
+// is a COMPUTED column, netto × the row's VAT — and a preset's `settings` are retained but ignored
+// on apply, so that VAT is the workbench's own and never travels to the next budowa. The figure
+// would therefore be right on this screen and wrong everywhere the szablon is used.
+export const WORKSHOP_VISIBLE_COLUMNS: ReadonlySet<string> = new Set([
+  'sectionName',
+  'description',
+  'unit',
+  'price',
+  ...TOOL_PLANES.map((plane) => planePriceKey('priceMode', plane)),
+  'note',
+])
 
 // The stage axis multiplies the grid's stage block, and brutto per stage is the less-read of the pair
 // — derivable from the netto beside it at a fixed rate. „Sekcja" repeats one name down every row of

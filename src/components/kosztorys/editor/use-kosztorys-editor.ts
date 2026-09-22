@@ -124,6 +124,9 @@ type ArgsT = {
   workCatalogue?: WorkCatalogueItemT[]
   // Reseed-the-whole-tree path for a write that returns NOT_FOUND. Absent on the read-only body.
   onStaleTree?: () => Promise<void>
+  // The szablon workbench — the grid narrows to what a szablon carries. A boolean, not the id:
+  // the hook has no use for the id, and `buildV2Grid` runs unmemoized, so the value must be stable.
+  isWorkshop?: boolean
 }
 
 // Longer than the debounced save (500ms) so a burst is captured only once its writes are scheduled.
@@ -145,6 +148,7 @@ export function useKosztorysEditor({
   hasSettledMaterial = false,
   workCatalogue,
   onStaleTree,
+  isWorkshop = false,
 }: ArgsT) {
   // Interaction, split from disclosure: `preview` decides what a client is SHOWN, this decides whether
   // anything may be written.
@@ -501,6 +505,7 @@ export function useKosztorysEditor({
     readOnly,
     previewVisible: preview,
     previewHiddenColumns,
+    workshopVisible: isWorkshop,
   }
   const { columns, columnToggleItems, columnBaseRanks } = buildV2Grid(columnOpts)
   // A sort must not outlive its column: a money-axis or view toggle can drop the sorted column and its

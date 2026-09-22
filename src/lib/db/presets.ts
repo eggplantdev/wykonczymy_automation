@@ -7,6 +7,7 @@ import {
   type SnapshotPayloadT,
   type StoredSnapshotPayloadT,
 } from '@/lib/kosztorys/snapshot-format'
+import { PRESET_MIRROR_THROTTLE_SECONDS } from '@/lib/constants/preset-mirror'
 import type { DbExecutorT } from './get-db'
 import { isoOrNull } from './row-coerce'
 
@@ -19,6 +20,9 @@ export type PresetMetaT = {
   id: number
   name: string
   createdAt: string
+  // `null` on a szablon nobody has touched since the autosave shipped — the column arrived later
+  // and was not backfilled.
+  updatedAt: string | null
   createdBy: number | null
 }
 
@@ -39,10 +43,10 @@ export async function insertPreset(
   params: { name: string; createdBy: number | null; payload: SnapshotPayloadT },
 ): Promise<number | null> {
   const res = await db.execute(sql`
-    INSERT INTO kosztorys_presets (name, schema_version, payload, created_by)
+    INSERT INTO kosztorys_presets (name, schema_version, payload, created_by, updated_at)
     VALUES (
       ${params.name}, ${SNAPSHOT_SCHEMA_VERSION}, ${JSON.stringify(params.payload)}::jsonb,
-      ${params.createdBy}
+      ${params.createdBy}, now()
     )
     ON CONFLICT (name) DO NOTHING
     RETURNING id
@@ -58,32 +62,57 @@ export async function upsertPresetByName(
   params: { name: string; createdBy: number | null; payload: SnapshotPayloadT },
 ): Promise<number> {
   const res = await db.execute(sql`
-    INSERT INTO kosztorys_presets (name, schema_version, payload, created_by)
+    INSERT INTO kosztorys_presets (name, schema_version, payload, created_by, updated_at)
     VALUES (
       ${params.name}, ${SNAPSHOT_SCHEMA_VERSION}, ${JSON.stringify(params.payload)}::jsonb,
-      ${params.createdBy}
+      ${params.createdBy}, now()
     )
     ON CONFLICT (name) DO UPDATE SET
       schema_version = EXCLUDED.schema_version,
       payload = EXCLUDED.payload,
-      created_by = EXCLUDED.created_by
+      created_by = EXCLUDED.created_by,
+      updated_at = now()
     RETURNING id
   `)
   return Number(res.rows[0].id)
 }
 
-// An UPDATE and not an upsert: the workbench's „Zapisz" must never resurrect a szablon someone
-// deleted while it was open, and `false` is how the caller learns the row is gone.
+// An UPDATE and not an upsert: the workbench must never resurrect a szablon someone deleted while
+// it was open, and `false` is how the caller learns the row is gone.
+//
+// `created_by` is deliberately NOT touched: under autosave every keystroke would otherwise turn
+// „who created this szablon" into „who last hit a key".
 export async function updatePresetPayload(
   db: DbExecutorT,
-  params: { id: number; createdBy: number | null; payload: SnapshotPayloadT },
+  params: { id: number; payload: SnapshotPayloadT },
 ): Promise<boolean> {
   const res = await db.execute(sql`
     UPDATE kosztorys_presets SET
       schema_version = ${SNAPSHOT_SCHEMA_VERSION},
       payload = ${JSON.stringify(params.payload)}::jsonb,
-      created_by = ${params.createdBy}
+      updated_at = now(),
+      mirrored_at = now()
     WHERE id = ${params.id}
+    RETURNING id
+  `)
+  return res.rows.length > 0
+}
+
+/**
+ * The autosave throttle, as an atomic CLAIM rather than a read: two concurrent mutations would both
+ * pass a „has the window elapsed" SELECT and both mirror. Whoever's UPDATE moves `mirrored_at` owns
+ * this window; everyone else gets no row back and steps aside.
+ *
+ * The comparison runs IN THE DATABASE because serverless instances share no clock.
+ */
+export async function claimPresetMirror(db: DbExecutorT, presetId: number): Promise<boolean> {
+  const res = await db.execute(sql`
+    UPDATE kosztorys_presets SET mirrored_at = now()
+    WHERE id = ${presetId}
+      AND (
+        mirrored_at IS NULL
+        OR mirrored_at < now() - make_interval(secs => ${PRESET_MIRROR_THROTTLE_SECONDS})
+      )
     RETURNING id
   `)
   return res.rows.length > 0
@@ -166,7 +195,7 @@ export async function renamePreset(
   name: string,
 ): Promise<boolean> {
   const res = await db.execute(sql`
-    UPDATE kosztorys_presets SET name = ${name}
+    UPDATE kosztorys_presets SET name = ${name}, updated_at = now()
     WHERE id = ${presetId}
       AND NOT EXISTS (SELECT 1 FROM kosztorys_presets WHERE name = ${name} AND id <> ${presetId})
     RETURNING id
@@ -176,14 +205,18 @@ export async function renamePreset(
 
 export async function listPresets(db: DbExecutorT): Promise<PresetMetaT[]> {
   const res = await db.execute(sql`
-    SELECT id, name, created_at, created_by
+    SELECT id, name, created_at, updated_at, created_by
     FROM kosztorys_presets
-    ORDER BY created_at DESC, id DESC
+    -- Sorted by the last edit, because that is what moves: a szablon is created once and worked on
+    -- for weeks. NULLS LAST keeps the never-edited ones in the list, below the live ones, ordered
+    -- among themselves by creation.
+    ORDER BY updated_at DESC NULLS LAST, created_at DESC, id DESC
   `)
   return res.rows.map((row) => ({
     id: Number(row.id),
     name: String(row.name),
     createdAt: isoOrNull(row.created_at) ?? '',
+    updatedAt: isoOrNull(row.updated_at),
     createdBy: row.created_by == null ? null : Number(row.created_by),
   }))
 }

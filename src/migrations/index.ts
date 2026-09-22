@@ -91,6 +91,8 @@ import * as migration_20260915_0_transactions_amount_sort_index from './20260915
 import * as migration_20260921_0_media_kind from './20260921_0_media_kind'
 import * as migration_20260921_1_investments_assets from './20260921_1_investments_assets'
 import * as migration_20260921_2_leads_landing from './20260921_2_leads_landing'
+import * as migration_20260922_0_preset_autosave from './20260922_0_preset_autosave'
+import * as migration_20260922_1_catalogue_legacy_marker_cleanup from './20260922_1_catalogue_legacy_marker_cleanup'
 
 export const migrations = [
   {
@@ -557,5 +559,15 @@ export const migrations = [
     up: migration_20260921_2_leads_landing.up,
     down: migration_20260921_2_leads_landing.down,
     name: '20260921_2_leads_landing',
+  },
+  {
+    up: migration_20260922_0_preset_autosave.up,
+    down: migration_20260922_0_preset_autosave.down,
+    name: '20260922_0_preset_autosave',
+  },
+  {
+    up: migration_20260922_1_catalogue_legacy_marker_cleanup.up,
+    down: migration_20260922_1_catalogue_legacy_marker_cleanup.down,
+    name: '20260922_1_catalogue_legacy_marker_cleanup',
   },
 ]

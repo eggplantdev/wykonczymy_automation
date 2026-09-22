@@ -5,7 +5,7 @@ import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
-import { useOpenPreset } from '@/components/presets/use-open-preset'
+import { useOpenPreset } from '@/hooks/use-open-preset'
 import { createEmptyPresetAction } from '@/lib/actions/kosztorys-presets'
 import { toastMessage } from '@/lib/utils/toast'
 
@@ -17,6 +17,8 @@ export function CreateEmptyPresetDialog() {
   const [name, setName] = useState('')
   const [pending, startTransition] = useTransition()
   const { open: openInWorkshop } = useOpenPreset()
+
+  const canSave = name.trim().length > 0 && !pending
 
   const onConfirm = () => {
     startTransition(async () => {
@@ -44,14 +46,14 @@ export function CreateEmptyPresetDialog() {
         description="Zakłada pusty szablon i otwiera go w warsztacie, gdzie dokładasz sekcje i prace."
         confirmLabel="Załóż"
         onConfirm={onConfirm}
-        confirmDisabled={name.trim().length === 0}
+        confirmDisabled={!canSave}
         pending={pending}
         pendingLabel="Zakładam…"
       >
         <Input
           value={name}
           onChange={(event) => setName(event.target.value)}
-          onKeyDown={(event) => event.key === 'Enter' && !pending && onConfirm()}
+          onKeyDown={(event) => event.key === 'Enter' && canSave && onConfirm()}
           aria-label="Nazwa szablonu"
           autoFocus
         />

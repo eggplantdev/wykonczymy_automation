@@ -94,7 +94,14 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   // on the subcontractor planes. The rate itself stays editable everywhere — typing a number IS
   // „kwota stała" and Delete is the way back to „auto" — and is hidden by default plus barred from
   // the client preview by the allowlist.
-  const withMode = view !== 'client'
+  //
+  // The szablon workbench is the exception and takes it on the client plane too: it is the ONE
+  // screen whose whole subject is the reusable skeleton, and which source each crew's rate comes
+  // from is part of that skeleton (`serializeKosztorysAsPreset` carries the override). Its view is
+  // pinned to 'client' because the workbench shows the offer price and hides the view switch, so
+  // without this the column could never be reached there at all. Nothing leaks: the client preview
+  // is `previewVisible`, a different gate, and PREVIEW_VISIBLE_COLUMNS has no `priceMode`.
+  const withMode = view !== 'client' || opts.workshopVisible === true
   const subcontractorPriceCols: Column<KosztorysV2RowT>[] = TOOL_PLANES.flatMap((plane) => [
     ...(withMode
       ? [subcontractorModeColumn(plane, columnTitle(planePriceKey('priceMode', plane), opts))]

@@ -551,5 +551,23 @@ check tutaj wyrzuca z niego to, co było wcześniej otwarte.
 - [ ] „Nowy szablon" z nazwą zakłada szablon i ląduje w warsztacie pod tą nazwą, z pustą rozpiską i widocznym „Dodaj sekcję"
 - [ ] Nazwa już zajęta → komunikat „Szablon o tej nazwie już istnieje", dialog zostaje otwarty z wpisaną nazwą, na liście nie przybywa wiersz
 - [ ] Świeży szablon na liście pokazuje `0 sekcji / 0 pozycji`
-- [ ] Po dodaniu sekcji w warsztacie „Zapisz" nadpisuje ten szablon, a lista pokazuje niezerowe liczniki
+- [ ] Po dodaniu sekcji w warsztacie i powrocie na listę (bez żadnego „Zapisz" — przycisku już nie ma) szablon pokazuje niezerowe liczniki
 - [ ] Pusty szablon jest widoczny w wyborze szablonu przy zakładaniu inwestycji i zakłada ją z pustym kosztorysem (zachowanie oczekiwane, decyzja właściciela)
+
+## szablon-autosave — warsztat szablonu zapisuje się sam (2026-09-22)
+
+`/szablony/[id]`. Warsztat jest JEDEN i współdzielony, więc każdy check wyrzuca z niego to, co było
+otwarte wcześniej. Dławik lustra to 10 s, domknięcie ogona 15 s bezczynności — przy sprawdzaniu
+„czy doszło" liczy się odczekanie, nie odświeżanie w kółko.
+
+- [ ] Zmiana ceny w warsztacie, odczekanie ~20 s i wejście na `/szablony` → szablon stoi na górze listy, a „Zmieniono" pokazuje dzisiejszą datę
+- [ ] Ta sama zmiana, ale zamiast czekać zamykasz kartę od razu po edycji → po ponownym otwarciu warsztatu zmiana jest na miejscu
+- [ ] Seria szybkich zmian (kilkanaście komórek pod rząd) kończy się w szablonie kompletem, nie stanem sprzed ostatniej
+- [ ] Szablony sprzed tej zmiany mają w „Zmieniono" kreskę i stoją na liście pod tymi edytowanymi — żaden nie zniknął
+- [ ] W „Opcjach" nie ma już „Zapisz szablon"; jest „Zapisz jako nowy szablon…" i zakłada OSOBNY szablon, a warsztat zostaje przy swoim
+- [ ] W warsztacie nie ma przycisku „Inwestor" ani „Kolumny"; okna mówią „szablon", nie „kosztorys"
+- [ ] „Przełącz na inny szablon…" nie pokazuje szablonu aktualnie trzymanego w warsztacie
+- [ ] Przełączenie na inny szablon: nowy ląduje w warsztacie, a poprzedni na liście ma treść sprzed przełączenia (nie treść nowego)
+- [ ] Po przełączeniu w „Wersje" jest wpis „Przed wczytaniem: <nazwa>" i przywrócenie go wraca do stanu sprzed
+- [ ] „Wyczyść szablon" czyści rozpiskę, a „Wczytaj" (wersje) wraca do stanu sprzed wyczyszczenia
+- [ ] Edycja kosztorysu na zwykłej inwestycji nie rusza żadnego szablonu na liście („Zmieniono" bez zmian)

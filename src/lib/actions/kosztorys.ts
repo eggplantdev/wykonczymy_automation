@@ -33,7 +33,7 @@ import { applyPercentDiscountSchema } from '@/lib/kosztorys/percent-discount'
 import { isSectionColorKey, type SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import { replaceTreeWithSnapshot } from '@/lib/kosztorys/replace-tree-with-snapshot'
 import { SETTLEMENT_MODES, type SettlementModeT } from '@/lib/kosztorys/settlement-mode'
-import { SNAPSHOT_SCHEMA_VERSION } from '@/lib/kosztorys/snapshot-format'
+import { emptySnapshotPayload } from '@/lib/kosztorys/snapshot-format'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import type { ActionResultT } from '@/types/action'
 import type { ItemPatchT, StagePatchT, ToolPlaneT } from '@/lib/kosztorys/types'
@@ -312,14 +312,7 @@ export async function clearKosztorysAction(investmentId: number): Promise<Action
         investmentId: parsed.data.investmentId,
         label: 'Przed wyczyszczeniem',
         takenBy: user.id,
-        tree: {
-          schemaVersion: SNAPSHOT_SCHEMA_VERSION,
-          sections: [],
-          items: [],
-          stages: [],
-          progress: [],
-          settings: { wToolsCoeff: 0, ownToolsCoeff: 0, vatRate: 0 },
-        },
+        tree: emptySnapshotPayload({ wToolsCoeff: 0, ownToolsCoeff: 0, vatRate: 0 }),
         takeSettingsFromTree: false,
         clearGlobalDiscount: true,
       })

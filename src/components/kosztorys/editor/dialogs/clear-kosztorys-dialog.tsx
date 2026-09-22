@@ -12,7 +12,7 @@ import { useKosztorysActions } from '@/components/kosztorys/editor/actions/koszt
 // The one action in „Opcje" that leaves nothing behind, so it states the counts it is about to
 // delete rather than asking „na pewno?" over an unnamed amount.
 export function ClearKosztorysDialog() {
-  const { tree, investmentId, onTreeReplaced } = useKosztorysEditorContext()
+  const { tree, investmentId, onTreeReplaced, isWorkshop, noun } = useKosztorysEditorContext()
   const { open, setOpen: onOpenChange } = useKosztorysActions().clear
   const [pending, startTransition] = useTransition()
 
@@ -27,11 +27,11 @@ export function ClearKosztorysDialog() {
           toastMessage(result.error, 'error', 6000)
           return
         }
-        toastMessage('Kosztorys wyczyszczony', 'success')
+        toastMessage(`${noun.Nominative} wyczyszczony`, 'success')
       } catch {
         // A transport-level rejection can arrive AFTER the transaction committed, so the grid may
         // already be rendering rows that no longer exist. Refreshing regardless is the safe read.
-        toastMessage('Czyszczenie przerwane — odświeżam kosztorys', 'error', 6000)
+        toastMessage(`Czyszczenie przerwane — odświeżam ${noun.nominative}`, 'error', 6000)
       }
       onOpenChange(false)
       onTreeReplaced?.()
@@ -42,8 +42,14 @@ export function ClearKosztorysDialog() {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader
-          title="Wyczyść kosztorys"
-          description="Cała rozpiska zniknie — razem z etapami i wpisanym wykonaniem. Stawka VAT i współczynniki zostają, rabat globalny zostanie wyzerowany (przywrócenie stanu go nie cofa). Stan sprzed wyczyszczenia zapisze się automatycznie — wrócisz do niego przez „Wczytaj”."
+          title={`Wyczyść ${noun.nominative}`}
+          // Etapy, wykonanie, VAT and the global rabat are matters of one job — a szablon carries
+          // none of them, so there the sentence about them is not shorter, it is false.
+          description={
+            !isWorkshop
+              ? 'Cała rozpiska zniknie — razem z etapami i wpisanym wykonaniem. Stawka VAT i współczynniki zostają, rabat globalny zostanie wyzerowany (przywrócenie stanu go nie cofa). Stan sprzed wyczyszczenia zapisze się automatycznie — wrócisz do niego przez „Wczytaj”.'
+              : 'Cała rozpiska zniknie. Stan sprzed wyczyszczenia zapisze się automatycznie — wrócisz do niego przez „Wczytaj”.'
+          }
         />
 
         <p className="text-muted-foreground text-sm">

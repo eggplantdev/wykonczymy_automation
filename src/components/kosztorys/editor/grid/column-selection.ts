@@ -12,6 +12,7 @@ import {
 import {
   DISCOUNT_COLUMN_IDS,
   PREVIEW_VISIBLE_COLUMNS,
+  WORKSHOP_VISIBLE_COLUMNS,
   PRZEDMIAR_ANCHORED_COLUMNS,
   UNPICKABLE_COLUMNS,
   columnLabelForView,
@@ -44,6 +45,17 @@ function assertDisclosurePair(opts: BuildV2ColumnsOptsT): void {
   }
 }
 
+// The preview and the workbench are ONE mechanism written twice: a fixed column list, plus no
+// control on screen able to change what is read. Every gate in this file has to ask that of both, so
+// it asks once here — modelled as two independent booleans, the third gate (`orderAssembled`) was
+// simply forgotten and a stored column order still reshuffled the workbench. A future closed surface
+// is one entry here, not three edits in three functions.
+function closedColumnList(opts: BuildV2ColumnsOptsT): ReadonlySet<string> | null {
+  if (opts.previewVisible) return PREVIEW_VISIBLE_COLUMNS
+  if (opts.workshopVisible) return WORKSHOP_VISIBLE_COLUMNS
+  return null
+}
+
 // Hide/axis/resize selection over an already-assembled column list. Split from the assembly so the
 // grid and the picker can share ONE assembleV2Columns pass (buildV2Grid) instead of two.
 export function selectV2Columns(
@@ -60,11 +72,16 @@ export function selectV2Columns(
   // is a property of the investment, identical for every reader, and while it is on, the per-item
   // rabat fields are bypassed rather than cleared (calc.ts `applyDiscount`) — so showing those
   // columns would print „Rabat 10 %" beside „Kwota rabatu 0,00" on the offer itself.
+  const closed = closedColumnList(opts)
   const keep = (key: string): boolean => {
     if (opts.globalDiscountActive && DISCOUNT_COLUMN_IDS.has(key)) return false
-    if (opts.previewVisible) {
-      return PREVIEW_VISIBLE_COLUMNS.has(key) && !opts.previewHiddenColumns?.has(key)
-    }
+    // A closed list is a ceiling AND a floor, and the workbench needs the floor for the mirror image
+    // of the preview's reason: the three preference gates below persist in localStorage per BROWSER,
+    // not per kosztorys, and the workbench hides every control that edits them. Honour them and it
+    // renders a column set chosen on some other kosztorys, with nothing on screen able to change it
+    // — „Sekcja" is in DEFAULT_HIDDEN_COLUMNS, so it would be missing from the owner's own list on a
+    // first visit. The per-offer subtraction only the preview supplies still applies.
+    if (closed) return closed.has(key) && !opts.previewHiddenColumns?.has(key)
     if (opts.view !== 'client' && PRZEDMIAR_ANCHORED_COLUMNS.has(key)) return false
     // The reveal sits beside UNPICKABLE_COLUMNS because it answers the same question — „may a stored
     // tick hide this right now" — and pointedly NOT beside the two gates after it: a problem filter
@@ -85,11 +102,12 @@ export function selectV2ToggleItems(
   assembled: Column<KosztorysV2RowT>[],
   opts: BuildV2ColumnsOptsT,
 ): ColumnToggleItemT[] {
-  // A preview has no picker at all (the body mounts the slim header, not the toolbar), and a picker
-  // is by definition the owner preference selectV2Columns just stopped honouring — so there is no
-  // coherent list to return here. Empty rather than allowlist-filtered: the latter would describe a
-  // grid whose columns no longer answer to it.
-  if (opts.previewVisible) return []
+  // Neither closed surface has a picker to steer — the preview mounts the slim header rather than
+  // the toolbar, and the workbench's list answers the tick outright — and a picker is by definition
+  // the preference selectV2Columns just stopped honouring. Empty rather than allowlist-filtered: the
+  // latter would describe a grid whose columns no longer answer to it, and the toolbar hides the
+  // whole button on an empty list.
+  if (closedColumnList(opts)) return []
   const items: ColumnToggleItemT[] = []
   for (const col of assembled) {
     const id = toggleKey(col.id ?? '')
@@ -110,9 +128,12 @@ export function selectV2ToggleItems(
 // filter preserves relative order: one sort then serves both the grid and the picker, and the
 // trailing gap (appended post-filter) stays last.
 //
-// A preview skips it whole: the order is one owner's reading preference, exactly like the axis, the
-// layer and the picker tick, and none of those may shape what a client is served (ruling
-// 2026-07-28). Skipping is not merely cosmetic here — a client's localStorage is client-writable.
+// A closed surface skips it whole, for the reason `keep` states: the rank map is one browser's
+// reading preference, exactly like the axis, the layer and the picker tick, and the only UI that
+// edits or resets it lives in KosztorysViewMenu. On a preview that would let a client's own
+// localStorage — client-writable — reshape what they are served (ruling 2026-07-28); in the
+// workbench, six columns would arrive in an order the owner cannot see the origin of, let alone
+// change.
 export function orderAssembled(
   assembled: Column<KosztorysV2RowT>[],
   opts: BuildV2ColumnsOptsT,
@@ -120,7 +141,7 @@ export function orderAssembled(
   // An empty rank map is the assemble order by definition, and it is what every owner who never
   // reordered anything has — bail before the group→sort→regroup pass instead of reproducing the
   // input array on each render.
-  if (opts.previewVisible || !opts.columnRanks || Object.keys(opts.columnRanks).length === 0) {
+  if (closedColumnList(opts) || !opts.columnRanks || Object.keys(opts.columnRanks).length === 0) {
     return assembled
   }
   return orderColumns(assembled, opts.columnRanks, toggleKey)

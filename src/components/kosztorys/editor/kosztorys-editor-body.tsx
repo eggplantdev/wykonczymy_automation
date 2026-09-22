@@ -32,6 +32,7 @@ import {
 import { buildSectionBandRows } from '@/lib/kosztorys/section-band-rows'
 import { engagedConditionsOfKind, engagedHiders } from '@/lib/kosztorys/row-conditions/queries'
 import { emptyGridCopy } from '@/lib/kosztorys/empty-grid-copy'
+import { editorNoun } from '@/lib/kosztorys/editor-noun'
 import {
   isSectionFooterRow,
   isSectionHeaderRow,
@@ -106,6 +107,8 @@ export function KosztorysEditorBody({
   // priced off a coefficient hand the crew a cut of it (EX-708). The breakdown carries no link back
   // to a pozycja, so this is all the kosztorys can know.
   const hasSettledMaterial = panelData.settledBreakdown.length > 0
+  const isWorkshop = templatePresetId != null
+  const noun = editorNoun(templatePresetId)
   const editor = useKosztorysEditor({
     investmentId,
     tree,
@@ -117,6 +120,7 @@ export function KosztorysEditorBody({
     hasSettledMaterial,
     workCatalogue,
     onStaleTree,
+    isWorkshop,
   })
   const {
     gridRef,
@@ -350,6 +354,8 @@ export function KosztorysEditorBody({
         openImport: editor.readOnly ? undefined : openImport,
         hasSheet,
         templatePresetId,
+        isWorkshop,
+        noun,
       }}
     >
       {/* Wraps the body, not the grid: the value reaches a row's „…" through Radix's portal, which
@@ -446,7 +452,7 @@ export function KosztorysEditorBody({
               {subtotals.length === 0 && (
                 <EmptyState
                   className="pointer-events-none absolute inset-0"
-                  title="Kosztorys jest pusty"
+                  title={`${noun.Nominative} jest pusty`}
                   // The client view renders no toolbar, so it has no „Dodaj" menu to point at.
                   description={
                     preview ? undefined : 'Dodaj sekcję lub etap z menu „Dodaj" powyżej.'

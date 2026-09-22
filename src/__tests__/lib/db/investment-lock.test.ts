@@ -57,7 +57,11 @@ describe('investment lock', () => {
     ] as const)('reads %s from %s', async (kind, table) => {
       const db = await getDb(fakePayload)
       mockExecute.mockResolvedValueOnce({ rows: [{ id: 42, status: 'active' }] })
-      expect(await lockStatusFor(db, kind, 7)).toEqual({ investmentId: 42, locked: false })
+      expect(await lockStatusFor(db, kind, 7)).toEqual({
+        investmentId: 42,
+        locked: false,
+        templatePresetId: null,
+      })
       expect(lastSqlChunks()).toContain(table)
     })
 
@@ -66,7 +70,25 @@ describe('investment lock', () => {
     it('answers owner and lock together', async () => {
       const db = await getDb(fakePayload)
       mockExecute.mockResolvedValueOnce({ rows: [{ id: 42, status: 'completed' }] })
-      expect(await lockStatusFor(db, 'item', 7)).toEqual({ investmentId: 42, locked: true })
+      expect(await lockStatusFor(db, 'item', 7)).toEqual({
+        investmentId: 42,
+        locked: true,
+        templatePresetId: null,
+      })
+    })
+
+    // The third fact the same row already carries: a mutation on the warsztat owes a mirror into
+    // the szablon it holds, and asking for that pointer separately would double the round trip.
+    it('carries the szablon pointer of the warsztat row', async () => {
+      const db = await getDb(fakePayload)
+      mockExecute.mockResolvedValueOnce({
+        rows: [{ id: 42, status: 'szablon', template_preset_id: 5 }],
+      })
+      expect(await lockStatusFor(db, 'item', 7)).toEqual({
+        investmentId: 42,
+        locked: false,
+        templatePresetId: 5,
+      })
     })
 
     // Distinguishable from „locked" on purpose — the caller reports this one as NOT_FOUND.

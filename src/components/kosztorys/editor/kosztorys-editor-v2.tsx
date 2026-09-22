@@ -7,16 +7,17 @@ import { KosztorysVersionsDrawer } from '@/components/kosztorys/editor/dialogs/k
 import { useAutoSnapshot } from '@/components/kosztorys/editor/hooks/use-auto-snapshot'
 import { useRestoreRemount } from '@/components/kosztorys/editor/hooks/use-restore-remount'
 import { useUndoRedo } from '@/components/kosztorys/editor/hooks/use-undo-redo'
+import { useWorkshopMirrorFlush } from '@/components/kosztorys/editor/hooks/use-workshop-mirror-flush'
 import { refreshDataAction } from '@/lib/actions/refresh'
 import type { KosztorysEditorDataT } from '@/lib/kosztorys/types'
 
 type PropsT = KosztorysEditorDataT
 
-// Thin shell around the stateful editor body: owns the auto-snapshot interval, the "Wersje" drawer, and
-// the restore-driven remount. Each of the three lives here so a restore's body remount doesn't disturb
-// them.
+// Thin shell around the stateful editor body: owns the auto-snapshot interval, the szablon mirror
+// flush, the "Wersje" drawer, and the restore-driven remount. Each of them lives here so a restore's
+// body remount doesn't disturb them.
 export function KosztorysEditorV2(props: PropsT) {
-  const { investmentId, tree, investmentName } = props
+  const { investmentId, tree, investmentName, templatePresetId } = props
   const router = useRouter()
   // One undo/redo stack per editor mount, passed to the body as a prop. It outlives the body's
   // restore remount (the shell doesn't remount), so a restore must reset() it — the stale commands
@@ -36,6 +37,9 @@ export function KosztorysEditorV2(props: PropsT) {
   // eslint-disable-next-line react-hooks/refs
   revisionRef.current = undoRedo.revision
   const autoSnapshot = useAutoSnapshot(investmentId, revisionRef)
+  // In the shell, not the body: the body remounts on a version restore, and the flush on unmount
+  // has to mean „I left the workbench", not „I loaded a different version".
+  useWorkshopMirrorFlush(templatePresetId, revisionRef)
 
   // Shared by every path that swaps the whole tree under the editor — restoring a version and
   // importing the Google sheet both land here.

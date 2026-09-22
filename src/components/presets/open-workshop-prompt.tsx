@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
-import { useOpenPreset } from '@/components/presets/use-open-preset'
+import { useOpenPreset } from '@/hooks/use-open-preset'
 
 // The warsztat holds a different szablon than this url names — a stale tab, a hand-typed url, or
 // someone else having opened theirs in the meantime.

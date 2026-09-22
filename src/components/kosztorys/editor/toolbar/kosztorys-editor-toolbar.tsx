@@ -11,7 +11,6 @@ import { KosztorysActiveFiltersBar } from '@/components/kosztorys/editor/toolbar
 import { KosztorysAddMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-add-menu'
 import { KosztorysActionsMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-actions-menu'
 import { KosztorysActionsProvider } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
-import { SaveTemplateButton } from '@/components/kosztorys/editor/toolbar/save-template-button'
 import { KosztorysTotalsPanelToggle } from '@/components/kosztorys/summary/kosztorys-totals-panel-toggle'
 import { ToolbarToggle } from '@/components/ui/toolbar-toggle'
 import {
@@ -26,7 +25,8 @@ import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kos
 import { cn } from '@/lib/utils/cn'
 
 export function KosztorysEditorToolbar() {
-  const { search, setSearch, view, setView, subtotals, readOnly } = useKosztorysEditorContext()
+  const { search, setSearch, view, setView, subtotals, readOnly, isWorkshop } =
+    useKosztorysEditorContext()
   // Phone only — both groups below are `sm:contents`, so from 768 up this flag stops mattering.
   const [toolsOpen, setToolsOpen] = useState(false)
 
@@ -80,7 +80,6 @@ export function KosztorysEditorToolbar() {
           {/* Claims free space only from `sm`: five menus are wider than a phone, and below `sm` the
               group already has its own line. */}
           <div className="flex flex-wrap items-center gap-1 sm:ml-auto">
-            <SaveTemplateButton />
             {/* Spans both menus, not just „Opcje": „Porównaj z katalogiem" is now read from
                 „Problemy" while its window is still mounted beside the other „Opcje" dialogs, so the
                 trigger and the dialog only reach the same state under one shared provider. */}
@@ -92,7 +91,9 @@ export function KosztorysEditorToolbar() {
             </KosztorysActionsProvider>
             <KosztorysFiltersMenu />
             <KosztorysSectionsMenu />
-            <KosztorysViewMenu />
+            {/* The workbench has a closed column list (WORKSHOP_VISIBLE_COLUMNS), so the picker
+                would steer an empty list, and the money/layer axes describe columns it has not. */}
+            {!isWorkshop && <KosztorysViewMenu />}
           </div>
         </div>
       </div>

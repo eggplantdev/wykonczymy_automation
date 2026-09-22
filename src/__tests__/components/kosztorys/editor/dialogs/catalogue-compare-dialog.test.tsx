@@ -6,6 +6,7 @@ import { CatalogueCompareDialog } from '@/components/kosztorys/editor/dialogs/ca
 import { CATALOGUE_DIVERGENCE_CONDITION_ID } from '@/lib/kosztorys/row-conditions/registry'
 import { PROBLEM_IDS } from '@/lib/kosztorys/problem-conditions'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
+import { editorNoun } from '@/lib/kosztorys/editor-noun'
 import type { CatalogueComparisonT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
 const setOpen = vi.fn()
@@ -27,6 +28,7 @@ vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
     handleAcceptCatalogueName,
     engagedConditionIds,
     toggleConditionExclusive,
+    noun: editorNoun(undefined),
   }),
 }))
 
