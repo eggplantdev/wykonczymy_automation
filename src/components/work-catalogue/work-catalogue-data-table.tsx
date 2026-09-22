@@ -1,24 +1,20 @@
 'use client'
 
-import { useDeferredValue, useMemo, useState } from 'react'
-import { Archive, Tags } from 'lucide-react'
+import { useDeferredValue, useMemo } from 'react'
+import { Tags } from 'lucide-react'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import { ColumnToggle } from '@/components/filters/column-toggle'
 import { cn } from '@/lib/utils/cn'
 import { GradientSpinner } from '@/components/ui/gradient-spinner'
 import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
-import {
-  FilterTriggerButton,
-  GRID_FILTER_TRIGGER_CLASS,
-} from '@/components/filters/filter-trigger-button'
+import { GRID_FILTER_TRIGGER_CLASS } from '@/components/filters/filter-trigger-button'
 import { AddCatalogueItemDialog } from '@/components/dialogs/add-catalogue-item-dialog'
 import { useClientMultiFilter } from '@/hooks/use-client-multi-filter'
 import { useSearchFilter } from '@/hooks/use-search-filter'
 import { getWorkCatalogueColumns } from '@/components/tables/work-catalogue'
 import { catalogueCategoryOptions } from '@/lib/kosztorys/work-catalogue/category-options'
 import { compareDescriptions } from '@/lib/kosztorys/work-catalogue/compare-descriptions'
-import { hasLegacyMarker } from '@/lib/kosztorys/work-catalogue/legacy-marker'
 import { itemNoun } from '@/lib/kosztorys/counted-nouns'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
@@ -42,19 +38,10 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
     setValues: setCategories,
   } = useClientMultiFilter(searched, getCategory)
 
-  // TEMPORARY, same lifespan as the row's clear-marker button: the search box only reaches the items
-  // pulled out of the old sheets by typing the note out.
-  const [onlyLegacy, setOnlyLegacy] = useState(false)
-
-  const legacyRows = filteredData.filter((row) => hasLegacyMarker(row.description))
-  // Narrows LAST, so „Kategoria" keeps counting rows this filter has not touched. And the count is a
-  // promise about what the click will show — over `data` it promised 742 rows while delivering 3.
-  const rows = onlyLegacy ? legacyRows : filteredData
-
   // Redrawing ~950 unvirtualized rows blocks the click, so the filters stay urgent and the TABLE lags
   // behind them. Deferred here rather than per filter because every control feeds this list.
-  const deferredRows = useDeferredValue(rows)
-  const busy = rows !== deferredRows
+  const deferredRows = useDeferredValue(filteredData)
+  const busy = filteredData !== deferredRows
 
   const categoryOptions = useMemo(() => catalogueCategoryOptions(data), [data])
 
@@ -89,11 +76,12 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
       storageKey="work-catalogue"
       initialSorting={INITIAL_SORTING}
       aboveToolbar={
-        /* Counted off `rows`, not off the deferred list the table renders: behind the spinner the
-           count would still be naming the previous search for as long as ~950 rows take to redraw. */
+        /* Counted off `filteredData`, not off the deferred list the table renders: behind the
+           spinner the count would still be naming the previous search for as long as ~950 rows
+           take to redraw. */
         <span className="text-muted-foreground block text-sm">
-          {rows.length} {itemNoun(rows.length)}
-          {rows.length !== data.length && ` z ${data.length}`}
+          {filteredData.length} {itemNoun(filteredData.length)}
+          {filteredData.length !== data.length && ` z ${data.length}`}
         </span>
       }
       toolbar={({ table, columnVisibility: cv, ...order }) => (
@@ -115,18 +103,6 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
                 searchable
                 triggerClassName={GRID_FILTER_TRIGGER_CLASS}
               />
-              {/* Stays mounted while ON even at zero: the review's last clear-marker click drops the
-                  count to 0, and unmounting there leaves the table filtered to nothing. */}
-              {(legacyRows.length > 0 || onlyLegacy) && (
-                <FilterTriggerButton
-                  active={onlyLegacy}
-                  icon={Archive}
-                  onClick={() => setOnlyLegacy((previous) => !previous)}
-                  className={GRID_FILTER_TRIGGER_CLASS}
-                >
-                  {`Stary arkusz (${legacyRows.length})`}
-                </FilterTriggerButton>
-              )}
               {/* Always mounted: toggling it would resize the flex row and nudge the buttons
                   sideways on every keystroke. Gone below `sm` instead — there the toolbar is a grid,
                   so an invisible spinner holds a whole cell and opens a phantom row. */}

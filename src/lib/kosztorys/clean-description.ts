@@ -1,6 +1,5 @@
 import { CATALOGUE_NAME_FIXES } from '@/lib/kosztorys/catalogue-name-fixes'
 import { fold } from '@/lib/kosztorys/sheet-import/columns'
-import { LEGACY_SUFFIX, stripLegacyMarker } from '@/lib/kosztorys/work-catalogue/legacy-marker'
 
 // Every rule is idempotent, so the owner can press the button as often as they like and the rules can
 // be replayed over a whole database without compounding.
@@ -195,12 +194,9 @@ const CATALOGUE_NAMES_BY_FOLD = new Map([
 
 export function cleanDescription(text: string): string {
   const spelled = TYPO_FIXES.reduce((acc, [from, to]) => acc.split(from).join(to), text)
-  // „[stary arkusz]" is display text, never identity (`legacy-marker`), and the picker copies it
-  // verbatim into a rozpiska — so a marked praca has to reach its entry and come back still marked.
-  const bare = stripLegacyMarker(spelled)
-  const named = CATALOGUE_NAMES_BY_FOLD.get(fold(bare))
+  const named = CATALOGUE_NAMES_BY_FOLD.get(fold(spelled))
   // They win over `unshout`/`sentenceCase` because they are already written in their target casing,
   // and they run last among the rewrites so a SHOUTED opis still finds its entry via `fold`.
-  if (named !== undefined) return bare === spelled ? named : named + LEGACY_SUFFIX
+  if (named !== undefined) return named
   return sentenceCase(unshout(spelled.replace(/\s+/g, ' ').trim()))
 }

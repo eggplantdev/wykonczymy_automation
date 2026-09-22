@@ -1,7 +1,7 @@
 // 938 hand-prepared name corrections for `work_catalogue_items` only (2026-09-14, source script
 // deleted in `4de2666e`, applied by `61ae1aa5`) — a rozpiska/szablon entry differing by an ogonek or
 // KNR line break still reports „spoza katalogu". Keyed by `opis|j.m.` (j.m. cut, opis alone is
-// unambiguous); values strip the review marker „[stary arkusz]", which must never reach an oferta.
+// unambiguous).
 export const CATALOGUE_NAME_FIXES: ReadonlyMap<string, string> = new Map([
   [
     '(z.vii) warstwy wyrownujace i wygladza- jace z zaprawy samopoziomujacej gr. 5-30 mm wykonywane w pomieszczeniach o pow. ponad 8 m2',

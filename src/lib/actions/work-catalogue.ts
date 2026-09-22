@@ -20,7 +20,6 @@ import {
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { toCatalogueCandidate } from '@/lib/kosztorys/work-catalogue/item-to-catalogue'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
-import { stripLegacyMarker } from '@/lib/kosztorys/work-catalogue/legacy-marker'
 import { appendCatalogueItems } from '@/lib/kosztorys/work-catalogue/append-catalogue-items'
 import { getWorkCatalogue } from '@/lib/queries/work-catalogue'
 import type {
@@ -103,37 +102,6 @@ export async function updateCatalogueItemAction(id: number, data: WorkCatalogueI
       if (existing.docs.length > 0) return { success: false, error: DUPLICATE_ERROR }
 
       await payload.update({ collection: 'work-catalogue-items', id, data: row })
-
-      return { success: true }
-    },
-    ['workCatalogue'],
-  )
-}
-
-// TEMPORARY, for the owner's review of the ~750 items pulled out of the old sheets: one click takes
-// the „[stary arkusz]" note off a description. Goes away with the note itself.
-//
-// `matchKey` is left alone: `catalogueKey` already strips the note, so the key cannot change and
-// recomputing it would only invite a collision check.
-export async function clearLegacyMarkerAction(id: number) {
-  return protectedAction(
-    'clearLegacyMarkerAction',
-    async ({ payload }) => {
-      const item = await payload.findByID({
-        collection: 'work-catalogue-items',
-        id,
-        depth: 0,
-        overrideAccess: true,
-        // Without it a stale id throws Payload's NotFound instead of resolving nullish, and the
-        // owner gets a framework error where a Polish sentence belongs.
-        disableErrors: true,
-      })
-      if (!item) return { success: false, error: MISSING_ITEM_ERROR }
-
-      const description = stripLegacyMarker(item.description)
-      if (description === item.description) return { success: true }
-
-      await payload.update({ collection: 'work-catalogue-items', id, data: { description } })
 
       return { success: true }
     },
