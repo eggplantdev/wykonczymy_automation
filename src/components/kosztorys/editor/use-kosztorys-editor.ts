@@ -41,6 +41,7 @@ import {
   applyRestoreItem,
   applyKosztorysOrder,
   buildBlankRow,
+  catalogueSlicePlacement,
   groupBySection,
   neighborSectionId,
   revertField,
@@ -947,26 +948,19 @@ export function useKosztorysEditor({
     setRows((rs) => applyInsertSectionRow(rs, anchorSectionId, row, dir))
   }
 
-  // Returns the new section's id so a caller that needs somewhere to put something (the katalog
-  // picker on an empty kosztorys) can chain straight into it.
-  async function handleAddSection(): Promise<number | null> {
+  async function handleAddSection() {
     const res = await addSectionAction(investmentId)
-    if (!res.success) {
-      reportFailure(res.error, res.code)
-      return null
-    }
+    if (!res.success) return reportFailure(res.error, res.code)
     const row = buildNewSectionRow(res.data.section.id, res.data.item)
     prevById.current.set(row.id, row)
     setRows((rs) => [row, ...rs])
-    return res.data.section.id
   }
 
-  // Built through treeToRows with the CURRENT stages + global discount, so appended rows carry today's
-  // stage columns and rabat flag. The action committed with real ids, so there is no temp-id
-  // reconciliation. router.refresh() alone can't add them (mount-frozen `rows`, EX-441).
-  function handleAppendedSections(slice: KosztorysTreeT['sections']) {
-    const appended = treeToRows({
-      sections: slice,
+  // Built through treeToRows with the CURRENT stages + global discount, so server-committed rows carry
+  // today's stage columns and rabat flag. Real ids, so there is no temp-id reconciliation.
+  function rowsFromSections(sections: KosztorysTreeT['sections']) {
+    const built = treeToRows({
+      sections,
       stages,
       progress: [],
       globalCoeffs: tree.globalCoeffs,
@@ -976,28 +970,29 @@ export function useKosztorysEditor({
       globalDiscount,
       revision: tree.revision,
     })
-    for (const row of appended) prevById.current.set(row.id, row)
+    for (const row of built) prevById.current.set(row.id, row)
+    return built
+  }
+
+  // router.refresh() alone can't add them (mount-frozen `rows`, EX-441).
+  function handleAppendedSections(slice: KosztorysTreeT['sections']) {
+    const appended = rowsFromSections(slice)
     setRows((rs) => [...rs, ...appended])
     router.refresh()
   }
 
-  // Cannot append to the array's end: the grid walks rows in order to build its section bands, so a row
-  // parked past a later section opens a second band for a section that already has one. applyAddItem
-  // lands each after its own sekcja's last row, and folding in order keeps the katalog's selection order.
-  function handleAppendedCatalogueItems(slice: KosztorysTreeT['sections'][number]) {
-    const appended = treeToRows({
-      sections: [slice],
-      stages,
-      progress: [],
-      globalCoeffs: tree.globalCoeffs,
-      vatRate: tree.vatRate,
-      settlementMode: tree.settlementMode,
-      materialsNetRate: tree.materialsNetRate,
-      globalDiscount,
-      revision: tree.revision,
-    })
-    for (const row of appended) prevById.current.set(row.id, row)
-    setRows((rs) => appended.reduce(applyAddItem, rs))
+  // A sekcja the picker just minted lands at the TOP as one band, the way addSectionAction places one.
+  // Folding in order is what keeps the katalog's selection order.
+  function handleAppendedCatalogueItems(
+    slice: KosztorysTreeT['sections'][number],
+    createdSection: boolean,
+  ) {
+    const placement = catalogueSlicePlacement(rowsRef.current, slice.id, createdSection)
+    if (placement === 'reseed') return recoverStaleTree()
+    const appended = rowsFromSections([slice])
+    setRows((rs) =>
+      placement === 'prepend' ? [...appended, ...rs] : appended.reduce(applyAddItem, rs),
+    )
     unfoldSection(slice.id)
     router.refresh()
   }

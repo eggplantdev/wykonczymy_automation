@@ -686,3 +686,20 @@ Licznik renderów czytaj z logu dev: `[PERF] buildKosztorysTree` (drzewo jest ni
 - [ ] Przeniesienie plików ze zgłoszenia do inwestycji („wyślij do inwestycji"): galeria inwestycji
       docelowej pokazuje je po wejściu, bez odświeżania — piąty pisarz, ten w `lead-assets.ts`
 - [ ] Usunięcie pliku z galerii i usunięcie wszystkich: plik znika, a po odświeżeniu nie wraca
+
+## Nowa sekcja wprost w „Dodaj pracę z katalogu" (2026-09-22)
+
+Picker przyjmuje teraz nazwę sekcji, a nie tylko wybór z listy — i sam zakłada sekcję razem z
+pracami, w jednej transakcji. Automat sprawdza routing (która akcja) i zapis (co wylądowało w bazie);
+na żywo zostaje to, czego spec nie widzi: gdzie siatka rysuje nowy pasek i czy „Anuluj" nic nie
+zostawia.
+
+- [ ] Pusty kosztorys: „Dodaj" → „Praca z katalogu…" otwiera się od razu, bez zakładania sekcji po
+      drodze — i bez pustego wiersza w siatce po dodaniu prac
+- [ ] Wpisana nowa nazwa: sekcja ląduje **na górze** rozpiski jako jeden pasek, z pracami w środku,
+      a nie rozbita na dwa pasy ani doklejona na końcu
+- [ ] „Anuluj" po wpisaniu nazwy nie zostawia pustej sekcji — po odświeżeniu rozpiska bez zmian
+- [ ] Wpisana nazwa istniejącej sekcji (inna wielkość liter) dopisuje do niej, nie zakłada
+      bliźniaczki — sekcja sama się rozwija i prace są w niej widoczne
+- [ ] Picker otwarty z „…" przy wierszu ma nazwę tej sekcji już wpisaną i dopisuje właśnie do niej
+- [ ] Ostrzeżenia o pułapie 65 % wychodzą tak samo na ścieżce nowej sekcji, jak na dopisywaniu

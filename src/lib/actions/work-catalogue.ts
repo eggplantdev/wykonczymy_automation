@@ -21,12 +21,14 @@ import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { toCatalogueCandidate } from '@/lib/kosztorys/work-catalogue/item-to-catalogue'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { appendCatalogueItems } from '@/lib/kosztorys/work-catalogue/append-catalogue-items'
+import { createSectionWithCatalogueItems } from '@/lib/kosztorys/work-catalogue/create-section-with-catalogue-items'
 import { getWorkCatalogue } from '@/lib/queries/work-catalogue'
 import type {
   AppendedCatalogueSliceT,
   AppliedCatalogueValueT,
   CatalogueSavePreviewT,
   CatalogueSeedItemT,
+  NewSectionCatalogueSliceT,
   SeedConflictFieldT,
   WorkCatalogueItemT,
 } from '@/lib/kosztorys/work-catalogue/types'
@@ -130,13 +132,37 @@ export async function listWorkCatalogueAction(): Promise<ActionResultT<WorkCatal
   })
 }
 
+const catalogueItemIdsSchema = z
+  .array(z.number().int().positive())
+  .min(1, 'Wybierz co najmniej jedną pracę')
+
 const insertCatalogueItemsSchema = z.object({
   sectionId: z.number().int().positive(),
-  catalogueItemIds: z.array(z.number().int().positive()).min(1, 'Wybierz co najmniej jedną pracę'),
+  catalogueItemIds: catalogueItemIdsSchema,
+})
+
+const createSectionWithCatalogueItemsSchema = z.object({
+  investmentId: z.number().int().positive(),
+  sectionName: z.string().trim().min(1, 'Podaj nazwę sekcji'),
+  catalogueItemIds: catalogueItemIdsSchema,
 })
 
 // The client sends ONLY ids: every number that lands in the rozpiska is re-read from the cennik
 // server-side, so a tampered payload cannot price a praca.
+async function readCatalogueItems(
+  payload: Payload,
+  catalogueItemIds: number[],
+): Promise<WorkCatalogueItemT[] | { error: string }> {
+  const db = await getDb(payload)
+  // Before the existence check: `listCatalogueItemsByIds` returns one row per REQUESTED id, so
+  // `[5, 5, 5]` would pass the length test and append the same praca three times.
+  const ids = [...new Set(catalogueItemIds)]
+  const items = await listCatalogueItemsByIds(db, ids)
+  if (items.length !== ids.length)
+    return { error: 'Część wybranych prac nie istnieje już w katalogu.' }
+  return items
+}
+
 export async function insertCatalogueItemsAction(
   sectionId: number,
   catalogueItemIds: number[],
@@ -148,13 +174,8 @@ export async function insertCatalogueItemsAction(
       const parsed = validateAction(insertCatalogueItemsSchema, { sectionId, catalogueItemIds })
       if (!parsed.success) return parsed
 
-      const db = await getDb(payload)
-      // Before the existence check: `listCatalogueItemsByIds` returns one row per REQUESTED id, so
-      // `[5, 5, 5]` would pass the length test and append the same praca three times.
-      const ids = [...new Set(parsed.data.catalogueItemIds)]
-      const items = await listCatalogueItemsByIds(db, ids)
-      if (items.length !== ids.length)
-        return { success: false, error: 'Część wybranych prac nie istnieje już w katalogu.' }
+      const items = await readCatalogueItems(payload, parsed.data.catalogueItemIds)
+      if ('error' in items) return { success: false, error: items.error }
 
       const created = await withPayloadTransaction(
         payload,
@@ -166,6 +187,46 @@ export async function insertCatalogueItemsAction(
       return { success: true, data: created }
     },
     ['kosztorysItems'],
+  )
+}
+
+// The sekcja and the prace are written together, so „Anuluj" in the picker can never leave an orphan
+// sekcja behind.
+export async function createSectionWithCatalogueItemsAction(
+  investmentId: number,
+  sectionName: string,
+  catalogueItemIds: number[],
+): Promise<ActionResultT<NewSectionCatalogueSliceT>> {
+  return investmentAction(
+    'createSectionWithCatalogueItemsAction',
+    { investmentId },
+    async ({ payload }) => {
+      const parsed = validateAction(createSectionWithCatalogueItemsSchema, {
+        investmentId,
+        sectionName,
+        catalogueItemIds,
+      })
+      if (!parsed.success) return parsed
+
+      const items = await readCatalogueItems(payload, parsed.data.catalogueItemIds)
+      if ('error' in items) return { success: false, error: items.error }
+
+      const created = await withPayloadTransaction(
+        payload,
+        (req) =>
+          createSectionWithCatalogueItems(
+            payload,
+            req,
+            parsed.data.investmentId,
+            parsed.data.sectionName,
+            items,
+          ),
+        { skipRevalidation: true },
+      )
+
+      return { success: true, data: created }
+    },
+    ['kosztorysSections', 'kosztorysItems'],
   )
 }
 

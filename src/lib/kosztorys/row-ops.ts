@@ -74,6 +74,24 @@ export function applyAddItem(rows: KosztorysV2RowT[], row: KosztorysV2RowT): Kos
   return [...rows.slice(0, at), row, ...rows.slice(at)]
 }
 
+export type CatalogueSlicePlacementT = 'prepend' | 'fold' | 'reseed'
+
+// Where a „Dodaj pracę z katalogu" slice goes, decided before any of it is built.
+//
+// `reseed` is the case the two obvious branches miss: the server matched the typed nazwa to a sekcja
+// this grid holds no row for — emptied of its pozycje (a 0-row sekcja is absent from the picker's
+// list, which is why the nazwa was typed at all) or created elsewhere since mount. `applyAddItem`
+// would then have no anchor and append past the LAST sekcja, drawing the band in the wrong place
+// until a full reload, because `rows` is mount-frozen (EX-441).
+export function catalogueSlicePlacement(
+  rows: readonly KosztorysV2RowT[],
+  sectionId: number,
+  createdSection: boolean,
+): CatalogueSlicePlacementT {
+  if (createdSection) return 'prepend'
+  return rows.some((row) => row.sectionId === sectionId) ? 'fold' : 'reseed'
+}
+
 export function applyRemoveItem(rows: KosztorysV2RowT[], itemId: number): KosztorysV2RowT[] {
   return rows.filter((r) => r.id !== itemId)
 }

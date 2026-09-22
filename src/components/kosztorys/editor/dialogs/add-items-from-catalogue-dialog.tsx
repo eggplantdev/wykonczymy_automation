@@ -9,17 +9,24 @@ import { DialogActions } from '@/components/ui/dialog-actions'
 import { Button } from '@/components/ui/button'
 import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
 import { SearchFilterInput } from '@/components/filters/search-filter-input'
-import { SimpleSelect } from '@/components/ui/simple-select'
+import { Combobox } from '@/components/ui/combobox'
 import { WORK_CATALOGUE_PICKER_COLUMNS } from '@/components/tables/work-catalogue'
 import { useClientMultiFilter } from '@/hooks/use-client-multi-filter'
 import { useSearchFilter } from '@/hooks/use-search-filter'
-import { insertCatalogueItemsAction } from '@/lib/actions/work-catalogue'
+import {
+  createSectionWithCatalogueItemsAction,
+  insertCatalogueItemsAction,
+} from '@/lib/actions/work-catalogue'
 import {
   kosztorysCatalogueKeys,
   partitionAlreadyInKosztorys,
   type KosztorysItemRefT,
 } from '@/lib/kosztorys/work-catalogue/already-in-kosztorys'
 import { catalogueCategoryOptions } from '@/lib/kosztorys/work-catalogue/category-options'
+import {
+  resolveSectionTarget,
+  sectionNameOptions,
+} from '@/lib/kosztorys/work-catalogue/section-target'
 import type { SectionSubtotalT } from '@/lib/kosztorys/types'
 import type {
   AppendedCatalogueSliceT,
@@ -29,6 +36,7 @@ import { toastMessage } from '@/lib/utils/toast'
 import { useWorkCatalogue } from '@/components/kosztorys/editor/dialogs/use-work-catalogue'
 
 type PropsT = {
+  investmentId: number
   sections: SectionSubtotalT[]
   // The WHOLE rozpiska, so „Ukryj już dodane" answers for the kosztorys and not for one sekcja —
   // the same praca legitimately sits in several pokoje, and the owner wants all of them out of view.
@@ -37,8 +45,9 @@ type PropsT = {
   initialSectionId?: number | null
   open: boolean
   onOpenChange: (open: boolean) => void
-  // The editor patches the grid from this rather than refetching the tree.
-  onInserted: (slice: AppendedCatalogueSliceT['section']) => void
+  // The editor patches the grid from this rather than refetching the tree. Only the server knows
+  // whether a sekcja was minted, because the nazwa may have been taken since the dialog opened.
+  onInserted: (slice: AppendedCatalogueSliceT['section'], createdSection: boolean) => void
 }
 
 const col = createColumnHelper<WorkCatalogueItemT>()
@@ -81,6 +90,7 @@ function SelectCell({
 // Selection is ordered, not a Set: the prace land in the rozpiska in the order they were ticked,
 // which sorting the table does not touch.
 export function AddItemsFromCatalogueDialog({
+  investmentId,
   sections,
   kosztorysItems,
   initialSectionId = null,
@@ -90,7 +100,9 @@ export function AddItemsFromCatalogueDialog({
 }: PropsT) {
   const { catalogue } = useWorkCatalogue(open)
   const [selected, setSelected] = useState<number[]>([])
-  const [sectionId, setSectionId] = useState<number | null>(initialSectionId)
+  const [sectionName, setSectionName] = useState(
+    () => sections.find((section) => section.sectionId === initialSectionId)?.sectionName ?? '',
+  )
   const [hideAlreadyAdded, setHideAlreadyAdded] = useState(true)
   const [pending, setPending] = useState(false)
 
@@ -120,10 +132,8 @@ export function AddItemsFromCatalogueDialog({
 
   const categoryOptions = catalogueCategoryOptions(catalogue ?? [])
 
-  const sectionOptions = sections.map((section) => ({
-    value: String(section.sectionId),
-    label: section.sectionName,
-  }))
+  const sectionOptions = sectionNameOptions(sections)
+  const target = resolveSectionTarget(sectionName, sections, initialSectionId ?? undefined)
 
   function toggle(id: number) {
     setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
@@ -148,14 +158,22 @@ export function AddItemsFromCatalogueDialog({
   ]
 
   async function handleConfirm() {
-    if (sectionId === null || selected.length === 0) return
+    if (!target || selected.length === 0) return
     setPending(true)
     // try/finally, not a bare await: a transport-level rejection (dropped connection, a client still
     // holding a redeployed build's action id) never resolves to `{success:false}`, and without this
     // „Dodaj" stays disabled for good with nothing said on screen.
     let res
+    // Read off the branch that knows, not sniffed back off the result: only the „nowa sekcja" action
+    // can report one, and only the server can say whether the nazwa turned out to be taken.
+    let createdSection = false
     try {
-      res = await insertCatalogueItemsAction(sectionId, selected)
+      if (target.kind === 'existing') {
+        res = await insertCatalogueItemsAction(target.sectionId, selected)
+      } else {
+        res = await createSectionWithCatalogueItemsAction(investmentId, target.name, selected)
+        if (res.success) createdSection = res.data.createdSection
+      }
     } catch {
       toastMessage('Nie udało się dodać prac — spróbuj ponownie', 'error', 4000)
       return
@@ -176,7 +194,7 @@ export function AddItemsFromCatalogueDialog({
     if (unshownWarnings > 0)
       toastMessage(`…i ${unshownWarnings} dalszych ostrzeżeń o cenie`, 'warning', 6000)
     onOpenChange(false)
-    onInserted(res.data.section)
+    onInserted(res.data.section, createdSection)
   }
 
   return (
@@ -254,12 +272,15 @@ export function AddItemsFromCatalogueDialog({
         <div className="flex items-center justify-between gap-3 px-4 pt-3 pb-4">
           <div className="flex min-w-0 items-center gap-2">
             <span className="text-muted-foreground shrink-0 text-sm">Dodaj do:</span>
-            <SimpleSelect
-              value={sectionId === null ? '' : String(sectionId)}
-              onValueChange={(value) => setSectionId(value ? Number(value) : null)}
+            <Combobox
+              value={sectionName}
+              onChange={setSectionName}
               options={sectionOptions}
-              placeholder="Wybierz sekcję…"
-              className="w-56"
+              placeholder="Wybierz lub wpisz sekcję…"
+              allowCustom
+              modal
+              className="border-input bg-background h-9 w-56 rounded-md border px-3"
+              contentClassName="w-(--radix-popover-trigger-width)"
             />
           </div>
           <DialogActions
@@ -267,7 +288,7 @@ export function AddItemsFromCatalogueDialog({
             confirmLabel={`Dodaj${selected.length > 0 ? ` (${selected.length})` : ''}`}
             onConfirm={() => void handleConfirm()}
             onCancel={() => onOpenChange(false)}
-            confirmDisabled={selected.length === 0 || sectionId === null || pending}
+            confirmDisabled={selected.length === 0 || !target || pending}
           />
         </div>
       </DialogContent>
