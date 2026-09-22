@@ -57,6 +57,29 @@ describe('resolveInvoiceMediaIds', () => {
     expect(result).toEqual([[1, 2, 3], [4]])
   })
 
+  // On Neon, concurrent `POST /api/media` calls each return an id but only one row commits — the
+  // bulk insert then trips `transactions_rels_media_id_fkey` on the ids that never existed.
+  it('never has two uploads in flight at once', async () => {
+    let inFlight = 0
+    let maxInFlight = 0
+    const upload = vi.fn(async (f: File) => {
+      inFlight++
+      maxInFlight = Math.max(maxInFlight, inFlight)
+      await new Promise((resolve) => setTimeout(resolve, 1))
+      inFlight--
+      return Number(f.name.replace(/\D/g, ''))
+    })
+    const files = new Map<number, File[]>([
+      [0, [file('p1.jpg'), file('p2.jpg')]],
+      [1, [file('p3.jpg')]],
+      [2, [file('p4.jpg')]],
+    ])
+
+    await resolveInvoiceMediaIds(3, files, upload)
+
+    expect(maxInFlight).toBe(1)
+  })
+
   // The pages that DID upload are already in Blob with nothing pointing at them, so the failure has
   // to hand them back — a bare throw leaks them.
   it('reports the already-uploaded ids when a page fails', async () => {

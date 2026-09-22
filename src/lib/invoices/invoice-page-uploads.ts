@@ -2,9 +2,10 @@ import { mapWithConcurrency } from '@/lib/utils/map-with-concurrency'
 import { uploadMediaFromClient } from '@/lib/media/client-upload'
 import type { MediaKindT } from '@/types/media'
 
-// Cap parallel uploads to match the receipt-generation path (GENERATION_CONCURRENCY): batch-add lets a user
-// attach 10-20+ receipts, and submitting them all at once would fire that many simultaneous upload requests.
-const UPLOAD_CONCURRENCY = 4
+// Serial on purpose: on Neon, concurrent `POST /api/media` calls each return an id but only one row
+// commits ("Failed to persist upload data … NotFound"), so the bulk insert then fails its media FK.
+// Stopgap — only the row-create has to be serial; the Blob PUT could stay parallel.
+const UPLOAD_CONCURRENCY = 1
 
 /**
  * Thrown when any page of a submit fails to upload. Carries the ids that DID land, because those

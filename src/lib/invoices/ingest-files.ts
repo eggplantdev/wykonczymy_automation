@@ -2,8 +2,7 @@ import { mapWithConcurrency } from '@/lib/utils/map-with-concurrency'
 import { BlockedFileError, processUploadFile } from '@/lib/utils/process-upload-file'
 import type { CompressionProfileT } from '@/lib/utils/compress-image'
 
-// Cap parallel ingest processing to match the scan (GENERATION_CONCURRENCY) and upload
-// (UPLOAD_CONCURRENCY) paths: a batch pick (10-20+ files) each runs main-thread CompressorJS
+// Cap parallel ingest processing to match the scan (GENERATION_CONCURRENCY) path: a batch pick (10-20+ files) each runs main-thread CompressorJS
 // plus a possible ~1.3 MB HEIC WASM decode, so an unbounded Promise.all would freeze the UI.
 const INGEST_CONCURRENCY = 4
 
