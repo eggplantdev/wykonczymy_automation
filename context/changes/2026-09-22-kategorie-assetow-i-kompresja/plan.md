@@ -175,19 +175,19 @@ Po ostatniej fazie, raz: `pnpm typecheck` · `pnpm lint` · `pnpm test` · `pnpm
 
 #### Automated
 
-- [x] 1.1 `clientUploads` w konfiguracji Bloba, `uploadFileClient` na ścieżce client-upload
-- [x] 1.2 Autoryzacja zweryfikowana: MANAGER wgrywa, EMPLOYEE dostaje odmowę
-- [x] 1.3 Sanityzacja nazwy pliku dalej działa przy pustym `req.file`
-- [x] 1.4 Spec na odmowie dla EMPLOYEE
+- [x] 1.1 `clientUploads` w konfiguracji Bloba, `uploadFileClient` na ścieżce client-upload — ccef8024
+- [x] 1.2 Autoryzacja zweryfikowana: MANAGER wgrywa, EMPLOYEE dostaje odmowę — ccef8024
+- [x] 1.3 Sanityzacja nazwy pliku dalej działa przy pustym `req.file` — ccef8024
+- [x] 1.4 Spec na odmowie dla EMPLOYEE — ccef8024
 
 ### Faza 2: Dwa profile kompresji
 
 #### Automated
 
-- [ ] 2.1 `compressImage` przyjmuje profil; `MAX_EDGE` na obie osie
-- [ ] 2.2 Profil przepchnięty przez `processUploadFile` → `ingestPickedFiles` → hooki
-- [ ] 2.3 Bramka `MAX_UPLOAD_BYTES` i komunikat o blokadzie usunięte
-- [ ] 2.4 Spec jednostkowy: strona pionowa nie jest wymiarowana po wysokości
+- [x] 2.1 `compressImage` przyjmuje profil; `MAX_EDGE` na obie osie
+- [x] 2.2 Profil przepchnięty przez `processUploadFile` → `ingestPickedFiles` → hooki
+- [x] 2.3 Bramka `MAX_UPLOAD_BYTES` usunięta; komunikat zostaje dla nieczytelnego HEIC-a
+- [x] 2.4 Spec jednostkowy: strona pionowa nie jest wymiarowana po wysokości
 
 ### Faza 3: Znacznik „to jest rzut"
 

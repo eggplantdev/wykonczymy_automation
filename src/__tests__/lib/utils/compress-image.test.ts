@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 type OptionsT = {
   quality: number
+  maxWidth: number
+  maxHeight: number
   mimeType?: string
   success: (result: Blob) => void
   error: (reason: Error) => void
@@ -26,7 +28,7 @@ const { Compressor, setResponse } = vi.hoisted(() => {
 
 vi.mock('compressorjs', () => ({ default: Compressor }))
 
-import { compressImage, compressToJpeg } from '@/lib/utils/compress-image'
+import { COMPRESSION_PROFILES, compressImage, compressToJpeg } from '@/lib/utils/compress-image'
 
 function makeFile(name: string, type: string, size = 1024): File {
   return new File([new Uint8Array(size)], name, { type })
@@ -84,5 +86,52 @@ describe('compressToJpeg', () => {
     setResponse((_file, options) => options.error(new Error('canvas cannot decode HEIC')))
 
     await expect(compressToJpeg(makeFile('IMG_1234.heic', ''))).rejects.toThrow()
+  })
+})
+
+describe('compression profiles', () => {
+  // A `1920×1080` rectangle sized a portrait page by its HEIGHT, so an A4 scan came out at ~93 DPI
+  // while a landscape photo of the same page kept 1920 — the orientation decided the resolution.
+  // One cap on both axes is what makes the two agree.
+  it('caps both axes at the same edge, so orientation no longer decides the resolution', async () => {
+    const seen: OptionsT[] = []
+    setResponse((_file, options) => {
+      seen.push(options)
+      options.success(compressorResult('strona.jpg', 'image/jpeg'))
+    })
+
+    await compressImage(makeFile('strona.jpg', 'image/jpeg'))
+
+    expect(seen[0]!.maxWidth).toBe(seen[0]!.maxHeight)
+  })
+
+  it('gives a rysunek more edge and less loss than a faktura', async () => {
+    const seen: OptionsT[] = []
+    setResponse((_file, options) => {
+      seen.push(options)
+      options.success(compressorResult('rysunek.jpg', 'image/jpeg'))
+    })
+
+    await compressImage(makeFile('rysunek.jpg', 'image/jpeg'), 'PLAN')
+    await compressImage(makeFile('faktura.jpg', 'image/jpeg'), 'INVOICE')
+
+    const [plan, invoice] = seen
+    expect(plan!.maxWidth).toBeGreaterThan(invoice!.maxWidth)
+    expect(plan!.quality).toBeGreaterThan(invoice!.quality)
+  })
+
+  // Safari's HEIC route decodes AND resizes in this single pass, so a rysunek shot on an iPhone
+  // would otherwise be the one PLAN file silently capped at the faktura's edge.
+  it('honours the profile on the HEIC one-pass route too', async () => {
+    const seen: OptionsT[] = []
+    setResponse((_file, options) => {
+      seen.push(options)
+      options.success(compressorResult('IMG_1234.jpg', 'image/jpeg'))
+    })
+
+    await compressToJpeg(makeFile('IMG_1234.heic', ''), 'PLAN')
+
+    expect(seen[0]!.maxWidth).toBe(COMPRESSION_PROFILES.PLAN.maxEdge)
+    expect(seen[0]!.quality).toBe(COMPRESSION_PROFILES.PLAN.quality)
   })
 })

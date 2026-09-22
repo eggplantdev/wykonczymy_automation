@@ -1,25 +1,17 @@
+import type { CompressionProfileT } from '@/lib/utils/compress-image'
+
 // Single processing step at ingest: classify → route (HEIC-convert / compress / passthrough) →
-// rewrite → size-guard. Both consumers (scan-extraction and submit-upload) read the processed
-// File from the shared map, so compression happens exactly once. The browser decoders are
-// injected (ProcessUploadDepsT) so this orchestration is unit-testable without CompressorJS/heic-to.
-
-// The Vercel request-body hard cap is 4.5 MB (413 FUNCTION_PAYLOAD_TOO_LARGE, uncatchable in-function).
-// Guard well below it so the multipart boundary + other form fields still fit under the platform cap.
-export const MAX_UPLOAD_BYTES = 4 * 1024 * 1024
-
-export type BlockedReasonT = 'too-large' | 'heic-unconvertible'
+// rewrite. Both consumers (scan-extraction and submit-upload) read the processed File from the
+// shared map, so compression happens exactly once. The browser decoders are injected
+// (ProcessUploadDepsT) so this orchestration is unit-testable without CompressorJS/heic-to.
 
 export class BlockedFileError extends Error {
-  readonly reason: BlockedReasonT
   readonly filename: string
-  readonly size?: number
 
-  constructor(reason: BlockedReasonT, filename: string, size?: number) {
-    super(`${filename}: ${reason}`)
+  constructor(filename: string) {
+    super(`${filename}: heic-unconvertible`)
     this.name = 'BlockedFileError'
-    this.reason = reason
     this.filename = filename
-    this.size = size
   }
 }
 
@@ -31,8 +23,9 @@ export type ProcessUploadDepsT = {
 }
 
 // Near-lossless on purpose: this pass only has to DECODE. The compressImage right after it is what
-// sets the real quality, so decoding at 0.6 too meant every non-Safari HEIC was compressed twice —
-// and the scan-extraction consumer reads these bytes, so the second pass came out of OCR accuracy.
+// sets the real quality, so decoding at the profile's quality too meant every non-Safari HEIC was
+// compressed twice — and the scan-extraction consumer reads these bytes, so the second pass came
+// out of OCR accuracy.
 const HEIC_DECODE_QUALITY = 0.92
 
 const HEIC_EXTENSIONS = ['.heic', '.heif']
@@ -71,53 +64,52 @@ function renameToJpg(name: string): string {
   return name.replace(/\.(heic|heif)$/i, '.jpg')
 }
 
-const defaultDeps: ProcessUploadDepsT = {
-  compressImage: (file) => import('@/lib/utils/compress-image').then((m) => m.compressImage(file)),
-  // Native-first: Safari's canvas decodes HEIC via the OS HEVC codec, so CompressorJS with jpeg
-  // output both decodes and resizes in one pass. Chrome/Firefox can't decode HEIC on canvas →
-  // CompressorJS rejects → fall back to the lazy WASM decoder (heic-to, ~1.3 MB, only pulled when a
-  // HEIC is actually picked on a non-Safari browser), then resize the JPEG. Any throw here becomes a
-  // BlockedFileError('heic-unconvertible') in processUploadFile.
-  convertHeicToJpeg: async (file) => {
-    const { compressToJpeg, compressImage } = await import('@/lib/utils/compress-image')
-    try {
-      return await compressToJpeg(file)
-    } catch {
-      const { heicTo } = await import('heic-to')
-      const converted = await heicTo({
-        blob: file,
-        type: 'image/jpeg',
-        quality: HEIC_DECODE_QUALITY,
-      })
-      if (!(converted instanceof Blob)) throw new Error('heic-to did not return a JPEG blob')
-      return compressImage(new File([converted], file.name, { type: 'image/jpeg' }))
-    }
-  },
-}
-
-function guardSize(file: File): File {
-  if (file.size > MAX_UPLOAD_BYTES) {
-    throw new BlockedFileError('too-large', file.name, file.size)
+// A factory rather than a constant because the profile has to reach the lazy imports: it decides
+// both the edge and the quality every route below re-encodes at, and a module constant has no
+// parameter to carry it.
+function defaultDeps(profile: CompressionProfileT): ProcessUploadDepsT {
+  return {
+    compressImage: (file) =>
+      import('@/lib/utils/compress-image').then((m) => m.compressImage(file, profile)),
+    // Native-first: Safari's canvas decodes HEIC via the OS HEVC codec, so CompressorJS with jpeg
+    // output both decodes and resizes in one pass. Chrome/Firefox can't decode HEIC on canvas →
+    // CompressorJS rejects → fall back to the lazy WASM decoder (heic-to, ~1.3 MB, only pulled when
+    // a HEIC is actually picked on a non-Safari browser), then resize the JPEG. Any throw here
+    // becomes a BlockedFileError in processUploadFile.
+    convertHeicToJpeg: async (file) => {
+      const { compressToJpeg, compressImage } = await import('@/lib/utils/compress-image')
+      try {
+        return await compressToJpeg(file, profile)
+      } catch {
+        const { heicTo } = await import('heic-to')
+        const converted = await heicTo({
+          blob: file,
+          type: 'image/jpeg',
+          quality: HEIC_DECODE_QUALITY,
+        })
+        if (!(converted instanceof Blob)) throw new Error('heic-to did not return a JPEG blob')
+        return compressImage(new File([converted], file.name, { type: 'image/jpeg' }), profile)
+      }
+    },
   }
-  return file
 }
 
 export async function processUploadFile(
   file: File,
-  deps: ProcessUploadDepsT = defaultDeps,
+  profile: CompressionProfileT = 'INVOICE',
+  deps: ProcessUploadDepsT = defaultDeps(profile),
 ): Promise<File> {
-  if (!isImageFile(file)) return guardSize(file)
+  if (!isImageFile(file)) return file
 
   if (isHeicFile(file)) {
     let jpeg: File
     try {
       jpeg = await deps.convertHeicToJpeg(file)
     } catch {
-      throw new BlockedFileError('heic-unconvertible', file.name)
+      throw new BlockedFileError(file.name)
     }
-    const renamed = new File([jpeg], renameToJpg(file.name), { type: 'image/jpeg' })
-    return guardSize(renamed)
+    return new File([jpeg], renameToJpg(file.name), { type: 'image/jpeg' })
   }
 
-  return guardSize(await deps.compressImage(file))
+  return deps.compressImage(file)
 }

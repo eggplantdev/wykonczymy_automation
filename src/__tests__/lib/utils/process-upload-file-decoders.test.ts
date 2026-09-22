@@ -5,7 +5,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 // through the public call, without a browser.
 const { compressImage, compressToJpeg, heicTo } = vi.hoisted(() => ({
   compressImage: vi.fn(async (file: File) => file),
-  compressToJpeg: vi.fn(async (file: File, _quality?: number) => file),
+  compressToJpeg: vi.fn(async (file: File, _profile?: string) => file),
   heicTo: vi.fn(
     async (_options: { blob: Blob; type: string; quality?: number }) =>
       new Blob([new Uint8Array(512)], { type: 'image/jpeg' }),
@@ -48,10 +48,10 @@ describe('the default HEIC route', () => {
 
     expect(heicTo).toHaveBeenCalledOnce()
     const decodeQuality = heicTo.mock.calls[0]![0].quality
-    const compressQuality = compressToJpeg.mock.calls[0]![1]
-
+    // The canvas pass is handed a PROFILE, never a quality of its own — the profile's quality
+    // (0.8 at the most) is what the decode has to stay above.
     expect(decodeQuality).toBeGreaterThan(0.9)
-    expect(decodeQuality).toBeGreaterThan(compressQuality ?? 0.6)
+    expect(compressToJpeg.mock.calls[0]![1]).toBe('INVOICE')
   })
 
   it('blocks the file when neither decoder can read it', async () => {

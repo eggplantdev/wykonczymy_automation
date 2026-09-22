@@ -6,6 +6,7 @@ import { useLatestRequest } from '@/hooks/use-latest-request'
 import { reportBlockedFiles } from '@/lib/invoices/blocked-files-message'
 import { ingestPickedFiles } from '@/lib/invoices/ingest-picked-files'
 import { toastMessage } from '@/lib/utils/toast'
+import type { CompressionProfileT } from '@/lib/utils/compress-image'
 
 /**
  * File custody for the pick surfaces that carry one invoice's pages OUTSIDE the form value. Files
@@ -25,7 +26,7 @@ import { toastMessage } from '@/lib/utils/toast'
  * else the picker needs is `fileInputProps`, spread onto it: the pick handler and the mid-ingest
  * disable travel together so neither call site can wire up half the contract.
  */
-export function useFilePickIngest() {
+export function useFilePickIngest(profile?: CompressionProfileT) {
   const [files, setFiles] = useState<File[]>([])
   const [isIngesting, setIsIngesting] = useState(false)
   const [inputKey, setInputKey] = useState(0)
@@ -40,7 +41,7 @@ export function useFilePickIngest() {
     const isCurrent = request.start()
     setIsIngesting(true)
     try {
-      const { files: ingested, blocked } = await ingestPickedFiles(picked)
+      const { files: ingested, blocked } = await ingestPickedFiles(picked, profile)
       if (!isCurrent()) return
       reportBlockedFiles(blocked)
       setFiles(ingested)

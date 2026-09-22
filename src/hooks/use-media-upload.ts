@@ -7,11 +7,14 @@ import { ingestPickedFiles } from '@/lib/invoices/ingest-picked-files'
 import { submitWithInvoicePages } from '@/lib/invoices/submit-with-invoice-pages'
 import { toastMessage } from '@/lib/utils/toast'
 import type { ActionResultT } from '@/types/action'
+import type { CompressionProfileT } from '@/lib/utils/compress-image'
 
 type MediaUploadOptionsT = {
   /** Attaches the uploaded ids to whatever owns them; runs only once the bytes are in Blob. */
   attach: (mediaIds: number[]) => Promise<ActionResultT>
   successMessage: string
+  /** Which compression the picked images get. A faktura is read for its total; a rysunek is not. */
+  profile?: CompressionProfileT
 }
 
 /**
@@ -22,12 +25,12 @@ type MediaUploadOptionsT = {
  * `isUploading` is what the caller needs back: the picker gives no feedback of its own, so without
  * it a slow HEIC convert reads as a click that did nothing.
  */
-export function useMediaUpload({ attach, successMessage }: MediaUploadOptionsT) {
+export function useMediaUpload({ attach, successMessage, profile }: MediaUploadOptionsT) {
   const router = useRouter()
   const [isUploading, setIsUploading] = useState(false)
 
   async function ingestAndAttach(picked: File[]) {
-    const { files: ready, blocked } = await ingestPickedFiles(picked)
+    const { files: ready, blocked } = await ingestPickedFiles(picked, profile)
     reportBlockedFiles(blocked)
 
     if (ready.length === 0) return

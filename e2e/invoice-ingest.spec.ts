@@ -18,10 +18,10 @@ import {
 // Ingest plików — the one slice of this app that exists ONLY in the browser.
 //
 // EX-732, EX-661, EX-663, EX-460 and EX-444 are five issues over one pipeline: pick →
-// `processUploadFile` (classify → HEIC-convert / compress / passthrough → rename → 4 MB guard) →
-// `POST /api/upload-file` → action. Nothing below the browser can run it: the HEIC decode is a
-// canvas/WASM fact, the compression is CompressorJS, the 4 MB guard measures POST-compression
-// bytes, and the pairing of a picked file to the row it belongs to survives only in React state.
+// `processUploadFile` (classify → HEIC-convert / compress / passthrough → rename) → a client PUT
+// straight to Blob → action. Nothing below the browser can run it: the HEIC decode is a
+// canvas/WASM fact, the compression is CompressorJS, and the pairing of a picked file to the row
+// it belongs to survives only in React state.
 // So they share ONE file — five seeds and five dialog boot-ups for the same pipeline would be
 // paid five times over.
 //
@@ -34,9 +34,9 @@ import {
 //   AGENTS.md „The production Vercel Blob store belongs to production only".
 // • **The fixtures are fabricated, and must stay that way.** `e2e/fixtures/*` were generated from
 //   synthetic gradients (`sips -s format heic/jpeg`), not from anything in `dumps/` — every HEIC in
-//   this repo's dumps is a real client invoice. The oversize and the unconvertible-HEIC fixtures are
-//   minted in-memory below rather than committed: one would add 4 MB to the repo, the other is
-//   twelve bytes of garbage whose only job is to fail both decoders.
+//   this repo's dumps is a real client invoice. The unconvertible-HEIC fixture is minted in-memory
+//   below rather than committed — it is twelve bytes of garbage whose only job is to fail both
+//   decoders.
 //
 // `/api/extract-receipt` is a BROWSER fetch (`scanReceiptClient` → `postFormData`), so `page.route`
 // reaches it — the two scan tests stub it and never touch OpenRouter.
@@ -117,7 +117,7 @@ test('HEIC z pickera edycji przelewu zapisuje się jako JPG (EX-732)', async ({ 
   )
 })
 
-test('nieczytelny HEIC i plik ponad 4 MB nie wchodzą do formularza (EX-460)', async ({ page }) => {
+test('nieczytelny HEIC nie wchodzi do formularza (EX-460)', async ({ page }) => {
   const description = await seedOwnExpense(page, 'blocked')
 
   const edit = rowOf(page, description).getByRole('button', { name: 'Edytuj transakcję' })
@@ -144,22 +144,7 @@ test('nieczytelny HEIC i plik ponad 4 MB nie wchodzą do formularza (EX-460)', a
   // the row persists with no faktura, and nothing ever said so.
   await expect(picker).toHaveText('Przeciągnij lub kliknij')
 
-  // The guard measures POST-compression bytes, so only a non-image can trip it in practice — a
-  // photo is resized under the cap on its way through. A PDF is the real-world case (EX-457).
-  await pickThrough(page, () => picker.click(), [
-    {
-      name: 'wielka-faktura.pdf',
-      mimeType: 'application/pdf',
-      buffer: Buffer.alloc(4 * 1024 * 1024 + 1, 0x20),
-    },
-  ])
-
-  await expect(
-    page.getByText('Plik „wielka-faktura.pdf” przekracza 4 MB — zmniejsz go i spróbuj ponownie.'),
-  ).toBeVisible({ timeout: 60_000 })
-  await expect(picker).toHaveText('Przeciągnij lub kliknij')
-
-  // And the refusals cost the row nothing: saving now stores a transfer with no faktura at all,
+  // And the refusal costs the row nothing: saving now stores a transfer with no faktura at all,
   // rather than one pointing at bytes that never made it.
   const save = dialog.getByRole('button', { name: 'Zapisz' })
   await expect(save).toBeEnabled()
