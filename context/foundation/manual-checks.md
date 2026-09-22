@@ -636,3 +636,24 @@ panel montuje się także na pustym kosztorysie.
 - [ ] `/inwestycje/<id>/kosztorys_v2`: w toolbarze siatki NIE MA już przycisku „Dokumentacja"
 - [ ] `/szablony/<id>`: warsztat nie pokazuje zakładki „Inwestycja" ani żadnego przycisku plików
 - [ ] `/k/<token>` i `/podglad-inwestora/<id>`: pięć zakładek, bez „Inwestycji"
+
+## EX-829 — kategorie assetów i luźniejsza kompresja (2026-09-22)
+
+Transport klient → Blob, dwa profile kompresji, znacznik `kind = 'projekt'`. Rzut A4 sprawdzaj na
+oczy: chodzi o czytelność opisów wymiarów, nie o sam fakt, że plik wszedł.
+
+- [ ] Rzut A4 (pionowy) wgrany z „To jest rzut": opisy wymiarów czytelne w podglądzie po
+      powiększeniu — profil 2560 na obu osiach, nie 763×1080 jak przed zmianą
+- [ ] Plik >4,5 MB wchodzi bez błędu 413 (dowolna powierzchnia: faktura transferu, wydatek, flota,
+      asety inwestycji) — transport klient → Blob
+- [ ] Zaznaczone „To jest rzut" → wiersz `media` ma `kind = 'projekt'`; niezaznaczone → `NULL`
+- [ ] Faktura transferu wygląda i waży jak przed zmianą (profil `INVOICE`), a dialog faktury NIE
+      pokazuje pola wyboru „To jest rzut"
+- [ ] Galeria asetów → podgląd pliku → „Oznacz jako rzut": po kliknięciu przycisk mówi „Oznaczony
+      jako rzut" i jest nieaktywny, a po odświeżeniu stan się utrzymuje
+- [ ] MANAGER oznacza rzut (poluzowany `media.access.update`); EMPLOYEE nie widzi tej ścieżki
+- [ ] Plik z promocji leada (nieskompresowany oryginał z landingu) da się oznaczyć jako rzut
+      z galerii — jedyna ścieżka bez dialogu wgrywania
+- [ ] HEIC, którego przeglądarka nie odczyta, dalej daje czytelny komunikat, a nie cichą porażkę
+- [ ] `/admin` → Media: miniatura pozycji wgranej po zmianie (ryzyko `clientUploads` — w najgorszym
+      razie regresja kosmetyczna w panelu)
