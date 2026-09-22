@@ -575,14 +575,11 @@ otwarte wcześniej. Dławik lustra to 10 s, domknięcie ogona 15 s bezczynności
 
 ## kosztorys-editor-assets — galeria assetów w edytorze kosztorysu v2 (2026-09-22)
 
-Ta sama kontrolka co na karcie inwestycji, zamontowana w prawej grupie toolbara edytora.
+Ta sama kontrolka co na karcie inwestycji. Jej miejsce w edytorze przejęła zakładka „Inwestycja"
+(sekcja `zakladka-inwestycja-w-panelu` niżej) — sprawdzenia dotyczące toolbara są tam, w nowym
+miejscu kontrolki.
 
-- [ ] `/inwestycje/<id>/kosztorys_v2`: przycisk „Zdjęcia i pliki (N)" stoi w prawej grupie toolbara
-      i otwiera ten sam podgląd co karta inwestycji
-- [ ] Inwestycja bez plików: w toolbarze edytora widać „Dodaj zdjęcia lub pliki"; po wgraniu licznik
-      rośnie bez ręcznego odświeżenia, a siatka nie gubi stanu (brak remountu)
 - [ ] Usunięcie pliku ze stopki podglądu w edytorze znika też z karty inwestycji po przejściu na nią
-- [ ] `/szablony/<id>`: w toolbarze warsztatu NIE MA żadnego przycisku plików
 - [ ] `/k/<token>` i `/podglad-inwestora/<id>`: nie ma toolbara, więc i galerii
 - [ ] Zakończona („Zakończona") inwestycja: dodawanie plików z edytora dalej działa
 - [ ] Karta inwestycji po refaktorze zachowuje się jak przed nim; przy trwającym uploadzie do
@@ -593,3 +590,29 @@ Ta sama kontrolka co na karcie inwestycji, zamontowana w prawej grupie toolbara 
       chwilę nie „Przesyłanie..." (bramka odrzuciła tę pomyłkę — sprawdzenie na oczy)
 - [ ] „Edytuj inwestycję" → pole „Zdjęcia i pliki": przycisk wygląda jak przed wydzieleniem
       `UploadButton` (wyrównanie do lewej, ta sama wysokość)
+
+## zakladka-inwestycja-w-panelu — zakładka „Inwestycja" w panelu Podsumowanie (2026-09-22)
+
+Dane inwestycji (notatki/zakres prac, kontakt, adres, status) i przeniesiona tu Dokumentacja;
+panel montuje się także na pustym kosztorysie.
+
+- [ ] Inwestycja bez kosztorysu: panel zamontowany, ale zwinięty; `EmptyState` z „Pobierz z arkusza
+      Google…" w pełni widoczny i klikalny
+- [ ] Na tej samej inwestycji kliknięcie „Podsumowanie" otwiera panel, a zakładka „Inwestycja" ma
+      pełną treść wraz z Dokumentacją
+- [ ] Powrót na inwestycję z kosztorysem otwiera panel zgodnie z wcześniejszą preferencją (nie
+      została nadpisana przez otwarcie na pustym)
+- [ ] Podgląd inwestora dla pustego kosztorysu: przełącznik „Podsumowanie" nieaktywny, a panel w
+      ogóle się nie montuje — także wtedy, gdy wcześniej rozwinięto panel na pustym kosztorysie
+      w edytorze (ten sam origin, ten sam klucz localStorage)
+- [ ] Zakładka „Inwestycja" stoi jako ostatnia, za „Marżą", i pokazuje komplet pól karty inwestycji;
+      puste pola są odfiltrowane
+- [ ] „Edytuj inwestycję" stoi w jednym rzędzie z „Dokumentacją", zapisuje i odświeża dane bez
+      opuszczania edytora
+- [ ] Karta inwestycji (`/inwestycje/<id>`) pokazuje ten sam komplet pól co zakładka — po wyjęciu
+      listy do jednego budowniczego
+- [ ] Dokumentacja w zakładce: wgranie pliku, podgląd, usunięcie; licznik rośnie bez ręcznego
+      odświeżenia, a siatka nie gubi stanu (brak remountu)
+- [ ] `/inwestycje/<id>/kosztorys_v2`: w toolbarze siatki NIE MA już przycisku „Dokumentacja"
+- [ ] `/szablony/<id>`: warsztat nie pokazuje zakładki „Inwestycja" ani żadnego przycisku plików
+- [ ] `/k/<token>` i `/podglad-inwestora/<id>`: pięć zakładek, bez „Inwestycji"

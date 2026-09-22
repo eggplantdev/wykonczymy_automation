@@ -17,6 +17,9 @@ Krok 2 (`/simplify`, mutujący): 4 agenci — reuse / simplification / efficienc
       zastosowane automatycznie (reguła: finding zmieniający to, co użytkownik MOŻE zrobić, jest
       zgłaszany, nie wdrażany). Skrzynka zostaje otwarta do rozstrzygnięcia.
       test: no automated test — to pytanie o zakres afordancji, nie o poprawność.
+      2026-09-22: kontrolka przeniosła się z rzędu narzędzi siatki do zakładki „Inwestycja"
+      (`zakladka-inwestycja-w-panelu`), więc nie sąsiaduje już z akcjami odwracalnymi — ale jest
+      dalej osiągalna z edytora i dalej na inwestycji „Zakończona". Pytanie stoi, skrzynka otwarta.
 
 - [x] 🔴 CRITICAL · fixed · `code-review` · `src/components/ui/upload-button.tsx:8-12` ·
       przycisk brał jedną flagę `isUploading` i nią sterował ZARAZEM etykietą i blokadą, a galeria

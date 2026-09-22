@@ -376,20 +376,20 @@ node nie widzi renderu.
 
 #### Automated
 
-- [x] 1.1 Spec DOM zakładki przechodzi
-- [x] 1.2 Spec panelu potwierdza obie bramki widoczności
+- [x] 1.1 Spec DOM zakładki przechodzi — 014269d3
+- [x] 1.2 Spec panelu potwierdza obie bramki widoczności — 014269d3
 
 ### Phase 2: „Dokumentacja" przenosi się do zakładki
 
 #### Automated
 
-- [x] 2.1 Spec zakładki pokrywa trzy stany galerii
-- [x] 2.2 Spec toolbara przechodzi bez asercji galerii
-- [x] 2.3 Spec kontrolki galerii dalej zielony
+- [x] 2.1 Spec zakładki pokrywa trzy stany galerii — 014269d3
+- [x] 2.2 Spec toolbara przechodzi bez asercji galerii — 014269d3
+- [x] 2.3 Spec kontrolki galerii dalej zielony — 014269d3
 
 ### Phase 3: Panel na pustym kosztorysie
 
 #### Automated
 
-- [x] 3.1 Spec DOM hooka stanu otwarcia — dwa klucze, dwie wartości domyślne
-- [x] 3.2 Spec toolbara — przełącznik aktywny przy zerowej liczbie pozycji
+- [x] 3.1 Spec DOM hooka stanu otwarcia — dwa klucze, dwie wartości domyślne — 014269d3
+- [x] 3.2 Spec toolbara — przełącznik aktywny przy zerowej liczbie pozycji — 014269d3
