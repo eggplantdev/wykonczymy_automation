@@ -1,16 +1,5 @@
 import type { TransferTypeT, PaymentMethodT, VatPlaneT } from '@/lib/constants/transfers'
-
-// One page of an invoice, already resolved to something openable. A media row whose `url` is null is
-// dropped upstream rather than carried as a hole — every consumer (preview, ZIP) needs the URL,
-// so a page without one is not a page.
-export type InvoiceFileT = {
-  // The media id, so a single page can be detached. Absent on a locally picked file that hasn't
-  // been uploaded yet — there is nothing to detach from.
-  id?: number
-  url: string
-  filename: string | null
-  mimeType: string | null
-}
+import type { PreviewFileT } from '@/types/media'
 
 /**
  * A transfer row as rendered in the transfers table. Cross-cutting: produced by the
@@ -45,7 +34,7 @@ export type TransferRowT = {
   createdById: number | null
   createdAt: string
   // Every page of the invoice, in the order they were attached. Empty when nothing is attached.
-  invoices: InvoiceFileT[]
+  invoices: PreviewFileT[]
   invoiceNote: string | null
   cancelled: boolean
   settled: boolean
@@ -112,6 +101,6 @@ export type MaterialTransactionRowT = {
   // field existed serves rows without it until KOSZTORYS_TAGS invalidates. Every consumer has to
   // handle that, and `undefined` here is what stops a cleanup pass deleting the guards as dead.
   type: TransferTypeT | undefined
-  invoices: InvoiceFileT[]
+  invoices: PreviewFileT[]
   invoiceNote: string | null
 }

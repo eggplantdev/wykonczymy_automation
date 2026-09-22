@@ -6,7 +6,7 @@ import { CheckboxRow } from '@/components/ui/checkbox-row'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { FileInput } from '@/components/ui/file-input'
 
-type InvoiceUploadDialogPropsT = {
+type MediaUploadDialogPropsT = {
   title?: string
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -23,13 +23,13 @@ type InvoiceUploadDialogPropsT = {
  * That is also why the marker is a checkbox ABOVE the picker rather than a question after it: there
  * is no moment after the pick at which to ask.
  */
-export function InvoiceUploadDialog({
+export function MediaUploadDialog({
   title = 'Dodaj fakturę',
   open,
   onOpenChange,
   onFiles,
   allowPlanMarker = false,
-}: InvoiceUploadDialogPropsT) {
+}: MediaUploadDialogPropsT) {
   const [asPlan, setAsPlan] = useState(false)
 
   // The dialog stays mounted when Radix unmounts its content, so a tick left behind by a cancelled

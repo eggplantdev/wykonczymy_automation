@@ -24,6 +24,14 @@ export const MEDIA_RELATIONS: readonly MediaRelationT[] = [
   { collection: 'leads', field: 'assets', label: 'zgłoszenia' },
 ]
 
-export function mediaReferenceWhere(field: string, id: string | number): Where {
-  return { [field]: { equals: id } }
+/**
+ * One `Where` for both shapes: a single id when the caller asks about one file, `in` when it scans a
+ * whole batch at once. `deleteUnreferencedMedia` needs the batch form to keep its scan at one query
+ * per relation instead of one per relation per id.
+ */
+export function mediaReferenceWhere(
+  field: string,
+  ids: string | number | readonly (string | number)[],
+): Where {
+  return { [field]: Array.isArray(ids) ? { in: ids } : { equals: ids } }
 }

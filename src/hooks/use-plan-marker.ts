@@ -3,8 +3,7 @@
 import { useState } from 'react'
 import { setMediaKindAction } from '@/lib/actions/media-kind'
 import { toastMessage } from '@/lib/utils/toast'
-import type { InvoiceFileT } from '@/types/transfers'
-import type { MediaFileT } from '@/types/media'
+import type { MediaFileT, PreviewFileT } from '@/types/media'
 
 /**
  * The „Oznacz jako rzut" affordance for an already-stored gallery.
@@ -16,7 +15,7 @@ import type { MediaFileT } from '@/types/media'
 export function usePlanMarker(files: MediaFileT[]) {
   const [markedIds, setMarkedIds] = useState<number[]>([])
 
-  const isMarked = (file: InvoiceFileT) =>
+  const isMarked = (file: PreviewFileT) =>
     file.id !== undefined &&
     (markedIds.includes(file.id) ||
       files.find((candidate) => candidate.id === file.id)?.kind === 'projekt')
@@ -24,7 +23,7 @@ export function usePlanMarker(files: MediaFileT[]) {
   // The try/catch is the point of the wrapper: the caller fires this from an onClick with nowhere
   // to put a rejection, so a transport-level throw (expired cookie, deploy skew, offline) would
   // otherwise be an unhandled rejection and the click would read as a no-op.
-  async function mark(file: InvoiceFileT) {
+  async function mark(file: PreviewFileT) {
     const id = file.id
     if (id === undefined) return
 
@@ -45,7 +44,7 @@ export function usePlanMarker(files: MediaFileT[]) {
 
   return {
     isMarked,
-    onMark: (file: InvoiceFileT) => void mark(file),
+    onMark: (file: PreviewFileT) => void mark(file),
     label: 'Oznacz jako rzut',
     markedLabel: 'Oznaczony jako rzut',
   }

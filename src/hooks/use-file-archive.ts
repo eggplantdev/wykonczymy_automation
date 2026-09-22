@@ -4,18 +4,21 @@ import { useRef, useTransition } from 'react'
 import { toast } from 'react-toastify'
 import { triggerDownload } from '@/lib/utils/trigger-download'
 import {
-  buildInvoiceZipMessage,
-  flattenInvoiceRows,
-  type InvoiceZipFileT,
-  type InvoiceZipRowT,
-} from '@/lib/invoices/invoice-zip'
+  buildArchiveMessage,
+  buildArchiveName,
+  flattenArchiveRows,
+  type ArchiveFileT,
+  type ArchiveRowT,
+} from '@/lib/media/file-archive'
+import type { ArchiveCopyT } from '@/types/media'
 import { toastMessage } from '@/lib/utils/toast'
+import { today } from '@/lib/utils/date'
 
 // Browsers cap concurrent connections per origin; larger batches just queue and stall the progress toast.
 const BATCH_SIZE = 6
 
 /**
- * Everything that happens *after* the rows are known: fetch each invoice page, name it uniquely, zip,
+ * Everything that happens *after* the rows are known: fetch each page, name it uniquely, zip,
  * hand the archive to the browser, and drive one in-place toast throughout.
  *
  * Split out of `InvoiceDownloadButton` because obtaining the rows and packing them are separate
@@ -23,64 +26,61 @@ const BATCH_SIZE = 6
  * server action, while the kosztorys Wydatki list already has them in props and runs on the
  * unauthenticated share path. Media is publicly readable, so packing needs no session either way.
  */
-export function useInvoiceZip() {
+export function useFileArchive() {
   const [isPending, startTransition] = useTransition()
   const toastIdRef = useRef<string | number | null>(null)
 
-  function run(job: () => Promise<void>) {
+  /**
+   * Rows and files are counted separately because a row may carry several pages or none —
+   * `rowsWithFile` is what lets the closing toast say „2 pozycje bez faktury" instead of silently
+   * shipping a short archive.
+   */
+  function pack(
+    copy: ArchiveCopyT,
+    nameParts: string[],
+    files: ArchiveFileT[],
+    rowTally: { rows: number; rowsWithFile: number },
+  ) {
     startTransition(async () => {
-      toastIdRef.current = toast.info('Pobieranie faktur...', {
+      toastIdRef.current = toast.info(copy.progress, {
         autoClose: false,
         position: 'bottom-center',
         theme: 'dark',
       })
 
       try {
-        await job()
+        // Nothing to fetch is not a failed fetch — packing an empty set would announce the
+        // „nie udało się" wording over a set that never had a file in it.
+        const downloadedFiles =
+          files.length === 0
+            ? 0
+            : await packAndDeliver(files, buildArchiveName(nameParts, today(), copy.prefix))
+        const tally = { ...rowTally, expectedFiles: files.length, downloadedFiles }
+
+        updateToast(toastIdRef.current, buildArchiveMessage(tally, copy), toneFor(tally))
       } catch {
         updateToast(toastIdRef.current, 'Wystąpił nieoczekiwany błąd', 'error')
       }
     })
   }
 
-  /** Archives every page of every row, and reports the row/page tally the toast needs. */
-  function download(rows: InvoiceZipRowT[], archiveName: string) {
-    run(async () => {
-      const rowsWithInvoice = rows.filter((row) => row.invoices.length > 0).length
-      const files = flattenInvoiceRows(rows)
-      const tally = {
-        rows: rows.length,
-        rowsWithInvoice,
-        expectedFiles: files.length,
-        downloadedFiles: 0,
-      }
-
-      if (files.length === 0) {
-        updateToast(toastIdRef.current, buildInvoiceZipMessage(tally), 'info')
-        return
-      }
-
-      tally.downloadedFiles = await packAndDeliver(files, archiveName)
-      const message = buildInvoiceZipMessage(tally)
-      updateToast(toastIdRef.current, message, tally.downloadedFiles === 0 ? 'error' : 'success')
+  /** Archives every page of every row, naming each file after its row's date and description. */
+  function download(rows: ArchiveRowT[], nameParts: string[], copy: ArchiveCopyT) {
+    pack(copy, nameParts, flattenArchiveRows(rows), {
+      rows: rows.length,
+      rowsWithFile: rows.filter((row) => row.invoices.length > 0).length,
     })
   }
 
-  /** Archives one expense's pages, where there is no row tally to report — only the pages. */
-  function downloadFiles(files: InvoiceZipFileT[], archiveName: string) {
-    run(async () => {
-      const downloadedFiles = await packAndDeliver(files, archiveName)
-      const message = buildInvoiceZipMessage({
-        rows: 1,
-        rowsWithInvoice: files.length > 0 ? 1 : 0,
-        expectedFiles: files.length,
-        downloadedFiles,
-      })
-      updateToast(toastIdRef.current, message, downloadedFiles === 0 ? 'error' : 'success')
-    })
+  /**
+   * Archives one surface's files, already named by the caller — the preview dialog keeps each
+   * page's own filename, which the row-based naming would overwrite with a date.
+   */
+  function downloadFiles(files: ArchiveFileT[], nameParts: string[], copy: ArchiveCopyT) {
+    pack(copy, nameParts, files, { rows: 1, rowsWithFile: files.length > 0 ? 1 : 0 })
   }
 
-  async function packAndDeliver(files: InvoiceZipFileT[], archiveName: string): Promise<number> {
+  async function packAndDeliver(files: ArchiveFileT[], archiveName: string): Promise<number> {
     updateToast(toastIdRef.current, `Pobieranie 0/${files.length} plików...`, 'info', false)
 
     // Deferred so a client who never clicks doesn't pay for the ZIP machinery — this hook is
@@ -132,4 +132,16 @@ function updateToast(
     return
   }
   toast.update(id, { render: message, type, autoClose, theme: 'dark' })
+}
+
+/** Nothing to pack is informational; a set that had files and delivered none is an error. */
+function toneFor({
+  rowsWithFile,
+  downloadedFiles,
+}: {
+  rowsWithFile: number
+  downloadedFiles: number
+}): 'info' | 'success' | 'error' {
+  if (rowsWithFile === 0) return 'info'
+  return downloadedFiles === 0 ? 'error' : 'success'
 }

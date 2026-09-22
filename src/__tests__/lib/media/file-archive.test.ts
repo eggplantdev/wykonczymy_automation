@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest'
 import {
-  buildInvoiceArchiveName,
-  buildInvoiceZipMessage,
+  buildArchiveName,
+  buildArchiveMessage,
   buildUniqueFilename,
-  flattenInvoiceRows,
+  flattenArchiveRows,
   sanitizeForFilename,
-  pluralizeInvoice,
-} from '@/lib/invoices/invoice-zip'
+} from '@/lib/media/file-archive'
+import { FILE_ARCHIVE_COPY, INVOICE_ARCHIVE_COPY } from '@/lib/media/wording'
 
 // ── sanitizeForFilename ─────────────────────────────────────────────────
 
@@ -88,80 +88,42 @@ describe('buildUniqueFilename', () => {
   })
 })
 
-// ── pluralizeInvoice ────────────────────────────────────────────────────
-
-describe('pluralizeInvoice', () => {
-  it('returns "fakturę" for 1', () => {
-    expect(pluralizeInvoice(1)).toBe('fakturę')
-  })
-
-  it('returns "faktury" for 2-4', () => {
-    expect(pluralizeInvoice(2)).toBe('faktury')
-    expect(pluralizeInvoice(3)).toBe('faktury')
-    expect(pluralizeInvoice(4)).toBe('faktury')
-  })
-
-  it('returns "faktur" for 5+', () => {
-    expect(pluralizeInvoice(5)).toBe('faktur')
-    expect(pluralizeInvoice(10)).toBe('faktur')
-    expect(pluralizeInvoice(47)).toBe('faktur')
-    expect(pluralizeInvoice(100)).toBe('faktur')
-  })
-
-  it('returns "faktur" for teens (12-14)', () => {
-    expect(pluralizeInvoice(12)).toBe('faktur')
-    expect(pluralizeInvoice(13)).toBe('faktur')
-    expect(pluralizeInvoice(14)).toBe('faktur')
-  })
-
-  it('returns "faktury" for compound 2-4 (22-24, 102-104)', () => {
-    expect(pluralizeInvoice(22)).toBe('faktury')
-    expect(pluralizeInvoice(23)).toBe('faktury')
-    expect(pluralizeInvoice(24)).toBe('faktury')
-    expect(pluralizeInvoice(102)).toBe('faktury')
-    expect(pluralizeInvoice(103)).toBe('faktury')
-  })
-
-  it('returns "faktur" for compound teens (112-114)', () => {
-    expect(pluralizeInvoice(112)).toBe('faktur')
-    expect(pluralizeInvoice(113)).toBe('faktur')
-    expect(pluralizeInvoice(114)).toBe('faktur')
-  })
-})
-
-describe('buildInvoiceArchiveName', () => {
-  it('falls back to the generic name when no parts are given', () => {
-    expect(buildInvoiceArchiveName([], '2026-07-25')).toBe('faktury-2026-07-25.zip')
+describe('buildArchiveName', () => {
+  it('falls back to prefix and date when no parts are given', () => {
+    expect(buildArchiveName([], '2026-07-25', 'faktury')).toBe('faktury-2026-07-25.zip')
   })
 
   it('joins parts between the prefix and the date', () => {
-    expect(buildInvoiceArchiveName(['Kowalski', 'Wydatki inwestycyjne'], '2026-07-25')).toBe(
+    expect(buildArchiveName(['Kowalski', 'Wydatki inwestycyjne'], '2026-07-25', 'faktury')).toBe(
       'faktury-Kowalski-Wydatki_inwestycyjne-2026-07-25.zip',
     )
   })
 
   it('strips characters that are illegal in a filename', () => {
-    expect(buildInvoiceArchiveName(['ul. Polna 3/5: etap "A"'], '2026-07-25')).toBe(
+    expect(buildArchiveName(['ul. Polna 3/5: etap "A"'], '2026-07-25', 'faktury')).toBe(
       'faktury-ul._Polna_35_etap_A-2026-07-25.zip',
     )
   })
 
   it('drops a part that sanitizes to nothing', () => {
-    expect(buildInvoiceArchiveName(['???', 'Etap'], '2026-07-25')).toBe(
+    expect(buildArchiveName(['???', 'Etap'], '2026-07-25', 'faktury')).toBe(
       'faktury-Etap-2026-07-25.zip',
     )
   })
 })
 
-describe('buildInvoiceZipMessage', () => {
+describe('buildArchiveMessage', () => {
   it('reports a plain count when every row was packed', () => {
     expect(
-      buildInvoiceZipMessage({
-        rows: 5,
-        rowsWithInvoice: 5,
-        expectedFiles: 5,
-        downloadedFiles: 5,
-      }),
+      buildArchiveMessage(
+        {
+          rows: 5,
+          rowsWithFile: 5,
+          expectedFiles: 5,
+          downloadedFiles: 5,
+        },
+        INVOICE_ARCHIVE_COPY,
+      ),
     ).toBe('Pobrano 5 faktur')
   })
 
@@ -169,76 +131,124 @@ describe('buildInvoiceZipMessage', () => {
   // „Pobrano 9 z 5".
   it('counts pages, not rows, when a row carries several', () => {
     expect(
-      buildInvoiceZipMessage({
-        rows: 5,
-        rowsWithInvoice: 5,
-        expectedFiles: 9,
-        downloadedFiles: 9,
-      }),
+      buildArchiveMessage(
+        {
+          rows: 5,
+          rowsWithFile: 5,
+          expectedFiles: 9,
+          downloadedFiles: 9,
+        },
+        INVOICE_ARCHIVE_COPY,
+      ),
     ).toBe('Pobrano 9 faktur')
   })
 
   it('names the shortfall when some rows carry no invoice', () => {
     expect(
-      buildInvoiceZipMessage({
-        rows: 5,
-        rowsWithInvoice: 3,
-        expectedFiles: 3,
-        downloadedFiles: 3,
-      }),
+      buildArchiveMessage(
+        {
+          rows: 5,
+          rowsWithFile: 3,
+          expectedFiles: 3,
+          downloadedFiles: 3,
+        },
+        INVOICE_ARCHIVE_COPY,
+      ),
     ).toBe('Pobrano 3 z 3 — 2 pozycje bez faktury')
   })
 
   it('names the shortfall when some pages failed to download', () => {
     expect(
-      buildInvoiceZipMessage({
-        rows: 5,
-        rowsWithInvoice: 5,
-        expectedFiles: 7,
-        downloadedFiles: 5,
-      }),
+      buildArchiveMessage(
+        {
+          rows: 5,
+          rowsWithFile: 5,
+          expectedFiles: 7,
+          downloadedFiles: 5,
+        },
+        INVOICE_ARCHIVE_COPY,
+      ),
     ).toBe('Pobrano 5 z 7 — 2 nie do pobrania')
   })
 
   it('names both shortfalls when they occur together', () => {
     expect(
-      buildInvoiceZipMessage({
-        rows: 6,
-        rowsWithInvoice: 4,
-        expectedFiles: 4,
-        downloadedFiles: 3,
-      }),
+      buildArchiveMessage(
+        {
+          rows: 6,
+          rowsWithFile: 4,
+          expectedFiles: 4,
+          downloadedFiles: 3,
+        },
+        INVOICE_ARCHIVE_COPY,
+      ),
     ).toBe('Pobrano 3 z 4 — 2 pozycje bez faktury, 1 nie do pobrania')
   })
 
   it('says nothing was attachable when no row carries an invoice', () => {
     expect(
-      buildInvoiceZipMessage({
-        rows: 4,
-        rowsWithInvoice: 0,
-        expectedFiles: 0,
-        downloadedFiles: 0,
-      }),
+      buildArchiveMessage(
+        {
+          rows: 4,
+          rowsWithFile: 0,
+          expectedFiles: 0,
+          downloadedFiles: 0,
+        },
+        INVOICE_ARCHIVE_COPY,
+      ),
     ).toBe('Brak faktur do pobrania')
   })
 
   it('distinguishes a total download failure from having nothing to download', () => {
     expect(
-      buildInvoiceZipMessage({
-        rows: 4,
-        rowsWithInvoice: 2,
-        expectedFiles: 2,
-        downloadedFiles: 0,
-      }),
+      buildArchiveMessage(
+        {
+          rows: 4,
+          rowsWithFile: 2,
+          expectedFiles: 2,
+          downloadedFiles: 0,
+        },
+        INVOICE_ARCHIVE_COPY,
+      ),
     ).toBe('Nie udało się pobrać żadnej faktury')
+  })
+
+  // The dialog packs lead photos and rzuty through the same path, so the noun rides in with the
+  // caller — it toasted „Pobrano 3 faktury" over a set of zdjęcia until it did.
+  it('takes its noun from the caller, not from faktury', () => {
+    expect(
+      buildArchiveMessage(
+        { rows: 1, rowsWithFile: 1, expectedFiles: 3, downloadedFiles: 3 },
+        FILE_ARCHIVE_COPY,
+      ),
+    ).toBe('Pobrano 3 pliki')
+  })
+
+  // A lead's gallery reported „2 pozycje bez faktury" over rows that never had one.
+  it("qualifies an empty row in the caller's own words", () => {
+    expect(
+      buildArchiveMessage(
+        { rows: 3, rowsWithFile: 1, expectedFiles: 1, downloadedFiles: 1 },
+        FILE_ARCHIVE_COPY,
+      ),
+    ).toBe('Pobrano 1 z 1 — 2 pozycje bez pliku')
+  })
+
+  it("says nothing was packable in the caller's own words", () => {
+    expect(
+      buildArchiveMessage(
+        { rows: 1, rowsWithFile: 0, expectedFiles: 0, downloadedFiles: 0 },
+        FILE_ARCHIVE_COPY,
+      ),
+    ).toBe('Brak plików do pobrania')
   })
 })
 
-describe('flattenInvoiceRows', () => {
+describe('flattenArchiveRows', () => {
   const page = (filename: string) => ({ url: `/media/${filename}`, filename, mimeType: null })
 
   it('yields one entry per page, in row then page order', () => {
-    const files = flattenInvoiceRows([
+    const files = flattenArchiveRows([
       { date: '2026-03-15', description: 'Cegły', invoices: [page('a.jpg'), page('b.jpg')] },
       { date: '2026-03-16', description: 'Piasek', invoices: [page('c.pdf')] },
     ])
@@ -252,12 +262,12 @@ describe('flattenInvoiceRows', () => {
 
   it('skips a row with no pages rather than emitting an empty entry', () => {
     expect(
-      flattenInvoiceRows([{ date: '2026-03-15', description: 'Bez faktury', invoices: [] }]),
+      flattenArchiveRows([{ date: '2026-03-15', description: 'Bez faktury', invoices: [] }]),
     ).toEqual([])
   })
 
   it('dedupes names across rows, not just within one', () => {
-    const files = flattenInvoiceRows([
+    const files = flattenArchiveRows([
       { date: '2026-03-15', description: 'Cegły', invoices: [page('a.jpg')] },
       { date: '2026-03-15', description: 'Cegły', invoices: [page('b.jpg')] },
     ])

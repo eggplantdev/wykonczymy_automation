@@ -11,27 +11,26 @@ const UPLOAD_CONCURRENCY = 4
  * files are already in Blob with nothing referencing them — the caller has to hand them to the
  * orphan cleanup or they leak. Multi-page submits made this the common failure, not the rare one.
  */
-export class InvoiceUploadError extends Error {
+export class MediaUploadError extends Error {
   constructor(
     message: string,
     readonly uploadedIds: number[],
   ) {
     super(message)
-    this.name = 'InvoiceUploadError'
+    this.name = 'MediaUploadError'
   }
 }
 
 /**
- * Positional invoice-mediaId lists for submit. Per row index: upload every attached page in order;
- * a row with no files gets an empty list. The concurrency cap bounds total files in flight rather
- * than rows — one row can now carry a whole multi-page invoice on its own. `upload` is injectable
- * for tests.
+ * Positional mediaId lists for submit. Per row index: upload every attached file in order; a row
+ * with no files gets an empty list. The concurrency cap bounds total files in flight rather than
+ * rows — one row can carry a whole multi-page invoice on its own. `upload` is injectable for tests.
  *
- * A failure throws `InvoiceUploadError` carrying whatever already landed. Failures are caught per
+ * A failure throws `MediaUploadError` carrying whatever already landed. Failures are caught per
  * page rather than propagated out of `mapWithConcurrency`, because that call rejects on the first
  * one while its other workers keep going — the ids they produce afterwards would be unrecoverable.
  */
-export async function resolveInvoiceMediaIds(
+export async function resolveUploadIdRows(
   count: number,
   files: Map<number, File[]>,
   upload: (file: File) => Promise<number> = uploadMediaFromClient,
@@ -54,7 +53,7 @@ export async function resolveInvoiceMediaIds(
   })
 
   if (failure) {
-    throw new InvoiceUploadError(
+    throw new MediaUploadError(
       failure,
       mediaIds.filter((id): id is number => id !== undefined),
     )
@@ -69,11 +68,11 @@ export async function resolveInvoiceMediaIds(
 }
 
 /**
- * The same upload, from a surface that has no rows — one invoice, its pages in pick order. Spares
+ * The same upload, from a surface that has no rows — one set of files, in pick order. Spares
  * every such caller the `(1, new Map([[0, files]]))` incantation and the `[pages]` destructure.
  */
-export async function resolveInvoicePageIds(files: File[], kind?: MediaKindT): Promise<number[]> {
-  const [pages] = await resolveInvoiceMediaIds(
+export async function resolveUploadIds(files: File[], kind?: MediaKindT): Promise<number[]> {
+  const [pages] = await resolveUploadIdRows(
     1,
     new Map([[0, files]]),
     kind && ((file) => uploadMediaFromClient(file, { kind })),

@@ -6,7 +6,7 @@ import { FieldGroup } from '@/components/ui/field'
 import { FileInput } from '@/components/ui/file-input'
 import { useFilePickIngest } from '@/components/forms/hooks/use-file-pick-ingest'
 import { InvestmentAssetsField } from './investment-assets-field'
-import { submitWithInvoicePages } from '@/lib/invoices/submit-with-invoice-pages'
+import { submitWithUploads } from '@/lib/media/submit-with-uploads'
 import { useManagedForm } from '@/components/forms/hooks/use-managed-form'
 import { FormShell } from '@/components/forms/form-components/form-shell'
 import FormFooter from '@/components/forms/form-components/form-footer'
@@ -75,7 +75,7 @@ export function InvestmentForm({
           return { success: false, error: 'Poczekaj na przetworzenie plików.' }
         }
 
-        return submitWithInvoicePages(files, (assets) => action({ ...data, assets }))
+        return submitWithUploads(files, (assets) => action({ ...data, assets }))
       },
       // Only on the way IN, and only from another status: „Zakończona" is a one-way door for everyone
       // but właściciel/admin, so the person closing the investment is told what they are giving up
@@ -144,8 +144,8 @@ export function InvestmentForm({
             )}
           </form.AppField>
 
-          {/* Container query, nie breakpoint: o dwie kolumny decyduje szerokość dialogu, a ten jest
-              węższy niż viewport, w którym `sm:` już by zadziałało. */}
+          {/* Container query, not a breakpoint: the two columns follow the dialog's width, and the
+              dialog is narrower than the viewport at which `sm:` would already have fired. */}
           <div className="grid gap-4 @md/field-group:grid-cols-2">
             <form.AppField name="status">
               {(field) => (

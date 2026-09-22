@@ -4,16 +4,16 @@ import { describe, it, expect, vi } from 'vitest'
 // calls it (upload is injected here), so stub the module to keep the import Node-safe.
 vi.mock('@/lib/utils/compress-image', () => ({ compressImage: async (f: File) => f }))
 
-import { InvoiceUploadError, resolveInvoiceMediaIds } from '@/lib/invoices/invoice-page-uploads'
+import { MediaUploadError, resolveUploadIdRows } from '@/lib/media/upload-ids'
 
 const file = (name: string) => ({ name }) as File
 
-describe('resolveInvoiceMediaIds', () => {
+describe('resolveUploadIdRows', () => {
   it('uploads the File attached at a row', async () => {
     const upload = vi.fn(async () => 777)
     const files = new Map<number, File[]>([[0, [file('a.jpg')]]])
 
-    const result = await resolveInvoiceMediaIds(1, files, upload)
+    const result = await resolveUploadIdRows(1, files, upload)
 
     expect(result).toEqual([[777]])
     expect(upload).toHaveBeenCalledTimes(1)
@@ -21,7 +21,7 @@ describe('resolveInvoiceMediaIds', () => {
 
   it('returns an empty page list for a row with no File', async () => {
     const upload = vi.fn(async () => 1)
-    const result = await resolveInvoiceMediaIds(1, new Map(), upload)
+    const result = await resolveUploadIdRows(1, new Map(), upload)
 
     expect(result).toEqual([[]])
     expect(upload).not.toHaveBeenCalled()
@@ -34,7 +34,7 @@ describe('resolveInvoiceMediaIds', () => {
       [2, [file('c.jpg')]],
     ])
 
-    const result = await resolveInvoiceMediaIds(3, files, upload)
+    const result = await resolveUploadIdRows(3, files, upload)
 
     expect(result).toEqual([[], [500], [600]])
     expect(upload).toHaveBeenCalledTimes(2)
@@ -52,7 +52,7 @@ describe('resolveInvoiceMediaIds', () => {
       [1, [file('p4.jpg')]],
     ])
 
-    const result = await resolveInvoiceMediaIds(2, files, upload)
+    const result = await resolveUploadIdRows(2, files, upload)
 
     expect(result).toEqual([[1, 2, 3], [4]])
   })
@@ -66,12 +66,10 @@ describe('resolveInvoiceMediaIds', () => {
     })
     const files = new Map<number, File[]>([[0, [file('p1.jpg'), file('p2.jpg')]]])
 
-    await expect(resolveInvoiceMediaIds(1, files, upload)).rejects.toMatchObject({
+    await expect(resolveUploadIdRows(1, files, upload)).rejects.toMatchObject({
       message: '413',
       uploadedIds: [1],
     })
-    await expect(resolveInvoiceMediaIds(1, files, upload)).rejects.toBeInstanceOf(
-      InvoiceUploadError,
-    )
+    await expect(resolveUploadIdRows(1, files, upload)).rejects.toBeInstanceOf(MediaUploadError)
   })
 })

@@ -4,15 +4,16 @@ import { useState } from 'react'
 import { Loader2, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { InvoicePreviewButton } from '@/components/dialogs/invoice-preview-button'
-import { InvoiceUploadDialog } from '@/components/dialogs/invoice-upload-dialog'
+import { MediaPreviewButton } from '@/components/dialogs/media-preview-button'
+import { INVOICE_PREVIEW_LABELS } from '@/lib/media/wording'
+import { MediaUploadDialog } from '@/components/dialogs/media-upload-dialog'
 import { useInvoiceRemoval } from '@/hooks/use-invoice-removal'
 import { useInvoiceUpload } from '@/hooks/use-invoice-upload'
-import type { InvoiceFileT } from '@/types/transfers'
+import type { PreviewFileT } from '@/types/media'
 
 type InvoiceCellPropsT = {
   transactionId: number
-  invoices: InvoiceFileT[]
+  invoices: PreviewFileT[]
 }
 
 export function InvoiceCell({ transactionId, invoices }: InvoiceCellPropsT) {
@@ -36,8 +37,9 @@ export function InvoiceCell({ transactionId, invoices }: InvoiceCellPropsT) {
           <Loader2 className="animate-spin" />
         </Button>
       ) : visibleInvoices.length > 0 ? (
-        <InvoicePreviewButton
-          invoices={visibleInvoices}
+        <MediaPreviewButton
+          labels={INVOICE_PREVIEW_LABELS}
+          files={visibleInvoices}
           variant="compact"
           // The preview would sit on top of the upload dialog, so it steps aside before it opens.
           onAdd={(closePreview) => {
@@ -59,7 +61,7 @@ export function InvoiceCell({ transactionId, invoices }: InvoiceCellPropsT) {
         </Button>
       )}
 
-      <InvoiceUploadDialog
+      <MediaUploadDialog
         open={uploadOpen}
         onOpenChange={setUploadOpen}
         onFiles={(picked) => void uploadFiles(picked)}

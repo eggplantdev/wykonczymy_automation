@@ -5,12 +5,11 @@ import dynamic from 'next/dynamic'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/loader/spinner'
-import { useInvoiceZip } from '@/hooks/use-invoice-zip'
-import { buildInvoiceArchiveName, dedupeFilename } from '@/lib/invoices/invoice-zip'
+import { useFileArchive } from '@/hooks/use-file-archive'
+import { dedupeFilename } from '@/lib/media/file-archive'
 import { isImageMime, isPdfMime, isPreviewableMime } from '@/lib/media/mime'
 import { splitExtension } from '@/lib/utils/append-short-id'
 import { openPrintWindow, printThenClose } from '@/lib/utils/print-window'
-import { today } from '@/lib/utils/date'
 import {
   ChevronLeft,
   ChevronRight,
@@ -20,9 +19,7 @@ import {
   Printer,
   Trash2,
 } from 'lucide-react'
-import { INVOICE_PREVIEW_LABELS } from '@/components/media/preview-labels'
-import type { InvoiceFileT } from '@/types/transfers'
-import type { PreviewLabelsT } from '@/types/media'
+import type { PreviewFileT, PreviewLabelsT } from '@/types/media'
 
 // Every surface carrying a preview trigger statically imports this dialog, so a bare import would
 // ship the ~160 KB zoom engine to users who never open a preview. It has no `exports` map and no
@@ -32,14 +29,14 @@ const ZoomablePreviewImage = dynamic(
   { ssr: false },
 )
 
-export type InvoicePreviewDialogPropsT = {
-  invoices: InvoiceFileT[]
+export type MediaPreviewDialogPropsT = {
+  files: PreviewFileT[]
   initialIndex?: number
-  labels?: PreviewLabelsT
+  labels: PreviewLabelsT
   open: boolean
   onOpenChange: (open: boolean) => void
   onAdd?: () => void
-  onRemove?: (invoice: InvoiceFileT) => void
+  onRemove?: (file: PreviewFileT) => void
   onRemoveAll?: () => void
   /**
    * One prop rather than four, because the button needs every half to say anything true. The
@@ -47,8 +44,8 @@ export type InvoicePreviewDialogPropsT = {
    * faktury, so a marker's name belongs to the surface that offers it.
    */
   planMarker?: {
-    isMarked: (invoice: InvoiceFileT) => boolean
-    onMark: (invoice: InvoiceFileT) => void
+    isMarked: (file: PreviewFileT) => boolean
+    onMark: (file: PreviewFileT) => void
     label: string
     markedLabel: string
   }
@@ -56,10 +53,10 @@ export type InvoicePreviewDialogPropsT = {
   unoptimized?: boolean
 }
 
-export function InvoicePreviewDialog({
-  invoices,
+export function MediaPreviewDialog({
+  files,
   initialIndex = 0,
-  labels = INVOICE_PREVIEW_LABELS,
+  labels,
   open,
   onOpenChange,
   onAdd,
@@ -67,19 +64,19 @@ export function InvoicePreviewDialog({
   onRemoveAll,
   planMarker,
   unoptimized,
-}: InvoicePreviewDialogPropsT) {
+}: MediaPreviewDialogPropsT) {
   // Removing the last page must not leave the pager pointing past the end.
   const [pageIndex, setPageIndex] = useState(initialIndex)
   const [isMediaLoading, setIsMediaLoading] = useState(true)
-  const { downloadFiles } = useInvoiceZip()
+  const { downloadFiles } = useFileArchive()
 
-  const activeIndex = Math.min(pageIndex, Math.max(invoices.length - 1, 0))
-  const active = invoices[activeIndex]
-  const isMultiPage = invoices.length > 1
+  const activeIndex = Math.min(pageIndex, Math.max(files.length - 1, 0))
+  const active = files[activeIndex]
+  const isMultiPage = files.length > 1
   const isImage = isImageMime(active?.mimeType)
   const isPdf = isPdfMime(active?.mimeType)
   const displayName = active?.filename ?? labels.fallbackTitle
-  const title = isMultiPage ? `${displayName} (${activeIndex + 1}/${invoices.length})` : displayName
+  const title = isMultiPage ? `${displayName} (${activeIndex + 1}/${files.length})` : displayName
 
   function goToPage(index: number) {
     setPageIndex(index)
@@ -91,7 +88,7 @@ export function InvoicePreviewDialog({
     // document with DOM APIs. Loading the window from a blob:/data: URL instead gives it an
     // opaque origin where the page URL — a relative Payload path OR a not-yet-uploaded blob:
     // preview — no longer resolves, so the media never loads and print never fires.
-    const printable = invoices.filter((invoice) => isPreviewableMime(invoice.mimeType))
+    const printable = files.filter((file) => isPreviewableMime(file.mimeType))
     if (printable.length === 0) return
 
     const printWindow = openPrintWindow(displayName)
@@ -109,18 +106,18 @@ export function InvoicePreviewDialog({
       printThenClose(printWindow)
     }
 
-    for (const invoice of printable) {
+    for (const file of printable) {
       let media: HTMLImageElement | HTMLIFrameElement
-      if (isImageMime(invoice.mimeType)) {
+      if (isImageMime(file.mimeType)) {
         const img = doc.createElement('img')
-        img.src = invoice.url
-        img.alt = invoice.filename ?? displayName
+        img.src = file.url
+        img.alt = file.filename ?? displayName
         img.style.maxWidth = '100%'
         img.style.height = 'auto'
         media = img
       } else {
         const frame = doc.createElement('iframe')
-        frame.src = invoice.url
+        frame.src = file.url
         frame.style.width = '100%'
         frame.style.height = '100vh'
         frame.style.border = 'none'
@@ -136,11 +133,12 @@ export function InvoicePreviewDialog({
   function handleDownloadAll() {
     const usedNames = new Set<string>()
     downloadFiles(
-      invoices.map((invoice, index) => ({
-        url: invoice.url,
-        name: dedupeFilename(invoice.filename ?? `strona-${index + 1}`, usedNames),
+      files.map((file, index) => ({
+        url: file.url,
+        name: dedupeFilename(file.filename ?? `${labels.unit}-${index + 1}`, usedNames),
       })),
-      buildInvoiceArchiveName([splitExtension(displayName).base], today(), labels.archivePrefix),
+      [splitExtension(displayName).base],
+      labels.archive,
     )
   }
 
@@ -204,12 +202,12 @@ export function InvoicePreviewDialog({
               <ChevronLeft />
             </Button>
             <span className="text-muted-foreground text-sm tabular-nums">
-              {activeIndex + 1} / {invoices.length}
+              {activeIndex + 1} / {files.length}
             </span>
             <Button
               variant="outline"
               size="icon"
-              disabled={activeIndex === invoices.length - 1}
+              disabled={activeIndex === files.length - 1}
               onClick={() => goToPage(activeIndex + 1)}
               aria-label="Następna strona"
             >

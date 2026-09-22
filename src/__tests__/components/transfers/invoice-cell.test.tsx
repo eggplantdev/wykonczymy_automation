@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { InvoiceCell } from '@/components/transfers/invoice-cell'
-import type { InvoiceFileT } from '@/types/transfers'
+import type { PreviewFileT } from '@/types/media'
 
 const removeTransferInvoiceAction = vi.fn()
 vi.mock('@/lib/actions/transfers', () => ({
@@ -14,13 +14,13 @@ vi.mock('@/hooks/use-invoice-upload', () => ({
   useInvoiceUpload: () => ({ isUploading: false, uploadFiles: vi.fn() }),
 }))
 
-const PAGE_ONE: InvoiceFileT = {
+const PAGE_ONE: PreviewFileT = {
   id: 11,
   url: '/api/media/file/faktura-1.jpg',
   filename: 'faktura-1.jpg',
   mimeType: 'image/jpeg',
 }
-const PAGE_TWO: InvoiceFileT = {
+const PAGE_TWO: PreviewFileT = {
   id: 12,
   url: '/api/media/file/faktura-2.jpg',
   filename: 'faktura-2.jpg',

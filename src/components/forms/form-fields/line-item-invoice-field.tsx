@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { FileInput } from '@/components/ui/file-input'
 import { FieldLabel } from '@/components/ui/field'
-import { InvoicePreviewButton } from '@/components/dialogs/invoice-preview-button'
+import { MediaPreviewButton } from '@/components/dialogs/media-preview-button'
+import { INVOICE_PREVIEW_LABELS } from '@/lib/media/wording'
 import { cn } from '@/lib/utils/cn'
 
 const NO_FILES: File[] = []
@@ -70,8 +71,9 @@ export function LineItemInvoiceField({
   return (
     <div className={cn('flex w-full flex-col gap-1', fieldClassName)}>
       <FieldLabel>FV</FieldLabel>
-      <InvoicePreviewButton
-        invoices={pages}
+      <MediaPreviewButton
+        labels={INVOICE_PREVIEW_LABELS}
+        files={pages}
         // No `closePreview` — the picked pages land in place, so the preview keeps showing them.
         onAdd={() => addInputRef.current?.click()}
         onRemove={(invoice) =>

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { extractInvoiceIds, resolveInvoiceFiles } from '@/lib/invoices/invoice-field'
+import { extractInvoiceIds, resolveInvoiceFiles } from '@/lib/media/invoice-field'
 import type { MediaInfoT } from '@/lib/queries/media'
 
 const media = (id: number): [number, MediaInfoT] => [

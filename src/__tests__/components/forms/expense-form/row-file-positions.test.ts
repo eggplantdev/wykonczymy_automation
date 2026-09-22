@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { filesByRowId, positionalFiles } from '@/lib/invoices/row-file-positions'
+import { filesByRowId, positionalFiles } from '@/components/forms/expense-form/row-file-positions'
 
 // Stand-in for File — the projections only ever read row `id` and Map identity, never File internals.
 const file = (name: string) => ({ name }) as File

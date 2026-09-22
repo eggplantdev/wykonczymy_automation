@@ -7,7 +7,7 @@ import { getDepositTransactionsForInvestment } from '@/lib/db/get-deposit-transa
 import { findTransfersRaw } from '@/lib/queries/transfers'
 import { fetchMediaByIds } from '@/lib/queries/media'
 import { fetchExpenseCategories } from '@/lib/queries/reference-data'
-import { extractInvoiceIds, resolveInvoiceFiles } from '@/lib/invoices/invoice-field'
+import { extractInvoiceIds, resolveInvoiceFiles } from '@/lib/media/invoice-field'
 import { billedAmountFor, EXPENSES_TAB_TYPES } from '@/lib/constants/transfers'
 import type {
   PayoutTransactionRowT,

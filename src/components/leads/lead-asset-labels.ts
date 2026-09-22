@@ -1,4 +1,4 @@
-import { ASSET_PREVIEW_LABELS } from '@/components/media/preview-labels'
+import { ASSET_PREVIEW_LABELS } from '@/lib/media/wording'
 import type { MediaRemovalLabelsT } from '@/hooks/use-media-removal'
 import type { PreviewLabelsT } from '@/types/media'
 

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { ingestFiles } from '@/lib/invoices/ingest-files'
+import { ingestFiles } from '@/lib/media/ingest-files'
 import { BlockedFileError } from '@/lib/utils/process-upload-file'
 
 const mockProcess = vi.fn()

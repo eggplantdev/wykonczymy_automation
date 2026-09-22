@@ -5,7 +5,7 @@ import {
   removeAllTransferInvoicesAction,
   removeTransferInvoiceAction,
 } from '@/lib/actions/transfers'
-import type { InvoiceFileT } from '@/types/transfers'
+import type { PreviewFileT } from '@/types/media'
 
 const INVOICE_REMOVAL_LABELS: MediaRemovalLabelsT = {
   confirmOne: 'Czy na pewno chcesz usunąć tę stronę?',
@@ -15,7 +15,7 @@ const INVOICE_REMOVAL_LABELS: MediaRemovalLabelsT = {
   error: 'Nie udało się usunąć faktury',
 }
 
-export function useInvoiceRemoval(transactionId: number, invoices: InvoiceFileT[]) {
+export function useInvoiceRemoval(transactionId: number, invoices: PreviewFileT[]) {
   const { visibleFiles, ...removal } = useMediaRemoval({
     files: invoices,
     removeOne: (invoiceId) => removeTransferInvoiceAction(transactionId, invoiceId),

@@ -1,5 +1,5 @@
 import type { CollectionSlug, Payload } from 'payload'
-import { deleteUnreferencedMedia } from '@/lib/media/delete-unreferenced-media'
+import { reclaimUnreferencedMedia } from '@/lib/media/delete-unreferenced-media'
 import { uploadFieldIds, type UploadFieldT } from '@/lib/media/upload-field'
 import { perfStart } from '@/lib/perf'
 
@@ -9,6 +9,10 @@ type UploadFieldTargetT = {
   field: string
   id: number
 }
+
+/** The investment gallery target, shared by every path that appends to it. */
+export const investmentAssetsField = (investmentId: number) =>
+  ({ collection: 'investments', field: 'assets', id: investmentId }) as const
 
 /**
  * Rewrite one doc's hasMany upload field to whatever `nextIds` derives from the current list, then
@@ -34,9 +38,7 @@ export async function setUploadField(
   await payload.update({ collection, id, data: { [field]: next } })
   console.log(`[PERF]   payload.update(${collection}/${id}) ${step()}ms`)
 
-  // Awaited, not fire-and-forget: the serverless invocation can be frozen the moment the response
-  // is written, which would drop the deletes and leak exactly the files this reclaims.
-  await deleteUnreferencedMedia(
+  await reclaimUnreferencedMedia(
     payload,
     currentIds.filter((mediaId) => !next.includes(mediaId)),
   )

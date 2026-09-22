@@ -1,6 +1,7 @@
 'use client'
 
-import { InvoicePreviewButton } from '@/components/dialogs/invoice-preview-button'
+import { MediaPreviewButton } from '@/components/dialogs/media-preview-button'
+import { INVOICE_PREVIEW_LABELS } from '@/lib/media/wording'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { SelectItem } from '@/components/ui/select'
 import { FieldGroup } from '@/components/ui/field'
@@ -18,7 +19,7 @@ import {
 } from '@/lib/constants/transfers'
 import { editTransferFormSchema } from '@/lib/schemas/transfer-form'
 import type { EditTransferFormValuesT } from './edit-transfer-form-api'
-import { submitWithInvoicePages } from '@/lib/invoices/submit-with-invoice-pages'
+import { submitWithUploads } from '@/lib/media/submit-with-uploads'
 import { useInvoiceRemoval } from '@/hooks/use-invoice-removal'
 import type { UpdateTransferFormT } from '@/lib/schemas/transfer'
 import type { TransferRowT } from '@/types/transfers'
@@ -97,7 +98,7 @@ export function EditTransferForm({
           // saving mid-ingest would persist the row without the pages still being converted.
           if (isIngesting) return { success: false, error: 'Poczekaj na przetworzenie plików.' }
 
-          return submitWithInvoicePages(files, (pageIds) =>
+          return submitWithUploads(files, (pageIds) =>
             // `undefined` means "no pages this save" to an update that only ever ADDS invoices.
             updateTransferAction(row.id, data, pageIds.length > 0 ? pageIds : undefined),
           )
@@ -206,8 +207,9 @@ export function EditTransferForm({
 
           <div className="space-y-2">
             {visibleInvoices.length > 0 && files.length === 0 && (
-              <InvoicePreviewButton
-                invoices={visibleInvoices}
+              <MediaPreviewButton
+                labels={INVOICE_PREVIEW_LABELS}
+                files={visibleInvoices}
                 onRemove={handleRemove}
                 onRemoveAll={visibleInvoices.length > 1 ? handleRemoveAll : undefined}
               />

@@ -1,5 +1,5 @@
 // Out-of-form invoice files are keyed by each row's stable client id (EX-448), but the submit
-// contract (resolveInvoiceMediaIds / createBulkTransferAction) is positional AND nested: row i is
+// contract (resolveUploadIdRows / createBulkTransferAction) is positional AND nested: row i is
 // `lineItems[i]`, and its invoice pages are `mediaIds[i][0..n]` in attachment order (EX-659). These
 // two pure projections bridge id-space ↔ position-space at that seam and nowhere else, so the whole
 // in-form apparatus stays id-keyed while the wire stays positional.

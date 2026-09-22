@@ -2,24 +2,33 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { InvoicePreviewDialog } from '@/components/dialogs/invoice-preview-dialog'
-import type { InvoiceFileT } from '@/types/transfers'
+import { MediaPreviewDialog } from '@/components/dialogs/media-preview-dialog'
+import { INVOICE_PREVIEW_LABELS } from '@/lib/media/wording'
+import type { PreviewFileT } from '@/types/media'
 
-vi.mock('@/hooks/use-invoice-zip', () => ({
-  useInvoiceZip: () => ({ downloadFiles: vi.fn(), isZipping: false }),
+vi.mock('@/hooks/use-file-archive', () => ({
+  useFileArchive: () => ({ download: vi.fn(), downloadFiles: vi.fn(), isPending: false }),
 }))
 
-const IMAGES: InvoiceFileT[] = [
+const IMAGES: PreviewFileT[] = [
   { id: 1, url: '/rzut-parter.jpg', filename: 'rzut-parter.jpg', mimeType: 'image/jpeg' },
   { id: 2, url: '/rzut-pietro.jpg', filename: 'rzut-pietro.jpg', mimeType: 'image/jpeg' },
 ]
 
-const PDF: InvoiceFileT[] = [
+const PDF: PreviewFileT[] = [
   { id: 3, url: '/faktura.pdf', filename: 'faktura.pdf', mimeType: 'application/pdf' },
 ]
 
-function renderDialog(invoices: InvoiceFileT[], props: { unoptimized?: boolean } = {}) {
-  return render(<InvoicePreviewDialog invoices={invoices} open onOpenChange={vi.fn()} {...props} />)
+function renderDialog(invoices: PreviewFileT[], props: { unoptimized?: boolean } = {}) {
+  return render(
+    <MediaPreviewDialog
+      files={invoices}
+      labels={INVOICE_PREVIEW_LABELS}
+      open
+      onOpenChange={vi.fn()}
+      {...props}
+    />,
+  )
 }
 
 // The zoom component arrives through next/dynamic, so every lookup has to await its chunk.
@@ -27,7 +36,7 @@ function previewImage(filename: string) {
   return screen.findByAltText<HTMLImageElement>(filename)
 }
 
-describe('InvoicePreviewDialog — zoom', () => {
+describe('MediaPreviewDialog — zoom', () => {
   it('nie pokazuje sterowania zoomem dla PDF-a', () => {
     renderDialog(PDF)
 

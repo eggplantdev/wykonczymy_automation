@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import { ToggleGroup, type OptionT } from '@/components/ui/toggle-group'
-import { InvoicePreviewButton } from '@/components/dialogs/invoice-preview-button'
-import { useInvoiceZip } from '@/hooks/use-invoice-zip'
-import { buildInvoiceArchiveName } from '@/lib/invoices/invoice-zip'
+import { MediaPreviewButton } from '@/components/dialogs/media-preview-button'
+import { INVOICE_PREVIEW_LABELS } from '@/lib/media/wording'
+import { useFileArchive } from '@/hooks/use-file-archive'
+import { INVOICE_ARCHIVE_COPY } from '@/lib/media/wording'
 import { firstNoteLine } from '@/lib/utils/invoice-note'
 import { formatNet } from '@/lib/kosztorys/format'
 import {
@@ -119,8 +120,9 @@ const SHARED_COLUMNS: ColumnDef<MaterialTransactionRowT>[] = [
     // height would drift the spacers.
     cell: ({ row }) =>
       row.original.invoices.length > 0 ? (
-        <InvoicePreviewButton
-          invoices={row.original.invoices}
+        <MediaPreviewButton
+          labels={INVOICE_PREVIEW_LABELS}
+          files={row.original.invoices}
           variant="compact"
           className="size-7"
         />
@@ -166,7 +168,7 @@ export function MaterialsTransactionsTable({
   const partition = partitionExpenseRows(preview ? clientVisibleExpenseRows(rows) : rows)
   const available = availableExpenseDatasets(partition)
   const [dataset, setDataset] = useState<ExpenseDatasetT>('gross')
-  const { download, isPending } = useInvoiceZip()
+  const { download, isPending } = useFileArchive()
   // A prop change can empty the picked set (an expense re-categorised away); fall back rather than
   // render a tab with nothing in it.
   const activeDataset = available.includes(dataset) ? dataset : (available[0] ?? 'gross')
@@ -185,11 +187,7 @@ export function MaterialsTransactionsTable({
   if (available.length === 0) return null
 
   function handleDownload() {
-    const date = today()
-    download(
-      visibleRows,
-      buildInvoiceArchiveName([investmentName, DATASET_LABELS[activeDataset]], date),
-    )
+    download(visibleRows, [investmentName, DATASET_LABELS[activeDataset]], INVOICE_ARCHIVE_COPY)
   }
 
   return (

@@ -2,9 +2,9 @@ import { FileText } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils/cn'
 
-export type InvoicePreviewTriggerPropsT = {
+export type MediaPreviewTriggerPropsT = {
   label: string
-  ariaLabel?: string
+  ariaLabel: string
   onClick: () => void
   // `compact` defaults to the ghost icon-button's 36px box but lets `className` override it — the
   // transfers table and a fixed-height virtualized row have different height budgets.
@@ -12,20 +12,20 @@ export type InvoicePreviewTriggerPropsT = {
   className?: string
 }
 
-export function InvoicePreviewTrigger({
+export function MediaPreviewTrigger({
   label,
   ariaLabel,
   onClick,
   variant = 'field',
   className,
-}: InvoicePreviewTriggerPropsT) {
+}: MediaPreviewTriggerPropsT) {
   const isCompact = variant === 'compact'
 
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label={ariaLabel ?? `Podgląd faktury: ${label}`}
+      aria-label={ariaLabel}
       className={cn(
         'text-muted-foreground hover:text-foreground cursor-pointer',
         isCompact

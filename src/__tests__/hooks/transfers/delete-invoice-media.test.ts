@@ -6,12 +6,14 @@ import { deleteInvoiceMediaAfterDelete } from '@/hooks/transfers/delete-invoice-
 // leaves its pages unreachable in Blob — the leak this hook exists to close.
 
 const mockDelete = vi.fn()
-const mockCount = vi.fn()
+// The reference scan asks once per relation for the whole batch and reads the held ids off the
+// matched docs, so a reference is staged as a doc carrying that id — not as a count.
+const mockFind = vi.fn()
 
 function runHook(invoice: unknown) {
   const args = {
     doc: { id: 7, invoice },
-    req: { payload: { delete: mockDelete, count: mockCount } },
+    req: { payload: { delete: mockDelete, find: mockFind } },
   } as unknown as Parameters<CollectionAfterDeleteHook>[0]
   return deleteInvoiceMediaAfterDelete(args)
 }
@@ -19,7 +21,7 @@ function runHook(invoice: unknown) {
 beforeEach(() => {
   vi.clearAllMocks()
   mockDelete.mockResolvedValue({})
-  mockCount.mockResolvedValue({ totalDocs: 0 })
+  mockFind.mockResolvedValue({ docs: [] })
 })
 
 describe('deleteInvoiceMediaAfterDelete', () => {
@@ -53,7 +55,8 @@ describe('deleteInvoiceMediaAfterDelete', () => {
   // The join-table FK cascades, so a media row another expense still points at would be silently
   // stripped from that expense too — the reference check is what makes the delete safe.
   it('keeps a page another expense still references', async () => {
-    mockCount.mockResolvedValueOnce({ totalDocs: 1 })
+    // First relation asked is `transactions.invoice` — another expense still holds page 55.
+    mockFind.mockResolvedValueOnce({ docs: [{ invoice: [55] }] })
 
     await runHook([55, 56])
 

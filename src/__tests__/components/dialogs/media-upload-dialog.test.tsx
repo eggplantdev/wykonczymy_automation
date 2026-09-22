@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
-import { InvoiceUploadDialog } from '@/components/dialogs/invoice-upload-dialog'
+import { MediaUploadDialog } from '@/components/dialogs/media-upload-dialog'
 
 // `FileInput` hides its real input (`sr-only`) behind a styled drop target, so there is no role or
 // label to reach it by — the element itself is the only handle.
@@ -15,13 +15,13 @@ function pickedFile() {
   return new File([new Uint8Array(4)], 'rzut.pdf', { type: 'application/pdf' })
 }
 
-function openDialog(props: Partial<React.ComponentProps<typeof InvoiceUploadDialog>> = {}) {
+function openDialog(props: Partial<React.ComponentProps<typeof MediaUploadDialog>> = {}) {
   const onFiles = vi.fn()
-  render(<InvoiceUploadDialog open onOpenChange={vi.fn()} onFiles={onFiles} {...props} />)
+  render(<MediaUploadDialog open onOpenChange={vi.fn()} onFiles={onFiles} {...props} />)
   return { onFiles }
 }
 
-describe('InvoiceUploadDialog — znacznik „to jest rzut"', () => {
+describe('MediaUploadDialog — znacznik „to jest rzut"', () => {
   // A faktura is never a rysunek, so an invoice surface must not even be offered the choice.
   it('is absent unless the surface asks for it', () => {
     openDialog()
@@ -51,12 +51,7 @@ describe('InvoiceUploadDialog — znacznik „to jest rzut"', () => {
       return (
         <>
           <button onClick={() => setOpen(true)}>otwórz</button>
-          <InvoiceUploadDialog
-            open={open}
-            onOpenChange={setOpen}
-            onFiles={vi.fn()}
-            allowPlanMarker
-          />
+          <MediaUploadDialog open={open} onOpenChange={setOpen} onFiles={vi.fn()} allowPlanMarker />
         </>
       )
     }

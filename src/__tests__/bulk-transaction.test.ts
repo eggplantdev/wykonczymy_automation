@@ -40,11 +40,7 @@ vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: vi.fn().mockResolvedValue({ success: true, user: mockUser }),
 }))
 
-// upload-invoice is no longer called by server actions (uploads happen client-side via API route)
-
-vi.mock('@/lib/cache/revalidate', () => ({
-  revalidateCollections: vi.fn(),
-}))
+vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 vi.mock('@/lib/db/get-db', () => ({
   getDb: vi.fn().mockResolvedValue({
