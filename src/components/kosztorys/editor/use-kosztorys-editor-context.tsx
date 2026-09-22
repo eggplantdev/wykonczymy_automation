@@ -4,7 +4,6 @@ import { createContext, use, type ReactNode } from 'react'
 import type { useKosztorysEditor } from '@/components/kosztorys/editor/use-kosztorys-editor'
 import type { EditorNounT } from '@/lib/kosztorys/editor-noun'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
-import type { MediaFileT } from '@/types/media'
 
 // Everything the editor hook owns plus the four values its caller supplies. The toolbar and its
 // controls read straight from here, so KosztorysEditorBody relays none of it.
@@ -27,9 +26,6 @@ type KosztorysEditorContextT = ReturnType<typeof useKosztorysEditor> & {
   // so nothing is memoised and the value identity is the same as the literal around it.
   isWorkshop: boolean
   noun: EditorNounT
-  // `undefined` = this surface has no gallery at all (the szablon workbench, both shares);
-  // `[]` = the investment simply has no files yet.
-  assets?: MediaFileT[]
 }
 
 const KosztorysEditorContext = createContext<KosztorysEditorContextT | null>(null)

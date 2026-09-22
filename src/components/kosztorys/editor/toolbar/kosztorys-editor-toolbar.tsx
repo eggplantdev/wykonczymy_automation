@@ -18,7 +18,6 @@ import { KosztorysViewMenu } from '@/components/kosztorys/editor/toolbar/kosztor
 import { KosztorysFiltersMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-filters-menu'
 import { KosztorysSectionsMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-sections-menu'
 import { KosztorysProblemsMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-problems-menu'
-import { InvestmentAssetsControl } from '@/components/investments/investment-assets-control'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { cn } from '@/lib/utils/cn'
 
@@ -31,8 +30,6 @@ export function KosztorysEditorToolbar() {
     subtotals,
     readOnly,
     isWorkshop,
-    investmentId,
-    assets,
   } = useKosztorysEditorContext()
   // Phone only — both groups below are `sm:contents`, so from 768 up this flag stops mattering.
   const [toolsOpen, setToolsOpen] = useState(false)
@@ -42,7 +39,7 @@ export function KosztorysEditorToolbar() {
       <div className="flex flex-wrap items-center gap-x-1 gap-y-2 px-4 py-2">
         {/* Stays on screen when the rest is folded: these two change what the rozpiska shows. */}
         <div className="flex w-full items-center gap-x-1 sm:contents">
-          <KosztorysTotalsPanelToggle disabled={subtotals.length === 0} />
+          <KosztorysTotalsPanelToggle hasRows={subtotals.length > 0} />
           <ToolbarToggle
             legend={VIEW_LEGEND}
             options={VIEWS}
@@ -80,8 +77,8 @@ export function KosztorysEditorToolbar() {
                 onChange={setSearch}
                 placeholder="Szukaj…"
                 debounceMs={200}
-                // Parked narrow because five menus and the gallery share this row, and widened
-                // while it is in use — a query too long to read back is worse than a tight row.
+                // Parked narrow because five menus share this row, and widened while it is in use —
+                // a query too long to read back is worse than a tight row.
                 className={cn(
                   'w-full transition-[width] duration-150 sm:w-28 sm:focus-within:w-64',
                   search && 'sm:w-64',
@@ -92,9 +89,6 @@ export function KosztorysEditorToolbar() {
           {/* Claims free space only from `sm`: five menus are wider than a phone, and below `sm` the
               group already has its own line. */}
           <div className="flex flex-wrap items-center gap-x-1 gap-y-2 sm:ml-auto">
-            {/* The gate stands here, not in the control: the control is shared with the investment
-                card, where `assets` is required. `undefined` = a surface with no gallery at all. */}
-            {assets && <InvestmentAssetsControl investmentId={investmentId} assets={assets} />}
             {/* Spans both menus, not just „Opcje": „Porównaj z katalogiem" is now read from
                 „Problemy" while its window is still mounted beside the other „Opcje" dialogs, so the
                 trigger and the dialog only reach the same state under one shared provider. */}

@@ -20,9 +20,8 @@ import { buildFilterConfig } from '@/lib/utils/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
-import { ContactLink } from '@/components/ui/contact-link'
 import { FinancialStats } from '@/components/investments/financial-stats'
-import { STATUS_LABELS } from '@/components/investments/investment-status-badge'
+import { buildInvestmentInfoFields } from '@/components/investments/investment-info-fields'
 import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
 import { SheetButton } from '@/components/dialogs/sheet-button'
 import { OpenKosztorysV2Button } from '@/components/kosztorys/open-kosztorys-v2-button'
@@ -70,15 +69,6 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
     financials.settledCategoryCosts,
     refData.expenseCategories,
   )
-  const infoFields = [
-    { label: 'Adres', value: investment.address },
-    { label: 'Telefon', value: <ContactLink type="phone" value={investment.phone} /> },
-    { label: 'Email', value: <ContactLink type="email" value={investment.email} /> },
-    { label: 'Osoba kontaktowa', value: investment.contactPerson },
-    { label: 'Notatki', value: investment.notes },
-    { label: 'Opinia', value: investment.review || '—' },
-    { label: 'Status', value: STATUS_LABELS[investment.status] },
-  ]
 
   return (
     <PageWrapper title={investment.name}>
@@ -87,7 +77,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
         <SheetButton investmentId={investmentId} hasSheet={investment.hasSheet} />
         <OpenKosztorysV2Button investmentId={investmentId} />
       </div>
-      <InfoList items={infoFields.filter((f) => f.value)} />
+      <InfoList items={buildInvestmentInfoFields(investment)} />
 
       {/* Its own boundary: the gallery's read is independent of everything above it, so it must not
           hold back the page the way an awaited fetch here would. */}

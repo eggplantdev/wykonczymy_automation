@@ -8,20 +8,20 @@ type ViewDisclosureT = {
   // keeps the figures out of the RSC payload rather than merely off the screen — and this flag only
   // stops the tab from offering a view that would then render nothing.
   hasMarginInputs: boolean
+  // Absent on the szablon workbench, which prices rows that belong to no investment at all, and on
+  // both shares.
+  hasInvestmentInfo: boolean
 }
 
-/**
- * Which of the views a host offers this reader may actually see. Two owner-only tabs on two
- * different signals: „Podwykonawcy" is gated by `preview` alone, „Marża" additionally by whether the
- * figures it is made of came through.
- */
 export function allowedSummaryViews(
   views: SummaryViewT[],
-  { preview, hasMarginInputs }: ViewDisclosureT,
+  { preview, hasMarginInputs, hasInvestmentInfo }: ViewDisclosureT,
 ): SummaryViewT[] {
   return views.filter((value) => {
     if (value === 'subcontractors') return !preview
     if (value === 'margin') return !preview && hasMarginInputs
+    // An internal note is not for the inwestor, so the client document never offers this tab.
+    if (value === 'investment') return !preview && hasInvestmentInfo
     return true
   })
 }

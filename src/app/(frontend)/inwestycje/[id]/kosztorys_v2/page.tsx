@@ -104,6 +104,7 @@ export default async function InvestmentKosztorysV2Page({
       workers={refData.workers}
       workCatalogue={workCatalogue}
       assets={assets}
+      investment={investment}
       hasSheet={investment.hasSheet}
       locked={isLockedStatus(investment.status)}
     />
