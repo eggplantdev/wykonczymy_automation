@@ -21,8 +21,12 @@ vi.mock('@/lib/auth/require-auth', () => ({
 }))
 vi.mock('@/lib/cache/revalidate', () => ({ revalidateCollections: vi.fn() }))
 
-const { reloadFromPresetAction, saveWorkshopPresetAction } =
-  await import('@/lib/actions/kosztorys-presets')
+const {
+  createEmptyPresetAction,
+  openPresetInWorkshopAction,
+  reloadFromPresetAction,
+  saveWorkshopPresetAction,
+} = await import('@/lib/actions/kosztorys-presets')
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
@@ -415,5 +419,93 @@ describe.skipIf(!ENV_READY)('saveWorkshopPresetAction — pointer guard (DB)', (
 
     expect(result).toMatchObject({ success: false })
     expect(await sectionNamesOf(otherPresetId)).toEqual([])
+  })
+})
+
+// Założenie szablonu bez źródłowego kosztorysu. Assertions go to the stored row and to the warsztat
+// tree AFTER loading it: `insertPreset` returning an id says nothing about whether an empty payload
+// survives `replaceTreeWithSnapshot`, which is the only real risk on this path.
+describe.skipIf(!ENV_READY)('createEmptyPresetAction — persisted state (DB)', () => {
+  let payload: Payload
+  let db: Awaited<ReturnType<typeof getDb>>
+  let workshop: Awaited<ReturnType<typeof acquireTestWorkshop>>
+
+  const EMPTY_PRESET_NAME = 'pusty-szablon-fixture'
+
+  beforeAll(async () => {
+    const { getPayload } = await import('payload')
+    const config = (await import('@payload-config')).default
+    payload = await getPayload({ config })
+    db = await getDb(payload)
+
+    const users = await payload.find({
+      collection: 'users',
+      limit: 1,
+      depth: 0,
+      overrideAccess: true,
+    })
+    const firstUser = users.docs[0]
+    if (!firstUser) throw new Error('no user in the DB to attribute the preset to')
+    authState.userId = Number(firstUser.id)
+
+    workshop = await acquireTestWorkshop(payload)
+    // Entering, not asserting: the szablon library is shared, so a leftover row from a failed run
+    // would make the „nazwa zajęta" case pass for the wrong reason.
+    await db.execute(sql`DELETE FROM kosztorys_presets WHERE name = ${EMPTY_PRESET_NAME}`)
+  })
+
+  afterAll(async () => {
+    await workshop.release()
+    await db.execute(sql`DELETE FROM kosztorys_presets WHERE name = ${EMPTY_PRESET_NAME}`)
+  })
+
+  async function storedPresets(): Promise<
+    { id: number; schemaVersion: number; payload: SnapshotPayloadT }[]
+  > {
+    const res = await db.execute(sql`
+      SELECT id, schema_version, payload FROM kosztorys_presets WHERE name = ${EMPTY_PRESET_NAME}
+    `)
+    return res.rows.map((row) => ({
+      id: Number(row.id),
+      schemaVersion: Number(row.schema_version),
+      payload: row.payload as SnapshotPayloadT,
+    }))
+  }
+
+  async function workshopSectionCount(): Promise<number> {
+    const res = await db.execute(sql`
+      SELECT COUNT(*) AS count FROM kosztorys_sections WHERE investment_id = ${workshop.id}
+    `)
+    return Number(res.rows[0].count)
+  }
+
+  it('stores one szablon with an empty tree under the current format', async () => {
+    const result = await createEmptyPresetAction(EMPTY_PRESET_NAME)
+
+    expect(result).toMatchObject({ success: true })
+    const rows = await storedPresets()
+    expect(rows).toHaveLength(1)
+    expect(rows[0].schemaVersion).toBe(SNAPSHOT_SCHEMA_VERSION)
+    expect(rows[0].payload.sections).toEqual([])
+    expect(rows[0].payload.items).toEqual([])
+    expect(result).toMatchObject({ data: { id: rows[0].id } })
+  })
+
+  it('refuses a name already in the library and leaves the single row alone', async () => {
+    const result = await createEmptyPresetAction(EMPTY_PRESET_NAME)
+
+    expect(result).toMatchObject({ success: false })
+    expect(await storedPresets()).toHaveLength(1)
+  })
+
+  // „Otwórz" on a szablon with nothing in it: the warsztat has to come out EMPTY rather than throwing
+  // on a tree with no sekcje to remap.
+  it('loads into the warsztat as an empty rozpiska', async () => {
+    const [preset] = await storedPresets()
+
+    const result = await openPresetInWorkshopAction(preset.id)
+
+    expect(result).toMatchObject({ success: true })
+    expect(await workshopSectionCount()).toBe(0)
   })
 })

@@ -29,10 +29,12 @@ import {
   type AppendedSliceT,
   type SectionSliceT,
 } from '@/lib/kosztorys/append-preset-sections'
+import { DEFAULT_COEFFS, DEFAULT_VAT } from '@/lib/kosztorys/constants'
 import {
   reloadInvestmentFromPreset,
   type ReloadFromPresetResultT,
 } from '@/lib/kosztorys/reload-from-preset'
+import { SNAPSHOT_SCHEMA_VERSION } from '@/lib/kosztorys/snapshot-format'
 import { serializeKosztorysAsPreset } from '@/lib/kosztorys/serialize-preset'
 import type { ActionResultT } from '@/types/action'
 
@@ -40,6 +42,8 @@ const savePresetSchema = z.object({
   name: z.string().trim().min(1, 'Podaj nazwę szablonu'),
   mode: z.enum(['new', 'overwrite']),
 })
+
+const NAME_TAKEN_MESSAGE = 'Szablon o tej nazwie już istnieje'
 
 // "Zapisz jako preset" — serialize with job fields stripped, store under a name. `mode: 'new'`
 // inserts (rejected if taken); `mode: 'overwrite'` upserts in place. Only writer of presets, so it
@@ -74,8 +78,49 @@ export async function savePresetAction(
         createdBy: user.id,
         payload: preset,
       })
-      if (id == null) return { success: false, error: 'Szablon o tej nazwie już istnieje' }
+      if (id == null) return { success: false, error: NAME_TAKEN_MESSAGE }
       return { success: true }
+    },
+    ['presets'],
+  )
+}
+
+const createEmptyPresetSchema = z.object({ name: savePresetSchema.shape.name })
+
+// The second way a szablon is born, and the only one that needs no source kosztorys: an empty tree
+// the user then builds in the warsztat. Same power as savePresetAction — writing into the library,
+// not destroying it — so the same `protectedAction` gate.
+//
+// `settings` is inert here (a preset's VAT/coeffs are retained but never applied on load), yet the
+// payload type demands it; it takes the defaults rather than invented numbers so nothing reads as a
+// second source of truth for a rate.
+export async function createEmptyPresetAction(
+  name: string,
+): Promise<ActionResultT<{ id: number }>> {
+  return protectedAction(
+    'createEmptyPresetAction',
+    async ({ payload, user }) => {
+      const parsed = validateAction(createEmptyPresetSchema, { name })
+      if (!parsed.success) return parsed
+
+      const id = await insertPreset(await getDb(payload), {
+        name: parsed.data.name,
+        createdBy: user.id,
+        payload: {
+          schemaVersion: SNAPSHOT_SCHEMA_VERSION,
+          sections: [],
+          items: [],
+          stages: [],
+          progress: [],
+          settings: {
+            wToolsCoeff: DEFAULT_COEFFS.wTools,
+            ownToolsCoeff: DEFAULT_COEFFS.ownTools,
+            vatRate: DEFAULT_VAT,
+          },
+        },
+      })
+      if (id == null) return { success: false, error: NAME_TAKEN_MESSAGE }
+      return { success: true, data: { id } }
     },
     ['presets'],
   )
@@ -116,7 +161,7 @@ export async function renamePresetAction(id: number, name: string): Promise<Acti
     if (!parsed.success) return parsed
 
     const renamed = await renamePreset(await getDb(payload), parsed.data.id, parsed.data.name)
-    if (!renamed) return { success: false, error: 'Szablon o tej nazwie już istnieje' }
+    if (!renamed) return { success: false, error: NAME_TAKEN_MESSAGE }
     revalidateCollections(['presets'])
     return { success: true }
   })
