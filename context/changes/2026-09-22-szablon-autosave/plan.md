@@ -333,6 +333,10 @@ budować — nie „być domyślnie schowana" i nie „być readonly".
 `note`. Dokumentacja przy stałej mówi **dlaczego** reszta jest nieobecna (szablon jej nie niesie),
 żeby kolumna dodana później została opt-inowana świadomie.
 
+> **Skład listy zmienił się po tym planie** — `priceGross` wypadł, `actions` doszło, stawka
+> wykonawcy wróciła obok źródła. Wiążący zapis tych trzech decyzji jest w `review-gate.md`
+> (findingi F6/F7) i w komentarzu przy samej stałej; ten kontrakt jest już historyczny.
+
 #### 2. Sufit przy składaniu siatki
 
 **File**: `src/components/kosztorys/editor/grid/column-selection.ts`

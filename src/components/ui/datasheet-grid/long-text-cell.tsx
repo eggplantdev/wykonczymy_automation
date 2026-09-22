@@ -5,13 +5,14 @@ import { textColumn, type CellProps } from 'react-datasheet-grid'
 import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-text'
 import { ReadOnlyLongText } from '@/components/ui/datasheet-grid/read-only-long-text'
 import { Textarea } from '@/components/ui/textarea'
+import type { StopEditingT } from '@/components/ui/datasheet-grid/types'
 
 type PropsT = {
   value: string | null
   focus: boolean
   disabled?: boolean
   onCommit: (next: string | null) => void
-  stopEditing: (opts?: { nextRow?: boolean }) => void
+  stopEditing: StopEditingT
 }
 
 // A grid cell for text too long for a 32px row: a truncated one-liner at rest, a textarea floating

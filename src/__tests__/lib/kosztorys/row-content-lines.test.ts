@@ -34,3 +34,14 @@ describe('rowContentLines', () => {
     expect(rowContentLines(row({ description: 'aaaa bbbb cccc' }), {}, tenPxPerChar)).toBe(1)
   })
 })
+
+// „Sekcja" is shown far more often than it is long, so the interesting case is the one where a long
+// name lifts a row whose own description is short.
+describe('rowContentLines — kolumna Sekcja', () => {
+  it('counts the lines the section name wraps onto', () => {
+    const fields = { sectionName: 'aaaa bbbb cccc dddd', description: 'aaaa' }
+    expect(rowContentLines(row(fields), { sectionName: 101, description: 101 }, tenPxPerChar)).toBe(
+      2,
+    )
+  })
+})

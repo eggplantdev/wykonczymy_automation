@@ -26,8 +26,10 @@ Cel: szablon ma zapisywać się sam, analogicznie do kosztorysu na inwestycji.
   10:42"). Powód: na inwestycji sukces też jest niemy, a status tylko na szablonie odtwarzałby tę
   samą asymetrię, którą ta zmiana likwiduje. Odmowa „warsztat trzyma teraz inny szablon" zostaje po
   stronie serwera jako cichy warunek zapisu.
-- **Warsztat dostaje własną, zamkniętą listę kolumn** — Sekcja, Opis prac, Jednostka miary,
-  Cena j.m. netto/brutto, Źródło ceny wykonawcy, Komentarz. Reszta siatki (Przedmiar i wszystko
+- **Warsztat dostaje własną, zamkniętą listę kolumn** — Akcje, Sekcja, Opis prac, Jednostka miary,
+  Cena j.m. netto, Źródło ceny wykonawcy i stawka wykonawcy (obie płaszczyzny), Komentarz.
+  Lista rosła w trakcie przeglądu: `priceGross` wypadł, `actions` doszło, a stawka wykonawcy wróciła
+  — wiążącym zapisem jest `review-gate.md` tego slice'u, nie ten akapit. Reszta siatki (Przedmiar i wszystko
   z niego liczone, rabaty, etapy, Razem, Rozjazd z arkuszem) nie ma się w warsztacie **budować** —
   nie „być domyślnie schowana" i nie „być readonly". Readonly „Razem netto" z zerem w każdym wierszu
   czyta się jak zepsute liczenie, a nie jak „tu nie dotyczy".

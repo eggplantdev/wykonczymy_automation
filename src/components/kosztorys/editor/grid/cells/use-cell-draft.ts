@@ -2,8 +2,7 @@ import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } fro
 import { cellKeystroke, cellSettle, type CellEditPolicyT } from '@/lib/kosztorys/cell-edit'
 import { NOTICE_MS } from '@/lib/kosztorys/constants'
 import { toastMessage } from '@/lib/utils/toast'
-
-type StopEditingT = (opts?: { nextRow?: boolean }) => void
+import type { StopEditingT } from '@/components/ui/datasheet-grid/types'
 
 type CellEditT<EntryT> = { draft: string; entry: EntryT; rowId: number }
 

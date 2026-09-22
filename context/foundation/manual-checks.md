@@ -593,6 +593,8 @@ otwarte wcześniej. Dławik lustra to 10 s, domknięcie ogona 15 s bezczynności
 - [ ] Po przełączeniu w „Wersje" jest wpis „Przed wczytaniem: <nazwa>" i przywrócenie go wraca do stanu sprzed
 - [ ] „Wyczyść szablon" czyści rozpiskę, a „Wczytaj" (wersje) wraca do stanu sprzed wyczyszczenia
 - [ ] Edycja kosztorysu na zwykłej inwestycji nie rusza żadnego szablonu na liście („Zmieniono" bez zmian)
+- [ ] Warsztat pokazuje 9 kolumn: Akcje, Sekcja, Opis prac, Jednostka miary, Cena j.m. netto oraz — dla obu płaszczyzn — Źródło ceny wykonawcy i stawkę. Stawki dają się wpisać, a wpisana wartość przeżywa założenie inwestycji z tego szablonu
+- [ ] Długa nazwa sekcji w warsztacie podnosi WSZYSTKIE wiersze tej sekcji i wiesza na nich „…" — warsztat jest jedynym ekranem, który nie może schować kolumny „Sekcja"
 
 ## kosztorys-editor-assets — galeria assetów w edytorze kosztorysu v2 (2026-09-22)
 

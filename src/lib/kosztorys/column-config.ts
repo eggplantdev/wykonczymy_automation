@@ -1,10 +1,6 @@
 import type { PriceViewT } from '@/lib/kosztorys/calc'
-import { PLANE_LABELS, TOOL_PLANES } from '@/lib/kosztorys/constants'
-import {
-  ALL_PLANE_PRICE_KEYS,
-  planePriceKey,
-  planePriceKeyParts,
-} from '@/lib/kosztorys/plane-price-keys'
+import { PLANE_LABELS } from '@/lib/kosztorys/constants'
+import { ALL_PLANE_PRICE_KEYS, planePriceKeyParts } from '@/lib/kosztorys/plane-price-keys'
 import {
   STAGES_COLUMN_GROUP,
   STAGE_VALUE_GROSS_COLUMN_GROUP,
@@ -231,13 +227,12 @@ export const PREVIEW_VISIBLE_COLUMNS: ReadonlySet<string> = new Set(
 // one per browser, so a tick set on an ordinary kosztorys must neither add a column here nor take
 // one away — the workbench has no picker to answer it with.
 //
-// Full ids, never the base key (see `basePriceKey`) — hence the per-plane „Źródło ceny wykonawcy"
-// entries, built from TOOL_PLANES so a third plane cannot arrive with one of its two columns
-// missing. That source IS part of the skeleton a szablon carries (`serializeKosztorysAsPreset`
-// keeps the override), which is why the mode is here while the RATE beside it is not: a rate starts
-// hidden everywhere and the workbench has no picker, so listing it would put a figure on screen
-// nobody asked for. Picking „kwota stała" still freezes whatever the coefficient currently yields,
-// so the choice is usable without it; adjusting that frozen kwota is what waits for the picker.
+// Full ids, never the base key (see `basePriceKey`) — hence `ALL_PLANE_PRICE_KEYS`, so a third plane
+// cannot arrive with one of its two columns missing. Both halves, because a NADPISANA stawka travels:
+// `serializeKosztorysAsPreset` zeroes only the per-job fields, and the mode is derived from that same
+// nullable override — so the source is a control the workbench could otherwise neither show nor type
+// a value for. An un-overridden stawka is `clientPrice ×` the coefficient and travels no better than
+// `priceGross` below; typing into the cell is what creates the override that does.
 //
 // No `priceGross` either (owner ruling, 2026-09-22), and for a sharper reason than „not needed": it
 // is a COMPUTED column, netto × the row's VAT — and a preset's `settings` are retained but ignored
@@ -253,7 +248,7 @@ export const WORKSHOP_VISIBLE_COLUMNS: ReadonlySet<string> = new Set([
   'description',
   'unit',
   'price',
-  ...TOOL_PLANES.map((plane) => planePriceKey('priceMode', plane)),
+  ...ALL_PLANE_PRICE_KEYS,
   'note',
 ])
 

@@ -41,6 +41,7 @@ import {
   makeTotalsRow,
 } from '@/lib/kosztorys/synthetic-rows'
 import {
+  clippedRowClass,
   columnContentLines,
   rowContentLines,
   WRAPPING_COLUMN_IDS,
@@ -316,7 +317,7 @@ export function KosztorysEditorBody({
       })
       return columnLines
         .filter((column) => heightForLines(column.lines) > height)
-        .map((column) => `kosztorys-clipped-${column.id}`)
+        .map((column) => clippedRowClass(column.id))
         .join(' ')
     }
   }, [preview, wrap, rowHeights, fitRowsToContent])
