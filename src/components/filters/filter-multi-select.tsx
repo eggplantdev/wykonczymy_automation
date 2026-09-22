@@ -18,6 +18,13 @@ import { cn } from '@/lib/utils/cn'
 
 type OptionT = { value: string; label: string }
 
+/**
+ * „Zaznacz / odznacz wszystkie" for the `toggles` group, which `toggleAll` cannot reach — that one
+ * owns the option list and the toggles are the caller's state. Exported so the producing hook states
+ * the same shape instead of restating it, where a drift would only surface at the call site.
+ */
+export type FilterTogglesBulkT = { allActive: boolean; onToggleAll: (next: boolean) => void }
+
 type FilterMultiSelectPropsT = {
   // Empty for a menu built entirely out of `toggles`, which then renders as one trigger with a count
   // instead of a row of loose buttons in the grid.
@@ -55,6 +62,8 @@ type FilterMultiSelectPropsT = {
     disabled?: boolean
   }>
   togglesHeading?: string
+  // Optional, because a group of two or three rows is faster clicked than swept.
+  togglesBulk?: FilterTogglesBulkT
   // For the two groups this component owns; the toggle groups carry their own. Worth setting once a
   // menu mixes rows acting on different things — a bare separator never says what each group is.
   actionsHeading?: string
@@ -74,6 +83,37 @@ type FilterMultiSelectPropsT = {
 export const FILTER_NONE = '__none__'
 const DEBOUNCE_MS = 600
 
+/**
+ * One row, two groups: the option list's sweep and the toggles' sweep read the same labels and draw
+ * the same icon, and a menu offering both would otherwise carry the sentence twice.
+ *
+ * `value` is an id rather than the visible sentence, which is what cmdk would derive: both rows say
+ * the same words, so one menu showing both would hold two items under one value — an ambiguous
+ * keyboard target and an ambiguous `getByRole('option', { name })`. `keywords` hands the sentence
+ * back to the search filter that `value` no longer feeds.
+ */
+function BulkSelectRow({
+  id,
+  allSelected,
+  labels,
+  onSelect,
+}: {
+  id: string
+  allSelected: boolean
+  labels?: { select: string; deselect: string }
+  onSelect: () => void
+}) {
+  const text = allSelected
+    ? (labels?.deselect ?? 'Odznacz wszystkie')
+    : (labels?.select ?? 'Zaznacz wszystkie')
+  return (
+    <CommandItem value={id} keywords={[text]} onSelect={onSelect}>
+      <CheckCheck />
+      {text}
+    </CommandItem>
+  )
+}
+
 export function FilterMultiSelect({
   values = [],
   onValuesChange = () => {},
@@ -89,6 +129,7 @@ export function FilterMultiSelect({
   optionToggles,
   toggles,
   togglesHeading,
+  togglesBulk,
   resetAction,
   actionsHeading,
   optionsHeading,
@@ -194,12 +235,12 @@ export function FilterMultiSelect({
 
   const actionRows = (
     <>
-      <CommandItem onSelect={toggleAll}>
-        <CheckCheck />
-        {allSelected
-          ? (bulkLabels?.deselect ?? 'Odznacz wszystkie')
-          : (bulkLabels?.select ?? 'Zaznacz wszystkie')}
-      </CommandItem>
+      <BulkSelectRow
+        id="bulk-options"
+        allSelected={allSelected}
+        labels={bulkLabels}
+        onSelect={toggleAll}
+      />
       {optionToggles?.map((group) => (
         <CommandItem
           key={group.label}
@@ -263,6 +304,17 @@ export function FilterMultiSelect({
             {toggles && toggles.length > 0 && (
               <>
                 <CommandGroup heading={togglesHeading}>
+                  {togglesBulk && (
+                    <>
+                      <BulkSelectRow
+                        id="bulk-toggles"
+                        allSelected={togglesBulk.allActive}
+                        labels={bulkLabels}
+                        onSelect={() => togglesBulk.onToggleAll(!togglesBulk.allActive)}
+                      />
+                      <CommandSeparator className="my-1" />
+                    </>
+                  )}
                   {toggles.map((toggle) => (
                     <CommandItem
                       key={toggle.id}

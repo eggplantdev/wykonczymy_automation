@@ -70,10 +70,14 @@ export function activeFiltersModel({
     if (!engagedIds.has(problem.id)) continue
     // `problem.sentence` is deliberately not used: it is a three-line explanation of an
     // investment-wide fact, which is a paragraph, not a chip. The noun phrase still identifies it.
+    //
+    // `fullLabel`, not `label`: the menu row drops the „w widoku …" tail because the heading above it
+    // says the view, and out here there is no heading — the same reason the filter chips above read
+    // the registry label straight.
     chips.push({
       id: problem.id,
-      label: `Tylko: ${problem.noun.toLowerCase()} ${problem.label}`,
-      removeLabel: `Przestań pokazywać tylko ${problem.noun.toLowerCase()} ${problem.label}`,
+      label: `Tylko: ${problem.noun.toLowerCase()} ${problem.fullLabel}`,
+      removeLabel: `Przestań pokazywać tylko ${problem.noun.toLowerCase()} ${problem.fullLabel}`,
       count: counts.get(problem.id) ?? 0,
       removal: 'problem',
     })

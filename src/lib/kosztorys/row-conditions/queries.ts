@@ -209,3 +209,22 @@ export function offeredFilterConditions(
           !(perItemDiscountInert && DISCOUNT_CONDITION_IDS.has(condition.id)))),
   )
 }
+
+// Frozen module-level instances, so the sets below are referentially stable and the editor's memos
+// don't recompute on every render.
+const CLIENT_EMPTY_CONDITION_IDS: ReadonlySet<string> = new Set(['client-empty'])
+const NO_CONDITION_IDS: ReadonlySet<string> = new Set()
+
+/**
+ * What a client's document engages. Every 'filter' and 'diagnostic' in the registry is the company's
+ * own bookkeeping question and is suppressed wholesale under the preview — the sole exception is the
+ * 'client' condition, which the client did not choose either: it is the owner's stored decision
+ * about what this document contains.
+ *
+ * Lives here rather than inside the editor hook that reads it, because the mapping is the domain fact
+ * „which conditions may reach a client" — invisible to anyone refactoring the hook, and it has been
+ * silently dropped by exactly that kind of refactor once already.
+ */
+export function clientConditionIds(hideEmptyRows: boolean | undefined): ReadonlySet<string> {
+  return hideEmptyRows ? CLIENT_EMPTY_CONDITION_IDS : NO_CONDITION_IDS
+}

@@ -16,7 +16,7 @@ describe('the „Problemy" list', () => {
 
   // A problem list is read for what is ON it; permanently-zero rows would bury the one that isn't.
   it('drops a zero-count problem while its neighbour shows', () => {
-    const problemToggles = model({ 'no-client-price': 9, 'overpriced-w-tools': 0 })
+    const problemToggles = model({ 'no-client-price': 9, 'negative-rate-w-tools': 0 })
     expect(problemToggles.map((toggle) => toggle.id)).toEqual(['no-client-price'])
   })
 
@@ -32,8 +32,8 @@ describe('the „Problemy" list', () => {
   // that view, so the row itself drops the „w widoku …" tail the registry hangs on the condition for
   // the menus that have no heading to lean on.
   it('leaves the view to the heading and keeps the row short', () => {
-    const problemToggles = model({ 'overpriced-w-tools': 1 })
-    expect(problemToggles[0].label).toBe('Pozycje ze zbyt wysoką stawką wykonawcy (1)')
+    const problemToggles = model({ 'negative-rate-w-tools': 1 })
+    expect(problemToggles[0].label).toBe('Pozycje z ujemną stawką wykonawcy (1)')
     expect(problemToggles[0].groupLabel).toBe('Stawki wykonawców — z narzędziami')
   })
 
@@ -62,10 +62,10 @@ describe('the „Problemy" list', () => {
     const problemToggles = model({
       'material-percent-rate-w-tools': 88,
       'no-w-tools-price': 4,
-      'overpriced-w-tools': 1,
+      'negative-rate-w-tools': 1,
     })
     expect(problemToggles.map((toggle) => toggle.id)).toEqual([
-      'overpriced-w-tools',
+      'negative-rate-w-tools',
       'no-w-tools-price',
       'material-percent-rate-w-tools',
     ])
@@ -78,7 +78,7 @@ describe('the „Problemy" list', () => {
       'catalogue-missing': 3,
       'no-client-price': 9,
       'stage-no-plane': 2,
-      'overpriced-w-tools': 1,
+      'negative-rate-w-tools': 1,
       'divergent-client-price': 38,
     })
     expect(problemToggles.map((toggle) => toggle.groupLabel)).toEqual([
@@ -115,7 +115,7 @@ describe('the trigger', () => {
   })
 
   // Owner, explicitly: work not yet entered is still something the kosztorys is waiting on.
-  it('warns for the worklist problem too, not only the defects', () => {
+  it('warns for work still to enter too, not only for what is broken', () => {
     expect(model({ 'measure-diverged': 13 })).toHaveLength(1)
   })
 

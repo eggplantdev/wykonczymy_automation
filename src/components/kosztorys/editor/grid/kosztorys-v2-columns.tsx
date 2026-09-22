@@ -97,9 +97,10 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   //
   // The szablon workbench is the exception and takes it on the client plane too: it is the ONE
   // screen whose whole subject is the reusable skeleton, and which source each crew's rate comes
-  // from is part of that skeleton (`serializeKosztorysAsPreset` carries the override). Its view is
-  // pinned to 'client' because the workbench shows the offer price and hides the view switch, so
-  // without this the column could never be reached there at all. Nothing leaks: the client preview
+  // from is part of that skeleton (`serializeKosztorysAsPreset` carries the override). The plane
+  // switch works there like anywhere else, but the szablon opens on 'client' — and without this the
+  // one screen whose subject is the source would be the one screen that opens without it, asking
+  // the owner to switch planes to see what they came for. Nothing leaks: the client preview
   // is `previewVisible`, a different gate, and PREVIEW_VISIBLE_COLUMNS has no `priceMode`.
   const withMode = view !== 'client' || opts.workshopVisible === true
   const subcontractorPriceCols: Column<KosztorysV2RowT>[] = TOOL_PLANES.flatMap((plane) => [

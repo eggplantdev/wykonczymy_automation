@@ -54,10 +54,6 @@ export type RowConditionT = {
   // engaged keeps ONLY what it matches. It is not a picker row — it answers „pokaż mi wyłącznie to, co
   // jest zepsute" — so it stays off by default and out of the menu.
   kind: RowConditionKindT
-  // How a diagnostic reads, which is not the same question as what it matches. 'defect' = something is
-  // wrong and someone has to fix it. 'worklist' = nothing is broken; the count is work still to do and
-  // typing it away is the normal course of the job, not the clearing of a fault. Ignored by filters.
-  tone?: 'defect' | 'worklist'
   // Which price plane the condition judges, for the rows that judge one at all. The id rather than a
   // glyph, so the menu can mark the row with the same icon the view switcher uses without this module
   // — or the model above it — importing React.

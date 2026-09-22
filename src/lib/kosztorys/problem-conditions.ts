@@ -31,6 +31,10 @@ const ROW_PROBLEMS = ROW_CONDITIONS.filter((condition) => condition.kind === 'di
     label: condition.plane
       ? condition.label.replace(planeViewSuffix(condition.plane), '')
       : condition.label,
+    // Both versions, because the two surfaces differ on exactly this: the menu row has a heading over
+    // it, the chip in the pasku zaangażowanych zawężeń has nothing — and it renders precisely when the
+    // narrowing is ON, which is the moment the reader most needs to know which crew it judged.
+    fullLabel: condition.label,
     sentence: condition.problemLabel,
     group: condition.problemGroup,
   }),
@@ -42,6 +46,9 @@ const STAGE_PROBLEMS = STAGE_CONDITIONS.map((condition) => ({
   id: condition.id,
   noun: 'Etapy',
   label: condition.label,
+  // An etap names no plane, so there is nothing to strip — the field exists so the chip never has to
+  // ask which registry a problem came from.
+  fullLabel: condition.label,
   sentence: undefined,
   group: 'scope-stages' as const,
 }))

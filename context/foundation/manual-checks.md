@@ -706,3 +706,25 @@ zostawia.
       bliźniaczki — sekcja sama się rozwija i prace są w niej widoczne
 - [ ] Picker otwarty z „…" przy wierszu ma nazwę tej sekcji już wpisaną i dopisuje właśnie do niej
 - [ ] Ostrzeżenia o pułapie 65 % wychodzą tak samo na ścieżce nowej sekcji, jak na dopisywaniu
+
+## EX-820 — sufit stawki wykonawcy z „Problemów" do „Filtrów" (2026-09-22)
+
+Sufit 65 % przestał być defektem: strażnik sądzi teraz **kwotę stałą**, mnożnik odpowiada za siebie
+sam w swoim polu, a dwie pary dopełniających się filtrów zastąpiły wpis w „Problemach". Automat
+sprawdza predykaty i składanie menu; na żywo zostaje to, czego spec nie widzi — czy czerwień pada
+tam, gdzie ma, i czy zbiorcze odznaczenie da się cofnąć.
+
+- [ ] Mnożnik 0,9 przy pozycji ze źródłem „auto": pole mnożnika w ustawieniach czerwone, komórka
+      stawki w siatce **nie**
+- [ ] Mnożnik 0: to samo pole czerwone z własnym zdaniem („wykonawca dostaje 0 zł"), a „Problemy"
+      nie zapełniają się całą rozpiską
+- [ ] Kwota stała 80 zł przy cenie 100 zł: komórka czerwona i komunikat przy wyjściu, jak dotąd
+- [ ] „Problemy" na rozpisce z wierszami ponad sufitem: wpisu o zbyt wysokiej stawce już nie ma,
+      jest za to „z ujemną stawką wykonawcy" (gdy taka istnieje)
+- [ ] „Filtry" w widoku „z narzędziami": dwie nowe pozycje sufitu z licznikami; odznaczenie jednej
+      chowa dokładnie tę połowę, a obie odznaczone chowają wszystko, co ma kwotę stałą
+- [ ] Te same dwie pozycje **nie** pojawiają się w widoku klienta
+- [ ] „Pozycje z ujemną stawką wykonawcy" wybrane w widoku „bez narzędzi": chip w pasku mówi,
+      w którym widoku (menu tego nie powtarza — nad wierszem stoi nagłówek)
+- [ ] „Filtry" → „Odznacz wszystkie": siatka pusta, trigger z licznikiem, a „Zresetuj filtry"
+      przywraca komplet

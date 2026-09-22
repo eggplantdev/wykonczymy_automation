@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { activeFiltersModel } from '@/components/kosztorys/editor/toolbar/active-filters-model'
+import { planeViewSuffix } from '@/lib/kosztorys/constants'
 import { PROBLEM_IDS } from '@/lib/kosztorys/problem-conditions'
 import { ROW_CONDITIONS } from '@/lib/kosztorys/row-conditions/registry'
 
@@ -50,6 +51,32 @@ describe('activeFiltersModel', () => {
 
     expect(filter.label).toMatch(/^Ukryto: /)
     expect(problem.label).toMatch(/^Tylko: /)
+  })
+
+  // The menu row drops „w widoku …" because a heading sits over it; the chip has no heading, and it
+  // renders precisely while the narrowing is in force — so this is the surface where losing the plane
+  // actually costs the reader something.
+  it('keeps the view on the chip for a problem whose menu row drops it', () => {
+    const suffix = planeViewSuffix('own_tools')
+    const [chip] = activeFiltersModel({
+      ...NOTHING_ENGAGED,
+      engagedIds: new Set(['negative-rate-own-tools']),
+    })
+
+    expect(chip.label).toContain(suffix)
+    expect(chip.removeLabel).toContain(suffix)
+  })
+
+  // The two kinds reach the chip by different routes — a problem through `PROBLEM_CONDITIONS`, a
+  // filter straight off the registry — so the plane can be lost on one while the other still carries
+  // it.
+  it('keeps the view on a filter chip too', () => {
+    const [chip] = activeFiltersModel({
+      ...NOTHING_ENGAGED,
+      engagedIds: new Set(['manual-rate-w-tools']),
+    })
+
+    expect(chip.label).toContain(planeViewSuffix('w_tools'))
   })
 
   it('folds every collapsed sekcja into one chip carrying the number', () => {

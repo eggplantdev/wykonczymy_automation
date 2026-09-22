@@ -6,8 +6,11 @@ import { useFitRowsToContent } from '@/components/kosztorys/editor/hooks/use-fit
 import { usePriceView } from '@/components/kosztorys/editor/hooks/use-price-view'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
-import { engagedPlane, isFoldSuppressed } from '@/lib/kosztorys/row-conditions/queries'
-import { clientConditionIds } from '@/lib/kosztorys/row-conditions/registry'
+import {
+  clientConditionIds,
+  engagedPlane,
+  isFoldSuppressed,
+} from '@/lib/kosztorys/row-conditions/queries'
 import type { SortPickT, SortStateT } from '@/lib/kosztorys/row-view'
 
 type ArgsT = {
@@ -29,6 +32,7 @@ export function useKosztorysViewState({ investmentId, preview, clientView }: Arg
     engagedIds: persistedConditionIds,
     toggle: toggleCondition,
     toggleExclusive: toggleConditionExclusive,
+    setMany: setConditions,
     clear: clearConditions,
   } = useEngagedConditions(investmentId)
   const engagedConditionIds = preview
@@ -72,7 +76,7 @@ export function useKosztorysViewState({ investmentId, preview, clientView }: Arg
   }
 
   // Engaging a problem takes the reader to the plane it judges, because a stawka wykonawcy renders on
-  // one plane only — narrowing to „ze zbyt wysoką stawką … bez narzędzi" while sitting in „Inwestor"
+  // one plane only — narrowing to „z ujemną stawką wykonawcy … bez narzędzi" while sitting in „Inwestor"
   // showed the right pozycje with the wrong number in the column the problem had just revealed. Every
   // pick hands the plane back to the problem list, so a problem about no particular plane (bez ceny
   // j.m., etapy) reads in the stored plane, and so does the grid once no problem is engaged at all.
@@ -124,6 +128,7 @@ export function useKosztorysViewState({ investmentId, preview, clientView }: Arg
     setSearch,
     engagedConditionIds,
     toggleCondition,
+    setConditions,
     toggleConditionExclusive: pickProblem,
     sort,
     setSort,

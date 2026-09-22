@@ -31,6 +31,7 @@ export function useEngagedConditions(investmentId: number): {
   engagedIds: Set<string>
   toggle: (id: string) => void
   toggleExclusive: (id: string, within: Iterable<string>) => void
+  setMany: (ids: Iterable<string>, engage: boolean) => void
   clear: () => void
 } {
   const store = storeFor(investmentId)
@@ -66,9 +67,30 @@ export function useEngagedConditions(investmentId: number): {
     })
   }
 
+  // A whole list in ONE store write, because localStorage is what is behind it: twelve toggles in a
+  // row would be twelve serialisations of the same map and twelve renders on the way to one state the
+  // user asked for once. Named ids rather than „wszystko", for the same reason `toggleExclusive` takes
+  // a group — the store holds the „Problemy" list too, and a sweep would untick that with it.
+  // Returns `prev` untouched when every id already stands where it is being put, like `clear` below:
+  // the store writes localStorage on every new identity, so „Odznacz wszystkie" pressed twice would
+  // serialise the same map again and re-render the whole grid for nothing.
+  function setMany(ids: Iterable<string>, engage: boolean) {
+    store.update((prev) => {
+      const next = { ...prev }
+      let changed = false
+      for (const id of ids) {
+        if (engage === Boolean(next[id])) continue
+        changed = true
+        if (engage) next[id] = true
+        else delete next[id]
+      }
+      return changed ? next : prev
+    })
+  }
+
   function clear() {
     store.update((prev) => (Object.keys(prev).length === 0 ? prev : {}))
   }
 
-  return { engagedIds, toggle, toggleExclusive, clear }
+  return { engagedIds, toggle, toggleExclusive, setMany, clear }
 }

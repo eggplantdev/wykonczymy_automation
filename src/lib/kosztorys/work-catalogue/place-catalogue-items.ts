@@ -1,6 +1,7 @@
 import 'server-only'
 import type { DbExecutorT } from '@/lib/db/get-db'
-import { asViewPricing, overrideValueFor } from '@/lib/kosztorys/calc'
+import { asViewPricing } from '@/lib/kosztorys/calc'
+import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import { insertItems } from '@/lib/kosztorys/insert-rows'
 import { checkSubcontractorPrice } from '@/lib/kosztorys/subcontractor-price-guard'
 import type { KosztorysItemT, KosztorysSectionT } from '@/lib/kosztorys/types'
@@ -60,15 +61,12 @@ export async function placeCatalogueItems(
     asItem(catalogueItem, sectionId, placement.nextDisplayOrder + i),
   )
 
-  // An „auto" plane is skipped rather than checked: there is no stawka of its own yet, and the one
-  // the współczynnik will imply is checked in the rozpiska like every other derived row. Same
-  // silence the guard already keeps when cena j.m. is 0.
+  // `asViewPricing` supplies zero globals, which is inert here: the guard judges a kwota stała only,
+  // and a kwota never reads a współczynnik — so it needs no investment context to reach its verdict.
   const warnings = items.flatMap((item) => {
-    const problems = (['w_tools', 'own_tools'] as const)
-      .filter((plane) => overrideValueFor(item, plane) !== null)
-      // Zero globals: this filter leaves only planes frozen to a kwota, and a kwota never reads a
-      // współczynnik — so the guard needs no investment context to reach its verdict.
-      .flatMap((plane) => checkSubcontractorPrice(asViewPricing(item), plane)?.message ?? [])
+    const problems = TOOL_PLANES.flatMap(
+      (plane) => checkSubcontractorPrice(asViewPricing(item), plane)?.message ?? [],
+    )
     return problems.map((problem) => `„${item.description}": ${problem}`)
   })
 

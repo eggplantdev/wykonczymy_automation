@@ -442,7 +442,9 @@ j.m.` wśród wierszy policzonych** (wpisane z palca są wykluczone: to decyzje 
   arkusz żadnej nie podał. Trzy konsekwencje: raport pokazuje **tabelkę per zakładka** (przy dwóch
   cennikach to cztery kwoty), „Porównaj z arkuszem" **pomija** te prace przy „Stawki inne niż w
   cenniku" (nie ma z czym porównywać), a w kosztorysie znajduje się je diagnostyką **„bez ceny
-  wykonawcy"** (per widok, jak `overpriced-*`). **Pusta para vs wypełniona to też konflikt**: arkusz
+  wykonawcy"** (per widok, jak `negative-rate-*`; ta diagnostyka czyta **kwotę stałą**, a import
+  zapisuje właśnie zero jako kwotę, więc zdanie z raportu importu dalej prowadzi tam, gdzie
+  obiecuje). **Pusta para vs wypełniona to też konflikt**: arkusz
   renderuje niewypełnioną komórkę jako 0, więc „za darmo" i „nikt nie wypełnił" to ta sama liczba i
   tylko właściciel je rozróżni. **Od 2026-08-19 KAŻDA różnica jest konfliktem** (właściciel): padły
   dwa ostatnie automaty — „wpisana ręcznie bije formułę" i „para niemożliwa (bez narzędzi > z
@@ -620,14 +622,25 @@ w dół, zniżka przecenialaby wstecz ekipę, która się na nią nie pisała.
 
 - **Ostrzeżenie, nie odrzucenie** (właściciel, 2026-09-20). Ekipa naprawdę bywa droższa niż 65%,
   a kosztorys, który nie umie tego zapisać, kłamie. Wartość **zostaje w wierszu**: komórka jest
-  czerwona, filtr „Problemy" łapie wiersz, a komunikat wychodzi raz, przy wyjściu z komórki.
+  czerwona, a komunikat wychodzi raz, przy wyjściu z komórki.
 - **Jedyna twarda odmowa to stawka ujemna.** Tej nikt nigdy nie chciał — wraca do stanu sprzed
-  edycji i wklejenie jej nie przechodzi.
-- **Jeden próg, jeden dom.** Werdykt liczy `checkSubcontractorPrice`; katalog prac pyta o ten sam
-  próg przez `isOverCeiling`, żeby udział na `/katalog-prac` i cena w rozpisce nie mogły się
-  rozjechać na zaokrągleniu.
-- **Globalny mnożnik wciąż odmawia twardo.** Pole „mnożnik" w ustawieniach kosztorysu nie przyjmuje
-  wartości powyżej 0,65 — to jedyna powierzchnia, która została przy starej odpowiedzi.
+  edycji i wklejenie jej nie przechodzi. To ona, nie sufit, została w „Problemach" jako
+  „z ujemną stawką wykonawcy".
+- **Sufit sądzi kwotę stałą, nie mnożnik** (EX-820, 2026-09-22). Na wierszu ze źródłem „auto"
+  strażnik milczy: stawka jest tam iloczynem globalnego mnożnika, więc czerwień na każdej pozycji
+  byłaby jednym werdyktem powtórzonym tysiąc razy. Mnożnik odpowiada za siebie sam, raz, w swoim
+  polu w ustawieniach — `coeffWarning` czerwieni je powyżej 0,65 **i przy 0** (zero daje ekipie 0 zł
+  na każdej pozycji „auto").
+- **Sufit to gest czytania, nie alarm** (EX-820). Przeszedł z „Problemów" do „Filtrów" jako para
+  dopełniających się wierszy na płaszczyznę — „z kwotą stałą powyżej sufitu" i „bez kwoty stałej
+  powyżej sufitu". Katalog prac już sygnalizuje udział przy ratyfikacji stawki, a lista problemów
+  ma pokazywać to, co jest zepsute; kwota ratyfikowana w katalogu zepsuta nie jest.
+- **Jeden próg, jeden dom.** Werdykt liczy `checkSubcontractorPrice`; katalog prac **i oba filtry
+  sufitu** pytają o ten sam próg przez `isOverCeiling`, żeby udział na `/katalog-prac`, filtr
+  i czerwona komórka nie mogły się rozjechać na zaokrągleniu.
+- **Globalny mnożnik też już nie odmawia twardo** (2026-09-21). Pole „mnożnik" przyjmuje wartość
+  powyżej 0,65 i tylko ostrzega — ostatnia powierzchnia, która trzymała się starej odpowiedzi,
+  zrównała się z resztą.
 
 ### Zasięg filtrów na stronie inwestycji (EX-600, 2026-07-28)
 
@@ -924,13 +937,18 @@ w złą stronę:
 - **Zaangażowany problem zostaje na liście, nawet gdy jego licznik spadnie do zera.** Inaczej
   naprawienie ostatniego trafienia zabierało jedyny przycisk zdejmujący zawężenie — siatka zostawała
   przycięta bez wyjścia. To była 🔴 tej bramki.
-- **Zbyt wysoka stawka wykonawcy to dwa wiersze, po jednym na płaszczyznę** — liczone niezależnie od
+- **Stawka wykonawcy to dwa wiersze, po jednym na płaszczyznę** — liczone niezależnie od
   aktywnego widoku. Defekt na płaszczyźnie, na którą akurat nie patrzysz, dalej jest defektem, więc
   jeden wiersz pytający o widok nigdy nie pokazałby stawki drugiej ekipy. Odsłania kolumny swojej
   płaszczyzny, nie obu — od 2026-09-01 stawki obu płaszczyzn składają się w KAŻDYM widoku (domyślnie
   ukryte, do włączenia w pikerze), więc odsłonięcie obu odpowiadałoby na pytanie o jedną ekipę
   liczbami drugiej. Do podglądu inwestora żadna z nich nie ma wstępu — trzyma je wyłącznie allowlista
   `PREVIEW_VISIBLE_COLUMNS`, bo przypięcie płaszczyzny ceny już ich nie dotyczy.
+  **Pyta o stawkę UJEMNĄ, nie o sufit** (EX-820, 2026-09-22): sufit wyprowadził się stąd do
+  „Filtrów", bo kwota ratyfikowana w katalogu prac nie jest defektem, a jeden klawisz w mnożniku
+  wrzucał całą rozpiskę na listę problemów. Tam para wierszy na płaszczyznę jest **dopełniająca**
+  („z kwotą stałą powyżej sufitu" / „bez…"), bo filtry ukrywają trafienia i muszą dać się złożyć
+  z powrotem w komplet; tu wiersz ujemnej stawki stoi sam, bo problem nie ma dopełnienia.
 - **Problem etapowy zawęża kolumny etapów**, nie wiersze. Zakaz „widoczności per etap" dotyczy stanu
   **utrwalonego**; filtr jest przejściowy, więc go nie łamie.
 - **Etap bez płaszczyzny liczy się dwa razy** (jest też etapem bez pracownika) — świadomie, żeby każdy

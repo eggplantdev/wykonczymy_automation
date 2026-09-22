@@ -8,7 +8,7 @@ import { useKosztorysFilterMenu } from '@/components/kosztorys/editor/toolbar/me
 
 export function KosztorysFiltersMenu() {
   const { engagedConditionIds, toggleCondition, conditionCounts } = useKosztorysEditorContext()
-  const { filters, resetAction } = useKosztorysFilterMenu()
+  const { filters, togglesBulk, resetAction } = useKosztorysFilterMenu()
 
   const workToggles = filters.map((condition) => ({
     id: condition.id,
@@ -31,6 +31,7 @@ export function KosztorysFiltersMenu() {
       contentClassName="w-80"
       resetAction={resetAction}
       toggles={workToggles}
+      togglesBulk={togglesBulk}
       togglesHeading="Prace"
     />
   )
