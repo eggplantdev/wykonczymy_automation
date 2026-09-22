@@ -1,5 +1,6 @@
 import { mapWithConcurrency } from '@/lib/utils/map-with-concurrency'
 import { uploadMediaFromClient } from '@/lib/media/client-upload'
+import type { MediaKindT } from '@/types/media'
 
 // Cap parallel uploads to match the receipt-generation path (GENERATION_CONCURRENCY): batch-add lets a user
 // attach 10-20+ receipts, and submitting them all at once would fire that many simultaneous upload requests.
@@ -71,7 +72,13 @@ export async function resolveInvoiceMediaIds(
  * The same upload, from a surface that has no rows — one invoice, its pages in pick order. Spares
  * every such caller the `(1, new Map([[0, files]]))` incantation and the `[pages]` destructure.
  */
-export async function resolveInvoicePageIds(files: File[]): Promise<number[]> {
-  const [pages] = await resolveInvoiceMediaIds(1, new Map([[0, files]]))
+export async function resolveInvoicePageIds(files: File[], kind?: MediaKindT): Promise<number[]> {
+  // `upload` is already injectable, so the kind rides in on a closure rather than as a fourth
+  // parameter threaded through three layers that have no other use for it.
+  const [pages] = await resolveInvoiceMediaIds(
+    1,
+    new Map([[0, files]]),
+    kind && ((file) => uploadMediaFromClient(file, { kind })),
+  )
   return pages
 }

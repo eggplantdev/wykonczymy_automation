@@ -5,6 +5,7 @@ import {
   resolveInvoicePageIds,
 } from '@/lib/invoices/invoice-page-uploads'
 import type { ActionResultT } from '@/types/action'
+import type { MediaKindT } from '@/types/media'
 
 /**
  * Pages land in Blob before the row that references them exists, so every path where the mutation
@@ -46,10 +47,11 @@ async function withOrphanCleanup<TIds>(
 export function submitWithInvoicePages(
   files: File[],
   submit: (invoicePageIds: number[]) => Promise<ActionResultT>,
+  kind?: MediaKindT,
 ): Promise<ActionResultT> {
   if (files.length === 0) return submit([])
   return withOrphanCleanup(
-    () => resolveInvoicePageIds(files),
+    () => resolveInvoicePageIds(files, kind),
     (ids) => ids,
     submit,
   )

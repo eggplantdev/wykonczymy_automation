@@ -193,10 +193,10 @@ Po ostatniej fazie, raz: `pnpm typecheck` · `pnpm lint` · `pnpm test` · `pnpm
 
 #### Automated
 
-- [ ] 3.1 Pole wyboru w `InvoiceUploadDialog`, włączane propem
-- [ ] 3.2 Znacznik wybiera profil kompresji i `kind: 'projekt'`
-- [ ] 3.3 `kind` dociera do wiersza `media`
-- [ ] 3.4 Spec DOM: pole nieobecne na powierzchni fakturowej, zaznaczone → `kind: 'projekt'`
+- [x] 3.1 Pole wyboru w `InvoiceUploadDialog`, włączane propem
+- [x] 3.2 Znacznik wybiera profil kompresji i `kind: 'projekt'`
+- [x] 3.3 `kind` dociera do wiersza `media`
+- [x] 3.4 Spec DOM: pole nieobecne na powierzchni fakturowej, zaznaczone → `kind: 'projekt'`
 
 ### Faza 4: Oznaczanie po fakcie w galerii
 
