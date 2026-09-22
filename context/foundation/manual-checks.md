@@ -475,6 +475,7 @@ Pełne dowody, verbatim: `context/archive/manual-checks/2026-09-15-pelny-rejestr
 | kosztorys-section-menu-split — akcje sekcji na pasku, akcje pracy na wierszu                                             | 18/18 | 2026-09-14           |
 | transfers-server-sort — sortowanie tabeli transakcji na serwerze (2026-09-15, EX-777)                                    | 13/13 | 2026-09-15           |
 | rwd-mobile — RWD na telefonie: nawigacja, dodawanie i pokazywanie transakcji (2026-09-16, EX-785)                        | 7/7   | 2026-09-16           |
+| media-upload-serial — równoległy upload gubił pliki na Neonie; szeregowy zapis wierszy `media` (2026-09-22, EX-855)      | 4/4   | 2026-09-22           |
 
 ## EX-802 — lead-delivery (wykonczymy half, 2026-09-21)
 
@@ -703,20 +704,3 @@ zostawia.
       bliźniaczki — sekcja sama się rozwija i prace są w niej widoczne
 - [ ] Picker otwarty z „…" przy wierszu ma nazwę tej sekcji już wpisaną i dopisuje właśnie do niej
 - [ ] Ostrzeżenia o pułapie 65 % wychodzą tak samo na ścieżce nowej sekcji, jak na dopisywaniu
-
-## Równoległy upload gubi pliki na Neonie — szeregowe tworzenie wierszy `media` (2026-09-22)
-
-Prod 22.09, 18:25–18:35: hurtowy wydatek z >1 fakturą padał na
-`transactions_rels_media_id_fkey`. Równoległe `POST /api/media` zwracały id, a commitował się tylko
-jeden wiersz (log Payloada: „Failed to persist upload data … NotFound"). Zapis wierszy idzie teraz
-po kolei (`createMediaRow`), PUT do Bloba zostaje równoległy. **Sprawdzać wyłącznie na stagingu** —
-lokalny Postgres na jednym połączeniu nigdy tego nie odtworzył; spec widzi tylko kolejkę, nie Neona.
-
-- [ ] Wydatek hurtowy z 4 pozycjami, każda z fakturą (jedna wielostronicowa): zapis przechodzi
-      i każda pozycja w tabeli transferów ma swoją fakturę, strony w kolejności
-- [ ] W logach Vercela (Preview, okno zapisu) brak „Failed to persist upload data" i brak
-      `[ACTION_ERROR] createBulkTransferAction`
-- [ ] 10 zdjęć naraz do galerii inwestycji: wszystkie widoczne po zapisie, żadne nie znika po
-      odświeżeniu
-- [ ] 10 faktur w wydatku hurtowym nie trwa odczuwalnie dłużej niż przed poprawką — bajty idą
-      równolegle, szeregowy jest tylko krótki zapis wiersza
