@@ -6,15 +6,14 @@ import { useLatestRequest } from '@/hooks/use-latest-request'
 import { reportBlockedFiles } from '@/lib/invoices/blocked-files-message'
 import { ingestPickedFiles } from '@/lib/invoices/ingest-picked-files'
 import { toastMessage } from '@/lib/utils/toast'
-import type { CompressionProfileT } from '@/lib/utils/compress-image'
 
 /**
  * File custody for the pick surfaces that carry one invoice's pages OUTSIDE the form value. Files
  * stay out of the value because they are unserialisable — a persisted draft would either drop them
  * silently or refuse to rehydrate.
  *
- * What is held here is already ingested — HEIC decoded, compressed, oversize rejected — so the
- * submit path only ever uploads files Blob will accept. `isIngesting` is what a caller does NOT get
+ * What is held here is already ingested — HEIC decoded, compressed — so the submit path only ever
+ * uploads files Blob will accept. `isIngesting` is what a caller does NOT get
  * to ignore: a file still converting is not in `files` yet, so submitting mid-ingest would save the
  * row without its attachment. Disable submit on it AND re-check it in the action, because a keyboard
  * Enter bypasses the button.
@@ -26,7 +25,7 @@ import type { CompressionProfileT } from '@/lib/utils/compress-image'
  * else the picker needs is `fileInputProps`, spread onto it: the pick handler and the mid-ingest
  * disable travel together so neither call site can wire up half the contract.
  */
-export function useFilePickIngest(profile?: CompressionProfileT) {
+export function useFilePickIngest() {
   const [files, setFiles] = useState<File[]>([])
   const [isIngesting, setIsIngesting] = useState(false)
   const [inputKey, setInputKey] = useState(0)
@@ -41,7 +40,7 @@ export function useFilePickIngest(profile?: CompressionProfileT) {
     const isCurrent = request.start()
     setIsIngesting(true)
     try {
-      const { files: ingested, blocked } = await ingestPickedFiles(picked, profile)
+      const { files: ingested, blocked } = await ingestPickedFiles(picked)
       if (!isCurrent()) return
       reportBlockedFiles(blocked)
       setFiles(ingested)

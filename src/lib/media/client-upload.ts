@@ -1,7 +1,6 @@
-import { upload } from '@vercel/blob/client'
-
 import { uniqueFileName } from '@/lib/utils/unique-file-name'
 import { validateUploadFile } from '@/lib/utils/validate-upload-file'
+import type { MediaKindT } from '@/types/media'
 
 // Registered by `vercelBlobStorage({ clientUploads })` as a Payload endpoint; it mints a
 // short-lived, role-gated write token for one blob key.
@@ -21,13 +20,16 @@ const MEDIA_ROUTE = '/api/media'
  */
 export async function uploadMediaFromClient(
   file: File,
-  data: Record<string, unknown> = {},
+  data: { kind?: MediaKindT } = {},
 ): Promise<number> {
   const error = validateUploadFile(file)
   if (error) throw new Error(error)
 
   const filename = uniqueFileName(file.name)
 
+  // Lazy so the ~30 KB SDK stays out of the five forms that merely import this module; it is only
+  // needed once a file is actually picked.
+  const { upload } = await import('@vercel/blob/client')
   await upload(filename, file, {
     access: 'public',
     contentType: file.type,
@@ -54,5 +56,9 @@ export async function uploadMediaFromClient(
   if (!response.ok) {
     throw new Error(body?.errors?.[0]?.message ?? `Upload nie powiódł się (${response.status})`)
   }
-  return body.doc.id as number
+  // An `ok` response with an unparseable body (an edge interstitial) would otherwise surface as a
+  // bare TypeError — and the caller puts `err.message` straight into a user-facing toast.
+  const id = body?.doc?.id
+  if (typeof id !== 'number') throw new Error('Upload nie powiódł się — serwer nie zwrócił pliku')
+  return id
 }

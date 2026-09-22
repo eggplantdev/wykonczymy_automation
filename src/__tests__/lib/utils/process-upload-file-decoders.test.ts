@@ -4,7 +4,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 // Safari-canvas-first route and its WASM fallback — was never exercised. These mocks reach it
 // through the public call, without a browser.
 const { compressImage, compressToJpeg, heicTo } = vi.hoisted(() => ({
-  compressImage: vi.fn(async (file: File) => file),
+  compressImage: vi.fn(async (file: File, _profile?: string) => file),
   compressToJpeg: vi.fn(async (file: File, _profile?: string) => file),
   heicTo: vi.fn(
     async (_options: { blob: Blob; type: string; quality?: number }) =>
@@ -51,7 +51,15 @@ describe('the default HEIC route', () => {
     // The canvas pass is handed a PROFILE, never a quality of its own — the profile's quality
     // (0.8 at the most) is what the decode has to stay above.
     expect(decodeQuality).toBeGreaterThan(0.9)
-    expect(compressToJpeg.mock.calls[0]![1]).toBe('INVOICE')
+  })
+
+  it('hands the picked profile to the compressor, not to the decoder', async () => {
+    compressToJpeg.mockRejectedValue(new Error('canvas cannot decode HEIC'))
+
+    await processUploadFile(heicFile(), 'PLAN')
+
+    expect(compressToJpeg.mock.calls[0]![1]).toBe('PLAN')
+    expect(compressImage.mock.calls[0]![1]).toBe('PLAN')
   })
 
   it('blocks the file when neither decoder can read it', async () => {

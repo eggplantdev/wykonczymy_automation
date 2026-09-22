@@ -6,9 +6,11 @@ import { logError } from '@/lib/utils/log-error'
  * height, so an A4 scan landed at ~93 DPI and the dimension line stopped being legible — the
  * orientation decided the resolution, which is never what the user meant.
  *
- * `INVOICE` keeps what faktury have always had: they are read by OCR and by a human looking for a
- * total, so the cheaper file wins. `PLAN` is for a rysunek techniczny, where the thing being read
- * IS the fine detail, so it buys back both edge and quality.
+ * `INVOICE` stays the cheap profile — a faktura is read by OCR and by a human looking for a total.
+ * It is not unchanged, though: the old `1920×1080` rectangle capped a landscape photo at 1440×1080
+ * and this caps it at 1920×1440, so existing faktury grew too. That is the price of the portrait
+ * fix, paid at the same quality. `PLAN` is for a rysunek techniczny, where the thing being read IS
+ * the fine detail, so it buys back both edge and quality.
  */
 export const COMPRESSION_PROFILES = {
   INVOICE: { maxEdge: 1920, quality: 0.6 },

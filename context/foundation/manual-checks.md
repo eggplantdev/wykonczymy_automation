@@ -655,5 +655,10 @@ oczy: chodzi o czytelność opisów wymiarów, nie o sam fakt, że plik wszedł.
 - [ ] Plik z promocji leada (nieskompresowany oryginał z landingu) da się oznaczyć jako rzut
       z galerii — jedyna ścieżka bez dialogu wgrywania
 - [ ] HEIC, którego przeglądarka nie odczyta, dalej daje czytelny komunikat, a nie cichą porażkę
-- [ ] `/admin` → Media: miniatura pozycji wgranej po zmianie (ryzyko `clientUploads` — w najgorszym
-      razie regresja kosmetyczna w panelu)
+- [ ] Miniatury w galerii asetów inwestycji: plik wgrany PO zmianie renderuje się jako obrazek, nie
+      jako ikona uszkodzonego pliku (`MediaStrip` czyta `thumbnailUrl`, więc utrata renditionu przy
+      `clientUploads` byłaby widoczna tu, a nie tylko w `/admin`)
+- [ ] Faktura >4 MB w formularzu wydatków: „Odczytaj paragony" daje czytelny komunikat („za duży do
+      odczytu AI"), a nie niemy błąd 413 z platformy
+- [ ] Wgranie pliku innego niż zdjęcie/PDF (przeciągnięcie `.docx` na pole) jest odrzucone od razu,
+      komunikatem, a nie po wgraniu bajtów

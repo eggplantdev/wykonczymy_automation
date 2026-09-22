@@ -16,7 +16,7 @@ export type PickedIngestT = {
  */
 export async function ingestPickedFiles(
   picked: File[],
-  profile: CompressionProfileT = 'INVOICE',
+  profile?: CompressionProfileT,
 ): Promise<PickedIngestT> {
   const { processed, blocked } = await ingestFiles(picked, profile)
   return { files: processed.filter((file) => file !== undefined), blocked }

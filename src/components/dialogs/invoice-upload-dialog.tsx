@@ -32,17 +32,23 @@ export function InvoiceUploadDialog({
 }: InvoiceUploadDialogPropsT) {
   const [asPlan, setAsPlan] = useState(false)
 
+  // The dialog stays mounted when Radix unmounts its content, so a tick left behind by a cancelled
+  // pick would silently stamp the NEXT upload as a rzut.
+  function handleOpenChange(next: boolean) {
+    if (!next) setAsPlan(false)
+    onOpenChange(next)
+  }
+
   function handlePicked(e: React.ChangeEvent<HTMLInputElement>) {
     const picked = [...(e.target.files ?? [])]
     if (picked.length === 0) return
 
-    onOpenChange(false)
-    setAsPlan(false)
+    handleOpenChange(false)
     onFiles(picked, asPlan)
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
         <DialogHeader title={title} />
         {allowPlanMarker && (

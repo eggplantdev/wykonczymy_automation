@@ -1,9 +1,8 @@
 import type { CompressionProfileT } from '@/lib/utils/compress-image'
 
-// Single processing step at ingest: classify → route (HEIC-convert / compress / passthrough) →
-// rewrite. Both consumers (scan-extraction and submit-upload) read the processed File from the
-// shared map, so compression happens exactly once. The browser decoders are injected
-// (ProcessUploadDepsT) so this orchestration is unit-testable without CompressorJS/heic-to.
+// Both consumers (scan-extraction and submit-upload) read the processed File from the shared map,
+// so compression happens exactly once. The browser decoders are injected (ProcessUploadDepsT) so
+// this orchestration is unit-testable without CompressorJS/heic-to.
 
 export class BlockedFileError extends Error {
   readonly filename: string
@@ -64,10 +63,7 @@ function renameToJpg(name: string): string {
   return name.replace(/\.(heic|heif)$/i, '.jpg')
 }
 
-// A factory rather than a constant because the profile has to reach the lazy imports: it decides
-// both the edge and the quality every route below re-encodes at, and a module constant has no
-// parameter to carry it.
-function defaultDeps(profile: CompressionProfileT): ProcessUploadDepsT {
+function defaultDeps(profile?: CompressionProfileT): ProcessUploadDepsT {
   return {
     compressImage: (file) =>
       import('@/lib/utils/compress-image').then((m) => m.compressImage(file, profile)),
@@ -96,7 +92,7 @@ function defaultDeps(profile: CompressionProfileT): ProcessUploadDepsT {
 
 export async function processUploadFile(
   file: File,
-  profile: CompressionProfileT = 'INVOICE',
+  profile?: CompressionProfileT,
   deps: ProcessUploadDepsT = defaultDeps(profile),
 ): Promise<File> {
   if (!isImageFile(file)) return file

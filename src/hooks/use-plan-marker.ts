@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { setMediaKindAction } from '@/lib/actions/media-kind'
 import { toastMessage } from '@/lib/utils/toast'
 import type { InvoiceFileT } from '@/types/transfers'
@@ -15,7 +14,6 @@ import type { MediaFileT } from '@/types/media'
  * already oznaczony, which reads as a click that did nothing.
  */
 export function usePlanMarker(files: MediaFileT[]) {
-  const router = useRouter()
   const [markedIds, setMarkedIds] = useState<number[]>([])
 
   const isMarked = (file: InvoiceFileT) =>
@@ -23,19 +21,32 @@ export function usePlanMarker(files: MediaFileT[]) {
     (markedIds.includes(file.id) ||
       files.find((candidate) => candidate.id === file.id)?.kind === 'projekt')
 
+  // The try/catch is the point of the wrapper: the caller fires this from an onClick with nowhere
+  // to put a rejection, so a transport-level throw (expired cookie, deploy skew, offline) would
+  // otherwise be an unhandled rejection and the click would read as a no-op.
   async function mark(file: InvoiceFileT) {
-    if (file.id === undefined) return
+    const id = file.id
+    if (id === undefined) return
 
-    const result = await setMediaKindAction(file.id, 'projekt')
-    if (!result.success) {
-      toastMessage(result.error, 'error')
+    try {
+      const result = await setMediaKindAction(id, 'projekt')
+      if (!result.success) {
+        toastMessage(result.error, 'error')
+        return
+      }
+    } catch {
+      toastMessage('Nie udało się oznaczyć pliku — spróbuj ponownie.', 'error')
       return
     }
 
-    setMarkedIds((current) => [...current, file.id as number])
+    setMarkedIds((current) => [...current, id])
     toastMessage('Plik oznaczony jako rzut', 'success')
-    router.refresh()
   }
 
-  return { isMarked, onMark: (file: InvoiceFileT) => void mark(file) }
+  return {
+    isMarked,
+    onMark: (file: InvoiceFileT) => void mark(file),
+    label: 'Oznacz jako rzut',
+    markedLabel: 'Oznaczony jako rzut',
+  }
 }

@@ -19,6 +19,12 @@ export async function setMediaKindAction(
   return protectedAction(
     'setMediaKindAction',
     async ({ payload }) => {
+      // The gate is `protectedAction`'s MANAGEMENT_ROLES check above, not `media.access.update` —
+      // which stays on `isAdminOrOwner` because opening it would also hand MANAGER the `/admin`
+      // file swap, and a swap runs the storage plugin's `handleDelete` over the old bytes.
+      // The gate is `protectedAction`'s MANAGEMENT_ROLES check, not `media.access.update` — which
+      // stays on `isAdminOrOwner` because opening it would also hand MANAGER the `/admin` file swap,
+      // and a swap runs the storage plugin's `handleDelete` over the old bytes.
       await payload.update({
         collection: 'media',
         id: mediaId,

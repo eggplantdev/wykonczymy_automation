@@ -73,8 +73,6 @@ export async function resolveInvoiceMediaIds(
  * every such caller the `(1, new Map([[0, files]]))` incantation and the `[pages]` destructure.
  */
 export async function resolveInvoicePageIds(files: File[], kind?: MediaKindT): Promise<number[]> {
-  // `upload` is already injectable, so the kind rides in on a closure rather than as a fourth
-  // parameter threaded through three layers that have no other use for it.
   const [pages] = await resolveInvoiceMediaIds(
     1,
     new Map([[0, files]]),

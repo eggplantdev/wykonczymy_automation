@@ -117,12 +117,11 @@ export default buildConfig({
       // Do NOT set addRandomSuffix: true — the plugin rewrites Payload's `filename` field to the
       // suffixed blob key, polluting the user-facing label with a ~30-char token (EX-457 follow-up).
       // Cross-env key uniqueness is already handled by appendShortId at the upload boundary
-      // (uploadFile → uniqueFileName).
+      // (uniqueFileName).
       //
-      // The browser PUTs the bytes straight to Blob, so an upload is no longer capped by Vercel's
-      // 4.5 MB request body. The plugin's default token access is `!!req.user` — any logged-in
-      // account, EMPLOYEE included — so it is replaced here with the same roles the media row
-      // itself requires; otherwise the token gate would be looser than `media.access.create`.
+      // The plugin's default token access is `!!req.user` — any logged-in account, EMPLOYEE
+      // included — so it is replaced here with the same roles the media row itself requires;
+      // otherwise the token gate would be looser than `media.access.create`.
       clientUploads: { access: isAdminOrOwnerOrManagerBoolean },
     }),
   ],

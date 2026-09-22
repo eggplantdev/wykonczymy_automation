@@ -20,7 +20,7 @@ export type IngestOutcomeT = {
  */
 export async function ingestFiles(
   picked: File[],
-  profile: CompressionProfileT = 'INVOICE',
+  profile?: CompressionProfileT,
 ): Promise<IngestOutcomeT> {
   const blocked: BlockedFileError[] = []
   const processed = await mapWithConcurrency(picked, INGEST_CONCURRENCY, async (file) => {

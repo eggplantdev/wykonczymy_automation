@@ -3,16 +3,20 @@ import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 import { preventReferencedMediaDelete } from '@/hooks/media/prevent-referenced-delete'
 import { sanitizeFileName } from '@/lib/utils/sanitize-filename'
-import type { MediaKindT } from '@/types/media'
+import { MEDIA_KINDS, type MediaKindT } from '@/types/media'
 
 // No default: rows predating the field are invoices by provenance, but stamping that guess on them
 // is worse than a blank a human can read as „nobody said".
-const KIND_OPTIONS: { label: { en: string; pl: string }; value: MediaKindT }[] = [
-  { label: { en: 'Invoice', pl: 'Faktura' }, value: 'faktura' },
-  { label: { en: 'Design', pl: 'Projekt' }, value: 'projekt' },
-  { label: { en: 'Photo', pl: 'Zdjęcie' }, value: 'zdjecie' },
-  { label: { en: 'Other', pl: 'Inne' }, value: 'inne' },
-]
+const KIND_LABELS: Record<MediaKindT, { en: string; pl: string }> = {
+  faktura: { en: 'Invoice', pl: 'Faktura' },
+  projekt: { en: 'Design', pl: 'Projekt' },
+  zdjecie: { en: 'Photo', pl: 'Zdjęcie' },
+  inne: { en: 'Other', pl: 'Inne' },
+}
+
+// Mapped rather than restated, so a fifth kind fails to compile until it has a label instead of
+// silently missing from the admin select.
+const KIND_OPTIONS = MEDIA_KINDS.map((value) => ({ label: KIND_LABELS[value], value }))
 
 export const Media: CollectionConfig = {
   slug: 'media',
@@ -62,7 +66,7 @@ export const Media: CollectionConfig = {
   access: {
     read: () => true,
     create: isAdminOrOwnerOrManager,
-    update: isAdminOrOwnerOrManager,
+    update: isAdminOrOwner,
     delete: isAdminOrOwner,
   },
   fields: [

@@ -42,13 +42,15 @@ export type InvoicePreviewDialogPropsT = {
   onRemove?: (invoice: InvoiceFileT) => void
   onRemoveAll?: () => void
   /**
-   * Marking „to jest rzut" after the fact. One prop rather than a callback plus a predicate,
-   * because the button needs both halves to say anything true — offering „Oznacz" on a file that
-   * is already oznaczony is how a second click looks like the first one failed.
+   * One prop rather than four, because the button needs every half to say anything true. The
+   * wording rides along for the same reason `labels` does — this dialog also shows transfer
+   * faktury, so a marker's name belongs to the surface that offers it.
    */
   planMarker?: {
     isMarked: (invoice: InvoiceFileT) => boolean
     onMark: (invoice: InvoiceFileT) => void
+    label: string
+    markedLabel: string
   }
   // next/image can't run the optimizer on a local blob: URL (not-yet-uploaded file) — serve it raw.
   unoptimized?: boolean
@@ -236,7 +238,7 @@ export function InvoicePreviewDialog({
               onClick={() => planMarker.onMark(active)}
             >
               <DraftingCompass />
-              {planMarker.isMarked(active) ? 'Oznaczony jako rzut' : 'Oznacz jako rzut'}
+              {planMarker.isMarked(active) ? planMarker.markedLabel : planMarker.label}
             </Button>
           )}
           {onAdd && (
