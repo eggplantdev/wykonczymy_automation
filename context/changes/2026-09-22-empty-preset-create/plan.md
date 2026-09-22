@@ -223,4 +223,4 @@ Raz, po ostatniej fazie:
 
 #### Automated
 
-- [x] 2.1 Spec DOM dialogu przechodzi (pusta nazwa blokuje zapis, błąd nie zamyka dialogu)
+- [x] 2.1 Spec DOM dialogu przechodzi (pusta nazwa blokuje zapis, błąd nie zamyka dialogu) — a54d5f07
