@@ -98,6 +98,13 @@ describe('workshop columns', () => {
     }
   })
 
+  // The grid runs `lockRows`, so the „Akcje" menu is the ONLY route to usuń / przesuń / wstaw
+  // a pozycja. It is not a data column the szablon carries, so the allowlist — written as a list of
+  // what travels to the next budowa — dropped it and left the warsztat a grid nobody could trim.
+  it('keeps the row-actions column, the only route to delete or move a pozycja', () => {
+    expect(workshopIds({ onRemoveItem: () => {}, onReorderItem: () => {} })).toContain('actions')
+  })
+
   it('leaves the picker empty, so the toolbar has nothing to offer', () => {
     const { columnToggleItems } = buildV2Grid({
       view: 'client',
