@@ -55,8 +55,7 @@ export default async function InvestmentKosztorysV2Page({
   // The whole cennik, so the editor can classify every praca against it in the browser — the
   // katalog problems' counter has to be true before anyone opens the comparison window.
   const workCataloguePromise = getWorkCatalogue()
-  // „Zdjęcia i pliki" of the investment — the same gallery the investment card shows, mounted in
-  // the toolbar. Cached on `investment:<id>`, so an upload from either surface invalidates it.
+  // Cached on `investment:<id>`, so an upload from either surface invalidates it.
   const assetsPromise = fetchInvestmentAssets(investmentId)
   const [
     tree,

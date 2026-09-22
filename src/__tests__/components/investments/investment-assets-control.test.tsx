@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { InvestmentAssets } from '@/components/investments/investment-assets'
+import { InvestmentAssetsControl } from '@/components/investments/investment-assets-control'
 import type { MediaFileT } from '@/types/media'
 
 vi.mock('next/navigation', () => ({
@@ -16,8 +16,7 @@ vi.mock('@/lib/actions/investment-assets', () => ({
   removeAllInvestmentAssetsAction: (...args: unknown[]) => removeAllInvestmentAssetsAction(...args),
 }))
 
-// Stands in for the whole pick → ingest → Blob path so a test can hold an upload open; what this
-// spec asserts is what the section offers WHILE bytes are in flight, not how they get there.
+// Stands in for the whole pick → ingest → Blob path so a test can hold an upload open.
 const isUploading = vi.fn(() => false)
 vi.mock('@/hooks/use-media-upload', () => ({
   useMediaUpload: () => ({ isUploading: isUploading(), uploadFiles: vi.fn() }),
@@ -46,25 +45,25 @@ const PDF: MediaFileT = {
 }
 
 const renderGallery = (assets: MediaFileT[]) =>
-  render(<InvestmentAssets investmentId={7} assets={assets} />)
+  render(<InvestmentAssetsControl investmentId={7} assets={assets} />)
 
-const previewButton = () => screen.queryByRole('button', { name: /^Podgląd plików inwestycji/ })
+const previewButton = () => screen.queryByRole('button', { name: /^Dokumentacja inwestycji \(\d/ })
 
-describe('InvestmentAssets', () => {
+describe('InvestmentAssetsControl', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     isUploading.mockReturnValue(false)
   })
 
   // The section used to disappear entirely without files, which hid the only in-page way to add one
-  // behind the „Edytuj inwestycję" dialog. The empty state IS the affordance.
+  // behind the „Edytuj inwestycję" dialog.
   it('offers the picker when the investment has no files, and no empty preview', async () => {
     const user = userEvent.setup()
     renderGallery([])
 
     expect(previewButton()).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: 'Dodaj zdjęcia lub pliki' }))
+    await user.click(screen.getByRole('button', { name: 'Dokumentacja inwestycji (brak plików)' }))
     expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 
@@ -72,7 +71,7 @@ describe('InvestmentAssets', () => {
     renderGallery([PHOTO, PDF])
 
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
-    expect(within(previewButton()!).getByText('Zdjęcia i pliki (2)')).toBeInTheDocument()
+    expect(within(previewButton()!).getByText('Dokumentacja (2)')).toBeInTheDocument()
   })
 
   it('opens the preview, steps through the files, and closes on Escape', async () => {

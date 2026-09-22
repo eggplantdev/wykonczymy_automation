@@ -354,6 +354,27 @@ Uruchomić **raz**, po ostatniej fazie:
 - Poprzednie decyzje o galerii: `context/archive/2026-09-21-investment-assets-dialog/change.md:16-31`
 - EX-597 (render trasy przy unieważnieniu tagu): `context/foundation/lessons.md:652-672`
 
+## Odstępstwa od planu (spisane w bramce przeglądu, 2026-09-22)
+
+Bloki faz zostają nienaruszone; poniżej to, czym rzeczywistość różniła się od planu.
+
+1. **Odwrócenie pustego stanu nie było warunkiem wstępnym, tylko częścią tej zmiany.** Plan opisał
+   je jako niezacommitowaną pracę leżącą już w drzewie. Na `staging` go nie ma — kasacja
+   `if (visibleFiles.length === 0 && !isBusy) return null` wjechała w commicie `495816eb`, który
+   zapowiada refaktor bez zmian zachowania. Decyzja jest udokumentowana (research, change.md,
+   rejestr sprawdzeń); rozjeżdżał się tylko zapis. To odwraca ustalenie z EX-802 (2026-09-21).
+2. **`SaveTemplateButton` już nie istnieje** — skasował go `7e9714ec` („warsztat szablonu zapisuje
+   się sam"), zanim ta zmiana ruszyła. Kontrakt pozycji („przed `SaveTemplateButton`") i cytowany
+   za nim wzorzec bramki są martwe. Kontrolka stanęła ostatnia w prawej grupie; żywy precedens
+   bramki po stronie wywołującego to `{!isWorkshop && <KosztorysViewMenu />}` linijkę wyżej.
+3. **Etykieta pustego stanu to „Dodaj zdjęcia lub pliki", nie „Dodaj pliki".** Plan i brief mówią
+   inaczej; kod używa istniejącej stałej `INVESTMENT_ASSETS_UPLOAD_TITLE`, wspólnej dla trzech
+   powierzchni — i to jest właściwy wybór.
+4. **Faza 1 dowiozła pięć plików, nie trzy.** Ponad plan wyszedł prymityw przycisku pickera
+   (dedup trzech powierzchni) i przepisanie pola w „Edytuj inwestycję". Bramka przeglądu przeniosła
+   ten prymityw do warstwy prymitywów jako `src/components/ui/upload-button.tsx` (`UploadButton`) —
+   nie zna domeny, a żaden z jego konsumentów nie mieszkał w `components/media/`.
+
 ## Progress
 
 > Konwencja: `- [ ]` pending, `- [x]` done. Dopisz ` — <commit sha>`, gdy krok wyląduje. Nie zmieniaj tytułów kroków.

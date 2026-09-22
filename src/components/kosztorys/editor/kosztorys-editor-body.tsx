@@ -357,6 +357,7 @@ export function KosztorysEditorBody({
         templatePresetId,
         isWorkshop,
         noun,
+        assets,
       }}
     >
       {/* Wraps the body, not the grid: the value reaches a row's „…" through Radix's portal, which
@@ -390,7 +391,7 @@ export function KosztorysEditorBody({
               </header>
             ) : (
               <>
-                <KosztorysEditorToolbar investmentId={investmentId} assets={assets} />
+                <KosztorysEditorToolbar />
                 {/* Without this the editor just looks broken — cells refuse focus and nothing says why.
                   Never under the preview: the client's document knows nothing of our statuses. */}
                 {locked && <KosztorysLockedBanner />}

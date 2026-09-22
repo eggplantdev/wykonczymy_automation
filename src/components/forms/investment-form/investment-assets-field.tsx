@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { InvoiceUploadDialog } from '@/components/dialogs/invoice-upload-dialog'
-import { MediaUploadButton } from '@/components/media/media-upload-button'
+import { UploadButton } from '@/components/ui/upload-button'
 import {
   INVESTMENT_ASSETS_UPLOAD_TITLE,
   useInvestmentAssetsUpload,
@@ -21,7 +21,7 @@ export function InvestmentAssetsField({ investmentId }: { investmentId: number }
   return (
     <Field>
       <FieldLabel>Zdjęcia i pliki</FieldLabel>
-      <MediaUploadButton
+      <UploadButton
         label={INVESTMENT_ASSETS_UPLOAD_TITLE}
         isUploading={isUploading}
         onClick={() => setUploadOpen(true)}

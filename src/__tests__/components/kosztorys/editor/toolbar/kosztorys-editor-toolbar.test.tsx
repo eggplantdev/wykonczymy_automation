@@ -82,16 +82,17 @@ const editorContext = {
 
 const renderToolbar = (assets?: MediaFileT[]) =>
   render(
-    <KosztorysEditorProvider editor={editorContext}>
+    <KosztorysEditorProvider editor={{ ...editorContext, assets }}>
       {/* „Dodaj" reaches for the catalogue picker, which the editor body hosts above the toolbar. */}
       <CataloguePickerHost>
-        <KosztorysEditorToolbar investmentId={7} assets={assets} />
+        <KosztorysEditorToolbar />
       </CataloguePickerHost>
     </KosztorysEditorProvider>,
   )
 
-const galleryTrigger = () => screen.queryByRole('button', { name: /^Podgląd plików inwestycji/ })
-const addTrigger = () => screen.queryByRole('button', { name: 'Dodaj zdjęcia lub pliki' })
+const galleryTrigger = () => screen.queryByRole('button', { name: /^Dokumentacja inwestycji \(\d/ })
+const addTrigger = () =>
+  screen.queryByRole('button', { name: 'Dokumentacja inwestycji (brak plików)' })
 
 describe('KosztorysEditorToolbar — bramka galerii assetów', () => {
   it('shows the investment gallery when the surface carries assets', () => {

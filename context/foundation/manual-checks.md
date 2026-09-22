@@ -490,8 +490,8 @@ Sprawdzenia na bazie testowej (5435). Webhook wymaga `LANDING_WEBHOOK_SECRET` i
 Zastępuje sprawdzenie „Pasek miniatur nie przewija się w poziomie przy 375px" z sekcji
 lead-delivery — na karcie inwestycji nie ma już paska miniatur (został tylko u leada).
 
-- [x] Inwestycja bez plików pokazuje w sekcji przycisk „Dodaj zdjęcia lub pliki" — pusty stan JEST
-      afordancją, a nie zniknięciem sekcji (odwrócone przy kosztorys-editor-assets, 2026-09-22)
+- ~~Inwestycja bez plików nie pokazuje w sekcji żadnego przycisku~~ — zachowanie odwrócone przy
+  kosztorys-editor-assets (2026-09-22); nowe brzmienie czeka na weryfikację w sekcji tej zmiany
 - [x] Przycisk „Zdjęcia i pliki (N)" ma szerokość swojej treści, nie całej kolumny
 - [x] Podgląd przy N ≥ 1 ma „Dodaj kolejne", które dokłada plik bez wychodzenia z karty
 - [x] Po dodaniu pliku licznik „Zdjęcia i pliki (N)" rośnie bez przeładowania strony
@@ -587,3 +587,9 @@ Ta sama kontrolka co na karcie inwestycji, zamontowana w prawej grupie toolbara 
 - [ ] Zakończona („Zakończona") inwestycja: dodawanie plików z edytora dalej działa
 - [ ] Karta inwestycji po refaktorze zachowuje się jak przed nim; przy trwającym uploadzie do
       niepustej galerii widać spinner obok przycisku
+- [ ] Inwestycja bez plików pokazuje na karcie przycisk „Dodaj zdjęcia lub pliki" — pusty stan JEST
+      afordancją, a nie zniknięciem sekcji (odwraca sprawdzenie z sekcji EX-802)
+- [ ] Usunięcie OSTATNIEGO pliku: pusty stan wraca z napisem „Dodaj zdjęcia lub pliki", ani przez
+      chwilę nie „Przesyłanie..." (bramka odrzuciła tę pomyłkę — sprawdzenie na oczy)
+- [ ] „Edytuj inwestycję" → pole „Zdjęcia i pliki": przycisk wygląda jak przed wydzieleniem
+      `UploadButton` (wyrównanie do lewej, ta sama wysokość)
