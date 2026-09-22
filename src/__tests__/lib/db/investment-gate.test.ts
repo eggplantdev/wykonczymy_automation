@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import {
   isInvestmentLocked,
   isRelatedInvestmentLocked,
-  lockStatusFor,
-} from '@/lib/db/investment-lock'
+  investmentGateForRow,
+} from '@/lib/db/investment-gate'
 import { fakePayload, mockExecute, resetFakePayload } from '@/__tests__/helpers/fake-payload-sql'
 import { getDb } from '@/lib/db/get-db'
 
@@ -49,7 +49,7 @@ describe('investment lock', () => {
     })
   })
 
-  describe('lockStatusFor', () => {
+  describe('investmentGateForRow', () => {
     it.each([
       ['item', 'kosztorys_items'],
       ['section', 'kosztorys_sections'],
@@ -57,7 +57,7 @@ describe('investment lock', () => {
     ] as const)('reads %s from %s', async (kind, table) => {
       const db = await getDb(fakePayload)
       mockExecute.mockResolvedValueOnce({ rows: [{ id: 42, status: 'active' }] })
-      expect(await lockStatusFor(db, kind, 7)).toEqual({
+      expect(await investmentGateForRow(db, kind, 7)).toEqual({
         investmentId: 42,
         locked: false,
         templatePresetId: null,
@@ -70,7 +70,7 @@ describe('investment lock', () => {
     it('answers owner and lock together', async () => {
       const db = await getDb(fakePayload)
       mockExecute.mockResolvedValueOnce({ rows: [{ id: 42, status: 'completed' }] })
-      expect(await lockStatusFor(db, 'item', 7)).toEqual({
+      expect(await investmentGateForRow(db, 'item', 7)).toEqual({
         investmentId: 42,
         locked: true,
         templatePresetId: null,
@@ -84,7 +84,7 @@ describe('investment lock', () => {
       mockExecute.mockResolvedValueOnce({
         rows: [{ id: 42, status: 'szablon', template_preset_id: 5 }],
       })
-      expect(await lockStatusFor(db, 'item', 7)).toEqual({
+      expect(await investmentGateForRow(db, 'item', 7)).toEqual({
         investmentId: 42,
         locked: false,
         templatePresetId: 5,
@@ -95,7 +95,7 @@ describe('investment lock', () => {
     it('returns undefined for a row that does not exist', async () => {
       const db = await getDb(fakePayload)
       mockExecute.mockResolvedValueOnce({ rows: [] })
-      expect(await lockStatusFor(db, 'item', 999)).toBeUndefined()
+      expect(await investmentGateForRow(db, 'item', 999)).toBeUndefined()
     })
   })
 

@@ -1,17 +1,14 @@
-// Not to be confused with `lock-investment.ts` in this directory: that one takes a row lock
-// (`FOR UPDATE`) to serialize concurrent wholesale replacements. This one answers a domain
-// question — has the investment been settled and closed, so nothing may move its money any more.
 import { sql } from '@payloadcms/db-vercel-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import { isLockedStatus } from '@/lib/constants/investment-lock'
 import { resolveId } from '@/lib/utils/resolve-id'
 import { numOrNull } from '@/lib/db/row-coerce'
 
-export type LockTargetKindT = 'item' | 'section' | 'stage'
+export type GateTargetKindT = 'item' | 'section' | 'stage'
 
 // The three kosztorys tables each carry `investment_id` as a not-null indexed FK, so an action that
 // only knows its row's id can still name the investment it is about to write to.
-const TABLE_BY_KIND: Record<LockTargetKindT, string> = {
+const TABLE_BY_KIND: Record<GateTargetKindT, string> = {
   item: 'kosztorys_items',
   section: 'kosztorys_sections',
   stage: 'kosztorys_stages',
@@ -50,14 +47,15 @@ export async function isInvestmentLocked(db: DbExecutorT, investmentId: number):
 }
 
 /**
- * The owning investment of a kosztorys row and its lock status, in one join — `undefined` when the
- * row itself is gone, which callers report as NOT_FOUND rather than as a lock. Also the single
+ * The same gate, reached from a kosztorys row instead of an investment id — one join, so an action
+ * that only knows its row still pays a single round trip. `undefined` when the row itself is gone,
+ * which callers report as NOT_FOUND rather than as a lock. Also the single
  * source of investment ownership for a new row: derived from the parent rather than trusted from a
  * caller-passed id, so an item's investment and section FKs can never disagree.
  */
-export async function lockStatusFor(
+export async function investmentGateForRow(
   db: DbExecutorT,
-  kind: LockTargetKindT,
+  kind: GateTargetKindT,
   id: number,
 ): Promise<({ investmentId: number } & InvestmentGateT) | undefined> {
   const res = await db.execute(

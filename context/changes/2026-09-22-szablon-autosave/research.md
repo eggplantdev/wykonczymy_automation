@@ -219,7 +219,7 @@ Dziś to nie ma znaczenia, bo pisze jeden przycisk pod `useTransition`. Przy aut
   dokumencie. Mirror, który przeczytał drzewo przed twoją edycją, a commituje po niej, **cofa ją
   w szablonie**, podczas gdy warsztat nadal ją pokazuje. Nic tego nie wykryje.
 - Zamek, który jest odpowiedzią repo na dokładnie tę klasę wyścigu — `lockInvestmentForReplace`
-  (`src/lib/db/lock-investment.ts:16`) — jest brany **tylko** przez `replaceTreeWithSnapshot`.
+  (`src/lib/db/lock-investment-for-replace.ts:16`) — jest brany **tylko** przez `replaceTreeWithSnapshot`.
   Ścieżka mirrora go nie woła.
 - Wyścig międzyścieżkowy: `openPresetInWorkshopAction` zamienia drzewo, a **potem** przesuwa
   wskaźnik. Mirror w locie przez tę granicę przeczyta drzewo **nowego** szablonu i wstemplluje je
@@ -340,7 +340,7 @@ Interwał krótszy niż 10 minut, bramkowany „czy coś się zmieniło", plus z
 - `src/lib/kosztorys/serialize-preset.ts:14` — stratna serializacja (przedmiar, rabat, notatka, etapy)
 - `src/lib/db/presets.ts:77` — `updatePresetPayload`, ślepe nadpisanie całego jsonb, nadpisuje `created_by`
 - `src/lib/db/kosztorys-tree.ts:56` — zapytanie, które każdy mirror wykonuje
-- `src/lib/db/lock-investment.ts:16` — zamek, którego ścieżka mirrora dziś nie bierze
+- `src/lib/db/lock-investment-for-replace.ts:16` — zamek, którego ścieżka mirrora dziś nie bierze
 - `src/lib/cache/tags.ts:68` — reguła EX-597 o `updateTag` w akcji
 - `src/lib/db/presets.ts:122` — `listPresetSections`, ekspansja jsonb po całej bibliotece
 - `src/components/kosztorys/editor/hooks/use-debounced-save.ts:36` — kliencki lejek (niepełny)

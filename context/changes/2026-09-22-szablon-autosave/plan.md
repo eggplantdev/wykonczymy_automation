@@ -52,7 +52,7 @@ cena tam jest. Bez żadnego kliknięcia.
 
 - `investmentAction` (`src/lib/actions/investment-action.ts:27`) sam deklaruje się jako jedyny
   chokepoint i **już robi SELECT po statusie inwestycji** (`isInvestmentLocked`/`lockStatusFor`,
-  `src/lib/db/investment-lock.ts:26,41`) — dołożenie `template_preset_id` do tych zapytań kosztuje
+  `src/lib/db/investment-gate.ts:26,41`) — dołożenie `template_preset_id` do tych zapytań kosztuje
   zero dodatkowych round tripów.
 - `PREVIEW_VISIBLE_COLUMNS` (`src/lib/kosztorys/column-config.ts:215`) + gałąź podglądu w
   `selectV2Columns` (`src/components/kosztorys/editor/grid/column-selection.ts:65-67`) to **gotowy
@@ -158,7 +158,7 @@ nazwana stała, nie literał w zapytaniu.
 
 #### 4. Warsztat w zapytaniu o blokadę
 
-**File**: `src/lib/db/investment-lock.ts`
+**File**: `src/lib/db/investment-gate.ts`
 
 **Intent**: `isInvestmentLocked` i `lockStatusFor` zaczynają zwracać `templatePresetId` obok statusu,
 żeby `investmentAction` wiedział, czy pisze do warsztatu, **bez dodatkowego round tripu**.
@@ -199,7 +199,7 @@ przepuszcza — zserializuj drzewo i przepisz je do szablonu, w jednej transakcj
 
 **Contract**: przyjmuje `{ db, investmentId, templatePresetId, force }`. `force` pomija dławik (używa
 go dopchnięcie z Fazy 3). Całość wewnątrz `lockInvestmentForReplace(investmentId)`
-(`src/lib/db/lock-investment.ts:16`) — ten sam wzorzec, którym repo serializuje wymianę drzewa.
+(`src/lib/db/lock-investment-for-replace.ts:16`) — ten sam wzorzec, którym repo serializuje wymianę drzewa.
 Wskaźnik czytany **wewnątrz** transakcji i porównywany z `templatePresetId`; rozjazd = ciche
 odstąpienie (nie błąd — to normalny wyścig z przełączeniem warsztatu). Nigdy nie rzuca: mirror to
 efekt uboczny udanej mutacji, więc jego awaria nie może wywrócić zapisu, który już się udał.

@@ -6,7 +6,7 @@ import { investmentAction } from '@/lib/actions/investment-action'
 import { validateAction } from '@/lib/actions/run-action'
 import { KOSZTORYS_TREE_TAGS } from '@/lib/cache/tags'
 import { getDb } from '@/lib/db/get-db'
-import { lockStatusFor } from '@/lib/db/investment-lock'
+import { investmentGateForRow } from '@/lib/db/investment-gate'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { cleanDescription } from '@/lib/kosztorys/clean-description'
@@ -492,7 +492,7 @@ export async function insertItemAction(
           // Only the investment is needed here — the slot is already resolved, so the append-position
           // aggregate `sectionOwnerAndNextItemOrder` would compute is dead weight held under the
           // section-wide lock.
-          const owner = (await lockStatusFor(txDb, 'section', slot.ownerId))?.investmentId
+          const owner = (await investmentGateForRow(txDb, 'section', slot.ownerId))?.investmentId
           if (owner == null) return { success: false, error: SECTION_MISSING }
           await shiftDisplayOrderFrom(txDb, 'kosztorys-items', slot.ownerId, slot.at)
           const created = await createBlankItem(payload, {

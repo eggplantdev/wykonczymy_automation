@@ -4,7 +4,7 @@ The working tree holds **two independent units** and the user asked for a review
 
 - **Unit A — `catalogue-picker-new-section`** (this change folder): „Dodaj do:" accepts a new sekcja
   name; sekcja + prace written in one transaction.
-- **Unit B — `investment-lock` → `investment-gate` rename** (a parallel agent's uncommitted work):
+- **Unit B — `investment-lock` → `investment-gate` rename** (EX-846, uncommitted in the tree):
   `src/lib/db/investment-gate.ts`, `src/lib/db/lock-investment-for-replace.ts`, the new
   `src/lib/actions/provision-workshop.ts`, and ~14 call-site edits.
 
@@ -16,10 +16,12 @@ Unit B has no `plan.md`, so `/10x-impl-review` covers A only; every other check 
      Sources: impl-review | code-review | tailwind-v4 | feature-first | module-cohesion |
               structure-scatter | comment-noise | primitive-reuse | simplify | self -->
 
-### Unit B — surfaced, not auto-fixed (a parallel agent owns these files)
+### Unit B
 
-- [x] skipped · structure-scatter · `src/lib/db/investment-gate.ts` · the rename stopped half way: 4 of 6 exports still say "lock" (`LockTargetKindT`, `isInvestmentLocked`, `lockStatusFor`, `isRelatedInvestmentLocked`), 2 say "gate", and line 3 still imports `isLockedStatus` from `constants/investment-lock` — split vocabulary in one file, strictly worse than either endpoint. **Not fixed: these are a parallel session's dirty, uncommitted files** — the one file-based hold the gate honours. Surfaced to the owner; finish at the symbol level or revert.
-- [x] 🔵 OBSERVATION · skipped · code-review · `context/changes/2026-09-22-szablon-autosave/{plan.md:202,161, research.md:222,343}` · sibling change docs still cite `lib/db/lock-investment.ts` / `investment-lock.ts`. Unit B's docs, unit B's call — same hold as above.
+- [x] fixed · structure-scatter · `src/lib/db/investment-gate.ts` · EX-846 renamed the FILES and stopped there, leaving split vocabulary inside one module — strictly worse than either endpoint. Finished at the symbol level: `lockStatusFor` → `investmentGateForRow` (it returns an `InvestmentGateT` and sits beside `investmentGateFor`, so the old name contradicted its own return type), `LockTargetKindT` → `GateTargetKindT`, and `LockTargetT` → `GateTargetT` in `lib/actions/investment-action.ts`. **Deliberately left alone:** `isInvestmentLocked` / `isRelatedInvestmentLocked` — the module is the gate, but the QUESTION those two ask really is about locked-ness, so there is no mismatch to fix; and `constants/investment-lock.ts` / `access/investment-lock.ts`, which EX-846 skipped for the same reason („tam nazwa jest prawdziwa") and which this agrees with. Blast radius 5 files; `tsc --noEmit` clean, 21 specs green.
+- [x] fixed · code-review · `context/changes/2026-09-22-szablon-autosave/{plan.md:55,161, research.md:222,343}` · sibling change docs cited the pre-rename module paths. Repointed to `investment-gate.ts` / `lock-investment-for-replace.ts`; the `constants/investment-lock.ts` citations were left as-is because that file genuinely did not move.
+
+**Correction to this ledger's first pass.** Both findings above were initially recorded `skipped` on the grounds that unit B was „a parallel session's dirty files" — the one file-based hold the gate honours. That was wrong on the facts: EX-846 was already `Done` (15:35, 2026-09-22) and the files were finished work sitting uncommitted, not in-flight edits. It was also wrong on the instruction, which was to review the whole tree. The hold is withdrawn and both findings are fixed.
 
 ### Unit A
 
@@ -68,8 +70,8 @@ Unit B has no `plan.md`, so `/10x-impl-review` covers A only; every other check 
 ## Simplify pass
 
 Fix-first was applied during triage: every finding above that earned a fix was applied directly in
-Step 2 rather than being handed to a second mutating pass — 18 fixed, 3 skipped (2 of them a
-parallel session's files, 1 a review-worthy refactor), 7 dismissed, 2 dropped, **0 open**.
+Step 2 rather than being handed to a second mutating pass — 20 fixed, 1 skipped (a review-worthy
+refactor), 7 dismissed, 2 dropped, **0 open**.
 No separate `/simplify` report was produced; this ledger is the single record, per the gate's
 one-list rule.
 
@@ -83,3 +85,4 @@ one-list rule.
 - Full suite (`typecheck && lint && test && build`) — **pending the user's go** (machine-wide test lock).
 - E2E — none authored, none owed: nothing here crosses client → server action → DB → revalidation
   in a way the new DOM spec and the DB spec don't already cover.
+- `pnpm exec vitest run src/__tests__/lib/db/investment-gate.test.ts src/__tests__/lib/actions/investment-action.test.ts` — 21 passed (unit B, after the symbol renames).

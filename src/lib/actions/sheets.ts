@@ -12,7 +12,7 @@ import { isPointableColumn } from '@/lib/kosztorys/sheet-import/sheet-column-map
 import { investmentAction } from '@/lib/actions/investment-action'
 import { INVESTMENT_LOCKED_MESSAGE } from '@/lib/constants/investment-lock'
 import { getDb } from '@/lib/db/get-db'
-import { isRelatedInvestmentLocked } from '@/lib/db/investment-lock'
+import { isRelatedInvestmentLocked } from '@/lib/db/investment-gate'
 import { protectedAction } from './run-action'
 import { logError } from '@/lib/utils/log-error'
 

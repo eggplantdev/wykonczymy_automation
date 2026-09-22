@@ -15,7 +15,7 @@ import {
 } from '@/lib/constants/transfers'
 import { getAmountError, getNetAmountError } from '@/lib/utils/validation'
 import { getDb } from '@/lib/db/get-db'
-import { isInvestmentLocked } from '@/lib/db/investment-lock'
+import { isInvestmentLocked } from '@/lib/db/investment-gate'
 import { INVESTMENT_LOCKED_MESSAGE } from '@/lib/constants/investment-lock'
 import { resolveId } from '@/lib/utils/resolve-id'
 import { isInvoiceOnlyPatch } from '@/hooks/transfers/invoice-only-patch'

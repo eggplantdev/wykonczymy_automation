@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { investmentAction } from '@/lib/actions/investment-action'
 import { mirrorWorkshopPreset } from '@/lib/actions/mirror-workshop-preset'
 import { ownerOnlyAction } from '@/lib/actions/owner-only-action'
+import { resolveWorkshopInvestment } from '@/lib/actions/provision-workshop'
 import { protectedAction, validateAction } from '@/lib/actions/run-action'
 import { revalidateCollections } from '@/lib/cache/revalidate'
 import { KOSZTORYS_TREE_TAGS } from '@/lib/cache/tags'
@@ -19,11 +20,7 @@ import {
   type PresetSectionMetaT,
 } from '@/lib/db/presets'
 import { getPresets, getPresetSections } from '@/lib/queries/presets'
-import {
-  getWorkshop,
-  resolveWorkshopInvestment,
-  setWorkshopPreset,
-} from '@/lib/db/workshop-investment'
+import { getWorkshop, setWorkshopPreset } from '@/lib/db/workshop-investment'
 import {
   appendPresetSections,
   type AppendedSliceT,

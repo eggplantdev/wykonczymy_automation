@@ -1,6 +1,6 @@
 import type { Access } from 'payload'
 import { getDb } from '@/lib/db/get-db'
-import { isRelatedInvestmentLocked, isInvestmentLocked } from '@/lib/db/investment-lock'
+import { isRelatedInvestmentLocked, isInvestmentLocked } from '@/lib/db/investment-gate'
 import { resolveId } from '@/lib/utils/resolve-id'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 
