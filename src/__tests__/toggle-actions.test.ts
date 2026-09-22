@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { revalidateCollections } from '@/__tests__/stubs/cache-revalidate'
 import type { Payload } from 'payload'
 
 // ── Mocks ────────────────────────────────────────────────────────────────
@@ -23,11 +24,7 @@ vi.mock('payload', async (importOriginal) => {
   }
 })
 
-// Mock cache revalidation.
-const mockRevalidateCollections = vi.fn()
-vi.mock('@/lib/cache/revalidate', () => ({
-  revalidateCollections: (...args: unknown[]) => mockRevalidateCollections(...args),
-}))
+vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 // ── Import actions under test ────────────────────────────────────────────
 
@@ -40,7 +37,7 @@ const mockUser = { id: 1, email: 'a@t.com', name: 'Admin', role: 'ADMIN' as cons
 beforeEach(() => {
   mockRequireAuth.mockReset().mockResolvedValue({ success: true, user: mockUser })
   mockUpdate.mockReset().mockResolvedValue({ id: 1 })
-  mockRevalidateCollections.mockReset()
+  revalidateCollections.mockReset()
 })
 
 // ═════════════════════════════════════════════════════════════════════════
@@ -87,8 +84,8 @@ describe('toggleUserActive', () => {
   it('revalidates "users" collection on success', async () => {
     await toggleUserActive(1, true)
 
-    expect(mockRevalidateCollections).toHaveBeenCalledOnce()
-    expect(mockRevalidateCollections).toHaveBeenCalledWith(['users'])
+    expect(revalidateCollections).toHaveBeenCalledOnce()
+    expect(revalidateCollections).toHaveBeenCalledWith(['users'])
   })
 
   it('auth failure → returns { success: false } without update', async () => {
@@ -98,7 +95,7 @@ describe('toggleUserActive', () => {
 
     expect(result).toEqual({ success: false, error: 'Unauthorized' })
     expect(mockUpdate).not.toHaveBeenCalled()
-    expect(mockRevalidateCollections).not.toHaveBeenCalled()
+    expect(revalidateCollections).not.toHaveBeenCalled()
   })
 
   it('payload.update throws → returns { success: false, error: message }', async () => {
@@ -107,7 +104,7 @@ describe('toggleUserActive', () => {
     const result = await toggleUserActive(1, true)
 
     expect(result).toEqual({ success: false, error: 'Connection refused' })
-    expect(mockRevalidateCollections).not.toHaveBeenCalled()
+    expect(revalidateCollections).not.toHaveBeenCalled()
   })
 })
 
@@ -155,8 +152,8 @@ describe('toggleCashRegisterActive', () => {
   it('revalidates "cashRegisters" collection on success', async () => {
     await toggleCashRegisterActive(5, true)
 
-    expect(mockRevalidateCollections).toHaveBeenCalledOnce()
-    expect(mockRevalidateCollections).toHaveBeenCalledWith(['cashRegisters'])
+    expect(revalidateCollections).toHaveBeenCalledOnce()
+    expect(revalidateCollections).toHaveBeenCalledWith(['cashRegisters'])
   })
 
   it('auth failure → returns error without update', async () => {
@@ -166,7 +163,7 @@ describe('toggleCashRegisterActive', () => {
 
     expect(result).toEqual({ success: false, error: 'Unauthorized' })
     expect(mockUpdate).not.toHaveBeenCalled()
-    expect(mockRevalidateCollections).not.toHaveBeenCalled()
+    expect(revalidateCollections).not.toHaveBeenCalled()
   })
 
   it('payload.update throws → returns error', async () => {
@@ -175,6 +172,6 @@ describe('toggleCashRegisterActive', () => {
     const result = await toggleCashRegisterActive(5, false)
 
     expect(result).toEqual({ success: false, error: 'Unique constraint violated' })
-    expect(mockRevalidateCollections).not.toHaveBeenCalled()
+    expect(revalidateCollections).not.toHaveBeenCalled()
   })
 })

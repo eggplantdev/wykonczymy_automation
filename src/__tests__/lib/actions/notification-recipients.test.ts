@@ -15,7 +15,7 @@ vi.mock('@/lib/auth/require-auth', () => ({
     user: { id: 0, email: 'o@t.com', name: 'Owner', role: authState.role },
   })),
 }))
-vi.mock('@/lib/cache/revalidate', () => ({ revalidateNotificationRecipients: vi.fn() }))
+vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const { saveRecipientListAction } = await import('@/lib/actions/notification-recipients')
 const { readRecipientLists } = await import('@/lib/email/recipients')

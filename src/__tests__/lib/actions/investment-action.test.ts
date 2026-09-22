@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { revalidateCollections } from '@/__tests__/stubs/cache-revalidate'
 
 // The wrapper is the kosztorys plane's only chokepoint (raw SQL bypasses hooks and `access`), so
 // three things are asserted: it refuses on a locked investment, it resolves a row id to its
@@ -14,7 +15,6 @@ const lockState = vi.hoisted(() => ({
     | { investmentId: number; locked: boolean; templatePresetId: number | null }
     | undefined,
 }))
-const revalidateCollections = vi.hoisted(() => vi.fn())
 const mirrorWorkshopPreset = vi.hoisted(() => vi.fn())
 
 vi.mock('@/lib/auth/require-auth', () => ({
@@ -23,7 +23,7 @@ vi.mock('@/lib/auth/require-auth', () => ({
     user: { id: 1, email: 'o@t.com', name: 'Owner', role: 'OWNER' },
   })),
 }))
-vi.mock('@/lib/cache/revalidate', () => ({ revalidateCollections }))
+vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('payload', async (importOriginal) => ({
   ...(await importOriginal<typeof import('payload')>()),
