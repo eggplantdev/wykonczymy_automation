@@ -28,6 +28,7 @@ const PHOTO: MediaFileT = {
   filename: 'salon.jpg',
   mimeType: 'image/jpeg',
   thumbnailUrl: '/api/media/file/salon-400x300.jpg',
+  kind: null,
 }
 const SECOND_PHOTO: MediaFileT = {
   id: 2,
@@ -35,6 +36,7 @@ const SECOND_PHOTO: MediaFileT = {
   filename: 'kuchnia.jpg',
   mimeType: 'image/jpeg',
   thumbnailUrl: '/api/media/file/kuchnia-400x300.jpg',
+  kind: null,
 }
 const PDF: MediaFileT = {
   id: 3,
@@ -42,6 +44,7 @@ const PDF: MediaFileT = {
   filename: 'projekt.pdf',
   mimeType: 'application/pdf',
   thumbnailUrl: null,
+  kind: null,
 }
 
 const renderGallery = (assets: MediaFileT[]) =>

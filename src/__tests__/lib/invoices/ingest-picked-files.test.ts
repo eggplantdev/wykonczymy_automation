@@ -30,7 +30,7 @@ describe('ingestPickedFiles', () => {
   // An undefined left in that list would be uploaded as a page.
   it('compacts the survivors, dropping the blocked file rather than leaving a hole', async () => {
     mockProcess.mockImplementation(async (input: File) => {
-      if (input.name === 'b.jpg') throw new BlockedFileError('too-large', 'b.jpg', 9_000_000)
+      if (input.name === 'b.jpg') throw new BlockedFileError('b.jpg')
       return input
     })
 
@@ -47,7 +47,7 @@ describe('ingestPickedFiles', () => {
 
   it('every file blocked yields an empty list, so the caller uploads nothing', async () => {
     mockProcess.mockImplementation(async (input: File) => {
-      throw new BlockedFileError('too-large', input.name, 9_000_000)
+      throw new BlockedFileError(input.name)
     })
 
     const { files, blocked } = await ingestPickedFiles([file('a.jpg'), file('b.jpg')])

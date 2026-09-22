@@ -52,9 +52,9 @@ export const KOSZTORYS_TREE_TAGS = [
  *
  * On most of the hook sites that was invisible, because the Server Action that triggered the write
  * had already called `updateTag` on the same tags in the same request; the hook's call was
- * redundant. It bit where no action runs: `/api/upload-file` is a Route Handler whose only
- * invalidation is the `media` afterChange hook, so an uploaded faktura's first read-back still
- * rendered „Dodaj fakturę".
+ * redundant. It bit where no action runs: a media upload that lands through a Route Handler has
+ * the `media` afterChange hook as its only invalidation, so an uploaded faktura's first read-back
+ * still rendered „Dodaj fakturę".
  *
  * `{ expire: 0 }` is the form that expires on the spot — the same stamp `updateTag` writes, minus
  * its Server-Action-only restriction. Verified against Next 16.1.7's bundled `FileSystemCache`;

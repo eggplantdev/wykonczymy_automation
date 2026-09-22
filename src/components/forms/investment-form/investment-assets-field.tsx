@@ -31,7 +31,8 @@ export function InvestmentAssetsField({ investmentId }: { investmentId: number }
         title={INVESTMENT_ASSETS_UPLOAD_TITLE}
         open={uploadOpen}
         onOpenChange={setUploadOpen}
-        onFiles={(picked) => void uploadFiles(picked)}
+        allowPlanMarker
+        onFiles={(picked, asPlan) => void uploadFiles(picked, asPlan)}
       />
     </Field>
   )

@@ -1,11 +1,11 @@
 ---
 change_id: kategorie-assetow-i-kompresja
 title: Kategorie assetów inwestycji i luźniejsza kompresja dla plików roboczych
-status: planned
+status: implemented
 created: 2026-09-22
 updated: 2026-09-22
 archived_at: null
-branch: null
+branch: kategorie-assetow-i-kompresja
 worktree: null
 ---
 

@@ -2049,12 +2049,17 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
   magnification. The obvious reading — „Blob holds the original, so zoom always pays" — is wrong for
   half the app's files.
 - **Problem**: anything uploaded **through the app** goes through `compressImage`
-  (`src/lib/utils/compress-image.ts`, `q = 0.6`, box `1920×1080`) before the POST. A portrait A4 scan
-  lands in Blob as 763×1080, irreversibly. `fetchLandingAsset` streams a landing attachment without
-  compression or scaling, so only those files keep their pixels. Reaching for the „original" on an
-  app-uploaded file fetches a bigger transfer and recovers no detail — the work is spent, the win
-  isn't there. `MAX_UPLOAD_BYTES = 4 MB` rests on Vercel's request-body limit, which is why the
-  compression is there and why loosening it is its own change, not a knob.
+  (`src/lib/utils/compress-image.ts`) before it reaches Blob, so the original never existed
+  server-side. `fetchLandingAsset` streams a landing attachment without compression or scaling, so
+  only those files keep their pixels. Reaching for the „original" on an app-uploaded file fetches a
+  bigger transfer and recovers no detail — the work is spent, the win isn't there.
+- **What changed (EX-829, 2026-09-22)**: the box is no longer one `1920×1080` rectangle and the
+  4 MB wall is gone. Bytes now go from the browser straight to Blob (`clientUploads`), so Vercel's
+  4,5 MB request-body limit no longer decides anything, and `compressImage` takes a **profile**:
+  `INVOICE` (edge 1920, `q 0.6`) or `PLAN` (edge 2560, `q 0.8`), one cap on BOTH axes — a rectangle
+  sized a portrait A4 by its height and landed it at ~93 DPI. So an app-uploaded rzut is now
+  readable, but it is **still re-encoded**: the one-way door moved, it did not open. Only the
+  landing path still keeps the bytes.
 - **Rule**: before designing anything that promises to „go back to the original" — zoom, print,
   re-crop, OCR, download-full — establish **which ingest path produced the file**. An ingest that
   compresses is a one-way door: the original never existed server-side, so no download path can

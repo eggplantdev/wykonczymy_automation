@@ -7,6 +7,7 @@ import { ingestPickedFiles } from '@/lib/invoices/ingest-picked-files'
 import { submitWithInvoicePages } from '@/lib/invoices/submit-with-invoice-pages'
 import { toastMessage } from '@/lib/utils/toast'
 import type { ActionResultT } from '@/types/action'
+import type { MediaKindT } from '@/types/media'
 
 type MediaUploadOptionsT = {
   /** Attaches the uploaded ids to whatever owns them; runs only once the bytes are in Blob. */
@@ -26,13 +27,17 @@ export function useMediaUpload({ attach, successMessage }: MediaUploadOptionsT) 
   const router = useRouter()
   const [isUploading, setIsUploading] = useState(false)
 
-  async function ingestAndAttach(picked: File[]) {
-    const { files: ready, blocked } = await ingestPickedFiles(picked)
+  // The two effects of the marker travel together on purpose: a rysunek needs the bigger profile to
+  // stay readable AND the `kind` for a later reader to find it. Splitting them would let a file be
+  // labelled a projekt while compressed as a faktura.
+  async function ingestAndAttach(picked: File[], asPlan: boolean) {
+    const { files: ready, blocked } = await ingestPickedFiles(picked, asPlan ? 'PLAN' : 'INVOICE')
     reportBlockedFiles(blocked)
 
     if (ready.length === 0) return
 
-    const result = await submitWithInvoicePages(ready, attach)
+    const kind: MediaKindT | undefined = asPlan ? 'projekt' : undefined
+    const result = await submitWithInvoicePages(ready, attach, kind)
     if (!result.success) {
       toastMessage(result.error, 'error')
       return
@@ -46,12 +51,12 @@ export function useMediaUpload({ attach, successMessage }: MediaUploadOptionsT) 
 
   // The `finally` is load-bearing: an unexpected rejection (e.g. a chunk-load failure on the lazy
   // HEIC import) must still release the trigger, or the picker stays disabled until a reload.
-  async function uploadFiles(picked: File[]) {
+  async function uploadFiles(picked: File[], asPlan = false) {
     if (picked.length === 0) return
 
     setIsUploading(true)
     try {
-      await ingestAndAttach(picked)
+      await ingestAndAttach(picked, asPlan)
     } catch {
       // TODO(EX-449) SENTRY-REQUIRED: unexpected ingest/upload failure — capture once Sentry is
       // wired; for now the user gets a generic retry toast.

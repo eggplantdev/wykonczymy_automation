@@ -1,6 +1,6 @@
 import type { Payload } from 'payload'
 import { serverEnv } from '@/lib/env/server'
-import { uniqueFileName } from '@/lib/utils/upload-file'
+import { uniqueFileName } from '@/lib/utils/unique-file-name'
 import type { LandingAssetT } from './landing'
 
 /**

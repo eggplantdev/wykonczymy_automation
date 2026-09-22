@@ -162,3 +162,56 @@ historii jest odrzucone na stałe (`change.md`, „Rozstrzygnięcie stałe").
 - Plik >4,5 MB nie odbija się błędem.
 - Zaznaczenie „to jest rzut" daje wiersz `media` z `kind = 'projekt'`; niezaznaczenie zostawia `NULL`.
 - Faktura transferu zachowuje się dokładnie jak przed zmianą, łącznie z jakością kompresji.
+
+## Whole-tree Gate
+
+Po ostatniej fazie, raz: `pnpm typecheck` · `pnpm lint` · `pnpm test` · `pnpm build`.
+
+## Progress
+
+> Konwencja: `- [ ]` w toku, `- [x]` zrobione. Dopisz ` — <sha>` gdy krok wyląduje.
+
+### Faza 1: Transport klient → Blob
+
+#### Automated
+
+- [x] 1.1 `clientUploads` w konfiguracji Bloba, `uploadFileClient` na ścieżce client-upload — ccef8024
+- [x] 1.2 Autoryzacja zweryfikowana: MANAGER wgrywa, EMPLOYEE dostaje odmowę — ccef8024
+- [x] 1.3 Sanityzacja nazwy pliku dalej działa przy pustym `req.file` — ccef8024
+- [x] 1.4 Spec na odmowie dla EMPLOYEE — ccef8024
+
+### Faza 2: Dwa profile kompresji
+
+#### Automated
+
+- [x] 2.1 `compressImage` przyjmuje profil; `MAX_EDGE` na obie osie — 6f3ae502
+- [x] 2.2 Profil przepchnięty przez `processUploadFile` → `ingestPickedFiles` → hooki — 6f3ae502
+- [x] 2.3 Bramka `MAX_UPLOAD_BYTES` usunięta; komunikat zostaje dla nieczytelnego HEIC-a — 6f3ae502
+- [x] 2.4 Spec jednostkowy: strona pionowa nie jest wymiarowana po wysokości — 6f3ae502
+
+### Faza 3: Znacznik „to jest rzut"
+
+#### Automated
+
+- [x] 3.1 Pole wyboru w `InvoiceUploadDialog`, włączane propem — f1bc6be5
+- [x] 3.2 Znacznik wybiera profil kompresji i `kind: 'projekt'` — f1bc6be5
+- [x] 3.3 `kind` dociera do wiersza `media` — f1bc6be5
+- [x] 3.4 Spec DOM: pole nieobecne na powierzchni fakturowej, zaznaczone → `kind: 'projekt'` — f1bc6be5
+
+### Faza 4: Oznaczanie po fakcie w galerii
+
+#### Automated
+
+- [x] 4.1 Akcja `protectedAction()` zapisująca `kind` istniejącemu plikowi — 2f4e13c3
+- [x] 4.2 `media.access.update` poluzowane do `isAdminOrOwnerOrManager` — 2f4e13c3
+- [x] 4.3 Akcja dostępna przy pliku w galerii asetów — 2f4e13c3
+- [x] 4.4 Spec integracyjny: zapis `kind` + odmowa dla EMPLOYEE — 2f4e13c3
+
+### Faza 5: Domknięcie
+
+#### Automated
+
+- [x] 5.1 `manual-checks.md:468` opisuje stan po zmianie — 5936d86f
+- [x] 5.2 Wpis w `lessons.md` o oryginałach w Blobie poprawiony, nie dopisany obok — 5936d86f
+- [x] 5.3 Komentarz przy `serverActions.bodySizeLimit` sprawdzony — 5936d86f
+- [x] 5.4 Bramka całodrzewiowa zielona — 5936d86f

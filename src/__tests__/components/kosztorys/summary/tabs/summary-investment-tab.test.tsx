@@ -23,6 +23,7 @@ const PHOTO: MediaFileT = {
   filename: 'salon.jpg',
   mimeType: 'image/jpeg',
   thumbnailUrl: null,
+  kind: null,
 }
 
 const INVESTMENT: InvestmentRefT = {

@@ -12,8 +12,8 @@ import { toastMessage } from '@/lib/utils/toast'
  * stay out of the value because they are unserialisable — a persisted draft would either drop them
  * silently or refuse to rehydrate.
  *
- * What is held here is already ingested — HEIC decoded, compressed, oversize rejected — so the
- * submit path only ever uploads files Blob will accept. `isIngesting` is what a caller does NOT get
+ * What is held here is already ingested — HEIC decoded, compressed — so the submit path only ever
+ * uploads files Blob will accept. `isIngesting` is what a caller does NOT get
  * to ignore: a file still converting is not in `files` yet, so submitting mid-ingest would save the
  * row without its attachment. Disable submit on it AND re-check it in the action, because a keyboard
  * Enter bypasses the button.

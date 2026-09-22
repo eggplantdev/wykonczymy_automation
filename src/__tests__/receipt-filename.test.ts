@@ -3,7 +3,7 @@ import { buildReceiptFileName } from '@/lib/utils/receipt-filename'
 
 // Regression guard (manual-checks follow-up): media labels were polluted by stacked
 // disambiguators. The Opis-derived name must stay clean and deterministic — the single
-// collision-avoidance id is added once at the upload boundary (uploadFile → uniqueFileName),
+// collision-avoidance id is added once at the upload boundary (uniqueFileName),
 // not here. See append-short-id.ts.
 describe('buildReceiptFileName', () => {
   it('returns the clean Opis-based name with no random short id', () => {

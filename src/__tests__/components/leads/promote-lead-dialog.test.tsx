@@ -26,6 +26,7 @@ const ASSETS = [
     filename: 'kuchnia.jpg',
     mimeType: 'image/jpeg',
     thumbnailUrl: '/a-t.jpg',
+    kind: null,
   },
   {
     id: 12,
@@ -33,6 +34,7 @@ const ASSETS = [
     filename: 'salon.jpg',
     mimeType: 'image/jpeg',
     thumbnailUrl: '/b-t.jpg',
+    kind: null,
   },
 ]
 
