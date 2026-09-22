@@ -162,3 +162,56 @@ historii jest odrzucone na stałe (`change.md`, „Rozstrzygnięcie stałe").
 - Plik >4,5 MB nie odbija się błędem.
 - Zaznaczenie „to jest rzut" daje wiersz `media` z `kind = 'projekt'`; niezaznaczenie zostawia `NULL`.
 - Faktura transferu zachowuje się dokładnie jak przed zmianą, łącznie z jakością kompresji.
+
+## Whole-tree Gate
+
+Po ostatniej fazie, raz: `pnpm typecheck` · `pnpm lint` · `pnpm test` · `pnpm build`.
+
+## Progress
+
+> Konwencja: `- [ ]` w toku, `- [x]` zrobione. Dopisz ` — <sha>` gdy krok wyląduje.
+
+### Faza 1: Transport klient → Blob
+
+#### Automated
+
+- [x] 1.1 `clientUploads` w konfiguracji Bloba, `uploadFileClient` na ścieżce client-upload
+- [x] 1.2 Autoryzacja zweryfikowana: MANAGER wgrywa, EMPLOYEE dostaje odmowę
+- [x] 1.3 Sanityzacja nazwy pliku dalej działa przy pustym `req.file`
+- [x] 1.4 Spec na odmowie dla EMPLOYEE
+
+### Faza 2: Dwa profile kompresji
+
+#### Automated
+
+- [ ] 2.1 `compressImage` przyjmuje profil; `MAX_EDGE` na obie osie
+- [ ] 2.2 Profil przepchnięty przez `processUploadFile` → `ingestPickedFiles` → hooki
+- [ ] 2.3 Bramka `MAX_UPLOAD_BYTES` i komunikat o blokadzie usunięte
+- [ ] 2.4 Spec jednostkowy: strona pionowa nie jest wymiarowana po wysokości
+
+### Faza 3: Znacznik „to jest rzut"
+
+#### Automated
+
+- [ ] 3.1 Pole wyboru w `InvoiceUploadDialog`, włączane propem
+- [ ] 3.2 Znacznik wybiera profil kompresji i `kind: 'projekt'`
+- [ ] 3.3 `kind` dociera do wiersza `media`
+- [ ] 3.4 Spec DOM: pole nieobecne na powierzchni fakturowej, zaznaczone → `kind: 'projekt'`
+
+### Faza 4: Oznaczanie po fakcie w galerii
+
+#### Automated
+
+- [ ] 4.1 Akcja `protectedAction()` zapisująca `kind` istniejącemu plikowi
+- [ ] 4.2 `media.access.update` poluzowane do `isAdminOrOwnerOrManager`
+- [ ] 4.3 Akcja dostępna przy pliku w galerii asetów
+- [ ] 4.4 Spec integracyjny: zapis `kind` + odmowa dla EMPLOYEE
+
+### Faza 5: Domknięcie
+
+#### Automated
+
+- [ ] 5.1 `manual-checks.md:468` opisuje stan po zmianie
+- [ ] 5.2 Wpis w `lessons.md` o oryginałach w Blobie poprawiony, nie dopisany obok
+- [ ] 5.3 Komentarz przy `serverActions.bodySizeLimit` sprawdzony
+- [ ] 5.4 Bramka całodrzewiowa zielona
