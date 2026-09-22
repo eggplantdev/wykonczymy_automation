@@ -369,10 +369,10 @@ Uruchomić **raz**, po ostatniej fazie:
 
 #### Automated
 
-- [x] 2.1 Spec bramki toolbara przechodzi
+- [x] 2.1 Spec bramki toolbara przechodzi — b1be6168
 
 ### Phase 3: Domknięcie dokumentacji i backlogu
 
 #### Automated
 
-- [ ] 3.1 Brak sprawdzenia automatycznego (faza dokumentacyjna) — pokrycie daje bramka całego drzewa
+- [x] 3.1 Brak sprawdzenia automatycznego (faza dokumentacyjna) — pokrycie daje bramka całego drzewa

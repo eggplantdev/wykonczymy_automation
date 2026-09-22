@@ -490,7 +490,8 @@ Sprawdzenia na bazie testowej (5435). Webhook wymaga `LANDING_WEBHOOK_SECRET` i
 Zastępuje sprawdzenie „Pasek miniatur nie przewija się w poziomie przy 375px" z sekcji
 lead-delivery — na karcie inwestycji nie ma już paska miniatur (został tylko u leada).
 
-- [x] Inwestycja bez plików nie pokazuje w sekcji żadnego przycisku — dodać można tylko z „Edytuj inwestycję"
+- [x] Inwestycja bez plików pokazuje w sekcji przycisk „Dodaj zdjęcia lub pliki" — pusty stan JEST
+      afordancją, a nie zniknięciem sekcji (odwrócone przy kosztorys-editor-assets, 2026-09-22)
 - [x] Przycisk „Zdjęcia i pliki (N)" ma szerokość swojej treści, nie całej kolumny
 - [x] Podgląd przy N ≥ 1 ma „Dodaj kolejne", które dokłada plik bez wychodzenia z karty
 - [x] Po dodaniu pliku licznik „Zdjęcia i pliki (N)" rośnie bez przeładowania strony
@@ -571,3 +572,18 @@ otwarte wcześniej. Dławik lustra to 10 s, domknięcie ogona 15 s bezczynności
 - [ ] Po przełączeniu w „Wersje" jest wpis „Przed wczytaniem: <nazwa>" i przywrócenie go wraca do stanu sprzed
 - [ ] „Wyczyść szablon" czyści rozpiskę, a „Wczytaj" (wersje) wraca do stanu sprzed wyczyszczenia
 - [ ] Edycja kosztorysu na zwykłej inwestycji nie rusza żadnego szablonu na liście („Zmieniono" bez zmian)
+
+## kosztorys-editor-assets — galeria assetów w edytorze kosztorysu v2 (2026-09-22)
+
+Ta sama kontrolka co na karcie inwestycji, zamontowana w prawej grupie toolbara edytora.
+
+- [ ] `/inwestycje/<id>/kosztorys_v2`: przycisk „Zdjęcia i pliki (N)" stoi w prawej grupie toolbara
+      i otwiera ten sam podgląd co karta inwestycji
+- [ ] Inwestycja bez plików: w toolbarze edytora widać „Dodaj zdjęcia lub pliki"; po wgraniu licznik
+      rośnie bez ręcznego odświeżenia, a siatka nie gubi stanu (brak remountu)
+- [ ] Usunięcie pliku ze stopki podglądu w edytorze znika też z karty inwestycji po przejściu na nią
+- [ ] `/szablony/<id>`: w toolbarze warsztatu NIE MA żadnego przycisku plików
+- [ ] `/k/<token>` i `/podglad-inwestora/<id>`: nie ma toolbara, więc i galerii
+- [ ] Zakończona („Zakończona") inwestycja: dodawanie plików z edytora dalej działa
+- [ ] Karta inwestycji po refaktorze zachowuje się jak przed nim; przy trwającym uploadzie do
+      niepustej galerii widać spinner obok przycisku
