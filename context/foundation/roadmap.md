@@ -163,7 +163,7 @@ band is parity polish on top of it.
 
 One row per F-NN / S-NN — the index and the backlog handoff in one place. **Plan-ready** = ready to feed into `/10x-plan` now (prerequisites met and no blocking open decision); `no` means blocked, `—` means n/a (deferred). Run a ready slice with `/10x-plan <change-id>`.
 
-Bands: **editor parity S-01–S-09** → **financial-plane bridge S-11–S-12** → **client share / import S-13, S-15** → **testing S-16** (**active**) → **cutover S-19** (done 2026-08-25). Every numbered slice is `done` except S-16, the E2E release gate — band 4 is the only band still open. S-10, S-14, S-17 and S-18 are missing on purpose — `kosztorys-column-rbac` (2026-08-18), `kosztorys-export` (2026-08-15), `financial-core-smoke` (2026-08-25) and `kosztorys-hardening` (2026-08-25) were cut whole and their numbers kept as tombstones; see [Cut & folded slices](#cut--folded-slices).
+Bands: **editor parity S-01–S-09** → **financial-plane bridge S-11–S-12** → **client share / import S-13, S-15** → **testing S-16** (done 2026-09-22) → **cutover S-19** (done 2026-08-25). Every numbered slice is `done`; the arc is closed. S-10, S-14, S-17 and S-18 are missing on purpose — `kosztorys-column-rbac` (2026-08-18), `kosztorys-export` (2026-08-15), `financial-core-smoke` (2026-08-25) and `kosztorys-hardening` (2026-08-25) were cut whole and their numbers kept as tombstones; see [Cut & folded slices](#cut--folded-slices).
 
 | ID   | Change ID                       | Outcome (user can …)                                                                    | Prerequisites      | PRD refs                      | Status   | Plan-ready |
 | ---- | ------------------------------- | --------------------------------------------------------------------------------------- | ------------------ | ----------------------------- | -------- | ---------- |
@@ -183,7 +183,7 @@ Bands: **editor parity S-01–S-09** → **financial-plane bridge S-11–S-12** 
 | S-12 | robocizna-from-kosztorys        | see investment robocizna + rabat derived from the kosztorys, not manual transfers       | S-11               | — (owner request)             | done     | —          |
 | S-13 | kosztorys-client-share          | share a live, read-only client view of a kosztorys via a token link (EX-532)            | S-01, S-02, S-04   | — (owner request)             | done     | —          |
 | S-15 | kosztorys-importer              | import an existing sheet kosztorys into the app                                         | S-01 (full parity) | FR-010, FR-016                | done     | —          |
-| S-16 | editor-e2e-coverage             | (gate) rely on automated E2E over the editor before release                             | F-01, S-01…S-15    | FR-013                        | deferred | —          |
+| S-16 | editor-e2e-coverage             | (gate) rely on automated E2E over the editor before release                             | F-01, S-01…S-15    | FR-013                        | done     | —          |
 | S-19 | new-investment-no-sheet         | create a new investment with no Google Sheet, kosztorys app-only                        | S-16               | FR-009, FR-014, FR-016, US-01 | done     | —          |
 
 **Cut / folded (unnumbered):** `kosztorys-rooms` — CUT (pokoje out of scope, 2026-07-08). `kosztorys-catalogue` — FOLDED into S-09 (2026-07-09), then the autocomplete carved back out as `kosztorys-item-autocomplete` — now CUT (2026-07-28, superseded by EX-503 section-append). See [Cut & folded slices](#cut--folded-slices).
@@ -197,7 +197,7 @@ Navigation aid — the five execution bands and what gates the jump between them
 | 1    | Editor parity          | `S-01` … `S-09` | Editor feature-complete: every POC decision + braindump todo built.                                      |
 | 2    | Financial-plane bridge | `S-11` → `S-12` | Kosztorys figures readable from (and authoritative for) the investment plane — read-only, no write-back. |
 | 3    | Client share / import  | `S-13` → `S-15` | Last feature work before the editor is locked with tests.                                                |
-| 4    | Testing (**active**)   | `S-16`          | E2E deferred to here on purpose — specs stabilise only once the editor direction settles.                |
+| 4    | Testing                | `S-16`          | E2E deferred to here on purpose — specs stabilise only once the editor direction settles.                |
 | 5    | Cutover / release      | `S-19`          | **Reached 2026-08-25** without a flip: nothing provisioned a sheet, and the app now seeds the kosztorys. |
 
 **Band 2 inserted 2026-07-20 (owner: "separate slices").** `kosztorys-bridge` and
@@ -534,7 +534,8 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** This is the quality gate that lets the owner touch the editor only once it is verified. Deliberately deferred to band 4: the editor will churn heavily through bands 1–3 while the direction settles, so standing specs up earlier only chases moving targets. Risk: once here, if coverage lags the slices it locks, the cutover gate (S-19) slips — write the specs close behind the settled editor.
-- **Status:** in progress (EX-405) — band 4, and the only open slice in the arc. The 2026-09-15 `e2e-backlog-audit` worked the whole backlog and closed 71 issues (`context/changes/2026-09-15-e2e-backlog-audit/audit.md`); five `e2e-backlog` items survive — EX-715, EX-689, EX-442, EX-472, EX-525 — plus EX-731, handed forward when S-17 was cut. No longer gates S-19: the cutover was reached 2026-08-25 without it.
+- **Status:** done (EX-405, closed 2026-09-22 on the owner's ruling) — the last slice in the arc. The 2026-09-15 `e2e-backlog-audit` worked the whole backlog and closed 71 issues (`context/changes/2026-09-15-e2e-backlog-audit/audit.md`); the six it left open — EX-715, EX-689, EX-442, EX-472, EX-525 and EX-731, handed forward when S-17 was cut — were all written by 2026-09-16. `e2e/` now holds 32 specs.
+  **The gate closing does not mean specs stop.** New browser-level risks keep earning specs, but as ordinary `e2e-backlog` issues rather than as this slice's debt — the one thing S-16 itself never got, the failed-autosave rollback spec, moved out to **EX-854** on the same ruling. It never gated S-19 either: the cutover was reached 2026-08-25 without it.
 
 ### S-19: New investments get no Google Sheet (cutover gate)
 
@@ -668,8 +669,9 @@ Kept for the record; pulled out of the numbered sequence because they carry no e
   non-trivial (`revertField` / `revertOne`, per-field debounce lanes, rollback on a refused
   renumber) and unit-covered at `src/__tests__/lib/kosztorys/kosztorys-v2-rows.test.ts:552`. What
   no test exercises is the browser plane: a rejected save must leave the grid reading what the DB
-  holds, not the optimistic value behind a toast. Recorded on **EX-405** (S-16
-  `editor-e2e-coverage`), which owns the editor specs.
+  holds, not the optimistic value behind a toast. Was recorded on **EX-405** (S-16
+  `editor-e2e-coverage`); when that gate closed 2026-09-22 the spec still did not exist, so it moved
+  to its own issue **EX-854** (`e2e-backlog`) rather than closing with the gate.
 - **Outcome (dropped):** a dedicated hardening pass gates the cutover.
 - **Change ID:** kosztorys-hardening. **PRD refs:** — (POC).
 - **Was:** S-18 (also S-13/S-15/S-16 under earlier numberings).

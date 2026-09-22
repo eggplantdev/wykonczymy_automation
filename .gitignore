@@ -101,3 +101,6 @@ tmp-lessons/
 
 # QA screenshots, written next to the cwd. Anchored for the reason above.
 /*.png
+
+# Review-gate scratch ledgers
+.review-gate/

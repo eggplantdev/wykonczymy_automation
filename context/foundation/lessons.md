@@ -1885,7 +1885,13 @@ is the test of the test, and skipping it is how a decorative assertion gets comm
   dane" (`refreshData` in `e2e/helpers.ts`), which is `revalidatePath('/', 'layout')` and clears every
   entry at once. In the product this is a real, if narrow, race; the honest fix is a cache whose write
   is rejected when the entry's tag was invalidated after the render began, which `unstable_cache` does
-  not offer — filed as **EX-808**.
+  not offer. Assessed and **rejected as not worth fixing** (EX-808, cancelled 2026-09-22): the only
+  observed instance is a contended full-suite E2E run, where parallel workers render the same pages at
+  once — not this app's traffic at five users. The DB is never wrong (it is a read path only), a
+  double booking is visible and reversible through the cancellation trail, and „Odśwież dane" already
+  clears every entry. If it ever shows up in production, the first move is to check whether
+  `cacheComponents: true` can be uncommented in `next.config` — `'use cache'` carries an invalidation
+  timestamp internally and closes this with nothing hand-written.
 - **Applies to**: every cached read behind a tag-invalidated mutation — the tell is „it's in the DB but
   the page says otherwise, and one more navigation fixes it".
 
@@ -2065,3 +2071,36 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
   compresses is a one-way door: the original never existed server-side, so no download path can
   restore it. Name the paths that keep the bytes and scope the feature's payoff to those.
 - **Applies to**: 10x-plan, 10x-research, impl-review, any media/preview feature.
+
+## Post-response cleanup belongs in `after()`, and a spec that stubs `after` to a no-op silently deletes the work it was meant to test
+
+- **Context**: `deleteUnreferencedMedia` was awaited on the user's critical path, and its docstring
+  said so on purpose: a serverless instance freezes the moment the response is written, so letting
+  the reclaim go unawaited would drop it and leak exactly the Blob files it exists to collect. That
+  reasoning was correct when it was written and stayed unchallenged through two reviews — which is
+  how removing a whole investment gallery came to charge the user up to `6N` sequential round-trips
+  for housekeeping whose result nobody reads.
+- **Problem**: the premise had an expiry date. `after()` from `next/server` (used here since the
+  landing webhook) keeps the invocation alive past the response — on Vercel via `waitUntil`. The
+  reason to await was not a constraint any more, it was a missing primitive. A review that only
+  asks „is this comment true?" preserves it; the question that moves is **„is the reason it names
+  still the only answer?"** The efficiency finding filed against it (EX-833) proposed `Promise.all`
+  instead — which the same docstring forbids for a _different_, still-live reason (concurrent
+  Payload writes share a session on Neon and all but one are silently lost), so the issue optimised
+  the axis that was safe to leave alone and left the expensive one in place.
+- **The trap that cost the time — two stubs of `after`, both wrong, in opposite ways**: ten specs
+  carry `vi.mock('next/server', … after: () => {})`. A no-op `after` does not defer the work, it
+  **discards** it — silently, with no error — so every assertion about what the deferred work did
+  now answers a question nobody asked. The `try/catch → run inline` fallback (which covers scripts,
+  where `after` genuinely throws) cannot rescue it: an inert `after` never throws. The other stub,
+  `after: (fn) => void fn()`, starts the work and drops the promise, which is fine for a spy called
+  on the way in and useless for anything that finishes later — a DB assertion then reads the row
+  before the delete lands, and the red is a race rather than a defect. What a spec that cares needs
+  is to **collect** the promises and flush them: `after: (fn) => { scheduled.push(Promise.resolve(fn())) }`,
+  then `await Promise.all(scheduled.splice(0))` before asserting.
+- **Rule**: cleanup whose result the caller's response does not depend on goes to `after()`, not to
+  `await`. Before honouring a comment that explains why something is awaited, date the constraint —
+  a framework primitive may have landed since. And when a path moves behind `after()`, grep the
+  specs for a stub of it in the same commit and check which of the two kinds each one is; both fail
+  without naming the cause, and one of them fails only sometimes.
+- **Applies to**: 10x-plan, 10x-implement, impl-review, /simplify, any Blob/media cleanup path.

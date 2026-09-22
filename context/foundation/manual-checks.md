@@ -651,7 +651,7 @@ oczy: chodzi o czytelność opisów wymiarów, nie o sam fakt, że plik wszedł.
       pokazuje pola wyboru „To jest rzut"
 - [ ] Galeria asetów → podgląd pliku → „Oznacz jako rzut": po kliknięciu przycisk mówi „Oznaczony
       jako rzut" i jest nieaktywny, a po odświeżeniu stan się utrzymuje
-- [ ] MANAGER oznacza rzut (poluzowany `media.access.update`); EMPLOYEE nie widzi tej ścieżki
+- [ ] MANAGER oznacza rzut (bramką jest `protectedAction` + MANAGEMENT_ROLES, nie `media.access.update`); EMPLOYEE nie widzi tej ścieżki
 - [ ] Plik z promocji leada (nieskompresowany oryginał z landingu) da się oznaczyć jako rzut
       z galerii — jedyna ścieżka bez dialogu wgrywania
 - [ ] HEIC, którego przeglądarka nie odczyta, dalej daje czytelny komunikat, a nie cichą porażkę
@@ -662,3 +662,27 @@ oczy: chodzi o czytelność opisów wymiarów, nie o sam fakt, że plik wszedł.
       odczytu AI"), a nie niemy błąd 413 z platformy
 - [ ] Wgranie pliku innego niż zdjęcie/PDF (przeciągnięcie `.docx` na pole) jest odrzucone od razu,
       komunikatem, a nie po wgraniu bajtów
+
+## EX-849 / EX-850 — tagowanie cache galerii i pojedynczy render po uploadzie (2026-09-22)
+
+Obie zmiany dotykają tego samego wpisu cache (`fetchInvestmentAssets`) z dwóch stron: EX-849 zwęził
+tag z kolekcyjnego do per-wiersz, EX-850 zdjął zdublowany render po wgraniu pliku. Jedno i drugie
+widać tylko na żywo — spec nie obserwuje ani liczby renderów, ani tego, czyj wpis cache wyleciał.
+Licznik renderów czytaj z logu dev: `[PERF] buildKosztorysTree` (drzewo jest niecache'owane
+świadomie — odrzucone dla świeżości, `context/archive/2026-07-27-decouple-panel-write-refresh/`
+— więc każdy render trasy zostawia dokładnie jeden wpis).
+
+- [ ] Wgranie zdjęcia do inwestycji na trasie `/inwestycje/<id>/kosztorys_v2`: w logu dev
+      `[PERF] buildKosztorysTree` pojawia się **raz**, nie dwa razy (EX-850)
+- [ ] To samo zdjęcie pojawia się w galerii bez ręcznego odświeżenia strony — render z odpowiedzi
+      akcji wystarcza po zdjęciu `router.refresh()`
+- [ ] Wgranie faktury do transferu: faktura widoczna od razu, bez przeładowania (ta sama ścieżka
+      `useMediaUpload`, druga i ostatnia)
+- [ ] Zapis „Opcji rozliczenia" na inwestycji A **nie** wywala galerii inwestycji B: wejdź na
+      galerię B (log pokazuje `query.fetchInvestmentAssets(B)`), zapisz ustawienia na A, wróć na B —
+      drugiego zapytania nie ma, wpis cache przeżył (EX-849)
+- [ ] „Oznacz jako rzut" na pliku inwestycji B nadal odświeża tę galerię — tag `collection:media`
+      zostaje i to jedyna ścieżka, która zmienia `media.kind` bez dotykania wiersza inwestycji
+- [ ] Przeniesienie plików ze zgłoszenia do inwestycji („wyślij do inwestycji"): galeria inwestycji
+      docelowej pokazuje je po wejściu, bez odświeżania — piąty pisarz, ten w `lead-assets.ts`
+- [ ] Usunięcie pliku z galerii i usunięcie wszystkich: plik znika, a po odświeżeniu nie wraca
