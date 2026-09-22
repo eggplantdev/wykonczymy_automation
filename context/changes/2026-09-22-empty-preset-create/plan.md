@@ -217,10 +217,10 @@ Raz, po ostatniej fazie:
 
 #### Automated
 
-- [x] 1.1 Spec akcji przechodzi (pusty payload w bazie, kolizja nazwy, wczytanie do warsztatu)
+- [x] 1.1 Spec akcji przechodzi (pusty payload w bazie, kolizja nazwy, wczytanie do warsztatu) — 11636bc8
 
 ### Phase 2: Przycisk i dialog na /szablony
 
 #### Automated
 
-- [ ] 2.1 Spec DOM dialogu przechodzi (pusta nazwa blokuje zapis, błąd nie zamyka dialogu)
+- [x] 2.1 Spec DOM dialogu przechodzi (pusta nazwa blokuje zapis, błąd nie zamyka dialogu)

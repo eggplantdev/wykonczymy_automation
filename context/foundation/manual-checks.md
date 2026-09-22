@@ -482,8 +482,8 @@ Sprawdzenia na bazie testowej (5435). Webhook wymaga `LANDING_WEBHOOK_SECRET` i
 - [ ] Request z `assets[].url` spoza hosta z allowlisty jest odrzucony i alertuje
 - [ ] Request z podmienionym body jest odrzucony (403)
 - [ ] Promocja zgłoszenia z landingu od początku do końca — karta nowej inwestycji pokazuje zdjęcia klienta
-- [ ] Zgłoszenie po promocji jest „Skontaktowano" i podaje link do inwestycji zamiast przycisku
-- [ ] Odznaka nieprzeczytanych zgłoszeń w nawigacji spada o jeden
+- [ ] Zgłoszenie po promocji podaje link do inwestycji zamiast przycisku i zostaje przy „Oczekuje"
+- [ ] Odznaka nieprzeczytanych zgłoszeń w nawigacji nie spada po samej promocji — dopiero po kliknięciu „Skontaktowano"
 
 ## EX-802 — investment-assets-dialog (galeria bez miniatur, 2026-09-21)
 
@@ -542,3 +542,14 @@ Inwestycja z niepustą rozpiską i rozjazdami wobec katalogu (w lokalnym dumpie:
 - [ ] „inny…" otwiera wyszukiwarkę po całym katalogu i wybór z niej działa tak samo
 - [ ] Ceny pracy nie zmieniają się przy przyjęciu nazwy
 - [ ] Tryb tylko-do-odczytu: raport i kandydaci widoczni jako tekst, brak checkboxów, przycisku „Aktualizuj kosztorys" i klikalnych kandydatów
+
+## empty-preset-create — pusty szablon zakładany z listy szablonów (2026-09-22)
+
+`/szablony`, przycisk „Nowy szablon" nad tabelą. Warsztat jest JEDEN i współdzielony, więc każdy
+check tutaj wyrzuca z niego to, co było wcześniej otwarte.
+
+- [ ] „Nowy szablon" z nazwą zakłada szablon i ląduje w warsztacie pod tą nazwą, z pustą rozpiską i widocznym „Dodaj sekcję"
+- [ ] Nazwa już zajęta → komunikat „Szablon o tej nazwie już istnieje", dialog zostaje otwarty z wpisaną nazwą, na liście nie przybywa wiersz
+- [ ] Świeży szablon na liście pokazuje `0 sekcji / 0 pozycji`
+- [ ] Po dodaniu sekcji w warsztacie „Zapisz" nadpisuje ten szablon, a lista pokazuje niezerowe liczniki
+- [ ] Pusty szablon jest widoczny w wyborze szablonu przy zakładaniu inwestycji i zakłada ją z pustym kosztorysem (zachowanie oczekiwane, decyzja właściciela)
