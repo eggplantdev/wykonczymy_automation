@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { updateTag, revalidateTag } from '@/__tests__/stubs/next-cache'
-import { revalidateCollections } from '@/lib/cache/revalidate'
+import { revalidateCollections, revalidateEntities } from '@/lib/cache/revalidate'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 
 // `deferRefresh` exists to drop the route re-render on per-cell autosaves (EX-597), NOT to skip
@@ -50,5 +50,30 @@ describe('revalidateCollections', () => {
 
     expect(deferred).toEqual(immediate)
     expect(deferred).toHaveLength(slugs.length)
+  })
+})
+
+// EX-849: the gallery entry is keyed on one row, and the collection slug was expiring all 65 of
+// them on writes that touched none. The invariant worth pinning is that the per-row path carries
+// the tag through VERBATIM — a helper that re-derived it from a slug map would silently reintroduce
+// the collection-wide blast radius.
+describe('revalidateEntities', () => {
+  beforeEach(() => {
+    updateTag.mockReset()
+    revalidateTag.mockReset()
+  })
+
+  it('expires the given tags unchanged and re-renders by default', () => {
+    revalidateEntities(['investment:6', 'investment:7'])
+
+    expect(updateTag.mock.calls.map(([tag]) => tag)).toEqual(['investment:6', 'investment:7'])
+    expect(revalidateTag).not.toHaveBeenCalled()
+  })
+
+  it('defers the refresh on the same branch revalidateCollections uses', () => {
+    revalidateEntities(['investment:6'], { deferRefresh: true })
+
+    expect(revalidateTag.mock.calls).toEqual([['investment:6', { expire: 1 }]])
+    expect(updateTag).not.toHaveBeenCalled()
   })
 })

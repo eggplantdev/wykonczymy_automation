@@ -40,7 +40,11 @@ export async function fetchInvestmentAssets(investmentId: number): Promise<Media
     },
     ['investment-assets', String(investmentId)],
     {
-      tags: [CACHE_TAGS.investments, entityTag('investment', investmentId)],
+      // Deliberately NOT `CACHE_TAGS.investments`: that tag is bumped by every investment write in
+      // the app — every kosztorys settings save included — so carrying it evicted all 65 galleries
+      // on a write that touched none of them (EX-849). `media` stays because the SELECT reads
+      // `m.kind`, which „Oznacz jako rzut" changes without touching the investment row at all.
+      tags: [entityTag('investment', investmentId), CACHE_TAGS.media],
     },
   )()
 }

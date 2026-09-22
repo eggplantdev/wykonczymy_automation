@@ -21,7 +21,25 @@ export const CACHE_TAGS = {
   warehouses: 'collection:warehouses',
 } as const
 
-export const entityTag = (collection: string, id: number | string) => `${collection}:${id}` as const
+/**
+ * The entities a cache entry may key on, singular. A closed union rather than `string` because the
+ * name has to match on both sides and nothing else catches a typo: a producer tagging
+ * `investments:6` and a consumer expiring `investment:6` compile fine and leave a permanently stale
+ * read (EX-849).
+ */
+type EntityNameT = 'investment' | 'cash-register'
+
+export const entityTag = (entity: EntityNameT, id: number | string) => `${entity}:${id}` as const
+
+/**
+ * Every writer of an investment's gallery takes these opts. Only that investment's gallery reads
+ * the relation, so the collection slug would expire 64 bystanders; the investments afterChange hook
+ * still bumps `collection:investments` for the readers that do key on it. Shared because a writer
+ * that forgets the tag is a permanently stale gallery, and there are several.
+ */
+export const investmentAssetTags = (investmentId: number) => ({
+  entityTags: [entityTag('investment', investmentId)],
+})
 
 // Its own const rather than a `CACHE_TAGS` entry: that map is keyed by collection slug and
 // `revalidateCollections` iterates it, and this is a global — there is no collection to name.

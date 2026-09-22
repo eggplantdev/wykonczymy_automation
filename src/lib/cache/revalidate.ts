@@ -1,6 +1,8 @@
 import { revalidateTag, updateTag } from 'next/cache'
 import { CACHE_TAGS, EXPIRE_NEXT, NOTIFICATION_RECIPIENTS_TAG } from './tags'
 
+type ExpireOptsT = { deferRefresh?: boolean }
+
 /**
  * Same Server-Actions-only warning as `revalidateCollections`. Separate because the recipients live
  * in a global, so there is no collection slug to pass — and the card that writes them is on the page
@@ -8,6 +10,11 @@ import { CACHE_TAGS, EXPIRE_NEXT, NOTIFICATION_RECIPIENTS_TAG } from './tags'
  */
 export function revalidateNotificationRecipients() {
   updateTag(NOTIFICATION_RECIPIENTS_TAG)
+}
+
+function expire(tag: string, deferRefresh: boolean) {
+  if (deferRefresh) revalidateTag(tag, EXPIRE_NEXT)
+  else updateTag(tag)
 }
 
 /**
@@ -26,10 +33,18 @@ export function revalidateNotificationRecipients() {
  */
 export function revalidateCollections(
   slugs: (keyof typeof CACHE_TAGS)[],
-  { deferRefresh = false }: { deferRefresh?: boolean } = {},
+  { deferRefresh = false }: ExpireOptsT = {},
 ) {
-  for (const slug of slugs) {
-    if (deferRefresh) revalidateTag(CACHE_TAGS[slug], EXPIRE_NEXT)
-    else updateTag(CACHE_TAGS[slug])
-  }
+  for (const slug of slugs) expire(CACHE_TAGS[slug], deferRefresh)
+}
+
+/**
+ * The per-row twin, for `entityTag` values (`investment:6`). Same Server-Actions-only restriction.
+ *
+ * Exists because a collection slug is the wrong unit for a cache entry that only ever changes for
+ * ONE row: `collection:investments` is bumped by every investment write in the app, so tagging a
+ * single investment's gallery with it evicts all 65 galleries on a kosztorys settings save (EX-849).
+ */
+export function revalidateEntities(tags: string[], { deferRefresh = false }: ExpireOptsT = {}) {
+  for (const tag of tags) expire(tag, deferRefresh)
 }
