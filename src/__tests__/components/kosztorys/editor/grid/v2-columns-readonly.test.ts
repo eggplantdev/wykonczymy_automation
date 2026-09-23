@@ -39,10 +39,17 @@ describe('przedmiar-anchored columns', () => {
   // The filter sits at the selection chokepoint, not in the assembly, so a column that starts being
   // built unconditionally can only leak through here — the assertion is on the built grid, never on
   // the set constant, which would just restate itself.
-  it('are dropped in a subcontractor view', () => {
+  it('drop their brutto half in a subcontractor view', () => {
     const columns = ids({ ...editorOpts, view: 'w_tools' })
-    for (const id of ['plannedQty', 'plannedNet', 'plannedGross', 'donePercent', 'remaining']) {
+    for (const id of ['plannedGross', 'remainingGross']) {
       expect(columns).not.toContain(id)
+    }
+  })
+
+  it('keep the przedmiar quantity and its netto figures in a subcontractor view', () => {
+    const columns = ids({ ...editorOpts, view: 'w_tools' })
+    for (const id of ['plannedQty', 'plannedNet', 'donePercent', 'remaining']) {
+      expect(columns).toContain(id)
     }
   })
 

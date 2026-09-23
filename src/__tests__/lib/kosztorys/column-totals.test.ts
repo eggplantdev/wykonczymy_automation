@@ -97,14 +97,14 @@ describe('columnTotalsForRows', () => {
     expect(sectionB.get('remaining')).toBeCloseTo(60 - 30, 10)
   })
 
-  it('withholds the przedmiar pair outside the client view, where it has no reading', () => {
+  it('totals the przedmiar figures at the client reading in every view, matching their cells', () => {
     const client = totals(rows, 'client')
     const subcontractor = totals(rows, 'w_tools')
 
     expect(client.get('plannedNet')).toBeGreaterThan(0)
     expect(client.get('plannedGross')).toBeCloseTo((client.get('plannedNet') ?? 0) * 1.08, 10)
-    expect(subcontractor.has('plannedNet')).toBe(false)
-    expect(subcontractor.has('plannedGross')).toBe(false)
+    expect(subcontractor.get('plannedNet')).toBe(client.get('plannedNet'))
+    expect(subcontractor.get('remaining')).toBe(client.get('remaining'))
   })
 
   it('drops an out-of-view etap from the axis rather than totalling a hidden column', () => {

@@ -6,10 +6,13 @@ import {
 
 const DISCOUNT_IS_CLIENT_ONLY = 'Rabat nie obniża stawek robocizny dla ekip.'
 
-const REMAINING =
-  'Wartość przedmiaru minus wartość pomiaru.\nIle z oferty nie zostało jeszcze wykonane.\nNa minusie = przekroczono przedmiar.'
+// Read in every view, so a crew view has to say its base out loud: „Razem netto" beside it is at the
+// crew's rate over the crew's etapy.
+const CLIENT_BASE = 'Zawsze po cenie klienta, dla całego zakresu (wszystkie etapy).'
 
-const PLANNED = 'Przedmiar razy cena minus rabat.'
+const REMAINING = `Wartość przedmiaru minus wartość pomiaru.\nIle z oferty nie zostało jeszcze wykonane.\nNa minusie = przekroczono przedmiar.\n\n${CLIENT_BASE}`
+
+const PLANNED = `Przedmiar razy cena minus rabat.\n\n${CLIENT_BASE}`
 
 const HEADER_TIPS: Record<string, string> = {
   plannedQty: 'Przedmiar — ilość planowana (prognoza zakresu z oferty).',
@@ -24,8 +27,7 @@ const HEADER_TIPS: Record<string, string> = {
   gross: `Pomiar razy cena minus rabat.\n\n${DISCOUNT_IS_CLIENT_ONLY}`,
   remaining: REMAINING,
   remainingGross: REMAINING,
-  donePercent:
-    'Procent wykonania względem przedmiaru.\nIle procent oferty jest zrobione.\nPowyżej 100% oznacza przekroczenie prognozy',
+  donePercent: `Procent wykonania względem przedmiaru.\nIle procent oferty jest zrobione.\nPowyżej 100% oznacza przekroczenie prognozy\n\n${CLIENT_BASE}`,
   [STAGE_VALUE_NET_COLUMN_GROUP]: `Ilość wykonana w tym etapie razy cena jednostki miary minus udział etapu w rabacie.\nUdział jest proporcjonalny do ilości (rabat zł jest rabatem od całego wiersza, więc etap niesie tylko swoją część).\nZależy od aktywnego widoku cen.\n\n${DISCOUNT_IS_CLIENT_ONLY}`,
   [STAGE_VALUE_GROSS_COLUMN_GROUP]: 'Etap — kwota brutto = Etap — kwota netto razy (1 + VAT).',
 }

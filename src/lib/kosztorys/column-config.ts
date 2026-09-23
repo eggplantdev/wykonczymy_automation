@@ -69,10 +69,10 @@ export function columnLabelForView(id: string, view: PriceViewT): string {
 }
 
 /**
- * Columns anchored to the przedmiar — visible on the client PRICE PLANE only (`view === 'client'`,
- * not the `preview` render mode). The przedmiar has no plane: it
- * is typed once per row for the WHOLE offered scope, so beside a plane-filtered pomiar it invites a
- * comparison that means nothing (one crew's numerator over everyone's denominator).
+ * Columns hidden outside the client PRICE PLANE (`view === 'client'`, not the `preview` render
+ * mode). Only the brutto half of the przedmiar figures: their netto twins („Wartość przedmiaru
+ * netto", „Pozostało netto", „% wykonania") show in every view, always read at the client price over
+ * the whole offered scope (owner, 2026-09-23).
  *
  * A set applied at the selection chokepoint, not four `view === 'client' ? […] : []` wrappers in the
  * assembly: this way there is a list you can read to answer "which columns are przedmiar-anchored",
@@ -80,11 +80,7 @@ export function columnLabelForView(id: string, view: PriceViewT): string {
  * nonsense comparison because someone missed the wrapping idiom.
  */
 export const PRZEDMIAR_ANCHORED_COLUMNS: ReadonlySet<string> = new Set([
-  'plannedQty',
-  'plannedNet',
   'plannedGross',
-  'donePercent',
-  'remaining',
   'remainingGross',
 ])
 
