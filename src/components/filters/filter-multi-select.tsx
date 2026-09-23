@@ -57,11 +57,14 @@ type FilterMultiSelectPropsT = {
   toggles?: ReadonlyArray<{
     id: string
     label: string
+    // The heading this row is filed under, for a list long enough to be read by subject first. Rows
+    // arrive already ordered by it — this component only notices where it changes. Omitted by a
+    // caller whose rows are one flat list.
+    groupLabel?: string
     active: boolean
     onToggle: () => void
     disabled?: boolean
   }>
-  togglesHeading?: string
   // Optional, because a group of two or three rows is faster clicked than swept.
   togglesBulk?: FilterTogglesBulkT
   // For the two groups this component owns; the toggle groups carry their own. Worth setting once a
@@ -128,7 +131,6 @@ export function FilterMultiSelect({
   bulkLabels,
   optionToggles,
   toggles,
-  togglesHeading,
   togglesBulk,
   resetAction,
   actionsHeading,
@@ -233,6 +235,28 @@ export function FilterMultiSelect({
     }
   }, [])
 
+  // One run per heading, split where `groupLabel` changes rather than grouped by value: the caller
+  // orders the rows, so a repeated heading would mean the caller interleaved two axes — and showing
+  // that is more honest than silently reuniting them. A caller passing no `groupLabel` gets one
+  // headless run, which is the same flat list as before.
+  const toggleRuns = (toggles ?? []).reduce<
+    { heading: string | undefined; items: NonNullable<typeof toggles>[number][] }[]
+  >((runs, toggle) => {
+    const last = runs[runs.length - 1]
+    if (last && last.heading === toggle.groupLabel) last.items.push(toggle)
+    else runs.push({ heading: toggle.groupLabel, items: [toggle] })
+    return runs
+  }, [])
+
+  const bulkToggleRow = togglesBulk && (
+    <BulkSelectRow
+      id="bulk-toggles"
+      allSelected={togglesBulk.allActive}
+      labels={bulkLabels}
+      onSelect={() => togglesBulk.onToggleAll(!togglesBulk.allActive)}
+    />
+  )
+
   const actionRows = (
     <>
       <BulkSelectRow
@@ -303,30 +327,26 @@ export function FilterMultiSelect({
           <CommandList className="max-h-none">
             {toggles && toggles.length > 0 && (
               <>
-                <CommandGroup heading={togglesHeading}>
-                  {togglesBulk && (
-                    <>
-                      <BulkSelectRow
-                        id="bulk-toggles"
-                        allSelected={togglesBulk.allActive}
-                        labels={bulkLabels}
-                        onSelect={() => togglesBulk.onToggleAll(!togglesBulk.allActive)}
-                      />
-                      <CommandSeparator className="my-1" />
-                    </>
-                  )}
-                  {toggles.map((toggle) => (
-                    <CommandItem
-                      key={toggle.id}
-                      value={toggle.label}
-                      disabled={toggle.disabled}
-                      onSelect={toggle.onToggle}
-                    >
-                      <CheckIcon className={cn(!toggle.active && 'opacity-0')} />
-                      {toggle.label}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
+                {/* Above the headings rather than inside the first one, where it would read as
+                    acting on that axis alone. */}
+                {bulkToggleRow && <CommandGroup>{bulkToggleRow}</CommandGroup>}
+                {/* Keyed by each run's first row, not by its heading: an interleaved caller opens
+                    two runs under one heading, and a heading key would collide. */}
+                {toggleRuns.map((run) => (
+                  <CommandGroup key={run.items[0].id} heading={run.heading}>
+                    {run.items.map((toggle) => (
+                      <CommandItem
+                        key={toggle.id}
+                        value={toggle.label}
+                        disabled={toggle.disabled}
+                        onSelect={toggle.onToggle}
+                      >
+                        <CheckIcon className={cn(!toggle.active && 'opacity-0')} />
+                        {toggle.label}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                ))}
                 {options.length > 0 && <CommandSeparator />}
               </>
             )}

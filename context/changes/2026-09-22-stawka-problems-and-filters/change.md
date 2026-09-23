@@ -70,6 +70,10 @@ Zmierzone na lokalnym zrzucie (docker 5433, kopia produkcji):
   Świadomie przyjęte: tak zachowuje się istniejąca para „kwota stała" / „auto", a reguła
   „licznik jest niezależny od widoku" (2026-08-17) dotyczyła **defektów** — przeniesienie tych
   wierszy do „Filtrów" jest właśnie orzeczeniem, że to nie są defekty.
+  > **ODWRÓCONE nazajutrz (EX-856, 2026-09-23, właściciel).** Bramka widoku zniknęła: menu „Filtry"
+  > oferuje obie płaszczyzny zawsze, a listę skraca próg licznika (`count > 0`). Powód: połowa osi
+  > była nieosiągalna z widoku, który czyta niemal każdy, zza przełącznika, którego nikt nie używa
+  > jako włącznika filtrów.
 - **Bramka „tylko kwota stała" obejmuje wyłącznie piętro sufitu.** `price < 0` zostaje bezwarunkowe:
   `investmentCoeffsSchema` nie ma `.min(0)`, więc ujemny mnożnik jest osiągalny, a wtedy „auto"
   produkuje ujemną stawkę, którą trzeba odmówić.
@@ -93,6 +97,9 @@ Zmierzone na lokalnym zrzucie (docker 5433, kopia produkcji):
 - **Dryf komentarzy wokół warsztatu naprawiamy** (`kosztorys-v2-columns.tsx:101`,
   `workshop-columns.test.ts:73-74,82-83`): twierdzą, że warsztat ukrywa przełącznik widoku i jest
   przypięty do planu klienta — nie jest. Asercje zostają, kłamią tylko uzasadnienia.
+  > **CZĘŚCIOWO ODWRÓCONE nazajutrz (EX-856, 2026-09-23).** Warsztat stracił przełącznik „Widok
+  > cen" — czyli pierwsza połowa tamtych komentarzy znów jest prawdziwa, tyle że z innego powodu
+  > (decyzja właściciela, nie skutek uboczny). Przypięcie do planu klienta nadal nie zachodzi.
 - **Menu „Filtry" dostaje zbiorcze zaznacz / odznacz wszystkie** — tym samym komponentem co picker
   kolumn (`ColumnToggleMenu`, ikona `CheckCheck`, wiersz `forceMount` na górze listy), nie drugą
   implementacją tego samego gestu. Odznaczenie wszystkiego wygasza siatkę, ale dokładnie tak samo

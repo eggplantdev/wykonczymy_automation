@@ -63,9 +63,9 @@ const editorContext = {
   rows: [],
 } as unknown as EditorContextT
 
-const renderToolbar = () =>
+const renderToolbar = (overrides: Partial<Record<string, unknown>> = {}) =>
   render(
-    <KosztorysEditorProvider editor={editorContext}>
+    <KosztorysEditorProvider editor={{ ...editorContext, ...overrides } as EditorContextT}>
       {/* „Dodaj" reaches for the catalogue picker, which the editor body hosts above the toolbar. */}
       <CataloguePickerHost>
         <KosztorysEditorToolbar />
@@ -80,5 +80,23 @@ describe('KosztorysEditorToolbar — przełącznik panelu', () => {
     renderToolbar()
 
     expect(screen.getByRole('button', { name: /Podsumowanie/ })).not.toBeDisabled()
+  })
+})
+
+describe('KosztorysEditorToolbar — „Widok cen"', () => {
+  it('offers the plane switch on an investment', () => {
+    renderToolbar()
+
+    expect(screen.getByRole('group', { name: 'Widok cen' })).toBeInTheDocument()
+  })
+
+  // The workbench renders a closed column list, so both crews' stawki are on screen at once and the
+  // switch moves no column — it only moves the „Cena j.m." sort key and which filters are counted,
+  // neither of which the owner came to the szablon to change. Its plane is pinned instead, which is
+  // what makes dropping the control safe: `pickView` is the only writer of the stored view.
+  it('drops it on the szablon workbench', () => {
+    renderToolbar({ isWorkshop: true })
+
+    expect(screen.queryByRole('group', { name: 'Widok cen' })).not.toBeInTheDocument()
   })
 })

@@ -5,7 +5,7 @@ import { roundToCents } from '@/lib/utils/round-to-cents'
 import { refreshReferenceData, runSeedScript } from './seeds'
 import { waitForHydration } from './support/wait'
 import { editorCell } from './drivers/kosztorys-grid'
-import { anonymousVisit, mintShareToken } from './share-link'
+import { anonymousVisit, mintShareToken } from './drivers/share-link'
 
 // The share link is the one entrance with no session behind it: `(share)/layout.tsx` deliberately
 // mounts no CurrentUserProvider, because the token IS the credential. `useCurrentUser` throws on a

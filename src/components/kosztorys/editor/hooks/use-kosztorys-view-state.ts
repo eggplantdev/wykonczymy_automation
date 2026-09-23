@@ -18,12 +18,19 @@ type ArgsT = {
   preview: boolean
   // The investment's stored client-view settings. Only consumed under `preview`.
   clientView?: ClientViewSettingsT
+  // The szablon workbench, which pins the base plane — see `view` below.
+  isWorkshop?: boolean
 }
 
 const EMPTY_COLLAPSED: ReadonlySet<number> = new Set()
 
 // How the grid is being read — plane, search, sort, folds, guides. Touches no rows, stages or actions.
-export function useKosztorysViewState({ investmentId, preview, clientView }: ArgsT) {
+export function useKosztorysViewState({
+  investmentId,
+  preview,
+  clientView,
+  isWorkshop = false,
+}: ArgsT) {
   const [persistedView, setView] = usePriceView(investmentId)
   const [search, setSearch] = useState('')
   // Persisted per investment, so yesterday's filter is still on. Under the preview the owner's picks
@@ -46,7 +53,14 @@ export function useKosztorysViewState({ investmentId, preview, clientView }: Arg
   // Second half of the disclosure lock (allowlist is the first — see `assertDisclosurePair`). The
   // public page ships the full tree, so an unpinned plane would render a subcontractor view to any
   // client who set localStorage['kosztorys-view:<id>'].
-  const view = preview ? 'client' : (problemPlane ?? persistedView)
+  //
+  // The workbench pins the BASE plane for a different reason: its column list is closed
+  // (WORKSHOP_VISIBLE_COLUMNS), so both crews' stawki are on screen at once and there is nothing for a
+  // plane to choose — which is why the toolbar offers it no switch. The pin is what makes removing
+  // that switch safe: `pickView` is the only writer of the stored view, so a browser parked on a crew
+  // plane would otherwise stay there forever with no control to come back. The problem overlay stays
+  // above it, because that is the gesture that walks the reader to a fault.
+  const view = preview ? 'client' : (problemPlane ?? (isWorkshop ? 'client' : persistedView))
   const [sort, setSort] = useState<SortStateT>(null)
   // Folded sections, driven by a band's chevron and by the „Sekcje" menu (unticking folds rather
   // than filtering, so a hidden section still shows its total). Not persisted: a remembered fold

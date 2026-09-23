@@ -13,10 +13,10 @@ type ArgsT = {
 }
 
 /**
- * Past this many engaged hiders the sentence stops answering the question it exists for: a dozen bare
- * noun phrases run to some 380 characters and read as contradictions („bez przedmiaru i z
- * przedmiarem"), because the halves are complementary pairs. „Odznacz wszystkie" reaches that state
- * in one gesture, so it is the common case, not the tail.
+ * Past this many engaged hiders the sentence stops answering the question it exists for: the full set
+ * of sixteen bare noun phrases runs to several hundred characters and reads as contradictions („bez
+ * przedmiaru i z przedmiarem"), because the halves are complementary pairs. „Odznacz wszystkie"
+ * reaches that state in one gesture, so it is the common case, not the tail.
  */
 const MAX_NAMED_HIDERS = 3
 

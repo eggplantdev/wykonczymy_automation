@@ -18,6 +18,8 @@ Playwright suite, and driving the Playwright MCP browser is off-limits unless as
       wait primitives out of one 800-line grab-bag — splits into `e2e/seeds.ts` +
       `e2e/drivers/kosztorys-grid.ts`. Out of scope to do here: a rename rippling through every
       spec deserves its own review, not a line in this one.
+      **DONE 2026-09-23, commit `545a3282`:** split into `e2e/support/`, `e2e/seeds.ts` and
+      `e2e/drivers/`; `e2e/helpers.ts` is gone.
 
 - [x] 🔴 CRITICAL · fixed · code-review + impl-review · `src/lib/cache/revalidate.ts:32` ·
       `EXPIRE_NOW` in the `deferRefresh` branch silently reverted EX-597. `revalidate()` ends with
@@ -191,7 +193,7 @@ Playwright suite, and driving the Playwright MCP browser is off-limits unless as
       verifiable without a ~1 h full run, which is not authorised. The suite is green as written.
 
 - [x] skipped · simplify · `e2e/chrome-arm64.sh` · replace the shim with `arch -arm64 node …/cli.js
-    test` at the suite entrypoint. Deletes both new files and is the deeper fix, but `arch` is
+  test` at the suite entrypoint. Deletes both new files and is the deeper fix, but `arch` is
       macOS-only and the shim's non-macOS branch (`channel: 'chrome'`) is what keeps the config
       portable. Review-worthy on its own, not a drive-by.
 

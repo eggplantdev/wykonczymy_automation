@@ -40,23 +40,29 @@ export async function refreshReferenceData(browser: Browser): Promise<void> {
   }
 }
 
-// Each run creates fresh investments (the test DB is never reset), so two specs seeding this do not
-// collide.
-export async function seedReconInvestments(browser: Browser): Promise<ReconSeedT> {
-  const seed = runSeedScript<ReconSeedT>('seed:kosztorys-recon', 'RECON_SEED')
+// Seed, then make the new rows visible to the running server — the pair every `beforeAll` needs, so
+// no fixture can be seeded and then read through a stale cache.
+async function seedAndRefresh<T>(
+  browser: Browser,
+  packageScript: string,
+  marker: string,
+): Promise<T> {
+  const seed = runSeedScript<T>(packageScript, marker)
   await refreshReferenceData(browser)
   return seed
 }
+
+// Each run creates fresh investments (the test DB is never reset), so two specs seeding this do not
+// collide.
+export const seedReconInvestments = (browser: Browser): Promise<ReconSeedT> =>
+  seedAndRefresh(browser, 'seed:kosztorys-recon', 'RECON_SEED')
 
 // Two fresh investments of one shape — see seed-kosztorys-grid.ts. The test DB is never reset, so a
 // spec that types into the grid gets its own investment and never sees what another one typed.
 export type GridSeedT = { live: number; writes: number }
 
-export async function seedGridInvestments(browser: Browser): Promise<GridSeedT> {
-  const seed = runSeedScript<GridSeedT>('seed:kosztorys-grid', 'GRID_SEED')
-  await refreshReferenceData(browser)
-  return seed
-}
+export const seedGridInvestments = (browser: Browser): Promise<GridSeedT> =>
+  seedAndRefresh(browser, 'seed:kosztorys-grid', 'GRID_SEED')
 
 // One fresh investment per target, because every test here DELETES part of a rozpiska: sharing one
 // would make each test depend on what the previous one left behind, and a dump investment would be
@@ -67,11 +73,8 @@ export type DeleteSeedT = {
   stage: number
 }
 
-export async function seedDeleteInvestments(browser: Browser): Promise<DeleteSeedT> {
-  const seed = runSeedScript<DeleteSeedT>('seed:kosztorys-deletes', 'DELETE_SEED')
-  await refreshReferenceData(browser)
-  return seed
-}
+export const seedDeleteInvestments = (browser: Browser): Promise<DeleteSeedT> =>
+  seedAndRefresh(browser, 'seed:kosztorys-deletes', 'DELETE_SEED')
 
 // One fresh investment per test, each two sekcje deep — see seed-work-catalogue.ts. The prace carry
 // the run's timestamp in their opis because the katalog prac is global and outlives the run.
@@ -82,11 +85,8 @@ export type CatalogueSeedT = {
   insert: CatalogueSeedInvestmentT
 }
 
-export async function seedCatalogueInvestments(browser: Browser): Promise<CatalogueSeedT> {
-  const seed = runSeedScript<CatalogueSeedT>('seed:work-catalogue', 'CATALOGUE_SEED')
-  await refreshReferenceData(browser)
-  return seed
-}
+export const seedCatalogueInvestments = (browser: Browser): Promise<CatalogueSeedT> =>
+  seedAndRefresh(browser, 'seed:work-catalogue', 'CATALOGUE_SEED')
 
 // Two fresh vehicles sharing one registration prefix — see seed-fleet.ts. The prefix is what the
 // spec types into the search box to narrow the global listing down to its own fixture.
@@ -98,8 +98,5 @@ export type FleetSeedT = {
   exempt: FleetSeedVehicleT
 }
 
-export async function seedFleet(browser: Browser): Promise<FleetSeedT> {
-  const seed = runSeedScript<FleetSeedT>('seed:fleet', 'FLEET_SEED')
-  await refreshReferenceData(browser)
-  return seed
-}
+export const seedFleet = (browser: Browser): Promise<FleetSeedT> =>
+  seedAndRefresh(browser, 'seed:fleet', 'FLEET_SEED')

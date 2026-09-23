@@ -5,7 +5,7 @@ import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
 import { refreshReferenceData, runSeedScript } from './seeds'
 import { bare } from './support/ui'
 import { waitForHydration } from './support/wait'
-import { anonymousVisit, mintShareToken } from './share-link'
+import { anonymousVisit, mintShareToken } from './drivers/share-link'
 
 // What the owner decides in „Ustawienia podglądu inwestora" and what the investor's link actually
 // serves are two different processes on two different sides of an unauthenticated route: the owner

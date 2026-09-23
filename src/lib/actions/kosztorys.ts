@@ -324,6 +324,12 @@ export async function clearKosztorysAction(investmentId: number): Promise<Action
 // Prepends a section at the TOP, WITH its first blank item — see createSectionWithFirstItem for why
 // the pair is one call (and one round trip for the client) rather than two actions. The shift and
 // the create share one transaction: a double-fired add would otherwise land two sections on 0.
+//
+// One case the transaction cannot serialize: an investment with NO sections yet. `shiftDisplayOrderFrom`
+// takes its lock on the rows it is pushing down, and there are none — so two concurrent first-adds
+// both land on 0 and the tie falls to id. Left as is deliberately: the window is one empty kosztorys,
+// the result is an order, not a corruption, and „Przenumeruj" repairs it. Locking the investment row
+// to close it would put every section insert behind a lock the rest of the editor also wants.
 export async function addSectionAction(
   investmentId: number,
 ): Promise<ActionResultT<CreatedSectionWithItemT>> {

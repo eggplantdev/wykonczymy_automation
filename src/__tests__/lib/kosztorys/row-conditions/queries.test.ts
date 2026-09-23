@@ -9,8 +9,10 @@ import {
   engagedConditionsOfKind,
   engagedPlane,
   isFoldSuppressed,
+  offeredFilterConditions,
   sectionIdsWhereAllMatch,
 } from '@/lib/kosztorys/row-conditions/queries'
+import { ROW_CONDITIONS } from '@/lib/kosztorys/row-conditions/registry'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
@@ -217,9 +219,11 @@ describe('engagedPlane', () => {
     expect(engagedPlane(['no-client-price', 'stage-no-plane'])).toBeUndefined()
   })
 
-  // A filter may name a plane too, but it must not move the view: it is a picker row, not a gesture,
-  // and unticking the other half of its pair names the same plane and so could never undo the move.
+  // A filter must never move the view: it is a picker row, not a gesture, and unticking the other half
+  // of its pair names the same plane and so could never undo the move. Two guards, because either
+  // alone rots — the registry keeps filters plane-less, and the reader ignores a plane on one anyway.
   it('ignores a filter’s plane, and answers for the problem beside it', () => {
+    expect(ROW_CONDITIONS.filter((c) => c.kind === 'filter').every((c) => !c.plane)).toBe(true)
     expect(engagedPlane(['manual-rate-w-tools'])).toBeUndefined()
     expect(engagedPlane(['manual-rate-w-tools', 'negative-rate-own-tools'])).toBe('own_tools')
   })
@@ -279,5 +283,35 @@ describe('clientConditionIds', () => {
   it('hands back the same instance every call, so the editor memos do not churn', () => {
     expect(clientConditionIds(true)).toBe(clientConditionIds(true))
     expect(clientConditionIds(false)).toBe(clientConditionIds(undefined))
+  })
+})
+
+describe('offeredFilterConditions', () => {
+  const offeredIds = (engaged: string[] = [], perItemDiscountInert = false) =>
+    offeredFilterConditions(new Set(engaged), perItemDiscountInert).map((condition) => condition.id)
+
+  it('offers only the filters — problems and the client rule have their own homes', () => {
+    expect(offeredIds()).not.toContain('no-client-price')
+    expect(offeredIds()).not.toContain('client-empty')
+    expect(offeredIds()).toContain('has-note')
+  })
+
+  // A stawka filter is asked from whichever plane is on; the removed view gate is argued in full at
+  // `offeredFilterConditions`.
+  it('offers both planes\u2019 stawka filters regardless of the view', () => {
+    expect(offeredIds()).toEqual(
+      expect.arrayContaining(['manual-rate-w-tools', 'manual-rate-own-tools']),
+    )
+  })
+
+  // Under a global rabat the per-item rabat applies to nothing and its columns leave the grid.
+  it('withdraws the rabat pair once a global rabat is on', () => {
+    expect(offeredIds([], true)).not.toContain('has-discount')
+    expect(offeredIds([], true)).not.toContain('no-discount')
+  })
+
+  it('keeps an engaged rabat filter offered, so it can be untangled', () => {
+    expect(offeredIds(['has-discount'], true)).toContain('has-discount')
+    expect(offeredIds(['has-discount'], true)).not.toContain('no-discount')
   })
 })

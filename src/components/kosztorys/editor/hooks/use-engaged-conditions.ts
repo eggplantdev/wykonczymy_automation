@@ -67,9 +67,9 @@ export function useEngagedConditions(investmentId: number): {
     })
   }
 
-  // A whole list in ONE store write, because localStorage is what is behind it: twelve toggles in a
-  // row would be twelve serialisations of the same map and twelve renders on the way to one state the
-  // user asked for once. Named ids rather than „wszystko", for the same reason `toggleExclusive` takes
+  // A whole list in ONE store write, because localStorage is what is behind it: sixteen toggles in a
+  // row would be sixteen serialisations of the same map and sixteen renders on the way to one state
+  // the user asked for once. Named ids rather than „wszystko", for the same reason `toggleExclusive` takes
   // a group — the store holds the „Problemy" list too, and a sweep would untick that with it.
   // Returns `prev` untouched when every id already stands where it is being put, like `clear` below:
   // the store writes localStorage on every new identity, so „Odznacz wszystkie" pressed twice would

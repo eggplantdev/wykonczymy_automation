@@ -1,5 +1,11 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { rowContentLines } from '@/lib/kosztorys/row-content-lines'
+import {
+  clippedRowClass,
+  rowContentLines,
+  wrapColumnClass,
+  WRAPPING_COLUMN_IDS,
+} from '@/lib/kosztorys/row-content-lines'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 // Ten pixels a character, so a width of 101 fits exactly ten characters once the 1px edge tolerance
@@ -43,5 +49,18 @@ describe('rowContentLines — kolumna Sekcja', () => {
     expect(rowContentLines(row(fields), { sectionName: 101, description: 101 }, tenPxPerChar)).toBe(
       2,
     )
+  })
+})
+
+// The clip cue is the one part of the wrapping contract that lives in hand-written CSS: `globals.css`
+// spells out a `.kosztorys-clipped-<id> .kosztorys-wrap-<id>::after` pair per column, so a fourth
+// wrapping column added to the list above gets measured, clipped — and shows no „…" at all. Nothing
+// else can catch that: both class names still build fine, and the missing selector is invisible until
+// someone notices a truncated opis that never says it was truncated.
+describe('the clip cue’s CSS keeps up with WRAPPING_COLUMN_IDS', () => {
+  const css = readFileSync('src/styles/globals.css', 'utf8')
+
+  it.each(WRAPPING_COLUMN_IDS)('draws the „…" for %s', (id) => {
+    expect(css).toContain(`.${clippedRowClass(id)} .dsg-cell.${wrapColumnClass(id)}::after`)
   })
 })

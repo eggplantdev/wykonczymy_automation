@@ -18,8 +18,8 @@ export type CataloguePlacementT = {
   nextDisplayOrder: number
 }
 
-// Both sides model the stawka the same way, so this is a copy, not a conversion — a katalog „auto"
-// (`null`) stays „auto", derived from this investment's global współczynnik.
+// Both sides model the stawka the same way, so a katalog „auto" (`null`) stays „auto", derived from
+// this investment's global współczynnik.
 const asItem = (
   catalogueItem: WorkCatalogueItemT,
   sectionId: number,

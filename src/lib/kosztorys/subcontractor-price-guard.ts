@@ -79,9 +79,10 @@ export function coeffWarning(coeff: number): string | null {
  * The ceiling question as a predicate, so the red cell and the „z kwotą stałą powyżej sufitu"
  * filters read one rule instead of two copies that can be edited apart — including the half-grosz
  * tolerance, without which a kwota typed back off the screen lands on opposite sides of the two
- * readings. A source of „auto" is not over anything: `isOverCeiling` short-circuits on the null,
- * which is also what makes the filters' negated twin an exact complement rather than a second,
- * narrower question.
+ * readings. A source of „auto" is not over anything: `isOverCeiling` short-circuits on the null, so
+ * the filters' negated twin („bez kwoty stałej powyżej sufitu") holds every „auto" pozycja as well —
+ * a complement of this predicate, not of „pozycje z kwotą stałą". The registry states that out loud
+ * beside the pair; do not narrow it here without moving that ruling too.
  */
 export const isFixedRateOverCeiling = (row: ViewPricingT, view: ToolPlaneT): boolean =>
   isOverCeiling(overrideValueFor(row, view), row)
@@ -111,21 +112,19 @@ export const isSubcontractorPriceNegative = (row: ViewPricingT, view: ToolPlaneT
  * judging its output row by row is the same verdict repeated a thousand times, and since the hard cap
  * came off the mnożnik (2026-09-21) one keystroke was enough to throw a whole rozpiska over.
  *
- * Reads `subcontractorPrice` rather than re-deriving it, so the guard can never disagree with the
- * price the grid shows. Carries its own Polish message — no consumer composes a sentence, so the
- * tooltip and the toast cannot word the same verdict differently.
+ * Asks both questions through the two predicates above rather than re-deriving them, so the cell that
+ * refuses a write, the red colour and the „Problemy" rows can never disagree. Carries its own Polish
+ * message — no consumer composes a sentence, so the tooltip and the toast cannot word the same verdict
+ * differently.
  */
 export function checkSubcontractorPrice(row: ViewPricingT, view: ToolPlaneT): CellVerdictT | null {
-  const price = subcontractorPrice(row, view)
   // The floor holds whatever the client price is: nothing legitimate pays a subcontractor a negative
   // figure, and it would subtract from every total it reaches.
-  if (price < 0) {
+  if (isSubcontractorPriceNegative(row, view)) {
     return { severity: 'refuse', message: 'Cena wykonawcy nie może być ujemna.' }
   }
 
-  if (overrideValueFor(row, view) === null) return null
-
-  if (!isOverCeiling(price, row)) return null
+  if (!isFixedRateOverCeiling(row, view)) return null
 
   return {
     severity: 'warn',

@@ -76,8 +76,6 @@ export function applyAddItem(rows: KosztorysV2RowT[], row: KosztorysV2RowT): Kos
 
 export type CatalogueSlicePlacementT = 'prepend' | 'fold' | 'reseed'
 
-// Where a „Dodaj pracę z katalogu" slice goes, decided before any of it is built.
-//
 // `reseed` is the case the two obvious branches miss: the server matched the typed nazwa to a sekcja
 // this grid holds no row for — emptied of its pozycje (a 0-row sekcja is absent from the picker's
 // list, which is why the nazwa was typed at all) or created elsewhere since mount. `applyAddItem`

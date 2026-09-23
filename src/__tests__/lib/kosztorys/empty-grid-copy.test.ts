@@ -15,9 +15,9 @@ describe('emptyGridCopy', () => {
     expect(copy.description).toBe('Filtr chowa pozycje bez przedmiaru i z przedmiarem.')
   })
 
-  // „Odznacz wszystkie" engages twelve hiders in one gesture, and naming them all builds a
-  // ~380-character run-on of mutually exclusive pairs — the sentence stops being readable exactly in
-  // the state one click now produces.
+  // „Odznacz wszystkie" engages sixteen hiders in one gesture, and naming them all builds a
+  // run-on of mutually exclusive pairs — the sentence stops being readable exactly in the state one
+  // click now produces.
   it('counts the filters instead of listing them once there are too many to read', () => {
     const copy = emptyGridCopy({
       preview: false,

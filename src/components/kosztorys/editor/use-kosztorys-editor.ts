@@ -189,7 +189,7 @@ export function useKosztorysEditor({
     setGuideY,
     fitRowsToContent,
     toggleFitRowsToContent,
-  } = useKosztorysViewState({ investmentId, preview, clientView })
+  } = useKosztorysViewState({ investmentId, preview, clientView, isWorkshop })
 
   // Committed on handle release, not per pointermove — that would be a write per pixel.
   const { widths, setWidth, dropWidth } = useColumnWidths()

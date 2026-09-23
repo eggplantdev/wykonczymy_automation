@@ -1,5 +1,5 @@
 import { expect, type Browser, type Page } from '@playwright/test'
-import { waitForHydration } from './support/wait'
+import { waitForHydration } from '../support/wait'
 
 // Shared by every spec that drives the investor link. Extracted rather than copied: a spec that
 // minted its token a slightly different way would be testing a path the real owner never walks.
