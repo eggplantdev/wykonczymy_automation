@@ -408,11 +408,11 @@ Zebrane w rejestrze `context/foundation/manual-checks.md` na ostatniej fazie.
 
 #### Automated
 
-- [x] 3.1 `offer-print-action.test.tsx` przechodzi
-- [x] 3.2 `build-offer-print-html.test.ts` przechodzi (kolumna „Pozostało")
+- [x] 3.1 `offer-print-action.test.tsx` przechodzi — 52a4cb45
+- [x] 3.2 `build-offer-print-html.test.ts` przechodzi (kolumna „Pozostało") — 52a4cb45
 
 ### Phase 4: Zapis
 
 #### Automated
 
-- [ ] 4.1 brak — faza prozą i wpisem w trackerze
+- [x] 4.1 brak — faza prozą i wpisem w trackerze

@@ -612,8 +612,17 @@ Kept for the record; pulled out of the numbered sequence because they carry no e
   file, with no formula referencing it. Recorded on EX-666 for whoever revives an export. The
   client view satisfies the same requirement its own way — the view is pinned to `view:'client'`
   and rendered read-only.
-- **Outcome (dropped):** the owner can print/PDF, CSV-export, or hand the client a live formula
-  sheet of a kosztorys.
+- **Partly reversed (2026-09-23, `wydruk-oferty`) — the offer print only.** „Wygeneruj ofertę w PDF"
+  in the „Inwestor" menu prints the kosztorys as a client-facing offer through the browser's own
+  print dialog. It is the **one** surface that came back: no CSV, no live-formula sheet, and no
+  settlement/progress print — the client view still does those jobs. The tombstone stands; the slice
+  is not revived, the change is a standalone one under `context/changes/2026-09-23-wydruk-oferty/`.
+  The column-strip requirement above is **met by construction, not by luck**: the print builds its
+  columns by intersecting its own list with `PREVIEW_VISIBLE_COLUMNS` and then subtracting the
+  owner's hidden set, so a purchase-price or subcontractor column cannot reach the paper even if
+  someone writes it straight into the offer's column list — there is a spec that fails when they do.
+- **Outcome (dropped, except the offer print):** the owner can print/PDF, CSV-export, or hand the
+  client a live formula sheet of a kosztorys.
 - **Change ID:** kosztorys-export. **PRD refs:** FR-008 — **unimplemented**, deliberately, by this cut.
 - **Was:** S-14 (also S-07/S-09/S-10/S-11/S-12 under earlier numberings).
 
