@@ -49,8 +49,8 @@ const ROWS: ExpenseRowT[] = [
     date: '2026-06-05',
     label: 'materiał brutto',
   },
-  // Bills at netto while the kasa loses brutto; the two are deliberately not VAT apart, so a
-  // regression deriving one from the other moves a figure.
+  // Bills at netto while the kasa loses brutto. Both pairs are exactly 23% apart, so at a 0.23
+  // materiały rate this fixture cannot tell the invoice brutto from one derived off the rate.
   {
     type: 'INVESTMENT_EXPENSE_NET',
     amount: 9_840,

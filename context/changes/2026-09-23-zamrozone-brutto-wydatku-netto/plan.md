@@ -385,11 +385,11 @@ Run once, after the final phase.
 
 #### Automated
 
-- [x] 3.1 no expensePieSlices references remain
-- [x] 3.2 summary-panel-content DOM spec green
+- [x] 3.1 no expensePieSlices references remain — 50369538
+- [x] 3.2 summary-panel-content DOM spec green — 50369538
 
 ### Phase 4: Docs
 
 #### Automated
 
-- [ ] 4.1 no automated check (prose only)
+- [x] 4.1 no automated check (prose only)

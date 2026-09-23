@@ -524,16 +524,21 @@ j.m.` wśród wierszy policzonych** (wpisane z palca są wykluczone: to decyzje 
     Materiały budowlane/wykończeniowe, korekta i wpłaty = wartość nominalna (brak wiersza
     brutto). (Bug 1: wcześniej wszystko gruntowane hurtem przez `toGross(cały net)`; bug 2:
     rabat błędnie zrzucony do `faceValue` — powinien `moneyPair(…, vatRate)`.)
-  - **WYJĄTEK od „materiały nominalnie" — wydatek typu netto (wdrożone 2026-08-07).**
+  - **WYJĄTEK od „materiały nominalnie" — wydatek typu netto (2026-08-07, poprawione 2026-09-23).**
     Reguła „wartość nominalna" mówi, że nie **wymyślamy** VAT-u, którego nie było na dokumencie —
-    a nie że materiał nigdy nie ma dwóch osi. Wydatek zapisany jako **netto** ma brutto policzone:
-    `brutto = netto × (1 + (materialsNetRate ?? vatRate))`, tą samą stawką, która w drugą stronę
-    rządzi kolumną Netto. Kierunek wynika z tego, na której płaszczyźnie wydatek zapisano; paragon
-    brutto dalej stoi po face value na obu osiach.
-    **Pułapka, którą to przywraca:** model „zapisane `netAmount`" wybrano właśnie po to, żeby
-    skasować dryf zaokrągleń (`ROUND` Postgresa vs `Math.round` JS-a) łamiący „lista === podsumowanie"
-    — brutto liczone wskrzesza dokładnie to ryzyko, więc niezmiennik Σ testuje się **na moście**
-    między płaszczyznami, nie po jednym teście na płaszczyznę.
+    a nie że materiał nigdy nie ma dwóch osi. Wydatek zapisany jako **netto** ma na fakturze obie
+    kwoty i **obie bierzemy z faktury**: netto = Σ `net_amount`, brutto = Σ `amount`. Żadna stawka
+    materiałów (8%, 12%, 23%…) nie rusza ani netto, ani brutto, ani Różnicy wiersza „… netto" —
+    przesuwają się tylko wiersze zapisane brutto (właściciel, 2026-09-23). Odwraca to decyzję
+    z 2026-08-07, która liczyła brutto jako `netto × (1 + stawka)` i ważyła wyłącznie stawki, nie
+    zapisaną kwotę `amount` — przy 23% inwestycja 146 pokazywała 5477,60 brutto wobec 4809,60
+    na fakturze.
+    **Bez stawki** (brak zapisanej albo rozliczenie brutto) tabela ma jedną kolumnę „Kwota", a wiersz
+    „… netto" pokazuje w niej swoje netto — to kwota, którą płaci klient, więc „Razem" dalej równa
+    się „Materiały" w Podsumowaniu.
+    Zmiana jest tylko w wyświetlaniu: bilans, marża, „Łącznie" i lista inwestycji czytają netto,
+    które się nie zmieniło. A skoro obie kwoty są zapisane, wraca gwarancja, dla której wybrano model
+    „zapisane `netAmount`": brak dryfu zaokrągleń między listą a podsumowaniem.
     **Konsekwencja w rozliczeniu mieszanym:** „Pozostało brutto" **nie** jest gruntowaniem kwoty
     nierozliczonej — to gruntowałoby materiały razem z pracami. Liczy się z „Łącznie", gdzie
     materiały już stoją po face value na obu osiach (`resztaGross = combined.gross − paidNet`).
