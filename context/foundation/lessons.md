@@ -203,7 +203,8 @@
 - **Problem**: Filed (EX-547) from write-side reasoning alone. The read path kills it: `sumDepositRowsForInvestment` is scoped `WHERE investment_id = $1` and `kosztorys-etap-totals.tsx` sums only that investment's stages — the foreign tag is never fetched for A, never read for B, and falls into „Bez etapu" with `zaliczkiTotal + pozaEtapem = wplatyNet` intact. Worst case renders identically to an untagged deposit, a legal state. The "fix" would have made `validateTransfer` async and rewritten ~39 sync tests to defend a non-defect.
 - **Rule**: A missing write-side check is a candidate, not a defect — trace the field to its consumers and finish the sentence "and then the user sees ⟨wrong figure⟩" before filing. Scoped reads are load-bearing validation; read the SQL/`where` before assuming an orphan propagates. If a cheap fix exists anyway, prefer it (here: `filterOptions` on the field, not an async hook).
 - **Note (EX-536)**: the concrete anchor — `transactions.kosztorysStage`, `sumDepositRowsForInvestment`, `kosztorys-etap-totals.tsx`, `zaliczkiTotal + pozaEtapem` — was **removed** when the deposit→etap bridge was torn out (column dropped, `zaliczki.ts` deleted). A grep for those symbols now finds nothing; the reasoning generalizes regardless of the retired example.
-- **Applies to**: code-review, impl-review, simplify, plan, tdd
+- **Note (2026-09-23, `kategorie-assetow-i-kompresja` QA) — the same trap one axis over: "the UI doesn't gate this button by role".** A manual-check run filed that „Oznacz jako rzut" renders for EMPLOYEE, having traced `usePlanMarker` → `MediaPreviewButton` → `media-preview-dialog.tsx` and found no role check on any of them, plus only an `isAdminOrOwnerRole` for `canSeeMargin` on `inwestycje/[id]/page.tsx`. The trace was thorough and the conclusion wrong: the same page imports `requireManagementPage`, and the listing that leads to it calls `requireAuth(MANAGEMENT_ROLES)`, so EMPLOYEE never reaches the surface the button lives on. A per-control gate had nobody to stop. The write-path twin of the read-path rule above: **reachability is decided at the route, so read the page's own guard before concluding a control is ungated** — a component tree with no role check is evidence about the component tree, not about who can see it. (The mutation was safe regardless: `protectedAction` hardcodes `requireAuth(MANAGEMENT_ROLES)`, which is why "server-side gate only" findings on this codebase almost always resolve to "gated twice".)
+- **Applies to**: code-review, impl-review, simplify, plan, tdd, manual-checks
 
 ## Enforce "one concept, one name" with an AST rule, not grep — and ship the guard DORMANT until the renames land
 
@@ -2144,3 +2145,22 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
   `pnpm why pg` that only one `pg` copy exists, and prove it on **staging under overlap**, never
   locally.
 - **Applies to**: 10x-plan, 10x-implement, impl-review, any code that fans out Payload writes.
+
+## A fact injected into the session by a vendor's own plugin is a claim, not documentation — check it against the docs before planning on it
+
+- **Context**: kategorie-assetow-i-kompresja (2026-09-22). The whole design hinged on one number: how
+  many bytes may cross `POST /api/upload-file`. The Vercel plugin had put "100 MB" into the session
+  as ambient context; the repo's own comments said 4 MB and read like stale caution.
+- **Problem**: the plugin's figure had no source behind it. Vercel's `/docs/functions/limitations`
+  (checked 2026-08-24) still caps a function's request AND response body at **4,5 MB**, returning
+  `413 FUNCTION_PAYLOAD_TOO_LARGE`. Planning on 100 MB would have shipped a feature whose failure
+  mode is a silent, final bounce on exactly the large files the feature exists to accept.
+- **Two adjacent traps found in the same check**: `serverActions.bodySizeLimit` in `next.config.ts`
+  governs **server actions only** — raising it does nothing for a Route Handler, which is what our
+  upload is. And the landing site's 8 MB ceiling is not a bigger allowance, it is a **different
+  transport**: the browser PUTs straight to Blob over a token, so no function ever sees the bytes.
+  "Do what the landing does" was therefore two decisions (the constants, and the transport), not one.
+- **Rule**: a number that decides a design gets verified at the vendor's docs, whatever put it in
+  front of you — a plugin, a memory, a code comment. Name the source and the date in the research,
+  so the next reader can tell a checked fact from an inherited one.
+- **Applies to**: 10x-research, 10x-plan, any design gated on a platform limit.

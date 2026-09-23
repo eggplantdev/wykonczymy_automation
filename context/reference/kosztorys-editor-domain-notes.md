@@ -1236,3 +1236,61 @@ testowy `1qN68vcevWgq0fXckdh4cuyBJ4iGZNlivVuHDvLuzWy4`, gdzie nazwa rozjechała 
 `"kosztorys_robocizny(dla inwestora) "`. **Nie rozluźniaj** dopasowania w
 `src/lib/kosztorys/sheet-import/read-sheet.ts` pod ten jeden arkusz — dopasowanie po prefiksie
 zaczęłoby łapać cudze zakładki w 56 pozostałych.
+
+## Destylat z zamkniętych zmian 22–23.09.2026
+
+Wyciągnięte z `research.md` / `plan.md` czterech zmian skasowanych przy archiwizacji
+(`szablon-autosave`, `stawka-problems-and-filters`, `filtry-bez-widoku`, `kosztorys-editor-assets`).
+Pełny tekst zostaje w historii gita pod `context/archive/2026-09-2*/`.
+
+**Zaangażowane warunki to nieopatrzona wersją baza danych użytkownika.** `engagedConditionIds` żyje
+w localStorage pod `kosztorys-filters:<investmentId>`, bez klucza wersji, a nieznane id **nigdy nie
+są usuwane** (świadomie — id wraca po przełączeniu widoku). Skutek: **przejęcie id istniejącego
+warunku jest migracją cudzych danych bez migracji.** Gdyby para „powyżej sufitu" odziedziczyła
+`overpriced-*`, zapisany ptaszek „pokaż tylko zepsute" stałby się „ukryj zepsute" — dokładne
+odwrócenie. Nowy warunek dostaje **nowe id**, stare zostają porzucone.
+
+**Warsztat to jedna inwestycja dla wszystkich szablonów**, a ten sam klucz jest kluczowany po
+`investmentId` — więc ptaszek ustawiony przy szablonie A jest wciąż włączony po otwarciu B.
+
+**Bramka bywa ergonomią, nie niezmiennikiem — sprawdź, czy trwały stan już ją omija.** Bramka
+płaszczyzny w `offeredFilterConditions` wyglądała na ochronę spójności; nie była. Zaangażowany filtr
+obcej płaszczyzny przeżywa zmianę widoku i przeładowanie, więc stan „filtr drugiej płaszczyzny tnie
+siatkę" był osiągalny zawsze — bramka utrudniała wejście w niego o jedno kliknięcie. Jej prawdziwym
+zadaniem (EX-714) była **długość listy**. Kasując taką bramkę, trzeba przejąć jej prawdziwe zadanie
+(tu: próg licznika), a nie to, na które wygląda.
+
+**„Lista kolumn jest zamknięta" nie znaczy „widok nic nie robi".** `WORKSHOP_VISIBLE_COLUMNS` mrozi
+kolumny warsztatu, ale `sort-value.ts` czyta `view` **poza** zestawem kolumn — warsztat sortował po
+stawce wykonawcy, wyświetlając cenę klienta. Pochodne widoku żyją poza listą kolumn.
+
+**`pickView` jest jedynym zapisującym klucz widoku** (`kosztorys-view:<mirrorId>`). Ukrycie samego
+przycisku zamraża na zawsze każdą przeglądarkę, która wcześniej stanęła na obcej płaszczyźnie —
+zdjęcie kontrolki i przypięcie płaszczyzny muszą iść w jednej zmianie. Przypięciu podlega
+`persistedView`, nie całe wyrażenie widoku: ulotna nakładka z „Problemów" ma zostać, bo to ona
+prowadzi czytelnika do wady.
+
+**`investmentAction` jest jedynym punktem, przez który przechodzi każdy zapis w drzewo** — ~36
+ścieżek. Kliencki `dispatch` w `use-debounced-save` łapie **~4 z nich**. Każda funkcja typu „zrób coś
+przy każdej zmianie drzewa" musi siadać w akcji, nie w edytorze.
+
+**Licznik `revision` udaje sygnał „brudne", a nim nie jest** — jest ślepy na etapy, dodawanie
+pozycji, ustawienia i hurtowe zastąpienie. Wiszą już na nim undo/redo i bramka auto-snapshotu; każda
+kolejna funkcja oparta na nim dziedziczy tę dziurę.
+
+**Koszt jednego lustra szablonu — zmierzony (2026-09-22).** `kosztorys_presets.payload` to ~310–325 B
+tekstu JSON na pozycję (~58–65 B po TOAST); największe lokalne drzewo (379 pozycji) = 124 530 B.
+Kolumna ma `attstorage = 'x'`, więc **HOT update jest niemożliwy** — każdy zapis to nowy łańcuch
+TOAST. Jedno lustro ≈ 250 KB ruchu do Neona, a wklejka w 50 komórek bez dławika = 50 równoległych
+luster ≈ 12,5 MB na jedno Ctrl-V. Dlatego dławik siedzi w **bazie** (`mirrored_at`), nie w timerze:
+serverless nie utrzyma timera między requestami.
+
+**Serializacja szablonu jest stratna, a warsztat o tym nie mówi.** `serialize-preset.ts` zeruje
+`plannedQty`, `sheetMeasuredQty`, `discountType`, `discountValue`, `note` i wyrzuca całe `stages`
+i `progress` — a menu „Dodaj" w warsztacie oferuje „Etap — …" i pełną siatkę. Pod autozapisem strata
+przestaje być jednym świadomym kliknięciem i staje się ciągłym, niewidocznym rozjazdem. Zamknięta
+lista kolumn warsztatu jest odpowiedzią na to, nie kosmetyką.
+
+**Kosztorysy zasiane z szablonu są kopiami zamrożonymi** — edycja szablonu nigdy nie rusza
+istniejących kosztorysów. To zdanie znosi jedyny argument, który mógłby bronić jawnego „Zapisz"
+w warsztacie.
