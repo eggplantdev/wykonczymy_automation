@@ -665,11 +665,11 @@ liczba kolumn nie jest tu zmienną rozstrzygającą.
 
 Nie w tej zmianie. Ryzyko domyka warstwa dom (przełącznik, komórka tylko do odczytu) plus warstwa db
 (dwie kopie reguły ceny). Należność zapisujemy jako issue z etykietą `e2e-backlog` na bramce
-przeglądu — kandydat: przełączenie źródła przeżywa przeładowanie strony.
+przeglądu — **złożone jako EX-866** (`e2e-backlog`): przełączenie źródła przeżywa przeładowanie strony.
 
 ### Manual
 
-Zebrane raz, na końcu, do rejestru `context/foundation/manual-checks.md`.
+Zebrane raz, na końcu, do rejestru `context/foundation/manual-checks.md` — sekcja „EX-865".
 
 ## Migration & Rollout
 

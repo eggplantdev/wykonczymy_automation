@@ -690,15 +690,15 @@ Licznik renderów czytaj z logu dev: `[PERF] buildKosztorysTree` (drzewo jest ni
 Account as the scope.` — to był zły argument `--scope`, nie brak dostępu. Właściwy scope to
       zespół projektu z `.vercel/project.json` (`orgId`), nie konto CLI:
 
-        ```bash
-        npx vercel logs https://<deployment>.vercel.app --scope=team_BWfyTqJnjIqZBkHwBL0elgS4
-        ```
+          ```bash
+          npx vercel logs https://<deployment>.vercel.app --scope=team_BWfyTqJnjIqZBkHwBL0elgS4
+          ```
 
-        Strumień oddaje runtime stdout pogrupowany per request, a `console.log` w `buildKosztorysTree`
-        (`src/lib/queries/kosztorys.ts:71`) nie jest bramkowany `NODE_ENV`, więc linia `[PERF]
-        buildKosztorysTree …` wychodzi tak samo z builda produkcyjnego na stagingu, jak z dev.
-        Właściwy box wyżej policzony tą drogą i odhaczony — jeden wpis na jeden upload.
-        **Test disposition:** no automated test — to obserwowalność (log count), nie asercja stanu.
+          Strumień oddaje runtime stdout pogrupowany per request, a `console.log` w `buildKosztorysTree`
+          (`src/lib/queries/kosztorys.ts:71`) nie jest bramkowany `NODE_ENV`, więc linia `[PERF]
+          buildKosztorysTree …` wychodzi tak samo z builda produkcyjnego na stagingu, jak z dev.
+          Właściwy box wyżej policzony tą drogą i odhaczony — jeden wpis na jeden upload.
+          **Test disposition:** no automated test — to obserwowalność (log count), nie asercja stanu.
 
 ## EX-820 — sufit stawki wykonawcy z „Problemów" do „Filtrów" (2026-09-22)
 
@@ -753,3 +753,31 @@ warsztat po zmianie w ogóle się otwiera.
       zwinięte sekcje i szukajkę) i jest wygaszone, gdy nie ma czego czyścić
 - [ ] Warsztat szablonu (`/szablony/[id]`): przełącznika „Widok cen" nie ma, a siatka pokazuje
       kolumny planu klienta; reszta paska narzędzi bez zmian
+
+## EX-865 — „Własny mnożnik" jako trzecie źródło stawki wykonawcy (2026-09-23)
+
+Stawka wykonawcy ma znów trzy źródła: „auto", „kwota stała" i — przywrócony po EX-766 — „własny
+mnożnik" per pojedyncza praca, liczony jako `cena j.m. × mnożnik` przy każdym odczycie. Mnożnik
+dostał **własną kolumnę** obok kwoty (`*_override_coeff`), a parę trzyma razem atomowy zapis
+(`normalizeOverridePatch`), nie liczba kolumn. To samo źródło zna katalog prac. Automat pokrywa
+arytmetykę, normalizację łatki, dwie niezależne kopie reguły ceny (TS i SQL), sufit, filtry, komórki
+i cały katalog; na żywo zostaje to, czego spec nie widzi — że wyszarzenie, ukrywanie kolumny przed
+inwestorem i przenoszenie między cennikiem a rozpiską działają w przeglądarce.
+
+- [ ] Rozpiska: przełączenie źródła na „własny mnożnik" **nie** rusza liczby w „Cena j.m."
+      w chwili przełączenia
+- [ ] Wpisanie `0,55` daje stawkę `cena × 0,55`, a podniesienie „Cena j.m." przesuwa ją natychmiast
+- [ ] Komórka „Cena j.m." wykonawcy przy mnożniku jest wyszarzona i nie przyjmuje wpisu
+- [ ] Kolumna „Mnożnik" jest domyślnie ukryta i włącza się jednym tikiem w pickerze kolumn
+- [ ] Kolumny „Mnożnik" **nie ma** na linku dla inwestora ani w podglądzie klienta
+- [ ] Podsumowanie rozliczenia wykonawcy pokazuje dla pozycji z mnożnikiem tę samą stawkę co siatka
+      po przeładowaniu strony (zgodność kopii TS i SQL)
+- [ ] Pozycja z mnożnikiem ponad sufitem czerwienieje na obu komórkach i wchodzi do „Problemów"
+- [ ] Menu „Filtry" pokazuje trzy wpisy źródła na płaszczyznę, a wybór każdego odsłania kolumny cenowe
+- [ ] Na inwestycji z materiałami wliczonymi w robociznę pozycja z mnożnikiem i wykonaną pracą wchodzi
+      do „Stawki wykonawców liczone według formuły"
+- [ ] Praca z mnożnikiem zapisana do cennika wraca do **innej** inwestycji jako mnożnik i wycenia się
+      jej własną ceną j.m. (nie zamraża kwoty z katalogu)
+- [ ] „Porównaj z katalogiem" pokazuje rozjazd rodzaju nawet przy zgodnej kwocie (0,65 kontra 65 zł
+      na cenie 100 zł)
+- [ ] Wzięcie „auto" z katalogu kasuje w rozpisce **oba** nadpisania (kwotę i mnożnik)
