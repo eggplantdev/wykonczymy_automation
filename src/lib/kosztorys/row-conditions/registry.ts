@@ -16,6 +16,11 @@ import type { KosztorysV2RowT, ToolPlaneT } from '@/lib/kosztorys/types'
 const qtyDone = (row: KosztorysV2RowT, ctx: RowConditionCtxT) =>
   ctx.qtyDoneByRowId?.get(row.id) ?? rowTotalQtyDone(row, ctx.stages, 'client')
 
+// Both axes empty. Named once because three entries ask it — the „Filtry" pair and the client view's
+// own hider — and „nic tu nie ma" has to mean the same thing in the menu and in the client's document.
+const isEmptyOnBothAxes = (row: KosztorysV2RowT, ctx: RowConditionCtxT) =>
+  !(row.plannedQty > 0) && !(qtyDone(row, ctx) > 0)
+
 // Named once so the pair below cannot be edited apart — „bez rabatu" is „ma rabat" negated, and two
 // hand-written copies of a three-term test are two chances to change only one of them.
 const hasItemDiscount = (row: KosztorysV2RowT) => row.discountType !== null && row.discountValue > 0
@@ -100,7 +105,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label: 'bez przedmiaru',
     sectionLabel: 'Sekcje bez przedmiaru',
     kind: 'filter',
-    filterGroup: 'planned-qty',
+    filterGroup: 'quantities',
     matches: (row) => !(row.plannedQty > 0),
   },
   {
@@ -108,7 +113,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label: 'z przedmiarem',
     sectionLabel: 'Sekcje z przedmiarem',
     kind: 'filter',
-    filterGroup: 'planned-qty',
+    filterGroup: 'quantities',
     matches: (row) => row.plannedQty > 0,
   },
   {
@@ -118,7 +123,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label: 'bez wykonanej pracy',
     sectionLabel: 'Sekcje bez wykonanej pracy',
     kind: 'filter',
-    filterGroup: 'work-done',
+    filterGroup: 'quantities',
     // The pomiar IS Σ etapów (EX-494), at the client plane like every other whole-row reading.
     matches: (row, ctx) => !(qtyDone(row, ctx) > 0),
   },
@@ -127,8 +132,33 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label: 'z wykonaną pracą',
     sectionLabel: 'Sekcje z wykonaną pracą',
     kind: 'filter',
-    filterGroup: 'work-done',
+    filterGroup: 'quantities',
     matches: (row, ctx) => qtyDone(row, ctx) > 0,
+  },
+  // The two axes read together, because the filters above stack with AND and so cannot express OR:
+  // unticking „bez przedmiaru" also throws away a pozycja carrying etap work but no offer, which is
+  // the one thing nobody wants hidden. This is the same rule the podgląd inwestora hides by
+  // („client-empty" below) — a pozycja empty on BOTH axes adds zero to both totals — offered here as
+  // a reading gesture the owner can take in the editor.
+  //
+  // Neither half lifts to sekcje: „Sekcje bez przedmiaru" ∩ „Sekcje bez wykonanej pracy" is already
+  // exactly the sekcje where every pozycja is empty on both, so the row would only buy a second pass
+  // over the whole dataset to select a set two existing rows already select.
+  {
+    id: 'empty-both-axes',
+    label: 'bez przedmiaru i bez wykonanej pracy',
+    sectionLabel: null,
+    kind: 'filter',
+    filterGroup: 'quantities',
+    matches: isEmptyOnBothAxes,
+  },
+  {
+    id: 'non-empty-both-axes',
+    label: 'z przedmiarem lub wykonaną pracą',
+    sectionLabel: null,
+    kind: 'filter',
+    filterGroup: 'quantities',
+    matches: (row, ctx) => !isEmptyOnBothAxes(row, ctx),
   },
   // Read through `discountType`, not `discountValue` alone: under a null type the value is stored but
   // inert (`applyDiscount` walks past it), so a leftover „5" in a row whose type was cleared is not a
@@ -272,7 +302,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     // przedmiar total still counts it, and hiding no-przedmiar rows drops a pozycja carrying etap work
     // while the executed total still counts it. A row empty on BOTH axes adds zero to both totals, so
     // hiding it moves no figure and needs no warning.
-    matches: (row, ctx) => !(row.plannedQty > 0) && !(qtyDone(row, ctx) > 0),
+    matches: isEmptyOnBothAxes,
   },
   // A missing cena j.m. is two different problems, so it is two entries, split on whether any work has
   // been executed — and split rather than added beside a broad one, so the counts stay disjoint and no

@@ -85,7 +85,7 @@ describe('the headings', () => {
       model({ 'has-note': 1, 'has-planned-qty': 2, 'manual-rate-w-tools': 3 }).map(
         (toggle) => toggle.groupLabel,
       ),
-    ).toEqual(['Przedmiar', 'Źródło stawki wykonawcy', 'Komentarz'])
+    ).toEqual(['Przedmiar i wykonana praca', 'Źródło stawki wykonawcy', 'Komentarz'])
   })
 
   // The menu prints one heading per RUN of equal labels, so a category split across two runs would

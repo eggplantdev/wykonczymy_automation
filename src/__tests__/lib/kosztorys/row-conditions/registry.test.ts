@@ -143,6 +143,22 @@ describe('the conditions, each on its boundary', () => {
     expect(matches('client-empty', row({ plannedQty: 0, [stageKey(2)]: 3 }))).toBe(false)
   })
 
+  // The „Filtry" half of the same rule. Asserted separately from „client-empty" because the two are
+  // reached by different gestures and only a shared predicate keeps them the same question — the pair
+  // exists precisely so unticking „bez przedmiaru" alone cannot drop a pozycja carrying etap work.
+  it('the „Filtry" pair reads both axes together, and its complement is its negation', () => {
+    const cases = [
+      row({ plannedQty: 0 }),
+      row({ plannedQty: 5 }),
+      row({ plannedQty: 0, [stageKey(2)]: 3 }),
+    ]
+    expect(cases.map((r) => matches('empty-both-axes', r))).toEqual([true, false, false])
+    expect(cases.map((r) => matches('non-empty-both-axes', r))).toEqual([false, true, true])
+    expect(cases.map((r) => matches('empty-both-axes', r))).toEqual(
+      cases.map((r) => matches('client-empty', r)),
+    )
+  })
+
   // The ceiling left „Problemy" on 2026-09-22 (owner): a kwota the katalog ratifies is legitimate
   // above 65%, so what stays here is the rung that is arithmetic nobody meant.
   it('„z ujemną stawką wykonawcy" reads the stawka as paid, per plane', () => {

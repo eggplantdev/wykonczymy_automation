@@ -110,7 +110,7 @@ describe('KosztorysFiltersMenu — nagłówki kategorii', () => {
     expect(screen.getByRole('group', { name: 'Źródło stawki wykonawcy' })).toHaveTextContent(
       'Pozycje ze stawką wykonawcy z kwoty stałej w widoku z narzędziami (2)',
     )
-    expect(screen.getByRole('group', { name: 'Przedmiar' })).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: 'Przedmiar i wykonana praca' })).toBeInTheDocument()
     expect(screen.getByRole('group', { name: 'Komentarz' })).toBeInTheDocument()
   })
 
@@ -119,7 +119,7 @@ describe('KosztorysFiltersMenu — nagłówki kategorii', () => {
     renderMenu({ 'has-planned-qty': 4, 'has-note': 1 })
     await openMenu()
 
-    expect(screen.getByRole('group', { name: 'Przedmiar' })).not.toHaveTextContent(
+    expect(screen.getByRole('group', { name: 'Przedmiar i wykonana praca' })).not.toHaveTextContent(
       'Odznacz wszystkie',
     )
   })
