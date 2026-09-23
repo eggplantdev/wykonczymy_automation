@@ -38,13 +38,10 @@ describe('subcontractor rate columns, both planes', () => {
     }
   })
 
-  // „Źródło" is an edit control, not a figure to compare — the client view is where the offer is
-  // read, and there is nothing there to set with it.
-  it('assembles the source column only in the subcontractor views', () => {
-    for (const view of ['w_tools', 'own_tools'] as const) {
+  it('assembles the source column in every view', () => {
+    for (const view of VIEWS) {
       expect(ids({ view })).toEqual(expect.arrayContaining(MODE_IDS))
     }
-    for (const id of MODE_IDS) expect(ids({ view: 'client' })).not.toContain(id)
   })
 
   // Guards the id, not a layout preference: the bare `price` is what each investment's client-view
@@ -75,10 +72,10 @@ describe('subcontractor rate columns, both planes', () => {
     )
   })
 
-  it('offers no source entry in the picker of the client view', () => {
+  it('offers the source entry in the picker of the client view', () => {
     const { columnToggleItems } = buildV2Grid({ view: 'client', stages: STAGES })
     for (const id of MODE_IDS) {
-      expect(columnToggleItems.some((item) => item.id === id)).toBe(false)
+      expect(columnToggleItems.some((item) => item.id === id)).toBe(true)
     }
   })
 

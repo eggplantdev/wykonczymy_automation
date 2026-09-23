@@ -90,18 +90,10 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   // Both planes' rates in EVERY view, so the owner compares them without switching tabs. Not a copy:
   // the same factories with the other plane, and the cells read their own `columnData.view`.
   //
-  // „Źródło ceny wykonawcy" is an EDIT control rather than a figure to compare, so it assembles only
-  // on the subcontractor planes. The rate itself stays editable everywhere — typing a number IS
-  // „kwota stała" and Delete is the way back to „auto" — and is hidden by default plus barred from
-  // the client preview by the allowlist.
-  //
-  // The szablon workbench is the exception and takes it on the client plane too: it is the ONE
-  // screen whose whole subject is the reusable skeleton, and which source each crew's rate comes
-  // from is part of that skeleton (`serializeKosztorysAsPreset` carries the override). It is pinned
-  // to 'client' and offers no plane switch, so without this branch the one screen whose subject is
-  // the source would be the one screen that can never show it. Nothing leaks: the client preview
-  // is `previewVisible`, a different gate, and PREVIEW_VISIBLE_COLUMNS has no `priceMode`.
-  const withMode = view !== 'client' || opts.workshopVisible === true
+  // „Źródło ceny wykonawcy" is the owner's control over a crew's rate, never something the investor
+  // may see: it is refused at assembly for the client preview, on top of PREVIEW_VISIBLE_COLUMNS
+  // having no `priceMode`, so a later allowlist edit cannot leak it on its own.
+  const withMode = opts.previewVisible !== true
   const subcontractorPriceCols: Column<KosztorysV2RowT>[] = TOOL_PLANES.flatMap((plane) => [
     ...(withMode
       ? [subcontractorModeColumn(plane, columnTitle(planePriceKey('priceMode', plane), opts))]
