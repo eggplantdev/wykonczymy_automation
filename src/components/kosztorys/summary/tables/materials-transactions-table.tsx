@@ -17,6 +17,7 @@ import {
   availableExpenseDatasets,
   clientVisibleExpenseRows,
   partitionExpenseRows,
+  sumAmount,
   sumBilled,
   expenseRowHref,
   type ExpenseDatasetT,
@@ -41,6 +42,9 @@ const DATASET_LABELS: Record<ExpenseDatasetT, string> = {
   net: 'Materiały rozliczane netto',
   settled: 'Materiały wliczone w robociznę',
 }
+
+// The investor's list is one set, so its archive carries no brutto / netto wording either.
+const CLIENT_LIST_LABEL = 'Materiały'
 
 const TABLE_HEIGHT = 400
 // 8px taller than the wypłaty list: a text-only row is 36 (20px line box + py-2), leaving no budget
@@ -158,21 +162,23 @@ const GROSS_COLUMNS: ColumnDef<MaterialTransactionRowT>[] = [
 ]
 
 // The wydatki list — one row per materiały transaction, the un-summed twin of the „Wydatki
-// inwestycyjne" breakdown above it.
+// inwestycyjne" breakdown above it. The investor gets one brutto list: how an invoice is billed is
+// the manager's concern, so no tab switch and no Netto column.
 export function MaterialsTransactionsTable({
   investmentId,
   investmentName,
   rows,
   preview = false,
 }: PropsT) {
-  const partition = partitionExpenseRows(preview ? clientVisibleExpenseRows(rows) : rows)
+  const partition = partitionExpenseRows(rows)
   const available = availableExpenseDatasets(partition)
   const [dataset, setDataset] = useState<ExpenseDatasetT>('gross')
   const { download, isPending } = useFileArchive()
   // A prop change can empty the picked set (an expense re-categorised away); fall back rather than
   // render a tab with nothing in it.
   const activeDataset = available.includes(dataset) ? dataset : (available[0] ?? 'gross')
-  const visibleRows = partition[activeDataset]
+  const visibleRows = preview ? clientVisibleExpenseRows(rows) : partition[activeDataset]
+  const isNetDataset = !preview && activeDataset === 'net'
   // Rows are already here, so an empty active dataset is knowable up front — no point offering a
   // button that could only ever answer „brak faktur". (The transfers variant can't know until it fetches.)
   const hasInvoices = visibleRows.some((row) => row.invoices.length > 0)
@@ -184,16 +190,17 @@ export function MaterialsTransactionsTable({
     label: `${DATASET_LABELS[set]} (${partition[set].length})`,
   }))
 
-  if (available.length === 0) return null
+  if (visibleRows.length === 0) return null
 
   function handleDownload() {
-    download(visibleRows, [investmentName, DATASET_LABELS[activeDataset]], INVOICE_ARCHIVE_COPY)
+    const setLabel = preview ? CLIENT_LIST_LABEL : DATASET_LABELS[activeDataset]
+    download(visibleRows, [investmentName, setLabel], INVOICE_ARCHIVE_COPY)
   }
 
   return (
     <div className="flex flex-col gap-y-2">
       <div className="flex w-full items-center gap-2">
-        {options.length > 1 && (
+        {!preview && options.length > 1 && (
           <ToggleGroup
             options={options}
             value={activeDataset}
@@ -215,9 +222,9 @@ export function MaterialsTransactionsTable({
         )}
       </div>
       <DataTable
-        key={activeDataset}
+        key={preview ? 'client' : activeDataset}
         data={visibleRows}
-        columns={activeDataset === 'net' ? NET_COLUMNS : GROSS_COLUMNS}
+        columns={isNetDataset ? NET_COLUMNS : GROSS_COLUMNS}
         enableVirtualization
         virtualRowHeight={ROW_HEIGHT}
         virtualContainerHeight={Math.min(
@@ -230,16 +237,13 @@ export function MaterialsTransactionsTable({
           <tr>
             {/* The total is of `billed`, which the netto set renders second-to-last — so the label
                 spans one column less there, and the trailing Brutto column gets an empty cell. */}
-            <td
-              className="font-bold"
-              colSpan={visibleColumnIds.length - (activeDataset === 'net' ? 2 : 1)}
-            >
+            <td className="font-bold" colSpan={visibleColumnIds.length - (isNetDataset ? 2 : 1)}>
               Razem
             </td>
             <td className="text-right font-bold tabular-nums">
-              {formatNet(sumBilled(visibleRows))}
+              {formatNet(preview ? sumAmount(visibleRows) : sumBilled(visibleRows))}
             </td>
-            {activeDataset === 'net' && <td />}
+            {isNetDataset && <td />}
           </tr>
         )}
         className="w-full"

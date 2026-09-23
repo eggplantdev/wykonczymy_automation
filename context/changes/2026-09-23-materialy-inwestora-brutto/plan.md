@@ -291,16 +291,16 @@ Run once, after the final phase.
 
 #### Automated
 
-- [x] 1.1 breakdown-rows node spec passes
-- [x] 1.2 materials-breakdown-table DOM spec passes with byCategory cases
-- [x] 1.3 investment-financial-fields spec passes with the bare label
+- [x] 1.1 breakdown-rows node spec passes — 51d5323e
+- [x] 1.2 materials-breakdown-table DOM spec passes with byCategory cases — 51d5323e
+- [x] 1.3 investment-financial-fields spec passes with the bare label — 51d5323e
 
 ### Phase 2: Investor wydatki list — one brutto list
 
 #### Automated
 
-- [ ] 2.1 materials-transactions-table DOM spec passes
-- [ ] 2.2 expense-datasets spec passes with sumAmount
+- [x] 2.1 materials-transactions-table DOM spec passes
+- [x] 2.2 expense-datasets spec passes with sumAmount
 
 ### Phase 3: E2E and docs
 

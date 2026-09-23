@@ -4,6 +4,7 @@ import {
   clientVisibleExpenseRows,
   partitionExpenseRows,
   expenseRowHref,
+  sumAmount,
 } from '@/lib/kosztorys/expense-datasets'
 import type { MaterialTransactionRowT } from '@/types/transfers'
 import type { PreviewFileT } from '@/types/media'
@@ -134,5 +135,11 @@ describe('clientVisibleExpenseRows', () => {
       settled: true,
     }
     expect(clientVisibleExpenseRows([settledNet]).map((row) => row.id)).toEqual([5])
+  })
+})
+
+describe('sumAmount', () => {
+  it('sums what left the kasa — the netto invoice at its brutto, a korekta with its sign', () => {
+    expect(sumAmount(clientVisibleExpenseRows(rows))).toBe(100 - 25 + 1230)
   })
 })
