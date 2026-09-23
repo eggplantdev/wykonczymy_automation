@@ -1,11 +1,14 @@
-import type { KosztorysItemT, KosztorysSectionT } from '@/lib/kosztorys/types'
+import type { KosztorysItemT, KosztorysSectionT, PriceSourceT } from '@/lib/kosztorys/types'
+import type { CatalogueRateT } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
 
-// The catalogue row as every reader sees it. A stawka is one of two things, decided per plane:
-// a frozen ZŁOTÓWKA that travels into every rozpiska verbatim, or `null` = „auto", meaning the
-// katalog declines to name one and the praca prices off the TARGET investment's global
-// współczynnik. What the katalog still never holds is a coefficient of its own — that would be a
-// third concept re-pricing a frozen decision behind the owner's back, whereas `null` simply says
-// no decision was made here.
+// The catalogue row as every reader sees it. A stawka is one of THREE things per plane, and the pair
+// of columns behind it says which: a frozen ZŁOTÓWKA that travels into every rozpiska verbatim, a
+// MNOŻNIK of the target praca's cena j.m., or both `null` = „auto", meaning the katalog declines to
+// name a stawka and the praca prices off the TARGET investment's global współczynnik.
+//
+// The mnożnik is the katalog's own decision, not a leaked investment współczynnik (EX-865): it says
+// „ta praca kosztuje wykonawcę tyle ceny", which is exactly the sentence a cennik is for, and unlike
+// a frozen kwota it survives being placed into a rozpiska priced differently.
 export type WorkCatalogueItemT = {
   id: number
   description: string
@@ -14,6 +17,8 @@ export type WorkCatalogueItemT = {
   clientPrice: number
   wToolsRate: number | null
   ownToolsRate: number | null
+  wToolsRateCoeff: number | null
+  ownToolsRateCoeff: number | null
   matchKey: string
 }
 
@@ -24,8 +29,8 @@ export type CatalogueSeedItemT = Omit<WorkCatalogueItemT, 'id'>
 export type SeedOccurrenceT = {
   sectionName: string
   clientPrice: number
-  wToolsRate: number | null
-  ownToolsRate: number | null
+  wToolsRate: CatalogueRateT
+  ownToolsRate: CatalogueRateT
 }
 
 // Which of the three liczby a rozbieżność is about — the cennik diverges on the stawki far more
@@ -43,7 +48,8 @@ export type SeedConflictT = {
 
 // One praca from a rozpiska as „Zapisz do katalogu…" reads it. The inwestycja's global
 // współczynniki are deliberately absent: a plane with no nadpisanie of its own goes to the cennik as
-// „auto", so there is nothing left for a global to price.
+// „auto", so there is nothing left for a global to price. Both nadpisania travel, because both are
+// decisions this wiersz made and the cennik keeps each as the źródło it was.
 export type CatalogueSourceItemT = {
   description: string
   unit: string
@@ -51,6 +57,8 @@ export type CatalogueSourceItemT = {
   clientPrice: number
   wToolsOverrideValue: number | null
   ownToolsOverrideValue: number | null
+  wToolsOverrideCoeff: number | null
+  ownToolsOverrideCoeff: number | null
 }
 
 // What the „Zapisz do katalogu…" dialog renders: the row that WOULD be written, and the cennik row
@@ -61,10 +69,11 @@ export type CatalogueSavePreviewT = {
 }
 
 // A rozjazd is a difference of RODZAJ as much as of kwota: a frozen złotówka against a katalog that
-// declines to name a stawka („auto") disagrees even when the two land on the same number, and the
-// column has to say „auto" rather than print a kwota nobody typed. Flags, not `number | null`, so
-// `delta` stays a number — an „auto" side compares as the kwota it implies for THIS inwestycja,
-// which is the only sensible input to a difference. „Cena j.m." is never „auto".
+// prices off a mnożnik disagrees even when the two land on the same number today, because one of
+// them will move when the cena j.m. does. The źródło, not a flag, so all three readings stay
+// distinguishable (EX-865) — a boolean „isAuto" pair could only ever say two things. The kwota beside
+// it is what each side implies for THIS inwestycja, which is the only sensible input to a difference.
+// „Cena j.m." is never anything but `amount`.
 export type CatalogueFigureDiffT = {
   label: string
   // What the zaznaczenie and the wire carry — the Polish etykieta is for the reader only, and keying
@@ -73,8 +82,12 @@ export type CatalogueFigureDiffT = {
   kosztorys: number
   catalogue: number
   delta: number
-  kosztorysIsAuto: boolean
-  catalogueIsAuto: boolean
+  kosztorysSource: PriceSourceT
+  catalogueSource: PriceSourceT
+  // The mnożnik each side names, where it names one — the column prints the multiple rather than the
+  // złotówka it happens to produce, because that multiple is what was agreed.
+  kosztorysCoeff: number | null
+  catalogueCoeff: number | null
 }
 
 export type CataloguePriceDiffT = {
@@ -115,9 +128,17 @@ export type CatalogueMissingT = {
 
 // What the hurtowy zapis actually wrote, shaped as the patch the grid applies to its rows — only the
 // liczby that were ticked are present, and a stawka taken from a katalogowe „auto" arrives as an
-// explicit `null`, because dropping the nadpisanie IS the write.
+// explicit `null` on BOTH kolumny tej płaszczyzny, because dropping the nadpisanie IS the write and
+// leaving the other column standing would hand the row back the źródło that was just replaced.
 export type AppliedCatalogueValueT = { itemId: number } & Partial<
-  Pick<KosztorysItemT, 'clientPrice' | 'wToolsOverrideValue' | 'ownToolsOverrideValue'>
+  Pick<
+    KosztorysItemT,
+    | 'clientPrice'
+    | 'wToolsOverrideValue'
+    | 'ownToolsOverrideValue'
+    | 'wToolsOverrideCoeff'
+    | 'ownToolsOverrideCoeff'
+  >
 >
 
 export type CatalogueComparisonT = {

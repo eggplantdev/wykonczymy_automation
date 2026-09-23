@@ -1,4 +1,4 @@
-import type { ToolPlaneT, ViewPricingT } from '@/lib/kosztorys/types'
+import type { PriceSourceT, ToolPlaneT, ViewPricingT } from '@/lib/kosztorys/types'
 
 // „Cena j.m." and „Źródło" are two columns over one field, and both have to agree on which. Literal
 // rather than `keyof ViewPricingT` so a computed-key write still type-checks against the row.
@@ -26,6 +26,18 @@ export const PLANE_LABELS: Record<ToolPlaneT, string> = {
 export const RATE_LABELS: Record<ToolPlaneT, string> = {
   w_tools: `Stawka ${PLANE_LABELS.w_tools.toLowerCase()}`,
   own_tools: `Stawka ${PLANE_LABELS.own_tools.toLowerCase()}`,
+}
+
+// The trzy źródła stawki wykonawcy as a runtime list plus their Polish names, in one place: the
+// siatka's menu, the katalog's formularz and the zod enum behind it all branch on the same three
+// values, and a fourth spelling of „własny mnożnik" is a fourth thing to keep in step. Labels name
+// the ŹRÓDŁO, not the arithmetic.
+export const PRICE_SOURCES = ['auto', 'coeff', 'amount'] as const satisfies readonly PriceSourceT[]
+
+export const PRICE_SOURCE_LABELS: Record<PriceSourceT, string> = {
+  auto: 'auto',
+  coeff: 'własny mnożnik',
+  amount: 'kwota stała',
 }
 
 // The tail a row-condition label carries when the figure it judges only exists in one view. One

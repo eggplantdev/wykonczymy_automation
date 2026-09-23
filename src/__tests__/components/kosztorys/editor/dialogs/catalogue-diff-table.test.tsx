@@ -18,8 +18,10 @@ const figure = (over: Partial<CatalogueFigureDiffT>): CatalogueFigureDiffT => ({
   kosztorys: 50,
   catalogue: 45,
   delta: 5,
-  kosztorysIsAuto: false,
-  catalogueIsAuto: false,
+  kosztorysSource: 'amount',
+  catalogueSource: 'amount',
+  kosztorysCoeff: null,
+  catalogueCoeff: null,
   ...over,
 })
 
@@ -68,6 +70,31 @@ function renderTable(diffs: CataloguePriceDiffT[], onApply = vi.fn().mockResolve
 }
 
 const applyButton = () => screen.getByRole('button', { name: /Aktualizuj kosztorys/ })
+
+// Obie strony różnicy są zdaniem o ŹRÓDLE, nie tylko o kwocie: przy równych złotówkach to jedyne,
+// co tę różnicę widać.
+describe('CatalogueDiffTable — źródło stawki', () => {
+  it('pokazuje mnożnik jako krotność z kwotą w nawiasie', () => {
+    renderTable([
+      {
+        ...DIFF,
+        figures: [
+          figure({
+            label: 'Stawka z narzędziami (podwykonawca)',
+            field: 'wToolsRate',
+            kosztorys: 65,
+            catalogue: 65,
+            delta: 0,
+            kosztorysSource: 'coeff',
+            kosztorysCoeff: 0.65,
+          }),
+        ],
+      },
+    ])
+
+    expect(screen.getByText(/×0,65/)).toBeInTheDocument()
+  })
+})
 
 describe('CatalogueDiffTable — zaznaczanie', () => {
   it('zaznaczenie pracy bierze wszystkie jej liczby', async () => {

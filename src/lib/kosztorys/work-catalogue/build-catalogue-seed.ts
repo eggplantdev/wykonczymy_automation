@@ -3,8 +3,13 @@ import {
   itemWithColumnDefaults,
   type StoredSnapshotPayloadT,
 } from '@/lib/kosztorys/snapshot-format'
+import type { PriceSourceT } from '@/lib/kosztorys/types'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
-import { impliedCatalogueRate } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
+import {
+  catalogueSourceOf,
+  impliedCatalogueRate,
+  type CatalogueRateT,
+} from '@/lib/kosztorys/work-catalogue/catalogue-rate'
 import { stripSectionOrdinal } from '@/lib/kosztorys/work-catalogue/section-category'
 import type {
   CatalogueSeedItemT,
@@ -44,32 +49,60 @@ function winningBucket(values: readonly number[]): { value: number; count: numbe
 
 const winningValue = (values: readonly number[]): number => winningBucket(values).value
 
+// Two stawki are „the same answer" only when they name the same ŹRÓDŁO and the same liczba — 0,65 as
+// a mnożnik and 65 zł as a kwota stała are the same number today and different decisions tomorrow, so
+// they must never share a bucket. Mnożniki are compared at four decimals, the precision the cell
+// accepts; kwoty in grosze, like every other money comparison here.
+const rateKey = ({ rate, coeff }: CatalogueRateT): string => {
+  if (coeff !== null) return `coeff:${Math.round(coeff * 10000)}`
+  if (rate !== null) return `amount:${toGrosz(rate)}`
+  return 'auto'
+}
+
+// Mnożnik, then kwota, then auto — the same precedence the rozpiska reads sources in, used here only
+// to break a COUNT tie. A decision beats „nobody decided", and between two decisions the mnożnik is
+// the one that survives being placed into a rozpiska priced differently.
+const RATE_RANK: Record<PriceSourceT, number> = { coeff: 2, amount: 1, auto: 0 }
+
 /**
- * Same rule for a stawka, where „auto" (`null`) is a fourth possible answer and counts as its own
- * bucket. On a tie a kwota beats auto: a typed kwota is a decision somebody made, auto is what a
- * pozycja looks like when nobody made one.
+ * Same winner rule for a stawka, over the (źródło, liczba) pair rather than a bare number, because
+ * „auto" is not the only non-kwota answer any more (EX-865).
  */
-function winningRate(values: readonly (number | null)[]): number | null {
-  const amounts = values.filter((value) => value !== null)
-  const autoCount = values.length - amounts.length
-  if (amounts.length === 0) return null
-  // The winning bucket's OWN count, not a recount: a second pass with a different notion of „same
-  // amount" could disagree with the one that picked the winner and flip auto/kwota on a knife edge.
-  const winner = winningBucket(amounts)
-  return autoCount > winner.count ? null : winner.value
+function winningRate(values: readonly CatalogueRateT[]): CatalogueRateT {
+  const buckets = new Map<string, { value: CatalogueRateT; count: number }>()
+  for (const value of values) {
+    const key = rateKey(value)
+    const bucket = buckets.get(key)
+    if (bucket) bucket.count += 1
+    else buckets.set(key, { value, count: 1 })
+  }
+  let winner: CatalogueRateT = { rate: null, coeff: null }
+  let winnerCount = -1
+  for (const { value, count } of buckets.values()) {
+    const better =
+      count > winnerCount ||
+      (count === winnerCount &&
+        RATE_RANK[catalogueSourceOf(value)] > RATE_RANK[catalogueSourceOf(winner)])
+    if (better) {
+      winner = value
+      winnerCount = count
+    }
+  }
+  return winner
 }
 
 const CONFLICT_FIELDS: readonly SeedConflictFieldT[] = ['clientPrice', 'wToolsRate', 'ownToolsRate']
 
-// „auto" against a kwota is a genuine rozbieżność — the szablon says two different things about how
-// that plane is priced — so a missing value is not folded into the numeric comparison.
+// A difference of ŹRÓDŁO is a genuine rozbieżność — the szablon says two different things about how
+// that plane is priced — so the comparison is over the bucket key, not over złotówki that two
+// different źródła might coincide on.
 const disagrees = (occurrences: readonly SeedOccurrenceT[], field: SeedConflictFieldT) => {
-  const first = occurrences[0][field]
-  return occurrences.some((o) =>
-    o[field] === null || first === null
-      ? o[field] !== first
-      : Math.abs(o[field] - first) > MONEY_TOLERANCE,
-  )
+  if (field === 'clientPrice') {
+    const first = occurrences[0].clientPrice
+    return occurrences.some((o) => Math.abs(o.clientPrice - first) > MONEY_TOLERANCE)
+  }
+  const first = rateKey(occurrences[0][field])
+  return occurrences.some((o) => rateKey(o[field]) !== first)
 }
 
 type GroupT = { description: string; unit: string; occurrences: SeedOccurrenceT[] }
@@ -81,8 +114,8 @@ type GroupT = { description: string; unit: string; occurrences: SeedOccurrenceT[
  * and that has to be assertable without a database. The script that writes the rows does the I/O.
  *
  * The szablon investment's global współczynniki take no part: only a plane carrying its OWN
- * nadpisanie is priced at all, and a kwota stała reads no global. A plane without one (137 of 373
- * prac on the current szablon) seeds as „auto" instead.
+ * nadpisanie is seeded at all, whether that nadpisanie is a kwota or a mnożnik. A plane without one
+ * (137 of 373 prac on the current szablon) seeds as „auto" instead.
  */
 export function buildCatalogueSeed(payload: StoredSnapshotPayloadT): {
   items: CatalogueSeedItemT[]
@@ -119,13 +152,17 @@ export function buildCatalogueSeed(payload: StoredSnapshotPayloadT): {
       occurrences.find((o) => Math.abs(o.clientPrice - clientPrice) <= MONEY_TOLERANCE) ??
       occurrences[0]
 
+    const wTools = winningRate(occurrences.map((o) => o.wToolsRate))
+    const ownTools = winningRate(occurrences.map((o) => o.ownToolsRate))
     items.push({
       description: group.description,
       category: winner.sectionName || null,
       unit: group.unit,
       clientPrice,
-      wToolsRate: winningRate(occurrences.map((o) => o.wToolsRate)),
-      ownToolsRate: winningRate(occurrences.map((o) => o.ownToolsRate)),
+      wToolsRate: wTools.rate,
+      wToolsRateCoeff: wTools.coeff,
+      ownToolsRate: ownTools.rate,
+      ownToolsRateCoeff: ownTools.coeff,
       matchKey,
     })
 

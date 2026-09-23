@@ -9,7 +9,7 @@ import { roundToCents } from '@/lib/utils/round-to-cents'
 import { overrideCoeffFor, priceSourceOf, viewPrice } from '@/lib/kosztorys/calc'
 import { checkSubcontractorPrice } from '@/lib/kosztorys/subcontractor-price-guard'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
-import { FLAGGED_TONE } from '@/lib/kosztorys/constants'
+import { FLAGGED_TONE, PRICE_SOURCES, PRICE_SOURCE_LABELS } from '@/lib/kosztorys/constants'
 import {
   sourceChange,
   subcontractorCoeffPolicy,
@@ -26,11 +26,10 @@ import type { ReactNode } from 'react'
 //
 // The values ARE `PriceSourceT`, so the menu and `priceSourceOf` cannot drift into two vocabularies —
 // nothing is stored to name the source, it is read off the pair of columns (EX-766, EX-865).
-const SUB_MODE_OPTIONS: { value: PriceSourceT; label: string }[] = [
-  { value: 'auto', label: 'auto' },
-  { value: 'coeff', label: 'własny mnożnik' },
-  { value: 'amount', label: 'kwota stała' },
-]
+const SUB_MODE_OPTIONS: { value: PriceSourceT; label: string }[] = PRICE_SOURCES.map((value) => ({
+  value,
+  label: PRICE_SOURCE_LABELS[value],
+}))
 
 // Everything the cells need to know about which plane they are editing. Travels via
 // `columnData` so each component keeps ONE identity across renders — an inline `component:

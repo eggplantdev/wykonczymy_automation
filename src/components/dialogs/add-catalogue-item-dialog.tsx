@@ -12,10 +12,12 @@ const EMPTY_DEFAULTS: WorkCatalogueItemFormValuesT = {
   category: '',
   unit: '',
   clientPrice: '',
-  wToolsAuto: false,
+  wToolsSource: 'auto',
   wToolsRate: '',
-  ownToolsAuto: false,
+  wToolsCoeff: '',
+  ownToolsSource: 'auto',
   ownToolsRate: '',
+  ownToolsCoeff: '',
 }
 
 export function AddCatalogueItemDialog({

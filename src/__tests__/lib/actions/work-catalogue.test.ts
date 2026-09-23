@@ -36,7 +36,9 @@ describe.skipIf(!ENV_READY)('work catalogue actions (DB)', () => {
     unit: 'm²',
     clientPrice: 40,
     wToolsRate: 20,
+    wToolsRateCoeff: null,
     ownToolsRate: 15,
+    ownToolsRateCoeff: null,
     ...overrides,
   })
 

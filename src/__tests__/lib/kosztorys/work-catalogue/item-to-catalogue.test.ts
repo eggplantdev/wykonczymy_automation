@@ -8,7 +8,9 @@ const source = (overrides: Partial<CatalogueSourceItemT> = {}): CatalogueSourceI
   sectionName: 'Łazienka 1',
   clientPrice: 200,
   wToolsOverrideValue: null,
+  wToolsOverrideCoeff: null,
   ownToolsOverrideValue: null,
+  ownToolsOverrideCoeff: null,
   ...overrides,
 })
 
@@ -24,6 +26,13 @@ describe('toCatalogueCandidate', () => {
 
     expect(candidate.wToolsRate).toBeNull()
     expect(candidate.ownToolsRate).toBeNull()
+  })
+
+  it('mnożnik z rozpiski trafia do cennika jako mnożnik, nie jako wyliczona kwota', () => {
+    const candidate = toCatalogueCandidate(source({ wToolsOverrideCoeff: 0.65 }))
+
+    expect(candidate.wToolsRate).toBeNull()
+    expect(candidate.wToolsRateCoeff).toBe(0.65)
   })
 
   it('decyduje o każdym planie osobno', () => {

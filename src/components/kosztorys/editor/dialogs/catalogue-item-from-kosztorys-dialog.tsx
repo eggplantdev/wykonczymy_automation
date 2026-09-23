@@ -11,23 +11,26 @@ import {
   updateCatalogueItemAction,
 } from '@/lib/actions/work-catalogue'
 import { PLANE_LABELS } from '@/lib/kosztorys/constants'
-import type { CatalogueSavePreviewT } from '@/lib/kosztorys/work-catalogue/types'
-import type { WorkCatalogueItemFormValuesT } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
-import { formatPLNOrAuto } from '@/lib/utils/format-currency'
+import type {
+  CatalogueSavePreviewT,
+  WorkCatalogueItemT,
+} from '@/lib/kosztorys/work-catalogue/types'
+import type { ToolPlaneT } from '@/lib/kosztorys/types'
+import {
+  rateFormValues,
+  type WorkCatalogueItemFormValuesT,
+} from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
+import { catalogueRateFor, catalogueSourceOf } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
+import { formatRate } from '@/lib/kosztorys/format'
+import { formatPLN } from '@/lib/utils/format-currency'
 import { toastMessage } from '@/lib/utils/toast'
 
 const LOAD_FAILED = 'Nie udało się wczytać danych pozycji'
-
-// A rate the rozpiska does not override goes to the cennik as „auto" — the katalog declines to name
-// a kwota and the praca prices off the target investment's współczynnik.
-const rateValues = (rate: number | null) => ({ auto: rate === null, value: rate?.toString() ?? '' })
 
 function defaultsFrom({
   candidate,
   existing,
 }: CatalogueSavePreviewT): WorkCatalogueItemFormValuesT {
-  const wTools = rateValues(candidate.wToolsRate)
-  const ownTools = rateValues(candidate.ownToolsRate)
   return {
     description: candidate.description,
     // The kategoria is the one field the KATALOG owns rather than the rozpiska: a sekcja is „Podłogi
@@ -35,11 +38,15 @@ function defaultsFrom({
     category: existing?.category ?? candidate.category ?? '',
     unit: candidate.unit,
     clientPrice: String(candidate.clientPrice),
-    wToolsAuto: wTools.auto,
-    wToolsRate: wTools.value,
-    ownToolsAuto: ownTools.auto,
-    ownToolsRate: ownTools.value,
+    ...rateFormValues(candidate),
   }
+}
+
+// What the cennik holds for one płaszczyzna, as one sentence: „auto", a kwota, or the mnożnik and
+// the kwota it comes out to at the katalog's own cena j.m.
+const existingRate = (item: WorkCatalogueItemT, plane: ToolPlaneT): string => {
+  const rate = catalogueRateFor(item, plane)
+  return formatRate(rate.rate, catalogueSourceOf(rate), rate.coeff)
 }
 
 /**
@@ -98,7 +105,7 @@ export function CatalogueItemFromKosztorysDialog({
           description={
             existing
               ? 'Ta praca jest już w katalogu pod tą samą nazwą i jednostką — zapis zastąpi jej liczby. Katalog nie trzyma historii. Chcesz osobną pozycję? Zmień nazwę.'
-              : 'Katalog prac to wspólny cennik. Stawka bez własnej kwoty idzie jako „auto" i policzy się ze współczynnika inwestycji, do której praca trafi.'
+              : 'Katalog prac to wspólny cennik. Stawka bez własnego źródła idzie jako „auto" i policzy się ze współczynnika inwestycji, do której praca trafi; mnożnik przeliczy się od jej ceny j.m.'
           }
         />
         {/* The old figures as a line rather than a second column of inputs: the fields already hold
@@ -106,9 +113,9 @@ export function CatalogueItemFromKosztorysDialog({
             replaced. */}
         {existing && (
           <Description size="xs">
-            W katalogu teraz: cena j.m. {formatPLNOrAuto(existing.clientPrice)},{' '}
-            {PLANE_LABELS.w_tools.toLowerCase()} {formatPLNOrAuto(existing.wToolsRate)},{' '}
-            {PLANE_LABELS.own_tools.toLowerCase()} {formatPLNOrAuto(existing.ownToolsRate)}.
+            W katalogu teraz: cena j.m. {formatPLN(existing.clientPrice)},{' '}
+            {PLANE_LABELS.w_tools.toLowerCase()} {existingRate(existing, 'w_tools')},{' '}
+            {PLANE_LABELS.own_tools.toLowerCase()} {existingRate(existing, 'own_tools')}.
           </Description>
         )}
         {/* `DialogContent` is a `gap-4` column, so this only tops the gap up to the 24px every other

@@ -20,6 +20,7 @@ import {
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { toCatalogueCandidate } from '@/lib/kosztorys/work-catalogue/item-to-catalogue'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
+import { catalogueRateFor } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
 import { appendCatalogueItems } from '@/lib/kosztorys/work-catalogue/append-catalogue-items'
 import { createSectionWithCatalogueItems } from '@/lib/kosztorys/work-catalogue/create-section-with-catalogue-items'
 import { getWorkCatalogue } from '@/lib/queries/work-catalogue'
@@ -51,7 +52,9 @@ const toRow = (data: WorkCatalogueItemDataT) => ({
   unit: data.unit.trim(),
   clientPrice: data.clientPrice,
   wToolsRate: data.wToolsRate,
+  wToolsRateCoeff: data.wToolsRateCoeff,
   ownToolsRate: data.ownToolsRate,
+  ownToolsRateCoeff: data.ownToolsRateCoeff,
   matchKey: catalogueKey(data.description, data.unit),
 })
 
@@ -247,6 +250,18 @@ const applyCatalogueSchema = z.object({
 const STALE_ITEM_ERROR = 'Część zaznaczonych pozycji już nie istnieje.'
 const STALE_CATALOGUE_ERROR = 'Część zaznaczonych prac nie jest już w katalogu.'
 
+// Taking a stawka means taking its ŹRÓDŁO, so BOTH kolumny of that płaszczyzna are written and one of
+// them lands as `null`. Writing only the column the katalog names would leave the pozycja's old
+// nadpisanie standing beside the new one, and the rozpiska reads such a pair as the OTHER źródło —
+// a mnożnik outranks a kwota, so „weź kwotę z katalogu" would have changed nothing on screen.
+const RATE_COLUMNS = [
+  ['wToolsRate', { plane: 'w_tools', value: 'wToolsOverrideValue', coeff: 'wToolsOverrideCoeff' }],
+  [
+    'ownToolsRate',
+    { plane: 'own_tools', value: 'ownToolsOverrideValue', coeff: 'ownToolsOverrideCoeff' },
+  ],
+] as const
+
 /**
  * The other direction: the katalog's liczby taken INTO the rozpiska, for every pozycja and every
  * liczba the owner ticked in „Porównaj z katalogiem prac".
@@ -291,7 +306,6 @@ export async function applyCatalogueToKosztorysAction(
         clientPrice: [],
         wToolsOverrideValue: [],
         ownToolsOverrideValue: [],
-        // Puste do fazy 5 — katalog jeszcze nie niesie mnożnika, a batch pustej kolumny jest no-opem.
         wToolsOverrideCoeff: [],
         ownToolsOverrideCoeff: [],
       }
@@ -308,13 +322,13 @@ export async function applyCatalogueToKosztorysAction(
           batches.clientPrice.push({ id: item.id, value: entry.clientPrice })
           row.clientPrice = entry.clientPrice
         }
-        if (fields.has('wToolsRate')) {
-          batches.wToolsOverrideValue.push({ id: item.id, value: entry.wToolsRate })
-          row.wToolsOverrideValue = entry.wToolsRate
-        }
-        if (fields.has('ownToolsRate')) {
-          batches.ownToolsOverrideValue.push({ id: item.id, value: entry.ownToolsRate })
-          row.ownToolsOverrideValue = entry.ownToolsRate
+        for (const [field, columns] of RATE_COLUMNS) {
+          if (!fields.has(field)) continue
+          const rate = catalogueRateFor(entry, columns.plane)
+          batches[columns.value].push({ id: item.id, value: rate.rate })
+          batches[columns.coeff].push({ id: item.id, value: rate.coeff })
+          row[columns.value] = rate.rate
+          row[columns.coeff] = rate.coeff
         }
         applied.push(row)
       }

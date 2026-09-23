@@ -764,16 +764,16 @@ i „auto" są nietknięte, bo mieszkają w kolumnach, których ta zmiana nie ru
 
 #### Automated
 
-- [x] 4.1 Spec rejestru warunków wiersza przechodzi
-- [x] 4.2 Spec sufitu przechodzi
+- [x] 4.1 Spec rejestru warunków wiersza przechodzi — bedb1c81
+- [x] 4.2 Spec sufitu przechodzi — bedb1c81
 
 ### Phase 5: Katalog prac
 
 #### Automated
 
-- [ ] 5.1 Specy logiki katalogu przechodzą
-- [ ] 5.2 Specy akcji katalogu przechodzą
-- [ ] 5.3 Specy formularza i tabeli różnic przechodzą
+- [x] 5.1 Specy logiki katalogu przechodzą
+- [x] 5.2 Specy akcji katalogu przechodzą
+- [x] 5.3 Specy formularza i tabeli różnic przechodzą
 
 ### Phase 6: Domknięcie
 
