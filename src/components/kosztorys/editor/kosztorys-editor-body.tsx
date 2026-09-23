@@ -389,13 +389,7 @@ export function KosztorysEditorBody({
                 <h1 className="order-last w-full truncate text-base font-medium sm:order-none sm:w-auto sm:flex-1">
                   {investmentName}
                 </h1>
-                <div className="ml-auto flex shrink-0 flex-wrap items-center justify-end gap-x-4 gap-y-2">
-                  {clientEmptyRowIds.size > 0 && (
-                    <Label className="cursor-pointer font-normal">
-                      <Switch checked={showAllRows} onCheckedChange={setShowAllRows} />
-                      Pokaż wszystkie pozycje (+{clientEmptyRowIds.size})
-                    </Label>
-                  )}
+                <div className="ml-auto flex shrink-0 flex-col items-end gap-2 sm:flex-row sm:items-center sm:gap-4">
                   {/* The panel's open state is persisted per person, not per view, so without this the
                   client view inherits whatever the toolbar last left and can never fold it back. */}
                   <KosztorysTotalsPanelToggle
@@ -403,6 +397,12 @@ export function KosztorysEditorBody({
                     disabled={subtotals.length === 0}
                     hasRows={subtotals.length > 0}
                   />
+                  {clientEmptyRowIds.size > 0 && (
+                    <Label className="cursor-pointer font-normal sm:order-first">
+                      <Switch checked={showAllRows} onCheckedChange={setShowAllRows} />
+                      Pokaż wszystkie pozycje (+{clientEmptyRowIds.size})
+                    </Label>
+                  )}
                 </div>
               </header>
             ) : (
