@@ -46,9 +46,9 @@ export function MaterialsBreakdownTable({
   return (
     <SummaryTable cols={cols} className="w-fit">
       <SummaryHeaderCell variant="label">{caption}</SummaryHeaderCell>
-      {/* „Netto" bare, not „bez VAT": whenever a materiały concession is saved this column crosses
-            at that rate, not at VAT. It leads because it is the figure the investor is billed;
-            brutto is where it was crossed from. */}
+      {/* „Netto" bare, not „bez VAT": a brutto row crosses at the saved materiały rate, not at VAT,
+            and a „… netto" row crosses at nothing — both its amounts are the invoice's. It leads
+            because it is the figure the investor is billed. */}
       {showNet && <SummaryHeaderCell>Netto</SummaryHeaderCell>}
       {/* „Kwota", not „Brutto", where materiały settle brutto: with no rate to cross, there is only
             one plane, and naming it invites the reader to look for a netto twin that isn't there. */}

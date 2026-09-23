@@ -370,16 +370,16 @@ Run once, after the final phase.
 
 #### Automated
 
-- [x] 1.1 deriveCategoryBreakdowns spec: netCategoryGrossCosts per category, settled-agnostic, brutto types excluded
-- [x] 1.2 investment-financial-fields spec passes with recordedGross on netto rows
-- [x] 1.3 vitest run of both specs green
+- [x] 1.1 deriveCategoryBreakdowns spec: netCategoryGrossCosts per category, settled-agnostic, brutto types excluded — 0dbaeb40
+- [x] 1.2 investment-financial-fields spec passes with recordedGross on netto rows — 0dbaeb40
+- [x] 1.3 vitest run of both specs green — 0dbaeb40
 
 ### Phase 2: Price the netto row from the invoice
 
 #### Automated
 
-- [ ] 2.1 summary-economics spec green (rewritten red-first)
-- [ ] 2.2 materials-breakdown-table DOM spec green
+- [x] 2.1 summary-economics spec green (rewritten red-first)
+- [x] 2.2 materials-breakdown-table DOM spec green
 
 ### Phase 3: Remove the „Wydatki inwestycyjne" pie
 
