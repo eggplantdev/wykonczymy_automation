@@ -690,15 +690,15 @@ Licznik renderów czytaj z logu dev: `[PERF] buildKosztorysTree` (drzewo jest ni
 Account as the scope.` — to był zły argument `--scope`, nie brak dostępu. Właściwy scope to
       zespół projektu z `.vercel/project.json` (`orgId`), nie konto CLI:
 
-              ```bash
-              npx vercel logs https://<deployment>.vercel.app --scope=team_BWfyTqJnjIqZBkHwBL0elgS4
-              ```
+                ```bash
+                npx vercel logs https://<deployment>.vercel.app --scope=team_BWfyTqJnjIqZBkHwBL0elgS4
+                ```
 
-              Strumień oddaje runtime stdout pogrupowany per request, a `console.log` w `buildKosztorysTree`
-              (`src/lib/queries/kosztorys.ts:71`) nie jest bramkowany `NODE_ENV`, więc linia `[PERF]
-              buildKosztorysTree …` wychodzi tak samo z builda produkcyjnego na stagingu, jak z dev.
-              Właściwy box wyżej policzony tą drogą i odhaczony — jeden wpis na jeden upload.
-              **Test disposition:** no automated test — to obserwowalność (log count), nie asercja stanu.
+                Strumień oddaje runtime stdout pogrupowany per request, a `console.log` w `buildKosztorysTree`
+                (`src/lib/queries/kosztorys.ts:71`) nie jest bramkowany `NODE_ENV`, więc linia `[PERF]
+                buildKosztorysTree …` wychodzi tak samo z builda produkcyjnego na stagingu, jak z dev.
+                Właściwy box wyżej policzony tą drogą i odhaczony — jeden wpis na jeden upload.
+                **Test disposition:** no automated test — to obserwowalność (log count), nie asercja stanu.
 
 ## EX-820 — sufit stawki wykonawcy z „Problemów" do „Filtrów" (2026-09-22)
 
@@ -805,3 +805,15 @@ wydruku i zgodność liczb z podglądem klienta, kosztorys po kosztorysie.
       a suma sekcji zostaje pod „Wartość netto przedmiar"
 - [ ] MANAGER (nie OWNER) — czy „Wygeneruj ofertę w PDF" ma być dla niego dostępne? Sąsiednie pozycje
       menu są wygaszane przez `useMayServeTheClient()`, ta nie. **Pytanie do właściciela**, nie defekt.
+
+## zamrozone-brutto-wydatku-netto
+
+### Phase 2: Price the netto row from the invoice
+
+- [ ] Kosztorys v2 inwestycji 146 (lokalny dump), zakładka „Materiały", stawka 23% → wiersz „Materiały wykończeniowe netto" pokazuje 4453,33 / 4809,60 / −356,27.
+- [ ] Zmiana stawki na 12% → ten wiersz bez zmian; „Materiały budowlane" Netto i Różnica się przesuwają.
+- [ ] Rozliczenie brutto → jedna kolumna „Kwota"; wiersz netto pokazuje 4453,33; „Razem" = „Materiały" w Podsumowaniu.
+
+### Phase 3: Remove the „Wydatki inwestycyjne" pie
+
+- [ ] Zakładka „Materiały" bez wykresu kołowego w edytorze i w podglądzie klienta; wykres „Struktura kosztów" w Podsumowaniu nadal jest.

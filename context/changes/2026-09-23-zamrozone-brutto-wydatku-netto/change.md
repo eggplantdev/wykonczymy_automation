@@ -1,7 +1,7 @@
 ---
 change_id: zamrozone-brutto-wydatku-netto
 title: Zamrożone brutto wydatku netto w „Wydatkach inwestycyjnych" — brutto z faktury, nie z stawki
-status: implementing
+status: implemented
 created: 2026-09-23
 updated: 2026-09-23
 archived_at: null
