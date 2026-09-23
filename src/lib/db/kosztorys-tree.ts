@@ -69,6 +69,7 @@ export async function selectKosztorysTreeData(
                  sheet_measured_qty,
                  discount_type, discount_value, client_price,
                  w_tools_override_value, own_tools_override_value,
+                 w_tools_override_coeff, own_tools_override_coeff,
                  note
           FROM kosztorys_items WHERE investment_id = ${investmentId}
         ) i
@@ -145,6 +146,10 @@ const mapItem = (row: RowT): KosztorysItemT & { sectionId: number } => ({
   // złotych instead of at the investment's współczynnik (EX-766).
   wToolsOverrideValue: numOrNull(row.w_tools_override_value),
   ownToolsOverrideValue: numOrNull(row.own_tools_override_value),
+  // Same reading of NULL one level over: absent means „no mnożnik here", while `0` is a mnożnik
+  // someone chose — a stawka of zero złotych (EX-865).
+  wToolsOverrideCoeff: numOrNull(row.w_tools_override_coeff),
+  ownToolsOverrideCoeff: numOrNull(row.own_tools_override_coeff),
   note: str(row.note),
 })
 

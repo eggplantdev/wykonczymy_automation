@@ -63,6 +63,21 @@ export const WorkCatalogueItems: CollectionConfig = {
       label: { en: 'Rate without tools', pl: 'Stawka bez narzędzi (pracownik)' },
     },
     {
+      // The multiplier twin of the two rates above (EX-865): the katalog names a RATIO against the
+      // cena j.m. instead of a frozen złotówka, so the praca reprices itself in whichever rozpiska
+      // it lands in. At most one of a plane's pair is ever non-null.
+      name: 'wToolsRateCoeff',
+      type: 'number',
+      min: 0,
+      label: { en: 'Multiplier with tools', pl: 'Mnożnik z narzędziami (podwykonawca)' },
+    },
+    {
+      name: 'ownToolsRateCoeff',
+      type: 'number',
+      min: 0,
+      label: { en: 'Multiplier without tools', pl: 'Mnożnik bez narzędzi (pracownik)' },
+    },
+    {
       // Derived from opis + j.m. by `catalogueKey`, never typed. Hidden because a hand-edited key
       // would decouple the UNIQUE index from the identity it is supposed to enforce.
       name: 'matchKey',

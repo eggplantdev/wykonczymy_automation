@@ -17,6 +17,8 @@ const item: ViewPricingT = {
   clientPrice: 20,
   wToolsOverrideValue: 12,
   ownToolsOverrideValue: 10,
+  wToolsOverrideCoeff: null,
+  ownToolsOverrideCoeff: null,
   note: null,
   globalDiscountActive: false,
   globalWToolsCoeff: 0.65,

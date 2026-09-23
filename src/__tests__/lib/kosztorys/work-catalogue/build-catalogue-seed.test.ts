@@ -33,6 +33,8 @@ const item = (
   clientPrice,
   wToolsOverrideValue: null,
   ownToolsOverrideValue: null,
+  wToolsOverrideCoeff: null,
+  ownToolsOverrideCoeff: null,
   note: null,
   ...overrides,
 })

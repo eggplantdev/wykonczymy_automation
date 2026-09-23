@@ -101,6 +101,8 @@ export type SheetComparisonResultT =
 const asClientPricing = (item: ParsedItemT | KosztorysItemT): ViewPricingT => ({
   wToolsOverrideValue: null,
   ownToolsOverrideValue: null,
+  wToolsOverrideCoeff: null,
+  ownToolsOverrideCoeff: null,
   ...item,
   globalDiscountActive: false,
   globalWToolsCoeff: 0,

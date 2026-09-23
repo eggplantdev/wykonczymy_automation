@@ -36,6 +36,8 @@ export function row(overrides: Partial<KosztorysV2RowT> = {}): KosztorysV2RowT {
     clientPrice: 100,
     wToolsOverrideValue: null,
     ownToolsOverrideValue: null,
+    wToolsOverrideCoeff: null,
+    ownToolsOverrideCoeff: null,
     note: null,
     sectionName: 'Podłogi',
     sectionColor: null,

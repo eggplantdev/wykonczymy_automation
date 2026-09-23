@@ -23,6 +23,8 @@ const row: ViewPricingT = {
   clientPrice: 100,
   wToolsOverrideValue: null,
   ownToolsOverrideValue: null,
+  wToolsOverrideCoeff: null,
+  ownToolsOverrideCoeff: null,
   note: null,
   globalDiscountActive: false,
   globalWToolsCoeff: 0.65,

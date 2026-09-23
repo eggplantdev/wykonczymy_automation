@@ -37,6 +37,8 @@ const asItem = (
   clientPrice: catalogueItem.clientPrice,
   wToolsOverrideValue: catalogueItem.wToolsRate,
   ownToolsOverrideValue: catalogueItem.ownToolsRate,
+  wToolsOverrideCoeff: null,
+  ownToolsOverrideCoeff: null,
   note: null,
 })
 

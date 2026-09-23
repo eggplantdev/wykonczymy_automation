@@ -30,6 +30,8 @@ const item = (overrides: Partial<KosztorysItemT> & { id: number }): KosztorysIte
   clientPrice: 0,
   wToolsOverrideValue: null,
   ownToolsOverrideValue: null,
+  wToolsOverrideCoeff: null,
+  ownToolsOverrideCoeff: null,
   note: null,
   ...overrides,
 })

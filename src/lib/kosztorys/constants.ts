@@ -7,6 +7,14 @@ export const OVERRIDE_FIELDS = {
   own_tools: 'ownToolsOverrideValue',
 } as const satisfies Record<ToolPlaneT, keyof ViewPricingT>
 
+// The multiplier half of the same answer (EX-865). Beside OVERRIDE_FIELDS rather than folded into
+// it: a reader asking „which column holds this plane's kwota" must not have to also decide which of
+// two kinds it is looking at — `priceSourceOf` is the one place that decides.
+export const OVERRIDE_COEFF_FIELDS = {
+  w_tools: 'wToolsOverrideCoeff',
+  own_tools: 'ownToolsOverrideCoeff',
+} as const satisfies Record<ToolPlaneT, keyof ViewPricingT>
+
 // Array order is the pickers' display order.
 export const TOOL_PLANES = ['w_tools', 'own_tools'] as const satisfies readonly ToolPlaneT[]
 

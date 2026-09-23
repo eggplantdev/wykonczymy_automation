@@ -49,8 +49,17 @@ export type KosztorysItemT = {
   // reader may fold the two together (EX-766).
   wToolsOverrideValue: number | null
   ownToolsOverrideValue: number | null
+  // The third source (EX-865): a per-praca multiplier against `clientPrice`, so the stawka moves
+  // when the cena j.m. does — the one thing a frozen kwota cannot do. At most one of a plane's pair
+  // is non-null; `updateItemFieldAction` is what keeps that true, since the types cannot.
+  wToolsOverrideCoeff: number | null
+  ownToolsOverrideCoeff: number | null
   note: string | null
 }
+
+// Where a plane's subcontractor stawka comes from. One vocabulary for all four surfaces that branch
+// on it (siatka, sufit, filtry, katalog) — they used to encode it as booleans and drifted.
+export type PriceSourceT = 'auto' | 'coeff' | 'amount'
 
 // Single source of truth for the autosave patch: imported by the pure core (v2-rows diffRow) and by
 // updateItemFieldAction, whose zod validation is derived from this shape.
@@ -65,6 +74,8 @@ export type ItemPatchT = Partial<
     | 'clientPrice'
     | 'wToolsOverrideValue'
     | 'ownToolsOverrideValue'
+    | 'wToolsOverrideCoeff'
+    | 'ownToolsOverrideCoeff'
     | 'note'
   >
 >

@@ -38,6 +38,8 @@ function currentTree(overrides: Partial<SnapshotPayloadT> = {}): SnapshotPayload
         clientPrice: 999,
         wToolsOverrideValue: null,
         ownToolsOverrideValue: null,
+        wToolsOverrideCoeff: null,
+        ownToolsOverrideCoeff: null,
         note: 'ustalone z klientem',
       },
     ],

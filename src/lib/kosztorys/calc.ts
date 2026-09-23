@@ -1,8 +1,9 @@
-import { OVERRIDE_FIELDS } from '@/lib/kosztorys/constants'
+import { OVERRIDE_COEFF_FIELDS, OVERRIDE_FIELDS } from '@/lib/kosztorys/constants'
 import type {
   GlobalDiscountT,
   KosztorysGlobalCoeffsT,
   KosztorysItemT,
+  PriceSourceT,
   ToolPlaneT,
   ViewPricingT,
 } from '@/lib/kosztorys/types'
@@ -84,6 +85,42 @@ export function overrideValueFor(
 }
 
 /**
+ * This plane's own MULTIPLIER, or `null` for „no multiplier here". Twin of `overrideValueFor`, and
+ * `null` carries the same weight: `0` is a multiplier someone set to zero — a stawka of zero złotych
+ * — not an absence.
+ */
+export function overrideCoeffFor(
+  row: Pick<ViewPricingT, 'wToolsOverrideCoeff' | 'ownToolsOverrideCoeff'>,
+  view: ToolPlaneT,
+): number | null {
+  return row[OVERRIDE_COEFF_FIELDS[view]]
+}
+
+/**
+ * Where this plane's stawka comes from — the ONLY place the precedence coeff > kwota > global
+ * współczynnik is decided. Four surfaces branch on the answer (siatka, sufit, filtry, katalog); each
+ * re-deriving it from `!== null` checks is how they drift apart.
+ *
+ * The multiplier wins a row carrying both. That pair is unreachable through the app — the action
+ * normalizes every write — but raw SQL and `/admin` reach it, and a tie needs a rule rather than a
+ * throw.
+ */
+export function priceSourceOf(
+  row: Pick<
+    ViewPricingT,
+    | 'wToolsOverrideValue'
+    | 'ownToolsOverrideValue'
+    | 'wToolsOverrideCoeff'
+    | 'ownToolsOverrideCoeff'
+  >,
+  view: ToolPlaneT,
+): PriceSourceT {
+  if (overrideCoeffFor(row, view) !== null) return 'coeff'
+  if (overrideValueFor(row, view) !== null) return 'amount'
+  return 'auto'
+}
+
+/**
  * A `KosztorysItemT` seen as a priceable row. The globals default to 0 for callers that price only
  * planes carrying their OWN nadpisanie — a kwota stała reads no global, so there the zeros are inert
  * rather than a stand-in for a real współczynnik.
@@ -100,10 +137,20 @@ export function asViewPricing(
   }
 }
 
+/**
+ * Three sources, one number. The multiplier — like „auto" — multiplies the price BEFORE rabat: the
+ * rabat is the company handing back its own marża, not a markdown of the crew's work, so no
+ * subcontractor figure in this file has ever seen one.
+ */
 export function subcontractorPrice(row: ViewPricingT, view: ToolPlaneT): number {
-  const override = overrideValueFor(row, view)
-  if (override !== null) return override
-  return row.clientPrice * effectiveCoeff(row, view)
+  switch (priceSourceOf(row, view)) {
+    case 'coeff':
+      return row.clientPrice * overrideCoeffFor(row, view)!
+    case 'amount':
+      return overrideValueFor(row, view)!
+    default:
+      return row.clientPrice * effectiveCoeff(row, view)
+  }
 }
 
 export function viewPrice(row: ViewPricingT, view: PriceViewT): number {

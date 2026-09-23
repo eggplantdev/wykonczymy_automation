@@ -20,6 +20,8 @@ const asPricing = (source: CatalogueSourceItemT): ViewPricingT => ({
   clientPrice: source.clientPrice,
   wToolsOverrideValue: source.wToolsOverrideValue,
   ownToolsOverrideValue: source.ownToolsOverrideValue,
+  wToolsOverrideCoeff: null,
+  ownToolsOverrideCoeff: null,
   note: null,
   globalDiscountActive: false,
   // Unreachable: only a plane with its own nadpisanie is priced here, and a kwota stała consults no

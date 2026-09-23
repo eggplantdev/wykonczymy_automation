@@ -734,15 +734,15 @@ i „auto" są nietknięte, bo mieszkają w kolumnach, których ta zmiana nie ru
 
 #### Automated
 
-- [x] 0.1 `pnpm db:import:test` kończy się bez błędu
-- [x] 0.2 `pnpm test:parity` przechodzi na nietkniętym drzewie
+- [x] 0.1 `pnpm db:import:test` kończy się bez błędu — 06955a98
+- [x] 0.2 `pnpm test:parity` przechodzi na nietkniętym drzewie — 06955a98
 
 ### Phase 1: Schemat i arytmetyka
 
 #### Automated
 
-- [ ] 1.1 Nowy spec wyceny przechodzi (trzy źródła, dwie płaszczyzny, przypadki brzegowe)
-- [ ] 1.2 `pnpm typecheck`
+- [x] 1.1 Nowy spec wyceny przechodzi (trzy źródła, dwie płaszczyzny, przypadki brzegowe)
+- [ ] 1.2 `pnpm typecheck` — bramka całego drzewa, sprawdzana raz na koniec przebiegu
 
 ### Phase 2: Atomowa ścieżka zapisu
 

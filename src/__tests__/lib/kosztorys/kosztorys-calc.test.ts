@@ -5,6 +5,7 @@ import {
   globalDiscountForMode,
   isGlobalDiscountActive,
   netForQtyForView,
+  priceSourceOf,
   rowDiscountForView,
   rowDoneFraction,
   rowPlannedNetForView,
@@ -29,6 +30,8 @@ const item: ViewPricingT = {
   clientPrice: 20,
   wToolsOverrideValue: 12,
   ownToolsOverrideValue: 10,
+  wToolsOverrideCoeff: null,
+  ownToolsOverrideCoeff: null,
   note: null,
   globalDiscountActive: false,
   globalWToolsCoeff: 0.65,
@@ -37,6 +40,84 @@ const item: ViewPricingT = {
 
 // Σ etapów, handed in by the settlement layer — here it happens to equal the fixture's 10.
 const TOTAL_QTY = 10
+
+// EX-865. „Auto" and the mnożnik are the same arithmetic over two different coefficients, so every
+// case here has to separate them: the fixture's globals are 0,65 / 0,55 and no mnożnik below reuses
+// either number.
+describe('subcontractorPrice — trzy źródła stawki', () => {
+  const auto = { ...item, wToolsOverrideValue: null, ownToolsOverrideValue: null }
+
+  it('bez nadpisania liczy z globalnego współczynnika inwestycji', () => {
+    expect(subcontractorPrice(auto, 'w_tools')).toBeCloseTo(13, 10) // 20 × 0,65
+    expect(subcontractorPrice(auto, 'own_tools')).toBeCloseTo(11, 10) // 20 × 0,55
+  })
+
+  it('kwota stała jest kwotą — cena j.m. jej nie rusza', () => {
+    expect(subcontractorPrice(item, 'w_tools')).toBe(12)
+    expect(subcontractorPrice({ ...item, clientPrice: 999 }, 'w_tools')).toBe(12)
+  })
+
+  it('mnożnik liczy się od ceny j.m. i podąża za nią — to czego kwota stała nie potrafi', () => {
+    const row = { ...auto, wToolsOverrideCoeff: 0.8, ownToolsOverrideCoeff: 0.4 }
+    expect(subcontractorPrice(row, 'w_tools')).toBeCloseTo(16, 10) // 20 × 0,8
+    expect(subcontractorPrice(row, 'own_tools')).toBeCloseTo(8, 10) // 20 × 0,4
+    expect(subcontractorPrice({ ...row, clientPrice: 50 }, 'w_tools')).toBeCloseTo(40, 10)
+  })
+
+  it('płaszczyzny są niezależne — mnożnik na jednej nie rusza drugiej', () => {
+    const row = { ...auto, wToolsOverrideCoeff: 0.8 }
+    expect(subcontractorPrice(row, 'w_tools')).toBeCloseTo(16, 10)
+    expect(subcontractorPrice(row, 'own_tools')).toBeCloseTo(11, 10) // wciąż „auto"
+  })
+
+  // `0` to stawka ustawiona na zero, nie brak stawki — złożenie go z `null` przywróciłoby
+  // współczynnik inwestycji i zapłaciło ekipie za pracę, której nikt nie wycenił.
+  it('mnożnik 0 to stawka zero złotych, nie „auto"', () => {
+    expect(subcontractorPrice({ ...auto, wToolsOverrideCoeff: 0 }, 'w_tools')).toBe(0)
+  })
+
+  it('cena j.m. 0 zeruje stawkę z mnożnika, bez NaN', () => {
+    const row = { ...auto, clientPrice: 0, wToolsOverrideCoeff: 0.8 }
+    expect(subcontractorPrice(row, 'w_tools')).toBe(0)
+  })
+
+  // Sufit odrzuca ją osobno (subcontractor-price-guard); arytmetyka ma ją policzyć, nie ukryć.
+  it('ujemny mnożnik przechodzi wprost — to sygnał złych danych, nie miejsce na clamp', () => {
+    expect(subcontractorPrice({ ...auto, wToolsOverrideCoeff: -0.5 }, 'w_tools')).toBeCloseTo(-10, 10)
+  })
+
+  // Nieosiągalne przez aplikację (akcja normalizuje każdy zapis), ale surowy SQL i /admin tam sięgają.
+  it('wiersz z OBIEMA kolumnami wycenia się po mnożniku i nie rzuca', () => {
+    const both = { ...item, wToolsOverrideValue: 12, wToolsOverrideCoeff: 0.8 }
+    expect(subcontractorPrice(both, 'w_tools')).toBeCloseTo(16, 10)
+    expect(priceSourceOf(both, 'w_tools')).toBe('coeff')
+  })
+})
+
+describe('priceSourceOf — jedno miejsce decydujące o pierwszeństwie', () => {
+  const auto = { ...item, wToolsOverrideValue: null, ownToolsOverrideValue: null }
+
+  it('brak obu kolumn → „auto"', () => {
+    expect(priceSourceOf(auto, 'w_tools')).toBe('auto')
+    expect(priceSourceOf(auto, 'own_tools')).toBe('auto')
+  })
+
+  it('sama kwota → „amount", zero też', () => {
+    expect(priceSourceOf(item, 'w_tools')).toBe('amount')
+    expect(priceSourceOf({ ...auto, wToolsOverrideValue: 0 }, 'w_tools')).toBe('amount')
+  })
+
+  it('mnożnik → „coeff", zero też', () => {
+    expect(priceSourceOf({ ...auto, wToolsOverrideCoeff: 0.8 }, 'w_tools')).toBe('coeff')
+    expect(priceSourceOf({ ...auto, wToolsOverrideCoeff: 0 }, 'w_tools')).toBe('coeff')
+  })
+
+  it('czyta płaszczyznę, o którą pytano', () => {
+    const row = { ...auto, ownToolsOverrideCoeff: 0.4 }
+    expect(priceSourceOf(row, 'own_tools')).toBe('coeff')
+    expect(priceSourceOf(row, 'w_tools')).toBe('auto')
+  })
+})
 
 describe('stageValueForView', () => {
   it('liczy wartość etapu wg ceny widoku', () => {

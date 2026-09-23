@@ -14,11 +14,14 @@ import type { ResolvedLaborColumnsT } from './resolve-columns'
 // and a footer row are BOTH marked this way — the section name is the only thing separating them.
 export const NON_ITEM_MARKER = 'x'
 
-// The praca's own fields. The two subcontractor-stawka fields are missing on purpose: they come
+// The praca's own fields. All four subcontractor-stawka fields are missing on purpose: they come
 // from the „zakres pracy" tabs, so the parser has no honest value for them and refuses to invent
 // one — a placeholder `null` would read as „inherit the global coefficient", which is a cost the
 // sheet never has.
-export type ParsedItemT = Omit<KosztorysItemT, 'wToolsOverrideValue' | 'ownToolsOverrideValue'>
+export type ParsedItemT = Omit<
+  KosztorysItemT,
+  'wToolsOverrideValue' | 'ownToolsOverrideValue' | 'wToolsOverrideCoeff' | 'ownToolsOverrideCoeff'
+>
 
 export type ParsedLaborTabT = {
   sections: KosztorysSectionT[]
