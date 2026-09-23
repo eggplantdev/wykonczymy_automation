@@ -15,7 +15,7 @@ const ROWS: MaterialsBreakdownRowT[] = [
   { id: 1, label: 'Materiały budowlane', net: RECEIPT, origin: 'gross' },
   {
     id: 2,
-    label: 'Materiały wykończeniowe netto',
+    label: 'Materiały wykończeniowe',
     net: INVOICE_NET,
     origin: 'netBilled',
     recordedGross: INVOICE_GROSS,
@@ -31,9 +31,12 @@ function rowValues(label: string): string[] {
   return texts.slice(start + 1, start + 1 + columns)
 }
 
-function renderAt(netRate: number | null) {
-  return render(<MaterialsBreakdownTable rows={ROWS} netRate={netRate} />)
+function renderAt(netRate: number | null, byCategory = false) {
+  return render(<MaterialsBreakdownTable rows={ROWS} netRate={netRate} byCategory={byCategory} />)
 }
+
+// Same category on both origins, so the merge has something to fold.
+const MIXED_ROWS: MaterialsBreakdownRowT[] = [ROWS[0], { ...ROWS[1], id: 1, label: ROWS[0].label }]
 
 describe('MaterialsBreakdownTable — a „… netto" row is the invoice at any stawka', () => {
   it.each([0.12, 0.23])('at %s the netto row reads invoice netto / brutto / Różnica', (rate) => {
@@ -75,5 +78,32 @@ describe('MaterialsBreakdownTable — a „… netto" row is the invoice at any 
     expect(screen.queryByText('Brutto')).not.toBeInTheDocument()
     expect(rowValues('Materiały wykończeniowe netto')).toEqual([formatNet(INVOICE_NET)])
     expect(rowValues('Razem')).toEqual([formatNet(RECEIPT + INVOICE_NET)])
+  })
+})
+
+describe('MaterialsBreakdownTable byCategory — the investor never sees a „… netto" row', () => {
+  function renderMixed(netRate: number | null, byCategory: boolean) {
+    return render(
+      <MaterialsBreakdownTable rows={MIXED_ROWS} netRate={netRate} byCategory={byCategory} />,
+    )
+  }
+
+  it('folds the netto invoice into its category', () => {
+    renderMixed(0.23, true)
+    expect(screen.queryByText(/ netto$/)).not.toBeInTheDocument()
+    expect(screen.getAllByText('Materiały budowlane')).toHaveLength(1)
+    expect(rowValues('Materiały budowlane')).toEqual([
+      formatNet(1000 + INVOICE_NET),
+      formatNet(RECEIPT + INVOICE_GROSS),
+      formatNet(1000 + INVOICE_NET - RECEIPT - INVOICE_GROSS),
+    ])
+  })
+
+  it.each([0.23, null])('at %s Razem is identical to the unmerged render', (rate) => {
+    const { unmount } = renderMixed(rate, false)
+    const unmerged = rowValues('Razem')
+    unmount()
+    renderMixed(rate, true)
+    expect(rowValues('Razem')).toEqual(unmerged)
   })
 })

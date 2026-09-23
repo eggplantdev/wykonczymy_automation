@@ -136,7 +136,7 @@ describe('buildMaterialsBreakdown', () => {
     ).toEqual([
       {
         id: 1,
-        label: 'Materiały budowlane netto',
+        label: 'Materiały budowlane',
         net: 1000,
         origin: 'netBilled',
         recordedGross: 1080,
@@ -179,7 +179,7 @@ describe('buildMaterialsBreakdown', () => {
     // 8% apart, not 23%: the brutto must be the invoice's, not one the rate could reproduce.
     const netCategoryGrossCosts = [{ categoryId: 1, total: 1080 }]
 
-    it('splits a mixed category into a brutto row and its own frozen „… netto" row', () => {
+    it('splits a mixed category into a brutto row and its own frozen netto row under the same name', () => {
       const rows = buildMaterialsBreakdown(
         financials,
         cats,
@@ -190,7 +190,7 @@ describe('buildMaterialsBreakdown', () => {
         { id: 1, label: 'Materiały budowlane', net: 500, origin: 'gross' },
         {
           id: 1,
-          label: 'Materiały budowlane netto',
+          label: 'Materiały budowlane',
           net: 1000,
           origin: 'netBilled',
           recordedGross: 1080,

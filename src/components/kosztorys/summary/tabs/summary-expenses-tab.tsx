@@ -112,7 +112,11 @@ export function SummaryExpensesTab({
       )}
       <div className="flex flex-col gap-6">
         {hasBilledMaterials && (
-          <MaterialsBreakdownTable rows={materialsBreakdown} netRate={materialsNetRate} />
+          <MaterialsBreakdownTable
+            rows={materialsBreakdown}
+            netRate={materialsNetRate}
+            byCategory={preview}
+          />
         )}
         {/* Never rows inside the wydatki table: this spend is the company's, so it must be
             impossible to read as part of „Razem". Its own gate too — an investment can have

@@ -2,7 +2,7 @@
 
 import { Fragment } from 'react'
 import { formatNet } from '@/lib/kosztorys/format'
-import { breakdownRowPair } from '@/lib/kosztorys/summary-economics'
+import { categoryBreakdownRows, pricedBreakdownRows } from '@/lib/kosztorys/breakdown-rows'
 import {
   SUMMARY_LABEL_COL,
   SUMMARY_VALUE_COL,
@@ -14,13 +14,14 @@ import {
 import type { MaterialsBreakdownRowT } from '@/types/investment-financials'
 
 // The per-category „Wydatki inwestycyjne" split — each expense category's recorded brutto, plus a
-// separate frozen „… netto" row per category billed at netto. A non-null `netRate` adds the netto and
-// zł Różnica columns; null keeps it a single-amount-per-category table.
-// `row.net` is the brutto sum (financials-layer field name kept; reinterpreted as gross here).
+// separate frozen „… netto" row per category billed at netto; `byCategory` folds that row back into
+// its category for the investor, who is never shown how an invoice is billed. A non-null `netRate`
+// adds the netto and zł Różnica columns; null keeps it a single-amount-per-category table.
 export function MaterialsBreakdownTable({
   rows,
   netRate,
   caption = 'Wydatki inwestycyjne',
+  byCategory = false,
 }: {
   rows: MaterialsBreakdownRowT[]
   // The rate the Netto column strips, as a fraction — the saved materiały rate, and nothing else.
@@ -30,6 +31,7 @@ export function MaterialsBreakdownTable({
   // Names the split — the same per-category shape also renders the settled („wliczone w robociznę")
   // spend, which must never read as part of the investor's wydatki.
   caption?: string
+  byCategory?: boolean
 }) {
   // No filter here: it would make the table disagree with the `rows.length` its callers gate on,
   // which is how the tab once rendered blank. The builders drop the zeros.
@@ -39,9 +41,11 @@ export function MaterialsBreakdownTable({
   const cols = showNet
     ? `${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL} ${SUMMARY_VALUE_COL} ${SUMMARY_VALUE_COL}`
     : `${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL}`
-  const pairOf = (row: MaterialsBreakdownRowT) => breakdownRowPair(row, netRate)
-  const totalGross = rows.reduce((sum, row) => sum + pairOf(row).gross, 0)
-  const totalNet = rows.reduce((sum, row) => sum + pairOf(row).net, 0)
+  const priced = byCategory
+    ? categoryBreakdownRows(rows, netRate)
+    : pricedBreakdownRows(rows, netRate)
+  const totalGross = priced.reduce((sum, row) => sum + row.pair.gross, 0)
+  const totalNet = priced.reduce((sum, row) => sum + row.pair.net, 0)
 
   return (
     <SummaryTable cols={cols} className="w-fit">
@@ -54,21 +58,18 @@ export function MaterialsBreakdownTable({
             one plane, and naming it invites the reader to look for a netto twin that isn't there. */}
       <SummaryHeaderCell>{showNet ? 'Brutto' : 'Kwota'}</SummaryHeaderCell>
       {showNet && <SummaryHeaderCell>Różnica</SummaryHeaderCell>}
-      {rows.map((row) => {
-        const pair = pairOf(row)
-        return (
-          <Fragment key={`${row.origin}-${row.id ?? 'correction'}`}>
-            <SummaryLabelCell>{row.label}</SummaryLabelCell>
-            {showNet && <SummaryValueCell>{formatNet(pair.net)}</SummaryValueCell>}
-            <SummaryValueCell>{formatNet(pair.gross)}</SummaryValueCell>
-            {showNet && (
-              <SummaryValueCell className="text-muted-foreground">
-                {formatNet(pair.net - pair.gross)}
-              </SummaryValueCell>
-            )}
-          </Fragment>
-        )
-      })}
+      {priced.map(({ key, label, pair }) => (
+        <Fragment key={key}>
+          <SummaryLabelCell>{label}</SummaryLabelCell>
+          {showNet && <SummaryValueCell>{formatNet(pair.net)}</SummaryValueCell>}
+          <SummaryValueCell>{formatNet(pair.gross)}</SummaryValueCell>
+          {showNet && (
+            <SummaryValueCell className="text-muted-foreground">
+              {formatNet(pair.net - pair.gross)}
+            </SummaryValueCell>
+          )}
+        </Fragment>
+      ))}
       <SummaryLabelCell weight="bold">Razem</SummaryLabelCell>
       {showNet && <SummaryValueCell weight="bold">{formatNet(totalNet)}</SummaryValueCell>}
       <SummaryValueCell weight="bold">{formatNet(totalGross)}</SummaryValueCell>

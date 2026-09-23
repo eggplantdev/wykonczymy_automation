@@ -26,7 +26,9 @@ function uncategorisedRemainder(financials: InvestmentFinancialsT): number {
 /** One row per expense category plus the uncategorised remainder, so Σ rows === totalMaterialCosts
  *  and the podsumowanie reconciles with the investment page byte-for-byte.
  *
- *  A category billed partly at netto splits into a brutto remainder and a frozen „… netto" row.
+ *  A category billed partly at netto splits into a brutto remainder and a frozen netto row under the
+ *  same id and bare category name — the „… netto" wording is `pricedBreakdownRows`' to add, since the
+ *  investor's per-category merge must not have to strip it.
  *  `netCategoryCosts` is a subset of `financials.categoryCosts`, so subtracting it keeps the Σ
  *  invariant intact. The netto rows come as a block rather than interleaved per category: beside
  *  their brutto twin they read as a sub-row and invite summing the pair. */
@@ -57,7 +59,7 @@ export function buildMaterialsBreakdown(
     .filter(({ netBilled }) => netBilled !== 0)
     .map(({ cat, netBilled }) => ({
       id: cat.id,
-      label: `${cat.name} netto`,
+      label: cat.name,
       net: netBilled,
       origin: 'netBilled' as const,
       recordedGross: costForCategory(netCategoryGrossCosts, cat.id),
