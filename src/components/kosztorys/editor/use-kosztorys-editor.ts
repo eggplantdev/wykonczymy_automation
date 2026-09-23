@@ -66,6 +66,7 @@ import {
   columnsRevealedBy,
   countMatching,
   liftsToSections,
+  rowIdsMatching,
   sectionIdsWhereAllMatch,
 } from '@/lib/kosztorys/row-conditions/queries'
 import {
@@ -136,6 +137,8 @@ const UNDO_COALESCE_MS = 700
 // one decides when the server's recomputed totals are worth a round trip.
 const TOTALS_REFRESH_DEBOUNCE_MS = 700
 
+const NO_ROW_IDS: ReadonlySet<number> = new Set()
+
 // Handlers never fire an action from inside a setRows updater — that would move the Router during
 // render.
 export function useKosztorysEditor({
@@ -171,6 +174,8 @@ export function useKosztorysEditor({
     search,
     setSearch,
     engagedConditionIds,
+    showAllRows,
+    setShowAllRows,
     toggleCondition,
     setConditions,
     toggleConditionExclusive,
@@ -433,6 +438,31 @@ export function useKosztorysEditor({
     qtyDoneByRowId,
     catalogueRowIds,
   ])
+  // What the owner's „Ukryj pozycje…" takes out of the client's document: its size labels the
+  // investor's „Pokaż wszystkie pozycje", and its members render muted once they are shown. Asked
+  // even while the switch is on — the rule is what the owner stored, not what is currently hidden.
+  const clientEmptyRowIds = useMemo(
+    () =>
+      preview && clientView?.hideEmptyRows
+        ? rowIdsMatching(rows, 'client-empty', {
+            stages,
+            hasSettledMaterial,
+            divergentPriceRowIds: divergentPriceIds,
+            qtyDoneByRowId,
+            catalogueRowIds,
+          })
+        : NO_ROW_IDS,
+    [
+      preview,
+      clientView?.hideEmptyRows,
+      rows,
+      stages,
+      hasSettledMaterial,
+      divergentPriceIds,
+      qtyDoneByRowId,
+      catalogueRowIds,
+    ],
+  )
   // Over the view's own etapy: a subcontractor view already drops plane-less etapy, so counting the raw
   // list would offer a filter that can only empty the stage block. Asymmetric with the price conditions
   // by design — a price exists on both planes, an etap belongs to one.
@@ -1289,6 +1319,9 @@ export function useKosztorysEditor({
     setSearch,
     engagedConditionIds,
     engagedStageConditionIds,
+    showAllRows,
+    setShowAllRows,
+    clientEmptyRowIds,
     toggleCondition,
     setConditions,
     toggleConditionExclusive,

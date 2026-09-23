@@ -10,6 +10,7 @@ import {
   engagedPlane,
   isFoldSuppressed,
   offeredFilterConditions,
+  rowIdsMatching,
   sectionIdsWhereAllMatch,
 } from '@/lib/kosztorys/row-conditions/queries'
 import { ROW_CONDITIONS } from '@/lib/kosztorys/row-conditions/registry'
@@ -101,6 +102,22 @@ describe('countMatching — over the full dataset, so it can reach zero', () => 
 
   it('reads an unknown id as zero', () => {
     expect(countMatching([row({ clientPrice: 0 })], 'no-such-condition', CTX)).toBe(0)
+  })
+})
+
+describe('rowIdsMatching', () => {
+  it('names exactly the pozycje the client rule hides', () => {
+    const rows = [
+      row({ id: 1, plannedQty: 0 }),
+      row({ id: 2, plannedQty: 5 }),
+      row({ id: 3, plannedQty: 0 }),
+    ]
+
+    expect([...rowIdsMatching(rows, 'client-empty', CTX)]).toEqual([1, 3])
+  })
+
+  it('reads an unknown id as no pozycje', () => {
+    expect(rowIdsMatching([row({ id: 1, plannedQty: 0 })], 'no-such-condition', CTX).size).toBe(0)
   })
 })
 

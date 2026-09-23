@@ -147,6 +147,16 @@ export function countMatching(
   return rows.reduce((count, row) => (condition.matches(row, ctx) ? count + 1 : count), 0)
 }
 
+export function rowIdsMatching(
+  rows: KosztorysV2RowT[],
+  conditionId: string,
+  ctx: RowConditionCtxT,
+): ReadonlySet<number> {
+  const condition = BY_ID.get(conditionId)
+  if (!condition) return new Set()
+  return new Set(rows.filter((row) => condition.matches(row, ctx)).map((row) => row.id))
+}
+
 /**
  * The conditions the „Sekcje …" half of the „Filtry" menu offers, and so exactly the ones worth
  * computing a `sectionIdsWhereAllMatch` set for. `sectionLabel === null` is the registry entry saying
