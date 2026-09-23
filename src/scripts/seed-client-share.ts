@@ -180,6 +180,7 @@ async function main() {
       transferDeposit,
       grossExpense,
       netExpense,
+      categoryName: category.name,
       settledExpense,
       invoiceFilename: invoicePage.filename,
     })}`,

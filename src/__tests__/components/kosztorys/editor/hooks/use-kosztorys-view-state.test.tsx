@@ -60,8 +60,6 @@ describe('useKosztorysViewState — płaszczyzna cen', () => {
   })
 })
 
-// „Pokaż wszystkie pozycje" lifts the owner's hide for one visit — it feeds `clientConditionIds`, never
-// bypasses it, and never touches the owner's own grid.
 describe('useKosztorysViewState — „Pokaż wszystkie pozycje"', () => {
   const CLIENT_VIEW = { hiddenColumns: [], hideEmptyRows: true }
 

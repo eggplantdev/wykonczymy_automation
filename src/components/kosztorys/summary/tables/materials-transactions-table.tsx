@@ -23,7 +23,6 @@ import {
   type ExpenseDatasetT,
 } from '@/lib/kosztorys/expense-datasets'
 import { formatPLDate } from '@/lib/utils/format-date'
-import { today } from '@/lib/utils/date'
 import type { MaterialTransactionRowT } from '@/types/transfers'
 
 type PropsT = {
@@ -177,7 +176,20 @@ export function MaterialsTransactionsTable({
   // A prop change can empty the picked set (an expense re-categorised away); fall back rather than
   // render a tab with nothing in it.
   const activeDataset = available.includes(dataset) ? dataset : (available[0] ?? 'gross')
-  const visibleRows = preview ? clientVisibleExpenseRows(rows) : partition[activeDataset]
+  const listing = preview
+    ? {
+        key: 'client',
+        rows: clientVisibleExpenseRows(rows),
+        label: CLIENT_LIST_LABEL,
+        sum: sumAmount,
+      }
+    : {
+        key: activeDataset,
+        rows: partition[activeDataset],
+        label: DATASET_LABELS[activeDataset],
+        sum: sumBilled,
+      }
+  const visibleRows = listing.rows
   const isNetDataset = !preview && activeDataset === 'net'
   // Rows are already here, so an empty active dataset is knowable up front — no point offering a
   // button that could only ever answer „brak faktur". (The transfers variant can't know until it fetches.)
@@ -193,8 +205,7 @@ export function MaterialsTransactionsTable({
   if (visibleRows.length === 0) return null
 
   function handleDownload() {
-    const setLabel = preview ? CLIENT_LIST_LABEL : DATASET_LABELS[activeDataset]
-    download(visibleRows, [investmentName, setLabel], INVOICE_ARCHIVE_COPY)
+    download(visibleRows, [investmentName, listing.label], INVOICE_ARCHIVE_COPY)
   }
 
   return (
@@ -222,7 +233,7 @@ export function MaterialsTransactionsTable({
         )}
       </div>
       <DataTable
-        key={preview ? 'client' : activeDataset}
+        key={listing.key}
         data={visibleRows}
         columns={isNetDataset ? NET_COLUMNS : GROSS_COLUMNS}
         enableVirtualization
@@ -235,13 +246,14 @@ export function MaterialsTransactionsTable({
         getRowHref={preview ? undefined : (row) => expenseRowHref(investmentId, row)}
         footer={(visibleColumnIds) => (
           <tr>
-            {/* The total is of `billed`, which the netto set renders second-to-last — so the label
-                spans one column less there, and the trailing Brutto column gets an empty cell. */}
+            {/* The manager's total is of `billed`, which the netto set renders second-to-last — so the
+                label spans one column less there, and the trailing Brutto column gets an empty cell.
+                The investor's is of `amount`: what left the kasa. */}
             <td className="font-bold" colSpan={visibleColumnIds.length - (isNetDataset ? 2 : 1)}>
               Razem
             </td>
             <td className="text-right font-bold tabular-nums">
-              {formatNet(preview ? sumAmount(visibleRows) : sumBilled(visibleRows))}
+              {formatNet(listing.sum(visibleRows))}
             </td>
             {isNetDataset && <td />}
           </tr>

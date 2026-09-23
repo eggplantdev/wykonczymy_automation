@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import {
-  breakdownRowPair,
   combinedPair,
   computeAmountDue,
   faceValue,
@@ -51,47 +50,6 @@ describe('billedMaterialsPair (netto pricing switch)', () => {
     const p = billedMaterialsPair(123, null)
     expect(p.net).toBe(123)
     expect(p.gross).toBe(123)
-  })
-})
-
-// A brutto row crosses to netto through the rate; a netto row crosses nothing — both of its amounts
-// are on the invoice (owner, 2026-09-23). The invoice pair below is 8% apart and the rates are 12%
-// and 23%, so a brutto derived from the rate can never coincide with the recorded one.
-const INVOICE = { net: 4453.33, gross: 4809.6 }
-const netRow = (net: number, recordedGross: number) => ({
-  net,
-  origin: 'netBilled' as const,
-  recordedGross,
-})
-
-describe('breakdownRowPair (one „Wydatki inwestycyjne" row on both planes)', () => {
-  it('a brutto row keeps its receipt and divides down to netto', () => {
-    const p = breakdownRowPair({ net: 123, origin: 'gross' }, 0.23)
-    expect(p.gross).toBe(123)
-    expect(p.net).toBeCloseTo(100)
-  })
-
-  it.each([0.12, 0.23])('a netto row shows the invoice on both planes at a %s rate', (rate) => {
-    expect(breakdownRowPair(netRow(INVOICE.net, INVOICE.gross), rate)).toEqual(INVOICE)
-  })
-
-  // Owner Q1: with no rate the table has one „Kwota" column, and it shows what the investor is
-  // billed — the netto — so Razem still equals „Materiały" in the podsumowanie.
-  it('no rate = one figure per row, the billed one', () => {
-    expect(breakdownRowPair(netRow(INVOICE.net, INVOICE.gross), null)).toEqual(
-      faceValue(INVOICE.net),
-    )
-    expect(breakdownRowPair({ net: 123, origin: 'gross' }, null)).toEqual({ net: 123, gross: 123 })
-  })
-
-  // „Korekta (bez kategorii)" arrives negative. The bug this replaced flipped or flattened such a
-  // row, so pin both the sign and the ratio: a credit must cross the bridge exactly like a charge.
-  it('a negative row keeps its sign — a brutto one its ratio, a netto one its invoice', () => {
-    const gross = breakdownRowPair({ net: -123, origin: 'gross' }, 0.23)
-    expect(gross.gross).toBe(-123)
-    expect(gross.net).toBeCloseTo(-100)
-
-    expect(breakdownRowPair(netRow(-100, -108), 0.23)).toEqual({ net: -100, gross: -108 })
   })
 })
 

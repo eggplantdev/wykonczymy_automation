@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { categoryBreakdownRows, pricedBreakdownRows } from '@/lib/kosztorys/breakdown-rows'
-import { breakdownRowPair } from '@/lib/kosztorys/summary-economics'
+import {
+  breakdownRowPair,
+  categoryBreakdownRows,
+  pricedBreakdownRows,
+} from '@/lib/kosztorys/breakdown-rows'
+import { faceValue } from '@/lib/kosztorys/summary-economics'
 import type { MaterialsBreakdownRowT } from '@/types/investment-financials'
 
 // 8% apart, so a brutto the rate derived could never coincide with the invoice's.
@@ -31,6 +35,52 @@ function sums(pairs: { net: number; gross: number }[]) {
     { net: 0, gross: 0 },
   )
 }
+
+const INVOICE = { net: INVOICE_NET, gross: INVOICE_GROSS }
+const grossRow = (net: number): MaterialsBreakdownRowT => ({
+  id: 1,
+  label: 'M',
+  net,
+  origin: 'gross',
+})
+const netRow = (net: number, recordedGross: number): MaterialsBreakdownRowT => ({
+  id: 1,
+  label: 'M',
+  net,
+  origin: 'netBilled',
+  recordedGross,
+})
+
+describe('breakdownRowPair (one „Wydatki inwestycyjne" row on both planes)', () => {
+  it('a brutto row keeps its receipt and divides down to netto', () => {
+    const p = breakdownRowPair(grossRow(123), 0.23)
+    expect(p.gross).toBe(123)
+    expect(p.net).toBeCloseTo(100)
+  })
+
+  it.each([0.12, 0.23])('a netto row shows the invoice on both planes at a %s rate', (rate) => {
+    expect(breakdownRowPair(netRow(INVOICE.net, INVOICE.gross), rate)).toEqual(INVOICE)
+  })
+
+  // Owner Q1: with no rate the table has one „Kwota" column, and it shows what the investor is
+  // billed — the netto — so Razem still equals „Materiały" in the podsumowanie.
+  it('no rate = one figure per row, the billed one', () => {
+    expect(breakdownRowPair(netRow(INVOICE.net, INVOICE.gross), null)).toEqual(
+      faceValue(INVOICE.net),
+    )
+    expect(breakdownRowPair(grossRow(123), null)).toEqual({ net: 123, gross: 123 })
+  })
+
+  // „Korekta (bez kategorii)" arrives negative. The bug this replaced flipped or flattened such a
+  // row, so pin both the sign and the ratio: a credit must cross the bridge exactly like a charge.
+  it('a negative row keeps its sign — a brutto one its ratio, a netto one its invoice', () => {
+    const gross = breakdownRowPair(grossRow(-123), 0.23)
+    expect(gross.gross).toBe(-123)
+    expect(gross.net).toBeCloseTo(-100)
+
+    expect(breakdownRowPair(netRow(-100, -108), 0.23)).toEqual({ net: -100, gross: -108 })
+  })
+})
 
 describe('pricedBreakdownRows — one row per input row', () => {
   it.each(RATES)('at %s each pair is breakdownRowPair of its row', (rate) => {

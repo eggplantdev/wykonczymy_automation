@@ -32,6 +32,7 @@ type ClientShareSeed = {
   transferDeposit: { amount: number; netAmount: number; date: string }
   grossExpense: { description: string; amount: number }
   netExpense: { description: string; amount: number; netAmount: number }
+  categoryName: string
   settledExpense: { description: string; amount: number }
   invoiceFilename: string
 }
@@ -248,7 +249,6 @@ test('the investor gets one brutto wydatki list with its faktury, and never the 
       await expensesToggle.click()
     await expect(expensesToggle).toHaveAttribute('aria-expanded', 'true')
 
-    // How an invoice is billed is the manager's concern: the investor gets no dataset switch at all.
     for (const name of [
       /Materiały brutto/,
       /Materiały rozliczane netto/,
@@ -256,8 +256,8 @@ test('the investor gets one brutto wydatki list with its faktury, and never the 
     ])
       await expect(visitor.getByRole('radio', { name })).toHaveCount(0)
 
-    // Both billed expenses in one list; the company's own spend — material already priced into
-    // robocizna — is dropped wholesale rather than merely unlinked.
+    // The company's own spend — material already priced into robocizna — is dropped wholesale rather
+    // than merely unlinked.
     await expect(visitor.getByText(seed.grossExpense.description)).toBeVisible()
     await expect(visitor.getByText(seed.netExpense.description)).toBeVisible()
     await expect(visitor.getByText(seed.settledExpense.description)).toHaveCount(0)
@@ -269,7 +269,7 @@ test('the investor gets one brutto wydatki list with its faktury, and never the 
         .getByText(formatNet(seed.grossExpense.amount + seed.netExpense.amount)),
     ).toBeVisible()
     // The breakdown above folds the netto invoice into its category.
-    await expect(visitor.getByText(/^(Materiały|Pozostałe) .* netto$/)).toHaveCount(0)
+    await expect(visitor.getByText(`${seed.categoryName} netto`, { exact: true })).toHaveCount(0)
 
     // The faktura is the thing the client actually came for, and it is packed in the browser off
     // publicly-readable media URLs — which is the only reason the button can work with no session at

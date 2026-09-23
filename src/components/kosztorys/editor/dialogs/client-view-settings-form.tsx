@@ -5,6 +5,7 @@ import { Description } from '@/components/ui/description'
 import { ToggleGroup } from '@/components/ui/toggle-group'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { CLIENT_VIEW_GROUPS, COLUMN_LABELS } from '@/lib/kosztorys/column-config'
+import { CLIENT_EMPTY_CONDITION_ID } from '@/lib/kosztorys/row-conditions/queries'
 import type {
   ClientViewConfigT,
   ClientViewModeT,
@@ -38,7 +39,7 @@ const MODE_OPTIONS: { value: ClientViewModeT; label: string }[] = [
  */
 export function ClientViewSettingsForm({ value, onChange, disabled }: PropsT) {
   const { conditionCounts } = useKosztorysEditorContext()
-  const emptyCount = conditionCounts.get('client-empty') ?? 0
+  const emptyCount = conditionCounts.get(CLIENT_EMPTY_CONDITION_ID) ?? 0
   if (!value) return <p className="text-muted-foreground text-sm">Wczytywanie…</p>
   const variant = value.variants[value.mode]
   const hidden = new Set(variant.hiddenColumns)

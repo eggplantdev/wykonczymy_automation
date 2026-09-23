@@ -1,4 +1,5 @@
 import type {
+  CategoryBreakdownsT,
   CategoryCostT,
   FinancialFieldT,
   InvestmentFinancialsT,
@@ -35,8 +36,12 @@ function uncategorisedRemainder(financials: InvestmentFinancialsT): number {
 export function buildMaterialsBreakdown(
   financials: InvestmentFinancialsT,
   expenseCategories: { id: number; name: string }[],
-  netCategoryCosts: CategoryCostT[] = [],
-  netCategoryGrossCosts: CategoryCostT[] = [],
+  // One object so a caller can't pass the netto sums without their invoice brutto — a missing one
+  // would price every „… netto" row at brutto 0 and still type-check.
+  {
+    netCategoryCosts,
+    netCategoryGrossCosts,
+  }: Pick<CategoryBreakdownsT, 'netCategoryCosts' | 'netCategoryGrossCosts'>,
 ): MaterialsBreakdownRowT[] {
   // Zeros dropped: consumers gate on `rows.length` to decide whether the „Materiały" tab has content,
   // so a placeholder per empty category blanked the tab.

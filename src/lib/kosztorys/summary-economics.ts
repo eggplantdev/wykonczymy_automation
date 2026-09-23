@@ -25,18 +25,6 @@ export function billedMaterialsPair(gross: number, netRate: number | null): Mone
   return netRate == null ? faceValue(gross) : { net: toNet(gross, netRate), gross }
 }
 
-// One „Wydatki inwestycyjne" row on both planes. A brutto row divides down through the rate. A netto
-// row crosses nothing: its netto and its brutto are both on the invoice, so no stawka may move either
-// (owner, 2026-09-23). With no rate the table shows one „Kwota" column, and every row shows what the
-// investor is billed — for a netto row that is its netto.
-export function breakdownRowPair(
-  row: { net: number } & ({ origin: 'gross' } | { origin: 'netBilled'; recordedGross: number }),
-  rate: number | null,
-): MoneyPairT {
-  if (row.origin === 'gross') return billedMaterialsPair(row.net, rate)
-  return rate == null ? faceValue(row.net) : { net: row.net, gross: row.recordedGross }
-}
-
 // The concession in złotych — brutto receipt minus what the investor is billed. The netto-billed
 // bucket is deliberately out of reach: it carries no VAT toward the investor, so cutting it here
 // would deduct the same VAT twice. `deriveFinancials` calls THIS for the marża/bilans term, so the

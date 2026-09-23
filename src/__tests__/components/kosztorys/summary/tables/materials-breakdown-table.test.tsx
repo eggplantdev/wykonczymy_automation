@@ -35,7 +35,6 @@ function renderAt(netRate: number | null, byCategory = false) {
   return render(<MaterialsBreakdownTable rows={ROWS} netRate={netRate} byCategory={byCategory} />)
 }
 
-// Same category on both origins, so the merge has something to fold.
 const MIXED_ROWS: MaterialsBreakdownRowT[] = [ROWS[0], { ...ROWS[1], id: 1, label: ROWS[0].label }]
 
 describe('MaterialsBreakdownTable — a „… netto" row is the invoice at any stawka', () => {

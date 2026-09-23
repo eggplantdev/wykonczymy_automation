@@ -1,7 +1,16 @@
-import { breakdownRowPair, type MoneyPairT } from '@/lib/kosztorys/summary-economics'
+import { billedMaterialsPair, faceValue, type MoneyPairT } from '@/lib/kosztorys/summary-economics'
 import type { MaterialsBreakdownRowT } from '@/types/investment-financials'
 
 export type PricedBreakdownRowT = { key: string; label: string; pair: MoneyPairT }
+
+// One „Wydatki inwestycyjne" row on both planes. A brutto row divides down through the rate. A netto
+// row crosses nothing: its netto and its brutto are both on the invoice, so no stawka may move either
+// (owner, 2026-09-23). With no rate the table shows one „Kwota" column, and every row shows what the
+// investor is billed — for a netto row that is its netto.
+export function breakdownRowPair(row: MaterialsBreakdownRowT, rate: number | null): MoneyPairT {
+  if (row.origin === 'gross') return billedMaterialsPair(row.net, rate)
+  return rate == null ? faceValue(row.net) : { net: row.net, gross: row.recordedGross }
+}
 
 // One printed row per input row — the manager's reading, where a category billed partly at netto
 // shows its frozen invoice as a row of its own.

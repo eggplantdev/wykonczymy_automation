@@ -113,11 +113,13 @@ describe('rowIdsMatching', () => {
       row({ id: 3, plannedQty: 0 }),
     ]
 
-    expect([...rowIdsMatching(rows, 'client-empty', CTX)]).toEqual([1, 3])
+    expect([...rowIdsMatching(rows, new Set(['client-empty']), CTX)]).toEqual([1, 3])
   })
 
   it('reads an unknown id as no pozycje', () => {
-    expect(rowIdsMatching([row({ id: 1, plannedQty: 0 })], 'no-such-condition', CTX).size).toBe(0)
+    expect(
+      rowIdsMatching([row({ id: 1, plannedQty: 0 })], new Set(['no-such-condition']), CTX).size,
+    ).toBe(0)
   })
 })
 

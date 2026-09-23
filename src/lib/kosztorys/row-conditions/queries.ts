@@ -147,14 +147,18 @@ export function countMatching(
   return rows.reduce((count, row) => (condition.matches(row, ctx) ? count + 1 : count), 0)
 }
 
+/** The pozycje matching ANY of `conditionIds` — an unknown id matches none. */
 export function rowIdsMatching(
   rows: KosztorysV2RowT[],
-  conditionId: string,
+  conditionIds: ReadonlySet<string>,
   ctx: RowConditionCtxT,
 ): ReadonlySet<number> {
-  const condition = BY_ID.get(conditionId)
-  if (!condition) return new Set()
-  return new Set(rows.filter((row) => condition.matches(row, ctx)).map((row) => row.id))
+  const conditions = [...conditionIds].flatMap((id) => BY_ID.get(id) ?? [])
+  return new Set(
+    rows
+      .filter((row) => conditions.some((condition) => condition.matches(row, ctx)))
+      .map((row) => row.id),
+  )
 }
 
 /**
@@ -222,7 +226,8 @@ export function offeredFilterConditions(
 
 // Module-level instances, so the sets below are referentially stable and the editor's memos don't
 // recompute on every render.
-const CLIENT_EMPTY_CONDITION_IDS: ReadonlySet<string> = new Set(['client-empty'])
+export const CLIENT_EMPTY_CONDITION_ID = 'client-empty'
+const CLIENT_EMPTY_CONDITION_IDS: ReadonlySet<string> = new Set([CLIENT_EMPTY_CONDITION_ID])
 const NO_CONDITION_IDS: ReadonlySet<string> = new Set()
 
 /**
