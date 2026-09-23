@@ -1,14 +1,13 @@
 import { test, expect, type Page } from '@playwright/test'
 import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
 import { DEFAULT_ITEM_DESCRIPTION } from '@/lib/kosztorys/constants'
+import { refreshReferenceData, runSeedScript } from './seeds'
 import {
   collapseSummaryPanel,
   openEditor,
   pickKosztorysOption,
-  refreshReferenceData,
   rowCell,
-  runSeedScript,
-} from './helpers'
+} from './drivers/kosztorys-grid'
 
 // EX-472 (with EX-505 and EX-752 folded in) — the editor's three structure menus: „Akcje wiersza" on
 // a praca, „Akcje sekcji" on a band, and „Dodaj" in the toolbar.

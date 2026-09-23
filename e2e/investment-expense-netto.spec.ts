@@ -1,17 +1,16 @@
 import { test, expect } from '@playwright/test'
+import { bare } from './support/ui'
+import { waitForHydration } from './support/wait'
 import {
-  bare,
   createInvestmentExpense,
   EXPENSE_INVESTMENT,
   EXPENSE_REGISTER,
   openInvestmentExpenseForm,
-  openPanelView,
   pickExpenseType,
-  readRegisterBalance,
-  readRegisterBalanceStable,
   submitExpenseForm,
-  waitForHydration,
-} from './helpers'
+} from './drivers/expenses'
+import { openPanelView } from './drivers/settlement'
+import { readRegisterBalance, readRegisterBalanceStable } from './drivers/transfers'
 
 // EX-576 — „Wydatek inwestycyjny netto" is the one expense type whose two figures part company: the
 // kasa loses GROSS (that is what left the register and what reconciles there), while the investor is

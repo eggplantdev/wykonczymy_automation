@@ -1,12 +1,9 @@
 import { test, expect, type Locator, type Page } from '@playwright/test'
 import { STATUS_LABELS } from '@/components/investments/investment-status-badge'
-import {
-  EXPENSE_INVESTMENT,
-  openExpenseDialog,
-  readListingCell,
-  refreshReferenceData,
-  waitForHydration,
-} from './helpers'
+import { refreshReferenceData } from './seeds'
+import { readListingCell } from './support/ui'
+import { waitForHydration } from './support/wait'
+import { EXPENSE_INVESTMENT, openExpenseDialog } from './drivers/expenses'
 
 // EX-528 — what „Planowana" actually costs an investment, and what promoting it gives back.
 //

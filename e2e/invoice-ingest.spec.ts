@@ -7,13 +7,8 @@ import {
   type Route,
 } from '@playwright/test'
 import { fileURLToPath } from 'node:url'
-import {
-  createInvestmentExpense,
-  EXPENSE_REGISTER,
-  openExpenseDialog,
-  refreshUntil,
-  waitForHydration,
-} from './helpers'
+import { refreshUntil, waitForHydration } from './support/wait'
+import { createInvestmentExpense, EXPENSE_REGISTER, openExpenseDialog } from './drivers/expenses'
 
 // Ingest plików — the one slice of this app that exists ONLY in the browser.
 //

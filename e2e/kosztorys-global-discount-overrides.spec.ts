@@ -1,9 +1,9 @@
 import { test, expect, type Page } from '@playwright/test'
 import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
 import { formatNet } from '@/lib/kosztorys/format'
+import { type GridSeedT, seedGridInvestments } from './seeds'
+import { bare } from './support/ui'
 import {
-  applyDiscountValue,
-  bare,
   collapseSummaryPanel,
   columnHeaders,
   commitCellValue,
@@ -11,14 +11,15 @@ import {
   expectCellValue,
   gridRow,
   openEditor,
+  rowCell,
+} from './drivers/kosztorys-grid'
+import {
+  applyDiscountValue,
   openPanelView,
   openSettlementOptions,
   pickDiscountMode,
   readSummaryFigures,
-  rowCell,
-  seedGridInvestments,
-  type GridSeedT,
-} from './helpers'
+} from './drivers/settlement'
 
 // EX-502 — the rabat globalny against the per-item rabat it is supposed to override.
 //

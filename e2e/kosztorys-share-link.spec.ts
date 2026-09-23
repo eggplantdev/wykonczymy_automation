@@ -2,7 +2,9 @@ import { test, expect } from '@playwright/test'
 import { DEFAULT_COEFFS } from '@/lib/kosztorys/constants'
 import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
 import { roundToCents } from '@/lib/utils/round-to-cents'
-import { editorCell, refreshReferenceData, runSeedScript, waitForHydration } from './helpers'
+import { refreshReferenceData, runSeedScript } from './seeds'
+import { waitForHydration } from './support/wait'
+import { editorCell } from './drivers/kosztorys-grid'
 import { anonymousVisit, mintShareToken } from './share-link'
 
 // The share link is the one entrance with no session behind it: `(share)/layout.tsx` deliberately

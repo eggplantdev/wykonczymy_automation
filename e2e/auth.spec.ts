@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
-import { login, waitForHydration } from './helpers'
+import { login } from './support/ui'
+import { waitForHydration } from './support/wait'
 
 // Unauthenticated on purpose: this spec drives the real login itself to prove the whole
 // cookie round-trip — payload-token is set on login, honored by requireAuth on the next RSC

@@ -1,5 +1,6 @@
 import { test, expect, type Locator, type Page } from '@playwright/test'
-import { pickComboOption, waitForHydration } from './helpers'
+import { pickComboOption } from './support/ui'
+import { waitForHydration } from './support/wait'
 
 // EX-771 — the equipment register's spine: an item is entered, it is handed on, and at every moment
 // the app must be able to answer „gdzie to jest". Three boundaries have to agree for that answer to

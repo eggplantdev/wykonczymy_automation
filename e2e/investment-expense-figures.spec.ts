@@ -1,13 +1,11 @@
 import { test, expect, type Page } from '@playwright/test'
+import { parsePln } from './support/ui'
 import {
   createInvestmentExpense,
   EXPENSE_CATEGORY,
   openExpenseInvestment,
-  openPanelView,
-  parsePln,
-  readInvestorBalance,
-  readSummaryFigures,
-} from './helpers'
+} from './drivers/expenses'
+import { openPanelView, readInvestorBalance, readSummaryFigures } from './drivers/settlement'
 
 // EX-731 — the last uncovered leg of S-17: a booked transfer has to move the investment's own
 // figures. Everything below the browser is already guarded (`pnpm test:parity` recomputes the SQL,

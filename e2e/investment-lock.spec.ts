@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
-import { collapseSummaryPanel, editorCell, settleWrite, waitForHydration } from './helpers'
+import { settleWrite, waitForHydration } from './support/wait'
+import { collapseSummaryPanel, editorCell } from './drivers/kosztorys-grid'
 
 // EX-769 — the zamek on a zakończona inwestycja. Every gate it is made of is already unit-tested on
 // its own: the kosztorys action wrapper (`kosztorys-lock.test.ts` even asserts the rows are left

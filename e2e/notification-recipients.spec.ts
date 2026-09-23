@@ -1,5 +1,5 @@
 import { test, expect, type Locator, type Page } from '@playwright/test'
-import { refreshUntil, waitForHydration } from './helpers'
+import { refreshUntil, waitForHydration } from './support/wait'
 
 // EX-741 — who receives each notification stream. The stake is not a form: it is mail going to the
 // real employee addresses that `db:import` spreads into every environment, so a list that silently

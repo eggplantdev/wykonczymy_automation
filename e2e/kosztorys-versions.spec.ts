@@ -1,12 +1,11 @@
 import { test, expect, type Page } from '@playwright/test'
+import { type ReconSeedT, seedReconInvestments } from './seeds'
 import {
   LOAD_VERSION_ITEM,
   openEditor,
   pickKosztorysOption as pickOption,
-  seedReconInvestments,
   versionsDrawer,
-  type ReconSeedT,
-} from './helpers'
+} from './drivers/kosztorys-grid'
 
 // „Wersje" — the editor's restore points, and the one action that needs them: „Wyczyść kosztorys…".
 //
@@ -34,7 +33,7 @@ test.beforeAll(async ({ browser }) => {
   seed = await seedReconInvestments(browser)
 })
 
-// Matched on the explanation, not the label — see LOAD_VERSION_ITEM in helpers for why.
+// Matched on the explanation, not the label — see LOAD_VERSION_ITEM in drivers/kosztorys-grid for why.
 const CLEAR_ITEM = /Usuwa całą rozpiskę/
 const SAVE_VERSION_ITEM = /Zapisz bieżący stan jako nazwany punkt/
 

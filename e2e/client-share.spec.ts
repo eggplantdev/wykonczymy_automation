@@ -2,7 +2,9 @@ import { test, expect, type Page } from '@playwright/test'
 import { formatNet } from '@/lib/kosztorys/format'
 import { INVESTOR_IMPACT_TITLE, CLIENT_VIEW_MODE_IMPACT } from '@/lib/kosztorys/investor-impact'
 import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
-import { bare, refreshReferenceData, runSeedScript, waitForHydration } from './helpers'
+import { refreshReferenceData, runSeedScript } from './seeds'
+import { bare } from './support/ui'
+import { waitForHydration } from './support/wait'
 import { anonymousVisit, mintShareToken } from './share-link'
 
 // What the owner decides in „Ustawienia podglądu inwestora" and what the investor's link actually
