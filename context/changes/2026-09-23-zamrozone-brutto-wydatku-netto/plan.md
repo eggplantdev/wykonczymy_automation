@@ -378,15 +378,15 @@ Run once, after the final phase.
 
 #### Automated
 
-- [x] 2.1 summary-economics spec green (rewritten red-first)
-- [x] 2.2 materials-breakdown-table DOM spec green
+- [x] 2.1 summary-economics spec green (rewritten red-first) — 14b8e58b
+- [x] 2.2 materials-breakdown-table DOM spec green — 14b8e58b
 
 ### Phase 3: Remove the „Wydatki inwestycyjne" pie
 
 #### Automated
 
-- [ ] 3.1 no expensePieSlices references remain
-- [ ] 3.2 summary-panel-content DOM spec green
+- [x] 3.1 no expensePieSlices references remain
+- [x] 3.2 summary-panel-content DOM spec green
 
 ### Phase 4: Docs
 

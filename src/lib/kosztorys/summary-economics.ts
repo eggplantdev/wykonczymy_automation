@@ -1,5 +1,4 @@
 import { toGross, toNet } from '@/lib/kosztorys/calc'
-import type { MaterialsBreakdownRowT } from '@/types/investment-financials'
 
 export type MoneyPairT = { net: number; gross: number }
 
@@ -30,7 +29,10 @@ export function billedMaterialsPair(gross: number, netRate: number | null): Mone
 // row crosses nothing: its netto and its brutto are both on the invoice, so no stawka may move either
 // (owner, 2026-09-23). With no rate the table shows one „Kwota" column, and every row shows what the
 // investor is billed — for a netto row that is its netto.
-export function breakdownRowPair(row: MaterialsBreakdownRowT, rate: number | null): MoneyPairT {
+export function breakdownRowPair(
+  row: { net: number } & ({ origin: 'gross' } | { origin: 'netBilled'; recordedGross: number }),
+  rate: number | null,
+): MoneyPairT {
   if (row.origin === 'gross') return billedMaterialsPair(row.net, rate)
   return rate == null ? faceValue(row.net) : { net: row.net, gross: row.recordedGross }
 }
