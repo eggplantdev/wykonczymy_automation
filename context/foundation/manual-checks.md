@@ -16,6 +16,12 @@ nieodhaczonymi boksami** plus indeks zamkniętych przebiegów na końcu.
   `context/reference/preview-verification-accounts.md`.
 - Dopisując nową sekcję, pisz **check**, nie sprawozdanie. Dowód („zweryfikowane na inw. 135, SQL
   pokazał…") jest wart tyle, ile długo boks jest otwarty — po odhaczeniu zostaje sam boks.
+- **Sekcja powstaje dopiero, gdy kod istnieje.** Boks opisuje zachowanie działającej aplikacji, więc
+  sprawdzenie funkcji, której nie ma na żadnym branchu, nie może ani przejść, ani paść — to fragment
+  planu, nie wynik QA, i puchnie rejestr o wiecznie otwarte boksy blokujące slice, którego nikt nie
+  zaczął pisać. Checklistę wyprowadzoną z `plan.md` trzymaj w folderze zmiany
+  (`context/changes/<id>/manual-checks.md`) i przenieś ją tutaj przy `/10x-implement`. Precedens:
+  `kosz-plikow` — 11 boksów wyciętych stąd 2026-09-23.
 
 ## Stałe blokady
 
@@ -376,30 +382,6 @@ behavior/visual change. Verified against staging
       not-reproducible rather than filing.
       **Test disposition:** no automated test — could not reproduce, nothing to guard.
 
-## kosz-plikow — kosz plików zamiast natychmiastowego kasowania z Bloba (2026-09-22)
-
-Zamiatacz kasuje dopiero po siedmiu dniach, więc **pełnej pętli nie da się odhaczyć w jednym
-przebiegu** — kroki 4–5 wymagają albo cofnięcia `detached_at` SQL-em na bazie testowej, albo powrotu
-za tydzień. To nie jest blokada, tylko kształt sprawdzenia.
-
-- [ ] Usunięcie pliku z galerii inwestycji pyta o potwierdzenie zdaniem o koszu i siedmiu dniach — nigdzie nie pada „bezpowrotnie"
-- [ ] To samo zdanie w komórce faktury na transferach i przy plikach zgłoszenia
-- [ ] Po usunięciu plik znika z galerii, a jego bajty **nadal otwierają się** spod URL-a z Bloba
-- [ ] „Kosz (N)" pojawia się przy galerii dopiero, gdy coś w nim leży; przy pustym koszu nie ma przycisku
-- [ ] „Przywróć" wraca plik do galerii, a licznik kosza spada o jeden
-- [ ] Wgrywanie i przywracanie nie da się odpalić równocześnie (jedno rozbraja drugie)
-- [ ] Po cofnięciu `detached_at` o osiem dni i ręcznym wywołaniu `/api/cron/cleanup` plik znika z `media` i z Bloba, a odpowiedź niesie rozbicie `{ recorded, healed, deleted, failed }`
-- [ ] Drugi przebieg crona pod rząd kasuje zero i nie rusza ocalałych
-- [ ] Skasowanie inwestycji z plikami: pliki trafiają do kosza z pustą prowenancją przy najbliższym przebiegu crona
-- [ ] Skasowanie wydatku z fakturą kasuje fakturę **od razu** — bez kosza (świadomy wyjątek)
-- [ ] Usunięcie pliku w panelu Payloada, gdy plik leży w koszu, przechodzi bez odmowy
-
-### Findings — 2026-09-23 (staging/preview pass)
-
-- [ ] **Cała sekcja jest niezaimplementowana — nie tylko nieobecna na stagingu.** `context/changes/2026-09-22-kosz-plikow/change.md` ma `status: planned`, a `plan.md` samo jest planem bez sekcji Implementation/Progress. `git log --all` ma tylko jeden commit dla `kosz-plikow` (`cb2dda3f docs(kosz-plikow): research i plan…`) — sam research+plan, zero kodu. Grep po repo (`detached_at`/`detachedAt`, `media_detachments`, „Kosz (”) nie znajduje żadnego pliku źródłowego; `src/app/(payload)/api/cron/cleanup/route.ts` dziś woła wyłącznie `gcSnapshots`, bez śladu zamiatania kosza. To nie jest „stary build" (staging = `e0158cb8`, zgodny z `origin/staging`) — funkcja po prostu nie istnieje na żadnym branchu. Żadnego z 11 boksów nie da się odhaczyć ani sfałszować z tego powodu; zostają otwarte do czasu implementacji z `plan.md`.
-      **Needs human:** potwierdzić, że ta sekcja manual-checks czeka na `/10x-implement` planu `kosz-plikow` (obecnie tylko zbadany+zaplanowany) — albo wycofać ją z rejestru do czasu, aż kod wyląduje.
-      **Test disposition:** no automated test — nie ma jeszcze implementacji do przetestowania; testy powstaną razem z `/10x-tdd`/`/10x-implement` tej zmiany.
-
 # Zamknięte — indeks
 
 Jedna linia na slice, **wszystkie 94** — liczby są policzone z pełnego rejestru sprzed przycięcia.
@@ -512,6 +494,14 @@ Pełne dowody, verbatim: `context/archive/manual-checks/2026-09-15-pelny-rejestr
 
 Sprawdzenia na bazie testowej (5435). Webhook wymaga `LANDING_WEBHOOK_SECRET` i
 `LANDING_BLOB_HOST` w `.env`; kontrakt koperty: `context/reference/landing-intake-contract.md`.
+
+**Każdego boksu z podpisanym requestem nie da się sprawdzić na stagingu — rób je lokalnie.**
+`LANDING_WEBHOOK_SECRET` jest na Vercelu w środowisku Preview oznaczony jako **Secret** (`vercel env
+ls preview` → „Hidden / Secret"), więc wartości nie wyciągnie ani `vercel env pull`, ani `.env`, który
+niesie inny sekret. Poprawnie policzony HMAC dostaje wtedy `403 {"error":"Forbidden"}` — to zgodne
+zachowanie bramki, nie defekt i nie błąd podpisu, więc nie ma czego debugować (spalony przebieg
+2026-09-23). Dotyczy boksów „podpisany POST", „ten sam request powtórzony", „url spoza allowlisty"
+i „podmienione body"; boks z `403` potwierdza za to odmowę przy złym sekrecie.
 
 - [x] `/admin` → Media: kolumna „Rodzaj" jest widoczna i filtruje listę — zweryfikowano 2026-09-21 na
       stagingu. Kolumna widoczna w tabeli z opcjami sortowania; „Dodaj filtr" domyślnie proponuje pole
@@ -707,7 +697,7 @@ panel montuje się także na pustym kosztorysie.
 - [ ] **„Komplet pól karty inwestycji; puste pola są odfiltrowane" — realny defekt, naprawiony w
       źródle, jeszcze NIE na wdrożonym stagingu.** `buildInvestmentInfoFields`
       (`src/components/investments/investment-info-fields.tsx`) filtrował `.filter((field) =>
-  field.value)` na **zrenderowanym węźle**, nie na surowej wartości: `Telefon`/`Email` owijały
+field.value)` na **zrenderowanym węźle**, nie na surowej wartości: `Telefon`/`Email` owijały
       pole w `<ContactLink>`, który jest zawsze truthy niezależnie od tego, czy numer/mail istnieje,
       a `Opinia` miała `investment.review || '—'` — myślnik też jest truthy. Efekt na żywo (inw. 74,
       brak telefonu/maila/opinii): „Email —" i „Opinia —" renderowały się zamiast znikać, dokładnie
@@ -854,7 +844,7 @@ Licznik renderów czytaj z logu dev: `[PERF] buildKosztorysTree` (drzewo jest ni
       stagingu~~ — finding obalony 2026-09-23: runtime logi Vercela są osiągalne z CLI.**
       Pierwotny wniosek („needs human, odpal `pnpm dev` lokalnie") stał na jednej nieudanej próbie
       `npx vercel ls --scope=$(npx vercel whoami)`, która padła `Error: You cannot set your Personal
-  Account as the scope.` — to był zły argument `--scope`, nie brak dostępu. Właściwy scope to
+Account as the scope.` — to był zły argument `--scope`, nie brak dostępu. Właściwy scope to
       zespół projektu z `.vercel/project.json` (`orgId`), nie konto CLI:
 
       ```bash
@@ -933,7 +923,7 @@ tam, gdzie ma, i czy zbiorcze odznaczenie da się cofnąć.
 
 - [ ] **Dwa dopełniające się filtry sufitu, oba odznaczone naraz, chowają CAŁĄ rozpiskę (377/377), nie
       tylko 236 pozycji z kwotą stałą.** Zmierzone na inw. 137, widok „z narzędziami": `Pozycje
-  z kwotą stałą powyżej sufitu (35)` + `Pozycje bez kwoty stałej powyżej sufitu (342)` =
+z kwotą stałą powyżej sufitu (35)` + `Pozycje bez kwoty stałej powyżej sufitu (342)` =
       35 + 342 = 377 = cały kosztorys. Przyczyna: `isFixedRateOverCeiling` w
       `src/lib/kosztorys/subcontractor-price-guard.ts` zwraca `false` dla `null`/„auto"
       (`overrideValueFor` się nie zgadza), więc dopełniający filtr „bez kwoty stałej powyżej sufitu"
