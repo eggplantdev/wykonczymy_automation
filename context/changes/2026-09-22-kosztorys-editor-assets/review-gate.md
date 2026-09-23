@@ -10,7 +10,7 @@ Krok 2 (`/simplify`, mutujący): 4 agenci — reuse / simplification / efficienc
 
 ## Findings
 
-- [ ] · surfaced · `code-review` · `src/components/investments/investment-assets-control.tsx:72` ·
+- [x] · filed EX-862 · `code-review` · `src/components/investments/investment-assets-control.tsx:72` ·
       „Usuń wszystkie" stoi teraz w rzędzie narzędzi siatki edytora — jedyna nieodwracalna akcja
       wśród odwracalnych, a Blob nie ma undelete; żyje też na inwestycji „Zakończona", gdzie każdy
       inny zapis jest zdjęty. **Decyzja produktowa właściciela, nie moja** — świadomie nie
@@ -19,7 +19,9 @@ Krok 2 (`/simplify`, mutujący): 4 agenci — reuse / simplification / efficienc
       test: no automated test — to pytanie o zakres afordancji, nie o poprawność.
       2026-09-22: kontrolka przeniosła się z rzędu narzędzi siatki do zakładki „Inwestycja"
       (`zakladka-inwestycja-w-panelu`), więc nie sąsiaduje już z akcjami odwracalnymi — ale jest
-      dalej osiągalna z edytora i dalej na inwestycji „Zakończona". Pytanie stoi, skrzynka otwarta.
+      dalej osiągalna z edytora i dalej na inwestycji „Zakończona". Pytanie stoi.
+      2026-09-23: zgłoszone jako **EX-862** przy archiwizacji — rozstrzygnięcie należy do
+      właściciela, a `kosz-plikow` może je unieważnić, zdejmując nieodwracalność u źródła.
 
 - [x] 🔴 CRITICAL · fixed · `code-review` · `src/components/ui/upload-button.tsx:8-12` ·
       przycisk brał jedną flagę `isUploading` i nią sterował ZARAZEM etykietą i blokadą, a galeria
