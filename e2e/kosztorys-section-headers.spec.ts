@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
-import { refreshReferenceData, runSeedScript } from './seeds'
+import { refreshReferenceData, runSeedScript } from './support/seeds'
 
 // Proves the band is wired end-to-end: it reads the same per-section subtotals the Podsumowanie does,
 // its chevron folds exactly its own section away, and the gutter keeps the surviving items at their

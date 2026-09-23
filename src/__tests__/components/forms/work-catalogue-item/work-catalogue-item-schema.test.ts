@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
-  toMoney,
   workCatalogueItemFormSchema,
   workCatalogueItemSchema,
 } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
+import { toMoney } from '@/lib/utils/parse-decimal-input'
 
 const values = (overrides: Partial<Record<string, unknown>> = {}) => ({
   description: 'Malowanie ścian',
@@ -15,22 +15,6 @@ const values = (overrides: Partial<Record<string, unknown>> = {}) => ({
   ownToolsRate: 20,
   ownToolsRateCoeff: null,
   ...overrides,
-})
-
-describe('toMoney', () => {
-  it('reads a comma as the decimal separator', () => {
-    expect(toMoney('12,50')).toBe(12.5)
-  })
-
-  it('refuses a blank field instead of reading it as 0 zł', () => {
-    expect(toMoney('')).toBeNaN()
-    expect(toMoney('   ')).toBeNaN()
-  })
-
-  it('refuses half-typed garbage', () => {
-    expect(toMoney('1e')).toBeNaN()
-    expect(toMoney('-')).toBeNaN()
-  })
 })
 
 // The layer the „Nowa praca w katalogu" dialog validates against — it is what decides whether the

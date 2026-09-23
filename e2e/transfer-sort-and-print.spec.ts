@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
-import { parsePln, readColumn } from './support/ui'
+import { parsePln } from './support/money'
+import { readColumn } from './support/table'
 import { EXPENSE_REGISTER } from './drivers/expenses'
 
 // EX-781 — the screen's order and the printout's order are one order.

@@ -16,8 +16,10 @@ export type OfferPrintArgsT = {
   investmentName: string
   logoUrl: string
   // Resolved CSS colours keyed by the section's palette key — the popup is its own document with no
-  // stylesheet, so the `--color-section-*` vars have to arrive already computed.
-  fillByColorKey: Record<string, string>
+  // stylesheet, so the `--color-section-*` vars have to arrive already computed. A Map, not a
+  // `Record`: `sectionColor` comes off a row, and `'__proto__'` on an object literal reaches
+  // `Object.prototype` instead of missing.
+  fillByColorKey: ReadonlyMap<string, string>
   // „Razem" under „Wartość netto przedmiar", straight from the editor. The print does not add up its
   // own rows: the same figure summed twice is the one way paper and screen can disagree.
   totalNet: number
@@ -55,10 +57,9 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* separate, not collapse: collapsing centres every border ON the grid line, so the rail's 2px sat
-   half outside its cell while the band's identical border sat wholly inside — the two printed a pixel
-   apart with a notch at the joint. It is also what let a plain hairline outvote a section's colour.
-   Nothing doubles at zero border-spacing because each edge is declared by one side only. */
+/* separate, not collapse: collapsing centres every border ON the grid line, so the rail's 2px and the
+   band's identical border land in different places and a plain hairline can outvote a section's
+   colour. Nothing doubles at zero border-spacing — each edge is declared by one side only. */
 table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
 /* Auto layout sizes a column by its widest cell, so „kontener" and „1 500 zł" claimed width the wrapped
    descriptions needed far more. The figures are known-width; the description takes the remainder. */
@@ -92,11 +93,9 @@ td:last-child, th:last-child { padding-right: 0; border-right: none; }
 th:first-child { padding-left: 0; }
 .num { text-align: right; white-space: nowrap; padding-left: 5px; padding-right: 5px; }
 th.num { padding-left: 4px; padding-right: 4px; white-space: normal; }
-/* The rail is a real border, not an inset shadow: a shadow is clipped to the padding box, so every
-   row's bottom hairline cut a 1px notch out of it and the line printed as dashes. Its own hairline is
-   painted as a background rather than a border, because a bottom border mitres with the left one at
-   45° and the grey cut a wedge into the section colour on every row; clipped to the padding box it
-   starts where the rail ends and the rail stays solid. */
+/* A real border, not an inset shadow: a shadow is clipped to the padding box, so the row hairline
+   notches it and the rail prints as dashes. Its own hairline is a background rather than a border,
+   because a bottom border mitres with the left one at 45° and cuts a grey wedge into the colour. */
 td.rail { border-left: 2px solid; padding-left: 11px;
           border-bottom: none; background-clip: padding-box;
           background-image: linear-gradient(#f4f4f5, #f4f4f5);
@@ -111,9 +110,9 @@ td.rail { border-left: 2px solid; padding-left: 11px;
 /* The rail carries the section's hue down its rows, so the offer stays navigable once the band that
    named the section is a page back. A chip plus a 10% wash, not the sheet's full pastel fill: across
    150 rows a saturated block reads as highlighting rather than as structure. */
-/* The rule stays on a div rather than on the td: a cell's border is drawn in the table's own box
-   model, and the rail below it is not, so the two never landed in the same axis. The cell keeps only
-   the gap above the section, which has to fall outside the coloured rule. */
+/* The rule stays on a div rather than on the td: a cell's border is drawn in the table's box model
+   and the rail below it is not, so the two never line up. The cell keeps only the gap above the
+   section, which has to fall outside the coloured rule. */
 tr.band td { border: none; padding: 18px 0 0; break-after: avoid; }
 thead + tbody > tr.band:first-child td { padding-top: 8px; }
 tr.band + tr td { break-before: avoid; }
@@ -211,6 +210,9 @@ const OFFER_COLUMNS: readonly OfferColumnT[] = [
   },
 ]
 
+// Exported for the spec that pins the list against the ceiling — the assertion has to see the keys.
+export const OFFER_COLUMN_KEYS: readonly string[] = OFFER_COLUMNS.map((column) => column.key)
+
 /**
  * The printed column set: the offer's own list, minus what the owner hid, minus anything outside
  * `PREVIEW_VISIBLE_COLUMNS`.
@@ -221,9 +223,6 @@ const OFFER_COLUMNS: readonly OfferColumnT[] = [
  * allowlist nothing checks, and „komentarz" or a subcontractor's stawka would be one line from a
  * client's document. Fails closed the same way `sanitizeClientViewVariant` does.
  */
-// Exported for the spec that pins the list against the ceiling — the assertion has to see the keys.
-export const OFFER_COLUMN_KEYS: readonly string[] = OFFER_COLUMNS.map((column) => column.key)
-
 export function printableOfferColumns(
   columns: readonly OfferColumnT[],
   hiddenColumns: readonly string[],
@@ -232,6 +231,27 @@ export function printableOfferColumns(
   return columns.filter(
     (column) => PREVIEW_VISIBLE_COLUMNS.has(column.key) && !hidden.has(column.key),
   )
+}
+
+/**
+ * The pozycje an offer actually contains: the client's own hider and nothing else — `clientConditionIds`
+ * owns which conditions may reach a client, and the grid's plane, search and the owner's own filters
+ * are reading gestures that say nothing about what is being offered.
+ *
+ * Exported because the caller has to know whether there is an offer BEFORE it opens a print window:
+ * a kosztorys whose every pozycja is empty on both axes passes a `rows.length` guard and prints a
+ * branded header over an empty table.
+ */
+export function offeredRows(
+  rows: KosztorysV2RowT[],
+  stages: KosztorysStageT[],
+  settings: ClientViewSettingsT,
+): KosztorysV2RowT[] {
+  return applyRowConditions(rows, clientConditionIds(settings.hideEmptyRows), {
+    stages,
+    hasSettledMaterial: false,
+    divergentPriceRowIds: new Set(),
+  })
 }
 
 export function buildOfferPrintHtml({
@@ -252,14 +272,7 @@ export function buildOfferPrintHtml({
   const moneyIndex = columns.findIndex((column) => column.key === 'plannedNet')
   const withMoney = moneyIndex >= 0
 
-  // The offer is the client's document, so it is filtered by the client's own hider and nothing else
-  // — `clientConditionIds` owns which conditions may reach a client, and the grid's plane, search and
-  // the owner's own filters are reading gestures that say nothing about what is being offered.
-  const offered = applyRowConditions(rows, clientConditionIds(settings.hideEmptyRows), {
-    stages,
-    hasSettledMaterial: false,
-    divergentPriceRowIds: new Set(),
-  })
+  const offered = offeredRows(rows, stages, settings)
 
   const body: string[] = []
   let sectionId: number | null = null
@@ -270,14 +283,17 @@ export function buildOfferPrintHtml({
     if (sectionId === null || !withMoney) return
     const sectionNet = sectionNetById.get(sectionId)
     if (sectionNet === undefined) return
+    // Never 0: with „Opis prac" hidden the label may have no column left to its own, and
+    // `colspan="0"` means „to the end of the colgroup" in HTML5 — the browser spans the row. The
+    // filler count reads the SAME span, not `moneyIndex`: hide everything left of „Wartość netto"
+    // and the two disagreed by one, so the row carried a phantom column past the colgroup.
+    const labelSpan = Math.max(1, moneyIndex)
     body.push(
       `<tr class="band-total">` +
-        // Never 0: with „Opis prac" hidden the label may have no column left to its own, and
-        // `colspan="0"` means „to the end of the colgroup" in HTML5 — the browser spans the row.
-        `<td class="rail" colspan="${Math.max(1, moneyIndex)}" style="border-left-color:${sectionFill}">` +
+        `<td class="rail" colspan="${labelSpan}" style="border-left-color:${escapeHtml(sectionFill)}">` +
         `Razem — ${escapeHtml(sectionName)}</td>` +
         `<td class="num">${zloty(sectionNet)}</td>` +
-        `<td></td>`.repeat(columns.length - moneyIndex - 1) +
+        `<td></td>`.repeat(Math.max(0, columns.length - labelSpan - 1)) +
         `</tr>`,
     )
   }
@@ -287,11 +303,11 @@ export function buildOfferPrintHtml({
       closeSection()
       sectionId = row.sectionId
       sectionName = row.sectionName
-      sectionFill = (row.sectionColor && fillByColorKey[row.sectionColor]) || '#d4d4d8'
+      sectionFill = (row.sectionColor && fillByColorKey.get(row.sectionColor)) || '#d4d4d8'
       body.push(
-        `<tr class="band"><td colspan="${columns.length}">` +
-          `<div class="band-inner" style="border-color:${sectionFill}">` +
-          `<span class="band-chip" style="background:${sectionFill}"></span>` +
+        `<tr class="band"><td colspan="${Math.max(1, columns.length)}">` +
+          `<div class="band-inner" style="border-color:${escapeHtml(sectionFill)}">` +
+          `<span class="band-chip" style="background:${escapeHtml(sectionFill)}"></span>` +
           `<span class="band-name">${escapeHtml(sectionName)}</span></div></td></tr>`,
       )
     }
@@ -301,7 +317,7 @@ export function buildOfferPrintHtml({
           .map(
             (column, index) =>
               `<td class="${column.cellClass}${index === 0 ? ' rail' : ''}"` +
-              `${index === 0 ? ` style="border-left-color:${sectionFill}"` : ''}>` +
+              `${index === 0 ? ` style="border-left-color:${escapeHtml(sectionFill)}"` : ''}>` +
               `${column.cell(row, OFFER_PRICE_VIEW, stages)}</td>`,
           )
           .join('') +

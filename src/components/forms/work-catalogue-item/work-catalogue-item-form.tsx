@@ -1,5 +1,6 @@
 'use client'
 
+import { toMoney } from '@/lib/utils/parse-decimal-input'
 import { FieldGroup } from '@/components/ui/field'
 import { Combobox } from '@/components/ui/combobox'
 import { useManagedForm } from '@/components/forms/hooks/use-managed-form'
@@ -19,7 +20,6 @@ import type { PriceSourceT } from '@/lib/kosztorys/types'
 import type { CatalogueRateT } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
 import { useWorkCatalogueItemFormStore } from '@/stores/form-stores'
 import {
-  toMoney,
   workCatalogueItemFormSchema,
   type WorkCatalogueItemDataT,
   type WorkCatalogueItemFormValuesT,

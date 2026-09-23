@@ -1,6 +1,6 @@
 import { test, expect, type Locator, type Page } from '@playwright/test'
 import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
-import { refreshReferenceData, runSeedScript } from './seeds'
+import { refreshReferenceData, runSeedScript } from './support/seeds'
 import { settleWrite } from './support/wait'
 import { commitCellValue, openEditor, rowCell } from './drivers/kosztorys-grid'
 

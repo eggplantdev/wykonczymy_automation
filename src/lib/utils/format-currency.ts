@@ -10,7 +10,3 @@ export const formatPLN = (amount: number) => formatter.format(roundToCents(amoun
 /** For a figure that may be unknown: „—" rather than „0,00 zł", which would read as „it was free". */
 export const formatPLNOrDash = (amount: number | null) =>
   amount === null ? '—' : formatPLN(amount)
-
-/** For a katalog stawka: „auto" has no kwota until the praca lands in an inwestycja that prices it. */
-export const formatPLNOrAuto = (amount: number | null) =>
-  amount === null ? 'auto' : formatPLN(amount)

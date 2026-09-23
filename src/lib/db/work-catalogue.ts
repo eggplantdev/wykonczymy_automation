@@ -9,7 +9,6 @@ import type {
 import type { DbExecutorT } from './get-db'
 import { numOrNull } from './row-coerce'
 
-// Every read of the cennik selects the same nine columns, and `toCatalogueItem` maps exactly them.
 const CATALOGUE_COLUMNS = sql`id, description, category, unit, client_price, w_tools_rate, w_tools_rate_coeff, own_tools_rate, own_tools_rate_coeff, match_key`
 
 const toRate = (value: unknown): number | null => (value == null ? null : Number(value))

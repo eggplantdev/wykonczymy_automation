@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test'
 import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
 import { formatNet } from '@/lib/kosztorys/format'
-import { type GridSeedT, seedGridInvestments } from './seeds'
+import { type GridSeedT, seedGridInvestments } from './support/seeds'
 import { settleWrites } from './support/wait'
 import {
   collapseSummaryPanel,

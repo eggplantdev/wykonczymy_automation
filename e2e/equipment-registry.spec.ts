@@ -1,5 +1,5 @@
 import { test, expect, type Locator, type Page } from '@playwright/test'
-import { pickComboOption } from './support/ui'
+import { pickComboOption } from './drivers/combo'
 import { waitForHydration } from './support/wait'
 
 // EX-771 — the equipment register's spine: an item is entered, it is handed on, and at every moment

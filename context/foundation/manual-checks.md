@@ -690,15 +690,15 @@ Licznik renderów czytaj z logu dev: `[PERF] buildKosztorysTree` (drzewo jest ni
 Account as the scope.` — to był zły argument `--scope`, nie brak dostępu. Właściwy scope to
       zespół projektu z `.vercel/project.json` (`orgId`), nie konto CLI:
 
-            ```bash
-            npx vercel logs https://<deployment>.vercel.app --scope=team_BWfyTqJnjIqZBkHwBL0elgS4
-            ```
+              ```bash
+              npx vercel logs https://<deployment>.vercel.app --scope=team_BWfyTqJnjIqZBkHwBL0elgS4
+              ```
 
-            Strumień oddaje runtime stdout pogrupowany per request, a `console.log` w `buildKosztorysTree`
-            (`src/lib/queries/kosztorys.ts:71`) nie jest bramkowany `NODE_ENV`, więc linia `[PERF]
-            buildKosztorysTree …` wychodzi tak samo z builda produkcyjnego na stagingu, jak z dev.
-            Właściwy box wyżej policzony tą drogą i odhaczony — jeden wpis na jeden upload.
-            **Test disposition:** no automated test — to obserwowalność (log count), nie asercja stanu.
+              Strumień oddaje runtime stdout pogrupowany per request, a `console.log` w `buildKosztorysTree`
+              (`src/lib/queries/kosztorys.ts:71`) nie jest bramkowany `NODE_ENV`, więc linia `[PERF]
+              buildKosztorysTree …` wychodzi tak samo z builda produkcyjnego na stagingu, jak z dev.
+              Właściwy box wyżej policzony tą drogą i odhaczony — jeden wpis na jeden upload.
+              **Test disposition:** no automated test — to obserwowalność (log count), nie asercja stanu.
 
 ## EX-820 — sufit stawki wykonawcy z „Problemów" do „Filtrów" (2026-09-22)
 
@@ -769,6 +769,12 @@ inwestorem i przenoszenie między cennikiem a rozpiską działają w przeglądar
 - [ ] Wpisanie `0,55` daje stawkę `cena × 0,55`, a podniesienie „Cena j.m." przesuwa ją natychmiast
 - [ ] Komórka „Cena j.m." wykonawcy przy mnożniku jest wyszarzona i nie przyjmuje wpisu
 - [ ] Kolumna „Mnożnik" jest domyślnie ukryta i włącza się jednym tikiem w pickerze kolumn
+- [ ] Trzy odczyty komórki „Mnożnik" (odwrócenie kontraktu, właściciel 2026-09-23): własny mnożnik
+      do wpisania, mnożnik inwestycji wyszarzony kursywą przy „auto", kreska „—" przy kwocie stałej
+- [ ] Sortowanie po „Mnożniku" układa wiersze w kolejności liczb, które widać — wiersz „auto"
+      z 0,65 nad wierszem z własnym 0,4
+- [ ] Katalog prac: kolumna „Źródło" na każdą płaszczyznę, sortowalna, nazywa „auto" / „×0,65" /
+      kwotę stałą
 - [ ] Kolumny „Mnożnik" **nie ma** na linku dla inwestora ani w podglądzie klienta
 - [ ] Podsumowanie rozliczenia wykonawcy pokazuje dla pozycji z mnożnikiem tę samą stawkę co siatka
       po przeładowaniu strony (zgodność kopii TS i SQL)

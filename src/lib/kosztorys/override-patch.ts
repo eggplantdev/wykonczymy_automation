@@ -1,3 +1,4 @@
+import { namesFigure } from '@/lib/kosztorys/calc'
 import { OVERRIDE_COEFF_FIELDS, OVERRIDE_FIELDS, TOOL_PLANES } from '@/lib/kosztorys/constants'
 import type { ItemPatchT } from '@/lib/kosztorys/types'
 
@@ -16,6 +17,10 @@ import type { ItemPatchT } from '@/lib/kosztorys/types'
  * Per plane, and only for a plane the patch actually names — a write to „z narzędziami" must not
  * clear the rate someone set for „bez narzędzi".
  */
+// The patch is a loose bag of column values, so a key may hold anything the wire carried; only a
+// number can be a stawka.
+const coerceFigure = (value: unknown): number | null => (typeof value === 'number' ? value : null)
+
 export function normalizeOverridePatch(patch: ItemPatchT): ItemPatchT {
   const normalized = { ...patch }
 
@@ -26,15 +31,17 @@ export function normalizeOverridePatch(patch: ItemPatchT): ItemPatchT {
     const touchesCoeff = coeffField in patch
     if (!touchesValue && !touchesCoeff) continue
 
-    // A number is a choice of source, so the twin stops being the answer. `0` is a choice like any
-    // other — a stawka of zero złotych — so it lands here, not in the clearing branch below.
-    // Checked BEFORE clearing, because a caller that sends the whole pair at once (the import, the
-    // katalog) has already decided, and one of its two keys is legitimately null.
-    if (typeof patch[coeffField] === 'number') {
+    // `namesFigure`, not `typeof === 'number'`: the writer and `priceSourceOf` — the reader that
+    // decides which half of the pair wins — must run the SAME test, or a NaN is a chosen source to
+    // one and „auto" to the other. `0` is a choice like any other — a stawka of zero złotych — so it
+    // lands here, not in the clearing branch below. Checked BEFORE clearing, because a caller that
+    // sends the whole pair at once (the import, the katalog) has already decided, and one of its two
+    // keys is legitimately null.
+    if (namesFigure(coerceFigure(patch[coeffField]))) {
       normalized[valueField] = null
       continue
     }
-    if (typeof patch[valueField] === 'number') {
+    if (namesFigure(coerceFigure(patch[valueField]))) {
       normalized[coeffField] = null
       continue
     }

@@ -88,7 +88,10 @@ mnożnik" o tej samej wartości, a „Porównaj z katalogiem" porównuje trzy ro
 - **Nie ruszamy importu z arkusza.** `deriveOverride` zachowuje dwie gałęzie: praca z formułą przy
   współczynniku arkusza → „auto", każda inna → zamrożona kwota. Formuła o innym stosunku **nie**
   staje się mnożnikiem (decyzja właściciela).
-- **Nie ruszamy `buildCatalogueSeed`** — moduł jest dziś martwy, nie planujemy dla niego zachowania.
+- **`buildCatalogueSeed` jednak ruszony, wbrew temu planowi.** Rozszerzenie pary kolumn wymusiło
+  zmianę typów, których moduł dotyka, a jego `rateKey` rozstrzygał parę przez `!== null` — dokładnie
+  ten test, który ta zmiana plewi. Skoro moduł nie ma wołającego od `f8476290`, został **skasowany**
+  wraz ze swoim specem w bramce review 2026-09-23, zamiast być utrzymywany dla nikogo.
 - **Nie ruszamy mnożnika per sekcja** — nie istnieje i nie powstaje.
 - **Nie backfillujemy istniejących danych.** Każda dzisiejsza kwota stała zostaje kwotą stałą; nikt
   nie zgaduje wstecz, która z nich „miała być" mnożnikiem.
@@ -387,7 +390,11 @@ wolno jej tam dopisać.
 - `SUB_MODE_OPTIONS` rośnie o `{ value: 'coeff', label: 'własny mnożnik' }`; `modeOf` przechodzi na
   `priceSourceOf`.
 - Nowy `subcontractorCoeffColumn(view, titleNode)` — komórka edytowalna wyłącznie przy źródle
-  `coeff`, poza nim pusta i wyszarzona. Zapis dziesiętny przez `formatCoeff`.
+  `coeff`, poza nim nieedytowalna. Zapis dziesiętny przez `formatCoeff`.
+  **Odwrócone 2026-09-23 przez właściciela (`cc7baeed`):** „poza nim pusta" już nie obowiązuje —
+  przy „auto" komórka pokazuje mnożnik inwestycji wyszarzony kursywą (wiersz JEST liczony
+  mnożnikiem, tylko nie swoim), a przy „kwocie stałej" kreskę „nie dotyczy"; pusta komórka czytała
+  się jak pole do wypełnienia. Decyduje `shownCoeff` (`lib/kosztorys/calc.ts`).
 - `SubcontractorPriceCell` przy źródle `coeff` renderuje wynikową kwotę jako **nieedytowalną**,
   w tym samym wyszarzonym stylu co przy „auto" — inaczej dwie komórki po cichu nadpisywałyby sobie
   źródło.
@@ -651,7 +658,9 @@ liczba kolumn nie jest tu zmienną rozstrzygającą.
 
 - Przełączenie źródła na „własny mnożnik" nie rusza liczby w „Cena j.m.".
 - „Cena j.m." przy mnożniku jest nieedytowalna; próba wpisu nic nie zmienia.
-- Kolumna „Mnożnik" jest pusta i nieedytowalna przy „auto" i przy kwocie stałej.
+- Kolumna „Mnożnik" jest nieedytowalna poza źródłem „własny mnożnik" i pokazuje trzy różne odczyty:
+  własny mnożnik, mnożnik inwestycji przy „auto" (wyszarzony kursywą), kreskę przy kwocie stałej
+  (kontrakt odwrócony przez właściciela 2026-09-23, `cc7baeed`).
 - Formularz katalogu: trzy stany, pole kwoty i pole mnożnika montują się rozłącznie, a błąd
   z odmontowanego pola nie blokuje zapisu.
 
@@ -714,7 +723,7 @@ i „auto" są nietknięte, bo mieszkają w kolumnach, których ta zmiana nie ru
   właściciela, nie naprawiamy po cichu.
 - **Import z arkusza dalej spłaszcza formuły do kwot** (decyzja właściciela). Prace, które w arkuszu
   są formułą o innym stosunku, trzeba przestawić na mnożnik ręcznie.
-- `buildCatalogueSeed` zostaje martwym modułem — kandydat do osobnego findingu, nie do tej zmiany.
+- `buildCatalogueSeed` skasowany w bramce review 2026-09-23 (martwy od `f8476290`).
 
 ## Success Criteria
 

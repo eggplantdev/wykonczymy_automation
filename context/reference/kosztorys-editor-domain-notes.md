@@ -819,6 +819,17 @@ jest teraz rozdzielony: mnożnik ma **własną kolumnę** (`*_override_coeff`) o
 zapisu**, nie liczba kolumn — to był prawdziwy zarzut z EX-766 (dwa nieuporządkowane zapisy nad
 jednym pojęciem), i odpowiada na niego `normalizeOverridePatch`, a nie skasowanie trybu.
 
+**Komórka „Mnożnik" nie jest pusta poza swoim źródłem** (właściciel, 2026-09-23, `cc7baeed` —
+odwrócenie kontraktu z planu EX-865). Przy „auto" pokazuje **mnożnik inwestycji**, wyszarzony
+kursywą: wiersz JEST liczony mnożnikiem, tylko nie swoim, a pusta komórka kazałaby zgadywać. Przy
+„kwocie stałej" — kreskę „nie dotyczy": zamrożona kwota nie idzie za ceną j.m., więc wypisanie
+krotności, w której akurat siedzi, obiecywałoby związek zrywany pierwszą zmianą ceny; pusta komórka
+z kolei czyta się jak pole do wypełnienia. Który to z trzech odczytów, rozstrzyga `shownCoeff`
+(`lib/kosztorys/calc.ts`) — jedno miejsce dla komórki, `copyValue` i **sortowania**, bo sortowanie po
+własnym mnożniku wpychało wiersz pokazujący 0,65 pod wiersz pokazujący 0,4. Katalog prac odpowiada na
+to samo pytanie własną kolumną „Źródło" na płaszczyznę: stawka źródło tylko implikuje — „×0,65"
+nazywa się samo, „8,50 zł" czyta się jak każda inna liczba.
+
 Katalog prac zna te same trzy źródła: cennikowy wpis niesie parę kolumn `w_tools_rate` /
 `w_tools_rate_coeff` (i bliźniaczą bez narzędzi), „auto" to brak obu, a mnożnik wstawiony do
 rozpiski **przelicza się od ceny j.m., na którą trafi** — nie zamraża kwoty z katalogu.

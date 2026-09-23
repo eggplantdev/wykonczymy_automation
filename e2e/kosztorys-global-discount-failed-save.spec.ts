@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { refreshReferenceData, runSeedScript } from './seeds'
+import { refreshReferenceData, runSeedScript } from './support/seeds'
 import { discountModeSelect, openSettlementOptions, pickDiscountMode } from './drivers/settlement'
 
 // EX-597 regression guard. A failed rabat save has to leave the panel describing the deal the data

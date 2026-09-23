@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process'
 import { type Browser } from '@playwright/test'
-import { refreshData } from './support/wait'
+import { refreshData } from './wait'
 
 export type ReconSeedT = {
   mismatch: number

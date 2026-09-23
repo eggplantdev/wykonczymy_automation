@@ -1,7 +1,7 @@
 import { test, expect, type Locator, type Page } from '@playwright/test'
 import { STATUS_LABELS } from '@/components/investments/investment-status-badge'
-import { refreshReferenceData } from './seeds'
-import { readListingCell } from './support/ui'
+import { refreshReferenceData } from './support/seeds'
+import { readListingCell } from './support/table'
 import { waitForHydration } from './support/wait'
 import { EXPENSE_INVESTMENT, openExpenseDialog } from './drivers/expenses'
 

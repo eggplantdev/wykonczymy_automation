@@ -298,9 +298,11 @@ describe('columnSortValue — trzy źródła stawki wykonawcy', () => {
     expect(sourceIdsSortedBy(planePriceKey('priceMode', 'w_tools'))).toEqual([1, 2, 3])
   })
 
-  it('sortuje „Mnożnik" po liczbie, a wiersze bez mnożnika spychają się na koniec', () => {
-    // Malejąco, bo to kierunek, w którym „brak" musi wylądować na dole mimo braku liczby.
-    expect(sourceIdsSortedBy(planePriceKey('priceCoeff', 'w_tools'), 'desc')).toEqual([2, 1, 3])
+  it('sortuje „Mnożnik" po liczbie, którą widać w komórce — także mnożnik inwestycji', () => {
+    // Malejąco, bo to kierunek, w którym „brak" musi wylądować na dole mimo braku liczby. Wiersz
+    // „auto" pokazuje mnożnik inwestycji (0,65) i sortuje się nad własnym 0,4 — sortowanie po
+    // samym własnym mnożniku wpychało go pod niego.
+    expect(sourceIdsSortedBy(planePriceKey('priceCoeff', 'w_tools'), 'desc')).toEqual([1, 2, 3])
   })
 })
 

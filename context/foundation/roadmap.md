@@ -621,6 +621,12 @@ Kept for the record; pulled out of the numbered sequence because they carry no e
   columns by intersecting its own list with `PREVIEW_VISIBLE_COLUMNS` and then subtracting the
   owner's hidden set, so a purchase-price or subcontractor column cannot reach the paper even if
   someone writes it straight into the offer's column list — there is a spec that fails when they do.
+- **Nie ma długu E2E na wydruku oferty (2026-09-23, właściciel).** Dług spisany jako **EX-867**
+  („E2E wydruku oferty") został **anulowany** tego samego dnia: wydruk otwiera okno przeglądarki i
+  woła natywny dialog druku, więc spec Playwrighta przypinałby albo `about:blank`, albo atrapę
+  `window.print` — czyli nie to, co ma ochronę. Co jest testowalne — lista kolumn ograniczona
+  sufitem `PREVIEW_VISIBLE_COLUMNS`, filtr klienta, sumy — ma spece jednostkowe
+  (`build-offer-print-html.test.ts`). Weryfikacja samego papieru zostaje manualna.
 - **Outcome (dropped, except the offer print):** the owner can print/PDF, CSV-export, or hand the
   client a live formula sheet of a kosztorys.
 - **Change ID:** kosztorys-export. **PRD refs:** FR-008 — **unimplemented**, deliberately, by this cut.

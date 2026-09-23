@@ -5,13 +5,11 @@ import {
   subcontractorPrice,
 } from '@/lib/kosztorys/calc'
 import type { PriceSourceT, ToolPlaneT, ViewPricingT } from '@/lib/kosztorys/types'
-import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
 // One plane of a cennik wpis, as the two nullable columns hold it. At most one is set — the same
 // invariant the rozpiska's pair carries, for the same reason.
 export type CatalogueRateT = { rate: number | null; coeff: number | null }
 
-/** The four kolumny a cennik row keeps its two stawki in — all a reader of one płaszczyzna needs. */
 export type CatalogueRateColumnsT = {
   wToolsRate: number | null
   wToolsRateCoeff: number | null

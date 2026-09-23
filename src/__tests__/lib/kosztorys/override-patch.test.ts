@@ -66,6 +66,16 @@ describe('normalizeOverridePatch — najwyżej jedno źródło po każdym zapisi
     expect(normalizeOverridePatch(patch)).toEqual(patch)
   })
 
+  // Jedno słownictwo z czytającą stroną: `priceSourceOf` pyta `Number.isFinite`, więc wiersz z NaN
+  // czyta się jako „auto" — a „auto" to stan, w którym OBIE kolumny są puste. Przy `typeof ===
+  // 'number'` NaN zostawał w bazie jako wybrane źródło, którego czytelnik nie widział.
+  it('NaN nie nazywa stawki, więc para ląduje w „auto"', () => {
+    expect(normalizeOverridePatch({ wToolsOverrideCoeff: Number.NaN })).toEqual({
+      wToolsOverrideCoeff: null,
+      wToolsOverrideValue: null,
+    })
+  })
+
   it('nie mutuje wejścia', () => {
     const patch = { wToolsOverrideCoeff: 0.8 }
     normalizeOverridePatch(patch)

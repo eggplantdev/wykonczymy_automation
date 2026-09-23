@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
-import { type DeleteSeedT, seedDeleteInvestments } from './seeds'
+import { type DeleteSeedT, seedDeleteInvestments } from './support/seeds'
 import { clickAndSettle } from './support/wait'
 import {
   collapseSummaryPanel,

@@ -51,8 +51,6 @@ async function settleSummaryPanel(
   )
 }
 
-// The editor, with the Podsumowanie folded away — the state every grid spec needs before its first
-// cell click.
 export async function openEditor(page: Page, investmentId: number): Promise<void> {
   await page.goto(`/inwestycje/${investmentId}/kosztorys_v2`)
   await collapseSummaryPanel(page)
@@ -165,10 +163,8 @@ export async function expectCellValue(cell: Locator, value: string): Promise<voi
 // report blamed the toolbar button 30 s away. Pressing on the locator re-resolves and re-focuses the
 // input, so the key can only reach the cell under edit.
 export async function commitCellValue(cell: Locator, value: string): Promise<void> {
-  // The click belongs here: `react-datasheet-grid` only mounts the `<input>` for the cell that is
-  // active, so „select the cell" is not a caller's choice — it is the precondition for the two lines
-  // below to have anything to address. Five call sites each repeated it and one of them would
-  // eventually forget.
+  // `react-datasheet-grid` mounts the `<input>` only for the ACTIVE cell, so the click is not a
+  // caller's choice — it is the precondition for the two lines below to have anything to address.
   await cell.click()
   const input = cell.locator('input')
   await input.fill(value)

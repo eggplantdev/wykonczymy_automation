@@ -23,7 +23,6 @@ import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { catalogueRateFor } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
 import { appendCatalogueItems } from '@/lib/kosztorys/work-catalogue/append-catalogue-items'
 import { createSectionWithCatalogueItems } from '@/lib/kosztorys/work-catalogue/create-section-with-catalogue-items'
-import { getWorkCatalogue } from '@/lib/queries/work-catalogue'
 import type {
   AppendedCatalogueSliceT,
   AppliedCatalogueValueT,
@@ -125,14 +124,6 @@ export async function deleteCatalogueItemAction(id: number) {
     },
     ['workCatalogue'],
   )
-}
-
-// Fetch-on-open, through the same cached read /katalog-prac uses, so both share one cache entry.
-export async function listWorkCatalogueAction(): Promise<ActionResultT<WorkCatalogueItemT[]>> {
-  return protectedAction('listWorkCatalogueAction', async () => {
-    const data = await getWorkCatalogue()
-    return { success: true, data }
-  })
 }
 
 const catalogueItemIdsSchema = z
@@ -333,9 +324,21 @@ export async function applyCatalogueToKosztorysAction(
         applied.push(row)
       }
 
-      await captureAutoSnapshot(db, investmentId, user.id)
-      for (const column of Object.keys(batches) as CatalogueApplyColumnT[])
-        await applyCatalogueValues(db, investmentId, column, batches[column])
+      // One transaction, because the pair „kwota albo mnożnik" spans two of these batches (EX-865).
+      // Five sequential UPDATE-y mean a connection dropped after the `*OverrideValue` batch and
+      // before the `*OverrideCoeff` one leaves a pozycja carrying BOTH — and coeff outranks kwota, so
+      // the rozpiska quietly prices off the old mnożnik. The snapshot joins the same transaction: a
+      // rollback that left it standing would offer an undo to a state nothing changed from.
+      await withPayloadTransaction(
+        payload,
+        async (req) => {
+          const tx = await getDb(payload, req)
+          await captureAutoSnapshot(tx, investmentId, user.id)
+          for (const column of Object.keys(batches) as CatalogueApplyColumnT[])
+            await applyCatalogueValues(tx, investmentId, column, batches[column])
+        },
+        { skipRevalidation: true },
+      )
 
       return { success: true, data: applied }
     },

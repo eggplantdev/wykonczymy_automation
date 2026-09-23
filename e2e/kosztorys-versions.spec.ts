@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
-import { type ReconSeedT, seedReconInvestments } from './seeds'
+import { type ReconSeedT, seedReconInvestments } from './support/seeds'
 import {
   LOAD_VERSION_ITEM,
   openEditor,

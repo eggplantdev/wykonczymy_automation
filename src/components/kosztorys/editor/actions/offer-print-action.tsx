@@ -6,7 +6,7 @@ import { MenuItemBody } from '@/components/kosztorys/editor/actions/menu-item-bo
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { toastMessage } from '@/lib/utils/toast'
 import { openPrintWindow, printThenClose } from '@/lib/utils/print-window'
-import { buildOfferPrintHtml } from '@/lib/kosztorys/build-offer-print-html'
+import { buildOfferPrintHtml, offeredRows } from '@/lib/kosztorys/build-offer-print-html'
 import { SECTION_COLORS } from '@/lib/kosztorys/section-colors'
 import type { ClientViewConfigT } from '@/lib/kosztorys/client-view-settings'
 import { readClientViewSettings } from '@/lib/queries/client-view-settings-endpoint'
@@ -17,21 +17,26 @@ import { useKosztorysActions } from '@/components/kosztorys/editor/actions/koszt
  * document of its own with no stylesheet — so each section colour is resolved here, against the app's
  * own root, rather than duplicated as hex the two files could drift on.
  */
-function resolveSectionFills(): Record<string, string> {
+function resolveSectionFills(): ReadonlyMap<string, string> {
   const probe = document.createElement('div')
   probe.style.display = 'none'
   document.body.append(probe)
   try {
-    return Object.fromEntries(
+    return new Map(
       SECTION_COLORS.map(({ key, fill }) => {
         probe.style.backgroundColor = fill
-        return [key, getComputedStyle(probe).backgroundColor]
+        return [key, getComputedStyle(probe).backgroundColor] as const
       }),
     )
   } finally {
     probe.remove()
   }
 }
+
+// A hung logo request fires neither `load` nor `error`, and the print dialog waits on one of them —
+// so without a bound the popup sits there empty with nothing to tell the user. The offer prints
+// without its mark rather than not at all, which is the same call the `error` listener makes.
+const LOGO_WAIT_MS = 4000
 
 // Reads `rows`, not `viewRows`: an offer is the whole scope, and whatever search or plane filter the
 // owner left on the grid is not a decision about what the client is being offered. What IS such a
@@ -69,6 +74,14 @@ export function GenerateOfferMenuItem() {
     )
 
     const fill = (config: ClientViewConfigT) => {
+      // The `rows.length` guard above cannot answer this: the offer is the rows the CLIENT's hider
+      // leaves standing, and a kosztorys whose every pozycja is empty on both axes survives it only
+      // to print a branded header over an empty table.
+      if (offeredRows(rows, stages, config.variants.OFFER).length === 0) {
+        target.close()
+        toastMessage('Brak pozycji do wydruku — wszystkie są puste', 'info')
+        return
+      }
       target.document.write(
         buildOfferPrintHtml({
           rows,
@@ -92,21 +105,43 @@ export function GenerateOfferMenuItem() {
       const logo = target.document.querySelector('img')
       if (!logo || logo.complete) printThenClose(target)
       else {
-        const print = () => printThenClose(target)
+        let printed = false
+        const print = () => {
+          if (printed) return
+          printed = true
+          printThenClose(target)
+        }
         logo.addEventListener('load', print, { once: true })
         logo.addEventListener('error', print, { once: true })
+        setTimeout(print, LOGO_WAIT_MS)
+      }
+    }
+
+    // Both branches route their failure here, and they report DIFFERENT failures: a throw out of
+    // `fill` is the document, not the read that fed it — attributing it to „nie udało się odczytać
+    // ustawień" sends the owner to look at settings that loaded fine. The fast branch had no guard at
+    // all, so a popup closed between the click and this line leaked an empty window with no toast.
+    const render = (config: ClientViewConfigT) => {
+      try {
+        fill(config)
+      } catch {
+        target.close()
+        toastMessage('Nie udało się przygotować wydruku', 'error')
       }
     }
 
     if (investor.clientView) {
-      fill(investor.clientView)
+      render(investor.clientView)
       return
     }
     void readClientViewSettings(investmentId)
-      .then(fill)
       .catch(() => {
         target.close()
         toastMessage('Nie udało się odczytać ustawień podglądu', 'error')
+        return null
+      })
+      .then((config) => {
+        if (config) render(config)
       })
   }
 

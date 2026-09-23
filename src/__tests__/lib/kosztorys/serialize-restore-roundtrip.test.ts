@@ -151,6 +151,10 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
               discountType: 'amount',
               discountValue: 33.33,
               clientPrice: 149.99,
+              // Kwota na jednej płaszczyźnie, mnożnik na drugiej: para kolumn przeżywa roundtrip
+              // tylko wtedy, gdy obie połowy są gdzieś niepuste — inaczej wypadnięcie `*OverrideCoeff`
+              // z serializacji przechodzi jako „wszędzie null".
+              wToolsOverrideCoeff: 0.7,
               wToolsOverrideValue: null,
               ownToolsOverrideValue: 88.5,
               note: 'Uwaga: różnica ±5 cm\nDrugi wiersz — ćwierć „cudzysłów"',
@@ -167,6 +171,7 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
               clientPrice: 75,
               wToolsOverrideValue: 210.4,
               ownToolsOverrideValue: null,
+              ownToolsOverrideCoeff: 0.42,
             },
           ],
         },

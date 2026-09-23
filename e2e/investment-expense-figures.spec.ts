@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
-import { parsePln } from './support/ui'
+import { parsePln } from './support/money'
 import {
   createInvestmentExpense,
   EXPENSE_CATEGORY,

@@ -137,9 +137,3 @@ export const workCatalogueItemSchema = baseSchema
   })
 
 export type WorkCatalogueItemDataT = z.infer<typeof workCatalogueItemSchema>
-
-/** „12,50" → 12.5; blank and garbage → NaN, which `money()` refuses. */
-export function toMoney(value: string): number {
-  const parsed = parseDecimalInput(value)
-  return parsed.kind === 'value' ? parsed.value : NaN
-}

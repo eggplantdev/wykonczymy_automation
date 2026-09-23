@@ -12,6 +12,7 @@ import { planePriceKeysFor } from '@/lib/kosztorys/plane-price-keys'
 import { columnTotalsForRows } from '@/lib/kosztorys/column-totals'
 import { groupBySection } from '@/lib/kosztorys/row-ops'
 import { rowRemainingForView } from '@/lib/kosztorys/settlement-rows'
+import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { CTX, row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
 
@@ -19,13 +20,19 @@ const VAT_RATE = 0.08
 
 // The oracle for every sum is the editor's own figure, never a hand-added column — that equality IS
 // the contract this module was rewritten for: the paper prints the application's number.
-function editorTotals(rows: KosztorysV2RowT[]) {
+//
+// `view` defaults to 'client' but is a PARAMETER, because production hands `columnTotalsForRows` the
+// editor's ACTIVE plane, which can be a subcontractor one. The offer is a client document either way,
+// and what makes that true is `column-totals.ts` pinning `plannedNet` to 'client' internally — an
+// invariant declared in another module. Fixing the oracle at 'client' would let that pin be deleted
+// with this spec still green, so one case below drives it from a subcontractor plane.
+function editorTotals(rows: KosztorysV2RowT[], view: PriceViewT = 'client') {
   return {
-    totalNet: columnTotalsForRows(rows, CTX.stages, 'client', VAT_RATE).get('plannedNet') ?? 0,
+    totalNet: columnTotalsForRows(rows, CTX.stages, view, VAT_RATE).get('plannedNet') ?? 0,
     sectionNetById: new Map(
       [...groupBySection(rows)].map(([sectionId, rowsOfSection]) => [
         sectionId,
-        columnTotalsForRows(rowsOfSection, CTX.stages, 'client', VAT_RATE).get('plannedNet') ?? 0,
+        columnTotalsForRows(rowsOfSection, CTX.stages, view, VAT_RATE).get('plannedNet') ?? 0,
       ]),
     ),
   }
@@ -38,7 +45,7 @@ function html(rows: KosztorysV2RowT[], overrides: Partial<OfferPrintArgsT> = {})
     settings: { hiddenColumns: [], hideEmptyRows: true },
     investmentName: 'Mieszkanie na Kazimierzu',
     logoUrl: '/logo-wykonczymy.png',
-    fillByColorKey: { blue: 'rgb(0, 0, 255)' },
+    fillByColorKey: new Map([['blue', 'rgb(0, 0, 255)']]),
     ...editorTotals(rows),
     ...overrides,
   })
@@ -178,6 +185,21 @@ describe('buildOfferPrintHtml — papier pokazuje to, co ekran', () => {
   })
 })
 
+describe('buildOfferPrintHtml — oferta jest dokumentem klienta', () => {
+  it('drukuje sumę klienta, nawet gdy edytor stoi na płaszczyźnie podwykonawcy', () => {
+    // Produkcja podaje wyrocznię AKTYWNĄ płaszczyznę edytora. „Razem netto" na papierze ma i tak być
+    // figurą klienta — trzyma to przypięcie `plannedNet` do 'client' w `column-totals.ts`.
+    const rows = [
+      row({ id: 1, sectionId: 10, sectionName: 'Podłogi', plannedQty: 10, clientPrice: 100 }),
+    ]
+    const client = editorTotals(rows)
+    const fromSubcontractorPlane = editorTotals(rows, 'w_tools')
+
+    expect(fromSubcontractorPlane.totalNet).toBe(client.totalNet)
+    expect(html(rows, fromSubcontractorPlane)).toContain(zloty(client.totalNet))
+  })
+})
+
 describe('buildOfferPrintHtml — struktura tabeli', () => {
   it('colspan sumy sekcji nie schodzi poniżej 1, gdy „Opis prac" jest ukryty', () => {
     const out = html([row()], {
@@ -189,6 +211,41 @@ describe('buildOfferPrintHtml — struktura tabeli', () => {
 
     expect(out).toContain('colspan="1"')
     expect(out).not.toContain('colspan="0"')
+  })
+
+  it('wiersz sumy sekcji mieści się w kolumnach, gdy „Wartość netto" jest pierwsza', () => {
+    // Wszystko na lewo od „Wartość netto" ukryte: zostają dwie kolumny, a etykieta „Razem" i tak
+    // musi zająć jedną. Podłoga colspanu i licznik wypełniaczy liczyły z dwóch różnych wartości, więc
+    // wiersz niósł trzecią komórkę na dwukolumnową tabelę — przeglądarka doszywała widmową kolumnę.
+    const rows = [
+      row({ id: 1, sectionId: 10, sectionName: 'Podłogi', plannedQty: 2, clientPrice: 50 }),
+    ]
+    const out = html(rows, {
+      settings: {
+        hiddenColumns: ['description', 'plannedQty', 'unit', 'price'],
+        hideEmptyRows: true,
+      },
+    })
+
+    const headerCells = out.match(/<th(?:\s[^>]*)?>/g) ?? []
+    const totalRow = /<tr class="band-total">(.*?)<\/tr>/.exec(out)?.[1] ?? ''
+    const spans = [...totalRow.matchAll(/<td[^>]*?(?:colspan="(\d+)")?[^>]*>/g)].map((m) =>
+      Number(m[1] ?? 1),
+    )
+
+    expect(headerCells).toHaveLength(2)
+    expect(spans.reduce((sum, span) => sum + span, 0)).toBe(2)
+  })
+
+  it('escapuje kolor sekcji i adres logo, więc żaden nie zamyka atrybutu', () => {
+    const out = html([row({ sectionColor: 'blue' })], {
+      fillByColorKey: new Map([['blue', 'rgb(0,0,255)" onload="alert(1)']]),
+      logoUrl: '/logo.png" onerror="alert(1)',
+    })
+
+    expect(out).not.toContain('onerror="alert(1)"')
+    expect(out).not.toContain('onload="alert(1)"')
+    expect(out).toContain('&quot;')
   })
 
   it('ukrycie kolumny w ustawieniach podglądu zabiera ją i z papieru', () => {

@@ -10,6 +10,7 @@ import { investmentGateForRow } from '@/lib/db/investment-gate'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { cleanDescription } from '@/lib/kosztorys/clean-description'
+import { itemPatchSchema } from '@/lib/kosztorys/item-patch-schema'
 import { cleanUnit } from '@/lib/kosztorys/clean-unit'
 import { getItemTexts, setItemTexts } from '@/lib/db/kosztorys-item-texts'
 import {
@@ -44,28 +45,7 @@ const SECTION_MISSING = 'Sekcja nie istnieje.'
 const ITEM_MISSING = 'Pozycja nie istnieje.'
 
 // --- Patch schemas (all fields optional — autosave sends one field at a time) ---
-// itemPatchSchema is shaped to match ItemPatchT (a single source of the type in lib/kosztorys/types.ts).
-
-const itemPatchSchema = z
-  .object({
-    description: z.string().nullable(),
-    unit: z.string().nullable(),
-    plannedQty: z.coerce.number(),
-    discountType: z.enum(['percent', 'amount']).nullable(),
-    // Floor only: the same slot carries złotówki when the type is 'amount', so the percent ceiling
-    // lives in discount-edit.ts.
-    discountValue: z.coerce.number().min(0),
-    clientPrice: z.coerce.number(),
-    // `.nullable()` WRAPS the coercion rather than following a coerced number: `z.coerce.number()`
-    // turns null into 0, which is the one value that must stay distinguishable from „auto".
-    wToolsOverrideValue: z.coerce.number().nullable(),
-    ownToolsOverrideValue: z.coerce.number().nullable(),
-    // Same `.nullable()` wrapping, same reason: a mnożnik of 0 is a stawka of zero złotych.
-    wToolsOverrideCoeff: z.coerce.number().nullable(),
-    ownToolsOverrideCoeff: z.coerce.number().nullable(),
-    note: z.string().nullable(),
-  })
-  .partial()
+// The item patch schema lives beside ItemPatchT in lib/kosztorys/item-patch-schema.ts.
 
 const sectionPatchSchema = z
   .object({

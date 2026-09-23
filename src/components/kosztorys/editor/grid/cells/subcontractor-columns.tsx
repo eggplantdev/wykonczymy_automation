@@ -6,7 +6,7 @@ import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import { decimalText } from '@/lib/utils/decimal-text'
 import { roundToCents } from '@/lib/utils/round-to-cents'
-import { effectiveCoeff, overrideCoeffFor, priceSourceOf, viewPrice } from '@/lib/kosztorys/calc'
+import { priceSourceOf, shownCoeff, viewPrice } from '@/lib/kosztorys/calc'
 import { checkSubcontractorPrice } from '@/lib/kosztorys/subcontractor-price-guard'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import { FLAGGED_TONE, PRICE_SOURCES, PRICE_SOURCE_LABELS } from '@/lib/kosztorys/constants'
@@ -43,10 +43,26 @@ type SubcontractorCellDataT = {
 
 const cellData = (view: ToolPlaneT): SubcontractorCellDataT => ({ view })
 
+// Która z pary komórek jest AUTOREM stawki na tym wierszu. Obie renderują się read-only tam, gdzie
+// figurę trzyma ta druga („Mnożnik" pokazuje „—" przy kwocie stałej, „Cena j.m." pokazuje wyliczoną
+// stawkę przy własnym mnożniku) — ale dsg o tym nie wie: `isCellDisabled` czyta WYŁĄCZNIE
+// `column.disabled`, więc bez tego Delete zaznaczeniem kasował kwotę przez komórkę z myślnikiem.
+//
+// Predykat siedzi na `disabled`, a nie w `deleteValue`/`pasteValue`, bo to jedno miejsce zamyka
+// wszystkie trzy drogi zapisu (Delete, wklejanie, wejście w edycję) — i robi to samo rozstrzygnięcie,
+// którym komórka już decyduje o swoim renderze.
+const authorsCoeff = (rowData: KosztorysV2RowT, view: ToolPlaneT) =>
+  priceSourceOf(rowData, view) === 'coeff'
+
 // `kosztorys-cell-input-body` (globals.css) keeps this wrapper geometrically invisible: the grid
 // shapes a cell's direct span into the wrapping, clipping, margined box that read-only TEXT needs,
 // and an input pushed through that box sits a few pixels off the same figure in the cell next door.
-const CELL_WRAPPER = 'kosztorys-cell-input-body size-full'
+//
+// Neutralising it costs the read-only branch its vertical box, though — that rule reaches a cell's
+// DIRECT span only, and here the direct span is this wrapper. So the centring is done here instead,
+// where it serves both branches: the input fills the wrapper via `size-full` and centres itself, a
+// `—` or a derived mnożnik is centred by the flex box rather than hanging at the top of the row.
+const CELL_WRAPPER = 'kosztorys-cell-input-body flex size-full flex-col justify-center'
 
 // A derived price carries the float tail of client × coeff; the cell edits grosze, not the tail.
 const priceText = (value: number): string => decimalText(roundToCents(value))
@@ -175,20 +191,9 @@ function SubcontractorModeCell({
   )
 }
 
-// „Mnożnik" — editable ONLY where it is the source. At „auto" the row IS priced by a multiplier, just
-// not one of its own, so the cell shows the investment's global współczynnik in the same muted italic
-// the cena j.m. cell uses for a derived figure. „Kwota stała" gets the grid's „nie dotyczy" dash
-// rather than the ratio it happens to sit at: a frozen kwota does NOT track the cena j.m., so a
-// number there would promise a link the next price change breaks — and a blank cell reads as an
-// empty field somebody could fill.
-// What „Mnożnik" shows for a row: its own at „własny mnożnik", the investment's at „auto", nothing at
-// „kwota stała". One function so the cell and `copyValue` cannot disagree about what is on screen.
-const coeffShown = (row: KosztorysV2RowT, view: ToolPlaneT): number | null => {
-  const source = priceSourceOf(row, view)
-  if (source === 'coeff') return overrideCoeffFor(row, view)
-  return source === 'auto' ? effectiveCoeff(row, view) : null
-}
-
+// Editable ONLY where the mnożnik is the source (`shownCoeff` decides WHICH figure shows). „Auto"
+// borrows the cena j.m. cell's muted italic for a derived figure, and „kwota stała" takes the grid's
+// „nie dotyczy" dash rather than a blank, which would read as an empty field somebody could fill.
 function SubcontractorCoeffCell({
   rowData,
   setRowData,
@@ -208,7 +213,7 @@ function SubcontractorCoeffCell({
   if (source !== 'coeff') {
     return (
       <ReadOnlyCellText muted className={source === 'auto' ? 'italic' : undefined}>
-        {source === 'auto' ? decimalText(coeffShown(rowData, view)) : '—'}
+        {source === 'auto' ? decimalText(shownCoeff(rowData, view)) : '—'}
       </ReadOnlyCellText>
     )
   }
@@ -218,7 +223,7 @@ function SubcontractorCoeffCell({
       <EditableCellInput
         {...edit.inputProps}
         className={edit.blockReason ? FLAGGED_TONE : undefined}
-        value={edit.draft ?? decimalText(coeffShown(rowData, view))}
+        value={edit.draft ?? decimalText(shownCoeff(rowData, view))}
         focus={focus}
       />
     </CellTooltip>
@@ -235,6 +240,7 @@ export function subcontractorPriceColumn(
     title: titleNode,
     columnData: cellData(view),
     component: SubcontractorPriceCell,
+    disabled: ({ rowData }) => authorsCoeff(rowData, view),
     copyValue: ({ rowData }) => priceText(viewPrice(rowData, view)),
     pasteValue: ({ rowData, value }) => cellPaste(value, rowData, policy),
     deleteValue: ({ rowData }) => policy.clear(rowData),
@@ -274,7 +280,8 @@ export function subcontractorCoeffColumn(
     title: titleNode,
     columnData: cellData(view),
     component: SubcontractorCoeffCell,
-    copyValue: ({ rowData }) => decimalText(coeffShown(rowData, view)),
+    disabled: ({ rowData }) => !authorsCoeff(rowData, view),
+    copyValue: ({ rowData }) => decimalText(shownCoeff(rowData, view)),
     pasteValue: ({ rowData, value }) => cellPaste(value, rowData, policy),
     deleteValue: ({ rowData }) => policy.clear(rowData),
   }

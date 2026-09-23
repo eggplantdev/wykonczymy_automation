@@ -156,6 +156,27 @@ export function asViewPricing(
 }
 
 /**
+ * The mnożnik a row SHOWS in the „Mnożnik" column: its own at „własny mnożnik", the investment's at
+ * „auto" (the row IS priced by a multiplier there, just not one of its own), and nothing at „kwota
+ * stała" — a frozen kwota does not track the cena j.m., so a ratio there would promise a link the
+ * next price change breaks.
+ *
+ * Here rather than in the cell, because three surfaces read it and the cell is only one of them:
+ * the komórka, `copyValue`, and `columnSortValue`. Sorting off `overrideCoeffFor` while the cell
+ * rendered this put a row showing 0,65 under a row showing 0,4.
+ */
+export function shownCoeff(row: ViewPricingT, view: ToolPlaneT): number | null {
+  switch (priceSourceOf(row, view)) {
+    case 'coeff':
+      return overrideCoeffFor(row, view)
+    case 'auto':
+      return effectiveCoeff(row, view)
+    default:
+      return null
+  }
+}
+
+/**
  * Three sources, one number. The multiplier — like „auto" — multiplies the price BEFORE rabat: the
  * rabat is the company handing back its own marża, not a markdown of the crew's work, so no
  * subcontractor figure in this file has ever seen one.

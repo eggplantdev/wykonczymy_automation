@@ -117,7 +117,7 @@ export type StoredSnapshotPayloadT = {
 // optional) so tsc rejects a future edit that drops a fallback, and the return type is the strict
 // KosztorysItemT — meaning the compiler, not this comment, is what guarantees every field got filled.
 //
-// It lives at the payload readers (insertKosztorysTree, appendPresetSections, buildCatalogueSeed) and
+// It lives at the payload readers (insertKosztorysTree, appendPresetSections) and
 // not at the bind in insert-rows.ts, because those primitives are also called by appendCatalogueItems,
 // which builds its rows in code (`asItem`) where a missing value is a caller bug to surface, not absorb.
 //
