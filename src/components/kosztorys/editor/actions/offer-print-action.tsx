@@ -8,8 +8,9 @@ import { toastMessage } from '@/lib/utils/toast'
 import { openPrintWindow, printThenClose } from '@/lib/utils/print-window'
 import { buildOfferPrintHtml } from '@/lib/kosztorys/build-offer-print-html'
 import { SECTION_COLORS } from '@/lib/kosztorys/section-colors'
-import { clientViewSettingsForMode } from '@/lib/kosztorys/client-view-settings'
+import type { ClientViewConfigT } from '@/lib/kosztorys/client-view-settings'
 import { readClientViewSettings } from '@/lib/queries/client-view-settings-endpoint'
+import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 
 /**
  * The palette lives in globals.css as `color-mix()` over the chart hues, and the print popup is a
@@ -39,6 +40,9 @@ function resolveSectionFills(): Record<string, string> {
 export function GenerateOfferMenuItem() {
   const { investmentId, rows, stages, investmentName, columnTotals, sectionColumnTotals } =
     useKosztorysEditorContext()
+  // „Ustawienia podglądu…" and „Udostępnij" already hold this config; the print joins them instead of
+  // firing a third independent read of the same row.
+  const { investor } = useKosztorysActions()
 
   function handlePrint() {
     if (rows.length === 0) {
@@ -47,8 +51,8 @@ export function GenerateOfferMenuItem() {
     }
     // Opened synchronously with the click, and only filled once the settings land: an await before
     // window.open spends the user activation it needs and the popup is blocked.
-    const printWindow = openPrintWindow(investmentName)
-    if (!printWindow) {
+    const target = openPrintWindow(investmentName)
+    if (!target) {
       toastMessage('Przeglądarka zablokowała okno wydruku', 'error')
       return
     }
@@ -64,35 +68,44 @@ export function GenerateOfferMenuItem() {
       }),
     )
 
+    function fill(config: ClientViewConfigT) {
+      target.document.write(
+        buildOfferPrintHtml({
+          rows,
+          stages,
+          // Always the OFFER variant, never the active mode. The menu item says „Wygeneruj ofertę", and
+          // an investment left in ROZLICZENIE would otherwise lay that mode's hidden set over the
+          // offer's column list and silently print whatever survived — a set nobody ever saw.
+          settings: config.variants.OFFER,
+          investmentName,
+          logoUrl: `${window.location.origin}/logo-wykonczymy.png`,
+          fillByColorKey,
+          totalNet,
+          sectionNetById,
+        }),
+      )
+      target.document.close()
+      // Waits on the LOGO, not on the document: a `document.write`-built page reports `complete` the
+      // moment it is closed, so printing on readyState fires before the image is off the network and
+      // every page gets a blank box where the mark should be. `error` resolves too — a missing logo is
+      // not a reason to withhold the offer.
+      const logo = target.document.querySelector('img')
+      if (!logo || logo.complete) printThenClose(target)
+      else {
+        const print = () => printThenClose(target)
+        logo.addEventListener('load', print, { once: true })
+        logo.addEventListener('error', print, { once: true })
+      }
+    }
+
+    if (investor.clientView) {
+      fill(investor.clientView)
+      return
+    }
     void readClientViewSettings(investmentId)
-      .then((config) => {
-        printWindow.document.write(
-          buildOfferPrintHtml({
-            rows,
-            stages,
-            settings: clientViewSettingsForMode(config),
-            investmentName,
-            logoUrl: `${window.location.origin}/logo-wykonczymy.png`,
-            fillByColorKey,
-            totalNet,
-            sectionNetById,
-          }),
-        )
-        printWindow.document.close()
-        // Waits on the LOGO, not on the document: a `document.write`-built page reports `complete` the
-        // moment it is closed, so printing on readyState fires before the image is off the network and
-        // every page gets a blank box where the mark should be. `error` resolves too — a missing logo is
-        // not a reason to withhold the offer.
-        const logo = printWindow.document.querySelector('img')
-        if (!logo || logo.complete) printThenClose(printWindow)
-        else {
-          const print = () => printThenClose(printWindow)
-          logo.addEventListener('load', print, { once: true })
-          logo.addEventListener('error', print, { once: true })
-        }
-      })
+      .then(fill)
       .catch(() => {
-        printWindow.close()
+        target.close()
         toastMessage('Nie udało się odczytać ustawień podglądu', 'error')
       })
   }

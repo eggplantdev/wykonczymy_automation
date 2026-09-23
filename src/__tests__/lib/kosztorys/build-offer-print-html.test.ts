@@ -11,6 +11,7 @@ import { PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/column-config'
 import { planePriceKeysFor } from '@/lib/kosztorys/plane-price-keys'
 import { columnTotalsForRows } from '@/lib/kosztorys/column-totals'
 import { groupBySection } from '@/lib/kosztorys/row-ops'
+import { rowRemainingForView } from '@/lib/kosztorys/settlement-rows'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { CTX, row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
 
@@ -131,6 +132,46 @@ describe('buildOfferPrintHtml — sumy przychodzą z edytora', () => {
 
     expect(out).not.toContain('Razem netto')
     expect(out).not.toContain('<tr class="band-total">')
+  })
+})
+
+describe('buildOfferPrintHtml — papier pokazuje to, co ekran', () => {
+  it('drukuje „Pozostało" — kolumnę, którą podgląd oferty pokazuje', () => {
+    const only = row({ id: 1, plannedQty: 10, clientPrice: 100 })
+
+    const out = html([only])
+
+    expect(out).toContain('<th class="num">Pozostało</th>')
+    expect(out).toContain(zloty(rowRemainingForView(only, CTX.stages, 'client')))
+  })
+
+  it('suma sekcji stoi pod „Wartość netto", nie pod kolumną obok', () => {
+    const rows = [
+      row({ id: 1, sectionId: 10, sectionName: 'Podłogi', plannedQty: 3, clientPrice: 100 }),
+    ]
+    const { sectionNetById } = editorTotals(rows)
+
+    const out = html(rows)
+
+    // The label spans everything left of the money column and the cells to its right are empty, so the
+    // figure lands under its own heading however many columns the offer grows.
+    expect(out).toContain(
+      `Razem — Podłogi</td><td class="num">${zloty(sectionNetById.get(10)!)}</td><td></td></tr>`,
+    )
+  })
+
+  it('ukryta „Pozostało" nie przesuwa sumy sekcji', () => {
+    const rows = [
+      row({ id: 1, sectionId: 10, sectionName: 'Podłogi', plannedQty: 3, clientPrice: 100 }),
+    ]
+    const { sectionNetById } = editorTotals(rows)
+
+    const out = html(rows, { settings: { hiddenColumns: ['remaining'], hideEmptyRows: true } })
+
+    expect(out).not.toContain('Pozostało')
+    expect(out).toContain(
+      `Razem — Podłogi</td><td class="num">${zloty(sectionNetById.get(10)!)}</td></tr>`,
+    )
   })
 })
 

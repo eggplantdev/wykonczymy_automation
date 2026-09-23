@@ -402,14 +402,14 @@ Zebrane w rejestrze `context/foundation/manual-checks.md` na ostatniej fazie.
 
 #### Automated
 
-- [ ] 2.1 `build-offer-print-html.test.ts` przechodzi (blok „sufit ujawniania")
+- [x] 2.1 `build-offer-print-html.test.ts` przechodzi (blok „sufit ujawniania") — a48376dc
 
 ### Phase 3: Papier pokazuje to, co ekran
 
 #### Automated
 
-- [ ] 3.1 `offer-print-action.test.tsx` przechodzi
-- [ ] 3.2 `build-offer-print-html.test.ts` przechodzi (kolumna „Pozostało")
+- [x] 3.1 `offer-print-action.test.tsx` przechodzi
+- [x] 3.2 `build-offer-print-html.test.ts` przechodzi (kolumna „Pozostało")
 
 ### Phase 4: Zapis
 

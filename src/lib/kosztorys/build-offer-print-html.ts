@@ -1,6 +1,7 @@
 import { escapeHtml } from '@/lib/utils/escape-html'
 import { rowPlannedNetForView, viewPrice, type PriceViewT } from '@/lib/kosztorys/calc'
 import { formatQty } from '@/lib/kosztorys/format'
+import { rowRemainingForView } from '@/lib/kosztorys/settlement-rows'
 import { PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/column-config'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
 import { applyRowConditions, clientConditionIds } from '@/lib/kosztorys/row-conditions/queries'
@@ -198,6 +199,16 @@ const OFFER_COLUMNS: readonly OfferColumnT[] = [
     headerClass: 'num',
     cell: (row, view) => zloty(rowPlannedNetForView(row, view)),
   },
+  {
+    // „Pozostało" is part of the offer variant the dialog offers, so an owner who leaves it ticked
+    // sees it in the podgląd — and used to lose it on paper.
+    key: 'remaining',
+    label: 'Pozostało',
+    colClass: 'c-value',
+    cellClass: 'num value',
+    headerClass: 'num',
+    cell: (row, view, stages) => zloty(rowRemainingForView(row, stages, view)),
+  },
 ]
 
 /**
@@ -236,7 +247,10 @@ export function buildOfferPrintHtml({
   const columns = printableOfferColumns(OFFER_COLUMNS, settings.hiddenColumns)
   // Every sum in the document is a sum of „Wartość netto". With that column hidden the owner has
   // decided the client sees no money, so the totals go with it rather than reappearing in a footer.
-  const withMoney = columns.some((column) => column.key === 'plannedNet')
+  // The index is what the section total is placed by — „Pozostało" sits to its right, so a figure
+  // parked in the last cell would print the przedmiar's sum under the wrong heading.
+  const moneyIndex = columns.findIndex((column) => column.key === 'plannedNet')
+  const withMoney = moneyIndex >= 0
 
   // The offer is the client's document, so it is filtered by the client's own hider and nothing else
   // — `clientConditionIds` owns which conditions may reach a client, and the grid's plane, search and
@@ -258,11 +272,13 @@ export function buildOfferPrintHtml({
     if (sectionNet === undefined) return
     body.push(
       `<tr class="band-total">` +
-        // Never 0: with „Opis prac" hidden the label and the figure share the one cell that is left,
-        // and `colspan="0"` means „to the end of the colgroup" in HTML5 — the browser spans the row.
-        `<td class="rail" colspan="${Math.max(1, columns.length - 1)}" style="border-left-color:${sectionFill}">` +
+        // Never 0: with „Opis prac" hidden the label may have no column left to its own, and
+        // `colspan="0"` means „to the end of the colgroup" in HTML5 — the browser spans the row.
+        `<td class="rail" colspan="${Math.max(1, moneyIndex)}" style="border-left-color:${sectionFill}">` +
         `Razem — ${escapeHtml(sectionName)}</td>` +
-        `<td class="num">${zloty(sectionNet)}</td></tr>`,
+        `<td class="num">${zloty(sectionNet)}</td>` +
+        `<td></td>`.repeat(columns.length - moneyIndex - 1) +
+        `</tr>`,
     )
   }
 
