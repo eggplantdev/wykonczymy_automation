@@ -217,11 +217,11 @@ are numbered in sequence with no extra code.
 
 #### Automated
 
-- [x] 1.1 View-state spec passes
-- [x] 1.2 Queries spec passes
+- [x] 1.1 View-state spec passes — 26e63959
+- [x] 1.2 Queries spec passes — 26e63959
 
 ### Phase 2: Switch and muted rows
 
 #### Automated
 
-- [ ] 2.1 No phase-scoped automated check (Whole-tree Gate covers it)
+- [x] 2.1 No phase-scoped automated check (Whole-tree Gate covers it)
