@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildOfferPrintHtml, type OfferPrintArgsT } from '@/lib/kosztorys/build-offer-print-html'
+import {
+  buildOfferPrintHtml,
+  OFFER_COLUMN_KEYS,
+  printableOfferColumns,
+  type OfferColumnT,
+  type OfferPrintArgsT,
+} from '@/lib/kosztorys/build-offer-print-html'
+import { PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/column-config'
+import { planePriceKeysFor } from '@/lib/kosztorys/plane-price-keys'
 import { columnTotalsForRows } from '@/lib/kosztorys/column-totals'
 import { groupBySection } from '@/lib/kosztorys/row-ops'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
@@ -144,5 +152,41 @@ describe('buildOfferPrintHtml — struktura tabeli', () => {
 
     expect(out).not.toContain('<th class="num">Cena j.m.</th>')
     expect(out).toContain('<th>Opis prac</th>')
+  })
+})
+
+describe('sufit ujawniania', () => {
+  const barred: OfferColumnT = {
+    key: 'note',
+    label: 'Komentarz',
+    colClass: '',
+    cellClass: '',
+    headerClass: '',
+    cell: (row) => String(row.note ?? ''),
+  }
+  const subcontractorRate: OfferColumnT = {
+    ...barred,
+    key: planePriceKeysFor('w_tools')[0],
+    label: 'Stawka wykonawcy',
+  }
+
+  // The one that fails when someone adds a column: the offer's own list may never outgrow the set the
+  // client-view dialog is built from.
+  it('każda kolumna oferty mieści się w PREVIEW_VISIBLE_COLUMNS', () => {
+    for (const key of OFFER_COLUMN_KEYS) expect(PREVIEW_VISIBLE_COLUMNS.has(key)).toBe(true)
+  })
+
+  it.each([
+    ['„komentarz" właściciela', barred],
+    ['stawka podwykonawcy', subcontractorRate],
+  ])('%s nie przechodzi, nawet wpisana wprost do listy', (_label, column) => {
+    expect(printableOfferColumns([column], [])).toEqual([])
+  })
+
+  it('kolumna z sufitu przechodzi, dopóki właściciel jej nie ukryje', () => {
+    const price = { ...barred, key: 'price' }
+
+    expect(printableOfferColumns([price], [])).toEqual([price])
+    expect(printableOfferColumns([price], ['price'])).toEqual([])
   })
 })

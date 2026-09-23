@@ -1,6 +1,7 @@
 import { escapeHtml } from '@/lib/utils/escape-html'
-import { rowPlannedNetForView, viewPrice } from '@/lib/kosztorys/calc'
+import { rowPlannedNetForView, viewPrice, type PriceViewT } from '@/lib/kosztorys/calc'
 import { formatQty } from '@/lib/kosztorys/format'
+import { PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/column-config'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
 import { applyRowConditions, clientConditionIds } from '@/lib/kosztorys/row-conditions/queries'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
@@ -138,19 +139,24 @@ tr.band-total td.rail { border-top: none; background-position: 0 0; }
                       font-weight: 600; letter-spacing: -.01em; color: #18181b; }
 `
 
-type OfferColumnT = {
+export type OfferColumnT = {
   key: string
   label: string
   colClass: string
   cellClass: string
   headerClass: string
-  cell: (row: KosztorysV2RowT) => string
+  cell: (row: KosztorysV2RowT, view: PriceViewT, stages: KosztorysStageT[]) => string
 }
+
+// The offer is priced for the client and nothing else. Passed to every `cell` from here rather than
+// written into each one: a plane repeated per column can be changed in four of five places, and the
+// fifth would print one crew's stawka on a client's offer.
+const OFFER_PRICE_VIEW: PriceViewT = 'client'
 
 // Keyed by the same column keys the client-view settings hide, so „odznacz Cena j.m." in the dialog
 // takes the column out of the printed offer too. The offer never prints the whole allowlist — the
-// stage columns and „Pozostało" are a settlement document, not an offer — so the printed set is this
-// list minus whatever the owner hid.
+// stage columns are a settlement document, not an offer — so the printed set is this list minus
+// whatever the owner hid, minus whatever the ceiling below bars outright.
 const OFFER_COLUMNS: readonly OfferColumnT[] = [
   {
     key: 'description',
@@ -182,7 +188,7 @@ const OFFER_COLUMNS: readonly OfferColumnT[] = [
     colClass: 'c-price',
     cellClass: 'num price',
     headerClass: 'num',
-    cell: (row) => zloty(viewPrice(row, 'client')),
+    cell: (row, view) => zloty(viewPrice(row, view)),
   },
   {
     key: 'plannedNet',
@@ -190,9 +196,32 @@ const OFFER_COLUMNS: readonly OfferColumnT[] = [
     colClass: 'c-value',
     cellClass: 'num value',
     headerClass: 'num',
-    cell: (row) => zloty(rowPlannedNetForView(row, 'client')),
+    cell: (row, view) => zloty(rowPlannedNetForView(row, view)),
   },
 ]
+
+/**
+ * The printed column set: the offer's own list, minus what the owner hid, minus anything outside
+ * `PREVIEW_VISIBLE_COLUMNS`.
+ *
+ * The ceiling is the point. The print is a render surface of its own, and the app's whole disclosure
+ * regime lives in the render layer — the preview payload deliberately cuts nothing
+ * (`preview-kosztorys.ts`). Without this filter `OFFER_COLUMNS` would be a third hand-maintained
+ * allowlist nothing checks, and „komentarz" or a subcontractor's stawka would be one line from a
+ * client's document. Fails closed the same way `sanitizeClientViewVariant` does.
+ */
+// Exported for the spec that pins the list against the ceiling — the assertion has to see the keys.
+export const OFFER_COLUMN_KEYS: readonly string[] = OFFER_COLUMNS.map((column) => column.key)
+
+export function printableOfferColumns(
+  columns: readonly OfferColumnT[],
+  hiddenColumns: readonly string[],
+): OfferColumnT[] {
+  const hidden = new Set(hiddenColumns)
+  return columns.filter(
+    (column) => PREVIEW_VISIBLE_COLUMNS.has(column.key) && !hidden.has(column.key),
+  )
+}
 
 export function buildOfferPrintHtml({
   rows,
@@ -204,8 +233,7 @@ export function buildOfferPrintHtml({
   totalNet,
   sectionNetById,
 }: OfferPrintArgsT): string {
-  const hidden = new Set(settings.hiddenColumns)
-  const columns = OFFER_COLUMNS.filter((column) => !hidden.has(column.key))
+  const columns = printableOfferColumns(OFFER_COLUMNS, settings.hiddenColumns)
   // Every sum in the document is a sum of „Wartość netto". With that column hidden the owner has
   // decided the client sees no money, so the totals go with it rather than reappearing in a footer.
   const withMoney = columns.some((column) => column.key === 'plannedNet')
@@ -258,7 +286,7 @@ export function buildOfferPrintHtml({
             (column, index) =>
               `<td class="${column.cellClass}${index === 0 ? ' rail' : ''}"` +
               `${index === 0 ? ` style="border-left-color:${sectionFill}"` : ''}>` +
-              `${column.cell(row)}</td>`,
+              `${column.cell(row, OFFER_PRICE_VIEW, stages)}</td>`,
           )
           .join('') +
         `</tr>`,

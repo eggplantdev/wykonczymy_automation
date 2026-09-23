@@ -396,7 +396,7 @@ Zebrane w rejestrze `context/foundation/manual-checks.md` na ostatniej fazie.
 
 #### Automated
 
-- [x] 1.1 `build-offer-print-html.test.ts` przechodzi
+- [x] 1.1 `build-offer-print-html.test.ts` przechodzi — 6ee38caf
 
 ### Phase 2: Zamek ujawniania
 
