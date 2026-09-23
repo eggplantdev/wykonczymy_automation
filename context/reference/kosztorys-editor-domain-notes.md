@@ -678,6 +678,14 @@ padły wprost od właściciela, nie są domysłem implementacji:
   w porównaniu z katalogiem — jedna reguła, nie druga do pamiętania.
 - **Select sekcji docelowej nie pokazuje licznika `(n poz.)`** — tak samo jak menu „Dodaj", gdzie
   właściciel to zaakceptował. Koszt: dwie sekcje o tej samej nazwie są w selekcie nierozróżnialne.
+- **Nazwa sekcji JEST jej tożsamością** (właściciel, 2026-09-22) — dwie sekcje o tej samej nazwie nie
+  mają sensu, więc picker keyuje po nazwie, nie po id, a serwer przy zapisie dokłada prace do
+  istniejącej sekcji zamiast zakładać bliźniaka (lista w dialogu to migawka — reguła tożsamości może
+  się trzymać tylko po stronie serwera). Trzy zaakceptowane skutki: **w danych stoi już jedna para
+  duplikatów** (1 ze 185 sekcji) i jej druga sekcja jest z pickera nieosiągalna do czasu
+  przemianowania; **inline rename w siatce wciąż potrafi zrobić bliźniaka** — bramki unikalności tam
+  nie ma; dopasowanie jest **case-insensitive**, czyli nazwy różniące się wielkością liter to dla
+  właściciela jedna sekcja.
 
 ## Domyślne
 
