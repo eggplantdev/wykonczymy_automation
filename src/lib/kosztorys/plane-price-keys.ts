@@ -6,8 +6,9 @@ import type { ToolPlaneT } from '@/lib/kosztorys/types'
 // planes' price columns, so the plane cannot be inferred from the active view — it travels in the
 // column id.
 
-// The column families that exist per plane, in assembly order.
-export const PLANE_PRICE_BASE_KEYS = ['priceMode', 'price'] as const
+// The column families that exist per plane, in assembly order — the mnożnik sits between its source
+// and the stawka it produces, which is also the order they are read in.
+export const PLANE_PRICE_BASE_KEYS = ['priceMode', 'priceCoeff', 'price'] as const
 
 type PlanePriceBaseKeyT = (typeof PLANE_PRICE_BASE_KEYS)[number]
 

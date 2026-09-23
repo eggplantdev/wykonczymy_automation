@@ -20,6 +20,7 @@ export const COLUMN_LABELS: Record<string, string> = {
   divergence: 'Rozjazd między arkuszem Google a apką',
   unit: 'Jednostka miary',
   priceMode: 'Źródło ceny wykonawcy',
+  priceCoeff: 'Mnożnik',
   price: 'Cena j.m. netto',
   priceGross: 'Cena j.m. brutto',
   discountType: 'Rabat',

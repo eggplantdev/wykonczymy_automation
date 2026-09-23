@@ -24,6 +24,7 @@ const VIEWS = ['client', 'w_tools', 'own_tools'] as const
 
 const PRICE_IDS = PLANES.map((plane) => planePriceKey('price', plane))
 const MODE_IDS = PLANES.map((plane) => planePriceKey('priceMode', plane))
+const COEFF_IDS = PLANES.map((plane) => planePriceKey('priceCoeff', plane))
 
 function ids(opts: Partial<BuildV2ColumnsOptsT> & Pick<BuildV2ColumnsOptsT, 'view'>): string[] {
   return buildV2Columns({ stages: STAGES, ...opts })
@@ -44,6 +45,14 @@ describe('subcontractor rate columns, both planes', () => {
     }
   })
 
+  // The mnożnik travels with „Źródło", not with the stawka: it is the owner's control over a crew's
+  // rate, so it lives behind the same gate rather than beside the figure it produces.
+  it('assembles the mnożnik column in every view', () => {
+    for (const view of VIEWS) {
+      expect(ids({ view })).toEqual(expect.arrayContaining(COEFF_IDS))
+    }
+  })
+
   // Guards the id, not a layout preference: the bare `price` is what each investment's client-view
   // settings already store, so a plane suffix here would orphan every saved choice.
   it("keeps the client's own price column distinct, and present in every view", () => {
@@ -55,7 +64,7 @@ describe('subcontractor rate columns, both planes', () => {
 
   it('offers each rate column as its own picker entry, named by plane', () => {
     const { columnToggleItems } = buildV2Grid({ view: 'w_tools', stages: STAGES })
-    const planeIds = [...MODE_IDS, ...PRICE_IDS]
+    const planeIds = [...MODE_IDS, ...COEFF_IDS, ...PRICE_IDS]
     const entries = columnToggleItems.filter((item) => planeIds.includes(item.id))
 
     expect(entries).toHaveLength(planeIds.length)
@@ -68,6 +77,8 @@ describe('subcontractor rate columns, both planes', () => {
         'Cena j.m. netto — bez narzędzi (pracownik)',
         'Źródło ceny wykonawcy — z narzędziami (podwykonawca)',
         'Źródło ceny wykonawcy — bez narzędzi (pracownik)',
+        'Mnożnik — z narzędziami (podwykonawca)',
+        'Mnożnik — bez narzędzi (pracownik)',
       ]),
     )
   })
@@ -80,14 +91,15 @@ describe('subcontractor rate columns, both planes', () => {
   })
 
   it('starts hidden in every view, so nobody meets new columns unasked', () => {
-    for (const id of [...MODE_IDS, ...PRICE_IDS]) expect(DEFAULT_HIDDEN_COLUMNS.has(id)).toBe(true)
+    for (const id of [...MODE_IDS, ...COEFF_IDS, ...PRICE_IDS])
+      expect(DEFAULT_HIDDEN_COLUMNS.has(id)).toBe(true)
 
     const { columnToggleItems } = buildV2Grid({
       view: 'w_tools',
       stages: STAGES,
       isHidden: (id) => DEFAULT_HIDDEN_COLUMNS.has(id),
     })
-    const planeIds = [...MODE_IDS, ...PRICE_IDS]
+    const planeIds = [...MODE_IDS, ...COEFF_IDS, ...PRICE_IDS]
     for (const item of columnToggleItems.filter((entry) => planeIds.includes(entry.id))) {
       expect(item.visible).toBe(false)
     }
@@ -109,6 +121,9 @@ describe('subcontractor rate columns, both planes', () => {
       for (const plane of PLANES) {
         expect(layerAllows(planePriceKey('price', plane), layer)).toBe(layerAllows('price', layer))
         expect(layerAllows(planePriceKey('priceMode', plane), layer)).toBe(
+          layerAllows('price', layer),
+        )
+        expect(layerAllows(planePriceKey('priceCoeff', plane), layer)).toBe(
           layerAllows('price', layer),
         )
       }
@@ -140,5 +155,7 @@ describe('subcontractor rate columns, both planes', () => {
 
     expect(planeOf(planePriceKey('price', 'w_tools'))).toBe('w_tools')
     expect(planeOf(planePriceKey('price', 'own_tools'))).toBe('own_tools')
+    expect(planeOf(planePriceKey('priceCoeff', 'w_tools'))).toBe('w_tools')
+    expect(planeOf(planePriceKey('priceCoeff', 'own_tools'))).toBe('own_tools')
   })
 })

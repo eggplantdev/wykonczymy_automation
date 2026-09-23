@@ -291,6 +291,9 @@ export async function applyCatalogueToKosztorysAction(
         clientPrice: [],
         wToolsOverrideValue: [],
         ownToolsOverrideValue: [],
+        // Puste do fazy 5 — katalog jeszcze nie niesie mnożnika, a batch pustej kolumny jest no-opem.
+        wToolsOverrideCoeff: [],
+        ownToolsOverrideCoeff: [],
       }
       const applied: AppliedCatalogueValueT[] = []
 

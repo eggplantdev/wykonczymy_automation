@@ -748,17 +748,17 @@ i „auto" są nietknięte, bo mieszkają w kolumnach, których ta zmiana nie ru
 
 #### Automated
 
-- [x] 2.1 Spec normalizacji łatki przechodzi (sześć przejść, rozdział płaszczyzn)
-- [x] 2.2 Spec rozliczenia na bazie przechodzi
-- [x] 2.3 Roundtrip snapshotu przechodzi
+- [x] 2.1 Spec normalizacji łatki przechodzi (sześć przejść, rozdział płaszczyzn) — a5f3198b
+- [x] 2.2 Spec rozliczenia na bazie przechodzi — a5f3198b
+- [x] 2.3 Roundtrip snapshotu przechodzi — a5f3198b
 
 ### Phase 3: Ekran — kolumna „Mnożnik" i trzecie źródło
 
 #### Automated
 
-- [ ] 3.1 Specy komórek przechodzą
-- [ ] 3.2 Spec sortowania przechodzi
-- [ ] 3.3 `pnpm typecheck`
+- [x] 3.1 Specy komórek przechodzą
+- [x] 3.2 Spec sortowania przechodzi
+- [ ] 3.3 `pnpm typecheck` — bramka całego drzewa, sprawdzana raz na koniec przebiegu
 
 ### Phase 4: Sufit, filtry, diagnostyka
 

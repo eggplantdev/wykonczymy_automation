@@ -68,7 +68,10 @@ function applyDiscount(gross: number, item: ViewPricingT): number {
 // --- Price views (one dataset → three views: client / subcontractor with/without tools) ---
 export type PriceViewT = 'client' | ToolPlaneT
 
-function effectiveCoeff(row: ViewPricingT, view: ToolPlaneT): number {
+// Exported for the source switch (subcontractor-price-edit.ts): entering „własny mnożnik" seeds the
+// cell with what the row was already being paid at, and on „auto" that IS the investment's own
+// współczynnik.
+export function effectiveCoeff(row: ViewPricingT, view: ToolPlaneT): number {
   return view === 'w_tools' ? row.globalWToolsCoeff : row.globalOwnToolsCoeff
 }
 

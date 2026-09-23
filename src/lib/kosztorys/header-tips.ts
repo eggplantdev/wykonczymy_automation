@@ -21,6 +21,8 @@ const HEADER_TIPS: Record<string, string> = {
   divergence:
     'Różnica między danymi zaciągiętymi z arkusza google a pracą rozpisaną na etapy \n Oznacza, że praca jest wpisana w arkuszu google jako pomiar z natury ale nie jest wpisana do etapów.',
   priceMode: 'Auto = domyślny mnożnik dla danej inwestycji.',
+  priceCoeff:
+    'Mnożnik liczony od ceny dla inwestora.\nStawka to cena j.m. razy mnożnik, więc podniesienie ceny przesuwa ją od razu — w odróżnieniu od wpisanej kwoty.',
   plannedNet: PLANNED,
   plannedGross: PLANNED,
   net: `Pomiar razy cena minus rabat.\n\n${DISCOUNT_IS_CLIENT_ONLY}`,

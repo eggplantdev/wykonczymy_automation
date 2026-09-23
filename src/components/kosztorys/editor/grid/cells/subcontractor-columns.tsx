@@ -2,33 +2,35 @@ import { useState } from 'react'
 import { Column, type CellProps } from 'react-datasheet-grid'
 import { CellSelectMenu } from '@/components/ui/datasheet-grid/cell-select-menu'
 import { EditableCellInput } from '@/components/ui/datasheet-grid/editable-cell-input'
+import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-text'
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import { decimalText } from '@/lib/utils/decimal-text'
 import { roundToCents } from '@/lib/utils/round-to-cents'
-import { overrideValueFor, viewPrice } from '@/lib/kosztorys/calc'
+import { overrideCoeffFor, priceSourceOf, viewPrice } from '@/lib/kosztorys/calc'
 import { checkSubcontractorPrice } from '@/lib/kosztorys/subcontractor-price-guard'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import { FLAGGED_TONE } from '@/lib/kosztorys/constants'
-import { modeChange, subcontractorPolicy } from '@/lib/kosztorys/subcontractor-price-edit'
+import {
+  sourceChange,
+  subcontractorCoeffPolicy,
+  subcontractorPolicy,
+} from '@/lib/kosztorys/subcontractor-price-edit'
 import { cellPaste } from '@/lib/kosztorys/cell-edit'
 import { useCellDraft } from '@/components/kosztorys/editor/grid/cells/use-cell-draft'
-import type { KosztorysV2RowT, ToolPlaneT } from '@/lib/kosztorys/types'
+import type { KosztorysV2RowT, PriceSourceT, ToolPlaneT } from '@/lib/kosztorys/types'
 import type { ReactNode } from 'react'
 
-const FIXED_MODE = 'amount'
-
 // Where the subcontractor price comes from (a column in the subcontractor views). Labels name the
-// SOURCE, not the arithmetic: auto derives the rate from the investment's mnożnik, „kwota stała" is
-// the number typed into „Cena j.m.".
-const SUB_MODE_OPTIONS: { value: string; label: string }[] = [
-  { value: '', label: 'auto' },
-  { value: FIXED_MODE, label: 'kwota stała' },
+// SOURCE, not the arithmetic: auto derives the rate from the investment's mnożnik, „własny mnożnik"
+// is this praca's own multiple of the cena j.m., „kwota stała" is a frozen number.
+//
+// The values ARE `PriceSourceT`, so the menu and `priceSourceOf` cannot drift into two vocabularies —
+// nothing is stored to name the source, it is read off the pair of columns (EX-766, EX-865).
+const SUB_MODE_OPTIONS: { value: PriceSourceT; label: string }[] = [
+  { value: 'auto', label: 'auto' },
+  { value: 'coeff', label: 'własny mnożnik' },
+  { value: 'amount', label: 'kwota stała' },
 ]
-
-// The menu needs a string per option, so it gets one here rather than the column keeping a second
-// stored field to name the source (EX-766).
-const modeOf = (rowData: KosztorysV2RowT, view: ToolPlaneT): string =>
-  overrideValueFor(rowData, view) === null ? '' : FIXED_MODE
 
 // Everything the cells need to know about which plane they are editing. Travels via
 // `columnData` so each component keeps ONE identity across renders — an inline `component:
@@ -110,19 +112,29 @@ function SubcontractorPriceCell({
     stopEditing,
   )
 
-  const inherited = overrideValueFor(rowData, view) === null
+  const source = priceSourceOf(rowData, view)
   // A live rejection outranks the standing verdict: it describes the value on screen, which the row
   // has not accepted.
   const message = edit.blockReason ?? checkSubcontractorPrice(rowData, view)?.message ?? null
 
-  const body = (
-    <EditableCellInput
-      {...edit.inputProps}
-      className={message ? FLAGGED_TONE : inherited ? 'text-muted-foreground italic' : undefined}
-      value={edit.draft ?? priceText(viewPrice(rowData, view))}
-      focus={focus}
-    />
-  )
+  // At „własny mnożnik" the stawka is an OUTPUT — the mnożnik cell authors it. Leaving this one
+  // editable would give one figure two authors, and a keystroke here writes a kwota, which silently
+  // switches the row's source back.
+  const body =
+    source === 'coeff' ? (
+      <ReadOnlyCellText muted danger={message != null}>
+        {priceText(viewPrice(rowData, view))}
+      </ReadOnlyCellText>
+    ) : (
+      <EditableCellInput
+        {...edit.inputProps}
+        className={
+          message ? FLAGGED_TONE : source === 'auto' ? 'text-muted-foreground italic' : undefined
+        }
+        value={edit.draft ?? priceText(viewPrice(rowData, view))}
+        focus={focus}
+      />
+    )
 
   // Red figure plus the sentence on hover, and nothing else in the box: a glyph beside the number
   // took width from the input and put the figure on a different height than its neighbours (owner,
@@ -150,7 +162,7 @@ function SubcontractorModeCell({
   const [openedByClick, setOpenedByClick] = useState(false)
   return (
     <CellSelectMenu
-      value={modeOf(rowData, view)}
+      value={priceSourceOf(rowData, view)}
       options={SUB_MODE_OPTIONS}
       open={focus || openedByClick}
       onOpenChange={(open) => {
@@ -159,8 +171,42 @@ function SubcontractorModeCell({
         // the cursor on the row whose source was just picked.
         if (!open) stopEditing({ nextRow: false })
       }}
-      onChange={(value) => setRowData(modeChange(rowData, value === FIXED_MODE, view))}
+      onChange={(value) => setRowData(sourceChange(rowData, value as PriceSourceT, view))}
     />
+  )
+}
+
+// „Mnożnik" — the multiplier itself, editable ONLY where it is the source. Elsewhere the cell is
+// empty rather than showing the multiple the row happens to sit at: a number here reads as „this is
+// what the row is set to", and at „auto" or „kwota stała" nothing of the sort is stored.
+function SubcontractorCoeffCell({
+  rowData,
+  setRowData,
+  columnData,
+  focus,
+  stopEditing,
+}: CellProps<KosztorysV2RowT, SubcontractorCellDataT>) {
+  const { view } = columnData
+  const edit = useCellDraft(
+    rowData,
+    setRowData,
+    subcontractorCoeffPolicy<KosztorysV2RowT>(view),
+    stopEditing,
+  )
+
+  if (priceSourceOf(rowData, view) !== 'coeff') {
+    return <ReadOnlyCellText muted>{''}</ReadOnlyCellText>
+  }
+
+  return (
+    <CellTooltip message={edit.blockReason} forceOpen={edit.blockReason != null}>
+      <EditableCellInput
+        {...edit.inputProps}
+        className={edit.blockReason ? FLAGGED_TONE : undefined}
+        value={edit.draft ?? decimalText(overrideCoeffFor(rowData, view))}
+        focus={focus}
+      />
+    </CellTooltip>
   )
 }
 
@@ -198,7 +244,23 @@ export function subcontractorModeColumn(
     disableKeys: true,
     columnData: cellData(view),
     component: SubcontractorModeCell,
-    copyValue: ({ rowData }) => modeOf(rowData, view),
+    copyValue: ({ rowData }) => priceSourceOf(rowData, view),
     deleteValue: ({ rowData }) => clear(rowData),
+  }
+}
+
+export function subcontractorCoeffColumn(
+  view: ToolPlaneT,
+  titleNode: ReactNode,
+): Column<KosztorysV2RowT> {
+  const policy = subcontractorCoeffPolicy<KosztorysV2RowT>(view)
+  return {
+    id: planePriceKey('priceCoeff', view),
+    title: titleNode,
+    columnData: cellData(view),
+    component: SubcontractorCoeffCell,
+    copyValue: ({ rowData }) => decimalText(overrideCoeffFor(rowData, view)),
+    pasteValue: ({ rowData, value }) => cellPaste(value, rowData, policy),
+    deleteValue: ({ rowData }) => policy.clear(rowData),
   }
 }

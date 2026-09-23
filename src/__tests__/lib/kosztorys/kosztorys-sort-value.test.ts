@@ -245,6 +245,49 @@ describe('columnSortValue — the columns that used to opt out of sorting', () =
   })
 })
 
+// Trzy źródła na jednej płaszczyźnie, po jednym wierszu — fixture powyżej nie zna mnożnika, a
+// dopisanie go tam poprzestawiałoby porządki, które tamte testy właśnie przypinają.
+const sourceTree: KosztorysTreeT = makeTree({
+  sections: [
+    {
+      id: 10,
+      name: 'Sekcja A',
+      displayOrder: 0,
+      color: null,
+      items: [
+        { ...baseItem, id: 1, clientPrice: 100, wToolsOverrideValue: null },
+        {
+          ...baseItem,
+          id: 2,
+          clientPrice: 100,
+          wToolsOverrideValue: null,
+          wToolsOverrideCoeff: 0.4,
+        },
+        { ...baseItem, id: 3, clientPrice: 100, wToolsOverrideValue: 90 },
+      ],
+    },
+  ],
+  stages: [],
+  progress: [],
+})
+
+const sourceRows = treeToRows(sourceTree)
+const sourceIdsSortedBy = (field: string, dir: 'asc' | 'desc' = 'asc') =>
+  sortRows(sourceRows, (r) => columnSortValue(r, field, 'w_tools', sourceTree.stages), dir).map(
+    (r) => r.id,
+  )
+
+describe('columnSortValue — trzy źródła stawki wykonawcy', () => {
+  it('sortuje „Źródło ceny" od współczynnika inwestycji ku zamrożonej kwocie', () => {
+    expect(sourceIdsSortedBy(planePriceKey('priceMode', 'w_tools'))).toEqual([1, 2, 3])
+  })
+
+  it('sortuje „Mnożnik" po liczbie, a wiersze bez mnożnika spychają się na koniec', () => {
+    // Malejąco, bo to kierunek, w którym „brak" musi wylądować na dole mimo braku liczby.
+    expect(sourceIdsSortedBy(planePriceKey('priceCoeff', 'w_tools'), 'desc')).toEqual([2, 1, 3])
+  })
+})
+
 describe('columnSortValue — an empty cell is an absence, not a key', () => {
   it('sinks a commentless pozycja under both directions', () => {
     expect(planeIdsSortedBy('note', 'client', 'asc')).toEqual([3, 1, 2]) // aaa, zzz, (none)

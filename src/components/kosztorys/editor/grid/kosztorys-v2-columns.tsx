@@ -7,6 +7,7 @@ import { decimalColumn } from '@/components/kosztorys/editor/grid/cells/decimal-
 import { computedColumn } from '@/components/kosztorys/editor/grid/cells/computed-cell'
 import { divergenceColumn } from '@/components/kosztorys/editor/grid/cells/divergence-cell'
 import {
+  subcontractorCoeffColumn,
   subcontractorModeColumn,
   subcontractorPriceColumn,
 } from '@/components/kosztorys/editor/grid/cells/subcontractor-columns'
@@ -90,13 +91,16 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   // Both planes' rates in EVERY view, so the owner compares them without switching tabs. Not a copy:
   // the same factories with the other plane, and the cells read their own `columnData.view`.
   //
-  // „Źródło ceny wykonawcy" is the owner's control over a crew's rate, never something the investor
-  // may see: it is refused at assembly for the client preview, on top of PREVIEW_VISIBLE_COLUMNS
-  // having no `priceMode`, so a later allowlist edit cannot leak it on its own.
+  // „Źródło ceny wykonawcy" and „Mnożnik" are the owner's control over a crew's rate, never something
+  // the investor may see: both are refused at assembly for the client preview, on top of
+  // PREVIEW_VISIBLE_COLUMNS having neither, so a later allowlist edit cannot leak them on its own.
   const withMode = opts.previewVisible !== true
   const subcontractorPriceCols: Column<KosztorysV2RowT>[] = TOOL_PLANES.flatMap((plane) => [
     ...(withMode
-      ? [subcontractorModeColumn(plane, columnTitle(planePriceKey('priceMode', plane), opts))]
+      ? [
+          subcontractorModeColumn(plane, columnTitle(planePriceKey('priceMode', plane), opts)),
+          subcontractorCoeffColumn(plane, columnTitle(planePriceKey('priceCoeff', plane), opts)),
+        ]
       : []),
     subcontractorPriceColumn(plane, columnTitle(planePriceKey('price', plane), opts)),
   ])

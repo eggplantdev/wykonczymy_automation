@@ -1,5 +1,6 @@
 import {
-  overrideValueFor,
+  overrideCoeffFor,
+  priceSourceOf,
   rowDiscountForView,
   rowDoneFraction,
   rowPlannedNetForView,
@@ -21,7 +22,11 @@ import {
   stageIdFromValueNetKey,
   stageKey,
 } from '@/lib/kosztorys/stage-keys'
-import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
+import type { KosztorysStageT, KosztorysV2RowT, PriceSourceT } from '@/lib/kosztorys/types'
+
+// Rosnąco = coraz dalej od współczynnika inwestycji: auto, potem mnożnik, który wciąż chodzi za ceną,
+// na końcu zamrożona kwota.
+const PRICE_SOURCE_ORDER: Record<PriceSourceT, number> = { auto: 0, coeff: 1, amount: 2 }
 
 // The wartość of one etap, as its cell computes it. The denominator is Σ etapów of the whole VIEW,
 // never a narrowed list (kosztorys-v2-columns.tsx) — `rowTotalQtyDone` applies that filter itself, so
@@ -75,9 +80,13 @@ export function columnSortValue(
   if (pricePart !== null) {
     const { base, plane } = pricePart
     if (base === 'price') return viewPrice(row, plane)
-    // „Źródło ceny wykonawcy" ascending runs inherited → hand-overridden, which is the only question
-    // asked of that column. Alphabetical would put „auto" after „kwota stała".
-    return overrideValueFor(row, plane) === null ? 0 : 1
+    // Bez mnożnika na końcu: kolumna czyta się jako lista „gdzie stawka chodzi za ceną", a wiersze
+    // bez niego nie należą do tej listy.
+    if (base === 'priceCoeff') return overrideCoeffFor(row, plane)
+    // „Źródło ceny wykonawcy" ascending runs inherited → own mnożnik → hand-typed kwota: away from
+    // the investment's own coefficient, which is the only question asked of that column.
+    // Alphabetical would put „auto" after „kwota stała".
+    return PRICE_SOURCE_ORDER[priceSourceOf(row, plane)]
   }
 
   switch (field) {
