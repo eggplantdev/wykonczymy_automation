@@ -126,8 +126,21 @@ describe('buildMaterialsBreakdown', () => {
       totalMaterialCosts: 1000,
     }
 
-    expect(buildMaterialsBreakdown(financials, cats, [{ categoryId: 1, total: 1000 }])).toEqual([
-      { id: 1, label: 'Materiały budowlane netto', net: 1000, origin: 'netBilled' },
+    expect(
+      buildMaterialsBreakdown(
+        financials,
+        cats,
+        [{ categoryId: 1, total: 1000 }],
+        [{ categoryId: 1, total: 1080 }],
+      ),
+    ).toEqual([
+      {
+        id: 1,
+        label: 'Materiały budowlane netto',
+        net: 1000,
+        origin: 'netBilled',
+        recordedGross: 1080,
+      },
     ])
   })
 
@@ -163,12 +176,25 @@ describe('buildMaterialsBreakdown', () => {
       totalMaterialCosts: 1800,
     }
     const netCategoryCosts = [{ categoryId: 1, total: 1000 }]
+    // 8% apart, not 23%: the brutto must be the invoice's, not one the rate could reproduce.
+    const netCategoryGrossCosts = [{ categoryId: 1, total: 1080 }]
 
     it('splits a mixed category into a brutto row and its own frozen „… netto" row', () => {
-      const rows = buildMaterialsBreakdown(financials, cats, netCategoryCosts)
+      const rows = buildMaterialsBreakdown(
+        financials,
+        cats,
+        netCategoryCosts,
+        netCategoryGrossCosts,
+      )
       expect(rows.filter((r) => r.id === 1)).toEqual([
         { id: 1, label: 'Materiały budowlane', net: 500, origin: 'gross' },
-        { id: 1, label: 'Materiały budowlane netto', net: 1000, origin: 'netBilled' },
+        {
+          id: 1,
+          label: 'Materiały budowlane netto',
+          net: 1000,
+          origin: 'netBilled',
+          recordedGross: 1080,
+        },
       ])
     })
 

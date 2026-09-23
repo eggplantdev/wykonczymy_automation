@@ -231,6 +231,45 @@ describe('deriveCategoryBreakdowns — same membership, split by settled', () =>
     expect(netCategoryCosts).toEqual([])
   })
 
+  // The „… netto" row shows its invoice brutto, so the brutto must come from `amount` — 8% apart
+  // here, because a 23% pair is exactly what a rate-derived brutto would reproduce.
+  describe('netCategoryGrossCosts — the invoice brutto of the netto rows', () => {
+    const netRow = {
+      categoryId: 7,
+      type: 'INVESTMENT_EXPENSE_NET',
+      total: 4809.6,
+      netTotal: 4453.33,
+    }
+
+    it('sums the recorded amount per category, beside the netto', () => {
+      const { netCategoryCosts, netCategoryGrossCosts } = deriveCategoryBreakdowns([
+        { ...netRow, settled: false },
+        { ...netRow, categoryId: 8, settled: false, total: 108, netTotal: 100 },
+      ])
+      expect(netCategoryCosts).toEqual([
+        { categoryId: 7, total: 4453.33 },
+        { categoryId: 8, total: 100 },
+      ])
+      expect(netCategoryGrossCosts).toEqual([
+        { categoryId: 7, total: 4809.6 },
+        { categoryId: 8, total: 108 },
+      ])
+    })
+
+    it('counts a settled netto row, as netCategoryCosts does', () => {
+      const { netCategoryGrossCosts } = deriveCategoryBreakdowns([{ ...netRow, settled: true }])
+      expect(netCategoryGrossCosts).toEqual([{ categoryId: 7, total: 4809.6 }])
+    })
+
+    it('never takes a brutto-billed row', () => {
+      const { netCategoryGrossCosts } = deriveCategoryBreakdowns([
+        { categoryId: 7, type: 'INVESTMENT_EXPENSE', settled: false, total: 200 },
+        { categoryId: 7, type: 'CORRECTION', settled: false, total: 50 },
+      ])
+      expect(netCategoryGrossCosts).toEqual([])
+    })
+  })
+
   it('sums repeated rows per category', () => {
     const { categoryCosts } = deriveCategoryBreakdowns([
       { categoryId: 7, type: 'INVESTMENT_EXPENSE', settled: false, total: 10 },

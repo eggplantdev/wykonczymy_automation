@@ -69,6 +69,7 @@ export function deriveWholeInvestmentFinancials(
       financials,
       expenseCategories,
       breakdowns.netCategoryCosts,
+      breakdowns.netCategoryGrossCosts,
     ),
     settledBreakdown: buildSettledBreakdown(breakdowns.settledCategoryCosts, expenseCategories),
   }

@@ -34,6 +34,7 @@ export function buildMaterialsBreakdown(
   financials: InvestmentFinancialsT,
   expenseCategories: { id: number; name: string }[],
   netCategoryCosts: CategoryCostT[] = [],
+  netCategoryGrossCosts: CategoryCostT[] = [],
 ): MaterialsBreakdownRowT[] {
   // Zeros dropped: consumers gate on `rows.length` to decide whether the „Materiały" tab has content,
   // so a placeholder per empty category blanked the tab.
@@ -59,6 +60,7 @@ export function buildMaterialsBreakdown(
       label: `${cat.name} netto`,
       net: netBilled,
       origin: 'netBilled' as const,
+      recordedGross: costForCategory(netCategoryGrossCosts, cat.id),
     }))
 
   return [...grossRows, ...netRows]

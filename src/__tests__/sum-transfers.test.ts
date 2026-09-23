@@ -385,6 +385,7 @@ describe('deriveCategoryBreakdowns', () => {
     expect(deriveCategoryBreakdowns(rows)).toEqual({
       categoryCosts: [],
       netCategoryCosts: [],
+      netCategoryGrossCosts: [],
       settledCategoryCosts: [],
     })
   })
