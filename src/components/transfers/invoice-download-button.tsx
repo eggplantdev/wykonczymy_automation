@@ -5,19 +5,18 @@ import type { Where } from 'payload'
 import { FileArchive, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toastMessage } from '@/lib/utils/toast'
-import { useInvoiceZip } from '@/hooks/use-invoice-zip'
+import { useFileArchive } from '@/hooks/use-file-archive'
 import { fetchFilteredTransfers } from '@/lib/actions/fetch-transfers-for-invoices'
-import { buildInvoiceArchiveName } from '@/lib/invoices/invoice-zip'
-import { today } from '@/lib/utils/date'
+import { INVOICE_ARCHIVE_COPY } from '@/lib/media/wording'
 
 type InvoiceDownloadButtonPropsT = {
   where: Where
 }
 
-// Fetches the rows only; packing them into the archive belongs to `useInvoiceZip`, shared with the
+// Fetches the rows only; packing them into the archive belongs to `useFileArchive`, shared with the
 // kosztorys Wydatki list.
 export function InvoiceDownloadButton({ where }: InvoiceDownloadButtonPropsT) {
-  const { download, isPending: isZipping } = useInvoiceZip()
+  const { download, isPending: isZipping } = useFileArchive()
   // Covers the row fetch, which happens before the hook's own transition (and its toast) starts —
   // without it the button would sit enabled through the whole server action.
   const [isFetching, startTransition] = useTransition()
@@ -31,8 +30,7 @@ export function InvoiceDownloadButton({ where }: InvoiceDownloadButtonPropsT) {
         return
       }
 
-      const date = today()
-      download(result.data, buildInvoiceArchiveName([], date))
+      download(result.data, [], INVOICE_ARCHIVE_COPY)
     })
   }
 

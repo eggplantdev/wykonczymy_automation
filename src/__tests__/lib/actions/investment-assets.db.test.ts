@@ -10,9 +10,19 @@ import { preventReferencedMediaDelete } from '@/hooks/media/prevent-referenced-d
 // whatever the write really did.
 
 vi.mock('server-only', () => ({}))
+
+// The reclaim is handed to `after`, so it runs once the response is out — a no-op `after` would
+// drop it silently and the reclaim assertions below would pass over a file nothing ever checked.
+// Collected rather than run inline, because the assertions read the DB and must see it finished.
+const { scheduled } = vi.hoisted(() => ({ scheduled: [] as Promise<unknown>[] }))
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
-  return { ...actual, after: () => {} }
+  return {
+    ...actual,
+    after: (fn: () => unknown) => {
+      scheduled.push(Promise.resolve(fn()))
+    },
+  }
 })
 vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: vi.fn().mockImplementation(async () => ({
@@ -20,7 +30,7 @@ vi.mock('@/lib/auth/require-auth', () => ({
     user: { id: 1, role: 'ADMIN', name: 'T', email: 't@t.pl' },
   })),
 }))
-vi.mock('@/lib/cache/revalidate', () => ({ revalidateCollections: vi.fn() }))
+vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const NAME = 'EX-802 investment assets'
@@ -48,6 +58,9 @@ describe.skipIf(!ENV_READY)('investment asset actions (DB)', () => {
     return rows.map((row) => Number(row.media_id))
   }
 
+  /** Wait out the work the action deferred past its response. */
+  const flushDeferred = () => Promise.all(scheduled.splice(0)).then(() => undefined)
+
   const mediaExists = async (id: number) => {
     const { rows } = await db.execute(sql`SELECT id FROM media WHERE id = ${id}`)
     return rows.length > 0
@@ -64,6 +77,7 @@ describe.skipIf(!ENV_READY)('investment asset actions (DB)', () => {
   // The media rows are rebuilt per test, not once: detaching a file deletes it for real here, so a
   // shared fixture would leave the later tests attaching ids that no longer exist.
   beforeEach(async () => {
+    scheduled.length = 0
     await purge()
 
     // Raw INSERT, not payload.create: an upload through Payload would push bytes at the Blob store
@@ -103,8 +117,7 @@ describe.skipIf(!ENV_READY)('investment asset actions (DB)', () => {
 
     expect(result.success).toBe(true)
     expect(await attachedIds()).toEqual([mediaIds[1]])
-    // The detached file is now referenced by nothing, so it is reclaimed rather than left in the
-    // library — the whole reason the action awaits `deleteUnreferencedMedia`.
+    await flushDeferred()
     expect(await mediaExists(mediaIds[0])).toBe(false)
     expect(await mediaExists(mediaIds[1])).toBe(true)
   })
@@ -116,6 +129,7 @@ describe.skipIf(!ENV_READY)('investment asset actions (DB)', () => {
 
     expect(result.success).toBe(true)
     expect(await attachedIds()).toEqual([])
+    await flushDeferred()
     expect(await mediaExists(mediaIds[0])).toBe(false)
     expect(await mediaExists(mediaIds[1])).toBe(false)
   })

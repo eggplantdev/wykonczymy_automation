@@ -1,10 +1,6 @@
 import { test, expect } from '@playwright/test'
-import {
-  createInvestmentExpense,
-  readRegisterBalance,
-  readRegisterBalanceStable,
-  EXPENSE_REGISTER,
-} from './helpers'
+import { createInvestmentExpense, EXPENSE_REGISTER } from './drivers/expenses'
+import { readRegisterBalance, readRegisterBalanceStable } from './drivers/transfers'
 
 test.use({ storageState: 'e2e/.auth/user.json' })
 

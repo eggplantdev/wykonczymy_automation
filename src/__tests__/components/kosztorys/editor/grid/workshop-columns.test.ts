@@ -61,28 +61,25 @@ describe('workshop columns', () => {
     )
   })
 
-  // The workbench has no axis switch, so netto is not „the axis that happens to be on" — it is the
-  // only price a szablon can carry. Brutto is netto times THIS investment's VAT, which a preset
-  // does not take to the next one.
+  // The workbench hides „Widok" (`KosztorysViewMenu`), which is where the netto/brutto axis lives,
+  // so netto is not „the axis that happens to be on" — it is the only price a szablon can carry.
+  // Brutto is netto times THIS investment's VAT, which a preset does not take to the next one.
   it('carries the netto price and no brutto beside it', () => {
     expect(workshopIds()).toContain('price')
     expect(workshopIds()).not.toContain('priceGross')
   })
 
-  // „Źródło ceny wykonawcy" assembles only off the client plane everywhere else, and the workbench
-  // IS pinned to the client plane — so this asserts the assembly exception, not just the allowlist.
-  // One entry per plane: a szablon carries both crews' overrides.
-  it('offers the price source for every crew plane', () => {
+  // „Źródło ceny wykonawcy" assembles only off the client plane everywhere else, so on the client
+  // plane this asserts the assembly exception, not just the allowlist. Both halves per plane,
+  // because a source without its kwota is a control with no value on screen — and a stawka left off
+  // this list would be missing from the plane the szablon opens on, while
+  // `serializeKosztorysAsPreset` still carried it onto every budowa seeded from that szablon. Driven
+  // off TOOL_PLANES, not `ALL_PLANE_PRICE_KEYS`, so a key dropped from the constant fails here
+  // instead of quietly shrinking the loop.
+  it('carries each crew rate beside its source, on every plane', () => {
     for (const plane of TOOL_PLANES) {
       expect(workshopIds()).toContain(planePriceKey('priceMode', plane))
-    }
-  })
-
-  // The mode is in the skeleton; the rate is a figure that starts hidden and has no picker here to
-  // bring it back. Listing one without the other is the deliberate half.
-  it('keeps the crew rates out, mode or no mode', () => {
-    for (const plane of TOOL_PLANES) {
-      expect(workshopIds()).not.toContain(planePriceKey('price', plane))
+      expect(workshopIds()).toContain(planePriceKey('price', plane))
     }
   })
 

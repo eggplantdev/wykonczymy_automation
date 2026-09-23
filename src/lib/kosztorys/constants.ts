@@ -30,9 +30,11 @@ export const SUBCONTRACTOR_FIGURE_LABELS = {
   remaining: 'Pozostało do wypłaty',
 } as const
 
-// One tone for every ceiling breach, on all three surfaces that draw one (cell, katalog share,
-// global mnożnik). A breach is written, not refused, but it is still the thing the owner scans for —
-// and a second colour for „accepted but wrong" would only ask the reader to learn which red means what.
+// One tone for every stawka the company would not pay, on all three surfaces that judge one (cell,
+// katalog share, global mnożnik) — a breach of the sufit on the first two, and on the third also a
+// mnożnik of zero or below, which pays the crew nothing or less. None of them is refused, but all of
+// them are what the owner scans for, and a second colour for „accepted but wrong" would only ask the
+// reader to learn which red means what.
 export const FLAGGED_TONE = 'text-destructive font-medium'
 
 // Longer than toastMessage's default 2s: these fire as the user's eyes are already moving on, and

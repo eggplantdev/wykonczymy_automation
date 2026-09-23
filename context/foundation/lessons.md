@@ -1885,7 +1885,13 @@ is the test of the test, and skipping it is how a decorative assertion gets comm
   dane" (`refreshData` in `e2e/helpers.ts`), which is `revalidatePath('/', 'layout')` and clears every
   entry at once. In the product this is a real, if narrow, race; the honest fix is a cache whose write
   is rejected when the entry's tag was invalidated after the render began, which `unstable_cache` does
-  not offer — filed as **EX-808**.
+  not offer. Assessed and **rejected as not worth fixing** (EX-808, cancelled 2026-09-22): the only
+  observed instance is a contended full-suite E2E run, where parallel workers render the same pages at
+  once — not this app's traffic at five users. The DB is never wrong (it is a read path only), a
+  double booking is visible and reversible through the cancellation trail, and „Odśwież dane" already
+  clears every entry. If it ever shows up in production, the first move is to check whether
+  `cacheComponents: true` can be uncommented in `next.config` — `'use cache'` carries an invalidation
+  timestamp internally and closes this with nothing hand-written.
 - **Applies to**: every cached read behind a tag-invalidated mutation — the tell is „it's in the DB but
   the page says otherwise, and one more navigation fixes it".
 
@@ -2065,3 +2071,76 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
   compresses is a one-way door: the original never existed server-side, so no download path can
   restore it. Name the paths that keep the bytes and scope the feature's payoff to those.
 - **Applies to**: 10x-plan, 10x-research, impl-review, any media/preview feature.
+
+## Post-response cleanup belongs in `after()`, and a spec that stubs `after` to a no-op silently deletes the work it was meant to test
+
+- **Context**: `deleteUnreferencedMedia` was awaited on the user's critical path, and its docstring
+  said so on purpose: a serverless instance freezes the moment the response is written, so letting
+  the reclaim go unawaited would drop it and leak exactly the Blob files it exists to collect. That
+  reasoning was correct when it was written and stayed unchallenged through two reviews — which is
+  how removing a whole investment gallery came to charge the user up to `6N` sequential round-trips
+  for housekeeping whose result nobody reads.
+- **Problem**: the premise had an expiry date. `after()` from `next/server` (used here since the
+  landing webhook) keeps the invocation alive past the response — on Vercel via `waitUntil`. The
+  reason to await was not a constraint any more, it was a missing primitive. A review that only
+  asks „is this comment true?" preserves it; the question that moves is **„is the reason it names
+  still the only answer?"** The efficiency finding filed against it (EX-833) proposed `Promise.all`
+  instead — which the same docstring forbids for a _different_, still-live reason (concurrent
+  Payload writes share a session on Neon and all but one are silently lost), so the issue optimised
+  the axis that was safe to leave alone and left the expensive one in place.
+- **The trap that cost the time — two stubs of `after`, both wrong, in opposite ways**: ten specs
+  carry `vi.mock('next/server', … after: () => {})`. A no-op `after` does not defer the work, it
+  **discards** it — silently, with no error — so every assertion about what the deferred work did
+  now answers a question nobody asked. The `try/catch → run inline` fallback (which covers scripts,
+  where `after` genuinely throws) cannot rescue it: an inert `after` never throws. The other stub,
+  `after: (fn) => void fn()`, starts the work and drops the promise, which is fine for a spy called
+  on the way in and useless for anything that finishes later — a DB assertion then reads the row
+  before the delete lands, and the red is a race rather than a defect. What a spec that cares needs
+  is to **collect** the promises and flush them: `after: (fn) => { scheduled.push(Promise.resolve(fn())) }`,
+  then `await Promise.all(scheduled.splice(0))` before asserting.
+- **Rule**: cleanup whose result the caller's response does not depend on goes to `after()`, not to
+  `await`. Before honouring a comment that explains why something is awaited, date the constraint —
+  a framework primitive may have landed since. And when a path moves behind `after()`, grep the
+  specs for a stub of it in the same commit and check which of the two kinds each one is; both fail
+  without naming the cause, and one of them fails only sometimes.
+- **Applies to**: 10x-plan, 10x-implement, impl-review, /simplify, any Blob/media cleanup path.
+
+## Parallel Payload creates on Neon lose rows while answering 200 — the adapter hands Drizzle a pool it can't recognise
+
+- **Context**: prod 2026-09-22, 18:25–18:35. A bulk expense with more than one invoice failed on
+  `transactions_rels_media_id_fkey`. The uploader ran `UPLOAD_CONCURRENCY = 4` two-hop uploads
+  (browser PUT to Blob, then `POST /api/media`) and handed the returned ids to
+  `createBulkTransferAction`.
+- **Problem**: every overlapping `POST /api/media` answered with a `doc.id`, but only one row
+  committed — Payload logged „Failed to persist upload data for collection media document N:
+  NotFound" (`plugin-cloud-storage/hooks/afterChange.js:56`, whose `payload.update` could not see
+  the row its own transaction had just inserted). **Mechanism, verified 2026-09-23 (EX-855):**
+  `db-vercel-postgres/connect.js` imports `drizzle` from `drizzle-orm/node-postgres` but hands it a
+  `VercelPool`. That driver's transaction guard is `this.client instanceof Pool` where `Pool` is
+  **`pg`'s** (`node-postgres/session.cjs:216`); `VercelPool` extends `@neondatabase/serverless`'s
+  Pool, so the check is false (confirmed by running it) and Drizzle **never checks out a dedicated
+  client**. `begin`, every statement and `commit` go through `pool.query()` — each grabbing whatever
+  connection is free. Still true in the newest adapter (3.90.1). The local docker Postgres cannot
+  reproduce it because `connect.js` takes a **different branch** for `localhost`/`127.0.0.1` — a
+  real `pg.Pool`, where the `instanceof` passes.
+- **What is NOT broken** (measured, not assumed — the earlier version of this lesson overstated it):
+  a transaction running alone is correct, because `pg-pool` keeps one idle client and hands it to
+  every sequential query. Payload also never issues parallel queries inside a transaction (peak
+  in-flight 1, even for a 16-query `depth: 2` find), and there is no `Promise.all` in
+  `@payloadcms/drizzle` or in any of our `withPayloadTransaction` callers. **A single request can
+  never scatter its own statements.** That is why this went unnoticed for so long, and why media —
+  the one place where one user fans out parallel writes — was hit first.
+- **What IS broken**: two overlapping Payload transactions on one Fluid instance. Reproduced against
+  a real Postgres by driving `begin`/insert/`commit` through `pool.query()`: the transaction that
+  succeeded lost its row to the **other** transaction's `rollback`, with no error on either side,
+  and one transaction's statements were served by two different backend pids. `isolationLevel:
+'repeatable read'` (`replace-tree-with-snapshot.ts`) degrades to `read committed` under exactly
+  the concurrency it exists to guard.
+- **Rule**: on this stack, never let two Payload writes overlap — not on the server, and not from
+  the browser (`Promise.all` / a concurrency pool over `/api/*` counts). A success response from a
+  Payload write is not proof the row exists. `uploadMediaFromClient` keeps the Blob PUT parallel and
+  chains only the row create through the page-wide queue in `createMediaRow`; that queue covers one
+  tab only. The real fix is the adapter (EX-855) — give Drizzle a pool it recognises, verify with
+  `pnpm why pg` that only one `pg` copy exists, and prove it on **staging under overlap**, never
+  locally.
+- **Applies to**: 10x-plan, 10x-implement, impl-review, any code that fans out Payload writes.

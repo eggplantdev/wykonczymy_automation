@@ -1,8 +1,13 @@
 'use server'
 
 import { protectedAction } from './run-action'
+import { investmentAssetTags } from '@/lib/cache/tags'
 import { uploadFieldIds } from '@/lib/media/upload-field'
-import { appendUploadIds, setUploadField } from '@/lib/media/set-upload-field'
+import {
+  appendUploadIds,
+  investmentAssetsField,
+  setUploadField,
+} from '@/lib/media/set-upload-field'
 import type { ActionResultT } from '@/types/action'
 
 const leadAssetsOf = (leadId: number) =>
@@ -62,13 +67,10 @@ export async function attachLeadAssetsAction(
       const chosen = mediaIds.filter((id) => own.has(id))
       if (chosen.length === 0) return { success: true }
 
-      await setUploadField(
-        payload,
-        { collection: 'investments', field: 'assets', id: investmentId },
-        appendUploadIds(chosen),
-      )
+      await setUploadField(payload, investmentAssetsField(investmentId), appendUploadIds(chosen))
       return { success: true }
     },
-    ['investments', 'leads'],
+    ['leads'],
+    investmentAssetTags(investmentId),
   )
 }

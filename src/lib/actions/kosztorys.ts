@@ -6,7 +6,7 @@ import { investmentAction } from '@/lib/actions/investment-action'
 import { validateAction } from '@/lib/actions/run-action'
 import { KOSZTORYS_TREE_TAGS } from '@/lib/cache/tags'
 import { getDb } from '@/lib/db/get-db'
-import { lockStatusFor } from '@/lib/db/investment-lock'
+import { investmentGateForRow } from '@/lib/db/investment-gate'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { cleanDescription } from '@/lib/kosztorys/clean-description'
@@ -21,7 +21,6 @@ import {
   insertDirectionSchema,
   moveOrderSchema,
   moveRowOneStep,
-  nextSectionDisplayOrder,
   renumberDisplayOrder,
   renumberDisplayOrderSchema,
   resolveInsertSlot,
@@ -322,8 +321,15 @@ export async function clearKosztorysAction(investmentId: number): Promise<Action
   )
 }
 
-// Appends a section at the end, WITH its first blank item — see createSectionWithFirstItem for why
-// the pair is one call (and one round trip for the client) rather than two actions.
+// Prepends a section at the TOP, WITH its first blank item — see createSectionWithFirstItem for why
+// the pair is one call (and one round trip for the client) rather than two actions. The shift and
+// the create share one transaction: a double-fired add would otherwise land two sections on 0.
+//
+// One case the transaction cannot serialize: an investment with NO sections yet. `shiftDisplayOrderFrom`
+// takes its lock on the rows it is pushing down, and there are none — so two concurrent first-adds
+// both land on 0 and the tie falls to id. Left as is deliberately: the window is one empty kosztorys,
+// the result is an order, not a corruption, and „Przenumeruj" repairs it. Locking the investment row
+// to close it would put every section insert behind a lock the rest of the editor also wants.
 export async function addSectionAction(
   investmentId: number,
 ): Promise<ActionResultT<CreatedSectionWithItemT>> {
@@ -331,11 +337,13 @@ export async function addSectionAction(
     'addSectionAction',
     { investmentId },
     async ({ payload }) => {
-      const db = await getDb(payload)
-      const displayOrder = await nextSectionDisplayOrder(db, investmentId)
       const created = await withPayloadTransaction(
         payload,
-        (req) => createSectionWithFirstItem(payload, { investmentId, displayOrder, req }),
+        async (req) => {
+          const txDb = await getDb(payload, req)
+          await shiftDisplayOrderFrom(txDb, 'kosztorys-sections', investmentId, 0)
+          return createSectionWithFirstItem(payload, { investmentId, displayOrder: 0, req })
+        },
         { skipRevalidation: true },
       )
       return { success: true, data: created }
@@ -490,7 +498,7 @@ export async function insertItemAction(
           // Only the investment is needed here — the slot is already resolved, so the append-position
           // aggregate `sectionOwnerAndNextItemOrder` would compute is dead weight held under the
           // section-wide lock.
-          const owner = (await lockStatusFor(txDb, 'section', slot.ownerId))?.investmentId
+          const owner = (await investmentGateForRow(txDb, 'section', slot.ownerId))?.investmentId
           if (owner == null) return { success: false, error: SECTION_MISSING }
           await shiftDisplayOrderFrom(txDb, 'kosztorys-items', slot.ownerId, slot.at)
           const created = await createBlankItem(payload, {

@@ -1,17 +1,16 @@
 import { test, expect, type Page } from '@playwright/test'
+import { type DeleteSeedT, seedDeleteInvestments } from './seeds'
+import { clickAndSettle } from './support/wait'
 import {
-  clickAndSettle,
   collapseSummaryPanel,
-  gridRow,
-  openEditor,
-  LOAD_VERSION_ITEM,
-  pickKosztorysOption,
   expectCellValue,
+  gridRow,
+  LOAD_VERSION_ITEM,
+  openEditor,
+  pickKosztorysOption,
   rowCell,
-  seedDeleteInvestments,
   versionsDrawer,
-  type DeleteSeedT,
-} from './helpers'
+} from './drivers/kosztorys-grid'
 
 // EX-520 — deleting a pozycja, a sekcja or an etap that already carries wpisane ilości.
 //

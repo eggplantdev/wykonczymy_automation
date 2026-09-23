@@ -22,7 +22,7 @@ written up in `context/foundation/lessons.md`; the short version:
 2. **The suite was relying on that emulation to lose races.** With a real-speed browser, nine of the
    thirteen remaining failures were one bug: a spec that writes, sees the optimistic UI change,
    and reloads — which ABORTS the in-flight server action and re-renders from a read that raced the
-   write. `settleWrite` / `clickAndSettle` (`e2e/helpers.ts`) wait for the action's `next-action` POST
+   write. `settleWrite` / `clickAndSettle` (`e2e/support/wait.ts`) wait for the action's `next-action` POST
    **response** instead of for the paint.
 3. **The retry loops guarding the flaky bits never retried.** `toPass` waits for an in-flight call to
    return before it decides to poll again, so every inner Playwright call left on the 45 s default
@@ -105,7 +105,7 @@ page rendering its pre-write face, and 45 s of retrying that never moved. Both w
    a list that Postgres already held, after a full navigation. A refill by a prefetch render that
    began before the write carries the refiller's own timestamp, which is later than the expiry — so
    the entry is valid, not stale, and re-reading it is pointless. Specs that read back a write now
-   retry the INVALIDATION: `refreshUntil` (`e2e/helpers.ts`) re-runs „Odśwież dane" until the read
+   retry the INVALIDATION: `refreshUntil` (`e2e/support/wait.ts`) re-runs „Odśwież dane" until the read
    agrees.
 
 ### 2026-09-19 — the cold run's one survivor
@@ -121,6 +121,6 @@ which is what a shared helper's flake looks like.
     discount-type menu's trigger one cell over. Enter opened THAT, and an open Radix menu marks the
     rest of the document `aria-hidden`, so the next `getByRole('button', …)` in the spec found nothing
     and the report blamed the Podsumowanie toggle 30 s later. `commitCellValue(cell, value)`
-    (`e2e/helpers.ts`) presses on the input locator, which re-resolves and re-focuses it, so the key
+    (`e2e/drivers/kosztorys-grid.ts`) presses on the input locator, which re-resolves and re-focuses it, so the key
     can only reach the cell under edit. The one deliberate page-level press stays: `kosztorys-grid-writes`
     aims keystrokes at a LOCKED cell that has no input at all, and the point is that they are refused.

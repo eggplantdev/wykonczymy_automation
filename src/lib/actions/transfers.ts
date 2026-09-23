@@ -31,7 +31,7 @@ import { uploadFieldIds } from '@/lib/media/upload-field'
 import { appendUploadIds, setUploadField } from '@/lib/media/set-upload-field'
 import type { ActionResultT } from '@/types/action'
 import { getDb } from '@/lib/db/get-db'
-import { isRelatedInvestmentLocked } from '@/lib/db/investment-lock'
+import { isRelatedInvestmentLocked } from '@/lib/db/investment-gate'
 import { INVESTMENT_LOCKED_MESSAGE } from '@/lib/constants/investment-lock'
 
 export async function createTransferAction(data: CreateTransferFormT, invoiceMediaIds?: number[]) {

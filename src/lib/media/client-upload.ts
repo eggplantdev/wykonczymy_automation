@@ -37,6 +37,31 @@ export async function uploadMediaFromClient(
     handleUploadUrl: TOKEN_ROUTE,
   })
 
+  return createMediaRow(filename, file, data)
+}
+
+// On Neon (`db-vercel-postgres`) concurrent Payload writes share a session: every overlapping
+// `POST /api/media` answers with an id, but only one row commits — prod 2026-09-22 logged „Failed to
+// persist upload data … NotFound", then the bulk insert failed its media FK. The Blob PUT carries the
+// bytes and stays parallel; only the row create is chained, page-wide.
+let rowCreateQueue: Promise<unknown> = Promise.resolve()
+
+export function createMediaRow(
+  filename: string,
+  file: File,
+  data: { kind?: MediaKindT },
+): Promise<number> {
+  const create = () => postMediaRow(filename, file, data)
+  const queued = rowCreateQueue.then(create, create)
+  rowCreateQueue = queued.catch(() => undefined)
+  return queued
+}
+
+async function postMediaRow(
+  filename: string,
+  file: File,
+  data: { kind?: MediaKindT },
+): Promise<number> {
   const formData = new FormData()
   formData.set(
     'file',

@@ -4,7 +4,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
-import { revalidateCollections } from '@/lib/cache/revalidate'
+import { revalidateCollections, revalidateEntities } from '@/lib/cache/revalidate'
 import type { CACHE_TAGS } from '@/lib/cache/tags'
 import { perfStart } from '@/lib/perf'
 import type { SessionUserT } from '@/types/auth'
@@ -31,12 +31,18 @@ export function validateAction<TData>(
   return { success: true, data: parsed.data }
 }
 
-/** Auth + payload + try/catch + perf + revalidation wrapper for actions. */
+/**
+ * Auth + payload + try/catch + perf + revalidation wrapper for actions.
+ *
+ * `entityTags` is the per-row alternative to the collection list: an action that touches exactly one
+ * row can expire that row's readers (`entityTag('investment', id)`) instead of every reader of the
+ * collection. Both are applied when both are given.
+ */
 export async function protectedAction<TData = undefined>(
   label: string,
   handler: (ctx: ActionCtxT) => Promise<ActionResultT<TData>>,
   revalidate?: (keyof typeof CACHE_TAGS)[],
-  opts?: { deferRefresh?: boolean },
+  opts?: { deferRefresh?: boolean; entityTags?: string[] },
 ): Promise<ActionResultT<TData>> {
   const elapsed = perfStart()
   const started = performance.now()
@@ -52,9 +58,10 @@ export async function protectedAction<TData = undefined>(
     const result = await handler({ payload, user: session.user })
     console.log(`[PERF]   handler done ${elapsed()}ms`)
 
-    if (result.success && revalidate) {
-      revalidateCollections(revalidate, opts)
-      console.log(`[PERF]   revalidateCollections ${elapsed()}ms`)
+    if (result.success) {
+      if (revalidate) revalidateCollections(revalidate, opts)
+      if (opts?.entityTags) revalidateEntities(opts.entityTags, opts)
+      console.log(`[PERF]   revalidate ${elapsed()}ms`)
     }
 
     console.log(`[PERF] ${label} ${Math.round(performance.now() - started)}ms`)

@@ -4,19 +4,19 @@ import { protectedAction } from '@/lib/actions/run-action'
 import { getDb } from '@/lib/db/get-db'
 import {
   investmentGateFor,
-  lockStatusFor,
+  investmentGateForRow,
+  type GateTargetKindT,
   type InvestmentGateT,
-  type LockTargetKindT,
-} from '@/lib/db/investment-lock'
+} from '@/lib/db/investment-gate'
 import { mirrorWorkshopPreset } from '@/lib/actions/mirror-workshop-preset'
 import type { SessionUserT } from '@/types/auth'
 import type { ActionResultT } from '@/types/action'
 import type { CACHE_TAGS } from '@/lib/cache/tags'
 import { INVESTMENT_LOCKED_MESSAGE } from '@/lib/constants/investment-lock'
 
-export type LockTargetT = { investmentId: number } | { kind: LockTargetKindT; id: number }
+export type GateTargetT = { investmentId: number } | { kind: GateTargetKindT; id: number }
 
-const TARGET_MISSING: Record<LockTargetKindT, string> = {
+const TARGET_MISSING: Record<GateTargetKindT, string> = {
   item: 'Pozycja nie istnieje.',
   section: 'Sekcja nie istnieje.',
   stage: 'Etap nie istnieje.',
@@ -32,7 +32,7 @@ const TARGET_MISSING: Record<LockTargetKindT, string> = {
  */
 export function investmentAction<TData = undefined>(
   label: string,
-  target: LockTargetT,
+  target: GateTargetT,
   // `investmentId` is handed down rather than re-derived: the gate has just resolved it from the
   // row's parent, and the delete handlers used to pay a second query for the same fact.
   handler: (ctx: {
@@ -61,7 +61,7 @@ export function investmentAction<TData = undefined>(
       } else {
         // One round trip, not two: the editor fans a write out per changed cell, so a paste across
         // fifty cells would otherwise pay fifty extra queries just to learn the parent's id.
-        const owner = await lockStatusFor(db, target.kind, target.id)
+        const owner = await investmentGateForRow(db, target.kind, target.id)
         if (owner === undefined) {
           // The code, not just the sentence: `use-stale-tree-recovery` reseeds the whole tree on
           // NOT_FOUND, and without it a write against a row someone else deleted leaves the editor

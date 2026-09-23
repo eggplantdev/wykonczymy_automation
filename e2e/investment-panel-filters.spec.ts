@@ -1,15 +1,11 @@
 import { test, expect, type Page } from '@playwright/test'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatNet } from '@/lib/kosztorys/format'
-import {
-  bare,
-  expandSummaryPanel,
-  openPanelView,
-  openTransferFilters,
-  readSummaryFigures,
-  refreshReferenceData,
-  runSeedScript,
-} from './helpers'
+import { refreshReferenceData, runSeedScript } from './seeds'
+import { bare } from './support/ui'
+import { expandSummaryPanel } from './drivers/kosztorys-grid'
+import { openPanelView, readSummaryFigures } from './drivers/settlement'
+import { openTransferFilters } from './drivers/transfers'
 
 // EX-634 — the v2 investment panel is wholly filter-blind.
 //

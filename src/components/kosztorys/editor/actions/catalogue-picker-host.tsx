@@ -16,7 +16,8 @@ const CataloguePickerContext = createContext<OpenCataloguePickerT | null>(null)
 // state, and React skips a subtree whose element identity is unchanged. That is what keeps the grid
 // out of the re-render (EX-496).
 export function CataloguePickerHost({ children }: { children: ReactNode }) {
-  const { rows, subtotals, handleAppendedCatalogueItems } = useKosztorysEditorContext()
+  const { investmentId, rows, subtotals, handleAppendedCatalogueItems } =
+    useKosztorysEditorContext()
   // `null` = closed; a member `sectionId` of `null` = open with no section chosen yet.
   const [target, setTarget] = useState<{ sectionId: number | null } | null>(null)
   // Stable for the life of the host, so nothing under it re-renders when the picker opens.
@@ -32,6 +33,7 @@ export function CataloguePickerHost({ children }: { children: ReactNode }) {
           szukajka without a reset path to maintain. */}
       {target && (
         <AddItemsFromCatalogueDialog
+          investmentId={investmentId}
           sections={subtotals}
           kosztorysItems={rows}
           initialSectionId={target.sectionId}

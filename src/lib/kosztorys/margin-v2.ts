@@ -2,8 +2,8 @@ import type { InvestmentFinancialsT } from '@/types/investment-financials'
 import type { SubcontractorSettlementT } from '@/lib/kosztorys/subcontractor-due'
 
 /**
- * It stands BESIDE `calculateMargin`, which is untouched and still live on v1, `/raporty` and the
- * existing listing column — the owner wants the two readings side by side (2026-08-18). Two
+ * It stands BESIDE `calculateMargin`, which is untouched and still live on v1 — the investment card
+ * and the listing column — the owner wants the two readings side by side (2026-08-18). Two
  * deliberate differences from it:
  * - `totalPayouts` is gone, replaced by `due`. Σ PAYOUT is cash and moves on its own rhythm, so a
  *   crew paid late reads as profit and a crew paid ahead reads as a loss the kosztorys never

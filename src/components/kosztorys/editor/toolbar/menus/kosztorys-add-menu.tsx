@@ -33,12 +33,6 @@ export function KosztorysAddMenu() {
   // it would unmount before it could open.
   const [presetDialogOpen, setPresetDialogOpen] = useState(false)
 
-  async function openPicker() {
-    if (subtotals.length > 0) return openCataloguePicker()
-    const sectionId = await handleAddSection()
-    if (sectionId !== null) openCataloguePicker(sectionId)
-  }
-
   return (
     <>
       <DropdownMenu>
@@ -75,10 +69,7 @@ export function KosztorysAddMenu() {
               </DropdownMenuSubContent>
             </DropdownMenuSub>
           )}
-          {/* The picker needs a sekcja to land in. On an empty kosztorys one is minted first and
-              handed over preselected, rather than hiding the entry and leaving the owner to guess
-              that „Sekcja" is the prerequisite. */}
-          <DropdownMenuItem onSelect={() => void openPicker()}>
+          <DropdownMenuItem onSelect={() => openCataloguePicker()}>
             <ListChecks />
             Praca z katalogu…
           </DropdownMenuItem>

@@ -1,10 +1,7 @@
 import type { Payload } from 'payload'
 import { getDb } from '@/lib/db/get-db'
-import {
-  getWorkshop,
-  resolveWorkshopInvestment,
-  setWorkshopPreset,
-} from '@/lib/db/workshop-investment'
+import { resolveWorkshopInvestment } from '@/lib/actions/provision-workshop'
+import { getWorkshop, setWorkshopPreset } from '@/lib/db/workshop-investment'
 import { deleteTestInvestment } from '@/__tests__/helpers/investment'
 
 // A spec can't create its own warsztat — `investments_single_szablon_idx` allows exactly one, and

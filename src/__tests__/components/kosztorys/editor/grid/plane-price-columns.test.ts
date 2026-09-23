@@ -20,6 +20,7 @@ const STAGES: KosztorysStageT[] = [
 ]
 
 const PLANES: ToolPlaneT[] = ['w_tools', 'own_tools']
+const VIEWS = ['client', 'w_tools', 'own_tools'] as const
 
 const PRICE_IDS = PLANES.map((plane) => planePriceKey('price', plane))
 const MODE_IDS = PLANES.map((plane) => planePriceKey('priceMode', plane))
@@ -32,7 +33,7 @@ function ids(opts: Partial<BuildV2ColumnsOptsT> & Pick<BuildV2ColumnsOptsT, 'vie
 
 describe('subcontractor rate columns, both planes', () => {
   it('assembles both planes’ rate in every view', () => {
-    for (const view of ['client', 'w_tools', 'own_tools'] as const) {
+    for (const view of VIEWS) {
       expect(ids({ view })).toEqual(expect.arrayContaining(PRICE_IDS))
     }
   })
@@ -46,12 +47,13 @@ describe('subcontractor rate columns, both planes', () => {
     for (const id of MODE_IDS) expect(ids({ view: 'client' })).not.toContain(id)
   })
 
-  // The client's own „Cena j.m. netto" keeps the bare id and stays where the offer is read. It is a
-  // different figure from a crew's rate, and its id is the one stored in each investment's client-view
-  // settings — the assertion guards that identity, not a layout preference.
-  it("keeps the client's own price column distinct and client-only", () => {
-    expect(ids({ view: 'client' })).toContain('price')
-    expect(ids({ view: 'w_tools' })).not.toContain('price')
+  // Guards the id, not a layout preference: the bare `price` is what each investment's client-view
+  // settings already store, so a plane suffix here would orphan every saved choice.
+  it("keeps the client's own price column distinct, and present in every view", () => {
+    expect(PRICE_IDS).not.toContain('price')
+    for (const view of VIEWS) {
+      expect(ids({ view })).toContain('price')
+    }
   })
 
   it('offers each rate column as its own picker entry, named by plane', () => {
@@ -120,7 +122,7 @@ describe('subcontractor rate columns, both planes', () => {
   // editable in EVERY view, „Źródło" beside it or not. Typing a number IS „kwota stała" and Delete is
   // the way back to „auto", which is what makes the column self-sufficient without the source picker.
   it('stays editable in every view, source column or not', () => {
-    for (const view of ['client', 'w_tools', 'own_tools'] as const) {
+    for (const view of VIEWS) {
       const columns = buildV2Columns({ view, stages: STAGES })
       for (const id of PRICE_IDS) {
         const column = columns.find((entry) => entry.id === id)

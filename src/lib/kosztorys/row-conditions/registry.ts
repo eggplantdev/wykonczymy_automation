@@ -1,10 +1,13 @@
-import { overrideValueFor, subcontractorPrice } from '@/lib/kosztorys/calc'
+import { overrideValueFor } from '@/lib/kosztorys/calc'
 import { planeViewSuffix } from '@/lib/kosztorys/constants'
 import { ALL_PLANE_PRICE_KEYS, planePriceKeysFor } from '@/lib/kosztorys/plane-price-keys'
 import type { RowConditionCtxT, RowConditionT } from '@/lib/kosztorys/row-conditions/types'
 import { measureDiscrepancy, rowTotalQtyDone } from '@/lib/kosztorys/settlement-rows'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
-import { checkSubcontractorPrice } from '@/lib/kosztorys/subcontractor-price-guard'
+import {
+  isFixedRateOverCeiling,
+  isSubcontractorPriceNegative,
+} from '@/lib/kosztorys/subcontractor-price-guard'
 import type { KosztorysV2RowT, ToolPlaneT } from '@/lib/kosztorys/types'
 
 // The pomiar, from the host's precomputed map when there is one and the long way when there is not.
@@ -97,6 +100,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label: 'bez przedmiaru',
     sectionLabel: 'Sekcje bez przedmiaru',
     kind: 'filter',
+    filterGroup: 'planned-qty',
     matches: (row) => !(row.plannedQty > 0),
   },
   {
@@ -104,6 +108,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label: 'z przedmiarem',
     sectionLabel: 'Sekcje z przedmiarem',
     kind: 'filter',
+    filterGroup: 'planned-qty',
     matches: (row) => row.plannedQty > 0,
   },
   {
@@ -113,6 +118,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label: 'bez wykonanej pracy',
     sectionLabel: 'Sekcje bez wykonanej pracy',
     kind: 'filter',
+    filterGroup: 'work-done',
     // The pomiar IS Σ etapów (EX-494), at the client plane like every other whole-row reading.
     matches: (row, ctx) => !(qtyDone(row, ctx) > 0),
   },
@@ -121,6 +127,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label: 'z wykonaną pracą',
     sectionLabel: 'Sekcje z wykonaną pracą',
     kind: 'filter',
+    filterGroup: 'work-done',
     matches: (row, ctx) => qtyDone(row, ctx) > 0,
   },
   // Read through `discountType`, not `discountValue` alone: under a null type the value is stored but
@@ -135,6 +142,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label: 'z rabatem',
     sectionLabel: 'Sekcje z rabatem',
     kind: 'filter',
+    filterGroup: 'discount',
     matches: (row) => !row.globalDiscountActive && hasItemDiscount(row),
   },
   {
@@ -142,6 +150,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label: 'bez rabatu',
     sectionLabel: 'Sekcje bez rabatu',
     kind: 'filter',
+    filterGroup: 'discount',
     matches: (row) => !row.globalDiscountActive && !hasItemDiscount(row),
   },
   // Split per plane for the same reason the price diagnostics are: a pozycja carries a stawka on both
@@ -157,7 +166,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label: 'ze stawką wykonawcy z kwoty stałej' + planeViewSuffix('w_tools'),
     sectionLabel: null,
     kind: 'filter',
-    plane: 'w_tools',
+    filterGroup: 'rate-source',
     revealsColumns: priceColumnsFor('w_tools'),
     matches: (row) => overrideValueFor(row, 'w_tools') !== null,
   },
@@ -166,7 +175,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label: 'ze stawką wykonawcy „auto"' + planeViewSuffix('w_tools'),
     sectionLabel: null,
     kind: 'filter',
-    plane: 'w_tools',
+    filterGroup: 'rate-source',
     revealsColumns: priceColumnsFor('w_tools'),
     matches: (row) => overrideValueFor(row, 'w_tools') === null,
   },
@@ -175,7 +184,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label: 'ze stawką wykonawcy z kwoty stałej' + planeViewSuffix('own_tools'),
     sectionLabel: null,
     kind: 'filter',
-    plane: 'own_tools',
+    filterGroup: 'rate-source',
     revealsColumns: priceColumnsFor('own_tools'),
     matches: (row) => overrideValueFor(row, 'own_tools') !== null,
   },
@@ -184,9 +193,52 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label: 'ze stawką wykonawcy „auto"' + planeViewSuffix('own_tools'),
     sectionLabel: null,
     kind: 'filter',
-    plane: 'own_tools',
+    filterGroup: 'rate-source',
     revealsColumns: priceColumnsFor('own_tools'),
     matches: (row) => overrideValueFor(row, 'own_tools') === null,
+  },
+  // The ceiling as a reading gesture, not an alarm (owner, 2026-09-20): a kwota the katalog ratifies
+  // is legitimate above 65%, so „pokaż mi pozycje powyżej sufitu" is a question about the rozpiska —
+  // it just is not a defect. The red cell and the komunikat stay where the liczba was made.
+  //
+  // Named after the source and not only the sufit, because that is what the half matches: „auto" rows
+  // are not judged here at all. The complement is therefore stated by negation — it holds every
+  // pozycja on „auto" too, which reads heavier but does not claim anyone measured those rows.
+  {
+    id: 'fixed-rate-over-ceiling-w-tools',
+    label: 'z kwotą stałą powyżej sufitu' + planeViewSuffix('w_tools'),
+    sectionLabel: null,
+    kind: 'filter',
+    filterGroup: 'rate-ceiling',
+    revealsColumns: priceColumnsFor('w_tools'),
+    matches: (row) => isFixedRateOverCeiling(row, 'w_tools'),
+  },
+  {
+    id: 'fixed-rate-within-ceiling-w-tools',
+    label: 'bez kwoty stałej powyżej sufitu' + planeViewSuffix('w_tools'),
+    sectionLabel: null,
+    kind: 'filter',
+    filterGroup: 'rate-ceiling',
+    revealsColumns: priceColumnsFor('w_tools'),
+    matches: (row) => !isFixedRateOverCeiling(row, 'w_tools'),
+  },
+  {
+    id: 'fixed-rate-over-ceiling-own-tools',
+    label: 'z kwotą stałą powyżej sufitu' + planeViewSuffix('own_tools'),
+    sectionLabel: null,
+    kind: 'filter',
+    filterGroup: 'rate-ceiling',
+    revealsColumns: priceColumnsFor('own_tools'),
+    matches: (row) => isFixedRateOverCeiling(row, 'own_tools'),
+  },
+  {
+    id: 'fixed-rate-within-ceiling-own-tools',
+    label: 'bez kwoty stałej powyżej sufitu' + planeViewSuffix('own_tools'),
+    sectionLabel: null,
+    kind: 'filter',
+    filterGroup: 'rate-ceiling',
+    revealsColumns: priceColumnsFor('own_tools'),
+    matches: (row) => !isFixedRateOverCeiling(row, 'own_tools'),
   },
   // Trimmed before testing: the grid writes '' into a cleared cell on some paths and null on others,
   // and a komentarz of three spaces is not one. `sectionLabel: null` — „every pozycja in this section
@@ -196,6 +248,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label: 'z komentarzem',
     sectionLabel: null,
     kind: 'filter',
+    filterGroup: 'note',
     matches: (row) => (row.note?.trim() ?? '') !== '',
   },
   {
@@ -203,6 +256,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label: 'bez komentarza',
     sectionLabel: null,
     kind: 'filter',
+    filterGroup: 'note',
     matches: (row) => (row.note?.trim() ?? '') === '',
   },
   {
@@ -232,7 +286,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'client-price',
-    tone: 'defect',
     // The executed quantity alongside the price cells: engaging a problem that says „praca wykonana"
     // and showing no column carrying that work leaves the claim unverifiable on screen.
     revealsColumns: [...ALL_PRICE_COLUMNS, 'stageQtySum'],
@@ -246,15 +299,14 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'client-price',
-    tone: 'defect',
     revealsColumns: ALL_PRICE_COLUMNS,
     // The only hand-typed price; the subcontractor planes derive from it through the coefficients.
     matches: (row, ctx) => !(row.clientPrice > 0) && !(qtyDone(row, ctx) > 0),
   },
   // The third cena j.m. problem, and the only one that cannot be seen from inside a single pozycja:
   // the price is there and plausible, it just disagrees with what the same praca costs in another
-  // sekcja. „worklist", not „defect" (owner, 2026-09-02) — another łazienka may be deliberately
-  // dearer, so this row names something to look through, not something broken. The katalog import
+  // sekcja. Work to look through, not something broken (owner, 2026-09-02) — another łazienka may be
+  // deliberately dearer, which is why nothing here goes red. The katalog import
   // settles the same disagreement silently by majority; this is where it becomes visible first.
   {
     id: 'divergent-client-price',
@@ -263,7 +315,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'client-price',
-    tone: 'worklist',
     // A whole sentence rather than „Pozycje …": the subject is the praca, not the pozycja, and the
     // pozycje are what you get to look at once you press it.
     problemLabel: (count) => `Te same prace z różnymi stawkami (${count})`,
@@ -273,17 +324,16 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     revealsColumns: ALL_PRICE_COLUMNS,
     matches: (row, ctx) => ctx.divergentPriceRowIds.has(row.id),
   },
-  // The two katalog verdicts. „worklist" for the same reason as the row above: the cennik is a
-  // reference, not a law — a rozpiska is allowed to price a praca its own way — so both rows name
-  // work to look through. Kept apart because they differ in what there is to show: a rozjazd liczb
-  // is read in the price columns, a praca the cennik never heard of has nothing to reveal.
+  // The two katalog verdicts, work to look through for the same reason as the row above: the cennik
+  // is a reference, not a law — a rozpiska is allowed to price a praca its own way. Kept apart
+  // because they differ in what there is to show: a rozjazd liczb is read in the price columns, a
+  // praca the cennik never heard of has nothing to reveal.
   {
     id: CATALOGUE_DIVERGENCE_CONDITION_ID,
     label: 'z innymi liczbami niż w katalogu prac',
     sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'catalogue',
-    tone: 'worklist',
     problemLabel: (count) => `Inne liczby niż w katalogu prac (${count})`,
     // Every price column, like the divergence row above: the cena j.m. is assembled on „Inwestor"
     // only, so naming it alone would reveal nothing from a subcontractor view — where the derived
@@ -297,7 +347,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'catalogue',
-    tone: 'worklist',
     problemLabel: (count) => `Brak w katalogu prac (${count})`,
     matches: (row, ctx) => ctx.catalogueRowIds?.missing.has(row.id) ?? false,
   },
@@ -310,7 +359,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'scope-stages',
-    tone: 'worklist',
     matches: (row, ctx) => measureDiscrepancy(row, ctx.stages) != null,
   },
   // Work booked against no offer. „Rozjazd między arkuszem Google a apką" cannot report it — with a przedmiar of
@@ -322,7 +370,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'scope-stages',
-    tone: 'defect',
     // The przedmiar alone: it is the missing cell, and it is where the fix is typed.
     revealsColumns: ['plannedQty'],
     matches: (row, ctx) => !(row.plannedQty > 0) && qtyDone(row, ctx) > 0,
@@ -330,56 +377,56 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   // One entry per plane rather than one asking about the active view: a price exists on both planes for
   // every row, so a problem on the plane you are not looking at is still a problem, and one entry
   // asking about the active view would never surface the other crew's.
-  // „zbyt wysoką", naming the direction the guard flags (owner, 2026-08-17): a stawka over the
-  // ceiling share of the client price. The guard's other branch — a negative stawka — is not that, but
-  // it is typo-shaped rather than a real state of the kosztorys, so it rides along unnamed instead of
-  // costing the label its one clear meaning.
+  //
+  // Only a negative stawka is a problem here; the ceiling is a pair of filters above. A kwota over the
+  // sufit is a bad deal somebody may have meant, while a negative one is arithmetic nobody meant — it
+  // subtracts from every total it reaches — so „Problemy" keeps only rows that are actually broken.
   //
   // „w widoku …", not „— …": the plane IS a view here, and the label names where the stawka is
-  // normally read. Engaged from „Inwestor" the reveal now brings that plane's own stawka cells with
-  // it, so the reader sees the judged number without switching the view out from under a click.
+  // normally read. Engaged from „Inwestor" the reveal brings that plane's own stawka cells with it,
+  // so the reader sees the judged number without switching the view out from under a click.
   {
-    id: 'overpriced-w-tools',
-    label: 'ze zbyt wysoką stawką wykonawcy' + planeViewSuffix('w_tools'),
+    id: 'negative-rate-w-tools',
+    label: 'z ujemną stawką wykonawcy' + planeViewSuffix('w_tools'),
     sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'subcontractor-rate-w-tools',
-    tone: 'defect',
     plane: 'w_tools',
     revealsColumns: priceColumnsFor('w_tools'),
-    // The guard, not a restatement of the ceiling: the filter and the red cell must never disagree.
-    matches: (row) => checkSubcontractorPrice(row, 'w_tools') != null,
+    // The stawka as paid, not the kwota stała: „auto" reaches negative too, through a negative mnożnik
+    // (`investmentCoeffsSchema` carries no `.min(0)`), and that row is just as unpayable.
+    matches: (row) => isSubcontractorPriceNegative(row, 'w_tools'),
   },
   {
-    id: 'overpriced-own-tools',
-    label: 'ze zbyt wysoką stawką wykonawcy' + planeViewSuffix('own_tools'),
+    id: 'negative-rate-own-tools',
+    label: 'z ujemną stawką wykonawcy' + planeViewSuffix('own_tools'),
     sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'subcontractor-rate-own-tools',
-    tone: 'defect',
     plane: 'own_tools',
     revealsColumns: priceColumnsFor('own_tools'),
-    matches: (row) => checkSubcontractorPrice(row, 'own_tools') != null,
+    matches: (row) => isSubcontractorPriceNegative(row, 'own_tools'),
   },
-  // The other half of the same question, and the one an import creates: a praca whose cenniki
-  // disagreed enters with an explicit 0 zł for the crew, and nothing else on screen says so — the cell
-  // reads „0,00 zł" exactly like a deliberate one. `> 0` is the whole rule; the guard above judges a
-  // price that exists, this one judges its absence.
+  // The zero an import creates: a praca whose cenniki disagreed enters with an explicit 0 zł for the
+  // crew, and nothing else on screen says so — the cell reads „0,00 zł" exactly like a deliberate one.
   //
-  // Gated on the client price so it never fires where the two cena j.m. problems already have: with no Cena j.m.
-  // an auto row computes 0 zł by arithmetic, and on a fresh kosztorys that would flag every pozycja.
-  // Exactly zero rather than „nie dodatnia", so a negative stawka belongs to the guard alone — read as
-  // absence too it would be counted twice in the „Problemy" list and chased twice in the grid.
+  // Reads the KWOTA STAŁA, not the stawka as paid (2026-09-22). On „auto" a zero is the global mnożnik
+  // speaking, and the mnożnik now says so itself, once, in its own red field (`coeffWarning`) — routed
+  // through here it was the same verdict repeated once per pozycja, and a mnożnik of 0 emptied the
+  // whole list into „Problemy". Exactly zero rather than „nie dodatnia", so a negative kwota belongs to
+  // the ujemna-stawka row alone and is not chased twice.
+  //
+  // Gated on the client price so it never fires where the two cena j.m. problems already have: an
+  // unpriced pozycja is their case, not a missing stawka wykonawcy.
   {
     id: 'no-w-tools-price',
     label: 'bez ceny wykonawcy' + planeViewSuffix('w_tools'),
     sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'subcontractor-rate-w-tools',
-    tone: 'defect',
     plane: 'w_tools',
     revealsColumns: priceColumnsFor('w_tools'),
-    matches: (row) => row.clientPrice > 0 && subcontractorPrice(row, 'w_tools') === 0,
+    matches: (row) => row.clientPrice > 0 && overrideValueFor(row, 'w_tools') === 0,
   },
   {
     id: 'no-own-tools-price',
@@ -387,10 +434,9 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'subcontractor-rate-own-tools',
-    tone: 'defect',
     plane: 'own_tools',
     revealsColumns: priceColumnsFor('own_tools'),
-    matches: (row) => row.clientPrice > 0 && subcontractorPrice(row, 'own_tools') === 0,
+    matches: (row) => row.clientPrice > 0 && overrideValueFor(row, 'own_tools') === 0,
   },
   // Split per plane like the two above, but for a different reason: there the stawka exists on both
   // planes whether you look or not, here the etap decides which stawka is the one being paid. So a
@@ -407,7 +453,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'subcontractor-rate-w-tools',
-    tone: 'defect',
     plane: 'w_tools',
     revealsColumns: priceColumnsFor('w_tools'),
     problemLabel: (count) => percentRateProblemLabel('w_tools', count),
@@ -419,29 +464,9 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'subcontractor-rate-own-tools',
-    tone: 'defect',
     plane: 'own_tools',
     revealsColumns: priceColumnsFor('own_tools'),
     problemLabel: (count) => percentRateProblemLabel('own_tools', count),
     matches: (row, ctx) => settledAtPercentRate(row, ctx, 'own_tools'),
   },
 ]
-
-// Frozen module-level instances, so the sets below are referentially stable and the editor's memos
-// don't recompute on every render.
-const CLIENT_EMPTY_CONDITION_IDS: ReadonlySet<string> = new Set(['client-empty'])
-const NO_CONDITION_IDS: ReadonlySet<string> = new Set()
-
-/**
- * What a client's document engages. Every 'filter' and 'diagnostic' here is the company's own
- * bookkeeping question and is suppressed wholesale under the preview — the sole exception is the
- * 'client' condition, which the client did not choose either: it is the owner's stored decision
- * about what this document contains.
- *
- * Lives beside the registry rather than inside the editor hook that reads it, because the mapping is
- * the domain fact „which conditions may reach a client" — invisible to anyone refactoring the hook,
- * and it has been silently dropped by exactly that kind of refactor once already.
- */
-export function clientConditionIds(hideEmptyRows: boolean | undefined): ReadonlySet<string> {
-  return hideEmptyRows ? CLIENT_EMPTY_CONDITION_IDS : NO_CONDITION_IDS
-}

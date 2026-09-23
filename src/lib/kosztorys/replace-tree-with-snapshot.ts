@@ -1,7 +1,7 @@
 import 'server-only'
 import type { Payload } from 'payload'
 import { getDb } from '@/lib/db/get-db'
-import { lockInvestmentForReplace } from '@/lib/db/lock-investment'
+import { lockInvestmentForReplace } from '@/lib/db/lock-investment-for-replace'
 import { insertSnapshot } from '@/lib/db/snapshots'
 import { isConcurrentWrite, withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { restoreKosztorys } from './restore-kosztorys'

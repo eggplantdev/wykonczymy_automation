@@ -1,6 +1,6 @@
 import { APIError, type CollectionBeforeDeleteHook } from 'payload'
 import { getDb } from '@/lib/db/get-db'
-import { isRelatedInvestmentLocked } from '@/lib/db/investment-lock'
+import { isRelatedInvestmentLocked } from '@/lib/db/investment-gate'
 import { INVESTMENT_LOCKED_MESSAGE } from '@/lib/constants/investment-lock'
 
 /**

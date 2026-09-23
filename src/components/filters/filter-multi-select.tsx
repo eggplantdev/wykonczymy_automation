@@ -18,6 +18,13 @@ import { cn } from '@/lib/utils/cn'
 
 type OptionT = { value: string; label: string }
 
+/**
+ * „Zaznacz / odznacz wszystkie" for the `toggles` group, which `toggleAll` cannot reach — that one
+ * owns the option list and the toggles are the caller's state. Exported so the producing hook states
+ * the same shape instead of restating it, where a drift would only surface at the call site.
+ */
+export type FilterTogglesBulkT = { allActive: boolean; onToggleAll: (next: boolean) => void }
+
 type FilterMultiSelectPropsT = {
   // Empty for a menu built entirely out of `toggles`, which then renders as one trigger with a count
   // instead of a row of loose buttons in the grid.
@@ -50,11 +57,16 @@ type FilterMultiSelectPropsT = {
   toggles?: ReadonlyArray<{
     id: string
     label: string
+    // The heading this row is filed under, for a list long enough to be read by subject first. Rows
+    // arrive already ordered by it — this component only notices where it changes. Omitted by a
+    // caller whose rows are one flat list.
+    groupLabel?: string
     active: boolean
     onToggle: () => void
     disabled?: boolean
   }>
-  togglesHeading?: string
+  // Optional, because a group of two or three rows is faster clicked than swept.
+  togglesBulk?: FilterTogglesBulkT
   // For the two groups this component owns; the toggle groups carry their own. Worth setting once a
   // menu mixes rows acting on different things — a bare separator never says what each group is.
   actionsHeading?: string
@@ -74,6 +86,37 @@ type FilterMultiSelectPropsT = {
 export const FILTER_NONE = '__none__'
 const DEBOUNCE_MS = 600
 
+/**
+ * One row, two groups: the option list's sweep and the toggles' sweep read the same labels and draw
+ * the same icon, and a menu offering both would otherwise carry the sentence twice.
+ *
+ * `value` is an id rather than the visible sentence, which is what cmdk would derive: both rows say
+ * the same words, so one menu showing both would hold two items under one value — an ambiguous
+ * keyboard target and an ambiguous `getByRole('option', { name })`. `keywords` hands the sentence
+ * back to the search filter that `value` no longer feeds.
+ */
+function BulkSelectRow({
+  id,
+  allSelected,
+  labels,
+  onSelect,
+}: {
+  id: string
+  allSelected: boolean
+  labels?: { select: string; deselect: string }
+  onSelect: () => void
+}) {
+  const text = allSelected
+    ? (labels?.deselect ?? 'Odznacz wszystkie')
+    : (labels?.select ?? 'Zaznacz wszystkie')
+  return (
+    <CommandItem value={id} keywords={[text]} onSelect={onSelect}>
+      <CheckCheck />
+      {text}
+    </CommandItem>
+  )
+}
+
 export function FilterMultiSelect({
   values = [],
   onValuesChange = () => {},
@@ -88,7 +131,7 @@ export function FilterMultiSelect({
   bulkLabels,
   optionToggles,
   toggles,
-  togglesHeading,
+  togglesBulk,
   resetAction,
   actionsHeading,
   optionsHeading,
@@ -192,14 +235,36 @@ export function FilterMultiSelect({
     }
   }, [])
 
+  // One run per heading, split where `groupLabel` changes rather than grouped by value: the caller
+  // orders the rows, so a repeated heading would mean the caller interleaved two axes — and showing
+  // that is more honest than silently reuniting them. A caller passing no `groupLabel` gets one
+  // headless run, which is the same flat list as before.
+  const toggleRuns = (toggles ?? []).reduce<
+    { heading: string | undefined; items: NonNullable<typeof toggles>[number][] }[]
+  >((runs, toggle) => {
+    const last = runs[runs.length - 1]
+    if (last && last.heading === toggle.groupLabel) last.items.push(toggle)
+    else runs.push({ heading: toggle.groupLabel, items: [toggle] })
+    return runs
+  }, [])
+
+  const bulkToggleRow = togglesBulk && (
+    <BulkSelectRow
+      id="bulk-toggles"
+      allSelected={togglesBulk.allActive}
+      labels={bulkLabels}
+      onSelect={() => togglesBulk.onToggleAll(!togglesBulk.allActive)}
+    />
+  )
+
   const actionRows = (
     <>
-      <CommandItem onSelect={toggleAll}>
-        <CheckCheck />
-        {allSelected
-          ? (bulkLabels?.deselect ?? 'Odznacz wszystkie')
-          : (bulkLabels?.select ?? 'Zaznacz wszystkie')}
-      </CommandItem>
+      <BulkSelectRow
+        id="bulk-options"
+        allSelected={allSelected}
+        labels={bulkLabels}
+        onSelect={toggleAll}
+      />
       {optionToggles?.map((group) => (
         <CommandItem
           key={group.label}
@@ -262,19 +327,26 @@ export function FilterMultiSelect({
           <CommandList className="max-h-none">
             {toggles && toggles.length > 0 && (
               <>
-                <CommandGroup heading={togglesHeading}>
-                  {toggles.map((toggle) => (
-                    <CommandItem
-                      key={toggle.id}
-                      value={toggle.label}
-                      disabled={toggle.disabled}
-                      onSelect={toggle.onToggle}
-                    >
-                      <CheckIcon className={cn(!toggle.active && 'opacity-0')} />
-                      {toggle.label}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
+                {/* Above the headings rather than inside the first one, where it would read as
+                    acting on that axis alone. */}
+                {bulkToggleRow && <CommandGroup>{bulkToggleRow}</CommandGroup>}
+                {/* Keyed by each run's first row, not by its heading: an interleaved caller opens
+                    two runs under one heading, and a heading key would collide. */}
+                {toggleRuns.map((run) => (
+                  <CommandGroup key={run.items[0].id} heading={run.heading}>
+                    {run.items.map((toggle) => (
+                      <CommandItem
+                        key={toggle.id}
+                        value={toggle.label}
+                        disabled={toggle.disabled}
+                        onSelect={toggle.onToggle}
+                      >
+                        <CheckIcon className={cn(!toggle.active && 'opacity-0')} />
+                        {toggle.label}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                ))}
                 {options.length > 0 && <CommandSeparator />}
               </>
             )}

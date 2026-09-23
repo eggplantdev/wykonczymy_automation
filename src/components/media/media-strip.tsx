@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { FileText, ImageOff, Search, Trash2 } from 'lucide-react'
-import { InvoicePreviewDialog } from '@/components/dialogs/invoice-preview-dialog'
+import { MediaPreviewDialog } from '@/components/dialogs/media-preview-dialog'
 import { Checkbox } from '@/components/ui/checkbox'
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import { isImageMime } from '@/lib/media/mime'
@@ -153,9 +153,9 @@ export function MediaStrip({
       {/* Mounted per click so the pager starts on the thumbnail that was clicked — the dialog seeds
           its page index once, at mount. */}
       {openIndex !== null && (
-        <InvoicePreviewDialog
+        <MediaPreviewDialog
           key={openIndex}
-          invoices={files}
+          files={files}
           initialIndex={openIndex}
           labels={labels}
           open

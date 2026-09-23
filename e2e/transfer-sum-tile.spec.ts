@@ -1,11 +1,7 @@
 import { test, expect, type Page } from '@playwright/test'
-import {
-  createInvestmentExpense,
-  openTransferFilters,
-  parsePln,
-  readColumn,
-  EXPENSE_REGISTER,
-} from './helpers'
+import { parsePln, readColumn } from './support/ui'
+import { createInvestmentExpense, EXPENSE_REGISTER } from './drivers/expenses'
+import { openTransferFilters } from './drivers/transfers'
 
 // EX-627 — the „Suma wybranych transakcji" tile against the rows the list actually shows.
 //

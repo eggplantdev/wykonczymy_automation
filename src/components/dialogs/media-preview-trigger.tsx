@@ -1,0 +1,41 @@
+import { FileText } from 'lucide-react'
+import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils/cn'
+
+export type MediaPreviewTriggerPropsT = {
+  label: string
+  ariaLabel: string
+  onClick: () => void
+  // `compact` defaults to the ghost icon-button's 36px box but lets `className` override it — the
+  // transfers table and a fixed-height virtualized row have different height budgets.
+  variant?: 'field' | 'compact'
+  className?: string
+}
+
+export function MediaPreviewTrigger({
+  label,
+  ariaLabel,
+  onClick,
+  variant = 'field',
+  className,
+}: MediaPreviewTriggerPropsT) {
+  const isCompact = variant === 'compact'
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={ariaLabel}
+      className={cn(
+        'text-muted-foreground hover:text-foreground cursor-pointer',
+        isCompact
+          ? cn(buttonVariants({ variant: 'ghost', size: 'icon' }), 'mx-auto')
+          : 'border-input hover:border-primary/50 hover:bg-muted/50 flex h-9 w-full min-w-0 items-center gap-2 rounded-md border px-3 text-sm transition-colors',
+        className,
+      )}
+    >
+      <FileText />
+      {!isCompact && <span className="truncate">{label}</span>}
+    </button>
+  )
+}

@@ -19,7 +19,7 @@ vi.mock('@/lib/auth/require-auth', () => ({
     user: { id: authState.userId, email: 'o@t.com', name: 'Owner', role: authState.role },
   })),
 }))
-vi.mock('@/lib/cache/revalidate', () => ({ revalidateCollections: vi.fn() }))
+vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const { updateInvestmentAction } = await import('@/lib/actions/investments')
 const { INVESTMENT_UNLOCK_FORBIDDEN_MESSAGE } =

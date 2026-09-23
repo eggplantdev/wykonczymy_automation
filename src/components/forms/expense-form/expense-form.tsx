@@ -37,8 +37,8 @@ import {
   makeLineItem,
   type BulkExpenseFormValuesT,
 } from '@/components/forms/expense-form/bulk-expense-form'
-import { positionalFiles } from '@/lib/invoices/row-file-positions'
-import { submitWithInvoicePageRows } from '@/lib/invoices/submit-with-invoice-pages'
+import { positionalFiles } from '@/components/forms/expense-form/row-file-positions'
+import { submitWithUploadRows } from '@/lib/media/submit-with-uploads'
 import { toastMessage } from '@/lib/utils/toast'
 import {
   getDefaultCashRegister,
@@ -200,7 +200,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
         // Submit is the only upload site: the AI scan sends raw bytes and persists nothing, so
         // every attached file is uploaded once here.
         action: () =>
-          submitWithInvoicePageRows(value.lineItems.length, files, (invoicePageRows) =>
+          submitWithUploadRows(value.lineItems.length, files, (invoicePageRows) =>
             createBulkTransferAction(data, invoicePageRows),
           ),
         successMessage: 'Transakcje dodane',

@@ -91,9 +91,10 @@ function CellTooltip({
 // stała", so the keystroke carries the mode with it rather than making the user set „Źródło" first.
 // Clearing it reverts the row to „auto".
 //
-// This is also the one cell carrying the guard's STANDING verdict, in every mode: the rule is about
-// the price, and a breach caused from outside these columns — a lowered client price, a raised global
-// coefficient — has to surface without anyone opening them.
+// This is also the one cell carrying the guard's STANDING verdict on a kwota stała: the rule is about
+// the price, and a breach caused from outside these columns — a lowered client price — has to surface
+// without anyone opening them. On „auto" it says nothing, because the author of that figure is the
+// investment's mnożnik, which is judged once in its own field instead of once per pozycja.
 function SubcontractorPriceCell({
   rowData,
   setRowData,

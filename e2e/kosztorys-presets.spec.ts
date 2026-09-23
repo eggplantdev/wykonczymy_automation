@@ -1,22 +1,23 @@
 import { test, expect, type Page } from '@playwright/test'
 import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
+import { refreshReferenceData, runSeedScript } from './seeds'
+import { waitForHydration } from './support/wait'
 import {
   collapseSummaryPanel,
-  discountModeSelect,
   expandSummaryPanel,
-  applyDiscountValue,
   gridRow,
   LOAD_VERSION_ITEM,
   openEditor,
+  pickKosztorysOption,
+  rowCell,
+  versionsDrawer,
+} from './drivers/kosztorys-grid'
+import {
+  applyDiscountValue,
+  discountModeSelect,
   openSettlementOptions,
   pickDiscountMode,
-  pickKosztorysOption,
-  refreshReferenceData,
-  rowCell,
-  runSeedScript,
-  versionsDrawer,
-  waitForHydration,
-} from './helpers'
+} from './drivers/settlement'
 
 // EX-442 (with EX-674 merged into it) — the szablon, end to end: cut one off a finished kosztorys,
 // start a new investment from it, and drop one over a rozpiska that already exists.

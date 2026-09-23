@@ -3,7 +3,7 @@ import type { ReferenceDataBaseT } from '@/types/reference-data'
 import { findAllTransfersForExport } from '@/lib/queries/export-transfers'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { fetchMediaByIds } from '@/lib/queries/media'
-import { extractInvoiceIds } from '@/lib/invoices/invoice-field'
+import { extractInvoiceIds } from '@/lib/media/invoice-field'
 import {
   mapTransferRow,
   buildTransferLookups,

@@ -1,3 +1,4 @@
+import type { FilterGroupIdT } from '@/lib/kosztorys/filter-groups'
 import type { ProblemGroupIdT } from '@/lib/kosztorys/problem-groups'
 import type { KosztorysStageT, KosztorysV2RowT, ToolPlaneT } from '@/lib/kosztorys/types'
 
@@ -54,13 +55,15 @@ export type RowConditionT = {
   // engaged keeps ONLY what it matches. It is not a picker row — it answers „pokaż mi wyłącznie to, co
   // jest zepsute" — so it stays off by default and out of the menu.
   kind: RowConditionKindT
-  // How a diagnostic reads, which is not the same question as what it matches. 'defect' = something is
-  // wrong and someone has to fix it. 'worklist' = nothing is broken; the count is work still to do and
-  // typing it away is the normal course of the job, not the clearing of a fault. Ignored by filters.
-  tone?: 'defect' | 'worklist'
-  // Which price plane the condition judges, for the rows that judge one at all. The id rather than a
-  // glyph, so the menu can mark the row with the same icon the view switcher uses without this module
-  // — or the model above it — importing React.
+  // Which heading the „Filtry" menu files the row under. Filters only — no other kind reaches that
+  // menu. A filter that names none is left OUT of the list entirely rather than dropped into an „Inne"
+  // bucket, so a forgotten axis is a missing row a spec catches, not a silent orphan.
+  filterGroup?: FilterGroupIdT
+  // Which price plane the condition judges. Diagnostics only — a filter names its plane in the label
+  // and nothing else asks, while `engagedPlane` would read one here and move the grid out from under a
+  // tick (it gates on the kind for exactly that reason, and a spec pins that no filter carries one).
+  // The id rather than a glyph, so the menu can mark the row with the same icon the view switcher uses
+  // without this module — or the model above it — importing React.
   plane?: ToolPlaneT
   // Columns the condition is ABOUT. While it is engaged the grid shows them even if the column picker
   // has them unticked, because narrowing to „pozycje bez ceny j.m." with „Cena j.m." hidden is the

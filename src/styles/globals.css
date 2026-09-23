@@ -395,14 +395,15 @@
 /* The clip cue: a „…" pinned to the bottom-right of a cell whose text does not fit its row. It has to
    be drawn OVER the text rather than inside it — `text-overflow` speaks only for a single
    non-wrapping line, and this grid clips on a whole line (see above) precisely so a description can
-   wrap. The cue rides a row class the editor sets per text column (`kosztorys-clipped-description` /
-   `-note`), because whether a value fits is a fact about the row's height and the column's width,
-   which CSS has no way to ask.
+   wrap. The cue rides a row class the editor sets per text column (`kosztorys-clipped-description`,
+   `-note`, `-sectionName`), because whether a value fits is a fact about the row's height and the
+   column's width, which CSS has no way to ask.
    `background: inherit` is what makes it read as an ellipsis instead of three dots dropped on a
    word: it takes the cell's own fill, section tint included, and hides the glyphs it covers.
    No `position: relative` on the cell — dsg lays every cell out absolutely and positions it by
    `left`, so relative would drop the whole row into a stack. An absolutely positioned cell is
    already the containing block its `::after` anchors to. */
+.kosztorys-grid .dsg-row.kosztorys-clipped-sectionName .dsg-cell.kosztorys-wrap-sectionName::after,
 .kosztorys-grid .dsg-row.kosztorys-clipped-description .dsg-cell.kosztorys-wrap-description::after,
 .kosztorys-grid .dsg-row.kosztorys-clipped-note .dsg-cell.kosztorys-wrap-note::after {
   content: '…';

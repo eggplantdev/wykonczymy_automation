@@ -97,9 +97,9 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   //
   // The szablon workbench is the exception and takes it on the client plane too: it is the ONE
   // screen whose whole subject is the reusable skeleton, and which source each crew's rate comes
-  // from is part of that skeleton (`serializeKosztorysAsPreset` carries the override). Its view is
-  // pinned to 'client' because the workbench shows the offer price and hides the view switch, so
-  // without this the column could never be reached there at all. Nothing leaks: the client preview
+  // from is part of that skeleton (`serializeKosztorysAsPreset` carries the override). It is pinned
+  // to 'client' and offers no plane switch, so without this branch the one screen whose subject is
+  // the source would be the one screen that can never show it. Nothing leaks: the client preview
   // is `previewVisible`, a different gate, and PREVIEW_VISIBLE_COLUMNS has no `priceMode`.
   const withMode = view !== 'client' || opts.workshopVisible === true
   const subcontractorPriceCols: Column<KosztorysV2RowT>[] = TOOL_PLANES.flatMap((plane) => [
@@ -108,21 +108,22 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       : []),
     subcontractorPriceColumn(plane, columnTitle(planePriceKey('price', plane), opts)),
   ])
-  // The client's „Cena j.m. netto" is the offer price, so it stays on the client view and keeps its
-  // bare `price` id — that id is stored in each investment's client-view settings, and renaming it
-  // would drop it from the stored hidden set and reveal the price to clients who had hidden it.
-  const priceCols: Column<KosztorysV2RowT>[] =
-    view === 'client'
-      ? [
-          // `formatPLN`: „przywrócono 120" would read as a quantity in a grid full of them.
-          decimalColumn(
-            'price',
-            columnTitle('price', opts),
-            numericFieldPolicy<'clientPrice', KosztorysV2RowT>('clientPrice', formatPLN),
-          ),
-          ...subcontractorPriceCols,
-        ]
-      : subcontractorPriceCols
+  // All three prices in EVERY view (owner, 2026-09-22): the offer price is what both stawki derive
+  // from and what the ceiling guard judges them against, so a crew view owes the owner the
+  // denominator beside the verdict.
+  //
+  // Keeps its bare `price` id: that id is stored in each investment's client-view settings, and
+  // renaming it would drop it from the stored hidden set and reveal the price to clients who had
+  // hidden it.
+  const priceCols: Column<KosztorysV2RowT>[] = [
+    // `formatPLN`: „przywrócono 120" would read as a quantity in a grid full of them.
+    decimalColumn(
+      'price',
+      columnTitle('price', opts),
+      numericFieldPolicy<'clientPrice', KosztorysV2RowT>('clientPrice', formatPLN),
+    ),
+    ...subcontractorPriceCols,
+  ]
   const identity: Column<KosztorysV2RowT>[] = [
     sectionNameColumn(columnTitle('sectionName', opts), opts.onRenameSection),
     keyCol('description', longTextColumn, {

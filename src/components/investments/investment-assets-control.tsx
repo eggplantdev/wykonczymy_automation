@@ -3,10 +3,10 @@
 import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import { InvoicePreviewButton } from '@/components/dialogs/invoice-preview-button'
-import { InvoiceUploadDialog } from '@/components/dialogs/invoice-upload-dialog'
-import { InvoicePreviewTrigger } from '@/components/dialogs/invoice-preview-trigger'
-import { ASSET_PREVIEW_LABELS } from '@/components/media/preview-labels'
+import { MediaPreviewButton } from '@/components/dialogs/media-preview-button'
+import { MediaUploadDialog } from '@/components/dialogs/media-upload-dialog'
+import { MediaPreviewTrigger } from '@/components/dialogs/media-preview-trigger'
+import { ASSET_PREVIEW_LABELS } from '@/lib/media/wording'
 import { useInvestmentAssetsRemoval } from '@/hooks/use-investment-assets-removal'
 import { usePlanMarker } from '@/hooks/use-plan-marker'
 import {
@@ -46,8 +46,8 @@ export function InvestmentAssetsControl({ investmentId, assets }: InvestmentAsse
         {/* One button in both states: with files it opens the preview (which offers „Dodaj"), with
             none it goes straight to the upload — an empty preview would be a dead end. */}
         {visibleFiles.length > 0 ? (
-          <InvoicePreviewButton
-            invoices={visibleFiles}
+          <MediaPreviewButton
+            files={visibleFiles}
             label={label}
             ariaLabel={`Dokumentacja inwestycji (${visibleFiles.length})`}
             labels={ASSET_PREVIEW_LABELS}
@@ -58,7 +58,7 @@ export function InvestmentAssetsControl({ investmentId, assets }: InvestmentAsse
             planMarker={planMarker}
           />
         ) : (
-          <InvoicePreviewTrigger
+          <MediaPreviewTrigger
             label={label}
             ariaLabel="Dokumentacja inwestycji (brak plików)"
             onClick={() => setUploadOpen(true)}
@@ -68,7 +68,7 @@ export function InvestmentAssetsControl({ investmentId, assets }: InvestmentAsse
         {isUploading && <Loader2 className="text-muted-foreground size-4 animate-spin" />}
       </div>
 
-      <InvoiceUploadDialog
+      <MediaUploadDialog
         title={INVESTMENT_ASSETS_UPLOAD_TITLE}
         open={uploadOpen}
         onOpenChange={setUploadOpen}

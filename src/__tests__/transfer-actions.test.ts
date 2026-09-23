@@ -5,13 +5,23 @@ import type { Payload } from 'payload'
 
 vi.mock('server-only', () => ({}))
 
-// The actions schedule the post-response Google Sheets sync via next/server's
-// after(). Outside a request scope (i.e. in these unit tests) the real after()
-// throws. Run the callback synchronously so the scheduled sheet work is observable.
+// The actions schedule post-response work via next/server's after() — the Google Sheets sync, and
+// the media reclaim. Outside a request scope (i.e. in these unit tests) the real after() throws.
+// Run the callback AND keep its promise: the sheet spies are called on the way in, but the reclaim
+// only finishes later, so a test asserting on it must be able to wait.
+const { afterWork } = vi.hoisted(() => ({ afterWork: [] as Promise<unknown>[] }))
 vi.mock('next/server', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/server')>()
-  return { ...actual, after: (fn: () => unknown) => fn() }
+  return {
+    ...actual,
+    after: (fn: () => unknown) => {
+      afterWork.push(Promise.resolve(fn()))
+    },
+  }
 })
+
+/** Wait out the work an action deferred past its response. */
+const flushAfter = () => Promise.all(afterWork.splice(0)).then(() => undefined)
 
 // The sheet sync itself isn't under test here — spy on the boundary functions.
 const mockSyncSingle = vi.fn()
@@ -27,7 +37,9 @@ const mockCreate = vi.fn()
 const mockUpdate = vi.fn()
 const mockFindByID = vi.fn()
 const mockDelete = vi.fn()
-const mockCount = vi.fn()
+// The media reference scan asks once per relation for the whole batch and reads the held ids off
+// the matched docs, so a live reference is staged as a doc carrying that id — not as a count.
+const mockFindReferences = vi.fn()
 const mockBeginTransaction = vi.fn()
 const mockCommitTransaction = vi.fn()
 const mockRollbackTransaction = vi.fn()
@@ -37,7 +49,7 @@ const mockPayload = {
   update: mockUpdate,
   findByID: mockFindByID,
   delete: mockDelete,
-  count: mockCount,
+  find: mockFindReferences,
   db: {
     beginTransaction: mockBeginTransaction,
     commitTransaction: mockCommitTransaction,
@@ -66,11 +78,7 @@ vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: (...args: unknown[]) => mockRequireAuth(...args),
 }))
 
-// upload-invoice is no longer called by server actions (uploads happen client-side via API route)
-
-vi.mock('@/lib/cache/revalidate', () => ({
-  revalidateCollections: vi.fn(),
-}))
+vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const mockDbExecute = vi.fn()
 // The SQL text of every statement the action layer ran, for tests that care WHICH query fired.
@@ -177,7 +185,8 @@ beforeEach(() => {
   mockFindByID.mockReset()
   mockDelete.mockReset().mockResolvedValue(undefined)
   // Default: nothing else points at the media, so the guarded delete goes through.
-  mockCount.mockReset().mockResolvedValue({ totalDocs: 0 })
+  afterWork.length = 0
+  mockFindReferences.mockReset().mockResolvedValue({ docs: [] })
   mockBeginTransaction.mockReset().mockResolvedValue(TX_ID)
   mockCommitTransaction.mockReset().mockResolvedValue(undefined)
   mockRollbackTransaction.mockReset().mockResolvedValue(undefined)
@@ -967,9 +976,8 @@ describe('updateTransferAction', () => {
     expect(mockUpdate.mock.calls[0][0].data).not.toHaveProperty('invoice')
   })
 
-  // Sheet sync moved to the transactions collection afterChange hook (review T2.2),
-  // so updateTransferAction no longer calls it directly. The edit / investment-move /
-  // non-expense-skip behavior is covered in hooks/sync-kosztorys-sheet.test.ts.
+  // The sync itself — edit, investment move, non-expense skip — is covered in
+  // hooks/sync-kosztorys-sheet.test.ts.
   it('does not sync the sheet directly from the action (hook owns it now)', async () => {
     mockFindByID.mockResolvedValueOnce(
       makeOriginalTransfer({ createdBy: adminUser.id, investment: 2 }),
@@ -1104,6 +1112,7 @@ describe('removeTransferInvoiceAction', () => {
     mockFindByID.mockResolvedValueOnce({ invoice: [55, 56, 57] })
 
     await removeTransferInvoiceAction(10, 56)
+    await flushAfter()
 
     expect(mockDelete).toHaveBeenCalledWith(
       expect.objectContaining({ collection: 'media', id: 56 }),
@@ -1126,6 +1135,7 @@ describe('removeAllTransferInvoicesAction', () => {
     mockFindByID.mockResolvedValueOnce({ invoice: [55, 56] })
 
     const result = await removeAllTransferInvoicesAction(10)
+    await flushAfter()
 
     expect(result.success).toBe(true)
     expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ data: { invoice: [] } }))
@@ -1152,6 +1162,7 @@ describe('deleteOrphanedMediaAction', () => {
   // in Blob with nothing pointing at them — unreachable, but still billed for.
   it('deletes ids nothing references', async () => {
     const result = await deleteOrphanedMediaAction([101, 102, 103])
+    await flushAfter()
 
     expect(result.success).toBe(true)
     expect(mockDelete).toHaveBeenCalledTimes(3)
@@ -1162,9 +1173,11 @@ describe('deleteOrphanedMediaAction', () => {
   // The ids come straight from the browser and the join-table FK cascades, so an unguarded delete
   // would let any caller strip pages off other people's expenses.
   it('refuses an id a transfer still references', async () => {
-    mockCount.mockResolvedValueOnce({ totalDocs: 1 })
+    // First relation asked is `transactions.invoice` — a transfer still holds page 101.
+    mockFindReferences.mockResolvedValueOnce({ docs: [{ invoice: [101] }] })
 
     await deleteOrphanedMediaAction([101, 102])
+    await flushAfter()
 
     expect(mockDelete).toHaveBeenCalledTimes(1)
     expect(mockDelete).toHaveBeenCalledWith({ collection: 'media', id: 102 })
@@ -1174,6 +1187,7 @@ describe('deleteOrphanedMediaAction', () => {
     mockDelete.mockRejectedValueOnce(new Error('blob gone'))
 
     const result = await deleteOrphanedMediaAction([101, 102])
+    await flushAfter()
 
     expect(result.success).toBe(true)
     expect(mockDelete).toHaveBeenCalledTimes(2)

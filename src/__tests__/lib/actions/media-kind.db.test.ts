@@ -14,7 +14,7 @@ vi.mock('next/server', async (importOriginal) => {
 })
 const { getCurrentUserJwt } = vi.hoisted(() => ({ getCurrentUserJwt: vi.fn() }))
 vi.mock('@/lib/auth/get-current-user-jwt', () => ({ getCurrentUserJwt }))
-vi.mock('@/lib/cache/revalidate', () => ({ revalidateCollections: vi.fn() }))
+vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 const FILENAME = 'ex-829-rzut.jpg'

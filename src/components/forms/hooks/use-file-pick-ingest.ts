@@ -3,8 +3,8 @@
 import { useEffect, useState, type ChangeEvent } from 'react'
 
 import { useLatestRequest } from '@/hooks/use-latest-request'
-import { reportBlockedFiles } from '@/lib/invoices/blocked-files-message'
-import { ingestPickedFiles } from '@/lib/invoices/ingest-picked-files'
+import { reportBlockedFiles } from '@/lib/media/blocked-files-message'
+import { ingestPickedFiles } from '@/lib/media/ingest-picked-files'
 import { toastMessage } from '@/lib/utils/toast'
 
 /**

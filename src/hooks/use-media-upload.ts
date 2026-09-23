@@ -1,10 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { reportBlockedFiles } from '@/lib/invoices/blocked-files-message'
-import { ingestPickedFiles } from '@/lib/invoices/ingest-picked-files'
-import { submitWithInvoicePages } from '@/lib/invoices/submit-with-invoice-pages'
+import { reportBlockedFiles } from '@/lib/media/blocked-files-message'
+import { ingestPickedFiles } from '@/lib/media/ingest-picked-files'
+import { submitWithUploads } from '@/lib/media/submit-with-uploads'
 import { toastMessage } from '@/lib/utils/toast'
 import type { ActionResultT } from '@/types/action'
 import type { MediaKindT } from '@/types/media'
@@ -18,13 +17,18 @@ type MediaUploadOptionsT = {
 /**
  * Pick → ingest → upload → attach, for the surfaces that attach files to an ALREADY SAVED row
  * (a transfer's faktura, an investment's zdjęcia). A form that creates the row in the same submit
- * uses `useFilePickIngest` + `submitWithInvoicePages` instead — there the row does not exist yet.
+ * uses `useFilePickIngest` + `submitWithUploads` instead — there the row does not exist yet.
  *
  * `isUploading` is what the caller needs back: the picker gives no feedback of its own, so without
  * it a slow HEIC convert reads as a click that did nothing.
+ *
+ * No `router.refresh()` on success, for the EX-597 reason: both `attach` callbacks are server
+ * actions that revalidate, and `updateTag` already streams a fresh render of the calling route back
+ * in the action response — refreshing on top of it rendered the route twice per upload (EX-850).
+ * Only the bytes travel through an API route; the attach never does. A future caller that attaches
+ * WITHOUT a revalidating action owes its own refresh rather than a reinstatement here.
  */
 export function useMediaUpload({ attach, successMessage }: MediaUploadOptionsT) {
-  const router = useRouter()
   const [isUploading, setIsUploading] = useState(false)
 
   // The two effects of the marker travel together on purpose: a rysunek needs the bigger profile to
@@ -37,16 +41,15 @@ export function useMediaUpload({ attach, successMessage }: MediaUploadOptionsT) 
     if (ready.length === 0) return
 
     const kind: MediaKindT | undefined = asPlan ? 'projekt' : undefined
-    const result = await submitWithInvoicePages(ready, attach, kind)
+    const result = await submitWithUploads(ready, attach, kind)
     if (!result.success) {
       toastMessage(result.error, 'error')
       return
     }
 
-    // Without the toast the click ends with the surface looking untouched until the refresh lands,
+    // Without the toast the click ends with the surface looking untouched until the re-render lands,
     // which reads as a failed upload and invites a second pick of the same photo.
     toastMessage(successMessage, 'success')
-    router.refresh()
   }
 
   // The `finally` is load-bearing: an unexpected rejection (e.g. a chunk-load failure on the lazy

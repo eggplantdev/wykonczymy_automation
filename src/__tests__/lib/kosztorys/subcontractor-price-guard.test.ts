@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import {
   MAX_CLIENT_SHARE,
   checkSubcontractorPrice,
+  coeffWarning,
+  isCoeffFlagged,
   maxSubcontractorPrice,
 } from '@/lib/kosztorys/subcontractor-price-guard'
 import type { ViewPricingT } from '@/lib/kosztorys/types'
@@ -65,9 +67,51 @@ describe('checkSubcontractorPrice — tryb auto', () => {
     expect(checkSubcontractorPrice(row, 'own_tools')).toBeNull()
   })
 
-  it('ostrzega, gdy sam globalny mnożnik przekracza sufit', () => {
+  // Reversed 2026-09-22: judging the derived figure judged the mnożnik once per pozycja, so one
+  // keystroke in the pasku threw a whole rozpiska over the ceiling. The mnożnik answers for itself —
+  // see `coeffWarning` below.
+  it('milczy także wtedy, gdy sam globalny mnożnik przekracza sufit', () => {
     const over = { ...row, globalWToolsCoeff: 0.9 }
-    expect(checkSubcontractorPrice(over, 'w_tools')).toMatchObject({ severity: 'warn' })
+    expect(checkSubcontractorPrice(over, 'w_tools')).toBeNull()
+  })
+
+  // The ceiling rung is gated on „kwota stała"; the negative rung is not, because a negative mnożnik
+  // is reachable through the action (`investmentCoeffsSchema` carries no `.min(0)`).
+  it('odrzuca ujemną stawkę z auto — ujemny mnożnik', () => {
+    const negative = { ...row, globalWToolsCoeff: -0.1 }
+    expect(checkSubcontractorPrice(negative, 'w_tools')).toMatchObject({ severity: 'refuse' })
+  })
+})
+
+describe('isCoeffFlagged / coeffWarning', () => {
+  it('sam sufit milczy, powyżej ostrzega', () => {
+    expect(isCoeffFlagged(0.65)).toBe(false)
+    expect(coeffWarning(0.65)).toBeNull()
+    expect(isCoeffFlagged(0.9)).toBe(true)
+    expect(coeffWarning(0.9)).toContain('65')
+  })
+
+  it('zwykły mnożnik milczy', () => {
+    expect(isCoeffFlagged(0.5)).toBe(false)
+    expect(coeffWarning(0.5)).toBeNull()
+  })
+
+  it('zero ostrzega innym zdaniem niż sufit', () => {
+    expect(isCoeffFlagged(0)).toBe(true)
+    const zero = coeffWarning(0)
+    expect(zero).not.toBeNull()
+    expect(zero).not.toEqual(coeffWarning(0.9))
+  })
+
+  // The rung the mnożnik field was still silent on. A negative mnożnik is refused row by row, so
+  // „Problemy" fills with one verdict repeated per pozycja — the flood this whole gate exists to
+  // stop — while the single field that caused it renders as if nothing were wrong.
+  it('ujemny mnożnik ostrzega trzecim zdaniem', () => {
+    expect(isCoeffFlagged(-0.1)).toBe(true)
+    const negative = coeffWarning(-0.1)
+    expect(negative).not.toBeNull()
+    expect(negative).not.toEqual(coeffWarning(0))
+    expect(negative).not.toEqual(coeffWarning(0.9))
   })
 })
 

@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 
-import { ingestFiles } from '@/lib/invoices/ingest-files'
+import { ingestFiles } from '@/lib/media/ingest-files'
 import type { BlockedFileError } from '@/lib/utils/process-upload-file'
 import { splitExtension } from '@/lib/utils/append-short-id'
 

@@ -7,7 +7,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { FormDialog } from '@/components/ui/form-dialog'
 import { InvestmentForm } from '@/components/forms/investment-form/investment-form'
 import { MediaStrip } from '@/components/media/media-strip'
-import { ASSET_PREVIEW_LABELS } from '@/components/media/preview-labels'
+import { ASSET_PREVIEW_LABELS } from '@/lib/media/wording'
 import { useMediaRemoval } from '@/hooks/use-media-removal'
 import { removeLeadAssetAction } from '@/lib/actions/lead-assets'
 import {

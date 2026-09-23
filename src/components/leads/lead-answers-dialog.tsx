@@ -3,7 +3,7 @@
 import { Dialog, DialogTrigger, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { MediaStrip } from '@/components/media/media-strip'
-import { ASSET_PREVIEW_LABELS } from '@/components/media/preview-labels'
+import { ASSET_PREVIEW_LABELS } from '@/lib/media/wording'
 import type { LeadAnswerT } from '@/types/leads'
 import type { MediaFileT } from '@/types/media'
 

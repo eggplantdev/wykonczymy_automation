@@ -3,7 +3,7 @@ import { resolveId } from '@/lib/utils/resolve-id'
 import type { TransferTypeT, PaymentMethodT, VatPlaneT } from '@/lib/constants/transfers'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 import type { MediaInfoT } from '@/lib/queries/media'
-import { resolveInvoiceFiles } from '@/lib/invoices/invoice-field'
+import { resolveInvoiceFiles } from '@/lib/media/invoice-field'
 import type { UploadFieldT } from '@/lib/media/upload-field'
 import type { TransferRowT } from '@/types/transfers'
 

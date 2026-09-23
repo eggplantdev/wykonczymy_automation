@@ -43,6 +43,12 @@ zamknie kolejny przebieg weryfikacji — dopóki trwają, te boksy zostają otwa
 - [ ] `/raporty` renderuje kafle dokładnie jak przedtem, z odznaczaniem włącznie — **blokada 1**
       (trasa wygaszona do EX-598). Do przejechania dopiero, gdy EX-598 przywróci `/raporty`.
 
+### Findings — 2026-09-23 (staging/preview pass)
+
+- Blokada 1 nadal aktualna: `src/app/(frontend)/raporty/page.tsx` renderuje bezwarunkowo
+  `EmptyState` „W budowie" (kod przeczytany na żywo, commit `e0158cb8`) — na trasie nie ma żadnych
+  kafli. Boks zostaje otwarty, nic do zrobienia poza EX-598.
+
 ## EX-596 — materials-net-pricing-persisted
 
 15/16 odhaczone (ostatni przebieg 2026-09-04, staging). Pełny zapis: archiwum.
@@ -50,6 +56,10 @@ zamknie kolejny przebieg weryfikacji — dopóki trwają, te boksy zostają otwa
 - [ ] `/raporty` pokazuje baner ostrzegawczy nad liczbami bez przewijania — **blokada 1**. Na trasie
       nie ma żadnych liczb, nad którymi baner miałby stanąć. Nie jest blokerem dla samego EX-596:
       bramka jest świadoma i starsza niż ten boks.
+
+### Findings — 2026-09-23 (staging/preview pass)
+
+- Blokada 1 nadal aktualna — ta sama trasa i ten sam kod co w EX-594 powyżej. Boks zostaje otwarty.
 
 ## EX-574 — cancellation-sum-overcount
 
@@ -174,6 +184,17 @@ wylądowało z `auto_reply_status = 'skipped'`), a defekt, który EX-660 naprawi
       będzie co porównać ze skrzynką. (Fixture „QA Wiertarka udarowa" opisany wyżej żyje w bazie
       testowej, nie na produkcji.)
 
+### Findings — 2026-09-23 (staging/preview pass)
+
+- Stan danych zmienił się od 2026-09-15, wniosek nie: tabela `equipment` na preview ma teraz **1
+  wiersz** (`id=1, „Młot duży yato wyburzeniowy", status IN_USE`), ale `warranty_until` jest **NULL**
+  — nie fixture „QA Wiertarka udarowa" opisany w checku wyżej (ten żyje tylko w bazie testowej
+  5435, nie na preview). `buildEquipmentDigest` wpuszcza wyłącznie `IN_USE` z gwarancją kończącą się
+  w oknie 7/30 dni, więc digest jest dalej pusty z tego samego strukturalnego powodu, nie z braku
+  wierszy. Blokady 2/3/4 (mail tylko z produkcji, crony za SSO, brak skrzynki) też bez zmian. Boks
+  zostaje otwarty — czeka na wiersz z realną datą gwarancji w zasięgu, potem na człowieka z dostępem
+  do produkcyjnej poczty.
+
 ## clean-texts-catalogue-names — nazwy prac z tabeli poprawek katalogu (2026-09-15)
 
 Warsztat szablonu 4 (`/szablony/4`) jest fixturem: przed zmianą okno „Porównaj z katalogiem prac"
@@ -237,6 +258,10 @@ zgłaszało tam 30 prac spoza katalogu.
       still from the 5 seen on the prior local pass. Confirms this keeps moving with the shared
       fixture's content, not a one-off local artifact; the **Needs human** call above stands
       unchanged.
+      **Re-confirmed again 2026-09-23** (zero-click „Problemy" counters on staging): **41** prac
+      spoza katalogu, unchanged from 2026-09-21; „inne liczby" drifted 63 → 62. Same **Needs human**
+      blocker — not re-litigated further this pass, since two independent prior passes already
+      exhausted the analysis and the only open question is a human content decision.
 - [ ] **„Popraw literówki" change count and the „only `klp`→`kpl`" claim have also drifted, but the
       button itself is correct and idempotent** — clicking it on investment 151's current data
       changes **88** rows (37 description-only, 65 unit-only, some overlapping), not the 24 checks
@@ -369,6 +394,12 @@ za tydzień. To nie jest blokada, tylko kształt sprawdzenia.
 - [ ] Skasowanie wydatku z fakturą kasuje fakturę **od razu** — bez kosza (świadomy wyjątek)
 - [ ] Usunięcie pliku w panelu Payloada, gdy plik leży w koszu, przechodzi bez odmowy
 
+### Findings — 2026-09-23 (staging/preview pass)
+
+- [ ] **Cała sekcja jest niezaimplementowana — nie tylko nieobecna na stagingu.** `context/changes/2026-09-22-kosz-plikow/change.md` ma `status: planned`, a `plan.md` samo jest planem bez sekcji Implementation/Progress. `git log --all` ma tylko jeden commit dla `kosz-plikow` (`cb2dda3f docs(kosz-plikow): research i plan…`) — sam research+plan, zero kodu. Grep po repo (`detached_at`/`detachedAt`, `media_detachments`, „Kosz (”) nie znajduje żadnego pliku źródłowego; `src/app/(payload)/api/cron/cleanup/route.ts` dziś woła wyłącznie `gcSnapshots`, bez śladu zamiatania kosza. To nie jest „stary build" (staging = `e0158cb8`, zgodny z `origin/staging`) — funkcja po prostu nie istnieje na żadnym branchu. Żadnego z 11 boksów nie da się odhaczyć ani sfałszować z tego powodu; zostają otwarte do czasu implementacji z `plan.md`.
+      **Needs human:** potwierdzić, że ta sekcja manual-checks czeka na `/10x-implement` planu `kosz-plikow` (obecnie tylko zbadany+zaplanowany) — albo wycofać ją z rejestru do czasu, aż kod wyląduje.
+      **Test disposition:** no automated test — nie ma jeszcze implementacji do przetestowania; testy powstaną razem z `/10x-tdd`/`/10x-implement` tej zmiany.
+
 # Zamknięte — indeks
 
 Jedna linia na slice, **wszystkie 94** — liczby są policzone z pełnego rejestru sprzed przycięcia.
@@ -475,6 +506,7 @@ Pełne dowody, verbatim: `context/archive/manual-checks/2026-09-15-pelny-rejestr
 | kosztorys-section-menu-split — akcje sekcji na pasku, akcje pracy na wierszu                                             | 18/18 | 2026-09-14           |
 | transfers-server-sort — sortowanie tabeli transakcji na serwerze (2026-09-15, EX-777)                                    | 13/13 | 2026-09-15           |
 | rwd-mobile — RWD na telefonie: nawigacja, dodawanie i pokazywanie transakcji (2026-09-16, EX-785)                        | 7/7   | 2026-09-16           |
+| media-upload-serial — równoległy upload gubił pliki na Neonie; szeregowy zapis wierszy `media` (2026-09-22, EX-855)      | 4/4   | 2026-09-22           |
 
 ## EX-802 — lead-delivery (wykonczymy half, 2026-09-21)
 
@@ -549,31 +581,37 @@ Na inwestycji z niepustą rozpiską (np. po `INV=6 … seed-kosztorys.ts`), edyt
 Inwestycja z niepustą rozpiską i rozjazdami wobec katalogu (w lokalnym dumpie: inw. 151), okno
 „Porównaj z katalogiem prac" w edytorze `kosztorys_v2`.
 
-- [ ] Nie ma już wiersza „Malowanie sufitu w kolor — Stawka bez narzędzi: 14,88 zł / 14,88 zł / −0,01 zł", a licznik różnic spada o jeden
-- [ ] Wiersze, gdzie katalog nie podaje stawki, mają w kolumnie „Katalog" słowo „auto", nie złotówki; ich „Różnica" jest szara
-- [ ] Licznik „Problemy" rośnie dokładnie o tyle wierszy „zamrożona ↔ auto o tej samej kwocie", ile widać w raporcie, i żaden wiersz nie zniknął
-- [ ] Zaznaczenie pojedynczej liczby i „Aktualizuj kosztorys (1)" zmienia dokładnie tę jedną liczbę, wiersz znika z raportu, okno zostaje otwarte, licznik „Pokaż N różnic" maleje o jeden
-- [ ] Zaznaczenie wszystkiego i zapis zostawia blok „Inne liczby niż w katalogu" pusty
-- [ ] Sortowanie i filtry ustawione w rozpisce przed otwarciem okna przeżywają zapis (siatka się nie remountuje)
-- [ ] W „Wersje" jest wpis z chwili tuż przed zapisem, a przywrócenie go cofa cały hurt
-- [ ] Aktualizacja wiersza, gdzie katalog mówi „auto", kasuje nadpisanie — praca liczy się z globalnego współczynnika i na siatce pokazuje cenę pochodną
-- [ ] Zaznaczenie stawki, która po scaleniu przekracza 65 % ceny, pokazuje znacznik przy wierszu jeszcze przed zapisem; odznaczenie znacznik gasi
-- [ ] Praca „Montaż syfonów (kpl)" pokazuje kandydata „Montaż syfonów (szt)" z komunikatem o j.m. („ta sama nazwa, inna j.m."), nie o nazwie
-- [ ] Kliknięcie kandydata przepisuje opis i j.m.; praca znika z „Brak w katalogu" i pojawia się w „Inne liczby niż w katalogu" (albo w „Zgodne z katalogiem")
-- [ ] „inny…" otwiera wyszukiwarkę po całym katalogu i wybór z niej działa tak samo
-- [ ] Ceny pracy nie zmieniają się przy przyjęciu nazwy
-- [ ] Tryb tylko-do-odczytu: raport i kandydaci widoczni jako tekst, brak checkboxów, przycisku „Aktualizuj kosztorys" i klikalnych kandydatów
+- [x] Nie ma już wiersza „Malowanie sufitu w kolor — Stawka bez narzędzi: 14,88 zł / 14,88 zł / −0,01 zł", a licznik różnic spada o jeden
+- [x] Wiersze, gdzie katalog nie podaje stawki, mają w kolumnie „Katalog" słowo „auto", nie złotówki; ich „Różnica" jest szara
+- [x] Licznik „Problemy" rośnie dokładnie o tyle wierszy „zamrożona ↔ auto o tej samej kwocie", ile widać w raporcie, i żaden wiersz nie zniknął
+- [x] Zaznaczenie pojedynczej liczby i „Aktualizuj kosztorys (1)" zmienia dokładnie tę jedną liczbę, wiersz znika z raportu, okno zostaje otwarte, licznik „Pokaż N różnic" maleje o jeden
+- [x] Zaznaczenie wszystkiego i zapis zostawia blok „Inne liczby niż w katalogu" pusty
+- [x] Sortowanie i filtry ustawione w rozpisce przed otwarciem okna przeżywają zapis (siatka się nie remountuje)
+- [x] W „Wersje" jest wpis z chwili tuż przed zapisem, a przywrócenie go cofa cały hurt
+- [x] Aktualizacja wiersza, gdzie katalog mówi „auto", kasuje nadpisanie — praca liczy się z globalnego współczynnika i na siatce pokazuje cenę pochodną
+- [x] Zaznaczenie stawki, która po scaleniu przekracza 65 % ceny, pokazuje znacznik przy wierszu jeszcze przed zapisem; odznaczenie znacznik gasi
+- [x] Praca „Montaż syfonów (kpl)" pokazuje kandydata „Montaż syfonów (szt)" z komunikatem o j.m. („ta sama nazwa, inna j.m."), nie o nazwie
+- [x] Kliknięcie kandydata przepisuje opis i j.m.; praca znika z „Brak w katalogu" i pojawia się w „Inne liczby niż w katalogu" (albo w „Zgodne z katalogiem")
+- [x] „inny…" otwiera wyszukiwarkę po całym katalogu i wybór z niej działa tak samo
+- [x] Ceny pracy nie zmieniają się przy przyjęciu nazwy
+- [x] Tryb tylko-do-odczytu: raport i kandydaci widoczni jako tekst, brak checkboxów, przycisku „Aktualizuj kosztorys" i klikalnych kandydatów
 
 ## empty-preset-create — pusty szablon zakładany z listy szablonów (2026-09-22)
 
 `/szablony`, przycisk „Nowy szablon" nad tabelą. Warsztat jest JEDEN i współdzielony, więc każdy
 check tutaj wyrzuca z niego to, co było wcześniej otwarte.
 
-- [ ] „Nowy szablon" z nazwą zakłada szablon i ląduje w warsztacie pod tą nazwą, z pustą rozpiską i widocznym „Dodaj sekcję"
-- [ ] Nazwa już zajęta → komunikat „Szablon o tej nazwie już istnieje", dialog zostaje otwarty z wpisaną nazwą, na liście nie przybywa wiersz
-- [ ] Świeży szablon na liście pokazuje `0 sekcji / 0 pozycji`
-- [ ] Po dodaniu sekcji w warsztacie i powrocie na listę (bez żadnego „Zapisz" — przycisku już nie ma) szablon pokazuje niezerowe liczniki
-- [ ] Pusty szablon jest widoczny w wyborze szablonu przy zakładaniu inwestycji i zakłada ją z pustym kosztorysem (zachowanie oczekiwane, decyzja właściciela)
+- [x] „Nowy szablon" z nazwą zakłada szablon i ląduje w warsztacie pod tą nazwą, z pustą rozpiską i widocznym „Dodaj sekcję"
+- [x] Nazwa już zajęta → komunikat „Szablon o tej nazwie już istnieje", dialog zostaje otwarty z wpisaną nazwą, na liście nie przybywa wiersz
+- [x] Świeży szablon na liście pokazuje `0 sekcji / 0 pozycji`
+- [x] Po dodaniu sekcji w warsztacie i powrocie na listę (bez żadnego „Zapisz" — przycisku już nie ma) szablon pokazuje niezerowe liczniki
+- [x] Pusty szablon jest widoczny w wyborze szablonu przy zakładaniu inwestycji i zakłada ją z pustym kosztorysem (zachowanie oczekiwane, decyzja właściciela)
+
+### Findings — 2026-09-23 (staging/preview pass)
+
+Brak — wszystkie pięć sprawdzeń przeszło na stagingu (commit `e0158cb8`). Zweryfikowane m.in. przez
+zapytania SQL na `DB_POSTGRES_URL_PREVIEW` (`select count(*) from kosztorys_sections/kosztorys_items
+where investment_id=…`) potwierdzające 0/0 dla inwestycji założonej z pustego szablonu.
 
 ## szablon-autosave — warsztat szablonu zapisuje się sam (2026-09-22)
 
@@ -581,17 +619,24 @@ check tutaj wyrzuca z niego to, co było wcześniej otwarte.
 otwarte wcześniej. Dławik lustra to 10 s, domknięcie ogona 15 s bezczynności — przy sprawdzaniu
 „czy doszło" liczy się odczekanie, nie odświeżanie w kółko.
 
-- [ ] Zmiana ceny w warsztacie, odczekanie ~20 s i wejście na `/szablony` → szablon stoi na górze listy, a „Zmieniono" pokazuje dzisiejszą datę
-- [ ] Ta sama zmiana, ale zamiast czekać zamykasz kartę od razu po edycji → po ponownym otwarciu warsztatu zmiana jest na miejscu
-- [ ] Seria szybkich zmian (kilkanaście komórek pod rząd) kończy się w szablonie kompletem, nie stanem sprzed ostatniej
-- [ ] Szablony sprzed tej zmiany mają w „Zmieniono" kreskę i stoją na liście pod tymi edytowanymi — żaden nie zniknął
-- [ ] W „Opcjach" nie ma już „Zapisz szablon"; jest „Zapisz jako nowy szablon…" i zakłada OSOBNY szablon, a warsztat zostaje przy swoim
-- [ ] W warsztacie nie ma przycisku „Inwestor" ani „Kolumny"; okna mówią „szablon", nie „kosztorys"
-- [ ] „Przełącz na inny szablon…" nie pokazuje szablonu aktualnie trzymanego w warsztacie
-- [ ] Przełączenie na inny szablon: nowy ląduje w warsztacie, a poprzedni na liście ma treść sprzed przełączenia (nie treść nowego)
+- [x] Zmiana ceny w warsztacie, odczekanie ~20 s i wejście na `/szablony` → szablon stoi na górze listy, a „Zmieniono" pokazuje dzisiejszą datę
+- [x] Ta sama zmiana, ale zamiast czekać zamykasz kartę od razu po edycji → po ponownym otwarciu warsztatu zmiana jest na miejscu
+- [x] Seria szybkich zmian (kilkanaście komórek pod rząd) kończy się w szablonie kompletem, nie stanem sprzed ostatniej
+- [x] Szablony sprzed tej zmiany mają w „Zmieniono" kreskę i stoją na liście pod tymi edytowanymi — żaden nie zniknął
+- [x] W „Opcjach" nie ma już „Zapisz szablon"; jest „Zapisz jako nowy szablon…" i zakłada OSOBNY szablon, a warsztat zostaje przy swoim
+- [x] W warsztacie nie ma przycisku „Inwestor" ani „Kolumny"; okna mówią „szablon", nie „kosztorys"
+- [x] „Przełącz na inny szablon…" nie pokazuje szablonu aktualnie trzymanego w warsztacie
+- [x] Przełączenie na inny szablon: nowy ląduje w warsztacie, a poprzedni na liście ma treść sprzed przełączenia (nie treść nowego)
 - [ ] Po przełączeniu w „Wersje" jest wpis „Przed wczytaniem: <nazwa>" i przywrócenie go wraca do stanu sprzed
-- [ ] „Wyczyść szablon" czyści rozpiskę, a „Wczytaj" (wersje) wraca do stanu sprzed wyczyszczenia
-- [ ] Edycja kosztorysu na zwykłej inwestycji nie rusza żadnego szablonu na liście („Zmieniono" bez zmian)
+- [x] „Wyczyść szablon" czyści rozpiskę, a „Wczytaj" (wersje) wraca do stanu sprzed wyczyszczenia
+- [x] Edycja kosztorysu na zwykłej inwestycji nie rusza żadnego szablonu na liście („Zmieniono" bez zmian)
+- [x] Warsztat pokazuje 9 kolumn: Akcje, Sekcja, Opis prac, Jednostka miary, Cena j.m. netto oraz — dla obu płaszczyzn — Źródło ceny wykonawcy i stawkę. Stawki dają się wpisać, a wpisana wartość przeżywa założenie inwestycji z tego szablonu
+- [x] Długa nazwa sekcji w warsztacie podnosi WSZYSTKIE wiersze tej sekcji i wiesza na nich „…" — warsztat jest jedynym ekranem, który nie może schować kolumny „Sekcja"
+
+### Findings — 2026-09-23 (staging/preview pass)
+
+- [ ] **„Wersje" nie pokazuje wpisu „Przed wczytaniem: <nazwa>" po przełączeniu szablonu** — zweryfikowane na stagingu (commit `e0158cb8`), 3 ponowne otwarcia dialogu „Wersje" i przeładowanie strony, wpis nigdy się nie pojawił. Defekt jest **węższy niż „dialog Wersje jest nieaktualny"**: w tej samej sesji, na tym samym szablonie, ręczne „Wyczyść szablon" utworzyło wpis „Przed wyczyszczeniem" i ten wpis pojawił się w dialogu natychmiast i poprawnie (przywrócenie też zadziałało). Więc automatyczny snapshot przy `openPresetInWorkshopAction` (przełączenie) nie trafia do listy „Wersje" tak jak snapshot przy czyszczeniu — dwie różne ścieżki tworzenia auto-snapshotu zachowują się różnie mimo wspólnego UI. Root-cause (np. brakujący tag cache / inny zapis do `kosztorys_snapshots`) poza zakresem tego przebiegu QA — check zostaje odznaczony jako otwarty defekt.
+- **Pusty szablon (0 sekcji) jest niewidoczny w „Przełącz na inny szablon…" wewnątrz warsztatu** — root-cause: `groupPresetSections`/`usePresetSections` (`src/components/kosztorys/editor/dialogs/use-preset-sections.ts`) buduje listę, iterując metadane na poziomie SEKCJI, więc preset bez żadnej sekcji nigdy się nie zmaterializuje jako opcja. To NIE dotyczy innego pickera o tej samej nazwie funkcjonalnej — „Kosztorys z szablonu" w dialogu zakładania nowej inwestycji (`add-investment-dialog.tsx`/`investment-form.tsx`) pokazał pusty preset („ZZZ QA EX748 usunac empty2", 0/0) poprawnie, zgodnie z już potwierdzonym checkiem w `empty-preset-create` (linia 581). Dwa różne pickery, dwie różne implementacje — defekt jest lokalny do warsztatowego „Przełącz na inny szablon…", nie ogólny.
 
 ## kosztorys-editor-assets — galeria assetów w edytorze kosztorysu v2 (2026-09-22)
 
@@ -599,66 +644,338 @@ Ta sama kontrolka co na karcie inwestycji. Jej miejsce w edytorze przejęła zak
 (sekcja `zakladka-inwestycja-w-panelu` niżej) — sprawdzenia dotyczące toolbara są tam, w nowym
 miejscu kontrolki.
 
-- [ ] Usunięcie pliku ze stopki podglądu w edytorze znika też z karty inwestycji po przejściu na nią
-- [ ] `/k/<token>` i `/podglad-inwestora/<id>`: nie ma toolbara, więc i galerii
-- [ ] Zakończona („Zakończona") inwestycja: dodawanie plików z edytora dalej działa
-- [ ] Karta inwestycji po refaktorze zachowuje się jak przed nim; przy trwającym uploadzie do
+- [x] Usunięcie pliku ze stopki podglądu w edytorze znika też z karty inwestycji po przejściu na nią
+- [x] `/k/<token>` i `/podglad-inwestora/<id>`: nie ma toolbara, więc i galerii
+- [x] Zakończona („Zakończona") inwestycja: dodawanie plików z edytora dalej działa
+- [x] Karta inwestycji po refaktorze zachowuje się jak przed nim; przy trwającym uploadzie do
       niepustej galerii widać spinner obok przycisku
-- [ ] Inwestycja bez plików pokazuje na karcie przycisk „Dodaj zdjęcia lub pliki" — pusty stan JEST
+- [x] Inwestycja bez plików pokazuje na karcie przycisk „Dodaj zdjęcia lub pliki" — pusty stan JEST
       afordancją, a nie zniknięciem sekcji (odwraca sprawdzenie z sekcji EX-802)
-- [ ] Usunięcie OSTATNIEGO pliku: pusty stan wraca z napisem „Dodaj zdjęcia lub pliki", ani przez
+- [x] Usunięcie OSTATNIEGO pliku: pusty stan wraca z napisem „Dodaj zdjęcia lub pliki", ani przez
       chwilę nie „Przesyłanie..." (bramka odrzuciła tę pomyłkę — sprawdzenie na oczy)
-- [ ] „Edytuj inwestycję" → pole „Zdjęcia i pliki": przycisk wygląda jak przed wydzieleniem
+- [x] „Edytuj inwestycję" → pole „Zdjęcia i pliki": przycisk wygląda jak przed wydzieleniem
       `UploadButton` (wyrównanie do lewej, ta sama wysokość)
+
+### Findings — 2026-09-23 (staging/preview pass)
+
+- [x] **Checklista rozjechała się z etykietą pustego stanu (sprawdzenia 5 i 6) — nie defekt, tylko
+      tekst do poprawienia.** `src/components/investments/investment-assets-control.tsx:41` ustawia
+      `label = visibleFiles.length > 0 ? 'Dokumentacja (${n})' : 'Dokumentacja'` — pusty stan pokazuje
+      dziś „Dokumentacja", nie „Dodaj zdjęcia lub pliki". Ten drugi napis żyje gdzie indziej:
+      jako tytuł dialogu uploadu (`INVESTMENT_ASSETS_UPLOAD_TITLE`,
+      `src/hooks/use-investment-assets-upload.ts`) i jako etykieta OSOBNEGO przycisku w polu „Zdjęcia
+      i pliki" formularza „Edytuj inwestycję" (to dokładnie sprawdzenie 7, gdzie napis jest
+      poprawny). Zachowanie opisane w sprawdzeniach — pusty stan jest klikalną afordancją a nie
+      zniknięciem sekcji; usunięcie ostatniego pliku wraca do pustego stanu bez migotania
+      „Przesyłanie..." (ten string w ogóle nie występuje w tym komponencie, tylko w generycznym
+      `UploadButton` gdzie indziej) — zweryfikowane na żywo jako PRAWDZIWE na inwestycjach 71 i 153.
+      Odhaczam oba jako spełnione; treść checklisty (`manual-checks.md:631,633`) warto zaktualizować
+      na „Dokumentacja" przy najbliższej edycji tej sekcji.
+      **Test disposition:** no automated test — czysto kosmetyczna rozbieżność tekstu checklisty,
+      nie kodu; nie kwalifikuje się do regresji.
 
 ## zakladka-inwestycja-w-panelu — zakładka „Inwestycja" w panelu Podsumowanie (2026-09-22)
 
 Dane inwestycji (notatki/zakres prac, kontakt, adres, status) i przeniesiona tu Dokumentacja;
 panel montuje się także na pustym kosztorysie.
 
-- [ ] Inwestycja bez kosztorysu: panel zamontowany, ale zwinięty; `EmptyState` z „Pobierz z arkusza
+- [x] Inwestycja bez kosztorysu: panel zamontowany, ale zwinięty; `EmptyState` z „Pobierz z arkusza
       Google…" w pełni widoczny i klikalny
-- [ ] Na tej samej inwestycji kliknięcie „Podsumowanie" otwiera panel, a zakładka „Inwestycja" ma
+- [x] Na tej samej inwestycji kliknięcie „Podsumowanie" otwiera panel, a zakładka „Inwestycja" ma
       pełną treść wraz z Dokumentacją
-- [ ] Powrót na inwestycję z kosztorysem otwiera panel zgodnie z wcześniejszą preferencją (nie
+- [x] Powrót na inwestycję z kosztorysem otwiera panel zgodnie z wcześniejszą preferencją (nie
       została nadpisana przez otwarcie na pustym)
-- [ ] Podgląd inwestora dla pustego kosztorysu: przełącznik „Podsumowanie" nieaktywny, a panel w
+- [x] Podgląd inwestora dla pustego kosztorysu: przełącznik „Podsumowanie" nieaktywny, a panel w
       ogóle się nie montuje — także wtedy, gdy wcześniej rozwinięto panel na pustym kosztorysie
       w edytorze (ten sam origin, ten sam klucz localStorage)
 - [ ] Zakładka „Inwestycja" stoi jako ostatnia, za „Marżą", i pokazuje komplet pól karty inwestycji;
       puste pola są odfiltrowane
-- [ ] „Edytuj inwestycję" stoi w jednym rzędzie z „Dokumentacją", zapisuje i odświeża dane bez
+- [x] „Edytuj inwestycję" stoi w jednym rzędzie z „Dokumentacją", zapisuje i odświeża dane bez
       opuszczania edytora
-- [ ] Karta inwestycji (`/inwestycje/<id>`) pokazuje ten sam komplet pól co zakładka — po wyjęciu
+- [x] Karta inwestycji (`/inwestycje/<id>`) pokazuje ten sam komplet pól co zakładka — po wyjęciu
       listy do jednego budowniczego
-- [ ] Dokumentacja w zakładce: wgranie pliku, podgląd, usunięcie; licznik rośnie bez ręcznego
+- [x] Dokumentacja w zakładce: wgranie pliku, podgląd, usunięcie; licznik rośnie bez ręcznego
       odświeżenia, a siatka nie gubi stanu (brak remountu)
-- [ ] `/inwestycje/<id>/kosztorys_v2`: w toolbarze siatki NIE MA już przycisku „Dokumentacja"
-- [ ] `/szablony/<id>`: warsztat nie pokazuje zakładki „Inwestycja" ani żadnego przycisku plików
-- [ ] `/k/<token>` i `/podglad-inwestora/<id>`: pięć zakładek, bez „Inwestycji"
+- [x] `/inwestycje/<id>/kosztorys_v2`: w toolbarze siatki NIE MA już przycisku „Dokumentacja"
+- [x] `/szablony/<id>`: warsztat nie pokazuje zakładki „Inwestycja" ani żadnego przycisku plików
+- [x] `/k/<token>` i `/podglad-inwestora/<id>`: trzy zakładki (Podsumowanie/Materiały/Robocizna), bez
+      „Inwestycji" (tekst poprawiony — `allowedSummaryViews` gubi też „Podwykonawcy" i „Marża" na
+      `preview`, patrz Findings)
 
-## EX-829 — kategorie assetów i luźniejsza kompresja (2026-09-22)
+### Findings — 2026-09-23 (staging/preview pass)
+
+- [ ] **„Komplet pól karty inwestycji; puste pola są odfiltrowane" — realny defekt, naprawiony w
+      źródle, jeszcze NIE na wdrożonym stagingu.** `buildInvestmentInfoFields`
+      (`src/components/investments/investment-info-fields.tsx`) filtrował `.filter((field) =>
+  field.value)` na **zrenderowanym węźle**, nie na surowej wartości: `Telefon`/`Email` owijały
+      pole w `<ContactLink>`, który jest zawsze truthy niezależnie od tego, czy numer/mail istnieje,
+      a `Opinia` miała `investment.review || '—'` — myślnik też jest truthy. Efekt na żywo (inw. 74,
+      brak telefonu/maila/opinii): „Email —" i „Opinia —" renderowały się zamiast znikać, dokładnie
+      tak jak przewidywał plan (`context/changes/2026-09-22-zakladka-inwestycja-w-panelu/plan.md:345`
+      — „komplet pól, puste pola odfiltrowane"). Naprawa: filtrować na surowym polu
+      (`investment.phone && <ContactLink .../>`), zdjąć `|| '—'` z Opinii — `InfoList` i tak stawia
+      myślnik dla każdej wartości, która trafi do listy jako falsy. Regresja:
+      `src/__tests__/components/investments/investment-info-fields.test.ts` (3 testy, node, zielone
+      lokalnie) blokuje ten dokładny powrót. Kolejność zakładek (ostatnia, za „Marżą") jest
+      potwierdzona poprawna na żywo — tylko filtrowanie było wadliwe. **Boks zostaje otwarty**: fix
+      leży w gałęzi, nie na wdrożonym `e0158cb8` — wymaga redeployu stagingu, żeby dograć na żywo.
+      **Test disposition:** test-driven-debugging — unit (funkcja czysta, bez DOM).
+- Sprawdzenie #10 (`/szablony/<id>`) zweryfikowane na `/szablony/4` — pasek „Widok podsumowania" ma
+  4 pozycje (Podsumowanie/Materiały/Robocizna/Podwykonawcy, bez Marży — bez inwestycji nie ma
+  wejścia do marży), zero przycisków plików w toolbarze. Zgodne z checkiem.
+- Sprawdzenie #11: tekst checklisty mówił „pięć zakładek" — na żywo (`/k/<token>` z inw. 137 i
+  `/podglad-inwestora/106`) są **trzy**: Podsumowanie/Materiały/Robocizna. Nie defekt —
+  `allowedSummaryViews` (`src/components/kosztorys/summary/allowed-summary-views.ts`) gubi
+  „Podwykonawcy" i „Marża" na `preview` **niezależnie** od tej zmiany (starsza bramka, potwierdzona
+  testem `allowedSummaryViews.test.ts`: „podgląd klienta gubi «Podwykonawcy» i «Marża», nawet gdy
+  liczby przyszły"). Ta zmiana dokłada tylko trzecią bramkę („Inwestycja" na `!preview &&
+hasInvestmentInfo`), z tym samym efektem. Poprawiłem liczbę w treści checka (linia wyżej) — plan
+  najwyraźniej się przeliczył.
+- Powtarzający się `[ERROR] OPTIONS / => 400` w konsoli na niemal każdej nawigacji — to preflight
+  `vercel.live` (widoczny w sieci jako `OPTIONS https://…vercel.app/` tuż po `POST
+vercel.live/login/validate`), infrastruktura Vercel Preview Toolbara, nie kod aplikacji. Nie
+  wpływa na żadną z powyższych ścieżek — pominięte jako szum, nie finding.
 
 Transport klient → Blob, dwa profile kompresji, znacznik `kind = 'projekt'`. Rzut A4 sprawdzaj na
 oczy: chodzi o czytelność opisów wymiarów, nie o sam fakt, że plik wszedł.
 
-- [ ] Rzut A4 (pionowy) wgrany z „To jest rzut": opisy wymiarów czytelne w podglądzie po
+- [x] Rzut A4 (pionowy) wgrany z „To jest rzut": opisy wymiarów czytelne w podglądzie po
       powiększeniu — profil 2560 na obu osiach, nie 763×1080 jak przed zmianą
-- [ ] Plik >4,5 MB wchodzi bez błędu 413 (dowolna powierzchnia: faktura transferu, wydatek, flota,
+- [x] Plik >4,5 MB wchodzi bez błędu 413 (dowolna powierzchnia: faktura transferu, wydatek, flota,
       asety inwestycji) — transport klient → Blob
-- [ ] Zaznaczone „To jest rzut" → wiersz `media` ma `kind = 'projekt'`; niezaznaczone → `NULL`
-- [ ] Faktura transferu wygląda i waży jak przed zmianą (profil `INVOICE`), a dialog faktury NIE
+- [x] Zaznaczone „To jest rzut" → wiersz `media` ma `kind = 'projekt'`; niezaznaczone → `NULL`
+- [x] Faktura transferu wygląda i waży jak przed zmianą (profil `INVOICE`), a dialog faktury NIE
       pokazuje pola wyboru „To jest rzut"
-- [ ] Galeria asetów → podgląd pliku → „Oznacz jako rzut": po kliknięciu przycisk mówi „Oznaczony
+- [x] Galeria asetów → podgląd pliku → „Oznacz jako rzut": po kliknięciu przycisk mówi „Oznaczony
       jako rzut" i jest nieaktywny, a po odświeżeniu stan się utrzymuje
-- [ ] MANAGER oznacza rzut (poluzowany `media.access.update`); EMPLOYEE nie widzi tej ścieżki
-- [ ] Plik z promocji leada (nieskompresowany oryginał z landingu) da się oznaczyć jako rzut
+- [x] MANAGER oznacza rzut (bramką jest `protectedAction` + MANAGEMENT_ROLES, nie `media.access.update`); EMPLOYEE nie widzi tej ścieżki
+      — rozstrzygnięte przez właściciela 2026-09-23: EMPLOYEE nie wchodzi na tę powierzchnię w ogóle.
+      Potwierdzone w kodzie: `/inwestycje` woła `requireAuth(MANAGEMENT_ROLES)`, a `/inwestycje/[id]`
+      `requireManagementPage` — galeria assetów wisi wyłącznie za tymi dwiema trasami, więc bramka
+      w UI nie ma kogo zatrzymywać
+- [x] Plik z promocji leada (nieskompresowany oryginał z landingu) da się oznaczyć jako rzut
       z galerii — jedyna ścieżka bez dialogu wgrywania
-- [ ] HEIC, którego przeglądarka nie odczyta, dalej daje czytelny komunikat, a nie cichą porażkę
-- [ ] Miniatury w galerii asetów inwestycji: plik wgrany PO zmianie renderuje się jako obrazek, nie
+- [x] HEIC, którego przeglądarka nie odczyta, dalej daje czytelny komunikat, a nie cichą porażkę
+- [x] Miniatury w galerii asetów inwestycji: plik wgrany PO zmianie renderuje się jako obrazek, nie
       jako ikona uszkodzonego pliku (`MediaStrip` czyta `thumbnailUrl`, więc utrata renditionu przy
       `clientUploads` byłaby widoczna tu, a nie tylko w `/admin`)
-- [ ] Faktura >4 MB w formularzu wydatków: „Odczytaj paragony" daje czytelny komunikat („za duży do
+- [x] Faktura >4 MB w formularzu wydatków: „Odczytaj paragony" daje czytelny komunikat („za duży do
       odczytu AI"), a nie niemy błąd 413 z platformy
-- [ ] Wgranie pliku innego niż zdjęcie/PDF (przeciągnięcie `.docx` na pole) jest odrzucone od razu,
+- [x] Wgranie pliku innego niż zdjęcie/PDF (przeciągnięcie `.docx` na pole) jest odrzucone od razu,
       komunikatem, a nie po wgraniu bajtów
+
+### Findings — 2026-09-23 (staging/preview pass)
+
+- [x] **EMPLOYEE nie ma UI-gate na „Oznacz jako rzut", tylko server-side gate** — **odrzucone przez
+      właściciela 2026-09-23: „employee nawet tam nie wejdzie".** Finding stał na błędnym odczycie
+      bramki (patrz sprostowanie niżej); powierzchnia jest zamknięta dla EMPLOYEE na poziomie trasy,
+      więc dodatkowa bramka na przycisku nie ma czego chronić. Zostaje jako zapis analizy. — checklista każe
+      zweryfikować „EMPLOYEE nie widzi tej ścieżki"; kod pokazuje coś innego. `usePlanMarker` w
+      `src/components/investments/investment-assets-control.tsx:28` jest wołany bezwarunkowo, a
+      `planMarker` trafia do `MediaPreviewButton` bez żadnej roli; przycisk w
+      `src/components/dialogs/media-preview-dialog.tsx` jest gated wyłącznie obecnością propa.
+      Śledziłem całą ścieżkę w górę do `src/app/(frontend)/inwestycje/[id]/page.tsx` — jedyny
+      role-check na tej stronie to `isAdminOrOwnerRole` dla `canSeeMargin`, nic nie blokuje
+      EMPLOYEE przed wejściem na stronę ani przed zobaczeniem przycisku.
+      **Sprostowanie 2026-09-23 — powyższe zdanie jest błędne.** Strona woła
+      `requireManagementPage` (import w linii 4 tego samego pliku), a listing `/inwestycje` woła
+      `requireAuth(MANAGEMENT_ROLES)`. EMPLOYEE nie dochodzi do galerii żadną z tych tras, więc nie
+      ma kogo zatrzymywać bramką w UI. Klik faktycznie działa
+      bezpiecznie — `setMediaKindAction` idzie przez `protectedAction` (`src/lib/actions/run-action.ts:50`),
+      które hardkoduje `requireAuth(MANAGEMENT_ROLES)`, więc EMPLOYEE dostaje czysty toast „Brak
+      uprawnień", żadnego crasha ani zapisu. Więc mutacja jest bezpieczna, ale UI pokazuje
+      afordancję roli, która i tak dostanie odmowę — to rozjazd checklisty z kodem, nie luka
+      bezpieczeństwa (serwer trzyma gate). Nie testowałem MANAGER live (brak drugiego konta w
+      sesji) — po roli w `MANAGEMENT_ROLES` powinien przejść, kod nie daje podstaw wątpić.
+      **Needs human:** zdecydować, czy to wystarczy jako „nie defekt, tekst do poprawienia"
+      (checklista chciała opisać server-side gate, nie UI-visibility) czy chcecie faktycznego
+      `isManagementRole` gate na przycisku dla czystszego UX. **Test disposition:** no automated
+      test — to pytanie o intencję UX/checklisty, nie o regresję.
+- [x] **Formularz wydatków (FV pole per-wiersz) nie odrzuca `.docx` od razu — dopiero przy zapisie**
+      — **rozstrzygnięte przez właściciela 2026-09-23: „to będziemy mogli poprawić" → zgłoszone jako
+      EX-861.** Drugi upload surface w tej samej zmianie zachowuje się inaczej niż galeria/faktura
+      transferu. Sprawdzone live: `.docx` wrzucony na pole FV w `Nowy wydatek` zostaje po prostu
+      przyjęty jako załącznik wiersza (widoczny jako `fake-test.docx` w formularzu), bez żadnego
+      komunikatu — bo `processUploadFile` (`src/lib/utils/process-upload-file.ts:97`) dla
+      nie-obrazu po prostu zwraca plik bez zmian, `isImageFile` odsiewa go z kompresji, ale nic go
+      nie waliduje na tym etapie. Walidacja (`validateUploadFile`, komunikat „Dozwolone są tylko
+      zdjęcia i pliki PDF") biegnie dopiero w `uploadMediaFromClient`
+      (`src/lib/media/client-upload.ts:25`), czyli przy „Zapisz" — bajty i tak nigdy nie trafiają
+      do Blob (walidacja jest przed `upload()`), a `submitWithUploadRows` /
+      `withOrphanCleanup` (`src/lib/media/submit-with-uploads.ts`) łapie błąd i oddaje go jako
+      czytelny `ActionResultT` z poprawnym polskim komunikatem — więc finalnie użytkownik i tak
+      dostaje właściwy tekst, tylko po kliknięciu „Zapisz", nie od razu po dropie. Galeria
+      inwestycji i dialog faktury transferu (oba przez `MediaUploadDialog` → `uploadMediaFromClient`
+      bezpośrednio) NIE mają tego problemu — tam walidacja biegnie natychmiast po wyborze pliku,
+      zweryfikowane live (żadnego requestu do Blob/`/api/media`, gałąź pozostała pusta). Checklista
+      mówi ogólnie o „polu" bez wskazania którego — box odhaczony na podstawie działającej ścieżki
+      (galeria/faktura), bo to ona dosłownie pasuje do „od razu"; to zgłoszenie jest o drugiej
+      ścieżce. **Decyzja:** formularz wydatków ma dostać tę samą natychmiastową walidację przy
+      wyborze pliku — praca wyniesiona do EX-861. **Test disposition:** przy wdrożeniu poprawki DOM
+      spec (drop niedozwolonego typu na pole FV → komunikat odmowy bez wywołania akcji uploadu);
+      sam finding regresji nie miał.
+
+## EX-849 / EX-850 — tagowanie cache galerii i pojedynczy render po uploadzie (2026-09-22)
+
+Obie zmiany dotykają tego samego wpisu cache (`fetchInvestmentAssets`) z dwóch stron: EX-849 zwęził
+tag z kolekcyjnego do per-wiersz, EX-850 zdjął zdublowany render po wgraniu pliku. Jedno i drugie
+widać tylko na żywo — spec nie obserwuje ani liczby renderów, ani tego, czyj wpis cache wyleciał.
+Licznik renderów czytaj z logu dev: `[PERF] buildKosztorysTree` (drzewo jest niecache'owane
+świadomie — odrzucone dla świeżości, `context/archive/2026-07-27-decouple-panel-write-refresh/`
+— więc każdy render trasy zostawia dokładnie jeden wpis).
+
+- [x] Wgranie zdjęcia do inwestycji na trasie `/inwestycje/<id>/kosztorys_v2`: w logu dev
+      `[PERF] buildKosztorysTree` pojawia się **raz**, nie dwa razy (EX-850)
+      — zweryfikowane 2026-09-23 na stagingu, runtime log deploymentu `wykonczymy-4fcngsuxi`
+      (inwestycja 106, jeden upload o 10:18:18). Cały upload zmieścił się w JEDNYM żądaniu
+      `POST /inwestycje/106/kosztorys_v2`, a w nim dokładnie po jednym wpisie:
+      `addInvestmentAssetsAction 489ms`, `buildKosztorysTree 62ms`,
+      `kosztorys_v2/106 7-fetch fan-out 266ms`. Po akcji **nie ma** osobnego
+      `GET /inwestycje/106/kosztorys_v2` — czyli drugiego renderu po `router.refresh()` nie ma
+      wcale, a nie „jest, tylko szybki". `fetchAllMedia` przeskoczyło 1605 → 1606 dokumentów, więc
+      plik faktycznie wszedł. (`getaddrinfo disabled.invalid` w tym samym żądaniu to bramka poczty
+      poza produkcją, nie błąd uploadu.)
+- [x] To samo zdjęcie pojawia się w galerii bez ręcznego odświeżenia strony — render z odpowiedzi
+      akcji wystarcza po zdjęciu `router.refresh()`
+- [x] Wgranie faktury do transferu: faktura widoczna od razu, bez przeładowania (ta sama ścieżka
+      `useMediaUpload`, druga i ostatnia)
+- [x] Zapis „Opcji rozliczenia" na inwestycji A **nie** wywala galerii inwestycji B: wejdź na
+      galerię B (log pokazuje `query.fetchInvestmentAssets(B)`), zapisz ustawienia na A, wróć na B —
+      drugiego zapytania nie ma, wpis cache przeżył (EX-849)
+- [x] „Oznacz jako rzut" na pliku inwestycji B nadal odświeża tę galerię — tag `collection:media`
+      zostaje i to jedyna ścieżka, która zmienia `media.kind` bez dotykania wiersza inwestycji
+- [x] Przeniesienie plików ze zgłoszenia do inwestycji („wyślij do inwestycji"): galeria inwestycji
+      docelowej pokazuje je po wejściu, bez odświeżania — piąty pisarz, ten w `lead-assets.ts`
+- [x] Usunięcie pliku z galerii i usunięcie wszystkich: plik znika, a po odświeżeniu nie wraca
+
+### Findings — 2026-09-23 (staging/preview pass)
+
+- [x] **~~Liczba renderów `buildKosztorysTree` nie da się zweryfikować z samej przeglądarki na
+      stagingu~~ — finding obalony 2026-09-23: runtime logi Vercela są osiągalne z CLI.**
+      Pierwotny wniosek („needs human, odpal `pnpm dev` lokalnie") stał na jednej nieudanej próbie
+      `npx vercel ls --scope=$(npx vercel whoami)`, która padła `Error: You cannot set your Personal
+  Account as the scope.` — to był zły argument `--scope`, nie brak dostępu. Właściwy scope to
+      zespół projektu z `.vercel/project.json` (`orgId`), nie konto CLI:
+
+      ```bash
+      npx vercel logs https://<deployment>.vercel.app --scope=team_BWfyTqJnjIqZBkHwBL0elgS4
+      ```
+
+      Strumień oddaje runtime stdout pogrupowany per request, a `console.log` w `buildKosztorysTree`
+      (`src/lib/queries/kosztorys.ts:71`) nie jest bramkowany `NODE_ENV`, więc linia `[PERF]
+      buildKosztorysTree …` wychodzi tak samo z builda produkcyjnego na stagingu, jak z dev.
+      Właściwy box wyżej policzony tą drogą i odhaczony — jeden wpis na jeden upload.
+      **Test disposition:** no automated test — to obserwowalność (log count), nie asercja stanu.
+
+## Nowa sekcja wprost w „Dodaj pracę z katalogu" (2026-09-22)
+
+Picker przyjmuje teraz nazwę sekcji, a nie tylko wybór z listy — i sam zakłada sekcję razem z
+pracami, w jednej transakcji. Automat sprawdza routing (która akcja) i zapis (co wylądowało w bazie);
+na żywo zostaje to, czego spec nie widzi: gdzie siatka rysuje nowy pasek i czy „Anuluj" nic nie
+zostawia.
+
+- [x] Pusty kosztorys: „Dodaj" → „Praca z katalogu…" otwiera się od razu, bez zakładania sekcji po
+      drodze — i bez pustego wiersza w siatce po dodaniu prac
+- [x] Wpisana nowa nazwa: sekcja ląduje **na górze** rozpiski jako jeden pasek, z pracami w środku,
+      a nie rozbita na dwa pasy ani doklejona na końcu
+- [x] „Anuluj" po wpisaniu nazwy nie zostawia pustej sekcji — po odświeżeniu rozpiska bez zmian
+- [x] Wpisana nazwa istniejącej sekcji (inna wielkość liter) dopisuje do niej, nie zakłada
+      bliźniaczki — sekcja sama się rozwija i prace są w niej widoczne
+- [x] Picker otwarty z „…" przy wierszu ma nazwę tej sekcji już wpisaną i dopisuje właśnie do niej
+- [x] Ostrzeżenia o pułapie 65 % wychodzą tak samo na ścieżce nowej sekcji, jak na dopisywaniu
+
+### Findings — 2026-09-23 (staging/preview pass)
+
+Wszystkie sześć boksów zweryfikowane na żywo na stagingu, wszystkie przechodzą. Ścieżka pustego
+kosztorysu: inwestycja 12 (Sierakowskiego 3/81, aktywna, 0 pozycji przed testem). Ścieżka na
+niepustym kosztorysie (nowa sekcja na górze, dopisanie po wielkości liter, picker z „…" wiersza,
+pułap 65 %): inwestycja 137 (testowe inwestycje, 377 pozycji / 14 sekcji). Pułap 65 % zweryfikowany
+zarówno w kodzie — `createSectionWithCatalogueItems` i `appendCatalogueItems` wołają wspólne
+`placeCatalogueItems` (`src/lib/kosztorys/work-catalogue/place-catalogue-items.ts`), więc ostrzeżenie
+nie może rozjechać się między ścieżkami — jak i na żywo: katalogowa pozycja „Lutowanie taśm LED"
+(cennik: cena 30 zł, stawka z narzędziami 23 zł, bez narzędzi 19,55 zł) dodana przez ścieżkę **nowej
+sekcji** wywołała dwa toasty „Cena wykonawcy przekracza 65% ceny dla inwestora (maks. 19,50)." —
+identyczne z tymi znanymi ze ścieżki dopisywania (EX-820). Wszystkie fixture'y testowe (2 sekcje QA +
+4 pozycje na inwestycjach 12 i 137) usunięte po teście, `display_order` sekcji 137 przywrócony do
+stanu sprzed (SQL na `DB_POSTGRES_URL_PREVIEW`, w transakcji) — stan obu inwestycji po przebiegu
+identyczny z przed.
+**Test disposition:** no automated test needed beyond what's already covered — the shared
+`placeCatalogueItems` call site is itself the structural guarantee the checklist worried about
+drifting; a future regression would show up as the two actions calling different functions, which
+`primitive-reuse-scan`/code review would catch, not something worth a dedicated spec.
+
+## EX-820 — sufit stawki wykonawcy z „Problemów" do „Filtrów" (2026-09-22)
+
+Sufit 65 % przestał być defektem: strażnik sądzi teraz **kwotę stałą**, mnożnik odpowiada za siebie
+sam w swoim polu, a dwie pary dopełniających się filtrów zastąpiły wpis w „Problemach". Automat
+sprawdza predykaty i składanie menu; na żywo zostaje to, czego spec nie widzi — czy czerwień pada
+tam, gdzie ma, i czy zbiorcze odznaczenie da się cofnąć.
+
+- [x] Mnożnik 0,9 przy pozycji ze źródłem „auto": pole mnożnika w ustawieniach czerwone, komórka
+      stawki w siatce **nie**
+- [x] Mnożnik 0: to samo pole czerwone z własnym zdaniem („wykonawca dostaje 0 zł"), a „Problemy"
+      nie zapełniają się całą rozpiską
+- [x] Kwota stała 80 zł przy cenie 100 zł: komórka czerwona i komunikat przy wyjściu, jak dotąd
+- [x] „Problemy" na rozpisce z wierszami ponad sufitem: wpisu o zbyt wysokiej stawce już nie ma,
+      jest za to „z ujemną stawką wykonawcy" (gdy taka istnieje)
+- [ ] „Filtry" w widoku „z narzędziami": dwie nowe pozycje sufitu z licznikami; odznaczenie jednej
+      chowa dokładnie tę połowę, a obie odznaczone chowają wszystko, co ma kwotę stałą
+- [~] Te same dwie pozycje **nie** pojawiają się w widoku klienta — **nieaktualne od EX-856
+  (2026-09-23):** bramka widoku zniknęła, więc obie pozycje sufitu stoją w menu „Filtry"
+  niezależnie od widoku cen, także w kliencie. Boks zostaje jako zapis tego, co było prawdą
+  22.09; scenariusz zastąpiony przez sekcję EX-856 niżej
+- [x] „Pozycje z ujemną stawką wykonawcy" wybrane w widoku „bez narzędzi": chip w pasku mówi,
+      w którym widoku (menu tego nie powtarza — nad wierszem stoi nagłówek)
+- [x] „Filtry" → „Odznacz wszystkie": siatka pusta, trigger z licznikiem, a „Zresetuj filtry"
+      przywraca komplet
+
+### Findings — 2026-09-23 (staging/preview pass)
+
+- [ ] **Dwa dopełniające się filtry sufitu, oba odznaczone naraz, chowają CAŁĄ rozpiskę (377/377), nie
+      tylko 236 pozycji z kwotą stałą.** Zmierzone na inw. 137, widok „z narzędziami": `Pozycje
+  z kwotą stałą powyżej sufitu (35)` + `Pozycje bez kwoty stałej powyżej sufitu (342)` =
+      35 + 342 = 377 = cały kosztorys. Przyczyna: `isFixedRateOverCeiling` w
+      `src/lib/kosztorys/subcontractor-price-guard.ts` zwraca `false` dla `null`/„auto"
+      (`overrideValueFor` się nie zgadza), więc dopełniający filtr „bez kwoty stałej powyżej sufitu"
+      łapie też wszystkie 141 pozycji ze źródłem „auto", nie tylko kwotę-stałą-w-normie — zachowanie
+      jest świadome i opisane komentarzem w `src/lib/kosztorys/row-conditions/registry.ts`. Ale zdanie
+      z checklisty („obie odznaczone chowają wszystko, co ma kwotę stałą") czyta się jako „zostanie
+      236 wierszy kwoty stałej", nie „zostanie 0". Do decyzji: albo checklist opisuje inny scenariusz
+      niż zmierzony i trzeba go przeformułować, albo drugi filtr powinien się zawężać do
+      `overrideValueFor(row, view) !== null`, żeby przestał połykać wiersze „auto". Boks #5 w tej
+      sekcji zostaje odznaczony do czasu tej decyzji.
+- [x] ~~**Przycisk „Zresetuj filtry" w pustym stanie siatki jest fizycznie zasłonięty przez otwarty
+      pasek chipów „Ukryto: …"**~~ — **zła atrybucja, oddalone (bramka review, 2026-09-23).** Klasy
+      zmierzone w tym findingu (`shadow-panel`, `z-20`, `absolute inset-x-0 bottom-0`,
+      `data-[state=open]:h-full`) nie należą do paska chipów: `kosztorys-active-filters-bar.tsx`
+      to zwykły `flex flex-wrap` w przepływie, bez pozycjonowania. To panel **Podsumowania**
+      (`components/kosztorys/summary/kosztorys-totals-panel.tsx:23`), który po otwarciu rozwija się
+      na pełną wysokość NAD siatką — tak jest zaprojektowany i tak go opisuje driver E2E
+      (`e2e/drivers/kosztorys-grid.ts:4`). Jest nieprzezroczysty (`bg-background`), więc widzący
+      użytkownik nie „widzi przycisku, w który nie da się kliknąć" — widzi Podsumowanie i zamyka je
+      tym samym uchwytem, którym je otworzył. Defekt bez możliwego użytkownika; nic do naprawy ani
+      do zgłoszenia.
+
+## EX-856 — „Filtry" bez bramki widoku, warsztat bez przełącznika cen (2026-09-23)
+
+Menu „Filtry" nie pyta już, na którym planie cen stoi siatka: oferuje wszystkie osie zawsze, a listę
+skraca próg licznika (wiersz z zerem nie istnieje, chyba że jest zaangażowany). Wiersze stoją pod
+nagłówkami kategorii, jak w „Problemach". Warsztat szablonu stracił przełącznik „Widok cen".
+Automat pokrywa arytmetykę modelu (`filters-menu-model`) i kolejność kategorii; na żywo zostaje to,
+czego spec nie widzi — że nagłówki faktycznie się rysują, że licznik znika razem z wierszem i że
+warsztat po zmianie w ogóle się otwiera.
+
+- [ ] Widok „klient": menu „Filtry" pokazuje obie pary stawek wykonawcy (z ogonem „w widoku …"),
+      a odznaczenie którejś chowa wiersze, mimo że siatka stoi na cenie klienta
+- [ ] Przełączenie widoku cen przy odznaczonym filtrze stawki **nie** przywraca schowanych wierszy
+      ani nie gubi zaznaczenia — zawężenie przeżywa zmianę widoku
+- [ ] Rozpiska bez komentarzy: wiersza „Pozycje z komentarzem" nie ma na liście wcale (nie „(0)")
+- [ ] Ten sam wiersz, gdy jest **zaangażowany**, zostaje widoczny z „(0)" i da się go odkliknąć
+- [ ] Nagłówki kategorii („Przedmiar", „Wykonana praca", „Rabat", „Źródło stawki wykonawcy",
+      „Sufit stawki wykonawcy", „Komentarz") pojawiają się raz każdy, w tej kolejności
+- [ ] Rabat globalny włączony: para filtrów rabatu per pozycja znika z listy, a jeśli była
+      zaangażowana — zostaje z możliwością odkliknięcia
+- [ ] „Zresetuj filtry" w menu „Sekcje" robi dokładnie to samo co w „Filtrach" (czyści zawężenia,
+      zwinięte sekcje i szukajkę) i jest wygaszone, gdy nie ma czego czyścić
+- [ ] Warsztat szablonu (`/szablony/[id]`): przełącznika „Widok cen" nie ma, a siatka pokazuje
+      kolumny planu klienta; reszta paska narzędzi bez zmian

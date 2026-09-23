@@ -70,15 +70,23 @@ Linear: MCP osiągalny, projekt „Wykonczymy" (P-EX-5, zespół Ex-plant).
 - [x] filed EX-843 · code-review · `src/components/kosztorys/editor/hooks/use-workshop-mirror-flush.ts` ·
       zamknięcie karty/przeglądarki gubi ogon (brak `pagehide` + `sendBeacon`) — okno strat ≤ 15 s.
       test: no automated test — `pagehide` w jsdom nie odtwarza realnego teardownu; e2e nieproporcjonalne.
+      **ZAMKNIĘTE 2026-09-23 (bramka review, zakres 22–23.09):** ryzyko zdjęte inaczej niż w issue —
+      hook słucha `visibilitychange` i dopycha, póki strona jeszcze żyje, więc zwykła Server Action
+      wychodzi. `pagehide` + `sendBeacon` NIE jest tu poprawką (beacon nie zawoła akcji); uzasadnienie
+      stoi w kodzie przy listenerze.
 - [x] filed EX-844 · feature-first-structure (P2) · `src/lib/actions/kosztorys-presets.ts:233,242` ·
       `listPresetsAction` / `listPresetSectionsAction` to **odczyty** w katalogu mutacji — miejsce to
       `src/lib/queries`. Rusza publiczne importy, więc nie w tym slice'u.
+      **ZROBIONE 2026-09-23:** oba odczyty stoją w `src/lib/queries/presets.ts`.
 - [x] filed EX-845 · feature-first-structure (P3) · `src/lib/db/workshop-investment.ts` ·
       `resolveWorkshopInvestment` mutuje (tworzy wiersz) z warstwy data-access, która ma być
       „statement + mapper".
 - [x] filed EX-846 · module-cohesion (M2/S3) · `src/lib/db/investment-lock.ts`,
       `src/lib/actions/lock-investment.ts` · nazwy mówią „lock", a moduły robią bramkę/wiersz —
       `investment-gate.ts` / `lock-investment-row.ts`. Czysty rename, ale dotyka cudzych importów.
+      **ZROBIONE 2026-09-23:** `src/lib/db/investment-gate.ts` +
+      `src/lib/db/lock-investment-for-replace.ts` (nie `lib/actions/lock-investment-row.ts` — cel
+      wylądował w warstwie `db`, bo to blokada wiersza, nie mutacja domenowa).
 - [x] filed EX-847 · gate (Step 3) · `e2e/` · przełączenie szablonu w warsztacie (eksmisja + punkt
       powrotu) to ryzyko przeglądarkowe — etykieta `e2e-backlog` nadana.
       test: no automated test (jeszcze) · e2e — obowiązek przeniesiony na EX-847.
@@ -100,6 +108,21 @@ Linear: MCP osiągalny, projekt „Wykonczymy" (P-EX-5, zespół Ex-plant).
       Źródło ceny wykonawcy ×2 plany, Komentarz.
       test: TDD · unit — trzy specy w `workshop-columns.test.ts`: kolumna jest dla obu planów,
       stawki nie ma, i wyjątek nie wycieka na zwykły widok klienta.
+- [x] 🔴 CRITICAL · fixed · user · `src/lib/kosztorys/column-config.ts:WORKSHOP_VISIBLE_COLUMNS` ·
+      **F6 ODWRÓCONE (właściciel, 2026-09-23) — stawka wykonawcy jednak WCHODZI, obie płaszczyzny.**
+      Lista warsztatu ma 9 kolumn: Akcje, Sekcja, Opis prac, Jednostka miary, Cena j.m. netto,
+      Źródło ceny wykonawcy ×2 płaszczyzny, stawka wykonawcy ×2 płaszczyzny, Komentarz. Ostatnie
+      zdanie F6 („Stawka wykonawcy **nie** wchodzi…") przestaje obowiązywać — powód, na którym
+      stało, w warsztacie nie działa: zamknięta lista jest sufitem **i podłogą**
+      (`selectV2Columns`), więc nadpisuje domyślne schowanie i kolumna z tej listy nigdy nie startuje
+      schowana; picker jest do niczego niepotrzebny. Drugi powód, merytoryczny: nadpisana ręcznie
+      stawka **jedzie na szablonie** (`serializeKosztorysAsPreset` zeruje tylko pola per-budowa), więc
+      bez tej kolumny szablon niósłby liczbę, której na swoim jedynym ekranie nie widać i nie da się
+      jej wpisać. Zastrzeżenie, które zostaje w mocy: NIEnadpisana stawka to cena klienta razy
+      współczynnik inwestycji, czyli figura wywiedziona z `settings`, których preset nie stosuje przy
+      wczytaniu — „obie jadą" jest prawdą wyłącznie dla nadpisanej.
+      test: TDD · unit — spec w `workshop-columns.test.ts` odwrócony razem z decyzją (obie połówki
+      pary na obu płaszczyznach).
 - [x] 🔴 CRITICAL · fixed · user · `src/lib/kosztorys/column-config.ts:WORKSHOP_VISIBLE_COLUMNS` ·
       **F7** — z warsztatu wypadła kolumna „Akcje". Allowlista jest listą tego, co szablon **niesie**,
       a „Akcje" nie niesie niczego — więc nie została dopisana. Tylko że siatka stoi na `lockRows`,

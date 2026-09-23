@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { revalidateCollections } from '@/__tests__/stubs/cache-revalidate'
 
 // The wrapper is the kosztorys plane's only chokepoint (raw SQL bypasses hooks and `access`), so
 // three things are asserted: it refuses on a locked investment, it resolves a row id to its
@@ -14,7 +15,6 @@ const lockState = vi.hoisted(() => ({
     | { investmentId: number; locked: boolean; templatePresetId: number | null }
     | undefined,
 }))
-const revalidateCollections = vi.hoisted(() => vi.fn())
 const mirrorWorkshopPreset = vi.hoisted(() => vi.fn())
 
 vi.mock('@/lib/auth/require-auth', () => ({
@@ -23,25 +23,25 @@ vi.mock('@/lib/auth/require-auth', () => ({
     user: { id: 1, email: 'o@t.com', name: 'Owner', role: 'OWNER' },
   })),
 }))
-vi.mock('@/lib/cache/revalidate', () => ({ revalidateCollections }))
+vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('payload', async (importOriginal) => ({
   ...(await importOriginal<typeof import('payload')>()),
   getPayload: vi.fn(async () => ({})),
 }))
 vi.mock('@/lib/db/get-db', () => ({ getDb: vi.fn(async () => ({ execute: vi.fn() })) }))
-vi.mock('@/lib/db/investment-lock', () => ({
+vi.mock('@/lib/db/investment-gate', () => ({
   investmentGateFor: vi.fn(async () => ({
     locked: lockState.locked,
     templatePresetId: lockState.templatePresetId,
   })),
-  lockStatusFor: vi.fn(async () => lockState.rowOwner),
+  investmentGateForRow: vi.fn(async () => lockState.rowOwner),
 }))
 vi.mock('@/lib/actions/mirror-workshop-preset', () => ({ mirrorWorkshopPreset }))
 
 const { investmentAction } = await import('@/lib/actions/investment-action')
 const { INVESTMENT_LOCKED_MESSAGE } = await import('@/lib/constants/investment-lock')
-const { investmentGateFor, lockStatusFor } = await import('@/lib/db/investment-lock')
+const { investmentGateFor, investmentGateForRow } = await import('@/lib/db/investment-gate')
 
 describe('investmentAction', () => {
   beforeEach(() => {
@@ -51,7 +51,7 @@ describe('investmentAction', () => {
     revalidateCollections.mockClear()
     mirrorWorkshopPreset.mockClear()
     vi.mocked(investmentGateFor).mockClear()
-    vi.mocked(lockStatusFor).mockClear()
+    vi.mocked(investmentGateForRow).mockClear()
   })
 
   it('runs the handler on an unlocked investment', async () => {
@@ -74,7 +74,7 @@ describe('investmentAction', () => {
   it('reads the row owner status in a single query', async () => {
     const handler = vi.fn(async () => ({ success: true as const }))
     await investmentAction('t', { kind: 'item', id: 3 }, handler)
-    expect(vi.mocked(lockStatusFor).mock.calls[0]?.slice(1)).toEqual(['item', 3])
+    expect(vi.mocked(investmentGateForRow).mock.calls[0]?.slice(1)).toEqual(['item', 3])
     expect(vi.mocked(investmentGateFor)).not.toHaveBeenCalled()
     expect(handler).toHaveBeenCalledOnce()
   })

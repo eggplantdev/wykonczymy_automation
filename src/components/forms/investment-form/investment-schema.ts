@@ -32,7 +32,7 @@ export const investmentSchema = investmentFormSchema.extend({
   notes: z.string().optional().default(''),
   review: z.string().optional().default(''),
   // Not a form value — no control collects it. The files are uploaded before submit and the ids
-  // ride in on the action call (`submitWithInvoicePages`), so only the domain layer knows the field.
+  // ride in on the action call (`submitWithUploads`), so only the domain layer knows the field.
   assets: z.array(z.number()).optional().default([]),
 })
 

@@ -1,11 +1,6 @@
 import { test, expect } from '@playwright/test'
-import {
-  discountModeSelect,
-  openSettlementOptions,
-  pickDiscountMode,
-  refreshReferenceData,
-  runSeedScript,
-} from './helpers'
+import { refreshReferenceData, runSeedScript } from './seeds'
+import { discountModeSelect, openSettlementOptions, pickDiscountMode } from './drivers/settlement'
 
 // EX-597 regression guard. A failed rabat save has to leave the panel describing the deal the data
 // still holds: the mode select back on „Kwotowy", the block usable again, and one toast saying why.

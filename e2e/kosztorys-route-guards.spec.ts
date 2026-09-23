@@ -1,5 +1,6 @@
 import { test, expect, type Locator } from '@playwright/test'
-import { openExpenseInvestment, openPanelView, readSummaryFigures } from './helpers'
+import { openExpenseInvestment } from './drivers/expenses'
+import { openPanelView, readSummaryFigures } from './drivers/settlement'
 
 // EX-728 — two regressions caught in the EX-720 review, both fixed, neither guarded. Both are facts
 // about what a page RENDERS and what status it answers with, so no layer below the browser sees
@@ -26,7 +27,7 @@ const MISSING_INVESTMENT_ID = 99_999_999
 async function readGridRow(grid: Locator, label: string): Promise<Record<string, string>> {
   const row = await grid.evaluate((node, rowLabel) => {
     const element = node as HTMLElement
-    // Computed, not the inline value — `readSummaryFigures` in `helpers.ts` documents why.
+    // Computed, not the inline value — `readSummaryFigures` in `drivers/settlement.ts` documents why.
     const columns = getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length
     const cells = Array.from(element.children).map((cell) =>
       (cell.textContent ?? '').replace(/\s+/g, ' ').trim(),

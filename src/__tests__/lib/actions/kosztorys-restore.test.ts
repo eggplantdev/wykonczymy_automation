@@ -30,7 +30,7 @@ vi.mock('@/lib/auth/require-auth', () => ({
     }
   }),
 }))
-vi.mock('@/lib/cache/revalidate', () => ({ revalidateCollections: vi.fn() }))
+vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const { restoreSnapshotAction, saveSnapshotAction } =
   await import('@/lib/actions/kosztorys-snapshots')

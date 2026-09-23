@@ -22,15 +22,8 @@ import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kos
 import { cn } from '@/lib/utils/cn'
 
 export function KosztorysEditorToolbar() {
-  const {
-    search,
-    setSearch,
-    view,
-    setView,
-    subtotals,
-    readOnly,
-    isWorkshop,
-  } = useKosztorysEditorContext()
+  const { search, setSearch, view, setView, subtotals, readOnly, isWorkshop } =
+    useKosztorysEditorContext()
   // Phone only — both groups below are `sm:contents`, so from 768 up this flag stops mattering.
   const [toolsOpen, setToolsOpen] = useState(false)
 
@@ -40,13 +33,18 @@ export function KosztorysEditorToolbar() {
         {/* Stays on screen when the rest is folded: these two change what the rozpiska shows. */}
         <div className="flex w-full items-center gap-x-1 sm:contents">
           <KosztorysTotalsPanelToggle hasRows={subtotals.length > 0} />
-          <ToolbarToggle
-            legend={VIEW_LEGEND}
-            options={VIEWS}
-            value={view}
-            onChange={setView}
-            aria-label="Widok cen"
-          />
+          {/* The workbench has a closed column list, so both crews' stawki are already on screen and
+              this switch would move no column — while still moving the „Cena j.m." sort key and the
+              filter list. Its plane is pinned instead (useKosztorysViewState). */}
+          {!isWorkshop && (
+            <ToolbarToggle
+              legend={VIEW_LEGEND}
+              options={VIEWS}
+              value={view}
+              onChange={setView}
+              aria-label="Widok cen"
+            />
+          )}
           <button
             type="button"
             onClick={() => setToolsOpen(!toolsOpen)}

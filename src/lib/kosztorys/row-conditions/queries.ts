@@ -1,4 +1,3 @@
-import type { PriceViewT } from '@/lib/kosztorys/calc'
 import { DISCOUNT_CONDITION_IDS, ROW_CONDITIONS } from '@/lib/kosztorys/row-conditions/registry'
 import type {
   RowConditionCtxT,
@@ -183,29 +182,49 @@ export function sectionIdsWhereAllMatch(
 }
 
 /**
- * The filter conditions a menu may offer right now. Two gates on top of `kind === 'filter'`, both
- * asking the same thing: is the axis on screen at all?
- *  • plane — a condition about a stawka wykonawcy is unanswerable from „Inwestor", where no
- *    subcontractor price renders. Offering it there would narrow the grid on a number the reader
- *    cannot see, and unlike a problem a filter deliberately does not switch the view to fetch it.
- *  • rabat — under a global rabat the per-item rabat applies to nothing and its columns are pulled
- *    from the grid, so the pair goes dead in the registry too; listing it would offer a tick that
- *    provably changes nothing.
- * An ENGAGED condition is listed regardless of both gates: it is hiding pozycje right now, and the
- * menu is where a tick comes back. Gating it out would leave the grid short with no control to
- * restore it — switching the view would strand a rate filter, and turning the global rabat on would
- * strand a rabat one.
+ * The filter conditions a menu may offer right now. One gate on top of `kind === 'filter'`: under a
+ * global rabat the per-item rabat applies to nothing and its columns are pulled from the grid, so the
+ * pair goes dead in the registry too — listing it would offer a tick that provably changes nothing.
+ *
+ * The price plane is deliberately NOT a gate (owner, 2026-09-23). A stawka filter used to be offered
+ * only from its own view; that was never a safeguard — the engaged set lives in localStorage and goes
+ * around it — but an ergonomics measure taken when the pair split per plane and the list tripled in
+ * length. It cost more than it bought: half the axes were unreachable from the view almost everyone
+ * reads, behind a control nobody uses as a filter switch. Shortening the list is now the count
+ * threshold's job (`filtersMenuModel`), where the question is „is there anything to hide" rather than
+ * „which view is on".
+ *
+ * An ENGAGED condition is listed regardless of the gate: it is hiding pozycje right now, and the menu
+ * is where a tick comes back. Gating it out would leave the grid short with no control to restore it —
+ * turning the global rabat on would strand a rabat filter.
  */
 export function offeredFilterConditions(
   engagedIds: ReadonlySet<string>,
-  view: PriceViewT,
   perItemDiscountInert: boolean,
 ): RowConditionT[] {
   return ROW_CONDITIONS.filter(
     (condition) =>
       condition.kind === 'filter' &&
       (engagedIds.has(condition.id) ||
-        ((condition.plane == null || condition.plane === view) &&
-          !(perItemDiscountInert && DISCOUNT_CONDITION_IDS.has(condition.id)))),
+        !(perItemDiscountInert && DISCOUNT_CONDITION_IDS.has(condition.id))),
   )
+}
+
+// Module-level instances, so the sets below are referentially stable and the editor's memos don't
+// recompute on every render.
+const CLIENT_EMPTY_CONDITION_IDS: ReadonlySet<string> = new Set(['client-empty'])
+const NO_CONDITION_IDS: ReadonlySet<string> = new Set()
+
+/**
+ * What a client's document engages. Every 'filter' and 'diagnostic' in the registry is the company's
+ * own bookkeeping question and is suppressed wholesale under the preview — the sole exception is the
+ * 'client' condition, which the client did not choose either: it is the owner's stored decision
+ * about what this document contains.
+ *
+ * Lives here rather than inside the editor hook that reads it, because the mapping is the domain fact
+ * „which conditions may reach a client" — invisible to anyone refactoring the hook, and it has been
+ * silently dropped by exactly that kind of refactor once already.
+ */
+export function clientConditionIds(hideEmptyRows: boolean | undefined): ReadonlySet<string> {
+  return hideEmptyRows ? CLIENT_EMPTY_CONDITION_IDS : NO_CONDITION_IDS
 }

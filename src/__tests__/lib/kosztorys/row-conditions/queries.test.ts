@@ -3,13 +3,16 @@ import { CTX, priceCells, row } from '@/__tests__/lib/kosztorys/row-conditions/f
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import {
   applyRowConditions,
+  clientConditionIds,
   columnsRevealedBy,
   countMatching,
   engagedConditionsOfKind,
   engagedPlane,
   isFoldSuppressed,
+  offeredFilterConditions,
   sectionIdsWhereAllMatch,
 } from '@/lib/kosztorys/row-conditions/queries'
+import { ROW_CONDITIONS } from '@/lib/kosztorys/row-conditions/registry'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
@@ -134,18 +137,18 @@ describe('columnsRevealedBy', () => {
   // The price is the symptom; „Cena j.m." and „Źródło ceny wykonawcy" are the only way to change it,
   // so revealing the symptom alone would show a number nobody can act on.
   it('brings the two cells that compute a stawka along with the stawka', () => {
-    expect(columnsRevealedBy(['overpriced-w-tools'])).toEqual(new Set(priceCells('w_tools')))
+    expect(columnsRevealedBy(['negative-rate-w-tools'])).toEqual(new Set(priceCells('w_tools')))
   })
 
   // …and only that crew's: the other plane's stawka is not what the problem is about, even though its
   // columns are now assembled in the same view.
   it('leaves the other plane alone', () => {
-    const revealed = columnsRevealedBy(['overpriced-w-tools'])
+    const revealed = columnsRevealedBy(['negative-rate-w-tools'])
     expect(revealed.has(planePriceKey('price', 'own_tools'))).toBe(false)
   })
 
   it('unions two engaged problems without repeating their shared column', () => {
-    const revealed = columnsRevealedBy(['no-client-price', 'overpriced-own-tools'])
+    const revealed = columnsRevealedBy(['no-client-price', 'negative-rate-own-tools'])
     expect(revealed).toEqual(new Set(priceCells('w_tools', 'own_tools')))
   })
 
@@ -174,14 +177,24 @@ describe('columnsRevealedBy', () => {
     )
   })
 
-  // The four „skąd wzięła się ta stawka" filters narrow on a figure that starts hidden, so each one
-  // has to bring its own crew's stawka along — otherwise unticking one leaves the right pozycje on
-  // screen with the thing they were selected by invisible.
-  it('brings its own crew’s stawka along when narrowing by the source of the rate', () => {
-    for (const id of ['manual-rate-w-tools', 'formula-rate-w-tools']) {
+  // Every „jaka jest ta stawka" filter narrows on a figure that starts hidden, so each one has to
+  // bring its own crew's stawka along — otherwise unticking one leaves the right pozycje on screen
+  // with the thing they were selected by invisible.
+  it('brings its own crew’s stawka along when narrowing by the rate itself', () => {
+    for (const id of [
+      'manual-rate-w-tools',
+      'formula-rate-w-tools',
+      'fixed-rate-over-ceiling-w-tools',
+      'fixed-rate-within-ceiling-w-tools',
+    ]) {
       expect(columnsRevealedBy([id])).toEqual(new Set(priceCells('w_tools')))
     }
-    for (const id of ['manual-rate-own-tools', 'formula-rate-own-tools']) {
+    for (const id of [
+      'manual-rate-own-tools',
+      'formula-rate-own-tools',
+      'fixed-rate-over-ceiling-own-tools',
+      'fixed-rate-within-ceiling-own-tools',
+    ]) {
       expect(columnsRevealedBy([id])).toEqual(new Set(priceCells('own_tools')))
     }
   })
@@ -198,7 +211,7 @@ describe('columnsRevealedBy', () => {
 // longer showing.
 describe('engagedPlane', () => {
   it('reads the plane straight off whatever is engaged', () => {
-    expect(engagedPlane(['overpriced-own-tools'])).toBe('own_tools')
+    expect(engagedPlane(['negative-rate-own-tools'])).toBe('own_tools')
   })
 
   it('answers nothing when nothing engaged names a plane', () => {
@@ -206,16 +219,18 @@ describe('engagedPlane', () => {
     expect(engagedPlane(['no-client-price', 'stage-no-plane'])).toBeUndefined()
   })
 
-  // A filter may name a plane too, but it must not move the view: it is a picker row, not a gesture,
-  // and unticking the other half of its pair names the same plane and so could never undo the move.
+  // A filter must never move the view: it is a picker row, not a gesture, and unticking the other half
+  // of its pair names the same plane and so could never undo the move. Two guards, because either
+  // alone rots — the registry keeps filters plane-less, and the reader ignores a plane on one anyway.
   it('ignores a filter’s plane, and answers for the problem beside it', () => {
+    expect(ROW_CONDITIONS.filter((c) => c.kind === 'filter').every((c) => !c.plane)).toBe(true)
     expect(engagedPlane(['manual-rate-w-tools'])).toBeUndefined()
-    expect(engagedPlane(['manual-rate-w-tools', 'overpriced-own-tools'])).toBe('own_tools')
+    expect(engagedPlane(['manual-rate-w-tools', 'negative-rate-own-tools'])).toBe('own_tools')
   })
 
   // A stale id from an older registry must not make the grid unreadable — it is skipped, not fatal.
   it('skips an id it does not recognise', () => {
-    expect(engagedPlane(['nie-ma-takiego', 'overpriced-w-tools'])).toBe('w_tools')
+    expect(engagedPlane(['nie-ma-takiego', 'negative-rate-w-tools'])).toBe('w_tools')
   })
 })
 
@@ -247,5 +262,56 @@ describe('isFoldSuppressed', () => {
 
   it('leaves them alone under a problem, which reports its own count instead', () => {
     expect(isFoldSuppressed('', new Set(['no-client-price']))).toBe(false)
+  })
+})
+
+// The owner's „Ukryj pozycje bez przedmiaru i bez wykonanej pracy" reaching the client's document is
+// a two-step wiring — stored flag → engaged condition → rows removed — and only the storage half had
+// a guard. A hook refactor deleted the middle step once without a single test going red.
+describe('clientConditionIds', () => {
+  it('engages the client condition only when the owner stored the decision', () => {
+    expect([...clientConditionIds(true)]).toEqual(['client-empty'])
+    expect([...clientConditionIds(false)]).toEqual([])
+    expect([...clientConditionIds(undefined)]).toEqual([])
+  })
+
+  it('names a condition the registry actually has — a typo here would hide nothing, silently', () => {
+    const rows = [row({ id: 1, plannedQty: 0 }), row({ id: 2, plannedQty: 5 })]
+    expect(applyRowConditions(rows, clientConditionIds(true), CTX).map((r) => r.id)).toEqual([2])
+  })
+
+  it('hands back the same instance every call, so the editor memos do not churn', () => {
+    expect(clientConditionIds(true)).toBe(clientConditionIds(true))
+    expect(clientConditionIds(false)).toBe(clientConditionIds(undefined))
+  })
+})
+
+describe('offeredFilterConditions', () => {
+  const offeredIds = (engaged: string[] = [], perItemDiscountInert = false) =>
+    offeredFilterConditions(new Set(engaged), perItemDiscountInert).map((condition) => condition.id)
+
+  it('offers only the filters — problems and the client rule have their own homes', () => {
+    expect(offeredIds()).not.toContain('no-client-price')
+    expect(offeredIds()).not.toContain('client-empty')
+    expect(offeredIds()).toContain('has-note')
+  })
+
+  // A stawka filter is asked from whichever plane is on; the removed view gate is argued in full at
+  // `offeredFilterConditions`.
+  it('offers both planes\u2019 stawka filters regardless of the view', () => {
+    expect(offeredIds()).toEqual(
+      expect.arrayContaining(['manual-rate-w-tools', 'manual-rate-own-tools']),
+    )
+  })
+
+  // Under a global rabat the per-item rabat applies to nothing and its columns leave the grid.
+  it('withdraws the rabat pair once a global rabat is on', () => {
+    expect(offeredIds([], true)).not.toContain('has-discount')
+    expect(offeredIds([], true)).not.toContain('no-discount')
+  })
+
+  it('keeps an engaged rabat filter offered, so it can be untangled', () => {
+    expect(offeredIds(['has-discount'], true)).toContain('has-discount')
+    expect(offeredIds(['has-discount'], true)).not.toContain('no-discount')
   })
 })

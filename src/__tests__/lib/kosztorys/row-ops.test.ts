@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   applyInsertItem,
   applyKosztorysOrder,
+  catalogueSlicePlacement,
   sectionNeighbor,
   swapItemInSection,
 } from '@/lib/kosztorys/row-ops'
@@ -80,5 +81,22 @@ describe('swapItemInSection', () => {
     // Not row 2 — the id the old undo had captured.
     expect(sectionNeighbor(between, 1, 'up')?.id).toBe(9)
     expect(ids(swapItemInSection(between, 1, 'up'))).toEqual([2, 1, 9, 3, 4, 5])
+  })
+})
+
+describe('catalogueSlicePlacement', () => {
+  it('prepends a sekcja the picker just minted', () => {
+    expect(catalogueSlicePlacement(rows, 9, true)).toBe('prepend')
+  })
+
+  it('folds into a sekcja the grid already holds rows for', () => {
+    expect(catalogueSlicePlacement(rows, 2, false)).toBe('fold')
+  })
+
+  it('reseeds when the server appended into a sekcja absent from the grid', () => {
+    // An emptied sekcja renders no row, so it is missing from the picker's list and the owner types
+    // its nazwa — the server matches it and reports no mint. Folding would park the band past
+    // sekcja 2; nothing on screen can anchor it.
+    expect(catalogueSlicePlacement(rows, 3, false)).toBe('reseed')
   })
 })

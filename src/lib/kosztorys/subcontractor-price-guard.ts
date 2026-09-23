@@ -1,4 +1,4 @@
-import { subcontractorPrice } from '@/lib/kosztorys/calc'
+import { overrideValueFor, subcontractorPrice } from '@/lib/kosztorys/calc'
 import type { CellVerdictT } from '@/lib/kosztorys/cell-edit'
 import { formatCoeff, formatNet, formatPercent } from '@/lib/kosztorys/format'
 import type { ToolPlaneT, ViewPricingT } from '@/lib/kosztorys/types'
@@ -50,17 +50,51 @@ export function isOverCeiling(
  *
  * Judged, never refused — the one lever that re-prices a whole kosztorys must not be the only surface
  * that will not say why (owner, 2026-09-21).
+ *
+ * Everything outside (0, 0.65], because each of those ends produces a stawka nobody would type by
+ * hand on a single pozycja, and none of them is answered here by the row-level guard: the ceiling
+ * rung reads a kwota stała only, zero stopped being reported by „bez ceny wykonawcy" for the same
+ * reason, and a negative one IS still refused per pozycja — which is the problem, because that is
+ * one verdict repeated across the whole rozpiska while the field that caused it stays unmarked.
  */
-export const isCoeffOverCeiling = (coeff: number): boolean => coeff > MAX_CLIENT_SHARE
+export const isCoeffFlagged = (coeff: number): boolean => coeff > MAX_CLIENT_SHARE || coeff <= 0
 
 /**
  * Its own sentence rather than the row one: a stawka over the ceiling is one pozycja, a mnożnik over
- * it is every pozycja still on „auto".
+ * it is every pozycja still on „auto". Three sentences for three different mistakes — one overpays
+ * the crew, one stops paying it, one makes it pay us.
  */
-export function coeffCeilingWarning(coeff: number): string | null {
-  if (!isCoeffOverCeiling(coeff)) return null
+export function coeffWarning(coeff: number): string | null {
+  if (coeff < 0) {
+    return 'Mnożnik ujemny daje wykonawcy stawkę poniżej zera na każdej pozycji ze źródłem „auto" — apka odmówi zapisu takiej ceny.'
+  }
+  if (coeff === 0) {
+    return 'Mnożnik 0 daje wykonawcy 0 zł na każdej pozycji ze źródłem „auto".'
+  }
+  if (!isCoeffFlagged(coeff)) return null
   return `Mnożnik ${formatCoeff(coeff)} przekracza ${formatPercent(MAX_CLIENT_SHARE)} ceny dla inwestora — wykonawca zjada marżę na pozycjach ze źródłem „auto".`
 }
+
+/**
+ * The ceiling question as a predicate, so the red cell and the „z kwotą stałą powyżej sufitu"
+ * filters read one rule instead of two copies that can be edited apart — including the half-grosz
+ * tolerance, without which a kwota typed back off the screen lands on opposite sides of the two
+ * readings. A source of „auto" is not over anything: `isOverCeiling` short-circuits on the null, so
+ * the filters' negated twin („bez kwoty stałej powyżej sufitu") holds every „auto" pozycja as well —
+ * a complement of this predicate, not of „pozycje z kwotą stałą". The registry states that out loud
+ * beside the pair; do not narrow it here without moving that ruling too.
+ */
+export const isFixedRateOverCeiling = (row: ViewPricingT, view: ToolPlaneT): boolean =>
+  isOverCeiling(overrideValueFor(row, view), row)
+
+/**
+ * Unlike the ceiling, this one reads the PRICE rather than the nadpisanie, so it catches an „auto"
+ * row whose mnożnik went below zero as readily as a typed one. Shared with the „Problemy" list for
+ * the same reason as its neighbour: the cell that refuses the write and the row the list picks up
+ * must be the same rows.
+ */
+export const isSubcontractorPriceNegative = (row: ViewPricingT, view: ToolPlaneT): boolean =>
+  subcontractorPrice(row, view) < 0
 
 /**
  * Two tiers, and the difference is whether the figure can be REAL. A negative stawka is arithmetic
@@ -73,19 +107,24 @@ export function coeffCeilingWarning(coeff: number): string | null {
  * threshold lit up across rows that were all fine and the colour stopped meaning anything
  * (owner, 2026-07-28). The ceiling is rare, which is what keeps the red worth looking at.
  *
- * Reads `subcontractorPrice` rather than re-deriving it, so the guard can never disagree with the
- * price the grid shows. Carries its own Polish message — no consumer composes a sentence, so the
- * tooltip and the toast cannot word the same verdict differently.
+ * The ceiling therefore judges a kwota stała only. On „auto" the author of the figure is the
+ * investment's mnożnik, which carries its own red field and its own sentence (`coeffWarning`) —
+ * judging its output row by row is the same verdict repeated a thousand times, and since the hard cap
+ * came off the mnożnik (2026-09-21) one keystroke was enough to throw a whole rozpiska over.
+ *
+ * Asks both questions through the two predicates above rather than re-deriving them, so the cell that
+ * refuses a write, the red colour and the „Problemy" rows can never disagree. Carries its own Polish
+ * message — no consumer composes a sentence, so the tooltip and the toast cannot word the same verdict
+ * differently.
  */
 export function checkSubcontractorPrice(row: ViewPricingT, view: ToolPlaneT): CellVerdictT | null {
-  const price = subcontractorPrice(row, view)
   // The floor holds whatever the client price is: nothing legitimate pays a subcontractor a negative
   // figure, and it would subtract from every total it reaches.
-  if (price < 0) {
+  if (isSubcontractorPriceNegative(row, view)) {
     return { severity: 'refuse', message: 'Cena wykonawcy nie może być ujemna.' }
   }
 
-  if (!isOverCeiling(price, row)) return null
+  if (!isFixedRateOverCeiling(row, view)) return null
 
   return {
     severity: 'warn',

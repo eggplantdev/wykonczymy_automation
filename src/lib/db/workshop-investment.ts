@@ -1,11 +1,7 @@
 // No `server-only` (like presets.ts beside it): the module is reachable from the Payload graph.
 import { sql } from '@payloadcms/db-vercel-postgres'
-import type { Payload } from 'payload'
 import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
-import { SETTLEMENT_MODE_DEFAULT } from '@/lib/kosztorys/settlement-mode'
-import { getDb, type DbExecutorT } from './get-db'
-
-const WORKSHOP_INVESTMENT_NAME = 'Warsztat szablonów'
+import type { DbExecutorT } from './get-db'
 
 // `presetId` = which szablon the workbench currently holds (null before anything was opened into it).
 export type WorkshopT = { id: number; presetId: number | null }
@@ -24,25 +20,6 @@ export async function getWorkshop(db: DbExecutorT): Promise<WorkshopT | null> {
     id: Number(row.id),
     presetId: row.template_preset_id == null ? null : Number(row.template_preset_id),
   }
-}
-
-/**
- * Provisioned on first use, which is what lets the status stay unpickable in the investment form.
- * Creating is a MUTATION, so only an action may call this — a page that finds none redirects.
- */
-export async function resolveWorkshopInvestment(payload: Payload): Promise<number> {
-  const existing = await getWorkshop(await getDb(payload))
-  if (existing) return existing.id
-
-  const created = await payload.create({
-    collection: 'investments',
-    data: {
-      name: WORKSHOP_INVESTMENT_NAME,
-      status: TEMPLATE_INVESTMENT_STATUS,
-      settlementMode: SETTLEMENT_MODE_DEFAULT,
-    },
-  })
-  return created.id
 }
 
 /** Set by „Otwórz", never by save. */

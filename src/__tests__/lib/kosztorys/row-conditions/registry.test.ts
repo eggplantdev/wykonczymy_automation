@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { CTX, priceCells, row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
 import {
-  applyRowConditions,
   columnsRevealedBy,
   countMatching,
   engagedPlane,
@@ -10,7 +9,6 @@ import {
   CATALOGUE_DIVERGENCE_CONDITION_ID,
   CATALOGUE_MISSING_CONDITION_ID,
   ROW_CONDITIONS,
-  clientConditionIds,
 } from '@/lib/kosztorys/row-conditions/registry'
 import type { RowConditionCtxT } from '@/lib/kosztorys/row-conditions/types'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
@@ -145,27 +143,41 @@ describe('the conditions, each on its boundary', () => {
     expect(matches('client-empty', row({ plannedQty: 0, [stageKey(2)]: 3 }))).toBe(false)
   })
 
-  // The same guard that reddens the cell, so the filter and the colour can never disagree.
-  it('„z nieprawidłową ceną wykonawcy" reads the guard, per plane', () => {
-    const overridden = (value: number) => row({ wToolsOverrideValue: value })
-
-    // clientPrice 100 → the ceiling is 65; typed at exactly the ceiling it must stand.
-    expect(matches('overpriced-w-tools', overridden(65))).toBe(false)
-    expect(matches('overpriced-w-tools', overridden(65.01))).toBe(true)
-    expect(matches('overpriced-w-tools', overridden(-1))).toBe(true)
-    // An unpriced pozycja is „bez ceny j.m." — a different problem, and the ceiling collapses to zero.
-    expect(matches('overpriced-w-tools', row({ clientPrice: 0 }))).toBe(false)
+  // The ceiling left „Problemy" on 2026-09-22 (owner): a kwota the katalog ratifies is legitimate
+  // above 65%, so what stays here is the rung that is arithmetic nobody meant.
+  it('„z ujemną stawką wykonawcy" reads the stawka as paid, per plane', () => {
+    expect(matches('negative-rate-w-tools', row({ wToolsOverrideValue: -1 }))).toBe(true)
+    expect(matches('negative-rate-w-tools', row({ wToolsOverrideValue: 0 }))).toBe(false)
+    // „auto" reaches negative too, through a negative mnożnik — that row is just as unpayable.
+    expect(matches('negative-rate-w-tools', row({ globalWToolsCoeff: -0.1 }))).toBe(true)
+    // A kwota above the ceiling is a reading gesture now, not a defect.
+    expect(matches('negative-rate-w-tools', row({ wToolsOverrideValue: 95 }))).toBe(false)
   })
 
   it('keeps the two planes apart — a fault on one is silent on the other', () => {
-    const subject = row({ ownToolsOverrideValue: 95 })
-    expect(matches('overpriced-own-tools', subject)).toBe(true)
-    expect(matches('overpriced-w-tools', subject)).toBe(false)
+    const subject = row({ ownToolsOverrideValue: -5 })
+    expect(matches('negative-rate-own-tools', subject)).toBe(true)
+    expect(matches('negative-rate-w-tools', subject)).toBe(false)
+  })
+
+  it('„z kwotą stałą powyżej sufitu" judges the kwota, never the mnożnik', () => {
+    const overridden = (value: number) => row({ wToolsOverrideValue: value })
+
+    // clientPrice 100 → the ceiling is 65; typed at exactly the ceiling it must stand.
+    expect(matches('fixed-rate-over-ceiling-w-tools', overridden(65))).toBe(false)
+    expect(matches('fixed-rate-over-ceiling-w-tools', overridden(65.01))).toBe(true)
+    // The mnożnik authors every „auto" figure and answers for it in its own red field — one keystroke
+    // in the pasku must not sweep a whole rozpiska onto this axis.
+    expect(matches('fixed-rate-over-ceiling-w-tools', row({ globalWToolsCoeff: 0.9 }))).toBe(false)
+    // An unpriced pozycja is „bez ceny j.m." — a different problem, and the ceiling collapses to zero.
+    expect(
+      matches('fixed-rate-over-ceiling-w-tools', row({ clientPrice: 0, wToolsOverrideValue: 50 })),
+    ).toBe(false)
   })
 
   // What an import writes onto a praca whose two cenniki disagreed: a deliberate 0 zł that looks
   // exactly like a priced one in the grid, so without this it is findable only by scrolling.
-  it('„bez ceny wykonawcy" finds a stawka explicitly set to zero, per plane', () => {
+  it('„bez ceny wykonawcy" finds a kwotę stałą explicitly set to zero, per plane', () => {
     const blank = row({
       wToolsOverrideValue: 0,
       ownToolsOverrideValue: 0,
@@ -173,16 +185,19 @@ describe('the conditions, each on its boundary', () => {
     expect(matches('no-w-tools-price', blank)).toBe(true)
     expect(matches('no-own-tools-price', blank)).toBe(true)
 
-    // An ujemna stawka is the guard's row, not this one's — counted by both it would show up twice in
+    // An ujemna stawka is the row above, not this one — counted by both it would show up twice in
     // the „Problemy" list and be chased twice in the grid.
     const negative = row({ wToolsOverrideValue: -1 })
     expect(matches('no-w-tools-price', negative)).toBe(false)
-    expect(matches('overpriced-w-tools', negative)).toBe(true)
+    expect(matches('negative-rate-w-tools', negative)).toBe(true)
 
     // Inheriting the global multiplier is a stawka like any other — 100 × 0,65.
     expect(matches('no-w-tools-price', row())).toBe(false)
+    // And a mnożnik of zero stays the mnożnik's own sentence: routed through here it emptied the whole
+    // rozpiska into „Problemy" on one keystroke.
+    expect(matches('no-w-tools-price', row({ globalWToolsCoeff: 0 }))).toBe(false)
     // „bez ceny j.m." owns this row; here the crew price is zero only because the client's is.
-    expect(matches('no-w-tools-price', row({ clientPrice: 0 }))).toBe(false)
+    expect(matches('no-w-tools-price', row({ clientPrice: 0, wToolsOverrideValue: 0 }))).toBe(false)
   })
 
   // The whole point of collapsing the override pair into one nullable number: `null` and `0` are two
@@ -223,6 +238,9 @@ describe('the conditions, each on its boundary', () => {
       row({ discountType: null, discountValue: 10 }),
       row({ wToolsOverrideValue: 80 }),
       row({ ownToolsOverrideValue: 40 }),
+      row({ ownToolsOverrideValue: 95 }),
+      // „auto" above the ceiling: the over-half must not claim it, so the within-half has to.
+      row({ globalWToolsCoeff: 0.9, globalOwnToolsCoeff: 0.9 }),
       row({ note: 'do potwierdzenia z klientem' }),
       row({ note: '   ' }),
     ]
@@ -233,6 +251,8 @@ describe('the conditions, each on its boundary', () => {
       ['no-discount', 'has-discount'],
       ['formula-rate-w-tools', 'manual-rate-w-tools'],
       ['formula-rate-own-tools', 'manual-rate-own-tools'],
+      ['fixed-rate-within-ceiling-w-tools', 'fixed-rate-over-ceiling-w-tools'],
+      ['fixed-rate-within-ceiling-own-tools', 'fixed-rate-over-ceiling-own-tools'],
       ['no-note', 'has-note'],
     ]) {
       for (const subject of subjects) {
@@ -397,26 +417,5 @@ describe('„ze stawką wykonawcy od ceny z materiałem" — the overpaid-crew g
     expect(columnsRevealedBy(['material-percent-rate-w-tools'])).toEqual(
       new Set(priceCells('w_tools')),
     )
-  })
-})
-
-// The owner's „Ukryj pozycje bez przedmiaru i bez wykonanej pracy" reaching the client's document is
-// a two-step wiring — stored flag → engaged condition → rows removed — and only the storage half had
-// a guard. A hook refactor deleted the middle step once without a single test going red.
-describe('clientConditionIds', () => {
-  it('engages the client condition only when the owner stored the decision', () => {
-    expect([...clientConditionIds(true)]).toEqual(['client-empty'])
-    expect([...clientConditionIds(false)]).toEqual([])
-    expect([...clientConditionIds(undefined)]).toEqual([])
-  })
-
-  it('names a condition the registry actually has — a typo here would hide nothing, silently', () => {
-    const rows = [row({ id: 1, plannedQty: 0 }), row({ id: 2, plannedQty: 5 })]
-    expect(applyRowConditions(rows, clientConditionIds(true), CTX).map((r) => r.id)).toEqual([2])
-  })
-
-  it('hands back the same instance every call, so the editor memos do not churn', () => {
-    expect(clientConditionIds(true)).toBe(clientConditionIds(true))
-    expect(clientConditionIds(false)).toBe(clientConditionIds(undefined))
   })
 })

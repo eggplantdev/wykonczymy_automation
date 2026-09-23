@@ -6,10 +6,9 @@ import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/
 import { acquireTestWorkshop } from '@/__tests__/helpers/workshop'
 import { SNAPSHOT_SCHEMA_VERSION, type SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 
-// The szablon autosave either lives or dies IN THE DATABASE: the grid renders its own state
+// The preset autosave either lives or dies IN THE DATABASE: the grid renders its own state
 // regardless of whether anything reached `kosztorys_presets`. So every assertion reads the stored
-// payload,
-// nigdy wyniku akcji.
+// payload, never the action's return value.
 
 const authState = vi.hoisted(() => ({ userId: 0 }))
 
@@ -20,7 +19,7 @@ vi.mock('@/lib/auth/require-auth', () => ({
     user: { id: authState.userId, email: 'o@t.com', name: 'Owner', role: 'OWNER' },
   })),
 }))
-vi.mock('@/lib/cache/revalidate', () => ({ revalidateCollections: vi.fn() }))
+vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const { updateSectionFieldAction } = await import('@/lib/actions/kosztorys')
 const { mirrorWorkshopPreset } = await import('@/lib/actions/mirror-workshop-preset')

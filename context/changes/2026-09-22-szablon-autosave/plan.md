@@ -52,7 +52,7 @@ cena tam jest. Bez żadnego kliknięcia.
 
 - `investmentAction` (`src/lib/actions/investment-action.ts:27`) sam deklaruje się jako jedyny
   chokepoint i **już robi SELECT po statusie inwestycji** (`isInvestmentLocked`/`lockStatusFor`,
-  `src/lib/db/investment-lock.ts:26,41`) — dołożenie `template_preset_id` do tych zapytań kosztuje
+  `src/lib/db/investment-gate.ts:26,41`) — dołożenie `template_preset_id` do tych zapytań kosztuje
   zero dodatkowych round tripów.
 - `PREVIEW_VISIBLE_COLUMNS` (`src/lib/kosztorys/column-config.ts:215`) + gałąź podglądu w
   `selectV2Columns` (`src/components/kosztorys/editor/grid/column-selection.ts:65-67`) to **gotowy
@@ -77,8 +77,13 @@ cena tam jest. Bez żadnego kliknięcia.
 - **Nie zagęszczamy punktów przywracania** — zostają co 10 minut. Świadomie przyjęte okno.
 - **Nie przestajemy wycinać przedmiaru, rabatów i etapów** przy serializacji szablonu. Wyjątkiem
   jest wyłącznie komentarz.
-- **Nie ruszamy edytora inwestycji** poza jednym rzeczownikiem w etykietach i zmianą nazwy
-  „Zapisz jako szablon…" → „Zapisz jako nowy szablon…".
+- ~~**Nie ruszamy edytora inwestycji** poza jednym rzeczownikiem w etykietach i zmianą nazwy
+  „Zapisz jako szablon…" → „Zapisz jako nowy szablon…".~~ **Nieaktualne (właściciel, 2026-09-23):**
+  ruszamy — „Cena j.m. netto" pokazuje się teraz w KAŻDYM widoku cen, także na obu płaszczyznach
+  wykonawcy, i jest tam w pełni edytowalna. Powód: to jest cena, z której obie stawki wykonawcy się
+  wywodzą i względem której sądzi je sufit, więc widok ekipy bez niej pokazuje werdykt bez liczby,
+  której dotyczy. Decyzja dotyczy edytora inwestycji, nie warsztatu, i jest świadomym wyjściem poza
+  ten akapit.
 - **Nie dodajemy `beforeunload`** — dopchnięcie przy odmontowaniu i przed eksmisją wystarcza,
   a strażnik nawigacji to osobna funkcja o własnym koszcie UX.
 
@@ -158,7 +163,7 @@ nazwana stała, nie literał w zapytaniu.
 
 #### 4. Warsztat w zapytaniu o blokadę
 
-**File**: `src/lib/db/investment-lock.ts`
+**File**: `src/lib/db/investment-gate.ts`
 
 **Intent**: `isInvestmentLocked` i `lockStatusFor` zaczynają zwracać `templatePresetId` obok statusu,
 żeby `investmentAction` wiedział, czy pisze do warsztatu, **bez dodatkowego round tripu**.
@@ -199,7 +204,7 @@ przepuszcza — zserializuj drzewo i przepisz je do szablonu, w jednej transakcj
 
 **Contract**: przyjmuje `{ db, investmentId, templatePresetId, force }`. `force` pomija dławik (używa
 go dopchnięcie z Fazy 3). Całość wewnątrz `lockInvestmentForReplace(investmentId)`
-(`src/lib/db/lock-investment.ts:16`) — ten sam wzorzec, którym repo serializuje wymianę drzewa.
+(`src/lib/db/lock-investment-for-replace.ts:16`) — ten sam wzorzec, którym repo serializuje wymianę drzewa.
 Wskaźnik czytany **wewnątrz** transakcji i porównywany z `templatePresetId`; rozjazd = ciche
 odstąpienie (nie błąd — to normalny wyścig z przełączeniem warsztatu). Nigdy nie rzuca: mirror to
 efekt uboczny udanej mutacji, więc jego awaria nie może wywrócić zapisu, który już się udał.
@@ -332,6 +337,10 @@ budować — nie „być domyślnie schowana" i nie „być readonly".
 (`:215`), zawierająca `sectionName`, `description`, `unit`, `price`, `priceGross`, `priceMode`,
 `note`. Dokumentacja przy stałej mówi **dlaczego** reszta jest nieobecna (szablon jej nie niesie),
 żeby kolumna dodana później została opt-inowana świadomie.
+
+> **Skład listy zmienił się po tym planie** — `priceGross` wypadł, `actions` doszło, stawka
+> wykonawcy wróciła obok źródła. Wiążący zapis tych trzech decyzji jest w `review-gate.md`
+> (findingi F6/F7) i w komentarzu przy samej stałej; ten kontrakt jest już historyczny.
 
 #### 2. Sufit przy składaniu siatki
 

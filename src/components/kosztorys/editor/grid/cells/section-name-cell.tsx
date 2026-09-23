@@ -1,8 +1,10 @@
-import type { MouseEvent, ReactNode } from 'react'
+import { useEffect, type MouseEvent, type ReactNode } from 'react'
 import type { CellProps, Column } from 'react-datasheet-grid'
 import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-text'
 import { EditableCellInput } from '@/components/ui/datasheet-grid/editable-cell-input'
+import type { StopEditingT } from '@/components/ui/datasheet-grid/types'
 import { useInlineRename } from '@/components/kosztorys/editor/hooks/use-inline-rename'
+import { wrapColumnClass } from '@/lib/kosztorys/row-content-lines'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 // Renames the WHOLE section, so it commits through onRename (the same fan-out the section panel uses)
@@ -14,18 +16,36 @@ export function SectionNameCell({
   disabled,
   className,
   onClick,
+  focus,
+  stopEditing,
 }: {
   rowData: KosztorysV2RowT
   onRename?: (sectionId: number, name: string) => void
   disabled?: boolean
   className?: string
   onClick?: (event: MouseEvent<HTMLInputElement>) => void
+  // Both absent in the section band, which is chrome rather than a cell: it keeps its input
+  // permanently live and has no grid to hand back to.
+  focus?: boolean
+  stopEditing?: StopEditingT
 }) {
-  const { editing, start, inputProps } = useInlineRename((name) =>
-    onRename?.(rowData.sectionId, name),
+  const { editing, start, close, inputProps } = useInlineRename(
+    (name) => onRename?.(rowData.sectionId, name),
+    stopEditing,
   )
 
-  if (disabled) return <ReadOnlyCellText>{rowData.sectionName ?? ''}</ReadOnlyCellText>
+  // The grid ends an edit by dropping the cell's editing flag, which unmounts the input below while
+  // this component stays put — no blur fires and the hook's own unmount guard never runs. Clicking
+  // another cell is that path, so without this the name just typed is lost.
+  useEffect(() => {
+    if (focus === false) close()
+  }, [focus, close])
+
+  // An input renders one line whatever the row's height, so the name is text at rest and a field only
+  // while it is being typed — the same swap „Opis prac" makes, and what lets a long name wrap instead
+  // of being cut.
+  if (disabled || focus === false)
+    return <ReadOnlyCellText>{rowData.sectionName ?? ''}</ReadOnlyCellText>
 
   // The cell stays mounted when not editing, so it shows the row's canonical name — an external
   // rename (from the section panel) can't go stale behind a leftover draft.
@@ -35,6 +55,7 @@ export function SectionNameCell({
     <EditableCellInput
       {...inputProps}
       className={className}
+      focus={focus}
       value={shown}
       // Fallback for engines without `field-sizing: content` (which the band relies on to hug the
       // name): without it an input ignores its value and renders at a fixed ~20-character default.
@@ -54,8 +75,18 @@ function SectionNameGridCell({
   rowData,
   columnData,
   disabled,
+  focus,
+  stopEditing,
 }: CellProps<KosztorysV2RowT, SectionNameCellDataT>) {
-  return <SectionNameCell rowData={rowData} onRename={columnData.onRename} disabled={disabled} />
+  return (
+    <SectionNameCell
+      rowData={rowData}
+      onRename={columnData.onRename}
+      disabled={disabled}
+      focus={focus}
+      stopEditing={stopEditing}
+    />
+  )
 }
 
 export function sectionNameColumn(
@@ -66,8 +97,10 @@ export function sectionNameColumn(
     id: 'sectionName',
     title: titleNode,
     keepFocus: true,
-    // Named so the section footer can drop its vertical rule (globals.css) — dsg has no colspan.
-    cellClassName: 'kosztorys-section-name-cell',
+    cellClassName: wrapColumnClass('sectionName'),
+    // The header too: it is the node the width measurement queries, and a column nothing measures
+    // never grows a row.
+    headerClassName: wrapColumnClass('sectionName'),
     columnData: { onRename },
     component: SectionNameGridCell,
     copyValue: ({ rowData }) => rowData.sectionName ?? '',

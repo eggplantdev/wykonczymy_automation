@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { investmentAction } from '@/lib/actions/investment-action'
 import { mirrorWorkshopPreset } from '@/lib/actions/mirror-workshop-preset'
 import { ownerOnlyAction } from '@/lib/actions/owner-only-action'
+import { resolveWorkshopInvestment } from '@/lib/actions/provision-workshop'
 import { protectedAction, validateAction } from '@/lib/actions/run-action'
 import { revalidateCollections } from '@/lib/cache/revalidate'
 import { KOSZTORYS_TREE_TAGS } from '@/lib/cache/tags'
@@ -15,15 +16,8 @@ import {
   insertPreset,
   renamePreset,
   upsertPresetByName,
-  type PresetMetaT,
-  type PresetSectionMetaT,
 } from '@/lib/db/presets'
-import { getPresets, getPresetSections } from '@/lib/queries/presets'
-import {
-  getWorkshop,
-  resolveWorkshopInvestment,
-  setWorkshopPreset,
-} from '@/lib/db/workshop-investment'
+import { getWorkshop, setWorkshopPreset } from '@/lib/db/workshop-investment'
 import {
   appendPresetSections,
   type AppendedSliceT,
@@ -227,24 +221,6 @@ export async function flushWorkshopPresetAction(presetId: number): Promise<Actio
       force: true,
     })
     return { success: true }
-  })
-}
-
-// Preset metadata for the save/seed pickers — the client-side entry point (fetch-on-open) into the
-// same cached read the create-investment page uses server-side, so all pickers share one cache entry.
-export async function listPresetsAction(): Promise<ActionResultT<PresetMetaT[]>> {
-  return protectedAction('listPresetsAction', async () => {
-    const data = await getPresets()
-    return { success: true, data }
-  })
-}
-
-// Section-granular metadata backing the „Dodaj sekcję z szablonu" picker (fetch-on-open). Slim metas
-// only — the jsonb payloads never reach the client; the append action re-resolves them server-side.
-export async function listPresetSectionsAction(): Promise<ActionResultT<PresetSectionMetaT[]>> {
-  return protectedAction('listPresetSectionsAction', async () => {
-    const data = await getPresetSections()
-    return { success: true, data }
   })
 }
 

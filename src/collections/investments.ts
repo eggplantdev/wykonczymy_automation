@@ -14,7 +14,7 @@ const STATUS_OPTIONS = [
   { label: { en: 'Active', pl: 'Aktywna' }, value: 'active' },
   { label: { en: 'Completed', pl: 'Zakończona' }, value: 'completed' },
   // Never picked by hand — resolveWorkshopInvestment is the only writer
-  // (src/lib/db/workshop-investment.ts); declared so /admin and generate:types know the value exists.
+  // (src/lib/actions/provision-workshop.ts); declared so generate:types knows the value exists.
   { label: { en: 'Template', pl: 'Szablon' }, value: 'szablon' },
 ] as const
 

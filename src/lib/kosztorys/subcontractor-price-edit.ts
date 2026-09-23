@@ -43,9 +43,11 @@ export function subcontractorPolicy<RowT extends ViewPricingT>(
  * Switching „Źródło".
  *
  * „kwota stała" is seeded with the price the row already SHOWS, so the switch is what it claims to be
- * — a change of source, not of price — which is also what makes it safe: whatever passed the guard
- * before still passes after. „auto" means „whatever the investment says", so it drops the row's own
- * number and the price follows the global mnożnik.
+ * — a change of source, not of price. It can still turn the cell red without moving a liczba: the
+ * ceiling judges a kwota stała only, so a row sitting at 90% in „auto" is silent until the switch
+ * makes the same number the row's own. That is the verdict arriving, not the price changing — the
+ * mnożnik was over the sufit all along and said so in its own field. „auto" means „whatever the
+ * investment says", so it drops the row's own number and the price follows the global mnożnik.
  */
 export function modeChange<RowT extends ViewPricingT>(
   rowData: RowT,

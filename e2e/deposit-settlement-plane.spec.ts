@@ -1,16 +1,10 @@
 import { test, expect, type Locator, type Page } from '@playwright/test'
 import { formatNet } from '@/lib/kosztorys/format'
-import {
-  ensureSettlementMode,
-  EXPENSE_REGISTER,
-  openPanelView,
-  pickComboOption,
-  refreshReferenceData,
-  runSeedScript,
-  settleWrite,
-  uniqueAmount,
-  waitForHydration,
-} from './helpers'
+import { refreshReferenceData, runSeedScript } from './seeds'
+import { pickComboOption, uniqueAmount } from './support/ui'
+import { settleWrite, waitForHydration } from './support/wait'
+import { EXPENSE_REGISTER } from './drivers/expenses'
+import { ensureSettlementMode, openPanelView } from './drivers/settlement'
 
 // EX-723 — a wpłata booked on the plane the investment does not settle on.
 //

@@ -17,7 +17,7 @@ vi.mock('@/lib/auth/require-auth', () => ({
     user: { id: authState.userId, email: 'o@t.com', name: 'Owner', role: 'OWNER' },
   })),
 }))
-vi.mock('@/lib/cache/revalidate', () => ({ revalidateCollections: vi.fn() }))
+vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const { createInspectionAction } = await import('@/lib/actions/fleet')
 

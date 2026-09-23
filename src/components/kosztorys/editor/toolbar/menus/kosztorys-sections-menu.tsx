@@ -4,8 +4,9 @@ import { Rows3 } from 'lucide-react'
 import { TOOLBAR_FILTER_TRIGGER_CLASS } from '@/components/filters/filter-trigger-button'
 import { FilterMultiSelect, FILTER_NONE } from '@/components/filters/filter-multi-select'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
-import { useKosztorysFilterMenu } from '@/components/kosztorys/editor/toolbar/menus/use-kosztorys-filter-menu'
-import { liftsToSections } from '@/lib/kosztorys/row-conditions/queries'
+import { useFilterResetAction } from '@/components/kosztorys/editor/toolbar/menus/use-filter-reset-action'
+import { isGlobalDiscountActive } from '@/lib/kosztorys/calc'
+import { liftsToSections, offeredFilterConditions } from '@/lib/kosztorys/row-conditions/queries'
 
 // Reuses the transfers FilterMultiSelect, whose URL encoding is
 // [] = all / [FILTER_NONE] = none / [ids] = those — bridged here to collapsedSectionIds.
@@ -16,8 +17,10 @@ export function KosztorysSectionsMenu() {
     storedCollapsedSectionIds,
     setCollapsedSectionIds,
     foldableSectionIds,
+    engagedConditionIds,
+    globalDiscount,
   } = useKosztorysEditorContext()
-  const { filters, resetAction } = useKosztorysFilterMenu()
+  const resetAction = useFilterResetAction()
 
   const options = subtotals.map((s) => ({ value: String(s.sectionId), label: s.sectionName }))
 
@@ -38,7 +41,13 @@ export function KosztorysSectionsMenu() {
     )
   }
 
-  const sectionToggles = filters
+  // The same offered set the „Filtry" menu lists, read straight from the registry rather than through
+  // that menu's hook: this one applies its own threshold („lifts at least one sekcja"), which is a
+  // different question from the pozycja counts the rows over there are filtered by.
+  const sectionToggles = offeredFilterConditions(
+    engagedConditionIds,
+    isGlobalDiscountActive(globalDiscount),
+  )
     .filter(liftsToSections)
     .map((condition) => ({
       condition,

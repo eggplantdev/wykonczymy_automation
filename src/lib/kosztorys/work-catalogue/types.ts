@@ -138,3 +138,5 @@ export type AppendedCatalogueSliceT = {
   section: KosztorysSectionT & { items: KosztorysItemT[] }
   warnings: string[]
 }
+
+export type NewSectionCatalogueSliceT = AppendedCatalogueSliceT & { createdSection: boolean }

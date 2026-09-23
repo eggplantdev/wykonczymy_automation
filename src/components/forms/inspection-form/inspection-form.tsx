@@ -16,7 +16,7 @@ import {
   type InspectionTypeT,
 } from '@/lib/fleet/inspection-types'
 import { useFilePickIngest } from '@/components/forms/hooks/use-file-pick-ingest'
-import { submitWithInvoicePages } from '@/lib/invoices/submit-with-invoice-pages'
+import { submitWithUploads } from '@/lib/media/submit-with-uploads'
 import { formatKm } from '@/lib/utils/format-distance'
 import { useInspectionFormStore } from '@/stores/form-stores'
 import { inspectionFormSchema, type InspectionFormValuesT } from './inspection-schema'
@@ -93,7 +93,7 @@ export function InspectionForm({
         return { success: false, error: 'Poczekaj na przetworzenie plików.' }
       }
 
-      return submitWithInvoicePages(files, (attachments) => action({ ...data, attachments }))
+      return submitWithUploads(files, (attachments) => action({ ...data, attachments }))
     },
     toData: (value) => ({
       vehicle: Number(value.vehicle),

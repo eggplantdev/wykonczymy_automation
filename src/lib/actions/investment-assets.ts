@@ -1,19 +1,21 @@
 'use server'
 
 import { protectedAction } from './run-action'
-import { appendUploadIds, setUploadField } from '@/lib/media/set-upload-field'
+import { investmentAssetTags } from '@/lib/cache/tags'
+import {
+  appendUploadIds,
+  investmentAssetsField,
+  setUploadField,
+} from '@/lib/media/set-upload-field'
 import type { ActionResultT } from '@/types/action'
-
-/**
- * A `completed` investment is deliberately NOT refused: the status lock freezes financial state,
- * and a photo of the site is documentation, not money. That is why this bypasses `investmentAction`.
- */
-const assetsOf = (investmentId: number) =>
-  ({ collection: 'investments', field: 'assets', id: investmentId }) as const
 
 /**
  * Takes the whole batch because `setUploadField` is a read-modify-write — one call per file would
  * race, and every file but the last would be lost.
+ *
+ * A `completed` investment is deliberately NOT refused: the status lock freezes financial state,
+ * and a photo of the site is documentation, not money. That is why this — and its sibling below —
+ * bypass `investmentAction`.
  */
 export async function addInvestmentAssetsAction(
   investmentId: number,
@@ -26,10 +28,11 @@ export async function addInvestmentAssetsAction(
       // read as "authorized" to the next caller.
       if (mediaIds.length === 0) return { success: true }
 
-      await setUploadField(payload, assetsOf(investmentId), appendUploadIds(mediaIds))
+      await setUploadField(payload, investmentAssetsField(investmentId), appendUploadIds(mediaIds))
       return { success: true }
     },
-    ['investments'],
+    undefined,
+    investmentAssetTags(investmentId),
   )
 }
 
@@ -37,10 +40,11 @@ export async function removeAllInvestmentAssetsAction(investmentId: number) {
   return protectedAction(
     'removeAllInvestmentAssetsAction',
     async ({ payload }) => {
-      await setUploadField(payload, assetsOf(investmentId), () => [])
+      await setUploadField(payload, investmentAssetsField(investmentId), () => [])
       return { success: true }
     },
-    ['investments'],
+    undefined,
+    investmentAssetTags(investmentId),
   )
 }
 
@@ -48,11 +52,12 @@ export async function removeInvestmentAssetAction(investmentId: number, mediaId:
   return protectedAction(
     'removeInvestmentAssetAction',
     async ({ payload }) => {
-      await setUploadField(payload, assetsOf(investmentId), (current) =>
+      await setUploadField(payload, investmentAssetsField(investmentId), (current) =>
         current.filter((id) => id !== mediaId),
       )
       return { success: true }
     },
-    ['investments'],
+    undefined,
+    investmentAssetTags(investmentId),
   )
 }
