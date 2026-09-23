@@ -118,7 +118,10 @@ describe('buildOfferPrintHtml — sumy przychodzą z edytora', () => {
   })
 
   it('pozycja pusta na obu osiach znika przy „ukryj puste", a suma się nie rusza', () => {
-    const withEmpty = [...rows, row({ id: 4, sectionId: 20, plannedQty: null, clientPrice: 0 })]
+    const withEmpty = [
+      ...rows,
+      row({ id: 4, sectionId: 20, plannedQty: undefined, clientPrice: 0 }),
+    ]
     const { totalNet } = editorTotals(withEmpty)
 
     const out = html(withEmpty)

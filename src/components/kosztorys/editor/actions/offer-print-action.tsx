@@ -68,7 +68,7 @@ export function GenerateOfferMenuItem() {
       }),
     )
 
-    function fill(config: ClientViewConfigT) {
+    const fill = (config: ClientViewConfigT) => {
       target.document.write(
         buildOfferPrintHtml({
           rows,

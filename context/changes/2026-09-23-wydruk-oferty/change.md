@@ -1,7 +1,7 @@
 ---
 change_id: wydruk-oferty
 title: Wydruk oferty z kosztorysu — PDF dla klienta
-status: implementing
+status: implemented
 created: 2026-09-23
 updated: 2026-09-23
 archived_at: null

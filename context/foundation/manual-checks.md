@@ -690,15 +690,15 @@ Licznik renderów czytaj z logu dev: `[PERF] buildKosztorysTree` (drzewo jest ni
 Account as the scope.` — to był zły argument `--scope`, nie brak dostępu. Właściwy scope to
       zespół projektu z `.vercel/project.json` (`orgId`), nie konto CLI:
 
-          ```bash
-          npx vercel logs https://<deployment>.vercel.app --scope=team_BWfyTqJnjIqZBkHwBL0elgS4
-          ```
+            ```bash
+            npx vercel logs https://<deployment>.vercel.app --scope=team_BWfyTqJnjIqZBkHwBL0elgS4
+            ```
 
-          Strumień oddaje runtime stdout pogrupowany per request, a `console.log` w `buildKosztorysTree`
-          (`src/lib/queries/kosztorys.ts:71`) nie jest bramkowany `NODE_ENV`, więc linia `[PERF]
-          buildKosztorysTree …` wychodzi tak samo z builda produkcyjnego na stagingu, jak z dev.
-          Właściwy box wyżej policzony tą drogą i odhaczony — jeden wpis na jeden upload.
-          **Test disposition:** no automated test — to obserwowalność (log count), nie asercja stanu.
+            Strumień oddaje runtime stdout pogrupowany per request, a `console.log` w `buildKosztorysTree`
+            (`src/lib/queries/kosztorys.ts:71`) nie jest bramkowany `NODE_ENV`, więc linia `[PERF]
+            buildKosztorysTree …` wychodzi tak samo z builda produkcyjnego na stagingu, jak z dev.
+            Właściwy box wyżej policzony tą drogą i odhaczony — jeden wpis na jeden upload.
+            **Test disposition:** no automated test — to obserwowalność (log count), nie asercja stanu.
 
 ## EX-820 — sufit stawki wykonawcy z „Problemów" do „Filtrów" (2026-09-22)
 
@@ -781,3 +781,21 @@ inwestorem i przenoszenie między cennikiem a rozpiską działają w przeglądar
 - [ ] „Porównaj z katalogiem" pokazuje rozjazd rodzaju nawet przy zgodnej kwocie (0,65 kontra 65 zł
       na cenie 100 zł)
 - [ ] Wzięcie „auto" z katalogu kasuje w rozpisce **oba** nadpisania (kwotę i mnożnik)
+
+## wydruk-oferty — Wydruk oferty z kosztorysu (2026-09-23)
+
+Utwardzenie spike'u: wydruk nie liczy już własnych sum (obie figury przychodzą z tych samych memo,
+z których żyje siatka), kolumny przechodzą przez sufit ujawniania podglądu klienta, papier pokazuje
+„Pozostało" i zawsze wariant OFERTA — niezależnie od trybu, w jakim inwestycja jest zostawiona.
+Układ wydruku został nietknięty: właściciel go zatwierdził. Automat zamyka sumy, sufit, strukturę
+tabeli i trzy ścieżki błędu pozycji menu; na żywo zostaje to, czego jsdom nie widzi — realne okno
+wydruku i zgodność liczb z podglądem klienta, kosztorys po kosztorysie.
+
+- [ ] „Razem — <sekcja>" na wydruku == wiersz sumy sekcji w podglądzie klienta
+- [ ] „Razem netto" na wydruku == „Razem" pod kolumną „Wartość netto przedmiar" w podglądzie klienta
+- [ ] Podgląd zostawiony w trybie ROZLICZENIE, a wydruk nadal daje dokument ofertowy z kolumnami
+      wariantu OFERTA
+- [ ] Odznaczenie „Pozostało" w ustawieniach podglądu zabiera kolumnę i z ekranu, i z wydruku —
+      a suma sekcji zostaje pod „Wartość netto przedmiar"
+- [ ] MANAGER (nie OWNER) — czy „Wygeneruj ofertę w PDF" ma być dla niego dostępne? Sąsiednie pozycje
+      menu są wygaszane przez `useMayServeTheClient()`, ta nie. **Pytanie do właściciela**, nie defekt.
