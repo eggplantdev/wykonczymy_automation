@@ -6,7 +6,7 @@ import { SummaryRow } from '@/components/kosztorys/summary/grid/summary-row'
 import { MARGIN_TABLE_COLS } from '@/components/kosztorys/summary/tabs/margin-table-cols'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Description } from '@/components/ui/description'
-import { PLANE_LABELS } from '@/lib/kosztorys/constants'
+import { PLANE_LABELS, RATE_LABELS } from '@/lib/kosztorys/constants'
 import type { MarginForecastT } from '@/lib/kosztorys/margin-forecast'
 import type { ToolPlaneT } from '@/lib/kosztorys/types'
 
@@ -35,7 +35,7 @@ export function MarginForecastTable({ forecast, plane, onPlaneChange }: PropsT) 
 
         <SummaryRow label="Wartość przedmiaru" line={faceValue(forecast.clientNet)} axis="net" />
         <SummaryRow
-          label={`Należne podwykonawcom (stawka ${PLANE_LABELS[plane].toLowerCase()})`}
+          label={`Należne wykonawcom — ${RATE_LABELS[plane].toLowerCase()}`}
           hint="Prognozowana kwota do zapłaty podwykonawcom."
           line={faceValue(-forecast.subcontractorNet)}
           axis="net"

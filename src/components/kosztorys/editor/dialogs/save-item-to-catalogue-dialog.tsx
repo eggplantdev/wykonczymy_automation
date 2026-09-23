@@ -5,6 +5,7 @@ import { CheckboxRow } from '@/components/ui/checkbox-row'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Description } from '@/components/ui/description'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
+import { PLANE_LABELS, RATE_LABELS } from '@/lib/kosztorys/constants'
 import { catalogueSavePreviewAction, saveItemToCatalogueAction } from '@/lib/actions/work-catalogue'
 import type { CatalogueSavePreviewT } from '@/lib/kosztorys/work-catalogue/types'
 import { formatPLN, formatPLNOrAuto } from '@/lib/utils/format-currency'
@@ -30,8 +31,8 @@ function PriceList({
 }) {
   const rows: [string, string, boolean][] = [
     ['Cena j.m.', formatPLNOrAuto(prices.clientPrice), true],
-    ['Stawka z narzędziami', formatPLNOrAuto(prices.wToolsRate), true],
-    ['Stawka bez narzędzi', formatPLNOrAuto(prices.ownToolsRate), true],
+    [RATE_LABELS.w_tools, formatPLNOrAuto(prices.wToolsRate), true],
+    [RATE_LABELS.own_tools, formatPLNOrAuto(prices.ownToolsRate), true],
     ...(category !== undefined
       ? ([['Kategoria', category || NO_CATEGORY, false]] as [string, string, boolean][])
       : []),
@@ -180,7 +181,7 @@ export function SaveItemToCatalogueDialog({
         <ConfirmDialog
           open={confirming}
           title={`Nadpisać „${existing.description}" w katalogu?`}
-          description={`Stare stawki przepadną — katalog nie trzyma historii. Cena j.m. ${formatPLN(existing.clientPrice)} → ${formatPLN(preview.candidate.clientPrice)}, stawka z narzędziami ${formatPLNOrAuto(existing.wToolsRate)} → ${formatPLNOrAuto(preview.candidate.wToolsRate)}, bez narzędzi ${formatPLNOrAuto(existing.ownToolsRate)} → ${formatPLNOrAuto(preview.candidate.ownToolsRate)}.${categoryDiffers && !keepCategory ? ` Kategoria w katalogu zmieni się z „${existing.category || NO_CATEGORY}" na „${preview.candidate.category || NO_CATEGORY}".` : ''} Kosztorysy, w których ta praca już siedzi, zostają bez zmian. Jeśli chcesz dodać osobną pozycję zamiast nadpisać tę — anuluj i zmień nazwę pracy w rozpisce.`}
+          description={`Stare stawki przepadną — katalog nie trzyma historii. Cena j.m. ${formatPLN(existing.clientPrice)} → ${formatPLN(preview.candidate.clientPrice)}, ${RATE_LABELS.w_tools.toLowerCase()} ${formatPLNOrAuto(existing.wToolsRate)} → ${formatPLNOrAuto(preview.candidate.wToolsRate)}, ${PLANE_LABELS.own_tools.toLowerCase()} ${formatPLNOrAuto(existing.ownToolsRate)} → ${formatPLNOrAuto(preview.candidate.ownToolsRate)}.${categoryDiffers && !keepCategory ? ` Kategoria w katalogu zmieni się z „${existing.category || NO_CATEGORY}" na „${preview.candidate.category || NO_CATEGORY}".` : ''} Kosztorysy, w których ta praca już siedzi, zostają bez zmian. Jeśli chcesz dodać osobną pozycję zamiast nadpisać tę — anuluj i zmień nazwę pracy w rozpisce.`}
           confirmLabel="Nadpisz"
           pending={saving}
           pendingLabel="Zapisuję…"

@@ -67,10 +67,10 @@ describe('subcontractor rate columns, both planes', () => {
     expect(new Set(entries.map((item) => item.id)).size).toBe(planeIds.length)
     expect(entries.map((item) => item.label)).toEqual(
       expect.arrayContaining([
-        'Cena j.m. netto — z narzędziami',
-        'Cena j.m. netto — bez narzędzi',
-        'Źródło ceny wykonawcy — z narzędziami',
-        'Źródło ceny wykonawcy — bez narzędzi',
+        'Cena j.m. netto — z narzędziami (podwykonawca)',
+        'Cena j.m. netto — bez narzędzi (pracownik)',
+        'Źródło ceny wykonawcy — z narzędziami (podwykonawca)',
+        'Źródło ceny wykonawcy — bez narzędzi (pracownik)',
       ]),
     )
   })

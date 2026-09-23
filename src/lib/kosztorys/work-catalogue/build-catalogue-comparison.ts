@@ -1,4 +1,5 @@
 import { asViewPricing, overrideValueFor, subcontractorPrice } from '@/lib/kosztorys/calc'
+import { RATE_LABELS } from '@/lib/kosztorys/constants'
 import type { KosztorysItemT, ToolPlaneT, ViewPricingT } from '@/lib/kosztorys/types'
 import { foldDescription } from '@/lib/kosztorys/sheet-import/item-key'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
@@ -167,8 +168,8 @@ export function buildCatalogueComparison(
     const pricing = asPricing(item, settings)
     const figures = [
       figure('Cena j.m.', 'clientPrice', item.clientPrice, entry.clientPrice, false, false),
-      rateFigure(pricing, entry, 'w_tools', 'Stawka z narzędziami', settings.wToolsCoeff),
-      rateFigure(pricing, entry, 'own_tools', 'Stawka bez narzędzi', settings.ownToolsCoeff),
+      rateFigure(pricing, entry, 'w_tools', RATE_LABELS.w_tools, settings.wToolsCoeff),
+      rateFigure(pricing, entry, 'own_tools', RATE_LABELS.own_tools, settings.ownToolsCoeff),
     ].filter((diff) => diff !== null)
 
     if (figures.length === 0) {

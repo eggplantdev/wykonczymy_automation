@@ -64,7 +64,7 @@ export function columnLabelForView(id: string, view: PriceViewT): string {
     return `Suma etapy ${PLANE_LABELS[view].toLowerCase()} ${id === 'net' ? 'netto' : 'brutto'}`
   }
   if (id === 'stageQtySum' && view !== 'client')
-    return `Pomiar (suma etapów — ${PLANE_LABELS[view].toLowerCase()})`
+    return `Pomiar — suma etapów ${PLANE_LABELS[view].toLowerCase()}`
   return label
 }
 

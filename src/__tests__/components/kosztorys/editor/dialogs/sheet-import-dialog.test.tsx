@@ -47,7 +47,7 @@ const PREVIEW: ImportPreviewT = {
 }
 
 const NO_PLANE_LABEL = 'Nie ustawiaj — wybiorę w kosztorysie'
-const W_TOOLS_LABEL = 'Wszystkie z narzędziami'
+const W_TOOLS_LABEL = 'Wszystkie z narzędziami (podwykonawca)'
 
 // Stands in for the editor, which mounts this dialog ONCE for both of its triggers — the whole risk
 // is that closing it never unmounts it, so the pick has nowhere to go on its own.

@@ -92,7 +92,9 @@ describe('buildCatalogueComparison', () => {
 
     expect(result.matching).toBe(0)
     expect(result.diffs).toHaveLength(1)
-    expect(result.diffs[0].figures.map((figure) => figure.label)).toEqual(['Stawka z narzędziami'])
+    expect(result.diffs[0].figures.map((figure) => figure.label)).toEqual([
+      'Stawka z narzędziami (podwykonawca)',
+    ])
     expect(result.diffs[0].figures[0].kosztorys).toBeCloseTo(65, 6)
     expect(result.diffs[0].figures[0].delta).toBeCloseTo(-15, 6)
   })
@@ -137,7 +139,9 @@ describe('buildCatalogueComparison', () => {
       SETTINGS,
     )
 
-    const wTools = result.diffs[0].figures.find((f) => f.label === 'Stawka z narzędziami')
+    const wTools = result.diffs[0].figures.find(
+      (f) => f.label === 'Stawka z narzędziami (podwykonawca)',
+    )
     expect(wTools?.catalogue).toBeCloseTo(65, 6)
     expect(wTools?.kosztorys).toBeCloseTo(130, 6)
   })
@@ -151,7 +155,9 @@ describe('buildCatalogueComparison', () => {
       SETTINGS,
     )
 
-    const wTools = result.diffs[0].figures.find((f) => f.label === 'Stawka z narzędziami')
+    const wTools = result.diffs[0].figures.find(
+      (f) => f.label === 'Stawka z narzędziami (podwykonawca)',
+    )
     expect(wTools?.delta).toBeCloseTo(0, 6)
     expect(wTools?.kosztorysIsAuto).toBe(false)
     expect(wTools?.catalogueIsAuto).toBe(true)
@@ -164,7 +170,9 @@ describe('buildCatalogueComparison', () => {
       SETTINGS,
     )
 
-    const wTools = result.diffs[0].figures.find((f) => f.label === 'Stawka z narzędziami')
+    const wTools = result.diffs[0].figures.find(
+      (f) => f.label === 'Stawka z narzędziami (podwykonawca)',
+    )
     expect(wTools?.kosztorysIsAuto).toBe(true)
     expect(wTools?.catalogueIsAuto).toBe(false)
   })

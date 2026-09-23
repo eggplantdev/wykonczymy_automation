@@ -30,8 +30,18 @@ const DIFF: CataloguePriceDiffT = {
   clientPrice: 50,
   figures: [
     figure({}),
-    figure({ label: 'Stawka z narzędziami', field: 'wToolsRate', kosztorys: 30, catalogue: 26 }),
-    figure({ label: 'Stawka bez narzędzi', field: 'ownToolsRate', kosztorys: 20, catalogue: 18 }),
+    figure({
+      label: 'Stawka z narzędziami (podwykonawca)',
+      field: 'wToolsRate',
+      kosztorys: 30,
+      catalogue: 26,
+    }),
+    figure({
+      label: 'Stawka bez narzędzi (pracownik)',
+      field: 'ownToolsRate',
+      kosztorys: 20,
+      catalogue: 18,
+    }),
   ],
   maxDelta: 5,
 }
@@ -65,7 +75,11 @@ describe('CatalogueDiffTable — zaznaczanie', () => {
 
     await userEvent.click(screen.getByRole('checkbox', { name: 'Gładzie gipsowe' }))
 
-    for (const label of ['Cena j.m.', 'Stawka z narzędziami', 'Stawka bez narzędzi'])
+    for (const label of [
+      'Cena j.m.',
+      'Stawka z narzędziami (podwykonawca)',
+      'Stawka bez narzędzi (pracownik)',
+    ])
       expect(screen.getByRole('checkbox', { name: label })).toBeChecked()
     expect(applyButton()).toHaveTextContent('Aktualizuj kosztorys (3)')
   })
@@ -97,7 +111,9 @@ describe('CatalogueDiffTable — zaznaczanie', () => {
   it('oddaje zaznaczenie po pracy i po nazwie liczby, nie po etykiecie z raportu', async () => {
     const onApply = renderTable([DIFF])
 
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Stawka z narzędziami' }))
+    await userEvent.click(
+      screen.getByRole('checkbox', { name: 'Stawka z narzędziami (podwykonawca)' }),
+    )
     await userEvent.click(applyButton())
 
     expect(onApply).toHaveBeenCalledWith([{ itemId: 11, fields: ['wToolsRate'] }])
@@ -125,7 +141,12 @@ describe('CatalogueDiffTable — sufit 65 %', () => {
     unit: 'm2',
     clientPrice: 100,
     figures: [
-      figure({ label: 'Stawka z narzędziami', field: 'wToolsRate', kosztorys: 50, catalogue: 80 }),
+      figure({
+        label: 'Stawka z narzędziami (podwykonawca)',
+        field: 'wToolsRate',
+        kosztorys: 50,
+        catalogue: 80,
+      }),
     ],
     maxDelta: 30,
   }
@@ -135,10 +156,14 @@ describe('CatalogueDiffTable — sufit 65 %', () => {
 
     expect(screen.queryByText(/przekracza/)).not.toBeInTheDocument()
 
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Stawka z narzędziami' }))
+    await userEvent.click(
+      screen.getByRole('checkbox', { name: 'Stawka z narzędziami (podwykonawca)' }),
+    )
     expect(screen.getByText(/przekracza/)).toBeInTheDocument()
 
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Stawka z narzędziami' }))
+    await userEvent.click(
+      screen.getByRole('checkbox', { name: 'Stawka z narzędziami (podwykonawca)' }),
+    )
     expect(screen.queryByText(/przekracza/)).not.toBeInTheDocument()
   })
 

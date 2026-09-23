@@ -34,7 +34,7 @@ describe('the „Problemy" list', () => {
   it('leaves the view to the heading and keeps the row short', () => {
     const problemToggles = model({ 'negative-rate-w-tools': 1 })
     expect(problemToggles[0].label).toBe('Pozycje z ujemną stawką wykonawcy (1)')
-    expect(problemToggles[0].groupLabel).toBe('Stawki wykonawców — z narzędziami')
+    expect(problemToggles[0].groupLabel).toBe('Stawki wykonawców — z narzędziami (podwykonawca)')
   })
 
   // The cause is a fact about the whole investment, so the row keeps the imperative opening and then
@@ -84,7 +84,7 @@ describe('the „Problemy" list', () => {
     expect(problemToggles.map((toggle) => toggle.groupLabel)).toEqual([
       'Ceny dla klienta',
       'Ceny dla klienta',
-      'Stawki wykonawców — z narzędziami',
+      'Stawki wykonawców — z narzędziami (podwykonawca)',
       'Przedmiar i etapy',
       'Katalog prac',
     ])

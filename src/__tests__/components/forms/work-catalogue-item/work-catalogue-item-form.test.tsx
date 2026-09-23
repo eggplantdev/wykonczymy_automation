@@ -22,8 +22,8 @@ const ITEM: WorkCatalogueItemFormValuesT = {
   ownToolsRate: '',
 }
 
-const W_TOOLS_RATE = 'Stawka z narzędziami (PLN)'
-const W_TOOLS_AUTO = 'Stawka z narzędziami: auto — ze współczynnika inwestycji'
+const W_TOOLS_RATE = 'Stawka z narzędziami (podwykonawca) (PLN)'
+const W_TOOLS_AUTO = 'Stawka z narzędziami (podwykonawca): auto — ze współczynnika inwestycji'
 
 function renderForm() {
   const action = vi.fn(async (_values: WorkCatalogueItemDataT) => ({
@@ -61,7 +61,9 @@ describe('WorkCatalogueItemForm — „auto" clears the kwota it hides', () => {
 
     await user.clear(screen.getByLabelText(W_TOOLS_RATE))
     await save()
-    expect(await screen.findByText(/Stawka z narzędziami jest wymagana/)).toBeInTheDocument()
+    expect(
+      await screen.findByText(/Stawka z narzędziami \(podwykonawca\) jest wymagana/),
+    ).toBeInTheDocument()
 
     await user.click(screen.getByLabelText(W_TOOLS_AUTO))
     await save()
@@ -87,7 +89,9 @@ describe('WorkCatalogueItemForm — „auto" clears the kwota it hides', () => {
     await user.clear(screen.getByLabelText(W_TOOLS_RATE))
     await save()
 
-    expect(await screen.findByText(/Stawka z narzędziami jest wymagana/)).toBeInTheDocument()
+    expect(
+      await screen.findByText(/Stawka z narzędziami \(podwykonawca\) jest wymagana/),
+    ).toBeInTheDocument()
     expect(action).not.toHaveBeenCalled()
   })
 })

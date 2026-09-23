@@ -64,7 +64,9 @@ describe('workCatalogueItemFormSchema', () => {
   })
 
   it('separates garbage from a missing value', () => {
-    expect(issueFor('wToolsRate', '1e')?.message).toBe('Stawka z narzędziami musi być liczbą')
+    expect(issueFor('wToolsRate', '1e')?.message).toBe(
+      'Stawka z narzędziami (podwykonawca) musi być liczbą',
+    )
   })
 
   it('refuses a negative figure', () => {
@@ -78,11 +80,13 @@ describe('workCatalogueItemFormSchema', () => {
   it('„auto" na jednym planie nie zdejmuje wymogu z drugiego', () => {
     const issues = issuesFor({ wToolsAuto: true, wToolsRate: '', ownToolsRate: '' })
     expect(issues.map((issue) => issue.path[0])).toEqual(['ownToolsRate'])
-    expect(issues[0].message).toBe('Stawka bez narzędzi jest wymagana')
+    expect(issues[0].message).toBe('Stawka bez narzędzi (pracownik) jest wymagana')
   })
 
   it('puste pole przy odznaczonym „auto" nadal jest błędem', () => {
-    expect(issueFor('wToolsRate', '')?.message).toBe('Stawka z narzędziami jest wymagana')
+    expect(issueFor('wToolsRate', '')?.message).toBe(
+      'Stawka z narzędziami (podwykonawca) jest wymagana',
+    )
   })
 
   it('accepts a comma as the decimal separator', () => {
@@ -102,7 +106,9 @@ describe('workCatalogueItemSchema', () => {
   it('rejects a negative stawka', () => {
     const result = workCatalogueItemSchema.safeParse(values({ wToolsRate: -1 }))
     expect(result.success).toBe(false)
-    expect(result.error?.issues[0]?.message).toBe('Stawka z narzędziami nie może być ujemna')
+    expect(result.error?.issues[0]?.message).toBe(
+      'Stawka z narzędziami (podwykonawca) nie może być ujemna',
+    )
   })
 
   it('accepts a zero stawka — a praca the company does not subcontract', () => {

@@ -11,8 +11,13 @@ export const OVERRIDE_FIELDS = {
 export const TOOL_PLANES = ['w_tools', 'own_tools'] as const satisfies readonly ToolPlaneT[]
 
 export const PLANE_LABELS: Record<ToolPlaneT, string> = {
-  w_tools: 'Z narzędziami',
-  own_tools: 'Bez narzędzi',
+  w_tools: 'Z narzędziami (podwykonawca)',
+  own_tools: 'Bez narzędzi (pracownik)',
+}
+
+export const RATE_LABELS: Record<ToolPlaneT, string> = {
+  w_tools: `Stawka ${PLANE_LABELS.w_tools.toLowerCase()}`,
+  own_tools: `Stawka ${PLANE_LABELS.own_tools.toLowerCase()}`,
 }
 
 // The tail a row-condition label carries when the figure it judges only exists in one view. One

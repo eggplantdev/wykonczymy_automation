@@ -10,6 +10,7 @@ import {
   createCatalogueItemAction,
   updateCatalogueItemAction,
 } from '@/lib/actions/work-catalogue'
+import { PLANE_LABELS } from '@/lib/kosztorys/constants'
 import type { CatalogueSavePreviewT } from '@/lib/kosztorys/work-catalogue/types'
 import type { WorkCatalogueItemFormValuesT } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
 import { formatPLNOrAuto } from '@/lib/utils/format-currency'
@@ -105,9 +106,9 @@ export function CatalogueItemFromKosztorysDialog({
             replaced. */}
         {existing && (
           <Description size="xs">
-            W katalogu teraz: cena j.m. {formatPLNOrAuto(existing.clientPrice)}, z narzędziami{' '}
-            {formatPLNOrAuto(existing.wToolsRate)}, bez narzędzi{' '}
-            {formatPLNOrAuto(existing.ownToolsRate)}.
+            W katalogu teraz: cena j.m. {formatPLNOrAuto(existing.clientPrice)},{' '}
+            {PLANE_LABELS.w_tools.toLowerCase()} {formatPLNOrAuto(existing.wToolsRate)},{' '}
+            {PLANE_LABELS.own_tools.toLowerCase()} {formatPLNOrAuto(existing.ownToolsRate)}.
           </Description>
         )}
         {/* `DialogContent` is a `gap-4` column, so this only tops the gap up to the 24px every other

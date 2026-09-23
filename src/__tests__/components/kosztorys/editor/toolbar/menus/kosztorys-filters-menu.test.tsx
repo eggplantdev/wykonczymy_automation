@@ -108,7 +108,7 @@ describe('KosztorysFiltersMenu — nagłówki kategorii', () => {
     await openMenu()
 
     expect(screen.getByRole('group', { name: 'Źródło stawki wykonawcy' })).toHaveTextContent(
-      'Pozycje ze stawką wykonawcy z kwoty stałej w widoku z narzędziami (2)',
+      'Pozycje ze stawką wykonawcy z kwoty stałej w widoku z narzędziami (podwykonawca) (2)',
     )
     expect(screen.getByRole('group', { name: 'Przedmiar i wykonana praca' })).toBeInTheDocument()
     expect(screen.getByRole('group', { name: 'Komentarz' })).toBeInTheDocument()

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { RATE_LABELS } from '@/lib/kosztorys/constants'
 import { parseDecimalInput } from '@/lib/utils/parse-decimal-input'
 
 // A blank „Cena j.m." must be refused HERE rather than by the domain schema below: `Number('')` is 0,
@@ -15,8 +16,8 @@ const moneyIssue = (label: string, value: string): string | null => {
 }
 
 const RATE_PLANES = [
-  { rate: 'wToolsRate', auto: 'wToolsAuto', label: 'Stawka z narzędziami' },
-  { rate: 'ownToolsRate', auto: 'ownToolsAuto', label: 'Stawka bez narzędzi' },
+  { rate: 'wToolsRate', auto: 'wToolsAuto', label: RATE_LABELS.w_tools },
+  { rate: 'ownToolsRate', auto: 'ownToolsAuto', label: RATE_LABELS.own_tools },
 ] as const
 
 // Form-input layer: every field is a string, as the HTML controls produce them.
@@ -60,8 +61,8 @@ export const workCatalogueItemSchema = baseSchema
     category: z.string().default(''),
     clientPrice: money('Cena j.m.'),
     // A blank field is NOT „auto" — the form layer above still refuses it.
-    wToolsRate: money('Stawka z narzędziami').nullable(),
-    ownToolsRate: money('Stawka bez narzędzi').nullable(),
+    wToolsRate: money(RATE_LABELS.w_tools).nullable(),
+    ownToolsRate: money(RATE_LABELS.own_tools).nullable(),
   })
 
 export type WorkCatalogueItemDataT = z.infer<typeof workCatalogueItemSchema>

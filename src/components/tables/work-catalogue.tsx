@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPercent, formatPercentPrecise } from '@/lib/kosztorys/format'
 import { MAX_CLIENT_SHARE, isOverCeiling } from '@/lib/kosztorys/subcontractor-price-guard'
-import { FLAGGED_TONE } from '@/lib/kosztorys/constants'
+import { FLAGGED_TONE, PLANE_LABELS, RATE_LABELS } from '@/lib/kosztorys/constants'
 import { compareDescriptions } from '@/lib/kosztorys/work-catalogue/compare-descriptions'
 import { CatalogueRowActions } from '@/components/work-catalogue/catalogue-row-actions'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
@@ -92,8 +92,8 @@ const clientPriceColumn = col.accessor('clientPrice', {
 
 const wToolsRateColumn = col.accessor('wToolsRate', {
   id: 'wToolsRate',
-  header: twoLines('Stawka z', 'narzędziami'),
-  meta: { label: 'Stawka z narzędziami' },
+  header: twoLines('Stawka z narzędziami', '(podwykonawca)'),
+  meta: { label: RATE_LABELS.w_tools },
   cell: (info) => money(info.getValue()),
 })
 
@@ -110,16 +110,24 @@ const shareColumn = (field: 'wToolsRate' | 'ownToolsRate', id: string, tools: st
       share(info.getValue(), isOverCeiling(info.row.original[field], info.row.original)),
   })
 
-const wToolsShareColumn = shareColumn('wToolsRate', 'wToolsShare', 'z narzędziami')
+const wToolsShareColumn = shareColumn(
+  'wToolsRate',
+  'wToolsShare',
+  PLANE_LABELS.w_tools.toLowerCase(),
+)
 
 const ownToolsRateColumn = col.accessor('ownToolsRate', {
   id: 'ownToolsRate',
-  header: twoLines('Stawka bez', 'narzędzi'),
-  meta: { label: 'Stawka bez narzędzi' },
+  header: twoLines('Stawka bez narzędzi', '(pracownik)'),
+  meta: { label: RATE_LABELS.own_tools },
   cell: (info) => money(info.getValue()),
 })
 
-const ownToolsShareColumn = shareColumn('ownToolsRate', 'ownToolsShare', 'bez narzędzi')
+const ownToolsShareColumn = shareColumn(
+  'ownToolsRate',
+  'ownToolsShare',
+  PLANE_LABELS.own_tools.toLowerCase(),
+)
 
 // „Dodaj pracę z katalogu" reads the cennik to pick from it, never to tune it, so the udział columns
 // and „Akcje" stay behind on /katalog-prac. They sit mid-order, hence assembled rather than sliced.

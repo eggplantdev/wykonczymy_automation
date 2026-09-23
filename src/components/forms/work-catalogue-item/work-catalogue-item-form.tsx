@@ -8,7 +8,7 @@ import type { FormWithFieldT } from '@/components/forms/hooks/form-hooks'
 import FormBase from '@/components/forms/form-components/form-base'
 import { FormShell } from '@/components/forms/form-components/form-shell'
 import FormFooter from '@/components/forms/form-components/form-footer'
-import { UNIT_SUGGESTIONS } from '@/lib/kosztorys/constants'
+import { RATE_LABELS, UNIT_SUGGESTIONS } from '@/lib/kosztorys/constants'
 import { useWorkCatalogueItemFormStore } from '@/stores/form-stores'
 import {
   toMoney,
@@ -129,8 +129,8 @@ export function WorkCatalogueItemForm({
 type RateFieldNameT = `${'wTools' | 'ownTools'}${'Auto' | 'Rate'}`
 
 const PLANE_LABEL = {
-  wTools: 'Stawka z narzędziami',
-  ownTools: 'Stawka bez narzędzi',
+  wTools: RATE_LABELS.w_tools,
+  ownTools: RATE_LABELS.own_tools,
 } as const
 
 // The przełącznik carries the plane's own name: with both ticked the two kwota inputs are gone, so

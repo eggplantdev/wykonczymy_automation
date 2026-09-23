@@ -160,15 +160,15 @@ describe('Podsumowanie podwykonawców — host kompaktowy', () => {
     expect(screen.getByText('Zaliczki (wypłaty)')).toBeInTheDocument()
     expect(screen.getByText('Pozostało do wypłaty')).toBeInTheDocument()
     expect(screen.queryByText('Podsumowanie pracowników')).toBeNull()
-    expect(screen.queryByText('Z narzędziami')).toBeNull()
+    expect(screen.queryByText('Z narzędziami (podwykonawca)')).toBeNull()
     expect(screen.queryByText('Lista wpłat')).toBeNull()
   })
 
   it('pokazuje rozbicie na płaszczyzny w pełnym widoku', () => {
     renderBlock()
 
-    expect(screen.getByText('Z narzędziami')).toBeInTheDocument()
-    expect(screen.getByText('Bez narzędzi')).toBeInTheDocument()
+    expect(screen.getByText('Z narzędziami (podwykonawca)')).toBeInTheDocument()
+    expect(screen.getByText('Bez narzędzi (pracownik)')).toBeInTheDocument()
   })
 })
 

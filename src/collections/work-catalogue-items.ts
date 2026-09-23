@@ -54,13 +54,13 @@ export const WorkCatalogueItems: CollectionConfig = {
       name: 'wToolsRate',
       type: 'number',
       min: 0,
-      label: { en: 'Rate with tools', pl: 'Stawka z narzędziami' },
+      label: { en: 'Rate with tools', pl: 'Stawka z narzędziami (podwykonawca)' },
     },
     {
       name: 'ownToolsRate',
       type: 'number',
       min: 0,
-      label: { en: 'Rate without tools', pl: 'Stawka bez narzędzi' },
+      label: { en: 'Rate without tools', pl: 'Stawka bez narzędzi (pracownik)' },
     },
     {
       // Derived from opis + j.m. by `catalogueKey`, never typed. Hidden because a hand-edited key
