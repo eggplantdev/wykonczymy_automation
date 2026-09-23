@@ -742,7 +742,7 @@ i „auto" są nietknięte, bo mieszkają w kolumnach, których ta zmiana nie ru
 #### Automated
 
 - [x] 1.1 Nowy spec wyceny przechodzi (trzy źródła, dwie płaszczyzny, przypadki brzegowe) — 62e21a93
-- [ ] 1.2 `pnpm typecheck` — bramka całego drzewa, sprawdzana raz na koniec przebiegu
+- [x] 1.2 `pnpm typecheck` — bramka całego drzewa, sprawdzana raz na koniec przebiegu
 
 ### Phase 2: Atomowa ścieżka zapisu
 
@@ -758,7 +758,7 @@ i „auto" są nietknięte, bo mieszkają w kolumnach, których ta zmiana nie ru
 
 - [x] 3.1 Specy komórek przechodzą — 39d53318
 - [x] 3.2 Spec sortowania przechodzi — 39d53318
-- [ ] 3.3 `pnpm typecheck` — bramka całego drzewa, sprawdzana raz na koniec przebiegu
+- [x] 3.3 `pnpm typecheck` — bramka całego drzewa, sprawdzana raz na koniec przebiegu
 
 ### Phase 4: Sufit, filtry, diagnostyka
 
@@ -771,13 +771,13 @@ i „auto" są nietknięte, bo mieszkają w kolumnach, których ta zmiana nie ru
 
 #### Automated
 
-- [x] 5.1 Specy logiki katalogu przechodzą
-- [x] 5.2 Specy akcji katalogu przechodzą
-- [x] 5.3 Specy formularza i tabeli różnic przechodzą
+- [x] 5.1 Specy logiki katalogu przechodzą — 7effc630
+- [x] 5.2 Specy akcji katalogu przechodzą — 7effc630
+- [x] 5.3 Specy formularza i tabeli różnic przechodzą — 7effc630
 
 ### Phase 6: Domknięcie
 
 #### Automated
 
-- [ ] 6.1 `pnpm test:parity` przechodzi na zregenerowanym fixture
-- [ ] 6.2 Bramka całego drzewa przechodzi
+- [x] 6.1 `pnpm test:parity` przechodzi na zregenerowanym fixture
+- [x] 6.2 Bramka całego drzewa przechodzi

@@ -784,28 +784,44 @@ się w widoku klienta, który pokazuje wszystkie etapy, więc zwężenie kolumn 
 sumują się** do całości pracy wykonanej — brakującą kwotę zgłasza tylko plakietka ostrzeżenia. Lepsza
 brakująca kwota niż kwota dopisana ekipie, której nikt nie wskazał.
 
-### Stawka wykonawcy ma dwa źródła: „auto" i „kwota stała" (2026-09-01)
+### Stawka wykonawcy ma trzy źródła: „auto", „kwota stała" i „własny mnożnik" (EX-865, 2026-09-23)
 
-„Źródło ceny wykonawcy" odpowiada na jedno pytanie: czy ta pozycja idzie za mnożnikiem inwestycji, czy
-niesie własną kwotę.
+„Źródło ceny wykonawcy" odpowiada na jedno pytanie: czy ta pozycja idzie za mnożnikiem inwestycji,
+niesie własną kwotę, czy ma własną krotność ceny klienta.
 
 - **„auto"** — cena wylicza się z ceny klienta przez mnożnik inwestycji (osobny per plan, domyślnie
   `0,65` z narzędziami i `0,5525` bez). Zmiana narzutki przelicza wszystkie takie pozycje naraz.
 - **„kwota stała"** — pozycja niesie własną stawkę w złotówkach i żadna zmiana narzutki ani ceny
   klienta jej nie rusza.
+- **„własny mnożnik"** — pozycja niesie własną krotność, a stawka liczy się jako `cena j.m. ×
+mnożnik` przy każdym odczycie. Mnożnik inwestycji jej nie dotyczy, ale **podniesienie ceny dla
+  inwestora podnosi z nią stawkę ekipy** — to jedyna rzecz, której zamrożona kwota nie umie.
+
+**Pierwszeństwo: mnożnik > kwota > auto**, rozstrzygane w jednym miejscu na płaszczyznę
+(`priceSourceOf` dla rozpiski, `catalogueSourceOf` dla cennika). Wiersz niosący obie kolumny naraz
+to stan, którego zapis nie dopuszcza — `normalizeOverridePatch` czyści drugą kolumnę w tym samym
+UPDATE co pierwszą, więc para nigdy nie trafia do bazy rozjechana.
 
 Wpisanie liczby w „Cena j.m." wykonawcy **samo** przestawia źródło na „kwota stała", a wyczyszczenie
 komórki wraca na „auto" — kolumna źródła jest podglądem tej decyzji i drogą powrotną, nie osobnym
 krokiem, który trzeba wykonać przed wpisaniem ceny. W podglądzie inwestora kolumna źródła nie składa
 się w ogóle: dokument klienta nie pokazuje, skąd firma bierze stawkę ekipy.
 
-**Trzecie źródło — „własny mnożnik" per pozycja — zostało wycięte** (właściciel, 2026-09-01). Nie
-używał go nikt: zero wierszy w jakiejkolwiek bazie, katalog prac nigdy go nie przechowywał (zapisuje
-stawkę wyliczoną, nie iloraz), a import z arkusza sprowadzał się do niego tylko przez to samo
-dzielenie przez „Cena j.m.", które opisano wyżej jako pułapkę. Kosztem był wspólny slot na wartość,
-w którym „200" znaczyło raz 200 zł, a raz mnożnik ×200 — i sześć kolumn ceny wykonawcy w siatce
-zamiast czterech. Dane były jednorazowe, więc cięcie poszło bez migracji: gdyby taki wiersz gdzieś
-został, policzy się z mnożnika inwestycji.
+**Trzecie źródło było wycięte przez rok i wróciło** (właściciel: cięcie 2026-09-01/EX-766,
+przywrócenie 2026-09-23/EX-865). Wycięto je, bo nie używał go nikt — zero wierszy w jakiejkolwiek
+bazie — a kosztem był **wspólny slot na wartość**, w którym „200" znaczyło raz 200 zł, a raz ×200.
+Wróciło, bo braku nie da się obejść: zamrożona kwota odpada od ceny inwestora w chwili, w której ta
+cena drgnie, a jedyną alternatywą było ręczne przepisywanie stawek po każdej zmianie cennika.
+
+Powrót **nie jest cofnięciem EX-766** — powód cięcia adresuje inna rzecz niż liczba kolumn. Slot
+jest teraz rozdzielony: mnożnik ma **własną kolumnę** (`*_override_coeff`) obok kwoty
+(`*_override_value`), więc „200" nigdy nie znaczy dwóch rzeczy, a atomowość pary pilnuje **ścieżka
+zapisu**, nie liczba kolumn — to był prawdziwy zarzut z EX-766 (dwa nieuporządkowane zapisy nad
+jednym pojęciem), i odpowiada na niego `normalizeOverridePatch`, a nie skasowanie trybu.
+
+Katalog prac zna te same trzy źródła: cennikowy wpis niesie parę kolumn `w_tools_rate` /
+`w_tools_rate_coeff` (i bliźniaczą bez narzędzi), „auto" to brak obu, a mnożnik wstawiony do
+rozpiski **przelicza się od ceny j.m., na którą trafi** — nie zamraża kwoty z katalogu.
 
 **Sama kolumna „Źródło ceny wykonawcy" ZOSTAJE — wycięcie rozważano i odrzucono dwa razy**
 (właściciel, 2026-09-01 przy cięciu trzeciego trybu, i ponownie 2026-09-02 przy EX-766). Argument za

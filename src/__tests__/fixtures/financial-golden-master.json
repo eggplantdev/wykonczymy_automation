@@ -1,13 +1,13 @@
 {
   "fingerprint": {
     "transactionCount": 4381,
-    "kosztorysItemCount": 4550,
+    "kosztorysItemCount": 5550,
     "grossDepositsWithNet": 33
   },
   "inputHashes": {
     "investments": {
       "6": "a4dedd00d3b3fa1c324308b6a945e417",
-      "7": "5f08a71f74a091d02079c2712642f369",
+      "7": "5f08a71f74a091d02079c2712642f369/k:1000|7160|:0|367e55080230d326ccb0380115b03da3|791f39eee06f81707700e84f3eef0052",
       "8": "6de92a29fac3ec31c2cb6cedaa0ae27f",
       "9": "dc94ecb16b225dbc2f7f556ec0846ac8/k:373|0|:0|bedfc20f634a48fdcdd3014b651829c2|",
       "10": "ccb67c161f10214f19ff2c7e07989152",
@@ -257,7 +257,7 @@
       "totalSettled": 0,
       "balance": 192225.55,
       "margin": 57362,
-      "marginV2": 0,
+      "marginV2": -650389.48,
       "deposits": {
         "paidNet": 122508,
         "paidGrossNet": 175000,
