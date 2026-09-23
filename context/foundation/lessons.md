@@ -2105,7 +2105,7 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
   without naming the cause, and one of them fails only sometimes.
 - **Applies to**: 10x-plan, 10x-implement, impl-review, /simplify, any Blob/media cleanup path.
 
-## Parallel Payload creates on Neon lose rows while answering 200 — serialize the write, keep the bytes parallel
+## Parallel Payload creates on Neon lose rows while answering 200 — the adapter hands Drizzle a pool it can't recognise
 
 - **Context**: prod 2026-09-22, 18:25–18:35. A bulk expense with more than one invoice failed on
   `transactions_rels_media_id_fkey`. The uploader ran `UPLOAD_CONCURRENCY = 4` two-hop uploads
@@ -2113,16 +2113,34 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
   `createBulkTransferAction`.
 - **Problem**: every overlapping `POST /api/media` answered with a `doc.id`, but only one row
   committed — Payload logged „Failed to persist upload data for collection media document N:
-  NotFound". Concurrent Payload writes on `db-vercel-postgres` share a session, so the others
-  vanish **after** reporting success. The client had no way to see it; the next write (the FK
-  insert) was the first to fail, which pointed the diagnosis at migrations. The local docker
-  Postgres never reproduced it, and neither can a spec — both see the queue, not Neon.
-  `delete-unreferenced-media.ts` already documented the same hazard for deletes; nothing carried it
-  over to creates.
+  NotFound" (`plugin-cloud-storage/hooks/afterChange.js:56`, whose `payload.update` could not see
+  the row its own transaction had just inserted). **Mechanism, verified 2026-09-23 (EX-855):**
+  `db-vercel-postgres/connect.js` imports `drizzle` from `drizzle-orm/node-postgres` but hands it a
+  `VercelPool`. That driver's transaction guard is `this.client instanceof Pool` where `Pool` is
+  **`pg`'s** (`node-postgres/session.cjs:216`); `VercelPool` extends `@neondatabase/serverless`'s
+  Pool, so the check is false (confirmed by running it) and Drizzle **never checks out a dedicated
+  client**. `begin`, every statement and `commit` go through `pool.query()` — each grabbing whatever
+  connection is free. Still true in the newest adapter (3.90.1). The local docker Postgres cannot
+  reproduce it because `connect.js` takes a **different branch** for `localhost`/`127.0.0.1` — a
+  real `pg.Pool`, where the `instanceof` passes.
+- **What is NOT broken** (measured, not assumed — the earlier version of this lesson overstated it):
+  a transaction running alone is correct, because `pg-pool` keeps one idle client and hands it to
+  every sequential query. Payload also never issues parallel queries inside a transaction (peak
+  in-flight 1, even for a 16-query `depth: 2` find), and there is no `Promise.all` in
+  `@payloadcms/drizzle` or in any of our `withPayloadTransaction` callers. **A single request can
+  never scatter its own statements.** That is why this went unnoticed for so long, and why media —
+  the one place where one user fans out parallel writes — was hit first.
+- **What IS broken**: two overlapping Payload transactions on one Fluid instance. Reproduced against
+  a real Postgres by driving `begin`/insert/`commit` through `pool.query()`: the transaction that
+  succeeded lost its row to the **other** transaction's `rollback`, with no error on either side,
+  and one transaction's statements were served by two different backend pids. `isolationLevel:
+'repeatable read'` (`replace-tree-with-snapshot.ts`) degrades to `read committed` under exactly
+  the concurrency it exists to guard.
 - **Rule**: on this stack, never let two Payload writes overlap — not on the server, and not from
-  the browser either (`Promise.all` / a concurrency pool over `/api/*` counts). Split the slow part
-  from the write: `uploadMediaFromClient` keeps the Blob PUT parallel and chains only the row create
-  through the page-wide queue in `createMediaRow`. A success response from a Payload write is not
-  proof the row exists; verify a Neon concurrency fix on staging, not locally. The queue covers one
-  tab only — two users uploading at once can still collide (EX-855, the server-side fix).
+  the browser (`Promise.all` / a concurrency pool over `/api/*` counts). A success response from a
+  Payload write is not proof the row exists. `uploadMediaFromClient` keeps the Blob PUT parallel and
+  chains only the row create through the page-wide queue in `createMediaRow`; that queue covers one
+  tab only. The real fix is the adapter (EX-855) — give Drizzle a pool it recognises, verify with
+  `pnpm why pg` that only one `pg` copy exists, and prove it on **staging under overlap**, never
+  locally.
 - **Applies to**: 10x-plan, 10x-implement, impl-review, any code that fans out Payload writes.

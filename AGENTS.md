@@ -287,7 +287,7 @@ Most are self-describing (`src/collections`, `src/access`, `src/stores`, …). T
   `with-payload-transaction`, `snapshots`, `presets`, `notifications`, `kosztorys-tree`) — read the rule,
   not the original theme, when deciding whether a new file lands here.
   A **read** a client component invokes on demand is a `'use server'` function in `src/lib/queries`
-  (`register-saldo.ts`, `subcontractor-roster.ts`) — never in `src/lib/actions`, which is mutations only.
+  (`register-balance.ts`, `investment-asset-ids.ts`) — never in `src/lib/actions`, which is mutations only.
 - `src/lib/cache` — cache tags + revalidation helpers
 - `src/scripts/data` — input data a one-off script reads at runtime (TSV/JSON/CSV), beside its script.
   Test fixtures go to `src/__tests__/fixtures/` instead — or to `e2e/fixtures/` for a file a

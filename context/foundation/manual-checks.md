@@ -707,7 +707,7 @@ panel montuje się także na pustym kosztorysie.
 - [ ] **„Komplet pól karty inwestycji; puste pola są odfiltrowane" — realny defekt, naprawiony w
       źródle, jeszcze NIE na wdrożonym stagingu.** `buildInvestmentInfoFields`
       (`src/components/investments/investment-info-fields.tsx`) filtrował `.filter((field) =>
-    field.value)` na **zrenderowanym węźle**, nie na surowej wartości: `Telefon`/`Email` owijały
+  field.value)` na **zrenderowanym węźle**, nie na surowej wartości: `Telefon`/`Email` owijały
       pole w `<ContactLink>`, który jest zawsze truthy niezależnie od tego, czy numer/mail istnieje,
       a `Opinia` miała `investment.review || '—'` — myślnik też jest truthy. Efekt na żywo (inw. 74,
       brak telefonu/maila/opinii): „Email —" i „Opinia —" renderowały się zamiast znikać, dokładnie
@@ -824,8 +824,17 @@ Licznik renderów czytaj z logu dev: `[PERF] buildKosztorysTree` (drzewo jest ni
 świadomie — odrzucone dla świeżości, `context/archive/2026-07-27-decouple-panel-write-refresh/`
 — więc każdy render trasy zostawia dokładnie jeden wpis).
 
-- [ ] Wgranie zdjęcia do inwestycji na trasie `/inwestycje/<id>/kosztorys_v2`: w logu dev
+- [x] Wgranie zdjęcia do inwestycji na trasie `/inwestycje/<id>/kosztorys_v2`: w logu dev
       `[PERF] buildKosztorysTree` pojawia się **raz**, nie dwa razy (EX-850)
+      — zweryfikowane 2026-09-23 na stagingu, runtime log deploymentu `wykonczymy-4fcngsuxi`
+      (inwestycja 106, jeden upload o 10:18:18). Cały upload zmieścił się w JEDNYM żądaniu
+      `POST /inwestycje/106/kosztorys_v2`, a w nim dokładnie po jednym wpisie:
+      `addInvestmentAssetsAction 489ms`, `buildKosztorysTree 62ms`,
+      `kosztorys_v2/106 7-fetch fan-out 266ms`. Po akcji **nie ma** osobnego
+      `GET /inwestycje/106/kosztorys_v2` — czyli drugiego renderu po `router.refresh()` nie ma
+      wcale, a nie „jest, tylko szybki". `fetchAllMedia` przeskoczyło 1605 → 1606 dokumentów, więc
+      plik faktycznie wszedł. (`getaddrinfo disabled.invalid` w tym samym żądaniu to bramka poczty
+      poza produkcją, nie błąd uploadu.)
 - [x] To samo zdjęcie pojawia się w galerii bez ręcznego odświeżenia strony — render z odpowiedzi
       akcji wystarcza po zdjęciu `router.refresh()`
 - [x] Wgranie faktury do transferu: faktura widoczna od razu, bez przeładowania (ta sama ścieżka
@@ -841,11 +850,11 @@ Licznik renderów czytaj z logu dev: `[PERF] buildKosztorysTree` (drzewo jest ni
 
 ### Findings — 2026-09-23 (staging/preview pass)
 
-- [ ] **~~Liczba renderów `buildKosztorysTree` nie da się zweryfikować z samej przeglądarki na
+- [x] **~~Liczba renderów `buildKosztorysTree` nie da się zweryfikować z samej przeglądarki na
       stagingu~~ — finding obalony 2026-09-23: runtime logi Vercela są osiągalne z CLI.**
       Pierwotny wniosek („needs human, odpal `pnpm dev` lokalnie") stał na jednej nieudanej próbie
       `npx vercel ls --scope=$(npx vercel whoami)`, która padła `Error: You cannot set your Personal
-    Account as the scope.` — to był zły argument `--scope`, nie brak dostępu. Właściwy scope to
+  Account as the scope.` — to był zły argument `--scope`, nie brak dostępu. Właściwy scope to
       zespół projektu z `.vercel/project.json` (`orgId`), nie konto CLI:
 
       ```bash
@@ -855,11 +864,8 @@ Licznik renderów czytaj z logu dev: `[PERF] buildKosztorysTree` (drzewo jest ni
       Strumień oddaje runtime stdout pogrupowany per request, a `console.log` w `buildKosztorysTree`
       (`src/lib/queries/kosztorys.ts:71`) nie jest bramkowany `NODE_ENV`, więc linia `[PERF]
       buildKosztorysTree …` wychodzi tak samo z builda produkcyjnego na stagingu, jak z dev.
-      Zweryfikowane na żywo — log niesie m.in. `GET /podglad-inwestora/106` z dokładnie jednym
-      wpisem `[PERF] buildKosztorysTree 99ms … [inv 106: 14 sections, 379 items …]`.
-      **Zostaje otwarte** tylko na czas policzenia wystąpień w oknie jednego uploadu na
-      `/inwestycje/<id>/kosztorys_v2` — to jest właściwy box wyżej. **Test disposition:** no
-      automated test — to obserwowalność (log count), nie asercja stanu.
+      Właściwy box wyżej policzony tą drogą i odhaczony — jeden wpis na jeden upload.
+      **Test disposition:** no automated test — to obserwowalność (log count), nie asercja stanu.
 
 ## Nowa sekcja wprost w „Dodaj pracę z katalogu" (2026-09-22)
 
@@ -927,7 +933,7 @@ tam, gdzie ma, i czy zbiorcze odznaczenie da się cofnąć.
 
 - [ ] **Dwa dopełniające się filtry sufitu, oba odznaczone naraz, chowają CAŁĄ rozpiskę (377/377), nie
       tylko 236 pozycji z kwotą stałą.** Zmierzone na inw. 137, widok „z narzędziami": `Pozycje
-    z kwotą stałą powyżej sufitu (35)` + `Pozycje bez kwoty stałej powyżej sufitu (342)` =
+  z kwotą stałą powyżej sufitu (35)` + `Pozycje bez kwoty stałej powyżej sufitu (342)` =
       35 + 342 = 377 = cały kosztorys. Przyczyna: `isFixedRateOverCeiling` w
       `src/lib/kosztorys/subcontractor-price-guard.ts` zwraca `false` dla `null`/„auto"
       (`overrideValueFor` się nie zgadza), więc dopełniający filtr „bez kwoty stałej powyżej sufitu"
