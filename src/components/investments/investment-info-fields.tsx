@@ -12,11 +12,19 @@ export function buildInvestmentInfoFields(
 ) {
   return [
     { label: 'Adres', value: investment.address },
-    { label: 'Telefon', value: <ContactLink type="phone" value={investment.phone} /> },
-    { label: 'Email', value: <ContactLink type="email" value={investment.email} /> },
+    // Filtered on the raw field, not the rendered node — a `<ContactLink>` is always truthy, so
+    // filtering on it never dropped an empty phone/email.
+    {
+      label: 'Telefon',
+      value: investment.phone && <ContactLink type="phone" value={investment.phone} />,
+    },
+    {
+      label: 'Email',
+      value: investment.email && <ContactLink type="email" value={investment.email} />,
+    },
     { label: 'Osoba kontaktowa', value: investment.contactPerson },
     { label: 'Notatki', value: investment.notes },
-    { label: 'Opinia', value: investment.review || '—' },
+    { label: 'Opinia', value: investment.review },
     { label: 'Status', value: STATUS_LABELS[investment.status] },
   ].filter((field) => field.value)
 }
