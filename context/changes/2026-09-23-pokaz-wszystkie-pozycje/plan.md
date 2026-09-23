@@ -224,4 +224,4 @@ are numbered in sequence with no extra code.
 
 #### Automated
 
-- [x] 2.1 No phase-scoped automated check (Whole-tree Gate covers it)
+- [x] 2.1 No phase-scoped automated check (Whole-tree Gate covers it) — 766bf2ce
