@@ -229,7 +229,7 @@ test('the investor sees their own wpłaty as plain text, on the tor each one was
   }
 })
 
-test('the investor gets both billed expense datasets and their faktury, and never the company plane', async ({
+test('the investor gets one brutto wydatki list with its faktury, and never the company plane', async ({
   page,
   browser,
   baseURL,
@@ -248,32 +248,32 @@ test('the investor gets both billed expense datasets and their faktury, and neve
       await expensesToggle.click()
     await expect(expensesToggle).toHaveAttribute('aria-expanded', 'true')
 
-    // Counts ride in the tab labels, so an off-by-one dataset split is visible in the selector itself.
-    const grossTab = visitor.getByRole('radio', { name: 'Materiały brutto (1)' })
-    await expect(grossTab).toBeVisible()
-    await expect(
-      visitor.getByRole('radio', { name: 'Materiały rozliczane netto (1)' }),
-    ).toBeVisible()
-    // The company's own spend — material already priced into robocizna — is dropped from the client's
-    // list wholesale rather than merely unlinked, so the tab itself must not exist here.
-    await expect(
-      visitor.getByRole('radio', { name: /Materiały wliczone w robociznę/ }),
-    ).toHaveCount(0)
+    // How an invoice is billed is the manager's concern: the investor gets no dataset switch at all.
+    for (const name of [
+      /Materiały brutto/,
+      /Materiały rozliczane netto/,
+      /Materiały wliczone w robociznę/,
+    ])
+      await expect(visitor.getByRole('radio', { name })).toHaveCount(0)
 
+    // Both billed expenses in one list; the company's own spend — material already priced into
+    // robocizna — is dropped wholesale rather than merely unlinked.
     await expect(visitor.getByText(seed.grossExpense.description)).toBeVisible()
-    await expect(visitor.getByText(seed.netExpense.description)).toHaveCount(0)
+    await expect(visitor.getByText(seed.netExpense.description)).toBeVisible()
     await expect(visitor.getByText(seed.settledExpense.description)).toHaveCount(0)
 
-    await visitor.getByRole('radio', { name: 'Materiały rozliczane netto (1)' }).click()
-    await expect(visitor.getByText(seed.netExpense.description)).toBeVisible()
-    await expect(visitor.getByText(seed.grossExpense.description)).toHaveCount(0)
-    await expect(visitor.getByText(seed.settledExpense.description)).toHaveCount(0)
+    // Razem is what left the kasa: the netto invoice counts at its brutto.
+    await expect(
+      visitor
+        .locator('tfoot')
+        .getByText(formatNet(seed.grossExpense.amount + seed.netExpense.amount)),
+    ).toBeVisible()
+    // The breakdown above folds the netto invoice into its category.
+    await expect(visitor.getByText(/^(Materiały|Pozostałe) .* netto$/)).toHaveCount(0)
 
     // The faktura is the thing the client actually came for, and it is packed in the browser off
     // publicly-readable media URLs — which is the only reason the button can work with no session at
     // all. If media ever stopped being public this is what would go red.
-    await grossTab.click()
-    await expect(visitor.getByText(seed.grossExpense.description)).toBeVisible()
     const downloadPromise = visitor.waitForEvent('download')
     await visitor.getByRole('button', { name: 'Pobierz faktury' }).click()
     const download = await downloadPromise

@@ -299,11 +299,11 @@ Run once, after the final phase.
 
 #### Automated
 
-- [x] 2.1 materials-transactions-table DOM spec passes
-- [x] 2.2 expense-datasets spec passes with sumAmount
+- [x] 2.1 materials-transactions-table DOM spec passes — de837550
+- [x] 2.2 expense-datasets spec passes with sumAmount — de837550
 
 ### Phase 3: E2E and docs
 
 #### Automated
 
-- [ ] 3.1 tsc accepts the rewritten client-share spec
+- [x] 3.1 tsc accepts the rewritten client-share spec

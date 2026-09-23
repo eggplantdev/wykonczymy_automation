@@ -542,6 +542,16 @@ j.m.` wśród wierszy policzonych** (wpisane z palca są wykluczone: to decyzje 
     **Konsekwencja w rozliczeniu mieszanym:** „Pozostało brutto" **nie** jest gruntowaniem kwoty
     nierozliczonej — to gruntowałoby materiały razem z pracami. Liczy się z „Łącznie", gdzie
     materiały już stoją po face value na obu osiach (`resztaGross = combined.gross − paidNet`).
+  - **Widok inwestora zakładki „Materiały" (2026-09-23).** Podział brutto / netto jest sprawą
+    firmy, nie inwestora — więc w podglądzie (`preview`, nigdy `priceView`):
+    - „Wydatki inwestycyjne" ma **jeden wiersz na kategorię** (budowlane / wykończeniowe /
+      pozostałe) + „Razem" — wiersz „… netto" jest doliczony do swojej kategorii **po wycenie**,
+      więc „Razem" jest identyczne jak w widoku managera.
+    - Lista wydatków to **jedna lista po brutto**: bez przełącznika zestawów, bez kolumny Netto,
+      „Razem" = Σ `amount`. Wydatek netto stoi na niej po brutto z faktury, więc „Razem" listy jest
+      **≥** „Materiały" rozliczonym w Podsumowaniu — celowo, na korzyść inwestora (właściciel,
+      2026-09-23). Tych dwóch sum się nie uzgadnia. Materiały wliczone w robociznę dalej nie trafiają
+      do podglądu.
   - **Skutek dla rekoncyliacji (strona inwestycji „z kosztorysu", EX-535):** porównanie idzie
     **netto ↔ netto** dla obu figur — kosztorys suma prac (netto) ↔ Σ `LABOR_COST`, kosztorys
     rabat (netto) ↔ Σ `RABAT`. Strony kosztorysowej **nie gruntujemy**. To usuwa fałszywy
