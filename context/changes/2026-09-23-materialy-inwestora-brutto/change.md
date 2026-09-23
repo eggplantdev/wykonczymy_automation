@@ -1,7 +1,7 @@
 ---
 change_id: materialy-inwestora-brutto
 title: Materiały w widoku inwestora — kategorie bez podziału na netto, lista wydatków tylko brutto
-status: implementing
+status: implemented
 created: 2026-09-23
 updated: 2026-09-23
 archived_at: null

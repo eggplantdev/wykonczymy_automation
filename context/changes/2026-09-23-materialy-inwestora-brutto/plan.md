@@ -306,4 +306,4 @@ Run once, after the final phase.
 
 #### Automated
 
-- [x] 3.1 tsc accepts the rewritten client-share spec
+- [x] 3.1 tsc accepts the rewritten client-share spec — 82af7fe6
