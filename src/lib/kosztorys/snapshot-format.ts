@@ -102,6 +102,8 @@ export type StoredSnapshotPayloadT = {
     | 'clientPrice'
     | 'wToolsOverrideValue'
     | 'ownToolsOverrideValue'
+    | 'wToolsOverrideCoeff'
+    | 'ownToolsOverrideCoeff'
   >[]
   stages: KosztorysStageT[]
   progress: TolerantT<StageProgressT, 'qtyDone'>[]
@@ -135,5 +137,9 @@ export function itemWithColumnDefaults(
     clientPrice: item.clientPrice ?? 0,
     wToolsOverrideValue: item.wToolsOverrideValue ?? null,
     ownToolsOverrideValue: item.ownToolsOverrideValue ?? null,
+    // A snapshot taken before EX-865 knows neither key, and reading them as „auto" is the truth:
+    // it was written when no mnożnik existed. `?? 0` would invent a stawka of zero złotych.
+    wToolsOverrideCoeff: item.wToolsOverrideCoeff ?? null,
+    ownToolsOverrideCoeff: item.ownToolsOverrideCoeff ?? null,
   }
 }

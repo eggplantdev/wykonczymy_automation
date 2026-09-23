@@ -28,6 +28,7 @@ import {
   type InsertDirectionT,
   type MoveDirectionT,
 } from '@/lib/kosztorys/display-order'
+import { normalizeOverridePatch } from '@/lib/kosztorys/override-patch'
 import { applyPercentDiscountSchema } from '@/lib/kosztorys/percent-discount'
 import { isSectionColorKey, type SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import { replaceTreeWithSnapshot } from '@/lib/kosztorys/replace-tree-with-snapshot'
@@ -59,6 +60,9 @@ const itemPatchSchema = z
     // turns null into 0, which is the one value that must stay distinguishable from „auto".
     wToolsOverrideValue: z.coerce.number().nullable(),
     ownToolsOverrideValue: z.coerce.number().nullable(),
+    // Same `.nullable()` wrapping, same reason: a mnożnik of 0 is a stawka of zero złotych.
+    wToolsOverrideCoeff: z.coerce.number().nullable(),
+    ownToolsOverrideCoeff: z.coerce.number().nullable(),
     note: z.string().nullable(),
   })
   .partial()
@@ -119,7 +123,10 @@ export async function updateItemFieldAction(itemId: number, patch: ItemPatchT) {
     async ({ payload }) => {
       const parsed = validateAction(itemPatchSchema, patch)
       if (!parsed.success) return parsed
-      await payload.update({ collection: 'kosztorys-items', id: itemId, data: parsed.data })
+      // The grid sends ONE field per call, so the pair of columns behind a stawka is made whole
+      // here — one write, never two orderings (EX-865).
+      const data = normalizeOverridePatch(parsed.data)
+      await payload.update({ collection: 'kosztorys-items', id: itemId, data })
       return { success: true }
     },
     ['kosztorysItems'],

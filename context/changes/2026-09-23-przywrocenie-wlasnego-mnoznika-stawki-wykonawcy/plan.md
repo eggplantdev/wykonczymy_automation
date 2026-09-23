@@ -741,16 +741,16 @@ i „auto" są nietknięte, bo mieszkają w kolumnach, których ta zmiana nie ru
 
 #### Automated
 
-- [x] 1.1 Nowy spec wyceny przechodzi (trzy źródła, dwie płaszczyzny, przypadki brzegowe)
+- [x] 1.1 Nowy spec wyceny przechodzi (trzy źródła, dwie płaszczyzny, przypadki brzegowe) — 62e21a93
 - [ ] 1.2 `pnpm typecheck` — bramka całego drzewa, sprawdzana raz na koniec przebiegu
 
 ### Phase 2: Atomowa ścieżka zapisu
 
 #### Automated
 
-- [ ] 2.1 Spec normalizacji łatki przechodzi (sześć przejść, rozdział płaszczyzn)
-- [ ] 2.2 Spec rozliczenia na bazie przechodzi
-- [ ] 2.3 Roundtrip snapshotu przechodzi
+- [x] 2.1 Spec normalizacji łatki przechodzi (sześć przejść, rozdział płaszczyzn)
+- [x] 2.2 Spec rozliczenia na bazie przechodzi
+- [x] 2.3 Roundtrip snapshotu przechodzi
 
 ### Phase 3: Ekran — kolumna „Mnożnik" i trzecie źródło
 
