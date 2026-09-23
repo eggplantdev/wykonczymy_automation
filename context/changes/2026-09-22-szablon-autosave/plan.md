@@ -77,8 +77,13 @@ cena tam jest. Bez żadnego kliknięcia.
 - **Nie zagęszczamy punktów przywracania** — zostają co 10 minut. Świadomie przyjęte okno.
 - **Nie przestajemy wycinać przedmiaru, rabatów i etapów** przy serializacji szablonu. Wyjątkiem
   jest wyłącznie komentarz.
-- **Nie ruszamy edytora inwestycji** poza jednym rzeczownikiem w etykietach i zmianą nazwy
-  „Zapisz jako szablon…" → „Zapisz jako nowy szablon…".
+- ~~**Nie ruszamy edytora inwestycji** poza jednym rzeczownikiem w etykietach i zmianą nazwy
+  „Zapisz jako szablon…" → „Zapisz jako nowy szablon…".~~ **Nieaktualne (właściciel, 2026-09-23):**
+  ruszamy — „Cena j.m. netto" pokazuje się teraz w KAŻDYM widoku cen, także na obu płaszczyznach
+  wykonawcy, i jest tam w pełni edytowalna. Powód: to jest cena, z której obie stawki wykonawcy się
+  wywodzą i względem której sądzi je sufit, więc widok ekipy bez niej pokazuje werdykt bez liczby,
+  której dotyczy. Decyzja dotyczy edytora inwestycji, nie warsztatu, i jest świadomym wyjściem poza
+  ten akapit.
 - **Nie dodajemy `beforeunload`** — dopchnięcie przy odmontowaniu i przed eksmisją wystarcza,
   a strażnik nawigacji to osobna funkcja o własnym koszcie UX.
 

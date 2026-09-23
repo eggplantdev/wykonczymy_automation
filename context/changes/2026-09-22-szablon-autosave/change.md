@@ -29,7 +29,7 @@ Cel: szablon ma zapisywać się sam, analogicznie do kosztorysu na inwestycji.
 - **Warsztat dostaje własną, zamkniętą listę kolumn** — Akcje, Sekcja, Opis prac, Jednostka miary,
   Cena j.m. netto, Źródło ceny wykonawcy i stawka wykonawcy (obie płaszczyzny), Komentarz.
   Lista rosła w trakcie przeglądu: `priceGross` wypadł, `actions` doszło, a stawka wykonawcy wróciła
-  — wiążącym zapisem jest `review-gate.md` tego slice'u, nie ten akapit. Reszta siatki (Przedmiar i wszystko
+  (właściciel, 2026-09-23 — odwrócenie zapisane w `review-gate.md`, wpis „F6 ODWRÓCONE"). Reszta siatki (Przedmiar i wszystko
   z niego liczone, rabaty, etapy, Razem, Rozjazd z arkuszem) nie ma się w warsztacie **budować** —
   nie „być domyślnie schowana" i nie „być readonly". Readonly „Razem netto" z zerem w każdym wierszu
   czyta się jak zepsute liczenie, a nie jak „tu nie dotyczy".
@@ -39,6 +39,14 @@ Cel: szablon ma zapisywać się sam, analogicznie do kosztorysu na inwestycji.
   przy dzisiejszych domyślnych ustawieniach zostawiłoby komplet pól-pułapek bez możliwości ich zdjęcia.
   **„Akcje" zostaje** — siatka stoi na `lockRows`, więc to menu jest jedyną drogą do usunięcia,
   przestawienia i wstawienia pozycji, a belka sekcji ma w tej samej kolumnie swoje „…".
+- **„Cena j.m. netto" wchodzi do KAŻDEGO widoku cen, edytowalna (właściciel, 2026-09-23).** To
+  wyjście poza „nie ruszamy edytora inwestycji" z planu — świadome, ten punkt planu jest skreślony.
+  Powód: obie stawki wykonawcy wywodzą się z tej ceny i to względem niej sufit je sądzi, więc widok
+  ekipy bez niej pokazuje werdykt bez liczby, której dotyczy. **Zostaje edytowalna** — rozważane
+  zablokowanie do odczytu poza widokiem klienta odrzucone (właściciel, 2026-09-23); etykieta zostaje
+  goła, bez sufiksu płaszczyzny, bo ta cena jednej płaszczyzny nie ma. Skutek uboczny przyjęty:
+  sortowanie po tej kolumnie przeżywa teraz przełączenie widoku.
+
 - **Komentarz jest jedynym wyjątkiem w drugą stronę** — zostaje w siatce i szablon zaczyna go nieść
   (dziś jest wycinany przy serializacji). Uwaga o samej pracy („cena zawiera transport") przenosi się
   na każdą kolejną budowę; Przedmiar, rabat i etapy nie.
