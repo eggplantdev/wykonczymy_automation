@@ -1,4 +1,4 @@
-import { overrideValueFor, subcontractorPrice } from '@/lib/kosztorys/calc'
+import { priceSourceOf, subcontractorPrice } from '@/lib/kosztorys/calc'
 import type { CellVerdictT } from '@/lib/kosztorys/cell-edit'
 import { formatCoeff, formatNet, formatPercent } from '@/lib/kosztorys/format'
 import type { ToolPlaneT, ViewPricingT } from '@/lib/kosztorys/types'
@@ -53,7 +53,7 @@ export function isOverCeiling(
  *
  * Everything outside (0, 0.65], because each of those ends produces a stawka nobody would type by
  * hand on a single pozycja, and none of them is answered here by the row-level guard: the ceiling
- * rung reads a kwota stała only, zero stopped being reported by „bez ceny wykonawcy" for the same
+ * rung reads a stawka the wiersz itself authored only, zero stopped being reported by „bez ceny wykonawcy" for the same
  * reason, and a negative one IS still refused per pozycja — which is the problem, because that is
  * one verdict repeated across the whole rozpiska while the field that caused it stays unmarked.
  */
@@ -76,16 +76,21 @@ export function coeffWarning(coeff: number): string | null {
 }
 
 /**
- * The ceiling question as a predicate, so the red cell and the „z kwotą stałą powyżej sufitu"
+ * The ceiling question as a predicate, so the red cell and the „z własną stawką powyżej sufitu"
  * filters read one rule instead of two copies that can be edited apart — including the half-grosz
  * tolerance, without which a kwota typed back off the screen lands on opposite sides of the two
- * readings. A source of „auto" is not over anything: `isOverCeiling` short-circuits on the null, so
- * the filters' negated twin („bez kwoty stałej powyżej sufitu") holds every „auto" pozycja as well —
- * a complement of this predicate, not of „pozycje z kwotą stałą". The registry states that out loud
- * beside the pair; do not narrow it here without moving that ruling too.
+ * readings.
+ *
+ * „Własna" means the author of the figure sits in THIS wiersz — a kwota stała or a mnożnik alike,
+ * because overpaying is the same overpayment whichever of the two produced it (EX-865). Only „auto"
+ * is exempt, and there the author is the investment's own współczynnik, judged once in its own field
+ * (`coeffWarning`) instead of once per pozycja. So the filters' negated twin („bez własnej stawki
+ * powyżej sufitu") holds every „auto" pozycja as well — a complement of this predicate, not of
+ * „pozycje z własną stawką". The registry states that out loud beside the pair; do not narrow it here
+ * without moving that ruling too.
  */
-export const isFixedRateOverCeiling = (row: ViewPricingT, view: ToolPlaneT): boolean =>
-  isOverCeiling(overrideValueFor(row, view), row)
+export const isOwnRateOverCeiling = (row: ViewPricingT, view: ToolPlaneT): boolean =>
+  priceSourceOf(row, view) !== 'auto' && isOverCeiling(subcontractorPrice(row, view), row)
 
 /**
  * Unlike the ceiling, this one reads the PRICE rather than the nadpisanie, so it catches an „auto"
@@ -107,10 +112,11 @@ export const isSubcontractorPriceNegative = (row: ViewPricingT, view: ToolPlaneT
  * threshold lit up across rows that were all fine and the colour stopped meaning anything
  * (owner, 2026-07-28). The ceiling is rare, which is what keeps the red worth looking at.
  *
- * The ceiling therefore judges a kwota stała only. On „auto" the author of the figure is the
- * investment's mnożnik, which carries its own red field and its own sentence (`coeffWarning`) —
- * judging its output row by row is the same verdict repeated a thousand times, and since the hard cap
- * came off the mnożnik (2026-09-21) one keystroke was enough to throw a whole rozpiska over.
+ * The ceiling therefore judges a stawka this wiersz authored — kwota stała or własny mnożnik. On
+ * „auto" the author of the figure is the investment's mnożnik, which carries its own red field and
+ * its own sentence (`coeffWarning`) — judging its output row by row is the same verdict repeated a
+ * thousand times, and since the hard cap came off the mnożnik (2026-09-21) one keystroke was enough
+ * to throw a whole rozpiska over.
  *
  * Asks both questions through the two predicates above rather than re-deriving them, so the cell that
  * refuses a write, the red colour and the „Problemy" rows can never disagree. Carries its own Polish
@@ -124,7 +130,7 @@ export function checkSubcontractorPrice(row: ViewPricingT, view: ToolPlaneT): Ce
     return { severity: 'refuse', message: 'Cena wykonawcy nie może być ujemna.' }
   }
 
-  if (!isFixedRateOverCeiling(row, view)) return null
+  if (!isOwnRateOverCeiling(row, view)) return null
 
   return {
     severity: 'warn',

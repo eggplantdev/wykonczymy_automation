@@ -1,4 +1,4 @@
-import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
+import { planePriceKeysFor } from '@/lib/kosztorys/plane-price-keys'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
@@ -17,9 +17,7 @@ export const CTX = {
 // question about one crew with the other crew's numbers beside it.
 export const priceCells = (...planes: ('w_tools' | 'own_tools')[]) => [
   'price',
-  ...planes.flatMap((plane) =>
-    (['priceMode', 'price'] as const).map((base) => planePriceKey(base, plane)),
-  ),
+  ...planes.flatMap((plane) => planePriceKeysFor(plane)),
 ]
 
 export function row(overrides: Partial<KosztorysV2RowT> = {}): KosztorysV2RowT {

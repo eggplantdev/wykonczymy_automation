@@ -756,16 +756,16 @@ i „auto" są nietknięte, bo mieszkają w kolumnach, których ta zmiana nie ru
 
 #### Automated
 
-- [x] 3.1 Specy komórek przechodzą
-- [x] 3.2 Spec sortowania przechodzi
+- [x] 3.1 Specy komórek przechodzą — 39d53318
+- [x] 3.2 Spec sortowania przechodzi — 39d53318
 - [ ] 3.3 `pnpm typecheck` — bramka całego drzewa, sprawdzana raz na koniec przebiegu
 
 ### Phase 4: Sufit, filtry, diagnostyka
 
 #### Automated
 
-- [ ] 4.1 Spec rejestru warunków wiersza przechodzi
-- [ ] 4.2 Spec sufitu przechodzi
+- [x] 4.1 Spec rejestru warunków wiersza przechodzi
+- [x] 4.2 Spec sufitu przechodzi
 
 ### Phase 5: Katalog prac
 

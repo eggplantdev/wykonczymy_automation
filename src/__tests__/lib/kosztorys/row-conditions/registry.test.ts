@@ -176,18 +176,22 @@ describe('the conditions, each on its boundary', () => {
     expect(matches('negative-rate-w-tools', subject)).toBe(false)
   })
 
-  it('„z kwotą stałą powyżej sufitu" judges the kwota, never the mnożnik', () => {
+  it('„z własną stawką powyżej sufitu" judges both hand-set źródła, never „auto"', () => {
     const overridden = (value: number) => row({ wToolsOverrideValue: value })
 
     // clientPrice 100 → the ceiling is 65; typed at exactly the ceiling it must stand.
-    expect(matches('fixed-rate-over-ceiling-w-tools', overridden(65))).toBe(false)
-    expect(matches('fixed-rate-over-ceiling-w-tools', overridden(65.01))).toBe(true)
-    // The mnożnik authors every „auto" figure and answers for it in its own red field — one keystroke
-    // in the pasku must not sweep a whole rozpiska onto this axis.
-    expect(matches('fixed-rate-over-ceiling-w-tools', row({ globalWToolsCoeff: 0.9 }))).toBe(false)
+    expect(matches('own-rate-over-ceiling-w-tools', overridden(65))).toBe(false)
+    expect(matches('own-rate-over-ceiling-w-tools', overridden(65.01))).toBe(true)
+    // Przepłacenie jest identyczne niezależnie od tego, czy stawkę zrobiła kwota, czy mnożnik — ten
+    // sam wiersz, ten sam autor, ta sama liczba (EX-865).
+    expect(matches('own-rate-over-ceiling-w-tools', row({ wToolsOverrideCoeff: 0.65 }))).toBe(false)
+    expect(matches('own-rate-over-ceiling-w-tools', row({ wToolsOverrideCoeff: 0.7 }))).toBe(true)
+    // The mnożnik inwestycji authors every „auto" figure and answers for it in its own red field —
+    // one keystroke in the pasku must not sweep a whole rozpiska onto this axis.
+    expect(matches('own-rate-over-ceiling-w-tools', row({ globalWToolsCoeff: 0.9 }))).toBe(false)
     // An unpriced pozycja is „bez ceny j.m." — a different problem, and the ceiling collapses to zero.
     expect(
-      matches('fixed-rate-over-ceiling-w-tools', row({ clientPrice: 0, wToolsOverrideValue: 50 })),
+      matches('own-rate-over-ceiling-w-tools', row({ clientPrice: 0, wToolsOverrideValue: 50 })),
     ).toBe(false)
   })
 
@@ -265,10 +269,8 @@ describe('the conditions, each on its boundary', () => {
       ['no-planned-qty', 'has-planned-qty'],
       ['no-measured-qty', 'has-measured-qty'],
       ['no-discount', 'has-discount'],
-      ['formula-rate-w-tools', 'manual-rate-w-tools'],
-      ['formula-rate-own-tools', 'manual-rate-own-tools'],
-      ['fixed-rate-within-ceiling-w-tools', 'fixed-rate-over-ceiling-w-tools'],
-      ['fixed-rate-within-ceiling-own-tools', 'fixed-rate-over-ceiling-own-tools'],
+      ['own-rate-within-ceiling-w-tools', 'own-rate-over-ceiling-w-tools'],
+      ['own-rate-within-ceiling-own-tools', 'own-rate-over-ceiling-own-tools'],
       ['no-note', 'has-note'],
     ]) {
       for (const subject of subjects) {
@@ -312,6 +314,25 @@ describe('the conditions, each on its boundary', () => {
     expect(matches('formula-rate-own-tools', manualWithTools)).toBe(true)
   })
 
+  // Trzy wpisy zastąpiły parę, więc rozłączność nie jest już negacją jednego testu — a to na niej
+  // stoją domknięcia w pozostałych grupach.
+  it('przypisuje każdy wiersz dokładnie jednemu źródłu na płaszczyźnie', () => {
+    const subjects = [
+      row(),
+      row({ wToolsOverrideValue: 42 }),
+      row({ wToolsOverrideValue: 0 }),
+      row({ wToolsOverrideCoeff: 0.4 }),
+      row({ wToolsOverrideCoeff: 0 }),
+    ]
+
+    for (const subject of subjects) {
+      const hit = ['manual-rate-w-tools', 'coeff-rate-w-tools', 'formula-rate-w-tools'].filter(
+        (id) => matches(id, subject),
+      )
+      expect(hit).toHaveLength(1)
+    }
+  })
+
   it('„bez komentarza" reads a blank as no comment, and null and empty alike', () => {
     expect(matches('no-note', row({ note: null }))).toBe(true)
     expect(matches('no-note', row({ note: '' }))).toBe(true)
@@ -325,28 +346,20 @@ describe('the conditions, each on its boundary', () => {
 // material, so the detector fires on the combination it CAN see — the investment has material folded
 // into robocizna, the pozycja has executed work, and the stawka for the plane that work was done at is
 // a percentage of a client price that contains the material.
-// The two conditions split „ktoś to wpisał ręcznie" from „wyliczyło się" — exactly the question the
-// single stawka field answers: a number is a decision, `null` is the global mnożnik.
-describe('the rate-source pair', () => {
+// The three conditions split „ktoś wpisał kwotę" from „ktoś wpisał mnożnik" from „wyliczyło się" —
+// the three values `priceSourceOf` reads off the pair of nadpisań.
+describe('the rate-source trio', () => {
   it('reads a kwota stała as hand-typed', () => {
     const fixed = row({ wToolsOverrideValue: 42 })
     expect(matches('manual-rate-w-tools', fixed)).toBe(true)
     expect(matches('formula-rate-w-tools', fixed)).toBe(false)
   })
 
-  // Complementary by construction: every wiersz falls on exactly one side, or the pair could not
-  // express „pokaż mi tylko te drugie". An explicit 0 zł is on the hand-typed side — somebody typed
-  // it — which is the same distinction the „bez ceny wykonawcy" spec above turns on.
-  it('never claims a wiersz twice, and never drops one', () => {
-    for (const subject of [
-      row(),
-      row({ wToolsOverrideValue: 42 }),
-      row({ wToolsOverrideValue: 0 }),
-    ]) {
-      expect(matches('manual-rate-w-tools', subject)).toBe(
-        !matches('formula-rate-w-tools', subject),
-      )
-    }
+  it('reads a własny mnożnik as its own źródło, not as a kwota', () => {
+    const coeff = row({ wToolsOverrideCoeff: 0.4 })
+    expect(matches('coeff-rate-w-tools', coeff)).toBe(true)
+    expect(matches('manual-rate-w-tools', coeff)).toBe(false)
+    expect(matches('formula-rate-w-tools', coeff)).toBe(false)
   })
 })
 

@@ -183,17 +183,19 @@ describe('columnsRevealedBy', () => {
   it('brings its own crew’s stawka along when narrowing by the rate itself', () => {
     for (const id of [
       'manual-rate-w-tools',
+      'coeff-rate-w-tools',
       'formula-rate-w-tools',
-      'fixed-rate-over-ceiling-w-tools',
-      'fixed-rate-within-ceiling-w-tools',
+      'own-rate-over-ceiling-w-tools',
+      'own-rate-within-ceiling-w-tools',
     ]) {
       expect(columnsRevealedBy([id])).toEqual(new Set(priceCells('w_tools')))
     }
     for (const id of [
       'manual-rate-own-tools',
+      'coeff-rate-own-tools',
       'formula-rate-own-tools',
-      'fixed-rate-over-ceiling-own-tools',
-      'fixed-rate-within-ceiling-own-tools',
+      'own-rate-over-ceiling-own-tools',
+      'own-rate-within-ceiling-own-tools',
     ]) {
       expect(columnsRevealedBy([id])).toEqual(new Set(priceCells('own_tools')))
     }
