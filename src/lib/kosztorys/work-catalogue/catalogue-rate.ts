@@ -1,4 +1,9 @@
-import { overrideCoeffFor, priceSourceOf, subcontractorPrice } from '@/lib/kosztorys/calc'
+import {
+  namesFigure,
+  overrideCoeffFor,
+  priceSourceOf,
+  subcontractorPrice,
+} from '@/lib/kosztorys/calc'
 import type { PriceSourceT, ToolPlaneT, ViewPricingT } from '@/lib/kosztorys/types'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
@@ -20,8 +25,8 @@ export type CatalogueRateColumnsT = {
  * `priceSourceOf`: mnożnik, then kwota, then „auto".
  */
 export const catalogueSourceOf = ({ rate, coeff }: CatalogueRateT): PriceSourceT => {
-  if (coeff !== null) return 'coeff'
-  if (rate !== null) return 'amount'
+  if (namesFigure(coeff)) return 'coeff'
+  if (namesFigure(rate)) return 'amount'
   return 'auto'
 }
 
@@ -46,8 +51,8 @@ export function catalogueRateValue(
   clientPrice: number,
   investmentCoeff: number,
 ): number {
-  if (coeff !== null) return clientPrice * coeff
-  return rate ?? clientPrice * investmentCoeff
+  if (namesFigure(coeff)) return clientPrice * coeff
+  return namesFigure(rate) ? rate : clientPrice * investmentCoeff
 }
 
 /**

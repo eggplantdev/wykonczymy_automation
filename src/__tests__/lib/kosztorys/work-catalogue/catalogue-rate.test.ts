@@ -3,6 +3,7 @@ import {
   catalogueRateFor,
   catalogueRateValue,
   catalogueSourceOf,
+  type CatalogueRateT,
 } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
 
 // Jedno miejsce, w którym cennik rozstrzyga „skąd bierze się ta stawka" — te same trzy źródła i to
@@ -23,6 +24,22 @@ describe('catalogueSourceOf', () => {
     expect(catalogueSourceOf({ rate: 0, coeff: null })).toBe('amount')
     expect(catalogueSourceOf({ rate: null, coeff: 0 })).toBe('coeff')
   })
+
+  // 2026-09-23: katalog podawany z wpisu cache'a zapisanego, zanim kolumny mnożnika istniały, nie
+  // miał tych kluczy wcale. `!== null` przepuszczało `undefined` jako „ktoś tu ustawił mnożnik", więc
+  // wiersze z kwotą stałą wyświetlały „×0". Nieznana wartość należy na DNO pierwszeństwa: „auto"
+  // niczego nie twierdzi. Typ tego nie obroni — wartość przeszła przez granicę, która typy kasuje.
+  it('kształt bez kolumn spada na „auto", zamiast udawać mnożnik', () => {
+    const missing = {} as CatalogueRateT
+    expect(catalogueSourceOf(missing)).toBe('auto')
+  })
+
+  // Ta sama reguła, drugie wcielenie śmiecia: test jest pozytywny („czy to liczba"), więc lista
+  // odrzuceń nie musi być kompletna.
+  it('NaN nie jest stawką', () => {
+    expect(catalogueSourceOf({ rate: NaN, coeff: NaN })).toBe('auto')
+    expect(catalogueSourceOf({ rate: 65, coeff: NaN })).toBe('amount')
+  })
 })
 
 describe('catalogueRateValue', () => {
@@ -36,6 +53,12 @@ describe('catalogueRateValue', () => {
 
   it('„auto" dopiero tutaj sięga po współczynnik inwestycji', () => {
     expect(catalogueRateValue({ rate: null, coeff: null }, 200, 0.5)).toBe(100)
+  })
+
+  // Kwota licząca się z nie-liczby dałaby NaN złotych, co dalej zabarwia sufit i sortowanie.
+  it('śmieć w kolumnie wycenia się jak „auto", nie jak NaN', () => {
+    expect(catalogueRateValue({} as CatalogueRateT, 200, 0.5)).toBe(100)
+    expect(catalogueRateValue({ rate: NaN, coeff: NaN }, 200, 0.5)).toBe(100)
   })
 })
 

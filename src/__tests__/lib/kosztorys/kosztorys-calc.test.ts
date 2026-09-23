@@ -83,7 +83,10 @@ describe('subcontractorPrice — trzy źródła stawki', () => {
 
   // Sufit odrzuca ją osobno (subcontractor-price-guard); arytmetyka ma ją policzyć, nie ukryć.
   it('ujemny mnożnik przechodzi wprost — to sygnał złych danych, nie miejsce na clamp', () => {
-    expect(subcontractorPrice({ ...auto, wToolsOverrideCoeff: -0.5 }, 'w_tools')).toBeCloseTo(-10, 10)
+    expect(subcontractorPrice({ ...auto, wToolsOverrideCoeff: -0.5 }, 'w_tools')).toBeCloseTo(
+      -10,
+      10,
+    )
   })
 
   // Nieosiągalne przez aplikację (akcja normalizuje każdy zapis), ale surowy SQL i /admin tam sięgają.
@@ -116,6 +119,16 @@ describe('priceSourceOf — jedno miejsce decydujące o pierwszeństwie', () => 
     const row = { ...auto, ownToolsOverrideCoeff: 0.4 }
     expect(priceSourceOf(row, 'own_tools')).toBe('coeff')
     expect(priceSourceOf(row, 'w_tools')).toBe('auto')
+  })
+
+  // Bliźniak regresji z cennika (catalogue-rate.test.ts, 2026-09-23): brakująca kolumna albo NaN to
+  // najsłabsza możliwa informacja, a `!== null` przepuszczało ją jako najmocniejszą deklarację w
+  // łańcuchu. „Auto" jest jedyną odpowiedzią, która niczego nie twierdzi.
+  it('brakująca kolumna i NaN spadają na „auto"', () => {
+    const { wToolsOverrideCoeff: _coeff, wToolsOverrideValue: _value, ...missing } = auto
+    expect(priceSourceOf(missing as typeof auto, 'w_tools')).toBe('auto')
+    expect(priceSourceOf({ ...auto, wToolsOverrideCoeff: NaN }, 'w_tools')).toBe('auto')
+    expect(priceSourceOf({ ...auto, wToolsOverrideValue: NaN }, 'w_tools')).toBe('auto')
   })
 })
 

@@ -4,8 +4,14 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPercent, formatPercentPrecise, formatRate } from '@/lib/kosztorys/format'
+import { namesFigure } from '@/lib/kosztorys/calc'
 import { MAX_CLIENT_SHARE, isOverCeiling } from '@/lib/kosztorys/subcontractor-price-guard'
-import { FLAGGED_TONE, PLANE_LABELS, RATE_LABELS } from '@/lib/kosztorys/constants'
+import {
+  FLAGGED_TONE,
+  PLANE_LABELS,
+  PRICE_SOURCE_LABELS,
+  RATE_LABELS,
+} from '@/lib/kosztorys/constants'
 import { compareDescriptions } from '@/lib/kosztorys/work-catalogue/compare-descriptions'
 import { catalogueRateFor, catalogueSourceOf } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
 import { CatalogueRowActions } from '@/components/work-catalogue/catalogue-row-actions'
@@ -37,8 +43,8 @@ const rateCell = (entry: WorkCatalogueItemT, plane: ToolPlaneT) => {
  */
 const shareOf = (entry: WorkCatalogueItemT, plane: ToolPlaneT) => {
   const { rate, coeff } = catalogueRateFor(entry, plane)
-  if (coeff !== null) return coeff
-  return rate !== null && entry.clientPrice > 0 ? rate / entry.clientPrice : null
+  if (namesFigure(coeff)) return coeff
+  return namesFigure(rate) && entry.clientPrice > 0 ? rate / entry.clientPrice : null
 }
 
 // What the ceiling judges: the złotówka the wpis would pay, whichever źródło names it. The mnożnik's
@@ -46,7 +52,7 @@ const shareOf = (entry: WorkCatalogueItemT, plane: ToolPlaneT) => {
 // reads the same figure it does in the rozpiska.
 const rateAmount = (entry: WorkCatalogueItemT, plane: ToolPlaneT): number | null => {
   const { rate, coeff } = catalogueRateFor(entry, plane)
-  return coeff !== null ? entry.clientPrice * coeff : rate
+  return namesFigure(coeff) ? entry.clientPrice * coeff : rate
 }
 
 const share = (value: number | null, overCeiling: boolean) =>
@@ -137,6 +143,26 @@ const shareColumn = (plane: ToolPlaneT, id: string, tools: string) =>
       ),
   })
 
+// The źródło spelled out, beside the stawka that only IMPLIES it — „auto" and „×0,65" name their
+// own źródło, but „8,50 zł" is a kwota stała that reads like any other number. Sortable and its own
+// column so the cennik can be swept for „które prace jadą jeszcze na auto", which is the question
+// behind every rate review.
+const sourceColumn = (plane: ToolPlaneT, id: string, tools: string) =>
+  col.accessor((row) => catalogueSourceOf(catalogueRateFor(row, plane)), {
+    id,
+    header: twoLines('Źródło', tools),
+    meta: { label: `Źródło ${tools}` },
+    cell: (info) => (
+      <span className="text-muted-foreground text-sm">{PRICE_SOURCE_LABELS[info.getValue()]}</span>
+    ),
+  })
+
+const wToolsSourceColumn = sourceColumn(
+  'w_tools',
+  'wToolsSource',
+  PLANE_LABELS.w_tools.toLowerCase(),
+)
+
 const wToolsShareColumn = shareColumn('w_tools', 'wToolsShare', PLANE_LABELS.w_tools.toLowerCase())
 
 const ownToolsRateColumn = col.accessor((row) => rateAmount(row, 'own_tools'), {
@@ -145,6 +171,12 @@ const ownToolsRateColumn = col.accessor((row) => rateAmount(row, 'own_tools'), {
   meta: { label: RATE_LABELS.own_tools },
   cell: (info) => rateCell(info.row.original, 'own_tools'),
 })
+
+const ownToolsSourceColumn = sourceColumn(
+  'own_tools',
+  'ownToolsSource',
+  PLANE_LABELS.own_tools.toLowerCase(),
+)
 
 const ownToolsShareColumn = shareColumn(
   'own_tools',
@@ -176,8 +208,10 @@ export function getWorkCatalogueColumns({
     categoryColumn,
     unitColumn,
     clientPriceColumn,
+    wToolsSourceColumn,
     wToolsRateColumn,
     wToolsShareColumn,
+    ownToolsSourceColumn,
     ownToolsRateColumn,
     ownToolsShareColumn,
 

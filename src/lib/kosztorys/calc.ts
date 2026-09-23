@@ -100,6 +100,21 @@ export function overrideCoeffFor(
 }
 
 /**
+ * Whether a nadpisanie column actually NAMES a figure — the one test every źródło switch asks.
+ *
+ * A positive test, not `!== null`, because the list of things that are not a figure is open-ended
+ * while the list of things that are is one item long. `!== null` asks „is it the absence I expect",
+ * so a payload one key short (`undefined`) or a broken import (`NaN`) walks through claiming to be a
+ * deliberate mnożnik — the strongest statement in the chain — when it is the weakest thing there is.
+ * A cennik served from a cache entry written before the mnożnik columns existed did exactly that, and
+ * printed „×0" over rows carrying a kwota stała (2026-09-23). Unknown belongs at the BOTTOM of the
+ * precedence: „auto" is the answer that claims nothing.
+ *
+ * `0` is unaffected and still a figure — a stawka someone set to zero is a decision, not an absence.
+ */
+export const namesFigure = (value: number | null): value is number => Number.isFinite(value)
+
+/**
  * Where this plane's stawka comes from — the ONLY place the precedence coeff > kwota > global
  * współczynnik is decided. Four surfaces branch on the answer (siatka, sufit, filtry, katalog); each
  * re-deriving it from `!== null` checks is how they drift apart.
@@ -118,8 +133,8 @@ export function priceSourceOf(
   >,
   view: ToolPlaneT,
 ): PriceSourceT {
-  if (overrideCoeffFor(row, view) !== null) return 'coeff'
-  if (overrideValueFor(row, view) !== null) return 'amount'
+  if (namesFigure(overrideCoeffFor(row, view))) return 'coeff'
+  if (namesFigure(overrideValueFor(row, view))) return 'amount'
   return 'auto'
 }
 

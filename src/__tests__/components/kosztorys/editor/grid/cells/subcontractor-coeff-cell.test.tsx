@@ -64,13 +64,23 @@ function renderTrio(row: Partial<ViewPricingT> = {}) {
 }
 
 describe('„Mnożnik" — trzecie źródło stawki wykonawcy', () => {
-  it('jest puste i nieedytowalne, dopóki nie jest źródłem', () => {
-    // Liczba w tej kolumnie czyta się jako „tyle wiersz ma ustawione"; przy „auto" nic takiego nie
-    // jest zapisane, więc pokazanie krotności, w której wiersz akurat siedzi, byłoby kłamstwem.
+  // Właściciel, 2026-09-23: przy „auto" wiersz JEST liczony mnożnikiem, tylko nie swoim — pusta
+  // komórka czytała się jak „żadnego mnożnika tu nie ma".
+  it('przy „auto" pokazuje mnożnik inwestycji, nieedytowalnie', () => {
     const { coeffInput, coeffText } = renderTrio()
 
     expect(coeffInput()).toBeNull()
-    expect(coeffText()).toBe('')
+    expect(coeffText()).toBe('0,65')
+  })
+
+  // Kreska, nie pustka: zamrożona kwota nie idzie za „Cena j.m.", więc krotność, w której akurat
+  // siedzi, obiecywałaby związek zrywany pierwszą zmianą ceny — a pusta komórka czyta się jak pole
+  // do wypełnienia.
+  it('przy „kwocie stałej" pokazuje kreskę', () => {
+    const { coeffInput, coeffText } = renderTrio({ wToolsOverrideValue: 50 })
+
+    expect(coeffInput()).toBeNull()
+    expect(coeffText()).toBe('—')
   })
 
   it('liczy stawkę od ceny j.m. i oddaje ją nieedytowalnej komórce ceny', () => {
