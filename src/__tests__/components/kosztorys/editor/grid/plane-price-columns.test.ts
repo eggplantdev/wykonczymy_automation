@@ -133,12 +133,21 @@ describe('subcontractor rate columns, both planes', () => {
   // The owner edits crew rates from the view he keeps open — the client price list — so the rate is
   // editable in EVERY view, „Źródło" beside it or not. Typing a number IS „kwota stała" and Delete is
   // the way back to „auto", which is what makes the column self-sufficient without the source picker.
+  //
+  // „Editable" is asked of a row the kwota cell OWNS — on „własny mnożnik" the stawka is an output and
+  // the column is deliberately closed there (see subcontractor-columns-delete.test.ts). The view must
+  // not be what decides that.
   it('stays editable in every view, source column or not', () => {
+    const autoRow = { wToolsOverrideValue: null, wToolsOverrideCoeff: null } as never
+
     for (const view of VIEWS) {
       const columns = buildV2Columns({ view, stages: STAGES })
       for (const id of PRICE_IDS) {
         const column = columns.find((entry) => entry.id === id)
-        expect(column?.disabled).toBeFalsy()
+        const disabled = column?.disabled
+        expect(
+          typeof disabled === 'function' ? disabled({ rowData: autoRow, rowIndex: 0 }) : disabled,
+        ).toBeFalsy()
         expect(column?.deleteValue).toBeTypeOf('function')
         expect(column?.pasteValue).toBeTypeOf('function')
       }
