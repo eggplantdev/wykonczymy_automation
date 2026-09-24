@@ -6,11 +6,8 @@ import type { SessionUserT } from '@/types/auth'
 import type { ActionResultT } from '@/types/action'
 
 /**
- * Narrow an action to owner/admin, above `MANAGEMENT_ROLES`. Used by everything that decides what a
- * client is served — the share token and the client-view settings — because a role that cannot
- * revoke a link must not be able to hand one out, nor to change what it shows. Wrapping
- * `protectedAction` runs that narrowing structurally, so a new action cannot forget a hand-copied
- * `if`.
+ * Narrow an action to owner/admin, above `MANAGEMENT_ROLES`. Wrapping `protectedAction` runs that
+ * narrowing structurally, so a new action cannot forget a hand-copied `if`.
  */
 export function ownerOnlyAction<TData = undefined>(
   label: string,

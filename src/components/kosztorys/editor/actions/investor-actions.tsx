@@ -10,14 +10,8 @@ import { useLatestRequest } from '@/hooks/use-latest-request'
 import { getShareLinkAction } from '@/lib/actions/kosztorys-share'
 import { readClientViewSettings } from '@/lib/queries/client-view-settings-endpoint'
 import type { ClientViewConfigT } from '@/lib/kosztorys/client-view-settings'
-import {
-  OWNER_ONLY_CLIENT_VIEW_MESSAGE,
-  OWNER_ONLY_SHARE_MESSAGE,
-} from '@/lib/kosztorys/owner-only-messages'
 import { toastMessage } from '@/lib/utils/toast'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
-import { useCurrentUser } from '@/hooks/use-current-user'
-import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 
 // „Ustawienia podglądu…" and „Udostępnij" share one module because they share one figure: both open
 // on the same client-view settings, and both dialogs write them back.
@@ -112,31 +106,15 @@ export function InvestorPreviewMenuItem() {
   )
 }
 
-// Both of these are refused by `ownerOnlyAction` on the server, and that refusal is the gate — this
-// is the sign on the door. Without it a manager opens the window, fills it in and clicks „Zapisz" to
-// hear „no" three screens later; the answer was never going to change, it was just held back. Read
-// off `isAdminOrOwnerRole`, the very predicate the server gate calls, so the door and the lock cannot
-// drift apart. Safe to read the session here: these items render only in the owner's toolbar, which
-// the client views (both mounted without a CurrentUserProvider) never render.
-function useMayServeTheClient(): boolean {
-  const { role } = useCurrentUser()
-  return isAdminOrOwnerRole(role)
-}
-
 export function ClientViewSettingsMenuItem() {
   const { investor } = useKosztorysActions()
-  const allowed = useMayServeTheClient()
 
   return (
-    <DropdownMenuItem onSelect={investor.requestSettings} disabled={!allowed}>
+    <DropdownMenuItem onSelect={investor.requestSettings}>
       <Settings2 />
       <MenuItemBody
         label="Ustawienia podglądu…"
-        description={
-          allowed
-            ? 'Zdecyduj, które kolumny i pozycje widzi inwestor.'
-            : OWNER_ONLY_CLIENT_VIEW_MESSAGE
-        }
+        description="Zdecyduj, które kolumny i pozycje widzi inwestor."
       />
     </DropdownMenuItem>
   )
@@ -144,18 +122,13 @@ export function ClientViewSettingsMenuItem() {
 
 export function ShareMenuItem() {
   const { investor } = useKosztorysActions()
-  const allowed = useMayServeTheClient()
 
   return (
-    <DropdownMenuItem onSelect={investor.requestShare} disabled={!allowed}>
+    <DropdownMenuItem onSelect={investor.requestShare}>
       <Share2 />
       <MenuItemBody
         label="Udostępnij"
-        description={
-          allowed
-            ? 'Wygeneruj link, którym inwestor otworzy kosztorys bez logowania.'
-            : OWNER_ONLY_SHARE_MESSAGE
-        }
+        description="Wygeneruj link, którym inwestor otworzy kosztorys bez logowania."
       />
     </DropdownMenuItem>
   )
