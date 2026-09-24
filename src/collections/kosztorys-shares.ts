@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
+import { isAdminOrOwnerOrManager } from '@/access'
 
 // One live public link per investment's kosztorys. Its own table rather than a column on an
 // existing entity: revoke is a row delete, and sharing gets a lifecycle (expiry, multiple links)
@@ -25,9 +25,9 @@ export const KosztorysShares: CollectionConfig = {
   // next request), so nothing is stored under a `kosztorys-shares` tag for a write to bust.
   access: {
     read: isAdminOrOwnerOrManager,
-    create: isAdminOrOwner,
-    update: isAdminOrOwner,
-    delete: isAdminOrOwner,
+    create: isAdminOrOwnerOrManager,
+    update: isAdminOrOwnerOrManager,
+    delete: isAdminOrOwnerOrManager,
   },
   timestamps: true,
   fields: [

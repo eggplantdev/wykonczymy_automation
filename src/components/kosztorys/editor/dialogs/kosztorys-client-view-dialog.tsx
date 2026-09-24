@@ -3,6 +3,7 @@
 import { useTransition } from 'react'
 import { useDraft } from '@/hooks/use-draft'
 import { Button } from '@/components/ui/button'
+import { Description } from '@/components/ui/description'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
 import { ClientViewSettingsForm } from '@/components/kosztorys/editor/dialogs/client-view-settings-form'
@@ -12,6 +13,9 @@ import {
   saveClientViewSettingsAction,
 } from '@/lib/actions/kosztorys-client-view'
 import { sanitizeClientViewConfig } from '@/lib/kosztorys/client-view-settings'
+import { OWNER_ONLY_CLIENT_VIEW_DEFAULTS_MESSAGE } from '@/lib/kosztorys/owner-only-messages'
+import { isAdminOrOwnerRole } from '@/lib/auth/roles'
+import { useCurrentUser } from '@/hooks/use-current-user'
 import { toastMessage } from '@/lib/utils/toast'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
@@ -29,6 +33,9 @@ export function KosztorysClientViewDialog() {
   const [draft, setDraft] = useDraft(settings)
   const [pending, startTransition] = useTransition()
   const { confirmModeChange, modeConfirmProps } = useClientViewModeConfirm(settings)
+  // The same predicate `ownerOnlyAction` refuses by, so a manager learns it before the click instead
+  // of from a „saved, but not as default" toast after it.
+  const mayWriteDefaults = isAdminOrOwnerRole(useCurrentUser().role)
 
   const save = (asDefaults: boolean) =>
     startTransition(async () => {
@@ -75,11 +82,15 @@ export function KosztorysClientViewDialog() {
             description="Zaznacz, które kolumny i pozycje inwestor widzi w rozpisce. Ceny podwykonawców nie pojawiają się w niej nigdy."
           />
           <ClientViewSettingsForm value={draft} onChange={setDraft} disabled={pending} />
+          {/* A sentence, not a `title`: the disabled Button has pointer-events off, so no tooltip. */}
+          {!mayWriteDefaults && (
+            <Description size="xs">{OWNER_ONLY_CLIENT_VIEW_DEFAULTS_MESSAGE}</Description>
+          )}
           <DialogFooter>
             <Button
               variant="outline"
               size="sm"
-              disabled={!draft || pending}
+              disabled={!draft || pending || !mayWriteDefaults}
               onClick={() => requestSave(true)}
             >
               Zapisz jako domyślne

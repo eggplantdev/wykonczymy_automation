@@ -1,7 +1,8 @@
 'use server'
 
 import { ownerOnlyAction } from '@/lib/actions/owner-only-action'
-import { OWNER_ONLY_CLIENT_VIEW_MESSAGE } from '@/lib/kosztorys/owner-only-messages'
+import { protectedAction } from '@/lib/actions/run-action'
+import { OWNER_ONLY_CLIENT_VIEW_DEFAULTS_MESSAGE } from '@/lib/kosztorys/owner-only-messages'
 import {
   sanitizeClientViewConfig,
   sanitizeClientViewVariant,
@@ -11,14 +12,11 @@ import {
 import { findClientViewRow } from '@/lib/queries/kosztorys-client-view'
 import type { ActionResultT } from '@/types/action'
 
-// Same narrowing as the share actions, for the same reason: this decides what a client is served.
-const FORBIDDEN = OWNER_ONLY_CLIENT_VIEW_MESSAGE
-
 export async function saveClientViewSettingsAction(
   investmentId: number,
   config: ClientViewConfigT,
 ): Promise<ActionResultT> {
-  return ownerOnlyAction('saveClientViewSettingsAction', FORBIDDEN, async ({ payload }) => {
+  return protectedAction('saveClientViewSettingsAction', async ({ payload }) => {
     const data = sanitizeClientViewConfig(config)
     const row = await findClientViewRow(payload, investmentId)
 
@@ -60,23 +58,27 @@ export async function saveClientViewDefaultsAction(
   config: ClientViewConfigT,
   mode: ClientViewModeT,
 ): Promise<ActionResultT> {
-  return ownerOnlyAction('saveClientViewDefaultsAction', FORBIDDEN, async ({ payload }) => {
-    const current = await payload.findGlobal({
-      slug: 'kosztorys-client-view-defaults',
-      depth: 0,
-    })
-    const storedVariants =
-      typeof current?.variants === 'object' && current.variants !== null ? current.variants : {}
+  return ownerOnlyAction(
+    'saveClientViewDefaultsAction',
+    OWNER_ONLY_CLIENT_VIEW_DEFAULTS_MESSAGE,
+    async ({ payload }) => {
+      const current = await payload.findGlobal({
+        slug: 'kosztorys-client-view-defaults',
+        depth: 0,
+      })
+      const storedVariants =
+        typeof current?.variants === 'object' && current.variants !== null ? current.variants : {}
 
-    await payload.updateGlobal({
-      slug: 'kosztorys-client-view-defaults',
-      data: {
-        variants: {
-          ...storedVariants,
-          [mode]: sanitizeClientViewVariant(config.variants[mode], mode),
+      await payload.updateGlobal({
+        slug: 'kosztorys-client-view-defaults',
+        data: {
+          variants: {
+            ...storedVariants,
+            [mode]: sanitizeClientViewVariant(config.variants[mode], mode),
+          },
         },
-      },
-    })
-    return { success: true }
-  })
+      })
+      return { success: true }
+    },
+  )
 }
