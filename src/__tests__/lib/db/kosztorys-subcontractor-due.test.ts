@@ -14,9 +14,9 @@ import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 // whatever the test author believed the formula was, and both planes would go green on the same
 // mistake.
 //
-// Coverage is by BRANCH of subcontractorPrice — a flat amount and unset, on BOTH planes, because
-// the two planes read disjoint column pairs and a copy that swapped them would still agree on any
-// fixture where the panes happen to price alike.
+// Coverage is by BRANCH of subcontractorPrice — a mnożnik, a flat amount and unset, on BOTH planes,
+// because the two planes read disjoint column pairs and a copy that swapped them would still agree on
+// any fixture where the panes happen to price alike.
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
@@ -53,6 +53,16 @@ describe.skipIf(!ENV_READY)('selectKosztorysSubcontractorDue (DB)', () => {
       clientPrice: 250,
       wToolsOverrideValue: 175,
       ownToolsOverrideValue: 150,
+    },
+    // Mnożnik on both planes, different per plane for the same reason as the kwota rows above. The
+    // stawka is `client_price * coeff`, so a copy that forgot the multiplication — or applied the
+    // investment's coefficient on top of it — parts ways here and nowhere else.
+    {
+      description: 'mnoznik',
+      plannedQty: 10,
+      clientPrice: 120,
+      wToolsOverrideCoeff: 0.8,
+      ownToolsOverrideCoeff: 0.4,
     },
     // Nothing set: the price derives from the investment's own coefficients.
     { description: 'pochodna', plannedQty: 10, clientPrice: 80 },
@@ -140,7 +150,7 @@ describe.skipIf(!ENV_READY)('selectKosztorysSubcontractorDue (DB)', () => {
     return rows.find((row) => row.investmentId === investmentId)
   }
 
-  it('agrees with the TS formula across both planes and all three pricing branches', async () => {
+  it('agrees with the TS formula across both planes and all four pricing branches', async () => {
     const [sqlRow, ts] = await Promise.all([sqlDueFor(created.clean), tsDue(created.clean)])
 
     expect(sqlRow).toBeDefined()

@@ -100,6 +100,8 @@ automated, CI-runnable E2E replaces hand-driven MCP sessions for the financial c
   > EX-400 CSV, EX-666 PDF + live-formula sheet). The client-facing job they were
   > for is done by the **client view** (S-13, token link + „Podgląd dla klienta")
   > — live rather than a file. See roadmap → Cut & folded slices.
+  > **Partly reversed (2026-09-23).** The **offer** print came back as „Wygeneruj ofertę w PDF";
+  > CSV and the live-formula sheet stay cut, and FR-008 stays unimplemented.
 - End-to-end verification of the financial core (sign in → create a transfer →
   register balance and investment figures update) runs automated and CI-runnable,
   replacing manual operator-driven sessions for that flow.

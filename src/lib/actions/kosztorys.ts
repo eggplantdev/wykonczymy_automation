@@ -10,6 +10,7 @@ import { investmentGateForRow } from '@/lib/db/investment-gate'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { cleanDescription } from '@/lib/kosztorys/clean-description'
+import { itemPatchSchema } from '@/lib/kosztorys/item-patch-schema'
 import { cleanUnit } from '@/lib/kosztorys/clean-unit'
 import { getItemTexts, setItemTexts } from '@/lib/db/kosztorys-item-texts'
 import {
@@ -28,6 +29,7 @@ import {
   type InsertDirectionT,
   type MoveDirectionT,
 } from '@/lib/kosztorys/display-order'
+import { normalizeOverridePatch } from '@/lib/kosztorys/override-patch'
 import { applyPercentDiscountSchema } from '@/lib/kosztorys/percent-discount'
 import { isSectionColorKey, type SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import { replaceTreeWithSnapshot } from '@/lib/kosztorys/replace-tree-with-snapshot'
@@ -43,25 +45,7 @@ const SECTION_MISSING = 'Sekcja nie istnieje.'
 const ITEM_MISSING = 'Pozycja nie istnieje.'
 
 // --- Patch schemas (all fields optional — autosave sends one field at a time) ---
-// itemPatchSchema is shaped to match ItemPatchT (a single source of the type in lib/kosztorys/types.ts).
-
-const itemPatchSchema = z
-  .object({
-    description: z.string().nullable(),
-    unit: z.string().nullable(),
-    plannedQty: z.coerce.number(),
-    discountType: z.enum(['percent', 'amount']).nullable(),
-    // Floor only: the same slot carries złotówki when the type is 'amount', so the percent ceiling
-    // lives in discount-edit.ts.
-    discountValue: z.coerce.number().min(0),
-    clientPrice: z.coerce.number(),
-    // `.nullable()` WRAPS the coercion rather than following a coerced number: `z.coerce.number()`
-    // turns null into 0, which is the one value that must stay distinguishable from „auto".
-    wToolsOverrideValue: z.coerce.number().nullable(),
-    ownToolsOverrideValue: z.coerce.number().nullable(),
-    note: z.string().nullable(),
-  })
-  .partial()
+// The item patch schema lives beside ItemPatchT in lib/kosztorys/item-patch-schema.ts.
 
 const sectionPatchSchema = z
   .object({
@@ -119,7 +103,10 @@ export async function updateItemFieldAction(itemId: number, patch: ItemPatchT) {
     async ({ payload }) => {
       const parsed = validateAction(itemPatchSchema, patch)
       if (!parsed.success) return parsed
-      await payload.update({ collection: 'kosztorys-items', id: itemId, data: parsed.data })
+      // The grid sends ONE field per call, so the pair of columns behind a stawka is made whole
+      // here — one write, never two orderings (EX-865).
+      const data = normalizeOverridePatch(parsed.data)
+      await payload.update({ collection: 'kosztorys-items', id: itemId, data })
       return { success: true }
     },
     ['kosztorysItems'],

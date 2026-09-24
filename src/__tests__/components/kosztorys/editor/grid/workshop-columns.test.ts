@@ -69,9 +69,7 @@ describe('workshop columns', () => {
     expect(workshopIds()).not.toContain('priceGross')
   })
 
-  // „Źródło ceny wykonawcy" assembles only off the client plane everywhere else, so on the client
-  // plane this asserts the assembly exception, not just the allowlist. Both halves per plane,
-  // because a source without its kwota is a control with no value on screen — and a stawka left off
+  // Both halves per plane, because a source without its kwota is a control with no value on screen — and a stawka left off
   // this list would be missing from the plane the szablon opens on, while
   // `serializeKosztorysAsPreset` still carried it onto every budowa seeded from that szablon. Driven
   // off TOOL_PLANES, not `ALL_PLANE_PRICE_KEYS`, so a key dropped from the constant fails here
@@ -83,15 +81,15 @@ describe('workshop columns', () => {
     }
   })
 
-  // The exception is scoped to the workbench: the same client plane on an ordinary kosztorys, and
-  // the client preview built on it, must still assemble no edit control for a contractor's rate.
-  it('does not leak the price source onto an ordinary client view', () => {
-    const ordinary = buildV2Columns({ view: 'client', stages: STAGES })
-      .map((column) => column.id)
-      .filter((id): id is string => id != null)
+  it('shows the price source on the client view and never on the investor preview', () => {
+    const idsFor = (previewVisible: boolean) =>
+      buildV2Columns({ view: 'client', stages: STAGES, previewVisible })
+        .map((column) => column.id)
+        .filter((id): id is string => id != null)
 
     for (const plane of TOOL_PLANES) {
-      expect(ordinary).not.toContain(planePriceKey('priceMode', plane))
+      expect(idsFor(false)).toContain(planePriceKey('priceMode', plane))
+      expect(idsFor(true)).not.toContain(planePriceKey('priceMode', plane))
     }
   })
 

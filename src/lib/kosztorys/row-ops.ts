@@ -51,6 +51,8 @@ export function buildBlankRow(input: BlankRowInputT): KosztorysV2RowT {
     clientPrice: 0,
     wToolsOverrideValue: null,
     ownToolsOverrideValue: null,
+    wToolsOverrideCoeff: null,
+    ownToolsOverrideCoeff: null,
     note: null,
     sectionName: input.sectionName,
     sectionColor: input.sectionColor,

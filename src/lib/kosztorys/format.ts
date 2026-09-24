@@ -1,4 +1,6 @@
+import { formatPLN } from '@/lib/utils/format-currency'
 import { roundToCents } from '@/lib/utils/round-to-cents'
+import type { PriceSourceT } from '@/lib/kosztorys/types'
 
 // Bare pl-PL number with 2 decimals (no currency symbol) for dense grid cells and subtotals —
 // distinct from `formatPLN`, which emits "zł" and is too wide for the spreadsheet layout.
@@ -22,6 +24,23 @@ export const formatQty = (n: number) =>
 // preview of what the cennik decided.
 export const formatCoeff = (n: number) =>
   (n + 0).toLocaleString('pl-PL', { maximumFractionDigits: 6 })
+
+/**
+ * A stawka wykonawcy as its ŹRÓDŁO names it, wherever one is printed as prose rather than edited:
+ * „auto", a kwota, or „×0,8" — the mnożnik itself, not the złotówka it produces, because the mnożnik
+ * is what was agreed and the złotówka moves with the cena j.m. (EX-865). Where a kwota is known it
+ * follows in brackets; a katalog wpis outside any inwestycja has none.
+ */
+export const formatRate = (
+  value: number | null,
+  source: PriceSourceT,
+  coeff: number | null,
+): string => {
+  if (source === 'auto') return 'auto'
+  if (source === 'amount') return value === null ? 'auto' : formatPLN(value)
+  const multiple = `×${formatCoeff(coeff ?? 0)}`
+  return value === null ? multiple : `${multiple} (${formatPLN(value)})`
+}
 
 // A fraction (0.746) as a percentage; `null` (no denominator — see rowDoneFraction) renders as a
 // dash. Two precisions: integer for the dense grid cells, one decimal for the headline figures where

@@ -23,7 +23,9 @@ const CATALOGUE: WorkCatalogueItemT[] = [
     unit: 'm2',
     clientPrice: 50,
     wToolsRate: 20,
+    wToolsRateCoeff: null,
     ownToolsRate: 15,
+    ownToolsRateCoeff: null,
     matchKey: 'malowanie scian|m2',
   },
 ]

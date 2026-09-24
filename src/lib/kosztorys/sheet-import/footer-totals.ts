@@ -50,6 +50,8 @@ const asPricing = (item: ParsedItemT): ViewPricingT => ({
   ...item,
   wToolsOverrideValue: null,
   ownToolsOverrideValue: null,
+  wToolsOverrideCoeff: null,
+  ownToolsOverrideCoeff: null,
   globalDiscountActive: false,
   globalWToolsCoeff: 0,
   globalOwnToolsCoeff: 0,

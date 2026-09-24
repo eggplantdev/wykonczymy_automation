@@ -42,8 +42,11 @@ export function useKosztorysViewState({
     setMany: setConditions,
     clear: clearConditions,
   } = useEngagedConditions(investmentId)
+  // „Pokaż wszystkie pozycje" — the investor's one-visit override of the owner's hide. Not persisted:
+  // every visit opens on the document the owner curated.
+  const [showAllRows, setShowAllRows] = useState(false)
   const engagedConditionIds = preview
-    ? clientConditionIds(clientView?.hideEmptyRows)
+    ? clientConditionIds(clientView?.hideEmptyRows && !showAllRows)
     : persistedConditionIds
   // Rides the engaged problem on top of the stored plane, never written to it. Derived, not
   // remembered: the problem persists and a plane wouldn't, so a reload would restore the narrowing
@@ -141,6 +144,8 @@ export function useKosztorysViewState({
     search,
     setSearch,
     engagedConditionIds,
+    showAllRows,
+    setShowAllRows,
     toggleCondition,
     setConditions,
     toggleConditionExclusive: pickProblem,

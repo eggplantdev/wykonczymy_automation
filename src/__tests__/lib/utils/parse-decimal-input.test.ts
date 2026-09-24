@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { decimalText } from '@/lib/utils/decimal-text'
-import { parseCellDecimal, parseDecimalInput } from '@/lib/utils/parse-decimal-input'
+import { parseCellDecimal, parseDecimalInput, toMoney } from '@/lib/utils/parse-decimal-input'
 
 describe('parseDecimalInput', () => {
   it('parsuje liczbę i przyjmuje przecinek jako separator dziesiętny', () => {
@@ -47,5 +47,21 @@ describe('parseCellDecimal(decimalText(x)) round trip', () => {
   it('renders null/undefined as the empty cell that parses back to a clear', () => {
     expect(parseCellDecimal(decimalText(null))).toEqual({ kind: 'empty' })
     expect(parseCellDecimal(decimalText(undefined))).toEqual({ kind: 'empty' })
+  })
+})
+
+describe('toMoney', () => {
+  it('reads a comma as the decimal separator', () => {
+    expect(toMoney('12,50')).toBe(12.5)
+  })
+
+  it('refuses a blank field instead of reading it as 0 zł', () => {
+    expect(toMoney('')).toBeNaN()
+    expect(toMoney('   ')).toBeNaN()
+  })
+
+  it('refuses half-typed garbage', () => {
+    expect(toMoney('1e')).toBeNaN()
+    expect(toMoney('-')).toBeNaN()
   })
 })

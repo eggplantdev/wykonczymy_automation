@@ -102,6 +102,8 @@ export type StoredSnapshotPayloadT = {
     | 'clientPrice'
     | 'wToolsOverrideValue'
     | 'ownToolsOverrideValue'
+    | 'wToolsOverrideCoeff'
+    | 'ownToolsOverrideCoeff'
   >[]
   stages: KosztorysStageT[]
   progress: TolerantT<StageProgressT, 'qtyDone'>[]
@@ -115,7 +117,7 @@ export type StoredSnapshotPayloadT = {
 // optional) so tsc rejects a future edit that drops a fallback, and the return type is the strict
 // KosztorysItemT — meaning the compiler, not this comment, is what guarantees every field got filled.
 //
-// It lives at the payload readers (insertKosztorysTree, appendPresetSections, buildCatalogueSeed) and
+// It lives at the payload readers (insertKosztorysTree, appendPresetSections) and
 // not at the bind in insert-rows.ts, because those primitives are also called by appendCatalogueItems,
 // which builds its rows in code (`asItem`) where a missing value is a caller bug to surface, not absorb.
 //
@@ -135,5 +137,9 @@ export function itemWithColumnDefaults(
     clientPrice: item.clientPrice ?? 0,
     wToolsOverrideValue: item.wToolsOverrideValue ?? null,
     ownToolsOverrideValue: item.ownToolsOverrideValue ?? null,
+    // A snapshot taken before EX-865 knows neither key, and reading them as „auto" is the truth:
+    // it was written when no mnożnik existed. `?? 0` would invent a stawka of zero złotych.
+    wToolsOverrideCoeff: item.wToolsOverrideCoeff ?? null,
+    ownToolsOverrideCoeff: item.ownToolsOverrideCoeff ?? null,
   }
 }

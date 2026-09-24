@@ -23,6 +23,8 @@ const base: InvestmentFinancialsT = {
   netCategoryCosts: [],
 }
 
+const NOTHING_BILLED_NET = { netCategoryCosts: [], netCategoryGrossCosts: [] }
+
 describe('buildFinancialFields — rabat row', () => {
   it('omits the Rabat field when totalDiscount is 0', () => {
     const fields = buildFinancialFields(base, [])
@@ -67,7 +69,7 @@ describe('buildMaterialsBreakdown', () => {
       ],
       totalMaterialCosts: 950, // 200 not attributed to any category
     }
-    const rows = buildMaterialsBreakdown(financials, cats)
+    const rows = buildMaterialsBreakdown(financials, cats, NOTHING_BILLED_NET)
     expect(rows.reduce((sum, r) => sum + r.net, 0)).toBe(950)
   })
 
@@ -77,7 +79,9 @@ describe('buildMaterialsBreakdown', () => {
       categoryCosts: [{ categoryId: 1, total: 500 }],
       totalMaterialCosts: 500,
     }
-    expect(buildMaterialsBreakdown(balanced, cats).some((r) => r.id === null)).toBe(false)
+    expect(
+      buildMaterialsBreakdown(balanced, cats, NOTHING_BILLED_NET).some((r) => r.id === null),
+    ).toBe(false)
 
     // A negative correction can drive the remainder below zero — kept signed, not clamped.
     const overCategorised = {
@@ -85,7 +89,9 @@ describe('buildMaterialsBreakdown', () => {
       categoryCosts: [{ categoryId: 1, total: 500 }],
       totalMaterialCosts: 400,
     }
-    const remainder = buildMaterialsBreakdown(overCategorised, cats).find((r) => r.id === null)
+    const remainder = buildMaterialsBreakdown(overCategorised, cats, NOTHING_BILLED_NET).find(
+      (r) => r.id === null,
+    )
     expect(remainder).toMatchObject({ id: null, net: -100 })
   })
 
@@ -100,7 +106,9 @@ describe('buildMaterialsBreakdown', () => {
       ],
       totalMaterialCosts: 21_500.49 + 43_363 + 1e-11,
     }
-    expect(buildMaterialsBreakdown(financials, cats).some((r) => r.id === null)).toBe(false)
+    expect(
+      buildMaterialsBreakdown(financials, cats, NOTHING_BILLED_NET).some((r) => r.id === null),
+    ).toBe(false)
     expect(
       buildFinancialFields(financials, cats).some((f) => f.label === 'Korekta (bez kategorii)'),
     ).toBe(false)
@@ -115,8 +123,12 @@ describe('buildMaterialsBreakdown', () => {
       totalMaterialCosts: 300,
     }
 
-    expect(buildMaterialsBreakdown(financials, cats).map((r) => r.id)).toEqual([2])
-    expect(buildMaterialsBreakdown({ ...base, totalMaterialCosts: 0 }, cats)).toEqual([])
+    expect(buildMaterialsBreakdown(financials, cats, NOTHING_BILLED_NET).map((r) => r.id)).toEqual([
+      2,
+    ])
+    expect(
+      buildMaterialsBreakdown({ ...base, totalMaterialCosts: 0 }, cats, NOTHING_BILLED_NET),
+    ).toEqual([])
   })
 
   it('drops a category billed wholly netto from the brutto plane, keeping its netto row', () => {
@@ -126,8 +138,19 @@ describe('buildMaterialsBreakdown', () => {
       totalMaterialCosts: 1000,
     }
 
-    expect(buildMaterialsBreakdown(financials, cats, [{ categoryId: 1, total: 1000 }])).toEqual([
-      { id: 1, label: 'Materiały budowlane netto', net: 1000, origin: 'netBilled' },
+    expect(
+      buildMaterialsBreakdown(financials, cats, {
+        netCategoryCosts: [{ categoryId: 1, total: 1000 }],
+        netCategoryGrossCosts: [{ categoryId: 1, total: 1080 }],
+      }),
+    ).toEqual([
+      {
+        id: 1,
+        label: 'Materiały budowlane',
+        net: 1000,
+        origin: 'netBilled',
+        recordedGross: 1080,
+      },
     ])
   })
 
@@ -145,7 +168,7 @@ describe('buildMaterialsBreakdown', () => {
       ],
       totalMaterialCosts: 300,
     }
-    const rows = buildMaterialsBreakdown(financials, dupNames)
+    const rows = buildMaterialsBreakdown(financials, dupNames, NOTHING_BILLED_NET)
     const ids = rows.map((r) => r.id)
     expect(ids).toEqual([7, 9])
     expect(new Set(ids).size).toBe(ids.length)
@@ -162,26 +185,36 @@ describe('buildMaterialsBreakdown', () => {
       ],
       totalMaterialCosts: 1800,
     }
-    const netCategoryCosts = [{ categoryId: 1, total: 1000 }]
+    // 8% apart, not 23%: the brutto must be the invoice's, not one the rate could reproduce.
+    const netBilled = {
+      netCategoryCosts: [{ categoryId: 1, total: 1000 }],
+      netCategoryGrossCosts: [{ categoryId: 1, total: 1080 }],
+    }
 
-    it('splits a mixed category into a brutto row and its own frozen „… netto" row', () => {
-      const rows = buildMaterialsBreakdown(financials, cats, netCategoryCosts)
+    it('splits a mixed category into a brutto row and its own frozen netto row under the same name', () => {
+      const rows = buildMaterialsBreakdown(financials, cats, netBilled)
       expect(rows.filter((r) => r.id === 1)).toEqual([
         { id: 1, label: 'Materiały budowlane', net: 500, origin: 'gross' },
-        { id: 1, label: 'Materiały budowlane netto', net: 1000, origin: 'netBilled' },
+        {
+          id: 1,
+          label: 'Materiały budowlane',
+          net: 1000,
+          origin: 'netBilled',
+          recordedGross: 1080,
+        },
       ])
     })
 
     it('leaves a category with nothing billed netto as a single brutto row', () => {
-      const rows = buildMaterialsBreakdown(financials, cats, netCategoryCosts)
+      const rows = buildMaterialsBreakdown(financials, cats, netBilled)
       expect(rows.filter((r) => r.id === 2)).toEqual([
         { id: 2, label: 'Materiały wykończeniowe', net: 300, origin: 'gross' },
       ])
     })
 
     it('Σ rows is unchanged by the split — value moves rows, it is never added', () => {
-      const withSplit = buildMaterialsBreakdown(financials, cats, netCategoryCosts)
-      const withoutSplit = buildMaterialsBreakdown(financials, cats)
+      const withSplit = buildMaterialsBreakdown(financials, cats, netBilled)
+      const withoutSplit = buildMaterialsBreakdown(financials, cats, NOTHING_BILLED_NET)
       const sum = (rows: { net: number }[]) => rows.reduce((total, r) => total + r.net, 0)
       expect(sum(withSplit)).toBe(sum(withoutSplit))
       expect(sum(withSplit)).toBe(1800)

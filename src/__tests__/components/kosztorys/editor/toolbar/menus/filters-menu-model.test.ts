@@ -43,8 +43,8 @@ describe('the „Filtry" list', () => {
     expect(
       model({ 'manual-rate-w-tools': 2, 'manual-rate-own-tools': 3 }).map((toggle) => toggle.label),
     ).toEqual([
-      'Pozycje ze stawką wykonawcy z kwoty stałej w widoku z narzędziami (2)',
-      'Pozycje ze stawką wykonawcy z kwoty stałej w widoku bez narzędzi (3)',
+      'Pozycje ze stawką wykonawcy z kwoty stałej w widoku z narzędziami (podwykonawca) (2)',
+      'Pozycje ze stawką wykonawcy z kwoty stałej w widoku bez narzędzi (pracownik) (3)',
     ])
   })
 
@@ -85,7 +85,7 @@ describe('the headings', () => {
       model({ 'has-note': 1, 'has-planned-qty': 2, 'manual-rate-w-tools': 3 }).map(
         (toggle) => toggle.groupLabel,
       ),
-    ).toEqual(['Przedmiar', 'Źródło stawki wykonawcy', 'Komentarz'])
+    ).toEqual(['Przedmiar i wykonana praca', 'Źródło stawki wykonawcy', 'Komentarz'])
   })
 
   // The menu prints one heading per RUN of equal labels, so a category split across two runs would

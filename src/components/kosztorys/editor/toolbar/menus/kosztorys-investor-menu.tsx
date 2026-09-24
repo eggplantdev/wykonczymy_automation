@@ -12,6 +12,7 @@ import {
   InvestorPreviewMenuItem,
   ShareMenuItem,
 } from '@/components/kosztorys/editor/actions/investor-actions'
+import { GenerateOfferMenuItem } from '@/components/kosztorys/editor/actions/offer-print-action'
 
 // Split out of „Opcje" because serving the client is its own errand — the owner reaches for it
 // before sending an offer, not while editing one. Mounted inside KosztorysActionsProvider (see
@@ -27,6 +28,7 @@ export function KosztorysInvestorMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
         <InvestorPreviewMenuItem />
+        <GenerateOfferMenuItem />
         <ClientViewSettingsMenuItem />
         <ShareMenuItem />
       </DropdownMenuContent>

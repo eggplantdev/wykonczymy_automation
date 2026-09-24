@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
-import { parsePln, readColumn } from './support/ui'
+import { parsePln } from './support/money'
+import { readColumn } from './support/table'
 import { createInvestmentExpense, EXPENSE_REGISTER } from './drivers/expenses'
 import { openTransferFilters } from './drivers/transfers'
 

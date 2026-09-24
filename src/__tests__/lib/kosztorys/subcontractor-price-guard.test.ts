@@ -23,6 +23,8 @@ const row: ViewPricingT = {
   clientPrice: 100,
   wToolsOverrideValue: null,
   ownToolsOverrideValue: null,
+  wToolsOverrideCoeff: null,
+  ownToolsOverrideCoeff: null,
   note: null,
   globalDiscountActive: false,
   globalWToolsCoeff: 0.65,
@@ -59,6 +61,17 @@ describe('checkSubcontractorPrice — sufit 65% ceny klienta', () => {
     const odd = { ...amount(65.01), clientPrice: 100.01 }
     expect(checkSubcontractorPrice(odd, 'w_tools')).toBeNull()
   })
+
+  // Trzecie źródło wchodzi na tę samą wagę (EX-865): stawka 70 zł przepłaca tak samo, czy powstała z
+  // kwoty, czy z mnożnika 0,7 — autor siedzi w tym wierszu, więc werdykt też.
+  it('własny mnożnik ponad sufit ostrzega tym samym zdaniem co kwota', () => {
+    const coeff = (value: number): ViewPricingT => ({ ...row, wToolsOverrideCoeff: value })
+
+    expect(checkSubcontractorPrice(coeff(0.65), 'w_tools')).toBeNull()
+    expect(checkSubcontractorPrice(coeff(0.7), 'w_tools')).toEqual(
+      checkSubcontractorPrice(amount(70), 'w_tools'),
+    )
+  })
 })
 
 describe('checkSubcontractorPrice — tryb auto', () => {
@@ -75,8 +88,9 @@ describe('checkSubcontractorPrice — tryb auto', () => {
     expect(checkSubcontractorPrice(over, 'w_tools')).toBeNull()
   })
 
-  // The ceiling rung is gated on „kwota stała"; the negative rung is not, because a negative mnożnik
-  // is reachable through the action (`investmentCoeffsSchema` carries no `.min(0)`).
+  // The ceiling rung is gated on a stawka the wiersz itself authored; the negative rung is not,
+  // because a negative mnożnik inwestycji is reachable through the action (`investmentCoeffsSchema`
+  // carries no `.min(0)`).
   it('odrzuca ujemną stawkę z auto — ujemny mnożnik', () => {
     const negative = { ...row, globalWToolsCoeff: -0.1 }
     expect(checkSubcontractorPrice(negative, 'w_tools')).toMatchObject({ severity: 'refuse' })

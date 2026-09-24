@@ -524,19 +524,34 @@ j.m.` wśród wierszy policzonych** (wpisane z palca są wykluczone: to decyzje 
     Materiały budowlane/wykończeniowe, korekta i wpłaty = wartość nominalna (brak wiersza
     brutto). (Bug 1: wcześniej wszystko gruntowane hurtem przez `toGross(cały net)`; bug 2:
     rabat błędnie zrzucony do `faceValue` — powinien `moneyPair(…, vatRate)`.)
-  - **WYJĄTEK od „materiały nominalnie" — wydatek typu netto (wdrożone 2026-08-07).**
+  - **WYJĄTEK od „materiały nominalnie" — wydatek typu netto (2026-08-07, poprawione 2026-09-23).**
     Reguła „wartość nominalna" mówi, że nie **wymyślamy** VAT-u, którego nie było na dokumencie —
-    a nie że materiał nigdy nie ma dwóch osi. Wydatek zapisany jako **netto** ma brutto policzone:
-    `brutto = netto × (1 + (materialsNetRate ?? vatRate))`, tą samą stawką, która w drugą stronę
-    rządzi kolumną Netto. Kierunek wynika z tego, na której płaszczyźnie wydatek zapisano; paragon
-    brutto dalej stoi po face value na obu osiach.
-    **Pułapka, którą to przywraca:** model „zapisane `netAmount`" wybrano właśnie po to, żeby
-    skasować dryf zaokrągleń (`ROUND` Postgresa vs `Math.round` JS-a) łamiący „lista === podsumowanie"
-    — brutto liczone wskrzesza dokładnie to ryzyko, więc niezmiennik Σ testuje się **na moście**
-    między płaszczyznami, nie po jednym teście na płaszczyznę.
+    a nie że materiał nigdy nie ma dwóch osi. Wydatek zapisany jako **netto** ma na fakturze obie
+    kwoty i **obie bierzemy z faktury**: netto = Σ `net_amount`, brutto = Σ `amount`. Żadna stawka
+    materiałów (8%, 12%, 23%…) nie rusza ani netto, ani brutto, ani Różnicy wiersza „… netto" —
+    przesuwają się tylko wiersze zapisane brutto (właściciel, 2026-09-23). Odwraca to decyzję
+    z 2026-08-07, która liczyła brutto jako `netto × (1 + stawka)` i ważyła wyłącznie stawki, nie
+    zapisaną kwotę `amount` — przy 23% inwestycja 146 pokazywała 5477,60 brutto wobec 4809,60
+    na fakturze.
+    **Bez stawki** (brak zapisanej albo rozliczenie brutto) tabela ma jedną kolumnę „Kwota", a wiersz
+    „… netto" pokazuje w niej swoje netto — to kwota, którą płaci klient, więc „Razem" dalej równa
+    się „Materiały" w Podsumowaniu.
+    Zmiana jest tylko w wyświetlaniu: bilans, marża, „Łącznie" i lista inwestycji czytają netto,
+    które się nie zmieniło. A skoro obie kwoty są zapisane, wraca gwarancja, dla której wybrano model
+    „zapisane `netAmount`": brak dryfu zaokrągleń między listą a podsumowaniem.
     **Konsekwencja w rozliczeniu mieszanym:** „Pozostało brutto" **nie** jest gruntowaniem kwoty
     nierozliczonej — to gruntowałoby materiały razem z pracami. Liczy się z „Łącznie", gdzie
     materiały już stoją po face value na obu osiach (`resztaGross = combined.gross − paidNet`).
+  - **Widok inwestora zakładki „Materiały" (2026-09-23).** Podział brutto / netto jest sprawą
+    firmy, nie inwestora — więc w podglądzie (`preview`, nigdy `priceView`):
+    - „Wydatki inwestycyjne" ma **jeden wiersz na kategorię** (budowlane / wykończeniowe /
+      pozostałe) + „Razem" — wiersz „… netto" jest doliczony do swojej kategorii **po wycenie**,
+      więc „Razem" jest identyczne jak w widoku managera.
+    - Lista wydatków to **jedna lista po brutto**: bez przełącznika zestawów, bez kolumny Netto,
+      „Razem" = Σ `amount`. Wydatek netto stoi na niej po brutto z faktury, więc „Razem" listy jest
+      **≥** „Materiały" rozliczonym w Podsumowaniu — celowo, na korzyść inwestora (właściciel,
+      2026-09-23). Tych dwóch sum się nie uzgadnia. Materiały wliczone w robociznę dalej nie trafiają
+      do podglądu.
   - **Skutek dla rekoncyliacji (strona inwestycji „z kosztorysu", EX-535):** porównanie idzie
     **netto ↔ netto** dla obu figur — kosztorys suma prac (netto) ↔ Σ `LABOR_COST`, kosztorys
     rabat (netto) ↔ Σ `RABAT`. Strony kosztorysowej **nie gruntujemy**. To usuwa fałszywy
@@ -678,6 +693,14 @@ padły wprost od właściciela, nie są domysłem implementacji:
   w porównaniu z katalogiem — jedna reguła, nie druga do pamiętania.
 - **Select sekcji docelowej nie pokazuje licznika `(n poz.)`** — tak samo jak menu „Dodaj", gdzie
   właściciel to zaakceptował. Koszt: dwie sekcje o tej samej nazwie są w selekcie nierozróżnialne.
+- **Nazwa sekcji JEST jej tożsamością** (właściciel, 2026-09-22) — dwie sekcje o tej samej nazwie nie
+  mają sensu, więc picker keyuje po nazwie, nie po id, a serwer przy zapisie dokłada prace do
+  istniejącej sekcji zamiast zakładać bliźniaka (lista w dialogu to migawka — reguła tożsamości może
+  się trzymać tylko po stronie serwera). Trzy zaakceptowane skutki: **w danych stoi już jedna para
+  duplikatów** (1 ze 185 sekcji) i jej druga sekcja jest z pickera nieosiągalna do czasu
+  przemianowania; **inline rename w siatce wciąż potrafi zrobić bliźniaka** — bramki unikalności tam
+  nie ma; dopasowanie jest **case-insensitive**, czyli nazwy różniące się wielkością liter to dla
+  właściciela jedna sekcja.
 
 ## Domyślne
 
@@ -776,28 +799,55 @@ się w widoku klienta, który pokazuje wszystkie etapy, więc zwężenie kolumn 
 sumują się** do całości pracy wykonanej — brakującą kwotę zgłasza tylko plakietka ostrzeżenia. Lepsza
 brakująca kwota niż kwota dopisana ekipie, której nikt nie wskazał.
 
-### Stawka wykonawcy ma dwa źródła: „auto" i „kwota stała" (2026-09-01)
+### Stawka wykonawcy ma trzy źródła: „auto", „kwota stała" i „własny mnożnik" (EX-865, 2026-09-23)
 
-„Źródło ceny wykonawcy" odpowiada na jedno pytanie: czy ta pozycja idzie za mnożnikiem inwestycji, czy
-niesie własną kwotę.
+„Źródło ceny wykonawcy" odpowiada na jedno pytanie: czy ta pozycja idzie za mnożnikiem inwestycji,
+niesie własną kwotę, czy ma własną krotność ceny klienta.
 
 - **„auto"** — cena wylicza się z ceny klienta przez mnożnik inwestycji (osobny per plan, domyślnie
   `0,65` z narzędziami i `0,5525` bez). Zmiana narzutki przelicza wszystkie takie pozycje naraz.
 - **„kwota stała"** — pozycja niesie własną stawkę w złotówkach i żadna zmiana narzutki ani ceny
   klienta jej nie rusza.
+- **„własny mnożnik"** — pozycja niesie własną krotność, a stawka liczy się jako `cena j.m. ×
+mnożnik` przy każdym odczycie. Mnożnik inwestycji jej nie dotyczy, ale **podniesienie ceny dla
+  inwestora podnosi z nią stawkę ekipy** — to jedyna rzecz, której zamrożona kwota nie umie.
+
+**Pierwszeństwo: mnożnik > kwota > auto**, rozstrzygane w jednym miejscu na płaszczyznę
+(`priceSourceOf` dla rozpiski, `catalogueSourceOf` dla cennika). Wiersz niosący obie kolumny naraz
+to stan, którego zapis nie dopuszcza — `normalizeOverridePatch` czyści drugą kolumnę w tym samym
+UPDATE co pierwszą, więc para nigdy nie trafia do bazy rozjechana.
 
 Wpisanie liczby w „Cena j.m." wykonawcy **samo** przestawia źródło na „kwota stała", a wyczyszczenie
 komórki wraca na „auto" — kolumna źródła jest podglądem tej decyzji i drogą powrotną, nie osobnym
 krokiem, który trzeba wykonać przed wpisaniem ceny. W podglądzie inwestora kolumna źródła nie składa
 się w ogóle: dokument klienta nie pokazuje, skąd firma bierze stawkę ekipy.
 
-**Trzecie źródło — „własny mnożnik" per pozycja — zostało wycięte** (właściciel, 2026-09-01). Nie
-używał go nikt: zero wierszy w jakiejkolwiek bazie, katalog prac nigdy go nie przechowywał (zapisuje
-stawkę wyliczoną, nie iloraz), a import z arkusza sprowadzał się do niego tylko przez to samo
-dzielenie przez „Cena j.m.", które opisano wyżej jako pułapkę. Kosztem był wspólny slot na wartość,
-w którym „200" znaczyło raz 200 zł, a raz mnożnik ×200 — i sześć kolumn ceny wykonawcy w siatce
-zamiast czterech. Dane były jednorazowe, więc cięcie poszło bez migracji: gdyby taki wiersz gdzieś
-został, policzy się z mnożnika inwestycji.
+**Trzecie źródło było wycięte przez rok i wróciło** (właściciel: cięcie 2026-09-01/EX-766,
+przywrócenie 2026-09-23/EX-865). Wycięto je, bo nie używał go nikt — zero wierszy w jakiejkolwiek
+bazie — a kosztem był **wspólny slot na wartość**, w którym „200" znaczyło raz 200 zł, a raz ×200.
+Wróciło, bo braku nie da się obejść: zamrożona kwota odpada od ceny inwestora w chwili, w której ta
+cena drgnie, a jedyną alternatywą było ręczne przepisywanie stawek po każdej zmianie cennika.
+
+Powrót **nie jest cofnięciem EX-766** — powód cięcia adresuje inna rzecz niż liczba kolumn. Slot
+jest teraz rozdzielony: mnożnik ma **własną kolumnę** (`*_override_coeff`) obok kwoty
+(`*_override_value`), więc „200" nigdy nie znaczy dwóch rzeczy, a atomowość pary pilnuje **ścieżka
+zapisu**, nie liczba kolumn — to był prawdziwy zarzut z EX-766 (dwa nieuporządkowane zapisy nad
+jednym pojęciem), i odpowiada na niego `normalizeOverridePatch`, a nie skasowanie trybu.
+
+**Komórka „Mnożnik" nie jest pusta poza swoim źródłem** (właściciel, 2026-09-23, `cc7baeed` —
+odwrócenie kontraktu z planu EX-865). Przy „auto" pokazuje **mnożnik inwestycji**, wyszarzony
+kursywą: wiersz JEST liczony mnożnikiem, tylko nie swoim, a pusta komórka kazałaby zgadywać. Przy
+„kwocie stałej" — kreskę „nie dotyczy": zamrożona kwota nie idzie za ceną j.m., więc wypisanie
+krotności, w której akurat siedzi, obiecywałoby związek zrywany pierwszą zmianą ceny; pusta komórka
+z kolei czyta się jak pole do wypełnienia. Który to z trzech odczytów, rozstrzyga `shownCoeff`
+(`lib/kosztorys/calc.ts`) — jedno miejsce dla komórki, `copyValue` i **sortowania**, bo sortowanie po
+własnym mnożniku wpychało wiersz pokazujący 0,65 pod wiersz pokazujący 0,4. Katalog prac odpowiada na
+to samo pytanie własną kolumną „Źródło" na płaszczyznę: stawka źródło tylko implikuje — „×0,65"
+nazywa się samo, „8,50 zł" czyta się jak każda inna liczba.
+
+Katalog prac zna te same trzy źródła: cennikowy wpis niesie parę kolumn `w_tools_rate` /
+`w_tools_rate_coeff` (i bliźniaczą bez narzędzi), „auto" to brak obu, a mnożnik wstawiony do
+rozpiski **przelicza się od ceny j.m., na którą trafi** — nie zamraża kwoty z katalogu.
 
 **Sama kolumna „Źródło ceny wykonawcy" ZOSTAJE — wycięcie rozważano i odrzucono dwa razy**
 (właściciel, 2026-09-01 przy cięciu trzeciego trybu, i ponownie 2026-09-02 przy EX-766). Argument za
@@ -1236,3 +1286,61 @@ testowy `1qN68vcevWgq0fXckdh4cuyBJ4iGZNlivVuHDvLuzWy4`, gdzie nazwa rozjechała 
 `"kosztorys_robocizny(dla inwestora) "`. **Nie rozluźniaj** dopasowania w
 `src/lib/kosztorys/sheet-import/read-sheet.ts` pod ten jeden arkusz — dopasowanie po prefiksie
 zaczęłoby łapać cudze zakładki w 56 pozostałych.
+
+## Destylat z zamkniętych zmian 22–23.09.2026
+
+Wyciągnięte z `research.md` / `plan.md` czterech zmian skasowanych przy archiwizacji
+(`szablon-autosave`, `stawka-problems-and-filters`, `filtry-bez-widoku`, `kosztorys-editor-assets`).
+Pełny tekst zostaje w historii gita pod `context/archive/2026-09-2*/`.
+
+**Zaangażowane warunki to nieopatrzona wersją baza danych użytkownika.** `engagedConditionIds` żyje
+w localStorage pod `kosztorys-filters:<investmentId>`, bez klucza wersji, a nieznane id **nigdy nie
+są usuwane** (świadomie — id wraca po przełączeniu widoku). Skutek: **przejęcie id istniejącego
+warunku jest migracją cudzych danych bez migracji.** Gdyby para „powyżej sufitu" odziedziczyła
+`overpriced-*`, zapisany ptaszek „pokaż tylko zepsute" stałby się „ukryj zepsute" — dokładne
+odwrócenie. Nowy warunek dostaje **nowe id**, stare zostają porzucone.
+
+**Warsztat to jedna inwestycja dla wszystkich szablonów**, a ten sam klucz jest kluczowany po
+`investmentId` — więc ptaszek ustawiony przy szablonie A jest wciąż włączony po otwarciu B.
+
+**Bramka bywa ergonomią, nie niezmiennikiem — sprawdź, czy trwały stan już ją omija.** Bramka
+płaszczyzny w `offeredFilterConditions` wyglądała na ochronę spójności; nie była. Zaangażowany filtr
+obcej płaszczyzny przeżywa zmianę widoku i przeładowanie, więc stan „filtr drugiej płaszczyzny tnie
+siatkę" był osiągalny zawsze — bramka utrudniała wejście w niego o jedno kliknięcie. Jej prawdziwym
+zadaniem (EX-714) była **długość listy**. Kasując taką bramkę, trzeba przejąć jej prawdziwe zadanie
+(tu: próg licznika), a nie to, na które wygląda.
+
+**„Lista kolumn jest zamknięta" nie znaczy „widok nic nie robi".** `WORKSHOP_VISIBLE_COLUMNS` mrozi
+kolumny warsztatu, ale `sort-value.ts` czyta `view` **poza** zestawem kolumn — warsztat sortował po
+stawce wykonawcy, wyświetlając cenę klienta. Pochodne widoku żyją poza listą kolumn.
+
+**`pickView` jest jedynym zapisującym klucz widoku** (`kosztorys-view:<mirrorId>`). Ukrycie samego
+przycisku zamraża na zawsze każdą przeglądarkę, która wcześniej stanęła na obcej płaszczyźnie —
+zdjęcie kontrolki i przypięcie płaszczyzny muszą iść w jednej zmianie. Przypięciu podlega
+`persistedView`, nie całe wyrażenie widoku: ulotna nakładka z „Problemów" ma zostać, bo to ona
+prowadzi czytelnika do wady.
+
+**`investmentAction` jest jedynym punktem, przez który przechodzi każdy zapis w drzewo** — ~36
+ścieżek. Kliencki `dispatch` w `use-debounced-save` łapie **~4 z nich**. Każda funkcja typu „zrób coś
+przy każdej zmianie drzewa" musi siadać w akcji, nie w edytorze.
+
+**Licznik `revision` udaje sygnał „brudne", a nim nie jest** — jest ślepy na etapy, dodawanie
+pozycji, ustawienia i hurtowe zastąpienie. Wiszą już na nim undo/redo i bramka auto-snapshotu; każda
+kolejna funkcja oparta na nim dziedziczy tę dziurę.
+
+**Koszt jednego lustra szablonu — zmierzony (2026-09-22).** `kosztorys_presets.payload` to ~310–325 B
+tekstu JSON na pozycję (~58–65 B po TOAST); największe lokalne drzewo (379 pozycji) = 124 530 B.
+Kolumna ma `attstorage = 'x'`, więc **HOT update jest niemożliwy** — każdy zapis to nowy łańcuch
+TOAST. Jedno lustro ≈ 250 KB ruchu do Neona, a wklejka w 50 komórek bez dławika = 50 równoległych
+luster ≈ 12,5 MB na jedno Ctrl-V. Dlatego dławik siedzi w **bazie** (`mirrored_at`), nie w timerze:
+serverless nie utrzyma timera między requestami.
+
+**Serializacja szablonu jest stratna, a warsztat o tym nie mówi.** `serialize-preset.ts` zeruje
+`plannedQty`, `sheetMeasuredQty`, `discountType`, `discountValue`, `note` i wyrzuca całe `stages`
+i `progress` — a menu „Dodaj" w warsztacie oferuje „Etap — …" i pełną siatkę. Pod autozapisem strata
+przestaje być jednym świadomym kliknięciem i staje się ciągłym, niewidocznym rozjazdem. Zamknięta
+lista kolumn warsztatu jest odpowiedzią na to, nie kosmetyką.
+
+**Kosztorysy zasiane z szablonu są kopiami zamrożonymi** — edycja szablonu nigdy nie rusza
+istniejących kosztorysów. To zdanie znosi jedyny argument, który mógłby bronić jawnego „Zapisz"
+w warsztacie.

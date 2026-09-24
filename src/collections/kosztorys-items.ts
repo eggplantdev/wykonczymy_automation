@@ -47,6 +47,11 @@ export const KosztorysItems: CollectionConfig = {
     { name: 'clientPrice', type: 'number', required: true, defaultValue: 0 },
     { name: 'wToolsOverrideValue', type: 'number' },
     { name: 'ownToolsOverrideValue', type: 'number' },
+    // The multiplier twin of the two above (EX-865): non-null = this praca's stawka is
+    // `clientPrice × coeff`, recomputed on every read. At most one of the pair is ever non-null —
+    // an invariant `updateItemFieldAction` enforces, since nothing here can.
+    { name: 'wToolsOverrideCoeff', type: 'number', min: 0 },
+    { name: 'ownToolsOverrideCoeff', type: 'number', min: 0 },
     { name: 'note', type: 'text', label: { en: 'Note', pl: 'Komentarz' } },
   ],
 }

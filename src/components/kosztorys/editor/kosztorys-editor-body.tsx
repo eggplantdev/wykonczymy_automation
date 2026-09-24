@@ -64,6 +64,8 @@ import {
   type UndoRedoApiT,
 } from '@/components/kosztorys/editor/hooks/use-undo-redo'
 import { KosztorysLockedBanner } from '@/components/kosztorys/editor/kosztorys-locked-banner'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 import type { KosztorysEditorDataT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
 
@@ -152,6 +154,9 @@ export function KosztorysEditorBody({
     sort,
     search,
     engagedConditionIds,
+    showAllRows,
+    setShowAllRows,
+    clientEmptyRowIds,
     resetFilters,
     ordinalByRowId,
     sectionRows,
@@ -384,7 +389,7 @@ export function KosztorysEditorBody({
                 <h1 className="order-last w-full truncate text-base font-medium sm:order-none sm:w-auto sm:flex-1">
                   {investmentName}
                 </h1>
-                <div className="ml-auto flex shrink-0 items-center gap-2">
+                <div className="ml-auto flex shrink-0 flex-col items-end gap-2 sm:flex-row sm:items-center sm:gap-4">
                   {/* The panel's open state is persisted per person, not per view, so without this the
                   client view inherits whatever the toolbar last left and can never fold it back. */}
                   <KosztorysTotalsPanelToggle
@@ -392,6 +397,12 @@ export function KosztorysEditorBody({
                     disabled={subtotals.length === 0}
                     hasRows={subtotals.length > 0}
                   />
+                  {clientEmptyRowIds.size > 0 && (
+                    <Label className="cursor-pointer font-normal sm:order-first">
+                      <Switch checked={showAllRows} onCheckedChange={setShowAllRows} />
+                      Pokaż wszystkie pozycje (+{clientEmptyRowIds.size})
+                    </Label>
+                  )}
                 </div>
               </header>
             ) : (
@@ -449,6 +460,7 @@ export function KosztorysEditorBody({
                       isSectionHeaderRow(rowData.id) && 'kosztorys-section-header',
                       isSectionFooterRow(rowData.id) && 'kosztorys-section-footer',
                       clipCueClass(rowData),
+                      showAllRows && clientEmptyRowIds.has(rowData.id) && 'kosztorys-revealed-row',
                     )
                   }
                 />

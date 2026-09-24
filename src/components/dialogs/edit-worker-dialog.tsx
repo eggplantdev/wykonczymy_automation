@@ -18,7 +18,7 @@ export function EditWorkerDialog({ worker, cashRegisters }: EditWorkerDialogProp
     <FormDialog
       formId={formId}
       showKeepOpen={false}
-      trigger={<EditButton label="Edytuj pracownika" showLabel />}
+      trigger={<EditButton label="Edytuj pracownika" showLabel className={`w-fit`} />}
       title="Edytuj pracownika"
       description={worker.name}
     >

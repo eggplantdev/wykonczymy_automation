@@ -18,8 +18,10 @@ const figure = (over: Partial<CatalogueFigureDiffT>): CatalogueFigureDiffT => ({
   kosztorys: 50,
   catalogue: 45,
   delta: 5,
-  kosztorysIsAuto: false,
-  catalogueIsAuto: false,
+  kosztorysSource: 'amount',
+  catalogueSource: 'amount',
+  kosztorysCoeff: null,
+  catalogueCoeff: null,
   ...over,
 })
 
@@ -30,8 +32,18 @@ const DIFF: CataloguePriceDiffT = {
   clientPrice: 50,
   figures: [
     figure({}),
-    figure({ label: 'Stawka z narzędziami', field: 'wToolsRate', kosztorys: 30, catalogue: 26 }),
-    figure({ label: 'Stawka bez narzędzi', field: 'ownToolsRate', kosztorys: 20, catalogue: 18 }),
+    figure({
+      label: 'Stawka z narzędziami (podwykonawca)',
+      field: 'wToolsRate',
+      kosztorys: 30,
+      catalogue: 26,
+    }),
+    figure({
+      label: 'Stawka bez narzędzi (pracownik)',
+      field: 'ownToolsRate',
+      kosztorys: 20,
+      catalogue: 18,
+    }),
   ],
   maxDelta: 5,
 }
@@ -59,13 +71,42 @@ function renderTable(diffs: CataloguePriceDiffT[], onApply = vi.fn().mockResolve
 
 const applyButton = () => screen.getByRole('button', { name: /Aktualizuj kosztorys/ })
 
+// Obie strony różnicy są zdaniem o ŹRÓDLE, nie tylko o kwocie: przy równych złotówkach to jedyne,
+// co tę różnicę widać.
+describe('CatalogueDiffTable — źródło stawki', () => {
+  it('pokazuje mnożnik jako krotność z kwotą w nawiasie', () => {
+    renderTable([
+      {
+        ...DIFF,
+        figures: [
+          figure({
+            label: 'Stawka z narzędziami (podwykonawca)',
+            field: 'wToolsRate',
+            kosztorys: 65,
+            catalogue: 65,
+            delta: 0,
+            kosztorysSource: 'coeff',
+            kosztorysCoeff: 0.65,
+          }),
+        ],
+      },
+    ])
+
+    expect(screen.getByText(/×0,65/)).toBeInTheDocument()
+  })
+})
+
 describe('CatalogueDiffTable — zaznaczanie', () => {
   it('zaznaczenie pracy bierze wszystkie jej liczby', async () => {
     renderTable([DIFF])
 
     await userEvent.click(screen.getByRole('checkbox', { name: 'Gładzie gipsowe' }))
 
-    for (const label of ['Cena j.m.', 'Stawka z narzędziami', 'Stawka bez narzędzi'])
+    for (const label of [
+      'Cena j.m.',
+      'Stawka z narzędziami (podwykonawca)',
+      'Stawka bez narzędzi (pracownik)',
+    ])
       expect(screen.getByRole('checkbox', { name: label })).toBeChecked()
     expect(applyButton()).toHaveTextContent('Aktualizuj kosztorys (3)')
   })
@@ -97,7 +138,9 @@ describe('CatalogueDiffTable — zaznaczanie', () => {
   it('oddaje zaznaczenie po pracy i po nazwie liczby, nie po etykiecie z raportu', async () => {
     const onApply = renderTable([DIFF])
 
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Stawka z narzędziami' }))
+    await userEvent.click(
+      screen.getByRole('checkbox', { name: 'Stawka z narzędziami (podwykonawca)' }),
+    )
     await userEvent.click(applyButton())
 
     expect(onApply).toHaveBeenCalledWith([{ itemId: 11, fields: ['wToolsRate'] }])
@@ -125,7 +168,12 @@ describe('CatalogueDiffTable — sufit 65 %', () => {
     unit: 'm2',
     clientPrice: 100,
     figures: [
-      figure({ label: 'Stawka z narzędziami', field: 'wToolsRate', kosztorys: 50, catalogue: 80 }),
+      figure({
+        label: 'Stawka z narzędziami (podwykonawca)',
+        field: 'wToolsRate',
+        kosztorys: 50,
+        catalogue: 80,
+      }),
     ],
     maxDelta: 30,
   }
@@ -135,10 +183,14 @@ describe('CatalogueDiffTable — sufit 65 %', () => {
 
     expect(screen.queryByText(/przekracza/)).not.toBeInTheDocument()
 
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Stawka z narzędziami' }))
+    await userEvent.click(
+      screen.getByRole('checkbox', { name: 'Stawka z narzędziami (podwykonawca)' }),
+    )
     expect(screen.getByText(/przekracza/)).toBeInTheDocument()
 
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Stawka z narzędziami' }))
+    await userEvent.click(
+      screen.getByRole('checkbox', { name: 'Stawka z narzędziami (podwykonawca)' }),
+    )
     expect(screen.queryByText(/przekracza/)).not.toBeInTheDocument()
   })
 

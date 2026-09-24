@@ -580,6 +580,12 @@
     1px 0 var(--dsg-border-color);
 }
 
+/* A pozycja the owner hid and the investor revealed with „Pokaż wszystkie pozycje": offered, but
+   outside this offer's scope — it must read apart from what the offer prices. */
+.kosztorys-grid .dsg-row.kosztorys-revealed-row .dsg-cell {
+  color: var(--color-muted-foreground);
+}
+
 /*https://tailwindcss.com/docs/adding-custom-styles/*
 
 

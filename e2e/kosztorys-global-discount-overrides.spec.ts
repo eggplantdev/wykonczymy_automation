@@ -1,8 +1,8 @@
 import { test, expect, type Page } from '@playwright/test'
 import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
 import { formatNet } from '@/lib/kosztorys/format'
-import { type GridSeedT, seedGridInvestments } from './seeds'
-import { bare } from './support/ui'
+import { type GridSeedT, seedGridInvestments } from './support/seeds'
+import { bare } from './support/money'
 import {
   collapseSummaryPanel,
   columnHeaders,

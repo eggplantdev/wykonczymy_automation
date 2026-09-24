@@ -65,11 +65,7 @@ export function deriveWholeInvestmentFinancials(
   )
   return {
     financials,
-    materialsBreakdown: buildMaterialsBreakdown(
-      financials,
-      expenseCategories,
-      breakdowns.netCategoryCosts,
-    ),
+    materialsBreakdown: buildMaterialsBreakdown(financials, expenseCategories, breakdowns),
     settledBreakdown: buildSettledBreakdown(breakdowns.settledCategoryCosts, expenseCategories),
   }
 }

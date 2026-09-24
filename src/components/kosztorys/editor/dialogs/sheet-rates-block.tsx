@@ -11,6 +11,7 @@ import {
   type RatesReportModeT,
 } from '@/components/kosztorys/editor/dialogs/sheet-rates-verdict'
 import { MONEY_TOLERANCE } from '@/lib/kosztorys/calc'
+import { PLANE_LABELS } from '@/lib/kosztorys/constants'
 import type { StaleRateT } from '@/lib/kosztorys/sheet-import/build-sheet-comparison'
 import type {
   RateConflictReasonT,
@@ -50,7 +51,7 @@ export function SheetRatesBlock({ mode, decisions, stale = [] }: PropsT) {
     >
       {stale.length > 0 && (
         <ReportFold summary={`Stawki inne niż w cenniku (${stale.length}) — zobacz które`}>
-          <ReportTable headers={['Praca', 'Z narzędziami', 'Bez narzędzi']}>
+          <ReportTable headers={['Praca', PLANE_LABELS.w_tools, PLANE_LABELS.own_tools]}>
             {stale.map((rate, index) => (
               <ReportRow
                 key={`${index}-${rate.description}`}
@@ -242,8 +243,8 @@ function RatesByTabTable({ rows }: { rows: TabbedRateRowT[] }) {
       headers={[
         'Praca',
         ...tabs.flatMap((tab) => [
-          <TabHeader key={`${tab}-w`} tab={tab} plane="Z narzędziami" />,
-          <TabHeader key={`${tab}-own`} tab={tab} plane="Bez narzędzi" />,
+          <TabHeader key={`${tab}-w`} tab={tab} plane={PLANE_LABELS.w_tools} />,
+          <TabHeader key={`${tab}-own`} tab={tab} plane={PLANE_LABELS.own_tools} />,
         ]),
       ]}
     >

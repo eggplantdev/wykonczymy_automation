@@ -24,6 +24,7 @@ const VIEWS = ['client', 'w_tools', 'own_tools'] as const
 
 const PRICE_IDS = PLANES.map((plane) => planePriceKey('price', plane))
 const MODE_IDS = PLANES.map((plane) => planePriceKey('priceMode', plane))
+const COEFF_IDS = PLANES.map((plane) => planePriceKey('priceCoeff', plane))
 
 function ids(opts: Partial<BuildV2ColumnsOptsT> & Pick<BuildV2ColumnsOptsT, 'view'>): string[] {
   return buildV2Columns({ stages: STAGES, ...opts })
@@ -38,13 +39,18 @@ describe('subcontractor rate columns, both planes', () => {
     }
   })
 
-  // „Źródło" is an edit control, not a figure to compare — the client view is where the offer is
-  // read, and there is nothing there to set with it.
-  it('assembles the source column only in the subcontractor views', () => {
-    for (const view of ['w_tools', 'own_tools'] as const) {
+  it('assembles the source column in every view', () => {
+    for (const view of VIEWS) {
       expect(ids({ view })).toEqual(expect.arrayContaining(MODE_IDS))
     }
-    for (const id of MODE_IDS) expect(ids({ view: 'client' })).not.toContain(id)
+  })
+
+  // The mnożnik travels with „Źródło", not with the stawka: it is the owner's control over a crew's
+  // rate, so it lives behind the same gate rather than beside the figure it produces.
+  it('assembles the mnożnik column in every view', () => {
+    for (const view of VIEWS) {
+      expect(ids({ view })).toEqual(expect.arrayContaining(COEFF_IDS))
+    }
   })
 
   // Guards the id, not a layout preference: the bare `price` is what each investment's client-view
@@ -58,7 +64,7 @@ describe('subcontractor rate columns, both planes', () => {
 
   it('offers each rate column as its own picker entry, named by plane', () => {
     const { columnToggleItems } = buildV2Grid({ view: 'w_tools', stages: STAGES })
-    const planeIds = [...MODE_IDS, ...PRICE_IDS]
+    const planeIds = [...MODE_IDS, ...COEFF_IDS, ...PRICE_IDS]
     const entries = columnToggleItems.filter((item) => planeIds.includes(item.id))
 
     expect(entries).toHaveLength(planeIds.length)
@@ -67,30 +73,33 @@ describe('subcontractor rate columns, both planes', () => {
     expect(new Set(entries.map((item) => item.id)).size).toBe(planeIds.length)
     expect(entries.map((item) => item.label)).toEqual(
       expect.arrayContaining([
-        'Cena j.m. netto — z narzędziami',
-        'Cena j.m. netto — bez narzędzi',
-        'Źródło ceny wykonawcy — z narzędziami',
-        'Źródło ceny wykonawcy — bez narzędzi',
+        'Cena j.m. netto — z narzędziami (podwykonawca)',
+        'Cena j.m. netto — bez narzędzi (pracownik)',
+        'Źródło ceny wykonawcy — z narzędziami (podwykonawca)',
+        'Źródło ceny wykonawcy — bez narzędzi (pracownik)',
+        'Mnożnik — z narzędziami (podwykonawca)',
+        'Mnożnik — bez narzędzi (pracownik)',
       ]),
     )
   })
 
-  it('offers no source entry in the picker of the client view', () => {
+  it('offers the source entry in the picker of the client view', () => {
     const { columnToggleItems } = buildV2Grid({ view: 'client', stages: STAGES })
     for (const id of MODE_IDS) {
-      expect(columnToggleItems.some((item) => item.id === id)).toBe(false)
+      expect(columnToggleItems.some((item) => item.id === id)).toBe(true)
     }
   })
 
   it('starts hidden in every view, so nobody meets new columns unasked', () => {
-    for (const id of [...MODE_IDS, ...PRICE_IDS]) expect(DEFAULT_HIDDEN_COLUMNS.has(id)).toBe(true)
+    for (const id of [...MODE_IDS, ...COEFF_IDS, ...PRICE_IDS])
+      expect(DEFAULT_HIDDEN_COLUMNS.has(id)).toBe(true)
 
     const { columnToggleItems } = buildV2Grid({
       view: 'w_tools',
       stages: STAGES,
       isHidden: (id) => DEFAULT_HIDDEN_COLUMNS.has(id),
     })
-    const planeIds = [...MODE_IDS, ...PRICE_IDS]
+    const planeIds = [...MODE_IDS, ...COEFF_IDS, ...PRICE_IDS]
     for (const item of columnToggleItems.filter((entry) => planeIds.includes(entry.id))) {
       expect(item.visible).toBe(false)
     }
@@ -114,6 +123,9 @@ describe('subcontractor rate columns, both planes', () => {
         expect(layerAllows(planePriceKey('priceMode', plane), layer)).toBe(
           layerAllows('price', layer),
         )
+        expect(layerAllows(planePriceKey('priceCoeff', plane), layer)).toBe(
+          layerAllows('price', layer),
+        )
       }
     }
   })
@@ -121,12 +133,21 @@ describe('subcontractor rate columns, both planes', () => {
   // The owner edits crew rates from the view he keeps open — the client price list — so the rate is
   // editable in EVERY view, „Źródło" beside it or not. Typing a number IS „kwota stała" and Delete is
   // the way back to „auto", which is what makes the column self-sufficient without the source picker.
+  //
+  // „Editable" is asked of a row the kwota cell OWNS — on „własny mnożnik" the stawka is an output and
+  // the column is deliberately closed there (see subcontractor-columns-delete.test.ts). The view must
+  // not be what decides that.
   it('stays editable in every view, source column or not', () => {
+    const autoRow = { wToolsOverrideValue: null, wToolsOverrideCoeff: null } as never
+
     for (const view of VIEWS) {
       const columns = buildV2Columns({ view, stages: STAGES })
       for (const id of PRICE_IDS) {
         const column = columns.find((entry) => entry.id === id)
-        expect(column?.disabled).toBeFalsy()
+        const disabled = column?.disabled
+        expect(
+          typeof disabled === 'function' ? disabled({ rowData: autoRow, rowIndex: 0 }) : disabled,
+        ).toBeFalsy()
         expect(column?.deleteValue).toBeTypeOf('function')
         expect(column?.pasteValue).toBeTypeOf('function')
       }
@@ -143,5 +164,7 @@ describe('subcontractor rate columns, both planes', () => {
 
     expect(planeOf(planePriceKey('price', 'w_tools'))).toBe('w_tools')
     expect(planeOf(planePriceKey('price', 'own_tools'))).toBe('own_tools')
+    expect(planeOf(planePriceKey('priceCoeff', 'w_tools'))).toBe('w_tools')
+    expect(planeOf(planePriceKey('priceCoeff', 'own_tools'))).toBe('own_tools')
   })
 })

@@ -16,7 +16,9 @@ const entry = (description: string, unit: string, matchKey: string): WorkCatalog
   unit,
   clientPrice: 100,
   wToolsRate: null,
+  wToolsRateCoeff: null,
   ownToolsRate: null,
+  ownToolsRateCoeff: null,
   matchKey,
 })
 

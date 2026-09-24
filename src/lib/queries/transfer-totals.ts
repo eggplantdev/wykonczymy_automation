@@ -24,7 +24,7 @@ export async function fetchCategoryBreakdowns(where: Where): Promise<CategoryBre
       const payload = await getPayload({ config })
       return deriveCategoryBreakdowns(await sumCategoryByTypeSettled(payload, where))
     },
-    ['category-breakdowns', JSON.stringify(where)],
+    ['category-breakdowns-v2', JSON.stringify(where)],
     { tags: [CACHE_TAGS.transfers] },
   )()
 }

@@ -1,5 +1,5 @@
 import { expect, type Page } from '@playwright/test'
-import { pickComboOption } from '../support/ui'
+import { pickComboOption } from './combo'
 import { nudgeUntil, RETRY_STEP_MS, waitForHydration } from '../support/wait'
 
 // Real long-standing entities the expense specs select. They exist in the standard Neon→local
@@ -15,8 +15,6 @@ export async function pickExpenseType(page: Page, label: string): Promise<void> 
   await page.getByRole('option', { name: label, exact: true }).click()
 }
 
-// The global-nav „Wydatek" dialog, opened and nothing more — for a caller that only wants to read
-// one of its pickers rather than book anything.
 export async function openExpenseDialog(page: Page): Promise<void> {
   const trigger = page.getByRole('button', { name: /Wydatek/ }).first()
   await trigger.waitFor()

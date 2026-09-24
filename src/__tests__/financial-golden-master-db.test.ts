@@ -9,6 +9,7 @@ import {
   sumAllWorkerBalances,
 } from '@/lib/db/sum-transfers'
 import { getDb } from '@/lib/db/get-db'
+import { getWorkshop } from '@/lib/db/workshop-investment'
 import { calculateBalance } from '@/lib/db/calculate-balance'
 import { calculateMargin } from '@/lib/db/calculate-margin'
 import { marginV2 } from '@/lib/kosztorys/margin-v2'
@@ -186,10 +187,21 @@ async function readInputHashes(payload: Payload) {
           -- nullable column, and hashing the new shape directly would move every kosztorys
           -- fingerprint on a change that moved no money — the twelve comparable investments would
           -- fall out of comparison exactly when they are needed to prove that.
-          CASE WHEN ki.w_tools_override_value IS NOT NULL
-            THEN 'amount:' || ki.w_tools_override_value::text ELSE ':0' END || ':' ||
-          CASE WHEN ki.own_tools_override_value IS NOT NULL
-            THEN 'amount:' || ki.own_tools_override_value::text ELSE ':0' END,
+          -- The mnożnik branch comes FIRST because that is the precedence every reader uses
+          -- (EX-865): a wiersz carrying both columns is priced by the mnożnik, so the odcisk has to
+          -- name the same źródło the money came from. A row without one hashes exactly as before.
+          CASE
+            WHEN ki.w_tools_override_coeff IS NOT NULL
+              THEN 'coeff:' || ki.w_tools_override_coeff::text
+            WHEN ki.w_tools_override_value IS NOT NULL
+              THEN 'amount:' || ki.w_tools_override_value::text
+            ELSE ':0' END || ':' ||
+          CASE
+            WHEN ki.own_tools_override_coeff IS NOT NULL
+              THEN 'coeff:' || ki.own_tools_override_coeff::text
+            WHEN ki.own_tools_override_value IS NOT NULL
+              THEN 'amount:' || ki.own_tools_override_value::text
+            ELSE ':0' END,
           -- NOT ORDER BY ki.id: the seeds insert items with Promise.all, so a re-seed hands the
           -- same rows different serial ids in a different order and this hash moves while nothing
           -- about the data did — the kosztorys axis then goes dark on a fixture nobody can keep
@@ -375,6 +387,7 @@ function assertNonTrivial(snapshot: SnapshotT) {
 describe.skipIf(!ENV_READY)('financial golden master — every figure, every investment (DB)', () => {
   let snapshot: SnapshotT | null = null
   let names = new Map<string, string>()
+  let workshopId: string | undefined
   let setupError: unknown = null
 
   beforeAll(async () => {
@@ -385,6 +398,7 @@ describe.skipIf(!ENV_READY)('financial golden master — every figure, every inv
       const built = await buildSnapshot(payload)
       snapshot = built.snapshot
       names = built.names
+      workshopId = (await getWorkshop(await getDb(payload)))?.id.toString()
       if (UPDATE) {
         assertNonTrivial(snapshot)
         writeFileSync(FIXTURE_PATH, `${JSON.stringify(snapshot, null, 2)}\n`)
@@ -458,7 +472,10 @@ describe.skipIf(!ENV_READY)('financial golden master — every figure, every inv
         name: 'kosztorys',
         guards: '`totalLaborCosts` and the v2 figures derived from it',
         reseed: 'pnpm seed:kosztorys:test',
-        carriedBy: (id: string) => (expected.inputHashes.investments[id] ?? '').includes('/k:'),
+        // Not the warsztat: `acquireTestWorkshop` lends it to the DB integration specs, which write
+        // into its kosztorys — and pre-push runs them right before this leg, so it always drops out.
+        carriedBy: (id: string) =>
+          id !== workshopId && (expected.inputHashes.investments[id] ?? '').includes('/k:'),
       },
     ] as const
 

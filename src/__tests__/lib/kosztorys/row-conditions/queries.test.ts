@@ -10,6 +10,7 @@ import {
   engagedPlane,
   isFoldSuppressed,
   offeredFilterConditions,
+  rowIdsMatching,
   sectionIdsWhereAllMatch,
 } from '@/lib/kosztorys/row-conditions/queries'
 import { ROW_CONDITIONS } from '@/lib/kosztorys/row-conditions/registry'
@@ -104,6 +105,24 @@ describe('countMatching — over the full dataset, so it can reach zero', () => 
   })
 })
 
+describe('rowIdsMatching', () => {
+  it('names exactly the pozycje the client rule hides', () => {
+    const rows = [
+      row({ id: 1, plannedQty: 0 }),
+      row({ id: 2, plannedQty: 5 }),
+      row({ id: 3, plannedQty: 0 }),
+    ]
+
+    expect([...rowIdsMatching(rows, new Set(['client-empty']), CTX)]).toEqual([1, 3])
+  })
+
+  it('reads an unknown id as no pozycje', () => {
+    expect(
+      rowIdsMatching([row({ id: 1, plannedQty: 0 })], new Set(['no-such-condition']), CTX).size,
+    ).toBe(0)
+  })
+})
+
 describe('sectionIdsWhereAllMatch — „wszystkie co do jednej", not „suma = 0"', () => {
   it('takes a section only when every pozycja matches', () => {
     const rows = [
@@ -183,17 +202,19 @@ describe('columnsRevealedBy', () => {
   it('brings its own crew’s stawka along when narrowing by the rate itself', () => {
     for (const id of [
       'manual-rate-w-tools',
+      'coeff-rate-w-tools',
       'formula-rate-w-tools',
-      'fixed-rate-over-ceiling-w-tools',
-      'fixed-rate-within-ceiling-w-tools',
+      'own-rate-over-ceiling-w-tools',
+      'own-rate-within-ceiling-w-tools',
     ]) {
       expect(columnsRevealedBy([id])).toEqual(new Set(priceCells('w_tools')))
     }
     for (const id of [
       'manual-rate-own-tools',
+      'coeff-rate-own-tools',
       'formula-rate-own-tools',
-      'fixed-rate-over-ceiling-own-tools',
-      'fixed-rate-within-ceiling-own-tools',
+      'own-rate-over-ceiling-own-tools',
+      'own-rate-within-ceiling-own-tools',
     ]) {
       expect(columnsRevealedBy([id])).toEqual(new Set(priceCells('own_tools')))
     }

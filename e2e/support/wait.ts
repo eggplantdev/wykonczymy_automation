@@ -24,10 +24,8 @@ const HYDRATION_POLL_MS = 50
 /**
  * Nudge a control until the state it drives agrees — retry the NUDGE, never just wait longer.
  *
- * Four helpers had grown their own copy of this loop, each with its own 30 s literal and its own
- * paragraph explaining the bound below. The bound is the whole point and it is not obvious:
- * `toPass` cannot abort a callback that is still running when the deadline passes — it waits for it
- * to return. So ONE inner call left on the global 45 s `actionTimeout` turns the retry loop into a
+ * The bound is the whole point and it is not obvious: `toPass` cannot abort a callback that is still
+ * running when the deadline passes — it waits for it to return. So ONE inner call left on the global 45 s `actionTimeout` turns the retry loop into a
  * single attempt, and the retry it exists for never runs. Every call inside `nudge`/`settled` is
  * therefore bounded at `RETRY_STEP_MS`, far below `RETRY_BUDGET_MS`.
  *

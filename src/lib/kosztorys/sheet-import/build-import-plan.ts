@@ -212,6 +212,10 @@ export function buildImportPlan(
         displayOrder: items.length,
         wToolsOverrideValue: wTools,
         ownToolsOverrideValue: ownTools,
+        // The import materialises „zakres pracy" into a kwota (`deriveOverride` above), so it never
+        // produces a mnożnik — even for a stawka that tracks the cena j.m. in the sheet.
+        wToolsOverrideCoeff: null,
+        ownToolsOverrideCoeff: null,
         // The sheet has no column for it, so a matched praca keeps what the app holds rather
         // than having it blanked by an import that never had an opinion. `sheetMeasuredQty` gets
         // the opposite treatment on purpose — it rides the spread above and OVERWRITES, because it

@@ -22,3 +22,11 @@ export function parseDecimalInput(raw: string): DecimalInputParseT {
 // deliberately keep the strict parse above: there, „1 2" is a typo, not a thousands separator.
 export const parseCellDecimal = (raw: string): DecimalInputParseT =>
   parseDecimalInput(raw.replace(/\s/g, ''))
+
+// „12,50" → 12.5; blank and garbage → NaN. The third mapping of the three outcomes above, for a
+// caller that hands the figure straight to a Zod `money()` — which refuses NaN — instead of reacting
+// to „puste" and „śmieci" separately.
+export function toMoney(value: string): number {
+  const parsed = parseDecimalInput(value)
+  return parsed.kind === 'value' ? parsed.value : NaN
+}

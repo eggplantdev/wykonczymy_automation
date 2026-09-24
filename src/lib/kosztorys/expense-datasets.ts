@@ -46,6 +46,12 @@ export function sumBilled(rows: MaterialTransactionRowT[]): number {
   return rows.reduce((acc, row) => acc + row.billed, 0)
 }
 
+// What left the kasa — the investor's list total, which is never reconciled against the billed
+// figure: it sits at or above it, in the investor's favour (owner, 2026-09-23).
+export function sumAmount(rows: MaterialTransactionRowT[]): number {
+  return rows.reduce((acc, row) => acc + row.amount, 0)
+}
+
 // A row served from a stale cache has no type yet; link to the unfiltered list rather than to a
 // filter that would exclude the row it points at.
 export function expenseRowHref(investmentId: number, row: MaterialTransactionRowT): string {

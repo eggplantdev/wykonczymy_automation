@@ -12,6 +12,8 @@ const ITEM_FIELDS = [
   'clientPrice',
   'wToolsOverrideValue',
   'ownToolsOverrideValue',
+  'wToolsOverrideCoeff',
+  'ownToolsOverrideCoeff',
   'note',
 ] as const satisfies readonly (keyof ItemPatchT)[]
 

@@ -1,7 +1,18 @@
-import { asViewPricing, overrideValueFor, subcontractorPrice } from '@/lib/kosztorys/calc'
-import type { KosztorysItemT, ToolPlaneT, ViewPricingT } from '@/lib/kosztorys/types'
+import {
+  asViewPricing,
+  overrideCoeffFor,
+  priceSourceOf,
+  subcontractorPrice,
+} from '@/lib/kosztorys/calc'
+import { RATE_LABELS } from '@/lib/kosztorys/constants'
+import type { KosztorysItemT, PriceSourceT, ToolPlaneT, ViewPricingT } from '@/lib/kosztorys/types'
 import { foldDescription } from '@/lib/kosztorys/sheet-import/item-key'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
+import {
+  catalogueRateFor,
+  catalogueRateValue,
+  catalogueSourceOf,
+} from '@/lib/kosztorys/work-catalogue/catalogue-rate'
 import type {
   CatalogueComparisonItemT,
   CatalogueComparisonSettingsT,
@@ -22,12 +33,6 @@ const HINT_THRESHOLD = 0.55
 
 const asPricing = (item: KosztorysItemT, settings: CatalogueComparisonSettingsT): ViewPricingT =>
   asViewPricing(item, { wTools: settings.wToolsCoeff, ownTools: settings.ownToolsCoeff })
-
-// An „auto" cennik stawka is compared as the kwota it implies FOR THIS INWESTYCJA. The base is the
-// CENNIK's cena j.m. and the inwestycja's współczynnik — never the rozpiska row's own nadpisanie,
-// which says nothing about what the cennik holds and would make every auto row match itself.
-const catalogueRate = (rate: number | null, clientPrice: number, coeff: number): number =>
-  rate ?? clientPrice * coeff
 
 const HINT_LIMIT = 3
 
@@ -60,33 +65,51 @@ function closestEntries(
     .slice(0, limit)
 }
 
+// One side of a rozjazd: the kwota, and how that kwota came to be. The mnożnik rides along because a
+// pair of stawek can agree to the grosz while naming different mnożniki — same money today, and one
+// of them moves the next time the cena j.m. does.
+type FigureSideT = { value: number; source: PriceSourceT; coeff: number | null }
+
+const side = (value: number, source: PriceSourceT, coeff: number | null): FigureSideT => ({
+  value,
+  source,
+  coeff,
+})
+
 const figure = (
   label: string,
   field: SeedConflictFieldT,
-  kosztorys: number,
-  catalogue: number,
-  kosztorysIsAuto: boolean,
-  catalogueIsAuto: boolean,
+  kosztorys: FigureSideT,
+  catalogue: FigureSideT,
 ): CatalogueFigureDiffT | null => {
-  const sameKwota = roundToCents(kosztorys) === roundToCents(catalogue)
-  if (sameKwota && kosztorysIsAuto === catalogueIsAuto) return null
+  const sameKwota = roundToCents(kosztorys.value) === roundToCents(catalogue.value)
+  if (sameKwota && kosztorys.source === catalogue.source && kosztorys.coeff === catalogue.coeff) {
+    return null
+  }
   // Raw, not rounded: `formatPLN` rounds it for display anyway, and the sort key wants the real gap.
   return {
     label,
     field,
-    kosztorys,
-    catalogue,
-    delta: kosztorys - catalogue,
-    kosztorysIsAuto,
-    catalogueIsAuto,
+    kosztorys: kosztorys.value,
+    catalogue: catalogue.value,
+    delta: kosztorys.value - catalogue.value,
+    kosztorysSource: kosztorys.source,
+    catalogueSource: catalogue.source,
+    kosztorysCoeff: kosztorys.coeff,
+    catalogueCoeff: catalogue.coeff,
   }
 }
 
 /**
  * A stawka, but silent when both sides are „auto". There both kwoty ARE `cena × ten sam
  * współczynnik`, so their difference is the cena difference wearing a second and third hat —
- * reporting it turns one rozjazd into three and inflates both the count and `maxDelta`. A
- * nadpisanie on either side makes the stawka a fact of its own again, and then it is reported.
+ * reporting it turns one rozjazd into three and inflates both the count and `maxDelta`. A nadpisanie
+ * on either side — kwota stała or własny mnożnik — makes the stawka a fact of its own again, and then
+ * it is reported.
+ *
+ * The cennik's „auto" is priced off the CENNIK's cena j.m. and the inwestycja's współczynnik; its
+ * mnożnik off the cennik's cena too. Never off the rozpiska row's own nadpisanie, which says nothing
+ * about what the cennik holds and would make every auto row match itself.
  */
 const rateFigure = (
   pricing: ViewPricingT,
@@ -95,16 +118,19 @@ const rateFigure = (
   label: string,
   coeff: number,
 ): CatalogueFigureDiffT | null => {
-  const entryRate = plane === 'w_tools' ? entry.wToolsRate : entry.ownToolsRate
-  const override = overrideValueFor(pricing, plane)
-  if (override === null && entryRate === null) return null
+  const entryRate = catalogueRateFor(entry, plane)
+  const entrySource = catalogueSourceOf(entryRate)
+  const rowSource = priceSourceOf(pricing, plane)
+  if (rowSource === 'auto' && entrySource === 'auto') return null
   return figure(
     label,
     plane === 'w_tools' ? 'wToolsRate' : 'ownToolsRate',
-    subcontractorPrice(pricing, plane),
-    catalogueRate(entryRate, entry.clientPrice, coeff),
-    override === null,
-    entryRate === null,
+    side(
+      subcontractorPrice(pricing, plane),
+      rowSource,
+      rowSource === 'coeff' ? overrideCoeffFor(pricing, plane) : null,
+    ),
+    side(catalogueRateValue(entryRate, entry.clientPrice, coeff), entrySource, entryRate.coeff),
   )
 }
 
@@ -118,8 +144,10 @@ const rateFigure = (
  * numbers it renders disagree. A stawka derived as `cena × współczynnik` carries a float residue no
  * column ever shows, and a threshold set at half a grosz decides a half-grosz gap on that residue —
  * which is how „14,88 zł against 14,88 zł, różnica −0,01 zł" reached the owner's screen. A stawka
- * also disagrees on RODZAJ: a frozen kwota against a katalog „auto" is a rozjazd at any kwota,
- * because taking the katalog's answer there means dropping the nadpisanie, not copying a number.
+ * also disagrees on ŹRÓDŁO: a frozen kwota against a katalog „auto" is a rozjazd at any kwota,
+ * because taking the katalog's answer there means dropping the nadpisanie rather than copying a
+ * number — and the same holds for a kwota against a mnożnik, which agree today and part company the
+ * moment the cena j.m. moves.
  */
 export function buildCatalogueComparison(
   items: readonly CatalogueComparisonItemT[],
@@ -166,9 +194,14 @@ export function buildCatalogueComparison(
 
     const pricing = asPricing(item, settings)
     const figures = [
-      figure('Cena j.m.', 'clientPrice', item.clientPrice, entry.clientPrice, false, false),
-      rateFigure(pricing, entry, 'w_tools', 'Stawka z narzędziami', settings.wToolsCoeff),
-      rateFigure(pricing, entry, 'own_tools', 'Stawka bez narzędzi', settings.ownToolsCoeff),
+      figure(
+        'Cena j.m.',
+        'clientPrice',
+        side(item.clientPrice, 'amount', null),
+        side(entry.clientPrice, 'amount', null),
+      ),
+      rateFigure(pricing, entry, 'w_tools', RATE_LABELS.w_tools, settings.wToolsCoeff),
+      rateFigure(pricing, entry, 'own_tools', RATE_LABELS.own_tools, settings.ownToolsCoeff),
     ].filter((diff) => diff !== null)
 
     if (figures.length === 0) {

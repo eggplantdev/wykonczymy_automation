@@ -39,7 +39,7 @@ const sweptIds = (): string[] => editorState.setConditions.mock.calls[0][0]
 
 describe('KosztorysFiltersMenu — wiersz zbiorczy', () => {
   it('hides every filter the menu is offering, in one write', async () => {
-    renderMenu({ 'no-planned-qty': 3, 'fixed-rate-over-ceiling-w-tools': 2 })
+    renderMenu({ 'no-planned-qty': 3, 'own-rate-over-ceiling-w-tools': 2 })
     await openMenu()
 
     await userEvent.click(screen.getByRole('option', { name: 'Odznacz wszystkie' }))
@@ -47,7 +47,7 @@ describe('KosztorysFiltersMenu — wiersz zbiorczy', () => {
     expect(editorState.setConditions).toHaveBeenCalledTimes(1)
     // `true` is engaged, and an engaged filter REMOVES its matches — „odznacz" reads as hiding.
     expect(editorState.setConditions).toHaveBeenCalledWith(expect.any(Array), true)
-    expect(sweptIds()).toEqual(['no-planned-qty', 'fixed-rate-over-ceiling-w-tools'])
+    expect(sweptIds()).toEqual(['no-planned-qty', 'own-rate-over-ceiling-w-tools'])
   })
 
   // The counter on the trigger is the only thing left saying so once the panel is closed, and
@@ -108,9 +108,9 @@ describe('KosztorysFiltersMenu — nagłówki kategorii', () => {
     await openMenu()
 
     expect(screen.getByRole('group', { name: 'Źródło stawki wykonawcy' })).toHaveTextContent(
-      'Pozycje ze stawką wykonawcy z kwoty stałej w widoku z narzędziami (2)',
+      'Pozycje ze stawką wykonawcy z kwoty stałej w widoku z narzędziami (podwykonawca) (2)',
     )
-    expect(screen.getByRole('group', { name: 'Przedmiar' })).toBeInTheDocument()
+    expect(screen.getByRole('group', { name: 'Przedmiar i wykonana praca' })).toBeInTheDocument()
     expect(screen.getByRole('group', { name: 'Komentarz' })).toBeInTheDocument()
   })
 
@@ -119,7 +119,7 @@ describe('KosztorysFiltersMenu — nagłówki kategorii', () => {
     renderMenu({ 'has-planned-qty': 4, 'has-note': 1 })
     await openMenu()
 
-    expect(screen.getByRole('group', { name: 'Przedmiar' })).not.toHaveTextContent(
+    expect(screen.getByRole('group', { name: 'Przedmiar i wykonana praca' })).not.toHaveTextContent(
       'Odznacz wszystkie',
     )
   })

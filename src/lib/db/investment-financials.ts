@@ -37,6 +37,7 @@ const billedTotalOf = (row: BilledRowT) => billedAmountFor(row.type, row.total, 
 export function deriveCategoryBreakdowns(rows: CategoryTypeSettledRowT[]): CategoryBreakdownsT {
   const live = new Map<number, number>()
   const net = new Map<number, number>()
+  const netGross = new Map<number, number>()
   const settled = new Map<number, number>()
   for (const r of rows) {
     if (!isMaterialBucket(r.type)) continue
@@ -44,7 +45,10 @@ export function deriveCategoryBreakdowns(rows: CategoryTypeSettledRowT[]): Categ
     // The netto rows land in BOTH maps: `categoryCosts` stays the full billed figure (so
     // Σ still reconciles with totalMaterialCosts), `netCategoryCosts` names the part a
     // consumer must freeze against the global „wszystko netto" toggle.
-    if (billsNetAmount(r.type)) net.set(r.categoryId, (net.get(r.categoryId) ?? 0) + amount)
+    if (billsNetAmount(r.type)) {
+      net.set(r.categoryId, (net.get(r.categoryId) ?? 0) + amount)
+      netGross.set(r.categoryId, (netGross.get(r.categoryId) ?? 0) + r.total)
+    }
     // A netto row stays live whatever its `settled` flag says — deriveFinancials folds it into
     // materialsNetBilled unconditionally, and routing it to `settled` here would leave the
     // category holding a netCategoryCosts entry with no matching cost: a negative brutto row.
@@ -56,6 +60,7 @@ export function deriveCategoryBreakdowns(rows: CategoryTypeSettledRowT[]): Categ
   return {
     categoryCosts: toCosts(live),
     netCategoryCosts: toCosts(net),
+    netCategoryGrossCosts: toCosts(netGross),
     settledCategoryCosts: toCosts(settled),
   }
 }

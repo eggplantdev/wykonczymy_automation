@@ -3,27 +3,57 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
-import { formatPercent, formatPercentPrecise } from '@/lib/kosztorys/format'
+import { formatPercent, formatPercentPrecise, formatRate } from '@/lib/kosztorys/format'
+import { namesFigure } from '@/lib/kosztorys/calc'
 import { MAX_CLIENT_SHARE, isOverCeiling } from '@/lib/kosztorys/subcontractor-price-guard'
-import { FLAGGED_TONE } from '@/lib/kosztorys/constants'
+import {
+  FLAGGED_TONE,
+  PLANE_LABELS,
+  PRICE_SOURCE_LABELS,
+  RATE_LABELS,
+} from '@/lib/kosztorys/constants'
 import { compareDescriptions } from '@/lib/kosztorys/work-catalogue/compare-descriptions'
+import { catalogueRateFor, catalogueSourceOf } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
 import { CatalogueRowActions } from '@/components/work-catalogue/catalogue-row-actions'
+import type { ToolPlaneT } from '@/lib/kosztorys/types'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
 const col = createColumnHelper<WorkCatalogueItemT>()
 
-const money = (value: number | null) =>
-  value === null ? (
-    <span className="text-muted-foreground text-sm">auto</span>
+// The stawka as its źródło names it: a kwota, „auto", or the mnożnik — never the złotówka a mnożnik
+// implies for THIS cennik's own cena j.m., which is a number nobody agreed to and which the wpis
+// abandons the moment it lands in a rozpiska priced differently.
+const rateCell = (entry: WorkCatalogueItemT, plane: ToolPlaneT) => {
+  const rate = catalogueRateFor(entry, plane)
+  const source = catalogueSourceOf(rate)
+  return source === 'amount' ? (
+    <span className="tabular-nums">{formatRate(rate.rate, source, rate.coeff)}</span>
   ) : (
-    <span className="tabular-nums">{formatPLN(value)}</span>
+    <span className="text-muted-foreground text-sm">{formatRate(null, source, rate.coeff)}</span>
   )
+}
 
-// The share of „Cena j.m." a stawka eats — its own sortable column, because it is the figure the
-// company's rule is written in. Over the ceiling it goes red and stops there: the katalog WARNS and
-// never blocks. „Auto" has no share at all — the udział belongs to an inwestycja.
-const shareOf = (rate: number | null, clientPrice: number) =>
-  rate !== null && clientPrice > 0 ? rate / clientPrice : null
+/**
+ * The share of „Cena j.m." a stawka eats — its own sortable column, because it is the figure the
+ * company's rule is written in. Over the ceiling it goes red and stops there: the katalog WARNS and
+ * never blocks. „Auto" has no share at all — that udział belongs to an inwestycja.
+ *
+ * A mnożnik IS this share already, so it is read straight across rather than divided back out of a
+ * kwota — dividing would print the same number one float residue worse.
+ */
+const shareOf = (entry: WorkCatalogueItemT, plane: ToolPlaneT) => {
+  const { rate, coeff } = catalogueRateFor(entry, plane)
+  if (namesFigure(coeff)) return coeff
+  return namesFigure(rate) && entry.clientPrice > 0 ? rate / entry.clientPrice : null
+}
+
+// What the ceiling judges: the złotówka the wpis would pay, whichever źródło names it. The mnożnik's
+// kwota is its multiple of the cennik's own cena j.m. — here the two travel together, so the rule
+// reads the same figure it does in the rozpiska.
+const rateAmount = (entry: WorkCatalogueItemT, plane: ToolPlaneT): number | null => {
+  const { rate, coeff } = catalogueRateFor(entry, plane)
+  return namesFigure(coeff) ? entry.clientPrice * coeff : rate
+}
 
 const share = (value: number | null, overCeiling: boolean) =>
   value === null ? (
@@ -87,39 +117,72 @@ const unitColumn = col.accessor('unit', {
 const clientPriceColumn = col.accessor('clientPrice', {
   id: 'clientPrice',
   header: 'Cena j.m.',
-  cell: (info) => money(info.getValue()),
+  cell: (info) => <span className="tabular-nums">{formatPLN(info.getValue())}</span>,
 })
 
-const wToolsRateColumn = col.accessor('wToolsRate', {
+const wToolsRateColumn = col.accessor((row) => rateAmount(row, 'w_tools'), {
   id: 'wToolsRate',
-  header: twoLines('Stawka z', 'narzędziami'),
-  meta: { label: 'Stawka z narzędziami' },
-  cell: (info) => money(info.getValue()),
+  header: twoLines('Stawka z narzędziami', '(podwykonawca)'),
+  meta: { label: RATE_LABELS.w_tools },
+  cell: (info) => rateCell(info.row.original, 'w_tools'),
 })
 
 // The plane is named ONCE per column. Spelled out twice — in the accessor and again in the red-rule
 // argument — a copy-paste that updates only the first renders the w-tools verdict on the own-tools
 // column, and both numbers look plausible. The ids stay literal so a search for `wToolsShare` finds
 // the column the stored visibility map names.
-const shareColumn = (field: 'wToolsRate' | 'ownToolsRate', id: string, tools: string) =>
-  col.accessor((row) => shareOf(row[field], row.clientPrice), {
+const shareColumn = (plane: ToolPlaneT, id: string, tools: string) =>
+  col.accessor((row) => shareOf(row, plane), {
     id,
     header: twoLines('% ceny klienta', tools),
     meta: { tooltip: SHARE_TOOLTIP, label: `% ceny klienta ${tools}` },
     cell: (info) =>
-      share(info.getValue(), isOverCeiling(info.row.original[field], info.row.original)),
+      share(
+        info.getValue(),
+        isOverCeiling(rateAmount(info.row.original, plane), info.row.original),
+      ),
   })
 
-const wToolsShareColumn = shareColumn('wToolsRate', 'wToolsShare', 'z narzędziami')
+// The źródło spelled out, beside the stawka that only IMPLIES it — „auto" and „×0,65" name their
+// own źródło, but „8,50 zł" is a kwota stała that reads like any other number. Sortable and its own
+// column so the cennik can be swept for „które prace jadą jeszcze na auto", which is the question
+// behind every rate review.
+const sourceColumn = (plane: ToolPlaneT, id: string, tools: string) =>
+  col.accessor((row) => catalogueSourceOf(catalogueRateFor(row, plane)), {
+    id,
+    header: twoLines('Źródło', tools),
+    meta: { label: `Źródło ${tools}` },
+    cell: (info) => (
+      <span className="text-muted-foreground text-sm">{PRICE_SOURCE_LABELS[info.getValue()]}</span>
+    ),
+  })
 
-const ownToolsRateColumn = col.accessor('ownToolsRate', {
+const wToolsSourceColumn = sourceColumn(
+  'w_tools',
+  'wToolsSource',
+  PLANE_LABELS.w_tools.toLowerCase(),
+)
+
+const wToolsShareColumn = shareColumn('w_tools', 'wToolsShare', PLANE_LABELS.w_tools.toLowerCase())
+
+const ownToolsRateColumn = col.accessor((row) => rateAmount(row, 'own_tools'), {
   id: 'ownToolsRate',
-  header: twoLines('Stawka bez', 'narzędzi'),
-  meta: { label: 'Stawka bez narzędzi' },
-  cell: (info) => money(info.getValue()),
+  header: twoLines('Stawka bez narzędzi', '(pracownik)'),
+  meta: { label: RATE_LABELS.own_tools },
+  cell: (info) => rateCell(info.row.original, 'own_tools'),
 })
 
-const ownToolsShareColumn = shareColumn('ownToolsRate', 'ownToolsShare', 'bez narzędzi')
+const ownToolsSourceColumn = sourceColumn(
+  'own_tools',
+  'ownToolsSource',
+  PLANE_LABELS.own_tools.toLowerCase(),
+)
+
+const ownToolsShareColumn = shareColumn(
+  'own_tools',
+  'ownToolsShare',
+  PLANE_LABELS.own_tools.toLowerCase(),
+)
 
 // „Dodaj pracę z katalogu" reads the cennik to pick from it, never to tune it, so the udział columns
 // and „Akcje" stay behind on /katalog-prac. They sit mid-order, hence assembled rather than sliced.
@@ -145,8 +208,10 @@ export function getWorkCatalogueColumns({
     categoryColumn,
     unitColumn,
     clientPriceColumn,
+    wToolsSourceColumn,
     wToolsRateColumn,
     wToolsShareColumn,
+    ownToolsSourceColumn,
     ownToolsRateColumn,
     ownToolsShareColumn,
 

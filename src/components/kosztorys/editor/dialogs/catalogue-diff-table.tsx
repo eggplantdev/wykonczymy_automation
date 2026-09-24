@@ -5,8 +5,9 @@ import { CheckCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { isOverCeiling, MAX_CLIENT_SHARE } from '@/lib/kosztorys/subcontractor-price-guard'
-import { formatPercent } from '@/lib/kosztorys/format'
-import { formatPLN, formatPLNOrAuto } from '@/lib/utils/format-currency'
+import { formatPercent, formatRate } from '@/lib/kosztorys/format'
+import { formatPLN } from '@/lib/utils/format-currency'
+import type { PriceSourceT } from '@/lib/kosztorys/types'
 import type {
   CatalogueFigureDiffT,
   CataloguePriceDiffT,
@@ -205,6 +206,9 @@ function DiffGroup({
   )
 }
 
+const sideText = (value: number, source: PriceSourceT, coeff: number | null) =>
+  formatRate(source === 'auto' ? null : value, source, coeff)
+
 function FigureRow({
   figure,
   checked,
@@ -238,18 +242,19 @@ function FigureRow({
       </td>
       {/* „auto" on either side, never the kwota it implies: that kwota is a product of this
           inwestycja's współczynnik, so printing it would show a number nobody entered and which
-          moves when the współczynnik does. */}
+          moves when the współczynnik does. A mnożnik prints as the mnożnik it is, with its kwota
+          beside it — there the multiple IS what was agreed, and the kwota follows from it. */}
       <td className="py-1 pl-3 text-right tabular-nums">
-        {formatPLNOrAuto(figure.kosztorysIsAuto ? null : figure.kosztorys)}
+        {sideText(figure.kosztorys, figure.kosztorysSource, figure.kosztorysCoeff)}
       </td>
       <td className="py-1 pl-3 text-right tabular-nums">
-        {formatPLNOrAuto(figure.catalogueIsAuto ? null : figure.catalogue)}
+        {sideText(figure.catalogue, figure.catalogueSource, figure.catalogueCoeff)}
       </td>
       {/* Greyed where either side is „auto": the subtraction is still the honest gap, but one of its
           operands is a derived kwota rather than a figure anybody typed. */}
       <td
         className={`py-1 pl-3 text-right tabular-nums ${
-          figure.kosztorysIsAuto || figure.catalogueIsAuto
+          figure.kosztorysSource === 'auto' || figure.catalogueSource === 'auto'
             ? 'text-muted-foreground'
             : 'text-amber-600'
         }`}

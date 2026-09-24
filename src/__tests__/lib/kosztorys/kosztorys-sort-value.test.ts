@@ -34,6 +34,8 @@ const tree: KosztorysTreeT = makeTree({
           clientPrice: 100,
           wToolsOverrideValue: null,
           ownToolsOverrideValue: null,
+          wToolsOverrideCoeff: null,
+          ownToolsOverrideCoeff: null,
           note: null,
         },
         {
@@ -49,6 +51,8 @@ const tree: KosztorysTreeT = makeTree({
           clientPrice: 50,
           wToolsOverrideValue: null,
           ownToolsOverrideValue: null,
+          wToolsOverrideCoeff: null,
+          ownToolsOverrideCoeff: null,
           note: null,
         },
       ],
@@ -238,6 +242,67 @@ describe('columnSortValue — the columns that used to opt out of sorting', () =
     expect(planeIdsSortedBy(planePriceKey('price', 'w_tools'), 'client')).not.toEqual(
       planeIdsSortedBy(planePriceKey('price', 'own_tools'), 'client'),
     )
+  })
+})
+
+// Trzy źródła na jednej płaszczyźnie, po jednym wierszu — fixture powyżej nie zna mnożnika, a
+// dopisanie go tam poprzestawiałoby porządki, które tamte testy właśnie przypinają.
+const sourceTree: KosztorysTreeT = makeTree({
+  sections: [
+    {
+      id: 10,
+      name: 'Sekcja A',
+      displayOrder: 0,
+      color: null,
+      items: [
+        {
+          ...baseItem,
+          id: 1,
+          description: 'auto',
+          plannedQty: 1,
+          clientPrice: 100,
+          wToolsOverrideValue: null,
+        },
+        {
+          ...baseItem,
+          id: 2,
+          description: 'mnożnik',
+          plannedQty: 1,
+          clientPrice: 100,
+          wToolsOverrideValue: null,
+          wToolsOverrideCoeff: 0.4,
+        },
+        {
+          ...baseItem,
+          id: 3,
+          description: 'kwota',
+          plannedQty: 1,
+          clientPrice: 100,
+          wToolsOverrideValue: 90,
+        },
+      ],
+    },
+  ],
+  stages: [],
+  progress: [],
+})
+
+const sourceRows = treeToRows(sourceTree)
+const sourceIdsSortedBy = (field: string, dir: 'asc' | 'desc' = 'asc') =>
+  sortRows(sourceRows, (r) => columnSortValue(r, field, 'w_tools', sourceTree.stages), dir).map(
+    (r) => r.id,
+  )
+
+describe('columnSortValue — trzy źródła stawki wykonawcy', () => {
+  it('sortuje „Źródło ceny" od współczynnika inwestycji ku zamrożonej kwocie', () => {
+    expect(sourceIdsSortedBy(planePriceKey('priceMode', 'w_tools'))).toEqual([1, 2, 3])
+  })
+
+  it('sortuje „Mnożnik" po liczbie, którą widać w komórce — także mnożnik inwestycji', () => {
+    // Malejąco, bo to kierunek, w którym „brak" musi wylądować na dole mimo braku liczby. Wiersz
+    // „auto" pokazuje mnożnik inwestycji (0,65) i sortuje się nad własnym 0,4 — sortowanie po
+    // samym własnym mnożniku wpychało go pod niego.
+    expect(sourceIdsSortedBy(planePriceKey('priceCoeff', 'w_tools'), 'desc')).toEqual([1, 2, 3])
   })
 })
 

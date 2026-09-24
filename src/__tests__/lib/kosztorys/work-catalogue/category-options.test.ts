@@ -9,7 +9,9 @@ const item = (category: string | null): WorkCatalogueItemT => ({
   unit: 'm2',
   clientPrice: 100,
   wToolsRate: null,
+  wToolsRateCoeff: null,
   ownToolsRate: null,
+  ownToolsRateCoeff: null,
   matchKey: 'malowanie|m2',
 })
 

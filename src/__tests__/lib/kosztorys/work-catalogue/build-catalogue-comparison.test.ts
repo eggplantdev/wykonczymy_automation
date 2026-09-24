@@ -27,6 +27,8 @@ const item = (overrides: Partial<KosztorysItemT> = {}): KosztorysItemT => ({
   clientPrice: 100,
   wToolsOverrideValue: null,
   ownToolsOverrideValue: null,
+  wToolsOverrideCoeff: null,
+  ownToolsOverrideCoeff: null,
   note: null,
   ...overrides,
 })
@@ -41,7 +43,9 @@ const entry = (overrides: Partial<WorkCatalogueItemT> = {}): WorkCatalogueItemT 
     unit,
     clientPrice: 100,
     wToolsRate: 65,
+    wToolsRateCoeff: null,
     ownToolsRate: 50,
+    ownToolsRateCoeff: null,
     matchKey: catalogueKey(description, unit),
     ...overrides,
   }
@@ -92,7 +96,9 @@ describe('buildCatalogueComparison', () => {
 
     expect(result.matching).toBe(0)
     expect(result.diffs).toHaveLength(1)
-    expect(result.diffs[0].figures.map((figure) => figure.label)).toEqual(['Stawka z narzędziami'])
+    expect(result.diffs[0].figures.map((figure) => figure.label)).toEqual([
+      'Stawka z narzędziami (podwykonawca)',
+    ])
     expect(result.diffs[0].figures[0].kosztorys).toBeCloseTo(65, 6)
     expect(result.diffs[0].figures[0].delta).toBeCloseTo(-15, 6)
   })
@@ -137,7 +143,9 @@ describe('buildCatalogueComparison', () => {
       SETTINGS,
     )
 
-    const wTools = result.diffs[0].figures.find((f) => f.label === 'Stawka z narzędziami')
+    const wTools = result.diffs[0].figures.find(
+      (f) => f.label === 'Stawka z narzędziami (podwykonawca)',
+    )
     expect(wTools?.catalogue).toBeCloseTo(65, 6)
     expect(wTools?.kosztorys).toBeCloseTo(130, 6)
   })
@@ -151,10 +159,42 @@ describe('buildCatalogueComparison', () => {
       SETTINGS,
     )
 
-    const wTools = result.diffs[0].figures.find((f) => f.label === 'Stawka z narzędziami')
+    const wTools = result.diffs[0].figures.find(
+      (f) => f.label === 'Stawka z narzędziami (podwykonawca)',
+    )
     expect(wTools?.delta).toBeCloseTo(0, 6)
-    expect(wTools?.kosztorysIsAuto).toBe(false)
-    expect(wTools?.catalogueIsAuto).toBe(true)
+    expect(wTools?.kosztorysSource).toBe('amount')
+    expect(wTools?.catalogueSource).toBe('auto')
+  })
+
+  // Ta sama złotówka, dwie różne decyzje: 0,65 przy cenie 100 zł daje 65 zł dzisiaj i coś innego po
+  // każdej podwyżce ceny j.m. Milczenie tutaj byłoby zgubieniem jedynej różnicy, która zostanie.
+  it('mnożnik przeciw równej mu kwocie to rozjazd, choć delta jest zerowa', () => {
+    const result = buildCatalogueComparison(
+      [item({ wToolsOverrideCoeff: 0.65 })],
+      [entry({ wToolsRate: 65, ownToolsRate: null })],
+      SETTINGS,
+    )
+
+    const wTools = result.diffs[0].figures.find(
+      (f) => f.label === 'Stawka z narzędziami (podwykonawca)',
+    )
+    expect(wTools?.delta).toBeCloseTo(0, 6)
+    expect(wTools?.kosztorysSource).toBe('coeff')
+    expect(wTools?.kosztorysCoeff).toBe(0.65)
+    expect(wTools?.catalogueSource).toBe('amount')
+  })
+
+  it('dwa mnożniki o tej samej wartości milczą', () => {
+    const result = buildCatalogueComparison(
+      [item({ wToolsOverrideCoeff: 0.65 })],
+      [entry({ wToolsRate: null, wToolsRateCoeff: 0.65, ownToolsRate: null })],
+      SETTINGS,
+    )
+
+    expect(
+      result.diffs[0]?.figures.find((f) => f.label === 'Stawka z narzędziami (podwykonawca)'),
+    ).toBeUndefined()
   })
 
   it('rozpiskowe „auto" przeciw katalogowej kwocie to rozjazd w drugą stronę', () => {
@@ -164,9 +204,11 @@ describe('buildCatalogueComparison', () => {
       SETTINGS,
     )
 
-    const wTools = result.diffs[0].figures.find((f) => f.label === 'Stawka z narzędziami')
-    expect(wTools?.kosztorysIsAuto).toBe(true)
-    expect(wTools?.catalogueIsAuto).toBe(false)
+    const wTools = result.diffs[0].figures.find(
+      (f) => f.label === 'Stawka z narzędziami (podwykonawca)',
+    )
+    expect(wTools?.kosztorysSource).toBe('auto')
+    expect(wTools?.catalogueSource).toBe('amount')
   })
 
   it('„Cena j.m." nigdy nie jest „auto"', () => {
@@ -177,8 +219,8 @@ describe('buildCatalogueComparison', () => {
     )
 
     const price = result.diffs[0].figures.find((f) => f.label === 'Cena j.m.')
-    expect(price?.kosztorysIsAuto).toBe(false)
-    expect(price?.catalogueIsAuto).toBe(false)
+    expect(price?.kosztorysSource).toBe('amount')
+    expect(price?.catalogueSource).toBe('amount')
   })
 
   it('sortuje rozjazdy od największej różnicy', () => {

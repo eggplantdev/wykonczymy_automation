@@ -152,11 +152,12 @@ describe('the pair: allowlist + price plane', () => {
   // For „Cena j.m." the allowlist is the ONLY half holding it back: a crew's stawka is assembled in
   // every view since the owner asked to compare both planes from „Inwestor", so the client view
   // reaches it too and only its absence from PREVIEW_VISIBLE_COLUMNS keeps it off a client's
-  // document. „Źródło" has both halves again — it is not assembled at the client plane at all.
+  // document. „Źródło" and „Mnożnik" have both halves again — neither is assembled at the client
+  // plane at all.
   it('cannot reach the subcontractor rate columns, in either plane', () => {
     const visible = previewIds()
     for (const plane of ['w_tools', 'own_tools'] as const) {
-      for (const base of ['priceMode', 'price'] as const) {
+      for (const base of ['priceMode', 'priceCoeff', 'price'] as const) {
         expect(visible).not.toContain(planePriceKey(base, plane))
       }
     }

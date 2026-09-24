@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process'
 import { chromium, type FullConfig } from '@playwright/test'
 import { chromeLaunchOptions } from './chrome-launch'
-import { login } from './support/ui'
+import { login } from './support/auth'
 
 export const STORAGE_STATE = 'e2e/.auth/user.json'
 

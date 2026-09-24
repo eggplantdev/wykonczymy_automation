@@ -49,19 +49,16 @@ export function columnTotalsForRows(
     // quantity, exactly as in sectionSubtotalsForView.
     const qtyDone = rowTotalQtyDone(row, viewStages, view)
     net += netForQtyForView(row, qtyDone, view)
-    plannedNet += rowPlannedNetForView(row, view)
+    // Pinned to 'client' like the cells they total: the przedmiar is the whole offered scope in every view.
+    plannedNet += rowPlannedNetForView(row, 'client')
     discount += rowDiscountForView(row, qtyDone, view)
-    remaining += rowRemainingForView(row, stages, view)
+    remaining += rowRemainingForView(row, stages, 'client')
   }
 
   totals.set('net', net)
   totals.set('gross', toGross(net, vatRate))
-  // The przedmiar has no per-rozliczenie reading, so outside the client view there is nothing to sum —
-  // and the columns it would total are hidden there anyway.
-  if (view === 'client') {
-    totals.set('plannedNet', plannedNet)
-    totals.set('plannedGross', toGross(plannedNet, vatRate))
-  }
+  totals.set('plannedNet', plannedNet)
+  totals.set('plannedGross', toGross(plannedNet, vatRate))
   totals.set('remaining', remaining)
   totals.set('remainingGross', toGross(remaining, vatRate))
   totals.set('discountAmount', discount)

@@ -20,10 +20,12 @@ const asPricing = (source: CatalogueSourceItemT): ViewPricingT => ({
   clientPrice: source.clientPrice,
   wToolsOverrideValue: source.wToolsOverrideValue,
   ownToolsOverrideValue: source.ownToolsOverrideValue,
+  wToolsOverrideCoeff: source.wToolsOverrideCoeff,
+  ownToolsOverrideCoeff: source.ownToolsOverrideCoeff,
   note: null,
   globalDiscountActive: false,
-  // Unreachable: only a plane with its own nadpisanie is priced here, and a kwota stała consults no
-  // global współczynnik.
+  // Unreachable: only a plane with its own nadpisanie is read here, and neither a kwota stała nor a
+  // własny mnożnik consults the global współczynnik.
   globalWToolsCoeff: 0,
   globalOwnToolsCoeff: 0,
 })
@@ -38,13 +40,17 @@ export function toCatalogueCandidate(source: CatalogueSourceItemT): CatalogueSee
   const description = source.description.trim()
   const unit = source.unit.trim()
   const category = stripSectionOrdinal(source.sectionName)
+  const wTools = impliedCatalogueRate(pricing, 'w_tools')
+  const ownTools = impliedCatalogueRate(pricing, 'own_tools')
   return {
     description,
     category: category || null,
     unit,
     clientPrice: source.clientPrice,
-    wToolsRate: impliedCatalogueRate(pricing, 'w_tools'),
-    ownToolsRate: impliedCatalogueRate(pricing, 'own_tools'),
+    wToolsRate: wTools.rate,
+    wToolsRateCoeff: wTools.coeff,
+    ownToolsRate: ownTools.rate,
+    ownToolsRateCoeff: ownTools.coeff,
     matchKey: catalogueKey(description, unit),
   }
 }

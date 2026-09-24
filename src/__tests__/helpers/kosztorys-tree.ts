@@ -36,5 +36,7 @@ export const baseItem: Omit<KosztorysItemT, 'id' | 'description' | 'plannedQty' 
   discountValue: 0,
   wToolsOverrideValue: 12,
   ownToolsOverrideValue: 10,
+  wToolsOverrideCoeff: null,
+  ownToolsOverrideCoeff: null,
   note: null,
 }

@@ -1,5 +1,7 @@
 import { test, expect, type Page } from '@playwright/test'
-import { parsePln, pickComboOption, readListingFigure, uniqueAmount } from './support/ui'
+import { pickComboOption } from './drivers/combo'
+import { parsePln, uniqueAmount } from './support/money'
+import { readListingFigure } from './support/table'
 import { waitForHydration } from './support/wait'
 import {
   ensureSettlementMode,

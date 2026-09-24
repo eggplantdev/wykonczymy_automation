@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { cellKeystroke, cellSettle } from '@/lib/kosztorys/cell-edit'
 import { formatPLN } from '@/lib/utils/format-currency'
-import { modeChange, subcontractorPolicy } from '@/lib/kosztorys/subcontractor-price-edit'
+import {
+  sourceChange,
+  subcontractorCoeffPolicy,
+  subcontractorPolicy,
+} from '@/lib/kosztorys/subcontractor-price-edit'
 import type { ToolPlaneT, ViewPricingT } from '@/lib/kosztorys/types'
 
 // The grid's own call shape: the cell hands `useCellDraft` a policy and the machine does the rest,
@@ -27,6 +31,8 @@ const row: ViewPricingT = {
   clientPrice: 100,
   wToolsOverrideValue: null,
   ownToolsOverrideValue: null,
+  wToolsOverrideCoeff: null,
+  ownToolsOverrideCoeff: null,
   note: null,
   globalDiscountActive: false,
   globalWToolsCoeff: 0.65,
@@ -157,22 +163,79 @@ describe('cellSettle pod polityką podwykonawcy', () => {
   })
 })
 
-describe('modeChange', () => {
+describe('sourceChange', () => {
   it('„auto" → „kwota stała" zamraża cenę, którą wiersz już pokazuje', () => {
-    expect(modeChange(row, true, 'w_tools')).toMatchObject({
+    expect(sourceChange(row, 'amount', 'w_tools')).toMatchObject({
       wToolsOverrideValue: 65,
+      wToolsOverrideCoeff: null,
     })
   })
 
   it('zamraża cenę planu, w którym przełączamy źródło', () => {
-    const switched = modeChange(row, true, 'own_tools')
+    const switched = sourceChange(row, 'amount', 'own_tools')
     expect(switched.ownToolsOverrideValue).toBeCloseTo(55, 6)
     expect(switched.wToolsOverrideValue).toBeNull()
   })
 
   it('powrót do „auto" oddaje wiersz mnożnikowi inwestycji', () => {
-    expect(modeChange(flat(60), false, 'w_tools')).toMatchObject({
+    expect(sourceChange(flat(60), 'auto', 'w_tools')).toMatchObject({
+      wToolsOverrideValue: null,
+      wToolsOverrideCoeff: null,
+    })
+  })
+
+  // Sedno przełącznika: liczba na ekranie ma się nie ruszyć w chwili zmiany źródła — ani z „auto",
+  // gdzie zasiewem jest współczynnik inwestycji, ani z kwoty, gdzie jest jej krotność.
+  it('„auto" → „własny mnożnik" zasiewa współczynnik inwestycji', () => {
+    expect(sourceChange(row, 'coeff', 'w_tools')).toMatchObject({
+      wToolsOverrideCoeff: 0.65,
       wToolsOverrideValue: null,
     })
+  })
+
+  it('„kwota stała" → „własny mnożnik" zasiewa krotność tej kwoty', () => {
+    expect(sourceChange(flat(50), 'coeff', 'w_tools')).toMatchObject({
+      wToolsOverrideCoeff: 0.5,
+      wToolsOverrideValue: null,
+    })
+  })
+
+  it('„własny mnożnik" → „kwota stała" zamraża stawkę z mnożnika', () => {
+    const fromCoeff = { ...row, wToolsOverrideCoeff: 0.8 }
+    expect(sourceChange(fromCoeff, 'amount', 'w_tools')).toMatchObject({
+      wToolsOverrideValue: 80,
+      wToolsOverrideCoeff: null,
+    })
+  })
+
+  // Przy cenie 0 każda stawka jest zerowa, więc dzielenie nie niesie żadnej informacji — wtedy
+  // uczciwym zasiewem jest współczynnik inwestycji, a nie NaN.
+  it('przy cenie j.m. 0 zasiewa współczynnik inwestycji zamiast dzielić przez zero', () => {
+    expect(sourceChange({ ...row, clientPrice: 0 }, 'coeff', 'own_tools')).toMatchObject({
+      ownToolsOverrideCoeff: 0.55,
+    })
+  })
+})
+
+describe('polityka komórki mnożnika', () => {
+  const coeffRow: ViewPricingT = { ...row, wToolsOverrideCoeff: 0.5 }
+  const policy = subcontractorCoeffPolicy<ViewPricingT>('w_tools')
+
+  it('wpisany mnożnik zeruje kwotę — lustro normalizacji z bazy', () => {
+    expect(policy.applyValue(flat(60), 0.8)).toMatchObject({
+      wToolsOverrideCoeff: 0.8,
+      wToolsOverrideValue: null,
+    })
+  })
+
+  it('wyczyszczenie mnożnika wraca do „auto", nie do poprzedniej kwoty', () => {
+    expect(policy.clear(coeffRow)).toMatchObject({
+      wToolsOverrideCoeff: null,
+      wToolsOverrideValue: null,
+    })
+  })
+
+  it('ogłasza przywróconą KWOTĘ, nie mnożnik — zdanie jest o pieniądzach', () => {
+    expect(policy.restoredLabel(coeffRow)).toBe(formatPLN(50))
   })
 })

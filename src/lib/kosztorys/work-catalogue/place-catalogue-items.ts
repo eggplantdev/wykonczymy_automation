@@ -18,8 +18,11 @@ export type CataloguePlacementT = {
   nextDisplayOrder: number
 }
 
-// Both sides model the stawka the same way, so a katalog „auto" (`null`) stays „auto", derived from
-// this investment's global współczynnik.
+// Both sides model the stawka the same way — the same pair of kolumny, the same trzy źródła — so a
+// katalog „auto" stays „auto" and derives from THIS investment's global współczynnik, a kwota stała
+// arrives verbatim, and a mnożnik arrives as a mnożnik and re-prices itself off the cena j.m. it
+// lands on. Copying at most one column per płaszczyzna is what keeps the pair legal: two set columns
+// is the state `normalizeOverridePatch` exists to prevent.
 const asItem = (
   catalogueItem: WorkCatalogueItemT,
   sectionId: number,
@@ -37,6 +40,8 @@ const asItem = (
   clientPrice: catalogueItem.clientPrice,
   wToolsOverrideValue: catalogueItem.wToolsRate,
   ownToolsOverrideValue: catalogueItem.ownToolsRate,
+  wToolsOverrideCoeff: catalogueItem.wToolsRateCoeff,
+  ownToolsOverrideCoeff: catalogueItem.ownToolsRateCoeff,
   note: null,
 })
 
@@ -61,8 +66,9 @@ export async function placeCatalogueItems(
     asItem(catalogueItem, sectionId, placement.nextDisplayOrder + i),
   )
 
-  // `asViewPricing` supplies zero globals, which is inert here: the guard judges a kwota stała only,
-  // and a kwota never reads a współczynnik — so it needs no investment context to reach its verdict.
+  // `asViewPricing` supplies zero globals, which is inert here: the guard judges a stawka this wiersz
+  // authored, and neither of those two źródła reads a global — a kwota is frozen, a mnożnik prices off
+  // the cena j.m. So it needs no investment context to reach its verdict.
   const warnings = items.flatMap((item) => {
     const problems = TOOL_PLANES.flatMap(
       (plane) => checkSubcontractorPrice(asViewPricing(item), plane)?.message ?? [],

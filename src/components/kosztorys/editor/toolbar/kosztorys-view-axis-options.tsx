@@ -1,7 +1,7 @@
 import { Activity, Coins, Hammer, Receipt, User } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { planeIcon } from '@/components/kosztorys/editor/plane-icons'
-import { PLANE_LABELS, TOOL_PLANES } from '@/lib/kosztorys/constants'
+import { PLANE_LABELS, RATE_LABELS, TOOL_PLANES } from '@/lib/kosztorys/constants'
 import type { PairAxisConfigT } from '@/lib/kosztorys/axis-checkboxes'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { LayerT } from '@/lib/kosztorys/layer'
@@ -23,8 +23,8 @@ export const VIEWS: { value: PriceViewT; label: string; icon: ReactNode }[] = [
 export const VIEW_LEGEND = [
   'Widoki cen:',
   '👤 Inwestor — cena dla inwestora.',
-  '🔧 Stawka wykonawcy z narzędziami.',
-  '🚫 Stawka wykonawcy bez narzędzi.',
+  `🔧 ${RATE_LABELS.w_tools}.`,
+  `🚫 ${RATE_LABELS.own_tools}.`,
 ].join('\n')
 
 export const MONEY_AXES: {

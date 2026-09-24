@@ -1,5 +1,5 @@
 import { expect, type Page } from '@playwright/test'
-import { parsePln } from '../support/ui'
+import { parsePln } from '../support/money'
 import { waitForHydration } from '../support/wait'
 import { expandSummaryPanel } from './kosztorys-grid'
 

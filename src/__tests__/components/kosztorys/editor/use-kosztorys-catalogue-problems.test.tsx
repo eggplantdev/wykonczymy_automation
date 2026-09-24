@@ -73,7 +73,9 @@ const CATALOGUE: WorkCatalogueItemT[] = [
     unit: 'm2',
     clientPrice: 120,
     wToolsRate: null,
+    wToolsRateCoeff: null,
     ownToolsRate: null,
+    ownToolsRateCoeff: null,
     matchKey: catalogueKey('Malowanie ścian', 'm2'),
   },
 ]

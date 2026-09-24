@@ -20,9 +20,9 @@ import {
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { toCatalogueCandidate } from '@/lib/kosztorys/work-catalogue/item-to-catalogue'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
+import { catalogueRateFor } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
 import { appendCatalogueItems } from '@/lib/kosztorys/work-catalogue/append-catalogue-items'
 import { createSectionWithCatalogueItems } from '@/lib/kosztorys/work-catalogue/create-section-with-catalogue-items'
-import { getWorkCatalogue } from '@/lib/queries/work-catalogue'
 import type {
   AppendedCatalogueSliceT,
   AppliedCatalogueValueT,
@@ -51,7 +51,9 @@ const toRow = (data: WorkCatalogueItemDataT) => ({
   unit: data.unit.trim(),
   clientPrice: data.clientPrice,
   wToolsRate: data.wToolsRate,
+  wToolsRateCoeff: data.wToolsRateCoeff,
   ownToolsRate: data.ownToolsRate,
+  ownToolsRateCoeff: data.ownToolsRateCoeff,
   matchKey: catalogueKey(data.description, data.unit),
 })
 
@@ -122,14 +124,6 @@ export async function deleteCatalogueItemAction(id: number) {
     },
     ['workCatalogue'],
   )
-}
-
-// Fetch-on-open, through the same cached read /katalog-prac uses, so both share one cache entry.
-export async function listWorkCatalogueAction(): Promise<ActionResultT<WorkCatalogueItemT[]>> {
-  return protectedAction('listWorkCatalogueAction', async () => {
-    const data = await getWorkCatalogue()
-    return { success: true, data }
-  })
 }
 
 const catalogueItemIdsSchema = z
@@ -247,6 +241,18 @@ const applyCatalogueSchema = z.object({
 const STALE_ITEM_ERROR = 'Część zaznaczonych pozycji już nie istnieje.'
 const STALE_CATALOGUE_ERROR = 'Część zaznaczonych prac nie jest już w katalogu.'
 
+// Taking a stawka means taking its ŹRÓDŁO, so BOTH kolumny of that płaszczyzna are written and one of
+// them lands as `null`. Writing only the column the katalog names would leave the pozycja's old
+// nadpisanie standing beside the new one, and the rozpiska reads such a pair as the OTHER źródło —
+// a mnożnik outranks a kwota, so „weź kwotę z katalogu" would have changed nothing on screen.
+const RATE_COLUMNS = [
+  ['wToolsRate', { plane: 'w_tools', value: 'wToolsOverrideValue', coeff: 'wToolsOverrideCoeff' }],
+  [
+    'ownToolsRate',
+    { plane: 'own_tools', value: 'ownToolsOverrideValue', coeff: 'ownToolsOverrideCoeff' },
+  ],
+] as const
+
 /**
  * The other direction: the katalog's liczby taken INTO the rozpiska, for every pozycja and every
  * liczba the owner ticked in „Porównaj z katalogiem prac".
@@ -291,6 +297,8 @@ export async function applyCatalogueToKosztorysAction(
         clientPrice: [],
         wToolsOverrideValue: [],
         ownToolsOverrideValue: [],
+        wToolsOverrideCoeff: [],
+        ownToolsOverrideCoeff: [],
       }
       const applied: AppliedCatalogueValueT[] = []
 
@@ -305,20 +313,32 @@ export async function applyCatalogueToKosztorysAction(
           batches.clientPrice.push({ id: item.id, value: entry.clientPrice })
           row.clientPrice = entry.clientPrice
         }
-        if (fields.has('wToolsRate')) {
-          batches.wToolsOverrideValue.push({ id: item.id, value: entry.wToolsRate })
-          row.wToolsOverrideValue = entry.wToolsRate
-        }
-        if (fields.has('ownToolsRate')) {
-          batches.ownToolsOverrideValue.push({ id: item.id, value: entry.ownToolsRate })
-          row.ownToolsOverrideValue = entry.ownToolsRate
+        for (const [field, columns] of RATE_COLUMNS) {
+          if (!fields.has(field)) continue
+          const rate = catalogueRateFor(entry, columns.plane)
+          batches[columns.value].push({ id: item.id, value: rate.rate })
+          batches[columns.coeff].push({ id: item.id, value: rate.coeff })
+          row[columns.value] = rate.rate
+          row[columns.coeff] = rate.coeff
         }
         applied.push(row)
       }
 
-      await captureAutoSnapshot(db, investmentId, user.id)
-      for (const column of Object.keys(batches) as CatalogueApplyColumnT[])
-        await applyCatalogueValues(db, investmentId, column, batches[column])
+      // One transaction, because the pair „kwota albo mnożnik" spans two of these batches (EX-865).
+      // Five sequential UPDATE-y mean a connection dropped after the `*OverrideValue` batch and
+      // before the `*OverrideCoeff` one leaves a pozycja carrying BOTH — and coeff outranks kwota, so
+      // the rozpiska quietly prices off the old mnożnik. The snapshot joins the same transaction: a
+      // rollback that left it standing would offer an undo to a state nothing changed from.
+      await withPayloadTransaction(
+        payload,
+        async (req) => {
+          const tx = await getDb(payload, req)
+          await captureAutoSnapshot(tx, investmentId, user.id)
+          for (const column of Object.keys(batches) as CatalogueApplyColumnT[])
+            await applyCatalogueValues(tx, investmentId, column, batches[column])
+        },
+        { skipRevalidation: true },
+      )
 
       return { success: true, data: applied }
     },

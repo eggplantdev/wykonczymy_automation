@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { login } from './support/ui'
+import { login } from './support/auth'
 import { waitForHydration } from './support/wait'
 
 // Unauthenticated on purpose: this spec drives the real login itself to prove the whole

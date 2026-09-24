@@ -8,12 +8,19 @@ import type { DbExecutorT } from '@/lib/db/get-db'
 // open across a rename must miss, not price the praca off its old name.
 export type CatalogueApplyTargetT = { id: number; description: string; unit: string }
 
-export type CatalogueApplyColumnT = 'clientPrice' | 'wToolsOverrideValue' | 'ownToolsOverrideValue'
+export type CatalogueApplyColumnT =
+  | 'clientPrice'
+  | 'wToolsOverrideValue'
+  | 'ownToolsOverrideValue'
+  | 'wToolsOverrideCoeff'
+  | 'ownToolsOverrideCoeff'
 
 const COLUMN_NAME: Record<CatalogueApplyColumnT, string> = {
   clientPrice: 'client_price',
   wToolsOverrideValue: 'w_tools_override_value',
   ownToolsOverrideValue: 'own_tools_override_value',
+  wToolsOverrideCoeff: 'w_tools_override_coeff',
+  ownToolsOverrideCoeff: 'own_tools_override_coeff',
 }
 
 export type CatalogueApplyValueT = { id: number; value: number | null }

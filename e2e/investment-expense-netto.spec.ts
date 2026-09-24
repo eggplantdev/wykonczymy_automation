@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { bare } from './support/ui'
+import { bare } from './support/money'
 import { waitForHydration } from './support/wait'
 import {
   createInvestmentExpense,

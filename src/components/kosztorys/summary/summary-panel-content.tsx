@@ -100,7 +100,7 @@ type PropsT = {
   // transfers table): wydatki drops its materiały list, wpłaty keeps only the Razem buckets.
   showTransactionLists?: boolean
   // Off on a host where the panel is one block among several rather than a full-height overlay (the
-  // investment page): the share pies are the first thing worth dropping when vertical space is tight.
+  // investment page): the overview's share pie is the first thing worth dropping when vertical space is tight.
   showPies?: boolean
   // On a host that already indents the page (the investment page), the panel's own side padding
   // lands ON TOP of the page gutter and the whole block sits a step right of everything around it.
@@ -314,7 +314,6 @@ export function SummaryPanelContent({
                 pricingLockedReason={pricingLockedReason}
                 preview={preview}
                 showTransactions={showTransactionLists}
-                showPie={showPies}
               />
             )}
 

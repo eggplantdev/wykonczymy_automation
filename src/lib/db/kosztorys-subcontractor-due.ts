@@ -32,18 +32,23 @@ export async function selectKosztorysSubcontractorDue(
         ks.investment_id,
         ks.plane,
         sp.qty_done,
-        -- subcontractorPrice (calc.ts): a stored stawka wins, NULL („auto") → client × the
-        -- investment's coefficient for that plane. Written per plane rather than once over a picked
-        -- column, because the two are disjoint columns. NO coalesce on the stawka: NULL is the
+        -- subcontractorPrice / priceSourceOf (calc.ts): a praca's own mnożnik wins, then its kwota,
+        -- then „auto" — client × the investment's coefficient for that plane. The branch order IS the
+        -- precedence, so the mnożnik has to come first. Written per plane rather than once over a
+        -- picked column, because the two are disjoint columns. NO coalesce on the stawka: NULL is the
         -- signal, and folding it to 0 would price every auto praca at zero złotych (EX-766).
         CASE ks.plane
           WHEN 'w_tools' THEN
             CASE
+              WHEN ki.w_tools_override_coeff IS NOT NULL
+                THEN ki.client_price * ki.w_tools_override_coeff
               WHEN ki.w_tools_override_value IS NOT NULL THEN ki.w_tools_override_value
               ELSE ki.client_price * coalesce(inv.w_tools_coeff, ${DEFAULT_COEFFS.wTools})
             END
           WHEN 'own_tools' THEN
             CASE
+              WHEN ki.own_tools_override_coeff IS NOT NULL
+                THEN ki.client_price * ki.own_tools_override_coeff
               WHEN ki.own_tools_override_value IS NOT NULL THEN ki.own_tools_override_value
               ELSE ki.client_price * coalesce(inv.own_tools_coeff, ${DEFAULT_COEFFS.ownTools})
             END

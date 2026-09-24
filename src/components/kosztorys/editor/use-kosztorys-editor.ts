@@ -58,14 +58,17 @@ import { subcontractorDueByPlane } from '@/lib/kosztorys/subcontractor-due'
 import { marginForecastByPlane as forecastByPlane } from '@/lib/kosztorys/margin-forecast'
 import { divergentPriceRowIds } from '@/lib/kosztorys/price-divergence'
 import { qtyDoneByRow } from '@/lib/kosztorys/row-conditions/ctx'
+import type { RowConditionCtxT } from '@/lib/kosztorys/row-conditions/types'
 import { buildViewRows } from '@/lib/kosztorys/row-view'
 import { computeMoveEdges } from '@/lib/kosztorys/move-edges'
 import { orderCommandsEnabled } from '@/lib/kosztorys/order-commands'
 import {
   applyRowConditions,
+  clientConditionIds,
   columnsRevealedBy,
   countMatching,
   liftsToSections,
+  rowIdsMatching,
   sectionIdsWhereAllMatch,
 } from '@/lib/kosztorys/row-conditions/queries'
 import {
@@ -136,6 +139,8 @@ const UNDO_COALESCE_MS = 700
 // one decides when the server's recomputed totals are worth a round trip.
 const TOTALS_REFRESH_DEBOUNCE_MS = 700
 
+const NO_ROW_IDS: ReadonlySet<number> = new Set()
+
 // Handlers never fire an action from inside a setRows updater — that would move the Router during
 // render.
 export function useKosztorysEditor({
@@ -171,6 +176,8 @@ export function useKosztorysEditor({
     search,
     setSearch,
     engagedConditionIds,
+    showAllRows,
+    setShowAllRows,
     toggleCondition,
     setConditions,
     toggleConditionExclusive,
@@ -408,31 +415,39 @@ export function useKosztorysEditor({
   // Six conditions and a full set of counters ask for this ~2.6× per pozycja, each re-summing the same
   // ten stage columns — ~2ms of the ~5ms these memos spend on 1000 pozycji, on every committed keystroke.
   const qtyDoneByRowId = useMemo(() => qtyDoneByRow(rows, stages), [rows, stages])
-
-  // Counted over the whole dataset: once a filter is on, a count of what survives it is a count of
-  // itself and can never reach zero to say the problem is gone.
-  // The two halves are counted separately because only the stage half depends on the view and the row
-  // half is the expensive one — counted together, switching the plane re-ran all of them for the same numbers.
-  const rowConditionCounts = useMemo(() => {
-    const ctx = {
+  const conditionCtx = useMemo<RowConditionCtxT>(
+    () => ({
       stages,
       hasSettledMaterial,
       divergentPriceRowIds: divergentPriceIds,
       qtyDoneByRowId,
       catalogueRowIds,
-    }
-    return ROW_CONDITIONS.map(
-      (condition) => [condition.id, preview ? 0 : countMatching(rows, condition.id, ctx)] as const,
-    )
-  }, [
-    preview,
-    rows,
-    stages,
-    hasSettledMaterial,
-    divergentPriceIds,
-    qtyDoneByRowId,
-    catalogueRowIds,
-  ])
+    }),
+    [stages, hasSettledMaterial, divergentPriceIds, qtyDoneByRowId, catalogueRowIds],
+  )
+
+  // Counted over the whole dataset: once a filter is on, a count of what survives it is a count of
+  // itself and can never reach zero to say the problem is gone.
+  // The two halves are counted separately because only the stage half depends on the view and the row
+  // half is the expensive one — counted together, switching the plane re-ran all of them for the same numbers.
+  const rowConditionCounts = useMemo(
+    () =>
+      ROW_CONDITIONS.map(
+        (condition) =>
+          [condition.id, preview ? 0 : countMatching(rows, condition.id, conditionCtx)] as const,
+      ),
+    [preview, rows, conditionCtx],
+  )
+  // What the owner's „Ukryj pozycje…" takes out of the client's document: its size labels the
+  // investor's „Pokaż wszystkie pozycje", and its members render muted once they are shown. Asked
+  // even while the switch is on — the rule is what the owner stored, not what is currently hidden.
+  const clientEmptyRowIds = useMemo(
+    () =>
+      preview
+        ? rowIdsMatching(rows, clientConditionIds(clientView?.hideEmptyRows), conditionCtx)
+        : NO_ROW_IDS,
+    [preview, clientView?.hideEmptyRows, rows, conditionCtx],
+  )
   // Over the view's own etapy: a subcontractor view already drops plane-less etapy, so counting the raw
   // list would offer a filter that can only empty the stage block. Asymmetric with the price conditions
   // by design — a price exists on both planes, an etap belongs to one.
@@ -525,26 +540,8 @@ export function useKosztorysEditor({
   // it IS the offer, so under preview the stored hide decision applies first. Search and sort are out of
   // both: a number that moved as the reader typed would name a different pozycja every keystroke.
   const documentRows = useMemo(
-    () =>
-      preview
-        ? applyRowConditions(rows, engagedConditionIds, {
-            stages,
-            hasSettledMaterial,
-            divergentPriceRowIds: divergentPriceIds,
-            qtyDoneByRowId,
-            catalogueRowIds,
-          })
-        : rows,
-    [
-      preview,
-      rows,
-      engagedConditionIds,
-      stages,
-      hasSettledMaterial,
-      divergentPriceIds,
-      qtyDoneByRowId,
-      catalogueRowIds,
-    ],
+    () => (preview ? applyRowConditions(rows, engagedConditionIds, conditionCtx) : rows),
+    [preview, rows, engagedConditionIds, conditionCtx],
   )
 
   // Off `documentRows`, not `rows`, so „WC (52 poz.)" can't stand over the four pozycje a client
@@ -559,30 +556,15 @@ export function useKosztorysEditor({
   // name a section that has some. Empty under preview — the „Filtry" menu lives in the owner's toolbar.
   const foldableSectionIds = useMemo(() => {
     if (preview) return new Map<string, Set<number>>()
-    const ctx = {
-      stages,
-      hasSettledMaterial,
-      divergentPriceRowIds: divergentPriceIds,
-      qtyDoneByRowId,
-      catalogueRowIds,
-    }
     return new Map(
       // Skipping a non-lifting condition saves a full pass per row for a `Map` entry the menu never reads,
       // and this recomputes on every edit. A missing id falls back to an empty set, rendering no row.
       ROW_CONDITIONS.filter(liftsToSections).map((condition) => [
         condition.id,
-        sectionIdsWhereAllMatch(rows, condition.id, ctx),
+        sectionIdsWhereAllMatch(rows, condition.id, conditionCtx),
       ]),
     )
-  }, [
-    preview,
-    rows,
-    stages,
-    hasSettledMaterial,
-    divergentPriceIds,
-    qtyDoneByRowId,
-    catalogueRowIds,
-  ])
+  }, [preview, rows, conditionCtx])
 
   // Problems only: the latch's other half („Odśwież — ukryj poprawione") renders only while a problem is
   // engaged, so latching under a „Prace" filter would hold rows with no way to release them. Out under
@@ -602,28 +584,12 @@ export function useKosztorysEditor({
       engagedConditionIds,
       sort,
       view,
-      stages,
-      hasSettledMaterial,
-      divergentPriceRowIds: divergentPriceIds,
-      qtyDoneByRowId,
-      catalogueRowIds,
+      ...conditionCtx,
       latchedRowIds: latch?.ids,
     })
     if (latch) for (const row of next) latch.ids.add(row.id)
     return next
-  }, [
-    rows,
-    search,
-    engagedConditionIds,
-    sort,
-    view,
-    stages,
-    hasSettledMaterial,
-    divergentPriceIds,
-    qtyDoneByRowId,
-    catalogueRowIds,
-    latch,
-  ])
+  }, [rows, search, engagedConditionIds, sort, view, conditionCtx, latch])
   const ordinalByRowId = useMemo(() => baseOrdinals(documentRows), [documentRows])
   // Sections keep their original order however the filter thinned them.
   const sectionRows = useMemo(() => sectionRepresentatives(rows), [rows])
@@ -1289,6 +1255,9 @@ export function useKosztorysEditor({
     setSearch,
     engagedConditionIds,
     engagedStageConditionIds,
+    showAllRows,
+    setShowAllRows,
+    clientEmptyRowIds,
     toggleCondition,
     setConditions,
     toggleConditionExclusive,

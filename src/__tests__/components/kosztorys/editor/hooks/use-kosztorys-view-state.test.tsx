@@ -59,3 +59,38 @@ describe('useKosztorysViewState — płaszczyzna cen', () => {
     expect(result.current.view).toBe('client')
   })
 })
+
+describe('useKosztorysViewState — „Pokaż wszystkie pozycje"', () => {
+  const CLIENT_VIEW = { hiddenColumns: [], hideEmptyRows: true }
+
+  it('lifts the stored hide while on and restores it when switched back off', () => {
+    const { result } = renderHook(() =>
+      useKosztorysViewState({
+        investmentId: INVESTMENT_ID,
+        preview: true,
+        clientView: CLIENT_VIEW,
+      }),
+    )
+    expect([...result.current.engagedConditionIds]).toEqual(['client-empty'])
+
+    act(() => result.current.setShowAllRows(true))
+    expect([...result.current.engagedConditionIds]).toEqual([])
+
+    act(() => result.current.setShowAllRows(false))
+    expect([...result.current.engagedConditionIds]).toEqual(['client-empty'])
+  })
+
+  it('leaves the owner grid on its own filters', () => {
+    const { result } = renderHook(() =>
+      useKosztorysViewState({
+        investmentId: INVESTMENT_ID,
+        preview: false,
+        clientView: CLIENT_VIEW,
+      }),
+    )
+
+    act(() => result.current.setShowAllRows(true))
+
+    expect(result.current.engagedConditionIds.has('client-empty')).toBe(false)
+  })
+})

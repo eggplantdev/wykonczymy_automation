@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test'
 import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
 import { DEFAULT_ITEM_DESCRIPTION } from '@/lib/kosztorys/constants'
-import { refreshReferenceData, runSeedScript } from './seeds'
+import { refreshReferenceData, runSeedScript } from './support/seeds'
 import {
   collapseSummaryPanel,
   openEditor,

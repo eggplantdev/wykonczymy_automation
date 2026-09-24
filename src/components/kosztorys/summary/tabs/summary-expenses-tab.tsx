@@ -12,10 +12,8 @@ import { clientVisibleExpenseRows } from '@/lib/kosztorys/expense-datasets'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { Description } from '@/components/ui/description'
 import { DecimalField } from '@/components/ui/decimal-field'
-import { SlicePie } from '@/components/ui/slice-pie'
-import { expensePieSlices } from '@/lib/kosztorys/chart-slices'
 import { SETTLED_TYPE } from '@/lib/constants/transfers'
-import { formatNet, ratePercent } from '@/lib/kosztorys/format'
+import { ratePercent } from '@/lib/kosztorys/format'
 import type { MaterialsBreakdownRowT } from '@/types/investment-financials'
 import type { MaterialTransactionRowT } from '@/types/transfers'
 
@@ -44,7 +42,6 @@ type PropsT = {
   // Off on a host that already lists every materiały transaction next to the panel (the investment
   // page's transfers table), where the in-panel list would only repeat it.
   showTransactions?: boolean
-  showPie?: boolean
 }
 
 export function SummaryExpensesTab({
@@ -60,7 +57,6 @@ export function SummaryExpensesTab({
   pricingLockedReason,
   preview = false,
   showTransactions = true,
-  showPie = true,
 }: PropsT) {
   const pricingMode = pricingModeOf(materialsNetRate)
   // Filtered here rather than only inside the list, so the section's own gate counts the same rows
@@ -82,8 +78,6 @@ export function SummaryExpensesTab({
 
   return (
     <div className="flex w-full flex-col gap-4">
-      {/* Above the row, not inside its left column: nested there it pushed the breakdown table down
-          while the pie stayed put, and the tab lost its top edge. */}
       {onMaterialsNetRateChange && (
         <div className="flex flex-col items-start gap-2">
           <InlineModeSelect
@@ -116,28 +110,24 @@ export function SummaryExpensesTab({
       {isEmpty && (
         <Description withIcon={false}>Brak wydatków inwestycyjnych na materiały.</Description>
       )}
-      <div className="flex flex-col items-start gap-8 lg:flex-row">
-        <div className="flex flex-col gap-6">
-          {hasBilledMaterials && (
-            <MaterialsBreakdownTable rows={materialsBreakdown} netRate={materialsNetRate} />
-          )}
-          {/* Never rows inside the wydatki table: this spend is the company's, so it must be
-              impossible to read as part of „Razem" or of the pie's shares. Its own gate too — an
-              investment can have settled material and no investor wydatki at all. */}
-          {settledBreakdown.length > 0 && (
-            <MaterialsBreakdownTable
-              rows={settledBreakdown}
-              caption={SETTLED_TYPE.label}
-              // Settled material is never billed to the investor, so the netto reduction has
-              // nothing to reduce here — brutto-only split.
-              netRate={null}
-            />
-          )}
-        </div>
-        {showPie && hasBilledMaterials && (
-          <SlicePie
-            slices={expensePieSlices(materialsBreakdown, materialsNetRate)}
-            formatValue={formatNet}
+      <div className="flex flex-col gap-6">
+        {hasBilledMaterials && (
+          <MaterialsBreakdownTable
+            rows={materialsBreakdown}
+            netRate={materialsNetRate}
+            byCategory={preview}
+          />
+        )}
+        {/* Never rows inside the wydatki table: this spend is the company's, so it must be
+            impossible to read as part of „Razem". Its own gate too — an investment can have
+            settled material and no investor wydatki at all. */}
+        {settledBreakdown.length > 0 && (
+          <MaterialsBreakdownTable
+            rows={settledBreakdown}
+            caption={SETTLED_TYPE.label}
+            // Settled material is never billed to the investor, so the netto reduction has
+            // nothing to reduce here — brutto-only split.
+            netRate={null}
           />
         )}
       </div>

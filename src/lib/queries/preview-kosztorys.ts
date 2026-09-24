@@ -93,7 +93,7 @@ async function buildPreviewKosztorysEditorData(
 // unstable_cache callback throws.
 const cachedPreviewKosztorysEditorData = unstable_cache(
   buildPreviewKosztorysEditorData,
-  ['preview-kosztorys-editor-data'],
+  ['preview-kosztorys-editor-data-v2'],
   { tags: KOSZTORYS_TAGS },
 )
 

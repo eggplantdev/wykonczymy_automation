@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
-import { type FleetSeedT, seedFleet } from './seeds'
-import { tableCell } from './support/ui'
+import { type FleetSeedT, seedFleet } from './support/seeds'
+import { tableCell } from './support/table'
 import { waitForHydration } from './support/wait'
 
 // EX-716 — flota: what is left of the issue once the cheaper layers have taken their share.

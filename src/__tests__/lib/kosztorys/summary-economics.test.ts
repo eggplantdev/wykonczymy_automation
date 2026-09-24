@@ -1,11 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
-  breakdownRowPair,
   combinedPair,
   computeAmountDue,
   faceValue,
   materialsNetDiscount,
-  materialsPair,
   billedMaterials,
   billedMaterialsPair,
   moneyPair,
@@ -55,68 +53,6 @@ describe('billedMaterialsPair (netto pricing switch)', () => {
   })
 })
 
-// ONE rate spans the bridge in both directions — the row's recorded plane decides which way it
-// crosses, never a second rate. A table whose header names one rate must not compute half its rows
-// with another.
-describe('breakdownRowPair (one „Wydatki inwestycyjne" row on both planes)', () => {
-  it('a brutto row keeps its receipt and divides down to netto', () => {
-    const p = breakdownRowPair({ net: 123, origin: 'gross' }, 0.23)
-    expect(p.gross).toBe(123)
-    expect(p.net).toBeCloseTo(100)
-  })
-
-  it('a netto row keeps its billed amount and multiplies back up — the SAME rate', () => {
-    const p = breakdownRowPair({ net: 100, origin: 'netBilled' }, 0.23)
-    expect(p.net).toBe(100)
-    expect(p.gross).toBeCloseTo(123)
-  })
-
-  it('the two directions invert each other: brutto → netto → brutto returns the receipt', () => {
-    const { net } = breakdownRowPair({ net: 123, origin: 'gross' }, 0.23)
-    expect(breakdownRowPair({ net, origin: 'netBilled' }, 0.23).gross).toBeCloseTo(123)
-  })
-
-  it('no rate = no bridge, in either direction', () => {
-    expect(breakdownRowPair({ net: 100, origin: 'netBilled' }, null)).toEqual({
-      net: 100,
-      gross: 100,
-    })
-    expect(breakdownRowPair({ net: 123, origin: 'gross' }, null)).toEqual({ net: 123, gross: 123 })
-  })
-
-  // „Korekta (bez kategorii)" arrives negative. The bug this replaced flipped or flattened such a
-  // row, so pin both the sign and the ratio: a credit must cross the bridge exactly like a charge.
-  it('a negative row keeps its sign and its ratio', () => {
-    const gross = breakdownRowPair({ net: -123, origin: 'gross' }, 0.23)
-    expect(gross.gross).toBe(-123)
-    expect(gross.net).toBeCloseTo(-100)
-
-    const netBilled = breakdownRowPair({ net: -100, origin: 'netBilled' }, 0.23)
-    expect(netBilled.net).toBe(-100)
-    expect(netBilled.gross).toBeCloseTo(-123)
-  })
-})
-
-// The default state of every investment today: no materiały rate saved. It is the branch's own
-// most-travelled path and the one the „frozen bucket" suite never exercises — every case there
-// passes a non-null rate.
-describe('materialsPair without a saved materiały rate', () => {
-  it('leaves both buckets whole on both axes — with no rate there is nothing to cross', () => {
-    const pair = materialsPair({ grossBase: 12_300, netBilled: 1000 }, null)
-    expect(pair.net).toBeCloseTo(13_300)
-    expect(pair.gross).toBeCloseTo(13_300)
-  })
-
-  // The regression this branch exists to close: VAT once stood in for the missing rate here and
-  // nowhere else, so the aggregate sat above the rows it sums and above the bilans.
-  it('agrees with breakdownRowPair on the netto-billed bucket', () => {
-    const viaMaterials = materialsPair({ grossBase: 0, netBilled: 1000 }, null)
-    const viaRow = breakdownRowPair({ net: 1000, origin: 'netBilled' }, null)
-    expect(viaMaterials.gross).toBe(viaRow.gross)
-    expect(viaMaterials.gross).toBe(1000)
-  })
-})
-
 // The settlement steps carry one money column, so materiały must reduce to ONE figure: the plane the
 // investor is actually billed on.
 describe('billedMaterials', () => {
@@ -124,10 +60,13 @@ describe('billedMaterials', () => {
     expect(billedMaterials({ grossBase: 123, netBilled: 0 }, 0.23)).toBeCloseTo(100)
   })
 
-  it('no rate bills the raw receipt, netto and brutto being the same figure anyway', () => {
-    const pair = materialsPair({ grossBase: 123, netBilled: 10 }, null)
-    expect(pair.net).toBe(pair.gross)
+  it('the netto-billed bucket enters at face value, never cut a second time', () => {
+    expect(billedMaterials({ grossBase: 123, netBilled: 1234.56 }, 0.23)).toBeCloseTo(1334.56)
+  })
+
+  it('no rate bills the raw receipt plus the netto bucket', () => {
     expect(billedMaterials({ grossBase: 123, netBilled: 10 }, null)).toBe(133)
+    expect(billedMaterials({ grossBase: 12_300, netBilled: 1000 }, null)).toBe(13_300)
   })
 })
 
@@ -338,12 +277,9 @@ describe('the netto-billed bucket is frozen against the materiały toggle', () =
     expect(withNet.gross - base.gross).toBeCloseTo(NET_BILLED)
   })
 
-  it('B5: the aggregate carries the stored netAmount unrounded — list and summary agree', () => {
+  it('B5: the billed figure carries the stored netAmount unrounded — list and summary agree', () => {
     const odd = 1234.56
-    const pair = materialsPair({ grossBase: 0, netBilled: odd }, REDUCTION)
-    expect(pair.net).toBe(odd)
-    // Its brutto is the netto crossed to the other plane, never the stored figure repeated.
-    expect(pair.gross).toBeCloseTo(odd * (1 + REDUCTION))
+    expect(billedMaterials({ grossBase: 0, netBilled: odd }, REDUCTION)).toBe(odd)
   })
 
   it('every tryb sees it — one billed figure, not a per-tryb composition', () => {

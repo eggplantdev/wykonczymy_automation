@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test'
 import { formatNet } from '@/lib/kosztorys/format'
-import { type ReconSeedT, seedReconInvestments } from './seeds'
-import { readListingFigure } from './support/ui'
+import { type ReconSeedT, seedReconInvestments } from './support/seeds'
+import { readListingFigure } from './support/table'
 import { settleWrite } from './support/wait'
 import {
   collapseSummaryPanel,

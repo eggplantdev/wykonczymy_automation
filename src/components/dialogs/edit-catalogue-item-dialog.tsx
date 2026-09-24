@@ -3,6 +3,7 @@
 import { EditButton } from '@/components/ui/row-actions/edit-button'
 import { FormDialog } from '@/components/ui/form-dialog'
 import { WorkCatalogueItemForm } from '@/components/forms/work-catalogue-item/work-catalogue-item-form'
+import { rateFormValues } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
 import { updateCatalogueItemAction } from '@/lib/actions/work-catalogue'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
@@ -33,10 +34,7 @@ export function EditCatalogueItemDialog({
             category: item.category ?? '',
             unit: item.unit,
             clientPrice: String(item.clientPrice),
-            wToolsAuto: item.wToolsRate === null,
-            wToolsRate: item.wToolsRate?.toString() ?? '',
-            ownToolsAuto: item.ownToolsRate === null,
-            ownToolsRate: item.ownToolsRate?.toString() ?? '',
+            ...rateFormValues(item),
           }}
           categorySuggestions={categorySuggestions}
           action={(data) => updateCatalogueItemAction(item.id, data)}

@@ -1,8 +1,9 @@
-import { OVERRIDE_FIELDS } from '@/lib/kosztorys/constants'
+import { OVERRIDE_COEFF_FIELDS, OVERRIDE_FIELDS } from '@/lib/kosztorys/constants'
 import type {
   GlobalDiscountT,
   KosztorysGlobalCoeffsT,
   KosztorysItemT,
+  PriceSourceT,
   ToolPlaneT,
   ViewPricingT,
 } from '@/lib/kosztorys/types'
@@ -67,7 +68,10 @@ function applyDiscount(gross: number, item: ViewPricingT): number {
 // --- Price views (one dataset → three views: client / subcontractor with/without tools) ---
 export type PriceViewT = 'client' | ToolPlaneT
 
-function effectiveCoeff(row: ViewPricingT, view: ToolPlaneT): number {
+// Exported for the source switch (subcontractor-price-edit.ts): entering „własny mnożnik" seeds the
+// cell with what the row was already being paid at, and on „auto" that IS the investment's own
+// współczynnik.
+export function effectiveCoeff(row: ViewPricingT, view: ToolPlaneT): number {
   return view === 'w_tools' ? row.globalWToolsCoeff : row.globalOwnToolsCoeff
 }
 
@@ -81,6 +85,57 @@ export function overrideValueFor(
   view: ToolPlaneT,
 ): number | null {
   return row[OVERRIDE_FIELDS[view]]
+}
+
+/**
+ * This plane's own MULTIPLIER, or `null` for „no multiplier here". Twin of `overrideValueFor`, and
+ * `null` carries the same weight: `0` is a multiplier someone set to zero — a stawka of zero złotych
+ * — not an absence.
+ */
+export function overrideCoeffFor(
+  row: Pick<ViewPricingT, 'wToolsOverrideCoeff' | 'ownToolsOverrideCoeff'>,
+  view: ToolPlaneT,
+): number | null {
+  return row[OVERRIDE_COEFF_FIELDS[view]]
+}
+
+/**
+ * Whether a nadpisanie column actually NAMES a figure — the one test every źródło switch asks.
+ *
+ * A positive test, not `!== null`, because the list of things that are not a figure is open-ended
+ * while the list of things that are is one item long. `!== null` asks „is it the absence I expect",
+ * so a payload one key short (`undefined`) or a broken import (`NaN`) walks through claiming to be a
+ * deliberate mnożnik — the strongest statement in the chain — when it is the weakest thing there is.
+ * A cennik served from a cache entry written before the mnożnik columns existed did exactly that, and
+ * printed „×0" over rows carrying a kwota stała (2026-09-23). Unknown belongs at the BOTTOM of the
+ * precedence: „auto" is the answer that claims nothing.
+ *
+ * `0` is unaffected and still a figure — a stawka someone set to zero is a decision, not an absence.
+ */
+export const namesFigure = (value: number | null): value is number => Number.isFinite(value)
+
+/**
+ * Where this plane's stawka comes from — the ONLY place the precedence coeff > kwota > global
+ * współczynnik is decided. Four surfaces branch on the answer (siatka, sufit, filtry, katalog); each
+ * re-deriving it from `!== null` checks is how they drift apart.
+ *
+ * The multiplier wins a row carrying both. That pair is unreachable through the app — the action
+ * normalizes every write — but raw SQL and `/admin` reach it, and a tie needs a rule rather than a
+ * throw.
+ */
+export function priceSourceOf(
+  row: Pick<
+    ViewPricingT,
+    | 'wToolsOverrideValue'
+    | 'ownToolsOverrideValue'
+    | 'wToolsOverrideCoeff'
+    | 'ownToolsOverrideCoeff'
+  >,
+  view: ToolPlaneT,
+): PriceSourceT {
+  if (namesFigure(overrideCoeffFor(row, view))) return 'coeff'
+  if (namesFigure(overrideValueFor(row, view))) return 'amount'
+  return 'auto'
 }
 
 /**
@@ -100,10 +155,41 @@ export function asViewPricing(
   }
 }
 
+/**
+ * The mnożnik a row SHOWS in the „Mnożnik" column: its own at „własny mnożnik", the investment's at
+ * „auto" (the row IS priced by a multiplier there, just not one of its own), and nothing at „kwota
+ * stała" — a frozen kwota does not track the cena j.m., so a ratio there would promise a link the
+ * next price change breaks.
+ *
+ * Here rather than in the cell, because three surfaces read it and the cell is only one of them:
+ * the komórka, `copyValue`, and `columnSortValue`. Sorting off `overrideCoeffFor` while the cell
+ * rendered this put a row showing 0,65 under a row showing 0,4.
+ */
+export function shownCoeff(row: ViewPricingT, view: ToolPlaneT): number | null {
+  switch (priceSourceOf(row, view)) {
+    case 'coeff':
+      return overrideCoeffFor(row, view)
+    case 'auto':
+      return effectiveCoeff(row, view)
+    default:
+      return null
+  }
+}
+
+/**
+ * Three sources, one number. The multiplier — like „auto" — multiplies the price BEFORE rabat: the
+ * rabat is the company handing back its own marża, not a markdown of the crew's work, so no
+ * subcontractor figure in this file has ever seen one.
+ */
 export function subcontractorPrice(row: ViewPricingT, view: ToolPlaneT): number {
-  const override = overrideValueFor(row, view)
-  if (override !== null) return override
-  return row.clientPrice * effectiveCoeff(row, view)
+  switch (priceSourceOf(row, view)) {
+    case 'coeff':
+      return row.clientPrice * overrideCoeffFor(row, view)!
+    case 'amount':
+      return overrideValueFor(row, view)!
+    default:
+      return row.clientPrice * effectiveCoeff(row, view)
+  }
 }
 
 export function viewPrice(row: ViewPricingT, view: PriceViewT): number {

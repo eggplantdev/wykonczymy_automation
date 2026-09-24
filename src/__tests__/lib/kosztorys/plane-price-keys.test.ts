@@ -20,7 +20,7 @@ describe('planePriceKeyParts / planeOfPriceKey — anything outside the namespac
     // A plane that does not exist, and a base key that no longer does.
     'price__client',
     'price__bogus',
-    'priceCoeff__w_tools',
+    'priceRatio__w_tools',
     // Neighbouring namespaces that a naive split on '_' would swallow.
     'stage_7',
     'stageValueNet_7',

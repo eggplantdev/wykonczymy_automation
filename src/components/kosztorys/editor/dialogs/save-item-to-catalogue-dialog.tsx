@@ -5,16 +5,32 @@ import { CheckboxRow } from '@/components/ui/checkbox-row'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Description } from '@/components/ui/description'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
+import { RATE_LABELS } from '@/lib/kosztorys/constants'
 import { catalogueSavePreviewAction, saveItemToCatalogueAction } from '@/lib/actions/work-catalogue'
 import type { CatalogueSavePreviewT } from '@/lib/kosztorys/work-catalogue/types'
-import { formatPLN, formatPLNOrAuto } from '@/lib/utils/format-currency'
+import {
+  catalogueRateFor,
+  catalogueSourceOf,
+  type CatalogueRateColumnsT,
+} from '@/lib/kosztorys/work-catalogue/catalogue-rate'
+import { formatRate } from '@/lib/kosztorys/format'
+import type { ToolPlaneT } from '@/lib/kosztorys/types'
+import { formatPLN } from '@/lib/utils/format-currency'
 import { toastMessage } from '@/lib/utils/toast'
 
 const LOAD_FAILED = 'Nie udało się wczytać danych pozycji'
 
-type PricesT = { clientPrice: number; wToolsRate: number | null; ownToolsRate: number | null }
+type PricesT = CatalogueRateColumnsT & { clientPrice: number }
 
 const NO_CATEGORY = 'bez kategorii'
+
+// One stawka as one sentence — „auto", a kwota, or the mnożnik with the kwota it comes out to. The
+// źródło has to show: 0,65 and 65 zł render the same money on a 100 zł cenie j.m. and mean different
+// things the next time that cena moves.
+const rateText = (prices: PricesT, plane: ToolPlaneT): string => {
+  const rate = catalogueRateFor(prices, plane)
+  return formatRate(rate.rate, catalogueSourceOf(rate), rate.coeff)
+}
 
 // Rendered for both sides so „nadpisz" is a decision about numbers rather than about a name. An
 // EMPTY kategoria is a value like any other — hence `undefined` (not falsiness) hides the row, so
@@ -29,9 +45,9 @@ function PriceList({
   category?: string | null
 }) {
   const rows: [string, string, boolean][] = [
-    ['Cena j.m.', formatPLNOrAuto(prices.clientPrice), true],
-    ['Stawka z narzędziami', formatPLNOrAuto(prices.wToolsRate), true],
-    ['Stawka bez narzędzi', formatPLNOrAuto(prices.ownToolsRate), true],
+    ['Cena j.m.', formatPLN(prices.clientPrice), true],
+    [RATE_LABELS.w_tools, rateText(prices, 'w_tools'), true],
+    [RATE_LABELS.own_tools, rateText(prices, 'own_tools'), true],
     ...(category !== undefined
       ? ([['Kategoria', category || NO_CATEGORY, false]] as [string, string, boolean][])
       : []),
@@ -128,7 +144,7 @@ export function SaveItemToCatalogueDialog({
       onOpenChange={onOpenChange}
       title="Zapisz do katalogu…"
       description={
-        'Katalog prac to wspólny cennik. Stawka, którą ta pozycja nadpisuje sama, zapisuje się jako kwota; stawka bez nadpisania idzie jako „auto” i policzy się ze współczynnika inwestycji, do której praca trafi.'
+        'Katalog prac to wspólny cennik. Stawka, którą ta pozycja nadpisuje sama, zapisuje się tym samym źródłem — kwotą albo mnożnikiem; stawka bez nadpisania idzie jako „auto” i policzy się ze współczynnika inwestycji, do której praca trafi.'
       }
       confirmLabel={overwrites ? 'Nadpisz…' : 'Zapisz'}
       onConfirm={requestSave}
@@ -180,7 +196,7 @@ export function SaveItemToCatalogueDialog({
         <ConfirmDialog
           open={confirming}
           title={`Nadpisać „${existing.description}" w katalogu?`}
-          description={`Stare stawki przepadną — katalog nie trzyma historii. Cena j.m. ${formatPLN(existing.clientPrice)} → ${formatPLN(preview.candidate.clientPrice)}, stawka z narzędziami ${formatPLNOrAuto(existing.wToolsRate)} → ${formatPLNOrAuto(preview.candidate.wToolsRate)}, bez narzędzi ${formatPLNOrAuto(existing.ownToolsRate)} → ${formatPLNOrAuto(preview.candidate.ownToolsRate)}.${categoryDiffers && !keepCategory ? ` Kategoria w katalogu zmieni się z „${existing.category || NO_CATEGORY}" na „${preview.candidate.category || NO_CATEGORY}".` : ''} Kosztorysy, w których ta praca już siedzi, zostają bez zmian. Jeśli chcesz dodać osobną pozycję zamiast nadpisać tę — anuluj i zmień nazwę pracy w rozpisce.`}
+          description={`Stare stawki przepadną — katalog nie trzyma historii. Cena j.m. ${formatPLN(existing.clientPrice)} → ${formatPLN(preview.candidate.clientPrice)}, ${RATE_LABELS.w_tools.toLowerCase()} ${rateText(existing, 'w_tools')} → ${rateText(preview.candidate, 'w_tools')}, ${RATE_LABELS.own_tools.toLowerCase()} ${rateText(existing, 'own_tools')} → ${rateText(preview.candidate, 'own_tools')}.${categoryDiffers && !keepCategory ? ` Kategoria w katalogu zmieni się z „${existing.category || NO_CATEGORY}" na „${preview.candidate.category || NO_CATEGORY}".` : ''} Kosztorysy, w których ta praca już siedzi, zostają bez zmian. Jeśli chcesz dodać osobną pozycję zamiast nadpisać tę — anuluj i zmień nazwę pracy w rozpisce.`}
           confirmLabel="Nadpisz"
           pending={saving}
           pendingLabel="Zapisuję…"

@@ -1,5 +1,5 @@
 import { expect, type Page } from '@playwright/test'
-import { parsePln } from '../support/ui'
+import { parsePln } from '../support/money'
 import { nudgeUntil, RETRY_STEP_MS, waitForHydration } from '../support/wait'
 
 export async function readRegisterBalance(page: Page): Promise<number> {
