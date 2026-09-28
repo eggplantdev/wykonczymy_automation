@@ -497,6 +497,8 @@
 .kosztorys-grid.kosztorys-grid-preview {
   --dsg-cell-disabled-background-color: var(--dsg-cell-background-color);
   --dsg-header-text-color: var(--color-foreground);
+  /* The preview's header sits right under the page header's dark rule. */
+  --header-rule-color: var(--color-foreground);
 }
 
 /* Preview-only: in the editor a bold header is the active-sort cue (sort-header.tsx), and the
@@ -520,15 +522,16 @@
 }
 
 /* dsg's header cells draw no bottom edge of their own. Inset, because dsg lays cells out absolutely
-   and an outer shadow would be painted over by the row beneath. */
-.kosztorys-grid.kosztorys-grid-preview .dsg-cell-header {
-  box-shadow: inset 0 -1px var(--color-foreground);
+   and an outer shadow would be painted over by the row beneath. Coloured like the rule above the
+   header, so the header reads as one framed band. */
+.kosztorys-grid .dsg-cell-header {
+  box-shadow: inset 0 -1px var(--header-rule-color, var(--dsg-border-color));
 }
 
 /* Outranks the gutter rule above, so the gutter's column separator is restated alongside. */
-.kosztorys-grid.kosztorys-grid-preview .dsg-cell-header.dsg-cell-gutter {
+.kosztorys-grid .dsg-cell-header.dsg-cell-gutter {
   box-shadow:
-    inset 0 -1px var(--color-foreground),
+    inset 0 -1px var(--header-rule-color, var(--dsg-border-color)),
     1px 0 var(--dsg-border-color);
 }
 
@@ -536,21 +539,15 @@
    1px border and a section band's divider stack beneath it into three lines. Only the unscrolled
    first row is affected visibly: when scrolled, the DOM row after the header is an overscan row
    hidden behind the sticky header. */
-.kosztorys-grid.kosztorys-grid-preview .dsg-row-header + .dsg-row .dsg-cell {
+.kosztorys-grid .dsg-row-header + .dsg-row .dsg-cell {
   border-top: none;
 }
 
-.kosztorys-grid.kosztorys-grid-preview
-  .dsg-row-header
-  + .dsg-row.kosztorys-section-header
-  .dsg-cell {
+.kosztorys-grid .dsg-row-header + .dsg-row.kosztorys-section-header .dsg-cell {
   box-shadow: 0 1px var(--dsg-border-color);
 }
 
-.kosztorys-grid.kosztorys-grid-preview
-  .dsg-row-header
-  + .dsg-row.kosztorys-section-header
-  .dsg-cell-gutter {
+.kosztorys-grid .dsg-row-header + .dsg-row.kosztorys-section-header .dsg-cell-gutter {
   box-shadow:
     inset calc(-1 * var(--section-rail-width)) 0 0 var(--section-rail, transparent),
     1px 0 var(--dsg-border-color);

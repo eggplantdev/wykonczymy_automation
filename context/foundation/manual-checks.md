@@ -888,3 +888,5 @@ Sprawdzone lokalnie w Playwright na publicznym linku — do powtórzenia na stag
       pasów kolumn i bez szarego tła
 - [ ] Edytor właściciela bez zmian: szare komórki tylko do odczytu, szare liczby wyliczane, bez pasów,
       bez powtórzonych nazw nad „Razem", „Razem" na szarym tle
+- [ ] Edytor (widok managera): pod nagłówkiem tabeli cienka szara linia w tym samym kolorze co linia
+      nad nim (pod paskiem narzędzi); pierwszy pasek etapu nie dokłada pod nią drugiej kreski
