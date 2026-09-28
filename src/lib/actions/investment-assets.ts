@@ -1,7 +1,7 @@
 'use server'
 
 import { protectedAction } from './run-action'
-import { investmentAssetTags } from '@/lib/cache/tags'
+import { investmentEntityOpts } from '@/lib/cache/tags'
 import {
   appendUploadIds,
   investmentAssetsField,
@@ -32,7 +32,7 @@ export async function addInvestmentAssetsAction(
       return { success: true }
     },
     undefined,
-    investmentAssetTags(investmentId),
+    investmentEntityOpts(investmentId),
   )
 }
 
@@ -44,7 +44,7 @@ export async function removeAllInvestmentAssetsAction(investmentId: number) {
       return { success: true }
     },
     undefined,
-    investmentAssetTags(investmentId),
+    investmentEntityOpts(investmentId),
   )
 }
 
@@ -58,6 +58,6 @@ export async function removeInvestmentAssetAction(investmentId: number, mediaId:
       return { success: true }
     },
     undefined,
-    investmentAssetTags(investmentId),
+    investmentEntityOpts(investmentId),
   )
 }

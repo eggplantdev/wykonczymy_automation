@@ -2,8 +2,6 @@ import 'server-only'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
 
-export const TRASH_RETENTION_DAYS = 30
-
 // „Realnie użyty" (owner's ruling): someone typed a Przedmiar or measured work on a stage. Price,
 // rabat, versions and bare pozycje from a szablon do not count — a template seed alone is what an
 // untouched kosztorys looks like. One fragment on purpose: the /kosz label and the purge both read

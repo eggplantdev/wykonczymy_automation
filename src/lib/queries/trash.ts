@@ -4,17 +4,14 @@ import config from '@payload-config'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { ADMIN_OR_OWNER_ROLES } from '@/lib/auth/roles'
 import { getDb } from '@/lib/db/get-db'
-import { fetchTrashedInvestments, TRASH_RETENTION_DAYS } from '@/lib/db/investment-trash'
+import { TRASH_RETENTION_DAYS } from '@/lib/constants/investment-lock'
+import { fetchTrashedInvestments, type TrashedInvestmentRowT } from '@/lib/db/investment-trash'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
-export type TrashedInvestmentT = {
-  id: number
-  name: string
-  trashedAt: Date
-  isKosztorysUsed: boolean
-  /** Whole days until the cron purges it; `null` when a used kosztorys keeps it for a manual delete. */
-  daysLeft: number | null
+export type TrashedInvestmentT = TrashedInvestmentRowT & {
+  /** Whole days until the cron purges it — unless a used kosztorys keeps it for a manual delete. */
+  daysLeft: number
 }
 
 // Uncached: the page is rare, and its „used" flag reads kosztorys tables no trash tag covers.
@@ -28,11 +25,9 @@ export async function getTrashedInvestments(): Promise<TrashedInvestmentT[]> {
 
   return rows.map((row) => ({
     ...row,
-    daysLeft: row.isKosztorysUsed
-      ? null
-      : Math.max(
-          0,
-          Math.ceil((row.trashedAt.getTime() + TRASH_RETENTION_DAYS * DAY_MS - now) / DAY_MS),
-        ),
+    daysLeft: Math.max(
+      0,
+      Math.ceil((row.trashedAt.getTime() + TRASH_RETENTION_DAYS * DAY_MS - now) / DAY_MS),
+    ),
   }))
 }

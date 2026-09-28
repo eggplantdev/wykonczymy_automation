@@ -49,10 +49,9 @@ export async function investmentGateFor(
 }
 
 /**
- * Why no figure on this investment may move, or `undefined` when it may. A completed investment is
- * settled — payouts included — until someone puts it back to „Aktywna"; a trashed one is frozen until
- * it is restored. A missing row is not locked: a nonexistent investment is the caller's problem to
- * report, not the lock's.
+ * A completed investment is settled — payouts included — until someone puts it back to „Aktywna"; a
+ * trashed one is frozen until it is restored. A missing row is not locked: a nonexistent investment
+ * is the caller's problem to report, not the lock's.
  */
 export async function investmentLockMessage(
   db: DbExecutorT,

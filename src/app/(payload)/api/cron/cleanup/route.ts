@@ -8,10 +8,9 @@ import { purgeTrash } from '@/lib/investments/purge-trash'
 
 export const maxDuration = 300
 
-// Daily cleanup cron, scheduled from vercel.json: thins kosztorys snapshots, then empties the
-// investment trash past retention. Each step runs on its own, so a throw in one never hides what the
-// other did. Both results are forwarded verbatim because the function log is where a retention
-// change is read back.
+// Daily cleanup cron, scheduled from vercel.json. Each step runs on its own, so a throw in one never
+// hides what the other did. Both results are forwarded verbatim because the function log is where a
+// retention change is read back.
 export async function GET(request: NextRequest) {
   if (!isAuthorizedCronRequest(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -22,9 +21,13 @@ export async function GET(request: NextRequest) {
 
   const snapshots = await runStep('snapshots', () => gcSnapshots(db))
   const trash = await runStep('trash', () => purgeTrash(payload, db))
-  const threw = [snapshots, trash].filter((step) => step === null).length
+  const steps = [snapshots, trash]
+  const threw = steps.filter((step) => step === null).length
 
-  return NextResponse.json({ ok: threw === 0, snapshots, trash }, { status: threw === 2 ? 500 : 200 })
+  return NextResponse.json(
+    { ok: threw === 0, snapshots, trash },
+    { status: threw === steps.length ? 500 : 200 },
+  )
 }
 
 async function runStep<T>(label: string, step: () => Promise<T>): Promise<T | null> {

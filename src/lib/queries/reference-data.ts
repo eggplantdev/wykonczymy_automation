@@ -61,8 +61,8 @@ export const fetchReferenceData = cache(
         // The szablon workbench is excluded HERE, once, rather than by every consumer: it is not an
         // investment, and filtering it per-surface had already leaked into the transfers filter
         // dropdowns and the investments listing. A trashed investment is excluded for the same reason
-        // — this one predicate is what hides it from the listing, the pickers, the dashboard and the
-        // crumb, and what 404s its pages.
+        // — this predicate hides it from the listing, the pickers, the dashboard and the crumb, and
+        // 404s its detail page; the kosztorys pages and the share link filter it again on their own.
         db.execute(sql`
         SELECT i.id, i.name, i.status::text,
                i.address, i.phone, i.email, i.contact_person, i.notes, i.review,

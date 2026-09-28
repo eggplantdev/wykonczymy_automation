@@ -1,12 +1,16 @@
 'use server'
 
 import { ownerOnlyAction } from '@/lib/actions/owner-only-action'
-import { entityTag, INVESTMENT_DELETE_TAGS, INVESTMENT_TRASH_TAGS } from '@/lib/cache/tags'
+import {
+  INVESTMENT_DELETE_TAGS,
+  INVESTMENT_TRASH_TAGS,
+  investmentEntityOpts,
+} from '@/lib/cache/tags'
 import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import { getDb } from '@/lib/db/get-db'
 import { isKosztorysUsed } from '@/lib/db/investment-trash'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
-import { investmentDeleteBlocker } from '@/hooks/investments/delete-blocker'
+import { investmentDeleteBlocker } from '@/lib/investments/delete-blocker'
 import {
   deleteTrashedInvestment,
   NOT_TRASHED_MESSAGE,
@@ -15,11 +19,6 @@ import type { ActionResultT } from '@/types/action'
 
 const FORBIDDEN_MESSAGE = 'Tylko właściciel lub administrator może usuwać inwestycje.'
 const MISSING_MESSAGE = 'Inwestycja nie istnieje.'
-
-// `getInvestment` (the v1 kosztorys page, the investor preview) keys on the row, not the collection.
-const entityOpts = (investmentId: number) => ({
-  entityTags: [entityTag('investment', investmentId)],
-})
 
 // The caller expires the tags itself, through the wrapper — the hooks' own revalidation would
 // fire once per write and inside the transaction.
@@ -30,7 +29,9 @@ export async function trashInvestmentAction(investmentId: number): Promise<Actio
     'trashInvestmentAction',
     FORBIDDEN_MESSAGE,
     async ({ payload }) =>
-      // One transaction so the transaction count and the write see the same state.
+      // READ COMMITTED with no row lock, so a transfer committed between the count and the write
+      // still lands on a trashed investment. Accepted: the delete re-counts and refuses, and
+      // Przywróć gives the row back.
       withPayloadTransaction(
         payload,
         async (req): Promise<ActionResultT> => {
@@ -59,14 +60,13 @@ export async function trashInvestmentAction(investmentId: number): Promise<Actio
             data: { trashedAt: new Date().toISOString() },
             overrideAccess: true,
             req,
-            context: SKIP_HOOK_REVALIDATION,
           })
           return { success: true }
         },
         SKIP_HOOK_REVALIDATION,
       ),
     [...INVESTMENT_TRASH_TAGS],
-    entityOpts(investmentId),
+    investmentEntityOpts(investmentId),
   )
 }
 
@@ -85,7 +85,7 @@ export async function restoreInvestmentAction(investmentId: number): Promise<Act
       return { success: true }
     },
     [...INVESTMENT_TRASH_TAGS],
-    entityOpts(investmentId),
+    investmentEntityOpts(investmentId),
   )
 }
 
@@ -120,6 +120,6 @@ export async function deleteInvestmentForeverAction(
       return result.ok ? { success: true } : { success: false, error: result.message }
     },
     [...INVESTMENT_DELETE_TAGS],
-    entityOpts(investmentId),
+    investmentEntityOpts(investmentId),
   )
 }

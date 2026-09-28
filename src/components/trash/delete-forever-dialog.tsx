@@ -16,8 +16,6 @@ type PropsT = {
 
 const LOST = 'kosztorys (pozycje i wersje), przypięcia zdjęć, link dla inwestora'
 
-// Typing the name is friction reserved for work someone actually entered — an untouched template
-// seed is one click, like any other confirm. The action re-checks the name, so this is not the guard.
 export function DeleteForeverDialog({ investment, open, onClose }: PropsT) {
   const router = useRouter()
   const [typedName, setTypedName] = useState('')

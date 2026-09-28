@@ -2,7 +2,7 @@ import type { CollectionConfig } from 'payload'
 import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 import { refuseDeleteWhen } from '@/hooks/prevent-delete'
-import { investmentDeleteBlocker } from '@/hooks/investments/delete-blocker'
+import { investmentDeleteBlocker } from '@/lib/investments/delete-blocker'
 import { guardInvestmentStatusUnlock } from '@/hooks/investments/guard-status-unlock'
 import { DEFAULT_COEFFS, DEFAULT_VAT } from '@/lib/kosztorys/constants'
 import {

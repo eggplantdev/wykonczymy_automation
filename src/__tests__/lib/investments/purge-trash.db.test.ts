@@ -2,7 +2,12 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
-import { createTestInvestment } from '@/__tests__/helpers/investment'
+import {
+  createTestInvestment,
+  PAST_RETENTION_DAYS,
+  trashDaysAgo,
+  WITHIN_RETENTION_DAYS,
+} from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
 // The purge is the one delete nobody confirms, so the assertion is on which rows survive — a count
@@ -27,11 +32,6 @@ describe.skipIf(!ENV_READY)('purgeTrash (DB)', () => {
     return rows.length > 0
   }
 
-  const trashDaysAgo = (id: number, days: number) =>
-    db.execute(sql`
-      UPDATE investments SET trashed_at = now() - make_interval(days => ${days}) WHERE id = ${id}
-    `)
-
   beforeAll(async () => {
     const { getPayload } = await import('payload')
     const config = (await import('@payload-config')).default
@@ -49,9 +49,9 @@ describe.skipIf(!ENV_READY)('purgeTrash (DB)', () => {
     })
     recent = await createTestInvestment(payload, `${PREFIX} recent`)
 
-    await trashDaysAgo(expired, 31)
-    await trashDaysAgo(used, 31)
-    await trashDaysAgo(recent, 29)
+    await trashDaysAgo(db, expired, PAST_RETENTION_DAYS)
+    await trashDaysAgo(db, used, PAST_RETENTION_DAYS)
+    await trashDaysAgo(db, recent, WITHIN_RETENTION_DAYS)
   })
 
   afterAll(purge)

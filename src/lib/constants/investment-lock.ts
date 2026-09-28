@@ -6,10 +6,12 @@ export const INVESTMENT_LOCKED_MESSAGE =
 
 export const INVESTMENT_TRASHED_MESSAGE = 'Inwestycja jest w koszu — przywróć ją, żeby coś zmienić.'
 
+export const TRASH_RETENTION_DAYS = 30
+
 /**
- * „Zakończona" IS the lock — the whole feature is this one comparison, spelled once. Six layers ask
- * it (the panel's access rules, both gates, the editor page, the form's confirmation), so a second
- * locking status would otherwise mean finding six literals.
+ * „Zakończona" IS the status lock — the one comparison, spelled once; the trash is the gate's other,
+ * non-status reason. Six layers ask it (the panel's access rules, both gates, the editor page, the
+ * form's confirmation), so a second locking status would otherwise mean finding six literals.
  */
 export const LOCKED_INVESTMENT_STATUS = 'completed'
 

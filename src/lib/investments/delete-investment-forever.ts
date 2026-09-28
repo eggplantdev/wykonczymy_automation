@@ -9,10 +9,8 @@ export type DeleteForeverResultT =
   | { ok: false; reason: 'not-trashed' | 'blocked' | 'error'; message: string }
 
 /**
- * The one way an investment leaves the database, shared by „Usuń na zawsze" and the cron purge so
- * both refuse for the same reasons. Through `payload.delete`, never raw SQL: `beforeDelete`
- * re-counts live transactions inside the delete itself, which is the last word on a row that picked
- * one up after it was trashed.
+ * Through `payload.delete`, never raw SQL: `beforeDelete` re-counts live transactions inside the
+ * delete itself, which is the last word on a row that picked one up after it was trashed.
  *
  * The DB cascade takes the kosztorys, its versions, the share link and the gallery pins with it,
  * none of which fire a Payload hook — so cache expiry is each caller's job, not this function's.
@@ -21,14 +19,18 @@ export async function deleteTrashedInvestment(
   payload: Payload,
   investmentId: number,
 ): Promise<DeleteForeverResultT> {
-  const investment = await payload
-    .findByID({ collection: 'investments', id: investmentId, depth: 0, overrideAccess: true })
-    .catch(() => null)
-  if (!investment?.trashedAt) {
-    return { ok: false, reason: 'not-trashed', message: NOT_TRASHED_MESSAGE }
-  }
-
   try {
+    const investment = await payload.findByID({
+      collection: 'investments',
+      id: investmentId,
+      depth: 0,
+      overrideAccess: true,
+      disableErrors: true,
+    })
+    if (!investment?.trashedAt) {
+      return { ok: false, reason: 'not-trashed', message: NOT_TRASHED_MESSAGE }
+    }
+
     await payload.delete({
       collection: 'investments',
       id: investmentId,

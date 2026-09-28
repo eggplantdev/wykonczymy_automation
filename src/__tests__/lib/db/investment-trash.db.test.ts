@@ -1,8 +1,14 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
+import { TRASH_RETENTION_DAYS } from '@/lib/constants/investment-lock'
 import { getDb } from '@/lib/db/get-db'
-import { createTestInvestment } from '@/__tests__/helpers/investment'
+import {
+  createTestInvestment,
+  PAST_RETENTION_DAYS,
+  trashDaysAgo,
+  WITHIN_RETENTION_DAYS,
+} from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
 // The /kosz label and the purge read one „realnie użyty" fragment; if it misjudged a template seed
@@ -24,13 +30,7 @@ describe.skipIf(!ENV_READY)('investment trash queries (DB)', () => {
   let empty: number
   let fresh: number
 
-  // The FKs cascade from investments, so deleting the parents takes the kosztorys rows with them.
   const purge = () => db.execute(sql`DELETE FROM investments WHERE name LIKE ${`${PREFIX}%`}`)
-
-  const trashDaysAgo = (id: number, days: number) =>
-    db.execute(sql`
-      UPDATE investments SET trashed_at = now() - make_interval(days => ${days}) WHERE id = ${id}
-    `)
 
   beforeAll(async () => {
     const { getPayload } = await import('payload')
@@ -62,8 +62,9 @@ describe.skipIf(!ENV_READY)('investment trash queries (DB)', () => {
     empty = await createTestInvestment(payload, `${PREFIX} empty`)
     fresh = await createTestInvestment(payload, `${PREFIX} fresh`)
 
-    for (const id of [planned, measured, priceOnly, empty]) await trashDaysAgo(id, 31)
-    await trashDaysAgo(fresh, 29)
+    for (const id of [planned, measured, priceOnly, empty])
+      await trashDaysAgo(db, id, PAST_RETENTION_DAYS)
+    await trashDaysAgo(db, fresh, WITHIN_RETENTION_DAYS)
   })
 
   afterAll(purge)
@@ -84,7 +85,7 @@ describe.skipIf(!ENV_READY)('investment trash queries (DB)', () => {
   it('purges only unused investments past retention, and counts the used ones it skipped', async () => {
     const { purgeable, skippedKosztorys } = await trash.selectPurgeableInvestmentIds(
       db,
-      trash.TRASH_RETENTION_DAYS,
+      TRASH_RETENTION_DAYS,
     )
     const ours = new Set([planned, measured, priceOnly, empty, fresh])
 

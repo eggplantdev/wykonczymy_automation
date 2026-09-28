@@ -22,12 +22,13 @@ const TARGET_MISSING: Record<GateTargetKindT, string> = {
 }
 
 /**
- * Refuse every write that moves money on a settled or trashed investment. The kosztorys writes raw SQL in a
- * dozen places, so neither collection hooks nor Payload `access` see those writes — the action layer
- * is the only chokepoint that does. Wrapping `protectedAction` (the shape `ownerOnlyAction` already
- * uses) runs the check structurally, so a newly added kosztorys action cannot forget a hand-copied
- * `if`. Unlike role gates this one is stateful: it narrows on the investment's status, not on who is
- * asking — no role edits a completed or trashed investment.
+ * Refuse every write that moves money on a settled or trashed investment. The kosztorys writes raw
+ * SQL in a dozen places, so neither collection hooks nor Payload `access` see those writes — the
+ * action layer is the only chokepoint that does. Wrapping `protectedAction` (the shape
+ * `ownerOnlyAction` already uses) runs the check structurally, so a newly added kosztorys action
+ * cannot forget a hand-copied `if`. Unlike role gates this one is stateful: it narrows on the
+ * investment's status and trash marker, not on who is asking — no role edits a completed or trashed
+ * investment.
  */
 export function investmentAction<TData = undefined>(
   label: string,

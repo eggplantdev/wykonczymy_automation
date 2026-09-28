@@ -8,7 +8,8 @@ import {
 import { forgotPasswordEmailHTML } from '@/lib/email/forgot-password-template'
 import type { CollectionConfig, Where } from 'payload'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
-import { excludingCancelled, makePreventDelete } from '@/hooks/prevent-delete'
+import { makePreventDelete } from '@/hooks/prevent-delete'
+import { excludingCancelled } from '@/lib/db/delete-blocker'
 import { ROLES, ROLE_LABELS } from '@/lib/auth/roles'
 
 // Block a hard delete while a FIGURE or its audit trail still names this person: a wypłata whose

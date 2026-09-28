@@ -38,6 +38,7 @@ export function TrashedInvestmentActions({ investment }: { investment: TrashedIn
         label={`Usuń „${investment.name}" na zawsze`}
         text="Usuń na zawsze"
         showLabel
+        disabled={pending}
         onClick={() => setDeleting(true)}
       />
       <DeleteForeverDialog

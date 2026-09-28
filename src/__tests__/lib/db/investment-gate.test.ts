@@ -24,8 +24,6 @@ function lastSqlChunks(): string {
   return sqlText(calls[calls.length - 1]?.[0])
 }
 
-// Its two questions asserted directly: why an investment is locked (if at all), and which investment
-// a kosztorys row belongs to.
 describe('investment lock', () => {
   beforeEach(resetFakePayload)
 

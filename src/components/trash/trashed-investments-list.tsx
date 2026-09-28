@@ -1,12 +1,13 @@
 import { EmptyState } from '@/components/ui/empty-state'
 import { TrashedInvestmentActions } from '@/components/trash/trashed-investment-actions'
+import { daysLabel } from '@/lib/utils/deadline-label'
 import { formatPLDate } from '@/lib/utils/format-date'
 import type { TrashedInvestmentT } from '@/lib/queries/trash'
 
 function fateOf(investment: TrashedInvestmentT): string {
-  if (investment.daysLeft === null) return 'kosztorys w użyciu — tylko ręcznie'
+  if (investment.isKosztorysUsed) return 'kosztorys w użyciu — tylko ręcznie'
   if (investment.daysLeft === 0) return 'usunie się samo przy najbliższym sprzątaniu'
-  return `usunie się samo za ${investment.daysLeft} ${investment.daysLeft === 1 ? 'dzień' : 'dni'}`
+  return `usunie się samo ${daysLabel(investment.daysLeft)}`
 }
 
 export function TrashedInvestmentsList({ investments }: { investments: TrashedInvestmentT[] }) {

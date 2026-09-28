@@ -3,7 +3,8 @@ import { revalidateTag } from 'next/cache'
 import type { Payload } from 'payload'
 import { CACHE_TAGS, EXPIRE_NOW, entityTag, INVESTMENT_DELETE_TAGS } from '@/lib/cache/tags'
 import type { DbExecutorT } from '@/lib/db/get-db'
-import { selectPurgeableInvestmentIds, TRASH_RETENTION_DAYS } from '@/lib/db/investment-trash'
+import { TRASH_RETENTION_DAYS } from '@/lib/constants/investment-lock'
+import { selectPurgeableInvestmentIds } from '@/lib/db/investment-trash'
 import { deleteTrashedInvestment } from '@/lib/investments/delete-investment-forever'
 
 export type PurgeTrashResultT = {
@@ -21,13 +22,12 @@ export async function purgeTrash(payload: Payload, db: DbExecutorT): Promise<Pur
     db,
     TRASH_RETENTION_DAYS,
   )
-  const result: PurgeTrashResultT = { purged: 0, skippedKosztorys, blocked: 0, failed: 0 }
+  const result = { skippedKosztorys, blocked: 0, failed: 0 }
   const purgedIds: number[] = []
 
   for (const id of purgeable) {
     const outcome = await deleteTrashedInvestment(payload, id)
     if (outcome.ok) {
-      result.purged++
       purgedIds.push(id)
     } else if (outcome.reason === 'blocked') {
       result.blocked++
@@ -46,5 +46,5 @@ export async function purgeTrash(payload: Payload, db: DbExecutorT): Promise<Pur
     for (const id of purgedIds) revalidateTag(entityTag('investment', id), EXPIRE_NOW)
   }
 
-  return result
+  return { purged: purgedIds.length, ...result }
 }
