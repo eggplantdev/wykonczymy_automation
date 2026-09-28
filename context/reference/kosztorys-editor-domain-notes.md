@@ -297,19 +297,36 @@ Otwarte: która ilość na ofercie — przedmiar (oferta wstępna) czy pomiar
 (rozliczenie) → P13. Drugi tryb wydruku „raport postępu" (wewnętrzny, z etapami)
 — do rozważenia.
 
-## Co widzi klient — ustawienie, nie stała (EX-695, 2026-08-15)
+## Co widzi klient — ustawienie, nie stała (EX-695, 2026-08-15; jeden zestaw od 2026-09-28)
 
 Zestaw kolumn widoku klienta przestał być stałą w kodzie. Rozstrzygnięcie idzie w kolejności:
 własny wiersz inwestycji (`kosztorys-client-view`) → globalne domyślne firmy
-(`kosztorys-client-view-defaults`) → domyślne z kodu (nic nie ukryte, puste pozycje ukryte).
-Rozwiązywane w `src/lib/queries/kosztorys-client-view.ts`.
+(`kosztorys-client-view-defaults`) → domyślne z kodu. Rozwiązywane w
+`src/lib/queries/kosztorys-client-view.ts`.
 
-Dwie reguły trzymają to razem:
+**Jeden zestaw, bez wariantów** (właściciel, 2026-09-28). Warianty „Oferta / Rozliczenie" zniknęły:
+inwestor ma jeden zestaw kolumn, a o tym, czy widzi rozliczenie, decydują dane, nie przełącznik.
+Kolumny rozliczenia — „Pomiar z natury", każdy etap (ilość i wartość), „Razem netto", „% wykonania",
+brutto idzie za netto — pokazują się dopiero, gdy są w nich wpisy: etap bez wpisów znika w całości,
+a sumy rozliczenia znikają, dopóki żaden etap nie ma wpisu. Oferta wysłana przed pracą jest więc
+czysta bez żadnego klikania, a pierwszy wpis w etapie dociera do linku, który inwestor już ma.
+„Pozostało" do tej reguły nie należy: przed pracą to cały przedmiar, liczba prawdziwa — domyślnie jest
+ukryte i ukrywa je tylko wybór właściciela. Ta sama reguła obowiązuje podgląd, link, PDF i zakładkę
+„Robocizna" w podsumowaniu inwestora („Brak etapów.", gdy żaden nie ma wpisów); nie dotyczy widoku
+pracownika. Liczona z NIEPRZEFILTROWANYCH pozycji (`settlement-columns.ts`), żeby kolumna nie
+pojawiała się i nie znikała, gdy inwestor przełącza „Pokaż wszystkie pozycje".
 
-- **`PREVIEW_VISIBLE_COLUMNS` pozostaje sufitem.** Zapisany klucz może tylko _odjąć_ kolumnę,
-  nigdy dodać — sanityzacja przy zapisie i przy odczycie odrzuca klucz spoza allowlisty, więc
-  ustawienie nie staje się drugą, rozjeżdżającą się odpowiedzią na pytanie „co klient może
-  zobaczyć". Klucze są `toggleKey`, więc jeden wpis bierze całą rodzinę per-etap.
+Reguły, które trzymają to razem:
+
+- **`PREVIEW_VISIBLE_COLUMNS` pozostaje sufitem.** Zapisany klucz i reguła wpisów mogą tylko
+  _odjąć_ kolumnę, nigdy dodać — sanityzacja przy zapisie i przy odczycie odrzuca klucz spoza
+  allowlisty, więc ustawienie nie staje się drugą, rozjeżdżającą się odpowiedzią na pytanie „co
+  klient może zobaczyć". Klucz zapisany przez właściciela jest `toggleKey` i bierze całą rodzinę
+  per-etap; reguła wpisów odejmuje pełne identyfikatory kolumn, bo pusty etap znika sam, nie z
+  wypełnionymi.
+- **Brak zapisanego zestawu ukrywa zestaw domyślny, nie „nic"** (fail-closed). Przechowywany jest
+  zestaw UKRYTY, więc NULL albo nie-tablica czytane jako „nic nie ukryte" serwowałyby całą
+  allowlistę, z rabatem włącznie.
 - **Ukrywanie pustych pozycji to jedna reguła, nie dwie** (`client-empty`, `kind: 'client'`):
   pozycja bez przedmiaru **i** bez wykonanej pracy nie wnosi nic do żadnej z dwóch kwot, które
   klient czyta, więc jej ukrycie nie rusza podsumowania. Każdy z dwóch filtrów osobno byłby
@@ -318,6 +335,9 @@ Dwie reguły trzymają to razem:
   kolejności dokumentu — więc przy włączonym przełączniku numeracja rozjeżdża się z wydrukiem oferty,
   który czyta zapisane ustawienie, nigdy stanu przełącznika. Zaakceptowane: przełącznik to gest
   czytania na jedną wizytę, nie część dokumentu.
+- **„Udostępnij" kopiuje link już przy kliknięciu** — tworzy go tylko wtedy, gdy inwestycja żadnego
+  nie ma, i nigdy nie podmienia istniejącego (to odcięłoby inwestora, który go trzyma). Okno
+  udostępniania nie ma już kroku ustawień; prowadzi do nich przycisk „Ustawienia podglądu…".
 
 **Podgląd nie zna trybu rozliczenia** (EX-631, rozstrzygnięte 2026-08-12). Dokument klienta niesie
 netto i brutto obok siebie także na inwestycji rozliczanej netto — `settlementMode` NIE wraca jako

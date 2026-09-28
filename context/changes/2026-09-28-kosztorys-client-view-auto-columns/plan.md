@@ -493,7 +493,7 @@ the React Compiler gives.
 
 #### Automated
 
-- [x] 3.1 Share spec passes
+- [x] 3.1 Share spec passes — 25f3894e
 
 ### Phase 4: E2E and docs
 
