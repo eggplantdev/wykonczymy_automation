@@ -85,8 +85,8 @@ describe('columnTotalsForRows', () => {
     }
   })
 
-  // EX-885 reverses EX-686: the total reads „ile oferty zostało do zrobienia", so a row past its
-  // przedmiar keeps its minus on its own line but no longer eats into what the rest still owes.
+  // The total reads „ile oferty zostało do zrobienia", so a row past its przedmiar keeps its minus
+  // on its own line but does not eat into what the rest still owes.
   it('leaves a row with no przedmiar out of the „Pozostało" total', () => {
     // Section B is row 3 (no przedmiar, 1 × 30 executed) + row 4 (przedmiar 6 × 15, 2 executed).
     const sectionB = totals(rowsOf(20))

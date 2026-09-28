@@ -353,8 +353,9 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
 
   // Red on the very rows the footer total leaves out — one predicate, so the two never disagree.
   // Brutto is judged on its netto: same sign, and one tolerance axis instead of two.
+  const overrunTone = (remaining: number) => (isRemainingOverrun(remaining) ? 'danger' : 'muted')
   const remainingTone = (r: KosztorysV2RowT) =>
-    isRemainingOverrun(rowRemainingForView(r, stages, 'client')) ? 'danger' : 'muted'
+    overrunTone(rowRemainingForView(r, stages, 'client'))
   const remaining: Column<KosztorysV2RowT>[] = [
     computedColumn(
       'remaining',
@@ -372,20 +373,15 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   // Assembled on the worker surface only: anywhere else there is no all-etapy quantity to read, and
   // a figure built from the view's etapy alone would call another crew's work unfinished.
   const worker = opts.workerSurface
+  const remainingForWorker = (r: KosztorysV2RowT) =>
+    rowRemainingForExecutedQty(r, worker?.executedQtyByItem[r.id] ?? 0, view)
   const remainingForPlane: Column<KosztorysV2RowT>[] = worker
     ? [
         computedColumn(
           'remainingForPlane',
           columnTitle('remainingForPlane', opts),
-          (r) => rowRemainingForExecutedQty(r, worker.executedQtyByItem[r.id] ?? 0, view),
-          {
-            tone: (r) =>
-              isRemainingOverrun(
-                rowRemainingForExecutedQty(r, worker.executedQtyByItem[r.id] ?? 0, view),
-              )
-                ? 'danger'
-                : 'muted',
-          },
+          remainingForWorker,
+          { tone: (r) => overrunTone(remainingForWorker(r)) },
         ),
       ]
     : []

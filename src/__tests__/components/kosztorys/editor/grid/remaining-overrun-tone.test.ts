@@ -4,8 +4,6 @@ import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 
-// EX-885: a „Pozostało" past the przedmiar is red, on exactly the rows its footer total leaves out.
-
 const OVERRUN = 1
 const OWED = 2
 // Executed a hair past its przedmiar: −0.003 zł at the client price, −0.0036 zł at the stawka.
