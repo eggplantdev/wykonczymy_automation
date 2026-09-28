@@ -119,8 +119,6 @@ type ArgsT = {
   preview?: boolean
   // Only consumed under `preview` — the owner's editor has none, and the settings dialog reads its own.
   clientView?: ClientViewSettingsT
-  // The named worker's document — the same `preview` render at his plane, his etapy and his own
-  // closed column list. Absent on every other surface.
   worker?: WorkerAudienceT
   // „Zakończona" — the server refuses every write. Kept apart from `preview`: the two agree on
   // interaction and disagree on disclosure, and a locked investment is still the owner's OWN document.

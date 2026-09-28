@@ -72,7 +72,7 @@ export function KosztorysClientViewDialog() {
           description="Zaznacz, które kolumny i pozycje inwestor widzi w rozpisce. Ceny podwykonawców nie pojawiają się w niej nigdy."
         />
         <ClientViewSettingsForm value={draft} onChange={setDraft} disabled={pending} />
-        {/* A sentence, not a `title`: the disabled Button has pointer-events off, so no tooltip. */}
+        {/* The disabled Button has pointer-events off, so a `title` would never show. */}
         {!mayWriteDefaults && (
           <Description size="xs">{OWNER_ONLY_CLIENT_VIEW_DEFAULTS_MESSAGE}</Description>
         )}

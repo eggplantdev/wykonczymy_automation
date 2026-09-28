@@ -18,8 +18,6 @@ export const OVERRIDE_COEFF_FIELDS = {
 // Array order is the pickers' display order.
 export const TOOL_PLANES = ['w_tools', 'own_tools'] as const satisfies readonly ToolPlaneT[]
 
-// The trzy źródła stawki wykonawcy as a runtime list (names in `PRICE_SOURCE_LABELS`): the siatka's
-// menu, the katalog's formularz and the zod enum behind it all branch on the same three values.
 export const PRICE_SOURCES = ['auto', 'coeff', 'amount'] as const satisfies readonly PriceSourceT[]
 
 // Default subcontractor markup coefficients for an investment — the single source for both the

@@ -4,10 +4,8 @@ import * as Collapsible from '@radix-ui/react-collapsible'
 import { type ReactNode } from 'react'
 import { useTotalsPanelOpen } from '@/components/kosztorys/summary/hooks/use-totals-panel-open'
 
-// The bottom-anchored overlay both summary panels open into — the owner's/investor's and the
-// worker's. `hasRows` is required on purpose: it picks which localStorage key this panel and its
-// toggle bind to, so a call site that forgot it would silently drive a different key than the button
-// next to it.
+// `hasRows` is required on purpose: it picks which localStorage key this panel and its toggle bind
+// to, so a call site that forgot it would silently drive a different key than the button next to it.
 export function TotalsPanelOverlay({
   hasRows,
   children,

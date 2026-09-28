@@ -58,7 +58,7 @@ export function KosztorysWorkerViewDialog() {
         ) : (
           <p className="text-muted-foreground text-sm">Wczytywanie…</p>
         )}
-        {/* A sentence, not a `title`: the disabled Button has pointer-events off, so no tooltip. */}
+        {/* The disabled Button has pointer-events off, so a `title` would never show. */}
         {!mayWrite && (
           <Description size="xs">{OWNER_ONLY_WORKER_VIEW_SETTINGS_MESSAGE}</Description>
         )}

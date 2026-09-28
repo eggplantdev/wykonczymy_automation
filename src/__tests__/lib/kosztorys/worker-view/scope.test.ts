@@ -43,7 +43,6 @@ describe('resolveWorkerScope', () => {
     })
   })
 
-  // Another worker's plane-less etap is not this worker's problem.
   it("ignores another worker's etapy entirely", () => {
     expect(resolveWorkerScope([stage(1, 'w_tools', 5), stage(2, null, 9)], 5).kind).toBe('ready')
   })

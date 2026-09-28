@@ -17,7 +17,6 @@ import type { SortPickT, SortStateT } from '@/lib/kosztorys/row-view'
 type ArgsT = {
   investmentId: number
   preview: boolean
-  // The stored settings of whichever read-only document is served — the investor's or a worker's.
   // Only consumed under `preview`.
   clientView?: ClientViewSettingsT
   // The worker surface's plane: the preview pins to it instead of 'client'.

@@ -5,9 +5,9 @@ import { INVESTOR_IMPACT_TITLE } from '@/lib/kosztorys/investor-impact'
 
 /**
  * The dialog that stands in front of every setting whose consequence lands on the investor's link —
- * tryb rozliczenia robocizny, tryb rozliczenia materiałów, and the oferta/rozliczenie wariant. All of
- * them share one failure: a misclick in a picker whose consequence is not on the screen the picker
- * sits on, so all of them get the same window and the same title.
+ * tryb rozliczenia robocizny and tryb rozliczenia materiałów. Both share one failure: a misclick in a
+ * picker whose consequence is not on the screen the picker sits on, so both get the same window and
+ * the same title.
  *
  * Holds the staged action rather than running it: the answer only arrives when the owner presses
  * „Potwierdź", and undo/redo replay the underlying apply directly, so a Ctrl+Z never lands here.

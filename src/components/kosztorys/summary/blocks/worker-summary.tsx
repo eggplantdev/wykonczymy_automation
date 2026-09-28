@@ -12,9 +12,8 @@ import { formatNet } from '@/lib/kosztorys/format'
 import { formatPLDate } from '@/lib/utils/format-date'
 import type { WorkerSummaryT } from '@/lib/kosztorys/worker-view/summary'
 
-// The worker's own balance, one column deep: what the przedmiar is worth to him, what he has done,
-// what he has been paid, and what is left. An overpayment is named rather than printed as a minus —
-// „Pozostało do wypłaty −300" reads as a debt the firm owes, which is the opposite of what it is.
+// An overpayment is named rather than printed as a minus — „Pozostało do wypłaty −300" reads as a
+// debt the firm owes, which is the opposite of what it is.
 export function WorkerSummary({ summary }: { summary: WorkerSummaryT }) {
   return (
     <SummaryTable cols={`${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL}`} className="h-fit w-fit">

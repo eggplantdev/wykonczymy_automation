@@ -10,8 +10,8 @@ export const RATE_LABELS: Record<ToolPlaneT, string> = {
   own_tools: `Stawka ${PLANE_LABELS.own_tools.toLowerCase()}`,
 }
 
-// The Polish names of the trzy źródła stawki wykonawcy (`PRICE_SOURCES`). Labels name the ŹRÓDŁO,
-// not the arithmetic.
+// The Polish names of the three crew-rate sources (`PRICE_SOURCES`). Labels name the SOURCE, not
+// the arithmetic.
 export const PRICE_SOURCE_LABELS: Record<PriceSourceT, string> = {
   auto: 'auto',
   coeff: 'własny mnożnik',

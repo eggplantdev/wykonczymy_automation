@@ -15,9 +15,6 @@ type PropsT = {
   disabled?: boolean
 }
 
-/**
- * The settings body on its own — it owns no persistence and no buttons; the dialog supplies both.
- */
 export function ClientViewSettingsForm({ value, onChange, disabled }: PropsT) {
   const { conditionCounts } = useKosztorysEditorContext()
   const emptyCount = conditionCounts.get(CLIENT_EMPTY_CONDITION_ID) ?? 0

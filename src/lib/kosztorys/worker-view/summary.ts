@@ -6,7 +6,7 @@ import { roundToCents } from '@/lib/utils/round-to-cents'
 import type { PayoutTransactionRowT } from '@/types/transfers'
 
 export type WorkerSummaryT = {
-  // „Ile zarobi, jeśli zrobi cały przedmiar" — przedmiar × his stawka, no rabat (a client concession).
+  // What the whole przedmiar earns him: przedmiar × his stawka, no rabat (a client concession).
   plannedNet: number
   executedByStage: { stageId: number; label: string; net: number }[]
   executedNet: number

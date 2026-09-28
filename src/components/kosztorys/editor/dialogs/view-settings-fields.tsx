@@ -17,10 +17,8 @@ type PropsT = {
 }
 
 /**
- * The column ticks and the empty-pozycje switch of a read-only document's settings — shared by the
- * investor's and the worker's dialogs, which differ only in the ceiling they tick from. A tick means
- * „to widać"; the stored shape is the inverse (hidden keys), so a column added to the ceiling later
- * shows up on its own.
+ * A tick means „to widać"; the stored shape is the inverse (hidden keys), so a column added to the
+ * ceiling later shows up on its own.
  */
 export function ViewSettingsFields({
   groups,

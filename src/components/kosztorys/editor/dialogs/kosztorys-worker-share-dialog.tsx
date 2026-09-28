@@ -11,8 +11,7 @@ import { workerShareUrl } from '@/lib/kosztorys/worker-view/name-slug'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
-// No settings step, unlike the investor's: the worker set is firm-wide, so reviewing it here would
-// suggest a per-link choice that does not exist. „Ustawienia widoku…" owns it.
+// The worker set is firm-wide, so reviewing it here would suggest a per-link choice that does not exist. „Ustawienia widoku…" owns it.
 export function KosztorysWorkerShareDialog() {
   const { investmentId } = useKosztorysEditorContext()
   const {

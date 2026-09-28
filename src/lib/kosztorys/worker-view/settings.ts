@@ -72,8 +72,6 @@ export function workerVisibleColumns(
   return columns
 }
 
-// WORKER_DOCUMENT_COLUMNS with the stawka resolved to this plane's full id, as `workerVisibleColumns`
-// resolves it.
 export function workerDocumentColumns(plane: ToolPlaneT): string[] {
   return WORKER_DOCUMENT_COLUMNS.map((key) =>
     key === WORKER_RATE_KEY ? planePriceKey('price', plane) : key,
