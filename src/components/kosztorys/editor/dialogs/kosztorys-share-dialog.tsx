@@ -2,13 +2,13 @@
 
 import { useState, useTransition } from 'react'
 import { useDraft } from '@/hooks/use-draft'
-import { ArrowLeft, Copy } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
 import { ClientViewSettingsForm } from '@/components/kosztorys/editor/dialogs/client-view-settings-form'
 import { useClientViewModeConfirm } from '@/components/kosztorys/editor/dialogs/use-client-view-mode-confirm'
+import { ShareLinkPanel } from '@/components/kosztorys/editor/dialogs/share-link-panel'
 import { generateShareLinkAction, revokeShareLinkAction } from '@/lib/actions/kosztorys-share'
 import { saveClientViewSettingsAction } from '@/lib/actions/kosztorys-client-view'
 import {
@@ -16,9 +16,7 @@ import {
   sanitizeClientViewConfig,
 } from '@/lib/kosztorys/client-view-settings'
 import { FRONTEND_URL } from '@/lib/env'
-import { copyToClipboard } from '@/lib/utils/copy-to-clipboard'
 import { toastMessage } from '@/lib/utils/toast'
-import { Description } from '@/components/ui/description'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
@@ -36,7 +34,6 @@ export function KosztorysShareDialog() {
     clientView: settings,
     setClientView: onSettingsChange,
   } = useKosztorysActions().investor
-  const [confirmingRevoke, setConfirmingRevoke] = useState(false)
   const { confirmModeChange, modeConfirmProps } = useClientViewModeConfirm(settings)
   const [pending, startTransition] = useTransition()
   // Every open starts at the settings, including when a link already exists — the point is that
@@ -69,32 +66,6 @@ export function KosztorysShareDialog() {
     if (draft) confirmModeChange(draft, save)
   }
 
-  const generate = () =>
-    startTransition(async () => {
-      const res = await generateShareLinkAction(investmentId)
-      if (!res.success) return toastMessage(res.error, 'error')
-      onTokenChange(res.data)
-      toastMessage('Link gotowy. Poprzedni (jeśli był) przestał działać.', 'success')
-    })
-
-  const revoke = () =>
-    startTransition(async () => {
-      const res = await revokeShareLinkAction(investmentId)
-      if (!res.success) return toastMessage(res.error, 'error')
-      onTokenChange(null)
-      setConfirmingRevoke(false)
-      toastMessage('Link wyłączony.', 'success')
-    })
-
-  const copy = () => copyToClipboard(url, 'Skopiowano link.')
-
-  const backToSettings = (
-    <Button variant="ghost" size="sm" className="self-start" onClick={() => setStep('settings')}>
-      <ArrowLeft />
-      Wróć do ustawień
-    </Button>
-  )
-
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -116,54 +87,30 @@ export function KosztorysShareDialog() {
                 </Button>
               </DialogFooter>
             </>
-          ) : !loaded ? (
-            <p className="text-muted-foreground text-sm">Sprawdzanie…</p>
-          ) : token ? (
-            <div className="flex flex-col gap-3">
-              <div className="flex gap-2">
-                <Input readOnly value={url} onFocus={(event) => event.currentTarget.select()} />
-                <Button variant="outline" size="icon" onClick={copy} aria-label="Kopiuj link">
-                  <Copy />
-                </Button>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={generate} disabled={pending}>
-                  Wygeneruj nowy
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => setConfirmingRevoke(true)}
-                  disabled={pending}
-                >
-                  Wyłącz link
-                </Button>
-              </div>
-              <Description size="xs">
-                „Wygeneruj nowy" unieważnia obecny link — stary adres przestaje działać.
-              </Description>
-              {backToSettings}
-            </div>
           ) : (
-            <div className="flex flex-col gap-3">
-              <Button size="sm" onClick={generate} disabled={pending} className="self-start">
-                Wygeneruj link
+            <ShareLinkPanel
+              loaded={loaded}
+              token={token}
+              url={url}
+              generate={() => generateShareLinkAction(investmentId)}
+              revoke={() => revokeShareLinkAction(investmentId)}
+              onTokenChange={onTokenChange}
+              revokeTitle="Wyłączyć link dla inwestora?"
+              revokeDescription="Inwestor natychmiast straci dostęp do kosztorysu. Tej akcji nie da się cofnąć — aby przywrócić dostęp, musisz wygenerować nowy link (stary adres już nie zadziała)."
+            >
+              <Button
+                variant="ghost"
+                size="sm"
+                className="self-start"
+                onClick={() => setStep('settings')}
+              >
+                <ArrowLeft />
+                Wróć do ustawień
               </Button>
-              {backToSettings}
-            </div>
+            </ShareLinkPanel>
           )}
         </DialogContent>
       </Dialog>
-      <ConfirmDialog
-        open={confirmingRevoke}
-        title="Wyłączyć link dla inwestora?"
-        description="Inwestor natychmiast straci dostęp do kosztorysu. Tej akcji nie da się cofnąć — aby przywrócić dostęp, musisz wygenerować nowy link (stary adres już nie zadziała)."
-        confirmLabel="Wyłącz link"
-        pending={pending}
-        pendingLabel="Wyłączanie…"
-        onConfirm={revoke}
-        onCancel={() => setConfirmingRevoke(false)}
-      />
       <ConfirmDialog {...modeConfirmProps} />
     </>
   )

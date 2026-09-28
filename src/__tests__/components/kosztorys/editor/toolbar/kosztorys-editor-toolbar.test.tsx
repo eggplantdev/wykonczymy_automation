@@ -62,6 +62,8 @@ const editorContext = {
   handleAddStage: vi.fn(),
   handleAppendedCatalogueItems: vi.fn(),
   rows: [],
+  stages: [],
+  workers: [],
 } as unknown as EditorContextT
 
 // „Udostępnij inwestorowi" reads the session's role to decide whether „Zapisz jako domyślne" is

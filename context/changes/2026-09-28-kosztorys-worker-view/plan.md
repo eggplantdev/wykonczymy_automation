@@ -887,18 +887,18 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 5.1 Worker column spec passes
-- [x] 5.2 View-state spec passes
-- [x] 5.3 Summary block spec passes
-- [x] 5.4 Existing preview specs unchanged
+- [x] 5.1 Worker column spec passes — 0e1f9553
+- [x] 5.2 View-state spec passes — 0e1f9553
+- [x] 5.3 Summary block spec passes — 0e1f9553
+- [x] 5.4 Existing preview specs unchanged — 0e1f9553
 
 ### Phase 6: Editor — menu „Pracownicy" + settings dialog
 
 #### Automated
 
-- [ ] 6.1 Workers menu spec passes
-- [ ] 6.2 Actions menu spec passes
-- [ ] 6.3 Investor settings form still passes its specs after parametrization
+- [x] 6.1 Workers menu spec passes
+- [x] 6.2 Actions menu spec passes
+- [x] 6.3 Investor settings form still passes its specs after parametrization
 
 ### Phase 7: PDF + docs
 

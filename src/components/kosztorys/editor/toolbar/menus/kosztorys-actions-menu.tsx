@@ -20,6 +20,7 @@ import { SavePresetMenuItem } from '@/components/kosztorys/editor/actions/save-p
 import { ReloadPresetMenuItem } from '@/components/kosztorys/editor/actions/reload-preset-action'
 import { SheetCompareMenuItem } from '@/components/kosztorys/editor/actions/sheet-compare-action'
 import { KosztorysInvestorMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-investor-menu'
+import { KosztorysWorkersMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-workers-menu'
 import { SaveVersionDialog } from '@/components/kosztorys/editor/dialogs/save-version-dialog'
 import { ClearKosztorysDialog } from '@/components/kosztorys/editor/dialogs/clear-kosztorys-dialog'
 import { SavePresetDialog } from '@/components/kosztorys/editor/dialogs/save-preset-dialog'
@@ -28,6 +29,8 @@ import { SheetCompareDialog } from '@/components/kosztorys/editor/dialogs/sheet-
 import { CatalogueCompareDialog } from '@/components/kosztorys/editor/dialogs/catalogue-compare-dialog'
 import { KosztorysClientViewDialog } from '@/components/kosztorys/editor/dialogs/kosztorys-client-view-dialog'
 import { KosztorysShareDialog } from '@/components/kosztorys/editor/dialogs/kosztorys-share-dialog'
+import { KosztorysWorkerShareDialog } from '@/components/kosztorys/editor/dialogs/kosztorys-worker-share-dialog'
+import { KosztorysWorkerViewDialog } from '@/components/kosztorys/editor/dialogs/kosztorys-worker-view-dialog'
 
 // Item and dialog are siblings, never nested — see KosztorysActionsProvider for why.
 export function KosztorysActionsMenu() {
@@ -48,10 +51,15 @@ export function KosztorysActionsMenu() {
 
   return (
     <>
-      {/* A szablon has no investor, so the preview through their eyes and the share link have
-          nobody to address here. The „Arkusz Google" section drops out by itself — `hasSheet`
-          gates it, and the workbench has no sheet attached. */}
-      {!isWorkshop && <KosztorysInvestorMenu />}
+      {/* A szablon has no investor and no crew on its etapy, so the previews through their eyes and
+          the share links have nobody to address here. The „Arkusz Google" section drops out by
+          itself — `hasSheet` gates it, and the workbench has no sheet attached. */}
+      {!isWorkshop && (
+        <>
+          <KosztorysWorkersMenu />
+          <KosztorysInvestorMenu />
+        </>
+      )}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button size="sm" variant="outline">
@@ -136,6 +144,8 @@ export function KosztorysActionsMenu() {
       <ClearKosztorysDialog />
       <KosztorysClientViewDialog />
       <KosztorysShareDialog />
+      <KosztorysWorkerShareDialog />
+      <KosztorysWorkerViewDialog />
     </>
   )
 }

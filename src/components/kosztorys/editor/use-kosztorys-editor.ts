@@ -1255,6 +1255,8 @@ export function useKosztorysEditor({
     sectionColumnTotals,
     stageTotals,
     stages,
+    // The roster the „Pracownicy" menu names assigned workers from; empty where no menu renders.
+    workers: workers ?? [],
     doneNet,
     laborCostsNetFromKosztorys,
     discountNetFromKosztorys,
