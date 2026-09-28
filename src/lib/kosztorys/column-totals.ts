@@ -7,6 +7,7 @@ import {
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import { stageAxisForView } from '@/lib/kosztorys/settlement-aggregates'
 import {
+  isRemainingOverrun,
   rowRemainingForExecutedQty,
   rowRemainingForView,
   rowTotalQtyDone,
@@ -25,6 +26,11 @@ import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
  *
  * A column absent from the map renders blank. That is the honest outcome for a column whose total is
  * not a sum of its own cells (a share, a ratio) — never a 0, which would claim a reading.
+ *
+ * The „Pozostało" columns are the one exception that is still rendered: their total sums only rows
+ * NOT past the przedmiar, because it answers „ile oferty zostało do zrobienia" and an overrun row
+ * does not make the rest of the offer any less owed (EX-885). The skip is per row, so Σ footers =
+ * „Razem" still holds.
  *
  * The quantity columns („Przedmiar", „Pomiar (razem etapy)", each etap's ilość) are absent for that
  * reason: rows in one section carry different jednostki miary, so 40 m² + 12 mb + 3 szt. adds to 55
@@ -63,9 +69,15 @@ export function columnTotalsForRows(
     plannedNet += rowPlannedNetForView(row, 'client')
     plannedNetForPlane += rowPlannedNetForView(row, view)
     discount += rowDiscountForView(row, qtyDone, view)
-    remaining += rowRemainingForView(row, stages, 'client')
+    const rowRemaining = rowRemainingForView(row, stages, 'client')
+    if (!isRemainingOverrun(rowRemaining)) remaining += rowRemaining
     if (executedQtyByItem) {
-      remainingForPlane += rowRemainingForExecutedQty(row, executedQtyByItem[row.id] ?? 0, view)
+      const rowRemainingForPlane = rowRemainingForExecutedQty(
+        row,
+        executedQtyByItem[row.id] ?? 0,
+        view,
+      )
+      if (!isRemainingOverrun(rowRemainingForPlane)) remainingForPlane += rowRemainingForPlane
     }
   }
 
