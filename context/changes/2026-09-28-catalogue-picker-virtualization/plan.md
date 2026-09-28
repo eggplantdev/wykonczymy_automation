@@ -322,3 +322,14 @@ scroll offset; TanStack handles that by default.
 - [x] 2.1 Picker dialog specs pass, including the new window-bound guard — 10e9cc59
 
 ### Phase 3: Re-measure
+
+#### Automated
+
+- [x] 3.1 Re-measured against the shipped build — dcaac89c. **Cross-harness caveat:** the plan asked for
+      "same script, same investment, same build mode" in the Playwright MCP browser; that browser was
+      held by another session, so the run used the repo's own headless Chromium under `@playwright/test`
+      flags. So the „412 → 91 ms (4,5×)" row compares two binaries under different startup flags. The
+      effect is not in doubt — 12× on the 561-row variant is far outside that noise, and the mechanism
+      is 22 rendered rows instead of 561 — but the plan's formal gate ("within ~1,5× of flag-only") is
+      unverified as written.
+- [x] 3.2 `max-h-[55vh]` lifted into the `--spacing-dialog-scroll` token (review gate 2026-09-28)
