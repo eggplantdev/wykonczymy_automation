@@ -499,4 +499,4 @@ the React Compiler gives.
 
 #### Automated
 
-- [ ] 4.1 E2E spec type-checks under the whole-tree gate
+- [x] 4.1 E2E spec type-checks under the whole-tree gate — bc95334b
