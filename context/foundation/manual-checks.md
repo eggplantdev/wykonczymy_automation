@@ -1163,3 +1163,21 @@ Sprawdzone lokalnie w Playwright na publicznym linku — do powtórzenia na stag
       bez powtórzonych nazw nad „Razem", „Razem" na szarym tle
 - [ ] Edytor (widok managera): pod nagłówkiem tabeli cienka szara linia w tym samym kolorze co linia
       nad nim (pod paskiem narzędzi); pierwszy pasek etapu nie dokłada pod nią drugiej kreski
+
+## sheet-import-wartosc-pomiar — import rozpoznaje „Wartość netto pomiar z natury" (2026-09-28)
+
+Arkusze z szablonu od lipca mają dwie kolumny wartości — „Wartość netto przedmiar" (`S`) i „Wartość
+netto pomiar z natury" (`T`) — i „Pobierz z arkusza Google…" odmawiał na „Nie znaleziono kolumny
+„Wartość netto"". Teraz sam bierze `T`. Z localhosta/preview czytelne są m.in. Namysłowska 3/34,
+Kulisiewicza 16, Kinowa 23/3, Bernardyńska 12/19; dziesięć najnowszych arkuszy (Topiel 6 … Postępu 4a)
+nie jest udostępnione kontu tylko do odczytu, więc te sprawdza się na produkcji.
+
+- [ ] Inwestycja z arkuszem w nowym szablonie (np. Namysłowska 3/34) → „Pobierz z arkusza Google…":
+      okno od razu pokazuje podgląd „Co wejdzie", bez „Nie znaleziono kolumny „Wartość netto"" i bez
+      listy „wybierz kolumnę"; „Pobierz i zastąp" aktywny
+- [ ] W tym samym podglądzie porównanie sum nie zgłasza rozjazdu wynikającego z czytania kolumny
+      przedmiaru — liczba z podsumowania arkusza zgadza się z sumą kolumny „Wartość netto pomiar z natury"
+- [ ] Arkusz w starym układzie z jedną kolumną „Wartość netto" (np. Plac Hallera 6, Wolska 117/50)
+      pobiera się jak dotąd, bez żadnego pytania o kolumnę
+- [ ] Postępu 4a (kolumna wskazana wcześniej ręcznie na `T`), na produkcji: podgląd rusza bez pytania
+      o kolumnę i nie pokazuje już dopisku o ręcznym wskazaniu

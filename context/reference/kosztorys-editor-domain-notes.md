@@ -78,13 +78,20 @@ Wartość każdej pracy liczy `calc.ts` z ilości, ceny i rabatu. Porównanie su
 odczytaną liczbę po kolei ze wszystkimi trzema sumami, które umiemy policzyć, i samo raportuje,
 z którą się zgadza. Import odmawiał więc przez kolumnę, która nie wnosi do kosztorysu ani złotówki.
 
+**Rozbicie `S`/`T` okazało się szablonem, nie wyjątkiem (2026-09-28).** Z 15 czytelnych arkuszy
+podpiętych od lipca 7 ma ten układ, kanoniczny też — ręczne wskazywanie przy prawie każdym nowym
+arkuszu było ślepym zaułkiem w innym miejscu. Import rozpoznaje więc sam kolumnę po stronie Pomiaru:
+„Wartość netto pomiar z natury" (wiersz 1) / „Wartość pomiar z natury" (wiersz 3). To ją arkusz
+liczy — suma sekcji to `SUM(T)`, „pozostało do rozliczenia" to `T − Σ etapów` — a `S` wycenia tylko
+przedmiar. W tym szablonie Pomiar (`O`) jest wpisywany ręcznie (albo `=N`), nie `SUM(D:M)`.
+
 **Czego świadomie nie zrobiliśmy:**
 
-- **Nie poluzowaliśmy dopasowania po nazwie.** Dopasowanie po prefiksie złapałoby na Żupniczej `S`
-  i `T` naraz — odmowa „nie znaleziono kolumny" zamieniłaby się w odmowę „pasuje do 2 kolumn", czyli
-  ten sam ślepy zaułek pod inną nazwą.
-- **Żadnego globalnego słownika nagłówków.** Arkusze należą do klientów i żaden nie jest zbudowany
-  tak samo; słownik z definicji nadążałby za ostatnim arkuszem, który ktoś zgłosił.
+- **Nie poluzowaliśmy dopasowania po nazwie.** Dopasowanie po prefiksie „wartość netto" złapałoby
+  `S` i `T` naraz — odmowa „nie znaleziono kolumny" zamieniłaby się w odmowę „pasuje do 2 kolumn".
+  Dopisane są dokładne nazwy strony Pomiaru, `S` celowo nie pasuje.
+- **Żadnego słownika pod pojedyncze arkusze.** Wariant nazwy trafia do matchera dopiero, gdy jest
+  szablonem powtarzanym w wielu arkuszach; jednorazowy układ obsługuje ręczne wskazanie kolumny.
 - **Kolumny opcjonalne nie blokują pobrania.** Arkusz bez rabatu ma się wczytywać jak dotąd — brak
   takiej kolumny to informacja w raporcie, nie odmowa.
 
