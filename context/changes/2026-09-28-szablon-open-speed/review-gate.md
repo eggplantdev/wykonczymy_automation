@@ -7,8 +7,8 @@ pass) skipped — no Playwright without an explicit go; the manual checks in `ma
 
 ## Findings
 
-- [ ] 🟡 WARNING · proposed · code-review · `src/components/presets/template-workshop.tsx:71` · Back/Forward onto a szablon page restores the cached `?open=1` render, the host remounts and runs the open again — a history traversal acts like a row click (evicts whatever the warsztat holds now) — behaviour call for the owner, see close-out
-      test: TDD · unit (dom) — a remount from the same cached props after the flag was consumed must not call the action (if the behaviour is changed)
+- [x] 🟡 WARNING · dismissed · code-review · `src/components/presets/template-workshop.tsx:71` · Back/Forward onto a szablon page restores the cached `?open=1` render, the host remounts and runs the open again — a history traversal acts like a row click (evicts whatever the warsztat holds now) — dismissed by the owner 2026-09-28: with the szablon still held the open writes nothing, and otherwise the eviction mirrors the outgoing edits first, so a traversal equals clicking the row
+      test: no automated test · — behaviour kept as designed
 - [x] 🟡 WARNING · filed EX-893 · code-review · `src/lib/actions/investment-action.ts:84` · warsztat writes never carry the szablon the editor was opened for, so a stale warsztat editor's inserts land in whatever szablon is loaded now and the mirror copies them into that szablon's library — pre-existing; the two open-path findings below widen its reach — a gate change on every warsztat write, its own change
       test: TDD · integration — open A, someone opens C, an append-section write expecting A is refused and C's library row stays unchanged (recorded in EX-893)
 - [x] 🟡 WARNING · filed EX-893 · code-review · `src/components/presets/template-workshop.tsx:52` · two opens from one tab can commit out of order (open A in flight, Back, open B on another instance) — the page renders B while the warsztat holds A; damage only through the finding above, so it is filed with it
@@ -68,4 +68,4 @@ folded into ## Findings (tagged `simplify`). primitive-reuse-scan: no findings.
 - DB integration, affected (5435): `kosztorys-presets`, `kosztorys/mirror-workshop-preset`, `replace-tree-concurrent`, `replace-tree-lost-write`, `kosztorys-restore` — 5 files / 30 tests green
 - `tsc --noEmit`: clean apart from the 6 history-spec errors already on `staging`
 - eslint on changed files: clean (1 pre-existing `incompatible-library` warning in `data-table.tsx`)
-- Full suite: not run in this gate — asked at close-out
+- Full suite: deferred by user (2026-09-28)
