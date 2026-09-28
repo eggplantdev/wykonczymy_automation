@@ -19,7 +19,7 @@ type PropsT = {
   onTokenChange: (token: string | null) => void
   revokeTitle: string
   revokeDescription: string
-  // Rendered under the controls in every state but „Sprawdzanie…" — the investor's „Wróć do ustawień".
+  // Rendered under the controls in every state but „Sprawdzanie…" — the investor's „Ustawienia podglądu…".
   children?: ReactNode
 }
 

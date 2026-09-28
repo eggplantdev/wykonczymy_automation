@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import {
-  sameClientViewSettings,
   sanitizeClientViewSettings,
   type ClientViewSettingsT,
 } from '@/lib/kosztorys/client-view-settings'
@@ -79,15 +78,5 @@ describe('sanitizeClientViewSettings', () => {
     })
 
     expect(settings.hiddenColumns).toEqual(['price'])
-  })
-})
-
-describe('sameClientViewSettings', () => {
-  it('ignores the order of the hidden set', () => {
-    const settings = sanitizeClientViewSettings({})
-    const reordered = { ...settings, hiddenColumns: [...settings.hiddenColumns].reverse() }
-
-    expect(sameClientViewSettings(settings, reordered)).toBe(true)
-    expect(sameClientViewSettings(settings, { ...settings, hideEmptyRows: false })).toBe(false)
   })
 })

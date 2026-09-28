@@ -56,13 +56,3 @@ export function sanitizeClientViewSettings(source: unknown): ClientViewSettingsT
     hideEmptyRows: hideEmpty,
   }
 }
-
-// Order-insensitive, because the hidden set is a set: ticking a column off and back on reorders the
-// stored array without changing what the client sees, and a write triggered by that reorder would
-// detach the investment from the firm-wide default for nothing.
-export function sameClientViewSettings(a: ClientViewSettingsT, b: ClientViewSettingsT): boolean {
-  if (a.hideEmptyRows !== b.hideEmptyRows) return false
-  if (a.hiddenColumns.length !== b.hiddenColumns.length) return false
-  const inA = new Set(a.hiddenColumns)
-  return b.hiddenColumns.every((key) => inA.has(key))
-}

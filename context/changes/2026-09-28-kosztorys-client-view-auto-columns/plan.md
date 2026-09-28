@@ -484,16 +484,16 @@ the React Compiler gives.
 
 #### Automated
 
-- [x] 2.1 Emptiness spec passes
-- [x] 2.2 Grid spec passes
-- [x] 2.3 Print specs pass
-- [x] 2.4 Tab spec passes
+- [x] 2.1 Emptiness spec passes — e882bef8
+- [x] 2.2 Grid spec passes — e882bef8
+- [x] 2.3 Print specs pass — e882bef8
+- [x] 2.4 Tab spec passes — e882bef8
 
 ### Phase 3: Share without the settings step
 
 #### Automated
 
-- [ ] 3.1 Share spec passes
+- [x] 3.1 Share spec passes
 
 ### Phase 4: E2E and docs
 
