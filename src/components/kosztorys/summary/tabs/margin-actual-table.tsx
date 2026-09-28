@@ -11,7 +11,7 @@ import {
 import { SummaryRow } from '@/components/kosztorys/summary/grid/summary-row'
 import { MARGIN_TABLE_COLS } from '@/components/kosztorys/summary/tabs/margin-table-cols'
 import { Description } from '@/components/ui/description'
-import { SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/constants'
+import { SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/labels'
 import { marginV2 } from '@/lib/kosztorys/margin-v2'
 import type { SubcontractorSettlementT } from '@/lib/kosztorys/subcontractor-due'
 import type { InvestmentFinancialsT } from '@/types/investment-financials'

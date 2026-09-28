@@ -5,7 +5,7 @@ import { CheckboxRow } from '@/components/ui/checkbox-row'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Description } from '@/components/ui/description'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
-import { RATE_LABELS } from '@/lib/kosztorys/constants'
+import { RATE_LABELS } from '@/lib/kosztorys/labels'
 import { saveItemToCatalogueAction } from '@/lib/actions/work-catalogue'
 import {
   catalogueRateText,

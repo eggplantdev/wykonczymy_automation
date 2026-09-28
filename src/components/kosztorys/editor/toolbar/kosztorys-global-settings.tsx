@@ -3,7 +3,9 @@
 import { DecimalField } from '@/components/ui/decimal-field'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
 import { planeIcon } from '@/components/kosztorys/editor/plane-icons'
-import { FLAGGED_TONE, PLANE_LABELS, TOOL_PLANES } from '@/lib/kosztorys/constants'
+import { FLAGGED_TONE } from '@/components/kosztorys/flagged-tone'
+import { PLANE_LABELS } from '@/lib/kosztorys/labels'
+import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import type { ToolPlaneT } from '@/lib/kosztorys/types'
 import {
   clientShareCeilingLabel,

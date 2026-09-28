@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { Description } from '@/components/ui/description'
 import { WorkCatalogueItemForm } from '@/components/forms/work-catalogue-item/work-catalogue-item-form'
 import { createCatalogueItemAction, updateCatalogueItemAction } from '@/lib/actions/work-catalogue'
-import { PLANE_LABELS } from '@/lib/kosztorys/constants'
+import { PLANE_LABELS } from '@/lib/kosztorys/labels'
 import { catalogueCategorySuggestions } from '@/lib/kosztorys/work-catalogue/category-options'
 import type {
   CatalogueSavePreviewT,

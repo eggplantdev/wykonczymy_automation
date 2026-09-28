@@ -1,5 +1,5 @@
 import { priceSourceOf, subcontractorPrice } from '@/lib/kosztorys/calc'
-import { planeDashSuffix, planeViewSuffix } from '@/lib/kosztorys/constants'
+import { planeDashSuffix, planeViewSuffix } from '@/lib/kosztorys/format'
 import { ALL_PLANE_PRICE_KEYS, planePriceKeysFor } from '@/lib/kosztorys/plane-price-keys'
 import type { RowConditionCtxT, RowConditionT } from '@/lib/kosztorys/row-conditions/types'
 import { measureDiscrepancy, rowTotalQtyDone } from '@/lib/kosztorys/settlement-rows'
@@ -264,8 +264,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label:
       `z własną stawką ponad ${clientShareCeilingLabel('w_tools')} ceny` +
       planeViewSuffix('w_tools'),
-    menuLabel:
-      `Ponad ${clientShareCeilingLabel('w_tools')} ceny` + planeDashSuffix('w_tools'),
+    menuLabel: `Ponad ${clientShareCeilingLabel('w_tools')} ceny` + planeDashSuffix('w_tools'),
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-ceiling',
@@ -278,8 +277,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label:
       `bez własnej stawki ponad ${clientShareCeilingLabel('w_tools')} ceny` +
       planeViewSuffix('w_tools'),
-    menuLabel:
-      `Poniżej ${clientShareCeilingLabel('w_tools')} ceny` + planeDashSuffix('w_tools'),
+    menuLabel: `Poniżej ${clientShareCeilingLabel('w_tools')} ceny` + planeDashSuffix('w_tools'),
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-ceiling',
@@ -292,8 +290,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label:
       `z własną stawką ponad ${clientShareCeilingLabel('own_tools')} ceny` +
       planeViewSuffix('own_tools'),
-    menuLabel:
-      `Ponad ${clientShareCeilingLabel('own_tools')} ceny` + planeDashSuffix('own_tools'),
+    menuLabel: `Ponad ${clientShareCeilingLabel('own_tools')} ceny` + planeDashSuffix('own_tools'),
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-ceiling',

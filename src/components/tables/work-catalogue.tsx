@@ -6,12 +6,8 @@ import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPercentPrecise, formatRate } from '@/lib/kosztorys/format'
 import { namesFigure } from '@/lib/kosztorys/calc'
 import { clientShareCeilingLabel, isOverCeiling } from '@/lib/kosztorys/subcontractor-price-guard'
-import {
-  FLAGGED_TONE,
-  PLANE_LABELS,
-  PRICE_SOURCE_LABELS,
-  RATE_LABELS,
-} from '@/lib/kosztorys/constants'
+import { FLAGGED_TONE } from '@/components/kosztorys/flagged-tone'
+import { PLANE_LABELS, PRICE_SOURCE_LABELS, RATE_LABELS } from '@/lib/kosztorys/labels'
 import { compareDescriptions } from '@/lib/kosztorys/work-catalogue/compare-descriptions'
 import { catalogueRateFor, catalogueSourceOf } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
 import { CatalogueRowActions } from '@/components/work-catalogue/catalogue-row-actions'

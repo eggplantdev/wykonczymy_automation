@@ -1,4 +1,4 @@
-import { planeViewSuffix } from '@/lib/kosztorys/constants'
+import { planeViewSuffix } from '@/lib/kosztorys/format'
 import { PROBLEM_GROUPS } from '@/lib/kosztorys/problem-groups'
 import { ROW_CONDITIONS } from '@/lib/kosztorys/row-conditions/registry'
 import { STAGE_CONDITIONS } from '@/lib/kosztorys/stage-conditions'

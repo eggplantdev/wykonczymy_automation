@@ -1,5 +1,6 @@
 import type { PriceViewT } from '@/lib/kosztorys/calc'
-import { PLANE_LABELS, planeDashSuffix } from '@/lib/kosztorys/constants'
+import { PLANE_LABELS } from '@/lib/kosztorys/labels'
+import { planeDashSuffix } from '@/lib/kosztorys/format'
 import { ALL_PLANE_PRICE_KEYS, planePriceKeyParts } from '@/lib/kosztorys/plane-price-keys'
 import {
   STAGES_COLUMN_GROUP,

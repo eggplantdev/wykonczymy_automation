@@ -18,53 +18,9 @@ export const OVERRIDE_COEFF_FIELDS = {
 // Array order is the pickers' display order.
 export const TOOL_PLANES = ['w_tools', 'own_tools'] as const satisfies readonly ToolPlaneT[]
 
-export const PLANE_LABELS: Record<ToolPlaneT, string> = {
-  w_tools: 'Z narzędziami (podwykonawca)',
-  own_tools: 'Bez narzędzi (pracownik)',
-}
-
-export const RATE_LABELS: Record<ToolPlaneT, string> = {
-  w_tools: `Stawka ${PLANE_LABELS.w_tools.toLowerCase()}`,
-  own_tools: `Stawka ${PLANE_LABELS.own_tools.toLowerCase()}`,
-}
-
-// The trzy źródła stawki wykonawcy as a runtime list plus their Polish names, in one place: the
-// siatka's menu, the katalog's formularz and the zod enum behind it all branch on the same three
-// values, and a fourth spelling of „własny mnożnik" is a fourth thing to keep in step. Labels name
-// the ŹRÓDŁO, not the arithmetic.
+// The trzy źródła stawki wykonawcy as a runtime list (names in `PRICE_SOURCE_LABELS`): the siatka's
+// menu, the katalog's formularz and the zod enum behind it all branch on the same three values.
 export const PRICE_SOURCES = ['auto', 'coeff', 'amount'] as const satisfies readonly PriceSourceT[]
-
-export const PRICE_SOURCE_LABELS: Record<PriceSourceT, string> = {
-  auto: 'auto',
-  coeff: 'własny mnożnik',
-  amount: 'kwota stała',
-}
-
-// The tail a row-condition label carries when the figure it judges only exists in one view. One
-// source because it is both written (the registry builds labels with it) and REMOVED again (the
-// „Problemy" menu, whose heading already names the view) — two literals would drift apart silently.
-export const planeViewSuffix = (plane: ToolPlaneT) =>
-  ` w widoku ${PLANE_LABELS[plane].toLowerCase()}`
-
-// The same tail for a LIST entry, where „w widoku …" is preamble the heading above already carried.
-// Shared with the column picker, so a stawka's filter row and its column read alike.
-export const planeDashSuffix = (plane: ToolPlaneT) => ` — ${PLANE_LABELS[plane].toLowerCase()}`
-
-// The three figures of the subcontractor settlement, named once. The headline block reads them as row
-// labels and the per-worker table as column headers — the same three amounts, so a reader must never
-// have to work out that „Należne" and „Suma wykonanej pracy" were the same thing.
-export const SUBCONTRACTOR_FIGURE_LABELS = {
-  due: 'Suma wykonanej pracy',
-  payouts: 'Zaliczki (wypłaty)',
-  remaining: 'Pozostało do wypłaty',
-} as const
-
-// One tone for every stawka the company would not pay, on all three surfaces that judge one (cell,
-// katalog share, global mnożnik) — a breach of the sufit on the first two, and on the third also a
-// mnożnik of zero or below, which pays the crew nothing or less. None of them is refused, but all of
-// them are what the owner scans for, and a second colour for „accepted but wrong" would only ask the
-// reader to learn which red means what.
-export const FLAGGED_TONE = 'text-destructive font-medium'
 
 // Default subcontractor markup coefficients for an investment — the single source for both the
 // Payload column `defaultValue` (src/collections/investments.ts) and the query fallback

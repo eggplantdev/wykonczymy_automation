@@ -10,12 +10,8 @@ import FormBase from '@/components/forms/form-components/form-base'
 import { FormShell } from '@/components/forms/form-components/form-shell'
 import FormFooter from '@/components/forms/form-components/form-footer'
 import { SelectItem } from '@/components/ui/select'
-import {
-  PRICE_SOURCES,
-  PRICE_SOURCE_LABELS,
-  RATE_LABELS,
-  UNIT_SUGGESTIONS,
-} from '@/lib/kosztorys/constants'
+import { PRICE_SOURCES, UNIT_SUGGESTIONS } from '@/lib/kosztorys/constants'
+import { PRICE_SOURCE_LABELS, RATE_LABELS } from '@/lib/kosztorys/labels'
 import type { PriceSourceT } from '@/lib/kosztorys/types'
 import type { CatalogueRateT } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
 import { useWorkCatalogueItemFormStore } from '@/stores/form-stores'
