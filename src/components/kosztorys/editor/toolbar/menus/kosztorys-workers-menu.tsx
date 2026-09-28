@@ -51,7 +51,7 @@ export function KosztorysWorkersMenu() {
             <Fragment key={id}>
               <DropdownMenuLabel>{name}</DropdownMenuLabel>
               {blockReason && <p className="text-destructive px-2 pb-1 text-xs">{blockReason}</p>}
-              <WorkerPreviewMenuItem workerId={id} />
+              <WorkerPreviewMenuItem target={{ id, name }} />
               <WorkerShareMenuItem target={{ id, name }} disabled={blockReason !== undefined} />
               <WorkerPrintMenuItem workerId={id} disabled={blockReason !== undefined} />
               <DropdownMenuSeparator />

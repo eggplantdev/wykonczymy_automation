@@ -94,7 +94,10 @@ describe('KosztorysWorkersMenu', () => {
     expect(anna).not.toHaveAttribute('aria-disabled')
     expect(annaPrint).not.toHaveAttribute('aria-disabled')
     const previews = screen.getAllByRole('menuitem', { name: 'Podgląd' })
-    expect(previews[1]).toHaveAttribute('href', `/podglad-pracownika/${INVESTMENT_ID}/20`)
+    expect(previews[1]).toHaveAttribute(
+      'href',
+      `/podglad-pracownika/Bogdan-Kowal-20/${INVESTMENT_ID}`,
+    )
   })
 
   // The link is handed out per investment, as the investor's is — so a manager may do it.
@@ -103,11 +106,16 @@ describe('KosztorysWorkersMenu', () => {
     await openMenu()
 
     const [annaPreview] = screen.getAllByRole('menuitem', { name: 'Podgląd' })
-    expect(annaPreview).toHaveAttribute('href', `/podglad-pracownika/${INVESTMENT_ID}/10`)
+    expect(annaPreview).toHaveAttribute(
+      'href',
+      `/podglad-pracownika/Anna-Nowak-10/${INVESTMENT_ID}`,
+    )
     await userEvent.click(linkItems()[0])
 
     const dialog = await screen.findByRole('dialog', { name: /Anna Nowak/ })
-    expect(await within(dialog).findByDisplayValue(/\/p\/tok-anna$/)).toBeInTheDocument()
+    expect(
+      await within(dialog).findByDisplayValue(/\/p\/Anna-Nowak\/tok-anna$/),
+    ).toBeInTheDocument()
     expect(getWorkerShareLinkAction).toHaveBeenCalledWith({
       investmentId: INVESTMENT_ID,
       workerId: 10,

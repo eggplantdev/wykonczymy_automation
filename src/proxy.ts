@@ -8,10 +8,10 @@ export function proxy(request: NextRequest) {
   // Public pages Meta's crawler must reach without a session (app publish requirement)
   const isPublicPage =
     pathname === '/privacy' || pathname === '/usuwanie-danych' || pathname === '/terms'
-  // The client share view: the token in the URL is the whole credential, so a session check here
+  // The client's and the worker's share views: the token in the URL is the whole credential, so a session check here
   // would make the feature unreachable for the only audience it exists for. Authorization happens
   // in the token lookup, which 404s on a revoked or unknown token.
-  const isSharePage = pathname.startsWith('/k/')
+  const isSharePage = pathname.startsWith('/k/') || pathname.startsWith('/p/')
 
   // Not logged in → redirect to login
   if (!hasToken && !isAuthPage && !isPublicPage && !isSharePage) {

@@ -7,6 +7,7 @@ import {
   revokeWorkerShareLinkAction,
 } from '@/lib/actions/kosztorys-worker-share'
 import { FRONTEND_URL } from '@/lib/env'
+import { workerShareUrl } from '@/lib/kosztorys/worker-view/name-slug'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
@@ -23,7 +24,7 @@ export function KosztorysWorkerShareDialog() {
     setShareToken: onTokenChange,
   } = useKosztorysActions().worker
 
-  const url = token ? `${FRONTEND_URL}/p/${token}` : ''
+  const url = token && target ? workerShareUrl(FRONTEND_URL, target.name, token) : ''
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

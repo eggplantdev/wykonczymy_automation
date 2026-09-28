@@ -332,7 +332,7 @@ zapis działa od następnego żądania bez tagu cache, a zmiana domyślnych firm
 
 ## Widok pracownika — link imienny i PDF, tylko odczyt (EX-875, 2026-09-28)
 
-Pracownik / podwykonawca dostaje od ownera **imienny** widok kosztorysu inwestycji: link `/p/[token]`
+Pracownik / podwykonawca dostaje od ownera **imienny** widok kosztorysu inwestycji: link `/p/⟨nazwisko⟩/[token]`
 albo PDF, oba z menu „Pracownicy" w edytorze. Link i PDF generuje ADMIN / OWNER / MANAGER (jak u
 inwestora); ustawienia widoku pracownika są **jedne na firmę** i zapisuje je tylko ADMIN / OWNER.
 Część 2 (pracownik wpisuje ilości w swoich etapach) to osobna zmiana — link identyfikuje pracownika

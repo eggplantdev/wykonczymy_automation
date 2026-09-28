@@ -12,6 +12,7 @@ import { getWorkerShareLinkAction } from '@/lib/actions/kosztorys-worker-share'
 import { readWorkerViewSettings } from '@/lib/queries/worker-view-settings-endpoint'
 import type { WorkerViewSettingsT } from '@/lib/kosztorys/worker-view/settings'
 import { toastMessage } from '@/lib/utils/toast'
+import { workerPreviewSegment } from '@/lib/kosztorys/worker-view/name-slug'
 
 export type WorkerShareTargetT = { id: number; name: string }
 
@@ -93,11 +94,14 @@ export function useWorkerActions(): WorkerActionsT {
   }
 }
 
-export function WorkerPreviewMenuItem({ workerId }: { workerId: number }) {
+export function WorkerPreviewMenuItem({ target }: { target: WorkerShareTargetT }) {
   const { investmentId } = useKosztorysEditorContext()
   return (
     <DropdownMenuItem asChild>
-      <Link href={`/podglad-pracownika/${investmentId}/${workerId}`} target="_blank">
+      <Link
+        href={`/podglad-pracownika/${workerPreviewSegment(target.name, target.id)}/${investmentId}`}
+        target="_blank"
+      >
         <Eye />
         Podgląd
       </Link>
