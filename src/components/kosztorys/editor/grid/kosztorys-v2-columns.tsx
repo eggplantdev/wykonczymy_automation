@@ -199,13 +199,11 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
         ]
       : []
 
-  const measure: Column<KosztorysV2RowT>[] = [
-    {
-      ...computedColumn('stageQtySum', columnTitle('stageQtySum', opts), (r) => totalQtyDone(r)),
-      minWidth: 80,
-    },
-    unitColumn(columnTitle('unit', opts)),
-  ]
+  const stageQtySum: Column<KosztorysV2RowT> = {
+    ...computedColumn('stageQtySum', columnTitle('stageQtySum', opts), (r) => totalQtyDone(r)),
+    minWidth: 80,
+  }
+  const unit = unitColumn(columnTitle('unit', opts))
 
   // Rabat is a client concession, never passed to the subcontractor (calc.ts netForQtyForView), so
   // the four discount columns exist in the client view only — elsewhere they would all read zero.
@@ -224,7 +222,6 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       : []
 
   const pricing: Column<KosztorysV2RowT>[] = [
-    ...priceCols,
     computedColumn('priceGross', columnTitle('priceGross', opts), (r) =>
       toGross(viewPrice(r, view), r.vatRate),
     ),
@@ -341,15 +338,17 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     ),
   ]
 
-  const computed: Column<KosztorysV2RowT>[] = [
-    ...plannedValue,
-    computedColumn('net', columnTitle('net', opts), (r) => rowValueForView(r, stages, view), {
+  const net = computedColumn(
+    'net',
+    columnTitle('net', opts),
+    (r) => rowValueForView(r, stages, view),
+    {
       emphasize: true,
-    }),
-    computedColumn('gross', columnTitle('gross', opts), (r) =>
-      toGross(rowValueForView(r, stages, view), r.vatRate),
-    ),
-  ]
+    },
+  )
+  const gross = computedColumn('gross', columnTitle('gross', opts), (r) =>
+    toGross(rowValueForView(r, stages, view), r.vatRate),
+  )
 
   // Komentarz (sheet col T). Sits at the Praca/Postęp seam and carries the left border, so it
   // doubles as the block divider — layer-neutral, hence always visible.
@@ -386,15 +385,20 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   // „Rozjazd" behind the identity block when it exists at all (a work list, not a reading of the
   // sheet), then sheet order proper: N, D–M, O, T at the work/progress seam, then U–AE before AF.
   // The row-actions column rides the same assemble→hide→toggle pipeline as every data column, so the
-  // picker can hide it like any other.
+  // picker can hide it like any other. The investor's and the worker's documents read in their own
+  // order instead (`documentOrder`, column-selection.ts).
   const dataColumns = [
     ...identity,
     ...divergence,
     ...przedmiar,
     ...stageCols,
-    ...measure,
+    stageQtySum,
+    unit,
+    ...priceCols,
     ...pricing,
-    ...computed,
+    ...plannedValue,
+    net,
+    gross,
     ...komentarz,
     ...stageValueNetCols,
     ...stageValueGrossCols,

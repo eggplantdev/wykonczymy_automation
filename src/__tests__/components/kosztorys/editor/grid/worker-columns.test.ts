@@ -33,6 +33,18 @@ function workerIds(extra: Partial<BuildV2ColumnsOptsT> = {}, hidden: string[] = 
 }
 
 describe('worker columns', () => {
+  it('reads the przedmiar as ilość, j.m., cena, wartość at their stawka', () => {
+    const visible = workerIds()
+    const at = visible.indexOf('plannedQty')
+
+    expect(visible.slice(at, at + 4)).toEqual([
+      'plannedQty',
+      'unit',
+      planePriceKey('price', 'w_tools'),
+      'plannedNetForPlane',
+    ])
+  })
+
   it('renders his stawka, his values and the all-etapy „Pozostało"', () => {
     const visible = workerIds()
     for (const id of [

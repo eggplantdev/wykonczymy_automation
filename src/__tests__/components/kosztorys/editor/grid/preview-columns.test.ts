@@ -50,6 +50,20 @@ describe('preview columns', () => {
     }
   })
 
+  // Owner, 2026-09-28: the value of the offered scope reads beside the quantity it prices.
+  it('reads the przedmiar as ilość, j.m., cena, wartość', () => {
+    const visible = previewIds()
+    const at = visible.indexOf('plannedQty')
+
+    expect(visible.slice(at, at + 5)).toEqual([
+      'plannedQty',
+      'unit',
+      'price',
+      'plannedNet',
+      'plannedGross',
+    ])
+  })
+
   it('carries the offer and the progress together', () => {
     const visible = previewIds()
     for (const id of [
