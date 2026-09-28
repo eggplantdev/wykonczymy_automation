@@ -39,7 +39,7 @@ vi.mock('@/lib/kosztorys/work-catalogue/place-catalogue-items', async (importOri
 })
 
 const { insertCatalogueItemsAction, createSectionWithCatalogueItemsAction } =
-  await import('@/lib/actions/work-catalogue')
+  await import('@/lib/actions/catalogue-to-kosztorys')
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 

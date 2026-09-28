@@ -16,7 +16,7 @@ import { useSearchFilter } from '@/hooks/use-search-filter'
 import {
   createSectionWithCatalogueItemsAction,
   insertCatalogueItemsAction,
-} from '@/lib/actions/work-catalogue'
+} from '@/lib/actions/catalogue-to-kosztorys'
 import {
   kosztorysCatalogueKeys,
   partitionAlreadyInKosztorys,

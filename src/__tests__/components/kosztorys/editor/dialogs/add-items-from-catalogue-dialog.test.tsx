@@ -9,7 +9,7 @@ import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 const insertCatalogueItemsAction = vi.fn()
 const createSectionWithCatalogueItemsAction = vi.fn()
 
-vi.mock('@/lib/actions/work-catalogue', () => ({
+vi.mock('@/lib/actions/catalogue-to-kosztorys', () => ({
   insertCatalogueItemsAction: (...args: unknown[]) => insertCatalogueItemsAction(...args),
   createSectionWithCatalogueItemsAction: (...args: unknown[]) =>
     createSectionWithCatalogueItemsAction(...args),

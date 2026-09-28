@@ -99,7 +99,7 @@ import {
   updateItemFieldAction,
   updateSectionFieldAction,
 } from '@/lib/actions/kosztorys'
-import { applyCatalogueToKosztorysAction } from '@/lib/actions/work-catalogue'
+import { applyCatalogueToKosztorysAction } from '@/lib/actions/catalogue-to-kosztorys'
 import { buildCatalogueComparison } from '@/lib/kosztorys/work-catalogue/build-catalogue-comparison'
 import type { ItemPatchT, KosztorysTreeT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 import type { SeedConflictFieldT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
