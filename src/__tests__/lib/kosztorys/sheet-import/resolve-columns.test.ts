@@ -12,6 +12,7 @@ import {
   BIALOSTOCKA_RATES_HEADER,
   BIALOSTOCKA_LABOR_HEADER,
   PRZEDPOLE_LABOR_HEADER,
+  UNNAMED_NET_VALUE_LABOR_HEADER,
   ZUPNICZA_LABOR_HEADER,
 } from '@/__tests__/fixtures/kosztorys-sheet/header-blocks'
 
@@ -80,6 +81,25 @@ describe('resolveLaborColumns', () => {
 
     expect(result.columns).toMatchObject({ plannedQty: 13, netValue: 18 })
     expect(result.stages).toEqual({ firstColumn: 3, count: 10 })
+  })
+
+  it('reads a split „Wartość netto" off the Pomiar z natury column, not the Przedmiar one', () => {
+    // S prices Przedmiar (the offer), T prices Pomiar z natury — and T is what the sheet counts: the
+    // section total sums T and „pozostało do rozliczenia" is T minus the etapy.
+    const result = resolveLaborColumns(ZUPNICZA_LABOR_HEADER)
+    expectResolved(result)
+
+    expect(result.columns.netValue).toBe(19) // T
+  })
+
+  it('recognises the Pomiar-side wartość column by its row-3 wording alone', () => {
+    const grid = ZUPNICZA_LABOR_HEADER.map((row) => [...row])
+    grid[0][19] = ''
+    grid[2][19] = 'Wartość pomiar z natury '
+
+    const result = resolveLaborColumns(grid)
+    expectResolved(result)
+    expect(result.columns.netValue).toBe(19)
   })
 
   it('reports nothing unresolved when every optional column is there', () => {
@@ -168,8 +188,8 @@ describe('resolveLaborColumns', () => {
       if (result.ok) expect.fail('expected the header to be refused')
     }
 
-    it('names the required field it could not place, on a sheet that splits „Wartość netto" in two', () => {
-      const result = resolveLaborColumns(ZUPNICZA_LABOR_HEADER)
+    it('names the required field it could not place', () => {
+      const result = resolveLaborColumns(UNNAMED_NET_VALUE_LABOR_HEADER)
       expectRefused(result)
 
       expect(result.missingFields).toContainEqual({
@@ -179,8 +199,8 @@ describe('resolveLaborColumns', () => {
       })
     })
 
-    it('offers both split columns as candidates, named the way the sheet names them', () => {
-      const result = resolveLaborColumns(ZUPNICZA_LABOR_HEADER)
+    it('offers an unclaimed column as a candidate, named the way the sheet names it', () => {
+      const result = resolveLaborColumns(UNNAMED_NET_VALUE_LABOR_HEADER)
       expectRefused(result)
 
       expect(result.candidates).toContainEqual({
@@ -188,15 +208,10 @@ describe('resolveLaborColumns', () => {
         letter: 'S',
         labels: ['Wartość netto przedmiar'],
       })
-      expect(result.candidates).toContainEqual({
-        column: 19,
-        letter: 'T',
-        labels: ['Wartość netto pomiar z natury'],
-      })
     })
 
     it('leaves out a column another field already owns', () => {
-      const result = resolveLaborColumns(ZUPNICZA_LABOR_HEADER)
+      const result = resolveLaborColumns(UNNAMED_NET_VALUE_LABOR_HEADER)
       expectRefused(result)
 
       // N/Q are Przedmiar and Cena j.m.; U is komentarz. Offering a resolved column would invite the
@@ -208,7 +223,7 @@ describe('resolveLaborColumns', () => {
     })
 
     it('leaves out the etapy run and the columns read off its position', () => {
-      const result = resolveLaborColumns(ZUPNICZA_LABOR_HEADER)
+      const result = resolveLaborColumns(UNNAMED_NET_VALUE_LABOR_HEADER)
       expectRefused(result)
 
       const columns = result.candidates.map((candidate) => candidate.column)
@@ -218,7 +233,7 @@ describe('resolveLaborColumns', () => {
     })
 
     it('leaves out the ordinal column even when it is labelled', () => {
-      const grid = ZUPNICZA_LABOR_HEADER.map((row) => [...row])
+      const grid = UNNAMED_NET_VALUE_LABOR_HEADER.map((row) => [...row])
       grid[0][1] = 'Lp.' // B, between nazwa sekcji and opis pracy
 
       const result = resolveLaborColumns(grid)
@@ -228,7 +243,7 @@ describe('resolveLaborColumns', () => {
     })
 
     it('leaves out a column with nothing typed in it — it names nothing to point at', () => {
-      const result = resolveLaborColumns(ZUPNICZA_LABOR_HEADER)
+      const result = resolveLaborColumns(UNNAMED_NET_VALUE_LABOR_HEADER)
       expectRefused(result)
 
       expect(result.candidates.map((candidate) => candidate.column)).not.toContain(1) // B — blank
