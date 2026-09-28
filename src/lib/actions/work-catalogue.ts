@@ -5,12 +5,7 @@ import { z } from 'zod'
 import { investmentAction } from '@/lib/actions/investment-action'
 import { getDb } from '@/lib/db/get-db'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
-import {
-  findCatalogueItemByKey,
-  getCatalogueSourceItem,
-  listCatalogueItems,
-  listCatalogueItemsByIds,
-} from '@/lib/db/work-catalogue'
+import { listCatalogueItems, listCatalogueItemsByIds } from '@/lib/db/work-catalogue'
 import {
   applyCatalogueValues,
   listItemsForCatalogueApply,
@@ -18,7 +13,7 @@ import {
   type CatalogueApplyValueT,
 } from '@/lib/db/kosztorys-catalogue-apply'
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
-import { toCatalogueCandidate } from '@/lib/kosztorys/work-catalogue/item-to-catalogue'
+import { catalogueSaveState } from '@/lib/queries/work-catalogue'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { catalogueRateFor } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
 import { appendCatalogueItems } from '@/lib/kosztorys/work-catalogue/append-catalogue-items'
@@ -26,7 +21,6 @@ import { createSectionWithCatalogueItems } from '@/lib/kosztorys/work-catalogue/
 import type {
   AppendedCatalogueSliceT,
   AppliedCatalogueValueT,
-  CatalogueSavePreviewT,
   CatalogueSeedItemT,
   NewSectionCatalogueSliceT,
   SeedConflictFieldT,
@@ -38,8 +32,6 @@ import {
   type WorkCatalogueItemDataT,
 } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
 import { protectedAction, validateAction } from './run-action'
-
-const MISSING_ITEM_ERROR = 'Nie znaleziono pozycji'
 
 const DUPLICATE_ERROR = 'Praca o tej nazwie i jednostce już jest w katalogu.'
 
@@ -351,21 +343,6 @@ const EMPTY_DESCRIPTION_ERROR = 'Praca bez opisu nie trafi do katalogu — najpi
 // owner got a framework sentence instead of the fix.
 const EMPTY_UNIT_ERROR = 'Praca bez jednostki miary nie trafi do katalogu — najpierw uzupełnij j.m.'
 
-// Both „Zapisz do katalogu…" paths start here, with the numbers derived from the pozycja in the DB
-// and never from the wire, so the dialog's preview and the save cannot disagree.
-async function catalogueSaveState(
-  payload: Payload,
-  itemId: number,
-): Promise<CatalogueSavePreviewT | { error: string }> {
-  const db = await getDb(payload)
-  const source = await getCatalogueSourceItem(db, itemId)
-  if (!source) return { error: MISSING_ITEM_ERROR }
-
-  const candidate = toCatalogueCandidate(source)
-  const existing = await findCatalogueItemByKey(db, candidate.matchKey)
-  return { candidate, existing: existing ?? null }
-}
-
 // Only the BLIND save refuses an incomplete praca — it writes the candidate verbatim, so a missing
 // j.m. would die on Payload's own validation and hand the owner a framework sentence. The preview
 // deliberately does not: the form it fills is the place where the missing j.m. gets typed in, and
@@ -374,18 +351,6 @@ function incompleteCandidateError(candidate: CatalogueSeedItemT): string | null 
   if (!candidate.description) return EMPTY_DESCRIPTION_ERROR
   if (!candidate.unit) return EMPTY_UNIT_ERROR
   return null
-}
-
-// Fetch-on-open for the dialog: what would be written, and what is already there under that klucz.
-export async function catalogueSavePreviewAction(
-  itemId: number,
-): Promise<ActionResultT<CatalogueSavePreviewT>> {
-  return protectedAction('catalogueSavePreviewAction', async ({ payload }) => {
-    const state = await catalogueSaveState(payload, itemId)
-    if ('error' in state) return { success: false, error: state.error }
-
-    return { success: true, data: state }
-  })
 }
 
 const saveItemToCatalogueSchema = z.object({

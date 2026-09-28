@@ -6,7 +6,8 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Description } from '@/components/ui/description'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
 import { RATE_LABELS } from '@/lib/kosztorys/constants'
-import { catalogueSavePreviewAction, saveItemToCatalogueAction } from '@/lib/actions/work-catalogue'
+import { saveItemToCatalogueAction } from '@/lib/actions/work-catalogue'
+import { catalogueSavePreview } from '@/lib/queries/catalogue-save-preview'
 import type { CatalogueSavePreviewT } from '@/lib/kosztorys/work-catalogue/types'
 import {
   catalogueRateFor,
@@ -91,7 +92,7 @@ export function SaveItemToCatalogueDialog({
       toastMessage(message, 'error', 4000)
       onOpenChange(false)
     }
-    void catalogueSavePreviewAction(itemId)
+    void catalogueSavePreview(itemId)
       .then((res) => {
         if (stale) return
         if (!res.success) return fail(res.error ?? LOAD_FAILED)

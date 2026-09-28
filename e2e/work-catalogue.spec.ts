@@ -24,7 +24,7 @@ import {
 //
 //   1. The „Zapisz do katalogu…" dialog decides between CREATE and OVERWRITE from the klucz alone,
 //      and the overwrite is irreversible — the katalog keeps no history. So the numbers it shows must
-//      come from the server (they do: `catalogueSavePreviewAction`, the same derivation the save
+//      come from the server (they do: `catalogueSavePreview`, the same derivation the save
 //      runs), the confirm must be a real gate rather than chrome painted over a write that already
 //      happened, and the second save on the same klucz must replace the row instead of adding one.
 //      Nothing below the browser holds that chain: dialog → akcja → Postgres → tag → /katalog-prac.

@@ -5,11 +5,8 @@ import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { Description } from '@/components/ui/description'
 import { WorkCatalogueItemForm } from '@/components/forms/work-catalogue-item/work-catalogue-item-form'
 import { useWorkCatalogue } from '@/components/kosztorys/editor/dialogs/use-work-catalogue'
-import {
-  catalogueSavePreviewAction,
-  createCatalogueItemAction,
-  updateCatalogueItemAction,
-} from '@/lib/actions/work-catalogue'
+import { createCatalogueItemAction, updateCatalogueItemAction } from '@/lib/actions/work-catalogue'
+import { catalogueSavePreview } from '@/lib/queries/catalogue-save-preview'
 import { PLANE_LABELS } from '@/lib/kosztorys/constants'
 import type {
   CatalogueSavePreviewT,
@@ -80,7 +77,7 @@ export function CatalogueItemFromKosztorysDialog({
       toastMessage(message, 'error', 4000)
       onOpenChange(false)
     }
-    void catalogueSavePreviewAction(itemId)
+    void catalogueSavePreview(itemId)
       .then((res) => {
         if (stale) return
         if (!res.success) return fail(res.error ?? LOAD_FAILED)
