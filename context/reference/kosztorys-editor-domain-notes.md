@@ -307,6 +307,10 @@ Dwie reguły trzymają to razem:
   pozycja bez przedmiaru **i** bez wykonanej pracy nie wnosi nic do żadnej z dwóch kwot, które
   klient czyta, więc jej ukrycie nie rusza podsumowania. Każdy z dwóch filtrów osobno byłby
   bezpieczny tylko dla jednej z nich.
+- **Przełącznik „Pokaż wszystkie pozycje" (inwestor) numeruje ujawnione pozycje od nowa**, w
+  kolejności dokumentu — więc przy włączonym przełączniku numeracja rozjeżdża się z wydrukiem oferty,
+  który czyta zapisane ustawienie, nigdy stanu przełącznika. Zaakceptowane: przełącznik to gest
+  czytania na jedną wizytę, nie część dokumentu.
 
 **Podgląd nie zna trybu rozliczenia** (EX-631, rozstrzygnięte 2026-08-12). Dokument klienta niesie
 netto i brutto obok siebie także na inwestycji rozliczanej netto — `settlementMode` NIE wraca jako
@@ -539,6 +543,10 @@ j.m.` wśród wierszy policzonych** (wpisane z palca są wykluczone: to decyzje 
     Zmiana jest tylko w wyświetlaniu: bilans, marża, „Łącznie" i lista inwestycji czytają netto,
     które się nie zmieniło. A skoro obie kwoty są zapisane, wraca gwarancja, dla której wybrano model
     „zapisane `netAmount`": brak dryfu zaokrągleń między listą a podsumowaniem.
+    **„Różnica" znaczy na tych dwóch osiach co innego.** Na wierszu brutto to obniżka materiałowa
+    (paragon minus rozliczona kwota) — firma ją daje. Na wierszu „… netto" to VAT z faktury — tego
+    firma nie oddaje. „Razem Różnica" sumuje obie pod jedną etykietą; tak było i wcześniej, ale
+    brutto liczone ze stawki to maskowało.
     **Konsekwencja w rozliczeniu mieszanym:** „Pozostało brutto" **nie** jest gruntowaniem kwoty
     nierozliczonej — to gruntowałoby materiały razem z pracami. Liczy się z „Łącznie", gdzie
     materiały już stoją po face value na obu osiach (`resztaGross = combined.gross − paidNet`).
@@ -552,6 +560,15 @@ j.m.` wśród wierszy policzonych** (wpisane z palca są wykluczone: to decyzje 
       **≥** „Materiały" rozliczonym w Podsumowaniu — celowo, na korzyść inwestora (właściciel,
       2026-09-23). Tych dwóch sum się nie uzgadnia. Materiały wliczone w robociznę dalej nie trafiają
       do podglądu.
+      Wyjątek od „≥": ujemna korekta (nota kredytowa) na osi brutto przy ustawionej stawce rozlicza
+      się jako `korekta / (1 + stawka)`, więc ten jeden wiersz stoi na liście poniżej rozliczonego.
+      Suma odwraca się dopiero, gdy korekty przewyższą zakupy — nierealny kosztorys, niepilnowany
+      testem.
+    - **Bez stawki breakdown i lista liczą wydatek netto inaczej — celowo.** Wiersz kategorii bierze
+      go po netto (styka się z „Materiały" w Podsumowaniu), lista po brutto z faktury. Odrzucone:
+      breakdown po brutto (zrywa styk z Podsumowaniem i bilansem) oraz stałe Netto / Brutto / Różnica
+      przy fakturze netto (odwraca ustalenie z `zamrozone-brutto-wydatku-netto` i musiałoby objąć też
+      widok managera).
   - **Skutek dla rekoncyliacji (strona inwestycji „z kosztorysu", EX-535):** porównanie idzie
     **netto ↔ netto** dla obu figur — kosztorys suma prac (netto) ↔ Σ `LABOR_COST`, kosztorys
     rabat (netto) ↔ Σ `RABAT`. Strony kosztorysowej **nie gruntujemy**. To usuwa fałszywy
@@ -821,6 +838,9 @@ Wpisanie liczby w „Cena j.m." wykonawcy **samo** przestawia źródło na „kw
 komórki wraca na „auto" — kolumna źródła jest podglądem tej decyzji i drogą powrotną, nie osobnym
 krokiem, który trzeba wykonać przed wpisaniem ceny. W podglądzie inwestora kolumna źródła nie składa
 się w ogóle: dokument klienta nie pokazuje, skąd firma bierze stawkę ekipy.
+
+Mnożnik wiersza wpisuje się **dziesiętnie (`0,55`), nie procentowo** — tak jak globalny mnożnik
+inwestycji o jeden pasek narzędzi obok. Ta sama decyzja w dwóch notacjach to wklejenie pomylone o 100×.
 
 **Trzecie źródło było wycięte przez rok i wróciło** (właściciel: cięcie 2026-09-01/EX-766,
 przywrócenie 2026-09-23/EX-865). Wycięto je, bo nie używał go nikt — zero wierszy w jakiejkolwiek

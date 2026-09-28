@@ -4,15 +4,11 @@ Gate run jointly over all unpushed commits on `zamrozone-brutto-wydatku-netto` (
 
 ## Findings
 
-- [x] 🟡 WARNING · fixed · impl-review+code-review · `src/lib/queries/investment-financial-fields.ts:35` · `netCategoryGrossCosts` defaulted to `[]`, so a caller passing only the netto sums type-checked and priced every „… netto" row at brutto 0 — now one `Pick<CategoryBreakdownsT, …>` object with a both-empty default; caller passes `breakdowns`, specs updated
-      test: no automated test · unit — the guard is the type: the split call no longer compiles; typecheck enforces it
-- [x] 🔵 OBSERVATION · fixed · impl-review+cohesion · `src/lib/kosztorys/breakdown-rows.ts:14` · `breakdownRowPair` redefined the row union inline and lived in `summary-economics` after its other callers were deleted — moved beside its only callers, typed as `MaterialsBreakdownRowT`; its spec block moved to `breakdown-rows.test.ts`
 - [x] 🔵 OBSERVATION · skipped · code-review · `src/scripts/seed-materials-net.ts:52` · netto fixture pairs are exactly 23% apart, so the DB parity spec can't tell invoice brutto from rate-derived brutto — changing the amounts forces a golden-master regen (`financial-golden-master-db`) for a rule the unit + DOM specs already pin with 8%-apart pairs; the seed comment states the limit
       test: no automated test · integration — unit (`breakdown-rows.test.ts`) and DOM (`materials-breakdown-table.test.tsx`) already assert the invoice brutto at 12%/23%
 - [x] 🔵 OBSERVATION · dismissed · impl-review · `src/__tests__/derive-financials-bucketing.test.ts:234` · spec not at the mirrored path — it extends the existing `deriveCategoryBreakdowns` suite where every sibling case lives; the mirror file has never tested that function
 - [x] 🔵 OBSERVATION · skipped · code-review · `src/lib/queries/investment-financial-fields.ts:53` · a netto wydatek with no category would fall into „Korekta" as a brutto row — pre-existing, not in this diff, reachability unverified (the collection doesn't enforce a category but the form path is unchecked); not filed per reachability-first
       test: no automated test · — not a finding of this diff
-- [x] fixed · simplify · `src/lib/queries/investment-financial-fields.ts:40` · the `NOTHING_BILLED_NET` default let a caller omit the netto data entirely, which the one-object guard exists to prevent — parameter now required, constant moved into the spec
 - [x] skipped · simplify (altitude) · `src/types/investment-financials.ts:81` · carry the invoice brutto ON each `netCategoryCosts` entry instead of a parallel `netCategoryGrossCosts` list — the cleaner shape, but it rewrites a type shared with the listing cache, `sum-transfers` and the golden-master fixture; a review-worthy refactor, and the pair can no longer drift apart now that it is one required object
 - [x] dropped · simplify (reuse) · `src/lib/kosztorys/breakdown-rows.ts:44` · inline pair sum twins `combinedPair`'s — a one-line `addPairs` helper is no simpler than the expression
 

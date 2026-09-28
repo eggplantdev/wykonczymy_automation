@@ -534,7 +534,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** This is the quality gate that lets the owner touch the editor only once it is verified. Deliberately deferred to band 4: the editor will churn heavily through bands 1–3 while the direction settles, so standing specs up earlier only chases moving targets. Risk: once here, if coverage lags the slices it locks, the cutover gate (S-19) slips — write the specs close behind the settled editor.
-- **Status:** done (EX-405, closed 2026-09-22 on the owner's ruling) — the last slice in the arc. The 2026-09-15 `e2e-backlog-audit` worked the whole backlog and closed 71 issues (`context/changes/2026-09-15-e2e-backlog-audit/audit.md`); the six it left open — EX-715, EX-689, EX-442, EX-472, EX-525 and EX-731, handed forward when S-17 was cut — were all written by 2026-09-16. `e2e/` now holds 32 specs.
+- **Status:** done (EX-405, closed 2026-09-22 on the owner's ruling) — the last slice in the arc. The 2026-09-15 `e2e-backlog-audit` worked the whole backlog and closed 71 issues (`context/archive/2026-09-15-e2e-backlog-audit/audit.md`); the six it left open — EX-715, EX-689, EX-442, EX-472, EX-525 and EX-731, handed forward when S-17 was cut — were all written by 2026-09-16. `e2e/` now holds 32 specs.
   **The gate closing does not mean specs stop.** New browser-level risks keep earning specs, but as ordinary `e2e-backlog` issues rather than as this slice's debt — the one thing S-16 itself never got, the failed-autosave rollback spec, moved out to **EX-854** on the same ruling. It never gated S-19 either: the cutover was reached 2026-08-25 without it.
 
 ### S-19: New investments get no Google Sheet (cutover gate)
@@ -616,7 +616,7 @@ Kept for the record; pulled out of the numbered sequence because they carry no e
   in the „Inwestor" menu prints the kosztorys as a client-facing offer through the browser's own
   print dialog. It is the **one** surface that came back: no CSV, no live-formula sheet, and no
   settlement/progress print — the client view still does those jobs. The tombstone stands; the slice
-  is not revived, the change is a standalone one under `context/changes/2026-09-23-wydruk-oferty/`.
+  is not revived, the change is a standalone one under `context/archive/2026-09-23-wydruk-oferty/`.
   The column-strip requirement above is **met by construction, not by luck**: the print builds its
   columns by intersecting its own list with `PREVIEW_VISIBLE_COLUMNS` and then subtracting the
   owner's hidden set, so a purchase-price or subcontractor column cannot reach the paper even if

@@ -1,10 +1,10 @@
 ---
 change_id: wydruk-oferty
 title: Wydruk oferty z kosztorysu — PDF dla klienta
-status: implemented
+status: archived
 created: 2026-09-23
-updated: 2026-09-23
-archived_at: null
+updated: 2026-09-28
+archived_at: 2026-09-28T05:47:18Z
 branch: spike/wydruk-oferty
 worktree: null
 ---
@@ -43,3 +43,5 @@ Jeszcze nie zrobione / do decyzji w planie:
   `investmentName`.
 - Brak jakichkolwiek testów — spike ich świadomie nie miał.
 - Przypadek 2 wydruku (jeszcze nieopisany przez właściciela) jest poza zakresem.
+
+Review record: `context/archive/reviews/2026-09-23-staging.md` (branch-scoped gate, not a per-change `reviews/impl-review*.md`).

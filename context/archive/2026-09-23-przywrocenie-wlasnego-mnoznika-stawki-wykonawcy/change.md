@@ -1,10 +1,10 @@
 ---
 change_id: przywrocenie-wlasnego-mnoznika-stawki-wykonawcy
 title: Przywrócenie „własnego mnożnika" jako trzeciego źródła stawki wykonawcy — w rozpiskie i w katalogu prac
-status: implemented
+status: archived
 created: 2026-09-23
-updated: 2026-09-23
-archived_at: null
+updated: 2026-09-28
+archived_at: 2026-09-28T05:47:18Z
 branch: przywrocenie-wlasnego-mnoznika-stawki-wykonawcy
 worktree: null
 ---
@@ -70,3 +70,5 @@ opcja jest tam **nowa**, nie przywracana — i potrzebuje własnej migracji na `
 - katalog prac: formularz, lista `/katalog-prac`, `toCatalogueCandidate`, `append-catalogue-items`,
   `catalogue-rate.ts`, dialog „Zapisz do katalogu…", raport „Porównaj z katalogiem"
 - sufit ceny wykonawcy (`subcontractor-price-guard.ts`) — jak liczy się pułap przy mnożniku
+
+Review record: `context/archive/reviews/2026-09-23-staging.md` (branch-scoped gate, not a per-change `reviews/impl-review*.md`).

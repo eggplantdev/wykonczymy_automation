@@ -2164,3 +2164,15 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
   front of you — a plugin, a memory, a code comment. Name the source and the date in the research,
   so the next reader can tell a checked fact from an inherited one.
 - **Applies to**: 10x-research, 10x-plan, any design gated on a platform limit.
+
+## A caller count that once killed an extraction doesn't settle it the next time — re-check what is actually shared
+
+- **Context**: wydruk-oferty (2026-09-23) added a third caller of `openPrintWindow`, after a shared
+  print-shell helper had been rejected at two callers (`context/archive/2026-09-14-transfer-print-return/review-gate.md`).
+- **Problem**: three callers repeating the doctype skeleton, row emission and the `document.write`
+  lint exception looks like the signal a caller count is supposed to give. It wasn't: the offer has
+  section bands, colour rails and section subtotals the transfers table doesn't, so a shared builder
+  would be parameterised for exactly one consumer.
+- **Rule**: a caller count is a prompt to re-ask the extraction question, not its answer — what
+  decides is how much of the SHAPE is common, not how many files duplicate a skeleton.
+- **Applies to**: dedup / `/simplify` passes over `build-offer-print-html.ts` vs `build-transfers-print-html.ts`.
