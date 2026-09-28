@@ -345,16 +345,16 @@ Run **once**, after the final phase.
 
 #### Automated
 
-- [x] 1.1 scope-rows spec passes
-- [x] 1.2 form-defaults spec passes
-- [x] 1.3 settlement spec passes
-- [x] 1.4 investment-update spec passes
+- [x] 1.1 scope-rows spec passes — ed2d4040
+- [x] 1.2 form-defaults spec passes — ed2d4040
+- [x] 1.3 settlement spec passes — ed2d4040
+- [x] 1.4 investment-update spec passes — ed2d4040
 
 ### Phase 2: Protocol print HTML
 
 #### Automated
 
-- [ ] 2.1 build-protocol-html spec passes
+- [x] 2.1 build-protocol-html spec passes
 
 ### Phase 3: Dialog, menu item and print wiring
 

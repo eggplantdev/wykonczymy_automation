@@ -28,3 +28,9 @@ export type ProtocolSettlementT = {
   remainingNet: number
   isOverpaid: boolean
 }
+
+export type SettlementLineT = {
+  label: string
+  amount: number
+  emphasis?: 'subtotal' | 'total'
+}

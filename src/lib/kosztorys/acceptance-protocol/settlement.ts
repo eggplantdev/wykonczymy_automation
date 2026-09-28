@@ -7,7 +7,10 @@ import {
 } from '@/lib/kosztorys/summary-economics'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 import type { DepositTransactionRowT } from '@/types/transfers'
-import type { ProtocolSettlementT } from '@/lib/kosztorys/acceptance-protocol/types'
+import type {
+  ProtocolSettlementT,
+  SettlementLineT,
+} from '@/lib/kosztorys/acceptance-protocol/types'
 
 type ArgsT = {
   laborCostsNet: number
@@ -50,4 +53,22 @@ export function protocolSettlement({
     remainingNet,
     isOverpaid: roundToCents(remainingNet) < 0,
   }
+}
+
+// The „Podsumowanie" steps in its own order and signs: wpłaty and strata are deductions, so they
+// read negative on the way down to what is left. One list for the dialog and the paper.
+export function protocolSettlementLines(settlement: ProtocolSettlementT): SettlementLineT[] {
+  const lines: SettlementLineT[] = [
+    { label: 'Robocizna', amount: settlement.laborCostsNet },
+    { label: 'Materiały', amount: settlement.materialsNet },
+    { label: 'Suma', amount: settlement.totalNet, emphasis: 'subtotal' },
+    { label: 'Wpłaty', amount: -settlement.paidNet },
+  ]
+  if (settlement.lossNet !== 0) lines.push({ label: 'Strata', amount: -settlement.lossNet })
+  lines.push({
+    label: settlement.isOverpaid ? 'Nadpłata' : 'Pozostało do zapłaty',
+    amount: settlement.remainingNet,
+    emphasis: 'total',
+  })
+  return lines
 }
