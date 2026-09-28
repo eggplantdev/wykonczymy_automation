@@ -1,7 +1,8 @@
-import type { CollectionConfig, Where } from 'payload'
+import type { CollectionConfig } from 'payload'
 import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
-import { excludingCancelled, makePreventDelete } from '@/hooks/prevent-delete'
+import { refuseDeleteWhen } from '@/hooks/prevent-delete'
+import { investmentDeleteBlocker } from '@/hooks/investments/delete-blocker'
 import { guardInvestmentStatusUnlock } from '@/hooks/investments/guard-status-unlock'
 import { DEFAULT_COEFFS, DEFAULT_VAT } from '@/lib/kosztorys/constants'
 import {
@@ -18,21 +19,6 @@ const STATUS_OPTIONS = [
   { label: { en: 'Template', pl: 'Szablon' }, value: 'szablon' },
 ] as const
 
-// For LABOR_COST / RABAT / LOSS an orphaned transaction is terminal: they carry no source register
-// either, so a row stripped of `investment_id` is reachable from no investment and no kasa at all.
-// Cancelled rows are exempt — see `excludingCancelled`.
-const preventDeleteWithTransactions = makePreventDelete({
-  probes: [
-    {
-      collection: 'transactions',
-      where: (id): Where => excludingCancelled({ investment: { equals: id } }),
-      label: 'transakcje',
-    },
-  ],
-  message: (blockers) =>
-    `Nie można usunąć inwestycji — istnieją powiązane dane (${blockers.join(', ')}). Najpierw usuń lub przenieś transakcje.`,
-})
-
 export const Investments: CollectionConfig = {
   slug: 'investments',
   labels: {
@@ -46,7 +32,7 @@ export const Investments: CollectionConfig = {
   },
   hooks: {
     beforeChange: [guardInvestmentStatusUnlock],
-    beforeDelete: [preventDeleteWithTransactions],
+    beforeDelete: [refuseDeleteWhen(investmentDeleteBlocker)],
     afterChange: [makeRevalidateAfterChange('investments')],
     afterDelete: [makeRevalidateAfterDelete('investments')],
   },

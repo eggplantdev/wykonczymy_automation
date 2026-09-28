@@ -57,6 +57,23 @@ export const KOSZTORYS_TREE_TAGS = [
   'investments',
 ] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
 
+// Moving an investment in or out of the trash changes only which rows every investment reader
+// returns. `kosztoryses` and `leads` go too because both lists print the linked investment's name.
+export const INVESTMENT_TRASH_TAGS = [
+  'investments',
+  'kosztoryses',
+  'leads',
+] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
+
+// A hard delete adds the rows the DB cascade removes or unlinks without firing a Payload hook — the
+// kosztorys tree, cancelled transactions and equipment events — so nobody else expires them.
+export const INVESTMENT_DELETE_TAGS = [
+  ...INVESTMENT_TRASH_TAGS,
+  ...KOSZTORYS_TREE_TAGS.filter((tag) => tag !== 'investments'),
+  'transfers',
+  'equipmentEvents',
+] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
+
 /**
  * The second argument every `revalidateTag` call outside a Server Action must pass.
  *

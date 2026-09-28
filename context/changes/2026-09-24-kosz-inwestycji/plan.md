@@ -607,19 +607,19 @@ the code ships. Existing rows get `trashed_at NULL`, so everything stays live. T
 
 #### Automated
 
-- [x] 1.1 Migration applies and rolls back on local DB
-- [x] 1.2 investment-gate spec covers trashed / trashed+completed / completed / live
-- [x] 1.3 preview-kosztorys-token spec: trashed investment's token resolves to null
-- [x] 1.4 reference-data SQL drift spec passes with trashed predicate
-- [x] 1.5 Gate-consumer specs pass after the lock-message rename
+- [x] 1.1 Migration applies and rolls back on local DB — 719e37c6
+- [x] 1.2 investment-gate spec covers trashed / trashed+completed / completed / live — 719e37c6
+- [x] 1.3 preview-kosztorys-token spec: trashed investment's token resolves to null — 719e37c6
+- [x] 1.4 reference-data SQL drift spec passes with trashed predicate — 719e37c6
+- [x] 1.5 Gate-consumer specs pass after the lock-message rename — 719e37c6
 
 ### Phase 2: Trash, restore, delete forever
 
 #### Automated
 
-- [ ] 2.1 investment-trash DB spec: used predicate + purgeable selection
-- [ ] 2.2 investment-trash actions DB spec: roles, szablon, transactions, round-trip, name check, cascade
-- [ ] 2.3 trash action expires entityTag('investment', id) through ownerOnlyAction
+- [x] 2.1 investment-trash DB spec: used predicate + purgeable selection
+- [x] 2.2 investment-trash actions DB spec: roles, szablon, transactions, round-trip, name check, cascade
+- [x] 2.3 trash action expires entityTag('investment', id) through ownerOnlyAction
 
 ### Phase 3: `/kosz` page, nav entry, „Usuń" on the listing
 
