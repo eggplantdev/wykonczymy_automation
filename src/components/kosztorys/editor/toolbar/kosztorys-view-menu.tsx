@@ -82,13 +82,10 @@ export function KosztorysViewMenu() {
     resetColumnOrder,
   } = useKosztorysEditorContext()
 
-  // Subcontractors are paid without VAT (EX-558), so the netto/brutto axis is meaningless in the
-  // Z/Bez narzędzi views — hide the Kwoty control there.
-  const showMoneyAxis = view === 'client'
-
-  // Same reason, one step further: a subcontractor view IS the choice this axis makes
-  // (`effectiveCrewAxis` pins it), so offering the ticks there would show a control that cannot move.
-  const showCrewAxis = view === 'client'
+  // Both axis controls belong to „Inwestor" alone, for two different reasons: subcontractors are paid
+  // without VAT (EX-558), so netto/brutto is meaningless in their views, and a subcontractor view IS
+  // the crew choice (`effectiveCrewAxis` pins it) — ticks there would be a control that cannot move.
+  const isClientView = view === 'client'
 
   // A hidden column is the one piece of „co widzę" that leaves no trace on the grid — a filter at
   // least shortens it, while a column that is gone looks exactly like a column that never existed.
@@ -121,7 +118,7 @@ export function KosztorysViewMenu() {
       }}
       sections={
         <>
-          {showMoneyAxis && (
+          {isClientView && (
             <>
               <AxisSection
                 label="Kwoty"
@@ -133,7 +130,7 @@ export function KosztorysViewMenu() {
               <DropdownMenuSeparator />
             </>
           )}
-          {showCrewAxis && (
+          {isClientView && (
             <>
               <AxisSection
                 label="Stawki wykonawców"
