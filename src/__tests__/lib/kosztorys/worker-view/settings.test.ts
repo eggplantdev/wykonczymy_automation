@@ -31,11 +31,11 @@ const CLIENT_PRICED = [
 describe('worker view settings', () => {
   it('drops a hand-added client-price or other-plane key', () => {
     const settings = sanitizeWorkerViewSettings({
-      hiddenColumns: ['sectionName', 'price', 'plannedNet', 'discountAmount', 'price__own_tools'],
+      hiddenColumns: ['unit', 'price', 'plannedNet', 'discountAmount', 'price__own_tools'],
       hideEmptyRows: false,
     })
 
-    expect(settings).toEqual({ hiddenColumns: ['sectionName'], hideEmptyRows: false })
+    expect(settings).toEqual({ hiddenColumns: ['unit'], hideEmptyRows: false })
   })
 
   it.each([undefined, null, 'x', 42, { hiddenColumns: 'price' }])(

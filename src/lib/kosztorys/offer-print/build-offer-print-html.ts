@@ -1,12 +1,11 @@
 import { escapeHtml } from '@/lib/utils/escape-html'
 import {
-  OFFER_COLUMNS,
   OFFER_PRICE_VIEW,
-  printableOfferColumns,
+  offerPrintColumns,
   type OfferColumnT,
   zloty,
 } from '@/lib/kosztorys/offer-print/columns'
-import { OFFER_PRINT_STYLES } from '@/lib/kosztorys/offer-print/styles'
+import { OFFER_PRINT_STYLES, WIDE_PRINT_STYLES } from '@/lib/kosztorys/offer-print/styles'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
 import { applyRowConditions, clientConditionIds } from '@/lib/kosztorys/row-conditions/queries'
@@ -54,6 +53,10 @@ export function offeredRows(
   })
 }
 
+// The default offer's six columns fit portrait with the opis still ~70mm; a seventh leaves it ~47mm.
+// Past that the owner has widened the document with brutto or etap columns and it turns landscape.
+const PORTRAIT_COLUMN_LIMIT = 7
+
 export function buildOfferPrintHtml({
   rows,
   stages,
@@ -64,10 +67,11 @@ export function buildOfferPrintHtml({
   totalNet,
   sectionNetById,
 }: OfferPrintArgsT): string {
+  const columns = offerPrintColumns(stages, settings.hiddenColumns)
   return buildKosztorysPrintHtml({
     rows: offeredRows(rows, stages, settings),
     stages,
-    columns: printableOfferColumns(OFFER_COLUMNS, settings.hiddenColumns),
+    columns,
     priceView: OFFER_PRICE_VIEW,
     documentKind: 'Kosztorys ofertowy',
     title: investmentName,
@@ -78,6 +82,7 @@ export function buildOfferPrintHtml({
     money: zloty,
     totalNet,
     sectionNetById,
+    extraStyles: columns.length > PORTRAIT_COLUMN_LIMIT ? WIDE_PRINT_STYLES : '',
   })
 }
 

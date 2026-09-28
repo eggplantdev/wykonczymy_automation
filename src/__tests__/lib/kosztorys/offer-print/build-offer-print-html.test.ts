@@ -4,16 +4,13 @@ import {
   buildOfferPrintHtml,
   type OfferPrintArgsT,
 } from '@/lib/kosztorys/offer-print/build-offer-print-html'
-import {
-  OFFER_COLUMN_KEYS,
-  printableOfferColumns,
-  type OfferColumnT,
-} from '@/lib/kosztorys/offer-print/columns'
-import { PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/column-config'
+import { printableKeys } from '@/lib/kosztorys/offer-print/columns'
+import { CLIENT_DOCUMENT_COLUMNS, PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/column-config'
 import { planePriceKeysFor } from '@/lib/kosztorys/plane-price-keys'
 import { columnTotalsForRows } from '@/lib/kosztorys/column-totals'
 import { groupBySection } from '@/lib/kosztorys/row-ops'
 import { rowRemainingForView } from '@/lib/kosztorys/settlement-rows'
+import { sanitizeClientViewVariant } from '@/lib/kosztorys/client-view-settings'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { CTX, row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
@@ -40,11 +37,17 @@ function editorTotals(rows: KosztorysV2RowT[], view: PriceViewT = 'client') {
   }
 }
 
+// The offer as an owner who never opened the dialog gets it; `hiding` takes columns off that.
+const OFFER_DEFAULT = sanitizeClientViewVariant(undefined, 'OFFER')
+const hiding = (...keys: string[]) => ({
+  settings: { hiddenColumns: [...OFFER_DEFAULT.hiddenColumns, ...keys], hideEmptyRows: true },
+})
+
 function html(rows: KosztorysV2RowT[], overrides: Partial<OfferPrintArgsT> = {}): string {
   return buildOfferPrintHtml({
     rows,
     stages: CTX.stages,
-    settings: { hiddenColumns: [], hideEmptyRows: true },
+    settings: OFFER_DEFAULT,
     investmentName: 'Mieszkanie na Kazimierzu',
     logoUrl: '/logo-wykonczymy.png',
     fillByColorKey: new Map([['blue', 'rgb(0, 0, 255)']]),
@@ -140,7 +143,7 @@ describe('buildOfferPrintHtml — sumy przychodzą z edytora', () => {
   })
 
   it('ukryta „Wartość netto" zabiera wszystkie sumy, a nie przenosi ich do stopki', () => {
-    const out = html(rows, { settings: { hiddenColumns: ['plannedNet'], hideEmptyRows: true } })
+    const out = html(rows, hiding('plannedNet'))
 
     expect(out).not.toContain('Razem netto')
     expect(out).not.toContain('<tr class="band-total">')
@@ -178,7 +181,7 @@ describe('buildOfferPrintHtml — papier pokazuje to, co ekran', () => {
     ]
     const { sectionNetById } = editorTotals(rows)
 
-    const out = html(rows, { settings: { hiddenColumns: ['remaining'], hideEmptyRows: true } })
+    const out = html(rows, hiding('remaining'))
 
     expect(out).not.toContain('Pozostało')
     expect(out).toContain(
@@ -202,12 +205,7 @@ describe('buildOfferPrintHtml — oferta jest dokumentem klienta', () => {
 
 describe('buildOfferPrintHtml — struktura tabeli', () => {
   it('colspan sumy sekcji nie schodzi poniżej 1, gdy „Opis prac" jest ukryty', () => {
-    const out = html([row()], {
-      settings: {
-        hiddenColumns: ['description', 'plannedQty', 'unit', 'price'],
-        hideEmptyRows: true,
-      },
-    })
+    const out = html([row()], hiding('description', 'plannedQty', 'unit', 'price'))
 
     expect(out).toContain('colspan="1"')
     expect(out).not.toContain('colspan="0"')
@@ -220,12 +218,7 @@ describe('buildOfferPrintHtml — struktura tabeli', () => {
     const rows = [
       row({ id: 1, sectionId: 10, sectionName: 'Podłogi', plannedQty: 2, clientPrice: 50 }),
     ]
-    const out = html(rows, {
-      settings: {
-        hiddenColumns: ['description', 'plannedQty', 'unit', 'price'],
-        hideEmptyRows: true,
-      },
-    })
+    const out = html(rows, hiding('description', 'plannedQty', 'unit', 'price'))
 
     const headerCells = out.match(/<th(?:\s[^>]*)?>/g) ?? []
     const totalRow = /<tr class="band-total">(.*?)<\/tr>/.exec(out)?.[1] ?? ''
@@ -249,7 +242,7 @@ describe('buildOfferPrintHtml — struktura tabeli', () => {
   })
 
   it('ukrycie kolumny w ustawieniach podglądu zabiera ją i z papieru', () => {
-    const out = html([row()], { settings: { hiddenColumns: ['price'], hideEmptyRows: true } })
+    const out = html([row()], hiding('price'))
 
     expect(out).not.toContain('<th class="num">Cena j.m.</th>')
     expect(out).toContain('<th>Opis prac</th>')
@@ -257,37 +250,21 @@ describe('buildOfferPrintHtml — struktura tabeli', () => {
 })
 
 describe('sufit ujawniania', () => {
-  const barred: OfferColumnT = {
-    key: 'note',
-    label: 'Komentarz',
-    colClass: '',
-    cellClass: '',
-    headerClass: '',
-    cell: (row) => String(row.note ?? ''),
-  }
-  const subcontractorRate: OfferColumnT = {
-    ...barred,
-    key: planePriceKeysFor('w_tools')[0],
-    label: 'Stawka wykonawcy',
-  }
-
-  // The one that fails when someone adds a column: the offer's own list may never outgrow the set the
-  // client-view dialog is built from.
-  it('każda kolumna oferty mieści się w PREVIEW_VISIBLE_COLUMNS', () => {
-    for (const key of OFFER_COLUMN_KEYS) expect(PREVIEW_VISIBLE_COLUMNS.has(key)).toBe(true)
+  // The one that fails when someone adds a column: the client's document may never outgrow the set
+  // the client-view dialog is built from.
+  it('każda kolumna dokumentu inwestora mieści się w PREVIEW_VISIBLE_COLUMNS', () => {
+    for (const key of CLIENT_DOCUMENT_COLUMNS) expect(PREVIEW_VISIBLE_COLUMNS.has(key)).toBe(true)
   })
 
   it.each([
-    ['„komentarz" właściciela', barred],
-    ['stawka podwykonawcy', subcontractorRate],
-  ])('%s nie przechodzi, nawet wpisana wprost do listy', (_label, column) => {
-    expect(printableOfferColumns([column], [])).toEqual([])
+    ['„komentarz" właściciela', 'note'],
+    ['stawka podwykonawcy', planePriceKeysFor('w_tools')[0]],
+  ])('%s nie przechodzi, nawet wpisana wprost do listy', (_label, key) => {
+    expect(printableKeys([key], [])).toEqual([])
   })
 
   it('kolumna z sufitu przechodzi, dopóki właściciel jej nie ukryje', () => {
-    const price = { ...barred, key: 'price' }
-
-    expect(printableOfferColumns([price], [])).toEqual([price])
-    expect(printableOfferColumns([price], ['price'])).toEqual([])
+    expect(printableKeys(['price'], [])).toEqual(['price'])
+    expect(printableKeys(['price'], ['price'])).toEqual([])
   })
 })

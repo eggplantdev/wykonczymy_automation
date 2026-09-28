@@ -6,6 +6,7 @@ import {
   buildKosztorysPrintHtml,
   offeredRows,
 } from '@/lib/kosztorys/offer-print/build-offer-print-html'
+import { WIDE_PRINT_STYLES } from '@/lib/kosztorys/offer-print/styles'
 import { workerPrintColumns } from '@/lib/kosztorys/offer-print/worker-columns'
 import { groupBySection } from '@/lib/kosztorys/row-ops'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
@@ -17,13 +18,6 @@ export type WorkerPrintArgsT = {
   logoUrl: string
   fillByColorKey: ReadonlyMap<string, string>
 }
-
-// A worker's etapy each add a quantity and a value column, so the offer's portrait page runs out of
-// width at the second etap.
-const WORKER_PRINT_STYLES = `
-@page { size: A4 landscape; }
-.totals tr.sub td { padding-top: 0; font-size: 7pt; color: #a1a1aa; }
-`
 
 const footerRow = (label: string, amount: number, rowClass = '') =>
   `<tr${rowClass ? ` class="${rowClass}"` : ''}><td class="label">${escapeHtml(label)}</td>` +
@@ -89,7 +83,7 @@ export function buildWorkerPrintHtml({ data, logoUrl, fillByColorKey }: WorkerPr
     money: formatPLN,
     totalNet: worker.summary.plannedNet,
     sectionNetById,
-    extraStyles: WORKER_PRINT_STYLES,
+    extraStyles: WIDE_PRINT_STYLES,
     footerHtml: workerFooterHtml(worker.summary),
   })
 }

@@ -7,7 +7,11 @@ import {
   type OfferColumnT,
 } from '@/lib/kosztorys/offer-print/columns'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
-import { rowRemainingForExecutedQty, rowTotalQtyDone } from '@/lib/kosztorys/settlement-rows'
+import {
+  rowRemainingForExecutedQty,
+  rowTotalQtyDone,
+  rowValueForView,
+} from '@/lib/kosztorys/settlement-rows'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
 import {
   STAGE_VALUE_NET_COLUMN_GROUP,
@@ -15,7 +19,11 @@ import {
   stageKey,
   stageValueNetKey,
 } from '@/lib/kosztorys/stage-keys'
-import { workerVisibleColumns } from '@/lib/kosztorys/worker-view/settings'
+import {
+  workerColumnLabel,
+  workerDocumentColumns,
+  workerVisibleColumns,
+} from '@/lib/kosztorys/worker-view/settings'
 import type { KosztorysStageT, ToolPlaneT } from '@/lib/kosztorys/types'
 import { formatPLN } from '@/lib/utils/format-currency'
 
@@ -27,20 +35,20 @@ export type WorkerPrintColumnsArgsT = {
   executedQtyByItem: Record<number, number>
 }
 
-const moneyColumn = (
-  key: string,
-  label: string,
-  cell: OfferColumnT['cell'],
-  colClass = 'c-value',
-): OfferColumnT => ({ key, label, colClass, cellClass: 'num value', headerClass: 'num', cell })
+const moneyColumn = (key: string, label: string, cell: OfferColumnT['cell']): OfferColumnT => ({
+  key,
+  label,
+  colClass: 'c-value',
+  cellClass: 'num value',
+  headerClass: 'num',
+  cell,
+})
 
 /**
- * The worker's printed columns, capped by `workerVisibleColumns` — the same ceiling his link renders
- * through, so the paper cannot carry a column the settings bar from the screen. Priced in grosze,
- * unlike the offer: a stawka of 7,50 zł rounded to „8 zł" is a different rate, not a tidier one.
- *
- * „Σ etapów" and „Wartość wykonana" are left off the paper: the per-etap columns and the footer
- * carry both, and a landscape page has no width to spend on them twice.
+ * The worker's printed columns: `workerDocumentColumns`, the list his podgląd renders from, capped by
+ * `workerVisibleColumns` — so the paper can neither carry a column the settings bar from the screen
+ * nor print one in another place. Priced in grosze, unlike the offer: a stawka of 7,50 zł rounded to
+ * „8 zł" is a different rate, not a tidier one.
  */
 export function workerPrintColumns({
   plane,
@@ -50,66 +58,67 @@ export function workerPrintColumns({
 }: WorkerPrintColumnsArgsT): OfferColumnT[] {
   const visible = workerVisibleColumns(plane, hiddenColumns)
   const rateKey = planePriceKey('price', plane)
-  // Keyed by what the ceiling names: a per-etap column answers to its group, as in the grid.
-  const candidates: [string, OfferColumnT][] = [
-    ['description', DESCRIPTION_COLUMN],
-    ['plannedQty', PLANNED_QTY_COLUMN],
-    ['unit', UNIT_COLUMN],
-    [
-      rateKey,
+  const byKey: Record<string, OfferColumnT[]> = {
+    description: [DESCRIPTION_COLUMN],
+    plannedQty: [PLANNED_QTY_COLUMN],
+    unit: [UNIT_COLUMN],
+    [rateKey]: [
       {
         ...moneyColumn(rateKey, 'Stawka j.m.', (row, view) => formatPLN(viewPrice(row, view))),
         cellClass: 'num price',
       },
     ],
-    [
-      'plannedNetForPlane',
+    plannedNetForPlane: [
       moneyColumn('plannedNetForPlane', 'Wartość przedmiaru', (row, view) =>
         formatPLN(rowPlannedNetForView(row, view)),
       ),
     ],
-    ...stages.flatMap((stage): [string, OfferColumnT][] => {
+    [STAGES_COLUMN_GROUP]: stages.map((stage) => {
       const qtyKey = stageKey(stage.id)
-      return [
-        [
-          STAGES_COLUMN_GROUP,
-          {
-            key: qtyKey,
-            label: stageLabel(stage),
-            colClass: 'c-qty',
-            cellClass: 'num',
-            headerClass: 'num',
-            cell: (row) => (row[qtyKey] ? formatQty(row[qtyKey]) : ''),
-          },
-        ],
-        [
-          STAGE_VALUE_NET_COLUMN_GROUP,
-          moneyColumn(
-            stageValueNetKey(stage.id),
-            `${stageLabel(stage)} — wartość`,
-            (row, view, printStages) =>
-              row[qtyKey]
-                ? formatPLN(
-                    stageValueForView(
-                      row,
-                      row[qtyKey],
-                      rowTotalQtyDone(row, printStages, view),
-                      view,
-                    ),
-                  )
-                : '',
-          ),
-        ],
-      ]
+      return {
+        key: qtyKey,
+        label: stageLabel(stage),
+        colClass: 'c-stage-qty',
+        cellClass: 'num',
+        headerClass: 'num',
+        cell: (row) => (row[qtyKey] ? formatQty(row[qtyKey]) : ''),
+      }
     }),
-    [
-      'remainingForPlane',
+    stageQtySum: [
+      {
+        key: 'stageQtySum',
+        label: workerColumnLabel('stageQtySum') ?? '',
+        colClass: 'c-qty',
+        cellClass: 'num',
+        headerClass: 'num',
+        cell: (row, view, printStages) => formatQty(rowTotalQtyDone(row, printStages, view)),
+      },
+    ],
+    [STAGE_VALUE_NET_COLUMN_GROUP]: stages.map((stage) => {
+      const qtyKey = stageKey(stage.id)
+      return moneyColumn(
+        stageValueNetKey(stage.id),
+        `${stageLabel(stage)} netto`,
+        (row, view, printStages) =>
+          row[qtyKey]
+            ? formatPLN(
+                stageValueForView(row, row[qtyKey], rowTotalQtyDone(row, printStages, view), view),
+              )
+            : '',
+      )
+    }),
+    net: [
+      moneyColumn('net', workerColumnLabel('net') ?? '', (row, view, printStages) =>
+        formatPLN(rowValueForView(row, printStages, view)),
+      ),
+    ],
+    remainingForPlane: [
       moneyColumn('remainingForPlane', 'Pozostało', (row, view) =>
         formatPLN(rowRemainingForExecutedQty(row, executedQtyByItem[row.id] ?? 0, view)),
       ),
     ],
-  ]
-  return candidates
-    .filter(([visibilityKey]) => visible.has(visibilityKey))
-    .map(([, column]) => column)
+  }
+  return workerDocumentColumns(plane)
+    .filter((key) => visible.has(key))
+    .flatMap((key) => byKey[key] ?? [])
 }

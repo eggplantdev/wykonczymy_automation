@@ -194,7 +194,7 @@ export type ClientViewGroupT = {
 export const CLIENT_VIEW_GROUPS: readonly ClientViewGroupT[] = [
   {
     label: 'Opis i ilości',
-    keys: ['sectionName', 'description', 'plannedQty', 'stageQtySum', 'unit'],
+    keys: ['description', 'plannedQty', 'stageQtySum', 'unit'],
   },
   {
     label: 'Ceny i rabat',
@@ -228,6 +228,34 @@ export const PREVIEW_VISIBLE_COLUMNS: ReadonlySet<string> = new Set(
   CLIENT_VIEW_GROUPS.flatMap((group) => group.keys),
 )
 
+// The investor's document — podgląd, link and „Generuj ofertę" alike — in reading order, which is not
+// the sheet's: the offered scope reads as one phrase (ilość, j.m., cena, wartość) ahead of the etapy,
+// and the pomiar follows the etapy it sums (owner, 2026-09-28). One list for the screen and the paper,
+// so the two cannot print different columns or the same ones in a different order. The same keys as
+// CLIENT_VIEW_GROUPS, which orders them for the settings dialog instead.
+export const CLIENT_DOCUMENT_COLUMNS: readonly string[] = [
+  'description',
+  'plannedQty',
+  'unit',
+  'price',
+  'plannedNet',
+  'plannedGross',
+  STAGES_COLUMN_GROUP,
+  'stageQtySum',
+  'priceGross',
+  'discountValue',
+  'discountType',
+  'discountAmount',
+  'discountAmountGross',
+  'gross',
+  STAGE_VALUE_NET_COLUMN_GROUP,
+  'net',
+  STAGE_VALUE_GROSS_COLUMN_GROUP,
+  'donePercent',
+  'remaining',
+  'remainingGross',
+]
+
 // The worker view's stawka, as a LOGICAL key: the column it stands for is `price__<plane>`, and which
 // plane is decided per worker, at render (`workerVisibleColumns`). Stored settings hold this key, so
 // one firm-wide tick answers for both rozliczenia — and no stored value can ever name `price`, the
@@ -242,7 +270,7 @@ export const WORKER_RATE_KEY = 'rate'
 export const WORKER_VIEW_GROUPS: readonly ClientViewGroupT[] = [
   {
     label: 'Opis i ilości',
-    keys: ['sectionName', 'description', 'plannedQty', 'stageQtySum', 'unit'],
+    keys: ['description', 'plannedQty', 'stageQtySum', 'unit'],
   },
   {
     label: 'Stawka i wartości',
@@ -252,6 +280,21 @@ export const WORKER_VIEW_GROUPS: readonly ClientViewGroupT[] = [
     label: 'Etapy',
     keys: [STAGES_COLUMN_GROUP, STAGE_VALUE_NET_COLUMN_GROUP],
   },
+]
+
+// The worker's document — his link, the owner's Podgląd and his PDF — in reading order. Same reasons
+// and same contract as CLIENT_DOCUMENT_COLUMNS, over the keys of WORKER_VIEW_GROUPS.
+export const WORKER_DOCUMENT_COLUMNS: readonly string[] = [
+  'description',
+  'plannedQty',
+  'unit',
+  WORKER_RATE_KEY,
+  'plannedNetForPlane',
+  STAGES_COLUMN_GROUP,
+  'stageQtySum',
+  STAGE_VALUE_NET_COLUMN_GROUP,
+  'net',
+  'remainingForPlane',
 ]
 
 // The workbench's column list — exactly what a szablon carries to the next job. The rest of the

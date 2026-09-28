@@ -102,3 +102,27 @@ tr.band-total td.rail { border-top: none; background-position: 0 0; }
 .totals tr.grand td { border-top: 1px solid #18181b; padding-top: 9px; font-size: 11pt;
                       font-weight: 600; letter-spacing: -.01em; color: #18181b; }
 `
+
+// For a document whose columns outgrow the portrait page — a worker's with its etapy, an offer the
+// owner widened with brutto or etap columns. Landscape alone runs out at a worker's fourth etap: at
+// the portrait widths the figures took 271mm of the 261mm available and the opis collapsed to one
+// letter per line. Narrower figures, a smaller type and a thinner inset leave the opis ~49mm at six
+// etapy. The headers run bottom-to-top so a label like „3etap parkieciarze netto" no longer sets its
+// column's width, and wrap at 14mm so that label does not set the header row's height either.
+export const WIDE_PRINT_STYLES = `
+@page { size: A4 landscape; }
+body { padding-left: 10mm; padding-right: 10mm; }
+.brand-title { font-size: 10pt; } .brand-kind { font-size: 5.5pt; }
+td, .unit { font-size: 5.5pt; }
+th { font-size: 4.5pt; letter-spacing: 0; padding: 4px 2px; writing-mode: vertical-rl;
+     transform: rotate(180deg); white-space: normal; height: 14mm; text-align: left;
+     vertical-align: bottom; }
+col.c-qty { width: 9mm; } col.c-unit { width: 12mm; } col.c-price { width: 13mm; }
+col.c-value { width: 15mm; } col.c-stage-qty { width: 8mm; }
+.num, th.num { padding-left: 2px; padding-right: 2px; }
+.band-name { font-size: 6.5pt; } .band-chip { width: 7px; height: 7px; }
+tr.band-total td { font-size: 6pt; }
+.totals td { font-size: 7pt; }
+.totals tr.sub td { padding-top: 0; font-size: 6pt; color: #a1a1aa; }
+.totals tr.grand td { font-size: 9pt; }
+`

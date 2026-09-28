@@ -10,6 +10,7 @@ import {
   type ColumnRanksT,
 } from '@/lib/table/column-order'
 import {
+  CLIENT_DOCUMENT_COLUMNS,
   CREW_PLANE_ONLY_COLUMNS,
   DISCOUNT_COLUMN_IDS,
   PREVIEW_VISIBLE_COLUMNS,
@@ -21,7 +22,7 @@ import {
 import { CREW_AXIS_DEFAULT, crewAxisAllows } from '@/lib/kosztorys/crew-axis'
 import { LAYER_DEFAULT, layerAllows } from '@/lib/kosztorys/layer'
 import { MONEY_AXIS_DEFAULT, axisAllows } from '@/lib/kosztorys/money-axis'
-import { workerVisibleColumns } from '@/lib/kosztorys/worker-view/settings'
+import { workerDocumentColumns, workerVisibleColumns } from '@/lib/kosztorys/worker-view/settings'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 // A stage column answers to its axis's shared "Etapy — …" picker entry, not to its own id.
@@ -73,6 +74,14 @@ function closedColumnList(opts: BuildV2ColumnsOptsT): ReadonlySet<string> | null
     return workerVisibleColumns(opts.workerSurface.plane, opts.workerSurface.hiddenColumns)
   }
   if (opts.workshopVisible) return WORKSHOP_VISIBLE_COLUMNS
+  return null
+}
+
+// The two documents read in their audience's order, the one their PDF prints in — never the sheet's,
+// which stays the workbench's.
+function documentOrder(opts: BuildV2ColumnsOptsT): readonly string[] | null {
+  if (opts.previewVisible) return CLIENT_DOCUMENT_COLUMNS
+  if (opts.workerSurface) return workerDocumentColumns(opts.workerSurface.plane)
   return null
 }
 
@@ -173,6 +182,8 @@ export function orderAssembled(
   // An empty rank map is the assemble order by definition, and it is what every owner who never
   // reordered anything has — bail before the group→sort→regroup pass instead of reproducing the
   // input array on each render.
+  const order = documentOrder(opts)
+  if (order) return orderColumns(assembled, baseRanksFromKeys(order), toggleKey)
   if (closedColumnList(opts) || !opts.columnRanks || Object.keys(opts.columnRanks).length === 0) {
     return assembled
   }
