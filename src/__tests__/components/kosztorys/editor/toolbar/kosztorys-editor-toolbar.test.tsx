@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react'
 import { KosztorysEditorToolbar } from '@/components/kosztorys/editor/toolbar/kosztorys-editor-toolbar'
 import { CataloguePickerHost } from '@/components/kosztorys/editor/actions/catalogue-picker-host'
 import { KosztorysEditorProvider } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
+import { CurrentUserProvider } from '@/hooks/use-current-user'
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), prefetch: vi.fn(), refresh: vi.fn() }),
@@ -63,14 +64,27 @@ const editorContext = {
   rows: [],
 } as unknown as EditorContextT
 
+// „Udostępnij inwestorowi" reads the session's role to decide whether „Zapisz jako domyślne" is
+// offered, and the toolbar mounts that dialog on the way to first paint — so without a session the
+// whole toolbar throws. OWNER because the toolbar is what an owner opens; no assertion here turns on
+// the role.
+const sessionUser = {
+  id: 1,
+  email: 'owner@example.test',
+  name: 'Testowy Właściciel',
+  role: 'OWNER',
+} as const
+
 const renderToolbar = (overrides: Partial<Record<string, unknown>> = {}) =>
   render(
-    <KosztorysEditorProvider editor={{ ...editorContext, ...overrides } as EditorContextT}>
-      {/* „Dodaj" reaches for the catalogue picker, which the editor body hosts above the toolbar. */}
-      <CataloguePickerHost>
-        <KosztorysEditorToolbar />
-      </CataloguePickerHost>
-    </KosztorysEditorProvider>,
+    <CurrentUserProvider user={sessionUser}>
+      <KosztorysEditorProvider editor={{ ...editorContext, ...overrides } as EditorContextT}>
+        {/* „Dodaj" reaches for the catalogue picker, which the editor body hosts above the toolbar. */}
+        <CataloguePickerHost>
+          <KosztorysEditorToolbar />
+        </CataloguePickerHost>
+      </KosztorysEditorProvider>
+    </CurrentUserProvider>,
   )
 
 describe('KosztorysEditorToolbar — przełącznik panelu', () => {

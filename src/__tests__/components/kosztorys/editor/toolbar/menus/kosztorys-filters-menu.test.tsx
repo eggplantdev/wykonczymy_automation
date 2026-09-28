@@ -22,6 +22,10 @@ vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
     resetFilters: vi.fn(),
     collapsedSectionIds: new Set<number>(),
     globalDiscount: { type: null, value: 0 },
+    // 'both', not the app's default 'none': the subject here is the bulk row, and a plane-bound filter
+    // is offered only while its crew's stawki are on screen — at 'none' there would be nothing plane-
+    // bound left for a sweep to reach. The axis gate itself is pinned in `filters-menu-model.test.ts`.
+    crewAxis: 'both',
     search: '',
   }),
 }))
