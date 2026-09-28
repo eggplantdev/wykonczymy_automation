@@ -1181,3 +1181,21 @@ nie jest udostępnione kontu tylko do odczytu, więc te sprawdza się na produkc
       pobiera się jak dotąd, bez żadnego pytania o kolumnę
 - [ ] Postępu 4a (kolumna wskazana wcześniej ręcznie na `T`), na produkcji: podgląd rusza bez pytania
       o kolumnę i nie pokazuje już dopisku o ręcznym wskazaniu
+
+## catalogue-picker-virtualization — „Dodaj pracę z katalogu" rysuje tylko widoczne wiersze (EX-860, 2026-09-28)
+
+Lista w oknie rysuje tylko to, co widać; zmiana we wspólnej tabeli dotyka też dwóch tabel
+podsumowania kosztorysu. Pierwsze cztery sprawdzone lokalnie (build produkcyjny, inw. 157) — do
+powtórzenia na stagingu.
+
+- [ ] Na ekranie 1440 px „Opis pracy" jest najszerszą kolumną, żadna nie jest ucięta, tabela nie
+      przewija się w poziomie, a stopka „Dodaj do:" jest widoczna w całości
+- [ ] Przewinięcie całej listy w dół i z powrotem: bez skoków i pustych pasów, zawinięte wiersze
+      widoczne w całości
+- [ ] Zaznaczona praca po przewinięciu poza widok i z powrotem nadal jest zaznaczona, a „Dodaj (1)"
+      w międzyczasie się nie zmienia
+- [ ] Wyszukanie zostawiające 2–3 prace: lista kurczy się do nich, bez pustego pola pod spodem
+- [ ] Podsumowanie kosztorysu → „Materiały": wiersze, nagłówek i „Razem" wyglądają jak dotąd;
+      przewijanie długiej listy bez skoków i pustych pasów
+- [ ] Podsumowanie → „Podwykonawcy" (wypłaty): to samo
+- [ ] `pnpm exec playwright test e2e/work-catalogue.spec.ts` na bazie E2E — uruchamia człowiek

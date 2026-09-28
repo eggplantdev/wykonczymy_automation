@@ -1,7 +1,7 @@
 ---
 change_id: catalogue-picker-virtualization
 title: Virtualize the „Dodaj pracę z katalogu" picker list (EX-860)
-status: implementing
+status: implemented
 created: 2026-09-28
 updated: 2026-09-28
 archived_at: null
