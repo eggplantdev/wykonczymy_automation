@@ -37,12 +37,24 @@ const HEADER_TIPS: Record<string, string> = {
   [STAGE_VALUE_GROSS_COLUMN_GROUP]: 'Etap — kwota brutto = Etap — kwota netto razy (1 + VAT).',
 }
 
+// The worker's document is read by the crew, whose figures are pomiar × their own stawka: the
+// client's rabat and the editor's price view are not in them, so the tips above would misexplain it.
+const WORKER_HEADER_TIPS: Record<string, string> = {
+  plannedNetForPlane: 'Przedmiar razy Twoja stawka.\nIle zarobisz, jeśli wykonasz cały przedmiar.',
+  net: 'Pomiar razy Twoja stawka.',
+  [STAGE_VALUE_NET_COLUMN_GROUP]: 'Ilość wykonana w tym etapie razy Twoja stawka.',
+}
+
 /**
  * The map's only reader, so the base-key resolution lives here rather than at a call site — same
  * shape as `columnLabelForView`, `axisAllows` and `layerAllows`, which each own it too. One tip on
  * „Cena j.m." has to answer for both planes' rate columns; a second entry per plane is the drift
  * `column-config.ts` exists to prevent.
  */
-export function headerTipFor(columnId: string): string | undefined {
-  return HEADER_TIPS[basePriceKey(columnId)]
+export function headerTipFor(
+  columnId: string,
+  { workerSurface = false }: { workerSurface?: boolean } = {},
+): string | undefined {
+  const key = basePriceKey(columnId)
+  return (workerSurface ? WORKER_HEADER_TIPS[key] : undefined) ?? HEADER_TIPS[key]
 }

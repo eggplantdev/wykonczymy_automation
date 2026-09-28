@@ -49,14 +49,17 @@ function sortableHeader(
 // the same resolver, so a label that becomes view-dependent can't land in one and miss the other.
 export function columnTitle(
   field: string,
-  opts: Pick<BuildV2ColumnsOptsT, 'sort' | 'onSetSort' | 'onPersistKosztorysOrder' | 'view'>,
+  opts: Pick<
+    BuildV2ColumnsOptsT,
+    'sort' | 'onSetSort' | 'onPersistKosztorysOrder' | 'view' | 'workerSurface'
+  >,
 ): ReactNode {
   return sortableHeader(
     columnLabelForView(field, opts.view),
     field,
     // Base key: a plane's „Cena j.m. netto" and „Źródło ceny wykonawcy" explain the same figure on
     // both planes, so the tip is written once and every plane reads it.
-    headerTipFor(field),
+    headerTipFor(field, { workerSurface: !!opts.workerSurface }),
     opts,
   )
 }
@@ -69,9 +72,17 @@ export function columnTitle(
 export function stageValueHeader(
   stage: KosztorysStageT,
   suffix: string,
-  tip: string | undefined,
+  group: string,
   field: string,
-  opts: Pick<BuildV2ColumnsOptsT, 'sort' | 'onSetSort' | 'onPersistKosztorysOrder'>,
+  opts: Pick<
+    BuildV2ColumnsOptsT,
+    'sort' | 'onSetSort' | 'onPersistKosztorysOrder' | 'workerSurface'
+  >,
 ): ReactNode {
-  return sortableHeader(`${stageLabel(stage)} ${suffix}`, field, tip, opts)
+  return sortableHeader(
+    `${stageLabel(stage)} ${suffix}`,
+    field,
+    headerTipFor(group, { workerSurface: !!opts.workerSurface }),
+    opts,
+  )
 }

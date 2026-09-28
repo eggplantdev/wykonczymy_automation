@@ -45,7 +45,6 @@ import {
   stageValueNetKey,
 } from '@/lib/kosztorys/stage-keys'
 import { type ColumnRanksT } from '@/lib/table/column-order'
-import { headerTipFor } from '@/lib/kosztorys/header-tips'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import { formatPercent, formatQty } from '@/lib/kosztorys/format'
@@ -281,13 +280,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   const stageValueNetCols: Column<KosztorysV2RowT>[] = shownStages.map((st) => {
     const qtyKey = stageKey(st.id)
     const field = stageValueNetKey(st.id)
-    const header = stageValueHeader(
-      st,
-      'netto',
-      headerTipFor(STAGE_VALUE_NET_COLUMN_GROUP),
-      field,
-      opts,
-    )
+    const header = stageValueHeader(st, 'netto', STAGE_VALUE_NET_COLUMN_GROUP, field, opts)
     return computedColumn(field, header, (r) =>
       stageValueForView(r, r[qtyKey] ?? 0, totalQtyDone(r), view),
     )
@@ -296,13 +289,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   const stageValueGrossCols: Column<KosztorysV2RowT>[] = shownStages.map((st) => {
     const qtyKey = stageKey(st.id)
     const field = stageValueGrossKey(st.id)
-    const header = stageValueHeader(
-      st,
-      'brutto',
-      headerTipFor(STAGE_VALUE_GROSS_COLUMN_GROUP),
-      field,
-      opts,
-    )
+    const header = stageValueHeader(st, 'brutto', STAGE_VALUE_GROSS_COLUMN_GROUP, field, opts)
     return computedColumn(field, header, (r) =>
       toGross(stageValueForView(r, r[qtyKey] ?? 0, totalQtyDone(r), view), r.vatRate),
     )
