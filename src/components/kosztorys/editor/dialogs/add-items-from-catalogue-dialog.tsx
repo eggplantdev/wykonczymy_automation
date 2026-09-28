@@ -152,6 +152,7 @@ export function AddItemsFromCatalogueDialog({
     col.display({
       id: 'select',
       header: '',
+      size: 40,
       cell: (info) => <SelectCell item={info.row.original} onToggle={toggle} />,
     }),
     ...WORK_CATALOGUE_PICKER_COLUMNS,
@@ -258,9 +259,15 @@ export function AddItemsFromCatalogueDialog({
         {catalogue.length === 0 ? (
           <p className="text-muted-foreground px-4 py-6 text-sm">Katalog prac jest pusty.</p>
         ) : (
-          <div className="max-h-[55vh] min-h-0 overflow-y-auto px-4 pb-3">
+          <div className="min-h-0 px-4 pb-3">
             <SelectedIdsContext value={selected}>
-              <DataTable data={visible} columns={columns} initialSorting={INITIAL_SORTING} />
+              <DataTable
+                data={visible}
+                columns={columns}
+                initialSorting={INITIAL_SORTING}
+                enableVirtualization
+                virtualContainerClassName="max-h-[55vh]"
+              />
             </SelectedIdsContext>
           </div>
         )}

@@ -209,6 +209,9 @@ test('praca z katalogu ląduje na końcu tej sekcji, z której otwarto katalog',
 
   const picker = page.getByRole('dialog')
   await expect(picker).toContainText('Dodaj pracę z katalogu')
+  // The list is virtualized, so a row outside its window is missing from the DOM too — the check
+  // below would pass for that alone. Narrowed to this one praca, only the switch can hide it.
+  await picker.getByPlaceholder('Szukaj pracy…').fill(seed.insert.item)
   const row = picker.getByRole('checkbox', { name: seed.insert.item, exact: true })
 
   // Instrument check, and the one behaviour the picker owns: the praca IS in this kosztorys, so the

@@ -312,13 +312,13 @@ scroll offset; TanStack handles that by default.
 
 #### Automated
 
-- [x] 1.1 DataTable specs pass
-- [x] 1.2 Materials table spec passes
+- [x] 1.1 DataTable specs pass — baad2943
+- [x] 1.2 Materials table spec passes — baad2943
 
 ### Phase 2: The picker
 
 #### Automated
 
-- [ ] 2.1 Picker dialog specs pass, including the new window-bound guard
+- [x] 2.1 Picker dialog specs pass, including the new window-bound guard
 
 ### Phase 3: Re-measure

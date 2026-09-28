@@ -90,18 +90,23 @@ const lpColumn = (ordinals: ReadonlyMap<number, number>) =>
     ),
   })
 
+// The picker's `size`s: its virtualized list lays out fixed, so the narrow columns hold these widths
+// and the opis fills the rest with its `size` as the floor. Their sum stays inside `dialog-xl` on a
+// 1440 screen. /katalog-prac lays out from content and never reads them.
 const descriptionColumn = col.accessor('description', {
   id: 'description',
   header: 'Opis pracy',
+  size: 320,
   sortingFn: (first, second) =>
     compareDescriptions(first.original.description, second.original.description),
-  meta: { minWidth: 'min-w-112' },
+  meta: { minWidth: 'min-w-112', fill: true },
   cell: (info) => <span className="block font-medium">{info.getValue()}</span>,
 })
 
 const categoryColumn = col.accessor((row) => row.category ?? '', {
   id: 'category',
   header: 'Kategoria',
+  size: 180,
   sortingFn: (first, second) =>
     compareDescriptions(first.original.category ?? '', second.original.category ?? ''),
   meta: { minWidth: 'min-w-50' },
@@ -111,18 +116,21 @@ const categoryColumn = col.accessor((row) => row.category ?? '', {
 const unitColumn = col.accessor('unit', {
   id: 'unit',
   header: 'j.m.',
+  size: 72,
   cell: (info) => <span className="text-muted-foreground text-sm">{info.getValue()}</span>,
 })
 
 const clientPriceColumn = col.accessor('clientPrice', {
   id: 'clientPrice',
   header: 'Cena j.m.',
+  size: 120,
   cell: (info) => <span className="tabular-nums">{formatPLN(info.getValue())}</span>,
 })
 
 const wToolsRateColumn = col.accessor((row) => rateAmount(row, 'w_tools'), {
   id: 'wToolsRate',
   header: twoLines('Stawka z narzędziami', '(podwykonawca)'),
+  size: 190,
   meta: { label: RATE_LABELS.w_tools },
   cell: (info) => rateCell(info.row.original, 'w_tools'),
 })
@@ -168,6 +176,7 @@ const wToolsShareColumn = shareColumn('w_tools', 'wToolsShare', PLANE_LABELS.w_t
 const ownToolsRateColumn = col.accessor((row) => rateAmount(row, 'own_tools'), {
   id: 'ownToolsRate',
   header: twoLines('Stawka bez narzędzi', '(pracownik)'),
+  size: 190,
   meta: { label: RATE_LABELS.own_tools },
   cell: (info) => rateCell(info.row.original, 'own_tools'),
 })
