@@ -841,6 +841,25 @@ Run once, after the final phase:
 - DB integration suite passes: `pnpm test:integration`
 - Build succeeds: `pnpm build`
 
+## As built (addendum, 2026-09-28 review gate)
+
+Where the shipped code departs from the phases above:
+
+- **Routes.** The worker's public link is `/p/[name]/[token]` (the name segment is cosmetic — the
+  token alone resolves, so a rename keeps old links working); the owner's podgląd is
+  `/podglad-pracownika/[worker]/[id]`. `/p/` is reachable without a session via `proxy.ts`
+  (`320fdf64`).
+- **Shared dialog bodies instead of parametrised investor dialogs.** `ViewSettingsFields` (column
+  ticks + empty-rows switch, per-audience ceiling) and `ShareLinkPanel` (link lifecycle buttons)
+  serve both audiences.
+- **One print base.** `buildKosztorysPrintHtml` renders both the offer and the worker PDF; each
+  supplies its own columns and styles.
+- **`sectionName`** is outside `WORKER_VIEW_GROUPS` — not a column the worker settings can tick.
+- **Investor document order.** The investor's podgląd and PDF read `CLIENT_DOCUMENT_COLUMNS` in a
+  fixed reading order, the same contract as `WORKER_DOCUMENT_COLUMNS`.
+- **Link tokens.** Mint/rotate/revoke for both audiences go through `lib/kosztorys/share-token.ts`;
+  the worker menu reads an existing link via `lib/queries/worker-share-link-endpoint.ts`.
+
 ## References
 
 - Spec: `context/changes/2026-09-28-kosztorys-worker-view/design.md`

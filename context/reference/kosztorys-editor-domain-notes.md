@@ -380,8 +380,8 @@ właśnie po to, żeby jej nie przepisywać.
   wypłat to „Nadpłata" z dodatnią kwotą, nigdy liczba ujemna.
 - **PDF** to ten sam generator co oferta, z projekcji pracownika (nigdy z wierszy edytora, które
   niosą cenę klienta): A4 poziomo, bo każdy etap dokłada dwie kolumny; kwoty z groszami, bo stawka
-  7,50 zł zaokrąglona do „8 zł" to inna stawka. „Σ etapów" i „Wartość wykonana" nie idą na papier —
-  niosą je kolumny etapów i stopka.
+  7,50 zł zaokrąglona do „8 zł" to inna stawka. Na papier idą te same kolumny, w tej samej
+  kolejności, co w podglądzie pracownika — łącznie z „Σ etapów" i „Wartością wykonaną".
 
 ## Decyzje zamknięte
 

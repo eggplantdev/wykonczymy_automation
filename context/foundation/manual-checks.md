@@ -1306,6 +1306,10 @@ powtórzenia na stagingu.
       z o. o." (do poprawienia w polu).
 - [ ] Rozliczenie w dialogu = Robocizna / Materiały / Wpłaty / Pozostało do zapłaty z „Podsumowania"
       (netto), co do grosza; Strata pojawia się tylko, gdy jest.
+- [ ] Na kosztorysie z rabatem Robocizna = kwota **przed** rabatem, pod nią osobny wiersz „Rabat" —
+      obie liczby jak w „Podsumowaniu"; Pozostało do zapłaty bez zmian.
+- [ ] Inwestycja bez osoby kontaktowej: zmiana samego adresu i „Zaktualizuj dane inwestycji" — osoba
+      kontaktowa zostaje pusta (nie wpisuje się nazwa inwestycji).
 - [ ] Zakres prac to dokładnie pozycje z niezerowym Pomiarem z natury.
 - [ ] „Zaktualizuj dane inwestycji" jest nieaktywny, dopóki Zamawiający/adres się nie zmienią; po
       zapisie inwestycja ma nowe wartości, a telefon/e-mail/notatki są nietknięte.
@@ -1346,3 +1350,40 @@ addytywna — na produkcję **przed** pushem; DROP starych kolumn to EX-886, po 
 ### E2E
 
 - [ ] `pnpm test:e2e e2e/client-share.spec.ts` przechodzi — uruchamia człowiek
+
+## kosztorys-worker-view — widok i PDF pracownika z menu „Pracownicy" (EX-875, 2026-09-28)
+
+### Kolumna „Wartość przedmiaru" wykonawcy
+
+- [ ] Jako OWNER i jako MANAGER, w widoku „Z narzędziami", zaznacz „Wartość przedmiaru netto — z
+      narzędziami": pokazuje Przedmiar × stawka z narzędziami, a „Razem" to jej suma.
+- [ ] Przełączenie na widok Inwestor zdejmuje kolumnę i jej pozycję z listy kolumn.
+
+### Link pracownika
+
+- [ ] „Wygeneruj link", skopiuj i otwórz w oknie prywatnym (`/p/<imię>/<token>`): w nagłówku imię
+      pracownika, tylko jego etapy, „Cena j.m." = jego stawka, nigdzie ceny klienta.
+- [ ] Podsumowanie pod linkiem zgadza się z „Podsumowaniem pracowników" w edytorze dla tego
+      pracownika; wypłaty wypisane bez opisu; nadpłata jako „Nadpłata", nie liczba ujemna.
+- [ ] „Ukryj puste pozycje": pozycja wykonana tylko przez innego pracownika znika, sumy się nie ruszają.
+- [ ] Drugi pracownik na tym samym rozliczeniu: żaden nie widzi ilości ani kwot drugiego;
+      „Pozostało" na pozycji dokończonej przez drugiego = 0.
+- [ ] „Wyłącz link": przy następnym wczytaniu link daje 404.
+- [ ] Etap z rozliczeniem „nie potwierdzone" albo jeden pracownik na obu rozliczeniach: Link i PDF
+      nieaktywne, z właściwym komunikatem.
+- [ ] Zmiana imienia pracownika: stary link dalej działa.
+
+### Ustawienia widoku pracowników
+
+- [ ] Jako MANAGER okno ustawień jest tylko do odczytu. Jako OWNER odznaczenie kolumny chowa ją pod
+      każdym linkiem pracownika.
+
+### PDF pracownika
+
+- [ ] „Drukuj PDF" dla pracownika: nagłówek z jego imieniem, kolumny i ich kolejność jak pod linkiem,
+      kwoty z groszami, A4 poziomo; stopka = przedmiar po jego stawce / wykonane per etap / wypłacone
+      z listą / pozostało; brak ceny klienta.
+- [ ] Oferta dla inwestora („Wygeneruj ofertę") drukuje się jak wcześniej; przy rabacie globalnym bez
+      kolumn rabatu pozycji.
+- [ ] Najazd na nagłówki „Razem netto" i wartości etapów na dokumencie pracownika: podpowiedź mówi o
+      jego stawce, nie o rabacie klienta.
