@@ -1,5 +1,6 @@
 'use client'
 
+import { type ReactNode } from 'react'
 import { type CellProps, type Column } from 'react-datasheet-grid'
 import {
   SectionHeaderCell,
@@ -15,6 +16,7 @@ import { formatNet } from '@/lib/kosztorys/format'
 import {
   isSectionFooterRow,
   isSectionHeaderRow,
+  FOOTER_TITLES_ROW_ID,
   SPACER_ROW_ID,
   TOTALS_ROW_ID,
 } from '@/lib/kosztorys/synthetic-rows'
@@ -23,6 +25,11 @@ import { cn } from '@/lib/utils/cn'
 
 // globals.css lets the band's label out of this cell — the class marks which cell that is.
 export const BAND_LABEL_CELL_CLASS = 'kosztorys-band-label-cell'
+export const STRIPE_COLUMN_CLASS = 'kosztorys-stripe-column'
+// globals.css sizes the repeated title like the „Razem" figures below it.
+const FOOTER_TITLE_CELL_CLASS = 'kosztorys-footer-title'
+// globals.css clears these fills in the preview, so the column stripes run to the bottom of the grid.
+const FOOTER_FILL_CLASS = 'kosztorys-footer-fill'
 
 // „Razem" rides the grid's own layout, so column alignment and horizontal scroll come for free; the
 // price of that is that dsg renders EVERY column's cell against it, so `withSyntheticRows` wraps each
@@ -30,18 +37,24 @@ export const BAND_LABEL_CELL_CLASS = 'kosztorys-band-label-cell'
 // bands are the same mechanism, one branch further.
 
 // dsg takes `cellClassName` as a string OR a per-row function, and a wrapped column may use either.
-function withBandLabelClass(
+export function withCellClass(
   base: Column<KosztorysV2RowT>['cellClassName'],
+  className: string,
 ): Column<KosztorysV2RowT>['cellClassName'] {
-  if (typeof base === 'function') return (opts) => cn(base(opts), BAND_LABEL_CELL_CLASS)
-  return cn(base, BAND_LABEL_CELL_CLASS)
+  if (typeof base === 'function') return (opts) => cn(base(opts), className)
+  return cn(base, className)
 }
 
 // Left-aligned like the data cells (computed-cell.tsx / decimalColumn are `text-left px-2`), so a
 // column's total sits directly under its values.
 function TotalsRowCell({ content }: { content: string }) {
   return (
-    <div className="bg-muted text-foreground border-border flex size-full items-center border-t-2 px-2 text-base font-semibold tabular-nums">
+    <div
+      className={cn(
+        FOOTER_FILL_CLASS,
+        'bg-muted text-foreground border-border flex size-full items-center border-t-2 px-2 text-base font-semibold tabular-nums',
+      )}
+    >
       {content}
     </div>
   )
@@ -56,6 +69,8 @@ type SyntheticColumnDataT = {
   columnId: string | undefined
   sectionHeader: SectionHeaderContextT
   sectionFooter: SectionFooterContextT
+  // The column's own header, repeated above its „Razem" figure once the header has scrolled away.
+  footerTitle: ReactNode
   base: Column<KosztorysV2RowT>['component']
 }
 
@@ -68,7 +83,20 @@ type SyntheticColumnDataT = {
 // exactly the indirection `keyColumn` uses to stay stable.
 function SyntheticAwareCell(props: CellProps<KosztorysV2RowT, SyntheticColumnDataT>) {
   const { rowData, columnData } = props
-  if (rowData.id === SPACER_ROW_ID) return <div className="bg-background size-full" />
+  if (rowData.id === SPACER_ROW_ID)
+    return <div className={cn(FOOTER_FILL_CLASS, 'bg-background size-full')} />
+  if (rowData.id === FOOTER_TITLES_ROW_ID)
+    return (
+      // dsg's own header-container class, so the copy sits at the header's inset.
+      <div
+        className={cn(
+          FOOTER_TITLE_CELL_CLASS,
+          'dsg-cell-header-container flex size-full items-center',
+        )}
+      >
+        {columnData.footerTitle}
+      </div>
+    )
   if (rowData.id === TOTALS_ROW_ID) return <TotalsRowCell content={columnData.content} />
   if (isSectionHeaderRow(rowData.id))
     return (
@@ -113,7 +141,9 @@ export function withSyntheticRows(
     component: SyntheticAwareCell as Column<KosztorysV2RowT>['component'],
     // The label is let out of its cell by a globals.css rule, which has to find it wherever it landed.
     cellClassName:
-      slot === 'label' ? withBandLabelClass(column.cellClassName) : column.cellClassName,
+      slot === 'label'
+        ? withCellClass(column.cellClassName, BAND_LABEL_CELL_CLASS)
+        : column.cellClassName,
     // Merge over the wrapped column's own columnData so a delegated base cell (e.g. keyColumn's
     // KeyComponent, which reads columnData.key/original) still finds what it needs.
     columnData: {
@@ -123,6 +153,7 @@ export function withSyntheticRows(
       columnId: column.id,
       sectionHeader,
       sectionFooter,
+      footerTitle: total != null ? column.title : null,
       base: column.component,
     },
   }

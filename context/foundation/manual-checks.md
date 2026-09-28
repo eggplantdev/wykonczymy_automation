@@ -690,15 +690,15 @@ Licznik renderów czytaj z logu dev: `[PERF] buildKosztorysTree` (drzewo jest ni
 Account as the scope.` — to był zły argument `--scope`, nie brak dostępu. Właściwy scope to
       zespół projektu z `.vercel/project.json` (`orgId`), nie konto CLI:
 
-                        ```bash
-                        npx vercel logs https://<deployment>.vercel.app --scope=team_BWfyTqJnjIqZBkHwBL0elgS4
-                        ```
+                          ```bash
+                          npx vercel logs https://<deployment>.vercel.app --scope=team_BWfyTqJnjIqZBkHwBL0elgS4
+                          ```
 
-                        Strumień oddaje runtime stdout pogrupowany per request, a `console.log` w `buildKosztorysTree`
-                        (`src/lib/queries/kosztorys.ts:71`) nie jest bramkowany `NODE_ENV`, więc linia `[PERF]
-                        buildKosztorysTree …` wychodzi tak samo z builda produkcyjnego na stagingu, jak z dev.
-                        Właściwy box wyżej policzony tą drogą i odhaczony — jeden wpis na jeden upload.
-                        **Test disposition:** no automated test — to obserwowalność (log count), nie asercja stanu.
+                          Strumień oddaje runtime stdout pogrupowany per request, a `console.log` w `buildKosztorysTree`
+                          (`src/lib/queries/kosztorys.ts:71`) nie jest bramkowany `NODE_ENV`, więc linia `[PERF]
+                          buildKosztorysTree …` wychodzi tak samo z builda produkcyjnego na stagingu, jak z dev.
+                          Właściwy box wyżej policzony tą drogą i odhaczony — jeden wpis na jeden upload.
+                          **Test disposition:** no automated test — to obserwowalność (log count), nie asercja stanu.
 
 ## EX-820 — sufit stawki wykonawcy z „Problemów" do „Filtrów" (2026-09-22)
 
@@ -869,3 +869,21 @@ na żywo zostaje to, czy komunikat pada w panelu, a przeliczenie nie.
 - [ ] Pasek edytora, mnożnik ceny: `-0,2` i wyjście z pola → toast „Nieprawidłowa wartość —
       przywrócono 0,6." (przy zapisanym 0,6), mnożnik bez zmian; `0,9` nadal się zapisuje z
       ostrzeżeniem o przekroczeniu 65 %
+
+## podglad-inwestora-czytelnosc — podgląd inwestora bez szarości, z pasami kolumn (2026-09-28)
+
+Tylko podgląd inwestora (`/k/<token>` i „Podgląd inwestora" z edytora); edytor właściciela bez zmian.
+Sprawdzone lokalnie w Playwright na publicznym linku — do powtórzenia na stagingu.
+
+- [ ] Komórki tabeli są białe, nie szare — także „Wartość przedmiaru netto", „Pomiar (razem etapy)"
+      i inne wyliczane kolumny; liczby w nich czarne, nie szare
+- [ ] Nazwy kolumn w nagłówku pogrubione i czarne
+- [ ] Pod nagłówkiem jedna cienka czarna linia, taka sama jak linia nad nagłówkiem; pierwszy pasek
+      etapu (np. „Prace dodatkowe") nie dokłada pod nią drugiej ani trzeciej kreski
+- [ ] Co druga kolumna ma delikatnie szare tło, od nagłówka do samego „Razem"; kolorowe paski
+      etapów i ich „Razem …" przykrywają pasy (pasek czyta się jako jedna belka)
+- [ ] Przewinięcie tabeli w poziomie nie zamienia pasów miejscami (ta sama kolumna zostaje szara)
+- [ ] Na dole: pusty rząd, pod nim ponownie nazwy kolumn z sumą (czcionka jak w „Razem", długie nazwy
+      mieszczą się w całości), potem „Razem" — bez szarego bloku, z grubszą kreską nad nim
+- [ ] Edytor właściciela bez zmian: szare komórki tylko do odczytu, szare liczby wyliczane, bez pasów,
+      bez powtórzonych nazw nad „Razem", „Razem" na szarym tle

@@ -21,6 +21,8 @@ export function ReadOnlyCellText({
 }) {
   return (
     <span
+      // A hook for a grid whose context voids the "derived, not editable" cue (globals.css).
+      data-muted={muted && !danger ? '' : undefined}
       className={cn(
         // Wraps rather than truncating: a row taller than one line must fill that height with text,
         // and the row's own height is what limits how much shows. `break-words` keeps a single

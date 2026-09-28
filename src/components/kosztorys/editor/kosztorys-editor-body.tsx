@@ -24,7 +24,11 @@ import { SheetImportDialog } from '@/components/kosztorys/editor/dialogs/sheet-i
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { sectionFooterLabelColumnId } from '@/components/kosztorys/editor/grid/cells/section-footer-cell'
 import { sectionBandLabelColumnId } from '@/components/kosztorys/editor/grid/cells/section-header-cell'
-import { withSyntheticRows } from '@/components/kosztorys/editor/grid/kosztorys-synthetic-rows'
+import {
+  STRIPE_COLUMN_CLASS,
+  withCellClass,
+  withSyntheticRows,
+} from '@/components/kosztorys/editor/grid/kosztorys-synthetic-rows'
 import {
   ordinalGutterColumn,
   type RowResizeApiT,
@@ -37,8 +41,10 @@ import {
   isSectionFooterRow,
   isSectionHeaderRow,
   isSyntheticRow,
+  makeFooterTitlesRow,
   makeSpacerRow,
   makeTotalsRow,
+  FOOTER_TITLES_ROW_ID,
 } from '@/lib/kosztorys/synthetic-rows'
 import {
   clippedRowClass,
@@ -47,6 +53,7 @@ import {
   WRAPPING_COLUMN_IDS,
 } from '@/lib/kosztorys/row-content-lines'
 import {
+  FOOTER_TITLES_ROW_HEIGHT,
   HEADER_HEIGHT_KEY,
   fitRowHeight,
   heightForLines,
@@ -229,14 +236,21 @@ export function KosztorysEditorBody({
 
   const gridColumns = useMemo(
     () =>
-      columns.map((column) =>
-        withSyntheticRows(column, {
-          totals: columnTotals,
-          sectionHeader,
-          sectionFooter,
-        }),
+      columns.map((column, index) =>
+        withSyntheticRows(
+          // A class per column rather than `:nth-child` in CSS: dsg virtualizes columns, so a
+          // horizontal scroll shifts which DOM child a column is and the stripes would swap.
+          preview && index % 2 === 1
+            ? {
+                ...column,
+                cellClassName: withCellClass(column.cellClassName, STRIPE_COLUMN_CLASS),
+                headerClassName: cn(column.headerClassName, STRIPE_COLUMN_CLASS),
+              }
+            : column,
+          { totals: columnTotals, sectionHeader, sectionFooter },
+        ),
       ),
-    [columns, columnTotals, sectionHeader, sectionFooter],
+    [columns, preview, columnTotals, sectionHeader, sectionFooter],
   )
   const engagedHiderList = engagedHiders(engagedConditionIds)
   const engagedDiagnostics = engagedConditionsOfKind(engagedConditionIds, 'diagnostic')
@@ -250,7 +264,17 @@ export function KosztorysEditorBody({
       }),
     [viewRows, collapsedSectionIds, sort, sectionRows],
   )
-  const gridRows = useMemo(() => [...bodyRows, makeSpacerRow(), makeTotalsRow()], [bodyRows])
+  // The preview repeats the column titles above „Razem": the client reads the totals at the bottom
+  // of a long offer, where the header has long scrolled away.
+  const gridRows = useMemo(
+    () => [
+      ...bodyRows,
+      makeSpacerRow(),
+      ...(preview ? [makeFooterTitlesRow()] : []),
+      makeTotalsRow(),
+    ],
+    [bodyRows, preview],
+  )
   const datasheetRef = useRef<DataSheetGridRef>(null)
   const gridRowKeys = useMemo(() => gridRows.map((row) => String(row.id)), [gridRows])
 
@@ -426,7 +450,7 @@ export function KosztorysEditorBody({
               >
                 <DynamicDataSheetGrid
                   ref={datasheetRef}
-                  className="kosztorys-grid"
+                  className={cn('kosztorys-grid', preview && 'kosztorys-grid-preview')}
                   value={gridRows}
                   // Strip the appended spacer + „Razem" rows before the editor's diff sees them — display-only.
                   onChange={(rows) => onChange(rows.filter((row) => !isSyntheticRow(row.id)))}
@@ -434,17 +458,19 @@ export function KosztorysEditorBody({
                   gutterColumn={gutterColumn}
                   height={gridHeight}
                   rowHeight={({ rowData }) =>
-                    resolveRowHeight({
-                      isSectionBand: isSectionHeaderRow(rowData.id),
-                      // The client's heights come from the content, full stop — the owner's drags live
-                      // in the same localStorage origin, so reading them here would let the owner's
-                      // flattened editor rows clip the offer they open to check.
-                      override: preview ? undefined : rowHeights[String(rowData.id)],
-                      contentLines:
-                        sizeToContent && !isSyntheticRow(rowData.id)
-                          ? contentLinesFor(rowData)
-                          : undefined,
-                    })
+                    rowData.id === FOOTER_TITLES_ROW_ID
+                      ? FOOTER_TITLES_ROW_HEIGHT
+                      : resolveRowHeight({
+                          isSectionBand: isSectionHeaderRow(rowData.id),
+                          // The client's heights come from the content, full stop — the owner's drags live
+                          // in the same localStorage origin, so reading them here would let the owner's
+                          // flattened editor rows clip the offer they open to check.
+                          override: preview ? undefined : rowHeights[String(rowData.id)],
+                          contentLines:
+                            sizeToContent && !isSyntheticRow(rowData.id)
+                              ? contentLinesFor(rowData)
+                              : undefined,
+                        })
                   }
                   // Tall enough that verbose column labels („Pozostało netto (względem przedmiaru)" etc.)
                   // wrap onto two rows instead of truncating — and draggable from the same handle as a
