@@ -15,9 +15,9 @@ etap, wartość, rabat). The owner sees the same screen in „Podgląd dla inwes
 - `auto` rows are written every 10 min, and only while the editor is open (`use-auto-snapshot.ts`), and
   are also forced before a restore or delete (`capture-auto-snapshot.ts`).
 - `manual` rows mix two things: the owner's „Zapisz jako…" (`saveSnapshotAction`) and system points
-  labelled `Przed wczytaniem: …`, `Przed importem z arkusza Google` and `Przed wyczyszczeniem`
-  (`replace-tree-with-snapshot.ts:100`). On the local dump there are 88 system rows and 4 user-named
-  rows.
+  labelled `Przed wczytaniem: …` (`reload-from-preset.ts:10`), `Przed importem z arkusza Google`
+  (`actions/kosztorys-import.ts:38`) and `Przed wyczyszczeniem` (`actions/kosztorys.ts:298`). On the
+  local dump there are 88 system rows and 4 user-named rows.
 - Retention: `gcSnapshots` has a 365-day ceiling for every row. `auto` rows keep only the newest per
   Warsaw day from day 30 to day 120, then the newest per Warsaw week. It runs from `cron/cleanup`
   (`0 3 * * *`).
@@ -28,7 +28,14 @@ etap, wartość, rabat). The owner sees the same screen in „Podgląd dla inwes
 - Investor view: both pages render `KosztorysEditorBody preview` from `getPreviewKosztorysByToken` or
   `ById` (`src/lib/queries/preview-kosztorys.ts`). The token→investment lookup is inlined in
   `ByToken` and is uncached, so revoking a link takes effect immediately.
-- The grid seeds its rows from `tree` once (`useState(() => treeToRows(tree))`).
+- The grid seeds its rows from `tree` once (`use-kosztorys-editor.ts:178`).
+- **The preview hides empty settlement columns by data** (EX-client-view-auto-columns, `e882bef8`):
+  `use-kosztorys-editor.ts:504` adds `emptySettlementColumnIds(rows, stages)` to the client's hidden
+  set — an etap with no entries loses its Pomiar and wartość columns, and with no entries anywhere
+  the „razem"/„% wykonania" totals go too. It is computed over the rows the grid renders.
+- **The worker page reuses the same preview body** (`worker-kosztorys-page.tsx`, `worker` prop,
+  `0e1f9553`), with its own token table `kosztorys-worker-shares`. Anything added to the preview
+  header shows to the worker unless it is gated on `!worker`.
 - Investments have no completion date. `status` changes only through Payload `update`
   (`updateInvestmentAction`, or `/admin`), and the `guardInvestmentStatusUnlock` beforeChange hook
   already sits on that path.
@@ -70,7 +77,14 @@ etap, wartość, rabat). The owner sees the same screen in „Podgląd dla inwes
   Unless it is taught the new kinds, `named` versions would vanish from the owner's restore list.
 - Id matching breaks across a restore or „wczytaj szablon", which mint new ids. `keyItems`
   (`sheet-import/item-key.ts:47-63`) is the existing section + opis + occurrence key; j.m. is added on
-  top.
+  top. The fallback runs per pozycja over whatever id matching left unmatched on both sides — broader
+  than design #14's "when the id sets are disjoint", so a restore followed by new pozycje still
+  matches. The accepted side effect: deleting a pozycja and re-adding one with the same sekcja + opis +
+  j.m. reads as one changed pozycja, which is what the investor sees on paper anyway.
+- A trashed investment is never reached by the nightly job, and its share link resolves as unknown.
+  The trash purge (`selectPurgeableInvestmentIds`) deletes only investments whose kosztorys was never
+  used, so a used, trashed investment keeps its `daily`/`named` rows until it is restored — which is
+  what makes a restore from the kosz bring its history back. No retention rule is needed for it.
 
 ## What We're NOT Doing
 
@@ -134,9 +148,9 @@ The work is mostly additive on the existing snapshot table:
 
 ### Changes Required:
 
-#### 1. Migration `20260928_1_investment_completed_at.ts`
+#### 1. Migration `20260928_3_investment_completed_at.ts`
 
-**File**: `src/migrations/20260928_1_investment_completed_at.ts` (+ register in `src/migrations/index.ts`)
+**File**: `src/migrations/20260928_3_investment_completed_at.ts` (+ register in `src/migrations/index.ts`)
 
 **Intent**: Add a nullable `completed_at timestamptz(3)` to `investments` and backfill it from
 `updated_at` for rows that are already `status = 'completed'`. The owner chose last-updated as the
@@ -226,8 +240,8 @@ A new cron stores one `daily` version per changed investment per night. `gcSnaps
 
 **Intent**: Capture a version for each eligible investment:
 
-- The eligible set is `status IN ('planowana','active')`, `trashed_at IS NULL` and
-  `status <> 'szablon'` (L1672).
+- The eligible set is `status IN ('planowana','active') AND trashed_at IS NULL`. The status list
+  already excludes `szablon` and `completed` (L1672).
 - For each one: build the tree with `buildKosztorysTree` (uncached, L1212), `serializeTree` it, compare
   it with the latest `daily` payload, and insert `kind='daily'` at the attributed `taken_at` when it
   differs or when no `daily` row exists yet.
@@ -359,7 +373,10 @@ Przedmiar, Cena j.m., wartość netto, and Pomiar per etap. Plus a rabat change.
 
 **Contract**: The selection is pure over metas and does not need payloads. Equality-dropping and the
 summary need payloads, so they take `(prevPayload, payload)` pairs. Phase 4 decides which payloads to
-load.
+load — and equality-dropping means it must load the payload of **every selected candidate day**, not
+only the days that end up listed: whether a day is listed depends on its payload. Post-ship `daily`
+rows are already deduplicated by the cron, so this cost is the pre-ship `auto` days only (at most
+~120 daily + ~35 weekly survivors, ≤24 kB each), paid once per list-cache miss.
 
 ### Success Criteria:
 
@@ -415,8 +432,11 @@ history reads live in the same file or in a sibling `preview-kosztorys-history.t
   payload**, in a bounded per-day query: SQL keeps the newest `auto` and `daily` per Warsaw day plus all
   `named` rows, so the list never loads 10-min rows. It is scoped by `template_preset_id` like
   `listSnapshots`.
-- `getHistoryPayloads(db, investmentId, ids)` loads payloads for the selected entries only, scoped to
-  the investment (L1279).
+- `getHistoryPayloads(db, investmentId, ids)` loads payloads for the selected candidates (one per day
+  plus the named rows — see Phase 3's contract on why every candidate), scoped to the investment
+  (L1279).
+- `resolveShareInvestmentId` reads **only** `kosztorys-shares`. A worker token
+  (`kosztorys-worker-shares`) must never resolve here: the worker's document has no history.
 - Entrances:
   - `getPreviewHistoryByToken(token)` and `ById(id)` return `HistoryEntryT[]`
     (id, day, kind, label, summary);
@@ -480,6 +500,11 @@ for the dialog. `key` the body on the version id, so the grid reseeds from the r
 **Intent**: `history?: { diff; discount; takenAtLabel }`. When it is present:
 
 - the grid shows the **past** tree, filtered by the **current** client-view settings (design #7);
+- the data-driven empty-settlement-column rule is computed over the **past and current rows
+  together**: a column with entries on either side is shown. Computed over the past rows alone, a
+  version from before any work would hide every Pomiar column, and the flagship change
+  („Pomiar: +12 m² w etapie Płytki", design #3) could never render. The current rows are
+  `treeToRows(currentTree)` passed in with `history`;
 - removed pozycje get a struck-through row class via `rowClassName`;
 - changed cells render old → new in the `divergence-cell.tsx` two-value style via `withCellClass`;
 - the totals panel and its toggle are hidden;
@@ -489,6 +514,8 @@ for the dialog. `key` the body on the version id, so the grid reseeds from the r
 **Contract**:
 
 - Without `history` the body renders byte-identically to today, and the owner's editor is untouched.
+- `history` and the „Historia zmian" trigger never appear with `worker`: the worker page passes
+  neither, and the trigger is gated on `!worker` as well, so a future caller can't leak it.
 - `client-empty` row rules and `PREVIEW_VISIBLE_COLUMNS` apply unchanged (L469/L498).
 
 #### 3. History dialog
@@ -509,7 +536,10 @@ pokazania").
   - an unknown rabat renders „rabat nieznany", not „0,00 zł";
   - the money panel is absent;
   - a column hidden in client view stays hidden;
-  - without `history` there is no banner.
+  - a past version with no stage entries still shows an etap's Pomiar column when the current
+    version has entries in it, rendering 0 → new;
+  - without `history` there is no banner;
+  - with `worker` there is no „Historia zmian" trigger.
 - DOM spec for the dialog: the list order, a named entry showing its label, and the empty state.
 
 #### Manual Verification:
@@ -611,7 +641,7 @@ in project Wykonczymy.
 
 ## Migration Notes
 
-`20260928_1` is additive, so apply it to prod with `pnpm db:migrate:prod` **before** the push that ships
+`20260928_3` is additive, so apply it to prod with `pnpm db:migrate:prod` **before** the push that ships
 the code. The human does this. There is no payload migration (no schema bump), and past snapshot rows
 are untouched.
 
@@ -641,10 +671,10 @@ are untouched.
 
 #### Automated
 
-- [ ] 1.1 Migration applies on 5433 and 5435
-- [ ] 1.2 stamp-completed-at hook unit spec passes
-- [ ] 1.3 Round-trip spec: payload carries globalDiscount, restore leaves live rabat unchanged
-- [ ] 1.4 saveSnapshotAction stores kind named
+- [x] 1.1 Migration applies on 5433 and 5435
+- [x] 1.2 stamp-completed-at hook unit spec passes
+- [x] 1.3 Round-trip spec: payload carries globalDiscount, restore leaves live rabat unchanged
+- [x] 1.4 saveSnapshotAction stores kind named
 
 ### Phase 2: Nightly capture and status-aware retention
 

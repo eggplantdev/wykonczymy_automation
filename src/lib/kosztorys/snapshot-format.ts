@@ -1,4 +1,5 @@
 import type {
+  GlobalDiscountT,
   KosztorysItemT,
   KosztorysSectionT,
   KosztorysStageT,
@@ -21,7 +22,9 @@ import type {
 //     exit with no failure);
 //   - migrate the stored payloads — presets: a hand-curated library, so deleting it destroys real
 //     work UNLESS the owner declares the library disposable and re-saves it by hand (EX-766 did);
-//   - delete the stored rows — snapshots: ambient history, cheap to re-accumulate.
+//   - delete the stored rows — `auto`/`manual` snapshots only: the owner's ambient restore points,
+//     cheap to re-accumulate. NEVER `daily`/`named`: those are the investor's change history, and a
+//     day deleted from it cannot be re-accumulated — they are migrated (the exit above) or not bumped.
 // Forbidden: bump and leave. Bumping is asymmetric — the list queries (snapshots.ts, presets.ts)
 // don't assert, so every stranded version and preset keeps being offered in the UI and throws the
 // Polish error below only once clicked. Honouring the rule buys the invariant that EVERY row in
@@ -44,7 +47,8 @@ export function assertReadableSchemaVersion(version: number, kind: 'preset' | 's
 
 // The investment editor-settings that shape computed prices — captured so a restore is faithful
 // (restore rewrites them). Kept off the tree because they live on `investments`. The global discount
-// is deliberately NOT captured: restoring a version must not reset the live amount discount.
+// is NOT one of them: restoring a version must not reset the live amount discount. It travels beside
+// them as `globalDiscount`, which only the investor's history reads.
 export type SnapshotSettingsT = {
   wToolsCoeff: number
   ownToolsCoeff: number
@@ -61,7 +65,14 @@ export type SnapshotPayloadT = {
   stages: KosztorysStageT[]
   progress: StageProgressT[]
   settings: SnapshotSettingsT
+  // Display-only (the investor's history shows the rabat a version had); restore never reads it.
+  // Optional because a szablon and an import plan share this shape and have no rabat of their own.
+  globalDiscount?: GlobalDiscountT
 }
+
+// What a kosztorys_snapshots row is written from — the rabat is required there, so every row from
+// now on can answer „what was the rabat that day".
+export type KosztorysSnapshotPayloadT = SnapshotPayloadT & { globalDiscount: GlobalDiscountT }
 
 // A kosztorys with nothing in it — the shape „wyczyść kosztorys" writes and the shape a szablon is
 // born with. `settings` is the caller's, because those two disagree about it and only about it: a new
@@ -108,6 +119,8 @@ export type StoredSnapshotPayloadT = {
   stages: KosztorysStageT[]
   progress: TolerantT<StageProgressT, 'qtyDone'>[]
   settings?: Partial<SnapshotSettingsT>
+  // Absent on every row written before the investor history shipped: an UNKNOWN rabat, not 0 zł.
+  globalDiscount?: GlobalDiscountT
 }
 
 // An absent key is NOT the same as a stored null: the `sql` tag emits NOTHING for `undefined`, so the

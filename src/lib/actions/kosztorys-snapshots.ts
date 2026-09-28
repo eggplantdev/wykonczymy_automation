@@ -38,7 +38,7 @@ export async function saveSnapshotAction(
     const snapshot = await serializeKosztorys(investmentId)
     await insertSnapshot(db, {
       investmentId,
-      kind: 'manual',
+      kind: 'named',
       label: parsed.data.label,
       takenBy: user.id,
       payload: snapshot,

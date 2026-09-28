@@ -3,7 +3,7 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import {
   SNAPSHOT_SCHEMA_VERSION,
   assertReadableSchemaVersion,
-  type SnapshotPayloadT,
+  type KosztorysSnapshotPayloadT,
   type StoredSnapshotPayloadT,
 } from '@/lib/kosztorys/snapshot-format'
 import type { DbExecutorT } from './get-db'
@@ -12,7 +12,7 @@ import type { DbExecutorT } from './get-db'
 // notification_reads pattern). Retention has one authority, gcSnapshots, swept daily by the cron;
 // nothing prunes on the insert path, so a capture is a plain INSERT.
 
-export type SnapshotKindT = 'manual' | 'auto'
+export type SnapshotKindT = 'manual' | 'auto' | 'named' | 'daily'
 
 // THE RETENTION POLICY, in full:
 //
@@ -23,6 +23,10 @@ export type SnapshotKindT = 'manual' | 'auto'
 //
 // The survivor of a bucket is its NEWEST row — how the work was left that day/week, not how it
 // started. Manual snapshots are exempt from both bands, bounded only by MAX_AGE_DAYS.
+//
+// `named` („Zapisz jako…") and `daily` (the nightly end-of-day state) are what the INVESTOR sees as
+// the change history, so they are never thinned by the bands either: every day stays a day on the
+// investor's list. `auto` and `manual` are the owner's restore points only.
 const FULL_DENSITY_DAYS = 30
 const DAILY_BAND_DAYS = 120
 const MAX_AGE_DAYS = 365
@@ -52,7 +56,7 @@ export async function insertSnapshot(
     kind: SnapshotKindT
     label: string | null
     takenBy: number | null
-    payload: SnapshotPayloadT
+    payload: KosztorysSnapshotPayloadT
   },
 ): Promise<number> {
   const res = await db.execute(sql`

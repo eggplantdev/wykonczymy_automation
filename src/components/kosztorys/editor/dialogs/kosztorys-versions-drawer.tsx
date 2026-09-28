@@ -67,8 +67,8 @@ export function KosztorysVersionsDrawer({
     onRestored()
   }
 
-  const manual = snapshots?.filter((s) => s.kind === 'manual') ?? []
-  const auto = snapshots?.filter((s) => s.kind === 'auto') ?? []
+  const named = snapshots?.filter((s) => s.kind === 'manual' || s.kind === 'named') ?? []
+  const auto = snapshots?.filter((s) => s.kind === 'auto' || s.kind === 'daily') ?? []
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -80,12 +80,12 @@ export function KosztorysVersionsDrawer({
           <p className="text-muted-foreground text-sm">Brak zapisanych wersji.</p>
         ) : (
           <div className="flex flex-col gap-4 overflow-y-auto">
-            {manual.length > 0 && (
+            {named.length > 0 && (
               <section className="flex flex-col gap-1">
                 <h3 className="text-muted-foreground text-xs font-medium uppercase">
                   Nazwane wersje
                 </h3>
-                {manual.map((s) => (
+                {named.map((s) => (
                   <SnapshotRow
                     key={s.id}
                     snapshot={s}
@@ -156,7 +156,11 @@ function SnapshotRow({
           {primary ? snapshot.label : formatPLDateTime(snapshot.takenAt)}
         </div>
         <div className="text-muted-foreground truncate text-xs">
-          {primary ? formatPLDateTime(snapshot.takenAt) : 'Auto'}
+          {primary
+            ? formatPLDateTime(snapshot.takenAt)
+            : snapshot.kind === 'daily'
+              ? 'Koniec dnia'
+              : 'Auto'}
           {snapshot.takenByName ? ` · ${snapshot.takenByName}` : ''}
           {` · ${investmentName}`}
         </div>

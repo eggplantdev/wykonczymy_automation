@@ -1,11 +1,11 @@
 ---
 change_id: investor-change-history
 title: Historia zmian w widoku inwestora — dzienne wersje, porównanie z wersją bieżącą
-status: planned
+status: implementing
 created: 2026-09-28
 updated: 2026-09-28
 archived_at: null
-branch: null
+branch: staging
 worktree: null
 ---
 

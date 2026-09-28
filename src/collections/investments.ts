@@ -4,6 +4,7 @@ import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/re
 import { refuseDeleteWhen } from '@/hooks/prevent-delete'
 import { investmentDeleteBlocker } from '@/lib/investments/delete-blocker'
 import { guardInvestmentStatusUnlock } from '@/hooks/investments/guard-status-unlock'
+import { stampCompletedAt } from '@/hooks/investments/stamp-completed-at'
 import { DEFAULT_COEFFS, DEFAULT_VAT } from '@/lib/kosztorys/constants'
 import {
   SETTLEMENT_MODE_ADMIN_OPTIONS,
@@ -31,7 +32,7 @@ export const Investments: CollectionConfig = {
     group: { en: 'Finance', pl: 'Finanse' },
   },
   hooks: {
-    beforeChange: [guardInvestmentStatusUnlock],
+    beforeChange: [guardInvestmentStatusUnlock, stampCompletedAt],
     beforeDelete: [refuseDeleteWhen(investmentDeleteBlocker)],
     afterChange: [makeRevalidateAfterChange('investments')],
     afterDelete: [makeRevalidateAfterDelete('investments')],
@@ -173,6 +174,13 @@ export const Investments: CollectionConfig = {
       type: 'date',
       admin: { hidden: true },
       label: { en: 'Trashed at', pl: 'W koszu od' },
+    },
+    // Set by the stampCompletedAt hook only; the investor's change history expires a year after it.
+    {
+      name: 'completedAt',
+      type: 'date',
+      admin: { hidden: true },
+      label: { en: 'Completed at', pl: 'Zakończona dnia' },
     },
   ],
 }

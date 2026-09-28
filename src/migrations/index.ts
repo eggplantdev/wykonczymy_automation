@@ -97,6 +97,7 @@ import * as migration_20260923_0_restore_subcontractor_rate_coeff from './202609
 import * as migration_20260928_0_investment_trashed_at from './20260928_0_investment_trashed_at'
 import * as migration_20260928_1_kosztorys_worker_view from './20260928_1_kosztorys_worker_view'
 import * as migration_20260928_2_client_view_single_set from './20260928_2_client_view_single_set'
+import * as migration_20260928_3_investment_completed_at from './20260928_3_investment_completed_at'
 
 export const migrations = [
   {
@@ -593,5 +594,10 @@ export const migrations = [
     up: migration_20260928_2_client_view_single_set.up,
     down: migration_20260928_2_client_view_single_set.down,
     name: '20260928_2_client_view_single_set',
+  },
+  {
+    up: migration_20260928_3_investment_completed_at.up,
+    down: migration_20260928_3_investment_completed_at.down,
+    name: '20260928_3_investment_completed_at',
   },
 ]

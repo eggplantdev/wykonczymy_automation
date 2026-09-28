@@ -16,7 +16,10 @@ export async function serializeKosztorysAsPreset(
   investmentId: number,
   req?: PayloadRequest,
 ): Promise<SnapshotPayloadT> {
-  const snapshot = await serializeKosztorys(investmentId, req)
+  const { globalDiscount: _globalDiscount, ...snapshot } = await serializeKosztorys(
+    investmentId,
+    req,
+  )
   return {
     ...snapshot,
     items: snapshot.items.map((item) => ({

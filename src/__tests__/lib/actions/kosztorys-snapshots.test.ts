@@ -53,9 +53,9 @@ describe.skipIf(!ENV_READY)('saveSnapshotAction — required label (DB)', () => 
     }
   })
 
-  async function manualCount(): Promise<number> {
+  async function namedCount(): Promise<number> {
     const res = await db.execute(
-      sql`SELECT COUNT(*) AS n FROM kosztorys_snapshots WHERE investment_id = ${investmentId} AND kind = 'manual'`,
+      sql`SELECT COUNT(*) AS n FROM kosztorys_snapshots WHERE investment_id = ${investmentId} AND kind = 'named'`,
     )
     return Number(res.rows[0].n)
   }
@@ -65,17 +65,19 @@ describe.skipIf(!ENV_READY)('saveSnapshotAction — required label (DB)', () => 
 
     expect(res.success).toBe(false)
     expect(res.success === false && res.error).toBe('Podaj nazwę wersji')
-    expect(await manualCount()).toBe(0)
+    expect(await namedCount()).toBe(0)
   })
 
-  it('stores a manual snapshot with the given label', async () => {
+  // `named`, not `manual`: the investor's history lists „Zapisz jako…" versions and must not list the
+  // `manual` safety copies a restore or a szablon reload takes on its way.
+  it('stores a named snapshot with the given label', async () => {
     const res = await saveSnapshotAction(investmentId, 'Wersja klienta')
 
     expect(res.success).toBe(true)
     const row = await db.execute(
       sql`SELECT label, kind FROM kosztorys_snapshots WHERE investment_id = ${investmentId} ORDER BY id DESC LIMIT 1`,
     )
-    expect(row.rows[0]).toMatchObject({ label: 'Wersja klienta', kind: 'manual' })
-    expect(await manualCount()).toBe(1)
+    expect(row.rows[0]).toMatchObject({ label: 'Wersja klienta', kind: 'named' })
+    expect(await namedCount()).toBe(1)
   })
 })

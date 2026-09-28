@@ -5,13 +5,13 @@ import { getDb } from '@/lib/db/get-db'
 import { gcSnapshots, getSnapshot, insertSnapshot, listSnapshots } from '@/lib/db/snapshots'
 import { deletePreset, insertPreset } from '@/lib/db/presets'
 import { setWorkshopPreset } from '@/lib/db/workshop-investment'
-import type { SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
+import type { KosztorysSnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { acquireTestWorkshop } from '@/__tests__/helpers/workshop'
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
-const emptyPayload: SnapshotPayloadT = {
+const emptyPayload: KosztorysSnapshotPayloadT = {
   schemaVersion: 1,
   sections: [],
   items: [],
@@ -22,6 +22,7 @@ const emptyPayload: SnapshotPayloadT = {
     ownToolsCoeff: 0,
     vatRate: 0,
   },
+  globalDiscount: { type: null, value: 0 },
 }
 
 // gcSnapshots thins in raw SQL, so the only real assertion is which rows survive. The mistake worth
