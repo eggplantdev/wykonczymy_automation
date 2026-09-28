@@ -414,16 +414,16 @@ on the same client-view tables is a separate, later migration.
 
 #### Automated
 
-- [x] 1.1 Migration applies to local 5433 and to the 5435 test DB
-- [x] 1.2 New and updated unit specs pass (sanitize, ordering rule)
-- [x] 1.3 DB-backed resolver spec passes with the new field
+- [x] 1.1 Migration applies to local 5433 and to the 5435 test DB — ff966895
+- [x] 1.2 New and updated unit specs pass (sanitize, ordering rule) — ff966895
+- [x] 1.3 DB-backed resolver spec passes with the new field — ff966895
 
 ### Phase 2: Documents follow the order
 
 #### Automated
 
-- [ ] 2.1 Grid and print specs pass
-- [ ] 2.2 Endpoint consumers' DOM specs pass
+- [x] 2.1 Grid and print specs pass
+- [x] 2.2 Endpoint consumers' DOM specs pass
 
 ### Phase 3: Settings windows
 

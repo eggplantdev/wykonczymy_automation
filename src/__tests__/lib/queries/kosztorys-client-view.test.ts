@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
-import { findClientViewRow, getClientViewSettings } from '@/lib/queries/kosztorys-client-view'
+import {
+  findClientViewRow,
+  getClientViewSettings,
+  getClientViewSettingsRead,
+} from '@/lib/queries/kosztorys-client-view'
 import { sanitizeClientViewSettings } from '@/lib/kosztorys/client-view-settings'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 
@@ -98,6 +102,18 @@ describe.skipIf(!ENV_READY)('getClientViewSettings (DB)', () => {
     await payload.updateGlobal({ slug: 'kosztorys-client-view-defaults', data: GLOBAL_SETTINGS })
 
     expect(await getClientViewSettings(investmentWithoutRow)).toEqual(GLOBAL_SETTINGS)
+  })
+
+  // The reset target in the order dialog: the firm's order, even where the investment's own row wins.
+  it("hands back the firm's order beside an investment's own settings", async () => {
+    await payload.updateGlobal({
+      slug: 'kosztorys-client-view-defaults',
+      data: { ...GLOBAL_SETTINGS, columnRanks: { plannedQty: -1 } },
+    })
+
+    const read = await getClientViewSettingsRead(investmentWithRow)
+    expect(read.settings.columnRanks).not.toEqual({ plannedQty: -1 })
+    expect(read.defaultColumnRanks).toEqual({ plannedQty: -1 })
   })
 
   it('falls back to the code default when the global holds nothing', async () => {

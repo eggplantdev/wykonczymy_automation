@@ -72,7 +72,7 @@ export function buildOfferPrintHtml({
   // Before the portrait/landscape count, so an offer with no entries prints as narrow as it reads.
   const empty = emptySettlementColumnIds(rows, stages)
   const globalDiscountActive = rows.some((row) => row.globalDiscountActive)
-  const columns = offerPrintColumns(stages, settings.hiddenColumns).filter(
+  const columns = offerPrintColumns(stages, settings.hiddenColumns, settings.columnRanks).filter(
     (column) =>
       !empty.has(column.key) && !bypassedByGlobalDiscount(column.key, globalDiscountActive),
   )
@@ -153,10 +153,10 @@ export function buildKosztorysPrintHtml({
     if (sectionId === null || !withMoney) return
     const sectionNet = sectionNetById.get(sectionId)
     if (sectionNet === undefined) return
-    // Never 0: with „Opis prac" hidden the label may have no column left to its own, and
-    // `colspan="0"` means „to the end of the colgroup" in HTML5 — the browser spans the row. The
-    // filler count reads the SAME span, not `moneyIndex`: hide everything left of „Wartość netto"
-    // and the two disagreed by one, so the row carried a phantom column past the colgroup.
+    // Both documents pin „Opis prac" first, so the money column always has a label cell to its left.
+    // The floor only guards a future caller whose list pins nothing: `colspan="0"` means „to the end
+    // of the colgroup" in HTML5, and the browser would span the whole row. The filler count reads
+    // the SAME span, not `moneyIndex`, so the two cannot disagree by one.
     const labelSpan = Math.max(1, moneyIndex)
     body.push(
       `<tr class="band-total">` +

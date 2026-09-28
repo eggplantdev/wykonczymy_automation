@@ -97,8 +97,8 @@ export function GenerateOfferMenuItem() {
         toastMessage('Nie udało się odczytać ustawień podglądu', 'error')
         return null
       })
-      .then((settings) => {
-        if (settings) render(settings)
+      .then((read) => {
+        if (read) render(read.settings)
       })
   }
 

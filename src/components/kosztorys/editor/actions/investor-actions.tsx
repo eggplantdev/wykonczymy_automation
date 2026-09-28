@@ -10,6 +10,7 @@ import { useLatestRequest } from '@/hooks/use-latest-request'
 import { ensureShareLinkAction } from '@/lib/actions/kosztorys-share'
 import { readClientViewSettings } from '@/lib/queries/client-view-settings-endpoint'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
+import type { ColumnRanksT } from '@/lib/table/column-order'
 import { copyToClipboardAsync } from '@/lib/utils/copy-to-clipboard'
 import { investorShareUrl } from '@/lib/kosztorys/investor-share-url'
 import { toastMessage } from '@/lib/utils/toast'
@@ -21,6 +22,7 @@ class ShareLinkError extends Error {}
 export type InvestorActionsT = {
   clientView: ClientViewSettingsT | null
   setClientView: (settings: ClientViewSettingsT) => void
+  defaultColumnRanks: ColumnRanksT
   settingsOpen: boolean
   setSettingsOpen: (open: boolean) => void
   requestSettings: () => void
@@ -35,6 +37,7 @@ export type InvestorActionsT = {
 export function useInvestorActions(): InvestorActionsT {
   const { investmentId } = useKosztorysEditorContext()
   const [clientView, setClientView] = useState<ClientViewSettingsT | null>(null)
+  const [defaultColumnRanks, setDefaultColumnRanks] = useState<ColumnRanksT>({})
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
   const [shareToken, setShareToken] = useState<string | null>(null)
@@ -51,8 +54,10 @@ export function useInvestorActions(): InvestorActionsT {
     const isCurrent = settingsRequest.start()
     setClientView(null)
     void readClientViewSettings(investmentId)
-      .then((settings) => {
-        if (isCurrent()) setClientView(settings)
+      .then((read) => {
+        if (!isCurrent()) return
+        setClientView(read.settings)
+        setDefaultColumnRanks(read.defaultColumnRanks)
       })
       .catch(() => {
         if (isCurrent()) toastMessage('Nie udało się odczytać ustawień podglądu', 'error')
@@ -93,6 +98,7 @@ export function useInvestorActions(): InvestorActionsT {
   return {
     clientView,
     setClientView,
+    defaultColumnRanks,
     settingsOpen,
     setSettingsOpen,
     requestSettings,

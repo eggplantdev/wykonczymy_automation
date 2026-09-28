@@ -24,12 +24,14 @@ import {
 } from '@/lib/kosztorys/worker-view/settings'
 import type { KosztorysStageT, ToolPlaneT } from '@/lib/kosztorys/types'
 import { formatPLN } from '@/lib/utils/format-currency'
+import type { ColumnRanksT } from '@/lib/table/column-order'
 
 export type WorkerPrintColumnsArgsT = {
   plane: ToolPlaneT
   // His etapy only — the projection's `tree.stages`.
   stages: KosztorysStageT[]
   hiddenColumns: readonly string[]
+  columnRanks: ColumnRanksT
   executedQtyByItem: Record<number, number>
 }
 
@@ -43,6 +45,7 @@ export function workerPrintColumns({
   plane,
   stages,
   hiddenColumns,
+  columnRanks,
   executedQtyByItem,
 }: WorkerPrintColumnsArgsT): OfferColumnT[] {
   const visible = workerVisibleColumns(plane, hiddenColumns)
@@ -80,7 +83,7 @@ export function workerPrintColumns({
       ),
     ],
   }
-  return workerDocumentColumns(plane, {})
+  return workerDocumentColumns(plane, columnRanks)
     .filter((key) => visible.has(key))
     .flatMap((key) => byKey[key] ?? [])
 }

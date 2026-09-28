@@ -44,6 +44,7 @@ const workerColumns = buildV2Columns({
   workerSurface: {
     plane: 'w_tools',
     hiddenColumns: [],
+    columnRanks: {},
     executedQtyByItem: { [OVERRUN]: 1, [OWED]: 1, [FLOAT_NOISE]: 1.0003 },
   },
 })

@@ -87,7 +87,7 @@ describe('GenerateOfferMenuItem', () => {
       close: vi.fn(),
     }
     vi.spyOn(window, 'open').mockReturnValue(printWindow as unknown as Window)
-    actionsContext.clientView = { hiddenColumns: ['price'], hideEmptyRows: true }
+    actionsContext.clientView = { hiddenColumns: ['price'], hideEmptyRows: true, columnRanks: {} }
 
     await clickOffer()
 

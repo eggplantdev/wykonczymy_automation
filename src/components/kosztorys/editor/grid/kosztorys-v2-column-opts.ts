@@ -98,6 +98,10 @@ export type BuildV2ColumnsOptsT = {
   // anything, which is what keeps the allowlist a ceiling rather than one of two competing answers.
   // Also carries the full ids of the settlement columns with no entries yet.
   previewHiddenColumns?: ReadonlySet<string>
+  // The owner's stored order for THIS investment's document (`ClientViewSettingsT.columnRanks`) —
+  // never `columnRanks` above, which is one browser's preference and must not shape a client's
+  // document (ruling 2026-07-28).
+  previewColumnRanks?: ColumnRanksT
   // The szablon workbench: WORKSHOP_VISIBLE_COLUMNS over both the grid and the picker. Twin of
   // `previewVisible` in mechanism, its opposite in reason — that one is about what a client must
   // not see, this one about what a szablon cannot carry. The allowlist, not the stored tick: the
@@ -112,6 +116,7 @@ export type BuildV2ColumnsOptsT = {
   workerSurface?: {
     plane: ToolPlaneT
     hiddenColumns: readonly string[]
+    columnRanks: ColumnRanksT
     executedQtyByItem: Record<number, number>
   }
   // Which crew's rate columns are on screen — see crew-axis.ts. Absent = CREW_AXIS_DEFAULT.

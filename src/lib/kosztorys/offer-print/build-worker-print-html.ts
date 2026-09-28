@@ -71,6 +71,7 @@ export function buildWorkerPrintHtml({ data, logoUrl, fillByColorKey }: WorkerPr
       plane: worker.plane,
       stages,
       hiddenColumns: worker.settings.hiddenColumns,
+      columnRanks: worker.settings.columnRanks,
       executedQtyByItem: worker.executedQtyByItem,
     }),
     priceView: worker.plane,

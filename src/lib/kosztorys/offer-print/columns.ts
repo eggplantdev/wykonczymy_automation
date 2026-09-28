@@ -14,11 +14,8 @@ import {
   rowTotalQtyDone,
   rowValueForView,
 } from '@/lib/kosztorys/settlement-rows'
-import {
-  CLIENT_DOCUMENT_COLUMNS,
-  PREVIEW_VISIBLE_COLUMNS,
-  columnLabelForView,
-} from '@/lib/kosztorys/column-config'
+import { clientDocumentColumns } from '@/lib/kosztorys/client-view-settings'
+import { PREVIEW_VISIBLE_COLUMNS, columnLabelForView } from '@/lib/kosztorys/column-config'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
 import {
   STAGE_VALUE_GROSS_COLUMN_GROUP,
@@ -30,6 +27,7 @@ import {
 } from '@/lib/kosztorys/stage-keys'
 import { decimalText } from '@/lib/utils/decimal-text'
 import type { KosztorysStageT, KosztorysV2RowT, StageKeyT } from '@/lib/kosztorys/types'
+import type { ColumnRanksT } from '@/lib/table/column-order'
 
 // A złoty, no grosze: the sheet's offer prints „19 495 zł" and a client reading a scope of works has
 // no use for two decimals on 435 rows.
@@ -255,15 +253,16 @@ function offerColumnsByKey(stages: KosztorysStageT[]): Record<string, OfferColum
   }
 }
 
-// The client's document on paper: CLIENT_DOCUMENT_COLUMNS, the list the podgląd renders from, so
+// The client's document on paper: `clientDocumentColumns`, the list the podgląd renders from, so
 // „odznacz Cena j.m." in the dialog takes the column out of both and nothing can print in another
 // order. Keyed per column group — a stage group's hide key is the group, not the etap.
 export function offerPrintColumns(
   stages: KosztorysStageT[],
   hiddenColumns: readonly string[],
+  columnRanks: ColumnRanksT,
 ): OfferColumnT[] {
   const byKey = offerColumnsByKey(stages)
-  const visibleKeys = printableKeys(CLIENT_DOCUMENT_COLUMNS, hiddenColumns)
+  const visibleKeys = printableKeys(clientDocumentColumns(columnRanks), hiddenColumns)
   return visibleKeys.flatMap((key) => byKey[key] ?? [])
 }
 

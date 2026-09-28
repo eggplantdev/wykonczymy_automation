@@ -66,7 +66,7 @@ function projection(
           description: 'notatka wewnętrzna',
         })),
       }),
-      settings: { hiddenColumns: [], hideEmptyRows: true, ...settings },
+      settings: { hiddenColumns: [], hideEmptyRows: true, columnRanks: {}, ...settings },
       executedQtyByItem: { 1: 5, 2: 1 },
     },
   }
@@ -104,6 +104,28 @@ describe('buildWorkerPrintHtml', () => {
     expect(out).toContain(footerLine('Wartość przedmiaru (Twoja stawka)', summary.plannedNet))
     expect(out).toContain(footerLine('Wykonane razem', summary.executedNet))
     expect(out).toContain(`Razem — Łazienka</td><td class="num">${formatPLN(summary.plannedNet)}`)
+  })
+
+  it('prints in the owner’s stored order, the stawka under its plane-agnostic key', () => {
+    const out = html(
+      projection({ columnRanks: { description: 99, plannedNetForPlane: -2, rate: -1 } }),
+    )
+    const headers = [...out.matchAll(/<th(?:\s[^>]*)?>(.*?)<\/th>/g)].map((m) => m[1])
+
+    expect(headers[0]).toBe('Opis prac')
+    expect(headers[1]).toBe('Wartość przedmiaru')
+    expect(out.indexOf(formatPLN(RATE))).toBeGreaterThan(-1)
+  })
+
+  it('places the section total under the money column after a reorder', () => {
+    const data = projection({ columnRanks: { plannedNetForPlane: -1 } })
+    const out = html(data)
+    const totalRow = /<tr class="band-total">(.*?)<\/tr>/.exec(out)?.[1] ?? ''
+
+    expect(totalRow).toContain('colspan="1"')
+    expect(totalRow).toContain(
+      `Razem — Łazienka</td><td class="num">${formatPLN(data.worker.summary.plannedNet)}`,
+    )
   })
 
   it('hides an empty pozycja without moving a total', () => {

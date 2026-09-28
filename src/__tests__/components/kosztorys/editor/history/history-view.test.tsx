@@ -107,7 +107,7 @@ describe('investor history view', () => {
   })
 
   it('keeps a column the client view hides hidden', () => {
-    const clientView = { hiddenColumns: ['plannedNet'], hideEmptyRows: false }
+    const clientView = { hiddenColumns: ['plannedNet'], hideEmptyRows: false, columnRanks: {} }
     renderPreview(CURRENT, { history: history(PAST, CURRENT), clientView })
     expect(cellTexts()).toContain('12 → 14')
     expect(cellTexts()).not.toContain('1200,00 → 1400,00')

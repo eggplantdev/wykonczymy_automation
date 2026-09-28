@@ -70,6 +70,24 @@ describe('preview columns', () => {
     ])
   })
 
+  // The owner's stored order for this offer — distinct from the per-browser `columnRanks`, which the
+  // first spec above already proves inert.
+  it('follows the stored document order', () => {
+    const visible = previewIds({ previewColumnRanks: { net: -2, stageQtySum: -1 } })
+
+    expect(visible.slice(0, 3)).toEqual(['description', 'net', 'stageQtySum'])
+  })
+
+  it('keeps „Opis prac" first whatever rank it is given', () => {
+    const visible = previewIds({ previewColumnRanks: { description: 99, net: -1 } })
+
+    expect(visible.slice(0, 2)).toEqual(['description', 'net'])
+  })
+
+  it('is not reordered by the per-browser column order', () => {
+    expect(previewIds({ columnRanks: { net: -1, description: 99 } })).toEqual(previewIds())
+  })
+
   it('carries the offer and the progress together', () => {
     const visible = previewIds()
     for (const id of [
@@ -143,7 +161,12 @@ describe('preview columns', () => {
     const workerIds = buildV2Columns({
       view: 'w_tools',
       stages: crewStages,
-      workerSurface: { plane: 'w_tools', hiddenColumns: [], executedQtyByItem: {} },
+      workerSurface: {
+        plane: 'w_tools',
+        hiddenColumns: [],
+        columnRanks: {},
+        executedQtyByItem: {},
+      },
       previewHiddenColumns: emptySettlementColumnIds([stageRow()], crewStages),
     }).map((column) => column.id)
 
