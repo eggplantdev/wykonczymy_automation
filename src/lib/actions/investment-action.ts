@@ -12,7 +12,6 @@ import { mirrorWorkshopPreset } from '@/lib/actions/mirror-workshop-preset'
 import type { SessionUserT } from '@/types/auth'
 import type { ActionResultT } from '@/types/action'
 import type { CACHE_TAGS } from '@/lib/cache/tags'
-import { INVESTMENT_LOCKED_MESSAGE } from '@/lib/constants/investment-lock'
 
 export type GateTargetT = { investmentId: number } | { kind: GateTargetKindT; id: number }
 
@@ -23,12 +22,12 @@ const TARGET_MISSING: Record<GateTargetKindT, string> = {
 }
 
 /**
- * Refuse every write that moves money on a settled investment. The kosztorys writes raw SQL in a
+ * Refuse every write that moves money on a settled or trashed investment. The kosztorys writes raw SQL in a
  * dozen places, so neither collection hooks nor Payload `access` see those writes — the action layer
  * is the only chokepoint that does. Wrapping `protectedAction` (the shape `ownerOnlyAction` already
  * uses) runs the check structurally, so a newly added kosztorys action cannot forget a hand-copied
  * `if`. Unlike role gates this one is stateful: it narrows on the investment's status, not on who is
- * asking — no role edits a completed investment.
+ * asking — no role edits a completed or trashed investment.
  */
 export function investmentAction<TData = undefined>(
   label: string,
@@ -75,8 +74,8 @@ export function investmentAction<TData = undefined>(
         gate = owner
       }
 
-      if (gate.locked) {
-        return { success: false, error: INVESTMENT_LOCKED_MESSAGE } as ActionResultT<TData>
+      if (gate.lockMessage) {
+        return { success: false, error: gate.lockMessage } as ActionResultT<TData>
       }
 
       const result = await handler({ ...ctx, investmentId: gate.investmentId })

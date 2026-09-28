@@ -31,8 +31,7 @@ import { uploadFieldIds } from '@/lib/media/upload-field'
 import { appendUploadIds, setUploadField } from '@/lib/media/set-upload-field'
 import type { ActionResultT } from '@/types/action'
 import { getDb } from '@/lib/db/get-db'
-import { isRelatedInvestmentLocked } from '@/lib/db/investment-gate'
-import { INVESTMENT_LOCKED_MESSAGE } from '@/lib/constants/investment-lock'
+import { relatedInvestmentLockMessage } from '@/lib/db/investment-gate'
 
 export async function createTransferAction(data: CreateTransferFormT, invoiceMediaIds?: number[]) {
   return protectedAction(
@@ -53,9 +52,11 @@ export async function createTransferAction(data: CreateTransferFormT, invoiceMed
 
       // The gate itself is the collection hook, which covers the API and the panel too; here only so
       // the refusal reaches the form as a sentence instead of a raw hook Error.
-      if (await isRelatedInvestmentLocked(await getDb(payload), parsed.data.investment)) {
-        return { success: false, error: INVESTMENT_LOCKED_MESSAGE }
-      }
+      const lockMessage = await relatedInvestmentLockMessage(
+        await getDb(payload),
+        parsed.data.investment,
+      )
+      if (lockMessage) return { success: false, error: lockMessage }
 
       await payload.create({
         collection: 'transactions',
@@ -98,9 +99,11 @@ export async function createBulkTransferAction(
         if (!validated.success) return validated
       }
 
-      if (await isRelatedInvestmentLocked(await getDb(payload), parsed.data.investment)) {
-        return { success: false, error: INVESTMENT_LOCKED_MESSAGE }
-      }
+      const lockMessage = await relatedInvestmentLockMessage(
+        await getDb(payload),
+        parsed.data.investment,
+      )
+      if (lockMessage) return { success: false, error: lockMessage }
 
       // skipSheetSync: the per-row afterChange hook must NOT sync each created
       // row one-by-one — this action batches them all in a single sheet write below
@@ -172,9 +175,8 @@ async function fetchAndAuthorize(
   if (!original) return { error: 'Transakcja nie istnieje.' }
   if (original.cancelled) return { error: 'Transakcja jest już anulowana.' }
   if (original.type === 'CANCELLATION') return { error: 'Nie można edytować anulowania.' }
-  if (await isRelatedInvestmentLocked(await getDb(payload), original.investment)) {
-    return { error: INVESTMENT_LOCKED_MESSAGE }
-  }
+  const lockMessage = await relatedInvestmentLockMessage(await getDb(payload), original.investment)
+  if (lockMessage) return { error: lockMessage }
 
   const creatorId = resolveId(original.createdBy)
   const allowed = canMutateTransfer({

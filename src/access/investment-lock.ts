@@ -1,6 +1,6 @@
 import type { Access } from 'payload'
 import { getDb } from '@/lib/db/get-db'
-import { isRelatedInvestmentLocked, isInvestmentLocked } from '@/lib/db/investment-gate'
+import { investmentLockMessage, relatedInvestmentLockMessage } from '@/lib/db/investment-gate'
 import { resolveId } from '@/lib/utils/resolve-id'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 
@@ -62,8 +62,8 @@ export function createUnlessInvestmentLocked(base: Access, owner: CreateOwnerT):
           req: args.req,
         })
         .catch(() => undefined)
-      return !(await isRelatedInvestmentLocked(db, item?.investment))
+      return (await relatedInvestmentLockMessage(db, item?.investment)) === undefined
     }
-    return !(await isInvestmentLocked(db, ownerId))
+    return (await investmentLockMessage(db, ownerId)) === undefined
   }
 }

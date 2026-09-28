@@ -15,8 +15,7 @@ import {
 } from '@/lib/constants/transfers'
 import { getAmountError, getNetAmountError } from '@/lib/utils/validation'
 import { getDb } from '@/lib/db/get-db'
-import { isInvestmentLocked } from '@/lib/db/investment-gate'
-import { INVESTMENT_LOCKED_MESSAGE } from '@/lib/constants/investment-lock'
+import { investmentLockMessage } from '@/lib/db/investment-gate'
 import { resolveId } from '@/lib/utils/resolve-id'
 import { isInvoiceOnlyPatch } from '@/hooks/transfers/invoice-only-patch'
 
@@ -72,9 +71,8 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
     for (const id of previous === target ? [target] : [target, previous]) {
       // APIError, not Error: routeError rewrites the message of anything it can't prove public, so
       // a bare throw reaches `/admin` and REST as „Something went wrong" with a 500.
-      if (id !== undefined && (await isInvestmentLocked(db, id))) {
-        throw new APIError(INVESTMENT_LOCKED_MESSAGE, 403)
-      }
+      const lockMessage = id === undefined ? undefined : await investmentLockMessage(db, id)
+      if (lockMessage) throw new APIError(lockMessage, 403)
     }
   }
 

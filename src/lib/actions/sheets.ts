@@ -10,9 +10,8 @@ import { getInvestmentSheet, MISSING_SHEET } from '@/lib/google/sheet-lookup'
 import { isColumnField } from '@/lib/kosztorys/sheet-import/columns'
 import { isPointableColumn } from '@/lib/kosztorys/sheet-import/sheet-column-mapping'
 import { investmentAction } from '@/lib/actions/investment-action'
-import { INVESTMENT_LOCKED_MESSAGE } from '@/lib/constants/investment-lock'
 import { getDb } from '@/lib/db/get-db'
-import { isRelatedInvestmentLocked } from '@/lib/db/investment-gate'
+import { relatedInvestmentLockMessage } from '@/lib/db/investment-gate'
 import { protectedAction } from './run-action'
 import { logError } from '@/lib/utils/log-error'
 
@@ -165,10 +164,8 @@ async function lockedSheetError(
     .catch(() => undefined)
   if (!sheet) return { success: false, error: 'Kosztorys nie istnieje.' }
 
-  if (await isRelatedInvestmentLocked(await getDb(payload), sheet.investment)) {
-    return { success: false, error: INVESTMENT_LOCKED_MESSAGE }
-  }
-  return undefined
+  const lockMessage = await relatedInvestmentLockMessage(await getDb(payload), sheet.investment)
+  return lockMessage ? { success: false, error: lockMessage } : undefined
 }
 
 /**

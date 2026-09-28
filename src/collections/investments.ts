@@ -180,5 +180,13 @@ export const Investments: CollectionConfig = {
       admin: { hidden: true },
       label: { en: 'Loaded template id', pl: 'Id wczytanego szablonu' },
     },
+    // Set by the trash actions only (src/lib/actions/investment-trash.ts). Deliberately not
+    // `deletedAt`: that name is Payload's own `trash: true` column, which fails reads closed.
+    {
+      name: 'trashedAt',
+      type: 'date',
+      admin: { hidden: true },
+      label: { en: 'Trashed at', pl: 'W koszu od' },
+    },
   ],
 }

@@ -4,6 +4,8 @@
 export const INVESTMENT_LOCKED_MESSAGE =
   'Inwestycja jest zakończona i tylko do odczytu. Aby ją zmienić, ustaw jej status na „Aktywna".'
 
+export const INVESTMENT_TRASHED_MESSAGE = 'Inwestycja jest w koszu — przywróć ją, żeby coś zmienić.'
+
 /**
  * „Zakończona" IS the lock — the whole feature is this one comparison, spelled once. Six layers ask
  * it (the panel's access rules, both gates, the editor page, the form's confirmation), so a second

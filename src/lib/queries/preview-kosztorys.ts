@@ -120,7 +120,9 @@ export async function getPreviewKosztorysByToken(
   const payload = await getPayload({ config })
   const shares = await payload.find({
     collection: 'kosztorys-shares',
-    where: { token: { equals: token } },
+    // A trashed investment's link resolves like an unknown one; the share row survives, so a restore
+    // brings the same link back.
+    where: { token: { equals: token }, 'investment.trashedAt': { exists: false } },
     depth: 0,
     limit: 1,
     // The collection's read access is management-only (it holds the secret); this read IS the
