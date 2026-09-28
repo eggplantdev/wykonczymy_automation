@@ -625,12 +625,12 @@ the code ships. Existing rows get `trashed_at NULL`, so everything stays live. T
 
 #### Automated
 
-- [x] 3.1 delete-forever-dialog DOM spec: name required only for used kosztorys
-- [x] 3.2 use-nav-links DOM spec: „Kosz" only for owner/admin, last
+- [x] 3.1 delete-forever-dialog DOM spec: name required only for used kosztorys — 161a2603
+- [x] 3.2 use-nav-links DOM spec: „Kosz" only for owner/admin, last — 161a2603
 
 ### Phase 4: Auto-purge in the cleanup cron
 
 #### Automated
 
-- [ ] 4.1 purge-trash DB spec: 31d unused purged, used skipped, 29d kept
-- [ ] 4.2 cleanup route spec: trash result reported, one failing step does not hide the other
+- [x] 4.1 purge-trash DB spec: 31d unused purged, used skipped, 29d kept
+- [x] 4.2 cleanup route spec: trash result reported, one failing step does not hide the other
