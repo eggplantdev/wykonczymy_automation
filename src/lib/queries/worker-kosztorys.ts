@@ -15,7 +15,7 @@ import { buildKosztorysTree } from '@/lib/queries/kosztorys'
 
 // The cached half: everything but the settings, which are attached per request below.
 type WorkerKosztorysCoreT =
-  | (Extract<WorkerKosztorysT, { kind: 'ready' }> & {
+  | (Omit<Extract<WorkerKosztorysT, { kind: 'ready' }>, 'worker'> & {
       worker: Omit<WorkerAudienceT, 'settings'>
     })
   | Extract<WorkerKosztorysT, { kind: 'blocked' }>

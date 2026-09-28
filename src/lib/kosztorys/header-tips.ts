@@ -30,6 +30,8 @@ const HEADER_TIPS: Record<string, string> = {
   gross: `Pomiar razy cena minus rabat.\n\n${DISCOUNT_IS_CLIENT_ONLY}`,
   remaining: REMAINING,
   remainingGross: REMAINING,
+  remainingForPlane:
+    'Wartość przedmiaru minus wartość tego, co już wykonano — we wszystkich etapach, także innych ekip.\nObie liczone po Twojej stawce.\nNa minusie = przekroczono przedmiar.',
   donePercent: `Procent wykonania względem przedmiaru.\nIle procent oferty jest zrobione.\nPowyżej 100% oznacza przekroczenie prognozy\n\n${CLIENT_BASE}`,
   [STAGE_VALUE_NET_COLUMN_GROUP]: `Ilość wykonana w tym etapie razy cena jednostki miary minus udział etapu w rabacie.\nUdział jest proporcjonalny do ilości (rabat zł jest rabatem od całego wiersza, więc etap niesie tylko swoją część).\nZależy od aktywnego widoku cen.\n\n${DISCOUNT_IS_CLIENT_ONLY}`,
   [STAGE_VALUE_GROSS_COLUMN_GROUP]: 'Etap — kwota brutto = Etap — kwota netto razy (1 + VAT).',

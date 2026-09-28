@@ -8,6 +8,9 @@ import { SheetIcon } from 'lucide-react'
 // StaticDataSheetGrid, which snapshots `columns` via useState at mount (EX-422).
 import { DynamicDataSheetGrid, type DataSheetGridRef } from 'react-datasheet-grid'
 import { KosztorysTotalsPanel } from '@/components/kosztorys/summary/kosztorys-totals-panel'
+import { TotalsPanelOverlay } from '@/components/kosztorys/summary/totals-panel-overlay'
+import { WorkerSummary } from '@/components/kosztorys/summary/blocks/worker-summary'
+import { SummaryScrollRegion } from '@/components/ui/summary-grid'
 import { KosztorysTotalsPanelToggle } from '@/components/kosztorys/summary/kosztorys-totals-panel-toggle'
 import { useTotalsPanelOpen } from '@/components/kosztorys/summary/hooks/use-totals-panel-open'
 import { KosztorysEditorToolbar } from '@/components/kosztorys/editor/toolbar/kosztorys-editor-toolbar'
@@ -76,6 +79,7 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import type { KosztorysEditorDataT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
+import type { WorkerAudienceT } from '@/lib/kosztorys/worker-view/types'
 
 type PropsT = KosztorysEditorDataT & {
   // Read-only public render: hides the mutation chrome, kills persistence, gates the footer's
@@ -83,6 +87,8 @@ type PropsT = KosztorysEditorDataT & {
   preview?: boolean
   // Arrives with the preview payload only; the owner's editor renders the full grid regardless.
   clientView?: ClientViewSettingsT
+  // The named worker's document; only ever with `preview`.
+  worker?: WorkerAudienceT
   // Optional because the read-only client body omits it and falls back to NOOP_UNDO_REDO.
   undoRedo?: UndoRedoApiT
   onOpenVersions?: () => void
@@ -103,6 +109,7 @@ export function KosztorysEditorBody({
   depositTransactions,
   preview = false,
   clientView,
+  worker,
   locked = false,
   hasSheet = false,
   templatePresetId,
@@ -127,6 +134,7 @@ export function KosztorysEditorBody({
     tree,
     preview,
     clientView,
+    worker,
     locked,
     undoRedo,
     workers,
@@ -414,6 +422,7 @@ export function KosztorysEditorBody({
                     read — so it takes the second line rather than an ellipsis. */}
                 <h1 className="order-last w-full truncate text-base font-medium sm:order-none sm:w-auto sm:flex-1">
                   {investmentName}
+                  {worker && <span className="text-muted-foreground"> — {worker.name}</span>}
                 </h1>
                 {/* The open panel covers the whole grid, so the switch would change rows nobody can
                     see. Hidden, not unmounted: below `sm` it takes its own line under the name (which
@@ -584,7 +593,16 @@ export function KosztorysEditorBody({
               has something to say on an empty kosztorys. The client document keeps the row gate: it
               has no such tab, and its toggle is `disabled` there, so a panel left open would be a
               full-height sheet of zeros nobody could fold away. */}
-              {(!preview || subtotals.length > 0) && (
+              {/* The worker's document swaps the whole panel for his own balance: every tab of the
+              investor's reads the client's money, none of which is his to see. */}
+              {worker && subtotals.length > 0 && (
+                <TotalsPanelOverlay hasRows>
+                  <SummaryScrollRegion className="px-4 py-4">
+                    <WorkerSummary summary={worker.summary} />
+                  </SummaryScrollRegion>
+                </TotalsPanelOverlay>
+              )}
+              {!worker && (!preview || subtotals.length > 0) && (
                 <KosztorysTotalsPanel
                   hasRows={subtotals.length > 0}
                   {...panelData}

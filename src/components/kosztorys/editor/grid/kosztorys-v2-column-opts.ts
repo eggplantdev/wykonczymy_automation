@@ -102,6 +102,17 @@ export type BuildV2ColumnsOptsT = {
   // not see, this one about what a szablon cannot carry. The allowlist, not the stored tick: the
   // map of hidden columns is one per browser, so a tick would leak across every kosztorys.
   workshopVisible?: boolean
+  // The worker's document (EX-875): the third closed surface, and the one that discloses a CREW
+  // plane — `view` must equal `plane`, never 'client', and `previewVisible` must be off
+  // (`assertDisclosurePair`). `hiddenColumns` holds the firm-wide settings' logical keys, which only
+  // ever subtract from `workerVisibleColumns`. `executedQtyByItem` is Σ over EVERY etap of the
+  // investment, because `stages` here are this worker's alone and „Pozostało" must not read another
+  // crew's finished work as still owed.
+  workerSurface?: {
+    plane: ToolPlaneT
+    hiddenColumns: readonly string[]
+    executedQtyByItem: Record<number, number>
+  }
   // Which crew's rate columns are on screen — see crew-axis.ts. Absent = CREW_AXIS_DEFAULT.
   crewAxis?: CrewAxisT
 }

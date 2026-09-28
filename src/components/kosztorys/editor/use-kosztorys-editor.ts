@@ -18,6 +18,7 @@ import { itemFieldLane, stageLane } from '@/lib/kosztorys/save-lanes'
 import { buildReversalPatches, planReversalWrites } from '@/lib/kosztorys/undo-reversal'
 import type { UndoCommandT, UndoRedoApiT } from '@/components/kosztorys/editor/hooks/use-undo-redo'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
+import type { WorkerAudienceT } from '@/lib/kosztorys/worker-view/types'
 import { useColumnWidths } from '@/components/kosztorys/editor/hooks/use-column-widths'
 import { useRowHeights } from '@/components/kosztorys/editor/hooks/use-row-heights'
 import { useConditionRowLatch } from '@/components/kosztorys/editor/hooks/use-condition-row-latch'
@@ -117,6 +118,9 @@ type ArgsT = {
   preview?: boolean
   // Only consumed under `preview` — the owner's editor has none, and the settings dialog reads its own.
   clientView?: ClientViewSettingsT
+  // The named worker's document — the same `preview` render at his plane, his etapy and his own
+  // closed column list. Absent on every other surface.
+  worker?: WorkerAudienceT
   // „Zakończona" — the server refuses every write. Kept apart from `preview`: the two agree on
   // interaction and disagree on disclosure, and a locked investment is still the owner's OWN document.
   locked?: boolean
@@ -150,6 +154,7 @@ export function useKosztorysEditor({
   tree,
   preview = false,
   clientView,
+  worker,
   locked = false,
   undoRedo,
   workers,
@@ -172,6 +177,7 @@ export function useKosztorysEditor({
   // out leaves every call site reaching in — the indirection on the hot path EX-496 was reverted over.
   // Settle EX-422 first: if rowsRef/prevById stop being load-bearing, what's left to extract is smaller.
   const [rows, setRows] = useState<KosztorysV2RowT[]>(() => treeToRows(tree))
+  const documentSettings = worker?.settings ?? clientView
   const {
     view,
     setView,
@@ -198,7 +204,13 @@ export function useKosztorysEditor({
     setGuideY,
     fitRowsToContent,
     toggleFitRowsToContent,
-  } = useKosztorysViewState({ investmentId, preview, clientView, isWorkshop })
+  } = useKosztorysViewState({
+    investmentId,
+    preview,
+    clientView: documentSettings,
+    workerPlane: worker?.plane,
+    isWorkshop,
+  })
 
   // Committed on handle release, not per pointermove — that would be a write per pixel.
   const { widths, setWidth, dropWidth } = useColumnWidths()
@@ -448,9 +460,9 @@ export function useKosztorysEditor({
   const clientEmptyRowIds = useMemo(
     () =>
       preview
-        ? rowIdsMatching(rows, clientConditionIds(clientView?.hideEmptyRows), conditionCtx)
+        ? rowIdsMatching(rows, clientConditionIds(documentSettings?.hideEmptyRows), conditionCtx)
         : NO_ROW_IDS,
-    [preview, clientView?.hideEmptyRows, rows, conditionCtx],
+    [preview, documentSettings?.hideEmptyRows, rows, conditionCtx],
   )
   // Over the view's own etapy: a subcontractor view already drops plane-less etapy, so counting the raw
   // list would offer a filter that can only empty the stage block. Asymmetric with the price conditions
@@ -485,7 +497,9 @@ export function useKosztorysEditor({
   const divergenceFilterEngaged = !preview && engagedConditionIds.has(MEASURE_DIVERGED_CONDITION_ID)
 
   // Subtracts from the allowlist, never adds to it — the ceiling stays `PREVIEW_VISIBLE_COLUMNS`.
-  const previewHiddenColumns = preview && clientView ? new Set(clientView.hiddenColumns) : undefined
+  // The worker's hidden set is already folded into his list by `workerVisibleColumns`.
+  const previewHiddenColumns =
+    preview && !worker && clientView ? new Set(clientView.hiddenColumns) : undefined
 
   // Which ▲/▼ the two menus may offer at all. Off `rows`, like the movers themselves.
   const moveEdges = useMemo(() => computeMoveEdges(rows), [rows])
@@ -525,8 +539,15 @@ export function useKosztorysEditor({
     engagedStageConditionIds,
     revealedColumnIds,
     readOnly,
-    previewVisible: preview,
+    previewVisible: preview && !worker,
     previewHiddenColumns,
+    workerSurface: worker
+      ? {
+          plane: worker.plane,
+          hiddenColumns: worker.settings.hiddenColumns,
+          executedQtyByItem: worker.executedQtyByItem,
+        }
+      : undefined,
     workshopVisible: isWorkshop,
   }
   const { columns, columnToggleItems, columnBaseRanks } = buildV2Grid(columnOpts)
@@ -620,18 +641,18 @@ export function useKosztorysEditor({
   const stageTotals = useMemo(() => stageAxisForView(rows, stages, view).net, [rows, stages, view])
   // Full-dataset, so a search never moves the two synthetic totals rows.
   const columnTotals = useMemo(
-    () => columnTotalsForRows(rows, stages, view, tree.vatRate),
-    [rows, stages, view, tree.vatRate],
+    () => columnTotalsForRows(rows, stages, view, tree.vatRate, worker?.executedQtyByItem),
+    [rows, stages, view, tree.vatRate, worker?.executedQtyByItem],
   )
   const sectionColumnTotals = useMemo(
     () =>
       new Map(
         [...groupBySection(rows)].map(([sectionId, rowsOfSection]) => [
           sectionId,
-          columnTotalsForRows(rowsOfSection, stages, view, tree.vatRate),
+          columnTotalsForRows(rowsOfSection, stages, view, tree.vatRate, worker?.executedQtyByItem),
         ]),
       ),
-    [rows, stages, view, tree.vatRate],
+    [rows, stages, view, tree.vatRate, worker?.executedQtyByItem],
   )
   // A PROGRESS figure, not money — it must read the same in every price view, so executed/offered are
   // weighted at the client price, never the active `view`.

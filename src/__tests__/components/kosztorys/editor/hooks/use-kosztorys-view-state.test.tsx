@@ -58,6 +58,24 @@ describe('useKosztorysViewState — płaszczyzna cen', () => {
 
     expect(result.current.view).toBe('client')
   })
+
+  // A worker who once opened the investor's link on this browser, or the owner previewing both on
+  // one machine, must still land on the worker's stawka — never the client plane or the other crew's.
+  it('pins the worker preview to his plane against a stored client or other-crew plane', () => {
+    for (const stored of ['client', 'own_tools']) {
+      parkOn(stored)
+
+      const { result } = renderHook(() =>
+        useKosztorysViewState({
+          investmentId: INVESTMENT_ID,
+          preview: true,
+          workerPlane: 'w_tools',
+        }),
+      )
+
+      expect(result.current.view).toBe('w_tools')
+    }
+  })
 })
 
 describe('useKosztorysViewState — „Pokaż wszystkie pozycje"', () => {

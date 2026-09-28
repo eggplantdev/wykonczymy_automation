@@ -874,23 +874,23 @@ Run once, after the final phase:
 
 - [x] 3.1 Migration applies to local docker DB — dcf53409
 - [x] 3.2 Types regenerate with the new slugs — dcf53409
-- [x] 3.3 Pair uniqueness enforced (DB spec)
+- [x] 3.3 Pair uniqueness enforced (DB spec) — 32952d3f
 
 ### Phase 4: Server — link actions, settings actions, projection, routes
 
 #### Automated
 
-- [x] 4.1 Worker share action spec passes
-- [x] 4.2 Worker token/read specs pass
+- [x] 4.1 Worker share action spec passes — 32952d3f
+- [x] 4.2 Worker token/read specs pass — 32952d3f
 
 ### Phase 5: Worker surface in the grid and page
 
 #### Automated
 
-- [ ] 5.1 Worker column spec passes
-- [ ] 5.2 View-state spec passes
-- [ ] 5.3 Summary block spec passes
-- [ ] 5.4 Existing preview specs unchanged
+- [x] 5.1 Worker column spec passes
+- [x] 5.2 View-state spec passes
+- [x] 5.3 Summary block spec passes
+- [x] 5.4 Existing preview specs unchanged
 
 ### Phase 6: Editor — menu „Pracownicy" + settings dialog
 

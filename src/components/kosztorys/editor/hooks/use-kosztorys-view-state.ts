@@ -6,6 +6,7 @@ import { useFitRowsToContent } from '@/components/kosztorys/editor/hooks/use-fit
 import { usePriceView } from '@/components/kosztorys/editor/hooks/use-price-view'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
+import type { ToolPlaneT } from '@/lib/kosztorys/types'
 import {
   clientConditionIds,
   engagedPlane,
@@ -16,8 +17,11 @@ import type { SortPickT, SortStateT } from '@/lib/kosztorys/row-view'
 type ArgsT = {
   investmentId: number
   preview: boolean
-  // The investment's stored client-view settings. Only consumed under `preview`.
+  // The stored settings of whichever read-only document is served — the investor's or a worker's.
+  // Only consumed under `preview`.
   clientView?: ClientViewSettingsT
+  // The worker surface's plane: the preview pins to it instead of 'client'.
+  workerPlane?: ToolPlaneT
   // The szablon workbench, which pins the base plane — see `view` below.
   isWorkshop?: boolean
 }
@@ -29,6 +33,7 @@ export function useKosztorysViewState({
   investmentId,
   preview,
   clientView,
+  workerPlane,
   isWorkshop = false,
 }: ArgsT) {
   const [persistedView, setView] = usePriceView(investmentId)
@@ -63,7 +68,9 @@ export function useKosztorysViewState({
   // that switch safe: `pickView` is the only writer of the stored view, so a browser parked on a crew
   // plane would otherwise stay there forever with no control to come back. The problem overlay stays
   // above it, because that is the gesture that walks the reader to a fault.
-  const view = preview ? 'client' : (problemPlane ?? (isWorkshop ? 'client' : persistedView))
+  const view: PriceViewT = preview
+    ? (workerPlane ?? 'client')
+    : (problemPlane ?? (isWorkshop ? 'client' : persistedView))
   const [sort, setSort] = useState<SortStateT>(null)
   // Folded sections, driven by a band's chevron and by the „Sekcje" menu (unticking folds rather
   // than filtering, so a hidden section still shows its total). Not persisted: a remembered fold

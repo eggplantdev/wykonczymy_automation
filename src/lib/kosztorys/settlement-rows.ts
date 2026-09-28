@@ -64,6 +64,20 @@ export function rowRemainingForView(
 }
 
 /**
+ * The worker view's „Pozostało" (EX-875 design #9): the same przedmiar-anchored reading, but the
+ * executed quantity is handed in rather than summed off `stages`. The worker's grid carries his etapy
+ * only, and a pozycja another crew finished is not work still owed to anyone — so the quantity comes
+ * from every etap of the investment, while the price stays his stawka.
+ */
+export function rowRemainingForExecutedQty(
+  row: KosztorysV2RowT,
+  executedQty: number,
+  view: PriceViewT,
+): number {
+  return netForQtyForView(row, row.plannedQty ?? 0, view) - netForQtyForView(row, executedQty, view)
+}
+
+/**
  * Was more executed than was offered? Drives the row's red highlight.
  *
  * Deliberately NOT "przedmiar ≠ Σ etapów": a half-finished row is normal work in progress, and

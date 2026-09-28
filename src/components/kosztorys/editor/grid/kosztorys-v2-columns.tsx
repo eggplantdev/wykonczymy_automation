@@ -53,6 +53,7 @@ import { formatPLN } from '@/lib/utils/format-currency'
 import {
   hasStagesOverPlanned,
   measureDiscrepancy,
+  rowRemainingForExecutedQty,
   rowRemainingForView,
   rowTotalQtyDone,
   rowValueForView,
@@ -94,7 +95,9 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   // „Źródło ceny wykonawcy" and „Mnożnik" are the owner's control over a crew's rate, never something
   // the investor may see: both are refused at assembly for the client preview, on top of
   // PREVIEW_VISIBLE_COLUMNS having neither, so a later allowlist edit cannot leak them on its own.
-  const withMode = opts.previewVisible !== true
+  // The worker surface refuses them for the same reason: a crew seeing its own mnożnik can read the
+  // client price straight back off its stawka.
+  const withMode = !opts.previewVisible && !opts.workerSurface
   const subcontractorPriceCols: Column<KosztorysV2RowT>[] = TOOL_PLANES.flatMap((plane) => [
     ...(withMode
       ? [
@@ -369,6 +372,16 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       toGross(rowRemainingForView(r, stages, 'client'), r.vatRate),
     ),
   ]
+  // Assembled on the worker surface only: anywhere else there is no all-etapy quantity to read, and
+  // a figure built from the view's etapy alone would call another crew's work unfinished.
+  const worker = opts.workerSurface
+  const remainingForPlane: Column<KosztorysV2RowT>[] = worker
+    ? [
+        computedColumn('remainingForPlane', columnTitle('remainingForPlane', opts), (r) =>
+          rowRemainingForExecutedQty(r, worker.executedQtyByItem[r.id] ?? 0, view),
+        ),
+      ]
+    : []
 
   // „Rozjazd" behind the identity block when it exists at all (a work list, not a reading of the
   // sheet), then sheet order proper: N, D–M, O, T at the work/progress seam, then U–AE before AF.
@@ -387,6 +400,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     ...stageValueGrossCols,
     ...donePercent,
     ...remaining,
+    ...remainingForPlane,
   ]
   if (opts.readOnly) return dataColumns.map((c) => ({ ...c, disabled: true }))
   return opts.onRemoveItem || opts.onReorderItem

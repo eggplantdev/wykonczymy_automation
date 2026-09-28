@@ -21,6 +21,7 @@ import {
 import { CREW_AXIS_DEFAULT, crewAxisAllows } from '@/lib/kosztorys/crew-axis'
 import { LAYER_DEFAULT, layerAllows } from '@/lib/kosztorys/layer'
 import { MONEY_AXIS_DEFAULT, axisAllows } from '@/lib/kosztorys/money-axis'
+import { workerVisibleColumns } from '@/lib/kosztorys/worker-view/settings'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 // A stage column answers to its axis's shared "Etapy — …" picker entry, not to its own id.
@@ -39,10 +40,24 @@ function toggleKey(columnId: string): string {
 // What this pin does not cover: the four per-plane rate columns. They carry their plane in the id
 // and assemble in EVERY view, so pinning `view` to 'client' does nothing for them — the allowlist is
 // their only barrier, and it is the half to check before touching either.
+//
+// The worker surface is the same pair turned the other way: its list names `price__<plane>`, so the
+// ids alone are safe, but `net` and the per-etap wartości still compute at `view` — at 'client' they
+// would print the client's money under a worker's stawka.
 function assertDisclosurePair(opts: BuildV2ColumnsOptsT): void {
   if (opts.previewVisible && opts.view !== 'client') {
     throw new Error(
       `previewVisible requires view='client' (got '${opts.view}') — the column allowlist does not pin the price plane.`,
+    )
+  }
+  const worker = opts.workerSurface
+  if (!worker) return
+  if (opts.previewVisible) {
+    throw new Error('workerSurface and previewVisible are two audiences — pass one.')
+  }
+  if (opts.view !== worker.plane) {
+    throw new Error(
+      `workerSurface requires view='${worker.plane}' (got '${opts.view}') — the worker list does not pin the price plane.`,
     )
   }
 }
@@ -54,6 +69,9 @@ function assertDisclosurePair(opts: BuildV2ColumnsOptsT): void {
 // is one entry here, not three edits in three functions.
 function closedColumnList(opts: BuildV2ColumnsOptsT): ReadonlySet<string> | null {
   if (opts.previewVisible) return PREVIEW_VISIBLE_COLUMNS
+  if (opts.workerSurface) {
+    return workerVisibleColumns(opts.workerSurface.plane, opts.workerSurface.hiddenColumns)
+  }
   if (opts.workshopVisible) return WORKSHOP_VISIBLE_COLUMNS
   return null
 }

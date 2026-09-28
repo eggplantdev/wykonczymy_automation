@@ -115,6 +115,17 @@ describe('columnTotalsForRows', () => {
     expect(totals(rows, 'client').has('plannedNetForPlane')).toBe(false)
   })
 
+  // The worker's „Pozostało" (EX-875 #9): work another crew finished is not owed to anyone, so the
+  // executed quantity spans every etap even though the price is this crew's stawka.
+  it('totals the worker „Pozostało" off the all-etapy quantity it is handed', () => {
+    const executedAll = { 1: 5, 2: 4, 3: 1, 4: 2 }
+    const worker = columnTotalsForRows(rows, tree.stages, 'w_tools', tree.vatRate, executedAll)
+
+    // (15 − 12) × 12 — the own-etapy sum (2 + 4 + 1 = 7) would read 96 still owed.
+    expect(worker.get('remainingForPlane')).toBe(36)
+    expect(totals(rows, 'w_tools').has('remainingForPlane')).toBe(false)
+  })
+
   it('drops an out-of-view etap from the axis rather than totalling a hidden column', () => {
     const subcontractor = totals(rows, 'w_tools')
 
