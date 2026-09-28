@@ -93,9 +93,9 @@ describe('subcontractor rate columns, both planes', () => {
     }
   })
 
-  // Nadal „nikt nie spotyka ich bez pytania", ale trzyma to teraz OŚ, nie domyślny odznaczony haczyk.
-  // Dwie bramki na jednej kolumnie nie dają się złożyć: picker jest surowszy, więc zapamiętane
-  // odznaczenie cicho unieważniałoby przełącznik osi.
+  // Still „nobody meets them unasked", but it is the AXIS that holds that now, not a default-unticked
+  // box. Two gates on one column do not compose: the picker is the stricter of the two, so a
+  // remembered untick would quietly overrule the axis switch.
   it('starts hidden in every view, so nobody meets new columns unasked', () => {
     const planeIds = [...MODE_IDS, ...COEFF_IDS, ...PRICE_IDS]
     for (const id of planeIds) expect(DEFAULT_HIDDEN_COLUMNS.has(id)).toBe(false)
@@ -108,6 +108,21 @@ describe('subcontractor rate columns, both planes', () => {
         expect(columnToggleItems.some((item) => item.id === id)).toBe(false)
       }
     }
+  })
+
+  // Six of the „Problemy" diagnostics are plane-bound („Stawka ujemna — bez narzędzi" and its five
+  // siblings), and none of them consults the axis. So with the crew's columns put away, engaging one
+  // hid pozycje and then showed nothing that explained why — the reveal has to outrank the axis
+  // (owner, 2026-09-28). The picker it already outranked; the money axis and the layer it must not.
+  it('a revealed plane column comes back even with that crew put away', () => {
+    const revealed = planePriceKey('price', 'own_tools')
+    const { columns } = buildV2Grid({
+      view: 'client',
+      stages: STAGES,
+      crewAxis: 'none',
+      revealedColumnIds: new Set([revealed]),
+    })
+    expect(columns.map((column) => column.id)).toContain(revealed)
   })
 
   // A crew is paid without VAT, so its rate has no brutto twin — the brutto reading must not take it

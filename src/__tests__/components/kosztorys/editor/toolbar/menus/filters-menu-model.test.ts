@@ -12,7 +12,6 @@ const model = (
     engagedIds: new Set(engaged),
     counts: new Map(Object.entries(counts)),
     perItemDiscountInert,
-    // Obie płaszczyzny widoczne — o gating przez oś „Stawki wykonawców" pyta osobny opis niżej.
     crewAxis: 'both',
   })
 
@@ -34,8 +33,8 @@ describe('the „Filtry" list', () => {
     expect(model({ 'has-note': 4, 'no-note': 0 }).map((toggle) => toggle.id)).toEqual(['has-note'])
   })
 
-  // Bez „Pozycje " z przodu — nagłówek nad listą już to mówi. Wielka litera jest dodana przez menu,
-  // bo rejestrowa etykieta to fraza rzeczownikowa czytana też po „Ukryto: pozycje ".
+  // No „Pozycje " in front — the heading above the list already says it. The capital is added by the
+  // menu, because the registry label is a noun phrase also read after „Ukryto: pozycje ".
   it('names the pozycje each row hides, count included', () => {
     expect(model({ 'has-note': 4 })[0].label).toBe('Z komentarzem (4)')
   })

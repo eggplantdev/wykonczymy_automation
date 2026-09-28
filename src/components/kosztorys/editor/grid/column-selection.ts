@@ -86,13 +86,17 @@ export function selectV2Columns(
     if (closed) return closed.has(key) && !opts.previewHiddenColumns?.has(key)
     if (opts.view !== 'client' && PRZEDMIAR_ANCHORED_COLUMNS.has(key)) return false
     // The reveal sits beside UNPICKABLE_COLUMNS because it answers the same question — „may a stored
-    // tick hide this right now" — and pointedly NOT beside the two gates after it: a problem filter
-    // gets to overrule one owner's picker, never their money axis or layer.
+    // tick hide this right now" — and it overrules the crew axis for the same reason: six diagnostics
+    // are plane-bound („Stawka ujemna — z narzędziami" and its five siblings), so with that crew's
+    // columns put away the filter hides pozycje and never shows the stawka that explains why
+    // (owner, 2026-09-28). The money axis and the layer it still does not touch: those choose which
+    // document is on screen, not which of its columns a problem may borrow.
+    const revealed = opts.revealedColumnIds?.has(key) ?? false
     return (
-      (UNPICKABLE_COLUMNS.has(key) || opts.revealedColumnIds?.has(key) || !opts.isHidden?.(key)) &&
+      (UNPICKABLE_COLUMNS.has(key) || revealed || !opts.isHidden?.(key)) &&
       axisAllows(key, axis) &&
       layerAllows(key, layer) &&
-      crewAxisAllows(key, crew)
+      (revealed || crewAxisAllows(key, crew))
     )
   }
   const base = assembled.filter((c) => keep(toggleKey(c.id ?? ''))).map((c) => withResize(c, opts))
