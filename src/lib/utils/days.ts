@@ -21,6 +21,24 @@ export const toWarsawDay = (value: Date | string): DayT =>
 /** Today in Warsaw. Resolve ONCE per run and thread it through — never re-read inside a loop. */
 export const warsawToday = (now: Date = new Date()): DayT => toWarsawDay(now)
 
+const WARSAW_OFFSET = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'Europe/Warsaw',
+  timeZoneName: 'longOffset',
+})
+
+// Warsaw's DST switches at 01:00 UTC, so UTC midnight of `day` always carries the same offset as
+// Warsaw midnight of `day` (22:00/23:00 UTC the evening before) — neither straddles a switch.
+function warsawMidnight(day: DayT): Date {
+  const offset = WARSAW_OFFSET.formatToParts(new Date(`${day}T00:00:00Z`)).find(
+    (part) => part.type === 'timeZoneName',
+  )?.value
+  return new Date(`${day}T00:00:00${offset?.replace('GMT', '') || 'Z'}`)
+}
+
+/** The last instant of the Warsaw day before the one `now` falls on. */
+export const endOfPreviousWarsawDay = (now: Date): Date =>
+  new Date(warsawMidnight(warsawToday(now)).getTime() - 1)
+
 /**
  * Whole days from `from` to `to`, negative when `to` is earlier. Both are parsed as UTC midnight, so
  * a DST switch can never make a day count 23 or 25 hours long.

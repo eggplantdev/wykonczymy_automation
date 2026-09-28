@@ -1,9 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 
-// Payload and the DB are mocked out: the capture itself is covered against a real DB in
-// lib/kosztorys/capture-daily-snapshots.test.ts. This spec proves the gate and what the route
-// forwards and expires.
+// The capture itself is covered against a real DB in lib/kosztorys/capture-daily-snapshots.test.ts.
 vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('payload', () => ({ getPayload: vi.fn() }))
 vi.mock('@/lib/db/get-db', () => ({ getDb: vi.fn() }))

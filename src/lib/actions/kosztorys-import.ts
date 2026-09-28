@@ -9,7 +9,6 @@ import { getInvestmentSheet, MISSING_SHEET, type InvestmentSheetT } from '@/lib/
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import { replaceTreeWithSnapshot } from '@/lib/kosztorys/replace-tree-with-snapshot'
 import type { ToolPlaneT } from '@/lib/kosztorys/types'
-import { getKosztorysTree } from '@/lib/queries/kosztorys'
 import { serializeKosztorys } from '@/lib/kosztorys/serialize-kosztorys'
 import {
   buildImportPlan,
@@ -244,13 +243,11 @@ export async function compareWithSheet(
       // the stored reference quantity — but that is an invariant of the current report, not of the
       // action, and the day a figure starts reading it this would go quietly stale.
       const tree = written > 0 ? await serializeKosztorys(investmentId) : treeBeforeWrite
-      // Costs no query: `serializeKosztorys` just read the same cached tree and dropped this field.
-      const { globalDiscount } = await getKosztorysTree(investmentId)
       const built = buildSheetComparison(
         grids,
         tree,
         sheet.googleSheetId,
-        globalDiscount,
+        tree.globalDiscount,
         sheet.sheetColumnMapping,
       )
       if (!built.ok) return { success: false, error: built.problems.join(' ') }

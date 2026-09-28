@@ -2,16 +2,10 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
-import {
-  gcSnapshots,
-  getSnapshot,
-  insertSnapshot,
-  listSnapshots,
-  type SnapshotKindT,
-} from '@/lib/db/snapshots'
+import { gcSnapshots, getSnapshot, insertSnapshot, listSnapshots } from '@/lib/db/snapshots'
 import { deletePreset, insertPreset } from '@/lib/db/presets'
 import { setWorkshopPreset } from '@/lib/db/workshop-investment'
-import type { KosztorysSnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
+import type { KosztorysSnapshotPayloadT, SnapshotKindT } from '@/lib/kosztorys/snapshot-format'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { acquireTestWorkshop } from '@/__tests__/helpers/workshop'
 

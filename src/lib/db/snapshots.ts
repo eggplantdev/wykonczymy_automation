@@ -1,9 +1,14 @@
 import 'server-only'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import {
+  LOCKED_INVESTMENT_STATUS,
+  TEMPLATE_INVESTMENT_STATUS,
+} from '@/lib/constants/investment-lock'
+import {
   SNAPSHOT_SCHEMA_VERSION,
   assertReadableSchemaVersion,
   type KosztorysSnapshotPayloadT,
+  type SnapshotKindT,
   type StoredSnapshotPayloadT,
 } from '@/lib/kosztorys/snapshot-format'
 import type { HistoryKindT, HistoryMetaT } from '@/lib/kosztorys/history/types'
@@ -12,8 +17,6 @@ import type { DbExecutorT } from './get-db'
 // The single reader/writer of the raw kosztorys_snapshots table (no Payload collection — the
 // notification_reads pattern). Retention has one authority, gcSnapshots, swept daily by the cron;
 // nothing prunes on the insert path, so a capture is a plain INSERT.
-
-export type SnapshotKindT = 'manual' | 'auto' | 'named' | 'daily'
 
 // THE RETENTION POLICY, in full:
 //
@@ -80,11 +83,12 @@ export async function insertSnapshot(
 }
 
 // The investments whose kosztorys may still change: szablon (the workbench) and completed (locked)
-// fall out of the status list, the trash by its own column.
+// fall out by status, the trash by its own column.
 export async function listDailyEligibleInvestmentIds(db: DbExecutorT): Promise<number[]> {
   const res = await db.execute(sql`
     SELECT id FROM investments
-    WHERE status IN ('planowana', 'active') AND trashed_at IS NULL
+    WHERE status NOT IN (${LOCKED_INVESTMENT_STATUS}, ${TEMPLATE_INVESTMENT_STATUS})
+      AND trashed_at IS NULL
     ORDER BY id
   `)
   return res.rows.map((row) => Number(row.id))
@@ -162,6 +166,10 @@ const historyMeta = (row: Record<string, unknown>): HistoryMetaT => ({
 // every `named` one. The per-day cut happens here so a month of 10-min rows never reaches the app;
 // which of a day's two rows wins is the history library's call, not SQL's. `manual` rows are the
 // owner's pre-restore points and never leave this query.
+// `HistoryKindT` in SQL. One fragment, because the list and the by-id read must agree: an id the list
+// offers that the read refuses renders the present under a past version's link.
+const IS_HISTORY_KIND = sql`kind IN ('auto', 'daily', 'named')`
+
 export async function listHistoryMetas(
   db: DbExecutorT,
   investmentId: number,
@@ -174,7 +182,7 @@ export async function listHistoryMetas(
       ) AS rn
       FROM kosztorys_snapshots
       WHERE investment_id = ${investmentId}
-        AND kind IN ('auto', 'daily', 'named')
+        AND ${IS_HISTORY_KIND}
         AND template_preset_id IS NOT DISTINCT FROM ${HELD_PRESET(investmentId)}
     ) ranked
     WHERE kind = 'named' OR rn = 1
@@ -183,8 +191,8 @@ export async function listHistoryMetas(
   return res.rows.map(historyMeta)
 }
 
-// Scoped by investment and kind in the WHERE, not after the fetch: the ids arrive from a URL, and an id
-// from another investment or a `manual` row must be indistinguishable from one that doesn't exist.
+// The ids arrive from a URL, and an id from another investment or a `manual` row must be
+// indistinguishable from one that doesn't exist.
 export async function getHistorySnapshots(
   db: DbExecutorT,
   investmentId: number,
@@ -199,7 +207,7 @@ export async function getHistorySnapshots(
         ids.map((id) => sql`${id}`),
         sql.raw(', '),
       )})
-      AND kind IN ('auto', 'daily', 'named')
+      AND ${IS_HISTORY_KIND}
       AND template_preset_id IS NOT DISTINCT FROM ${HELD_PRESET(investmentId)}
   `)
   return new Map(
@@ -237,7 +245,7 @@ export async function gcSnapshots(db: DbExecutorT): Promise<{
     USING investments i
     WHERE i.id = s.investment_id
       AND s.kind IN ('daily', 'named')
-      AND i.status = 'completed'
+      AND i.status = ${LOCKED_INVESTMENT_STATUS}
       AND i.completed_at < now() - make_interval(days => ${INVESTOR_HISTORY_DAYS_AFTER_COMPLETION})
     RETURNING s.id
   `)

@@ -4,29 +4,9 @@ import type { DbExecutorT } from '@/lib/db/get-db'
 import { insertSnapshot, latestSnapshot, listDailyEligibleInvestmentIds } from '@/lib/db/snapshots'
 import { buildKosztorysTree } from '@/lib/queries/kosztorys'
 import { serializeTree } from '@/lib/kosztorys/serialize-tree'
-import { warsawToday } from '@/lib/utils/days'
+import { endOfPreviousWarsawDay } from '@/lib/utils/days'
 
-export type DailyCaptureResultT = { stored: number; unchanged: number; failed: number }
-
-const WARSAW_OFFSET = new Intl.DateTimeFormat('en-US', {
-  timeZone: 'Europe/Warsaw',
-  timeZoneName: 'longOffset',
-})
-
-// Warsaw's DST switches at 01:00 UTC, so UTC midnight of `day` always carries the same offset as
-// Warsaw midnight of `day` (22:00/23:00 UTC the evening before) — neither straddles a switch.
-function warsawMidnight(day: string): Date {
-  const offset = WARSAW_OFFSET.formatToParts(new Date(`${day}T00:00:00Z`)).find(
-    (part) => part.type === 'timeZoneName',
-  )?.value
-  return new Date(`${day}T00:00:00${offset?.replace('GMT', '') || 'Z'}`)
-}
-
-// The run always happens after Warsaw midnight (see the cron route), so the day it describes is the
-// one that just ended, and its version is stamped at that day's last instant.
-export function endOfPreviousWarsawDay(now: Date): Date {
-  return new Date(warsawMidnight(warsawToday(now)).getTime() - 1)
-}
+type DailyCaptureResultT = { stored: number; unchanged: number; failed: number }
 
 /**
  * One `daily` row per investment per Warsaw day, and only for a day whose end state differs from the
@@ -38,7 +18,6 @@ export async function captureDailySnapshot(
   takenAt: Date,
 ): Promise<'stored' | 'unchanged'> {
   const previous = await latestSnapshot(db, investmentId, 'daily')
-  // A rerun for a day already captured is a no-op, even if the tree moved since.
   if (previous && previous.takenAt.getTime() >= takenAt.getTime()) return 'unchanged'
 
   const payload = serializeTree(await buildKosztorysTree(investmentId))
@@ -66,6 +45,8 @@ export async function captureDailySnapshots(
   db: DbExecutorT,
   now: Date,
 ): Promise<DailyCaptureResultT> {
+  // The run always happens after Warsaw midnight (see the cron route), so the day it describes is the
+  // one that just ended, and its version is stamped at that day's last instant.
   const takenAt = endOfPreviousWarsawDay(now)
   const result: DailyCaptureResultT = { stored: 0, unchanged: 0, failed: 0 }
 

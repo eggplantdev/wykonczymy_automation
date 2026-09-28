@@ -68,8 +68,8 @@ describe.skipIf(!ENV_READY)('saveSnapshotAction — required label (DB)', () => 
     expect(await namedCount()).toBe(0)
   })
 
-  // `named`, not `manual`: the investor's history lists „Zapisz jako…" versions and must not list the
-  // `manual` safety copies a restore or a szablon reload takes on its way.
+  // The investor's history lists „Zapisz jako…" versions and must not list the `manual` safety
+  // copies a restore or a szablon reload takes on its way.
   it('stores a named snapshot with the given label', async () => {
     const res = await saveSnapshotAction(investmentId, 'Wersja klienta')
 

@@ -6,6 +6,8 @@ import type {
   StageProgressT,
 } from '@/lib/kosztorys/types'
 
+export type SnapshotKindT = 'manual' | 'auto' | 'named' | 'daily'
+
 // Bump only on a non-additive payload change (a renamed/dropped field). An ADDITIVE field usually
 // needs no bump, because the restore path defaults what a stored payload omits — but it defaults
 // exactly what StoredSnapshotPayloadT below marks optional, and nothing more. A new column that is

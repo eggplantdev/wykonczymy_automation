@@ -145,7 +145,6 @@ describe.skipIf(!ENV_READY)('restoreSnapshotAction — persisted state (DB)', ()
   })
 
   it('refuses to restore a snapshot belonging to another investment and writes nothing', async () => {
-    // A named snapshot that belongs to investment A (this suite's investmentId).
     expect((await saveSnapshotAction(investmentId, 'wersja A')).success).toBe(true)
     const snapRow = await db.execute(sql`
       SELECT id FROM kosztorys_snapshots

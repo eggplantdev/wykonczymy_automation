@@ -10,13 +10,16 @@ import { captureDailySnapshots } from '@/lib/kosztorys/capture-daily-snapshots'
 export const maxDuration = 300
 
 /**
- * The investor's change history: one version per investment per day it changed. Scheduled from
+ * Scheduled from
  * vercel.json at 23:15 UTC — 00:15 in Warsaw in winter, 01:15 in summer — so every run starts after
  * Warsaw midnight and describes the day that just ended, whatever the season.
  *
  * Accepted: an edit made between Warsaw midnight and the run (15 minutes in winter, 75 in summer) is
  * booked to the day before. A slot before midnight would instead push one season's late-evening edits
  * a day forward, and the attribution rule would then depend on the date.
+ *
+ * A manual re-run is safe the same night and misleading later: a day already captured is skipped, but
+ * one the night found unchanged is not, so a re-run at noon stamps that morning's edits onto yesterday.
  */
 export async function GET(request: NextRequest) {
   if (!isAuthorizedCronRequest(request)) {
