@@ -165,12 +165,17 @@ export const AXIS_EXEMPT_COLUMNS: ReadonlySet<string> = new Set(['price'])
 
 // The four per-item rabat columns hidden while the global discount overrides them. Paired with
 // DISCOUNT_CONDITION_IDS (row-conditions/registry.ts), which drops the matching „Problemy" entries.
-export const DISCOUNT_COLUMN_IDS: ReadonlySet<string> = new Set([
+const DISCOUNT_COLUMN_IDS: ReadonlySet<string> = new Set([
   'discountValue',
   'discountType',
   'discountAmount',
   'discountAmountGross',
 ])
+
+// One rule for the grid, its picker and the printed offer — a copy that drifts prints a per-item
+// rabat beside a zero kwota rabatu.
+export const bypassedByGlobalDiscount = (key: string, globalDiscountActive = false) =>
+  globalDiscountActive && DISCOUNT_COLUMN_IDS.has(key)
 
 // What a client may see on the share view — an ALLOWLIST, keyed by toggleKey like the maps above.
 // Allowlist, not a denylist: a column added later is invisible to clients until someone puts it here,

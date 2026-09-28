@@ -12,7 +12,7 @@ import {
 import {
   CLIENT_DOCUMENT_COLUMNS,
   CREW_PLANE_ONLY_COLUMNS,
-  DISCOUNT_COLUMN_IDS,
+  bypassedByGlobalDiscount,
   PREVIEW_VISIBLE_COLUMNS,
   WORKSHOP_VISIBLE_COLUMNS,
   PRZEDMIAR_ANCHORED_COLUMNS,
@@ -110,7 +110,7 @@ export function selectV2Columns(
   // an etap with no entries goes alone (`emptySettlementColumnIds`).
   const keep = (id: string): boolean => {
     const key = toggleKey(id)
-    if (opts.globalDiscountActive && DISCOUNT_COLUMN_IDS.has(key)) return false
+    if (bypassedByGlobalDiscount(key, opts.globalDiscountActive)) return false
     // A closed list is a ceiling AND a floor, and the workbench needs the floor for the mirror image
     // of the preview's reason: the three preference gates below persist in localStorage per BROWSER,
     // not per kosztorys, and the workbench hides every control that edits them. Honour them and it
@@ -154,7 +154,7 @@ export function selectV2ToggleItems(
   for (const col of assembled) {
     const id = toggleKey(col.id ?? '')
     if (items.some((i) => i.id === id)) continue
-    if (opts.globalDiscountActive && DISCOUNT_COLUMN_IDS.has(id)) continue
+    if (bypassedByGlobalDiscount(id, opts.globalDiscountActive)) continue
     if (UNPICKABLE_COLUMNS.has(id)) continue
     if (opts.view !== 'client' && PRZEDMIAR_ANCHORED_COLUMNS.has(id)) continue
     if (opts.view === 'client' && CREW_PLANE_ONLY_COLUMNS.has(id)) continue
@@ -185,11 +185,11 @@ export function orderAssembled(
   assembled: Column<KosztorysV2RowT>[],
   opts: BuildV2ColumnsOptsT,
 ): Column<KosztorysV2RowT>[] {
+  const order = documentOrder(opts)
+  if (order) return orderColumns(assembled, baseRanksFromKeys(order), toggleKey)
   // An empty rank map is the assemble order by definition, and it is what every owner who never
   // reordered anything has — bail before the group→sort→regroup pass instead of reproducing the
   // input array on each render.
-  const order = documentOrder(opts)
-  if (order) return orderColumns(assembled, baseRanksFromKeys(order), toggleKey)
   if (closedColumnList(opts) || !opts.columnRanks || Object.keys(opts.columnRanks).length === 0) {
     return assembled
   }

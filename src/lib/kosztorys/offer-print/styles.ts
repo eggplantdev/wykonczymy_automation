@@ -30,7 +30,7 @@ table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout:
 /* Auto layout sizes a column by its widest cell, so „kontener" and „1 500 zł" claimed width the wrapped
    descriptions needed far more. The figures are known-width; the description takes the remainder. */
 col.c-qty { width: 18mm; } col.c-unit { width: 20mm; }
-col.c-price { width: 19mm; } col.c-value { width: 23mm; }
+col.c-price { width: 19mm; } col.c-value { width: 23mm; } col.c-stage-qty { width: 14mm; }
 thead { display: table-header-group; }
 tr { break-inside: avoid; }
 

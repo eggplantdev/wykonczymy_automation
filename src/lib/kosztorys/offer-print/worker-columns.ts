@@ -1,9 +1,13 @@
-import { rowPlannedNetForView, stageValueForView, viewPrice } from '@/lib/kosztorys/calc'
+import { rowPlannedNetForView, viewPrice } from '@/lib/kosztorys/calc'
 import { formatQty } from '@/lib/kosztorys/format'
 import {
   DESCRIPTION_COLUMN,
   PLANNED_QTY_COLUMN,
   UNIT_COLUMN,
+  moneyColumn,
+  qtyColumn,
+  stageNetColumns,
+  stageQtyColumns,
   type OfferColumnT,
 } from '@/lib/kosztorys/offer-print/columns'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
@@ -12,13 +16,7 @@ import {
   rowTotalQtyDone,
   rowValueForView,
 } from '@/lib/kosztorys/settlement-rows'
-import { stageLabel } from '@/lib/kosztorys/stage-label'
-import {
-  STAGE_VALUE_NET_COLUMN_GROUP,
-  STAGES_COLUMN_GROUP,
-  stageKey,
-  stageValueNetKey,
-} from '@/lib/kosztorys/stage-keys'
+import { STAGE_VALUE_NET_COLUMN_GROUP, STAGES_COLUMN_GROUP } from '@/lib/kosztorys/stage-keys'
 import {
   workerColumnLabel,
   workerDocumentColumns,
@@ -34,15 +32,6 @@ export type WorkerPrintColumnsArgsT = {
   hiddenColumns: readonly string[]
   executedQtyByItem: Record<number, number>
 }
-
-const moneyColumn = (key: string, label: string, cell: OfferColumnT['cell']): OfferColumnT => ({
-  key,
-  label,
-  colClass: 'c-value',
-  cellClass: 'num value',
-  headerClass: 'num',
-  cell,
-})
 
 /**
  * The worker's printed columns: `workerDocumentColumns`, the list his podgląd renders from, capped by
@@ -73,40 +62,13 @@ export function workerPrintColumns({
         formatPLN(rowPlannedNetForView(row, view)),
       ),
     ],
-    [STAGES_COLUMN_GROUP]: stages.map((stage) => {
-      const qtyKey = stageKey(stage.id)
-      return {
-        key: qtyKey,
-        label: stageLabel(stage),
-        colClass: 'c-stage-qty',
-        cellClass: 'num',
-        headerClass: 'num',
-        cell: (row) => (row[qtyKey] ? formatQty(row[qtyKey]) : ''),
-      }
-    }),
+    [STAGES_COLUMN_GROUP]: stageQtyColumns(stages),
     stageQtySum: [
-      {
-        key: 'stageQtySum',
-        label: workerColumnLabel('stageQtySum') ?? '',
-        colClass: 'c-qty',
-        cellClass: 'num',
-        headerClass: 'num',
-        cell: (row, view, printStages) => formatQty(rowTotalQtyDone(row, printStages, view)),
-      },
+      qtyColumn('stageQtySum', workerColumnLabel('stageQtySum') ?? '', (row, view, printStages) =>
+        formatQty(rowTotalQtyDone(row, printStages, view)),
+      ),
     ],
-    [STAGE_VALUE_NET_COLUMN_GROUP]: stages.map((stage) => {
-      const qtyKey = stageKey(stage.id)
-      return moneyColumn(
-        stageValueNetKey(stage.id),
-        `${stageLabel(stage)} netto`,
-        (row, view, printStages) =>
-          row[qtyKey]
-            ? formatPLN(
-                stageValueForView(row, row[qtyKey], rowTotalQtyDone(row, printStages, view), view),
-              )
-            : '',
-      )
-    }),
+    [STAGE_VALUE_NET_COLUMN_GROUP]: stageNetColumns(stages, formatPLN),
     net: [
       moneyColumn('net', workerColumnLabel('net') ?? '', (row, view, printStages) =>
         formatPLN(rowValueForView(row, printStages, view)),

@@ -314,3 +314,19 @@ describe('sufit ujawniania', () => {
     expect(printableKeys(['price'], ['price'])).toEqual([])
   })
 })
+
+// The grid's own rule (`column-selection.ts`): while the global discount is on, the per-item rabat
+// fields are bypassed, so their columns would print a rabat beside a zero kwota rabatu.
+describe('rabat globalny', () => {
+  const discountRow = (globalDiscountActive: boolean) =>
+    row({ discountType: 'percent', discountValue: 10, globalDiscountActive })
+  const header = `>${columnLabelForView('discountValue', 'client')}</th>`
+
+  it('chowa kolumny rabatu pozycji, gdy rabat globalny jest aktywny', () => {
+    expect(html([discountRow(true)], showing('discountValue'))).not.toContain(header)
+  })
+
+  it('drukuje je bez rabatu globalnego', () => {
+    expect(html([discountRow(false)], showing('discountValue'))).toContain(header)
+  })
+})

@@ -7,6 +7,7 @@ import {
 } from '@/lib/kosztorys/offer-print/columns'
 import { OFFER_PRINT_STYLES, WIDE_PRINT_STYLES } from '@/lib/kosztorys/offer-print/styles'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
+import { bypassedByGlobalDiscount } from '@/lib/kosztorys/column-config'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
 import { applyRowConditions, clientConditionIds } from '@/lib/kosztorys/row-conditions/queries'
 import { emptySettlementColumnIds } from '@/lib/kosztorys/settlement-columns'
@@ -70,8 +71,10 @@ export function buildOfferPrintHtml({
 }: OfferPrintArgsT): string {
   // Before the portrait/landscape count, so an offer with no entries prints as narrow as it reads.
   const empty = emptySettlementColumnIds(rows, stages)
+  const globalDiscountActive = rows.some((row) => row.globalDiscountActive)
   const columns = offerPrintColumns(stages, settings.hiddenColumns).filter(
-    (column) => !empty.has(column.key),
+    (column) =>
+      !empty.has(column.key) && !bypassedByGlobalDiscount(column.key, globalDiscountActive),
   )
   return buildKosztorysPrintHtml({
     rows: offeredRows(rows, stages, settings),
@@ -99,7 +102,6 @@ export type KosztorysPrintArgsT = {
   // allowlist of its own.
   columns: readonly OfferColumnT[]
   priceView: PriceViewT
-  // The small caps line above the title.
   documentKind: string
   title: string
   // The popup's `<title>` — what „Zapisz jako PDF" offers as the file name.

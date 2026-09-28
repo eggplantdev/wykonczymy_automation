@@ -56,8 +56,6 @@ export type OfferColumnT = {
 // fifth would print one crew's stawka on a client's offer.
 export const OFFER_PRICE_VIEW: PriceViewT = 'client'
 
-// The columns every printed kosztorys opens with, whoever it is priced for — exported for the worker
-// print, which puts its own money columns after them.
 export const DESCRIPTION_COLUMN: OfferColumnT = {
   key: 'description',
   label: 'Opis prac',
@@ -85,7 +83,7 @@ export const UNIT_COLUMN: OfferColumnT = {
   cell: (row) => escapeHtml(row.unit ?? ''),
 }
 
-const offerMoneyColumn = (
+export const moneyColumn = (
   key: string,
   label: string,
   cell: OfferColumnT['cell'],
@@ -98,7 +96,11 @@ const offerMoneyColumn = (
   cell,
 })
 
-const offerQtyColumn = (key: string, label: string, cell: OfferColumnT['cell']): OfferColumnT => ({
+export const qtyColumn = (
+  key: string,
+  label: string,
+  cell: OfferColumnT['cell'],
+): OfferColumnT => ({
   key,
   label,
   colClass: 'c-qty',
@@ -107,6 +109,42 @@ const offerQtyColumn = (key: string, label: string, cell: OfferColumnT['cell']):
   cell,
 })
 
+const perStage = (
+  stages: KosztorysStageT[],
+  column: (stage: KosztorysStageT, qtyKey: StageKeyT) => OfferColumnT,
+) => stages.map((stage) => column(stage, stageKey(stage.id)))
+
+export const stageQtyColumns = (stages: KosztorysStageT[]): OfferColumnT[] =>
+  perStage(stages, (stage, qtyKey) => ({
+    key: qtyKey,
+    label: stageLabel(stage),
+    colClass: 'c-stage-qty',
+    cellClass: 'num',
+    headerClass: 'num',
+    cell: (row) => (row[qtyKey] ? formatQty(row[qtyKey]) : ''),
+  }))
+
+// The share a stage's value is priced by, as the grid computes it.
+const stageNetValue = (
+  row: KosztorysV2RowT,
+  qtyKey: StageKeyT,
+  view: PriceViewT,
+  printStages: KosztorysStageT[],
+) => stageValueForView(row, row[qtyKey] ?? 0, rowTotalQtyDone(row, printStages, view), view)
+
+export const stageNetColumns = (
+  stages: KosztorysStageT[],
+  money: (amount: number) => string,
+): OfferColumnT[] =>
+  perStage(stages, (stage, qtyKey) =>
+    moneyColumn(
+      stageValueNetKey(stage.id),
+      `${stageLabel(stage)} netto`,
+      (row, view, printStages) =>
+        row[qtyKey] ? money(stageNetValue(row, qtyKey, view, printStages)) : '',
+    ),
+  )
+
 const clientLabel = (key: string) => columnLabelForView(key, OFFER_PRICE_VIEW)
 
 const DISCOUNT_TYPE_TEXT: Record<string, string> = { percent: '%', amount: 'zł' }
@@ -114,15 +152,6 @@ const DISCOUNT_TYPE_TEXT: Record<string, string> = { percent: '%', amount: 'zł'
 // Every column of the client's document the paper can carry, keyed as CLIENT_DOCUMENT_COLUMNS names
 // it; a stage group expands to one column per etap.
 function offerColumnsByKey(stages: KosztorysStageT[]): Record<string, OfferColumnT[]> {
-  const perStage = (column: (stage: KosztorysStageT, qtyKey: StageKeyT) => OfferColumnT) =>
-    stages.map((stage) => column(stage, stageKey(stage.id)))
-  // The share a stage's value is priced by, as the grid computes it.
-  const stageNet = (
-    row: KosztorysV2RowT,
-    qtyKey: StageKeyT,
-    view: PriceViewT,
-    printStages: KosztorysStageT[],
-  ) => stageValueForView(row, row[qtyKey] ?? 0, rowTotalQtyDone(row, printStages, view), view)
   const discount = (row: KosztorysV2RowT, view: PriceViewT, printStages: KosztorysStageT[]) =>
     rowDiscountForView(row, rowTotalQtyDone(row, printStages, view), view)
   return {
@@ -140,25 +169,18 @@ function offerColumnsByKey(stages: KosztorysStageT[]): Record<string, OfferColum
       },
     ],
     plannedNet: [
-      offerMoneyColumn('plannedNet', 'Wartość netto', (row, view) =>
+      moneyColumn('plannedNet', 'Wartość netto', (row, view) =>
         zloty(rowPlannedNetForView(row, view)),
       ),
     ],
     plannedGross: [
-      offerMoneyColumn('plannedGross', clientLabel('plannedGross'), (row, view) =>
+      moneyColumn('plannedGross', clientLabel('plannedGross'), (row, view) =>
         zloty(toGross(rowPlannedNetForView(row, view), row.vatRate)),
       ),
     ],
-    [STAGES_COLUMN_GROUP]: perStage((stage, qtyKey) => ({
-      key: qtyKey,
-      label: stageLabel(stage),
-      colClass: 'c-stage-qty',
-      cellClass: 'num',
-      headerClass: 'num',
-      cell: (row) => (row[qtyKey] ? formatQty(row[qtyKey]) : ''),
-    })),
+    [STAGES_COLUMN_GROUP]: stageQtyColumns(stages),
     stageQtySum: [
-      offerQtyColumn('stageQtySum', clientLabel('stageQtySum'), (row, view, printStages) =>
+      qtyColumn('stageQtySum', clientLabel('stageQtySum'), (row, view, printStages) =>
         formatQty(rowTotalQtyDone(row, printStages, view)),
       ),
     ],
@@ -173,65 +195,60 @@ function offerColumnsByKey(stages: KosztorysStageT[]): Record<string, OfferColum
       },
     ],
     discountValue: [
-      offerQtyColumn('discountValue', clientLabel('discountValue'), (row) =>
+      qtyColumn('discountValue', clientLabel('discountValue'), (row) =>
         decimalText(row.discountValue),
       ),
     ],
     discountType: [
-      offerQtyColumn('discountType', clientLabel('discountType'), (row) =>
+      qtyColumn('discountType', clientLabel('discountType'), (row) =>
         row.discountType ? DISCOUNT_TYPE_TEXT[row.discountType] : '',
       ),
     ],
     discountAmount: [
-      offerMoneyColumn('discountAmount', clientLabel('discountAmount'), (row, view, printStages) =>
+      moneyColumn('discountAmount', clientLabel('discountAmount'), (row, view, printStages) =>
         zloty(discount(row, view, printStages)),
       ),
     ],
     discountAmountGross: [
-      offerMoneyColumn(
+      moneyColumn(
         'discountAmountGross',
         clientLabel('discountAmountGross'),
         (row, view, printStages) => zloty(toGross(discount(row, view, printStages), row.vatRate)),
       ),
     ],
     gross: [
-      offerMoneyColumn('gross', clientLabel('gross'), (row, view, printStages) =>
+      moneyColumn('gross', clientLabel('gross'), (row, view, printStages) =>
         zloty(toGross(rowValueForView(row, printStages, view), row.vatRate)),
       ),
     ],
-    [STAGE_VALUE_NET_COLUMN_GROUP]: perStage((stage, qtyKey) =>
-      offerMoneyColumn(
-        stageValueNetKey(stage.id),
-        `${stageLabel(stage)} netto`,
-        (row, view, printStages) =>
-          row[qtyKey] ? zloty(stageNet(row, qtyKey, view, printStages)) : '',
-      ),
-    ),
+    [STAGE_VALUE_NET_COLUMN_GROUP]: stageNetColumns(stages, zloty),
     net: [
-      offerMoneyColumn('net', clientLabel('net'), (row, view, printStages) =>
+      moneyColumn('net', clientLabel('net'), (row, view, printStages) =>
         zloty(rowValueForView(row, printStages, view)),
       ),
     ],
-    [STAGE_VALUE_GROSS_COLUMN_GROUP]: perStage((stage, qtyKey) =>
-      offerMoneyColumn(
+    [STAGE_VALUE_GROSS_COLUMN_GROUP]: perStage(stages, (stage, qtyKey) =>
+      moneyColumn(
         stageValueGrossKey(stage.id),
         `${stageLabel(stage)} brutto`,
         (row, view, printStages) =>
-          row[qtyKey] ? zloty(toGross(stageNet(row, qtyKey, view, printStages), row.vatRate)) : '',
+          row[qtyKey]
+            ? zloty(toGross(stageNetValue(row, qtyKey, view, printStages), row.vatRate))
+            : '',
       ),
     ),
     donePercent: [
-      offerQtyColumn('donePercent', clientLabel('donePercent'), (row, _view, printStages) =>
+      qtyColumn('donePercent', clientLabel('donePercent'), (row, _view, printStages) =>
         formatPercent(rowDoneFraction(row, rowTotalQtyDone(row, printStages, 'client'))),
       ),
     ],
     remaining: [
-      offerMoneyColumn('remaining', 'Pozostało', (row, view, printStages) =>
+      moneyColumn('remaining', 'Pozostało', (row, view, printStages) =>
         zloty(rowRemainingForView(row, printStages, view)),
       ),
     ],
     remainingGross: [
-      offerMoneyColumn('remainingGross', clientLabel('remainingGross'), (row, view, printStages) =>
+      moneyColumn('remainingGross', clientLabel('remainingGross'), (row, view, printStages) =>
         zloty(toGross(rowRemainingForView(row, printStages, view), row.vatRate)),
       ),
     ],
