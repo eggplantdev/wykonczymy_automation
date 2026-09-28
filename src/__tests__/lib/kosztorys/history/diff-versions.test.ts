@@ -23,7 +23,6 @@ describe('diffVersions', () => {
     expect(fieldsOf(past, current, 2)).toEqual(['price', 'plannedNet'])
   })
 
-  // A restore remints every id. Without the fallback this is „all removed + all added".
   it('reads a restore that minted new ids as no change at all', () => {
     const items = [
       item(1, 'Płytki', 10, 100),
@@ -112,7 +111,7 @@ describe('diffVersions', () => {
 
     it('known → same is no change', () => {
       const diff = diffVersions(withDiscount(500), withDiscount(500))
-      expect(diff.discount).toEqual({ state: 'same', discount: { type: 'amount', value: 500 } })
+      expect(diff.discount).toEqual({ state: 'same' })
       expect(hasChanges(diff)).toBe(false)
     })
 

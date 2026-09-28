@@ -24,7 +24,6 @@ describe('snapshotToTree', () => {
     expect(discount).toEqual({ known: true, type: null, value: 0 })
   })
 
-  // Rendering `?? 0` here is the bug: an old version would claim the investor had no rabat.
   it('marks the rabat of a payload stored before the history shipped as unknown, never 0', () => {
     const { globalDiscount: _dropped, ...old } = serializeTree(tree([item(1, 'Płytki', 10, 100)]))
     const { discount, tree: rebuilt } = snapshotToTree(old, live)

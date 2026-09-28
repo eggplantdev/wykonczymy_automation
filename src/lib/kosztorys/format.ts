@@ -20,6 +20,9 @@ export const formatNet = (n: number) =>
 export const formatQty = (n: number) =>
   (n + 0).toLocaleString('pl-PL', { maximumFractionDigits: 3 })
 
+export const formatQtyWithUnit = (qty: number, unit: string | null) =>
+  [formatQty(qty), unit].filter(Boolean).join(' ')
+
 // A mnożnik as prose, to as many places as one is stored in (`round6`). Through `formatQty` above a
 // derived 0,5525 showed as „0,553" — a number the import then did not adopt, and the reader's only
 // preview of what the cennik decided.

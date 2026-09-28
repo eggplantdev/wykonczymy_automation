@@ -1,5 +1,5 @@
 import { differenceNoun } from '@/lib/kosztorys/counted-nouns'
-import { formatNet, formatQty } from '@/lib/kosztorys/format'
+import { formatNet, formatQty, formatQtyWithUnit } from '@/lib/kosztorys/format'
 import type { GlobalDiscountT } from '@/lib/kosztorys/types'
 import { formatPLN } from '@/lib/utils/format-currency'
 import type { FieldChangeT, ItemRefT, VersionDiffT } from './types'
@@ -17,7 +17,6 @@ export const formatChangeValue = (change: FieldChangeT, value: number) =>
   FORMAT_BY_FIELD[change.field](value)
 
 export type ChangeRowT = {
-  key: string
   sectionName: string | null
   description: string
   what: string
@@ -25,37 +24,48 @@ export type ChangeRowT = {
   after: string
 }
 
-const withUnit = (qty: number, unit: string | null) =>
-  [formatQty(qty), unit].filter(Boolean).join(' ')
-
 const describe = (item: ItemRefT) => item.description ?? '—'
 
 const discountText = (discount: GlobalDiscountT) =>
   discount.type === 'amount' ? formatPLN(discount.value) : 'brak'
 
-// Only what someone typed: the wartości move because a quantity, a price or the rabat did, and the
-// grid already shows them old → new beside the row.
-function whatChanged(change: FieldChangeT): string | null {
-  if (change.field === 'plannedQty') return 'Przedmiar'
-  if (change.field === 'price') return 'Cena j.m.'
-  if (change.field === 'stageQty') return `Pomiar — ${change.stageLabel}`
-  return null
+function changeLabel(change: FieldChangeT): string {
+  switch (change.field) {
+    case 'plannedQty':
+      return 'Przedmiar'
+    case 'price':
+      return 'Cena j.m.'
+    case 'stageQty':
+      return `Pomiar — ${change.stageLabel}`
+    case 'plannedNet':
+      return 'Wartość netto przedmiar'
+    case 'net':
+      return 'Wartość netto'
+  }
+}
+
+const isDerived = ({ field }: FieldChangeT) => field === 'plannedNet' || field === 'net'
+
+// What someone typed, when there is one: the wartości move because a quantity or a price did, and
+// the grid already shows them old → new beside the row. A pozycja's own rabat has no column here,
+// so an item whose only change is derived lists the wartości themselves — otherwise it would count
+// as „Bez różnic" while the grid shows it changed.
+function shownChanges(fields: FieldChangeT[]): FieldChangeT[] {
+  const typed = fields.filter((change) => !isDerived(change))
+  return typed.length > 0 ? typed : fields
 }
 
 export function versionChangeRows(diff: VersionDiffT): ChangeRowT[] {
   const rows: ChangeRowT[] = []
-  for (const [pastId, { item, fields }] of diff.changed) {
-    for (const change of fields) {
-      const what = whatChanged(change)
-      if (!what) continue
+  for (const { item, fields } of diff.changed.values()) {
+    for (const change of shownChanges(fields)) {
       const quantity = change.field === 'plannedQty' || change.field === 'stageQty'
       const format = (value: number) =>
-        quantity ? withUnit(value, item.unit) : formatChangeValue(change, value)
+        quantity ? formatQtyWithUnit(value, item.unit) : formatChangeValue(change, value)
       rows.push({
-        key: `changed-${pastId}-${what}`,
         sectionName: item.sectionName,
         description: describe(item),
-        what,
+        what: changeLabel(change),
         before: format(change.before),
         after: format(change.after),
       })
@@ -63,27 +73,24 @@ export function versionChangeRows(diff: VersionDiffT): ChangeRowT[] {
   }
   for (const item of diff.removed) {
     rows.push({
-      key: `removed-${item.id}`,
       sectionName: item.sectionName,
       description: describe(item),
       what: 'Usunięta praca',
-      before: withUnit(item.plannedQty, item.unit),
+      before: formatQtyWithUnit(item.plannedQty, item.unit),
       after: '—',
     })
   }
   for (const item of diff.added) {
     rows.push({
-      key: `added-${item.id}`,
       sectionName: item.sectionName,
       description: describe(item),
       what: 'Nowa praca',
       before: '—',
-      after: withUnit(item.plannedQty, item.unit),
+      after: formatQtyWithUnit(item.plannedQty, item.unit),
     })
   }
   if (diff.discount.state === 'changed') {
     rows.push({
-      key: 'discount',
       sectionName: null,
       description: 'Cały kosztorys',
       what: 'Rabat',
@@ -92,6 +99,14 @@ export function versionChangeRows(diff: VersionDiffT): ChangeRowT[] {
     })
   }
   return rows
+}
+
+// The list's count, without formatting a row it never shows: an early version can differ from today
+// in every pozycja, and the list builds one of these per entry.
+export function countChangeRows(diff: VersionDiffT): number {
+  let count = diff.removed.length + diff.added.length
+  for (const { fields } of diff.changed.values()) count += shownChanges(fields).length
+  return diff.discount.state === 'changed' ? count + 1 : count
 }
 
 export const differenceSummary = (count: number) =>

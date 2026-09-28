@@ -1,6 +1,6 @@
 import { toWarsawDay, type DayT } from '@/lib/utils/days'
 import { diffVersions, hasChanges } from './diff-versions'
-import { differenceSummary, versionChangeRows } from './change-rows'
+import { countChangeRows, differenceSummary } from './change-rows'
 import type { HistoryEntryT, HistoryMetaT, HistoryVersionT } from './types'
 
 /**
@@ -50,22 +50,19 @@ export function selectHistoryCandidates(
  * because the owner named it.
  */
 export function buildHistoryEntries(
-  candidates: readonly HistoryMetaT[],
-  versionOf: (meta: HistoryMetaT) => HistoryVersionT,
+  candidates: readonly { meta: HistoryMetaT; version: HistoryVersionT }[],
   current: HistoryVersionT,
 ): HistoryEntryT[] {
   const entries: HistoryEntryT[] = []
   let previous: HistoryVersionT | undefined
-  for (const meta of candidates) {
-    const version = versionOf(meta)
+  for (const { meta, version } of candidates) {
     if (previous && !hasChanges(diffVersions(previous, version)) && meta.kind !== 'named') continue
 
     entries.push({
       id: meta.id,
-      kind: meta.kind,
       label: meta.label,
       day: toWarsawDay(meta.takenAt),
-      summary: differenceSummary(versionChangeRows(diffVersions(version, current)).length),
+      summary: differenceSummary(countChangeRows(diffVersions(version, current))),
     })
     previous = version
   }

@@ -1,4 +1,4 @@
-import type { SnapshotKindT } from '@/lib/db/snapshots'
+import type { SnapshotKindT } from '@/lib/kosztorys/snapshot-format'
 import type { DayT } from '@/lib/utils/days'
 import type { GlobalDiscountT, KosztorysStageT, KosztorysTreeT } from '@/lib/kosztorys/types'
 
@@ -22,11 +22,11 @@ export type FieldChangeT =
   // etap that did not exist yet (`VersionDiffT.addedStages`).
   | { field: 'stageQty'; stageId: number; stageLabel: string; before: number; after: number }
 
-export type ItemChangeT = { item: ItemRefT; currentItemId: number; fields: FieldChangeT[] }
+export type ItemChangeT = { item: ItemRefT; fields: FieldChangeT[] }
 
 export type DiscountChangeT =
   | { state: 'unknown' }
-  | { state: 'same'; discount: GlobalDiscountT }
+  | { state: 'same' }
   | { state: 'changed'; before: GlobalDiscountT; after: GlobalDiscountT }
 
 export type VersionDiffT = {
@@ -44,16 +44,14 @@ export type HistoryMetaT = { id: number; kind: HistoryKindT; label: string | nul
 
 export type HistoryEntryT = {
   id: number
-  kind: HistoryKindT
   label: string | null
   day: DayT
   summary: string
 }
 
-// A past version as the investor opens it: that day's tree, and what has changed since.
-export type PastVersionT = HistoryVersionT & {
+export type PastVersionT = {
+  tree: KosztorysTreeT
   id: number
-  kind: HistoryKindT
   label: string | null
   day: DayT
   diff: VersionDiffT

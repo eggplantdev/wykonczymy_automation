@@ -1,8 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
   buildHistoryEntries,
-  FIRST_VERSION_SUMMARY,
-  NO_CHANGE_SUMMARY,
   selectHistoryCandidates,
 } from '@/lib/kosztorys/history/select-history-entries'
 import type { HistoryMetaT, HistoryVersionT } from '@/lib/kosztorys/history/types'
@@ -47,7 +45,6 @@ describe('selectHistoryCandidates', () => {
     expect(ids(selectHistoryCandidates(metas, TODAY))).toEqual([1])
   })
 
-  // 23:30 UTC is already the next day in Warsaw, in both seasons.
   it.each([
     ['winter', '2026-01-14T22:30:00Z', '2026-01-14T23:30:00Z'],
     ['summer', '2026-07-14T21:30:00Z', '2026-07-14T22:30:00Z'],
@@ -65,39 +62,46 @@ describe('buildHistoryEntries', () => {
     [3, version([item(1, 'Płytki', 12, 100)])],
     [4, version([item(1, 'Płytki', 12, 100)])],
   ])
-  const versionOf = ({ id }: HistoryMetaT) => versions.get(id)!
+  const withVersions = (metas: HistoryMetaT[]) =>
+    metas.map((meta) => ({ meta, version: versions.get(meta.id)! }))
+
+  // Every version differs from the present in Cena j.m.; version 1 in its Przedmiar too.
+  const current = version([item(1, 'Płytki', 12, 120)])
 
   it('lists newest first, drops a day equal to the one before, and keeps a named one regardless', () => {
     const entries = buildHistoryEntries(
-      [
+      withVersions([
         meta(1, 'daily', '2026-10-01T21:59:59.999Z'),
         meta(2, 'daily', '2026-10-02T21:59:59.999Z'),
         meta(3, 'daily', '2026-10-03T21:59:59.999Z'),
         meta(4, 'named', '2026-10-04T09:00:00Z', 'Oferta podpisana'),
-      ],
-      versionOf,
+      ]),
+      current,
     )
 
-    expect(entries).toEqual([
-      {
-        id: 4,
-        kind: 'named',
-        label: 'Oferta podpisana',
-        day: '2026-10-04',
-        summary: NO_CHANGE_SUMMARY,
-      },
-      {
-        id: 2,
-        kind: 'daily',
-        label: null,
-        day: '2026-10-02',
-        summary: 'Przedmiar zmieniony w 1 pracy',
-      },
-      { id: 1, kind: 'daily', label: null, day: '2026-10-01', summary: FIRST_VERSION_SUMMARY },
+    expect(entries.map(({ id }) => id)).toEqual([4, 2, 1])
+    expect(entries[0]).toMatchObject({
+      label: 'Oferta podpisana',
+      day: '2026-10-04',
+    })
+  })
+
+  it('counts each entry against the current version, not against the entry before it', () => {
+    const entries = buildHistoryEntries(
+      withVersions([
+        meta(1, 'daily', '2026-10-01T21:59:59.999Z'),
+        meta(2, 'daily', '2026-10-02T21:59:59.999Z'),
+      ]),
+      current,
+    )
+
+    expect(entries.map(({ summary }) => summary)).toEqual([
+      '1 różnica względem bieżącej',
+      '2 różnice względem bieżącej',
     ])
   })
 
   it('an empty history is an empty list', () => {
-    expect(buildHistoryEntries([], versionOf)).toEqual([])
+    expect(buildHistoryEntries([], current)).toEqual([])
   })
 })

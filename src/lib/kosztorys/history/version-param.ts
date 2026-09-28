@@ -1,5 +1,7 @@
 const MAX_INT4 = 2_147_483_647
 
+export const VERSION_PARAM = 'wersja'
+
 // `?wersja=` is typed by hand as often as clicked. Anything that isn't an id a Postgres `integer` can
 // hold is the present, not a query error.
 export function parseVersionParam(value: string | string[] | undefined): number | undefined {

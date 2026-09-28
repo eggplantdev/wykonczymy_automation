@@ -21,16 +21,17 @@ export function stageIdsFilledNow(diff: VersionDiffT): ReadonlySet<number> {
   return filled
 }
 
-const FIELD_BY_COLUMN_ID = new Map<string, FieldChangeT['field']>([
-  ['plannedQty', 'plannedQty'],
-  ['price', 'price'],
-  ['plannedNet', 'plannedNet'],
-  ['net', 'net'],
+// Each column id IS the field it renders.
+const FIELD_COLUMN_IDS: ReadonlySet<string> = new Set<FieldChangeT['field']>([
+  'plannedQty',
+  'price',
+  'plannedNet',
+  'net',
 ])
 
 export function isHistoryColumn(columnId: string | undefined): columnId is string {
   if (columnId === undefined) return false
-  return FIELD_BY_COLUMN_ID.has(columnId) || stageIdFromQtyKey(columnId) !== null
+  return FIELD_COLUMN_IDS.has(columnId) || stageIdFromQtyKey(columnId) !== null
 }
 
 export function cellChange(
@@ -44,6 +45,5 @@ export function cellChange(
   if (stageId !== null) {
     return fields.find((change) => change.field === 'stageQty' && change.stageId === stageId)
   }
-  const field = FIELD_BY_COLUMN_ID.get(columnId)
-  return fields.find((change) => change.field === field)
+  return fields.find((change) => change.field === columnId)
 }

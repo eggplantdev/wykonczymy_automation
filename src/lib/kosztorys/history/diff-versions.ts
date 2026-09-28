@@ -1,12 +1,16 @@
-import { rowPlannedNetForView } from '@/lib/kosztorys/calc'
+import { MONEY_TOLERANCE, rowPlannedNetForView } from '@/lib/kosztorys/calc'
 import { foldUnit } from '@/lib/kosztorys/sheet-import/columns'
 import { keyItems } from '@/lib/kosztorys/sheet-import/item-key'
 import { QTY_TOLERANCE, rowValueForView } from '@/lib/kosztorys/settlement-rows'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
-import type { GlobalDiscountT, KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
-import { roundToCents } from '@/lib/utils/round-to-cents'
+import type {
+  GlobalDiscountT,
+  KosztorysStageT,
+  KosztorysTreeT,
+  KosztorysV2RowT,
+} from '@/lib/kosztorys/types'
 import type {
   DiscountChangeT,
   FieldChangeT,
@@ -17,7 +21,7 @@ import type {
   VersionDiffT,
 } from './types'
 
-const moneyChanged = (before: number, after: number) => roundToCents(before) !== roundToCents(after)
+const moneyChanged = (before: number, after: number) => Math.abs(before - after) >= MONEY_TOLERANCE
 const qtyChanged = (before: number, after: number) => Math.abs(before - after) > QTY_TOLERANCE
 
 const itemRef = (row: KosztorysV2RowT): ItemRefT => ({
@@ -75,20 +79,30 @@ function matchStages(past: KosztorysStageT[], current: KosztorysStageT[]) {
 }
 
 const sameDiscount = (a: GlobalDiscountT, b: GlobalDiscountT) =>
-  a.type === b.type && (a.type === null || roundToCents(a.value) === roundToCents(b.value))
+  a.type === b.type && (a.type === null || !moneyChanged(a.value, b.value))
 
 function diffDiscount(past: HistoryDiscountT, current: HistoryDiscountT): DiscountChangeT {
   if (!past.known || !current.known) return { state: 'unknown' }
   const before = { type: past.type, value: past.value }
   const after = { type: current.type, value: current.value }
-  return sameDiscount(before, after)
-    ? { state: 'same', discount: after }
-    : { state: 'changed', before, after }
+  return sameDiscount(before, after) ? { state: 'same' } : { state: 'changed', before, after }
+}
+
+// The history list diffs every entry against the one current tree and against the entry before
+// it, so without this each tree is flattened once per pairing — the current one once per entry.
+const rowsByTree = new WeakMap<KosztorysTreeT, KosztorysV2RowT[]>()
+function rowsOf(tree: KosztorysTreeT): KosztorysV2RowT[] {
+  let rows = rowsByTree.get(tree)
+  if (!rows) {
+    rows = treeToRows(tree)
+    rowsByTree.set(tree, rows)
+  }
+  return rows
 }
 
 export function diffVersions(past: HistoryVersionT, current: HistoryVersionT): VersionDiffT {
-  const pastRows = treeToRows(past.tree)
-  const currentRows = treeToRows(current.tree)
+  const pastRows = rowsOf(past.tree)
+  const currentRows = rowsOf(current.tree)
   const pastStages = past.tree.stages
   const currentStages = current.tree.stages
 
@@ -96,6 +110,24 @@ export function diffVersions(past: HistoryVersionT, current: HistoryVersionT): V
   const matchedStages = matchStages(pastStages, currentStages)
   const matchedCurrentStageIds = new Set([...matchedStages.values()].map((stage) => stage.id))
   const addedStages = currentStages.filter((stage) => !matchedCurrentStageIds.has(stage.id))
+  // An etap deleted since reads as its pomiar gone to 0: the work it held is no longer counted.
+  const stageColumns = [
+    ...pastStages.map((stage) => {
+      const twin = matchedStages.get(stage.id)
+      return {
+        stageId: stage.id,
+        label: stageLabel(twin ?? stage),
+        pastId: stage.id,
+        currentId: twin?.id,
+      }
+    }),
+    ...addedStages.map((stage) => ({
+      stageId: stage.id,
+      label: stageLabel(stage),
+      pastId: undefined,
+      currentId: stage.id,
+    })),
+  ]
 
   const changed = new Map<number, ItemChangeT>()
   for (const pastRow of pastRows) {
@@ -120,36 +152,16 @@ export function diffVersions(past: HistoryVersionT, current: HistoryVersionT): V
       fields.push({ field: 'net', before: netBefore, after: netAfter })
     }
 
-    // An etap deleted since reads as its pomiar gone to 0: the work it held is no longer counted.
-    for (const stage of pastStages) {
-      const twin = matchedStages.get(stage.id)
-      const before = pastRow[stageKey(stage.id)] ?? 0
-      const after = twin ? (currentRow[stageKey(twin.id)] ?? 0) : 0
+    for (const { stageId, label, pastId, currentId } of stageColumns) {
+      const before = pastId === undefined ? 0 : (pastRow[stageKey(pastId)] ?? 0)
+      const after = currentId === undefined ? 0 : (currentRow[stageKey(currentId)] ?? 0)
       if (qtyChanged(before, after)) {
-        fields.push({
-          field: 'stageQty',
-          stageId: stage.id,
-          stageLabel: stageLabel(twin ?? stage),
-          before,
-          after,
-        })
-      }
-    }
-    for (const stage of addedStages) {
-      const after = currentRow[stageKey(stage.id)] ?? 0
-      if (qtyChanged(0, after)) {
-        fields.push({
-          field: 'stageQty',
-          stageId: stage.id,
-          stageLabel: stageLabel(stage),
-          before: 0,
-          after,
-        })
+        fields.push({ field: 'stageQty', stageId, stageLabel: label, before, after })
       }
     }
 
     if (fields.length > 0) {
-      changed.set(pastRow.id, { item: itemRef(currentRow), currentItemId: currentRow.id, fields })
+      changed.set(pastRow.id, { item: itemRef(currentRow), fields })
     }
   }
 

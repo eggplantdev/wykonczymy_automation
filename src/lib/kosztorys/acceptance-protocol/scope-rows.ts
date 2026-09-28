@@ -1,4 +1,4 @@
-import { formatQty } from '@/lib/kosztorys/format'
+import { formatQtyWithUnit } from '@/lib/kosztorys/format'
 import { rowTotalQtyDone } from '@/lib/kosztorys/settlement-rows'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 import type { ProtocolScopeRowT } from '@/lib/kosztorys/acceptance-protocol/types'
@@ -22,5 +22,5 @@ export function protocolScopeRows(
 }
 
 export function scopeQuantityText(row: ProtocolScopeRowT): string {
-  return [formatQty(row.qty), row.unit].filter(Boolean).join(' ')
+  return formatQtyWithUnit(row.qty, row.unit)
 }
