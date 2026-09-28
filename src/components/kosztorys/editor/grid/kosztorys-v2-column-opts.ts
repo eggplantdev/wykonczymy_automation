@@ -2,6 +2,7 @@ import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { ColumnRanksT } from '@/lib/table/column-order'
 import type { LayerT } from '@/lib/kosztorys/layer'
+import type { CrewAxisT } from '@/lib/kosztorys/crew-axis'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { MoveEdgesT } from '@/lib/kosztorys/move-edges'
 import type { SortPickT, SortStateT } from '@/lib/kosztorys/row-view'
@@ -10,8 +11,6 @@ import type { WorkerRefT } from '@/types/reference-data'
 
 export type BuildV2ColumnsOptsT = {
   view: PriceViewT
-  // Stages (etapy) render as dynamic editable columns; a trailing "Pozostało" reads out the
-  // remaining net.
   stages: KosztorysStageT[]
   onRemoveStage?: (stageId: number) => void
   onRenameStage?: (stageId: number, label: string) => void
@@ -97,10 +96,29 @@ export type BuildV2ColumnsOptsT = {
   // The owner's stored choice of what THIS investment's client does not see. It only ever subtracts
   // from PREVIEW_VISIBLE_COLUMNS — a key here that the allowlist never allowed cannot reveal
   // anything, which is what keeps the allowlist a ceiling rather than one of two competing answers.
+  // Also carries the full ids of the settlement columns with no entries yet.
   previewHiddenColumns?: ReadonlySet<string>
+  // The owner's stored order for THIS investment's document (`ClientViewSettingsT.columnRanks`) —
+  // never `columnRanks` above, which is one browser's preference and must not shape a client's
+  // document (ruling 2026-07-28).
+  previewColumnRanks?: ColumnRanksT
   // The szablon workbench: WORKSHOP_VISIBLE_COLUMNS over both the grid and the picker. Twin of
   // `previewVisible` in mechanism, its opposite in reason — that one is about what a client must
   // not see, this one about what a szablon cannot carry. The allowlist, not the stored tick: the
   // map of hidden columns is one per browser, so a tick would leak across every kosztorys.
   workshopVisible?: boolean
+  // The worker's document (EX-875): the third closed surface, and the one that discloses a CREW
+  // plane — `view` must equal `plane`, never 'client', and `previewVisible` must be off
+  // (`assertDisclosurePair`). `hiddenColumns` holds the firm-wide settings' logical keys, which only
+  // ever subtract from `workerVisibleColumns`. `executedQtyByItem` is Σ over EVERY etap of the
+  // investment, because `stages` here are this worker's alone and „Pozostało" must not read another
+  // crew's finished work as still owed.
+  workerSurface?: {
+    plane: ToolPlaneT
+    hiddenColumns: readonly string[]
+    columnRanks: ColumnRanksT
+    executedQtyByItem: Record<number, number>
+  }
+  // Which crew's rate columns are on screen — see crew-axis.ts. Absent = CREW_AXIS_DEFAULT.
+  crewAxis?: CrewAxisT
 }

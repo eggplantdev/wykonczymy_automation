@@ -9,9 +9,9 @@ export const ITEM_ROW_HEIGHT = ROW_LINE_HEIGHT + ROW_VERTICAL_PADDING
 // The band opening a section is chrome, not a row of figures — hence a fixed resting height that no
 // label length changes. A drag still moves it, like any other row.
 export const SECTION_BAND_ROW_HEIGHT = 52
-// The column labels wrap onto two lines at this height („Pozostało netto (względem przedmiaru)"),
-// which is why the header has never been the resting 32.
-export const HEADER_ROW_HEIGHT = 56
+// The owner drags the header to whatever their column widths need (HEADER_HEIGHT_KEY in the row-heights map), and this is only the resting
+// height that drag starts from.
+export const HEADER_ROW_HEIGHT = 84
 // The header is one row, not one per id, so it rides in the same override map under a key no row id
 // can take — ids are numeric strings.
 export const HEADER_HEIGHT_KEY = 'header'

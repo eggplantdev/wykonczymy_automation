@@ -60,7 +60,9 @@ export const fetchReferenceData = cache(
         //
         // The szablon workbench is excluded HERE, once, rather than by every consumer: it is not an
         // investment, and filtering it per-surface had already leaked into the transfers filter
-        // dropdowns and the investments listing.
+        // dropdowns and the investments listing. A trashed investment is excluded for the same reason
+        // — this predicate hides it from the listing, the pickers, the dashboard and the crumb, and
+        // 404s its detail page; the kosztorys pages and the share link filter it again on their own.
         db.execute(sql`
         SELECT i.id, i.name, i.status::text,
                i.address, i.phone, i.email, i.contact_person, i.notes, i.review,
@@ -68,7 +70,7 @@ export const fetchReferenceData = cache(
                (k.google_sheet_id IS NOT NULL) AS has_sheet
         FROM investments i
         LEFT JOIN kosztoryses k ON k.investment_id = i.id
-        WHERE i.status <> ${TEMPLATE_INVESTMENT_STATUS}
+        WHERE i.status <> ${TEMPLATE_INVESTMENT_STATUS} AND i.trashed_at IS NULL
         ORDER BY i.name
       `),
         db.execute(sql`

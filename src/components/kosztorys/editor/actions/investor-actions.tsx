@@ -7,17 +7,22 @@ import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { MenuItemBody } from '@/components/kosztorys/editor/actions/menu-item-body'
 import { useLatestRequest } from '@/hooks/use-latest-request'
-import { getShareLinkAction } from '@/lib/actions/kosztorys-share'
+import { ensureShareLinkAction } from '@/lib/actions/kosztorys-share'
 import { readClientViewSettings } from '@/lib/queries/client-view-settings-endpoint'
-import type { ClientViewConfigT } from '@/lib/kosztorys/client-view-settings'
+import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
+import type { ColumnRanksT } from '@/lib/table/column-order'
+import { copyToClipboardAsync } from '@/lib/utils/copy-to-clipboard'
+import { investorShareUrl } from '@/lib/kosztorys/investor-share-url'
 import { toastMessage } from '@/lib/utils/toast'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 
-// „Ustawienia podglądu…" and „Udostępnij" share one module because they share one figure: both open
-// on the same client-view settings, and both dialogs write them back.
+// Carries an action's own error text past the promise chain, so the toast names what failed.
+class ShareLinkError extends Error {}
+
 export type InvestorActionsT = {
-  clientView: ClientViewConfigT | null
-  setClientView: (config: ClientViewConfigT) => void
+  clientView: ClientViewSettingsT | null
+  setClientView: (settings: ClientViewSettingsT) => void
+  defaultColumnRanks: ColumnRanksT
   settingsOpen: boolean
   setSettingsOpen: (open: boolean) => void
   requestSettings: () => void
@@ -31,25 +36,28 @@ export type InvestorActionsT = {
 
 export function useInvestorActions(): InvestorActionsT {
   const { investmentId } = useKosztorysEditorContext()
-  const [clientView, setClientView] = useState<ClientViewConfigT | null>(null)
+  const [clientView, setClientView] = useState<ClientViewSettingsT | null>(null)
+  const [defaultColumnRanks, setDefaultColumnRanks] = useState<ColumnRanksT>({})
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
   const [shareToken, setShareToken] = useState<string | null>(null)
   const [shareLoaded, setShareLoaded] = useState(false)
   const settingsRequest = useLatestRequest()
+  const shareRequest = useLatestRequest()
 
   // Fetch on the click, not inside the dialog: Radix onOpenChange never fires for a programmatic
   // `open`, so the dialog can't fetch itself. Re-read on every open, so the window never shows a set
   // that another session has since changed.
-  // Latest-wins: both „Udostępnij" and „Ustawienia podglądu…" feed this one state, so a slow first
-  // read landing after a second one would put a stale set back into the dialog — and the next
-  // „Zapisz" would write that stale set over what the owner had just saved.
+  // Latest-wins: a slow first read landing after a second one would put a stale set back into the
+  // dialog — and the next „Zapisz" would write that stale set over what the owner had just saved.
   function readSettings() {
     const isCurrent = settingsRequest.start()
     setClientView(null)
     void readClientViewSettings(investmentId)
-      .then((settings) => {
-        if (isCurrent()) setClientView(settings)
+      .then((read) => {
+        if (!isCurrent()) return
+        setClientView(read.settings)
+        setDefaultColumnRanks(read.defaultColumnRanks)
       })
       .catch(() => {
         if (isCurrent()) toastMessage('Nie udało się odczytać ustawień podglądu', 'error')
@@ -61,27 +69,36 @@ export function useInvestorActions(): InvestorActionsT {
     readSettings()
   }
 
-  // Same Radix reason as readSettings — and re-fetching each open avoids showing a link that may
+  // Same Radix reason as readSettings — and re-reading on each open avoids showing a link that may
   // have been rotated or revoked elsewhere since last time as though it were still live.
   function requestShare() {
+    const isCurrent = shareRequest.start()
     setShareOpen(true)
     setShareLoaded(false)
-    readSettings()
-    void getShareLinkAction(investmentId)
-      .then((res) => {
-        setShareToken(res.success ? res.data : null)
-        if (!res.success) toastMessage(res.error, 'error')
-      })
-      .catch(() => {
+    const token = ensureShareLinkAction(investmentId).then((result) => {
+      if (!result.success) throw new ShareLinkError(result.error)
+      if (isCurrent()) setShareToken(result.data)
+      return result.data
+    })
+    token
+      .catch((error: unknown) => {
+        if (!isCurrent()) return
         setShareToken(null)
-        toastMessage('Nie udało się sprawdzić linku', 'error')
+        toastMessage(
+          error instanceof ShareLinkError ? error.message : 'Nie udało się przygotować linku',
+          'error',
+        )
       })
-      .finally(() => setShareLoaded(true))
+      .finally(() => {
+        if (isCurrent()) setShareLoaded(true)
+      })
+    copyToClipboardAsync(token.then(investorShareUrl), 'Link skopiowany do schowka.')
   }
 
   return {
     clientView,
     setClientView,
+    defaultColumnRanks,
     settingsOpen,
     setSettingsOpen,
     requestSettings,
@@ -128,7 +145,7 @@ export function ShareMenuItem() {
       <Share2 />
       <MenuItemBody
         label="Udostępnij"
-        description="Wygeneruj link, którym inwestor otworzy kosztorys bez logowania."
+        description="Skopiuj link, którym inwestor otworzy kosztorys bez logowania."
       />
     </DropdownMenuItem>
   )

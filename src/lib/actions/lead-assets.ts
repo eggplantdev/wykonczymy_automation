@@ -1,7 +1,7 @@
 'use server'
 
 import { protectedAction } from './run-action'
-import { investmentAssetTags } from '@/lib/cache/tags'
+import { investmentEntityOpts } from '@/lib/cache/tags'
 import { uploadFieldIds } from '@/lib/media/upload-field'
 import {
   appendUploadIds,
@@ -71,6 +71,6 @@ export async function attachLeadAssetsAction(
       return { success: true }
     },
     ['leads'],
-    investmentAssetTags(investmentId),
+    investmentEntityOpts(investmentId),
   )
 }

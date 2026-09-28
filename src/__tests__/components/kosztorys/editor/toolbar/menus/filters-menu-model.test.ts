@@ -12,6 +12,7 @@ const model = (
     engagedIds: new Set(engaged),
     counts: new Map(Object.entries(counts)),
     perItemDiscountInert,
+    crewAxis: 'both',
   })
 
 const everyFilterCounted = Object.fromEntries(
@@ -32,19 +33,21 @@ describe('the „Filtry" list', () => {
     expect(model({ 'has-note': 4, 'no-note': 0 }).map((toggle) => toggle.id)).toEqual(['has-note'])
   })
 
+  // No „Pozycje " in front — the heading above the list already says it. The capital is added by the
+  // menu, because the registry label is a noun phrase also read after „Ukryto: pozycje ".
   it('names the pozycje each row hides, count included', () => {
-    expect(model({ 'has-note': 4 })[0].label).toBe('Pozycje z komentarzem (4)')
+    expect(model({ 'has-note': 4 })[0].label).toBe('Z komentarzem (4)')
   })
 
   // A stawka filter used to be offered only from its own view. Both planes' rows now stand side by
-  // side, which is why the registry label keeps the „w widoku …" tail — without it the two planes'
-  // rows read identically.
+  // side, which is why each row still carries its plane — without it the two read identically. In the
+  // menu that tail is the short „— <płaszczyzna>", the same shape the column picker uses.
   it('offers both planes at once, each naming its own', () => {
     expect(
       model({ 'manual-rate-w-tools': 2, 'manual-rate-own-tools': 3 }).map((toggle) => toggle.label),
     ).toEqual([
-      'Pozycje ze stawką wykonawcy z kwoty stałej w widoku z narzędziami (podwykonawca) (2)',
-      'Pozycje ze stawką wykonawcy z kwoty stałej w widoku bez narzędzi (pracownik) (3)',
+      'Kwota stała — z narzędziami (podwykonawca) (2)',
+      'Kwota stała — bez narzędzi (pracownik) (3)',
     ])
   })
 
@@ -61,7 +64,7 @@ describe('the „Filtry" list', () => {
   // it cannot leave the list the moment its last match disappears from the grid it just emptied.
   it('keeps an engaged zawężenie at „(0)"', () => {
     const [toggle] = model({ 'has-note': 0 }, ['has-note'])
-    expect(toggle.label).toBe('Pozycje z komentarzem (0)')
+    expect(toggle.label).toBe('Z komentarzem (0)')
     expect(toggle.active).toBe(false)
   })
 

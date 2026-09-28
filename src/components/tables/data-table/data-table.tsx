@@ -46,6 +46,8 @@ type DataTablePropsT<TData> = {
   enableVirtualization?: boolean
   virtualRowHeight?: number
   virtualContainerHeight?: number
+  /** Sizes the virtualized scroll container by class; `virtualContainerHeight` is then ignored. */
+  virtualContainerClassName?: string
   /** localStorage key for persisting column visibility */
   storageKey?: string
   /** Sort applied on first render. Defaults to none. Ignored when `sorting` is controlled. */
@@ -56,8 +58,6 @@ type DataTablePropsT<TData> = {
   onSortingChange?: (next: SortingState) => void
   /** Makes the row clickable — navigates to the returned URL */
   getRowHref?: (row: TData) => string | undefined
-  /** Row click handler for a row that must not be an href — see `DataTableRow`. */
-  onRowClick?: (row: TData) => void
   getRowClassName?: (row: TData) => string
   /** Summary `<tr>` pinned below the rows. Gets visible column ids in render order, so it can span
    * them or place a total under its column even when others are hidden. */
@@ -75,12 +75,12 @@ export function DataTable<TData>({
   enableVirtualization = false,
   virtualRowHeight = 44,
   virtualContainerHeight = 600,
+  virtualContainerClassName,
   storageKey,
   initialSorting = [],
   sorting: controlledSorting,
   onSortingChange,
   getRowHref,
-  onRowClick,
   getRowClassName,
   footer,
   toolbar,
@@ -150,6 +150,10 @@ export function DataTable<TData>({
     count: rows.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => virtualRowHeight,
+    // Keyed by the row, not by its index: the measurement cache outlives a search or a sort, so without
+    // this the heights measured for positions 0..n are reused for whatever rows land there next and
+    // `getTotalSize()` plus the top spacer describe a list that is no longer on screen.
+    getItemKey: (index) => rows[index]?.id ?? index,
     overscan: 10,
     enabled: enableVirtualization,
   })
@@ -182,12 +186,12 @@ export function DataTable<TData>({
           <VirtualizedTableBody
             parentRef={parentRef}
             containerHeight={virtualContainerHeight}
+            containerClassName={virtualContainerClassName}
             headerGroups={headerGroups}
             rows={rows}
             virtualizer={virtualizer}
             visibleColumnIdList={visibleColumnIdList}
             getRowHref={getRowHref}
-            onRowClick={onRowClick}
             getRowClassName={getRowClassName}
             footer={footer}
           />
@@ -203,7 +207,6 @@ export function DataTable<TData>({
                     key={`${row.id}:${visibleColumnKey}`}
                     row={row}
                     getRowHref={getRowHref}
-                    onRowClick={onRowClick}
                     getRowClassName={getRowClassName}
                   />
                 ))

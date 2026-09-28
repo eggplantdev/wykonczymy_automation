@@ -1,8 +1,5 @@
 'use client'
 
-// Clickable table row. Clicking it opens the row's subject — by navigating to `getRowHref`, or, for
-// a row whose opening is a WRITE and so must not be prefetchable, by calling `onRowClick`.
-
 import React from 'react'
 import { flexRender, type Row } from '@tanstack/react-table'
 import { useRouter } from 'next/navigation'
@@ -11,22 +8,25 @@ import { cn } from '@/lib/utils/cn'
 type DataTableRowPropsT<TData> = {
   row: Row<TData>
   getRowHref?: (row: TData) => string | undefined
-  onRowClick?: (row: TData) => void
   getRowClassName?: (row: TData) => string
+  /** The virtualizer's `measureElement` — it reads the row's position from `data-index`. */
+  measureRef?: (node: HTMLTableRowElement | null) => void
+  index?: number
 }
 
 export function DataTableRow<TData>({
   row,
   getRowHref,
-  onRowClick,
   getRowClassName,
+  measureRef,
+  index,
 }: DataTableRowPropsT<TData>) {
   const router = useRouter()
   const href = getRowHref?.(row.original)
-  const isClickable = Boolean(href) || Boolean(onRowClick)
+  const isClickable = Boolean(href)
 
   function handleClick(e: React.MouseEvent<HTMLTableRowElement>) {
-    if (!isClickable) return
+    if (!href) return
 
     const target = e.target as HTMLElement
 
@@ -35,11 +35,6 @@ export function DataTableRow<TData>({
     if (!e.currentTarget.contains(target)) return
 
     if (target.closest('a, button')) return
-
-    if (!href) {
-      onRowClick?.(row.original)
-      return
-    }
 
     if (e.metaKey || e.ctrlKey) {
       window.open(href, '_blank')
@@ -54,6 +49,8 @@ export function DataTableRow<TData>({
 
   return (
     <tr
+      ref={measureRef}
+      data-index={index}
       className={cn(
         'border-border border-b last:border-b-0',
         isClickable && 'hover:bg-muted cursor-pointer transition-colors',

@@ -7,7 +7,7 @@ import {
 import { col } from '@/__tests__/fixtures/kosztorys-sheet/grid'
 import {
   BIALOSTOCKA_LABOR_HEADER,
-  ZUPNICZA_LABOR_HEADER,
+  UNNAMED_NET_VALUE_LABOR_HEADER,
 } from '@/__tests__/fixtures/kosztorys-sheet/header-blocks'
 
 function expectResolved(
@@ -16,11 +16,9 @@ function expectResolved(
   if (!result.ok) expect.fail(`expected a resolved header, got: ${result.problems.join(' | ')}`)
 }
 
-// Żupnicza splits „Wartość netto" into S and T, so no name matches and the header refuses — the one
-// layout the stored pointing exists for.
 describe('resolveLaborColumns with a stored column pointing', () => {
   it('resolves a column the header name could not', () => {
-    const result = resolveLaborColumns(ZUPNICZA_LABOR_HEADER, { netValue: col('S') })
+    const result = resolveLaborColumns(UNNAMED_NET_VALUE_LABOR_HEADER, { netValue: col('S') })
     expectResolved(result)
 
     expect(result.columns.netValue).toBe(col('S'))
@@ -37,7 +35,7 @@ describe('resolveLaborColumns with a stored column pointing', () => {
   })
 
   it('ignores a pointing at a column another field already owns', () => {
-    const result = resolveLaborColumns(ZUPNICZA_LABOR_HEADER, { netValue: col('Q') })
+    const result = resolveLaborColumns(UNNAMED_NET_VALUE_LABOR_HEADER, { netValue: col('Q') })
 
     expect(result.ok).toBe(false)
     expect(result.missingFields).toEqual([{ field: 'netValue', required: true, reason: 'absent' }])
@@ -45,21 +43,21 @@ describe('resolveLaborColumns with a stored column pointing', () => {
 
   it('ignores a pointing at a column read off the etapy position', () => {
     // B is the ordinal between „nazwa sekcji" and „opis pracy" — no field's own, but not free either.
-    const result = resolveLaborColumns(ZUPNICZA_LABOR_HEADER, { netValue: col('B') })
+    const result = resolveLaborColumns(UNNAMED_NET_VALUE_LABOR_HEADER, { netValue: col('B') })
 
     expect(result.ok).toBe(false)
     expect(result.missingFields).toEqual([{ field: 'netValue', required: true, reason: 'absent' }])
   })
 
   it('ignores a pointing past the header block', () => {
-    const result = resolveLaborColumns(ZUPNICZA_LABOR_HEADER, { netValue: col('S') + 500 })
+    const result = resolveLaborColumns(UNNAMED_NET_VALUE_LABOR_HEADER, { netValue: col('S') + 500 })
 
     expect(result.ok).toBe(false)
     expect(result.missingFields).toEqual([{ field: 'netValue', required: true, reason: 'absent' }])
   })
 
   it('names only the fields that came from the pointing', () => {
-    const result = resolveLaborColumns(ZUPNICZA_LABOR_HEADER, {
+    const result = resolveLaborColumns(UNNAMED_NET_VALUE_LABOR_HEADER, {
       netValue: col('S'),
       // Already matched by name — riding along in the pointing changes nothing.
       plannedQty: col('T'),

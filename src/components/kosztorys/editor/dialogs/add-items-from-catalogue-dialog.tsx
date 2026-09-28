@@ -16,7 +16,7 @@ import { useSearchFilter } from '@/hooks/use-search-filter'
 import {
   createSectionWithCatalogueItemsAction,
   insertCatalogueItemsAction,
-} from '@/lib/actions/work-catalogue'
+} from '@/lib/actions/catalogue-to-kosztorys'
 import {
   kosztorysCatalogueKeys,
   partitionAlreadyInKosztorys,
@@ -33,10 +33,10 @@ import type {
   WorkCatalogueItemT,
 } from '@/lib/kosztorys/work-catalogue/types'
 import { toastMessage } from '@/lib/utils/toast'
-import { useWorkCatalogue } from '@/components/kosztorys/editor/dialogs/use-work-catalogue'
 
 type PropsT = {
   investmentId: number
+  catalogue: WorkCatalogueItemT[]
   sections: SectionSubtotalT[]
   // The WHOLE rozpiska, so „Ukryj już dodane" answers for the kosztorys and not for one sekcja —
   // the same praca legitimately sits in several pokoje, and the owner wants all of them out of view.
@@ -59,13 +59,18 @@ const INITIAL_SORTING = [
   { id: 'description', desc: false },
 ]
 
+// Rows are measured once drawn; this is only the guess for the ones not yet drawn. It is the
+// cennik's measured average (a one-line row 37 px, a two-line one 57), so the scrollbar barely moves
+// while scrolling.
+const ROW_ESTIMATE = 52
+
 const MAX_WARNING_TOASTS = 3
 
 const searchText = (item: WorkCatalogueItemT) => `${item.description} ${item.category ?? ''}`
 
 const itemCategory = (item: WorkCatalogueItemT) => item.category ?? ''
 
-const SelectedIdsContext = createContext<readonly number[]>([])
+const SelectedIdsContext = createContext<ReadonlySet<number>>(new Set())
 
 // A context consumer, not a `checked` prop: DataTable memoises a row's cells on the TanStack row
 // object, which ticking a checkbox does not touch — so a prop would never arrive. React re-renders
@@ -80,7 +85,7 @@ function SelectCell({
   const selected = use(SelectedIdsContext)
   return (
     <Checkbox
-      checked={selected.includes(item.id)}
+      checked={selected.has(item.id)}
       onCheckedChange={() => onToggle(item.id)}
       aria-label={item.description}
     />
@@ -91,6 +96,7 @@ function SelectCell({
 // which sorting the table does not touch.
 export function AddItemsFromCatalogueDialog({
   investmentId,
+  catalogue,
   sections,
   kosztorysItems,
   initialSectionId = null,
@@ -98,8 +104,11 @@ export function AddItemsFromCatalogueDialog({
   onOpenChange,
   onInserted,
 }: PropsT) {
-  const { catalogue } = useWorkCatalogue(open)
+  // Ordered in state, because the prace land in the rozpiska in the order they were ticked; a Set
+  // beside it for membership, which is asked once per visible row and once per already-added row —
+  // `includes` over the whole cennik made that quadratic on a „zaznacz widoczne".
   const [selected, setSelected] = useState<number[]>([])
+  const selectedIds = new Set(selected)
   const [sectionName, setSectionName] = useState(
     () => sections.find((section) => section.sectionId === initialSectionId)?.sectionName ?? '',
   )
@@ -110,7 +119,7 @@ export function AddItemsFromCatalogueDialog({
     filteredData: filtered,
     searchTerm,
     setSearchTerm,
-  } = useSearchFilter(catalogue ?? [], searchText)
+  } = useSearchFilter(catalogue, searchText)
   const {
     filteredData: inScope,
     values: categories,
@@ -126,11 +135,11 @@ export function AddItemsFromCatalogueDialog({
   // A ticked praca is never hidden, even when it is already in the kosztorys: the owner reached it by
   // unchecking the switch on purpose, and hiding it would leave it counting into „Dodaj (N)" and
   // landing in the rozpiska with no row on screen to untick.
-  const keptSelected = alreadyAdded.filter((item) => selected.includes(item.id))
+  const keptSelected = alreadyAdded.filter((item) => selectedIds.has(item.id))
   const visible = hideAlreadyAdded ? [...fresh, ...keptSelected] : inScope
   const hiddenCount = alreadyAdded.length - keptSelected.length
 
-  const categoryOptions = catalogueCategoryOptions(catalogue ?? [])
+  const categoryOptions = catalogueCategoryOptions(catalogue)
 
   const sectionOptions = sectionNameOptions(sections)
   const target = resolveSectionTarget(sectionName, sections, initialSectionId ?? undefined)
@@ -142,16 +151,17 @@ export function AddItemsFromCatalogueDialog({
   // Appended, never replaced: a bulk button adds to what is already ticked, so the owner can sweep
   // one kategoria, switch to the next and keep both.
   function selectAll(items: readonly WorkCatalogueItemT[]) {
-    setSelected((prev) => [
-      ...prev,
-      ...items.map((item) => item.id).filter((id) => !prev.includes(id)),
-    ])
+    setSelected((prev) => {
+      const taken = new Set(prev)
+      return [...prev, ...items.map((item) => item.id).filter((id) => !taken.has(id))]
+    })
   }
 
   const columns = [
     col.display({
       id: 'select',
       header: '',
+      size: 40,
       cell: (info) => <SelectCell item={info.row.original} onToggle={toggle} />,
     }),
     ...WORK_CATALOGUE_PICKER_COLUMNS,
@@ -211,15 +221,13 @@ export function AddItemsFromCatalogueDialog({
             className="min-w-0 flex-1"
           />
           {/* Hidden, never removed: a praca that silently vanishes from the cennik reads as a gap in
-              the katalog, so the count stays on screen and the switch stays reachable. The count is
-              withheld until the cennik is in — „(0)" over „Ładowanie katalogu…" is a confident answer
-              to a question nobody has asked yet. */}
+              the katalog, so the count stays on screen and the switch stays reachable. */}
           <label className="text-muted-foreground flex shrink-0 items-center gap-2 text-sm">
             <Checkbox
               checked={hideAlreadyAdded}
               onCheckedChange={(checked) => setHideAlreadyAdded(checked === true)}
             />
-            Ukryj już dodane{catalogue !== null && ` (${hiddenCount})`}
+            Ukryj już dodane ({hiddenCount})
           </label>
         </div>
         <div className="flex flex-wrap items-center gap-2 px-4 pb-3">
@@ -257,18 +265,22 @@ export function AddItemsFromCatalogueDialog({
             </Button>
           )}
         </div>
-        {catalogue === null ? (
-          <p className="text-muted-foreground px-4 py-6 text-sm">Ładowanie katalogu…</p>
-        ) : catalogue.length === 0 ? (
+        {catalogue.length === 0 ? (
           <p className="text-muted-foreground px-4 py-6 text-sm">Katalog prac jest pusty.</p>
         ) : (
-          <div className="max-h-[55vh] min-h-0 overflow-y-auto px-4 pb-3">
-            <SelectedIdsContext value={selected}>
-              <DataTable data={visible} columns={columns} initialSorting={INITIAL_SORTING} />
+          <div className="min-h-0 px-4 pb-3">
+            <SelectedIdsContext value={selectedIds}>
+              <DataTable
+                data={visible}
+                columns={columns}
+                initialSorting={INITIAL_SORTING}
+                enableVirtualization
+                virtualRowHeight={ROW_ESTIMATE}
+                virtualContainerClassName="max-h-dialog-scroll"
+              />
             </SelectedIdsContext>
           </div>
         )}
-        {/* The sekcja is the last decision, taken once the prace are picked. */}
         <div className="flex items-center justify-between gap-3 px-4 pt-3 pb-4">
           <div className="flex min-w-0 items-center gap-2">
             <span className="text-muted-foreground shrink-0 text-sm">Dodaj do:</span>

@@ -6,7 +6,7 @@ import { SummaryRow } from '@/components/kosztorys/summary/grid/summary-row'
 import { MARGIN_TABLE_COLS } from '@/components/kosztorys/summary/tabs/margin-table-cols'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Description } from '@/components/ui/description'
-import { PLANE_LABELS, RATE_LABELS } from '@/lib/kosztorys/constants'
+import { PLANE_LABELS, RATE_LABELS } from '@/lib/kosztorys/labels'
 import type { MarginForecastT } from '@/lib/kosztorys/margin-forecast'
 import type { ToolPlaneT } from '@/lib/kosztorys/types'
 

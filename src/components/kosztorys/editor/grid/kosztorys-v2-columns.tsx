@@ -45,14 +45,15 @@ import {
   stageValueNetKey,
 } from '@/lib/kosztorys/stage-keys'
 import { type ColumnRanksT } from '@/lib/table/column-order'
-import { headerTipFor } from '@/lib/kosztorys/header-tips'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import { formatPercent, formatQty } from '@/lib/kosztorys/format'
 import { formatPLN } from '@/lib/utils/format-currency'
 import {
   hasStagesOverPlanned,
+  isRemainingOverrun,
   measureDiscrepancy,
+  rowRemainingForExecutedQty,
   rowRemainingForView,
   rowTotalQtyDone,
   rowValueForView,
@@ -94,7 +95,9 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   // „Źródło ceny wykonawcy" and „Mnożnik" are the owner's control over a crew's rate, never something
   // the investor may see: both are refused at assembly for the client preview, on top of
   // PREVIEW_VISIBLE_COLUMNS having neither, so a later allowlist edit cannot leak them on its own.
-  const withMode = opts.previewVisible !== true
+  // The worker surface refuses them for the same reason: a crew seeing its own mnożnik can read the
+  // client price straight back off its stawka.
+  const withMode = !opts.previewVisible && !opts.workerSurface
   const subcontractorPriceCols: Column<KosztorysV2RowT>[] = TOOL_PLANES.flatMap((plane) => [
     ...(withMode
       ? [
@@ -196,13 +199,11 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
         ]
       : []
 
-  const measure: Column<KosztorysV2RowT>[] = [
-    {
-      ...computedColumn('stageQtySum', columnTitle('stageQtySum', opts), (r) => totalQtyDone(r)),
-      minWidth: 80,
-    },
-    unitColumn(columnTitle('unit', opts)),
-  ]
+  const stageQtySum: Column<KosztorysV2RowT> = {
+    ...computedColumn('stageQtySum', columnTitle('stageQtySum', opts), (r) => totalQtyDone(r)),
+    minWidth: 110,
+  }
+  const unit = unitColumn(columnTitle('unit', opts))
 
   // Rabat is a client concession, never passed to the subcontractor (calc.ts netForQtyForView), so
   // the four discount columns exist in the client view only — elsewhere they would all read zero.
@@ -221,7 +222,6 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       : []
 
   const pricing: Column<KosztorysV2RowT>[] = [
-    ...priceCols,
     computedColumn('priceGross', columnTitle('priceGross', opts), (r) =>
       toGross(viewPrice(r, view), r.vatRate),
     ),
@@ -263,7 +263,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
           // read as one that was measured.
           (value) => (value == null ? '' : formatQty(value)),
         ),
-        minWidth: 110,
+        minWidth: 130,
         ...PLANE_UNCONFIRMED_CELL,
       }
     }
@@ -273,7 +273,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
         header,
         numericFieldPolicy<StageKeyT, KosztorysV2RowT>(qtyField, formatQty),
       ),
-      minWidth: 110,
+      minWidth: 130,
     }
   })
 
@@ -281,13 +281,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   const stageValueNetCols: Column<KosztorysV2RowT>[] = shownStages.map((st) => {
     const qtyKey = stageKey(st.id)
     const field = stageValueNetKey(st.id)
-    const header = stageValueHeader(
-      st,
-      'netto',
-      headerTipFor(STAGE_VALUE_NET_COLUMN_GROUP),
-      field,
-      opts,
-    )
+    const header = stageValueHeader(st, 'netto', STAGE_VALUE_NET_COLUMN_GROUP, field, opts)
     return computedColumn(field, header, (r) =>
       stageValueForView(r, r[qtyKey] ?? 0, totalQtyDone(r), view),
     )
@@ -296,13 +290,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   const stageValueGrossCols: Column<KosztorysV2RowT>[] = shownStages.map((st) => {
     const qtyKey = stageKey(st.id)
     const field = stageValueGrossKey(st.id)
-    const header = stageValueHeader(
-      st,
-      'brutto',
-      headerTipFor(STAGE_VALUE_GROSS_COLUMN_GROUP),
-      field,
-      opts,
-    )
+    const header = stageValueHeader(st, 'brutto', STAGE_VALUE_GROSS_COLUMN_GROUP, field, opts)
     return computedColumn(field, header, (r) =>
       toGross(stageValueForView(r, r[qtyKey] ?? 0, totalQtyDone(r), view), r.vatRate),
     )
@@ -333,17 +321,22 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     computedColumn('plannedGross', columnTitle('plannedGross', opts), (r) =>
       toGross(rowPlannedNetForView(r, 'client'), r.vatRate),
     ),
-  ]
-
-  const computed: Column<KosztorysV2RowT>[] = [
-    ...plannedValue,
-    computedColumn('net', columnTitle('net', opts), (r) => rowValueForView(r, stages, view), {
-      emphasize: true,
-    }),
-    computedColumn('gross', columnTitle('gross', opts), (r) =>
-      toGross(rowValueForView(r, stages, view), r.vatRate),
+    computedColumn('plannedNetForPlane', columnTitle('plannedNetForPlane', opts), (r) =>
+      rowPlannedNetForView(r, view),
     ),
   ]
+
+  const net = computedColumn(
+    'net',
+    columnTitle('net', opts),
+    (r) => rowValueForView(r, stages, view),
+    {
+      emphasize: true,
+    },
+  )
+  const gross = computedColumn('gross', columnTitle('gross', opts), (r) =>
+    toGross(rowValueForView(r, stages, view), r.vatRate),
+  )
 
   // Komentarz (sheet col T). Sits at the Praca/Postęp seam and carries the left border, so it
   // doubles as the block divider — layer-neutral, hence always visible.
@@ -358,32 +351,64 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     }),
   ]
 
+  // Red on the very rows the footer total leaves out — one predicate, so the two never disagree.
+  // Brutto is judged on its netto: same sign, and one tolerance axis instead of two.
+  const overrunTone = (remaining: number) => (isRemainingOverrun(remaining) ? 'danger' : 'muted')
+  const remainingTone = (r: KosztorysV2RowT) =>
+    overrunTone(rowRemainingForView(r, stages, 'client'))
   const remaining: Column<KosztorysV2RowT>[] = [
-    computedColumn('remaining', columnTitle('remaining', opts), (r) =>
-      rowRemainingForView(r, stages, 'client'),
+    computedColumn(
+      'remaining',
+      columnTitle('remaining', opts),
+      (r) => rowRemainingForView(r, stages, 'client'),
+      { tone: remainingTone },
     ),
-    computedColumn('remainingGross', columnTitle('remainingGross', opts), (r) =>
-      toGross(rowRemainingForView(r, stages, 'client'), r.vatRate),
+    computedColumn(
+      'remainingGross',
+      columnTitle('remainingGross', opts),
+      (r) => toGross(rowRemainingForView(r, stages, 'client'), r.vatRate),
+      { tone: remainingTone },
     ),
   ]
+  // Assembled on the worker surface only: anywhere else there is no all-etapy quantity to read, and
+  // a figure built from the view's etapy alone would call another crew's work unfinished.
+  const worker = opts.workerSurface
+  const remainingForWorker = (r: KosztorysV2RowT) =>
+    rowRemainingForExecutedQty(r, worker?.executedQtyByItem[r.id] ?? 0, view)
+  const remainingForPlane: Column<KosztorysV2RowT>[] = worker
+    ? [
+        computedColumn(
+          'remainingForPlane',
+          columnTitle('remainingForPlane', opts),
+          remainingForWorker,
+          { tone: (r) => overrunTone(remainingForWorker(r)) },
+        ),
+      ]
+    : []
 
   // „Rozjazd" behind the identity block when it exists at all (a work list, not a reading of the
   // sheet), then sheet order proper: N, D–M, O, T at the work/progress seam, then U–AE before AF.
   // The row-actions column rides the same assemble→hide→toggle pipeline as every data column, so the
-  // picker can hide it like any other.
+  // picker can hide it like any other. The investor's and the worker's documents read in their own
+  // order instead (`documentOrder`, column-selection.ts).
   const dataColumns = [
     ...identity,
     ...divergence,
     ...przedmiar,
     ...stageCols,
-    ...measure,
+    stageQtySum,
+    unit,
+    ...priceCols,
     ...pricing,
-    ...computed,
+    ...plannedValue,
+    net,
+    gross,
     ...komentarz,
     ...stageValueNetCols,
     ...stageValueGrossCols,
     ...donePercent,
     ...remaining,
+    ...remainingForPlane,
   ]
   if (opts.readOnly) return dataColumns.map((c) => ({ ...c, disabled: true }))
   return opts.onRemoveItem || opts.onReorderItem

@@ -13,11 +13,18 @@ export function ownerOnlyAction<TData = undefined>(
   label: string,
   forbiddenMessage: string,
   handler: (ctx: { payload: Payload; user: SessionUserT }) => Promise<ActionResultT<TData>>,
+  revalidate?: Parameters<typeof protectedAction>[2],
+  opts?: Parameters<typeof protectedAction>[3],
 ): Promise<ActionResultT<TData>> {
-  return protectedAction<TData>(label, async (ctx) => {
-    if (!isAdminOrOwnerRole(ctx.user.role)) {
-      return { success: false, error: forbiddenMessage } as ActionResultT<TData>
-    }
-    return handler(ctx)
-  })
+  return protectedAction<TData>(
+    label,
+    async (ctx) => {
+      if (!isAdminOrOwnerRole(ctx.user.role)) {
+        return { success: false, error: forbiddenMessage } as ActionResultT<TData>
+      }
+      return handler(ctx)
+    },
+    revalidate,
+    opts,
+  )
 }

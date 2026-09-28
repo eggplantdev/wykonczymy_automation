@@ -2,10 +2,10 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import {
   findClientViewRow,
-  getClientViewConfig,
   getClientViewSettings,
+  getClientViewSettingsRead,
 } from '@/lib/queries/kosztorys-client-view'
-import { sanitizeClientViewConfig } from '@/lib/kosztorys/client-view-settings'
+import { sanitizeClientViewSettings } from '@/lib/kosztorys/client-view-settings'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 
 // The resolution chain decides what a client is served, so it runs against the REAL DB: a `where`
@@ -14,15 +14,27 @@ import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
-const CODE_DEFAULTS = sanitizeClientViewConfig({})
+const CODE_DEFAULTS = sanitizeClientViewSettings({})
 
-const OFFER_VARIANT = { hiddenColumns: ['discountValue'], hideEmptyRows: false }
-const SETTLEMENT_VARIANT = { hiddenColumns: ['plannedGross'], hideEmptyRows: true }
+// The row carries an order so the resolver's roundtrip covers it: a stored rank that came back
+// empty would silently serve every investment in the built-in order.
+const ROW_SETTINGS = {
+  hiddenColumns: ['discountValue'],
+  hideEmptyRows: false,
+  columnRanks: { net: -1 },
+}
+const GLOBAL_SETTINGS = { hiddenColumns: ['remaining'], hideEmptyRows: true, columnRanks: {} }
 
 describe.skipIf(!ENV_READY)('getClientViewSettings (DB)', () => {
   let payload: Payload
   let investmentWithRow: number
   let investmentWithoutRow: number
+
+  const resetGlobal = () =>
+    payload.updateGlobal({
+      slug: 'kosztorys-client-view-defaults',
+      data: { hiddenColumns: null, hideEmptyRows: true, columnRanks: null },
+    })
 
   beforeAll(async () => {
     const { getPayload } = await import('payload')
@@ -35,11 +47,7 @@ describe.skipIf(!ENV_READY)('getClientViewSettings (DB)', () => {
     // must not depend on each other's order to find it.
     await payload.create({
       collection: 'kosztorys-client-view',
-      data: {
-        investment: investmentWithRow,
-        mode: 'SETTLEMENT',
-        variants: { OFFER: OFFER_VARIANT, SETTLEMENT: SETTLEMENT_VARIANT },
-      },
+      data: { investment: investmentWithRow, ...ROW_SETTINGS },
     })
   })
 
@@ -48,10 +56,7 @@ describe.skipIf(!ENV_READY)('getClientViewSettings (DB)', () => {
     if (investmentWithoutRow) await deleteTestInvestment(payload, investmentWithoutRow)
     // The global is firm-wide state, not this spec's own row: left mutated, it would decide what a
     // later spec's investment serves.
-    await payload.updateGlobal({
-      slug: 'kosztorys-client-view-defaults',
-      data: { mode: 'OFFER', variants: {} },
-    })
+    await resetGlobal()
   })
 
   // The save action calls this with no session on the payload client — its own gate already ran, and
@@ -62,50 +67,64 @@ describe.skipIf(!ENV_READY)('getClientViewSettings (DB)', () => {
     expect(row).not.toBeNull()
   })
 
-  it('serves the variant the stored mode names, not the first one', async () => {
-    const settings = await getClientViewSettings(investmentWithRow)
-    expect(settings).toEqual(SETTLEMENT_VARIANT)
-  })
+  it("serves the investment's own row over the firm-wide default", async () => {
+    await payload.updateGlobal({ slug: 'kosztorys-client-view-defaults', data: GLOBAL_SETTINGS })
 
-  it('keeps the inactive variant readable for the dialog', async () => {
-    const config = await getClientViewConfig(investmentWithRow)
-    expect(config.mode).toBe('SETTLEMENT')
-    expect(config.variants.OFFER).toEqual(OFFER_VARIANT)
+    expect(await getClientViewSettings(investmentWithRow)).toEqual(ROW_SETTINGS)
   })
 
   it('drops a stored key outside the allowlist — the ceiling is not a stored decision', async () => {
     await payload.update({
       collection: 'kosztorys-client-view',
       where: { investment: { equals: investmentWithRow } },
-      data: {
-        variants: {
-          OFFER: OFFER_VARIANT,
-          SETTLEMENT: { hiddenColumns: ['plannedGross', 'note', 'priceMode'], hideEmptyRows: true },
-        },
-      },
+      data: { hiddenColumns: ['remaining', 'note', 'priceMode'] },
     })
 
     const settings = await getClientViewSettings(investmentWithRow)
-    expect(settings.hiddenColumns).toEqual(['plannedGross'])
+    expect(settings.hiddenColumns).toEqual(['remaining'])
+  })
+
+  // A row wins as a whole. The migration leaves NULL on a row whose served variant was never
+  // chosen; reading that as „fall through to the global" would change what such a client sees the
+  // day the owner edits the firm-wide default.
+  it('resolves a row with no hidden set to the code default, not to the global', async () => {
+    await payload.updateGlobal({ slug: 'kosztorys-client-view-defaults', data: GLOBAL_SETTINGS })
+    await payload.update({
+      collection: 'kosztorys-client-view',
+      where: { investment: { equals: investmentWithRow } },
+      data: { hiddenColumns: null, hideEmptyRows: true, columnRanks: null },
+    })
+
+    expect(await getClientViewSettings(investmentWithRow)).toEqual(CODE_DEFAULTS)
   })
 
   it('falls back to the firm-wide default for an investment with no row', async () => {
+    await payload.updateGlobal({ slug: 'kosztorys-client-view-defaults', data: GLOBAL_SETTINGS })
+
+    expect(await getClientViewSettings(investmentWithoutRow)).toEqual(GLOBAL_SETTINGS)
+  })
+
+  // The reset target in the order dialog: the firm's order, even where the investment's own row wins
+  // — and a row that never stored an order serves the built-in one, not the firm's.
+  it("hands back the firm's order beside an investment's own settings", async () => {
+    await payload.update({
+      collection: 'kosztorys-client-view',
+      where: { investment: { equals: investmentWithRow } },
+      data: { columnRanks: null },
+    })
     await payload.updateGlobal({
       slug: 'kosztorys-client-view-defaults',
-      data: { mode: 'SETTLEMENT', variants: { SETTLEMENT: SETTLEMENT_VARIANT } },
+      data: { ...GLOBAL_SETTINGS, columnRanks: { plannedQty: -1 } },
     })
 
-    const settings = await getClientViewSettings(investmentWithoutRow)
-    expect(settings).toEqual(SETTLEMENT_VARIANT)
+    const read = await getClientViewSettingsRead(investmentWithRow)
+    expect(read.settings.columnRanks).toEqual({})
+    expect(read.defaultColumnRanks).toEqual({ plannedQty: -1 })
   })
 
   it('falls back to the code default when the global holds nothing', async () => {
-    await payload.updateGlobal({
-      slug: 'kosztorys-client-view-defaults',
-      data: { mode: 'OFFER', variants: {} },
-    })
+    await resetGlobal()
 
-    const config = await getClientViewConfig(investmentWithoutRow)
-    expect(config).toEqual(CODE_DEFAULTS)
+    expect(await getClientViewSettings(investmentWithoutRow)).toEqual(CODE_DEFAULTS)
   })
 })

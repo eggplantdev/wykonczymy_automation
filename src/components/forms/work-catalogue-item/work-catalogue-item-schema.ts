@@ -1,5 +1,6 @@
 import { z } from 'zod'
-import { PRICE_SOURCES, RATE_LABELS } from '@/lib/kosztorys/constants'
+import { PRICE_SOURCES } from '@/lib/kosztorys/constants'
+import { RATE_LABELS } from '@/lib/kosztorys/labels'
 import {
   catalogueSourceOf,
   type CatalogueRateColumnsT,

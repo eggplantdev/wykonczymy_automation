@@ -63,6 +63,11 @@
   /* Viewport minus the shell's chrome — 3.5rem IS the TopNav's h-14, and two files were carrying it
      as a bare number. Anything that must fill the page UNDER the top bar takes h-below-top-nav. */
   --spacing-below-top-nav: calc(100dvh - 3.5rem);
+
+  /* Ceiling on a scrolling list INSIDE a dialog — three of them carried 55vh as a bare number. Short
+     of the dialog's own 90vh cap, because the header, the footer buttons and a „(N)" line share the
+     window with it. */
+  --spacing-dialog-scroll: 55vh;
   --shadow-panel: 0 -2px 8px -4px rgb(0 0 0 / 0.2); /* upward top-edge elevation for the bottom totals panel */
 
   /* Semantic Colors - Light Mode */
@@ -491,6 +496,72 @@
   --section-band-tint: 18%;
 }
 
+/* The grey fill tells the owner "you can't type here" apart from the cells they can. In the
+   client's preview no cell is editable, so the contrast has nothing to separate and the whole sheet
+   just reads as greyed out. */
+.kosztorys-grid.kosztorys-grid-preview {
+  --dsg-cell-disabled-background-color: var(--dsg-cell-background-color);
+  --dsg-header-text-color: var(--color-foreground);
+  /* The preview's header sits right under the page header's dark rule. */
+  --header-rule-color: var(--color-foreground);
+}
+
+/* Preview-only: in the editor a bold header is the active-sort cue (sort-header.tsx), and the
+   preview has no sort to signal. Aimed at the span because HeaderLabel's `font-medium` sits on it. */
+.kosztorys-grid.kosztorys-grid-preview .dsg-cell-header span {
+  font-weight: 700;
+}
+
+/* The summary under the last section is one plain white block: a grey „Razem" next to the white
+   spacer and titles read as a random mix of grey and white. The heavy rule above it still sets it off. */
+.kosztorys-grid.kosztorys-grid-preview .kosztorys-totals-cell {
+  background: var(--color-background);
+}
+
+/* dsg's header cells draw no bottom edge of their own. Inset, because dsg lays cells out absolutely
+   and an outer shadow would be painted over by the row beneath. Coloured like the rule above the
+   header, so the header reads as one framed band. */
+.kosztorys-grid .dsg-cell-header {
+  box-shadow: inset 0 -1px var(--header-rule-color, var(--dsg-border-color));
+}
+
+/* Outranks the gutter rule above, so the gutter's column separator is restated alongside. */
+.kosztorys-grid .dsg-cell-header.dsg-cell-gutter {
+  box-shadow:
+    inset 0 -1px var(--header-rule-color, var(--dsg-border-color)),
+    1px 0 var(--dsg-border-color);
+}
+
+/* The header's rule stands in for the top edge of the row right under it — otherwise that row's own
+   1px border and a section band's divider stack beneath it into three lines. Only the unscrolled
+   first row is affected visibly: when scrolled, the DOM row after the header is an overscan row
+   hidden behind the sticky header. */
+.kosztorys-grid .dsg-row-header + .dsg-row .dsg-cell {
+  border-top: none;
+}
+
+.kosztorys-grid .dsg-row-header + .dsg-row.kosztorys-section-header .dsg-cell {
+  box-shadow: 0 1px var(--dsg-border-color);
+}
+
+.kosztorys-grid .dsg-row-header + .dsg-row.kosztorys-section-header .dsg-cell-gutter {
+  box-shadow:
+    inset calc(-1 * var(--section-rail-width)) 0 0 var(--section-rail, transparent),
+    1px 0 var(--dsg-border-color);
+}
+
+/* Muted text marks a derived figure the owner can't type over — same contrast as the fill above,
+   with nothing to separate in a sheet where no cell is editable. */
+.kosztorys-grid.kosztorys-grid-preview [data-muted] {
+  color: var(--color-foreground);
+}
+
+/* Must stay above the section band rules: same specificity, and a band's wash has to win over the
+   stripe so the band still reads as one bar. */
+.kosztorys-grid.kosztorys-grid-preview .dsg-cell.kosztorys-stripe-column {
+  background: color-mix(in oklab, var(--color-foreground) 2%, var(--color-background));
+}
+
 /* Section identity is carried by two quiet cues instead of a background wash: a colour rail down the
    sticky gutter column, and a heavy rule above a section's first row. `--section-rail` is set per row
    by the palette's `rail` class (src/lib/kosztorys/section-colors.ts); an unpinned section leaves it
@@ -584,6 +655,11 @@
    outside this offer's scope — it must read apart from what the offer prices. */
 .kosztorys-grid .dsg-row.kosztorys-revealed-row .dsg-cell {
   color: var(--color-muted-foreground);
+}
+
+.kosztorys-grid .dsg-row.kosztorys-history-removed .dsg-cell {
+  color: var(--color-muted-foreground);
+  text-decoration: line-through;
 }
 
 /*https://tailwindcss.com/docs/adding-custom-styles/*

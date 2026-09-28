@@ -6,6 +6,7 @@ import {
   Inbox,
   LayoutTemplate,
   ListChecks,
+  Trash2,
   Users,
   Wallet,
   Wrench,
@@ -39,3 +40,5 @@ export const MANAGEMENT_LINKS: NavLinkT[] = [
   { href: '/sprzet', label: 'Sprzęt', icon: Wrench, unreadStream: 'equipment' },
   { href: '/pracownicy', label: 'Pracownicy', icon: Users },
 ]
+
+export const OWNER_LINKS: NavLinkT[] = [{ href: '/kosz', label: 'Kosz', icon: Trash2 }]

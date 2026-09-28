@@ -27,7 +27,7 @@ export function filterBySearch<TItem>(
 
 export function useSearchFilter<TItem>(data: TItem[], getSearchableText: (item: TItem) => string) {
   const [searchTerm, setSearchTerm] = useState('')
-  // Matching is cheap; RENDERING the result is not — the katalog draws ~950 unvirtualized rows — so
+  // Matching is cheap; RENDERING the result is not — /katalog-prac draws its ~560 rows unvirtualized — so
   // without the deferral the whole re-render sits between the keypress and the character appearing,
   // and the field itself stutters.
   const deferredTerm = useDeferredValue(searchTerm)

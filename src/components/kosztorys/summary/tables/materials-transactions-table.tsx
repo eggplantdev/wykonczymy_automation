@@ -47,8 +47,8 @@ const CLIENT_LIST_LABEL = 'Materiały'
 
 const TABLE_HEIGHT = 400
 // 8px taller than the wypłaty list: a text-only row is 36 (20px line box + py-2), leaving no budget
-// for the „Faktura" control's 28px box. The virtualizer estimates from this number and never measures,
-// so drift here is silent — keep it in step with whatever the tallest cell renders.
+// for the „Faktura" control's 28px box. Rendered rows are measured, but the container's collapsed
+// height below is computed from this number — keep it in step with whatever the tallest cell renders.
 const ROW_HEIGHT = 44
 // The scroll container wraps thead + tbody + tfoot together, so a height computed from body rows
 // alone clips the header and the „Razem" footer — budget their rendered height too.
@@ -118,9 +118,9 @@ const SHARED_COLUMNS: ColumnDef<MaterialTransactionRowT>[] = [
     enableSorting: false,
     meta: { align: 'center' },
     // Sits before the money columns, not last, so the „Razem" footer's total stays under the column
-    // it actually sums. The empty branch still reserves the control's box: the virtualizer estimates
-    // every row at ROW_HEIGHT and never measures, so an invoice-less row collapsing to the text line
-    // height would drift the spacers.
+    // it actually sums. The empty branch still reserves the control's box: the container's height is
+    // derived from the ROW_HEIGHT estimate while the rows inside it are measured, so an invoice-less
+    // row collapsing to the text line height makes the two disagree and adds an inner scrollbar.
     cell: ({ row }) =>
       row.original.invoices.length > 0 ? (
         <MediaPreviewButton

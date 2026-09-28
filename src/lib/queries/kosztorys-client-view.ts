@@ -2,11 +2,17 @@ import 'server-only'
 import { getPayload, type Payload } from 'payload'
 import config from '@payload-config'
 import {
-  clientViewSettingsForMode,
-  sanitizeClientViewConfig,
-  type ClientViewConfigT,
+  sanitizeClientViewSettings,
   type ClientViewSettingsT,
 } from '@/lib/kosztorys/client-view-settings'
+import type { ColumnRanksT } from '@/lib/table/column-order'
+
+export type ClientViewSettingsReadT = {
+  settings: ClientViewSettingsT
+  // The firm-wide order alone — what „Przywróć domyślną kolejność" restores. Read off the global
+  // even when the investment's own row wins, since that row is exactly what a reset departs from.
+  defaultColumnRanks: ColumnRanksT
+}
 
 /**
  * `investment` is unique, so this is the row-or-nothing lookup every caller wants — the resolver
@@ -31,9 +37,9 @@ export async function findClientViewRow(payload: Payload, investmentId: number) 
 
 /**
  * The one answer to "how is investment N configured for its client": its own row, else the firm-wide
- * default, else the code default. Read by the settings dialogs, which need BOTH variants — the
- * preview entrances take the resolved single variant from `getClientViewSettings` below, so the
- * dialog can never show a starting state the client does not get.
+ * default, else the code default. The settings dialog and the preview entrances read the same
+ * answer, so the dialog can never show a starting state the client does not get. The row wins as a
+ * whole: a row whose `hiddenColumns` is NULL resolves to the code default, not to the global.
  *
  * Deliberately uncached and outside `cachedPreviewKosztorysEditorData`: two indexed reads mean a
  * save is live on the next request with no cache tag, and changing the firm-wide default does not
@@ -45,7 +51,13 @@ export async function findClientViewRow(payload: Payload, investmentId: number) 
  * round-trip depths to reach it; the wasted global read when a row does exist is one row of a
  * single-row table.
  */
-export async function getClientViewConfig(investmentId: number): Promise<ClientViewConfigT> {
+export async function getClientViewSettings(investmentId: number): Promise<ClientViewSettingsT> {
+  return (await getClientViewSettingsRead(investmentId)).settings
+}
+
+export async function getClientViewSettingsRead(
+  investmentId: number,
+): Promise<ClientViewSettingsReadT> {
   const payload = await getPayload({ config })
 
   const [row, defaults] = await Promise.all([
@@ -57,9 +69,8 @@ export async function getClientViewConfig(investmentId: number): Promise<ClientV
     }),
   ])
 
-  return sanitizeClientViewConfig(row ?? defaults ?? {})
-}
-
-export async function getClientViewSettings(investmentId: number): Promise<ClientViewSettingsT> {
-  return clientViewSettingsForMode(await getClientViewConfig(investmentId))
+  return {
+    settings: sanitizeClientViewSettings(row ?? defaults ?? {}),
+    defaultColumnRanks: sanitizeClientViewSettings(defaults ?? {}).columnRanks,
+  }
 }

@@ -6,6 +6,9 @@ import {
 } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
+import { emptySettlementColumnIds } from '@/lib/kosztorys/settlement-columns'
+import { stageKey } from '@/lib/kosztorys/stage-keys'
+import { row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
 
 // The client-facing preview: which columns it renders, and what pins the price plane they compute at.
 // Asserted on rendered ids rather than on the constant, because the ids are the document a client
@@ -15,6 +18,9 @@ const STAGES: KosztorysStageT[] = [
   { id: 7, ordinal: 1, label: 'Etap 1', plane: null, workerId: null },
   { id: 9, ordinal: 2, label: 'Etap 2', plane: null, workerId: null },
 ]
+
+const stageRow = (overrides: Parameters<typeof row>[0] = {}) =>
+  row({ [stageKey(7)]: 0, [stageKey(9)]: 0, ...overrides })
 
 function previewIds(extra: Partial<BuildV2ColumnsOptsT> = {}): string[] {
   return buildV2Columns({ view: 'client', previewVisible: true, stages: STAGES, ...extra })
@@ -44,10 +50,51 @@ describe('preview columns', () => {
   // offer would print a „Rabat" that no figure on the page reflects.
   it('drops the per-item rabat columns while a global discount overrides them', () => {
     const visible = previewIds({ globalDiscountActive: true })
-    for (const id of ['discountType', 'discountValue', 'discountAmount', 'discountAmountGross']) {
+    for (const id of ['discountType', 'discountValue', 'discountAmount']) {
       expect(previewIds()).toContain(id)
       expect(visible).not.toContain(id)
     }
+  })
+
+  // Owner, 2026-09-28: the value of the offered scope reads beside the quantity it prices.
+  it('reads the przedmiar as ilość, j.m., cena, wartość', () => {
+    const visible = previewIds()
+    const at = visible.indexOf('plannedQty')
+
+    expect(visible.slice(at, at + 4)).toEqual(['plannedQty', 'unit', 'price', 'plannedNet'])
+  })
+
+  // The offer is quoted netto (owner, 2026-09-28): no gross figure reaches the investor's document.
+  it('carries no brutto column', () => {
+    const grossIds = [
+      'plannedGross',
+      'priceGross',
+      'discountAmountGross',
+      'gross',
+      'remainingGross',
+    ]
+    const visible = previewIds()
+
+    for (const id of grossIds) expect(visible).not.toContain(id)
+    expect(visible.filter((id) => id.startsWith('stageValueGross'))).toEqual([])
+  })
+
+  // The owner's stored order for this offer — distinct from the per-browser `columnRanks`, which the
+  // first spec above already proves inert.
+  it('follows the stored document order', () => {
+    const visible = previewIds({ previewColumnRanks: { net: -2, stageQtySum: -1 } })
+
+    expect(visible.slice(0, 3)).toEqual(['description', 'net', 'stageQtySum'])
+  })
+
+  it('keeps „Opis prac" first whatever rank it is given', () => {
+    const visible = previewIds({ previewColumnRanks: { description: 99, net: -1 } })
+
+    expect(visible.slice(0, 2)).toEqual(['description', 'net'])
+  })
+
+  it('is not reordered by the per-browser column order', () => {
+    expect(previewIds({ columnRanks: { net: -1, description: 99 } })).toEqual(previewIds())
   })
 
   it('carries the offer and the progress together', () => {
@@ -64,8 +111,6 @@ describe('preview columns', () => {
       expect(visible).toContain(id)
     }
     expect(visible).toContain('stageValueNet_7')
-    // Netto and brutto side by side — the preview is not pinned to the investment's settlement mode.
-    expect(visible).toContain('stageValueGross_7')
   })
 
   it('withholds the owner-authored komentarz', () => {
@@ -96,13 +141,44 @@ describe('preview columns', () => {
   })
 
   // Keyed by toggleKey like every other gate, so one stored key takes the whole per-etap family —
-  // hiding „Wartość brutto" for etap 1 only would print a grid whose columns disagree per etap.
+  // hiding „Wartość netto" for etap 1 only would print a grid whose columns disagree per etap.
   it('takes a per-etap family whole, from its group key', () => {
-    const visible = previewIds({ previewHiddenColumns: new Set(['stageValueGross']) })
+    const visible = previewIds({ previewHiddenColumns: new Set(['stageValueNet']) })
 
-    expect(visible).not.toContain('stageValueGross_7')
-    expect(visible).not.toContain('stageValueGross_9')
+    expect(visible).not.toContain('stageValueNet_7')
+    expect(visible).not.toContain('stageValueNet_9')
+    expect(visible).toContain('stage_7')
+  })
+
+  // The per-etap group key would take every etap with the empty one; an etap with no entries goes alone.
+  it('drops an empty etap by its full ids and keeps the filled one', () => {
+    const empty = emptySettlementColumnIds([stageRow({ [stageKey(7)]: 2 })], STAGES)
+    const visible = previewIds({ previewHiddenColumns: empty })
+
+    expect(visible).not.toContain('stage_9')
+    expect(visible).not.toContain('stageValueNet_9')
+    expect(visible).toContain('stage_7')
     expect(visible).toContain('stageValueNet_7')
+    expect(visible).toContain('net')
+  })
+
+  // The investor's empty etap is no reason to hide it from a crew: the subtraction is the preview's.
+  it('does not apply the investor subtraction to a worker surface', () => {
+    const crewStages = STAGES.map((stage) => ({ ...stage, plane: 'w_tools' as const }))
+    const workerIds = buildV2Columns({
+      view: 'w_tools',
+      stages: crewStages,
+      workerSurface: {
+        plane: 'w_tools',
+        hiddenColumns: [],
+        columnRanks: {},
+        executedQtyByItem: {},
+      },
+      previewHiddenColumns: emptySettlementColumnIds([stageRow()], crewStages),
+    }).map((column) => column.id)
+
+    expect(workerIds).toContain('stage_9')
+    expect(workerIds).toContain('stageValueNet_9')
   })
 
   it('cannot let a stored key add a column outside the allowlist', () => {
@@ -163,7 +239,9 @@ describe('the pair: allowlist + price plane', () => {
     }
     // The editor gets the rate in the client view too, which is exactly why the allowlist is
     // load-bearing.
-    const editorIds = buildV2Columns({ view: 'client', stages: STAGES }).map((c) => c.id)
+    const editorIds = buildV2Columns({ view: 'client', stages: STAGES, crewAxis: 'both' }).map(
+      (c) => c.id,
+    )
     expect(editorIds).toContain(planePriceKey('price', 'w_tools'))
     expect(editorIds).toContain(planePriceKey('price', 'own_tools'))
   })

@@ -83,7 +83,7 @@ describe('workshop columns', () => {
 
   it('shows the price source on the client view and never on the investor preview', () => {
     const idsFor = (previewVisible: boolean) =>
-      buildV2Columns({ view: 'client', stages: STAGES, previewVisible })
+      buildV2Columns({ view: 'client', stages: STAGES, previewVisible, crewAxis: 'both' })
         .map((column) => column.id)
         .filter((id): id is string => id != null)
 

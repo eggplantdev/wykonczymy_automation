@@ -12,7 +12,7 @@ import {
 } from '@/lib/media/file-archive'
 import type { ArchiveCopyT } from '@/types/media'
 import { toastMessage } from '@/lib/utils/toast'
-import { today } from '@/lib/utils/date'
+import { warsawToday } from '@/lib/utils/days'
 
 // Browsers cap concurrent connections per origin; larger batches just queue and stall the progress toast.
 const BATCH_SIZE = 6
@@ -54,7 +54,7 @@ export function useFileArchive() {
         const downloadedFiles =
           files.length === 0
             ? 0
-            : await packAndDeliver(files, buildArchiveName(nameParts, today(), copy.prefix))
+            : await packAndDeliver(files, buildArchiveName(nameParts, warsawToday(), copy.prefix))
         const tally = { ...rowTally, expectedFiles: files.length, downloadedFiles }
 
         updateToast(toastIdRef.current, buildArchiveMessage(tally, copy), toneFor(tally))

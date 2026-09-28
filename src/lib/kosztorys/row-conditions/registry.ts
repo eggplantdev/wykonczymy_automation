@@ -1,5 +1,5 @@
 import { priceSourceOf, subcontractorPrice } from '@/lib/kosztorys/calc'
-import { planeViewSuffix } from '@/lib/kosztorys/constants'
+import { planeDashSuffix, planeViewSuffix } from '@/lib/kosztorys/format'
 import { ALL_PLANE_PRICE_KEYS, planePriceKeysFor } from '@/lib/kosztorys/plane-price-keys'
 import type { RowConditionCtxT, RowConditionT } from '@/lib/kosztorys/row-conditions/types'
 import { measureDiscrepancy, rowTotalQtyDone } from '@/lib/kosztorys/settlement-rows'
@@ -7,6 +7,7 @@ import { stageKey } from '@/lib/kosztorys/stage-keys'
 import {
   isOwnRateOverCeiling,
   isSubcontractorPriceNegative,
+  clientShareCeilingLabel,
 } from '@/lib/kosztorys/subcontractor-price-guard'
 import type { KosztorysV2RowT, ToolPlaneT } from '@/lib/kosztorys/types'
 
@@ -49,11 +50,6 @@ export const MEASURE_DIVERGED_CONDITION_ID = 'measure-diverged'
 // buttons are the same gesture as picking the row from the „Problemy" menu.
 export const CATALOGUE_DIVERGENCE_CONDITION_ID = 'catalogue-price-divergence'
 export const CATALOGUE_MISSING_CONDITION_ID = 'catalogue-missing'
-
-// The rabat pair, named because the menu drops it under a global rabat — the same call the grid makes
-// for the rabat COLUMNS (column-config.ts' DISCOUNT_COLUMN_IDS). Kept beside the entries rather
-// than restated in the menu, so adding a third rabat condition cannot leave the two lists disagreeing.
-export const DISCOUNT_CONDITION_IDS: ReadonlySet<string> = new Set(['has-discount', 'no-discount'])
 
 /**
  * The overpaid-crew guard (EX-708): on this plane, is the pozycja's executed work being settled at a
@@ -164,29 +160,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     filterGroup: 'quantities',
     matches: (row, ctx) => !isEmptyOnBothAxes(row, ctx),
   },
-  // Read through `discountType`, not `discountValue` alone: under a null type the value is stored but
-  // inert (`applyDiscount` walks past it), so a leftover „5" in a row whose type was cleared is not a
-  // rabat. Both halves go dead under the global rabat rather than reading the raw fields, because
-  // there the per-item rabat applies to nothing AND its two columns are pulled from the grid entirely
-  // — narrowing on an axis with no visible cause is the trap the price diagnostics avoid by revealing
-  // their columns. Dead means BOTH return false, so neither half can hide anything: a filter persisted
-  // from before the global rabat was switched on must not blank the kosztorys.
-  {
-    id: 'has-discount',
-    label: 'z rabatem',
-    sectionLabel: 'Sekcje z rabatem',
-    kind: 'filter',
-    filterGroup: 'discount',
-    matches: (row) => !row.globalDiscountActive && hasItemDiscount(row),
-  },
-  {
-    id: 'no-discount',
-    label: 'bez rabatu',
-    sectionLabel: 'Sekcje bez rabatu',
-    kind: 'filter',
-    filterGroup: 'discount',
-    matches: (row) => !row.globalDiscountActive && !hasItemDiscount(row),
-  },
   // Split per plane for the same reason the price diagnostics are: a pozycja carries a stawka on both
   // planes at once, so one entry asking about „the active view" would answer for half the kosztorys and
   // silently leave the other half unaskable. The trio exists to separate what was decided in this
@@ -202,99 +175,135 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'manual-rate-w-tools',
     label: 'ze stawką wykonawcy z kwoty stałej' + planeViewSuffix('w_tools'),
+    menuLabel: 'Kwota stała' + planeDashSuffix('w_tools'),
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-source',
+    plane: 'w_tools',
     revealsColumns: priceColumnsFor('w_tools'),
     matches: (row) => priceSourceOf(row, 'w_tools') === 'amount',
   },
   {
     id: 'coeff-rate-w-tools',
     label: 'ze stawką wykonawcy z własnego mnożnika' + planeViewSuffix('w_tools'),
+    menuLabel: 'Własny mnożnik' + planeDashSuffix('w_tools'),
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-source',
+    plane: 'w_tools',
     revealsColumns: priceColumnsFor('w_tools'),
     matches: (row) => priceSourceOf(row, 'w_tools') === 'coeff',
   },
   {
     id: 'formula-rate-w-tools',
     label: 'ze stawką wykonawcy „auto"' + planeViewSuffix('w_tools'),
+    menuLabel: 'Auto' + planeDashSuffix('w_tools'),
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-source',
+    plane: 'w_tools',
     revealsColumns: priceColumnsFor('w_tools'),
     matches: (row) => priceSourceOf(row, 'w_tools') === 'auto',
   },
   {
     id: 'manual-rate-own-tools',
     label: 'ze stawką wykonawcy z kwoty stałej' + planeViewSuffix('own_tools'),
+    menuLabel: 'Kwota stała' + planeDashSuffix('own_tools'),
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-source',
+    plane: 'own_tools',
     revealsColumns: priceColumnsFor('own_tools'),
     matches: (row) => priceSourceOf(row, 'own_tools') === 'amount',
   },
   {
     id: 'coeff-rate-own-tools',
     label: 'ze stawką wykonawcy z własnego mnożnika' + planeViewSuffix('own_tools'),
+    menuLabel: 'Własny mnożnik' + planeDashSuffix('own_tools'),
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-source',
+    plane: 'own_tools',
     revealsColumns: priceColumnsFor('own_tools'),
     matches: (row) => priceSourceOf(row, 'own_tools') === 'coeff',
   },
   {
     id: 'formula-rate-own-tools',
     label: 'ze stawką wykonawcy „auto"' + planeViewSuffix('own_tools'),
+    menuLabel: 'Auto' + planeDashSuffix('own_tools'),
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-source',
+    plane: 'own_tools',
     revealsColumns: priceColumnsFor('own_tools'),
     matches: (row) => priceSourceOf(row, 'own_tools') === 'auto',
   },
   // The ceiling as a reading gesture, not an alarm (owner, 2026-09-20): a kwota the katalog ratifies
-  // is legitimate above 65%, so „pokaż mi pozycje powyżej sufitu" is a question about the rozpiska —
+  // is legitimate above the share, so „pokaż mi pozycje ponad 65%" is a question about the rozpiska —
   // it just is not a defect. The red cell and the komunikat stay where the liczba was made.
   //
-  // Named after the source and not only the sufit, because that is what the half matches: „auto" rows
+  // The labels print the share rather than naming a „sufit": the reader is comparing a stawka against
+  // a cena, and a number they can re-check beats a word that lives only in the code. Each half prints
+  // ITS OWN plane's share through `clientShareCeilingLabel` — the two differ, and one liczba on both labels
+  // would promise a próg that only one of them enforces.
+  //
+  // Named after the source and not only the share, because that is what the half matches: „auto" rows
   // are not judged here at all — their author is the investment's współczynnik, which is judged once
   // in its own field. „Własna stawka" therefore covers both hand-set sources, kwota and mnożnik alike
   // (EX-865). The complement is stated by negation — it holds every pozycja on „auto" too, which reads
-  // heavier but does not claim anyone measured those rows.
+  // heavier but does not claim anyone measured those rows. In the menu the owner reads it as the plain
+  // opposite — „Poniżej 65% ceny" (owner, 2026-09-28) — so the precise phrasing survives only where
+  // the row is read as a sentence: the aktywne-filtry bar and the pusty-grid komunikat.
   {
     id: 'own-rate-over-ceiling-w-tools',
-    label: 'z własną stawką powyżej sufitu' + planeViewSuffix('w_tools'),
+    label:
+      `z własną stawką ponad ${clientShareCeilingLabel('w_tools')} ceny` +
+      planeViewSuffix('w_tools'),
+    menuLabel: `Ponad ${clientShareCeilingLabel('w_tools')} ceny` + planeDashSuffix('w_tools'),
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-ceiling',
+    plane: 'w_tools',
     revealsColumns: priceColumnsFor('w_tools'),
     matches: (row) => isOwnRateOverCeiling(row, 'w_tools'),
   },
   {
     id: 'own-rate-within-ceiling-w-tools',
-    label: 'bez własnej stawki powyżej sufitu' + planeViewSuffix('w_tools'),
+    label:
+      `bez własnej stawki ponad ${clientShareCeilingLabel('w_tools')} ceny` +
+      planeViewSuffix('w_tools'),
+    menuLabel: `Poniżej ${clientShareCeilingLabel('w_tools')} ceny` + planeDashSuffix('w_tools'),
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-ceiling',
+    plane: 'w_tools',
     revealsColumns: priceColumnsFor('w_tools'),
     matches: (row) => !isOwnRateOverCeiling(row, 'w_tools'),
   },
   {
     id: 'own-rate-over-ceiling-own-tools',
-    label: 'z własną stawką powyżej sufitu' + planeViewSuffix('own_tools'),
+    label:
+      `z własną stawką ponad ${clientShareCeilingLabel('own_tools')} ceny` +
+      planeViewSuffix('own_tools'),
+    menuLabel: `Ponad ${clientShareCeilingLabel('own_tools')} ceny` + planeDashSuffix('own_tools'),
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-ceiling',
+    plane: 'own_tools',
     revealsColumns: priceColumnsFor('own_tools'),
     matches: (row) => isOwnRateOverCeiling(row, 'own_tools'),
   },
   {
     id: 'own-rate-within-ceiling-own-tools',
-    label: 'bez własnej stawki powyżej sufitu' + planeViewSuffix('own_tools'),
+    label:
+      `bez własnej stawki ponad ${clientShareCeilingLabel('own_tools')} ceny` +
+      planeViewSuffix('own_tools'),
+    menuLabel:
+      `Poniżej ${clientShareCeilingLabel('own_tools')} ceny` + planeDashSuffix('own_tools'),
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-ceiling',
+    plane: 'own_tools',
     revealsColumns: priceColumnsFor('own_tools'),
     matches: (row) => !isOwnRateOverCeiling(row, 'own_tools'),
   },
@@ -317,13 +326,37 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     filterGroup: 'note',
     matches: (row) => (row.note?.trim() ?? '') === '',
   },
+  // Read through `discountType`, not `discountValue` alone: under a null type the value is stored but
+  // inert (`applyDiscount` walks past it), so a leftover „5" in a row whose type was cleared is not a
+  // rabat. Both halves go dead under the global rabat rather than reading the raw fields, because
+  // there the per-item rabat applies to nothing AND its two columns are pulled from the grid entirely
+  // — narrowing on an axis with no visible cause is the trap the price diagnostics avoid by revealing
+  // their columns. Dead means BOTH return false, so neither half can hide anything: a filter persisted
+  // from before the global rabat was switched on must not blank the kosztorys.
+  {
+    id: 'has-discount',
+    label: 'z rabatem',
+    sectionLabel: 'Sekcje z rabatem',
+    kind: 'filter',
+    filterGroup: 'discount',
+    inertUnderGlobalDiscount: true,
+    matches: (row) => !row.globalDiscountActive && hasItemDiscount(row),
+  },
+  {
+    id: 'no-discount',
+    label: 'bez rabatu',
+    sectionLabel: 'Sekcje bez rabatu',
+    kind: 'filter',
+    filterGroup: 'discount',
+    inertUnderGlobalDiscount: true,
+    matches: (row) => !row.globalDiscountActive && !hasItemDiscount(row),
+  },
   {
     id: 'client-empty',
     label: 'bez przedmiaru i bez wykonanej pracy',
     // Never lifts to sekcje: „Zwiń puste sekcje" is a reading gesture in a menu the client view does
     // not render, so a label here would only buy a per-render pass over the whole dataset for a set
     // nothing reads.
-    sectionLabel: null,
     kind: 'client',
     // One rule rather than the two filters above, because each of those is safe for only one of the
     // two figures a client reads: hiding no-work rows drops a priced-but-unstarted pozycja while the
@@ -341,7 +374,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label: 'z wykonaną pracą bez ceny j.m.',
     // A defect, not a state: a section fully executed but unpriced is exactly what must not be folded
     // away — that is the bug „Zwiń puste sekcje" had.
-    sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'client-price',
     // The executed quantity alongside the price cells: engaging a problem that says „praca wykonana"
@@ -354,7 +386,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     // Names both halves of what it matches: shortened back to „bez ceny j.m." it would read as the
     // whole set while covering only the untouched pozycje, and come back as a bug report.
     label: 'bez ceny j.m. i bez wykonanej pracy',
-    sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'client-price',
     revealsColumns: ALL_PRICE_COLUMNS,
@@ -370,7 +401,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     id: 'divergent-client-price',
     label: 'z inną ceną j.m. niż ta sama praca gdzie indziej',
     // Folding a whole sekcja because its prices diverge would hide the very wycena being questioned.
-    sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'client-price',
     // A whole sentence rather than „Pozycje …": the subject is the praca, not the pozycja, and the
@@ -389,7 +419,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: CATALOGUE_DIVERGENCE_CONDITION_ID,
     label: 'z innymi liczbami niż w katalogu prac',
-    sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'catalogue',
     problemLabel: (count) => `Inne liczby niż w katalogu prac (${count})`,
@@ -402,7 +431,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: CATALOGUE_MISSING_CONDITION_ID,
     label: 'spoza katalogu prac',
-    sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'catalogue',
     problemLabel: (count) => `Brak w katalogu prac (${count})`,
@@ -414,7 +442,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     // imported, and the gap it names is work not yet entered — not a fault. Same wording as the
     // „Rozjazd między arkuszem Google a apką" column it points at.
     label: 'z pomiarem do rozpisania na etapy',
-    sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'scope-stages',
     matches: (row, ctx) => measureDiscrepancy(row, ctx.stages) != null,
@@ -425,7 +452,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'work-without-planned-qty',
     label: 'z wykonaną pracą bez przedmiaru',
-    sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'scope-stages',
     // The przedmiar alone: it is the missing cell, and it is where the fix is typed.
@@ -446,7 +472,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'negative-rate-w-tools',
     label: 'z ujemną stawką wykonawcy' + planeViewSuffix('w_tools'),
-    sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'subcontractor-rate-w-tools',
     plane: 'w_tools',
@@ -458,7 +483,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'negative-rate-own-tools',
     label: 'z ujemną stawką wykonawcy' + planeViewSuffix('own_tools'),
-    sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'subcontractor-rate-own-tools',
     plane: 'own_tools',
@@ -481,7 +505,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'no-w-tools-price',
     label: 'bez ceny wykonawcy' + planeViewSuffix('w_tools'),
-    sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'subcontractor-rate-w-tools',
     plane: 'w_tools',
@@ -494,7 +517,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'no-own-tools-price',
     label: 'bez ceny wykonawcy' + planeViewSuffix('own_tools'),
-    sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'subcontractor-rate-own-tools',
     plane: 'own_tools',
@@ -516,7 +538,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'material-percent-rate-w-tools',
     label: 'ze stawką wykonawcy od ceny z materiałem' + planeViewSuffix('w_tools'),
-    sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'subcontractor-rate-w-tools',
     plane: 'w_tools',
@@ -527,7 +548,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'material-percent-rate-own-tools',
     label: 'ze stawką wykonawcy od ceny z materiałem' + planeViewSuffix('own_tools'),
-    sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'subcontractor-rate-own-tools',
     plane: 'own_tools',

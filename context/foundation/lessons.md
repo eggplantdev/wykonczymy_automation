@@ -669,6 +669,13 @@
   owns every figure the removed render would have refreshed, or the siblings go stale until the next
   navigation. Decoupling and client-side ownership are one refactor, not two. No amount of tag
   precision is a substitute.
+- **Second exit (EX-876)**: a tag expired inside `after()` lands in `pendingRevalidatedTags` only
+  after the response headers are written, and is flushed by `withExecuteRevalidates` from there — so
+  `x-action-revalidated` never counts it, the action stays render-free, and the next read still
+  misses (`expireCollectionsAfterResponse`). That covers a cache the **calling page doesn't
+  render**. For the one it does, the action returns the state it produced and the client renders
+  from the result: „Otwórz szablon" used to push + `router.refresh()` + revalidate, three renders to
+  show a tree the transaction already had in hand.
 - **Applies to**: any "this write shouldn't re-render that" instinct on a server action; `updateTag`
   vs `revalidateTag` reasoning about render cost.
 
@@ -2164,3 +2171,49 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
   front of you — a plugin, a memory, a code comment. Name the source and the date in the research,
   so the next reader can tell a checked fact from an inherited one.
 - **Applies to**: 10x-research, 10x-plan, any design gated on a platform limit.
+
+## A caller count that once killed an extraction doesn't settle it the next time — re-check what is actually shared
+
+- **Context**: wydruk-oferty (2026-09-23) added a third caller of `openPrintWindow`, after a shared
+  print-shell helper had been rejected at two callers (`context/archive/2026-09-14-transfer-print-return/review-gate.md`).
+- **Problem**: three callers repeating the doctype skeleton, row emission and the `document.write`
+  lint exception looks like the signal a caller count is supposed to give. It wasn't: the offer has
+  section bands, colour rails and section subtotals the transfers table doesn't, so a shared builder
+  would be parameterised for exactly one consumer.
+- **Rule**: a caller count is a prompt to re-ask the extraction question, not its answer — what
+  decides is how much of the SHAPE is common, not how many files duplicate a skeleton.
+- **Applies to**: dedup / `/simplify` passes over `build-offer-print-html.ts` vs `build-transfers-print-html.ts`.
+
+## Soft delete: pick the mechanism whose forgotten filter is harmless — Payload `trash: true` fails closed into Blob deletion
+
+- **Context**: kosz-inwestycji (2026-09-28) — reversible delete of an investment, verified against
+  installed `payload@3.73.0`. `kosz-plikow` reached the same verdict for files.
+- **Problem**: Payload's `trash: true` hides a trashed doc from every Local API read. That fails
+  _closed_: `findByID` on a trashed id throws NotFound, so ~10 actions throw raw errors and the
+  share page's uncached `findByID` turns a 404 into a 500. Worst, the media reference probes
+  (`delete-unreferenced-media.ts`, `prevent-referenced-delete.ts`) stop seeing the trashed
+  investment's `assets`, so a detach elsewhere can delete a shared photo from Blob — which no
+  restore brings back. Its quirks compound it: trashing is an `update`, so `beforeDelete` guards
+  never run, and restore needs only `update` access, which MANAGER holds.
+- **Rule**: soft-delete with a hand-rolled `trashed_at` column. A forgotten filter then fails
+  _open_ — a trashed row shows up somewhere, visible and harmless. Hide it at the one read
+  chokepoint (`fetchReferenceData`) and lock writes at the existing gate (`investmentGateFor`, the
+  same gate „zakończona" uses) instead of teaching every read about the trash.
+- **Applies to**: any new soft delete or archive state on a Payload collection.
+
+## Turning on `enableVirtualization` in `DataTable` is a layout change, not a flag
+
+- **Context**: catalogue-picker-virtualization (2026-09-28, EX-860) — the „Dodaj pracę z katalogu"
+  list (561 rows) moved onto `VirtualizedTableBody`.
+- **Problem**: flipping the flag alone broke the dialog three ways. `VirtualizedTableBody` is
+  `table-fixed` with a `colgroup` built from `header.getSize()`, so columns that declare no size
+  come out equal-width and the last one is clipped. Wrapping rows (~110 px) against the fixed 44 px
+  `estimateSize` drift the scroll position. And a fixed `virtualContainerHeight` in px overflows
+  whatever sits below the list — here the „Dodaj do:" footer.
+- **Rule**: before enabling it on a new table, (1) give every column a `size` and let one fill
+  column absorb the rest, with its floor coming from the summed `getSize()` — `table-fixed` leaves
+  `min-width` undefined on cells; (2) measure rows (`measureElement`) whenever a cell can wrap;
+  (3) cap the list with a `max-h-*` class rather than a fixed height, so a short search result
+  collapses instead of leaving an empty band; (4) budget the summed sizes against the container —
+  `dialog-xl` is `min(80vw, 75rem)`, ~1120 px on a 1440 screen.
+- **Applies to**: any `DataTable` / `VirtualizedTableBody` consumer switched to virtualization.

@@ -21,7 +21,7 @@ vi.mock('@/lib/auth/require-auth', () => ({
   ),
 }))
 
-const { generateShareLinkAction, getShareLinkAction, revokeShareLinkAction } =
+const { ensureShareLinkAction, generateShareLinkAction, revokeShareLinkAction } =
   await import('@/lib/actions/kosztorys-share')
 const { getPreviewKosztorysByToken } = await import('@/lib/queries/preview-kosztorys')
 
@@ -40,6 +40,15 @@ describe.skipIf(!ENV_READY)('kosztorys share token lifecycle (DB)', () => {
     return shares.totalDocs
   }
 
+  const persistedToken = async () => {
+    const shares = await payload.find({
+      collection: 'kosztorys-shares',
+      where: { investment: { equals: investmentId } },
+      depth: 0,
+    })
+    return shares.docs[0]?.token ?? null
+  }
+
   beforeAll(async () => {
     const { getPayload } = await import('payload')
     const config = (await import('@payload-config')).default
@@ -52,18 +61,34 @@ describe.skipIf(!ENV_READY)('kosztorys share token lifecycle (DB)', () => {
     if (investmentId) await deleteTestInvestment(payload, investmentId)
   })
 
-  it('generates a token and persists exactly one share row', async () => {
-    const res = await generateShareLinkAction(investmentId)
+  it('„Udostępnij" creates the first link and persists exactly one share row', async () => {
+    const res = await ensureShareLinkAction(investmentId)
     expect(res.success).toBe(true)
     expect(await countShares()).toBe(1)
 
     const token = res.success ? res.data : ''
+    expect(await persistedToken()).toBe(token)
     expect(await getPreviewKosztorysByToken(token)).not.toBeNull()
   })
 
+  // A rotation here would cut off the investor who holds the link — and two overlapping clicks
+  // would kill the one the first click copied.
+  it('„Udostępnij" over a live link hands it back untouched', async () => {
+    const before = await persistedToken()
+
+    const [first, second] = await Promise.all([
+      ensureShareLinkAction(investmentId),
+      ensureShareLinkAction(investmentId),
+    ])
+
+    expect(first).toEqual({ success: true, data: before })
+    expect(second).toEqual({ success: true, data: before })
+    expect(await persistedToken()).toBe(before)
+    expect(await countShares()).toBe(1)
+  })
+
   it('rotating replaces the token in place — the old one stops resolving', async () => {
-    const first = await getShareLinkAction(investmentId)
-    const oldToken = first.success ? first.data : null
+    const oldToken = await persistedToken()
     expect(oldToken).toBeTruthy()
 
     const rotated = await generateShareLinkAction(investmentId)
@@ -75,34 +100,31 @@ describe.skipIf(!ENV_READY)('kosztorys share token lifecycle (DB)', () => {
   })
 
   it('lets a MANAGER rotate the link — the persisted token is the one that resolves', async () => {
-    const before = await getShareLinkAction(investmentId)
+    const before = await persistedToken()
     authState.role = 'MANAGER'
 
     const res = await generateShareLinkAction(investmentId)
     authState.role = 'OWNER'
     expect(res.success).toBe(true)
 
-    const after = await getShareLinkAction(investmentId)
-    const token = after.success ? after.data : null
-    expect(token).not.toBe(before.success && before.data)
+    const token = await persistedToken()
+    expect(token).not.toBe(before)
     expect(await getPreviewKosztorysByToken(token!)).not.toBeNull()
   })
 
   it('rejects an EMPLOYEE without touching the row', async () => {
-    const before = await getShareLinkAction(investmentId)
+    const before = await persistedToken()
     authState.role = 'EMPLOYEE'
 
     const res = await generateShareLinkAction(investmentId)
     authState.role = 'OWNER'
     expect(res.success).toBe(false)
 
-    const after = await getShareLinkAction(investmentId)
-    expect(after.success && after.data).toBe(before.success && before.data)
+    expect(await persistedToken()).toBe(before)
   })
 
   it('revoking deletes the row and the token stops resolving', async () => {
-    const current = await getShareLinkAction(investmentId)
-    const token = current.success ? current.data : null
+    const token = await persistedToken()
 
     expect((await revokeShareLinkAction(investmentId)).success).toBe(true)
     expect(await countShares()).toBe(0)

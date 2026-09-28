@@ -3,8 +3,7 @@ import type { Payload } from 'payload'
 
 // „Zapisz jako domyślne" writes FIRM-WIDE state: the global it touches decides what every investment
 // without a row of its own serves to its client link. So this asserts the PERSISTED global, not the
-// action's return value — a write that also carried `mode` across would flip live client links for
-// the whole firm from a button whose confirm speaks about one investment.
+// action's return value.
 vi.mock('server-only', () => ({}))
 
 const authState = vi.hoisted(() => ({ role: 'OWNER' as string }))
@@ -21,30 +20,20 @@ const { saveClientViewDefaultsAction, saveClientViewSettingsAction } =
 const { findClientViewRow } = await import('@/lib/queries/kosztorys-client-view')
 const { createTestInvestment, deleteTestInvestment } =
   await import('@/__tests__/helpers/investment')
-const { sanitizeClientViewConfig } = await import('@/lib/kosztorys/client-view-settings')
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
-const SETTLEMENT_VARIANT = { hiddenColumns: ['plannedGross'], hideEmptyRows: true }
-const OFFER_VARIANT = { hiddenColumns: ['discountValue'], hideEmptyRows: false }
-
-const configWith = (variants: Partial<Record<'OFFER' | 'SETTLEMENT', unknown>>) => ({
-  ...sanitizeClientViewConfig({ variants }),
-})
+const SETTINGS = { hiddenColumns: ['discountValue'], hideEmptyRows: false, columnRanks: {} }
 
 describe.skipIf(!ENV_READY)('saveClientViewDefaultsAction (DB)', () => {
   let payload: Payload
 
-  const readGlobal = () =>
-    payload.findGlobal({ slug: 'kosztorys-client-view-defaults', depth: 0 }) as Promise<{
-      mode: string
-      variants: Record<string, unknown>
-    }>
+  const readGlobal = () => payload.findGlobal({ slug: 'kosztorys-client-view-defaults', depth: 0 })
 
   const resetGlobal = () =>
     payload.updateGlobal({
       slug: 'kosztorys-client-view-defaults',
-      data: { mode: 'OFFER', variants: {} },
+      data: { hiddenColumns: null, hideEmptyRows: true },
     })
 
   beforeAll(async () => {
@@ -60,42 +49,21 @@ describe.skipIf(!ENV_READY)('saveClientViewDefaultsAction (DB)', () => {
     await resetGlobal()
   })
 
-  it('leaves the firm-wide mode alone when saving the settlement variant', async () => {
-    const res = await saveClientViewDefaultsAction(
-      configWith({ SETTLEMENT: SETTLEMENT_VARIANT }),
-      'SETTLEMENT',
-    )
+  it('stores the set as the firm-wide default, sanitized against the ceiling', async () => {
+    const res = await saveClientViewDefaultsAction({
+      ...SETTINGS,
+      hiddenColumns: [...SETTINGS.hiddenColumns, 'note'],
+    })
 
     expect(res.success).toBe(true)
     const stored = await readGlobal()
-    expect(stored.mode).toBe('OFFER')
-    expect(stored.variants.SETTLEMENT).toEqual(SETTLEMENT_VARIANT)
-  })
-
-  it('writes only the named variant, leaving the other absent rather than frozen', async () => {
-    await resetGlobal()
-    await saveClientViewDefaultsAction(configWith({ OFFER: OFFER_VARIANT }), 'OFFER')
-
-    const stored = await readGlobal()
-    expect(stored.variants.OFFER).toEqual(OFFER_VARIANT)
-    // Not `{}`-defaulted into the row: an untouched variant must keep resolving to whatever the code
-    // default says today, not to a copy of what it said the day someone pressed the button.
-    expect(stored.variants.SETTLEMENT).toBeUndefined()
-  })
-
-  it('keeps the variant saved earlier when the other one is saved', async () => {
-    await resetGlobal()
-    await saveClientViewDefaultsAction(configWith({ OFFER: OFFER_VARIANT }), 'OFFER')
-    await saveClientViewDefaultsAction(configWith({ SETTLEMENT: SETTLEMENT_VARIANT }), 'SETTLEMENT')
-
-    const stored = await readGlobal()
-    expect(stored.variants.OFFER).toEqual(OFFER_VARIANT)
-    expect(stored.variants.SETTLEMENT).toEqual(SETTLEMENT_VARIANT)
+    expect(stored.hiddenColumns).toEqual(SETTINGS.hiddenColumns)
+    expect(stored.hideEmptyRows).toBe(false)
   })
 })
 
-// A manager shares the link, and the share dialog saves this investment's settings on the way to it —
-// so the per-investment save is theirs too. The firm-wide default stays the owner's.
+// A manager shares the link, so the per-investment save is theirs too. The firm-wide default stays
+// the owner's.
 describe.skipIf(!ENV_READY)('client-view saves as MANAGER (DB)', () => {
   let payload: Payload
   let investmentId: number
@@ -113,26 +81,30 @@ describe.skipIf(!ENV_READY)('client-view saves as MANAGER (DB)', () => {
     if (investmentId) await deleteTestInvestment(payload, investmentId)
     await payload.updateGlobal({
       slug: 'kosztorys-client-view-defaults',
-      data: { mode: 'OFFER', variants: {} },
+      data: { hiddenColumns: null, hideEmptyRows: true },
     })
   })
 
   it("saves this investment's settings", async () => {
-    const res = await saveClientViewSettingsAction(
-      investmentId,
-      configWith({ OFFER: OFFER_VARIANT }),
-    )
+    const res = await saveClientViewSettingsAction(investmentId, SETTINGS)
 
     expect(res.success).toBe(true)
     const row = await findClientViewRow(payload, investmentId)
-    expect((row?.variants as Record<string, unknown>)?.OFFER).toEqual(OFFER_VARIANT)
+    expect(row?.hiddenColumns).toEqual(SETTINGS.hiddenColumns)
+    expect(row?.hideEmptyRows).toBe(false)
   })
 
+  // Compared against its own before-read, not a fixed value: other DB specs write this global too.
   it('is refused the firm-wide default without touching it', async () => {
-    const res = await saveClientViewDefaultsAction(configWith({ OFFER: OFFER_VARIANT }), 'OFFER')
+    const readGlobal = () =>
+      payload.findGlobal({ slug: 'kosztorys-client-view-defaults', depth: 0 })
+    const before = await readGlobal()
+
+    const res = await saveClientViewDefaultsAction(SETTINGS)
 
     expect(res.success).toBe(false)
-    const stored = await payload.findGlobal({ slug: 'kosztorys-client-view-defaults', depth: 0 })
-    expect((stored.variants as Record<string, unknown>)?.OFFER).toBeUndefined()
+    const after = await readGlobal()
+    expect(after.hiddenColumns ?? null).toEqual(before.hiddenColumns ?? null)
+    expect(after.hideEmptyRows).toBe(before.hideEmptyRows)
   })
 })

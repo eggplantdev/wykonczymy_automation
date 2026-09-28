@@ -1,3 +1,4 @@
+import type { CrewAxisT } from '@/lib/kosztorys/crew-axis'
 import { FILTER_GROUPS } from '@/lib/kosztorys/filter-groups'
 import { offeredFilterConditions } from '@/lib/kosztorys/row-conditions/queries'
 
@@ -18,6 +19,9 @@ type ArgsT = {
   // Per condition id, how many pozycje are in that state across the whole dataset.
   counts: ReadonlyMap<string, number>
   perItemDiscountInert: boolean
+  // Which crew's stawki are on screen — a filter about a plane nobody is reading is offered only
+  // while it is already engaged.
+  crewAxis: CrewAxisT
 }
 
 /**
@@ -36,12 +40,18 @@ type ArgsT = {
  * registry reshuffle cannot interleave two axes. The two agree today, and a spec pins that — the
  * active-filters bar reads registry order, and the bar and the menu are two readings of one set.
  */
+// „Pozycje " opened every row until 2026-09-28 and the list stopped being scannable: the heading above
+// already says the rows are pozycje, so the word was five characters of preamble before the one thing
+// that differs — and on the plane-bound rows it pushed the label onto three lines.
+const capitalize = (text: string) => text.charAt(0).toLocaleUpperCase('pl-PL') + text.slice(1)
+
 export function filtersMenuModel({
   engagedIds,
   counts,
   perItemDiscountInert,
+  crewAxis,
 }: ArgsT): FilterToggleT[] {
-  const offered = offeredFilterConditions(engagedIds, perItemDiscountInert)
+  const offered = offeredFilterConditions(engagedIds, perItemDiscountInert, crewAxis)
 
   return FILTER_GROUPS.flatMap((group) =>
     offered
@@ -53,7 +63,7 @@ export function filtersMenuModel({
       .map(({ condition, count }) => ({
         id: condition.id,
         groupLabel: group.label,
-        label: `Pozycje ${condition.label} (${count})`,
+        label: `${condition.menuLabel ?? capitalize(condition.label)} (${count})`,
         active: !engagedIds.has(condition.id),
       })),
   )

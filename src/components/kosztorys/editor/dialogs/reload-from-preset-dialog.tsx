@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { Check } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { DialogActions } from '@/components/ui/dialog-actions'
@@ -14,7 +15,7 @@ import { getPresetName, groupPresetSections, type PresetGroupT } from './preset-
 import { itemNoun, sectionNoun } from '@/lib/kosztorys/counted-nouns'
 import { usePresetSections } from './use-preset-sections'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
-import { useOpenPreset } from '@/hooks/use-open-preset'
+import { presetOpenHref } from '@/components/presets/preset-open-href'
 
 const countItems = (group: PresetGroupT) =>
   group.metas.reduce((total, meta) => total + meta.itemCount, 0)
@@ -60,7 +61,7 @@ export function ReloadFromPresetDialog() {
   const { sections, resetSections } = usePresetSections(open)
   const [selectedPresetId, setSelectedPresetId] = useState<number | null>(null)
   const [pending, startTransition] = useTransition()
-  const { open: openInWorkshop } = useOpenPreset()
+  const router = useRouter()
   const copy = COPY[isWorkshop ? 'szablon' : 'kosztorys']
 
   const groups = groupPresetSections(sections ?? [], new Set()).filter(
@@ -87,9 +88,8 @@ export function ReloadFromPresetDialog() {
   function handleConfirm() {
     if (!selected) return
     if (isWorkshop) {
-      // The pointer, the restore point, the navigation and the refresh all live in `useOpenPreset`
-      // — this is the same path as clicking a szablon in the list, not a second copy of it.
-      openInWorkshop(selected.presetId)
+      // Leaving this page flushes the outgoing szablon before the open runs.
+      router.push(presetOpenHref(selected.presetId))
       handleOpenChange(false)
       return
     }
@@ -125,7 +125,7 @@ export function ReloadFromPresetDialog() {
         ) : groups.length === 0 ? (
           <p className="text-muted-foreground text-sm">{copy.empty}</p>
         ) : (
-          <div className="flex max-h-[55vh] min-h-0 flex-col gap-2">
+          <div className="max-h-dialog-scroll flex min-h-0 flex-col gap-2">
             <SearchFilterInput
               value={searchTerm}
               onChange={setSearchTerm}

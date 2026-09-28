@@ -10,7 +10,7 @@ const DISCOUNT_IS_CLIENT_ONLY = 'Rabat nie obniża stawek robocizny dla ekip.'
 // crew's rate over the crew's etapy.
 const CLIENT_BASE = 'Zawsze po cenie klienta, dla całego zakresu (wszystkie etapy).'
 
-const REMAINING = `Wartość przedmiaru minus wartość pomiaru.\nIle z oferty nie zostało jeszcze wykonane.\nNa minusie = przekroczono przedmiar.\n\n${CLIENT_BASE}`
+const REMAINING = `Wartość przedmiaru minus wartość pomiaru.\nIle z oferty nie zostało jeszcze wykonane.\nNa minusie (na czerwono) = przekroczono przedmiar; suma w stopce pomija takie wiersze.\n\n${CLIENT_BASE}`
 
 const PLANNED = `Przedmiar razy cena minus rabat.\n\n${CLIENT_BASE}`
 
@@ -25,13 +25,24 @@ const HEADER_TIPS: Record<string, string> = {
     'Mnożnik liczony od ceny dla inwestora.\nStawka to cena j.m. razy mnożnik, więc podniesienie ceny przesuwa ją od razu — w odróżnieniu od wpisanej kwoty.',
   plannedNet: PLANNED,
   plannedGross: PLANNED,
+  plannedNetForPlane: `Przedmiar razy stawka tego rozliczenia.\nIle ekipa zarobi, jeśli wykona cały przedmiar.\n\n${DISCOUNT_IS_CLIENT_ONLY}`,
   net: `Pomiar razy cena minus rabat.\n\n${DISCOUNT_IS_CLIENT_ONLY}`,
   gross: `Pomiar razy cena minus rabat.\n\n${DISCOUNT_IS_CLIENT_ONLY}`,
   remaining: REMAINING,
   remainingGross: REMAINING,
+  remainingForPlane:
+    'Wartość przedmiaru minus wartość tego, co już wykonano — we wszystkich etapach, także innych ekip.\nObie liczone po Twojej stawce.\nNa minusie (na czerwono) = przekroczono przedmiar; suma w stopce pomija takie wiersze.',
   donePercent: `Procent wykonania względem przedmiaru.\nIle procent oferty jest zrobione.\nPowyżej 100% oznacza przekroczenie prognozy\n\n${CLIENT_BASE}`,
   [STAGE_VALUE_NET_COLUMN_GROUP]: `Ilość wykonana w tym etapie razy cena jednostki miary minus udział etapu w rabacie.\nUdział jest proporcjonalny do ilości (rabat zł jest rabatem od całego wiersza, więc etap niesie tylko swoją część).\nZależy od aktywnego widoku cen.\n\n${DISCOUNT_IS_CLIENT_ONLY}`,
   [STAGE_VALUE_GROSS_COLUMN_GROUP]: 'Etap — kwota brutto = Etap — kwota netto razy (1 + VAT).',
+}
+
+// The worker's document is read by the crew, whose figures are pomiar × their own stawka: the
+// client's rabat and the editor's price view are not in them, so the tips above would misexplain it.
+const WORKER_HEADER_TIPS: Record<string, string> = {
+  plannedNetForPlane: 'Przedmiar razy Twoja stawka.\nIle zarobisz, jeśli wykonasz cały przedmiar.',
+  net: 'Pomiar razy Twoja stawka.',
+  [STAGE_VALUE_NET_COLUMN_GROUP]: 'Ilość wykonana w tym etapie razy Twoja stawka.',
 }
 
 /**
@@ -40,6 +51,10 @@ const HEADER_TIPS: Record<string, string> = {
  * „Cena j.m." has to answer for both planes' rate columns; a second entry per plane is the drift
  * `column-config.ts` exists to prevent.
  */
-export function headerTipFor(columnId: string): string | undefined {
-  return HEADER_TIPS[basePriceKey(columnId)]
+export function headerTipFor(
+  columnId: string,
+  { workerSurface = false }: { workerSurface?: boolean } = {},
+): string | undefined {
+  const key = basePriceKey(columnId)
+  return (workerSurface ? WORKER_HEADER_TIPS[key] : undefined) ?? HEADER_TIPS[key]
 }

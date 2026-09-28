@@ -9,10 +9,10 @@ import { revalidateCollections } from '@/__tests__/stubs/cache-revalidate'
 vi.mock('server-only', () => ({}))
 
 const lockState = vi.hoisted(() => ({
-  locked: false,
+  lockMessage: undefined as string | undefined,
   templatePresetId: null as number | null,
   rowOwner: undefined as
-    | { investmentId: number; locked: boolean; templatePresetId: number | null }
+    | { investmentId: number; lockMessage: string | undefined; templatePresetId: number | null }
     | undefined,
 }))
 const mirrorWorkshopPreset = vi.hoisted(() => vi.fn())
@@ -32,22 +32,23 @@ vi.mock('payload', async (importOriginal) => ({
 vi.mock('@/lib/db/get-db', () => ({ getDb: vi.fn(async () => ({ execute: vi.fn() })) }))
 vi.mock('@/lib/db/investment-gate', () => ({
   investmentGateFor: vi.fn(async () => ({
-    locked: lockState.locked,
+    lockMessage: lockState.lockMessage,
     templatePresetId: lockState.templatePresetId,
   })),
   investmentGateForRow: vi.fn(async () => lockState.rowOwner),
 }))
-vi.mock('@/lib/actions/mirror-workshop-preset', () => ({ mirrorWorkshopPreset }))
+vi.mock('@/lib/kosztorys/mirror-workshop-preset', () => ({ mirrorWorkshopPreset }))
 
 const { investmentAction } = await import('@/lib/actions/investment-action')
-const { INVESTMENT_LOCKED_MESSAGE } = await import('@/lib/constants/investment-lock')
+const { INVESTMENT_LOCKED_MESSAGE, INVESTMENT_TRASHED_MESSAGE } =
+  await import('@/lib/constants/investment-lock')
 const { investmentGateFor, investmentGateForRow } = await import('@/lib/db/investment-gate')
 
 describe('investmentAction', () => {
   beforeEach(() => {
-    lockState.locked = false
+    lockState.lockMessage = undefined
     lockState.templatePresetId = null
-    lockState.rowOwner = { investmentId: 5, locked: false, templatePresetId: null }
+    lockState.rowOwner = { investmentId: 5, lockMessage: undefined, templatePresetId: null }
     revalidateCollections.mockClear()
     mirrorWorkshopPreset.mockClear()
     vi.mocked(investmentGateFor).mockClear()
@@ -62,11 +63,17 @@ describe('investmentAction', () => {
   })
 
   it('refuses on a locked investment without running the handler', async () => {
-    lockState.locked = true
+    lockState.lockMessage = INVESTMENT_LOCKED_MESSAGE
     const handler = vi.fn(async () => ({ success: true as const }))
     const result = await investmentAction('t', { investmentId: 5 }, handler)
     expect(result).toEqual({ success: false, error: INVESTMENT_LOCKED_MESSAGE })
     expect(handler).not.toHaveBeenCalled()
+  })
+
+  it('refuses with the gate’s own sentence, so a trashed investment says why', async () => {
+    lockState.lockMessage = INVESTMENT_TRASHED_MESSAGE
+    const result = await investmentAction('t', { investmentId: 5 }, async () => ({ success: true }))
+    expect(result).toEqual({ success: false, error: INVESTMENT_TRASHED_MESSAGE })
   })
 
   // One join, not a lookup then a check: the editor fans a write out per changed cell, so the
@@ -80,7 +87,11 @@ describe('investmentAction', () => {
   })
 
   it('refuses a row whose investment is completed', async () => {
-    lockState.rowOwner = { investmentId: 5, locked: true, templatePresetId: null }
+    lockState.rowOwner = {
+      investmentId: 5,
+      lockMessage: INVESTMENT_LOCKED_MESSAGE,
+      templatePresetId: null,
+    }
     const handler = vi.fn(async () => ({ success: true as const }))
     const result = await investmentAction('t', { kind: 'item', id: 3 }, handler)
     expect(result).toEqual({ success: false, error: INVESTMENT_LOCKED_MESSAGE })
@@ -132,7 +143,7 @@ describe('investmentAction', () => {
   })
 
   it('does not revalidate when the lock refuses', async () => {
-    lockState.locked = true
+    lockState.lockMessage = INVESTMENT_LOCKED_MESSAGE
     await investmentAction('t', { investmentId: 5 }, async () => ({ success: true }), [
       'kosztorysItems',
     ])

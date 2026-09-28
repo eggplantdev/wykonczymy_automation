@@ -78,13 +78,20 @@ Wartość każdej pracy liczy `calc.ts` z ilości, ceny i rabatu. Porównanie su
 odczytaną liczbę po kolei ze wszystkimi trzema sumami, które umiemy policzyć, i samo raportuje,
 z którą się zgadza. Import odmawiał więc przez kolumnę, która nie wnosi do kosztorysu ani złotówki.
 
+**Rozbicie `S`/`T` okazało się szablonem, nie wyjątkiem (2026-09-28).** Z 15 czytelnych arkuszy
+podpiętych od lipca 7 ma ten układ, kanoniczny też — ręczne wskazywanie przy prawie każdym nowym
+arkuszu było ślepym zaułkiem w innym miejscu. Import rozpoznaje więc sam kolumnę po stronie Pomiaru:
+„Wartość netto pomiar z natury" (wiersz 1) / „Wartość pomiar z natury" (wiersz 3). To ją arkusz
+liczy — suma sekcji to `SUM(T)`, „pozostało do rozliczenia" to `T − Σ etapów` — a `S` wycenia tylko
+przedmiar. W tym szablonie Pomiar (`O`) jest wpisywany ręcznie (albo `=N`), nie `SUM(D:M)`.
+
 **Czego świadomie nie zrobiliśmy:**
 
-- **Nie poluzowaliśmy dopasowania po nazwie.** Dopasowanie po prefiksie złapałoby na Żupniczej `S`
-  i `T` naraz — odmowa „nie znaleziono kolumny" zamieniłaby się w odmowę „pasuje do 2 kolumn", czyli
-  ten sam ślepy zaułek pod inną nazwą.
-- **Żadnego globalnego słownika nagłówków.** Arkusze należą do klientów i żaden nie jest zbudowany
-  tak samo; słownik z definicji nadążałby za ostatnim arkuszem, który ktoś zgłosił.
+- **Nie poluzowaliśmy dopasowania po nazwie.** Dopasowanie po prefiksie „wartość netto" złapałoby
+  `S` i `T` naraz — odmowa „nie znaleziono kolumny" zamieniłaby się w odmowę „pasuje do 2 kolumn".
+  Dopisane są dokładne nazwy strony Pomiaru, `S` celowo nie pasuje.
+- **Żadnego słownika pod pojedyncze arkusze.** Wariant nazwy trafia do matchera dopiero, gdy jest
+  szablonem powtarzanym w wielu arkuszach; jednorazowy układ obsługuje ręczne wskazanie kolumny.
 - **Kolumny opcjonalne nie blokują pobrania.** Arkusz bez rabatu ma się wczytywać jak dotąd — brak
   takiej kolumny to informacja w raporcie, nie odmowa.
 
@@ -96,8 +103,9 @@ V  = D*$Q - (D*$Q*$R)                  wartość etapu  = ilość_wykonana × ce
 AF = T - V - W - X - Y - Z - AA…AE     bilans         = wartość − Σ etapów
 ```
 
-Appka jest z tym **1:1**: `stageValueForView` = `V`, `rowRemainingForView` = `AF`
-(`src/lib/kosztorys/calc.ts:52,61`). Potwierdza P9.
+Appka jest z tym 1:1 w `V` (`stageValueForView`). **Nie** w `AF`: skoro `O` = Σ etapów, arkuszowe
+`AF` = `T − Σ(V:AE)` jest tożsamościowo zerem, więc „Pozostało" (`rowRemainingForView`) celowo
+kotwiczy do `S` (oferty), nie do `T` — patrz „Oferta i wykonanie" niżej. Potwierdza P9.
 
 ### BRAK sumy per etap — zweryfikowane
 
@@ -290,27 +298,60 @@ Otwarte: która ilość na ofercie — przedmiar (oferta wstępna) czy pomiar
 (rozliczenie) → P13. Drugi tryb wydruku „raport postępu" (wewnętrzny, z etapami)
 — do rozważenia.
 
-## Co widzi klient — ustawienie, nie stała (EX-695, 2026-08-15)
+## Co widzi klient — ustawienie, nie stała (EX-695, 2026-08-15; jeden zestaw od 2026-09-28)
 
 Zestaw kolumn widoku klienta przestał być stałą w kodzie. Rozstrzygnięcie idzie w kolejności:
 własny wiersz inwestycji (`kosztorys-client-view`) → globalne domyślne firmy
-(`kosztorys-client-view-defaults`) → domyślne z kodu (nic nie ukryte, puste pozycje ukryte).
-Rozwiązywane w `src/lib/queries/kosztorys-client-view.ts`.
+(`kosztorys-client-view-defaults`) → domyślne z kodu. Rozwiązywane w
+`src/lib/queries/kosztorys-client-view.ts`.
 
-Dwie reguły trzymają to razem:
+**Jeden zestaw, bez wariantów** (właściciel, 2026-09-28). Warianty „Oferta / Rozliczenie" zniknęły:
+inwestor ma jeden zestaw kolumn, a o tym, czy widzi rozliczenie, decydują dane, nie przełącznik.
+Kolumny rozliczenia — „Pomiar z natury", każdy etap (ilość i wartość), „Razem netto", „Rabat kwota",
+„% wykonania" — pokazują się dopiero, gdy są w nich wpisy: etap bez wpisów znika w całości, a sumy
+rozliczenia znikają, dopóki żaden etap nie ma wpisu. Oferta wysłana przed pracą jest więc
+czysta bez żadnego klikania, a pierwszy wpis w etapie dociera do linku, który inwestor już ma.
+„Pozostało" do tej reguły nie należy: przed pracą to cały przedmiar, liczba prawdziwa — domyślnie jest
+ukryte i ukrywa je tylko wybór właściciela. Ta sama reguła obowiązuje podgląd, link, PDF i zakładkę
+„Robocizna" w podsumowaniu inwestora („Brak etapów.", gdy żaden nie ma wpisów); nie dotyczy widoku
+pracownika. Liczona z NIEPRZEFILTROWANYCH pozycji (`settlement-columns.ts`), żeby kolumna nie
+pojawiała się i nie znikała, gdy inwestor przełącza „Pokaż wszystkie pozycje".
 
-- **`PREVIEW_VISIBLE_COLUMNS` pozostaje sufitem.** Zapisany klucz może tylko _odjąć_ kolumnę,
-  nigdy dodać — sanityzacja przy zapisie i przy odczycie odrzuca klucz spoza allowlisty, więc
-  ustawienie nie staje się drugą, rozjeżdżającą się odpowiedzią na pytanie „co klient może
-  zobaczyć". Klucze są `toggleKey`, więc jeden wpis bierze całą rodzinę per-etap.
+Reguły, które trzymają to razem:
+
+- **`PREVIEW_VISIBLE_COLUMNS` pozostaje sufitem.** Zapisany klucz i reguła wpisów mogą tylko
+  _odjąć_ kolumnę, nigdy dodać — sanityzacja przy zapisie i przy odczycie odrzuca klucz spoza
+  allowlisty, więc ustawienie nie staje się drugą, rozjeżdżającą się odpowiedzią na pytanie „co
+  klient może zobaczyć". Klucz zapisany przez właściciela jest `toggleKey` i bierze całą rodzinę
+  per-etap; reguła wpisów odejmuje pełne identyfikatory kolumn, bo pusty etap znika sam, nie z
+  wypełnionymi.
+- **Brak zapisanego zestawu ukrywa zestaw domyślny, nie „nic"** (fail-closed). Przechowywany jest
+  zestaw UKRYTY, więc NULL albo nie-tablica czytane jako „nic nie ukryte" serwowałyby całą
+  allowlistę, z rabatem włącznie.
 - **Ukrywanie pustych pozycji to jedna reguła, nie dwie** (`client-empty`, `kind: 'client'`):
   pozycja bez przedmiaru **i** bez wykonanej pracy nie wnosi nic do żadnej z dwóch kwot, które
   klient czyta, więc jej ukrycie nie rusza podsumowania. Każdy z dwóch filtrów osobno byłby
   bezpieczny tylko dla jednej z nich.
+- **Przełącznik „Pokaż wszystkie pozycje" (inwestor) numeruje ujawnione pozycje od nowa**, w
+  kolejności dokumentu — więc przy włączonym przełączniku numeracja rozjeżdża się z wydrukiem oferty,
+  który czyta zapisane ustawienie, nigdy stanu przełącznika. Zaakceptowane: przełącznik to gest
+  czytania na jedną wizytę, nie część dokumentu.
+- **„Udostępnij" kopiuje link już przy kliknięciu** — tworzy go tylko wtedy, gdy inwestycja żadnego
+  nie ma, i nigdy nie podmienia istniejącego (to odcięłoby inwestora, który go trzyma). Okno
+  udostępniania nie ma już kroku ustawień; prowadzi do nich przycisk „Ustawienia podglądu…".
+- **Kolejność kolumn ustawia właściciel, „Opis prac" zawsze pierwszy** (EX-884, 2026-09-28). Zapisana
+  razem z zestawem, na „Zapisz", osobno dla każdej oferty i raz dla pracowników; obowiązuje podgląd,
+  link i PDF. Kolejność przechowywana jest jako rangi względem listy dokumentu w kodzie, więc wpięcie
+  nowej kolumny w środek tej listy przesuwa miejsce kolumn bez rangi — nowa kolumna ląduje tam, gdzie
+  stoi w kodzie, a nie na końcu. Oferta zapisana przed EX-884 ma własny wiersz bez kolejności, a wiersz
+  inwestycji wygrywa w całości — więc pokazuje kolejność wbudowaną, nie kolejność firmy, dopóki
+  właściciel nie kliknie „Przywróć domyślną kolejność".
+- **Na dokumencie inwestora nie ma żadnej kwoty brutto** (właściciel, 2026-09-28). Oferta jest netto,
+  więc kolumny brutto nie da się nawet zaznaczyć w ustawieniach, a znacznik brutto zapisany wcześniej
+  odpada przy sanityzacji.
 
-**Podgląd nie zna trybu rozliczenia** (EX-631, rozstrzygnięte 2026-08-12). Dokument klienta niesie
-netto i brutto obok siebie także na inwestycji rozliczanej netto — `settlementMode` NIE wraca jako
-bramka prawdy. O ujawnieniu decyduje wyłącznie allowlista (i zapisane ustawienie widoku klienta pod
+**Podgląd nie zna trybu rozliczenia** (EX-631, rozstrzygnięte 2026-08-12). `settlementMode` NIE wraca
+jako bramka prawdy. O ujawnieniu decyduje wyłącznie allowlista (i zapisane ustawienie widoku klienta pod
 nią); oś kwot jest preferencją czytania, a preferencja jednego czytelnika nie może decydować, co widzi
 drugi. Odwrotnie niż `globalDiscountActive`, który do gałęzi podglądu wrócił właśnie dlatego, że jest
 stanem inwestycji, a nie preferencją.
@@ -318,6 +359,67 @@ stanem inwestycji, a nie preferencją.
 Ustawienia czytane są **obok** cache'owanego payloadu podglądu (jeden indeksowany odczyt), więc
 zapis działa od następnego żądania bez tagu cache, a zmiana domyślnych firmy nie unieważnia drzewa
 żadnej inwestycji.
+
+## Widok pracownika — link imienny i PDF, tylko odczyt (EX-875, 2026-09-28)
+
+Pracownik / podwykonawca dostaje od ownera **imienny** widok kosztorysu inwestycji: link `/p/⟨nazwisko⟩/[token]`
+albo PDF, oba z menu „Pracownicy" w edytorze. Link i PDF generuje ADMIN / OWNER / MANAGER (jak u
+inwestora); ustawienia widoku pracownika są **jedne na firmę** i zapisuje je tylko ADMIN / OWNER.
+Część 2 (pracownik wpisuje ilości w swoich etapach) to osobna zmiana — link identyfikuje pracownika
+właśnie po to, żeby jej nie przepisywać.
+
+- **Zakres = przypisanie etapu.** Pracownik widzi wszystkie pozycje (Przedmiar nie dzieli się na
+  etapy), ale tylko kolumny swoich etapów. Etap bez rozliczenia albo etapy na dwóch rozliczeniach →
+  menu blokuje link i PDF („Ustaw rozliczenie etapu" / „Etapy pracownika mają różne rozliczenia");
+  pracownik bez etapów → link działa i mówi „Brak przypisanych etapów". Odwołanie tylko świadomie,
+  także po dezaktywacji pracownika.
+- **Stawka wynika z rozliczenia jego etapów** — nikt jej nie wybiera, a widok jest do niej
+  przypięty: zła stawka to wyjątek, nie cicha naprawa. Ceny klienta, „Wartości netto" po cenie
+  klienta, rabatu, brutto, mnożnika i cudzych etapów nie da się włączyć żadnym ustawieniem —
+  allowlista pracownika jest sufitem, ustawienia tylko z niej ujmują.
+- **„Wartość przedmiaru netto — ⟨rozliczenie⟩"** to Przedmiar × stawka rozliczenia: ile ekipa
+  zarobi, jeśli wykona cały przedmiar. W edytorze stoi **obok** „Wartości przedmiaru netto" (która
+  liczy po cenie klienta w każdym widoku), tylko w widokach „Z narzędziami" / „Bez narzędzi"; w
+  widoku inwestora jej nie ma, bo byłaby kopią. Tylko netto — wypłaty podwykonawców są bez VAT.
+- **„Pozostało" liczy pracę wszystkich etapów**, nie tylko jego: pozycja dokończona przez inną ekipę
+  pokazuje 0, bo to lista „co jeszcze do zrobienia", nie „co jeszcze zrobię ja". Suma w stopce
+  pomija wiersze na minusie, jak u właściciela (EX-885).
+- **Puste pozycje** — ta sama dwuosiowa reguła co u inwestora, z osią „wykonane" = jego etapy, więc
+  ukrycie nie rusza żadnej sumy podsumowania.
+- **Podsumowanie**: wartość przedmiaru po jego stawce → wykonane per etap + razem → wypłacone (lista:
+  data i kwota, **bez opisu** — opis bywa wewnętrzną notatką) → pozostało do wypłaty; nadwyżka
+  wypłat to „Nadpłata" z dodatnią kwotą, nigdy liczba ujemna.
+- **PDF** to ten sam generator co oferta, z projekcji pracownika (nigdy z wierszy edytora, które
+  niosą cenę klienta): A4 poziomo, bo każdy etap dokłada dwie kolumny; kwoty z groszami, bo stawka
+  7,50 zł zaokrąglona do „8 zł" to inna stawka. Na papier idą te same kolumny, w tej samej
+  kolejności, co w podglądzie pracownika — łącznie z „Σ etapów" i „Wartością wykonaną".
+
+## Protokół odbioru prac — druk z menu „Inwestor" (2026-09-28)
+
+Protokół, który właściciel podpisuje z klientem na budowie, wychodzi z aplikacji wstępnie
+wypełniony: „Inwestor → Protokół odbioru…" otwiera formularz z podpowiedziami, podglądem zakresu
+i rozliczenia, a „Generuj" drukuje go tym samym mechanizmem co ofertę. Nic się nie zapisuje —
+protokół jest dokumentem na papier, nie bytem w bazie.
+
+- **Zakres prac = pozycje z wykonaną pracą.** Pomiar z natury JEST sumą etapów, więc pozycja trafia
+  na protokół dokładnie wtedy, gdy któryś etap ją wykonał (`scope-rows.ts`). Bez nazw sekcji, bez
+  kolumny „Zgodnie z umową?", tylko podgląd — kosztorys zostaje jedynym źródłem.
+- **Rozliczenie to kolumna netto z „Podsumowania"**, złożona z tych samych funkcji
+  (`protocolSettlement` → `laborCostsNetPreDiscount`, `billedMaterials`, `sumDeposits`,
+  `computeAmountDue`): Robocizna **przed rabatem**, Rabat, Materiały, Suma, Wpłaty, Strata,
+  Pozostało do zapłaty / Nadpłata. Protokół rozjeżdżający się z podsumowaniem o grosz to ten, który
+  klient podpisuje — dlatego nie liczy po swojemu.
+- **Generowanie nigdy nie edytuje inwestycji.** Poprawki w formularzu żyją w formularzu; osobny
+  przycisk „Zaktualizuj dane inwestycji" zapisuje **wyłącznie** osobę kontaktową i adres, nigdy
+  całego rekordu. Niezmieniona podpowiedź Zamawiającego (nazwa inwestycji) nie trafia do osoby
+  kontaktowej.
+- **Podpowiedzi zamiast pustych pól**, bo dane bywają puste: adres ma 35/138 inwestycji, osoba
+  kontaktowa 9/138. Zamawiający = osoba kontaktowa, a gdy jej nie ma — nazwa inwestycji (zwykle
+  niesie klienta). Wykonawca to stała w kodzie (`CONTRACTOR_NAME`), nie pole w bazie. Rodzaj odbioru
+  domyślnie „końcowy", miejscowość „Warszawa", rękojmia od = data odbioru.
+- **Ze wzoru wypadły** stopka denwi.pl, „Reprezentowany przez" (obie strony), „Inne osoby obecne",
+  pkt 7, „Kwota zatrzymana" i linia umowy — firma nie podpisuje numerowanych umów. pkt 2 to pusta
+  numerowana tabela na 5 wierszy, pkt 4 (usterki) na 10: pola do wypełnienia długopisem na miejscu.
 
 ## Decyzje zamknięte
 
@@ -337,8 +439,10 @@ zapis działa od następnego żądania bez tagu cache, a zmiana domyślnych firm
 - **Oferta i wykonanie to dwie równoległe kwoty** (arkusz: `S` i `T`):
   - **„Wartość netto przedmiar"** = `applyDiscount(Przedmiar × cena)` = arkuszowe `S` — oferta.
   - **„Wartość netto"** = `applyDiscount(Σ etapów × cena)` = arkuszowe `T` — wykonanie.
-  - **„Pozostało netto (względem przedmiaru)"** = `S − T`; przy pustym Przedmiarze „—" (brak
-    mianownika). Nie mylić z „Rozjazdem między arkuszem Google a apką" — tamten odejmuje sumę
+  - **„Pozostało netto (względem przedmiaru)"** = `S − T`; pusty Przedmiar to oferta zerowa, więc
+    wiersz czyta −wykonane. Wiersz poniżej −0,005 zł (praca ponad przedmiar) jest **na czerwono**,
+    a stopka sekcji i „Razem" sumują **tylko wiersze nie ponad przedmiar** — suma mówi „ile oferty
+    zostało do zrobienia" (EX-885, odwraca EX-686, gdzie nadwyżka pomniejszała sumę). Nie mylić z „Rozjazdem między arkuszem Google a apką" — tamten odejmuje sumę
     etapów od Pomiaru z natury z arkusza, a nie od Przedmiaru.
   - **„% wykonania"** = `Σ etapów / Przedmiar` (nie z sumy etapów — inaczej `Σ/Σ = 100%` wszędzie).
 
@@ -352,6 +456,10 @@ zapis działa od następnego żądania bez tagu cache, a zmiana domyślnych firm
   (`hasStagesOverPlanned`), gdy `Σ etapów > Przedmiar` — praca przekroczyła oferowany zakres.
   Częściowo zrobiony wiersz (`Σ etapów < Przedmiar`) to normalna praca w toku i czerwony **nie**
   jest — inaczej cała siatka świeciłaby na zdrowym kosztorysie.
+
+  Drugi czerwony sygnał to ujemne **„Pozostało"** (netto, brutto, pracownika;
+  `isRemainingOverrun`) — ten sam predykat, który wyjmuje wiersz z sumy w stopce. Łapie też pracę
+  bez Przedmiaru, której „% wykonania" nie pokaże (tam „—"). Wydruki zostają czarne.
 
   **Rozjazd nie ma wyjścia awaryjnego per wiersz** (właściciel, 2026-08-13). Rozjazd między
   zaimportowanym Pomiarem z natury a sumą etapów zamyka się **tylko** przez poprawę arkusza albo
@@ -539,6 +647,10 @@ j.m.` wśród wierszy policzonych** (wpisane z palca są wykluczone: to decyzje 
     Zmiana jest tylko w wyświetlaniu: bilans, marża, „Łącznie" i lista inwestycji czytają netto,
     które się nie zmieniło. A skoro obie kwoty są zapisane, wraca gwarancja, dla której wybrano model
     „zapisane `netAmount`": brak dryfu zaokrągleń między listą a podsumowaniem.
+    **„Różnica" znaczy na tych dwóch osiach co innego.** Na wierszu brutto to obniżka materiałowa
+    (paragon minus rozliczona kwota) — firma ją daje. Na wierszu „… netto" to VAT z faktury — tego
+    firma nie oddaje. „Razem Różnica" sumuje obie pod jedną etykietą; tak było i wcześniej, ale
+    brutto liczone ze stawki to maskowało.
     **Konsekwencja w rozliczeniu mieszanym:** „Pozostało brutto" **nie** jest gruntowaniem kwoty
     nierozliczonej — to gruntowałoby materiały razem z pracami. Liczy się z „Łącznie", gdzie
     materiały już stoją po face value na obu osiach (`resztaGross = combined.gross − paidNet`).
@@ -552,6 +664,15 @@ j.m.` wśród wierszy policzonych** (wpisane z palca są wykluczone: to decyzje 
       **≥** „Materiały" rozliczonym w Podsumowaniu — celowo, na korzyść inwestora (właściciel,
       2026-09-23). Tych dwóch sum się nie uzgadnia. Materiały wliczone w robociznę dalej nie trafiają
       do podglądu.
+      Wyjątek od „≥": ujemna korekta (nota kredytowa) na osi brutto przy ustawionej stawce rozlicza
+      się jako `korekta / (1 + stawka)`, więc ten jeden wiersz stoi na liście poniżej rozliczonego.
+      Suma odwraca się dopiero, gdy korekty przewyższą zakupy — nierealny kosztorys, niepilnowany
+      testem.
+    - **Bez stawki breakdown i lista liczą wydatek netto inaczej — celowo.** Wiersz kategorii bierze
+      go po netto (styka się z „Materiały" w Podsumowaniu), lista po brutto z faktury. Odrzucone:
+      breakdown po brutto (zrywa styk z Podsumowaniem i bilansem) oraz stałe Netto / Brutto / Różnica
+      przy fakturze netto (odwraca ustalenie z `zamrozone-brutto-wydatku-netto` i musiałoby objąć też
+      widok managera).
   - **Skutek dla rekoncyliacji (strona inwestycji „z kosztorysu", EX-535):** porównanie idzie
     **netto ↔ netto** dla obu figur — kosztorys suma prac (netto) ↔ Σ `LABOR_COST`, kosztorys
     rabat (netto) ↔ Σ `RABAT`. Strony kosztorysowej **nie gruntujemy**. To usuwa fałszywy
@@ -594,9 +715,52 @@ czekanie na kwotę zostawiało listę obiecującą zastąpienie, którego silnik
   robi automatyczny zapis wersji kosztorysu przed każdym nadpisaniem, tak samo jak usunięcie
   sekcji. **Nie zgłaszaj ponownie „brak cofania" jako buga** — to wybór, a stan da się odzyskać
   z listy wersji.
-- **Migawki (wersje) nie niosą ustawień rabatu globalnego** — rabat to ustalenie per inwestycja i
-  nigdy nie podróżuje przez przywrócenie wersji ani przez preset. Przywrócenie starej wersji zostawia
-  bieżący rabat kwotowy nietknięty (wiersze migawki mają swoje własne rabaty per pozycja).
+- **Rabat globalny nie podróżuje przez przywrócenie wersji ani przez preset** — to ustalenie per
+  inwestycja. Przywrócenie starej wersji zostawia bieżący rabat kwotowy nietknięty (wiersze migawki
+  mają swoje własne rabaty per pozycja). Od 2026-09-28 (EX-881) migawka **zapisuje** rabat globalny
+  (`globalDiscount` w payloadzie), ale wyłącznie do wyświetlenia w historii inwestora — przywracanie
+  go ignoruje, tak jak przedtem.
+
+### Historia zmian dla inwestora (2026-09-28, EX-881)
+
+Inwestor na swoim linku (`/k/[token]`) i właściciel w „Podgląd dla inwestora" widzą ten sam ekran:
+„Opcje" → „Zobacz historię zmian" z listą dni, w których kosztorys się zmienił, i widok wybranego
+dnia porównany z **bieżącym** stanem (nie z poprzednim dniem). Każdy wpis na liście liczy różnice
+względem bieżącej wersji — to samo porównanie, które pokazuje widok dnia. Adres jest stanem:
+`?wersja=<id>`.
+
+**Rodzaje wersji i dla kogo są** (`kosztorys_snapshots.kind`):
+
+| Rodzaj   | Skąd                                                                                                                               | Kto widzi                                         |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| `auto`   | co 10 min, gdy edytor jest otwarty                                                                                                 | właściciel („Wersje") + historia sprzed wdrożenia |
+| `manual` | „Zapisz jako…" sprzed wdrożenia                                                                                                    | tylko właściciel                                  |
+| `named`  | „Zapisz jako…" od wdrożenia — kamień milowy z etykietą                                                                             | właściciel + inwestor                             |
+| `daily`  | nocny cron (`/api/cron/daily-snapshots`, 23:15 UTC) — stan z końca dnia warszawskiego, tylko gdy różni się od poprzedniego `daily` | inwestor                                          |
+
+Historia sprzed wdrożenia to najnowszy `auto` z każdego dnia, który przetrwał przerzedzanie.
+**Stare reguły dla starych wierszy:** przeszłe `manual` nie stają się kamieniami milowymi, a przeszłe
+`auto` dalej przerzedzają się i wygasają pasmami.
+
+**Retencja** (`gcSnapshots`): `auto`/`manual` bez zmian (30 dni wszystko → dzień do 120 → tydzień do
+365 → koniec). `daily` i `named` nie podlegają pasmom ani limitowi 365 dni: żyją, dopóki inwestycja
+jest Planowana lub Aktywna, a po Zakończonej jeszcze rok od `investments.completed_at` (ustawiane
+przy przejściu na Zakończoną, zerowane przy ponownym otwarciu). Zakończona bez `completed_at` trzyma
+historię — brak danych nigdy jej nie kasuje. Właściciel nie może ukryć dnia przed inwestorem.
+
+**Porównywanie wersji odwraca decyzję S-06 „bez diffowania"** (`context/archive/2026-07-10-kosztorys-snapshots/`),
+ale tylko na potrzeby wyświetlenia — przywracanie działa jak przedtem. Pozycje dopasowuje się po id,
+a gdy zbiory id są rozłączne (przywrócenie albo „wczytaj szablon" nadaje nowe), po nazwie sekcji +
+opisie + j.m. Zmiana „Pomiaru z natury" liczy się per etap. Wersja zapisana, zanim migawka niosła
+rabat, pokazuje „Rabat nieznany", nigdy „0,00 zł" — brak pola w payloadzie JEST tym znacznikiem.
+Kolumny i wiersze dnia z przeszłości idą za **dzisiejszymi** ustawieniami widoku klienta; panel
+„Podsumowanie" (wpłaty, bilans) jest wtedy ukryty, bo czyta dzisiejsze kwoty.
+
+**Odczyt jest publiczny, ale zawężony do tokenu:** `getPreviewHistoryByToken` przyjmuje id wersji
+z adresu i filtruje po inwestycji i rodzaju w samym `WHERE` — id cudzej inwestycji, wersja `manual`
+albo śmieci w `?wersja=` dają widok bieżący, nie błąd. Otwiera się każdy wiersz `auto`/`daily`/`named`
+tej inwestycji, także `auto` spoza listy — świadomie (decyzja z 2026-09-28); unieważniony token kończy się 404 jak
+przedtem. Widok ekipy (`worker`) historii nie dostaje w ogóle.
 
 ### Pusta komórka liczbowa to zero, nie „brak" (2026-08-25)
 
@@ -821,6 +985,9 @@ Wpisanie liczby w „Cena j.m." wykonawcy **samo** przestawia źródło na „kw
 komórki wraca na „auto" — kolumna źródła jest podglądem tej decyzji i drogą powrotną, nie osobnym
 krokiem, który trzeba wykonać przed wpisaniem ceny. W podglądzie inwestora kolumna źródła nie składa
 się w ogóle: dokument klienta nie pokazuje, skąd firma bierze stawkę ekipy.
+
+Mnożnik wiersza wpisuje się **dziesiętnie (`0,55`), nie procentowo** — tak jak globalny mnożnik
+inwestycji o jeden pasek narzędzi obok. Ta sama decyzja w dwóch notacjach to wklejenie pomylone o 100×.
 
 **Trzecie źródło było wycięte przez rok i wróciło** (właściciel: cięcie 2026-09-01/EX-766,
 przywrócenie 2026-09-23/EX-865). Wycięto je, bo nie używał go nikt — zero wierszy w jakiejkolwiek

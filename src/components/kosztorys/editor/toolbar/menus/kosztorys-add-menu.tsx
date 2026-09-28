@@ -16,7 +16,8 @@ import { useCataloguePicker } from '@/components/kosztorys/editor/actions/catalo
 import { AddSectionsFromPresetDialog } from '@/components/kosztorys/editor/dialogs/add-sections-from-preset-dialog'
 import { planeIcon } from '@/components/kosztorys/editor/plane-icons'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
-import { PLANE_LABELS, TOOL_PLANES } from '@/lib/kosztorys/constants'
+import { PLANE_LABELS } from '@/lib/kosztorys/labels'
+import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 
 export function KosztorysAddMenu() {
   const {

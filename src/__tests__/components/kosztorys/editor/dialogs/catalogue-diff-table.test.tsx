@@ -71,8 +71,8 @@ function renderTable(diffs: CataloguePriceDiffT[], onApply = vi.fn().mockResolve
 
 const applyButton = () => screen.getByRole('button', { name: /Aktualizuj kosztorys/ })
 
-// Obie strony różnicy są zdaniem o ŹRÓDLE, nie tylko o kwocie: przy równych złotówkach to jedyne,
-// co tę różnicę widać.
+// Both sides of a rozjazd are a sentence about the ŹRÓDŁO, not only about the kwota: where the
+// złotówki match, the źródło is the only thing that makes the difference visible.
 describe('CatalogueDiffTable — źródło stawki', () => {
   it('pokazuje mnożnik jako krotność z kwotą w nawiasie', () => {
     renderTable([
@@ -159,7 +159,7 @@ describe('CatalogueDiffTable — zaznaczanie', () => {
   })
 })
 
-describe('CatalogueDiffTable — sufit 65 %', () => {
+describe('CatalogueDiffTable — próg udziału w cenie', () => {
   // The merged wiersz, not the stored one: the owner ticks in bulk and never opens a single praca,
   // so the warning has to appear on the selection and disappear with it.
   const OVER: CataloguePriceDiffT = {
@@ -178,7 +178,7 @@ describe('CatalogueDiffTable — sufit 65 %', () => {
     maxDelta: 30,
   }
 
-  it('ostrzega dopiero po zaznaczeniu stawki, która przekracza sufit', async () => {
+  it('ostrzega dopiero po zaznaczeniu stawki, która przekracza próg', async () => {
     renderTable([OVER])
 
     expect(screen.queryByText(/przekracza/)).not.toBeInTheDocument()
@@ -194,7 +194,7 @@ describe('CatalogueDiffTable — sufit 65 %', () => {
     expect(screen.queryByText(/przekracza/)).not.toBeInTheDocument()
   })
 
-  it('mierzy sufit przeciw cenie, którą ten sam zapis wpisze', async () => {
+  it('mierzy próg przeciw cenie, którą ten sam zapis wpisze', async () => {
     // 80 zł against the katalog's 150 zł is 53 % — over the stored 100 zł it would be 80 %, so the
     // warning only stays silent if the cena that is ALSO being written is the one it measures.
     renderTable([

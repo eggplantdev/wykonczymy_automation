@@ -21,6 +21,8 @@ vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
     investmentId: 1,
     investmentName: 'Testowa',
     tree: { sections: [] },
+    stages: [],
+    workers: [],
     hasSheet: false,
     readOnly: false,
     canUndo: false,
@@ -65,6 +67,7 @@ describe('KosztorysActionsMenu', () => {
     renderToolbar(undefined)
 
     expect(screen.getByRole('button', { name: 'Inwestor' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Pracownicy' })).toBeInTheDocument()
 
     await openOptions()
 
@@ -72,12 +75,13 @@ describe('KosztorysActionsMenu', () => {
     expect(screen.getByRole('menuitem', { name: /Wczytaj szablon…/ })).toBeInTheDocument()
   })
 
-  // A szablon has no investor, so the preview through their eyes and the share link have nobody
-  // to address.
-  it('w warsztacie nie oferuje inwestora', () => {
+  // A szablon has no investor and no crew on its etapy, so the previews through their eyes and the
+  // share links have nobody to address.
+  it('w warsztacie nie oferuje inwestora ani pracowników', () => {
     renderToolbar(7)
 
     expect(screen.queryByRole('button', { name: 'Inwestor' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Pracownicy' })).not.toBeInTheDocument()
   })
 
   it('w warsztacie mówi „szablon”, nie „kosztorys”', async () => {

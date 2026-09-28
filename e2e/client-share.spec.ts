@@ -1,11 +1,11 @@
 import { test, expect, type Page } from '@playwright/test'
 import { formatNet } from '@/lib/kosztorys/format'
-import { INVESTOR_IMPACT_TITLE, CLIENT_VIEW_MODE_IMPACT } from '@/lib/kosztorys/investor-impact'
 import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
 import { refreshReferenceData, runSeedScript } from './support/seeds'
 import { bare } from './support/money'
-import { waitForHydration } from './support/wait'
+import { settleWrites, waitForHydration } from './support/wait'
 import { anonymousVisit, mintShareToken } from './drivers/share-link'
+import { columnHeaders, commitCellValue, openEditor, rowCell } from './drivers/kosztorys-grid'
 
 // What the owner decides in „Ustawienia podglądu inwestora" and what the investor's link actually
 // serves are two different processes on two different sides of an unauthenticated route: the owner
@@ -28,6 +28,8 @@ type ClientShareSeed = {
   sectionName: string
   workedRow: string
   emptyRow: string
+  filledStage: string
+  emptyStage: string
   cashDeposit: { amount: number; date: string }
   transferDeposit: { amount: number; netAmount: number; date: string }
   grossExpense: { description: string; amount: number }
@@ -76,86 +78,26 @@ async function openClientViewSettings(page: Page) {
   const dialog = page.getByRole('dialog').filter({ hasText: 'Ustawienia podglądu inwestora' })
   // The dialog fetches its settings on open and renders „Wczytywanie…" until they land, so every
   // caller would otherwise race the read.
-  await expect(dialog.getByRole('radio', { name: 'Oferta' })).toBeVisible()
+  await expect(dialog.getByRole('checkbox', { name: UNIT_COLUMN })).toBeVisible()
   return dialog
 }
 
-// „Zapisz" raises the investor-impact confirm only when the VARIANT changed, so callers that merely
-// re-tick a column must not wait for a window that will never open.
-async function saveSettings(page: Page, { expectModeConfirm = false } = {}) {
+async function saveSettings(page: Page) {
   const dialog = page.getByRole('dialog').filter({ hasText: 'Ustawienia podglądu inwestora' })
   await dialog.getByRole('button', { name: 'Zapisz', exact: true }).click()
-  if (expectModeConfirm) {
-    await page.getByRole('alertdialog').getByRole('button', { name: 'Potwierdź' }).click()
-  }
   await expect(dialog).toBeHidden()
 }
 
-async function selectVariant(page: Page, label: 'Oferta' | 'Rozliczenie') {
-  const dialog = await openClientViewSettings(page)
-  const target = dialog.getByRole('radio', { name: label })
-  const wasAlreadyPicked = (await target.getAttribute('data-state')) === 'on'
-  await target.click()
-  await saveSettings(page, { expectModeConfirm: !wasAlreadyPicked })
-}
-
-test('the variant the owner saves is the one the investor link serves, and the flip is confirmed first', async ({
-  page,
-  browser,
-  baseURL,
-}) => {
-  // The two variants differ by construction — „Oferta" ships the przedmiar alone, „Rozliczenie" adds
-  // the executed quantity — so this test ticks no column at all: it changes ONE decision and watches
-  // the client's document change shape.
-  await selectVariant(page, 'Oferta')
-  const token = await mintShareToken(page, seed.investment)
-
-  const offer = await anonymousVisit(browser, baseURL, token)
-  try {
-    await expect(offer.page.getByText(seed.workedRow)).toBeVisible()
-    await expect(offer.page.getByText(COLUMN_LABELS.plannedQty, { exact: true })).toBeVisible()
-    await expect(offer.page.getByText(STAGE_SUM_COLUMN, { exact: true })).toHaveCount(0)
-  } finally {
-    await offer.close()
-  }
-
-  // The flip is destructive in the one way that matters: it changes a document someone else may be
-  // reading right now. „Anuluj" must therefore leave the link exactly as it was — not merely leave
-  // the dialog open.
-  const dialog = await openClientViewSettings(page)
-  await dialog.getByRole('radio', { name: 'Rozliczenie' }).click()
-  await dialog.getByRole('button', { name: 'Zapisz', exact: true }).click()
-  const confirm = page.getByRole('alertdialog')
-  await expect(confirm.getByText(INVESTOR_IMPACT_TITLE)).toBeVisible()
-  await expect(confirm.getByText(CLIENT_VIEW_MODE_IMPACT.SETTLEMENT)).toBeVisible()
-  await confirm.getByRole('button', { name: 'Anuluj' }).click()
-
-  const afterCancel = await anonymousVisit(browser, baseURL, token)
-  try {
-    await expect(afterCancel.page.getByText(seed.workedRow)).toBeVisible()
-    await expect(afterCancel.page.getByText(STAGE_SUM_COLUMN, { exact: true })).toHaveCount(0)
-  } finally {
-    await afterCancel.close()
-  }
-
-  await selectVariant(page, 'Rozliczenie')
-  // Same token throughout: the settings are read beside the cached payload on every request, so an
-  // investor who keeps their link sees the new variant on a reload — that is the promise being tested.
-  const settlement = await anonymousVisit(browser, baseURL, token)
-  try {
-    await expect(settlement.page.getByText(STAGE_SUM_COLUMN, { exact: true })).toBeVisible()
-  } finally {
-    await settlement.close()
-  }
-})
+// An etap reads as three headers — its ilość under the bare name, its wartości under the name plus a
+// suffix — so „is this etap on the document" is any header that starts with its name.
+const stageHeaders = (headers: string[], stage: string) =>
+  headers.filter((header) => header === stage || header.startsWith(`${stage} `))
 
 test('unticking a column and showing empty pozycje reach the link without moving a single figure', async ({
   page,
   browser,
   baseURL,
 }) => {
-  await selectVariant(page, 'Oferta')
-
   const dialog = await openClientViewSettings(page)
   await dialog.getByRole('checkbox', { name: UNIT_COLUMN }).uncheck()
   await saveSettings(page)
@@ -193,7 +135,6 @@ test('unticking a column and showing empty pozycje reach the link without moving
       EXECUTED_NET,
       'wykonana robocizna przy pokazanych pustych pozycjach',
     )
-    // The unticked column stayed unticked across a second save of the same variant.
     await expect(shown.page.getByText(UNIT_COLUMN, { exact: true })).toHaveCount(0)
   } finally {
     await shown.close()
@@ -293,7 +234,6 @@ test('inwestor zwija sekcję na swoim linku, choć jego własny schowek pustych 
   // and the client's own hider must not count as one. It is engaged on every share by default, so the
   // regression made the chevron dead on every published link while looking alive (the band flips its
   // aria-expanded either way — only the rows tell the truth).
-  await selectVariant(page, 'Oferta')
   const dialog = await openClientViewSettings(page)
   // Explicitly, not by default: the spec above leaves the tick off, and the whole point here is that
   // the hider IS engaged while the fold happens.
@@ -328,5 +268,45 @@ test('inwestor zwija sekcję na swoim linku, choć jego własny schowek pustych 
     await expect(visitor.getByText(seed.workedRow)).toBeVisible()
   } finally {
     await close()
+  }
+})
+
+// Owner, 2026-09-28: one column set for the investor, and a settlement column shows up only once
+// there is something in it. The rule is computed per request from the rows the link serves, so the
+// promise under test is that an entry the owner types reaches a link the investor already holds —
+// with no setting touched and no new link.
+test('an etap reaches the investor link with its first entry, and not before', async ({
+  page,
+  browser,
+  baseURL,
+}) => {
+  const token = await mintShareToken(page, seed.investment)
+
+  const before = await anonymousVisit(browser, baseURL, token)
+  try {
+    await expect(before.page.getByText(seed.workedRow)).toBeVisible()
+    const headers = await columnHeaders(before.page)
+    // The filled etap carries the settlement totals with it — the control that makes the empty
+    // etap's absence mean „no entries" rather than „no settlement columns at all".
+    expect(headers).toContain(STAGE_SUM_COLUMN)
+    expect(stageHeaders(headers, seed.filledStage)).not.toEqual([])
+    expect(stageHeaders(headers, seed.emptyStage)).toEqual([])
+  } finally {
+    await before.close()
+  }
+
+  await openEditor(page, seed.investment)
+  // Waited out, not assumed: the link reads Postgres, and a visit taken before the save lands would
+  // read the etap as empty and pass for the wrong reason on the negative above.
+  await settleWrites(page, 1, async () => {
+    await commitCellValue(await rowCell(page, seed.workedRow, seed.emptyStage), '2')
+  })
+
+  const after = await anonymousVisit(browser, baseURL, token)
+  try {
+    await expect(after.page.getByText(seed.workedRow)).toBeVisible()
+    expect(stageHeaders(await columnHeaders(after.page), seed.emptyStage)).not.toEqual([])
+  } finally {
+    await after.close()
   }
 })

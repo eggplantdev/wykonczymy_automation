@@ -85,16 +85,55 @@ describe('columnTotalsForRows', () => {
     }
   })
 
-  // Skipping such a row made „Pozostało" claim work was still owed while the executed value that
-  // cancels it sat outside the sum — inv. 31 read +64 311 zł „left" on a kosztorys 23 602 zł over
-  // its own offer. Brak przedmiaru IS an offer of zero, so the row counts, negatively.
-  it('counts a row with no przedmiar into „Pozostało" as work beyond the offer', () => {
+  // The total reads „ile oferty zostało do zrobienia", so a row past its przedmiar keeps its minus
+  // on its own line but does not eat into what the rest still owes.
+  it('leaves a row with no przedmiar out of the „Pozostało" total', () => {
     // Section B is row 3 (no przedmiar, 1 × 30 executed) + row 4 (przedmiar 6 × 15, 2 executed).
     const sectionB = totals(rowsOf(20))
     const rowThreeOnly = totals(rowsOf(20).filter((row) => row.id === 3))
 
-    expect(rowThreeOnly.get('remaining')).toBe(-30)
-    expect(sectionB.get('remaining')).toBeCloseTo(60 - 30, 10)
+    expect(rowThreeOnly.get('remaining')).toBe(0)
+    expect(sectionB.get('remaining')).toBeCloseTo(60, 10)
+  })
+
+  // The issue's own case — inv. 139 „Prace dodatkowe": 6025,00 before, 6825,00 after.
+  it('totals only the rows still owed, netto and brutto, over one overrun row', () => {
+    const owed = [750, 1200, 375, 1000, 200, 1800, 1500]
+    const extraWork: KosztorysTreeT = makeTree({
+      sections: [
+        {
+          id: 30,
+          name: 'Prace dodatkowe',
+          displayOrder: 0,
+          color: null,
+          items: [
+            ...owed.map((price, index) => ({
+              ...baseItem,
+              sectionId: 30,
+              id: 50 + index,
+              description: `owed ${index}`,
+              plannedQty: 1,
+              clientPrice: price,
+            })),
+            {
+              ...baseItem,
+              sectionId: 30,
+              id: 60,
+              description: 'extra',
+              plannedQty: 0,
+              clientPrice: 800,
+            },
+          ],
+        },
+      ],
+      stages: [{ id: 100, ordinal: 1, label: null, plane: 'w_tools', workerId: null }],
+      progress: [{ itemId: 60, stageId: 100, qtyDone: 1 }],
+      vatRate: 0.08,
+    })
+    const section = columnTotalsForRows(treeToRows(extraWork), extraWork.stages, 'client', 0.08)
+
+    expect(section.get('remaining')).toBeCloseTo(6825, 10)
+    expect(section.get('remainingGross')).toBeCloseTo(6825 * 1.08, 10)
   })
 
   it('totals the przedmiar figures at the client reading in every view, matching their cells', () => {
@@ -105,6 +144,26 @@ describe('columnTotalsForRows', () => {
     expect(client.get('plannedGross')).toBeCloseTo((client.get('plannedNet') ?? 0) * 1.08, 10)
     expect(subcontractor.get('plannedNet')).toBe(client.get('plannedNet'))
     expect(subcontractor.get('remaining')).toBe(client.get('remaining'))
+  })
+
+  // The crew's own przedmiar figure (owner, 2026-09-28): at the stawka, never with the client's rabat.
+  it('totals „Wartość przedmiaru — <rozliczenie>" at the crew stawka, only in a crew view', () => {
+    // Every row carries a 12 zł stawka z narzędziami over przedmiar 5 + 4 + 0 + 6; row 2's rabat of 8
+    // is a client concession and stays out.
+    expect(totals(rows, 'w_tools').get('plannedNetForPlane')).toBe(15 * 12)
+    expect(totals(rows, 'client').has('plannedNetForPlane')).toBe(false)
+  })
+
+  // The worker's „Pozostało" (EX-875 #9): work another crew finished is not owed to anyone, so the
+  // executed quantity spans every etap even though the price is this crew's stawka.
+  it('totals the worker „Pozostało" off the all-etapy quantity it is handed', () => {
+    const executedAll = { 1: 5, 2: 4, 3: 1, 4: 2 }
+    const worker = columnTotalsForRows(rows, tree.stages, 'w_tools', tree.vatRate, executedAll)
+
+    // Row 4's (6 − 2) × 12; row 3 (no przedmiar, −12) is past the offer and skipped. The own-etapy
+    // quantities (2, 4, 1, 0) would read 108 still owed — row 1's 3 × 12 on top of row 4's 6 × 12.
+    expect(worker.get('remainingForPlane')).toBe(48)
+    expect(totals(rows, 'w_tools').has('remainingForPlane')).toBe(false)
   })
 
   it('drops an out-of-view etap from the axis rather than totalling a hidden column', () => {

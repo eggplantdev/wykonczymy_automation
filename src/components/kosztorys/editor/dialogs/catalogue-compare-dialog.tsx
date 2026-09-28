@@ -159,6 +159,7 @@ export function CatalogueCompareDialog() {
       {savingItemId !== null && (
         <CatalogueItemFromKosztorysDialog
           itemId={savingItemId}
+          catalogue={workCatalogue ?? []}
           open
           onOpenChange={() => setSavingItemId(null)}
           // A fresh cennik, not a re-read of the comparison: the save already invalidated the tag, and

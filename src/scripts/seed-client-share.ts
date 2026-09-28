@@ -1,6 +1,7 @@
 // E2E fixture for the investor share route (`/k/<token>`) — EX-696, EX-721, EX-570, EX-681.
 // One fresh investment carrying everything the public page renders, including a deliberately EMPTY
-// item (what „Ukryj pozycje bez przedmiaru…" is about) and an expense with a real invoice page.
+// item (what „Ukryj pozycje bez przedmiaru…" is about), an etap with no entries (what the investor's
+// document leaves off until one arrives) and an expense with a real invoice page.
 //
 // Fresh per run rather than a fixed id: the test DB is never reset, and the spec writes client-view
 // settings and share tokens onto whatever it is pointed at — on a shared investment that leaks into
@@ -42,9 +43,17 @@ async function main() {
     },
     ...ctx,
   })
+  const filledStage = 'Etap 1'
+  const emptyStage = 'Etap 2'
   const stage = await payload.create({
     collection: 'kosztorys-stages',
-    data: { investment: investment.id, ordinal: 1, label: 'Etap 1' },
+    data: { investment: investment.id, ordinal: 1, label: filledStage },
+    ...ctx,
+  })
+  // No stage-progress anywhere: the investor's document leaves it off until the spec types an entry.
+  await payload.create({
+    collection: 'kosztorys-stages',
+    data: { investment: investment.id, ordinal: 2, label: emptyStage },
     ...ctx,
   })
   const section = await payload.create({
@@ -176,6 +185,8 @@ async function main() {
       sectionName: section.name,
       workedRow,
       emptyRow,
+      filledStage,
+      emptyStage,
       cashDeposit,
       transferDeposit,
       grossExpense,

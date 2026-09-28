@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/summary-grid'
 import { OptionalLink } from '@/components/ui/optional-link'
 import { formatNet } from '@/lib/kosztorys/format'
-import { SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/constants'
+import { SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/labels'
 import { investmentTransfersHref } from '@/lib/utils/investment-transfers-href'
 import { workerKey } from '@/lib/kosztorys/worker-key'
 import { subcontractorRowTotals } from '@/lib/kosztorys/subcontractor-summary'

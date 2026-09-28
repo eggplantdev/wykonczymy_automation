@@ -13,6 +13,7 @@ export const CACHE_TAGS = {
   stageProgress: 'collection:stage-progress',
   leads: 'collection:leads',
   presets: 'collection:kosztorys-presets',
+  kosztorysSnapshots: 'table:kosztorys-snapshots',
   vehicles: 'collection:vehicles',
   vehicleInspections: 'collection:vehicle-inspections',
   workCatalogue: 'collection:work-catalogue-items',
@@ -32,12 +33,13 @@ type EntityNameT = 'investment' | 'cash-register'
 export const entityTag = (entity: EntityNameT, id: number | string) => `${entity}:${id}` as const
 
 /**
- * Every writer of an investment's gallery takes these opts. Only that investment's gallery reads
- * the relation, so the collection slug would expire 64 bystanders; the investments afterChange hook
- * still bumps `collection:investments` for the readers that do key on it. Shared because a writer
- * that forgets the tag is a permanently stale gallery, and there are several.
+ * Every writer of one investment's row-keyed readers takes these opts — its gallery, and
+ * `getInvestment` (the v1 kosztorys page, the investor preview). Only that investment reads them, so
+ * the collection slug would expire 64 bystanders; the investments afterChange hook still bumps
+ * `collection:investments` for the readers that do key on it. Shared because a writer that forgets
+ * the tag is a permanently stale read, and there are several.
  */
-export const investmentAssetTags = (investmentId: number) => ({
+export const investmentEntityOpts = (investmentId: number) => ({
   entityTags: [entityTag('investment', investmentId)],
 })
 
@@ -55,6 +57,23 @@ export const KOSZTORYS_TREE_TAGS = [
   'kosztorysStages',
   'stageProgress',
   'investments',
+] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
+
+// Moving an investment in or out of the trash changes only which rows every investment reader
+// returns — the leads list already keys on `investments` too.
+export const INVESTMENT_TRASH_TAGS = [
+  'investments',
+] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
+
+// A hard delete adds the rows the DB cascade removes or unlinks without firing a Payload hook — the
+// linked sheets, the kosztorys tree, cancelled transactions and equipment events — so nobody else
+// expires them.
+export const INVESTMENT_DELETE_TAGS = [
+  ...INVESTMENT_TRASH_TAGS,
+  'kosztoryses',
+  ...KOSZTORYS_TREE_TAGS.filter((tag) => tag !== 'investments'),
+  'transfers',
+  'equipmentEvents',
 ] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
 
 /**
@@ -84,7 +103,8 @@ export const KOSZTORYS_TREE_TAGS = [
 export const EXPIRE_NOW = { expire: 0 } as const
 
 /**
- * The deferred twin: expires the tag without re-rendering the calling route.
+ * The deferred twin: expires the tag without streaming a render back in the action response. It
+ * does NOT spare the calling route — the client follows up with a GET of it (lessons.md, EX-597).
  *
  * `revalidate()` ends with `if (!profile || cacheLife?.expire === 0) store.pathWasRevalidated = …`,
  * and that flag is what makes a Server Action stream a fresh render of its own route back in the

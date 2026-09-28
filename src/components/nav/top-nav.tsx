@@ -19,7 +19,7 @@ export function TopNav({ referenceData, investmentCrumb }: TopNavPropsT) {
     <header className="border-border bg-background flex h-14 items-center justify-between gap-3 border-b p-4 px-3">
       <MobileNav />
       <Suspense fallback={null}>{investmentCrumb}</Suspense>
-      <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+      <div className="ml-auto flex shrink-0 items-center gap-2">
         {referenceData && (
           <>
             <DepositDialog referenceData={referenceData} />

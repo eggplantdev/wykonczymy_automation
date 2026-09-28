@@ -228,6 +228,32 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
     expect(canonical(after)).toEqual(canonical(before))
   })
 
+  // The rabat rides in the payload for the investor's history only. A restore that wrote it back
+  // would reset the rabat the owner set since — the reason it was left out of `settings`.
+  it('captures the global rabat, and restore leaves the live one alone', async () => {
+    await db.execute(sql`
+      UPDATE investments SET global_discount_type = 'amount', global_discount_value = 500
+      WHERE id = ${investmentId}
+    `)
+    const captured = await serializeKosztorys(investmentId)
+    expect(captured.globalDiscount).toEqual({ type: 'amount', value: 500 })
+
+    await db.execute(
+      sql`UPDATE investments SET global_discount_value = 300 WHERE id = ${investmentId}`,
+    )
+    await withPayloadTransaction(
+      payload,
+      (req) => restoreKosztorys(payload, req, investmentId, captured),
+      { skipRevalidation: true },
+    )
+
+    const live = await db.execute(sql`
+      SELECT global_discount_type, global_discount_value FROM investments WHERE id = ${investmentId}
+    `)
+    expect(live.rows[0]).toMatchObject({ global_discount_type: 'amount' })
+    expect(Number(live.rows[0].global_discount_value)).toBe(300)
+  })
+
   // Snapshots taken before EX-613 carry stages with no `workerId` key at all. Restoring one must
   // land `null` rather than throw or write garbage — the reason the column needed no schema-version
   // bump. Runs last: it leaves the tree without assignments, and the identity test above is the one

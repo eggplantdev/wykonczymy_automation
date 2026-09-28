@@ -79,7 +79,7 @@ describe('GenerateOfferMenuItem', () => {
     expect(toastMessage).toHaveBeenCalledWith('Nie udało się odczytać ustawień podglądu', 'error')
   })
 
-  it('konfiguracja już w ręku menu „Inwestor" oszczędza drugi odczyt', async () => {
+  it('ustawienia już w ręku menu „Inwestor" oszczędzają drugi odczyt i trafiają na papier', async () => {
     const printWindow = {
       document: { title: '', write: vi.fn(), close: vi.fn(), querySelector: () => null },
       addEventListener: vi.fn(),
@@ -87,18 +87,13 @@ describe('GenerateOfferMenuItem', () => {
       close: vi.fn(),
     }
     vi.spyOn(window, 'open').mockReturnValue(printWindow as unknown as Window)
-    actionsContext.clientView = {
-      mode: 'SETTLEMENT',
-      variants: {
-        OFFER: { hiddenColumns: [], hideEmptyRows: true },
-        SETTLEMENT: { hiddenColumns: ['price'], hideEmptyRows: false },
-      },
-    }
+    actionsContext.clientView = { hiddenColumns: ['price'], hideEmptyRows: true, columnRanks: {} }
 
     await clickOffer()
 
     expect(readClientViewSettings).not.toHaveBeenCalled()
-    // The OFFER variant, not the active SETTLEMENT one — „Cena j.m." is hidden only in the latter.
-    expect(printWindow.document.write.mock.calls[0]![0]).toContain('Cena j.m.')
+    expect(printWindow.document.write.mock.calls[0]![0]).not.toContain(
+      '<th class="num">Cena j.m.</th>',
+    )
   })
 })

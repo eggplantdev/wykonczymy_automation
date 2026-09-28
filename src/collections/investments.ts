@@ -1,8 +1,10 @@
-import type { CollectionConfig, Where } from 'payload'
+import type { CollectionConfig } from 'payload'
 import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
-import { excludingCancelled, makePreventDelete } from '@/hooks/prevent-delete'
+import { refuseDeleteWhen } from '@/hooks/prevent-delete'
+import { investmentDeleteBlocker } from '@/lib/investments/delete-blocker'
 import { guardInvestmentStatusUnlock } from '@/hooks/investments/guard-status-unlock'
+import { stampCompletedAt } from '@/hooks/investments/stamp-completed-at'
 import { DEFAULT_COEFFS, DEFAULT_VAT } from '@/lib/kosztorys/constants'
 import {
   SETTLEMENT_MODE_ADMIN_OPTIONS,
@@ -14,24 +16,9 @@ const STATUS_OPTIONS = [
   { label: { en: 'Active', pl: 'Aktywna' }, value: 'active' },
   { label: { en: 'Completed', pl: 'Zakończona' }, value: 'completed' },
   // Never picked by hand — resolveWorkshopInvestment is the only writer
-  // (src/lib/actions/provision-workshop.ts); declared so generate:types knows the value exists.
+  // (src/lib/kosztorys/provision-workshop.ts); declared so generate:types knows the value exists.
   { label: { en: 'Template', pl: 'Szablon' }, value: 'szablon' },
 ] as const
-
-// For LABOR_COST / RABAT / LOSS an orphaned transaction is terminal: they carry no source register
-// either, so a row stripped of `investment_id` is reachable from no investment and no kasa at all.
-// Cancelled rows are exempt — see `excludingCancelled`.
-const preventDeleteWithTransactions = makePreventDelete({
-  probes: [
-    {
-      collection: 'transactions',
-      where: (id): Where => excludingCancelled({ investment: { equals: id } }),
-      label: 'transakcje',
-    },
-  ],
-  message: (blockers) =>
-    `Nie można usunąć inwestycji — istnieją powiązane dane (${blockers.join(', ')}). Najpierw usuń lub przenieś transakcje.`,
-})
 
 export const Investments: CollectionConfig = {
   slug: 'investments',
@@ -45,8 +32,8 @@ export const Investments: CollectionConfig = {
     group: { en: 'Finance', pl: 'Finanse' },
   },
   hooks: {
-    beforeChange: [guardInvestmentStatusUnlock],
-    beforeDelete: [preventDeleteWithTransactions],
+    beforeChange: [guardInvestmentStatusUnlock, stampCompletedAt],
+    beforeDelete: [refuseDeleteWhen(investmentDeleteBlocker)],
     afterChange: [makeRevalidateAfterChange('investments')],
     afterDelete: [makeRevalidateAfterDelete('investments')],
   },
@@ -179,6 +166,21 @@ export const Investments: CollectionConfig = {
       type: 'number',
       admin: { hidden: true },
       label: { en: 'Loaded template id', pl: 'Id wczytanego szablonu' },
+    },
+    // Set by the trash actions only (src/lib/actions/investment-trash.ts). Deliberately not
+    // `deletedAt`: that name is Payload's own `trash: true` column, which fails reads closed.
+    {
+      name: 'trashedAt',
+      type: 'date',
+      admin: { hidden: true },
+      label: { en: 'Trashed at', pl: 'W koszu od' },
+    },
+    // Set by the stampCompletedAt hook only; the investor's change history expires a year after it.
+    {
+      name: 'completedAt',
+      type: 'date',
+      admin: { hidden: true },
+      label: { en: 'Completed at', pl: 'Zakończona dnia' },
     },
   ],
 }

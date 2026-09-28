@@ -97,7 +97,11 @@ export const FIELD_MATCHERS: Record<ColumnFieldT, MatcherT> = {
   clientPrice: exactly('cena j.m.', 'cena j.m', 'cena jm.', 'cena jm', 'cena jednostkowa'),
   // „rabat 8%" — the owner writes the rate into the header on some sheets.
   discount: startsWith('rabat'),
-  netValue: exactly('wartosc netto'),
+  // Most sheets since 2026-07 split the column in two: „Wartość netto przedmiar" (S) and „Wartość
+  // netto pomiar z natury" (T), row 3 dropping the „netto". T is the one the sheet counts — the
+  // section total sums T and „pozostało do rozliczenia" is T minus the etapy — so only the Pomiar
+  // side is named here, which also keeps S from making the match ambiguous.
+  netValue: exactly('wartosc netto', 'wartosc netto pomiar z natury', 'wartosc pomiar z natury'),
   comment: exactly('komentarz'),
 }
 

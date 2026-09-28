@@ -13,6 +13,7 @@ import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kos
 import type { SectionSliceInputT } from '@/lib/kosztorys/chart-slices'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
+import { stagesWithEntries } from '@/lib/kosztorys/settlement-columns'
 
 type PropsT = {
   stages: KosztorysStageT[]
@@ -23,6 +24,8 @@ type PropsT = {
   // Client-priced, view-invariant per-section subtotals — the „Udział sekcji" pie's structure source.
   sectionSubtotals: SectionSliceInputT[]
   vatRate: number
+  // The investor's document lists only etapy with entries, like its grid and its PDF.
+  preview?: boolean
 }
 
 // Both money columns regardless of the settlement mode: the pair is always computed, and reading
@@ -38,9 +41,11 @@ export function SummaryStagesTab({
   executedNet,
   sectionSubtotals,
   vatRate,
+  preview = false,
 }: PropsT) {
-  const { doneNet, plannedNet } = useKosztorysEditorContext()
-  if (stages.length === 0) return <Description withIcon={false}>Brak etapów.</Description>
+  const { doneNet, plannedNet, rows } = useKosztorysEditorContext()
+  const shownStages = preview ? stagesWithEntries(rows, stages) : stages
+  if (shownStages.length === 0) return <Description withIcon={false}>Brak etapów.</Description>
   const cols = summaryMoneyCols(STAGES_AXIS)
 
   return (
@@ -53,7 +58,7 @@ export function SummaryStagesTab({
           <SummaryTable cols={cols} className="w-fit">
             <SummaryHeaderCell variant="label">Robocizna</SummaryHeaderCell>
             <SummaryMoneyHeaders axis={STAGES_AXIS} />
-            {stages.map((st) => (
+            {shownStages.map((st) => (
               <SummaryRow
                 key={st.id}
                 label={stageLabel(st)}

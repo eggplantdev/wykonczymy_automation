@@ -4,7 +4,7 @@ import {
   priceSourceOf,
   subcontractorPrice,
 } from '@/lib/kosztorys/calc'
-import { RATE_LABELS } from '@/lib/kosztorys/constants'
+import { RATE_LABELS } from '@/lib/kosztorys/labels'
 import type { KosztorysItemT, PriceSourceT, ToolPlaneT, ViewPricingT } from '@/lib/kosztorys/types'
 import { foldDescription } from '@/lib/kosztorys/sheet-import/item-key'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'

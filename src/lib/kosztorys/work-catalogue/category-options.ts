@@ -7,3 +7,11 @@ export function catalogueCategoryOptions(items: readonly WorkCatalogueItemT[]) {
     .sort((a, b) => a.localeCompare(b, 'pl'))
     .map((name) => ({ value: name, label: name || 'Bez kategorii' }))
 }
+
+// „Bez kategorii" is a filter answer, not something to type into a new praca — so the form's
+// autocomplete drops the empty option the filter keeps.
+export function catalogueCategorySuggestions(items: readonly WorkCatalogueItemT[]) {
+  return catalogueCategoryOptions(items)
+    .map((option) => option.value)
+    .filter((value) => value !== '')
+}

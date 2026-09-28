@@ -7,17 +7,18 @@ import { Button } from '@/components/ui/button'
 import { logoutAction } from '@/lib/actions/auth'
 import { cn } from '@/lib/utils/cn'
 
-type LogoutButtonPropsT = {
+type LogoutButtonPropsT = React.ComponentProps<typeof Button> & {
   collapsed?: boolean
   /** Runs before the redirect tears the shell down — the drawer uses it to release its scroll lock. */
   beforeLogout?: () => void
 }
 
-export function LogoutButton({ collapsed = false, beforeLogout }: LogoutButtonPropsT) {
+export function LogoutButton({ collapsed = false, beforeLogout, ...props }: LogoutButtonPropsT) {
   const [isPending, startTransition] = useTransition()
 
   return (
     <Button
+      {...props}
       variant="outline"
       size="sm"
       className={cn(collapsed && 'px-0')}

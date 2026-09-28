@@ -2,7 +2,8 @@ import type { CollectionConfig, CollectionBeforeValidateHook, Where } from 'payl
 import { isAdminOrOwner, isAdminOrOwnerField, isAdminOrOwnerOrManager, isManager } from '@/access'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
-import { excludingCancelled, makePreventDelete } from '@/hooks/prevent-delete'
+import { makePreventDelete } from '@/hooks/prevent-delete'
+import { excludingCancelled } from '@/lib/db/delete-blocker'
 
 /** Managers can only create AUXILIARY registers — force the type. */
 const enforceAuxiliaryForManager: CollectionBeforeValidateHook = ({ data, req }) => {

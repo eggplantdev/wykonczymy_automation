@@ -24,7 +24,7 @@ import {
 //
 //   1. The „Zapisz do katalogu…" dialog decides between CREATE and OVERWRITE from the klucz alone,
 //      and the overwrite is irreversible — the katalog keeps no history. So the numbers it shows must
-//      come from the server (they do: `catalogueSavePreviewAction`, the same derivation the save
+//      come from the server (they do: `catalogueSavePreview`, the same derivation the save
 //      runs), the confirm must be a real gate rather than chrome painted over a write that already
 //      happened, and the second save on the same klucz must replace the row instead of adding one.
 //      Nothing below the browser holds that chain: dialog → akcja → Postgres → tag → /katalog-prac.
@@ -87,7 +87,6 @@ test('zapis pozycji do katalogu: druga próba nadpisuje ten sam wiersz, po potwi
 
   await openEditor(page, seed.save.id)
 
-  // --- pierwszy zapis: nowa pozycja ---
   const dialog = await openSaveDialog(page, seed.save.item)
   // „Do zapisania", never „Po zapisie": a free klucz has no second side to compare against, and the
   // label is what tells the owner he is not about to lose anything.
@@ -104,7 +103,6 @@ test('zapis pozycji do katalogu: druga próba nadpisuje ten sam wiersz, po potwi
     'cena zapisana w katalogu',
   )
 
-  // --- raise the price in the rozpiska, save the same klucz once more ---
   await openEditor(page, seed.save.id)
   const priceCell = await rowCell(page, seed.save.item, PRICE_COLUMN)
   // The cell's autosave is debounced, so the reload below would abort it — and the dialog reads its
@@ -209,6 +207,9 @@ test('praca z katalogu ląduje na końcu tej sekcji, z której otwarto katalog',
 
   const picker = page.getByRole('dialog')
   await expect(picker).toContainText('Dodaj pracę z katalogu')
+  // The list is virtualized, so a row outside its window is missing from the DOM too — the check
+  // below would pass for that alone. Narrowed to this one praca, only the switch can hide it.
+  await picker.getByPlaceholder('Szukaj pracy…').fill(seed.insert.item)
   const row = picker.getByRole('checkbox', { name: seed.insert.item, exact: true })
 
   // Instrument check, and the one behaviour the picker owns: the praca IS in this kosztorys, so the

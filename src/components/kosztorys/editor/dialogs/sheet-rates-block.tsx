@@ -11,7 +11,7 @@ import {
   type RatesReportModeT,
 } from '@/components/kosztorys/editor/dialogs/sheet-rates-verdict'
 import { MONEY_TOLERANCE } from '@/lib/kosztorys/calc'
-import { PLANE_LABELS } from '@/lib/kosztorys/constants'
+import { PLANE_LABELS } from '@/lib/kosztorys/labels'
 import type { StaleRateT } from '@/lib/kosztorys/sheet-import/build-sheet-comparison'
 import type {
   RateConflictReasonT,

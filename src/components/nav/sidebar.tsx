@@ -6,6 +6,7 @@ import { ThemeToggle } from '@/components/nav/theme-toggle'
 import { NavLinkItem } from '@/components/nav/nav-link-item'
 import { LogoutButton } from '@/components/nav/logout-button'
 import { RefreshDataButton } from '@/components/nav/refresh-data-button'
+import { AdminButton } from '@/components/nav/admin-button'
 import { cn } from '@/lib/utils/cn'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { useNavLinks } from '@/hooks/use-nav-links'
@@ -71,6 +72,9 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
           <CollapsibleTooltip collapsed={collapsed} label="Odśwież dane">
             <RefreshDataButton collapsed={collapsed} />
           </CollapsibleTooltip>
+          <CollapsibleTooltip collapsed={collapsed} label="Admin">
+            <AdminButton collapsed={collapsed} />
+          </CollapsibleTooltip>
           {/* <Button variant="outline" size="sm" asChild aria-label="Poczta (Roundcube)">
             <Link href={roundcubeUrl} target="_blank" rel="noopener noreferrer">
               <Mail />
@@ -89,6 +93,8 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
 
 // Collapsed, the icon is the only thing left to identify a control, so it gets the label back on
 // hover; expanded, the label is already on screen and a tooltip would just repeat it.
+// The trigger is `asChild`: every child must spread its rest props onto its Button, or the handlers
+// and ref land nowhere and the tooltip never opens.
 function CollapsibleTooltip({
   collapsed,
   label,

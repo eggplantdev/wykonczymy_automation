@@ -2,8 +2,13 @@
 
 import { usePathname } from 'next/navigation'
 import { useCurrentUser } from '@/hooks/use-current-user'
-import { isManagementRole } from '@/lib/auth/roles'
-import { MANAGEMENT_LINKS, SECTION_LINKS, type NavLinkT } from '@/lib/constants/sections'
+import { isAdminOrOwnerRole, isManagementRole } from '@/lib/auth/roles'
+import {
+  MANAGEMENT_LINKS,
+  OWNER_LINKS,
+  SECTION_LINKS,
+  type NavLinkT,
+} from '@/lib/constants/sections'
 
 // „/" is every path's prefix, so „Transakcje" would light up on every screen — it matches exactly,
 // while a section link also claims its sub-pages (`/inwestycje/12` keeps „Inwestycje" lit).
@@ -15,8 +20,10 @@ export function useNavLinks(): { links: NavLinkT[]; isActive: (href: string) => 
   const user = useCurrentUser()
   const pathname = usePathname()
 
+  const links = isManagementRole(user.role) ? [...SECTION_LINKS, ...MANAGEMENT_LINKS] : SECTION_LINKS
+
   return {
-    links: isManagementRole(user.role) ? [...SECTION_LINKS, ...MANAGEMENT_LINKS] : SECTION_LINKS,
+    links: isAdminOrOwnerRole(user.role) ? [...links, ...OWNER_LINKS] : links,
     isActive: (href) => isActiveLink(pathname, href),
   }
 }

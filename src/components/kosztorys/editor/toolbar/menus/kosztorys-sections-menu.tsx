@@ -19,6 +19,7 @@ export function KosztorysSectionsMenu() {
     foldableSectionIds,
     engagedConditionIds,
     globalDiscount,
+    crewAxis,
   } = useKosztorysEditorContext()
   const resetAction = useFilterResetAction()
 
@@ -47,6 +48,7 @@ export function KosztorysSectionsMenu() {
   const sectionToggles = offeredFilterConditions(
     engagedConditionIds,
     isGlobalDiscountActive(globalDiscount),
+    crewAxis,
   )
     .filter(liftsToSections)
     .map((condition) => ({

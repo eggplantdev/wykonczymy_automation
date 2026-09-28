@@ -6,10 +6,12 @@ import { waitForHydration } from '../support/wait'
 
 /**
  * Mint a share token through the owner's real dialog rather than inserting a row — the action that
- * creates it is part of the path under test. Each test mints its own, so none depends on another.
+ * creates it is part of the path under test.
  *
- * Note „Dalej" also SAVES the client-view settings shown on the dialog's first step, so a token
- * minted here carries whatever is currently stored (it is a no-op when nothing changed).
+ * „Udostępnij" mints on the click only when the investment has no link, and otherwise copies the one
+ * it has. The test DB is never reset, so which of the two a spec lands on depends on the specs before
+ * it — and a copied link is a token another spec also holds. Rotating with „Wygeneruj nowy" makes the
+ * token this spec's own whichever way the click went.
  */
 export async function mintShareToken(page: Page, investmentId: number): Promise<string> {
   await page.goto(`/inwestycje/${investmentId}/kosztorys_v2`)
@@ -18,21 +20,17 @@ export async function mintShareToken(page: Page, investmentId: number): Promise<
   await investorMenu.waitFor()
   await waitForHydration(investorMenu)
   await investorMenu.click()
-  await page.getByRole('menuitem', { name: 'Udostępnij' }).click()
+  // Non-exact: each menu item's accessible name is its label plus its description line.
+  await page.getByRole('menuitem', { name: /^Udostępnij/ }).click()
 
   const dialog = page.getByRole('dialog').filter({ hasText: 'Udostępnij inwestorowi' })
-  await dialog.getByRole('button', { name: 'Dalej' }).click()
-  // A kosztorys that already carries a link offers „Wygeneruj nowy" instead — the test DB is never
-  // reset, so the second spec to mint for one investment lands on that branch.
-  const fresh = dialog.getByRole('button', { name: 'Wygeneruj link' })
-  const renew = dialog.getByRole('button', { name: 'Wygeneruj nowy' })
-  await expect(fresh.or(renew).first()).toBeVisible()
   const linkField = dialog.getByRole('textbox')
-  // „Wygeneruj nowy" replaces a token that is still in the field, so the old value has to be held
-  // and waited out — reading too early returns the link this click just invalidated.
-  const stale = (await renew.count()) > 0 ? await linkField.inputValue() : ''
-  await ((await fresh.count()) > 0 ? fresh : renew).click()
+  // The click itself leaves a link behind: no field here means the mint-if-missing never ran.
   await expect(linkField).toHaveValue(/\/k\/.+/)
+  // The old value has to be held and waited out — reading too early returns the link this click
+  // just invalidated.
+  const stale = await linkField.inputValue()
+  await dialog.getByRole('button', { name: 'Wygeneruj nowy' }).click()
   await expect(linkField).not.toHaveValue(stale)
   return (await linkField.inputValue()).split('/k/')[1]
 }

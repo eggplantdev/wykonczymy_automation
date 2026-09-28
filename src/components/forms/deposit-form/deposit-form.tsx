@@ -23,7 +23,7 @@ import { transferFormSchema } from '@/lib/schemas/transfer-form'
 import type { CreateTransferFormT } from '@/lib/schemas/transfer'
 import type { ReferenceDataT } from '@/types/reference-data'
 import { getDefaultCashRegister } from '@/lib/utils/default-cash-register'
-import { today } from '@/lib/utils/date'
+import { warsawToday } from '@/lib/utils/days'
 import { DEFAULT_VAT } from '@/lib/kosztorys/constants'
 import { strandsDeposit } from '@/lib/kosztorys/off-plane-deposits'
 import { DEPOSIT_PLANE_INSTRUMENTAL } from '@/lib/constants/transfers'
@@ -78,7 +78,7 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
       description: '',
       amount: '',
       amountGross: '',
-      date: today(),
+      date: warsawToday(),
       type: 'INVESTOR_DEPOSIT',
       paymentMethod: 'CASH',
       vatPlane: 'NET',

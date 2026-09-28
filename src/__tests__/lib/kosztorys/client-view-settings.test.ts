@@ -1,142 +1,102 @@
 import { describe, expect, it } from 'vitest'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import {
-  clientViewSettingsForMode,
-  sameClientViewConfig,
-  sanitizeClientViewConfig,
-  type ClientViewConfigT,
+  sanitizeClientViewSettings,
+  type ClientViewSettingsT,
 } from '@/lib/kosztorys/client-view-settings'
 import { PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/column-config'
 
-const visibleColumns = (config: ClientViewConfigT, mode: 'OFFER' | 'SETTLEMENT') => {
-  const hidden = new Set(config.variants[mode].hiddenColumns)
+const visibleColumns = (settings: ClientViewSettingsT) => {
+  const hidden = new Set(settings.hiddenColumns)
   return [...PREVIEW_VISIBLE_COLUMNS].filter((key) => !hidden.has(key))
 }
 
-describe('sanitizeClientViewConfig', () => {
-  it('answers an empty source with both code defaults in offer mode', () => {
-    const config = sanitizeClientViewConfig({})
+describe('sanitizeClientViewSettings', () => {
+  // The settlement columns are in the default because they hide themselves until there is an
+  // entry; „Pozostało" is not, because nothing hides it on the owner's behalf (owner, 2026-09-28).
+  it('answers an empty source with the code default', () => {
+    const settings = sanitizeClientViewSettings({})
 
-    expect(config.mode).toBe('OFFER')
-    expect(visibleColumns(config, 'OFFER')).toEqual(
-      expect.arrayContaining([
+    expect(visibleColumns(settings).sort()).toEqual(
+      [
         'description',
         'plannedQty',
         'unit',
         'price',
         'plannedNet',
-        'remaining',
-      ]),
+        'stageQtySum',
+        'net',
+        'stages',
+        'stageValueNet',
+        'donePercent',
+      ].sort(),
     )
-    expect(visibleColumns(config, 'OFFER')).toHaveLength(6)
-    expect(config.variants.OFFER.hideEmptyRows).toBe(true)
-    expect(config.variants.SETTLEMENT.hideEmptyRows).toBe(true)
-  })
-
-  it('makes settlement a superset of the offer', () => {
-    const config = sanitizeClientViewConfig({})
-    const settlement = new Set(visibleColumns(config, 'SETTLEMENT'))
-
-    for (const key of visibleColumns(config, 'OFFER')) expect(settlement.has(key)).toBe(true)
-    expect(settlement.has('donePercent')).toBe(true)
-    expect(settlement.size).toBeGreaterThan(visibleColumns(config, 'OFFER').length)
-  })
-
-  it('falls back to offer on an unknown mode', () => {
-    expect(sanitizeClientViewConfig({ mode: 'INVOICE' }).mode).toBe('OFFER')
-    expect(sanitizeClientViewConfig({ mode: 'SETTLEMENT' }).mode).toBe('SETTLEMENT')
-  })
-
-  it('fills only the missing variant, leaving the stored one alone', () => {
-    const config = sanitizeClientViewConfig({
-      mode: 'SETTLEMENT',
-      variants: { OFFER: { hiddenColumns: ['price'], hideEmptyRows: false } },
-    })
-
-    expect(config.variants.OFFER).toEqual({ hiddenColumns: ['price'], hideEmptyRows: false })
-    expect(config.variants.SETTLEMENT.hiddenColumns).toEqual(
-      sanitizeClientViewConfig({}).variants.SETTLEMENT.hiddenColumns,
-    )
+    expect(settings.hiddenColumns).toContain('remaining')
+    expect(settings.hideEmptyRows).toBe(true)
   })
 
   // The stored value is the HIDDEN set, so „no usable list" must never be read as „hide nothing" —
-  // that would serve the whole allowlist. `variants` is a schemaless json column any owner can
-  // hand-edit in /admin, so a malformed variant is reachable without a code change.
+  // that would serve the whole allowlist. NULL is what a row carries until someone saves a choice.
   it.each([
-    ['a variant with no hidden set', { OFFER: { hideEmptyRows: true } }],
-    ['a hidden set that is not an array', { OFFER: { hiddenColumns: 'price' } }],
-    ['a null hidden set', { OFFER: { hiddenColumns: null } }],
-  ])('falls back to the default hidden set on %s', (_label, variants) => {
-    const config = sanitizeClientViewConfig({ variants })
-
-    expect(config.variants.OFFER.hiddenColumns).toEqual(
-      sanitizeClientViewConfig({}).variants.OFFER.hiddenColumns,
+    ['no source at all', null],
+    ['a row with no hidden set', { hideEmptyRows: true }],
+    ['a hidden set that is not an array', { hiddenColumns: 'price' }],
+    ['a null hidden set', { hiddenColumns: null }],
+  ])('falls back to the default hidden set on %s', (_label, source) => {
+    expect(sanitizeClientViewSettings(source).hiddenColumns).toEqual(
+      sanitizeClientViewSettings({}).hiddenColumns,
     )
   })
 
   it('keeps an explicitly empty hidden set — that is a real choice, not a malformed one', () => {
-    const config = sanitizeClientViewConfig({
-      variants: { OFFER: { hiddenColumns: [], hideEmptyRows: true } },
-    })
+    expect(
+      sanitizeClientViewSettings({ hiddenColumns: [], hideEmptyRows: true }).hiddenColumns,
+    ).toEqual([])
+  })
 
-    expect(config.variants.OFFER.hiddenColumns).toEqual([])
+  it('keeps „hide empty rows" off only when it is stored as false', () => {
+    expect(
+      sanitizeClientViewSettings({ hiddenColumns: [], hideEmptyRows: false }).hideEmptyRows,
+    ).toBe(false)
+    expect(
+      sanitizeClientViewSettings({ hiddenColumns: [], hideEmptyRows: null }).hideEmptyRows,
+    ).toBe(true)
   })
 
   it('drops a stored key that is outside the disclosure ceiling', () => {
-    const config = sanitizeClientViewConfig({
-      variants: { OFFER: { hiddenColumns: ['price', 'subcontractorPrice'], hideEmptyRows: true } },
-    })
-
-    expect(config.variants.OFFER.hiddenColumns).toEqual(['price'])
+    expect(
+      sanitizeClientViewSettings({ hiddenColumns: ['price', 'subcontractorPrice'] }).hiddenColumns,
+    ).toEqual(['price'])
   })
 
   // A crew's rate id resembles the client's `price` — it is that key plus a plane — and the stored
   // set is the HIDDEN one, so a key that survived here would be read as „the owner chose to hide
   // this", implying the allowlist could show it. The ceiling matches the full id, never the base.
   it('drops a subcontractor rate key hand-added to the stored settings', () => {
-    const config = sanitizeClientViewConfig({
-      variants: {
-        OFFER: {
-          hiddenColumns: ['price', planePriceKey('price', 'w_tools'), 'priceCoeff__own_tools'],
-          hideEmptyRows: true,
-        },
-      },
+    const settings = sanitizeClientViewSettings({
+      hiddenColumns: ['price', planePriceKey('price', 'w_tools'), 'priceCoeff__own_tools'],
     })
 
-    expect(config.variants.OFFER.hiddenColumns).toEqual(['price'])
-  })
-})
-
-describe('clientViewSettingsForMode', () => {
-  it('serves the variant the mode names, not the first one', () => {
-    const config = sanitizeClientViewConfig({ mode: 'SETTLEMENT' })
-
-    expect(clientViewSettingsForMode(config)).toBe(config.variants.SETTLEMENT)
-    expect(clientViewSettingsForMode({ ...config, mode: 'OFFER' })).toBe(config.variants.OFFER)
-  })
-})
-
-describe('sameClientViewConfig', () => {
-  it('reports a mode change even when both variants are identical', () => {
-    const config = sanitizeClientViewConfig({})
-
-    expect(sameClientViewConfig(config, { ...config, mode: 'SETTLEMENT' })).toBe(false)
-    expect(sameClientViewConfig(config, sanitizeClientViewConfig({}))).toBe(true)
+    expect(settings.hiddenColumns).toEqual(['price'])
   })
 
-  it('ignores the order of the hidden set', () => {
-    const config = sanitizeClientViewConfig({})
-    const reordered: ClientViewConfigT = {
-      ...config,
-      variants: {
-        ...config.variants,
-        OFFER: {
-          ...config.variants.OFFER,
-          hiddenColumns: [...config.variants.OFFER.hiddenColumns].reverse(),
-        },
-      },
-    }
+  it('never lets „Opis prac" be hidden', () => {
+    expect(
+      sanitizeClientViewSettings({ hiddenColumns: ['description', 'unit'] }).hiddenColumns,
+    ).toEqual(['unit'])
+  })
 
-    expect(sameClientViewConfig(config, reordered)).toBe(true)
+  it.each([
+    ['a key outside the ceiling', { note: 1, price: 2 }],
+    ['a rank on the pinned column', { description: 9, price: 2 }],
+    ['a rank that is not a finite number', { price: 2, unit: Number.NaN, net: 'x' }],
+  ])('drops %s from the stored order', (_label, columnRanks) => {
+    expect(sanitizeClientViewSettings({ hiddenColumns: [], columnRanks }).columnRanks).toEqual({
+      price: 2,
+    })
+  })
+
+  it.each([undefined, null, 'x', 42])('reads a non-object order (%s) as never ordered', (raw) => {
+    expect(sanitizeClientViewSettings({ columnRanks: raw }).columnRanks).toEqual({})
   })
 })

@@ -20,7 +20,6 @@ import {
   NO_DEPOSIT_SUMS,
   type DepositPlaneSumsT,
 } from '@/lib/kosztorys/deposit-planes'
-import { DEFAULT_VAT } from '@/lib/kosztorys/constants'
 import { selectKosztorysSubcontractorDue } from '@/lib/db/kosztorys-subcontractor-due'
 import { NOTHING_DUE } from '@/lib/kosztorys/subcontractor-due'
 import { financialsOnReading, readingFromKosztorys } from '@/lib/kosztorys/summary-reading'
@@ -173,42 +172,29 @@ async function readInputHashes(payload: Payload) {
   //
   // The subcontractor axis (EX-649) is here for the same reason and was the blind spot the second
   // margin exposed: an etap's rozliczenie and a row's stawka move `marginV2` while item count, qty
-  // and rabat all stand still, so without them a data edit arrives dressed as code drift.
+  // and rabat all stand still, so without them a data edit arrives dressed as code drift. A row's
+  // cena and rabat are the same case on the client side (EX-784).
   const kosztorys = await db.execute(sql`
     SELECT
       ki.investment_id AS key,
       count(*)::int AS item_count,
       coalesce(sum(sp.qty), 0)::text AS qty_done,
-      coalesce(inv.global_discount_type, '') || ':' ||
-        coalesce(inv.global_discount_value::text, '') AS global_discount,
       md5(
         string_agg(
-          -- The legacy bytes, reproduced as literals. EX-766 collapsed the stawka pair into one
-          -- nullable column, and hashing the new shape directly would move every kosztorys
-          -- fingerprint on a change that moved no money — the twelve comparable investments would
-          -- fall out of comparison exactly when they are needed to prove that.
-          -- The mnożnik branch comes FIRST because that is the precedence every reader uses
-          -- (EX-865): a wiersz carrying both columns is priced by the mnożnik, so the odcisk has to
-          -- name the same źródło the money came from. A row without one hashes exactly as before.
-          CASE
-            WHEN ki.w_tools_override_coeff IS NOT NULL
-              THEN 'coeff:' || ki.w_tools_override_coeff::text
-            WHEN ki.w_tools_override_value IS NOT NULL
-              THEN 'amount:' || ki.w_tools_override_value::text
-            ELSE ':0' END || ':' ||
-          CASE
-            WHEN ki.own_tools_override_coeff IS NOT NULL
-              THEN 'coeff:' || ki.own_tools_override_coeff::text
-            WHEN ki.own_tools_override_value IS NOT NULL
-              THEN 'amount:' || ki.own_tools_override_value::text
-            ELSE ':0' END,
+          -- A ROW, not concat_ws: concat_ws drops NULLs, so a mnożnik and a kwota of the same
+          -- value would hash alike, and NULL is exactly what picks the stawka's źródło.
+          ROW(
+            ki.client_price, ki.discount_type, ki.discount_value,
+            ki.w_tools_override_coeff, ki.w_tools_override_value,
+            ki.own_tools_override_coeff, ki.own_tools_override_value
+          )::text,
           -- NOT ORDER BY ki.id: the seeds insert items with Promise.all, so a re-seed hands the
           -- same rows different serial ids in a different order and this hash moves while nothing
           -- about the data did — the kosztorys axis then goes dark on a fixture nobody can keep
           -- fresh. Section + display order is what the seed actually fixes.
           ',' ORDER BY ki.section_id, ki.display_order, ki.id
         )
-      ) AS overrides,
+      ) AS items,
       (
         SELECT md5(
           string_agg(
@@ -220,19 +206,36 @@ async function readInputHashes(payload: Payload) {
         WHERE ks.investment_id = ki.investment_id
       ) AS stages
     FROM kosztorys_items ki
-    JOIN investments inv ON inv.id = ki.investment_id
     LEFT JOIN (
       SELECT item_id, sum(qty_done) AS qty FROM stage_progress GROUP BY item_id
     ) sp ON sp.item_id = ki.id
-    GROUP BY ki.investment_id, inv.global_discount_type, inv.global_discount_value
+    GROUP BY ki.investment_id
   `)
 
   let kosztorysItemCount = 0
   for (const row of kosztorys.rows) {
     const key = String(row.key)
     kosztorysItemCount += Number(row.item_count)
-    const sig = `k:${row.item_count}|${row.qty_done}|${row.global_discount}|${row.overrides}|${row.stages ?? ''}`
+    const sig = `k:${row.item_count}|${row.qty_done}|${row.items}|${row.stages ?? ''}`
     hashes.investments[key] = `${hashes.investments[key] ?? ''}/${sig}`
+  }
+
+  // The investment's own columns feed figures too — the materiały netto rate and the mode that
+  // gates it move `margin`, the coefficients move what the crew is owed, the global rabat moves the
+  // client totals. Hashed for every investment, kosztorys or not: the rate and mode apply without
+  // one. `vat_rate` is absent on purpose — no frozen figure reads it.
+  const settings = await db.execute(sql`
+    SELECT
+      id AS key,
+      ROW(
+        materials_net_rate, settlement_mode, w_tools_coeff, own_tools_coeff,
+        global_discount_type, global_discount_value
+      )::text AS sig
+    FROM investments
+  `)
+  for (const row of settings.rows) {
+    const key = String(row.key)
+    hashes.investments[key] = `${hashes.investments[key] ?? ''}/s:${row.sig}`
   }
 
   // Ride along on the scan that was already counting rows. They are the dataset floor's second axis;
@@ -296,7 +299,6 @@ async function buildSnapshot(payload: Payload): Promise<{
     // Absent means no wpłaty at all, which `shapeInvestments` reads as zero on both planes — the
     // same fallback here, so an investment nobody has paid is frozen rather than skipped.
     const deposits = depositPlaneSums.get(id) ?? NO_DEPOSIT_SUMS
-    const vatRate = doc.vatRate ?? DEFAULT_VAT
     investments[String(id)] = {
       totalMaterialCosts: round2(financials.totalMaterialCosts),
       totalIncome: round2(financials.totalIncome),

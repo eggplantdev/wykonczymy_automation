@@ -22,6 +22,10 @@ vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
     resetFilters: vi.fn(),
     collapsedSectionIds: new Set<number>(),
     globalDiscount: { type: null, value: 0 },
+    // 'both', not the app's default 'none': the subject here is the bulk row, and a plane-bound filter
+    // is offered only while its crew's stawki are on screen — at 'none' there would be nothing plane-
+    // bound left for a sweep to reach. The axis gate itself is pinned in `filters-menu-model.test.ts`.
+    crewAxis: 'both',
     search: '',
   }),
 }))
@@ -108,7 +112,7 @@ describe('KosztorysFiltersMenu — nagłówki kategorii', () => {
     await openMenu()
 
     expect(screen.getByRole('group', { name: 'Źródło stawki wykonawcy' })).toHaveTextContent(
-      'Pozycje ze stawką wykonawcy z kwoty stałej w widoku z narzędziami (podwykonawca) (2)',
+      'Kwota stała — z narzędziami (podwykonawca) (2)',
     )
     expect(screen.getByRole('group', { name: 'Przedmiar i wykonana praca' })).toBeInTheDocument()
     expect(screen.getByRole('group', { name: 'Komentarz' })).toBeInTheDocument()

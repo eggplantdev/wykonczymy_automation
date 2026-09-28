@@ -9,7 +9,7 @@ import {
   SummaryValueCell,
 } from '@/components/ui/summary-grid'
 import { formatNet } from '@/lib/kosztorys/format'
-import { PLANE_LABELS, SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/constants'
+import { PLANE_LABELS, SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/labels'
 import type { SubcontractorSummaryT } from '@/lib/kosztorys/subcontractor-summary'
 import type { SubcontractorDueByPlaneT } from '@/lib/kosztorys/subcontractor-due'
 

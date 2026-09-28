@@ -10,6 +10,8 @@ import { ColumnToggleMenu } from '@/components/ui/column-toggle-menu'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import {
+  CREWS,
+  CREW_PAIR_CONFIG,
   KOLUMNY_HINT,
   LAYERS,
   LAYER_PAIR_CONFIG,
@@ -68,6 +70,8 @@ export function KosztorysViewMenu() {
     setMoneyAxis,
     layer,
     setLayer,
+    crewAxis,
+    setCrewAxis,
     columnToggleItems,
     revealedColumnIds,
     toggleColumn,
@@ -78,9 +82,10 @@ export function KosztorysViewMenu() {
     resetColumnOrder,
   } = useKosztorysEditorContext()
 
-  // Subcontractors are paid without VAT (EX-558), so the netto/brutto axis is meaningless in the
-  // Z/Bez narzędzi views — hide the Kwoty control there.
-  const showMoneyAxis = view === 'client'
+  // Both axis controls belong to „Inwestor" alone, for two different reasons: subcontractors are paid
+  // without VAT (EX-558), so netto/brutto is meaningless in their views, and a subcontractor view IS
+  // the crew choice (`effectiveCrewAxis` pins it) — ticks there would be a control that cannot move.
+  const isClientView = view === 'client'
 
   // A hidden column is the one piece of „co widzę" that leaves no trace on the grid — a filter at
   // least shortens it, while a column that is gone looks exactly like a column that never existed.
@@ -113,7 +118,7 @@ export function KosztorysViewMenu() {
       }}
       sections={
         <>
-          {showMoneyAxis && (
+          {isClientView && (
             <>
               <AxisSection
                 label="Kwoty"
@@ -121,6 +126,18 @@ export function KosztorysViewMenu() {
                 value={moneyAxis}
                 config={MONEY_PAIR_CONFIG}
                 onChange={setMoneyAxis}
+              />
+              <DropdownMenuSeparator />
+            </>
+          )}
+          {isClientView && (
+            <>
+              <AxisSection
+                label="Stawki wykonawców"
+                options={CREWS}
+                value={crewAxis}
+                config={CREW_PAIR_CONFIG}
+                onChange={setCrewAxis}
               />
               <DropdownMenuSeparator />
             </>

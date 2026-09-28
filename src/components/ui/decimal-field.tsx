@@ -1,11 +1,17 @@
 'use client'
 
-import { useState, type FocusEvent, type KeyboardEvent, type ReactNode } from 'react'
+import { useState, type KeyboardEvent, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { DecimalInput } from '@/components/ui/decimal-input'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
 import { cn } from '@/lib/utils/cn'
 import { parseDecimalInput } from '@/lib/utils/parse-decimal-input'
+import { NOTICE_MS, rejectedEntryMessage } from '@/lib/utils/notice'
+import { toastMessage } from '@/lib/utils/toast'
+
+// What an entry resolves to: a number to write, a refusal the user is told about, or nothing to do
+// (cleared, with no `emptyAs` to clear to).
+type EntryT = { kind: 'commit'; value: number } | { kind: 'reject' } | { kind: 'none' }
 
 type PropsT = {
   // Omitted where an enclosing block already names the figure — a second „Stawka" over one input is
@@ -17,16 +23,15 @@ type PropsT = {
   // Shown as an (i) icon beside the label — the input stays a clean text field. An icon, not a
   // hover target on the label text: nothing about bare text says a hint is hiding behind it.
   hint?: string
-  // Unit printed after the input („%", „zł").
   suffix?: ReactNode
   value: number | null
   placeholder?: number
   // Colours the value only; a direct color on the input overrides the muted colour the label inherits.
   valueClassName?: string
-  // Accepted range. An entry outside it is REJECTED here — the field snaps back to `value` and no
-  // commit fires — rather than travelling to the server action to come back as a Zod error toast.
-  // A bound the action already enforces (`vatRate` is `.min(0).max(1)`) belongs on the input too:
-  // the toast tells the user what they may not do only after they have already done it.
+  // Accepted range. An entry outside it is REJECTED here — no commit, the field restores `value` and
+  // says so in the grid cell's sentence — rather than travelling to the server action to come back as
+  // a Zod error toast. Never clamp in `onCommit` instead: „230" meant „23", and saving 100% keeps a
+  // number nobody typed (EX-819). A bound the action already enforces belongs on the input too.
   min?: number
   max?: number
   // What a cleared field commits. Without it, blanking the input is a silent no-op — the field looks
@@ -70,27 +75,45 @@ export function DecimalField({
     setTyped(null)
   }
 
+  // Bumped to remount the input on a restore: it is uncontrolled and its `key` only moves when `value`
+  // CHANGES, so a refused entry would otherwise stay on screen as text the app has not accepted.
+  const [restores, setRestores] = useState(0)
+
   const outOfRange = (n: number) => (min != null && n < min) || (max != null && n > max)
 
-  // The value `raw` would commit, or null when there is nothing acceptable to write.
-  const commitValueOf = (raw: string): number | null => {
+  const entryOf = (raw: string): EntryT => {
     const parsed = parseDecimalInput(raw)
-    if (parsed.kind === 'empty') return emptyAs ?? null
-    if (parsed.kind !== 'value' || outOfRange(parsed.value)) return null
-    return parsed.value
+    if (parsed.kind === 'empty')
+      return emptyAs == null ? { kind: 'none' } : { kind: 'commit', value: emptyAs }
+    if (parsed.kind === 'invalid' || outOfRange(parsed.value)) return { kind: 'reject' }
+    return { kind: 'commit', value: parsed.value }
   }
 
-  const pending = typed == null || typed === text ? null : commitValueOf(typed)
+  // `null` while nothing has been typed — a refused entry still arms „Zapisz", because a button that
+  // silently greys out over „230" is the same unexplained refusal as a silent snap-back.
+  const pending = typed == null || typed === text ? null : entryOf(typed)
+  const canSave = pending != null && pending.kind !== 'none'
 
-  const commitOnBlur = (e: FocusEvent<HTMLInputElement>) => {
-    const next = commitValueOf(e.target.value)
-    if (next == null) {
-      // Written back by hand: the input is uncontrolled and its `key` only remounts when `value`
-      // CHANGES, so a rejected entry would otherwise stay on screen as text the app has not accepted.
-      e.target.value = text
-      return
+  const restore = () => {
+    setTyped(null)
+    setRestores((count) => count + 1)
+  }
+
+  const settle = (entry: EntryT) => {
+    if (entry.kind === 'commit') return onCommit(entry.value)
+    if (entry.kind === 'reject') {
+      const restored =
+        value == null
+          ? null
+          : // Full precision, because `toLocaleString`'s default stops at 3 decimals while the input
+            // restores all of them — and four is the norm for a coefficient (0,5525 is the shipped
+            // own-tools ceiling). A rounded figure here names a value the field did not restore.
+            `${value.toLocaleString('pl-PL', { maximumFractionDigits: 20 })}${
+              typeof suffix === 'string' ? suffix : ''
+            }`
+      toastMessage(rejectedEntryMessage(restored), 'error', NOTICE_MS)
     }
-    onCommit(next)
+    restore()
   }
 
   return (
@@ -108,7 +131,7 @@ export function DecimalField({
       )}
       <span className="flex items-center gap-1">
         <DecimalInput
-          key={text || 'null'}
+          key={`${text || 'null'}:${restores}`}
           defaultValue={text}
           placeholder={placeholder != null ? String(placeholder) : ''}
           // A „Zapisz" beside the input means the pair reads as one control, so the input borrows the
@@ -116,11 +139,11 @@ export function DecimalField({
           className={cn(withSave && 'rounded-md', valueClassName)}
           disabled={disabled}
           onChange={withSave ? (e) => setTyped(e.target.value) : undefined}
-          onBlur={withSave ? undefined : commitOnBlur}
+          onBlur={withSave ? undefined : (e) => settle(entryOf(e.target.value))}
           onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
             if (e.key !== 'Enter') return
             if (!withSave) e.currentTarget.blur()
-            else if (pending != null) onCommit(pending)
+            else if (canSave) settle(pending)
           }}
         />
         {suffix}
@@ -130,8 +153,8 @@ export function DecimalField({
             variant="outline"
             size="sm"
             className="h-7 px-2"
-            disabled={disabled || pending == null}
-            onClick={() => pending != null && onCommit(pending)}
+            disabled={disabled || !canSave}
+            onClick={() => canSave && settle(pending)}
           >
             Zapisz
           </Button>

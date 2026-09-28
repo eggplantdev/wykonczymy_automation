@@ -45,4 +45,24 @@ describe.skipIf(!ENV_READY)('getPreviewKosztorysByToken (DB)', () => {
   it('returns null for an empty token rather than matching the first share', async () => {
     expect(await getPreviewKosztorysByToken('')).toBeNull()
   })
+
+  it('returns null while the investment is in the trash, and the same token works after restore', async () => {
+    await payload.update({
+      collection: 'investments',
+      id: investmentId,
+      data: { trashedAt: new Date().toISOString() },
+      overrideAccess: true,
+    })
+    try {
+      expect(await getPreviewKosztorysByToken(token)).toBeNull()
+    } finally {
+      await payload.update({
+        collection: 'investments',
+        id: investmentId,
+        data: { trashedAt: null },
+        overrideAccess: true,
+      })
+    }
+    expect(await getPreviewKosztorysByToken(token)).not.toBeNull()
+  })
 })

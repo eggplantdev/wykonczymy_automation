@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
-import { useOpenPreset } from '@/hooks/use-open-preset'
+import { presetOpenHref } from '@/components/presets/preset-open-href'
 import { createEmptyPresetAction } from '@/lib/actions/kosztorys-presets'
 import { toastMessage } from '@/lib/utils/toast'
 
@@ -16,7 +17,7 @@ export function CreateEmptyPresetDialog() {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
   const [pending, startTransition] = useTransition()
-  const { open: openInWorkshop } = useOpenPreset()
+  const router = useRouter()
 
   const canSave = name.trim().length > 0 && !pending
 
@@ -24,11 +25,11 @@ export function CreateEmptyPresetDialog() {
     startTransition(async () => {
       const res = await createEmptyPresetAction(name)
       if (!res.success) return toastMessage(res.error ?? 'Nie udało się założyć szablonu', 'error')
-      // Before the navigation, never after: `open` pushes a new route, and a dialog still mounted
-      // when the page under it is torn down stays on screen over the warsztat.
+      // Before the navigation, never after: a dialog still mounted when the page under it is torn
+      // down stays on screen over the warsztat.
       setOpen(false)
       setName('')
-      openInWorkshop(res.data.id)
+      router.push(presetOpenHref(res.data.id))
     })
   }
 

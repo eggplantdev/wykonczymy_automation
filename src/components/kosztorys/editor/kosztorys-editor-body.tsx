@@ -8,7 +8,9 @@ import { SheetIcon } from 'lucide-react'
 // StaticDataSheetGrid, which snapshots `columns` via useState at mount (EX-422).
 import { DynamicDataSheetGrid, type DataSheetGridRef } from 'react-datasheet-grid'
 import { KosztorysTotalsPanel } from '@/components/kosztorys/summary/kosztorys-totals-panel'
-import { KosztorysTotalsPanelToggle } from '@/components/kosztorys/summary/kosztorys-totals-panel-toggle'
+import { TotalsPanelOverlay } from '@/components/kosztorys/summary/totals-panel-overlay'
+import { WorkerSummary } from '@/components/kosztorys/summary/blocks/worker-summary'
+import { SummaryScrollRegion } from '@/components/ui/summary-grid'
 import { KosztorysEditorToolbar } from '@/components/kosztorys/editor/toolbar/kosztorys-editor-toolbar'
 import { BrandLogo } from '@/components/ui/brand-logo'
 import { Button } from '@/components/ui/button'
@@ -24,7 +26,11 @@ import { SheetImportDialog } from '@/components/kosztorys/editor/dialogs/sheet-i
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { sectionFooterLabelColumnId } from '@/components/kosztorys/editor/grid/cells/section-footer-cell'
 import { sectionBandLabelColumnId } from '@/components/kosztorys/editor/grid/cells/section-header-cell'
-import { withSyntheticRows } from '@/components/kosztorys/editor/grid/kosztorys-synthetic-rows'
+import {
+  STRIPE_COLUMN_CLASS,
+  withCellClass,
+  withSyntheticRows,
+} from '@/components/kosztorys/editor/grid/kosztorys-synthetic-rows'
 import {
   ordinalGutterColumn,
   type RowResizeApiT,
@@ -64,10 +70,14 @@ import {
   type UndoRedoApiT,
 } from '@/components/kosztorys/editor/hooks/use-undo-redo'
 import { KosztorysLockedBanner } from '@/components/kosztorys/editor/kosztorys-locked-banner'
-import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
+import { HistoryBanner } from '@/components/kosztorys/editor/history/history-banner'
+import { withHistoryChanges } from '@/components/kosztorys/editor/history/history-change-cell'
+import { PreviewHeaderActions } from '@/components/kosztorys/editor/preview-header-actions'
+import { historyGridTree, stageIdsFilledNow } from '@/lib/kosztorys/history/history-grid'
+import type { InvestorHistoryT } from '@/lib/kosztorys/history/types'
 import type { KosztorysEditorDataT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
+import type { WorkerAudienceT } from '@/lib/kosztorys/worker-view/types'
 
 type PropsT = KosztorysEditorDataT & {
   // Read-only public render: hides the mutation chrome, kills persistence, gates the footer's
@@ -75,6 +85,11 @@ type PropsT = KosztorysEditorDataT & {
   preview?: boolean
   // Arrives with the preview payload only; the owner's editor renders the full grid regardless.
   clientView?: ClientViewSettingsT
+  // The named worker's document; only ever with `preview`.
+  worker?: WorkerAudienceT
+  // The investor's change history; only ever with `preview`, and ignored with `worker`. With a
+  // version open the grid renders that version, compared against `tree`.
+  history?: InvestorHistoryT
   // Optional because the read-only client body omits it and falls back to NOOP_UNDO_REDO.
   undoRedo?: UndoRedoApiT
   onOpenVersions?: () => void
@@ -95,6 +110,8 @@ export function KosztorysEditorBody({
   depositTransactions,
   preview = false,
   clientView,
+  worker,
+  history,
   locked = false,
   hasSheet = false,
   templatePresetId,
@@ -114,11 +131,27 @@ export function KosztorysEditorBody({
   const hasSettledMaterial = panelData.settledBreakdown.length > 0
   const isWorkshop = templatePresetId != null
   const noun = editorNoun(templatePresetId)
+  // The investor's history never reaches a crew's document, whatever a caller passes.
+  const investorHistory = worker ? undefined : history
+  const pastVersion = investorHistory?.version ?? null
+  const gridTree = useMemo(
+    () => (pastVersion ? historyGridTree(pastVersion) : tree),
+    [pastVersion, tree],
+  )
+  const filledStageIds = useMemo(
+    () => (pastVersion ? stageIdsFilledNow(pastVersion.diff) : undefined),
+    [pastVersion],
+  )
+  const removedItemIds = useMemo(
+    () => new Set(pastVersion?.diff.removed.map(({ id }) => id)),
+    [pastVersion],
+  )
   const editor = useKosztorysEditor({
     investmentId,
-    tree,
+    tree: gridTree,
     preview,
     clientView,
+    worker,
     locked,
     undoRedo,
     workers,
@@ -126,6 +159,7 @@ export function KosztorysEditorBody({
     workCatalogue,
     onStaleTree,
     isWorkshop,
+    filledStageIds,
   })
   const {
     gridRef,
@@ -229,14 +263,23 @@ export function KosztorysEditorBody({
 
   const gridColumns = useMemo(
     () =>
-      columns.map((column) =>
-        withSyntheticRows(column, {
-          totals: columnTotals,
-          sectionHeader,
-          sectionFooter,
-        }),
-      ),
-    [columns, columnTotals, sectionHeader, sectionFooter],
+      columns
+        .map((column) => (pastVersion ? withHistoryChanges(column, pastVersion.diff) : column))
+        .map((column, index) =>
+          withSyntheticRows(
+            // A class per column rather than `:nth-child` in CSS: dsg virtualizes columns, so a
+            // horizontal scroll shifts which DOM child a column is and the stripes would swap.
+            preview && index % 2 === 1
+              ? {
+                  ...column,
+                  cellClassName: withCellClass(column.cellClassName, STRIPE_COLUMN_CLASS),
+                  headerClassName: cn(column.headerClassName, STRIPE_COLUMN_CLASS),
+                }
+              : column,
+            { totals: columnTotals, sectionHeader, sectionFooter },
+          ),
+        ),
+    [columns, pastVersion, preview, columnTotals, sectionHeader, sectionFooter],
   )
   const engagedHiderList = engagedHiders(engagedConditionIds)
   const engagedDiagnostics = engagedConditionsOfKind(engagedConditionIds, 'diagnostic')
@@ -356,7 +399,7 @@ export function KosztorysEditorBody({
         ...editor,
         investmentId,
         investmentName,
-        tree,
+        tree: gridTree,
         onOpenVersions: editor.readOnly ? undefined : onOpenVersions,
         onTreeReplaced,
         openImport: editor.readOnly ? undefined : openImport,
@@ -386,33 +429,43 @@ export function KosztorysEditorBody({
                 {/* Its own row below `sm`, beside the logo from there up. Logo plus a `lg` button
                     leave a phone no width for a name, and the name is what the client is here to
                     read — so it takes the second line rather than an ellipsis. */}
-                <h1 className="order-last w-full truncate text-base font-medium sm:order-none sm:w-auto sm:flex-1">
-                  {investmentName}
-                </h1>
-                <div className="ml-auto flex shrink-0 flex-col items-end gap-2 sm:flex-row sm:items-center sm:gap-4">
-                  {/* The panel's open state is persisted per person, not per view, so without this the
-                  client view inherits whatever the toolbar last left and can never fold it back. */}
-                  <KosztorysTotalsPanelToggle
-                    size="lg"
-                    disabled={subtotals.length === 0}
-                    hasRows={subtotals.length > 0}
-                  />
-                  {clientEmptyRowIds.size > 0 && (
-                    <Label className="cursor-pointer font-normal sm:order-first">
-                      <Switch checked={showAllRows} onCheckedChange={setShowAllRows} />
-                      Pokaż wszystkie pozycje (+{clientEmptyRowIds.size})
-                    </Label>
-                  )}
+                <div className="order-last w-full min-w-0 sm:order-none sm:w-auto sm:flex-1">
+                  <h1 className="truncate text-base font-medium">{investmentName}</h1>
+                  {/* Its own line: appended to a long investment name it was the part the ellipsis
+                      cut, and on the worker's document the name is what makes it his. */}
+                  {worker && <p className="truncate text-sm font-medium">{worker.name}</p>}
                 </div>
+                <PreviewHeaderActions
+                  history={investorHistory}
+                  hasRows={subtotals.length > 0}
+                  emptyRowCount={clientEmptyRowIds.size}
+                  showAllRows={showAllRows}
+                  onShowAllRowsChange={setShowAllRows}
+                />
               </header>
             ) : (
               <>
-                <KosztorysEditorToolbar />
+                <KosztorysEditorToolbar
+                  protocolSource={
+                    investment && !isWorkshop
+                      ? {
+                          investment,
+                          materials: {
+                            grossBase: panelData.materialsGrossBase,
+                            netBilled: panelData.materialsNetBilled,
+                          },
+                          depositTransactions,
+                          lossAmount: investmentLoss,
+                        }
+                      : undefined
+                  }
+                />
                 {/* Without this the editor just looks broken — cells refuse focus and nothing says why.
                   Never under the preview: the client's document knows nothing of our statuses. */}
                 {locked && <KosztorysLockedBanner />}
               </>
             )}
+            {preview && <HistoryBanner version={pastVersion} />}
             {/* We measure the container height (flex-1) and pass it to the grid — datasheet-grid
             needs px for virtualization; without it, it renders all 1000 rows.
             The grid track `minmax(0,1fr)` gives a DEFINITE width (= viewport): the grid doesn't
@@ -426,7 +479,7 @@ export function KosztorysEditorBody({
               >
                 <DynamicDataSheetGrid
                   ref={datasheetRef}
-                  className="kosztorys-grid"
+                  className={cn('kosztorys-grid', preview && 'kosztorys-grid-preview')}
                   value={gridRows}
                   // Strip the appended spacer + „Razem" rows before the editor's diff sees them — display-only.
                   onChange={(rows) => onChange(rows.filter((row) => !isSyntheticRow(row.id)))}
@@ -461,6 +514,7 @@ export function KosztorysEditorBody({
                       isSectionFooterRow(rowData.id) && 'kosztorys-section-footer',
                       clipCueClass(rowData),
                       showAllRows && clientEmptyRowIds.has(rowData.id) && 'kosztorys-revealed-row',
+                      removedItemIds.has(rowData.id) && 'kosztorys-history-removed',
                     )
                   }
                 />
@@ -546,7 +600,16 @@ export function KosztorysEditorBody({
               has something to say on an empty kosztorys. The client document keeps the row gate: it
               has no such tab, and its toggle is `disabled` there, so a panel left open would be a
               full-height sheet of zeros nobody could fold away. */}
-              {(!preview || subtotals.length > 0) && (
+              {/* The worker's document swaps the whole panel for his own balance: every tab of the
+              investor's reads the client's money, none of which is his to see. */}
+              {worker && subtotals.length > 0 && (
+                <TotalsPanelOverlay hasRows>
+                  <SummaryScrollRegion className="px-4 py-4">
+                    <WorkerSummary summary={worker.summary} />
+                  </SummaryScrollRegion>
+                </TotalsPanelOverlay>
+              )}
+              {!worker && !pastVersion && (!preview || subtotals.length > 0) && (
                 <KosztorysTotalsPanel
                   hasRows={subtotals.length > 0}
                   {...panelData}

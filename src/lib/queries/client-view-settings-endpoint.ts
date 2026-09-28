@@ -2,8 +2,10 @@
 
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
-import type { ClientViewConfigT } from '@/lib/kosztorys/client-view-settings'
-import { getClientViewConfig } from '@/lib/queries/kosztorys-client-view'
+import {
+  getClientViewSettingsRead,
+  type ClientViewSettingsReadT,
+} from '@/lib/queries/kosztorys-client-view'
 
 /**
  * The settings dialog's on-demand read, opened from the editor's „Opcje" menu. Named for what the
@@ -11,9 +13,11 @@ import { getClientViewConfig } from '@/lib/queries/kosztorys-client-view'
  * resolver that runs `overrideAccess` for the token entrance: publishing that one directly would
  * hand anyone an unauthenticated read. Here the session is checked first.
  */
-export async function readClientViewSettings(investmentId: number): Promise<ClientViewConfigT> {
+export async function readClientViewSettings(
+  investmentId: number,
+): Promise<ClientViewSettingsReadT> {
   const session = await requireAuth(MANAGEMENT_ROLES)
   if (!session.success) throw new Error(session.error)
 
-  return getClientViewConfig(investmentId)
+  return getClientViewSettingsRead(investmentId)
 }

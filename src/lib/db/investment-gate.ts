@@ -1,6 +1,10 @@
 import { sql } from '@payloadcms/db-vercel-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
-import { isLockedStatus } from '@/lib/constants/investment-lock'
+import {
+  INVESTMENT_LOCKED_MESSAGE,
+  INVESTMENT_TRASHED_MESSAGE,
+  isLockedStatus,
+} from '@/lib/constants/investment-lock'
 import { resolveId } from '@/lib/utils/resolve-id'
 import { numOrNull } from '@/lib/db/row-coerce'
 
@@ -20,30 +24,41 @@ const TABLE_BY_KIND: Record<GateTargetKindT, string> = {
  * owes a mirror into the szablon's row). Answering them separately would double the round trip on
  * every kosztorys mutation.
  */
-export type InvestmentGateT = { locked: boolean; templatePresetId: number | null }
+export type InvestmentGateT = { lockMessage: string | undefined; templatePresetId: number | null }
+
+// Trashed wins over completed: a restore brings back whatever status the investment had, so „set it
+// to Aktywna" would send the user to a control they cannot reach while it sits in the trash.
+function lockMessageOf(row: Record<string, unknown> | undefined): string | undefined {
+  if (row?.trashed_at != null) return INVESTMENT_TRASHED_MESSAGE
+  if (isLockedStatus(row?.status as string | undefined)) return INVESTMENT_LOCKED_MESSAGE
+  return undefined
+}
 
 export async function investmentGateFor(
   db: DbExecutorT,
   investmentId: number,
 ): Promise<InvestmentGateT> {
   const res = await db.execute(
-    sql`SELECT status, template_preset_id FROM investments WHERE id = ${investmentId}`,
+    sql`SELECT status, trashed_at, template_preset_id FROM investments WHERE id = ${investmentId}`,
   )
   const row = res.rows[0]
   return {
-    locked: isLockedStatus(row?.status as string | undefined),
+    lockMessage: lockMessageOf(row),
     templatePresetId: numOrNull(row?.template_preset_id),
   }
 }
 
 /**
- * A completed investment is settled — payouts included — so no figure on it may move again until
- * someone puts it back to „Aktywna". A missing row is not locked: a nonexistent investment is the
- * caller's problem to report, not the lock's.
+ * A completed investment is settled — payouts included — until someone puts it back to „Aktywna"; a
+ * trashed one is frozen until it is restored. A missing row is not locked: a nonexistent investment
+ * is the caller's problem to report, not the lock's.
  */
-export async function isInvestmentLocked(db: DbExecutorT, investmentId: number): Promise<boolean> {
-  const { locked } = await investmentGateFor(db, investmentId)
-  return locked
+export async function investmentLockMessage(
+  db: DbExecutorT,
+  investmentId: number,
+): Promise<string | undefined> {
+  const { lockMessage } = await investmentGateFor(db, investmentId)
+  return lockMessage
 }
 
 /**
@@ -59,7 +74,7 @@ export async function investmentGateForRow(
   id: number,
 ): Promise<({ investmentId: number } & InvestmentGateT) | undefined> {
   const res = await db.execute(
-    sql`SELECT i.id, i.status, i.template_preset_id FROM ${sql.raw(TABLE_BY_KIND[kind])} r
+    sql`SELECT i.id, i.status, i.trashed_at, i.template_preset_id FROM ${sql.raw(TABLE_BY_KIND[kind])} r
         JOIN investments i ON i.id = r.investment_id
         WHERE r.id = ${id}`,
   )
@@ -67,7 +82,7 @@ export async function investmentGateForRow(
   if (!row) return undefined
   return {
     investmentId: Number(row.id),
-    locked: isLockedStatus(row.status as string),
+    lockMessage: lockMessageOf(row),
     templatePresetId: numOrNull(row.template_preset_id),
   }
 }
@@ -77,11 +92,11 @@ export async function investmentGateForRow(
  * nothing at all. „Nothing" is not locked — a row that names no investment moves no investment's
  * money, so it is not this gate's business to refuse it.
  */
-export async function isRelatedInvestmentLocked(
+export async function relatedInvestmentLockMessage(
   db: DbExecutorT,
   relation: unknown,
-): Promise<boolean> {
+): Promise<string | undefined> {
   const investmentId = resolveId(relation)
-  if (investmentId === undefined) return false
-  return isInvestmentLocked(db, investmentId)
+  if (investmentId === undefined) return undefined
+  return investmentLockMessage(db, investmentId)
 }

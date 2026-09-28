@@ -1,0 +1,4 @@
+# Prettier is not idempotent on HTML comments nested in list items: every run indents their
+# continuation lines four spaces deeper, so each commit through lint-staged churned untouched QA
+# notes in the registry.
+context/foundation/manual-checks.md

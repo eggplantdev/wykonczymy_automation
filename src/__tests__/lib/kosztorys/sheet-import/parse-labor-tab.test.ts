@@ -42,6 +42,13 @@ describe('parseLaborTab', () => {
     expect(items.filter((item) => item.sectionId === sections[0].id)).toHaveLength(2)
   })
 
+  it('names sections from the opis column on a sheet with no nazwa-sekcji column', () => {
+    const { sections, items } = parse(BIALOSTOCKA_ROWS.map((gridRow) => gridRow.slice(1)))
+
+    expect(sections.map((section) => section.name)).toEqual(['Prace dodatkowe', 'Klimatyzacja'])
+    expect(items).toHaveLength(3)
+  })
+
   it('does not turn a section header into a praca', () => {
     const { items } = parse(BIALOSTOCKA_ROWS)
     expect(items.map((item) => item.description)).not.toContain('Klimatyzacja')

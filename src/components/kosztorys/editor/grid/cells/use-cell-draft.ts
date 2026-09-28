@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react'
 import { cellKeystroke, cellSettle, type CellEditPolicyT } from '@/lib/kosztorys/cell-edit'
-import { NOTICE_MS } from '@/lib/kosztorys/constants'
+import { NOTICE_MS, rejectedEntryMessage } from '@/lib/utils/notice'
 import { toastMessage } from '@/lib/utils/toast'
 import type { StopEditingT } from '@/components/ui/datasheet-grid/types'
 
@@ -66,7 +66,10 @@ export function useCellDraft<RowT extends { id: number }, EntryT>(
     // under the user is how they trust one they never chose. Garbage that displaced nothing is quiet.
     if (settled.reason === 'blocked' || settled.row) {
       toastMessage(
-        `${settled.reason === 'blocked' ? 'Wartość odrzucona' : 'Nieprawidłowa wartość'} — przywrócono ${policy.restoredLabel(settled.restored)}.`,
+        rejectedEntryMessage(
+          policy.restoredLabel(settled.restored),
+          settled.reason === 'blocked' ? 'blocked' : 'invalid',
+        ),
         'error',
         NOTICE_MS,
       )

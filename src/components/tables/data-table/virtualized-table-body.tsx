@@ -3,6 +3,7 @@
 import React from 'react'
 import { type HeaderGroup, type Row } from '@tanstack/react-table'
 import { type useVirtualizer } from '@tanstack/react-virtual'
+import { cn } from '@/lib/utils/cn'
 import { DataTableRow } from './data-table-row'
 import { TableHeader } from './table-header'
 import { TableFooter } from './table-footer'
@@ -11,13 +12,14 @@ import { EmptyRow } from './empty-row'
 type VirtualizedTableBodyPropsT<TData> = {
   parentRef: React.RefObject<HTMLDivElement | null>
   containerHeight: number
+  /** Sizes the scroll container instead of `containerHeight` — for a list whose height follows its
+   * layout, e.g. a `max-h-*` that lets a short list collapse. */
+  containerClassName?: string
   headerGroups: HeaderGroup<TData>[]
   rows: Row<TData>[]
   virtualizer: ReturnType<typeof useVirtualizer<HTMLDivElement, Element>>
   visibleColumnIdList: string[]
   getRowHref?: (row: TData) => string | undefined
-  /** Row click handler for a row that must not be an href — see `DataTableRow`. */
-  onRowClick?: (row: TData) => void
   getRowClassName?: (row: TData) => string
   footer?: (visibleColumnIds: string[]) => React.ReactNode
 }
@@ -25,12 +27,12 @@ type VirtualizedTableBodyPropsT<TData> = {
 export function VirtualizedTableBody<TData>({
   parentRef,
   containerHeight,
+  containerClassName,
   headerGroups,
   rows,
   virtualizer,
   visibleColumnIdList,
   getRowHref,
-  onRowClick,
   getRowClassName,
   footer,
 }: VirtualizedTableBodyPropsT<TData>) {
@@ -43,11 +45,20 @@ export function VirtualizedTableBody<TData>({
   const totalWidth = leafHeaders.reduce((sum, header) => sum + header.getSize(), 0)
 
   return (
-    <div ref={parentRef} style={{ height: containerHeight, overflow: 'auto' }}>
+    <div
+      ref={parentRef}
+      className={cn('overflow-auto', containerClassName)}
+      style={containerClassName ? undefined : { height: containerHeight }}
+    >
       <table className="w-full table-fixed text-sm" style={{ minWidth: totalWidth }}>
         <colgroup>
           {leafHeaders.map((header) => (
-            <col key={header.id} style={{ width: header.getSize() }} />
+            <col
+              key={header.id}
+              style={{
+                width: header.column.columnDef.meta?.fill ? undefined : header.getSize(),
+              }}
+            />
           ))}
         </colgroup>
         <TableHeader headerGroups={headerGroups} />
@@ -56,7 +67,6 @@ export function VirtualizedTableBody<TData>({
             <EmptyRow colSpan={colCount} />
           ) : (
             <>
-              {/* Top spacer — pushes visible rows to correct scroll position */}
               {virtualItems.length > 0 && (
                 <tr>
                   <td style={{ height: virtualItems[0]?.start ?? 0 }} colSpan={colCount} />
@@ -69,14 +79,14 @@ export function VirtualizedTableBody<TData>({
                   <DataTableRow
                     key={`${row.id}:${visibleColumnKey}`}
                     row={row}
+                    measureRef={virtualizer.measureElement}
+                    index={virtualRow.index}
                     getRowHref={getRowHref}
-                    onRowClick={onRowClick}
                     getRowClassName={getRowClassName}
                   />
                 )
               })}
 
-              {/* Bottom spacer — maintains total scroll height */}
               {virtualItems.length > 0 && (
                 <tr>
                   <td

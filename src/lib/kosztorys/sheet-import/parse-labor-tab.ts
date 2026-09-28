@@ -137,7 +137,7 @@ export function parseLaborTab(
     const description = text(row[columns.description])
 
     if (fold(row[columns.plannedQty]) === NON_ITEM_MARKER) {
-      const name = text(row[columns.section]) || description
+      const name = (columns.section === undefined ? '' : text(row[columns.section])) || description
       // A marked row is a section header — unless it has no name at all (a spacer), or its name is
       // one of the summary labels the owner sometimes types into the opis column mid-sheet. Either
       // would otherwise become a section, and every praca below it would be filed under it.

@@ -1,4 +1,9 @@
-import { netForQtyForView, rowPlannedNetForView, type PriceViewT } from '@/lib/kosztorys/calc'
+import {
+  MONEY_TOLERANCE,
+  netForQtyForView,
+  rowPlannedNetForView,
+  type PriceViewT,
+} from '@/lib/kosztorys/calc'
 import { stageAppliesToView } from '@/lib/kosztorys/settlement-view'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
@@ -51,9 +56,13 @@ export function rowValueForView(
  * also information: more was executed than was offered.
  *
  * A row with no przedmiar is an offer of ZERO, not an absent answer, so it reads −wykonane rather
- * than being withheld. Withholding it made the total claim work was still owed while the executed
- * value that cancels it sat outside the sum: inv. 31 read +64 311 zł „left" on a kosztorys already
- * 23 602 zł past its own offer. `?? 0` because a cleared cell writes null.
+ * than „—". `?? 0` because a cleared cell writes null.
+ *
+ * The row keeps its minus, but the total leaves it out (`isRemainingOverrun`): the footer answers
+ * „ile oferty zostało do zrobienia", and work past the offer does not shrink what is still owed on
+ * the rest of it — it shows on its own line, in red (EX-885). This reverses EX-686, which netted
+ * overruns into the total after inv. 31 read +64 311 zł „left" on a kosztorys 23 602 zł past its
+ * offer; the red row is now what says that.
  */
 export function rowRemainingForView(
   row: KosztorysV2RowT,
@@ -61,6 +70,31 @@ export function rowRemainingForView(
   view: PriceViewT,
 ): number {
   return netForQtyForView(row, row.plannedQty ?? 0, view) - rowValueForView(row, stages, view)
+}
+
+/**
+ * The worker view's „Pozostało" (EX-875 design #9): the same przedmiar-anchored reading, but the
+ * executed quantity is handed in rather than summed off `stages`. The worker's grid carries his etapy
+ * only, and a pozycja another crew finished is not work still owed to anyone — so the quantity comes
+ * from every etap of the investment, while the price stays his stawka.
+ */
+export function rowRemainingForExecutedQty(
+  row: KosztorysV2RowT,
+  executedQty: number,
+  view: PriceViewT,
+): number {
+  return netForQtyForView(row, row.plannedQty ?? 0, view) - netForQtyForView(row, executedQty, view)
+}
+
+/**
+ * Is this „Pozostało" figure work past the przedmiar? One predicate for both readers — the total
+ * that skips such a row and the cell that turns red — so the two cannot disagree about a row.
+ *
+ * Below −half a grosz, not below zero: a row executed exactly to its przedmiar can land at −0.000…1
+ * through float noise, and that is neither an overrun to paint red nor one to drop from the sum.
+ */
+export function isRemainingOverrun(remaining: number): boolean {
+  return remaining < -MONEY_TOLERANCE
 }
 
 /**

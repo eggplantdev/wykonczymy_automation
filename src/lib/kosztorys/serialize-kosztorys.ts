@@ -1,7 +1,8 @@
 import 'server-only'
 import type { PayloadRequest } from 'payload'
 import { getKosztorysTree } from '@/lib/queries/kosztorys'
-import { SNAPSHOT_SCHEMA_VERSION, type SnapshotPayloadT } from './snapshot-format'
+import type { KosztorysSnapshotPayloadT } from './snapshot-format'
+import { serializeTree } from './serialize-tree'
 
 // Pure read — no writes. Reuses getKosztorysTree (the editor's read path) and flattens its
 // section-nested items into a flat `items[]`; displayOrder/ordinal are preserved so restore rebuilds
@@ -9,22 +10,6 @@ import { SNAPSHOT_SCHEMA_VERSION, type SnapshotPayloadT } from './snapshot-forma
 export async function serializeKosztorys(
   investmentId: number,
   req?: PayloadRequest,
-): Promise<SnapshotPayloadT> {
-  const tree = await getKosztorysTree(investmentId, req)
-
-  const sections = tree.sections.map(({ items: _items, ...section }) => section)
-  const items = tree.sections.flatMap((section) => section.items)
-
-  return {
-    schemaVersion: SNAPSHOT_SCHEMA_VERSION,
-    sections,
-    items,
-    stages: tree.stages,
-    progress: tree.progress,
-    settings: {
-      wToolsCoeff: tree.globalCoeffs.wTools,
-      ownToolsCoeff: tree.globalCoeffs.ownTools,
-      vatRate: tree.vatRate,
-    },
-  }
+): Promise<KosztorysSnapshotPayloadT> {
+  return serializeTree(await getKosztorysTree(investmentId, req))
 }

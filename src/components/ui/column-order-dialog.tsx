@@ -11,7 +11,7 @@ import {
   DialogHeader,
 } from '@/components/ui/dialog'
 import type { ColumnToggleItemT } from '@/components/ui/column-toggle-menu'
-import { rankForMove, type ColumnRanksT } from '@/lib/table/column-order'
+import { rankForMove, sameKeys, type ColumnRanksT } from '@/lib/table/column-order'
 import { useDraft } from '@/hooks/use-draft'
 import { cn } from '@/lib/utils/cn'
 
@@ -25,13 +25,12 @@ type PropsT = {
   baseRanks: ColumnRanksT
   onSetRank: (key: string, rank: number) => void
   onReset: () => void
+  // Defaults to „nothing stored" — right where reset means „forget", wrong where it returns to a
+  // stored order of its own.
+  resetDisabled?: boolean
   // Where the setting applies — the ranks are per-surface, so the sentence has to name that surface
   // rather than promise it everywhere.
   description: string
-}
-
-function sameKeys(a: readonly string[], b: readonly string[]): boolean {
-  return a.length === b.length && a.every((key, index) => key === b[index])
 }
 
 // „Ustaw kolejność kolumn…" — a separate surface from the visibility picker on purpose: reordering is
@@ -47,6 +46,7 @@ export function ColumnOrderDialog({
   baseRanks,
   onSetRank,
   onReset,
+  resetDisabled = Object.keys(ranks).length === 0,
   description,
 }: PropsT) {
   const keys = items.map((item) => item.id)
@@ -103,12 +103,7 @@ export function ColumnOrderDialog({
         </motion.div>
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={Object.keys(ranks).length === 0}
-            onClick={onReset}
-          >
+          <Button variant="outline" size="sm" disabled={resetDisabled} onClick={onReset}>
             Przywróć domyślną kolejność
           </Button>
           <DialogClose asChild>

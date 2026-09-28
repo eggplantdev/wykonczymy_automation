@@ -39,12 +39,12 @@ Ich zderzenie jest świadome i nazwane: `buildKosztorysReconciliation`
 | Etap                     | `kosztorys-stages`                        | `src/collections/kosztorys-stages.ts:9`     |
 | Postęp etapu             | `stage-progress.qtyDone`                  | `src/collections/stage-progress.ts:31`      |
 | Przedmiar                | `plannedQty`                              | `src/collections/kosztorys-items.ts:39`     |
-| Pomiar z natury          | Σ `qtyDone` po etapach — **nie kolumna**  | `settlement-rows.ts:14` (`rowTotalQtyDone`) |
+| Pomiar z natury          | Σ `qtyDone` po etapach — **nie kolumna**  | `settlement-rows.ts:19` (`rowTotalQtyDone`) |
 | Cena j.m. (klient)       | `clientPrice`                             | `src/collections/kosztorys-items.ts:43`     |
 | Rabat pozycji            | `discountType` / `discountValue`          | `src/collections/kosztorys-items.ts:41-42`  |
 | Płaszczyzna narzędziowa  | `plane` na etapie (`w_tools`/`no_tools`)  | `src/collections/kosztorys-stages.ts:36`    |
-| Wartość wykonana (T)     | `rowValueForView`                         | `settlement-rows.ts:37`                     |
-| Pozostało                | `rowRemainingForView`                     | `settlement-rows.ts:58`                     |
+| Wartość wykonana (T)     | `rowValueForView`                         | `settlement-rows.ts:42`                     |
+| Pozostało                | `rowRemainingForView`                     | `settlement-rows.ts:67`                     |
 | Suma prac (pre-rabat)    | `laborCostsNetFromKosztorys`              | `settlement-client-totals.ts:66`            |
 | Rabat kliencki (łącznie) | `discountNetFromKosztorys`                | `settlement-client-totals.ts:67`            |
 | Robocizna (post-rabat)   | `laborCostsNet`                           | `summary-reading.ts:14`                     |
@@ -109,13 +109,14 @@ zapisywana niezależnie od pozycji.
 
 Niezmienniki dziś **liczone** (nie egzekwowane zapisem):
 
-1. **Pomiar = Σ etapów.** Nie ma kolumny „pomiar"; `rowTotalQtyDone` (`settlement-rows.ts:14`)
+1. **Pomiar = Σ etapów.** Nie ma kolumny „pomiar"; `rowTotalQtyDone` (`settlement-rows.ts:19`)
    sumuje etapy widoczne w danym widoku. Parametr `view` jest **wymagany**, nie domyślny —
-   domyślka po cichu przywróciłaby odczyt ślepy na płaszczyznę (`settlement-rows.ts:10-12`).
+   domyślka po cichu przywróciłaby odczyt ślepy na płaszczyznę (`settlement-rows.ts:15-17`).
 2. **„Pozostało" kotwiczy do przedmiaru**, nie do etapów: `rowRemainingForView`
-   (`settlement-rows.ts:58`) = wartość przedmiaru − wartość wykonana.
+   (`settlement-rows.ts:67`) = wartość przedmiaru − wartość wykonana. Suma w stopce i „Razem"
+   pomija wiersze ponad przedmiar (`isRemainingOverrun`, EX-885) — wiersz zostaje ujemny i czerwony.
 3. **Przekroczenie przedmiaru** jest liczone przy pomiarze klienckim, nigdy przy aktywnym widoku —
-   przedmiar nie ma płaszczyzny (`settlement-rows.ts:78` + docblock).
+   przedmiar nie ma płaszczyzny (`settlement-rows.ts:116` + docblock).
 
 ### B. Inwestycja — bilans i marża
 

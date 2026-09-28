@@ -3,15 +3,11 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
-import { formatPercent, formatPercentPrecise, formatRate } from '@/lib/kosztorys/format'
+import { formatPercentPrecise, formatRate } from '@/lib/kosztorys/format'
 import { namesFigure } from '@/lib/kosztorys/calc'
-import { MAX_CLIENT_SHARE, isOverCeiling } from '@/lib/kosztorys/subcontractor-price-guard'
-import {
-  FLAGGED_TONE,
-  PLANE_LABELS,
-  PRICE_SOURCE_LABELS,
-  RATE_LABELS,
-} from '@/lib/kosztorys/constants'
+import { clientShareCeilingLabel, isOverCeiling } from '@/lib/kosztorys/subcontractor-price-guard'
+import { FLAGGED_TONE } from '@/components/kosztorys/flagged-tone'
+import { PLANE_LABELS, PRICE_SOURCE_LABELS, RATE_LABELS } from '@/lib/kosztorys/labels'
 import { compareDescriptions } from '@/lib/kosztorys/work-catalogue/compare-descriptions'
 import { catalogueRateFor, catalogueSourceOf } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
 import { CatalogueRowActions } from '@/components/work-catalogue/catalogue-row-actions'
@@ -74,7 +70,10 @@ const twoLines = (first: string, second: string) => () => (
   </span>
 )
 
-const SHARE_TOOLTIP = `Udział stawki w cenie j.m. Powyżej ${formatPercent(MAX_CLIENT_SHARE)} na czerwono.`
+// Per plane, because the próg is: the stawka bez narzędzi is the z-narzędziami one less 15%, so one
+// tooltip on both columns would name a liczba only one of them turns red at.
+const shareTooltip = (plane: ToolPlaneT) =>
+  `Udział stawki w cenie j.m. Powyżej ${clientShareCeilingLabel(plane)} na czerwono.`
 
 // Lp. is the row's number in the KATALOG, pinned to alphabetical order over the whole catalogue, so
 // it survives every sort and filter. `row.index` would slide under the row and name nothing.
@@ -90,18 +89,23 @@ const lpColumn = (ordinals: ReadonlyMap<number, number>) =>
     ),
   })
 
+// The picker's `size`s: its virtualized list lays out fixed, so the narrow columns hold these widths
+// and the opis fills the rest with its `size` as the floor. Their sum stays inside `dialog-xl` on a
+// 1440 screen. /katalog-prac lays out from content and never reads them.
 const descriptionColumn = col.accessor('description', {
   id: 'description',
   header: 'Opis pracy',
+  size: 320,
   sortingFn: (first, second) =>
     compareDescriptions(first.original.description, second.original.description),
-  meta: { minWidth: 'min-w-112' },
+  meta: { minWidth: 'min-w-112', fill: true },
   cell: (info) => <span className="block font-medium">{info.getValue()}</span>,
 })
 
 const categoryColumn = col.accessor((row) => row.category ?? '', {
   id: 'category',
   header: 'Kategoria',
+  size: 180,
   sortingFn: (first, second) =>
     compareDescriptions(first.original.category ?? '', second.original.category ?? ''),
   meta: { minWidth: 'min-w-50' },
@@ -111,18 +115,21 @@ const categoryColumn = col.accessor((row) => row.category ?? '', {
 const unitColumn = col.accessor('unit', {
   id: 'unit',
   header: 'j.m.',
+  size: 72,
   cell: (info) => <span className="text-muted-foreground text-sm">{info.getValue()}</span>,
 })
 
 const clientPriceColumn = col.accessor('clientPrice', {
   id: 'clientPrice',
   header: 'Cena j.m.',
+  size: 120,
   cell: (info) => <span className="tabular-nums">{formatPLN(info.getValue())}</span>,
 })
 
 const wToolsRateColumn = col.accessor((row) => rateAmount(row, 'w_tools'), {
   id: 'wToolsRate',
   header: twoLines('Stawka z narzędziami', '(podwykonawca)'),
+  size: 176,
   meta: { label: RATE_LABELS.w_tools },
   cell: (info) => rateCell(info.row.original, 'w_tools'),
 })
@@ -135,11 +142,11 @@ const shareColumn = (plane: ToolPlaneT, id: string, tools: string) =>
   col.accessor((row) => shareOf(row, plane), {
     id,
     header: twoLines('% ceny klienta', tools),
-    meta: { tooltip: SHARE_TOOLTIP, label: `% ceny klienta ${tools}` },
+    meta: { tooltip: shareTooltip(plane), label: `% ceny klienta ${tools}` },
     cell: (info) =>
       share(
         info.getValue(),
-        isOverCeiling(rateAmount(info.row.original, plane), info.row.original),
+        isOverCeiling(rateAmount(info.row.original, plane), info.row.original, plane),
       ),
   })
 
@@ -168,6 +175,7 @@ const wToolsShareColumn = shareColumn('w_tools', 'wToolsShare', PLANE_LABELS.w_t
 const ownToolsRateColumn = col.accessor((row) => rateAmount(row, 'own_tools'), {
   id: 'ownToolsRate',
   header: twoLines('Stawka bez narzędzi', '(pracownik)'),
+  size: 176,
   meta: { label: RATE_LABELS.own_tools },
   cell: (info) => rateCell(info.row.original, 'own_tools'),
 })

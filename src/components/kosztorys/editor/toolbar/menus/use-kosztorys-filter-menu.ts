@@ -14,14 +14,21 @@ export function useKosztorysFilterMenu(): {
   togglesBulk: FilterTogglesBulkT
   resetAction: ReturnType<typeof useFilterResetAction>
 } {
-  const { engagedConditionIds, conditionCounts, toggleCondition, setConditions, globalDiscount } =
-    useKosztorysEditorContext()
+  const {
+    engagedConditionIds,
+    conditionCounts,
+    toggleCondition,
+    setConditions,
+    globalDiscount,
+    crewAxis,
+  } = useKosztorysEditorContext()
   const resetAction = useFilterResetAction()
 
   const toggles = filtersMenuModel({
     engagedIds: engagedConditionIds,
     counts: conditionCounts,
     perItemDiscountInert: isGlobalDiscountActive(globalDiscount),
+    crewAxis,
   }).map((toggle) => ({ ...toggle, onToggle: () => toggleCondition(toggle.id) }))
 
   return {

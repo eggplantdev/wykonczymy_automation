@@ -9,16 +9,20 @@ import {
   orderColumns,
   type ColumnRanksT,
 } from '@/lib/table/column-order'
+import { clientDocumentColumns } from '@/lib/kosztorys/client-view-settings'
 import {
-  DISCOUNT_COLUMN_IDS,
+  CREW_PLANE_ONLY_COLUMNS,
+  bypassedByGlobalDiscount,
   PREVIEW_VISIBLE_COLUMNS,
   WORKSHOP_VISIBLE_COLUMNS,
   PRZEDMIAR_ANCHORED_COLUMNS,
   UNPICKABLE_COLUMNS,
   columnLabelForView,
 } from '@/lib/kosztorys/column-config'
+import { CREW_AXIS_DEFAULT, crewAxisAllows } from '@/lib/kosztorys/crew-axis'
 import { LAYER_DEFAULT, layerAllows } from '@/lib/kosztorys/layer'
 import { MONEY_AXIS_DEFAULT, axisAllows } from '@/lib/kosztorys/money-axis'
+import { workerDocumentColumns, workerVisibleColumns } from '@/lib/kosztorys/worker-view/settings'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 // A stage column answers to its axis's shared "Etapy — …" picker entry, not to its own id.
@@ -27,7 +31,7 @@ function toggleKey(columnId: string): string {
 }
 
 // The column allowlist and the client price plane are one disclosure decision (useKosztorysEditor
-// derives them as a pair). Split them and PREVIEW_VISIBLE_COLUMNS keeps letting `price`/`net`/`gross`
+// derives them as a pair). Split them and PREVIEW_VISIBLE_COLUMNS keeps letting `price`/`net`
 // through while they compute a subcontractor's cost basis — client-named columns holding contractor
 // numbers, a leak with no foreign column to notice. Nothing in the types forbids the split, so this
 // says it out loud at the one chokepoint both build paths cross. It throws rather than repairing the
@@ -37,10 +41,24 @@ function toggleKey(columnId: string): string {
 // What this pin does not cover: the four per-plane rate columns. They carry their plane in the id
 // and assemble in EVERY view, so pinning `view` to 'client' does nothing for them — the allowlist is
 // their only barrier, and it is the half to check before touching either.
+//
+// The worker surface is the same pair turned the other way: its list names `price__<plane>`, so the
+// ids alone are safe, but `net` and the per-etap wartości still compute at `view` — at 'client' they
+// would print the client's money under a worker's stawka.
 function assertDisclosurePair(opts: BuildV2ColumnsOptsT): void {
   if (opts.previewVisible && opts.view !== 'client') {
     throw new Error(
       `previewVisible requires view='client' (got '${opts.view}') — the column allowlist does not pin the price plane.`,
+    )
+  }
+  const worker = opts.workerSurface
+  if (!worker) return
+  if (opts.previewVisible) {
+    throw new Error('workerSurface and previewVisible are two audiences — pass one.')
+  }
+  if (opts.view !== worker.plane) {
+    throw new Error(
+      `workerSurface requires view='${worker.plane}' (got '${opts.view}') — the worker list does not pin the price plane.`,
     )
   }
 }
@@ -52,7 +70,20 @@ function assertDisclosurePair(opts: BuildV2ColumnsOptsT): void {
 // is one entry here, not three edits in three functions.
 function closedColumnList(opts: BuildV2ColumnsOptsT): ReadonlySet<string> | null {
   if (opts.previewVisible) return PREVIEW_VISIBLE_COLUMNS
+  if (opts.workerSurface) {
+    return workerVisibleColumns(opts.workerSurface.plane, opts.workerSurface.hiddenColumns)
+  }
   if (opts.workshopVisible) return WORKSHOP_VISIBLE_COLUMNS
+  return null
+}
+
+// The two documents read in the order the owner stored for their audience, the one their PDF prints
+// in — never the sheet's, which stays the workbench's.
+function documentOrder(opts: BuildV2ColumnsOptsT): readonly string[] | null {
+  if (opts.previewVisible) return clientDocumentColumns(opts.previewColumnRanks ?? {})
+  if (opts.workerSurface) {
+    return workerDocumentColumns(opts.workerSurface.plane, opts.workerSurface.columnRanks)
+  }
   return null
 }
 
@@ -65,6 +96,7 @@ export function selectV2Columns(
   assertDisclosurePair(opts)
   const axis = opts.moneyAxis ?? MONEY_AXIS_DEFAULT
   const layer = opts.layer ?? LAYER_DEFAULT
+  const crew = opts.crewAxis ?? CREW_AXIS_DEFAULT
   // Two kinds of gate live in this filter, and only one of them may touch a client's document.
   // PREFERENCE gates — the axis, the layer, the picker tick — say what ONE owner wants to read
   // right now, so a preview skips them entirely and takes the allowlist as its
@@ -73,26 +105,38 @@ export function selectV2Columns(
   // rabat fields are bypassed rather than cleared (calc.ts `applyDiscount`) — so showing those
   // columns would print „Rabat 10 %" beside „Kwota rabatu 0,00" on the offer itself.
   const closed = closedColumnList(opts)
-  const keep = (key: string): boolean => {
-    if (opts.globalDiscountActive && DISCOUNT_COLUMN_IDS.has(key)) return false
+  // Only the investor's document subtracts a hidden set here; the worker's is folded into his list
+  // by `workerVisibleColumns`, and an investor's empty etap is not a reason to hide it from a crew.
+  const previewHidden = opts.previewVisible ? opts.previewHiddenColumns : undefined
+  // Tested on the full id as well as the group key: the owner hides a per-etap family whole, while
+  // an etap with no entries goes alone (`emptySettlementColumnIds`).
+  const keep = (id: string): boolean => {
+    const key = toggleKey(id)
+    if (bypassedByGlobalDiscount(key, opts.globalDiscountActive)) return false
     // A closed list is a ceiling AND a floor, and the workbench needs the floor for the mirror image
     // of the preview's reason: the three preference gates below persist in localStorage per BROWSER,
     // not per kosztorys, and the workbench hides every control that edits them. Honour them and it
     // renders a column set chosen on some other kosztorys, with nothing on screen able to change it
     // — „Sekcja" is in DEFAULT_HIDDEN_COLUMNS, so it would be missing from the owner's own list on a
     // first visit. The per-offer subtraction only the preview supplies still applies.
-    if (closed) return closed.has(key) && !opts.previewHiddenColumns?.has(key)
+    if (closed) return closed.has(key) && !previewHidden?.has(key) && !previewHidden?.has(id)
     if (opts.view !== 'client' && PRZEDMIAR_ANCHORED_COLUMNS.has(key)) return false
+    if (opts.view === 'client' && CREW_PLANE_ONLY_COLUMNS.has(key)) return false
     // The reveal sits beside UNPICKABLE_COLUMNS because it answers the same question — „may a stored
-    // tick hide this right now" — and pointedly NOT beside the two gates after it: a problem filter
-    // gets to overrule one owner's picker, never their money axis or layer.
+    // tick hide this right now" — and it overrules the crew axis for the same reason: six diagnostics
+    // are plane-bound („Stawka ujemna — z narzędziami" and its five siblings), so with that crew's
+    // columns put away the filter hides pozycje and never shows the stawka that explains why
+    // (owner, 2026-09-28). The money axis and the layer it still does not touch: those choose which
+    // document is on screen, not which of its columns a problem may borrow.
+    const revealed = opts.revealedColumnIds?.has(key) ?? false
     return (
-      (UNPICKABLE_COLUMNS.has(key) || opts.revealedColumnIds?.has(key) || !opts.isHidden?.(key)) &&
+      (UNPICKABLE_COLUMNS.has(key) || revealed || !opts.isHidden?.(key)) &&
       axisAllows(key, axis) &&
-      layerAllows(key, layer)
+      layerAllows(key, layer) &&
+      (revealed || crewAxisAllows(key, crew))
     )
   }
-  const base = assembled.filter((c) => keep(toggleKey(c.id ?? ''))).map((c) => withResize(c, opts))
+  const base = assembled.filter((c) => keep(c.id ?? '')).map((c) => withResize(c, opts))
   return appendTrailingGap(base, opts)
 }
 
@@ -112,9 +156,14 @@ export function selectV2ToggleItems(
   for (const col of assembled) {
     const id = toggleKey(col.id ?? '')
     if (items.some((i) => i.id === id)) continue
-    if (opts.globalDiscountActive && DISCOUNT_COLUMN_IDS.has(id)) continue
+    if (bypassedByGlobalDiscount(id, opts.globalDiscountActive)) continue
     if (UNPICKABLE_COLUMNS.has(id)) continue
     if (opts.view !== 'client' && PRZEDMIAR_ANCHORED_COLUMNS.has(id)) continue
+    if (opts.view === 'client' && CREW_PLANE_ONLY_COLUMNS.has(id)) continue
+    // Dropped from the picker too, not merely from the grid: a tick that cannot put its column on
+    // screen is a control lying about what it does, and the hidden-count above it would read the
+    // switched-off crew as columns this reader hid.
+    if (!crewAxisAllows(id, opts.crewAxis ?? CREW_AXIS_DEFAULT)) continue
     // `visible` is the STORED tick, never the reveal: a column a problem is currently forcing on
     // screen still reports what the picker holds. Unticking it then is a no-op that takes effect on
     // disengage — accepted, because showing it ticked would lie about what is saved and disabling it
@@ -138,6 +187,8 @@ export function orderAssembled(
   assembled: Column<KosztorysV2RowT>[],
   opts: BuildV2ColumnsOptsT,
 ): Column<KosztorysV2RowT>[] {
+  const order = documentOrder(opts)
+  if (order) return orderColumns(assembled, baseRanksFromKeys(order), toggleKey)
   // An empty rank map is the assemble order by definition, and it is what every owner who never
   // reordered anything has — bail before the group→sort→regroup pass instead of reproducing the
   // input array on each render.

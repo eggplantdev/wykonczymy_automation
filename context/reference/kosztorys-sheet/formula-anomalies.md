@@ -41,7 +41,8 @@ Przedmiar przestaje być ofertą wpisaną z ręki i staje się pochodną wykonan
 **Skutek dla importu:** `M` jest puste, więc Przedmiar czyta się jako 0 i te pozycje trafiają do nas
 bez oferty. Dwie ostatnie mają przy tym Pomiar i wartość, czyli praca wykonana bez przedmiaru — to
 jeden z powodów, dla których kolumna „Pozostało" pokazywała dodatnią kwotę do zrobienia
-(zob. `settlement-rows.ts`, wiersz bez Przedmiaru = oferta zerowa, liczy się na minus).
+(zob. `settlement-rows.ts`, wiersz bez Przedmiaru = oferta zerowa, czyta się na minus). Od EX-885
+taki wiersz jest na czerwono i nie pomniejsza sumy w stopce — suma to „ile oferty zostało".
 
 ### 2. Pomiar z natury jako kopia Przedmiaru — 241 z 336 wierszy
 

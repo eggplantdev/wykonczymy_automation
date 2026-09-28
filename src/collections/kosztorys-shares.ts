@@ -43,7 +43,7 @@ export const KosztorysShares: CollectionConfig = {
       type: 'text',
       required: true,
       unique: true,
-      // Minted by generateShareLinkAction — a hand-typed token would be guessable.
+      // Minted by `writeShareToken` — a hand-typed token would be guessable.
       admin: { readOnly: true },
     },
   ],

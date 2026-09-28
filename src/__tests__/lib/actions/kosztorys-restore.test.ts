@@ -108,7 +108,7 @@ describe.skipIf(!ENV_READY)('restoreSnapshotAction — persisted state (DB)', ()
     expect(saved.success).toBe(true)
     const snapRow = await db.execute(sql`
       SELECT id FROM kosztorys_snapshots
-      WHERE investment_id = ${investmentId} AND kind = 'manual' ORDER BY id DESC LIMIT 1
+      WHERE investment_id = ${investmentId} AND kind = 'named' ORDER BY id DESC LIMIT 1
     `)
     const snapshotId = Number(snapRow.rows[0].id)
 
@@ -145,11 +145,10 @@ describe.skipIf(!ENV_READY)('restoreSnapshotAction — persisted state (DB)', ()
   })
 
   it('refuses to restore a snapshot belonging to another investment and writes nothing', async () => {
-    // A manual snapshot that belongs to investment A (this suite's investmentId).
     expect((await saveSnapshotAction(investmentId, 'wersja A')).success).toBe(true)
     const snapRow = await db.execute(sql`
       SELECT id FROM kosztorys_snapshots
-      WHERE investment_id = ${investmentId} AND kind = 'manual' ORDER BY id DESC LIMIT 1
+      WHERE investment_id = ${investmentId} AND kind = 'named' ORDER BY id DESC LIMIT 1
     `)
     const snapshotIdA = Number(snapRow.rows[0].id)
 

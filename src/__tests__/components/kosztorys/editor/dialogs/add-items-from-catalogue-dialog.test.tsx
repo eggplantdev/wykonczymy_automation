@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AddItemsFromCatalogueDialog } from '@/components/kosztorys/editor/dialogs/add-items-from-catalogue-dialog'
 import type { SectionSubtotalT } from '@/lib/kosztorys/types'
@@ -9,7 +9,7 @@ import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 const insertCatalogueItemsAction = vi.fn()
 const createSectionWithCatalogueItemsAction = vi.fn()
 
-vi.mock('@/lib/actions/work-catalogue', () => ({
+vi.mock('@/lib/actions/catalogue-to-kosztorys', () => ({
   insertCatalogueItemsAction: (...args: unknown[]) => insertCatalogueItemsAction(...args),
   createSectionWithCatalogueItemsAction: (...args: unknown[]) =>
     createSectionWithCatalogueItemsAction(...args),
@@ -30,12 +30,18 @@ const CATALOGUE: WorkCatalogueItemT[] = [
   },
 ]
 
-vi.mock('@/components/kosztorys/editor/dialogs/use-work-catalogue', () => ({
-  useWorkCatalogue: () => ({ catalogue: CATALOGUE }),
-}))
-
 // DataTable's row reaches for the app router, which jsdom has no mount for.
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }) }))
+
+// The list is virtualized, and the virtualizer sizes its window from `offsetHeight` — which jsdom,
+// laying nothing out, reports as 0, so no row would render at all. With every element 400 tall the
+// window holds one row plus the overscan.
+beforeAll(() => {
+  vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(400)
+})
+afterAll(() => {
+  vi.restoreAllMocks()
+})
 
 const section = (sectionId: number, sectionName: string): SectionSubtotalT => ({
   sectionId,
@@ -56,10 +62,11 @@ const SLICE = {
   warnings: [],
 }
 
-function renderDialog() {
+function renderDialog(catalogue = CATALOGUE) {
   return render(
     <AddItemsFromCatalogueDialog
       investmentId={7}
+      catalogue={catalogue}
       sections={SECTIONS}
       kosztorysItems={[]}
       open
@@ -138,5 +145,24 @@ describe('AddItemsFromCatalogueDialog — „Dodaj do:"', () => {
 
     expect(insertCatalogueItemsAction).toHaveBeenCalledWith(1, [11])
     expect(createSectionWithCatalogueItemsAction).not.toHaveBeenCalled()
+  })
+})
+
+describe('AddItemsFromCatalogueDialog — lista', () => {
+  const LARGE_CATALOGUE: WorkCatalogueItemT[] = Array.from({ length: 300 }, (_, i) => ({
+    ...CATALOGUE[0]!,
+    id: 1000 + i,
+    description: `Praca ${i}`,
+    matchKey: `praca ${i}|m2`,
+  }))
+
+  // The cennik is ~560 prace, and drawing all of them is what froze the dialog on every keystroke.
+  // The window's size rides on the stubbed `offsetHeight`, so the bound is loose, not exact.
+  it('duży cennik rysuje okno wierszy, nie cały katalog', () => {
+    renderDialog(LARGE_CATALOGUE)
+
+    const rendered = screen.getAllByRole('checkbox', { name: /^Praca \d+$/ }).length
+    expect(rendered).toBeGreaterThan(0)
+    expect(rendered).toBeLessThan(50)
   })
 })

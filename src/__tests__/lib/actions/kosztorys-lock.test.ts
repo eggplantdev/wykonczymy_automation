@@ -50,7 +50,7 @@ const { listSnapshotsAction, saveSnapshotAction, snapshotAction } =
   await import('@/lib/actions/kosztorys-snapshots')
 const { savePresetAction } = await import('@/lib/actions/kosztorys-presets')
 const { compareWithSheet } = await import('@/lib/actions/kosztorys-import')
-const { insertCatalogueItemsAction } = await import('@/lib/actions/work-catalogue')
+const { insertCatalogueItemsAction } = await import('@/lib/actions/catalogue-to-kosztorys')
 const { INVESTMENT_LOCKED_MESSAGE } = await import('@/lib/constants/investment-lock')
 
 // Gated like the sibling specs: skips with no DB env, FAILS if env is set but the DB is unreachable.

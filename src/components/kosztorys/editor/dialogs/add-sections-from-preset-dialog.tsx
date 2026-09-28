@@ -119,7 +119,7 @@ export function AddSectionsFromPresetDialog({
         ) : !activeGroup ? (
           <p className="text-muted-foreground px-4 py-6 text-sm">Brak zapisanych szablonów.</p>
         ) : (
-          <div className="mt-3 flex max-h-[55vh] min-h-0 border-t">
+          <div className="mt-3 flex max-h-dialog-scroll min-h-0 border-t">
             <div
               className={cn(
                 'w-full flex-col sm:flex sm:w-1/2',

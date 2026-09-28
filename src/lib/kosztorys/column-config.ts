@@ -1,5 +1,6 @@
 import type { PriceViewT } from '@/lib/kosztorys/calc'
-import { PLANE_LABELS } from '@/lib/kosztorys/constants'
+import { PLANE_LABELS } from '@/lib/kosztorys/labels'
+import { planeDashSuffix } from '@/lib/kosztorys/format'
 import { ALL_PLANE_PRICE_KEYS, planePriceKeyParts } from '@/lib/kosztorys/plane-price-keys'
 import {
   STAGES_COLUMN_GROUP,
@@ -29,6 +30,8 @@ export const COLUMN_LABELS: Record<string, string> = {
   discountAmountGross: 'Rabat kwota brutto',
   plannedNet: 'Wartość przedmiaru netto',
   plannedGross: 'Wartość przedmiaru brutto',
+  plannedNetForPlane: 'Wartość przedmiaru netto',
+  remainingForPlane: 'Pozostało netto (względem przedmiaru)',
   net: 'Razem netto',
   gross: 'Razem brutto',
   remaining: 'Pozostało netto (względem przedmiaru)',
@@ -57,7 +60,7 @@ export function columnLabelForView(id: string, view: PriceViewT): string {
   const planePrice = planePriceKeyParts(id)
   if (planePrice !== null) {
     const { base, plane } = planePrice
-    return `${COLUMN_LABELS[base] ?? id} — ${PLANE_LABELS[plane].toLowerCase()}`
+    return `${COLUMN_LABELS[base] ?? id}${planeDashSuffix(plane)}`
   }
   const label = COLUMN_LABELS[id] ?? id
   if (id === 'net' || id === 'gross') {
@@ -66,6 +69,9 @@ export function columnLabelForView(id: string, view: PriceViewT): string {
   }
   if (id === 'stageQtySum' && view !== 'client')
     return `Pomiar — suma etapów ${PLANE_LABELS[view].toLowerCase()}`
+  // Shares its base label with „Wartość przedmiaru netto", which stays at the client price in every
+  // view; the plane suffix is the only thing telling the two apart on one screen.
+  if (id === 'plannedNetForPlane' && view !== 'client') return `${label}${planeDashSuffix(view)}`
   return label
 }
 
@@ -85,6 +91,13 @@ export const PRZEDMIAR_ANCHORED_COLUMNS: ReadonlySet<string> = new Set([
   'remainingGross',
 ])
 
+/**
+ * The mirror of PRZEDMIAR_ANCHORED_COLUMNS: columns that exist only in a crew view. „Wartość
+ * przedmiaru netto — <rozliczenie>" is the przedmiar at the crew's stawka (owner, 2026-09-28); in the
+ * client view it would be a second copy of „Wartość przedmiaru netto" under a different name.
+ */
+export const CREW_PLANE_ONLY_COLUMNS: ReadonlySet<string> = new Set(['plannedNetForPlane'])
+
 // Which side of the netto/brutto pair a money column reports, keyed by the picker's toggleKey
 // (`stageValueNet`, never `stageValueNet_7`) so the per-stage namespace collapses to one entry and no
 // stage id enters the map — the same ghost-id reasoning as the picker groups (stage-keys.ts). A column
@@ -97,6 +110,7 @@ export const COLUMN_MONEY_AXIS: Record<string, 'net' | 'gross'> = {
   discountAmountGross: 'gross',
   plannedNet: 'net',
   plannedGross: 'gross',
+  plannedNetForPlane: 'net',
   net: 'net',
   gross: 'gross',
   remaining: 'net',
@@ -149,20 +163,25 @@ export const UNPICKABLE_COLUMNS: ReadonlySet<string> = new Set(['divergence'])
 // entry.
 export const AXIS_EXEMPT_COLUMNS: ReadonlySet<string> = new Set(['price'])
 
-// The four per-item rabat columns hidden while the global discount overrides them. Paired with
-// DISCOUNT_CONDITION_IDS (row-conditions/registry.ts), which drops the matching „Problemy" entries.
-export const DISCOUNT_COLUMN_IDS: ReadonlySet<string> = new Set([
+// The four per-item rabat columns hidden while the global discount overrides them. Paired with the
+// `inertUnderGlobalDiscount` filters (row-conditions/registry.ts), which drop out of the „Filtry" menu.
+const DISCOUNT_COLUMN_IDS: ReadonlySet<string> = new Set([
   'discountValue',
   'discountType',
   'discountAmount',
   'discountAmountGross',
 ])
 
+// One rule for the grid, its picker and the printed offer — a copy that drifts prints a per-item
+// rabat beside a zero kwota rabatu.
+export const bypassedByGlobalDiscount = (key: string, globalDiscountActive = false) =>
+  globalDiscountActive && DISCOUNT_COLUMN_IDS.has(key)
+
 // What a client may see on the share view — an ALLOWLIST, keyed by toggleKey like the maps above.
 // Allowlist, not a denylist: a column added later is invisible to clients until someone puts it here,
 // so the disclosure decision is forced at definition time rather than discovered as a leak.
 //
-// Its reach is column IDENTITY, not price plane: `price`/`net`/`gross` are allowlisted and compute at
+// Its reach is column IDENTITY, not price plane: `price`/`net` are allowlisted and compute at
 // whatever `view` is active, so this set does NOT by itself keep a subcontractor figure off the page.
 // It is half a lock — the other half pins the plane, see `assertDisclosurePair`. `priceMode` is
 // absent here and that absence is load-bearing, not belt-and-braces: the szablon workbench reads
@@ -177,42 +196,100 @@ export type ClientViewGroupT = {
   keys: readonly string[]
 }
 
+// No brutto column anywhere on the investor's document (owner, 2026-09-28): the offer is quoted netto,
+// so a gross figure is not offered as a tick at all — and a stored tick for one fails closed here.
 export const CLIENT_VIEW_GROUPS: readonly ClientViewGroupT[] = [
   {
     label: 'Opis i ilości',
-    keys: ['sectionName', 'description', 'plannedQty', 'stageQtySum', 'unit'],
+    keys: ['description', 'plannedQty', 'stageQtySum', 'unit'],
   },
   {
     label: 'Ceny i rabat',
-    keys: [
-      'price',
-      'priceGross',
-      'discountType',
-      'discountValue',
-      'discountAmount',
-      'discountAmountGross',
-    ],
+    keys: ['price', 'discountType', 'discountValue', 'discountAmount'],
   },
   {
     label: 'Wartości',
     // No `note`: the sheet's „komentarz" is owner-authored internal free text (owner ruling,
     // 2026-07-20) — the client DTO drops it too, so this is the matching half of that decision.
-    keys: ['plannedNet', 'plannedGross', 'net', 'gross', 'remaining', 'remainingGross'],
+    keys: ['plannedNet', 'net', 'remaining'],
   },
   {
     label: 'Etapy i postęp',
-    keys: [
-      STAGES_COLUMN_GROUP,
-      STAGE_VALUE_NET_COLUMN_GROUP,
-      STAGE_VALUE_GROSS_COLUMN_GROUP,
-      'donePercent',
-    ],
+    keys: [STAGES_COLUMN_GROUP, STAGE_VALUE_NET_COLUMN_GROUP, 'donePercent'],
   },
 ]
 
 export const PREVIEW_VISIBLE_COLUMNS: ReadonlySet<string> = new Set(
   CLIENT_VIEW_GROUPS.flatMap((group) => group.keys),
 )
+
+// Always first and never hidden on both documents: a row with no „Opis prac" names nothing, and the
+// PDF's section total writes its „Razem — <sekcja>" label into the cells left of the money column,
+// which is only guaranteed to exist while this column leads.
+export const DOCUMENT_PINNED_COLUMN = 'description'
+
+// The investor's document — podgląd, link and „Generuj ofertę" alike — in reading order, which is not
+// the sheet's: the offered scope reads as one phrase (ilość, j.m., cena, wartość) ahead of the etapy,
+// and the pomiar follows the etapy it sums (owner, 2026-09-28). One list for the screen and the paper,
+// so the two cannot print different columns or the same ones in a different order. The same keys as
+// CLIENT_VIEW_GROUPS, which orders them for the settings dialog instead.
+export const CLIENT_DOCUMENT_COLUMNS: readonly string[] = [
+  'description',
+  'plannedQty',
+  'unit',
+  'price',
+  'plannedNet',
+  STAGES_COLUMN_GROUP,
+  'stageQtySum',
+  'discountValue',
+  'discountType',
+  'discountAmount',
+  STAGE_VALUE_NET_COLUMN_GROUP,
+  'net',
+  'donePercent',
+  'remaining',
+]
+
+// The worker view's stawka, as a LOGICAL key: the column it stands for is `price__<plane>`, and which
+// plane is decided per worker, at render (`workerVisibleColumns`). Stored settings hold this key, so
+// one firm-wide tick answers for both rozliczenia — and no stored value can ever name `price`, the
+// client's price.
+export const WORKER_RATE_KEY = 'rate'
+
+// The worker view's ceiling (design #13, EX-875), as ticks for the settings dialog. A separate list
+// from CLIENT_VIEW_GROUPS, not a subset of it, because the two surfaces disclose opposite prices: a
+// key missing here is a column no setting can put on a worker's screen. The client price, rabat,
+// brutto, the client-priced „Wartość przedmiaru" / „Pozostało" / „% wykonania" and „Komentarz" are
+// absent by construction — the first two alone would give the margin away.
+export const WORKER_VIEW_GROUPS: readonly ClientViewGroupT[] = [
+  {
+    label: 'Opis i ilości',
+    keys: ['description', 'plannedQty', 'stageQtySum', 'unit'],
+  },
+  {
+    label: 'Stawka i wartości',
+    keys: [WORKER_RATE_KEY, 'plannedNetForPlane', 'net', 'remainingForPlane'],
+  },
+  {
+    label: 'Etapy',
+    keys: [STAGES_COLUMN_GROUP, STAGE_VALUE_NET_COLUMN_GROUP],
+  },
+]
+
+// The worker's document — his link, the owner's Podgląd and his PDF — in reading order. Same reasons
+// and same contract as CLIENT_DOCUMENT_COLUMNS, over the keys of WORKER_VIEW_GROUPS.
+export const WORKER_DOCUMENT_COLUMNS: readonly string[] = [
+  'description',
+  'plannedQty',
+  'unit',
+  WORKER_RATE_KEY,
+  'plannedNetForPlane',
+  STAGES_COLUMN_GROUP,
+  'stageQtySum',
+  STAGE_VALUE_NET_COLUMN_GROUP,
+  'net',
+  'remainingForPlane',
+]
 
 // The workbench's column list — exactly what a szablon carries to the next job. The rest of the
 // grid (przedmiar, etapy, rabat, wartości, postęp) is not „hidden" here and not „read-only": it is
@@ -255,11 +332,11 @@ export const WORKSHOP_VISIBLE_COLUMNS: ReadonlySet<string> = new Set([
 // copy/paste and sorting. Declared here rather than seeded into the stored map; useHiddenColumns
 // owns that argument.
 //
-// Every subcontractor rate column starts hidden, in the subcontractor views too. Four rate columns
-// unfurling on first load would bury the offer they qualify; switching them on is one tick in the
-// picker, and the tick is what makes the reading deliberate.
+// The subcontractor rate columns are NOT here, though they also start off screen: their default is
+// `CREW_AXIS_DEFAULT` („Stawki wykonawców" in the widok menu), which switches a whole crew on in one
+// tick. Declaring it in both places would mean two gates on one column, and the stricter one — the
+// picker — would silently keep the new switch from showing anything.
 export const DEFAULT_HIDDEN_COLUMNS: ReadonlySet<string> = new Set([
   STAGE_VALUE_GROSS_COLUMN_GROUP,
   'sectionName',
-  ...ALL_PLANE_PRICE_KEYS,
 ])

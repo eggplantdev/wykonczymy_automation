@@ -31,20 +31,26 @@ export async function saveSnapshotAction(
   investmentId: number,
   label: string,
 ): Promise<ActionResultT> {
-  return investmentAction('saveSnapshotAction', { investmentId }, async ({ payload, user }) => {
-    const parsed = validateAction(saveSnapshotSchema, { label })
-    if (!parsed.success) return parsed
-    const db = await getDb(payload)
-    const snapshot = await serializeKosztorys(investmentId)
-    await insertSnapshot(db, {
-      investmentId,
-      kind: 'manual',
-      label: parsed.data.label,
-      takenBy: user.id,
-      payload: snapshot,
-    })
-    return { success: true }
-  })
+  return investmentAction(
+    'saveSnapshotAction',
+    { investmentId },
+    async ({ payload, user }) => {
+      const parsed = validateAction(saveSnapshotSchema, { label })
+      if (!parsed.success) return parsed
+      const db = await getDb(payload)
+      const snapshot = await serializeKosztorys(investmentId)
+      await insertSnapshot(db, {
+        investmentId,
+        kind: 'named',
+        label: parsed.data.label,
+        takenBy: user.id,
+        payload: snapshot,
+      })
+      return { success: true }
+    },
+    // A named version is an entry in the investor's history list.
+    ['kosztorysSnapshots'],
+  )
 }
 
 // --- Restore + listing ---

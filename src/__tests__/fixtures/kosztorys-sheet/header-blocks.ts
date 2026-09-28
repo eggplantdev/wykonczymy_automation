@@ -4,7 +4,7 @@
 // trailing space in „Pomiar z natury " and the „ilosc"/„ilość" spelling drift are exactly what the
 // matchers have to survive.
 
-import { row } from './grid'
+import { col, row } from './grid'
 
 const stageQty = (n: number) => `${n} etap ilość`
 
@@ -256,8 +256,8 @@ export const ALTOWA_LABOR_HEADER: (string | number)[][] = [
   }),
 ]
 
-// --- Żupnicza: the layout that REFUSES to resolve today — „Wartość netto" is split into two
-// columns, one per Przedmiar/Pomiar, so the exact matcher finds neither ---
+// --- Żupnicza: „Wartość netto" split into two columns, one per Przedmiar/Pomiar — the template most
+// sheets since 2026-07 are built on ---
 
 export const ZUPNICZA_LABOR_HEADER: (string | number)[][] = [
   row({
@@ -349,6 +349,12 @@ export const ZUPNICZA_LABOR_HEADER: (string | number)[][] = [
     AF: 'bilans ',
   }),
 ]
+
+// Żupnicza with T's header wiped, so „Wartość netto" has no name to match — the shape the column
+// pointing and the candidate list exist for. S stays: a named column no field claims.
+export const UNNAMED_NET_VALUE_LABOR_HEADER = ZUPNICZA_LABOR_HEADER.map((cells) =>
+  cells.map((cell, column) => (column === col('T') ? '' : cell)),
+)
 
 // --- Przedpole: 6 etapy, Przedmiar at J, and row 3 renames stages to crew names ---
 

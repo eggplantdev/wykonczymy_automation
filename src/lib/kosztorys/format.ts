@@ -1,6 +1,7 @@
 import { formatPLN } from '@/lib/utils/format-currency'
 import { roundToCents } from '@/lib/utils/round-to-cents'
-import type { PriceSourceT } from '@/lib/kosztorys/types'
+import { PLANE_LABELS } from '@/lib/kosztorys/labels'
+import type { PriceSourceT, ToolPlaneT } from '@/lib/kosztorys/types'
 
 // Bare pl-PL number with 2 decimals (no currency symbol) for dense grid cells and subtotals —
 // distinct from `formatPLN`, which emits "zł" and is too wide for the spreadsheet layout.
@@ -18,6 +19,9 @@ export const formatNet = (n: number) =>
 // a precision that isn't there.
 export const formatQty = (n: number) =>
   (n + 0).toLocaleString('pl-PL', { maximumFractionDigits: 3 })
+
+export const formatQtyWithUnit = (qty: number, unit: string | null) =>
+  [formatQty(qty), unit].filter(Boolean).join(' ')
 
 // A mnożnik as prose, to as many places as one is stored in (`round6`). Through `formatQty` above a
 // derived 0,5525 showed as „0,553" — a number the import then did not adopt, and the reader's only
@@ -68,3 +72,13 @@ export const ratePercent = (rate: number) => Math.round(rate * 10000) / 100
 // The same figure as pl-PL prose without a „%" — the callers print their own, some inside a formula.
 export const ratePercentText = (rate: number | null) =>
   ratePercent(rate ?? 0).toLocaleString('pl-PL')
+
+// The tail a row-condition label carries when the figure it judges only exists in one view. One
+// source because it is both written (the registry builds labels with it) and REMOVED again (the
+// „Problemy" menu, whose heading already names the view) — two literals would drift apart silently.
+export const planeViewSuffix = (plane: ToolPlaneT) =>
+  ` w widoku ${PLANE_LABELS[plane].toLowerCase()}`
+
+// The same tail for a LIST entry, where „w widoku …" is preamble the heading above already carried.
+// Shared with the column picker, so a stawka's filter row and its column read alike.
+export const planeDashSuffix = (plane: ToolPlaneT) => ` — ${PLANE_LABELS[plane].toLowerCase()}`

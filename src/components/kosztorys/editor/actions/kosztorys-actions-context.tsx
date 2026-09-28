@@ -17,6 +17,10 @@ import {
   useInvestorActions,
   type InvestorActionsT,
 } from '@/components/kosztorys/editor/actions/investor-actions'
+import {
+  useWorkerActions,
+  type WorkerActionsT,
+} from '@/components/kosztorys/editor/actions/worker-actions'
 
 type KosztorysActionsT = {
   version: DialogToggleT
@@ -26,6 +30,8 @@ type KosztorysActionsT = {
   sheetCompare: SheetCompareActionT
   catalogueCompare: DialogToggleT
   investor: InvestorActionsT
+  worker: WorkerActionsT
+  acceptanceProtocol: DialogToggleT
 }
 
 const KosztorysActionsContext = createContext<KosztorysActionsT | null>(null)
@@ -43,6 +49,8 @@ export function KosztorysActionsProvider({ children }: { children: ReactNode }) 
   const sheetCompare = useSheetCompareAction()
   const catalogueCompare = useDialogToggle()
   const investor = useInvestorActions()
+  const worker = useWorkerActions()
+  const acceptanceProtocol = useDialogToggle()
   const value: KosztorysActionsT = {
     version,
     clear,
@@ -51,6 +59,8 @@ export function KosztorysActionsProvider({ children }: { children: ReactNode }) 
     sheetCompare,
     catalogueCompare,
     investor,
+    worker,
+    acceptanceProtocol,
   }
 
   return <KosztorysActionsContext value={value}>{children}</KosztorysActionsContext>

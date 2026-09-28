@@ -40,3 +40,10 @@ export const investmentSchema = investmentFormSchema.extend({
 // a caller must be allowed to omit it. The action re-parses with `investmentSchema`, which is where
 // the defaults land.
 export type InvestmentFormDataT = z.input<typeof investmentSchema>
+
+export const investmentClientFieldsSchema = investmentSchema.pick({
+  contactPerson: true,
+  address: true,
+})
+
+export type InvestmentClientFieldsT = z.input<typeof investmentClientFieldsSchema>

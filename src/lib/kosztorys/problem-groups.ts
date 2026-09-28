@@ -1,4 +1,4 @@
-import { PLANE_LABELS } from '@/lib/kosztorys/constants'
+import { PLANE_LABELS } from '@/lib/kosztorys/labels'
 
 /**
  * The headings the „Problemy" list is read under. Fifteen sentences in one column are read as one
