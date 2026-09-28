@@ -103,8 +103,9 @@ V  = D*$Q - (D*$Q*$R)                  wartość etapu  = ilość_wykonana × ce
 AF = T - V - W - X - Y - Z - AA…AE     bilans         = wartość − Σ etapów
 ```
 
-Appka jest z tym **1:1**: `stageValueForView` = `V`, `rowRemainingForView` = `AF`
-(`src/lib/kosztorys/calc.ts:52,61`). Potwierdza P9.
+Appka jest z tym 1:1 w `V` (`stageValueForView`). **Nie** w `AF`: skoro `O` = Σ etapów, arkuszowe
+`AF` = `T − Σ(V:AE)` jest tożsamościowo zerem, więc „Pozostało" (`rowRemainingForView`) celowo
+kotwiczy do `S` (oferty), nie do `T` — patrz „Oferta i wykonanie" niżej. Potwierdza P9.
 
 ### BRAK sumy per etap — zweryfikowane
 
@@ -372,7 +373,8 @@ właśnie po to, żeby jej nie przepisywać.
   liczy po cenie klienta w każdym widoku), tylko w widokach „Z narzędziami" / „Bez narzędzi"; w
   widoku inwestora jej nie ma, bo byłaby kopią. Tylko netto — wypłaty podwykonawców są bez VAT.
 - **„Pozostało" liczy pracę wszystkich etapów**, nie tylko jego: pozycja dokończona przez inną ekipę
-  pokazuje 0, bo to lista „co jeszcze do zrobienia", nie „co jeszcze zrobię ja".
+  pokazuje 0, bo to lista „co jeszcze do zrobienia", nie „co jeszcze zrobię ja". Suma w stopce
+  pomija wiersze na minusie, jak u właściciela (EX-885).
 - **Puste pozycje** — ta sama dwuosiowa reguła co u inwestora, z osią „wykonane" = jego etapy, więc
   ukrycie nie rusza żadnej sumy podsumowania.
 - **Podsumowanie**: wartość przedmiaru po jego stawce → wykonane per etap + razem → wypłacone (lista:
@@ -401,8 +403,10 @@ właśnie po to, żeby jej nie przepisywać.
 - **Oferta i wykonanie to dwie równoległe kwoty** (arkusz: `S` i `T`):
   - **„Wartość netto przedmiar"** = `applyDiscount(Przedmiar × cena)` = arkuszowe `S` — oferta.
   - **„Wartość netto"** = `applyDiscount(Σ etapów × cena)` = arkuszowe `T` — wykonanie.
-  - **„Pozostało netto (względem przedmiaru)"** = `S − T`; przy pustym Przedmiarze „—" (brak
-    mianownika). Nie mylić z „Rozjazdem między arkuszem Google a apką" — tamten odejmuje sumę
+  - **„Pozostało netto (względem przedmiaru)"** = `S − T`; pusty Przedmiar to oferta zerowa, więc
+    wiersz czyta −wykonane. Wiersz poniżej −0,005 zł (praca ponad przedmiar) jest **na czerwono**,
+    a stopka sekcji i „Razem" sumują **tylko wiersze nie ponad przedmiar** — suma mówi „ile oferty
+    zostało do zrobienia" (EX-885, odwraca EX-686, gdzie nadwyżka pomniejszała sumę). Nie mylić z „Rozjazdem między arkuszem Google a apką" — tamten odejmuje sumę
     etapów od Pomiaru z natury z arkusza, a nie od Przedmiaru.
   - **„% wykonania"** = `Σ etapów / Przedmiar` (nie z sumy etapów — inaczej `Σ/Σ = 100%` wszędzie).
 
@@ -416,6 +420,10 @@ właśnie po to, żeby jej nie przepisywać.
   (`hasStagesOverPlanned`), gdy `Σ etapów > Przedmiar` — praca przekroczyła oferowany zakres.
   Częściowo zrobiony wiersz (`Σ etapów < Przedmiar`) to normalna praca w toku i czerwony **nie**
   jest — inaczej cała siatka świeciłaby na zdrowym kosztorysie.
+
+  Drugi czerwony sygnał to ujemne **„Pozostało"** (netto, brutto, pracownika;
+  `isRemainingOverrun`) — ten sam predykat, który wyjmuje wiersz z sumy w stopce. Łapie też pracę
+  bez Przedmiaru, której „% wykonania" nie pokaże (tam „—"). Wydruki zostają czarne.
 
   **Rozjazd nie ma wyjścia awaryjnego per wiersz** (właściciel, 2026-08-13). Rozjazd między
   zaimportowanym Pomiarem z natury a sumą etapów zamyka się **tylko** przez poprawę arkusza albo

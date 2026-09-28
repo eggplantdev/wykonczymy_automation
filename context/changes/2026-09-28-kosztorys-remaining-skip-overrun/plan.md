@@ -290,13 +290,13 @@ Run once, after Phase 2.
 
 #### Automated
 
-- [x] 1.1 `pnpm exec vitest run src/__tests__/lib/kosztorys/column-totals.test.ts` passes
-- [x] 1.2 `pnpm exec vitest run src/__tests__/lib/kosztorys/settlement-rows.test.ts` passes
-- [x] 1.3 `pnpm exec vitest run src/__tests__/lib/kosztorys/kosztorys-v2-rows.test.ts` still passes (row values unchanged)
+- [x] 1.1 `pnpm exec vitest run src/__tests__/lib/kosztorys/column-totals.test.ts` passes — cae0bf78
+- [x] 1.2 `pnpm exec vitest run src/__tests__/lib/kosztorys/settlement-rows.test.ts` passes — cae0bf78
+- [x] 1.3 `pnpm exec vitest run src/__tests__/lib/kosztorys/kosztorys-v2-rows.test.ts` still passes (row values unchanged) — cae0bf78
 
 ### Phase 2: Red overrun cells, tips, docs
 
 #### Automated
 
-- [ ] 2.1 `pnpm exec vitest run src/__tests__/components/kosztorys/editor/grid/remaining-overrun-tone.test.ts` passes
-- [ ] 2.2 `pnpm exec vitest run src/__tests__/components/kosztorys/editor/grid/stage-plane-lock.test.ts src/__tests__/components/kosztorys/editor/grid/preview-columns.test.ts` still pass
+- [x] 2.1 `pnpm exec vitest run src/__tests__/components/kosztorys/editor/grid/remaining-overrun-tone.test.ts` passes
+- [x] 2.2 `pnpm exec vitest run src/__tests__/components/kosztorys/editor/grid/stage-plane-lock.test.ts src/__tests__/components/kosztorys/editor/grid/preview-columns.test.ts` still pass

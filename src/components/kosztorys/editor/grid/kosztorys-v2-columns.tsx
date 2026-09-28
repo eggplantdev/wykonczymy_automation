@@ -51,6 +51,7 @@ import { formatPercent, formatQty } from '@/lib/kosztorys/format'
 import { formatPLN } from '@/lib/utils/format-currency'
 import {
   hasStagesOverPlanned,
+  isRemainingOverrun,
   measureDiscrepancy,
   rowRemainingForExecutedQty,
   rowRemainingForView,
@@ -350,12 +351,22 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     }),
   ]
 
+  // Red on the very rows the footer total leaves out — one predicate, so the two never disagree.
+  // Brutto is judged on its netto: same sign, and one tolerance axis instead of two.
+  const remainingTone = (r: KosztorysV2RowT) =>
+    isRemainingOverrun(rowRemainingForView(r, stages, 'client')) ? 'danger' : 'muted'
   const remaining: Column<KosztorysV2RowT>[] = [
-    computedColumn('remaining', columnTitle('remaining', opts), (r) =>
-      rowRemainingForView(r, stages, 'client'),
+    computedColumn(
+      'remaining',
+      columnTitle('remaining', opts),
+      (r) => rowRemainingForView(r, stages, 'client'),
+      { tone: remainingTone },
     ),
-    computedColumn('remainingGross', columnTitle('remainingGross', opts), (r) =>
-      toGross(rowRemainingForView(r, stages, 'client'), r.vatRate),
+    computedColumn(
+      'remainingGross',
+      columnTitle('remainingGross', opts),
+      (r) => toGross(rowRemainingForView(r, stages, 'client'), r.vatRate),
+      { tone: remainingTone },
     ),
   ]
   // Assembled on the worker surface only: anywhere else there is no all-etapy quantity to read, and
@@ -363,8 +374,18 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   const worker = opts.workerSurface
   const remainingForPlane: Column<KosztorysV2RowT>[] = worker
     ? [
-        computedColumn('remainingForPlane', columnTitle('remainingForPlane', opts), (r) =>
-          rowRemainingForExecutedQty(r, worker.executedQtyByItem[r.id] ?? 0, view),
+        computedColumn(
+          'remainingForPlane',
+          columnTitle('remainingForPlane', opts),
+          (r) => rowRemainingForExecutedQty(r, worker.executedQtyByItem[r.id] ?? 0, view),
+          {
+            tone: (r) =>
+              isRemainingOverrun(
+                rowRemainingForExecutedQty(r, worker.executedQtyByItem[r.id] ?? 0, view),
+              )
+                ? 'danger'
+                : 'muted',
+          },
         ),
       ]
     : []
