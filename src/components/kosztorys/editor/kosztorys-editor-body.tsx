@@ -416,9 +416,17 @@ export function KosztorysEditorBody({
                   {investmentName}
                 </h1>
                 {/* The open panel covers the whole grid, so the switch would change rows nobody can
-                    see. Below `sm` it sits under the name, which also shares `order-last`. */}
-                {clientEmptyRowIds.size > 0 && !totalsOpen && (
-                  <Label className="order-last cursor-pointer font-normal sm:order-none">
+                    see. Hidden, not unmounted: below `sm` it takes its own line under the name (which
+                    also shares `order-last`), and dropping it would make the header jump. Opacity on
+                    the whole label, timed to the panel: a bare `invisible` snaps, and the Switch's
+                    own `transition-all` delays its inherited visibility behind the text's. */}
+                {clientEmptyRowIds.size > 0 && (
+                  <Label
+                    className={cn(
+                      'order-last cursor-pointer font-normal transition-[opacity,visibility] duration-200 ease-out sm:order-none',
+                      totalsOpen && 'invisible opacity-0',
+                    )}
+                  >
                     <Switch checked={showAllRows} onCheckedChange={setShowAllRows} />
                     Pokaż wszystkie pozycje (+{clientEmptyRowIds.size})
                   </Label>
