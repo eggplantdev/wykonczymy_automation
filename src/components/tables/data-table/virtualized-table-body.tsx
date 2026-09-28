@@ -70,7 +70,6 @@ export function VirtualizedTableBody<TData>({
             <EmptyRow colSpan={colCount} />
           ) : (
             <>
-              {/* Top spacer — pushes visible rows to correct scroll position */}
               {virtualItems.length > 0 && (
                 <tr>
                   <td style={{ height: virtualItems[0]?.start ?? 0 }} colSpan={colCount} />
@@ -92,7 +91,6 @@ export function VirtualizedTableBody<TData>({
                 )
               })}
 
-              {/* Bottom spacer — maintains total scroll height */}
               {virtualItems.length > 0 && (
                 <tr>
                   <td

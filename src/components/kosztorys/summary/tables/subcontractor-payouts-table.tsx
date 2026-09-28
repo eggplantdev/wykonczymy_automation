@@ -19,8 +19,8 @@ type PayoutTableRowT = {
   description: string | null
 }
 
-// Fixed height for the virtualizer's scroll container (it needs px, not a flex track). Kept short
-// enough that the headline + totals block above it stay visible inside the collapsible panel.
+// Fixed height for the virtualizer's scroll container, kept short enough that the headline + totals
+// block above it stay visible inside the collapsible panel.
 const TABLE_HEIGHT = 400
 const ROW_HEIGHT = 36
 

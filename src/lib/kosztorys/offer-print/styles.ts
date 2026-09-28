@@ -46,7 +46,6 @@ tr { break-inside: avoid; }
               color: #a1a1aa; margin-bottom: 3px; }
 .brand-title { font-size: 12pt; font-weight: 600; letter-spacing: -.01em; line-height: 1.15; }
 
-/* --- column heads: micro-type, hierarchy by weight and colour ------------- */
 th { font-size: 6.5pt; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
      color: #a1a1aa; text-align: left; padding: 7px 4px; border-bottom: 1px solid #e4e4e7;
      border-right: 1px solid #f4f4f5; background: #fff; vertical-align: top; }
@@ -95,7 +94,6 @@ tr.band-total td.num { color: #18181b; }
    mitre with the rail and cut a grey wedge out of the colour. */
 tr.band-total td.rail { border-top: none; background-position: 0 0; }
 
-/* --- totals: a rule and alignment, not a box ----------------------------- */
 .totals { margin-top: 32px; break-inside: avoid; display: flex; justify-content: flex-end; }
 .totals table { width: auto; min-width: 62mm; }
 .totals td { border: none; padding: 6px 0 6px 28px; }

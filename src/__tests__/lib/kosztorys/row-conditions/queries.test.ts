@@ -15,6 +15,7 @@ import {
 } from '@/lib/kosztorys/row-conditions/queries'
 import { ROW_CONDITIONS } from '@/lib/kosztorys/row-conditions/registry'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
+import type { CrewAxisT } from '@/lib/kosztorys/crew-axis'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 describe('applyRowConditions — each kind pulls the direction its wording promises', () => {
@@ -241,11 +242,10 @@ describe('engagedPlane', () => {
   })
 
   // A filter must never move the view: it is a picker row, not a gesture, and unticking the other half
-  // of its pair names the same plane and so could never undo the move. Two guards, because either
-  // alone rots — the registry keeps filters plane-less, and the reader ignores a plane on one anyway.
+  // of its pair names the same plane and so could never undo the move. Filters DO carry a plane (the
+  // „Stawki wykonawców" axis reads it), which is why the premise is asserted rather than assumed —
+  // the one guard left is that `engagedPlane` asks diagnostics only.
   it('ignores a filter’s plane, and answers for the problem beside it', () => {
-    // Filtry NOSZĄ płaszczyznę (czyta ją oś „Stawki wykonawców") — i właśnie dlatego to asercja:
-    // `engagedPlane` ma dalej pytać wyłącznie diagnostyki.
     expect(ROW_CONDITIONS.filter((c) => c.kind === 'filter').some((c) => c.plane)).toBe(true)
     expect(engagedPlane(['manual-rate-w-tools'])).toBeUndefined()
     expect(engagedPlane(['manual-rate-w-tools', 'negative-rate-own-tools'])).toBe('own_tools')
@@ -310,8 +310,14 @@ describe('clientConditionIds', () => {
 })
 
 describe('offeredFilterConditions', () => {
-  const offeredIds = (engaged: string[] = [], perItemDiscountInert = false) =>
-    offeredFilterConditions(new Set(engaged), perItemDiscountInert).map((condition) => condition.id)
+  const offeredIds = (
+    engaged: string[] = [],
+    perItemDiscountInert = false,
+    crewAxis: CrewAxisT = 'both',
+  ) =>
+    offeredFilterConditions(new Set(engaged), perItemDiscountInert, crewAxis).map(
+      (condition) => condition.id,
+    )
 
   it('offers only the filters — problems and the client rule have their own homes', () => {
     expect(offeredIds()).not.toContain('no-client-price')

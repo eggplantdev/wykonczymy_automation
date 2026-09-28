@@ -76,8 +76,6 @@ export const OFFER_COLUMNS: readonly OfferColumnT[] = [
     cell: (row, view) => zloty(rowPlannedNetForView(row, view)),
   },
   {
-    // „Pozostało" is part of the offer variant the dialog offers, so an owner who leaves it ticked
-    // sees it in the podgląd — and used to lose it on paper.
     key: 'remaining',
     label: 'Pozostało',
     colClass: 'c-value',

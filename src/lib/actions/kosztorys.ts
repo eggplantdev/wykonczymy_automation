@@ -91,7 +91,6 @@ export type SectionPatchT = z.infer<typeof sectionPatchSchema>
 export type InvestmentCoeffsPatchT = z.infer<typeof investmentCoeffsSchema>
 export type InvestmentGlobalDiscountPatchT = z.infer<typeof investmentGlobalDiscountSchema>
 
-// --- Field updates (autosave) ---
 
 // The three per-cell autosaves below defer the refresh: the editor seeds `rows` once at mount and
 // recomputes the panel optimistically, so the re-render reseeds nothing it reads. The only cached
@@ -276,7 +275,6 @@ export async function cleanItemTextsAction(investmentId: number): Promise<Action
   )
 }
 
-// --- Structure: sections / items ---
 
 const clearKosztorysSchema = z.object({ investmentId: z.number().int().positive() })
 
@@ -460,8 +458,6 @@ const insertItemSchema = z.object({
   dir: insertDirectionSchema,
 })
 
-// The anchor's section, and the slot within it, are resolved inside the transaction that then
-// shifts the tail and creates the row.
 export async function insertItemAction(
   anchorItemId: number,
   dir: InsertDirectionT,
@@ -607,7 +603,6 @@ export async function renumberKosztorysOrderAction(
   )
 }
 
-// --- Stages (etapy) ---
 
 // A new etap is created WITH its plane — the picker is forced at creation (the add menu offers
 // „z narzędziami" / „bez narzędzi", never a plane-less „Etap"), so no new stage is ever null.

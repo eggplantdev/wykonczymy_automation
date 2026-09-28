@@ -27,7 +27,7 @@ function renderControl() {
 beforeEach(() => vi.clearAllMocks())
 
 describe('Stawka vat na materiały — wartość spoza 0–100%', () => {
-  // EX-819: „230" zamiast „23" zapisywało po cichu 100% i przeliczało całe materiały.
+  // EX-819: „230" instead of „23" silently saved 100% and recomputed the whole materiały figure.
   it('odmawia 230%, mówi o tym i zostawia zapisaną stawkę', async () => {
     const { user, input, save } = renderControl()
 

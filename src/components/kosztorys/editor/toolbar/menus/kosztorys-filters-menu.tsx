@@ -17,8 +17,8 @@ export function KosztorysFiltersMenu() {
       icon={ListFilter}
       title="Co widać: pozycje"
       triggerClassName={TOOLBAR_FILTER_TRIGGER_CLASS}
-      // Szerokość „Problemów", nie pozostałych menu toolbara: wiersze płaszczyznowe niosą nazwę ekipy
-      // w nawiasie, więc przy 20rem łamały się na dwie linie i lista przestawała być listą.
+      // „Problemy"'s width, not the rest of the toolbar's menus: a plane row carries the crew's name in
+      // brackets, so at 20rem it wrapped onto two lines and the list stopped reading as a list.
       contentClassName="w-112"
       resetAction={resetAction}
       toggles={toggles}

@@ -3,9 +3,9 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
-import { formatPercent, formatPercentPrecise, formatRate } from '@/lib/kosztorys/format'
+import { formatPercentPrecise, formatRate } from '@/lib/kosztorys/format'
 import { namesFigure } from '@/lib/kosztorys/calc'
-import { MAX_CLIENT_SHARE, isOverCeiling } from '@/lib/kosztorys/subcontractor-price-guard'
+import { clientShareCeilingLabel, isOverCeiling } from '@/lib/kosztorys/subcontractor-price-guard'
 import {
   FLAGGED_TONE,
   PLANE_LABELS,
@@ -77,7 +77,7 @@ const twoLines = (first: string, second: string) => () => (
 // Per plane, because the próg is: the stawka bez narzędzi is the z-narzędziami one less 15%, so one
 // tooltip on both columns would name a liczba only one of them turns red at.
 const shareTooltip = (plane: ToolPlaneT) =>
-  `Udział stawki w cenie j.m. Powyżej ${formatPercent(MAX_CLIENT_SHARE[plane])} na czerwono.`
+  `Udział stawki w cenie j.m. Powyżej ${clientShareCeilingLabel(plane)} na czerwono.`
 
 // Lp. is the row's number in the KATALOG, pinned to alphabetical order over the whole catalogue, so
 // it survives every sort and filter. `row.index` would slide under the row and name nothing.

@@ -189,8 +189,6 @@ describe('buildOfferPrintHtml — papier pokazuje to, co ekran', () => {
 
 describe('buildOfferPrintHtml — oferta jest dokumentem klienta', () => {
   it('drukuje sumę klienta, nawet gdy edytor stoi na płaszczyźnie podwykonawcy', () => {
-    // Produkcja podaje wyrocznię AKTYWNĄ płaszczyznę edytora. „Razem netto" na papierze ma i tak być
-    // figurą klienta — trzyma to przypięcie `plannedNet` do 'client' w `column-totals.ts`.
     const rows = [
       row({ id: 1, sectionId: 10, sectionName: 'Podłogi', plannedQty: 10, clientPrice: 100 }),
     ]
@@ -216,9 +214,9 @@ describe('buildOfferPrintHtml — struktura tabeli', () => {
   })
 
   it('wiersz sumy sekcji mieści się w kolumnach, gdy „Wartość netto" jest pierwsza', () => {
-    // Wszystko na lewo od „Wartość netto" ukryte: zostają dwie kolumny, a etykieta „Razem" i tak
-    // musi zająć jedną. Podłoga colspanu i licznik wypełniaczy liczyły z dwóch różnych wartości, więc
-    // wiersz niósł trzecią komórkę na dwukolumnową tabelę — przeglądarka doszywała widmową kolumnę.
+    // Everything left of „Wartość netto" hidden: two columns remain, and the „Razem" label still has to
+    // take one of them. The colspan floor and the filler count were derived from two different figures,
+    // so the row carried a third cell into a two-column table and the browser grew a phantom column.
     const rows = [
       row({ id: 1, sectionId: 10, sectionName: 'Podłogi', plannedQty: 2, clientPrice: 50 }),
     ]
