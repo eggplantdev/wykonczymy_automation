@@ -9,15 +9,15 @@ import { MenuItemBody } from '@/components/kosztorys/editor/actions/menu-item-bo
 import { useLatestRequest } from '@/hooks/use-latest-request'
 import { getShareLinkAction } from '@/lib/actions/kosztorys-share'
 import { readClientViewSettings } from '@/lib/queries/client-view-settings-endpoint'
-import type { ClientViewConfigT } from '@/lib/kosztorys/client-view-settings'
+import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
 import { toastMessage } from '@/lib/utils/toast'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 
 // „Ustawienia podglądu…" and „Udostępnij" share one module because they share one figure: both open
 // on the same client-view settings, and both dialogs write them back.
 export type InvestorActionsT = {
-  clientView: ClientViewConfigT | null
-  setClientView: (config: ClientViewConfigT) => void
+  clientView: ClientViewSettingsT | null
+  setClientView: (settings: ClientViewSettingsT) => void
   settingsOpen: boolean
   setSettingsOpen: (open: boolean) => void
   requestSettings: () => void
@@ -31,7 +31,7 @@ export type InvestorActionsT = {
 
 export function useInvestorActions(): InvestorActionsT {
   const { investmentId } = useKosztorysEditorContext()
-  const [clientView, setClientView] = useState<ClientViewConfigT | null>(null)
+  const [clientView, setClientView] = useState<ClientViewSettingsT | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
   const [shareToken, setShareToken] = useState<string | null>(null)

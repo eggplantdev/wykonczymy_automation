@@ -5,10 +5,10 @@ import { isAdminOrOwnerOrManager } from '@/access'
 // `kosztoryses` is the v1 Google-Sheet link row (required `googleSheetId`), so a v2 kosztorys has no
 // row there at all, and a client-disclosure decision is not a property of the investment record.
 //
-// `variants` holds both column sets at once — `mode` picks the one the client's link serves, so
-// moving an investment from offer to settlement is one field, not twenty re-ticked checkboxes.
-// Each variant stores what is HIDDEN, not what is visible: `PREVIEW_VISIBLE_COLUMNS` stays the
-// ceiling, so a column added to the allowlist later is served without rewriting a single stored row.
+// It stores what is HIDDEN, not what is visible: `PREVIEW_VISIBLE_COLUMNS` stays the ceiling, so a
+// column added to the allowlist later is served without rewriting a single stored row. No default on
+// `hiddenColumns` — `[]` means „hide nothing"; absent means „never chosen" and resolves to the code
+// default (`sanitizeClientViewSettings`).
 export const KosztorysClientView: CollectionConfig = {
   slug: 'kosztorys-client-view',
   labels: {
@@ -17,7 +17,7 @@ export const KosztorysClientView: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'investment',
-    defaultColumns: ['investment', 'mode', 'updatedAt'],
+    defaultColumns: ['investment', 'updatedAt'],
     group: { en: 'Kosztorys', pl: 'Kosztorys' },
   },
   // No revalidation hooks: the settings are read outside the preview's `unstable_cache` entry, so a
@@ -38,19 +38,13 @@ export const KosztorysClientView: CollectionConfig = {
       unique: true,
     },
     {
-      name: 'mode',
-      type: 'select',
-      required: true,
-      defaultValue: 'OFFER',
-      options: [
-        { value: 'OFFER', label: { en: 'Offer', pl: 'Oferta' } },
-        { value: 'SETTLEMENT', label: { en: 'Settlement', pl: 'Rozliczenie' } },
-      ],
+      name: 'hiddenColumns',
+      type: 'json',
     },
     {
-      name: 'variants',
-      type: 'json',
-      defaultValue: {},
+      name: 'hideEmptyRows',
+      type: 'checkbox',
+      defaultValue: true,
     },
   ],
 }

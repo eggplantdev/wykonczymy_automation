@@ -258,7 +258,7 @@ export function offerPrintColumns(
  * regime lives in the render layer — the preview payload deliberately cuts nothing
  * (`preview-kosztorys.ts`). Without this filter a key slipped into the document list would be one
  * line from a client's document — „komentarz" or a subcontractor's stawka. Fails closed the same way
- * `sanitizeClientViewVariant` does.
+ * `sanitizeClientViewSettings` does.
  */
 export function printableKeys(keys: readonly string[], hiddenColumns: readonly string[]): string[] {
   const hidden = new Set(hiddenColumns)

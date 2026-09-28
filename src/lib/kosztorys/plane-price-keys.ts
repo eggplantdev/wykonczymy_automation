@@ -53,7 +53,7 @@ export const ALL_PLANE_PRICE_KEYS: readonly string[] = TOOL_PLANES.flatMap(plane
 // to drift apart, which is the exact failure this change must not have.
 //
 // NOT for the disclosure allowlist (PREVIEW_VISIBLE_COLUMNS / CLIENT_VIEW_GROUPS /
-// sanitizeClientViewVariant): resolving there would let `price__own_tools` inherit `price`'s pass to
+// sanitizeClientViewSettings): resolving there would let `price__own_tools` inherit `price`'s pass to
 // the client preview and leak a subcontractor rate. Those match the full id, always.
 export function basePriceKey(key: string): string {
   return planePriceKeyParts(key)?.base ?? key

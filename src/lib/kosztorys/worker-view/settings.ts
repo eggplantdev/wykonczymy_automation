@@ -34,7 +34,7 @@ export function workerColumnLabel(key: string): string | undefined {
   return WORKER_LABEL_OVERRIDES[key] ?? COLUMN_LABELS[key]
 }
 
-// Same fail-closed contract as `sanitizeClientViewVariant`: a key outside the worker ceiling is
+// Same fail-closed contract as `sanitizeClientViewSettings`: a key outside the worker ceiling is
 // dropped on read and on write, so a hand-edited `price` in the global's JSON is inert rather than a
 // way onto a worker's screen. Here the default hides nothing, so „closed" rests entirely on the
 // ceiling — which is why `workerVisibleColumns` builds from the groups and only ever subtracts.

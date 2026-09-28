@@ -13,23 +13,14 @@ export const KosztorysClientViewDefaults: GlobalConfig = {
     update: isAdminOrOwner,
   },
   fields: [
-    // Which variant an investment WITHOUT a row of its own serves — a firm-wide switch, so the
-    // editor never writes it: „Zapisz jako domyślne" saves the column set of the variant in front of
-    // the owner, and flipping every client link at once stays a deliberate act here in /admin.
     {
-      name: 'mode',
-      type: 'select',
-      required: true,
-      defaultValue: 'OFFER',
-      options: [
-        { value: 'OFFER', label: { en: 'Offer', pl: 'Oferta' } },
-        { value: 'SETTLEMENT', label: { en: 'Settlement', pl: 'Rozliczenie' } },
-      ],
+      name: 'hiddenColumns',
+      type: 'json',
     },
     {
-      name: 'variants',
-      type: 'json',
-      defaultValue: {},
+      name: 'hideEmptyRows',
+      type: 'checkbox',
+      defaultValue: true,
     },
   ],
 }

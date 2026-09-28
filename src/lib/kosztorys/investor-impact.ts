@@ -1,4 +1,3 @@
-import type { ClientViewModeT } from '@/lib/kosztorys/client-view-settings'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { depositNoun } from '@/lib/kosztorys/off-plane-deposit-copy'
 import type { StrandedDepositsT } from '@/lib/kosztorys/off-plane-deposits'
@@ -14,11 +13,6 @@ export const SETTLEMENT_MODE_IMPACT =
 
 export const MATERIALS_PRICING_IMPACT =
   'Sposób rozliczenia materiałów zmienia kwoty, które inwestor widzi w podglądzie.'
-
-export const CLIENT_VIEW_MODE_IMPACT: Record<ClientViewModeT, string> = {
-  OFFER: 'Inwestor zobaczy pod swoim linkiem ofertę zamiast rozliczenia.',
-  SETTLEMENT: 'Inwestor zobaczy pod swoim linkiem rozliczenie zamiast oferty.',
-}
 
 // Appended to SETTLEMENT_MODE_IMPACT when the tryb being chosen is one those wpłaty do not survive.
 // A warning, never a refusal (owner, 2026-08-23): the tryb is the owner's call about the deal, and
