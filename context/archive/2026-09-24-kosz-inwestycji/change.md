@@ -1,15 +1,17 @@
 ---
 change_id: kosz-inwestycji
 title: Kosz inwestycji — odwracalne usuwanie inwestycji przez właściciela
-status: implemented
+status: archived
 created: 2026-09-24
 updated: 2026-09-28
-archived_at: null
+archived_at: 2026-09-28T14:36:13Z
 branch: kosz-inwestycji
 worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/kosz-inwestycji
 ---
 
 ## Notes
+
+Review record: `review-gate.md` in this folder (per-change gate) and the staging QA pass in `context/archive/reviews/2026-09-28-staging.md` (manual checks 9/9).
 
 Dziś inwestycji nie da się usunąć z aplikacji — tylko z nieużywanego `/admin`, i to twardo:
 kaskada kasuje kosztorys, wersje, link dla inwestora i przypięcia zdjęć bez żadnego ostrzeżenia.

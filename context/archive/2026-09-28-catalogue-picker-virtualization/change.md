@@ -1,15 +1,17 @@
 ---
 change_id: catalogue-picker-virtualization
 title: Virtualize the „Dodaj pracę z katalogu" picker list (EX-860)
-status: implemented
+status: archived
 created: 2026-09-28
 updated: 2026-09-28
-archived_at: null
+archived_at: 2026-09-28T14:36:13Z
 branch: staging
 worktree: null
 ---
 
 ## Notes
+
+Review record: `context/archive/reviews/2026-09-28-staging.md` (branch-scoped gate, not a per-change reviews/impl-review\*.md).
 
 Linear: EX-860 (narrowed to this one dialog).
 
