@@ -518,5 +518,5 @@ Run once, after the final phase.
 
 #### Automated
 
-- [ ] 3.1 Create-empty dialog spec passes
-- [ ] 3.2 No remaining references to `useOpenPreset` / `onRowClick`
+- [x] 3.1 Create-empty dialog spec passes — 5b08f6ec
+- [x] 3.2 No remaining references to `useOpenPreset` / `onRowClick` — 5b08f6ec
