@@ -52,7 +52,7 @@ export type LaborColumnsFailureT = ResolveFailureT & UnresolvedColumnsT
 
 export type ResolvedLaborColumnsT = UnresolvedColumnsT & {
   ok: true
-  columns: { section: number; description: number } & Partial<Record<ColumnFieldT, number>> & {
+  columns: { section?: number; description: number } & Partial<Record<ColumnFieldT, number>> & {
       plannedQty: number
       unit: number
       clientPrice: number
@@ -191,13 +191,11 @@ export function resolveLaborColumns(
 
   // „Nazwa sekcji" and „opis pracy" carry no header label of their own — row 1 of those columns
   // holds the client's address. They are the columns immediately left of the first etap: opis is
-  // one back, then the ordinal, then the section name. A tab with only two leading columns (the
-  // `zakres pracy` tabs) has no section column at all.
+  // one back, then the ordinal, then the section name. A sheet with fewer leading columns has no
+  // section column, and that is not a refusal: the parser names a section after its opis cell
+  // when the section cell is empty — exactly what the owner got by inserting a blank column A.
   const description = stages ? stages.firstColumn - 1 : -1
-  const section = stages ? stages.firstColumn - 3 : -1
-  if (stages && section < 0) {
-    problems.push('Brak kolumny z nazwą sekcji przed kolumnami etapów.')
-  }
+  const section = stages && stages.firstColumn >= 3 ? stages.firstColumn - 3 : -1
 
   const taken = new Set<number>(Object.values(columns))
   if (stages) {
@@ -245,7 +243,15 @@ export function resolveLaborColumns(
 
   return {
     ok: true,
-    columns: { section, description, ...columns, plannedQty, unit, clientPrice, netValue },
+    columns: {
+      ...(section >= 0 && { section }),
+      description,
+      ...columns,
+      plannedQty,
+      unit,
+      clientPrice,
+      netValue,
+    },
     stages,
     missingFields,
     candidates,
