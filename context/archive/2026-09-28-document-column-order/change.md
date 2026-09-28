@@ -1,10 +1,10 @@
 ---
 change_id: document-column-order
 title: Owner-set column order for the investor and worker documents (EX-884)
-status: implemented
+status: archived
 created: 2026-09-28
 updated: 2026-09-28
-archived_at: null
+archived_at: 2026-09-28T18:17:50Z
 branch: document-column-order
 worktree: ../wykonczymy-worktrees/document-column-order
 ---
