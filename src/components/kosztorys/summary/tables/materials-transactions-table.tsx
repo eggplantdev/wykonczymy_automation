@@ -47,8 +47,8 @@ const CLIENT_LIST_LABEL = 'Materiały'
 
 const TABLE_HEIGHT = 400
 // 8px taller than the wypłaty list: a text-only row is 36 (20px line box + py-2), leaving no budget
-// for the „Faktura" control's 28px box. The virtualizer estimates from this number and never measures,
-// so drift here is silent — keep it in step with whatever the tallest cell renders.
+// for the „Faktura" control's 28px box. Rendered rows are measured, but the container's collapsed
+// height below is computed from this number — keep it in step with whatever the tallest cell renders.
 const ROW_HEIGHT = 44
 // The scroll container wraps thead + tbody + tfoot together, so a height computed from body rows
 // alone clips the header and the „Razem" footer — budget their rendered height too.

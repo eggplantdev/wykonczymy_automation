@@ -11,6 +11,9 @@ declare module '@tanstack/react-table' {
     tooltip?: string
     /** Tailwind min-w-* utility class applied to the header and cell. */
     minWidth?: string
+    /** Takes the width the sized columns leave, with its `size` as the floor. Only the virtualized
+     * table reads it — the unvirtualized one lays out from content. */
+    fill?: boolean
     /** The column's print form. Its ABSENCE is the exclusion mechanism — a column without it never
      * reaches the printout, keeping interactive widgets off paper with no exclusion list. */
     printValue?: (row: TData) => string

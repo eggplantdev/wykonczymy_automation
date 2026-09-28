@@ -46,6 +46,8 @@ type DataTablePropsT<TData> = {
   enableVirtualization?: boolean
   virtualRowHeight?: number
   virtualContainerHeight?: number
+  /** Sizes the virtualized scroll container by class; `virtualContainerHeight` is then ignored. */
+  virtualContainerClassName?: string
   /** localStorage key for persisting column visibility */
   storageKey?: string
   /** Sort applied on first render. Defaults to none. Ignored when `sorting` is controlled. */
@@ -75,6 +77,7 @@ export function DataTable<TData>({
   enableVirtualization = false,
   virtualRowHeight = 44,
   virtualContainerHeight = 600,
+  virtualContainerClassName,
   storageKey,
   initialSorting = [],
   sorting: controlledSorting,
@@ -182,6 +185,7 @@ export function DataTable<TData>({
           <VirtualizedTableBody
             parentRef={parentRef}
             containerHeight={virtualContainerHeight}
+            containerClassName={virtualContainerClassName}
             headerGroups={headerGroups}
             rows={rows}
             virtualizer={virtualizer}

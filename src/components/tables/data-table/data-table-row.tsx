@@ -13,6 +13,9 @@ type DataTableRowPropsT<TData> = {
   getRowHref?: (row: TData) => string | undefined
   onRowClick?: (row: TData) => void
   getRowClassName?: (row: TData) => string
+  /** The virtualizer's `measureElement` — it reads the row's position from `data-index`. */
+  measureRef?: (node: HTMLTableRowElement | null) => void
+  index?: number
 }
 
 export function DataTableRow<TData>({
@@ -20,6 +23,8 @@ export function DataTableRow<TData>({
   getRowHref,
   onRowClick,
   getRowClassName,
+  measureRef,
+  index,
 }: DataTableRowPropsT<TData>) {
   const router = useRouter()
   const href = getRowHref?.(row.original)
@@ -54,6 +59,8 @@ export function DataTableRow<TData>({
 
   return (
     <tr
+      ref={measureRef}
+      data-index={index}
       className={cn(
         'border-border border-b last:border-b-0',
         isClickable && 'hover:bg-muted cursor-pointer transition-colors',
