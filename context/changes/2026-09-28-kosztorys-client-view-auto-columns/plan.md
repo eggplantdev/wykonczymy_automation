@@ -475,19 +475,19 @@ the React Compiler gives.
 
 #### Automated
 
-- [x] 1.1 Migration applies to local docker DB and backfills per the rule
-- [x] 1.2 Types regenerate
-- [x] 1.3 Settings specs pass
-- [x] 1.4 Defaults DB spec passes
+- [x] 1.1 Migration applies to local docker DB and backfills per the rule — 47e02e81
+- [x] 1.2 Types regenerate — 47e02e81
+- [x] 1.3 Settings specs pass — 47e02e81
+- [x] 1.4 Defaults DB spec passes — 47e02e81
 
 ### Phase 2: Settlement columns only when there are entries
 
 #### Automated
 
-- [ ] 2.1 Emptiness spec passes
-- [ ] 2.2 Grid spec passes
-- [ ] 2.3 Print specs pass
-- [ ] 2.4 Tab spec passes
+- [x] 2.1 Emptiness spec passes
+- [x] 2.2 Grid spec passes
+- [x] 2.3 Print specs pass
+- [x] 2.4 Tab spec passes
 
 ### Phase 3: Share without the settings step
 

@@ -324,6 +324,7 @@ export function SummaryPanelContent({
                 executedNet={totalNet ?? 0}
                 sectionSubtotals={sectionSubtotals ?? []}
                 vatRate={vatRate}
+                preview={preview}
               />
             )}
             {view === 'margin' && financials && subcontractorDue && (

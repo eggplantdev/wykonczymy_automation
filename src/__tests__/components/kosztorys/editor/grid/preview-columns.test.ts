@@ -6,6 +6,9 @@ import {
 } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
+import { emptySettlementColumnIds } from '@/lib/kosztorys/settlement-columns'
+import { stageKey } from '@/lib/kosztorys/stage-keys'
+import { row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
 
 // The client-facing preview: which columns it renders, and what pins the price plane they compute at.
 // Asserted on rendered ids rather than on the constant, because the ids are the document a client
@@ -15,6 +18,9 @@ const STAGES: KosztorysStageT[] = [
   { id: 7, ordinal: 1, label: 'Etap 1', plane: null, workerId: null },
   { id: 9, ordinal: 2, label: 'Etap 2', plane: null, workerId: null },
 ]
+
+const stageRow = (overrides: Parameters<typeof row>[0] = {}) =>
+  row({ [stageKey(7)]: 0, [stageKey(9)]: 0, ...overrides })
 
 function previewIds(extra: Partial<BuildV2ColumnsOptsT> = {}): string[] {
   return buildV2Columns({ view: 'client', previewVisible: true, stages: STAGES, ...extra })
@@ -117,6 +123,32 @@ describe('preview columns', () => {
     expect(visible).not.toContain('stageValueGross_7')
     expect(visible).not.toContain('stageValueGross_9')
     expect(visible).toContain('stageValueNet_7')
+  })
+
+  // The per-etap group key would take every etap with the empty one; an etap with no entries goes alone.
+  it('drops an empty etap by its full ids and keeps the filled one', () => {
+    const empty = emptySettlementColumnIds([stageRow({ [stageKey(7)]: 2 })], STAGES)
+    const visible = previewIds({ previewHiddenColumns: empty })
+
+    expect(visible).not.toContain('stage_9')
+    expect(visible).not.toContain('stageValueNet_9')
+    expect(visible).toContain('stage_7')
+    expect(visible).toContain('stageValueNet_7')
+    expect(visible).toContain('net')
+  })
+
+  // The investor's empty etap is no reason to hide it from a crew: the subtraction is the preview's.
+  it('does not apply the investor subtraction to a worker surface', () => {
+    const crewStages = STAGES.map((stage) => ({ ...stage, plane: 'w_tools' as const }))
+    const workerIds = buildV2Columns({
+      view: 'w_tools',
+      stages: crewStages,
+      workerSurface: { plane: 'w_tools', hiddenColumns: [], executedQtyByItem: {} },
+      previewHiddenColumns: emptySettlementColumnIds([stageRow()], crewStages),
+    }).map((column) => column.id)
+
+    expect(workerIds).toContain('stage_9')
+    expect(workerIds).toContain('stageValueNet_9')
   })
 
   it('cannot let a stored key add a column outside the allowlist', () => {

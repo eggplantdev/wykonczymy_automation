@@ -103,7 +103,13 @@ export function selectV2Columns(
   // rabat fields are bypassed rather than cleared (calc.ts `applyDiscount`) — so showing those
   // columns would print „Rabat 10 %" beside „Kwota rabatu 0,00" on the offer itself.
   const closed = closedColumnList(opts)
-  const keep = (key: string): boolean => {
+  // Only the investor's document subtracts a hidden set here; the worker's is folded into his list
+  // by `workerVisibleColumns`, and an investor's empty etap is not a reason to hide it from a crew.
+  const previewHidden = opts.previewVisible ? opts.previewHiddenColumns : undefined
+  // Tested on the full id as well as the group key: the owner hides a per-etap family whole, while
+  // an etap with no entries goes alone (`emptySettlementColumnIds`).
+  const keep = (id: string): boolean => {
+    const key = toggleKey(id)
     if (opts.globalDiscountActive && DISCOUNT_COLUMN_IDS.has(key)) return false
     // A closed list is a ceiling AND a floor, and the workbench needs the floor for the mirror image
     // of the preview's reason: the three preference gates below persist in localStorage per BROWSER,
@@ -111,7 +117,7 @@ export function selectV2Columns(
     // renders a column set chosen on some other kosztorys, with nothing on screen able to change it
     // — „Sekcja" is in DEFAULT_HIDDEN_COLUMNS, so it would be missing from the owner's own list on a
     // first visit. The per-offer subtraction only the preview supplies still applies.
-    if (closed) return closed.has(key) && !opts.previewHiddenColumns?.has(key)
+    if (closed) return closed.has(key) && !previewHidden?.has(key) && !previewHidden?.has(id)
     if (opts.view !== 'client' && PRZEDMIAR_ANCHORED_COLUMNS.has(key)) return false
     if (opts.view === 'client' && CREW_PLANE_ONLY_COLUMNS.has(key)) return false
     // The reveal sits beside UNPICKABLE_COLUMNS because it answers the same question — „may a stored
@@ -128,7 +134,7 @@ export function selectV2Columns(
       (revealed || crewAxisAllows(key, crew))
     )
   }
-  const base = assembled.filter((c) => keep(toggleKey(c.id ?? ''))).map((c) => withResize(c, opts))
+  const base = assembled.filter((c) => keep(c.id ?? '')).map((c) => withResize(c, opts))
   return appendTrailingGap(base, opts)
 }
 

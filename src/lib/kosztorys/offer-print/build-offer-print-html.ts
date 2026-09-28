@@ -9,6 +9,7 @@ import { OFFER_PRINT_STYLES, WIDE_PRINT_STYLES } from '@/lib/kosztorys/offer-pri
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
 import { applyRowConditions, clientConditionIds } from '@/lib/kosztorys/row-conditions/queries'
+import { emptySettlementColumnIds } from '@/lib/kosztorys/settlement-columns'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 export type OfferPrintArgsT = {
@@ -67,7 +68,11 @@ export function buildOfferPrintHtml({
   totalNet,
   sectionNetById,
 }: OfferPrintArgsT): string {
-  const columns = offerPrintColumns(stages, settings.hiddenColumns)
+  // Before the portrait/landscape count, so an offer with no entries prints as narrow as it reads.
+  const empty = emptySettlementColumnIds(rows, stages)
+  const columns = offerPrintColumns(stages, settings.hiddenColumns).filter(
+    (column) => !empty.has(column.key),
+  )
   return buildKosztorysPrintHtml({
     rows: offeredRows(rows, stages, settings),
     stages,

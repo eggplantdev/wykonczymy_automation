@@ -80,6 +80,7 @@ import {
 } from '@/lib/kosztorys/row-conditions/registry'
 import { STAGE_CONDITIONS, countMatchingStages } from '@/lib/kosztorys/stage-conditions'
 import { stagesForView } from '@/lib/kosztorys/settlement-view'
+import { emptySettlementColumnIds } from '@/lib/kosztorys/settlement-columns'
 import { baseOrdinals, sectionRepresentatives } from '@/lib/kosztorys/section-band-rows'
 import { columnSortValue, reconcileSort } from '@/lib/kosztorys/sort-value'
 import { planKosztorysRenumber } from '@/lib/kosztorys/display-order-plan'
@@ -497,9 +498,15 @@ export function useKosztorysEditor({
   const divergenceFilterEngaged = !preview && engagedConditionIds.has(MEASURE_DIVERGED_CONDITION_ID)
 
   // Subtracts from the allowlist, never adds to it — the ceiling stays `PREVIEW_VISIBLE_COLUMNS`.
-  // The worker's hidden set is already folded into his list by `workerVisibleColumns`.
-  const previewHiddenColumns =
-    preview && !worker && clientView ? new Set(clientView.hiddenColumns) : undefined
+  // The worker's hidden set is already folded into his list by `workerVisibleColumns`. Off `rows`,
+  // not `viewRows`, so a column does not come and go with „Pokaż wszystkie pozycje".
+  const previewHiddenColumns = useMemo(
+    () =>
+      preview && !worker
+        ? new Set([...(clientView?.hiddenColumns ?? []), ...emptySettlementColumnIds(rows, stages)])
+        : undefined,
+    [preview, worker, clientView, rows, stages],
+  )
 
   // Which ▲/▼ the two menus may offer at all. Off `rows`, like the movers themselves.
   const moveEdges = useMemo(() => computeMoveEdges(rows), [rows])

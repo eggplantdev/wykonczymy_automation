@@ -11,18 +11,18 @@ import {
   offeredRows,
 } from '@/lib/kosztorys/offer-print/build-offer-print-html'
 import { resolveSectionFills, writeAndPrint } from '@/lib/kosztorys/offer-print/print-popup'
-import type { ClientViewConfigT } from '@/lib/kosztorys/client-view-settings'
+import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
 import { readClientViewSettings } from '@/lib/queries/client-view-settings-endpoint'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 
 // Reads `rows`, not `viewRows`: an offer is the whole scope, and whatever search or plane filter the
 // owner left on the grid is not a decision about what the client is being offered. What IS such a
-// decision — which columns and which pozycje a client may see — is the stored client-view config, so
-// the offer reads it rather than answering the question a second time.
+// decision — which columns and which pozycje a client may see — is the stored client-view settings,
+// so the offer reads them rather than answering the question a second time.
 export function GenerateOfferMenuItem() {
   const { investmentId, rows, stages, investmentName, columnTotals, sectionColumnTotals } =
     useKosztorysEditorContext()
-  // „Ustawienia podglądu…" and „Udostępnij" already hold this config; the print joins them instead of
+  // „Ustawienia podglądu…" and „Udostępnij" already hold these settings; the print joins them instead of
   // firing a third independent read of the same row.
   const { investor } = useKosztorysActions()
 
@@ -50,11 +50,11 @@ export function GenerateOfferMenuItem() {
       }),
     )
 
-    const fill = (config: ClientViewConfigT) => {
+    const fill = (settings: ClientViewSettingsT) => {
       // The `rows.length` guard above cannot answer this: the offer is the rows the CLIENT's hider
       // leaves standing, and a kosztorys whose every pozycja is empty on both axes survives it only
       // to print a branded header over an empty table.
-      if (offeredRows(rows, stages, config.variants.OFFER).length === 0) {
+      if (offeredRows(rows, stages, settings).length === 0) {
         target.close()
         toastMessage('Brak pozycji do wydruku — wszystkie są puste', 'info')
         return
@@ -64,10 +64,7 @@ export function GenerateOfferMenuItem() {
         buildOfferPrintHtml({
           rows,
           stages,
-          // Always the OFFER variant, never the active mode. The menu item says „Wygeneruj ofertę", and
-          // an investment left in ROZLICZENIE would otherwise lay that mode's hidden set over the
-          // offer's column list and silently print whatever survived — a set nobody ever saw.
-          settings: config.variants.OFFER,
+          settings,
           investmentName,
           logoUrl: `${window.location.origin}/logo-wykonczymy.png`,
           fillByColorKey,
@@ -81,9 +78,9 @@ export function GenerateOfferMenuItem() {
     // `fill` is the document, not the read that fed it — attributing it to „nie udało się odczytać
     // ustawień" sends the owner to look at settings that loaded fine. The fast branch had no guard at
     // all, so a popup closed between the click and this line leaked an empty window with no toast.
-    const render = (config: ClientViewConfigT) => {
+    const render = (settings: ClientViewSettingsT) => {
       try {
-        fill(config)
+        fill(settings)
       } catch {
         target.close()
         toastMessage('Nie udało się przygotować wydruku', 'error')
@@ -100,8 +97,8 @@ export function GenerateOfferMenuItem() {
         toastMessage('Nie udało się odczytać ustawień podglądu', 'error')
         return null
       })
-      .then((config) => {
-        if (config) render(config)
+      .then((settings) => {
+        if (settings) render(settings)
       })
   }
 

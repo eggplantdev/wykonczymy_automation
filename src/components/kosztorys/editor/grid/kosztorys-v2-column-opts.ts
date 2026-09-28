@@ -96,6 +96,7 @@ export type BuildV2ColumnsOptsT = {
   // The owner's stored choice of what THIS investment's client does not see. It only ever subtracts
   // from PREVIEW_VISIBLE_COLUMNS — a key here that the allowlist never allowed cannot reveal
   // anything, which is what keeps the allowlist a ceiling rather than one of two competing answers.
+  // Also carries the full ids of the settlement columns with no entries yet.
   previewHiddenColumns?: ReadonlySet<string>
   // The szablon workbench: WORKSHOP_VISIBLE_COLUMNS over both the grid and the picker. Twin of
   // `previewVisible` in mechanism, its opposite in reason — that one is about what a client must

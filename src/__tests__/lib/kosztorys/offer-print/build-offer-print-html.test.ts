@@ -5,12 +5,18 @@ import {
   type OfferPrintArgsT,
 } from '@/lib/kosztorys/offer-print/build-offer-print-html'
 import { printableKeys } from '@/lib/kosztorys/offer-print/columns'
-import { CLIENT_DOCUMENT_COLUMNS, PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/column-config'
+import {
+  CLIENT_DOCUMENT_COLUMNS,
+  PREVIEW_VISIBLE_COLUMNS,
+  columnLabelForView,
+} from '@/lib/kosztorys/column-config'
 import { planePriceKeysFor } from '@/lib/kosztorys/plane-price-keys'
+import { stageKey } from '@/lib/kosztorys/stage-keys'
+import { stageLabel } from '@/lib/kosztorys/stage-label'
 import { columnTotalsForRows } from '@/lib/kosztorys/column-totals'
 import { groupBySection } from '@/lib/kosztorys/row-ops'
 import { rowRemainingForView } from '@/lib/kosztorys/settlement-rows'
-import { sanitizeClientViewVariant } from '@/lib/kosztorys/client-view-settings'
+import { sanitizeClientViewSettings } from '@/lib/kosztorys/client-view-settings'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { CTX, row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
@@ -37,17 +43,24 @@ function editorTotals(rows: KosztorysV2RowT[], view: PriceViewT = 'client') {
   }
 }
 
-// The offer as an owner who never opened the dialog gets it; `hiding` takes columns off that.
-const OFFER_DEFAULT = sanitizeClientViewVariant(undefined, 'OFFER')
+// The offer as an owner who never opened the dialog gets it; `hiding` takes columns off that and
+// `showing` puts back one the default hides.
+const DEFAULT_SETTINGS = sanitizeClientViewSettings({})
 const hiding = (...keys: string[]) => ({
-  settings: { hiddenColumns: [...OFFER_DEFAULT.hiddenColumns, ...keys], hideEmptyRows: true },
+  settings: { hiddenColumns: [...DEFAULT_SETTINGS.hiddenColumns, ...keys], hideEmptyRows: true },
+})
+const showing = (...keys: string[]) => ({
+  settings: {
+    hiddenColumns: DEFAULT_SETTINGS.hiddenColumns.filter((key) => !keys.includes(key)),
+    hideEmptyRows: true,
+  },
 })
 
 function html(rows: KosztorysV2RowT[], overrides: Partial<OfferPrintArgsT> = {}): string {
   return buildOfferPrintHtml({
     rows,
     stages: CTX.stages,
-    settings: OFFER_DEFAULT,
+    settings: DEFAULT_SETTINGS,
     investmentName: 'Mieszkanie na Kazimierzu',
     logoUrl: '/logo-wykonczymy.png',
     fillByColorKey: new Map([['blue', 'rgb(0, 0, 255)']]),
@@ -151,10 +164,10 @@ describe('buildOfferPrintHtml — sumy przychodzą z edytora', () => {
 })
 
 describe('buildOfferPrintHtml — papier pokazuje to, co ekran', () => {
-  it('drukuje „Pozostało" — kolumnę, którą podgląd oferty pokazuje', () => {
+  it('drukuje „Pozostało", gdy właściciel ją pokazuje', () => {
     const only = row({ id: 1, plannedQty: 10, clientPrice: 100 })
 
-    const out = html([only])
+    const out = html([only], showing('remaining'))
 
     expect(out).toContain('<th class="num">Pozostało</th>')
     expect(out).toContain(zloty(rowRemainingForView(only, CTX.stages, 'client')))
@@ -166,7 +179,7 @@ describe('buildOfferPrintHtml — papier pokazuje to, co ekran', () => {
     ]
     const { sectionNetById } = editorTotals(rows)
 
-    const out = html(rows)
+    const out = html(rows, showing('remaining'))
 
     // The label spans everything left of the money column and the cells to its right are empty, so the
     // figure lands under its own heading however many columns the offer grows.
@@ -187,6 +200,33 @@ describe('buildOfferPrintHtml — papier pokazuje to, co ekran', () => {
     expect(out).toContain(
       `Razem — Podłogi</td><td class="num">${zloty(sectionNetById.get(10)!)}</td></tr>`,
     )
+  })
+})
+
+// The same rule the podgląd applies (`emptySettlementColumnIds`), so paper and screen agree column
+// for column.
+describe('buildOfferPrintHtml — kolumny rozliczenia dopiero z wpisami', () => {
+  const header = (label: string) => new RegExp(`<th[^>]*>${label}</th>`)
+  const [stage1, stage2] = CTX.stages
+
+  it('bez wpisów drukuje samą ofertę', () => {
+    const out = html([row({ id: 1, plannedQty: 10, clientPrice: 100 })])
+
+    for (const key of ['stageQtySum', 'net', 'donePercent']) {
+      expect(out).not.toMatch(header(columnLabelForView(key, 'client')))
+    }
+    expect(out).not.toMatch(header(stageLabel(stage1!)))
+    expect(out).toMatch(header('Opis prac'))
+  })
+
+  it('drukuje etap z wpisem i sumy, a pusty etap pomija', () => {
+    const out = html([row({ id: 1, plannedQty: 10, clientPrice: 100, [stageKey(stage1!.id)]: 4 })])
+
+    expect(out).toMatch(header(stageLabel(stage1!)))
+    expect(out).toMatch(header(`${stageLabel(stage1!)} netto`))
+    expect(out).not.toMatch(header(stageLabel(stage2!)))
+    expect(out).not.toMatch(header(`${stageLabel(stage2!)} netto`))
+    expect(out).toMatch(header(columnLabelForView('net', 'client')))
   })
 })
 
@@ -218,7 +258,13 @@ describe('buildOfferPrintHtml — struktura tabeli', () => {
     const rows = [
       row({ id: 1, sectionId: 10, sectionName: 'Podłogi', plannedQty: 2, clientPrice: 50 }),
     ]
-    const out = html(rows, hiding('description', 'plannedQty', 'unit', 'price'))
+    const { settings } = showing('remaining')
+    const out = html(rows, {
+      settings: {
+        ...settings,
+        hiddenColumns: [...settings.hiddenColumns, 'description', 'plannedQty', 'unit', 'price'],
+      },
+    })
 
     const headerCells = out.match(/<th(?:\s[^>]*)?>/g) ?? []
     const totalRow = /<tr class="band-total">(.*?)<\/tr>/.exec(out)?.[1] ?? ''
