@@ -1,0 +1,113 @@
+import { describe, expect, it } from 'vitest'
+import { subcontractorDueByPlane } from '@/lib/kosztorys/subcontractor-due'
+import { treeToRows } from '@/lib/kosztorys/v2-rows'
+import { computeWorkerSummary } from '@/lib/kosztorys/worker-view/summary'
+import type { KosztorysStageT, KosztorysTreeT } from '@/lib/kosztorys/types'
+import type { PayoutTransactionRowT } from '@/types/transfers'
+import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
+
+const WORKER = 5
+const OTHER = 9
+
+// Worker 5 holds etapy 100 and 102 (z narzędziami, stawka 12); worker 9 holds etap 101 on the same
+// plane. Row 2 carries a client rabat, which must never reach the crew's figures.
+const stages: KosztorysStageT[] = [
+  { id: 100, ordinal: 1, label: 'Tynki', plane: 'w_tools', workerId: WORKER },
+  { id: 101, ordinal: 2, label: null, plane: 'w_tools', workerId: OTHER },
+  { id: 102, ordinal: 3, label: null, plane: 'w_tools', workerId: WORKER },
+]
+const tree: KosztorysTreeT = makeTree({
+  sections: [
+    {
+      id: 10,
+      name: 'Sekcja A',
+      displayOrder: 0,
+      color: null,
+      items: [
+        { ...baseItem, id: 1, description: 'A', plannedQty: 5, clientPrice: 20 },
+        {
+          ...baseItem,
+          id: 2,
+          description: 'B',
+          plannedQty: 4,
+          clientPrice: 10,
+          discountType: 'amount' as const,
+          discountValue: 8,
+        },
+      ],
+    },
+  ],
+  stages,
+  progress: [
+    { itemId: 1, stageId: 100, qtyDone: 2 },
+    { itemId: 1, stageId: 101, qtyDone: 3 },
+    { itemId: 2, stageId: 102, qtyDone: 1 },
+  ],
+  vatRate: 0.08,
+})
+const rows = treeToRows(tree)
+const hisStages = stages.filter((stage) => stage.workerId === WORKER)
+
+const payout = (workerId: number | null, amount: number, date = '2026-09-01') => ({
+  workerId,
+  amount,
+  date,
+  description: 'notatka wewnętrzna',
+})
+
+function summarize(payoutRows: PayoutTransactionRowT[]) {
+  return computeWorkerSummary({
+    rows,
+    stages: hisStages,
+    plane: 'w_tools',
+    workerId: WORKER,
+    payoutRows,
+  })
+}
+
+describe('computeWorkerSummary', () => {
+  it('values the przedmiar at his stawka, without the client rabat', () => {
+    expect(summarize([]).plannedNet).toBe((5 + 4) * 12)
+  })
+
+  it('reports executed work as exactly the figure „Podsumowanie pracowników" holds for him', () => {
+    const summary = summarize([])
+    const byWorker = subcontractorDueByPlane(rows, stages).byWorker.get(WORKER)
+
+    expect(summary.executedNet).toBe(byWorker)
+    expect(summary.executedNet).toBe((2 + 1) * 12)
+    expect(summary.executedByStage).toEqual([
+      { stageId: 100, label: 'Tynki', net: 24 },
+      { stageId: 102, label: 'Etap 3', net: 12 },
+    ])
+  })
+
+  it("counts only his payouts — not another worker's, not the unattributed bucket", () => {
+    const summary = summarize([payout(WORKER, 10), payout(OTHER, 500), payout(null, 700)])
+
+    expect(summary.paidNet).toBe(10)
+    expect(summary.owed).toBe(26)
+    expect(summary.isOverpaid).toBe(false)
+  })
+
+  it('lists his payouts by date and amount, never their description', () => {
+    const summary = summarize([payout(WORKER, 10, '2026-09-02'), payout(OTHER, 1)])
+
+    expect(summary.payouts).toEqual([{ date: '2026-09-02', amount: 10 }])
+  })
+
+  it('flags an overpayment instead of reading it as a debt', () => {
+    const summary = summarize([payout(WORKER, 50)])
+
+    expect(summary.owed).toBe(-14)
+    expect(summary.isOverpaid).toBe(true)
+  })
+
+  // Paying exactly the displayed należne leaves a float residue; unrounded it reads „Nadpłata -0,00".
+  it('reads a paid-in-full worker as 0, not as a negative zero', () => {
+    const summary = summarize([payout(WORKER, 12.1), payout(WORKER, 23.9)])
+
+    expect(Object.is(summary.owed, 0)).toBe(true)
+    expect(summary.isOverpaid).toBe(false)
+  })
+})

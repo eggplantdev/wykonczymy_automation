@@ -858,15 +858,15 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 1.1 New column spec passes
-- [x] 1.2 Totals spec passes
-- [x] 1.3 Existing closed-surface specs still pass
+- [x] 1.1 New column spec passes — 10df15a4
+- [x] 1.2 Totals spec passes — 10df15a4
+- [x] 1.3 Existing closed-surface specs still pass — 10df15a4
 
 ### Phase 2: Worker view logic (pure, React-free)
 
 #### Automated
 
-- [ ] 2.1 Worker-view unit specs pass
+- [x] 2.1 Worker-view unit specs pass
 
 ### Phase 3: Data — worker share links + worker view settings
 

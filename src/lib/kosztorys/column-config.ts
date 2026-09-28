@@ -30,6 +30,7 @@ export const COLUMN_LABELS: Record<string, string> = {
   plannedNet: 'Wartość przedmiaru netto',
   plannedGross: 'Wartość przedmiaru brutto',
   plannedNetForPlane: 'Wartość przedmiaru netto',
+  remainingForPlane: 'Pozostało netto (względem przedmiaru)',
   net: 'Razem netto',
   gross: 'Razem brutto',
   remaining: 'Pozostało netto (względem przedmiaru)',
@@ -225,6 +226,32 @@ export const CLIENT_VIEW_GROUPS: readonly ClientViewGroupT[] = [
 export const PREVIEW_VISIBLE_COLUMNS: ReadonlySet<string> = new Set(
   CLIENT_VIEW_GROUPS.flatMap((group) => group.keys),
 )
+
+// The worker view's stawka, as a LOGICAL key: the column it stands for is `price__<plane>`, and which
+// plane is decided per worker, at render (`workerVisibleColumns`). Stored settings hold this key, so
+// one firm-wide tick answers for both rozliczenia — and no stored value can ever name `price`, the
+// client's price.
+export const WORKER_RATE_KEY = 'rate'
+
+// The worker view's ceiling (design #13, EX-875), as ticks for the settings dialog. A separate list
+// from CLIENT_VIEW_GROUPS, not a subset of it, because the two surfaces disclose opposite prices: a
+// key missing here is a column no setting can put on a worker's screen. The client price, rabat,
+// brutto, the client-priced „Wartość przedmiaru" / „Pozostało" / „% wykonania" and „Komentarz" are
+// absent by construction — the first two alone would give the margin away.
+export const WORKER_VIEW_GROUPS: readonly ClientViewGroupT[] = [
+  {
+    label: 'Opis i ilości',
+    keys: ['sectionName', 'description', 'plannedQty', 'stageQtySum', 'unit'],
+  },
+  {
+    label: 'Stawka i wartości',
+    keys: [WORKER_RATE_KEY, 'plannedNetForPlane', 'net', 'remainingForPlane'],
+  },
+  {
+    label: 'Etapy',
+    keys: [STAGES_COLUMN_GROUP, STAGE_VALUE_NET_COLUMN_GROUP],
+  },
+]
 
 // The workbench's column list — exactly what a szablon carries to the next job. The rest of the
 // grid (przedmiar, etapy, rabat, wartości, postęp) is not „hidden" here and not „read-only": it is
