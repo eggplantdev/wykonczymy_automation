@@ -196,6 +196,9 @@ export function resolveLaborColumns(
   // when the section cell is empty — exactly what the owner got by inserting a blank column A.
   const description = stages ? stages.firstColumn - 1 : -1
   const section = stages && stages.firstColumn >= 3 ? stages.firstColumn - 3 : -1
+  if (stages && description < 0) {
+    problems.push('Brak kolumny z opisem pracy przed kolumnami etapów.')
+  }
 
   const taken = new Set<number>(Object.values(columns))
   if (stages) {

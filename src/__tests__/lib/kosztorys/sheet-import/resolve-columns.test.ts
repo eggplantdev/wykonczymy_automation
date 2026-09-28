@@ -259,6 +259,17 @@ describe('resolveLaborColumns', () => {
     if (result.ok) return
     expect(result.problems.join(' ')).toContain('wykonano')
   })
+
+  // Opis is read off the column left of the first etap; with none there, a pass would import every
+  // row with no opis at all.
+  it('fails when the etapy start in column A, leaving no column for the opis', () => {
+    const grid = BIALOSTOCKA_LABOR_HEADER.map((row) => row.slice(3))
+
+    const result = resolveLaborColumns(grid)
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.problems).toContain('Brak kolumny z opisem pracy przed kolumnami etapów.')
+  })
 })
 
 describe('resolveRates', () => {
