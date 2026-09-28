@@ -742,16 +742,26 @@ Historia sprzed wdrożenia to najnowszy `auto` z każdego dnia, który przetrwa�
 **Stare reguły dla starych wierszy:** przeszłe `manual` nie stają się kamieniami milowymi, a przeszłe
 `auto` dalej przerzedzają się i wygasają pasmami.
 
+**Dlaczego jedna wersja z końca dnia**, a nie wersje 10-minutowe ani lista wybrana przez właściciela:
+wersje co 10 min pokazują stany w połowie edycji, a lista układana przez właściciela pozwalałaby mu
+wybierać, co inwestor może sprawdzić. Z tego samego powodu właściciel nie może ukryć dnia.
+
 **Retencja** (`gcSnapshots`): `auto`/`manual` bez zmian (30 dni wszystko → dzień do 120 → tydzień do
 365 → koniec). `daily` i `named` nie podlegają pasmom ani limitowi 365 dni: żyją, dopóki inwestycja
 jest Planowana lub Aktywna, a po Zakończonej jeszcze rok od `investments.completed_at` (ustawiane
 przy przejściu na Zakończoną, zerowane przy ponownym otwarciu). Zakończona bez `completed_at` trzyma
-historię — brak danych nigdy jej nie kasuje. Właściciel nie może ukryć dnia przed inwestorem.
+historię — brak danych nigdy jej nie kasuje. Planowana liczy się jako żywa, bo to negocjacje, kiedy
+zmiany oferty ważą najbardziej; `named` żyją tak samo, bo to je inwestor najbardziej chce odnaleźć
+(„Oferta podpisana"), a wcześniej ginęły po 365 dniach jak wszystko. Inwestycja w koszu nie potrzebuje
+osobnej reguły: nocny job jej nie obejmuje, a `selectPurgeableInvestmentIds` kasuje tylko te
+z nieużywanym kosztorysem — użyta inwestycja zachowuje `daily`/`named` do przywrócenia z kosza.
 
 **Porównywanie wersji odwraca decyzję S-06 „bez diffowania"** (`context/archive/2026-07-10-kosztorys-snapshots/`),
 ale tylko na potrzeby wyświetlenia — przywracanie działa jak przedtem. Pozycje dopasowuje się po id,
-a gdy zbiory id są rozłączne (przywrócenie albo „wczytaj szablon" nadaje nowe), po nazwie sekcji +
-opisie + j.m. Zmiana „Pomiaru z natury" liczy się per etap. Wersja zapisana, zanim migawka niosła
+a to, czego id nie sparowały (przywrócenie albo „wczytaj szablon" nadaje nowe), po nazwie sekcji +
+opisie + j.m. — per pozycja, więc przywrócenie z dopisanymi potem pozycjami też się paruje. Świadomie przyjęty skutek uboczny: usunięcie pozycji i dodanie takiej
+samej (sekcja + opis + j.m.) czyta się jako jedną zmienioną — tak samo widzi to inwestor na papierze.
+Zmiana „Pomiaru z natury" liczy się per etap. Wersja zapisana, zanim migawka niosła
 rabat, pokazuje „Rabat nieznany", nigdy „0,00 zł" — brak pola w payloadzie JEST tym znacznikiem.
 Kolumny i wiersze dnia z przeszłości idą za **dzisiejszymi** ustawieniami widoku klienta; panel
 „Podsumowanie" (wpłaty, bilans) jest wtedy ukryty, bo czyta dzisiejsze kwoty.
