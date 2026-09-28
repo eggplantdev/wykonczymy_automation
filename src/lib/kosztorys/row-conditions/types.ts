@@ -41,9 +41,15 @@ export type RowConditionKindT = 'filter' | 'diagnostic' | 'client'
 
 export type RowConditionT = {
   id: string
-  // A bare noun phrase describing the row, so it reads after „Pozycje " (the menu) and „Brak pozycji "
-  // (the empty state).
+  // A bare noun phrase describing the row, so it reads after „Ukryto: pozycje " (the active-filters
+  // bar) and „Brak pozycji " (the empty state).
   label: string
+  // The „Filtry" row, when the noun phrase is too long to scan there. The menu is a LIST under a
+  // heading that already says what the rows are about, so it names the value („Kwota stała") where a
+  // sentence has to name the subject too („pozycje ze stawką wykonawcy z kwoty stałej") — five words
+  // of shared preamble per row, repeated six times, is what made the list unreadable. Omitted = the
+  // menu capitalises `label`, which is what a short one already reads like.
+  menuLabel?: string
   // How it reads when it lifts to whole sekcje in the „Filtry" menu; null = it does not lift, which
   // is every kind but 'filter' — the menu is the only thing that folds sections.
   sectionLabel: string | null

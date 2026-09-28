@@ -17,7 +17,9 @@ export function KosztorysFiltersMenu() {
       icon={ListFilter}
       title="Co widać: pozycje"
       triggerClassName={TOOLBAR_FILTER_TRIGGER_CLASS}
-      contentClassName="w-80"
+      // Szerokość „Problemów", nie pozostałych menu toolbara: wiersze płaszczyznowe niosą nazwę ekipy
+      // w nawiasie, więc przy 20rem łamały się na dwie linie i lista przestawała być listą.
+      contentClassName="w-112"
       resetAction={resetAction}
       toggles={toggles}
       togglesBulk={togglesBulk}

@@ -46,6 +46,10 @@ export const PRICE_SOURCE_LABELS: Record<PriceSourceT, string> = {
 export const planeViewSuffix = (plane: ToolPlaneT) =>
   ` w widoku ${PLANE_LABELS[plane].toLowerCase()}`
 
+// The same tail for a LIST entry, where „w widoku …" is preamble the heading above already carried.
+// Shared with the column picker, so a stawka's filter row and its column read alike.
+export const planeDashSuffix = (plane: ToolPlaneT) => ` — ${PLANE_LABELS[plane].toLowerCase()}`
+
 // The three figures of the subcontractor settlement, named once. The headline block reads them as row
 // labels and the per-worker table as column headers — the same three amounts, so a reader must never
 // have to work out that „Należne" and „Suma wykonanej pracy" were the same thing.

@@ -1,5 +1,5 @@
 import type { PriceViewT } from '@/lib/kosztorys/calc'
-import { PLANE_LABELS } from '@/lib/kosztorys/constants'
+import { PLANE_LABELS, planeDashSuffix } from '@/lib/kosztorys/constants'
 import { ALL_PLANE_PRICE_KEYS, planePriceKeyParts } from '@/lib/kosztorys/plane-price-keys'
 import {
   STAGES_COLUMN_GROUP,
@@ -57,7 +57,7 @@ export function columnLabelForView(id: string, view: PriceViewT): string {
   const planePrice = planePriceKeyParts(id)
   if (planePrice !== null) {
     const { base, plane } = planePrice
-    return `${COLUMN_LABELS[base] ?? id} — ${PLANE_LABELS[plane].toLowerCase()}`
+    return `${COLUMN_LABELS[base] ?? id}${planeDashSuffix(plane)}`
   }
   const label = COLUMN_LABELS[id] ?? id
   if (id === 'net' || id === 'gross') {

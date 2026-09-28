@@ -1,5 +1,5 @@
 import { priceSourceOf, subcontractorPrice } from '@/lib/kosztorys/calc'
-import { planeViewSuffix } from '@/lib/kosztorys/constants'
+import { planeDashSuffix, planeViewSuffix } from '@/lib/kosztorys/constants'
 import { formatPercent } from '@/lib/kosztorys/format'
 import { ALL_PLANE_PRICE_KEYS, planePriceKeysFor } from '@/lib/kosztorys/plane-price-keys'
 import type { RowConditionCtxT, RowConditionT } from '@/lib/kosztorys/row-conditions/types'
@@ -181,6 +181,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'manual-rate-w-tools',
     label: 'ze stawką wykonawcy z kwoty stałej' + planeViewSuffix('w_tools'),
+    menuLabel: 'Kwota stała' + planeDashSuffix('w_tools'),
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-source',
@@ -191,6 +192,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'coeff-rate-w-tools',
     label: 'ze stawką wykonawcy z własnego mnożnika' + planeViewSuffix('w_tools'),
+    menuLabel: 'Własny mnożnik' + planeDashSuffix('w_tools'),
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-source',
@@ -201,6 +203,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'formula-rate-w-tools',
     label: 'ze stawką wykonawcy „auto"' + planeViewSuffix('w_tools'),
+    menuLabel: 'Auto' + planeDashSuffix('w_tools'),
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-source',
@@ -211,6 +214,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'manual-rate-own-tools',
     label: 'ze stawką wykonawcy z kwoty stałej' + planeViewSuffix('own_tools'),
+    menuLabel: 'Kwota stała' + planeDashSuffix('own_tools'),
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-source',
@@ -221,6 +225,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'coeff-rate-own-tools',
     label: 'ze stawką wykonawcy z własnego mnożnika' + planeViewSuffix('own_tools'),
+    menuLabel: 'Własny mnożnik' + planeDashSuffix('own_tools'),
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-source',
@@ -231,6 +236,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'formula-rate-own-tools',
     label: 'ze stawką wykonawcy „auto"' + planeViewSuffix('own_tools'),
+    menuLabel: 'Auto' + planeDashSuffix('own_tools'),
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-source',
@@ -251,12 +257,16 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   // are not judged here at all — their author is the investment's współczynnik, which is judged once
   // in its own field. „Własna stawka" therefore covers both hand-set sources, kwota and mnożnik alike
   // (EX-865). The complement is stated by negation — it holds every pozycja on „auto" too, which reads
-  // heavier but does not claim anyone measured those rows.
+  // heavier but does not claim anyone measured those rows. In the menu the owner reads it as the plain
+  // opposite — „Poniżej 65% ceny" (owner, 2026-09-28) — so the precise phrasing survives only where
+  // the row is read as a sentence: the aktywne-filtry bar and the pusty-grid komunikat.
   {
     id: 'own-rate-over-ceiling-w-tools',
     label:
       `z własną stawką ponad ${formatPercent(MAX_CLIENT_SHARE['w_tools'])} ceny` +
       planeViewSuffix('w_tools'),
+    menuLabel:
+      `Ponad ${formatPercent(MAX_CLIENT_SHARE['w_tools'])} ceny` + planeDashSuffix('w_tools'),
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-ceiling',
@@ -269,6 +279,8 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label:
       `bez własnej stawki ponad ${formatPercent(MAX_CLIENT_SHARE['w_tools'])} ceny` +
       planeViewSuffix('w_tools'),
+    menuLabel:
+      `Poniżej ${formatPercent(MAX_CLIENT_SHARE['w_tools'])} ceny` + planeDashSuffix('w_tools'),
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-ceiling',
@@ -281,6 +293,8 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label:
       `z własną stawką ponad ${formatPercent(MAX_CLIENT_SHARE['own_tools'])} ceny` +
       planeViewSuffix('own_tools'),
+    menuLabel:
+      `Ponad ${formatPercent(MAX_CLIENT_SHARE['own_tools'])} ceny` + planeDashSuffix('own_tools'),
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-ceiling',
@@ -293,6 +307,8 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label:
       `bez własnej stawki ponad ${formatPercent(MAX_CLIENT_SHARE['own_tools'])} ceny` +
       planeViewSuffix('own_tools'),
+    menuLabel:
+      `Poniżej ${formatPercent(MAX_CLIENT_SHARE['own_tools'])} ceny` + planeDashSuffix('own_tools'),
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-ceiling',
