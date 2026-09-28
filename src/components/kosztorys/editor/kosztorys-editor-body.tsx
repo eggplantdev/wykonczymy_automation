@@ -11,7 +11,6 @@ import { KosztorysTotalsPanel } from '@/components/kosztorys/summary/kosztorys-t
 import { TotalsPanelOverlay } from '@/components/kosztorys/summary/totals-panel-overlay'
 import { WorkerSummary } from '@/components/kosztorys/summary/blocks/worker-summary'
 import { SummaryScrollRegion } from '@/components/ui/summary-grid'
-import { useTotalsPanelOpen } from '@/components/kosztorys/summary/hooks/use-totals-panel-open'
 import { KosztorysEditorToolbar } from '@/components/kosztorys/editor/toolbar/kosztorys-editor-toolbar'
 import { BrandLogo } from '@/components/ui/brand-logo'
 import { Button } from '@/components/ui/button'
@@ -76,8 +75,6 @@ import { withHistoryChanges } from '@/components/kosztorys/editor/history/histor
 import { PreviewHeaderActions } from '@/components/kosztorys/editor/history/preview-header-actions'
 import { historyGridTree, stageIdsFilledNow } from '@/lib/kosztorys/history/history-grid'
 import type { InvestorHistoryT } from '@/lib/kosztorys/history/types'
-import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
 import type { KosztorysEditorDataT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
 import type { WorkerAudienceT } from '@/lib/kosztorys/worker-view/types'
@@ -210,7 +207,6 @@ export function KosztorysEditorBody({
   useUndoKeyboard(editor.undo, editor.redo)
 
   const { openImport, importDialogProps } = useSheetImport({ investmentId, onTreeReplaced })
-  const [totalsOpen] = useTotalsPanelOpen(subtotals.length > 0)
 
   // Off `subtotals`, which counts the whole document rather than the visible rows, so a search
   // narrows the screen without changing what a section says it holds or what it is worth.
@@ -437,26 +433,13 @@ export function KosztorysEditorBody({
                       cut, and on the worker's document the name is what makes it his. */}
                   {worker && <p className="truncate text-sm font-medium">{worker.name}</p>}
                 </div>
-                {/* The open panel covers the whole grid, so the switch would change rows nobody can
-                    see. Hidden, not unmounted: below `sm` it takes its own line under the name (which
-                    also shares `order-last`), and dropping it would make the header jump. Opacity on
-                    the whole label, timed to the panel: a bare `invisible` snaps, and the Switch's
-                    own `transition-all` delays its inherited visibility behind the text's. */}
-                {clientEmptyRowIds.size > 0 && (
-                  <Label
-                    className={cn(
-                      'order-last cursor-pointer font-normal transition-[opacity,visibility] duration-200 ease-out sm:order-none',
-                      totalsOpen && !pastVersion && 'pointer-events-none invisible opacity-0',
-                    )}
-                  >
-                    <Switch checked={showAllRows} onCheckedChange={setShowAllRows} />
-                    Pokaż wszystkie pozycje (+{clientEmptyRowIds.size})
-                  </Label>
-                )}
                 <PreviewHeaderActions
                   worker={worker}
                   history={history}
                   hasRows={subtotals.length > 0}
+                  emptyRowCount={clientEmptyRowIds.size}
+                  showAllRows={showAllRows}
+                  onShowAllRowsChange={setShowAllRows}
                 />
               </header>
             ) : (

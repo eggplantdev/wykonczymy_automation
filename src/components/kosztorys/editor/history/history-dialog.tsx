@@ -1,30 +1,29 @@
 'use client'
 
-import { History } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import type { HistoryEntryT } from '@/lib/kosztorys/history/types'
 import { formatPLDate } from '@/lib/utils/format-date'
 
 // The URL is the state: an entry is a link, so a version can be sent to someone and the back button
 // returns to the list's page.
-export function HistoryDialog({ entries }: { entries: readonly HistoryEntryT[] }) {
+export function HistoryDialog({
+  entries,
+  open,
+  onOpenChange,
+}: {
+  entries: readonly HistoryEntryT[]
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}) {
   const pathname = usePathname()
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button size="lg" variant="outline">
-          <History />
-          {/* Icon-only on a phone, where the logo and „Podsumowanie" already fill the row. */}
-          <span className="max-sm:sr-only">Historia zmian</span>
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader
           title="Historia zmian"
-          description="Wybierz dzień, aby zobaczyć kosztorys z tamtej chwili i co zmieniło się od tego czasu."
+          description="Wybierz dzień, aby zobaczyć kosztorys z tamtej chwili i czym różni się od bieżącego."
         />
         {entries.length === 0 ? (
           <p className="text-muted-foreground text-sm">Brak zmian do pokazania</p>

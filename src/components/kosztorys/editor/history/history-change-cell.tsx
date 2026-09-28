@@ -2,20 +2,10 @@
 
 import { type CellProps, type Column } from 'react-datasheet-grid'
 import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-text'
-import { formatNet, formatQty } from '@/lib/kosztorys/format'
+import { formatChangeValue } from '@/lib/kosztorys/history/change-rows'
 import { cellChange, isHistoryColumn } from '@/lib/kosztorys/history/history-grid'
 import type { FieldChangeT, VersionDiffT } from '@/lib/kosztorys/history/types'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
-import { formatPLN } from '@/lib/utils/format-currency'
-
-const FORMAT_BY_FIELD: Record<FieldChangeT['field'], (value: number) => string> = {
-  plannedQty: formatQty,
-  stageQty: formatQty,
-  // The price column's own format — „120" beside a quantity would read as one.
-  price: formatPLN,
-  plannedNet: formatNet,
-  net: formatNet,
-}
 
 type HistoryColumnDataT = {
   historyChange: (rowId: number) => FieldChangeT | undefined
@@ -31,12 +21,13 @@ function HistoryChangeCell(props: CellProps<KosztorysV2RowT, HistoryColumnDataT>
     const Base = columnData.historyBase
     return Base ? <Base {...props} /> : null
   }
-  const format = FORMAT_BY_FIELD[change.field]
   return (
     <ReadOnlyCellText emphasize>
-      <span className="text-muted-foreground line-through">{format(change.before)}</span>
+      <span className="text-muted-foreground line-through">
+        {formatChangeValue(change, change.before)}
+      </span>
       {' → '}
-      {format(change.after)}
+      {formatChangeValue(change, change.after)}
     </ReadOnlyCellText>
   )
 }

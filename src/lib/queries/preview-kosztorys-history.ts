@@ -36,17 +36,22 @@ async function buildHistoryList(investmentId: number, today: DayT): Promise<Hist
   )
   // The retention sweep may delete a row between the two queries.
   const present = candidates.filter(({ id }) => snapshots.has(id))
-  return buildHistoryEntries(present, ({ id }) => {
-    const snapshot = snapshots.get(id)
-    if (!snapshot) throw new Error(`Snapshot ${id} vanished mid-read`)
-    return snapshotToTree(snapshot.payload, live)
-  })
+  return buildHistoryEntries(
+    present,
+    ({ id }) => {
+      const snapshot = snapshots.get(id)
+      if (!snapshot) throw new Error(`Snapshot ${id} vanished mid-read`)
+      return snapshotToTree(snapshot.payload, live)
+    },
+    liveVersion(live),
+  )
 }
 
-// Every entry's summary diffs two versions of up to ~1000 rows, so the list is computed once per
-// investment per day. `today` is in the key because midnight changes the list without any write:
-// yesterday's `auto` rows stop being „today's". The live tree fills what a stored row never carried
-// (settlement mode, older settings keys), hence the preview's tags beside the snapshot one.
+// Every entry diffs up to ~1000 rows against the live tree, so the list is computed once and kept
+// until a write. `today` is in the key because midnight changes the list without any write:
+// yesterday's `auto` rows stop being „today's". The live tree is both the baseline and what fills a
+// stored row's gaps (settlement mode, older settings keys), hence the preview's tags beside the
+// snapshot one.
 const cachedHistoryList = unstable_cache(buildHistoryList, ['preview-kosztorys-history-v1'], {
   tags: [...PREVIEW_KOSZTORYS_TAGS, CACHE_TAGS.kosztorysSnapshots],
 })
