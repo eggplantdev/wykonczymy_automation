@@ -1,6 +1,3 @@
-/** Returns today's date as YYYY-MM-DD string. */
-export const today = () => new Date().toISOString().split('T')[0]
-
 /**
  * Returns the first and last day of the given month as ISO date strings.
  */

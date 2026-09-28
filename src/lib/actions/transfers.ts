@@ -25,6 +25,7 @@ import { syncBulkExpensesToSheet } from './sheets-sync'
 import { validateAction, protectedAction } from './run-action'
 import { validateSourceRegister } from './validate-source-register'
 import { getNetAmountError } from '@/lib/utils/validation'
+import { warsawToday } from '@/lib/utils/days'
 import { logError } from '@/lib/utils/log-error'
 import { resolveId } from '@/lib/utils/resolve-id'
 import { uploadFieldIds } from '@/lib/media/upload-field'
@@ -217,13 +218,12 @@ export async function cancelTransferAction(transferId: number, data: CancelTrans
       console.log(`[PERF]   update cancelled ${step()}ms`)
 
       // Create CANCELLATION audit row
-      const today = new Date().toISOString().split('T')[0]
       await payload.create({
         collection: 'transactions',
         data: {
           type: 'CANCELLATION',
           amount: original.amount,
-          date: today,
+          date: warsawToday(),
           description: `Anulowanie transakcji #${transferId}\n${parsed.data.reason}`,
           cancelledTransaction: transferId,
           createdBy: user.id,

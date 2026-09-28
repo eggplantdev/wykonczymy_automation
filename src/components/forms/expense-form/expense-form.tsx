@@ -49,7 +49,7 @@ import {
   type CreateBulkExpenseFormT,
 } from '@/components/forms/expense-form/bulk-expense-schema'
 import type { ReferenceDataT } from '@/types/reference-data'
-import { today } from '@/lib/utils/date'
+import { warsawToday } from '@/lib/utils/days'
 import {
   CashRegisterField,
   DateField,
@@ -138,7 +138,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
   // handed to useAppForm was a new defaultValues on every render — the form re-applied it, which
   // re-rendered, which minted another id → "Maximum update depth exceeded" the moment the dialog opened.
   const [blankValues] = useState<FormValuesT>(() => ({
-    date: today(),
+    date: warsawToday(),
     type: 'INVESTMENT_EXPENSE',
     paymentMethod: '',
     sourceRegister: getDefaultCashRegister(referenceData),

@@ -10,7 +10,7 @@ import { internalTransferFormSchema } from '@/components/forms/internal-transfer
 import type { CreateTransferFormT } from '@/lib/schemas/transfer'
 import type { ReferenceDataT } from '@/types/reference-data'
 import { getDefaultCashRegister } from '@/lib/utils/default-cash-register'
-import { today } from '@/lib/utils/date'
+import { warsawToday } from '@/lib/utils/days'
 import {
   AmountField,
   CashRegisterField,
@@ -53,7 +53,7 @@ export function InternalTransferForm({
     defaultValues: {
       description: '',
       amount: '',
-      date: today(),
+      date: warsawToday(),
       sourceRegister: getDefaultCashRegister(referenceData),
       targetRegister: '',
     },
