@@ -6,7 +6,10 @@ import { MenuItemBody } from '@/components/kosztorys/editor/actions/menu-item-bo
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { toastMessage } from '@/lib/utils/toast'
 import { openPrintWindow, printThenClose } from '@/lib/utils/print-window'
-import { buildOfferPrintHtml, offeredRows } from '@/lib/kosztorys/build-offer-print-html'
+import {
+  buildOfferPrintHtml,
+  offeredRows,
+} from '@/lib/kosztorys/offer-print/build-offer-print-html'
 import { SECTION_COLORS } from '@/lib/kosztorys/section-colors'
 import type { ClientViewConfigT } from '@/lib/kosztorys/client-view-settings'
 import { readClientViewSettings } from '@/lib/queries/client-view-settings-endpoint'

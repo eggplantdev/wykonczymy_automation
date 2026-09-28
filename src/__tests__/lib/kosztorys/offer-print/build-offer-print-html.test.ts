@@ -2,11 +2,13 @@ import { describe, expect, it } from 'vitest'
 
 import {
   buildOfferPrintHtml,
+  type OfferPrintArgsT,
+} from '@/lib/kosztorys/offer-print/build-offer-print-html'
+import {
   OFFER_COLUMN_KEYS,
   printableOfferColumns,
   type OfferColumnT,
-  type OfferPrintArgsT,
-} from '@/lib/kosztorys/build-offer-print-html'
+} from '@/lib/kosztorys/offer-print/columns'
 import { PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/column-config'
 import { planePriceKeysFor } from '@/lib/kosztorys/plane-price-keys'
 import { columnTotalsForRows } from '@/lib/kosztorys/column-totals'
