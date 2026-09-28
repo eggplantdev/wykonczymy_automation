@@ -1,7 +1,7 @@
 ---
 change_id: investor-change-history
 title: Historia zmian w widoku inwestora — dzienne wersje, porównanie z wersją bieżącą
-status: implementing
+status: implemented
 created: 2026-09-28
 updated: 2026-09-28
 archived_at: null

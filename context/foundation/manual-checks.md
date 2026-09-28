@@ -1215,20 +1215,15 @@ Sprawdzone lokalnie w Playwright na publicznym linku — do powtórzenia na stag
       **Zweryfikowane na stagingu:** po `scrollLeft` z 0 na 276px te same nazwane kolumny
       („Przedmiar", „Pomiar…", „Cena j.m. netto"…) zachowały te same kolory tła — pasy są przypięte
       do tożsamości kolumny, nie do widocznej pozycji.
-- [x] Na dole: pusty rząd, pod nim ponownie nazwy kolumn z sumą (czcionka jak w „Razem", długie nazwy
-      mieszczą się w całości), potem „Razem" z grubszą kreską nad nim — całe podsumowanie białe, bez
-      pasów kolumn i bez szarego tła
-      **Zweryfikowane na stagingu:** `FOOTER_TITLES_ROW` renderuje się tylko gdy `preview` (
-      `kosztorys-editor-body.tsx:283`); powtórzone nazwy mają `font-weight: 600` i tło
-      `lab(100 0 0)` (białe). Wiersz „Razem" (`TotalsRowCell`) ma `border-t-2` (grubsza kreska) i w
-      preview tło nadpisane na `var(--color-background)` (białe, `globals.css:517`) — żadna z komórek
-      wiersza „Razem" nie miała koloru pasa.
+- [ ] Na dole: pusty rząd, potem „Razem" z grubszą kreską nad nim — bez powtórzonych nazw kolumn
+      (nazwę każdej kolumny podaje przyklejony nagłówek); całe podsumowanie białe, bez pasów kolumn i
+      bez szarego tła _(przeredagowane po `07ee8edc`, który usunął powtórzone nazwy)_
 - [x] Edytor właściciela bez zmian: szare komórki tylko do odczytu, szare liczby wyliczane, bez pasów,
-      bez powtórzonych nazw nad „Razem", „Razem" na szarym tle
+      „Razem" na szarym tle
       **Zweryfikowane na stagingu (`/inwestycje/137/kosztorys_v2`, OWNER):** `.kosztorys-grid` bez
       klasy `-preview`; komórka wyliczana ma tło `oklab(0.9745 …)` (szare, `--color-muted`);
       `[data-muted]` liczba ma `color: lab(48.5 0 0)` (wyraźnie szary, nie czarny); `kosztorys-stripe-column`
-      — 0 elementów w DOM edytora; `FOOTER_TITLES_ROW` nieobecny (`preview` = false); „Razem" ma tło
+      — 0 elementów w DOM edytora; „Razem" ma tło
       `lab(96.5 …)` (`bg-muted`, szare) — preview'owa reguła bielenia go nie dotyczy.
 - [x] Edytor (widok managera): pod nagłówkiem tabeli cienka szara linia w tym samym kolorze co linia
       nad nim (pod paskiem narzędzi); pierwszy pasek etapu nie dokłada pod nią drugiej kreski
@@ -1606,3 +1601,24 @@ co było otwarte wcześniej.
 
 - [ ] „Ustaw kolejność kolumn…" w ustawieniach pracownika: po „Zapisz" link pracownika i PDF pracownika
       mają nową kolejność, „Opis prac" pierwszy; „Przywróć domyślną kolejność" wraca do wbudowanej.
+
+## investor-change-history — historia zmian w widoku inwestora (EX-881, 2026-09-28)
+
+### Zapis wersji
+
+- [ ] Ustawienie inwestycji na „Zakończona" zapisuje `completed_at`, ponowne otwarcie je zeruje
+      (psql na 5435).
+- [ ] „Zapisz jako…" w szufladzie „Wersje" właściciela: nowa wersja pojawia się w sekcji nazwanych.
+- [ ] Cron `/api/cron/daily-snapshots` uruchomiony lokalnie dwa razy z sekretem: pierwszy zapisuje po
+      wierszu dla każdej inwestycji z kosztorysem zmienionym od ostatniego `daily`, drugi — żadnego.
+
+### Widok inwestora
+
+- [ ] `/k/<token>` → „Opcje" → „Zobacz historię zmian" → dzień z przeszłości: baner „Wersja z …",
+      lista różnic, zmienione komórki stare → nowe, usunięta pozycja przekreślona; „Wróć do bieżącej"
+      wraca.
+- [ ] Liczba różnic przy wpisie na liście zgadza się z listą w banerze po otwarciu tego dnia.
+- [ ] „Podgląd dla inwestora" właściciela pokazuje identyczny ekran.
+- [ ] Ręcznie wpisany `?wersja=` z wersji innej inwestycji pokazuje widok bieżący.
+- [ ] Na telefonie (<768px) dialog i baner są używalne, bez poziomego przewijania strony.
+- [ ] Link pracownika nie ma w „Opcje" pozycji „Zobacz historię zmian".

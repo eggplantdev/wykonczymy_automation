@@ -724,8 +724,10 @@ czekanie na kwotę zostawiało listę obiecującą zastąpienie, którego silnik
 ### Historia zmian dla inwestora (2026-09-28, EX-881)
 
 Inwestor na swoim linku (`/k/[token]`) i właściciel w „Podgląd dla inwestora" widzą ten sam ekran:
-przycisk „Historia zmian" z listą dni, w których kosztorys się zmienił, i widok wybranego dnia
-porównany z **bieżącym** stanem (nie z poprzednim dniem). Adres jest stanem: `?wersja=<id>`.
+„Opcje" → „Zobacz historię zmian" z listą dni, w których kosztorys się zmienił, i widok wybranego
+dnia porównany z **bieżącym** stanem (nie z poprzednim dniem). Każdy wpis na liście liczy różnice
+względem bieżącej wersji — to samo porównanie, które pokazuje widok dnia. Adres jest stanem:
+`?wersja=<id>`.
 
 **Rodzaje wersji i dla kogo są** (`kosztorys_snapshots.kind`):
 
@@ -756,7 +758,8 @@ Kolumny i wiersze dnia z przeszłości idą za **dzisiejszymi** ustawieniami wid
 
 **Odczyt jest publiczny, ale zawężony do tokenu:** `getPreviewHistoryByToken` przyjmuje id wersji
 z adresu i filtruje po inwestycji i rodzaju w samym `WHERE` — id cudzej inwestycji, wersja `manual`
-albo śmieci w `?wersja=` dają widok bieżący, nie błąd; unieważniony token kończy się 404 jak
+albo śmieci w `?wersja=` dają widok bieżący, nie błąd. Otwiera się każdy wiersz `auto`/`daily`/`named`
+tej inwestycji, także `auto` spoza listy — świadomie (decyzja z 2026-09-28); unieważniony token kończy się 404 jak
 przedtem. Widok ekipy (`worker`) historii nie dostaje w ogóle.
 
 ### Pusta komórka liczbowa to zero, nie „brak" (2026-08-25)

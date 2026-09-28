@@ -49,8 +49,10 @@ etap, wartość, rabat). The owner sees the same screen in „Podgląd dla inwes
 - **Retention:** `daily` and `named` rows are never deleted while the investment is Planowana or
   Aktywna. After Zakończona they are deleted a year after `completed_at`, and reopening clears
   `completed_at`. `auto` and `manual` rows keep exactly today's rules.
-- **History button:** the investor view shows „Historia zmian". It opens a dialog listing the changed
-  days (newest first, each with a one-line summary) plus the named milestones.
+- **History button:** the investor view shows „Opcje" → „Zobacz historię zmian". It opens a dialog
+  listing the changed days (newest first) plus the named milestones; each entry counts its differences
+  from the current version („N różnic względem bieżącej"). _(Amended at `7eee889e`: the plan had a
+  per-day summary vs the previous listed day — see design #4.)_
 - **Opening a day:** it navigates to `?wersja=<snapshotId>`. The grid then shows that version against
   the current one: added pozycje are listed above the grid, removed ones are struck through, and changed
   cells show old → new. A rabat line shows old → new, or „rabat nieznany" for versions stored before
@@ -360,7 +362,8 @@ Przedmiar, Cena j.m., wartość netto, and Pomiar per etap. Plus a rabat change.
 
 #### 3. Day selection + summary
 
-**File**: new `src/lib/kosztorys/history/select-history-entries.ts`, `summarize-change.ts`
+**File**: new `src/lib/kosztorys/history/select-history-entries.ts`, `change-rows.ts` _(shipped; the
+planned `summarize-change.ts` was replaced at `7eee889e`)_
 
 **Intent**:
 
@@ -368,8 +371,9 @@ Przedmiar, Cena j.m., wartość netto, and Pomiar per etap. Plus a rabat change.
   entry per Warsaw day using the rule in Critical Implementation Details.
 - Add every `named` row as its own entry.
 - Drop a day whose payload equals the previous kept day's.
-- Summarise each entry's change vs the previous listed entry, for example „3 pozycje dodane · Przedmiar
-  zmieniony w 2 · Pomiar: +12 m² w etapie Płytki".
+- ~~Summarise each entry's change vs the previous listed entry~~ — _amended at `7eee889e`_: each
+  entry counts its differences from the **current** version, the same comparison the version view
+  opens on, so the list never promises a change the view then denies.
 
 **Contract**: The selection is pure over metas and does not need payloads. Equality-dropping and the
 summary need payloads, so they take `(prevPayload, payload)` pairs. Phase 4 decides which payloads to
@@ -447,8 +451,9 @@ history reads live in the same file or in a sibling `preview-kosztorys-history.t
 
 **Contract**:
 
-- Summaries are cached with `unstable_cache` keyed by `(prevSnapshotId, snapshotId)`: immutable pairs,
-  with no tag needed.
+- ~~Summaries are cached per immutable pair~~ — _amended_: a summary compares against the live tree,
+  so no pair is immutable. The whole list is cached per `(investment, Warsaw day)` instead, tagged with
+  the kosztorys tree's tags plus `kosztorysSnapshots`.
 - The list is cached per investment, tagged `CACHE_TAGS.kosztorysSnapshots` (the new tag Phase 2 adds to
   `lib/cache/tags.ts`). It is bumped by the daily cron, by gc in `cron/cleanup`, and by
   `saveSnapshotAction` through `updateTag`, since that one is a server action.
@@ -480,7 +485,7 @@ history reads live in the same file or in a sibling `preview-kosztorys-history.t
 
 ### Overview
 
-Add a „Historia zmian" button and dialog, and `?wersja=` rendering through `KosztorysEditorBody` on both
+Add a „Historia zmian" dialog (opened from „Opcje" → „Zobacz historię zmian"), and `?wersja=` rendering through `KosztorysEditorBody` on both
 investor pages.
 
 ### Changes Required:
@@ -530,7 +535,8 @@ pokazania").
 
 #### Automated Verification:
 
-- DOM spec `src/__tests__/components/kosztorys/editor/history/history-view.test.tsx`:
+- DOM spec `src/__tests__/components/kosztorys/editor/kosztorys-editor-body-history.test.tsx` (the
+  worker case in `preview-header-actions.test.tsx`):
   - a removed pozycja renders struck through;
   - a changed Przedmiar renders old → new;
   - an unknown rabat renders „rabat nieznany", not „0,00 zł";
@@ -635,7 +641,8 @@ in project Wykonczymy.
 ## Performance Considerations
 
 - The list never loads 10-min payloads (per-day SQL), and payloads load only for the entries shown.
-- Per-entry summaries are cached per immutable pair.
+- The list is cached per investment and day and recomputed on any kosztorys write (each entry diffs
+  against the live tree).
 - The version view does one diff over ≤1000 rows per request, O(n) with Map lookups.
 - Nightly: ~65 investments, each one uncached tree build plus one ≤24 kB compare, run sequentially.
 
@@ -690,7 +697,8 @@ are untouched.
 
 - [x] 3.1 diff-versions unit specs pass — b0808796
 - [x] 3.2 snapshot-to-tree unit specs pass — b0808796
-- [x] 3.3 select-history-entries and summarize-change unit specs pass — b0808796
+- [x] 3.3 select-history-entries and summarize-change unit specs pass _(summarize-change later
+      replaced by change-rows, `7eee889e`)_ — b0808796
 
 ### Phase 4: Read path (history list + one version)
 
