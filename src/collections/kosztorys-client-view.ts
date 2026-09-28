@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
+import { isAdminOrOwnerOrManager } from '@/access'
 
 // What one investment's client sees. Its own table for the same reason `kosztorys-shares` is one:
 // `kosztoryses` is the v1 Google-Sheet link row (required `googleSheetId`), so a v2 kosztorys has no
@@ -24,9 +24,9 @@ export const KosztorysClientView: CollectionConfig = {
   // save is live on the next request and no tag holds a copy for a write to bust.
   access: {
     read: isAdminOrOwnerOrManager,
-    create: isAdminOrOwner,
-    update: isAdminOrOwner,
-    delete: isAdminOrOwner,
+    create: isAdminOrOwnerOrManager,
+    update: isAdminOrOwnerOrManager,
+    delete: isAdminOrOwnerOrManager,
   },
   timestamps: true,
   fields: [

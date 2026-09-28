@@ -15,7 +15,7 @@ import {
  * `overrideAccess` is NOT the gate here and must stay on: neither caller carries a session on its
  * payload client, so evaluating collection access would answer „no user, no row" and fail the save
  * with a generic Forbidden. The token entrance has nobody to authenticate by design, and the save
- * already ran `ownerOnlyAction` before reaching this line.
+ * already ran its role gate before reaching this line.
  */
 export async function findClientViewRow(payload: Payload, investmentId: number) {
   const rows = await payload.find({

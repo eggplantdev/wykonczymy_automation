@@ -49,7 +49,14 @@ const STYLES = `
    @page — set to „Brak" it drops it whole and the value column prints clipped at the sheet edge. The
    horizontal inset therefore lives on the body, where nothing can take it away; @page carries only
    the vertical half, which a continuation page needs above its repeating header. */
-@page { margin: 16mm 0 12mm; }
+/* An empty margin box makes Chrome 131+ / Safari 18.2+ drop their own „Nagłówki i stopki" on that edge
+   (title + date on top, URL + page count below) whatever the dialog's checkbox says — hence one per
+   edge. An offer is not a browser printout. */
+@page {
+  margin: 16mm 0 12mm;
+  @top-center { content: ''; }
+  @bottom-center { content: ''; }
+}
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;

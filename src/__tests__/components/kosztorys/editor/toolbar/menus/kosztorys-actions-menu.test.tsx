@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { KosztorysActionsProvider } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { KosztorysActionsMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-actions-menu'
 import { editorNoun } from '@/lib/kosztorys/editor-noun'
+import { CurrentUserProvider } from '@/hooks/use-current-user'
 
 // The szablon workbench renders THE SAME editor as an investment, so every label under „Opcje"
 // talks about a „kosztorys" until someone asks it which screen it is on. The assertions read what
@@ -47,9 +48,11 @@ vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
 function renderToolbar(templatePresetId: number | undefined) {
   editorState.templatePresetId = templatePresetId
   render(
-    <KosztorysActionsProvider>
-      <KosztorysActionsMenu />
-    </KosztorysActionsProvider>,
+    <CurrentUserProvider user={{ id: 1, email: 'm@t.com', name: 'Manager', role: 'MANAGER' }}>
+      <KosztorysActionsProvider>
+        <KosztorysActionsMenu />
+      </KosztorysActionsProvider>
+    </CurrentUserProvider>,
   )
 }
 

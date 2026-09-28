@@ -11,10 +11,14 @@ vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalida
 
 const authState = vi.hoisted(() => ({ role: 'OWNER' as string, userId: 0 }))
 vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn(async () => ({
-    success: true,
-    user: { id: authState.userId, email: 'o@t.com', name: 'Owner', role: authState.role },
-  })),
+  requireAuth: vi.fn(async (roles: readonly string[]) =>
+    roles.includes(authState.role)
+      ? {
+          success: true,
+          user: { id: authState.userId, email: 'o@t.com', name: 'Owner', role: authState.role },
+        }
+      : { success: false, error: 'Brak uprawnień' },
+  ),
 }))
 
 const { generateShareLinkAction, getShareLinkAction, revokeShareLinkAction } =
@@ -70,14 +74,28 @@ describe.skipIf(!ENV_READY)('kosztorys share token lifecycle (DB)', () => {
     expect(await getPreviewKosztorysByToken(newToken)).not.toBeNull()
   })
 
-  it('rejects a MANAGER without touching the row', async () => {
+  it('lets a MANAGER rotate the link — the persisted token is the one that resolves', async () => {
     const before = await getShareLinkAction(investmentId)
     authState.role = 'MANAGER'
 
     const res = await generateShareLinkAction(investmentId)
+    authState.role = 'OWNER'
+    expect(res.success).toBe(true)
+
+    const after = await getShareLinkAction(investmentId)
+    const token = after.success ? after.data : null
+    expect(token).not.toBe(before.success && before.data)
+    expect(await getPreviewKosztorysByToken(token!)).not.toBeNull()
+  })
+
+  it('rejects an EMPLOYEE without touching the row', async () => {
+    const before = await getShareLinkAction(investmentId)
+    authState.role = 'EMPLOYEE'
+
+    const res = await generateShareLinkAction(investmentId)
+    authState.role = 'OWNER'
     expect(res.success).toBe(false)
 
-    authState.role = 'OWNER'
     const after = await getShareLinkAction(investmentId)
     expect(after.success && after.data).toBe(before.success && before.data)
   })
