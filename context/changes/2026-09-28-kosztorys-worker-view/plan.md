@@ -904,5 +904,5 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 7.1 Offer print spec still passes
-- [x] 7.2 Worker print spec passes
+- [x] 7.1 Offer print spec still passes — b658bafb
+- [x] 7.2 Worker print spec passes — b658bafb

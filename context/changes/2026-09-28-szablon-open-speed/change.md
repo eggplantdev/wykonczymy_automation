@@ -11,6 +11,8 @@ worktree: null
 
 ## Notes
 
+Linear: **EX-876** (E2E → EX-847).
+
 **Reframed 2026-09-28 (owner):** navigation must be instant, so the order flips — click on a listing
 row → immediate navigation to `/szablony/[id]` (name + loader) → „Otwórz" runs ON that page, not
 before navigating. Keep `e93977f3`'s guard: auto-open only when arriving from the listing (e.g. a URL

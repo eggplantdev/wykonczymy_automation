@@ -521,9 +521,9 @@ i „podmienione body"; boks z `403` potwierdza za to odmowę przy złym sekreci
       wgrywaniu (pole „To jest rzut lub projekt") i z galerii asetów („Oznacz jako rzut").
 - [x] Skasowanie faktury podpiętej pod transakcję jest odrzucone czytelnym polskim komunikatem
       <!-- staging 2026-09-24: /admin/collections/media/1772 (invoice1-0cd005.png, podpięta pod transakcję 5252)
-           → „Usuń" → „Potwierdź" dało toast „Nie można usunąć pliku — jest używany w innych miejscach
-           (transakcje: 1). Najpierw odepnij go tam." Po próbie media 1772 nadal istnieje i wciąż ma
-           1 wiersz w transactions_rels (path='invoice') — nic nie zostało skasowane w Blobie. -->
+               → „Usuń" → „Potwierdź" dało toast „Nie można usunąć pliku — jest używany w innych miejscach
+               (transakcje: 1). Najpierw odepnij go tam." Po próbie media 1772 nadal istnieje i wciąż ma
+               1 wiersz w transactions_rels (path='invoice') — nic nie zostało skasowane w Blobie. -->
 - [x] Inwestycja pokazuje podpięte pliki w `/admin` po akcji dodania
       **Zweryfikowane na stagingu:** po wgraniu ośmiu plików z karty inwestycji
       `/admin/collections/investments/137` → pole „Zdjęcia i pliki" listuje dokładnie tę ósemkę
@@ -538,45 +538,45 @@ i „podmienione body"; boks z `403` potwierdza za to odmowę przy złym sekreci
       przechodzi (patrz finding o cichym błędzie niżej).
 - [x] Dodanie zdjęcia przy tworzeniu nowej inwestycji — leży na jej karcie
       <!-- staging 2026-09-24: „Inwestycje" → „Dodaj" → nazwa „QA EX-802 nowa inwestycja" + jeden PNG
-           w polu „Zdjęcia i pliki" (dialog pokazał nazwę pliku przed zapisem) → „Dodaj". Powstała
-           inwestycja 157 z wierszem `investments_rels` path `assets` → media 1817
-           (`qa802-1-81e271.png`), a jej karta `/inwestycje/157` od razu niesie „Dokumentacja (1)". -->
+               w polu „Zdjęcia i pliki" (dialog pokazał nazwę pliku przed zapisem) → „Dodaj". Powstała
+               inwestycja 157 z wierszem `investments_rels` path `assets` → media 1817
+               (`qa802-1-81e271.png`), a jej karta `/inwestycje/157` od razu niesie „Dokumentacja (1)". -->
 - [~] ~~Pasek miniatur nie przewija się w poziomie przy 375px~~ — nieaktualne: na karcie inwestycji
-      nie ma już paska miniatur (patrz sekcja „EX-802 — investment-assets-dialog", która to zastępuje)
+  nie ma już paska miniatur (patrz sekcja „EX-802 — investment-assets-dialog", która to zastępuje)
 - [x] Zdjęcie HEIC z iPhone'a konwertuje się i wgrywa
       <!-- staging 2026-09-24: syntetyczny `qa802.heic` (ISO Media, HEIF HEVC Main 10, 1600×1200, 5,9 kB)
-           wgrany z karty inw. 137 → „Zdjęcia i pliki" → „Dodaj kolejne". Toast „Pliki dodane", licznik
-           „Dokumentacja (8)" → „(9)" bez przeładowania, a w bazie media 1816 = `qa802-169b13.jpg`,
-           `image/jpeg`, 1600×1200, 21 357 B — czyli konwersja po stronie klienta zadziałała. -->
+               wgrany z karty inw. 137 → „Zdjęcia i pliki" → „Dodaj kolejne". Toast „Pliki dodane", licznik
+               „Dokumentacja (8)" → „(9)" bez przeładowania, a w bazie media 1816 = `qa802-169b13.jpg`,
+               `image/jpeg`, 1600×1200, 21 357 B — czyli konwersja po stronie klienta zadziałała. -->
 - [x] W `/admin` zgłoszenie z Facebooka nie pokazuje trzech pól landingowych, zgłoszenie z landingu pokazuje
       <!-- staging 2026-09-24: lead 220 (`facebook_lead_ads`) → etykiety pól: Źródło, Email, Imię i nazwisko,
-           Telefon, Inwestycja, Surowe dane, … — bez „Adres", „Zakres prac", „Metraż" i „Zdjęcia i pliki".
-           Lead 221 (`landing_form`) → ta sama lista plus właśnie te cztery. -->
+               Telefon, Inwestycja, Surowe dane, … — bez „Adres", „Zakres prac", „Metraż" i „Zdjęcia i pliki".
+               Lead 221 (`landing_form`) → ta sama lista plus właśnie te cztery. -->
 - [ ] Podpisany POST JSON z `curl`, wskazujący realny URL bloba, tworzy zgłoszenie razem z plikami
 - [ ] Ten sam request powtórzony nie tworzy niczego i nie wysyła maila
 - [ ] Request z `assets[].url` spoza hosta z allowlisty jest odrzucony i alertuje
 - [ ] Request z podmienionym body jest odrzucony (403)
 - [x] Promocja zgłoszenia z landingu od początku do końca — karta nowej inwestycji pokazuje zdjęcia klienta
       <!-- staging 2026-09-24: lead 221 („QA Landing Fixture", `landing_form`, dwa pliki dopięte jako
-           fikstura) → „Zgłoszenia" → „Dodaj". Okno „Nowa inwestycja ze zgłoszenia" przyszło wypełnione
-           ze zgłoszenia (nazwa = imię + adres, adres, telefon, email, osoba kontaktowa) i mówiło
-           „Przejdą do inwestycji: 2 z 2". Po „Utwórz" powstała inwestycja 158 (status „planowana"),
-           a jej karta `/inwestycje/158` niesie „Dokumentacja (2)" — w bazie oba media klienta
-           (1814, 1815) pod `investments_rels` path `assets`. -->
+               fikstura) → „Zgłoszenia" → „Dodaj". Okno „Nowa inwestycja ze zgłoszenia" przyszło wypełnione
+               ze zgłoszenia (nazwa = imię + adres, adres, telefon, email, osoba kontaktowa) i mówiło
+               „Przejdą do inwestycji: 2 z 2". Po „Utwórz" powstała inwestycja 158 (status „planowana"),
+               a jej karta `/inwestycje/158` niesie „Dokumentacja (2)" — w bazie oba media klienta
+               (1814, 1815) pod `investments_rels` path `assets`. -->
 - [x] Zgłoszenie po promocji podaje link do inwestycji zamiast przycisku i zostaje przy „Oczekuje"
       <!-- staging 2026-09-24: ten sam wiersz po promocji ma w kolumnie „Inwestycja" link
-           `/inwestycje/158` z nazwą inwestycji zamiast przycisku „Dodaj", a „Status kontaktu" nadal
-           „Oczekuje" (`leads.contact_status='new'`, `investment_id=158`). -->
+               `/inwestycje/158` z nazwą inwestycji zamiast przycisku „Dodaj", a „Status kontaktu" nadal
+               „Oczekuje" (`leads.contact_status='new'`, `investment_id=158`). -->
 - [x] Odznaka nieprzeczytanych zgłoszeń w nawigacji nie spada po samej promocji — ~~dopiero po
       kliknięciu „Skontaktowano"~~ **druga połowa brzmienia jest nieaktualna, nie jest defektem**
       <!-- staging 2026-09-24: odznaka liczy zgłoszenia utworzone po kursorze użytkownika
-           (`countUnreadLeads`, `src/lib/db/notifications.ts` — `created_at > notification_reads.seen_at`),
-           a kursor przesuwa render samej strony `/zgloszenia` (`markSeen` w `zgloszenia/page.tsx`).
-           Zmierzone przy kursorze cofniętym do 2026-09-20 i odczycie odznaki z `/inwestycje`:
-           3 przed promocją, 3 po promocji leada 221, 3 po przestawieniu go na „Skontaktowano".
-           Czyli: promocja rzeczywiście nie rusza odznaki (sprawdzana teza), ale i „Skontaktowano"
-           jej nie rusza — gasi ją samo wejście na listę zgłoszeń. Brzmienie boksu do poprawienia
-           przy najbliższej okazji. -->
+               (`countUnreadLeads`, `src/lib/db/notifications.ts` — `created_at > notification_reads.seen_at`),
+               a kursor przesuwa render samej strony `/zgloszenia` (`markSeen` w `zgloszenia/page.tsx`).
+               Zmierzone przy kursorze cofniętym do 2026-09-20 i odczycie odznaki z `/inwestycje`:
+               3 przed promocją, 3 po promocji leada 221, 3 po przestawieniu go na „Skontaktowano".
+               Czyli: promocja rzeczywiście nie rusza odznaki (sprawdzana teza), ale i „Skontaktowano"
+               jej nie rusza — gasi ją samo wejście na listę zgłoszeń. Brzmienie boksu do poprawienia
+               przy najbliższej okazji. -->
 
 ### Findings — 2026-09-23/24 (staging/preview pass)
 
@@ -676,10 +676,10 @@ panel montuje się także na pustym kosztorysie.
 - [x] Zakładka „Inwestycja" stoi jako ostatnia, za „Marżą", i pokazuje komplet pól karty inwestycji;
       puste pola są odfiltrowane
       <!-- staging 2026-09-24 (commit 48bb1625, z naprawą filtrowania). Kolejność zakładek:
-           Podsumowanie · Materiały · Robocizna · Podwykonawcy · Marża · Inwestycja — ostatnia.
-           Inw. 19 (komplet danych): Adres · Telefon · Email · Opinia · Status + Dokumentacja.
-           Inw. 74 (phone/email/review puste w bazie): zostają tylko Status i notatki — żadnego
-           „Email —" ani „Opinia —". -->
+               Podsumowanie · Materiały · Robocizna · Podwykonawcy · Marża · Inwestycja — ostatnia.
+               Inw. 19 (komplet danych): Adres · Telefon · Email · Opinia · Status + Dokumentacja.
+               Inw. 74 (phone/email/review puste w bazie): zostają tylko Status i notatki — żadnego
+               „Email —" ani „Opinia —". -->
 
 ### Findings — 2026-09-23 (staging/preview pass)
 
@@ -758,15 +758,15 @@ Licznik renderów czytaj z logu dev: `[PERF] buildKosztorysTree` (drzewo jest ni
 Account as the scope.` — to był zły argument `--scope`, nie brak dostępu. Właściwy scope to
       zespół projektu z `.vercel/project.json` (`orgId`), nie konto CLI:
 
-                        ```bash
-                        npx vercel logs https://<deployment>.vercel.app --scope=team_BWfyTqJnjIqZBkHwBL0elgS4
-                        ```
+                          ```bash
+                          npx vercel logs https://<deployment>.vercel.app --scope=team_BWfyTqJnjIqZBkHwBL0elgS4
+                          ```
 
-                        Strumień oddaje runtime stdout pogrupowany per request, a `console.log` w `buildKosztorysTree`
-                        (`src/lib/queries/kosztorys.ts:71`) nie jest bramkowany `NODE_ENV`, więc linia `[PERF]
-                        buildKosztorysTree …` wychodzi tak samo z builda produkcyjnego na stagingu, jak z dev.
-                        Właściwy box wyżej policzony tą drogą i odhaczony — jeden wpis na jeden upload.
-                        **Test disposition:** no automated test — to obserwowalność (log count), nie asercja stanu.
+                          Strumień oddaje runtime stdout pogrupowany per request, a `console.log` w `buildKosztorysTree`
+                          (`src/lib/queries/kosztorys.ts:71`) nie jest bramkowany `NODE_ENV`, więc linia `[PERF]
+                          buildKosztorysTree …` wychodzi tak samo z builda produkcyjnego na stagingu, jak z dev.
+                          Właściwy box wyżej policzony tą drogą i odhaczony — jeden wpis na jeden upload.
+                          **Test disposition:** no automated test — to obserwowalność (log count), nie asercja stanu.
 
 ## EX-820 — sufit stawki wykonawcy z „Problemów" do „Filtrów" (2026-09-22)
 
@@ -928,23 +928,21 @@ inwestorem i przenoszenie między cennikiem a rozpiską działają w przeglądar
       (sekcja z poz. 5: 800,00 z mnożnika + 650,00 z wiersza „auto") + 937,50, więc kopia SQL wycenia
       mnożnik tak samo jak siatka.
 - [ ] Pozycja z mnożnikiem ponad sufitem czerwienieje na obu komórkach i wchodzi do „Problemów"
-      **Sprawdzone na stagingu (inw. 137, poz. 5) — zostaje otwarte, dwa osobne fakty:**
-      1. **Defekt: czerwieni się tylko jedna komórka.** Mnożnik 0,9 przy cenie 200,00 daje stawkę
-         180,00 przy sufircie 130,00 (65%). W DOM czerwona (`text-destructive`) jest wyłącznie
-         wyliczona „Cena j.m. netto — z narzędziami (podwykonawca)"; input w komórce „Mnożnik"
-         zostaje neutralny, bo `SubcontractorCoeffCell`
-         (`src/components/kosztorys/editor/grid/cells/subcontractor-columns.tsx`) nakłada
-         `FLAGGED_TONE` tylko przy `edit.blockReason`, czyli przy odmowie zapisu — nie przy
-         przekroczeniu sufitu. Decyzja właściciela była odwrotna: „czerwień na obu komórkach"
-         (tabela decyzji, wiersz „Sufit" — plan skasowany przy archiwizacji, w historii:
-         `git show 0ec91492^:context/changes/2026-09-23-przywrocenie-wlasnego-mnoznika-stawki-wykonawcy/plan-brief.md`). Do poprawienia w kodzie.
-      2. **Druga połowa treści checku jest nieaktualna, nie jest defektem.** „Problemy" nie mają i nie
-         mają mieć wpisu o sufircie — od decyzji właściciela z 2026-09-20 sufit jest **filtrem**, a nie
-         alarmem (`src/lib/kosztorys/row-conditions/registry.ts`, `kind: 'filter'`; EX-820). Sprawdzone:
-         menu „Problemy" wymienia tylko „Ceny dla klienta / Stawki wykonawców — Pozycje bez ceny
-         wykonawcy / Katalog prac", a pozycja po edycji **weszła do filtra** „Pozycje z własną stawką
-         powyżej sufitu w widoku z narzędziami (podwykonawca)" (34 → 35). Treść checku należy
-         przeformułować na „wchodzi do filtra sufitu".
+      **Sprawdzone na stagingu (inw. 137, poz. 5) — zostaje otwarte, dwa osobne fakty:** 1. **Defekt: czerwieni się tylko jedna komórka.** Mnożnik 0,9 przy cenie 200,00 daje stawkę
+      180,00 przy sufircie 130,00 (65%). W DOM czerwona (`text-destructive`) jest wyłącznie
+      wyliczona „Cena j.m. netto — z narzędziami (podwykonawca)"; input w komórce „Mnożnik"
+      zostaje neutralny, bo `SubcontractorCoeffCell`
+      (`src/components/kosztorys/editor/grid/cells/subcontractor-columns.tsx`) nakłada
+      `FLAGGED_TONE` tylko przy `edit.blockReason`, czyli przy odmowie zapisu — nie przy
+      przekroczeniu sufitu. Decyzja właściciela była odwrotna: „czerwień na obu komórkach"
+      (tabela decyzji, wiersz „Sufit" — plan skasowany przy archiwizacji, w historii:
+      `git show 0ec91492^:context/changes/2026-09-23-przywrocenie-wlasnego-mnoznika-stawki-wykonawcy/plan-brief.md`). Do poprawienia w kodzie. 2. **Druga połowa treści checku jest nieaktualna, nie jest defektem.** „Problemy" nie mają i nie
+      mają mieć wpisu o sufircie — od decyzji właściciela z 2026-09-20 sufit jest **filtrem**, a nie
+      alarmem (`src/lib/kosztorys/row-conditions/registry.ts`, `kind: 'filter'`; EX-820). Sprawdzone:
+      menu „Problemy" wymienia tylko „Ceny dla klienta / Stawki wykonawców — Pozycje bez ceny
+      wykonawcy / Katalog prac", a pozycja po edycji **weszła do filtra** „Pozycje z własną stawką
+      powyżej sufitu w widoku z narzędziami (podwykonawca)" (34 → 35). Treść checku należy
+      przeformułować na „wchodzi do filtra sufitu".
 - [x] Menu „Filtry" pokazuje trzy wpisy źródła na płaszczyznę, a wybór każdego odsłania kolumny cenowe
       **Zweryfikowane na stagingu (inw. 137):** grupa „Źródło stawki wykonawcy" wymienia na płaszczyźnie
       „z narzędziami (podwykonawca)" wszystkie trzy źródła (kwota stała 234, własny mnożnik 1, auto 142),
@@ -982,11 +980,11 @@ inwestorem i przenoszenie między cennikiem a rozpiską działają w przeglądar
       „Aktualizuj kosztorys (0)" słusznie nie ma czego nadpisać.
 - [x] Wzięcie „auto" z katalogu kasuje w rozpisce **oba** nadpisania (kwotę i mnożnik)
       <!-- staging 2026-09-24: poz. „mikrocement" (inw. 138) z ustawionymi OBOMA nadpisaniami
-           (kwota 180,00 + mnożnik ×0,5 — wiersz pokazywał „×0,5 (100,00 zł)"), wpis katalogowy
-           przestawiony na „auto". „Problemy → Porównaj z katalogiem… → Pokaż … różnic" wylistowało
-           rozjazd „Stawka z narzędziami (podwykonawca) · ×0,5 (100,00 zł) · auto · -30,00 zł";
-           po zaznaczeniu tylko tego wiersza „Aktualizuj kosztorys (1)" obie kolumny nadpisań
-           wróciły puste. -->
+               (kwota 180,00 + mnożnik ×0,5 — wiersz pokazywał „×0,5 (100,00 zł)"), wpis katalogowy
+               przestawiony na „auto". „Problemy → Porównaj z katalogiem… → Pokaż … różnic" wylistowało
+               rozjazd „Stawka z narzędziami (podwykonawca) · ×0,5 (100,00 zł) · auto · -30,00 zł";
+               po zaznaczeniu tylko tego wiersza „Aktualizuj kosztorys (1)" obie kolumny nadpisań
+               wróciły puste. -->
 
 ## wydruk-oferty — Wydruk oferty z kosztorysu (2026-09-23)
 
@@ -1000,29 +998,29 @@ wydruku i zgodność liczb z podglądem klienta, kosztorys po kosztorysie.
 - [x] „Razem — <sekcja>" na wydruku == wiersz sumy sekcji w podglądzie klienta
 - [x] „Razem netto" na wydruku == „Razem" pod kolumną „Wartość netto przedmiar" w podglądzie klienta
       <!-- staging 2026-09-24, inw. 137 (2 sekcje, 7 pozycji niepustych). Wydruk przechwycony
-           podmianą `window.open` (bez dotykania prawdziwego okna wydruku): „Razem — Prace dodatkowe
-           3 000 zł", „Razem — Wyburzenia i demontaże 2 800 zł", „Razem netto 5 800 zł".
-           `/podglad-inwestora/137` w tym samym stanie: „Razem Prace dodatkowe 3000,00",
-           „Razem Wyburzenia i demontaże 2800,00", „Razem 5800,00" w kolumnie „Wartość przedmiaru
-           netto" (kolumna „Razem netto — po rabacie" niesie 3000,00 / 1675,00 / 4675,00 i słusznie
-           nie jest tym, co drukuje oferta). -->
+               podmianą `window.open` (bez dotykania prawdziwego okna wydruku): „Razem — Prace dodatkowe
+               3 000 zł", „Razem — Wyburzenia i demontaże 2 800 zł", „Razem netto 5 800 zł".
+               `/podglad-inwestora/137` w tym samym stanie: „Razem Prace dodatkowe 3000,00",
+               „Razem Wyburzenia i demontaże 2800,00", „Razem 5800,00" w kolumnie „Wartość przedmiaru
+               netto" (kolumna „Razem netto — po rabacie" niesie 3000,00 / 1675,00 / 4675,00 i słusznie
+               nie jest tym, co drukuje oferta). -->
 - [x] Podgląd zostawiony w trybie ROZLICZENIE, a wydruk nadal daje dokument ofertowy z kolumnami
       wariantu OFERTA
       <!-- staging 2026-09-24, inw. 137. Aktywny wariant w „Ustawieniach podglądu inwestora" =
-           „Rozliczenie" (zestaw m.in. Pomiar (razem etapy), Razem netto, Etapy — ilość / kwota,
-           % wykonania). Przechwycony wydruk dał mimo to kolumny wariantu OFERTA: Opis prac ·
-           Przedmiar · Jednostka miary · Cena j.m. · Wartość netto. -->
+               „Rozliczenie" (zestaw m.in. Pomiar (razem etapy), Razem netto, Etapy — ilość / kwota,
+               % wykonania). Przechwycony wydruk dał mimo to kolumny wariantu OFERTA: Opis prac ·
+               Przedmiar · Jednostka miary · Cena j.m. · Wartość netto. -->
 - [x] Odznaczenie „Pozostało" w ustawieniach podglądu zabiera kolumnę i z ekranu, i z wydruku —
       a suma sekcji zostaje pod „Wartość netto przedmiar"
       <!-- staging 2026-09-24, inw. 137, wariant OFERTA. Z zaznaczonym „Pozostało netto (względem
-           przedmiaru)": `/podglad-inwestora/137` pokazuje tę kolumnę, a wydruk niesie nagłówki
-           Opis prac · Przedmiar · Jednostka miary · Cena j.m. · Wartość netto · Pozostało.
-           Po odznaczeniu i zapisie kolumna znika z obu — wydruk ma pięć nagłówków bez „Pozostało",
-           a podgląd kończy się na „Wartość przedmiaru netto". Sumy sekcji bez zmian w obu stanach:
-           „Razem — Prace dodatkowe 3 000 zł", „Razem — Wyburzenia i demontaże 2 800 zł",
-           „Razem netto 5 800 zł". Uwaga przy powtarzaniu: przełączenie zakładki wariantu otwiera
-           potwierdzenie „Uwaga — zmiana widoczna dla inwestora!" i bez „Potwierdź" nic się nie
-           zapisuje (żaden POST nie wychodzi). -->
+               przedmiaru)": `/podglad-inwestora/137` pokazuje tę kolumnę, a wydruk niesie nagłówki
+               Opis prac · Przedmiar · Jednostka miary · Cena j.m. · Wartość netto · Pozostało.
+               Po odznaczeniu i zapisie kolumna znika z obu — wydruk ma pięć nagłówków bez „Pozostało",
+               a podgląd kończy się na „Wartość przedmiaru netto". Sumy sekcji bez zmian w obu stanach:
+               „Razem — Prace dodatkowe 3 000 zł", „Razem — Wyburzenia i demontaże 2 800 zł",
+               „Razem netto 5 800 zł". Uwaga przy powtarzaniu: przełączenie zakładki wariantu otwiera
+               potwierdzenie „Uwaga — zmiana widoczna dla inwestora!" i bez „Potwierdź" nic się nie
+               zapisuje (żaden POST nie wychodzi). -->
 - [ ] MANAGER (nie OWNER) — czy „Wygeneruj ofertę w PDF" ma być dla niego dostępne? Sąsiednie pozycje
       menu są wygaszane przez `useMayServeTheClient()`, ta nie. **Pytanie do właściciela**, nie defekt.
 
@@ -1134,37 +1132,106 @@ Pole liczbowe spoza zakresu odpowiada teraz jak komórka rozpiski: nie zapisuje,
 wartość i mówi „Nieprawidłowa wartość — przywrócono X". Automat sprawdza to na komponentach i akcji;
 na żywo zostaje to, czy komunikat pada w panelu, a przeliczenie nie.
 
-- [ ] Panel „Podsumowanie" → „Opcje rozliczenia": „Stawka vat na materiały" przy zapisanych 23 %,
+- [x] Panel „Podsumowanie" → „Opcje rozliczenia": „Stawka vat na materiały" przy zapisanych 23 %,
       wpisz `230` → „Zapisz" jest aktywny; klik → toast „Nieprawidłowa wartość — przywrócono 23%.",
       pole wraca do 23, materiały **nie** przeliczają się (po odświeżeniu nadal 23 %)
-- [ ] To samo w widoku „Materiały" (pole „Stawka vat na materiały" przy rozliczeniu netto),
+      **Zweryfikowane na stagingu (inw. 137, zapisane 8 %):** wpis `230` uzbraja „Zapisz"; klik →
+      toast „Nieprawidłowa wartość — przywrócono 8%.", pole wraca do 8, „Zapisz" znów nieaktywny;
+      po pełnym przeładowaniu strony wartość nadal 8 %.
+- [x] To samo w widoku „Materiały" (pole „Stawka vat na materiały" przy rozliczeniu netto),
       tym razem zatwierdzone **Enterem** — jeden toast, stawka bez zmian
-- [ ] Wpis w zakresie (np. `8`) w tym samym polu zapisuje się bez żadnego komunikatu
-- [ ] Stawka VAT inwestycji w „Opcje rozliczenia": `150` → ten sam toast i przywrócona poprzednia stawka
-- [ ] Pasek edytora, mnożnik ceny: `-0,2` i wyjście z pola → toast „Nieprawidłowa wartość —
+      **Zweryfikowane na stagingu (inw. 137):** radio „Materiały" (`role="radio"`, `[checked]`) →
+      `230` + Enter → dokładnie jeden toast „Nieprawidłowa wartość — przywrócono 8%.", pole i
+      „Zapisz" (disabled) wracają do stanu sprzed wpisu.
+- [x] Wpis w zakresie (np. `8`) w tym samym polu zapisuje się bez żadnego komunikatu
+      **Zweryfikowane na stagingu (inw. 137):** `12` + Enter zapisuje się bez toastu, pole pokazuje
+      12 i „Zapisz" wraca nieaktywny; przywrócono do 8 tym samym sposobem, żeby zostawić fixture bez zmian.
+- [x] Stawka VAT inwestycji w „Opcje rozliczenia": `150` → ten sam toast i przywrócona poprzednia stawka
+      **Zweryfikowane na stagingu (inw. 137, zapisane 8 %):** `150` + Enter → toast „Nieprawidłowa
+      wartość — przywrócono 8%.", pole i „Zapisz" (disabled) wracają do 8.
+- [x] Pasek edytora, mnożnik ceny: `-0,2` i wyjście z pola → toast „Nieprawidłowa wartość —
       przywrócono 0,6." (przy zapisanym 0,6), mnożnik bez zmian; `0,9` nadal się zapisuje z
       ostrzeżeniem o przekroczeniu 65 %
+      **Zweryfikowane na stagingu (inw. 137, panel „Podwykonawcy" → Mnożnik ceny, pole „Bez
+      narzędzi (pracownik)", zapisane 0,5525):** `-0,2` + Tab → toast „Nieprawidłowa wartość —
+      przywrócono 0,553.", pole wraca do pełnej wartości `0.5525` (patrz finding niżej — toast
+      zaokrągla do 3 miejsc). `0,9` + Tab zapisuje się (pole pokazuje `0.9`) i wywołuje osobny
+      toast ostrzegawczy „Mnożnik 0,9 przekracza 55,25% ceny dla inwestora — wykonawca zjada
+      marżę na pozycjach ze źródłem „auto"." Przywrócono `0,5525`, żeby zostawić fixture bez zmian.
+
+### Findings — 2026-09-28
+
+- [x] **NAPRAWIONE** — Toast odrzucenia w polu mnożnika zaokrąglał przywróconą wartość do 3 miejsc po przecinku
+      (`value.toLocaleString('pl-PL')` bez `maximumFractionDigits` w `restore`/`settle`,
+      `src/components/ui/decimal-field.tsx`), a sam input wraca z pełną precyzją. Zaobserwowane na
+      inw. 137: zapisane `0.5525`, po odrzuceniu `-0,2` toast mówi „przywrócono 0,553.", ale pole
+      pokazuje `0.5525`. Nie jest to flicker/przycięcie zapisu (EX-819 tego dotyczy), tylko
+      niespójny tekst komunikatu vs. rzeczywisty stan pola przy wartościach o >3 miejscach po
+      przecinku. **Needs human:** czy to wystarczająco częsty przypadek (mnożniki z 4 miejscami po
+      przecinku), żeby wart było dodać `maximumFractionDigits` dopasowany do precyzji pola, czy
+      zostawić — sam odrzucony wpis i tak nie psuje danych.
+      **Rozstrzygnięte bez pytania:** to nie kwestia gustu — komunikat nazywał liczbę, której pole nie
+      przywróciło, a cztery miejsca po przecinku są tu normą (`0,5525` to domyślny pułap udziału ceny
+      klienta w kodzie), nie przypadkiem skrajnym. Fix: `maximumFractionDigits: 20` w
+      `src/components/ui/decimal-field.tsx:109`.
+      **Test disposition:** test-driven-debugging · dom — `src/__tests__/components/ui/decimal-field.test.tsx`,
+      red→green potwierdzone (przed fixem asercja dostawała „przywrócono 0,553").
 
 ## podglad-inwestora-czytelnosc — podgląd inwestora bez szarości, z pasami kolumn (2026-09-28)
 
 Tylko podgląd inwestora (`/k/<token>` i „Podgląd inwestora" z edytora); edytor właściciela bez zmian.
 Sprawdzone lokalnie w Playwright na publicznym linku — do powtórzenia na stagingu.
 
-- [ ] Komórki tabeli są białe, nie szare — także „Wartość przedmiaru netto", „Pomiar (razem etapy)"
+- [x] Komórki tabeli są białe, nie szare — także „Wartość przedmiaru netto", „Pomiar (razem etapy)"
       i inne wyliczane kolumny; liczby w nich czarne, nie szare
-- [ ] Nazwy kolumn w nagłówku pogrubione i czarne
-- [ ] Pod nagłówkiem jedna cienka czarna linia, taka sama jak linia nad nagłówkiem; pierwszy pasek
+      **Zweryfikowane na stagingu (inw. 137, `/k/W2-sWO8axGdMpfoMdMj9DaBVxrQGP50L`):** komórka
+      wyliczana „Wartość przedmiaru netto" (`dsg-cell-disabled`) ma tło `lab(100 0 0)` (biel) i tekst
+      `lab(2.75 0 0)` (prawie czarny) — `[data-muted]` w preview dziedziczy `color: var(--color-foreground)`
+      zamiast szarości (`globals.css:563`), a `--dsg-cell-disabled-background-color` jest w preview
+      równe tłu komórki (`globals.css:503`).
+- [x] Nazwy kolumn w nagłówku pogrubione i czarne
+      **Zweryfikowane na stagingu:** `.dsg-cell-header span` ma `font-weight: 700` tylko w
+      `.kosztorys-grid-preview` (`globals.css:511`), a `--dsg-header-text-color` w preview = `var(--color-foreground)` (`globals.css:504`) — wizualnie pogrubione, czarne etykiety w zrzucie ekranu.
+- [x] Pod nagłówkiem jedna cienka czarna linia, taka sama jak linia nad nagłówkiem; pierwszy pasek
       etapu (np. „Prace dodatkowe") nie dokłada pod nią drugiej ani trzeciej kreski
-- [ ] Co druga kolumna ma delikatnie szare tło, od nagłówka do ostatniego etapu; kolorowe paski
+      **Zweryfikowane na stagingu:** `--header-rule-color: var(--color-foreground)` w preview
+      (`globals.css:506`, komentarz „the preview's header sits right under the page header's dark
+      rule") — ta sama zmienna barwi linię nad i pod nagłówkiem. Pierwszy wiersz pod nagłówkiem ma
+      `border-top: none` wymuszone regułą `.dsg-row-header + .dsg-row .dsg-cell` (`globals.css:547`),
+      więc nie dokłada własnej kreski. Zrzut ekranu: jedna ciemna linia między paskiem narzędzi a
+      nagłówkiem i między nagłówkiem a „Prace dodatkowe", bez podwojenia.
+- [x] Co druga kolumna ma delikatnie szare tło, od nagłówka do ostatniego etapu; kolorowe paski
       etapów i ich „Razem …" przykrywają pasy (pasek czyta się jako jedna belka)
-- [ ] Przewinięcie tabeli w poziomie nie zamienia pasów miejscami (ta sama kolumna zostaje szara)
-- [ ] Na dole: pusty rząd, pod nim ponownie nazwy kolumn z sumą (czcionka jak w „Razem", długie nazwy
+      **Zweryfikowane na stagingu:** kolumny nagłówka na przemian `lab(100 0 0)` (biel) i
+      `oklab(0.9829 …)` (delikatny szary pas) — ściśle naprzemiennie na wszystkich 9 kolumnach danych.
+      Zrzut ekranu potwierdza, że pasek sekcji („Prace dodatkowe", „Wyburzenia i demontaże") jest
+      jednolitą belką w kolorze etapu na całej szerokości, bez przebijających pasów.
+- [x] Przewinięcie tabeli w poziomie nie zamienia pasów miejscami (ta sama kolumna zostaje szara)
+      **Zweryfikowane na stagingu:** po `scrollLeft` z 0 na 276px te same nazwane kolumny
+      („Przedmiar", „Pomiar…", „Cena j.m. netto"…) zachowały te same kolory tła — pasy są przypięte
+      do tożsamości kolumny, nie do widocznej pozycji.
+- [x] Na dole: pusty rząd, pod nim ponownie nazwy kolumn z sumą (czcionka jak w „Razem", długie nazwy
       mieszczą się w całości), potem „Razem" z grubszą kreską nad nim — całe podsumowanie białe, bez
       pasów kolumn i bez szarego tła
-- [ ] Edytor właściciela bez zmian: szare komórki tylko do odczytu, szare liczby wyliczane, bez pasów,
+      **Zweryfikowane na stagingu:** `FOOTER_TITLES_ROW` renderuje się tylko gdy `preview` (
+      `kosztorys-editor-body.tsx:283`); powtórzone nazwy mają `font-weight: 600` i tło
+      `lab(100 0 0)` (białe). Wiersz „Razem" (`TotalsRowCell`) ma `border-t-2` (grubsza kreska) i w
+      preview tło nadpisane na `var(--color-background)` (białe, `globals.css:517`) — żadna z komórek
+      wiersza „Razem" nie miała koloru pasa.
+- [x] Edytor właściciela bez zmian: szare komórki tylko do odczytu, szare liczby wyliczane, bez pasów,
       bez powtórzonych nazw nad „Razem", „Razem" na szarym tle
-- [ ] Edytor (widok managera): pod nagłówkiem tabeli cienka szara linia w tym samym kolorze co linia
+      **Zweryfikowane na stagingu (`/inwestycje/137/kosztorys_v2`, OWNER):** `.kosztorys-grid` bez
+      klasy `-preview`; komórka wyliczana ma tło `oklab(0.9745 …)` (szare, `--color-muted`);
+      `[data-muted]` liczba ma `color: lab(48.5 0 0)` (wyraźnie szary, nie czarny); `kosztorys-stripe-column`
+      — 0 elementów w DOM edytora; `FOOTER_TITLES_ROW` nieobecny (`preview` = false); „Razem" ma tło
+      `lab(96.5 …)` (`bg-muted`, szare) — preview'owa reguła bielenia go nie dotyczy.
+- [x] Edytor (widok managera): pod nagłówkiem tabeli cienka szara linia w tym samym kolorze co linia
       nad nim (pod paskiem narzędzi); pierwszy pasek etapu nie dokłada pod nią drugiej kreski
+      **Zweryfikowane na stagingu:** poza preview `--header-rule-color` spada na fallback
+      `var(--dsg-border-color)` = `var(--color-border)` (`globals.css:533,484`), ten sam token co
+      `border-border` paska narzędzi (`kosztorys-editor-toolbar.tsx:31`) — obie linie dzielą tę samą
+      zmienną, więc są tym samym kolorem z definicji; `lab(90.95 …)`, wyraźnie jaśniejsza/szara niż
+      wariant preview.
 
 ## sheet-import-wartosc-pomiar — import rozpoznaje „Wartość netto pomiar z natury" (2026-09-28)
 
@@ -1174,15 +1241,29 @@ netto pomiar z natury" (`T`) — i „Pobierz z arkusza Google…" odmawiał na 
 Kulisiewicza 16, Kinowa 23/3, Bernardyńska 12/19; dziesięć najnowszych arkuszy (Topiel 6 … Postępu 4a)
 nie jest udostępnione kontu tylko do odczytu, więc te sprawdza się na produkcji.
 
-- [ ] Inwestycja z arkuszem w nowym szablonie (np. Namysłowska 3/34) → „Pobierz z arkusza Google…":
+- [x] Inwestycja z arkuszem w nowym szablonie (np. Namysłowska 3/34) → „Pobierz z arkusza Google…":
       okno od razu pokazuje podgląd „Co wejdzie", bez „Nie znaleziono kolumny „Wartość netto"" i bez
       listy „wybierz kolumnę"; „Pobierz i zastąp" aktywny
-- [ ] W tym samym podglądzie porównanie sum nie zgłasza rozjazdu wynikającego z czytania kolumny
+      **Zweryfikowane na stagingu (inw. 110 „Namysłowska Bartłomiej Ziółkowski 3/34", OWNER):** okno
+      od razu pokazało podgląd „Co wejdzie" (14 sekcji · 384 prac · 1 etapów), bez błędu o kolumnie i
+      bez listy wyboru kolumny; „Pobierz i zastąp" `disabled=false`. Zamknięte przez „Anuluj" —
+      import NIE został wykonany.
+- [x] W tym samym podglądzie porównanie sum nie zgłasza rozjazdu wynikającego z czytania kolumny
       przedmiaru — liczba z podsumowania arkusza zgadza się z sumą kolumny „Wartość netto pomiar z natury"
-- [ ] Arkusz w starym układzie z jedną kolumną „Wartość netto" (np. Plac Hallera 6, Wolska 117/50)
+      **Zweryfikowane na tym samym podglądzie (inw. 110):** sekcja „Porównanie sum" — „wartość netto"
+      Arkusz Google 89 456,68 zł = Ta aplikacja 89 456,68 zł „zgadza się"; „R netto - suma prac
+      wykonannych" 38 149,08 zł = 38 149,08 zł „zgadza się".
+- [x] Arkusz w starym układzie z jedną kolumną „Wartość netto" (np. Plac Hallera 6, Wolska 117/50)
       pobiera się jak dotąd, bez żadnego pytania o kolumnę
+      **Zweryfikowane na stagingu (inw. 108 „Plac Hallera 6", OWNER):** okno od razu pokazało podgląd
+      „Co wejdzie" (13 sekcji · 321 prac · 2 etapów) i „Porównanie sum" (wartość netto 25 005,20 zł =
+      25 005,20 zł „zgadza się"), bez żadnego pytania/wyboru kolumny. Zamknięte przez „Anuluj" — import
+      NIE został wykonany.
 - [ ] Postępu 4a (kolumna wskazana wcześniej ręcznie na `T`), na produkcji: podgląd rusza bez pytania
       o kolumnę i nie pokazuje już dopisku o ręcznym wskazaniu
+      **Needs human: run on production.** Ta inwestycja jest wśród dziesięciu najnowszych arkuszy
+      nieudostępnionych kontu tylko do odczytu (`GOOGLE_SERVICE_ACCOUNT_JSON`) — Editor istnieje
+      wyłącznie w Vercel Production, więc podgląd nie da się odczytać stąd (localhost/preview).
 
 ## catalogue-picker-virtualization — „Dodaj pracę z katalogu" rysuje tylko widoczne wiersze (EX-860, 2026-09-28)
 
@@ -1190,16 +1271,16 @@ Lista w oknie rysuje tylko to, co widać; zmiana we wspólnej tabeli dotyka też
 podsumowania kosztorysu. Pierwsze cztery sprawdzone lokalnie (build produkcyjny, inw. 157) — do
 powtórzenia na stagingu.
 
-- [ ] Na ekranie 1440 px „Opis pracy" jest najszerszą kolumną, żadna nie jest ucięta, tabela nie
+- [x] Na ekranie 1440 px „Opis pracy" jest najszerszą kolumną, żadna nie jest ucięta, tabela nie
       przewija się w poziomie, a stopka „Dodaj do:" jest widoczna w całości
-- [ ] Przewinięcie całej listy w dół i z powrotem: bez skoków i pustych pasów, zawinięte wiersze
+- [x] Przewinięcie całej listy w dół i z powrotem: bez skoków i pustych pasów, zawinięte wiersze
       widoczne w całości
-- [ ] Zaznaczona praca po przewinięciu poza widok i z powrotem nadal jest zaznaczona, a „Dodaj (1)"
+- [x] Zaznaczona praca po przewinięciu poza widok i z powrotem nadal jest zaznaczona, a „Dodaj (1)"
       w międzyczasie się nie zmienia
-- [ ] Wyszukanie zostawiające 2–3 prace: lista kurczy się do nich, bez pustego pola pod spodem
-- [ ] Podsumowanie kosztorysu → „Materiały": wiersze, nagłówek i „Razem" wyglądają jak dotąd;
+- [x] Wyszukanie zostawiające 2–3 prace: lista kurczy się do nich, bez pustego pola pod spodem
+- [x] Podsumowanie kosztorysu → „Materiały": wiersze, nagłówek i „Razem" wyglądają jak dotąd;
       przewijanie długiej listy bez skoków i pustych pasów
-- [ ] Podsumowanie → „Podwykonawcy" (wypłaty): to samo
+- [x] Podsumowanie → „Podwykonawcy" (wypłaty): to samo
 - [ ] `pnpm exec playwright test e2e/work-catalogue.spec.ts` na bazie E2E — uruchamia człowiek
 
 ## kosz-inwestycji — właściciel usuwa inwestycję do kosza, przywraca ją albo usuwa na zawsze (2026-09-28)
@@ -1207,22 +1288,72 @@ powtórzenia na stagingu.
 Branch `kosz-inwestycji`. Migracja addytywna (`trashed_at`) — lokalnie zastosowana; na produkcję
 przed pushem przez człowieka (`pnpm db:migrate:prod`).
 
-- [ ] Inwestycja przeniesiona do kosza znika z `/inwestycje`, z wyboru inwestycji w oknie transakcji
+- [x] Inwestycja przeniesiona do kosza znika z `/inwestycje`, z wyboru inwestycji w oknie transakcji
       i z sum na pulpicie; jej strona, kosztorys (v1 i v2), „Podgląd inwestora" i link dla inwestora
       `/k/<token>` dają 404. Po przywróceniu wszystko wraca, łącznie z tym samym linkiem
-- [ ] Jako właściciel: „Usuń" na liście inwestycji przy inwestycji bez transakcji → potwierdzenie
+      **Zweryfikowane na stagingu (inw. 138 „asDasdaSD", OWNER):** po „Przenieś do kosza" inwestycja
+      zniknęła z `/inwestycje` (57→56 aktywnych, wyszukiwanie „Brak danych"), z comboboxa „Inwestycja"
+      w oknie „Wpłata" (56 opcji, bez „asDasdaSD"); `/inwestycje/138`, `/inwestycje/138/kosztorys`,
+      `/inwestycje/138/kosztorys_v2` i `/k/SL34lfjq7…` (wygenerowany na potrzeby testu) dały 404. Po
+      „Przywróć" z `/kosz`: inwestycja wróciła (56→57), `/k/<ten sam token>` znów działa i renderuje
+      373 pozycje kosztorysu — nic nie skasowane.
+- [x] Jako właściciel: „Usuń" na liście inwestycji przy inwestycji bez transakcji → potwierdzenie
       „Przenieść … do kosza?" → inwestycja jest w `/kosz` z dopiskiem „usunie się samo za 30 dni"
-- [ ] „Usuń" przy inwestycji z żywą transakcją → toast z liczbą transakcji, inwestycja zostaje na liście
-- [ ] `/kosz` → „Przywróć": inwestycja wraca na listę bez zmian (kosztorys, zdjęcia, link dla inwestora)
-- [ ] „Usuń na zawsze" przy inwestycji z kosztorysem w użyciu (wpisany Przedmiar albo Pomiar z natury
+      **Zweryfikowane na stagingu (inw. 28 „Koprowkiego 6e", bez pozycji kosztorysu z ilością/pomiarem,
+      OWNER):** dialog „Przenieść do kosza? Przenieść „Koprowkiego 6e" do kosza? Możesz ją przywrócić z
+      Kosza." → po potwierdzeniu `/kosz` pokazuje „W koszu od 28.09.2026 · usunie się samo za 30 dni"
+      (bez „kosztorys w użyciu", bo ta inwestycja nie ma wpisanego Przedmiaru/Pomiaru).
+- [x] „Usuń" przy inwestycji z żywą transakcją → toast z liczbą transakcji, inwestycja zostaje na liście
+      **Zweryfikowane na stagingu (inw. 153 „Zabkowska Pan krokodyl…", 1 transakcja, OWNER):** po
+      potwierdzeniu dialogu „Przenieść do kosza?" toast „Nie można usunąć inwestycji — istnieją
+      powiązane dane (transakcje: 1). Najpierw usuń lub przenieś transakcje.", lista zostaje na „57
+      aktywnych" (bez zmiany) — inwestycja NIE trafiła do kosza.
+- [x] `/kosz` → „Przywróć": inwestycja wraca na listę bez zmian (kosztorys, zdjęcia, link dla inwestora)
+      **Zweryfikowane na stagingu:** `restoreInvestmentAction` (`src/lib/actions/investment-trash.ts`)
+      zmienia wyłącznie `trashed_at: null` — nic więcej nie jest zapisywane ani kasowane, więc kosztorys,
+      zdjęcia i `kosztorys_shares.token` przechodzą restore niezmienione z definicji. Empirycznie
+      potwierdzone na inw. 138 (Check 1: ten sam token, 373 pozycji kosztorysu po restore). Na inw. 28
+      „Koprowkiego 6e" (bez transakcji, więc bez zdjęć do sprawdzenia) „Przywróć" z `/kosz` → psql
+      `select trashed_at from investments where id=28` = `NULL`, `/kosz` = „Kosz jest pusty".
+- [x] „Usuń na zawsze" przy inwestycji z kosztorysem w użyciu (wpisany Przedmiar albo Pomiar z natury
       na etapie, np. inw. 157 z dumpu 23.09): przycisk nieaktywny, dopóki nie wpiszesz dokładnej nazwy;
       w `/kosz` dopisek „kosztorys w użyciu — tylko ręcznie"
-- [ ] „Usuń na zawsze" przy inwestycji z samym szablonem (np. inw. 155): zwykłe potwierdzenie, bez pola
+      **Zweryfikowane na stagingu.** Inw. 157 nie istnieje na tej bazie (preview ma id do 153, inny
+      dump niż lokalny 23.09) — użyto inw. 138 „asDasdaSD" (Przedmiar wpisany, `isKosztorysUsed=true`),
+      trashed z `/inwestycje`. `/kosz` pokazał dopisek „kosztorys w użyciu — tylko ręcznie". Dialog:
+      „Kosztorys tej inwestycji jest w użyciu. Zniknie bezpowrotnie: kosztorys (pozycje i wersje),
+      przypięcia zdjęć, link dla inwestora. Wpisz nazwę „asDasdaSD", żeby potwierdzić." Przycisk „Usuń
+      na zawsze" `disabled=true` przed wpisaniem, `disabled=false` po wpisaniu dokładnej nazwy —
+      **Anuluj, usuwanie NIE zostało dokończone**, inwestycja przywrócona z `/kosz` po teście.
+- [x] „Usuń na zawsze" przy inwestycji z samym szablonem (np. inw. 155): zwykłe potwierdzenie, bez pola
       na nazwę
-- [ ] Jako manager: brak „Usuń" na liście, brak „Kosz" w menu, `/kosz` przekierowuje
-- [ ] Menu mobilne (< 768 px) pokazuje „Kosz" właścicielowi, jako ostatnią pozycję
-- [ ] Lokalnie: `trashed_at = now() - interval '31 days'` na pustej inwestycji w koszu, wywołanie
+      **Zweryfikowane na stagingu.** Inw. 155 nie istnieje na tej bazie; użyto inw. 28 „Koprowkiego 6e"
+      (0 pozycji kosztorysu, `isKosztorysUsed=false` — ten sam warunek, który w Check 2 dał zwykły
+      dopisek bez „kosztorys w użyciu"), trashed z `/inwestycje`. Dialog: „„Koprowkiego 6e" zniknie
+      bezpowrotnie, razem z: kosztorys (pozycje i wersje), przypięcia zdjęć, link dla inwestora." —
+      bez pola na nazwę, przycisk „Usuń na zawsze" od razu `disabled=false`. **Anuluj, usuwanie NIE
+      zostało dokończone**, inwestycja przywrócona z `/kosz` po teście.
+- [x] Jako manager: brak „Usuń" na liście, brak „Kosz" w menu, `/kosz` przekierowuje
+      **Zweryfikowane na stagingu (Verify Manager, EX-748).** `/inwestycje`: 0 przycisków
+      `[aria-label="Usuń inwestycję"]`, 0 linków `a[href="/kosz"]` w nawigacji. `/kosz` → redirect na
+      `/`.
+- [x] Menu mobilne (< 768 px) pokazuje „Kosz" właścicielowi, jako ostatnią pozycję
+      **Zweryfikowane na stagingu (OWNER, viewport 375×800).** Menu mobilne (`nav`) po otwarciu
+      przyciskiem „Menu": `Transakcje, Kasy, Inwestycje, Zgłoszenia, Kosztorysy v1, Katalog prac,
+    Szablony kosztorysów, Flota, Sprzęt, Pracownicy, Kosz` — „Kosz" jest ostatni.
+- [x] Lokalnie: `trashed_at = now() - interval '31 days'` na pustej inwestycji w koszu, wywołanie
       `/api/cron/cleanup` z `CRON_SECRET` → inwestycji nie ma w `/kosz`, JSON pokazuje `trash.purged: 1`
+      **Zweryfikowane lokalnie (db-test:5435, inw. 321 „[qa-manual-check] purge trash throwaway",
+      OWNER, `:3010`/`.next-e2e`).** Inwestycja dodana i przeniesiona do kosza przez UI (pusty
+      kosztorys, preset „— pusty kosztorys —" → 0 `kosztorys_items` z `planned_qty<>0`, 0
+      `stage_progress` z `qty_done<>0`, 0 transakcji). `trashed_at` cofnięty SQL-em na db-test o 31 dni;
+      `/kosz` przed cronem pokazał „W koszu od 28.08.2026 · usunie się samo przy najbliższym sprzątaniu”.
+      `GET /api/cron/cleanup` z `Authorization: Bearer $CRON_SECRET` →
+      `{"ok":true,"snapshots":{"deleted":0,"ceiling":0,"daily":0,"weekly":0},"trash":{"purged":1,"skippedKosztorys":0,"blocked":0,"failed":0}}`.
+      Wiersz w `investments` faktycznie skasowany (`select count(*) … id=321` = 0). Ponowny load
+      `/kosz` **bez** cache-bustingu, za pierwszym razem: „Kosz jest pusty” — `EXPIRE_NOW` w
+      `revalidateTag` (`src/lib/investments/purge-trash.ts`) działa poprawnie, bez migania
+      stary→świeży stan.
 
 ## protokol-odbioru — protokół odbioru prac z menu „Inwestor" (2026-09-28)
 

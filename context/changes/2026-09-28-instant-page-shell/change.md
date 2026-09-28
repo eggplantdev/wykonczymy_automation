@@ -11,6 +11,8 @@ worktree: null
 
 ## Notes
 
+Linear: **EX-877**.
+
 Owner (2026-09-28): navigation should be instant — the page name visible right away, the loader only
 in the suspended part below it. App-wide pattern, split out of `szablon-open-speed`.
 
