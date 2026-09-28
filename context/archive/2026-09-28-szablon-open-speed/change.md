@@ -1,10 +1,10 @@
 ---
 change_id: szablon-open-speed
 title: Klik w szablon nawiguje natychmiast — „Otwórz" dzieje się na stronie docelowej
-status: implemented
+status: archived
 created: 2026-09-28
 updated: 2026-09-28
-archived_at: null
+archived_at: 2026-09-28T18:18:49Z
 branch: szablon-open-speed
 worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/szablon-open-speed
 ---
