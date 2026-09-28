@@ -83,7 +83,7 @@ describe('buildOfferPrintHtml — dokument', () => {
   it('bez pozycji drukuje sam nagłówek', () => {
     const out = html([])
 
-    expect(out).toContain('<th>Opis prac</th>')
+    expect(out).toContain('<th><span>Opis prac</span></th>')
     expect(out).toContain('<tbody></tbody>')
   })
 
@@ -169,7 +169,7 @@ describe('buildOfferPrintHtml — papier pokazuje to, co ekran', () => {
 
     const out = html([only], showing('remaining'))
 
-    expect(out).toContain('<th class="num">Pozostało</th>')
+    expect(out).toContain('<th class="num"><span>Pozostało</span></th>')
     expect(out).toContain(zloty(rowRemainingForView(only, CTX.stages, 'client')))
   })
 
@@ -206,7 +206,7 @@ describe('buildOfferPrintHtml — papier pokazuje to, co ekran', () => {
 // The same rule the podgląd applies (`emptySettlementColumnIds`), so paper and screen agree column
 // for column.
 describe('buildOfferPrintHtml — kolumny rozliczenia dopiero z wpisami', () => {
-  const header = (label: string) => new RegExp(`<th[^>]*>${label}</th>`)
+  const header = (label: string) => new RegExp(`<th[^>]*><span>${label}</span></th>`)
   const [stage1, stage2] = CTX.stages
 
   it('bez wpisów drukuje samą ofertę', () => {
@@ -280,7 +280,7 @@ describe('buildOfferPrintHtml — struktura tabeli', () => {
     const out = html([row()], {
       settings: { ...DEFAULT_SETTINGS, columnRanks: { description: 99, plannedNet: -2, unit: -1 } },
     })
-    const headers = [...out.matchAll(/<th(?:\s[^>]*)?>(.*?)<\/th>/g)].map((m) => m[1])
+    const headers = [...out.matchAll(/<th(?:\s[^>]*)?><span>(.*?)<\/span><\/th>/g)].map((m) => m[1])
 
     expect(headers.slice(0, 3)).toEqual(['Opis prac', 'Wartość netto', 'Jednostka miary'])
   })
@@ -315,8 +315,8 @@ describe('buildOfferPrintHtml — struktura tabeli', () => {
   it('ukrycie kolumny w ustawieniach podglądu zabiera ją i z papieru', () => {
     const out = html([row()], hiding('price'))
 
-    expect(out).not.toContain('<th class="num">Cena j.m.</th>')
-    expect(out).toContain('<th>Opis prac</th>')
+    expect(out).not.toContain('<th class="num"><span>Cena j.m.</span></th>')
+    expect(out).toContain('<th><span>Opis prac</span></th>')
   })
 })
 
@@ -345,7 +345,7 @@ describe('sufit ujawniania', () => {
 describe('rabat globalny', () => {
   const discountRow = (globalDiscountActive: boolean) =>
     row({ discountType: 'percent', discountValue: 10, globalDiscountActive })
-  const header = `>${columnLabelForView('discountValue', 'client')}</th>`
+  const header = `>${columnLabelForView('discountValue', 'client')}</span></th>`
 
   it('chowa kolumny rabatu pozycji, gdy rabat globalny jest aktywny', () => {
     expect(html([discountRow(true)], showing('discountValue'))).not.toContain(header)

@@ -215,7 +215,7 @@ export function buildKosztorysPrintHtml({
   const head = `<tr>${columns
     .map(
       (column) =>
-        `<th${column.headerClass ? ` class="${column.headerClass}"` : ''}>${escapeHtml(column.label)}</th>`,
+        `<th${column.headerClass ? ` class="${column.headerClass}"` : ''}><span>${escapeHtml(column.label)}</span></th>`,
     )
     .join('')}</tr>`
 

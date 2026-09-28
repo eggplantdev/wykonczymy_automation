@@ -110,7 +110,7 @@ describe('buildWorkerPrintHtml', () => {
     const out = html(
       projection({ columnRanks: { description: 99, plannedNetForPlane: -2, rate: -1 } }),
     )
-    const headers = [...out.matchAll(/<th(?:\s[^>]*)?>(.*?)<\/th>/g)].map((m) => m[1])
+    const headers = [...out.matchAll(/<th(?:\s[^>]*)?><span>(.*?)<\/span><\/th>/g)].map((m) => m[1])
 
     expect(headers[0]).toBe('Opis prac')
     expect(headers[1]).toBe('Wartość przedmiaru')
