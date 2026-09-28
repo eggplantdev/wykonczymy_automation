@@ -3,7 +3,16 @@ import { emptySettlementColumnIds, stagesWithEntries } from '@/lib/kosztorys/set
 import { stageKey, stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import { CTX, row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
 
-const TOTALS = ['stageQtySum', 'net', 'gross', 'donePercent']
+// Kwota rabatu included: it is computed off the executed quantity, so before any work it is 0 zł on
+// every row (owner, 2026-09-28).
+const TOTALS = [
+  'stageQtySum',
+  'net',
+  'gross',
+  'donePercent',
+  'discountAmount',
+  'discountAmountGross',
+]
 const stageColumns = (id: number) => [stageKey(id), stageValueNetKey(id), stageValueGrossKey(id)]
 
 describe('stagesWithEntries', () => {
