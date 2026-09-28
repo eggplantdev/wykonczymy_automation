@@ -360,4 +360,4 @@ Run **once**, after the final phase.
 
 #### Automated
 
-- [x] 3.1 offer print spec still passes
+- [x] 3.1 offer print spec still passes — cadfcbf9
