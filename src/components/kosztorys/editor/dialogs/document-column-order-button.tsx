@@ -6,12 +6,11 @@ import { Button } from '@/components/ui/button'
 import { ColumnOrderDialog } from '@/components/ui/column-order-dialog'
 import { DOCUMENT_PINNED_COLUMN } from '@/lib/kosztorys/column-config'
 import { documentBaseRanks, orderDocumentKeys } from '@/lib/kosztorys/document-column-order'
-import type { ColumnRanksT } from '@/lib/table/column-order'
+import { sameKeys, type ColumnRanksT } from '@/lib/table/column-order'
 
 type ValueT = { hiddenColumns: string[]; columnRanks: ColumnRanksT }
 
 type PropsT<T extends ValueT> = {
-  // The audience's closed document list — the order window can move a column only within it.
   keys: readonly string[]
   labelFor: (key: string) => string | undefined
   value: T
@@ -20,10 +19,6 @@ type PropsT<T extends ValueT> = {
   // for the worker set.
   resetRanks: ColumnRanksT
   disabled?: boolean
-}
-
-function sameOrder(a: readonly string[], b: readonly string[]): boolean {
-  return a.length === b.length && a.every((key, index) => key === b[index])
 }
 
 // Edits the draft only, like the ticks beside it — the order reaches a document on „Zapisz" or not at
@@ -66,7 +61,7 @@ export function DocumentColumnOrderButton<T extends ValueT>({
         }
         onReset={() => onChange({ ...value, columnRanks: resetRanks })}
         // Two different rank maps can give one order, so the order is what is compared.
-        resetDisabled={sameOrder(ordered, orderDocumentKeys(keys, resetRanks))}
+        resetDisabled={sameKeys(ordered, orderDocumentKeys(keys, resetRanks))}
         description="„Opis prac” zawsze jest pierwszy. Kolejność zapisuje się razem z ustawieniami — przyciskiem „Zapisz”."
       />
     </>

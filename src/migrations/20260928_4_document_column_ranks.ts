@@ -1,8 +1,7 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-vercel-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// The owner's column order for the two closed documents, stored beside the hidden set it is edited
-// with. Purely ADDITIVE: `/k/:token` and the worker link read these tables, so the old code must keep
+// Purely ADDITIVE: `/k/:token` and the worker link read these tables, so the old code must keep
 // running against the new schema until the deploy is live.
 //
 // Nullable with NO default and no backfill: NULL reads as „never ordered" and resolves to the

@@ -55,7 +55,6 @@ export async function getClientViewSettings(investmentId: number): Promise<Clien
   return (await getClientViewSettingsRead(investmentId)).settings
 }
 
-// The same two reads, with the firm-wide order kept beside the answer for the settings dialog.
 export async function getClientViewSettingsRead(
   investmentId: number,
 ): Promise<ClientViewSettingsReadT> {

@@ -406,6 +406,14 @@ on the same client-view tables is a separate, later migration.
 - Workbench order window and its ranks: `src/components/ui/column-order-dialog.tsx`, `src/lib/table/column-order.ts`
 - Additive migration pattern: `src/migrations/20260928_2_client_view_single_set.ts`
 
+## Addendum — 2026-09-28: no brutto on the investor document
+
+Owner ruling after p3, landed in `7a986a1b`: the investor's document carries no gross column at all —
+`plannedGross`, `priceGross`, `discountAmountGross`, `gross`, the per-etap gross value and
+`remainingGross` left `CLIENT_VIEW_GROUPS` (so `PREVIEW_VISIBLE_COLUMNS`), `CLIENT_DOCUMENT_COLUMNS`,
+the print column map and the settlement totals. A stored gross tick or rank fails closed in the
+sanitizers. Outside the plan's scope; recorded here so the diff is not read as drift.
+
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.

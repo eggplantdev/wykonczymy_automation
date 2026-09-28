@@ -36,8 +36,8 @@ vi.mock('@/components/kosztorys/editor/actions/kosztorys-actions-context', () =>
   useKosztorysActions: () => ({ investor: investor.value }),
 }))
 
-// The firm's order puts „Razem brutto" first; the investment's own row has no order of its own.
-const FIRM_RANKS: ColumnRanksT = { gross: -1 }
+// The firm's order puts „Pozostało" first; the investment's own row has no order of its own.
+const FIRM_RANKS: ColumnRanksT = { remaining: -1 }
 const setClientView = vi.fn()
 
 function renderDialog(settings: ClientViewSettingsT = sanitizeClientViewSettings({})) {
@@ -94,7 +94,7 @@ describe('KosztorysClientViewDialog — kolejność kolumn', () => {
     expect(listed(order)[0]).toBe(COLUMN_LABELS.plannedNet)
     await userEvent.click(order.getByRole('button', { name: 'Przywróć domyślną kolejność' }))
 
-    expect(listed(order)[0]).toBe(COLUMN_LABELS.gross)
+    expect(listed(order)[0]).toBe(COLUMN_LABELS.remaining)
     expect(order.getByRole('button', { name: 'Przywróć domyślną kolejność' })).toBeDisabled()
   })
 

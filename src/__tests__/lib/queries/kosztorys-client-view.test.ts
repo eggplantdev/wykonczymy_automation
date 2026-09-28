@@ -23,7 +23,7 @@ const ROW_SETTINGS = {
   hideEmptyRows: false,
   columnRanks: { net: -1 },
 }
-const GLOBAL_SETTINGS = { hiddenColumns: ['plannedGross'], hideEmptyRows: true, columnRanks: {} }
+const GLOBAL_SETTINGS = { hiddenColumns: ['remaining'], hideEmptyRows: true, columnRanks: {} }
 
 describe.skipIf(!ENV_READY)('getClientViewSettings (DB)', () => {
   let payload: Payload
@@ -77,11 +77,11 @@ describe.skipIf(!ENV_READY)('getClientViewSettings (DB)', () => {
     await payload.update({
       collection: 'kosztorys-client-view',
       where: { investment: { equals: investmentWithRow } },
-      data: { hiddenColumns: ['plannedGross', 'note', 'priceMode'] },
+      data: { hiddenColumns: ['remaining', 'note', 'priceMode'] },
     })
 
     const settings = await getClientViewSettings(investmentWithRow)
-    expect(settings.hiddenColumns).toEqual(['plannedGross'])
+    expect(settings.hiddenColumns).toEqual(['remaining'])
   })
 
   // A row wins as a whole. The migration leaves NULL on a row whose served variant was never
@@ -104,15 +104,21 @@ describe.skipIf(!ENV_READY)('getClientViewSettings (DB)', () => {
     expect(await getClientViewSettings(investmentWithoutRow)).toEqual(GLOBAL_SETTINGS)
   })
 
-  // The reset target in the order dialog: the firm's order, even where the investment's own row wins.
+  // The reset target in the order dialog: the firm's order, even where the investment's own row wins
+  // — and a row that never stored an order serves the built-in one, not the firm's.
   it("hands back the firm's order beside an investment's own settings", async () => {
+    await payload.update({
+      collection: 'kosztorys-client-view',
+      where: { investment: { equals: investmentWithRow } },
+      data: { columnRanks: null },
+    })
     await payload.updateGlobal({
       slug: 'kosztorys-client-view-defaults',
       data: { ...GLOBAL_SETTINGS, columnRanks: { plannedQty: -1 } },
     })
 
     const read = await getClientViewSettingsRead(investmentWithRow)
-    expect(read.settings.columnRanks).not.toEqual({ plannedQty: -1 })
+    expect(read.settings.columnRanks).toEqual({})
     expect(read.defaultColumnRanks).toEqual({ plannedQty: -1 })
   })
 

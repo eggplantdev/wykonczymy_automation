@@ -56,7 +56,7 @@ export function offeredRows(
 }
 
 // The default offer's six columns fit portrait with the opis still ~70mm; a seventh leaves it ~47mm.
-// Past that the owner has widened the document with brutto or etap columns and it turns landscape.
+// Past that the owner has widened the document with etap columns and it turns landscape.
 const PORTRAIT_COLUMN_LIMIT = 7
 
 export function buildOfferPrintHtml({

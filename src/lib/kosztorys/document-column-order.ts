@@ -5,8 +5,8 @@ function unpinned(keys: readonly string[]): string[] {
   return keys.filter((key) => key !== DOCUMENT_PINNED_COLUMN)
 }
 
-// The owner's stored order over one document list. The pinned column is lifted out before sorting
-// and put back in front, so no rank — stored by hand or by a drag — can move it.
+// The pinned column is lifted out before sorting and put back in front, so no rank — stored by hand
+// or by a drag — can move it.
 export function orderDocumentKeys(keys: readonly string[], ranks: ColumnRanksT): string[] {
   const rest = orderColumnKeys(unpinned(keys), ranks)
   return keys.includes(DOCUMENT_PINNED_COLUMN) ? [DOCUMENT_PINNED_COLUMN, ...rest] : rest

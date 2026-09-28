@@ -1404,3 +1404,26 @@ addytywna — na produkcję **przed** pushem; DROP starych kolumn to EX-886, po 
 - [ ] W podglądzie inwestora z włączonym „Pozostało" ta sama pozycja też jest czerwona.
 - [ ] Najazd na nagłówek „Pozostało": podpowiedź mówi, że suma w stopce pomija wiersze na minusie.
 - [ ] Oferta PDF i PDF pracownika drukują wiersz na minusie na czarno, jak wcześniej.
+
+## document-column-order — kolejność kolumn inwestora i pracownika ustawiana w ustawieniach (EX-884, 2026-09-28)
+
+### Ustawienia podglądu inwestora
+
+- [ ] „Ustawienia podglądu…" → „Ustaw kolejność kolumn…": lista nie wymienia „Opis prac", a na liście
+      znaczników „Opis prac" jest zaznaczony i zablokowany.
+- [ ] Przeciągnij „Wartość przedmiaru netto" na początek, „Zapisz": podgląd, link inwestora i oferta PDF
+      mają „Opis prac", potem „Wartość przedmiaru netto" — w tej samej kolejności.
+- [ ] Przeciągnij kolumnę i zamknij okno ustawień bez „Zapisz": po ponownym otwarciu kolejność jest
+      poprzednia, a dokument się nie zmienił.
+- [ ] „Zapisz jako domyślne" z własną kolejnością, potem na innej inwestycji bez własnych ustawień:
+      podgląd ma tę kolejność. „Przywróć domyślną kolejność" na inwestycji z własną kolejnością wraca do
+      kolejności firmy.
+- [ ] Oferta zapisana przed wdrożeniem (własny wiersz, bez kolejności) pokazuje kolejność wbudowaną,
+      a „Przywróć domyślną kolejność" jest aktywne i przestawia ją na kolejność firmy.
+- [ ] W ustawieniach nie ma żadnej kolumny brutto; oferta, której zestaw zapisano wcześniej z kolumną
+      brutto, nie pokazuje jej ani w podglądzie, ani w linku, ani w PDF.
+
+### Ustawienia widoku pracownika
+
+- [ ] „Ustaw kolejność kolumn…" w ustawieniach pracownika: po „Zapisz" link pracownika i PDF pracownika
+      mają nową kolejność, „Opis prac" pierwszy; „Przywróć domyślną kolejność" wraca do wbudowanej.

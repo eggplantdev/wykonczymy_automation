@@ -11,7 +11,7 @@ import {
   DialogHeader,
 } from '@/components/ui/dialog'
 import type { ColumnToggleItemT } from '@/components/ui/column-toggle-menu'
-import { rankForMove, type ColumnRanksT } from '@/lib/table/column-order'
+import { rankForMove, sameKeys, type ColumnRanksT } from '@/lib/table/column-order'
 import { useDraft } from '@/hooks/use-draft'
 import { cn } from '@/lib/utils/cn'
 
@@ -31,10 +31,6 @@ type PropsT = {
   // Where the setting applies — the ranks are per-surface, so the sentence has to name that surface
   // rather than promise it everywhere.
   description: string
-}
-
-function sameKeys(a: readonly string[], b: readonly string[]): boolean {
-  return a.length === b.length && a.every((key, index) => key === b[index])
 }
 
 // „Ustaw kolejność kolumn…" — a separate surface from the visibility picker on purpose: reordering is

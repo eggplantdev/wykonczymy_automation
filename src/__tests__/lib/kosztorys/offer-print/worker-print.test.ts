@@ -114,7 +114,7 @@ describe('buildWorkerPrintHtml', () => {
 
     expect(headers[0]).toBe('Opis prac')
     expect(headers[1]).toBe('Wartość przedmiaru')
-    expect(out.indexOf(formatPLN(RATE))).toBeGreaterThan(-1)
+    expect(headers[2]).toBe('Stawka j.m.')
   })
 
   it('places the section total under the money column after a reorder', () => {

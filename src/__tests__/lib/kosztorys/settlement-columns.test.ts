@@ -1,19 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { emptySettlementColumnIds, stagesWithEntries } from '@/lib/kosztorys/settlement-columns'
-import { stageKey, stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
+import { stageKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import { CTX, row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
 
 // Kwota rabatu included: it is computed off the executed quantity, so before any work it is 0 zł on
 // every row (owner, 2026-09-28).
-const TOTALS = [
-  'stageQtySum',
-  'net',
-  'gross',
-  'donePercent',
-  'discountAmount',
-  'discountAmountGross',
-]
-const stageColumns = (id: number) => [stageKey(id), stageValueNetKey(id), stageValueGrossKey(id)]
+const TOTALS = ['stageQtySum', 'net', 'donePercent', 'discountAmount']
+const stageColumns = (id: number) => [stageKey(id), stageValueNetKey(id)]
 
 describe('stagesWithEntries', () => {
   // A saved 0 is what every etap cell holds before anyone types — it is not an entry.
@@ -43,7 +36,6 @@ describe('emptySettlementColumnIds', () => {
   it('never hides „Pozostało"', () => {
     const empty = emptySettlementColumnIds([row()], CTX.stages)
     expect(empty.has('remaining')).toBe(false)
-    expect(empty.has('remainingGross')).toBe(false)
   })
 
   it('hides the totals of a kosztorys with no etapy at all', () => {

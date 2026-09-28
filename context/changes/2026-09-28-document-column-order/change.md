@@ -1,7 +1,7 @@
 ---
 change_id: document-column-order
 title: Owner-set column order for the investor and worker documents (EX-884)
-status: implementing
+status: implemented
 created: 2026-09-28
 updated: 2026-09-28
 archived_at: null

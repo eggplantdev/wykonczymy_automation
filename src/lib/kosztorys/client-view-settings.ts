@@ -73,7 +73,6 @@ export function sanitizeClientViewSettings(source: unknown): ClientViewSettingsT
   }
 }
 
-// The investor's document in the owner's order — one list for the podgląd, the link and the PDF.
 export function clientDocumentColumns(ranks: ColumnRanksT): string[] {
   return orderDocumentKeys(CLIENT_DOCUMENT_COLUMNS, ranks)
 }

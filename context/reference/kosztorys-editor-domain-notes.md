@@ -307,9 +307,9 @@ własny wiersz inwestycji (`kosztorys-client-view`) → globalne domyślne firmy
 
 **Jeden zestaw, bez wariantów** (właściciel, 2026-09-28). Warianty „Oferta / Rozliczenie" zniknęły:
 inwestor ma jeden zestaw kolumn, a o tym, czy widzi rozliczenie, decydują dane, nie przełącznik.
-Kolumny rozliczenia — „Pomiar z natury", każdy etap (ilość i wartość), „Razem netto", „% wykonania",
-brutto idzie za netto — pokazują się dopiero, gdy są w nich wpisy: etap bez wpisów znika w całości,
-a sumy rozliczenia znikają, dopóki żaden etap nie ma wpisu. Oferta wysłana przed pracą jest więc
+Kolumny rozliczenia — „Pomiar z natury", każdy etap (ilość i wartość), „Razem netto", „Rabat kwota",
+„% wykonania" — pokazują się dopiero, gdy są w nich wpisy: etap bez wpisów znika w całości, a sumy
+rozliczenia znikają, dopóki żaden etap nie ma wpisu. Oferta wysłana przed pracą jest więc
 czysta bez żadnego klikania, a pierwszy wpis w etapie dociera do linku, który inwestor już ma.
 „Pozostało" do tej reguły nie należy: przed pracą to cały przedmiar, liczba prawdziwa — domyślnie jest
 ukryte i ukrywa je tylko wybór właściciela. Ta sama reguła obowiązuje podgląd, link, PDF i zakładkę
@@ -339,10 +339,19 @@ Reguły, które trzymają to razem:
 - **„Udostępnij" kopiuje link już przy kliknięciu** — tworzy go tylko wtedy, gdy inwestycja żadnego
   nie ma, i nigdy nie podmienia istniejącego (to odcięłoby inwestora, który go trzyma). Okno
   udostępniania nie ma już kroku ustawień; prowadzi do nich przycisk „Ustawienia podglądu…".
+- **Kolejność kolumn ustawia właściciel, „Opis prac" zawsze pierwszy** (EX-884, 2026-09-28). Zapisana
+  razem z zestawem, na „Zapisz", osobno dla każdej oferty i raz dla pracowników; obowiązuje podgląd,
+  link i PDF. Kolejność przechowywana jest jako rangi względem listy dokumentu w kodzie, więc wpięcie
+  nowej kolumny w środek tej listy przesuwa miejsce kolumn bez rangi — nowa kolumna ląduje tam, gdzie
+  stoi w kodzie, a nie na końcu. Oferta zapisana przed EX-884 ma własny wiersz bez kolejności, a wiersz
+  inwestycji wygrywa w całości — więc pokazuje kolejność wbudowaną, nie kolejność firmy, dopóki
+  właściciel nie kliknie „Przywróć domyślną kolejność".
+- **Na dokumencie inwestora nie ma żadnej kwoty brutto** (właściciel, 2026-09-28). Oferta jest netto,
+  więc kolumny brutto nie da się nawet zaznaczyć w ustawieniach, a znacznik brutto zapisany wcześniej
+  odpada przy sanityzacji.
 
-**Podgląd nie zna trybu rozliczenia** (EX-631, rozstrzygnięte 2026-08-12). Dokument klienta niesie
-netto i brutto obok siebie także na inwestycji rozliczanej netto — `settlementMode` NIE wraca jako
-bramka prawdy. O ujawnieniu decyduje wyłącznie allowlista (i zapisane ustawienie widoku klienta pod
+**Podgląd nie zna trybu rozliczenia** (EX-631, rozstrzygnięte 2026-08-12). `settlementMode` NIE wraca
+jako bramka prawdy. O ujawnieniu decyduje wyłącznie allowlista (i zapisane ustawienie widoku klienta pod
 nią); oś kwot jest preferencją czytania, a preferencja jednego czytelnika nie może decydować, co widzi
 drugi. Odwrotnie niż `globalDiscountActive`, który do gałęzi podglądu wrócił właśnie dlatego, że jest
 stanem inwestycji, a nie preferencją.
