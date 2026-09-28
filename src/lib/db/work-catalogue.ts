@@ -64,6 +64,26 @@ export async function listCatalogueItems(db: DbExecutorT): Promise<WorkCatalogue
   return result.rows.map(toCatalogueItem)
 }
 
+/**
+ * The cennik rows a known set of pozycje names, for an apply that probes a handful of keys — reading
+ * the whole cennik to build a lookup transferred 561 rows to answer a few.
+ */
+export async function listCatalogueItemsByMatchKeys(
+  db: DbExecutorT,
+  matchKeys: readonly string[],
+): Promise<WorkCatalogueItemT[]> {
+  if (matchKeys.length === 0) return []
+  const result = await db.execute(sql`
+    SELECT ${CATALOGUE_COLUMNS}
+    FROM work_catalogue_items
+    WHERE match_key IN (${sql.join(
+      matchKeys.map((key) => sql`${key}`),
+      sql.raw(', '),
+    )})
+  `)
+  return result.rows.map(toCatalogueItem)
+}
+
 /** What the seed subtracts before proposing anything. */
 export async function listCatalogueMatchKeys(db: DbExecutorT): Promise<Set<string>> {
   const result = await db.execute(sql`SELECT match_key FROM work_catalogue_items`)

@@ -70,8 +70,9 @@ export async function placeCatalogueItems(
   // authored, and neither of those two źródła reads a global — a kwota is frozen, a mnożnik prices off
   // the cena j.m. So it needs no investment context to reach its verdict.
   const warnings = items.flatMap((item) => {
+    const pricing = asViewPricing(item)
     const problems = TOOL_PLANES.flatMap(
-      (plane) => checkSubcontractorPrice(asViewPricing(item), plane)?.message ?? [],
+      (plane) => checkSubcontractorPrice(pricing, plane)?.message ?? [],
     )
     return problems.map((problem) => `„${item.description}": ${problem}`)
   })
