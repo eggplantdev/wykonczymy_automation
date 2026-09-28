@@ -866,14 +866,14 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 2.1 Worker-view unit specs pass
+- [x] 2.1 Worker-view unit specs pass — 80b6c40f
 
 ### Phase 3: Data — worker share links + worker view settings
 
 #### Automated
 
-- [ ] 3.1 Migration applies to local docker DB
-- [ ] 3.2 Types regenerate with the new slugs
+- [x] 3.1 Migration applies to local docker DB
+- [x] 3.2 Types regenerate with the new slugs
 - [ ] 3.3 Pair uniqueness enforced (DB spec)
 
 ### Phase 4: Server — link actions, settings actions, projection, routes

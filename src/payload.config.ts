@@ -22,6 +22,7 @@ import { KosztorysItems } from '@/collections/kosztorys-items'
 import { KosztorysSections } from '@/collections/kosztorys-sections'
 import { KosztorysShares } from '@/collections/kosztorys-shares'
 import { KosztorysStages } from '@/collections/kosztorys-stages'
+import { KosztorysWorkerShares } from '@/collections/kosztorys-worker-shares'
 import { StageProgress } from '@/collections/stage-progress'
 import { Leads } from '@/collections/leads'
 import { Media } from '@/collections/media'
@@ -37,6 +38,7 @@ import { Equipment } from '@/collections/equipment'
 import { EquipmentEvents } from '@/collections/equipment-events'
 import { Warehouses } from '@/collections/warehouses'
 import { KosztorysClientViewDefaults } from '@/globals/kosztorys-client-view-defaults'
+import { KosztorysWorkerViewSettings } from '@/globals/kosztorys-worker-view-settings'
 import { NotificationRecipients } from '@/globals/notification-recipients'
 
 const filename = fileURLToPath(import.meta.url)
@@ -94,6 +96,7 @@ export default buildConfig({
     KosztorysItems,
     KosztorysStages,
     KosztorysShares,
+    KosztorysWorkerShares,
     KosztorysClientView,
     StageProgress,
     Transfers,
@@ -109,7 +112,7 @@ export default buildConfig({
     Warehouses,
     Media,
   ],
-  globals: [KosztorysClientViewDefaults, NotificationRecipients],
+  globals: [KosztorysClientViewDefaults, KosztorysWorkerViewSettings, NotificationRecipients],
   plugins: [
     vercelBlobStorage({
       collections: { media: true },

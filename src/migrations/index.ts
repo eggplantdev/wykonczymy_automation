@@ -95,6 +95,7 @@ import * as migration_20260922_0_preset_autosave from './20260922_0_preset_autos
 import * as migration_20260922_1_catalogue_legacy_marker_cleanup from './20260922_1_catalogue_legacy_marker_cleanup'
 import * as migration_20260923_0_restore_subcontractor_rate_coeff from './20260923_0_restore_subcontractor_rate_coeff'
 import * as migration_20260928_0_investment_trashed_at from './20260928_0_investment_trashed_at'
+import * as migration_20260928_1_kosztorys_worker_view from './20260928_1_kosztorys_worker_view'
 
 export const migrations = [
   {
@@ -581,5 +582,10 @@ export const migrations = [
     up: migration_20260928_0_investment_trashed_at.up,
     down: migration_20260928_0_investment_trashed_at.down,
     name: '20260928_0_investment_trashed_at',
+  },
+  {
+    up: migration_20260928_1_kosztorys_worker_view.up,
+    down: migration_20260928_1_kosztorys_worker_view.down,
+    name: '20260928_1_kosztorys_worker_view',
   },
 ]
