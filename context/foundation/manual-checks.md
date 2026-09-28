@@ -690,15 +690,15 @@ Licznik renderów czytaj z logu dev: `[PERF] buildKosztorysTree` (drzewo jest ni
 Account as the scope.` — to był zły argument `--scope`, nie brak dostępu. Właściwy scope to
       zespół projektu z `.vercel/project.json` (`orgId`), nie konto CLI:
 
-                      ```bash
-                      npx vercel logs https://<deployment>.vercel.app --scope=team_BWfyTqJnjIqZBkHwBL0elgS4
-                      ```
+                        ```bash
+                        npx vercel logs https://<deployment>.vercel.app --scope=team_BWfyTqJnjIqZBkHwBL0elgS4
+                        ```
 
-                      Strumień oddaje runtime stdout pogrupowany per request, a `console.log` w `buildKosztorysTree`
-                      (`src/lib/queries/kosztorys.ts:71`) nie jest bramkowany `NODE_ENV`, więc linia `[PERF]
-                      buildKosztorysTree …` wychodzi tak samo z builda produkcyjnego na stagingu, jak z dev.
-                      Właściwy box wyżej policzony tą drogą i odhaczony — jeden wpis na jeden upload.
-                      **Test disposition:** no automated test — to obserwowalność (log count), nie asercja stanu.
+                        Strumień oddaje runtime stdout pogrupowany per request, a `console.log` w `buildKosztorysTree`
+                        (`src/lib/queries/kosztorys.ts:71`) nie jest bramkowany `NODE_ENV`, więc linia `[PERF]
+                        buildKosztorysTree …` wychodzi tak samo z builda produkcyjnego na stagingu, jak z dev.
+                        Właściwy box wyżej policzony tą drogą i odhaczony — jeden wpis na jeden upload.
+                        **Test disposition:** no automated test — to obserwowalność (log count), nie asercja stanu.
 
 ## EX-820 — sufit stawki wykonawcy z „Problemów" do „Filtrów" (2026-09-22)
 
@@ -852,3 +852,20 @@ wydruku i zgodność liczb z podglądem klienta, kosztorys po kosztorysie.
 ### Phase 3: E2E
 
 - [ ] `pnpm test:e2e e2e/client-share.spec.ts` na świeżo zaseedowanym db-test przechodzi.
+
+## EX-819 — wartość spoza zakresu odmawiana na głos, nie przycinana (2026-09-28)
+
+Pole liczbowe spoza zakresu odpowiada teraz jak komórka rozpiski: nie zapisuje, przywraca poprzednią
+wartość i mówi „Nieprawidłowa wartość — przywrócono X". Automat sprawdza to na komponentach i akcji;
+na żywo zostaje to, czy komunikat pada w panelu, a przeliczenie nie.
+
+- [ ] Panel „Podsumowanie" → „Opcje rozliczenia": „Stawka vat na materiały" przy zapisanych 23 %,
+      wpisz `230` → „Zapisz" jest aktywny; klik → toast „Nieprawidłowa wartość — przywrócono 23%.",
+      pole wraca do 23, materiały **nie** przeliczają się (po odświeżeniu nadal 23 %)
+- [ ] To samo w widoku „Materiały" (pole „Stawka vat na materiały" przy rozliczeniu netto),
+      tym razem zatwierdzone **Enterem** — jeden toast, stawka bez zmian
+- [ ] Wpis w zakresie (np. `8`) w tym samym polu zapisuje się bez żadnego komunikatu
+- [ ] Stawka VAT inwestycji w „Opcje rozliczenia": `150` → ten sam toast i przywrócona poprzednia stawka
+- [ ] Pasek edytora, mnożnik ceny: `-0,2` i wyjście z pola → toast „Nieprawidłowa wartość —
+      przywrócono 0,6." (przy zapisanym 0,6), mnożnik bez zmian; `0,9` nadal się zapisuje z
+      ostrzeżeniem o przekroczeniu 65 %

@@ -60,11 +60,9 @@ export function MaterialsNetPricingControl({
           withSave
           value={materialsNetPercent}
           disabled={disabled}
-          // Clamped to the range the action's schema accepts, so a fat-fingered 230 lands on 100%
-          // instead of bouncing back as a validation toast.
-          onCommit={(percent) =>
-            onMaterialsNetRateChange(Math.min(Math.max(percent, 0), 100) / 100)
-          }
+          min={0}
+          max={100}
+          onCommit={(percent) => onMaterialsNetRateChange(percent / 100)}
         />
       )}
     </SettingsSection>

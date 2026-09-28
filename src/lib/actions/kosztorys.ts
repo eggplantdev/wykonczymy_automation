@@ -56,10 +56,11 @@ const sectionPatchSchema = z
   })
   .partial()
 
+// Floor only: above 0,65 the mnożnik warns but saves (owner, 2026-09-21); below 0 is a typo.
 const investmentCoeffsSchema = z
   .object({
-    wToolsCoeff: z.coerce.number(),
-    ownToolsCoeff: z.coerce.number(),
+    wToolsCoeff: z.coerce.number().min(0),
+    ownToolsCoeff: z.coerce.number().min(0),
   })
   .partial()
 

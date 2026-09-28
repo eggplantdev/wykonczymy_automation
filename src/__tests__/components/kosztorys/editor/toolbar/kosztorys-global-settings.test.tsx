@@ -55,16 +55,20 @@ describe('Mnożnik ceny — sufit ostrzega, nie odmawia', () => {
     expect(toastMessage).not.toHaveBeenCalled()
   })
 
-  // Asserts the snap-back too, not just the absent commit: DecimalField rejects out of range by
-  // writing the old text back, so without it this passes just as well when `type` never landed.
-  it('nadal odmawia mnożnika ujemnego', async () => {
+  // Asserts the restore too, not just the absent commit: without it this passes just as well when
+  // `type` never landed. Re-queried because the restore remounts the input.
+  it('odmawia mnożnika ujemnego i mówi o tym', async () => {
     const { user, wTools } = renderSettings()
 
     await retype(user, wTools, '-0,2')
 
     expect(onGlobalCoeffChange).not.toHaveBeenCalled()
-    expect(toastMessage).not.toHaveBeenCalled()
-    expect(wTools).toHaveValue('0.6')
+    expect(toastMessage).toHaveBeenCalledWith(
+      'Nieprawidłowa wartość — przywrócono 0,6.',
+      'error',
+      expect.any(Number),
+    )
+    expect(screen.getAllByRole('textbox')[0]).toHaveValue('0.6')
   })
 
   // DecimalField commits on every blur — it re-parses the input instead of comparing it to the value
