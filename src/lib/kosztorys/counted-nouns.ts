@@ -27,3 +27,9 @@ export const activeFilterHidesPhrase = (count: number) =>
   pluralize(count, ['włączony filtr chowa', 'włączone filtry chowają', 'włączonych filtrów chowa'])
 
 export const differenceNoun = (count: number) => pluralize(count, ['różnica', 'różnice', 'różnic'])
+
+export const itemAddedPhrase = (count: number) =>
+  pluralize(count, ['praca dodana', 'prace dodane', 'prac dodanych'])
+
+export const itemRemovedPhrase = (count: number) =>
+  pluralize(count, ['praca usunięta', 'prace usunięte', 'prac usuniętych'])

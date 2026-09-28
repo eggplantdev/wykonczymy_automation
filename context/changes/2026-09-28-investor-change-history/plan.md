@@ -680,17 +680,17 @@ are untouched.
 
 #### Automated
 
-- [x] 2.1 capture-daily-snapshots DB spec passes
-- [x] 2.2 gcSnapshots status-aware retention spec passes, existing cases unchanged
-- [x] 2.3 daily-snapshots route spec passes
+- [x] 2.1 capture-daily-snapshots DB spec passes — 0a9745fc
+- [x] 2.2 gcSnapshots status-aware retention spec passes, existing cases unchanged — 0a9745fc
+- [x] 2.3 daily-snapshots route spec passes — 0a9745fc
 
 ### Phase 3: Pure history library
 
 #### Automated
 
-- [ ] 3.1 diff-versions unit specs pass
-- [ ] 3.2 snapshot-to-tree unit specs pass
-- [ ] 3.3 select-history-entries and summarize-change unit specs pass
+- [x] 3.1 diff-versions unit specs pass
+- [x] 3.2 snapshot-to-tree unit specs pass
+- [x] 3.3 select-history-entries and summarize-change unit specs pass
 
 ### Phase 4: Read path (history list + one version)
 

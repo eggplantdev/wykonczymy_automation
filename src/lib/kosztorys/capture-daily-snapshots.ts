@@ -3,7 +3,7 @@ import { isDeepStrictEqual } from 'node:util'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import { insertSnapshot, latestSnapshot, listDailyEligibleInvestmentIds } from '@/lib/db/snapshots'
 import { buildKosztorysTree } from '@/lib/queries/kosztorys'
-import { serializeTree } from '@/lib/kosztorys/serialize-kosztorys'
+import { serializeTree } from '@/lib/kosztorys/serialize-tree'
 import { warsawToday } from '@/lib/utils/days'
 
 export type DailyCaptureResultT = { stored: number; unchanged: number; failed: number }

@@ -1,0 +1,51 @@
+import type { SnapshotKindT } from '@/lib/db/snapshots'
+import type { DayT } from '@/lib/utils/days'
+import type { GlobalDiscountT, KosztorysStageT, KosztorysTreeT } from '@/lib/kosztorys/types'
+
+// A row stored before the investor history shipped has no rabat at all. `known: false` is that
+// state, and it is never read as 0 zł: a rabat of 0 is a claim, and nobody made it.
+export type HistoryDiscountT = ({ known: true } & GlobalDiscountT) | { known: false }
+
+export type HistoryVersionT = { tree: KosztorysTreeT; discount: HistoryDiscountT }
+
+export type ItemRefT = {
+  id: number
+  sectionName: string
+  description: string | null
+  unit: string | null
+  plannedQty: number
+}
+
+export type FieldChangeT =
+  | { field: 'plannedQty' | 'price' | 'plannedNet' | 'net'; before: number; after: number }
+  // `stageId` is the column the past grid renders: the past etap's id, or the current one's for an
+  // etap that did not exist yet (`VersionDiffT.addedStages`).
+  | { field: 'stageQty'; stageId: number; stageLabel: string; before: number; after: number }
+
+export type ItemChangeT = { item: ItemRefT; currentItemId: number; fields: FieldChangeT[] }
+
+export type DiscountChangeT =
+  | { state: 'unknown' }
+  | { state: 'same'; discount: GlobalDiscountT }
+  | { state: 'changed'; before: GlobalDiscountT; after: GlobalDiscountT }
+
+export type VersionDiffT = {
+  added: ItemRefT[]
+  removed: ItemRefT[]
+  // Keyed by the PAST item id, because the past tree is what the grid renders.
+  changed: Map<number, ItemChangeT>
+  addedStages: KosztorysStageT[]
+  discount: DiscountChangeT
+}
+
+export type HistoryKindT = Exclude<SnapshotKindT, 'manual'>
+
+export type HistoryMetaT = { id: number; kind: HistoryKindT; label: string | null; takenAt: Date }
+
+export type HistoryEntryT = {
+  id: number
+  kind: HistoryKindT
+  label: string | null
+  day: DayT
+  summary: string
+}
