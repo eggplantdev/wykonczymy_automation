@@ -390,7 +390,7 @@ ZOSTAJE: `auth`, `transfer-create`, `transfer-cancel` (ale asercje o disabled-bu
 powodu, `:35-39`, zdegradować do DOM), `investments-listing-kosztorys`,
 `kosztorys-global-discount-failed-save`, `kosztorys-share-link`, `kosztorys-section-headers` (test 1
 wchłonąć do testu collapse).
-`context/changes/2026-09-15-e2e-backlog-audit/audit.md:30` niesie nieaktualną liczbę („14 testów
+`context/archive/2026-09-15-e2e-backlog-audit/audit.md:30` niesie nieaktualną liczbę („14 testów
 w 10 plikach" — jest 9 w 8).
 
 ### 15. Szacunki odzysku per partycja
@@ -446,7 +446,7 @@ w 10 plikach" — jest 9 w 8).
 - `context/foundation/test-plan.md` §1 — reguła nadrzędna: oracle z niezależnego źródła; asercja
   o wartości wziętej z implementacji jest **defektem testu**. §7 wyklucza Sheets, cache/rewalidację,
   snapshoty UI i panel Payloada. §8 — ostatni przegląd 2026-07-08; §4 mówi „52 pliki" przy obecnych 348.
-- `context/changes/2026-09-15-e2e-backlog-audit/audit.md` — wzorcowy podział ryzyka DOM vs E2E; niesie
+- `context/archive/2026-09-15-e2e-backlog-audit/audit.md` — wzorcowy podział ryzyka DOM vs E2E; niesie
   dwie nieaktualne liczby (`:30`).
 - EX-635 (docblock `helpers/kosztorys-db-tree.ts`) — wersja inline kosztowała ~60 linii, zanim spec
   cokolwiek zaasertował.
@@ -457,7 +457,7 @@ w 10 plikach" — jest 9 w 8).
 
 ## Related Research
 
-- `context/changes/2026-09-15-e2e-backlog-audit/audit.md` — audyt warstwy E2E, komplementarny zakresem
+- `context/archive/2026-09-15-e2e-backlog-audit/audit.md` — audyt warstwy E2E, komplementarny zakresem
 - `context/foundation/test-plan.md` — mapa ryzyk i strategia, dokument nadrzędny wobec tego audytu
 
 ## Open Questions

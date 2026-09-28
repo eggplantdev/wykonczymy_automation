@@ -286,9 +286,9 @@ belongs in a DOM spec over `SummaryExpensesTab` + overview with the 8% fixture, 
 - `context/archive/2026-07-29-netto-expense-grossup/review-gate.md:26` (2026-08-07): „the materiały
   rate is the ONLY thing that crosses a netto-billed wydatek — no rate, no crossing, on either
   axis". This is where no-rate / GROSS was actually decided: netto at face value.
-- `context/changes/2026-09-23-zamrozone-brutto-wydatku-netto/research.md:224-226` (Q1): no rate →
+- `0ec91492^:context/changes/2026-09-23-zamrozone-brutto-wydatku-netto/research.md:224-226` (Q1): no rate →
   „Kwota" shows the netto, „so Razem still equals Materiały".
-- `context/changes/2026-09-23-materialy-inwestora-brutto/research.md:25-27, 219-228` (Q3 = A):
+- `0ec91492^:context/changes/2026-09-23-materialy-inwestora-brutto/research.md:25-27, 219-228` (Q3 = A):
   - the list Razem ≥ Materiały, in the investor's favour, never reconciled;
   - option B („brutto breakdown") was rated „Worst" because it broke the tie to Podsumowanie. The
     new rule avoids that objection by moving Podsumowanie **with** the breakdown.
@@ -324,8 +324,9 @@ rate source); EX-668 (materiały-netto fixture).
 
 ## Related Research
 
-- `context/changes/2026-09-23-zamrozone-brutto-wydatku-netto/research.md`
-- `context/changes/2026-09-23-materialy-inwestora-brutto/research.md`
+- `context/reference/kosztorys-editor-domain-notes.md` — „Widok inwestora zakładki „Materiały"", destylat obu poniższych
+- `0ec91492^:context/changes/2026-09-23-zamrozone-brutto-wydatku-netto/research.md` (skasowany przy archiwizacji — `git show`)
+- `0ec91492^:context/changes/2026-09-23-materialy-inwestora-brutto/research.md` (skasowany przy archiwizacji — `git show`)
 
 ## Open Questions
 
