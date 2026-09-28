@@ -420,10 +420,12 @@ export function KosztorysEditorBody({
                 {/* Its own row below `sm`, beside the logo from there up. Logo plus a `lg` button
                     leave a phone no width for a name, and the name is what the client is here to
                     read — so it takes the second line rather than an ellipsis. */}
-                <h1 className="order-last w-full truncate text-base font-medium sm:order-none sm:w-auto sm:flex-1">
-                  {investmentName}
-                  {worker && <span className="text-muted-foreground"> — {worker.name}</span>}
-                </h1>
+                <div className="order-last w-full min-w-0 sm:order-none sm:w-auto sm:flex-1">
+                  <h1 className="truncate text-base font-medium">{investmentName}</h1>
+                  {/* Its own line: appended to a long investment name it was the part the ellipsis
+                      cut, and on the worker's document the name is what makes it his. */}
+                  {worker && <p className="truncate text-sm font-medium">{worker.name}</p>}
+                </div>
                 {/* The open panel covers the whole grid, so the switch would change rows nobody can
                     see. Hidden, not unmounted: below `sm` it takes its own line under the name (which
                     also shares `order-last`), and dropping it would make the header jump. Opacity on
