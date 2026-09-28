@@ -196,6 +196,8 @@ export type ClientViewGroupT = {
   keys: readonly string[]
 }
 
+// No brutto column anywhere on the investor's document (owner, 2026-09-28): the offer is quoted netto,
+// so a gross figure is not offered as a tick at all — and a stored tick for one fails closed here.
 export const CLIENT_VIEW_GROUPS: readonly ClientViewGroupT[] = [
   {
     label: 'Opis i ilości',
@@ -203,29 +205,17 @@ export const CLIENT_VIEW_GROUPS: readonly ClientViewGroupT[] = [
   },
   {
     label: 'Ceny i rabat',
-    keys: [
-      'price',
-      'priceGross',
-      'discountType',
-      'discountValue',
-      'discountAmount',
-      'discountAmountGross',
-    ],
+    keys: ['price', 'discountType', 'discountValue', 'discountAmount'],
   },
   {
     label: 'Wartości',
     // No `note`: the sheet's „komentarz" is owner-authored internal free text (owner ruling,
     // 2026-07-20) — the client DTO drops it too, so this is the matching half of that decision.
-    keys: ['plannedNet', 'plannedGross', 'net', 'gross', 'remaining', 'remainingGross'],
+    keys: ['plannedNet', 'net', 'remaining'],
   },
   {
     label: 'Etapy i postęp',
-    keys: [
-      STAGES_COLUMN_GROUP,
-      STAGE_VALUE_NET_COLUMN_GROUP,
-      STAGE_VALUE_GROSS_COLUMN_GROUP,
-      'donePercent',
-    ],
+    keys: [STAGES_COLUMN_GROUP, STAGE_VALUE_NET_COLUMN_GROUP, 'donePercent'],
   },
 ]
 
@@ -249,21 +239,15 @@ export const CLIENT_DOCUMENT_COLUMNS: readonly string[] = [
   'unit',
   'price',
   'plannedNet',
-  'plannedGross',
   STAGES_COLUMN_GROUP,
   'stageQtySum',
-  'priceGross',
   'discountValue',
   'discountType',
   'discountAmount',
-  'discountAmountGross',
-  'gross',
   STAGE_VALUE_NET_COLUMN_GROUP,
   'net',
-  STAGE_VALUE_GROSS_COLUMN_GROUP,
   'donePercent',
   'remaining',
-  'remainingGross',
 ]
 
 // The worker view's stawka, as a LOGICAL key: the column it stands for is `price__<plane>`, and which

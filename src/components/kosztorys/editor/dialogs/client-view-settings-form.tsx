@@ -30,8 +30,9 @@ export function ClientViewSettingsForm({ value, onChange, defaultColumnRanks, di
   return (
     <div className="flex min-h-0 flex-col gap-4 overflow-y-auto">
       <Description size="xs">
-        Kolumny rozliczenia — pomiar z natury, etapy i ich wartości, razem netto i brutto, %
-        wykonania — inwestor zobaczy dopiero, gdy będą w nich wpisy. Puste etapy są ukryte.
+        Kolumny rozliczenia — pomiar z natury, etapy i ich wartości, razem netto, rabat kwota i %
+        wykonania — pojawią się u inwestora dopiero po pierwszym wpisie w którymkolwiek etapie. Etap
+        bez wpisów pozostaje ukryty.
       </Description>
       <DocumentColumnOrderButton
         keys={CLIENT_DOCUMENT_COLUMNS}

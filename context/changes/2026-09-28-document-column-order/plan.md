@@ -429,5 +429,5 @@ on the same client-view tables is a separate, later migration.
 
 #### Automated
 
-- [x] 3.1 New and updated dialog specs pass
-- [x] 3.2 Workbench order window's existing specs pass unchanged
+- [x] 3.1 New and updated dialog specs pass — c20e7eaa
+- [x] 3.2 Workbench order window's existing specs pass unchanged — c20e7eaa
