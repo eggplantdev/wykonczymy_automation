@@ -13,7 +13,10 @@ import { AddCatalogueItemDialog } from '@/components/dialogs/add-catalogue-item-
 import { useClientMultiFilter } from '@/hooks/use-client-multi-filter'
 import { useSearchFilter } from '@/hooks/use-search-filter'
 import { getWorkCatalogueColumns } from '@/components/tables/work-catalogue'
-import { catalogueCategoryOptions } from '@/lib/kosztorys/work-catalogue/category-options'
+import {
+  catalogueCategoryOptions,
+  catalogueCategorySuggestions,
+} from '@/lib/kosztorys/work-catalogue/category-options'
 import { compareDescriptions } from '@/lib/kosztorys/work-catalogue/compare-descriptions'
 import { itemNoun } from '@/lib/kosztorys/counted-nouns'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
@@ -45,12 +48,7 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
 
   const categoryOptions = useMemo(() => catalogueCategoryOptions(data), [data])
 
-  // The form's autocomplete offers only kategorie that exist — „Bez kategorii" is a filter answer,
-  // not something to type into a new praca.
-  const categorySuggestions = useMemo(
-    () => categoryOptions.map((option) => option.value).filter((value) => value !== ''),
-    [categoryOptions],
-  )
+  const categorySuggestions = useMemo(() => catalogueCategorySuggestions(data), [data])
 
   // Numbered off `data`, never off what is on screen, so filtering cannot renumber a praca. Sorted
   // here because `listCatalogueItems` orders by kategoria first — an order the table never shows.
