@@ -1,15 +1,13 @@
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
-// Every synthetic grid row lives in the negative id namespace — the spacer (-2), the preview's
-// repeated column titles (-3) and „Razem" (-1) at the top of it, then one band per section: headers
-// below -1000, footers below -1000000. That leaves
+// Every synthetic grid row lives in the negative id namespace — the spacer (-2) and „Razem" (-1) at
+// the top of it, then one band per section: headers below -1000, footers below -1000000. That leaves
 // `id < 0` as the ONE test the grid's onChange filters on, so a synthetic row can never reach the
 // editor's diff no matter how many kinds are added. Every id in the namespace is declared here so
 // that predicate can be checked against the whole set; the components that render these rows import
 // them back.
 export const TOTALS_ROW_ID = -1
 export const SPACER_ROW_ID = -2
-export const FOOTER_TITLES_ROW_ID = -3
 // A decimal order apart, so no real sectionId can carry a header id down into footer territory —
 // section ids are DB serials and will not reach 999_000 in this lifetime.
 export const SECTION_HEADER_ROW_BASE = -1_000
@@ -46,10 +44,6 @@ export function makeTotalsRow(): KosztorysV2RowT {
 
 export function makeSpacerRow(): KosztorysV2RowT {
   return { id: SPACER_ROW_ID } as unknown as KosztorysV2RowT
-}
-
-export function makeFooterTitlesRow(): KosztorysV2RowT {
-  return { id: FOOTER_TITLES_ROW_ID } as unknown as KosztorysV2RowT
 }
 
 export function makeSectionHeaderRow(row: KosztorysV2RowT): KosztorysV2RowT {

@@ -27,10 +27,6 @@ export function heightForLines(lines: number): number {
   return Math.max(ITEM_ROW_HEIGHT, Math.ceil(lines) * ROW_LINE_HEIGHT + ROW_VERTICAL_PADDING)
 }
 
-// The preview's column titles above „Razem" are set at the totals' size, where the longest label
-// („Pozostało netto (względem przedmiaru)") takes three lines.
-export const FOOTER_TITLES_ROW_HEIGHT = heightForLines(3)
-
 // A band's label is one line and its resting height is 52, so the floor inside heightForLines is the
 // wrong one for it.
 export function fitRowHeight(rowId: number, contentLines: number): number {

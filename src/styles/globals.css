@@ -518,14 +518,6 @@
   background: var(--color-background);
 }
 
-/* Sized like the „Razem" figures it labels (TotalsRowCell), not like the header it copies. The 20px
-   line is the grid's row line, which is what FOOTER_TITLES_ROW_HEIGHT is counted in. */
-.kosztorys-grid .kosztorys-footer-title span {
-  font-size: var(--text-base);
-  line-height: 1.25rem;
-  font-weight: 600;
-}
-
 /* dsg's header cells draw no bottom edge of their own. Inset, because dsg lays cells out absolutely
    and an outer shadow would be painted over by the row beneath. Coloured like the rule above the
    header, so the header reads as one framed band. */
@@ -663,6 +655,12 @@
    outside this offer's scope — it must read apart from what the offer prices. */
 .kosztorys-grid .dsg-row.kosztorys-revealed-row .dsg-cell {
   color: var(--color-muted-foreground);
+}
+
+/* A praca a past version held and the present no longer does. */
+.kosztorys-grid .dsg-row.kosztorys-history-removed .dsg-cell {
+  color: var(--color-muted-foreground);
+  text-decoration: line-through;
 }
 
 /*https://tailwindcss.com/docs/adding-custom-styles/*

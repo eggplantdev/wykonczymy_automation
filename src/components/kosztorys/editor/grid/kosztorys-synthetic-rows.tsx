@@ -1,6 +1,5 @@
 'use client'
 
-import { type ReactNode } from 'react'
 import { type CellProps, type Column } from 'react-datasheet-grid'
 import {
   SectionHeaderCell,
@@ -16,7 +15,6 @@ import { formatNet } from '@/lib/kosztorys/format'
 import {
   isSectionFooterRow,
   isSectionHeaderRow,
-  FOOTER_TITLES_ROW_ID,
   SPACER_ROW_ID,
   TOTALS_ROW_ID,
 } from '@/lib/kosztorys/synthetic-rows'
@@ -26,8 +24,6 @@ import { cn } from '@/lib/utils/cn'
 // globals.css lets the band's label out of this cell — the class marks which cell that is.
 export const BAND_LABEL_CELL_CLASS = 'kosztorys-band-label-cell'
 export const STRIPE_COLUMN_CLASS = 'kosztorys-stripe-column'
-// globals.css sizes the repeated title like the „Razem" figures below it.
-const FOOTER_TITLE_CELL_CLASS = 'kosztorys-footer-title'
 // globals.css whitens „Razem" in the preview, where no grey is left to set it apart from.
 const TOTALS_CELL_CLASS = 'kosztorys-totals-cell'
 
@@ -67,8 +63,6 @@ type SyntheticColumnDataT = {
   columnId: string | undefined
   sectionHeader: SectionHeaderContextT
   sectionFooter: SectionFooterContextT
-  // The column's own header, repeated above its „Razem" figure once the header has scrolled away.
-  footerTitle: ReactNode
   base: Column<KosztorysV2RowT>['component']
 }
 
@@ -82,19 +76,6 @@ type SyntheticColumnDataT = {
 function SyntheticAwareCell(props: CellProps<KosztorysV2RowT, SyntheticColumnDataT>) {
   const { rowData, columnData } = props
   if (rowData.id === SPACER_ROW_ID) return <div className="bg-background size-full" />
-  if (rowData.id === FOOTER_TITLES_ROW_ID)
-    return (
-      // dsg's own header-container class, so the copy sits at the header's inset. Opaque, so the
-      // preview's column stripes stop at the last section instead of running through the summary.
-      <div
-        className={cn(
-          FOOTER_TITLE_CELL_CLASS,
-          'dsg-cell-header-container bg-background flex size-full items-center',
-        )}
-      >
-        {columnData.footerTitle}
-      </div>
-    )
   if (rowData.id === TOTALS_ROW_ID) return <TotalsRowCell content={columnData.content} />
   if (isSectionHeaderRow(rowData.id))
     return (
@@ -151,7 +132,6 @@ export function withSyntheticRows(
       columnId: column.id,
       sectionHeader,
       sectionFooter,
-      footerTitle: total != null ? column.title : null,
       base: column.component,
     },
   }
