@@ -11,16 +11,14 @@ describe('protocolScopeRows', () => {
     ]
 
     expect(protocolScopeRows(rows, CTX.stages)).toEqual([
-      { sectionName: 'Podłogi', description: 'Gładzie', qty: 15, unit: 'm2' },
-      { sectionName: 'Podłogi', description: 'Fugi', qty: 2.5, unit: 'mb' },
+      { description: 'Gładzie', qty: 15, unit: 'm2' },
+      { description: 'Fugi', qty: 2.5, unit: 'mb' },
     ])
   })
 
   it('prints a missing opis or j.m. as an empty string', () => {
     const rows = [row({ description: null, unit: null, stage_1: 1 })]
 
-    expect(protocolScopeRows(rows, CTX.stages)).toEqual([
-      { sectionName: 'Podłogi', description: '', qty: 1, unit: '' },
-    ])
+    expect(protocolScopeRows(rows, CTX.stages)).toEqual([{ description: '', qty: 1, unit: '' }])
   })
 })

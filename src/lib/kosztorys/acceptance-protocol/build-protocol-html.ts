@@ -1,7 +1,4 @@
-import {
-  ACCEPTANCE_KIND_LABELS,
-  CONTRACTOR_NAME,
-} from '@/lib/kosztorys/acceptance-protocol/constants'
+import { ACCEPTANCE_KIND_LABELS } from '@/lib/kosztorys/acceptance-protocol/constants'
 import { scopeQuantityText } from '@/lib/kosztorys/acceptance-protocol/scope-rows'
 import { protocolSettlementLines } from '@/lib/kosztorys/acceptance-protocol/settlement'
 import { PROTOCOL_PRINT_STYLES } from '@/lib/kosztorys/acceptance-protocol/styles'
@@ -28,20 +25,14 @@ const KIND_LINES: Record<AcceptanceKindT, string> = {
   reinspection: `${ACCEPTANCE_KIND_LABELS.reinspection} odbiór po usunięciu wad z protokołu z dnia ${fill('')}`,
 }
 
-const DOCUMENT_LINES = [
-  'deklaracje właściwości użytkowych, atesty i karty gwarancyjne materiałów i urządzeń,',
-  'protokoły badań i pomiarów (np. instalacji elektrycznej, próby szczelności instalacji),',
-  'zdjęcia instalacji przed zakryciem, rysunki powykonawcze, instrukcje obsługi,',
-  'klucze, piloty, niewykorzystane materiały Zamawiającego.',
-]
-
 const RESULT_LINES = [
   'Prace odebrano bez zastrzeżeń.',
   'Prace odebrano z wadami nieistotnymi wpisanymi w pkt 4. Wykonawca usunie je w terminach z tabeli; wady nieistotne nie wstrzymują odbioru ani zapłaty, chyba że umowa stanowi inaczej.',
   'Zamawiający odmawia odbioru z powodu wad istotnych wpisanych w pkt 4, które uniemożliwiają korzystanie z przedmiotu prac zgodnie z przeznaczeniem albo są wyraźnie sprzeczne z umową. Wykonawca usunie wady i ponownie zgłosi prace do odbioru.',
 ]
 
-const DEFECT_ROWS = 4
+const DEFECT_ROWS = 10
+const DOCUMENT_ROWS = 5
 const REMARK_LINES = 4
 
 export function buildProtocolHtml({ form, scope, settlement, logoUrl }: ArgsT): string {
@@ -66,21 +57,26 @@ export function buildProtocolHtml({ form, scope, settlement, logoUrl }: ArgsT): 
 <p>Rodzaj odbioru (zaznacz jedno):</p>
 <ul class="boxes">${kinds}</ul>
 ${line('Miejsce wykonania prac (adres)', form.siteAddress)}
-<div class="pair">${line('Data odbioru', printDate(form.acceptanceDate))}${line('data zgłoszenia gotowości do odbioru', printDate(form.readinessDate))}</div>
+${line('Data odbioru', printDate(form.acceptanceDate))}
+${line('Data zgłoszenia gotowości do odbioru', printDate(form.readinessDate))}
 <h3>Zamawiający:</h3>
 ${line('Imię i nazwisko / nazwa firmy', form.clientName)}
 <h3>Wykonawca:</h3>
-${line('Imię i nazwisko / nazwa firmy', CONTRACTOR_NAME)}
+${line('Imię i nazwisko / nazwa firmy', form.contractorName)}
 
 <h2>1. Zakres odbieranych prac</h2>
 <table>
-<colgroup><col class="c-lp"><col><col class="c-qty"><col class="c-check"></colgroup>
-<thead><tr><th>Lp.</th><th>Prace (pomieszczenie, rodzaj, etap)</th><th>Ilość i jedn.</th><th>Zgodnie z umową?</th></tr></thead>
+<colgroup><col class="c-lp"><col><col class="c-qty"></colgroup>
+<thead><tr><th>Lp.</th><th>Prace</th><th>Ilość i jedn.</th></tr></thead>
 <tbody>${scope.map(scopeRow).join('')}</tbody>
 </table>
 
-<h2>2. Dokumenty przekazane Zamawiającemu (zaznacz)</h2>
-<ul class="boxes">${DOCUMENT_LINES.map((text) => boxLine(escapeHtml(text), false)).join('')}</ul>
+<h2>2. Dokumenty przekazane Zamawiającemu</h2>
+<table>
+<colgroup><col class="c-lp"><col></colgroup>
+<thead><tr><th>Lp.</th><th>Dokument</th></tr></thead>
+<tbody>${blankRows(DOCUMENT_ROWS, 1)}</tbody>
+</table>
 
 <h2>3. Wynik odbioru (zaznacz jedno)</h2>
 <ul class="boxes">${RESULT_LINES.map((text) => boxLine(escapeHtml(text), false)).join('')}</ul>
@@ -89,14 +85,13 @@ ${line('Imię i nazwisko / nazwa firmy', CONTRACTOR_NAME)}
 <table>
 <colgroup><col class="c-lp"><col><col class="c-severity"><col class="c-deadline"></colgroup>
 <thead><tr><th>Lp.</th><th>Opis wady i miejsce</th><th>Istotna / nieistotna</th><th>Termin usunięcia</th></tr></thead>
-<tbody>${Array.from({ length: DEFECT_ROWS }, (_, index) => `<tr><td>${index + 1}</td><td></td><td></td><td></td></tr>`).join('')}</tbody>
+<tbody>${blankRows(DEFECT_ROWS, 3)}</tbody>
 </table>
-<p class="note">Wadę nieusuwalną strony mogą rozliczyć obniżeniem wynagrodzenia (wpisz w pkt 5). Odbiór bez zastrzeżeń nie wyłącza odpowiedzialności Wykonawcy z rękojmi i gwarancji za wady ukryte, ujawnione po odbiorze.</p>
+<p class="note">Odbiór bez zastrzeżeń nie wyłącza odpowiedzialności Wykonawcy z rękojmi i gwarancji za wady ukryte, ujawnione po odbiorze.</p>
 
 <h2>5. Rozliczenie (kwoty netto)</h2>
 ${settlementTable(settlement)}
 ${line('Termin zapłaty', printDate(form.paymentDueDate))}
-${line('Obniżenie wynagrodzenia z powodu wad (zł) i jego podstawa', '')}
 ${line('Okres rękojmi i gwarancji liczy się od dnia', printDate(form.acceptanceDate))}
 
 <h2>6. Uwagi i stanowiska stron</h2>
@@ -136,9 +131,16 @@ function boxLine(html: string, isChecked: boolean): string {
 function scopeRow(row: ProtocolScopeRowT, index: number): string {
   return (
     `<tr><td>${index + 1}</td>` +
-    `<td><span class="section-name">${escapeHtml(row.sectionName)} — </span>${escapeHtml(row.description)}</td>` +
-    `<td>${escapeHtml(scopeQuantityText(row))}</td><td></td></tr>`
+    `<td>${escapeHtml(row.description)}</td>` +
+    `<td>${escapeHtml(scopeQuantityText(row))}</td></tr>`
   )
+}
+
+function blankRows(count: number, blankCells: number): string {
+  return Array.from(
+    { length: count },
+    (_, index) => `<tr><td>${index + 1}</td>${'<td></td>'.repeat(blankCells)}</tr>`,
+  ).join('')
 }
 
 function settlementTable(settlement: ProtocolSettlementT): string {

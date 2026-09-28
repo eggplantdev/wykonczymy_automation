@@ -8,12 +8,12 @@ export type AcceptanceProtocolFormT = {
   acceptanceDate: string
   readinessDate: string
   clientName: string
+  contractorName: string
   siteAddress: string
   paymentDueDate: string
 }
 
 export type ProtocolScopeRowT = {
-  sectionName: string
   description: string
   qty: number
   unit: string

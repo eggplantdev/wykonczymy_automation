@@ -12,6 +12,7 @@ const FORM: AcceptanceProtocolFormT = {
   acceptanceDate: '2026-09-27',
   readinessDate: '',
   clientName: 'Anna <b>Nowak</b>',
+  contractorName: 'Wykończymy',
   siteAddress: 'ul. Kwiatowa 1/2',
   paymentDueDate: '',
 }
@@ -30,8 +31,8 @@ const build = (overrides: Partial<Parameters<typeof buildProtocolHtml>[0]> = {})
   buildProtocolHtml({
     form: FORM,
     scope: [
-      { sectionName: 'Łazienka', description: 'Płytki & fugi', qty: 12.5, unit: 'm2' },
-      { sectionName: 'Kuchnia', description: 'Gładź', qty: 30, unit: '' },
+      { description: 'Płytki & fugi', qty: 12.5, unit: 'm2' },
+      { description: 'Gładź', qty: 30, unit: '' },
     ],
     settlement: SETTLEMENT,
     logoUrl: 'https://app.test/logo-wykonczymy.png',
@@ -59,26 +60,24 @@ describe('buildProtocolHtml', () => {
   it('lists the zakres with its quantity and j.m., numbered', () => {
     const html = build()
 
-    expect(html).toContain(
-      '<td>1</td><td><span class="section-name">Łazienka — </span>Płytki &amp; fugi</td><td>12,5 m2</td>',
-    )
-    expect(html).toContain(
-      '<td>2</td><td><span class="section-name">Kuchnia — </span>Gładź</td><td>30</td>',
-    )
+    expect(html).toContain('<tr><td>1</td><td>Płytki &amp; fugi</td><td>12,5 m2</td></tr>')
+    expect(html).toContain('<tr><td>2</td><td>Gładź</td><td>30</td></tr>')
   })
 
   it('prints dates as dd.mm.yyyy and an empty field as a bare line to write on', () => {
     const html = build()
 
     expect(html).toContain('<span class="fill">Kraków, 28.09.2026</span>')
-    expect(html).toContain('data zgłoszenia gotowości do odbioru</span><span class="fill"></span>')
+    expect(html).toContain('Data zgłoszenia gotowości do odbioru</span><span class="fill"></span>')
     expect(html).toContain(
       'Okres rękojmi i gwarancji liczy się od dnia</span><span class="fill">27.09.2026</span>',
     )
   })
 
-  it('names Wykończymy as the wykonawca', () => {
-    expect(build()).toContain('<span class="fill">Wykończymy</span>')
+  it('prints the wykonawca as the owner left it in the form', () => {
+    const html = build({ form: { ...FORM, contractorName: 'Usługi Remontowe Kowal' } })
+
+    expect(html).toContain('<span class="fill">Usługi Remontowe Kowal</span>')
   })
 
   it('prints the settlement steps netto, with strata only when there is one', () => {

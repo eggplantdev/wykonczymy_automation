@@ -13,7 +13,6 @@ export function protocolScopeRows(
     if (qty <= 0) return []
     return [
       {
-        sectionName: row.sectionName,
         description: row.description ?? '',
         qty,
         unit: row.unit ?? '',

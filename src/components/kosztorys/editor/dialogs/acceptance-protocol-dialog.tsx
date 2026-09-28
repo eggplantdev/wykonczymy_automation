@@ -93,7 +93,7 @@ function AcceptanceProtocolBody({
     materialsNetRate: tree.materialsNetRate,
   })
   const form = useAppForm({
-    defaultValues: protocolFormDefaults({ investment, rows, stages, today: today() }),
+    defaultValues: protocolFormDefaults({ investment, today: today() }),
   })
   const clientName = useStore(form.store, (state) => state.values.clientName)
   const siteAddress = useStore(form.store, (state) => state.values.siteAddress)
@@ -185,6 +185,9 @@ function AcceptanceProtocolBody({
             Zapisuje Zamawiającego jako osobę kontaktową i adres w inwestycji.
           </Description>
         </div>
+        <form.AppField name="contractorName">
+          {(field) => <field.Input label="Wykonawca" />}
+        </form.AppField>
       </div>
 
       <section className="flex flex-col gap-2">
@@ -194,23 +197,18 @@ function AcceptanceProtocolBody({
             Żadna pozycja nie ma jeszcze wykonanej pracy — uzupełnij etapy w kosztorysie.
           </Description>
         ) : (
-          <div className="max-h-64 overflow-y-auto">
-            <SummaryTable cols={`2.5rem minmax(0, 1fr) ${SUMMARY_VALUE_COL}`}>
-              <SummaryHeaderCell variant="label">Lp.</SummaryHeaderCell>
-              <SummaryHeaderCell variant="label">Prace</SummaryHeaderCell>
-              <SummaryHeaderCell>Ilość i jedn.</SummaryHeaderCell>
-              {scope.map((row, index) => (
-                <Fragment key={index}>
-                  <SummaryLabelCell>{index + 1}</SummaryLabelCell>
-                  <SummaryLabelCell>
-                    <span className="text-muted-foreground">{row.sectionName} — </span>
-                    {row.description}
-                  </SummaryLabelCell>
-                  <SummaryValueCell>{scopeQuantityText(row)}</SummaryValueCell>
-                </Fragment>
-              ))}
-            </SummaryTable>
-          </div>
+          <SummaryTable cols={`2.5rem minmax(0, 1fr) ${SUMMARY_VALUE_COL}`}>
+            <SummaryHeaderCell variant="label">Lp.</SummaryHeaderCell>
+            <SummaryHeaderCell variant="label">Prace</SummaryHeaderCell>
+            <SummaryHeaderCell>Ilość i jedn.</SummaryHeaderCell>
+            {scope.map((row, index) => (
+              <Fragment key={index}>
+                <SummaryLabelCell>{index + 1}</SummaryLabelCell>
+                <SummaryLabelCell>{row.description}</SummaryLabelCell>
+                <SummaryValueCell>{scopeQuantityText(row)}</SummaryValueCell>
+              </Fragment>
+            ))}
+          </SummaryTable>
         )}
       </section>
 

@@ -1,17 +1,20 @@
 export const PROTOCOL_PRINT_STYLES = `
 * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
-/* Same split as the offer: the dialog's „Marginesy" can drop @page, so the horizontal inset lives on
-   the body; the empty margin boxes suppress the browser's own header and footer. */
+/* Every margin lives on the body, cloned onto each page it breaks across: the dialog's „Marginesy"
+   set to „Brak" drops @page whole, and a continuation page then started its table at the sheet
+   edge. @page stays at zero so „Domyślne" does not add its own on top. The empty margin boxes
+   suppress the browser's own header and footer. */
 @page {
-  margin: 14mm 0 12mm;
+  margin: 0;
   @top-center { content: ''; }
   @bottom-center { content: ''; }
 }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  font-size: 9.5pt; line-height: 1.45; color: #18181b; margin: 0; padding: 4mm 18mm;
+  font-size: 9.5pt; line-height: 1.45; color: #18181b; margin: 0; padding: 16mm 18mm 14mm;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
   font-variant-numeric: tabular-nums;
 }
 
@@ -27,8 +30,6 @@ p { margin: 0 0 4px; }
 
 .line { display: flex; align-items: baseline; gap: 6px; margin: 5px 0; }
 .line .fill { flex: 1; }
-.pair { display: flex; gap: 24px; }
-.pair > .line { flex: 1; }
 /* A blank prints as a dotted line to write on; a filled field keeps the same line under its text. */
 .fill { display: inline-block; min-width: 40mm; min-height: 1.3em; padding: 0 4px;
         border-bottom: 1px dotted #52525b; font-weight: 600; }
@@ -46,9 +47,8 @@ tr { break-inside: avoid; }
 th, td { border: 1px solid #18181b; padding: 4px 6px; text-align: left; vertical-align: top; }
 th { font-size: 8.5pt; }
 td { height: 2em; }
-col.c-lp { width: 11mm; } col.c-qty { width: 30mm; } col.c-check { width: 34mm; }
+col.c-lp { width: 11mm; } col.c-qty { width: 30mm; }
 col.c-severity { width: 34mm; } col.c-deadline { width: 30mm; }
-.section-name { color: #71717a; }
 .num { text-align: right; white-space: nowrap; }
 
 .settlement { width: auto; min-width: 100mm; margin: 2px 0 8px; }
