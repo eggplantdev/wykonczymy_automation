@@ -617,16 +617,16 @@ the code ships. Existing rows get `trashed_at NULL`, so everything stays live. T
 
 #### Automated
 
-- [x] 2.1 investment-trash DB spec: used predicate + purgeable selection
-- [x] 2.2 investment-trash actions DB spec: roles, szablon, transactions, round-trip, name check, cascade
-- [x] 2.3 trash action expires entityTag('investment', id) through ownerOnlyAction
+- [x] 2.1 investment-trash DB spec: used predicate + purgeable selection — 353c205b
+- [x] 2.2 investment-trash actions DB spec: roles, szablon, transactions, round-trip, name check, cascade — 353c205b
+- [x] 2.3 trash action expires entityTag('investment', id) through ownerOnlyAction — 353c205b
 
 ### Phase 3: `/kosz` page, nav entry, „Usuń" on the listing
 
 #### Automated
 
-- [ ] 3.1 delete-forever-dialog DOM spec: name required only for used kosztorys
-- [ ] 3.2 use-nav-links DOM spec: „Kosz" only for owner/admin, last
+- [x] 3.1 delete-forever-dialog DOM spec: name required only for used kosztorys
+- [x] 3.2 use-nav-links DOM spec: „Kosz" only for owner/admin, last
 
 ### Phase 4: Auto-purge in the cleanup cron
 

@@ -15,6 +15,7 @@ import { ContactLink } from '@/components/ui/contact-link'
 import { LabelHintIcon } from '@/components/ui/label-hint-icon'
 import { offPlaneDepositSentence } from '@/lib/kosztorys/off-plane-deposit-copy'
 import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
+import { TrashInvestmentButton } from '@/components/investments/trash-investment-button'
 import { SheetButton } from '@/components/dialogs/sheet-button'
 import { OpenKosztorysV2Button } from '@/components/kosztorys/open-kosztorys-v2-button'
 
@@ -288,7 +289,12 @@ export function getInvestmentColumns({ userRole }: InvestmentColumnOptionsT) {
       id: 'actions',
       header: 'Akcje',
       meta: { align: 'right' },
-      cell: (info) => <EditInvestmentDialog investment={info.row.original} />,
+      cell: (info) => (
+        <div className="flex items-center justify-end gap-1">
+          <EditInvestmentDialog investment={info.row.original} />
+          {isAdminOrOwner && <TrashInvestmentButton investment={info.row.original} />}
+        </div>
+      ),
     }),
   ]
 }
