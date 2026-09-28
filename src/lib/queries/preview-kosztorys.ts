@@ -31,7 +31,7 @@ export type PreviewKosztorysDataT = KosztorysEditorDataT & { clientView: ClientV
 
 // Every read below is invalidated by the same collections the editor writes, so a client who
 // reloads the share link sees the owner's latest etap entries — the whole point of a live view.
-const KOSZTORYS_TAGS = [
+export const PREVIEW_KOSZTORYS_TAGS = [
   CACHE_TAGS.kosztorysSections,
   CACHE_TAGS.kosztorysItems,
   CACHE_TAGS.kosztorysStages,
@@ -94,7 +94,7 @@ async function buildPreviewKosztorysEditorData(
 const cachedPreviewKosztorysEditorData = unstable_cache(
   buildPreviewKosztorysEditorData,
   ['preview-kosztorys-editor-data-v2'],
-  { tags: KOSZTORYS_TAGS },
+  { tags: PREVIEW_KOSZTORYS_TAGS },
 )
 
 // Beside the cached payload, never inside it — see the resolver's own docblock for why.
@@ -107,16 +107,14 @@ async function withClientView(investmentId: number): Promise<PreviewKosztorysDat
 }
 
 /**
- * The public share read: token in, client payload out, no session anywhere. The token IS the
- * credential, so an unknown one is indistinguishable from a revoked one — both return null and the
- * route 404s, leaking nothing about which investments exist.
+ * The token IS the credential, so an unknown one is indistinguishable from a revoked one — both are
+ * null, leaking nothing about which investments exist. Reads only `kosztorys-shares`: a worker's
+ * token opens a different document and must never resolve to this one.
  *
- * The token→investment lookup stays uncached (one indexed query) so revoking a link takes effect on
- * the next request rather than when a cache tag happens to be busted.
+ * Uncached (one indexed query) so revoking a link takes effect on the next request rather than when a
+ * cache tag happens to be busted.
  */
-export async function getPreviewKosztorysByToken(
-  token: string,
-): Promise<PreviewKosztorysDataT | null> {
+export async function resolveShareInvestmentId(token: string): Promise<number | null> {
   const payload = await getPayload({ config })
   const shares = await payload.find({
     collection: 'kosztorys-shares',
@@ -131,10 +129,15 @@ export async function getPreviewKosztorysByToken(
   })
   const share = shares.docs[0]
   if (!share) return null
+  return typeof share.investment === 'object' ? share.investment.id : Number(share.investment)
+}
 
-  const investmentId =
-    typeof share.investment === 'object' ? share.investment.id : Number(share.investment)
-  return withClientView(investmentId)
+// The public share read: token in, client payload out, no session anywhere. Null makes the route 404.
+export async function getPreviewKosztorysByToken(
+  token: string,
+): Promise<PreviewKosztorysDataT | null> {
+  const investmentId = await resolveShareInvestmentId(token)
+  return investmentId === null ? null : withClientView(investmentId)
 }
 
 /**

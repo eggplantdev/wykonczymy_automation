@@ -688,15 +688,15 @@ are untouched.
 
 #### Automated
 
-- [x] 3.1 diff-versions unit specs pass
-- [x] 3.2 snapshot-to-tree unit specs pass
-- [x] 3.3 select-history-entries and summarize-change unit specs pass
+- [x] 3.1 diff-versions unit specs pass — b0808796
+- [x] 3.2 snapshot-to-tree unit specs pass — b0808796
+- [x] 3.3 select-history-entries and summarize-change unit specs pass — b0808796
 
 ### Phase 4: Read path (history list + one version)
 
 #### Automated
 
-- [ ] 4.1 preview-kosztorys-history DB spec passes
+- [x] 4.1 preview-kosztorys-history DB spec passes
 
 ### Phase 5: UI
 

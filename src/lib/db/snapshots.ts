@@ -6,6 +6,7 @@ import {
   type KosztorysSnapshotPayloadT,
   type StoredSnapshotPayloadT,
 } from '@/lib/kosztorys/snapshot-format'
+import type { HistoryKindT, HistoryMetaT } from '@/lib/kosztorys/history/types'
 import type { DbExecutorT } from './get-db'
 
 // The single reader/writer of the raw kosztorys_snapshots table (no Payload collection — the
@@ -149,6 +150,68 @@ export async function listSnapshots(
     takenAt: String(row.taken_at),
     takenBy: row.taken_by == null ? null : Number(row.taken_by),
   }))
+}
+
+const historyMeta = (row: Record<string, unknown>): HistoryMetaT => ({
+  id: Number(row.id),
+  kind: row.kind as HistoryKindT,
+  label: (row.label as string | null) ?? null,
+  takenAt: new Date(row.taken_at as string | Date),
+})
+
+// What the investor's history can be built from: the newest `auto` and `daily` of each Warsaw day and
+// every `named` one. The per-day cut happens here so a month of 10-min rows never reaches the app;
+// which of a day's two rows wins is the history library's call, not SQL's. `manual` rows are the
+// owner's pre-restore points and never leave this query.
+export async function listHistoryMetas(
+  db: DbExecutorT,
+  investmentId: number,
+): Promise<HistoryMetaT[]> {
+  const res = await db.execute(sql`
+    SELECT id, kind, label, taken_at FROM (
+      SELECT id, kind, label, taken_at, row_number() OVER (
+        PARTITION BY kind, date_trunc('day', taken_at AT TIME ZONE 'Europe/Warsaw')
+        ORDER BY taken_at DESC, id DESC
+      ) AS rn
+      FROM kosztorys_snapshots
+      WHERE investment_id = ${investmentId}
+        AND kind IN ('auto', 'daily', 'named')
+        AND template_preset_id IS NOT DISTINCT FROM ${HELD_PRESET(investmentId)}
+    ) ranked
+    WHERE kind = 'named' OR rn = 1
+    ORDER BY taken_at, id
+  `)
+  return res.rows.map(historyMeta)
+}
+
+// Scoped by investment and kind in the WHERE, not after the fetch: the ids arrive from a URL, and an id
+// from another investment or a `manual` row must be indistinguishable from one that doesn't exist.
+export async function getHistorySnapshots(
+  db: DbExecutorT,
+  investmentId: number,
+  ids: readonly number[],
+): Promise<Map<number, HistoryMetaT & { payload: StoredSnapshotPayloadT }>> {
+  if (ids.length === 0) return new Map()
+  const res = await db.execute(sql`
+    SELECT id, kind, label, taken_at, schema_version, payload
+    FROM kosztorys_snapshots
+    WHERE investment_id = ${investmentId}
+      AND id IN (${sql.join(
+        ids.map((id) => sql`${id}`),
+        sql.raw(', '),
+      )})
+      AND kind IN ('auto', 'daily', 'named')
+      AND template_preset_id IS NOT DISTINCT FROM ${HELD_PRESET(investmentId)}
+  `)
+  return new Map(
+    res.rows.map((row) => {
+      assertReadableSchemaVersion(Number(row.schema_version), 'snapshot')
+      return [
+        Number(row.id),
+        { ...historyMeta(row), payload: row.payload as StoredSnapshotPayloadT },
+      ]
+    }),
+  )
 }
 
 // Three statements rather than one, because each band is a separate sentence mapping 1:1 onto a test

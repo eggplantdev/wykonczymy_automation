@@ -49,3 +49,14 @@ export type HistoryEntryT = {
   day: DayT
   summary: string
 }
+
+// A past version as the investor opens it: that day's tree, and what has changed since.
+export type PastVersionT = HistoryVersionT & {
+  id: number
+  kind: HistoryKindT
+  label: string | null
+  day: DayT
+  diff: VersionDiffT
+}
+
+export type InvestorHistoryT = { entries: HistoryEntryT[]; version: PastVersionT | null }
