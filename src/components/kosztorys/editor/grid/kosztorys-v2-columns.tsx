@@ -201,7 +201,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
 
   const stageQtySum: Column<KosztorysV2RowT> = {
     ...computedColumn('stageQtySum', columnTitle('stageQtySum', opts), (r) => totalQtyDone(r)),
-    minWidth: 80,
+    minWidth: 110,
   }
   const unit = unitColumn(columnTitle('unit', opts))
 
@@ -263,7 +263,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
           // read as one that was measured.
           (value) => (value == null ? '' : formatQty(value)),
         ),
-        minWidth: 110,
+        minWidth: 130,
         ...PLANE_UNCONFIRMED_CELL,
       }
     }
@@ -273,7 +273,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
         header,
         numericFieldPolicy<StageKeyT, KosztorysV2RowT>(qtyField, formatQty),
       ),
-      minWidth: 110,
+      minWidth: 130,
     }
   })
 

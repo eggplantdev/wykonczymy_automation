@@ -5,7 +5,7 @@ import { ResizableHeader } from '@/components/ui/datasheet-grid/column-resize-ha
 import { type BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
-const DEFAULT_COLUMN_MIN_WIDTH = 110
+const DEFAULT_COLUMN_MIN_WIDTH = 130
 
 export function withResize(
   col: Column<KosztorysV2RowT>,

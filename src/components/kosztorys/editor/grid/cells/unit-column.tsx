@@ -24,7 +24,7 @@ export function unitColumn(titleNode: ReactNode): Column<KosztorysV2RowT> {
   return {
     id: 'unit',
     title: titleNode,
-    minWidth: 80,
+    minWidth: 120,
     component: UnitCell,
     keepFocus: true,
     copyValue: ({ rowData }) => rowData.unit ?? '',
