@@ -105,7 +105,12 @@ export function DecimalField({
       const restored =
         value == null
           ? null
-          : `${value.toLocaleString('pl-PL')}${typeof suffix === 'string' ? suffix : ''}`
+          : // Full precision, because `toLocaleString`'s default stops at 3 decimals while the input
+            // restores all of them — and four is the norm for a współczynnik (0,5525 is the shipped
+            // own-tools ceiling). A rounded figure here names a value the field did not restore.
+            `${value.toLocaleString('pl-PL', { maximumFractionDigits: 20 })}${
+              typeof suffix === 'string' ? suffix : ''
+            }`
       toastMessage(rejectedEntryMessage(restored), 'error', NOTICE_MS)
     }
     restore()

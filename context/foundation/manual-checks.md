@@ -1060,14 +1060,18 @@ wydruku i zgodność liczb z podglądem klienta, kosztorys po kosztorysie.
 - [x] Włączenie pokazuje ukryte pozycje wyszarzone, numerowane po kolei; wyłączenie przywraca listę i numerację.
 - [x] Podsumowanie i kwoty sum sekcji identyczne przy włączonym i wyłączonym przełączniku; licznik
       „(N poz.)" w nagłówku sekcji rośnie o odsłonięte pozycje — to oczekiwane, nie rozjazd.
-- [ ] Sekcja złożona wyłącznie z pustych pozycji: po włączeniu jej nagłówek i stopka nie są
+- [x] Sekcja złożona wyłącznie z pustych pozycji: po włączeniu jej nagłówek i stopka nie są
       wyszarzone, a wiersze tak — czy to czyta się dobrze, czy nagłówek też powinien być wyszarzony?
       **Potwierdzone na stagingu (link inwestora inw. 137, 2026-09-23):** sekcja „Instalacja
       wodno-kanalizacyjna / C.O." (9 poz., wszystkie puste) — po włączeniu przełącznika wszystkie
       jej wiersze są wyszarzone (`lab(48.496 0 0)`), a nagłówek „… (9 poz.)" i stopka „Razem … 0,00 /
       0,00" zostają w pełnej czerni (`lab(2.75381 0 0)`). Czyta się to tak, jakby sekcja z zerową
-      wartością była normalną pozycją oferty. **Decyzja właściciela:** zostawić jak jest, czy
-      wyszarzyć nagłówek i stopkę sekcji, w której KAŻDA pozycja jest odsłonięta?
+      wartością była normalną pozycją oferty.
+      **Decyzja właściciela (2026-09-28): zostawić jak jest — box zamknięty jako `dismissed`.**
+      Oglądane na `/podglad-inwestora/161` („Agata Szymanowska malowanie") z włączonym „Pokaż
+      wszystkie pozycje (+302)", sekcja „Instalacja wodno-kanalizacyjna + c.o." (7 poz., wszystkie
+      puste): odsłonięte wiersze nie czytają się jako wyszarzone i taki układ jest pożądany. Nie
+      wyszarzamy nagłówka ani stopki i nie wzmacniamy wyciszenia wierszy.
 - [x] Przeładowanie strony otwiera z wyłączonym przełącznikiem.
 - [x] Bez „Ukryj pozycje…" w oknie „Inwestor" przełącznik się nie pokazuje.
 - [x] Wydruk oferty bez zmian przy włączonym przełączniku.
