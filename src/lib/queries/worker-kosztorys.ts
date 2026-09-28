@@ -153,7 +153,6 @@ export async function getWorkerKosztorysByToken(token: string): Promise<WorkerKo
   return withWorkerSettings(investmentId, workerId)
 }
 
-// „Podgląd" and the PDF: the same projection a link would serve, without a link having to exist.
 export async function getWorkerKosztorysPreview(
   investmentId: number,
   workerId: number,

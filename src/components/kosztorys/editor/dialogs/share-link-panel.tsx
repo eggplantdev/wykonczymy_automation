@@ -19,11 +19,9 @@ type PropsT = {
   onTokenChange: (token: string | null) => void
   revokeTitle: string
   revokeDescription: string
-  // Rendered under the controls in every state but „Sprawdzanie…" — the investor's „Ustawienia podglądu…".
   children?: ReactNode
 }
 
-// The link step of both share dialogs (investor, worker): one token lifecycle, so one set of buttons.
 export function ShareLinkPanel({
   loaded,
   token,

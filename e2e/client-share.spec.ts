@@ -135,7 +135,6 @@ test('unticking a column and showing empty pozycje reach the link without moving
       EXECUTED_NET,
       'wykonana robocizna przy pokazanych pustych pozycjach',
     )
-    // The unticked column stayed unticked across a second save.
     await expect(shown.page.getByText(UNIT_COLUMN, { exact: true })).toHaveCount(0)
   } finally {
     await shown.close()

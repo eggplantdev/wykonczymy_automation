@@ -7,7 +7,7 @@ import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { MenuItemBody } from '@/components/kosztorys/editor/actions/menu-item-body'
 import { useLatestRequest } from '@/hooks/use-latest-request'
-import { generateShareLinkAction, getShareLinkAction } from '@/lib/actions/kosztorys-share'
+import { ensureShareLinkAction } from '@/lib/actions/kosztorys-share'
 import { readClientViewSettings } from '@/lib/queries/client-view-settings-endpoint'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
 import { copyToClipboardAsync } from '@/lib/utils/copy-to-clipboard'
@@ -18,8 +18,6 @@ import { useKosztorysActions } from '@/components/kosztorys/editor/actions/koszt
 // Carries an action's own error text past the promise chain, so the toast names what failed.
 class ShareLinkError extends Error {}
 
-// „Ustawienia podglądu…" and „Udostępnij" share one module because the share window opens the
-// settings one — the two menu entries are one investor-facing surface.
 export type InvestorActionsT = {
   clientView: ClientViewSettingsT | null
   setClientView: (settings: ClientViewSettingsT) => void
@@ -42,6 +40,7 @@ export function useInvestorActions(): InvestorActionsT {
   const [shareToken, setShareToken] = useState<string | null>(null)
   const [shareLoaded, setShareLoaded] = useState(false)
   const settingsRequest = useLatestRequest()
+  const shareRequest = useLatestRequest()
 
   // Fetch on the click, not inside the dialog: Radix onOpenChange never fires for a programmatic
   // `open`, so the dialog can't fetch itself. Re-read on every open, so the window never shows a set
@@ -67,31 +66,27 @@ export function useInvestorActions(): InvestorActionsT {
 
   // Same Radix reason as readSettings — and re-reading on each open avoids showing a link that may
   // have been rotated or revoked elsewhere since last time as though it were still live.
-  // Mints only when there is no link: minting over a live one would cut off the investor who holds it.
   function requestShare() {
+    const isCurrent = shareRequest.start()
     setShareOpen(true)
     setShareLoaded(false)
-    const token = getShareLinkAction(investmentId)
-      .then(async (read) => {
-        if (!read.success) throw new ShareLinkError(read.error)
-        if (read.data) return read.data
-        const minted = await generateShareLinkAction(investmentId)
-        if (!minted.success) throw new ShareLinkError(minted.error)
-        return minted.data
-      })
-      .then((value) => {
-        setShareToken(value)
-        return value
-      })
+    const token = ensureShareLinkAction(investmentId).then((result) => {
+      if (!result.success) throw new ShareLinkError(result.error)
+      if (isCurrent()) setShareToken(result.data)
+      return result.data
+    })
     token
       .catch((error: unknown) => {
+        if (!isCurrent()) return
         setShareToken(null)
         toastMessage(
           error instanceof ShareLinkError ? error.message : 'Nie udało się przygotować linku',
           'error',
         )
       })
-      .finally(() => setShareLoaded(true))
+      .finally(() => {
+        if (isCurrent()) setShareLoaded(true)
+      })
     copyToClipboardAsync(token.then(investorShareUrl), 'Link skopiowany do schowka.')
   }
 

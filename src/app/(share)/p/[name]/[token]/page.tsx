@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import { getWorkerKosztorysByToken } from '@/lib/queries/worker-kosztorys'
 import { WorkerKosztorysPage } from '@/components/kosztorys/worker-view/worker-kosztorys-page'
 
-// The worker's public entrance. Like /k/<token>, a revoked and a never-issued token share one 404.
+// Like /k/<token>, a revoked and a never-issued token share one 404.
 // The name segment is not read: the token alone resolves, so a renamed worker's link keeps working.
 export default async function WorkerSharedKosztorysPage({
   params,

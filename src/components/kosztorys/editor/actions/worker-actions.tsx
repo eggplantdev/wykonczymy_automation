@@ -8,7 +8,7 @@ import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kos
 import { MenuItemBody } from '@/components/kosztorys/editor/actions/menu-item-body'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { useLatestRequest } from '@/hooks/use-latest-request'
-import { getWorkerShareLinkAction } from '@/lib/actions/kosztorys-worker-share'
+import { readWorkerShareToken } from '@/lib/queries/worker-share-link-endpoint'
 import { readWorkerViewSettings } from '@/lib/queries/worker-view-settings-endpoint'
 import type { WorkerViewSettingsT } from '@/lib/kosztorys/worker-view/settings'
 import { toastMessage } from '@/lib/utils/toast'
@@ -64,11 +64,9 @@ export function useWorkerActions(): WorkerActionsT {
     setShareOpen(true)
     setShareToken(null)
     setShareLoaded(false)
-    void getWorkerShareLinkAction({ investmentId, workerId: target.id })
-      .then((res) => {
-        if (!isCurrent()) return
-        setShareToken(res.success ? res.data : null)
-        if (!res.success) toastMessage(res.error, 'error')
+    void readWorkerShareToken({ investmentId, workerId: target.id })
+      .then((token) => {
+        if (isCurrent()) setShareToken(token)
       })
       .catch(() => {
         if (isCurrent()) toastMessage('Nie udało się sprawdzić linku', 'error')

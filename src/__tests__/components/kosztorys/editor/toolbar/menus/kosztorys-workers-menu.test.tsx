@@ -37,9 +37,9 @@ vi.mock('@/lib/queries/worker-view-settings-endpoint', () => ({
   readWorkerViewSettings: vi.fn(async () => ({ hiddenColumns: [], hideEmptyRows: true })),
 }))
 
-const getWorkerShareLinkAction = vi.hoisted(() => vi.fn())
+const readWorkerShareToken = vi.hoisted(() => vi.fn())
+vi.mock('@/lib/queries/worker-share-link-endpoint', () => ({ readWorkerShareToken }))
 vi.mock('@/lib/actions/kosztorys-worker-share', () => ({
-  getWorkerShareLinkAction,
   generateWorkerShareLinkAction: vi.fn(),
   revokeWorkerShareLinkAction: vi.fn(),
 }))
@@ -48,7 +48,7 @@ const getWorkerKosztorysPrintData = vi.hoisted(() => vi.fn())
 vi.mock('@/lib/queries/worker-kosztorys-print-endpoint', () => ({ getWorkerKosztorysPrintData }))
 
 beforeEach(() => {
-  getWorkerShareLinkAction.mockResolvedValue({ success: true, data: 'tok-anna' })
+  readWorkerShareToken.mockResolvedValue('tok-anna')
   getWorkerKosztorysPrintData.mockResolvedValue(null)
 })
 
@@ -116,7 +116,7 @@ describe('KosztorysWorkersMenu', () => {
     expect(
       await within(dialog).findByDisplayValue(/\/p\/Anna-Nowak\/tok-anna$/),
     ).toBeInTheDocument()
-    expect(getWorkerShareLinkAction).toHaveBeenCalledWith({
+    expect(readWorkerShareToken).toHaveBeenCalledWith({
       investmentId: INVESTMENT_ID,
       workerId: 10,
     })

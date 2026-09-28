@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { getDb } from '@/lib/db/get-db'
-import { WORKER_SCOPE_BLOCK_MESSAGES } from '@/lib/kosztorys/worker-view/constants'
+import { WORKER_SCOPE_BLOCK_MESSAGES } from '@/lib/kosztorys/worker-view/labels'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
@@ -22,7 +22,7 @@ vi.mock('@/lib/auth/require-auth', () => ({
   ),
 }))
 
-const { generateWorkerShareLinkAction, getWorkerShareLinkAction, revokeWorkerShareLinkAction } =
+const { generateWorkerShareLinkAction, revokeWorkerShareLinkAction } =
   await import('@/lib/actions/kosztorys-worker-share')
 const { getWorkerKosztorysByToken } = await import('@/lib/queries/worker-kosztorys')
 
@@ -165,8 +165,5 @@ describe.skipIf(!ENV_READY)('kosztorys worker share token lifecycle (DB)', () =>
     expect(res.success).toBe(true)
     expect(await persistedTokens(readyWorkerId)).toEqual([])
     expect(await getWorkerKosztorysByToken(token)).toBeNull()
-
-    const current = await getWorkerShareLinkAction({ investmentId, workerId: readyWorkerId })
-    expect(current).toMatchObject({ success: true, data: null })
   })
 })

@@ -6,13 +6,12 @@ import { investorShareUrl } from '@/lib/kosztorys/investor-share-url'
 
 const toastMessage = vi.hoisted(() => vi.fn())
 const readClientViewSettings = vi.hoisted(() => vi.fn())
-const getShareLinkAction = vi.hoisted(() => vi.fn())
-const generateShareLinkAction = vi.hoisted(() => vi.fn())
+const ensureShareLinkAction = vi.hoisted(() => vi.fn())
 
 vi.mock('@/lib/utils/toast', () => ({ toastMessage }))
 // `'use server'` modules — vitest's stub throws on call, so each is named explicitly.
 vi.mock('@/lib/queries/client-view-settings-endpoint', () => ({ readClientViewSettings }))
-vi.mock('@/lib/actions/kosztorys-share', () => ({ getShareLinkAction, generateShareLinkAction }))
+vi.mock('@/lib/actions/kosztorys-share', () => ({ ensureShareLinkAction }))
 vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
   useKosztorysEditorContext: () => ({ investmentId: 7 }),
 }))
@@ -52,31 +51,34 @@ describe('useInvestorActions — „Udostępnij"', () => {
 
   afterEach(() => vi.unstubAllGlobals())
 
-  it('mints a link when there is none and copies it', async () => {
-    getShareLinkAction.mockResolvedValue({ success: true, data: null })
-    generateShareLinkAction.mockResolvedValue({ success: true, data: 'nowy' })
+  it('copies the link the server hands back', async () => {
+    ensureShareLinkAction.mockResolvedValue({ success: true, data: 'stary' })
 
     const result = await share()
 
-    expect(generateShareLinkAction).toHaveBeenCalledTimes(1)
-    expect(result.current.shareToken).toBe('nowy')
-    await waitFor(() => expect(writeText).toHaveBeenCalledWith(investorShareUrl('nowy')))
+    expect(ensureShareLinkAction).toHaveBeenCalledWith(7)
+    expect(result.current.shareToken).toBe('stary')
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith(investorShareUrl('stary')))
     expect(toastMessage).toHaveBeenCalledWith('Link skopiowany do schowka.', 'success')
   })
 
-  // Minting over a live link would cut off the investor who already holds it.
-  it('copies the existing link and never mints over it', async () => {
-    getShareLinkAction.mockResolvedValue({ success: true, data: 'stary' })
+  it('keeps the latest click’s link when an earlier answer lands after it', async () => {
+    let resolveFirst: (value: unknown) => void = () => {}
+    ensureShareLinkAction
+      .mockReturnValueOnce(new Promise((resolve) => (resolveFirst = resolve)))
+      .mockResolvedValueOnce({ success: true, data: 'drugi' })
 
-    const result = await share()
+    const { result } = renderHook(() => useInvestorActions())
+    act(() => result.current.requestShare())
+    act(() => result.current.requestShare())
+    await waitFor(() => expect(result.current.shareToken).toBe('drugi'))
+    await act(async () => resolveFirst({ success: true, data: 'pierwszy' }))
 
-    expect(generateShareLinkAction).not.toHaveBeenCalled()
-    expect(result.current.shareToken).toBe('stary')
-    await waitFor(() => expect(writeText).toHaveBeenCalledWith(investorShareUrl('stary')))
+    expect(result.current.shareToken).toBe('drugi')
   })
 
   it('does not read the preview settings', async () => {
-    getShareLinkAction.mockResolvedValue({ success: true, data: 'stary' })
+    ensureShareLinkAction.mockResolvedValue({ success: true, data: 'stary' })
 
     await share()
 
@@ -87,7 +89,7 @@ describe('useInvestorActions — „Udostępnij"', () => {
   it('starts the clipboard write before the link is known', async () => {
     setClipboard(true)
     let resolveRead: (value: unknown) => void = () => {}
-    getShareLinkAction.mockReturnValue(new Promise((resolve) => (resolveRead = resolve)))
+    ensureShareLinkAction.mockReturnValue(new Promise((resolve) => (resolveRead = resolve)))
 
     const { result } = renderHook(() => useInvestorActions())
     act(() => result.current.requestShare())
@@ -99,10 +101,8 @@ describe('useInvestorActions — „Udostępnij"', () => {
     expect(await blob.text()).toBe(investorShareUrl('stary'))
   })
 
-  // One cause, one toast: the failure is the link, not the clipboard.
   it('reports a failed mint as the action’s error, not as a copy failure', async () => {
-    getShareLinkAction.mockResolvedValue({ success: true, data: null })
-    generateShareLinkAction.mockResolvedValue({ success: false, error: 'Brak uprawnień' })
+    ensureShareLinkAction.mockResolvedValue({ success: false, error: 'Brak uprawnień' })
 
     const result = await share()
 
