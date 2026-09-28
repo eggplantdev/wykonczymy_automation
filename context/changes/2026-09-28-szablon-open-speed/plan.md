@@ -504,9 +504,9 @@ Run once, after the final phase.
 
 #### Automated
 
-- [ ] 1.1 Preset action integration spec passes
-- [ ] 1.2 Mirror specs still pass
-- [ ] 1.3 Tree-replace specs still pass after the retry extraction
+- [x] 1.1 Preset action integration spec passes — db6cf1f8
+- [x] 1.2 Mirror specs still pass — db6cf1f8
+- [x] 1.3 Tree-replace specs still pass after the retry extraction — db6cf1f8
 
 ### Phase 2: Warsztat host on `/szablony/[id]`
 
