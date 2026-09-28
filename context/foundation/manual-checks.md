@@ -1300,23 +1300,57 @@ powtórzenia na stagingu.
 
 ### Phase 3: Dialog, menu item and print wiring
 
-- [ ] „Inwestor → Protokół odbioru…" jest w kosztorysie inwestycji i nie ma go w szablonie.
-- [ ] Dialog podpowiada Zamawiającego (osoba kontaktowa, a bez niej nazwa inwestycji), adres,
+- [x] „Inwestor → Protokół odbioru…" jest w kosztorysie inwestycji i nie ma go w szablonie.
+      Zweryfikowano żywo: inw. 137 ma przyciski „Inwestor"/„Pracownicy" z „Protokół odbioru…" w
+      środku; szablon `/szablony/4` („kosztorys wzór testy…") ma tylko Dodaj/Opcje/Problemy/Filtry/
+      Sekcje — bez „Inwestor" i bez „Pracownicy".
+- [x] Dialog podpowiada Zamawiającego (osoba kontaktowa, a bez niej nazwa inwestycji), adres,
       dzisiejsze daty, rodzaj odbioru „końcowy", miejscowość „Warszawa" i Wykonawcę „Wykończymy sp.
-      z o. o." (do poprawienia w polu).
-- [ ] Rozliczenie w dialogu = Robocizna / Materiały / Wpłaty / Pozostało do zapłaty z „Podsumowania"
-      (netto), co do grosza; Strata pojawia się tylko, gdy jest.
-- [ ] Na kosztorysie z rabatem Robocizna = kwota **przed** rabatem, pod nią osobny wiersz „Rabat" —
-      obie liczby jak w „Podsumowaniu"; Pozostało do zapłaty bez zmian.
-- [ ] Inwestycja bez osoby kontaktowej: zmiana samego adresu i „Zaktualizuj dane inwestycji" — osoba
-      kontaktowa zostaje pusta (nie wpisuje się nazwa inwestycji).
-- [ ] Zakres prac to dokładnie pozycje z niezerowym Pomiarem z natury.
-- [ ] „Zaktualizuj dane inwestycji" jest nieaktywny, dopóki Zamawiający/adres się nie zmienią; po
-      zapisie inwestycja ma nowe wartości, a telefon/e-mail/notatki są nietknięte.
+      z o. o." (do poprawienia w polu). Zweryfikowano żywo (staging, inw. 137, bez osoby kontaktowej):
+      Zamawiający = „testowe inwestycje" (fallback na nazwę inwestycji), Data sporządzenia/odbioru =
+      dzisiejsza (28 wrz 2026), rodzaj odbioru „końcowy", miejscowość „Warszawa", Wykonawca
+      „Wykończymy sp. z o. o.", adres puste pole.
+- [x] Rozliczenie w dialogu = Robocizna / Materiały / Wpłaty / Pozostało do zapłaty z „Podsumowania"
+      (netto), co do grosza; Strata pojawia się tylko, gdy jest. Zweryfikowano żywo: dialog pokazał
+      Robocizna 4675,00 zł / Materiały 0,00 zł / Wpłaty 0,00 zł / Pozostało do zapłaty 4675,00 zł —
+      dokładnie zgodne z zakładkami „Robocizna" (Razem netto 4675,00), „Materiały" („Brak wydatków…")
+      i „Podsumowanie" (Robocizna 4675,00 Łącznie, Wpłaty 0,00, Pozostało do zapłaty 4675,00) w
+      Podsumowaniu edytora. Strata nie występuje na tej inwestycji i wiersza „Strata" brak — zgodnie z
+      oczekiwaniem.
+- [x] Na kosztorysie z rabatem Robocizna = kwota **przed** rabatem, pod nią osobny wiersz „Rabat" —
+      obie liczby jak w „Podsumowaniu"; Pozostało do zapłaty bez zmian. Zweryfikowano żywo (staging,
+      inw. 106, `global_discount_value=2419` w DB): dialog protokołu pokazał Robocizna 14 492,50 zł /
+      Rabat -2419,00 zł / Materiały 4561,48 zł / Suma 16 634,98 zł / Wpłaty -16 635,00 zł / Nadpłata
+      -0,02 zł — dokładnie zgodne z zakładką „Podsumowanie" edytora (Robocizna 14 492,50 / Rabat
+      -2419,00 / Materiały 4561,48 / Łącznie 16 634,98 / Wpłaty -16 635,00 / Nadpłata -0,02) i z
+      zakładką „Robocizna" (Razem netto 14 492,50 — kwota przed rabatem). Rabat DB (2419) zgadza się z
+      wierszem „Rabat" co do grosza. „Pozostało do zapłaty" na tej inwestycji jest w istocie nadpłatą
+      (-0,02 zł), co jest spójne, nie zmienione przez sam rabat.
+- [x] Inwestycja bez osoby kontaktowej: zmiana samego adresu i „Zaktualizuj dane inwestycji" — osoba
+      kontaktowa zostaje pusta (nie wpisuje się nazwa inwestycji). Zweryfikowano żywo + w DB (inw. 137,
+      preview): wpisano adres, „Zaktualizuj dane inwestycji" się odblokował, po kliknięciu
+      `contact_person` w DB zostało puste (nie „testowe inwestycje"), `address` = wpisana wartość,
+      `phone`/`email`/`notes` nietknięte. Fixture przywrócony (adres wyczyszczony i ponownie
+      zapisany — `address` z powrotem puste).
+- [x] Zakres prac to dokładnie pozycje z niezerowym Pomiarem z natury. Zweryfikowano zapytaniem SQL do
+      `DB_POSTGRES_URL_PREVIEW` (suma `stage_progress.qty_done` per `kosztorys_items` dla inw. 137): 7
+      pozycji z niezerowym pomiarem, dokładnie te same nazwy/ilości/jednostki co w dialogu „Zakres prac
+      (7)" (mikrocement 10 m², montaż płyt osb 10 m², 4× bruzdowanie, Demontaż grzejników 5 szt).
+- [x] „Zaktualizuj dane inwestycji" jest nieaktywny, dopóki Zamawiający/adres się nie zmienią; po
+      zapisie inwestycja ma nowe wartości, a telefon/e-mail/notatki są nietknięte. Zweryfikowano żywo:
+      przycisk startuje `[disabled]`, po edycji adresu odblokowuje się, po „Zaktualizuj dane
+      inwestycji" wraca do `[disabled]`; DB potwierdza nowy `address`, `phone`/`email`/`notes` bez
+      zmian (patrz wyżej).
 - [ ] „Generuj" otwiera okno druku z logo; PDF zgadza się z przyciętym wzorem (bez stopki denwi,
       bez „Reprezentowany przez", bez pkt 7).
-- [ ] Na kosztorysie bez wykonanej pracy „Generuj" jest nieaktywny, z wyjaśnieniem.
-- [ ] „Wygeneruj ofertę" drukuje się dalej z logo.
+- [x] Na kosztorysie bez wykonanej pracy „Generuj" jest nieaktywny, z wyjaśnieniem.
+      Zweryfikowano żywo (staging, inw. 9 — 373 pozycje kosztorysu, zerowy `stage_progress` wszędzie,
+      potwierdzone SQL-em): dialog pokazał „Zakres prac (0)" z tekstem „Żadna pozycja nie ma jeszcze
+      wykonanej pracy — uzupełnij etapy w kosztorysie.", a przycisk „Generuj" był `[disabled]`. Żadnej
+      mutacji na inw. 9 nie wykonano — sam odczyt.
+- [x] „Wygeneruj ofertę" drukuje się dalej z logo.
+      Zweryfikowano żywo — ten sam przechwycony wydruk inw. 106 (patrz „PDF pracownika" wyżej) zawiera
+      `<img src=".../logo-wykonczymy.png">` w `.brand-bar`.
 
 ## kosztorys-client-view-auto-columns — jeden zestaw kolumn inwestora, rozliczenie gdy są wpisy (2026-09-28)
 
@@ -1325,27 +1359,78 @@ addytywna — na produkcję **przed** pushem; DROP starych kolumn to EX-886, po 
 
 ### Ustawienia podglądu
 
-- [ ] „Ustawienia podglądu…" pokazuje jedną listę kolumn, bez przełącznika Oferta/Rozliczenie, z
+- [x] „Ustawienia podglądu…" pokazuje jedną listę kolumn, bez przełącznika Oferta/Rozliczenie, z
       opisem, że kolumny rozliczenia bez wpisów są ukryte; „Zapisz" zapisuje bez potwierdzenia.
-- [ ] Inwestycja, która była w Rozliczeniu, ma po migracji te same kolumny pod linkiem; inwestycja w
-      Ofercie zachowuje swoje ukryte kolumny.
+      Zweryfikowano żywo (staging, inw. 137): dialog „Ustawienia podglądu inwestora" ma jeden opis
+      („Kolumny rozliczenia — pomiar z natury, etapy i ich wartości, razem netto i brutto, % wykonania
+      — inwestor zobaczy dopiero, gdy będą w nich wpisy. Puste etapy są ukryte.") i jedną listę
+      checkboxów kolumn — zero zakładek/przełącznika Oferta/Rozliczenie. Kod
+      (`kosztorys-client-view-dialog.tsx`) potwierdza: „Zapisz" woła `saveClientViewSettingsAction`
+      wprost w `startTransition`, bez żadnego kroku potwierdzenia.
+- [x] Inwestycja, która była w Rozliczeniu, ma po migracji te same kolumny pod linkiem; inwestycja w
+      Ofercie zachowuje swoje ukryte kolumny. Zweryfikowano w DB (preview, tabela
+      `kosztorys_client_view`): inw. 137 (`mode=SETTLEMENT`) ma migrowane `hidden_columns` identyczne z
+      `variants.SETTLEMENT.hiddenColumns` (10 kolumn: sectionName/priceGross/discountType/
+      discountValue/discountAmount/discountAmountGross/plannedGross/gross/remainingGross/
+      stageValueGross) — bez zmian. Inw. 21 (`mode=OFFER`) ma migrowane `hidden_columns` = ten sam
+      bazowy zestaw + 4 twarde ukrycia unikalne dla Oferty (plannedQty/price/plannedNet/remaining) —
+      jej własne ukryte kolumny zachowane; kolumny „rozliczeniowe" (stageQtySum/net/stages/
+      stageValueNet), które teraz i tak chowa dopiero brak wpisów (`settlement-columns.ts`
+      `emptySettlementColumnIds`), nie zostały przeniesione do statycznego zestawu.
 
 ### Kolumny rozliczenia tylko z wpisami
 
-- [ ] Podgląd kosztorysu bez żadnego wpisu w etapach pokazuje tylko kolumny oferty; po wpisaniu
+- [x] Podgląd kosztorysu bez żadnego wpisu w etapach pokazuje tylko kolumny oferty; po wpisaniu
       ilości w jednym etapie pojawia się ten etap (ilość + wartość), „Pomiar z natury", „Razem netto"
-      i „% wykonania" — pozostałe etapy dalej ukryte.
-- [ ] „Wygeneruj ofertę w PDF" drukuje te same kolumny co Podgląd.
-- [ ] Podgląd wykonawcy dalej pokazuje puste etapy.
-- [ ] Zakładka „Robocizna" u inwestora wymienia tylko etapy z wpisami; bez żadnego — „Brak etapów.".
+      i „% wykonania" — pozostałe etapy dalej ukryte. Zweryfikowano na żywo na inwestycji 137
+      (`/podglad-inwestora/137`, jeden etap „Etap 1"): tymczasowo usunięto (kopia zapasowa, potem
+      przywrócono) wszystkie 7 wierszy `stage_progress` tego etapu — podgląd pokazał wtedy tylko
+      Opis prac / Przedmiar / Jednostka miary / Cena j.m. netto / Wartość przedmiaru netto / Pozostało
+      netto, zakładka „Robocizna" pokazała „Brak etapów.". Po przywróceniu wierszy i odświeżeniu cache
+      (`Odśwież dane` → `revalidatePath('/', 'layout')`) pojawiły się kolumny „Etap 1" i „Pomiar (razem
+      etapy)" plus etykieta „3000,00 zł netto" na sekcji, a zakładka „Robocizna" wymieniła „Etap 1"
+      (4675,00 / 5049,00). „Pozostałe etapy dalej ukryte" potwierdzone na poziomie kodu — ta inwestycja
+      ma tylko jeden etap, więc druga połowa zdania nie miała czego pokazać na żywo; logika
+      `emptySettlementColumnIds` (`src/lib/kosztorys/settlement-columns.ts`) filtruje per-etap, więc
+      to samo mechanicznie dotyczy każdego innego pustego etapu.
+- [x] „Wygeneruj ofertę w PDF" drukuje te same kolumny co Podgląd. Kod: `build-offer-print-html.ts`
+      wywołuje ten sam `emptySettlementColumnIds(rows, stages)` co `use-kosztorys-editor.ts`
+      (`previewHiddenColumns`) — jedno źródło prawdy, nie dwie niezależne implementacje.
+- [x] Podgląd wykonawcy dalej pokazuje puste etapy. Kod: `previewHiddenColumns` w
+      `use-kosztorys-editor.ts` liczy się tylko `preview && !worker` — bramka `!worker` gwarantuje, że
+      ukrywanie pustych kolumn rozliczenia nigdy nie dotyczy widoku pracownika/podwykonawcy. Widok
+      „Bez narzędzi (pracownik)" na inwestycji 137 (zweryfikowany wcześniej w tej sesji) pokazywał
+      kolumnę „Etap 1"/„Pomiar" niezależnie od tego, czy wiersz miał wpis.
+- [x] Zakładka „Robocizna" u inwestora wymienia tylko etapy z wpisami; bez żadnego — „Brak etapów.".
+      Zweryfikowano na żywo powyżej (ten sam round-trip na inwestycji 137). Kod:
+      `summary-stages-tab.tsx` — `preview ? stagesWithEntries(rows, stages) : stages`, z fallbackiem
+      `Brak etapów.` gdy lista jest pusta.
 
 ### „Udostępnij" kopiuje link
 
-- [ ] „Udostępnij" na inwestycji bez linku: toast „Link skopiowany do schowka.", link jest w
-      schowku, okno go pokazuje.
-- [ ] Przy istniejącym linku kopiuje się ten sam link, nie nowy.
-- [ ] Działa w Safari (kopiowanie nie jest odrzucane).
-- [ ] „Ustawienia podglądu…" w oknie udostępniania otwiera okno ustawień.
+- [x] „Udostępnij" na inwestycji bez linku: toast „Link skopiowany do schowka.", link jest w
+      schowku, okno go pokazuje. Zweryfikowano na żywo na inwestycji 145 (bez wiersza w
+      `kosztorys_shares` przed testem): klik „Inwestor" → „Udostępnij" — toast „Link skopiowany do
+      schowka." pojawił się natychmiast, okno „Udostępnij inwestorowi" pokazało
+      `.../k/mn_zrWWz6VuItNCsde2d-zCTTwUPWxJ3`, a `kosztorys_shares` dostał nowy wiersz (id=5,
+      investment_id=145) z tym samym tokenem. Przechwycony `navigator.clipboard.writeText` potwierdził
+      dokładnie ten sam URL po kliknięciu „Kopiuj link" w oknie.
+      **Fixture posprzątany:** „Wyłącz link" → potwierdzenie „Wyłączyć link dla inwestora?" → wiersz
+      usunięty (`select … where investment_id=145` = 0 rows) — inwestycja wróciła do stanu „bez linku".
+- [x] Przy istniejącym linku kopiuje się ten sam link, nie nowy. Zweryfikowano na żywo (ta sama
+      inwestycja 145, zaraz po pierwszym mincie): drugi klik „Inwestor" → „Udostępnij" pokazał
+      identyczny token `mn_zrWWz6VuItNCsde2d-zCTTwUPWxJ3` w oknie, a `kosztorys_shares` dalej miał
+      dokładnie 1 wiersz (id=5) z niezmienionym `updated_at`. Kod: `ensureShareLinkAction` →
+      `writeShareToken(…, { rotate: false })` — `if (share && !rotate) return { success: true, data:
+      share.token }` (`src/lib/kosztorys/share-token.ts`), z komentarzem wprost: „Without it a live
+      token is handed back untouched, so two overlapping „Udostępnij" clicks cannot kill the link the
+      first one copied."
+- [ ] Działa w Safari (kopiowanie nie jest odrzucane). **Nie do zweryfikowania tym narzędziem** —
+      Playwright MCP w tej sesji steruje Chromium, nie Safari/WebKit; brak dostępu do realnego Safari
+      na stagingu. Wymaga ręcznej weryfikacji w Safari lub uruchomienia E2E z projektem `webkit`.
+- [x] „Ustawienia podglądu…" w oknie udostępniania otwiera okno ustawień. Zweryfikowano na żywo
+      (inwestycja 145): w otwartym oknie „Udostępnij inwestorowi" klik „Ustawienia podglądu…" zamknął
+      okno udostępniania i otworzył „Ustawienia podglądu inwestora" (checkboxy kolumn/pozycji).
 
 ### E2E
 
@@ -1355,38 +1440,115 @@ addytywna — na produkcję **przed** pushem; DROP starych kolumn to EX-886, po 
 
 ### Kolumna „Wartość przedmiaru" wykonawcy
 
-- [ ] Jako OWNER i jako MANAGER, w widoku „Z narzędziami", zaznacz „Wartość przedmiaru netto — z
+- [x] Jako OWNER i jako MANAGER, w widoku „Z narzędziami", zaznacz „Wartość przedmiaru netto — z
       narzędziami": pokazuje Przedmiar × stawka z narzędziami, a „Razem" to jej suma.
-- [ ] Przełączenie na widok Inwestor zdejmuje kolumnę i jej pozycję z listy kolumn.
+- [x] Przełączenie na widok Inwestor zdejmuje kolumnę i jej pozycję z listy kolumn.
 
 ### Link pracownika
 
-- [ ] „Wygeneruj link", skopiuj i otwórz w oknie prywatnym (`/p/<imię>/<token>`): w nagłówku imię
+- [x] „Wygeneruj link", skopiuj i otwórz w oknie prywatnym (`/p/<imię>/<token>`): w nagłówku imię
       pracownika, tylko jego etapy, „Cena j.m." = jego stawka, nigdzie ceny klienta.
-- [ ] Podsumowanie pod linkiem zgadza się z „Podsumowaniem pracowników" w edytorze dla tego
+- [x] Podsumowanie pod linkiem zgadza się z „Podsumowaniem pracowników" w edytorze dla tego
       pracownika; wypłaty wypisane bez opisu; nadpłata jako „Nadpłata", nie liczba ujemna.
+      „Zgadza się" zweryfikowane live (Adam Orłowski, inw. 137: 2887,50 / 0,00 / 2887,50 w obu
+      miejscach). Brak opisu i „Nadpłata" zweryfikowane w kodzie + testach jednostkowych
+      (`src/lib/kosztorys/worker-view/summary.ts` `WorkerSummaryT.payouts` niesie tylko
+      `{date, amount}` — nigdy opis; `isOverpaid` renderuje „Nadpłata" zamiast liczby ujemnej,
+      `src/components/kosztorys/summary/blocks/worker-summary.tsx:47`) — nie udało się w rozsądnym
+      czasie znaleźć na stronie inwestycji przycisku dodającego transakcję PAYOUT (guzik „Dodaj" przy
+      nagłówku inwestycji otwiera dialog linkowania arkusza Google, nie dodawania transakcji; brak
+      widocznego „Dodaj" na globalnej liście Transakcje), więc fixture z nadpłatą nie powstał na żywo.
 - [ ] „Ukryj puste pozycje": pozycja wykonana tylko przez innego pracownika znika, sumy się nie ruszają.
+      **FINDING (niepewne, wymaga fixture):** brak w preview DB jakiejkolwiek inwestycji z 2+
+      pracownikami na etapach (`select investment_id, count(distinct worker_id) from
+      kosztorys_stages where worker_id is not null group by investment_id having count(distinct
+      worker_id) >= 2` → 0 wierszy), więc nie dało się zweryfikować live. Ślad w kodzie budzi
+      wątpliwość: `hideEmptyRows` w widoku pracownika idzie przez `clientConditionIds` →
+      `client-empty` → `isEmptyOnBothAxes` (`src/lib/kosztorys/row-conditions/registry.ts:358-370`),
+      które chowa wiersz tylko gdy PRZEDMIAR i wykonanie są oba zerowe. Przedmiar to pole globalne
+      pozycji (nie per-pracownik), więc pozycja z niezerowym przedmiarem wykonana WYŁĄCZNIE przez
+      innego pracownika (zero postępu na WŁASNYCH etapach tego pracownika) nie spełni
+      `isEmptyOnBothAxes` i nie zniknie — zostanie pokazana z zerowym wykonaniem. Do potwierdzenia
+      na żywo z fixture (dwóch pracowników, dwa etapy, jedna wspólna pozycja).
 - [ ] Drugi pracownik na tym samym rozliczeniu: żaden nie widzi ilości ani kwot drugiego;
       „Pozostało" na pozycji dokończonej przez drugiego = 0.
-- [ ] „Wyłącz link": przy następnym wczytaniu link daje 404.
-- [ ] Etap z rozliczeniem „nie potwierdzone" albo jeden pracownik na obu rozliczeniach: Link i PDF
+      Ta sama luka danych jak wyżej — 0 inwestycji z 2+ pracownikami w preview DB. Część „żaden nie
+      widzi ilości/kwot drugiego" ma mocne pokrycie w kodzie: `buildWorkerKosztorysData`
+      (`src/lib/queries/worker-kosztorys.ts`) filtruje `tree.progress` do `ownStageIds` PRZED
+      zbudowaniem wierszy, więc dane innego pracownika strukturalnie nie wchodzą do
+      `treeToRows(workerTree)`. Część „Pozostało = 0" też wygląda poprawnie: `executedQtyByItem`
+      (ten sam plik) liczy się z PEŁNEGO `tree.progress` (wszyscy pracownicy), nie ze
+      scope'owanego — komentarz w `column-totals.ts:44` to potwierdza wprost. Mimo to nie
+      zweryfikowane na żywo z braku fixture.
+- [x] „Wyłącz link": przy następnym wczytaniu link daje 404.
+      Zweryfikowane live: wyłączono link Adama Orłowskiego (inw. 137, „Pracownicy" → Link → Wyłącz
+      link → potwierdzenie), przeładowanie starego URL-a dało stronę 404 „This page could not be
+      found.". **Preview DB state: link Adama Orłowskiego pozostaje wyłączony** — nie da się cofnąć
+      wprost (dialog: „aby przywrócić dostęp, musisz wygenerować nowy link"); przywrócony niżej przy
+      teście zmiany imienia.
+- [x] Etap z rozliczeniem „nie potwierdzone" albo jeden pracownik na obu rozliczeniach: Link i PDF
       nieaktywne, z właściwym komunikatem.
-- [ ] Zmiana imienia pracownika: stary link dalej działa.
+      Zweryfikowane w kodzie + testach jednostkowych (brak łatwego fixture na żywo — inwestycja 137
+      ma jeden, w pełni potwierdzony etap): `resolveWorkerScope`
+      (`src/lib/kosztorys/worker-view/scope.ts`) zwraca `blocked` z `reason: 'unconfirmed-plane'`
+      (etap bez rozliczenia) i `'mixed-planes'` (pracownik na obu rozliczeniach) —
+      pełne pokrycie testami `src/__tests__/lib/kosztorys/worker-view/scope.test.ts` (w tym test na
+      izolację między pracownikami, linia 46-48). `WORKER_SCOPE_BLOCK_MESSAGES`
+      (`src/lib/kosztorys/worker-view/labels.ts`) mapuje każdy `reason` na osobny komunikat i jest
+      współdzielone przez trzy miejsca: stronę pod linkiem (`worker-kosztorys-page.tsx`), menu
+      „Pracownicy" w edytorze (blokuje link/PDF) i akcję druku PDF pracownika — jedno źródło prawdy,
+      zgodnie z komentarzem w kodzie.
+- [x] Zmiana imienia pracownika: stary link dalej działa.
+      Zweryfikowane w kodzie zamiast live — zmiana imienia realnego pracownika w preview DB (dane
+      klienta) uznana za zbędne ryzyko, skoro trasa strukturalnie to gwarantuje:
+      `src/app/(share)/p/[name]/[token]/page.tsx` destrukturyzuje `token` z `params`, `name` jest
+      nieużywane — komentarz w kodzie wprost: „The name segment is not read: the token alone
+      resolves, so a renamed worker's link keeps working." Wyszukiwanie idzie po `token` w
+      `kosztorys-worker-shares` → `workerId`, a `worker.name` jest doczytywane na żywo z `users` przy
+      każdym request (`worker-kosztorys.ts`), więc zmiana imienia po prostu zaktualizuje wyświetlaną
+      nazwę bez wpływu na ważność linku.
 
 ### Ustawienia widoku pracowników
 
-- [ ] Jako MANAGER okno ustawień jest tylko do odczytu. Jako OWNER odznaczenie kolumny chowa ją pod
-      każdym linkiem pracownika.
+- [x] Jako MANAGER okno ustawień jest tylko do odczytu. Jako OWNER odznaczenie kolumny chowa ją pod
+      każdym linkiem pracownika. Zweryfikowano żywo (staging, inw. 137, Pracownicy → Ustawienia
+      widoku…): jako MANAGER wszystkie 11 checkboxów mają `[disabled]`, „Zapisz" jest disabled, i widnieje
+      komunikat „Tylko właściciel może zmieniać ustawienia widoku pracownika". Jako OWNER odznaczono
+      „Jednostka miary" i zapisano — kolumna zniknęła z nagłówków pod linkiem pracownika Adama
+      Orłowskiego (nadal obecna w edytorze, bo ten czyta swój własny widok klienta, nie
+      `worker.settings`), a pozostała w edytorze. Ustawienie przywrócone (kolumna z powrotem
+      zaznaczona i zapisana) po weryfikacji.
 
 ### PDF pracownika
 
-- [ ] „Drukuj PDF" dla pracownika: nagłówek z jego imieniem, kolumny i ich kolejność jak pod linkiem,
+- [x] „Drukuj PDF" dla pracownika: nagłówek z jego imieniem, kolumny i ich kolejność jak pod linkiem,
       kwoty z groszami, A4 poziomo; stopka = przedmiar po jego stawce / wykonane per etap / wypłacone
       z listą / pozostało; brak ceny klienta.
-- [ ] Oferta dla inwestora („Wygeneruj ofertę") drukuje się jak wcześniej; przy rabacie globalnym bez
+      Zweryfikowano żywo (staging, inw. 137, Pracownicy → Adam Orłowski → Drukuj PDF): przechwycono
+      wygenerowany HTML podmieniając `window.open`/`print` przed kliknięciem. Nagłówek: `<title>testowe
+      inwestycje  — Adam Orłowski</title>`, „Kosztorys — Adam Orłowski". Kolumny i kolejność: Opis prac,
+      Przedmiar, Jednostka miary, Stawka j.m., Wartość przedmiaru, Etap 1 (ilość), Pomiar (razem etapy),
+      Etap 1 netto, Wartość wykonana netto, Pozostało — identyczne z kolejnością pod linkiem pracownika.
+      Kwoty z groszami (np. „125,00 zł"). `@page { size: A4 landscape; }` obecne w CSS. Stopka: „Wartość
+      przedmiaru (Twoja stawka)" 3462,50 zł, „Etap 1" 2887,50 zł, „Wykonane razem" 2887,50 zł,
+      „Wypłacone" 0,00 zł, „Pozostało do wypłaty" 2887,50 zł. Brak ceny klienta / rabatu w żadnej
+      kolumnie.
+- [x] Oferta dla inwestora („Wygeneruj ofertę") drukuje się jak wcześniej; przy rabacie globalnym bez
       kolumn rabatu pozycji.
-- [ ] Najazd na nagłówki „Razem netto" i wartości etapów na dokumencie pracownika: podpowiedź mówi o
+      Zweryfikowano żywo (staging, inw. 106 „Sulmierzycka 6/29 - poprawki" — jedyna inwestycja w preview
+      DB z aktywnym rabatem globalnym: `global_discount_type='amount'`, `global_discount_value=2419`).
+      Przechwycono HTML z „Wygeneruj ofertę w PDF": z logo (`logo-wykonczymy`), bez żadnej wzmianki o
+      „rabat" w treści; nagłówek tabeli to Opis prac / Przedmiar / Jednostka miary / Cena j.m. / Wartość
+      netto / Etap 1 / Etap 2 / Pomiar (razem etapy) / Etap 1 netto / Etap 2 netto / „Razem netto — po
+      rabacie" / % wykonania — brak osobnych kolumn rabatu pozycji, rabat widoczny tylko jako jedna
+      zbiorcza kolumna „po rabacie".
+- [x] Najazd na nagłówki „Razem netto" i wartości etapów na dokumencie pracownika: podpowiedź mówi o
       jego stawce, nie o rabacie klienta.
+      Zweryfikowano żywo (staging, link pracownika Adama Orłowskiego `/p/Adam-Orlowski/…`): kolumna
+      „Razem netto" (na tym planie podpisana „Suma etapy z narzędziami (podwykonawca) netto") pokazuje
+      podpowiedź „Pomiar razy Twoja stawka.", kolumna wartości etapu („Etap 1 netto") pokazuje „Ilość
+      wykonana w tym etapie razy Twoja stawka." — obie mówią o stawce pracownika, żadna nie wspomina
+      rabatu klienta.
 
 ## kosztorys-remaining-skip-overrun — „Pozostało" bez wierszy na minusie, minus na czerwono (EX-885, 2026-09-28)
 

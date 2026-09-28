@@ -116,4 +116,4 @@ Ran /simplify — 7 applied, 0 proposed, 3 dismissed/dropped; primitive-reuse-sc
 
 - tsc — czysto
 - vitest (celowane: protokół, share, offer-print, grid, worker-view, akcje edytora, nav) — 307 zielonych; DB `share-token` + `worker-share-token` na 5435 — 14/14
-- pełny suite — czeka na zgodę
+- pełny suite — odłożony przez użytkownika (drzewo współdzielone z innymi agentami, wynik byłby niemiarodajny)
