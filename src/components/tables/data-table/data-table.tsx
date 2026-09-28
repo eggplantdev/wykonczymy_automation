@@ -207,7 +207,7 @@ export function DataTable<TData>({
                     key={`${row.id}:${visibleColumnKey}`}
                     row={row}
                     getRowHref={getRowHref}
-                            getRowClassName={getRowClassName}
+                    getRowClassName={getRowClassName}
                   />
                 ))
               )}

@@ -1580,4 +1580,6 @@ co było otwarte wcześniej.
 - [ ] „Przełącz na inny szablon…" w warsztacie ląduje w wybranym szablonie, a poprzedni ma swoją ostatnią zmianę (otwórz go ponownie i sprawdź)
 - [ ] Szablon B: zmiana komórki → otwarcie A z listy → powrót do B: zmiana jest
 - [ ] Wstecz z szablonu do `/szablony` i kliknięcie tego samego wiersza: edytor od razu, a kolejność listy się nie zmienia (ponowne otwarcie nic nie zapisuje)
+- [ ] Otwarcie A, bez żadnej zmiany otwarcie B, powrót do `/szablony`: A nie przeskakuje na górę listy (przełączenie z nietkniętego szablonu nic mu nie zapisuje)
+- [ ] „Nowy szablon": w górnym pasku od razu jest nazwa nowego szablonu i strzałka powrotu
 - [ ] Przywrócenie wersji w „Wersje" w warsztacie po otwarciu z listy przeładowuje siatkę

@@ -22,7 +22,7 @@ vi.mock('@/lib/auth/require-auth', () => ({
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
 const { updateSectionFieldAction } = await import('@/lib/actions/kosztorys')
-const { mirrorWorkshopPreset } = await import('@/lib/actions/mirror-workshop-preset')
+const { mirrorWorkshopPreset } = await import('@/lib/kosztorys/mirror-workshop-preset')
 const { flushWorkshopPresetAction } = await import('@/lib/actions/kosztorys-presets')
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)

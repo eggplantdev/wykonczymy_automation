@@ -80,11 +80,14 @@ export async function getWorkshopView(presetId: number): Promise<WorkshopViewT |
   return { presetName, investmentId: workshop?.presetId === presetId ? workshop.id : null }
 }
 
-// Name-only read for the @investmentCrumb slot — reads the already-cached library (like
-// getInvestmentName) so a rename moves the crumb on the same invalidation as the listing/pickers.
+// Uncached, like the page title: „Nowy szablon" navigates before its `presets` expiry lands (it runs
+// after the response), so the cached library would not know the szablon the crumb names.
 export async function getPresetNameForCrumb(id: string): Promise<string | null> {
   const { success } = await requireAuth(MANAGEMENT_ROLES)
   if (!success) return null
 
-  return (await getPresets()).find((preset) => String(preset.id) === id)?.name ?? null
+  const presetId = Number(id)
+  if (!Number.isInteger(presetId)) return null
+  const payload = await getPayload({ config })
+  return getPresetName(await getDb(payload), presetId)
 }

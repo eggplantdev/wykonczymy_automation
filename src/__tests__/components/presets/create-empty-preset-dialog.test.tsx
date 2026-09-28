@@ -46,7 +46,6 @@ describe('CreateEmptyPresetDialog', () => {
     expect(await screen.findByLabelText('Nazwa szablonu')).toHaveValue('Łazienka')
   })
 
-  // The open itself is the page's job, so the dialog only has to land on the href that asks for it.
   it('goes to the new szablon with the open flag and closes first', async () => {
     vi.mocked(createEmptyPresetAction).mockResolvedValue({ success: true, data: { id: 42 } })
     const user = userEvent.setup()

@@ -48,8 +48,7 @@ export type SnapshotMetaT = {
 // A restore point belongs to the szablon the investment held when it was taken. For a real
 // investment `template_preset_id` is NULL on both sides and the clause is a no-op; for the warsztat —
 // one investment shared by every szablon — it keeps one szablon's history out of another's. Stamped
-// from the investment row so no caller can forget it, and so „Przed wczytaniem", taken before the
-// pointer moves, is attributed to the szablon it holds.
+// from the investment row so no caller can forget it.
 const HELD_PRESET = (investmentId: number) =>
   sql`(SELECT "template_preset_id" FROM investments WHERE id = ${investmentId})`
 

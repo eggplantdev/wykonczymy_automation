@@ -2,7 +2,7 @@
 
 import { z } from 'zod'
 import { investmentAction } from '@/lib/actions/investment-action'
-import { mirrorWorkshopPreset } from '@/lib/actions/mirror-workshop-preset'
+import { mirrorWorkshopPreset } from '@/lib/kosztorys/mirror-workshop-preset'
 import { ownerOnlyAction } from '@/lib/actions/owner-only-action'
 import { protectedAction, validateAction } from '@/lib/actions/run-action'
 import { expireCollectionsAfterResponse, revalidateCollections } from '@/lib/cache/revalidate'
@@ -27,10 +27,9 @@ import {
   reloadInvestmentFromPreset,
   type ReloadFromPresetResultT,
 } from '@/lib/kosztorys/reload-from-preset'
-import { openPresetInWorkshop } from '@/lib/kosztorys/open-preset-in-workshop'
+import { openPresetInWorkshop, type WorkshopTreeT } from '@/lib/kosztorys/open-preset-in-workshop'
 import { emptySnapshotPayload } from '@/lib/kosztorys/snapshot-format'
 import { serializeKosztorysAsPreset } from '@/lib/kosztorys/serialize-preset'
-import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 import type { ActionResultT } from '@/types/action'
 
 const savePresetSchema = z.object({
@@ -92,28 +91,25 @@ const createEmptyPresetSchema = z.object({ name: savePresetSchema.shape.name })
 export async function createEmptyPresetAction(
   name: string,
 ): Promise<ActionResultT<{ id: number }>> {
-  return protectedAction(
-    'createEmptyPresetAction',
-    async ({ payload, user }) => {
-      const parsed = validateAction(createEmptyPresetSchema, { name })
-      if (!parsed.success) return parsed
+  return protectedAction('createEmptyPresetAction', async ({ payload, user }) => {
+    const parsed = validateAction(createEmptyPresetSchema, { name })
+    if (!parsed.success) return parsed
 
-      const id = await insertPreset(await getDb(payload), {
-        name: parsed.data.name,
-        createdBy: user.id,
-        payload: emptySnapshotPayload({
-          wToolsCoeff: DEFAULT_COEFFS.wTools,
-          ownToolsCoeff: DEFAULT_COEFFS.ownTools,
-          vatRate: DEFAULT_VAT,
-        }),
-      })
-      if (id == null) return { success: false, error: NAME_TAKEN_MESSAGE }
-      // After the response: the dialog navigates away at once, and an inline expiry would first
-      // re-render /szablony inside this POST for a list nobody is looking at (lessons.md, EX-597).
-      expireCollectionsAfterResponse(['presets'])
-      return { success: true, data: { id } }
-    },
-  )
+    const id = await insertPreset(await getDb(payload), {
+      name: parsed.data.name,
+      createdBy: user.id,
+      payload: emptySnapshotPayload({
+        wToolsCoeff: DEFAULT_COEFFS.wTools,
+        ownToolsCoeff: DEFAULT_COEFFS.ownTools,
+        vatRate: DEFAULT_VAT,
+      }),
+    })
+    if (id == null) return { success: false, error: NAME_TAKEN_MESSAGE }
+    // After the response: the dialog navigates away at once, and an inline expiry would first
+    // re-render /szablony inside this POST for a list nobody is looking at (lessons.md, EX-597).
+    expireCollectionsAfterResponse(['presets'])
+    return { success: true, data: { id } }
+  })
 }
 
 // Destroying a shared library entry is a different power from writing into it: savePresetAction
@@ -157,15 +153,12 @@ export async function renamePresetAction(id: number, name: string): Promise<Acti
   })
 }
 
-// „Otwórz szablon": load into the workbench investment. A mutation, not a render side effect of
-// /szablony/[id] — the page renders the tree this returns.
-//
 // No tags, and nothing expired before the response: any invalidation inside the action re-renders
 // the calling route and wipes the client prefetch cache (lessons.md, EX-597). The only cached reader
 // this can change is the szablon library, and only when the eviction changed the outgoing copy.
 export async function openPresetInWorkshopAction(
   presetId: number,
-): Promise<ActionResultT<{ investmentId: number; tree: KosztorysTreeT }>> {
+): Promise<ActionResultT<WorkshopTreeT>> {
   return protectedAction('openPresetInWorkshopAction', async ({ payload }) => {
     const parsed = validateAction(presetIdSchema, { id: presetId })
     if (!parsed.success) return parsed

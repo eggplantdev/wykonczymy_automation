@@ -3,9 +3,8 @@ import type { Payload } from 'payload'
 import { getDb } from '@/lib/db/get-db'
 import { lockInvestmentForReplace } from '@/lib/db/lock-investment-for-replace'
 import { insertSnapshot } from '@/lib/db/snapshots'
-import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
+import { retryOnConcurrentWrite, withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { restoreKosztorys } from './restore-kosztorys'
-import { retryOnConcurrentWrite } from './retry-on-concurrent-write'
 import { serializeKosztorys } from './serialize-kosztorys'
 import type { InsertKosztorysTreeResultT } from './insert-kosztorys-tree'
 import type { StoredSnapshotPayloadT } from './snapshot-format'
@@ -50,7 +49,10 @@ export async function replaceTreeWithSnapshot(
 ): Promise<InsertKosztorysTreeResultT> {
   // A retried attempt snapshots the tree that beat it, so the concurrent edit lands inside the
   // restorable „przed" instead of being deleted by a wipe that never saw it.
-  return retryOnConcurrentWrite(() => attemptReplacement(payload, options))
+  return retryOnConcurrentWrite(() => attemptReplacement(payload, options), {
+    logLabel: 'replace-tree',
+    failedMessage: 'Nie udało się zapisać kosztorysu — nic nie zostało zapisane. Spróbuj ponownie.',
+  })
 }
 
 async function attemptReplacement(

@@ -88,8 +88,7 @@ export function ReloadFromPresetDialog() {
   function handleConfirm() {
     if (!selected) return
     if (isWorkshop) {
-      // The same href a row in the list carries, so the switch is the list's open, not a second copy
-      // of it. Leaving this page flushes the outgoing szablon before the open runs.
+      // Leaving this page flushes the outgoing szablon before the open runs.
       router.push(presetOpenHref(selected.presetId))
       handleOpenChange(false)
       return
@@ -126,7 +125,7 @@ export function ReloadFromPresetDialog() {
         ) : groups.length === 0 ? (
           <p className="text-muted-foreground text-sm">{copy.empty}</p>
         ) : (
-          <div className="flex max-h-dialog-scroll min-h-0 flex-col gap-2">
+          <div className="max-h-dialog-scroll flex min-h-0 flex-col gap-2">
             <SearchFilterInput
               value={searchTerm}
               onChange={setSearchTerm}

@@ -580,7 +580,6 @@ describe.skipIf(!ENV_READY)('openPresetInWorkshopAction — persisted state (DB)
     expect(await workshopSnapshotCount()).toBe(snapshotsBefore)
   })
 
-  // The eviction is the last moment the outgoing szablon can receive an edit the throttle refused.
   it('a switch mirrors the outgoing szablon’s last edit into the library', async () => {
     await openPresetInWorkshopAction(presetA)
     // Straight to the table, so no autosave mirror carries it — only the eviction can.
@@ -609,8 +608,7 @@ describe.skipIf(!ENV_READY)('openPresetInWorkshopAction — persisted state (DB)
     expect(expireCollectionsAfterResponse).not.toHaveBeenCalled()
   })
 
-  // The library copy, mirrored in the same transaction, is the restore point. The „Przed wczytaniem"
-  // row this used to write was stamped with no szablon, so no „Wersje" list could ever show it.
+  // The library copy, mirrored in the same transaction, is the restore point.
   it('a switch writes no snapshot', async () => {
     const snapshotsBefore = await workshopSnapshotCount()
 
@@ -639,7 +637,6 @@ describe.skipIf(!ENV_READY)('openPresetInWorkshopAction — persisted state (DB)
     )
   })
 
-  // One transaction: the eviction mirror, the swap and the pointer go down together.
   it('a failed restore leaves the pointer, the tree and the outgoing szablon as they were', async () => {
     await openPresetInWorkshopAction(presetA)
     await db.execute(sql`

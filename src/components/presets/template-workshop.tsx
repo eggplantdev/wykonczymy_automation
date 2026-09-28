@@ -1,22 +1,20 @@
 'use client'
 
-import { useEffect, useRef, useState, useTransition } from 'react'
+import { useEffect, useEffectEvent, useRef, useState, useTransition } from 'react'
 import { KosztorysEditorV2 } from '@/components/kosztorys/editor/kosztorys-editor-v2'
 import { PageLoading } from '@/components/ui/loader/page-loading'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { OpenWorkshopPrompt } from '@/components/presets/open-workshop-prompt'
 import { OPEN_FLAG } from '@/components/presets/preset-open-href'
 import { openPresetInWorkshopAction } from '@/lib/actions/kosztorys-presets'
-import type { KosztorysTreeT } from '@/lib/kosztorys/types'
+import type { WorkshopTreeT } from '@/lib/kosztorys/open-preset-in-workshop'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 import { toastMessage } from '@/lib/utils/toast'
 
-type WorkshopT = { investmentId: number; tree: KosztorysTreeT }
-
-// A wrapper rather than `WorkshopT | undefined`: every server render deserializes a fresh object, so
+// A wrapper rather than `WorkshopTreeT | undefined`: every server render deserializes a fresh object, so
 // its identity marks a new render even when two in a row both found the warsztat holding another
 // szablon — which a bare `undefined` could not tell apart.
-export type ServerWorkshopT = { workshop: WorkshopT | null }
+export type ServerWorkshopT = { workshop: WorkshopTreeT | null }
 
 type PropsT = {
   presetId: number
@@ -36,8 +34,14 @@ function stripOpenFlag() {
 
 // The action returns the tree it wrote, so the editor renders from the result instead of asking the
 // router for a re-render — which would also wipe the prefetch cache (lessons.md, EX-597).
-export function TemplateWorkshop({ presetId, presetName, workCatalogue, server, autoOpen }: PropsT) {
-  const [opened, setOpened] = useState<WorkshopT>()
+export function TemplateWorkshop({
+  presetId,
+  presetName,
+  workCatalogue,
+  server,
+  autoOpen,
+}: PropsT) {
+  const [opened, setOpened] = useState<WorkshopTreeT>()
   const [failed, setFailed] = useState(false)
   const [pending, startTransition] = useTransition()
 
@@ -68,13 +72,13 @@ export function TemplateWorkshop({ presetId, presetName, workCatalogue, server, 
   // A latch, because StrictMode mounts twice in dev — the server's re-open short-circuit would make
   // the second call harmless, but not free.
   const autoOpened = useRef(false)
-  useEffect(() => {
+  const openOnMount = useEffectEvent(() => {
     if (!autoOpen || autoOpened.current) return
     autoOpened.current = true
     if (workshop) stripOpenFlag()
     else open()
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per mount, by design
-  }, [])
+  })
+  useEffect(() => openOnMount(), [])
 
   if (workshop) {
     return (

@@ -1,7 +1,5 @@
 'use client'
 
-// Clickable table row. Clicking it opens the row's subject by navigating to `getRowHref`.
-
 import React from 'react'
 import { flexRender, type Row } from '@tanstack/react-table'
 import { useRouter } from 'next/navigation'

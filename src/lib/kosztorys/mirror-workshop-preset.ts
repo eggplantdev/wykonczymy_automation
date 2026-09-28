@@ -58,9 +58,8 @@ export async function mirrorWorkshopPreset(
 }
 
 /**
- * The mirror's body, on the caller's transaction. It does NOT swallow errors — that is the outer
- * mirror's policy, not this one's: inside „Otwórz" a failed eviction must roll the whole switch back,
- * or the outgoing szablon's last edits are wiped with the tree they lived in.
+ * It does NOT swallow errors — inside „Otwórz" a failed eviction must roll the whole switch back, or
+ * the outgoing szablon's last edits are wiped with the tree they lived in.
  *
  * Returns whether it wrote — which, since unchanged content is skipped, means the content changed.
  */

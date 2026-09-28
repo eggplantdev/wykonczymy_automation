@@ -477,6 +477,25 @@ hook's call sequence.
 None — no schema change. Existing orphaned „Przed wczytaniem" snapshots (`template_preset_id IS NULL`
 on the warsztat investment) are left to the snapshot GC's age ceiling.
 
+## Deviations (recorded at the review gate)
+
+The phase blocks above describe the plan as approved; the code differs in these places, each
+verified by `/10x-impl-review`:
+
+1. **Content equality in JS (`preset-content.ts`), not SQL `IS DISTINCT FROM`.** Every open
+   re-inserts the tree under fresh ids and the mirror stores the warsztat's ids, so a stored-bytes
+   comparison could never report „unchanged". Ids come out, an item keeps its sekcja by position,
+   and `settings` / `globalDiscount` come out because neither is applied on open.
+2. **`libraryChanged`, not `wrote`** — the same boolean, named for what the caller acts on.
+3. **No `takenBy`** — the open writes no snapshot, so nothing needs it.
+4. **`server` is `{ workshop }`, not an optional tree** — each server render deserializes a fresh
+   object, and that identity is what tells the host a new render arrived.
+5. **`preset-open-href.ts` landed in phase 2**, because the page needed `OPEN_FLAG` there.
+6. **`getPreset` runs before the eviction mirror**, so an open of a missing szablon writes nothing.
+7. **Review gate:** the retry loop moved into `lib/db/with-payload-transaction.ts` with a
+   caller-supplied log label and message; `mirror-workshop-preset.ts` and `provision-workshop.ts`
+   moved from `lib/actions/` to `lib/kosztorys/`; the top-bar crumb reads the szablon name uncached.
+
 ## Whole-tree Gate
 
 Run once, after the final phase.

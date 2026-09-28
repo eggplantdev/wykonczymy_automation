@@ -8,7 +8,7 @@ import {
   type GateTargetKindT,
   type InvestmentGateT,
 } from '@/lib/db/investment-gate'
-import { mirrorWorkshopPreset } from '@/lib/actions/mirror-workshop-preset'
+import { mirrorWorkshopPreset } from '@/lib/kosztorys/mirror-workshop-preset'
 import type { SessionUserT } from '@/types/auth'
 import type { ActionResultT } from '@/types/action'
 import type { CACHE_TAGS } from '@/lib/cache/tags'
