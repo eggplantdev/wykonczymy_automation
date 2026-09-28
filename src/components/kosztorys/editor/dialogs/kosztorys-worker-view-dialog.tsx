@@ -7,7 +7,8 @@ import { Description } from '@/components/ui/description'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
 import { ViewSettingsFields } from '@/components/kosztorys/editor/dialogs/view-settings-fields'
 import { saveWorkerViewSettingsAction } from '@/lib/actions/kosztorys-worker-view'
-import { WORKER_VIEW_GROUPS } from '@/lib/kosztorys/column-config'
+import { DocumentColumnOrderButton } from '@/components/kosztorys/editor/dialogs/document-column-order-button'
+import { WORKER_DOCUMENT_COLUMNS, WORKER_VIEW_GROUPS } from '@/lib/kosztorys/column-config'
 import { sanitizeWorkerViewSettings, workerColumnLabel } from '@/lib/kosztorys/worker-view/settings'
 import { OWNER_ONLY_WORKER_VIEW_SETTINGS_MESSAGE } from '@/lib/kosztorys/owner-only-messages'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
@@ -47,6 +48,14 @@ export function KosztorysWorkerViewDialog() {
         />
         {draft ? (
           <div className="flex min-h-0 flex-col gap-4 overflow-y-auto">
+            <DocumentColumnOrderButton
+              keys={WORKER_DOCUMENT_COLUMNS}
+              labelFor={workerColumnLabel}
+              value={draft}
+              onChange={setDraft}
+              resetRanks={{}}
+              disabled={pending || !mayWrite}
+            />
             <ViewSettingsFields
               groups={WORKER_VIEW_GROUPS}
               labelFor={workerColumnLabel}

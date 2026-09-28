@@ -1,11 +1,18 @@
-import { PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/column-config'
+import {
+  CLIENT_DOCUMENT_COLUMNS,
+  DOCUMENT_PINNED_COLUMN,
+  PREVIEW_VISIBLE_COLUMNS,
+} from '@/lib/kosztorys/column-config'
+import { orderDocumentKeys, sanitizeDocumentRanks } from '@/lib/kosztorys/document-column-order'
 import { STAGES_COLUMN_GROUP, STAGE_VALUE_NET_COLUMN_GROUP } from '@/lib/kosztorys/stage-keys'
+import type { ColumnRanksT } from '@/lib/table/column-order'
 
 // What one investment's client sees. Lives here rather than beside its query because the client
 // components consume the type too, and that query is `server-only`.
 export type ClientViewSettingsT = {
   hiddenColumns: string[]
   hideEmptyRows: boolean
+  columnRanks: ColumnRanksT
 }
 
 // Expressed as what the client SEES, because that is what an owner reads off the dialog; the stored
@@ -28,6 +35,7 @@ const DEFAULT_VISIBLE_COLUMNS: ReadonlySet<string> = new Set([
 const DEFAULT_SETTINGS: ClientViewSettingsT = {
   hiddenColumns: [...PREVIEW_VISIBLE_COLUMNS].filter((key) => !DEFAULT_VISIBLE_COLUMNS.has(key)),
   hideEmptyRows: true,
+  columnRanks: {},
 }
 
 // A key outside the ceiling is dropped, on write and on read alike: `PREVIEW_VISIBLE_COLUMNS` is the
@@ -43,16 +51,28 @@ const DEFAULT_SETTINGS: ClientViewSettingsT = {
 // global reach the same answer with no second constant to drift from it.
 export function sanitizeClientViewSettings(source: unknown): ClientViewSettingsT {
   if (typeof source !== 'object' || source === null) return DEFAULT_SETTINGS
-  const { hiddenColumns, hideEmptyRows } = source as {
+  const { hiddenColumns, hideEmptyRows, columnRanks } = source as {
     hiddenColumns?: unknown
     hideEmptyRows?: unknown
+    columnRanks?: unknown
   }
   const hideEmpty = hideEmptyRows !== false
-  if (!Array.isArray(hiddenColumns)) return { ...DEFAULT_SETTINGS, hideEmptyRows: hideEmpty }
+  const ranks = sanitizeDocumentRanks(columnRanks, PREVIEW_VISIBLE_COLUMNS)
+  if (!Array.isArray(hiddenColumns)) {
+    return { ...DEFAULT_SETTINGS, hideEmptyRows: hideEmpty, columnRanks: ranks }
+  }
   return {
     hiddenColumns: hiddenColumns.filter(
-      (key): key is string => typeof key === 'string' && PREVIEW_VISIBLE_COLUMNS.has(key),
+      (key): key is string =>
+        typeof key === 'string' &&
+        PREVIEW_VISIBLE_COLUMNS.has(key) &&
+        key !== DOCUMENT_PINNED_COLUMN,
     ),
     hideEmptyRows: hideEmpty,
+    columnRanks: ranks,
   }
+}
+
+export function clientDocumentColumns(ranks: ColumnRanksT): string[] {
+  return orderDocumentKeys(CLIENT_DOCUMENT_COLUMNS, ranks)
 }

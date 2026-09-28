@@ -23,7 +23,7 @@ const { createTestInvestment, deleteTestInvestment } =
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
-const SETTINGS = { hiddenColumns: ['discountValue'], hideEmptyRows: false }
+const SETTINGS = { hiddenColumns: ['discountValue'], hideEmptyRows: false, columnRanks: {} }
 
 describe.skipIf(!ENV_READY)('saveClientViewDefaultsAction (DB)', () => {
   let payload: Payload

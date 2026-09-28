@@ -5,6 +5,14 @@ import {
   sanitizeClientViewSettings,
   type ClientViewSettingsT,
 } from '@/lib/kosztorys/client-view-settings'
+import type { ColumnRanksT } from '@/lib/table/column-order'
+
+export type ClientViewSettingsReadT = {
+  settings: ClientViewSettingsT
+  // The firm-wide order alone — what „Przywróć domyślną kolejność" restores. Read off the global
+  // even when the investment's own row wins, since that row is exactly what a reset departs from.
+  defaultColumnRanks: ColumnRanksT
+}
 
 /**
  * `investment` is unique, so this is the row-or-nothing lookup every caller wants — the resolver
@@ -44,6 +52,12 @@ export async function findClientViewRow(payload: Payload, investmentId: number) 
  * single-row table.
  */
 export async function getClientViewSettings(investmentId: number): Promise<ClientViewSettingsT> {
+  return (await getClientViewSettingsRead(investmentId)).settings
+}
+
+export async function getClientViewSettingsRead(
+  investmentId: number,
+): Promise<ClientViewSettingsReadT> {
   const payload = await getPayload({ config })
 
   const [row, defaults] = await Promise.all([
@@ -55,5 +69,8 @@ export async function getClientViewSettings(investmentId: number): Promise<Clien
     }),
   ])
 
-  return sanitizeClientViewSettings(row ?? defaults ?? {})
+  return {
+    settings: sanitizeClientViewSettings(row ?? defaults ?? {}),
+    defaultColumnRanks: sanitizeClientViewSettings(defaults ?? {}).columnRanks,
+  }
 }

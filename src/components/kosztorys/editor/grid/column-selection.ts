@@ -9,8 +9,8 @@ import {
   orderColumns,
   type ColumnRanksT,
 } from '@/lib/table/column-order'
+import { clientDocumentColumns } from '@/lib/kosztorys/client-view-settings'
 import {
-  CLIENT_DOCUMENT_COLUMNS,
   CREW_PLANE_ONLY_COLUMNS,
   bypassedByGlobalDiscount,
   PREVIEW_VISIBLE_COLUMNS,
@@ -31,7 +31,7 @@ function toggleKey(columnId: string): string {
 }
 
 // The column allowlist and the client price plane are one disclosure decision (useKosztorysEditor
-// derives them as a pair). Split them and PREVIEW_VISIBLE_COLUMNS keeps letting `price`/`net`/`gross`
+// derives them as a pair). Split them and PREVIEW_VISIBLE_COLUMNS keeps letting `price`/`net`
 // through while they compute a subcontractor's cost basis — client-named columns holding contractor
 // numbers, a leak with no foreign column to notice. Nothing in the types forbids the split, so this
 // says it out loud at the one chokepoint both build paths cross. It throws rather than repairing the
@@ -77,11 +77,13 @@ function closedColumnList(opts: BuildV2ColumnsOptsT): ReadonlySet<string> | null
   return null
 }
 
-// The two documents read in their audience's order, the one their PDF prints in — never the sheet's,
-// which stays the workbench's.
+// The two documents read in the order the owner stored for their audience, the one their PDF prints
+// in — never the sheet's, which stays the workbench's.
 function documentOrder(opts: BuildV2ColumnsOptsT): readonly string[] | null {
-  if (opts.previewVisible) return CLIENT_DOCUMENT_COLUMNS
-  if (opts.workerSurface) return workerDocumentColumns(opts.workerSurface.plane)
+  if (opts.previewVisible) return clientDocumentColumns(opts.previewColumnRanks ?? {})
+  if (opts.workerSurface) {
+    return workerDocumentColumns(opts.workerSurface.plane, opts.workerSurface.columnRanks)
+  }
   return null
 }
 

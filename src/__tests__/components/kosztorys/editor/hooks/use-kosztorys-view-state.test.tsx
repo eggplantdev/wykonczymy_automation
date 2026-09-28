@@ -79,7 +79,7 @@ describe('useKosztorysViewState — płaszczyzna cen', () => {
 })
 
 describe('useKosztorysViewState — „Pokaż wszystkie pozycje"', () => {
-  const CLIENT_VIEW = { hiddenColumns: [], hideEmptyRows: true }
+  const CLIENT_VIEW = { hiddenColumns: [], hideEmptyRows: true, columnRanks: {} }
 
   it('lifts the stored hide while on and restores it when switched back off', () => {
     const { result } = renderHook(() =>

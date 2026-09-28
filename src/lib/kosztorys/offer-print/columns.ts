@@ -4,7 +4,6 @@ import {
   rowDoneFraction,
   rowPlannedNetForView,
   stageValueForView,
-  toGross,
   viewPrice,
   type PriceViewT,
 } from '@/lib/kosztorys/calc'
@@ -14,22 +13,18 @@ import {
   rowTotalQtyDone,
   rowValueForView,
 } from '@/lib/kosztorys/settlement-rows'
-import {
-  CLIENT_DOCUMENT_COLUMNS,
-  PREVIEW_VISIBLE_COLUMNS,
-  columnLabelForView,
-} from '@/lib/kosztorys/column-config'
+import { clientDocumentColumns } from '@/lib/kosztorys/client-view-settings'
+import { PREVIEW_VISIBLE_COLUMNS, columnLabelForView } from '@/lib/kosztorys/column-config'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
 import {
-  STAGE_VALUE_GROSS_COLUMN_GROUP,
   STAGE_VALUE_NET_COLUMN_GROUP,
   STAGES_COLUMN_GROUP,
   stageKey,
-  stageValueGrossKey,
   stageValueNetKey,
 } from '@/lib/kosztorys/stage-keys'
 import { decimalText } from '@/lib/utils/decimal-text'
 import type { KosztorysStageT, KosztorysV2RowT, StageKeyT } from '@/lib/kosztorys/types'
+import type { ColumnRanksT } from '@/lib/table/column-order'
 
 // A złoty, no grosze: the sheet's offer prints „19 495 zł" and a client reading a scope of works has
 // no use for two decimals on 435 rows.
@@ -173,26 +168,11 @@ function offerColumnsByKey(stages: KosztorysStageT[]): Record<string, OfferColum
         zloty(rowPlannedNetForView(row, view)),
       ),
     ],
-    plannedGross: [
-      moneyColumn('plannedGross', clientLabel('plannedGross'), (row, view) =>
-        zloty(toGross(rowPlannedNetForView(row, view), row.vatRate)),
-      ),
-    ],
     [STAGES_COLUMN_GROUP]: stageQtyColumns(stages),
     stageQtySum: [
       qtyColumn('stageQtySum', clientLabel('stageQtySum'), (row, view, printStages) =>
         formatQty(rowTotalQtyDone(row, printStages, view)),
       ),
-    ],
-    priceGross: [
-      {
-        key: 'priceGross',
-        label: clientLabel('priceGross'),
-        colClass: 'c-price',
-        cellClass: 'num price',
-        headerClass: 'num',
-        cell: (row, view) => zloty(toGross(viewPrice(row, view), row.vatRate)),
-      },
     ],
     discountValue: [
       qtyColumn('discountValue', clientLabel('discountValue'), (row) =>
@@ -209,34 +189,12 @@ function offerColumnsByKey(stages: KosztorysStageT[]): Record<string, OfferColum
         zloty(discount(row, view, printStages)),
       ),
     ],
-    discountAmountGross: [
-      moneyColumn(
-        'discountAmountGross',
-        clientLabel('discountAmountGross'),
-        (row, view, printStages) => zloty(toGross(discount(row, view, printStages), row.vatRate)),
-      ),
-    ],
-    gross: [
-      moneyColumn('gross', clientLabel('gross'), (row, view, printStages) =>
-        zloty(toGross(rowValueForView(row, printStages, view), row.vatRate)),
-      ),
-    ],
     [STAGE_VALUE_NET_COLUMN_GROUP]: stageNetColumns(stages, zloty),
     net: [
       moneyColumn('net', clientLabel('net'), (row, view, printStages) =>
         zloty(rowValueForView(row, printStages, view)),
       ),
     ],
-    [STAGE_VALUE_GROSS_COLUMN_GROUP]: perStage(stages, (stage, qtyKey) =>
-      moneyColumn(
-        stageValueGrossKey(stage.id),
-        `${stageLabel(stage)} brutto`,
-        (row, view, printStages) =>
-          row[qtyKey]
-            ? zloty(toGross(stageNetValue(row, qtyKey, view, printStages), row.vatRate))
-            : '',
-      ),
-    ),
     donePercent: [
       qtyColumn('donePercent', clientLabel('donePercent'), (row, _view, printStages) =>
         formatPercent(rowDoneFraction(row, rowTotalQtyDone(row, printStages, 'client'))),
@@ -247,23 +205,19 @@ function offerColumnsByKey(stages: KosztorysStageT[]): Record<string, OfferColum
         zloty(rowRemainingForView(row, printStages, view)),
       ),
     ],
-    remainingGross: [
-      moneyColumn('remainingGross', clientLabel('remainingGross'), (row, view, printStages) =>
-        zloty(toGross(rowRemainingForView(row, printStages, view), row.vatRate)),
-      ),
-    ],
   }
 }
 
-// The client's document on paper: CLIENT_DOCUMENT_COLUMNS, the list the podgląd renders from, so
+// The client's document on paper: `clientDocumentColumns`, the list the podgląd renders from, so
 // „odznacz Cena j.m." in the dialog takes the column out of both and nothing can print in another
 // order. Keyed per column group — a stage group's hide key is the group, not the etap.
 export function offerPrintColumns(
   stages: KosztorysStageT[],
   hiddenColumns: readonly string[],
+  columnRanks: ColumnRanksT,
 ): OfferColumnT[] {
   const byKey = offerColumnsByKey(stages)
-  const visibleKeys = printableKeys(CLIENT_DOCUMENT_COLUMNS, hiddenColumns)
+  const visibleKeys = printableKeys(clientDocumentColumns(columnRanks), hiddenColumns)
   return visibleKeys.flatMap((key) => byKey[key] ?? [])
 }
 

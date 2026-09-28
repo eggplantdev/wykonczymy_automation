@@ -27,6 +27,7 @@ export function KosztorysClientViewDialog() {
     setSettingsOpen: onOpenChange,
     clientView: settings,
     setClientView: onSaved,
+    defaultColumnRanks,
   } = useKosztorysActions().investor
   const [draft, setDraft] = useDraft(settings)
   const [pending, startTransition] = useTransition()
@@ -71,7 +72,12 @@ export function KosztorysClientViewDialog() {
           // while the podsumowanie below it keeps its own client projection.
           description="Zaznacz, które kolumny i pozycje inwestor widzi w rozpisce. Ceny podwykonawców nie pojawiają się w niej nigdy."
         />
-        <ClientViewSettingsForm value={draft} onChange={setDraft} disabled={pending} />
+        <ClientViewSettingsForm
+          value={draft}
+          onChange={setDraft}
+          defaultColumnRanks={defaultColumnRanks}
+          disabled={pending}
+        />
         {/* The disabled Button has pointer-events off, so a `title` would never show. */}
         {!mayWriteDefaults && (
           <Description size="xs">{OWNER_ONLY_CLIENT_VIEW_DEFAULTS_MESSAGE}</Description>

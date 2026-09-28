@@ -104,7 +104,7 @@ tr.band-total td.rail { border-top: none; background-position: 0 0; }
 `
 
 // For a document whose columns outgrow the portrait page — a worker's with its etapy, an offer the
-// owner widened with brutto or etap columns. Landscape alone runs out at a worker's fourth etap: at
+// owner widened with etap columns. Landscape alone runs out at a worker's fourth etap: at
 // the portrait widths the figures took 271mm of the 261mm available and the opis collapsed to one
 // letter per line. Narrower figures, a smaller type and a thinner inset leave the opis ~49mm at six
 // etapy. The headers run bottom-to-top so a label like „3etap parkieciarze netto" no longer sets its

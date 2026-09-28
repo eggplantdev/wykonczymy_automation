@@ -5,6 +5,7 @@ import {
   buildV2Grid,
 } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
+import type { ColumnRanksT } from '@/lib/table/column-order'
 import type { KosztorysStageT, ToolPlaneT } from '@/lib/kosztorys/types'
 
 // The worker's document: a closed list at his plane. Asserted on rendered ids, like the investor's
@@ -18,11 +19,12 @@ const STAGES: KosztorysStageT[] = [
 function workerOpts(
   plane: ToolPlaneT = 'w_tools',
   hiddenColumns: string[] = [],
+  columnRanks: ColumnRanksT = {},
 ): Pick<BuildV2ColumnsOptsT, 'view' | 'stages' | 'workerSurface'> {
   return {
     view: plane,
     stages: STAGES,
-    workerSurface: { plane, hiddenColumns, executedQtyByItem: {} },
+    workerSurface: { plane, hiddenColumns, columnRanks, executedQtyByItem: {} },
   }
 }
 
@@ -114,6 +116,22 @@ describe('worker columns', () => {
       { columnRanks: { net: 0, description: 99 } },
     ]
     for (const opts of preferences) expect(workerIds(opts)).toEqual(baseline)
+  })
+
+  it("follows the owner's stored order, the stawka under its plane-agnostic key", () => {
+    const ids = (ranks: ColumnRanksT) =>
+      buildV2Columns(workerOpts('w_tools', [], ranks)).map((column) => column.id)
+    const visible = ids({ net: -2, rate: -1 })
+
+    expect(visible.slice(0, 3)).toEqual(['description', 'net', planePriceKey('price', 'w_tools')])
+  })
+
+  it('keeps „Opis prac" first whatever rank it is given', () => {
+    const visible = buildV2Columns(workerOpts('w_tools', [], { description: 99, net: -1 })).map(
+      (column) => column.id,
+    )
+
+    expect(visible.slice(0, 2)).toEqual(['description', 'net'])
   })
 
   it('offers no column picker', () => {

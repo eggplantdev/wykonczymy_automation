@@ -47,12 +47,12 @@ function editorTotals(rows: KosztorysV2RowT[], view: PriceViewT = 'client') {
 // `showing` puts back one the default hides.
 const DEFAULT_SETTINGS = sanitizeClientViewSettings({})
 const hiding = (...keys: string[]) => ({
-  settings: { hiddenColumns: [...DEFAULT_SETTINGS.hiddenColumns, ...keys], hideEmptyRows: true },
+  settings: { ...DEFAULT_SETTINGS, hiddenColumns: [...DEFAULT_SETTINGS.hiddenColumns, ...keys] },
 })
 const showing = (...keys: string[]) => ({
   settings: {
+    ...DEFAULT_SETTINGS,
     hiddenColumns: DEFAULT_SETTINGS.hiddenColumns.filter((key) => !keys.includes(key)),
-    hideEmptyRows: true,
   },
 })
 
@@ -274,6 +274,31 @@ describe('buildOfferPrintHtml — struktura tabeli', () => {
 
     expect(headerCells).toHaveLength(2)
     expect(spans.reduce((sum, span) => sum + span, 0)).toBe(2)
+  })
+
+  it('drukuje kolumny w kolejności zapisanej dla oferty, „Opis prac" zawsze pierwszy', () => {
+    const out = html([row()], {
+      settings: { ...DEFAULT_SETTINGS, columnRanks: { description: 99, plannedNet: -2, unit: -1 } },
+    })
+    const headers = [...out.matchAll(/<th(?:\s[^>]*)?>(.*?)<\/th>/g)].map((m) => m[1])
+
+    expect(headers.slice(0, 3)).toEqual(['Opis prac', 'Wartość netto', 'Jednostka miary'])
+  })
+
+  it('suma sekcji idzie za kolumną wartości, gdy ta stoi tuż za „Opis prac"', () => {
+    const rows = [
+      row({ id: 1, sectionId: 10, sectionName: 'Podłogi', plannedQty: 2, clientPrice: 50 }),
+    ]
+    const out = html(rows, { settings: { ...DEFAULT_SETTINGS, columnRanks: { plannedNet: -1 } } })
+    const headerCount = (out.match(/<th(?:\s[^>]*)?>/g) ?? []).length
+    const totalRow = /<tr class="band-total">(.*?)<\/tr>/.exec(out)?.[1] ?? ''
+    const spans = [...totalRow.matchAll(/<td[^>]*?(?:colspan="(\d+)")?[^>]*>/g)].map((m) =>
+      Number(m[1] ?? 1),
+    )
+
+    expect(totalRow).toContain(`colspan="1"`)
+    expect(totalRow).toContain(`Razem — Podłogi</td><td class="num">${zloty(100)}`)
+    expect(spans.reduce((sum, span) => sum + span, 0)).toBe(headerCount)
   })
 
   it('escapuje kolor sekcji i adres logo, więc żaden nie zamyka atrybutu', () => {

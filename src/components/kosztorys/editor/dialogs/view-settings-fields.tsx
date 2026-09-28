@@ -2,15 +2,16 @@
 
 import { CheckboxRow } from '@/components/ui/checkbox-row'
 import { Description } from '@/components/ui/description'
-import type { ClientViewGroupT } from '@/lib/kosztorys/column-config'
+import { DOCUMENT_PINNED_COLUMN, type ClientViewGroupT } from '@/lib/kosztorys/column-config'
 
 export type ViewSettingsValueT = { hiddenColumns: string[]; hideEmptyRows: boolean }
 
-type PropsT = {
+// Generic so a caller's wider settings (its column order) survive every edit made here.
+type PropsT<T extends ViewSettingsValueT> = {
   groups: readonly ClientViewGroupT[]
   labelFor: (key: string) => string | undefined
-  value: ViewSettingsValueT
-  onChange: (value: ViewSettingsValueT) => void
+  value: T
+  onChange: (value: T) => void
   // Absent where the count has no single answer — the worker set spans every worker's etapy.
   emptyCount?: number
   disabled?: boolean
@@ -20,14 +21,14 @@ type PropsT = {
  * A tick means „to widać"; the stored shape is the inverse (hidden keys), so a column added to the
  * ceiling later shows up on its own.
  */
-export function ViewSettingsFields({
+export function ViewSettingsFields<T extends ViewSettingsValueT>({
   groups,
   labelFor,
   value,
   onChange,
   emptyCount,
   disabled,
-}: PropsT) {
+}: PropsT<T>) {
   const hidden = new Set(value.hiddenColumns)
 
   const toggleColumn = (key: string, visible: boolean) => {
@@ -45,8 +46,10 @@ export function ViewSettingsFields({
           {group.keys.map((key) => (
             <CheckboxRow
               key={key}
-              checked={!hidden.has(key)}
-              disabled={disabled}
+              // Shown ticked and locked rather than left out: the owner reads the whole document
+              // here, and „Opis prac" is on it.
+              checked={key === DOCUMENT_PINNED_COLUMN || !hidden.has(key)}
+              disabled={disabled || key === DOCUMENT_PINNED_COLUMN}
               onCheckedChange={(visible) => toggleColumn(key, visible)}
             >
               {labelFor(key) ?? key}

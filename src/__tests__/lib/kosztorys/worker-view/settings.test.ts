@@ -6,6 +6,7 @@ import {
   WORKER_VIEW_DEFAULT_SETTINGS,
   sanitizeWorkerViewSettings,
   workerColumnLabel,
+  workerDocumentColumns,
   workerVisibleColumns,
 } from '@/lib/kosztorys/worker-view/settings'
 
@@ -35,7 +36,7 @@ describe('worker view settings', () => {
       hideEmptyRows: false,
     })
 
-    expect(settings).toEqual({ hiddenColumns: ['unit'], hideEmptyRows: false })
+    expect(settings).toEqual({ hiddenColumns: ['unit'], hideEmptyRows: false, columnRanks: {} })
   })
 
   it.each([undefined, null, 'x', 42, { hiddenColumns: 'price' }])(
@@ -48,7 +49,11 @@ describe('worker view settings', () => {
   )
 
   it('defaults to every allowed column visible, with empty pozycje hidden', () => {
-    expect(WORKER_VIEW_DEFAULT_SETTINGS).toEqual({ hiddenColumns: [], hideEmptyRows: true })
+    expect(WORKER_VIEW_DEFAULT_SETTINGS).toEqual({
+      hiddenColumns: [],
+      hideEmptyRows: true,
+      columnRanks: {},
+    })
   })
 
   it("resolves the stawka to the worker's plane and never to the client price or the other plane", () => {
@@ -74,6 +79,25 @@ describe('worker view settings', () => {
     expect(columns.has(STAGES_COLUMN_GROUP)).toBe(false)
     expect(columns.has('description')).toBe(true)
   })
+
+  it('keeps a stored order only for keys inside the worker ceiling, never for „Opis prac"', () => {
+    const settings = sanitizeWorkerViewSettings({
+      hiddenColumns: ['description', 'unit'],
+      columnRanks: { rate: -1, price: -2, description: 99, net: Number.NaN, unit: 'x' },
+    })
+
+    expect(settings.hiddenColumns).toEqual(['unit'])
+    expect(settings.columnRanks).toEqual({ rate: -1 })
+  })
+
+  it.each(['w_tools', 'own_tools'] as const)(
+    'orders the stawka by its logical rank on the %s plane',
+    (plane) => {
+      const columns = workerDocumentColumns(plane, { rate: -1 })
+
+      expect(columns.slice(0, 2)).toEqual(['description', planePriceKey('price', plane)])
+    },
+  )
 
   it('names every group key, so the settings dialog never shows a raw id', () => {
     for (const group of WORKER_VIEW_GROUPS) {

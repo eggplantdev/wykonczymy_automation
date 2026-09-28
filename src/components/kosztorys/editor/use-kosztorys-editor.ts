@@ -552,10 +552,12 @@ export function useKosztorysEditor({
     readOnly,
     previewVisible: preview && !worker,
     previewHiddenColumns,
+    previewColumnRanks: clientView?.columnRanks,
     workerSurface: worker
       ? {
           plane: worker.plane,
           hiddenColumns: worker.settings.hiddenColumns,
+          columnRanks: worker.settings.columnRanks,
           executedQtyByItem: worker.executedQtyByItem,
         }
       : undefined,

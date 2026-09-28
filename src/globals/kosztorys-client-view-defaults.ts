@@ -18,6 +18,10 @@ export const KosztorysClientViewDefaults: GlobalConfig = {
       type: 'json',
     },
     {
+      name: 'columnRanks',
+      type: 'json',
+    },
+    {
       name: 'hideEmptyRows',
       type: 'checkbox',
       defaultValue: true,

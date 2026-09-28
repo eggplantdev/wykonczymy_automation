@@ -50,7 +50,7 @@ describe('preview columns', () => {
   // offer would print a „Rabat" that no figure on the page reflects.
   it('drops the per-item rabat columns while a global discount overrides them', () => {
     const visible = previewIds({ globalDiscountActive: true })
-    for (const id of ['discountType', 'discountValue', 'discountAmount', 'discountAmountGross']) {
+    for (const id of ['discountType', 'discountValue', 'discountAmount']) {
       expect(previewIds()).toContain(id)
       expect(visible).not.toContain(id)
     }
@@ -61,13 +61,40 @@ describe('preview columns', () => {
     const visible = previewIds()
     const at = visible.indexOf('plannedQty')
 
-    expect(visible.slice(at, at + 5)).toEqual([
-      'plannedQty',
-      'unit',
-      'price',
-      'plannedNet',
+    expect(visible.slice(at, at + 4)).toEqual(['plannedQty', 'unit', 'price', 'plannedNet'])
+  })
+
+  // The offer is quoted netto (owner, 2026-09-28): no gross figure reaches the investor's document.
+  it('carries no brutto column', () => {
+    const grossIds = [
       'plannedGross',
-    ])
+      'priceGross',
+      'discountAmountGross',
+      'gross',
+      'remainingGross',
+    ]
+    const visible = previewIds()
+
+    for (const id of grossIds) expect(visible).not.toContain(id)
+    expect(visible.filter((id) => id.startsWith('stageValueGross'))).toEqual([])
+  })
+
+  // The owner's stored order for this offer — distinct from the per-browser `columnRanks`, which the
+  // first spec above already proves inert.
+  it('follows the stored document order', () => {
+    const visible = previewIds({ previewColumnRanks: { net: -2, stageQtySum: -1 } })
+
+    expect(visible.slice(0, 3)).toEqual(['description', 'net', 'stageQtySum'])
+  })
+
+  it('keeps „Opis prac" first whatever rank it is given', () => {
+    const visible = previewIds({ previewColumnRanks: { description: 99, net: -1 } })
+
+    expect(visible.slice(0, 2)).toEqual(['description', 'net'])
+  })
+
+  it('is not reordered by the per-browser column order', () => {
+    expect(previewIds({ columnRanks: { net: -1, description: 99 } })).toEqual(previewIds())
   })
 
   it('carries the offer and the progress together', () => {
@@ -84,8 +111,6 @@ describe('preview columns', () => {
       expect(visible).toContain(id)
     }
     expect(visible).toContain('stageValueNet_7')
-    // Netto and brutto side by side — the preview is not pinned to the investment's settlement mode.
-    expect(visible).toContain('stageValueGross_7')
   })
 
   it('withholds the owner-authored komentarz', () => {
@@ -116,13 +141,13 @@ describe('preview columns', () => {
   })
 
   // Keyed by toggleKey like every other gate, so one stored key takes the whole per-etap family —
-  // hiding „Wartość brutto" for etap 1 only would print a grid whose columns disagree per etap.
+  // hiding „Wartość netto" for etap 1 only would print a grid whose columns disagree per etap.
   it('takes a per-etap family whole, from its group key', () => {
-    const visible = previewIds({ previewHiddenColumns: new Set(['stageValueGross']) })
+    const visible = previewIds({ previewHiddenColumns: new Set(['stageValueNet']) })
 
-    expect(visible).not.toContain('stageValueGross_7')
-    expect(visible).not.toContain('stageValueGross_9')
-    expect(visible).toContain('stageValueNet_7')
+    expect(visible).not.toContain('stageValueNet_7')
+    expect(visible).not.toContain('stageValueNet_9')
+    expect(visible).toContain('stage_7')
   })
 
   // The per-etap group key would take every etap with the empty one; an etap with no entries goes alone.
@@ -143,7 +168,12 @@ describe('preview columns', () => {
     const workerIds = buildV2Columns({
       view: 'w_tools',
       stages: crewStages,
-      workerSurface: { plane: 'w_tools', hiddenColumns: [], executedQtyByItem: {} },
+      workerSurface: {
+        plane: 'w_tools',
+        hiddenColumns: [],
+        columnRanks: {},
+        executedQtyByItem: {},
+      },
       previewHiddenColumns: emptySettlementColumnIds([stageRow()], crewStages),
     }).map((column) => column.id)
 

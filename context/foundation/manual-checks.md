@@ -1583,3 +1583,26 @@ co było otwarte wcześniej.
 - [ ] Otwarcie A, bez żadnej zmiany otwarcie B, powrót do `/szablony`: A nie przeskakuje na górę listy (przełączenie z nietkniętego szablonu nic mu nie zapisuje)
 - [ ] „Nowy szablon": w górnym pasku od razu jest nazwa nowego szablonu i strzałka powrotu
 - [ ] Przywrócenie wersji w „Wersje" w warsztacie po otwarciu z listy przeładowuje siatkę
+
+## document-column-order — kolejność kolumn inwestora i pracownika ustawiana w ustawieniach (EX-884, 2026-09-28)
+
+### Ustawienia podglądu inwestora
+
+- [ ] „Ustawienia podglądu…" → „Ustaw kolejność kolumn…": lista nie wymienia „Opis prac", a na liście
+      znaczników „Opis prac" jest zaznaczony i zablokowany.
+- [ ] Przeciągnij „Wartość przedmiaru netto" na początek, „Zapisz": podgląd, link inwestora i oferta PDF
+      mają „Opis prac", potem „Wartość przedmiaru netto" — w tej samej kolejności.
+- [ ] Przeciągnij kolumnę i zamknij okno ustawień bez „Zapisz": po ponownym otwarciu kolejność jest
+      poprzednia, a dokument się nie zmienił.
+- [ ] „Zapisz jako domyślne" z własną kolejnością, potem na innej inwestycji bez własnych ustawień:
+      podgląd ma tę kolejność. „Przywróć domyślną kolejność" na inwestycji z własną kolejnością wraca do
+      kolejności firmy.
+- [ ] Oferta zapisana przed wdrożeniem (własny wiersz, bez kolejności) pokazuje kolejność wbudowaną,
+      a „Przywróć domyślną kolejność" jest aktywne i przestawia ją na kolejność firmy.
+- [ ] W ustawieniach nie ma żadnej kolumny brutto; oferta, której zestaw zapisano wcześniej z kolumną
+      brutto, nie pokazuje jej ani w podglądzie, ani w linku, ani w PDF.
+
+### Ustawienia widoku pracownika
+
+- [ ] „Ustaw kolejność kolumn…" w ustawieniach pracownika: po „Zapisz" link pracownika i PDF pracownika
+      mają nową kolejność, „Opis prac" pierwszy; „Przywróć domyślną kolejność" wraca do wbudowanej.
