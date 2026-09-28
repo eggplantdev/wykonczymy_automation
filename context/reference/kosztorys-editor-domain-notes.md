@@ -706,9 +706,49 @@ czekanie na kwotę zostawiało listę obiecującą zastąpienie, którego silnik
   robi automatyczny zapis wersji kosztorysu przed każdym nadpisaniem, tak samo jak usunięcie
   sekcji. **Nie zgłaszaj ponownie „brak cofania" jako buga** — to wybór, a stan da się odzyskać
   z listy wersji.
-- **Migawki (wersje) nie niosą ustawień rabatu globalnego** — rabat to ustalenie per inwestycja i
-  nigdy nie podróżuje przez przywrócenie wersji ani przez preset. Przywrócenie starej wersji zostawia
-  bieżący rabat kwotowy nietknięty (wiersze migawki mają swoje własne rabaty per pozycja).
+- **Rabat globalny nie podróżuje przez przywrócenie wersji ani przez preset** — to ustalenie per
+  inwestycja. Przywrócenie starej wersji zostawia bieżący rabat kwotowy nietknięty (wiersze migawki
+  mają swoje własne rabaty per pozycja). Od 2026-09-28 (EX-881) migawka **zapisuje** rabat globalny
+  (`globalDiscount` w payloadzie), ale wyłącznie do wyświetlenia w historii inwestora — przywracanie
+  go ignoruje, tak jak przedtem.
+
+### Historia zmian dla inwestora (2026-09-28, EX-881)
+
+Inwestor na swoim linku (`/k/[token]`) i właściciel w „Podgląd dla inwestora" widzą ten sam ekran:
+przycisk „Historia zmian" z listą dni, w których kosztorys się zmienił, i widok wybranego dnia
+porównany z **bieżącym** stanem (nie z poprzednim dniem). Adres jest stanem: `?wersja=<id>`.
+
+**Rodzaje wersji i dla kogo są** (`kosztorys_snapshots.kind`):
+
+| Rodzaj   | Skąd                                                                                                                               | Kto widzi                                         |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| `auto`   | co 10 min, gdy edytor jest otwarty                                                                                                 | właściciel („Wersje") + historia sprzed wdrożenia |
+| `manual` | „Zapisz jako…" sprzed wdrożenia                                                                                                    | tylko właściciel                                  |
+| `named`  | „Zapisz jako…" od wdrożenia — kamień milowy z etykietą                                                                             | właściciel + inwestor                             |
+| `daily`  | nocny cron (`/api/cron/daily-snapshots`, 23:15 UTC) — stan z końca dnia warszawskiego, tylko gdy różni się od poprzedniego `daily` | inwestor                                          |
+
+Historia sprzed wdrożenia to najnowszy `auto` z każdego dnia, który przetrwał przerzedzanie.
+**Stare reguły dla starych wierszy:** przeszłe `manual` nie stają się kamieniami milowymi, a przeszłe
+`auto` dalej przerzedzają się i wygasają pasmami.
+
+**Retencja** (`gcSnapshots`): `auto`/`manual` bez zmian (30 dni wszystko → dzień do 120 → tydzień do
+365 → koniec). `daily` i `named` nie podlegają pasmom ani limitowi 365 dni: żyją, dopóki inwestycja
+jest Planowana lub Aktywna, a po Zakończonej jeszcze rok od `investments.completed_at` (ustawiane
+przy przejściu na Zakończoną, zerowane przy ponownym otwarciu). Zakończona bez `completed_at` trzyma
+historię — brak danych nigdy jej nie kasuje. Właściciel nie może ukryć dnia przed inwestorem.
+
+**Porównywanie wersji odwraca decyzję S-06 „bez diffowania"** (`context/archive/2026-07-10-kosztorys-snapshots/`),
+ale tylko na potrzeby wyświetlenia — przywracanie działa jak przedtem. Pozycje dopasowuje się po id,
+a gdy zbiory id są rozłączne (przywrócenie albo „wczytaj szablon" nadaje nowe), po nazwie sekcji +
+opisie + j.m. Zmiana „Pomiaru z natury" liczy się per etap. Wersja zapisana, zanim migawka niosła
+rabat, pokazuje „Rabat nieznany", nigdy „0,00 zł" — brak pola w payloadzie JEST tym znacznikiem.
+Kolumny i wiersze dnia z przeszłości idą za **dzisiejszymi** ustawieniami widoku klienta; panel
+„Podsumowanie" (wpłaty, bilans) jest wtedy ukryty, bo czyta dzisiejsze kwoty.
+
+**Odczyt jest publiczny, ale zawężony do tokenu:** `getPreviewHistoryByToken` przyjmuje id wersji
+z adresu i filtruje po inwestycji i rodzaju w samym `WHERE` — id cudzej inwestycji, wersja `manual`
+albo śmieci w `?wersja=` dają widok bieżący, nie błąd; unieważniony token kończy się 404 jak
+przedtem. Widok ekipy (`worker`) historii nie dostaje w ogóle.
 
 ### Pusta komórka liczbowa to zero, nie „brak" (2026-08-25)
 

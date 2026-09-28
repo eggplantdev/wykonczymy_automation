@@ -702,5 +702,5 @@ are untouched.
 
 #### Automated
 
-- [ ] 5.1 history-view DOM spec passes
-- [ ] 5.2 history-dialog DOM spec passes
+- [x] 5.1 history-view DOM spec passes — 411dc831
+- [x] 5.2 history-dialog DOM spec passes — 411dc831
