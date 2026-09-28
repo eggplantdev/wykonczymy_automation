@@ -454,7 +454,21 @@ export function KosztorysEditorBody({
               </header>
             ) : (
               <>
-                <KosztorysEditorToolbar />
+                <KosztorysEditorToolbar
+                  protocolSource={
+                    investment && !isWorkshop
+                      ? {
+                          investment,
+                          materials: {
+                            grossBase: panelData.materialsGrossBase,
+                            netBilled: panelData.materialsNetBilled,
+                          },
+                          depositTransactions,
+                          lossAmount: investmentLoss,
+                        }
+                      : undefined
+                  }
+                />
                 {/* Without this the editor just looks broken — cells refuse focus and nothing says why.
                   Never under the preview: the client's document knows nothing of our statuses. */}
                 {locked && <KosztorysLockedBanner />}

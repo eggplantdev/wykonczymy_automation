@@ -31,9 +31,17 @@ import { KosztorysClientViewDialog } from '@/components/kosztorys/editor/dialogs
 import { KosztorysShareDialog } from '@/components/kosztorys/editor/dialogs/kosztorys-share-dialog'
 import { KosztorysWorkerShareDialog } from '@/components/kosztorys/editor/dialogs/kosztorys-worker-share-dialog'
 import { KosztorysWorkerViewDialog } from '@/components/kosztorys/editor/dialogs/kosztorys-worker-view-dialog'
+import {
+  AcceptanceProtocolDialog,
+  type AcceptanceProtocolSourceT,
+} from '@/components/kosztorys/editor/dialogs/acceptance-protocol-dialog'
 
 // Item and dialog are siblings, never nested — see KosztorysActionsProvider for why.
-export function KosztorysActionsMenu() {
+export function KosztorysActionsMenu({
+  protocolSource,
+}: {
+  protocolSource?: AcceptanceProtocolSourceT
+}) {
   const {
     onOpenVersions,
     openImport,
@@ -57,7 +65,7 @@ export function KosztorysActionsMenu() {
       {!isWorkshop && (
         <>
           <KosztorysWorkersMenu />
-          <KosztorysInvestorMenu />
+          <KosztorysInvestorMenu hasProtocol={protocolSource != null} />
         </>
       )}
       <DropdownMenu>
@@ -146,6 +154,7 @@ export function KosztorysActionsMenu() {
       <KosztorysShareDialog />
       <KosztorysWorkerShareDialog />
       <KosztorysWorkerViewDialog />
+      {protocolSource && <AcceptanceProtocolDialog source={protocolSource} />}
     </>
   )
 }

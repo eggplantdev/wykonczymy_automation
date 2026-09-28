@@ -31,6 +31,7 @@ type KosztorysActionsT = {
   catalogueCompare: DialogToggleT
   investor: InvestorActionsT
   worker: WorkerActionsT
+  acceptanceProtocol: DialogToggleT
 }
 
 const KosztorysActionsContext = createContext<KosztorysActionsT | null>(null)
@@ -49,6 +50,7 @@ export function KosztorysActionsProvider({ children }: { children: ReactNode }) 
   const catalogueCompare = useDialogToggle()
   const investor = useInvestorActions()
   const worker = useWorkerActions()
+  const acceptanceProtocol = useDialogToggle()
   const value: KosztorysActionsT = {
     version,
     clear,
@@ -58,6 +60,7 @@ export function KosztorysActionsProvider({ children }: { children: ReactNode }) 
     catalogueCompare,
     investor,
     worker,
+    acceptanceProtocol,
   }
 
   return <KosztorysActionsContext value={value}>{children}</KosztorysActionsContext>

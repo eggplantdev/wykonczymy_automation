@@ -20,8 +20,13 @@ import { KosztorysSectionsMenu } from '@/components/kosztorys/editor/toolbar/men
 import { KosztorysProblemsMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-problems-menu'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { cn } from '@/lib/utils/cn'
+import type { AcceptanceProtocolSourceT } from '@/components/kosztorys/editor/dialogs/acceptance-protocol-dialog'
 
-export function KosztorysEditorToolbar() {
+export function KosztorysEditorToolbar({
+  protocolSource,
+}: {
+  protocolSource?: AcceptanceProtocolSourceT
+}) {
   const { search, setSearch, view, setView, subtotals, readOnly, isWorkshop } =
     useKosztorysEditorContext()
   // Phone only — both groups below are `sm:contents`, so from 768 up this flag stops mattering.
@@ -91,7 +96,7 @@ export function KosztorysEditorToolbar() {
                 „Problemy" while its window is still mounted beside the other „Opcje" dialogs, so the
                 trigger and the dialog only reach the same state under one shared provider. */}
             <KosztorysActionsProvider>
-              <KosztorysActionsMenu />
+              <KosztorysActionsMenu protocolSource={protocolSource} />
               {/* Absent when nothing is wrong, so it sits where the eye lands, not between two
                   permanent controls. */}
               <KosztorysProblemsMenu />

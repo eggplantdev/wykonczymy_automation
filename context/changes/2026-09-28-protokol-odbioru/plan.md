@@ -354,10 +354,10 @@ Run **once**, after the final phase.
 
 #### Automated
 
-- [x] 2.1 build-protocol-html spec passes
+- [x] 2.1 build-protocol-html spec passes — 4567ba29
 
 ### Phase 3: Dialog, menu item and print wiring
 
 #### Automated
 
-- [ ] 3.1 offer print spec still passes
+- [x] 3.1 offer print spec still passes
