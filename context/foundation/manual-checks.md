@@ -521,9 +521,9 @@ i „podmienione body"; boks z `403` potwierdza za to odmowę przy złym sekreci
       wgrywaniu (pole „To jest rzut lub projekt") i z galerii asetów („Oznacz jako rzut").
 - [x] Skasowanie faktury podpiętej pod transakcję jest odrzucone czytelnym polskim komunikatem
       <!-- staging 2026-09-24: /admin/collections/media/1772 (invoice1-0cd005.png, podpięta pod transakcję 5252)
-           → „Usuń" → „Potwierdź" dało toast „Nie można usunąć pliku — jest używany w innych miejscach
-           (transakcje: 1). Najpierw odepnij go tam." Po próbie media 1772 nadal istnieje i wciąż ma
-           1 wiersz w transactions_rels (path='invoice') — nic nie zostało skasowane w Blobie. -->
+               → „Usuń" → „Potwierdź" dało toast „Nie można usunąć pliku — jest używany w innych miejscach
+               (transakcje: 1). Najpierw odepnij go tam." Po próbie media 1772 nadal istnieje i wciąż ma
+               1 wiersz w transactions_rels (path='invoice') — nic nie zostało skasowane w Blobie. -->
 - [x] Inwestycja pokazuje podpięte pliki w `/admin` po akcji dodania
       **Zweryfikowane na stagingu:** po wgraniu ośmiu plików z karty inwestycji
       `/admin/collections/investments/137` → pole „Zdjęcia i pliki" listuje dokładnie tę ósemkę
@@ -538,45 +538,45 @@ i „podmienione body"; boks z `403` potwierdza za to odmowę przy złym sekreci
       przechodzi (patrz finding o cichym błędzie niżej).
 - [x] Dodanie zdjęcia przy tworzeniu nowej inwestycji — leży na jej karcie
       <!-- staging 2026-09-24: „Inwestycje" → „Dodaj" → nazwa „QA EX-802 nowa inwestycja" + jeden PNG
-           w polu „Zdjęcia i pliki" (dialog pokazał nazwę pliku przed zapisem) → „Dodaj". Powstała
-           inwestycja 157 z wierszem `investments_rels` path `assets` → media 1817
-           (`qa802-1-81e271.png`), a jej karta `/inwestycje/157` od razu niesie „Dokumentacja (1)". -->
+               w polu „Zdjęcia i pliki" (dialog pokazał nazwę pliku przed zapisem) → „Dodaj". Powstała
+               inwestycja 157 z wierszem `investments_rels` path `assets` → media 1817
+               (`qa802-1-81e271.png`), a jej karta `/inwestycje/157` od razu niesie „Dokumentacja (1)". -->
 - [~] ~~Pasek miniatur nie przewija się w poziomie przy 375px~~ — nieaktualne: na karcie inwestycji
-      nie ma już paska miniatur (patrz sekcja „EX-802 — investment-assets-dialog", która to zastępuje)
+  nie ma już paska miniatur (patrz sekcja „EX-802 — investment-assets-dialog", która to zastępuje)
 - [x] Zdjęcie HEIC z iPhone'a konwertuje się i wgrywa
       <!-- staging 2026-09-24: syntetyczny `qa802.heic` (ISO Media, HEIF HEVC Main 10, 1600×1200, 5,9 kB)
-           wgrany z karty inw. 137 → „Zdjęcia i pliki" → „Dodaj kolejne". Toast „Pliki dodane", licznik
-           „Dokumentacja (8)" → „(9)" bez przeładowania, a w bazie media 1816 = `qa802-169b13.jpg`,
-           `image/jpeg`, 1600×1200, 21 357 B — czyli konwersja po stronie klienta zadziałała. -->
+               wgrany z karty inw. 137 → „Zdjęcia i pliki" → „Dodaj kolejne". Toast „Pliki dodane", licznik
+               „Dokumentacja (8)" → „(9)" bez przeładowania, a w bazie media 1816 = `qa802-169b13.jpg`,
+               `image/jpeg`, 1600×1200, 21 357 B — czyli konwersja po stronie klienta zadziałała. -->
 - [x] W `/admin` zgłoszenie z Facebooka nie pokazuje trzech pól landingowych, zgłoszenie z landingu pokazuje
       <!-- staging 2026-09-24: lead 220 (`facebook_lead_ads`) → etykiety pól: Źródło, Email, Imię i nazwisko,
-           Telefon, Inwestycja, Surowe dane, … — bez „Adres", „Zakres prac", „Metraż" i „Zdjęcia i pliki".
-           Lead 221 (`landing_form`) → ta sama lista plus właśnie te cztery. -->
+               Telefon, Inwestycja, Surowe dane, … — bez „Adres", „Zakres prac", „Metraż" i „Zdjęcia i pliki".
+               Lead 221 (`landing_form`) → ta sama lista plus właśnie te cztery. -->
 - [ ] Podpisany POST JSON z `curl`, wskazujący realny URL bloba, tworzy zgłoszenie razem z plikami
 - [ ] Ten sam request powtórzony nie tworzy niczego i nie wysyła maila
 - [ ] Request z `assets[].url` spoza hosta z allowlisty jest odrzucony i alertuje
 - [ ] Request z podmienionym body jest odrzucony (403)
 - [x] Promocja zgłoszenia z landingu od początku do końca — karta nowej inwestycji pokazuje zdjęcia klienta
       <!-- staging 2026-09-24: lead 221 („QA Landing Fixture", `landing_form`, dwa pliki dopięte jako
-           fikstura) → „Zgłoszenia" → „Dodaj". Okno „Nowa inwestycja ze zgłoszenia" przyszło wypełnione
-           ze zgłoszenia (nazwa = imię + adres, adres, telefon, email, osoba kontaktowa) i mówiło
-           „Przejdą do inwestycji: 2 z 2". Po „Utwórz" powstała inwestycja 158 (status „planowana"),
-           a jej karta `/inwestycje/158` niesie „Dokumentacja (2)" — w bazie oba media klienta
-           (1814, 1815) pod `investments_rels` path `assets`. -->
+               fikstura) → „Zgłoszenia" → „Dodaj". Okno „Nowa inwestycja ze zgłoszenia" przyszło wypełnione
+               ze zgłoszenia (nazwa = imię + adres, adres, telefon, email, osoba kontaktowa) i mówiło
+               „Przejdą do inwestycji: 2 z 2". Po „Utwórz" powstała inwestycja 158 (status „planowana"),
+               a jej karta `/inwestycje/158` niesie „Dokumentacja (2)" — w bazie oba media klienta
+               (1814, 1815) pod `investments_rels` path `assets`. -->
 - [x] Zgłoszenie po promocji podaje link do inwestycji zamiast przycisku i zostaje przy „Oczekuje"
       <!-- staging 2026-09-24: ten sam wiersz po promocji ma w kolumnie „Inwestycja" link
-           `/inwestycje/158` z nazwą inwestycji zamiast przycisku „Dodaj", a „Status kontaktu" nadal
-           „Oczekuje" (`leads.contact_status='new'`, `investment_id=158`). -->
+               `/inwestycje/158` z nazwą inwestycji zamiast przycisku „Dodaj", a „Status kontaktu" nadal
+               „Oczekuje" (`leads.contact_status='new'`, `investment_id=158`). -->
 - [x] Odznaka nieprzeczytanych zgłoszeń w nawigacji nie spada po samej promocji — ~~dopiero po
       kliknięciu „Skontaktowano"~~ **druga połowa brzmienia jest nieaktualna, nie jest defektem**
       <!-- staging 2026-09-24: odznaka liczy zgłoszenia utworzone po kursorze użytkownika
-           (`countUnreadLeads`, `src/lib/db/notifications.ts` — `created_at > notification_reads.seen_at`),
-           a kursor przesuwa render samej strony `/zgloszenia` (`markSeen` w `zgloszenia/page.tsx`).
-           Zmierzone przy kursorze cofniętym do 2026-09-20 i odczycie odznaki z `/inwestycje`:
-           3 przed promocją, 3 po promocji leada 221, 3 po przestawieniu go na „Skontaktowano".
-           Czyli: promocja rzeczywiście nie rusza odznaki (sprawdzana teza), ale i „Skontaktowano"
-           jej nie rusza — gasi ją samo wejście na listę zgłoszeń. Brzmienie boksu do poprawienia
-           przy najbliższej okazji. -->
+               (`countUnreadLeads`, `src/lib/db/notifications.ts` — `created_at > notification_reads.seen_at`),
+               a kursor przesuwa render samej strony `/zgloszenia` (`markSeen` w `zgloszenia/page.tsx`).
+               Zmierzone przy kursorze cofniętym do 2026-09-20 i odczycie odznaki z `/inwestycje`:
+               3 przed promocją, 3 po promocji leada 221, 3 po przestawieniu go na „Skontaktowano".
+               Czyli: promocja rzeczywiście nie rusza odznaki (sprawdzana teza), ale i „Skontaktowano"
+               jej nie rusza — gasi ją samo wejście na listę zgłoszeń. Brzmienie boksu do poprawienia
+               przy najbliższej okazji. -->
 
 ### Findings — 2026-09-23/24 (staging/preview pass)
 
@@ -676,10 +676,10 @@ panel montuje się także na pustym kosztorysie.
 - [x] Zakładka „Inwestycja" stoi jako ostatnia, za „Marżą", i pokazuje komplet pól karty inwestycji;
       puste pola są odfiltrowane
       <!-- staging 2026-09-24 (commit 48bb1625, z naprawą filtrowania). Kolejność zakładek:
-           Podsumowanie · Materiały · Robocizna · Podwykonawcy · Marża · Inwestycja — ostatnia.
-           Inw. 19 (komplet danych): Adres · Telefon · Email · Opinia · Status + Dokumentacja.
-           Inw. 74 (phone/email/review puste w bazie): zostają tylko Status i notatki — żadnego
-           „Email —" ani „Opinia —". -->
+               Podsumowanie · Materiały · Robocizna · Podwykonawcy · Marża · Inwestycja — ostatnia.
+               Inw. 19 (komplet danych): Adres · Telefon · Email · Opinia · Status + Dokumentacja.
+               Inw. 74 (phone/email/review puste w bazie): zostają tylko Status i notatki — żadnego
+               „Email —" ani „Opinia —". -->
 
 ### Findings — 2026-09-23 (staging/preview pass)
 
@@ -758,15 +758,15 @@ Licznik renderów czytaj z logu dev: `[PERF] buildKosztorysTree` (drzewo jest ni
 Account as the scope.` — to był zły argument `--scope`, nie brak dostępu. Właściwy scope to
       zespół projektu z `.vercel/project.json` (`orgId`), nie konto CLI:
 
-                        ```bash
-                        npx vercel logs https://<deployment>.vercel.app --scope=team_BWfyTqJnjIqZBkHwBL0elgS4
-                        ```
+                          ```bash
+                          npx vercel logs https://<deployment>.vercel.app --scope=team_BWfyTqJnjIqZBkHwBL0elgS4
+                          ```
 
-                        Strumień oddaje runtime stdout pogrupowany per request, a `console.log` w `buildKosztorysTree`
-                        (`src/lib/queries/kosztorys.ts:71`) nie jest bramkowany `NODE_ENV`, więc linia `[PERF]
-                        buildKosztorysTree …` wychodzi tak samo z builda produkcyjnego na stagingu, jak z dev.
-                        Właściwy box wyżej policzony tą drogą i odhaczony — jeden wpis na jeden upload.
-                        **Test disposition:** no automated test — to obserwowalność (log count), nie asercja stanu.
+                          Strumień oddaje runtime stdout pogrupowany per request, a `console.log` w `buildKosztorysTree`
+                          (`src/lib/queries/kosztorys.ts:71`) nie jest bramkowany `NODE_ENV`, więc linia `[PERF]
+                          buildKosztorysTree …` wychodzi tak samo z builda produkcyjnego na stagingu, jak z dev.
+                          Właściwy box wyżej policzony tą drogą i odhaczony — jeden wpis na jeden upload.
+                          **Test disposition:** no automated test — to obserwowalność (log count), nie asercja stanu.
 
 ## EX-820 — sufit stawki wykonawcy z „Problemów" do „Filtrów" (2026-09-22)
 
@@ -928,23 +928,21 @@ inwestorem i przenoszenie między cennikiem a rozpiską działają w przeglądar
       (sekcja z poz. 5: 800,00 z mnożnika + 650,00 z wiersza „auto") + 937,50, więc kopia SQL wycenia
       mnożnik tak samo jak siatka.
 - [ ] Pozycja z mnożnikiem ponad sufitem czerwienieje na obu komórkach i wchodzi do „Problemów"
-      **Sprawdzone na stagingu (inw. 137, poz. 5) — zostaje otwarte, dwa osobne fakty:**
-      1. **Defekt: czerwieni się tylko jedna komórka.** Mnożnik 0,9 przy cenie 200,00 daje stawkę
-         180,00 przy sufircie 130,00 (65%). W DOM czerwona (`text-destructive`) jest wyłącznie
-         wyliczona „Cena j.m. netto — z narzędziami (podwykonawca)"; input w komórce „Mnożnik"
-         zostaje neutralny, bo `SubcontractorCoeffCell`
-         (`src/components/kosztorys/editor/grid/cells/subcontractor-columns.tsx`) nakłada
-         `FLAGGED_TONE` tylko przy `edit.blockReason`, czyli przy odmowie zapisu — nie przy
-         przekroczeniu sufitu. Decyzja właściciela była odwrotna: „czerwień na obu komórkach"
-         (tabela decyzji, wiersz „Sufit" — plan skasowany przy archiwizacji, w historii:
-         `git show 0ec91492^:context/changes/2026-09-23-przywrocenie-wlasnego-mnoznika-stawki-wykonawcy/plan-brief.md`). Do poprawienia w kodzie.
-      2. **Druga połowa treści checku jest nieaktualna, nie jest defektem.** „Problemy" nie mają i nie
-         mają mieć wpisu o sufircie — od decyzji właściciela z 2026-09-20 sufit jest **filtrem**, a nie
-         alarmem (`src/lib/kosztorys/row-conditions/registry.ts`, `kind: 'filter'`; EX-820). Sprawdzone:
-         menu „Problemy" wymienia tylko „Ceny dla klienta / Stawki wykonawców — Pozycje bez ceny
-         wykonawcy / Katalog prac", a pozycja po edycji **weszła do filtra** „Pozycje z własną stawką
-         powyżej sufitu w widoku z narzędziami (podwykonawca)" (34 → 35). Treść checku należy
-         przeformułować na „wchodzi do filtra sufitu".
+      **Sprawdzone na stagingu (inw. 137, poz. 5) — zostaje otwarte, dwa osobne fakty:** 1. **Defekt: czerwieni się tylko jedna komórka.** Mnożnik 0,9 przy cenie 200,00 daje stawkę
+      180,00 przy sufircie 130,00 (65%). W DOM czerwona (`text-destructive`) jest wyłącznie
+      wyliczona „Cena j.m. netto — z narzędziami (podwykonawca)"; input w komórce „Mnożnik"
+      zostaje neutralny, bo `SubcontractorCoeffCell`
+      (`src/components/kosztorys/editor/grid/cells/subcontractor-columns.tsx`) nakłada
+      `FLAGGED_TONE` tylko przy `edit.blockReason`, czyli przy odmowie zapisu — nie przy
+      przekroczeniu sufitu. Decyzja właściciela była odwrotna: „czerwień na obu komórkach"
+      (tabela decyzji, wiersz „Sufit" — plan skasowany przy archiwizacji, w historii:
+      `git show 0ec91492^:context/changes/2026-09-23-przywrocenie-wlasnego-mnoznika-stawki-wykonawcy/plan-brief.md`). Do poprawienia w kodzie. 2. **Druga połowa treści checku jest nieaktualna, nie jest defektem.** „Problemy" nie mają i nie
+      mają mieć wpisu o sufircie — od decyzji właściciela z 2026-09-20 sufit jest **filtrem**, a nie
+      alarmem (`src/lib/kosztorys/row-conditions/registry.ts`, `kind: 'filter'`; EX-820). Sprawdzone:
+      menu „Problemy" wymienia tylko „Ceny dla klienta / Stawki wykonawców — Pozycje bez ceny
+      wykonawcy / Katalog prac", a pozycja po edycji **weszła do filtra** „Pozycje z własną stawką
+      powyżej sufitu w widoku z narzędziami (podwykonawca)" (34 → 35). Treść checku należy
+      przeformułować na „wchodzi do filtra sufitu".
 - [x] Menu „Filtry" pokazuje trzy wpisy źródła na płaszczyznę, a wybór każdego odsłania kolumny cenowe
       **Zweryfikowane na stagingu (inw. 137):** grupa „Źródło stawki wykonawcy" wymienia na płaszczyźnie
       „z narzędziami (podwykonawca)" wszystkie trzy źródła (kwota stała 234, własny mnożnik 1, auto 142),
@@ -982,11 +980,11 @@ inwestorem i przenoszenie między cennikiem a rozpiską działają w przeglądar
       „Aktualizuj kosztorys (0)" słusznie nie ma czego nadpisać.
 - [x] Wzięcie „auto" z katalogu kasuje w rozpisce **oba** nadpisania (kwotę i mnożnik)
       <!-- staging 2026-09-24: poz. „mikrocement" (inw. 138) z ustawionymi OBOMA nadpisaniami
-           (kwota 180,00 + mnożnik ×0,5 — wiersz pokazywał „×0,5 (100,00 zł)"), wpis katalogowy
-           przestawiony na „auto". „Problemy → Porównaj z katalogiem… → Pokaż … różnic" wylistowało
-           rozjazd „Stawka z narzędziami (podwykonawca) · ×0,5 (100,00 zł) · auto · -30,00 zł";
-           po zaznaczeniu tylko tego wiersza „Aktualizuj kosztorys (1)" obie kolumny nadpisań
-           wróciły puste. -->
+               (kwota 180,00 + mnożnik ×0,5 — wiersz pokazywał „×0,5 (100,00 zł)"), wpis katalogowy
+               przestawiony na „auto". „Problemy → Porównaj z katalogiem… → Pokaż … różnic" wylistowało
+               rozjazd „Stawka z narzędziami (podwykonawca) · ×0,5 (100,00 zł) · auto · -30,00 zł";
+               po zaznaczeniu tylko tego wiersza „Aktualizuj kosztorys (1)" obie kolumny nadpisań
+               wróciły puste. -->
 
 ## wydruk-oferty — Wydruk oferty z kosztorysu (2026-09-23)
 
@@ -1000,29 +998,29 @@ wydruku i zgodność liczb z podglądem klienta, kosztorys po kosztorysie.
 - [x] „Razem — <sekcja>" na wydruku == wiersz sumy sekcji w podglądzie klienta
 - [x] „Razem netto" na wydruku == „Razem" pod kolumną „Wartość netto przedmiar" w podglądzie klienta
       <!-- staging 2026-09-24, inw. 137 (2 sekcje, 7 pozycji niepustych). Wydruk przechwycony
-           podmianą `window.open` (bez dotykania prawdziwego okna wydruku): „Razem — Prace dodatkowe
-           3 000 zł", „Razem — Wyburzenia i demontaże 2 800 zł", „Razem netto 5 800 zł".
-           `/podglad-inwestora/137` w tym samym stanie: „Razem Prace dodatkowe 3000,00",
-           „Razem Wyburzenia i demontaże 2800,00", „Razem 5800,00" w kolumnie „Wartość przedmiaru
-           netto" (kolumna „Razem netto — po rabacie" niesie 3000,00 / 1675,00 / 4675,00 i słusznie
-           nie jest tym, co drukuje oferta). -->
+               podmianą `window.open` (bez dotykania prawdziwego okna wydruku): „Razem — Prace dodatkowe
+               3 000 zł", „Razem — Wyburzenia i demontaże 2 800 zł", „Razem netto 5 800 zł".
+               `/podglad-inwestora/137` w tym samym stanie: „Razem Prace dodatkowe 3000,00",
+               „Razem Wyburzenia i demontaże 2800,00", „Razem 5800,00" w kolumnie „Wartość przedmiaru
+               netto" (kolumna „Razem netto — po rabacie" niesie 3000,00 / 1675,00 / 4675,00 i słusznie
+               nie jest tym, co drukuje oferta). -->
 - [x] Podgląd zostawiony w trybie ROZLICZENIE, a wydruk nadal daje dokument ofertowy z kolumnami
       wariantu OFERTA
       <!-- staging 2026-09-24, inw. 137. Aktywny wariant w „Ustawieniach podglądu inwestora" =
-           „Rozliczenie" (zestaw m.in. Pomiar (razem etapy), Razem netto, Etapy — ilość / kwota,
-           % wykonania). Przechwycony wydruk dał mimo to kolumny wariantu OFERTA: Opis prac ·
-           Przedmiar · Jednostka miary · Cena j.m. · Wartość netto. -->
+               „Rozliczenie" (zestaw m.in. Pomiar (razem etapy), Razem netto, Etapy — ilość / kwota,
+               % wykonania). Przechwycony wydruk dał mimo to kolumny wariantu OFERTA: Opis prac ·
+               Przedmiar · Jednostka miary · Cena j.m. · Wartość netto. -->
 - [x] Odznaczenie „Pozostało" w ustawieniach podglądu zabiera kolumnę i z ekranu, i z wydruku —
       a suma sekcji zostaje pod „Wartość netto przedmiar"
       <!-- staging 2026-09-24, inw. 137, wariant OFERTA. Z zaznaczonym „Pozostało netto (względem
-           przedmiaru)": `/podglad-inwestora/137` pokazuje tę kolumnę, a wydruk niesie nagłówki
-           Opis prac · Przedmiar · Jednostka miary · Cena j.m. · Wartość netto · Pozostało.
-           Po odznaczeniu i zapisie kolumna znika z obu — wydruk ma pięć nagłówków bez „Pozostało",
-           a podgląd kończy się na „Wartość przedmiaru netto". Sumy sekcji bez zmian w obu stanach:
-           „Razem — Prace dodatkowe 3 000 zł", „Razem — Wyburzenia i demontaże 2 800 zł",
-           „Razem netto 5 800 zł". Uwaga przy powtarzaniu: przełączenie zakładki wariantu otwiera
-           potwierdzenie „Uwaga — zmiana widoczna dla inwestora!" i bez „Potwierdź" nic się nie
-           zapisuje (żaden POST nie wychodzi). -->
+               przedmiaru)": `/podglad-inwestora/137` pokazuje tę kolumnę, a wydruk niesie nagłówki
+               Opis prac · Przedmiar · Jednostka miary · Cena j.m. · Wartość netto · Pozostało.
+               Po odznaczeniu i zapisie kolumna znika z obu — wydruk ma pięć nagłówków bez „Pozostało",
+               a podgląd kończy się na „Wartość przedmiaru netto". Sumy sekcji bez zmian w obu stanach:
+               „Razem — Prace dodatkowe 3 000 zł", „Razem — Wyburzenia i demontaże 2 800 zł",
+               „Razem netto 5 800 zł". Uwaga przy powtarzaniu: przełączenie zakładki wariantu otwiera
+               potwierdzenie „Uwaga — zmiana widoczna dla inwestora!" i bez „Potwierdź" nic się nie
+               zapisuje (żaden POST nie wychodzi). -->
 - [ ] MANAGER (nie OWNER) — czy „Wygeneruj ofertę w PDF" ma być dla niego dostępne? Sąsiednie pozycje
       menu są wygaszane przez `useMayServeTheClient()`, ta nie. **Pytanie do właściciela**, nie defekt.
 
@@ -1223,3 +1221,20 @@ przed pushem przez człowieka (`pnpm db:migrate:prod`).
 - [ ] Menu mobilne (< 768 px) pokazuje „Kosz" właścicielowi, jako ostatnią pozycję
 - [ ] Lokalnie: `trashed_at = now() - interval '31 days'` na pustej inwestycji w koszu, wywołanie
       `/api/cron/cleanup` z `CRON_SECRET` → inwestycji nie ma w `/kosz`, JSON pokazuje `trash.purged: 1`
+
+## protokol-odbioru — protokół odbioru prac z menu „Inwestor" (2026-09-28)
+
+### Phase 3: Dialog, menu item and print wiring
+
+- [ ] „Inwestor → Protokół odbioru…" jest w kosztorysie inwestycji i nie ma go w szablonie.
+- [ ] Dialog podpowiada Zamawiającego (osoba kontaktowa, a bez niej nazwa inwestycji), adres,
+      dzisiejsze daty i rodzaj odbioru („końcowy", gdy każdy Przedmiar jest w pełni wykonany).
+- [ ] Rozliczenie w dialogu = Robocizna / Materiały / Wpłaty / Pozostało do zapłaty z „Podsumowania"
+      (netto), co do grosza; Strata pojawia się tylko, gdy jest.
+- [ ] Zakres prac to dokładnie pozycje z niezerowym Pomiarem z natury.
+- [ ] „Zaktualizuj dane inwestycji" jest nieaktywny, dopóki Zamawiający/adres się nie zmienią; po
+      zapisie inwestycja ma nowe wartości, a telefon/e-mail/notatki są nietknięte.
+- [ ] „Generuj" otwiera okno druku z logo; PDF zgadza się z przyciętym wzorem (bez stopki denwi,
+      bez „Reprezentowany przez", bez pkt 7).
+- [ ] Na kosztorysie bez wykonanej pracy „Generuj" jest nieaktywny, z wyjaśnieniem.
+- [ ] „Wygeneruj ofertę" drukuje się dalej z logo.
