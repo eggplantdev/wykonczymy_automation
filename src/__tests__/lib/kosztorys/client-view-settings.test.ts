@@ -79,4 +79,24 @@ describe('sanitizeClientViewSettings', () => {
 
     expect(settings.hiddenColumns).toEqual(['price'])
   })
+
+  it('never lets „Opis prac" be hidden', () => {
+    expect(
+      sanitizeClientViewSettings({ hiddenColumns: ['description', 'unit'] }).hiddenColumns,
+    ).toEqual(['unit'])
+  })
+
+  it.each([
+    ['a key outside the ceiling', { note: 1, price: 2 }],
+    ['a rank on the pinned column', { description: 9, price: 2 }],
+    ['a rank that is not a finite number', { price: 2, unit: Number.NaN, net: 'x' }],
+  ])('drops %s from the stored order', (_label, columnRanks) => {
+    expect(sanitizeClientViewSettings({ hiddenColumns: [], columnRanks }).columnRanks).toEqual({
+      price: 2,
+    })
+  })
+
+  it.each([undefined, null, 'x', 42])('reads a non-object order (%s) as never ordered', (raw) => {
+    expect(sanitizeClientViewSettings({ columnRanks: raw }).columnRanks).toEqual({})
+  })
 })

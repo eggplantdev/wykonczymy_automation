@@ -42,6 +42,10 @@ export const KosztorysClientView: CollectionConfig = {
       type: 'json',
     },
     {
+      name: 'columnRanks',
+      type: 'json',
+    },
+    {
       name: 'hideEmptyRows',
       type: 'checkbox',
       defaultValue: true,

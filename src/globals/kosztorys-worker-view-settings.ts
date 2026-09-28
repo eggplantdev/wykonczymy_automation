@@ -20,6 +20,10 @@ export const KosztorysWorkerViewSettings: GlobalConfig = {
       defaultValue: [],
     },
     {
+      name: 'columnRanks',
+      type: 'json',
+    },
+    {
       name: 'hideEmptyRows',
       type: 'checkbox',
       defaultValue: true,

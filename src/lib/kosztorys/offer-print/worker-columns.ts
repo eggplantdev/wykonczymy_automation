@@ -80,7 +80,7 @@ export function workerPrintColumns({
       ),
     ],
   }
-  return workerDocumentColumns(plane)
+  return workerDocumentColumns(plane, {})
     .filter((key) => visible.has(key))
     .flatMap((key) => byKey[key] ?? [])
 }

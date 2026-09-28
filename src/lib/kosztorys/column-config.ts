@@ -233,6 +233,11 @@ export const PREVIEW_VISIBLE_COLUMNS: ReadonlySet<string> = new Set(
   CLIENT_VIEW_GROUPS.flatMap((group) => group.keys),
 )
 
+// Always first and never hidden on both documents: a row with no „Opis prac" names nothing, and the
+// PDF's section total writes its „Razem — <sekcja>" label into the cells left of the money column,
+// which is only guaranteed to exist while this column leads.
+export const DOCUMENT_PINNED_COLUMN = 'description'
+
 // The investor's document — podgląd, link and „Generuj ofertę" alike — in reading order, which is not
 // the sheet's: the offered scope reads as one phrase (ilość, j.m., cena, wartość) ahead of the etapy,
 // and the pomiar follows the etapy it sums (owner, 2026-09-28). One list for the screen and the paper,

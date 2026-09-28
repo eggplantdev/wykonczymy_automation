@@ -1,17 +1,21 @@
 import {
   COLUMN_LABELS,
+  DOCUMENT_PINNED_COLUMN,
   WORKER_DOCUMENT_COLUMNS,
   WORKER_RATE_KEY,
   WORKER_VIEW_GROUPS,
 } from '@/lib/kosztorys/column-config'
+import { orderDocumentKeys, sanitizeDocumentRanks } from '@/lib/kosztorys/document-column-order'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import type { ToolPlaneT } from '@/lib/kosztorys/types'
+import type { ColumnRanksT } from '@/lib/table/column-order'
 
 // Firm-wide, one set for every worker and investment (design #5). Same shape as the investor's
 // ClientViewSettingsT, but a separate type: the two hold keys from different ceilings.
 export type WorkerViewSettingsT = {
   hiddenColumns: string[]
   hideEmptyRows: boolean
+  columnRanks: ColumnRanksT
 }
 
 const WORKER_VIEW_KEYS: ReadonlySet<string> = new Set(
@@ -21,6 +25,7 @@ const WORKER_VIEW_KEYS: ReadonlySet<string> = new Set(
 export const WORKER_VIEW_DEFAULT_SETTINGS: WorkerViewSettingsT = {
   hiddenColumns: [],
   hideEmptyRows: true,
+  columnRanks: {},
 }
 
 // Plane-agnostic names for the dialog: one tick answers for both rozliczenia, so it cannot quote the
@@ -40,17 +45,20 @@ export function workerColumnLabel(key: string): string | undefined {
 // ceiling — which is why `workerVisibleColumns` builds from the groups and only ever subtracts.
 export function sanitizeWorkerViewSettings(source: unknown): WorkerViewSettingsT {
   if (typeof source !== 'object' || source === null) return WORKER_VIEW_DEFAULT_SETTINGS
-  const { hiddenColumns, hideEmptyRows } = source as {
+  const { hiddenColumns, hideEmptyRows, columnRanks } = source as {
     hiddenColumns?: unknown
     hideEmptyRows?: unknown
+    columnRanks?: unknown
   }
   return {
     hiddenColumns: Array.isArray(hiddenColumns)
       ? hiddenColumns.filter(
-          (key): key is string => typeof key === 'string' && WORKER_VIEW_KEYS.has(key),
+          (key): key is string =>
+            typeof key === 'string' && WORKER_VIEW_KEYS.has(key) && key !== DOCUMENT_PINNED_COLUMN,
         )
       : WORKER_VIEW_DEFAULT_SETTINGS.hiddenColumns,
     hideEmptyRows: hideEmptyRows !== false,
+    columnRanks: sanitizeDocumentRanks(columnRanks, WORKER_VIEW_KEYS),
   }
 }
 
@@ -72,8 +80,10 @@ export function workerVisibleColumns(
   return columns
 }
 
-export function workerDocumentColumns(plane: ToolPlaneT): string[] {
-  return WORKER_DOCUMENT_COLUMNS.map((key) =>
+// Ordered over the LOGICAL keys, then mapped: the stawka's rank is stored under `rate`, so one
+// firm-wide order serves both rozliczenia.
+export function workerDocumentColumns(plane: ToolPlaneT, ranks: ColumnRanksT): string[] {
+  return orderDocumentKeys(WORKER_DOCUMENT_COLUMNS, ranks).map((key) =>
     key === WORKER_RATE_KEY ? planePriceKey('price', plane) : key,
   )
 }

@@ -12,8 +12,14 @@ const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SEC
 
 const CODE_DEFAULTS = sanitizeClientViewSettings({})
 
-const ROW_SETTINGS = { hiddenColumns: ['discountValue'], hideEmptyRows: false }
-const GLOBAL_SETTINGS = { hiddenColumns: ['plannedGross'], hideEmptyRows: true }
+// The row carries an order so the resolver's roundtrip covers it: a stored rank that came back
+// empty would silently serve every investment in the built-in order.
+const ROW_SETTINGS = {
+  hiddenColumns: ['discountValue'],
+  hideEmptyRows: false,
+  columnRanks: { net: -1 },
+}
+const GLOBAL_SETTINGS = { hiddenColumns: ['plannedGross'], hideEmptyRows: true, columnRanks: {} }
 
 describe.skipIf(!ENV_READY)('getClientViewSettings (DB)', () => {
   let payload: Payload
@@ -23,7 +29,7 @@ describe.skipIf(!ENV_READY)('getClientViewSettings (DB)', () => {
   const resetGlobal = () =>
     payload.updateGlobal({
       slug: 'kosztorys-client-view-defaults',
-      data: { hiddenColumns: null, hideEmptyRows: true },
+      data: { hiddenColumns: null, hideEmptyRows: true, columnRanks: null },
     })
 
   beforeAll(async () => {
@@ -82,7 +88,7 @@ describe.skipIf(!ENV_READY)('getClientViewSettings (DB)', () => {
     await payload.update({
       collection: 'kosztorys-client-view',
       where: { investment: { equals: investmentWithRow } },
-      data: { hiddenColumns: null, hideEmptyRows: true },
+      data: { hiddenColumns: null, hideEmptyRows: true, columnRanks: null },
     })
 
     expect(await getClientViewSettings(investmentWithRow)).toEqual(CODE_DEFAULTS)

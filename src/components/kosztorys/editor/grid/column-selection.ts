@@ -81,7 +81,7 @@ function closedColumnList(opts: BuildV2ColumnsOptsT): ReadonlySet<string> | null
 // which stays the workbench's.
 function documentOrder(opts: BuildV2ColumnsOptsT): readonly string[] | null {
   if (opts.previewVisible) return CLIENT_DOCUMENT_COLUMNS
-  if (opts.workerSurface) return workerDocumentColumns(opts.workerSurface.plane)
+  if (opts.workerSurface) return workerDocumentColumns(opts.workerSurface.plane, {})
   return null
 }
 
