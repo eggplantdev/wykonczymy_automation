@@ -10,9 +10,9 @@ vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 const onGlobalCoeffChange = vi.fn()
 
 const OVER_CEILING = /przekracza 65%/
-// Osobny wzorzec, bo komunikat nazywa próg TEJ płaszczyzny — 65% na obu czytałoby się jak spójność,
-// której nie ma.
-const OVER_CEILING_OWN_TOOLS = /przekracza 55%/
+// Its own pattern, because the message names THIS plane's ceiling — 65% on both would read as a
+// consistency that does not exist.
+const OVER_CEILING_OWN_TOOLS = /przekracza 55,25%/
 
 function renderSettings(coeffs = { wTools: 0.6, ownTools: 0.5 }) {
   render(
@@ -58,8 +58,8 @@ describe('Mnożnik ceny — próg ostrzega, nie odmawia', () => {
     expect(toastMessage).not.toHaveBeenCalled()
   })
 
-  // Każde pole mierzy swój własny próg: 0,65 to normalna stawka z narzędziami i przepłacenie bez
-  // nich, bo stawka bez narzędzi jest z definicji o 15% niższa.
+  // Each field measures its own ceiling: 0,65 is the standard stawka z narzędziami and an overpay bez
+  // narzędzi, because the bez-narzędzi rate is 15% lower by definition.
   it('to samo 0,65 przechodzi z narzędziami, a bez narzędzi ostrzega', async () => {
     const { user, ownTools } = renderSettings()
 

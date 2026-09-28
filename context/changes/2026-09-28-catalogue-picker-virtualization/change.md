@@ -55,6 +55,12 @@ table scrolls sideways — so did the unvirtualized one, whose opis alone had `m
 - `virtualContainerHeight` is a fixed px height → it overflows the „Dodaj do:" footer; the list height
   must follow the dialog (today `max-h-[55vh]`).
 
+**Two hunks of this change landed in another change's commit.** `src/components/tables/work-catalogue.tsx`
+`size: 190 → 176` (the 28 px „Opis pracy" buys back) rode in on `fc3a6ae1`, the crew-axis commit;
+`dcaac89c` says so in its message, which no archive step reads. Verified at the review gate: exactly
+those two hunks, no files belonging to any other change. Consequence — **reverting the crew axis
+silently reverts this layout fix**, so a revert needs these two sizes reapplied by hand.
+
 **Scope:** this dialog only. Dropped from EX-860: `catalogue-diff-table`, `sheet-compare-dialog` /
 `sheet-report-parts`, and the EX-857 trigger. The two existing virtualized consumers
 (`subcontractor-payouts-table`, `materials-transactions-table`) must not regress if the shared

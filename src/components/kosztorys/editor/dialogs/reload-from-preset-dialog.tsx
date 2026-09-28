@@ -125,7 +125,7 @@ export function ReloadFromPresetDialog() {
         ) : groups.length === 0 ? (
           <p className="text-muted-foreground text-sm">{copy.empty}</p>
         ) : (
-          <div className="flex max-h-[55vh] min-h-0 flex-col gap-2">
+          <div className="flex max-h-dialog-scroll min-h-0 flex-col gap-2">
             <SearchFilterInput
               value={searchTerm}
               onChange={setSearchTerm}

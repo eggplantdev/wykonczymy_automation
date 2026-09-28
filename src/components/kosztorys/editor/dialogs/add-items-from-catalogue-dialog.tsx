@@ -70,7 +70,7 @@ const searchText = (item: WorkCatalogueItemT) => `${item.description} ${item.cat
 
 const itemCategory = (item: WorkCatalogueItemT) => item.category ?? ''
 
-const SelectedIdsContext = createContext<readonly number[]>([])
+const SelectedIdsContext = createContext<ReadonlySet<number>>(new Set())
 
 // A context consumer, not a `checked` prop: DataTable memoises a row's cells on the TanStack row
 // object, which ticking a checkbox does not touch — so a prop would never arrive. React re-renders
@@ -85,7 +85,7 @@ function SelectCell({
   const selected = use(SelectedIdsContext)
   return (
     <Checkbox
-      checked={selected.includes(item.id)}
+      checked={selected.has(item.id)}
       onCheckedChange={() => onToggle(item.id)}
       aria-label={item.description}
     />
@@ -104,7 +104,11 @@ export function AddItemsFromCatalogueDialog({
   onOpenChange,
   onInserted,
 }: PropsT) {
+  // Ordered in state, because the prace land in the rozpiska in the order they were ticked; a Set
+  // beside it for membership, which is asked once per visible row and once per already-added row —
+  // `includes` over the whole cennik made that quadratic on a „zaznacz widoczne".
   const [selected, setSelected] = useState<number[]>([])
+  const selectedIds = new Set(selected)
   const [sectionName, setSectionName] = useState(
     () => sections.find((section) => section.sectionId === initialSectionId)?.sectionName ?? '',
   )
@@ -131,7 +135,7 @@ export function AddItemsFromCatalogueDialog({
   // A ticked praca is never hidden, even when it is already in the kosztorys: the owner reached it by
   // unchecking the switch on purpose, and hiding it would leave it counting into „Dodaj (N)" and
   // landing in the rozpiska with no row on screen to untick.
-  const keptSelected = alreadyAdded.filter((item) => selected.includes(item.id))
+  const keptSelected = alreadyAdded.filter((item) => selectedIds.has(item.id))
   const visible = hideAlreadyAdded ? [...fresh, ...keptSelected] : inScope
   const hiddenCount = alreadyAdded.length - keptSelected.length
 
@@ -147,10 +151,10 @@ export function AddItemsFromCatalogueDialog({
   // Appended, never replaced: a bulk button adds to what is already ticked, so the owner can sweep
   // one kategoria, switch to the next and keep both.
   function selectAll(items: readonly WorkCatalogueItemT[]) {
-    setSelected((prev) => [
-      ...prev,
-      ...items.map((item) => item.id).filter((id) => !prev.includes(id)),
-    ])
+    setSelected((prev) => {
+      const taken = new Set(prev)
+      return [...prev, ...items.map((item) => item.id).filter((id) => !taken.has(id))]
+    })
   }
 
   const columns = [
@@ -265,19 +269,18 @@ export function AddItemsFromCatalogueDialog({
           <p className="text-muted-foreground px-4 py-6 text-sm">Katalog prac jest pusty.</p>
         ) : (
           <div className="min-h-0 px-4 pb-3">
-            <SelectedIdsContext value={selected}>
+            <SelectedIdsContext value={selectedIds}>
               <DataTable
                 data={visible}
                 columns={columns}
                 initialSorting={INITIAL_SORTING}
                 enableVirtualization
                 virtualRowHeight={ROW_ESTIMATE}
-                virtualContainerClassName="max-h-[55vh]"
+                virtualContainerClassName="max-h-dialog-scroll"
               />
             </SelectedIdsContext>
           </div>
         )}
-        {/* The sekcja is the last decision, taken once the prace are picked. */}
         <div className="flex items-center justify-between gap-3 px-4 pt-3 pb-4">
           <div className="flex min-w-0 items-center gap-2">
             <span className="text-muted-foreground shrink-0 text-sm">Dodaj do:</span>

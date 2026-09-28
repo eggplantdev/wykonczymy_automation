@@ -4,8 +4,8 @@ import { useState } from 'react'
 import { CheckCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { isOverCeiling, MAX_CLIENT_SHARE } from '@/lib/kosztorys/subcontractor-price-guard'
-import { formatPercent, formatRate } from '@/lib/kosztorys/format'
+import { clientShareCeilingLabel, isOverCeiling } from '@/lib/kosztorys/subcontractor-price-guard'
+import { formatRate } from '@/lib/kosztorys/format'
 import { formatPLN } from '@/lib/utils/format-currency'
 import type { PriceSourceT, ToolPlaneT } from '@/lib/kosztorys/types'
 import type {
@@ -15,10 +15,6 @@ import type {
 } from '@/lib/kosztorys/work-catalogue/types'
 
 /**
- * The rozjazdy against the cennik, as a thing to ACT on rather than read: one wiersz per liczba,
- * grouped under the praca it belongs to, each with a checkbox, and one przycisk that pulls every
- * ticked liczba from the katalog into the rozpiska.
- *
  * Its own table rather than the shared `ComparisonTable`: a checkbox column breaks that component's
  * one rule (first column left, every other one right-aligned figures), and it is what the three
  * arkusz windows are built from — windows this change has nothing to do with.
@@ -245,7 +241,7 @@ function FigureRow({
         {figure.label}
         {overCeiling && (
           <span className="text-destructive pl-2">
-            przekracza {formatPercent(MAX_CLIENT_SHARE[plane])} ceny
+            przekracza {clientShareCeilingLabel(plane)} ceny
           </span>
         )}
       </td>

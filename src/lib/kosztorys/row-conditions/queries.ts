@@ -215,7 +215,7 @@ export function sectionIdsWhereAllMatch(
 export function offeredFilterConditions(
   engagedIds: ReadonlySet<string>,
   perItemDiscountInert: boolean,
-  crewAxis: CrewAxisT = 'both',
+  crewAxis: CrewAxisT,
 ): RowConditionT[] {
   return ROW_CONDITIONS.filter(
     (condition) =>

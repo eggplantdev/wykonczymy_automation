@@ -19,7 +19,6 @@ import type { MaterialTransactionRowT } from '@/types/transfers'
 
 type PropsT = {
   investmentId: number
-  // Names the transactions list's downloaded invoice archive.
   investmentName: string
   materialsBreakdown: MaterialsBreakdownRowT[]
   // Material the company bought and folded into robocizna, split per category. Owner-plane: it lowers
@@ -37,7 +36,6 @@ type PropsT = {
   isSavingSettings?: boolean
   // Set by the panel when tryb brutto makes the choice inert — passed through to the inline control.
   pricingLockedReason?: string
-  // Read-only client render — no row links on the transactions list.
   preview?: boolean
   // Off on a host that already lists every materiały transaction next to the panel (the investment
   // page's transfers table), where the in-panel list would only repeat it.

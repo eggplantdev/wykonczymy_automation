@@ -153,6 +153,10 @@ export function DataTable<TData>({
     count: rows.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => virtualRowHeight,
+    // Keyed by the row, not by its index: the measurement cache outlives a search or a sort, so without
+    // this the heights measured for positions 0..n are reused for whatever rows land there next and
+    // `getTotalSize()` plus the top spacer describe a list that is no longer on screen.
+    getItemKey: (index) => rows[index]?.id ?? index,
     overscan: 10,
     enabled: enableVirtualization,
   })

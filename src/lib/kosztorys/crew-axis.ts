@@ -14,8 +14,7 @@ import type { ToolPlaneT } from '@/lib/kosztorys/types'
 export type CrewAxisT = ToolPlaneT | 'both' | 'none'
 
 // Off, not 'both': the four rate columns qualify the offer rather than being it, and unfurling them on
-// a first visit buries what the reader came for. They used to start hidden through
-// DEFAULT_HIDDEN_COLUMNS, which is the same decision taken where no control could undo it.
+// a first visit buries what the reader came for.
 export const CREW_AXIS_DEFAULT: CrewAxisT = 'none'
 
 export const crewAxisShows = (axis: CrewAxisT, plane: ToolPlaneT): boolean =>

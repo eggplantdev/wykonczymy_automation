@@ -118,9 +118,9 @@ const SHARED_COLUMNS: ColumnDef<MaterialTransactionRowT>[] = [
     enableSorting: false,
     meta: { align: 'center' },
     // Sits before the money columns, not last, so the „Razem" footer's total stays under the column
-    // it actually sums. The empty branch still reserves the control's box: the virtualizer estimates
-    // every row at ROW_HEIGHT and never measures, so an invoice-less row collapsing to the text line
-    // height would drift the spacers.
+    // it actually sums. The empty branch still reserves the control's box: the container's height is
+    // derived from the ROW_HEIGHT estimate while the rows inside it are measured, so an invoice-less
+    // row collapsing to the text line height makes the two disagree and adds an inner scrollbar.
     cell: ({ row }) =>
       row.original.invoices.length > 0 ? (
         <MediaPreviewButton

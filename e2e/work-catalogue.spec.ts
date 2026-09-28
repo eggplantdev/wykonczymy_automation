@@ -87,7 +87,6 @@ test('zapis pozycji do katalogu: druga próba nadpisuje ten sam wiersz, po potwi
 
   await openEditor(page, seed.save.id)
 
-  // --- pierwszy zapis: nowa pozycja ---
   const dialog = await openSaveDialog(page, seed.save.item)
   // „Do zapisania", never „Po zapisie": a free klucz has no second side to compare against, and the
   // label is what tells the owner he is not about to lose anything.
@@ -104,7 +103,6 @@ test('zapis pozycji do katalogu: druga próba nadpisuje ten sam wiersz, po potwi
     'cena zapisana w katalogu',
   )
 
-  // --- raise the price in the rozpiska, save the same klucz once more ---
   await openEditor(page, seed.save.id)
   const priceCell = await rowCell(page, seed.save.item, PRICE_COLUMN)
   // The cell's autosave is debounced, so the reload below would abort it — and the dialog reads its

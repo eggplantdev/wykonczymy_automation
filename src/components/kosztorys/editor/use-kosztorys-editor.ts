@@ -1186,7 +1186,6 @@ export function useKosztorysEditor({
     // „Wybierz pozycję z katalogu prac" reads this to tell which cennik prace are already in; viewRows
     // would answer for the active filter instead.
     rows,
-    // grid data + layout
     gridRef,
     gridNode,
     gridHeight,
@@ -1227,7 +1226,6 @@ export function useKosztorysEditor({
     onReorderSection: columnOpts.onReorderSection,
     onSetSectionColor: columnOpts.onSetSectionColor,
     onRemoveSection: columnOpts.onRemoveSection,
-    // subtotals + section panel
     subtotals,
     // client-priced, view-invariant per-section subtotals — the section pie's structure source.
     progressSubtotals,
@@ -1256,7 +1254,6 @@ export function useKosztorysEditor({
     // that runs on every keystroke.
     workCatalogue,
     laborCostsNet,
-    // toolbar / panel state
     setView,
     search,
     setSearch,
@@ -1278,7 +1275,6 @@ export function useKosztorysEditor({
     // Read by the toolbar and the summary through the editor context: on a locked investment they
     // drop their own write entries, which `editorOnly` (a grid-callback gate) never reaches.
     readOnly,
-    // handlers
     onChange,
     handleAddItem,
     handleAddSection,

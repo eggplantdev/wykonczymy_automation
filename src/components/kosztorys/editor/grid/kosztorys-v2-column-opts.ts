@@ -11,8 +11,6 @@ import type { WorkerRefT } from '@/types/reference-data'
 
 export type BuildV2ColumnsOptsT = {
   view: PriceViewT
-  // Stages (etapy) render as dynamic editable columns; a trailing "Pozostało" reads out the
-  // remaining net.
   stages: KosztorysStageT[]
   onRemoveStage?: (stageId: number) => void
   onRenameStage?: (stageId: number, label: string) => void

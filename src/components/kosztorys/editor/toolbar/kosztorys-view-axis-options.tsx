@@ -12,13 +12,18 @@ const ICON_CLASS = 'size-4'
 
 // Three views over one dataset: they only change the active price and its derived values. The two
 // subcontractor views share their glyphs with the etap header via planeIcon (can't drift).
+// Shared by the view switcher and the „Stawki wykonawców" ticks, which is what the icons alone
+// could not guarantee: two independent maps over TOOL_PLANES is exactly how the two controls that
+// both name a płaszczyzna drift apart.
+const PLANE_OPTIONS = TOOL_PLANES.map((plane) => ({
+  value: plane,
+  label: PLANE_LABELS[plane],
+  icon: planeIcon(plane, ICON_CLASS),
+}))
+
 export const VIEWS: { value: PriceViewT; label: string; icon: ReactNode }[] = [
   { value: 'client', label: 'Inwestor', icon: <User className={ICON_CLASS} /> },
-  ...TOOL_PLANES.map((plane) => ({
-    value: plane,
-    label: PLANE_LABELS[plane],
-    icon: planeIcon(plane, ICON_CLASS),
-  })),
+  ...PLANE_OPTIONS,
 ]
 
 export const VIEW_LEGEND = [
@@ -66,17 +71,12 @@ export const LAYER_PAIR_CONFIG: PairAxisConfigT<LayerT> = {
 }
 
 // The rate columns of one crew as a single tick — three columns per plane, and the plane-bound rows in
-// „Filtry" with them. Icons come from `planeIcon`, the same glyphs the view switcher and the etap
-// header use, so the two controls that both name a płaszczyzna cannot drift apart.
+// „Filtry" with them.
 export const CREWS: {
   value: CrewAxisT
   label: string
   icon: ReactNode
-}[] = TOOL_PLANES.map((plane) => ({
-  value: plane,
-  label: PLANE_LABELS[plane],
-  icon: planeIcon(plane, ICON_CLASS),
-}))
+}[] = PLANE_OPTIONS
 
 export const CREW_PAIR_CONFIG: PairAxisConfigT<CrewAxisT> = {
   a: 'w_tools',

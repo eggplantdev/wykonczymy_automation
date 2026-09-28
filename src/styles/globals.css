@@ -63,6 +63,11 @@
   /* Viewport minus the shell's chrome — 3.5rem IS the TopNav's h-14, and two files were carrying it
      as a bare number. Anything that must fill the page UNDER the top bar takes h-below-top-nav. */
   --spacing-below-top-nav: calc(100dvh - 3.5rem);
+
+  /* Ceiling on a scrolling list INSIDE a dialog — three of them carried 55vh as a bare number. Short
+     of the dialog's own 90vh cap, because the header, the footer buttons and a „(N)" line share the
+     window with it. */
+  --spacing-dialog-scroll: 55vh;
   --shadow-panel: 0 -2px 8px -4px rgb(0 0 0 / 0.2); /* upward top-edge elevation for the bottom totals panel */
 
   /* Semantic Colors - Light Mode */

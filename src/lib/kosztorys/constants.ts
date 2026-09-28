@@ -66,10 +66,6 @@ export const SUBCONTRACTOR_FIGURE_LABELS = {
 // reader to learn which red means what.
 export const FLAGGED_TONE = 'text-destructive font-medium'
 
-// Longer than toastMessage's default 2s: these fire as the user's eyes are already moving on, and
-// they report a figure that was just committed.
-export const NOTICE_MS = 5000
-
 // Default subcontractor markup coefficients for an investment — the single source for both the
 // Payload column `defaultValue` (src/collections/investments.ts) and the query fallback
 // (src/lib/queries/kosztorys.ts). A single pozycja may override them.

@@ -1,6 +1,5 @@
 import { priceSourceOf, subcontractorPrice } from '@/lib/kosztorys/calc'
 import { planeDashSuffix, planeViewSuffix } from '@/lib/kosztorys/constants'
-import { formatPercent } from '@/lib/kosztorys/format'
 import { ALL_PLANE_PRICE_KEYS, planePriceKeysFor } from '@/lib/kosztorys/plane-price-keys'
 import type { RowConditionCtxT, RowConditionT } from '@/lib/kosztorys/row-conditions/types'
 import { measureDiscrepancy, rowTotalQtyDone } from '@/lib/kosztorys/settlement-rows'
@@ -8,7 +7,7 @@ import { stageKey } from '@/lib/kosztorys/stage-keys'
 import {
   isOwnRateOverCeiling,
   isSubcontractorPriceNegative,
-  MAX_CLIENT_SHARE,
+  clientShareCeilingLabel,
 } from '@/lib/kosztorys/subcontractor-price-guard'
 import type { KosztorysV2RowT, ToolPlaneT } from '@/lib/kosztorys/types'
 
@@ -250,7 +249,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   //
   // The labels print the share rather than naming a „sufit": the reader is comparing a stawka against
   // a cena, and a number they can re-check beats a word that lives only in the code. Each half prints
-  // ITS OWN plane's share from `MAX_CLIENT_SHARE` — the two differ, and one liczba on both labels
+  // ITS OWN plane's share through `clientShareCeilingLabel` — the two differ, and one liczba on both labels
   // would promise a próg that only one of them enforces.
   //
   // Named after the source and not only the share, because that is what the half matches: „auto" rows
@@ -263,10 +262,10 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'own-rate-over-ceiling-w-tools',
     label:
-      `z własną stawką ponad ${formatPercent(MAX_CLIENT_SHARE['w_tools'])} ceny` +
+      `z własną stawką ponad ${clientShareCeilingLabel('w_tools')} ceny` +
       planeViewSuffix('w_tools'),
     menuLabel:
-      `Ponad ${formatPercent(MAX_CLIENT_SHARE['w_tools'])} ceny` + planeDashSuffix('w_tools'),
+      `Ponad ${clientShareCeilingLabel('w_tools')} ceny` + planeDashSuffix('w_tools'),
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-ceiling',
@@ -277,10 +276,10 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'own-rate-within-ceiling-w-tools',
     label:
-      `bez własnej stawki ponad ${formatPercent(MAX_CLIENT_SHARE['w_tools'])} ceny` +
+      `bez własnej stawki ponad ${clientShareCeilingLabel('w_tools')} ceny` +
       planeViewSuffix('w_tools'),
     menuLabel:
-      `Poniżej ${formatPercent(MAX_CLIENT_SHARE['w_tools'])} ceny` + planeDashSuffix('w_tools'),
+      `Poniżej ${clientShareCeilingLabel('w_tools')} ceny` + planeDashSuffix('w_tools'),
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-ceiling',
@@ -291,10 +290,10 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'own-rate-over-ceiling-own-tools',
     label:
-      `z własną stawką ponad ${formatPercent(MAX_CLIENT_SHARE['own_tools'])} ceny` +
+      `z własną stawką ponad ${clientShareCeilingLabel('own_tools')} ceny` +
       planeViewSuffix('own_tools'),
     menuLabel:
-      `Ponad ${formatPercent(MAX_CLIENT_SHARE['own_tools'])} ceny` + planeDashSuffix('own_tools'),
+      `Ponad ${clientShareCeilingLabel('own_tools')} ceny` + planeDashSuffix('own_tools'),
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-ceiling',
@@ -305,10 +304,10 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'own-rate-within-ceiling-own-tools',
     label:
-      `bez własnej stawki ponad ${formatPercent(MAX_CLIENT_SHARE['own_tools'])} ceny` +
+      `bez własnej stawki ponad ${clientShareCeilingLabel('own_tools')} ceny` +
       planeViewSuffix('own_tools'),
     menuLabel:
-      `Poniżej ${formatPercent(MAX_CLIENT_SHARE['own_tools'])} ceny` + planeDashSuffix('own_tools'),
+      `Poniżej ${clientShareCeilingLabel('own_tools')} ceny` + planeDashSuffix('own_tools'),
     sectionLabel: null,
     kind: 'filter',
     filterGroup: 'rate-ceiling',

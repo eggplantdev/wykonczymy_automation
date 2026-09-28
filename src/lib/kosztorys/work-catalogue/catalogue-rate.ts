@@ -4,6 +4,7 @@ import {
   priceSourceOf,
   subcontractorPrice,
 } from '@/lib/kosztorys/calc'
+import { formatRate } from '@/lib/kosztorys/format'
 import type { PriceSourceT, ToolPlaneT, ViewPricingT } from '@/lib/kosztorys/types'
 
 // One plane of a cennik wpis, as the two nullable columns hold it. At most one is set — the same
@@ -35,6 +36,14 @@ export const catalogueRateFor = (
   plane === 'w_tools'
     ? { rate: entry.wToolsRate, coeff: entry.wToolsRateCoeff }
     : { rate: entry.ownToolsRate, coeff: entry.ownToolsRateCoeff }
+
+// One stawka of a cennik wpis as one sentence — „auto", a kwota, or the mnożnik with the kwota it
+// comes out to at the katalog's own cena j.m. The źródło has to show: 0,65 and 65 zł render the same
+// money on a 100 zł cenie and mean different things the next time that cena moves.
+export const catalogueRateText = (entry: CatalogueRateColumnsT, plane: ToolPlaneT): string => {
+  const rate = catalogueRateFor(entry, plane)
+  return formatRate(rate.rate, catalogueSourceOf(rate), rate.coeff)
+}
 
 /**
  * The złotówka a cennik wpis is worth against a given cena j.m. — what the tabela colours and what

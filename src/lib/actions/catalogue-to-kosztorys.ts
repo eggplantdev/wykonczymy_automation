@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { investmentAction } from '@/lib/actions/investment-action'
 import { getDb } from '@/lib/db/get-db'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
-import { listCatalogueItems, listCatalogueItemsByIds } from '@/lib/db/work-catalogue'
+import { listCatalogueItemsByIds, listCatalogueItemsByMatchKeys } from '@/lib/db/work-catalogue'
 import {
   applyCatalogueValues,
   listItemsForCatalogueApply,
@@ -192,7 +192,14 @@ export async function applyCatalogueToKosztorysAction(
       const items = await listItemsForCatalogueApply(db, investmentId, [...wanted.keys()])
       if (items.length !== wanted.size) return { success: false, error: STALE_ITEM_ERROR }
 
-      const byKey = new Map((await listCatalogueItems(db)).map((entry) => [entry.matchKey, entry]))
+      const byKey = new Map(
+        (
+          await listCatalogueItemsByMatchKeys(
+            db,
+            items.map((item) => catalogueKey(item.description, item.unit)),
+          )
+        ).map((entry) => [entry.matchKey, entry]),
+      )
 
       const batches: Record<CatalogueApplyColumnT, CatalogueApplyValueT[]> = {
         clientPrice: [],

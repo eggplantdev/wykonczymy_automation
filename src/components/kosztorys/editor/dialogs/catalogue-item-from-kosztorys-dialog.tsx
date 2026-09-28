@@ -1,27 +1,22 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { Description } from '@/components/ui/description'
 import { WorkCatalogueItemForm } from '@/components/forms/work-catalogue-item/work-catalogue-item-form'
 import { createCatalogueItemAction, updateCatalogueItemAction } from '@/lib/actions/work-catalogue'
-import { catalogueSavePreview } from '@/lib/queries/catalogue-save-preview'
 import { PLANE_LABELS } from '@/lib/kosztorys/constants'
+import { catalogueCategorySuggestions } from '@/lib/kosztorys/work-catalogue/category-options'
 import type {
   CatalogueSavePreviewT,
   WorkCatalogueItemT,
 } from '@/lib/kosztorys/work-catalogue/types'
-import type { ToolPlaneT } from '@/lib/kosztorys/types'
 import {
   rateFormValues,
   type WorkCatalogueItemFormValuesT,
 } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
-import { catalogueRateFor, catalogueSourceOf } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
-import { formatRate } from '@/lib/kosztorys/format'
+import { catalogueRateText } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
 import { formatPLN } from '@/lib/utils/format-currency'
-import { toastMessage } from '@/lib/utils/toast'
-
-const LOAD_FAILED = 'Nie udało się wczytać danych pozycji'
+import { useCatalogueSavePreview } from './use-catalogue-save-preview'
 
 function defaultsFrom({
   candidate,
@@ -36,13 +31,6 @@ function defaultsFrom({
     clientPrice: String(candidate.clientPrice),
     ...rateFormValues(candidate),
   }
-}
-
-// What the cennik holds for one płaszczyzna, as one sentence: „auto", a kwota, or the mnożnik and
-// the kwota it comes out to at the katalog's own cena j.m.
-const existingRate = (item: WorkCatalogueItemT, plane: ToolPlaneT): string => {
-  const rate = catalogueRateFor(item, plane)
-  return formatRate(rate.rate, catalogueSourceOf(rate), rate.coeff)
 }
 
 /**
@@ -68,32 +56,10 @@ export function CatalogueItemFromKosztorysDialog({
   // Fired on a landed write, so a caller listing this praca can drop it from the list.
   onSaved?: () => void
 }) {
-  const [preview, setPreview] = useState<CatalogueSavePreviewT | null>(null)
-
-  useEffect(() => {
-    if (!open) return
-    let stale = false
-    const fail = (message: string) => {
-      if (stale) return
-      toastMessage(message, 'error', 4000)
-      onOpenChange(false)
-    }
-    void catalogueSavePreview(itemId)
-      .then((res) => {
-        if (stale) return
-        if (!res.success) return fail(res.error ?? LOAD_FAILED)
-        setPreview(res.data)
-      })
-      .catch(() => fail(LOAD_FAILED))
-    return () => {
-      stale = true
-    }
-  }, [open, itemId, onOpenChange])
+  const preview = useCatalogueSavePreview(itemId, open, onOpenChange)
 
   const existing = preview?.existing ?? null
-  const categorySuggestions = [...new Set(catalogue.map((item) => item.category ?? ''))].filter(
-    (category) => category !== '',
-  )
+  const categorySuggestions = catalogueCategorySuggestions(catalogue)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -112,8 +78,8 @@ export function CatalogueItemFromKosztorysDialog({
         {existing && (
           <Description size="xs">
             W katalogu teraz: cena j.m. {formatPLN(existing.clientPrice)},{' '}
-            {PLANE_LABELS.w_tools.toLowerCase()} {existingRate(existing, 'w_tools')},{' '}
-            {PLANE_LABELS.own_tools.toLowerCase()} {existingRate(existing, 'own_tools')}.
+            {PLANE_LABELS.w_tools.toLowerCase()} {catalogueRateText(existing, 'w_tools')},{' '}
+            {PLANE_LABELS.own_tools.toLowerCase()} {catalogueRateText(existing, 'own_tools')}.
           </Description>
         )}
         {/* `DialogContent` is a `gap-4` column, so this only tops the gap up to the 24px every other

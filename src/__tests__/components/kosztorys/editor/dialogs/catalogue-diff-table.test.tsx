@@ -71,8 +71,8 @@ function renderTable(diffs: CataloguePriceDiffT[], onApply = vi.fn().mockResolve
 
 const applyButton = () => screen.getByRole('button', { name: /Aktualizuj kosztorys/ })
 
-// Obie strony różnicy są zdaniem o ŹRÓDLE, nie tylko o kwocie: przy równych złotówkach to jedyne,
-// co tę różnicę widać.
+// Both sides of a rozjazd are a sentence about the ŹRÓDŁO, not only about the kwota: where the
+// złotówki match, the źródło is the only thing that makes the difference visible.
 describe('CatalogueDiffTable — źródło stawki', () => {
   it('pokazuje mnożnik jako krotność z kwotą w nawiasie', () => {
     renderTable([
