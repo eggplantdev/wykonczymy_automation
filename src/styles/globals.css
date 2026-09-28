@@ -505,10 +505,10 @@
   font-weight: 700;
 }
 
-/* The stripes carry a column down to its „Razem" figure; a spacer or totals fill cutting across them
-   is what made the bottom read as a random mix of grey and white blocks. */
-.kosztorys-grid.kosztorys-grid-preview .kosztorys-footer-fill {
-  background: transparent;
+/* The summary under the last section is one plain white block: a grey „Razem" next to the white
+   spacer and titles read as a random mix of grey and white. The heavy rule above it still sets it off. */
+.kosztorys-grid.kosztorys-grid-preview .kosztorys-totals-cell {
+  background: var(--color-background);
 }
 
 /* Sized like the „Razem" figures it labels (TotalsRowCell), not like the header it copies. The 20px

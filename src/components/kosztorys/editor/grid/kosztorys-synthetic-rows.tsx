@@ -28,8 +28,8 @@ export const BAND_LABEL_CELL_CLASS = 'kosztorys-band-label-cell'
 export const STRIPE_COLUMN_CLASS = 'kosztorys-stripe-column'
 // globals.css sizes the repeated title like the „Razem" figures below it.
 const FOOTER_TITLE_CELL_CLASS = 'kosztorys-footer-title'
-// globals.css clears these fills in the preview, so the column stripes run to the bottom of the grid.
-const FOOTER_FILL_CLASS = 'kosztorys-footer-fill'
+// globals.css whitens „Razem" in the preview, where no grey is left to set it apart from.
+const TOTALS_CELL_CLASS = 'kosztorys-totals-cell'
 
 // „Razem" rides the grid's own layout, so column alignment and horizontal scroll come for free; the
 // price of that is that dsg renders EVERY column's cell against it, so `withSyntheticRows` wraps each
@@ -51,7 +51,7 @@ function TotalsRowCell({ content }: { content: string }) {
   return (
     <div
       className={cn(
-        FOOTER_FILL_CLASS,
+        TOTALS_CELL_CLASS,
         'bg-muted text-foreground border-border flex size-full items-center border-t-2 px-2 text-base font-semibold tabular-nums',
       )}
     >
@@ -83,15 +83,15 @@ type SyntheticColumnDataT = {
 // exactly the indirection `keyColumn` uses to stay stable.
 function SyntheticAwareCell(props: CellProps<KosztorysV2RowT, SyntheticColumnDataT>) {
   const { rowData, columnData } = props
-  if (rowData.id === SPACER_ROW_ID)
-    return <div className={cn(FOOTER_FILL_CLASS, 'bg-background size-full')} />
+  if (rowData.id === SPACER_ROW_ID) return <div className="bg-background size-full" />
   if (rowData.id === FOOTER_TITLES_ROW_ID)
     return (
-      // dsg's own header-container class, so the copy sits at the header's inset.
+      // dsg's own header-container class, so the copy sits at the header's inset. Opaque, so the
+      // preview's column stripes stop at the last section instead of running through the summary.
       <div
         className={cn(
           FOOTER_TITLE_CELL_CLASS,
-          'dsg-cell-header-container flex size-full items-center',
+          'dsg-cell-header-container bg-background flex size-full items-center',
         )}
       >
         {columnData.footerTitle}

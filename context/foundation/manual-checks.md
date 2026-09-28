@@ -880,10 +880,11 @@ Sprawdzone lokalnie w Playwright na publicznym linku — do powtórzenia na stag
 - [ ] Nazwy kolumn w nagłówku pogrubione i czarne
 - [ ] Pod nagłówkiem jedna cienka czarna linia, taka sama jak linia nad nagłówkiem; pierwszy pasek
       etapu (np. „Prace dodatkowe") nie dokłada pod nią drugiej ani trzeciej kreski
-- [ ] Co druga kolumna ma delikatnie szare tło, od nagłówka do samego „Razem"; kolorowe paski
+- [ ] Co druga kolumna ma delikatnie szare tło, od nagłówka do ostatniego etapu; kolorowe paski
       etapów i ich „Razem …" przykrywają pasy (pasek czyta się jako jedna belka)
 - [ ] Przewinięcie tabeli w poziomie nie zamienia pasów miejscami (ta sama kolumna zostaje szara)
 - [ ] Na dole: pusty rząd, pod nim ponownie nazwy kolumn z sumą (czcionka jak w „Razem", długie nazwy
-      mieszczą się w całości), potem „Razem" — bez szarego bloku, z grubszą kreską nad nim
+      mieszczą się w całości), potem „Razem" z grubszą kreską nad nim — całe podsumowanie białe, bez
+      pasów kolumn i bez szarego tła
 - [ ] Edytor właściciela bez zmian: szare komórki tylko do odczytu, szare liczby wyliczane, bez pasów,
       bez powtórzonych nazw nad „Razem", „Razem" na szarym tle
