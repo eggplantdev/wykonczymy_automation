@@ -424,7 +424,7 @@ export function KosztorysEditorBody({
                   <Label
                     className={cn(
                       'order-last cursor-pointer font-normal transition-[opacity,visibility] duration-200 ease-out sm:order-none',
-                      totalsOpen && 'invisible opacity-0',
+                      totalsOpen && 'pointer-events-none invisible opacity-0',
                     )}
                   >
                     <Switch checked={showAllRows} onCheckedChange={setShowAllRows} />
