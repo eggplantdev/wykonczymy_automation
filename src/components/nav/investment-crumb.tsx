@@ -21,7 +21,7 @@ export async function InvestmentCrumb({ params }: InvestmentCrumbPropsT) {
       <HistoryBackButton fallbackHref={`/inwestycje/${id}`} />
       <Link
         href={`/inwestycje/${id}`}
-        className="text-foreground truncate text-sm leading-none font-medium hover:underline"
+        className="text-foreground max-w-32 truncate text-sm leading-none font-medium hover:underline sm:max-w-none"
       >
         {name}
       </Link>
