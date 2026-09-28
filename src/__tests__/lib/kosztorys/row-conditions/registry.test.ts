@@ -99,8 +99,8 @@ describe('the conditions, each on its boundary', () => {
     expect(countMatching([row({ id: 7 })], CATALOGUE_MISSING_CONDITION_ID, ctx)).toBe(0)
   })
 
-  // Bez cennika (podglądy, fikstury) oba wpisy milczą — «brak katalogu» to brak licznika, a nie pusty
-  // cennik, który zgłosiłby każdą pracę jako spoza katalogu.
+  // With no cennik (previews, fixtures) both entries stay silent — „no katalog" means no counter, not
+  // an empty cennik that would report every praca as outside the katalog.
   it('bez katalogu oba wpisy liczą zero, zamiast zgłaszać całą rozpiskę', () => {
     const rows = [row({ id: 1 }), row({ id: 2 })]
     expect(countMatching(rows, CATALOGUE_DIVERGENCE_CONDITION_ID, CTX)).toBe(0)
@@ -182,8 +182,8 @@ describe('the conditions, each on its boundary', () => {
     // clientPrice 100 → the ceiling is 65; typed at exactly the ceiling it must stand.
     expect(matches('own-rate-over-ceiling-w-tools', overridden(65))).toBe(false)
     expect(matches('own-rate-over-ceiling-w-tools', overridden(65.01))).toBe(true)
-    // Przepłacenie jest identyczne niezależnie od tego, czy stawkę zrobiła kwota, czy mnożnik — ten
-    // sam wiersz, ten sam autor, ta sama liczba (EX-865).
+    // An overpay is the same overpay whether a kwota or a mnożnik produced the stawka — same row, same
+    // author, same liczba (EX-865).
     expect(matches('own-rate-over-ceiling-w-tools', row({ wToolsOverrideCoeff: 0.65 }))).toBe(false)
     expect(matches('own-rate-over-ceiling-w-tools', row({ wToolsOverrideCoeff: 0.7 }))).toBe(true)
     // The mnożnik inwestycji authors every „auto" figure and answers for it in its own red field —
@@ -314,8 +314,8 @@ describe('the conditions, each on its boundary', () => {
     expect(matches('formula-rate-own-tools', manualWithTools)).toBe(true)
   })
 
-  // Trzy wpisy zastąpiły parę, więc rozłączność nie jest już negacją jednego testu — a to na niej
-  // stoją domknięcia w pozostałych grupach.
+  // Three entries replaced a pair, so disjointness is no longer one test's negation — and the
+  // closure claims in the other groups rest on it.
   it('przypisuje każdy wiersz dokładnie jednemu źródłu na płaszczyźnie', () => {
     const subjects = [
       row(),

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   MAX_CLIENT_SHARE,
+  clientShareCeilingLabel,
   checkSubcontractorPrice,
   coeffWarning,
   isCoeffFlagged,
@@ -45,6 +46,16 @@ describe('maxSubcontractorPrice', () => {
   })
 })
 
+describe('clientShareCeilingLabel', () => {
+  // The bez-narzędzi ceiling is 55,25%, and every screen that names it used to round differently: „55%"
+  // on the filter labels (a limit the cells do not enforce) and „0,553" in the settings tooltip, which
+  // sat ABOVE the limit it was describing.
+  it('names the ceiling to the place it actually holds, without trailing zeros', () => {
+    expect(clientShareCeilingLabel('w_tools')).toBe('65%')
+    expect(clientShareCeilingLabel('own_tools')).toBe('55,25%')
+  })
+})
+
 describe('checkSubcontractorPrice — próg 65% ceny klienta z narzędziami', () => {
   it('dokładnie na progu przechodzi', () => {
     expect(checkSubcontractorPrice(amount(65), 'w_tools')).toBeNull()
@@ -64,8 +75,8 @@ describe('checkSubcontractorPrice — próg 65% ceny klienta z narzędziami', ()
     expect(checkSubcontractorPrice(odd, 'w_tools')).toBeNull()
   })
 
-  // Trzecie źródło wchodzi na tę samą wagę (EX-865): stawka 70 zł przepłaca tak samo, czy powstała z
-  // kwoty, czy z mnożnika 0,7 — autor siedzi w tym wierszu, więc werdykt też.
+  // The third źródło goes on the same scale (EX-865): a stawka of 70 zł overpays identically whether a
+  // kwota or a mnożnik of 0,7 produced it — the author sits in this row, so the verdict does too.
   it('własny mnożnik ponad próg ostrzega tym samym zdaniem co kwota', () => {
     const coeff = (value: number): ViewPricingT => ({ ...row, wToolsOverrideCoeff: value })
 
@@ -107,8 +118,8 @@ describe('isCoeffFlagged / coeffWarning', () => {
     expect(coeffWarning(0.9, 'w_tools')).toContain('65')
   })
 
-  // Ten sam mnożnik, dwie odpowiedzi: 0,65 to normalna stawka z narzędziami i przepłacenie bez nich,
-  // bo stawka bez narzędzi jest o 15% niższa z samej definicji.
+  // One mnożnik, two answers: 0,65 is the standard stawka z narzędziami and an overpay bez narzędzi,
+  // because the bez-narzędzi rate is 15% lower by definition.
   it('0,65 przechodzi z narzędziami, a bez narzędzi już nie', () => {
     expect(isCoeffFlagged(0.65, 'own_tools')).toBe(true)
     expect(coeffWarning(0.65, 'own_tools')).toContain('55')
@@ -145,12 +156,12 @@ describe('checkSubcontractorPrice — druga płaszczyzna narzędziowa', () => {
     ownToolsOverrideValue: value,
   })
 
-  // Próg idzie za płaszczyzną (właściciel, 2026-09-28): stawka bez narzędzi to stawka z narzędziami
-  // minus 15%, więc 65% ceny stało dziesięć punktów ponad każdą umówioną stawką i nie łapało nic.
+  // The ceiling follows the plane (owner, 2026-09-28): the stawka bez narzędzi IS the z-narzędziami one
+  // less 15%, so 65% of the price sat ten points above every rate anyone agreed and caught nothing.
   it('próg bez narzędzi jest niższy — 60 zł przechodziło, dziś ostrzega', () => {
     expect(checkSubcontractorPrice(ownAmount(55.25), 'own_tools')).toBeNull()
     expect(checkSubcontractorPrice(ownAmount(60), 'own_tools')).toMatchObject({ severity: 'warn' })
-    // Ta sama kwota z narzędziami mieści się w progu tej płaszczyzny.
+    // The same kwota z narzędziami sits inside that plane's own ceiling.
     expect(checkSubcontractorPrice(amount(60), 'w_tools')).toBeNull()
   })
 

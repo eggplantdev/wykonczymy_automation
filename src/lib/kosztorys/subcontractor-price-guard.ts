@@ -1,7 +1,7 @@
 import { priceSourceOf, subcontractorPrice } from '@/lib/kosztorys/calc'
 import { DEFAULT_COEFFS } from '@/lib/kosztorys/constants'
 import type { CellVerdictT } from '@/lib/kosztorys/cell-edit'
-import { formatCoeff, formatNet, formatPercent } from '@/lib/kosztorys/format'
+import { formatCoeff, formatNet } from '@/lib/kosztorys/format'
 import type { ToolPlaneT, ViewPricingT } from '@/lib/kosztorys/types'
 
 /**
@@ -19,6 +19,16 @@ export const MAX_CLIENT_SHARE: Record<ToolPlaneT, number> = {
   w_tools: DEFAULT_COEFFS.wTools,
   own_tools: DEFAULT_COEFFS.ownTools,
 }
+
+// Every screen that names the ceiling reads it from here, because the ten call sites had drifted into
+// three different liczby for one rule: „55%" on the filter labels, „0,553" in the settings tooltip
+// (above the limit it described) and the raw mnożnik in the warning beside it.
+//
+// Neither shared percent formatter fits a THRESHOLD: at zero decimals the bez-narzędzi ceiling printed
+// „55%", a limit the cells do not enforce, and at one it rounds UP to „55,3%", promising more than they
+// allow. So it formats here, to the place the rule actually holds.
+export const clientShareCeilingLabel = (plane: ToolPlaneT): string =>
+  `${(MAX_CLIENT_SHARE[plane] * 100).toLocaleString('pl-PL', { maximumFractionDigits: 2 })}%`
 
 // Half a grosz. The comparison is strictly-greater, so without slack a price typed at exactly the
 // ceiling (that figure rounded to two decimals and entered by hand) reads as "above" on a
@@ -87,7 +97,7 @@ export function coeffWarning(coeff: number, plane: ToolPlaneT): string | null {
     return 'Mnożnik 0 daje wykonawcy 0 zł na każdej pozycji ze źródłem „auto".'
   }
   if (!isCoeffFlagged(coeff, plane)) return null
-  return `Mnożnik ${formatCoeff(coeff)} przekracza ${formatPercent(MAX_CLIENT_SHARE[plane])} ceny dla inwestora — wykonawca zjada marżę na pozycjach ze źródłem „auto".`
+  return `Mnożnik ${formatCoeff(coeff)} przekracza ${clientShareCeilingLabel(plane)} ceny dla inwestora — wykonawca zjada marżę na pozycjach ze źródłem „auto".`
 }
 
 /**
@@ -149,6 +159,6 @@ export function checkSubcontractorPrice(row: ViewPricingT, view: ToolPlaneT): Ce
 
   return {
     severity: 'warn',
-    message: `Cena wykonawcy przekracza ${formatPercent(MAX_CLIENT_SHARE[view])} ceny dla inwestora (maks. ${formatNet(maxSubcontractorPrice(row, view))}).`,
+    message: `Cena wykonawcy przekracza ${clientShareCeilingLabel(view)} ceny dla inwestora (maks. ${formatNet(maxSubcontractorPrice(row, view))}).`,
   }
 }

@@ -3,13 +3,14 @@
 import { DecimalField } from '@/components/ui/decimal-field'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
 import { planeIcon } from '@/components/kosztorys/editor/plane-icons'
-import { FLAGGED_TONE, NOTICE_MS, PLANE_LABELS, TOOL_PLANES } from '@/lib/kosztorys/constants'
+import { FLAGGED_TONE, PLANE_LABELS, TOOL_PLANES } from '@/lib/kosztorys/constants'
 import type { ToolPlaneT } from '@/lib/kosztorys/types'
 import {
-  MAX_CLIENT_SHARE,
+  clientShareCeilingLabel,
   coeffWarning,
   isCoeffFlagged,
 } from '@/lib/kosztorys/subcontractor-price-guard'
+import { NOTICE_MS } from '@/lib/utils/notice'
 import { toastMessage } from '@/lib/utils/toast'
 
 // Sourced from the constant rather than typed as „0,65": a hardcoded ceiling here would drift from
@@ -21,7 +22,7 @@ const COEFF_DESCRIPTION = [
   'Dziedziczą go pozycje ze źródłem ceny „auto".',
   ...TOOL_PLANES.map(
     (plane) =>
-      `${PLANE_LABELS[plane]}: powyżej ${MAX_CLIENT_SHARE[plane].toLocaleString('pl-PL')} wykonawca zjada marżę — wolno, ale na czerwono.`,
+      `${PLANE_LABELS[plane]}: powyżej ${clientShareCeilingLabel(plane)} ceny wykonawca zjada marżę — wolno, ale na czerwono.`,
   ),
   '0 = wykonawca nie dostaje nic — też na czerwono.',
 ].join('\n')
@@ -67,8 +68,6 @@ type PropsT = {
 }
 
 export function KosztorysGlobalSettings({ globalCoeffs, onGlobalCoeffChange }: PropsT) {
-  // One row, label first — the same shape as the rozliczenie selects on the other tabs, so every tab
-  // opens on a line of controls rather than each inventing its own header block.
   return (
     <div className="flex min-h-8 flex-wrap items-center gap-x-4 gap-y-1">
       <span className="text-muted-foreground flex items-center gap-1.5 text-xs">
