@@ -1,7 +1,7 @@
 ---
 change_id: kosztorys-remaining-skip-overrun
 title: Pozostało — suma pomija ujemne wiersze, ujemne komórki na czerwono
-status: implementing
+status: implemented
 created: 2026-09-28
 updated: 2026-09-28
 archived_at: null

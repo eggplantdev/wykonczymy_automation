@@ -1387,3 +1387,20 @@ addytywna — na produkcję **przed** pushem; DROP starych kolumn to EX-886, po 
       kolumn rabatu pozycji.
 - [ ] Najazd na nagłówki „Razem netto" i wartości etapów na dokumencie pracownika: podpowiedź mówi o
       jego stawce, nie o rabacie klienta.
+
+## kosztorys-remaining-skip-overrun — „Pozostało" bez wierszy na minusie, minus na czerwono (EX-885, 2026-09-28)
+
+### Suma w stopce
+
+- [ ] Na kosztorysie z pozycją w „Pracach dodatkowych" wykonaną bez Przedmiaru (np. inw. 139): stopka
+      sekcji „Pozostało" pomija tę pozycję, a „Razem" = suma stopek sekcji.
+
+### Czerwony minus
+
+- [ ] W edytorze właściciela taka pozycja ma „Pozostało" i „Pozostało brutto" na czerwono; pozycja
+      wykonana dokładnie do Przedmiaru pokazuje 0,00 na szaro, nie na czerwono.
+- [ ] Pod linkiem pracownika pozycja ponad Przedmiar ma „Pozostało" na czerwono, a stopka pracownika
+      ją pomija.
+- [ ] W podglądzie inwestora z włączonym „Pozostało" ta sama pozycja też jest czerwona.
+- [ ] Najazd na nagłówek „Pozostało": podpowiedź mówi, że suma w stopce pomija wiersze na minusie.
+- [ ] Oferta PDF i PDF pracownika drukują wiersz na minusie na czarno, jak wcześniej.

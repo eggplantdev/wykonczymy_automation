@@ -298,5 +298,5 @@ Run once, after Phase 2.
 
 #### Automated
 
-- [x] 2.1 `pnpm exec vitest run src/__tests__/components/kosztorys/editor/grid/remaining-overrun-tone.test.ts` passes
-- [x] 2.2 `pnpm exec vitest run src/__tests__/components/kosztorys/editor/grid/stage-plane-lock.test.ts src/__tests__/components/kosztorys/editor/grid/preview-columns.test.ts` still pass
+- [x] 2.1 `pnpm exec vitest run src/__tests__/components/kosztorys/editor/grid/remaining-overrun-tone.test.ts` passes — 56ab923a
+- [x] 2.2 `pnpm exec vitest run src/__tests__/components/kosztorys/editor/grid/stage-plane-lock.test.ts src/__tests__/components/kosztorys/editor/grid/preview-columns.test.ts` still pass — 56ab923a
