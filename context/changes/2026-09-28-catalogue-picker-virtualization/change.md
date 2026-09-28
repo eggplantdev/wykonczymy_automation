@@ -28,6 +28,23 @@ every catalogue row; the catalogue is 561 items (local DB and the 24.09 prod dum
 
 Target: the 4–10× from the right-hand columns, **without** the layout regressions below.
 
+**Result** — same script, build mode and investment; the MCP browser was held by another session, so
+it ran in the repo's own headless Chromium (`@playwright/test`), median of 5:
+
+|                                  | shipped 1× | shipped 4×         | vs baseline 4× |
+| -------------------------------- | ---------- | ------------------ | -------------- |
+| open (22 rows drawn of 254)      | 23 ms      | 91 ms (65 blocked) | 4.5× faster    |
+| „Ukryj już dodane" off → all 561 | 15 ms      | 53 ms              | 12× faster     |
+| keystroke → input shows it       | 17 ms      | 34 ms              | 1.5× faster    |
+| keystroke → list repainted       | 28 ms      | 76 ms              | 8× faster      |
+| tick one checkbox                | 12 ms      | 23 ms              | 2.7× faster    |
+
+Every 4× figure is within 1.5× of the flag-only column. Layout at 1440: opis 354 px (widest), no
+horizontal scroll, footer visible, a 2-row search collapses the list; a scroll top→bottom→top made no
+jump. Real rows average 50 px (37 one-line, 57 two-line), hence the 52 px estimate. The rate columns
+are 176, not 160: the nowrap „(podwykonawca)" + sort icon needs 173. Below a ~1150 px window the
+table scrolls sideways — so did the unvirtualized one, whose opis alone had `min-w-112`.
+
 **Flipping `enableVirtualization` alone breaks the layout** (screenshot-verified):
 
 - `VirtualizedTableBody` uses `table-fixed` + a `colgroup` from `header.getSize()`; the picker columns

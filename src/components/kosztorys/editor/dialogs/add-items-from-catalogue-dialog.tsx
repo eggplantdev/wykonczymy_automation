@@ -59,6 +59,11 @@ const INITIAL_SORTING = [
   { id: 'description', desc: false },
 ]
 
+// Rows are measured once drawn; this is only the guess for the ones not yet drawn. It is the
+// cennik's measured average (a one-line row 37 px, a two-line one 57), so the scrollbar barely moves
+// while scrolling.
+const ROW_ESTIMATE = 52
+
 const MAX_WARNING_TOASTS = 3
 
 const searchText = (item: WorkCatalogueItemT) => `${item.description} ${item.category ?? ''}`
@@ -266,6 +271,7 @@ export function AddItemsFromCatalogueDialog({
                 columns={columns}
                 initialSorting={INITIAL_SORTING}
                 enableVirtualization
+                virtualRowHeight={ROW_ESTIMATE}
                 virtualContainerClassName="max-h-[55vh]"
               />
             </SelectedIdsContext>

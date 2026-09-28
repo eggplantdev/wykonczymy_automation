@@ -319,6 +319,6 @@ scroll offset; TanStack handles that by default.
 
 #### Automated
 
-- [x] 2.1 Picker dialog specs pass, including the new window-bound guard
+- [x] 2.1 Picker dialog specs pass, including the new window-bound guard — 10e9cc59
 
 ### Phase 3: Re-measure
