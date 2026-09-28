@@ -28,11 +28,18 @@ export function stagesWithEntries(
 //
 // Callers pass the UNFILTERED rows. Computed over what „Pokaż wszystkie pozycje" currently leaves on
 // screen, a column would appear and vanish as the investor flips that switch.
+//
+// `alsoFilled` names etapy filled somewhere the rows can't show — a past version's grid, whose rows
+// predate the pomiar that is being compared against it.
 export function emptySettlementColumnIds(
   rows: readonly KosztorysV2RowT[],
   stages: readonly KosztorysStageT[],
+  alsoFilled: ReadonlySet<number> = new Set(),
 ): ReadonlySet<string> {
-  const filled = new Set(stagesWithEntries(rows, stages).map((stage) => stage.id))
+  const filled = new Set([
+    ...stagesWithEntries(rows, stages).map((stage) => stage.id),
+    ...[...alsoFilled].filter((id) => stages.some((stage) => stage.id === id)),
+  ])
   const empty = new Set<string>()
   for (const stage of stages) {
     if (filled.has(stage.id)) continue

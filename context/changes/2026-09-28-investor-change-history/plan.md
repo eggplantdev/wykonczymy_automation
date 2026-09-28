@@ -696,7 +696,7 @@ are untouched.
 
 #### Automated
 
-- [x] 4.1 preview-kosztorys-history DB spec passes
+- [x] 4.1 preview-kosztorys-history DB spec passes — ac921930
 
 ### Phase 5: UI
 

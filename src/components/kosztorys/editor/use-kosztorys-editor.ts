@@ -136,6 +136,8 @@ type ArgsT = {
   // The szablon workbench — the grid narrows to what a szablon carries. A boolean, not the id:
   // the hook has no use for the id, and `buildV2Grid` runs unmemoized, so the value must be stable.
   isWorkshop?: boolean
+  // A past version's grid: etapy the present has filled, so their columns stay on screen.
+  filledStageIds?: ReadonlySet<number>
 }
 
 // Longer than the debounced save (500ms) so a burst is captured only once its writes are scheduled.
@@ -161,6 +163,7 @@ export function useKosztorysEditor({
   workCatalogue,
   onStaleTree,
   isWorkshop = false,
+  filledStageIds,
 }: ArgsT) {
   // Interaction, split from disclosure: `preview` decides what a client is SHOWN, this decides whether
   // anything may be written.
@@ -501,9 +504,12 @@ export function useKosztorysEditor({
   const previewHiddenColumns = useMemo(
     () =>
       preview && !worker
-        ? new Set([...(clientView?.hiddenColumns ?? []), ...emptySettlementColumnIds(rows, stages)])
+        ? new Set([
+            ...(clientView?.hiddenColumns ?? []),
+            ...emptySettlementColumnIds(rows, stages, filledStageIds),
+          ])
         : undefined,
-    [preview, worker, clientView, rows, stages],
+    [preview, worker, clientView, rows, stages, filledStageIds],
   )
 
   // Which ▲/▼ the two menus may offer at all. Off `rows`, like the movers themselves.
