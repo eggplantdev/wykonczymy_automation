@@ -34,37 +34,11 @@ export type RowConditionCtxT = {
   catalogueRowIds?: { divergent: ReadonlySet<number>; missing: ReadonlySet<number> }
 }
 
-// 'client' is a third kind, not a third mechanism: it hides like a filter, but it is engaged by the
-// investment's stored client-view settings rather than by a reading gesture, so the „Filtry" menu
-// (which lists `kind === 'filter'`) cannot show it and the owner cannot untick it for themselves.
-export type RowConditionKindT = 'filter' | 'diagnostic' | 'client'
-
-export type RowConditionT = {
+type RowConditionBaseT = {
   id: string
   // A bare noun phrase describing the row, so it reads after „Ukryto: pozycje " (the active-filters
   // bar) and „Brak pozycji " (the empty state).
   label: string
-  // The „Filtry" row, when the noun phrase is too long to scan there. The menu is a LIST under a
-  // heading that already says what the rows are about, so it names the value („Kwota stała") where a
-  // sentence has to name the subject too („pozycje ze stawką wykonawcy z kwoty stałej") — five words
-  // of shared preamble per row, repeated six times, is what made the list unreadable. Omitted = the
-  // menu capitalises `label`, which is what a short one already reads like.
-  menuLabel?: string
-  // How it reads when it lifts to whole sekcje in the „Filtry" menu; null = it does not lift, which
-  // is every kind but 'filter' — the menu is the only thing that folds sections.
-  sectionLabel: string | null
-  // 'filter' = a visibility toggle in the „Filtry" menu, ticked by default: the tick means „widoczne",
-  // exactly like the column and section pickers, and UNticking it hides what it matches. That is why
-  // filters come in complementary pairs („bez przedmiaru" / „z przedmiarem") — a picker with only one
-  // half of an axis cannot express „pokaż mi tylko te drugie".
-  // 'diagnostic' = a defect to close: it lives in the toolbar with a count, vanishes at zero, and when
-  // engaged keeps ONLY what it matches. It is not a picker row — it answers „pokaż mi wyłącznie to, co
-  // jest zepsute" — so it stays off by default and out of the menu.
-  kind: RowConditionKindT
-  // Which heading the „Filtry" menu files the row under. Filters only — no other kind reaches that
-  // menu. A filter that names none is left OUT of the list entirely rather than dropped into an „Inne"
-  // bucket, so a forgotten axis is a missing row a spec catches, not a silent orphan.
-  filterGroup?: FilterGroupIdT
   // Which price plane the condition judges. Carried by diagnostics AND by the ten plane-bound filters:
   // the „Stawki wykonawców" axis gates a filter row by the same answer it gates that plane's columns
   // by, so the two cannot say different things. `engagedPlane` still reads diagnostics only — it gates
@@ -79,14 +53,51 @@ export type RowConditionT = {
   // stored visibility map. Lives on the condition rather than in a lookup beside the grid: a second
   // table is exactly how the header/picker drift that column-config.ts exists to prevent comes back.
   revealsColumns?: readonly string[]
+  matches: (row: KosztorysV2RowT, ctx: RowConditionCtxT) => boolean
+}
+
+// A visibility toggle in the „Filtry" menu, ticked by default: the tick means „widoczne", exactly like
+// the column and section pickers, and UNticking it hides what it matches. That is why filters come in
+// complementary pairs („bez przedmiaru" / „z przedmiarem") — a picker with only one half of an axis
+// cannot express „pokaż mi tylko te drugie".
+export type FilterConditionT = RowConditionBaseT & {
+  kind: 'filter'
+  // Which heading the „Filtry" menu files the row under. The menu lists by heading and has no „Inne"
+  // bucket, so a filter without one would silently never be listed.
+  filterGroup: FilterGroupIdT
+  // The „Filtry" row, when the noun phrase is too long to scan there. The menu is a LIST under a
+  // heading that already says what the rows are about, so it names the value („Kwota stała") where a
+  // sentence has to name the subject too („pozycje ze stawką wykonawcy z kwoty stałej") — five words
+  // of shared preamble per row, repeated six times, is what made the list unreadable. Omitted = the
+  // menu capitalises `label`, which is what a short one already reads like.
+  menuLabel?: string
+  // How it reads when it lifts to whole sekcje in the „Filtry" menu; null = it does not lift.
+  sectionLabel: string | null
+  // Its `matches` must return false under a global rabat: a filter persisted in localStorage from
+  // before the global rabat was switched on goes around the menu and must not blank the kosztorys.
+  inertUnderGlobalDiscount?: true
+}
+
+// A defect to close: it lives in the toolbar with a count, vanishes at zero, and when engaged keeps
+// ONLY what it matches. It is not a picker row — it answers „pokaż mi wyłącznie to, co jest zepsute" —
+// so it stays off by default and out of the „Filtry" menu.
+export type DiagnosticConditionT = RowConditionBaseT & {
+  kind: 'diagnostic'
+  // Which heading the „Problemy" menu files the row under — required for the same reason as
+  // `filterGroup`.
+  problemGroup: ProblemGroupIdT
   // A whole sentence for the „Problemy" row, replacing the „Pozycje … (n)" phrasing built from
   // `label`. Opens by naming the thing like every other row, then says WHY — a problem caused by an
   // investment-wide fact is unreadable as a bare noun phrase. Takes the count because it owns the
   // whole row: the plane rides in the same parentheses, and a second pair after it read as a typo.
   problemLabel?: (count: number) => string
-  // Which heading the „Problemy" menu files the row under. Diagnostics only — a filter never reaches
-  // that menu. A diagnostic that names none is left OUT of the list entirely rather than dropped into
-  // an „Inne" bucket, so a forgotten category is a missing row a spec catches, not a silent orphan.
-  problemGroup?: ProblemGroupIdT
-  matches: (row: KosztorysV2RowT, ctx: RowConditionCtxT) => boolean
 }
+
+// A third kind, not a third mechanism: it hides like a filter, but it is engaged by the investment's
+// stored client-view settings rather than by a reading gesture, so the „Filtry" menu (which lists
+// `kind === 'filter'`) cannot show it and the owner cannot untick it for themselves.
+export type ClientConditionT = RowConditionBaseT & { kind: 'client' }
+
+export type RowConditionT = FilterConditionT | DiagnosticConditionT | ClientConditionT
+
+export type RowConditionKindT = RowConditionT['kind']

@@ -234,15 +234,11 @@ describe('the conditions, each on its boundary', () => {
     expect(matches('no-own-tools-price', freeOfCharge)).toBe(true)
   })
 
-  // One direction only: the „Sekcje" list is built from filters, so nothing else may carry a label.
-  // The converse does NOT hold — a filter opts OUT of lifting by declaring `sectionLabel: null`, which
-  // is what „ze stawką … z formuły" and „bez komentarza" do: folding a whole section away by either
-  // would hide pricing, the mistake „Zwiń puste sekcje" made. That opt-out is also what
-  // `foldableSectionIds` reads to skip a full pass over the dataset per edit.
-  it('lets only a filter lift to a section, and lets a filter decline to', () => {
-    for (const condition of ROW_CONDITIONS) {
-      if (condition.kind !== 'filter') expect(condition.sectionLabel).toBeNull()
-    }
+  // A filter opts OUT of lifting by declaring `sectionLabel: null`, which is what „ze stawką … z
+  // formuły" and „bez komentarza" do: folding a whole section away by either would hide pricing, the
+  // mistake „Zwiń puste sekcje" made. That opt-out is also what `foldableSectionIds` reads to skip a
+  // full pass over the dataset per edit.
+  it('lets a filter decline to lift to a section', () => {
     expect(ROW_CONDITIONS.some((c) => c.kind === 'filter' && c.sectionLabel === null)).toBe(true)
   })
 
@@ -299,10 +295,13 @@ describe('the conditions, each on its boundary', () => {
       globalDiscountActive: true,
     })
     const withoutDiscount = row({ globalDiscountActive: true })
+    const inert = ROW_CONDITIONS.filter((c) => c.kind === 'filter' && c.inertUnderGlobalDiscount)
+    expect(inert.map((c) => c.id)).toEqual(['has-discount', 'no-discount'])
 
-    for (const subject of [withDiscount, withoutDiscount]) {
-      expect(matches('has-discount', subject)).toBe(false)
-      expect(matches('no-discount', subject)).toBe(false)
+    for (const condition of inert) {
+      for (const subject of [withDiscount, withoutDiscount]) {
+        expect(condition.matches(subject, CTX)).toBe(false)
+      }
     }
   })
 

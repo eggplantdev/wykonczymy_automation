@@ -51,11 +51,6 @@ export const MEASURE_DIVERGED_CONDITION_ID = 'measure-diverged'
 export const CATALOGUE_DIVERGENCE_CONDITION_ID = 'catalogue-price-divergence'
 export const CATALOGUE_MISSING_CONDITION_ID = 'catalogue-missing'
 
-// The rabat pair, named because the menu drops it under a global rabat — the same call the grid makes
-// for the rabat COLUMNS (column-config.ts' DISCOUNT_COLUMN_IDS). Kept beside the entries rather
-// than restated in the menu, so adding a third rabat condition cannot leave the two lists disagreeing.
-export const DISCOUNT_CONDITION_IDS: ReadonlySet<string> = new Set(['has-discount', 'no-discount'])
-
 /**
  * The overpaid-crew guard (EX-708): on this plane, is the pozycja's executed work being settled at a
  * stawka that is a PERCENTAGE of the cena j.m.?
@@ -344,6 +339,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     sectionLabel: 'Sekcje z rabatem',
     kind: 'filter',
     filterGroup: 'discount',
+    inertUnderGlobalDiscount: true,
     matches: (row) => !row.globalDiscountActive && hasItemDiscount(row),
   },
   {
@@ -352,6 +348,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     sectionLabel: 'Sekcje bez rabatu',
     kind: 'filter',
     filterGroup: 'discount',
+    inertUnderGlobalDiscount: true,
     matches: (row) => !row.globalDiscountActive && !hasItemDiscount(row),
   },
   {
@@ -360,7 +357,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     // Never lifts to sekcje: „Zwiń puste sekcje" is a reading gesture in a menu the client view does
     // not render, so a label here would only buy a per-render pass over the whole dataset for a set
     // nothing reads.
-    sectionLabel: null,
     kind: 'client',
     // One rule rather than the two filters above, because each of those is safe for only one of the
     // two figures a client reads: hiding no-work rows drops a priced-but-unstarted pozycja while the
@@ -378,7 +374,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label: 'z wykonaną pracą bez ceny j.m.',
     // A defect, not a state: a section fully executed but unpriced is exactly what must not be folded
     // away — that is the bug „Zwiń puste sekcje" had.
-    sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'client-price',
     // The executed quantity alongside the price cells: engaging a problem that says „praca wykonana"
@@ -391,7 +386,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     // Names both halves of what it matches: shortened back to „bez ceny j.m." it would read as the
     // whole set while covering only the untouched pozycje, and come back as a bug report.
     label: 'bez ceny j.m. i bez wykonanej pracy',
-    sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'client-price',
     revealsColumns: ALL_PRICE_COLUMNS,
@@ -407,7 +401,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     id: 'divergent-client-price',
     label: 'z inną ceną j.m. niż ta sama praca gdzie indziej',
     // Folding a whole sekcja because its prices diverge would hide the very wycena being questioned.
-    sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'client-price',
     // A whole sentence rather than „Pozycje …": the subject is the praca, not the pozycja, and the
@@ -426,7 +419,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: CATALOGUE_DIVERGENCE_CONDITION_ID,
     label: 'z innymi liczbami niż w katalogu prac',
-    sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'catalogue',
     problemLabel: (count) => `Inne liczby niż w katalogu prac (${count})`,
@@ -439,7 +431,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: CATALOGUE_MISSING_CONDITION_ID,
     label: 'spoza katalogu prac',
-    sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'catalogue',
     problemLabel: (count) => `Brak w katalogu prac (${count})`,
@@ -451,7 +442,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     // imported, and the gap it names is work not yet entered — not a fault. Same wording as the
     // „Rozjazd między arkuszem Google a apką" column it points at.
     label: 'z pomiarem do rozpisania na etapy',
-    sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'scope-stages',
     matches: (row, ctx) => measureDiscrepancy(row, ctx.stages) != null,
@@ -462,7 +452,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'work-without-planned-qty',
     label: 'z wykonaną pracą bez przedmiaru',
-    sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'scope-stages',
     // The przedmiar alone: it is the missing cell, and it is where the fix is typed.
@@ -483,7 +472,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'negative-rate-w-tools',
     label: 'z ujemną stawką wykonawcy' + planeViewSuffix('w_tools'),
-    sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'subcontractor-rate-w-tools',
     plane: 'w_tools',
@@ -495,7 +483,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'negative-rate-own-tools',
     label: 'z ujemną stawką wykonawcy' + planeViewSuffix('own_tools'),
-    sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'subcontractor-rate-own-tools',
     plane: 'own_tools',
@@ -518,7 +505,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'no-w-tools-price',
     label: 'bez ceny wykonawcy' + planeViewSuffix('w_tools'),
-    sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'subcontractor-rate-w-tools',
     plane: 'w_tools',
@@ -531,7 +517,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'no-own-tools-price',
     label: 'bez ceny wykonawcy' + planeViewSuffix('own_tools'),
-    sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'subcontractor-rate-own-tools',
     plane: 'own_tools',
@@ -553,7 +538,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'material-percent-rate-w-tools',
     label: 'ze stawką wykonawcy od ceny z materiałem' + planeViewSuffix('w_tools'),
-    sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'subcontractor-rate-w-tools',
     plane: 'w_tools',
@@ -564,7 +548,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'material-percent-rate-own-tools',
     label: 'ze stawką wykonawcy od ceny z materiałem' + planeViewSuffix('own_tools'),
-    sectionLabel: null,
     kind: 'diagnostic',
     problemGroup: 'subcontractor-rate-own-tools',
     plane: 'own_tools',

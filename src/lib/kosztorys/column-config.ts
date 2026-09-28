@@ -163,8 +163,8 @@ export const UNPICKABLE_COLUMNS: ReadonlySet<string> = new Set(['divergence'])
 // entry.
 export const AXIS_EXEMPT_COLUMNS: ReadonlySet<string> = new Set(['price'])
 
-// The four per-item rabat columns hidden while the global discount overrides them. Paired with
-// DISCOUNT_CONDITION_IDS (row-conditions/registry.ts), which drops the matching „Problemy" entries.
+// The four per-item rabat columns hidden while the global discount overrides them. Paired with the
+// `inertUnderGlobalDiscount` filters (row-conditions/registry.ts), which drop out of the „Filtry" menu.
 const DISCOUNT_COLUMN_IDS: ReadonlySet<string> = new Set([
   'discountValue',
   'discountType',

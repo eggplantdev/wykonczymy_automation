@@ -1,6 +1,7 @@
 import { crewAxisShows, type CrewAxisT } from '@/lib/kosztorys/crew-axis'
-import { DISCOUNT_CONDITION_IDS, ROW_CONDITIONS } from '@/lib/kosztorys/row-conditions/registry'
+import { ROW_CONDITIONS } from '@/lib/kosztorys/row-conditions/registry'
 import type {
+  FilterConditionT,
   RowConditionCtxT,
   RowConditionKindT,
   RowConditionT,
@@ -170,7 +171,7 @@ export function rowIdsMatching(
  */
 export const liftsToSections = (
   condition: RowConditionT,
-): condition is RowConditionT & { sectionLabel: string } =>
+): condition is FilterConditionT & { sectionLabel: string } =>
   condition.kind === 'filter' && condition.sectionLabel !== null
 
 /**
@@ -216,13 +217,12 @@ export function offeredFilterConditions(
   engagedIds: ReadonlySet<string>,
   perItemDiscountInert: boolean,
   crewAxis: CrewAxisT,
-): RowConditionT[] {
-  return ROW_CONDITIONS.filter(
+): FilterConditionT[] {
+  return ROW_CONDITIONS.filter((condition) => condition.kind === 'filter').filter(
     (condition) =>
-      condition.kind === 'filter' &&
-      (engagedIds.has(condition.id) ||
-        (!(perItemDiscountInert && DISCOUNT_CONDITION_IDS.has(condition.id)) &&
-          (condition.plane === undefined || crewAxisShows(crewAxis, condition.plane)))),
+      engagedIds.has(condition.id) ||
+      (!(perItemDiscountInert && condition.inertUnderGlobalDiscount) &&
+        (condition.plane === undefined || crewAxisShows(crewAxis, condition.plane))),
   )
 }
 
