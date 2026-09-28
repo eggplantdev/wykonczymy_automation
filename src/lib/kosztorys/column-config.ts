@@ -29,6 +29,7 @@ export const COLUMN_LABELS: Record<string, string> = {
   discountAmountGross: 'Rabat kwota brutto',
   plannedNet: 'Wartość przedmiaru netto',
   plannedGross: 'Wartość przedmiaru brutto',
+  plannedNetForPlane: 'Wartość przedmiaru netto',
   net: 'Razem netto',
   gross: 'Razem brutto',
   remaining: 'Pozostało netto (względem przedmiaru)',
@@ -66,6 +67,9 @@ export function columnLabelForView(id: string, view: PriceViewT): string {
   }
   if (id === 'stageQtySum' && view !== 'client')
     return `Pomiar — suma etapów ${PLANE_LABELS[view].toLowerCase()}`
+  // Shares its base label with „Wartość przedmiaru netto", which stays at the client price in every
+  // view; the plane suffix is the only thing telling the two apart on one screen.
+  if (id === 'plannedNetForPlane' && view !== 'client') return `${label}${planeDashSuffix(view)}`
   return label
 }
 
@@ -85,6 +89,13 @@ export const PRZEDMIAR_ANCHORED_COLUMNS: ReadonlySet<string> = new Set([
   'remainingGross',
 ])
 
+/**
+ * The mirror of PRZEDMIAR_ANCHORED_COLUMNS: columns that exist only in a crew view. „Wartość
+ * przedmiaru netto — <rozliczenie>" is the przedmiar at the crew's stawka (owner, 2026-09-28); in the
+ * client view it would be a second copy of „Wartość przedmiaru netto" under a different name.
+ */
+export const CREW_PLANE_ONLY_COLUMNS: ReadonlySet<string> = new Set(['plannedNetForPlane'])
+
 // Which side of the netto/brutto pair a money column reports, keyed by the picker's toggleKey
 // (`stageValueNet`, never `stageValueNet_7`) so the per-stage namespace collapses to one entry and no
 // stage id enters the map — the same ghost-id reasoning as the picker groups (stage-keys.ts). A column
@@ -97,6 +108,7 @@ export const COLUMN_MONEY_AXIS: Record<string, 'net' | 'gross'> = {
   discountAmountGross: 'gross',
   plannedNet: 'net',
   plannedGross: 'gross',
+  plannedNetForPlane: 'net',
   net: 'net',
   gross: 'gross',
   remaining: 'net',

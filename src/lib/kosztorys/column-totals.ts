@@ -42,6 +42,7 @@ export function columnTotalsForRows(
 
   let net = 0
   let plannedNet = 0
+  let plannedNetForPlane = 0
   let discount = 0
   let remaining = 0
   for (const row of rows) {
@@ -51,6 +52,7 @@ export function columnTotalsForRows(
     net += netForQtyForView(row, qtyDone, view)
     // Pinned to 'client' like the cells they total: the przedmiar is the whole offered scope in every view.
     plannedNet += rowPlannedNetForView(row, 'client')
+    plannedNetForPlane += rowPlannedNetForView(row, view)
     discount += rowDiscountForView(row, qtyDone, view)
     remaining += rowRemainingForView(row, stages, 'client')
   }
@@ -59,6 +61,7 @@ export function columnTotalsForRows(
   totals.set('gross', toGross(net, vatRate))
   totals.set('plannedNet', plannedNet)
   totals.set('plannedGross', toGross(plannedNet, vatRate))
+  if (view !== 'client') totals.set('plannedNetForPlane', plannedNetForPlane)
   totals.set('remaining', remaining)
   totals.set('remainingGross', toGross(remaining, vatRate))
   totals.set('discountAmount', discount)

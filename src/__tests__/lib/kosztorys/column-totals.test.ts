@@ -107,6 +107,14 @@ describe('columnTotalsForRows', () => {
     expect(subcontractor.get('remaining')).toBe(client.get('remaining'))
   })
 
+  // The crew's own przedmiar figure (owner, 2026-09-28): at the stawka, never with the client's rabat.
+  it('totals „Wartość przedmiaru — <rozliczenie>" at the crew stawka, only in a crew view', () => {
+    // Every row carries a 12 zł stawka z narzędziami over przedmiar 5 + 4 + 0 + 6; row 2's rabat of 8
+    // is a client concession and stays out.
+    expect(totals(rows, 'w_tools').get('plannedNetForPlane')).toBe(15 * 12)
+    expect(totals(rows, 'client').has('plannedNetForPlane')).toBe(false)
+  })
+
   it('drops an out-of-view etap from the axis rather than totalling a hidden column', () => {
     const subcontractor = totals(rows, 'w_tools')
 

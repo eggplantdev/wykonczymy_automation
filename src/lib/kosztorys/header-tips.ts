@@ -25,6 +25,7 @@ const HEADER_TIPS: Record<string, string> = {
     'Mnożnik liczony od ceny dla inwestora.\nStawka to cena j.m. razy mnożnik, więc podniesienie ceny przesuwa ją od razu — w odróżnieniu od wpisanej kwoty.',
   plannedNet: PLANNED,
   plannedGross: PLANNED,
+  plannedNetForPlane: `Przedmiar razy stawka tego rozliczenia.\nIle ekipa zarobi, jeśli wykona cały przedmiar.\n\n${DISCOUNT_IS_CLIENT_ONLY}`,
   net: `Pomiar razy cena minus rabat.\n\n${DISCOUNT_IS_CLIENT_ONLY}`,
   gross: `Pomiar razy cena minus rabat.\n\n${DISCOUNT_IS_CLIENT_ONLY}`,
   remaining: REMAINING,

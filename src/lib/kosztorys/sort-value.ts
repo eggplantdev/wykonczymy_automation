@@ -102,6 +102,8 @@ export function columnSortValue(
       return rowPlannedNetForView(row, view)
     case 'plannedGross':
       return toGross(rowPlannedNetForView(row, view), row.vatRate)
+    case 'plannedNetForPlane':
+      return rowPlannedNetForView(row, view)
     case 'net':
       return rowValueForView(row, stages, view)
     case 'gross':

@@ -10,6 +10,7 @@ import {
   type ColumnRanksT,
 } from '@/lib/table/column-order'
 import {
+  CREW_PLANE_ONLY_COLUMNS,
   DISCOUNT_COLUMN_IDS,
   PREVIEW_VISIBLE_COLUMNS,
   WORKSHOP_VISIBLE_COLUMNS,
@@ -85,6 +86,7 @@ export function selectV2Columns(
     // first visit. The per-offer subtraction only the preview supplies still applies.
     if (closed) return closed.has(key) && !opts.previewHiddenColumns?.has(key)
     if (opts.view !== 'client' && PRZEDMIAR_ANCHORED_COLUMNS.has(key)) return false
+    if (opts.view === 'client' && CREW_PLANE_ONLY_COLUMNS.has(key)) return false
     // The reveal sits beside UNPICKABLE_COLUMNS because it answers the same question — „may a stored
     // tick hide this right now" — and it overrules the crew axis for the same reason: six diagnostics
     // are plane-bound („Stawka ujemna — z narzędziami" and its five siblings), so with that crew's
@@ -122,6 +124,7 @@ export function selectV2ToggleItems(
     if (opts.globalDiscountActive && DISCOUNT_COLUMN_IDS.has(id)) continue
     if (UNPICKABLE_COLUMNS.has(id)) continue
     if (opts.view !== 'client' && PRZEDMIAR_ANCHORED_COLUMNS.has(id)) continue
+    if (opts.view === 'client' && CREW_PLANE_ONLY_COLUMNS.has(id)) continue
     // Dropped from the picker too, not merely from the grid: a tick that cannot put its column on
     // screen is a control lying about what it does, and the hidden-count above it would read the
     // switched-off crew as columns this reader hid.

@@ -333,6 +333,9 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     computedColumn('plannedGross', columnTitle('plannedGross', opts), (r) =>
       toGross(rowPlannedNetForView(r, 'client'), r.vatRate),
     ),
+    computedColumn('plannedNetForPlane', columnTitle('plannedNetForPlane', opts), (r) =>
+      rowPlannedNetForView(r, view),
+    ),
   ]
 
   const computed: Column<KosztorysV2RowT>[] = [
