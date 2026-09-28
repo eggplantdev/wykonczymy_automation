@@ -273,6 +273,11 @@ toast as the offer.
 **Contract**: zod schema over `AcceptanceProtocolFormT` (kind required; dates optional strings);
 dialog title „Protokół odbioru prac"; confirm label „Generuj".
 
+> **As built:** no zod schema — the form is a Select plus free-text fields, none of which has
+> anything to validate, so `acceptance-protocol-schema.ts` was never created. The investment write
+> is the narrow `updateInvestmentClientFieldsAction` (contact person + address only), not
+> `updateInvestmentAction` with the whole record.
+
 ### Success Criteria:
 
 #### Automated Verification:

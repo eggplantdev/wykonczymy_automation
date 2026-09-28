@@ -30,7 +30,6 @@ p { margin: 0 0 4px; }
 
 .line { display: flex; align-items: baseline; gap: 6px; margin: 5px 0; }
 .line .fill { flex: 1; }
-/* A blank prints as a dotted line to write on; a filled field keeps the same line under its text. */
 .fill { display: inline-block; min-width: 40mm; min-height: 1.3em; padding: 0 4px;
         border-bottom: 1px dotted #52525b; font-weight: 600; }
 .blank-line { border-bottom: 1px dotted #52525b; height: 1.9em; }

@@ -19,6 +19,7 @@ const FORM: AcceptanceProtocolFormT = {
 
 const SETTLEMENT: ProtocolSettlementT = {
   laborCostsNet: 12000,
+  discountNet: 0,
   materialsNet: 1300,
   totalNet: 13300,
   paidNet: 7000,

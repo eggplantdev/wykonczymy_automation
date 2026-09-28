@@ -6,23 +6,24 @@ import {
 import { investment } from '@/__tests__/lib/kosztorys/acceptance-protocol/fixtures'
 
 describe('investmentUpdateFromProtocol', () => {
-  it('changes only the osoba kontaktowa and the address, carrying every other field through', () => {
+  it('writes only the osoba kontaktowa and the address', () => {
     const payload = investmentUpdateFromProtocol(investment({ status: 'completed' }), {
       clientName: '  Anna Nowak ',
       siteAddress: 'ul. Nowa 5, Kraków',
     })
 
-    expect(payload).toEqual({
-      name: 'Jan Testowy Kwiatowa 1/2',
-      address: 'ul. Nowa 5, Kraków',
-      phone: '600 000 000',
-      email: 'jan@example.test',
-      contactPerson: 'Anna Nowak',
-      notes: 'klucze u sąsiada',
-      review: 'ok',
-      status: 'completed',
-      presetId: '',
+    expect(payload).toEqual({ contactPerson: 'Anna Nowak', address: 'ul. Nowa 5, Kraków' })
+  })
+
+  it('keeps a blank osoba kontaktowa blank when only the address was edited', () => {
+    const inv = investment({ contactPerson: '' })
+
+    const payload = investmentUpdateFromProtocol(inv, {
+      clientName: inv.name,
+      siteAddress: 'ul. Nowa 5, Kraków',
     })
+
+    expect(payload.contactPerson).toBe('')
   })
 })
 

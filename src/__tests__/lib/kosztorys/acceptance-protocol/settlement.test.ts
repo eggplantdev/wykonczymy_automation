@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { protocolSettlement } from '@/lib/kosztorys/acceptance-protocol/settlement'
+import {
+  protocolSettlement,
+  protocolSettlementLines,
+} from '@/lib/kosztorys/acceptance-protocol/settlement'
 import { sumDeposits } from '@/lib/kosztorys/deposit-planes'
 import { computeAmountDue } from '@/lib/kosztorys/summary-economics'
 import type { DepositTransactionRowT } from '@/types/transfers'
@@ -29,6 +32,7 @@ describe('protocolSettlement', () => {
       vatRate: 0.08,
       depositTransactions: DEPOSITS,
       lossAmount: 150,
+      discountAmount: 0,
     })
 
     const summary = computeAmountDue(12000, sumDeposits(DEPOSITS), MATERIALS, 0.08, 0.23, 150)
@@ -52,6 +56,7 @@ describe('protocolSettlement', () => {
       vatRate: 0.08,
       depositTransactions: [],
       lossAmount: 0,
+      discountAmount: 0,
     })
 
     expect(settlement.materialsNet).toBe(1530)
@@ -65,9 +70,41 @@ describe('protocolSettlement', () => {
       vatRate: 0.08,
       depositTransactions: [deposit({ amount: 1000.1 })],
       lossAmount: 0,
+      discountAmount: 0,
     }
 
     expect(protocolSettlement({ ...args, laborCostsNet: 1000 }).isOverpaid).toBe(true)
     expect(protocolSettlement({ ...args, laborCostsNet: 1000.1 }).isOverpaid).toBe(false)
+  })
+})
+
+describe('protocolSettlementLines', () => {
+  const settle = (discountAmount: number) =>
+    protocolSettlement({
+      laborCostsNet: 900,
+      materials: { grossBase: 0, netBilled: 0 },
+      settlementMode: 'NET',
+      materialsNetRate: null,
+      vatRate: 0.08,
+      depositTransactions: [],
+      lossAmount: 0,
+      discountAmount,
+    })
+
+  it('prints Robocizna before rabat and the rabat as its own deduction, as „Podsumowanie" does', () => {
+    const lines = protocolSettlementLines(settle(100))
+
+    expect(lines.slice(0, 3)).toEqual([
+      { label: 'Robocizna', amount: 1000 },
+      { label: 'Rabat', amount: -100 },
+      { label: 'Materiały', amount: 0 },
+    ])
+    expect(lines.find((line) => line.label === 'Suma')?.amount).toBe(900)
+  })
+
+  it('leaves the Rabat line out when there is no rabat', () => {
+    const labels = protocolSettlementLines(settle(0)).map((line) => line.label)
+
+    expect(labels).not.toContain('Rabat')
   })
 })

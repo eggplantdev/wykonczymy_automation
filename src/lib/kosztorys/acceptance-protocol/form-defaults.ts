@@ -21,7 +21,7 @@ export function protocolFormDefaults({ investment, today }: ArgsT): AcceptancePr
   }
 }
 
-// The osoba kontaktowa is filled on a handful of investments; the name usually carries the client,
+// The contact person is filled on a handful of investments; the name usually carries the client,
 // so it is the better guess than a blank.
 export function prefilledClientName(investment: InvestmentRefT): string {
   return investment.contactPerson.trim() || investment.name

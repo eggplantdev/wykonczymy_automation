@@ -7,7 +7,9 @@ import { extractSheetId, verifySheetAccess } from '@/lib/google/sheet-access'
 import { writeServiceAccountEmail } from '@/lib/google/auth'
 import { stampAllTabs } from '@/lib/google/app-managed-tabs'
 import {
+  investmentClientFieldsSchema,
   investmentSchema,
+  type InvestmentClientFieldsT,
   type InvestmentFormDataT,
 } from '@/components/forms/investment-form/investment-schema'
 import { createInvestment } from '@/lib/investments/create-investment'
@@ -173,6 +175,26 @@ export async function updateInvestmentAction(id: number, data: InvestmentFormDat
         data: investmentData,
         user,
       })
+
+      return { success: true }
+    },
+    ['investments'],
+  )
+}
+
+// The acceptance protocol's write-back. Two fields only: sending the whole record from the
+// editor's page-load copy would revert an edit made elsewhere since — a status change included.
+export async function updateInvestmentClientFieldsAction(
+  id: number,
+  data: InvestmentClientFieldsT,
+) {
+  return protectedAction(
+    'updateInvestmentClientFieldsAction',
+    async ({ payload, user }) => {
+      const parsed = validateAction(investmentClientFieldsSchema, data)
+      if (!parsed.success) return parsed
+
+      await payload.update({ collection: 'investments', id, data: parsed.data, user })
 
       return { success: true }
     },

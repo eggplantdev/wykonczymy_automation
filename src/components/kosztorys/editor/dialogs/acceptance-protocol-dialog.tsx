@@ -36,12 +36,11 @@ import type {
   AcceptanceKindT,
   AcceptanceProtocolFormT,
 } from '@/lib/kosztorys/acceptance-protocol/types'
-import { writeAndPrint } from '@/lib/kosztorys/offer-print/print-popup'
 import type { MaterialsT } from '@/lib/kosztorys/summary-economics'
-import { updateInvestmentAction } from '@/lib/actions/investments'
+import { updateInvestmentClientFieldsAction } from '@/lib/actions/investments'
 import { formatPLN } from '@/lib/utils/format-currency'
-import { today } from '@/lib/utils/date'
-import { openPrintWindow } from '@/lib/utils/print-window'
+import { warsawToday } from '@/lib/utils/days'
+import { openPrintWindow, writeAndPrint } from '@/lib/utils/print-window'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 import { toastMessage } from '@/lib/utils/toast'
 import type { InvestmentRefT } from '@/types/reference-data'
@@ -82,18 +81,20 @@ function AcceptanceProtocolBody({
   source: AcceptanceProtocolSourceT
   onClose: () => void
 }) {
-  const { rows, stages, laborCostsNet, tree } = useKosztorysEditorContext()
+  const { rows, stages, laborCostsNet, discountNetFromKosztorys, tree } =
+    useKosztorysEditorContext()
   const { investment } = source
   const scope = protocolScopeRows(rows, stages)
   const settlement = protocolSettlement({
     ...source,
     laborCostsNet,
+    discountAmount: discountNetFromKosztorys,
     vatRate: tree.vatRate,
     settlementMode: tree.settlementMode,
     materialsNetRate: tree.materialsNetRate,
   })
   const form = useAppForm({
-    defaultValues: protocolFormDefaults({ investment, today: today() }),
+    defaultValues: protocolFormDefaults({ investment, today: warsawToday() }),
   })
   const clientName = useStore(form.store, (state) => state.values.clientName)
   const siteAddress = useStore(form.store, (state) => state.values.siteAddress)
@@ -103,16 +104,21 @@ function AcceptanceProtocolBody({
 
   async function handleUpdateInvestment() {
     setIsSaving(true)
-    const result = await updateInvestmentAction(
-      investment.id,
-      investmentUpdateFromProtocol(investment, { clientName, siteAddress }),
-    )
-    setIsSaving(false)
-    if (!result.success) {
-      toastMessage(result.error ?? 'Nie udało się zaktualizować inwestycji', 'error', 4000)
-      return
+    try {
+      const result = await updateInvestmentClientFieldsAction(
+        investment.id,
+        investmentUpdateFromProtocol(investment, { clientName, siteAddress }),
+      )
+      if (!result.success) {
+        toastMessage(result.error ?? 'Nie udało się zaktualizować inwestycji', 'error', 4000)
+        return
+      }
+      toastMessage('Zaktualizowano dane inwestycji', 'success')
+    } catch {
+      toastMessage('Nie udało się zaktualizować inwestycji', 'error', 4000)
+    } finally {
+      setIsSaving(false)
     }
-    toastMessage('Zaktualizowano dane inwestycji', 'success')
   }
 
   // Synchronous from the click to `window.open` — everything the paper needs is already in memory.

@@ -21,6 +21,7 @@ export type ProtocolScopeRowT = {
 
 export type ProtocolSettlementT = {
   laborCostsNet: number
+  discountNet: number
   materialsNet: number
   totalNet: number
   paidNet: number
