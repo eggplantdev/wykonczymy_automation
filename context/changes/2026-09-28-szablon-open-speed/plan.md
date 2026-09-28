@@ -512,7 +512,7 @@ Run once, after the final phase.
 
 #### Automated
 
-- [ ] 2.1 Host DOM spec passes
+- [x] 2.1 Host DOM spec passes — 0bd806f3
 
 ### Phase 3: Entry points and cleanup
 

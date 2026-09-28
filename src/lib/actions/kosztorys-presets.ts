@@ -108,9 +108,11 @@ export async function createEmptyPresetAction(
         }),
       })
       if (id == null) return { success: false, error: NAME_TAKEN_MESSAGE }
+      // After the response: the dialog navigates away at once, and an inline expiry would first
+      // re-render /szablony inside this POST for a list nobody is looking at (lessons.md, EX-597).
+      expireCollectionsAfterResponse(['presets'])
       return { success: true, data: { id } }
     },
-    ['presets'],
   )
 }
 

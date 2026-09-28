@@ -20,8 +20,6 @@ type VirtualizedTableBodyPropsT<TData> = {
   virtualizer: ReturnType<typeof useVirtualizer<HTMLDivElement, Element>>
   visibleColumnIdList: string[]
   getRowHref?: (row: TData) => string | undefined
-  /** Row click handler for a row that must not be an href — see `DataTableRow`. */
-  onRowClick?: (row: TData) => void
   getRowClassName?: (row: TData) => string
   footer?: (visibleColumnIds: string[]) => React.ReactNode
 }
@@ -35,7 +33,6 @@ export function VirtualizedTableBody<TData>({
   virtualizer,
   visibleColumnIdList,
   getRowHref,
-  onRowClick,
   getRowClassName,
   footer,
 }: VirtualizedTableBodyPropsT<TData>) {
@@ -85,7 +82,6 @@ export function VirtualizedTableBody<TData>({
                     measureRef={virtualizer.measureElement}
                     index={virtualRow.index}
                     getRowHref={getRowHref}
-                    onRowClick={onRowClick}
                     getRowClassName={getRowClassName}
                   />
                 )
