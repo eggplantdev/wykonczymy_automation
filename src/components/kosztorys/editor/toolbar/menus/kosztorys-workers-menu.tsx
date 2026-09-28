@@ -18,10 +18,9 @@ import {
 } from '@/components/kosztorys/editor/actions/worker-actions'
 import { WorkerPrintMenuItem } from '@/components/kosztorys/editor/actions/worker-print-action'
 import { assignedWorkers } from '@/lib/kosztorys/worker-view/assigned-workers'
-import { WORKER_SCOPE_BLOCK_MESSAGES } from '@/lib/kosztorys/worker-view/constants'
+import { WORKER_SCOPE_BLOCK_MESSAGES } from '@/lib/kosztorys/worker-view/labels'
 
-// The investor menu's twin, one block per worker who holds an etap. Mounted inside
-// KosztorysActionsProvider (see KosztorysActionsMenu), which its items and dialogs read from.
+// Mounted inside KosztorysActionsProvider (see KosztorysActionsMenu), which its items and dialogs read from.
 export function KosztorysWorkersMenu() {
   const { stages, workers } = useKosztorysEditorContext()
   const assigned = assignedWorkers(stages, workers)

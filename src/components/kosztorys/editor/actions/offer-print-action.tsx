@@ -5,12 +5,12 @@ import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { MenuItemBody } from '@/components/kosztorys/editor/actions/menu-item-body'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { toastMessage } from '@/lib/utils/toast'
-import { openPrintWindow } from '@/lib/utils/print-window'
+import { openPrintWindow, writeAndPrint } from '@/lib/utils/print-window'
 import {
   buildOfferPrintHtml,
   offeredRows,
 } from '@/lib/kosztorys/offer-print/build-offer-print-html'
-import { resolveSectionFills, writeAndPrint } from '@/lib/kosztorys/offer-print/print-popup'
+import { resolveSectionFills } from '@/lib/kosztorys/offer-print/print-popup'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
 import { readClientViewSettings } from '@/lib/queries/client-view-settings-endpoint'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
@@ -22,8 +22,8 @@ import { useKosztorysActions } from '@/components/kosztorys/editor/actions/koszt
 export function GenerateOfferMenuItem() {
   const { investmentId, rows, stages, investmentName, columnTotals, sectionColumnTotals } =
     useKosztorysEditorContext()
-  // „Ustawienia podglądu…" and „Udostępnij" already hold these settings; the print joins them instead of
-  // firing a third independent read of the same row.
+  // „Ustawienia podglądu…" already holds these settings; the print joins it instead of firing a
+  // second independent read of the same row.
   const { investor } = useKosztorysActions()
 
   function handlePrint() {

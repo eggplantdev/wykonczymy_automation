@@ -1,5 +1,5 @@
 import { KosztorysEditorBody } from '@/components/kosztorys/editor/kosztorys-editor-body'
-import { WORKER_SCOPE_BLOCK_MESSAGES } from '@/lib/kosztorys/worker-view/constants'
+import { WORKER_SCOPE_BLOCK_MESSAGES } from '@/lib/kosztorys/worker-view/labels'
 import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
 
 type PropsT = { data: WorkerKosztorysT }
