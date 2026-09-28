@@ -16,6 +16,7 @@ import {
   WorkerShareMenuItem,
   WorkerViewSettingsMenuItem,
 } from '@/components/kosztorys/editor/actions/worker-actions'
+import { WorkerPrintMenuItem } from '@/components/kosztorys/editor/actions/worker-print-action'
 import { assignedWorkers } from '@/lib/kosztorys/worker-view/assigned-workers'
 import { WORKER_SCOPE_BLOCK_MESSAGES } from '@/lib/kosztorys/worker-view/constants'
 
@@ -52,6 +53,7 @@ export function KosztorysWorkersMenu() {
               {blockReason && <p className="text-destructive px-2 pb-1 text-xs">{blockReason}</p>}
               <WorkerPreviewMenuItem workerId={id} />
               <WorkerShareMenuItem target={{ id, name }} disabled={blockReason !== undefined} />
+              <WorkerPrintMenuItem workerId={id} disabled={blockReason !== undefined} />
               <DropdownMenuSeparator />
             </Fragment>
           )

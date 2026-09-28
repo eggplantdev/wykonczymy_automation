@@ -896,13 +896,13 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 6.1 Workers menu spec passes
-- [x] 6.2 Actions menu spec passes
-- [x] 6.3 Investor settings form still passes its specs after parametrization
+- [x] 6.1 Workers menu spec passes — 0a2a52b2
+- [x] 6.2 Actions menu spec passes — 0a2a52b2
+- [x] 6.3 Investor settings form still passes its specs after parametrization — 0a2a52b2
 
 ### Phase 7: PDF + docs
 
 #### Automated
 
-- [ ] 7.1 Offer print spec still passes
-- [ ] 7.2 Worker print spec passes
+- [x] 7.1 Offer print spec still passes
+- [x] 7.2 Worker print spec passes

@@ -3,9 +3,11 @@ import {
   OFFER_COLUMNS,
   OFFER_PRICE_VIEW,
   printableOfferColumns,
+  type OfferColumnT,
   zloty,
 } from '@/lib/kosztorys/offer-print/columns'
 import { OFFER_PRINT_STYLES } from '@/lib/kosztorys/offer-print/styles'
+import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
 import { applyRowConditions, clientConditionIds } from '@/lib/kosztorys/row-conditions/queries'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
@@ -62,15 +64,73 @@ export function buildOfferPrintHtml({
   totalNet,
   sectionNetById,
 }: OfferPrintArgsT): string {
-  const columns = printableOfferColumns(OFFER_COLUMNS, settings.hiddenColumns)
-  // Every sum in the document is a sum of „Wartość netto". With that column hidden the owner has
-  // decided the client sees no money, so the totals go with it rather than reappearing in a footer.
+  return buildKosztorysPrintHtml({
+    rows: offeredRows(rows, stages, settings),
+    stages,
+    columns: printableOfferColumns(OFFER_COLUMNS, settings.hiddenColumns),
+    priceView: OFFER_PRICE_VIEW,
+    documentKind: 'Kosztorys ofertowy',
+    title: investmentName,
+    pageTitle: investmentName,
+    logoUrl,
+    fillByColorKey,
+    moneyKey: 'plannedNet',
+    money: zloty,
+    totalNet,
+    sectionNetById,
+  })
+}
+
+export type KosztorysPrintArgsT = {
+  // Already the rows to print — which pozycje an audience sees is its own rule, decided by the caller.
+  rows: KosztorysV2RowT[]
+  stages: KosztorysStageT[]
+  // Already capped by the audience's ceiling: this builder renders what it is handed and knows no
+  // allowlist of its own.
+  columns: readonly OfferColumnT[]
+  priceView: PriceViewT
+  // The small caps line above the title.
+  documentKind: string
+  title: string
+  // The popup's `<title>` — what „Zapisz jako PDF" offers as the file name.
+  pageTitle: string
+  logoUrl: string
+  fillByColorKey: ReadonlyMap<string, string>
+  // The column whose figure the section totals sit under. Hidden, and the totals go with it.
+  moneyKey: string
+  money: (n: number) => string
+  totalNet: number
+  sectionNetById: ReadonlyMap<number, number>
+  // Appended to the shared stylesheet, for a document whose shape the offer's page does not fit.
+  extraStyles?: string
+  // Replaces the „Razem netto" block — printed whether or not the money column survived, because it is
+  // the audience's own balance, not a sum of the table.
+  footerHtml?: string
+}
+
+export function buildKosztorysPrintHtml({
+  rows,
+  stages,
+  columns,
+  priceView,
+  documentKind,
+  title,
+  pageTitle,
+  logoUrl,
+  fillByColorKey,
+  moneyKey,
+  money,
+  totalNet,
+  sectionNetById,
+  extraStyles = '',
+  footerHtml,
+}: KosztorysPrintArgsT): string {
+  // Every sum in the document is a sum of the money column. With it hidden the owner has decided the
+  // reader sees no money, so the totals go with it rather than reappearing in a footer.
   // The index is what the section total is placed by — „Pozostało" sits to its right, so a figure
   // parked in the last cell would print the przedmiar's sum under the wrong heading.
-  const moneyIndex = columns.findIndex((column) => column.key === 'plannedNet')
+  const moneyIndex = columns.findIndex((column) => column.key === moneyKey)
   const withMoney = moneyIndex >= 0
-
-  const offered = offeredRows(rows, stages, settings)
 
   const body: string[] = []
   let sectionId: number | null = null
@@ -90,13 +150,13 @@ export function buildOfferPrintHtml({
       `<tr class="band-total">` +
         `<td class="rail" colspan="${labelSpan}" style="border-left-color:${escapeHtml(sectionFill)}">` +
         `Razem — ${escapeHtml(sectionName)}</td>` +
-        `<td class="num">${zloty(sectionNet)}</td>` +
+        `<td class="num">${money(sectionNet)}</td>` +
         `<td></td>`.repeat(Math.max(0, columns.length - labelSpan - 1)) +
         `</tr>`,
     )
   }
 
-  for (const row of offered) {
+  for (const row of rows) {
     if (row.sectionId !== sectionId) {
       closeSection()
       sectionId = row.sectionId
@@ -116,7 +176,7 @@ export function buildOfferPrintHtml({
             (column, index) =>
               `<td class="${column.cellClass}${index === 0 ? ' rail' : ''}"` +
               `${index === 0 ? ` style="border-left-color:${escapeHtml(sectionFill)}"` : ''}>` +
-              `${column.cell(row, OFFER_PRICE_VIEW, stages)}</td>`,
+              `${column.cell(row, priceView, stages)}</td>`,
           )
           .join('') +
         `</tr>`,
@@ -124,18 +184,20 @@ export function buildOfferPrintHtml({
   }
   closeSection()
 
-  const totals = withMoney
-    ? `
+  const totals =
+    footerHtml ??
+    (withMoney
+      ? `
 <div class="totals"><table><tbody>
-<tr class="grand"><td class="label">Razem netto</td><td class="value">${zloty(totalNet)}</td></tr>
+<tr class="grand"><td class="label">Razem netto</td><td class="value">${money(totalNet)}</td></tr>
 </tbody></table></div>`
-    : ''
+      : '')
 
   const brand =
     `<div class="brand-bar">` +
     `<img src="${escapeHtml(logoUrl)}" alt="">` +
-    `<div class="brand-text"><div class="brand-kind">Kosztorys ofertowy</div>` +
-    `<div class="brand-title">${escapeHtml(investmentName)}</div></div>` +
+    `<div class="brand-text"><div class="brand-kind">${escapeHtml(documentKind)}</div>` +
+    `<div class="brand-title">${escapeHtml(title)}</div></div>` +
     `</div>`
 
   const head = `<tr>${columns
@@ -153,8 +215,8 @@ export function buildOfferPrintHtml({
 <html lang="pl">
 <head>
 <meta charset="utf-8">
-<title>${escapeHtml(investmentName)}</title>
-<style>${OFFER_PRINT_STYLES}</style>
+<title>${escapeHtml(pageTitle)}</title>
+<style>${OFFER_PRINT_STYLES}${extraStyles}</style>
 </head>
 <body>
 ${brand}

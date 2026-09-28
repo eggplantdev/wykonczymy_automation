@@ -330,6 +330,39 @@ Ustawienia czytane są **obok** cache'owanego payloadu podglądu (jeden indeksow
 zapis działa od następnego żądania bez tagu cache, a zmiana domyślnych firmy nie unieważnia drzewa
 żadnej inwestycji.
 
+## Widok pracownika — link imienny i PDF, tylko odczyt (EX-875, 2026-09-28)
+
+Pracownik / podwykonawca dostaje od ownera **imienny** widok kosztorysu inwestycji: link `/p/[token]`
+albo PDF, oba z menu „Pracownicy" w edytorze. Link i PDF generuje ADMIN / OWNER / MANAGER (jak u
+inwestora); ustawienia widoku pracownika są **jedne na firmę** i zapisuje je tylko ADMIN / OWNER.
+Część 2 (pracownik wpisuje ilości w swoich etapach) to osobna zmiana — link identyfikuje pracownika
+właśnie po to, żeby jej nie przepisywać.
+
+- **Zakres = przypisanie etapu.** Pracownik widzi wszystkie pozycje (Przedmiar nie dzieli się na
+  etapy), ale tylko kolumny swoich etapów. Etap bez rozliczenia albo etapy na dwóch rozliczeniach →
+  menu blokuje link i PDF („Ustaw rozliczenie etapu" / „Etapy pracownika mają różne rozliczenia");
+  pracownik bez etapów → link działa i mówi „Brak przypisanych etapów". Odwołanie tylko świadomie,
+  także po dezaktywacji pracownika.
+- **Stawka wynika z rozliczenia jego etapów** — nikt jej nie wybiera, a widok jest do niej
+  przypięty: zła stawka to wyjątek, nie cicha naprawa. Ceny klienta, „Wartości netto" po cenie
+  klienta, rabatu, brutto, mnożnika i cudzych etapów nie da się włączyć żadnym ustawieniem —
+  allowlista pracownika jest sufitem, ustawienia tylko z niej ujmują.
+- **„Wartość przedmiaru netto — ⟨rozliczenie⟩"** to Przedmiar × stawka rozliczenia: ile ekipa
+  zarobi, jeśli wykona cały przedmiar. W edytorze stoi **obok** „Wartości przedmiaru netto" (która
+  liczy po cenie klienta w każdym widoku), tylko w widokach „Z narzędziami" / „Bez narzędzi"; w
+  widoku inwestora jej nie ma, bo byłaby kopią. Tylko netto — wypłaty podwykonawców są bez VAT.
+- **„Pozostało" liczy pracę wszystkich etapów**, nie tylko jego: pozycja dokończona przez inną ekipę
+  pokazuje 0, bo to lista „co jeszcze do zrobienia", nie „co jeszcze zrobię ja".
+- **Puste pozycje** — ta sama dwuosiowa reguła co u inwestora, z osią „wykonane" = jego etapy, więc
+  ukrycie nie rusza żadnej sumy podsumowania.
+- **Podsumowanie**: wartość przedmiaru po jego stawce → wykonane per etap + razem → wypłacone (lista:
+  data i kwota, **bez opisu** — opis bywa wewnętrzną notatką) → pozostało do wypłaty; nadwyżka
+  wypłat to „Nadpłata" z dodatnią kwotą, nigdy liczba ujemna.
+- **PDF** to ten sam generator co oferta, z projekcji pracownika (nigdy z wierszy edytora, które
+  niosą cenę klienta): A4 poziomo, bo każdy etap dokłada dwie kolumny; kwoty z groszami, bo stawka
+  7,50 zł zaokrąglona do „8 zł" to inna stawka. „Σ etapów" i „Wartość wykonana" nie idą na papier —
+  niosą je kolumny etapów i stopka.
+
 ## Decyzje zamknięte
 
 - **Dostęp (prosto):** **ADMIN, OWNER, MANAGER** — widzą i edytują wszystko.

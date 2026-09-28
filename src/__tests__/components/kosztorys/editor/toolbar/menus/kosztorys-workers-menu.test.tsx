@@ -44,8 +44,12 @@ vi.mock('@/lib/actions/kosztorys-worker-share', () => ({
   revokeWorkerShareLinkAction: vi.fn(),
 }))
 
+const getWorkerKosztorysPrintData = vi.hoisted(() => vi.fn())
+vi.mock('@/lib/queries/worker-kosztorys-print-endpoint', () => ({ getWorkerKosztorysPrintData }))
+
 beforeEach(() => {
   getWorkerShareLinkAction.mockResolvedValue({ success: true, data: 'tok-anna' })
+  getWorkerKosztorysPrintData.mockResolvedValue(null)
 })
 
 function renderMenu(role: RoleT = 'MANAGER') {
@@ -64,6 +68,7 @@ const openMenu = () => userEvent.click(screen.getByRole('button', { name: 'Praco
 
 // Items render in worker order, so the n-th „Link" belongs to the n-th listed worker.
 const linkItems = () => screen.getAllByRole('menuitem', { name: 'Link' })
+const printItems = () => screen.getAllByRole('menuitem', { name: 'Drukuj PDF' })
 
 describe('KosztorysWorkersMenu', () => {
   it('lists every worker who holds an etap, once, in etap order', async () => {
@@ -82,9 +87,12 @@ describe('KosztorysWorkersMenu', () => {
     await openMenu()
 
     const [anna, bogdan] = linkItems()
+    const [annaPrint, bogdanPrint] = printItems()
     expect(screen.getByText('Ustaw rozliczenie etapu')).toBeInTheDocument()
     expect(bogdan).toHaveAttribute('aria-disabled', 'true')
+    expect(bogdanPrint).toHaveAttribute('aria-disabled', 'true')
     expect(anna).not.toHaveAttribute('aria-disabled')
+    expect(annaPrint).not.toHaveAttribute('aria-disabled')
     const previews = screen.getAllByRole('menuitem', { name: 'Podgląd' })
     expect(previews[1]).toHaveAttribute('href', `/podglad-pracownika/${INVESTMENT_ID}/20`)
   })
@@ -104,6 +112,19 @@ describe('KosztorysWorkersMenu', () => {
       investmentId: INVESTMENT_ID,
       workerId: 10,
     })
+  })
+
+  it('lets a manager print a worker’s PDF, reading that worker’s projection', async () => {
+    const popup = { document: { title: '' }, close: vi.fn() }
+    const open = vi.spyOn(window, 'open').mockReturnValue(popup as unknown as Window)
+    renderMenu('MANAGER')
+    await openMenu()
+
+    await userEvent.click(printItems()[0])
+
+    expect(open).toHaveBeenCalledOnce()
+    expect(getWorkerKosztorysPrintData).toHaveBeenCalledWith(INVESTMENT_ID, 10)
+    open.mockRestore()
   })
 
   // The settings are firm-wide: a manager saving them would change every worker's live link.

@@ -30,35 +30,43 @@ export type OfferColumnT = {
 // fifth would print one crew's stawka on a client's offer.
 export const OFFER_PRICE_VIEW: PriceViewT = 'client'
 
+// The three columns every printed kosztorys opens with, whoever it is priced for — exported for the
+// worker print, which puts its own money columns after them.
+export const DESCRIPTION_COLUMN: OfferColumnT = {
+  key: 'description',
+  label: 'Opis prac',
+  colClass: '',
+  cellClass: 'desc',
+  headerClass: '',
+  cell: (row) => escapeHtml(row.description ?? ''),
+}
+
+export const PLANNED_QTY_COLUMN: OfferColumnT = {
+  key: 'plannedQty',
+  label: 'Przedmiar',
+  colClass: 'c-qty',
+  cellClass: 'num',
+  headerClass: 'num',
+  cell: (row) => escapeHtml(formatQty(row.plannedQty)),
+}
+
+export const UNIT_COLUMN: OfferColumnT = {
+  key: 'unit',
+  label: 'Jednostka miary',
+  colClass: 'c-unit',
+  cellClass: 'unit',
+  headerClass: 'num',
+  cell: (row) => escapeHtml(row.unit ?? ''),
+}
+
 // Keyed by the same column keys the client-view settings hide, so „odznacz Cena j.m." in the dialog
 // takes the column out of the printed offer too. The offer never prints the whole allowlist — the
 // stage columns are a settlement document, not an offer — so the printed set is this list minus
 // whatever the owner hid, minus whatever the ceiling below bars outright.
 export const OFFER_COLUMNS: readonly OfferColumnT[] = [
-  {
-    key: 'description',
-    label: 'Opis prac',
-    colClass: '',
-    cellClass: 'desc',
-    headerClass: '',
-    cell: (row) => escapeHtml(row.description ?? ''),
-  },
-  {
-    key: 'plannedQty',
-    label: 'Przedmiar',
-    colClass: 'c-qty',
-    cellClass: 'num',
-    headerClass: 'num',
-    cell: (row) => escapeHtml(formatQty(row.plannedQty)),
-  },
-  {
-    key: 'unit',
-    label: 'Jednostka miary',
-    colClass: 'c-unit',
-    cellClass: 'unit',
-    headerClass: 'num',
-    cell: (row) => escapeHtml(row.unit ?? ''),
-  },
+  DESCRIPTION_COLUMN,
+  PLANNED_QTY_COLUMN,
+  UNIT_COLUMN,
   {
     key: 'price',
     label: 'Cena j.m.',
