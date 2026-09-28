@@ -30,10 +30,6 @@ const CATALOGUE: WorkCatalogueItemT[] = [
   },
 ]
 
-vi.mock('@/components/kosztorys/editor/dialogs/use-work-catalogue', () => ({
-  useWorkCatalogue: () => ({ catalogue: CATALOGUE }),
-}))
-
 // DataTable's row reaches for the app router, which jsdom has no mount for.
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }) }))
 
@@ -60,6 +56,7 @@ function renderDialog() {
   return render(
     <AddItemsFromCatalogueDialog
       investmentId={7}
+      catalogue={CATALOGUE}
       sections={SECTIONS}
       kosztorysItems={[]}
       open

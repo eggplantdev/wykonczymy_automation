@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { Description } from '@/components/ui/description'
 import { WorkCatalogueItemForm } from '@/components/forms/work-catalogue-item/work-catalogue-item-form'
-import { useWorkCatalogue } from '@/components/kosztorys/editor/dialogs/use-work-catalogue'
 import { createCatalogueItemAction, updateCatalogueItemAction } from '@/lib/actions/work-catalogue'
 import { catalogueSavePreview } from '@/lib/queries/catalogue-save-preview'
 import { PLANE_LABELS } from '@/lib/kosztorys/constants'
@@ -56,18 +55,20 @@ const existingRate = (item: WorkCatalogueItemT, plane: ToolPlaneT): string => {
  */
 export function CatalogueItemFromKosztorysDialog({
   itemId,
+  catalogue,
   open,
   onOpenChange,
   onSaved,
 }: {
   itemId: number
+  // Only for the kategoria suggestions — the preview fetch is what reads the praca's own katalog entry.
+  catalogue: readonly WorkCatalogueItemT[]
   open: boolean
   onOpenChange: (open: boolean) => void
   // Fired on a landed write, so a caller listing this praca can drop it from the list.
   onSaved?: () => void
 }) {
   const [preview, setPreview] = useState<CatalogueSavePreviewT | null>(null)
-  const { catalogue } = useWorkCatalogue(open)
 
   useEffect(() => {
     if (!open) return
@@ -90,9 +91,9 @@ export function CatalogueItemFromKosztorysDialog({
   }, [open, itemId, onOpenChange])
 
   const existing = preview?.existing ?? null
-  const categorySuggestions = [
-    ...new Set((catalogue ?? []).map((item) => item.category ?? '')),
-  ].filter((category) => category !== '')
+  const categorySuggestions = [...new Set(catalogue.map((item) => item.category ?? ''))].filter(
+    (category) => category !== '',
+  )
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

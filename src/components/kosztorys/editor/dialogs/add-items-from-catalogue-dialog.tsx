@@ -33,10 +33,10 @@ import type {
   WorkCatalogueItemT,
 } from '@/lib/kosztorys/work-catalogue/types'
 import { toastMessage } from '@/lib/utils/toast'
-import { useWorkCatalogue } from '@/components/kosztorys/editor/dialogs/use-work-catalogue'
 
 type PropsT = {
   investmentId: number
+  catalogue: WorkCatalogueItemT[]
   sections: SectionSubtotalT[]
   // The WHOLE rozpiska, so „Ukryj już dodane" answers for the kosztorys and not for one sekcja —
   // the same praca legitimately sits in several pokoje, and the owner wants all of them out of view.
@@ -91,6 +91,7 @@ function SelectCell({
 // which sorting the table does not touch.
 export function AddItemsFromCatalogueDialog({
   investmentId,
+  catalogue,
   sections,
   kosztorysItems,
   initialSectionId = null,
@@ -98,7 +99,6 @@ export function AddItemsFromCatalogueDialog({
   onOpenChange,
   onInserted,
 }: PropsT) {
-  const { catalogue } = useWorkCatalogue(open)
   const [selected, setSelected] = useState<number[]>([])
   const [sectionName, setSectionName] = useState(
     () => sections.find((section) => section.sectionId === initialSectionId)?.sectionName ?? '',
@@ -110,7 +110,7 @@ export function AddItemsFromCatalogueDialog({
     filteredData: filtered,
     searchTerm,
     setSearchTerm,
-  } = useSearchFilter(catalogue ?? [], searchText)
+  } = useSearchFilter(catalogue, searchText)
   const {
     filteredData: inScope,
     values: categories,
@@ -130,7 +130,7 @@ export function AddItemsFromCatalogueDialog({
   const visible = hideAlreadyAdded ? [...fresh, ...keptSelected] : inScope
   const hiddenCount = alreadyAdded.length - keptSelected.length
 
-  const categoryOptions = catalogueCategoryOptions(catalogue ?? [])
+  const categoryOptions = catalogueCategoryOptions(catalogue)
 
   const sectionOptions = sectionNameOptions(sections)
   const target = resolveSectionTarget(sectionName, sections, initialSectionId ?? undefined)
@@ -211,15 +211,13 @@ export function AddItemsFromCatalogueDialog({
             className="min-w-0 flex-1"
           />
           {/* Hidden, never removed: a praca that silently vanishes from the cennik reads as a gap in
-              the katalog, so the count stays on screen and the switch stays reachable. The count is
-              withheld until the cennik is in — „(0)" over „Ładowanie katalogu…" is a confident answer
-              to a question nobody has asked yet. */}
+              the katalog, so the count stays on screen and the switch stays reachable. */}
           <label className="text-muted-foreground flex shrink-0 items-center gap-2 text-sm">
             <Checkbox
               checked={hideAlreadyAdded}
               onCheckedChange={(checked) => setHideAlreadyAdded(checked === true)}
             />
-            Ukryj już dodane{catalogue !== null && ` (${hiddenCount})`}
+            Ukryj już dodane ({hiddenCount})
           </label>
         </div>
         <div className="flex flex-wrap items-center gap-2 px-4 pb-3">
@@ -257,9 +255,7 @@ export function AddItemsFromCatalogueDialog({
             </Button>
           )}
         </div>
-        {catalogue === null ? (
-          <p className="text-muted-foreground px-4 py-6 text-sm">Ładowanie katalogu…</p>
-        ) : catalogue.length === 0 ? (
+        {catalogue.length === 0 ? (
           <p className="text-muted-foreground px-4 py-6 text-sm">Katalog prac jest pusty.</p>
         ) : (
           <div className="max-h-[55vh] min-h-0 overflow-y-auto px-4 pb-3">
