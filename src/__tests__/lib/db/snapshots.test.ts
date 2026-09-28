@@ -2,7 +2,13 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
-import { gcSnapshots, getSnapshot, insertSnapshot, listSnapshots } from '@/lib/db/snapshots'
+import {
+  gcSnapshots,
+  getSnapshot,
+  insertSnapshot,
+  listSnapshots,
+  type SnapshotKindT,
+} from '@/lib/db/snapshots'
 import { deletePreset, insertPreset } from '@/lib/db/presets'
 import { setWorkshopPreset } from '@/lib/db/workshop-investment'
 import type { KosztorysSnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
@@ -53,14 +59,14 @@ describe.skipIf(!ENV_READY)('gcSnapshots retention bands (DB)', () => {
   // on the weekday. Anchoring on the sweep's own date_trunc asserts the bucketing, not the clock.
   async function insertAt(
     targetInvestmentId: number,
-    kind: 'auto' | 'manual',
+    kind: SnapshotKindT,
     daysAgo: number,
     hour: number,
   ): Promise<number> {
     const id = await insertSnapshot(db, {
       investmentId: targetInvestmentId,
       kind,
-      label: kind === 'manual' ? 'wersja' : null,
+      label: kind === 'manual' || kind === 'named' ? 'wersja' : null,
       takenBy: null,
       payload: emptyPayload,
     })
@@ -171,6 +177,55 @@ describe.skipIf(!ENV_READY)('gcSnapshots retention bands (DB)', () => {
     await gcSnapshots(db)
     expect(await survivorsOf(investmentId)).toEqual(survivors)
     expect(await survivorsOf(otherInvestmentId)).toEqual(otherSurvivors)
+  })
+
+  // The investor's history is not the owner's restore history: no band thins it and the 365-day
+  // ceiling does not reach it. Only the investment's completion starts its clock.
+  it('keeps daily/named rows while the investment is open, and drops them a year after completion', async () => {
+    const [open, completedLongAgo, completedRecently, completedUndated] = await Promise.all(
+      ['gc-investor-open', 'gc-investor-old', 'gc-investor-recent', 'gc-investor-undated'].map(
+        (name) => createTestInvestment(payload, name),
+      ),
+    )
+    try {
+      // Straight SQL: the stamping hook would set completed_at to now.
+      const complete = (id: number, daysAgo: number | null) =>
+        db.execute(sql`
+          UPDATE investments SET status = 'completed', completed_at = ${
+            daysAgo === null ? null : sql`now() - make_interval(days => ${daysAgo})`
+          } WHERE id = ${id}
+        `)
+      await complete(completedLongAgo, 400)
+      await complete(completedRecently, 100)
+      await complete(completedUndated, null)
+
+      const openDaily = await insertAt(open, 'daily', 400, 23)
+      const openNamed = await insertAt(open, 'named', 400, 10)
+      // Two on one day in the daily band — the band that thins `auto` must leave these both.
+      const openBandMorning = await insertAt(open, 'daily', 40, 8)
+      const openBandEvening = await insertAt(open, 'named', 40, 20)
+      await insertAt(completedLongAgo, 'daily', 500, 23)
+      await insertAt(completedLongAgo, 'named', 450, 12)
+      const recentDaily = await insertAt(completedRecently, 'daily', 400, 23)
+      const undatedDaily = await insertAt(completedUndated, 'daily', 800, 23)
+      // The owner's rows on a completed investment still follow the ceiling, not the completion date.
+      const recentAuto = await insertAt(completedRecently, 'auto', 400, 9)
+
+      const result = await gcSnapshots(db)
+      expect(result.investorExpired).toBeGreaterThanOrEqual(2)
+
+      expect(await survivorsOf(open)).toEqual(
+        [openDaily, openNamed, openBandMorning, openBandEvening].sort((a, b) => a - b),
+      )
+      expect(await survivorsOf(completedLongAgo)).toEqual([])
+      expect(await survivorsOf(completedRecently)).toEqual([recentDaily])
+      expect(await survivorsOf(completedRecently)).not.toContain(recentAuto)
+      expect(await survivorsOf(completedUndated)).toEqual([undatedDaily])
+    } finally {
+      for (const id of [open, completedLongAgo, completedRecently, completedUndated]) {
+        await deleteTestInvestment(payload, id)
+      }
+    }
   })
 })
 

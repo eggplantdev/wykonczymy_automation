@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidateTag } from 'next/cache'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import { CACHE_TAGS, EXPIRE_NOW } from '@/lib/cache/tags'
 import { isAuthorizedCronRequest } from '@/lib/cron/verify-cron-request'
 import { getDb } from '@/lib/db/get-db'
 import { gcSnapshots } from '@/lib/db/snapshots'
@@ -20,6 +22,7 @@ export async function GET(request: NextRequest) {
   const db = await getDb(payload)
 
   const snapshots = await runStep('snapshots', () => gcSnapshots(db))
+  if (snapshots && snapshots.deleted > 0) revalidateTag(CACHE_TAGS.kosztorysSnapshots, EXPIRE_NOW)
   const trash = await runStep('trash', () => purgeTrash(payload, db))
   const steps = [snapshots, trash]
   const threw = steps.filter((step) => step === null).length

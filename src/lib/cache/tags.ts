@@ -13,6 +13,7 @@ export const CACHE_TAGS = {
   stageProgress: 'collection:stage-progress',
   leads: 'collection:leads',
   presets: 'collection:kosztorys-presets',
+  kosztorysSnapshots: 'table:kosztorys-snapshots',
   vehicles: 'collection:vehicles',
   vehicleInspections: 'collection:vehicle-inspections',
   workCatalogue: 'collection:work-catalogue-items',

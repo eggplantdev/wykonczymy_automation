@@ -14,6 +14,8 @@ import { GET } from '@/app/(payload)/api/cron/cleanup/route'
 import { getPayload } from 'payload'
 import { gcSnapshots } from '@/lib/db/snapshots'
 import { purgeTrash } from '@/lib/investments/purge-trash'
+import { revalidateTag } from '@/__tests__/stubs/next-cache'
+import { CACHE_TAGS } from '@/lib/cache/tags'
 
 const TRASH = { purged: 2, skippedKosztorys: 1, blocked: 0, failed: 0 }
 
@@ -55,7 +57,13 @@ describe('cron cleanup route', () => {
   // The per-band breakdown is the only reading that tells the owner whether a retention change is
   // behaving on its first night, and it is worth nothing if the route flattens it on the way out.
   it('forwards the per-band retention breakdown on an authorized request', async () => {
-    vi.mocked(gcSnapshots).mockResolvedValue({ deleted: 7, ceiling: 2, daily: 4, weekly: 1 })
+    vi.mocked(gcSnapshots).mockResolvedValue({
+      deleted: 7,
+      ceiling: 2,
+      daily: 4,
+      weekly: 1,
+      investorExpired: 0,
+    })
     vi.mocked(purgeTrash).mockResolvedValue(TRASH)
 
     const res = await GET(request({ authorization: 'Bearer test-secret' }))
@@ -63,13 +71,21 @@ describe('cron cleanup route', () => {
     expect(res.status).toBe(200)
     await expect(res.json()).resolves.toEqual({
       ok: true,
-      snapshots: { deleted: 7, ceiling: 2, daily: 4, weekly: 1 },
+      snapshots: { deleted: 7, ceiling: 2, daily: 4, weekly: 1, investorExpired: 0 },
       trash: TRASH,
     })
+    // The investor's history list is cached; a sweep that removed versions must evict it.
+    expect(revalidateTag).toHaveBeenCalledWith(CACHE_TAGS.kosztorysSnapshots, { expire: 0 })
   })
 
   it('still reports the snapshot sweep when the trash purge throws', async () => {
-    vi.mocked(gcSnapshots).mockResolvedValue({ deleted: 1, ceiling: 0, daily: 1, weekly: 0 })
+    vi.mocked(gcSnapshots).mockResolvedValue({
+      deleted: 1,
+      ceiling: 0,
+      daily: 1,
+      weekly: 0,
+      investorExpired: 0,
+    })
     vi.mocked(purgeTrash).mockRejectedValue(new Error('boom'))
 
     const res = await GET(request({ authorization: 'Bearer test-secret' }))
@@ -77,7 +93,7 @@ describe('cron cleanup route', () => {
     expect(res.status).toBe(200)
     await expect(res.json()).resolves.toEqual({
       ok: false,
-      snapshots: { deleted: 1, ceiling: 0, daily: 1, weekly: 0 },
+      snapshots: { deleted: 1, ceiling: 0, daily: 1, weekly: 0, investorExpired: 0 },
       trash: null,
     })
   })

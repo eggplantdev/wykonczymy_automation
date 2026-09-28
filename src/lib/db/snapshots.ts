@@ -25,11 +25,14 @@ export type SnapshotKindT = 'manual' | 'auto' | 'named' | 'daily'
 // started. Manual snapshots are exempt from both bands, bounded only by MAX_AGE_DAYS.
 //
 // `named` („Zapisz jako…") and `daily` (the nightly end-of-day state) are what the INVESTOR sees as
-// the change history, so they are never thinned by the bands either: every day stays a day on the
-// investor's list. `auto` and `manual` are the owner's restore points only.
+// the change history, so they are never thinned by the bands and the 365-day ceiling does not reach
+// them: they live as long as the investment is open, and go a year after it was completed
+// (`completed_at`). A completed investment with no `completed_at` keeps them — investor history is
+// never deleted on missing data. `auto` and `manual` are the owner's restore points only.
 const FULL_DENSITY_DAYS = 30
 const DAILY_BAND_DAYS = 120
 const MAX_AGE_DAYS = 365
+const INVESTOR_HISTORY_DAYS_AFTER_COMPLETION = 365
 
 // Without the jsonb `payload`: a list must never load ~1000 rows × N snapshots of tree data.
 export type SnapshotMetaT = {
@@ -57,20 +60,53 @@ export async function insertSnapshot(
     label: string | null
     takenBy: number | null
     payload: KosztorysSnapshotPayloadT
+    // The nightly capture stamps the end of the day it describes, not the moment it ran.
+    takenAt?: Date
   },
 ): Promise<number> {
+  const takenAt = params.takenAt ? sql`${params.takenAt.toISOString()}::timestamptz` : sql`now()`
   const res = await db.execute(sql`
     INSERT INTO kosztorys_snapshots (
-      investment_id, kind, label, taken_by, schema_version, payload, template_preset_id
+      investment_id, kind, label, taken_by, schema_version, payload, template_preset_id, taken_at
     )
     VALUES (
       ${params.investmentId}, ${params.kind}, ${params.label}, ${params.takenBy},
       ${SNAPSHOT_SCHEMA_VERSION}, ${JSON.stringify(params.payload)}::jsonb,
-      ${HELD_PRESET(params.investmentId)}
+      ${HELD_PRESET(params.investmentId)}, ${takenAt}
     )
     RETURNING id
   `)
   return Number(res.rows[0].id)
+}
+
+// The investments whose kosztorys may still change: szablon (the workbench) and completed (locked)
+// fall out of the status list, the trash by its own column.
+export async function listDailyEligibleInvestmentIds(db: DbExecutorT): Promise<number[]> {
+  const res = await db.execute(sql`
+    SELECT id FROM investments
+    WHERE status IN ('planowana', 'active') AND trashed_at IS NULL
+    ORDER BY id
+  `)
+  return res.rows.map((row) => Number(row.id))
+}
+
+export async function latestSnapshot(
+  db: DbExecutorT,
+  investmentId: number,
+  kind: SnapshotKindT,
+): Promise<{ takenAt: Date; payload: StoredSnapshotPayloadT } | null> {
+  const res = await db.execute(sql`
+    SELECT taken_at, payload FROM kosztorys_snapshots
+    WHERE investment_id = ${investmentId} AND kind = ${kind}
+    ORDER BY taken_at DESC, id DESC
+    LIMIT 1
+  `)
+  const row = res.rows[0]
+  if (!row) return null
+  return {
+    takenAt: new Date(row.taken_at as string | Date),
+    payload: row.payload as StoredSnapshotPayloadT,
+  }
 }
 
 // The restore path resolves the target investment from the row itself rather than trusting a
@@ -119,13 +155,29 @@ export async function listSnapshots(
 // case. STATELESS and IDEMPOTENT — the set of survivors IS the state, so a missed cron night costs
 // nothing and a second run deletes zero. The per-band breakdown is returned so the log says WHICH
 // band deleted: a band firing when it should not is otherwise silent and irreversible.
-export async function gcSnapshots(
-  db: DbExecutorT,
-): Promise<{ deleted: number; ceiling: number; daily: number; weekly: number }> {
+export async function gcSnapshots(db: DbExecutorT): Promise<{
+  deleted: number
+  ceiling: number
+  daily: number
+  weekly: number
+  investorExpired: number
+}> {
   const ceiling = await db.execute(sql`
     DELETE FROM kosztorys_snapshots
-    WHERE taken_at < now() - make_interval(days => ${MAX_AGE_DAYS})
+    WHERE kind IN ('auto', 'manual')
+      AND taken_at < now() - make_interval(days => ${MAX_AGE_DAYS})
     RETURNING id
+  `)
+
+  // A NULL completed_at fails the comparison, so it keeps.
+  const investorExpired = await db.execute(sql`
+    DELETE FROM kosztorys_snapshots s
+    USING investments i
+    WHERE i.id = s.investment_id
+      AND s.kind IN ('daily', 'named')
+      AND i.status = 'completed'
+      AND i.completed_at < now() - make_interval(days => ${INVESTOR_HISTORY_DAYS_AFTER_COMPLETION})
+    RETURNING s.id
   `)
 
   // The only date bucketing done in SQL in this repo (every other is JS, src/lib/utils/days.ts): the
@@ -167,6 +219,10 @@ export async function gcSnapshots(
     ceiling: ceiling.rows.length,
     daily: daily.rows.length,
     weekly: weekly.rows.length,
+    investorExpired: investorExpired.rows.length,
   }
-  return { deleted: counts.ceiling + counts.daily + counts.weekly, ...counts }
+  return {
+    deleted: counts.ceiling + counts.daily + counts.weekly + counts.investorExpired,
+    ...counts,
+  }
 }

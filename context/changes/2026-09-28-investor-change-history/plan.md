@@ -671,18 +671,18 @@ are untouched.
 
 #### Automated
 
-- [x] 1.1 Migration applies on 5433 and 5435
-- [x] 1.2 stamp-completed-at hook unit spec passes
-- [x] 1.3 Round-trip spec: payload carries globalDiscount, restore leaves live rabat unchanged
-- [x] 1.4 saveSnapshotAction stores kind named
+- [x] 1.1 Migration applies on 5433 and 5435 — 9ca4b64c
+- [x] 1.2 stamp-completed-at hook unit spec passes — 9ca4b64c
+- [x] 1.3 Round-trip spec: payload carries globalDiscount, restore leaves live rabat unchanged — 9ca4b64c
+- [x] 1.4 saveSnapshotAction stores kind named — 9ca4b64c
 
 ### Phase 2: Nightly capture and status-aware retention
 
 #### Automated
 
-- [ ] 2.1 capture-daily-snapshots DB spec passes
-- [ ] 2.2 gcSnapshots status-aware retention spec passes, existing cases unchanged
-- [ ] 2.3 daily-snapshots route spec passes
+- [x] 2.1 capture-daily-snapshots DB spec passes
+- [x] 2.2 gcSnapshots status-aware retention spec passes, existing cases unchanged
+- [x] 2.3 daily-snapshots route spec passes
 
 ### Phase 3: Pure history library
 
