@@ -385,6 +385,33 @@ właśnie po to, żeby jej nie przepisywać.
   7,50 zł zaokrąglona do „8 zł" to inna stawka. Na papier idą te same kolumny, w tej samej
   kolejności, co w podglądzie pracownika — łącznie z „Σ etapów" i „Wartością wykonaną".
 
+## Protokół odbioru prac — druk z menu „Inwestor" (2026-09-28)
+
+Protokół, który właściciel podpisuje z klientem na budowie, wychodzi z aplikacji wstępnie
+wypełniony: „Inwestor → Protokół odbioru…" otwiera formularz z podpowiedziami, podglądem zakresu
+i rozliczenia, a „Generuj" drukuje go tym samym mechanizmem co ofertę. Nic się nie zapisuje —
+protokół jest dokumentem na papier, nie bytem w bazie.
+
+- **Zakres prac = pozycje z wykonaną pracą.** Pomiar z natury JEST sumą etapów, więc pozycja trafia
+  na protokół dokładnie wtedy, gdy któryś etap ją wykonał (`scope-rows.ts`). Bez nazw sekcji, bez
+  kolumny „Zgodnie z umową?", tylko podgląd — kosztorys zostaje jedynym źródłem.
+- **Rozliczenie to kolumna netto z „Podsumowania"**, złożona z tych samych funkcji
+  (`protocolSettlement` → `laborCostsNetPreDiscount`, `billedMaterials`, `sumDeposits`,
+  `computeAmountDue`): Robocizna **przed rabatem**, Rabat, Materiały, Suma, Wpłaty, Strata,
+  Pozostało do zapłaty / Nadpłata. Protokół rozjeżdżający się z podsumowaniem o grosz to ten, który
+  klient podpisuje — dlatego nie liczy po swojemu.
+- **Generowanie nigdy nie edytuje inwestycji.** Poprawki w formularzu żyją w formularzu; osobny
+  przycisk „Zaktualizuj dane inwestycji" zapisuje **wyłącznie** osobę kontaktową i adres, nigdy
+  całego rekordu. Niezmieniona podpowiedź Zamawiającego (nazwa inwestycji) nie trafia do osoby
+  kontaktowej.
+- **Podpowiedzi zamiast pustych pól**, bo dane bywają puste: adres ma 35/138 inwestycji, osoba
+  kontaktowa 9/138. Zamawiający = osoba kontaktowa, a gdy jej nie ma — nazwa inwestycji (zwykle
+  niesie klienta). Wykonawca to stała w kodzie (`CONTRACTOR_NAME`), nie pole w bazie. Rodzaj odbioru
+  domyślnie „końcowy", miejscowość „Warszawa", rękojmia od = data odbioru.
+- **Ze wzoru wypadły** stopka denwi.pl, „Reprezentowany przez" (obie strony), „Inne osoby obecne",
+  pkt 7, „Kwota zatrzymana" i linia umowy — firma nie podpisuje numerowanych umów. pkt 2 to pusta
+  numerowana tabela na 5 wierszy, pkt 4 (usterki) na 10: pola do wypełnienia długopisem na miejscu.
+
 ## Decyzje zamknięte
 
 - **Dostęp (prosto):** **ADMIN, OWNER, MANAGER** — widzą i edytują wszystko.

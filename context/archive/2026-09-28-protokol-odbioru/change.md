@@ -1,10 +1,10 @@
 ---
 change_id: protokol-odbioru
 title: Protokół odbioru prac generowany z menu „Inwestor”, wstępnie wypełniony danymi z apki
-status: implemented
+status: archived
 created: 2026-09-28
 updated: 2026-09-28
-archived_at: null
+archived_at: 2026-09-28T15:42:58Z
 branch: staging
 worktree: null
 ---

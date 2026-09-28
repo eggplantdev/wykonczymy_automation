@@ -1,10 +1,10 @@
 ---
 change_id: kosztorys-client-view-auto-columns
 title: Podgląd inwestora — jeden zestaw kolumn, kolumny rozliczenia pokazywane gdy są wpisy
-status: implemented
+status: archived
 created: 2026-09-28
 updated: 2026-09-28
-archived_at: null
+archived_at: 2026-09-28T15:42:58Z
 branch: staging
 worktree: null
 ---

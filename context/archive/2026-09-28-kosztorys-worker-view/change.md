@@ -1,10 +1,10 @@
 ---
 change_id: kosztorys-worker-view
 title: Widok pracownika do kosztorysu — link imienny i PDF, tylko odczyt
-status: implementing
+status: archived
 created: 2026-09-28
 updated: 2026-09-28
-archived_at: null
+archived_at: 2026-09-28T15:42:58Z
 branch: staging
 worktree: null
 ---
