@@ -1,234 +1,32 @@
-import { useState } from 'react'
-import { Column, type CellProps } from 'react-datasheet-grid'
-import { CellSelectMenu } from '@/components/ui/datasheet-grid/cell-select-menu'
-import { EditableCellInput } from '@/components/ui/datasheet-grid/editable-cell-input'
-import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-text'
-import { SimpleTooltip } from '@/components/ui/tooltip'
+import { Column } from 'react-datasheet-grid'
 import { decimalText } from '@/lib/utils/decimal-text'
-import { roundToCents } from '@/lib/utils/round-to-cents'
 import { priceSourceOf, shownCoeff, viewPrice } from '@/lib/kosztorys/calc'
-import { checkSubcontractorPrice } from '@/lib/kosztorys/subcontractor-price-guard'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
-import { FLAGGED_TONE, PRICE_SOURCES, PRICE_SOURCE_LABELS } from '@/lib/kosztorys/constants'
 import {
-  sourceChange,
   subcontractorCoeffPolicy,
   subcontractorPolicy,
 } from '@/lib/kosztorys/subcontractor-price-edit'
 import { cellPaste } from '@/lib/kosztorys/cell-edit'
-import { useCellDraft } from '@/components/kosztorys/editor/grid/cells/use-cell-draft'
-import type { KosztorysV2RowT, PriceSourceT, ToolPlaneT } from '@/lib/kosztorys/types'
+import {
+  cellData,
+  priceText,
+} from '@/components/kosztorys/editor/grid/cells/subcontractor/cell-data'
+import { SubcontractorCoeffCell } from '@/components/kosztorys/editor/grid/cells/subcontractor/coeff-cell'
+import { SubcontractorModeCell } from '@/components/kosztorys/editor/grid/cells/subcontractor/mode-cell'
+import { SubcontractorPriceCell } from '@/components/kosztorys/editor/grid/cells/subcontractor/price-cell'
+import type { KosztorysV2RowT, ToolPlaneT } from '@/lib/kosztorys/types'
 import type { ReactNode } from 'react'
 
-// Where the subcontractor price comes from (a column in the subcontractor views). Labels name the
-// SOURCE, not the arithmetic: auto derives the rate from the investment's mnożnik, „własny mnożnik"
-// is this praca's own multiple of the cena j.m., „kwota stała" is a frozen number.
+// Which cell of the pair AUTHORS the rate on this row. Both render read-only where the other one holds
+// the figure („Mnożnik" shows „—" at kwota stała, „Cena j.m." shows the derived stawka at własny
+// mnożnik) — but dsg doesn't know that: `isCellDisabled` reads ONLY `column.disabled`, so without this
+// a Delete over a selection wiped the kwota through the dashed cell.
 //
-// The values ARE `PriceSourceT`, so the menu and `priceSourceOf` cannot drift into two vocabularies —
-// nothing is stored to name the source, it is read off the pair of columns (EX-766, EX-865).
-const SUB_MODE_OPTIONS: { value: PriceSourceT; label: string }[] = PRICE_SOURCES.map((value) => ({
-  value,
-  label: PRICE_SOURCE_LABELS[value],
-}))
-
-// Everything the cells need to know about which plane they are editing. Travels via
-// `columnData` so each component keeps ONE identity across renders — an inline `component:
-// ({rowData}) => …` is a fresh function type on every assembleV2Columns call, which makes
-// react-datasheet-grid remount the cell's DOM instead of reconciling it, losing both the typed text
-// and the rejection state below (EX-422, lessons.md — „A `react-datasheet-grid` column's `component`
-// must be a STABLE reference").
-type SubcontractorCellDataT = {
-  view: ToolPlaneT
-}
-
-const cellData = (view: ToolPlaneT): SubcontractorCellDataT => ({ view })
-
-// Która z pary komórek jest AUTOREM stawki na tym wierszu. Obie renderują się read-only tam, gdzie
-// figurę trzyma ta druga („Mnożnik" pokazuje „—" przy kwocie stałej, „Cena j.m." pokazuje wyliczoną
-// stawkę przy własnym mnożniku) — ale dsg o tym nie wie: `isCellDisabled` czyta WYŁĄCZNIE
-// `column.disabled`, więc bez tego Delete zaznaczeniem kasował kwotę przez komórkę z myślnikiem.
-//
-// Predykat siedzi na `disabled`, a nie w `deleteValue`/`pasteValue`, bo to jedno miejsce zamyka
-// wszystkie trzy drogi zapisu (Delete, wklejanie, wejście w edycję) — i robi to samo rozstrzygnięcie,
-// którym komórka już decyduje o swoim renderze.
+// The predicate sits on `disabled`, not in `deleteValue`/`pasteValue`, because that one place closes
+// all three write paths (Delete, paste, entering edit) — and makes the same call the cell already
+// makes about its own render.
 const authorsCoeff = (rowData: KosztorysV2RowT, view: ToolPlaneT) =>
   priceSourceOf(rowData, view) === 'coeff'
-
-// `kosztorys-cell-input-body` (globals.css) keeps this wrapper geometrically invisible: the grid
-// shapes a cell's direct span into the wrapping, clipping, margined box that read-only TEXT needs,
-// and an input pushed through that box sits a few pixels off the same figure in the cell next door.
-//
-// Neutralising it costs the read-only branch its vertical box, though — that rule reaches a cell's
-// DIRECT span only, and here the direct span is this wrapper. So the centring is done here instead,
-// where it serves both branches: the input fills the wrapper via `size-full` and centres itself, a
-// `—` or a derived mnożnik is centred by the flex box rather than hanging at the top of the row.
-const CELL_WRAPPER = 'kosztorys-cell-input-body flex size-full flex-col justify-center'
-
-// A derived price carries the float tail of client × coeff; the cell edits grosze, not the tail.
-const priceText = (value: number): string => decimalText(roundToCents(value))
-
-// The verdict explains itself where the user is typing rather than in a corner toast, mirroring the
-// blocked-action tooltip in kosztorys-row-actions-menu.tsx. `open` is forced while a REFUSAL stands
-// because nobody hovers a cell they are typing into. A warning does not force it: that value was
-// written, so the red figure carries it until the settle toast names it.
-//
-// The tree shape NEVER varies with `message`: returning bare children when there is nothing to say
-// would change the element type at this position the moment a verdict appears, and React answers a
-// changed type by unmounting the subtree — which destroys the input the user is typing into, one
-// keystroke after they cross the threshold. Same reason `open` is driven by our own hover state
-// rather than left uncontrolled some of the time: Radix would be switching controlled modes.
-function CellTooltip({
-  message,
-  forceOpen,
-  children,
-}: {
-  message: string | null
-  forceOpen: boolean
-  children: ReactNode
-}) {
-  const [reveal, setReveal] = useState(false)
-  return (
-    <SimpleTooltip content={message ?? ''} open={message != null && (forceOpen || reveal)}>
-      <span
-        className={CELL_WRAPPER}
-        onPointerEnter={() => setReveal(true)}
-        onPointerLeave={() => setReveal(false)}
-        // Taking `open` over from Radix took its focus handling with it, and a keyboard user tabbing
-        // into a refused cell was left with a red number and no sentence.
-        onFocusCapture={() => setReveal(true)}
-        onBlurCapture={() => setReveal(false)}
-      >
-        {children}
-      </span>
-    </SimpleTooltip>
-  )
-}
-
-// The "Cena" column in the subcontractor view. Editable in both modes — a hand-typed price IS „kwota
-// stała", so the keystroke carries the mode with it rather than making the user set „Źródło" first.
-// Clearing it reverts the row to „auto".
-//
-// This is also the one cell carrying the guard's STANDING verdict on a kwota stała: the rule is about
-// the price, and a breach caused from outside these columns — a lowered client price — has to surface
-// without anyone opening them. On „auto" it says nothing, because the author of that figure is the
-// investment's mnożnik, which is judged once in its own field instead of once per pozycja.
-function SubcontractorPriceCell({
-  rowData,
-  setRowData,
-  columnData,
-  focus,
-  stopEditing,
-}: CellProps<KosztorysV2RowT, SubcontractorCellDataT>) {
-  const { view } = columnData
-  const edit = useCellDraft(
-    rowData,
-    setRowData,
-    subcontractorPolicy<KosztorysV2RowT>(view),
-    stopEditing,
-  )
-
-  const source = priceSourceOf(rowData, view)
-  // A live rejection outranks the standing verdict: it describes the value on screen, which the row
-  // has not accepted.
-  const message = edit.blockReason ?? checkSubcontractorPrice(rowData, view)?.message ?? null
-
-  // At „własny mnożnik" the stawka is an OUTPUT — the mnożnik cell authors it. Leaving this one
-  // editable would give one figure two authors, and a keystroke here writes a kwota, which silently
-  // switches the row's source back.
-  const body =
-    source === 'coeff' ? (
-      <ReadOnlyCellText muted danger={message != null}>
-        {priceText(viewPrice(rowData, view))}
-      </ReadOnlyCellText>
-    ) : (
-      <EditableCellInput
-        {...edit.inputProps}
-        className={
-          message ? FLAGGED_TONE : source === 'auto' ? 'text-muted-foreground italic' : undefined
-        }
-        value={edit.draft ?? priceText(viewPrice(rowData, view))}
-        focus={focus}
-      />
-    )
-
-  // Red figure plus the sentence on hover, and nothing else in the box: a glyph beside the number
-  // took width from the input and put the figure on a different height than its neighbours (owner,
-  // 2026-09-01).
-  return (
-    <CellTooltip message={message} forceOpen={edit.blockReason != null}>
-      {body}
-    </CellTooltip>
-  )
-}
-
-function SubcontractorModeCell({
-  rowData,
-  setRowData,
-  columnData,
-  focus,
-  stopEditing,
-}: CellProps<KosztorysV2RowT, SubcontractorCellDataT>) {
-  const { view } = columnData
-  // Two ways in, one way out. The grid opens the menu through `focus` (Enter, or typing over the
-  // cell); a click opens it through Radix's own trigger, which the grid never sees — hence the local
-  // flag, without which wiring `focus` alone would have cost mouse users the single click they have
-  // today. Either way the close is what tells the grid the edit is over: leave it out and the cell
-  // stays „editing" with nothing on screen, so the next Enter closes an already-closed menu.
-  const [openedByClick, setOpenedByClick] = useState(false)
-  return (
-    <CellSelectMenu
-      value={priceSourceOf(rowData, view)}
-      options={SUB_MODE_OPTIONS}
-      open={focus || openedByClick}
-      onOpenChange={(open) => {
-        setOpenedByClick(open)
-        // Explicit, because the grid's own default is `nextRow: true` — picking a source must leave
-        // the cursor on the row whose source was just picked.
-        if (!open) stopEditing({ nextRow: false })
-      }}
-      onChange={(value) => setRowData(sourceChange(rowData, value as PriceSourceT, view))}
-    />
-  )
-}
-
-// Editable ONLY where the mnożnik is the source (`shownCoeff` decides WHICH figure shows). „Auto"
-// borrows the cena j.m. cell's muted italic for a derived figure, and „kwota stała" takes the grid's
-// „nie dotyczy" dash rather than a blank, which would read as an empty field somebody could fill.
-function SubcontractorCoeffCell({
-  rowData,
-  setRowData,
-  columnData,
-  focus,
-  stopEditing,
-}: CellProps<KosztorysV2RowT, SubcontractorCellDataT>) {
-  const { view } = columnData
-  const edit = useCellDraft(
-    rowData,
-    setRowData,
-    subcontractorCoeffPolicy<KosztorysV2RowT>(view),
-    stopEditing,
-  )
-
-  const source = priceSourceOf(rowData, view)
-  if (source !== 'coeff') {
-    return (
-      <ReadOnlyCellText muted className={source === 'auto' ? 'italic' : undefined}>
-        {source === 'auto' ? decimalText(shownCoeff(rowData, view)) : '—'}
-      </ReadOnlyCellText>
-    )
-  }
-
-  return (
-    <CellTooltip message={edit.blockReason} forceOpen={edit.blockReason != null}>
-      <EditableCellInput
-        {...edit.inputProps}
-        className={edit.blockReason ? FLAGGED_TONE : undefined}
-        value={edit.draft ?? decimalText(shownCoeff(rowData, view))}
-        focus={focus}
-      />
-    </CellTooltip>
-  )
-}
 
 export function subcontractorPriceColumn(
   view: ToolPlaneT,
