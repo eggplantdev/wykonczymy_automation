@@ -8,15 +8,16 @@ import { refreshDataAction } from '@/lib/actions/refresh'
 import { cn } from '@/lib/utils/cn'
 import { toastMessage } from '@/lib/utils/toast'
 
-type RefreshDataButtonPropsT = {
+type RefreshDataButtonPropsT = React.ComponentProps<typeof Button> & {
   collapsed?: boolean
 }
 
-export function RefreshDataButton({ collapsed = false }: RefreshDataButtonPropsT) {
+export function RefreshDataButton({ collapsed = false, ...props }: RefreshDataButtonPropsT) {
   const [isRefreshing, startRefreshTransition] = useTransition()
 
   return (
     <Button
+      {...props}
       variant="outline"
       size="sm"
       className={cn(collapsed && 'px-0')}

@@ -8,11 +8,15 @@ import { cn } from '@/lib/utils/cn'
 // Theme is known only on the client, so both labels ship and `dark:` picks one — next-themes stamps
 // the class before first paint. `setTheme` takes a callback for the same reason: read at click
 // time, never during render.
-export function ThemeToggle({ collapsed }: { collapsed: boolean }) {
+export function ThemeToggle({
+  collapsed,
+  ...props
+}: React.ComponentProps<typeof Button> & { collapsed: boolean }) {
   const { setTheme } = useTheme()
 
   return (
     <Button
+      {...props}
       variant="outline"
       size="sm"
       className={cn(collapsed && 'px-0')}

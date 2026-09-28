@@ -93,6 +93,8 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
 
 // Collapsed, the icon is the only thing left to identify a control, so it gets the label back on
 // hover; expanded, the label is already on screen and a tooltip would just repeat it.
+// The trigger is `asChild`: every child must spread its rest props onto its Button, or the handlers
+// and ref land nowhere and the tooltip never opens.
 function CollapsibleTooltip({
   collapsed,
   label,

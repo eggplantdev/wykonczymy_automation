@@ -7,7 +7,7 @@ import { UnreadBadge } from '@/components/nav/unread-badge'
 import type { NavLinkT } from '@/lib/constants/sections'
 import { cn } from '@/lib/utils/cn'
 
-type NavLinkItemPropsT = {
+type NavLinkItemPropsT = React.ComponentProps<typeof Button> & {
   link: NavLinkT
   active: boolean
   collapsed?: boolean
@@ -15,9 +15,16 @@ type NavLinkItemPropsT = {
 }
 
 /** Shared by the sidebar and the mobile drawer, which must render it indistinguishably. */
-export function NavLinkItem({ link, active, collapsed = false, onNavigate }: NavLinkItemPropsT) {
+export function NavLinkItem({
+  link,
+  active,
+  collapsed = false,
+  onNavigate,
+  ...props
+}: NavLinkItemPropsT) {
   return (
     <Button
+      {...props}
       variant="ghost"
       size="sm"
       align={collapsed ? 'center' : 'start'}
