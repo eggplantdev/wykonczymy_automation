@@ -1,4 +1,5 @@
 import 'server-only'
+import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
 import { getPayload } from 'payload'
 import config from '@payload-config'
@@ -31,7 +32,7 @@ export type PreviewKosztorysDataT = KosztorysEditorDataT & { clientView: ClientV
 
 // Every read below is invalidated by the same collections the editor writes, so a client who
 // reloads the share link sees the owner's latest etap entries — the whole point of a live view.
-export const PREVIEW_KOSZTORYS_TAGS = [
+const PREVIEW_KOSZTORYS_TAGS = [
   CACHE_TAGS.kosztorysSections,
   CACHE_TAGS.kosztorysItems,
   CACHE_TAGS.kosztorysStages,
@@ -111,10 +112,11 @@ async function withClientView(investmentId: number): Promise<PreviewKosztorysDat
  * null, leaking nothing about which investments exist. Reads only `kosztorys-shares`: a worker's
  * token opens a different document and must never resolve to this one.
  *
- * Uncached (one indexed query) so revoking a link takes effect on the next request rather than when a
- * cache tag happens to be busted.
+ * Uncached across requests (one indexed query) so revoking a link takes effect on the next request
+ * rather than when a cache tag happens to be busted; deduped within one, where the page and its
+ * history both resolve the same token.
  */
-export async function resolveShareInvestmentId(token: string): Promise<number | null> {
+export const resolveShareInvestmentId = cache(async (token: string): Promise<number | null> => {
   const payload = await getPayload({ config })
   const shares = await payload.find({
     collection: 'kosztorys-shares',
@@ -130,7 +132,7 @@ export async function resolveShareInvestmentId(token: string): Promise<number | 
   const share = shares.docs[0]
   if (!share) return null
   return typeof share.investment === 'object' ? share.investment.id : Number(share.investment)
-}
+})
 
 // The public share read: token in, client payload out, no session anywhere. Null makes the route 404.
 export async function getPreviewKosztorysByToken(

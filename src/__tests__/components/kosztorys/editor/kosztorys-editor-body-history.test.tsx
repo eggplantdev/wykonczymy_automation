@@ -1,12 +1,12 @@
 import { render, screen } from '@testing-library/react'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
-import { PreviewHeaderActions } from '@/components/kosztorys/editor/history/preview-header-actions'
 import { KosztorysEditorBody } from '@/components/kosztorys/editor/kosztorys-editor-body'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
 import { diffVersions } from '@/lib/kosztorys/history/diff-versions'
 import { liveVersion } from '@/lib/kosztorys/history/snapshot-to-tree'
 import type { HistoryVersionT, InvestorHistoryT } from '@/lib/kosztorys/history/types'
 import type { KosztorysEditorDataT, KosztorysTreeT } from '@/lib/kosztorys/types'
+import { WORKER_VIEW_DEFAULT_SETTINGS } from '@/lib/kosztorys/worker-view/settings'
 import type { WorkerAudienceT } from '@/lib/kosztorys/worker-view/types'
 import { item, stage, tree, version } from '@/__tests__/helpers/kosztorys-history'
 
@@ -52,9 +52,8 @@ function history(past: HistoryVersionT, current: KosztorysTreeT): InvestorHistor
   return {
     entries: [],
     version: {
-      ...past,
+      tree: past.tree,
       id: 5,
-      kind: 'daily',
       label: null,
       day: '2026-01-12',
       diff: diffVersions(past, liveVersion(current)),
@@ -64,7 +63,11 @@ function history(past: HistoryVersionT, current: KosztorysTreeT): InvestorHistor
 
 function renderPreview(
   current: KosztorysTreeT,
-  opts: { history?: InvestorHistoryT; clientView?: ClientViewSettingsT } = {},
+  opts: {
+    history?: InvestorHistoryT
+    clientView?: ClientViewSettingsT
+    worker?: WorkerAudienceT
+  } = {},
 ) {
   const data = { ...DATA, tree: current } as unknown as KosztorysEditorDataT
   return render(<KosztorysEditorBody preview {...data} {...opts} />)
@@ -81,8 +84,10 @@ const PAST = version([item(1, 'Płytki', 12, 100), item(2, 'Fugi', 3, 50)])
 describe('investor history view', () => {
   it('strikes through a pozycja the present no longer holds', () => {
     const { container } = renderPreview(CURRENT, { history: history(PAST, CURRENT) })
-    const row = screen.getByText('Fugi').closest('.dsg-row')
-    expect(row).toHaveClass('kosztorys-history-removed')
+    // The banner's change list names it too; only the grid row is struck through.
+    const rows = screen.getAllByText('Fugi').map((cell) => cell.closest('.dsg-row'))
+    expect(rows.filter(Boolean)).toHaveLength(1)
+    expect(rows.find(Boolean)).toHaveClass('kosztorys-history-removed')
     expect(container.querySelectorAll('.kosztorys-history-removed')).toHaveLength(1)
   })
 
@@ -103,7 +108,7 @@ describe('investor history view', () => {
   it('drops the money panel and its toggle beside a past grid', () => {
     renderPreview(CURRENT, { history: history(PAST, CURRENT) })
     expect(screen.queryByRole('button', { name: /Podsumowanie/ })).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Historia zmian/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Opcje/ })).toBeInTheDocument()
   })
 
   it('keeps a column the client view hides hidden', () => {
@@ -123,23 +128,33 @@ describe('investor history view', () => {
     expect(cellTexts()).toContain('0 → 5')
   })
 
+  it('never hands the history to a crew, even when a caller passes both', () => {
+    const worker: WorkerAudienceT = {
+      workerId: 1,
+      name: 'Jan',
+      plane: 'w_tools',
+      settings: WORKER_VIEW_DEFAULT_SETTINGS,
+      executedQtyByItem: {},
+      summary: {
+        plannedNet: 0,
+        executedByStage: [],
+        executedNet: 0,
+        payouts: [],
+        paidNet: 0,
+        owed: 0,
+        isOverpaid: false,
+      },
+    }
+    renderPreview(CURRENT, { history: history(PAST, CURRENT), worker })
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(screen.queryByText(/→/)).not.toBeInTheDocument()
+    expect(screen.queryByText('Fugi')).not.toBeInTheDocument()
+  })
+
   it('renders no banner and the money toggle without a history version', () => {
     renderPreview(CURRENT)
     expect(screen.queryByText(/porównanie z bieżącą/)).not.toBeInTheDocument()
     expect(screen.queryByText(/→/)).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Podsumowanie/ })).toBeInTheDocument()
-  })
-})
-
-describe('PreviewHeaderActions', () => {
-  it('never offers „Historia zmian" to a crew, even when handed a history', () => {
-    render(
-      <PreviewHeaderActions
-        worker={{} as WorkerAudienceT}
-        history={{ entries: [], version: null }}
-        hasRows
-      />,
-    )
-    expect(screen.queryByRole('button', { name: /Historia zmian/ })).not.toBeInTheDocument()
   })
 })

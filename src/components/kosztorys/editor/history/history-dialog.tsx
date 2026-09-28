@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
+import { VERSION_PARAM } from '@/lib/kosztorys/history/version-param'
 import type { HistoryEntryT } from '@/lib/kosztorys/history/types'
 import { formatPLDate } from '@/lib/utils/format-date'
 
@@ -32,7 +33,7 @@ export function HistoryDialog({
             {entries.map((entry) => (
               <li key={entry.id}>
                 <Link
-                  href={`${pathname}?wersja=${entry.id}`}
+                  href={`${pathname}?${VERSION_PARAM}=${entry.id}`}
                   className="hover:bg-muted flex flex-col gap-0.5 rounded-md px-2 py-2"
                 >
                   <span className="font-medium">{entry.label ?? formatPLDate(entry.day)}</span>

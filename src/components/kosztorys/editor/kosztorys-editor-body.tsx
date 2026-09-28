@@ -72,7 +72,7 @@ import {
 import { KosztorysLockedBanner } from '@/components/kosztorys/editor/kosztorys-locked-banner'
 import { HistoryBanner } from '@/components/kosztorys/editor/history/history-banner'
 import { withHistoryChanges } from '@/components/kosztorys/editor/history/history-change-cell'
-import { PreviewHeaderActions } from '@/components/kosztorys/editor/history/preview-header-actions'
+import { PreviewHeaderActions } from '@/components/kosztorys/editor/preview-header-actions'
 import { historyGridTree, stageIdsFilledNow } from '@/lib/kosztorys/history/history-grid'
 import type { InvestorHistoryT } from '@/lib/kosztorys/history/types'
 import type { KosztorysEditorDataT, KosztorysV2RowT } from '@/lib/kosztorys/types'
@@ -131,7 +131,9 @@ export function KosztorysEditorBody({
   const hasSettledMaterial = panelData.settledBreakdown.length > 0
   const isWorkshop = templatePresetId != null
   const noun = editorNoun(templatePresetId)
-  const pastVersion = worker ? null : (history?.version ?? null)
+  // The investor's history never reaches a crew's document, whatever a caller passes.
+  const investorHistory = worker ? undefined : history
+  const pastVersion = investorHistory?.version ?? null
   const gridTree = useMemo(
     () => (pastVersion ? historyGridTree(pastVersion) : tree),
     [pastVersion, tree],
@@ -434,8 +436,7 @@ export function KosztorysEditorBody({
                   {worker && <p className="truncate text-sm font-medium">{worker.name}</p>}
                 </div>
                 <PreviewHeaderActions
-                  worker={worker}
-                  history={history}
+                  history={investorHistory}
                   hasRows={subtotals.length > 0}
                   emptyRowCount={clientEmptyRowIds.size}
                   showAllRows={showAllRows}

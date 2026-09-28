@@ -657,7 +657,6 @@
   color: var(--color-muted-foreground);
 }
 
-/* A praca a past version held and the present no longer does. */
 .kosztorys-grid .dsg-row.kosztorys-history-removed .dsg-cell {
   color: var(--color-muted-foreground);
   text-decoration: line-through;

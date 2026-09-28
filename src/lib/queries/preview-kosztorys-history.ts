@@ -4,7 +4,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { CACHE_TAGS } from '@/lib/cache/tags'
+import { CACHE_TAGS, KOSZTORYS_TREE_TAGS } from '@/lib/cache/tags'
 import { getDb } from '@/lib/db/get-db'
 import { getHistorySnapshots, listHistoryMetas } from '@/lib/db/snapshots'
 import { diffVersions } from '@/lib/kosztorys/history/diff-versions'
@@ -17,7 +17,7 @@ import type { HistoryEntryT, InvestorHistoryT, PastVersionT } from '@/lib/koszto
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 import { toWarsawDay, warsawToday, type DayT } from '@/lib/utils/days'
 import { buildKosztorysTree } from '@/lib/queries/kosztorys'
-import { PREVIEW_KOSZTORYS_TAGS, resolveShareInvestmentId } from '@/lib/queries/preview-kosztorys'
+import { resolveShareInvestmentId } from '@/lib/queries/preview-kosztorys'
 
 // Unexported, like the preview builder: both are authorization-free, and the entrances below are the
 // only ways in.
@@ -35,25 +35,20 @@ async function buildHistoryList(investmentId: number, today: DayT): Promise<Hist
     candidates.map(({ id }) => id),
   )
   // The retention sweep may delete a row between the two queries.
-  const present = candidates.filter(({ id }) => snapshots.has(id))
-  return buildHistoryEntries(
-    present,
-    ({ id }) => {
-      const snapshot = snapshots.get(id)
-      if (!snapshot) throw new Error(`Snapshot ${id} vanished mid-read`)
-      return snapshotToTree(snapshot.payload, live)
-    },
-    liveVersion(live),
-  )
+  const present = candidates.flatMap((meta) => {
+    const snapshot = snapshots.get(meta.id)
+    return snapshot ? [{ meta, version: snapshotToTree(snapshot.payload, live) }] : []
+  })
+  return buildHistoryEntries(present, liveVersion(live))
 }
 
 // Every entry diffs up to ~1000 rows against the live tree, so the list is computed once and kept
 // until a write. `today` is in the key because midnight changes the list without any write:
 // yesterday's `auto` rows stop being „today's". The live tree is both the baseline and what fills a
-// stored row's gaps (settlement mode, older settings keys), hence the preview's tags beside the
-// snapshot one.
+// stored row's gaps (settlement mode, older settings keys), hence the tree's tags beside the
+// snapshot one — not the preview's, whose wpłaty and categories this list never reads.
 const cachedHistoryList = unstable_cache(buildHistoryList, ['preview-kosztorys-history-v1'], {
-  tags: [...PREVIEW_KOSZTORYS_TAGS, CACHE_TAGS.kosztorysSnapshots],
+  tags: [...KOSZTORYS_TREE_TAGS.map((tag) => CACHE_TAGS[tag]), CACHE_TAGS.kosztorysSnapshots],
 })
 
 // Not cached: it diffs against the live tree, which the caller already holds from the preview read.
@@ -70,32 +65,40 @@ async function readPastVersion(
 
   const past = snapshotToTree(snapshot.payload, current)
   return {
-    ...past,
+    tree: past.tree,
     id: snapshot.id,
-    kind: snapshot.kind,
     label: snapshot.label,
     day: toWarsawDay(snapshot.takenAt),
     diff: diffVersions(past, liveVersion(current)),
   }
 }
 
+// Null on failure: the history rides beside the live kosztorys, and one unreadable stored row must
+// not take the present down with it — the page renders without the history instead.
 async function readInvestorHistory(
   investmentId: number,
   current: KosztorysTreeT,
   versionId: number | undefined,
-): Promise<InvestorHistoryT> {
-  const [entries, version] = await Promise.all([
-    cachedHistoryList(investmentId, warsawToday()),
-    versionId === undefined ? null : readPastVersion(investmentId, versionId, current),
-  ])
-  return { entries, version }
+): Promise<InvestorHistoryT | null> {
+  try {
+    const [entries, version] = await Promise.all([
+      cachedHistoryList(investmentId, warsawToday()),
+      versionId === undefined ? null : readPastVersion(investmentId, versionId, current),
+    ])
+    return { entries, version }
+  } catch (error) {
+    // TODO(EX-449) SENTRY-REQUIRED: the investor silently loses the history until someone looks.
+    console.error(`[investor-history] investment ${investmentId}:`, error)
+    return null
+  }
 }
 
 /**
  * The investor's change history behind a share link. `current` is the tree the page already read
  * through `getPreviewKosztorysByToken` — the version is diffed against exactly what the page shows.
- * `version` is null for any id that isn't one of this investment's visible versions: another
- * investment's, a `manual` row, or none at all read the same, and the page renders the present.
+ * `version` is null for any id that isn't one of this investment's `auto` / `daily` / `named` rows:
+ * another investment's, a `manual` row, or none at all read the same, and the page renders the
+ * present. Scoped by investment and kind, not by the listed set — an unlisted `auto` row opens too.
  */
 export async function getPreviewHistoryByToken(
   token: string,
@@ -106,12 +109,11 @@ export async function getPreviewHistoryByToken(
   return investmentId === null ? null : readInvestorHistory(investmentId, current, versionId)
 }
 
-// The owner's „Podgląd dla inwestora" twin — the same history a share link would serve.
 export async function getPreviewHistoryById(
   investmentId: number,
   current: KosztorysTreeT,
   versionId?: number,
-): Promise<InvestorHistoryT> {
+): Promise<InvestorHistoryT | null> {
   const session = await requireAuth(MANAGEMENT_ROLES)
   if (!session.success) throw new Error(session.error)
 

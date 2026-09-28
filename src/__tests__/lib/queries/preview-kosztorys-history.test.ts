@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { getDb } from '@/lib/db/get-db'
-import { insertSnapshot, type SnapshotKindT } from '@/lib/db/snapshots'
-import type { KosztorysSnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
+import { insertSnapshot } from '@/lib/db/snapshots'
+import type { KosztorysSnapshotPayloadT, SnapshotKindT } from '@/lib/kosztorys/snapshot-format'
 import { serializeTree } from '@/lib/kosztorys/serialize-tree'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 import { buildKosztorysTree } from '@/lib/queries/kosztorys'
@@ -75,7 +75,6 @@ describe.skipIf(!ENV_READY)('getPreviewHistoryByToken (DB)', () => {
     ids.daily1 = await insert(investmentId, 'daily', '2026-01-11T22:59:59.999Z', withPlannedQty(11))
     ids.daily2 = await insert(investmentId, 'daily', '2026-01-12T22:59:59.999Z', withPlannedQty(12))
 
-    // A row from before the rabat was captured.
     const { globalDiscount: _dropped, ...legacy } = withPlannedQty(12)
     ids.legacy = await insert(
       investmentId,
@@ -104,15 +103,13 @@ describe.skipIf(!ENV_READY)('getPreviewHistoryByToken (DB)', () => {
 
     expect(listed).toEqual([ids.legacy, ids.daily2, ids.daily1, ids.autoLate])
     expect(listed).not.toContain(ids.manual)
-    const unnamedDays = history!.entries
-      .filter(({ kind }) => kind !== 'named')
-      .map(({ day }) => day)
+    const unnamedDays = history!.entries.filter(({ label }) => label === null).map(({ day }) => day)
     expect(new Set(unnamedDays).size).toBe(unnamedDays.length)
   })
 
   it('opens a listed version with its diff against the present', async () => {
     const { version } = (await getPreviewHistoryByToken(token, current, ids.daily2))!
-    expect(version).toMatchObject({ id: ids.daily2, kind: 'daily', day: '2026-01-12' })
+    expect(version).toMatchObject({ id: ids.daily2, day: '2026-01-12' })
     expect([...version!.diff.changed.values()][0].fields).toContainEqual({
       field: 'plannedQty',
       before: 12,
@@ -122,7 +119,6 @@ describe.skipIf(!ENV_READY)('getPreviewHistoryByToken (DB)', () => {
 
   it('reads a payload stored without a rabat as an unknown rabat, not 0 zł', async () => {
     const { version } = (await getPreviewHistoryByToken(token, current, ids.legacy))!
-    expect(version!.discount).toEqual({ known: false })
     expect(version!.diff.discount).toEqual({ state: 'unknown' })
   })
 

@@ -8,7 +8,6 @@ import { differenceSummary, versionChangeRows } from '@/lib/kosztorys/history/ch
 import type { PastVersionT } from '@/lib/kosztorys/history/types'
 import { formatPLDate } from '@/lib/utils/format-date'
 
-// Null for the present, so the body mounts it unconditionally and the gate lives in one place.
 export function HistoryBanner({ version }: { version: PastVersionT | null }) {
   const pathname = usePathname()
   if (!version) return null
@@ -30,8 +29,6 @@ export function HistoryBanner({ version }: { version: PastVersionT | null }) {
           Wróć do bieżącej
         </Link>
       </p>
-      {/* A version stored before the rabat was captured has none to compare, and „0,00 zł" would be
-          a claim nobody made. */}
       {version.diff.discount.state === 'unknown' && (
         <p className="text-muted-foreground">Rabat nieznany — ta wersja nie zapisała rabatu</p>
       )}

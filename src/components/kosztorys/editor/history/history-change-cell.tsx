@@ -32,8 +32,7 @@ function HistoryChangeCell(props: CellProps<KosztorysV2RowT, HistoryColumnDataT>
   )
 }
 
-// A cell the investor's past version shares with the present renders „then → now" wherever the two
-// differ. Wrapped before `withSyntheticRows`, which then delegates its real rows here.
+// Wrapped before `withSyntheticRows`, which then delegates its real rows here.
 export function withHistoryChanges(
   column: Column<KosztorysV2RowT>,
   diff: VersionDiffT,
