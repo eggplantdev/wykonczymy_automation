@@ -669,6 +669,13 @@
   owns every figure the removed render would have refreshed, or the siblings go stale until the next
   navigation. Decoupling and client-side ownership are one refactor, not two. No amount of tag
   precision is a substitute.
+- **Second exit (EX-876)**: a tag expired inside `after()` lands in `pendingRevalidatedTags` only
+  after the response headers are written, and is flushed by `withExecuteRevalidates` from there — so
+  `x-action-revalidated` never counts it, the action stays render-free, and the next read still
+  misses (`expireCollectionsAfterResponse`). That covers a cache the **calling page doesn't
+  render**. For the one it does, the action returns the state it produced and the client renders
+  from the result: „Otwórz szablon" used to push + `router.refresh()` + revalidate, three renders to
+  show a tree the transaction already had in hand.
 - **Applies to**: any "this write shouldn't re-render that" instinct on a server action; `updateTag`
   vs `revalidateTag` reasoning about render cost.
 

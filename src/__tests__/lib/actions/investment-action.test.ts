@@ -37,12 +37,11 @@ vi.mock('@/lib/db/investment-gate', () => ({
   })),
   investmentGateForRow: vi.fn(async () => lockState.rowOwner),
 }))
-vi.mock('@/lib/actions/mirror-workshop-preset', () => ({ mirrorWorkshopPreset }))
+vi.mock('@/lib/kosztorys/mirror-workshop-preset', () => ({ mirrorWorkshopPreset }))
 
 const { investmentAction } = await import('@/lib/actions/investment-action')
-const { INVESTMENT_LOCKED_MESSAGE, INVESTMENT_TRASHED_MESSAGE } = await import(
-  '@/lib/constants/investment-lock'
-)
+const { INVESTMENT_LOCKED_MESSAGE, INVESTMENT_TRASHED_MESSAGE } =
+  await import('@/lib/constants/investment-lock')
 const { investmentGateFor, investmentGateForRow } = await import('@/lib/db/investment-gate')
 
 describe('investmentAction', () => {

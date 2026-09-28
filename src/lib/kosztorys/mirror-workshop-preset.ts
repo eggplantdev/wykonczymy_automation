@@ -1,11 +1,12 @@
 import 'server-only'
-import type { Payload } from 'payload'
+import type { Payload, PayloadRequest } from 'payload'
 import { revalidateCollections } from '@/lib/cache/revalidate'
 import { getDb } from '@/lib/db/get-db'
 import { lockInvestmentForReplace } from '@/lib/db/lock-investment-for-replace'
-import { claimPresetMirror, updatePresetPayload } from '@/lib/db/presets'
+import { claimPresetMirror, getPreset, updatePresetPayload } from '@/lib/db/presets'
 import { getWorkshop } from '@/lib/db/workshop-investment'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
+import { isSamePresetContent } from '@/lib/kosztorys/preset-content'
 import { serializeKosztorysAsPreset } from '@/lib/kosztorys/serialize-preset'
 
 /**
@@ -38,29 +39,13 @@ export async function mirrorWorkshopPreset(
 
     const mirrored = await withPayloadTransaction(
       payload,
-      async (req) => {
-        const db = await getDb(payload, req)
-        // Same lock order as the bulk tree replace: the investment row first.
-        await lockInvestmentForReplace(db, params.investmentId)
-
-        // The pointer is read INSIDE the transaction: between the start of the action and this
-        // write, someone may have switched the workbench to a different szablon — and then we would
-        // be copying one szablon's content into another's row. A mismatch is an ordinary race, not
-        // an error, so we step aside silently.
-        const workshop = await getWorkshop(db)
-        if (!workshop) return false
-        if (workshop.id !== params.investmentId) return false
-        if (workshop.presetId !== params.templatePresetId) return false
-
-        const preset = await serializeKosztorysAsPreset(params.investmentId, req)
-        return await updatePresetPayload(db, { id: params.templatePresetId, payload: preset })
-      },
+      (req) => mirrorWorkshopPresetInTransaction(payload, req, params),
       { skipRevalidation: true },
     )
 
-    // Only when something was actually written. Every guard above is a silent step-aside, and the
-    // throttle makes those the COMMON case — invalidating on them would expire the szablon library's
-    // cache on mutations that changed nothing in it.
+    // Only when the content actually changed. Every guard is a silent step-aside, and the throttle
+    // makes those the COMMON case — invalidating on them would expire the szablon library's cache on
+    // mutations that changed nothing in it.
     //
     // Never `updateTag`: this path runs from the /szablony/[id] route, and a forced re-render
     // restores exactly the cost EX-597 removed. No tag at all is wrong too — the szablon picker
@@ -70,4 +55,38 @@ export async function mirrorWorkshopPreset(
     // TODO(EX-449) SENTRY-REQUIRED: a silent autosave failure — without telemetry nobody learns of it.
     console.error('[mirrorWorkshopPreset] failed to copy the workbench into its szablon', error)
   }
+}
+
+/**
+ * It does NOT swallow errors — inside „Otwórz" a failed eviction must roll the whole switch back, or
+ * the outgoing szablon's last edits are wiped with the tree they lived in.
+ *
+ * Returns whether it wrote — which, since unchanged content is skipped, means the content changed.
+ */
+export async function mirrorWorkshopPresetInTransaction(
+  payload: Payload,
+  req: PayloadRequest,
+  params: { investmentId: number; templatePresetId: number },
+): Promise<boolean> {
+  const db = await getDb(payload, req)
+  // Same lock order as the bulk tree replace: the investment row first.
+  await lockInvestmentForReplace(db, params.investmentId)
+
+  // The pointer is read INSIDE the transaction: between the start of the action and this write,
+  // someone may have switched the workbench to a different szablon — and then we would be copying one
+  // szablon's content into another's row. A mismatch is an ordinary race, not an error, so we step
+  // aside silently.
+  const workshop = await getWorkshop(db)
+  if (!workshop) return false
+  if (workshop.id !== params.investmentId) return false
+  if (workshop.presetId !== params.templatePresetId) return false
+
+  const stored = await getPreset(db, params.templatePresetId)
+  if (!stored) return false
+  const preset = await serializeKosztorysAsPreset(params.investmentId, req)
+  // Unchanged content is not rewritten: `updated_at` orders the library, so the eviction on every
+  // „Otwórz" would float a szablon that was merely looked at to the top. It also keeps the cached
+  // pickers' sekcja ids valid, since nothing expires them for a write that changed nothing.
+  if (isSamePresetContent(stored.payload, preset)) return false
+  return updatePresetPayload(db, { id: params.templatePresetId, payload: preset })
 }

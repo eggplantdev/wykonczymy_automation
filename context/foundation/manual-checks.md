@@ -661,11 +661,11 @@ Inwestycja z niepustą rozpiską i rozjazdami wobec katalogu (w lokalnym dumpie:
 otwarte wcześniej. Dławik lustra to 10 s, domknięcie ogona 15 s bezczynności — przy sprawdzaniu
 „czy doszło" liczy się odczekanie, nie odświeżanie w kółko.
 
-- [ ] Po przełączeniu w „Wersje" jest wpis „Przed wczytaniem: <nazwa>" i przywrócenie go wraca do stanu sprzed
+- [~] ~~Po przełączeniu w „Wersje" jest wpis „Przed wczytaniem: <nazwa>" i przywrócenie go wraca do stanu sprzed~~ — nieaktualne (szablon-open-speed, EX-876): wpis był zapisywany, gdy wskaźnik warsztatu był pusty, więc żadna lista „Wersje" nie mogła go pokazać; przełączenie już go nie robi, a punktem przywrócenia jest kopia szablonu w bibliotece, dopychana w tej samej transakcji.
 
 ### Findings — 2026-09-23 (staging/preview pass)
 
-- [ ] **„Wersje" nie pokazuje wpisu „Przed wczytaniem: <nazwa>" po przełączeniu szablonu** — zweryfikowane na stagingu (commit `e0158cb8`), 3 ponowne otwarcia dialogu „Wersje" i przeładowanie strony, wpis nigdy się nie pojawił. Defekt jest **węższy niż „dialog Wersje jest nieaktualny"**: w tej samej sesji, na tym samym szablonie, ręczne „Wyczyść szablon" utworzyło wpis „Przed wyczyszczeniem" i ten wpis pojawił się w dialogu natychmiast i poprawnie (przywrócenie też zadziałało). Więc automatyczny snapshot przy `openPresetInWorkshopAction` (przełączenie) nie trafia do listy „Wersje" tak jak snapshot przy czyszczeniu — dwie różne ścieżki tworzenia auto-snapshotu zachowują się różnie mimo wspólnego UI. Root-cause (np. brakujący tag cache / inny zapis do `kosztorys_snapshots`) poza zakresem tego przebiegu QA — check zostaje odznaczony jako otwarty defekt.
+- [~] ~~**„Wersje" nie pokazuje wpisu „Przed wczytaniem: <nazwa>" po przełączeniu szablonu** — zweryfikowane na stagingu (commit `e0158cb8`), 3 ponowne otwarcia dialogu „Wersje" i przeładowanie strony, wpis nigdy się nie pojawił. Defekt jest **węższy niż „dialog Wersje jest nieaktualny"**: w tej samej sesji, na tym samym szablonie, ręczne „Wyczyść szablon" utworzyło wpis „Przed wyczyszczeniem" i ten wpis pojawił się w dialogu natychmiast i poprawnie (przywrócenie też zadziałało). Więc automatyczny snapshot przy `openPresetInWorkshopAction` (przełączenie) nie trafia do listy „Wersje" tak jak snapshot przy czyszczeniu — dwie różne ścieżki tworzenia auto-snapshotu zachowują się różnie mimo wspólnego UI. Root-cause (np. brakujący tag cache / inny zapis do `kosztorys_snapshots`) poza zakresem tego przebiegu QA — check zostaje odznaczony jako otwarty defekt.~~ — nieaktualne: przyczyna i usunięcie wpisu w boksie wyżej (EX-876).
 - **Pusty szablon (0 sekcji) jest niewidoczny w „Przełącz na inny szablon…" wewnątrz warsztatu** — root-cause: `groupPresetSections`/`usePresetSections` (`src/components/kosztorys/editor/dialogs/use-preset-sections.ts`) buduje listę, iterując metadane na poziomie SEKCJI, więc preset bez żadnej sekcji nigdy się nie zmaterializuje jako opcja. To NIE dotyczy innego pickera o tej samej nazwie funkcjonalnej — „Kosztorys z szablonu" w dialogu zakładania nowej inwestycji (`add-investment-dialog.tsx`/`investment-form.tsx`) pokazał pusty preset („ZZZ QA EX748 usunac empty2", 0/0) poprawnie, zgodnie z już potwierdzonym checkiem w `empty-preset-create` (linia 581). Dwa różne pickery, dwie różne implementacje — defekt jest lokalny do warsztatowego „Przełącz na inny szablon…", nie ogólny.
 
 ## zakladka-inwestycja-w-panelu — zakładka „Inwestycja" w panelu Podsumowanie (2026-09-22)
@@ -1566,3 +1566,20 @@ addytywna — na produkcję **przed** pushem; DROP starych kolumn to EX-886, po 
 - [ ] W podglądzie inwestora z włączonym „Pozostało" ta sama pozycja też jest czerwona.
 - [ ] Najazd na nagłówek „Pozostało": podpowiedź mówi, że suma w stopce pomija wiersze na minusie.
 - [ ] Oferta PDF i PDF pracownika drukują wiersz na minusie na czarno, jak wcześniej.
+
+## szablon-open-speed — „Otwórz szablon" bez przeładowania trasy (EX-876, 2026-09-28)
+
+`/szablony` i `/szablony/[id]`. Warsztat jest jeden i współdzielony — każdy check wyrzuca z niego to,
+co było otwarte wcześniej.
+
+- [ ] Najechanie na szablon na liście i kliknięcie: od razu szkielet ładowania, potem nazwa z loaderem, potem edytor — bez kilkusekundowego zawieszenia z listą wciąż na ekranie
+- [ ] DevTools → Network przy kliknięciu szablonu z listy: jeden POST akcji i żadnego późniejszego GET RSC dla `/szablony/<id>`
+- [ ] Adres `/szablony/<id>` wpisany ręcznie, gdy warsztat trzyma inny szablon: pokazuje się „Szablon „…" nie jest teraz otwarty"; „Otwórz szablon" wstawia edytor bez zmiany adresu i bez przeładowania strony
+- [ ] Po otwarciu z listy w pasku adresu nie ma `?open=1`
+- [ ] „Nowy szablon" ląduje w edytorze pustego szablonu
+- [ ] „Przełącz na inny szablon…" w warsztacie ląduje w wybranym szablonie, a poprzedni ma swoją ostatnią zmianę (otwórz go ponownie i sprawdź)
+- [ ] Szablon B: zmiana komórki → otwarcie A z listy → powrót do B: zmiana jest
+- [ ] Wstecz z szablonu do `/szablony` i kliknięcie tego samego wiersza: edytor od razu, a kolejność listy się nie zmienia (ponowne otwarcie nic nie zapisuje)
+- [ ] Otwarcie A, bez żadnej zmiany otwarcie B, powrót do `/szablony`: A nie przeskakuje na górę listy (przełączenie z nietkniętego szablonu nic mu nie zapisuje)
+- [ ] „Nowy szablon": w górnym pasku od razu jest nazwa nowego szablonu i strzałka powrotu
+- [ ] Przywrócenie wersji w „Wersje" w warsztacie po otwarciu z listy przeładowuje siatkę

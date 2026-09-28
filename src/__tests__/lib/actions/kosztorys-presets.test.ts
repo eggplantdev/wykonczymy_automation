@@ -1,10 +1,16 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { SNAPSHOT_SCHEMA_VERSION, type SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { acquireTestWorkshop } from '@/__tests__/helpers/workshop'
+import {
+  expireCollectionsAfterResponse,
+  revalidateCollections,
+  revalidateEntities,
+} from '@/__tests__/stubs/cache-revalidate'
+import { revalidateTag, updateTag } from '@/__tests__/stubs/next-cache'
 
 // „Wczytaj szablon" replaces a whole rozpiska behind an automatic snapshot, so every assertion is on
 // PERSISTED state: a success result would hide a failed write, and „odwracalne" is real only if the
@@ -425,63 +431,254 @@ describe.skipIf(!ENV_READY)('flushWorkshopPresetAction — strażnik wskaźnika 
     expect(result).toMatchObject({ success: true })
     expect(await sectionNamesOf(otherPresetId)).toEqual([])
   })
+})
 
-  // Opening a different szablon rewrites the warsztat tree in place — without the eviction flush,
-  // the last change to the outgoing one would simply vanish, and without a trace.
-  it('dopycha poprzedni szablon, zanim otwarcie przepisze drzewo warsztatu', async () => {
-    const { setWorkshopPreset } = await import('@/lib/db/workshop-investment')
-    const { updatePresetPayload } = await import('@/lib/db/presets')
-    await setWorkshopPreset(db, workshop.id, heldPresetId)
-    // Reset the szablon to empty, so the content found after the open can ONLY have come from the
-    // eviction.
-    await updatePresetPayload(db, {
-      id: heldPresetId,
-      payload: { ...presetPayload(), sections: [], items: [] },
+// „Otwórz" swaps the warsztat's whole tree, so every assertion reads the DB back: the pointer, the
+// warsztat rows, the library copies and their `updated_at`. The action's result says only that it
+// returned — a switch that half-committed would report success just the same.
+describe.skipIf(!ENV_READY)('openPresetInWorkshopAction — persisted state (DB)', () => {
+  let payload: Payload
+  let db: Awaited<ReturnType<typeof getDb>>
+  let workshop: Awaited<ReturnType<typeof acquireTestWorkshop>>
+  let presetA: number
+  let presetB: number
+  let brokenPresetId: number
+
+  const NAME_A = 'otworz-fixture-a'
+  const NAME_B = 'otworz-fixture-b'
+  const NAME_BROKEN = 'otworz-fixture-broken'
+
+  function payloadWithSection(name: string): SnapshotPayloadT {
+    const base = presetPayload()
+    return { ...base, sections: [{ ...base.sections[0], name }] }
+  }
+
+  beforeAll(async () => {
+    const { getPayload } = await import('payload')
+    const config = (await import('@payload-config')).default
+    payload = await getPayload({ config })
+    db = await getDb(payload)
+
+    const users = await payload.find({
+      collection: 'users',
+      limit: 1,
+      depth: 0,
+      overrideAccess: true,
     })
-    expect(await sectionNamesOf(heldPresetId)).toEqual([])
+    const firstUser = users.docs[0]
+    if (!firstUser) throw new Error('no user in the DB to attribute the szablony to')
+    authState.userId = Number(firstUser.id)
 
-    await openPresetInWorkshopAction(otherPresetId)
+    workshop = await acquireTestWorkshop(payload)
 
-    expect(await sectionNamesOf(heldPresetId)).toContain(SECTION_NAME)
-    // The open wipes the warsztat tree along with our section — there is nothing left to clean up.
-    sectionId = 0
+    const { upsertPresetByName } = await import('@/lib/db/presets')
+    presetA = await upsertPresetByName(db, {
+      name: NAME_A,
+      createdBy: authState.userId,
+      payload: payloadWithSection('Sekcja A'),
+    })
+    presetB = await upsertPresetByName(db, {
+      name: NAME_B,
+      createdBy: authState.userId,
+      payload: payloadWithSection('Sekcja B'),
+    })
+    brokenPresetId = await upsertPresetByName(db, {
+      name: NAME_BROKEN,
+      createdBy: authState.userId,
+      payload: brokenPresetPayload(),
+    })
   })
 
-  // „Przełącz na inny szablon…" in the warsztat takes the same path as a click in the list, so what
-  // the user sees after the switch hangs on two things at once: the pointer must name the new
-  // szablon, and a restore point must exist before the tree is rewritten.
-  it('przełączenie warsztatu przesuwa wskaźnik i zostawia punkt ochronny', async () => {
-    const { getWorkshop } = await import('@/lib/db/workshop-investment')
+  // Every case starts from an empty pointer and pristine library copies, so a case never inherits
+  // the previous one's warsztat — the first open in each is a real swap.
+  beforeEach(async () => {
+    await setLibraryCopy(presetA, payloadWithSection('Sekcja A'))
+    await setLibraryCopy(presetB, payloadWithSection('Sekcja B'))
+    const { setWorkshopPreset } = await import('@/lib/db/workshop-investment')
+    await setWorkshopPreset(db, workshop.id, null)
+    vi.mocked(revalidateCollections).mockClear()
+    vi.mocked(revalidateEntities).mockClear()
+    vi.mocked(expireCollectionsAfterResponse).mockClear()
+    updateTag.mockClear()
+    revalidateTag.mockClear()
+  })
 
-    const result = await openPresetInWorkshopAction(heldPresetId)
+  afterAll(async () => {
+    await workshop.release()
+    await db.execute(
+      sql`DELETE FROM kosztorys_presets WHERE name IN (${NAME_A}, ${NAME_B}, ${NAME_BROKEN})`,
+    )
+  })
+
+  // Raw SQL, not `updatePresetPayload`: resetting a fixture must not move the `updated_at` the
+  // cases assert on.
+  async function setLibraryCopy(presetId: number, content: SnapshotPayloadT): Promise<void> {
+    await db.execute(sql`
+      UPDATE kosztorys_presets SET payload = ${JSON.stringify(content)}::jsonb WHERE id = ${presetId}
+    `)
+  }
+
+  async function pointer(): Promise<number | null | undefined> {
+    const { getWorkshop } = await import('@/lib/db/workshop-investment')
+    return (await getWorkshop(db))?.presetId
+  }
+
+  async function workshopSections(): Promise<{ id: number; name: string }[]> {
+    const res = await db.execute(sql`
+      SELECT id, name FROM kosztorys_sections WHERE investment_id = ${workshop.id}
+      ORDER BY display_order, id
+    `)
+    return res.rows.map((row) => ({ id: Number(row.id), name: String(row.name) }))
+  }
+
+  async function librarySectionNames(presetId: number): Promise<string[]> {
+    const { getPreset } = await import('@/lib/db/presets')
+    const preset = await getPreset(db, presetId)
+    return (preset?.payload.sections ?? []).map((section) => section.name)
+  }
+
+  async function libraryUpdatedAt(presetId: number): Promise<string> {
+    const res = await db.execute(
+      sql`SELECT updated_at::text AS stamp FROM kosztorys_presets WHERE id = ${presetId}`,
+    )
+    return String(res.rows[0]?.stamp)
+  }
+
+  async function workshopSnapshotCount(): Promise<number> {
+    const res = await db.execute(
+      sql`SELECT COUNT(*) AS count FROM kosztorys_snapshots WHERE investment_id = ${workshop.id}`,
+    )
+    return Number(res.rows[0].count)
+  }
+
+  // The page renders the returned tree instead of re-querying, so it has to BE the stored one.
+  it('returns the tree it wrote and points the warsztat at the szablon', async () => {
+    const result = await openPresetInWorkshopAction(presetA)
+
+    const { buildKosztorysTree } = await import('@/lib/queries/kosztorys')
+    expect(result).toEqual({
+      success: true,
+      data: { investmentId: workshop.id, tree: await buildKosztorysTree(workshop.id) },
+    })
+    expect(await pointer()).toBe(presetA)
+    expect((await workshopSections()).map((section) => section.name)).toEqual(['Sekcja A'])
+  })
+
+  // Browser back + the same row again, or a StrictMode double effect: the held szablon is already
+  // there, and rewriting it would cost a swap and float it to the top of the library.
+  it('re-opening the held szablon writes nothing', async () => {
+    await openPresetInWorkshopAction(presetA)
+    const rowsBefore = await workshopSections()
+    const stampBefore = await libraryUpdatedAt(presetA)
+    const snapshotsBefore = await workshopSnapshotCount()
+
+    const result = await openPresetInWorkshopAction(presetA)
 
     expect(result).toMatchObject({ success: true })
-    expect((await getWorkshop(db))?.presetId).toBe(heldPresetId)
-    // The label carries the name of the szablon being loaded — otherwise three switches give three
-    // indistinguishable rows under „Wersje".
-    const snapshots = await db.execute(
-      sql`SELECT label FROM kosztorys_snapshots WHERE investment_id = ${workshop.id}
-          ORDER BY taken_at DESC, id DESC LIMIT 1`,
-    )
-    expect(snapshots.rows[0]?.label).toBe('Przed wczytaniem: warsztat-save-held')
+    expect(await workshopSections()).toEqual(rowsBefore)
+    expect(await libraryUpdatedAt(presetA)).toBe(stampBefore)
+    expect(await workshopSnapshotCount()).toBe(snapshotsBefore)
   })
 
-  // The eviction race. The tree swap runs in its own transaction, so if the pointer still named the
-  // OUTGOING szablon while that ran, there would be a committed state — tree already the incoming
-  // one, pointer still the outgoing one — in which a flush passes every guard and stamps the new
-  // content into the old szablon's row, destroying it. The ordering is the only thing that closes
-  // it, and a switch that FAILS is where the ordering becomes observable: the pointer is already
-  // down, so it cannot come back up naming a szablon whose tree the warsztat no longer has.
-  it('opuszcza wskaźnik, zanim drzewo ruszy — więc nieudane przełączenie nie zostawia starego', async () => {
-    const { getWorkshop, setWorkshopPreset } = await import('@/lib/db/workshop-investment')
-    await setWorkshopPreset(db, workshop.id, heldPresetId)
+  it('a switch mirrors the outgoing szablon’s last edit into the library', async () => {
+    await openPresetInWorkshopAction(presetA)
+    // Straight to the table, so no autosave mirror carries it — only the eviction can.
+    await db.execute(sql`
+      UPDATE kosztorys_sections SET name = 'Edycja w A' WHERE investment_id = ${workshop.id}
+    `)
+
+    const result = await openPresetInWorkshopAction(presetB)
+
+    expect(result).toMatchObject({ success: true })
+    expect(await librarySectionNames(presetA)).toEqual(['Edycja w A'])
+    expect(await pointer()).toBe(presetB)
+    expect((await workshopSections()).map((section) => section.name)).toEqual(['Sekcja B'])
+    expect(expireCollectionsAfterResponse).toHaveBeenCalledWith(['presets'])
+  })
+
+  // The re-inserted tree carries fresh row ids, so a byte comparison would call every eviction a
+  // change — and the library is ordered by `updated_at`.
+  it('a switch leaves an untouched outgoing szablon’s updated_at alone', async () => {
+    await openPresetInWorkshopAction(presetA)
+    const stampBefore = await libraryUpdatedAt(presetA)
+
+    await openPresetInWorkshopAction(presetB)
+
+    expect(await libraryUpdatedAt(presetA)).toBe(stampBefore)
+    expect(expireCollectionsAfterResponse).not.toHaveBeenCalled()
+  })
+
+  // The library copy, mirrored in the same transaction, is the restore point.
+  it('a switch writes no snapshot', async () => {
+    const snapshotsBefore = await workshopSnapshotCount()
+
+    await openPresetInWorkshopAction(presetA)
+    await openPresetInWorkshopAction(presetB)
+
+    expect(await workshopSnapshotCount()).toBe(snapshotsBefore)
+  })
+
+  // The pointer race: split across commits, A-replace, B-replace, B-set, A-set left B's tree under
+  // pointer A, and the next mirror wrote B's content into szablon A.
+  it('two concurrent opens leave the pointer naming the szablon the warsztat holds', async () => {
+    const results = await Promise.all([
+      openPresetInWorkshopAction(presetA),
+      openPresetInWorkshopAction(presetB),
+    ])
+
+    expect(results).toEqual([
+      expect.objectContaining({ success: true }),
+      expect.objectContaining({ success: true }),
+    ])
+    const held = await pointer()
+    expect([presetA, presetB]).toContain(held)
+    expect((await workshopSections()).map((section) => section.name)).toEqual(
+      await librarySectionNames(held as number),
+    )
+  })
+
+  it('a failed restore leaves the pointer, the tree and the outgoing szablon as they were', async () => {
+    await openPresetInWorkshopAction(presetA)
+    await db.execute(sql`
+      UPDATE kosztorys_sections SET name = 'Edycja w A' WHERE investment_id = ${workshop.id}
+    `)
+    const rowsBefore = await workshopSections()
+    const stampBefore = await libraryUpdatedAt(presetA)
+
+    const result = await openPresetInWorkshopAction(brokenPresetId)
+
+    expect(result).toMatchObject({ success: false })
+    expect(await pointer()).toBe(presetA)
+    expect(await workshopSections()).toEqual(rowsBefore)
+    expect(await librarySectionNames(presetA)).toEqual(['Sekcja A'])
+    expect(await libraryUpdatedAt(presetA)).toBe(stampBefore)
+  })
+
+  // Any tag touched before the response re-renders /szablony/[id] and wipes the client prefetch
+  // cache (lessons.md, EX-597) — the cost this action exists to avoid.
+  it('revalidates nothing before the response', async () => {
+    await openPresetInWorkshopAction(presetA)
+    await db.execute(sql`
+      UPDATE kosztorys_sections SET name = 'Edycja w A' WHERE investment_id = ${workshop.id}
+    `)
+
+    await openPresetInWorkshopAction(presetB)
+
+    expect(revalidateCollections).not.toHaveBeenCalled()
+    expect(revalidateEntities).not.toHaveBeenCalled()
+    expect(updateTag).not.toHaveBeenCalled()
+    expect(revalidateTag).not.toHaveBeenCalled()
+  })
+
+  it('writes nothing when the szablon does not exist', async () => {
+    await openPresetInWorkshopAction(presetA)
+    const rowsBefore = await workshopSections()
 
     const result = await openPresetInWorkshopAction(2_000_000_000)
 
-    expect(result).toMatchObject({ success: false })
-    expect((await getWorkshop(db))?.presetId).toBeNull()
-
-    await setWorkshopPreset(db, workshop.id, heldPresetId)
+    expect(result).toEqual({ success: false, error: 'Nie znaleziono szablonu' })
+    expect(await pointer()).toBe(presetA)
+    expect(await workshopSections()).toEqual(rowsBefore)
   })
 })
 

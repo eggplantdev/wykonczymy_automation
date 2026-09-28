@@ -1,9 +1,16 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { after } from 'next/server'
 import { updateTag, revalidateTag } from '@/__tests__/stubs/next-cache'
-import { revalidateCollections, revalidateEntities } from '@/lib/cache/revalidate'
+import {
+  expireCollectionsAfterResponse,
+  revalidateCollections,
+  revalidateEntities,
+} from '@/lib/cache/revalidate'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 
-// `deferRefresh` exists to drop the route re-render on per-cell autosaves (EX-597), NOT to skip
+vi.mock('next/server', () => ({ after: vi.fn() }))
+
+// `deferRefresh` exists to keep the render out of per-cell autosave responses (EX-597), NOT to skip
 // invalidation. The distinction is invisible on the editor itself — it holds `rows` in local state
 // either way — and only shows up on the OTHER routes that read these tags, chiefly the client share
 // link. So the invariant worth pinning is that both branches expire every tag they are given; a
@@ -74,6 +81,33 @@ describe('revalidateEntities', () => {
     revalidateEntities(['investment:6'], { deferRefresh: true })
 
     expect(revalidateTag.mock.calls).toEqual([['investment:6', { expire: 1 }]])
+    expect(updateTag).not.toHaveBeenCalled()
+  })
+})
+
+// „Otwórz szablon" depends on both halves: an expiry before the response re-renders the calling route
+// and wipes the prefetch cache (EX-597), and one that only marks the tag stale serves the old library
+// once more (tags.ts).
+describe('expireCollectionsAfterResponse', () => {
+  beforeEach(() => {
+    updateTag.mockReset()
+    revalidateTag.mockReset()
+    vi.mocked(after).mockReset()
+  })
+
+  it('expires nothing until the after-response callback runs, then expires on the spot', () => {
+    expireCollectionsAfterResponse(['presets', 'investments'])
+
+    expect(revalidateTag).not.toHaveBeenCalled()
+    expect(updateTag).not.toHaveBeenCalled()
+
+    const [callback] = vi.mocked(after).mock.calls[0]
+    ;(callback as () => void)()
+
+    expect(revalidateTag.mock.calls).toEqual([
+      [CACHE_TAGS['presets'], { expire: 0 }],
+      [CACHE_TAGS['investments'], { expire: 0 }],
+    ])
     expect(updateTag).not.toHaveBeenCalled()
   })
 })
