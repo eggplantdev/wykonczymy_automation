@@ -25,6 +25,9 @@ type PropsT = {
   baseRanks: ColumnRanksT
   onSetRank: (key: string, rank: number) => void
   onReset: () => void
+  // Defaults to „nothing stored" — right where reset means „forget", wrong where it returns to a
+  // stored order of its own.
+  resetDisabled?: boolean
   // Where the setting applies — the ranks are per-surface, so the sentence has to name that surface
   // rather than promise it everywhere.
   description: string
@@ -47,6 +50,7 @@ export function ColumnOrderDialog({
   baseRanks,
   onSetRank,
   onReset,
+  resetDisabled = Object.keys(ranks).length === 0,
   description,
 }: PropsT) {
   const keys = items.map((item) => item.id)
@@ -103,12 +107,7 @@ export function ColumnOrderDialog({
         </motion.div>
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={Object.keys(ranks).length === 0}
-            onClick={onReset}
-          >
+          <Button variant="outline" size="sm" disabled={resetDisabled} onClick={onReset}>
             Przywróć domyślną kolejność
           </Button>
           <DialogClose asChild>

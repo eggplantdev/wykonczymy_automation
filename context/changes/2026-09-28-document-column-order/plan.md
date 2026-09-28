@@ -422,12 +422,12 @@ on the same client-view tables is a separate, later migration.
 
 #### Automated
 
-- [x] 2.1 Grid and print specs pass
-- [x] 2.2 Endpoint consumers' DOM specs pass
+- [x] 2.1 Grid and print specs pass — 96e43151
+- [x] 2.2 Endpoint consumers' DOM specs pass — 96e43151
 
 ### Phase 3: Settings windows
 
 #### Automated
 
-- [ ] 3.1 New and updated dialog specs pass
-- [ ] 3.2 Workbench order window's existing specs pass unchanged
+- [x] 3.1 New and updated dialog specs pass
+- [x] 3.2 Workbench order window's existing specs pass unchanged

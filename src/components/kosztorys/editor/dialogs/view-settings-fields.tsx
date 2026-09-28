@@ -2,7 +2,7 @@
 
 import { CheckboxRow } from '@/components/ui/checkbox-row'
 import { Description } from '@/components/ui/description'
-import type { ClientViewGroupT } from '@/lib/kosztorys/column-config'
+import { DOCUMENT_PINNED_COLUMN, type ClientViewGroupT } from '@/lib/kosztorys/column-config'
 
 export type ViewSettingsValueT = { hiddenColumns: string[]; hideEmptyRows: boolean }
 
@@ -46,8 +46,10 @@ export function ViewSettingsFields<T extends ViewSettingsValueT>({
           {group.keys.map((key) => (
             <CheckboxRow
               key={key}
-              checked={!hidden.has(key)}
-              disabled={disabled}
+              // Shown ticked and locked rather than left out: the owner reads the whole document
+              // here, and „Opis prac" is on it.
+              checked={key === DOCUMENT_PINNED_COLUMN || !hidden.has(key)}
+              disabled={disabled || key === DOCUMENT_PINNED_COLUMN}
               onCheckedChange={(visible) => toggleColumn(key, visible)}
             >
               {labelFor(key) ?? key}

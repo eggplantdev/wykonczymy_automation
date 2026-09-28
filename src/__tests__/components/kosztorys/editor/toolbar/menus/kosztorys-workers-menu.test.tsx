@@ -8,6 +8,8 @@ import { KosztorysWorkerViewDialog } from '@/components/kosztorys/editor/dialogs
 import { CurrentUserProvider } from '@/hooks/use-current-user'
 import type { RoleT } from '@/lib/auth/roles'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
+import { WORKER_DOCUMENT_COLUMNS } from '@/lib/kosztorys/column-config'
+import { workerColumnLabel } from '@/lib/kosztorys/worker-view/settings'
 
 const INVESTMENT_ID = 12
 
@@ -34,8 +36,16 @@ vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
 }))
 
 vi.mock('@/lib/queries/worker-view-settings-endpoint', () => ({
-  readWorkerViewSettings: vi.fn(async () => ({ hiddenColumns: [], hideEmptyRows: true })),
+  readWorkerViewSettings: vi.fn(async () => ({
+    hiddenColumns: [],
+    hideEmptyRows: true,
+    columnRanks: {},
+  })),
 }))
+vi.mock(
+  '@/components/ui/column-order-dialog',
+  () => import('@/__tests__/stubs/column-order-dialog'),
+)
 
 const readWorkerShareToken = vi.hoisted(() => vi.fn())
 vi.mock('@/lib/queries/worker-share-link-endpoint', () => ({ readWorkerShareToken }))
@@ -146,6 +156,28 @@ describe('KosztorysWorkersMenu', () => {
       await within(dialog).findByRole('checkbox', { name: 'Stawka j.m. netto' }),
     ).toBeDisabled()
     expect(within(dialog).getByRole('button', { name: 'Zapisz' })).toBeDisabled()
+    expect(within(dialog).getByRole('button', { name: /Ustaw kolejność kolumn/ })).toBeDisabled()
+  })
+
+  it('returns the owner’s reorder to the built-in order on reset', async () => {
+    renderMenu('OWNER')
+    await openMenu()
+    await userEvent.click(screen.getByRole('menuitem', { name: /Ustawienia widoku/ }))
+    const dialog = await screen.findByRole('dialog', { name: 'Ustawienia widoku pracownika' })
+    await userEvent.click(
+      await within(dialog).findByRole('button', { name: /Ustaw kolejność kolumn/ }),
+    )
+    const order = within(screen.getByRole('region', { name: 'Ustaw kolejność kolumn' }))
+    const listed = () => order.getAllByRole('listitem').map((item) => item.textContent)
+    const builtIn = WORKER_DOCUMENT_COLUMNS.slice(1).map((key) => workerColumnLabel(key) ?? key)
+    const net = workerColumnLabel('net') ?? 'net'
+
+    expect(listed()).toEqual(builtIn)
+    await userEvent.click(order.getByRole('button', { name: `${net} na początek` }))
+    expect(listed()[0]).toBe(net)
+    await userEvent.click(order.getByRole('button', { name: 'Przywróć domyślną kolejność' }))
+
+    expect(listed()).toEqual(builtIn)
   })
 
   it('lets the owner change the view settings', async () => {
