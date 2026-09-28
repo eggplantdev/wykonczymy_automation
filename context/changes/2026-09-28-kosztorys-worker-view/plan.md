@@ -872,16 +872,16 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 3.1 Migration applies to local docker DB
-- [x] 3.2 Types regenerate with the new slugs
-- [ ] 3.3 Pair uniqueness enforced (DB spec)
+- [x] 3.1 Migration applies to local docker DB — dcf53409
+- [x] 3.2 Types regenerate with the new slugs — dcf53409
+- [x] 3.3 Pair uniqueness enforced (DB spec)
 
 ### Phase 4: Server — link actions, settings actions, projection, routes
 
 #### Automated
 
-- [ ] 4.1 Worker share action spec passes
-- [ ] 4.2 Worker token/read specs pass
+- [x] 4.1 Worker share action spec passes
+- [x] 4.2 Worker token/read specs pass
 
 ### Phase 5: Worker surface in the grid and page
 
