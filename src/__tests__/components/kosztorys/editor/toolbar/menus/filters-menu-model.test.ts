@@ -12,6 +12,8 @@ const model = (
     engagedIds: new Set(engaged),
     counts: new Map(Object.entries(counts)),
     perItemDiscountInert,
+    // Obie płaszczyzny widoczne — o gating przez oś „Stawki wykonawców" pyta osobny opis niżej.
+    crewAxis: 'both',
   })
 
 const everyFilterCounted = Object.fromEntries(

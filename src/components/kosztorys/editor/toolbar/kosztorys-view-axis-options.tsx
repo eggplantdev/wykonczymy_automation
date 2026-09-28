@@ -4,6 +4,7 @@ import { planeIcon } from '@/components/kosztorys/editor/plane-icons'
 import { PLANE_LABELS, RATE_LABELS, TOOL_PLANES } from '@/lib/kosztorys/constants'
 import type { PairAxisConfigT } from '@/lib/kosztorys/axis-checkboxes'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
+import type { CrewAxisT } from '@/lib/kosztorys/crew-axis'
 import type { LayerT } from '@/lib/kosztorys/layer'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 
@@ -60,6 +61,26 @@ export const LAYERS: {
 export const LAYER_PAIR_CONFIG: PairAxisConfigT<LayerT> = {
   a: 'work',
   b: 'progress',
+  both: 'both',
+  none: 'none',
+}
+
+// The rate columns of one crew as a single tick — three columns per plane, and the plane-bound rows in
+// „Filtry" with them. Icons come from `planeIcon`, the same glyphs the view switcher and the etap
+// header use, so the two controls that both name a płaszczyzna cannot drift apart.
+export const CREWS: {
+  value: CrewAxisT
+  label: string
+  icon: ReactNode
+}[] = TOOL_PLANES.map((plane) => ({
+  value: plane,
+  label: PLANE_LABELS[plane],
+  icon: planeIcon(plane, ICON_CLASS),
+}))
+
+export const CREW_PAIR_CONFIG: PairAxisConfigT<CrewAxisT> = {
+  a: 'w_tools',
+  b: 'own_tools',
   both: 'both',
   none: 'none',
 }

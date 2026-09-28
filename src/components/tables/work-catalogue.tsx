@@ -74,7 +74,10 @@ const twoLines = (first: string, second: string) => () => (
   </span>
 )
 
-const SHARE_TOOLTIP = `Udział stawki w cenie j.m. Powyżej ${formatPercent(MAX_CLIENT_SHARE)} na czerwono.`
+// Per plane, because the próg is: the stawka bez narzędzi is the z-narzędziami one less 15%, so one
+// tooltip on both columns would name a liczba only one of them turns red at.
+const shareTooltip = (plane: ToolPlaneT) =>
+  `Udział stawki w cenie j.m. Powyżej ${formatPercent(MAX_CLIENT_SHARE[plane])} na czerwono.`
 
 // Lp. is the row's number in the KATALOG, pinned to alphabetical order over the whole catalogue, so
 // it survives every sort and filter. `row.index` would slide under the row and name nothing.
@@ -130,7 +133,7 @@ const clientPriceColumn = col.accessor('clientPrice', {
 const wToolsRateColumn = col.accessor((row) => rateAmount(row, 'w_tools'), {
   id: 'wToolsRate',
   header: twoLines('Stawka z narzędziami', '(podwykonawca)'),
-  size: 190,
+  size: 176,
   meta: { label: RATE_LABELS.w_tools },
   cell: (info) => rateCell(info.row.original, 'w_tools'),
 })
@@ -143,11 +146,11 @@ const shareColumn = (plane: ToolPlaneT, id: string, tools: string) =>
   col.accessor((row) => shareOf(row, plane), {
     id,
     header: twoLines('% ceny klienta', tools),
-    meta: { tooltip: SHARE_TOOLTIP, label: `% ceny klienta ${tools}` },
+    meta: { tooltip: shareTooltip(plane), label: `% ceny klienta ${tools}` },
     cell: (info) =>
       share(
         info.getValue(),
-        isOverCeiling(rateAmount(info.row.original, plane), info.row.original),
+        isOverCeiling(rateAmount(info.row.original, plane), info.row.original, plane),
       ),
   })
 
@@ -176,7 +179,7 @@ const wToolsShareColumn = shareColumn('w_tools', 'wToolsShare', PLANE_LABELS.w_t
 const ownToolsRateColumn = col.accessor((row) => rateAmount(row, 'own_tools'), {
   id: 'ownToolsRate',
   header: twoLines('Stawka bez narzędzi', '(pracownik)'),
-  size: 190,
+  size: 176,
   meta: { label: RATE_LABELS.own_tools },
   cell: (info) => rateCell(info.row.original, 'own_tools'),
 })

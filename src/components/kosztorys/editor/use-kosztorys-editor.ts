@@ -28,6 +28,8 @@ import { useKosztorysViewState } from '@/components/kosztorys/editor/hooks/use-k
 import { useColumnOrder } from '@/components/kosztorys/editor/hooks/use-column-order'
 import { useHiddenColumns } from '@/components/kosztorys/editor/hooks/use-hidden-columns'
 import { useLayer } from '@/components/kosztorys/editor/hooks/use-layer'
+import { useCrewAxis } from '@/components/kosztorys/editor/hooks/use-crew-axis'
+import { effectiveCrewAxis } from '@/lib/kosztorys/crew-axis'
 import { useMoneyAxis } from '@/components/kosztorys/editor/hooks/use-money-axis'
 import { effectiveMoneyAxis } from '@/lib/kosztorys/money-axis'
 import { useElementHeight } from '@/hooks/use-element-height'
@@ -212,6 +214,8 @@ export function useKosztorysEditor({
   // axis, layer and picker never reach the client's grid at all.
   const axis = effectiveMoneyAxis(view, moneyAxis)
   const [layer, setLayer] = useLayer()
+  const [storedCrewAxis, setCrewAxis] = useCrewAxis()
+  const crewAxis = effectiveCrewAxis(view, storedCrewAxis)
   // Previous rows keyed by item id — the full dataset, not the view. Doubles as the fresh dataset that
   // structural handlers read, so no separate rows ref is needed.
   const prevById = useRef(new Map(rows.map((r) => [r.id, r])))
@@ -500,6 +504,7 @@ export function useKosztorysEditor({
     isHidden,
     moneyAxis: axis,
     layer,
+    crewAxis,
     widths,
     columnRanks,
     onGuide: setGuideX,
@@ -1198,6 +1203,8 @@ export function useKosztorysEditor({
     setMoneyAxis,
     layer,
     setLayer,
+    crewAxis,
+    setCrewAxis,
     viewRows,
     view,
     sort,

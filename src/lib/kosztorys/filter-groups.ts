@@ -13,10 +13,13 @@ export const FILTER_GROUPS = [
   // about BOTH at once („bez przedmiaru i bez wykonanej pracy") belongs to neither axis alone, and a
   // third heading for one pair would file the same question in a place the reader looks at last.
   { id: 'quantities', label: 'Przedmiar i wykonana praca' },
-  { id: 'discount', label: 'Rabat' },
   { id: 'rate-source', label: 'Źródło stawki wykonawcy' },
-  { id: 'rate-ceiling', label: 'Sufit stawki wykonawcy' },
+  // Names the figure, not the jargon: „sufit" is a word only the code used, while the reader is
+  // deciding against a share of the cena. The liczba sits on the entries rather than here, because
+  // each plane has its own and a heading naming one of them would misreport the other.
+  { id: 'rate-ceiling', label: 'Udział wykonawcy w cenie' },
   { id: 'note', label: 'Komentarz' },
+  { id: 'discount', label: 'Rabat' },
 ] as const
 
 export type FilterGroupIdT = (typeof FILTER_GROUPS)[number]['id']

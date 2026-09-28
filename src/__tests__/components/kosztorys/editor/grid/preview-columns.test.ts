@@ -163,7 +163,9 @@ describe('the pair: allowlist + price plane', () => {
     }
     // The editor gets the rate in the client view too, which is exactly why the allowlist is
     // load-bearing.
-    const editorIds = buildV2Columns({ view: 'client', stages: STAGES }).map((c) => c.id)
+    const editorIds = buildV2Columns({ view: 'client', stages: STAGES, crewAxis: 'both' }).map(
+      (c) => c.id,
+    )
     expect(editorIds).toContain(planePriceKey('price', 'w_tools'))
     expect(editorIds).toContain(planePriceKey('price', 'own_tools'))
   })

@@ -1,14 +1,24 @@
 import { priceSourceOf, subcontractorPrice } from '@/lib/kosztorys/calc'
+import { DEFAULT_COEFFS } from '@/lib/kosztorys/constants'
 import type { CellVerdictT } from '@/lib/kosztorys/cell-edit'
 import { formatCoeff, formatNet, formatPercent } from '@/lib/kosztorys/format'
 import type { ToolPlaneT, ViewPricingT } from '@/lib/kosztorys/types'
 
 /**
- * The company's floor on its own cut: a subcontractor may be paid at most this share of the client
- * price. A code constant rather than a per-investment column — it is a business rule, not a
- * negotiated parameter, and one the owner never wants a per-sheet exception to.
+ * The company's floor on its own cut: a crew may be paid at most this share of the client price. A
+ * code constant rather than a per-investment column — it is a business rule, not a negotiated
+ * parameter, and one the owner never wants a per-sheet exception to.
+ *
+ * One figure per plane, because the standard deal itself differs by plane: the stawka bez narzędzi
+ * IS the z-narzędziami one less 15% (`=R−R*0,15` in the owner's sheet), so a flat 65% there sat ten
+ * points above every rate anyone ever agreed and flagged nothing (owner, 2026-09-28). The ceiling is
+ * therefore the standard rate — pay more than the deal and you are eating the marża — which is why
+ * it reads `DEFAULT_COEFFS` rather than restating the same two liczby.
  */
-export const MAX_CLIENT_SHARE = 0.65
+export const MAX_CLIENT_SHARE: Record<ToolPlaneT, number> = {
+  w_tools: DEFAULT_COEFFS.wTools,
+  own_tools: DEFAULT_COEFFS.ownTools,
+}
 
 // Half a grosz. The comparison is strictly-greater, so without slack a price typed at exactly the
 // ceiling (that figure rounded to two decimals and entered by hand) reads as "above" on a
@@ -22,8 +32,11 @@ const TOLERANCE = 0.005
  * the pre-rabat unit price (`applyDiscount` works on the row's gross value, not on this), so the
  * multiplication below needs nothing extra; what it needs is to stay that way.
  */
-export function maxSubcontractorPrice(row: Pick<ViewPricingT, 'clientPrice'>): number {
-  return row.clientPrice * MAX_CLIENT_SHARE
+export function maxSubcontractorPrice(
+  row: Pick<ViewPricingT, 'clientPrice'>,
+  plane: ToolPlaneT,
+): number {
+  return row.clientPrice * MAX_CLIENT_SHARE[plane]
 }
 
 /**
@@ -38,9 +51,10 @@ export function maxSubcontractorPrice(row: Pick<ViewPricingT, 'clientPrice'>): n
 export function isOverCeiling(
   price: number | null,
   row: Pick<ViewPricingT, 'clientPrice'>,
+  plane: ToolPlaneT,
 ): boolean {
   if (price === null || !(row.clientPrice > 0)) return false
-  return price > maxSubcontractorPrice(row) + TOLERANCE
+  return price > maxSubcontractorPrice(row, plane) + TOLERANCE
 }
 
 /**
@@ -57,26 +71,27 @@ export function isOverCeiling(
  * reason, and a negative one IS still refused per pozycja — which is the problem, because that is
  * one verdict repeated across the whole rozpiska while the field that caused it stays unmarked.
  */
-export const isCoeffFlagged = (coeff: number): boolean => coeff > MAX_CLIENT_SHARE || coeff <= 0
+export const isCoeffFlagged = (coeff: number, plane: ToolPlaneT): boolean =>
+  coeff > MAX_CLIENT_SHARE[plane] || coeff <= 0
 
 /**
  * Its own sentence rather than the row one: a stawka over the ceiling is one pozycja, a mnożnik over
  * it is every pozycja still on „auto". Three sentences for three different mistakes — one overpays
  * the crew, one stops paying it, one makes it pay us.
  */
-export function coeffWarning(coeff: number): string | null {
+export function coeffWarning(coeff: number, plane: ToolPlaneT): string | null {
   if (coeff < 0) {
     return 'Mnożnik ujemny daje wykonawcy stawkę poniżej zera na każdej pozycji ze źródłem „auto" — apka odmówi zapisu takiej ceny.'
   }
   if (coeff === 0) {
     return 'Mnożnik 0 daje wykonawcy 0 zł na każdej pozycji ze źródłem „auto".'
   }
-  if (!isCoeffFlagged(coeff)) return null
-  return `Mnożnik ${formatCoeff(coeff)} przekracza ${formatPercent(MAX_CLIENT_SHARE)} ceny dla inwestora — wykonawca zjada marżę na pozycjach ze źródłem „auto".`
+  if (!isCoeffFlagged(coeff, plane)) return null
+  return `Mnożnik ${formatCoeff(coeff)} przekracza ${formatPercent(MAX_CLIENT_SHARE[plane])} ceny dla inwestora — wykonawca zjada marżę na pozycjach ze źródłem „auto".`
 }
 
 /**
- * The ceiling question as a predicate, so the red cell and the „z własną stawką powyżej sufitu"
+ * The ceiling question as a predicate, so the red cell and the „z własną stawką ponad …% ceny"
  * filters read one rule instead of two copies that can be edited apart — including the half-grosz
  * tolerance, without which a kwota typed back off the screen lands on opposite sides of the two
  * readings.
@@ -85,12 +100,12 @@ export function coeffWarning(coeff: number): string | null {
  * because overpaying is the same overpayment whichever of the two produced it (EX-865). Only „auto"
  * is exempt, and there the author is the investment's own współczynnik, judged once in its own field
  * (`coeffWarning`) instead of once per pozycja. So the filters' negated twin („bez własnej stawki
- * powyżej sufitu") holds every „auto" pozycja as well — a complement of this predicate, not of
+ * ponad …% ceny") holds every „auto" pozycja as well — a complement of this predicate, not of
  * „pozycje z własną stawką". The registry states that out loud beside the pair; do not narrow it here
  * without moving that ruling too.
  */
 export const isOwnRateOverCeiling = (row: ViewPricingT, view: ToolPlaneT): boolean =>
-  priceSourceOf(row, view) !== 'auto' && isOverCeiling(subcontractorPrice(row, view), row)
+  priceSourceOf(row, view) !== 'auto' && isOverCeiling(subcontractorPrice(row, view), row, view)
 
 /**
  * Unlike the ceiling, this one reads the PRICE rather than the nadpisanie, so it catches an „auto"
@@ -104,7 +119,7 @@ export const isSubcontractorPriceNegative = (row: ViewPricingT, view: ToolPlaneT
 /**
  * Two tiers, and the difference is whether the figure can be REAL. A negative stawka is arithmetic
  * nobody ever meant, so it is refused outright. A stawka above the ceiling is a bad deal, not an
- * impossible one — a crew genuinely does cost more than 65% of the client price sometimes, and a
+ * impossible one — a crew genuinely does cost more than its plane's standard share sometimes, and a
  * kosztorys that cannot record it is a kosztorys that lies (owner, 2026-09-20). So it warns: the
  * write lands, the cell goes red and the „Problemy" filter picks the row up.
  *
@@ -134,6 +149,6 @@ export function checkSubcontractorPrice(row: ViewPricingT, view: ToolPlaneT): Ce
 
   return {
     severity: 'warn',
-    message: `Cena wykonawcy przekracza ${formatPercent(MAX_CLIENT_SHARE)} ceny dla inwestora (maks. ${formatNet(maxSubcontractorPrice(row))}).`,
+    message: `Cena wykonawcy przekracza ${formatPercent(MAX_CLIENT_SHARE[view])} ceny dla inwestora (maks. ${formatNet(maxSubcontractorPrice(row, view))}).`,
   }
 }

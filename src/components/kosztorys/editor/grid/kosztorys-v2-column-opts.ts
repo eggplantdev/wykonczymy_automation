@@ -2,6 +2,7 @@ import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { ColumnRanksT } from '@/lib/table/column-order'
 import type { LayerT } from '@/lib/kosztorys/layer'
+import type { CrewAxisT } from '@/lib/kosztorys/crew-axis'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { MoveEdgesT } from '@/lib/kosztorys/move-edges'
 import type { SortPickT, SortStateT } from '@/lib/kosztorys/row-view'
@@ -103,4 +104,6 @@ export type BuildV2ColumnsOptsT = {
   // not see, this one about what a szablon cannot carry. The allowlist, not the stored tick: the
   // map of hidden columns is one per browser, so a tick would leak across every kosztorys.
   workshopVisible?: boolean
+  // Which crew's rate columns are on screen — see crew-axis.ts. Absent = CREW_AXIS_DEFAULT.
+  crewAxis?: CrewAxisT
 }

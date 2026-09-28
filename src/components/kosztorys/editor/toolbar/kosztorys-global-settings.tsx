@@ -3,7 +3,7 @@
 import { DecimalField } from '@/components/ui/decimal-field'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
 import { planeIcon } from '@/components/kosztorys/editor/plane-icons'
-import { FLAGGED_TONE, NOTICE_MS, PLANE_LABELS } from '@/lib/kosztorys/constants'
+import { FLAGGED_TONE, NOTICE_MS, PLANE_LABELS, TOOL_PLANES } from '@/lib/kosztorys/constants'
 import type { ToolPlaneT } from '@/lib/kosztorys/types'
 import {
   MAX_CLIENT_SHARE,
@@ -13,12 +13,16 @@ import {
 import { toastMessage } from '@/lib/utils/toast'
 
 // Sourced from the constant rather than typed as „0,65": a hardcoded ceiling here would drift from
-// the rule the cells enforce, and the field would promise a limit it no longer has.
+// the rule the cells enforce, and the field would promise a limit it no longer has. Both progi are
+// named, because they differ per plane and the tooltip sits above both fields at once.
 const COEFF_DESCRIPTION = [
   'Cena wykonawcy = cena dla inwestora × mnożnik.',
   '0,65 = wykonawca dostaje 65% ceny dla inwestora.',
   'Dziedziczą go pozycje ze źródłem ceny „auto".',
-  `Powyżej ${MAX_CLIENT_SHARE.toLocaleString('pl-PL')} wykonawca zjada marżę — wolno, ale na czerwono.`,
+  ...TOOL_PLANES.map(
+    (plane) =>
+      `${PLANE_LABELS[plane]}: powyżej ${MAX_CLIENT_SHARE[plane].toLocaleString('pl-PL')} wykonawca zjada marżę — wolno, ale na czerwono.`,
+  ),
   '0 = wykonawca nie dostaje nic — też na czerwono.',
 ].join('\n')
 
@@ -43,13 +47,13 @@ function CoeffField({
       // A hard refusal, unlike the ceiling above it: a negative mnożnik prices work at less than
       // nothing and is a typo, not a deal (owner, 2026-09-21).
       min={0}
-      valueClassName={isCoeffFlagged(value) ? FLAGGED_TONE : undefined}
+      valueClassName={isCoeffFlagged(value, plane) ? FLAGGED_TONE : undefined}
       onCommit={(n) => {
         // DecimalField commits on every blur — it re-parses the input rather than comparing it to
         // the value it was given — so without this, merely tabbing through a field already over the
         // ceiling toasts, saves and stacks an undo entry for a change nobody made.
         if (n === value) return
-        const warning = coeffWarning(n)
+        const warning = coeffWarning(n, plane)
         if (warning) toastMessage(warning, 'warning', NOTICE_MS)
         onCommit(n)
       }}

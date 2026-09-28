@@ -8,8 +8,8 @@ import {
 } from '@/lib/kosztorys/subcontractor-price-guard'
 import type { ViewPricingT } from '@/lib/kosztorys/types'
 
-// Client price 100 makes every threshold readable at a glance: ceiling 65, which the w_tools
-// coefficient price meets exactly; own_tools lands at 55.
+// Client price 100 makes every threshold readable at a glance: próg 65 zł z narzędziami, 55,25 zł
+// bez narzędzi, and the w_tools coefficient price meets its own exactly.
 const row: ViewPricingT = {
   id: 1,
   sectionId: 10,
@@ -37,18 +37,20 @@ const amount = (value: number): ViewPricingT => ({
 })
 
 describe('maxSubcontractorPrice', () => {
-  it('to udział ceny klienta', () => {
-    expect(maxSubcontractorPrice(row)).toBe(65)
-    expect(MAX_CLIENT_SHARE).toBe(0.65)
+  it('to udział ceny klienta, inny na każdej płaszczyźnie', () => {
+    expect(maxSubcontractorPrice(row, 'w_tools')).toBe(65)
+    expect(maxSubcontractorPrice(row, 'own_tools')).toBe(55.25)
+    expect(MAX_CLIENT_SHARE.w_tools).toBe(0.65)
+    expect(MAX_CLIENT_SHARE.own_tools).toBe(0.5525)
   })
 })
 
-describe('checkSubcontractorPrice — sufit 65% ceny klienta', () => {
-  it('dokładnie na suficie przechodzi', () => {
+describe('checkSubcontractorPrice — próg 65% ceny klienta z narzędziami', () => {
+  it('dokładnie na progu przechodzi', () => {
     expect(checkSubcontractorPrice(amount(65), 'w_tools')).toBeNull()
   })
 
-  it('włos powyżej sufitu ostrzega, nie odrzuca, a komunikat nazywa maksimum', () => {
+  it('włos powyżej progu ostrzega, nie odrzuca, a komunikat nazywa maksimum', () => {
     expect(checkSubcontractorPrice(amount(65.02), 'w_tools')).toEqual({
       severity: 'warn',
       message: expect.stringContaining('65,00'),
@@ -57,14 +59,14 @@ describe('checkSubcontractorPrice — sufit 65% ceny klienta', () => {
 
   // A price landing on odd grosze (0.65 × 100.01) is retyped off the screen rounded to two decimals;
   // without the tolerance that floating-point remainder would be flagged for no visible reason.
-  it('kwota przepisana z ekranu na sam sufit nie jest odrzucana', () => {
+  it('kwota przepisana z ekranu na sam próg nie jest odrzucana', () => {
     const odd = { ...amount(65.01), clientPrice: 100.01 }
     expect(checkSubcontractorPrice(odd, 'w_tools')).toBeNull()
   })
 
   // Trzecie źródło wchodzi na tę samą wagę (EX-865): stawka 70 zł przepłaca tak samo, czy powstała z
   // kwoty, czy z mnożnika 0,7 — autor siedzi w tym wierszu, więc werdykt też.
-  it('własny mnożnik ponad sufit ostrzega tym samym zdaniem co kwota', () => {
+  it('własny mnożnik ponad próg ostrzega tym samym zdaniem co kwota', () => {
     const coeff = (value: number): ViewPricingT => ({ ...row, wToolsOverrideCoeff: value })
 
     expect(checkSubcontractorPrice(coeff(0.65), 'w_tools')).toBeNull()
@@ -83,7 +85,7 @@ describe('checkSubcontractorPrice — tryb auto', () => {
   // Reversed 2026-09-22: judging the derived figure judged the mnożnik once per pozycja, so one
   // keystroke in the pasku threw a whole rozpiska over the ceiling. The mnożnik answers for itself —
   // see `coeffWarning` below.
-  it('milczy także wtedy, gdy sam globalny mnożnik przekracza sufit', () => {
+  it('milczy także wtedy, gdy sam globalny mnożnik przekracza próg', () => {
     const over = { ...row, globalWToolsCoeff: 0.9 }
     expect(checkSubcontractorPrice(over, 'w_tools')).toBeNull()
   })
@@ -98,34 +100,42 @@ describe('checkSubcontractorPrice — tryb auto', () => {
 })
 
 describe('isCoeffFlagged / coeffWarning', () => {
-  it('sam sufit milczy, powyżej ostrzega', () => {
-    expect(isCoeffFlagged(0.65)).toBe(false)
-    expect(coeffWarning(0.65)).toBeNull()
-    expect(isCoeffFlagged(0.9)).toBe(true)
-    expect(coeffWarning(0.9)).toContain('65')
+  it('sam próg milczy, powyżej ostrzega', () => {
+    expect(isCoeffFlagged(0.65, 'w_tools')).toBe(false)
+    expect(coeffWarning(0.65, 'w_tools')).toBeNull()
+    expect(isCoeffFlagged(0.9, 'w_tools')).toBe(true)
+    expect(coeffWarning(0.9, 'w_tools')).toContain('65')
+  })
+
+  // Ten sam mnożnik, dwie odpowiedzi: 0,65 to normalna stawka z narzędziami i przepłacenie bez nich,
+  // bo stawka bez narzędzi jest o 15% niższa z samej definicji.
+  it('0,65 przechodzi z narzędziami, a bez narzędzi już nie', () => {
+    expect(isCoeffFlagged(0.65, 'own_tools')).toBe(true)
+    expect(coeffWarning(0.65, 'own_tools')).toContain('55')
+    expect(isCoeffFlagged(0.5525, 'own_tools')).toBe(false)
   })
 
   it('zwykły mnożnik milczy', () => {
-    expect(isCoeffFlagged(0.5)).toBe(false)
-    expect(coeffWarning(0.5)).toBeNull()
+    expect(isCoeffFlagged(0.5, 'w_tools')).toBe(false)
+    expect(coeffWarning(0.5, 'w_tools')).toBeNull()
   })
 
-  it('zero ostrzega innym zdaniem niż sufit', () => {
-    expect(isCoeffFlagged(0)).toBe(true)
-    const zero = coeffWarning(0)
+  it('zero ostrzega innym zdaniem niż próg', () => {
+    expect(isCoeffFlagged(0, 'w_tools')).toBe(true)
+    const zero = coeffWarning(0, 'w_tools')
     expect(zero).not.toBeNull()
-    expect(zero).not.toEqual(coeffWarning(0.9))
+    expect(zero).not.toEqual(coeffWarning(0.9, 'w_tools'))
   })
 
   // The rung the mnożnik field was still silent on. A negative mnożnik is refused row by row, so
   // „Problemy" fills with one verdict repeated per pozycja — the flood this whole gate exists to
   // stop — while the single field that caused it renders as if nothing were wrong.
   it('ujemny mnożnik ostrzega trzecim zdaniem', () => {
-    expect(isCoeffFlagged(-0.1)).toBe(true)
-    const negative = coeffWarning(-0.1)
+    expect(isCoeffFlagged(-0.1, 'w_tools')).toBe(true)
+    const negative = coeffWarning(-0.1, 'w_tools')
     expect(negative).not.toBeNull()
-    expect(negative).not.toEqual(coeffWarning(0))
-    expect(negative).not.toEqual(coeffWarning(0.9))
+    expect(negative).not.toEqual(coeffWarning(0, 'w_tools'))
+    expect(negative).not.toEqual(coeffWarning(0.9, 'w_tools'))
   })
 })
 
@@ -135,9 +145,13 @@ describe('checkSubcontractorPrice — druga płaszczyzna narzędziowa', () => {
     ownToolsOverrideValue: value,
   })
 
-  it('sufit jest ten sam na obu płaszczyznach', () => {
-    expect(checkSubcontractorPrice(ownAmount(66), 'own_tools')).toMatchObject({ severity: 'warn' })
-    expect(checkSubcontractorPrice(ownAmount(65), 'own_tools')).toBeNull()
+  // Próg idzie za płaszczyzną (właściciel, 2026-09-28): stawka bez narzędzi to stawka z narzędziami
+  // minus 15%, więc 65% ceny stało dziesięć punktów ponad każdą umówioną stawką i nie łapało nic.
+  it('próg bez narzędzi jest niższy — 60 zł przechodziło, dziś ostrzega', () => {
+    expect(checkSubcontractorPrice(ownAmount(55.25), 'own_tools')).toBeNull()
+    expect(checkSubcontractorPrice(ownAmount(60), 'own_tools')).toMatchObject({ severity: 'warn' })
+    // Ta sama kwota z narzędziami mieści się w progu tej płaszczyzny.
+    expect(checkSubcontractorPrice(amount(60), 'w_tools')).toBeNull()
   })
 
   it('mierzy cenę TEJ płaszczyzny, nie sąsiedniej', () => {
@@ -157,7 +171,7 @@ describe('checkSubcontractorPrice — brak ceny klienta', () => {
   })
 })
 
-describe('checkSubcontractorPrice — sufit liczy się od ceny przed rabatem', () => {
+describe('checkSubcontractorPrice — próg liczy się od ceny przed rabatem', () => {
   // The rabat is the company giving away part of its own cut. If it dragged the ceiling down, a
   // discount would retroactively re-price the subcontractor, who never agreed to fund it.
   const rebated = (item: ViewPricingT): ViewPricingT => ({
@@ -166,12 +180,12 @@ describe('checkSubcontractorPrice — sufit liczy się od ceny przed rabatem', (
     discountValue: 50,
   })
 
-  it('50% rabatu nie obniża sufitu — 64 zł nadal przechodzi', () => {
+  it('50% rabatu nie obniża progu — 64 zł nadal przechodzi', () => {
     expect(checkSubcontractorPrice(rebated(amount(64)), 'w_tools')).toBeNull()
   })
 
-  it('sufit zostaje na 65 zł, nie schodzi do 32,50 zł', () => {
-    expect(maxSubcontractorPrice(rebated(row))).toBe(65)
+  it('próg zostaje na 65 zł, nie schodzi do 32,50 zł', () => {
+    expect(maxSubcontractorPrice(rebated(row), 'w_tools')).toBe(65)
     expect(checkSubcontractorPrice(rebated(amount(66)), 'w_tools')).toMatchObject({
       severity: 'warn',
     })
@@ -183,7 +197,7 @@ describe('checkSubcontractorPrice — cena ujemna', () => {
     expect(checkSubcontractorPrice(amount(-1), 'w_tools')).toMatchObject({ severity: 'refuse' })
   })
 
-  it('jest odrzucana także tam, gdzie sufit nie ma czego mierzyć', () => {
+  it('jest odrzucana także tam, gdzie próg nie ma czego mierzyć', () => {
     // The zero-client-price short-circuit silences the ceiling, so without its own rung a negative
     // price would pass unremarked on exactly the rows that are still being priced.
     expect(checkSubcontractorPrice({ ...amount(-50), clientPrice: 0 }, 'w_tools')).toMatchObject({

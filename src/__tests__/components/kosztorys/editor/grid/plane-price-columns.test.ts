@@ -26,8 +26,11 @@ const PRICE_IDS = PLANES.map((plane) => planePriceKey('price', plane))
 const MODE_IDS = PLANES.map((plane) => planePriceKey('priceMode', plane))
 const COEFF_IDS = PLANES.map((plane) => planePriceKey('priceCoeff', plane))
 
+// `crewAxis: 'both'` on every build below is what „obie płaszczyzny naraz" now MEANS: the axis, not
+// the picker, is the switch that puts a crew's columns on screen, so a build that leaves it at its
+// default („żadna") is asking about a grid nobody opened the crews on.
 function ids(opts: Partial<BuildV2ColumnsOptsT> & Pick<BuildV2ColumnsOptsT, 'view'>): string[] {
-  return buildV2Columns({ stages: STAGES, ...opts })
+  return buildV2Columns({ stages: STAGES, crewAxis: 'both', ...opts })
     .map((column) => column.id)
     .filter((id): id is string => id != null)
 }
@@ -63,7 +66,7 @@ describe('subcontractor rate columns, both planes', () => {
   })
 
   it('offers each rate column as its own picker entry, named by plane', () => {
-    const { columnToggleItems } = buildV2Grid({ view: 'w_tools', stages: STAGES })
+    const { columnToggleItems } = buildV2Grid({ view: 'w_tools', stages: STAGES, crewAxis: 'both' })
     const planeIds = [...MODE_IDS, ...COEFF_IDS, ...PRICE_IDS]
     const entries = columnToggleItems.filter((item) => planeIds.includes(item.id))
 
@@ -84,24 +87,26 @@ describe('subcontractor rate columns, both planes', () => {
   })
 
   it('offers the source entry in the picker of the client view', () => {
-    const { columnToggleItems } = buildV2Grid({ view: 'client', stages: STAGES })
+    const { columnToggleItems } = buildV2Grid({ view: 'client', stages: STAGES, crewAxis: 'both' })
     for (const id of MODE_IDS) {
       expect(columnToggleItems.some((item) => item.id === id)).toBe(true)
     }
   })
 
+  // Nadal „nikt nie spotyka ich bez pytania", ale trzyma to teraz OŚ, nie domyślny odznaczony haczyk.
+  // Dwie bramki na jednej kolumnie nie dają się złożyć: picker jest surowszy, więc zapamiętane
+  // odznaczenie cicho unieważniałoby przełącznik osi.
   it('starts hidden in every view, so nobody meets new columns unasked', () => {
-    for (const id of [...MODE_IDS, ...COEFF_IDS, ...PRICE_IDS])
-      expect(DEFAULT_HIDDEN_COLUMNS.has(id)).toBe(true)
-
-    const { columnToggleItems } = buildV2Grid({
-      view: 'w_tools',
-      stages: STAGES,
-      isHidden: (id) => DEFAULT_HIDDEN_COLUMNS.has(id),
-    })
     const planeIds = [...MODE_IDS, ...COEFF_IDS, ...PRICE_IDS]
-    for (const item of columnToggleItems.filter((entry) => planeIds.includes(entry.id))) {
-      expect(item.visible).toBe(false)
+    for (const id of planeIds) expect(DEFAULT_HIDDEN_COLUMNS.has(id)).toBe(false)
+
+    for (const view of VIEWS) {
+      const { columns, columnToggleItems } = buildV2Grid({ view, stages: STAGES })
+      const visible = columns.map((column) => column.id)
+      for (const id of planeIds) {
+        expect(visible).not.toContain(id)
+        expect(columnToggleItems.some((item) => item.id === id)).toBe(false)
+      }
     }
   })
 
@@ -141,7 +146,7 @@ describe('subcontractor rate columns, both planes', () => {
     const autoRow = { wToolsOverrideValue: null, wToolsOverrideCoeff: null } as never
 
     for (const view of VIEWS) {
-      const columns = buildV2Columns({ view, stages: STAGES })
+      const columns = buildV2Columns({ view, stages: STAGES, crewAxis: 'both' })
       for (const id of PRICE_IDS) {
         const column = columns.find((entry) => entry.id === id)
         const disabled = column?.disabled
@@ -157,7 +162,7 @@ describe('subcontractor rate columns, both planes', () => {
   // The two planes must reach DIFFERENT stored fields. Same-id columns would have made this
   // impossible to express at all, which is why the id carries the plane.
   it('binds each column to its own plane, not to the active view', () => {
-    const columns = buildV2Columns({ view: 'client', stages: STAGES })
+    const columns = buildV2Columns({ view: 'client', stages: STAGES, crewAxis: 'both' })
     const planeOf = (id: string) =>
       (columns.find((column) => column.id === id)?.columnData as { view?: string } | undefined)
         ?.view

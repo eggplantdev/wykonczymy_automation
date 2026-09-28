@@ -10,6 +10,9 @@ vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 const onGlobalCoeffChange = vi.fn()
 
 const OVER_CEILING = /przekracza 65%/
+// Osobny wzorzec, bo komunikat nazywa próg TEJ płaszczyzny — 65% na obu czytałoby się jak spójność,
+// której nie ma.
+const OVER_CEILING_OWN_TOOLS = /przekracza 55%/
 
 function renderSettings(coeffs = { wTools: 0.6, ownTools: 0.5 }) {
   render(
@@ -31,8 +34,8 @@ const retype = async (
 
 beforeEach(() => vi.clearAllMocks())
 
-describe('Mnożnik ceny — sufit ostrzega, nie odmawia', () => {
-  it('zapisuje mnożnik powyżej sufitu i ostrzega raz', async () => {
+describe('Mnożnik ceny — próg ostrzega, nie odmawia', () => {
+  it('zapisuje mnożnik powyżej progu i ostrzega raz', async () => {
     const { user, wTools } = renderSettings()
 
     await retype(user, wTools, '0,9')
@@ -46,13 +49,28 @@ describe('Mnożnik ceny — sufit ostrzega, nie odmawia', () => {
     )
   })
 
-  it('przyjmuje mnożnik dokładnie na suficie bez słowa', async () => {
+  it('przyjmuje mnożnik dokładnie na progu bez słowa', async () => {
+    const { user, ownTools } = renderSettings()
+
+    await retype(user, ownTools, '0,5525')
+
+    expect(onGlobalCoeffChange).toHaveBeenCalledWith({ ownToolsCoeff: 0.5525 })
+    expect(toastMessage).not.toHaveBeenCalled()
+  })
+
+  // Każde pole mierzy swój własny próg: 0,65 to normalna stawka z narzędziami i przepłacenie bez
+  // nich, bo stawka bez narzędzi jest z definicji o 15% niższa.
+  it('to samo 0,65 przechodzi z narzędziami, a bez narzędzi ostrzega', async () => {
     const { user, ownTools } = renderSettings()
 
     await retype(user, ownTools, '0,65')
 
     expect(onGlobalCoeffChange).toHaveBeenCalledWith({ ownToolsCoeff: 0.65 })
-    expect(toastMessage).not.toHaveBeenCalled()
+    expect(toastMessage).toHaveBeenCalledWith(
+      expect.stringMatching(OVER_CEILING_OWN_TOOLS),
+      'warning',
+      expect.any(Number),
+    )
   })
 
   // Asserts the restore too, not just the absent commit: without it this passes just as well when
@@ -74,7 +92,7 @@ describe('Mnożnik ceny — sufit ostrzega, nie odmawia', () => {
   // DecimalField commits on every blur — it re-parses the input instead of comparing it to the value
   // it was given — so dropping `max` turned „wejdź i wyjdź" on a stored 0,9 into a real save: a toast,
   // a server round-trip and a „Zmiana współczynnika" on the undo stack, for a change nobody made.
-  it('milczy, gdy mnożnik ponad sufitem tylko przechodzi przez focus', async () => {
+  it('milczy, gdy mnożnik ponad progiem tylko przechodzi przez focus', async () => {
     const { user, wTools, ownTools } = renderSettings({ wTools: 0.9, ownTools: 0.5 })
 
     await user.click(wTools)
@@ -84,7 +102,7 @@ describe('Mnożnik ceny — sufit ostrzega, nie odmawia', () => {
     expect(onGlobalCoeffChange).not.toHaveBeenCalled()
   })
 
-  it('trzyma mnożnik ponad sufitem na czerwono, zanim ktokolwiek go dotknie', () => {
+  it('trzyma mnożnik ponad progiem na czerwono, zanim ktokolwiek go dotknie', () => {
     const { wTools } = renderSettings({ wTools: 0.9, ownTools: 0.5 })
 
     expect(wTools).toHaveClass('text-destructive')

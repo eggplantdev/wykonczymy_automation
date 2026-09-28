@@ -255,11 +255,11 @@ export const WORKSHOP_VISIBLE_COLUMNS: ReadonlySet<string> = new Set([
 // copy/paste and sorting. Declared here rather than seeded into the stored map; useHiddenColumns
 // owns that argument.
 //
-// Every subcontractor rate column starts hidden, in the subcontractor views too. Four rate columns
-// unfurling on first load would bury the offer they qualify; switching them on is one tick in the
-// picker, and the tick is what makes the reading deliberate.
+// The subcontractor rate columns are NOT here, though they also start off screen: their default is
+// `CREW_AXIS_DEFAULT` („Stawki wykonawców" in the widok menu), which switches a whole crew on in one
+// tick. Declaring it in both places would mean two gates on one column, and the stricter one — the
+// picker — would silently keep the new switch from showing anything.
 export const DEFAULT_HIDDEN_COLUMNS: ReadonlySet<string> = new Set([
   STAGE_VALUE_GROSS_COLUMN_GROUP,
   'sectionName',
-  ...ALL_PLANE_PRICE_KEYS,
 ])

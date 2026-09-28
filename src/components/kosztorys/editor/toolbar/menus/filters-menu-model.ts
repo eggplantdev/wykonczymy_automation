@@ -1,3 +1,4 @@
+import type { CrewAxisT } from '@/lib/kosztorys/crew-axis'
 import { FILTER_GROUPS } from '@/lib/kosztorys/filter-groups'
 import { offeredFilterConditions } from '@/lib/kosztorys/row-conditions/queries'
 
@@ -18,6 +19,9 @@ type ArgsT = {
   // Per condition id, how many pozycje are in that state across the whole dataset.
   counts: ReadonlyMap<string, number>
   perItemDiscountInert: boolean
+  // Which crew's stawki are on screen — a filter about a plane nobody is reading is offered only
+  // while it is already engaged.
+  crewAxis: CrewAxisT
 }
 
 /**
@@ -40,8 +44,9 @@ export function filtersMenuModel({
   engagedIds,
   counts,
   perItemDiscountInert,
+  crewAxis,
 }: ArgsT): FilterToggleT[] {
-  const offered = offeredFilterConditions(engagedIds, perItemDiscountInert)
+  const offered = offeredFilterConditions(engagedIds, perItemDiscountInert, crewAxis)
 
   return FILTER_GROUPS.flatMap((group) =>
     offered

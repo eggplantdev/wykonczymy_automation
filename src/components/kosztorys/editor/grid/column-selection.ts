@@ -17,6 +17,7 @@ import {
   UNPICKABLE_COLUMNS,
   columnLabelForView,
 } from '@/lib/kosztorys/column-config'
+import { CREW_AXIS_DEFAULT, crewAxisAllows } from '@/lib/kosztorys/crew-axis'
 import { LAYER_DEFAULT, layerAllows } from '@/lib/kosztorys/layer'
 import { MONEY_AXIS_DEFAULT, axisAllows } from '@/lib/kosztorys/money-axis'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
@@ -65,6 +66,7 @@ export function selectV2Columns(
   assertDisclosurePair(opts)
   const axis = opts.moneyAxis ?? MONEY_AXIS_DEFAULT
   const layer = opts.layer ?? LAYER_DEFAULT
+  const crew = opts.crewAxis ?? CREW_AXIS_DEFAULT
   // Two kinds of gate live in this filter, and only one of them may touch a client's document.
   // PREFERENCE gates — the axis, the layer, the picker tick — say what ONE owner wants to read
   // right now, so a preview skips them entirely and takes the allowlist as its
@@ -89,7 +91,8 @@ export function selectV2Columns(
     return (
       (UNPICKABLE_COLUMNS.has(key) || opts.revealedColumnIds?.has(key) || !opts.isHidden?.(key)) &&
       axisAllows(key, axis) &&
-      layerAllows(key, layer)
+      layerAllows(key, layer) &&
+      crewAxisAllows(key, crew)
     )
   }
   const base = assembled.filter((c) => keep(toggleKey(c.id ?? ''))).map((c) => withResize(c, opts))
@@ -115,6 +118,10 @@ export function selectV2ToggleItems(
     if (opts.globalDiscountActive && DISCOUNT_COLUMN_IDS.has(id)) continue
     if (UNPICKABLE_COLUMNS.has(id)) continue
     if (opts.view !== 'client' && PRZEDMIAR_ANCHORED_COLUMNS.has(id)) continue
+    // Dropped from the picker too, not merely from the grid: a tick that cannot put its column on
+    // screen is a control lying about what it does, and the hidden-count above it would read the
+    // switched-off crew as columns this reader hid.
+    if (!crewAxisAllows(id, opts.crewAxis ?? CREW_AXIS_DEFAULT)) continue
     // `visible` is the STORED tick, never the reveal: a column a problem is currently forcing on
     // screen still reports what the picker holds. Unticking it then is a no-op that takes effect on
     // disengage — accepted, because showing it ticked would lie about what is saved and disabling it

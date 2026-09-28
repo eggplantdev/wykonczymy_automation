@@ -1,5 +1,6 @@
 import { priceSourceOf, subcontractorPrice } from '@/lib/kosztorys/calc'
 import { planeViewSuffix } from '@/lib/kosztorys/constants'
+import { formatPercent } from '@/lib/kosztorys/format'
 import { ALL_PLANE_PRICE_KEYS, planePriceKeysFor } from '@/lib/kosztorys/plane-price-keys'
 import type { RowConditionCtxT, RowConditionT } from '@/lib/kosztorys/row-conditions/types'
 import { measureDiscrepancy, rowTotalQtyDone } from '@/lib/kosztorys/settlement-rows'
@@ -7,6 +8,7 @@ import { stageKey } from '@/lib/kosztorys/stage-keys'
 import {
   isOwnRateOverCeiling,
   isSubcontractorPriceNegative,
+  MAX_CLIENT_SHARE,
 } from '@/lib/kosztorys/subcontractor-price-guard'
 import type { KosztorysV2RowT, ToolPlaneT } from '@/lib/kosztorys/types'
 
@@ -164,6 +166,159 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     filterGroup: 'quantities',
     matches: (row, ctx) => !isEmptyOnBothAxes(row, ctx),
   },
+  // Split per plane for the same reason the price diagnostics are: a pozycja carries a stawka on both
+  // planes at once, so one entry asking about „the active view" would answer for half the kosztorys and
+  // silently leave the other half unaskable. The trio exists to separate what was decided in this
+  // wiersz from what the investment's own współczynnik produced — „auto" being the state
+  // „nikt tego nie tknął".
+  //
+  // Three entries per plane, disjoint and exhaustive, because they are the three values of
+  // `PriceSourceT` read through one function: a row matches exactly one of them, so the negated twins
+  // in the other groups keep closing over the whole rozpiska.
+  //
+  // `sectionLabel: null` on all six: a whole section folded away by where its stawki came from hides
+  // pricing, which is exactly the mistake „Zwiń puste sekcje" made with unpriced sections.
+  {
+    id: 'manual-rate-w-tools',
+    label: 'ze stawką wykonawcy z kwoty stałej' + planeViewSuffix('w_tools'),
+    sectionLabel: null,
+    kind: 'filter',
+    filterGroup: 'rate-source',
+    plane: 'w_tools',
+    revealsColumns: priceColumnsFor('w_tools'),
+    matches: (row) => priceSourceOf(row, 'w_tools') === 'amount',
+  },
+  {
+    id: 'coeff-rate-w-tools',
+    label: 'ze stawką wykonawcy z własnego mnożnika' + planeViewSuffix('w_tools'),
+    sectionLabel: null,
+    kind: 'filter',
+    filterGroup: 'rate-source',
+    plane: 'w_tools',
+    revealsColumns: priceColumnsFor('w_tools'),
+    matches: (row) => priceSourceOf(row, 'w_tools') === 'coeff',
+  },
+  {
+    id: 'formula-rate-w-tools',
+    label: 'ze stawką wykonawcy „auto"' + planeViewSuffix('w_tools'),
+    sectionLabel: null,
+    kind: 'filter',
+    filterGroup: 'rate-source',
+    plane: 'w_tools',
+    revealsColumns: priceColumnsFor('w_tools'),
+    matches: (row) => priceSourceOf(row, 'w_tools') === 'auto',
+  },
+  {
+    id: 'manual-rate-own-tools',
+    label: 'ze stawką wykonawcy z kwoty stałej' + planeViewSuffix('own_tools'),
+    sectionLabel: null,
+    kind: 'filter',
+    filterGroup: 'rate-source',
+    plane: 'own_tools',
+    revealsColumns: priceColumnsFor('own_tools'),
+    matches: (row) => priceSourceOf(row, 'own_tools') === 'amount',
+  },
+  {
+    id: 'coeff-rate-own-tools',
+    label: 'ze stawką wykonawcy z własnego mnożnika' + planeViewSuffix('own_tools'),
+    sectionLabel: null,
+    kind: 'filter',
+    filterGroup: 'rate-source',
+    plane: 'own_tools',
+    revealsColumns: priceColumnsFor('own_tools'),
+    matches: (row) => priceSourceOf(row, 'own_tools') === 'coeff',
+  },
+  {
+    id: 'formula-rate-own-tools',
+    label: 'ze stawką wykonawcy „auto"' + planeViewSuffix('own_tools'),
+    sectionLabel: null,
+    kind: 'filter',
+    filterGroup: 'rate-source',
+    plane: 'own_tools',
+    revealsColumns: priceColumnsFor('own_tools'),
+    matches: (row) => priceSourceOf(row, 'own_tools') === 'auto',
+  },
+  // The ceiling as a reading gesture, not an alarm (owner, 2026-09-20): a kwota the katalog ratifies
+  // is legitimate above the share, so „pokaż mi pozycje ponad 65%" is a question about the rozpiska —
+  // it just is not a defect. The red cell and the komunikat stay where the liczba was made.
+  //
+  // The labels print the share rather than naming a „sufit": the reader is comparing a stawka against
+  // a cena, and a number they can re-check beats a word that lives only in the code. Each half prints
+  // ITS OWN plane's share from `MAX_CLIENT_SHARE` — the two differ, and one liczba on both labels
+  // would promise a próg that only one of them enforces.
+  //
+  // Named after the source and not only the share, because that is what the half matches: „auto" rows
+  // are not judged here at all — their author is the investment's współczynnik, which is judged once
+  // in its own field. „Własna stawka" therefore covers both hand-set sources, kwota and mnożnik alike
+  // (EX-865). The complement is stated by negation — it holds every pozycja on „auto" too, which reads
+  // heavier but does not claim anyone measured those rows.
+  {
+    id: 'own-rate-over-ceiling-w-tools',
+    label:
+      `z własną stawką ponad ${formatPercent(MAX_CLIENT_SHARE['w_tools'])} ceny` +
+      planeViewSuffix('w_tools'),
+    sectionLabel: null,
+    kind: 'filter',
+    filterGroup: 'rate-ceiling',
+    plane: 'w_tools',
+    revealsColumns: priceColumnsFor('w_tools'),
+    matches: (row) => isOwnRateOverCeiling(row, 'w_tools'),
+  },
+  {
+    id: 'own-rate-within-ceiling-w-tools',
+    label:
+      `bez własnej stawki ponad ${formatPercent(MAX_CLIENT_SHARE['w_tools'])} ceny` +
+      planeViewSuffix('w_tools'),
+    sectionLabel: null,
+    kind: 'filter',
+    filterGroup: 'rate-ceiling',
+    plane: 'w_tools',
+    revealsColumns: priceColumnsFor('w_tools'),
+    matches: (row) => !isOwnRateOverCeiling(row, 'w_tools'),
+  },
+  {
+    id: 'own-rate-over-ceiling-own-tools',
+    label:
+      `z własną stawką ponad ${formatPercent(MAX_CLIENT_SHARE['own_tools'])} ceny` +
+      planeViewSuffix('own_tools'),
+    sectionLabel: null,
+    kind: 'filter',
+    filterGroup: 'rate-ceiling',
+    plane: 'own_tools',
+    revealsColumns: priceColumnsFor('own_tools'),
+    matches: (row) => isOwnRateOverCeiling(row, 'own_tools'),
+  },
+  {
+    id: 'own-rate-within-ceiling-own-tools',
+    label:
+      `bez własnej stawki ponad ${formatPercent(MAX_CLIENT_SHARE['own_tools'])} ceny` +
+      planeViewSuffix('own_tools'),
+    sectionLabel: null,
+    kind: 'filter',
+    filterGroup: 'rate-ceiling',
+    plane: 'own_tools',
+    revealsColumns: priceColumnsFor('own_tools'),
+    matches: (row) => !isOwnRateOverCeiling(row, 'own_tools'),
+  },
+  // Trimmed before testing: the grid writes '' into a cleared cell on some paths and null on others,
+  // and a komentarz of three spaces is not one. `sectionLabel: null` — „every pozycja in this section
+  // lacks a comment" is true of nearly every section and names nothing worth folding.
+  {
+    id: 'has-note',
+    label: 'z komentarzem',
+    sectionLabel: null,
+    kind: 'filter',
+    filterGroup: 'note',
+    matches: (row) => (row.note?.trim() ?? '') !== '',
+  },
+  {
+    id: 'no-note',
+    label: 'bez komentarza',
+    sectionLabel: null,
+    kind: 'filter',
+    filterGroup: 'note',
+    matches: (row) => (row.note?.trim() ?? '') === '',
+  },
   // Read through `discountType`, not `discountValue` alone: under a null type the value is stored but
   // inert (`applyDiscount` walks past it), so a leftover „5" in a row whose type was cleared is not a
   // rabat. Both halves go dead under the global rabat rather than reading the raw fields, because
@@ -186,136 +341,6 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     kind: 'filter',
     filterGroup: 'discount',
     matches: (row) => !row.globalDiscountActive && !hasItemDiscount(row),
-  },
-  // Split per plane for the same reason the price diagnostics are: a pozycja carries a stawka on both
-  // planes at once, so one entry asking about „the active view" would answer for half the kosztorys and
-  // silently leave the other half unaskable. The trio exists to separate what was decided in this
-  // wiersz from what the investment's own współczynnik produced — „auto" being the state
-  // „nikt tego nie tknął".
-  //
-  // Three entries per plane, disjoint and exhaustive, because they are the three values of
-  // `PriceSourceT` read through one function: a row matches exactly one of them, so the negated twins
-  // in the other groups keep closing over the whole rozpiska.
-  //
-  // `sectionLabel: null` on all six: a whole section folded away by where its stawki came from hides
-  // pricing, which is exactly the mistake „Zwiń puste sekcje" made with unpriced sections.
-  {
-    id: 'manual-rate-w-tools',
-    label: 'ze stawką wykonawcy z kwoty stałej' + planeViewSuffix('w_tools'),
-    sectionLabel: null,
-    kind: 'filter',
-    filterGroup: 'rate-source',
-    revealsColumns: priceColumnsFor('w_tools'),
-    matches: (row) => priceSourceOf(row, 'w_tools') === 'amount',
-  },
-  {
-    id: 'coeff-rate-w-tools',
-    label: 'ze stawką wykonawcy z własnego mnożnika' + planeViewSuffix('w_tools'),
-    sectionLabel: null,
-    kind: 'filter',
-    filterGroup: 'rate-source',
-    revealsColumns: priceColumnsFor('w_tools'),
-    matches: (row) => priceSourceOf(row, 'w_tools') === 'coeff',
-  },
-  {
-    id: 'formula-rate-w-tools',
-    label: 'ze stawką wykonawcy „auto"' + planeViewSuffix('w_tools'),
-    sectionLabel: null,
-    kind: 'filter',
-    filterGroup: 'rate-source',
-    revealsColumns: priceColumnsFor('w_tools'),
-    matches: (row) => priceSourceOf(row, 'w_tools') === 'auto',
-  },
-  {
-    id: 'manual-rate-own-tools',
-    label: 'ze stawką wykonawcy z kwoty stałej' + planeViewSuffix('own_tools'),
-    sectionLabel: null,
-    kind: 'filter',
-    filterGroup: 'rate-source',
-    revealsColumns: priceColumnsFor('own_tools'),
-    matches: (row) => priceSourceOf(row, 'own_tools') === 'amount',
-  },
-  {
-    id: 'coeff-rate-own-tools',
-    label: 'ze stawką wykonawcy z własnego mnożnika' + planeViewSuffix('own_tools'),
-    sectionLabel: null,
-    kind: 'filter',
-    filterGroup: 'rate-source',
-    revealsColumns: priceColumnsFor('own_tools'),
-    matches: (row) => priceSourceOf(row, 'own_tools') === 'coeff',
-  },
-  {
-    id: 'formula-rate-own-tools',
-    label: 'ze stawką wykonawcy „auto"' + planeViewSuffix('own_tools'),
-    sectionLabel: null,
-    kind: 'filter',
-    filterGroup: 'rate-source',
-    revealsColumns: priceColumnsFor('own_tools'),
-    matches: (row) => priceSourceOf(row, 'own_tools') === 'auto',
-  },
-  // The ceiling as a reading gesture, not an alarm (owner, 2026-09-20): a kwota the katalog ratifies
-  // is legitimate above 65%, so „pokaż mi pozycje powyżej sufitu" is a question about the rozpiska —
-  // it just is not a defect. The red cell and the komunikat stay where the liczba was made.
-  //
-  // Named after the source and not only the sufit, because that is what the half matches: „auto" rows
-  // are not judged here at all — their author is the investment's współczynnik, which is judged once
-  // in its own field. „Własna stawka" therefore covers both hand-set sources, kwota and mnożnik alike
-  // (EX-865). The complement is stated by negation — it holds every pozycja on „auto" too, which reads
-  // heavier but does not claim anyone measured those rows.
-  {
-    id: 'own-rate-over-ceiling-w-tools',
-    label: 'z własną stawką powyżej sufitu' + planeViewSuffix('w_tools'),
-    sectionLabel: null,
-    kind: 'filter',
-    filterGroup: 'rate-ceiling',
-    revealsColumns: priceColumnsFor('w_tools'),
-    matches: (row) => isOwnRateOverCeiling(row, 'w_tools'),
-  },
-  {
-    id: 'own-rate-within-ceiling-w-tools',
-    label: 'bez własnej stawki powyżej sufitu' + planeViewSuffix('w_tools'),
-    sectionLabel: null,
-    kind: 'filter',
-    filterGroup: 'rate-ceiling',
-    revealsColumns: priceColumnsFor('w_tools'),
-    matches: (row) => !isOwnRateOverCeiling(row, 'w_tools'),
-  },
-  {
-    id: 'own-rate-over-ceiling-own-tools',
-    label: 'z własną stawką powyżej sufitu' + planeViewSuffix('own_tools'),
-    sectionLabel: null,
-    kind: 'filter',
-    filterGroup: 'rate-ceiling',
-    revealsColumns: priceColumnsFor('own_tools'),
-    matches: (row) => isOwnRateOverCeiling(row, 'own_tools'),
-  },
-  {
-    id: 'own-rate-within-ceiling-own-tools',
-    label: 'bez własnej stawki powyżej sufitu' + planeViewSuffix('own_tools'),
-    sectionLabel: null,
-    kind: 'filter',
-    filterGroup: 'rate-ceiling',
-    revealsColumns: priceColumnsFor('own_tools'),
-    matches: (row) => !isOwnRateOverCeiling(row, 'own_tools'),
-  },
-  // Trimmed before testing: the grid writes '' into a cleared cell on some paths and null on others,
-  // and a komentarz of three spaces is not one. `sectionLabel: null` — „every pozycja in this section
-  // lacks a comment" is true of nearly every section and names nothing worth folding.
-  {
-    id: 'has-note',
-    label: 'z komentarzem',
-    sectionLabel: null,
-    kind: 'filter',
-    filterGroup: 'note',
-    matches: (row) => (row.note?.trim() ?? '') !== '',
-  },
-  {
-    id: 'no-note',
-    label: 'bez komentarza',
-    sectionLabel: null,
-    kind: 'filter',
-    filterGroup: 'note',
-    matches: (row) => (row.note?.trim() ?? '') === '',
   },
   {
     id: 'client-empty',

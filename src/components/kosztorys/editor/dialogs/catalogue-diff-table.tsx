@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { isOverCeiling, MAX_CLIENT_SHARE } from '@/lib/kosztorys/subcontractor-price-guard'
 import { formatPercent, formatRate } from '@/lib/kosztorys/format'
 import { formatPLN } from '@/lib/utils/format-currency'
-import type { PriceSourceT } from '@/lib/kosztorys/types'
+import type { PriceSourceT, ToolPlaneT } from '@/lib/kosztorys/types'
 import type {
   CatalogueFigureDiffT,
   CataloguePriceDiffT,
@@ -206,6 +206,11 @@ function DiffGroup({
   )
 }
 
+const FIGURE_PLANES = {
+  wToolsRate: 'w_tools',
+  ownToolsRate: 'own_tools',
+} as const satisfies Record<Exclude<SeedConflictFieldT, 'clientPrice'>, ToolPlaneT>
+
 const sideText = (value: number, source: PriceSourceT, coeff: number | null) =>
   formatRate(source === 'auto' ? null : value, source, coeff)
 
@@ -223,7 +228,11 @@ function FigureRow({
   onToggle: () => void
 }) {
   const merged = checked ? figure.catalogue : figure.kosztorys
-  const overCeiling = figure.field !== 'clientPrice' && isOverCeiling(merged, { clientPrice })
+  // The figure names its own plane, and the próg follows it — measuring a stawka bez narzędzi
+  // against the z-narzędziami share would clear rates the siatka turns red.
+  const plane: ToolPlaneT | null =
+    figure.field === 'clientPrice' ? null : FIGURE_PLANES[figure.field]
+  const overCeiling = plane !== null && isOverCeiling(merged, { clientPrice }, plane)
 
   return (
     <tr className="border-border/40 border-t align-middle">
@@ -236,7 +245,7 @@ function FigureRow({
         {figure.label}
         {overCeiling && (
           <span className="text-destructive pl-2">
-            przekracza {formatPercent(MAX_CLIENT_SHARE)} ceny
+            przekracza {formatPercent(MAX_CLIENT_SHARE[plane])} ceny
           </span>
         )}
       </td>

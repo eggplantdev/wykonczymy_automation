@@ -59,9 +59,11 @@ export type RowConditionT = {
   // menu. A filter that names none is left OUT of the list entirely rather than dropped into an „Inne"
   // bucket, so a forgotten axis is a missing row a spec catches, not a silent orphan.
   filterGroup?: FilterGroupIdT
-  // Which price plane the condition judges. Diagnostics only — a filter names its plane in the label
-  // and nothing else asks, while `engagedPlane` would read one here and move the grid out from under a
-  // tick (it gates on the kind for exactly that reason, and a spec pins that no filter carries one).
+  // Which price plane the condition judges. Carried by diagnostics AND by the ten plane-bound filters:
+  // the „Stawki wykonawców" axis gates a filter row by the same answer it gates that plane's columns
+  // by, so the two cannot say different things. `engagedPlane` still reads diagnostics only — it gates
+  // on the kind for exactly that reason, since a filter is a picker row several of which can be
+  // unticked at once and moving the grid under a tick could not be undone.
   // The id rather than a glyph, so the menu can mark the row with the same icon the view switcher uses
   // without this module — or the model above it — importing React.
   plane?: ToolPlaneT

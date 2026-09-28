@@ -176,7 +176,7 @@ describe('the conditions, each on its boundary', () => {
     expect(matches('negative-rate-w-tools', subject)).toBe(false)
   })
 
-  it('„z własną stawką powyżej sufitu" judges both hand-set źródła, never „auto"', () => {
+  it('„z własną stawką ponad 65% ceny" judges both hand-set źródła, never „auto"', () => {
     const overridden = (value: number) => row({ wToolsOverrideValue: value })
 
     // clientPrice 100 → the ceiling is 65; typed at exactly the ceiling it must stand.

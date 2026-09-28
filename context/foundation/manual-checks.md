@@ -519,20 +519,82 @@ i „podmienione body"; boks z `403` potwierdza za to odmowę przy złym sekreci
       jeszcze nie była wtedy zasilana na tej bazie (webhook z landingu jeszcze nic tam nie zapisał).
       Od EX-829 panel nie jest jedyną drogą: aplikacja zapisuje `kind = 'projekt'` sama — przy
       wgrywaniu (pole „To jest rzut lub projekt") i z galerii asetów („Oznacz jako rzut").
-- [ ] Skasowanie faktury podpiętej pod transakcję jest odrzucone czytelnym polskim komunikatem
-- [ ] Inwestycja pokazuje podpięte pliki w `/admin` po akcji dodania
-- [ ] Dodanie trzech zdjęć + PDF z karty inwestycji — pojawiają się bez przeładowania
-- [ ] Dodanie zdjęcia przy tworzeniu nowej inwestycji — leży na jej karcie
-- [ ] Pasek miniatur nie przewija się w poziomie przy 375px
-- [ ] Zdjęcie HEIC z iPhone'a konwertuje się i wgrywa
-- [ ] W `/admin` zgłoszenie z Facebooka nie pokazuje trzech pól landingowych, zgłoszenie z landingu pokazuje
+- [x] Skasowanie faktury podpiętej pod transakcję jest odrzucone czytelnym polskim komunikatem
+      <!-- staging 2026-09-24: /admin/collections/media/1772 (invoice1-0cd005.png, podpięta pod transakcję 5252)
+               → „Usuń" → „Potwierdź" dało toast „Nie można usunąć pliku — jest używany w innych miejscach
+               (transakcje: 1). Najpierw odepnij go tam." Po próbie media 1772 nadal istnieje i wciąż ma
+               1 wiersz w transactions_rels (path='invoice') — nic nie zostało skasowane w Blobie. -->
+- [x] Inwestycja pokazuje podpięte pliki w `/admin` po akcji dodania
+      **Zweryfikowane na stagingu:** po wgraniu ośmiu plików z karty inwestycji
+      `/admin/collections/investments/137` → pole „Zdjęcia i pliki" listuje dokładnie tę ósemkę
+      (`qa802-1…3.png`, `qa-faktura-netto-…pdf`, `qa802b-1…3.png`, `qa802b-….pdf`), w kolejności
+      dodania.
+- [x] Dodanie trzech zdjęć + PDF z karty inwestycji — pojawiają się bez przeładowania
+      **Zweryfikowane na stagingu (inw. 137, karta → „Zdjęcia i pliki"):** jednym wyborem czterech
+      plików (3 × PNG + PDF) licznik przycisku przeszedł „Dokumentacja (4)" → „(8)" bez
+      przeładowania strony, a `investments_rels` (path `assets`) dla inwestycji 137 niesie po
+      operacji komplet 8 wierszy z nowymi `media`. Wcześniejszy nieudany wsad w tym samym przebiegu
+      był winą fikstury, nie aplikacji — ręcznie sklecony PDF bez tablicy xref; prawdziwy PDF
+      przechodzi (patrz finding o cichym błędzie niżej).
+- [x] Dodanie zdjęcia przy tworzeniu nowej inwestycji — leży na jej karcie
+      <!-- staging 2026-09-24: „Inwestycje" → „Dodaj" → nazwa „QA EX-802 nowa inwestycja" + jeden PNG
+               w polu „Zdjęcia i pliki" (dialog pokazał nazwę pliku przed zapisem) → „Dodaj". Powstała
+               inwestycja 157 z wierszem `investments_rels` path `assets` → media 1817
+               (`qa802-1-81e271.png`), a jej karta `/inwestycje/157` od razu niesie „Dokumentacja (1)". -->
+- [~] ~~Pasek miniatur nie przewija się w poziomie przy 375px~~ — nieaktualne: na karcie inwestycji
+  nie ma już paska miniatur (patrz sekcja „EX-802 — investment-assets-dialog", która to zastępuje)
+- [x] Zdjęcie HEIC z iPhone'a konwertuje się i wgrywa
+      <!-- staging 2026-09-24: syntetyczny `qa802.heic` (ISO Media, HEIF HEVC Main 10, 1600×1200, 5,9 kB)
+               wgrany z karty inw. 137 → „Zdjęcia i pliki" → „Dodaj kolejne". Toast „Pliki dodane", licznik
+               „Dokumentacja (8)" → „(9)" bez przeładowania, a w bazie media 1816 = `qa802-169b13.jpg`,
+               `image/jpeg`, 1600×1200, 21 357 B — czyli konwersja po stronie klienta zadziałała. -->
+- [x] W `/admin` zgłoszenie z Facebooka nie pokazuje trzech pól landingowych, zgłoszenie z landingu pokazuje
+      <!-- staging 2026-09-24: lead 220 (`facebook_lead_ads`) → etykiety pól: Źródło, Email, Imię i nazwisko,
+               Telefon, Inwestycja, Surowe dane, … — bez „Adres", „Zakres prac", „Metraż" i „Zdjęcia i pliki".
+               Lead 221 (`landing_form`) → ta sama lista plus właśnie te cztery. -->
 - [ ] Podpisany POST JSON z `curl`, wskazujący realny URL bloba, tworzy zgłoszenie razem z plikami
 - [ ] Ten sam request powtórzony nie tworzy niczego i nie wysyła maila
 - [ ] Request z `assets[].url` spoza hosta z allowlisty jest odrzucony i alertuje
 - [ ] Request z podmienionym body jest odrzucony (403)
-- [ ] Promocja zgłoszenia z landingu od początku do końca — karta nowej inwestycji pokazuje zdjęcia klienta
-- [ ] Zgłoszenie po promocji podaje link do inwestycji zamiast przycisku i zostaje przy „Oczekuje"
-- [ ] Odznaka nieprzeczytanych zgłoszeń w nawigacji nie spada po samej promocji — dopiero po kliknięciu „Skontaktowano"
+- [x] Promocja zgłoszenia z landingu od początku do końca — karta nowej inwestycji pokazuje zdjęcia klienta
+      <!-- staging 2026-09-24: lead 221 („QA Landing Fixture", `landing_form`, dwa pliki dopięte jako
+               fikstura) → „Zgłoszenia" → „Dodaj". Okno „Nowa inwestycja ze zgłoszenia" przyszło wypełnione
+               ze zgłoszenia (nazwa = imię + adres, adres, telefon, email, osoba kontaktowa) i mówiło
+               „Przejdą do inwestycji: 2 z 2". Po „Utwórz" powstała inwestycja 158 (status „planowana"),
+               a jej karta `/inwestycje/158` niesie „Dokumentacja (2)" — w bazie oba media klienta
+               (1814, 1815) pod `investments_rels` path `assets`. -->
+- [x] Zgłoszenie po promocji podaje link do inwestycji zamiast przycisku i zostaje przy „Oczekuje"
+      <!-- staging 2026-09-24: ten sam wiersz po promocji ma w kolumnie „Inwestycja" link
+               `/inwestycje/158` z nazwą inwestycji zamiast przycisku „Dodaj", a „Status kontaktu" nadal
+               „Oczekuje" (`leads.contact_status='new'`, `investment_id=158`). -->
+- [x] Odznaka nieprzeczytanych zgłoszeń w nawigacji nie spada po samej promocji — ~~dopiero po
+      kliknięciu „Skontaktowano"~~ **druga połowa brzmienia jest nieaktualna, nie jest defektem**
+      <!-- staging 2026-09-24: odznaka liczy zgłoszenia utworzone po kursorze użytkownika
+               (`countUnreadLeads`, `src/lib/db/notifications.ts` — `created_at > notification_reads.seen_at`),
+               a kursor przesuwa render samej strony `/zgloszenia` (`markSeen` w `zgloszenia/page.tsx`).
+               Zmierzone przy kursorze cofniętym do 2026-09-20 i odczycie odznaki z `/inwestycje`:
+               3 przed promocją, 3 po promocji leada 221, 3 po przestawieniu go na „Skontaktowano".
+               Czyli: promocja rzeczywiście nie rusza odznaki (sprawdzana teza), ale i „Skontaktowano"
+               jej nie rusza — gasi ją samo wejście na listę zgłoszeń. Brzmienie boksu do poprawienia
+               przy najbliższej okazji. -->
+
+### Findings — 2026-09-23/24 (staging/preview pass)
+
+- [ ] **Odrzucony upload pokazuje surowy angielski komunikat Payloada w polskim UI.** Wgranie
+      uszkodzonego PDF-a (plik bez tablicy xref) z karty inwestycji kończy się `400` z
+      `POST /api/media`, a toast, który widzi użytkownik, brzmi dosłownie **„The following field is
+      invalid: file"**. Zmierzone na stagingu (inw. 137, „Zdjęcia i pliki" → „Dodaj kolejne"),
+      przechwycone `MutationObserver`-em; licznik plików nie drgnął, więc poza tym zdaniem nic nie
+      mówi, co poszło nie tak ani którego pliku dotyczy. Przyczyna:
+      `src/lib/media/client-upload.ts` → `postMediaRow` wstawia `body?.errors?.[0]?.message`
+      (komunikat Payloada, po angielsku) prosto w błąd, który `useMediaUpload` podaje do
+      `toastMessage`; wszystkie pozostałe komunikaty na tej ścieżce są po polsku
+      („Upload nie powiódł się (…)", „Upload nie powiódł się — serwer nie zwrócił pliku").
+      **Do decyzji człowieka:** brzmienie. Najprościej nie ufać `errors[0].message` z API i
+      zostawić polski fallback (ewentualnie z nazwą pliku), ale to zabiera jedyny kanał, którym
+      backend tłumaczy konkretną przyczynę — dlatego nie poprawiam tego w przebiegu QA.
+      **Test disposition:** no automated test — komunikat, nie stan; gdy padnie decyzja o brzmieniu,
+      unit na `postMediaRow` z odpowiedzią `400` wystarczy.
 
 ## EX-802 — investment-assets-dialog (galeria bez miniatur, 2026-09-21)
 
@@ -611,13 +673,19 @@ otwarte wcześniej. Dławik lustra to 10 s, domknięcie ogona 15 s bezczynności
 Dane inwestycji (notatki/zakres prac, kontakt, adres, status) i przeniesiona tu Dokumentacja;
 panel montuje się także na pustym kosztorysie.
 
-- [ ] Zakładka „Inwestycja" stoi jako ostatnia, za „Marżą", i pokazuje komplet pól karty inwestycji;
+- [x] Zakładka „Inwestycja" stoi jako ostatnia, za „Marżą", i pokazuje komplet pól karty inwestycji;
       puste pola są odfiltrowane
+      <!-- staging 2026-09-24 (commit 48bb1625, z naprawą filtrowania). Kolejność zakładek:
+               Podsumowanie · Materiały · Robocizna · Podwykonawcy · Marża · Inwestycja — ostatnia.
+               Inw. 19 (komplet danych): Adres · Telefon · Email · Opinia · Status + Dokumentacja.
+               Inw. 74 (phone/email/review puste w bazie): zostają tylko Status i notatki — żadnego
+               „Email —" ani „Opinia —". -->
 
 ### Findings — 2026-09-23 (staging/preview pass)
 
-- [ ] **„Komplet pól karty inwestycji; puste pola są odfiltrowane" — realny defekt, naprawiony w
-      źródle, jeszcze NIE na wdrożonym stagingu.** `buildInvestmentInfoFields`
+- [x] **„Komplet pól karty inwestycji; puste pola są odfiltrowane" — realny defekt, naprawiony
+      i potwierdzony na żywo 2026-09-24 (staging `48bb1625`): inw. 74 nie renderuje już „Email —"
+      ani „Opinia —".** `buildInvestmentInfoFields`
       (`src/components/investments/investment-info-fields.tsx`) filtrował `.filter((field) =>
 field.value)` na **zrenderowanym węźle**, nie na surowej wartości: `Telefon`/`Email` owijały
       pole w `<ContactLink>`, który jest zawsze truthy niezależnie od tego, czy numer/mail istnieje,
@@ -707,8 +775,15 @@ sam w swoim polu, a dwie pary dopełniających się filtrów zastąpiły wpis w 
 sprawdza predykaty i składanie menu; na żywo zostaje to, czego spec nie widzi — czy czerwień pada
 tam, gdzie ma, i czy zbiorcze odznaczenie da się cofnąć.
 
-- [ ] „Filtry" w widoku „z narzędziami": dwie nowe pozycje sufitu z licznikami; odznaczenie jednej
-      chowa dokładnie tę połowę, a obie odznaczone chowają wszystko, co ma kwotę stałą
+**Aktualizacja 2026-09-28 (nazewnictwo + próg na płaszczyznę).** Słowo „sufit" zniknęło z UI: grupa
+w menu nazywa się „Udział wykonawcy w cenie", a wpisy mówią „z własną stawką ponad 65% ceny" /
+„…ponad 55% ceny". Próg nie jest już jeden — idzie za płaszczyzną (`DEFAULT_COEFFS`): 65% z
+narzędziami, 55,25% bez narzędzi, bo stawka bez narzędzi jest z definicji o 15% niższa. Boksy niżej
+opisują stan sprzed tej zmiany; ich liczby dotyczą płaszczyzny „z narzędziami".
+
+- [ ] „Filtry" w widoku „z narzędziami": dwie nowe pozycje progu z licznikami (grupa „Udział wykonawcy
+      w cenie"); odznaczenie jednej chowa dokładnie tę połowę, a obie odznaczone chowają wszystko, co
+      ma kwotę stałą
 - [~] Te same dwie pozycje **nie** pojawiają się w widoku klienta — **nieaktualne od EX-856
   (2026-09-23):** bramka widoku zniknęła, więc obie pozycje sufitu stoją w menu „Filtry"
   niezależnie od widoku cen, także w kliencie. Boks zostaje jako zapis tego, co było prawdą
@@ -739,20 +814,56 @@ Automat pokrywa arytmetykę modelu (`filters-menu-model`) i kolejność kategori
 czego spec nie widzi — że nagłówki faktycznie się rysują, że licznik znika razem z wierszem i że
 warsztat po zmianie w ogóle się otwiera.
 
-- [ ] Widok „klient": menu „Filtry" pokazuje obie pary stawek wykonawcy (z ogonem „w widoku …"),
+- [x] Widok „klient": menu „Filtry" pokazuje obie pary stawek wykonawcy (z ogonem „w widoku …"),
       a odznaczenie którejś chowa wiersze, mimo że siatka stoi na cenie klienta
-- [ ] Przełączenie widoku cen przy odznaczonym filtrze stawki **nie** przywraca schowanych wierszy
+      **Zweryfikowane na stagingu (inw. 137, radio „Inwestor" = `checked`):** lista niesie obie osie
+      z ogonem — „…z kwoty stałej w widoku z narzędziami (podwykonawca) (234)", „…z własnego
+      mnożnika … (1)", „…„auto" … (142)" oraz „…z kwoty stałej w widoku bez narzędzi (pracownik)
+      (235)", „…„auto" … (142)". Odznaczenie osi „kwota stała / z narzędziami" schowało obie
+      pozycje „Bruzdowanie pod rury" (szukajka: `[]` z filtrem, dwa wiersze bez niego), a przycisk
+      przeszedł w „Filtry (1)".
+- [x] Przełączenie widoku cen przy odznaczonym filtrze stawki **nie** przywraca schowanych wierszy
       ani nie gubi zaznaczenia — zawężenie przeżywa zmianę widoku
-- [ ] Rozpiska bez komentarzy: wiersza „Pozycje z komentarzem" nie ma na liście wcale (nie „(0)")
-- [ ] Ten sam wiersz, gdy jest **zaangażowany**, zostaje widoczny z „(0)" i da się go odkliknąć
-- [ ] Nagłówki kategorii („Przedmiar", „Wykonana praca", „Rabat", „Źródło stawki wykonawcy",
+      **Zweryfikowane na stagingu (inw. 137):** przy tym samym zawężeniu przejście na „Bez narzędzi
+      (pracownik)" (radia: Inwestor `off` / Z narzędziami `off` / Bez narzędzi `on`) zostawiło obie
+      pozycje „Bruzdowanie pod rury" schowane, a przycisk dalej czytał „Filtry (1)".
+- [x] Rozpiska bez komentarzy: wiersza „Pozycje z komentarzem" nie ma na liście wcale (nie „(0)")
+      **Zweryfikowane na stagingu (inw. 137):** pod „Komentarz" stoi wyłącznie „Pozycje bez
+      komentarza (377)" — wiersza „Pozycje z komentarzem" nie ma w ogóle.
+- [x] Ten sam wiersz, gdy jest **zaangażowany**, zostaje widoczny z „(0)" i da się go odkliknąć
+      **Zweryfikowane na stagingu (inw. 137, oś rabatu):** z zaangażowanym „Pozycje bez rabatu (377)"
+      i włączonym rabatem globalnym wiersz **został** na liście, przeliczony na „Pozycje bez rabatu
+      (0)"; odkliknięcie go zdjęło zawężenie („Filtry (1)" → „Filtry") i wiersz zniknął z listy
+      całkowicie (żadnej linii z „rabat" w menu).
+- [x] Nagłówki kategorii („Przedmiar", „Wykonana praca", „Rabat", „Źródło stawki wykonawcy",
       „Sufit stawki wykonawcy", „Komentarz") pojawiają się raz każdy, w tej kolejności
-- [ ] Rabat globalny włączony: para filtrów rabatu per pozycja znika z listy, a jeśli była
+      **Zweryfikowane na stagingu (inw. 137) — treść boksu była nieaktualna, nie aplikacja.**
+      Na żywo nagłówków jest **pięć**, raz każdy, w kolejności: „Przedmiar i wykonana praca",
+      „Rabat", „Źródło stawki wykonawcy", „Sufit stawki wykonawcy", „Komentarz". Zgadza się to
+      z `src/lib/kosztorys/filter-groups.ts`, gdzie przedmiar i wykonana praca celowo dzielą jeden
+      nagłówek; sześcionagłówkowe brzmienie tego punktu pochodziło sprzed tej decyzji.
+- [x] Rabat globalny włączony: para filtrów rabatu per pozycja znika z listy, a jeśli była
       zaangażowana — zostaje z możliwością odkliknięcia
-- [ ] „Zresetuj filtry" w menu „Sekcje" robi dokładnie to samo co w „Filtrach" (czyści zawężenia,
+      **Zweryfikowane na stagingu (inw. 137, „Opcje rozliczenia → Rabat → Kwotowy"):** przed
+      włączeniem pod nagłówkiem „Rabat" stało „Pozycje bez rabatu (377)" (wiersza „z rabatem" nie
+      ma — próg licznika, 0 pozycji). Po włączeniu rabatu globalnego oś rabatu zostaje **wyłącznie**
+      w postaci zaangażowanego wiersza „(0)"; po jego odkliknięciu nagłówek „Rabat" i oba wiersze
+      znikają z listy. Ustawienie przywrócone na „Wyłączony".
+- [x] „Zresetuj filtry" w menu „Sekcje" robi dokładnie to samo co w „Filtrach" (czyści zawężenia,
       zwinięte sekcje i szukajkę) i jest wygaszone, gdy nie ma czego czyścić
-- [ ] Warsztat szablonu (`/szablony/[id]`): przełącznika „Widok cen" nie ma, a siatka pokazuje
+      **Zweryfikowane na stagingu (inw. 137):** przycisk stoi w korzeniu popovera (poza listą
+      `cmdk`, stąd nie widać go w `[role=menu]`). Z menu „Sekcje" wyczyścił naraz zaangażowany
+      filtr i szukajkę (`{trig:["Filtry","Sekcje"], search:""}`), po czym odczytał się jako
+      `disabled: true`; ten sam przycisk z menu „Filtry" zdjął zaangażowane „Pozycje bez rabatu"
+      („Filtry (1)" → „Filtry"). Zwinięcie „Podłóg" podbija licznik do „Sekcje (1)".
+- [x] Warsztat szablonu (`/szablony/[id]`): przełącznika „Widok cen" nie ma, a siatka pokazuje
       kolumny planu klienta; reszta paska narzędzi bez zmian
+      **Zweryfikowane na stagingu (`/szablony/4`, „kosztorys wzór testy 2 września 26", 202 poz.):**
+      ani napisu „Widok cen", ani żadnego `role=radio` widoku na stronie nie ma. Nagłówki siatki:
+      Akcje · Sekcja · Opis prac · Jednostka miary · **Cena j.m. netto** · Źródło ceny wykonawcy /
+      Mnożnik / Cena j.m. netto — z narzędziami (podwykonawca) · Źródło ceny wykonawcy / Mnożnik —
+      bez narzędzi (pracownik). Pasek narzędzi bez zmian: „Podsumowanie", „Pokaż narzędzia",
+      „Dodaj", „Opcje", „Problemy", „Filtry", „Sekcje".
 
 ## EX-865 — „Własny mnożnik" jako trzecie źródło stawki wykonawcy (2026-09-23)
 
@@ -764,29 +875,116 @@ arytmetykę, normalizację łatki, dwie niezależne kopie reguły ceny (TS i SQL
 i cały katalog; na żywo zostaje to, czego spec nie widzi — że wyszarzenie, ukrywanie kolumny przed
 inwestorem i przenoszenie między cennikiem a rozpiską działają w przeglądarce.
 
-- [ ] Rozpiska: przełączenie źródła na „własny mnożnik" **nie** rusza liczby w „Cena j.m."
+- [x] Rozpiska: przełączenie źródła na „własny mnożnik" **nie** rusza liczby w „Cena j.m."
       w chwili przełączenia
-- [ ] Wpisanie `0,55` daje stawkę `cena × 0,55`, a podniesienie „Cena j.m." przesuwa ją natychmiast
-- [ ] Komórka „Cena j.m." wykonawcy przy mnożniku jest wyszarzona i nie przyjmuje wpisu
-- [ ] Kolumna „Mnożnik" jest domyślnie ukryta i włącza się jednym tikiem w pickerze kolumn
-- [ ] Trzy odczyty komórki „Mnożnik" (odwrócenie kontraktu, właściciel 2026-09-23): własny mnożnik
+      **Zweryfikowane na stagingu (inw. 137, poz. 5 „mikrocement", widok „z narzędziami"):** przy „Cena
+      j.m." 100,00 przełączenie źródła z „auto" na „własny mnożnik" zostawia 100,00 bez zmiany, a
+      komórka „Mnożnik" z wyszarzonej kursywy zamienia się w pole do wpisania zasiane wartością
+      mnożnika inwestycji (0,65).
+- [x] Wpisanie `0,55` daje stawkę `cena × 0,55`, a podniesienie „Cena j.m." przesuwa ją natychmiast
+      **Zweryfikowane na stagingu (inw. 137, poz. 5):** przy cenie 100,00 mnożnik 0,55 daje stawkę
+      wykonawcy 55,00; podniesienie „Cena j.m." do 200,00 przestawia ją w tym samym renderze na 110,00,
+      a zmiana mnożnika na 0,4 — na 80,00.
+- [x] Komórka „Cena j.m." wykonawcy przy mnożniku jest wyszarzona i nie przyjmuje wpisu
+      **Zweryfikowane na stagingu (inw. 137, poz. 5):** komórka „Cena j.m. netto — z narzędziami
+      (podwykonawca)" jest `dsg-cell-disabled` i renderuje `<span>`, nie pole. Dwuklik nie ustawia na
+      niej fokusu (aktywny zostaje `body`), a wpisanie `555` + Enter zostawia 80,00 — liczba idzie
+      wyłącznie z `cena × mnożnik`.
+- [x] Kolumna „Mnożnik" jest domyślnie ukryta i włącza się jednym tikiem w pickerze kolumn
+      **Zweryfikowane na stagingu (inw. 137):** w pickerze „Kolumny" jeden klik w „Mnożnik — z narzędziami
+      (podwykonawca)" zdejmuje nagłówek z siatki, drugi go przywraca. Domyślne ukrycie stoi w kodzie:
+      `DEFAULT_HIDDEN_COLUMNS` (`src/lib/kosztorys/column-config.ts`) bierze `ALL_PLANE_PRICE_KEYS`,
+      czyli wszystkie kolumny stawki wykonawcy na każdą płaszczyznę.
+- [x] Trzy odczyty komórki „Mnożnik" (odwrócenie kontraktu, właściciel 2026-09-23): własny mnożnik
       do wpisania, mnożnik inwestycji wyszarzony kursywą przy „auto", kreska „—" przy kwocie stałej
-- [ ] Sortowanie po „Mnożniku" układa wiersze w kolejności liczb, które widać — wiersz „auto"
+      **Zweryfikowane na stagingu (inw. 137, widok „z narzędziami"):** wszystkie trzy odczyty widać
+      obok siebie w jednej siatce — poz. 5 (własny mnożnik) ma pole z wpisaną liczbą, poz. 1/2/4/11
+      („auto") mają wyszarzoną kursywą wartość 0,65 w komórce `dsg-cell-disabled`, a poz. 3/7/8/12
+      („kwota stała") pokazują „—".
+- [x] Sortowanie po „Mnożniku" układa wiersze w kolejności liczb, które widać — wiersz „auto"
       z 0,65 nad wierszem z własnym 0,4
-- [ ] Katalog prac: kolumna „Źródło" na każdą płaszczyznę, sortowalna, nazywa „auto" / „×0,65" /
+      **Zweryfikowane na stagingu (inw. 137):** „Sortuj malejąco" w nagłówku „Mnożnik" daje ciąg
+      wierszy „auto" z 0,65, pod nimi jedyny wiersz z własnym mnożnikiem 0,4, a na końcu wszystkie
+      „kwota stała" z kreską — czyli kolejność liczb, które widać w kolumnie.
+- [x] Katalog prac: kolumna „Źródło" na każdą płaszczyznę, sortowalna, nazywa „auto" / „×0,65" /
       kwotę stałą
-- [ ] Kolumny „Mnożnik" **nie ma** na linku dla inwestora ani w podglądzie klienta
-- [ ] Podsumowanie rozliczenia wykonawcy pokazuje dla pozycji z mnożnikiem tę samą stawkę co siatka
+      **Zweryfikowane na stagingu:** tabela ma dwie kolumny „Źródło" — „z narzędziami (podwykonawca)"
+      i „bez narzędzi (pracownik)" — każda obok swojej „Stawki" i „% ceny klienta". Trzy nazwy
+      potwierdzone na żywych wierszach: „kwota stała" + kwota (Akrylowanie 8,00 zł), „auto" (stawka
+      też „auto", udział „—") oraz na założonym do testu wpisie „QA mnożnik EX-865" (cena 100,00)
+      „własny mnożnik" ze stawką „×0,65" i udziałem 65,0%. Kliknięcie nagłówka „Źródło z narzędziami"
+      sortuje: rosnąco na górze „kwota stała", malejąco na górze „własny mnożnik", pod nim „auto".
+- [x] Kolumny „Mnożnik" **nie ma** na linku dla inwestora ani w podglądzie klienta
+      **Zweryfikowane na stagingu (inw. 137):** w „Podgląd" (`/podglad-inwestora/137`) i na linku
+      inwestora (`/k/W2-…`) komplet nagłówków po przewinięciu siatki w prawo to Opis prac, Przedmiar,
+      Etap 1, Pomiar (razem etapy), Jednostka miary, Cena j.m. netto, Wartość przedmiaru netto, Razem
+      netto — po rabacie, Etap 1 netto, % wykonania, Pozostało netto — ani „Mnożnik", ani „Źródło ceny
+      wykonawcy".
+- [x] Podsumowanie rozliczenia wykonawcy pokazuje dla pozycji z mnożnikiem tę samą stawkę co siatka
       po przeładowaniu strony (zgodność kopii TS i SQL)
+      **Zweryfikowane na stagingu (inw. 137):** po przeładowaniu poz. 5 trzyma „własny mnożnik" 0,4
+      przy cenie 200,00, czyli stawkę 80,00 i 800,00 na wykonanych 10 m². „Podsumowanie →
+      Podwykonawcy" (liczone po stronie serwera) pokazuje „Suma wykonanej pracy" 2387,50 = 1450,00
+      (sekcja z poz. 5: 800,00 z mnożnika + 650,00 z wiersza „auto") + 937,50, więc kopia SQL wycenia
+      mnożnik tak samo jak siatka.
 - [ ] Pozycja z mnożnikiem ponad sufitem czerwienieje na obu komórkach i wchodzi do „Problemów"
-- [ ] Menu „Filtry" pokazuje trzy wpisy źródła na płaszczyznę, a wybór każdego odsłania kolumny cenowe
-- [ ] Na inwestycji z materiałami wliczonymi w robociznę pozycja z mnożnikiem i wykonaną pracą wchodzi
+      **Sprawdzone na stagingu (inw. 137, poz. 5) — zostaje otwarte, dwa osobne fakty:** 1. **Defekt: czerwieni się tylko jedna komórka.** Mnożnik 0,9 przy cenie 200,00 daje stawkę
+      180,00 przy sufircie 130,00 (65%). W DOM czerwona (`text-destructive`) jest wyłącznie
+      wyliczona „Cena j.m. netto — z narzędziami (podwykonawca)"; input w komórce „Mnożnik"
+      zostaje neutralny, bo `SubcontractorCoeffCell`
+      (`src/components/kosztorys/editor/grid/cells/subcontractor-columns.tsx`) nakłada
+      `FLAGGED_TONE` tylko przy `edit.blockReason`, czyli przy odmowie zapisu — nie przy
+      przekroczeniu sufitu. Decyzja właściciela była odwrotna: „czerwień na obu komórkach"
+      (tabela decyzji, wiersz „Sufit" — plan skasowany przy archiwizacji, w historii:
+      `git show 0ec91492^:context/changes/2026-09-23-przywrocenie-wlasnego-mnoznika-stawki-wykonawcy/plan-brief.md`). Do poprawienia w kodzie. 2. **Druga połowa treści checku jest nieaktualna, nie jest defektem.** „Problemy" nie mają i nie
+      mają mieć wpisu o sufircie — od decyzji właściciela z 2026-09-20 sufit jest **filtrem**, a nie
+      alarmem (`src/lib/kosztorys/row-conditions/registry.ts`, `kind: 'filter'`; EX-820). Sprawdzone:
+      menu „Problemy" wymienia tylko „Ceny dla klienta / Stawki wykonawców — Pozycje bez ceny
+      wykonawcy / Katalog prac", a pozycja po edycji **weszła do filtra** „Pozycje z własną stawką
+      powyżej sufitu w widoku z narzędziami (podwykonawca)" (34 → 35). Treść checku należy
+      przeformułować na „wchodzi do filtra sufitu".
+- [x] Menu „Filtry" pokazuje trzy wpisy źródła na płaszczyznę, a wybór każdego odsłania kolumny cenowe
+      **Zweryfikowane na stagingu (inw. 137):** grupa „Źródło stawki wykonawcy" wymienia na płaszczyźnie
+      „z narzędziami (podwykonawca)" wszystkie trzy źródła (kwota stała 234, własny mnożnik 1, auto 142),
+      a wybór każdego z nich odsłania komplet kolumn cenowych tej płaszczyzny — wybranie wpisu „auto"
+      dla „bez narzędzi (pracownik)" dołożyło do siatki „Źródło ceny wykonawcy / Mnożnik / Cena j.m.
+      netto — bez narzędzi (pracownik)", których wcześniej nie było.
+      Na płaszczyźnie „bez narzędzi (pracownik)" wpisy są dwa, bo żadna pozycja nie ma tam własnego
+      mnożnika — `filtersMenuModel` z założenia nie pokazuje filtra z licznikiem 0
+      (`src/components/kosztorys/editor/toolbar/menus/filters-menu-model.ts`). To nie jest defekt.
+- [x] Na inwestycji z materiałami wliczonymi w robociznę pozycja z mnożnikiem i wykonaną pracą wchodzi
       do „Stawki wykonawców liczone według formuły"
-- [ ] Praca z mnożnikiem zapisana do cennika wraca do **innej** inwestycji jako mnożnik i wycenia się
+      **Zweryfikowane na stagingu (inw. 137):** przez UI („Wydatek" → „Wliczone w robociznę") dodany
+      wydatek materiałowy 100,00 zł — panel „Materiały" pokazuje „Materiały wliczone w robociznę
+      · Materiały budowlane · 100,00". Po tym w „Problemach" pojawił się wpis „Stawki wykonawców
+      liczone według formuły … ustaw „Źródło ceny wykonawcy" na „kwota stała" (3)", a jego zaznaczenie
+      zawęziło rozpiskę do trzech pozycji z wykonaną pracą liczonych z formuły — w tym poz. 5
+      „mikrocement" (10,00 m², źródło „własny mnożnik"). Pozycje z „kwota stała" do wpisu nie wchodzą.
+- [x] Praca z mnożnikiem zapisana do cennika wraca do **innej** inwestycji jako mnożnik i wycenia się
       jej własną ceną j.m. (nie zamraża kwoty z katalogu)
-- [ ] „Porównaj z katalogiem" pokazuje rozjazd rodzaju nawet przy zgodnej kwocie (0,65 kontra 65 zł
+      **Zweryfikowane na stagingu:** poz. „mikrocement" z inw. 137 (cena 200,00, własny mnożnik 0,9)
+      zapisana przez „Zapisz pozycję do katalogu prac" — dialog zapowiedział „Stawka z narzędziami
+      (podwykonawca) ×0,9", a w bazie wpis katalogu ma `w_tools_rate_coeff = 0.9` i puste
+      `w_tools_rate`, czyli rodzaj przeżył zapis. Wzięta potem przez „Dodaj → Praca z katalogu…" na
+      **inną** inwestycję (138) wróciła jako „własny mnożnik" 0,9; po podniesieniu tam „Cena j.m.
+      netto" z 200 na 300 stawka przeliczyła się na 270,00 (nie została na 180,00 z tamtej
+      inwestycji).
+- [x] „Porównaj z katalogiem" pokazuje rozjazd rodzaju nawet przy zgodnej kwocie (0,65 kontra 65 zł
       na cenie 100 zł)
-- [ ] Wzięcie „auto" z katalogu kasuje w rozpisce **oba** nadpisania (kwotę i mnożnik)
+      **Zweryfikowane na stagingu (inw. 138):** wpis katalogu „mikrocement" ma cenę 200,00 i mnożnik
+      ×0,9, czyli 180,00 zł; pozycja w rozpisce dostała tę samą cenę 200,00 i „kwota stała" 180,00.
+      Kwoty są identyczne, a „Porównaj z katalogiem" i tak wymienia pozycję w „Inne liczby niż
+      w katalogu": wiersz „Stawka z narzędziami (podwykonawca) · 180,00 zł · ×0,9 (180,00 zł) ·
+      0,00 zł" — różnica kwotowa zero, rozjazd rodzaju widoczny, bo katalog nazywa stawkę mnożnikiem,
+      a rozpiska kwotą. Przy tej samej pozycji siedzi też ostrzeżenie „przekracza 65% ceny", a
+      „Aktualizuj kosztorys (0)" słusznie nie ma czego nadpisać.
+- [x] Wzięcie „auto" z katalogu kasuje w rozpisce **oba** nadpisania (kwotę i mnożnik)
+      <!-- staging 2026-09-24: poz. „mikrocement" (inw. 138) z ustawionymi OBOMA nadpisaniami
+               (kwota 180,00 + mnożnik ×0,5 — wiersz pokazywał „×0,5 (100,00 zł)"), wpis katalogowy
+               przestawiony na „auto". „Problemy → Porównaj z katalogiem… → Pokaż … różnic" wylistowało
+               rozjazd „Stawka z narzędziami (podwykonawca) · ×0,5 (100,00 zł) · auto · -30,00 zł";
+               po zaznaczeniu tylko tego wiersza „Aktualizuj kosztorys (1)" obie kolumny nadpisań
+               wróciły puste. -->
 
 ## wydruk-oferty — Wydruk oferty z kosztorysu (2026-09-23)
 
@@ -797,12 +995,32 @@ Układ wydruku został nietknięty: właściciel go zatwierdził. Automat zamyka
 tabeli i trzy ścieżki błędu pozycji menu; na żywo zostaje to, czego jsdom nie widzi — realne okno
 wydruku i zgodność liczb z podglądem klienta, kosztorys po kosztorysie.
 
-- [ ] „Razem — <sekcja>" na wydruku == wiersz sumy sekcji w podglądzie klienta
-- [ ] „Razem netto" na wydruku == „Razem" pod kolumną „Wartość netto przedmiar" w podglądzie klienta
-- [ ] Podgląd zostawiony w trybie ROZLICZENIE, a wydruk nadal daje dokument ofertowy z kolumnami
+- [x] „Razem — <sekcja>" na wydruku == wiersz sumy sekcji w podglądzie klienta
+- [x] „Razem netto" na wydruku == „Razem" pod kolumną „Wartość netto przedmiar" w podglądzie klienta
+      <!-- staging 2026-09-24, inw. 137 (2 sekcje, 7 pozycji niepustych). Wydruk przechwycony
+               podmianą `window.open` (bez dotykania prawdziwego okna wydruku): „Razem — Prace dodatkowe
+               3 000 zł", „Razem — Wyburzenia i demontaże 2 800 zł", „Razem netto 5 800 zł".
+               `/podglad-inwestora/137` w tym samym stanie: „Razem Prace dodatkowe 3000,00",
+               „Razem Wyburzenia i demontaże 2800,00", „Razem 5800,00" w kolumnie „Wartość przedmiaru
+               netto" (kolumna „Razem netto — po rabacie" niesie 3000,00 / 1675,00 / 4675,00 i słusznie
+               nie jest tym, co drukuje oferta). -->
+- [x] Podgląd zostawiony w trybie ROZLICZENIE, a wydruk nadal daje dokument ofertowy z kolumnami
       wariantu OFERTA
-- [ ] Odznaczenie „Pozostało" w ustawieniach podglądu zabiera kolumnę i z ekranu, i z wydruku —
+      <!-- staging 2026-09-24, inw. 137. Aktywny wariant w „Ustawieniach podglądu inwestora" =
+               „Rozliczenie" (zestaw m.in. Pomiar (razem etapy), Razem netto, Etapy — ilość / kwota,
+               % wykonania). Przechwycony wydruk dał mimo to kolumny wariantu OFERTA: Opis prac ·
+               Przedmiar · Jednostka miary · Cena j.m. · Wartość netto. -->
+- [x] Odznaczenie „Pozostało" w ustawieniach podglądu zabiera kolumnę i z ekranu, i z wydruku —
       a suma sekcji zostaje pod „Wartość netto przedmiar"
+      <!-- staging 2026-09-24, inw. 137, wariant OFERTA. Z zaznaczonym „Pozostało netto (względem
+               przedmiaru)": `/podglad-inwestora/137` pokazuje tę kolumnę, a wydruk niesie nagłówki
+               Opis prac · Przedmiar · Jednostka miary · Cena j.m. · Wartość netto · Pozostało.
+               Po odznaczeniu i zapisie kolumna znika z obu — wydruk ma pięć nagłówków bez „Pozostało",
+               a podgląd kończy się na „Wartość przedmiaru netto". Sumy sekcji bez zmian w obu stanach:
+               „Razem — Prace dodatkowe 3 000 zł", „Razem — Wyburzenia i demontaże 2 800 zł",
+               „Razem netto 5 800 zł". Uwaga przy powtarzaniu: przełączenie zakładki wariantu otwiera
+               potwierdzenie „Uwaga — zmiana widoczna dla inwestora!" i bez „Potwierdź" nic się nie
+               zapisuje (żaden POST nie wychodzi). -->
 - [ ] MANAGER (nie OWNER) — czy „Wygeneruj ofertę w PDF" ma być dla niego dostępne? Sąsiednie pozycje
       menu są wygaszane przez `useMayServeTheClient()`, ta nie. **Pytanie do właściciela**, nie defekt.
 
@@ -810,48 +1028,103 @@ wydruku i zgodność liczb z podglądem klienta, kosztorys po kosztorysie.
 
 ### Phase 2: Price the netto row from the invoice
 
-- [ ] Kosztorys v2 inwestycji 146 (lokalny dump), zakładka „Materiały", stawka 23% → wiersz „Materiały wykończeniowe netto" pokazuje 4453,33 / 4809,60 / −356,27.
-- [ ] Zmiana stawki na 12% → ten wiersz bez zmian; „Materiały budowlane" Netto i Różnica się przesuwają.
-- [ ] Rozliczenie brutto → jedna kolumna „Kwota"; wiersz netto pokazuje 4453,33; „Razem" = „Materiały" w Podsumowaniu.
+- [x] Kosztorys v2 inwestycji 146 (lokalny dump), zakładka „Materiały", stawka 23% → wiersz „Materiały wykończeniowe netto" pokazuje 4453,33 / 4809,60 / −356,27.
+      **Zweryfikowane na stagingu na inwestycji 146:** w bazie preview nie było wydatku netto, więc
+      dodany przez UI („Wydatek inwestycyjny netto", Przelew, Materiały wykończeniowe, brutto 4809,60 /
+      netto 4453,33) i stawka materiałów ustawiona na 23%. Blok „Wydatki inwestycyjne" pokazuje wtedy
+      wiersz „Materiały wykończeniowe netto" 4453,33 / 4809,60 / −356,27 — kwota netto z faktury, nie
+      przeliczona po 23%. Fixtura skasowana, stawka przywrócona po sprawdzeniu.
+- [x] Zmiana stawki na 12% → ten wiersz bez zmian; „Materiały budowlane" Netto i Różnica się przesuwają.
+      **Zweryfikowane na stagingu na inwestycji 137** (na 146 nie ma wydatku netto w bazie preview):
+      stawka 23% → „Materiały budowlane" 406,50 / 500,00 / −93,50; stawka 12% → 446,43 / 500,00 / −53,57;
+      wiersz „Materiały wykończeniowe netto" w obu wypadkach 1000,00 / 1230,00 / −230,00 (bez zmian).
+- [x] Rozliczenie brutto → jedna kolumna „Kwota"; wiersz netto pokazuje 4453,33; „Razem" = „Materiały" w Podsumowaniu.
+      **Zweryfikowane na stagingu na inwestycji 137:** po przełączeniu „Sposób rozliczenia materiałów" na
+      Brutto (z potwierdzeniem „zmiana widoczna dla inwestora") blok ma jedną kolumnę „Kwota":
+      „Materiały budowlane" 500,00, „Materiały budowlane netto" 1000,00 (kwota netto z faktury, nie ubruttowiona),
+      „Razem" 1500,00 — i tyle samo pokazuje „Materiały" w Podsumowaniu (Robocizna 8675,00, Łącznie 10 175,00).
 
 ### Phase 3: Remove the „Wydatki inwestycyjne" pie
 
-- [ ] Zakładka „Materiały" bez wykresu kołowego w edytorze i w podglądzie klienta; wykres „Struktura kosztów" w Podsumowaniu nadal jest.
+- [x] Zakładka „Materiały" bez wykresu kołowego w edytorze i w podglądzie klienta; wykres „Struktura kosztów" w Podsumowaniu nadal jest.
+      **Zweryfikowane na stagingu (inw. 137):** edytor — zakładka „Materiały" 0 wykresów, „Podsumowanie"
+      1 wykres („Struktura kosztów", Robocizna 85,3% / Materiały 14,7%); link inwestora — to samo:
+      „Materiały" 0 wykresów, „Podsumowanie" 1.
 
 ## pokaz-wszystkie-pozycje
 
 ### Phase 2: Switch and muted revealed rows
 
-- [ ] `/k/<token>` z włączonym „Ukryj pozycje…" → w nagłówku „Pokaż wszystkie pozycje (+N)", N zgadza się z liczbą w oknie „Inwestor".
-- [ ] Włączenie pokazuje ukryte pozycje wyszarzone, numerowane po kolei; wyłączenie przywraca listę i numerację.
-- [ ] Podsumowanie i kwoty sum sekcji identyczne przy włączonym i wyłączonym przełączniku; licznik
+- [x] `/k/<token>` z włączonym „Ukryj pozycje…" → w nagłówku „Pokaż wszystkie pozycje (+N)", N zgadza się z liczbą w oknie „Inwestor".
+- [x] Włączenie pokazuje ukryte pozycje wyszarzone, numerowane po kolei; wyłączenie przywraca listę i numerację.
+- [x] Podsumowanie i kwoty sum sekcji identyczne przy włączonym i wyłączonym przełączniku; licznik
       „(N poz.)" w nagłówku sekcji rośnie o odsłonięte pozycje — to oczekiwane, nie rozjazd.
 - [ ] Sekcja złożona wyłącznie z pustych pozycji: po włączeniu jej nagłówek i stopka nie są
       wyszarzone, a wiersze tak — czy to czyta się dobrze, czy nagłówek też powinien być wyszarzony?
-- [ ] Przeładowanie strony otwiera z wyłączonym przełącznikiem.
-- [ ] Bez „Ukryj pozycje…" w oknie „Inwestor" przełącznik się nie pokazuje.
-- [ ] Wydruk oferty bez zmian przy włączonym przełączniku.
-- [ ] Na telefonie (<768px) przełącznik stoi pod „Podsumowaniem", etykieta nie jest ucięta.
+      **Potwierdzone na stagingu (link inwestora inw. 137, 2026-09-23):** sekcja „Instalacja
+      wodno-kanalizacyjna / C.O." (9 poz., wszystkie puste) — po włączeniu przełącznika wszystkie
+      jej wiersze są wyszarzone (`lab(48.496 0 0)`), a nagłówek „… (9 poz.)" i stopka „Razem … 0,00 /
+      0,00" zostają w pełnej czerni (`lab(2.75381 0 0)`). Czyta się to tak, jakby sekcja z zerową
+      wartością była normalną pozycją oferty. **Decyzja właściciela:** zostawić jak jest, czy
+      wyszarzyć nagłówek i stopkę sekcji, w której KAŻDA pozycja jest odsłonięta?
+- [x] Przeładowanie strony otwiera z wyłączonym przełącznikiem.
+- [x] Bez „Ukryj pozycje…" w oknie „Inwestor" przełącznik się nie pokazuje.
+- [x] Wydruk oferty bez zmian przy włączonym przełączniku.
+      Wydruk bierze zawsze `config.variants.OFFER` (`offer-print-action.tsx`), a przełącznik to stan
+      lokalny widoku (`showAllRows`, `use-kosztorys-view-state.ts`), którego ścieżka wydruku nie
+      dostaje — na linku inwestora nie ma zresztą żadnego przycisku wydruku.
+- [x] Na telefonie (<768px) przełącznik stoi pod „Podsumowaniem", etykieta nie jest ucięta.
 
 ## materialy-inwestora-brutto
 
 ### Phase 1: „Wydatki inwestycyjne" merged per category for the investor
 
-- [ ] Link inwestora inwestycji 146 (jedyny wydatek netto): „Wydatki inwestycyjne" pokazuje same
+- [x] Link inwestora inwestycji 146 (jedyny wydatek netto): „Wydatki inwestycyjne" pokazuje same
       kategorie + „Razem", bez wiersza „… netto"; „Razem" = „Materiały" w Podsumowaniu (bez stawki)
       albo jego kolumna Netto (ze stawką).
-- [ ] Ta sama inwestycja w edytorze kierownika: wiersz „… netto" nadal jest, kwoty bez zmian.
+- [x] Ta sama inwestycja w edytorze kierownika: wiersz „… netto" nadal jest, kwoty bez zmian.
+      **Zweryfikowane na stagingu na inwestycji 137** (baza preview nie ma wydatku netto na 146):
+      link inwestora → „Wydatki inwestycyjne | Kwota | Materiały budowlane 1500,00 | Razem 1500,00" —
+      bez wiersza „… netto", i „Razem" = „Materiały" w Podsumowaniu (1500,00).
+      Edytor kierownika tej samej inwestycji → wiersz „Materiały budowlane netto" nadal jest
+      (1000,00 / 1230,00 przy rozliczeniu netto; 1000,00 przy brutto), kwoty niezmienione.
 
 ### Phase 2: One brutto wydatki list for the investor
 
-- [ ] Link inwestora: „Lista wydatków" to jedna lista bez przełącznika, każdy wiersz w brutto
+- [x] Link inwestora: „Lista wydatków" to jedna lista bez przełącznika, każdy wiersz w brutto
       (faktura netto po swoim brutto z faktury), „Razem" = Σ brutto.
-- [ ] „Pobierz faktury" na linku inwestora pobiera zip z fakturami brutto i netto.
-- [ ] Edytor kierownika: trzy zakładki jak dotąd, zakładka netto nadal Netto + Brutto.
+      **Zweryfikowane na stagingu (inw. 137):** jedna lista, w jej obrębie zero przełączników/radiów;
+      wiersze 500,00 (wydatek brutto) i 1230,00 (wydatek netto — po swoim brutto z faktury),
+      „Razem" 1730,00 = suma brutto.
+- [x] „Pobierz faktury" na linku inwestora pobiera zip z fakturami brutto i netto.
+      **Zweryfikowane na stagingu (inw. 137):** na liście wydatków linku inwestora przycisk „Pobierz faktury"
+      pobiera `faktury-testowe_inwestycje-Materiały-2026-09-23.zip` z dwoma plikami —
+      `20260923_QA_EX-fixture_faktura_brutto.pdf` (wydatek brutto) i `20260923_QA_EX-fixture_faktura_netto.pdf`
+      (wydatek netto), czyli faktury z obu zbiorów w jednym archiwum bez rozbicia brutto/netto w nazwie.
+- [x] Edytor kierownika: trzy zakładki jak dotąd, zakładka netto nadal Netto + Brutto.
+      **Zweryfikowane na stagingu (inw. 137):** zakładki są nadal per zbiór
+      (`DATASET_LABELS` w `materials-transactions-table.tsx`: brutto / rozliczane netto / wliczone
+      w robociznę); 137 ma po jednym wydatku brutto i netto, więc renderują się dwie —
+      trzeciej nie ma, bo nie ma wydatków wliczonych w robociznę, nie dlatego że zniknęła.
+      Zakładka netto ma nadal obie kolumny: Netto 1000,00 i Brutto 1230,00, „Razem" 1000,00 (netto).
 
 ### Phase 3: E2E
 
 - [ ] `pnpm test:e2e e2e/client-share.spec.ts` na świeżo zaseedowanym db-test przechodzi.
+
+## Kosztorys — manager udostępnia inwestorowi + wydruk oferty bez nagłówków (cdd32061, 8a6552c5) — staging 2026-09-24
+
+Scope cut mid-pass to a single question: can a MANAGER generate the investor share link on staging.
+Rotate/revoke-as-checks, client-view settings, OWNER, and print were not driven this pass.
+
+- [x] MANAGER (`verify-manager-ex748@wykonczymy.test`): „Inwestor" → „Udostępnij" is enabled (not
+      greyed), opens the share dialog on the settings step, „Dalej" → „Wygeneruj link" creates a row
+      in `kosztorys_shares` (investment 106, verified via `psql`). The `/k/<token>` URL renders the
+      investor preview (`Sulmierzycka 6/29 - poprawki`) with the `payload-token` cookie cleared —
+      confirmed no-login access.
+      **Restored:** deleted the share row for investment 106 afterward (`kosztorys_shares` back to
+      its pre-pass single row for investment 137). Deleted the throwaway
+      `src/scripts/qa-reset-staging-passwords.ts`.
 
 ## EX-819 — wartość spoza zakresu odmawiana na głos, nie przycinana (2026-09-28)
 

@@ -244,7 +244,9 @@ describe('engagedPlane', () => {
   // of its pair names the same plane and so could never undo the move. Two guards, because either
   // alone rots — the registry keeps filters plane-less, and the reader ignores a plane on one anyway.
   it('ignores a filter’s plane, and answers for the problem beside it', () => {
-    expect(ROW_CONDITIONS.filter((c) => c.kind === 'filter').every((c) => !c.plane)).toBe(true)
+    // Filtry NOSZĄ płaszczyznę (czyta ją oś „Stawki wykonawców") — i właśnie dlatego to asercja:
+    // `engagedPlane` ma dalej pytać wyłącznie diagnostyki.
+    expect(ROW_CONDITIONS.filter((c) => c.kind === 'filter').some((c) => c.plane)).toBe(true)
     expect(engagedPlane(['manual-rate-w-tools'])).toBeUndefined()
     expect(engagedPlane(['manual-rate-w-tools', 'negative-rate-own-tools'])).toBe('own_tools')
   })

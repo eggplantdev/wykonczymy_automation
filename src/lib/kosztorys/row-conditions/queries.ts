@@ -1,3 +1,4 @@
+import { crewAxisShows, type CrewAxisT } from '@/lib/kosztorys/crew-axis'
 import { DISCOUNT_CONDITION_IDS, ROW_CONDITIONS } from '@/lib/kosztorys/row-conditions/registry'
 import type {
   RowConditionCtxT,
@@ -200,13 +201,12 @@ export function sectionIdsWhereAllMatch(
  * global rabat the per-item rabat applies to nothing and its columns are pulled from the grid, so the
  * pair goes dead in the registry too — listing it would offer a tick that provably changes nothing.
  *
- * The price plane is deliberately NOT a gate (owner, 2026-09-23). A stawka filter used to be offered
- * only from its own view; that was never a safeguard — the engaged set lives in localStorage and goes
- * around it — but an ergonomics measure taken when the pair split per plane and the list tripled in
- * length. It cost more than it bought: half the axes were unreachable from the view almost everyone
- * reads, behind a control nobody uses as a filter switch. Shortening the list is now the count
- * threshold's job (`filtersMenuModel`), where the question is „is there anything to hide" rather than
- * „which view is on".
+ * The second gate is the „Stawki wykonawców" axis, and it is pointedly NOT the price view. A stawka
+ * filter was gated by the view until 2026-09-23 and the owner took it off: half the axes became
+ * unreachable from the view almost everyone reads, behind a control nobody uses as a filter switch.
+ * The axis is that control — it exists to put a crew's columns away, and a filter about a stawka
+ * nobody is reading is the same noise as the column (owner, 2026-09-28). Never a safeguard either
+ * way: the engaged set lives in localStorage and goes around this.
  *
  * An ENGAGED condition is listed regardless of the gate: it is hiding pozycje right now, and the menu
  * is where a tick comes back. Gating it out would leave the grid short with no control to restore it —
@@ -215,12 +215,14 @@ export function sectionIdsWhereAllMatch(
 export function offeredFilterConditions(
   engagedIds: ReadonlySet<string>,
   perItemDiscountInert: boolean,
+  crewAxis: CrewAxisT = 'both',
 ): RowConditionT[] {
   return ROW_CONDITIONS.filter(
     (condition) =>
       condition.kind === 'filter' &&
       (engagedIds.has(condition.id) ||
-        !(perItemDiscountInert && DISCOUNT_CONDITION_IDS.has(condition.id))),
+        (!(perItemDiscountInert && DISCOUNT_CONDITION_IDS.has(condition.id)) &&
+          (condition.plane === undefined || crewAxisShows(crewAxis, condition.plane)))),
   )
 }
 
