@@ -4,9 +4,9 @@ import { useState, type KeyboardEvent, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { DecimalInput } from '@/components/ui/decimal-input'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
-import { NOTICE_MS } from '@/lib/kosztorys/constants'
 import { cn } from '@/lib/utils/cn'
 import { parseDecimalInput } from '@/lib/utils/parse-decimal-input'
+import { NOTICE_MS, rejectedEntryMessage } from '@/lib/utils/notice'
 import { toastMessage } from '@/lib/utils/toast'
 
 // What an entry resolves to: a number to write, a refusal the user is told about, or nothing to do
@@ -23,7 +23,6 @@ type PropsT = {
   // Shown as an (i) icon beside the label — the input stays a clean text field. An icon, not a
   // hover target on the label text: nothing about bare text says a hint is hiding behind it.
   hint?: string
-  // Unit printed after the input („%", „zł").
   suffix?: ReactNode
   value: number | null
   placeholder?: number
@@ -93,6 +92,7 @@ export function DecimalField({
   // `null` while nothing has been typed — a refused entry still arms „Zapisz", because a button that
   // silently greys out over „230" is the same unexplained refusal as a silent snap-back.
   const pending = typed == null || typed === text ? null : entryOf(typed)
+  const canSave = pending != null && pending.kind !== 'none'
 
   const restore = () => {
     setTyped(null)
@@ -104,9 +104,9 @@ export function DecimalField({
     if (entry.kind === 'reject') {
       const restored =
         value == null
-          ? ''
-          : ` — przywrócono ${value.toLocaleString('pl-PL')}${typeof suffix === 'string' ? suffix : ''}`
-      toastMessage(`Nieprawidłowa wartość${restored}.`, 'error', NOTICE_MS)
+          ? null
+          : `${value.toLocaleString('pl-PL')}${typeof suffix === 'string' ? suffix : ''}`
+      toastMessage(rejectedEntryMessage(restored), 'error', NOTICE_MS)
     }
     restore()
   }
@@ -138,7 +138,7 @@ export function DecimalField({
           onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
             if (e.key !== 'Enter') return
             if (!withSave) e.currentTarget.blur()
-            else if (pending != null && pending.kind !== 'none') settle(pending)
+            else if (canSave) settle(pending)
           }}
         />
         {suffix}
@@ -148,8 +148,8 @@ export function DecimalField({
             variant="outline"
             size="sm"
             className="h-7 px-2"
-            disabled={disabled || pending == null || pending.kind === 'none'}
-            onClick={() => pending != null && settle(pending)}
+            disabled={disabled || !canSave}
+            onClick={() => canSave && settle(pending)}
           >
             Zapisz
           </Button>
