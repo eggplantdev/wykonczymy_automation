@@ -632,5 +632,5 @@ the code ships. Existing rows get `trashed_at NULL`, so everything stays live. T
 
 #### Automated
 
-- [x] 4.1 purge-trash DB spec: 31d unused purged, used skipped, 29d kept
-- [x] 4.2 cleanup route spec: trash result reported, one failing step does not hide the other
+- [x] 4.1 purge-trash DB spec: 31d unused purged, used skipped, 29d kept — 917ab662
+- [x] 4.2 cleanup route spec: trash result reported, one failing step does not hide the other — 917ab662

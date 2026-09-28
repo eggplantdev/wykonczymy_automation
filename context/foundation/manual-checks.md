@@ -1201,3 +1201,25 @@ powtórzenia na stagingu.
       przewijanie długiej listy bez skoków i pustych pasów
 - [ ] Podsumowanie → „Podwykonawcy" (wypłaty): to samo
 - [ ] `pnpm exec playwright test e2e/work-catalogue.spec.ts` na bazie E2E — uruchamia człowiek
+
+## kosz-inwestycji — właściciel usuwa inwestycję do kosza, przywraca ją albo usuwa na zawsze (2026-09-28)
+
+Branch `kosz-inwestycji`. Migracja addytywna (`trashed_at`) — lokalnie zastosowana; na produkcję
+przed pushem przez człowieka (`pnpm db:migrate:prod`).
+
+- [ ] Inwestycja przeniesiona do kosza znika z `/inwestycje`, z wyboru inwestycji w oknie transakcji
+      i z sum na pulpicie; jej strona, kosztorys (v1 i v2), „Podgląd inwestora" i link dla inwestora
+      `/k/<token>` dają 404. Po przywróceniu wszystko wraca, łącznie z tym samym linkiem
+- [ ] Jako właściciel: „Usuń" na liście inwestycji przy inwestycji bez transakcji → potwierdzenie
+      „Przenieść … do kosza?" → inwestycja jest w `/kosz` z dopiskiem „usunie się samo za 30 dni"
+- [ ] „Usuń" przy inwestycji z żywą transakcją → toast z liczbą transakcji, inwestycja zostaje na liście
+- [ ] `/kosz` → „Przywróć": inwestycja wraca na listę bez zmian (kosztorys, zdjęcia, link dla inwestora)
+- [ ] „Usuń na zawsze" przy inwestycji z kosztorysem w użyciu (wpisany Przedmiar albo Pomiar z natury
+      na etapie, np. inw. 157 z dumpu 23.09): przycisk nieaktywny, dopóki nie wpiszesz dokładnej nazwy;
+      w `/kosz` dopisek „kosztorys w użyciu — tylko ręcznie"
+- [ ] „Usuń na zawsze" przy inwestycji z samym szablonem (np. inw. 155): zwykłe potwierdzenie, bez pola
+      na nazwę
+- [ ] Jako manager: brak „Usuń" na liście, brak „Kosz" w menu, `/kosz` przekierowuje
+- [ ] Menu mobilne (< 768 px) pokazuje „Kosz" właścicielowi, jako ostatnią pozycję
+- [ ] Lokalnie: `trashed_at = now() - interval '31 days'` na pustej inwestycji w koszu, wywołanie
+      `/api/cron/cleanup` z `CRON_SECRET` → inwestycji nie ma w `/kosz`, JSON pokazuje `trash.purged: 1`

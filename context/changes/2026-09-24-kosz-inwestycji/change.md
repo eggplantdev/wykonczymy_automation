@@ -1,7 +1,7 @@
 ---
 change_id: kosz-inwestycji
 title: Kosz inwestycji — odwracalne usuwanie inwestycji przez właściciela
-status: implementing
+status: implemented
 created: 2026-09-24
 updated: 2026-09-28
 archived_at: null
