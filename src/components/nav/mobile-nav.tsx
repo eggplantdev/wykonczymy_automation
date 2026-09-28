@@ -12,6 +12,7 @@ import { ThemeToggle } from '@/components/nav/theme-toggle'
 import { LogoutButton } from '@/components/nav/logout-button'
 import { NavLinkItem } from '@/components/nav/nav-link-item'
 import { RefreshDataButton } from '@/components/nav/refresh-data-button'
+import { AdminButton } from '@/components/nav/admin-button'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { useNavLinks } from '@/hooks/use-nav-links'
 import { ROLE_LABELS } from '@/lib/auth/roles'
@@ -123,6 +124,7 @@ export function MobileNav() {
           </div>
           <ThemeToggle collapsed={false} />
           <RefreshDataButton />
+          <AdminButton />
           <LogoutButton beforeLogout={() => setScrollLocked(false)} />
         </div>
       </nav>
