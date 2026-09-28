@@ -103,7 +103,8 @@ export const INVESTMENT_DELETE_TAGS = [
 export const EXPIRE_NOW = { expire: 0 } as const
 
 /**
- * The deferred twin: expires the tag without re-rendering the calling route.
+ * The deferred twin: expires the tag without streaming a render back in the action response. It
+ * does NOT spare the calling route — the client follows up with a GET of it (lessons.md, EX-597).
  *
  * `revalidate()` ends with `if (!profile || cacheLife?.expire === 0) store.pathWasRevalidated = …`,
  * and that flag is what makes a Server Action stream a fresh render of its own route back in the

@@ -22,6 +22,9 @@ export async function resolveWorkshopInvestment(payload: Payload): Promise<numbe
       status: TEMPLATE_INVESTMENT_STATUS,
       settlementMode: SETTLEMENT_MODE_DEFAULT,
     },
+    // Called from „Otwórz", whose route must not re-render: a revalidation inside the action would
+    // (lessons.md, EX-597). A once-ever write — the warsztat is a singleton.
+    context: { skipRevalidation: true },
   })
   return created.id
 }

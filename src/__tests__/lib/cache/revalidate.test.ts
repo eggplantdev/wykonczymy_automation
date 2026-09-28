@@ -3,7 +3,7 @@ import { updateTag, revalidateTag } from '@/__tests__/stubs/next-cache'
 import { revalidateCollections, revalidateEntities } from '@/lib/cache/revalidate'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 
-// `deferRefresh` exists to drop the route re-render on per-cell autosaves (EX-597), NOT to skip
+// `deferRefresh` exists to keep the render out of per-cell autosave responses (EX-597), NOT to skip
 // invalidation. The distinction is invisible on the editor itself — it holds `rows` in local state
 // either way — and only shows up on the OTHER routes that read these tags, chiefly the client share
 // link. So the invariant worth pinning is that both branches expire every tag they are given; a

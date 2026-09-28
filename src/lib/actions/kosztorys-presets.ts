@@ -4,9 +4,8 @@ import { z } from 'zod'
 import { investmentAction } from '@/lib/actions/investment-action'
 import { mirrorWorkshopPreset } from '@/lib/actions/mirror-workshop-preset'
 import { ownerOnlyAction } from '@/lib/actions/owner-only-action'
-import { resolveWorkshopInvestment } from '@/lib/actions/provision-workshop'
 import { protectedAction, validateAction } from '@/lib/actions/run-action'
-import { revalidateCollections } from '@/lib/cache/revalidate'
+import { expireCollectionsAfterResponse, revalidateCollections } from '@/lib/cache/revalidate'
 import { KOSZTORYS_TREE_TAGS } from '@/lib/cache/tags'
 import { getDb } from '@/lib/db/get-db'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
@@ -17,7 +16,7 @@ import {
   renamePreset,
   upsertPresetByName,
 } from '@/lib/db/presets'
-import { getWorkshop, setWorkshopPreset } from '@/lib/db/workshop-investment'
+import { getWorkshop } from '@/lib/db/workshop-investment'
 import {
   appendPresetSections,
   type AppendedSliceT,
@@ -28,8 +27,10 @@ import {
   reloadInvestmentFromPreset,
   type ReloadFromPresetResultT,
 } from '@/lib/kosztorys/reload-from-preset'
+import { openPresetInWorkshop } from '@/lib/kosztorys/open-preset-in-workshop'
 import { emptySnapshotPayload } from '@/lib/kosztorys/snapshot-format'
 import { serializeKosztorysAsPreset } from '@/lib/kosztorys/serialize-preset'
+import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 import type { ActionResultT } from '@/types/action'
 
 const savePresetSchema = z.object({
@@ -155,50 +156,24 @@ export async function renamePresetAction(id: number, name: string): Promise<Acti
 }
 
 // „Otwórz szablon": load into the workbench investment. A mutation, not a render side effect of
-// /szablony/[id] — the page only reads what this puts there.
-export async function openPresetInWorkshopAction(presetId: number): Promise<ActionResultT> {
-  return protectedAction(
-    'openPresetInWorkshopAction',
-    async ({ payload, user }) => {
-      const parsed = validateAction(presetIdSchema, { id: presetId })
-      if (!parsed.success) return parsed
+// /szablony/[id] — the page renders the tree this returns.
+//
+// No tags, and nothing expired before the response: any invalidation inside the action re-renders
+// the calling route and wipes the client prefetch cache (lessons.md, EX-597). The only cached reader
+// this can change is the szablon library, and only when the eviction changed the outgoing copy.
+export async function openPresetInWorkshopAction(
+  presetId: number,
+): Promise<ActionResultT<{ investmentId: number; tree: KosztorysTreeT }>> {
+  return protectedAction('openPresetInWorkshopAction', async ({ payload }) => {
+    const parsed = validateAction(presetIdSchema, { id: presetId })
+    if (!parsed.success) return parsed
 
-      const db = await getDb(payload)
-      const held = await getWorkshop(db)
+    const opened = await openPresetInWorkshop(payload, { presetId: parsed.data.id })
+    if (!opened) return { success: false, error: 'Nie znaleziono szablonu' }
 
-      // Eviction: opening a szablon rewrites the workshop tree in place, so this is the last moment
-      // the outgoing one can still receive its edits. Unconditional, because the throttle may have
-      // just refused the last of them and there is no second chance.
-      if (held?.presetId != null) {
-        await mirrorWorkshopPreset(payload, {
-          investmentId: held.id,
-          templatePresetId: held.presetId,
-          force: true,
-        })
-        // Then the pointer goes down BEFORE the tree moves, and that ordering is the whole guard.
-        // The mirror's only test of „may I write here" is this column; the tree swap below runs in
-        // its own transaction, so while the column still names the outgoing szablon there is a
-        // committed state where the tree is already the INCOMING one — and a flush landing in it
-        // would stamp the new content into the old szablon's row, destroying it. Nulled, every
-        // in-flight mirror bails instead.
-        await setWorkshopPreset(db, held.id, null)
-      }
-
-      const investmentId = held?.id ?? (await resolveWorkshopInvestment(payload))
-      const reloaded = await reloadInvestmentFromPreset(payload, {
-        investmentId,
-        presetId: parsed.data.id,
-        takenBy: user.id,
-      })
-      // A failed reload leaves the workshop holding nothing rather than claiming a szablon whose
-      // content it does not have — the outgoing one is already safe in the library, mirrored above.
-      if (!reloaded) return { success: false, error: 'Nie znaleziono szablonu' }
-
-      await setWorkshopPreset(db, investmentId, parsed.data.id)
-      return { success: true }
-    },
-    [...KOSZTORYS_TREE_TAGS],
-  )
+    if (opened.libraryChanged) expireCollectionsAfterResponse(['presets'])
+    return { success: true, data: { investmentId: opened.investmentId, tree: opened.tree } }
+  })
 }
 
 // The tail-closer: the mirror's throttle loses the last change by definition, because no further
