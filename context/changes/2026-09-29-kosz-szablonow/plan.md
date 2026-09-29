@@ -365,6 +365,6 @@ Run once, after Phase 3:
 
 #### Automated
 
-- [x] 3.1 delete-forever-dialog.test.tsx — szablon always asks for the name
-- [x] 3.2 trash-contents.test.tsx — sections per kind, page-level empty state
-- [x] 3.3 preset-row-actions.test.tsx — confirm calls trashInvestmentAction
+- [x] 3.1 delete-forever-dialog.test.tsx — szablon always asks for the name — b84fd8c1
+- [x] 3.2 trash-contents.test.tsx — sections per kind, page-level empty state — b84fd8c1
+- [x] 3.3 preset-row-actions.test.tsx — confirm calls trashInvestmentAction — b84fd8c1
