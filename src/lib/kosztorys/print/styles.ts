@@ -1,4 +1,4 @@
-export const OFFER_PRINT_STYLES = `
+export const PRINT_STYLES = `
 /* Browsers drop every background when printing unless the document says the colour IS the content.
    Without this the section bands print white and a 150-row offer loses the only cue that tells one
    section from the next. */

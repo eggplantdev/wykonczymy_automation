@@ -1,9 +1,7 @@
-import { escapeHtml } from '@/lib/utils/escape-html'
 import {
   rowDiscountForView,
   rowDoneFraction,
   rowPlannedNetForView,
-  stageValueForView,
   viewPrice,
   type PriceViewT,
 } from '@/lib/kosztorys/calc'
@@ -13,17 +11,22 @@ import {
   rowTotalQtyDone,
   rowValueForView,
 } from '@/lib/kosztorys/settlement-rows'
-import { clientDocumentColumns } from '@/lib/kosztorys/client-view-settings'
-import { PREVIEW_VISIBLE_COLUMNS, columnLabelForView } from '@/lib/kosztorys/column-config'
-import { stageLabel } from '@/lib/kosztorys/stage-label'
+import { clientDocumentColumns } from '@/lib/kosztorys/client-view/settings'
+import { columnLabelForView } from '@/lib/kosztorys/column-config'
+import { PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/client-view/columns'
 import {
-  STAGE_VALUE_NET_COLUMN_GROUP,
-  STAGES_COLUMN_GROUP,
-  stageKey,
-  stageValueNetKey,
-} from '@/lib/kosztorys/stage-keys'
+  DESCRIPTION_COLUMN,
+  PLANNED_QTY_COLUMN,
+  UNIT_COLUMN,
+  moneyColumn,
+  qtyColumn,
+  stageNetColumns,
+  stageQtyColumns,
+  type PrintColumnT,
+} from '@/lib/kosztorys/print/columns'
+import { STAGE_VALUE_NET_COLUMN_GROUP, STAGES_COLUMN_GROUP } from '@/lib/kosztorys/stage-keys'
 import { decimalText } from '@/lib/utils/decimal-text'
-import type { KosztorysStageT, KosztorysV2RowT, StageKeyT } from '@/lib/kosztorys/types'
+import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 import type { ColumnRanksT } from '@/lib/table/column-order'
 
 // A złoty, no grosze: the sheet's offer prints „19 495 zł" and a client reading a scope of works has
@@ -36,117 +39,17 @@ import type { ColumnRanksT } from '@/lib/table/column-order'
 // The owner's sheet groups every figure.
 export const zloty = (n: number) =>
   `${Math.round(n).toLocaleString('pl-PL', { maximumFractionDigits: 0, useGrouping: 'always' })} zł`
-
-export type OfferColumnT = {
-  key: string
-  label: string
-  colClass: string
-  cellClass: string
-  headerClass: string
-  cell: (row: KosztorysV2RowT, view: PriceViewT, stages: KosztorysStageT[]) => string
-}
-
 // The offer is priced for the client and nothing else. Passed to every `cell` by the builder rather
 // than written into each one: a plane repeated per column can be changed in four of five places, and the
 // fifth would print one crew's stawka on a client's offer.
 export const OFFER_PRICE_VIEW: PriceViewT = 'client'
-
-export const DESCRIPTION_COLUMN: OfferColumnT = {
-  key: 'description',
-  label: 'Opis prac',
-  colClass: '',
-  cellClass: 'desc',
-  headerClass: '',
-  cell: (row) => escapeHtml(row.description ?? ''),
-}
-
-export const PLANNED_QTY_COLUMN: OfferColumnT = {
-  key: 'plannedQty',
-  label: 'Przedmiar',
-  colClass: 'c-qty',
-  cellClass: 'num',
-  headerClass: 'num',
-  cell: (row) => escapeHtml(formatQty(row.plannedQty)),
-}
-
-export const UNIT_COLUMN: OfferColumnT = {
-  key: 'unit',
-  label: 'Jednostka miary',
-  colClass: 'c-unit',
-  cellClass: 'unit',
-  headerClass: 'num',
-  cell: (row) => escapeHtml(row.unit ?? ''),
-}
-
-export const moneyColumn = (
-  key: string,
-  label: string,
-  cell: OfferColumnT['cell'],
-): OfferColumnT => ({
-  key,
-  label,
-  colClass: 'c-value',
-  cellClass: 'num value',
-  headerClass: 'num',
-  cell,
-})
-
-export const qtyColumn = (
-  key: string,
-  label: string,
-  cell: OfferColumnT['cell'],
-): OfferColumnT => ({
-  key,
-  label,
-  colClass: 'c-qty',
-  cellClass: 'num',
-  headerClass: 'num',
-  cell,
-})
-
-const perStage = (
-  stages: KosztorysStageT[],
-  column: (stage: KosztorysStageT, qtyKey: StageKeyT) => OfferColumnT,
-) => stages.map((stage) => column(stage, stageKey(stage.id)))
-
-export const stageQtyColumns = (stages: KosztorysStageT[]): OfferColumnT[] =>
-  perStage(stages, (stage, qtyKey) => ({
-    key: qtyKey,
-    label: stageLabel(stage),
-    colClass: 'c-stage-qty',
-    cellClass: 'num',
-    headerClass: 'num',
-    cell: (row) => (row[qtyKey] ? formatQty(row[qtyKey]) : ''),
-  }))
-
-// The share a stage's value is priced by, as the grid computes it.
-const stageNetValue = (
-  row: KosztorysV2RowT,
-  qtyKey: StageKeyT,
-  view: PriceViewT,
-  printStages: KosztorysStageT[],
-) => stageValueForView(row, row[qtyKey] ?? 0, rowTotalQtyDone(row, printStages, view), view)
-
-export const stageNetColumns = (
-  stages: KosztorysStageT[],
-  money: (amount: number) => string,
-): OfferColumnT[] =>
-  perStage(stages, (stage, qtyKey) =>
-    moneyColumn(
-      stageValueNetKey(stage.id),
-      `${stageLabel(stage)} netto`,
-      (row, view, printStages) =>
-        row[qtyKey] ? money(stageNetValue(row, qtyKey, view, printStages)) : '',
-    ),
-  )
-
 const clientLabel = (key: string) => columnLabelForView(key, OFFER_PRICE_VIEW)
 
 const DISCOUNT_TYPE_TEXT: Record<string, string> = { percent: '%', amount: 'zł' }
 
 // Every column of the client's document the paper can carry, keyed as CLIENT_DOCUMENT_COLUMNS names
 // it; a stage group expands to one column per etap.
-function offerColumnsByKey(stages: KosztorysStageT[]): Record<string, OfferColumnT[]> {
+function offerColumnsByKey(stages: KosztorysStageT[]): Record<string, PrintColumnT[]> {
   const discount = (row: KosztorysV2RowT, view: PriceViewT, printStages: KosztorysStageT[]) =>
     rowDiscountForView(row, rowTotalQtyDone(row, printStages, view), view)
   return {
@@ -215,7 +118,7 @@ export function offerPrintColumns(
   stages: KosztorysStageT[],
   hiddenColumns: readonly string[],
   columnRanks: ColumnRanksT,
-): OfferColumnT[] {
+): PrintColumnT[] {
   const byKey = offerColumnsByKey(stages)
   const visibleKeys = printableKeys(clientDocumentColumns(columnRanks), hiddenColumns)
   return visibleKeys.flatMap((key) => byKey[key] ?? [])

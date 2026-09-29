@@ -1,98 +1,8 @@
 import { escapeHtml } from '@/lib/utils/escape-html'
-import {
-  OFFER_PRICE_VIEW,
-  offerPrintColumns,
-  type OfferColumnT,
-  zloty,
-} from '@/lib/kosztorys/offer-print/columns'
-import { OFFER_PRINT_STYLES, WIDE_PRINT_STYLES } from '@/lib/kosztorys/offer-print/styles'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
-import { bypassedByGlobalDiscount } from '@/lib/kosztorys/column-config'
-import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
-import { applyRowConditions, clientConditionIds } from '@/lib/kosztorys/row-conditions/queries'
-import { emptySettlementColumnIds } from '@/lib/kosztorys/settlement-columns'
+import type { PrintColumnT } from '@/lib/kosztorys/print/columns'
+import { PRINT_STYLES } from '@/lib/kosztorys/print/styles'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
-
-export type OfferPrintArgsT = {
-  rows: KosztorysV2RowT[]
-  stages: KosztorysStageT[]
-  // The investment's stored client-view settings — the same ones the podgląd and the shared link
-  // obey. The offer is that document on paper, so it asks them rather than deciding for itself.
-  settings: ClientViewSettingsT
-  investmentName: string
-  logoUrl: string
-  // Resolved CSS colours keyed by the section's palette key — the popup is its own document with no
-  // stylesheet, so the `--color-section-*` vars have to arrive already computed. A Map, not a
-  // `Record`: `sectionColor` comes off a row, and `'__proto__'` on an object literal reaches
-  // `Object.prototype` instead of missing.
-  fillByColorKey: ReadonlyMap<string, string>
-  // „Razem" under „Wartość netto przedmiar", straight from the editor. The print does not add up its
-  // own rows: the same figure summed twice is the one way paper and screen can disagree.
-  totalNet: number
-  // The same figure per section, keyed by `sectionId`. A section with no entry gets no total row —
-  // an absent figure is honester than a printed `0 zł`.
-  sectionNetById: ReadonlyMap<number, number>
-}
-
-/**
- * The pozycje an offer actually contains: the client's own hider and nothing else — `clientConditionIds`
- * owns which conditions may reach a client, and the grid's plane, search and the owner's own filters
- * are reading gestures that say nothing about what is being offered.
- *
- * Exported because the caller has to know whether there is an offer BEFORE it opens a print window:
- * a kosztorys whose every pozycja is empty on both axes passes a `rows.length` guard and prints a
- * branded header over an empty table.
- */
-export function offeredRows(
-  rows: KosztorysV2RowT[],
-  stages: KosztorysStageT[],
-  settings: ClientViewSettingsT,
-): KosztorysV2RowT[] {
-  return applyRowConditions(rows, clientConditionIds(settings.hideEmptyRows), {
-    stages,
-    hasSettledMaterial: false,
-    divergentPriceRowIds: new Set(),
-  })
-}
-
-// The default offer's six columns fit portrait with the opis still ~70mm; a seventh leaves it ~47mm.
-// Past that the owner has widened the document with etap columns and it turns landscape.
-const PORTRAIT_COLUMN_LIMIT = 7
-
-export function buildOfferPrintHtml({
-  rows,
-  stages,
-  settings,
-  investmentName,
-  logoUrl,
-  fillByColorKey,
-  totalNet,
-  sectionNetById,
-}: OfferPrintArgsT): string {
-  // Before the portrait/landscape count, so an offer with no entries prints as narrow as it reads.
-  const empty = emptySettlementColumnIds(rows, stages)
-  const globalDiscountActive = rows.some((row) => row.globalDiscountActive)
-  const columns = offerPrintColumns(stages, settings.hiddenColumns, settings.columnRanks).filter(
-    (column) =>
-      !empty.has(column.key) && !bypassedByGlobalDiscount(column.key, globalDiscountActive),
-  )
-  return buildKosztorysPrintHtml({
-    rows: offeredRows(rows, stages, settings),
-    stages,
-    columns,
-    priceView: OFFER_PRICE_VIEW,
-    documentKind: 'Kosztorys ofertowy',
-    title: investmentName,
-    pageTitle: investmentName,
-    logoUrl,
-    fillByColorKey,
-    moneyKey: 'plannedNet',
-    money: zloty,
-    totalNet,
-    sectionNetById,
-    extraStyles: columns.length > PORTRAIT_COLUMN_LIMIT ? WIDE_PRINT_STYLES : '',
-  })
-}
 
 export type KosztorysPrintArgsT = {
   // Already the rows to print — which pozycje an audience sees is its own rule, decided by the caller.
@@ -100,7 +10,7 @@ export type KosztorysPrintArgsT = {
   stages: KosztorysStageT[]
   // Already capped by the audience's ceiling: this builder renders what it is handed and knows no
   // allowlist of its own.
-  columns: readonly OfferColumnT[]
+  columns: readonly PrintColumnT[]
   priceView: PriceViewT
   documentKind: string
   title: string
@@ -228,7 +138,7 @@ export function buildKosztorysPrintHtml({
 <head>
 <meta charset="utf-8">
 <title>${escapeHtml(pageTitle)}</title>
-<style>${OFFER_PRINT_STYLES}${extraStyles}</style>
+<style>${PRINT_STYLES}${extraStyles}</style>
 </head>
 <body>
 ${brand}

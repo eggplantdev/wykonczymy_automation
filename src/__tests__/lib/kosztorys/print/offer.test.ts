@@ -1,22 +1,19 @@
 import { describe, expect, it } from 'vitest'
 
-import {
-  buildOfferPrintHtml,
-  type OfferPrintArgsT,
-} from '@/lib/kosztorys/offer-print/build-offer-print-html'
-import { printableKeys } from '@/lib/kosztorys/offer-print/columns'
+import { buildOfferPrintHtml, type OfferPrintArgsT } from '@/lib/kosztorys/print/offer'
+import { printableKeys } from '@/lib/kosztorys/print/offer-columns'
+import { columnLabelForView } from '@/lib/kosztorys/column-config'
 import {
   CLIENT_DOCUMENT_COLUMNS,
   PREVIEW_VISIBLE_COLUMNS,
-  columnLabelForView,
-} from '@/lib/kosztorys/column-config'
+} from '@/lib/kosztorys/client-view/columns'
 import { planePriceKeysFor } from '@/lib/kosztorys/plane-price-keys'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
 import { columnTotalsForRows } from '@/lib/kosztorys/column-totals'
 import { groupBySection } from '@/lib/kosztorys/row-ops'
 import { rowRemainingForView } from '@/lib/kosztorys/settlement-rows'
-import { sanitizeClientViewSettings } from '@/lib/kosztorys/client-view-settings'
+import { sanitizeClientViewSettings } from '@/lib/kosztorys/client-view/settings'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { CTX, row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'

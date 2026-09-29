@@ -2,12 +2,10 @@ import { escapeHtml } from '@/lib/utils/escape-html'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDate } from '@/lib/utils/format-date'
 import { columnTotalsForRows } from '@/lib/kosztorys/column-totals'
-import {
-  buildKosztorysPrintHtml,
-  offeredRows,
-} from '@/lib/kosztorys/offer-print/build-offer-print-html'
-import { WIDE_PRINT_STYLES } from '@/lib/kosztorys/offer-print/styles'
-import { workerPrintColumns } from '@/lib/kosztorys/offer-print/worker-columns'
+import { buildKosztorysPrintHtml } from '@/lib/kosztorys/print/build-html'
+import { documentRows } from '@/lib/kosztorys/print/document-rows'
+import { WIDE_PRINT_STYLES } from '@/lib/kosztorys/print/styles'
+import { workerPrintColumns } from '@/lib/kosztorys/print/worker-columns'
 import { groupBySection } from '@/lib/kosztorys/row-ops'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import type { WorkerSummaryT } from '@/lib/kosztorys/worker-view/summary'
@@ -65,7 +63,7 @@ export function buildWorkerPrintHtml({ data, logoUrl, fillByColorKey }: WorkerPr
   return buildKosztorysPrintHtml({
     // The link's own empty-rows rule: an empty pozycja is worth nothing at any stawka, so dropping
     // it moves no total.
-    rows: offeredRows(rows, stages, worker.settings),
+    rows: documentRows(rows, stages, worker.settings.hideEmptyRows),
     stages,
     columns: workerPrintColumns({
       plane: worker.plane,

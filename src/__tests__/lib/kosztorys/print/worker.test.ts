@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildWorkerPrintHtml } from '@/lib/kosztorys/offer-print/build-worker-print-html'
+import { buildWorkerPrintHtml } from '@/lib/kosztorys/print/worker'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import { computeWorkerSummary } from '@/lib/kosztorys/worker-view/summary'
 import type { WorkerViewSettingsT } from '@/lib/kosztorys/worker-view/settings'

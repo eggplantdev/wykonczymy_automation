@@ -8,8 +8,8 @@ import {
   qtyColumn,
   stageNetColumns,
   stageQtyColumns,
-  type OfferColumnT,
-} from '@/lib/kosztorys/offer-print/columns'
+  type PrintColumnT,
+} from '@/lib/kosztorys/print/columns'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import {
   rowRemainingForExecutedQty,
@@ -47,10 +47,10 @@ export function workerPrintColumns({
   hiddenColumns,
   columnRanks,
   executedQtyByItem,
-}: WorkerPrintColumnsArgsT): OfferColumnT[] {
+}: WorkerPrintColumnsArgsT): PrintColumnT[] {
   const visible = workerVisibleColumns(plane, hiddenColumns)
   const rateKey = planePriceKey('price', plane)
-  const byKey: Record<string, OfferColumnT[]> = {
+  const byKey: Record<string, PrintColumnT[]> = {
     description: [DESCRIPTION_COLUMN],
     plannedQty: [PLANNED_QTY_COLUMN],
     unit: [UNIT_COLUMN],
