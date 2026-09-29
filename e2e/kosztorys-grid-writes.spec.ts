@@ -58,8 +58,9 @@ async function typeStageQty(
   await commitCellValue(cell, String(qty))
 }
 
-// Count the full-route refreshes the editor asks for. `router.refresh()` re-fetches the CURRENT
-// route as an RSC payload, so it is visible as a request to this pathname carrying `RSC: 1` — a
+// Count the full-route refetches of the editor. A refetch — a `router.refresh()`, or the router
+// re-reading an entry an autosave marked stale — pulls the CURRENT route as an RSC payload, so it is
+// visible as a request to this pathname carrying `RSC: 1` — a
 // prefetch carries the same header and is excluded by its own. Counting requests rather than reading
 // the hook is deliberate: the cost EX-604 is about is the payload on the wire.
 function countRouteRefreshes(page: Page, pathname: string): () => number {
@@ -127,14 +128,12 @@ test('a run of cell edits reaches Postgres and refreshes the route once, not onc
   await expandSummaryPanel(page)
   await expect(page.getByText(formatNet(executedNet)).first()).toBeVisible({ timeout: 20_000 })
 
-  // Two things fetch this route per edit, and the ceiling is what separates them from a third.
-  // Every autosave expires its tag, which marks the client router's entry stale and costs ONE refetch
-  // no matter what the editor does; the editor's trailing `router.refresh()` costs a second, because
-  // 700 ms of debounce cannot coalesce cells a person — or Playwright — takes longer than that to
-  // type. Both are the floor. What EX-604 removed is the autosave's OWN route re-render, a third
-  // fetch per cell, so two-per-edit passes and the regression does not.
+  // Every autosave expires its tag after the response, which marks the client router's entry stale and
+  // costs ONE refetch per edit — that is the floor. A second per edit is a client-side refresh stacked
+  // on top of it (EX-908 removed the editor's trailing one), and a third would be the autosave's own
+  // route re-render that EX-604 removed.
   expect(refreshes()).toBeGreaterThanOrEqual(1)
-  expect(refreshes()).toBeLessThanOrEqual(typed.length * 2)
+  expect(refreshes()).toBeLessThanOrEqual(typed.length)
 
   // The grid seeds its rows into `useState` at mount, so „the value is on screen" and „the value is
   // in Postgres" are two different facts — only a reload reads the second, and only once every save

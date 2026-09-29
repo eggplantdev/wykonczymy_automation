@@ -21,6 +21,7 @@ export function ClearKosztorysDialog() {
 
   function handleConfirm() {
     startTransition(async () => {
+      let refetch = false
       try {
         const result = await clearKosztorysAction(investmentId)
         if (!result.success) {
@@ -32,9 +33,10 @@ export function ClearKosztorysDialog() {
         // A transport-level rejection can arrive AFTER the transaction committed, so the grid may
         // already be rendering rows that no longer exist. Refreshing regardless is the safe read.
         toastMessage(`Czyszczenie przerwane — odświeżam ${noun.nominative}`, 'error', 6000)
+        refetch = true
       }
       onOpenChange(false)
-      onTreeReplaced?.()
+      onTreeReplaced?.({ refetch })
     })
   }
 

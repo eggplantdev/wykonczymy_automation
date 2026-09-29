@@ -1,7 +1,6 @@
 'use client'
 
 import { useDeferredValue, useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { CatalogueItemFromKosztorysDialog } from '@/components/kosztorys/editor/dialogs/catalogue/catalogue-item-from-kosztorys-dialog'
 import { SheetReportBlock } from '@/components/kosztorys/editor/dialogs/report/sheet-report-block'
@@ -51,7 +50,6 @@ export function CatalogueCompareDialog() {
     toggleConditionExclusive,
     noun,
   } = useKosztorysEditorContext()
-  const router = useRouter()
   // One dialog for the whole list, keyed by the praca it is about — mounting one per row would fetch
   // a preview for every „brak w katalogu" position the moment the fold opens.
   const [savingItemId, setSavingItemId] = useState<number | null>(null)
@@ -162,9 +160,6 @@ export function CatalogueCompareDialog() {
           catalogue={workCatalogue ?? []}
           open
           onOpenChange={() => setSavingItemId(null)}
-          // A fresh cennik, not a re-read of the comparison: the save already invalidated the tag, and
-          // `rows` is a mount-frozen seed, so unsaved wiersze survive the refresh.
-          onSaved={() => router.refresh()}
         />
       )}
     </>

@@ -52,7 +52,7 @@ export function useKosztorysSettings({
   // Global discount in local state (like `rows`/`stages`): the toggle patches it optimistically so
   // the derived total, column visibility, and per-item suppression all move in one render. Reading
   // `tree.globalDiscount` instead would leave the total + columns lagging the row flag until
-  // router.refresh() lands — the transient the "never disagree" invariant below forbids.
+  // the action's render lands — the transient the "never disagree" invariant below forbids.
   const [globalDiscount, setGlobalDiscount] = useState<GlobalDiscountT>(tree.globalDiscount)
   const globalDiscountActive = isGlobalDiscountActive(globalDiscount)
   // Undo/redo call applyGlobalDiscount through a closure captured when the entry was pushed, where
@@ -116,9 +116,9 @@ export function useKosztorysSettings({
   }
 
   // Changing the per-investment VAT rate recomputes every brutto figure. vatRate is denormalized
-  // on every row, so patch them all optimistically (router.refresh alone won't reseed `rows` — the
-  // useState initializer runs once at mount); then persist + refresh for the panel. `vatRate` is a
-  // fraction (0.08), converted from the panel's percent input at the commit site.
+  // on every row, so patch them all optimistically (the action's render alone won't reseed `rows` —
+  // the useState initializer runs once at mount); then persist, and the action's render carries the
+  // panel. `vatRate` is a fraction (0.08), converted from the panel's percent input at the commit site.
   async function applyVat(vatRate: number) {
     const prevVatRate = rowsRef.current[0]?.vatRate
     patchRows(
@@ -173,7 +173,7 @@ export function useKosztorysSettings({
   }
 
   // The settlement mode isn't denormalized onto the rows, so there's nothing to patch optimistically:
-  // persist, then let the refresh reseed `tree` for the panel that reads it.
+  // persist, then let the action's render reseed `tree` for the panel that reads it.
   async function applySettlementMode(mode: SettlementModeT) {
     return optimisticSettingSave(
       () => updateInvestmentSettlementModeAction(investmentId, mode),
@@ -195,7 +195,7 @@ export function useKosztorysSettings({
   }
 
   // Same shape as the settlement mode: not denormalized onto the rows, so there is nothing to patch
-  // optimistically — persist, then let the refresh reseed `tree` for the panel that reads it.
+  // optimistically — persist, then let the action's render reseed `tree` for the panel that reads it.
   async function applyMaterialsNetRate(rate: number | null) {
     return optimisticSettingSave(
       () => updateInvestmentMaterialsNetRateAction(investmentId, rate),

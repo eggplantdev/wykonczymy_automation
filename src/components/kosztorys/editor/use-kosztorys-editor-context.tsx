@@ -5,6 +5,10 @@ import type { useKosztorysEditor } from '@/components/kosztorys/editor/use-koszt
 import type { EditorNounT } from '@/lib/kosztorys/editor-noun'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 
+// `refetch` only when the replacing action threw: its render never arrived, so the fresh tree must be
+// asked for.
+export type OnTreeReplacedT = (opts?: { refetch?: boolean }) => void
+
 // Everything the editor hook owns plus the four values its caller supplies. The toolbar and its
 // controls read straight from here, so KosztorysEditorBody relays none of it.
 type KosztorysEditorContextT = ReturnType<typeof useKosztorysEditor> & {
@@ -13,8 +17,9 @@ type KosztorysEditorContextT = ReturnType<typeof useKosztorysEditor> & {
   tree: KosztorysTreeT
   // Absent in preview — the versions button lives in the toolbar, which the client render omits.
   onOpenVersions?: () => void
-  // Fires after the whole tree is swapped out (version restore, sheet import) — remounts the body.
-  onTreeReplaced?: () => void
+  // Fires after the whole tree is swapped out (version restore, sheet import, reload, clear) — remounts
+  // the body.
+  onTreeReplaced?: OnTreeReplacedT
   // Opens „Pobierz z arkusza Google". Owned above the toolbar because the empty-kosztorys screen
   // offers it too. Absent in preview, which renders neither trigger.
   openImport?: () => void

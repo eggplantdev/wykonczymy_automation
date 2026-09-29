@@ -2,8 +2,9 @@
 
 import { useCallback, useState } from 'react'
 import { previewKosztorysImport, type ImportPreviewT } from '@/lib/actions/kosztorys-import'
+import type { OnTreeReplacedT } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
-type OptionsT = { investmentId: number; onTreeReplaced?: () => void }
+type OptionsT = { investmentId: number; onTreeReplaced?: OnTreeReplacedT }
 
 /**
  * „Pobierz z arkusza Google" as a single piece of state, because it has two triggers — the
@@ -42,6 +43,11 @@ export function useSheetImport({ investmentId, onTreeReplaced }: OptionsT) {
     readPreview()
   }, [readPreview])
 
+  const onImported: OnTreeReplacedT = (opts) => {
+    setPreview(null)
+    onTreeReplaced?.(opts)
+  }
+
   return {
     openImport,
     importDialogProps: {
@@ -52,10 +58,7 @@ export function useSheetImport({ investmentId, onTreeReplaced }: OptionsT) {
       error,
       loaded,
       onMappingSaved: readPreview,
-      onImported: () => {
-        setPreview(null)
-        onTreeReplaced?.()
-      },
+      onImported,
     },
   }
 }

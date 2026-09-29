@@ -38,11 +38,13 @@ export function KosztorysEditorV2(props: PropsT) {
   revisionRef.current = undoRedo.revision
   const autoSnapshot = useAutoSnapshot(investmentId, revisionRef)
 
-  // Shared by every path that swaps the whole tree under the editor — restoring a version and
-  // importing the Google sheet both land here.
-  function handleTreeReplaced() {
-    router.refresh()
+  // Shared by every path that swaps the whole tree under the editor — restoring a version, importing
+  // the Google sheet, reloading from a szablon and clearing all land here. The action's own render
+  // carries the fresh tree into the latch; `refetch` is for a caller whose action threw, so no render
+  // arrived and one has to be asked for.
+  function handleTreeReplaced({ refetch }: { refetch?: boolean } = {}) {
     triggerRestore()
+    if (refetch) router.refresh()
     // Reseeding the whole grid via a body remount — drop the stack whose commands close over
     // the outgoing body's state.
     undoRedo.reset()

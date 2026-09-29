@@ -79,6 +79,7 @@ export function ReloadFromPresetDialog() {
   function handleConfirm() {
     if (!selected) return
     startTransition(async () => {
+      let refetch = false
       try {
         const result = await reloadFromPresetAction(investmentId, selected.presetId)
         if (!result.success) {
@@ -91,9 +92,10 @@ export function ReloadFromPresetDialog() {
         // already be rendering rows that no longer exist. Refreshing regardless is the safe read —
         // on a genuinely failed call it just re-fetches the unchanged tree.
         toastMessage('Wczytywanie przerwane — odświeżam kosztorys', 'error', 6000)
+        refetch = true
       }
       handleOpenChange(false)
-      onTreeReplaced?.()
+      onTreeReplaced?.({ refetch })
     })
   }
 
