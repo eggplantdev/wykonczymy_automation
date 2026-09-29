@@ -1567,14 +1567,15 @@ localStorage, lustro, cache) musiał wiedzieć, który szablon warsztat akurat t
 - **Nadpisanie szablonu** („Zapisz jako szablon" → „Nadpisz istniejący") zostawia na nim punkt
   „Przed nadpisaniem: <źródło>", więc jest odwracalne z jego „Wersji".
 
-**Wdrożenie na produkcję to dwie migracje, rozdzielone deployem.** `20260929_1_szablon_as_investment`
-(addytywna: zakłada szablony z jsonb, przepina punkty przywracania) idzie na Neona **przed** pushem
-kodu. `20260929_2_drop_kosztorys_presets` (destrukcyjna: warsztat, tabela, kolumny
-`template_preset_id`) — **dopiero gdy nowy deploy żyje**, bo stary kod czyta te kolumny w każdym
-`payload.find` na inwestycjach (42703). Między A a deployem nie edytuje się szablonów: stary kod pisze
-jeszcze do jsonb, a A już go przepisała. B rozpoznaje warsztat jako najstarszy `szablon` bez nazwy
-z biblioteki, nigdy po wskaźniku — usunięcie otwartego szablonu zeruje wskaźnik (tak było na prodzie
-29.09).
+**Wdrożenie na produkcję (29.09): najpierw deploy, potem jeden `payload migrate`.** Migracja
+`20260929_1_szablon_as_investment` jest addytywna, a `20260929_2_drop_kosztorys_presets` destrukcyjna.
+Między nimi stoi jeszcze `20260929_0` (EX-886, też destrukcyjna). `payload migrate` puszcza wszystko,
+co czeka, więc „1 przed pushem, 2 po deployu” było niewykonalne. Poszedł więc deploy, a po nim jeden
+przebieg wszystkich trzech. Stary kod nie mógł zobaczyć migracji `_2`, bo czyta `template_preset_id`
+w każdym `payload.find` na inwestycjach (42703). Nowy kod bez `_1` psuje tylko szablony, i to na te
+kilka minut.
+`_2` rozpoznaje warsztat jako najstarszy `szablon` bez nazwy z biblioteki, nigdy po wskaźniku:
+usunięcie otwartego szablonu zeruje wskaźnik, i tak właśnie było na prodzie 29.09.
 
 **Kosztorysy zasiane z szablonu są kopiami zamrożonymi** — edycja szablonu nigdy nie rusza
 istniejących kosztorysów. To zdanie znosi jedyny argument, który mógłby bronić jawnego „Zapisz"
