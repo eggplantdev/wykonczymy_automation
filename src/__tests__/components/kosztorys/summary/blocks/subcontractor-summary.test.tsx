@@ -49,6 +49,7 @@ const DUE: SubcontractorDueByPlaneT = {
     [CELINA, 1_000],
     [null, 2_000],
   ]),
+  unconfirmedWorkers: new Set(),
 }
 
 const PAYOUTS: PayoutTransactionRowT[] = [

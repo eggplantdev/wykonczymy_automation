@@ -6,6 +6,7 @@ import { getDb, type DbExecutorT } from '@/lib/db/get-db'
 import { selectDepositPlaneSums } from '@/lib/db/deposit-plane-sums'
 import { selectKosztorysClientTotals } from '@/lib/db/kosztorys-client-totals'
 import { selectKosztorysSubcontractorDue } from '@/lib/db/kosztorys-subcontractor-due'
+import { selectWorkerPayoutPairs, type WorkerPayoutPairRowT } from '@/lib/db/worker-payout-pairs'
 import type { SubcontractorSettlementT } from '@/lib/kosztorys/subcontractor-due'
 import type { DepositPlaneSumsT } from '@/lib/kosztorys/deposit-planes'
 import {
@@ -145,4 +146,18 @@ export const fetchDepositPlaneSums = cachedInvestmentMap(
   'fetchDepositPlaneSums',
   selectDepositPlaneSums,
   [CACHE_TAGS.transfers],
+)
+
+// Both planes move a pair: executed work on the kosztorys side, wypłaty on the transfers side. A flat
+// row array rather than `cachedInvestmentMap` — an investment carries one row per worker.
+export const fetchWorkerPayoutPairs = unstable_cache(
+  async (): Promise<WorkerPayoutPairRowT[]> => {
+    const elapsed = perfStart()
+    const payload = await getPayload({ config })
+    const rows = await selectWorkerPayoutPairs(await getDb(payload))
+    console.log(`[PERF] query.fetchWorkerPayoutPairs ${elapsed()}ms (${rows.length} pairs)`)
+    return rows
+  },
+  ['worker-payout-pairs-v1'],
+  { tags: [...KOSZTORYS_CLIENT_TOTALS_TAGS, CACHE_TAGS.transfers] },
 )

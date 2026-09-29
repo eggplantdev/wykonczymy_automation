@@ -32,6 +32,10 @@ export type SubcontractorDueByPlaneT = {
   // - a plane-less etap credits nobody, assigned or not — it is skipped before this map is touched,
   //   so a worker can hold etapy and still owe 0 (`hasUnconfirmedPlane` is what says why).
   byWorker: Map<number | null, number>
+  // Who holds a plane-less etap WITH executed qty (`null` = unassigned) — the per-worker half of
+  // `hasUnconfirmedPlane`, which is exactly `unconfirmedWorkers.size > 0`. Lets one worker's figure
+  // be withheld while the others on the same investment still compute.
+  unconfirmedWorkers: Set<number | null>
 }
 
 /**
@@ -56,7 +60,7 @@ export function subcontractorDueByPlane(
 ): SubcontractorDueByPlaneT {
   let wTools = 0
   let ownTools = 0
-  let hasUnconfirmedPlane = false
+  const unconfirmedWorkers = new Set<number | null>()
   const byStage = new Map<number, number>()
   const byWorker = new Map<number | null, number>()
   for (const st of stages) {
@@ -66,7 +70,7 @@ export function subcontractorDueByPlane(
       // Gated on the etap actually holding qty: the badge this drives claims the sum is SHORT, and a
       // freshly added empty etap makes that claim false — it would scream about missing money that
       // does not exist yet.
-      hasUnconfirmedPlane ||= rows.some((row) => row[key])
+      if (rows.some((row) => row[key])) unconfirmedWorkers.add(st.workerId)
       continue
     }
     let planeTotal = 0
@@ -79,7 +83,15 @@ export function subcontractorDueByPlane(
     byStage.set(st.id, planeTotal)
     byWorker.set(st.workerId, (byWorker.get(st.workerId) ?? 0) + planeTotal)
   }
-  return { wTools, ownTools, combined: wTools + ownTools, hasUnconfirmedPlane, byStage, byWorker }
+  return {
+    wTools,
+    ownTools,
+    combined: wTools + ownTools,
+    hasUnconfirmedPlane: unconfirmedWorkers.size > 0,
+    byStage,
+    byWorker,
+    unconfirmedWorkers,
+  }
 }
 
 /** The per-plane fold narrowed to what a margin reader needs. One projection instead of a literal
