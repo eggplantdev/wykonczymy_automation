@@ -318,8 +318,8 @@ rozliczenia znikają, dopóki żaden etap nie ma wpisu. Oferta wysłana przed pr
 czysta bez żadnego klikania, a pierwszy wpis w etapie dociera do linku, który inwestor już ma.
 „Pozostało" do tej reguły nie należy: przed pracą to cały przedmiar, liczba prawdziwa — domyślnie jest
 ukryte i ukrywa je tylko wybór właściciela. Ta sama reguła obowiązuje podgląd, link, PDF i zakładkę
-„Robocizna" w podsumowaniu inwestora („Brak etapów.", gdy żaden nie ma wpisów); nie dotyczy widoku
-pracownika. Liczona z NIEPRZEFILTROWANYCH pozycji (`settlement-columns.ts`), żeby kolumna nie
+„Robocizna" w podsumowaniu inwestora („Brak etapów.", gdy żaden nie ma wpisów); widok pracownika
+stosuje ją nad swoimi etapami (niżej). Liczona z NIEPRZEFILTROWANYCH pozycji (`settlement-columns.ts`), żeby kolumna nie
 pojawiała się i nie znikała, gdy inwestor przełącza „Pokaż wszystkie pozycje".
 
 Reguły, które trzymają to razem:
@@ -402,6 +402,14 @@ właśnie po to, żeby jej nie przepisywać.
   pomija wiersze na minusie, jak u właściciela (EX-885).
 - **Puste pozycje** — ta sama dwuosiowa reguła co u inwestora, z osią „wykonane" = jego etapy, więc
   ukrycie nie rusza żadnej sumy podsumowania.
+- **Kolumny rozliczenia pojawiają się po pierwszym wpisie w JEGO etapach** (właściciel, 2026-09-29 —
+  odwraca wcześniejsze „pusty etap inwestora to nie powód, by ukryć go przed ekipą"). Reguła
+  inwestora: przed pracą „Pomiar (razem etapy)", „Wartość wykonana" i kolumny etapów znikają, a etap
+  bez wpisów nie pojawia się nigdy. Wpis innej ekipy nie zmienia jego dokumentu — projekcja zna tylko
+  jego etapy. Do tego checkbox firmowy „Ukryj przedmiar i wartość przedmiaru, gdy w etapach są już
+  wpisy" (domyślnie zaznaczony): po pierwszym wpisie „Przedmiar" i „Wartość przedmiaru netto"
+  schodzą z dokumentu, a sumy sekcji w PDF liczą wtedy wartość wykonaną. „Pozostało" i podsumowanie
+  nie podlegają checkboxowi. Jedna funkcja (`workerDataHiddenColumns`) karmi link, Podgląd i PDF.
 - **Podsumowanie**: wartość przedmiaru po jego stawce → wykonane per etap + razem → wypłacone (lista:
   data i kwota, **bez opisu** — opis bywa wewnętrzną notatką) → pozostało do wypłaty; nadwyżka
   wypłat to „Nadpłata" z dodatnią kwotą, nigdy liczba ujemna.

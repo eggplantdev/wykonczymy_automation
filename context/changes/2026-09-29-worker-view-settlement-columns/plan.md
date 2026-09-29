@@ -247,14 +247,14 @@ before the push that ships the code.
 
 #### Automated
 
-- [x] 1.1 Settings spec covers default, stored false, garbage
-- [x] 1.2 Migration applies to the local DB
+- [x] 1.1 Settings spec covers default, stored false, garbage — 5c37d4b5
+- [x] 1.2 Migration applies to the local DB — 5c37d4b5
 
 ### Phase 2: The column rule on all three surfaces
 
 #### Automated
 
-- [ ] 2.1 Unit spec for workerDataHiddenColumns
-- [ ] 2.2 Grid worker-columns spec
-- [ ] 2.3 Investor preview-columns spec unchanged after rename
-- [ ] 2.4 Worker PDF spec
+- [x] 2.1 Unit spec for workerDataHiddenColumns
+- [x] 2.2 Grid worker-columns spec
+- [x] 2.3 Investor preview-columns spec unchanged after rename
+- [x] 2.4 Worker PDF spec

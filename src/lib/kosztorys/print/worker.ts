@@ -8,6 +8,7 @@ import { WIDE_PRINT_STYLES } from '@/lib/kosztorys/print/styles'
 import { workerPrintColumns } from '@/lib/kosztorys/print/worker-columns'
 import { groupBySection } from '@/lib/kosztorys/row-ops'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
+import { workerDataHiddenColumns } from '@/lib/kosztorys/worker-view/columns'
 import type { WorkerSummaryT } from '@/lib/kosztorys/worker-view/summary'
 import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
 
@@ -45,18 +46,20 @@ ${rows.join('\n')}
 /**
  * The worker's PDF, built off the same projection his link renders — never the editor's rows, which
  * carry every etap and the client price. The totals are the projection's own: the grand total is the
- * summary's `plannedNet`, so the paper cannot add up to a figure the footer contradicts.
+ * summary's figure for the money column, so the paper cannot add up to one the footer contradicts.
  */
 export function buildWorkerPrintHtml({ data, logoUrl, fillByColorKey }: WorkerPrintArgsT): string {
   const { tree, worker, investmentName } = data
   const rows = treeToRows(tree)
   const { stages } = tree
+  const dataHidden = workerDataHiddenColumns(rows, stages, worker.settings.hidePlannedOnceExecuted)
+  // With the przedmiar's value off the paper, the section totals follow the executed value — left on
+  // „Wartość przedmiaru" they would vanish with it (build-html prints them under the money column).
+  const moneyKey = dataHidden.has('plannedNetForPlane') ? 'net' : 'plannedNetForPlane'
   const sectionNetById = new Map(
     [...groupBySection(rows)].map(([sectionId, rowsOfSection]) => [
       sectionId,
-      columnTotalsForRows(rowsOfSection, stages, worker.plane, tree.vatRate).get(
-        'plannedNetForPlane',
-      ) ?? 0,
+      columnTotalsForRows(rowsOfSection, stages, worker.plane, tree.vatRate).get(moneyKey) ?? 0,
     ]),
   )
 
@@ -70,15 +73,15 @@ export function buildWorkerPrintHtml({ data, logoUrl, fillByColorKey }: WorkerPr
       hiddenColumns: worker.settings.hiddenColumns,
       columnRanks: worker.settings.columnRanks,
       executedQtyByItem: worker.executedQtyByItem,
-    }),
+    }).filter((column) => !dataHidden.has(column.key)),
     documentKind: `Kosztorys — ${worker.name}`,
     title: investmentName,
     pageTitle: `${investmentName} — ${worker.name}`,
     logoUrl,
     fillByColorKey,
-    moneyKey: 'plannedNetForPlane',
+    moneyKey,
     money: formatPLN,
-    totalNet: worker.summary.plannedNet,
+    totalNet: moneyKey === 'net' ? worker.summary.executedNet : worker.summary.plannedNet,
     sectionNetById,
     extraStyles: WIDE_PRINT_STYLES,
     footerHtml: workerFooterHtml(worker.summary),
