@@ -82,7 +82,7 @@ export function PromoteLeadDialog({ lead }: { lead: LeadRowT }) {
     review: '',
     // Nobody has agreed to do this work yet — a zgłoszenie is an enquiry, and „aktywna" would put
     // it among the jobs actually running.
-    status: 'planowana',
+    status: 'quote',
     presetId: '',
   }
 
