@@ -57,3 +57,15 @@ export function usePersistedEnum<T extends string>(
   const setValue = useCallback((next: T) => writeEnum(storageKey, next), [storageKey])
   return [value, setValue]
 }
+
+/** A boolean over the same store, saved as the caller's own `[whenTrue, whenFalse]` words so a
+ *  preference stored under them keeps reading back. `words` must be a module-level constant. */
+export function usePersistedFlag(
+  storageKey: string,
+  words: readonly [string, string],
+  fallback: boolean,
+): [boolean, (next: boolean) => void] {
+  const [whenTrue, whenFalse] = words
+  const [state, setState] = usePersistedEnum(storageKey, words, fallback ? whenTrue : whenFalse)
+  return [state === whenTrue, (next) => setState(next ? whenTrue : whenFalse)]
+}
