@@ -42,6 +42,12 @@ export type InvestmentRowT = {
    *  `null` because TanStack's `sortUndefined` is the only thing that keeps those rows out of the
    *  numeric comparator, which would read them as 0. */
   marginV2?: number
+  /** The kosztorys Podwykonawcy headline „Pozostało do wypłaty": należne for executed work minus
+   *  the wypłaty booked. Negative when the crews were paid ahead of the work. Absent both without a
+   *  kosztorys (it would read −wypłaty and sort among real overpayments) and where an etap holds
+   *  work with no rozliczenie (the należne is short) — `undefined` for the same `sortUndefined`
+   *  reason as `marginV2`; the cell tells the two apart by `hasKosztorys`. */
+  subcontractorRemaining?: number
   address: string
   phone: string
   email: string

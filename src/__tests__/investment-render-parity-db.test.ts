@@ -25,6 +25,9 @@ import { selectKosztorysClientTotals } from '@/lib/db/kosztorys-client-totals'
 import { selectKosztorysSubcontractorDue } from '@/lib/db/kosztorys-subcontractor-due'
 import { marginV2 } from '@/lib/kosztorys/margin-v2'
 import { subcontractorDueByPlane, toSettlement } from '@/lib/kosztorys/subcontractor-due'
+import { computeSubcontractorSummary } from '@/lib/kosztorys/subcontractor-summary'
+import { derivePayoutsByWorker } from '@/lib/kosztorys/payouts-by-worker'
+import { getPayoutTransactionsForInvestment } from '@/lib/db/get-payout-transactions'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import { buildKosztorysTree } from '@/lib/queries/kosztorys'
 import { financialsOnReading, readingFromKosztorys } from '@/lib/kosztorys/summary-reading'
@@ -126,7 +129,7 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
     // wydatek, so `materialsNetBilled` and the „wszystko netto" concession would be compared on
     // nobody while the spec passes green. Counted in the COMPARED set, not queried from the DB — a
     // row that exists but never reaches a comparison guards nothing.
-    const covered = { netBilled: 0, concession: 0 }
+    const covered = { netBilled: 0, concession: 0, remaining: 0 }
     for (const inv of investments) {
       const where = { investment: { equals: inv.id } }
       const [byType, catRows] = await Promise.all([
@@ -137,6 +140,7 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
       // Two planes, and NOT interchangeable: the v1 columns are the raw transactions the detail page
       // feeds v1, the v2 columns the same figures rebased onto the kosztorys reading. Comparing a v1
       // column against the rebased object let the listing marża drift 235 908,25 zł while green.
+      const invTotals = kosztorysTotals[String(inv.id)]
       const transactionFin = deriveFinancials(
         byType,
         breakdowns.categoryCosts,
@@ -145,10 +149,7 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
         inv.settlementMode,
         breakdowns.netCategoryCosts,
       )
-      const detailFin = financialsOnReading(
-        transactionFin,
-        readingFromKosztorys(kosztorysTotals[String(inv.id)]),
-      )
+      const detailFin = financialsOnReading(transactionFin, readingFromKosztorys(invTotals))
       if (transactionFin.materialsNetBilled !== 0) covered.netBilled++
       if (transactionFin.materialsNetDiscount !== 0) covered.concession++
 
@@ -180,7 +181,7 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
       // sum over `financialsOnReading` deducts `totalIncome`, which counts a przelew at its brutto
       // where the netto plane deducts the netto the faktura named — 230 zł apart on a 1230/1000 wpłata.
       const detailAmountDue = computeAmountDue(
-        readingFromKosztorys(kosztorysTotals[String(inv.id)]).laborCostsNet,
+        readingFromKosztorys(invTotals).laborCostsNet,
         depositPairFromPlaneSums(depositPlaneSums[String(inv.id)] ?? NO_DEPOSIT_SUMS),
         { grossBase: detailFin.materialsGrossBase, netBilled: detailFin.materialsNetBilled },
         inv.vatRate,
@@ -227,6 +228,23 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
           `#${inv.id} ${inv.name} · marża v2: listing=${listingMarginV2} detail=${detailMarginV2}`,
         )
       }
+      // The panel never withholds — it prints the short figure beside a hint — so the listing's
+      // rule is applied here first, or every unconfirmed investment would read as a mismatch.
+      const detailRemaining =
+        invTotals === undefined || byPlane.hasUnconfirmedPlane
+          ? undefined
+          : computeSubcontractorSummary(
+              byPlane.combined,
+              derivePayoutsByWorker(await getPayoutTransactionsForInvestment(payload, inv.id), []),
+            ).remaining
+      const listingRemaining = listingRow?.subcontractorRemaining
+      // Withheld against withheld agrees on nothing; only a printed kwota proves the figure.
+      if (detailRemaining !== undefined && detailRemaining !== 0) covered.remaining++
+      if (detailRemaining !== listingRemaining) {
+        mismatches.push(
+          `#${inv.id} ${inv.name} · pozostało do wypłaty: listing=${listingRemaining} detail=${detailRemaining}`,
+        )
+      }
       for (const [label, listing, detail] of compare) {
         if (round2(listing) !== round2(detail)) {
           mismatches.push(
@@ -246,6 +264,10 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
     expect(
       covered.concession,
       `żadna porównana inwestycja nie ma ulgi „wszystko netto" — ${reseed}`,
+    ).toBeGreaterThan(0)
+    expect(
+      covered.remaining,
+      'żadna porównana inwestycja nie ma niezerowego „Pozostało do wypłaty" — porównanie jest puste',
     ).toBeGreaterThan(0)
   })
 })

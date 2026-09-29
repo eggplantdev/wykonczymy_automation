@@ -20,6 +20,14 @@ const NO_DEPOSITS: DepositPlaneSumsMapT = {}
 const paidNet = (amount: number): DepositPlaneSumsMapT => ({
   '5': { paidNet: amount, paidGrossNet: 0, paidGross: 0, paidNetCount: 1 },
 })
+const kosztorysTotals: KosztorysClientTotalsMapT = {
+  '5': {
+    doneNet: 4500,
+    laborCostsNetFromKosztorys: 5000,
+    discountNetFromKosztorys: 500,
+    globalDiscountNet: 0,
+  },
+}
 
 const baseInv: InvestmentRefT = {
   id: 5,
@@ -340,15 +348,6 @@ describe('shapeInvestments robocizna source', () => {
     },
   }
 
-  const kosztorysTotals: KosztorysClientTotalsMapT = {
-    '5': {
-      doneNet: 4500,
-      laborCostsNetFromKosztorys: 5000,
-      discountNetFromKosztorys: 500,
-      globalDiscountNet: 0,
-    },
-  }
-
   it('builds bilans and marża from the kosztorys pair', () => {
     const [row] = shapeInvestments(
       [baseInv],
@@ -443,8 +442,11 @@ describe('shapeInvestments robocizna source', () => {
 
     expect(zeroProgress.hasKosztorys).toBe(true)
     expect(absent.hasKosztorys).toBe(false)
-    // Presence changes nothing else: every figure still reads the zero the same way.
-    expect({ ...zeroProgress, hasKosztorys: false }).toEqual(absent)
+    expect({
+      ...zeroProgress,
+      hasKosztorys: false,
+      subcontractorRemaining: undefined,
+    }).toEqual(absent)
   })
 
   it('reads presence off the entry, not off the figure it carries', () => {
@@ -484,15 +486,6 @@ describe('shapeInvestments marża v2', () => {
       totalSettled: 300,
       materialsNetDiscount: 400,
       settledCategoryCosts: [],
-    },
-  }
-
-  const kosztorysTotals: KosztorysClientTotalsMapT = {
-    '5': {
-      doneNet: 4500,
-      laborCostsNetFromKosztorys: 5000,
-      discountNetFromKosztorys: 500,
-      globalDiscountNet: 0,
     },
   }
 
@@ -536,6 +529,68 @@ describe('shapeInvestments marża v2', () => {
     const [row] = shapeInvestments([baseInv], transactionFinancials, NO_MAP, NO_MAP, NO_DEPOSITS)
 
     expect(row.marginV2).toBe(-500) // 0 robocizny − 300 wliczonych − 200 straty
+  })
+})
+
+// The wypłaty (1000) differ from every należne below, so a figure reading the wrong operand fails.
+describe('shapeInvestments pozostało do wypłaty', () => {
+  const transactionFinancials: InvestmentFinancialsMapT = {
+    '5': { ...ZERO_FINANCIALS, totalPayouts: 1000 },
+  }
+  const remainingFor = (
+    due: number,
+    {
+      hasUnconfirmedPlane = false,
+      totals = kosztorysTotals,
+      financials = transactionFinancials,
+    }: {
+      hasUnconfirmedPlane?: boolean
+      totals?: KosztorysClientTotalsMapT
+      financials?: InvestmentFinancialsMapT
+    } = {},
+  ) =>
+    shapeInvestments(
+      [baseInv],
+      financials,
+      totals,
+      { '5': { due, hasUnconfirmedPlane } },
+      NO_DEPOSITS,
+    )[0].subcontractorRemaining
+
+  it('is what the crews are owed for executed work, less what they were paid', () => {
+    expect(remainingFor(1750)).toBe(750)
+  })
+
+  it('goes negative when the crews were paid more than they executed', () => {
+    expect(remainingFor(800)).toBe(-200)
+  })
+
+  it('withholds the figure when an etap carries work with no rozliczenie', () => {
+    // The należne would be short by an unknown amount, so any number would understate the debt.
+    expect(remainingFor(1750, { hasUnconfirmedPlane: true })).toBeUndefined()
+  })
+
+  it('withholds the figure for an investment with no kosztorys', () => {
+    // Otherwise it would read −wypłaty and sort legacy investments in among real overpayments.
+    expect(remainingFor(1750, { totals: NO_MAP })).toBeUndefined()
+  })
+
+  it('reads −wypłaty for a kosztorys with no executed work yet', () => {
+    const [row] = shapeInvestments(
+      [baseInv],
+      transactionFinancials,
+      kosztorysTotals,
+      NO_MAP,
+      NO_DEPOSITS,
+    )
+
+    expect(row.subcontractorRemaining).toBe(-1000)
+  })
+
+  it('rounds float residue to exactly zero grosz', () => {
+    const paid030: InvestmentFinancialsMapT = { '5': { ...ZERO_FINANCIALS, totalPayouts: 0.3 } }
+
+    expect(remainingFor(0.1 + 0.2, { financials: paid030 })).toBe(0)
   })
 })
 

@@ -1943,3 +1943,16 @@ sprzed migracji, nie względem stałej liczby.
       (scenariusz EX-893 nie do odtworzenia).
 - [ ] Edycja szablonu przesuwa go na górę listy („Zmieniono") i nie resetuje sortowania ani filtrów
       w otwartym edytorze.
+
+## investments-list-payout-remaining — „Pozostało do wypłaty" na liście inwestycji (2026-09-29)
+
+### Phase 2: Column + parity
+
+- [ ] Na `/inwestycje` jako OWNER widać kolumnę „Pozostało do wypłaty"; dla inwestycji ze zrzutu z
+      prośby kwota zgadza się z kosztorysem → Podsumowanie → Podwykonawcy „Pozostało do wypłaty"
+      (11 972,01 w chwili prośby).
+- [ ] Inwestycja bez kosztorysu pokazuje „brak danych", a taka z etapem bez rozliczenia „ustaw etapy";
+      obie lądują na końcu przy sortowaniu w obie strony.
+- [ ] Inwestycja z nadpłatą pokazuje ujemną kwotę na czerwono.
+- [ ] Odznaczenie „Kolumny v2" chowa tę kolumnę razem z pozostałymi kolumnami v2.
+- [ ] Po zalogowaniu jako MANAGER kolumna jest widoczna.
