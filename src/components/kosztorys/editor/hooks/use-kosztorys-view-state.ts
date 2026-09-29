@@ -5,7 +5,7 @@ import { useEngagedConditions } from '@/components/kosztorys/editor/hooks/use-en
 import { useFitRowsToContent } from '@/components/kosztorys/editor/hooks/use-fit-rows-to-content'
 import { usePriceView } from '@/components/kosztorys/editor/hooks/use-price-view'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
-import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
+import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view/settings'
 import type { ToolPlaneT } from '@/lib/kosztorys/types'
 import {
   clientConditionIds,

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
+  AXIS_EXEMPT_COLUMNS,
   COLUMN_LABELS,
   COLUMN_MONEY_AXIS,
-  AXIS_EXEMPT_COLUMNS,
   DEFAULT_HIDDEN_COLUMNS,
 } from '@/lib/kosztorys/column-config'
 import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'

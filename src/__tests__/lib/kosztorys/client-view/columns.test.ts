@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import {
-  CLIENT_VIEW_GROUPS,
-  COLUMN_LABELS,
-  PREVIEW_VISIBLE_COLUMNS,
-} from '@/lib/kosztorys/column-config'
+import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
+import { CLIENT_VIEW_GROUPS, PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/client-view/columns'
 
 // The groups ARE the allowlist, so the two can no longer disagree — what is left to guard is the
 // flattening: a key repeated across groups renders two ticks for one column and collapses into the

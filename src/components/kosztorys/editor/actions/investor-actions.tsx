@@ -9,10 +9,10 @@ import { MenuItemBody } from '@/components/kosztorys/editor/actions/menu-item-bo
 import { useLatestRequest } from '@/hooks/use-latest-request'
 import { ensureShareLinkAction } from '@/lib/actions/kosztorys-share'
 import { readClientViewSettings } from '@/lib/queries/client-view-settings-endpoint'
-import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
+import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view/settings'
 import type { ColumnRanksT } from '@/lib/table/column-order'
 import { copyToClipboardAsync } from '@/lib/utils/copy-to-clipboard'
-import { investorShareUrl } from '@/lib/kosztorys/investor-share-url'
+import { investorShareUrl } from '@/lib/kosztorys/client-view/share-url'
 import { toastMessage } from '@/lib/utils/toast'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 

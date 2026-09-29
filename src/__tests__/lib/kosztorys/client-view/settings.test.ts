@@ -3,8 +3,8 @@ import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import {
   sanitizeClientViewSettings,
   type ClientViewSettingsT,
-} from '@/lib/kosztorys/client-view-settings'
-import { PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/column-config'
+} from '@/lib/kosztorys/client-view/settings'
+import { PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/client-view/columns'
 
 const visibleColumns = (settings: ClientViewSettingsT) => {
   const hidden = new Set(settings.hiddenColumns)

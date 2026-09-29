@@ -2,13 +2,14 @@
 
 import { CheckboxRow } from '@/components/ui/checkbox-row'
 import { Description } from '@/components/ui/description'
-import { DOCUMENT_PINNED_COLUMN, type ClientViewGroupT } from '@/lib/kosztorys/column-config'
+import { type ColumnGroupT } from '@/lib/kosztorys/column-config'
+import { DOCUMENT_PINNED_COLUMN } from '@/lib/kosztorys/document-column-order'
 
 export type ViewSettingsValueT = { hiddenColumns: string[]; hideEmptyRows: boolean }
 
 // Generic so a caller's wider settings (its column order) survive every edit made here.
 type PropsT<T extends ViewSettingsValueT> = {
-  groups: readonly ClientViewGroupT[]
+  groups: readonly ColumnGroupT[]
   labelFor: (key: string) => string | undefined
   value: T
   onChange: (value: T) => void

@@ -1,8 +1,8 @@
 import {
   CLIENT_DOCUMENT_COLUMNS,
-  DOCUMENT_PINNED_COLUMN,
   PREVIEW_VISIBLE_COLUMNS,
-} from '@/lib/kosztorys/column-config'
+} from '@/lib/kosztorys/client-view/columns'
+import { DOCUMENT_PINNED_COLUMN } from '@/lib/kosztorys/document-column-order'
 import { orderDocumentKeys, sanitizeDocumentRanks } from '@/lib/kosztorys/document-column-order'
 import { STAGES_COLUMN_GROUP, STAGE_VALUE_NET_COLUMN_GROUP } from '@/lib/kosztorys/stage-keys'
 import type { ColumnRanksT } from '@/lib/table/column-order'

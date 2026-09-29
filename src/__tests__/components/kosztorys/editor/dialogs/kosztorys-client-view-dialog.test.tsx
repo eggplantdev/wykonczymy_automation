@@ -8,7 +8,7 @@ import {
   clientDocumentColumns,
   sanitizeClientViewSettings,
   type ClientViewSettingsT,
-} from '@/lib/kosztorys/client-view-settings'
+} from '@/lib/kosztorys/client-view/settings'
 import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
 import type { ColumnRanksT } from '@/lib/table/column-order'
 

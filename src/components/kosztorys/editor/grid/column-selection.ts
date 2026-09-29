@@ -9,16 +9,16 @@ import {
   orderColumns,
   type ColumnRanksT,
 } from '@/lib/table/column-order'
-import { clientDocumentColumns } from '@/lib/kosztorys/client-view-settings'
+import { clientDocumentColumns } from '@/lib/kosztorys/client-view/settings'
 import {
   CREW_PLANE_ONLY_COLUMNS,
-  bypassedByGlobalDiscount,
-  PREVIEW_VISIBLE_COLUMNS,
-  WORKSHOP_VISIBLE_COLUMNS,
   PRZEDMIAR_ANCHORED_COLUMNS,
   UNPICKABLE_COLUMNS,
+  bypassedByGlobalDiscount,
   columnLabelForView,
 } from '@/lib/kosztorys/column-config'
+import { PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/client-view/columns'
+import { WORKSHOP_VISIBLE_COLUMNS } from '@/lib/kosztorys/workshop-columns'
 import { CREW_AXIS_DEFAULT, crewAxisAllows } from '@/lib/kosztorys/crew-axis'
 import { LAYER_DEFAULT, layerAllows } from '@/lib/kosztorys/layer'
 import { MONEY_AXIS_DEFAULT, axisAllows } from '@/lib/kosztorys/money-axis'

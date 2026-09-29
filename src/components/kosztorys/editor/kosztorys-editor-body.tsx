@@ -76,7 +76,7 @@ import { PreviewHeaderActions } from '@/components/kosztorys/editor/preview-head
 import { historyGridTree, stageIdsFilledNow } from '@/lib/kosztorys/history/history-grid'
 import type { InvestorHistoryT } from '@/lib/kosztorys/history/types'
 import type { KosztorysEditorDataT, KosztorysV2RowT } from '@/lib/kosztorys/types'
-import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
+import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view/settings'
 import type { WorkerAudienceT } from '@/lib/kosztorys/worker-view/types'
 
 type PropsT = KosztorysEditorDataT & {

@@ -4,13 +4,10 @@ import { Description } from '@/components/ui/description'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { ViewSettingsFields } from '@/components/kosztorys/editor/dialogs/view-settings-fields'
 import { DocumentColumnOrderButton } from '@/components/kosztorys/editor/dialogs/document-column-order-button'
-import {
-  CLIENT_DOCUMENT_COLUMNS,
-  CLIENT_VIEW_GROUPS,
-  COLUMN_LABELS,
-} from '@/lib/kosztorys/column-config'
+import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
+import { CLIENT_DOCUMENT_COLUMNS, CLIENT_VIEW_GROUPS } from '@/lib/kosztorys/client-view/columns'
 import { CLIENT_EMPTY_CONDITION_ID } from '@/lib/kosztorys/row-conditions/queries'
-import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
+import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view/settings'
 import type { ColumnRanksT } from '@/lib/table/column-order'
 
 type PropsT = {

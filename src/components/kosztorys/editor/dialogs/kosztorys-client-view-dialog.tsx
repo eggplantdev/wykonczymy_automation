@@ -10,7 +10,7 @@ import {
   saveClientViewDefaultsAction,
   saveClientViewSettingsAction,
 } from '@/lib/actions/kosztorys-client-view'
-import { sanitizeClientViewSettings } from '@/lib/kosztorys/client-view-settings'
+import { sanitizeClientViewSettings } from '@/lib/kosztorys/client-view/settings'
 import { OWNER_ONLY_CLIENT_VIEW_DEFAULTS_MESSAGE } from '@/lib/kosztorys/owner-only-messages'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { useCurrentUser } from '@/hooks/use-current-user'

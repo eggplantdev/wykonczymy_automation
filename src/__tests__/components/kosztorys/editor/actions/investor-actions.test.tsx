@@ -2,7 +2,7 @@ import { act, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useInvestorActions } from '@/components/kosztorys/editor/actions/investor-actions'
-import { investorShareUrl } from '@/lib/kosztorys/investor-share-url'
+import { investorShareUrl } from '@/lib/kosztorys/client-view/share-url'
 
 const toastMessage = vi.hoisted(() => vi.fn())
 const readClientViewSettings = vi.hoisted(() => vi.fn())

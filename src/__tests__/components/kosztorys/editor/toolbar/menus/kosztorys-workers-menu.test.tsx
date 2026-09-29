@@ -8,7 +8,7 @@ import { KosztorysWorkerViewDialog } from '@/components/kosztorys/editor/dialogs
 import { CurrentUserProvider } from '@/hooks/use-current-user'
 import type { RoleT } from '@/lib/auth/roles'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
-import { WORKER_DOCUMENT_COLUMNS } from '@/lib/kosztorys/column-config'
+import { WORKER_DOCUMENT_COLUMNS } from '@/lib/kosztorys/worker-view/columns'
 import { workerColumnLabel } from '@/lib/kosztorys/worker-view/settings'
 
 const INVESTMENT_ID = 12

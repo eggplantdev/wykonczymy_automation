@@ -1,10 +1,10 @@
+import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
+import { DOCUMENT_PINNED_COLUMN } from '@/lib/kosztorys/document-column-order'
 import {
-  COLUMN_LABELS,
-  DOCUMENT_PINNED_COLUMN,
   WORKER_DOCUMENT_COLUMNS,
   WORKER_RATE_KEY,
   WORKER_VIEW_GROUPS,
-} from '@/lib/kosztorys/column-config'
+} from '@/lib/kosztorys/worker-view/columns'
 import { orderDocumentKeys, sanitizeDocumentRanks } from '@/lib/kosztorys/document-column-order'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import type { ToolPlaneT } from '@/lib/kosztorys/types'

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { clientDocumentColumns } from '@/lib/kosztorys/client-view-settings'
-import { CLIENT_DOCUMENT_COLUMNS } from '@/lib/kosztorys/column-config'
+import { clientDocumentColumns } from '@/lib/kosztorys/client-view/settings'
+import { CLIENT_DOCUMENT_COLUMNS } from '@/lib/kosztorys/client-view/columns'
 import { documentBaseRanks, orderDocumentKeys } from '@/lib/kosztorys/document-column-order'
 import { STAGES_COLUMN_GROUP } from '@/lib/kosztorys/stage-keys'
 import { rankForMove } from '@/lib/table/column-order'

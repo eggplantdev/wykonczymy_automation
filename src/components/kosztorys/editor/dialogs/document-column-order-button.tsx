@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { ArrowUpDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ColumnOrderDialog } from '@/components/ui/column-order-dialog'
-import { DOCUMENT_PINNED_COLUMN } from '@/lib/kosztorys/column-config'
+import { DOCUMENT_PINNED_COLUMN } from '@/lib/kosztorys/document-column-order'
 import { documentBaseRanks, orderDocumentKeys } from '@/lib/kosztorys/document-column-order'
 import { sameKeys, type ColumnRanksT } from '@/lib/table/column-order'
 
