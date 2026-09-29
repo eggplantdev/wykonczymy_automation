@@ -1,4 +1,5 @@
 // A sekcja is named per room instance („Łazienka 1", „Łazienka 2"); the cennik is global, so the
+
 // instance number is noise. Only a TRAILING standalone number goes — „Gniazdka 230V" keeps its.
 const TRAILING_ORDINAL = /\s+\d+$/
 
