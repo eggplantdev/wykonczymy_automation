@@ -1991,3 +1991,12 @@ sprzed migracji, nie względem stałej liczby.
       zaznaczone są Wycena, Planowana i Aktywna.
 - [ ] Zapisany wcześniej filtr „tylko Aktywna”: Wycena jest odznaczona. Zapisany „Planowana +
       Aktywna”: Wycena jest zaznaczona.
+
+## kosz-inwestycji-manager — kosz inwestycji dla kierownika (2026-09-29)
+
+- [ ] Jako MANAGER: „Kosz" jest ostatnią pozycją menu (pod „Pracownicy"), `/kosz` się otwiera.
+- [ ] Jako MANAGER: „Usuń" na `/inwestycje` przenosi inwestycję bez transakcji do kosza,
+      „Przywróć" na `/kosz` ją oddaje.
+- [ ] Jako MANAGER: „Usuń na zawsze" przy kosztorysie w użyciu żąda wpisania nazwy i dopiero po niej
+      usuwa.
+- [ ] Jako EMPLOYEE: w menu nie ma „Kosz", a wejście na `/kosz` z adresu przekierowuje.

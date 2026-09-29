@@ -1,7 +1,7 @@
 ---
 change_id: kosz-inwestycji-manager
 title: Investment trash — open to the manager
-status: implementing
+status: implemented
 created: 2026-09-29
 updated: 2026-09-29
 archived_at: null
