@@ -3,7 +3,7 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import { ROLE_LABELS } from '@/lib/auth/roles'
 import { Button } from '@/components/ui/button'
-import type { UserRowT, UserTableRowT } from '@/types/table-rows'
+import type { UserRowT } from '@/types/table-rows'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { RoleBadge } from '@/components/ui/badge'
 import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
@@ -13,7 +13,7 @@ import { SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/labels'
 import type { WorkerColumnFiguresT } from '@/lib/kosztorys/worker-payout-pairs'
 import { cn } from '@/lib/utils/cn'
 
-const col = createColumnHelper<UserTableRowT>()
+const col = createColumnHelper<UserRowT>()
 
 const PAYOUT_LINES = [
   { label: 'do zapłaty aktywne', bucket: 'active', kind: 'owed', className: undefined },
@@ -116,7 +116,8 @@ export function getUserColumns({ onToggle, onSettle }: UserColumnOptionsT) {
       ),
     }),
     col.accessor(
-      (row) => row.payoutView && row.payoutView.active.owed + row.payoutView.completed.owed,
+      (row) =>
+        row.payoutRemaining && row.payoutRemaining.active.owed + row.payoutRemaining.completed.owed,
       {
         id: 'payoutRemaining',
         sortUndefined: 'last',
@@ -124,7 +125,7 @@ export function getUserColumns({ onToggle, onSettle }: UserColumnOptionsT) {
         meta: { align: 'right' },
         cell: (info) => (
           <PayoutRemainingCell
-            view={info.row.original.payoutView}
+            view={info.row.original.payoutRemaining}
             onSettle={() => onSettle(info.row.original)}
           />
         ),

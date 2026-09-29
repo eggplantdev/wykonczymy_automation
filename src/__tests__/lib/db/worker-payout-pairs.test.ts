@@ -5,7 +5,8 @@ import { getDb } from '@/lib/db/get-db'
 import { getPayoutTransactionsForInvestment } from '@/lib/db/get-payout-transactions'
 import { selectKosztorysSubcontractorDue } from '@/lib/db/kosztorys-subcontractor-due'
 import { sumAllInvestmentFinancials } from '@/lib/db/sum-transfers'
-import { selectWorkerPayoutPairs, type WorkerPayoutPairRowT } from '@/lib/db/worker-payout-pairs'
+import { selectWorkerPayoutPairs } from '@/lib/db/worker-payout-pairs'
+import type { WorkerPayoutPairRowT } from '@/lib/kosztorys/worker-payout-pairs'
 import {
   LOCKED_INVESTMENT_STATUS,
   TEMPLATE_INVESTMENT_STATUS,

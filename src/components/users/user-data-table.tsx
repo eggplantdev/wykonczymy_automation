@@ -13,11 +13,11 @@ import {
   type SettleDialogTargetT,
 } from '@/components/dialogs/settle-payouts-dialog'
 import { getUserColumns } from '@/components/tables/users'
-import type { UserRowT, UserTableRowT } from '@/types/table-rows'
+import type { UserRowT } from '@/types/table-rows'
 import { workerPayoutView } from '@/lib/kosztorys/worker-payout-pairs'
 import { useSearchFilter } from '@/hooks/use-search-filter'
 import { useOptimisticToggle } from '@/hooks/use-optimistic-toggle'
-import { useUserListFilters } from '@/components/users/use-user-list-filters'
+import { useUserListFilters } from '@/hooks/use-user-list-filters'
 import { toggleUserActive } from '@/lib/actions/toggle-active'
 import type { ReferenceItemT } from '@/types/reference-data'
 
@@ -52,10 +52,14 @@ export function UserDataTable({ data, cashRegisters }: UserDataTablePropsT) {
       }),
     [handleToggle],
   )
-  const rows: UserTableRowT[] = filteredData.map((row) => ({
-    ...row,
-    payoutView: row.payoutRemaining && workerPayoutView(row.payoutRemaining, payoutBuckets),
-  }))
+  // The filter rides on the row, not on the columns: DataTable caches a row's cells, so a filter read
+  // from the columns would leave the cells printing the old figures.
+  const rows = filteredData.map(
+    (row): UserRowT => ({
+      ...row,
+      payoutRemaining: row.payoutRemaining && workerPayoutView(row.payoutRemaining, payoutBuckets),
+    }),
+  )
 
   return (
     <>

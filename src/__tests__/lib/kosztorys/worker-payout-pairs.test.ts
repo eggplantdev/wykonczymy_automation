@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
-import type { WorkerPayoutPairRowT } from '@/lib/db/worker-payout-pairs'
 import {
   UNASSIGNED_PAIR_LABEL,
+  type WorkerPayoutPairRowT,
   classifyPair,
   paidAheadOf,
   settleRowsForInvestment,

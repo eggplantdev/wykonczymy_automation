@@ -7,13 +7,13 @@ import {
   type SettlePayoutsT,
 } from '@/components/forms/settle-payouts-form/settle-payouts-schema'
 import { getDb } from '@/lib/db/get-db'
-import { investmentLockMessage } from '@/lib/db/investment-gate'
+import { lockInvestmentGates } from '@/lib/db/investment-gate'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { selectWorkerPayoutPairs } from '@/lib/db/worker-payout-pairs'
 import {
   BLOCKED_PAIR_REASON,
-  BOOKABLE_STATES,
   classifyPair,
+  isBlocked,
   paidAheadOf,
 } from '@/lib/kosztorys/worker-payout-pairs'
 import { perfStart } from '@/lib/perf'
@@ -47,61 +47,52 @@ export async function settlePayoutsAction(data: SettlePayoutsT): Promise<SettleP
       const validated = await validateSourceRegister(sourceRegister, payload)
       if (!validated.success) return validated
 
-      const db = await getDb(payload)
       const investmentIds = [...new Set(rows.map((row) => row.investmentId))]
-      const investments = await payload.find({
-        collection: 'investments',
-        where: { id: { in: investmentIds } },
-        limit: 0,
-        pagination: false,
-        depth: 0,
-        select: { name: true },
-        overrideAccess: true,
-      })
-      const nameOf = new Map(investments.docs.map((doc) => [Number(doc.id), doc.name]))
-      const refuse = (investmentId: number, reason: string): SettlePayoutsResultT => ({
-        success: false,
-        error: `„${nameOf.get(investmentId) ?? `Inwestycja #${investmentId}`}": ${reason}`,
-      })
-
-      for (const investmentId of investmentIds) {
-        const lockMessage = await investmentLockMessage(db, investmentId)
-        if (lockMessage) return refuse(investmentId, lockMessage)
-      }
-
-      const pairs = await selectWorkerPayoutPairs(db, { investmentIds })
-      const pairOf = new Map(pairs.map((pair) => [`${pair.investmentId}:${pair.workerId}`, pair]))
-      const bookings: (SettlePayoutRowT & { workerId: number; description: string })[] = []
-      for (const row of rows) {
-        const pair = pairOf.get(`${row.investmentId}:${row.workerId}`)
-        if (!pair) return { success: false, stale: true, error: STALE_MESSAGE }
-        const { remaining, state } = classifyPair(pair)
-        if (!BOOKABLE_STATES.has(state)) {
-          return refuse(
-            row.investmentId,
-            BLOCKED_PAIR_REASON[state as keyof typeof BLOCKED_PAIR_REASON],
-          )
-        }
-        if (roundToCents(remaining) !== roundToCents(row.expectedRemaining)) {
-          return { success: false, stale: true, error: STALE_MESSAGE }
-        }
-        const ahead = paidAheadOf(remaining, row.amount)
-        bookings.push({
-          ...row,
-          workerId: pair.workerId!,
-          description: [description?.trim(), ahead > 0 && `w tym zaliczka ${formatPLN(ahead)}`]
-            .filter(Boolean)
-            .join('\n'),
-        })
-      }
-      console.log(`[PERF]   recompute ${step()}ms`)
 
       // skipSheetSync: the rows go to the owner's sheet in one batched write after commit, not one
       // afterChange sync per row — same policy as the bulk wydatek.
-      const createdIds = await withPayloadTransaction(
+      const outcome = await withPayloadTransaction(
         payload,
-        async (req) => {
-          const ids: number[] = []
+        async (req): Promise<SettlePayoutsResultT | { createdIds: number[] }> => {
+          const db = await getDb(payload, req)
+          // Two overlapping submits of one pair (two tabs, a double Enter) would both pass the
+          // re-read below and both book. Locked, the second waits for the first to commit and then
+          // re-reads a „Pozostało" that already counts its wypłata.
+          const gates = await lockInvestmentGates(db, investmentIds)
+          const refuse = (investmentId: number, reason: string): SettlePayoutsResultT => ({
+            success: false,
+            error: `„${gates.get(investmentId)?.name ?? `Inwestycja #${investmentId}`}": ${reason}`,
+          })
+          for (const investmentId of investmentIds) {
+            const lockMessage = gates.get(investmentId)?.lockMessage
+            if (lockMessage) return refuse(investmentId, lockMessage)
+          }
+
+          const pairs = await selectWorkerPayoutPairs(db, { investmentIds })
+          const pairOf = new Map(
+            pairs.map((pair) => [`${pair.investmentId}:${pair.workerId}`, pair]),
+          )
+          const bookings: (SettlePayoutRowT & { workerId: number; description: string })[] = []
+          for (const row of rows) {
+            const pair = pairOf.get(`${row.investmentId}:${row.workerId}`)
+            if (!pair) return { success: false, stale: true, error: STALE_MESSAGE }
+            const { remaining, state } = classifyPair(pair)
+            if (isBlocked(state)) return refuse(row.investmentId, BLOCKED_PAIR_REASON[state])
+            if (roundToCents(remaining) !== roundToCents(row.expectedRemaining)) {
+              return { success: false, stale: true, error: STALE_MESSAGE }
+            }
+            const ahead = paidAheadOf(remaining, row.amount)
+            bookings.push({
+              ...row,
+              workerId: pair.workerId!,
+              description: [description?.trim(), ahead > 0 && `w tym zaliczka ${formatPLN(ahead)}`]
+                .filter(Boolean)
+                .join('\n'),
+            })
+          }
+          console.log(`[PERF]   recompute ${step()}ms`)
+
+          const createdIds: number[] = []
           for (const booking of bookings) {
             const created = await payload.create({
               collection: 'transactions',
@@ -117,12 +108,14 @@ export async function settlePayoutsAction(data: SettlePayoutsT): Promise<SettleP
                 createdBy: user.id,
               },
             })
-            ids.push(created.id)
+            createdIds.push(created.id)
           }
-          return ids
+          return { createdIds }
         },
         { skipSheetSync: true },
       )
+      if (!('createdIds' in outcome)) return outcome
+      const { createdIds } = outcome
       console.log(`[PERF]   payload.create x${createdIds.length} ${step()}ms`)
 
       after(() => syncBulkExpensesToSheet(createdIds))

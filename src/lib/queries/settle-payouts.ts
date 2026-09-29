@@ -1,14 +1,17 @@
 'use server'
 
+import config from '@payload-config'
+import { getPayload } from 'payload'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { ADMIN_OR_OWNER_MANAGER_ROLES } from '@/lib/auth/roles'
+import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import {
   settleRowsForInvestment,
   settleRowsForWorker,
   type SettleRowT,
 } from '@/lib/kosztorys/worker-payout-pairs'
+import { getDb } from '@/lib/db/get-db'
+import { selectWorkerPayoutPairs } from '@/lib/db/worker-payout-pairs'
 import { perfStart } from '@/lib/perf'
-import { fetchWorkerPayoutPairs } from '@/lib/queries/balances'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
 import type { CashRegisterRefT } from '@/types/reference-data'
 
@@ -23,14 +26,25 @@ export type SettlePayoutRowsT = {
 /**
  * Read on open rather than shipped with the list page: every pair of every worker is far more than
  * one dialog needs, and a figure read when the page rendered may be minutes old by the time the owner
- * clicks.
+ * clicks. Uncached for the same reason the action is: the editor's autosaves expire the cached pairs
+ * a beat late, and a reload after a stale refusal that re-read them would be refused again.
  */
 export async function fetchSettlePayoutRows(target: SettleTargetT): Promise<SettlePayoutRowsT> {
   const elapsed = perfStart()
-  const session = await requireAuth(ADMIN_OR_OWNER_MANAGER_ROLES)
+  const session = await requireAuth(MANAGEMENT_ROLES)
   if (!session.success) throw new Error(session.error)
 
-  const [refData, pairs] = await Promise.all([fetchReferenceData(), fetchWorkerPayoutPairs()])
+  const [refData, pairs] = await Promise.all([
+    fetchReferenceData(),
+    getPayload({ config })
+      .then((payload) => getDb(payload))
+      .then((db) =>
+        selectWorkerPayoutPairs(
+          db,
+          target.kind === 'investment' ? { investmentIds: [target.id] } : undefined,
+        ),
+      ),
+  ])
   const rows =
     target.kind === 'worker'
       ? settleRowsForWorker(

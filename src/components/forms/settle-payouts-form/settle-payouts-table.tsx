@@ -1,18 +1,20 @@
 'use client'
 
 import { createContext, use } from 'react'
-import Link from 'next/link'
 import { createColumnHelper } from '@tanstack/react-table'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
-import { BADGE_BASE } from '@/components/ui/badge'
+import { BADGE_BASE, BADGE_TONE } from '@/components/ui/badge'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
+import { OptionalLink } from '@/components/ui/optional-link'
 import { DataTable } from '@/components/tables/data-table/data-table'
+import { ColumnTotalRow } from '@/components/tables/data-table/column-total-row'
 import { InvestmentStatusBadge } from '@/components/investments/investment-status-badge'
 import {
   BLOCKED_PAIR_REASON,
-  BOOKABLE_STATES,
+  isBlocked,
   paidAheadOf,
+  type BlockedStateT,
   type SettleRowT,
 } from '@/lib/kosztorys/worker-payout-pairs'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
@@ -46,8 +48,6 @@ function useRowValue(index: number) {
   return useSettleTable().values[index] ?? EMPTY_VALUE
 }
 
-type BlockedStateT = keyof typeof BLOCKED_PAIR_REASON
-
 const BLOCKED_TAG: Record<Exclude<BlockedStateT, 'locked'>, string> = {
   withheld: 'Bez rozliczenia',
   unassigned: 'Bez pracownika',
@@ -60,9 +60,7 @@ function BlockedReason({ state }: { state: BlockedStateT }) {
       {state === 'locked' ? (
         <InvestmentStatusBadge status={LOCKED_INVESTMENT_STATUS} />
       ) : (
-        <span className={cn(BADGE_BASE, 'bg-muted text-muted-foreground')}>
-          {BLOCKED_TAG[state]}
-        </span>
+        <span className={cn(BADGE_BASE, BADGE_TONE.muted)}>{BLOCKED_TAG[state]}</span>
       )}
       <InfoTooltip content={reason} label={reason} />
     </span>
@@ -75,12 +73,11 @@ function LabelHeader() {
 
 function LabelCell({ row }: { row: SettleRowT }) {
   const { labelHref } = useSettleTable()
-  if (!labelHref) return row.label
   return (
     // A new tab, so the dialog and its typed amounts survive the look.
-    <Link href={labelHref(row)} target="_blank" className="underline-offset-4 hover:underline">
+    <OptionalLink href={labelHref?.(row)} target="_blank" className="underline-offset-4">
       {row.label}
-    </Link>
+    </OptionalLink>
   )
 }
 
@@ -91,7 +88,7 @@ function TickCell({ row, index }: { row: SettleRowT; index: number }) {
     <Checkbox
       aria-label={`Wypłać: ${row.label}`}
       checked={value.ticked}
-      disabled={!BOOKABLE_STATES.has(row.state)}
+      disabled={isBlocked(row.state)}
       onCheckedChange={(checked) => onTick(index, checked === true)}
     />
   )
@@ -100,7 +97,7 @@ function TickCell({ row, index }: { row: SettleRowT; index: number }) {
 function AmountCell({ row, index }: { row: SettleRowT; index: number }) {
   const { onAmount } = useSettleTable()
   const value = useRowValue(index)
-  if (!BOOKABLE_STATES.has(row.state)) return <BlockedReason state={row.state as BlockedStateT} />
+  if (isBlocked(row.state)) return <BlockedReason state={row.state} />
 
   const ahead =
     value.ticked && isValidAmount(value) ? paidAheadOf(row.remaining, amountOf(value)) : 0
@@ -125,7 +122,7 @@ function AmountCell({ row, index }: { row: SettleRowT; index: number }) {
 
 function AfterPayoutCell({ row, index }: { row: SettleRowT; index: number }) {
   const value = useRowValue(index)
-  if (!BOOKABLE_STATES.has(row.state)) return null
+  if (isBlocked(row.state)) return null
   if (!value.ticked || !isValidAmount(value))
     return <span className="text-muted-foreground">—</span>
 
@@ -209,19 +206,16 @@ export function SettlePayoutsTable({
         className={className}
         data={rows}
         columns={COLUMNS}
-        getRowClassName={(row) => (BOOKABLE_STATES.has(row.state) ? '' : 'opacity-60')}
-        footer={(visibleColumnIds) => {
-          const amountIndex = visibleColumnIds.indexOf(AMOUNT_COLUMN_ID)
-          return (
-            <tr className="font-medium">
-              <td colSpan={amountIndex}>Razem</td>
-              <td>{formatPLN(total)}</td>
-              {visibleColumnIds.slice(amountIndex + 1).map((id) => (
-                <td key={id} />
-              ))}
-            </tr>
-          )
-        }}
+        getRowClassName={(row) => (isBlocked(row.state) ? 'opacity-60' : '')}
+        footer={(visibleColumnIds) => (
+          <ColumnTotalRow
+            visibleColumnIds={visibleColumnIds}
+            columnId={AMOUNT_COLUMN_ID}
+            label="Razem"
+          >
+            {formatPLN(total)}
+          </ColumnTotalRow>
+        )}
       />
     </SettleTableContext>
   )

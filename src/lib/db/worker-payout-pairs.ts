@@ -1,30 +1,20 @@
 import 'server-only'
 import { sql } from '@payloadcms/db-vercel-postgres'
+import { sqlList } from '@/lib/db/sql-list'
 import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import { subcontractorDueColumns, subcontractorLinesCte } from './kosztorys-subcontractor-due'
+import type { WorkerPayoutPairRowT } from '@/lib/kosztorys/worker-payout-pairs'
 import type { DbExecutorT } from './get-db'
 
-// What each worker earned on each investment, and what they were paid there — one row per
-// (investment, worker) pair, `null` worker = unassigned etapy and wypłaty booked with nobody.
-//
-// A third projection of the crew fold, not a third formula: the priced `lines` and the due/flag
-// aggregate are the fragments `kosztorys-subcontractor-due.ts` reads, grouped one level finer.
-// `subcontractor-due.ts` (`byWorker` / `unconfirmedWorkers`) stays the reference, and the DB parity
-// spec (__tests__/lib/db/worker-payout-pairs.test.ts) pins this copy to it — and pins Σ pairs to the
-// listing's per-investment „Pozostało do wypłaty", which is the invariant the dialog's rows rely on.
+// The priced `lines` and the due/flag aggregate are the fragments `kosztorys-subcontractor-due.ts`
+// reads, grouped one level finer. `subcontractor-due.ts` (`byWorker` / `unconfirmedWorkers`) stays
+// the reference, and the DB parity spec (__tests__/lib/db/worker-payout-pairs.test.ts) pins this copy
+// to it — and pins Σ pairs to the listing's per-investment „Pozostało do wypłaty", which is the
+// invariant the dialog's rows rely on.
 //
 // Only investments the listing gives a figure to: at least one kosztorys pozycja, not a szablon, not
 // in the kosz. A PAYOUT with no investment is not on any pair — salary, loans and fuel never were
 // kosztorys work.
-
-export type WorkerPayoutPairRowT = {
-  investmentId: number
-  workerId: number | null
-  due: number
-  paid: number
-  hasUnconfirmedPlane: boolean
-  investmentStatus: string
-}
 
 export async function selectWorkerPayoutPairs(
   db: DbExecutorT,
@@ -33,12 +23,7 @@ export async function selectWorkerPayoutPairs(
   const { investmentIds } = opts
   if (investmentIds?.length === 0) return []
 
-  const narrowTo = investmentIds
-    ? sql`AND inv.id IN (${sql.join(
-        investmentIds.map((id) => sql`${id}`),
-        sql.raw(', '),
-      )})`
-    : sql``
+  const narrowTo = investmentIds ? sql`AND inv.id IN (${sqlList(investmentIds)})` : sql``
 
   // UNION ALL + GROUP BY rather than a FULL JOIN on the pair: `worker_id` is nullable, and GROUP BY
   // is the one place SQL treats two NULLs as the same key.

@@ -1,24 +1,35 @@
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import { roundToCents } from '@/lib/utils/round-to-cents'
-import type { WorkerPayoutPairRowT } from '@/lib/db/worker-payout-pairs'
 
 // Every surface that reads an investment × worker pair — the employee column, both dialog entry
 // points and the booking action — classifies it here, so no two of them can disagree about whether a
 // pair is payable.
 
-export type PairStateT = 'payable' | 'settled' | 'overpaid' | 'withheld' | 'locked' | 'unassigned'
+/** One (investment, worker) pair; `null` worker = unassigned etapy and wypłaty booked with nobody. */
+export type WorkerPayoutPairRowT = {
+  investmentId: number
+  workerId: number | null
+  due: number
+  paid: number
+  hasUnconfirmedPlane: boolean
+  investmentStatus: string
+}
 
-/** The states a wypłata may be booked against. A settled or overpaid pair is payable ahead. */
-export const BOOKABLE_STATES: ReadonlySet<PairStateT> = new Set(['payable', 'settled', 'overpaid'])
+export type PairStateT = 'payable' | 'settled' | 'overpaid' | 'withheld' | 'locked' | 'unassigned'
 
 export const UNASSIGNED_PAIR_LABEL = 'Nieprzypisane'
 
-/** Why a row can't be ticked — shown greyed in the dialog and as the action's refusal. */
+/** Why a row can't be ticked — shown greyed in the dialog and as the action's refusal. Every other
+ *  state is bookable; a settled or overpaid pair is payable ahead. */
 export const BLOCKED_PAIR_REASON = {
   withheld: 'ustaw rozliczenie etapu',
   locked: 'Inwestycja zakończona — przywróć na Aktywna, żeby wypłacić',
   unassigned: 'etapy bez pracownika i wypłaty bez pracownika — przypisz, żeby wypłacić',
 } as const satisfies Partial<Record<PairStateT, string>>
+
+export type BlockedStateT = keyof typeof BLOCKED_PAIR_REASON
+
+export const isBlocked = (state: PairStateT): state is BlockedStateT => state in BLOCKED_PAIR_REASON
 
 /**
  * `remaining` stays unrounded so a sum over pairs rounds once; the state is decided on the rounded
@@ -157,7 +168,6 @@ const hasFigures = (row: WorkerPayoutPairRowT) =>
 
 const byLabel = (a: SettleRowT, b: SettleRowT) => a.label.localeCompare(b.label, 'pl')
 
-/** One worker across their investments. */
 export function settleRowsForWorker(
   rows: WorkerPayoutPairRowT[],
   workerId: number,

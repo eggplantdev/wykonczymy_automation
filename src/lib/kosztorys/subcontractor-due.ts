@@ -33,8 +33,8 @@ export type SubcontractorDueByPlaneT = {
   //   so a worker can hold etapy and still owe 0 (`hasUnconfirmedPlane` is what says why).
   byWorker: Map<number | null, number>
   // Who holds a plane-less etap WITH executed qty (`null` = unassigned) — the per-worker half of
-  // `hasUnconfirmedPlane`, which is exactly `unconfirmedWorkers.size > 0`. Lets one worker's figure
-  // be withheld while the others on the same investment still compute.
+  // `hasUnconfirmedPlane`, which is exactly `unconfirmedWorkers.size > 0`. No app surface reads it:
+  // it is the reference the SQL per-worker flag (`lib/db/worker-payout-pairs.ts`) is pinned to.
   unconfirmedWorkers: Set<number | null>
 }
 

@@ -61,7 +61,6 @@ type FilterMultiSelectPropsT = {
     // arrive already ordered by it — this component only notices where it changes. Omitted by a
     // caller whose rows are one flat list.
     groupLabel?: string
-    // A muted second line, for a row whose label alone doesn't say what it narrows.
     description?: string
     active: boolean
     onToggle: () => void

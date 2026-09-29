@@ -1,6 +1,5 @@
 import { z } from 'zod'
-
-const DAY_PATTERN = /^\d{4}-\d{2}-\d{2}$/
+import { requiredDay } from '@/lib/utils/validation'
 
 const settleRowSchema = z.object({
   investmentId: z.number().int().positive(),
@@ -14,7 +13,7 @@ const settleRowSchema = z.object({
 
 export const settlePayoutsSchema = z
   .object({
-    date: z.string().regex(DAY_PATTERN, 'Data jest wymagana'),
+    date: requiredDay('Data jest wymagana'),
     sourceRegister: z.number().int().positive('Kasa jest wymagana'),
     description: z.string().optional(),
     rows: z.array(settleRowSchema).min(1, 'Zaznacz co najmniej jedną wypłatę'),

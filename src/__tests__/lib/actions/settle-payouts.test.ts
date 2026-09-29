@@ -184,6 +184,21 @@ describe.skipIf(!ENV_READY)('settlePayoutsAction (DB)', () => {
     expect(await booked()).toHaveLength(0)
   })
 
+  it('books only one of two overlapping submits of the same pair', async () => {
+    const remainingA = await remainingOf(created.a, worker.a)
+    const row = {
+      investmentId: created.a,
+      workerId: worker.a,
+      amount: 10,
+      expectedRemaining: remainingA,
+    }
+
+    const results = await Promise.all([submit(marker, [row]), submit(marker, [row])])
+    expect(results.filter((result) => result.success)).toHaveLength(1)
+    expect(results.find((result) => !result.success)).toMatchObject({ stale: true })
+    expect(await booked()).toHaveLength(1)
+  })
+
   it.each([
     ['a zakończona inwestycja', 'locked', 'a', /zakończon/i],
     ['a withheld pair', 'withheld', 'b', /ustaw rozliczenie etapu/],

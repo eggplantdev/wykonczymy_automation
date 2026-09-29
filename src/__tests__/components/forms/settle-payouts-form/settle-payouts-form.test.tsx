@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { SettlePayoutsForm } from '@/components/forms/settle-payouts-form/settle-payouts-form'
 import { settlePayoutsAction } from '@/lib/actions/settle-payouts'
+import { toastMessage } from '@/lib/utils/toast'
 import { BLOCKED_PAIR_REASON, type SettleRowT } from '@/lib/kosztorys/worker-payout-pairs'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { bare } from '@/__tests__/helpers/money'
@@ -213,5 +214,27 @@ describe('SettlePayoutsForm', () => {
     expect(reloadRows).toHaveBeenCalledOnce()
     expect(screen.queryByText('Brzozowa')).not.toBeInTheDocument()
     expect(onSubmitSuccess).not.toHaveBeenCalled()
+  })
+
+  it('says so when the reload after a stale refusal fails, and lets the owner submit again', async () => {
+    const user = userEvent.setup()
+    vi.mocked(settlePayoutsAction).mockResolvedValue({
+      success: false,
+      stale: true,
+      error: 'Kwoty zmieniły się',
+    })
+    renderForm(
+      ROWS,
+      vi.fn(async () => {
+        throw new Error('offline')
+      }),
+    )
+
+    await user.click(submit())
+
+    await waitFor(() =>
+      expect(toastMessage).toHaveBeenCalledWith(expect.stringMatching(/zamknij/i), 'error', 6000),
+    )
+    expect(submit()).toBeEnabled()
   })
 })

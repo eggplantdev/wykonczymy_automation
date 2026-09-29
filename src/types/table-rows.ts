@@ -112,8 +112,3 @@ export type UserRowT = {
   /** Absent when the worker holds no pair on any investment with a kosztorys. */
   payoutRemaining?: WorkerColumnFiguresT
 }
-
-/** The employee list's row once the „Aktywne inwestycje" filter has been applied. It rides on the
- *  row, not on the columns: DataTable caches a row's cells, so a filter read from the columns would
- *  leave the cells printing the old figures. */
-export type UserTableRowT = UserRowT & { payoutView?: WorkerColumnFiguresT }

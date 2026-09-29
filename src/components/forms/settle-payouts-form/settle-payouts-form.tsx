@@ -10,6 +10,7 @@ import { settlePayoutsAction } from '@/lib/actions/settle-payouts'
 import type { SettleRowT } from '@/lib/kosztorys/worker-payout-pairs'
 import { warsawToday } from '@/lib/utils/days'
 import { logError } from '@/lib/utils/log-error'
+import { settleAction } from '@/lib/utils/settle-action'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 import { toastMessage } from '@/lib/utils/toast'
 import type { CashRegisterRefT } from '@/types/reference-data'
@@ -47,9 +48,8 @@ type SettlePayoutsFormPropsT = {
 }
 
 /**
- * Awaits the action instead of the optimistic fire-and-forget every other transfer form uses: a
- * refusal here is routine (the figures moved while the dialog was open) and has to land in the open
- * dialog with the fresh figures, not in a toast after it closed.
+ * Awaits the action: a refusal here is routine (the figures moved while the dialog was open) and has
+ * to land in the open dialog with the fresh figures, not in a toast after it closed.
  */
 export function SettlePayoutsForm({
   initialRows,
@@ -88,19 +88,14 @@ export function SettlePayoutsForm({
           : [],
       )
 
-      let result
-      try {
-        result = await settlePayoutsAction({
+      const result = await settleAction(() =>
+        settlePayoutsAction({
           date: value.date,
           sourceRegister: Number(value.sourceRegister),
           description: value.description,
           rows: ticked,
-        })
-      } catch (err) {
-        logError('[SETTLE_PAYOUTS]', err)
-        toastMessage('Wystąpił nieoczekiwany błąd', 'error', 5000)
-        return
-      }
+        }),
+      )
 
       if (result.success) {
         toastMessage(
@@ -111,9 +106,20 @@ export function SettlePayoutsForm({
         onSubmitSuccess()
         return
       }
-      if (result.stale) {
+      if ('stale' in result && result.stale) {
         toastMessage(result.error, 'warning', 5000)
-        const fresh = await reloadRows()
+        let fresh
+        try {
+          fresh = await reloadRows()
+        } catch (err) {
+          logError('[SETTLE_PAYOUTS_RELOAD]', err)
+          toastMessage(
+            'Nie udało się wczytać nowych kwot — zamknij okno i otwórz je ponownie.',
+            'error',
+            6000,
+          )
+          return
+        }
         setRows(fresh)
         form.setFieldValue('rows', prefill(fresh))
         return

@@ -1,23 +1,26 @@
 'use client'
 
 import type { FilterTogglesBulkT } from '@/components/filters/filter-multi-select'
-import { usePersistedEnum } from '@/hooks/use-persisted-enum'
+import { usePersistedFlag } from '@/hooks/use-persisted-enum'
 import type { UserRowT } from '@/types/table-rows'
 
-const FLAG_STATES = ['shown', 'hidden'] as const
-
-function usePersistedFlag(storageKey: string, fallback: boolean) {
-  const [state, setState] = usePersistedEnum(storageKey, FLAG_STATES, fallback ? 'shown' : 'hidden')
-  return [state === 'shown', (shown: boolean) => setState(shown ? 'shown' : 'hidden')] as const
-}
+const SHOWN = ['shown', 'hidden'] as const
 
 /** The employee list's „Filtry" menu: which workers are listed, and which investments their
  *  „Pozostało do wypłaty" is summed over. */
 export function useUserListFilters() {
-  const [activeWorkers, setActiveWorkers] = usePersistedFlag('users:active-workers', true)
-  const [inactiveWorkers, setInactiveWorkers] = usePersistedFlag('users:inactive-workers', false)
-  const [activePayouts, setActivePayouts] = usePersistedFlag('users:active-payouts', true)
-  const [completedPayouts, setCompletedPayouts] = usePersistedFlag('users:completed-payouts', false)
+  const [activeWorkers, setActiveWorkers] = usePersistedFlag('users:active-workers', SHOWN, true)
+  const [inactiveWorkers, setInactiveWorkers] = usePersistedFlag(
+    'users:inactive-workers',
+    SHOWN,
+    false,
+  )
+  const [activePayouts, setActivePayouts] = usePersistedFlag('users:active-payouts', SHOWN, true)
+  const [completedPayouts, setCompletedPayouts] = usePersistedFlag(
+    'users:completed-payouts',
+    SHOWN,
+    false,
+  )
 
   const toggles = [
     {
