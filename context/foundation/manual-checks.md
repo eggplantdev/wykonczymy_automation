@@ -2142,3 +2142,18 @@ decyzja właściciela.
       nie przycina.
 - [ ] Pary o wspólnym tylko początku słowa („Wykonanie podłogi …" / „Wykonanie podłączenia …") **nie**
       są oznaczone.
+
+## EX-914 — kosz-szablonow — szablony trafiają do kosza (2026-09-29)
+
+- [ ] Jako MANAGER: „Przenieś szablon do kosza" na `/szablony` pyta „Przenieść szablon do kosza?",
+      a po potwierdzeniu szablon znika z listy, z wyboru szablonu przy nowej inwestycji, z „Wczytaj
+      szablon" i z „Dodaj sekcje z szablonu"; `/szablony/<id>` daje 404.
+- [ ] `/kosz` pokazuje go w sekcji „Szablony" z odliczaniem 30 dni; sekcja „Inwestycje" znika, gdy
+      w koszu nie ma żadnej inwestycji.
+- [ ] „Nowy szablon" z nazwą szablonu z kosza odmawia: „Szablon o tej nazwie jest w koszu — przywróć
+      go albo usuń na zawsze."
+- [ ] „Przywróć" oddaje szablon na `/szablony` z sekcjami, pozycjami i „Wersjami" bez zmian.
+- [ ] „Usuń na zawsze" przy szablonie żąda wpisania nazwy („Nazwa szablonu") i jest wyłączone, dopóki
+      się nie zgadza; po potwierdzeniu wiersz znika z `/kosz`.
+- [ ] Kosztorys założony wcześniej z tego szablonu jest bez zmian po przeniesieniu do kosza i po
+      usunięciu na zawsze.

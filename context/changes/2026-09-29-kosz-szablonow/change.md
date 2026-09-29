@@ -1,7 +1,7 @@
 ---
 change_id: kosz-szablonow
 title: Szablony kosztorysów go to the trash instead of a hard delete
-status: implementing
+status: implemented
 created: 2026-09-29
 updated: 2026-09-29
 archived_at: null
