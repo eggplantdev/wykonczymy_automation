@@ -559,17 +559,17 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 1.1 Parity spec passes (`lib/db/worker-payout-pairs.test.ts`)
-- [x] 1.2 Unit spec passes (`lib/kosztorys/worker-payout-pairs.test.ts`)
-- [x] 1.3 Existing reference spec still green (`kosztorys-subcontractor-due.test.ts`)
+- [x] 1.1 Parity spec passes (`lib/db/worker-payout-pairs.test.ts`) — bf24a1f1
+- [x] 1.2 Unit spec passes (`lib/kosztorys/worker-payout-pairs.test.ts`) — bf24a1f1
+- [x] 1.3 Existing reference spec still green (`kosztorys-subcontractor-due.test.ts`) — bf24a1f1
 
 ### Phase 2: Employee list column
 
 #### Automated
 
-- [ ] 2.1 Golden master regenerated and green
-- [ ] 2.2 `sum-transfers.test.ts` passes without worker-balance cases
-- [ ] 2.3 Column DOM spec passes (`components/tables/users.test.tsx`)
+- [x] 2.1 Golden master regenerated and green
+- [x] 2.2 `sum-transfers.test.ts` passes without worker-balance cases
+- [x] 2.3 Column DOM spec passes (`components/tables/users.test.tsx`)
 
 ### Phase 3: Booking action
 

@@ -9,11 +9,7 @@ import { selectKosztorysSubcontractorDue } from '@/lib/db/kosztorys-subcontracto
 import { selectWorkerPayoutPairs, type WorkerPayoutPairRowT } from '@/lib/db/worker-payout-pairs'
 import type { SubcontractorSettlementT } from '@/lib/kosztorys/subcontractor-due'
 import type { DepositPlaneSumsT } from '@/lib/kosztorys/deposit-planes'
-import {
-  sumAllRegisterBalances,
-  sumAllWorkerBalances,
-  sumAllInvestmentFinancials,
-} from '@/lib/db/sum-transfers'
+import { sumAllRegisterBalances, sumAllInvestmentFinancials } from '@/lib/db/sum-transfers'
 import type { KosztorysClientTotalsT } from '@/lib/kosztorys/settlement-client-totals'
 import type { InvestmentFinancialsT } from '@/types/investment-financials'
 import { perfStart } from '@/lib/perf'
@@ -30,21 +26,6 @@ export const fetchRegisterBalances = unstable_cache(
     return record
   },
   ['register-balances'],
-  { tags: [CACHE_TAGS.transfers] },
-)
-
-export type WorkerBalanceMapT = Record<string, number>
-
-export const fetchWorkerBalances = unstable_cache(
-  async (): Promise<WorkerBalanceMapT> => {
-    const elapsed = perfStart()
-    const payload = await getPayload({ config })
-    const map = await sumAllWorkerBalances(payload)
-    const record = Object.fromEntries(map)
-    console.log(`[PERF] query.fetchWorkerBalances ${elapsed()}ms (${map.size} workers)`)
-    return record
-  },
-  ['worker-balances'],
   { tags: [CACHE_TAGS.transfers] },
 )
 

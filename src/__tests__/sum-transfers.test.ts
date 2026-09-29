@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import {
   sumRegisterBalance,
   sumAllRegisterBalances,
-  sumAllWorkerBalances,
   sumAllInvestmentFinancials,
   sumFilteredByType,
 } from '@/lib/db/sum-transfers'
@@ -68,38 +67,6 @@ describe('sumAllRegisterBalances', () => {
     })
     const map = await sumAllRegisterBalances(fakePayload)
     expect(map.get(5)).toBe(800)
-  })
-})
-
-// ── sumAllWorkerBalances ─────────────────────────────────────────────────
-
-describe('sumAllWorkerBalances', () => {
-  it('returns a Map of worker payout totals', async () => {
-    mockExecute.mockResolvedValue({
-      rows: [
-        { worker_id: '1', balance: '3000' },
-        { worker_id: '2', balance: '1500.50' },
-      ],
-    })
-    const map = await sumAllWorkerBalances(fakePayload)
-    expect(map.size).toBe(2)
-    expect(map.get(1)).toBe(3000)
-    expect(map.get(2)).toBe(1500.5)
-  })
-
-  it('returns empty Map when no workers have payouts', async () => {
-    mockExecute.mockResolvedValue({ rows: [] })
-    const map = await sumAllWorkerBalances(fakePayload)
-    expect(map.size).toBe(0)
-  })
-
-  it('handles single worker', async () => {
-    mockExecute.mockResolvedValue({
-      rows: [{ worker_id: '7', balance: '500' }],
-    })
-    const map = await sumAllWorkerBalances(fakePayload)
-    expect(map.size).toBe(1)
-    expect(map.get(7)).toBe(500)
   })
 })
 
