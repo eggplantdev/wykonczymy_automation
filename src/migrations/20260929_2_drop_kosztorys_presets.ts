@@ -5,11 +5,18 @@ import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-ve
 // shared workshop, `kosztorys_presets` and both `template_preset_id` pointers are now read by nothing.
 // Runs only once the new deploy is live — the old code SELECTs these columns (Postgres 42703).
 //
-// The workshop is found by its pointer, not by id: a restored test DB may give it a different id,
-// and a migrated szablon never carries one. The cascade takes its tree and remaining restore points.
+// The workshop is found as 20260929_1 found it — the oldest szablon, since every copy that migration
+// made has a higher id — and never by its pointer: deleting the open szablon sets the pointer NULL,
+// and prod had exactly that on 2026-09-29. The name check keeps a copy safe when there was no
+// workshop to begin with: each copy carries its preset's name, and the unique index stops the
+// workshop from sharing one. The cascade takes its tree and remaining restore points.
 export async function up({ db }: MigrateUpArgs): Promise<void> {
   await db.execute(sql`
-    DELETE FROM investments WHERE status = 'szablon' AND template_preset_id IS NOT NULL;
+    DELETE FROM investments i
+    WHERE i.id = (SELECT min(id) FROM investments WHERE status = 'szablon')
+      AND NOT EXISTS (
+        SELECT 1 FROM kosztorys_presets p WHERE lower(trim(p.name)) = lower(trim(i.name))
+      );
 
     ALTER TABLE "investments" DROP CONSTRAINT IF EXISTS "investments_template_preset_id_fk";
     ALTER TABLE "kosztorys_snapshots"
