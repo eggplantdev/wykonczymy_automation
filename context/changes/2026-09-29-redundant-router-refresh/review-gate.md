@@ -7,6 +7,24 @@ existing module). The verification pass runs after this review, per the user's o
 
 ## Findings
 
+- [x] 🟡 WARNING · fixed · code-review · `src/components/kosztorys/editor/hooks/use-restore-remount.ts:40` · round 2: stale tree still stuck in the common case — any ordinary write in tab 1 renders the route after tab 2's delete, so the token already carries the change while the mount-seeded rows don't; `handleStaleTree` armed from that token and never remounted (the toast repeated on every edit). Same for the catalogue picker's `'reseed'` placement after a successful insert. The no-argument arm now defaults to the token the body was seeded from (`seededFrom`, reset on each remount), so it remounts at once when the tree already moved; the render-phase ref write is gone with it
+      test: test-driven-debugging · unit — owed, NOT authored: the user said to skip tests in this gate („olej testy"). The spec is one case in `use-restore-remount.test.tsx`: rerender `rev-1 → rev-2`, `triggerRestore()` with no argument, expect `remountKey === 1`
+- [x] 🟡 WARNING · skipped · impl-review · manual checks · the tree-replacing paths (reload from szablon, clear, version restore, the offline catch) have no evidence after the latch fix, and the large-kosztorys etap edit was never measured — all of them are boxes in the staging list, `context/foundation/manual-checks.md` § EX-908; re-verified there, not locally
+- [x] 🔵 OBSERVATION · fixed · impl-review + code-review · `use-restore-remount.ts:33` · a ref written during render could hold a token from an interrupted transition — removed with the seeded-token fix above
+- [x] 🔵 OBSERVATION · dropped · impl-review + code-review · `kosztorys-editor-v2.tsx:55` · a structural write (add/remove row) committing between the click and the replacing action's render fires the latch on the wrong tree — needs a row add inside one ~100 ms round trip of „Popraw literówki" (the modal dialogs block the grid); the robust fix (actions return the new revision) reshapes four action results
+- [x] 🔵 OBSERVATION · dropped · code-review · `kosztorys-editor-v2.tsx:30` · the token `revision:sections:items` collides when another tab deletes one row and adds one (item add/remove don't bump `investments.updated_at`) — pre-existing, needs two tabs editing the same kosztorys in opposite directions before the stale edit
+- [x] 🔵 OBSERVATION · dismissed · impl-review · `use-restore-remount.ts:34` · a latch that never fires stays armed until the next unrelated token change — pre-existing; the catch path's refetch and a restore both move `revision`, so it needs a restore with equal counts AND no revision bump
+- [x] 🔵 OBSERVATION · dismissed · impl-review · `kosztorys-editor-v2.tsx:42` · reseed runs before `router.refresh()`, where the plan's contract lists refresh second — the refresh is async, no render lands between; arming first is the part that matters
+- [x] 🔵 OBSERVATION · dismissed · impl-review · `context/foundation/test-plan.md` · whole table re-padded by prettier — formatter output
+- [x] fixed · impl-review · `work-catalogue-data-table.test.tsx:9`, `fleet-data-table.test.tsx:12`, `kosztorys-editor-body-history.test.tsx:14`, `add-items-from-catalogue-dialog.test.tsx:34` · dead `refresh` keys in the `next/navigation` mocks — dropped; the only `router.refresh()` left in `src` is in `kosztorys-editor-v2.tsx`, which none of them renders. Whether the last two mocks are dead as a whole was not checked (needs the specs run)
+- [x] fixed · comment-noise-audit · `e2e/support/wait.ts:34,73-77`, `e2e/invoice-ingest.spec.ts:169`, `use-kosztorys-editor.ts:1151` · comments still naming `router.refresh()` / "refresh" as a write's render — reworded to "render" / "refetch"
+- [x] fixed · comment-noise-audit · `use-restore-remount.test.tsx:36` · comment restated the test title — deleted
+- [x] fixed · comment-noise-audit · `kosztorys-editor-v2.tsx:52` · narration sentence cut, the race rationale kept
+- [x] dropped · comment-noise-audit · `use-kosztorys-editor-context.tsx:20`, `kosztorys-versions-drawer.tsx:18` · proposed deletes — each says when the callback fires (after a swap / only on success), which the name alone doesn't
+- [x] dismissed · feature-first-structure + module-cohesion-audit + structure-scatter-audit · 0 findings — no new file or home; `OnTreeReplacedT` colocates with its context, as the editor's contract types do; the two large modules predate the branch (EX-521/EX-515)
+- [x] dismissed · tailwind-v4-audit · 0 findings — no class changes
+- [x] dismissed · simplify · round-2 edits — reuse / simplification / efficiency / altitude reviewed inline (one ~30-line hook diff, no agent fan-out): `seededFrom` is not derivable (token at the last remount), nothing else new
+
 - [x] 🟡 WARNING · fixed · verify · `src/components/kosztorys/editor/hooks/use-restore-remount.ts:34` · CONFIRMED in the browser pass: „Popraw literówki" left the typo on screen in 3/24 runs, because the action's render committed before `.then` armed the latch, which then waited for a change that had already happened. The latch now arms from the token the action started from (`reseed(treeToken)`), so it also fires on a change that already landed. After the fix: 14/14 live
       test: test-driven-debugging · unit — `use-restore-remount.test.tsx` „remounts when the fresh tree landed before it was armed", red → green
 - [x] 🟡 WARNING · fixed · verify · `src/components/kosztorys/editor/kosztorys-editor-v2.tsx:66` · stale tree (delete a row in tab 2, edit it in tab 1): tab 1 never remounted. The same latch fix, with `handleStaleTree` arming from the token on screen: 4/4 remount without the row (383/384/391). Most likely the same ordering race; not proven pre-existing, because no build of the base was measured
@@ -37,9 +55,15 @@ existing module). The verification pass runs after this review, per the user's o
       test: no automated test · — failure outside this change
 - [x] skipped · simplify · merge risk · the main tree has another session's `src/lib/utils/settle-action.ts` (untracked) wrapping `linked-sheet-actions`, `delete-forever-dialog`, `trash-investment-button` and the versions drawer — the same files as EX-908; if it wraps the three tree-replacing dialogs, the "threw → refetch" signal disappears. Flag it at the merge into staging
 
+## Round 2 — full fan-out (2026-09-29, `66bbd9b2...5c30cfc3`)
+
+Checks: `/10x-impl-review`, `/code-review`, `tailwind-v4-audit`, `feature-first-structure`,
+`module-cohesion-audit`, `structure-scatter-audit`, `comment-noise-audit` (flag-only); then `/simplify` +
+`primitive-reuse-scan`. Verification pass not re-run (25 checks passed after round 1).
+
 ## Simplify pass
 
-Ran /simplify (4 agents: reuse, simplification, efficiency, altitude) — 6 applied, 0 proposed, 6 dismissed/dropped/skipped; each folded into ## Findings (tagged simplify).
+Round 1: ran /simplify (4 agents: reuse, simplification, efficiency, altitude) — 6 applied, 0 proposed, 6 dismissed/dropped/skipped. Round 2: inline on the round-2 edits — 0 applied. Each folded into ## Findings (tagged simplify).
 
 ## Tests & suite
 
@@ -48,3 +72,4 @@ Ran /simplify (4 agents: reuse, simplification, efficiency, altitude) — 6 appl
 - 20 touched/affected specs (`gate2.txt` in the scratchpad) — 20/20 files, 98/98 tests green. The toolbar spec is excluded (pre-existing red, see above).
 - Full `pnpm test` / `test:e2e` — not run (the user did not ask).
 - After the latch fix: `use-restore-remount.test.tsx` + `use-kosztorys-catalogue-problems.test.tsx` 9/9 green; `pnpm typecheck`, `eslint` and `prettier --check` on the changed files clean.
+- Round 2: tests skipped by the user („olej testy") — no spec written or run; `eslint` + `prettier --check` on the changed files clean.
