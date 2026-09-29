@@ -27,7 +27,7 @@ import {
   resolveSectionTarget,
   sectionNameOptions,
 } from '@/lib/kosztorys/work-catalogue/section-target'
-import type { SectionSubtotalT } from '@/lib/kosztorys/types'
+import type { SectionMetaT } from '@/lib/kosztorys/types'
 import type {
   AppendedCatalogueSliceT,
   WorkCatalogueItemT,
@@ -37,7 +37,7 @@ import { toastMessage } from '@/lib/utils/toast'
 type PropsT = {
   investmentId: number
   catalogue: WorkCatalogueItemT[]
-  sections: SectionSubtotalT[]
+  sections: readonly SectionMetaT[]
   // The WHOLE rozpiska, so „Ukryj już dodane" answers for the kosztorys and not for one sekcja —
   // the same praca legitimately sits in several pokoje, and the owner wants all of them out of view.
   kosztorysItems: readonly KosztorysItemRefT[]

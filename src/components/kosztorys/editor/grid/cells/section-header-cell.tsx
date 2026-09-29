@@ -1,13 +1,16 @@
 'use client'
 
-import { ChevronDown, ChevronRight } from 'lucide-react'
+import type { KeyboardEvent } from 'react'
+import { ChevronDown, ChevronRight, Plus } from 'lucide-react'
 
+import { Button } from '@/components/ui/button'
 import { SectionNameCell } from '@/components/kosztorys/editor/grid/cells/section-name-cell'
 import {
   KosztorysSectionActionsMenu,
   type SectionBandActionsT,
 } from '@/components/kosztorys/editor/grid/menus/kosztorys-section-actions-menu'
 import { formatNet } from '@/lib/kosztorys/format'
+import { cn } from '@/lib/utils/cn'
 import { canMoveSection, type MoveEdgesT } from '@/lib/kosztorys/move-edges'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
@@ -23,7 +26,7 @@ export type SectionHeaderContextT = {
   collapsedSectionIds: ReadonlySet<number>
   onToggleCollapsed: (sectionId: number) => void
   onRename?: (sectionId: number, name: string) => void
-  // One bundle: all four come from the same `editorOnly()` gate, so it is all-present or absent.
+  // One bundle: every command comes from the same `editorOnly()` gate, so it is all-present or absent.
   actions?: SectionBandActionsT
   // A section-scoped sort keeps bands on screen but freezes section order — see the menu.
   sortActive: boolean
@@ -78,13 +81,16 @@ export function SectionHeaderCell({
 }) {
   const { itemCount, net } = context.figures.get(rowData.sectionId) ?? { itemCount: 0, net: 0 }
   const { onRename } = context
-  const collapsed = context.collapsedSectionIds.has(rowData.sectionId)
+  // A sekcja bez pozycji has nothing to fold, so its band is inert apart from the name and the add.
+  const foldable = itemCount > 0
+  const collapsed = foldable && context.collapsedSectionIds.has(rowData.sectionId)
   const toggle = () => context.onToggleCollapsed(rowData.sectionId)
-  const title = collapsed ? 'Rozwiń sekcję' : 'Zwiń sekcję'
+  const title = foldable ? (collapsed ? 'Rozwiń sekcję' : 'Zwiń sekcję') : undefined
+  const { actions } = context
 
   if (slot === 'actions') {
     // Never gets a toggle handler, so a collapsed section's commands stay reachable.
-    if (!context.actions) return <div className="size-full" />
+    if (!actions) return <div className="size-full" />
     return (
       <KosztorysSectionActionsMenu
         row={rowData}
@@ -95,31 +101,39 @@ export function SectionHeaderCell({
         sortActive={context.sortActive}
         canMoveUp={canMoveSection(context.moveEdges, rowData.sectionId, 'up')}
         canMoveDown={canMoveSection(context.moveEdges, rowData.sectionId, 'down')}
-        actions={context.actions}
+        actions={actions}
       />
     )
   }
 
   if (slot === 'label') {
     const Chevron = collapsed ? ChevronRight : ChevronDown
+    const toggleProps = foldable
+      ? {
+          role: 'button',
+          tabIndex: 0,
+          title,
+          'aria-expanded': !collapsed,
+          onClick: toggle,
+          onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => {
+            // Not events bubbling out of the rename input, where Space/Enter edit the name.
+            if (event.target !== event.currentTarget) return
+            if (event.key !== 'Enter' && event.key !== ' ') return
+            event.preventDefault()
+            toggle()
+          },
+        }
+      : {}
     return (
-      // The whole band toggles; rename stops its own click from bubbling here.
+      // A foldable band toggles as a whole; rename stops its own click from bubbling here.
       <div
-        role="button"
-        tabIndex={0}
-        title={title}
-        aria-expanded={!collapsed}
-        onClick={toggle}
-        onKeyDown={(event) => {
-          // Not events bubbling out of the rename input, where Space/Enter edit the name.
-          if (event.target !== event.currentTarget) return
-          if (event.key !== 'Enter' && event.key !== ' ') return
-          event.preventDefault()
-          toggle()
-        }}
+        {...toggleProps}
         // `w-max` + the `overflow: visible` rule in globals.css let the band out of the cell, so a
         // long name isn't clipped at the „Sekcja" column's width.
-        className="hover:bg-accent/50 flex h-full w-max cursor-pointer items-center gap-2 px-2 text-lg font-semibold"
+        className={cn(
+          'flex h-full w-max items-center gap-2 px-2 text-lg font-semibold',
+          foldable && 'hover:bg-accent/50 cursor-pointer',
+        )}
       >
         <SectionDot />
         {onRename ? (
@@ -146,11 +160,29 @@ export function SectionHeaderCell({
             <span className="text-muted-foreground font-normal"> netto</span>
           </span>
         )}
-        <Chevron className="text-muted-foreground size-4 shrink-0" />
+        {foldable && <Chevron className="text-muted-foreground size-4 shrink-0" />}
+        {!foldable && actions && (
+          <Button
+            variant="ghost"
+            size="xs"
+            className="font-normal"
+            onClick={() => actions.onAddItem(rowData.sectionId)}
+          >
+            <Plus />
+            Dodaj pracę
+          </Button>
+        )}
       </div>
     )
   }
 
   // Blank cells toggle too; keyboard/aria stay on the label cell, the one control.
-  return <div aria-hidden title={title} onClick={toggle} className="size-full cursor-pointer" />
+  return (
+    <div
+      aria-hidden
+      title={title}
+      onClick={foldable ? toggle : undefined}
+      className={cn('size-full', foldable && 'cursor-pointer')}
+    />
+  )
 }

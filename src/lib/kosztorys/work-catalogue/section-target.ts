@@ -1,4 +1,4 @@
-import type { SectionSubtotalT } from '@/lib/kosztorys/types'
+import type { SectionMetaT } from '@/lib/kosztorys/types'
 
 // `undefined` means the picker has no target at all — the name is blank — and „Dodaj" stays disabled.
 export type SectionTargetT = { kind: 'existing'; sectionId: number } | { kind: 'new'; name: string }
@@ -13,7 +13,7 @@ const sqlNameKey = (name: string) => name.trim().toLowerCase()
 // The combobox keys its list by the option string itself, so a repeated name would render two
 // identical rows under one React key. First occurrence wins — which is also the sekcja
 // `resolveSectionTarget` picks, so the list and the write agree on which twin is reachable.
-export function sectionNameOptions(sections: readonly SectionSubtotalT[]): string[] {
+export function sectionNameOptions(sections: readonly SectionMetaT[]): string[] {
   const seen = new Set<string>()
   return sections.flatMap((section) => {
     const key = sqlNameKey(section.sectionName)
@@ -33,7 +33,7 @@ export function sectionNameOptions(sections: readonly SectionSubtotalT[]): strin
  */
 export function resolveSectionTarget(
   name: string,
-  sections: readonly SectionSubtotalT[],
+  sections: readonly SectionMetaT[],
   preferredSectionId?: number,
 ): SectionTargetT | undefined {
   const key = sqlNameKey(name)

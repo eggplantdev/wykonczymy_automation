@@ -536,6 +536,8 @@ export function useKosztorysEditor({
   // Which ▲/▼ the two menus may offer at all. Off `rows`, like the movers themselves.
   const moveEdges = useMemo(() => computeMoveEdges(rows, sections), [rows, sections])
 
+  const onAddItem = editorOnly(handleAddItem)
+
   const columnOpts = {
     view,
     stages,
@@ -1316,6 +1318,7 @@ export function useKosztorysEditor({
     onReorderSection: columnOpts.onReorderSection,
     onSetSectionColor: columnOpts.onSetSectionColor,
     onRemoveSection: columnOpts.onRemoveSection,
+    onAddItem,
     subtotals,
     // client-priced, view-invariant per-section subtotals — the section pie's structure source.
     progressSubtotals,

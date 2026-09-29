@@ -22,7 +22,7 @@ import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 export function KosztorysAddMenu() {
   const {
     investmentId,
-    subtotals,
+    sections,
     handleAddItem,
     handleAddSection,
     handleAppendedSections,
@@ -45,10 +45,16 @@ export function KosztorysAddMenu() {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           {/* No section is preselected — any default lands the praca where the user isn't looking,
-              which is the whole reason this is a picker. With no sekcja to offer, „Praca" goes
-              through handleAddSection, which mints a section WITH its first pozycja inside. */}
-          {subtotals.length === 0 ? (
-            <DropdownMenuItem onSelect={handleAddSection}>
+              which is the whole reason this is a picker. With no sekcja to offer, „Praca" mints a
+              bare one first; should the pozycja then fail, the sekcja bez pozycji left behind is a
+              legitimate state, not a leak. */}
+          {sections.length === 0 ? (
+            <DropdownMenuItem
+              onSelect={async () => {
+                const sectionId = await handleAddSection()
+                if (sectionId !== undefined) await handleAddItem(sectionId)
+              }}
+            >
               <Hammer />
               Praca
             </DropdownMenuItem>
@@ -59,7 +65,7 @@ export function KosztorysAddMenu() {
                 Praca
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent>
-                {subtotals.map((section) => (
+                {sections.map((section) => (
                   <DropdownMenuItem
                     key={section.sectionId}
                     onSelect={() => handleAddItem(section.sectionId)}
