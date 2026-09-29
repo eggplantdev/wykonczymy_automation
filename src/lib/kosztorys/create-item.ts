@@ -44,8 +44,7 @@ export async function sectionOwnerAndNextItemOrder(
   }
 }
 
-// Every blank position the app mints — append, insert-at, and the first item of a new section — is
-// this one row shape. Three copies had already drifted apart on which defaults they set (EX-578).
+// Every blank position the app mints — append and insert-at — is this one row shape. Three copies had already drifted apart on which defaults they set (EX-578).
 export async function createBlankItem(
   payload: Payload,
   {

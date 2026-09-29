@@ -5,9 +5,6 @@ import type { NewRowT } from '@/lib/kosztorys/create-item'
 
 export type CreatedSectionT = { section: NewRowT }
 
-// A bare section: a sekcja bez pozycji is a state the editor draws (a header band alone), so nothing
-// is seeded to make it visible. Every path that mints one — append and insert-at — goes through here.
-//
 // No etap is seeded — a stage's plane is forced at creation (addStageAction) and a guess would read
 // as confirmed while nobody chose it, while an unconfirmed (null) one drops out of both
 // subcontractor views.

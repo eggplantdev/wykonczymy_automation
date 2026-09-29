@@ -40,7 +40,9 @@ export function buildSectionBandRows(
   viewRows: KosztorysV2RowT[],
   { collapsedSectionIds, enabled, sections, showItemless }: OptsT,
 ): KosztorysV2RowT[] {
-  if (!enabled) return viewRows
+  // With no rows there is nothing for the sort to scatter, and dropping the bands would leave an
+  // all-itemless kosztorys as a blank grid with no „Dodaj pracę" to start it from.
+  if (!enabled && viewRows.length > 0) return viewRows
 
   const bySection = groupBySection(viewRows)
 

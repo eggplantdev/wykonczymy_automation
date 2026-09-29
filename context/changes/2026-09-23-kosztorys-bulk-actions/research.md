@@ -215,6 +215,11 @@ bulk-switching the settlement mode to „auto" and bulk-deleting prace.
   - generalizing `isLastItemInSection` to "sections whose items are all selected get deleted too";
   - on the client: `pruneByIds(ids)`, `dropHeight`, and restoring the whole set on failure.
 
+> **2026-09-29 (kosztorys-empty-section):** the cascade is gone. Deleting a section's last item now
+> leaves the section standing, and `isLastItemInSection` / `delete-policy.ts` are deleted. So bulk
+> delete must **not** generalize it: removing every item of a section keeps the section. Sections are
+> removed only through their own ⋯ menu.
+
 ### 5. Other candidates the model supports cheaply
 
 - **Item fields:** `section`, `displayOrder`, `description`, `unit`, `plannedQty`,

@@ -1,7 +1,7 @@
 ---
 change_id: kosztorys-empty-section
 title: Sekcja w kosztorysie v2 może istnieć bez ani jednej pozycji
-status: implementing
+status: implemented
 created: 2026-09-29
 updated: 2026-09-29
 archived_at: null

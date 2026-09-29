@@ -28,7 +28,6 @@ function meta(sectionId: number): SectionMetaT {
 const VIEW_ROWS = [row(1, 10), row(2, 10), row(3, 10), row(4, 20), row(5, 20)]
 const SECTIONS = [meta(10), meta(20)]
 
-// The section list is never the filtered view, whatever subset the view is showing.
 const enabled = (collapsed: number[] = [], sections = SECTIONS, showItemless = false) => ({
   collapsedSectionIds: new Set(collapsed),
   enabled: true,
@@ -165,8 +164,6 @@ describe('buildSectionBandRows — a sekcja bez pozycji', () => {
     expect(rows[5].sectionName).toBe('Sekcja 15')
   })
 
-  // Search, filters and every client output: an empty header there is the same noise as a section
-  // the filter emptied.
   it('draws nothing for it when itemless sections are hidden', () => {
     const rows = buildSectionBandRows(VIEW_ROWS, enabled([], WITH_ITEMLESS, false))
 
@@ -175,6 +172,12 @@ describe('buildSectionBandRows — a sekcja bez pozycji', () => {
 
   it('draws only the itemless headers over an empty grid', () => {
     const rows = buildSectionBandRows([], enabled([], [meta(15)], true))
+
+    expect(rows.map((r) => r.id)).toEqual([sectionHeaderRowId(15)])
+  })
+
+  it('keeps the itemless headers over an empty grid under a whole-kosztorys sort', () => {
+    const rows = buildSectionBandRows([], { ...enabled([], [meta(15)], true), enabled: false })
 
     expect(rows.map((r) => r.id)).toEqual([sectionHeaderRowId(15)])
   })

@@ -166,6 +166,31 @@ describe('sekcja bez pozycji w edytorze', () => {
     expect(result.current.rows[1]).toMatchObject({ sectionId: 20, sectionName: 'Kuchnia' })
   })
 
+  it('keeps a first pozycja under its own band when the last one is deleted mid-add', async () => {
+    vi.mocked(addItemAction).mockResolvedValue({
+      success: true,
+      data: { id: 2, displayOrder: 0 },
+    })
+    const { result } = renderEditor()
+    const lastOfSalon = result.current.rows.find((row) => row.id === 1)
+
+    await act(async () => {
+      const adding = result.current.handleAddItem(10)
+      if (lastOfSalon) await grid.opts?.onRemoveItem?.(lastOfSalon)
+      await adding
+    })
+
+    expect(result.current.rows.map((row) => row.id)).toEqual([2, 3])
+  })
+
+  it('shows itemless bands despite a persisted id of a condition that no longer exists', () => {
+    localStorage.setItem('kosztorys-filters:1', JSON.stringify({ 'removed-condition': true }))
+    const { result } = renderEditor()
+
+    expect(result.current.showItemless).toBe(true)
+    localStorage.clear()
+  })
+
   it('renames an itemless section in the list and persists it', async () => {
     const { result } = renderEditor()
 

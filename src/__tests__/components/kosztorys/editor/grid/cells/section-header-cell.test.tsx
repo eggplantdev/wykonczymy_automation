@@ -132,7 +132,6 @@ function bandWith(itemCount: number) {
 const chevron = (container: HTMLElement) =>
   container.querySelector('.lucide-chevron-down, .lucide-chevron-right')
 
-// A sekcja bez pozycji has nothing to fold, so the band's one job is getting its first praca in.
 describe('Belka sekcji bez pozycji', () => {
   it('daje „Dodaj pracę” zamiast strzałki i nie zwija się kliknięciem', async () => {
     const { user, container } = bandWith(0)

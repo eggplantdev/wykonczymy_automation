@@ -188,8 +188,8 @@ export function useKosztorysEditor({
   // out leaves every call site reaching in — the indirection on the hot path EX-496 was reverted over.
   // Settle EX-422 first: if rowsRef/prevById stop being load-bearing, what's left to extract is smaller.
   const [rows, setRows] = useState<KosztorysV2RowT[]>(() => treeToRows(tree))
-  // Order, name and colour of every section — the only place a section without pozycje exists.
-  // `rows` stays laid out as contiguous blocks in this order.
+  // The only place a section without pozycje exists. `rows` stays laid out as contiguous blocks in
+  // this order.
   const [sections, setSections] = useState<SectionMetaT[]>(() => treeToSections(tree))
   const documentSettings = worker?.settings ?? clientView
   const {
@@ -533,7 +533,7 @@ export function useKosztorysEditor({
     [preview, worker, clientView, rows, stages, filledStageIds],
   )
 
-  // Which ▲/▼ the two menus may offer at all. Off `rows`, like the movers themselves.
+  // Which ▲/▼ the two menus may offer at all.
   const moveEdges = useMemo(() => computeMoveEdges(rows, sections), [rows, sections])
 
   const onAddItem = editorOnly(handleAddItem)
@@ -655,7 +655,12 @@ export function useKosztorysEditor({
   const ordinalByRowId = useMemo(() => baseOrdinals(documentRows), [documentRows])
   // A band with nothing under it would read as „this section has no hits" under a search or filter,
   // and a client's document has no use for an empty chapter.
-  const showItemless = !preview && search.trim() === '' && engagedConditionIds.size === 0
+  // Recognised ids only: a persisted id from a since-removed condition narrows nothing and shows no
+  // chip, so counting it would hide every itemless band with no way for the owner to get them back.
+  const showItemless =
+    !preview &&
+    search.trim() === '' &&
+    !ROW_CONDITIONS.some((condition) => engagedConditionIds.has(condition.id))
   // The money the totals bar shows and the base the global discount comes off. Full-dataset, so a search
   // or section filter can't move it.
   const totalNet = useMemo(() => subtotals.reduce((s, x) => s + x.net, 0), [subtotals])
@@ -829,12 +834,12 @@ export function useKosztorysEditor({
     })
     prevById.current.set(row.id, row)
     // A section's first pozycja has no row to follow, so applyAddItem appends it past every other
-    // block; the re-lay puts it back under its own band.
-    const firstInSection = !rowsRef.current.some((r) => r.sectionId === sectionId)
+    // block; the re-lay puts it back under its own band. Asked of the updater's rows, not rowsRef:
+    // a delete of the section's last pozycja can land while addItemAction is in flight.
     const order = sectionsRef.current
     setRows((rs) => {
       const next = applyAddItem(rs, row)
-      return firstInSection ? orderRowsBySections(next, order) : next
+      return rs.some((r) => r.sectionId === sectionId) ? next : orderRowsBySections(next, order)
     })
     unfoldSection(sectionId)
   }
@@ -1076,11 +1081,11 @@ export function useKosztorysEditor({
     // handleRemoveItem. The header id carries the section's own rename, recolour and reorder.
     flushUndoBuffer()
     pruneByIds([sectionHeaderRowId(sectionId), ...removed.map((r) => r.id)])
-    // collapsedSectionIds is left alone: with no rows there is no band to fold, so a leftover id is inert
-    // — and it keeps the fold state if the server rejects and the rows come back.
+    // collapsedSectionIds is left alone: an id whose section left the list folds nothing, and it keeps
+    // the fold state if the server rejects and the section comes back.
     const res = await removeSectionAction(sectionId)
     if (!res.success) {
-      // Server rejected (predicate drift) — put the section back where it stood, with its rows.
+      // Server rejected (predicate drift).
       for (const r of removed) prevById.current.set(r.id, r)
       const restored = meta ? restoreSection(sectionsRef.current, meta, index) : sectionsRef.current
       commitSections(restored)

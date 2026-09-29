@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
 import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
-import { DEFAULT_ITEM_DESCRIPTION } from '@/lib/kosztorys/constants'
+import { DEFAULT_ITEM_DESCRIPTION, DEFAULT_SECTION_NAME } from '@/lib/kosztorys/constants'
 import { refreshReferenceData, runSeedScript } from './support/seeds'
 import {
   collapseSummaryPanel,
@@ -37,6 +37,7 @@ type StructureSeedT = {
   presetA: number
   presetB: number
   presetAppend: number
+  bare: number
 }
 
 let seed: StructureSeedT
@@ -299,6 +300,47 @@ test('„Dodaj → Praca" lands in the sekcja picked in the submenu, not the one
   // it under the right band whether or not the server agreed about which band that was.
   await reloadEditor(page)
   await expect.poll(() => rozpiska(page)).toEqual(afterAdd)
+})
+
+// A sekcja is created bare, so the band is the only thing on screen until its first praca goes in
+// through the band itself — and the reload is what shows the server minted no pozycja of its own.
+test('„Dodaj → Sekcja" puts a bare band on top, „Dodaj pracę" fills it, and its last delete leaves it bare', async ({
+  page,
+}) => {
+  await openEditor(page, seed.bare)
+
+  await page.getByRole('button', { name: 'Dodaj' }).click()
+  await runCommand(page, 'Sekcja')
+  const bare = [`# ${DEFAULT_SECTION_NAME}`, '# Sekcja istniejąca', 'Praca istniejąca']
+  await expect.poll(() => rozpiska(page)).toEqual(bare)
+  await reloadEditor(page)
+  await expect.poll(() => rozpiska(page)).toEqual(bare)
+
+  const added = serverAction(page)
+  await band(page, DEFAULT_SECTION_NAME).getByRole('button', { name: 'Dodaj pracę' }).click()
+  await added
+  const filled = [
+    `# ${DEFAULT_SECTION_NAME}`,
+    DEFAULT_ITEM_DESCRIPTION,
+    '# Sekcja istniejąca',
+    'Praca istniejąca',
+  ]
+  await expect.poll(() => rozpiska(page)).toEqual(filled)
+  await expect(
+    band(page, DEFAULT_SECTION_NAME).getByRole('button', { name: 'Dodaj pracę' }),
+  ).toHaveCount(0)
+
+  await reloadEditor(page)
+  await expect.poll(() => rozpiska(page)).toEqual(filled)
+
+  await openRowMenu(page, DEFAULT_ITEM_DESCRIPTION)
+  await menuItem(page, 'Usuń pozycję').click()
+  const deleted = serverAction(page)
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Usuń' }).click()
+  await deleted
+  await expect.poll(() => rozpiska(page)).toEqual(bare)
+  await reloadEditor(page)
+  await expect.poll(() => rozpiska(page)).toEqual(bare)
 })
 
 // The entry carries its one-line explanation inside the item, so the accessible name does too — and
