@@ -513,7 +513,7 @@ export function useKosztorysEditor({
   )
 
   // Which ▲/▼ the two menus may offer at all. Off `rows`, like the movers themselves.
-  const moveEdges = useMemo(() => computeMoveEdges(rows), [rows])
+  const moveEdges = useMemo(() => computeMoveEdges(rows, sectionRepresentatives(rows)), [rows])
 
   const columnOpts = {
     view,
@@ -993,7 +993,11 @@ export function useKosztorysEditor({
     slice: KosztorysTreeT['sections'][number],
     createdSection: boolean,
   ) {
-    const placement = catalogueSlicePlacement(rowsRef.current, slice.id, createdSection)
+    const placement = catalogueSlicePlacement(
+      new Set(rowsRef.current.map((row) => row.sectionId)),
+      slice.id,
+      createdSection,
+    )
     if (placement === 'reseed') return recoverStaleTree()
     const appended = rowsFromSections([slice])
     setRows((rs) =>

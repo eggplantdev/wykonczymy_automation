@@ -79,17 +79,16 @@ export function applyAddItem(rows: KosztorysV2RowT[], row: KosztorysV2RowT): Kos
 export type CatalogueSlicePlacementT = 'prepend' | 'fold' | 'reseed'
 
 // `reseed` is the case the two obvious branches miss: the server matched the typed nazwa to a sekcja
-// this grid holds no row for — emptied of its pozycje (a 0-row sekcja is absent from the picker's
-// list, which is why the nazwa was typed at all) or created elsewhere since mount. `applyAddItem`
-// would then have no anchor and append past the LAST sekcja, drawing the band in the wrong place
-// until a full reload, because `rows` is mount-frozen (EX-441).
+// this grid doesn't list — created elsewhere since mount. There is no band to fold into, and `rows`
+// is mount-frozen (EX-441), so only a re-seed from the server draws it. A listed sekcja with no
+// pozycje folds: the section list already places it.
 export function catalogueSlicePlacement(
-  rows: readonly KosztorysV2RowT[],
+  sectionIds: ReadonlySet<number>,
   sectionId: number,
   createdSection: boolean,
 ): CatalogueSlicePlacementT {
   if (createdSection) return 'prepend'
-  return rows.some((row) => row.sectionId === sectionId) ? 'fold' : 'reseed'
+  return sectionIds.has(sectionId) ? 'fold' : 'reseed'
 }
 
 export function applyRemoveItem(rows: KosztorysV2RowT[], itemId: number): KosztorysV2RowT[] {

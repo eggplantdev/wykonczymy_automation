@@ -218,6 +218,10 @@ export type KosztorysV2RowT = KosztorysV2RowBaseT & {
   [stageKey: StageKeyT]: number
 }
 
+// A section as the editor lists it — in the row's field names, so a row IS one and the band factories
+// take either. Kept apart from the rows because a section may have none (a „sekcja bez pozycji").
+export type SectionMetaT = Pick<KosztorysV2RowT, 'sectionId' | 'sectionName' | 'sectionColor'>
+
 export type SectionSubtotalT = {
   sectionId: number
   sectionName: string

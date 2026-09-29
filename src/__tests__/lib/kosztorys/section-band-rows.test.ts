@@ -13,7 +13,7 @@ import {
   sectionFooterRowId,
   sectionHeaderRowId,
 } from '@/lib/kosztorys/synthetic-rows'
-import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
+import type { KosztorysV2RowT, SectionMetaT } from '@/lib/kosztorys/types'
 
 function row(id: number, sectionId: number): KosztorysV2RowT {
   return {
@@ -24,14 +24,20 @@ function row(id: number, sectionId: number): KosztorysV2RowT {
   } as KosztorysV2RowT
 }
 
+function meta(sectionId: number): SectionMetaT {
+  return { sectionId, sectionName: `Sekcja ${sectionId}`, sectionColor: null }
+}
+
 // Two sections, three items then two — the shape every case below narrows.
 const VIEW_ROWS = [row(1, 10), row(2, 10), row(3, 10), row(4, 20), row(5, 20)]
+const SECTIONS = [meta(10), meta(20)]
 
-// The section list always comes off the FULL dataset, whatever subset the view is showing.
-const enabled = (collapsed: number[] = []) => ({
+// The section list is never the filtered view, whatever subset the view is showing.
+const enabled = (collapsed: number[] = [], sections = SECTIONS, showItemless = false) => ({
   collapsedSectionIds: new Set(collapsed),
   enabled: true,
-  sections: sectionRepresentatives(VIEW_ROWS),
+  sections,
+  showItemless,
 })
 
 describe('section band row ids', () => {
@@ -133,10 +139,57 @@ describe('buildSectionBandRows', () => {
       // Even a collapsed section stays visible: with no band there would be nothing to re-expand it.
       collapsedSectionIds: new Set([10]),
       enabled: false,
-      sections: sectionRepresentatives(VIEW_ROWS),
+      sections: SECTIONS,
+      showItemless: true,
     })
 
     expect(rows).toBe(VIEW_ROWS)
+  })
+})
+
+describe('buildSectionBandRows — a sekcja bez pozycji', () => {
+  // Between two populated sections, so the header lands in list order rather than at an end.
+  const WITH_ITEMLESS = [meta(10), meta(15), meta(20)]
+
+  it('draws a header alone, with no footer, when itemless sections are shown', () => {
+    const rows = buildSectionBandRows(VIEW_ROWS, enabled([], WITH_ITEMLESS, true))
+
+    expect(rows.map((r) => r.id)).toEqual([
+      sectionHeaderRowId(10),
+      1,
+      2,
+      3,
+      sectionFooterRowId(10),
+      sectionHeaderRowId(15),
+      sectionHeaderRowId(20),
+      4,
+      5,
+      sectionFooterRowId(20),
+    ])
+    expect(rows[5].sectionName).toBe('Sekcja 15')
+  })
+
+  // Search, filters and every client output: an empty header there is the same noise as a section
+  // the filter emptied.
+  it('draws nothing for it when itemless sections are hidden', () => {
+    const rows = buildSectionBandRows(VIEW_ROWS, enabled([], WITH_ITEMLESS, false))
+
+    expect(rows.map((r) => r.id)).not.toContain(sectionHeaderRowId(15))
+  })
+
+  it('draws only the itemless headers over an empty grid', () => {
+    const rows = buildSectionBandRows([], enabled([], [meta(15)], true))
+
+    expect(rows.map((r) => r.id)).toEqual([sectionHeaderRowId(15)])
+  })
+
+  it('still collapses a populated section to its header alone', () => {
+    const rows = buildSectionBandRows(VIEW_ROWS, enabled([20], WITH_ITEMLESS, true))
+
+    expect(rows.map((r) => r.id).slice(-2)).toEqual([
+      sectionHeaderRowId(15),
+      sectionHeaderRowId(20),
+    ])
   })
 })
 

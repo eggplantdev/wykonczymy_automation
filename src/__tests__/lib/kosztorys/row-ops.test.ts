@@ -85,18 +85,24 @@ describe('swapItemInSection', () => {
 })
 
 describe('catalogueSlicePlacement', () => {
+  // Sekcja 3 is listed with no pozycje.
+  const sectionIds = new Set([1, 2, 3])
+
   it('prepends a sekcja the picker just minted', () => {
-    expect(catalogueSlicePlacement(rows, 9, true)).toBe('prepend')
+    expect(catalogueSlicePlacement(sectionIds, 9, true)).toBe('prepend')
   })
 
   it('folds into a sekcja the grid already holds rows for', () => {
-    expect(catalogueSlicePlacement(rows, 2, false)).toBe('fold')
+    expect(catalogueSlicePlacement(sectionIds, 2, false)).toBe('fold')
   })
 
-  it('reseeds when the server appended into a sekcja absent from the grid', () => {
-    // An emptied sekcja renders no row, so it is missing from the picker's list and the owner types
-    // its nazwa — the server matches it and reports no mint. Folding would park the band past
-    // sekcja 2; nothing on screen can anchor it.
-    expect(catalogueSlicePlacement(rows, 3, false)).toBe('reseed')
+  it('folds into a listed sekcja bez pozycji', () => {
+    expect(catalogueSlicePlacement(sectionIds, 3, false)).toBe('fold')
+  })
+
+  it('reseeds when the server appended into a sekcja the grid does not list', () => {
+    // Created elsewhere since mount: folding would park the band past the last sekcja, and nothing
+    // on screen can anchor it.
+    expect(catalogueSlicePlacement(sectionIds, 4, false)).toBe('reseed')
   })
 })

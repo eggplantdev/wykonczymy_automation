@@ -290,6 +290,7 @@ export function KosztorysEditorBody({
         enabled: sectionBandsVisible(sort),
         collapsedSectionIds,
         sections: sectionRows,
+        showItemless: false,
       }),
     [viewRows, collapsedSectionIds, sort, sectionRows],
   )

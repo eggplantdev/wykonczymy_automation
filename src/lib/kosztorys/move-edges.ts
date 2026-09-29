@@ -1,5 +1,5 @@
 import { groupBySection } from '@/lib/kosztorys/row-ops'
-import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
+import type { KosztorysV2RowT, SectionMetaT } from '@/lib/kosztorys/types'
 
 // Where ▲/▼ has nowhere to go: a praca at the edge of its section, a sekcja at the edge of the
 // rozpiska. The movers already bail there, so a menu that doesn't read this offers a command that
@@ -11,9 +11,12 @@ export type MoveEdgesT = {
   lastSectionId: number | undefined
 }
 
-// Both planes off one grouping pass, because both movers read the same thing: the order the sections
-// and their rows appear in `rows`, never block contiguity.
-export function computeMoveEdges(rows: KosztorysV2RowT[]): MoveEdgesT {
+// Section edges come off the list, not the rows: an itemless section at either end owns that edge
+// and has no row to announce it.
+export function computeMoveEdges(
+  rows: KosztorysV2RowT[],
+  sections: readonly SectionMetaT[],
+): MoveEdgesT {
   const blocks = groupBySection(rows)
   const firstItemIds = new Set<number>()
   const lastItemIds = new Set<number>()
@@ -21,12 +24,11 @@ export function computeMoveEdges(rows: KosztorysV2RowT[]): MoveEdgesT {
     firstItemIds.add(block[0].id)
     lastItemIds.add(block[block.length - 1].id)
   }
-  const sequence = [...blocks.keys()]
   return {
     firstItemIds,
     lastItemIds,
-    firstSectionId: sequence[0],
-    lastSectionId: sequence.at(-1),
+    firstSectionId: sections[0]?.sectionId,
+    lastSectionId: sections.at(-1)?.sectionId,
   }
 }
 
