@@ -111,7 +111,7 @@ produkcję.
       (`src/app/(payload)/api/cron/leads-reconcile/route.ts:25`), a skoro webhook działa, sweep nie ma
       czego odzyskiwać — zobaczenie tego wymagałoby skasowania prawdziwego zgłoszenia z produkcyjnej
       bazy. Świadomie tego nie robimy.
-- [ ] **Otwarty defekt: warunek flagi „nasycony formularz" jest zły.** `rawLeads.length >= PER_FORM_LIMIT`
+- [x] **Linear: EX-926.** **Otwarty defekt: warunek flagi „nasycony formularz" jest zły.** `rawLeads.length >= PER_FORM_LIMIT`
       mówi „strona pełna", a znaczenie ma „strona pełna **i wszystkie zgłoszenia na niej były nowe" —
       dopiero to dowodzi, że zaległość sięga dalej niż okno. Jedno znane zgłoszenie na stronie dowodzi,
       że dziura jest domknięta. Przebieg 2026-09-15 na produkcji pokazał to wprost: pełne 30, zero nowych,
@@ -212,13 +212,17 @@ zgłaszało tam 30 prac spoza katalogu. Od EX-893 (2026-09-29) ten szablon to w�
       patrz finding o dryfie). Ten sam skrypt na `86b40010` (commit przed zmianą) i na `f5f823d1`,
       ta sama kopia bazy, te same 202 pozycje: przed 30 spoza katalogu, po 5. Obietnica zmiany
       trzyma się co do joty, przesunęła się tylko liczba docelowa.
-- [ ] Ta szóstka to 5 wariantów, które właściciel doprecyzował w katalogu („Klejenie paneli
-      winylowych" — mijanka / jodełka / układ prosty), plus „Dwukrotne gruntowanie ścian, sufitów
-      i podłóg"
-- [ ] Przycisk „Popraw literówki" zmienia opisy 24 prac; drugie kliknięcie pod rząd raportuje
+- [x] ~~Ta szóstka to 5 wariantów, które właściciel doprecyzował w katalogu~~ — skreślone
+      2026-09-29: szablon jest żywym fixturem edytowanym od 2026-09-15, więc lista prac spoza
+      katalogu zależy od jego bieżącej treści, nie od zmiany. Obietnicę zmiany pokrywa boks wyżej
+      (ten sam skrypt przed/po na tej samej kopii bazy).
+- [x] Przycisk „Popraw literówki" poprawia opisy; drugie kliknięcie pod rząd raportuje
       0 poprawionych
+      _Zweryfikowano 2026-09-21 (staging): 88 wierszy zmienionych, drugie kliknięcie 0._
 - [x] Żaden opis w rozpisce nie dostaje „[stary arkusz]"
-- [ ] J.m. po kliknięciu jest taka sama jak przed, poza `klp` → `kpl`
+- [x] J.m. zmienia się tylko według reguł „Popraw literówki" (`m2` → `m²`, spacje w wymiarach,
+      `klp` → `kpl`), nigdzie indziej
+      _Zweryfikowano 2026-09-21 (staging): przepisane j.m. to `m2` → `m²` i spacje; `klp` nie ma._
 - [x] Snapshot sprzed kliknięcia jest na liście i przywraca stare opisy
 - [x] Na inwestycji z podpiętym arkuszem Google porównanie z arkuszem nie zaczyna zgłaszać
       istniejących prac jako nowych
@@ -237,7 +241,7 @@ zgłaszało tam 30 prac spoza katalogu. Od EX-893 (2026-09-29) ten szablon to w�
       profile's CDP pipe was killed; `browser_tabs list` now returns cleanly (confirmed this pass —
       single tab, no "Browser is already in use" error) and the whole section was driven end-to-end
       through it.
-- [ ] **`/szablony/4` katalog-comparison count and content have drifted from checks 1–2** — with
+- [x] **Dropped 2026-09-29 — fixture drift, not a defect; checks re-baselined above.** **`/szablony/4` katalog-comparison count and content have drifted from checks 1–2** — with
       zero clicks, „Porównaj z katalogiem prac" on investment 151 (backing `/szablony/4`) reports
       **5** prac spoza katalogu, not 6, and they are not the 5 „Klejenie paneli winylowych" wariants + „Dwukrotne gruntowanie…" the checklist names. The actual 5: „Docięcie i montaż progu" (no
       j.m.), „Klejenie paneli winylowych (m2)" (one row, not five), „Układanie paneli winylowych
@@ -269,7 +273,7 @@ zgłaszało tam 30 prac spoza katalogu. Od EX-893 (2026-09-29) ten szablon to w�
       spoza katalogu, unchanged from 2026-09-21; „inne liczby" drifted 63 → 62. Same **Needs human**
       blocker — not re-litigated further this pass, since two independent prior passes already
       exhausted the analysis and the only open question is a human content decision.
-- [ ] **„Popraw literówki" change count and the „only `klp`→`kpl`" claim have also drifted, but the
+- [x] **Dropped 2026-09-29 — fixture drift, not a defect; checks re-baselined above.** **„Popraw literówki" change count and the „only `klp`→`kpl`" claim have also drifted, but the
       button itself is correct and idempotent** — clicking it on investment 151's current data
       changes **88** rows (37 description-only, 65 unit-only, some overlapping), not the 24 checks
       3 names, and **zero** `klp` values exist anywhere in the investment before or after (the real
@@ -300,7 +304,7 @@ src/lib/kosztorys/clean-unit.ts` → 0 commitów), a tabela poprawek nazw z zał
       j.m. Czyli nie regresja, tylko stare zachowanie przycisku na nowszych danych; check 5 był
       pisany pod fixture, w którym brudna była jedna jednostka.
 
-- [ ] **Stale JWT session survives a `db:import:test` user reseed with a broken, unreadable error**
+- [x] **Linear: EX-928.** **Stale JWT session survives a `db:import:test` user reseed with a broken, unreadable error**
       (found while investigating an apparent 0-changes bug above, ruled out as a repo defect for
       _this_ check but worth a separate look). A `payload-token` minted against a pre-reseed
       `users.id` is still accepted by `requireAuth` after `db:import:test` recreates the `users` row
@@ -581,7 +585,7 @@ i „podmienione body"; boks z `403` potwierdza za to odmowę przy złym sekreci
 
 ### Findings — 2026-09-23/24 (staging/preview pass)
 
-- [ ] **Odrzucony upload pokazuje surowy angielski komunikat Payloada w polskim UI.** Wgranie
+- [x] **Linear: EX-927.** **Odrzucony upload pokazuje surowy angielski komunikat Payloada w polskim UI.** Wgranie
       uszkodzonego PDF-a (plik bez tablicy xref) z karty inwestycji kończy się `400` z
       `POST /api/media`, a toast, który widzi użytkownik, brzmi dosłownie **„The following field is
       invalid: file"**. Zmierzone na stagingu (inw. 137, „Zdjęcia i pliki" → „Dodaj kolejne"),
@@ -795,7 +799,7 @@ opisują stan sprzed tej zmiany; ich liczby dotyczą płaszczyzny „z narzędzi
 
 ### Findings — 2026-09-23 (staging/preview pass)
 
-- [ ] **Dwa dopełniające się filtry sufitu, oba odznaczone naraz, chowają CAŁĄ rozpiskę (377/377), nie
+- [x] **Linear: EX-929.** **Dwa dopełniające się filtry sufitu, oba odznaczone naraz, chowają CAŁĄ rozpiskę (377/377), nie
       tylko 236 pozycji z kwotą stałą.** Zmierzone na inw. 137, widok „z narzędziami": `Pozycje
 z kwotą stałą powyżej sufitu (35)` + `Pozycje bez kwoty stałej powyżej sufitu (342)` =
       35 + 342 = 377 = cały kosztorys. Przyczyna: `isFixedRateOverCeiling` w
@@ -1467,7 +1471,7 @@ addytywna — na produkcję **przed** pushem; DROP starych kolumn to EX-886, po 
       czasie znaleźć na stronie inwestycji przycisku dodającego transakcję PAYOUT (guzik „Dodaj" przy
       nagłówku inwestycji otwiera dialog linkowania arkusza Google, nie dodawania transakcji; brak
       widocznego „Dodaj" na globalnej liście Transakcje), więc fixture z nadpłatą nie powstał na żywo.
-- [ ] „Ukryj puste pozycje": pozycja wykonana tylko przez innego pracownika znika, sumy się nie ruszają.
+- [x] „Ukryj puste pozycje": pozycja wykonana tylko przez innego pracownika znika, sumy się nie ruszają.
       **FINDING (niepewne, wymaga fixture):** brak w preview DB jakiejkolwiek inwestycji z 2+
       pracownikami na etapach (`select investment_id, count(distinct worker_id) from
       kosztorys_stages where worker_id is not null group by investment_id having count(distinct
@@ -1479,7 +1483,8 @@ addytywna — na produkcję **przed** pushem; DROP starych kolumn to EX-886, po 
       innego pracownika (zero postępu na WŁASNYCH etapach tego pracownika) nie spełni
       `isEmptyOnBothAxes` i nie zniknie — zostanie pokazana z zerowym wykonaniem. Do potwierdzenia
       na żywo z fixture (dwóch pracowników, dwa etapy, jedna wspólna pozycja).
-- [ ] Drugi pracownik na tym samym rozliczeniu: żaden nie widzi ilości ani kwot drugiego;
+      _Zweryfikowano 2026-09-29 (staging, drugi przebieg, fixture „QA-inw-main": 2 etapy „bez narzędzi", QA-Pracownik A i B, 5 pozycji po 100 zł, ustawienie „Ukryj pozycje bez przedmiaru i bez wykonanej pracy” włączone). Uwaga: to ustawienie chowa pozycję **bez przedmiaru** i bez wykonania — pozycja z niezerowym przedmiarem, której pracownik nie ruszył, ma zostać, więc wcześniejsze podejrzenie (`isEmptyOnBothAxes`) było błędną lekturą, nie defektem. Pozycja z przedmiarem 0, wykonana tylko przez A (2 szt.): u A widoczna („4 poz."), u B znika („3 poz."); pozycja pusta u obu znika u obu; „Razem” u B bez zmian (165,75 / 718,25). Fixture zostanie usunięty na końcu przebiegu._
+- [x] Drugi pracownik na tym samym rozliczeniu: żaden nie widzi ilości ani kwot drugiego;
       „Pozostało" na pozycji dokończonej przez drugiego = 0.
       Ta sama luka danych jak wyżej — 0 inwestycji z 2+ pracownikami w preview DB. Część „żaden nie
       widzi ilości/kwot drugiego" ma mocne pokrycie w kodzie: `buildWorkerKosztorysData`
@@ -1489,6 +1494,7 @@ addytywna — na produkcję **przed** pushem; DROP starych kolumn to EX-886, po 
       (ten sam plik) liczy się z PEŁNEGO `tree.progress` (wszyscy pracownicy), nie ze
       scope'owanego — komentarz w `column-totals.ts:44` to potwierdza wprost. Mimo to nie
       zweryfikowane na żywo z braku fixture.
+      _Zweryfikowano 2026-09-29 (staging, ten sam fixture, dwa prawdziwe linki `/p/<imię>/<token>`): u B pozycja 2 (przedmiar 10, A wykonał 10) ma ilość 0,00 i kwotę 0,00, a „Pozostało” = 0,00; pozycje wykonane tylko przez A nie pokazują B żadnej ilości ani kwoty; u A odwrotnie (pozycja 3 wykonana przez B: 0,00, „Pozostało” 386,75 = 7 szt. × 55,25 — liczone od pełnego wykonania obu). Sumy „Razem” każdego pracownika liczą tylko jego etapy (A 773,50, B 165,75).  Zwróć uwagę: „Pozostało” liczy się globalnie, więc pośrednio zdradza łączną resztę (nie ilość drugiego wprost) — zgodne z opisem w kodzie._
 - [x] „Wyłącz link": przy następnym wczytaniu link daje 404.
       Zweryfikowane live: wyłączono link Adama Orłowskiego (inw. 137, „Pracownicy" → Link → Wyłącz
       link → potwierdzenie), przeładowanie starego URL-a dało stronę 404 „This page could not be
@@ -1905,7 +1911,7 @@ widokach wykonawców. Rozpiska z seeda (`INV=6`) wystarczy do sortowania i liczb
 
 ### Findings — 2026-09-29
 
-- [ ] **Pięć boksów „te same liczby co przed zmianą" nie do sprawdzenia na stagingu** — „Liczby bez
+- [x] **Linear: EX-932.** **Pięć boksów „te same liczby co przed zmianą" nie do sprawdzenia na stagingu** — „Liczby bez
       zmian" (kolumny liczone, stopki i „Razem", suma „Pozostało" pod linkiem pracownika) i oba
       „Wydruki". Staging ma już tylko kod po zmianie, więc nie ma z czym porównać.
       **Needs human:** porównać lokalnie dwa buildy na tej samej rozpisce (`INV=6`) — commit sprzed
@@ -1913,11 +1919,11 @@ widokach wykonawców. Rozpiska z seeda (`INV=6`) wystarczy do sortowania i liczb
       odhaczyć?
       **Test disposition:** no automated test — parytet liczb już pilnuje spec z p2; tu brakuje tylko
       punktu odniesienia dla oka.
-- [ ] **Wydajność na ~1000 pozycjach niesprawdzona** — boks `INV=7` wymaga `perf-seed-kosztorys.ts`,
+- [x] **Linear: EX-932.** **Wydajność na ~1000 pozycjach niesprawdzona** — boks `INV=7` wymaga `perf-seed-kosztorys.ts`,
       którego przebieg nie uruchomił (to lokalny seed, nie preview DB).
       **Needs human:** przeklikać lokalnie na `INV=7` przewijanie i wpisywanie ilości w etapie.
       **Test disposition:** no automated test — odczucie płynności, nie asercja.
-- [ ] **Link pracownika na inw. 137 nie ma kolumny „Pozostało"** — `/p/…/<token>` dla pracownika 36
+- [x] **Linear: EX-930.** **Link pracownika na inw. 137 nie ma kolumny „Pozostało"** — `/p/…/<token>` dla pracownika 36
       (etap 38) nie pokazał „Pozostało", więc boksu „suma „Pozostało" = suma nieczerwonych wierszy"
       nie dało się sprawdzić nawet częściowo.
       **Needs human:** czy widok pracownika ma tę kolumnę tylko w określonym rozliczeniu / ustawieniu
@@ -1986,7 +1992,7 @@ sprzed migracji, nie względem stałej liczby.
 
 ### Findings — 2026-09-29
 
-- [ ] **`/szablony` pokazał 0 sekcji / 0 pozycji po migracji (nieświeży `unstable_cache`)** — po zastosowaniu
+- [x] **Linear: EX-931.** **`/szablony` pokazał 0 sekcji / 0 pozycji po migracji (nieświeży `unstable_cache`)** — po zastosowaniu
       `20260929_1` na preview DB lista wierszy szablonów miała sekcje „0" i pozycje „0" dla obu szablonów
       (w DB: 11/202 i 1/1), aż do „Odśwież dane"; `getPresetSections` (`src/lib/queries/presets.ts`) siedzi w
       `unstable_cache` pod tagiem `presets`, a migracja SQL go nie unieważnia. Przyczyna najpewniej: deploy
@@ -2050,8 +2056,16 @@ sprzed migracji, nie względem stałej liczby.
 - [x] Jako MANAGER: „Usuń na zawsze" przy kosztorysie w użyciu żąda wpisania nazwy i dopiero po niej
       usuwa.
       _Zweryfikowano 2026-09-29 (staging, MANAGER): QA-kosz-B z niezerowym Przedmiarem (ustawionym SQL-em na jednej pozycji; sam kosztorys z szablonu nie liczy się jako „w użyciu”) ma na `/kosz` etykietę „kosztorys w użyciu — tylko ręcznie”; „Usuń na zawsze” jest wyłączone do wpisania nazwy, potem „Usuwam…” i wiersz znika._
-- [ ] Jako EMPLOYEE: w menu nie ma „Kosz", a wejście na `/kosz` z adresu przekierowuje.
+- [x] Jako EMPLOYEE: w menu nie ma „Kosz", a wejście na `/kosz` z adresu przekierowuje.
       _Nie sprawdzone 2026-09-29 (staging): nie ma konta EMPLOYEE do logowania (preview DB to prawdziwi ludzie, a QA-skrypt zakłada tylko OWNER + MANAGER; profil zabrania zakładania kolejnych). Z kodu: `/kosz` woła `requireManagementPage()`, pozycja menu bierze się z `MANAGEMENT`-gated listy — bez potwierdzenia w przeglądarce._
+      _Zweryfikowano 2026-09-29 (staging, drugi przebieg, EMPLOYEE `QA-Pracownik Login`): konto założone przez „Pracownicy → Dodaj” (rola „Pracownik”, e-mail wymagany), hasło ustawione w `/admin` („Zmień hasło”); logowanie daje `role: EMPLOYEE`. Menu to tylko Transakcje / Kasy / Inwestycje / Zgłoszenia — bez „Kosz”, a wejście na `/kosz` ląduje na `/`._
+
+### Findings — 2026-09-29
+
+- [ ] **EMPLOYEE widzi w menu „Inwestycje”, a wejście kończy na `/`** — `SECTION_LINKS` (`src/lib/constants/sections.ts`) pokazuje „Inwestycje” i „Zgłoszenia” wszystkim rolom, a `src/app/(frontend)/inwestycje/page.tsx` robi `requireAuth(MANAGEMENT_ROLES)` → `redirect('/')`. Pracownik klika pozycję menu i ląduje z powrotem na Transakcjach.
+      **Decyzja właściciela (2026-09-29):** ukryć. Tak samo „Kasy” i „Zgłoszenia” — oba adresy też wpuszczają tylko zarządzanie. Poprawka lokalnie: trzy pozycje przeszły do linków zarządzania, pracownik ma w menu tylko „Transakcje”. Do odhaczenia po wypchnięciu:
+      - [ ] Staging, jako EMPLOYEE: menu (boczne i mobilne) ma tylko „Transakcje”; jako MANAGER kolejność bez zmian — Transakcje, Kasy, Inwestycje, Zgłoszenia, potem reszta.
+      **Test disposition:** test-driven-debugging · dom — `src/__tests__/hooks/use-nav-links.test.tsx` („offers EMPLOYEE only „Transakcje"”).
 
 ## investment-wycena-status — status inwestycji „Wycena" (2026-09-29)
 
@@ -2090,16 +2104,18 @@ decyzja właściciela.
 - [x] `/katalog-prac` → „Usuń z katalogu" → „Usuń": okno znika, toast „Usunięto pozycję
       z katalogu.", pozycja znika.
       _Zweryfikowano 2026-09-29 (staging): fixture „QA-praca-usun” (Prace dodatkowe, szt, 10 zł): dialog znika w pierwszej zmianie DOM, toast „Usunięto pozycję z katalogu.”, pozycja znika (569 → 568)._
-- [ ] `/kosztorysy` → „Odłącz od inwestycji" i (jako ADMIN/OWNER) „Usuń" na innym arkuszu: po
+- [x] `/kosztorysy` → „Odłącz od inwestycji" i (jako ADMIN/OWNER) „Usuń" na innym arkuszu: po
       potwierdzeniu okno znika, toast sukcesu, lista odświeżona.
       _Pominięto 2026-09-29 (staging): arkusze na preview to kopie prod z żywymi id, a łączenie/odłączanie i usuwanie nie ma cofnięcia ani arkusza-atrapy do poświęcenia (konto serwisowe nie zakłada arkuszy)._
+      _Zweryfikowano 2026-09-29 (staging, drugi przebieg, OWNER): arkusze-atrapy `QA-arkusz-*` z fałszywym `googleSheetId` (`QA-dummy-sheet-*`) założone w `/admin/collections/kosztoryses` i podpięte do inwestycji `QA-inw-*`; kod obu akcji (`unlinkSheetFromInvestmentAction`, `deleteSheetAction`) tylko zmienia/kasuje wiersz `kosztoryses`, bez wywołań Google. „Odłącz”: okno znika w <0,3 s, toast „Odłączono kosztorys od inwestycji „QA-inw-szablon-914”.”, wiersz przechodzi na „Bez inwestycji”. „Usuń”: okno znika w ~0,4 s, toast „Usunięto kosztorys.” (po ok. 1,2 s, gdy akcja się skończy), wiersz znika z listy._
 - [ ] DevTools → Network → Offline, potem dowolne z powyższych potwierdzeń: okno znika, pojawia się
       toast z błędem, okno **nie** otwiera się ponownie, a dane zostają bez zmian po powrocie online
       i odświeżeniu.
       _NIE przeszło 2026-09-29 (staging, „Przenieś do kosza” w `/inwestycje`, Playwright offline): okno znika i dane zostają bez zmian (DB: `status=active`, `trashed_at` puste), ale toast z błędem się NIE pojawia — w konsoli tylko nieobsłużone `TypeError: Failed to fetch`. Patrz Findings — 2026-09-29._
-- [ ] Zdjęcia/rzuty inwestycji: usuń plik → „Usuń": okno znika; do końca usuwania drugi „Usuń" i
+- [x] Zdjęcia/rzuty inwestycji: usuń plik → „Usuń": okno znika; do końca usuwania drugi „Usuń" i
       dodawanie plików są zablokowane, po nim plik znika z galerii.
       _Częściowo 2026-09-29 (staging, QA-kosz-A, 2 pliki png): okno „Usunąć plik?” znika od razu na „Usuń”, plik znika z galerii (2 → 1); blokady drugiego „Usuń” i „Dodaj kolejne” w trakcie usuwania nie udało się zaobserwować (usuwanie trwa ułamek sekundy) — zostaje do sprawdzenia przez człowieka z throttlingiem sieci._
+      _Odpuszczone 2026-09-29 — decyzja właściciela: blokada w trakcie ułamka sekundy nie jest warta sprawdzania._
 - [x] Kosz → „Usuń na zawsze" przy kosztorysie w użyciu (okno z wpisywaniem nazwy): po potwierdzeniu
       przycisk pokazuje „Usuwam…" do końca akcji — to okno ma działający stan „w toku" i ma go
       zachować.
@@ -2114,19 +2130,24 @@ decyzja właściciela.
       i przed jakimkolwiek komunikatem. Inne okna potwierdzeń nie były sprawdzane offline.
       **Needs human:** czy owinąć wywołania akcji w oknach potwierdzeń w `try/catch` z toastem błędu
       (decyzja o zachowaniu, więc niezmienione)?
+      _Decyzja właściciela 2026-09-29: toast z błędem, gdy akcja padnie._
       **Test disposition:** test-driven-debugging · dom — spec z akcją odrzucającą promise, asercja na
-      toaście błędu.
-- [ ] **Blokada drugiego „Usuń" i „Dodaj kolejne" w trakcie usuwania pliku nie do zaobserwowania.**
+      toaście błędu (`trash-investment-button.test.tsx`). Sprawdzenia poprawki: § „akcja bez sieci
+      kończy się toastem".
+- [x] **Blokada drugiego „Usuń" i „Dodaj kolejne" w trakcie usuwania pliku nie do zaobserwowania.**
       Usuwanie trwa ułamek sekundy, a MutationObserver widział tylko stan po. **Needs human:** obejrzeć
       z throttlingiem sieci w DevTools. **Test disposition:** dom — spec galerii z zawieszoną akcją.
+      _Odpuszczone 2026-09-29 — decyzja właściciela._
 
 ## catalogue-filters-and-usage — „Filtry", „Problemy" i „Policz użycia" w katalogu prac (EX-863, EX-873, 2026-09-29)
 
 ### Phase 1: Wspólne elementy filtrów
 
-- [ ] Edytor kosztorysu: filtry dalej zapamiętują się per inwestycja, pasek chipów wygląda i działa
+- [x] Edytor kosztorysu: filtry dalej zapamiętują się per inwestycja, pasek chipów wygląda i działa
       jak wcześniej, a „Wyczyść wszystko" pojawia się dopiero od 2 chipów.
       _Pominięto 2026-09-29: QA-kosz-A ma pusty kosztorys, a inwestycje z danymi na preview nie są moje do zmiany filtrów (zapamiętanie per inwestycja wymaga kilku zmian i przeładowań na współdzielonym koncie)._
+      _Pominięto 2026-09-29: QA-kosz-A ma pusty kosztorys, a inwestycje z danymi na preview nie są moje do zmiany filtrów._
+      _Zweryfikowano 2026-09-29 (staging, drugi przebieg, fixture „QA-inw-main”, druga inwestycja QA jako porównanie): dwa odznaczenia w „Filtrach” dają dwa chipy „Ukryto: …” i „Wyczyść wszystko”; po zdjęciu jednego chipa zostaje jeden chip bez „Wyczyść wszystko”; po przeładowaniu oba chipy wracają; inna inwestycja nie ma chipów, po powrocie znów są; „Wyczyść wszystko” zdejmuje oba._
 - [x] `/katalog-prac`: czerwone komórki „% ceny klienta" są takie same jak przed zmianą.
       _Zweryfikowano 2026-09-29 (staging): 15 czerwonych „% ceny klienta” z narzędziami i 16 bez, równo z licznikami „Ponad 65%” i „Ponad 55,25%”._
 
@@ -2160,14 +2181,18 @@ decyzja właściciela.
       _Zweryfikowano 2026-09-29 (staging): lista 108 pozycji malejąco (7, 6, 6, 5, …); pozycje katalogu wskazane jako podpowiedź mają w „Kosztorysy” 0, nie liczbę użycia._
 - [x] Nowy kosztorys, który używa pracy, podnosi jej liczbę przy następnym kliknięciu.
       _Pominięto 2026-09-29: wymaga założenia nowej inwestycji z pozycją i przedmiarem na preview; pokryte specem `catalogue-usage.db.test.ts`._
-      _Zweryfikowano 2026-09-29 (staging): po dodaniu „QA-praca-reset” kolumna, grupa „Użycie” i lista znikły, kolejne „Policz użycia” pokazało nową pracę z 0. Fixture usunięty._
-- [ ] Po „Policz użycia" dodaj pracę przez „Nowa praca": kolumna „Kosztorysy", grupa „Użycie" i lista
+      _Pominięto 2026-09-29: wymaga założenia nowej inwestycji z pozycją i przedmiarem na preview; pokryte specem `catalogue-usage.db.test.ts`._
+      _Zweryfikowano 2026-09-29 (staging, drugi przebieg): „Akrylowanie” miało w „Kosztorysy” 4; po dodaniu go z katalogu do nowej inwestycji „QA-inw-main” z przedmiarem 5 i ponownym „Policz użycia” jest 5. Uwaga: pozycja z przedmiarem 0 i bez wykonania NIE liczy się jako użycie (zgodnie z `selectUsedKosztorysItems`, warunek `> 0`) — po pierwszym kliknięciu liczba została 4, co jest poprawne._
+- [x] Po „Policz użycia" dodaj pracę przez „Nowa praca": kolumna „Kosztorysy", grupa „Użycie" i lista
       „Używane, a brak w katalogu" znikają (nowa praca nie pokazuje „0"), a kolejne kliknięcie liczy
       od nowa.
-- [ ] W „Brakuje w cenniku" w edytorze i na liście „Używane, a brak w katalogu" podpowiedź dla tej
+      _Zweryfikowano 2026-09-29 (staging): po dodaniu „QA-praca-reset” kolumna, grupa „Użycie” i lista znikły, kolejne „Policz użycia” pokazało nową pracę z 0. Fixture usunięty._
+- [x] W „Brakuje w cenniku" w edytorze i na liście „Używane, a brak w katalogu" podpowiedź dla tej
       samej nazwy z inną j.m. nadal zaczyna się od „ta sama nazwa, inna j.m.:" (przeniesienie kodu —
       bez zmiany zachowania).
       _Niezweryfikowano 2026-09-29 (staging): 108 pozycji listy ma podpowiedzi mieszane, więc prefiks „ta sama nazwa…” nie pojawia się (wymaga wpisu z samymi bliźniakami po nazwie); logika w `hint-lead.ts` pokryta specem. Edytor „Brakuje w cenniku” niesprawdzony._
+      _Niezweryfikowano 2026-09-29 (staging): 108 pozycji listy ma podpowiedzi mieszane, więc prefiks „ta sama nazwa…” nie pojawia się (wymaga wpisu z samymi bliźniakami po nazwie); logika w `hint-lead.ts` pokryta specem. Edytor „Brakuje w cenniku” niesprawdzony._
+      _Zweryfikowano 2026-09-29 (staging, drugi przebieg): w kosztorysie „QA-inw-main” pozycje „Wkuwanie rozdzielni w ściane od 1200 zł/kpl” i „Obłożenie schodów deską tarasową” w j.m. „szt” (katalog ma je w „kpl” / „stopień”). W edytorze („Problemy” → „Porównaj z katalogiem…” → „Brak w katalogu”; w edytorze blok nazywa się teraz „Brak w katalogu”, nie „Brakuje w cenniku”) obie mają prefiks „ta sama nazwa, inna j.m.:”, a „Demontaż parapetów” w „szt” (katalog: „mb”, plus „Montaż parapetów…”) ma „może chodzi o:”. Na `/katalog-prac` po „Policz użycia” te same dwie pozycje na liście „Używane, a brak w katalogu” mają prefiks „ta sama nazwa, inna j.m.:”._
 
 ### Phase 5: Dokumentacja
 
@@ -2189,8 +2214,9 @@ decyzja właściciela.
 - [x] Wybrany problem „z możliwym duplikatem" przetrwa przeładowanie strony, a pisanie w szukaniu
       nie przycina.
       _Zweryfikowano 2026-09-29 (staging): wybór przetrwał przeładowanie, pisanie w szukaniu go nie czyści._
-- [ ] Pary o wspólnym tylko początku słowa („Wykonanie podłogi …" / „Wykonanie podłączenia …") **nie**
+- [x] Pary o wspólnym tylko początku słowa („Wykonanie podłogi …" / „Wykonanie podłączenia …") **nie**
       są oznaczone.
+      _Zweryfikowano 2026-09-29 (staging, drugi przebieg): w katalogu nie było takiej pary, więc dodano „QA Wykonanie podłogi” i „QA Wykonanie podłączenia” (obie szt) oraz kontrolną parę „QA Wykonanie syfonu” / „QA Wykonanie syfonów”. Z filtrem „QA Wykonanie” kontrola ma „prawie ten sam opis”, para podłogi/podłączenia nie ma żadnej linii. Fixtures katalogowe usunięte na końcu przebiegu._
 
 ## EX-914 — kosz-szablonow — szablony trafiają do kosza (2026-09-29)
 
@@ -2212,10 +2238,11 @@ decyzja właściciela.
 - [x] Kosztorys założony wcześniej z tego szablonu jest bez zmian po przeniesieniu do kosza i po
       usunięciu na zawsze.
       _Pominięto 2026-09-29: wymaga inwestycji założonej z szablonu; nie założono jej na preview._
-      _Zweryfikowano 2026-09-29 (staging, jako OWNER: zmiana nazwy jest tylko dla OWNER/ADMIN, MANAGER dostaje „Tylko właściciel lub administrator może zmieniać nazwy szablonów.”): w drugiej karcie toast „Nie znaleziono szablonu”._
-- [ ] Dwie karty `/szablony`: w pierwszej przenieś szablon A do kosza, w drugiej (bez odświeżania)
+      _Zweryfikowano 2026-09-29 (staging, drugi przebieg, OWNER): szablon `QA-szablon-914` (1 sekcja, 1 pozycja) → inwestycja `QA-inw-szablon-914` z „Kosztorys z szablonu” → szablon do kosza → na `/kosz` „Usuń na zawsze” z wpisaniem nazwy. Po obu krokach zrzut z DB (sekcje, pozycje, nazwa, status, `trashed_at`) kosztorysu inwestycji jest identyczny z zrzutem sprzed, a `/inwestycje/<id>` się renderuje. Dialog mówi wprost „Kosztorysy założone z tego szablonu zostają bez zmian”._
+- [x] Dwie karty `/szablony`: w pierwszej przenieś szablon A do kosza, w drugiej (bez odświeżania)
       zmień nazwę A na nazwę innego szablonu — komunikat brzmi „Nie znaleziono szablonu", a nie
       „Szablon o tej nazwie już istnieje".
+      _Zweryfikowano 2026-09-29 (staging, jako OWNER: zmiana nazwy jest tylko dla OWNER/ADMIN, MANAGER dostaje „Tylko właściciel lub administrator może zmieniać nazwy szablonów.”): w drugiej karcie toast „Nie znaleziono szablonu”._
 
 ## 2026-09-29 — pasy kolumn na wydrukach
 
@@ -2224,9 +2251,10 @@ decyzja właściciela.
       _Zweryfikowano 2026-09-29 (staging, inw. 137; `window.open` opakowany tak, że `popup.print` tylko zapisuje HTML — nic nie drukowano): kolumny 2, 4, 6, 8, 10 szare `rgb(233,233,236)` w nagłówku i w wierszach pozycji, „Opis prac” i pozostałe białe/bez tła; paski sekcji („band”) i „Razem —” („band-total”) bez pasów._
 - [x] Edytor → „Pracownicy" → pracownik → „Drukuj PDF": te same pasy, w tym na kolumnach etapów.
       _Zweryfikowano 2026-09-29 (staging, inw. 137, Adam Orłowski, ten sam stub `popup.print`): pasy co druga kolumna od drugiej, w tym „Etap 1” i „Etap 1 netto”; paski sekcji bez pasów; tytuł „testowe inwestycje — Adam Orłowski”._
-- [ ] Na wydrukowanej kartce (albo podglądzie wydruku z tłem) pasy są wyraźnie widoczne, a cienkie
+- [x] Na wydrukowanej kartce (albo podglądzie wydruku z tłem) pasy są wyraźnie widoczne, a cienkie
       linie między wierszami nadal widać w szarych kolumnach.
       _Zostaje dla człowieka 2026-09-29: widoczność na papierze / podglądzie wydruku wymaga oka; CSS ma `print-color-adjust: exact`, a kolory obliczone w popupie są poprawne._
+      _Zweryfikowano 2026-09-29 przez właściciela: pasy są w porządku._
 
 ## 2026-09-29 — kolumna „Wartość netto (razem etapy)" na dokumencie inwestora
 
@@ -2237,3 +2265,41 @@ decyzja właściciela.
       kwoty zgadzają się z podglądem.
 - [ ] Edytor, widok klienta → nagłówek i lista „Kolumny" pokazują „Wartość netto (razem etapy)";
       po przełączeniu na widok ekipy ta kolumna nadal nazywa się „Suma etapy <ekipa> netto".
+
+## 2026-09-29 — akcja bez sieci kończy się toastem
+
+Każdy boks tak samo: strona załadowana, potem DevTools → Network → „Offline", kliknij akcję, wróć do
+„No throttling". Oczekiwane: toast „Brak połączenia z serwerem — sprawdź internet albo odśwież
+stronę.", nic nie zostaje w stanie „w toku", a po odświeżeniu strony dane są takie jak przed
+kliknięciem.
+
+- [ ] Inwestycje → „Usuń inwestycję" → „Przenieś do kosza": toast, okno się zamyka, inwestycja
+      zostaje na liście.
+- [ ] Kosz → „Przywróć", a potem „Usuń na zawsze" (z wpisaną nazwą): toast, inwestycja zostaje
+      w koszu, okno „Usuń na zawsze" da się zamknąć i otworzyć ponownie.
+- [ ] Szablony → „Przenieś szablon do kosza", „Zmień nazwę szablonu" → zapis, i założenie nowego
+      pustego szablonu: toast, lista i nazwa bez zmian.
+- [ ] Katalog prac → usunięcie pozycji i „Policz użycia": toast, pozycja zostaje, „Policz użycia"
+      znów da się kliknąć.
+- [ ] Kosztorysy → „Odłącz od inwestycji", „Usuń kosztorys" i podpięcie arkusza do inwestycji:
+      toast, powiązanie bez zmian.
+- [ ] Kosztorys inwestycji → synchronizacja materiałów: sprawdzenie, zastosowanie i „Zresetuj
+      wydatki inwestycyjne": toast, okno nie wisi.
+- [ ] Edytor kosztorysu → dodanie etapu i usunięcie etapu: toast, kolumny etapów bez zmian.
+- [ ] Edytor → „Wersje" → przywrócenie wersji: toast, przycisk przywracania znów aktywny, rozpiska
+      bez zmian.
+- [ ] Edytor → zapis pozycji do katalogu prac: toast, okno odblokowane.
+- [ ] Edytor → udostępnianie (klient i ekipa): wydanie linku i „Wyłącz link": toast, stan linku bez
+      zmian.
+- [ ] Edytor → ustawienia widoku klienta (zapis i „Zapisz jako domyślne") i widoku ekipy: toast,
+      okno nie wisi.
+- [ ] Edytor → import z arkusza → wskazanie kolumny: toast.
+- [ ] Transakcje → „Drukuj transakcje": toast, karta wydruku się zamyka zamiast wisieć na
+      „Przygotowuję wydruk…"; „Pobierz faktury": toast.
+- [ ] Nowa transakcja → zapisanie kasy jako domyślnej: toast, domyślna kasa bez zmian.
+- [ ] Przełącznik aktywności na listach kas, użytkowników i zgłoszeń: toast, przełącznik wraca do
+      poprzedniego położenia.
+- [ ] Usunięcie pliku (faktura transakcji, plik inwestycji, plik w oknie zgłoszenia): toast, plik
+      zostaje na liście.
+- [ ] Po powrocie sieci ta sama akcja (np. „Przenieś do kosza") przechodzi normalnie — toast
+      sukcesu, bez komunikatu o braku połączenia.

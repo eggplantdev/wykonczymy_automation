@@ -9,6 +9,10 @@ working, fix it here as part of the pass.
 `context/foundation/manual-checks.md` — a `##` section per slice. A slice with unticked boxes is not
 `Done` (Linear project „Wykonczymy"; an open finding keeps the issue out of Done).
 
+**Tracker:** a finding not fixed during the pass is filed in Linear — team Ex-plant, project
+„Wykonczymy", title and body in Polish, label `Bug` for a defect — and its line gets
+`**Linear: EX-…**` and a tick.
+
 ## Local target
 
 - **Safe DB:** the isolated `db-test` container on **5435** (`DB_POSTGRES_URL_TEST`, db
