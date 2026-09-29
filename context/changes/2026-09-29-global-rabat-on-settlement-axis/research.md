@@ -29,9 +29,9 @@ axis). Find a clean model where the owner types the figure he means.
   netto and grosses by VAT in the brutto column (`settlement-summary.tsx:82`,
   `summary-economics.ts:55-62,84-102`). The owner's 2026-07-16 rulings on the global rabat covered
   kwota/procent, hiding the per-item columns and "odejmujemy od totalu"; "entered netto" was the
-  plan's own inference ("every price in this editor is netto"). EX-539 asked exactly this question
-  on 2026-07-19 and was closed 2026-07-21 by removing the `RABAT` transaction, not by an answer.
-  Inv. 112 is EX-539's "1000 vs 1230" scenario on the kosztorys field.
+  plan's own inference ("every price in this editor is netto"). The same question was raised
+  on 2026-07-19 (`roadmap.md:461-466`) and set aside on 2026-07-21 by removing the `RABAT`
+  transaction, not by an answer. Inv. 112 is that "1000 vs 1230" scenario on the kosztorys field.
 - **The grossing rule itself is sound and stays.** A rabat is a cut in the price of prace; the VAT
   base is post-rabat labour (6fdbe6c5), so a rabat's netto and brutto differ by VAT, and only that
   keeps an invoice coherent (brutto = netto × (1+VAT)). The defect is only that the owner can
@@ -161,7 +161,7 @@ vat))`. On inv. 112: 4629,63 / 5000,00.
 - 2026-06-11 `RABAT` transfer created, face value, no VAT concept (`context/reference/superpowers/archive/2026-06-11-investment-rabat.md`); 2026-06 rows were balance plugs (`context/archive/2026-07-15-kosztorys-global-discount/change.md:57-63`).
 - 2026-07-16 global rabat — owner: kwota or procent, subtracted from the total; "entered netto" is a plan inference (`git show 732d7a88^:context/archive/2026-07-15-kosztorys-global-discount/plan-brief.md:25-26`).
 - 2026-07-19 ruling „Rabat też jest na płaszczyźnie prac — gruntuje się" (`domain-notes.md:654-659`, d40be6fc) — evidence is the percent column R, where the axis cannot matter.
-- 2026-07-19/21 EX-539 opened, then "dissolved" (`domain-notes.md:712-718`, 090712dc).
+- 2026-07-19/21 the netto/brutto question raised, then "dissolved" (`domain-notes.md:712-718`, 090712dc).
 - 2026-08-11 VAT base = post-rabat labour (6fdbe6c5). 2026-08-12 strata at face value (EX-675) — the explicit counter-pattern.
 - 2026-08-18 EX-649 made `RABAT` transfers bookable again — the typed-axis question exists on v1 too; not examined here.
 
@@ -169,7 +169,7 @@ vat))`. On inv. 112: 4629,63 / 5000,00.
 
 - `AGENTS.md` — the canonical sheet `1kEWaMv9…` returns **403** for the reader service account; the "shared read-only" claim is false today.
 - `context/reference/kosztorys-editor-domain-notes.md:656` — cites `S = N × cena − rabat` as proof a kwota grosses; in the sheet R is a percent. `:650-652`, `:684-686` stale.
-- `context/foundation/roadmap.md:461-466` — EX-539 still listed as an open blocker.
+- `context/foundation/roadmap.md:461-466` — the netto/brutto rabat question still listed as an open blocker (cites an issue id Linear no longer has).
 - Stale comments: `settlement-mode-select.tsx:22-23`, `summary-overview-tab.tsx:51-52`.
 - `calc.ts:243-244` attaches EX-495 to the rabat-in-offer question; EX-495 is „Pozostało" kwota vs procent.
 
