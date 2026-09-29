@@ -43,3 +43,4 @@ count). E2E backlog for A–H/K: EX-924.
 - [ ] L — restore a version from the drawer: the body remounts to the restored tree.
 - [ ] L — sheet import (or „Wyczyść teksty" / compare with sheet): the new rozpiska shows.
 - [ ] L — a clear or reload interrupted at the transport (offline right after the click): the error toast shows, and one RSC GET follows once back online.
+- [ ] Stale tree — delete a row in a second tab, then edit it in the first: the editor reseeds to the tree without that row (a `handleStaleTree` refactor, same behaviour as before).
