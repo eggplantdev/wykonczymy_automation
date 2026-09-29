@@ -7,6 +7,7 @@ import { roundToCents } from '@/lib/utils/round-to-cents'
 import { isAdminOrOwnerRole, type RoleT } from '@/lib/auth/roles'
 import { axisShows } from '@/lib/kosztorys/money-axis'
 import { settlementModeToMoneyAxis } from '@/lib/kosztorys/settlement-mode'
+import { SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/labels'
 import type { InvestmentRowT } from '@/types/table-rows'
 import { INVESTMENT_HEADER_TIPS } from '@/components/tables/investments-header-tips'
 import { BalanceCell } from '@/components/ui/balance-cell'
@@ -21,7 +22,8 @@ import { OpenKosztorysV2Button } from '@/components/kosztorys/open-kosztorys-v2-
 
 const col = createColumnHelper<InvestmentRowT>()
 
-// The kosztorys-sourced half of every doubled figure. Named here, beside the columns themselves, so
+// The kosztorys-sourced half of every doubled figure, plus „Pozostało do wypłaty", which has no v1
+// twin but reads the kosztorys all the same. Named here, beside the columns themselves, so
 // the toolbar's „Pokaż kolumny v2" switch and the columns cannot drift apart — and so EX-712, which
 // deletes the v1/v2 split once the rozjazd is zero everywhere, has one list to delete.
 export const V2_COLUMN_IDS = [
@@ -29,6 +31,7 @@ export const V2_COLUMN_IDS = [
   'balanceGross',
   'marginV2',
   'laborCostsFromKosztorys',
+  'subcontractorRemaining',
 ] as const
 
 // An investment whose kosztorys is empty reads zero robocizna, and every other v2 figure is built on
@@ -46,6 +49,12 @@ function hasKosztorysReading(row: InvestmentRowT): boolean {
 
 function NoKosztorysData() {
   return <span className="text-muted-foreground text-xs">brak danych</span>
+}
+
+// A row with an unsettled etap has no amount at all — zero would claim the crew works for free. The
+// prompt names what the owner has to do to get the number back.
+function UnsettledStages() {
+  return <span className="text-muted-foreground text-xs">ustaw etapy</span>
 }
 
 // A numeric cell that may carry a hint icon next to it. Right-aligned inline so the icon rides with
@@ -172,16 +181,10 @@ export function getInvestmentColumns({ userRole }: InvestmentColumnOptionsT) {
             sortUndefined: 'last',
             header: 'Marża v2',
             meta: { align: 'right', tooltip: INVESTMENT_HEADER_TIPS.marginV2 },
-            // A row with an unsettled etap has no amount at all — zero would claim the crew works
-            // for free. The prompt names what the owner has to do to get the number back.
             cell: (info) => {
               const value = info.getValue()
               if (!hasKosztorysReading(info.row.original)) return <NoKosztorysData />
-              return value === undefined ? (
-                <span className="text-muted-foreground text-xs">ustaw etapy</span>
-              ) : (
-                <BalanceCell value={value} />
-              )
+              return value === undefined ? <UnsettledStages /> : <BalanceCell value={value} />
             },
           }),
         ]
@@ -250,6 +253,19 @@ export function getInvestmentColumns({ userRole }: InvestmentColumnOptionsT) {
           }),
         ]
       : []),
+    // Ungated, unlike „Wypłaty" beside it: the owner wants every management role to see where a
+    // crew is still owed money. Red when negative, like the Podwykonawcy panel it mirrors.
+    col.accessor('subcontractorRemaining', {
+      id: 'subcontractorRemaining',
+      sortUndefined: 'last',
+      header: SUBCONTRACTOR_FIGURE_LABELS.remaining,
+      meta: { align: 'right', tooltip: INVESTMENT_HEADER_TIPS.subcontractorRemaining },
+      cell: (info) => {
+        const value = info.getValue()
+        if (!hasKosztorysReading(info.row.original)) return <NoKosztorysData />
+        return value === undefined ? <UnsettledStages /> : <BalanceCell value={value} />
+      },
+    }),
     col.accessor('address', {
       id: 'address',
       header: 'Adres',

@@ -275,10 +275,10 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 1.1 New unit specs pass: `pnpm exec vitest run src/__tests__/lib/queries/shape-investments.test.ts`
+- [x] 1.1 New unit specs pass: `pnpm exec vitest run src/__tests__/lib/queries/shape-investments.test.ts` — 0ff18315
 
 ### Phase 2: Column + parity
 
 #### Automated
 
-- [ ] 2.1 Parity spec passes against `db-test`: `pnpm test:parity`
+- [x] 2.1 Parity spec passes against `db-test`: `pnpm test:parity`

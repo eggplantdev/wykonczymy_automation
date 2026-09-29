@@ -25,4 +25,6 @@ export const INVESTMENT_HEADER_TIPS: Record<string, string> = {
   totalSettled:
     'Suma wydatków oznaczonych „rozliczone".\nFirma je kupiła, ale są już w cenie robocizny — obniżają marżę i nie wchodzą do bilansu.',
   totalPayouts: 'Suma transferów typu „Wypłata" — gotówka faktycznie wypłacona ekipom.',
+  subcontractorRemaining:
+    'Należne ekipom za wykonane etapy minus suma transferów typu „Wypłata".\nNależne liczone z kosztorysu przed rabatem, każdy etap w cenie swojego rozliczenia — ta sama kwota co w podsumowaniu kosztorysu, zakładka „Podwykonawcy".\nNa minusie = ekipy dostały więcej, niż wykonały.\n„ustaw etapy" = któryś etap ma pracę bez rozliczenia, więc należne są zaniżone o nieznaną kwotę.\nBez kosztorysu — „brak danych".',
 }
