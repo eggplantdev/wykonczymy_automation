@@ -2309,18 +2309,30 @@ kliknięciem.
 Dane: `pnpm seed:worker-payouts` na bazie testowej (inwestycje „Seed wypłaty A–D", pracownicy Jan
 i Piotr Seedowy).
 
-- [ ] `/pracownicy`: kolumny „Wypłaty" już nie ma; w jej miejscu „Pozostało do wypłaty". U Jana
-      Seedowego to suma z „Seed wypłaty A" i „B" (bez zakończonej „D"), u Piotra suma z „B" i dopisek
-      „1 bez rozliczenia etapu".
+- [ ] `/pracownicy`: kolumny „Wypłaty" już nie ma; w jej miejscu „Pozostało do wypłaty". Każda
+      kwota to osobna linia z liczbą inwestycji: „do zapłaty aktywne (n): …", „nadpłata aktywne (n):
+      …" (czerwona) — dług i nadpłata nigdy nie są odejmowane od siebie. U Jana Seedowego domyślnie
+      tylko linie z „Seed wypłaty A" i „B" (bez zakończonej „D"), u Piotra linia z „B" i dopisek
+      „1 bez rozliczenia etapu". Pracownik bez niczego do pokazania ma zielone 0,00 zł.
+- [ ] `/pracownicy` → „Filtry" (domyślnie „Filtry (2)"): sekcje „Pracownicy" (Aktywni / Nieaktywni)
+      i „Pozostało do wypłaty" (Aktywne / Zakończone inwestycje, z opisem pod spodem) plus
+      „Zaznacz / Odznacz wszystkie". Zaznaczenie „Zakończone inwestycje" dokłada u Jana szare linie
+      „… zakończone (1)" z „D"; odznaczenie „Aktywne inwestycje" chowa aktywne linie. „Nieaktywni"
+      pokazuje nieaktywnych pracowników. Po przeładowaniu strony wybór zostaje.
 - [ ] Klik w kwotę u Jana otwiera „Rozlicz wypłaty — Jan Seedowy", a nie kartę pracownika. Wiersze
       „Seed wypłaty A/B/D" mają Wykonane / Wypłacone / Pozostało; „D" jest wyszarzona z „Inwestycja
       zakończona — przywróć na Aktywna, żeby wypłacić".
-- [ ] Wypłać „A" dokładnie, a „B" o 100 zł więcej: przy „B" jest czerwone „nadpłata" i zdanie
-      „… ponad wykonaną pracę — zapisze się jako zaliczka". „Razem" to suma obu kwot. Po „Wypłać"
+- [ ] Wypłać „A" dokładnie, a „B" o 100 zł więcej: przy „B" „Pozostało do rozliczenia" jest
+      czerwone (−100,00 zł), a pod kwotą zdanie „… ponad wykonaną pracę — zapisze się jako zaliczka".
+      Przy „A" to zielone 0,00 zł. „Razem" to suma obu kwot. Po „Wypłać"
       dialog się zamyka, kolumna się odświeża, a w transakcjach są dwie wypłaty; opis drugiej
       zawiera „w tym zaliczka 100,00 zł".
 - [ ] `/inwestycje` → „Pozostało do wypłaty" przy „Seed wypłaty B": dialog pokazuje Jana, Piotra
       i szary wiersz „Nieprzypisane"; Pozostało wszystkich wierszy sumuje się do kwoty w komórce.
+- [ ] `/inwestycje`: komórka „Pozostało do wypłaty" z długiem u ≥ 2 pracowników ma pod kwotą
+      „N pracowników"; komórka równa 0 jest zielona. Cała komórka (kwota + dopisek) otwiera dialog.
+- [ ] Dialog z `/pracownicy`: nazwa inwestycji w wierszu to link otwierający jej kosztorys w nowej
+      karcie — dialog i wpisane kwoty zostają.
 - [ ] Przy „Seed wypłaty C" komórka pokazuje „ustaw etapy" i nie da się jej kliknąć.
 - [ ] Otwórz dialog w dwóch kartach, wypłać w drugiej, potem w pierwszej: pierwsza odmawia
       z ostrzeżeniem, przeładowuje kwoty i zostaje otwarta; nic nie zostaje zapisane.
