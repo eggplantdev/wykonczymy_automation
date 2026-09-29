@@ -1148,7 +1148,7 @@ export function useKosztorysEditor({
    * (that is what stops a tampered payload pricing a praca), so there is nothing to show until the
    * write answers, and nothing to revert if it doesn't.
    *
-   * `patchRows`, never a refresh: `rows` is a mount-frozen seed, and `catalogueComparison` is a memo
+   * `patchRows`, never a refetch: `rows` is a mount-frozen seed, and `catalogueComparison` is a memo
    * over `rows`, so the report and the „Problemy" counters shrink in the same render — the window
    * stays open and the sort and filters the owner set to find these prace survive.
    */

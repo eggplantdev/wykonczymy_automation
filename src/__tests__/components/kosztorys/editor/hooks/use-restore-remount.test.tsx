@@ -38,7 +38,6 @@ describe('useRestoreRemount', () => {
       initialProps: { token: 'rev-1' },
     })
 
-    // The action's own render can commit before its continuation arms the latch.
     rerender({ token: 'rev-2' })
     act(() => result.current.triggerRestore('rev-1'))
 

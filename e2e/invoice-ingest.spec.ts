@@ -166,7 +166,7 @@ test('okno „Dodaj fakturę" w tabeli przyjmuje kilka stron naraz (EX-663)', as
   await expect(page.getByText('Faktura dodana')).toBeVisible({ timeout: 60_000 })
 
   // Both pages reached the action as ONE invoice, in pick order. Read through „Odśwież dane" rather
-  // than off the upload's own `router.refresh()` — see `refreshUntil`: that refresh can be served a
+  // than off the upload's own render — see `refreshUntil`: that render can be served a
   // cache entry a concurrent render re-poisoned, and the cell then keeps saying „Dodaj fakturę".
   const preview = rowOf(page, description).getByRole('button', { name: previewOf('paragon-a') })
   await refreshUntil(page, () => expect(preview).toBeVisible({ timeout: 5_000 }))
