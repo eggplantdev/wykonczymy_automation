@@ -2410,3 +2410,11 @@ Każdy boks: po kliknięciu zmiana widoczna **bez przeładowania**, a w Network 
       „Problemy" i „Filtry"; długie nazwy kolumn („Pomiar — suma etapów z narzędziami
       (podwykonawca)") mieszczą się w jednej linii albo zawijają się rzadziej niż wcześniej.
 - [ ] Dowolna tabela z listą (np. Transakcje) → „Kolumny": menu ma dotychczasową szerokość.
+
+## 2026-09-29 — import z arkusza czyta etapy aż do „Przedmiaru"
+
+- [ ] Inwestycja z arkuszem, w którym etapy 7–10 dopisano bez „wykonano" w drugim wierszu nagłówka
+      (np. inw. 48) → „Importuj z arkusza": podgląd i import pokazują każdy etap z wpisanym wykonaniem
+      albo własną nazwą, nie tylko pierwsze sześć; ilości etapów 7+ zgadzają się z arkuszem.
+- [ ] Arkusz z sześcioma etapami „wykonano" i bez dopisanych kolumn: import daje te same etapy co
+      wcześniej.
