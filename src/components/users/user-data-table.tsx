@@ -4,21 +4,23 @@ import { useCallback, useMemo, useState } from 'react'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import { ColumnToggle } from '@/components/filters/column-toggle'
-import { ActiveFilterButton } from '@/components/filters/active-filter-button'
+import { ListFilter } from 'lucide-react'
+import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
+import { GRID_FILTER_TRIGGER_CLASS } from '@/components/filters/filter-trigger-button'
 import { AddWorkerDialog } from '@/components/dialogs/add-worker-dialog'
 import {
   SettlePayoutsDialog,
   type SettleDialogTargetT,
 } from '@/components/dialogs/settle-payouts-dialog'
 import { getUserColumns } from '@/components/tables/users'
-import type { UserRowT } from '@/types/table-rows'
-import { useActiveFilter } from '@/hooks/use-active-filter'
+import type { UserRowT, UserTableRowT } from '@/types/table-rows'
+import { workerPayoutView } from '@/lib/kosztorys/worker-payout-pairs'
 import { useSearchFilter } from '@/hooks/use-search-filter'
 import { useOptimisticToggle } from '@/hooks/use-optimistic-toggle'
+import { useUserListFilters } from '@/components/users/use-user-list-filters'
 import { toggleUserActive } from '@/lib/actions/toggle-active'
 import type { ReferenceItemT } from '@/types/reference-data'
 
-const isActive = (row: UserRowT) => row.active
 const getStatusUpdate = (newActive: boolean) => ({ active: newActive }) as Partial<UserRowT>
 
 type UserDataTablePropsT = {
@@ -33,15 +35,11 @@ export function UserDataTable({ data, cashRegisters }: UserDataTablePropsT) {
     toggleUserActive,
   )
 
-  const {
-    filteredData: activeFiltered,
-    showOnlyActive,
-    setShowOnlyActive,
-  } = useActiveFilter(optimisticData, isActive)
+  const { toggles, togglesBulk, isListed, payoutBuckets } = useUserListFilters()
 
   const getSearchableText = useCallback((row: UserRowT) => `${row.name} ${row.email}`, [])
   const { filteredData, searchTerm, setSearchTerm } = useSearchFilter(
-    activeFiltered,
+    optimisticData.filter(isListed),
     getSearchableText,
   )
 
@@ -54,11 +52,15 @@ export function UserDataTable({ data, cashRegisters }: UserDataTablePropsT) {
       }),
     [handleToggle],
   )
+  const rows: UserTableRowT[] = filteredData.map((row) => ({
+    ...row,
+    payoutView: row.payoutRemaining && workerPayoutView(row.payoutRemaining, payoutBuckets),
+  }))
 
   return (
     <>
       <DataTable
-        data={filteredData}
+        data={rows}
         columns={columns}
         storageKey="users"
         getRowHref={(row) => `/pracownicy/${row.id}`}
@@ -67,11 +69,14 @@ export function UserDataTable({ data, cashRegisters }: UserDataTablePropsT) {
           <DataTableToolbar
             search={{ value: searchTerm, onChange: setSearchTerm }}
             filters={
-              <ActiveFilterButton
-                isActive={showOnlyActive}
-                onChange={setShowOnlyActive}
-                activeLabel="Aktywni"
-                allLabel="Wszyscy"
+              <FilterMultiSelect
+                label="Filtry"
+                icon={ListFilter}
+                triggerClassName={GRID_FILTER_TRIGGER_CLASS}
+                triggerCount={toggles.filter((toggle) => !toggle.active).length}
+                contentClassName="w-80"
+                toggles={toggles}
+                togglesBulk={togglesBulk}
               />
             }
             columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}

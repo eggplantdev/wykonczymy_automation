@@ -8,6 +8,7 @@ import {
   settleRowsForInvestment,
   settleRowsForWorker,
   workerColumnFigures,
+  owedWorkersByInvestment,
 } from '@/lib/kosztorys/worker-payout-pairs'
 
 const pair = (overrides: Partial<WorkerPayoutPairRowT> = {}): WorkerPayoutPairRowT => ({
@@ -45,15 +46,25 @@ describe('workerColumnFigures', () => {
       pair({ investmentId: 1, due: 3000 }),
       pair({ investmentId: 2, due: 500, paid: 1000 }),
     ])
-    expect(figures.get(10)).toEqual({ owed: 3000, overpaidCount: 1, withheldCount: 0 })
+    expect(figures.get(10)!.active).toEqual({
+      owed: 3000,
+      owedCount: 1,
+      overpaid: 500,
+      overpaidCount: 1,
+      withheldCount: 0,
+    })
   })
 
-  it('still counts a zakończona inwestycja — the debt is real, only booking is locked', () => {
+  it('still counts a zakończona inwestycja, in its own bucket — the debt is real, only booking is locked', () => {
     const figures = workerColumnFigures([
       pair({ investmentId: 1, due: 700, investmentStatus: LOCKED_INVESTMENT_STATUS }),
-      pair({ investmentId: 2, due: 300 }),
+      pair({ investmentId: 2, due: 500, paid: 900, investmentStatus: LOCKED_INVESTMENT_STATUS }),
+      pair({ investmentId: 3, due: 300 }),
     ])
-    expect(figures.get(10)!.owed).toBe(1000)
+    expect(figures.get(10)).toEqual({
+      active: { owed: 300, owedCount: 1, overpaid: 0, overpaidCount: 0, withheldCount: 0 },
+      completed: { owed: 700, owedCount: 1, overpaid: 400, overpaidCount: 1, withheldCount: 0 },
+    })
   })
 
   it('marks a withheld pair instead of adding it', () => {
@@ -61,7 +72,13 @@ describe('workerColumnFigures', () => {
       pair({ investmentId: 1, due: 700, hasUnconfirmedPlane: true }),
       pair({ investmentId: 2, due: 300 }),
     ])
-    expect(figures.get(10)).toEqual({ owed: 300, overpaidCount: 0, withheldCount: 1 })
+    expect(figures.get(10)!.active).toEqual({
+      owed: 300,
+      owedCount: 1,
+      overpaid: 0,
+      overpaidCount: 0,
+      withheldCount: 1,
+    })
   })
 
   it('leaves the unassigned pair out — it is nobody on this list', () => {
@@ -75,7 +92,22 @@ describe('workerColumnFigures', () => {
       pair({ investmentId: 2, due: 0.005 }),
       pair({ investmentId: 3, due: 0.005 }),
     ])
-    expect(figures.get(10)!.owed).toBe(0.02)
+    expect(figures.get(10)!.active.owed).toBe(0.02)
+  })
+})
+
+describe('owedWorkersByInvestment', () => {
+  it('counts the workers still owed, not the paid-up, withheld or unassigned ones', () => {
+    const counts = owedWorkersByInvestment([
+      pair({ investmentId: 1, workerId: 10, due: 500 }),
+      pair({ investmentId: 1, workerId: 11, due: 300 }),
+      pair({ investmentId: 1, workerId: 12, due: 300, paid: 300 }),
+      pair({ investmentId: 1, workerId: 13, due: 300, hasUnconfirmedPlane: true }),
+      pair({ investmentId: 1, workerId: null, due: 300 }),
+      pair({ investmentId: 2, workerId: 10, due: 100, paid: 400 }),
+    ])
+    expect(counts.get(1)).toBe(2)
+    expect(counts.has(2)).toBe(false)
   })
 })
 
@@ -123,6 +155,22 @@ describe('settle rows', () => {
       ['Akacjowa', 400],
       ['Brzozowa', 800],
     ])
+  })
+})
+
+describe('settle rows without figures', () => {
+  it('drops a pair with nothing executed and nothing paid from both entry points', () => {
+    const rows = [
+      pair({ investmentId: 1, workerId: 10, due: 0, paid: 0 }),
+      pair({ investmentId: 2, workerId: 10, due: 500 }),
+    ]
+    expect(settleRowsForWorker(rows, 10, new Map()).map((r) => r.investmentId)).toEqual([2])
+    expect(settleRowsForInvestment(rows, 1, new Map())).toEqual([])
+  })
+
+  it('keeps a withheld pair even at zero — its figure is unknown, not nothing', () => {
+    const rows = [pair({ investmentId: 1, workerId: 10, due: 0, hasUnconfirmedPlane: true })]
+    expect(settleRowsForWorker(rows, 10, new Map())).toHaveLength(1)
   })
 })
 

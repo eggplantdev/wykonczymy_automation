@@ -192,9 +192,11 @@ mismatch.
 stawka − his PAYOUTs on that investment. One read (`fetchWorkerPayoutPairs`) feeds the employee
 column, the „Rozlicz wypłaty" dialog from both lists, and sums back to the investment listing's cell.
 
-- **No netting across investments.** The column is Σ of the positive pairs; an overpaid pair is a
-  marker („nadpłata na N inwestycjach"), never subtracted — a debt on one job is not paid by a
-  zaliczka on another.
+- **No netting, four figures apart** (owner, 2026-09-29): „do zapłaty aktywne", „do zapłaty
+  zakończone", „nadpłata aktywne", „nadpłata zakończone" — each with its count of investments and its
+  own kwota; a debt on one job is not paid by a zaliczka on another. The list's „Filtry" menu ticks
+  „Aktywne / Zakończone inwestycje" apart (default: aktywne only) — an unticked one drops its two
+  lines; nothing to show at all reads a green 0.
 - **No kosztorys → no pair**, so legacy PAYOUTs don't paint every long-standing worker as overpaid.
   PAYOUTs without an investment (salary, loans, fuel) are outside the figure entirely.
 - **A withheld pair is only that worker's.** An etap with executed work but no rozliczenie withholds

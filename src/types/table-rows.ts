@@ -50,6 +50,8 @@ export type InvestmentRowT = {
    *  work with no rozliczenie (the należne is short) — `undefined` for the same `sortUndefined`
    *  reason as `marginV2`; the cell tells the two apart by `hasKosztorys`. */
   subcontractorRemaining?: number
+  /** Workers still owed on this investment — how many rows the „Rozlicz wypłaty" dialog will prefill. */
+  subcontractorsOwed?: number
   address: string
   phone: string
   email: string
@@ -110,3 +112,8 @@ export type UserRowT = {
   /** Absent when the worker holds no pair on any investment with a kosztorys. */
   payoutRemaining?: WorkerColumnFiguresT
 }
+
+/** The employee list's row once the „Aktywne inwestycje" filter has been applied. It rides on the
+ *  row, not on the columns: DataTable caches a row's cells, so a filter read from the columns would
+ *  leave the cells printing the old figures. */
+export type UserTableRowT = UserRowT & { payoutView?: WorkerColumnFiguresT }
