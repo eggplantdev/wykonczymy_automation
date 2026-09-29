@@ -1,10 +1,10 @@
 ---
 change_id: kosz-inwestycji-manager
 title: Investment trash — open to the manager
-status: implemented
+status: archived
 created: 2026-09-29
 updated: 2026-09-29
-archived_at: null
+archived_at: 2026-09-29T08:27:49Z
 branch: staging
 worktree: null
 ---
@@ -22,3 +22,8 @@ Reverses the role line of `kosz-inwestycji` (`context/archive/2026-09-24-kosz-in
 - **Accepted risk: a manager can hard-delete a used kosztorys.** Recovery in the worst case is the
   hourly prod dump, restored by hand. Considered and rejected: variant A (manager trashes only) —
   the manager could not undo their own mistake, and the purge would still delete it after 30 days.
+- **REST `PATCH trashedAt` left open** (`collections/investments.ts`) — dismissed at the original
+  gate, and under full parity it grants a manager nothing the app withholds.
+- **No manager E2E** — the harness has no MANAGER user; EX-874 stays the trash's E2E backlog. The
+  role rule is pinned at the action layer instead: the DB spec mocks the session, not `requireAuth`,
+  so the real gate runs for MANAGER and EMPLOYEE.

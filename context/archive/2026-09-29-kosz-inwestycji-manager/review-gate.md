@@ -9,16 +9,11 @@ harness has no MANAGER login. The four boxes stay open in `manual-checks.md`.
 
 ## Findings
 
-- [x] 🟡 WARNING · fixed · code-review · `src/__tests__/lib/actions/investment-trash.db.test.ts:17-22` · no spec proved an EMPLOYEE is refused — `requireAuth` was mocked, so the role gate never ran — mocked `getCurrentUserJwt` instead and added „refuses an EMPLOYEE every trash action"
-      test: TDD · integration — asserts `trashed_at` unchanged on both rows; mutation (EMPLOYEE added to `run-action.ts`'s roles) turns it red
-- [x] 🔵 OBSERVATION · fixed · code-review, impl-review · `src/lib/actions/sheets.ts:266-270` · the `deleteSheetAction` comment claimed investments keep destructive ops narrower — no longer true — clause removed
-      test: no automated test — comment only
 - [x] 🔵 OBSERVATION · skipped · impl-review · `src/lib/actions/sheets.ts:276` / `linked-sheet-actions.tsx:32` · a MANAGER may now delete an investment forever but still not a linked sheet record — changes what a user may do, so it is the owner's call, not a review fix; surfaced in the close-out
       test: no automated test — no code change
 - [x] 🔵 OBSERVATION · dismissed · code-review, impl-review · `src/collections/investments.ts:42` · collection `delete: isAdminOrOwner` is narrower than the app — every app path uses `overrideAccess: true`, the narrower rule fails closed, `/admin` and REST are unused (plan decision „Zostawić")
       test: no automated test — no code change
 - [x] dropped · impl-review · `plan.md` criterion 1.3 · its grep also matches `INVESTMENT_UNLOCK_FORBIDDEN_MESSAGE` — intent verified by hand; phase blocks are read-only
-- [x] fixed · impl-review, simplify · `src/__tests__/lib/actions/investment-trash.db.test.ts:91` · the MANAGER test's second trash step went unasserted, so a failure there surfaced as a confusing delete failure — asserted
 - [x] dropped · simplify · `src/__tests__/lib/actions/investment-trash.db.test.ts:17` · session mock duplicates the one in `media-kind.db.test.ts` — two specs with different shapes (settable role vs `mockResolvedValue`); a shared stub's params would equal the code
 - [x] dismissed · simplify · `src/lib/queries/trash.ts:19` · `/kosz` guards twice (`requireManagementPage` + `requireAuth`) — the repo's page-redirect + DAL-throw pattern (`szablony`, `pracownicy`); `getCurrentUserJwt` is `cache()`d, so no extra verify
 - [x] dropped · simplify · `src/__tests__/lib/actions/*.test.ts` · ~30 action specs mock `requireAuth` and so cannot catch a wrong role list — mock the JWT per spec where the role is the risk (done here); no repo-wide rewrite
