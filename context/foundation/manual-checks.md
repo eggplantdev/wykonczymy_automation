@@ -2052,7 +2052,7 @@ decyzja właściciela.
 
 - [ ] `/inwestycje` → „Usuń" → „Przenieś do kosza": okno znika od razu, toast „Inwestycja
       przeniesiona do kosza.", wiersz znika z listy.
-- [ ] `/katalog` (katalog prac) → „Usuń z katalogu" → „Usuń": okno znika, toast „Usunięto pozycję
+- [ ] `/katalog-prac` → „Usuń z katalogu" → „Usuń": okno znika, toast „Usunięto pozycję
       z katalogu.", pozycja znika.
 - [ ] `/kosztorysy` → „Odłącz od inwestycji" i (jako ADMIN/OWNER) „Usuń" na innym arkuszu: po
       potwierdzeniu okno znika, toast sukcesu, lista odświeżona.
