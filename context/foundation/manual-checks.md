@@ -1904,6 +1904,28 @@ widokach wykonawców. Rozpiska z seeda (`INV=6`) wystarczy do sortowania i liczb
 - [ ] Wydruk pracownika dla każdej ekipy pokazuje te same liczby co przed zmianą, łącznie z
       „Pozostało".
 
+### Findings — 2026-09-29
+
+- [ ] **Pięć boksów „te same liczby co przed zmianą" nie do sprawdzenia na stagingu** — „Liczby bez
+      zmian" (kolumny liczone, stopki i „Razem", suma „Pozostało" pod linkiem pracownika) i oba
+      „Wydruki". Staging ma już tylko kod po zmianie, więc nie ma z czym porównać.
+      **Needs human:** porównać lokalnie dwa buildy na tej samej rozpisce (`INV=6`) — commit sprzed
+      `47b6a60a` i `staging` — czy uznać te boksy za pokryte spec'em parytetu z fazy 2 (`8b884c7e`) i
+      odhaczyć?
+      **Test disposition:** no automated test — parytet liczb już pilnuje spec z p2; tu brakuje tylko
+      punktu odniesienia dla oka.
+- [ ] **Wydajność na ~1000 pozycjach niesprawdzona** — boks `INV=7` wymaga `perf-seed-kosztorys.ts`,
+      którego przebieg nie uruchomił (to lokalny seed, nie preview DB).
+      **Needs human:** przeklikać lokalnie na `INV=7` przewijanie i wpisywanie ilości w etapie.
+      **Test disposition:** no automated test — odczucie płynności, nie asercja.
+- [ ] **Link pracownika na inw. 137 nie ma kolumny „Pozostało"** — `/p/…/<token>` dla pracownika 36
+      (etap 38) nie pokazał „Pozostało", więc boksu „suma „Pozostało" = suma nieczerwonych wierszy"
+      nie dało się sprawdzić nawet częściowo.
+      **Needs human:** czy widok pracownika ma tę kolumnę tylko w określonym rozliczeniu / ustawieniu
+      kolumn (wtedy wskazać inwestycję, gdzie ją widać), czy to regres?
+      **Test disposition:** test-driven-debugging · dom — jeśli regres: spec widoku pracownika, że
+      „Pozostało" się renderuje przy rozliczeniu, które ją przewiduje.
+
 ## worker-link-revoke — link pracownika do wyłączenia przy blokadzie (EX-888, 2026-09-29)
 
 - [x] Pracownik z wydanym linkiem odpięty od wszystkich etapów zostaje w „Pracownicy" z „Brak
@@ -1971,7 +1993,10 @@ sprzed migracji, nie względem stałej liczby.
       `unstable_cache` pod tagiem `presets`, a migracja SQL go nie unieważnia. Przyczyna najpewniej: deploy
       z nowym kodem obsłużył żądanie przed migracją i zapamiętał pusty wynik.
       **Needs human:** czy na prodzie kolejność „migracja przed pushem" (addytywna) wystarcza, żeby ten wpis
-      nie powstał, czy `db:migrate:prod` ma dokładać unieważnienie tagu `presets`?
+      nie powstał, czy `db:migrate:prod` ma dokładać unieważnienie tagu `presets`? Najtańsza opcja:
+      przyjąć koszt i po `db:migrate:prod` kliknąć „Odśwież dane" na `/szablony`. Ta paczka ma jednak
+      też migrację destrukcyjną (`20260929_2` kasuje `kosztorys_presets`), więc „przed pushem" nie
+      pasuje do całej paczki.
       **Test disposition:** no automated test — efekt kolejności deploy/migracja, nie logika kodu.
 
 ## investments-list-payout-remaining — „Pozostało do wypłaty" na liście inwestycji (2026-09-29)
