@@ -20,6 +20,8 @@ warning. The only gate was "no live transactions" (`preventDeleteWithTransaction
 ## Decisions from the discussion (2026-09-24)
 
 - **Owner and admin only.** A manager neither deletes nor restores.
+  _Superseded 2026-09-29: the manager has full parity — trash, restore, delete forever, `/kosz`
+  (`context/changes/2026-09-29-kosz-inwestycji-manager/`)._
 - **Intermediate state: a trash with restore.** „Usuń" on the listing moves to the trash;
   „Przywróć" returns the investment as it was before deletion; only „Usuń na zawsze" deletes.
 - **Transactions always block.** An investment with a live (non-cancelled) transaction can be
@@ -42,7 +44,8 @@ warning. The only gate was "no live transactions" (`preventDeleteWithTransaction
   other kinds (registers, employees…) arrive later as separate sections, each with its own mechanism
   (column, hiding, gates, cascades) in its own change. No generic "kind in the trash" abstraction
   here. Entry: a „Kosz" sidebar item (last, below „Pracownicy"), visible to owner and admin only — a
-  new, third link group beside "everyone" / "managers". Row: name, deletion date, „usunie się samo
+  new, third link group beside "everyone" / "managers" (superseded 2026-09-29: it is the last
+  „managers" link and the third group is gone, `context/changes/2026-09-29-kosz-inwestycji-manager/`). Row: name, deletion date, „usunie się samo
   za N dni" or „kosztorys w użyciu — tylko ręcznie", actions Przywróć / Usuń na zawsze. The
   investments listing is untouched.
 - **Versions in the trash thin out as usual (2026-09-28)** — `gcSnapshots` unchanged. The kosztorys

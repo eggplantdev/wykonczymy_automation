@@ -200,12 +200,12 @@ None — no schema change, no prod migration.
 
 #### Automated
 
-- [x] 1.1 Flipped DB spec fails before the action swap, passes after
-- [x] 1.2 Nav spec passes
-- [x] 1.3 No `OWNER_LINKS` / `FORBIDDEN_MESSAGE` reader left
+- [x] 1.1 Flipped DB spec fails before the action swap, passes after — 4681c323
+- [x] 1.2 Nav spec passes — 4681c323
+- [x] 1.3 No `OWNER_LINKS` / `FORBIDDEN_MESSAGE` reader left — 4681c323
 
 ### Phase 2: Docs
 
 #### Automated
 
-- [ ] 2.1 None — prose-only phase
+- [x] 2.1 None — prose-only phase
