@@ -84,6 +84,9 @@ export function useReceiptGeneration({
           // TODO(EX-449) SENTRY-REQUIRED: per-receipt AI extraction failures must be captured once
           // Sentry is wired — a failed row otherwise dies in a generic toast.
           logError(`[receipt-generation] row ${id} failed`, error)
+          // The file stays attached: the scan is an auxiliary read, not a validity gate. Most
+          // failures are provider, network or unreadable-photo ones, and file validity is already
+          // enforced by the picker's `accept`, by ingest and by `media.mimeTypes`.
           failed.add(id)
           failedMessages.add(error instanceof Error ? error.message : String(error))
         } finally {

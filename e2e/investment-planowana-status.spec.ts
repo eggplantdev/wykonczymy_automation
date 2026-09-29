@@ -1,5 +1,5 @@
 import { test, expect, type Locator, type Page } from '@playwright/test'
-import { STATUS_LABELS } from '@/components/investments/investment-status-badge'
+import { INVESTMENT_STATUS_LABELS } from '@/lib/constants/investment-status'
 import { refreshReferenceData } from './support/seeds'
 import { readListingCell } from './support/table'
 import { waitForHydration } from './support/wait'
@@ -9,9 +9,9 @@ import { EXPENSE_INVESTMENT, openExpenseDialog } from './drivers/expenses'
 //
 // The issue proposed five assertions; three of them have a cheaper guard today and are deliberately
 // not repeated here. The status-filter views are exactly what `src/__tests__/use-status-filter.test.ts`
-// already asserts (default = active + planowana, „Planowane" isolates, „Wszystkie" shows all), the
-// badge being read-only asserts a non-feature (it is a `<span>`), and a fresh investment's zero
-// figures are a property of having no transfers, not of its status.
+// already asserts (default = quote + planowana + active, „Planowane" isolates, „Wszystkie" shows
+// all), the badge being read-only asserts a non-feature (it is a `<span>`), and a fresh investment's
+// zero figures are a property of having no transfers, not of its status.
 //
 // What is left is browser-only, and it is one fact read through two surfaces that must not disagree:
 // a prospekt is NOT an aktywna inwestycja. It is listed and openable, but the „N aktywnych" counter
@@ -76,14 +76,14 @@ test('prospekt jest widoczny na liście, ale nie liczy się jako aktywny — dop
   await add.click()
   const dialog = page.getByRole('dialog')
   await dialog.getByLabel('Nazwa').fill(PROSPECT)
-  await pickStatus(page, dialog, STATUS_LABELS.planowana)
+  await pickStatus(page, dialog, INVESTMENT_STATUS_LABELS.planowana.pl)
   await dialog.getByRole('button', { name: 'Dodaj', exact: true }).click()
   // The dialog closes only on a successful write, so its disappearance IS the proof the action was
   // accepted — there is no toast to race with.
   await dialog.waitFor({ state: 'hidden' })
 
   await expect(await readListingCell(page, PROSPECT, STATUS_COLUMN)).toHaveText(
-    STATUS_LABELS.planowana,
+    INVESTMENT_STATUS_LABELS.planowana.pl,
   )
   expect(await readActiveCount(page), 'prospekt doliczony do aktywnych').toBe(activeBefore)
   expect(await investmentIsOffered(page, PROSPECT), 'prospekt w pickerze wydatku').toBe(false)
@@ -96,17 +96,19 @@ test('prospekt jest widoczny na liście, ale nie liczy się jako aktywny — dop
   await page.waitForURL(/\/inwestycje\/\d+/)
   await page.getByRole('button', { name: 'Edytuj inwestycję' }).click()
   const editDialog = page.getByRole('dialog')
-  await pickStatus(page, editDialog, STATUS_LABELS.active)
+  await pickStatus(page, editDialog, INVESTMENT_STATUS_LABELS.active.pl)
   await editDialog.getByRole('button', { name: 'Zapisz', exact: true }).click()
   await editDialog.waitFor({ state: 'hidden' })
 
   // The detail page reads the status straight from the same cache the listing does, so it answers
   // first — and it answers about Postgres, not about the form's own optimistic state.
   await page.reload()
-  await expect(page.getByText(STATUS_LABELS.active, { exact: true }).first()).toBeVisible()
+  await expect(
+    page.getByText(INVESTMENT_STATUS_LABELS.active.pl, { exact: true }).first(),
+  ).toBeVisible()
 
   await expect(await readListingCell(page, PROSPECT, STATUS_COLUMN)).toHaveText(
-    STATUS_LABELS.active,
+    INVESTMENT_STATUS_LABELS.active.pl,
   )
   expect(await readActiveCount(page), 'promocja nie podniosła licznika aktywnych').toBe(
     activeBefore + 1,

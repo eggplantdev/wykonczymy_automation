@@ -5,14 +5,24 @@ import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPercentPrecise, formatRate } from '@/lib/kosztorys/format'
 import { namesFigure } from '@/lib/kosztorys/calc'
-import { clientShareCeilingLabel, isOverCeiling } from '@/lib/kosztorys/subcontractor-price-guard'
+import { clientShareCeilingLabel } from '@/lib/kosztorys/subcontractor-price-guard'
 import { FLAGGED_TONE } from '@/components/kosztorys/flagged-tone'
 import { PLANE_LABELS, PRICE_SOURCE_LABELS, RATE_LABELS } from '@/lib/kosztorys/labels'
 import { compareDescriptions } from '@/lib/kosztorys/work-catalogue/compare-descriptions'
-import { catalogueRateFor, catalogueSourceOf } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
+import {
+  catalogueRateAmount,
+  catalogueRateFor,
+  catalogueSourceOf,
+  isCatalogueOverCeiling,
+} from '@/lib/kosztorys/work-catalogue/catalogue-rate'
 import { CatalogueRowActions } from '@/components/work-catalogue/catalogue-row-actions'
 import type { ToolPlaneT } from '@/lib/kosztorys/types'
-import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
+import type {
+  CatalogueUsageT,
+  NearDuplicateKindT,
+  NearDuplicateT,
+  WorkCatalogueItemT,
+} from '@/lib/kosztorys/work-catalogue/types'
 
 const col = createColumnHelper<WorkCatalogueItemT>()
 
@@ -41,14 +51,6 @@ const shareOf = (entry: WorkCatalogueItemT, plane: ToolPlaneT) => {
   const { rate, coeff } = catalogueRateFor(entry, plane)
   if (namesFigure(coeff)) return coeff
   return namesFigure(rate) && entry.clientPrice > 0 ? rate / entry.clientPrice : null
-}
-
-// What the ceiling judges: the złotówka the wpis would pay, whichever źródło names it. The mnożnik's
-// kwota is its multiple of the cennik's own cena j.m. — here the two travel together, so the rule
-// reads the same figure it does in the rozpiska.
-const rateAmount = (entry: WorkCatalogueItemT, plane: ToolPlaneT): number | null => {
-  const { rate, coeff } = catalogueRateFor(entry, plane)
-  return namesFigure(coeff) ? entry.clientPrice * coeff : rate
 }
 
 const share = (value: number | null, overCeiling: boolean) =>
@@ -92,14 +94,50 @@ const lpColumn = (ordinals: ReadonlyMap<number, number>) =>
 // The picker's `size`s: its virtualized list lays out fixed, so the narrow columns hold these widths
 // and the opis fills the rest with its `size` as the floor. Their sum stays inside `dialog-xl` on a
 // 1440 screen. /katalog-prac lays out from content and never reads them.
-const descriptionColumn = col.accessor('description', {
-  id: 'description',
-  header: 'Opis pracy',
-  size: 320,
-  sortingFn: (first, second) =>
-    compareDescriptions(first.original.description, second.original.description),
-  meta: { minWidth: 'min-w-112', fill: true },
-  cell: (info) => <span className="block font-medium">{info.getValue()}</span>,
+type DescriptionMarksT = {
+  otherUnitIds: ReadonlySet<number>
+  nearDuplicates: ReadonlyMap<number, readonly NearDuplicateT[]>
+}
+
+const NEAR_DUPLICATE_LEADS: Record<NearDuplicateKindT, string> = {
+  same: 'prawie ten sam opis',
+  oneWord: 'podobny opis',
+}
+
+const MARK_CLASS = 'text-muted-foreground block text-xs font-normal'
+
+const descriptionColumnWith = ({ otherUnitIds, nearDuplicates }: DescriptionMarksT) =>
+  col.accessor('description', {
+    id: 'description',
+    header: 'Opis pracy',
+    size: 320,
+    sortingFn: (first, second) =>
+      compareDescriptions(first.original.description, second.original.description),
+    meta: { minWidth: 'min-w-112', fill: true },
+    cell: (info) => (
+      <span className="block font-medium">
+        {info.getValue()}
+        {/* The same opis priced under another j.m. is not this wpis — it is a near-duplicate the
+            cennik may want to merge, so it is named here and never counted into „Kosztorysy". */}
+        {otherUnitIds.has(info.row.original.id) && (
+          <span className={MARK_CLASS}>występuje z inną j.m.</span>
+        )}
+        {/* The twin's j.m., cena and kategoria ride along because they are what decides which of
+            the two to keep — and a twin sorted far away by opis would otherwise need a search. */}
+        {nearDuplicates.get(info.row.original.id)?.map(({ entry, kind }) => (
+          <span key={entry.id} className={MARK_CLASS}>
+            {NEAR_DUPLICATE_LEADS[kind]}: {entry.description} — {entry.unit} ·{' '}
+            {formatPLN(entry.clientPrice)}
+            {entry.category && ` · ${entry.category}`}
+          </span>
+        ))}
+      </span>
+    ),
+  })
+
+const descriptionColumn = descriptionColumnWith({
+  otherUnitIds: new Set(),
+  nearDuplicates: new Map(),
 })
 
 const categoryColumn = col.accessor((row) => row.category ?? '', {
@@ -126,7 +164,7 @@ const clientPriceColumn = col.accessor('clientPrice', {
   cell: (info) => <span className="tabular-nums">{formatPLN(info.getValue())}</span>,
 })
 
-const wToolsRateColumn = col.accessor((row) => rateAmount(row, 'w_tools'), {
+const wToolsRateColumn = col.accessor((row) => catalogueRateAmount(row, 'w_tools'), {
   id: 'wToolsRate',
   header: twoLines('Stawka z narzędziami', '(podwykonawca)'),
   size: 176,
@@ -143,11 +181,7 @@ const shareColumn = (plane: ToolPlaneT, id: string, tools: string) =>
     id,
     header: twoLines('% ceny klienta', tools),
     meta: { tooltip: shareTooltip(plane), label: `% ceny klienta ${tools}` },
-    cell: (info) =>
-      share(
-        info.getValue(),
-        isOverCeiling(rateAmount(info.row.original, plane), info.row.original, plane),
-      ),
+    cell: (info) => share(info.getValue(), isCatalogueOverCeiling(info.row.original, plane)),
   })
 
 // The źródło spelled out, beside the stawka that only IMPLIES it — „auto" and „×0,65" name their
@@ -172,7 +206,7 @@ const wToolsSourceColumn = sourceColumn(
 
 const wToolsShareColumn = shareColumn('w_tools', 'wToolsShare', PLANE_LABELS.w_tools.toLowerCase())
 
-const ownToolsRateColumn = col.accessor((row) => rateAmount(row, 'own_tools'), {
+const ownToolsRateColumn = col.accessor((row) => catalogueRateAmount(row, 'own_tools'), {
   id: 'ownToolsRate',
   header: twoLines('Stawka bez narzędzi', '(pracownik)'),
   size: 176,
@@ -203,16 +237,31 @@ export const WORK_CATALOGUE_PICKER_COLUMNS = [
   ownToolsRateColumn,
 ]
 
+// Counts distinct inwestycje, not pozycje: a praca repeated across five łazienki of one mieszkanie is
+// still one kosztorys that would miss it. Absent until „Policz użycia" — a column of zeros before the
+// count would read as „nothing uses anything".
+const usageColumn = (usage: CatalogueUsageT) =>
+  col.accessor((row) => usage.byId[row.id] ?? 0, {
+    id: 'kosztorysCount',
+    header: 'Kosztorysy',
+    meta: { align: 'right' },
+    cell: (info) => <span className="tabular-nums">{info.getValue()}</span>,
+  })
+
 export function getWorkCatalogueColumns({
   categorySuggestions,
   ordinals,
+  usage,
+  nearDuplicates,
 }: {
   categorySuggestions: readonly string[]
   ordinals: ReadonlyMap<number, number>
+  usage: CatalogueUsageT | null
+  nearDuplicates: DescriptionMarksT['nearDuplicates']
 }) {
   return [
     lpColumn(ordinals),
-    descriptionColumn,
+    descriptionColumnWith({ otherUnitIds: new Set(usage?.otherUnitIds), nearDuplicates }),
     categoryColumn,
     unitColumn,
     clientPriceColumn,
@@ -222,6 +271,7 @@ export function getWorkCatalogueColumns({
     ownToolsSourceColumn,
     ownToolsRateColumn,
     ownToolsShareColumn,
+    ...(usage ? [usageColumn(usage)] : []),
 
     col.display({
       id: 'actions',

@@ -12,7 +12,8 @@ import type { WorkerRefT } from '@/types/reference-data'
 type PropsT = {
   workers: WorkerRefT[]
   selectedId: number | null
-  onPick: (workerId: number | null) => void
+  // true = the pick opened a confirm dialog, so the menu must close to let it take focus.
+  onPick: (workerId: number | null) => boolean
 }
 
 // The etap's roster, searchable, inside the header menu itself — no second overlay to hand off to.
@@ -30,6 +31,12 @@ export function StageWorkerSection({ workers, selectedId, onPick }: PropsT) {
   const listed = activeOrSelected(workers, activeOnly, selectedId).filter((worker) =>
     worker.name.toLowerCase().includes(needle),
   )
+
+  function select(workerId: number | null) {
+    return (event: Event) => {
+      if (!onPick(workerId)) event.preventDefault()
+    }
+  }
 
   return (
     <>
@@ -52,7 +59,7 @@ export function StageWorkerSection({ workers, selectedId, onPick }: PropsT) {
           name to find. */}
       <DropdownMenuCheckboxRow
         checked={selectedId == null}
-        onCheckedChange={() => onPick(null)}
+        onSelect={select(null)}
         label={COPY.workerUnassigned}
       />
 
@@ -65,7 +72,7 @@ export function StageWorkerSection({ workers, selectedId, onPick }: PropsT) {
             <DropdownMenuCheckboxRow
               key={worker.id}
               checked={selectedId === worker.id}
-              onCheckedChange={() => onPick(worker.id)}
+              onSelect={select(worker.id)}
               label={worker.name}
             />
           ))

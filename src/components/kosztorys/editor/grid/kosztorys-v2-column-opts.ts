@@ -93,11 +93,12 @@ export type BuildV2ColumnsOptsT = {
   // to `view`, which must be 'client' whenever this is set — selectV2Columns throws on the mismatch,
   // and `assertDisclosurePair` says why.
   previewVisible?: boolean
-  // The owner's stored choice of what THIS investment's client does not see. It only ever subtracts
-  // from PREVIEW_VISIBLE_COLUMNS — a key here that the allowlist never allowed cannot reveal
-  // anything, which is what keeps the allowlist a ceiling rather than one of two competing answers.
-  // Also carries the full ids of the settlement columns with no entries yet.
-  previewHiddenColumns?: ReadonlySet<string>
+  // What the document on screen — the investor's or the worker's — does not show: the owner's stored
+  // choice (investor) plus the full ids the data takes off (settlement columns with no entries yet,
+  // and for the worker the przedmiar pair once his etapy carry entries). It only ever subtracts from
+  // the closed list — a key the list never allowed cannot reveal anything, which is what keeps the
+  // list a ceiling rather than one of two competing answers.
+  documentHiddenColumns?: ReadonlySet<string>
   // The owner's stored order for THIS investment's document (`ClientViewSettingsT.columnRanks`) —
   // never `columnRanks` above, which is one browser's preference and must not shape a client's
   // document (ruling 2026-07-28).

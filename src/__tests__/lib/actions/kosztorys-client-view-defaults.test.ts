@@ -62,8 +62,7 @@ describe.skipIf(!ENV_READY)('saveClientViewDefaultsAction (DB)', () => {
   })
 })
 
-// A manager shares the link, so the per-investment save is theirs too. The firm-wide default stays
-// the owner's.
+// A manager shares the link, so both the per-investment save and the firm-wide default are theirs.
 describe.skipIf(!ENV_READY)('client-view saves as MANAGER (DB)', () => {
   let payload: Payload
   let investmentId: number
@@ -94,17 +93,12 @@ describe.skipIf(!ENV_READY)('client-view saves as MANAGER (DB)', () => {
     expect(row?.hideEmptyRows).toBe(false)
   })
 
-  // Compared against its own before-read, not a fixed value: other DB specs write this global too.
-  it('is refused the firm-wide default without touching it', async () => {
-    const readGlobal = () =>
-      payload.findGlobal({ slug: 'kosztorys-client-view-defaults', depth: 0 })
-    const before = await readGlobal()
-
+  it('stores the firm-wide default', async () => {
     const res = await saveClientViewDefaultsAction(SETTINGS)
 
-    expect(res.success).toBe(false)
-    const after = await readGlobal()
-    expect(after.hiddenColumns ?? null).toEqual(before.hiddenColumns ?? null)
-    expect(after.hideEmptyRows).toBe(before.hideEmptyRows)
+    expect(res.success).toBe(true)
+    const stored = await payload.findGlobal({ slug: 'kosztorys-client-view-defaults', depth: 0 })
+    expect(stored.hiddenColumns).toEqual(SETTINGS.hiddenColumns)
+    expect(stored.hideEmptyRows).toBe(false)
   })
 })

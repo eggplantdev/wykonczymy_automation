@@ -2,7 +2,7 @@ import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { useHiddenColumns } from '@/components/kosztorys/editor/hooks/use-hidden-columns'
-import { DEFAULT_HIDDEN_COLUMNS } from '@/lib/kosztorys/column-config'
+import { DEFAULT_HIDDEN_COLUMNS } from '@/lib/kosztorys/columns/column-config'
 import {
   STAGE_VALUE_GROSS_COLUMN_GROUP,
   STAGE_VALUE_NET_COLUMN_GROUP,

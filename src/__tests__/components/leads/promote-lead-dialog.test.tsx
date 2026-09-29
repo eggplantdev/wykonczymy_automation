@@ -90,14 +90,15 @@ describe('PromoteLeadDialog', () => {
     expect(await screen.findByLabelText('Nazwa')).toHaveValue(LEAD.name)
   })
 
-  // „Aktywna" would file an enquiry nobody has agreed to among the jobs actually running.
-  it('opens on „Planowana" rather than „Aktywna"', async () => {
+  // An enquiry is priced before anything is planned — Wycena is the first lifecycle stage, and
+  // „Aktywna" would file it among the jobs actually running.
+  it('opens on „Wycena"', async () => {
     const user = userEvent.setup()
     render(<PromoteLeadDialog lead={LEAD} />)
 
     await user.click(screen.getByRole('button', { name: 'Dodaj' }))
 
-    expect(await screen.findByLabelText('Status')).toHaveTextContent('Planowana')
+    expect(await screen.findByLabelText('Status')).toHaveTextContent('Wycena')
   })
 
   it('lets a file be held back from the inwestycja without deleting it', async () => {

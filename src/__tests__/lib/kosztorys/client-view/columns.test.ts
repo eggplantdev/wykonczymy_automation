@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
+import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
 import { CLIENT_VIEW_GROUPS, PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/client-view/columns'
 
 // The groups ARE the allowlist, so the two can no longer disagree — what is left to guard is the

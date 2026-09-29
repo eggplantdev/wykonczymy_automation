@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { INVESTMENT_STATUSES } from '@/lib/constants/investment-status'
 
 // Form-input layer: every field is a string, as the HTML controls produce them.
 export const investmentFormSchema = z.object({
@@ -11,7 +12,7 @@ export const investmentFormSchema = z.object({
   review: z.string(),
   // Accepted so an edit that round-trips a szablon's status validates; no <SelectItem> offers it,
   // and guardTemplateStatus refuses setting or dropping it.
-  status: z.enum(['active', 'completed', 'planowana', 'szablon']),
+  status: z.enum(INVESTMENT_STATUSES),
   // Optional seed template, only meaningful on create ('' = start empty). Not an investments
   // column — createInvestmentAction strips it and seeds the new investment's kosztorys from it.
   presetId: z.string(),

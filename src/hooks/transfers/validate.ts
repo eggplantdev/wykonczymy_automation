@@ -112,7 +112,7 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
     }
   }
 
-  // CORRECTION allows negative (invoice credits); every other type must be positive.
+  // CORRECTION must be negative (invoice credits); every other type must be positive.
   if (d.amount !== undefined && d.amount !== null) {
     const amountErr = getAmountError(d.amount, type)
     if (amountErr) errors.push(amountErr)

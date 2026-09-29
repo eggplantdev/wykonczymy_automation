@@ -41,4 +41,14 @@ transactions) contributes 0 to every figure — no financial-layer change owed.
 - Status changes happen in the Edytuj dialog (3-value select); the row shows a **read-only** status
   badge. The inline one-click toggle is removed (no accidental prospect→completed conversion).
 
+**Owner ruling (review gate, 2026-07-18):** `active = status === 'active'`
+(`lib/queries/reference-data.ts`) makes a planowana investment derive `active:false`, so it is left
+out of the transfer/expense picker's default list and the dashboard's `activeInvestments`. Correct by
+design — a prospect has no committed job, so it is neither a default transfer target nor an active
+investment.
+
 Out of scope: the client-facing proposal export/PDF (offer view) — a separate later slice.
+
+> **Superseded (297ad5d1, 2026-09-14):** there is now a fourth status, `szablon`, never picked by hand —
+> `resolveWorkshopInvestment` (`src/lib/kosztorys/provision-workshop.ts`) is its only writer
+> (`src/collections/investments.ts` `STATUS_OPTIONS`).

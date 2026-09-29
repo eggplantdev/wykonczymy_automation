@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
 import { formatNet } from '@/lib/kosztorys/format'
-import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
+import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
 import { refreshReferenceData, runSeedScript } from './support/seeds'
 import { bare } from './support/money'
 import { settleWrites, waitForHydration } from './support/wait'

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { buildOfferPrintHtml, type OfferPrintArgsT } from '@/lib/kosztorys/print/offer'
 import { offerPrintColumns, printableKeys } from '@/lib/kosztorys/print/offer-columns'
-import { columnLabelForView } from '@/lib/kosztorys/column-config'
+import { columnLabelForView } from '@/lib/kosztorys/columns/column-config'
 import {
   CLIENT_DOCUMENT_COLUMNS,
   PREVIEW_VISIBLE_COLUMNS,
@@ -10,7 +10,7 @@ import {
 import { planePriceKeysFor } from '@/lib/kosztorys/plane-price-keys'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
-import { columnTotalsForRows } from '@/lib/kosztorys/column-totals'
+import { columnTotalsForRows } from '@/lib/kosztorys/columns/column-totals'
 import { groupBySection } from '@/lib/kosztorys/row-ops'
 import { sanitizeClientViewSettings } from '@/lib/kosztorys/client-view/settings'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
@@ -64,6 +64,8 @@ function html(rows: KosztorysV2RowT[], overrides: Partial<OfferPrintArgsT> = {})
     ...overrides,
   })
 }
+
+const header = (label: string) => new RegExp(`<th[^>]*><span>${label}</span></th>`)
 
 const zloty = (n: number) =>
   `${Math.round(n).toLocaleString('pl-PL', { maximumFractionDigits: 0, useGrouping: 'always' })} zł`
@@ -165,7 +167,7 @@ describe('buildOfferPrintHtml — papier pokazuje to, co ekran', () => {
 
     const out = html([only], showing('remaining'))
 
-    expect(out).toContain('<th class="num"><span>Pozostało</span></th>')
+    expect(out).toMatch(header('Pozostało'))
     expect(out).toContain(zloty(1000))
   })
 
@@ -202,7 +204,6 @@ describe('buildOfferPrintHtml — papier pokazuje to, co ekran', () => {
 // The same rule the podgląd applies (`emptySettlementColumnIds`), so paper and screen agree column
 // for column.
 describe('buildOfferPrintHtml — kolumny rozliczenia dopiero z wpisami', () => {
-  const header = (label: string) => new RegExp(`<th[^>]*><span>${label}</span></th>`)
   const [stage1, stage2] = CTX.stages
 
   it('bez wpisów drukuje samą ofertę', () => {
@@ -311,7 +312,7 @@ describe('buildOfferPrintHtml — struktura tabeli', () => {
   it('ukrycie kolumny w ustawieniach podglądu zabiera ją i z papieru', () => {
     const out = html([row()], hiding('price'))
 
-    expect(out).not.toContain('<th class="num"><span>Cena j.m.</span></th>')
+    expect(out).not.toMatch(header('Cena j.m.'))
     expect(out).toContain('<th><span>Opis prac</span></th>')
   })
 })

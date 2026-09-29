@@ -1,9 +1,9 @@
 import { viewPrice, type PriceViewT } from '@/lib/kosztorys/calc'
-import { computedColumnValues } from '@/lib/kosztorys/column-values'
+import { computedColumnValues } from '@/lib/kosztorys/columns/column-values'
 import { formatPercent } from '@/lib/kosztorys/format'
 import { DISCOUNT_TYPE_LABELS } from '@/lib/kosztorys/labels'
 import { clientDocumentColumns } from '@/lib/kosztorys/client-view/settings'
-import { columnLabelForView } from '@/lib/kosztorys/column-config'
+import { columnLabelForView } from '@/lib/kosztorys/columns/column-config'
 import { PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/client-view/columns'
 import {
   DESCRIPTION_COLUMN,

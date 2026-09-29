@@ -36,17 +36,17 @@ const asPricing = (item: KosztorysItemT, settings: CatalogueComparisonSettingsT)
 
 const HINT_LIMIT = 3
 
-type HintCandidateT = { entry: WorkCatalogueItemT; pairs: string[] }
+export type HintCandidateT = { entry: WorkCatalogueItemT; pairs: string[] }
 
 // Folded and bigrammed ONCE for the whole cennik: `foldDescription` is ~45 split/join passes, and a
 // 1000-row rozpiska against a few-hundred-row cennik would otherwise run it a million times.
-const hintCandidates = (catalogue: readonly WorkCatalogueItemT[]): HintCandidateT[] =>
+export const hintCandidates = (catalogue: readonly WorkCatalogueItemT[]): HintCandidateT[] =>
   catalogue.map((entry) => ({ entry, pairs: bigrams(foldDescription(entry.description)) }))
 
 // Scores everything and sorts, rather than keeping a running top-3: the loop already touches every
 // wpis (there is no ordering to short-circuit on), and a few hundred kept candidates is nothing
 // beside the scoring itself — which is what the caller's lazy pass exists to pay for.
-function closestEntries(
+export function closestEntries(
   description: string,
   candidates: readonly HintCandidateT[],
   limit = HINT_LIMIT,

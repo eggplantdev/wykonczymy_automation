@@ -643,7 +643,6 @@ export function KosztorysEditorBody({
                     editor.readOnly ? undefined : editor.handleMaterialsNetRateChange
                   }
                   isSavingSettings={editor.isSavingSettings}
-                  showSettingsBar
                   preview={preview}
                 />
               )}

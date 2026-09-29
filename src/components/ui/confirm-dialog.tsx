@@ -17,15 +17,12 @@ type PropsT = {
   description?: ReactNode
   confirmLabel?: string
   cancelLabel?: string
-  // Disables both buttons and swaps the confirm label for `pendingLabel` while an async
-  // confirm is in flight.
-  pending?: boolean
-  pendingLabel?: string
   // A confirm step exists because the action is hard to take back, so red is the default. `neutral`
   // is the opt-out for the handful whose confirm only asks „na pewno?" about something reversible.
   variant?: 'alert' | 'neutral'
   onConfirm: () => void
-  // Fired on Cancel, Escape, or overlay click — anything that dismisses without confirming.
+  // Fired on every close — Cancel, Escape, overlay click, AND right after `onConfirm`, because the
+  // confirm button closes the dialog through the same `onOpenChange(false)`. Keep it to closing.
   onCancel: () => void
 }
 
@@ -36,8 +33,6 @@ export function ConfirmDialog({
   description,
   confirmLabel = 'Potwierdź',
   cancelLabel = 'Anuluj',
-  pending = false,
-  pendingLabel,
   variant = 'alert',
   onConfirm,
   onCancel,
@@ -50,13 +45,12 @@ export function ConfirmDialog({
           {description != null && <AlertDialogDescription>{description}</AlertDialogDescription>}
         </div>
         <div className="mt-4 flex justify-end gap-2">
-          <AlertDialogCancel disabled={pending}>{cancelLabel}</AlertDialogCancel>
+          <AlertDialogCancel>{cancelLabel}</AlertDialogCancel>
           <AlertDialogAction
             className={variant === 'alert' ? buttonVariants({ variant: 'destructive' }) : undefined}
             onClick={onConfirm}
-            disabled={pending}
           >
-            {pending && pendingLabel ? pendingLabel : confirmLabel}
+            {confirmLabel}
           </AlertDialogAction>
         </div>
       </AlertDialogContent>

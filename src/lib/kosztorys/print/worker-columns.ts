@@ -1,5 +1,5 @@
 import { viewPrice } from '@/lib/kosztorys/calc'
-import { computedColumnValues } from '@/lib/kosztorys/column-values'
+import { computedColumnValues } from '@/lib/kosztorys/columns/column-values'
 import {
   DESCRIPTION_COLUMN,
   PLANNED_QTY_COLUMN,

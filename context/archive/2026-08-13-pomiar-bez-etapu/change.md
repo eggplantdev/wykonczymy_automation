@@ -1,6 +1,6 @@
 ---
 change_id: pomiar-bez-etapu
-title: Rozjazd „Pomiar z natury" vs suma etapów — trwały podgląd i ręczna naprawa w aplikacji
+title: „Pomiar z natury" vs the stage sum — a standing view and an in-app manual fix
 status: archived
 created: 2026-08-13
 updated: 2026-08-14
@@ -11,61 +11,54 @@ worktree: ../wykonczymy-worktrees/pomiar-bez-etapu
 
 ## Notes
 
-> Slug `pomiar-bez-etapu` pochodzi z pierwszego, **odrzuconego** pomysłu (syntetyczny etap-kubełek na
-> różnicę). Zostaje jako identyfikator folderu — nic w tej zmianie takiego etapu nie tworzy.
+> The slug `pomiar-bez-etapu` comes from the first, **rejected** idea (a synthetic bucket stage for
+> the difference). It stays as the folder id — nothing in this change creates such a stage.
 
-Import z arkusza gubi pracę, którą właściciel odhaczył w „Pomiar z natury", ale której nie rozbił na
-etapy. W modelu aplikacji Pomiar JEST sumą etapów (EX-494/EX-489), więc ta praca nie ma gdzie wylądować.
+The sheet import loses work the owner ticked in „Pomiar z natury" but never broke down into stages.
+In the app's model pomiar IS the stage sum (EX-494/EX-489), so that work has nowhere to land.
 
-Dowody zebrane 2026-08-13 (odczyt formuł przez `scripts/inspect-sheet.mjs`):
+Evidence gathered 2026-08-13 (formulas read via `scripts/inspect-sheet.mjs`):
 
-| Arkusz                                | Pomiar jako formuła `=SUM(D:M)` | Pomiar > Σetap       | Pomiar < Σetap     |
-| ------------------------------------- | ------------------------------- | -------------------- | ------------------ |
-| kanoniczny (16 lipca, pusta oferta)   | 435 / 435                       | 0                    | 0                  |
-| „wypełniony kosztorys do testów"      | 0 / 253                         | 27 poz. (+18 782 zł) | 3 poz. (−4 279 zł) |
-| inwestycja 31 (11 listopada Gabinety) | 0 / 245                         | 32 poz. (+41 377 zł) | 0                  |
+| Sheet                                    | Pomiar as formula `=SUM(D:M)` | Pomiar > Σstages      | Pomiar < Σstages    |
+| ---------------------------------------- | ----------------------------- | --------------------- | ------------------- |
+| canonical (16 July, blank offer)         | 435 / 435                     | 0                     | 0                   |
+| „wypełniony kosztorys do testów"         | 0 / 253                       | 27 items (+18 782 zł) | 3 items (−4 279 zł) |
+| investment 31 (11 listopada Gabinety)    | 0 / 245                       | 32 items (+41 377 zł) | 0                   |
 
-Formuła w kolumnie Pomiar przeżywa tylko w pustym arkuszu ofertowym — na którym budowany był model.
-Każdy realnie wypełniony arkusz ma ją nadpisaną ręcznym wpisem, więc rozjazd to reguła, nie wyjątek.
-**Ta sama obserwacja jest jednocześnie sygnałem, na którym stoi rozwiązanie**: formuła znaczy „nie ma
-tu ręcznego pomiaru", wpis ręczny znaczy „arkusz twierdzi coś własnego".
+> **Superseded (2026-08-20):** the survey measured only one formula shape, which is why it came out
+> binary; see domain notes § „Zawężone 2026-08-20" and `context/reference/kosztorys-sheet/formula-anomalies.md`.
 
-Inwestycja 31 pokazuje to najczyściej: stopka arkusza niesie DWIE kwoty — „wartość netto" 508 196 zł
-(suma `Pomiar × Cena j.m.`) i „R netto - suma prac wykonannych" 466 819 zł (`SUM(U:AD)`, czyli suma
-wartości z etapów). Aplikacja liczy 466 819 zł, co do złotówki równe drugiej z nich. Różnica
-41 377 zł siedzi w 32 pozycjach; w 30 z nich etapy są całkiem puste, a Pomiar wpisany (montaż
-baterii, umywalek, syfonów, WC, grzejników, drzwi, gniazdek, lamp). W sekcji Podłogi to jedna
-pozycja: „Posadzki z mikrocementu" — Pomiar 95, etapy 25 + 30 = 55, czyli 38 000 zł vs 22 000 zł.
-Sam arkusz to widzi: kolumna bilans pokazuje tam 16 000 zł.
+Investment 31 shows it most cleanly: the sheet footer carries TWO amounts — „wartość netto"
+508 196 zł (Σ `Pomiar × Cena j.m.`) and „R netto - suma prac wykonannych" 466 819 zł (`SUM(U:AD)`,
+the stage values). The app computed 466 819 zł, equal to the second to the złoty. The 41 377 zł gap
+sits in 32 items; in 30 of them the stages are empty and Pomiar is typed in (fitting taps, basins,
+traps, WCs, radiators, doors, sockets, lamps). In Podłogi it is one item: „Posadzki z mikrocementu" —
+Pomiar 95, stages 25 + 30 = 55, i.e. 38 000 zł vs 22 000 zł; the sheet's own balance column shows
+16 000 zł there.
 
-### Ustalony kształt (decyzje właściciela, 2026-08-13)
+### Agreed shape (owner decisions, 2026-08-13)
 
-- **Liczba odniesienia przy pozycji, tylko do odczytu.** Import zapisuje ręcznie wpisany Pomiar
-  z arkusza. Nie wchodzi do robocizny, marży ani rozliczeń z ekipami — jedyne zadanie to porównanie.
-  Model bez zmian: suma etapów zostaje jedyną prawdą o pracy wykonanej.
-- **Rozjazd wyliczany na żywo**, nie zapisywany. Lista kurczy się sama, gdy właściciel wpisuje ilości
-  w etapy — „ta lista powinna być dynamiczna, żeby nie krzyczała o rozjeździe, którego już nie ma".
-- **Stały podgląd, nie tylko przy imporcie.** „Naprawimy to w apce" — nie czekamy, aż właściciel
-  poprawi arkusz.
-- **Filtr wierszy „tylko rozjechane"** w siatce, żeby naprawiać na miejscu zamiast skakać między
-  listą a kosztorysem.
-- **Czerwony znacznik na rozjechanym wierszu**, z podpowiedzią niosącą obie liczby i kwotę różnicy.
-- **Akcja „etapy są prawdą"** przy wierszu — czyści odniesienie tam, gdzie to arkusz się myli.
-- **Ponowny import odtwarza odniesienia z arkusza**, więc wiersz odznaczony wraca, jeśli arkusz nadal
-  twierdzi swoje.
-- Wszystko wyłącznie dla właściciela — nigdy w podglądzie klienta.
+- **A read-only reference number per item.** The import stores the hand-typed Pomiar. It feeds no
+  labor, margin or crew settlement — its only job is comparison. The model is unchanged: the stage sum
+  stays the only truth about work done. The "two truths" objection (EX-494) doesn't apply: the stored
+  number computes nothing, so it doesn't compete for that role.
+- **Discrepancy computed live**, not stored — the list shrinks as the owner enters stage quantities
+  ("this list should be dynamic so it doesn't shout about a discrepancy that's gone").
+- **A standing view, not import-time only** — "we'll fix it in the app", not wait for the sheet.
+- **A "discrepant only" row filter** in the grid, to fix in place.
+- Owner-only — never in the client view.
 
-Zarzut „dwie prawdy" (EX-494) nie stosuje się: zapisana liczba **niczego nie liczy**, więc nie
-konkuruje z sumą etapów o bycie prawdą o pracy wykonanej.
+> **Superseded (2026-08-13/14, 2026-08-18):** the per-row „Etapy są prawdą" action was removed (no
+> per-row escape hatch), the tooltip with both numbers was dropped, and the difference is now the
+> column „Rozjazd między arkuszem Google a apką", shown only with the „z pomiarem do rozpisania na
+> etapy" filter. Re-import no longer restores references; „Porównaj z arkuszem" refreshes and clears
+> them. Current truth: domain notes § „Rozjazd nie ma wyjścia awaryjnego" and following.
 
-### Odrzucone
+### Rejected
 
-- **Syntetyczny etap „Pomiar bez etapu"** na różnicę — decyzja właściciela: „zmieniamy w chuj model
-  danych po to, żeby obsłużyć import starych arkuszy". Dodatkowo rozpoznanie wykazało, że kubełek
-  trzymany jako zapisana ilość **nie opróżnia się sam**: dopisanie ilości do prawdziwego etapu nie
-  zdejmuje jej z kubełka, więc suma etapów wychodzi ponad Pomiar.
-- Przywrócenie „Pomiaru z natury" jako pola **liczącego** — wraca problem dwóch prawd, który model
-  celowo wyciął.
-- Doklejanie różnicy do ostatniego niepustego etapu — cicha, zła atrybucja (rozliczenie ekipy za
-  pracę, której nie zrobiła).
-- Blokowanie importu do czasu poprawy arkusza — w praktyce blokuje wszystko.
+- **A synthetic „Pomiar bez etapu" stage** for the difference — reasons in domain notes (EX-686).
+- Restoring „Pomiar z natury" as a **computing** field — brings back the two-truths problem the model
+  cut on purpose.
+- Gluing the difference onto the last non-empty stage — silent, wrong attribution (a crew settled for
+  work it didn't do).
+- Blocking the import until the sheet is fixed — in practice blocks everything.

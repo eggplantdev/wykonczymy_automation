@@ -30,10 +30,17 @@ no fallback: an investment with no kosztorys reads **0 zł robocizny and 0 zł r
 many `LABOR_COST` rows it carries. An empty kosztorys is an answer, not a question to forward
 to the transfers.
 
+Historical `RABAT` transfers (June 2026) are mostly **balance plugs** (amount = −bilans, e.g.
+14,21 zł), not commercial discounts — evidence in `context/archive/2026-07-15-kosztorys-global-discount/`.
+Read them that way when EX-712 retires the type.
+
 - **v1 vs v2 is the source choice, and it is the only one.** v1 renders the transactions plane;
   v2 and the listing render the kosztorys. Legacy robocizna booked as transfers stays readable
   on v1 until someone enters that work into the kosztorys — it is **not** backfilled, and no
   figure silently swaps planes to cover for it.
+- **v2 materiały carry no breakdown** (owner, 2026-09-15, EX-596): v2 shows the amount the investor
+  actually pays, never how it was reached — no „w tym obniżka materiałów" sub-line. The breakdown
+  stays on v1 only (`MATERIALS_DISCOUNT_LABEL`); its absence from v2 is a decision, not a gap.
 - One rule, one place: `readingFromKosztorys` / `financialsOnReading`
   (`src/lib/kosztorys/summary-reading.ts`), applied by the listing (`shape-investments.ts`),
   the v2 Podsumowanie and the v2 Marża tab.
@@ -101,6 +108,12 @@ aggregate flows from there into the two formulas:
 That holds for "materiały osobno, robocizna osobno" jobs. The `settled` flag (R+M jobs) is
 the exception — material the company eats, so it _does_ hit marża.
 
+**Settled material is a netto cost — owner ruling, 2026-07-26** (not a mode, nothing to gate). Open
+gap: `totalSettled` still sums the brutto `amount` of a brutto-booked settled expense, so marża is
+understated by its VAT. Parked because a brutto expense stores neither a netto nor a VAT rate, and
+the investment's `vatRate` is the client's rate on prace, not the shop's. Tracked as EX-898 (EX-595,
+which held it before, no longer exists).
+
 **The reclaimed VAT does not change this — owner ruling, 2026-07-26.** The company deducts input
 VAT, so a 1230 zł receipt costs it 1000, while the client returns the full 1230 (they pay exactly
 the amount entered in the form; nothing is added on top at rozliczenie netto or mieszany). It is
@@ -140,6 +153,14 @@ and a crew paid ahead as a loss.
   nothing to należne while its robocizna still counts, so the figure would read high by an unknown
   amount. `marginV2` returns `null` there and every surface renders a call to action. Zero would
   assert the crew worked for free.
+- **The prognoza does not signal how a stawka was set** (owner, 2026-08-18). A hand-typed amount is
+  separate per view, so the scenario already tells them apart. Measured on 1751 pozycje: 567 carry
+  both amounts, 1181 neither, 3 only one — nothing to signal.
+- **The prognoza stays off the listing** (owner): it is read per investment, not compared across a
+  table.
+- **„Rozliczenie z ekipą" sits beside the marża rzeczywista, outside its formula.** The margin alone
+  read as a contradiction („the kosztorys says this much, the crew got that much"), so the block is
+  shown under it with a caption; wypłaty still don't enter the figure (`margin-actual-table.tsx`).
 
 Guarded by `investment-render-parity-db.test.ts` (listing's `marża v2` vs the same figure computed
 from the tree) and by the SQL↔TS parity of the listing fold in `kosztorys-subcontractor-due.test.ts`.

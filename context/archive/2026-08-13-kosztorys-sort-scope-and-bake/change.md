@@ -1,6 +1,6 @@
 ---
 change_id: kosztorys-sort-scope-and-bake
-title: Zakres sortowania w menu kolumny + utrwalanie kolejności całego kosztorysu
+title: Sort scope in the column menu + persisting the order of the whole kosztorys
 status: archived
 created: 2026-08-13
 updated: 2026-08-13
@@ -11,55 +11,36 @@ worktree: null
 
 ## Notes
 
-rozdzielenie sortowania na „w sekcjach" / „w całym kosztorysie" w menu kolumny (globalne = tylko
-widok, nigdzie nie utrwalane) oraz wariant „Utrwal kolejność w całym kosztorysie" zapisujący
-display_order we wszystkich sekcjach naraz
+Builds on EX-682/EX-683, which had made sorting within-section only; this change restores global
+sorting as a deliberate, named mode next to it (EX-688).
 
-### Ustalenia z rozmowy (2026-08-13)
+### Decisions (2026-08-13)
 
-Buduje na EX-682/EX-683 (branch `konradantonik/ex-682-sort-within-sections`), gdzie sortowanie
-zostało zamienione na wyłącznie wewnątrzsekcyjne — ta zmiana przywraca sortowanie globalne jako
-świadomy, nazwany tryb obok tamtego.
+- **Column menu: four sort items + „Wyczyść sortowanie".** Scope is in the label (today „Sortuj
+  rosnąco zachowując sekcje" / „Sortuj rosnąco"). No submenu and no separate mode toggle — direction
+  and scope are picked in one gesture.
+- **Nothing about the sort itself is persisted** — not in localStorage, not in the DB. Sorting stays
+  a lens; the only durable order is `display_order`.
+- **Why not store the sort rule:** a stored rule is live and overrides positions — after a ▲/▼ move
+  and a reload the row snaps back because the rule re-sorts it. Two sources of truth for order. We
+  save the result (`display_order`), not the rule.
+- ▲▼ and insert stay disabled under any sort.
 
-- **Menu kolumny**: 4 pozycje sortowania + „Wyczyść sortowanie". Zakres wprost w etykiecie
-  („rosnąco w sekcjach" / „rosnąco w całym kosztorysie" itd.), znacznik przy aktywnej pozycji.
-  Bez podmenu i bez osobnego przełącznika trybu — kierunek i zakres wybiera się jednym gestem.
-- **Nic z samego sortowania nie jest utrwalane** — ani w localStorage, ani w bazie. Sortowanie
-  zostaje soczewką; jedyną trwałą kolejnością jest `display_order`.
-- **Dlaczego nie zapisywać reguły sortowania**: zapisana reguła jest żywa i przebija pozycje —
-  po ▲/▼ i przeładowaniu przesunięcie wiersza znika, bo reguła sortuje go z powrotem. Dwa
-  źródła prawdy o kolejności. Zapisujemy wynik (`display_order`), nie regułę.
-- **Reguła sortowania nie jest utrwalana nigdzie** — ani globalna, ani sekcyjna; ▲▼ i wstawianie
-  pozostają wyłączone przy każdym sortowaniu. (Wyszarzanie zapisu przy sortowaniu globalnym —
-  patrz korekta niżej: wycofane.)
-- **Nowy wariant**: „Utrwal kolejność w całym kosztorysie" — ten sam planner przelatuje po
-  wszystkich sekcjach, refy sklejone w jeden zapis i jedno cofnięcie. `renumberDisplayOrder`
-  przyjmuje dowolną listę id→indeks, więc mechanizm już to unosi.
+### Correction 1 — persisting moved to the column header
 
-### Korekta po implementacji (2026-08-13)
+„Zapisz kolejność" (save order) moved **from the row menu to the column header menu** — where the
+sorting happens — as one command covering all sections at once. Owner's reason: a single section
+can't be sorted in isolation. The within-section mode orders **every** section and the global mode
+mixes them all, so a save hooked to one section saved a slice of something that could never be
+invoked alone; the row menu also implied the row had something to do with it. This dropped the
+single-section server action (EX-683) and its spec. The validation schema rejects repeated ids but
+**not** repeated indexes, because each section numbers from zero.
 
-Utrwalanie kolejności **przeniesione z menu wiersza do menu nagłówka kolumny** — tam, gdzie się
-sortuje. Jedno polecenie „Utrwal kolejność", obejmujące wszystkie sekcje naraz.
+### Correction 2 — save always enabled
 
-Powód (właściciel): nie da się posortować jednej sekcji. „w sekcjach" porządkuje **każdą** sekcję,
-„w całym kosztorysie" miesza wszystkie — więc zapis zaczepiony o jedną sekcję zapisywał wycinek
-czegoś, czego nigdy nie dało się osobno wywołać, a menu wiersza dodatkowo sugerowało, że wiersz ma
-z tym coś wspólnego. Z nagłówka kolumny i tak nie ma jak wskazać sekcji.
-
-### Korekta druga — zapis zawsze aktywny (2026-08-13)
-
-Polecenie nazywa się **„Zapisz kolejność"** i jest **aktywne przy każdym sortowaniu, także „w całym
-kosztorysie"** (wcześniej: wyszarzone). Wyszarzanie opierało się na błędnym założeniu — plan zapisu
-przenumerowuje **każdą sekcję osobno wg tego samego klucza sortowania**, więc sortowanie globalne
-zapisuje bajt w bajt to samo co sekcyjne. Zakres zmienia to, co widać na ekranie, nigdy to, co
-trafia do bazy. Jedyny koszt: po wyczyszczeniu sortowania globalnego przeplot nie wraca — wiersze
-wracają pod swoje sekcje (właściciel: „możemy zawsze z powrotem posortować sekcjami").
-
-Skutkiem tego zniknęły wszystkie podpowiedzi (tooltipy) tłumaczące blokadę, razem z modułem
-`sort-lock-hints` i jego specem — nie ma już blokady do wytłumaczenia.
-
-Konsekwencje pierwszej korekty: znika pozycja utrwalania z grupy „Sekcja" w menu wiersza wraz z akcją serwerową
-zapisującą pojedynczą sekcję (EX-683) i jej specem — nikt jej już nie woła, a szersza akcja robi to
-samo zapytanie bez ograniczenia do jednej sekcji. Schemat walidacji wraca do jednego kształtu:
-odrzuca powtórzone id, ale **nie** powtórzony indeks, bo przy wielu sekcjach każda zaczyna
-numerację od zera. Strzałki ▲▼ i „Wstaw" bez zmian.
+„Zapisz kolejność" is **enabled under every sort, including global** (earlier: greyed out). The
+greying rested on a wrong assumption: the save plan renumbers **each section separately by the same
+sort key**, so a global sort saves byte-for-byte the same as a within-section one. Scope changes what
+is on screen, never what reaches the DB. Only cost: after clearing a global sort the interleaving
+doesn't come back — rows return under their sections (owner: "we can always sort by sections
+again"). The lock-explaining tooltips (`sort-lock-hints`) went with it.

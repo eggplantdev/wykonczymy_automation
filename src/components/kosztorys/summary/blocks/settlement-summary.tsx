@@ -12,7 +12,7 @@ import type { PriceViewT } from '@/lib/kosztorys/calc'
 import { summaryMoneyCols } from '@/components/kosztorys/summary/grid/summary-axis'
 import { SummaryBreakdownTable } from '@/components/kosztorys/summary/tables/summary-breakdown-table'
 import { SummaryTotalsTable } from '@/components/kosztorys/summary/tables/summary-totals-table'
-import type { SettlementGroupT } from '@/components/kosztorys/summary/settlement-groups'
+import type { SettlementGroupT } from '@/components/kosztorys/summary/model/settlement-groups'
 import {
   reconciliationTooltip,
   type KosztorysReconciliationT,

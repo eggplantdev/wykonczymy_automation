@@ -7,8 +7,8 @@ repository: wykonczymy
 topic: 'Audyt całego pakietu testów: rozmiar kodu testowego i ważność każdego testu'
 tags: [research, codebase, tests, vitest, test-plan, dead-tests, deduplication]
 status: complete
-last_updated: 2026-09-15
-last_updated_by: Claude Opus 5
+last_updated: 2026-09-29
+last_updated_by: Claude Opus 5.5 (re-pomiar, EX-783)
 ---
 
 # Research: audyt całego pakietu testów — rozmiar i ważność
@@ -74,6 +74,71 @@ już tego nie łapie.** Ten test obalił §1 w dwóch trzecich.
 
 Fakty pomiarowe zweryfikowane osobiście **[Z]**: czerwony pakiet (`deposit-payment-method.test.tsx`),
 13,24 s / 4 testy, 3 825 testów / 80,1 s, krzywa wzrostu z gita, 298 skipów = bramka `ENV_READY`.
+
+## Re-pomiar 2026-09-29 — liczby poniżej tej sekcji są nieaktualne
+
+Czternaście dni po audycie pakiet urósł o ~40 %, więc każda liczba w §4–§15 opisuje pakiet, którego
+już nie ma. Ten re-pomiar jest w całości **[Z]**: jeden deterministyczny skrypt (`census.sh` obok
+tego pliku, `bash census.sh <root>`), bez subagentów, uruchomiony dwa razy — na commicie audytu
+(`b1378132`, `git archive`) i na drzewie roboczym przy `b6b1dd1b`.
+
+**Walidacja instrumentu.** Na starym commicie skrypt odtwarza audyt co do sztuki tam, gdzie mierzy to
+samo: §5 (13 / 2 / 8 / 44 importerów, 11 ręcznych kopii), §6 (45 specs w korzeniu), `ENV_READY` (68),
+`server-only` (47), E2E (8 specs / 9 testów), 0 `typeof … 'function'`, 3 snapshoty. Liczba specs 331
+vs 348 audytu to ~17 nieśledzonych `.test.tsx`, które audyt liczył z drzewa roboczego. LOC wychodzi
+wyżej niż 38 100 audytu (41 479, `wc -l` z pustymi liniami); porównuj LOC tylko w obrębie tej sekcji.
+
+**Nie odtworzone:** `lib/db` **3,59×** test:src. Po ścieżce mirrora (`src/lib/db` vs
+`__tests__/lib/db`) wychodzi **0,94×** — zarówno wtedy, jak i dziś. Definicja audytu jest nieznana,
+więc teza „`lib/db` jest przetestowane 3,6×" nie ma dziś oparcia.
+
+| metryka                              | audyt (b1378132) | dziś            |
+| ------------------------------------ | ---------------- | --------------- |
+| pliki spec (śledzone)                | 331 (+~17 = 348) | **482**         |
+| · node `.test.ts` / DOM `.test.tsx`  | 330 / 1 (+~17)   | 403 / **79**    |
+| LOC specs                            | 41 479           | **58 379**      |
+| bloki `it`/`test` (statycznie)       | 2 754            | 3 689           |
+| pliki `ENV_READY`                    | 68               | 81              |
+| DOM: LOC / `it`                      | 2 276 / 99       | **8 628 / 398** |
+| E2E: specs / testy                   | 8 / 9            | **32 / 68**     |
+| największy spec (`transfer-actions`) | 1 181            | 1 195           |
+
+**Stan sekcji:**
+
+- **§1, §2, §3** — bez zmian, nadal otwarte (`sheets-golden.test.ts:115`, `.snap` nieruszony od 8.07;
+  `transfer-actions` 74 `it` / 39 `toHaveBeenCalledWith` / `99999` w `:101`; żaden spec `ENV_READY` nie
+  importuje `@/lib/actions/transfers` — ryzyko #3 test-planu bez pokrycia DB). Doprecyzowanie §3: to
+  nie jest czyste `x === x` — pomyłka w `deriveFinancials` albo w komparatorze nadal pada. Ślepota
+  dotyczy **strony kosztorysu** (`kosztorysClientTotals`): obie strony poruszają się razem.
+- **§4 boilerplate** — urósł proporcjonalnie (+13 plików DB): `ENV_READY` 81, bootstrap Payloada 80
+  plików, `server-only` 60, `getDb` 60, `authState` 29, mock rewalidacji 36. Wniosek stoi, liczby ~+18 %.
+- **§5 adopcja helperów** — nowy kod sięga po helpery (`kosztorys-db-tree` 13 → 24 importerów,
+  `kosztorys-tree` 8 → 15), ale nikt nie zmigrował starego: ręcznych kopii drzewa nadal 10 (było 11),
+  `transfer-fixtures` stoi na 2 importerach. Zaległość się nie rozrasta, ale też nie maleje.
+- **§6 korzeń** — 45 plików, 7 900 LOC, bez zmian; wszystkie osiem par korzeń↔mirror nadal istnieje.
+- **§7–§11 cytaty** — nadal obecne (z dryfem numerów linii): `build-import-plan:277`,
+  `build-sheet-comparison:130`, `parse-labor-tab:295-296`, `replace-tree-lost-write:39`,
+  `kosztorys-calc:356` (describe brutto), `env/schema:99`, `use-hidden-columns:83`,
+  `dashboard-aggregation:100`, `investment-render-parity-db:259`, `cash-registers-delete-guard:30`
+  (`EMPLOYEE_EXPENSE`); `save-lanes.test.ts` nadal nie pinuje `itemFieldLane`/`stageLane`.
+  **Zniknęły:** `row-height.test.ts` nie używa już `LINE_HEIGHT`; `subcontractor-price-guard` nie
+  asertuje `0.8` (jest obiekt `0.65`/`0.5525` — ten sam kształt „pin stałej", inna treść).
+  `sheets-sync.test.ts` ma dziś 31 `it` (było 35). To jest kontrola istnienia, nie ponowna ocena —
+  tier [A] tych zarzutów zostaje.
+- **§13 DOM i §14 E2E — przestarzałe w całości.** Oba opisywały warstwę 4× (DOM) i 7,5× (E2E) mniejszą
+  niż dziś. `e2e/smoke.spec.ts` nadal istnieje. Nowe 60 plików DOM i 59 testów E2E nigdy nie było
+  audytowanych.
+- **§15 szacunki odzysku — unieważnione.** Stały na [A] i na bazie, której już nie ma.
+- **„Problem odwrotny" (rozkład) — w dużej mierze się domyka.** Wzrost poszedł dokładnie w warstwy
+  niedotestowane: `components/kosztorys` 0,14× → **0,49×**, `components/forms` 0,06× → 0,23×,
+  `components/tables` 0,05× → 0,15×. Z siedmiu katalogów UI bez `.test.tsx` zostały dwa:
+  `app/(frontend)` (1 382 LOC tsx) i `components/sheets` (444). `components/ui` 0,03×.
+
+**Nie zmierzone ponownie:** czas pakietu i liczba testów w runtime (wymaga pełnego przebiegu),
+§8 parametryzacja (matcher szkieletów agenta jest nieodtwarzalny), „samotne" `toHaveBeenCalled()`
+z §7 (skrypt liczy wszystkie wystąpienia — 225 — a to inna metryka niż 11 audytu).
+`deposit-payment-method.test.tsx` jest zacommitowany i zielony (4/4, 1,17 s testów) — 13,24 s z audytu
+było obciążeniem maszyny, nie plikiem.
 
 ## Summary
 

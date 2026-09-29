@@ -134,7 +134,7 @@ describe('preview columns', () => {
 
   it('drops the columns the owner hid, and only those', () => {
     const baseline = previewIds()
-    const visible = previewIds({ previewHiddenColumns: new Set(['unit']) })
+    const visible = previewIds({ documentHiddenColumns: new Set(['unit']) })
 
     expect(visible).not.toContain('unit')
     expect(visible).toEqual(baseline.filter((id) => id !== 'unit'))
@@ -143,7 +143,7 @@ describe('preview columns', () => {
   // Keyed by toggleKey like every other gate, so one stored key takes the whole per-etap family —
   // hiding „Wartość netto" for etap 1 only would print a grid whose columns disagree per etap.
   it('takes a per-etap family whole, from its group key', () => {
-    const visible = previewIds({ previewHiddenColumns: new Set(['stageValueNet']) })
+    const visible = previewIds({ documentHiddenColumns: new Set(['stageValueNet']) })
 
     expect(visible).not.toContain('stageValueNet_7')
     expect(visible).not.toContain('stageValueNet_9')
@@ -153,7 +153,7 @@ describe('preview columns', () => {
   // The per-etap group key would take every etap with the empty one; an etap with no entries goes alone.
   it('drops an empty etap by its full ids and keeps the filled one', () => {
     const empty = emptySettlementColumnIds([stageRow({ [stageKey(7)]: 2 })], STAGES)
-    const visible = previewIds({ previewHiddenColumns: empty })
+    const visible = previewIds({ documentHiddenColumns: empty })
 
     expect(visible).not.toContain('stage_9')
     expect(visible).not.toContain('stageValueNet_9')
@@ -162,35 +162,16 @@ describe('preview columns', () => {
     expect(visible).toContain('net')
   })
 
-  // The investor's empty etap is no reason to hide it from a crew: the subtraction is the preview's.
-  it('does not apply the investor subtraction to a worker surface', () => {
-    const crewStages = STAGES.map((stage) => ({ ...stage, plane: 'w_tools' as const }))
-    const workerIds = buildV2Columns({
-      view: 'w_tools',
-      stages: crewStages,
-      workerSurface: {
-        plane: 'w_tools',
-        hiddenColumns: [],
-        columnRanks: {},
-        executedQtyByItem: {},
-      },
-      previewHiddenColumns: emptySettlementColumnIds([stageRow()], crewStages),
-    }).map((column) => column.id)
-
-    expect(workerIds).toContain('stage_9')
-    expect(workerIds).toContain('stageValueNet_9')
-  })
-
   it('cannot let a stored key add a column outside the allowlist', () => {
     // `note` is inert here rather than a way in — naming it is the point of the fixture.
-    expect(previewIds({ previewHiddenColumns: new Set(['note']) })).not.toContain('note')
+    expect(previewIds({ documentHiddenColumns: new Set(['note']) })).not.toContain('note')
   })
 
   it('ignores the hidden set outside the preview', () => {
     const editorIds = buildV2Columns({
       view: 'client',
       stages: STAGES,
-      previewHiddenColumns: new Set(['unit']),
+      documentHiddenColumns: new Set(['unit']),
     }).map((column) => column.id)
 
     expect(editorIds).toContain('unit')

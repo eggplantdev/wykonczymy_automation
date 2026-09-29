@@ -9,10 +9,10 @@ import { TotalsPanelOverlay } from '@/components/kosztorys/summary/totals-panel-
 export function KosztorysTotalsPanel({
   hasRows,
   ...props
-}: ComponentProps<typeof SummaryPanelContent> & { hasRows: boolean }) {
+}: Omit<ComponentProps<typeof SummaryPanelContent>, 'host'> & { hasRows: boolean }) {
   return (
     <TotalsPanelOverlay hasRows={hasRows}>
-      <SummaryPanelContent {...props} />
+      <SummaryPanelContent {...props} host="editor" />
     </TotalsPanelOverlay>
   )
 }

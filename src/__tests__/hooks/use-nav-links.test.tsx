@@ -18,11 +18,11 @@ const hrefsFor = (role: RoleT) => {
 }
 
 describe('useNavLinks', () => {
-  it.each<RoleT>(['OWNER', 'ADMIN'])('puts „Kosz" last for %s', (role) => {
+  it.each<RoleT>(['OWNER', 'ADMIN', 'MANAGER'])('puts „Kosz" last for %s', (role) => {
     expect(hrefsFor(role).at(-1)).toBe('/kosz')
   })
 
-  it.each<RoleT>(['MANAGER', 'EMPLOYEE'])('hides „Kosz" from %s', (role) => {
+  it.each<RoleT>(['EMPLOYEE'])('hides „Kosz" from %s', (role) => {
     expect(hrefsFor(role)).not.toContain('/kosz')
   })
 })

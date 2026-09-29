@@ -3,7 +3,6 @@
 import { useTransition } from 'react'
 import { useDraft } from '@/hooks/use-draft'
 import { Button } from '@/components/ui/button'
-import { Description } from '@/components/ui/description'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
 import { ClientViewSettingsForm } from '@/components/kosztorys/editor/dialogs/view-settings/client-view-settings-form'
 import {
@@ -11,9 +10,6 @@ import {
   saveClientViewSettingsAction,
 } from '@/lib/actions/kosztorys-client-view'
 import { sanitizeClientViewSettings } from '@/lib/kosztorys/client-view/settings'
-import { OWNER_ONLY_CLIENT_VIEW_DEFAULTS_MESSAGE } from '@/lib/kosztorys/owner-only-messages'
-import { isAdminOrOwnerRole } from '@/lib/auth/roles'
-import { useCurrentUser } from '@/hooks/use-current-user'
 import { toastMessage } from '@/lib/utils/toast'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
@@ -31,9 +27,6 @@ export function KosztorysClientViewDialog() {
   } = useKosztorysActions().investor
   const [draft, setDraft] = useDraft(settings)
   const [pending, startTransition] = useTransition()
-  // The same predicate `ownerOnlyAction` refuses by, so a manager learns it before the click instead
-  // of from a „saved, but not as default" toast after it.
-  const mayWriteDefaults = isAdminOrOwnerRole(useCurrentUser().role)
 
   const save = (asDefaults: boolean) =>
     startTransition(async () => {
@@ -78,15 +71,11 @@ export function KosztorysClientViewDialog() {
           defaultColumnRanks={defaultColumnRanks}
           disabled={pending}
         />
-        {/* The disabled Button has pointer-events off, so a `title` would never show. */}
-        {!mayWriteDefaults && (
-          <Description size="xs">{OWNER_ONLY_CLIENT_VIEW_DEFAULTS_MESSAGE}</Description>
-        )}
         <DialogFooter>
           <Button
             variant="outline"
             size="sm"
-            disabled={!draft || pending || !mayWriteDefaults}
+            disabled={!draft || pending}
             onClick={() => save(true)}
           >
             Zapisz jako domyślne

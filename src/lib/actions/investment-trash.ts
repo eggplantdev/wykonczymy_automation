@@ -1,6 +1,6 @@
 'use server'
 
-import { ownerOnlyAction } from '@/lib/actions/owner-only-action'
+import { protectedAction } from '@/lib/actions/run-action'
 import {
   INVESTMENT_DELETE_TAGS,
   INVESTMENT_TRASH_TAGS,
@@ -17,7 +17,6 @@ import {
 } from '@/lib/investments/delete-investment-forever'
 import type { ActionResultT } from '@/types/action'
 
-const FORBIDDEN_MESSAGE = 'Tylko właściciel lub administrator może usuwać inwestycje.'
 const MISSING_MESSAGE = 'Inwestycja nie istnieje.'
 
 // The caller expires the tags itself, through the wrapper — the hooks' own revalidation would
@@ -25,9 +24,8 @@ const MISSING_MESSAGE = 'Inwestycja nie istnieje.'
 const SKIP_HOOK_REVALIDATION = { skipRevalidation: true }
 
 export async function trashInvestmentAction(investmentId: number): Promise<ActionResultT> {
-  return ownerOnlyAction(
+  return protectedAction(
     'trashInvestmentAction',
-    FORBIDDEN_MESSAGE,
     async ({ payload }) =>
       // READ COMMITTED with no row lock, so a transfer committed between the count and the write
       // still lands on a trashed investment. Accepted: the delete re-counts and refuses, and
@@ -44,12 +42,6 @@ export async function trashInvestmentAction(investmentId: number): Promise<Actio
             req,
           })
           if (!investment) return { success: false, error: MISSING_MESSAGE }
-          if (investment.status === TEMPLATE_INVESTMENT_STATUS) {
-            return {
-              success: false,
-              error: 'Szablonu nie przenosi się do kosza — usuń go z listy szablonów.',
-            }
-          }
           if (investment.trashedAt) return { success: true }
 
           // Refused on exactly what a hard delete refuses on, so nothing sits in the trash that
@@ -74,9 +66,8 @@ export async function trashInvestmentAction(investmentId: number): Promise<Actio
 }
 
 export async function restoreInvestmentAction(investmentId: number): Promise<ActionResultT> {
-  return ownerOnlyAction(
+  return protectedAction(
     'restoreInvestmentAction',
-    FORBIDDEN_MESSAGE,
     async ({ payload }) => {
       await payload.update({
         collection: 'investments',
@@ -94,15 +85,16 @@ export async function restoreInvestmentAction(investmentId: number): Promise<Act
 
 /**
  * The name check lives here, server-side, so the dialog is a convenience rather than the guard: an
- * investment whose kosztorys was really used cannot be deleted by a direct call that skips it.
+ * investment whose kosztorys was really used cannot be deleted by a direct call that skips it. A
+ * szablon always asks — its content IS its value, and it never carries the quantities that make an
+ * investment's kosztorys „used".
  */
 export async function deleteInvestmentForeverAction(
   investmentId: number,
   confirmName?: string,
 ): Promise<ActionResultT> {
-  return ownerOnlyAction(
+  return protectedAction(
     'deleteInvestmentForeverAction',
-    FORBIDDEN_MESSAGE,
     async ({ payload }) => {
       const investment = await payload.findByID({
         collection: 'investments',
@@ -114,9 +106,11 @@ export async function deleteInvestmentForeverAction(
       if (!investment) return { success: false, error: MISSING_MESSAGE }
       if (!investment.trashedAt) return { success: false, error: NOT_TRASHED_MESSAGE }
 
-      const used = await isKosztorysUsed(await getDb(payload), investmentId)
-      if (used && confirmName?.trim() !== investment.name.trim()) {
-        return { success: false, error: 'Wpisana nazwa nie zgadza się z nazwą inwestycji.' }
+      const mustTypeName =
+        investment.status === TEMPLATE_INVESTMENT_STATUS ||
+        (await isKosztorysUsed(await getDb(payload), investmentId))
+      if (mustTypeName && confirmName?.trim() !== investment.name.trim()) {
+        return { success: false, error: 'Wpisana nazwa się nie zgadza.' }
       }
 
       const result = await deleteTrashedInvestment(payload, investmentId)

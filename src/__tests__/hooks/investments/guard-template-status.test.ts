@@ -22,7 +22,7 @@ function hookArgs(
 }
 
 describe('guardTemplateStatus', () => {
-  it.each(['active', 'completed', 'planowana'])(
+  it.each(['active', 'completed', 'planowana', 'quote'])(
     'refuses turning a %s investment into a szablon',
     (from) => {
       expect(() => guardTemplateStatus(hookArgs({ status: 'szablon' }, from))).toThrow(
@@ -31,11 +31,14 @@ describe('guardTemplateStatus', () => {
     },
   )
 
-  it.each(['active', 'completed', 'planowana'])('refuses turning a szablon into %s', (to) => {
-    expect(() => guardTemplateStatus(hookArgs({ status: to }, 'szablon'))).toThrow(
-      TEMPLATE_STATUS_CHANGE_MESSAGE,
-    )
-  })
+  it.each(['active', 'completed', 'planowana', 'quote'])(
+    'refuses turning a szablon into %s',
+    (to) => {
+      expect(() => guardTemplateStatus(hookArgs({ status: to }, 'szablon'))).toThrow(
+        TEMPLATE_STATUS_CHANGE_MESSAGE,
+      )
+    },
+  )
 
   it('lets a szablon update that never names the status through', () => {
     expect(() => guardTemplateStatus(hookArgs({ name: 'Łazienka' }, 'szablon'))).not.toThrow()

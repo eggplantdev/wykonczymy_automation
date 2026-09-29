@@ -50,7 +50,7 @@ import {
   swapItemInSection,
   type BlankRowInputT,
 } from '@/lib/kosztorys/row-ops'
-import { columnTotalsForRows } from '@/lib/kosztorys/column-totals'
+import { columnTotalsForRows } from '@/lib/kosztorys/columns/column-totals'
 import { sectionSubtotalsForView, stageAxisForView } from '@/lib/kosztorys/settlement-aggregates'
 import { clientTotalsFromSubtotals } from '@/lib/kosztorys/settlement-client-totals'
 import { subcontractorDueByPlane } from '@/lib/kosztorys/subcontractor-due'
@@ -77,8 +77,9 @@ import {
 import { STAGE_CONDITIONS, countMatchingStages } from '@/lib/kosztorys/stage-conditions'
 import { stagesForView } from '@/lib/kosztorys/settlement-view'
 import { emptySettlementColumnIds } from '@/lib/kosztorys/settlement-columns'
+import { workerDataHiddenColumns } from '@/lib/kosztorys/worker-view/columns'
 import { baseOrdinals } from '@/lib/kosztorys/section-band-rows'
-import { reconcileSort, sortValueGetter } from '@/lib/kosztorys/sort-value'
+import { reconcileSort, sortValueGetter } from '@/lib/kosztorys/columns/sort-value'
 import { planKosztorysRenumber } from '@/lib/kosztorys/display-order-plan'
 import { DEFAULT_SECTION_NAME } from '@/lib/kosztorys/constants'
 import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
@@ -519,19 +520,19 @@ export function useKosztorysEditor({
   // picker — unfiltered it would read „—" down nearly every row.
   const divergenceFilterEngaged = !preview && engagedConditionIds.has(MEASURE_DIVERGED_CONDITION_ID)
 
-  // Subtracts from the allowlist, never adds to it — the ceiling stays `PREVIEW_VISIBLE_COLUMNS`.
-  // The worker's hidden set is already folded into his list by `workerVisibleColumns`. Off `rows`,
-  // not `viewRows`, so a column does not come and go with „Pokaż wszystkie pozycje".
-  const previewHiddenColumns = useMemo(
-    () =>
-      preview && !worker
-        ? new Set([
-            ...(clientView?.hiddenColumns ?? []),
-            ...emptySettlementColumnIds(rows, stages, filledStageIds),
-          ])
-        : undefined,
-    [preview, worker, clientView, rows, stages, filledStageIds],
-  )
+  // Subtracts from the closed list, never adds to it. The worker's stored hidden set is already
+  // folded into his list by `workerVisibleColumns`, so only the data's share is added for him. Off
+  // `rows`, not `viewRows`, so a column does not come and go with „Pokaż wszystkie pozycje".
+  const documentHiddenColumns = useMemo(() => {
+    if (!preview) return undefined
+    if (worker) {
+      return workerDataHiddenColumns(rows, stages, worker.settings.hidePlannedOnceExecuted)
+    }
+    return new Set([
+      ...(clientView?.hiddenColumns ?? []),
+      ...emptySettlementColumnIds(rows, stages, filledStageIds),
+    ])
+  }, [preview, worker, clientView, rows, stages, filledStageIds])
 
   // Which ▲/▼ the two menus may offer at all.
   const moveEdges = useMemo(() => computeMoveEdges(rows, sections), [rows, sections])
@@ -574,7 +575,7 @@ export function useKosztorysEditor({
     revealedColumnIds,
     readOnly,
     previewVisible: preview && !worker,
-    previewHiddenColumns,
+    documentHiddenColumns,
     previewColumnRanks: clientView?.columnRanks,
     workerSurface: worker
       ? {

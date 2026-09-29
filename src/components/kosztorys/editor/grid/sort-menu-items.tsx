@@ -2,7 +2,11 @@
 
 import { ArrowDown, ArrowUp, ChevronsUpDown, ListOrdered } from 'lucide-react'
 
-import { DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
+import {
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  keepMenuOpen,
+} from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils/cn'
 import type { SortDirT, SortPickT, SortScopeT } from '@/lib/kosztorys/row-view'
 
@@ -24,7 +28,7 @@ export function SortMenuItems({ active, onSort, onPersistOrder }: SortMenuPropsT
     const DirIcon = dir === 'asc' ? ArrowUp : ArrowDown
     const on = active?.dir === dir && active.scope === scope
     return (
-      <DropdownMenuItem onSelect={() => onSort({ dir, scope })}>
+      <DropdownMenuItem onSelect={keepMenuOpen(() => onSort({ dir, scope }))}>
         <DirIcon className={cn(on ? 'opacity-100' : 'opacity-50')} />
         {text}
       </DropdownMenuItem>
@@ -40,12 +44,12 @@ export function SortMenuItems({ active, onSort, onPersistOrder }: SortMenuPropsT
       {item('desc', 'global', 'Sortuj malejąco')}
       <DropdownMenuSeparator />
       {onPersistOrder && (
-        <DropdownMenuItem onSelect={onPersistOrder}>
+        <DropdownMenuItem onSelect={keepMenuOpen(onPersistOrder)}>
           <ListOrdered />
           Zapisz kolejność
         </DropdownMenuItem>
       )}
-      <DropdownMenuItem disabled={!active} onSelect={() => onSort(null)}>
+      <DropdownMenuItem disabled={!active} onSelect={keepMenuOpen(() => onSort(null))}>
         <ChevronsUpDown className="opacity-50" />
         Wyczyść sortowanie
       </DropdownMenuItem>

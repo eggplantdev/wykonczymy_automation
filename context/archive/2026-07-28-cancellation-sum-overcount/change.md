@@ -31,11 +31,12 @@ amount filter's upper bound — `buildTransferFilters` emits `less_than`, which 
 does not handle and silently ignores. `?amount=500,00` lists 20 rows totalling 10 000 zł under a tile
 reading 22 560 189,17 zł. Same file, same tile, same spec; each gets its own red test and commit.
 
-Repro for both, with live figures off the local prod copy: `repro.md`.
-
 **Dispositions (owner, 2026-07-28):** both defects tracked under EX-574, no second issue. The
 `/raporty` E2E is deferred to the `e2e-backlog` label rather than authored. The `showCancelled`/audit
 residual mismatch stays unfixed, but the tile gains an on-screen note saying what it counts.
+
+> **Superseded:** `/raporty` is disabled until EX-598 (`src/app/(frontend)/raporty/page.tsx`); the
+> Pulpit remains an exposed surface.
 
 Prior research on the transfer-type surface: `context/archive/2026-07-25-transfer-type-spec-table/change.md` (its `research.md` was distilled into that file and deleted 2026-08-08).
 Related: EX-573 (transfer-type spec table) — independent, no need to wait for it.
@@ -44,15 +45,15 @@ Related: EX-573 (transfer-type spec table) — independent, no need to wait for 
 
 - **The proof shape, reusable for any "the tile disagrees with the list" bug:** group the months and
   compare `SUM(amount) FILTER (WHERE type <> 'CANCELLATION')` against bare `SUM(amount)`. January and
-  February 2026 carry **zero** anulowania and **zero** error — control months are what turn a
+  February 2026 carry **zero** cancellations and **zero** error — control months are what turn a
   suspicious delta into a proof that the error is _exactly_ the cancellation sum and never anything
   else.
 - **Regression surface was none, and that was verified rather than assumed.** Every other consumer
   buckets by `financialBucketOf`, and `CANCELLATION` carries `financialBucket: 'none'`, so it already
-  contributed 0 to marża, bilans, income, materials, payouts and every category breakdown. Only the raw
+  contributed 0 to margin, balance, income, materials, payouts and every category breakdown. Only the raw
   reduce in `transfer-table-server.tsx` read the untyped distribution.
 - **Unaffected by design:** `/inwestycje/[id]`, `/kasa/[id]`, `/pracownicy/[id]` — their `Where`
-  carries a relational column that survives the strip, and every anulowanie has that column NULL. The
+  carries a relational column that survives the strip, and every cancellation row has that column NULL. The
   exposed surfaces were `/raporty` and the Pulpit (`manager-dashboard.tsx`), which is what put the
   defect in front of MANAGER too.
 - **A prefix amount search (`?amount=500`) was always correct** — it takes the `like` branch, which the

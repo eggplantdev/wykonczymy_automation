@@ -1,6 +1,6 @@
 ---
 change_id: clean-texts-catalogue-names
-title: „Popraw literówki" przejmuje nazwy z tabeli poprawek katalogu prac
+title: „Popraw literówki" adopts names from the work-catalogue fixes table
 status: archived
 created: 2026-09-15
 updated: 2026-09-15
@@ -11,49 +11,63 @@ worktree: null
 
 ## Notes
 
-Objaw: na `/szablony/4` okno „Porównaj z katalogiem prac" zgłasza **30 prac spoza katalogu**, gdzie
-podpowiedź „może chodzi o…" różni się od nazwy w rozpisce kosmetycznie („Wyburzanie ścian 12-20cm"
-vs „…12-20 cm", „Malowanie sufitu w kolor" vs „…w kolorze", „taśm ledowych" vs „taśm LED").
+Symptom: on `/szablony/4` the „Porównaj z katalogiem prac" (compare with the work catalogue) window
+reports **30 works outside the catalogue**, where the „może chodzi o…" (did you mean…) hint differs
+from the name in the breakdown only cosmetically („Wyburzanie ścian 12-20cm" vs „…12-20 cm",
+„Malowanie sufitu w kolor" vs „…w kolorze", „taśm ledowych" vs „taśm LED").
 
-Przyczyna ustalona na danych (inw. 151 = warsztat szablonu 4, katalog 843 poz.):
+Cause, established on data (inv. 151 = the workshop of template 4, catalogue of 843 items):
 
-- Nazwy w katalogu poprawił jednorazowy skrypt `src/scripts/fix-work-catalogue-texts.ts` wraz z
-  `src/scripts/data/work-catalogue-fixes.tsv` (**938 ręcznie poprawionych par**, commit `61ae1aa5`).
-- Skrypt z założenia pisał **tylko do `work_catalogue_items`** — rozpiski i szablony zostały
-  nietknięte. Stąd asymetria.
-- Poprawki **nigdy nie trafiły do reguł przycisku „Popraw literówki"**. Nagłówek skryptu mówi to
-  wprost: „the corrections are data, not code". Żadna linia kodu nie łączy tabeli z
+- The catalogue names were corrected by a one-off script `src/scripts/fix-work-catalogue-texts.ts` with
+  `src/scripts/data/work-catalogue-fixes.tsv` (**938 hand-corrected pairs**, commit `61ae1aa5`).
+- By design the script wrote **only to `work_catalogue_items`** — breakdowns and templates were left
+  untouched. Hence the asymmetry.
+- The corrections **never reached the rules of the „Popraw literówki" (fix typos) button**. The
+  script's header said so: "the corrections are data, not code". No code linked the table to
   `cleanItemTextsAction`.
-- Oba pliki skasował `4de2666e` — commit z epilogiem **innej** zmiany (drag-drop-guard). Przegląd to
-  odnotował (`context/archive/2026-09-14-drag-drop-guard/review-gate.md`, wpis „dropped").
+- Both files were deleted by `4de2666e`, a commit carrying the epilogue of a **different** change
+  (drag-drop-guard).
 
-Pomiar pokrycia 31 unikalnych braków szablonu 4 tabelą z historii:
+Coverage of template 4's 31 unique misses by the table from history:
 
-|                                                                                         | ile |
-| --------------------------------------------------------------------------------------- | --- |
-| tabela trafia w nazwę **istniejącą dziś** w katalogu                                    | 24  |
-| reguły literowe załatwiają j.m. (`klp` → `kpl`)                                         | 2   |
-| tabela celuje w nazwę, której **już nie ma** (rozbita na warianty po przebiegu skryptu) | 5   |
+|                                                                                  | count |
+| -------------------------------------------------------------------------------- | ----- |
+| table hits a name that **exists today** in the catalogue                         | 24    |
+| the letter-level rules fix the unit (`klp` → `kpl`)                              | 2     |
+| table targets a name that **no longer exists** (split into variants after the run) | 5     |
 
-Czyli **26 / 31 po jednym kliknięciu**.
+So **26 / 31 in one click**.
 
-Kształt rozwiązania (ustalony z właścicielem):
+Solution shape (agreed with the owner):
 
-1. Tabela wraca jako **dane produktowe**, nie skrypt jednorazowy. 938 **unikalnych** kluczy, zero
-   duplikatów → `Map` po całej nazwie, nie 938 przebiegów `split/join` (obecne reguły to podmianki
-   **fragmentów** — inny kształt danych, stąd ostrożność typu ` parc` → ` prac`).
-2. `cleanItemTextsAction` dostaje drugi krok: po regułach literowych podnieś nazwę z tabeli —
-   **tylko jeśli ta nazwa dziś istnieje w katalogu**. To zabezpieczenie przed zamrożonym zdjęciem
-   katalogu z 14.09; że to realne ryzyko, dowodzi tych 5 pozycji już rozbitych na warianty.
-3. Opcjonalnie: wciągnąć tabelę też do klucza tożsamości (`foldDescription` → `catalogueKey`), żeby
-   stary i nowy zapis keyowały się identycznie i okno przestało je zgłaszać **bez klikania**.
-   Wymaga przeglądu kolizji (`UNIQUE` na `match_key`) — skasowany skrypt miał gotową obsługę, jest
-   w historii.
+1. The table returns as **product data**, not a one-off script. 938 **unique** keys, zero
+   duplicates → a `Map` on the whole name, not 938 `split/join` passes (the existing rules replace
+   **fragments** — a different data shape, hence guards like ` parc` → ` prac`).
+2. `cleanItemTextsAction` gets a second step: after the letter-level rules, look the name up in the
+   table.
+   > **Superseded (at planning):** the guard "only if that name exists in the catalogue today" was
+   > rejected — see Decisions.
+3. Also feed the table into the identity key (`foldDescription` → `catalogueKey`), so the old and new
+   spelling key identically and the window stops reporting them **without a click**. Needs a
+   collision check (`UNIQUE` on `match_key`).
 
-Poza zakresem: te 5 wariantowych („Klejenie paneli winylowych" ma **remis 0.862 : 0.862** między
-_jodełka_ a _mijanka_) — potrzebują decyzji człowieka, czyli osobnej akcji „przyjmij nazwę
-z katalogu" w oknie porównania.
+Out of scope: the 5 split variants („Klejenie paneli winylowych" has a **0.862 : 0.862 tie** between
+_jodełka_ and _mijanka_) — they need a human decision, i.e. a separate "adopt the catalogue name"
+action in the compare window.
 
-Stan przycisku: `86b40010` odkomentował go w menu, ale to siedzi **tylko na `staging`** — na
-produkcji go nie ma (`origin/main` = `85ea3b88`). EX-778 („usunąć całkowicie tę ścieżkę") jest już
-**Canceled**, więc nic nie koliduje — ścieżka zostaje i rośnie.
+## Decisions
+
+- **Table keyed by description only, not by unit.** With „[stary arkusz]" stripped, the table is
+  unambiguous by description — the 16 ambiguities came from that marker, not from the unit.
+- **Guard "name exists in the catalogue" rejected (owner).** The fold is a pure function and never
+  reads the DB; a guard on one side only would make the two mechanisms diverge. On the data it
+  changes nothing anyway.
+- **Unit from the table is not applied (owner).** `szt` → `m2` is not a typo but a different pricing
+  basis.
+- **No bulk run (owner).** The write goes through the snapshot and the investment lock, so it is
+  reversible.
+- **Identity before the button.** The fold writes nothing to the DB, so it is safe alone; the button
+  without the fold is not — it would rewrite letters `itemKey` doesn't absorb, i.e. drift from the
+  Google Sheet.
+- **The 107 KB table ships to the editor client** (via the picker, ~47 ms init). Real, but at ~5
+  desktop users a `dynamic()` boundary costs more than it saves.

@@ -3,13 +3,12 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { KosztorysClientViewDialog } from '@/components/kosztorys/editor/dialogs/view-settings/kosztorys-client-view-dialog'
-import { CurrentUserProvider } from '@/hooks/use-current-user'
 import {
   clientDocumentColumns,
   sanitizeClientViewSettings,
   type ClientViewSettingsT,
 } from '@/lib/kosztorys/client-view/settings'
-import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
+import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
 import type { ColumnRanksT } from '@/lib/table/column-order'
 
 const INVESTMENT_ID = 7
@@ -48,11 +47,7 @@ function renderDialog(settings: ClientViewSettingsT = sanitizeClientViewSettings
     setClientView,
     defaultColumnRanks: FIRM_RANKS,
   }
-  render(
-    <CurrentUserProvider user={{ id: 1, email: 'o@example.test', name: 'Testowy', role: 'OWNER' }}>
-      <KosztorysClientViewDialog />
-    </CurrentUserProvider>,
-  )
+  render(<KosztorysClientViewDialog />)
   return screen.getByRole('dialog', { name: 'Ustawienia podglądu inwestora' })
 }
 

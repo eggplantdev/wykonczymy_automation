@@ -1,6 +1,6 @@
 ---
 change_id: investment-lock-on-completed
-title: Zakończona inwestycja jest zablokowana — read-only dla wszystkich ról
+title: A completed investment is locked — read-only for every role
 linear: EX-748
 status: archived
 created: 2026-08-28
@@ -12,87 +12,64 @@ worktree: null
 
 ## Notes
 
-Status `completed` czyni inwestycję, jej transakcje i kosztorys tylko do odczytu dla **wszystkich**
-ról, ADMIN/OWNER włącznie — blokada jest totalna, nie ma roli, która edytuje mimo blokady.
+Status `completed` makes the investment, its transactions and its kosztorys read-only for **every**
+role, ADMIN/OWNER included — the lock is total; no role edits through it.
 
-Przejście na `completed` wymaga confirmation dialogu: „inwestycja zostanie zablokowana, tylko do
-odczytu" — **bez** wzmianki o możliwości odblokowania.
+Switching to `completed` goes through a confirmation dialog: "the investment will be locked,
+read-only" — with **no** mention that it can be unlocked.
 
-Jedyne wyjście to jawna zmiana statusu z powrotem na „Aktywna", dostępna wyłącznie dla OWNER/ADMIN,
-również za confirmation dialogiem. Nie ma osobnej akcji „Odblokuj" — odblokowanie JEST zmianą statusu.
-Powód, dla którego drzwi zostają: nieodwracalna blokada zamienia jedno błędne kliknięcie na
-400-pozycyjnym kosztorysie w trwałe zamrożenie, którego jedyną naprawą jest ręczny SQL na produkcyjnym
-Neonie.
+The only way out is an explicit status change back to „Aktywna", available to OWNER/ADMIN only, also
+behind a confirmation dialog. There is no separate "Unlock" action — unlocking IS the status change.
+Why the door stays: an irreversible lock turns one misclick on a 400-item kosztorys into a permanent
+freeze whose only repair is hand-written SQL on production Neon.
 
-### Ustalenia z rekonesansu (2026-08-28)
+Where the gate sits per write plane (Payload vs raw SQL): `context/foundation/lessons.md` → EX-748.
+The editor's lock is a separate `locked` flag (`readOnly = preview || locked`), not `preview` —
+`preview` is the client's document and swaps the layout, drops columns, filters and the toolbar.
 
-- `status: 'completed'` nie egzekwuje dziś **niczego** — jedyny efekt to `opacity-50`
-  (`investment-data-table.tsx:53`) i pozycja w filtrze statusów.
-- **Payload `access.update` nie jest punktem kontrolnym**: akcje jadą Local API (`overrideAccess`
-  domyślnie `true`), a kosztorys w ~12 miejscach pisze surowym SQL-em (`getDb` + `sql`), co omija też
-  hooki kolekcji. Chokepoint musi żyć w warstwie akcji — w kształcie istniejącego `ownerOnlyAction`
-  (`lib/actions/owner-only-action.ts`).
-- Część akcji kosztorysu dostaje `itemId`/`sectionId`/`stageId`, nie `investmentId`, więc guard
-  potrzebuje resolvera; te akcje już robią taki lookup (`kosztorys.ts:526-535`, `704-713`).
-- Powierzchnia zapisu: `lib/actions/kosztorys.ts` (~30 akcji), `kosztorys-import.ts`,
-  `kosztorys-snapshots.ts` (restore), `kosztorys-share.ts`, `kosztorys-client-view.ts`,
-  `sheets-sync.ts`, `lib/actions/transfers.ts` (7), `lib/actions/investments.ts`
-  (`updateInvestmentAction`, `linkSheetAction`, `setupSheetAction`).
-- **`preview` w edytorze nie nadaje się na „zablokowane"** — to dokument klienta: obcina kolumny,
-  filtry, prognozy, toolbar i podmienia layout (`use-kosztorys-editor.ts:469`,
-  `kosztorys-editor-body.tsx`). Do reużycia nadaje się `opts.readOnly` w
-  `kosztorys-v2-columns.tsx:580` (wyłącza każdą komórkę, zdejmuje kolumnę akcji). Potrzebna osobna
-  flaga `locked`, `readOnly: preview || locked`, bez podmiany layoutu.
-- `InvestmentRefT` już niesie `status`, więc zakończone inwestycje da się odfiltrować z comboboxa
-  wydatku/wpłaty bez nowego zapytania — plus twardy `return { success: false }` w akcji.
+### Owner rulings (2026-09-03)
 
-### Rozstrzygnięcia (2026-09-03, właściciel)
-
-1. **Blokada od pierwszego dnia, na wszystkich 69 zakończonych.** Bez migracji, bez drugiego
-   znacznika, bez okresu przejściowego. Uzasadnienie właściciela: inwestycja jest zakończona dopiero
-   po rozliczeniu, wypłat włącznie — więc 84 transakcje zaksięgowane po zakończeniu nie są ścieżką do
-   ochrony, tylko dowodem przedwczesnego zamykania. Prośby o odblokowanie w pierwszych tygodniach są
-   listą takich inwestycji, nie kosztem wdrożenia.
-2. **Ślad audytowy odblokowania — WYCOFANY, warunkowo.** Skoro wyjście z `completed` jest zawężone
-   do OWNER/ADMIN (patrz #6), krąg podejrzanych to właściciel i admin — ślad nie odpowiadałby na
-   żadne pytanie, którego właściciel nie zna. Decyzja wraca w chwili, w której wyjście z `completed`
-   dostanie jakakolwiek inna rola; wtedy kształt do skopiowania to `src/collections/amount-edits.ts`
-   (append-only, `create/update/delete: () => false`, `read: isAdminOrOwner`).
-3. **Faktury pozostają otwarte na zablokowanej inwestycji.** Jedyny wyjątek od blokady totalnej.
-   Podpięcie i odpięcie skanu nie rusza żadnej figury, a faktury systemowo przychodzą po zamknięciu
-   roboty — blokowanie ich zmuszałoby do odblokowania inwestycji dla samego PDF-a, po czym nikt jej
-   nie zablokuje z powrotem. Podtrzymuje decyzję z 2026-08-10 spisaną w `transfers.ts:~318`
-   (`setTransferInvoices` świadomie poza `fetchAndAuthorize`).
-4. **Granica odczytu:** `previewKosztorysImport` / `compareWithSheet` zostają (czytają),
-   `applyMaterialSync` blokowany (pisze do arkusza właściciela), `savePresetAction` zostaje (zapisuje
-   szablon globalny, nie inwestycję — zakończona inwestycja jest dobrym źródłem szablonu).
-5. **Link kliencki i ustawienia widoku klienta zostają dostępne** — unieważnienie linku jest
-   operacją bezpieczeństwa, której blokować nie wolno.
-6. **Rekord inwestycji jest POZA blokadą — bramka ma dwie płaszczyzny, nie trzy.** Celem jest
-   odcięcie ruchu na kasie, nie zamrożenie kartoteki. Osiem pól z formularza inwestycji
-   (`name`, `address`, `phone`, `email`, `contactPerson`, `notes`, `review`, `status`) nie ma wpływu
-   na żadną figurę, więc `updateInvestmentAction` zostaje nietknięta: bez diffu pól, bez reguły
-   „tylko status", bez listy dozwolonych przejść. Status jest z powrotem zwykłym polem formularza
-   i OWNER/ADMIN ustawia go dowolnie.
-   Podział biegnie dokładnie po granicy kolumn `investments`: siedem pól finansowych
-   (`wToolsCoeff`, `ownToolsCoeff`, `vatRate`, `settlementMode`, `materialsNetRate`,
-   `globalDiscountType`, `globalDiscountValue`) pisze wyłącznie pięć akcji kosztorysu z panelu
-   ustawień edytora, więc wpadają pod bramkę kosztorysową — VAT i rabat globalny przeliczają cały
-   kosztorys.
-   **Jedyny wyjątek — jedna reguła, na której trzyma się cała reszta: wyjście ze statusu `completed`
-   wymaga OWNER/ADMIN.** Bez niej blokada jest pozorna: `updateInvestmentAction` idzie przez
-   `MANAGEMENT_ROLES`, więc MANAGER przestawiłby „Zakończona" → „Aktywna", zaksięgował co chce
-   i przestawił z powrotem. **Wejście** w `completed` zostaje otwarte dla managera — zamykanie
-   rozliczonej roboty to jego praca.
-   Reguła stoi w **hooku `beforeChange` kolekcji `investments`**, nie w akcji: `/admin` ma
-   `update: isAdminOrOwnerOrManager` na inwestycjach, więc manager przestawiłby status panelem.
-   Hook widzi `originalDoc.status` i `data.status`, więc łapie akcję, Local API i REST naraz; akcja
-   dokłada wyłącznie czytelny polski komunikat.
-7. **Anulowanie transakcji blokowane.** `CANCELLATION` na zablokowanej inwestycji wymaga
-   odblokowania — pomyłka wykryta po zamknięciu przechodzi tą samą drogą co każda inna zmiana.
-8. **Kasowanie inwestycji — bramki NIE dodajemy (wycofane).** Inwestycja z jakąkolwiek transakcją
-   jest już dziś nieusuwalna (`preventDeleteWithTransactions`, `collections/investments.ts:20`).
-   Zostaje wyłącznie zakończona inwestycja bez ani jednej transakcji — tam nie ma czego chronić,
-   więc bramka nie miałaby co blokować.
-9. **Confirmation dialog jest jeden, niezależny od roli.** Bez wariantu treści dla OWNER/ADMIN —
-   prostota bije precyzję komunikatu.
+1. **Locked from day one, on all 69 completed investments.** No migration, no second marker, no
+   transition period. The owner's reasoning: an investment is completed only once settled, payouts
+   included — so the 84 transactions booked after completion are not a path to protect but evidence
+   of premature closing. Unlock requests in the first weeks are a list of such investments, not a
+   rollout cost.
+2. **Unlock audit trail — WITHDRAWN, conditionally.** With the exit from `completed` limited to
+   OWNER/ADMIN (see #6), the suspects are the owner and the admin — a trail would answer no question
+   the owner doesn't already know. The decision returns the moment any other role gets the exit; the
+   shape to copy then is `src/collections/amount-edits.ts` (append-only,
+   `create/update/delete: () => false`, `read: isAdminOrOwner`).
+3. **Invoices stay open on a locked investment.** The only exception to the total lock. Attaching
+   and detaching a scan moves no figure, and invoices routinely arrive after the work closes —
+   blocking them would force an unlock just for a PDF, after which nobody relocks. Upholds the
+   2026-08-10 decision (`addTransferInvoicesAction` deliberately bypasses `fetchAndAuthorize`,
+   `lib/actions/transfers.ts`).
+4. **Read boundary:** `previewKosztorysImport` / `compareWithSheet` stay (they read),
+   `applyMaterialSync` is blocked (writes to the owner's sheet), `savePresetAction` stays (it saves a
+   global template, not the investment — a completed investment is a good template source).
+5. **The client link and client-view settings stay available** — revoking a link is a security
+   operation and must never be blocked.
+6. **The investment record is OUTSIDE the lock — the gate has two planes, not three.** The goal is to
+   stop money moving, not to freeze the contact card. The investment form's fields (`name`,
+   `address`, `phone`, `email`, `contactPerson`, `notes`, `review`, `status`) move no figure, so
+   `updateInvestmentAction` is untouched: no field diff, no "status only" rule, no allowed-transition
+   list. Status is an ordinary form field again and OWNER/ADMIN sets it freely.
+   The split follows the `investments` columns exactly: the financial fields (`wToolsCoeff`,
+   `ownToolsCoeff`, `vatRate`, `settlementMode`, `materialsNetRate`, `globalDiscountType`,
+   `globalDiscountValue`) are written only by the kosztorys actions of the editor's settings panel,
+   so they fall under the kosztorys gate — VAT and the global discount recompute the whole kosztorys.
+   **The one exception, on which everything else rests: leaving `completed` requires OWNER/ADMIN.**
+   Without it the lock is fake: `updateInvestmentAction` runs on `MANAGEMENT_ROLES`, so a MANAGER
+   would flip „Zakończona" → „Aktywna", book anything and flip it back. **Entering** `completed`
+   stays open to the manager — closing settled work is his job.
+   The rule lives in the `investments` collection's **`beforeChange` hook**
+   (`guardInvestmentStatusUnlock`), not in the action: `/admin` grants the manager `update` on
+   investments. The hook sees `originalDoc.status` and `data.status`, so it catches the action, the
+   Local API and REST at once; the action only adds a readable Polish message.
+7. **Cancelling a transaction is blocked.** A `CANCELLATION` on a locked investment requires
+   unlocking — a mistake found after closing takes the same route as any other change.
+8. **Deleting an investment — NO gate added (withdrawn).** An investment with any transaction is
+   already undeletable (`investmentDeleteBlocker`). That leaves only a completed investment with no
+   transactions at all — nothing to protect there.
+9. **One confirmation dialog, role-independent.** No OWNER/ADMIN wording variant — simplicity beats a
+   more precise message.

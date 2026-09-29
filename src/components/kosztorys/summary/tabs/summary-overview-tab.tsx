@@ -14,9 +14,9 @@ import { InlineModeSelect } from '@/components/ui/inline-mode-select'
 import {
   SETTLEMENT_MODE_DESCRIPTIONS,
   SETTLEMENT_MODE_SELECT_OPTIONS,
-} from '@/components/kosztorys/summary/settlement-mode-options'
-import { buildSettlementGroups } from '@/components/kosztorys/summary/settlement-groups'
-import { SettlementPlaneWarning } from '@/components/kosztorys/summary/settlement-plane-warning'
+} from '@/components/kosztorys/summary/model/settlement-mode-options'
+import { buildSettlementGroups } from '@/components/kosztorys/summary/model/settlement-groups'
+import { SettlementPlaneWarning } from '@/components/kosztorys/summary/blocks/settlement-plane-warning'
 import { offPlaneDeposits } from '@/lib/kosztorys/off-plane-deposits'
 import { SummaryDepositsTab } from '@/components/kosztorys/summary/tabs/summary-deposits-tab'
 import Link from 'next/link'

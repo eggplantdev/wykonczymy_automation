@@ -64,7 +64,7 @@ in that mode, frozen at the invoice's VAT, so that the list always equals the su
    Live impact: inv. 146, **+356,27 zł** owed by the investor (4809,60 − 4453,33).
 
 4. **The UI copy already promises the requested behaviour, and the code contradicts it.**
-   - `src/components/kosztorys/summary/materials-pricing-options.ts:14`: „Wydatki inwestycyjne
+   - `src/components/kosztorys/summary/model/materials-pricing-options.ts:14`: „Wydatki inwestycyjne
      rozliczane po kwotach brutto z faktury (domyślne)."
    - `:22`: „Przy rozliczeniu brutto inwestor płaci pełne kwoty z faktur…"
 
@@ -257,7 +257,7 @@ belongs in a DOM spec over `SummaryExpensesTab` + overview with the 8% fixture, 
 - `src/lib/kosztorys/expense-datasets.ts:45-53`: `sumBilled` / `sumAmount`, and the „never
   reconciled" comment at :49-50.
 - `src/lib/google/tab-rows.ts:56`: sheet sync billed.
-- `src/components/kosztorys/summary/materials-pricing-options.ts:14,22`: the UI copy that already
+- `src/components/kosztorys/summary/model/materials-pricing-options.ts:14,22`: the UI copy that already
   promises brutto.
 - `src/lib/queries/shape-investments.ts:45,59`: listing wydatki and bilans.
 - `src/lib/db/calculate-balance.ts`: v1 bilans via `totalMaterialCosts`.

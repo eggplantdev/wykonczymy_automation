@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, startTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FileSpreadsheet, Unlink } from 'lucide-react'
@@ -26,7 +26,6 @@ type DialogT = 'unlink' | 'delete' | undefined
 // can't use anyway.
 export function LinkedSheetActions({ sheetId, investmentId, investmentName }: PropsT) {
   const [dialog, setDialog] = useState<DialogT>(undefined)
-  const [pending, startTransition] = useTransition()
   const router = useRouter()
   const { role } = useCurrentUser()
   const canDelete = isAdminOrOwnerRole(role)
@@ -76,8 +75,6 @@ export function LinkedSheetActions({ sheetId, investmentId, investmentName }: Pr
         description="Arkusz Google nie zostanie usunięty — pozostanie na liście jako kosztorys bez inwestycji i można go później powiązać ponownie."
         confirmLabel="Odłącz"
         variant="neutral"
-        pending={pending}
-        pendingLabel="Odłączam…"
         onConfirm={onUnlink}
         onCancel={() => setDialog(undefined)}
       />
@@ -87,8 +84,6 @@ export function LinkedSheetActions({ sheetId, investmentId, investmentName }: Pr
         title="Usunąć kosztorys?"
         description="Usunięty zostanie tylko wpis w aplikacji. Arkusz Google pozostanie nienaruszony na Dysku. Tej operacji nie można cofnąć."
         confirmLabel="Usuń"
-        pending={pending}
-        pendingLabel="Usuwam…"
         onConfirm={onDelete}
         onCancel={() => setDialog(undefined)}
       />

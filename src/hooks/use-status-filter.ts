@@ -2,12 +2,16 @@
 
 import { useMemo } from 'react'
 import { createJsonMapStore, useJsonMap, type JsonMapStoreT } from '@/hooks/create-json-map-store'
-import type { InvestmentStatusT } from '@/types/reference-data'
+import {
+  PICKABLE_INVESTMENT_STATUSES,
+  type InvestmentStatusT,
+} from '@/lib/constants/investment-status'
 
-const DEFAULT_STATUSES: InvestmentStatusT[] = ['active', 'planowana']
-// `szablon` is missing because fetchReferenceData already drops it. In display order, and read by
-// StatusFilter too so the two can't drift.
-export const FILTERABLE_STATUSES: InvestmentStatusT[] = ['planowana', 'active', 'completed']
+const DEFAULT_STATUSES: InvestmentStatusT[] = ['quote', 'planowana', 'active']
+
+// A map saved before a status existed has no flag for it. The status takes the flag of the one it
+// was split from, so whoever hid Planowane doesn't suddenly get Wyceny back.
+const INHERITED_FLAG: Partial<Record<InvestmentStatusT, InvestmentStatusT>> = { quote: 'planowana' }
 
 const STORAGE_PREFIX = 'table-status-filter:'
 
@@ -27,9 +31,19 @@ function storeFor(storageKey: string): JsonMapStoreT<boolean> {
 // wybierał" from „wybrano nic". An absent map falls back to the defaults, an explicit all-false is
 // honoured as the empty selection it is.
 export function selectionFrom(persisted: Record<string, boolean>): Set<InvestmentStatusT> {
-  const answered = FILTERABLE_STATUSES.filter((status) => typeof persisted[status] === 'boolean')
+  const answered = PICKABLE_INVESTMENT_STATUSES.filter(
+    (status) => typeof persisted[status] === 'boolean',
+  )
   if (answered.length === 0) return new Set(DEFAULT_STATUSES)
-  return new Set(answered.filter((status) => persisted[status]))
+  return new Set(
+    PICKABLE_INVESTMENT_STATUSES.filter((status) => flagOf(persisted, status) === true),
+  )
+}
+
+function flagOf(persisted: Record<string, boolean>, status: InvestmentStatusT): unknown {
+  if (typeof persisted[status] === 'boolean') return persisted[status]
+  const parent = INHERITED_FLAG[status]
+  return parent === undefined ? undefined : persisted[parent]
 }
 
 export function filterByStatuses<TItem>(
@@ -56,7 +70,7 @@ export function useStatusFilter<TItem>(
     store.update((prev) => {
       const current = selectionFrom(prev)
       return Object.fromEntries(
-        FILTERABLE_STATUSES.map((valid) => [
+        PICKABLE_INVESTMENT_STATUSES.map((valid) => [
           valid,
           valid === status ? !current.has(valid) : current.has(valid),
         ]),

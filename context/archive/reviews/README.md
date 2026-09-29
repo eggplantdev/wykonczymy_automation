@@ -19,3 +19,8 @@ git cannot hold: `dismissed` / `dropped` / `skipped` findings, i.e. what a revie
 chose _not_ to act on, and why. A `filed` finding survives in condensed form too, since a filing
 leaves no commit either. Each file records its pre-trim tally so the trim is visible rather than
 silent.
+
+**Keep only what nothing else holds.** A dismissal usually ends up as a code comment and an owner
+ruling in the domain notes; once it has, the ledger line is a duplicate. The 2026-09-29 archive audit
+deleted all 16 ledgers on that test (git keeps them). A ledger belongs here only while it carries a reason
+absent from code, commits and living docs.

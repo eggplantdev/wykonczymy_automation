@@ -36,7 +36,8 @@ import type {
   KosztorysClientTotalsMapT,
   KosztorysSubcontractorDueMapT,
 } from '@/lib/queries/balances'
-import type { InvestmentRefT, InvestmentStatusT } from '@/types/reference-data'
+import type { InvestmentStatusT } from '@/lib/constants/investment-status'
+import type { InvestmentRefT } from '@/types/reference-data'
 
 // REAL-PATH parity: assemble each figure the way each PAGE assembles it, over the real DB, for every
 // investment — the listing through `shapeInvestments` itself, the detail through

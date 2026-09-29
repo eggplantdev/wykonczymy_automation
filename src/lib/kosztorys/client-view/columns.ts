@@ -1,4 +1,4 @@
-import type { ColumnGroupT } from '@/lib/kosztorys/column-config'
+import type { ColumnGroupT } from '@/lib/kosztorys/columns/column-config'
 import { STAGES_COLUMN_GROUP, STAGE_VALUE_NET_COLUMN_GROUP } from '@/lib/kosztorys/stage-keys'
 
 // Allowlist, not a denylist: a column added later is invisible to clients until someone puts it here,

@@ -1,6 +1,6 @@
 ---
 change_id: kategorie-assetow-i-kompresja
-title: Kategorie assetów inwestycji i luźniejsza kompresja dla plików roboczych
+title: Investment asset categories and gentler compression for working files
 status: archived
 created: 2026-09-22
 updated: 2026-09-23
@@ -11,118 +11,93 @@ worktree: null
 
 ## Notes
 
-Dwie sprawy, jedna zmiana, bo dotykają tej samej ścieżki wgrywania pliku.
+Two issues, one change, because both touch the same file-upload path.
 
-**1. Kategorie.** Do inwestycji można dziś dorzucić asety, ale wszystkie lądują w jednym worku.
-Docelowo do inwestycji ma zostać podpięte AI, które czyta rzut albo plan i na tej podstawie robi
-wstępną wycenę — wypełnia tabelki w kosztorysie. Żeby to było wykonalne, plan musi być przypisany
-do kategorii „plan", a nie leżeć wśród losowych zdjęć, których trzeba by przeszukiwać wszystkie.
+**1. Categories.** Assets added to an investment all land in one bag. The plan is to attach an AI
+that reads a floor plan and drafts a first quote — fills the kosztorys tables. For that, a plan must
+be findable as a plan, not buried among random photos that would all have to be searched.
 
-**2. Kompresja.** Kompresor jest teraz zbyt agresywny. Miał sens przy transferach (faktury),
-ale przy assetach inwestycji trzeba go poluzować — drogą landingu (`workspace/yolo/landing_26`),
-bo większość tych plików i tak przechodzi przez formularz z landingu. Dodając asety, czy to
-z pozycji arkusza, czy z pozycji inwestycji, musimy stosować kompresję, która pozwoli nam
-z tymi plikami pracować.
+**2. Compression.** The compressor was too aggressive. It made sense for transfers (invoices), but
+investment assets — most of which arrive through the landing form (`workspace/yolo/landing_26`) —
+need compression you can still work with.
 
-## Rozstrzygnięcia z rozmowy (2026-09-22)
+## First-round rulings (2026-09-22)
 
-- **Model kategorii: „czym plik jest", nie „kiedy powstał".** Kolumna `media.kind` z enumem
-  `faktura` / `projekt` / `zdjecie` / `inne` już istnieje (`src/collections/media.ts`, migracja
-  `20260921_0_media_kind.ts`, EX-802) — jest tylko nieużywana przez aplikację, ustawia się ją
-  wyłącznie ręcznie w panelu. Ta zmiana ma ją zacząć zapisywać ze ścieżki uploadu.
-- **`projekt` jako wartość jest OK** — nie koliduje z glosariuszem domeny; w `context/` występuje
-  tylko w `manual-checks.md:468`, czyli w sprawdzeniu tego samego pola w panelu.
-- **Użytkownik ustawia `kind` przy wgrywaniu, ale nie wszędzie.** Powierzchnia, która wie, co
-  wgrywa, nie pyta — faktura dorzucana do transferu jest fakturą, nie rzutem. Pytanie pojawia się
-  tam, gdzie plik może być czymkolwiek.
-- **Istniejące wiersze zostają `NULL`.** Bez backfillu i bez zgadywania z prowenancji.
-- **Profil kompresji jest per powierzchnia.** Faktury zostają przy dzisiejszym `1920×1080` / `q 0.6`;
-  asety idą w stronę landingowego `MAX_EDGE 2560` / `q 0.8`. Dziś `compressImage` nie ma parametru
-  rozmiaru — profil trzeba przepchnąć przez `useMediaUpload` → `ingestPickedFiles` →
+- **Category model: "what the file is", not "when it was made".** `media.kind`
+  (`faktura` / `projekt` / `zdjecie` / `inne`, EX-802, migration `20260921_0_media_kind.ts`) already
+  existed but only the admin panel wrote it; this change starts writing it from the upload path.
+- **Existing rows stay `NULL`.** No backfill, no guessing from provenance.
+- **Compression profile is per surface.** Invoices keep `1920×1080` / `q 0.6`; assets move toward
+  the landing's `MAX_EDGE 2560` / `q 0.8`, threaded through `useMediaUpload` → `ingestPickedFiles` →
   `processUploadFile`.
-- **Do zmierzenia, nie do założenia:** luźniejsza kompresja pcha pliki w stronę bramki
-  `MAX_UPLOAD_BYTES = 4 MB` (limit ciała żądania Vercela), którą historycznie przekraczały tylko PDF-y.
 
-## Odwrócenie modelu: znacznik, nie klasyfikacja (2026-09-22)
+> **Superseded (same day, owner):** the per-surface classification below replaced "the user picks a
+> `kind`, invoice surfaces write `faktura`" — the app now writes only the `projekt` marker, and the
+> compression profile follows the marker, not the surface.
 
-Właściciel odwrócił kategoryzację i to unieważnia część punktów powyżej:
+## Model reversal: a marker, not a classification (2026-09-22)
 
-> „Jedyna istotna informacja to, które zdjęcia mają być odsiewane w momencie, kiedy będziemy
-> chcieli je wrzucić AI do analizy. Będzie analizować tylko zdjęcia konkretnego typu, czyli cała
-> reszta może być `NULL` i to też jest informacja."
+> "The only thing that matters is which photos get filtered out when we hand them to the AI for
+> analysis. It will analyse only one specific type, so everything else can be `NULL` — and that is
+> information too."
 
-- **`kind` to znacznik, nie klasyfikacja.** Aplikacja zapisuje jedną wartość — `projekt` — i nic
-  więcej. `NULL` przestaje znaczyć „nie wiemy" i zaczyna znaczyć „nie do analizy". Enum z EX-802
-  zostaje w schemacie nietknięty; pozostałe wartości ustawia się dalej wyłącznie ręcznie w panelu.
-- **Powierzchnie fakturowe nie ustawiają niczego** — anuluje to wcześniejsze „faktura dorzucana do
-  transferu jest fakturą" oraz decyzję „załączniki floty → `faktura`". To, czym plik jest, mówi
-  relacja (`transactions.invoice`), a znacznik by ją tylko powtórzył. Nic nigdy nie filtruje po
-  `faktura`.
-- **UI: jedno pole wyboru na partię** — „to jest rzut/projekt" w dialogu dodawania plików.
-  Zaznaczone → `projekt`, niezaznaczone → `NULL`. Bez selecta z czterema wartościami.
-- **Profil kompresji idzie za znacznikiem.** Luźniejsze `MAX_EDGE 2560` / `q 0.8` dostają wyłącznie
-  pliki oznaczone jako rzut; reszta asetów zostaje przy dzisiejszym `1920×1080` / `q 0.6`. Znacznik
-  pada przed wysłaniem, więc obie decyzje zapadają w tym samym miejscu i w tym samym momencie.
-  Skutek uboczny: presja na bramkę `MAX_UPLOAD_BYTES = 4 MB` dotyczy garstki plików, a nie serii
-  dwudziestu zdjęć z budowy.
-- **Oznaczyć da się też po fakcie, w galerii asetów.** Domyka to jedyną ścieżkę bez dialogu
-  wgrywania — promocję leada, która przynosi nieskompresowane oryginały z landingu, czyli najlepszy
-  materiał dla AI. Wymaga akcji zapisu i poluzowania `media.access.update` (dziś `isAdminOrOwner`,
-  więc MANAGER by nie oznaczył). **To nie jest backfill** — dotyczy plików, które ktoś świadomie
-  wskazuje, nie masowego uzupełniania historii.
+- **`kind` is a marker.** The app writes one value — `projekt` — and nothing else. `NULL` stops
+  meaning "unknown" and starts meaning "not for analysis". The EX-802 enum stays untouched; the other
+  values are still set only by hand in the panel.
+- **Invoice surfaces set nothing.** What the file is, the relation says (`transactions.invoice`); a
+  marker would only repeat it. Nothing ever filters on `faktura`.
+- **UI: one checkbox per batch** — "this is a plan/drawing" in the add-files dialog. Checked →
+  `projekt`, unchecked → `NULL`. No four-value select.
+- **The compression profile follows the marker.** Only files marked as a plan get `2560` / `q 0.8`;
+  other assets stay at `1920×1080` / `q 0.6`. Both decisions happen at the same place and moment.
+- **Marking after the fact, in the asset gallery („Oznacz jako rzut").** Closes the one path with no
+  upload dialog — lead promotion, which brings the landing's uncompressed originals, the best AI
+  material. **Not a backfill** — it is someone pointing at a specific file, not bulk-filling history.
 
-## Rozstrzygnięcie stałe: stare assety zostają jak są (2026-09-22)
+## Standing ruling: old assets stay as they are (2026-09-22)
 
-**Nie naprawiamy żadnych istniejących plików.** Ani backfillu `kind`, ani ponownego przetwarzania
-plików zduszonych starą kompresją, ani odzyskiwania oryginałów. To nowy, dopiero testowany ficzer —
-stare skompresowane assety nie są problemem, który ta zmiana ma rozwiązywać.
+**No existing file is repaired.** No `kind` backfill, no reprocessing of files crushed by the old
+compression, no recovery of originals. This was a new, still-tested feature — old compressed assets
+are not a problem this change set out to solve.
 
-Zapisane tutaj, bo **temat będzie wracał**: research pokazuje, że pliki wgrane przez aplikację są
-nieodwracalnie zduszone do 763×1080 w portrecie, a najcenniejsze rzuty z landingu mają dziś
-`kind = NULL` — i jedno, i drugie wygląda jak „luka do domknięcia". Nie jest. Nie otwierać tego
-ponownie jako findingu, migracji ani zadania w backlogu; nowe pliki wchodzą nowym profilem
-i z kategorią, reszta zostaje.
+Recorded because **it will come back**: app-uploaded files are irreversibly crushed to 763×1080 in
+portrait, and the most valuable landing plans have `kind = NULL` — both look like "a gap to close".
+They are not. Don't reopen this as a finding, a migration or a backlog task; new files come in with
+the new profile and the marker, the rest stays.
 
-## Które powierzchnie pytają o znacznik (2026-09-22)
+## Which surfaces offer the marker (2026-09-22)
 
-Właściciel: znacznik musi być dostępny **przy dodawaniu załączników do inwestycji — tak samo
-z poziomu edycji inwestycji, jak i z galerii asetów przy inwestycji**.
+Owner: the marker must be available **when adding attachments to an investment — from the
+investment edit form and from the investment's asset gallery alike**.
 
-Obie te ścieżki montują ten sam komponent — `InvoiceUploadDialog`
-(`src/components/investments/investment-assets.tsx:91`,
-`src/components/forms/investment-form/investment-assets-field.tsx:30`). Pole wyboru dokłada się
-więc raz, w tym dialogu, i włącza propem. Powierzchnie fakturowe (transfer, wydatek, flota) tego
-propu nie podają i zachowują się dokładnie jak dziś. Galeria w edytorze kosztorysu (zmiana
-`kosztorys-editor-assets`) dostaje pole bez dodatkowej pracy, bo reużywa komponent z karty.
+Both mount one component, `MediaUploadDialog` (`src/components/dialogs/media-upload-dialog.tsx`),
+switched on with `allowPlanMarker` in `src/components/investments/investment-assets-control.tsx` and
+`src/components/forms/investment-form/investment-assets-field.tsx`. Invoice surfaces (transfer,
+expense, fleet) don't pass the prop and behave as before.
 
-## Transport uploadu: klient → Blob (2026-09-22)
+## Upload transport: client → Blob (2026-09-22)
 
-Właściciel: „musimy móc tutaj dodać większe pliki" — i pytanie, czy nie przejść całkowicie na
-system landingu, z rozróżnieniem kompresji fakturowej i rzutowej.
+Owner: "we need to be able to add bigger files here", and should we move entirely to the landing's
+system, with separate invoice and plan compression.
 
-**Limit 4,5 MB potwierdzony ponownie** (`vercel.com/docs/functions/limitations`, sekcja „Request
-body size", `last_updated: 2026-08-24`): to maksymalny rozmiar ciała żądania **i** odpowiedzi
-funkcji, przekroczenie daje 413 `FUNCTION_PAYLOAD_TOO_LARGE`. Ta sama strona linkuje poradnik
-„how to bypass the 4.5MB body size limit". Twierdzenie wtyczki Vercela o 100 MB jest nieprawdziwe —
-nie planować na nim niczego.
+The Vercel 4.5 MB request-body cap stands (detail: `context/foundation/lessons.md`), so **bigger files
+get in only by the landing's route** — retrying at lower quality just crushes the plan.
 
-Czyli: **większych plików nie da się wpuścić inaczej niż drogą landingu.** Retry na niższej jakości
-tylko dusi rzut, a bramka `MAX_UPLOAD_BYTES` nie jest naszą decyzją.
-
-- **Nie budujemy równoległego pipeline'u.** `@payloadcms/storage-vercel-blob` (mamy 3.73.0) ma
-  opcję `clientUploads` dokładnie do tego: _„When deploying to Vercel, server uploads are limited
-  to 4.5MB. Set `clientUploads` to `true` to use upload instructions and send files directly to
-  Vercel Blob."_ Wiersz `media` powstaje normalnie, przez Payloada.
-- **Przechodzą wszystkie powierzchnie**, nie tylko asety. `/api/upload-file` jest jedną bramą dla
-  faktur transferów, wydatków i floty; zostawienie połowy z nich na starym transporcie to rozjazd,
-  którego potem nikt nie scala. Jedyne miejsce wołające tę bramę to
-  `src/lib/invoices/invoice-page-uploads.ts:28`, więc podmiana transportu to jedna funkcja.
-- **Kompresja zostaje i przestaje być obejściem limitu.** Po zniesieniu ściany jest tym, czym
-  powinna być — decyzją o jakości: faktura duszona ostro, rzut łagodnie.
-- **Ryzyko do domknięcia: miniatura.** `media.upload.imageSizes` generuje `thumbnail` serwerowo,
-  a przy wysyłce klient→Blob plik nie przechodzi przez serwer. Zasięg sprawdzony: **żaden kod
-  aplikacji nie czyta `sizes.thumbnail`** — używa jej wyłącznie panel admina jako `adminThumbnail`.
-  W najgorszym razie regresja kosmetyczna w `/admin`.
-- **Autoryzacja przenosi się z `requireAuth(MANAGEMENT_ROLES)` na `media.access.create`**
-  (`isAdminOrOwnerOrManager`) — te same role, inny egzekutor. Do zweryfikowania w fazie 1, nie do
-  założenia.
+- **No parallel pipeline.** `@payloadcms/storage-vercel-blob` has `clientUploads` for exactly this;
+  the `media` row is still created by Payload.
+- **Every surface moves**, not just assets — the old `/api/upload-file` was one gate for transfer,
+  expense and fleet invoices, and leaving half of them on the old transport is drift nobody merges
+  later.
+- **Compression stays and stops being a limit workaround.** It becomes a quality decision: invoices
+  crushed hard, plans gently.
+- **Thumbnail risk accepted.** `media.upload.imageSizes` builds `thumbnail` server-side, which a
+  client → Blob upload skips. No app code reads `sizes.thumbnail`; only the admin panel does
+  (`adminThumbnail`), so the worst case is cosmetic.
+- **Deliberately not done (review gate):**
+  - **No file-size ceiling** replacing the deleted `MAX_UPLOAD_BYTES`. The MIME guard closes the
+    real leak (a banked blob with no row); a size ceiling would bring back the number the plan
+    deliberately dropped — a product decision, not a review cleanup. The remaining risk is function
+    memory/time when re-downloading the blob, not an orphan.
+  - **No browser `del()` of the blob after a failed `POST /api/media`.** The `clientUploads` token
+    is write-scoped to one key and does not authorise a delete; orphan sweeping belongs to
+    `kosz-plikow`.

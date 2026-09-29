@@ -6,6 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  keepMenuOpen,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils/cn'
 
@@ -45,7 +46,7 @@ export function DropdownCheckGroups({ items, onSelect }: PropsT) {
             <DropdownMenuLabel>{item.groupLabel}</DropdownMenuLabel>
           </>
         )}
-        <DropdownMenuItem onSelect={() => onSelect(item.id)}>
+        <DropdownMenuItem onSelect={keepMenuOpen(() => onSelect(item.id))}>
           <CheckIcon className={cn('shrink-0', !item.active && 'opacity-0')} />
           <span className="whitespace-normal">{item.label}</span>
         </DropdownMenuItem>

@@ -306,7 +306,7 @@ export function getInvestmentColumns({ userRole }: InvestmentColumnOptionsT) {
       cell: (info) => (
         <div className="flex items-center justify-end gap-1">
           <EditInvestmentDialog investment={info.row.original} />
-          {isAdminOrOwner && <TrashInvestmentButton investment={info.row.original} />}
+          <TrashInvestmentButton investment={info.row.original} />
         </div>
       ),
     }),

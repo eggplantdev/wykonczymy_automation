@@ -49,8 +49,8 @@ import {
   isRemainingOverrun,
   measureDiscrepancy,
 } from '@/lib/kosztorys/settlement-rows'
-import { computedColumnValues } from '@/lib/kosztorys/column-values'
-import { memoisedByRow } from '@/lib/kosztorys/memoised-by-row'
+import { computedColumnValues } from '@/lib/kosztorys/columns/column-values'
+import { memoisedByRow } from '@/lib/kosztorys/columns/memoised-by-row'
 import { activeSortPick } from '@/lib/kosztorys/row-view'
 import { stagesForView } from '@/lib/kosztorys/settlement-view'
 import { stagesMatchingEngaged } from '@/lib/kosztorys/stage-conditions'

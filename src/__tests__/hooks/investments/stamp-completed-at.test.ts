@@ -49,10 +49,13 @@ describe('stampCompletedAt', () => {
     expect(result.completedAt).toBe(NOW.toISOString())
   })
 
-  it.each(['active', 'planowana'])('clears the date when reopened to %s', async (status) => {
-    const result = await save({ status }, { status: 'completed', completedAt: EARLIER })
-    expect(result.completedAt).toBeNull()
-  })
+  it.each(['active', 'planowana', 'quote'])(
+    'clears the date when reopened to %s',
+    async (status) => {
+      const result = await save({ status }, { status: 'completed', completedAt: EARLIER })
+      expect(result.completedAt).toBeNull()
+    },
+  )
 
   // Otherwise every address fix on a closed job would push its history's deletion a year out.
   it('leaves the date alone when a completed investment is re-saved as completed', async () => {

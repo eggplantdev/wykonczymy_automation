@@ -3,22 +3,21 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { entityTag } from '@/lib/cache/tags'
+import { getPresetName } from '@/lib/db/presets'
 import { createTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { createTestTemplate } from '@/__tests__/helpers/template'
-import { revalidateEntities } from '@/__tests__/stubs/cache-revalidate'
+import { revalidateCollections, revalidateEntities } from '@/__tests__/stubs/cache-revalidate'
 
 // Asserted on persisted rows: a trash that reports success but never stamps `trashed_at`, or a
-// delete that leaves kosztorys rows behind, reads identically at the action's return value.
+// delete that leaves kosztorys rows behind, reads identically at the action's return value. The
+// session is mocked rather than `requireAuth`, so the role gate under test is the real one.
 
 vi.mock('server-only', () => ({}))
 
 const { session } = vi.hoisted(() => ({ session: { role: 'OWNER' } }))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn().mockImplementation(async () => ({
-    success: true,
-    user: { id: 1, role: session.role, name: 'T', email: 't@t.pl' },
-  })),
+vi.mock('@/lib/auth/get-current-user-jwt', () => ({
+  getCurrentUserJwt: vi.fn(async () => ({ id: 1, role: session.role, name: 'T', email: 't@t.pl' })),
 }))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
@@ -76,30 +75,69 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
   beforeEach(() => {
     session.role = 'OWNER'
     revalidateEntities.mockClear()
+    revalidateCollections.mockClear()
   })
 
   afterAll(purge)
 
-  it('refuses a MANAGER', async () => {
+  it('lets a MANAGER trash, restore and delete forever', async () => {
     const id = await createTestInvestment(payload, `${PREFIX} manager`)
     session.role = 'MANAGER'
 
-    const result = await actions.trashInvestmentAction(id)
+    expect((await actions.trashInvestmentAction(id)).success).toBe(true)
+    expect(await trashedAt(id)).not.toBeNull()
 
-    expect(result.success).toBe(false)
+    expect((await actions.restoreInvestmentAction(id)).success).toBe(true)
     expect(await trashedAt(id)).toBeNull()
+
+    expect((await actions.trashInvestmentAction(id)).success).toBe(true)
+    expect((await actions.deleteInvestmentForeverAction(id)).success).toBe(true)
+    const { rows } = await db.execute(sql`SELECT 1 FROM investments WHERE id = ${id}`)
+    expect(rows).toHaveLength(0)
   })
 
-  it('refuses a szablon', async () => {
+  it('refuses an EMPLOYEE every trash action', async () => {
+    const live = await createTestInvestment(payload, `${PREFIX} employee-live`)
+    const trashed = await createTestInvestment(payload, `${PREFIX} employee-trashed`)
+    await actions.trashInvestmentAction(trashed)
+    session.role = 'EMPLOYEE'
+
+    expect((await actions.trashInvestmentAction(live)).success).toBe(false)
+    expect((await actions.restoreInvestmentAction(trashed)).success).toBe(false)
+    expect((await actions.deleteInvestmentForeverAction(trashed)).success).toBe(false)
+
+    expect(await trashedAt(live)).toBeNull()
+    expect(await trashedAt(trashed)).not.toBeNull()
+  })
+
+  it('lets a MANAGER trash and restore a szablon, expiring the szablon library', async () => {
     const template = await createTestTemplate(payload, `${PREFIX} szablon`)
+    session.role = 'MANAGER'
 
-    const result = await actions.trashInvestmentAction(template)
+    expect((await actions.trashInvestmentAction(template)).success).toBe(true)
+    expect(await trashedAt(template)).not.toBeNull()
+    expect(revalidateCollections.mock.calls.flatMap(([tags]) => tags)).toContain('presets')
 
-    expect(result).toEqual({
-      success: false,
-      error: 'Szablonu nie przenosi się do kosza — usuń go z listy szablonów.',
-    })
+    expect((await actions.restoreInvestmentAction(template)).success).toBe(true)
     expect(await trashedAt(template)).toBeNull()
+  })
+
+  it('demands the name before deleting a szablon forever, even an empty one', async () => {
+    const template = await createTestTemplate(payload, `${PREFIX} szablon-forever`)
+    const name = (await getPresetName(db, template))!
+    await actions.trashInvestmentAction(template)
+
+    for (const typed of [undefined, 'zła nazwa']) {
+      expect(await actions.deleteInvestmentForeverAction(template, typed)).toEqual({
+        success: false,
+        error: 'Wpisana nazwa się nie zgadza.',
+      })
+    }
+    expect(await trashedAt(template)).not.toBeNull()
+
+    expect((await actions.deleteInvestmentForeverAction(template, name)).success).toBe(true)
+    const left = await db.execute(sql`SELECT 1 FROM investments WHERE id = ${template}`)
+    expect(left.rows).toHaveLength(0)
   })
 
   it('refuses while a live transaction points at the investment, not a cancelled one', async () => {

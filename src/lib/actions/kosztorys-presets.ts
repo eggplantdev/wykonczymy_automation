@@ -12,6 +12,8 @@ import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import {
   isTemplateInvestment,
   markPresetEdited,
+  presetNameHolder,
+  type PresetNameHolderT,
   renamePreset,
   templateOwnersOfSections,
 } from '@/lib/db/presets'
@@ -34,7 +36,14 @@ const nameSchema = z.string().trim().min(1, 'Podaj nazwę szablonu')
 const idSchema = z.number().int().positive()
 
 const NAME_TAKEN_MESSAGE = 'Szablon o tej nazwie już istnieje'
+const NAME_IN_TRASH_MESSAGE = 'Szablon o tej nazwie jest w koszu — przywróć go albo usuń na zawsze.'
 const TEMPLATE_NOT_FOUND = 'Nie znaleziono szablonu'
+
+const nameHeldError = (holder: PresetNameHolderT) =>
+  ({
+    success: false,
+    error: holder === 'trashed' ? NAME_IN_TRASH_MESSAGE : NAME_TAKEN_MESSAGE,
+  }) as const
 
 // The hooks' own revalidation would fire per write and inside the transaction; each action expires
 // what it changed itself.
@@ -78,7 +87,7 @@ export async function savePresetAction(
             }),
           SKIP_HOOK_REVALIDATION,
         )
-        if (created === 'name-taken') return { success: false, error: NAME_TAKEN_MESSAGE }
+        if (typeof created === 'string') return nameHeldError(created)
         return { success: true }
       }
 
@@ -120,7 +129,7 @@ export async function createEmptyPresetAction(
       (req) => createTemplate(payload, req, { name: parsed.data.name }),
       SKIP_HOOK_REVALIDATION,
     )
-    if (created === 'name-taken') return { success: false, error: NAME_TAKEN_MESSAGE }
+    if (typeof created === 'string') return nameHeldError(created)
     // After the response: the dialog navigates away at once, and an inline expiry would first
     // re-render /szablony inside this POST for a list nobody is looking at (lessons.md, EX-597).
     expireCollectionsAfterResponse(['presets'])
@@ -128,37 +137,10 @@ export async function createEmptyPresetAction(
   })
 }
 
-// Destroying a szablon is a different power from writing into one: savePresetAction stays open to
-// MANAGEMENT_ROLES, these two do not.
+// Removing a szablon is not owner-only: it goes through the trash (investment-trash.ts), open to
+// MANAGEMENT_ROLES because it is reversible.
 const OWNER_ONLY_PRESET_MESSAGE =
-  'Tylko właściciel lub administrator może usuwać i przemianowywać szablony.'
-
-const presetIdSchema = z.object({ id: idSchema })
-
-// Irreversible: the DB cascade takes the szablon's tree and its restore points with it. Through
-// `payload.delete` rather than raw SQL, like every other investment delete.
-export async function deletePresetAction(id: number): Promise<ActionResultT> {
-  return ownerOnlyAction(
-    'deletePresetAction',
-    OWNER_ONLY_PRESET_MESSAGE,
-    async ({ payload }) => {
-      const parsed = validateAction(presetIdSchema, { id })
-      if (!parsed.success) return parsed
-
-      if (!(await isTemplateInvestment(await getDb(payload), parsed.data.id))) {
-        return { success: false, error: TEMPLATE_NOT_FOUND }
-      }
-      await payload.delete({
-        collection: 'investments',
-        id: parsed.data.id,
-        overrideAccess: true,
-        context: SKIP_HOOK_REVALIDATION,
-      })
-      return { success: true }
-    },
-    ['presets'],
-  )
-}
+  'Tylko właściciel lub administrator może zmieniać nazwy szablonów.'
 
 // The name IS the szablon's identity (unique, and the only thing the pickers show), so this is an
 // identity change, not cosmetics.
@@ -167,12 +149,18 @@ export async function renamePresetAction(id: number, name: string): Promise<Acti
     'renamePresetAction',
     OWNER_ONLY_PRESET_MESSAGE,
     async ({ payload }) => {
-      const parsed = validateAction(presetIdSchema.extend({ name: nameSchema }), { id, name })
+      const parsed = validateAction(z.object({ id: idSchema, name: nameSchema }), { id, name })
       if (!parsed.success) return parsed
 
-      const renamed = await renamePreset(await getDb(payload), parsed.data.id, parsed.data.name)
-      if (!renamed) return { success: false, error: NAME_TAKEN_MESSAGE }
-      return { success: true }
+      const db = await getDb(payload)
+      // Before the name lookup: a target that is gone would otherwise report whoever holds the name.
+      if (!(await isTemplateInvestment(db, parsed.data.id))) {
+        return { success: false, error: TEMPLATE_NOT_FOUND }
+      }
+      if (await renamePreset(db, parsed.data.id, parsed.data.name)) return { success: true }
+      const holder = await presetNameHolder(db, parsed.data.name, parsed.data.id)
+      if (holder) return nameHeldError(holder)
+      return { success: false, error: TEMPLATE_NOT_FOUND }
     },
     ['presets'],
   )

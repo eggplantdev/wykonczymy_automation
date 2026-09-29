@@ -93,8 +93,8 @@ export const Transfers: CollectionConfig = {
       access: { update: () => false },
       admin: {
         description: {
-          en: 'Positive for most types — CORRECTION allows negative (invoice corrections)',
-          pl: 'Dodatnia dla większości typów — KOREKTA pozwala na ujemne (korekty faktur)',
+          en: 'Positive for most types — CORRECTION must be negative (invoice corrections)',
+          pl: 'Dodatnia dla większości typów — KOREKTA musi być ujemna (korekty faktur)',
         },
       },
     },

@@ -2,9 +2,14 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
+import { getPresetName, listPresets } from '@/lib/db/presets'
 import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import { SNAPSHOT_SCHEMA_VERSION, type SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
-import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
+import {
+  createTestInvestment,
+  deleteTestInvestment,
+  trashDaysAgo,
+} from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { createTestTemplate } from '@/__tests__/helpers/template'
 
@@ -40,17 +45,15 @@ vi.mock('@/lib/kosztorys/serialize-preset', async (importOriginal) => {
   }
 })
 
-const {
-  createEmptyPresetAction,
-  deletePresetAction,
-  reloadFromPresetAction,
-  renamePresetAction,
-  savePresetAction,
-} = await import('@/lib/actions/kosztorys-presets')
+const { createEmptyPresetAction, reloadFromPresetAction, renamePresetAction, savePresetAction } =
+  await import('@/lib/actions/kosztorys-presets')
+const { deleteInvestmentForeverAction, restoreInvestmentAction, trashInvestmentAction } =
+  await import('@/lib/actions/investment-trash')
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 const NAME_TAKEN_MESSAGE = 'Szablon o tej nazwie już istnieje'
+const NAME_IN_TRASH_MESSAGE = 'Szablon o tej nazwie jest w koszu — przywróć go albo usuń na zawsze.'
 
 // Szablon names are unique across the whole shared DB, so every run takes its own.
 const uniqueName = (name: string) => `${name} ${crypto.randomUUID().slice(0, 8)}`
@@ -362,6 +365,26 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
     expect(await allSnapshotIds()).toEqual(before)
   })
 
+  // Thrown away means gone from „Wczytaj szablon" — an open picker must not still load it.
+  it('writes nothing when the source szablon is in the trash', async () => {
+    const trashed = await createTestTemplate(payload, 'ex560-reload-fixture-trashed')
+    try {
+      await createKosztorysTree(payload, trashed, { sections: [{ name: 'Z kosza' }] })
+      await trashDaysAgo(db, trashed, 0)
+      await seedLiveTree()
+      const before = await allSnapshotIds()
+
+      expect(await reloadFromPresetAction(investmentId, trashed)).toMatchObject({
+        success: false,
+        error: 'Nie znaleziono szablonu',
+      })
+      expect(await sectionNames()).toEqual(['Stan sprzed wczytania'])
+      expect(await allSnapshotIds()).toEqual(before)
+    } finally {
+      await deleteTestInvestment(payload, trashed)
+    }
+  })
+
   // The case above never enters the transaction. The snapshot is written on the transaction handle
   // BEFORE the wipe, so a throw during the insert must take it down rather than strand a restore
   // point for a state that was never replaced.
@@ -509,6 +532,57 @@ describe.skipIf(!ENV_READY)('szablon lifecycle — persisted state (DB)', () => 
     expect(sameName.rows.map((row) => Number(row.id))).toEqual([taken])
   })
 
+  it('refuses a trashed szablon’s name, pointing at the trash, on every path that names a szablon', async () => {
+    const trashedName = uniqueName('lifecycle-trashed')
+    const trashed = await createTestInvestment(payload, trashedName, {
+      status: TEMPLATE_INVESTMENT_STATUS,
+    })
+    const other = await createTestTemplate(payload, 'lifecycle-rename-into-trash')
+    created.push(trashed, other)
+    await trashDaysAgo(db, trashed, 0)
+
+    const refused = { success: false, error: NAME_IN_TRASH_MESSAGE }
+    expect(await createEmptyPresetAction(trashedName)).toEqual(refused)
+    expect(await savePresetAction(sourceId, { mode: 'new', name: trashedName })).toEqual(refused)
+    expect(await renamePresetAction(other, trashedName)).toEqual(refused)
+
+    const sameName = await db.execute(sql`
+      SELECT id FROM investments
+      WHERE status = ${TEMPLATE_INVESTMENT_STATUS} AND lower(trim(name)) = lower(${trashedName})
+    `)
+    expect(sameName.rows.map((row) => Number(row.id))).toEqual([trashed])
+  })
+
+  // A stale /szablony tab renames a szablon another tab already trashed, into a name someone holds:
+  // the name clash is not why the rename failed, and saying so sends the owner to pick another name.
+  it('renaming a szablon that is not live says it is gone, even into a held name', async () => {
+    const heldName = uniqueName('lifecycle-held')
+    const holder = await createTestInvestment(payload, heldName, {
+      status: TEMPLATE_INVESTMENT_STATUS,
+    })
+    const trashed = await createTestTemplate(payload, 'lifecycle-rename-trashed')
+    const ordinary = await createTestInvestment(payload, 'lifecycle-rename-ordinary')
+    created.push(holder, trashed, ordinary)
+    await trashDaysAgo(db, trashed, 0)
+
+    const gone = { success: false, error: 'Nie znaleziono szablonu' }
+    expect(await renamePresetAction(trashed, heldName)).toEqual(gone)
+    expect(await renamePresetAction(ordinary, heldName)).toEqual(gone)
+  })
+
+  it('„Nadpisz” refuses a szablon in the trash and leaves its tree as it was', async () => {
+    const trashed = await createTestTemplate(payload, 'lifecycle-overwrite-trashed')
+    created.push(trashed)
+    await createKosztorysTree(payload, trashed, { sections: [{ name: 'W koszu' }] })
+    await trashDaysAgo(db, trashed, 0)
+
+    expect(await savePresetAction(sourceId, { mode: 'overwrite', targetId: trashed })).toEqual({
+      success: false,
+      error: 'Nie znaleziono szablonu',
+    })
+    expect((await treeOf(trashed)).sections).toEqual(['W koszu'])
+  })
+
   it('„Nadpisz” replaces the target’s tree, leaves it a restore point and spares the source', async () => {
     const targetId = await createTestTemplate(payload, 'lifecycle-overwrite')
     created.push(targetId)
@@ -551,36 +625,64 @@ describe.skipIf(!ENV_READY)('szablon lifecycle — persisted state (DB)', () => 
     expect((await treeOf(ordinary)).sections).toEqual(['Klienta'])
   })
 
+  async function rowCounts(id: number) {
+    const { rows } = await db.execute(sql`
+      SELECT
+        (SELECT COUNT(*) FROM investments WHERE id = ${id}) AS investments,
+        (SELECT COUNT(*) FROM kosztorys_sections WHERE investment_id = ${id}) AS sections,
+        (SELECT COUNT(*) FROM kosztorys_items WHERE investment_id = ${id}) AS items,
+        (SELECT COUNT(*) FROM kosztorys_snapshots WHERE investment_id = ${id}) AS snapshots
+    `)
+    return rows[0]
+  }
+
+  const isListed = async (id: number) => (await listPresets(db)).some((preset) => preset.id === id)
+
+  it('a szablon restored from the trash comes back whole — name, rozpiska and „Wersje”', async () => {
+    const templateId = await createTestTemplate(payload, 'lifecycle-restore')
+    created.push(templateId)
+    await createKosztorysTree(payload, templateId, {
+      sections: [{ name: 'Do kosza i z powrotem', items: [{ description: 'x', unit: 'm2' }] }],
+    })
+    await savePresetAction(sourceId, { mode: 'overwrite', targetId: templateId })
+    const identity = sql`SELECT name, status FROM investments WHERE id = ${templateId}`
+    const before = {
+      identity: (await db.execute(identity)).rows[0],
+      counts: await rowCounts(templateId),
+    }
+    expect(before.counts.snapshots).not.toBe('0')
+
+    expect((await trashInvestmentAction(templateId)).success).toBe(true)
+    expect(await isListed(templateId)).toBe(false)
+
+    expect((await restoreInvestmentAction(templateId)).success).toBe(true)
+    expect({
+      identity: (await db.execute(identity)).rows[0],
+      counts: await rowCounts(templateId),
+    }).toEqual(before)
+    expect(await isListed(templateId)).toBe(true)
+  })
+
   // The cascade is the delete: a szablon's tree and its restore points have no owner once it goes.
-  it('deleting a szablon takes its sections, items and restore points with it', async () => {
+  it('deleting a szablon forever takes its sections, items and restore points with it', async () => {
     const templateId = await createTestTemplate(payload, 'lifecycle-delete')
     created.push(templateId)
     await createKosztorysTree(payload, templateId, {
       sections: [{ name: 'Do usunięcia', items: [{ description: 'x', unit: 'm2' }] }],
     })
     await savePresetAction(sourceId, { mode: 'overwrite', targetId: templateId })
+    const name = (await getPresetName(db, templateId))!
 
-    expect(await deletePresetAction(templateId)).toEqual({ success: true })
-
-    const left = await db.execute(sql`
-      SELECT
-        (SELECT COUNT(*) FROM investments WHERE id = ${templateId}) AS investments,
-        (SELECT COUNT(*) FROM kosztorys_sections WHERE investment_id = ${templateId}) AS sections,
-        (SELECT COUNT(*) FROM kosztorys_items WHERE investment_id = ${templateId}) AS items,
-        (SELECT COUNT(*) FROM kosztorys_snapshots WHERE investment_id = ${templateId}) AS snapshots
-    `)
-    expect(left.rows[0]).toEqual({ investments: '0', sections: '0', items: '0', snapshots: '0' })
-  })
-
-  it('refuses to delete an ordinary investment through the szablon list', async () => {
-    const ordinary = await createTestInvestment(payload, 'lifecycle-ordinary-delete')
-    created.push(ordinary)
-
-    expect(await deletePresetAction(ordinary)).toEqual({
-      success: false,
-      error: 'Nie znaleziono szablonu',
+    expect((await trashInvestmentAction(templateId)).success).toBe(true)
+    expect(await deleteInvestmentForeverAction(templateId, name)).toEqual({
+      success: true,
     })
-    const res = await db.execute(sql`SELECT 1 FROM investments WHERE id = ${ordinary}`)
-    expect(res.rows).toHaveLength(1)
+
+    expect(await rowCounts(templateId)).toEqual({
+      investments: '0',
+      sections: '0',
+      items: '0',
+      snapshots: '0',
+    })
   })
 })

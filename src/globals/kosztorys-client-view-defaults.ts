@@ -1,5 +1,5 @@
 import type { GlobalConfig } from 'payload'
-import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
+import { isAdminOrOwnerOrManager } from '@/access'
 
 // The starting point every investment inherits until it stores its own settings. A global rather
 // than a seeded row per investment: the firm-wide default has to be one thing that can change after
@@ -10,7 +10,7 @@ export const KosztorysClientViewDefaults: GlobalConfig = {
   admin: { group: { en: 'Kosztorys', pl: 'Kosztorys' } },
   access: {
     read: isAdminOrOwnerOrManager,
-    update: isAdminOrOwner,
+    update: isAdminOrOwnerOrManager,
   },
   fields: [
     {

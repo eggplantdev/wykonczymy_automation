@@ -8,7 +8,7 @@ One living checklist for every slice — the project's QA registry. Each `##` se
 w 90% dowody weryfikacyjne zamkniętych slice'ów, nie instrukcje. Zostają **wyłącznie sekcje z
 nieodhaczonymi boksami** plus indeks zamkniętych przebiegów na końcu.
 
-- **Pełny zapis, verbatim:** `context/archive/manual-checks/2026-09-15-pelny-rejestr.md` — 94 sekcje,
+- **Pełny zapis, verbatim:** `git show d426e567^:context/foundation/manual-checks.md` — 94 sekcje,
   71 bloków `### Findings`, komplet dowodów. Agenci nie czytają `context/archive/`, więc sięga się
   tam świadomie, gdy trzeba odtworzyć, **jak** coś zweryfikowano.
 - **Trwała wiedza z tych przebiegów** została wydestylowana do żywych dokumentów: reguły inżynierskie
@@ -390,7 +390,7 @@ Jedna linia na slice, **wszystkie 94** — liczby są policzone z pełnego rejes
 w „Otwarte" (tam boksy bywają scalone, więc liczba nieodhaczonych może się różnić od reszty z tej
 kolumny — to ten sam fakt zapisany raz zamiast dwa). `0/0` to sekcja czysto prozatorska, bez boksów.
 `ostatnia weryfikacja` to najpóźniejsza data w sekcji; `—` znaczy, że sekcja żadnej nie nosiła.
-Pełne dowody, verbatim: `context/archive/manual-checks/2026-09-15-pelny-rejestr.md`.
+Pełne dowody, verbatim: `git show d426e567^:context/foundation/manual-checks.md`.
 
 | slice                                                                                                                    | boksy | ostatnia weryfikacja |
 | ------------------------------------------------------------------------------------------------------------------------ | ----- | -------------------- |
@@ -709,9 +709,9 @@ field.value)` na **zrenderowanym węźle**, nie na surowej wartości: `Telefon`/
   wejścia do marży), zero przycisków plików w toolbarze. Zgodne z checkiem.
 - Sprawdzenie #11: tekst checklisty mówił „pięć zakładek" — na żywo (`/k/<token>` z inw. 137 i
   `/podglad-inwestora/106`) są **trzy**: Podsumowanie/Materiały/Robocizna. Nie defekt —
-  `allowedSummaryViews` (`src/components/kosztorys/summary/allowed-summary-views.ts`) gubi
+  `allowedSummaryViews` (`src/components/kosztorys/summary/model/summary-views.ts`) gubi
   „Podwykonawcy" i „Marża" na `preview` **niezależnie** od tej zmiany (starsza bramka, potwierdzona
-  testem `allowedSummaryViews.test.ts`: „podgląd klienta gubi «Podwykonawcy» i «Marża», nawet gdy
+  testem `model/summary-views.test.ts`: „podgląd klienta gubi «Podwykonawcy» i «Marża», nawet gdy
   liczby przyszły"). Ta zmiana dokłada tylko trzecią bramkę („Inwestycja" na `!preview &&
 hasInvestmentInfo`), z tym samym efektem. Poprawiłem liczbę w treści checka (linia wyżej) — plan
   najwyraźniej się przeliczył.
@@ -897,7 +897,7 @@ inwestorem i przenoszenie między cennikiem a rozpiską działają w przeglądar
 - [x] Kolumna „Mnożnik" jest domyślnie ukryta i włącza się jednym tikiem w pickerze kolumn
       **Zweryfikowane na stagingu (inw. 137):** w pickerze „Kolumny" jeden klik w „Mnożnik — z narzędziami
       (podwykonawca)" zdejmuje nagłówek z siatki, drugi go przywraca. Domyślne ukrycie stoi w kodzie:
-      `DEFAULT_HIDDEN_COLUMNS` (`src/lib/kosztorys/column-config.ts`) bierze `ALL_PLANE_PRICE_KEYS`,
+      `DEFAULT_HIDDEN_COLUMNS` (`src/lib/kosztorys/columns/column-config.ts`) bierze `ALL_PLANE_PRICE_KEYS`,
       czyli wszystkie kolumny stawki wykonawcy na każdą płaszczyznę.
 - [x] Trzy odczyty komórki „Mnożnik" (odwrócenie kontraktu, właściciel 2026-09-23): własny mnożnik
       do wpisania, mnożnik inwestycji wyszarzony kursywą przy „auto", kreska „—" przy kwocie stałej
@@ -1404,7 +1404,8 @@ addytywna — na produkcję **przed** pushem; DROP starych kolumn to EX-886, po 
 - [x] „Wygeneruj ofertę w PDF" drukuje te same kolumny co Podgląd. Kod: `print/offer.ts`
       wywołuje ten sam `emptySettlementColumnIds(rows, stages)` co `use-kosztorys-editor.ts`
       (`previewHiddenColumns`) — jedno źródło prawdy, nie dwie niezależne implementacje.
-- [x] Podgląd wykonawcy dalej pokazuje puste etapy. Kod: `previewHiddenColumns` w
+- [x] _Nieaktualne od 2026-09-29 (worker-view-settlement-columns): widok pracownika też ukrywa puste
+      etapy._ Podgląd wykonawcy dalej pokazuje puste etapy. Kod: `previewHiddenColumns` w
       `use-kosztorys-editor.ts` liczy się tylko `preview && !worker` — bramka `!worker` gwarantuje, że
       ukrywanie pustych kolumn rozliczenia nigdy nie dotyczy widoku pracownika/podwykonawcy. Widok
       „Bez narzędzi (pracownik)" na inwestycji 137 (zweryfikowany wcześniej w tej sesji) pokazywał
@@ -1518,14 +1519,11 @@ addytywna — na produkcję **przed** pushem; DROP starych kolumn to EX-886, po 
 
 ### Ustawienia widoku pracowników
 
-- [x] Jako MANAGER okno ustawień jest tylko do odczytu. Jako OWNER odznaczenie kolumny chowa ją pod
-      każdym linkiem pracownika. Zweryfikowano żywo (staging, inw. 137, Pracownicy → Ustawienia
-      widoku…): jako MANAGER wszystkie 11 checkboxów mają `[disabled]`, „Zapisz" jest disabled, i widnieje
-      komunikat „Tylko właściciel może zmieniać ustawienia widoku pracownika". Jako OWNER odznaczono
-      „Jednostka miary" i zapisano — kolumna zniknęła z nagłówków pod linkiem pracownika Adama
-      Orłowskiego (nadal obecna w edytorze, bo ten czyta swój własny widok klienta, nie
-      `worker.settings`), a pozostała w edytorze. Ustawienie przywrócone (kolumna z powrotem
-      zaznaczona i zapisana) po weryfikacji.
+- [ ] Jako MANAGER okno „Ustawienia widoku pracownika" jest edytowalne: odznaczenie kolumny
+      i „Zapisz" chowa ją pod każdym linkiem pracownika. (Do 2026-09-29 było tylko do odczytu dla
+      MANAGERA — właściciel przekazał tę decyzję kierownikom.)
+- [ ] Jako MANAGER w „Ustawieniach podglądu inwestora" przycisk „Zapisz jako domyślne" jest aktywny
+      i zapis zmienia domyślne kolumny dla inwestycji bez własnych ustawień.
 
 ### PDF pracownika
 
@@ -1874,19 +1872,23 @@ widokach wykonawców. Rozpiska z seeda (`INV=6`) wystarczy do sortowania i liczb
 
 ### Sortowanie w widokach wykonawców
 
-- [ ] W „Z narzędziami" sortowanie po „Wartość przedmiaru netto", „% wykonania" i „Pozostało netto"
+- [x] W „Z narzędziami" sortowanie po „Wartość przedmiaru netto", „% wykonania" i „Pozostało netto"
       (rosnąco i malejąco) układa wiersze po liczbach widocznych w tej kolumnie — czytane z góry na dół
       rosną albo maleją bez przeskoków.
-- [ ] To samo w „Bez narzędzi".
-- [ ] W „Inwestor" sortowanie po każdej kolumnie liczonej (wartości, rabat, etapy, „% wykonania",
+      _Zweryfikowano 2026-09-29 (staging): inw. 14 (chwilowo status active, przywrócony): sortowanie po „Wartość przedmiaru netto”, „% wykonania”, „Pozostało netto” rosnąco i malejąco — kolejność monotoniczna w widocznym oknie (siatka wirtualizowana)._
+- [x] To samo w „Bez narzędzi".
+      _Zweryfikowano 2026-09-29 (staging): inw. 14, etapy 4–6 chwilowo own_tools (przywrócone): te same trzy kolumny, oba kierunki monotoniczne._
+- [x] W „Inwestor" sortowanie po każdej kolumnie liczonej (wartości, rabat, etapy, „% wykonania",
       „Pozostało") zachowuje się jak przed zmianą.
+      _Zweryfikowano 2026-09-29 (staging): wartości netto/brutto, Razem po rabacie, Rabat kwota netto/brutto, Etap N netto, „% wykonania”, „Pozostało” netto/brutto: oba kierunki monotoniczne. Uwaga: siatka w inwestycji zakończonej nie ma nagłówków sortowania (tylko odczyt)._
 
 ### Liczby bez zmian
 
 - [ ] W każdym z trzech widoków kolumny liczone (wartości przedmiaru, wartość netto/brutto, rabat,
       wartości etapów, „% wykonania", „Pozostało") pokazują te same liczby co przed zmianą.
-- [ ] „Pozostało netto" i „Pozostało brutto" są czerwone na wierszach wykonanych ponad Przedmiar i
+- [x] „Pozostało netto" i „Pozostało brutto" są czerwone na wierszach wykonanych ponad Przedmiar i
       tylko tam.
+      _Zweryfikowano 2026-09-29 (staging): „Z narzędziami”, inw. 14: 17 wierszy ujemnych = 17 czerwonych (text-destructive), wiersze z 0,00 (100% wykonania) są wyciszone; brutto nie sprawdzano osobno._
 - [ ] Stopki sekcji i „Razem" pokazują te same kwoty co przed zmianą, w każdym z trzech widoków.
 - [ ] Pod linkiem pracownika suma „Pozostało" = suma jego nieczerwonych wierszy.
 - [ ] Na kosztorysie ~1000 pozycji (`INV=7`) przewijanie i wpisywanie ilości w etapie działają tak
@@ -1899,21 +1901,49 @@ widokach wykonawców. Rozpiska z seeda (`INV=6`) wystarczy do sortowania i liczb
 - [ ] Wydruk pracownika dla każdej ekipy pokazuje te same liczby co przed zmianą, łącznie z
       „Pozostało".
 
+### Findings — 2026-09-29
+
+- [ ] **Pięć boksów „te same liczby co przed zmianą" nie do sprawdzenia na stagingu** — „Liczby bez
+      zmian" (kolumny liczone, stopki i „Razem", suma „Pozostało" pod linkiem pracownika) i oba
+      „Wydruki". Staging ma już tylko kod po zmianie, więc nie ma z czym porównać.
+      **Needs human:** porównać lokalnie dwa buildy na tej samej rozpisce (`INV=6`) — commit sprzed
+      `47b6a60a` i `staging` — czy uznać te boksy za pokryte spec'em parytetu z fazy 2 (`8b884c7e`) i
+      odhaczyć?
+      **Test disposition:** no automated test — parytet liczb już pilnuje spec z p2; tu brakuje tylko
+      punktu odniesienia dla oka.
+- [ ] **Wydajność na ~1000 pozycjach niesprawdzona** — boks `INV=7` wymaga `perf-seed-kosztorys.ts`,
+      którego przebieg nie uruchomił (to lokalny seed, nie preview DB).
+      **Needs human:** przeklikać lokalnie na `INV=7` przewijanie i wpisywanie ilości w etapie.
+      **Test disposition:** no automated test — odczucie płynności, nie asercja.
+- [ ] **Link pracownika na inw. 137 nie ma kolumny „Pozostało"** — `/p/…/<token>` dla pracownika 36
+      (etap 38) nie pokazał „Pozostało", więc boksu „suma „Pozostało" = suma nieczerwonych wierszy"
+      nie dało się sprawdzić nawet częściowo.
+      **Needs human:** czy widok pracownika ma tę kolumnę tylko w określonym rozliczeniu / ustawieniu
+      kolumn (wtedy wskazać inwestycję, gdzie ją widać), czy to regres?
+      **Test disposition:** test-driven-debugging · dom — jeśli regres: spec widoku pracownika, że
+      „Pozostało" się renderuje przy rozliczeniu, które ją przewiduje.
+
 ## worker-link-revoke — link pracownika do wyłączenia przy blokadzie (EX-888, 2026-09-29)
 
-- [ ] Pracownik z wydanym linkiem odpięty od wszystkich etapów zostaje w „Pracownicy" z „Brak
+- [x] Pracownik z wydanym linkiem odpięty od wszystkich etapów zostaje w „Pracownicy" z „Brak
       przypisanych etapów"; „Link" aktywny, „Drukuj PDF" wyłączony.
-- [ ] Zablokowany pracownik z linkiem: „Link" → okno pokazuje powód i tylko „Wyłącz link" →
+      _Zweryfikowano 2026-09-29 (staging): inw. 137, pracownik 36 odpięty od etapu 38 → w „Pracownicy” zostaje z „Brak przypisanych etapów”; „Link” aktywny, „Drukuj PDF” wyłączony._
+- [x] Zablokowany pracownik z linkiem: „Link" → okno pokazuje powód i tylko „Wyłącz link" →
       potwierdzenie → `/p/…/<token>` daje 404; po ponownym otwarciu „Pracownicy" „Link" jest wyłączony
       (albo pracownik bez etapów znika z menu).
-- [ ] Zablokowany pracownik **bez** wydanego linku: powód widać pod nazwiskiem, a „Link" i „Drukuj
+      _Zweryfikowano 2026-09-29 (staging): okno pokazuje powód i tylko „Wyłącz link” → potwierdzenie → wiersz w kosztorys_worker_shares usunięty; stary /p/…/token renderuje stronę 404 bez danych (HTTP status to 200, bo notFound() jest streamowane — sprawdzaj treść, nie status)._
+- [x] Zablokowany pracownik **bez** wydanego linku: powód widać pod nazwiskiem, a „Link" i „Drukuj
       PDF" są wyłączone. „Podgląd" działa i pokazuje ten sam komunikat, który dostałby pracownik.
-- [ ] Pracownik bez blokady: „Link" otwiera zwykłe okno z „Kopiuj" (albo z „Wygeneruj link", gdy
+      _Zweryfikowano 2026-09-29 (staging): inw. 137, etap 38 bez rozliczenia: pod nazwiskiem „Ustaw rozliczenie etapu”, „Link” i „Drukuj PDF” aria-disabled; „Podgląd” aktywny i otwiera stronę z tym samym komunikatem._
+- [x] Pracownik bez blokady: „Link" otwiera zwykłe okno z „Kopiuj" (albo z „Wygeneruj link", gdy
       linku jeszcze nie ma). Przy blokadzie nic poza tym się nie zmieniło.
-- [ ] Po „Wyłącz link" zdejmij blokadę (ustaw rozliczenie etapu albo przypnij pracownika z powrotem):
+      _Zweryfikowano 2026-09-29 (staging): etap 38 = w_tools: „Link” otwiera zwykłe okno z „Wygeneruj link”; po wygenerowaniu „Wygeneruj nowy” / „Wyłącz link” (przycisk „Kopiuj” jest ikoną, nie tekstem — nie sprawdzano osobno)._
+- [x] Po „Wyłącz link" zdejmij blokadę (ustaw rozliczenie etapu albo przypnij pracownika z powrotem):
       „Link" wydaje **nowy** token, a stary `/p/…/<token>` dalej zwraca 404.
-- [ ] DevTools → Network → Offline, potem „Link" przy zablokowanym pracowniku z linkiem: pojawia się
+      _Zweryfikowano 2026-09-29 (staging): po wyłączeniu przy zablokowanym etapie i zdjęciu blokady „Link” wydał nowy token (Faj0va… ≠ yhUSlZ…); stary /p/…/yhUSlZ… renderuje 404._
+- [x] DevTools → Network → Offline, potem „Link" przy zablokowanym pracowniku z linkiem: pojawia się
       toast z błędem, okno się zamyka i nigdzie nie ma „Link nie jest wydany." ani „Wygeneruj link".
+      _Zweryfikowano 2026-09-29 (staging): offline po załadowaniu menu: toast „Nie udało się sprawdzić linku”, okno się zamyka, brak „Link nie jest wydany.” i „Wygeneruj link”. Uwaga: offline przy otwieraniu samego menu „Link” jest po prostu wyłączony (holders nie wczytani)._
 
 ## warsztat-per-szablon — szablon jest inwestycją o statusie `szablon` (EX-893, 2026-09-29)
 
@@ -1923,53 +1953,215 @@ sprzed migracji, nie względem stałej liczby.
 
 ### Migracja
 
-- [ ] `/szablony` pokazuje po jednym wierszu na każdy szablon z dumpa, bez „Warsztat szablonów"; każdy
+- [x] `/szablony` pokazuje po jednym wierszu na każdy szablon z dumpa, bez „Warsztat szablonów"; każdy
       otwiera się od razu z pełną treścią.
-- [ ] „Wersje" każdego szablonu pokazują jego przepięte punkty przywracania, a nie cudze.
+      _Zweryfikowano 2026-09-29 (staging): 2 szablony na preview (159, 160) = 2 po południu na prodzie; brak „Warsztat szablonów"; oba otwierają się z pełną treścią (159: 11 sekcji/202 prace)._
+- [x] „Wersje" każdego szablonu pokazują jego przepięte punkty przywracania, a nie cudze.
+      _Zweryfikowano 2026-09-29 (staging): 159 ma 13 punktów przywracania własnych (Konrad/Verify Owner), zgodnie z kosztorys_snapshots; 160 ma zero, cudzych brak._
 
 ### Cykl życia
 
-- [ ] „Nowy szablon" → pusty szablon się otwiera. Zmiana nazwy na istniejącą w innej wielkości liter
+- [x] „Nowy szablon" → pusty szablon się otwiera. Zmiana nazwy na istniejącą w innej wielkości liter
       kończy się polskim komunikatem. Usunięcie znika z listy.
-- [ ] Z inwestycji „Zapisz jako nowy szablon…" i „Nadpisz istniejący" dają szablon z tą rozpiską, bez
+      _Zweryfikowano 2026-09-29 (staging): Nowy szablon → /szablony/161 pusty; kolizja nazwy (inna wielkość liter) przy tworzeniu i przy zmianie nazwy → toast „Szablon o tej nazwie już istnieje"; usunięcie znika z listy i z DB._
+- [x] Z inwestycji „Zapisz jako nowy szablon…" i „Nadpisz istniejący" dają szablon z tą rozpiską, bez
       przedmiaru i rabatu; w Wersjach nadpisanego jest punkt „Przed nadpisaniem".
-- [ ] W szablonie „Wczytaj szablon…" zastępuje treść, a „Przed wczytaniem" w Wersjach ją przywraca.
-- [ ] Nowa inwestycja „z szablonu" dostaje jego sekcje i pozycje, bez przedmiaru; „Dodaj sekcje
+      _Zweryfikowano 2026-09-29 (staging): 137 → nowy szablon 162: 14 sekcji/377 pozycji, przedmiar i rabat 0; „Nadpisz istniejący" → snapshot „Przed nadpisaniem: testowe inwestycje"._
+- [x] W szablonie „Wczytaj szablon…" zastępuje treść, a „Przed wczytaniem" w Wersjach ją przywraca.
+      _Zweryfikowano 2026-09-29 (staging): Wczytaj z 160 zastąpił 377→1 pozycję, powstał „Przed wczytaniem", jego „Przywróć" oddał 14 sekcji/377 pozycji._
+- [x] Nowa inwestycja „z szablonu" dostaje jego sekcje i pozycje, bez przedmiaru; „Dodaj sekcje
       z szablonu" pokazuje sekcje wszystkich szablonów z poprawnymi licznikami.
+      _Zweryfikowano 2026-09-29 (staging): nowa inwestycja 163 z szablonu 159: 11 sekcji/202 pozycje, przedmiar 0; „Sekcja z szablonu…" pokazuje 3 szablony z licznikami zgodnymi z DB (14/1/11 sekcji), dodanie „Prace dodatkowe" → 12 sekcji/208 pozycji, przedmiar 0._
 
 ### Edycja
 
-- [ ] Dwie karty, dwa różne szablony, naprzemienne edycje: każda trafia tylko do swojego szablonu
+- [x] Dwie karty, dwa różne szablony, naprzemienne edycje: każda trafia tylko do swojego szablonu
       (scenariusz EX-893 nie do odtworzenia).
-- [ ] Edycja szablonu przesuwa go na górę listy („Zmieniono") i nie resetuje sortowania ani filtrów
+      _Zweryfikowano 2026-09-29 (staging): dwie karty (162 i 160), 4 naprzemienne dodania: 162 377→379, 160 1→3, 159 bez zmian (202)._
+- [x] Edycja szablonu przesuwa go na górę listy („Zmieniono") i nie resetuje sortowania ani filtrów
       w otwartym edytorze.
+      _Zweryfikowano 2026-09-29 (staging): lista „Zmieniono" sortuje po ostatniej edycji (162, 160, 159); w otwartym edytorze filtr „Kuch" i sortowanie po „Cena j.m. netto" malejąco przetrwały dodanie pracy._
+
+### Findings — 2026-09-29
+
+- [ ] **`/szablony` pokazał 0 sekcji / 0 pozycji po migracji (nieświeży `unstable_cache`)** — po zastosowaniu
+      `20260929_1` na preview DB lista wierszy szablonów miała sekcje „0" i pozycje „0" dla obu szablonów
+      (w DB: 11/202 i 1/1), aż do „Odśwież dane"; `getPresetSections` (`src/lib/queries/presets.ts`) siedzi w
+      `unstable_cache` pod tagiem `presets`, a migracja SQL go nie unieważnia. Przyczyna najpewniej: deploy
+      z nowym kodem obsłużył żądanie przed migracją i zapamiętał pusty wynik.
+      **Needs human:** czy na prodzie kolejność „migracja przed pushem" (addytywna) wystarcza, żeby ten wpis
+      nie powstał, czy `db:migrate:prod` ma dokładać unieważnienie tagu `presets`? Najtańsza opcja:
+      przyjąć koszt i po `db:migrate:prod` kliknąć „Odśwież dane" na `/szablony`. Ta paczka ma jednak
+      też migrację destrukcyjną (`20260929_2` kasuje `kosztorys_presets`), więc „przed pushem" nie
+      pasuje do całej paczki.
+      **Test disposition:** no automated test — efekt kolejności deploy/migracja, nie logika kodu.
 
 ## investments-list-payout-remaining — „Pozostało do wypłaty" na liście inwestycji (2026-09-29)
 
 ### Phase 2: Column + parity
 
-- [ ] Na `/inwestycje` jako OWNER widać kolumnę „Pozostało do wypłaty"; dla inwestycji ze zrzutu z
+- [x] Na `/inwestycje` jako OWNER widać kolumnę „Pozostało do wypłaty"; dla inwestycji ze zrzutu z
       prośby kwota zgadza się z kosztorysem → Podsumowanie → Podwykonawcy „Pozostało do wypłaty"
       (11 972,01 w chwili prośby).
-- [ ] Inwestycja bez kosztorysu pokazuje „brak danych", a taka z etapem bez rozliczenia „ustaw etapy";
+      _Zweryfikowano 2026-09-29 (staging): Kolumna jest; brak inwestycji ze zrzutu (11 972,01) na preview — parytet sprawdzony na Wołoska 3/302: lista −790,11 = Podwykonawcy „Pozostało do wypłaty" −790,11._
+- [x] Inwestycja bez kosztorysu pokazuje „brak danych", a taka z etapem bez rozliczenia „ustaw etapy";
       obie lądują na końcu przy sortowaniu w obie strony.
-- [ ] Inwestycja z nadpłatą pokazuje ujemną kwotę na czerwono.
-- [ ] Odznaczenie „Kolumny v2" chowa tę kolumnę razem z pozostałymi kolumnami v2.
-- [ ] Po zalogowaniu jako MANAGER kolumna jest widoczna.
+      _Zweryfikowano 2026-09-29 (staging): „brak danych" (122 wierszy) i „ustaw etapy" (fixture: etap 35 inw. 138 chwilowo bez rozliczenia, przywrócony) lądują na końcu przy sortowaniu w obie strony._
+- [x] Inwestycja z nadpłatą pokazuje ujemną kwotę na czerwono.
+      _Zweryfikowano 2026-09-29 (staging): −16 572,00 / −6291,60 / −790,11 z klasą czerwoną._
+- [x] Odznaczenie „Kolumny v2" chowa tę kolumnę razem z pozostałymi kolumnami v2.
+      _Zweryfikowano 2026-09-29 (staging): przycisk „Kolumny v2" wyłącza wszystkie kolumny v2 razem z „Pozostało do wypłaty" (ponowne włączenie je zwraca)._
+- [x] Po zalogowaniu jako MANAGER kolumna jest widoczna.
+      _Zweryfikowano 2026-09-29 (staging): konto qa-staging tymczasowo MANAGER (wpis verify-manager-ex748 odrzuca hasło z profilu, 401): kolumna widoczna z liczbami (Ryżowa 66/127 29 884,75; Wołoska −790,11); rola przywrócona do OWNER._
 
 ## kosztorys-empty-section — sekcja bez pozycji (2026-09-29)
 
 ### Phase 2: Sekcja jako stan edytora
 
-- [ ] „Dodaj → Sekcja" dodaje samą belkę, bez pozycji pod nią. Po przeładowaniu belka zostaje.
-- [ ] Usunięcie ostatniej pozycji sekcji zostawia jej belkę. Po przeładowaniu belka zostaje.
+- [x] „Dodaj → Sekcja" dodaje samą belkę, bez pozycji pod nią. Po przeładowaniu belka zostaje.
+      _Zweryfikowano 2026-09-29 (staging): szablon 164: sekcja bez pozycji w DB (0 pozycji), belka po przeładowaniu zostaje._
+- [x] Usunięcie ostatniej pozycji sekcji zostawia jej belkę. Po przeładowaniu belka zostaje.
+      _Zweryfikowano 2026-09-29 (staging): szablon 164: po „Usuń pozycję” (potwierdzenie) belka „(0 poz.)” zostaje, po przeładowaniu też; sekcja w DB z 0 pozycji._
 
 ### Phase 3: Belka sekcji bez pozycji
 
-- [ ] „+ Dodaj pracę" na belce sekcji bez pozycji dodaje pod nią pozycję. Przycisk znika,
+- [x] „+ Dodaj pracę" na belce sekcji bez pozycji dodaje pod nią pozycję. Przycisk znika,
       a pojawia się strzałka zwijania.
-- [ ] ⋯ → „Dodaj pracę" na sekcji z pozycjami dopisuje pozycję na jej końcu.
-- [ ] „Dodaj → Praca" na kosztorysie bez sekcji tworzy sekcję z jedną pozycją.
-- [ ] Wyszukiwarka albo warunek w „Filtry" chowa belkę sekcji bez pozycji. Po wyczyszczeniu belka
+      _Zweryfikowano 2026-09-29 (staging): szablon 164: pozycja dodana w DB pod tą sekcją, przycisk zniknął, belka ma strzałkę zwijania (aria-expanded)._
+- [x] ⋯ → „Dodaj pracę" na sekcji z pozycjami dopisuje pozycję na jej końcu.
+      _Zweryfikowano 2026-09-29 (staging): szablon 164: nowa pozycja z display_order 1 na końcu sekcji (DB)._
+- [x] „Dodaj → Praca" na kosztorysie bez sekcji tworzy sekcję z jedną pozycją.
+      _Zweryfikowano 2026-09-29 (staging): pusty szablon 164: powstała „Nowa sekcja” z jedną pozycją (DB)._
+- [x] Wyszukiwarka albo warunek w „Filtry" chowa belkę sekcji bez pozycji. Po wyczyszczeniu belka
       wraca.
-- [ ] „Podgląd dla inwestora" nie pokazuje belki sekcji bez pozycji.
+      _Zweryfikowano 2026-09-29 (staging): wyszukiwarka („Nowa praca”): belka „(0 poz.)” znika, po wyczyszczeniu wraca; warunek w „Filtry” nie sprawdzany._
+- [x] „Podgląd dla inwestora" nie pokazuje belki sekcji bez pozycji.
+      _Zweryfikowano 2026-09-29 (staging): inw. 163 z belką bez pozycji: /podglad-inwestora/163 nie pokazuje belki (podgląd całkowicie pusty — „Kosztorys jest pusty”, więc pozycje z przedmiarem 0 są tam ukryte, dowód słabszy)._
+
+## kosz-inwestycji-manager — kosz inwestycji dla kierownika (2026-09-29)
+
+- [ ] Jako MANAGER: „Kosz" jest ostatnią pozycją menu (pod „Pracownicy"), `/kosz` się otwiera.
+- [ ] Jako MANAGER: „Usuń" na `/inwestycje` przenosi inwestycję bez transakcji do kosza,
+      „Przywróć" na `/kosz` ją oddaje.
+- [ ] Jako MANAGER: „Usuń na zawsze" przy kosztorysie w użyciu żąda wpisania nazwy i dopiero po niej
+      usuwa.
+- [ ] Jako EMPLOYEE: w menu nie ma „Kosz", a wejście na `/kosz` z adresu przekierowuje.
+
+## investment-wycena-status — status inwestycji „Wycena" (2026-09-29)
+
+### Phase 1: Jedna lista statusów i status „Wycena"
+
+- [ ] Dialog „Nowa inwestycja”: status jest domyślnie ustawiony na Wycena, a dodana inwestycja ma
+      bursztynowy badge „Wycena”.
+- [ ] Dialog „Edytuj” inwestycji: lista statusów to kolejno Wycena, Planowana, Aktywna, Zakończona.
+      Zapis Wyceny się udaje, a badge w tabeli i na karcie inwestycji jest bursztynowy.
+- [ ] Inwestycja w Wycenie nie pojawia się w pickerze wpłaty/wydatku, dopóki „Aktywne” jest
+      włączone. Po wyłączeniu jest widoczna, tak jak Planowana.
+- [ ] Świeżo dodana inwestycja nie zwiększa licznika „N aktywnych” na `/inwestycje`. Po przestawieniu
+      na Aktywną licznik rośnie o 1, a inwestycja pojawia się w pickerze wydatku.
+
+### Phase 2: Filtr statusów i zapisany wybór
+
+- [ ] `/inwestycje` z czystym localStorage: filtr pokazuje Wycena, Planowana, Aktywna, Zakończona,
+      zaznaczone są Wycena, Planowana i Aktywna.
+- [ ] Zapisany wcześniej filtr „tylko Aktywna”: Wycena jest odznaczona. Zapisany „Planowana +
+      Aktywna”: Wycena jest zaznaczona.
+
+## confirm-dialog-dead-pending — okno potwierdzenia bez martwego stanu „w toku" (EX-835, 2026-09-29)
+
+Okno potwierdzenia zamyka się od razu na klik; wynik mówi toast. Po błędzie okno **nie** wraca —
+decyzja właściciela.
+
+- [ ] `/inwestycje` → „Usuń" → „Przenieś do kosza": okno znika od razu, toast „Inwestycja
+      przeniesiona do kosza.", wiersz znika z listy.
+- [ ] `/katalog-prac` → „Usuń z katalogu" → „Usuń": okno znika, toast „Usunięto pozycję
+      z katalogu.", pozycja znika.
+- [ ] `/kosztorysy` → „Odłącz od inwestycji" i (jako ADMIN/OWNER) „Usuń" na innym arkuszu: po
+      potwierdzeniu okno znika, toast sukcesu, lista odświeżona.
+- [ ] DevTools → Network → Offline, potem dowolne z powyższych potwierdzeń: okno znika, pojawia się
+      toast z błędem, okno **nie** otwiera się ponownie, a dane zostają bez zmian po powrocie online
+      i odświeżeniu.
+- [ ] Zdjęcia/rzuty inwestycji: usuń plik → „Usuń": okno znika; do końca usuwania drugi „Usuń" i
+      dodawanie plików są zablokowane, po nim plik znika z galerii.
+- [ ] Kosz → „Usuń na zawsze" przy kosztorysie w użyciu (okno z wpisywaniem nazwy): po potwierdzeniu
+      przycisk pokazuje „Usuwam…" do końca akcji — to okno ma działający stan „w toku" i ma go
+      zachować.
+
+## catalogue-filters-and-usage — „Filtry", „Problemy" i „Policz użycia" w katalogu prac (EX-863, EX-873, 2026-09-29)
+
+### Phase 1: Wspólne elementy filtrów
+
+- [ ] Edytor kosztorysu: filtry dalej zapamiętują się per inwestycja, pasek chipów wygląda i działa
+      jak wcześniej, a „Wyczyść wszystko" pojawia się dopiero od 2 chipów.
+- [ ] `/katalog-prac`: czerwone komórki „% ceny klienta" są takie same jak przed zmianą.
+
+### Phase 2: Filtry, Problemy i j.m.
+
+- [ ] „Problemy" pojawia się tylko, gdy któraś praca nie ma ceny j.m. albo ma stawkę 0 zł, a wybór
+      problemu zawęża tabelę dokładnie do tych prac.
+- [ ] Liczniki w „Filtrach" nie zmieniają się, gdy zmienia się szukanie, „Kategoria" albo „j.m.".
+- [ ] „Ponad 55,25 % — bez narzędzi" wybiera dokładnie prace z czerwoną komórką w tej kolumnie.
+- [ ] Filtry przetrwają przeładowanie strony. Chipy zdejmują się pojedynczo, a „Wyczyść wszystko"
+      zdejmuje wszystko.
+
+### Phase 4: Policz użycia
+
+- [ ] Przed kliknięciem „Policz użycia" nie ma kolumny „Kosztorysy", grupy „Użycie" ani listy
+      „Używane, a brak w katalogu".
+- [ ] Po kliknięciu liczby w „Kosztorysy" zgadzają się z ręcznym policzeniem dla 2–3 prac.
+- [ ] „Nieużywane" zawęża do prac z liczbą 0. Po przeładowaniu grupy nie ma i nic nie zostaje przez
+      nią zawężone.
+- [ ] Praca, której opis występuje też z inną j.m., ma znacznik „występuje z inną j.m.".
+- [ ] Lista „Używane, a brak w katalogu" jest ułożona po liczbie kosztorysów, a podpowiedź nigdy nie
+      dolicza się do „Kosztorysy".
+- [ ] Nowy kosztorys, który używa pracy, podnosi jej liczbę przy następnym kliknięciu.
+- [ ] Po „Policz użycia" dodaj pracę przez „Nowa praca": kolumna „Kosztorysy", grupa „Użycie" i lista
+      „Używane, a brak w katalogu" znikają (nowa praca nie pokazuje „0"), a kolejne kliknięcie liczy
+      od nowa.
+- [ ] W „Brakuje w cenniku" w edytorze i na liście „Używane, a brak w katalogu" podpowiedź dla tej
+      samej nazwy z inną j.m. nadal zaczyna się od „ta sama nazwa, inna j.m.:" (przeniesienie kodu —
+      bez zmiany zachowania).
+
+### Phase 5: Dokumentacja
+
+- [ ] Notatki domenowe (`kosztorys-editor-domain-notes.md`) opisują to, co robi strona.
+
+### Phase 6: Możliwe duplikaty
+
+- [ ] „Problemy" → „Prace z możliwym duplikatem" zawęża tabelę do prac, które mają pod opisem linię
+      „prawie ten sam opis: …" albo „podobny opis: …", a licznik zgadza się z liczbą wierszy.
+- [ ] „Montaż syfonu" / „Montaż syfonów" (albo inna para różniąca się tylko końcówką) jest oznaczona
+      „prawie ten sam opis" nawet przy innej j.m., kategorii i cenie — linia pokazuje j.m., cenę i
+      kategorię bliźniaka.
+- [ ] Warianty różniące się liczbą („do 12 / 18 modułów", „Q3 / Q4", „5 / 7,5 cm") **nie** są
+      oznaczone.
+- [ ] Wybrany problem „z możliwym duplikatem" przetrwa przeładowanie strony, a pisanie w szukaniu
+      nie przycina.
+- [ ] Pary o wspólnym tylko początku słowa („Wykonanie podłogi …" / „Wykonanie podłączenia …") **nie**
+      są oznaczone.
+
+## EX-914 — kosz-szablonow — szablony trafiają do kosza (2026-09-29)
+
+- [ ] Jako MANAGER: „Przenieś szablon do kosza" na `/szablony` pyta „Przenieść szablon do kosza?",
+      a po potwierdzeniu szablon znika z listy, z wyboru szablonu przy nowej inwestycji, z „Wczytaj
+      szablon" i z „Dodaj sekcje z szablonu"; `/szablony/<id>` daje 404.
+- [ ] `/kosz` pokazuje go w sekcji „Szablony" z odliczaniem 30 dni; sekcja „Inwestycje" znika, gdy
+      w koszu nie ma żadnej inwestycji.
+- [ ] „Nowy szablon" z nazwą szablonu z kosza odmawia: „Szablon o tej nazwie jest w koszu — przywróć
+      go albo usuń na zawsze."
+- [ ] „Przywróć" oddaje szablon na `/szablony` z sekcjami, pozycjami i „Wersjami" bez zmian.
+- [ ] „Usuń na zawsze" przy szablonie żąda wpisania nazwy („Nazwa szablonu") i jest wyłączone, dopóki
+      się nie zgadza; po potwierdzeniu wiersz znika z `/kosz`.
+- [ ] Kosztorys założony wcześniej z tego szablonu jest bez zmian po przeniesieniu do kosza i po
+      usunięciu na zawsze.
+- [ ] Dwie karty `/szablony`: w pierwszej przenieś szablon A do kosza, w drugiej (bez odświeżania)
+      zmień nazwę A na nazwę innego szablonu — komunikat brzmi „Nie znaleziono szablonu", a nie
+      „Szablon o tej nazwie już istnieje".
+
+## 2026-09-29 — pasy kolumn na wydrukach
+
+- [ ] Edytor → „Inwestor" → „Wygeneruj ofertę w PDF": co druga kolumna (od drugiej) ma szare tło od
+      nagłówka do ostatniej pozycji; „Opis prac" jest biały, paski sekcji i ich „Razem —" bez pasów.
+- [ ] Edytor → „Pracownicy" → pracownik → „Drukuj PDF": te same pasy, w tym na kolumnach etapów.
+- [ ] Na wydrukowanej kartce (albo podglądzie wydruku z tłem) pasy są wyraźnie widoczne, a cienkie
+      linie między wierszami nadal widać w szarych kolumnach.

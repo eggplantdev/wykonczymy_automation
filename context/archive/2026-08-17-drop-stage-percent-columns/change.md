@@ -1,10 +1,10 @@
 ---
 change_id: drop-stage-percent-columns
 title: Drop the per-etap „% wykonania" columns and their wiring
-status: implemented
+status: archived
 created: 2026-08-17
 updated: 2026-08-17
-archived_at: null
+archived_at: 2026-08-17T12:02:22Z
 branch: client-preview-settings
 worktree: null
 ---
@@ -29,7 +29,7 @@ Known wiring to unpick (first sweep, not exhaustive):
 - specs: `kosztorys-progress-display.test.ts`, `kosztorys-layer.test.ts`,
   `v2-columns-readonly.test.ts`, `preview-columns.test.ts`
 
-Research complete → `research.md`. Scope decided by the owner, 2026-08-17:
+Scope decided by the owner, 2026-08-17:
 
 1. **The `values | percent` progress-display axis goes with the columns.** Degenerate once the
    percent column is gone, and its one surviving capability is duplicated by the column picker and
@@ -42,3 +42,7 @@ Research complete → `research.md`. Scope decided by the owner, 2026-08-17:
    does not show the same figure — „Postęp prac" is value-weighted over the whole dataset, while the
    column is quantity-weighted per row, so the summary cannot say *which* position is lagging. It is
    also the only display surface for the przedmiar-overrun red-cell signal (`hasStagesOverPlanned`).
+
+Deletion trap (from research): the axis maps fail open, so deleting a member's map entries while its
+predicate survives leaves an always-true conjunct in the `keep()` chain rather than an error. Before
+deleting a member of an enum axis, check the axis's whole domain and remove the predicate with it.

@@ -1,6 +1,6 @@
 ---
 change_id: netto-expense-grossup
-title: Wydatek netto — odwrócenie wyliczenia, brutto liczone ze stawki materiałów
+title: Netto expense — invert the derivation, brutto computed from the materials rate
 status: archived
 created: 2026-07-29
 updated: 2026-08-08
@@ -11,65 +11,66 @@ worktree: null
 
 ## Notes
 
-Odwrócenie wyliczenia dla wydatków netto (`netBilled`): netto jest daną wejściową, brutto =
-netto × (1 + stawka materiałów). Dziś ten typ wchodzi po face value na obu osiach
-(netto === brutto).
+Invert the derivation for netto expenses (`netBilled`): netto is the input, brutto = netto × (1 +
+materials rate). Before this, the type entered at face value on both axes (netto === brutto).
 
-Dotyka trzech miejsc:
+It touches three places:
 
-- tabelka „Wydatki inwestycyjne" (`materials-breakdown-table.tsx`) — kolumna Brutto
-- `materialsPair` (`src/lib/kosztorys/summary-economics.ts`) — wiersz „Materiały" w Podsumowaniu
-  i przez to „Do zapłaty"
-- `deriveFinancials` (`src/lib/db/investment-financials.ts`) — `totalMaterialCosts`, marża, bilans
+- the „Wydatki inwestycyjne" table (`materials-breakdown-table.tsx`) — the Brutto column
+- `materialsPair` (`src/lib/kosztorys/summary-economics.ts`) — the „Materiały" row in the summary and,
+  through it, „Do zapłaty"
+- `deriveFinancials` (`src/lib/db/investment-financials.ts`) — `totalMaterialCosts`, margin, balance
 
-**To jest zmiana sposobu wyliczania rozliczenia, nie prezentacji** — rusza kwotę, którą inwestor
-widzi jako należną. Wymaga udokumentowania (owner, 2026-07-29).
+**This changes how the settlement is computed, not how it is presented** — it moves the amount the
+investor sees as owed. It must be documented (owner, 2026-07-29).
 
-Rozstrzygnięte na etapie planowania (2026-07-29):
+> **Superseded (2026-09-23, change `zamrozone-brutto-wydatku-netto`, `62da512b`):** a netto expense's brutto is
+> now the invoice's stored `amount`, frozen at booking — not netto × rate at read time
+> (`summary-economics.ts`, `netBilled` is frozen).
 
-- **Zakres: wyłącznie panel v2.** v1 (bilans, „Koszty inwestora", kolumny kategorii na listingu,
-  kafelek „Korekta (bez kategorii)") zostaje świadomie rozjechany i idzie osobnym changem — nie ma
-  tam w ogóle osi pieniądza (`totalMaterialCosts` dodaje brutto z paragonów do kwot netto w jednym
-  skalarze), więc poprawianie jednego składnika wewnątrz błędnej sumy ruszyłoby bilans o kwotę,
-  której nikt nie umie wytłumaczyć. Decyzja właściciela.
-- **Tabelka jest błędna niezależnie od trybu rozliczenia.** Kolumna Brutto renderuje `row.net` bez
-  sprawdzenia `origin`, więc dla wiersza netto pokazuje kwotę netto. To defekt prezentacji, nie
-  konsekwencja rozliczenia — naprawiany bezwarunkowo.
-- **Stawka w tabelce**: ta sama, która rządzi kolumną Netto (`materialsNetRate ?? vatRate`) —
-  brutto = netto × (1+r) jest odwrotnością netto = brutto ÷ (1+r).
-- **Gross-up w rozliczeniu**: ~~tylko przy `settlementMode === 'GROSS'`~~ — **zmienione w trakcie
-  wdrożenia (właściciel, 2026-07-29)**: gross-up działa zawsze, jedną stawką. Ta sama stawka
-  przechodzi most w obie strony; kierunek wynika z tego, na której płaszczyźnie wydatek zapisano.
-  Gdy nie ma zapisanej stawki materiałów, wchodzi `vatRate`.
-- ~~`computeMixedSettlement` nie wymaga zmian — grosuje wyłącznie kwotę jeszcze nierozliczoną.~~
-  **Nieprawda, obalone przy przeglądzie całej gałęzi (2026-08-07).** Grosowanie kwoty nierozliczonej
-  obejmowało też materiały, które na obu osiach stoją po face value — ta sama należność drukowała się
-  dwa razy, różniąc się dokładnie o VAT od paragonów. Pełny opis zmiany arytmetyki: `## Close-out`
-  w `review-gate-branch.md`.
-- `buildMaterialyBreakdown` i `netCategoryCosts` bez zmian — niezmienniki Σ są asertowane na
-  `row.net`, którego nie ruszamy.
+Settled during planning (2026-07-29):
 
-Bez migracji: `investments.vat_rate` jest `NOT NULL DEFAULT 0.08`.
+- **Scope: the v2 panel only.** v1 (balance, „Koszty inwestora", the listing's category columns, the
+  „Korekta (bez kategorii)" tile) is knowingly left diverged and goes in a separate change — it has no
+  money axis at all (`totalMaterialCosts` adds brutto receipts to netto amounts in one scalar), so
+  fixing one component inside a wrong sum would move the balance by an amount nobody can explain.
+  Owner's decision.
+- **The table is wrong regardless of settlement mode.** The Brutto column rendered `row.net` without
+  checking `origin`, so a netto row showed its netto amount. A presentation defect, fixed
+  unconditionally.
+- **Rate in the table:** the same one that governs the Netto column (`materialsNetRate ?? vatRate`) —
+  brutto = netto × (1+r) is the inverse of netto = brutto ÷ (1+r).
+- **Gross-up in the settlement:** ~~only when `settlementMode === 'GROSS'`~~ — **changed during
+  implementation (owner, 2026-07-29)**: gross-up always applies, with one rate. The same rate crosses
+  the bridge both ways; the direction follows from which plane the expense was recorded on.
+- **The materials rate is the ONLY thing that crosses a netto-billed expense — no rate, no crossing,
+  on either axis** (owner, 2026-08-07). With no rate saved the investor is billed the receipt, so a
+  netto twin would print an amount nobody owes. This overrides the `vatRate` fallback above.
+- ~~`computeMixedSettlement` needs no change — it grosses up only the unsettled amount.~~ **False,
+  overturned at the whole-branch review (2026-08-07).** „Pozostało brutto" was computed by grossing up
+  the net remainder, which applied VAT to materials too — but materials enter „Łącznie" at face value
+  on both axes, so the same debt printed twice on one screen, differing by exactly the VAT on the
+  materials. The remainder is now derived from the pair that already has the split right:
+  `combined.gross − paid` (see the `summary-economics.ts` comment, "owner 2026-08-20"). Only mixed
+  mode with brutto-axis materials moved, and it moved **down** — no client was ever undercharged. The
+  old fixture passed `materialsNetRate === vatRate`, which is why the bug hid.
+- `buildMaterialyBreakdown` and `netCategoryCosts` unchanged — the Σ invariants are asserted on
+  `row.net`, which is not touched.
 
-Kontekst poprzedzający (już wdrożone w tej samej zakładce, poza tym changem):
+No migration: `investments.vat_rate` is `NOT NULL DEFAULT 0.08`.
 
-- „Wydatki" → „Materiały" w przełączniku widoków
-- Robocizna pokazuje Netto + Brutto niezależnie od trybu rozliczenia
-- Kolumna Netto w tabelce materiałów jest zawsze widoczna, stawka = `materialsNetRate ?? vatRate`,
-  czysto prezentacyjna
+## Side changes (review 2026-08-07)
 
-## Zmiany dodatkowe wprowadzone przy okazji (review 2026-08-07)
+- ~~**The „Marża" tab is hidden** (`TODO(EX-649)`)~~ — parked because the tab read the transactions
+  plane while sitting in the kosztorys panel.
 
-- **Zakładka „Marża" jest ukryta** (`summary-panel-content.tsx`, `TODO(EX-649)`). Decyzja parkująca,
-  nie usunięcie: cała instalacja (`SummaryMarginTab`, `calculateMargin`, propsy `financials`) zostaje
-  żywa, odsłonięcie to skasowanie jednej linii. Powód: zakładka czyta płaszczyznę transakcji, siedząc
-  w panelu kosztorysu, od którego v2 jest odłączony — jej „Robocizna" to inna liczba niż ta edytowana
-  dwie zakładki obok. Dotyczy też panelu na stronie inwestycji, nie tylko edytora.
-- **Rozliczenie: obie kolumny kwotowe stoją w każdym trybie** — tryb decyduje o arytmetyce „Do
-  zapłaty", nie o tym, które kolumny istnieją. Dotyczy również widoku klienckiego (`preview`).
-- **Kontrolka stawki materiałów jest ~~ukryta~~ wyszarzona w trybie brutto** (odwrócone 3975ffc3) —
-  serwer zeruje tam koncesję na twardo (`investment-financials.ts:89`), więc wpisana stawka zapisałaby
-  się i nie ruszyła żadnej liczby. Ukrycie zostało cofnięte: znikająca kontrolka czyta się jak błąd,
-  więc stoi na miejscu i mówi dlaczego (`MATERIALS_GROSS_LOCK_REASON`). Obie powierzchnie, która ją
-  oferują — popover „Opcje rozliczenia" i zakładka „Wydatki" — dostają tę samą blokadę i tę samą
-  **obowiązującą** stawkę, więc nie mogą pokazać dwóch różnych odpowiedzi na jedno ustawienie.
+  > **Superseded (`30791066`, `2026-08-18-marza-prognoza-rzeczywista`):** the tab is back, carrying
+  > the forecast and actual margin.
+- **Settlement: both money columns stand in every mode** — the mode decides the „Do zapłaty"
+  arithmetic, not which columns exist. The client view (`preview`) included (owner ruling).
+- **The materials-rate control is ~~hidden~~ greyed out in brutto mode** (reversed in `3975ffc3`) —
+  the server zeroes the concession there (`investment-financials.ts`), so a typed rate would save and
+  move no figure. Hiding was reverted: a vanishing control reads as a bug, so it stays and says why
+  (`MATERIALS_GROSS_LOCK_REASON`). Both surfaces that offer it — the „Opcje rozliczenia" popover and
+  the „Wydatki" tab — get the same lock and the same **effective** rate, so they can't show two
+  answers to one setting.

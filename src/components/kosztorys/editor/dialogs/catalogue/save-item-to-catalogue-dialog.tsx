@@ -165,8 +165,6 @@ export function SaveItemToCatalogueDialog({
           title={`Nadpisać „${existing.description}" w katalogu?`}
           description={`Stare stawki przepadną — katalog nie trzyma historii. Cena j.m. ${formatPLN(existing.clientPrice)} → ${formatPLN(preview.candidate.clientPrice)}, ${RATE_LABELS.w_tools.toLowerCase()} ${catalogueRateText(existing, 'w_tools')} → ${catalogueRateText(preview.candidate, 'w_tools')}, ${RATE_LABELS.own_tools.toLowerCase()} ${catalogueRateText(existing, 'own_tools')} → ${catalogueRateText(preview.candidate, 'own_tools')}.${categoryDiffers && !keepCategory ? ` Kategoria w katalogu zmieni się z „${existing.category || NO_CATEGORY}" na „${preview.candidate.category || NO_CATEGORY}".` : ''} Kosztorysy, w których ta praca już siedzi, zostają bez zmian. Jeśli chcesz dodać osobną pozycję zamiast nadpisać tę — anuluj i zmień nazwę pracy w rozpisce.`}
           confirmLabel="Nadpisz"
-          pending={saving}
-          pendingLabel="Zapisuję…"
           onConfirm={() => void handleSave()}
           onCancel={() => setConfirming(false)}
         />

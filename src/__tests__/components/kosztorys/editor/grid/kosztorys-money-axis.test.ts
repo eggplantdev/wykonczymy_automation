@@ -4,7 +4,7 @@ import {
   COLUMN_LABELS,
   COLUMN_MONEY_AXIS,
   DEFAULT_HIDDEN_COLUMNS,
-} from '@/lib/kosztorys/column-config'
+} from '@/lib/kosztorys/columns/column-config'
 import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'

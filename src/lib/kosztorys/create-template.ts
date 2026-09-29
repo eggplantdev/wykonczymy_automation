@@ -2,7 +2,7 @@ import 'server-only'
 import type { Payload, PayloadRequest } from 'payload'
 import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import { getDb } from '@/lib/db/get-db'
-import { isPresetNameTaken, markPresetEdited } from '@/lib/db/presets'
+import { markPresetEdited, presetNameHolder, type PresetNameHolderT } from '@/lib/db/presets'
 import { applyPreset } from './apply-preset'
 import { SETTLEMENT_MODE_DEFAULT } from './settlement-mode'
 import type { StoredSnapshotPayloadT } from './snapshot-format'
@@ -15,9 +15,10 @@ export async function createTemplate(
   payload: Payload,
   req: PayloadRequest,
   { name, tree }: { name: string; tree?: StoredSnapshotPayloadT },
-): Promise<{ id: number } | 'name-taken'> {
+): Promise<{ id: number } | PresetNameHolderT> {
   const db = await getDb(payload, req)
-  if (await isPresetNameTaken(db, name)) return 'name-taken'
+  const holder = await presetNameHolder(db, name)
+  if (holder) return holder
 
   const created = await payload.create({
     collection: 'investments',

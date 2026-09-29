@@ -92,7 +92,9 @@ x-landing-signature: sha256=<hex HMAC-SHA256 of the RAW body, scope `landing-cle
 
 Same secret and same scheme as the inbound webhook (`LANDING_WEBHOOK_SECRET`, HMAC over the exact
 bytes sent) but under scope **`landing-cleanup`**, so an inbound submission's signature is not one
-of these. `LANDING_CLEANUP_URL` is the full endpoint url, held in `wykonczymy`'s env.
+of these. `LANDING_CLEANUP_URL` is the full endpoint url, held in `wykonczymy`'s env. It is optional in the
+schema, so leaving it unset skips every callback without a log line; it must use the landing's
+**public** alias, since the project-scoped alias answers 401 behind Deployment Protection.
 
 **The callback carries no urls.** A delete instruction that names its own targets is a delete
 primitive exposed to whoever can forge or replay it; one that names a submission can only ever

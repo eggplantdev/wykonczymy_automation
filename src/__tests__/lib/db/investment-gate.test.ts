@@ -7,6 +7,7 @@ import {
 import {
   INVESTMENT_LOCKED_MESSAGE,
   INVESTMENT_TRASHED_MESSAGE,
+  TEMPLATE_TRASHED_MESSAGE,
 } from '@/lib/constants/investment-lock'
 import { fakePayload, mockExecute, resetFakePayload } from '@/__tests__/helpers/fake-payload-sql'
 import { getDb } from '@/lib/db/get-db'
@@ -48,6 +49,13 @@ describe('investment lock', () => {
         mockExecute.mockResolvedValueOnce({ rows: [{ status, trashed_at: new Date() }] })
         expect(await investmentLockMessage(db, 1)).toBe(INVESTMENT_TRASHED_MESSAGE)
       }
+    })
+
+    // An editor tab left open on a szablon trashed meanwhile must not tell the user about an investment.
+    it('locks a trashed szablon with the szablon sentence', async () => {
+      const db = await getDb(fakePayload)
+      mockExecute.mockResolvedValueOnce({ rows: [{ status: 'szablon', trashed_at: new Date() }] })
+      expect(await investmentLockMessage(db, 1)).toBe(TEMPLATE_TRASHED_MESSAGE)
     })
 
     // A nonexistent investment is the caller's problem to report — locked would answer „zakończona"

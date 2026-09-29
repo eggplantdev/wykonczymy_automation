@@ -576,7 +576,7 @@
   the query. If the _caller_ supplies the filter, the auth check is the only bound and the action is
   not reusable — route around it (server-render the rows into props, or write a scoped read that takes
   an id, not a `Where`).
-- **Applies to**: `src/lib/actions/fetch-transfers-for-invoices.ts`, and any `'use server'` read whose parameter is a query
+- **Applies to**: `src/lib/queries/fetch-transfers-for-invoices.ts`, and any `'use server'` read whose parameter is a query
   rather than an identifier.
 
 ## An exhaustiveness assertion only protects while both sides are authored independently
@@ -1081,6 +1081,22 @@ this is not a coverage gap to close with another spec; it is a **checklist item 
 edit**: widening a type, grep for the `unstable_cache` keys its payload passes through and bump them
 in the same commit.
 
+**Same type, new source: bump the key there too (EX-893, prod 2026-09-29).**
+
+- **What changed.** `getPresets` / `getPresetSections` kept the type and the keys (`['presets']`,
+  `['preset-sections']`). What changed was the source: the `kosztorys_presets` jsonb table became
+  investments with status `szablon`, so an `id` now means a different thing.
+- **What production showed.** After deploy + migration, `/szablony` listed both szablony with
+  0 sekcji / 0 pozycji. Their links went to `/szablony/8`, an old jsonb id, which returned „Nie
+  znaleziono”.
+- **Why nothing caught it.** A migration isn't a write through an action, so no `updateTag` fired,
+  and the Vercel Data Cache outlives a deploy. The type didn't change, so the checklist above never
+  triggered.
+- **Rule.** Bump the key whenever the **meaning** of a payload changes (source table, id space),
+  not only its shape.
+- **Recovery without a deploy.** Purge the Data Cache in Vercel, or run any action that expires the
+  tag. Here that was creating a szablon and deleting it.
+
 ## A guard running on REAL data is still blind if the real data predates the feature
 
 `lessons.md:19` says a parity test must run the real per-surface assembly on real data. The
@@ -1558,6 +1574,7 @@ is the test of the test, and skipping it is how a decorative assertion gets comm
 - **Context**: `summariseCosts` deliberately **omitted** an inspection type with no priced entry rather than showing `0 zł`, with the reasoning written in three places — the function's comment, a test named after it, and a manual check. The owner then asked for a costs column where a vehicle with no priced inspections reads `0 zł`. `fleet-costs-column`, 2026-08-24.
 - **Problem**: the two are flatly contradictory, and the tempting resolution is the cheap one — change what the column renders and leave the source optional. That produces a figure that means two things at once: `0 zł` for a vehicle that genuinely cost nothing, and `0 zł` for one where nobody typed a price. Aggregate them into a footer total and the ambiguity is no longer even visible per row. The precedent that _does_ license a hard zero (`investment-financials-and-discount.md`: „an empty kosztorys is an answer, not a question to forward to the transfers") works only because that source plane is complete and authoritative. The fleet's `cost` was optional, so empty was not yet an answer.
 - **Rule**: (1) A display rule that distinguishes "unknown" from "zero" is load-bearing; you retire it by making the unknown impossible — here, `cost` becomes `required` plus a `NOT NULL` migration — not by collapsing the two at the render layer. If you cannot close the source, keep the distinction. (2) When a rule is asserted in a comment, a test, and a checklist, all three are part of the change that reverses it; leaving one behind lets the old rule get re-derived. (3) Watch the sort, not just the cell: an accessor returning `0` for "unknown" sorts that vehicle as the cheapest — the same defect as the `sortUndefined: 'last'` no-op already fixed on this table, where „brak danych" sorted as most urgent. (4) One figure, one rule: the card and the listing must compute it with the same function, or you have shipped two answers to one question.
+- **Superseded (`c487c4dc`, 2026-08-25):** `cost` is optional again — the imported sheet carries no prices, so `required` would have turned nine unknowns into nine „0 zł". Rule (1) held by its other branch: the source could not be closed, so the distinction was kept and unknown renders „—".
 - **Applies to**: implement, plan, code-review
 
 ## A rename splits into two halves with opposite economics — and the half with a deadline is the worthless one
@@ -1681,6 +1698,7 @@ is the test of the test, and skipping it is how a decorative assertion gets comm
 - **Context**: `szablony-crud` (2026-09-14) dokłada status `szablon` dla ukrytej inwestycji-warsztatu, w której edytuje się szablony kosztorysu (od EX-893, 2026-09-29, każdy szablon jest własną inwestycją o tym statusie). Research zmapował pełny promień rażenia czwartej wartości `InvestmentStatusT`.
 - **Problem**: Intuicja mówi, że nowa wartość enuma to migracja plus etykieta, a typecheck dopilnuje reszty. Nieprawda w obie strony. **Wywalą się trzy miejsca** (`STATUS_LABELS`/`STATUS_CLASSNAMES` typowane `Record<InvestmentStatusT, …>` i spięcie typu z formularzem w `edit-investment-dialog.tsx`) — i to jest cała pomoc, jakiej udzieli kompilator. **Po cichu zepsują się**: `investment-schema.ts` (`z.enum([…])` przepisany ręcznie — bez dopisania walidacja odrzuca zapis na takiej inwestycji), trzy zahardkodowane `<SelectItem>` w `investment-form.tsx` (bez czwartego status jest nieosiągalny z UI), `STATUS_OPTIONS` w kolekcji (bez niego `/admin` i `generate:types` nie wiedzą o wartości, a baza ją przyjmuje) i `use-status-filter.ts`, gdzie tablice są typowane `InvestmentStatusT[]`, więc zero nacisku. Drugą połową jest to, że **status niczego nie blokuje**: realne bramy to `active: row.status === 'active'` (pochodna w `reference-data.ts`, przez którą filtruje każdy combobox z `activeOnly`) oraz `isBookableInvestment`, które bierze **`string`**, nie unię — więc nowy status jest księgowalnym celem wpłaty i wydatku dopóki ktoś nie dopisze go ręcznie. Ukrycie w listingu i comboboxach dostajesz za darmo; odmowę księgowania nie dostajesz wcale.
 - **Rule**: (1) Dodając wartość do `InvestmentStatusT`, przejdź listę ręcznie — typecheck pokrywa mniej niż jedną trzecią. Zacznij od `investment-schema.ts`, `investment-form.tsx` i `STATUS_OPTIONS`, bo te trzy milczą, a łamią zapis albo czynią status nieosiągalnym. (2) **Jeśli nowy status ma cokolwiek blokować, napisz to jawnie w `investment-lock.ts` i dopisz wiersz do jego specu** — predykaty nad `string` nie przypomną. (3) `ALTER TYPE … ADD VALUE` i `ALTER TABLE … ADD COLUMN` mogą stać w **jednej** migracji tylko dopóki kolumna nie **używa** nowej wartości; `DEFAULT 'nowy-status'` w tej samej transakcji Postgres odrzuci. (4) Inwestycja o nowym statusie, jeśli niesie pozycje kosztorysu, **produkuje wiersz** w `kosztorys-client-totals` (żadne zapytanie w `lib/db` nie filtruje po statusie; `kosztorys-subcontractor-due` startuje od etapów, więc inwestycja bez etapów nie daje tam wiersza) i rusza globalny licznik `fingerprint.kosztorysItemCount` w golden-masterze — `pnpm test:golden:update` przy regeneracji.
+- **Update (`investment-wycena-status`, 2026-09-29)**: punkt (1) jest spłacony. Lista żyje w `src/lib/constants/investment-status.ts` jako ręcznie pisana krotka `as const`, a `z.enum`, opcje kolekcji, `<SelectItem>`, lista filtra i etykiety badge'a są z niej wyprowadzone. Nowy status to jedna pozycja w krotce plus wpis w każdej mapie `Record<InvestmentStatusT, …>`, które typecheck wymusza. Migracja enuma dalej jest ręczna i pilnuje jej spec `investments-status.db.test.ts`. Punkty (2)–(4) obowiązują bez zmian. **(5) Zapisana w localStorage mapa flag to trwały schemat.** `selectionFrom` czyta brak klucza jako „odznaczone”, a `toggleStatus` przepisuje całą mapę, więc nowy status bez reguły dla starych map zostałby na stałe ukryty u każdego, kto kiedyś ruszał filtr. Nowy klucz dziedziczy flagę statusu, z którego się wydzielił (`INHERITED_FLAG` w `use-status-filter.ts`). **(6) Wycena jest pierwszym etapem i domyślnym statusem nowej inwestycji** (owner, `defaultValue` kolekcji + `DEFAULT` kolumny z `20260929_4`). Nowa inwestycja nie jest więc „aktywna”: do przestawienia na Aktywną nie ma jej w pickerach wpłaty/wydatku ani w „N aktywnych”. Z tego samego powodu cofnięcie kodu nie jest bezdanowe — stary kod nie zna `quote`, więc przed rollbackiem `UPDATE investments SET status = 'planowana' WHERE status = 'quote'` i `down` z `20260929_4`.
 - **Applies to**: /10x-plan, /10x-implement, code-review — każda zmiana unii statusu inwestycji oraz każdy predykat dostępu przyjmujący `string` zamiast unii
 
 ## Identyfikator, który zmienia znaczenie w czasie, wymusza strażnika w KAŻDYM czytelniku — więc zamiast strażników daj każdej rzeczy własny identyfikator
@@ -2086,6 +2104,9 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
   re-crop, OCR, download-full — establish **which ingest path produced the file**. An ingest that
   compresses is a one-way door: the original never existed server-side, so no download path can
   restore it. Name the paths that keep the bytes and scope the feature's payoff to those.
+- **Old media is not repaired (owner, 2026-09-22):** no `kind` backfill, no reprocessing of uploads
+  crushed by the old `1920×1080` box, no attempt to recover originals. EX-829 fixes new uploads
+  only; don't reopen it.
 - **Applies to**: 10x-plan, 10x-research, impl-review, any media/preview feature.
 
 ## Post-response cleanup belongs in `after()`, and a spec that stubs `after` to a no-op silently deletes the work it was meant to test
@@ -2183,7 +2204,7 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
 ## A caller count that once killed an extraction doesn't settle it the next time — re-check what is actually shared
 
 - **Context**: wydruk-oferty (2026-09-23) added a third caller of `openPrintWindow`, after a shared
-  print-shell helper had been rejected at two callers (`context/archive/2026-09-14-transfer-print-return/review-gate.md`).
+  print-shell helper had been rejected at two callers (transfer-print-return's review gate).
 - **Problem**: three callers repeating the doctype skeleton, row emission and the `document.write`
   lint exception looks like the signal a caller count is supposed to give. It wasn't: the offer has
   section bands, colour rails and section subtotals the transfers table doesn't, so a shared builder
@@ -2225,3 +2246,133 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
   collapses instead of leaving an empty band; (4) budget the summed sizes against the container —
   `dialog-xl` is `min(80vw, 75rem)`, ~1120 px on a 1440 screen.
 - **Applies to**: any `DataTable` / `VirtualizedTableBody` consumer switched to virtualization.
+
+## A Playwright timeout in this suite almost never means "slow machine" — it means a locator that no longer describes the UI
+
+- **Context**: e2e-backlog-audit (2026-09-15). EX-676 and EX-473 both reported as a spec hanging
+  120 s; both were blamed on load before anyone looked.
+- **Problem**: Playwright waits for what isn't there, so spec rot and machine load share one
+  symptom. EX-473's fixture `'Plac Hellera 3'` didn't exist on 5435 (it is `Plac Hallera 6`), so a
+  missed click left a popover open and the next iteration hung; behind it the submit button had
+  become „Zapisz", not „Dodaj".
+- **Rule**: before calling a timeout a flake, check that the text the spec waits for exists in
+  `src/`, and that the fixture row exists in the 5435 DB.
+- **Applies to**: any red E2E spec, `/10x-e2e`, flake triage.
+
+## react-datasheet-grid paste is strictly positional — disabling a band row's cells does not stop the shift
+
+- **Context**: kosztorys section header rows (2026-07-26, EX-584). The grid interleaves synthetic
+  section-band and footer rows with pozycje.
+- **Problem**: a multi-row paste spanning a section boundary loses one line. The library writes
+  `newData[min.row + rowIndex]` (`DataSheetGrid.js:540-600`), and `isCellDisabled` skips only the
+  write, never the index — so the clipboard slides one row per band it crosses.
+- **Rule**: only a paste interception that re-expands the clipboard around band indices fixes it.
+  Unfixed; EX-584 was deleted from Linear without a fix.
+- **Applies to**: any change to the kosztorys grid's paste path or its synthetic rows.
+
+## Turning state into a derived value moves its read above the guards it was safe behind
+
+- **Context**: scalable preset section picker (2026-07-28, EX-618). A review-gate state→derived fix
+  crashed the dialog on every open.
+- **Problem**: `activeGroup` fell back to `groups[0]`, `undefined` while `sections` was still `null`.
+  As state it was only read behind the `sections.length === 0` guard; as a derived value the read
+  moved to the top of the component body. `groups[0]` types as `PresetGroupT`, not `| undefined`, so
+  `tsc` could not see it.
+- **Rule**: after converting state to a derived value, re-check every guard the old read sat behind.
+  Index with `.at(0)` (typed `| undefined`) where emptiness is possible; `noUncheckedIndexedAccess`
+  would have caught it.
+- **Applies to**: refactors of component state, `/simplify` passes.
+
+## An extra query in a parallel fan-out is not a cost until you time the whole fan-out
+
+- **Context**: review-gate efficiency findings on cached listing reads (2026-09-29, EX-903). The
+  gate filed "`selectKosztorysSubcontractorDue` is a second full scan of the tables
+  `selectKosztorysClientTotals` scans — two Neon round-trips per cache miss; merge them into one CTE".
+- **Problem**: the finding counted queries, not time. Both already run inside one `Promise.all` in
+  `fetchAllInvestments`, so the listing waits for the slowest read, not the sum. Measured on the
+  local DB (30 warm runs, more kosztorys items than prod): subcontractorDue 3.9 ms median — second
+  fastest of the four folds; the whole fan-out 9.4 ms, and 8.3 ms with it removed outright. The
+  "same joins" premise was also false: client totals is item-driven (per-item rabat, rows with no
+  progress still carry the global rabat), subcontractor due is etap-driven (price depends on the
+  etap's plane) and scopes items to the etap's investment, which client totals does not. Merging
+  would have fused two formulas, each pinned 1:1 to its own TS reference and parity spec, to save
+  ~1 ms.
+- **Rule**: before filing or doing a "merge these queries / one fewer round-trip" change, check
+  whether the queries already run in parallel and time the fan-out with and without the one you'd
+  remove. Below a few ms of saving, drop it — especially when each query is a parity-pinned copy of
+  a TS formula. Local timings can't show Neon network or cold starts (see "Neon latency is bimodal"
+  above), but a merge doesn't remove that cost from a parallel fan-out either.
+- **Applies to**: impl-review, plan-review, `/simplify`, review-gate efficiency findings.
+
+## A long declarative registry is one kind of thing — line count is not a cohesion signal
+
+- **Context**: `module-cohesion` audit at the `wydruk-oferty` review gate (2026-09-23, EX-868) flagged
+  `src/lib/kosztorys/row-conditions/registry.ts` (538 LOC) as "eight modules posing as one array" and
+  proposed cutting it per `FILTER_GROUPS` into `groups/<group>.ts`. Cancelled after analysis
+  (2026-09-28).
+- **Problem**: the file is 34 homogeneous `RowConditionT` literals (the Registry pattern), ~60% of the
+  lines being rationale comments. The proposed axis covered 20 of 34 entries — the 13 diagnostics
+  group by `problemGroup`, `client-empty` by nothing — so a full cut is ~10 files on two axes. The
+  helpers (`qtyDone`, `priceColumnsFor`, `isEmptyOnBothAxes`) are shared across groups **on purpose**,
+  so they'd become a `helpers.ts` imported everywhere: the same coupling, smeared, and the „named once
+  so the pair cannot be edited apart" comments lose the pair they sit beside. Display order is a
+  contract, and a composing file adds a spread-order failure mode no type catches. Every consumer
+  reads the whole `ROW_CONDITIONS`, so a split isolates nothing, and `git log --follow` stops tracing
+  rationale-heavy blame.
+- **Rule**: judge a big file by the number of **kinds** it holds and the number of **reasons it
+  changes**, not by LOC. A flat declarative table whose commits almost all append a sibling entry is
+  cohesive; split it only once one group grows its own non-trivial logic (today's lone candidate:
+  `settledAtPercentRate`, a domain predicate like `isOwnRateOverCeiling`).
+- **Applies to**: `module-cohesion-audit`, `/simplify`, review-gate structural findings.
+
+## Recount a reuse or perf finding against the code before filing it — four of them did not survive
+
+- **Context**: backlog triage of review-gate findings (2026-09-22 → 09-28). Four filed findings were
+  cancelled because their premise fell apart on a recount, not because they were deprioritised.
+- **Problem**:
+  - **"Third hand-copied lead webhook skeleton" (EX-827)** — there were two copies; `facebook-leads`
+    differs in every step (200 on bad JSON so Meta stops retrying, per-lead `safeParse` on a second
+    Meta call, `continue` on a bad schema, N captures, conditional revalidate, a deliberate 500 to
+    force batch redelivery, its own `GET` handshake). A helper spanning the two real copies needed
+    eight parameters to save ~29 lines, and what is genuinely shared (`captureLead`,
+    `notifyShapeAlert`, `verifySignature`, the `*ToStoreLeadInput` mappers) was already in
+    `src/lib/leads/`. The two "unrecorded drifts" were protocol-forced: the landing HMACs the **raw**
+    body so it must read it before authorising, WordPress can't sign so wpforms checks a header
+    first, and only wpforms alarms on a missing email because only wpforms extracts it heuristically.
+  - **"Investment-asset actions copy the invoice actions" (EX-834)** — the ~45 duplicated lines had
+    already collapsed into `setUploadField`; the three proposed wrappers were each one line replacing
+    one line, net ~+3 lines and three new names.
+  - **"Lead gallery bypasses the media cache, 375 ms per keystroke" (EX-828)** — 375 ms was the old
+    ORM sweep of the whole `media` table, a different query. The lead path is an id-scoped find
+    bounded by the page (≤30 docs today ≈ 12 ms), behind `unstable_cache` and a 300 ms debounce. The
+    proposed fix would have widened `fetchAllMedia` by ~88 kB per cache entry, eating the headroom
+    under the ~2 MB per-entry ceiling that is the documented reason it is narrow.
+  - **"Every media upload expires the whole investments plan" (EX-830)** — the investment half was
+    real (fixed by EX-849's `entityTags`); the invoice half was not: transfer lists render invoices
+    under `CACHE_TAGS.transfers`, so an invoice change must expire it, and `recalcAfterChange` bumps it
+    anyway.
+- **Rule**: before filing a reuse finding, count the copies by reading them and price the helper's
+  signature in parameters against the lines it removes — when the parameters are the code, there is
+  no win. Treat a difference between copies as possibly **forced by the sender's protocol** until
+  `git log` / the comments say otherwise; a helper would freeze or erase it. Before filing a perf
+  finding, cite a measurement of **that exact path** at current data volume, and check the fix
+  doesn't spend a limit the existing shape was sized against. Before narrowing a cache tag, list what
+  renders under it.
+- **Applies to**: review-gate `/simplify` reuse and efficiency passes, `primitive-reuse-scan`, filing
+  to the Linear backlog.
+
+## Flush on tab close with `visibilitychange`, not `sendBeacon` — a beacon cannot call a Server Action
+
+- **Context**: EX-843 (2026-09-23) needed a pending debounced write to survive the tab being closed.
+  The mechanism it guarded (the workshop mirror) was later removed by EX-893, but the editor's
+  debounced autosave has no tab-close flush either, so the question will come back.
+- **Problem**: the textbook answer, `pagehide` + `navigator.sendBeacon`, does not reach a Server
+  Action: a beacon cannot set the `Next-Action` header, so it would need a new Route Handler with its
+  own auth — a second write path for one edge case.
+- **Rule**: flush on `visibilitychange` → `document.visibilityState === 'hidden'` with an ordinary
+  Server Action call. Chrome and Firefox fire `hidden` just before `pagehide` on tab close, so the
+  request leaves in time. It is best-effort: a crash or a lost connection still drops the write. A
+  dirty-flag column healed on the next read was weighed and rejected as out of proportion for that
+  residue.
+- **Applies to**: any debounced autosave (kosztorys editor, settings fields) that grows a
+  "don't lose the last edit" requirement.

@@ -27,6 +27,9 @@ type KosztorysPrintArgsT = {
   footerHtml?: string
 }
 
+// The on-screen preview's column stripes, carried onto paper so the two read alike.
+const stripe = (index: number) => (index % 2 === 1 ? ' stripe' : '')
+
 export function buildKosztorysPrintHtml({
   rows,
   columns,
@@ -91,7 +94,7 @@ export function buildKosztorysPrintHtml({
         columns
           .map(
             (column, index) =>
-              `<td class="${column.cellClass}${index === 0 ? ' rail' : ''}"` +
+              `<td class="${column.cellClass}${index === 0 ? ' rail' : ''}${stripe(index)}"` +
               `${index === 0 ? ` style="border-left-color:${escapeHtml(sectionFill)}"` : ''}>` +
               `${column.cell(row)}</td>`,
           )
@@ -118,10 +121,10 @@ export function buildKosztorysPrintHtml({
     `</div>`
 
   const head = `<tr>${columns
-    .map(
-      (column) =>
-        `<th${column.headerClass ? ` class="${column.headerClass}"` : ''}><span>${escapeHtml(column.label)}</span></th>`,
-    )
+    .map((column, index) => {
+      const headerClass = `${column.headerClass}${stripe(index)}`.trim()
+      return `<th${headerClass ? ` class="${headerClass}"` : ''}><span>${escapeHtml(column.label)}</span></th>`
+    })
     .join('')}</tr>`
 
   const colgroup = `<colgroup>${columns

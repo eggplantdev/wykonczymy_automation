@@ -1,6 +1,6 @@
 ---
 change_id: kosztorys-row-height-menu
-title: Wysokość wiersza — dwuklik znika z uchwytu, dopasowanie trafia do menu wiersza
+title: Row height — double-click leaves the handle, fit-to-content moves to the row menu
 status: archived
 created: 2026-09-14
 updated: 2026-09-14
@@ -11,57 +11,54 @@ worktree: null
 
 ## Notes
 
-Dwuklik na uchwycie wiersza („dopasuj do treści") jest nieodkrywalny — jedyną wskazówką jest `title`
-na 8-pikselowym pasku, który trzeba najpierw trafić kursorem. Odkąd w menu Widok stoi przełącznik
-„Dopasuj wysokość wierszy" (`ffee8a92`), gest przestał być jedyną drogą do rozwinięcia opisu i został
-jako pułapka: przy włączonym przełączniku nie robi nic widocznego, a cicho zapisuje nadpisanie.
+Double-clicking the row handle ("fit to content") is undiscoverable — the only hint is a `title` on
+an 8-pixel strip you first have to hit. Since the View menu gained the „Dopasuj wysokość wierszy"
+(fit row heights) toggle (`ffee8a92`), the gesture stopped being the only way to expand a description
+and remained as a trap: with the toggle on it does nothing visible, yet silently saves an override.
 
-Dziura ważniejsza od samego dwukliku: **nadpisania nie da się cofnąć.** `resolveRowHeight` stawia
-przeciągniętą wysokość ponad wszystkim, więc wiersz spłaszczony przeciągnięciem ignoruje przełącznik
-i nie ma polecenia, które by wpis z `kosztorys-v2-row-heights` usunęło.
+A bigger hole than the double-click itself: **the override can't be undone.** `resolveRowHeight` puts
+a dragged height above everything, so a row flattened by dragging ignores the toggle, and no command
+removes its entry from `kosztorys-v2-row-heights`.
 
-Ustalenia z rozmowy (2026-09-14):
+Agreed in discussion (2026-09-14):
 
-1. `onFit` wypada z `RowResizeHandle` — uchwyt tylko przeciąga.
-2. Menu wiersza dostaje „Dopasuj wysokość do treści" (to, co robił dwuklik — świadome kliknięcie
-   w nazwane polecenie to świadome przypięcie).
-3. **Komenda kasująca nadpisanie wypadła** (decyzja właściciela po implementacji). Miała nazywać się
-   „Przywróć domyślną wysokość" i pokazywać się tylko na wierszu z nadpisaniem — problem: „domyślna"
-   nie jest jedną liczbą (52 px na pasku, treść przy włączonym przełączniku, 32 px poza tym), więc
-   etykieta obiecywała coś innego niż robiła. Zdjęcie nadpisania nadal nie ma żadnej drogi w UI.
-4. Nagłówek tabeli (klucz `header`) ma uchwyt, nie ma menu wiersza i nie ma `onFit`; jego nadpisanie
-   też jest nie do cofnięcia — decyzja otwarta. Razem z paskiem sekcji i z nieosiągalną z UI podłogą
-   `SECTION_BAND_ROW_HEIGHT` w `fitRowHeight()` zgłoszone jako **EX-776**.
+1. `onFit` leaves `RowResizeHandle` — the handle only drags.
+2. The row menu gets „Dopasuj wysokość do treści" (fit height to content) — what the double-click did;
+   deliberately clicking a named command is a deliberate pin.
+3. **The command clearing the override was dropped** (owner, after implementation). It was to be
+   „Przywróć domyślną wysokość" (restore default height), shown only on an overridden row — but
+   "default" is not one number (52 px on the band, content with the toggle on, 32 px otherwise), so
+   the label promised something other than what it did. Removing an override still has no UI path.
+4. The table header (key `header`) has a handle, no row menu and no `onFit`; its override is also
+   irreversible — left open. Filed as **EX-776** together with the section band and the
+   `SECTION_BAND_ROW_HEIGHT` floor in `fitRowHeight()`, unreachable from the UI.
 
-Czeka na `2026-09-14-kosztorys-section-menu-split` (ten sam plik menu) — split wylądował w `1414b53d`.
+## Closing point 4 — EX-776 (2026-09-15)
 
-## Domknięcie punktu 4 — EX-776 (2026-09-15)
+Owner rulings, recorded here because the issue will be gone. The rule that orders them: **the
+„Dopasuj wysokość do treści" command belongs to a row whose override permanently cuts it off from its
+content — not to every row with a handle.**
 
-Rozstrzygnięcia właściciela, spisane tutaj, bo issue ginie. Reguła, która je porządkuje:
-**komenda „Dopasuj wysokość do treści" należy się wierszowi, którego nadpisanie odcina od treści na
-trwałe — a nie każdemu wierszowi z uchwytem.**
+- **Section band: handle + the same command in the „…" menu.** The band has content (`sectionName`),
+  but single-line and overflowing sideways, not down (`.kosztorys-band-label-cell { overflow: visible }`),
+  and `rowContentLines` reads only `description`/`note`, which the band lacks. So
+  `fitRowHeight(bandId, 1)` always returns `SECTION_BAND_ROW_HEIGHT` = 52 — on the band this command
+  **is** the way back from a drag. It also makes the `SECTION_BAND_ROW_HEIGHT` floor in
+  `fitRowHeight()` reachable from the UI, so a dead-code sweep won't delete it.
+- **Section footer („Razem <sekcja>"): deliberately no command.** It gets a handle (the guard in
+  `ordinal-gutter-column.tsx` excludes only `SPACER_ROW_ID`/`TOTALS_ROW_ID`), and `SectionFooterCell`
+  renders an empty div in „Akcje". Not the item-row trap: the footer is not a band, so its floor is
+  `ITEM_ROW_HEIGHT` = 32 and `RowResizeHandle` clamps to it on preview and on commit — and the
+  footer's default height is also 32. A saved override of 32 is indistinguishable from auto mode, so
+  a footer drag is reversible with the bare handle. Cost: a dead entry in `kosztorys-v2-row-heights`.
+- **Header row: manual only, not revisited.** No command in the „Widok" menu; the handle stays.
+  `resolveHeaderRowHeight()` does carry the same `Number.isFinite` guard + `HEADER_ROW_HEIGHT` floor
+  as `resolveRowHeight`.
+- **The item-row label stays unchanged** — „Dopasuj wysokość do treści" there swaps one permanent
+  override for another (the row still ignores the „Dopasuj wysokość wierszy" toggle, point 3 above).
+  Renaming it „Wróć do automatycznej wysokości" (back to automatic height) was rejected.
+- **Rejected:** wrapping the band label (a band layout change, a separate topic).
 
-- **Pasek sekcji: uchwyt + ta sama komenda w menu „…".** Pasek ma treść (`sectionName`), ale
-  jednolinijkową i wylewającą się w bok, nie w dół (`.kosztorys-band-label-cell { overflow: visible }`),
-  a `rowContentLines` czyta wyłącznie `description`/`note`, których pasmo nie ma. Więc
-  `fitRowHeight(bandId, 1)` zawsze zwraca `SECTION_BAND_ROW_HEIGHT` = 52 — na pasku ta komenda **jest**
-  drogą powrotu z przeciągnięcia. Przy okazji podłoga `SECTION_BAND_ROW_HEIGHT` w `fitRowHeight()`
-  przestała być nieosiągalna z UI, więc przelot dead-code jej nie skasuje.
-- **Stopka sekcji („Razem <sekcja>"): zostaje bez komendy, świadomie.** Dostaje uchwyt (strażnik
-  w `ordinal-gutter-column.tsx` wyklucza tylko `SPACER_ROW_ID`/`TOTALS_ROW_ID`), a `SectionFooterCell`
-  renderuje w „Akcjach" pusty div. To nie jest ta sama pułapka co u pozycji: stopka nie jest pasmem,
-  więc jej podłoga to `ITEM_ROW_HEIGHT` = 32 i `RowResizeHandle` klampuje do niej i na podglądzie,
-  i przy commicie — a domyślna wysokość stopki to też 32. Zapisane nadpisanie 32 jest nieodróżnialne
-  od trybu automatycznego, czyli przeciągnięcie stopki jest odwracalne gołym uchwytem. Koszt: martwy
-  wpis w `kosztorys-v2-row-heights`.
-- **Wiersz nagłówka: tylko ręcznie, i nie wracamy do tego.** Żadnej komendy w menu „Widok"; uchwyt
-  zostaje. `resolveHeaderRowHeight()` niesie za to ten sam strażnik `Number.isFinite` + podłogę
-  `HEADER_ROW_HEIGHT` co `resolveRowHeight`.
-- **Etykieta na pozycji zostaje bez zmian** — „Dopasuj wysokość do treści" podmienia tam jedno trwałe
-  nadpisanie na inne (wiersz nadal ignoruje przełącznik „Dopasuj wysokość wierszy", pkt 3 wyżej).
-  Odrzucone przemianowanie na „Wróć do automatycznej wysokości".
-- **Odrzucone:** zawijanie etykiety pasma (to zmiana układu pasma, osobny temat).
-
-Komenda na pasku wywlekła przy okazji dwie wady w `react-datasheet-grid` — obie naprawione
-w `patches/react-datasheet-grid@4.11.6.patch` (uzasadnienia stoją w komentarzach w samej łatce),
-strażnik: `src/__tests__/datasheet-grid-row-height-cache.test.ts`.
+The band command surfaced two defects in `react-datasheet-grid` — both fixed in
+`patches/react-datasheet-grid@4.11.6.patch` (rationale in comments inside the patch), guarded by
+`src/__tests__/datasheet-grid-row-height-cache.test.ts`.

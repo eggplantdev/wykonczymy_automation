@@ -1,5 +1,6 @@
 import { CATALOGUE_NAME_FIXES } from '@/lib/kosztorys/catalogue-name-fixes'
 import { fold } from '@/lib/kosztorys/sheet-import/columns'
+import { capitalize } from '@/lib/utils/capitalize'
 
 // Every rule is idempotent, so the owner can press the button as often as they like and the rules can
 // be replayed over a whole database without compounding.
@@ -172,12 +173,8 @@ function unshout(text: string): string {
   return out.join(' ')
 }
 
-function capitalizeFirst(text: string): string {
-  return text.slice(0, 1).toUpperCase() + text.slice(1)
-}
-
 function sentenceCase(text: string): string {
-  return capitalizeFirst(text).replace(
+  return capitalize(text).replace(
     /(\S*[.!?])\s(\p{Ll})/gu,
     (whole, tail: string, letter: string) =>
       ABBREVIATIONS.has(tail.toLowerCase()) ? whole : `${tail} ${letter.toUpperCase()}`,

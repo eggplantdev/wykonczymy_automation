@@ -1,16 +1,19 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, startTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { DeleteButton } from '@/components/ui/row-actions/delete-button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { trashInvestmentAction } from '@/lib/actions/investment-trash'
 import { toastMessage } from '@/lib/utils/toast'
 
-export function TrashInvestmentButton({ investment }: { investment: { id: number; name: string } }) {
+export function TrashInvestmentButton({
+  investment,
+}: {
+  investment: { id: number; name: string }
+}) {
   const router = useRouter()
   const [confirming, setConfirming] = useState(false)
-  const [pending, startTransition] = useTransition()
 
   const onConfirm = () => {
     startTransition(async () => {
@@ -31,8 +34,6 @@ export function TrashInvestmentButton({ investment }: { investment: { id: number
         description={`Przenieść „${investment.name}" do kosza? Możesz ją przywrócić z Kosza.`}
         confirmLabel="Przenieś do kosza"
         variant="neutral"
-        pending={pending}
-        pendingLabel="Przenoszę…"
         onConfirm={onConfirm}
         onCancel={() => setConfirming(false)}
       />

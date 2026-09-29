@@ -2,7 +2,7 @@ import {
   DOCUMENT_PINNED_COLUMN,
   orderDocumentKeys,
   sanitizeDocumentRanks,
-} from '@/lib/kosztorys/document-column-order'
+} from '@/lib/kosztorys/columns/document-column-order'
 import {
   WORKER_DOCUMENT_COLUMNS,
   WORKER_RATE_KEY,
@@ -17,6 +17,7 @@ import type { ColumnRanksT } from '@/lib/table/column-order'
 export type WorkerViewSettingsT = {
   hiddenColumns: string[]
   hideEmptyRows: boolean
+  hidePlannedOnceExecuted: boolean
   columnRanks: ColumnRanksT
 }
 
@@ -27,6 +28,7 @@ const WORKER_VIEW_KEYS: ReadonlySet<string> = new Set(
 export const WORKER_VIEW_DEFAULT_SETTINGS: WorkerViewSettingsT = {
   hiddenColumns: [],
   hideEmptyRows: true,
+  hidePlannedOnceExecuted: true,
   columnRanks: {},
 }
 
@@ -36,9 +38,10 @@ export const WORKER_VIEW_DEFAULT_SETTINGS: WorkerViewSettingsT = {
 // ceiling — which is why `workerVisibleColumns` builds from the groups and only ever subtracts.
 export function sanitizeWorkerViewSettings(source: unknown): WorkerViewSettingsT {
   if (typeof source !== 'object' || source === null) return WORKER_VIEW_DEFAULT_SETTINGS
-  const { hiddenColumns, hideEmptyRows, columnRanks } = source as {
+  const { hiddenColumns, hideEmptyRows, hidePlannedOnceExecuted, columnRanks } = source as {
     hiddenColumns?: unknown
     hideEmptyRows?: unknown
+    hidePlannedOnceExecuted?: unknown
     columnRanks?: unknown
   }
   return {
@@ -49,6 +52,7 @@ export function sanitizeWorkerViewSettings(source: unknown): WorkerViewSettingsT
         )
       : WORKER_VIEW_DEFAULT_SETTINGS.hiddenColumns,
     hideEmptyRows: hideEmptyRows !== false,
+    hidePlannedOnceExecuted: hidePlannedOnceExecuted !== false,
     columnRanks: sanitizeDocumentRanks(columnRanks, WORKER_VIEW_KEYS),
   }
 }

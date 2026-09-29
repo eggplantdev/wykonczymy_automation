@@ -1,6 +1,6 @@
 ---
 change_id: drag-drop-guard
-title: Blokada nawigacji przy chybionym dropie pliku + widoczna dropzone w trakcie przeciągania
+title: Block navigation on a missed file drop + visible dropzone while dragging
 status: archived
 created: 2026-09-14
 updated: 2026-09-14
@@ -11,32 +11,26 @@ worktree: null
 
 ## Notes
 
-Przeciągnięcie pliku obok dropzone powoduje, że przeglądarka otwiera plik jako dokument
-(domyślna akcja `drop` na dokumencie). Chcemy to zablokować — ale **tylko tam, gdzie
-drag&drop faktycznie istnieje**, nie globalnie w layoucie.
+Dropping a file next to a dropzone makes the browser open the file as a document (the default `drop`
+action on the document). We want to block that — but **only where drag&drop actually exists**, not
+globally in the layout.
 
-Drugi wątek: dropzone ma być widoczna od momentu, gdy plik jest przeciągany nad oknem
-(dziś podświetla się dopiero po najechaniu), ładniejszym kolorem niż dzisiejsze
-`border-primary` (prawie czerń). Do sprototypowania: powiększenie inputu na czas
-przeciągania.
+Second thread: the dropzone should be visible from the moment a file is dragged over the window
+(it used to highlight only on hover), in a nicer color than `border-primary` (nearly black).
 
-Przed planem: research — gdzie w aplikacji jest drag&drop (wydatek to nie jedyne miejsce).
+## Decisions
 
-## Decyzje
-
-- **2026-09-14 (właściciel):** kolor stanu drag&drop jest **wspólny** dla obu dropzone — neutralnej
-  (`FileInput`) i AI (przycisk „Wygeneruj z paragonów"). Odrzucona propozycja „wspólna geometria,
-  własny kolor"; `ring-neon-cyan` na przycisku skanu ustępuje wspólnemu kolorowi stanu dropu.
-  Zamyka to otwarte pytanie z researchu o dwa języki wizualne stanu „uzbrojona”.
-- **2026-09-14 (właściciel):** guard montowany **per-dropzone**, nie w layoucie ani w providerze.
-  Wszystkie dropzone siedzą w dialogach, więc przy zamkniętym dialogu nie ma w co celować — guard
-  w layoucie nie dawałby nic więcej, a omijanie obcej dropzone Payloada (`/admin/**`) wychodzi
-  wtedy samo z siebie.
-- **2026-09-14 (właściciel):** w trakcie przeciągania podświetlają się **wszystkie** dostępne cele
-  (słabo), a ten pod kursorem mocno. Pokazanie użytkownikowi, gdzie wolno upuścić plik, JEST
-  rozwiązywanym problemem, więc nie zawężamy tego do jednej dropzone.
-- **2026-09-14 (właściciel):** **bez powiększania** dropzone na czas przeciągania — ani realną
-  wysokością, ani `scale`. Zmiana rozmiaru przesuwa treść spod kursora w trakcie przeciągania.
-- **2026-09-14 (właściciel):** E2E dla tej zmiany **anulowane** (EX-774 → Canceled). Ryzyko jest
-  czysto browser-level, zero logiki serwerowej, a przebieg suity to ~1 h — weryfikację przejmują
-  w całości checki manualne sekcji `drag-drop-guard`.
+- **2026-09-14 (owner):** the drag&drop state color is **shared** by both dropzones — the neutral one
+  (`FileInput`) and the AI one (the „Wygeneruj z paragonów" button). Rejected "shared geometry, own
+  color"; the scan button's `ring-neon-cyan` gives way to the shared drop-state color.
+- **2026-09-14 (owner):** the guard is mounted **per dropzone**, not in the layout or a provider.
+  Every dropzone sits in a dialog, so with the dialog closed there is nothing to aim at — a layout
+  guard would add nothing, and skipping Payload's own dropzone (`/admin/**`) comes for free.
+- **2026-09-14 (owner):** while dragging, **all** available targets highlight (weakly) and the one
+  under the cursor strongly. Showing the user where a file may be dropped IS the problem being
+  solved, so we don't narrow it to one dropzone.
+- **2026-09-14 (owner):** **no enlarging** the dropzone during a drag — neither by real height nor by
+  `scale`. Resizing shifts content out from under the cursor mid-drag.
+- **2026-09-14 (owner):** E2E for this change **canceled** (EX-774 → Canceled). The risk is purely
+  browser-level with zero server logic, and a suite run takes ~1 h — the `drag-drop-guard` manual
+  checks carry the verification.

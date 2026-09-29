@@ -6,22 +6,24 @@ import { EditButton } from '@/components/ui/row-actions/edit-button'
 import { DeleteButton } from '@/components/ui/row-actions/delete-button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
-import { deletePresetAction, renamePresetAction } from '@/lib/actions/kosztorys-presets'
+import { trashInvestmentAction } from '@/lib/actions/investment-trash'
+import { renamePresetAction } from '@/lib/actions/kosztorys-presets'
 import { toastMessage } from '@/lib/utils/toast'
 import type { PresetRowT } from '@/lib/queries/presets'
 
 export function PresetRowActions({ preset }: { preset: PresetRowT }) {
-  const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [confirmingTrash, setConfirmingTrash] = useState(false)
   const [renaming, setRenaming] = useState(false)
   const [draftName, setDraftName] = useState(preset.name)
   const [pending, startTransition] = useTransition()
 
-  const onDelete = () => {
+  const onTrash = () => {
     startTransition(async () => {
-      const res = await deletePresetAction(preset.id)
-      if (!res.success) return toastMessage(res.error ?? 'Nie udało się usunąć szablonu', 'error')
-      toastMessage('Szablon usunięty.', 'success')
-      setConfirmingDelete(false)
+      const res = await trashInvestmentAction(preset.id)
+      setConfirmingTrash(false)
+      if (!res.success)
+        return toastMessage(res.error ?? 'Nie udało się przenieść szablonu do kosza', 'error')
+      toastMessage('Szablon przeniesiony do kosza.', 'success')
     })
   }
 
@@ -44,7 +46,7 @@ export function PresetRowActions({ preset }: { preset: PresetRowT }) {
         }}
       />
 
-      <DeleteButton label="Usuń szablon" onClick={() => setConfirmingDelete(true)} />
+      <DeleteButton label="Przenieś szablon do kosza" onClick={() => setConfirmingTrash(true)} />
 
       <FormDialogShell
         open={renaming}
@@ -67,14 +69,13 @@ export function PresetRowActions({ preset }: { preset: PresetRowT }) {
       </FormDialogShell>
 
       <ConfirmDialog
-        open={confirmingDelete}
-        title="Usunąć szablon?"
-        description={`„${preset.name}" zniknie bezpowrotnie, razem ze swoimi wersjami. Kosztorysy założone z tego szablonu zostają bez zmian — mają własną kopię.`}
-        confirmLabel="Usuń"
-        pending={pending}
-        pendingLabel="Usuwam…"
-        onConfirm={onDelete}
-        onCancel={() => setConfirmingDelete(false)}
+        open={confirmingTrash}
+        title="Przenieść szablon do kosza?"
+        description={`„${preset.name}" zniknie z listy szablonów i z wyboru szablonu. Możesz go przywrócić z Kosza. Kosztorysy założone z tego szablonu zostają bez zmian — mają własną kopię.`}
+        confirmLabel="Przenieś do kosza"
+        variant="neutral"
+        onConfirm={onTrash}
+        onCancel={() => setConfirmingTrash(false)}
       />
     </div>
   )

@@ -11,18 +11,11 @@ import { subcontractorDueByPlane } from '@/lib/kosztorys/subcontractor-due'
 import { buildKosztorysReconciliation } from '@/lib/kosztorys/reconciliation'
 import { readingFromKosztorys } from '@/lib/kosztorys/summary-reading'
 import { SummaryPanelContent } from '@/components/kosztorys/summary/summary-panel-content'
-import type { SummaryViewT } from '@/components/kosztorys/summary/hooks/use-summary-view'
 import type { ExpenseCategoryRefT } from '@/types/reference-data'
 
-// Robocizna (etapy) stays editor-only — it needs the stage grid to make sense. Podwykonawcy is
-// dropped for the opposite reason: the transfers table below this panel already lists every wypłata
-// — as it does every wpłata, which is why `showTransactionLists={false}` also folds the wpłaty block
-// out of Podsumowanie here. Marża renders for ADMIN/OWNER only.
-//
 // Scope rule on this host: every figure reports the WHOLE investment, so the panel scopes its own
 // transaction-plane fetches to `{ investment }` and never sees the page's URL filters. The transfers
 // table's own „Suma wybranych transakcji" is the one surface answering the filtered question.
-const INVESTMENT_PANEL_VIEWS: SummaryViewT[] = ['summary', 'expenses', 'margin']
 
 type PropsT = {
   investmentId: number
@@ -106,11 +99,7 @@ export async function InvestmentSummaryPanel({
       // this panel renders no settings trigger at all. That also keeps every write off the one
       // route that renders the transfers table, which a route-wide re-render would rebuild.
       subcontractorDue={subcontractorDue}
-      views={INVESTMENT_PANEL_VIEWS}
-      // This page already indents its blocks; the panel's own side padding would stack on top of it.
-      flush
-      showTransactionLists={false}
-      showPies={false}
+      host="investment"
     />
   )
 }

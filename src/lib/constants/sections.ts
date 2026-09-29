@@ -56,6 +56,5 @@ export const MANAGEMENT_LINKS: NavLinkT[] = [
   { href: '/flota', label: PAGE_TITLES.fleet, icon: Car, unreadStream: 'fleet' },
   { href: '/sprzet', label: PAGE_TITLES.equipment, icon: Wrench, unreadStream: 'equipment' },
   { href: '/pracownicy', label: PAGE_TITLES.employees, icon: Users },
+  { href: '/kosz', label: PAGE_TITLES.trash, icon: Trash2 },
 ]
-
-export const OWNER_LINKS: NavLinkT[] = [{ href: '/kosz', label: PAGE_TITLES.trash, icon: Trash2 }]

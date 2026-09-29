@@ -1,5 +1,7 @@
-import { COLUMN_LABELS, type ColumnGroupT } from '@/lib/kosztorys/column-config'
+import { COLUMN_LABELS, type ColumnGroupT } from '@/lib/kosztorys/columns/column-config'
+import { emptySettlementColumnIds, stagesWithEntries } from '@/lib/kosztorys/settlement-columns'
 import { STAGES_COLUMN_GROUP, STAGE_VALUE_NET_COLUMN_GROUP } from '@/lib/kosztorys/stage-keys'
+import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 // The worker view's stawka, as a LOGICAL key: the column it stands for is `price__<plane>`, and which
 // plane is decided per worker, at render (`workerVisibleColumns`). Stored settings hold this key, so
@@ -51,4 +53,21 @@ const WORKER_LABEL_OVERRIDES: Record<string, string> = {
 
 export function workerColumnLabel(key: string): string | undefined {
   return WORKER_LABEL_OVERRIDES[key] ?? COLUMN_LABELS[key]
+}
+
+const PLANNED_COLUMNS = ['plannedQty', 'plannedNetForPlane'] as const
+
+// What the data takes off the worker's document — his link, the owner's Podgląd and his PDF read this
+// one answer, so the three cannot disagree. Full column ids, over the projection's rows and etapy,
+// which are already only his: another crew's entry does not reshape his page.
+export function workerDataHiddenColumns(
+  rows: readonly KosztorysV2RowT[],
+  stages: readonly KosztorysStageT[],
+  hidePlannedOnceExecuted: boolean,
+): ReadonlySet<string> {
+  const hidden = new Set(emptySettlementColumnIds(rows, stages))
+  if (hidePlannedOnceExecuted && stagesWithEntries(rows, stages).length > 0) {
+    for (const id of PLANNED_COLUMNS) hidden.add(id)
+  }
+  return hidden
 }

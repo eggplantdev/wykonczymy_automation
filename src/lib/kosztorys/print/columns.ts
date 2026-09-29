@@ -1,5 +1,5 @@
 import { escapeHtml } from '@/lib/utils/escape-html'
-import type { ColumnValueT, ColumnValuesT } from '@/lib/kosztorys/column-values'
+import type { ColumnValueT, ColumnValuesT } from '@/lib/kosztorys/columns/column-values'
 import { formatQty } from '@/lib/kosztorys/format'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
 import { stageKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'

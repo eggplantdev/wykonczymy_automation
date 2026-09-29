@@ -3,6 +3,7 @@
 import { useTransition } from 'react'
 import { useDraft } from '@/hooks/use-draft'
 import { Button } from '@/components/ui/button'
+import { CheckboxRow } from '@/components/ui/checkbox-row'
 import { Description } from '@/components/ui/description'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
 import { ViewSettingsFields } from '@/components/kosztorys/editor/dialogs/view-settings/view-settings-fields'
@@ -14,14 +15,9 @@ import {
   workerColumnLabel,
 } from '@/lib/kosztorys/worker-view/columns'
 import { sanitizeWorkerViewSettings } from '@/lib/kosztorys/worker-view/settings'
-import { OWNER_ONLY_WORKER_VIEW_SETTINGS_MESSAGE } from '@/lib/kosztorys/owner-only-messages'
-import { isAdminOrOwnerRole } from '@/lib/auth/roles'
-import { useCurrentUser } from '@/hooks/use-current-user'
 import { toastMessage } from '@/lib/utils/toast'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 
-// One set for every worker link in the firm, so a manager may read it but not change it — the same
-// predicate `ownerOnlyAction` refuses by.
 export function KosztorysWorkerViewDialog() {
   const {
     settingsOpen: open,
@@ -31,7 +27,6 @@ export function KosztorysWorkerViewDialog() {
   } = useKosztorysActions().worker
   const [draft, setDraft] = useDraft(settings)
   const [pending, startTransition] = useTransition()
-  const mayWrite = isAdminOrOwnerRole(useCurrentUser().role)
 
   const save = () =>
     startTransition(async () => {
@@ -52,31 +47,44 @@ export function KosztorysWorkerViewDialog() {
         />
         {draft ? (
           <div className="flex min-h-0 flex-col gap-4 overflow-y-auto">
+            <Description size="xs">
+              Kolumny rozliczenia — pomiar razem etapy, etapy i ich wartości, wartość wykonana —
+              pojawią się u pracownika dopiero po pierwszym wpisie w którymkolwiek z jego etapów.
+              Etap bez wpisów pozostaje ukryty.
+            </Description>
             <DocumentColumnOrderButton
               keys={WORKER_DOCUMENT_COLUMNS}
               labelFor={workerColumnLabel}
               value={draft}
               onChange={setDraft}
               resetRanks={{}}
-              disabled={pending || !mayWrite}
+              disabled={pending}
             />
             <ViewSettingsFields
               groups={WORKER_VIEW_GROUPS}
               labelFor={workerColumnLabel}
               value={draft}
               onChange={setDraft}
-              disabled={pending || !mayWrite}
+              disabled={pending}
             />
+            <div className="flex flex-col gap-0.5 border-t pt-3">
+              <p className="text-muted-foreground px-2 text-xs font-medium">Przedmiar</p>
+              <CheckboxRow
+                checked={draft.hidePlannedOnceExecuted}
+                disabled={pending}
+                onCheckedChange={(checked) =>
+                  setDraft({ ...draft, hidePlannedOnceExecuted: checked })
+                }
+              >
+                Ukryj przedmiar i wartość przedmiaru, gdy w etapach są już wpisy
+              </CheckboxRow>
+            </div>
           </div>
         ) : (
           <p className="text-muted-foreground text-sm">Wczytywanie…</p>
         )}
-        {/* The disabled Button has pointer-events off, so a `title` would never show. */}
-        {!mayWrite && (
-          <Description size="xs">{OWNER_ONLY_WORKER_VIEW_SETTINGS_MESSAGE}</Description>
-        )}
         <DialogFooter>
-          <Button size="sm" disabled={!draft || pending || !mayWrite} onClick={save}>
+          <Button size="sm" disabled={!draft || pending} onClick={save}>
             Zapisz
           </Button>
         </DialogFooter>

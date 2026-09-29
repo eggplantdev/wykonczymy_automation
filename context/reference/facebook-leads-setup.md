@@ -186,16 +186,10 @@ Explorer → Get Page Access Token → same scopes → debug tool → **Extend A
 short user token for a long-lived one _first_, then pull the page token; a page token derived from a
 long-lived user token outlives one derived from a short one, but still expires.
 
-## Known gap: webhook rows carry no `form_id`
+## Fixed gap: webhook rows carried no `form_id` (until 2026-09-15)
 
-`GET /{leadgen_id}` with no `?fields` returns exactly `created_time`, `field_data`, `id` — **no
-`form_id`**. So in the webhook route `parsed.data.form_id` is always `undefined`, `fetchFormQuestions`
-is never called, and `normalizeLead` falls back to key heuristics + an email regex instead of Meta's
-declared `EMAIL` / `PHONE` / `FULL_NAME` types; `formId` / `formQuestions` persist empty. Confirmed in
-real data — every `facebook_lead_ads` row has a null `form_id` while `website_form` rows carry theirs.
-The reconcile path is unaffected (it passes `form.id` explicitly), which is why the „Pobierz
-zgłoszenia" button yields richer rows than the webhook.
-
-Fix when someone picks it up: add `?fields=id,created_time,field_data,form_id,ad_id` to
-`src/lib/leads/fetch-lead.ts`, or read `change.value.form_id`, which Meta already puts in the webhook
-body. Owes a failing repro test first (test-driven debugging).
+`GET /{leadgen_id}` with no `?fields` returns only `created_time`, `field_data`, `id` — **no
+`form_id`** — so from 2026-07-08 every webhook lead was saved without its form and `normalizeLead`
+fell back to key heuristics. Fixed in `20a9558d`: `src/lib/leads/fetch-lead.ts` now asks for
+`?fields=id,created_time,form_id,field_data`. The ~87 rows saved before the fix keep a null
+`form_id` (owner call — not backfilled).

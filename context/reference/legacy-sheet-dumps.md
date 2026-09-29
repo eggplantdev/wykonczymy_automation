@@ -53,7 +53,7 @@ Skasowane: `fetch-grids.ts` (pobieranie, wznawialne, `PAUSE_MS = 1_500`, scope S
 Katalog wjechał na produkcję **2026-09-02** (940 pozycji, tabela była pusta), po czym skasowano
 także `export-catalogue.ts` i `import-catalogue.ts` — cały `src/scripts/legacy-sheet-import/`
 zniknął. Wsad był jednorazowy i insert-only po `match_key`, więc przegląd katalogu (kasowanie
-śmieci, wycena zer, zdejmowanie dopisku „[stary arkusz]") robi się już **w aplikacji na
+śmieci, wycena zer) robi się już **w aplikacji na
 produkcji**, zwykłą edycją wiersza — nie powtórnym wsadem, który dołożyłby duplikaty pod nowymi
 kluczami.
 

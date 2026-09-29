@@ -8,6 +8,9 @@
 //   INV        investment id, or `all` for every investment (default: all)
 //   APPLY      1 = write, anything else = dry run that only prints the diff
 //   CATALOGUE  1 = clean „Katalog prac" too, and only it (skips inwestycje)
+//
+// Raw SQL expires no cache: after an APPLY the deployed app keeps serving the old texts until their
+// tags expire. One edit in the katalog, one szablon save and one kosztorys cell edit flush them.
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getPayload } from 'payload'
 import config from '../payload.config'

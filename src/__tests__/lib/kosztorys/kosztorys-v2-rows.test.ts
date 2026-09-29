@@ -9,7 +9,7 @@ import {
 } from '@/lib/kosztorys/settlement-rows'
 import { applyRestoreItem, revertField } from '@/lib/kosztorys/row-ops'
 import { rowDoneFraction } from '@/lib/kosztorys/calc'
-import { computedColumnValues } from '@/lib/kosztorys/column-values'
+import { computedColumnValues } from '@/lib/kosztorys/columns/column-values'
 import {
   STAGE_QTY_PREFIX,
   STAGE_VALUE_GROSS_COLUMN_GROUP,

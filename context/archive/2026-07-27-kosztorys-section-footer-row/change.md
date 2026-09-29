@@ -24,16 +24,6 @@ Constraint the owner set explicitly: **only the columns we can already total**.
 Follow-up after the first look at it (owner, same day): that constraint means _everything that can be
 calculated_, not only what `SectionSubtotalT` happened to carry — the etap axis, „Pozostało" and the
 przedmiar qty are all plain sums of their own column and belong in the footer. Resolved by moving the
-column-id → total mapping into one lib function, `columnTotalsForRows` (`lib/kosztorys/settlement.ts`),
+column-id → total mapping into one lib function, `columnTotalsForRows` (now `src/lib/kosztorys/column-totals.ts`),
 called at two scopes: all rows for „Razem", one section's rows for each footer. Σ of the footers is
 „Razem" by construction, and a column stays blank only where its total is not a sum of its own cells.
-
-## Distilled at follow-up (2026-08-11)
-
-`plan.md` and `plan-brief.md` were deleted at the original archive (`8fb3b65e`), then restored whole
-by `a1cbc0bd` on the theory that 545 lines of design record couldn't be zero rationale. Re-checked
-against step 5d's actual test (unrecoverable-elsewhere rationale, not line count): the dsg
-cell-identity trap is already generalized in `lessons.md:145-150`; the "remaining ≠ plannedNet−net"
-fact is already in `kosztorys-editor-domain-notes.md` (P9); the widening decision is already above.
-Both files carried nothing beyond that plus code-recoverable implementation detail. Re-deleted;
-`git log --follow` on this folder still reaches both in full.

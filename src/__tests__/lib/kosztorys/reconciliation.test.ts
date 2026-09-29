@@ -58,14 +58,13 @@ function clientTotals(tree: KosztorysTreeT) {
   return kosztorysClientTotals(treeToRows(tree), tree.stages, tree.globalDiscount)
 }
 
-// A correctly-populated investment: one LABOR_COST + one RABAT transfer equal to the kosztorys client
-// NETS. VAT is a client-pricing concept only — the ledger plane (LABOR_COST/RABAT) is netto, so the
-// synced transactions equal the client nets directly, with no grossing.
-function syncedTransactions(tree: KosztorysTreeT): TypeSettledTotalT[] {
-  const { laborCostsNetFromKosztorys, discountNetFromKosztorys } = clientTotals(tree)
+// The transactions side is given as literals worked out by hand from the fixture, never read back from
+// kosztorysClientTotals — a derived figure would move with any error on the kosztorys side and keep the
+// verdict silent. The ledger plane (LABOR_COST/RABAT) is netto, so VAT never enters these figures.
+function bookedTransactions(laborCostsNet: number, discountNet: number): TypeSettledTotalT[] {
   return [
-    { type: 'LABOR_COST', settled: false, total: laborCostsNetFromKosztorys },
-    { type: 'RABAT', settled: false, total: discountNetFromKosztorys },
+    { type: 'LABOR_COST', settled: false, total: laborCostsNet },
+    { type: 'RABAT', settled: false, total: discountNet },
   ]
 }
 
@@ -84,8 +83,7 @@ function reconcile(tree: KosztorysTreeT, txns: TypeSettledTotalT[]) {
 
 describe('cross-boundary parity: kosztorys client totals vs transaction sums', () => {
   it('per-item rabat: matching transfers reconcile silently on both figures', () => {
-    const tree = makeReconTree()
-    const verdict = reconcile(tree, syncedTransactions(tree))
+    const verdict = reconcile(makeReconTree(), bookedTransactions(140, 8))
     expect(verdict.laborCosts.mismatch).toBe(false)
     expect(verdict.discount.mismatch).toBe(false)
   })
@@ -97,7 +95,7 @@ describe('cross-boundary parity: kosztorys client totals vs transaction sums', (
     expect(laborCostsNetFromKosztorys).toBeCloseTo(140) // rows go gross → no per-item rabat added back
     expect(discountNetFromKosztorys).toBeCloseTo(14) // the flat amount
 
-    const verdict = reconcile(tree, syncedTransactions(tree))
+    const verdict = reconcile(tree, bookedTransactions(140, 14))
     expect(verdict.laborCosts.mismatch).toBe(false)
     expect(verdict.discount.mismatch).toBe(false)
   })
@@ -123,14 +121,13 @@ describe('cross-boundary parity: kosztorys client totals vs transaction sums', (
     expect(laborCostsNetFromKosztorys).toBeCloseTo(140) // pre-rabat basis (doneNet + itemDiscountNet) — unchanged
     expect(discountNetFromKosztorys).toBeCloseTo(14) // Σ per-item rabat: row1 10 + row2 4 — = old global 10%
 
-    const verdict = reconcile(tree, syncedTransactions(tree))
+    const verdict = reconcile(tree, bookedTransactions(140, 14))
     expect(verdict.laborCosts.mismatch).toBe(false)
     expect(verdict.discount.mismatch).toBe(false)
   })
 
   it('vatRate 0: gross equals net, matching transfers still reconcile', () => {
-    const tree = makeReconTree({ vatRate: 0 })
-    const verdict = reconcile(tree, syncedTransactions(tree))
+    const verdict = reconcile(makeReconTree({ vatRate: 0 }), bookedTransactions(140, 8))
     expect(verdict.laborCosts.mismatch).toBe(false)
     expect(verdict.discount.mismatch).toBe(false)
   })
@@ -146,12 +143,8 @@ describe('cross-boundary parity: kosztorys client totals vs transaction sums', (
   })
 
   it('a de-synced LABOR_COST fires robocizna and leaves rabat silent', () => {
-    const tree = makeReconTree()
-    const txns = syncedTransactions(tree)
-    // Nudge only the LABOR_COST transfer a full grosz off.
-    const laborRow = txns.find((t) => t.type === 'LABOR_COST')!
-    laborRow.total += 0.01
-    const verdict = reconcile(tree, txns)
+    // Only the LABOR_COST transfer is a full grosz off.
+    const verdict = reconcile(makeReconTree(), bookedTransactions(140.01, 8))
     expect(verdict.laborCosts.mismatch).toBe(true)
     expect(verdict.discount.mismatch).toBe(false)
   })
@@ -175,11 +168,7 @@ describe('nothing booked on the transactions plane silences BOTH verdicts (EX-55
   it('one figure booked and the other not still SCREAMS on the unbooked one', () => {
     // The gap the per-investment rule protects: „robocizna zaksięgowana, rabat nie" is exactly the
     // half-migrated legacy investment the alert exists for. A per-figure silence would hide it.
-    const tree = makeReconTree()
-    const { laborCostsNetFromKosztorys } = clientTotals(tree)
-    const verdict = reconcile(tree, [
-      { type: 'LABOR_COST', settled: false, total: laborCostsNetFromKosztorys },
-    ])
+    const verdict = reconcile(makeReconTree(), [{ type: 'LABOR_COST', settled: false, total: 140 }])
     expect(verdict.laborCosts.mismatch).toBe(false)
     expect(verdict.discount.mismatch).toBe(true)
   })

@@ -8,14 +8,15 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  keepMenuOpen,
 } from '@/components/ui/dropdown-menu'
 import { FilterTriggerButton } from '@/components/filters/filter-trigger-button'
-import { STATUS_LABELS } from '@/components/investments/investment-status-badge'
-import { FILTERABLE_STATUSES } from '@/hooks/use-status-filter'
+import {
+  INVESTMENT_STATUS_LABELS,
+  PICKABLE_INVESTMENT_STATUSES,
+  type InvestmentStatusT,
+} from '@/lib/constants/investment-status'
 import { cn } from '@/lib/utils/cn'
-import type { InvestmentStatusT } from '@/types/reference-data'
-
-const STATUS_ORDER = FILTERABLE_STATUSES
 
 type StatusFilterPropsT = {
   selectedStatuses: Set<InvestmentStatusT>
@@ -25,7 +26,7 @@ type StatusFilterPropsT = {
 
 export function StatusFilter({ selectedStatuses, onToggle, triggerClassName }: StatusFilterPropsT) {
   // Same reading of „active" as every FilterMultiSelect trigger: narrowed, not merely touched.
-  const isFiltered = selectedStatuses.size !== STATUS_ORDER.length
+  const isFiltered = selectedStatuses.size !== PICKABLE_INVESTMENT_STATUSES.length
 
   return (
     <DropdownMenu>
@@ -42,16 +43,10 @@ export function StatusFilter({ selectedStatuses, onToggle, triggerClassName }: S
       <DropdownMenuContent align="start" className="w-48">
         <DropdownMenuLabel>Widoczne statusy</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {STATUS_ORDER.map((status) => (
-          <DropdownMenuItem
-            key={status}
-            // Plain items + preventDefault, not DropdownMenuCheckboxItem: the menu must survive a
-            // toggle so several statuses can be flipped in one visit.
-            onSelect={(e) => e.preventDefault()}
-            onClick={() => onToggle(status)}
-          >
+        {PICKABLE_INVESTMENT_STATUSES.map((status) => (
+          <DropdownMenuItem key={status} onSelect={keepMenuOpen(() => onToggle(status))}>
             <CheckIcon className={cn(!selectedStatuses.has(status) && 'opacity-0')} />
-            {STATUS_LABELS[status]}
+            {INVESTMENT_STATUS_LABELS[status].pl}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

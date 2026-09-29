@@ -7,6 +7,9 @@ import {
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import type { ColumnRanksT } from '@/lib/table/column-order'
 import type { KosztorysStageT, ToolPlaneT } from '@/lib/kosztorys/types'
+import { stageKey } from '@/lib/kosztorys/stage-keys'
+import { workerDataHiddenColumns } from '@/lib/kosztorys/worker-view/columns'
+import { row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
 
 // The worker's document: a closed list at his plane. Asserted on rendered ids, like the investor's
 // preview, because the ids are what reaches his screen.
@@ -143,6 +146,51 @@ describe('worker columns', () => {
 
     expect(visible).toContain(planePriceKey('price', 'own_tools'))
     expect(visible).not.toContain(planePriceKey('price', 'w_tools'))
+  })
+})
+
+// The link and the owner's Podgląd subtract the rule the PDF prints by (`workerDataHiddenColumns`).
+describe('worker columns the data takes off', () => {
+  const stages: KosztorysStageT[] = [
+    ...STAGES,
+    { id: 9, ordinal: 2, label: 'Etap 2', plane: 'w_tools', workerId: 3 },
+  ]
+  const stageRow = (overrides: Parameters<typeof row>[0] = {}) =>
+    row({ [stageKey(7)]: 0, [stageKey(9)]: 0, ...overrides })
+  const idsFor = (rows: ReturnType<typeof stageRow>[], hidePlannedOnceExecuted: boolean) =>
+    workerIds({
+      stages,
+      documentHiddenColumns: workerDataHiddenColumns(rows, stages, hidePlannedOnceExecuted),
+    })
+
+  it('shows the offer shape before any entry', () => {
+    const visible = idsFor([stageRow()], true)
+
+    expect(visible).toContain('plannedQty')
+    expect(visible).toContain('plannedNetForPlane')
+    for (const id of ['stageQtySum', 'net', 'stage_7', 'stage_9', 'stageValueNet_7']) {
+      expect(visible).not.toContain(id)
+    }
+  })
+
+  it('once an etap has an entry: przedmiar off, that etap on, the empty one still off', () => {
+    const visible = idsFor([stageRow({ [stageKey(7)]: 2 })], true)
+
+    expect(visible).not.toContain('plannedQty')
+    expect(visible).not.toContain('plannedNetForPlane')
+    for (const id of ['stage_7', 'stageValueNet_7', 'stageQtySum', 'net', 'remainingForPlane']) {
+      expect(visible).toContain(id)
+    }
+    expect(visible).not.toContain('stage_9')
+    expect(visible).not.toContain('stageValueNet_9')
+  })
+
+  it('keeps the przedmiar beside the settlement with the checkbox off', () => {
+    const visible = idsFor([stageRow({ [stageKey(7)]: 2 })], false)
+
+    expect(visible).toContain('plannedQty')
+    expect(visible).toContain('plannedNetForPlane')
+    expect(visible).toContain('net')
   })
 })
 
