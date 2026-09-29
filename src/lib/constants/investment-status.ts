@@ -1,6 +1,6 @@
-// Written out by hand, not derived from the labels map: `Object.keys` widens to `string[]`, and then
-// `z.enum` and every `Record<InvestmentStatusT, …>` stop checking anything. Order is the lifecycle
-// order the pickers show. No `server-only` — the collection reads it inside the Payload CLI graph.
+// Not `Object.keys` of the labels map: that widens to `string[]`, and then `z.enum` and every
+// `Record<InvestmentStatusT, …>` stop checking anything. Order is the lifecycle order the pickers show.
+// No `server-only` — the collection reads it inside the Payload CLI graph.
 export const INVESTMENT_STATUSES = ['quote', 'planowana', 'active', 'completed', 'szablon'] as const
 
 export type InvestmentStatusT = (typeof INVESTMENT_STATUSES)[number]

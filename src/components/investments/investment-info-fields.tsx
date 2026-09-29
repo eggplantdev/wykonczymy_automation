@@ -1,5 +1,5 @@
 import { ContactLink } from '@/components/ui/contact-link'
-import { STATUS_LABELS } from '@/components/investments/investment-status-badge'
+import { INVESTMENT_STATUS_LABELS } from '@/lib/constants/investment-status'
 import type { InvestmentRefT } from '@/types/reference-data'
 
 // One list for two surfaces — the investment card and the editor's „Inwestycja" tab. Written out
@@ -25,6 +25,6 @@ export function buildInvestmentInfoFields(
     { label: 'Osoba kontaktowa', value: investment.contactPerson },
     { label: 'Notatki', value: investment.notes },
     { label: 'Opinia', value: investment.review },
-    { label: 'Status', value: STATUS_LABELS[investment.status] },
+    { label: 'Status', value: INVESTMENT_STATUS_LABELS[investment.status].pl },
   ].filter((field) => field.value)
 }

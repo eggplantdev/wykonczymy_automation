@@ -1,14 +1,6 @@
 import { BADGE_BASE } from '@/components/ui/badge'
 import { cn } from '@/lib/utils/cn'
-import {
-  INVESTMENT_STATUSES,
-  INVESTMENT_STATUS_LABELS,
-  type InvestmentStatusT,
-} from '@/lib/constants/investment-status'
-
-export const STATUS_LABELS = Object.fromEntries(
-  INVESTMENT_STATUSES.map((status) => [status, INVESTMENT_STATUS_LABELS[status].pl]),
-) as Record<InvestmentStatusT, string>
+import { INVESTMENT_STATUS_LABELS, type InvestmentStatusT } from '@/lib/constants/investment-status'
 
 const STATUS_CLASSNAMES: Record<InvestmentStatusT, string> = {
   planowana: 'bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200',
@@ -19,5 +11,9 @@ const STATUS_CLASSNAMES: Record<InvestmentStatusT, string> = {
 }
 
 export function InvestmentStatusBadge({ status }: { status: InvestmentStatusT }) {
-  return <span className={cn(BADGE_BASE, STATUS_CLASSNAMES[status])}>{STATUS_LABELS[status]}</span>
+  return (
+    <span className={cn(BADGE_BASE, STATUS_CLASSNAMES[status])}>
+      {INVESTMENT_STATUS_LABELS[status].pl}
+    </span>
+  )
 }

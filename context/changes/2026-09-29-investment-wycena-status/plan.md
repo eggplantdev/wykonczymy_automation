@@ -241,9 +241,11 @@ wybór.
 
 ## Migration Notes
 
-Addytywna: `pnpm db:migrate:prod` **przed** pushem kodu (człowiek). Preview po merge'u:
-`pnpm db:migrate:preview`. Rollback kodu jest bezpieczny, bo stary kod nie zna wartości, a żaden wiersz
-jej nie ma, dopóki ktoś jej nie ustawi.
+Addytywna: `pnpm db:migrate:prod` (`20260929_3` i `20260929_4`) **przed** pushem kodu (człowiek).
+Preview po merge'u: `pnpm db:migrate:preview`. Rollback kodu **nie** jest bezdanowy: od Amendmentu każda
+nowa inwestycja zapisuje się jako `quote`, a stary kod nie ma dla niej etykiety ani badge'a. Przed
+cofnięciem kodu: `UPDATE investments SET status = 'planowana' WHERE status = 'quote'` i `down` z
+`20260929_4` (default kolumny wraca na `active`).
 
 ## Whole-tree Gate
 
@@ -265,6 +267,11 @@ dostaje domyślnie Wycenę. Zmienia to decyzję 3 z researchu (Wycena była po P
 - `20260929_3` traci `AFTER 'planowana'`. Enum nigdy nie był w kolejności cyklu życia (`active, completed,
 planowana, …`) i nic po nim nie sortuje, więc pozycja nic nie znaczyła.
 - Promocja leada zostaje przy Planowanej (decyzja 2 nie zmieniona).
+- Skutek: nowa inwestycja nie jest aktywna. Nie liczy się do „N aktywnych” i nie ma jej w pickerze
+  wpłaty/wydatku (dopóki „Aktywne” jest włączone), aż ktoś przestawi ją na Aktywną. Sprawdzenie ręczne w
+  `manual-checks.md`.
+- Default kolumny z `20260929_4` nie ma testu automatycznego: każdy INSERT idzie przez Payloada (który
+  wstawia `defaultValue`) albo podaje status jawnie. Sprawdzony psql na 5433 i 5435.
 
 - Research: `context/changes/2026-09-29-investment-wycena-status/research.md`
 - Precedens: `context/archive/2026-07-16-investment-planowana-status/`, `src/migrations/20260718_0_add_planowana_investment_status.ts`
@@ -293,5 +300,5 @@ planowana, …`) i nic po nim nie sortuje, więc pozycja nic nie znaczyła.
 
 #### Automated
 
-- [x] A.1 Migracja `20260929_4` przechodzi lokalnie (5433) i na 5435
-- [x] A.2 Spec DB: inwestycja bez statusu zapisuje się jako `quote`
+- [x] A.1 Migracja `20260929_4` przechodzi lokalnie (5433) i na 5435 — d2de3a31
+- [x] A.2 Spec DB: inwestycja bez statusu zapisuje się jako `quote` — d2de3a31

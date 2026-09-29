@@ -11,11 +11,11 @@ import { DEFAULT_VAT } from '@/lib/kosztorys/constants'
 import { SETTLEMENT_MODE_DEFAULT, type SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 import { perfStart } from '@/lib/perf'
 
+import type { InvestmentStatusT } from '@/lib/constants/investment-status'
 import type {
   CashRegisterRefT,
   CashRegisterTypeT,
   InvestmentRefT,
-  InvestmentStatusT,
   WorkerRefT,
   OtherCategoryRefT,
   ExpenseCategoryRefT,

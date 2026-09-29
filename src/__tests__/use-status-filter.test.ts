@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { filterByStatuses, selectionFrom } from '@/hooks/use-status-filter'
-import type { InvestmentStatusT } from '@/types/reference-data'
+import type { InvestmentStatusT } from '@/lib/constants/investment-status'
 
 type RowT = { id: number; status: InvestmentStatusT }
 

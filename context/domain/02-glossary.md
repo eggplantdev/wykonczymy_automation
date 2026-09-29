@@ -248,10 +248,10 @@ step and is **out of scope** until explicitly decided. Kosztorys columns are thr
 **Polish string values that are frozen by a migration** — these look like drift and are not; renaming
 either one is a schema change, so both stay until someone decides otherwise:
 
-| Value         | Where it is frozen                                                             | Also appears as                                                                         |
-| ------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
-| `'RABAT'`     | `enum_transactions_type` (`src/migrations/20260611_add_rabat_enum.ts:7`)       | a URL query-filter value in `transfer-filters.tsx`; key in `constants/transfers.ts:146` |
-| `'planowana'` | `InvestmentStatusT` (`src/types/reference-data.ts:15`), migration `20260718_0` | investment status filters                                                               |
+| Value         | Where it is frozen                                                                       | Also appears as                                                                         |
+| ------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `'RABAT'`     | `enum_transactions_type` (`src/migrations/20260611_add_rabat_enum.ts:7`)                 | a URL query-filter value in `transfer-filters.tsx`; key in `constants/transfers.ts:146` |
+| `'planowana'` | `INVESTMENT_STATUSES` (`src/lib/constants/investment-status.ts`), migration `20260718_0` | investment status filters                                                               |
 
 **Verified clean (2026-08-15):** no identifier in the EX-548 drift inventory is a DB column, a Payload
 field, or a key inside persisted JSON. In particular `rabat_client_net` / `suma_prac_net` /

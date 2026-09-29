@@ -1,4 +1,5 @@
-import type { CashRegisterTypeT, InvestmentStatusT } from '@/types/reference-data'
+import type { InvestmentStatusT } from '@/lib/constants/investment-status'
+import type { CashRegisterTypeT } from '@/types/reference-data'
 import type { SheetStatusT } from '@/lib/constants/sheets'
 import type { RoleT } from '@/lib/auth/roles'
 import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'

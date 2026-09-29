@@ -13,8 +13,6 @@ export type ReferenceItemT = {
 
 export type CashRegisterTypeT = 'MAIN' | 'AUXILIARY' | 'VIRTUAL' | 'WORKER'
 
-export type { InvestmentStatusT } from '@/lib/constants/investment-status'
-
 export type CashRegisterRefT = Omit<ReferenceItemT, 'type'> & {
   type: CashRegisterTypeT
 }

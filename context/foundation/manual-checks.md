@@ -1984,6 +1984,8 @@ sprzed migracji, nie względem stałej liczby.
       Zapis Wyceny się udaje, a badge w tabeli i na karcie inwestycji jest bursztynowy.
 - [ ] Inwestycja w Wycenie nie pojawia się w pickerze wpłaty/wydatku, dopóki „Aktywne” jest
       włączone. Po wyłączeniu jest widoczna, tak jak Planowana.
+- [ ] Świeżo dodana inwestycja nie zwiększa licznika „N aktywnych” na `/inwestycje`. Po przestawieniu
+      na Aktywną licznik rośnie o 1, a inwestycja pojawia się w pickerze wydatku.
 
 ### Phase 2: Filtr statusów i zapisany wybór
 
