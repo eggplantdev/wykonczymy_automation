@@ -1081,6 +1081,22 @@ this is not a coverage gap to close with another spec; it is a **checklist item 
 edit**: widening a type, grep for the `unstable_cache` keys its payload passes through and bump them
 in the same commit.
 
+**Same type, new source: bump the key there too (EX-893, prod 2026-09-29).**
+
+- **What changed.** `getPresets` / `getPresetSections` kept the type and the keys (`['presets']`,
+  `['preset-sections']`). What changed was the source: the `kosztorys_presets` jsonb table became
+  investments with status `szablon`, so an `id` now means a different thing.
+- **What production showed.** After deploy + migration, `/szablony` listed both szablony with
+  0 sekcji / 0 pozycji. Their links went to `/szablony/8`, an old jsonb id, which returned „Nie
+  znaleziono”.
+- **Why nothing caught it.** A migration isn't a write through an action, so no `updateTag` fired,
+  and the Vercel Data Cache outlives a deploy. The type didn't change, so the checklist above never
+  triggered.
+- **Rule.** Bump the key whenever the **meaning** of a payload changes (source table, id space),
+  not only its shape.
+- **Recovery without a deploy.** Purge the Data Cache in Vercel, or run any action that expires the
+  tag. Here that was creating a szablon and deleting it.
+
 ## A guard running on REAL data is still blind if the real data predates the feature
 
 `lessons.md:19` says a parity test must run the real per-surface assembly on real data. The
