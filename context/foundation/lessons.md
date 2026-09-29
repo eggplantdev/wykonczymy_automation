@@ -2376,3 +2376,17 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
   residue.
 - **Applies to**: any debounced autosave (kosztorys editor, settings fields) that grows a
   "don't lose the last edit" requirement.
+
+## A print document's vertical margin goes on @page — body padding does not repeat in Safari
+
+- **Context**: Any HTML document printed via the browser dialog (`src/lib/kosztorys/print/`,
+  `acceptance-protocol/`, `transfers/build-transfers-print-html.ts`, any new one).
+- **Problem**: „Protokół odbioru” kept every margin as body padding + `box-decoration-break: clone`.
+  Chrome clones the padding onto each page; Safari ignores `box-decoration-break` on a block split
+  across pages, so page 2+ started its table at the sheet edge. The offer/worker PDFs had already
+  solved this (`print/styles.ts`) and the protocol reinvented it wrong.
+- **Rule**: Split the margin: vertical on `@page` (repeats on every page in every browser),
+  horizontal as body padding (survives Chrome's „Marginesy: Brak”). Never rely on
+  `box-decoration-break` for page fragments. A new print document copies the split from
+  `print/styles.ts`, and is checked in Safari's print preview on a 2+ page document.
+- **Applies to**: plan, implement, impl-review

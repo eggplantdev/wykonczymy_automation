@@ -1,20 +1,20 @@
 export const PROTOCOL_PRINT_STYLES = `
 * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
-/* Every margin lives on the body, cloned onto each page it breaks across: the dialog's „Marginesy"
-   set to „Brak" drops @page whole, and a continuation page then started its table at the sheet
-   edge. @page stays at zero so „Domyślne" does not add its own on top. The empty margin boxes
-   suppress the browser's own header and footer. */
+/* The vertical margin has to live on @page: body padding does not repeat on continuation pages in
+   Safari, which ignores box-decoration-break on a block fragmented across pages, so page two started
+   its table at the sheet edge. The horizontal inset stays on the body, where the dialog's
+   „Marginesy: Brak" cannot take it away. The empty margin boxes suppress the browser's own header
+   and footer. */
 @page {
-  margin: 0;
+  margin: 16mm 0 14mm;
   @top-center { content: ''; }
   @bottom-center { content: ''; }
 }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  font-size: 9.5pt; line-height: 1.45; color: #18181b; margin: 0; padding: 16mm 18mm 14mm;
-  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+  font-size: 9.5pt; line-height: 1.45; color: #18181b; margin: 0; padding: 0 18mm;
   font-variant-numeric: tabular-nums;
 }
 
