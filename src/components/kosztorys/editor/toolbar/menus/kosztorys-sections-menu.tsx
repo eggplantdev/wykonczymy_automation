@@ -83,7 +83,7 @@ export function KosztorysSectionsMenu() {
       searchable
       title="Co widać: sekcje"
       triggerClassName={TOOLBAR_FILTER_TRIGGER_CLASS}
-      contentClassName="w-80"
+      contentClassName="w-112"
       resetAction={resetAction}
       bulkLabels={{ select: 'Rozwiń wszystkie sekcje', deselect: 'Zwiń wszystkie sekcje' }}
       actionsHeading="Zwijanie"

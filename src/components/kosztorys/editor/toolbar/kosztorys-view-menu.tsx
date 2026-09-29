@@ -94,6 +94,7 @@ export function KosztorysViewMenu() {
   return (
     <ColumnToggleMenu
       align="start"
+      contentClassName="w-112"
       items={columnToggleItems}
       hiddenCount={hiddenCount}
       onToggle={toggleColumn}
