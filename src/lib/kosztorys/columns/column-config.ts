@@ -31,8 +31,8 @@ export const COLUMN_LABELS: Record<string, string> = {
   plannedGross: 'Wartość przedmiaru brutto',
   plannedNetForPlane: 'Wartość przedmiaru netto',
   remainingForPlane: 'Pozostało netto (względem przedmiaru)',
-  net: 'Razem netto',
-  gross: 'Razem brutto',
+  net: 'Wartość netto (razem etapy)',
+  gross: 'Wartość brutto (razem etapy)',
   remaining: 'Pozostało netto (względem przedmiaru)',
   remainingGross: 'Pozostało brutto (względem przedmiaru)',
   stages: 'Etapy — ilość',
@@ -48,14 +48,16 @@ export const COLUMN_LABELS: Record<string, string> = {
  * `COLUMN_LABELS[id]` and the two disagree about what a column is called, which is the exact drift
  * this file exists to prevent.
  *
- * „Razem": what the client pays (post-rabat) vs what this crew is owed (rabat is a client concession
- * — calc.ts `netForQtyForView`). „Pomiar": the whole scope's executed quantity vs only this crew's
- * etapy (settlement-rows.ts `rowTotalQtyDone`).
+ * „Wartość (razem etapy)": what the client pays (post-rabat) vs what this crew is owed (rabat is a
+ * client concession — calc.ts `netForQtyForView`). The client label carries no „po rabacie": it is
+ * printed on the investor's document, where it read as a granted rabat on offers that had none.
+ * „Pomiar": the whole scope's executed quantity vs only this crew's etapy (settlement-rows.ts
+ * `rowTotalQtyDone`).
  */
 export function columnLabelForView(id: string, view: PriceViewT): string {
   // A subcontractor rate names its plane in the label, because both planes are on screen at once and
-  // the picker is a flat list — „Cena j.m. netto" twice would be unreadable. Same „— <wariant>" shape as
-  // „Razem netto — po rabacie" below, and built from the base entry so one rename moves both planes.
+  // the picker is a flat list — „Cena j.m. netto" twice would be unreadable. Built from the base entry
+  // so one rename moves both planes.
   const planePrice = planePriceKeyParts(id)
   if (planePrice !== null) {
     const { base, plane } = planePrice
@@ -63,7 +65,7 @@ export function columnLabelForView(id: string, view: PriceViewT): string {
   }
   const label = COLUMN_LABELS[id] ?? id
   if (id === 'net' || id === 'gross') {
-    if (view === 'client') return `${label} — po rabacie`
+    if (view === 'client') return label
     return `Suma etapy ${PLANE_LABELS[view].toLowerCase()} ${id === 'net' ? 'netto' : 'brutto'}`
   }
   if (id === 'stageQtySum' && view !== 'client')

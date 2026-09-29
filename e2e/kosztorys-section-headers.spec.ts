@@ -33,8 +33,8 @@ async function itemOrdinals(page: Page): Promise<string[]> {
 }
 
 // The „Razem" row rides the grid's own layout as its last row, so it is a `.dsg-row` like any other.
-// Two other rows carry the word — the column header („Razem netto") and every section footer („Razem
-// sekcja") — so both are excluded by class before the filter runs.
+// Every section footer („Razem sekcja") carries the word too, so footers and the header row are
+// excluded by class before the filter runs.
 function totalsRow(page: Page) {
   return page
     .locator('.dsg-row:not(.dsg-row-header):not(.kosztorys-section-footer)')

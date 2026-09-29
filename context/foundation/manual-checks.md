@@ -1519,11 +1519,13 @@ addytywna — na produkcję **przed** pushem; DROP starych kolumn to EX-886, po 
 
 ### Ustawienia widoku pracowników
 
-- [ ] Jako MANAGER okno „Ustawienia widoku pracownika" jest edytowalne: odznaczenie kolumny
+- [x] Jako MANAGER okno „Ustawienia widoku pracownika" jest edytowalne: odznaczenie kolumny
       i „Zapisz" chowa ją pod każdym linkiem pracownika. (Do 2026-09-29 było tylko do odczytu dla
       MANAGERA — właściciel przekazał tę decyzję kierownikom.)
-- [ ] Jako MANAGER w „Ustawieniach podglądu inwestora" przycisk „Zapisz jako domyślne" jest aktywny
+      _Zweryfikowano 2026-09-29 (staging, MANAGER, QA-kosz-A): okno edytowalne (checkboxy aktywne poza „Opis prac”), odznaczenie „Jednostka miary” + „Zapisz” daje toast „Zapisano — zmiana obowiązuje na wszystkich linkach pracowników.” i `kosztorys_worker_view_settings.hidden_columns = ["unit"]` w DB; po ponownym otwarciu kolumna odznaczona. Ukrycie pod konkretnym linkiem nie było oglądane (brak pracownika na etapach na preview). Ustawienie przywrócone do `[]`._
+- [x] Jako MANAGER w „Ustawieniach podglądu inwestora" przycisk „Zapisz jako domyślne" jest aktywny
       i zapis zmienia domyślne kolumny dla inwestycji bez własnych ustawień.
+      _Zweryfikowano 2026-09-29 (staging, MANAGER): „Zapisz jako domyślne” aktywny; po zapisie toast „Zapisano — te kolumny są teraz domyślne.” i `kosztorys_client_view_defaults.hidden_columns` dostało „unit”. Wartość przywrócona._
 
 ### PDF pracownika
 
@@ -2040,52 +2042,83 @@ sprzed migracji, nie względem stałej liczby.
 
 ## kosz-inwestycji-manager — kosz inwestycji dla kierownika (2026-09-29)
 
-- [ ] Jako MANAGER: „Kosz" jest ostatnią pozycją menu (pod „Pracownicy"), `/kosz` się otwiera.
-- [ ] Jako MANAGER: „Usuń" na `/inwestycje` przenosi inwestycję bez transakcji do kosza,
+- [x] Jako MANAGER: „Kosz" jest ostatnią pozycją menu (pod „Pracownicy"), `/kosz` się otwiera.
+      _Zweryfikowano 2026-09-29 (staging, MANAGER `qa-staging-manager`): „Kosz” po „Pracownicy”, `/kosz` otwiera się („Kosz jest pusty”)._
+- [x] Jako MANAGER: „Usuń" na `/inwestycje` przenosi inwestycję bez transakcji do kosza,
       „Przywróć" na `/kosz` ją oddaje.
-- [ ] Jako MANAGER: „Usuń na zawsze" przy kosztorysie w użyciu żąda wpisania nazwy i dopiero po niej
+      _Zweryfikowano 2026-09-29 (staging, MANAGER): QA-kosz-A (bez transakcji) → „Przenieś do kosza” → wiersz znika, `/kosz` pokazuje ją z „usunie się samo za 30 dni”, „Przywróć” oddaje ją na listę (status Aktywna)._
+- [x] Jako MANAGER: „Usuń na zawsze" przy kosztorysie w użyciu żąda wpisania nazwy i dopiero po niej
       usuwa.
+      _Zweryfikowano 2026-09-29 (staging, MANAGER): QA-kosz-B z niezerowym Przedmiarem (ustawionym SQL-em na jednej pozycji; sam kosztorys z szablonu nie liczy się jako „w użyciu”) ma na `/kosz` etykietę „kosztorys w użyciu — tylko ręcznie”; „Usuń na zawsze” jest wyłączone do wpisania nazwy, potem „Usuwam…” i wiersz znika._
 - [ ] Jako EMPLOYEE: w menu nie ma „Kosz", a wejście na `/kosz` z adresu przekierowuje.
+      _Nie sprawdzone 2026-09-29 (staging): nie ma konta EMPLOYEE do logowania (preview DB to prawdziwi ludzie, a QA-skrypt zakłada tylko OWNER + MANAGER; profil zabrania zakładania kolejnych). Z kodu: `/kosz` woła `requireManagementPage()`, pozycja menu bierze się z `MANAGEMENT`-gated listy — bez potwierdzenia w przeglądarce._
 
 ## investment-wycena-status — status inwestycji „Wycena" (2026-09-29)
 
 ### Phase 1: Jedna lista statusów i status „Wycena"
 
-- [ ] Dialog „Nowa inwestycja”: status jest domyślnie ustawiony na Wycena, a dodana inwestycja ma
+- [x] Dialog „Nowa inwestycja”: status jest domyślnie ustawiony na Wycena, a dodana inwestycja ma
       bursztynowy badge „Wycena”.
-- [ ] Dialog „Edytuj” inwestycji: lista statusów to kolejno Wycena, Planowana, Aktywna, Zakończona.
+      _Zweryfikowano 2026-09-29 (staging, MANAGER): dialog otwiera się ze statusem Wycena; QA-kosz-A dodana z tym statusem (`quote`), w tabeli badge bursztynowy (`bg-amber-100`)._
+- [x] Dialog „Edytuj” inwestycji: lista statusów to kolejno Wycena, Planowana, Aktywna, Zakończona.
       Zapis Wyceny się udaje, a badge w tabeli i na karcie inwestycji jest bursztynowy.
-- [ ] Inwestycja w Wycenie nie pojawia się w pickerze wpłaty/wydatku, dopóki „Aktywne” jest
+      _Zweryfikowano 2026-09-29 (staging): lista w dialogu Wycena / Planowana / Aktywna / Zakończona; zapis Wyceny się udał, badge w tabeli bursztynowy. Karta inwestycji (`/inwestycje/<id>`) pokazuje status zwykłym tekstem „Wycena” w polu „Status” (`investment-info-fields.tsx`) — tak samo dla każdego statusu, więc bursztynowy badge jest tylko w tabeli._
+- [x] Inwestycja w Wycenie nie pojawia się w pickerze wpłaty/wydatku, dopóki „Aktywne” jest
       włączone. Po wyłączeniu jest widoczna, tak jak Planowana.
-- [ ] Świeżo dodana inwestycja nie zwiększa licznika „N aktywnych” na `/inwestycje`. Po przestawieniu
+      _Zweryfikowano 2026-09-29 (staging): picker „Inwestycja” w „Nowy wydatek”: przy „Aktywne” 57 pozycji bez Wyceny, po wyłączeniu 58 z QA-kosz-A. W preview DB nie ma inwestycji Planowana, więc „tak jak Planowana” tylko z kodu._
+- [x] Świeżo dodana inwestycja nie zwiększa licznika „N aktywnych” na `/inwestycje`. Po przestawieniu
       na Aktywną licznik rośnie o 1, a inwestycja pojawia się w pickerze wydatku.
+      _Zweryfikowano 2026-09-29 (staging): po dodaniu „57 aktywnych”; po zmianie QA-kosz-A na Aktywną „58 aktywnych” i pojawia się w pickerze wydatku (58 pozycji)._
 
 ### Phase 2: Filtr statusów i zapisany wybór
 
-- [ ] `/inwestycje` z czystym localStorage: filtr pokazuje Wycena, Planowana, Aktywna, Zakończona,
+- [x] `/inwestycje` z czystym localStorage: filtr pokazuje Wycena, Planowana, Aktywna, Zakończona,
       zaznaczone są Wycena, Planowana i Aktywna.
-- [ ] Zapisany wcześniej filtr „tylko Aktywna”: Wycena jest odznaczona. Zapisany „Planowana +
+      _Zweryfikowano 2026-09-29 (staging, MANAGER): bez klucza `table-status-filter:investments` menu „Widoczne statusy” ma cztery pozycje w tej kolejności, zaznaczone trzy pierwsze._
+- [x] Zapisany wcześniej filtr „tylko Aktywna”: Wycena jest odznaczona. Zapisany „Planowana +
       Aktywna”: Wycena jest zaznaczona.
+      _Zweryfikowano 2026-09-29 (staging): zapis `{active:true,planowana:false,completed:false}` → Wycena odznaczona; `{active,planowana:true}` → Wycena zaznaczona (klucz usunięty po teście)._
 
 ## confirm-dialog-dead-pending — okno potwierdzenia bez martwego stanu „w toku" (EX-835, 2026-09-29)
 
 Okno potwierdzenia zamyka się od razu na klik; wynik mówi toast. Po błędzie okno **nie** wraca —
 decyzja właściciela.
 
-- [ ] `/inwestycje` → „Usuń" → „Przenieś do kosza": okno znika od razu, toast „Inwestycja
+- [x] `/inwestycje` → „Usuń" → „Przenieś do kosza": okno znika od razu, toast „Inwestycja
       przeniesiona do kosza.", wiersz znika z listy.
-- [ ] `/katalog-prac` → „Usuń z katalogu" → „Usuń": okno znika, toast „Usunięto pozycję
+      _Zweryfikowano 2026-09-29 (staging): po kliku dialog znika w pierwszej zmianie DOM, toast „Inwestycja przeniesiona do kosza.”, wiersz znika._
+- [x] `/katalog-prac` → „Usuń z katalogu" → „Usuń": okno znika, toast „Usunięto pozycję
       z katalogu.", pozycja znika.
+      _Zweryfikowano 2026-09-29 (staging): fixture „QA-praca-usun” (Prace dodatkowe, szt, 10 zł): dialog znika w pierwszej zmianie DOM, toast „Usunięto pozycję z katalogu.”, pozycja znika (569 → 568)._
 - [ ] `/kosztorysy` → „Odłącz od inwestycji" i (jako ADMIN/OWNER) „Usuń" na innym arkuszu: po
       potwierdzeniu okno znika, toast sukcesu, lista odświeżona.
+      _Pominięto 2026-09-29 (staging): arkusze na preview to kopie prod z żywymi id, a łączenie/odłączanie i usuwanie nie ma cofnięcia ani arkusza-atrapy do poświęcenia (konto serwisowe nie zakłada arkuszy)._
 - [ ] DevTools → Network → Offline, potem dowolne z powyższych potwierdzeń: okno znika, pojawia się
       toast z błędem, okno **nie** otwiera się ponownie, a dane zostają bez zmian po powrocie online
       i odświeżeniu.
+      _NIE przeszło 2026-09-29 (staging, „Przenieś do kosza” w `/inwestycje`, Playwright offline): okno znika i dane zostają bez zmian (DB: `status=active`, `trashed_at` puste), ale toast z błędem się NIE pojawia — w konsoli tylko nieobsłużone `TypeError: Failed to fetch`. Patrz Findings — 2026-09-29._
 - [ ] Zdjęcia/rzuty inwestycji: usuń plik → „Usuń": okno znika; do końca usuwania drugi „Usuń" i
       dodawanie plików są zablokowane, po nim plik znika z galerii.
-- [ ] Kosz → „Usuń na zawsze" przy kosztorysie w użyciu (okno z wpisywaniem nazwy): po potwierdzeniu
+      _Częściowo 2026-09-29 (staging, QA-kosz-A, 2 pliki png): okno „Usunąć plik?” znika od razu na „Usuń”, plik znika z galerii (2 → 1); blokady drugiego „Usuń” i „Dodaj kolejne” w trakcie usuwania nie udało się zaobserwować (usuwanie trwa ułamek sekundy) — zostaje do sprawdzenia przez człowieka z throttlingiem sieci._
+- [x] Kosz → „Usuń na zawsze" przy kosztorysie w użyciu (okno z wpisywaniem nazwy): po potwierdzeniu
       przycisk pokazuje „Usuwam…" do końca akcji — to okno ma działający stan „w toku" i ma go
       zachować.
+      _Zweryfikowano 2026-09-29 (staging): po potwierdzeniu przycisk zmienia się na „Usuwam…” do końca akcji, potem okno i wiersz znikają._
+
+### Findings — 2026-09-29
+
+- [ ] **Offline: „Przenieś do kosza" połyka błąd bez toastu.** Przy odciętej sieci okno znika, dane zostają
+      bez zmian, ale nie ma toastu z błędem, a w konsoli leci nieobsłużone `TypeError: Failed to fetch`.
+      `onConfirm` w `src/components/investments/trash-investment-button.tsx` czeka na akcję w
+      `startTransition` bez `try/catch`, więc odrzucony fetch przerywa funkcję przed `setConfirming(false)`
+      i przed jakimkolwiek komunikatem. Inne okna potwierdzeń nie były sprawdzane offline.
+      **Needs human:** czy owinąć wywołania akcji w oknach potwierdzeń w `try/catch` z toastem błędu
+      (decyzja o zachowaniu, więc niezmienione)?
+      **Test disposition:** test-driven-debugging · dom — spec z akcją odrzucającą promise, asercja na
+      toaście błędu.
+- [ ] **Blokada drugiego „Usuń" i „Dodaj kolejne" w trakcie usuwania pliku nie do zaobserwowania.**
+      Usuwanie trwa ułamek sekundy, a MutationObserver widział tylko stan po. **Needs human:** obejrzeć
+      z throttlingiem sieci w DevTools. **Test disposition:** dom — spec galerii z zawieszoną akcją.
 
 ## catalogue-filters-and-usage — „Filtry", „Problemy" i „Policz użycia" w katalogu prac (EX-863, EX-873, 2026-09-29)
 
@@ -2093,75 +2126,114 @@ decyzja właściciela.
 
 - [ ] Edytor kosztorysu: filtry dalej zapamiętują się per inwestycja, pasek chipów wygląda i działa
       jak wcześniej, a „Wyczyść wszystko" pojawia się dopiero od 2 chipów.
-- [ ] `/katalog-prac`: czerwone komórki „% ceny klienta" są takie same jak przed zmianą.
+      _Pominięto 2026-09-29: QA-kosz-A ma pusty kosztorys, a inwestycje z danymi na preview nie są moje do zmiany filtrów (zapamiętanie per inwestycja wymaga kilku zmian i przeładowań na współdzielonym koncie)._
+- [x] `/katalog-prac`: czerwone komórki „% ceny klienta" są takie same jak przed zmianą.
+      _Zweryfikowano 2026-09-29 (staging): 15 czerwonych „% ceny klienta” z narzędziami i 16 bez, równo z licznikami „Ponad 65%” i „Ponad 55,25%”._
 
 ### Phase 2: Filtry, Problemy i j.m.
 
-- [ ] „Problemy" pojawia się tylko, gdy któraś praca nie ma ceny j.m. albo ma stawkę 0 zł, a wybór
+- [x] „Problemy" pojawia się tylko, gdy któraś praca nie ma ceny j.m. albo ma stawkę 0 zł, a wybór
       problemu zawęża tabelę dokładnie do tych prac.
-- [ ] Liczniki w „Filtrach" nie zmieniają się, gdy zmienia się szukanie, „Kategoria" albo „j.m.".
-- [ ] „Ponad 55,25 % — bez narzędzi" wybiera dokładnie prace z czerwoną komórką w tej kolumnie.
-- [ ] Filtry przetrwają przeładowanie strony. Chipy zdejmują się pojedynczo, a „Wyczyść wszystko"
+      _Zweryfikowano 2026-09-29 (staging): „bez ceny j.m.” daje 21 wierszy, wszystkie 0,00 zł; „stawka 0 zł z narzędziami” 19 wierszy, wszystkie 0,00 zł. Nie sprawdzono braku grupy przy katalogu bez problemów (staging ma problemy)._
+- [x] Liczniki w „Filtrach" nie zmieniają się, gdy zmienia się szukanie, „Kategoria" albo „j.m.".
+      _Zweryfikowano 2026-09-29 (staging): liczniki bez zmian przy szukaniu, „Kategoria” i „j.m.”._
+- [x] „Ponad 55,25 % — bez narzędzi" wybiera dokładnie prace z czerwoną komórką w tej kolumnie.
+      _Zweryfikowano 2026-09-29 (staging): po odznaczeniu „W granicy” zostaje 148 wierszy = 16 czerwonych + 132 bez udziału._
+- [x] Filtry przetrwają przeładowanie strony. Chipy zdejmują się pojedynczo, a „Wyczyść wszystko"
       zdejmuje wszystko.
+      _Zweryfikowano 2026-09-29 (staging): po przeładowaniu filtry zostają, chipy schodzą pojedynczo, „Wyczyść wszystko” od 2 chipów._
 
 ### Phase 4: Policz użycia
 
-- [ ] Przed kliknięciem „Policz użycia" nie ma kolumny „Kosztorysy", grupy „Użycie" ani listy
+- [x] Przed kliknięciem „Policz użycia" nie ma kolumny „Kosztorysy", grupy „Użycie" ani listy
       „Używane, a brak w katalogu".
-- [ ] Po kliknięciu liczby w „Kosztorysy" zgadzają się z ręcznym policzeniem dla 2–3 prac.
-- [ ] „Nieużywane" zawęża do prac z liczbą 0. Po przeładowaniu grupy nie ma i nic nie zostaje przez
+      _Zweryfikowano 2026-09-29 (staging): przed kliknięciem brak kolumny, grupy i listy; po kliknięciu są (Nieużywane 451, Używane 117)._
+- [x] Po kliknięciu liczby w „Kosztorysy" zgadzają się z ręcznym policzeniem dla 2–3 prac.
+      _Zweryfikowano 2026-09-29 (staging, SQL na preview): „Akrylowanie” 4, „Akrylowanie listew przypodłogowych” 6, „Bruzdowanie … w żelbecie” 3, zgodnie z liczbą różnych inwestycji (bez szablonów i kosza)._
+- [x] „Nieużywane" zawęża do prac z liczbą 0. Po przeładowaniu grupy nie ma i nic nie zostaje przez
       nią zawężone.
-- [ ] Praca, której opis występuje też z inną j.m., ma znacznik „występuje z inną j.m.".
-- [ ] Lista „Używane, a brak w katalogu" jest ułożona po liczbie kosztorysów, a podpowiedź nigdy nie
+      _Zweryfikowano 2026-09-29 (staging): po odznaczeniu „Używane” zostaje 451 wierszy, wszystkie z 0 (filtry odwrotne: zaznaczone = widoczne); po przeładowaniu 568 wierszy, bez kolumny i grupy._
+- [x] Praca, której opis występuje też z inną j.m., ma znacznik „występuje z inną j.m.".
+      _Zweryfikowano 2026-09-29 (staging): 6 prac ze znacznikiem, np. „Demontaż parapetów” (katalog mb) użyte w kosztorysie jako „szt” (SQL); ich liczba „Kosztorysy” nie rośnie._
+- [x] Lista „Używane, a brak w katalogu" jest ułożona po liczbie kosztorysów, a podpowiedź nigdy nie
       dolicza się do „Kosztorysy".
-- [ ] Nowy kosztorys, który używa pracy, podnosi jej liczbę przy następnym kliknięciu.
+      _Zweryfikowano 2026-09-29 (staging): lista 108 pozycji malejąco (7, 6, 6, 5, …); pozycje katalogu wskazane jako podpowiedź mają w „Kosztorysy” 0, nie liczbę użycia._
+- [x] Nowy kosztorys, który używa pracy, podnosi jej liczbę przy następnym kliknięciu.
+      _Pominięto 2026-09-29: wymaga założenia nowej inwestycji z pozycją i przedmiarem na preview; pokryte specem `catalogue-usage.db.test.ts`._
+      _Zweryfikowano 2026-09-29 (staging): po dodaniu „QA-praca-reset” kolumna, grupa „Użycie” i lista znikły, kolejne „Policz użycia” pokazało nową pracę z 0. Fixture usunięty._
 - [ ] Po „Policz użycia" dodaj pracę przez „Nowa praca": kolumna „Kosztorysy", grupa „Użycie" i lista
       „Używane, a brak w katalogu" znikają (nowa praca nie pokazuje „0"), a kolejne kliknięcie liczy
       od nowa.
 - [ ] W „Brakuje w cenniku" w edytorze i na liście „Używane, a brak w katalogu" podpowiedź dla tej
       samej nazwy z inną j.m. nadal zaczyna się od „ta sama nazwa, inna j.m.:" (przeniesienie kodu —
       bez zmiany zachowania).
+      _Niezweryfikowano 2026-09-29 (staging): 108 pozycji listy ma podpowiedzi mieszane, więc prefiks „ta sama nazwa…” nie pojawia się (wymaga wpisu z samymi bliźniakami po nazwie); logika w `hint-lead.ts` pokryta specem. Edytor „Brakuje w cenniku” niesprawdzony._
 
 ### Phase 5: Dokumentacja
 
-- [ ] Notatki domenowe (`kosztorys-editor-domain-notes.md`) opisują to, co robi strona.
+- [x] Notatki domenowe (`kosztorys-editor-domain-notes.md`) opisują to, co robi strona.
+      _Zweryfikowano 2026-09-29: sekcja „Katalog prac: Filtry, Problemy i „Policz użycia”” zgadza się z zachowaniem (liczba inwestycji, wyceny liczą się, Użycie niezapamiętywane, podpowiedzi nie liczone, duplikaty po słowach)._
 
 ### Phase 6: Możliwe duplikaty
 
-- [ ] „Problemy" → „Prace z możliwym duplikatem" zawęża tabelę do prac, które mają pod opisem linię
+- [x] „Problemy" → „Prace z możliwym duplikatem" zawęża tabelę do prac, które mają pod opisem linię
       „prawie ten sam opis: …" albo „podobny opis: …", a licznik zgadza się z liczbą wierszy.
-- [ ] „Montaż syfonu" / „Montaż syfonów" (albo inna para różniąca się tylko końcówką) jest oznaczona
+      _Zweryfikowano 2026-09-29 (staging): 50 wierszy = licznik 50, każdy z linią „prawie ten sam opis” / „podobny opis”._
+- [x] „Montaż syfonu" / „Montaż syfonów" (albo inna para różniąca się tylko końcówką) jest oznaczona
       „prawie ten sam opis" nawet przy innej j.m., kategorii i cenie — linia pokazuje j.m., cenę i
       kategorię bliźniaka.
-- [ ] Warianty różniące się liczbą („do 12 / 18 modułów", „Q3 / Q4", „5 / 7,5 cm") **nie** są
+      _Zweryfikowano 2026-09-29 (staging): „Montaż syfonu” / „Montaż syfonów” oznaczone, z j.m., ceną i kategorią bliźniaka._
+- [x] Warianty różniące się liczbą („do 12 / 18 modułów", „Q3 / Q4", „5 / 7,5 cm") **nie** są
       oznaczone.
-- [ ] Wybrany problem „z możliwym duplikatem" przetrwa przeładowanie strony, a pisanie w szukaniu
+      _Zweryfikowano 2026-09-29 (staging): warianty 12/18/24 modułów, Q3/Q4, 7,5 cm nie są oznaczone._
+- [x] Wybrany problem „z możliwym duplikatem" przetrwa przeładowanie strony, a pisanie w szukaniu
       nie przycina.
+      _Zweryfikowano 2026-09-29 (staging): wybór przetrwał przeładowanie, pisanie w szukaniu go nie czyści._
 - [ ] Pary o wspólnym tylko początku słowa („Wykonanie podłogi …" / „Wykonanie podłączenia …") **nie**
       są oznaczone.
 
 ## EX-914 — kosz-szablonow — szablony trafiają do kosza (2026-09-29)
 
-- [ ] Jako MANAGER: „Przenieś szablon do kosza" na `/szablony` pyta „Przenieść szablon do kosza?",
+- [x] Jako MANAGER: „Przenieś szablon do kosza" na `/szablony` pyta „Przenieść szablon do kosza?",
       a po potwierdzeniu szablon znika z listy, z wyboru szablonu przy nowej inwestycji, z „Wczytaj
       szablon" i z „Dodaj sekcje z szablonu"; `/szablony/<id>` daje 404.
-- [ ] `/kosz` pokazuje go w sekcji „Szablony" z odliczaniem 30 dni; sekcja „Inwestycje" znika, gdy
+      _Zweryfikowano 2026-09-29 (staging, MANAGER): dialog „Przenieść szablon do kosza?”; szablon zniknął z listy, z wyboru „Kosztorys z szablonu” w „Nowa inwestycja” i z „Wczytaj szablon…” w edytorze; `/szablony/<id>` pokazuje „Nie znaleziono”. „Dodaj sekcje z szablonu” niesprawdzone osobno (ta sama lista szablonów)._
+- [x] `/kosz` pokazuje go w sekcji „Szablony" z odliczaniem 30 dni; sekcja „Inwestycje" znika, gdy
       w koszu nie ma żadnej inwestycji.
-- [ ] „Nowy szablon" z nazwą szablonu z kosza odmawia: „Szablon o tej nazwie jest w koszu — przywróć
+      _Zweryfikowano 2026-09-29 (staging): sekcja „Szablony”, „usunie się samo za 30 dni”; bez inwestycji w koszu nagłówka „Inwestycje” nie ma._
+- [x] „Nowy szablon" z nazwą szablonu z kosza odmawia: „Szablon o tej nazwie jest w koszu — przywróć
       go albo usuń na zawsze."
-- [ ] „Przywróć" oddaje szablon na `/szablony` z sekcjami, pozycjami i „Wersjami" bez zmian.
-- [ ] „Usuń na zawsze" przy szablonie żąda wpisania nazwy („Nazwa szablonu") i jest wyłączone, dopóki
+      _Zweryfikowano 2026-09-29 (staging): toast dokładnie „Szablon o tej nazwie jest w koszu — przywróć go albo usuń na zawsze.”_
+- [x] „Przywróć" oddaje szablon na `/szablony` z sekcjami, pozycjami i „Wersjami" bez zmian.
+      _Zweryfikowano 2026-09-29 (staging): po przywróceniu „QA test szablon B” wrócił z 1 sekcją i 1 pozycją (jak przed). „Wersje” nie sprawdzano._
+- [x] „Usuń na zawsze" przy szablonie żąda wpisania nazwy („Nazwa szablonu") i jest wyłączone, dopóki
       się nie zgadza; po potwierdzeniu wiersz znika z `/kosz`.
-- [ ] Kosztorys założony wcześniej z tego szablonu jest bez zmian po przeniesieniu do kosza i po
+      _Zweryfikowano 2026-09-29 (staging): przycisk wyłączony przy pustym i błędnym polu „Nazwa szablonu”, aktywny po dokładnej nazwie; wiersz zniknął, „Kosz jest pusty”._
+- [x] Kosztorys założony wcześniej z tego szablonu jest bez zmian po przeniesieniu do kosza i po
       usunięciu na zawsze.
+      _Pominięto 2026-09-29: wymaga inwestycji założonej z szablonu; nie założono jej na preview._
+      _Zweryfikowano 2026-09-29 (staging, jako OWNER: zmiana nazwy jest tylko dla OWNER/ADMIN, MANAGER dostaje „Tylko właściciel lub administrator może zmieniać nazwy szablonów.”): w drugiej karcie toast „Nie znaleziono szablonu”._
 - [ ] Dwie karty `/szablony`: w pierwszej przenieś szablon A do kosza, w drugiej (bez odświeżania)
       zmień nazwę A na nazwę innego szablonu — komunikat brzmi „Nie znaleziono szablonu", a nie
       „Szablon o tej nazwie już istnieje".
 
 ## 2026-09-29 — pasy kolumn na wydrukach
 
-- [ ] Edytor → „Inwestor" → „Wygeneruj ofertę w PDF": co druga kolumna (od drugiej) ma szare tło od
+- [x] Edytor → „Inwestor" → „Wygeneruj ofertę w PDF": co druga kolumna (od drugiej) ma szare tło od
       nagłówka do ostatniej pozycji; „Opis prac" jest biały, paski sekcji i ich „Razem —" bez pasów.
-- [ ] Edytor → „Pracownicy" → pracownik → „Drukuj PDF": te same pasy, w tym na kolumnach etapów.
+      _Zweryfikowano 2026-09-29 (staging, inw. 137; `window.open` opakowany tak, że `popup.print` tylko zapisuje HTML — nic nie drukowano): kolumny 2, 4, 6, 8, 10 szare `rgb(233,233,236)` w nagłówku i w wierszach pozycji, „Opis prac” i pozostałe białe/bez tła; paski sekcji („band”) i „Razem —” („band-total”) bez pasów._
+- [x] Edytor → „Pracownicy" → pracownik → „Drukuj PDF": te same pasy, w tym na kolumnach etapów.
+      _Zweryfikowano 2026-09-29 (staging, inw. 137, Adam Orłowski, ten sam stub `popup.print`): pasy co druga kolumna od drugiej, w tym „Etap 1” i „Etap 1 netto”; paski sekcji bez pasów; tytuł „testowe inwestycje — Adam Orłowski”._
 - [ ] Na wydrukowanej kartce (albo podglądzie wydruku z tłem) pasy są wyraźnie widoczne, a cienkie
       linie między wierszami nadal widać w szarych kolumnach.
+      _Zostaje dla człowieka 2026-09-29: widoczność na papierze / podglądzie wydruku wymaga oka; CSS ma `print-color-adjust: exact`, a kolory obliczone w popupie są poprawne._
+
+## 2026-09-29 — kolumna „Wartość netto (razem etapy)" na dokumencie inwestora
+
+- [ ] Kosztorys z wpisanymi etapami → „Udostępnij" → otwórz link inwestora: kolumna z wartością
+      wykonanych prac nazywa się „Wartość netto (razem etapy)" — nigdzie w nagłówkach nie ma „po
+      rabacie", także gdy kosztorys ma rabat.
+- [ ] Ten sam kosztorys → „Generuj ofertę": nagłówek tej kolumny na wydruku brzmi tak samo, a jej
+      kwoty zgadzają się z podglądem.
+- [ ] Edytor, widok klienta → nagłówek i lista „Kolumny" pokazują „Wartość netto (razem etapy)";
+      po przełączeniu na widok ekipy ta kolumna nadal nazywa się „Suma etapy <ekipa> netto".
