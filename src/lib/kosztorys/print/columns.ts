@@ -1,22 +1,30 @@
 import { escapeHtml } from '@/lib/utils/escape-html'
-import { stageValueForView, type PriceViewT } from '@/lib/kosztorys/calc'
+import type { ColumnValueT } from '@/lib/kosztorys/column-values'
 import { formatQty } from '@/lib/kosztorys/format'
-import { rowTotalQtyDone } from '@/lib/kosztorys/settlement-rows'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
 import { stageKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT, StageKeyT } from '@/lib/kosztorys/types'
 
-// One printed column, for any audience: `cell` is handed the plane at render rather than closing over
-// it, so the same factory serves the client's offer and a worker's stawka (`offer-columns.ts` /
-// `worker-columns.ts`) without either deciding the other's price.
+// One printed column, for any audience. A computed figure comes from the document's one
+// `computedColumnValues`, built for its plane (`offer-columns.ts` / `worker-columns.ts`), so paper and
+// grid cannot disagree on a number and no column can price at another plane than its neighbours.
 export type PrintColumnT = {
   key: string
   label: string
   colClass: string
   cellClass: string
   headerClass: string
-  cell: (row: KosztorysV2RowT, view: PriceViewT, stages: KosztorysStageT[]) => string
+  cell: (row: KosztorysV2RowT) => string
 }
+
+export type PrintValuesT = (field: string) => ColumnValueT
+
+// `null` is a figure with no answer for this row; the paper leaves the cell blank.
+export const formattedValue =
+  (value: ColumnValueT, format: (n: number) => string) => (row: KosztorysV2RowT) => {
+    const n = value(row)
+    return n === null ? '' : format(n)
+  }
 
 export const DESCRIPTION_COLUMN: PrintColumnT = {
   key: 'description',
@@ -86,23 +94,13 @@ export const stageQtyColumns = (stages: KosztorysStageT[]): PrintColumnT[] =>
     cell: (row) => (row[qtyKey] ? formatQty(row[qtyKey]) : ''),
   }))
 
-// The share a stage's value is priced by, as the grid computes it.
-const stageNetValue = (
-  row: KosztorysV2RowT,
-  qtyKey: StageKeyT,
-  view: PriceViewT,
-  printStages: KosztorysStageT[],
-) => stageValueForView(row, row[qtyKey] ?? 0, rowTotalQtyDone(row, printStages, view), view)
-
 export const stageNetColumns = (
   stages: KosztorysStageT[],
+  valueOf: PrintValuesT,
   money: (amount: number) => string,
 ): PrintColumnT[] =>
-  perStage(stages, (stage, qtyKey) =>
-    moneyColumn(
-      stageValueNetKey(stage.id),
-      `${stageLabel(stage)} netto`,
-      (row, view, printStages) =>
-        row[qtyKey] ? money(stageNetValue(row, qtyKey, view, printStages)) : '',
-    ),
-  )
+  perStage(stages, (stage, qtyKey) => {
+    const key = stageValueNetKey(stage.id)
+    const value = formattedValue(valueOf(key), money)
+    return moneyColumn(key, `${stageLabel(stage)} netto`, (row) => (row[qtyKey] ? value(row) : ''))
+  })

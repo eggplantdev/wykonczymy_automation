@@ -1,17 +1,14 @@
 import { escapeHtml } from '@/lib/utils/escape-html'
-import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { PrintColumnT } from '@/lib/kosztorys/print/columns'
 import { PRINT_STYLES } from '@/lib/kosztorys/print/styles'
-import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
+import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 export type KosztorysPrintArgsT = {
   // Already the rows to print — which pozycje an audience sees is its own rule, decided by the caller.
   rows: KosztorysV2RowT[]
-  stages: KosztorysStageT[]
   // Already capped by the audience's ceiling: this builder renders what it is handed and knows no
   // allowlist of its own.
   columns: readonly PrintColumnT[]
-  priceView: PriceViewT
   documentKind: string
   title: string
   // The popup's `<title>` — what „Zapisz jako PDF" offers as the file name.
@@ -32,9 +29,7 @@ export type KosztorysPrintArgsT = {
 
 export function buildKosztorysPrintHtml({
   rows,
-  stages,
   columns,
-  priceView,
   documentKind,
   title,
   pageTitle,
@@ -98,7 +93,7 @@ export function buildKosztorysPrintHtml({
             (column, index) =>
               `<td class="${column.cellClass}${index === 0 ? ' rail' : ''}"` +
               `${index === 0 ? ` style="border-left-color:${escapeHtml(sectionFill)}"` : ''}>` +
-              `${column.cell(row, priceView, stages)}</td>`,
+              `${column.cell(row)}</td>`,
           )
           .join('') +
         `</tr>`,

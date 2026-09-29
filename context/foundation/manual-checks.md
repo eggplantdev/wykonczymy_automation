@@ -1886,3 +1886,10 @@ widokach wykonawców. Rozpiska z seeda (`INV=6`) wystarczy do sortowania i liczb
 - [ ] Pod linkiem pracownika suma „Pozostało" = suma jego nieczerwonych wierszy.
 - [ ] Na kosztorysie ~1000 pozycji (`INV=7`) przewijanie i wpisywanie ilości w etapie działają tak
       płynnie jak przed zmianą.
+
+### Wydruki
+
+- [ ] Wydruk oferty („Drukuj ofertę") rozpiski z seeda pokazuje w każdej kolumnie te same liczby co
+      przed zmianą.
+- [ ] Wydruk pracownika dla każdej ekipy pokazuje te same liczby co przed zmianą, łącznie z
+      „Pozostało".

@@ -109,3 +109,16 @@ export function columnValueResolver({
     return undefined
   }
 }
+
+/**
+ * For a surface that renders a column as computed and so has no fallback of its own: an id the
+ * resolver cannot compute fails the build of the grid or the document rather than rendering a blank.
+ */
+export function computedColumnValues(ctx: ColumnValueCtxT): (field: string) => ColumnValueT {
+  const resolve = columnValueResolver(ctx)
+  return (field) => {
+    const value = resolve(field)
+    if (!value) throw new Error(`column-values.ts computes no value for the column „${field}"`)
+    return value
+  }
+}

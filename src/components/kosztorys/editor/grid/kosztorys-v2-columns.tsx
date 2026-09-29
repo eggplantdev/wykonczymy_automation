@@ -46,7 +46,7 @@ import {
   isRemainingOverrun,
   measureDiscrepancy,
 } from '@/lib/kosztorys/settlement-rows'
-import { columnValueResolver, type ColumnValueT } from '@/lib/kosztorys/column-values'
+import { computedColumnValues } from '@/lib/kosztorys/column-values'
 import { memoisedByRow } from '@/lib/kosztorys/memoised-by-row'
 import { activeSortPick } from '@/lib/kosztorys/row-view'
 import { stagesForView } from '@/lib/kosztorys/settlement-view'
@@ -137,18 +137,12 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   const shownStages = stagesMatchingEngaged(viewStages, opts.engagedStageConditionIds ?? [])
 
   // One resolver per assembly, so every stage-value cell shares its per-row Σ etapów memo. A computed
-  // column takes its value from here by id and nowhere else — the sort and the totals read the same
-  // one, and an id it cannot compute fails the build of the grid rather than rendering a blank.
-  const resolveValue = columnValueResolver({
+  // column takes its value from here by id and nowhere else — the sort and the totals read the same one.
+  const valueOf = computedColumnValues({
     stages,
     view,
     executedQtyByItem: opts.workerSurface?.executedQtyByItem,
   })
-  const valueOf = (id: string): ColumnValueT => {
-    const compute = resolveValue(id)
-    if (!compute) throw new Error(`column-values.ts computes no value for the column „${id}"`)
-    return compute
-  }
   const resolvedColumn = (
     id: string,
     title: Parameters<typeof computedColumn>[1],

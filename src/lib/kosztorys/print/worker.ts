@@ -64,7 +64,6 @@ export function buildWorkerPrintHtml({ data, logoUrl, fillByColorKey }: WorkerPr
     // The link's own empty-rows rule: an empty pozycja is worth nothing at any stawka, so dropping
     // it moves no total.
     rows: documentRows(rows, stages, worker.settings.hideEmptyRows),
-    stages,
     columns: workerPrintColumns({
       plane: worker.plane,
       stages,
@@ -72,7 +71,6 @@ export function buildWorkerPrintHtml({ data, logoUrl, fillByColorKey }: WorkerPr
       columnRanks: worker.settings.columnRanks,
       executedQtyByItem: worker.executedQtyByItem,
     }),
-    priceView: worker.plane,
     documentKind: `Kosztorys — ${worker.name}`,
     title: investmentName,
     pageTitle: `${investmentName} — ${worker.name}`,
