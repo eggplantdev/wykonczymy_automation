@@ -2,7 +2,7 @@
 
 import { cn } from '@/lib/utils/cn'
 import { effectiveMaterialsNetRate, type SettlementModeT } from '@/lib/kosztorys/settlement-mode'
-import { ToggleGroup, type OptionT } from '@/components/ui/toggle-group'
+import { ToggleGroup } from '@/components/ui/toggle-group'
 import { computeAmountDue, type MaterialsT } from '@/lib/kosztorys/summary-economics'
 import { sumDeposits } from '@/lib/kosztorys/deposit-planes'
 import { depositsStrandedBy } from '@/lib/kosztorys/off-plane-deposits'
@@ -14,14 +14,15 @@ import { SummaryExpensesTab } from '@/components/kosztorys/summary/tabs/summary-
 import { SubcontractorSummary } from '@/components/kosztorys/summary/blocks/subcontractor-summary'
 import { SummaryMarginTab } from '@/components/kosztorys/summary/tabs/summary-margin-tab'
 import { SummaryInvestmentTab } from '@/components/kosztorys/summary/tabs/summary-investment-tab'
-import { allowedSummaryViews } from '@/components/kosztorys/summary/allowed-summary-views'
+import {
+  ALL_SUMMARY_VIEWS,
+  allowedSummaryViews,
+  type SummaryViewT,
+} from '@/components/kosztorys/summary/summary-views'
 import { SummaryScrollRegion } from '@/components/ui/summary-grid'
 import { SummaryInvestmentSettings } from '@/components/kosztorys/summary/summary-investment-settings'
 import { MATERIALS_GROSS_LOCK_REASON } from '@/components/kosztorys/summary/materials-pricing-options'
-import {
-  useSummaryView,
-  type SummaryViewT,
-} from '@/components/kosztorys/summary/hooks/use-summary-view'
+import { useSummaryView } from '@/components/kosztorys/summary/hooks/use-summary-view'
 import type { InvestmentFinancialsT, MaterialsBreakdownRowT } from '@/types/investment-financials'
 import { type KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'
 import type { KosztorysStageT, ToolPlaneT } from '@/lib/kosztorys/types'
@@ -35,17 +36,8 @@ import type {
   MaterialTransactionRowT,
 } from '@/types/transfers'
 
-const SUMMARY_VIEW_OPTIONS: OptionT<SummaryViewT>[] = [
-  { value: 'summary', label: 'Podsumowanie' },
-  { value: 'expenses', label: 'Materiały' },
-  { value: 'stages', label: 'Robocizna' },
-  { value: 'subcontractors', label: 'Podwykonawcy' },
-  { value: 'margin', label: 'Marża' },
-  { value: 'investment', label: 'Inwestycja' },
-]
-
 type HostLayoutT = {
-  // Which views this host offers, in toggle order. A host that omits a view need not supply the props
+  // Which views this host offers. A host that omits a view need not supply the props
   // that only feed it — hence those props are optional.
   views: SummaryViewT[]
   // VAT + rabat globalny editing. Reads the editor context, so only the editor host, which sits
@@ -67,7 +59,7 @@ type SummaryHostT = 'editor' | 'investment'
 // One row per host, so no caller can ask for a combination that neither host renders.
 const HOST_LAYOUT: Record<SummaryHostT, HostLayoutT> = {
   editor: {
-    views: SUMMARY_VIEW_OPTIONS.map((option) => option.value),
+    views: ALL_SUMMARY_VIEWS,
     settingsBar: true,
     transactionLists: true,
     pies: true,
@@ -206,15 +198,14 @@ export function SummaryPanelContent({
   // CurrentUserProvider — so who may see „Marża" arrives as `preview` plus the presence of
   // `financials`, both decided by the host.
   const layout = HOST_LAYOUT[host]
-  const allowedViews = allowedSummaryViews(layout.views, {
+  const viewOptions = allowedSummaryViews(layout.views, {
     preview,
     hasMarginInputs: financials !== undefined && subcontractorDue !== undefined,
     hasInvestmentInfo: investment !== undefined,
   })
-  const viewOptions = SUMMARY_VIEW_OPTIONS.filter((option) => allowedViews.includes(option.value))
-  const view: SummaryViewT = allowedViews.includes(summaryView)
+  const view: SummaryViewT = viewOptions.some((option) => option.value === summaryView)
     ? summaryView
-    : (allowedViews[0] ?? 'summary')
+    : (viewOptions[0]?.value ?? 'summary')
   // The wpłaty on each plane, READ off the rows — a wpłata netto contributes nothing to brutto,
   // a wpłata brutto carries its own netto from the faktura. Summed here, beside the buckets, so the
   // settlement and the wpłaty list can never sum them by two rules.
