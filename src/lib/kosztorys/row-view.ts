@@ -1,7 +1,7 @@
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import { groupBySection } from '@/lib/kosztorys/row-ops'
 import { applyRowConditions } from '@/lib/kosztorys/row-conditions/queries'
-import { sortValueGetter } from '@/lib/kosztorys/sort-value'
+import { sortValueGetter } from '@/lib/kosztorys/columns/sort-value'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 // Parity with v1.

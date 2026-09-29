@@ -1,4 +1,4 @@
-import { COLUMN_LABELS, type ColumnGroupT } from '@/lib/kosztorys/column-config'
+import { COLUMN_LABELS, type ColumnGroupT } from '@/lib/kosztorys/columns/column-config'
 import { emptySettlementColumnIds, stagesWithEntries } from '@/lib/kosztorys/settlement-columns'
 import { STAGES_COLUMN_GROUP, STAGE_VALUE_NET_COLUMN_GROUP } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'

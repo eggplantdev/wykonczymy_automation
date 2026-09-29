@@ -1,4 +1,4 @@
-import { AXIS_EXEMPT_COLUMNS, COLUMN_MONEY_AXIS } from '@/lib/kosztorys/column-config'
+import { AXIS_EXEMPT_COLUMNS, COLUMN_MONEY_AXIS } from '@/lib/kosztorys/columns/column-config'
 import { basePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 

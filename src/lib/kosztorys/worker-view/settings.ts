@@ -2,7 +2,7 @@ import {
   DOCUMENT_PINNED_COLUMN,
   orderDocumentKeys,
   sanitizeDocumentRanks,
-} from '@/lib/kosztorys/document-column-order'
+} from '@/lib/kosztorys/columns/document-column-order'
 import {
   WORKER_DOCUMENT_COLUMNS,
   WORKER_RATE_KEY,

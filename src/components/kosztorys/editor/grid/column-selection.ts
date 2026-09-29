@@ -16,7 +16,7 @@ import {
   UNPICKABLE_COLUMNS,
   bypassedByGlobalDiscount,
   columnLabelForView,
-} from '@/lib/kosztorys/column-config'
+} from '@/lib/kosztorys/columns/column-config'
 import { PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/client-view/columns'
 import { WORKSHOP_VISIBLE_COLUMNS } from '@/lib/kosztorys/workshop-columns'
 import { CREW_AXIS_DEFAULT, crewAxisAllows } from '@/lib/kosztorys/crew-axis'

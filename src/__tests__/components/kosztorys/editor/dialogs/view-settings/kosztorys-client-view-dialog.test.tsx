@@ -9,7 +9,7 @@ import {
   sanitizeClientViewSettings,
   type ClientViewSettingsT,
 } from '@/lib/kosztorys/client-view/settings'
-import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
+import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
 import type { ColumnRanksT } from '@/lib/table/column-order'
 
 const INVESTMENT_ID = 7

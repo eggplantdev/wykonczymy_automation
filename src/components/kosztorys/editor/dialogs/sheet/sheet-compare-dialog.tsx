@@ -16,7 +16,7 @@ import {
 import { itemHasPhrase, itemNoun, itemNounLocative } from '@/lib/kosztorys/counted-nouns'
 import type { SheetCompareResultT } from '@/lib/actions/kosztorys-import'
 import { MONEY_TOLERANCE } from '@/lib/kosztorys/calc'
-import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
+import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
 import type {
   ComparedItemT,
   ExecutedDiffT,

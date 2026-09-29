@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { columnValueResolver } from '@/lib/kosztorys/column-values'
+import { columnValueResolver } from '@/lib/kosztorys/columns/column-values'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import { stageKey, stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'

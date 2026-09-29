@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { COLUMN_LABELS, COLUMN_LAYER, LAYER_NEUTRAL_COLUMNS } from '@/lib/kosztorys/column-config'
+import {
+  COLUMN_LABELS,
+  COLUMN_LAYER,
+  LAYER_NEUTRAL_COLUMNS,
+} from '@/lib/kosztorys/columns/column-config'
 import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { LayerT } from '@/lib/kosztorys/layer'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'

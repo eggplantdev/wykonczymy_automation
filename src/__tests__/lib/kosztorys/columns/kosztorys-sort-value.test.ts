@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { sortValueGetter, reconcileSort } from '@/lib/kosztorys/sort-value'
+import { sortValueGetter, reconcileSort } from '@/lib/kosztorys/columns/sort-value'
 import { sortRows } from '@/lib/kosztorys/row-view'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'

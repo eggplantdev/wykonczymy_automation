@@ -1,7 +1,7 @@
 import { escapeHtml } from '@/lib/utils/escape-html'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDate } from '@/lib/utils/format-date'
-import { columnTotalsForRows } from '@/lib/kosztorys/column-totals'
+import { columnTotalsForRows } from '@/lib/kosztorys/columns/column-totals'
 import { buildKosztorysPrintHtml } from '@/lib/kosztorys/print/build-html'
 import { documentRows } from '@/lib/kosztorys/print/document-rows'
 import { WIDE_PRINT_STYLES } from '@/lib/kosztorys/print/styles'

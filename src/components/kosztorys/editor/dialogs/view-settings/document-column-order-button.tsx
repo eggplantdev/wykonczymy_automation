@@ -8,7 +8,7 @@ import {
   DOCUMENT_PINNED_COLUMN,
   documentBaseRanks,
   orderDocumentKeys,
-} from '@/lib/kosztorys/document-column-order'
+} from '@/lib/kosztorys/columns/document-column-order'
 import { sameKeys, type ColumnRanksT } from '@/lib/table/column-order'
 
 type ValueT = { hiddenColumns: string[]; columnRanks: ColumnRanksT }

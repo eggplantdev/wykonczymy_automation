@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { columnTotalsForRows } from '@/lib/kosztorys/column-totals'
-import { computedColumnValues } from '@/lib/kosztorys/column-values'
+import { columnTotalsForRows } from '@/lib/kosztorys/columns/column-totals'
+import { computedColumnValues } from '@/lib/kosztorys/columns/column-values'
 import { stagesForView } from '@/lib/kosztorys/settlement-view'
 import { stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'

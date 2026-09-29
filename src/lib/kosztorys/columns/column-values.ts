@@ -8,7 +8,7 @@ import {
   viewPrice,
   type PriceViewT,
 } from '@/lib/kosztorys/calc'
-import { memoisedByRow } from '@/lib/kosztorys/memoised-by-row'
+import { memoisedByRow } from '@/lib/kosztorys/columns/memoised-by-row'
 import { rowRemainingForExecutedQty, rowTotalQtyDone } from '@/lib/kosztorys/settlement-rows'
 import { stageAppliesToView } from '@/lib/kosztorys/settlement-view'
 import {

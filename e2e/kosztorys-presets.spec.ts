@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
-import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
+import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
 import { refreshReferenceData, runSeedScript } from './support/seeds'
 import { waitForHydration } from './support/wait'
 import {

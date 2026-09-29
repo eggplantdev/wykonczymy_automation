@@ -1,5 +1,5 @@
 import { priceSourceOf, shownCoeff, viewPrice, type PriceViewT } from '@/lib/kosztorys/calc'
-import { columnValueResolver } from '@/lib/kosztorys/column-values'
+import { columnValueResolver } from '@/lib/kosztorys/columns/column-values'
 import { measureDiscrepancy } from '@/lib/kosztorys/settlement-rows'
 import { planePriceKeyParts } from '@/lib/kosztorys/plane-price-keys'
 import type { KosztorysStageT, KosztorysV2RowT, PriceSourceT } from '@/lib/kosztorys/types'

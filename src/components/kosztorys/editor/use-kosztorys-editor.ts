@@ -50,7 +50,7 @@ import {
   swapItemInSection,
   type BlankRowInputT,
 } from '@/lib/kosztorys/row-ops'
-import { columnTotalsForRows } from '@/lib/kosztorys/column-totals'
+import { columnTotalsForRows } from '@/lib/kosztorys/columns/column-totals'
 import { sectionSubtotalsForView, stageAxisForView } from '@/lib/kosztorys/settlement-aggregates'
 import { clientTotalsFromSubtotals } from '@/lib/kosztorys/settlement-client-totals'
 import { subcontractorDueByPlane } from '@/lib/kosztorys/subcontractor-due'
@@ -79,7 +79,7 @@ import { stagesForView } from '@/lib/kosztorys/settlement-view'
 import { emptySettlementColumnIds } from '@/lib/kosztorys/settlement-columns'
 import { workerDataHiddenColumns } from '@/lib/kosztorys/worker-view/columns'
 import { baseOrdinals } from '@/lib/kosztorys/section-band-rows'
-import { reconcileSort, sortValueGetter } from '@/lib/kosztorys/sort-value'
+import { reconcileSort, sortValueGetter } from '@/lib/kosztorys/columns/sort-value'
 import { planKosztorysRenumber } from '@/lib/kosztorys/display-order-plan'
 import { DEFAULT_SECTION_NAME } from '@/lib/kosztorys/constants'
 import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'

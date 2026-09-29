@@ -1,4 +1,4 @@
-import { COLUMN_LAYER, LAYER_NEUTRAL_COLUMNS } from '@/lib/kosztorys/column-config'
+import { COLUMN_LAYER, LAYER_NEUTRAL_COLUMNS } from '@/lib/kosztorys/columns/column-config'
 import { basePriceKey } from '@/lib/kosztorys/plane-price-keys'
 
 // The grid's third reading axis: a column belongs either to the work layer (the offer + its execution

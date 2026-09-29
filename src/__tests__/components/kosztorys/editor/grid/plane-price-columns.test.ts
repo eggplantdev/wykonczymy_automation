@@ -4,7 +4,7 @@ import {
   buildV2Grid,
 } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
-import { DEFAULT_HIDDEN_COLUMNS } from '@/lib/kosztorys/column-config'
+import { DEFAULT_HIDDEN_COLUMNS } from '@/lib/kosztorys/columns/column-config'
 import { layerAllows } from '@/lib/kosztorys/layer'
 import { axisAllows } from '@/lib/kosztorys/money-axis'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'

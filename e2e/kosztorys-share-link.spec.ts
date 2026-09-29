@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { DEFAULT_COEFFS } from '@/lib/kosztorys/constants'
-import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
+import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 import { refreshReferenceData, runSeedScript } from './support/seeds'
 import { waitForHydration } from './support/wait'

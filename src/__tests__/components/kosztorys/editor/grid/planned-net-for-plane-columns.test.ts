@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { buildV2Grid } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
-import { columnLabelForView } from '@/lib/kosztorys/column-config'
+import { columnLabelForView } from '@/lib/kosztorys/columns/column-config'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 

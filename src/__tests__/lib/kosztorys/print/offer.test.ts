@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { buildOfferPrintHtml, type OfferPrintArgsT } from '@/lib/kosztorys/print/offer'
 import { offerPrintColumns, printableKeys } from '@/lib/kosztorys/print/offer-columns'
-import { columnLabelForView } from '@/lib/kosztorys/column-config'
+import { columnLabelForView } from '@/lib/kosztorys/columns/column-config'
 import {
   CLIENT_DOCUMENT_COLUMNS,
   PREVIEW_VISIBLE_COLUMNS,
@@ -10,7 +10,7 @@ import {
 import { planePriceKeysFor } from '@/lib/kosztorys/plane-price-keys'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
-import { columnTotalsForRows } from '@/lib/kosztorys/column-totals'
+import { columnTotalsForRows } from '@/lib/kosztorys/columns/column-totals'
 import { groupBySection } from '@/lib/kosztorys/row-ops'
 import { sanitizeClientViewSettings } from '@/lib/kosztorys/client-view/settings'
 import type { PriceViewT } from '@/lib/kosztorys/calc'

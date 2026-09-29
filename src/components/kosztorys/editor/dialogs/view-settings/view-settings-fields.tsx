@@ -2,8 +2,8 @@
 
 import { CheckboxRow } from '@/components/ui/checkbox-row'
 import { Description } from '@/components/ui/description'
-import { type ColumnGroupT } from '@/lib/kosztorys/column-config'
-import { DOCUMENT_PINNED_COLUMN } from '@/lib/kosztorys/document-column-order'
+import { type ColumnGroupT } from '@/lib/kosztorys/columns/column-config'
+import { DOCUMENT_PINNED_COLUMN } from '@/lib/kosztorys/columns/document-column-order'
 
 export type ViewSettingsValueT = { hiddenColumns: string[]; hideEmptyRows: boolean }
 

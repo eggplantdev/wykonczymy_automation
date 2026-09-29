@@ -6,7 +6,7 @@ import {
   DOCUMENT_PINNED_COLUMN,
   orderDocumentKeys,
   sanitizeDocumentRanks,
-} from '@/lib/kosztorys/document-column-order'
+} from '@/lib/kosztorys/columns/document-column-order'
 import { STAGES_COLUMN_GROUP, STAGE_VALUE_NET_COLUMN_GROUP } from '@/lib/kosztorys/stage-keys'
 import type { ColumnRanksT } from '@/lib/table/column-order'
 

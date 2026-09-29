@@ -1,6 +1,6 @@
 import { toGross } from '@/lib/kosztorys/calc'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
-import { computedColumnValues } from '@/lib/kosztorys/column-values'
+import { computedColumnValues } from '@/lib/kosztorys/columns/column-values'
 import { stageAxisForView } from '@/lib/kosztorys/settlement-aggregates'
 import { isRemainingOverrun } from '@/lib/kosztorys/settlement-rows'
 import { stagesForView } from '@/lib/kosztorys/settlement-view'
