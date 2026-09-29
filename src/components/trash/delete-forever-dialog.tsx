@@ -19,15 +19,15 @@ const INVESTMENT_COPY = {
   askReason: 'Kosztorys tej inwestycji jest w użyciu.',
   nameLabel: 'Nazwa inwestycji',
   deleted: 'Inwestycja usunięta na zawsze.',
+  failed: 'Nie udało się usunąć inwestycji',
 }
 
-// A szablon always asks for its name: its content is its whole value, and no Przedmiar ever makes it
-// „used".
 const TEMPLATE_COPY = {
   lost: 'sekcje, pozycje i wersje szablonu',
   askReason: 'Kosztorysy założone z tego szablonu zostają bez zmian.',
   nameLabel: 'Nazwa szablonu',
   deleted: 'Szablon usunięty na zawsze.',
+  failed: 'Nie udało się usunąć szablonu',
 }
 
 export function DeleteForeverDialog({ investment, open, onClose }: PropsT) {
@@ -44,14 +44,15 @@ export function DeleteForeverDialog({ investment, open, onClose }: PropsT) {
   const onConfirm = () => {
     startTransition(async () => {
       const res = await deleteInvestmentForeverAction(investment.id, typedName)
-      if (!res.success) return toastMessage(res.error ?? 'Nie udało się usunąć inwestycji', 'error')
+      if (!res.success) return toastMessage(res.error ?? copy.failed, 'error')
       toastMessage(copy.deleted, 'success')
       close()
       router.refresh()
     })
   }
 
-  if (!investment.isKosztorysUsed && !investment.isTemplate) {
+  const mustTypeName = investment.isKosztorysUsed || investment.isTemplate
+  if (!mustTypeName) {
     return (
       <ConfirmDialog
         open={open}
@@ -71,7 +72,7 @@ export function DeleteForeverDialog({ investment, open, onClose }: PropsT) {
       open={open}
       onOpenChange={(next) => !next && close()}
       title="Usunąć na zawsze?"
-      description={`Zniknie bezpowrotnie: ${copy.lost}. ${copy.askReason} Wpisz nazwę „${investment.name}", żeby potwierdzić.`}
+      description={`${copy.askReason} Zniknie bezpowrotnie: ${copy.lost}. Wpisz nazwę „${investment.name}", żeby potwierdzić.`}
       confirmLabel="Usuń na zawsze"
       onConfirm={onConfirm}
       confirmDisabled={!nameMatches}

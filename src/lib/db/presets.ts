@@ -33,16 +33,21 @@ export type PresetSectionMetaT = {
   itemCount: number
 }
 
-const LIVE_TEMPLATE = sql`status = ${TEMPLATE_INVESTMENT_STATUS} AND trashed_at IS NULL`
+const liveTemplate = (alias?: string) => {
+  const column = (name: string) => sql.raw(alias ? `${alias}.${name}` : name)
+  return sql`${column('status')} = ${TEMPLATE_INVESTMENT_STATUS} AND ${column('trashed_at')} IS NULL`
+}
 
 export async function isTemplateInvestment(db: DbExecutorT, id: number): Promise<boolean> {
-  const res = await db.execute(sql`SELECT 1 FROM investments WHERE id = ${id} AND ${LIVE_TEMPLATE}`)
+  const res = await db.execute(
+    sql`SELECT 1 FROM investments WHERE id = ${id} AND ${liveTemplate()}`,
+  )
   return res.rows.length > 0
 }
 
 export async function getPresetName(db: DbExecutorT, id: number): Promise<string | null> {
   const res = await db.execute(
-    sql`SELECT name FROM investments WHERE id = ${id} AND ${LIVE_TEMPLATE}`,
+    sql`SELECT name FROM investments WHERE id = ${id} AND ${liveTemplate()}`,
   )
   const row = res.rows[0]
   return row ? String(row.name) : null
@@ -78,7 +83,7 @@ export async function presetNameHolder(
 export async function renamePreset(db: DbExecutorT, id: number, name: string): Promise<boolean> {
   const res = await db.execute(sql`
     UPDATE investments SET name = ${name}, content_edited_at = now()
-    WHERE id = ${id} AND ${LIVE_TEMPLATE}
+    WHERE id = ${id} AND ${liveTemplate()}
       AND NOT EXISTS (
         SELECT 1 FROM investments
         WHERE status = ${TEMPLATE_INVESTMENT_STATUS} AND ${SAME_NAME(name)} AND id <> ${id}
@@ -99,7 +104,7 @@ export async function templateOwnersOfSections(
     SELECT s.id, s.investment_id
     FROM kosztorys_sections s
     JOIN investments inv ON inv.id = s.investment_id
-    WHERE inv.status = ${TEMPLATE_INVESTMENT_STATUS} AND inv.trashed_at IS NULL
+    WHERE ${liveTemplate('inv')}
       AND s.id IN (${sql.join(
         sectionIds.map((id) => sql`${id}`),
         sql.raw(', '),
@@ -126,7 +131,7 @@ export async function listPresetSections(db: DbExecutorT): Promise<PresetSection
     FROM investments inv
     JOIN kosztorys_sections s ON s.investment_id = inv.id
     LEFT JOIN kosztorys_items it ON it.section_id = s.id
-    WHERE inv.status = ${TEMPLATE_INVESTMENT_STATUS} AND inv.trashed_at IS NULL
+    WHERE ${liveTemplate('inv')}
     GROUP BY inv.id, s.id
     ORDER BY inv.created_at DESC, inv.id DESC, s.display_order, s.id
   `)
@@ -143,7 +148,7 @@ export async function listPresets(db: DbExecutorT): Promise<PresetMetaT[]> {
   const res = await db.execute(sql`
     SELECT id, name, created_at, content_edited_at
     FROM investments
-    WHERE ${LIVE_TEMPLATE}
+    WHERE ${liveTemplate()}
     -- Sorted by the last edit, because that is what moves: a szablon is created once and worked on
     -- for weeks. NULLS LAST keeps a szablon migrated without a stamp in the list, below the live
     -- ones, ordered among themselves by creation.

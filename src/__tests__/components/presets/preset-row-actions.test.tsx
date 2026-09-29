@@ -7,7 +7,7 @@ import { trashInvestmentAction } from '@/lib/actions/investment-trash'
 import { toastMessage } from '@/lib/utils/toast'
 
 // Both action modules are `'use server'` and stubbed to throw; the trash one is mocked because the
-// point is that the row reaches the reversible trash, not the old hard delete.
+// point is that the row reaches the reversible trash.
 vi.mock('@/lib/actions/investment-trash', () => ({
   trashInvestmentAction: vi.fn(async () => ({ success: true })),
 }))

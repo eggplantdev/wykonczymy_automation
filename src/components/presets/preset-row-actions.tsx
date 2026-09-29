@@ -21,7 +21,8 @@ export function PresetRowActions({ preset }: { preset: PresetRowT }) {
     startTransition(async () => {
       const res = await trashInvestmentAction(preset.id)
       setConfirmingTrash(false)
-      if (!res.success) return toastMessage(res.error ?? 'Nie udało się usunąć szablonu', 'error')
+      if (!res.success)
+        return toastMessage(res.error ?? 'Nie udało się przenieść szablonu do kosza', 'error')
       toastMessage('Szablon przeniesiony do kosza.', 'success')
     })
   }

@@ -12,7 +12,11 @@ import {
   renamePreset,
   templateOwnersOfSections,
 } from '@/lib/db/presets'
-import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
+import {
+  createTestInvestment,
+  deleteTestInvestment,
+  trashDaysAgo,
+} from '@/__tests__/helpers/investment'
 import { createTestTemplate } from '@/__tests__/helpers/template'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
@@ -285,9 +289,6 @@ describe.skipIf(!ENV_READY)('a trashed szablon (DB)', () => {
   let trashedName: string
   let trashedSection: number
 
-  const trash = (id: number) =>
-    db.execute(sql`UPDATE investments SET trashed_at = now() WHERE id = ${id}`)
-
   beforeAll(async () => {
     const { getPayload } = await import('payload')
     const config = (await import('@payload-config')).default
@@ -302,7 +303,7 @@ describe.skipIf(!ENV_READY)('a trashed szablon (DB)', () => {
       })
     ).sectionIds[0]
     trashedName = (await getPresetName(db, trashed))!
-    await trash(trashed)
+    await trashDaysAgo(db, trashed, 0)
   })
 
   afterAll(async () => {

@@ -3,6 +3,7 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { entityTag } from '@/lib/cache/tags'
+import { getPresetName } from '@/lib/db/presets'
 import { createTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { createTestTemplate } from '@/__tests__/helpers/template'
@@ -121,18 +122,17 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
     expect(await trashedAt(template)).toBeNull()
   })
 
-  // A szablon's Przedmiar is always empty, so the „used" test that guards an investment would never
-  // ask for its name.
   it('demands the name before deleting a szablon forever, even an empty one', async () => {
     const template = await createTestTemplate(payload, `${PREFIX} szablon-forever`)
-    const { rows } = await db.execute(sql`SELECT name FROM investments WHERE id = ${template}`)
-    const name = String(rows[0].name)
+    const name = (await getPresetName(db, template))!
     await actions.trashInvestmentAction(template)
 
-    expect(await actions.deleteInvestmentForeverAction(template)).toEqual({
-      success: false,
-      error: 'Wpisana nazwa się nie zgadza.',
-    })
+    for (const typed of [undefined, 'zła nazwa']) {
+      expect(await actions.deleteInvestmentForeverAction(template, typed)).toEqual({
+        success: false,
+        error: 'Wpisana nazwa się nie zgadza.',
+      })
+    }
     expect(await trashedAt(template)).not.toBeNull()
 
     expect((await actions.deleteInvestmentForeverAction(template, name)).success).toBe(true)
