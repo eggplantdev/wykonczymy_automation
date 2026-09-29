@@ -389,8 +389,8 @@ one place the feature-first rule is deliberately overridden, because `scripts/te
 discovers the DB-backed specs by grepping that tree. A colocated spec is simply never run by the
 pre-push gate. Inside it, mirror the source path **in full, every intermediate directory included** —
 `src/lib/db/x.ts` → `src/__tests__/lib/db/x.test.ts`, and a deep component path keeps its depth:
-`src/components/kosztorys/editor/dialogs/preset-picker-groups.ts` →
-`src/__tests__/components/kosztorys/editor/dialogs/preset-picker-groups.test.ts`. Never file a spec
+`src/components/kosztorys/editor/dialogs/preset/preset-picker-groups.ts` →
+`src/__tests__/components/kosztorys/editor/dialogs/preset/preset-picker-groups.test.ts`. Never file a spec
 under the mirror of a directory that isn't its source — a spec for a `components/**` module goes under
 `__tests__/components/**` even when its subject is kosztorys logic. Several specs may share one source
 file; they differ by filename, not by folder. The top level holds older specs that predate the
