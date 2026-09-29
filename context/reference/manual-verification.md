@@ -175,6 +175,10 @@ handle from `browser_evaluate`.
 for them. Page loads keep working; check the toast and the revert, then confirm with psql that
 nothing was written.
 
+**Offline is not a failed action.** Playwright `setOffline(true)` right after clicking a Server
+Action makes Next hard-navigate to `chrome-error://` — the page and its error toast are gone, so the
+`catch` path is never observed. Abort the `next-action` POST as above instead.
+
 **Blob deletion:** list the store (`list({ prefix })`). Re-fetching the file URL still answers `200`
 from the browser's HTTP cache right after the delete.
 

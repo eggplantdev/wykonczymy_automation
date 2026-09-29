@@ -2022,30 +2022,6 @@ sprzed migracji, nie względem stałej liczby.
 - [x] Po zalogowaniu jako MANAGER kolumna jest widoczna.
       _Zweryfikowano 2026-09-29 (staging): konto qa-staging tymczasowo MANAGER (wpis verify-manager-ex748 odrzuca hasło z profilu, 401): kolumna widoczna z liczbami (Ryżowa 66/127 29 884,75; Wołoska −790,11); rola przywrócona do OWNER._
 
-## kosztorys-empty-section — sekcja bez pozycji (2026-09-29)
-
-### Phase 2: Sekcja jako stan edytora
-
-- [x] „Dodaj → Sekcja" dodaje samą belkę, bez pozycji pod nią. Po przeładowaniu belka zostaje.
-      _Zweryfikowano 2026-09-29 (staging): szablon 164: sekcja bez pozycji w DB (0 pozycji), belka po przeładowaniu zostaje._
-- [x] Usunięcie ostatniej pozycji sekcji zostawia jej belkę. Po przeładowaniu belka zostaje.
-      _Zweryfikowano 2026-09-29 (staging): szablon 164: po „Usuń pozycję” (potwierdzenie) belka „(0 poz.)” zostaje, po przeładowaniu też; sekcja w DB z 0 pozycji._
-
-### Phase 3: Belka sekcji bez pozycji
-
-- [x] „+ Dodaj pracę" na belce sekcji bez pozycji dodaje pod nią pozycję. Przycisk znika,
-      a pojawia się strzałka zwijania.
-      _Zweryfikowano 2026-09-29 (staging): szablon 164: pozycja dodana w DB pod tą sekcją, przycisk zniknął, belka ma strzałkę zwijania (aria-expanded)._
-- [x] ⋯ → „Dodaj pracę" na sekcji z pozycjami dopisuje pozycję na jej końcu.
-      _Zweryfikowano 2026-09-29 (staging): szablon 164: nowa pozycja z display_order 1 na końcu sekcji (DB)._
-- [x] „Dodaj → Praca" na kosztorysie bez sekcji tworzy sekcję z jedną pozycją.
-      _Zweryfikowano 2026-09-29 (staging): pusty szablon 164: powstała „Nowa sekcja” z jedną pozycją (DB)._
-- [x] Wyszukiwarka albo warunek w „Filtry" chowa belkę sekcji bez pozycji. Po wyczyszczeniu belka
-      wraca.
-      _Zweryfikowano 2026-09-29 (staging): wyszukiwarka („Nowa praca”): belka „(0 poz.)” znika, po wyczyszczeniu wraca; warunek w „Filtry” nie sprawdzany._
-- [x] „Podgląd dla inwestora" nie pokazuje belki sekcji bez pozycji.
-      _Zweryfikowano 2026-09-29 (staging): inw. 163 z belką bez pozycji: /podglad-inwestora/163 nie pokazuje belki (podgląd całkowicie pusty — „Kosztorys jest pusty”, więc pozycje z przedmiarem 0 są tam ukryte, dowód słabszy)._
-
 ## kosz-inwestycji-manager — kosz inwestycji dla kierownika (2026-09-29)
 
 - [x] Jako MANAGER: „Kosz" jest ostatnią pozycją menu (pod „Pracownicy"), `/kosz` się otwiera.
@@ -2138,111 +2114,6 @@ decyzja właściciela.
       Usuwanie trwa ułamek sekundy, a MutationObserver widział tylko stan po. **Needs human:** obejrzeć
       z throttlingiem sieci w DevTools. **Test disposition:** dom — spec galerii z zawieszoną akcją.
       _Odpuszczone 2026-09-29 — decyzja właściciela._
-
-## catalogue-filters-and-usage — „Filtry", „Problemy" i „Policz użycia" w katalogu prac (EX-863, EX-873, 2026-09-29)
-
-### Phase 1: Wspólne elementy filtrów
-
-- [x] Edytor kosztorysu: filtry dalej zapamiętują się per inwestycja, pasek chipów wygląda i działa
-      jak wcześniej, a „Wyczyść wszystko" pojawia się dopiero od 2 chipów.
-      _Pominięto 2026-09-29: QA-kosz-A ma pusty kosztorys, a inwestycje z danymi na preview nie są moje do zmiany filtrów (zapamiętanie per inwestycja wymaga kilku zmian i przeładowań na współdzielonym koncie)._
-      _Pominięto 2026-09-29: QA-kosz-A ma pusty kosztorys, a inwestycje z danymi na preview nie są moje do zmiany filtrów._
-      _Zweryfikowano 2026-09-29 (staging, drugi przebieg, fixture „QA-inw-main”, druga inwestycja QA jako porównanie): dwa odznaczenia w „Filtrach” dają dwa chipy „Ukryto: …” i „Wyczyść wszystko”; po zdjęciu jednego chipa zostaje jeden chip bez „Wyczyść wszystko”; po przeładowaniu oba chipy wracają; inna inwestycja nie ma chipów, po powrocie znów są; „Wyczyść wszystko” zdejmuje oba._
-- [x] `/katalog-prac`: czerwone komórki „% ceny klienta" są takie same jak przed zmianą.
-      _Zweryfikowano 2026-09-29 (staging): 15 czerwonych „% ceny klienta” z narzędziami i 16 bez, równo z licznikami „Ponad 65%” i „Ponad 55,25%”._
-
-### Phase 2: Filtry, Problemy i j.m.
-
-- [x] „Problemy" pojawia się tylko, gdy któraś praca nie ma ceny j.m. albo ma stawkę 0 zł, a wybór
-      problemu zawęża tabelę dokładnie do tych prac.
-      _Zweryfikowano 2026-09-29 (staging): „bez ceny j.m.” daje 21 wierszy, wszystkie 0,00 zł; „stawka 0 zł z narzędziami” 19 wierszy, wszystkie 0,00 zł. Nie sprawdzono braku grupy przy katalogu bez problemów (staging ma problemy)._
-- [x] Liczniki w „Filtrach" nie zmieniają się, gdy zmienia się szukanie, „Kategoria" albo „j.m.".
-      _Zweryfikowano 2026-09-29 (staging): liczniki bez zmian przy szukaniu, „Kategoria” i „j.m.”._
-- [x] „Ponad 55,25 % — bez narzędzi" wybiera dokładnie prace z czerwoną komórką w tej kolumnie.
-      _Zweryfikowano 2026-09-29 (staging): po odznaczeniu „W granicy” zostaje 148 wierszy = 16 czerwonych + 132 bez udziału._
-- [x] Filtry przetrwają przeładowanie strony. Chipy zdejmują się pojedynczo, a „Wyczyść wszystko"
-      zdejmuje wszystko.
-      _Zweryfikowano 2026-09-29 (staging): po przeładowaniu filtry zostają, chipy schodzą pojedynczo, „Wyczyść wszystko” od 2 chipów._
-
-### Phase 4: Policz użycia
-
-- [x] Przed kliknięciem „Policz użycia" nie ma kolumny „Kosztorysy", grupy „Użycie" ani listy
-      „Używane, a brak w katalogu".
-      _Zweryfikowano 2026-09-29 (staging): przed kliknięciem brak kolumny, grupy i listy; po kliknięciu są (Nieużywane 451, Używane 117)._
-- [x] Po kliknięciu liczby w „Kosztorysy" zgadzają się z ręcznym policzeniem dla 2–3 prac.
-      _Zweryfikowano 2026-09-29 (staging, SQL na preview): „Akrylowanie” 4, „Akrylowanie listew przypodłogowych” 6, „Bruzdowanie … w żelbecie” 3, zgodnie z liczbą różnych inwestycji (bez szablonów i kosza)._
-- [x] „Nieużywane" zawęża do prac z liczbą 0. Po przeładowaniu grupy nie ma i nic nie zostaje przez
-      nią zawężone.
-      _Zweryfikowano 2026-09-29 (staging): po odznaczeniu „Używane” zostaje 451 wierszy, wszystkie z 0 (filtry odwrotne: zaznaczone = widoczne); po przeładowaniu 568 wierszy, bez kolumny i grupy._
-- [x] Praca, której opis występuje też z inną j.m., ma znacznik „występuje z inną j.m.".
-      _Zweryfikowano 2026-09-29 (staging): 6 prac ze znacznikiem, np. „Demontaż parapetów” (katalog mb) użyte w kosztorysie jako „szt” (SQL); ich liczba „Kosztorysy” nie rośnie._
-- [x] Lista „Używane, a brak w katalogu" jest ułożona po liczbie kosztorysów, a podpowiedź nigdy nie
-      dolicza się do „Kosztorysy".
-      _Zweryfikowano 2026-09-29 (staging): lista 108 pozycji malejąco (7, 6, 6, 5, …); pozycje katalogu wskazane jako podpowiedź mają w „Kosztorysy” 0, nie liczbę użycia._
-- [x] Nowy kosztorys, który używa pracy, podnosi jej liczbę przy następnym kliknięciu.
-      _Pominięto 2026-09-29: wymaga założenia nowej inwestycji z pozycją i przedmiarem na preview; pokryte specem `catalogue-usage.db.test.ts`._
-      _Pominięto 2026-09-29: wymaga założenia nowej inwestycji z pozycją i przedmiarem na preview; pokryte specem `catalogue-usage.db.test.ts`._
-      _Zweryfikowano 2026-09-29 (staging, drugi przebieg): „Akrylowanie” miało w „Kosztorysy” 4; po dodaniu go z katalogu do nowej inwestycji „QA-inw-main” z przedmiarem 5 i ponownym „Policz użycia” jest 5. Uwaga: pozycja z przedmiarem 0 i bez wykonania NIE liczy się jako użycie (zgodnie z `selectUsedKosztorysItems`, warunek `> 0`) — po pierwszym kliknięciu liczba została 4, co jest poprawne._
-- [x] Po „Policz użycia" dodaj pracę przez „Nowa praca": kolumna „Kosztorysy", grupa „Użycie" i lista
-      „Używane, a brak w katalogu" znikają (nowa praca nie pokazuje „0"), a kolejne kliknięcie liczy
-      od nowa.
-      _Zweryfikowano 2026-09-29 (staging): po dodaniu „QA-praca-reset” kolumna, grupa „Użycie” i lista znikły, kolejne „Policz użycia” pokazało nową pracę z 0. Fixture usunięty._
-- [x] W „Brakuje w cenniku" w edytorze i na liście „Używane, a brak w katalogu" podpowiedź dla tej
-      samej nazwy z inną j.m. nadal zaczyna się od „ta sama nazwa, inna j.m.:" (przeniesienie kodu —
-      bez zmiany zachowania).
-      _Niezweryfikowano 2026-09-29 (staging): 108 pozycji listy ma podpowiedzi mieszane, więc prefiks „ta sama nazwa…” nie pojawia się (wymaga wpisu z samymi bliźniakami po nazwie); logika w `hint-lead.ts` pokryta specem. Edytor „Brakuje w cenniku” niesprawdzony._
-      _Niezweryfikowano 2026-09-29 (staging): 108 pozycji listy ma podpowiedzi mieszane, więc prefiks „ta sama nazwa…” nie pojawia się (wymaga wpisu z samymi bliźniakami po nazwie); logika w `hint-lead.ts` pokryta specem. Edytor „Brakuje w cenniku” niesprawdzony._
-      _Zweryfikowano 2026-09-29 (staging, drugi przebieg): w kosztorysie „QA-inw-main” pozycje „Wkuwanie rozdzielni w ściane od 1200 zł/kpl” i „Obłożenie schodów deską tarasową” w j.m. „szt” (katalog ma je w „kpl” / „stopień”). W edytorze („Problemy” → „Porównaj z katalogiem…” → „Brak w katalogu”; w edytorze blok nazywa się teraz „Brak w katalogu”, nie „Brakuje w cenniku”) obie mają prefiks „ta sama nazwa, inna j.m.:”, a „Demontaż parapetów” w „szt” (katalog: „mb”, plus „Montaż parapetów…”) ma „może chodzi o:”. Na `/katalog-prac` po „Policz użycia” te same dwie pozycje na liście „Używane, a brak w katalogu” mają prefiks „ta sama nazwa, inna j.m.:”._
-
-### Phase 5: Dokumentacja
-
-- [x] Notatki domenowe (`kosztorys-editor-domain-notes.md`) opisują to, co robi strona.
-      _Zweryfikowano 2026-09-29: sekcja „Katalog prac: Filtry, Problemy i „Policz użycia”” zgadza się z zachowaniem (liczba inwestycji, wyceny liczą się, Użycie niezapamiętywane, podpowiedzi nie liczone, duplikaty po słowach)._
-
-### Phase 6: Możliwe duplikaty
-
-- [x] „Problemy" → „Prace z możliwym duplikatem" zawęża tabelę do prac, które mają pod opisem linię
-      „prawie ten sam opis: …" albo „podobny opis: …", a licznik zgadza się z liczbą wierszy.
-      _Zweryfikowano 2026-09-29 (staging): 50 wierszy = licznik 50, każdy z linią „prawie ten sam opis” / „podobny opis”._
-- [x] „Montaż syfonu" / „Montaż syfonów" (albo inna para różniąca się tylko końcówką) jest oznaczona
-      „prawie ten sam opis" nawet przy innej j.m., kategorii i cenie — linia pokazuje j.m., cenę i
-      kategorię bliźniaka.
-      _Zweryfikowano 2026-09-29 (staging): „Montaż syfonu” / „Montaż syfonów” oznaczone, z j.m., ceną i kategorią bliźniaka._
-- [x] Warianty różniące się liczbą („do 12 / 18 modułów", „Q3 / Q4", „5 / 7,5 cm") **nie** są
-      oznaczone.
-      _Zweryfikowano 2026-09-29 (staging): warianty 12/18/24 modułów, Q3/Q4, 7,5 cm nie są oznaczone._
-- [x] Wybrany problem „z możliwym duplikatem" przetrwa przeładowanie strony, a pisanie w szukaniu
-      nie przycina.
-      _Zweryfikowano 2026-09-29 (staging): wybór przetrwał przeładowanie, pisanie w szukaniu go nie czyści._
-- [x] Pary o wspólnym tylko początku słowa („Wykonanie podłogi …" / „Wykonanie podłączenia …") **nie**
-      są oznaczone.
-      _Zweryfikowano 2026-09-29 (staging, drugi przebieg): w katalogu nie było takiej pary, więc dodano „QA Wykonanie podłogi” i „QA Wykonanie podłączenia” (obie szt) oraz kontrolną parę „QA Wykonanie syfonu” / „QA Wykonanie syfonów”. Z filtrem „QA Wykonanie” kontrola ma „prawie ten sam opis”, para podłogi/podłączenia nie ma żadnej linii. Fixtures katalogowe usunięte na końcu przebiegu._
-
-## EX-914 — kosz-szablonow — szablony trafiają do kosza (2026-09-29)
-
-- [x] Jako MANAGER: „Przenieś szablon do kosza" na `/szablony` pyta „Przenieść szablon do kosza?",
-      a po potwierdzeniu szablon znika z listy, z wyboru szablonu przy nowej inwestycji, z „Wczytaj
-      szablon" i z „Dodaj sekcje z szablonu"; `/szablony/<id>` daje 404.
-      _Zweryfikowano 2026-09-29 (staging, MANAGER): dialog „Przenieść szablon do kosza?”; szablon zniknął z listy, z wyboru „Kosztorys z szablonu” w „Nowa inwestycja” i z „Wczytaj szablon…” w edytorze; `/szablony/<id>` pokazuje „Nie znaleziono”. „Dodaj sekcje z szablonu” niesprawdzone osobno (ta sama lista szablonów)._
-- [x] `/kosz` pokazuje go w sekcji „Szablony" z odliczaniem 30 dni; sekcja „Inwestycje" znika, gdy
-      w koszu nie ma żadnej inwestycji.
-      _Zweryfikowano 2026-09-29 (staging): sekcja „Szablony”, „usunie się samo za 30 dni”; bez inwestycji w koszu nagłówka „Inwestycje” nie ma._
-- [x] „Nowy szablon" z nazwą szablonu z kosza odmawia: „Szablon o tej nazwie jest w koszu — przywróć
-      go albo usuń na zawsze."
-      _Zweryfikowano 2026-09-29 (staging): toast dokładnie „Szablon o tej nazwie jest w koszu — przywróć go albo usuń na zawsze.”_
-- [x] „Przywróć" oddaje szablon na `/szablony` z sekcjami, pozycjami i „Wersjami" bez zmian.
-      _Zweryfikowano 2026-09-29 (staging): po przywróceniu „QA test szablon B” wrócił z 1 sekcją i 1 pozycją (jak przed). „Wersje” nie sprawdzano._
-- [x] „Usuń na zawsze" przy szablonie żąda wpisania nazwy („Nazwa szablonu") i jest wyłączone, dopóki
-      się nie zgadza; po potwierdzeniu wiersz znika z `/kosz`.
-      _Zweryfikowano 2026-09-29 (staging): przycisk wyłączony przy pustym i błędnym polu „Nazwa szablonu”, aktywny po dokładnej nazwie; wiersz zniknął, „Kosz jest pusty”._
-- [x] Kosztorys założony wcześniej z tego szablonu jest bez zmian po przeniesieniu do kosza i po
-      usunięciu na zawsze.
-      _Pominięto 2026-09-29: wymaga inwestycji założonej z szablonu; nie założono jej na preview._
-      _Zweryfikowano 2026-09-29 (staging, drugi przebieg, OWNER): szablon `QA-szablon-914` (1 sekcja, 1 pozycja) → inwestycja `QA-inw-szablon-914` z „Kosztorys z szablonu” → szablon do kosza → na `/kosz` „Usuń na zawsze” z wpisaniem nazwy. Po obu krokach zrzut z DB (sekcje, pozycje, nazwa, status, `trashed_at`) kosztorysu inwestycji jest identyczny z zrzutem sprzed, a `/inwestycje/<id>` się renderuje. Dialog mówi wprost „Kosztorysy założone z tego szablonu zostają bez zmian”._
-- [x] Dwie karty `/szablony`: w pierwszej przenieś szablon A do kosza, w drugiej (bez odświeżania)
-      zmień nazwę A na nazwę innego szablonu — komunikat brzmi „Nie znaleziono szablonu", a nie
-      „Szablon o tej nazwie już istnieje".
-      _Zweryfikowano 2026-09-29 (staging, jako OWNER: zmiana nazwy jest tylko dla OWNER/ADMIN, MANAGER dostaje „Tylko właściciel lub administrator może zmieniać nazwy szablonów.”): w drugiej karcie toast „Nie znaleziono szablonu”._
 
 ## 2026-09-29 — pasy kolumn na wydrukach
 
@@ -2372,12 +2243,11 @@ i Piotr Seedowy).
       i edytują w groszach, a kopiowanie komórki daje tę samą kwotę co przed zmianą (refaktor
       formatowania — bez zmiany zachowania).
 
-
 ## EX-908 — redundant-router-refresh — nieaktualne dane po zapisie, staging (2026-09-29)
 
 Po każdym zapisie aplikacja nie prosi już serwera o drugi render strony — nowe dane przychodzą
 wyłącznie w odpowiedzi akcji. Lokalnie (build produkcyjny, baza 5435) przeszło 25 sprawdzeń —
-dowody w `context/changes/2026-09-29-redundant-router-refresh/manual-checks.md`. Tu jest **każde**
+dowody w `git show e2b1ce60:context/changes/2026-09-29-redundant-router-refresh/manual-checks.md`. Tu jest **każde**
 zmienione miejsce jeszcze raz, na stagingu: prawdziwe opóźnienia sieci, cache Vercela i kilka
 instancji funkcji to warunki, których lokalny build nie odtwarza. Test E2E dla A–H/K: EX-924.
 

@@ -210,6 +210,11 @@ column, the „Rozlicz wypłaty" dialog from both lists, and sums back to the in
 
 The employee list's all-time „Wypłaty" column went: it summed salary, loans and gifts with work pay.
 
+It is a separate dialog, not the wydatek form, because that form holds inwestycja and pracownik once
+for every line. A per-worker roster on the wypłata form was built and dropped before (`36a53a48`,
+2026-07-29): it put a second, staler copy of the figures beside the amount being typed. That is why
+the dialog reads fresh on open and refuses a figure that moved.
+
 ---
 
 ## The four modifiers — how each bends the two formulas

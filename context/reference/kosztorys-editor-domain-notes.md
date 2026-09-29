@@ -667,6 +667,10 @@ j.m.` wśród wierszy policzonych** (wpisane z palca są wykluczone: to decyzje 
     Zmiana stawki VAT przesuwa więc brutto rabatu, a netto zostaje — spójnie z pracami. Rabat per
     pozycja zostaje netto (osobna decyzja, nieruszona). Rabaty wpisane przed zmianą są netto i tak
     zostają; inw. 112 wymaga ręcznego przepisania 5000 w pole brutto.
+    Odrzucone: pole idące za trybem rozliczenia ze znacznikiem osi przy kwocie — oś wybiera
+    właściciel przy wpisie, a po zmianie VAT brutto ma się przesunąć, więc nie ma czego kotwiczyć;
+    oraz kwota nominalna na obu osiach, jak strata — rozspójnia fakturę (brutto ≠ netto × (1 + vat),
+    na inw. 112 o 400 zł).
   - **Skutek dla `Podsumowania` (edytor):** kolumna brutto dotyczy wierszy z płaszczyzny prac —
     „Suma prac wykonanych", **„Rabat"** oraz „Robocizna/Do zapłaty" (gruntowana po rabacie).
     Materiały budowlane/wykończeniowe, korekta i wpłaty = wartość nominalna (brak wiersza
@@ -1635,6 +1639,10 @@ localStorage, lustro, cache) musiał wiedzieć, który szablon warsztat akurat t
   jest w koszu. „Usuń na zawsze" zawsze wymaga wpisania nazwy, bo szablon nigdy nie ma Przedmiaru,
   więc test „kosztorys w użyciu" by go nie złapał. Po 30 dniach usuwa go sprzątanie, a kaskada
   zabiera drzewo i punkty przywracania. Kosztorysy założone z szablonu zostają — mają własną kopię.
+  Nazwy nie zwalniamy celowo (`investments_szablon_name_idx` nie patrzy na `trashed_at`). Wolna
+  nazwa przeniosłaby kolizję na „Przywróć", a `restoreInvestmentAction` to goły `payload.update`,
+  więc 23505 trafiłby do toastu po angielsku. Zajęta nazwa nie wymaga migracji, a przywrócenie
+  nigdy się nie zderzy.
 - **Nazwa jest tożsamością**: unikalna wśród szablonów bez względu na wielkość liter i spacje na
   brzegach (`investments_szablon_name_idx`).
 - **„Ostatnia edycja" na liście to `content_edited_at`**, nie `updated_at` — ten drugi jest tokenem
@@ -1701,6 +1709,10 @@ tam wymaga podania `executedQtyByItem` do `sortValueGetter`.
 
 **Nazwa: „bez pozycji", nie „pusta".** „Pusta sekcja" znaczy już u właściciela sekcję, której
 prace nie mają wpisanych wartości. W kodzie to `itemless`.
+
+**„Wersje" nie pokazuje dodania ani usunięcia sekcji bez pozycji.** Porównanie wersji idzie po
+pracach (`history/diff-versions.ts`), więc sekcja bez prac nie daje wiersza różnicy. Zostaje tak,
+dopóki właściciel nie poprosi.
 
 ## Wypłaty per para inwestycja × pracownik (EX-919, 2026-09-29)
 

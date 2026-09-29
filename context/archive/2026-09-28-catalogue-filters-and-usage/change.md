@@ -1,10 +1,10 @@
 ---
 change_id: catalogue-filters-and-usage
 title: Katalog prac — menu „Filtry" i „Problemy" oraz raport użycia
-status: implemented
+status: archived
 created: 2026-09-28
 updated: 2026-09-29
-archived_at: null
+archived_at: 2026-09-29T16:36:45Z
 branch: catalogue-filters-and-usage
 worktree: null
 ---

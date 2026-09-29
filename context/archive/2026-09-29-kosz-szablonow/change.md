@@ -1,10 +1,10 @@
 ---
 change_id: kosz-szablonow
 title: Szablony kosztorysów go to the trash instead of a hard delete
-status: implemented
+status: archived
 created: 2026-09-29
 updated: 2026-09-29
-archived_at: null
+archived_at: 2026-09-29T16:36:45Z
 branch: staging # shared working tree — switching HEAD would redirect parallel agents' commits
 worktree: null
 ---

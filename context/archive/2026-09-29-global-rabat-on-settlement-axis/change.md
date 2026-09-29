@@ -1,10 +1,10 @@
 ---
 change_id: global-rabat-on-settlement-axis
 title: Rabat kwotowy takes netto or brutto via two linked fields
-status: implemented
+status: archived
 created: 2026-09-29
 updated: 2026-09-29
-archived_at: null
+archived_at: 2026-09-29T16:36:45Z
 branch: global-rabat-on-settlement-axis
 worktree: ../wykonczymy-worktrees/global-rabat-on-settlement-axis
 ---
