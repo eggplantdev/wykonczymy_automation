@@ -1,7 +1,7 @@
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import { groupBySection } from '@/lib/kosztorys/row-ops'
 import { applyRowConditions } from '@/lib/kosztorys/row-conditions/queries'
-import { columnSortValue } from '@/lib/kosztorys/sort-value'
+import { sortValueGetter } from '@/lib/kosztorys/sort-value'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 // Parity with v1.
@@ -123,7 +123,7 @@ export function buildViewRows(input: {
     latchedRowIds,
   )
   if (!sort) return filtered
-  const getValue = (row: KosztorysV2RowT) => columnSortValue(row, sort.field, view, stages)
+  const getValue = sortValueGetter(sort.field, view, stages)
   return sort.scope === 'global'
     ? sortRows(filtered, getValue, sort.dir)
     : sortRowsWithinSections(filtered, getValue, sort.dir)

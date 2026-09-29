@@ -318,3 +318,26 @@ describe('columnSortValue — an empty cell is an absence, not a key', () => {
     expect(planeIdsSortedBy('plannedQty', 'client')).toEqual([1, 3, 2])
   })
 })
+
+// The owner's 2026-09-23 ruling shows the przedmiar figures in the crew views too, always read at the
+// client price over the whole offered scope — and their cells do. `planeTree` orders rows 1 and 3
+// oppositely at the client price and at a crew's stawka, and splits the pomiar across both crews'
+// etapy, so a sort still reading the active view cannot pass.
+describe('columnSortValue — przedmiar figures sort by the client reading in every view (EX-894)', () => {
+  const clientPinned = ['plannedNet', 'plannedGross', 'donePercent', 'remaining', 'remainingGross']
+
+  it.each(['w_tools', 'own_tools'] as const)('%s: each row keys on its client-view figure', (view) => {
+    for (const field of clientPinned) {
+      for (const row of planeRows) {
+        expect(columnSortValue(row, field, view, planeTree.stages), `${field} #${row.id}`).toEqual(
+          columnSortValue(row, field, 'client', planeTree.stages),
+        )
+      }
+    }
+  })
+
+  it('orders „Wartość przedmiaru netto" and „% wykonania" as the client view does', () => {
+    expect(planeIdsSortedBy('plannedNet', 'w_tools')).toEqual([1, 3, 2]) // 900 > 90 > 0
+    expect(planeIdsSortedBy('donePercent', 'w_tools')).toEqual([1, 3, 2]) // 50% > 44% > —
+  })
+})

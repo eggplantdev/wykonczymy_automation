@@ -82,7 +82,7 @@ import { STAGE_CONDITIONS, countMatchingStages } from '@/lib/kosztorys/stage-con
 import { stagesForView } from '@/lib/kosztorys/settlement-view'
 import { emptySettlementColumnIds } from '@/lib/kosztorys/settlement-columns'
 import { baseOrdinals, sectionRepresentatives } from '@/lib/kosztorys/section-band-rows'
-import { columnSortValue, reconcileSort } from '@/lib/kosztorys/sort-value'
+import { reconcileSort, sortValueGetter } from '@/lib/kosztorys/sort-value'
 import { planKosztorysRenumber } from '@/lib/kosztorys/display-order-plan'
 import { DEFAULT_SECTION_NAME } from '@/lib/kosztorys/constants'
 import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
@@ -883,7 +883,7 @@ export function useKosztorysEditor({
     if (!sort) return
     const { before, after } = planKosztorysRenumber(
       rowsRef.current,
-      (r) => columnSortValue(r, sort.field, view, stages),
+      sortValueGetter(sort.field, view, stages),
       sort.dir,
     )
     if (after.length === 0) return
