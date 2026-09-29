@@ -9,6 +9,7 @@ import {
   WITHIN_RETENTION_DAYS,
 } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { createTestTemplate } from '@/__tests__/helpers/template'
 
 // The purge is the one delete nobody confirms, so the assertion is on which rows survive — a count
 // in the result would read the same over a purge that deleted the wrong investment.
@@ -24,6 +25,7 @@ describe.skipIf(!ENV_READY)('purgeTrash (DB)', () => {
   let expired: number
   let used: number
   let recent: number
+  let template: number
 
   const purge = () => db.execute(sql`DELETE FROM investments WHERE name LIKE ${`${PREFIX}%`}`)
 
@@ -48,20 +50,26 @@ describe.skipIf(!ENV_READY)('purgeTrash (DB)', () => {
       sections: [{ name: 'S', items: [{ plannedQty: 3 }] }],
     })
     recent = await createTestInvestment(payload, `${PREFIX} recent`)
+    template = await createTestTemplate(payload, `${PREFIX} szablon`)
+    await createKosztorysTree(payload, template, {
+      sections: [{ name: 'S', items: [{ plannedQty: 0, clientPrice: 50 }] }],
+    })
 
     await trashDaysAgo(db, expired, PAST_RETENTION_DAYS)
     await trashDaysAgo(db, used, PAST_RETENTION_DAYS)
     await trashDaysAgo(db, recent, WITHIN_RETENTION_DAYS)
+    await trashDaysAgo(db, template, PAST_RETENTION_DAYS)
   })
 
   afterAll(purge)
 
-  it('deletes only the unused investment past retention', async () => {
+  it('deletes only the unused investment and the szablon past retention', async () => {
     const { purgeTrash } = await import('@/lib/investments/purge-trash')
 
     const result = await purgeTrash(payload, db)
 
     expect(await exists(expired)).toBe(false)
+    expect(await exists(template)).toBe(false)
     expect(await exists(used)).toBe(true)
     expect(await exists(recent)).toBe(true)
     expect(result.purged).toBeGreaterThanOrEqual(1)

@@ -132,37 +132,12 @@ export async function createEmptyPresetAction(
   })
 }
 
-// Destroying a szablon is a different power from writing into one: savePresetAction stays open to
-// MANAGEMENT_ROLES, these two do not.
+// Renaming is the one owner-only szablon power: the name is the szablon's identity. Removing one
+// goes through the trash (investment-trash.ts), open to MANAGEMENT_ROLES because it is reversible.
 const OWNER_ONLY_PRESET_MESSAGE =
-  'Tylko właściciel lub administrator może usuwać i przemianowywać szablony.'
+  'Tylko właściciel lub administrator może zmieniać nazwy szablonów.'
 
 const presetIdSchema = z.object({ id: idSchema })
-
-// Irreversible: the DB cascade takes the szablon's tree and its restore points with it. Through
-// `payload.delete` rather than raw SQL, like every other investment delete.
-export async function deletePresetAction(id: number): Promise<ActionResultT> {
-  return ownerOnlyAction(
-    'deletePresetAction',
-    OWNER_ONLY_PRESET_MESSAGE,
-    async ({ payload }) => {
-      const parsed = validateAction(presetIdSchema, { id })
-      if (!parsed.success) return parsed
-
-      if (!(await isTemplateInvestment(await getDb(payload), parsed.data.id))) {
-        return { success: false, error: TEMPLATE_NOT_FOUND }
-      }
-      await payload.delete({
-        collection: 'investments',
-        id: parsed.data.id,
-        overrideAccess: true,
-        context: SKIP_HOOK_REVALIDATION,
-      })
-      return { success: true }
-    },
-    ['presets'],
-  )
-}
 
 // The name IS the szablon's identity (unique, and the only thing the pickers show), so this is an
 // identity change, not cosmetics.

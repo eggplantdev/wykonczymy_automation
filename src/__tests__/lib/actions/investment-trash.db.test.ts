@@ -6,7 +6,7 @@ import { entityTag } from '@/lib/cache/tags'
 import { createTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { createTestTemplate } from '@/__tests__/helpers/template'
-import { revalidateEntities } from '@/__tests__/stubs/cache-revalidate'
+import { revalidateCollections, revalidateEntities } from '@/__tests__/stubs/cache-revalidate'
 
 // Asserted on persisted rows: a trash that reports success but never stamps `trashed_at`, or a
 // delete that leaves kosztorys rows behind, reads identically at the action's return value. The
@@ -74,6 +74,7 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
   beforeEach(() => {
     session.role = 'OWNER'
     revalidateEntities.mockClear()
+    revalidateCollections.mockClear()
   })
 
   afterAll(purge)
@@ -108,16 +109,35 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
     expect(await trashedAt(trashed)).not.toBeNull()
   })
 
-  it('refuses a szablon', async () => {
+  it('lets a MANAGER trash and restore a szablon, expiring the szablon library', async () => {
     const template = await createTestTemplate(payload, `${PREFIX} szablon`)
+    session.role = 'MANAGER'
 
-    const result = await actions.trashInvestmentAction(template)
+    expect((await actions.trashInvestmentAction(template)).success).toBe(true)
+    expect(await trashedAt(template)).not.toBeNull()
+    expect(revalidateCollections.mock.calls.flatMap(([tags]) => tags)).toContain('presets')
 
-    expect(result).toEqual({
-      success: false,
-      error: 'Szablonu nie przenosi się do kosza — usuń go z listy szablonów.',
-    })
+    expect((await actions.restoreInvestmentAction(template)).success).toBe(true)
     expect(await trashedAt(template)).toBeNull()
+  })
+
+  // A szablon's Przedmiar is always empty, so the „used" test that guards an investment would never
+  // ask for its name.
+  it('demands the name before deleting a szablon forever, even an empty one', async () => {
+    const template = await createTestTemplate(payload, `${PREFIX} szablon-forever`)
+    const { rows } = await db.execute(sql`SELECT name FROM investments WHERE id = ${template}`)
+    const name = String(rows[0].name)
+    await actions.trashInvestmentAction(template)
+
+    expect(await actions.deleteInvestmentForeverAction(template)).toEqual({
+      success: false,
+      error: 'Wpisana nazwa się nie zgadza.',
+    })
+    expect(await trashedAt(template)).not.toBeNull()
+
+    expect((await actions.deleteInvestmentForeverAction(template, name)).success).toBe(true)
+    const left = await db.execute(sql`SELECT 1 FROM investments WHERE id = ${template}`)
+    expect(left.rows).toHaveLength(0)
   })
 
   it('refuses while a live transaction points at the investment, not a cancelled one', async () => {

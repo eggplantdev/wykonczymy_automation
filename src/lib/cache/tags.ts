@@ -59,10 +59,13 @@ export const KOSZTORYS_TREE_TAGS = [
   'investments',
 ] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
 
-// Moving an investment in or out of the trash changes only which rows every investment reader
-// returns — the leads list already keys on `investments` too.
+// Moving an investment or a szablon in or out of the trash changes only which rows the investment
+// readers and the szablon library return — the leads list already keys on `investments` too. Both
+// kinds ride one set because the /kosz buttons serve both and the tags are fixed before the handler
+// learns which kind it holds.
 export const INVESTMENT_TRASH_TAGS = [
   'investments',
+  'presets',
 ] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
 
 // A hard delete adds the rows the DB cascade removes or unlinks without firing a Payload hook — the

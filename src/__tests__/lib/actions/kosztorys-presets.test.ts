@@ -40,13 +40,10 @@ vi.mock('@/lib/kosztorys/serialize-preset', async (importOriginal) => {
   }
 })
 
-const {
-  createEmptyPresetAction,
-  deletePresetAction,
-  reloadFromPresetAction,
-  renamePresetAction,
-  savePresetAction,
-} = await import('@/lib/actions/kosztorys-presets')
+const { createEmptyPresetAction, reloadFromPresetAction, renamePresetAction, savePresetAction } =
+  await import('@/lib/actions/kosztorys-presets')
+const { deleteInvestmentForeverAction, trashInvestmentAction } =
+  await import('@/lib/actions/investment-trash')
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
@@ -612,15 +609,19 @@ describe.skipIf(!ENV_READY)('szablon lifecycle — persisted state (DB)', () => 
   })
 
   // The cascade is the delete: a szablon's tree and its restore points have no owner once it goes.
-  it('deleting a szablon takes its sections, items and restore points with it', async () => {
+  it('deleting a szablon forever takes its sections, items and restore points with it', async () => {
     const templateId = await createTestTemplate(payload, 'lifecycle-delete')
     created.push(templateId)
     await createKosztorysTree(payload, templateId, {
       sections: [{ name: 'Do usunięcia', items: [{ description: 'x', unit: 'm2' }] }],
     })
     await savePresetAction(sourceId, { mode: 'overwrite', targetId: templateId })
+    const { rows } = await db.execute(sql`SELECT name FROM investments WHERE id = ${templateId}`)
 
-    expect(await deletePresetAction(templateId)).toEqual({ success: true })
+    expect((await trashInvestmentAction(templateId)).success).toBe(true)
+    expect(await deleteInvestmentForeverAction(templateId, String(rows[0].name))).toEqual({
+      success: true,
+    })
 
     const left = await db.execute(sql`
       SELECT
@@ -630,17 +631,5 @@ describe.skipIf(!ENV_READY)('szablon lifecycle — persisted state (DB)', () => 
         (SELECT COUNT(*) FROM kosztorys_snapshots WHERE investment_id = ${templateId}) AS snapshots
     `)
     expect(left.rows[0]).toEqual({ investments: '0', sections: '0', items: '0', snapshots: '0' })
-  })
-
-  it('refuses to delete an ordinary investment through the szablon list', async () => {
-    const ordinary = await createTestInvestment(payload, 'lifecycle-ordinary-delete')
-    created.push(ordinary)
-
-    expect(await deletePresetAction(ordinary)).toEqual({
-      success: false,
-      error: 'Nie znaleziono szablonu',
-    })
-    const res = await db.execute(sql`SELECT 1 FROM investments WHERE id = ${ordinary}`)
-    expect(res.rows).toHaveLength(1)
   })
 })

@@ -1,5 +1,6 @@
 import 'server-only'
 import { sql } from '@payloadcms/db-vercel-postgres'
+import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import type { DbExecutorT } from '@/lib/db/get-db'
 
 // „Realnie użyty" (owner's ruling): someone typed a Przedmiar or measured work on a stage. Price,
@@ -24,11 +25,13 @@ export type TrashedInvestmentRowT = {
   name: string
   trashedAt: Date
   isKosztorysUsed: boolean
+  isTemplate: boolean
 }
 
 export async function fetchTrashedInvestments(db: DbExecutorT): Promise<TrashedInvestmentRowT[]> {
   const { rows } = await db.execute(sql`
-    SELECT i.id, i.name, i.trashed_at, ${KOSZTORYS_USED} AS used
+    SELECT i.id, i.name, i.trashed_at, ${KOSZTORYS_USED} AS used,
+      i.status = ${TEMPLATE_INVESTMENT_STATUS} AS is_template
     FROM investments i
     WHERE i.trashed_at IS NOT NULL
     ORDER BY i.trashed_at DESC
@@ -38,6 +41,7 @@ export async function fetchTrashedInvestments(db: DbExecutorT): Promise<TrashedI
     name: String(row.name),
     trashedAt: new Date(row.trashed_at as string),
     isKosztorysUsed: row.used === true,
+    isTemplate: row.is_template === true,
   }))
 }
 

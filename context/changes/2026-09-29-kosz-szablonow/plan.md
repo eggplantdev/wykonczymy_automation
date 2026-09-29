@@ -348,18 +348,18 @@ Run once, after Phase 3:
 
 #### Automated
 
-- [x] 1.1 presets.test.ts — trashed szablon excluded from every reader; presetNameHolder classification
-- [x] 1.2 investment-gate.test.ts — TEMPLATE_TRASHED_MESSAGE for a trashed szablon
-- [x] 1.3 kosztorys-presets.test.ts — name-in-trash refusals; overwrite/reload refuse a trashed szablon
+- [x] 1.1 presets.test.ts — trashed szablon excluded from every reader; presetNameHolder classification — 87eab3f4
+- [x] 1.2 investment-gate.test.ts — TEMPLATE_TRASHED_MESSAGE for a trashed szablon — 87eab3f4
+- [x] 1.3 kosztorys-presets.test.ts — name-in-trash refusals; overwrite/reload refuse a trashed szablon — 87eab3f4
 
 ### Phase 2: The trash accepts a szablon
 
 #### Automated
 
-- [ ] 2.1 investment-trash.db.test.ts (actions) — szablon trash/restore by MANAGER; typed-name delete-forever with cascade
-- [ ] 2.2 investment-trash.db.test.ts (db) — isTemplate flag; szablon purgeable past retention
-- [ ] 2.3 purge-trash.db.test.ts — szablon past retention purged
-- [ ] 2.4 kosztorys-presets.test.ts — deletePresetAction cases removed, suite green
+- [x] 2.1 investment-trash.db.test.ts (actions) — szablon trash/restore by MANAGER; typed-name delete-forever with cascade
+- [x] 2.2 investment-trash.db.test.ts (db) — isTemplate flag; szablon purgeable past retention
+- [x] 2.3 purge-trash.db.test.ts — szablon past retention purged
+- [x] 2.4 kosztorys-presets.test.ts — deletePresetAction cases removed, suite green
 
 ### Phase 3: /szablony and /kosz, plus docs
 

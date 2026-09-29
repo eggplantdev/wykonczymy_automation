@@ -10,6 +10,7 @@ import {
   WITHIN_RETENTION_DAYS,
 } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { createTestTemplate } from '@/__tests__/helpers/template'
 
 // The /kosz label and the purge read one „realnie użyty" fragment; if it misjudged a template seed
 // as used, nothing would ever purge, and if it missed a Pomiar typed on an etap with Przedmiar 0,
@@ -29,6 +30,7 @@ describe.skipIf(!ENV_READY)('investment trash queries (DB)', () => {
   let priceOnly: number
   let empty: number
   let fresh: number
+  let template: number
 
   const purge = () => db.execute(sql`DELETE FROM investments WHERE name LIKE ${`${PREFIX}%`}`)
 
@@ -62,7 +64,12 @@ describe.skipIf(!ENV_READY)('investment trash queries (DB)', () => {
     empty = await createTestInvestment(payload, `${PREFIX} empty`)
     fresh = await createTestInvestment(payload, `${PREFIX} fresh`)
 
-    for (const id of [planned, measured, priceOnly, empty])
+    template = await createTestTemplate(payload, `${PREFIX} szablon`)
+    await createKosztorysTree(payload, template, {
+      sections: [{ name: 'S', items: [{ plannedQty: 0, clientPrice: 90 }] }],
+    })
+
+    for (const id of [planned, measured, priceOnly, empty, template])
       await trashDaysAgo(db, id, PAST_RETENTION_DAYS)
     await trashDaysAgo(db, fresh, WITHIN_RETENTION_DAYS)
   })
@@ -87,9 +94,11 @@ describe.skipIf(!ENV_READY)('investment trash queries (DB)', () => {
       db,
       TRASH_RETENTION_DAYS,
     )
-    const ours = new Set([planned, measured, priceOnly, empty, fresh])
+    const ours = new Set([planned, measured, priceOnly, empty, fresh, template])
 
-    expect(purgeable.filter((id) => ours.has(id)).sort()).toEqual([priceOnly, empty].sort())
+    expect(purgeable.filter((id) => ours.has(id)).sort()).toEqual(
+      [priceOnly, empty, template].sort(),
+    )
     expect(skippedKosztorys).toBeGreaterThanOrEqual(2)
   })
 
@@ -101,5 +110,14 @@ describe.skipIf(!ENV_READY)('investment trash queries (DB)', () => {
     expect(rows[0].id).toBe(fresh)
     expect(rows.find((row) => row.id === planned)?.isKosztorysUsed).toBe(true)
     expect(rows.find((row) => row.id === priceOnly)?.isKosztorysUsed).toBe(false)
+  })
+
+  it('tells a szablon apart from an investment, so /kosz can section them', async () => {
+    const rows = (await trash.fetchTrashedInvestments(db)).filter((row) =>
+      row.name.startsWith(PREFIX),
+    )
+
+    expect(rows.find((row) => row.id === template)?.isTemplate).toBe(true)
+    expect(rows.find((row) => row.id === priceOnly)?.isTemplate).toBe(false)
   })
 })
