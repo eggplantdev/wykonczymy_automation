@@ -52,8 +52,8 @@ export function UserDataTable({ data, cashRegisters }: UserDataTablePropsT) {
       }),
     [handleToggle],
   )
-  // The filter rides on the row, not on the columns: DataTable caches a row's cells, so a filter read
-  // from the columns would leave the cells printing the old figures.
+  // The filter rides on the row, not on the columns: the column's sort accessor reads
+  // `row.payoutRemaining`, so a filter applied only in the cell would sort by the unfiltered figure.
   const rows = filteredData.map(
     (row): UserRowT => ({
       ...row,

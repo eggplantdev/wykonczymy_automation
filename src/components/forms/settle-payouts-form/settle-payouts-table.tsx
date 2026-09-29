@@ -33,7 +33,7 @@ type SettleTableContextT = {
 
 // A context, not props on the columns: `flexRender` mounts a `cell` function as a component, so
 // columns rebuilt per keystroke would remount the input under the caret. The columns stay
-// module-level and the live values reach the cells here — DataTable also caches a row's cells.
+// module-level and the live values reach the cells here.
 const SettleTableContext = createContext<SettleTableContextT | undefined>(undefined)
 
 function useSettleTable() {

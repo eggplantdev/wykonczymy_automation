@@ -72,9 +72,8 @@ const itemCategory = (item: WorkCatalogueItemT) => item.category ?? ''
 
 const SelectedIdsContext = createContext<ReadonlySet<number>>(new Set())
 
-// A context consumer, not a `checked` prop: DataTable memoises a row's cells on the TanStack row
-// object, which ticking a checkbox does not touch — so a prop would never arrive. React re-renders
-// a consumer through a memoised parent, which is the one path into an already-cached cell.
+// A context consumer, not a `checked` prop through the columns: `flexRender` mounts a `cell` function
+// as a component, so columns rebuilt per tick would remount every cell in the list.
 function SelectCell({
   item,
   onToggle,

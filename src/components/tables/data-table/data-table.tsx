@@ -123,6 +123,9 @@ export function DataTable<TData>({
     state: {
       sorting,
       columnVisibility,
+      // A new array every render, and that is load-bearing: TableHeader's sort arrow and
+      // VirtualizedTableBody's virtual items are compiled children holding TanStack's mutable objects,
+      // re-read only because this renews `headerGroups` and every row's cells. Memoized, both freeze.
       columnOrder: orderColumnKeys(declaredColumnIds, ranks),
     },
     onSortingChange: (updater) => {
@@ -164,9 +167,6 @@ export function DataTable<TData>({
   const visibleLeafColumns = table.getVisibleLeafColumns()
   const visibleColCount = visibleLeafColumns.length
   const visibleColumnIdList = visibleLeafColumns.map((column) => column.id)
-  // Part of every row's key: a hide/reorder toggle changes neither `row` nor the callbacks, so React
-  // Compiler would keep the cached <DataTableRow> rendering stale cells under the new header.
-  const visibleColumnKey = visibleColumnIdList.join('_')
 
   return (
     /* 24px below `sm` to match `PageWrapper`'s `gap-6` — the stock 8px left the table looking welded
@@ -207,8 +207,9 @@ export function DataTable<TData>({
               ) : (
                 rows.map((row) => (
                   <DataTableRow
-                    key={`${row.id}:${visibleColumnKey}`}
+                    key={row.id}
                     row={row}
+                    cells={row.getVisibleCells()}
                     getRowHref={getRowHref}
                     getRowClassName={getRowClassName}
                   />
