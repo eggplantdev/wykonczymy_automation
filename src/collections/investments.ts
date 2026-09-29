@@ -4,6 +4,7 @@ import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/re
 import { refuseDeleteWhen } from '@/hooks/prevent-delete'
 import { investmentDeleteBlocker } from '@/lib/investments/delete-blocker'
 import { guardInvestmentStatusUnlock } from '@/hooks/investments/guard-status-unlock'
+import { guardTemplateStatus } from '@/hooks/investments/guard-template-status'
 import { stampCompletedAt } from '@/hooks/investments/stamp-completed-at'
 import { DEFAULT_COEFFS, DEFAULT_VAT } from '@/lib/kosztorys/constants'
 import {
@@ -32,7 +33,7 @@ export const Investments: CollectionConfig = {
     group: { en: 'Finance', pl: 'Finanse' },
   },
   hooks: {
-    beforeChange: [guardInvestmentStatusUnlock, stampCompletedAt],
+    beforeChange: [guardInvestmentStatusUnlock, guardTemplateStatus, stampCompletedAt],
     beforeDelete: [refuseDeleteWhen(investmentDeleteBlocker)],
     afterChange: [makeRevalidateAfterChange('investments')],
     afterDelete: [makeRevalidateAfterDelete('investments')],

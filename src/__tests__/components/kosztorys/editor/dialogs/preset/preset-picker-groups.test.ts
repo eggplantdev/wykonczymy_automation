@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import {
   groupPresetSections,
   isGroupFullySelected,
-  metaKey,
 } from '@/components/kosztorys/editor/dialogs/preset/preset-picker-groups'
 import type { PresetSectionMetaT } from '@/lib/db/presets'
 
@@ -34,14 +33,6 @@ describe('groupPresetSections', () => {
     expect(groups[1].metas.map((item) => item.sectionId)).toEqual([20, 21, 22])
   })
 
-  // A section id is only unique within its preset, so the same id under two presets is two sections.
-  it('keeps a repeated section id in its own preset group', () => {
-    const groups = groupPresetSections([meta(1, 5), meta(2, 5)], new Set())
-
-    expect(groups).toHaveLength(2)
-    expect(groups.map((group) => group.presetId)).toEqual([1, 2])
-  })
-
   it('takes the group name from its metas', () => {
     const groups = groupPresetSections([meta(1, 10, 'Białostocka bazowy')], new Set())
 
@@ -56,9 +47,9 @@ describe('groupPresetSections', () => {
     expect(groups.map((group) => group.presetId)).toEqual([1, 2, 1])
   })
 
-  it('counts selections per group, ignoring keys of other presets', () => {
+  it('counts selections per group', () => {
     const metas = [meta(1, 10), meta(1, 11), meta(2, 20), meta(2, 21), meta(2, 22)]
-    const selected = new Set([metaKey(meta(1, 10)), metaKey(meta(2, 20)), metaKey(meta(2, 22))])
+    const selected = new Set([10, 20, 22])
 
     const groups = groupPresetSections(metas, selected)
 
@@ -66,8 +57,8 @@ describe('groupPresetSections', () => {
     expect(groups[1].selectedCount).toBe(2)
   })
 
-  it('ignores a selection key belonging to no listed preset', () => {
-    const groups = groupPresetSections([meta(1, 10)], new Set(['99:10', '1:999']))
+  it('ignores a selected section that is not listed', () => {
+    const groups = groupPresetSections([meta(1, 10)], new Set([999]))
 
     expect(groups[0].selectedCount).toBe(0)
   })
@@ -85,11 +76,11 @@ describe('isGroupFullySelected', () => {
     const metas = [meta(1, 10), meta(1, 11)]
 
     expect(
-      isGroupFullySelected(groupPresetSections(metas, new Set([metaKey(meta(1, 10))]))[0]),
+      isGroupFullySelected(groupPresetSections(metas, new Set([10]))[0]),
     ).toBe(false)
     expect(
       isGroupFullySelected(
-        groupPresetSections(metas, new Set([metaKey(meta(1, 10)), metaKey(meta(1, 11))]))[0],
+        groupPresetSections(metas, new Set([10, 11]))[0],
       ),
     ).toBe(true)
   })

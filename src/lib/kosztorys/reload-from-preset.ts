@@ -1,7 +1,8 @@
 import type { Payload } from 'payload'
 import { getDb } from '@/lib/db/get-db'
-import { getPreset } from '@/lib/db/presets'
+import { getPresetName } from '@/lib/db/presets'
 import { replaceTreeWithSnapshot } from '@/lib/kosztorys/replace-tree-with-snapshot'
+import { serializeKosztorysAsPreset } from '@/lib/kosztorys/serialize-preset'
 
 export type ReloadFromPresetResultT = { sections: number; items: number }
 
@@ -12,23 +13,25 @@ const preReloadLabel = (presetName: string) => `Przed wczytaniem: ${presetName}`
 // The counterpart to `seedInvestmentFromPreset`, which refuses a non-empty target — this is the path
 // for swapping the szablon after the investment exists.
 //
-// A plain helper rather than the action itself, because „Otwórz szablon" needs the same work under its
-// own auth and an action calling an action re-runs requireAuth and opens a second perf span.
-// `restoreKosztorys` rather than `applyPreset`, which is insert-only and assumes an empty target.
+// `replaceTreeWithSnapshot` rather than `applyPreset`, which is insert-only and assumes an empty
+// target. `null` when the source is not a szablon, or is the target itself — reloading a szablon from
+// itself would only wipe its przedmiar.
 export async function reloadInvestmentFromPreset(
   payload: Payload,
   params: { investmentId: number; presetId: number; takenBy: number },
 ): Promise<ReloadFromPresetResultT | null> {
-  const preset = await getPreset(await getDb(payload), params.presetId)
-  if (!preset) return null
+  if (params.presetId === params.investmentId) return null
+  const name = await getPresetName(await getDb(payload), params.presetId)
+  if (name == null) return null
 
+  const tree = await serializeKosztorysAsPreset(params.presetId)
   await replaceTreeWithSnapshot(payload, {
     investmentId: params.investmentId,
-    label: preReloadLabel(preset.name),
+    label: preReloadLabel(name),
     takenBy: params.takenBy,
-    tree: preset.payload,
+    tree,
     clearGlobalDiscount: true,
   })
 
-  return { sections: preset.payload.sections.length, items: preset.payload.items.length }
+  return { sections: tree.sections.length, items: tree.items.length }
 }

@@ -3,10 +3,10 @@ import type { DbExecutorT } from '@/lib/db/get-db'
 import {
   INVESTMENT_LOCKED_MESSAGE,
   INVESTMENT_TRASHED_MESSAGE,
+  TEMPLATE_INVESTMENT_STATUS,
   isLockedStatus,
 } from '@/lib/constants/investment-lock'
 import { resolveId } from '@/lib/utils/resolve-id'
-import { numOrNull } from '@/lib/db/row-coerce'
 
 export type GateTargetKindT = 'item' | 'section' | 'stage'
 
@@ -20,11 +20,11 @@ const TABLE_BY_KIND: Record<GateTargetKindT, string> = {
 
 /**
  * Both things `investmentAction` needs to know before it writes, in the one SELECT it was already
- * doing: may this investment move at all, and is it the warsztat holding a szablon (then the write
- * owes a mirror into the szablon's row). Answering them separately would double the round trip on
- * every kosztorys mutation.
+ * doing: may this investment move at all, and is it a szablon (then the write moves the szablon's
+ * „ostatnio edytowany"). Answering them separately would double the round trip on every kosztorys
+ * mutation.
  */
-export type InvestmentGateT = { lockMessage: string | undefined; templatePresetId: number | null }
+export type InvestmentGateT = { lockMessage: string | undefined; isTemplate: boolean }
 
 // Trashed wins over completed: a restore brings back whatever status the investment had, so „set it
 // to Aktywna" would send the user to a control they cannot reach while it sits in the trash.
@@ -39,12 +39,12 @@ export async function investmentGateFor(
   investmentId: number,
 ): Promise<InvestmentGateT> {
   const res = await db.execute(
-    sql`SELECT status, trashed_at, template_preset_id FROM investments WHERE id = ${investmentId}`,
+    sql`SELECT status, trashed_at FROM investments WHERE id = ${investmentId}`,
   )
   const row = res.rows[0]
   return {
     lockMessage: lockMessageOf(row),
-    templatePresetId: numOrNull(row?.template_preset_id),
+    isTemplate: row?.status === TEMPLATE_INVESTMENT_STATUS,
   }
 }
 
@@ -74,7 +74,7 @@ export async function investmentGateForRow(
   id: number,
 ): Promise<({ investmentId: number } & InvestmentGateT) | undefined> {
   const res = await db.execute(
-    sql`SELECT i.id, i.status, i.trashed_at, i.template_preset_id FROM ${sql.raw(TABLE_BY_KIND[kind])} r
+    sql`SELECT i.id, i.status, i.trashed_at FROM ${sql.raw(TABLE_BY_KIND[kind])} r
         JOIN investments i ON i.id = r.investment_id
         WHERE r.id = ${id}`,
   )
@@ -83,7 +83,7 @@ export async function investmentGateForRow(
   return {
     investmentId: Number(row.id),
     lockMessage: lockMessageOf(row),
-    templatePresetId: numOrNull(row.template_preset_id),
+    isTemplate: row.status === TEMPLATE_INVESTMENT_STATUS,
   }
 }
 

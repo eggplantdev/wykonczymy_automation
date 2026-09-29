@@ -9,9 +9,6 @@ export type PresetGroupT = {
   selectedCount: number
 }
 
-// A meta's stable identity across all presets — a section id is only unique WITHIN its preset.
-export const metaKey = (meta: PresetSectionMetaT) => `${meta.presetId}:${meta.sectionId}`
-
 // Takes `undefined` because the picker derives this above its own loading/empty guard — there is no
 // active group while the szablon list is fetching, nor when the library is empty.
 export function isGroupFullySelected(group: PresetGroupT | undefined): boolean {
@@ -24,7 +21,7 @@ export function isGroupFullySelected(group: PresetGroupT | undefined): boolean {
 // the left pane's order (newest szablon first).
 export function groupPresetSections(
   metas: PresetSectionMetaT[],
-  selected: Set<string>,
+  selected: Set<number>,
 ): PresetGroupT[] {
   const groups: PresetGroupT[] = []
   for (const meta of metas) {
@@ -39,7 +36,7 @@ export function groupPresetSections(
     }
     const group = groups[groups.length - 1]
     group.metas.push(meta)
-    if (selected.has(metaKey(meta))) group.selectedCount += 1
+    if (selected.has(meta.sectionId)) group.selectedCount += 1
   }
   return groups
 }

@@ -9,9 +9,8 @@ export const investmentFormSchema = z.object({
   contactPerson: z.string(),
   notes: z.string(),
   review: z.string(),
-  // Accepted so editing the workbench can't rewrite its status; no <SelectItem> offers it, the
-  // workbench is only auto-provisioned.
-  status: z.enum(['active', 'completed', 'planowana', 'szablon']),
+  // No `szablon`: a szablon is born only through the szablon actions (guard-template-status).
+  status: z.enum(['active', 'completed', 'planowana']),
   // Optional seed template, only meaningful on create ('' = start empty). Not an investments
   // column — createInvestmentAction strips it and seeds the new investment's kosztorys from it.
   presetId: z.string(),

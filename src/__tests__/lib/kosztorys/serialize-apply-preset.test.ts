@@ -1,16 +1,14 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
-import { sql } from '@payloadcms/db-vercel-postgres'
-import { getDb } from '@/lib/db/get-db'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { serializeKosztorys } from '@/lib/kosztorys/serialize-kosztorys'
 import { serializeKosztorysAsPreset } from '@/lib/kosztorys/serialize-preset'
 import { applyPreset } from '@/lib/kosztorys/apply-preset'
 import { seedInvestmentFromPreset } from '@/lib/kosztorys/seed-from-preset'
-import { getPreset, insertPreset, upsertPresetByName } from '@/lib/db/presets'
 import type { StoredSnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { createTestTemplate } from '@/__tests__/helpers/template'
 
 // Presets reuse the snapshot serialize/apply core, so we exercise it against the REAL DB and assert
 // PERSISTED state (re-serialize after apply), the same discipline as serialize-restore-roundtrip.
@@ -29,8 +27,6 @@ vi.mock('@/lib/auth/require-auth', () => ({
 // unreachable. Discovered by the `skipIf(!ENV_READY)` marker and run against 5435 by test-integration.
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
-// Global-table presets survive a single test's investment cleanup, so every name carries this prefix
-// and afterAll deletes the lot — no cross-run pollution of the shared kosztorys_presets table.
 const PRESET_PREFIX = 'preset-spec-'
 
 // Id-free, order-keyed view of a tree WITHOUT settings — a preset's apply intentionally leaves the
@@ -80,7 +76,6 @@ function canonicalTree(snap: StoredSnapshotPayloadT) {
 
 describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
   let payload: Payload
-  let db: Awaited<ReturnType<typeof getDb>>
   const investmentIds: number[] = []
 
   // A throwaway investment with the given settings; tracked for cascade cleanup in afterAll.
@@ -133,6 +128,15 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
     })
   }
 
+  // A szablon whose LIVE tree carries przedmiar, rabat, etapy and progress — everything a seed from it
+  // must strip, since the szablon's own editor lets anyone type them in.
+  async function createTemplateWithJobFigures(name: string) {
+    const id = await createTestTemplate(payload, `${PRESET_PREFIX}${name}`)
+    investmentIds.push(id)
+    await buildSourceTree(id)
+    return id
+  }
+
   async function applyPresetTx(investmentId: number, preset: StoredSnapshotPayloadT) {
     await withPayloadTransaction(
       payload,
@@ -145,14 +149,12 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
     const { getPayload } = await import('payload')
     const config = (await import('@payload-config')).default
     payload = await getPayload({ config })
-    db = await getDb(payload)
   })
 
   afterAll(async () => {
     for (const id of investmentIds) {
       await deleteTestInvestment(payload, id)
     }
-    await db.execute(sql`DELETE FROM kosztorys_presets WHERE name LIKE ${PRESET_PREFIX + '%'}`)
   })
 
   it('apply(serializeAsPreset()) reproduces the structural tree, zeroes the job figures, keeps the komentarz, leaves target settings', async () => {
@@ -194,38 +196,30 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
     })
   })
 
-  it('seed from a preset yields no etapy and no progress, whatever the source stages were', async () => {
-    const sourceId = await createInvestment(`${PRESET_PREFIX}source-oneetap`, 0.23, 0.7, 0.5)
-    await buildSourceTree(sourceId) // source has 2 stages + progress
-
-    const preset = await serializeKosztorysAsPreset(sourceId)
+  it('seed from a szablon yields no etapy, no progress, no przedmiar and no rabat', async () => {
+    const presetId = await createTemplateWithJobFigures('oneetap')
     // A preset carries no etapy — they are per-job execution structure, not reusable scope.
+    const preset = await serializeKosztorysAsPreset(presetId)
     expect(preset.stages).toEqual([])
     expect(preset.progress).toEqual([])
 
-    const presetId = await insertPreset(db, {
-      name: `${PRESET_PREFIX}oneetap`,
-      createdBy: null,
-      payload: preset,
-    })
     const spawnId = await createInvestment(`${PRESET_PREFIX}spawn-oneetap`, 0.23, 0.7, 0.5)
-    expect(await seedInvestmentFromPreset(payload, spawnId, presetId!)).toBe('ok')
+    expect(await seedInvestmentFromPreset(payload, spawnId, presetId)).toBe('ok')
 
     const after = await serializeKosztorys(spawnId)
     // No etap is installed: its plane is forced at creation, and the seed has nothing to base one on.
     expect(after.stages).toEqual([])
     expect(after.progress).toEqual([])
+    expect(after.items).toHaveLength(3)
+    for (const item of after.items) {
+      expect(item.plannedQty).toBe(0)
+      expect(item.discountType).toBeNull()
+      expect(item.discountValue).toBe(0)
+    }
   })
 
   it('seed onto an investment that already has etapy keeps them and adds none', async () => {
-    const sourceId = await createInvestment(`${PRESET_PREFIX}source-hasetapy`, 0.23, 0.7, 0.5)
-    await buildSourceTree(sourceId)
-    const preset = await serializeKosztorysAsPreset(sourceId)
-    const presetId = await insertPreset(db, {
-      name: `${PRESET_PREFIX}hasetapy`,
-      createdBy: null,
-      payload: preset,
-    })
+    const presetId = await createTemplateWithJobFigures('hasetapy')
 
     // The live shape behind the original bug: an empty tree (no sections) that nonetheless already
     // carries etapy, because „Dodaj etap" works on an empty kosztorys.
@@ -236,30 +230,23 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
       stages: [{ label: null, plane: 'w_tools' }],
     })
 
-    expect(await seedInvestmentFromPreset(payload, targetId, presetId!)).toBe('ok')
+    expect(await seedInvestmentFromPreset(payload, targetId, presetId)).toBe('ok')
 
     const after = await serializeKosztorys(targetId)
     expect(after.stages).toHaveLength(1)
     expect(after.stages[0].ordinal).toBe(1)
-    expect(after.sections.length).toBe(preset.sections.length)
+    expect(after.sections).toHaveLength(2)
   })
 
   it('seed rejects a non-empty investment and writes nothing', async () => {
-    const targetId = await createInvestment(`${PRESET_PREFIX}source-guard`, 0.23, 0.7, 0.5)
-    await buildSourceTree(targetId)
-    const preset = await serializeKosztorysAsPreset(targetId)
+    const presetId = await createTemplateWithJobFigures('guard')
 
     // A second investment that ALREADY has a tree — seeding it must be refused.
     const occupiedId = await createInvestment(`${PRESET_PREFIX}target-guard`, 0.23, 0.7, 0.5)
     await createKosztorysTree(payload, occupiedId, { sections: [{ name: 'Istniejąca' }] })
-    const presetId = await insertPreset(db, {
-      name: `${PRESET_PREFIX}guard`,
-      createdBy: null,
-      payload: preset,
-    })
 
     const before = await serializeKosztorys(occupiedId)
-    const result = await seedInvestmentFromPreset(payload, occupiedId, presetId!)
+    const result = await seedInvestmentFromPreset(payload, occupiedId, presetId)
     const after = await serializeKosztorys(occupiedId)
 
     expect(result).toBe('not-empty')
@@ -267,51 +254,28 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
     expect(canonicalTree(after)).toEqual(canonicalTree(before))
   })
 
-  it('insert rejects a duplicate name; overwrite replaces the payload in place', async () => {
-    const invA = await createInvestment(`${PRESET_PREFIX}source-unique-a`, 0.23, 0.7, 0.5)
-    await buildSourceTree(invA)
-    const presetA = await serializeKosztorysAsPreset(invA)
+  // Only a szablon is a source: seeding from an ordinary investment's id would copy a client's
+  // rozpiska into someone else's offer.
+  it('seed refuses a source that is not a szablon and writes nothing', async () => {
+    const sourceId = await createInvestment(`${PRESET_PREFIX}source-ordinary`, 0.23, 0.7, 0.5)
+    await buildSourceTree(sourceId)
+    const targetId = await createInvestment(`${PRESET_PREFIX}target-ordinary`, 0.23, 0.7, 0.5)
 
-    const invB = await createInvestment(`${PRESET_PREFIX}source-unique-b`, 0.23, 0.7, 0.5)
-    await createKosztorysTree(payload, invB, { sections: [{ name: 'Tylko B' }] })
-    const presetB = await serializeKosztorysAsPreset(invB)
-
-    const name = `${PRESET_PREFIX}unique`
-    const firstId = await insertPreset(db, { name, createdBy: null, payload: presetA })
-    expect(firstId).not.toBeNull()
-
-    // Same name again → ON CONFLICT DO NOTHING → null (no second row, no throw).
-    const dupId = await insertPreset(db, { name, createdBy: null, payload: presetB })
-    expect(dupId).toBeNull()
-
-    // Overwrite keeps the same row id but swaps the payload.
-    const overwriteId = await upsertPresetByName(db, { name, createdBy: null, payload: presetB })
-    expect(overwriteId).toBe(firstId)
-
-    const stored = await getPreset(db, firstId!)
-    expect(canonicalTree(stored!.payload)).toEqual(canonicalTree(presetB))
+    expect(await seedInvestmentFromPreset(payload, targetId, sourceId)).toBe('not-found')
+    expect((await serializeKosztorys(targetId)).sections).toEqual([])
   })
 
-  it('overwriting a preset never propagates to a tree already spawned from it', async () => {
-    const invA = await createInvestment(`${PRESET_PREFIX}source-frozen-a`, 0.23, 0.7, 0.5)
-    await buildSourceTree(invA)
-    const presetA = await serializeKosztorysAsPreset(invA)
+  it('editing a szablon never propagates to a tree already spawned from it', async () => {
+    const presetId = await createTemplateWithJobFigures('frozen')
 
-    const name = `${PRESET_PREFIX}frozen`
-    const presetId = await insertPreset(db, { name, createdBy: null, payload: presetA })
-
-    // Spawn an investment's tree from the preset.
     const spawnId = await createInvestment(`${PRESET_PREFIX}spawn-frozen`, 0.23, 0.7, 0.5)
-    expect(await seedInvestmentFromPreset(payload, spawnId, presetId!)).toBe('ok')
+    expect(await seedInvestmentFromPreset(payload, spawnId, presetId)).toBe('ok')
     const spawnBefore = await serializeKosztorys(spawnId)
 
-    // Overwrite the preset with a DIFFERENT tree.
-    const invB = await createInvestment(`${PRESET_PREFIX}source-frozen-b`, 0.23, 0.7, 0.5)
-    await createKosztorysTree(payload, invB, { sections: [{ name: 'Nowa treść' }] })
-    const presetB = await serializeKosztorysAsPreset(invB)
-    await upsertPresetByName(db, { name, createdBy: null, payload: presetB })
+    // The szablon grows a section after the spawn.
+    await createKosztorysTree(payload, presetId, { sections: [{ name: 'Nowa treść' }] })
 
-    // The spawned tree is frozen — no FK back to the preset, so the overwrite is invisible to it.
+    // The spawned tree is frozen — no FK back to the szablon, so the edit is invisible to it.
     const spawnAfter = await serializeKosztorys(spawnId)
     expect(canonicalTree(spawnAfter)).toEqual(canonicalTree(spawnBefore))
   })
