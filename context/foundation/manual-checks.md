@@ -1956,3 +1956,20 @@ sprzed migracji, nie względem stałej liczby.
 - [ ] Inwestycja z nadpłatą pokazuje ujemną kwotę na czerwono.
 - [ ] Odznaczenie „Kolumny v2" chowa tę kolumnę razem z pozostałymi kolumnami v2.
 - [ ] Po zalogowaniu jako MANAGER kolumna jest widoczna.
+
+## kosztorys-empty-section — sekcja bez pozycji (2026-09-29)
+
+### Phase 2: Sekcja jako stan edytora
+
+- [ ] „Dodaj → Sekcja" dodaje samą belkę, bez pozycji pod nią. Po przeładowaniu belka zostaje.
+- [ ] Usunięcie ostatniej pozycji sekcji zostawia jej belkę. Po przeładowaniu belka zostaje.
+
+### Phase 3: Belka sekcji bez pozycji
+
+- [ ] „+ Dodaj pracę" na belce sekcji bez pozycji dodaje pod nią pozycję. Przycisk znika,
+      a pojawia się strzałka zwijania.
+- [ ] ⋯ → „Dodaj pracę" na sekcji z pozycjami dopisuje pozycję na jej końcu.
+- [ ] „Dodaj → Praca" na kosztorysie bez sekcji tworzy sekcję z jedną pozycją.
+- [ ] Wyszukiwarka albo warunek w „Filtry" chowa belkę sekcji bez pozycji. Po wyczyszczeniu belka
+      wraca.
+- [ ] „Podgląd dla inwestora" nie pokazuje belki sekcji bez pozycji.
