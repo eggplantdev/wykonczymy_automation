@@ -2,6 +2,7 @@
 
 import { createColumnHelper } from '@tanstack/react-table'
 import { ROLE_LABELS } from '@/lib/auth/roles'
+import { Button } from '@/components/ui/button'
 import type { UserRowT } from '@/types/table-rows'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { RoleBadge } from '@/components/ui/badge'
@@ -19,12 +20,20 @@ const investmentsCount = (count: number) =>
 
 // A nadpłata on one investment is never subtracted from a debt on another, and a withheld pair has no
 // figure to add — both are counted beside the sum instead of hidden in it.
-function PayoutRemainingCell({ figures }: { figures: WorkerColumnFiguresT | undefined }) {
+function PayoutRemainingCell({
+  figures,
+  onSettle,
+}: {
+  figures: WorkerColumnFiguresT | undefined
+  onSettle: () => void
+}) {
   if (!figures) return <span className="text-muted-foreground">—</span>
   const { owed, overpaidCount, withheldCount } = figures
   return (
     <span className="inline-flex flex-col items-end">
-      <span>{formatPLN(owed)}</span>
+      <Button variant="link" className="h-auto p-0" onClick={onSettle}>
+        {formatPLN(owed)}
+      </Button>
       {overpaidCount > 0 && (
         <span className="text-destructive text-xs">
           nadpłata na {investmentsCount(overpaidCount)}
@@ -50,9 +59,10 @@ function PayoutRemainingCell({ figures }: { figures: WorkerColumnFiguresT | unde
 
 type UserColumnOptionsT = {
   onToggle: (id: number, newActive: boolean) => void
+  onSettle: (worker: UserRowT) => void
 }
 
-export function getUserColumns({ onToggle }: UserColumnOptionsT) {
+export function getUserColumns({ onToggle, onSettle }: UserColumnOptionsT) {
   return [
     col.accessor('name', {
       id: 'name',
@@ -87,7 +97,12 @@ export function getUserColumns({ onToggle }: UserColumnOptionsT) {
       sortUndefined: 'last',
       header: SUBCONTRACTOR_FIGURE_LABELS.remaining,
       meta: { align: 'right' },
-      cell: (info) => <PayoutRemainingCell figures={info.row.original.payoutRemaining} />,
+      cell: (info) => (
+        <PayoutRemainingCell
+          figures={info.row.original.payoutRemaining}
+          onSettle={() => onSettle(info.row.original)}
+        />
+      ),
     }),
     col.accessor('defaultCashRegisterName', {
       id: 'defaultCashRegister',

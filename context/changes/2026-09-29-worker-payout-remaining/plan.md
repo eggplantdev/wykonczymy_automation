@@ -575,7 +575,7 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 3.1 DB action spec passes (`lib/actions/settle-payouts.test.ts`)
+- [x] 3.1 DB action spec passes (`lib/actions/settle-payouts.test.ts`) — c32e0639
 
 ### Phase 4: „Rozlicz wypłaty" dialog
 

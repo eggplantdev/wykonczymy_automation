@@ -1,11 +1,15 @@
 'use client'
 
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import { ColumnToggle } from '@/components/filters/column-toggle'
 import { ActiveFilterButton } from '@/components/filters/active-filter-button'
 import { AddWorkerDialog } from '@/components/dialogs/add-worker-dialog'
+import {
+  SettlePayoutsDialog,
+  type SettleDialogTargetT,
+} from '@/components/dialogs/settle-payouts-dialog'
 import { getUserColumns } from '@/components/tables/users'
 import type { UserRowT } from '@/types/table-rows'
 import { useActiveFilter } from '@/hooks/use-active-filter'
@@ -41,30 +45,41 @@ export function UserDataTable({ data, cashRegisters }: UserDataTablePropsT) {
     getSearchableText,
   )
 
-  const columns = useMemo(() => getUserColumns({ onToggle: handleToggle }), [handleToggle])
+  const [settleTarget, setSettleTarget] = useState<SettleDialogTargetT | null>(null)
+  const columns = useMemo(
+    () =>
+      getUserColumns({
+        onToggle: handleToggle,
+        onSettle: (worker) => setSettleTarget({ kind: 'worker', id: worker.id, name: worker.name }),
+      }),
+    [handleToggle],
+  )
 
   return (
-    <DataTable
-      data={filteredData}
-      columns={columns}
-      storageKey="users"
-      getRowHref={(row) => `/pracownicy/${row.id}`}
-      getRowClassName={(row) => (!row.active ? 'opacity-50' : '')}
-      toolbar={({ table, columnVisibility: cv, ...order }) => (
-        <DataTableToolbar
-          search={{ value: searchTerm, onChange: setSearchTerm }}
-          filters={
-            <ActiveFilterButton
-              isActive={showOnlyActive}
-              onChange={setShowOnlyActive}
-              activeLabel="Aktywni"
-              allLabel="Wszyscy"
-            />
-          }
-          columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
-          actions={<AddWorkerDialog cashRegisters={cashRegisters} />}
-        />
-      )}
-    />
+    <>
+      <DataTable
+        data={filteredData}
+        columns={columns}
+        storageKey="users"
+        getRowHref={(row) => `/pracownicy/${row.id}`}
+        getRowClassName={(row) => (!row.active ? 'opacity-50' : '')}
+        toolbar={({ table, columnVisibility: cv, ...order }) => (
+          <DataTableToolbar
+            search={{ value: searchTerm, onChange: setSearchTerm }}
+            filters={
+              <ActiveFilterButton
+                isActive={showOnlyActive}
+                onChange={setShowOnlyActive}
+                activeLabel="Aktywni"
+                allLabel="Wszyscy"
+              />
+            }
+            columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
+            actions={<AddWorkerDialog cashRegisters={cashRegisters} />}
+          />
+        )}
+      />
+      <SettlePayoutsDialog target={settleTarget} onClose={() => setSettleTarget(null)} />
+    </>
   )
 }

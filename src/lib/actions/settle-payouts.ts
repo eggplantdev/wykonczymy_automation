@@ -3,6 +3,7 @@
 import { after } from 'next/server'
 import {
   settlePayoutsSchema,
+  type SettlePayoutRowT,
   type SettlePayoutsT,
 } from '@/components/forms/settle-payouts-form/settle-payouts-schema'
 import { getDb } from '@/lib/db/get-db'
@@ -70,7 +71,7 @@ export async function settlePayoutsAction(data: SettlePayoutsT): Promise<SettleP
 
       const pairs = await selectWorkerPayoutPairs(db, { investmentIds })
       const pairOf = new Map(pairs.map((pair) => [`${pair.investmentId}:${pair.workerId}`, pair]))
-      const bookings = []
+      const bookings: (SettlePayoutRowT & { workerId: number; description: string })[] = []
       for (const row of rows) {
         const pair = pairOf.get(`${row.investmentId}:${row.workerId}`)
         if (!pair) return { success: false, stale: true, error: STALE_MESSAGE }

@@ -10,6 +10,7 @@ import { SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/labels'
 import type { InvestmentRowT } from '@/types/table-rows'
 import { INVESTMENT_HEADER_TIPS } from '@/components/tables/investments-header-tips'
 import { BalanceCell } from '@/components/ui/balance-cell'
+import { Button } from '@/components/ui/button'
 import { InvestmentStatusBadge } from '@/components/investments/investment-status-badge'
 import { ContactLink } from '@/components/ui/contact-link'
 import { LabelHintIcon } from '@/components/ui/label-hint-icon'
@@ -86,9 +87,10 @@ const balanceOrUndefined = (plane: 'net' | 'gross') => (row: InvestmentRowT) =>
 
 type InvestmentColumnOptionsT = {
   userRole: RoleT
+  onSettle: (investment: InvestmentRowT) => void
 }
 
-export function getInvestmentColumns({ userRole }: InvestmentColumnOptionsT) {
+export function getInvestmentColumns({ userRole, onSettle }: InvestmentColumnOptionsT) {
   const isAdminOrOwner = isAdminOrOwnerRole(userRole)
   return [
     col.accessor('name', {
@@ -251,7 +253,17 @@ export function getInvestmentColumns({ userRole }: InvestmentColumnOptionsT) {
       sortUndefined: 'last',
       header: SUBCONTRACTOR_FIGURE_LABELS.remaining,
       meta: { align: 'right', tooltip: INVESTMENT_HEADER_TIPS.subcontractorRemaining },
-      cell: withheldFigureCell,
+      cell: (info) => {
+        const value = info.getValue()
+        if (value === undefined || !hasKosztorysReading(info.row.original)) {
+          return withheldFigureCell(info)
+        }
+        return (
+          <Button variant="link" className="h-auto p-0" onClick={() => onSettle(info.row.original)}>
+            <BalanceCell value={value} />
+          </Button>
+        )
+      },
     }),
     col.accessor('address', {
       id: 'address',
