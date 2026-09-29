@@ -17,16 +17,18 @@ import {
   WorkerViewSettingsMenuItem,
 } from '@/components/kosztorys/editor/actions/worker-actions'
 import { WorkerPrintMenuItem } from '@/components/kosztorys/editor/actions/worker-print-action'
+import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { assignedWorkers } from '@/lib/kosztorys/worker-view/assigned-workers'
 import { WORKER_SCOPE_BLOCK_MESSAGES } from '@/lib/kosztorys/worker-view/labels'
 
 // Mounted inside KosztorysActionsProvider (see KosztorysActionsMenu), which its items and dialogs read from.
 export function KosztorysWorkersMenu() {
   const { stages, workers } = useKosztorysEditorContext()
-  const assigned = assignedWorkers(stages, workers)
+  const { worker } = useKosztorysActions()
+  const assigned = assignedWorkers(stages, workers, worker.linkHolders)
 
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={(open) => open && worker.requestLinkHolders()}>
       <DropdownMenuTrigger asChild>
         <Button size="sm" variant="outline">
           <Users />
@@ -42,7 +44,7 @@ export function KosztorysWorkersMenu() {
             <DropdownMenuSeparator />
           </>
         )}
-        {assigned.map(({ id, name, scope }) => {
+        {assigned.map(({ id, name, scope, hasLink }) => {
           // Podgląd stays open when blocked: it shows the owner the same notice the worker would get.
           const blockReason =
             scope.kind === 'blocked' ? WORKER_SCOPE_BLOCK_MESSAGES[scope.reason] : undefined
@@ -51,7 +53,11 @@ export function KosztorysWorkersMenu() {
               <DropdownMenuLabel>{name}</DropdownMenuLabel>
               {blockReason && <p className="text-destructive px-2 pb-1 text-xs">{blockReason}</p>}
               <WorkerPreviewMenuItem target={{ id, name }} />
-              <WorkerShareMenuItem target={{ id, name }} disabled={blockReason !== undefined} />
+              {/* Blocked, the link only opens to switch off a live token — which outlives the block. */}
+              <WorkerShareMenuItem
+                target={{ id, name, blockReason }}
+                disabled={blockReason !== undefined && !hasLink}
+              />
               <WorkerPrintMenuItem workerId={id} disabled={blockReason !== undefined} />
               <DropdownMenuSeparator />
             </Fragment>

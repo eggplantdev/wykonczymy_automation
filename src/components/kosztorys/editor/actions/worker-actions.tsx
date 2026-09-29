@@ -8,13 +8,17 @@ import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kos
 import { MenuItemBody } from '@/components/kosztorys/editor/actions/menu-item-body'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { useLatestRequest } from '@/hooks/use-latest-request'
-import { readWorkerShareToken } from '@/lib/queries/worker-share-link-endpoint'
+import {
+  readWorkerShareHolders,
+  readWorkerShareToken,
+} from '@/lib/queries/worker-share-link-endpoint'
 import { readWorkerViewSettings } from '@/lib/queries/worker-view-settings-endpoint'
 import type { WorkerViewSettingsT } from '@/lib/kosztorys/worker-view/settings'
 import { toastMessage } from '@/lib/utils/toast'
 import { workerPreviewSegment } from '@/lib/kosztorys/worker-view/name-slug'
 
-export type WorkerShareTargetT = { id: number; name: string }
+// `blockReason` set: the scope cannot be priced, so the dialog only lets a live link be switched off.
+export type WorkerShareTargetT = { id: number; name: string; blockReason?: string }
 
 export type WorkerActionsT = {
   settings: WorkerViewSettingsT | null
@@ -29,6 +33,9 @@ export type WorkerActionsT = {
   setShareToken: (token: string | null) => void
   shareLoaded: boolean
   requestShare: (target: WorkerShareTargetT) => void
+  linkHolders: ReadonlySet<number>
+  requestLinkHolders: () => void
+  dropLinkHolder: (workerId: number) => void
 }
 
 // Fetched on the click, not by the dialogs, for the Radix reason `useInvestorActions` gives.
@@ -40,10 +47,12 @@ export function useWorkerActions(): WorkerActionsT {
   const [shareOpen, setShareOpen] = useState(false)
   const [shareToken, setShareToken] = useState<string | null>(null)
   const [shareLoaded, setShareLoaded] = useState(false)
+  const [linkHolders, setLinkHolders] = useState<ReadonlySet<number>>(new Set())
   const settingsRequest = useLatestRequest()
   // Latest-wins: with one dialog serving every worker, a slow read for the first landing after a
   // click on the second would put the first worker's link under the second one's name.
   const shareRequest = useLatestRequest()
+  const holdersRequest = useLatestRequest()
 
   function requestSettings() {
     const isCurrent = settingsRequest.start()
@@ -76,6 +85,21 @@ export function useWorkerActions(): WorkerActionsT {
       })
   }
 
+  function requestLinkHolders() {
+    const isCurrent = holdersRequest.start()
+    void readWorkerShareHolders(investmentId)
+      .then((ids) => {
+        if (isCurrent()) setLinkHolders(new Set(ids))
+      })
+      .catch(() => {
+        if (isCurrent()) toastMessage('Nie udało się sprawdzić linków pracowników', 'error')
+      })
+  }
+
+  function dropLinkHolder(workerId: number) {
+    setLinkHolders((holders) => new Set([...holders].filter((id) => id !== workerId)))
+  }
+
   return {
     settings,
     setSettings,
@@ -89,6 +113,9 @@ export function useWorkerActions(): WorkerActionsT {
     setShareToken,
     shareLoaded,
     requestShare,
+    linkHolders,
+    requestLinkHolders,
+    dropLinkHolder,
   }
 }
 

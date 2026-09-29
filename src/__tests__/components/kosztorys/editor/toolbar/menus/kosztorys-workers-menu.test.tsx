@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { KosztorysActionsProvider } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { KosztorysWorkersMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-workers-menu'
@@ -48,10 +48,15 @@ vi.mock(
 )
 
 const readWorkerShareToken = vi.hoisted(() => vi.fn())
-vi.mock('@/lib/queries/worker-share-link-endpoint', () => ({ readWorkerShareToken }))
+const readWorkerShareHolders = vi.hoisted(() => vi.fn())
+vi.mock('@/lib/queries/worker-share-link-endpoint', () => ({
+  readWorkerShareToken,
+  readWorkerShareHolders,
+}))
+const revokeWorkerShareLinkAction = vi.hoisted(() => vi.fn())
 vi.mock('@/lib/actions/kosztorys-worker-share', () => ({
   generateWorkerShareLinkAction: vi.fn(),
-  revokeWorkerShareLinkAction: vi.fn(),
+  revokeWorkerShareLinkAction,
 }))
 
 const getWorkerKosztorysPrintData = vi.hoisted(() => vi.fn())
@@ -59,6 +64,8 @@ vi.mock('@/lib/queries/worker-kosztorys-print-endpoint', () => ({ getWorkerKoszt
 
 beforeEach(() => {
   readWorkerShareToken.mockResolvedValue('tok-anna')
+  readWorkerShareHolders.mockResolvedValue([])
+  revokeWorkerShareLinkAction.mockResolvedValue({ success: true })
   getWorkerKosztorysPrintData.mockResolvedValue(null)
 })
 
@@ -108,6 +115,32 @@ describe('KosztorysWorkersMenu', () => {
       'href',
       `/podglad-pracownika/Bogdan-Kowal-20/${INVESTMENT_ID}`,
     )
+  })
+
+  // A live token outlives the block: once the rozliczenie is set it shows prices again, so the owner
+  // must be able to switch it off while the worker is still blocked.
+  it('opens a blocked worker’s link while they hold one', async () => {
+    readWorkerShareHolders.mockResolvedValue([20])
+    renderMenu()
+    await openMenu()
+
+    await waitFor(() => expect(linkItems()[1]).not.toHaveAttribute('aria-disabled'))
+    expect(printItems()[1]).toHaveAttribute('aria-disabled', 'true')
+    expect(readWorkerShareHolders).toHaveBeenCalledWith(INVESTMENT_ID)
+  })
+
+  it('keeps listing a worker unpinned from every etap while they hold a link', async () => {
+    readWorkerShareHolders.mockResolvedValue([30])
+    renderMenu()
+    await openMenu()
+
+    const menu = screen.getByRole('menu')
+    expect(await within(menu).findByText('Celina Wiśniewska')).toBeInTheDocument()
+    expect(within(menu).getByText('Brak przypisanych etapów')).toBeInTheDocument()
+    const [, , celina] = linkItems()
+    const [, , celinaPrint] = printItems()
+    expect(celina).not.toHaveAttribute('aria-disabled')
+    expect(celinaPrint).toHaveAttribute('aria-disabled', 'true')
   })
 
   // The link is handed out per investment, as the investor's is — so a manager may do it.
