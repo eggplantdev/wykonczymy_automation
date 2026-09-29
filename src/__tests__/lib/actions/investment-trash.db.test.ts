@@ -9,16 +9,14 @@ import { createTestTemplate } from '@/__tests__/helpers/template'
 import { revalidateEntities } from '@/__tests__/stubs/cache-revalidate'
 
 // Asserted on persisted rows: a trash that reports success but never stamps `trashed_at`, or a
-// delete that leaves kosztorys rows behind, reads identically at the action's return value.
+// delete that leaves kosztorys rows behind, reads identically at the action's return value. The
+// session is mocked rather than `requireAuth`, so the role gate under test is the real one.
 
 vi.mock('server-only', () => ({}))
 
 const { session } = vi.hoisted(() => ({ session: { role: 'OWNER' } }))
-vi.mock('@/lib/auth/require-auth', () => ({
-  requireAuth: vi.fn().mockImplementation(async () => ({
-    success: true,
-    user: { id: 1, role: session.role, name: 'T', email: 't@t.pl' },
-  })),
+vi.mock('@/lib/auth/get-current-user-jwt', () => ({
+  getCurrentUserJwt: vi.fn(async () => ({ id: 1, role: session.role, name: 'T', email: 't@t.pl' })),
 }))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
@@ -90,10 +88,24 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
     expect((await actions.restoreInvestmentAction(id)).success).toBe(true)
     expect(await trashedAt(id)).toBeNull()
 
-    await actions.trashInvestmentAction(id)
+    expect((await actions.trashInvestmentAction(id)).success).toBe(true)
     expect((await actions.deleteInvestmentForeverAction(id)).success).toBe(true)
     const { rows } = await db.execute(sql`SELECT 1 FROM investments WHERE id = ${id}`)
     expect(rows).toHaveLength(0)
+  })
+
+  it('refuses an EMPLOYEE every trash action', async () => {
+    const live = await createTestInvestment(payload, `${PREFIX} employee-live`)
+    const trashed = await createTestInvestment(payload, `${PREFIX} employee-trashed`)
+    await actions.trashInvestmentAction(trashed)
+    session.role = 'EMPLOYEE'
+
+    expect((await actions.trashInvestmentAction(live)).success).toBe(false)
+    expect((await actions.restoreInvestmentAction(trashed)).success).toBe(false)
+    expect((await actions.deleteInvestmentForeverAction(trashed)).success).toBe(false)
+
+    expect(await trashedAt(live)).toBeNull()
+    expect(await trashedAt(trashed)).not.toBeNull()
   })
 
   it('refuses a szablon', async () => {

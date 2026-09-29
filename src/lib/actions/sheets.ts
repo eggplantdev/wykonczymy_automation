@@ -265,8 +265,7 @@ export async function clearSheetColumnMappingAction(investmentId: number, field:
  * the owner's Drive; we don't have permission and shouldn't presume).
  *
  * Tighter than the other actions: the collection's `delete` access is
- * `isAdminOrOwner` (matches investments — destructive ops kept narrower),
- * so we re-check the role here. `protectedAction` only gates at
+ * `isAdminOrOwner`, so we re-check the role here. `protectedAction` only gates at
  * MANAGEMENT_ROLES, which includes MANAGER; without this check, a manager
  * would bypass the collection's tighter intent via `overrideAccess: true`.
  */
