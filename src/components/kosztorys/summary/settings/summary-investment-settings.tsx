@@ -3,10 +3,10 @@
 import { ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { SettlementModeSelect } from '@/components/kosztorys/summary/settlement-mode-select'
-import { MaterialsNetPricingControl } from '@/components/kosztorys/summary/materials-net-pricing-control'
-import { VatRateField } from '@/components/kosztorys/summary/vat-rate-field'
-import { GlobalDiscountControl } from '@/components/kosztorys/summary/global-discount-control'
+import { SettlementModeSelect } from '@/components/kosztorys/summary/settings/settlement-mode-select'
+import { MaterialsNetPricingControl } from '@/components/kosztorys/summary/settings/materials-net-pricing-control'
+import { VatRateField } from '@/components/kosztorys/summary/settings/vat-rate-field'
+import { GlobalDiscountControl } from '@/components/kosztorys/summary/settings/global-discount-control'
 import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 
 type PropsT = {

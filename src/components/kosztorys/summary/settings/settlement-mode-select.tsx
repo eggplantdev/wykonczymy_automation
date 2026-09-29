@@ -1,12 +1,12 @@
 'use client'
 
-import { SettingsSection } from '@/components/kosztorys/summary/settings-section'
+import { SettingsSection } from '@/components/kosztorys/summary/settings/settings-section'
 import {
   SETTLEMENT_MODE_DESCRIPTIONS,
   SETTLEMENT_MODE_SELECT_OPTIONS,
-} from '@/components/kosztorys/summary/settlement-mode-options'
+} from '@/components/kosztorys/summary/model/settlement-mode-options'
 import { SimpleSelect } from '@/components/ui/simple-select'
-import { ZeroVatWarning } from '@/components/kosztorys/summary/zero-vat-warning'
+import { ZeroVatWarning } from '@/components/kosztorys/summary/settings/zero-vat-warning'
 import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 
 type PropsT = {

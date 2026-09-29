@@ -1,7 +1,10 @@
 'use client'
 
 import { usePersistedEnum } from '@/hooks/use-persisted-enum'
-import { ALL_SUMMARY_VIEWS, type SummaryViewT } from '@/components/kosztorys/summary/summary-views'
+import {
+  ALL_SUMMARY_VIEWS,
+  type SummaryViewT,
+} from '@/components/kosztorys/summary/model/summary-views'
 
 // Persisted globally in localStorage — a reading position of the person, not of one kosztorys, same
 // `table-columns:` family as the panel's axis pick. Survives refresh and the editor restore-remount.

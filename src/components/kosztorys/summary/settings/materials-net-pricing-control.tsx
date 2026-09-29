@@ -1,10 +1,10 @@
 'use client'
 
-import { SettingsSection } from '@/components/kosztorys/summary/settings-section'
+import { SettingsSection } from '@/components/kosztorys/summary/settings/settings-section'
 import {
   PRICING_MODE_DESCRIPTIONS,
   PRICING_MODE_OPTIONS,
-} from '@/components/kosztorys/summary/materials-pricing-options'
+} from '@/components/kosztorys/summary/model/materials-pricing-options'
 import { materialsNetRateForMode, pricingModeOf } from '@/lib/kosztorys/materials-pricing-mode'
 import { SimpleSelect } from '@/components/ui/simple-select'
 import { DecimalField } from '@/components/ui/decimal-field'

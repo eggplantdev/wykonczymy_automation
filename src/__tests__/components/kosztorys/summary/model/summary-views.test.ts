@@ -3,7 +3,7 @@ import {
   ALL_SUMMARY_VIEWS as ALL,
   allowedSummaryViews,
   type SummaryViewT,
-} from '@/components/kosztorys/summary/summary-views'
+} from '@/components/kosztorys/summary/model/summary-views'
 
 const OWNER = { preview: false, hasMarginInputs: true, hasInvestmentInfo: true }
 const CLIENT = { preview: true, hasMarginInputs: true, hasInvestmentInfo: true }

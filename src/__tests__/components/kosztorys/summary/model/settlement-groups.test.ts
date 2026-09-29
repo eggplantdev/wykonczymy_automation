@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildSettlementGroups } from '@/components/kosztorys/summary/settlement-groups'
+import { buildSettlementGroups } from '@/components/kosztorys/summary/model/settlement-groups'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 
 const rowNamed = (groups: ReturnType<typeof buildSettlementGroups>, label: string) =>

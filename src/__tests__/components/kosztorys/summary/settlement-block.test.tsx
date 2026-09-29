@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { SummaryPanelContent } from '@/components/kosztorys/summary/summary-panel-content'
-import { MATERIALS_GROSS_LOCK_REASON } from '@/components/kosztorys/summary/materials-pricing-options'
+import { MATERIALS_GROSS_LOCK_REASON } from '@/components/kosztorys/summary/model/materials-pricing-options'
 import { ZERO_FINANCIALS } from '@/types/investment-financials'
 import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 import type { KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'

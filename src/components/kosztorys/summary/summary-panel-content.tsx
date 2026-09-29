@@ -18,10 +18,10 @@ import {
   ALL_SUMMARY_VIEWS,
   allowedSummaryViews,
   type SummaryViewT,
-} from '@/components/kosztorys/summary/summary-views'
+} from '@/components/kosztorys/summary/model/summary-views'
 import { SummaryScrollRegion } from '@/components/ui/summary-grid'
-import { SummaryInvestmentSettings } from '@/components/kosztorys/summary/summary-investment-settings'
-import { MATERIALS_GROSS_LOCK_REASON } from '@/components/kosztorys/summary/materials-pricing-options'
+import { SummaryInvestmentSettings } from '@/components/kosztorys/summary/settings/summary-investment-settings'
+import { MATERIALS_GROSS_LOCK_REASON } from '@/components/kosztorys/summary/model/materials-pricing-options'
 import { useSummaryView } from '@/components/kosztorys/summary/hooks/use-summary-view'
 import type { InvestmentFinancialsT, MaterialsBreakdownRowT } from '@/types/investment-financials'
 import { type KosztorysReconciliationT } from '@/lib/kosztorys/reconciliation'

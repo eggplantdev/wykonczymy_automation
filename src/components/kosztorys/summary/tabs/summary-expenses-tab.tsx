@@ -6,7 +6,7 @@ import { InlineModeSelect } from '@/components/ui/inline-mode-select'
 import {
   PRICING_MODE_DESCRIPTIONS,
   PRICING_MODE_OPTIONS,
-} from '@/components/kosztorys/summary/materials-pricing-options'
+} from '@/components/kosztorys/summary/model/materials-pricing-options'
 import { materialsNetRateForMode, pricingModeOf } from '@/lib/kosztorys/materials-pricing-mode'
 import { clientVisibleExpenseRows } from '@/lib/kosztorys/expense-datasets'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'

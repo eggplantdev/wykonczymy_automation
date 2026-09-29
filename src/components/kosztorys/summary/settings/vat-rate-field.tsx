@@ -1,6 +1,6 @@
 'use client'
 
-import { SettingsSection } from '@/components/kosztorys/summary/settings-section'
+import { SettingsSection } from '@/components/kosztorys/summary/settings/settings-section'
 import { DecimalField } from '@/components/ui/decimal-field'
 import { ratePercent } from '@/lib/kosztorys/format'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
