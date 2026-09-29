@@ -39,16 +39,21 @@ export function KosztorysEditorV2(props: PropsT) {
   revisionRef.current = undoRedo.revision
   const autoSnapshot = useAutoSnapshot(investmentId, revisionRef)
 
-  // Shared by every path that swaps the whole tree under the editor. The action's own render carries
-  // the fresh tree into the latch.
-  const handleTreeReplaced: OnTreeReplacedT = ({ refetch } = {}) => {
-    triggerRestore()
-    if (refetch) router.refresh()
+  function reseed(since?: string) {
+    triggerRestore(since)
     // Reseeding the whole grid via a body remount — drop the stack whose commands close over
     // the outgoing body's state.
     undoRedo.reset()
     // The incoming tree is a known-good baseline, not a user edit — don't let the next tick snapshot it.
     autoSnapshot.skipNext()
+  }
+
+  // Shared by every path that swaps the whole tree under the editor, called from the action's
+  // continuation. The action's own render may already have committed by then, so the latch is armed
+  // from `treeToken` as this closure saw it — the tree from before the action.
+  const handleTreeReplaced: OnTreeReplacedT = ({ refetch } = {}) => {
+    reseed(treeToken)
+    if (refetch) router.refresh()
   }
 
   // Recovery from the other direction: the tree was replaced somewhere ELSE (another tab, another
@@ -59,7 +64,7 @@ export function KosztorysEditorV2(props: PropsT) {
   // and letting the prop landing drive the remount has no such ordering to get wrong.
   // `refreshDataAction` is the sidebar's „Odśwież dane" — data, not the page.
   function handleStaleTree() {
-    handleTreeReplaced()
+    reseed()
     return refreshDataAction()
   }
 
