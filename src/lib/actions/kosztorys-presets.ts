@@ -12,6 +12,7 @@ import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import {
   isTemplateInvestment,
   markPresetEdited,
+  presetNameHolder,
   renamePreset,
   templateOwnersOfSections,
 } from '@/lib/db/presets'
@@ -34,6 +35,7 @@ const nameSchema = z.string().trim().min(1, 'Podaj nazwę szablonu')
 const idSchema = z.number().int().positive()
 
 const NAME_TAKEN_MESSAGE = 'Szablon o tej nazwie już istnieje'
+const NAME_IN_TRASH_MESSAGE = 'Szablon o tej nazwie jest w koszu — przywróć go albo usuń na zawsze.'
 const TEMPLATE_NOT_FOUND = 'Nie znaleziono szablonu'
 
 // The hooks' own revalidation would fire per write and inside the transaction; each action expires
@@ -79,6 +81,7 @@ export async function savePresetAction(
           SKIP_HOOK_REVALIDATION,
         )
         if (created === 'name-taken') return { success: false, error: NAME_TAKEN_MESSAGE }
+        if (created === 'name-in-trash') return { success: false, error: NAME_IN_TRASH_MESSAGE }
         return { success: true }
       }
 
@@ -121,6 +124,7 @@ export async function createEmptyPresetAction(
       SKIP_HOOK_REVALIDATION,
     )
     if (created === 'name-taken') return { success: false, error: NAME_TAKEN_MESSAGE }
+    if (created === 'name-in-trash') return { success: false, error: NAME_IN_TRASH_MESSAGE }
     // After the response: the dialog navigates away at once, and an inline expiry would first
     // re-render /szablony inside this POST for a list nobody is looking at (lessons.md, EX-597).
     expireCollectionsAfterResponse(['presets'])
@@ -170,9 +174,13 @@ export async function renamePresetAction(id: number, name: string): Promise<Acti
       const parsed = validateAction(presetIdSchema.extend({ name: nameSchema }), { id, name })
       if (!parsed.success) return parsed
 
-      const renamed = await renamePreset(await getDb(payload), parsed.data.id, parsed.data.name)
-      if (!renamed) return { success: false, error: NAME_TAKEN_MESSAGE }
-      return { success: true }
+      const db = await getDb(payload)
+      if (await renamePreset(db, parsed.data.id, parsed.data.name)) return { success: true }
+      // The UPDATE only says „nothing renamed"; ask why, so a name held from the trash says so.
+      const holder = await presetNameHolder(db, parsed.data.name, parsed.data.id)
+      if (holder === 'trashed') return { success: false, error: NAME_IN_TRASH_MESSAGE }
+      if (holder === 'live') return { success: false, error: NAME_TAKEN_MESSAGE }
+      return { success: false, error: TEMPLATE_NOT_FOUND }
     },
     ['presets'],
   )

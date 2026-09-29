@@ -8,6 +8,8 @@ export const INVESTMENT_LOCKED_MESSAGE =
 
 export const INVESTMENT_TRASHED_MESSAGE = 'Inwestycja jest w koszu — przywróć ją, żeby coś zmienić.'
 
+export const TEMPLATE_TRASHED_MESSAGE = 'Szablon jest w koszu — przywróć go, żeby coś zmienić.'
+
 export const TRASH_RETENTION_DAYS = 30
 
 /**

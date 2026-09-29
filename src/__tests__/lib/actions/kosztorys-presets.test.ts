@@ -51,6 +51,11 @@ const {
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 const NAME_TAKEN_MESSAGE = 'Szablon o tej nazwie już istnieje'
+const NAME_IN_TRASH_MESSAGE = 'Szablon o tej nazwie jest w koszu — przywróć go albo usuń na zawsze.'
+
+async function moveToTrash(db: Awaited<ReturnType<typeof getDb>>, id: number): Promise<void> {
+  await db.execute(sql`UPDATE investments SET trashed_at = now() WHERE id = ${id}`)
+}
 
 // Szablon names are unique across the whole shared DB, so every run takes its own.
 const uniqueName = (name: string) => `${name} ${crypto.randomUUID().slice(0, 8)}`
@@ -362,6 +367,26 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
     expect(await allSnapshotIds()).toEqual(before)
   })
 
+  // Thrown away means gone from „Wczytaj szablon" — an open picker must not still load it.
+  it('writes nothing when the source szablon is in the trash', async () => {
+    const trashed = await createTestTemplate(payload, 'ex560-reload-fixture-trashed')
+    try {
+      await createKosztorysTree(payload, trashed, { sections: [{ name: 'Z kosza' }] })
+      await moveToTrash(db, trashed)
+      await seedLiveTree()
+      const before = await allSnapshotIds()
+
+      expect(await reloadFromPresetAction(investmentId, trashed)).toMatchObject({
+        success: false,
+        error: 'Nie znaleziono szablonu',
+      })
+      expect(await sectionNames()).toEqual(['Stan sprzed wczytania'])
+      expect(await allSnapshotIds()).toEqual(before)
+    } finally {
+      await deleteTestInvestment(payload, trashed)
+    }
+  })
+
   // The case above never enters the transaction. The snapshot is written on the transaction handle
   // BEFORE the wipe, so a throw during the insert must take it down rather than strand a restore
   // point for a state that was never replaced.
@@ -507,6 +532,41 @@ describe.skipIf(!ENV_READY)('szablon lifecycle — persisted state (DB)', () => 
       WHERE status = ${TEMPLATE_INVESTMENT_STATUS} AND lower(trim(name)) = lower(${takenName})
     `)
     expect(sameName.rows.map((row) => Number(row.id))).toEqual([taken])
+  })
+
+  // The trashed szablon is invisible, so „already exists" would point at nothing on the list.
+  it('refuses a trashed szablon’s name, pointing at the trash, on every path that names a szablon', async () => {
+    const trashedName = uniqueName('lifecycle-trashed')
+    const trashed = await createTestInvestment(payload, trashedName, {
+      status: TEMPLATE_INVESTMENT_STATUS,
+    })
+    const other = await createTestTemplate(payload, 'lifecycle-rename-into-trash')
+    created.push(trashed, other)
+    await moveToTrash(db, trashed)
+
+    const refused = { success: false, error: NAME_IN_TRASH_MESSAGE }
+    expect(await createEmptyPresetAction(trashedName)).toEqual(refused)
+    expect(await savePresetAction(sourceId, { mode: 'new', name: trashedName })).toEqual(refused)
+    expect(await renamePresetAction(other, trashedName)).toEqual(refused)
+
+    const sameName = await db.execute(sql`
+      SELECT id FROM investments
+      WHERE status = ${TEMPLATE_INVESTMENT_STATUS} AND lower(trim(name)) = lower(${trashedName})
+    `)
+    expect(sameName.rows.map((row) => Number(row.id))).toEqual([trashed])
+  })
+
+  it('„Nadpisz” refuses a szablon in the trash and leaves its tree as it was', async () => {
+    const trashed = await createTestTemplate(payload, 'lifecycle-overwrite-trashed')
+    created.push(trashed)
+    await createKosztorysTree(payload, trashed, { sections: [{ name: 'W koszu' }] })
+    await moveToTrash(db, trashed)
+
+    expect(await savePresetAction(sourceId, { mode: 'overwrite', targetId: trashed })).toEqual({
+      success: false,
+      error: 'Nie znaleziono szablonu',
+    })
+    expect((await treeOf(trashed)).sections).toEqual(['W koszu'])
   })
 
   it('„Nadpisz” replaces the target’s tree, leaves it a restore point and spares the source', async () => {

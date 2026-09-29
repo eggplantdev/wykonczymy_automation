@@ -3,10 +3,12 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import {
-  isPresetNameTaken,
+  getPresetName,
+  isTemplateInvestment,
   listPresetSections,
   markPresetEdited,
   listPresets,
+  presetNameHolder,
   renamePreset,
   templateOwnersOfSections,
 } from '@/lib/db/presets'
@@ -203,7 +205,7 @@ describe.skipIf(!ENV_READY)('renamePreset / listPresets (DB)', () => {
     const mineName = await nameOf(mine)
     const theirsName = (await nameOf(theirs))!
 
-    expect(await isPresetNameTaken(db, variant(theirsName))).toBe(true)
+    expect(await presetNameHolder(db, variant(theirsName))).toBe('live')
     expect(await renamePreset(db, mine, variant(theirsName))).toBe(false)
     expect(await nameOf(mine)).toBe(mineName)
     expect(await nameOf(theirs)).toBe(theirsName)
@@ -212,7 +214,7 @@ describe.skipIf(!ENV_READY)('renamePreset / listPresets (DB)', () => {
   it('treats its own name as free when renaming itself', async () => {
     const id = await makeTemplate('crud-fixture-self')
 
-    expect(await isPresetNameTaken(db, (await nameOf(id))!, id)).toBe(false)
+    expect(await presetNameHolder(db, (await nameOf(id))!, id)).toBeUndefined()
   })
 
   // The listing sorts by the last edit, because that is the figure that moves — a szablon is created
@@ -269,5 +271,70 @@ describe.skipIf(!ENV_READY)('renamePreset / listPresets (DB)', () => {
     created.push(ordinary)
 
     expect((await listPresets(db)).some((preset) => preset.id === ordinary)).toBe(false)
+  })
+})
+
+// A trashed szablon is invisible to every reader until it is restored — a picker that still offered
+// it would seed a kosztorys from something the user threw away. The name checks are the exception:
+// the unique index still counts it.
+describe.skipIf(!ENV_READY)('a trashed szablon (DB)', () => {
+  let payload: Payload
+  let db: Awaited<ReturnType<typeof getDb>>
+  const created: number[] = []
+  let trashed: number
+  let trashedName: string
+  let trashedSection: number
+
+  const trash = (id: number) =>
+    db.execute(sql`UPDATE investments SET trashed_at = now() WHERE id = ${id}`)
+
+  beforeAll(async () => {
+    const { getPayload } = await import('payload')
+    const config = (await import('@payload-config')).default
+    payload = await getPayload({ config })
+    db = await getDb(payload)
+
+    trashed = await createTestTemplate(payload, 'trash-fixture')
+    created.push(trashed)
+    trashedSection = (
+      await createKosztorysTree(payload, trashed, {
+        sections: [{ name: 'sekcja', items: [{ description: 'pozycja', unit: 'm2' }] }],
+      })
+    ).sectionIds[0]
+    trashedName = (await getPresetName(db, trashed))!
+    await trash(trashed)
+  })
+
+  afterAll(async () => {
+    for (const id of created) await deleteTestInvestment(payload, id)
+  })
+
+  it('is absent from the list and the section picker', async () => {
+    expect((await listPresets(db)).some((preset) => preset.id === trashed)).toBe(false)
+    expect((await listPresetSections(db)).some((meta) => meta.presetId === trashed)).toBe(false)
+  })
+
+  it('is not a szablon to any reader that names it', async () => {
+    expect(await isTemplateInvestment(db, trashed)).toBe(false)
+    expect(await getPresetName(db, trashed)).toBeNull()
+    expect((await templateOwnersOfSections(db, [trashedSection])).size).toBe(0)
+  })
+
+  it('cannot be renamed', async () => {
+    expect(await renamePreset(db, trashed, `trash-fixture-renamed ${trashed}`)).toBe(false)
+    const row = await db.execute(sql`SELECT name FROM investments WHERE id = ${trashed}`)
+    expect(row.rows[0].name).toBe(trashedName)
+  })
+
+  it('still holds its name, as trashed', async () => {
+    expect(await presetNameHolder(db, trashedName.toUpperCase())).toBe('trashed')
+  })
+
+  it('keeps a live szablon from taking its name by rename', async () => {
+    const live = await createTestTemplate(payload, 'trash-fixture-live')
+    created.push(live)
+
+    expect(await renamePreset(db, live, trashedName)).toBe(false)
+    expect(await presetNameHolder(db, trashedName, live)).toBe('trashed')
   })
 })

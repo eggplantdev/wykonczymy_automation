@@ -8,6 +8,10 @@ import { isoOrNull } from './row-coerce'
 // A szablon is an investment with status `szablon`; its kosztorys tree is the szablon's content and
 // is read through the kosztorys path (`serializeKosztorysAsPreset`), never here. This module owns
 // only what the pickers and the /szablony list show about one.
+//
+// Every reader here answers for a LIVE szablon: one in the trash (`trashed_at`) is absent from the
+// list, the pickers and every write that names it, until it is restored. The name checks are the
+// exception — the unique index still counts a trashed szablon, so they must too.
 
 export type PresetMetaT = {
   // The investment's id.
@@ -29,17 +33,17 @@ export type PresetSectionMetaT = {
   itemCount: number
 }
 
+const LIVE_TEMPLATE = sql`status = ${TEMPLATE_INVESTMENT_STATUS} AND trashed_at IS NULL`
+
 export async function isTemplateInvestment(db: DbExecutorT, id: number): Promise<boolean> {
-  const res = await db.execute(sql`
-    SELECT 1 FROM investments WHERE id = ${id} AND status = ${TEMPLATE_INVESTMENT_STATUS}
-  `)
+  const res = await db.execute(sql`SELECT 1 FROM investments WHERE id = ${id} AND ${LIVE_TEMPLATE}`)
   return res.rows.length > 0
 }
 
 export async function getPresetName(db: DbExecutorT, id: number): Promise<string | null> {
-  const res = await db.execute(sql`
-    SELECT name FROM investments WHERE id = ${id} AND status = ${TEMPLATE_INVESTMENT_STATUS}
-  `)
+  const res = await db.execute(
+    sql`SELECT name FROM investments WHERE id = ${id} AND ${LIVE_TEMPLATE}`,
+  )
   const row = res.rows[0]
   return row ? String(row.name) : null
 }
@@ -48,27 +52,33 @@ export async function getPresetName(db: DbExecutorT, id: number): Promise<string
 // Polish before the index answers with the driver's English 23505.
 const SAME_NAME = (name: string) => sql`lower(trim(name)) = lower(trim(${name}))`
 
-export async function isPresetNameTaken(
+export type PresetNameHolderT = 'live' | 'trashed'
+
+// Which szablon holds the name, if any. A trashed holder is told apart because the user cannot see
+// it: „already exists" would point at a szablon missing from the list.
+export async function presetNameHolder(
   db: DbExecutorT,
   name: string,
   exceptId?: number,
-): Promise<boolean> {
+): Promise<PresetNameHolderT | undefined> {
   const res = await db.execute(sql`
-    SELECT 1 FROM investments
+    SELECT trashed_at FROM investments
     WHERE status = ${TEMPLATE_INVESTMENT_STATUS} AND ${SAME_NAME(name)}
       ${exceptId == null ? sql`` : sql`AND id <> ${exceptId}`}
     LIMIT 1
   `)
-  return res.rows.length > 0
+  const row = res.rows[0]
+  if (!row) return undefined
+  return row.trashed_at == null ? 'live' : 'trashed'
 }
 
 // Raw SQL rather than `payload.update`, which would bump `updated_at` — the editor's remount token.
 // A rename is an edit as far as the list is concerned: it moves the row to the top.
-// `false` = the name is taken or the id is not a szablon; both mean „nothing was renamed".
+// `false` = the name is taken or the id is not a live szablon; both mean „nothing was renamed".
 export async function renamePreset(db: DbExecutorT, id: number, name: string): Promise<boolean> {
   const res = await db.execute(sql`
     UPDATE investments SET name = ${name}, content_edited_at = now()
-    WHERE id = ${id} AND status = ${TEMPLATE_INVESTMENT_STATUS}
+    WHERE id = ${id} AND ${LIVE_TEMPLATE}
       AND NOT EXISTS (
         SELECT 1 FROM investments
         WHERE status = ${TEMPLATE_INVESTMENT_STATUS} AND ${SAME_NAME(name)} AND id <> ${id}
@@ -89,7 +99,7 @@ export async function templateOwnersOfSections(
     SELECT s.id, s.investment_id
     FROM kosztorys_sections s
     JOIN investments inv ON inv.id = s.investment_id
-    WHERE inv.status = ${TEMPLATE_INVESTMENT_STATUS}
+    WHERE inv.status = ${TEMPLATE_INVESTMENT_STATUS} AND inv.trashed_at IS NULL
       AND s.id IN (${sql.join(
         sectionIds.map((id) => sql`${id}`),
         sql.raw(', '),
@@ -116,7 +126,7 @@ export async function listPresetSections(db: DbExecutorT): Promise<PresetSection
     FROM investments inv
     JOIN kosztorys_sections s ON s.investment_id = inv.id
     LEFT JOIN kosztorys_items it ON it.section_id = s.id
-    WHERE inv.status = ${TEMPLATE_INVESTMENT_STATUS}
+    WHERE inv.status = ${TEMPLATE_INVESTMENT_STATUS} AND inv.trashed_at IS NULL
     GROUP BY inv.id, s.id
     ORDER BY inv.created_at DESC, inv.id DESC, s.display_order, s.id
   `)
@@ -133,7 +143,7 @@ export async function listPresets(db: DbExecutorT): Promise<PresetMetaT[]> {
   const res = await db.execute(sql`
     SELECT id, name, created_at, content_edited_at
     FROM investments
-    WHERE status = ${TEMPLATE_INVESTMENT_STATUS}
+    WHERE ${LIVE_TEMPLATE}
     -- Sorted by the last edit, because that is what moves: a szablon is created once and worked on
     -- for weeks. NULLS LAST keeps a szablon migrated without a stamp in the list, below the live
     -- ones, ordered among themselves by creation.
