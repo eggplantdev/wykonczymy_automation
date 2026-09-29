@@ -28,10 +28,7 @@ const ITEMS = [{ description: 'Pozycja', unit: 'm2', plannedQty: 20, clientPrice
 // that writes users has no business near the Neon URL, so it refuses anything but localhost.
 function assertLocalDb(): void {
   const url = process.env.DB_POSTGRES_URL ?? ''
-  let host = ''
-  try {
-    host = new URL(url).hostname
-  } catch {}
+  const host = URL.canParse(url) ? new URL(url).hostname : ''
   if (host !== 'localhost' && host !== '127.0.0.1') {
     throw new Error(`[seed-worker-payouts] refusing: DB host "${host}" is not localhost`)
   }

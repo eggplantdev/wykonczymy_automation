@@ -1,7 +1,7 @@
 ---
 change_id: worker-payout-remaining
 title: „Pozostało do wypłaty" per worker, and a payout dialog prefilled per investment
-status: implementing
+status: implemented
 created: 2026-09-29
 updated: 2026-09-29
 archived_at: null

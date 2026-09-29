@@ -587,5 +587,5 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 5.1 Seed runs twice cleanly against the test DB
-- [x] 5.2 e2e-backlog issue id recorded — EX-925
+- [x] 5.1 Seed runs twice cleanly against the test DB — 24f6834b
+- [x] 5.2 e2e-backlog issue id recorded — EX-925, 24f6834b
