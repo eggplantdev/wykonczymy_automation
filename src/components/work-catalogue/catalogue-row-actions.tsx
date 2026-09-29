@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, startTransition } from 'react'
 import { DeleteButton } from '@/components/ui/row-actions/delete-button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { EditCatalogueItemDialog } from '@/components/dialogs/edit-catalogue-item-dialog'
@@ -15,7 +15,6 @@ type PropsT = {
 
 export function CatalogueRowActions({ item, categorySuggestions }: PropsT) {
   const [confirming, setConfirming] = useState(false)
-  const [pending, startTransition] = useTransition()
 
   const onDelete = () => {
     startTransition(async () => {
@@ -37,8 +36,6 @@ export function CatalogueRowActions({ item, categorySuggestions }: PropsT) {
         title="Usunąć pozycję z katalogu?"
         description="Kosztorysy, do których tę pracę już wstawiono, zostają bez zmian — mają własną kopię ceny i stawek."
         confirmLabel="Usuń"
-        pending={pending}
-        pendingLabel="Usuwam…"
         onConfirm={onDelete}
         onCancel={() => setConfirming(false)}
       />

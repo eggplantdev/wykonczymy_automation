@@ -114,8 +114,6 @@ export function ShareLinkPanel({
         title={revokeTitle}
         description={revokeDescription}
         confirmLabel="Wyłącz link"
-        pending={pending}
-        pendingLabel="Wyłączanie…"
         onConfirm={runRevoke}
         onCancel={() => setConfirmingRevoke(false)}
       />

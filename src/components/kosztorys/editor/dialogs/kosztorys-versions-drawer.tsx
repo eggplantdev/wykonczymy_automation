@@ -125,8 +125,6 @@ export function KosztorysVersionsDrawer({
         description="Obecny stan zostanie zapisany jako punkt przywracania. Wraca sama rozpiska — rabat globalny, sposób rozliczenia i stawka materiałów zostają dzisiejsze."
         confirmLabel="Przywróć"
         variant="neutral"
-        pending={restoringId != null}
-        pendingLabel="Przywracanie…"
         onConfirm={() => pendingRestore && handleRestore(pendingRestore)}
         onCancel={() => setPendingRestore(null)}
       />

@@ -108,8 +108,6 @@ export function DiscountValueField({
         <ConfirmDialog
           open
           {...confirm(confirming)}
-          pending={pending}
-          pendingLabel="Zapisywanie…"
           onConfirm={() => void write(confirming)}
           onCancel={() => setConfirming(null)}
         />

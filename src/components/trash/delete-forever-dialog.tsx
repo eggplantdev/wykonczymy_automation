@@ -43,8 +43,6 @@ export function DeleteForeverDialog({ investment, open, onClose }: PropsT) {
         title="Usunąć na zawsze?"
         description={`„${investment.name}" zniknie bezpowrotnie, razem z: ${LOST}.`}
         confirmLabel="Usuń na zawsze"
-        pending={pending}
-        pendingLabel="Usuwam…"
         onConfirm={onConfirm}
         onCancel={close}
       />

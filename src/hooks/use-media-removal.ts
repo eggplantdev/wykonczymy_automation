@@ -31,9 +31,9 @@ type StagedRemovalT = { title: string; fileId?: number; closePreview: () => void
  * The optimistic set is what makes this a hook rather than a helper: the server row doesn't refresh
  * until the surface revalidates, so removing one of three has to hide that one locally, per id.
  *
- * `isRemoving` is returned separately from `removalConfirm.pending` because Radix closes the alert
- * dialog on the confirm click — the dialog is gone while the action is still in flight, so the
- * surface, not the dialog, is what has to withhold a second removal and the upload picker.
+ * `isRemoving` exists because the confirm dialog closes on the click — it is gone while the action
+ * is still in flight, so the surface, not the dialog, is what has to withhold a second removal and
+ * the upload picker.
  */
 export function useMediaRemoval<FileT extends { id?: number }>({
   files,
@@ -107,8 +107,6 @@ export function useMediaRemoval<FileT extends { id?: number }>({
       title: staged?.title ?? '',
       description: labels.description,
       confirmLabel: 'Usuń',
-      pending,
-      pendingLabel: 'Usuwanie…',
       onConfirm: () => {
         if (!staged) return
         setPending(true)
