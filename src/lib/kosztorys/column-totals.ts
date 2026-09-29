@@ -1,17 +1,8 @@
-import {
-  netForQtyForView,
-  rowDiscountForView,
-  rowPlannedNetForView,
-  toGross,
-} from '@/lib/kosztorys/calc'
+import { toGross } from '@/lib/kosztorys/calc'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
+import { columnValueResolver } from '@/lib/kosztorys/column-values'
 import { stageAxisForView } from '@/lib/kosztorys/settlement-aggregates'
-import {
-  isRemainingOverrun,
-  rowRemainingForExecutedQty,
-  rowRemainingForView,
-  rowTotalQtyDone,
-} from '@/lib/kosztorys/settlement-rows'
+import { isRemainingOverrun } from '@/lib/kosztorys/settlement-rows'
 import { stagesForView } from '@/lib/kosztorys/settlement-view'
 import { stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
@@ -54,41 +45,32 @@ export function columnTotalsForRows(
   const totals = new Map<string, number>()
   const viewStages = stagesForView(stages, view)
 
-  let net = 0
-  let plannedNet = 0
-  let plannedNetForPlane = 0
-  let discount = 0
-  let remaining = 0
-  let remainingForPlane = 0
-  for (const row of rows) {
-    // One pomiar per row, priced twice: the value and the rabat taken on it must stand on the same
-    // quantity, exactly as in sectionSubtotalsForView.
-    const qtyDone = rowTotalQtyDone(row, viewStages, view)
-    net += netForQtyForView(row, qtyDone, view)
-    // Pinned to 'client' like the cells they total: the przedmiar is the whole offered scope in every view.
-    plannedNet += rowPlannedNetForView(row, 'client')
-    plannedNetForPlane += rowPlannedNetForView(row, view)
-    discount += rowDiscountForView(row, qtyDone, view)
-    const rowRemaining = rowRemainingForView(row, stages, 'client')
-    if (!isRemainingOverrun(rowRemaining)) remaining += rowRemaining
-    if (executedQtyByItem) {
-      const rowRemainingForPlane = rowRemainingForExecutedQty(
-        row,
-        executedQtyByItem[row.id] ?? 0,
-        view,
-      )
-      if (!isRemainingOverrun(rowRemainingForPlane)) remainingForPlane += rowRemainingForPlane
+  // Σ of the very values the cells render (column-values.ts), so a total cannot add up a figure no
+  // cell shows.
+  const resolveValue = columnValueResolver({ stages, view, executedQtyByItem })
+  const sumOf = (id: string, include: (value: number) => boolean = () => true) => {
+    const valueOf = resolveValue(id)
+    let total = 0
+    for (const row of rows) {
+      const value = valueOf?.(row) ?? 0
+      if (include(value)) total += value
     }
+    return total
   }
+  const notOverrun = (value: number) => !isRemainingOverrun(value)
+  const net = sumOf('net')
+  const plannedNet = sumOf('plannedNet')
+  const discount = sumOf('discountAmount')
+  const remaining = sumOf('remaining', notOverrun)
 
   totals.set('net', net)
   totals.set('gross', toGross(net, vatRate))
   totals.set('plannedNet', plannedNet)
   totals.set('plannedGross', toGross(plannedNet, vatRate))
-  if (view !== 'client') totals.set('plannedNetForPlane', plannedNetForPlane)
+  if (view !== 'client') totals.set('plannedNetForPlane', sumOf('plannedNetForPlane'))
   totals.set('remaining', remaining)
   totals.set('remainingGross', toGross(remaining, vatRate))
-  if (executedQtyByItem) totals.set('remainingForPlane', remainingForPlane)
+  if (executedQtyByItem) totals.set('remainingForPlane', sumOf('remainingForPlane', notOverrun))
   totals.set('discountAmount', discount)
   totals.set('discountAmountGross', toGross(discount, vatRate))
   // Iterated over the view's own stages only: an out-of-view etap has no column here to total, and

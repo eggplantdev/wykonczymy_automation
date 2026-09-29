@@ -360,15 +360,15 @@ Run **once**, after the final phase:
 
 #### Automated
 
-- [x] 2.1 Parity spec passes
-- [x] 2.2 Existing grid column specs pass
+- [x] 2.1 Parity spec passes — 3b9c1f4a
+- [x] 2.2 Existing grid column specs pass — 3b9c1f4a
 
 ### Phase 3: Totals read the resolver
 
 #### Automated
 
-- [ ] 3.1 Totals specs pass
-- [ ] 3.2 Client-document subtotals unaffected
+- [x] 3.1 Totals specs pass
+- [x] 3.2 Client-document subtotals unaffected
 
 ### Phase 4: Prints read the resolver
 
