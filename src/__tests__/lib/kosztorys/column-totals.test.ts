@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { columnTotalsForRows } from '@/lib/kosztorys/column-totals'
-import { columnValueResolver } from '@/lib/kosztorys/column-values'
-import { isRemainingOverrun } from '@/lib/kosztorys/settlement-rows'
+import { computedColumnValues } from '@/lib/kosztorys/column-values'
 import { stagesForView } from '@/lib/kosztorys/settlement-view'
 import { stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
@@ -192,6 +191,12 @@ describe('columnTotalsForRows', () => {
     expect(net).toBeGreaterThan(totals().get('net') ?? 0)
   })
 
+  it('totals the rabat taken per row, netto and brutto', () => {
+    // Row 2's kwota rabatu of 8, taken on its full przedmiar of 4.
+    expect(totals().get('discountAmount')).toBe(8)
+    expect(totals().get('discountAmountGross')).toBeCloseTo(8 * 1.08, 10)
+  })
+
   it('returns a zeroed set for an empty row set, so a section with no items totals nothing', () => {
     const empty = totals([])
 
@@ -201,30 +206,16 @@ describe('columnTotalsForRows', () => {
   })
 })
 
-// Each total is Σ of its own column's cells — the values the grid renders (column-values.ts), not a
-// second composition of the same figure. The etap axis is priced by `stageAxisForView` instead, for
-// speed, so it is the one total held to its cells here rather than by construction.
-describe('columnTotalsForRows — every total is the sum of its cells', () => {
+// The etap axis is priced by `stageAxisForView`, for speed, not by summing its cells — so it is the
+// one total that can drift from the column it sits under.
+describe('columnTotalsForRows — the etap axis totals its own cells', () => {
   it.each(['client', 'w_tools', 'own_tools'] as const)('%s view', (view) => {
-    const executedQtyByItem = { 1: 5, 2: 4, 3: 1, 4: 2 }
-    const result = columnTotalsForRows(rows, tree.stages, view, tree.vatRate, executedQtyByItem)
-    const valueOf = columnValueResolver({ stages: tree.stages, view, executedQtyByItem })
-    const sumOf = (id: string, include: (value: number) => boolean = () => true) =>
-      rows
-        .map((row) => valueOf(id)?.(row) ?? 0)
-        .filter(include)
-        .reduce((a, b) => a + b, 0)
-    const notOverrun = (value: number) => !isRemainingOverrun(value)
-
-    const summed = ['net', 'plannedNet', 'discountAmount']
-    if (view !== 'client') summed.push('plannedNetForPlane')
-    for (const id of summed) expect(result.get(id), id).toBeCloseTo(sumOf(id))
-    for (const id of ['remaining', 'remainingForPlane']) {
-      expect(result.get(id), id).toBeCloseTo(sumOf(id, notOverrun))
-    }
+    const result = columnTotalsForRows(rows, tree.stages, view, tree.vatRate)
+    const valueOf = computedColumnValues({ stages: tree.stages, view })
     for (const stage of stagesForView(tree.stages, view)) {
       const id = stageValueNetKey(stage.id)
-      expect(result.get(id), id).toBeCloseTo(sumOf(id))
+      const cellSum = rows.reduce((sum, row) => sum + (valueOf(id)(row) ?? 0), 0)
+      expect(result.get(id), id).toBeCloseTo(cellSum)
     }
   })
 })

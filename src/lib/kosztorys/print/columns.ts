@@ -1,5 +1,5 @@
 import { escapeHtml } from '@/lib/utils/escape-html'
-import type { ColumnValueT } from '@/lib/kosztorys/column-values'
+import type { ColumnValueT, ColumnValuesT } from '@/lib/kosztorys/column-values'
 import { formatQty } from '@/lib/kosztorys/format'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
 import { stageKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
@@ -17,9 +17,6 @@ export type PrintColumnT = {
   cell: (row: KosztorysV2RowT) => string
 }
 
-export type PrintValuesT = (field: string) => ColumnValueT
-
-// `null` is a figure with no answer for this row; the paper leaves the cell blank.
 export const formattedValue =
   (value: ColumnValueT, format: (n: number) => string) => (row: KosztorysV2RowT) => {
     const n = value(row)
@@ -66,6 +63,11 @@ export const moneyColumn = (
   cell,
 })
 
+export const computedMoneyColumn =
+  (valueOf: ColumnValuesT, format: (amount: number) => string) =>
+  (key: string, label: string): PrintColumnT =>
+    moneyColumn(key, label, formattedValue(valueOf(key), format))
+
 export const qtyColumn = (
   key: string,
   label: string,
@@ -96,7 +98,7 @@ export const stageQtyColumns = (stages: KosztorysStageT[]): PrintColumnT[] =>
 
 export const stageNetColumns = (
   stages: KosztorysStageT[],
-  valueOf: PrintValuesT,
+  valueOf: ColumnValuesT,
   money: (amount: number) => string,
 ): PrintColumnT[] =>
   perStage(stages, (stage, qtyKey) => {

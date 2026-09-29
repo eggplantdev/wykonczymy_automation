@@ -5,12 +5,12 @@ import { sectionSubtotalsForView } from '@/lib/kosztorys/settlement-aggregates'
 import {
   rowTotalQtyDone,
   rowValueForView,
-  rowRemainingForView,
   hasStagesOverPlanned,
 } from '@/lib/kosztorys/settlement-rows'
 import { applyRestoreItem, revertField } from '@/lib/kosztorys/row-ops'
 import { isLastItemInSection } from '@/lib/kosztorys/delete-policy'
 import { rowDoneFraction } from '@/lib/kosztorys/calc'
+import { computedColumnValues } from '@/lib/kosztorys/column-values'
 import {
   STAGE_QTY_PREFIX,
   STAGE_VALUE_GROSS_COLUMN_GROUP,
@@ -265,27 +265,26 @@ describe('wartość wiersza idzie za etapami', () => {
   // "Pozostało" anchors on the przedmiar — the offer — not on what was executed. Anchored on the
   // latter it would read value − value ≡ 0 on every row: the sheet's dead AF column. This is the one
   // place we knowingly break sheet parity, so the numbers below are the whole justification.
-  describe('rowRemainingForView', () => {
+  describe('„Pozostało"', () => {
+    const remaining = computedColumnValues({ stages, view: 'client' })('remaining')
     // Przedmiar 100, cena 50 → oferta 5000; etapy 95 → wykonane 4750.
     const offered = (over: Partial<KosztorysV2RowT> = {}) =>
       row({ plannedQty: 100, clientPrice: 50, [stageKey(100)]: 95, ...over })
 
     it('ile z oferty zostało', () => {
-      expect(rowRemainingForView(offered(), stages, 'client')).toBe(250)
+      expect(remaining(offered())).toBe(250)
     })
 
     it('etapy ponad Przedmiar → ujemne, bez clampowania', () => {
-      expect(rowRemainingForView(offered({ [stageKey(100)]: 105 }), stages, 'client')).toBe(-250)
+      expect(remaining(offered({ [stageKey(100)]: 105 }))).toBe(-250)
     })
 
     // Brak Przedmiaru to oferta zerowa, nie brak odpowiedzi: wykonane 95 × 50 nie ma pokrycia
     // w ofercie, więc „Pozostało" schodzi pod zero. Wyłączenie takiego wiersza z sumy kazało
     // kolumnie twierdzić, że praca jest wciąż do zrobienia. Wyczyszczona komórka zapisuje null.
     it('brak Przedmiaru → wartość ujemna, praca ponad ofertę', () => {
-      expect(rowRemainingForView(offered({ plannedQty: 0 }), stages, 'client')).toBe(-4750)
-      expect(
-        rowRemainingForView(offered({ plannedQty: null as unknown as number }), stages, 'client'),
-      ).toBe(-4750)
+      expect(remaining(offered({ plannedQty: 0 }))).toBe(-4750)
+      expect(remaining(offered({ plannedQty: null as unknown as number }))).toBe(-4750)
     })
   })
 

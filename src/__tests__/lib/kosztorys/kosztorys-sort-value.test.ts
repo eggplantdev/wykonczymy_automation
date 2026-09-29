@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { columnSortValue, reconcileSort } from '@/lib/kosztorys/sort-value'
+import { sortValueGetter, reconcileSort } from '@/lib/kosztorys/sort-value'
 import { sortRows } from '@/lib/kosztorys/row-view'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
@@ -67,9 +67,9 @@ const tree: KosztorysTreeT = makeTree({
 
 const rows = treeToRows(tree)
 const idsSortedBy = (field: string) =>
-  sortRows(rows, (r) => columnSortValue(r, field, 'client', tree.stages), 'desc').map((r) => r.id)
+  sortRows(rows, sortValueGetter(field, 'client', tree.stages), 'desc').map((r) => r.id)
 
-describe('columnSortValue — computed money/percent columns actually sort (EX-487)', () => {
+describe('sortValueGetter — computed money/percent columns actually sort (EX-487)', () => {
   // Every one of these is a computed column, not a KosztorysV2RowT field: before the fix each
   // resolved to '' for all rows and the sort was a silent no-op, leaving input order [1, 2].
   it.each([
@@ -175,12 +175,10 @@ const planeTree: KosztorysTreeT = makeTree({
 
 const planeRows = treeToRows(planeTree)
 const planeIdsSortedBy = (field: string, view: PriceViewT, dir: 'asc' | 'desc' = 'desc') =>
-  sortRows(planeRows, (r) => columnSortValue(r, field, view, planeTree.stages), dir).map(
-    (r) => r.id,
-  )
+  sortRows(planeRows, sortValueGetter(field, view, planeTree.stages), dir).map((r) => r.id)
 const planeRow = (id: number) => planeRows.find((r) => r.id === id)!
 
-describe('columnSortValue — the columns that used to opt out of sorting', () => {
+describe('sortValueGetter — the columns that used to opt out of sorting', () => {
   it('sorts by a stage qty column, which is a real row field', () => {
     expect(planeIdsSortedBy(stageKey(100), 'client')).toEqual([2, 3, 1]) // 6 > 2 > 1
   })
@@ -188,7 +186,7 @@ describe('columnSortValue — the columns that used to opt out of sorting', () =
   it('sorts by a stage value column at the client price', () => {
     // Every etap counts in the client view, so the denominator is 5/6/4 — A's „amount" rabat is
     // spread across its etapy, not charged to each.
-    expect(columnSortValue(planeRow(1), stageValueNetKey(100), 'client', planeTree.stages)).toBe(80)
+    expect(sortValueGetter(stageValueNetKey(100), 'client', planeTree.stages)(planeRow(1))).toBe(80)
     expect(planeIdsSortedBy(stageValueNetKey(100), 'client')).toEqual([2, 1, 3]) // 300 > 80 > 20
   })
 
@@ -200,7 +198,7 @@ describe('columnSortValue — the columns that used to opt out of sorting', () =
 
   it('sorts a stage value brutto column like its netto twin', () => {
     expect(
-      columnSortValue(planeRow(1), stageValueGrossKey(100), 'client', planeTree.stages),
+      sortValueGetter(stageValueGrossKey(100), 'client', planeTree.stages)(planeRow(1)),
     ).toBeCloseTo(98.4)
     expect(planeIdsSortedBy(stageValueGrossKey(100), 'client')).toEqual([2, 1, 3])
   })
@@ -209,13 +207,13 @@ describe('columnSortValue — the columns that used to opt out of sorting', () =
     // Etap 200 is own_tools: in `w_tools` its column is not assembled at all, and its wartość is not
     // this crew's to sort by — the same „—" answer as an etap that no longer exists.
     expect(
-      columnSortValue(planeRow(1), stageValueNetKey(200), 'w_tools', planeTree.stages),
+      sortValueGetter(stageValueNetKey(200), 'w_tools', planeTree.stages)(planeRow(1)),
     ).toBeNull()
   })
 
   it('has no value for an etap that is gone', () => {
     expect(
-      columnSortValue(planeRow(1), stageValueNetKey(999), 'client', planeTree.stages),
+      sortValueGetter(stageValueNetKey(999), 'client', planeTree.stages)(planeRow(1)),
     ).toBeNull()
   })
 
@@ -289,11 +287,9 @@ const sourceTree: KosztorysTreeT = makeTree({
 
 const sourceRows = treeToRows(sourceTree)
 const sourceIdsSortedBy = (field: string, dir: 'asc' | 'desc' = 'asc') =>
-  sortRows(sourceRows, (r) => columnSortValue(r, field, 'w_tools', sourceTree.stages), dir).map(
-    (r) => r.id,
-  )
+  sortRows(sourceRows, sortValueGetter(field, 'w_tools', sourceTree.stages), dir).map((r) => r.id)
 
-describe('columnSortValue — trzy źródła stawki wykonawcy', () => {
+describe('sortValueGetter — trzy źródła stawki wykonawcy', () => {
   it('sortuje „Źródło ceny" od współczynnika inwestycji ku zamrożonej kwocie', () => {
     expect(sourceIdsSortedBy(planePriceKey('priceMode', 'w_tools'))).toEqual([1, 2, 3])
   })
@@ -306,7 +302,7 @@ describe('columnSortValue — trzy źródła stawki wykonawcy', () => {
   })
 })
 
-describe('columnSortValue — an empty cell is an absence, not a key', () => {
+describe('sortValueGetter — an empty cell is an absence, not a key', () => {
   it('sinks a commentless pozycja under both directions', () => {
     expect(planeIdsSortedBy('note', 'client', 'asc')).toEqual([3, 1, 2]) // aaa, zzz, (none)
     expect(planeIdsSortedBy('note', 'client', 'desc')).toEqual([1, 3, 2])
@@ -323,7 +319,7 @@ describe('columnSortValue — an empty cell is an absence, not a key', () => {
 // client price over the whole offered scope — and their cells do. `planeTree` orders rows 1 and 3
 // oppositely at the client price and at a crew's stawka, and splits the pomiar across both crews'
 // etapy, so a sort still reading the active view cannot pass.
-describe('columnSortValue — przedmiar figures sort by the client reading in every view (EX-894)', () => {
+describe('sortValueGetter — przedmiar figures sort by the client reading in every view (EX-894)', () => {
   const clientPinned = ['plannedNet', 'plannedGross', 'donePercent', 'remaining', 'remainingGross']
 
   it.each(['w_tools', 'own_tools'] as const)(
@@ -332,9 +328,9 @@ describe('columnSortValue — przedmiar figures sort by the client reading in ev
       for (const field of clientPinned) {
         for (const row of planeRows) {
           expect(
-            columnSortValue(row, field, view, planeTree.stages),
+            sortValueGetter(field, view, planeTree.stages)(row),
             `${field} #${row.id}`,
-          ).toEqual(columnSortValue(row, field, 'client', planeTree.stages))
+          ).toEqual(sortValueGetter(field, 'client', planeTree.stages)(row))
         }
       }
     },

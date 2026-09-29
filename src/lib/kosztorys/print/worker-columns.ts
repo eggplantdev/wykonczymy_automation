@@ -5,6 +5,7 @@ import {
   DESCRIPTION_COLUMN,
   PLANNED_QTY_COLUMN,
   UNIT_COLUMN,
+  computedMoneyColumn,
   formattedValue,
   moneyColumn,
   qtyColumn,
@@ -48,7 +49,7 @@ export function workerPrintColumns({
   const visible = workerVisibleColumns(plane, hiddenColumns)
   const rateKey = planePriceKey('price', plane)
   const valueOf = computedColumnValues({ stages, view: plane, executedQtyByItem })
-  const money = (key: string) => formattedValue(valueOf(key), formatPLN)
+  const money = computedMoneyColumn(valueOf, formatPLN)
   const byKey: Record<string, PrintColumnT[]> = {
     description: [DESCRIPTION_COLUMN],
     plannedQty: [PLANNED_QTY_COLUMN],
@@ -59,9 +60,7 @@ export function workerPrintColumns({
         cellClass: 'num price',
       },
     ],
-    plannedNetForPlane: [
-      moneyColumn('plannedNetForPlane', 'Wartość przedmiaru', money('plannedNetForPlane')),
-    ],
+    plannedNetForPlane: [money('plannedNetForPlane', 'Wartość przedmiaru')],
     [STAGES_COLUMN_GROUP]: stageQtyColumns(stages),
     stageQtySum: [
       qtyColumn(
@@ -71,8 +70,8 @@ export function workerPrintColumns({
       ),
     ],
     [STAGE_VALUE_NET_COLUMN_GROUP]: stageNetColumns(stages, valueOf, formatPLN),
-    net: [moneyColumn('net', workerColumnLabel('net') ?? '', money('net'))],
-    remainingForPlane: [moneyColumn('remainingForPlane', 'Pozostało', money('remainingForPlane'))],
+    net: [money('net', workerColumnLabel('net') ?? '')],
+    remainingForPlane: [money('remainingForPlane', 'Pozostało')],
   }
   return workerDocumentColumns(plane, columnRanks)
     .filter((key) => visible.has(key))

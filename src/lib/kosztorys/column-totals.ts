@@ -1,6 +1,6 @@
 import { toGross } from '@/lib/kosztorys/calc'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
-import { columnValueResolver } from '@/lib/kosztorys/column-values'
+import { computedColumnValues } from '@/lib/kosztorys/column-values'
 import { stageAxisForView } from '@/lib/kosztorys/settlement-aggregates'
 import { isRemainingOverrun } from '@/lib/kosztorys/settlement-rows'
 import { stagesForView } from '@/lib/kosztorys/settlement-view'
@@ -45,14 +45,12 @@ export function columnTotalsForRows(
   const totals = new Map<string, number>()
   const viewStages = stagesForView(stages, view)
 
-  // Σ of the very values the cells render (column-values.ts), so a total cannot add up a figure no
-  // cell shows.
-  const resolveValue = columnValueResolver({ stages, view, executedQtyByItem })
+  const valuesOf = computedColumnValues({ stages, view, executedQtyByItem })
   const sumOf = (id: string, include: (value: number) => boolean = () => true) => {
-    const valueOf = resolveValue(id)
+    const valueOf = valuesOf(id)
     let total = 0
     for (const row of rows) {
-      const value = valueOf?.(row) ?? 0
+      const value = valueOf(row) ?? 0
       if (include(value)) total += value
     }
     return total

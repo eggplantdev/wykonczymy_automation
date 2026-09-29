@@ -1,10 +1,6 @@
-import {
-  netForQtyForView,
-  rowDiscountForView,
-  rowPlannedNetForView,
-  type PriceViewT,
-} from '@/lib/kosztorys/calc'
-import { rowTotalQtyDone, rowValueForView } from '@/lib/kosztorys/settlement-rows'
+import { netForQtyForView, type PriceViewT } from '@/lib/kosztorys/calc'
+import { computedColumnValues } from '@/lib/kosztorys/column-values'
+import { rowTotalQtyDone } from '@/lib/kosztorys/settlement-rows'
 import { stagesForView } from '@/lib/kosztorys/settlement-view'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import type {
@@ -94,7 +90,13 @@ export function sectionSubtotalsForView(
   // so the same physical progress and the same cost split must not read differently per view.
   // Accumulated apart from the money net above, which does follow the view.
   const clientBySection = new Map<number, { executed: number; offered: number }>()
-  const viewStages = stagesForView(stages, view)
+  const valueOf = computedColumnValues({ stages, view })
+  const net = valueOf('net')
+  const discount = valueOf('discountAmount')
+  // Read at the client price in every view already (column-values.ts), so it serves both.
+  const plannedNet = valueOf('plannedNet')
+  const clientNet =
+    view === 'client' ? net : computedColumnValues({ stages, view: 'client' })('net')
   for (const row of rows) {
     let acc = bySection.get(row.sectionId)
     if (!acc) {
@@ -112,17 +114,14 @@ export function sectionSubtotalsForView(
       bySection.set(row.sectionId, acc)
       clientBySection.set(row.sectionId, { executed: 0, offered: 0 })
     }
-    // One pomiar per row, priced twice: the value and the rabat taken on it must stand on the same
-    // quantity or a section's net and discount describe different amounts of work.
-    const qtyDone = rowTotalQtyDone(row, viewStages, view)
-    acc.net += netForQtyForView(row, qtyDone, view)
-    if (acc.plannedNet !== null) acc.plannedNet += rowPlannedNetForView(row, view)
+    acc.net += net(row) ?? 0
+    if (acc.plannedNet !== null) acc.plannedNet += plannedNet(row) ?? 0
     // 0 under a global discount.
-    acc.discount += rowDiscountForView(row, qtyDone, view)
+    acc.discount += discount(row) ?? 0
     acc.itemCount += 1
     const client = clientBySection.get(row.sectionId)!
-    client.executed += rowValueForView(row, stages, 'client')
-    client.offered += rowPlannedNetForView(row, 'client')
+    client.executed += clientNet(row) ?? 0
+    client.offered += plannedNet(row) ?? 0
   }
   const result = [...bySection.values()]
   for (const s of result) {

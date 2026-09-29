@@ -11,11 +11,9 @@ const PRICE_SOURCE_ORDER: Record<PriceSourceT, number> = { auto: 0, coeff: 1, am
 type SortValueT = string | number | null
 
 /**
- * The sort key for a grid column, built once per sort. A COMPUTED column's key is the very value its
- * cell shows — `column-values.ts` composes it for both, so the order cannot follow a different figure
- * than the one on screen (EX-487, EX-894). What falls through is an editable column or a real row
- * field. `null` — a figure with no denominator, a key whose etap is gone, an empty cell — is returned
- * verbatim, and sortRows sinks it to the bottom in both directions.
+ * The sort key for a grid column, built once per sort. `null` — a figure with no denominator, a key
+ * whose etap is gone, an empty cell — is returned verbatim, and sortRows sinks it to the bottom in
+ * both directions.
  */
 export function sortValueGetter(
   field: string,
@@ -26,7 +24,7 @@ export function sortValueGetter(
   if (computed) return computed
 
   // The two subcontractor-rate namespaces: their ids are not row fields (the fields are per-plane,
-  // OVERRIDE_FIELDS), and the plane they price rides in the id now that every view assembles both.
+  // OVERRIDE_FIELDS), and the plane they price rides in the id.
   // Reading the ACTIVE view here would sort „bez narzędzi" by the „z narzędziami" numbers — a wrong
   // order that looks like a plausible one.
   const pricePart = planePriceKeyParts(field)
@@ -67,16 +65,6 @@ export function sortValueGetter(
         return value == null || value === '' ? null : String(value)
       }
   }
-}
-
-// One row's key — for a single read; a sort builds `sortValueGetter` once instead.
-export function columnSortValue(
-  row: KosztorysV2RowT,
-  field: string,
-  view: PriceViewT,
-  stages: KosztorysStageT[],
-): SortValueT {
-  return sortValueGetter(field, view, stages)(row)
 }
 
 // A column sort survives the column leaving the grid — e.g. sorting by „Pozostało brutto", then

@@ -2,10 +2,11 @@ import { describe, expect, it } from 'vitest'
 import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import { computedColumn } from '@/components/kosztorys/editor/grid/cells/computed-cell'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
-import { columnSortValue } from '@/lib/kosztorys/sort-value'
+import { sortValueGetter } from '@/lib/kosztorys/sort-value'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import { stageValueNetKey } from '@/lib/kosztorys/stage-keys'
-import type { KosztorysTreeT, KosztorysV2RowT } from '@/lib/kosztorys/types'
+import type { PriceViewT } from '@/lib/kosztorys/calc'
+import type { KosztorysStageT, KosztorysTreeT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 
 // A computed cell and its sort key must be one figure: EX-487 and EX-894 were each a sort ordering
@@ -78,17 +79,22 @@ function computedColumnsOf(opts: BuildV2ColumnsOptsT) {
   return buildV2Columns(opts).filter((column) => column.component === COMPUTED_CELL)
 }
 
+function expectCellsMatchSort(
+  columns: ReturnType<typeof computedColumnsOf>,
+  view: PriceViewT,
+  stages: KosztorysStageT[],
+) {
+  for (const column of columns) {
+    const { compute } = column.columnData as ComputedDataT
+    const sortKey = sortValueGetter(column.id!, view, stages)
+    for (const row of rows) expect(compute(row), `${column.id} #${row.id}`).toEqual(sortKey(row))
+  }
+}
+
 describe('every computed cell shows the value its column sorts by', () => {
   it.each(['client', 'w_tools', 'own_tools'] as const)('%s view', (view) => {
     const columns = computedColumnsOf({ view, stages: tree.stages })
-    for (const column of columns) {
-      const { compute } = column.columnData as ComputedDataT
-      for (const row of rows) {
-        expect(compute(row), `${column.id} #${row.id}`).toEqual(
-          columnSortValue(row, column.id!, view, tree.stages),
-        )
-      }
-    }
+    expectCellsMatchSort(columns, view, tree.stages)
     // A filter that matched nothing would pass vacuously.
     const ids = columns.map((column) => column.id)
     expect(ids).toEqual(
@@ -113,13 +119,6 @@ describe('every computed cell shows the value its column sorts by', () => {
       },
     }).filter((column) => column.id !== 'remainingForPlane')
     expect(columns.length).toBeGreaterThan(0)
-    for (const column of columns) {
-      const { compute } = column.columnData as ComputedDataT
-      for (const row of rows) {
-        expect(compute(row), `${column.id} #${row.id}`).toEqual(
-          columnSortValue(row, column.id!, view, stages),
-        )
-      }
-    }
+    expectCellsMatchSort(columns, view, stages)
   })
 })

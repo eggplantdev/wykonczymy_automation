@@ -8,8 +8,8 @@ import {
   DESCRIPTION_COLUMN,
   PLANNED_QTY_COLUMN,
   UNIT_COLUMN,
+  computedMoneyColumn,
   formattedValue,
-  moneyColumn,
   qtyColumn,
   stageNetColumns,
   stageQtyColumns,
@@ -30,9 +30,8 @@ import type { ColumnRanksT } from '@/lib/table/column-order'
 // The owner's sheet groups every figure.
 export const zloty = (n: number) =>
   `${Math.round(n).toLocaleString('pl-PL', { maximumFractionDigits: 0, useGrouping: 'always' })} zł`
-// The offer is priced for the client and nothing else. Handed once to the document's resolver rather
-// than written into each cell: a plane repeated per column can be changed in four of five places, and
-// the fifth would print one crew's stawka on a client's offer.
+// One constant for every figure on the offer: a plane repeated per column can be changed in four of
+// five places, and the fifth would print one crew's stawka on a client's offer.
 const OFFER_PRICE_VIEW: PriceViewT = 'client'
 const clientLabel = (key: string) => columnLabelForView(key, OFFER_PRICE_VIEW)
 
@@ -42,7 +41,7 @@ const DISCOUNT_TYPE_TEXT: Record<string, string> = { percent: '%', amount: 'zł'
 // it; a stage group expands to one column per etap.
 function offerColumnsByKey(stages: KosztorysStageT[]): Record<string, PrintColumnT[]> {
   const valueOf = computedColumnValues({ stages, view: OFFER_PRICE_VIEW })
-  const money = (key: string) => formattedValue(valueOf(key), zloty)
+  const money = computedMoneyColumn(valueOf, zloty)
   const donePercent = valueOf('donePercent')
   return {
     description: [DESCRIPTION_COLUMN],
@@ -58,7 +57,7 @@ function offerColumnsByKey(stages: KosztorysStageT[]): Record<string, PrintColum
         cell: (row) => zloty(viewPrice(row, OFFER_PRICE_VIEW)),
       },
     ],
-    plannedNet: [moneyColumn('plannedNet', 'Wartość netto', money('plannedNet'))],
+    plannedNet: [money('plannedNet', 'Wartość netto')],
     [STAGES_COLUMN_GROUP]: stageQtyColumns(stages),
     stageQtySum: [
       qtyColumn(
@@ -77,17 +76,15 @@ function offerColumnsByKey(stages: KosztorysStageT[]): Record<string, PrintColum
         row.discountType ? DISCOUNT_TYPE_TEXT[row.discountType] : '',
       ),
     ],
-    discountAmount: [
-      moneyColumn('discountAmount', clientLabel('discountAmount'), money('discountAmount')),
-    ],
+    discountAmount: [money('discountAmount', clientLabel('discountAmount'))],
     [STAGE_VALUE_NET_COLUMN_GROUP]: stageNetColumns(stages, valueOf, zloty),
-    net: [moneyColumn('net', clientLabel('net'), money('net'))],
+    net: [money('net', clientLabel('net'))],
     donePercent: [
       qtyColumn('donePercent', clientLabel('donePercent'), (row) =>
         formatPercent(donePercent(row)),
       ),
     ],
-    remaining: [moneyColumn('remaining', 'Pozostało', money('remaining'))],
+    remaining: [money('remaining', 'Pozostało')],
   }
 }
 
