@@ -5,11 +5,16 @@ import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPercentPrecise, formatRate } from '@/lib/kosztorys/format'
 import { namesFigure } from '@/lib/kosztorys/calc'
-import { clientShareCeilingLabel, isOverCeiling } from '@/lib/kosztorys/subcontractor-price-guard'
+import { clientShareCeilingLabel } from '@/lib/kosztorys/subcontractor-price-guard'
 import { FLAGGED_TONE } from '@/components/kosztorys/flagged-tone'
 import { PLANE_LABELS, PRICE_SOURCE_LABELS, RATE_LABELS } from '@/lib/kosztorys/labels'
 import { compareDescriptions } from '@/lib/kosztorys/work-catalogue/compare-descriptions'
-import { catalogueRateFor, catalogueSourceOf } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
+import {
+  catalogueRateAmount,
+  catalogueRateFor,
+  catalogueSourceOf,
+  isCatalogueOverCeiling,
+} from '@/lib/kosztorys/work-catalogue/catalogue-rate'
 import { CatalogueRowActions } from '@/components/work-catalogue/catalogue-row-actions'
 import type { ToolPlaneT } from '@/lib/kosztorys/types'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
@@ -41,14 +46,6 @@ const shareOf = (entry: WorkCatalogueItemT, plane: ToolPlaneT) => {
   const { rate, coeff } = catalogueRateFor(entry, plane)
   if (namesFigure(coeff)) return coeff
   return namesFigure(rate) && entry.clientPrice > 0 ? rate / entry.clientPrice : null
-}
-
-// What the ceiling judges: the złotówka the wpis would pay, whichever źródło names it. The mnożnik's
-// kwota is its multiple of the cennik's own cena j.m. — here the two travel together, so the rule
-// reads the same figure it does in the rozpiska.
-const rateAmount = (entry: WorkCatalogueItemT, plane: ToolPlaneT): number | null => {
-  const { rate, coeff } = catalogueRateFor(entry, plane)
-  return namesFigure(coeff) ? entry.clientPrice * coeff : rate
 }
 
 const share = (value: number | null, overCeiling: boolean) =>
@@ -126,7 +123,7 @@ const clientPriceColumn = col.accessor('clientPrice', {
   cell: (info) => <span className="tabular-nums">{formatPLN(info.getValue())}</span>,
 })
 
-const wToolsRateColumn = col.accessor((row) => rateAmount(row, 'w_tools'), {
+const wToolsRateColumn = col.accessor((row) => catalogueRateAmount(row, 'w_tools'), {
   id: 'wToolsRate',
   header: twoLines('Stawka z narzędziami', '(podwykonawca)'),
   size: 176,
@@ -143,11 +140,7 @@ const shareColumn = (plane: ToolPlaneT, id: string, tools: string) =>
     id,
     header: twoLines('% ceny klienta', tools),
     meta: { tooltip: shareTooltip(plane), label: `% ceny klienta ${tools}` },
-    cell: (info) =>
-      share(
-        info.getValue(),
-        isOverCeiling(rateAmount(info.row.original, plane), info.row.original, plane),
-      ),
+    cell: (info) => share(info.getValue(), isCatalogueOverCeiling(info.row.original, plane)),
   })
 
 // The źródło spelled out, beside the stawka that only IMPLIES it — „auto" and „×0,65" name their
@@ -172,7 +165,7 @@ const wToolsSourceColumn = sourceColumn(
 
 const wToolsShareColumn = shareColumn('w_tools', 'wToolsShare', PLANE_LABELS.w_tools.toLowerCase())
 
-const ownToolsRateColumn = col.accessor((row) => rateAmount(row, 'own_tools'), {
+const ownToolsRateColumn = col.accessor((row) => catalogueRateAmount(row, 'own_tools'), {
   id: 'ownToolsRate',
   header: twoLines('Stawka bez narzędzi', '(pracownik)'),
   size: 176,

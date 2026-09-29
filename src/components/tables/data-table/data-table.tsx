@@ -66,6 +66,7 @@ type DataTablePropsT<TData> = {
   /** A row count, a hint about what the filters did — its own row so it reads as a statement about
    * the list below rather than another toolbar item. */
   aboveToolbar?: React.ReactNode
+  belowToolbar?: React.ReactNode
   className?: string
 }
 
@@ -85,6 +86,7 @@ export function DataTable<TData>({
   footer,
   toolbar,
   aboveToolbar,
+  belowToolbar,
   className,
 }: DataTablePropsT<TData>) {
   const [localSorting, setLocalSorting] = useState<SortingState>(initialSorting)
@@ -181,6 +183,7 @@ export function DataTable<TData>({
         setRank,
         resetOrder,
       })}
+      {belowToolbar}
       <div className="border-border overflow-x-auto rounded-lg border">
         {enableVirtualization ? (
           <VirtualizedTableBody

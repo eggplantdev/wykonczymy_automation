@@ -5,6 +5,7 @@ import {
   subcontractorPrice,
 } from '@/lib/kosztorys/calc'
 import { formatRate } from '@/lib/kosztorys/format'
+import { isOverCeiling } from '@/lib/kosztorys/subcontractor-price-guard'
 import type { PriceSourceT, ToolPlaneT, ViewPricingT } from '@/lib/kosztorys/types'
 
 // One plane of a cennik wpis, as the two nullable columns hold it. At most one is set — the same
@@ -36,6 +37,24 @@ export const catalogueRateFor = (
   plane === 'w_tools'
     ? { rate: entry.wToolsRate, coeff: entry.wToolsRateCoeff }
     : { rate: entry.ownToolsRate, coeff: entry.ownToolsRateCoeff }
+
+// What the ceiling judges: the złotówka the wpis would pay, whichever źródło names it. The mnożnik's
+// kwota is its multiple of the cennik's own cena j.m. — here the two travel together, so the rule
+// reads the same figure it does in the rozpiska.
+export const catalogueRateAmount = (
+  entry: CatalogueRateColumnsT & { clientPrice: number },
+  plane: ToolPlaneT,
+): number | null => {
+  const { rate, coeff } = catalogueRateFor(entry, plane)
+  return namesFigure(coeff) ? entry.clientPrice * coeff : rate
+}
+
+// The ONE question „is this cennik wpis over the ceiling" — the table's red udział cell and the
+// „ponad" / „w granicy" filters both ask it here, so the colour and the filter cannot disagree.
+export const isCatalogueOverCeiling = (
+  entry: CatalogueRateColumnsT & { clientPrice: number },
+  plane: ToolPlaneT,
+): boolean => isOverCeiling(catalogueRateAmount(entry, plane), entry, plane)
 
 // One stawka of a cennik wpis as one sentence — „auto", a kwota, or the mnożnik with the kwota it
 // comes out to at the katalog's own cena j.m. The źródło has to show: 0,65 and 65 zł render the same
