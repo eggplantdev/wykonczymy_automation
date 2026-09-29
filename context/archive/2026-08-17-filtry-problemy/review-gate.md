@@ -5,13 +5,13 @@ dropped and dismissed findings were cut; their fixes live in the branch's commit
 
 ## Findings
 
-- [x] filed EX-899 · code-review · `src/lib/kosztorys/row-conditions/queries.ts` (`countMatching`, surfaced to the
-      editor as `conditionCounts`; the ledger originally named `row-conditions.ts`) · the counts run one full pass per condition on every
-      keystroke — at 1000+ pozycje that is thousands of predicate calls per edit. Re-raised and
-      re-skipped at the `kosztorys-filters-visible-and-extended` gate (2026-08-18), where the registry
-      grew six more entries. Filed as EX-899 on 2026-09-29 (Linear was at its free-issue cap at the gate). Direction: one pass over the pozycje with the registry loop inside,
-      accumulating `id → count`, which reshapes `countMatching` and its spec. Measure before/after on
-      the perf dataset (`INV=7 … perf-seed-kosztorys.ts`) — this is the path EX-496 was reverted over.
+- [x] fixed EX-768 (`e3708d09`, 2026-09-02) · code-review · `src/lib/kosztorys/row-conditions/queries.ts`
+      (`countMatching`, surfaced to the editor as `conditionCounts`) · the counts run one full pass per
+      condition on every committed keystroke. The proposed fix — one pass with the registry loop
+      inside — was measured and gains nothing: predicate calls stay N × C, and the cost sat in six
+      conditions each re-summing the pomiar. Fixed by computing it once per pozycja (`qtyDoneByRow`):
+      3.82 → 1.51 ms median at 1000 pozycje. Do not re-file the loop fusion (EX-899 was, and was
+      canceled as a duplicate).
 - [x] skipped · simplify · `row-conditions/registry.ts` · a factory generating the price conditions
       per plane would turn the literal ids into template strings; the ids are the one thing in this
       feature grepped from several places (and persisted, unversioned, in localStorage). Keep them
