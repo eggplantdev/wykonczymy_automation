@@ -179,3 +179,12 @@ export type CatalogueUsageT = {
   otherUnitIds: number[]
   uncatalogued: UncataloguedUsageT[]
 }
+
+// `same` differs only in what folding cannot see (a word ending, the j.m. written into the opis, word
+// order); `oneWord` has one word more or less, which is as often a deliberate variant as a duplicate.
+export type NearDuplicateKindT = 'same' | 'oneWord'
+
+export type NearDuplicateT = {
+  entry: WorkCatalogueItemT
+  kind: NearDuplicateKindT
+}

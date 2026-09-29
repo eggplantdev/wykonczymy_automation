@@ -2097,3 +2097,15 @@ decyzja właściciela.
 ### Phase 5: Dokumentacja
 
 - [ ] Notatki domenowe (`kosztorys-editor-domain-notes.md`) opisują to, co robi strona.
+
+### Phase 6: Możliwe duplikaty
+
+- [ ] „Problemy" → „Prace z możliwym duplikatem" zawęża tabelę do prac, które mają pod opisem linię
+      „prawie ten sam opis: …" albo „podobny opis: …", a licznik zgadza się z liczbą wierszy.
+- [ ] „Montaż syfonu" / „Montaż syfonów" (albo inna para różniąca się tylko końcówką) jest oznaczona
+      „prawie ten sam opis" nawet przy innej j.m., kategorii i cenie — linia pokazuje j.m., cenę i
+      kategorię bliźniaka.
+- [ ] Warianty różniące się liczbą („do 12 / 18 modułów", „Q3 / Q4", „5 / 7,5 cm") **nie** są
+      oznaczone.
+- [ ] Wybrany problem „z możliwym duplikatem" przetrwa przeładowanie strony, a pisanie w szukaniu
+      nie przycina.

@@ -17,7 +17,12 @@ import {
 } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
 import { CatalogueRowActions } from '@/components/work-catalogue/catalogue-row-actions'
 import type { ToolPlaneT } from '@/lib/kosztorys/types'
-import type { CatalogueUsageT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
+import type {
+  CatalogueUsageT,
+  NearDuplicateKindT,
+  NearDuplicateT,
+  WorkCatalogueItemT,
+} from '@/lib/kosztorys/work-catalogue/types'
 
 const col = createColumnHelper<WorkCatalogueItemT>()
 
@@ -89,7 +94,19 @@ const lpColumn = (ordinals: ReadonlyMap<number, number>) =>
 // The picker's `size`s: its virtualized list lays out fixed, so the narrow columns hold these widths
 // and the opis fills the rest with its `size` as the floor. Their sum stays inside `dialog-xl` on a
 // 1440 screen. /katalog-prac lays out from content and never reads them.
-const descriptionColumnWith = (otherUnitIds: ReadonlySet<number>) =>
+type DescriptionMarksT = {
+  otherUnitIds: ReadonlySet<number>
+  nearDuplicates: ReadonlyMap<number, readonly NearDuplicateT[]>
+}
+
+const NEAR_DUPLICATE_LEADS: Record<NearDuplicateKindT, string> = {
+  same: 'prawie ten sam opis',
+  oneWord: 'podobny opis',
+}
+
+const MARK_CLASS = 'text-muted-foreground block text-xs font-normal'
+
+const descriptionColumnWith = ({ otherUnitIds, nearDuplicates }: DescriptionMarksT) =>
   col.accessor('description', {
     id: 'description',
     header: 'Opis pracy',
@@ -103,15 +120,25 @@ const descriptionColumnWith = (otherUnitIds: ReadonlySet<number>) =>
         {/* The same opis priced under another j.m. is not this wpis — it is a near-duplicate the
             cennik may want to merge, so it is named here and never counted into „Kosztorysy". */}
         {otherUnitIds.has(info.row.original.id) && (
-          <span className="text-muted-foreground block text-xs font-normal">
-            występuje z inną j.m.
-          </span>
+          <span className={MARK_CLASS}>występuje z inną j.m.</span>
         )}
+        {/* The twin's j.m., cena and kategoria ride along because they are what decides which of
+            the two to keep — and a twin sorted far away by opis would otherwise need a search. */}
+        {nearDuplicates.get(info.row.original.id)?.map(({ entry, kind }) => (
+          <span key={entry.id} className={MARK_CLASS}>
+            {NEAR_DUPLICATE_LEADS[kind]}: {entry.description} — {entry.unit} ·{' '}
+            {formatPLN(entry.clientPrice)}
+            {entry.category && ` · ${entry.category}`}
+          </span>
+        ))}
       </span>
     ),
   })
 
-const descriptionColumn = descriptionColumnWith(new Set())
+const descriptionColumn = descriptionColumnWith({
+  otherUnitIds: new Set(),
+  nearDuplicates: new Map(),
+})
 
 const categoryColumn = col.accessor((row) => row.category ?? '', {
   id: 'category',
@@ -225,14 +252,16 @@ export function getWorkCatalogueColumns({
   categorySuggestions,
   ordinals,
   usage,
+  nearDuplicates,
 }: {
   categorySuggestions: readonly string[]
   ordinals: ReadonlyMap<number, number>
   usage: CatalogueUsageT | null
+  nearDuplicates: DescriptionMarksT['nearDuplicates']
 }) {
   return [
     lpColumn(ordinals),
-    usage ? descriptionColumnWith(new Set(usage.otherUnitIds)) : descriptionColumn,
+    descriptionColumnWith({ otherUnitIds: new Set(usage?.otherUnitIds), nearDuplicates }),
     categoryColumn,
     unitColumn,
     clientPriceColumn,

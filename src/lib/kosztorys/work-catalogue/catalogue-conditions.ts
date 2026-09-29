@@ -88,7 +88,26 @@ const FILTERS: CatalogueConditionT[] = [
 
 export const CATALOGUE_CONDITIONS: CatalogueConditionT[] = [...PROBLEMS, ...FILTERS]
 
-export const CATALOGUE_PROBLEM_IDS = PROBLEMS.map((condition) => condition.id)
+const CATALOGUE_DUPLICATE_ID = 'catalogue-near-duplicate'
+
+export const CATALOGUE_PROBLEM_IDS = [
+  ...PROBLEMS.map((condition) => condition.id),
+  CATALOGUE_DUPLICATE_ID,
+]
+
+// Built off `data` on every load, so — unlike „Użycie" — a stored engagement always has its count to
+// narrow by and may persist with the rest.
+export function catalogueDuplicateCondition(
+  nearDuplicates: ReadonlyMap<number, unknown>,
+): CatalogueConditionT {
+  return {
+    id: CATALOGUE_DUPLICATE_ID,
+    kind: 'problem',
+    group: 'Opis',
+    label: 'z możliwym duplikatem',
+    matches: (entry) => nearDuplicates.has(entry.id),
+  }
+}
 
 // Built off a count taken on a click, so the group only exists once there is one — and its ids are
 // never persisted: after a reload there is no count to filter by, and a stored „nieużywane" would

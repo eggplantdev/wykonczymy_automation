@@ -100,6 +100,9 @@ within)` is what keeps them apart (`use-engaged-conditions.ts:60`).
 - No caching of the usage read. It is on a click and freshness is its point.
 - No schema change and no migration.
 - No „Policz" on the kosztorys editor's catalogue dialog. This is the catalogue page only.
+- No „to nie duplikat" dismissal. It would need its own table and migration; a flagged deliberate
+  variant stays flagged until the owner rewords one of the two.
+- No merge action for duplicates. The Problem finds them, and the owner edits or deletes by hand.
 
 ## Implementation Approach
 
@@ -546,6 +549,86 @@ ruling.
 
 - The domain notes describe what the page does.
 
+---
+
+## Phase 6: „możliwe duplikaty" (EX-863, owner 2026-09-29)
+
+### Overview
+
+A Problem that surfaces catalogue prace that are probably the same praca written twice, plus a line
+under the opis naming the twin. Exact duplicates cannot exist, because the catalogue is unique on
+folded opis + j.m. So this catches the near ones: a different word ending („syfonu" / „syfonów"), the
+j.m. written into the opis („Skucie posadzki mb" / „…m2"), punctuation, word order, or one word more
+or less. Each of these may come with any j.m., kategoria or cena.
+
+It is not based on letter similarity. On the local 561 wpisy, Dice ≥ 0.9 returns mostly deliberate
+variants („do 12 / 18 / 24 modułów", „5 / 7,5 / 10 cm", „niski / wysoki stopień").
+
+### Changes Required:
+
+#### 1. Near-duplicate finder
+
+**File**: `src/lib/kosztorys/work-catalogue/catalogue-near-duplicates.ts` (new)
+
+**Intent**: A pure function over the catalogue:
+
+- Tokenise `foldDescription(opis)`.
+- Drop the j.m. words the catalogue itself uses (`foldUnit` of every wpis's j.m.) and a short list
+  of Polish function words.
+- Keep numbers as an exact multiset. A different number means a variant, never a duplicate.
+- Treat two words as one when they share a prefix of ≥ 4 letters that is also ≥ the shorter word
+  minus 3. This covers the Polish ending, and keeps „podłodze" apart from „podłączenie" and
+  „przedłużek" apart from „przedpokoju".
+
+A pair is flagged when the numbers match and at most one content word is unmatched, on one side
+only. The kind is `same` (0 unmatched) or `oneWord`. The shorter opis needs ≥ 2 content words.
+
+**Contract**:
+
+- `findNearDuplicates(catalogue): ReadonlyMap<number, NearDuplicateT[]>`.
+- `NearDuplicateT = { entry: WorkCatalogueItemT; kind: 'same' | 'oneWord' }`, sorted `same` first,
+  then by opis.
+- Candidates are bucketed by their number signature before the pairwise pass.
+
+#### 2. The Problem
+
+**File**: `catalogue-conditions.ts`; `catalogue-problems-menu-model.ts`; `work-catalogue-data-table.tsx`
+
+**Intent**: The id `catalogue-near-duplicate` sits in group „Opis" with the label „z możliwym
+duplikatem". Its id is static, and it joins `CATALOGUE_PROBLEM_IDS`. It is recomputed from `data` on
+every load, so unlike „Użycie" it may persist. The problems menu model takes `conditions` the way the
+filters model already does.
+
+**Contract**: `catalogueDuplicateCondition(nearDuplicates): CatalogueConditionT`. The table memoises
+`findNearDuplicates(data)` on `data`.
+
+#### 3. Twin line under the opis
+
+**File**: `src/components/tables/work-catalogue.tsx`
+
+**Intent**: This goes under the opis of every flagged wpis, beside „występuje z inną j.m.". It reads
+„prawie ten sam opis:" for the `same` kind or „podobny opis:" for `oneWord`, followed by the twin's
+opis and then j.m. · cena · kategoria. Only /katalog-prac shows it; the picker does not.
+
+**Contract**: `descriptionColumnWith({ otherUnitIds, nearDuplicates })`.
+
+### Success Criteria:
+
+#### Automated Verification:
+
+- `catalogue-near-duplicates` node spec:
+  - flags an inflection pair, a j.m.-in-opis pair and a one-word-more pair;
+  - does not flag a pair that differs only in a number, a pair that differs in two words, or
+    „podłodze" against „podłączenie";
+  - flags across different j.m. / kategoria / cena.
+- Registry and problems-menu-model specs cover the new Problem.
+
+#### Manual Verification:
+
+- „Problemy → z możliwym duplikatem" narrows to flagged prace. „Montaż syfonu" and „Montaż
+  syfonów" both show, each naming the other.
+- „Montaż/Przebudowa rozdzielni … do 12 / 18 / 24 modułów" is not flagged.
+
 ## Testing Strategy
 
 ### Unit Tests:
@@ -638,3 +721,11 @@ The full unit suite runs only when asked (memory: no full suite unasked). Pre-pu
 #### Automated
 
 - [x] 5.1 No automated check — prose only — b6b1dd1b
+
+### Phase 6: „możliwe duplikaty" (EX-863, owner 2026-09-29)
+
+#### Automated
+
+- [x] 6.1 catalogue-near-duplicates node spec (inflection, j.m. in opis, one word, numbers, two words, prefix guard)
+- [x] 6.2 Registry + problems-menu-model specs cover the duplicate Problem
+- [x] 6.3 Whole-tree gate re-run (typecheck, lint)

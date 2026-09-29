@@ -3,6 +3,7 @@ import {
   CATALOGUE_CONDITIONS,
   CATALOGUE_PROBLEM_IDS,
   applyCatalogueConditions,
+  catalogueDuplicateCondition,
   catalogueUsageConditions,
   countCatalogueConditions,
 } from '@/lib/kosztorys/work-catalogue/catalogue-conditions'
@@ -136,12 +137,24 @@ describe('registry', () => {
       'catalogue-no-price',
       'catalogue-zero-rate-w_tools',
       'catalogue-zero-rate-own_tools',
+      'catalogue-near-duplicate',
     ])
   })
 
   it('never repeats a label, which cmdk keys its rows by', () => {
     const labels = CATALOGUE_CONDITIONS.map((candidate) => candidate.label)
     expect(new Set(labels).size).toBe(labels.length)
+  })
+})
+
+describe('catalogueDuplicateCondition', () => {
+  it('is a problem matching exactly the wpisy that have a twin', () => {
+    const [twin, single] = [entry(), entry()]
+    const condition = catalogueDuplicateCondition(new Map([[twin.id, []]]))
+
+    expect(condition.kind).toBe('problem')
+    expect(CATALOGUE_PROBLEM_IDS).toContain(condition.id)
+    expect([twin, single].filter(condition.matches)).toEqual([twin])
   })
 })
 

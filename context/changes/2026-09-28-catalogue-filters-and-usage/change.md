@@ -62,3 +62,15 @@ Punkty otwarte (rozstrzygnięte niżej):
 - **(4)** Tak — znacznik „występuje z inną j.m." na wierszu katalogu.
 - **(5)** Wykluczone: inwestycje w koszu (`trashedAt`) i o statusie „szablon". Wyceny się liczą.
   Śmieciowe aktywne inwestycje — bez specjalnego traktowania.
+
+### Decyzje 2026-09-29 (po implementacji, przed review) — „możliwe duplikaty"
+
+- Nowy Problem: prace, które prawdopodobnie są tą samą pracą wpisaną dwa razy. Dokładnych duplikatów
+  nie ma (katalog jest unikalny po opisie + j.m.), więc łapiemy prawie-duplikaty: inna końcówka słowa,
+  j.m. wpisana w opis, interpunkcja, kolejność, **oraz jedno słowo więcej / mniej** (właściciel: tak).
+  Niezależnie od j.m., kategorii i ceny.
+- Liczby muszą się zgadzać — „do 12 / 18 modułów", „5 / 7,5 cm" to warianty, nie duplikaty.
+  Podobieństwo liter (to od podpowiedzi „może chodzi o…") odpada: przy ≥ 0,9 zwraca głównie warianty.
+- Lokalnie (561 prac): ~3 pary „prawie ten sam opis", ~33 pary „jedno słowo więcej", z czego około
+  jedna trzecia to prawdziwe duplikaty.
+- Bez „to nie duplikat" (wymagałoby tabeli i migracji) i bez akcji scalania — v1 tylko wskazuje.

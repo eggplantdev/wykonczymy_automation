@@ -1290,6 +1290,21 @@ pozycji: praca powtórzona w pięciu łazienkach jednego mieszkania to dalej jed
   liczy wyłącznie dokładne dopasowania, bo bliskie trafienie zawyżyłoby wpis, którego nikt nie użył.
   Tak samo znacznik „występuje z inną j.m." jedynie nazywa prawie-duplikat i niczego nie dolicza.
 
+**„Z możliwym duplikatem" — porównanie po słowach, nie po literach.** Dokładnego duplikatu w
+cenniku być nie może, bo wpis jest unikalny po opisie i j.m. Ten problem łapie więc to, czego
+porównanie opisów nie widzi, i to niezależnie od j.m., kategorii i ceny. Pod opisem każdej takiej
+pracy stoi linia z bliźniakiem, jego j.m., ceną i kategorią.
+
+- **„Prawie ten sam opis"** to te same słowa z inną końcówką („syfonu" / „syfonów", „kratki
+  wentylacyjnej" / „kratek wentylacyjnych"), albo j.m. wpisana w opis („Skucie posadzki mb").
+  **„Podobny opis"** to jedno słowo więcej lub mniej. Ta druga grupa jest głośniejsza i to jest
+  przyjęte.
+- **Liczba rozstrzyga.** W tym cenniku wariant zapisuje się liczbą: „do 12 / 18 / 24 modułów",
+  „5 / 7,5 cm", „Q3 / Q4". Opisy różniące się liczbą nigdy nie są duplikatem. Właśnie dlatego
+  podobieństwo po literach się nie nadaje: takie pary ocenia najwyżej ze wszystkich.
+- **Liczone przy każdym wejściu**, więc wybrany problem można zapamiętać, inaczej niż „Użycie".
+  Nie ma „to nie duplikat" ani scalania. Fałszywy alarm znika dopiero po zmianie opisu.
+
 ## Wpłaty a tryb rozliczenia (czwarty przebieg, 2026-08-23)
 
 **Nic nie przechodzi przez VAT.** Wpłata niesie wyłącznie te kwoty, które naprawdę miała:

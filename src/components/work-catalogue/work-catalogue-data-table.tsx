@@ -34,10 +34,12 @@ import {
   CATALOGUE_CONDITIONS,
   CATALOGUE_PROBLEM_IDS,
   applyCatalogueConditions,
+  catalogueDuplicateCondition,
   catalogueUsageConditions,
   countCatalogueConditions,
 } from '@/lib/kosztorys/work-catalogue/catalogue-conditions'
 import { compareDescriptions } from '@/lib/kosztorys/work-catalogue/compare-descriptions'
+import { findNearDuplicates } from '@/lib/kosztorys/work-catalogue/catalogue-near-duplicates'
 import { itemNoun } from '@/lib/kosztorys/counted-nouns'
 import type { CatalogueUsageT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
@@ -58,12 +60,19 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
     clear: clearConditions,
   } = useEngagedIds('work-catalogue-filters')
 
+  // ~0.1 s over 561 wpisy: once per `data`, never per keystroke.
+  const nearDuplicates = useMemo(() => findNearDuplicates(data), [data])
+
   const [usage, setUsage] = useState<CatalogueUsageT | null>(null)
   // Beside the persisted set, never in it — see `catalogueUsageConditions`.
   const [engagedUsageIds, setEngagedUsageIds] = useState<ReadonlySet<string>>(new Set())
   const usageConditions = catalogueUsageConditions(usage)
   const isUsageId = (id: string) => usageConditions.some((condition) => condition.id === id)
-  const conditions = [...CATALOGUE_CONDITIONS, ...usageConditions]
+  const conditions = [
+    ...CATALOGUE_CONDITIONS,
+    catalogueDuplicateCondition(nearDuplicates),
+    ...usageConditions,
+  ]
   const allEngagedIds = new Set([...engagedIds, ...engagedUsageIds])
 
   function setUsageEngaged(ids: readonly string[], engaged: boolean) {
@@ -116,7 +125,7 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
     engagedIds: allEngagedIds,
     counts,
   })
-  const problemToggles = catalogueProblemsMenuModel({ engagedIds, counts })
+  const problemToggles = catalogueProblemsMenuModel({ conditions, engagedIds, counts })
 
   // Redrawing ~950 unvirtualized rows blocks the click, so the filters stay urgent and the TABLE lags
   // behind them. Deferred here rather than per filter because every control feeds this list.
@@ -174,8 +183,8 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
   )
 
   const columns = useMemo(
-    () => getWorkCatalogueColumns({ categorySuggestions, ordinals, usage }),
-    [categorySuggestions, ordinals, usage],
+    () => getWorkCatalogueColumns({ categorySuggestions, ordinals, usage, nearDuplicates }),
+    [categorySuggestions, ordinals, usage, nearDuplicates],
   )
 
   return (
