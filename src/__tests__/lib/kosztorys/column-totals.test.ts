@@ -210,7 +210,10 @@ describe('columnTotalsForRows — every total is the sum of its cells', () => {
     const result = columnTotalsForRows(rows, tree.stages, view, tree.vatRate, executedQtyByItem)
     const valueOf = columnValueResolver({ stages: tree.stages, view, executedQtyByItem })
     const sumOf = (id: string, include: (value: number) => boolean = () => true) =>
-      rows.map((row) => valueOf(id)?.(row) ?? 0).filter(include).reduce((a, b) => a + b, 0)
+      rows
+        .map((row) => valueOf(id)?.(row) ?? 0)
+        .filter(include)
+        .reduce((a, b) => a + b, 0)
     const notOverrun = (value: number) => !isRemainingOverrun(value)
 
     const summed = ['net', 'plannedNet', 'discountAmount']

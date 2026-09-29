@@ -1860,3 +1860,29 @@ co było otwarte wcześniej.
       (+370)", bez „Zobacz historię zmian" — zgodnie z kodem, `WorkerKosztorysPage` nigdy nie
       przekazuje `history` do `PreviewHeaderActions`, więc pozycja menu nie renderuje się (`history &&`
       guard w `preview-header-actions.tsx`).
+
+## kosztorys-column-value-single-source — sortowanie kolumn liczonych po liczbach z komórek (EX-894, 2026-09-29)
+
+Edytor kosztorysu właściciela. Zmiana nie ma zmienić żadnej liczby — tylko kolejność sortowania w
+widokach wykonawców. Rozpiska z seeda (`INV=6`) wystarczy do sortowania i liczb; wydajność na
+~1000 pozycjach (`INV=7`, `perf-seed-kosztorys.ts`).
+
+### Sortowanie w widokach wykonawców
+
+- [ ] W „Z narzędziami" sortowanie po „Wartość przedmiaru netto", „% wykonania" i „Pozostało netto"
+      (rosnąco i malejąco) układa wiersze po liczbach widocznych w tej kolumnie — czytane z góry na dół
+      rosną albo maleją bez przeskoków.
+- [ ] To samo w „Bez narzędzi".
+- [ ] W „Inwestor" sortowanie po każdej kolumnie liczonej (wartości, rabat, etapy, „% wykonania",
+      „Pozostało") zachowuje się jak przed zmianą.
+
+### Liczby bez zmian
+
+- [ ] W każdym z trzech widoków kolumny liczone (wartości przedmiaru, wartość netto/brutto, rabat,
+      wartości etapów, „% wykonania", „Pozostało") pokazują te same liczby co przed zmianą.
+- [ ] „Pozostało netto" i „Pozostało brutto" są czerwone na wierszach wykonanych ponad Przedmiar i
+      tylko tam.
+- [ ] Stopki sekcji i „Razem" pokazują te same kwoty co przed zmianą, w każdym z trzech widoków.
+- [ ] Pod linkiem pracownika suma „Pozostało" = suma jego nieczerwonych wierszy.
+- [ ] Na kosztorysie ~1000 pozycji (`INV=7`) przewijanie i wpisywanie ilości w etapie działają tak
+      płynnie jak przed zmianą.

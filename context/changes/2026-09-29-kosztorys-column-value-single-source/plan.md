@@ -367,8 +367,8 @@ Run **once**, after the final phase:
 
 #### Automated
 
-- [x] 3.1 Totals specs pass
-- [x] 3.2 Client-document subtotals unaffected
+- [x] 3.1 Totals specs pass — 680fab1a
+- [x] 3.2 Client-document subtotals unaffected — 680fab1a
 
 ### Phase 4: Prints read the resolver
 
