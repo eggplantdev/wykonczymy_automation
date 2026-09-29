@@ -1536,6 +1536,15 @@ localStorage, lustro, cache) musiał wiedzieć, który szablon warsztat akurat t
 - **Nadpisanie szablonu** („Zapisz jako szablon" → „Nadpisz istniejący") zostawia na nim punkt
   „Przed nadpisaniem: <źródło>", więc jest odwracalne z jego „Wersji".
 
+**Wdrożenie na produkcję to dwie migracje, rozdzielone deployem.** `20260929_1_szablon_as_investment`
+(addytywna: zakłada szablony z jsonb, przepina punkty przywracania) idzie na Neona **przed** pushem
+kodu. `20260929_2_drop_kosztorys_presets` (destrukcyjna: warsztat, tabela, kolumny
+`template_preset_id`) — **dopiero gdy nowy deploy żyje**, bo stary kod czyta te kolumny w każdym
+`payload.find` na inwestycjach (42703). Między A a deployem nie edytuje się szablonów: stary kod pisze
+jeszcze do jsonb, a A już go przepisała. B rozpoznaje warsztat jako najstarszy `szablon` bez nazwy
+z biblioteki, nigdy po wskaźniku — usunięcie otwartego szablonu zeruje wskaźnik (tak było na prodzie
+29.09).
+
 **Kosztorysy zasiane z szablonu są kopiami zamrożonymi** — edycja szablonu nigdy nie rusza
 istniejących kosztorysów. To zdanie znosi jedyny argument, który mógłby bronić jawnego „Zapisz"
 w szablonie.

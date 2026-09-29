@@ -1,12 +1,12 @@
 ---
 change_id: warsztat-per-szablon
 title: Szablon jest inwestycją — koniec wspólnego warsztatu i biblioteki jsonb
-status: implemented
+status: archived
 created: 2026-09-29
 updated: 2026-09-29
-archived_at: null
+archived_at: 2026-09-29T07:03:21Z
 branch: warsztat-per-szablon
-worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/warsztat-per-szablon
+worktree: null
 ---
 
 ## Notes
