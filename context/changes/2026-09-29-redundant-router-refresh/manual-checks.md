@@ -12,7 +12,7 @@ count). E2E backlog for A–H/K: EX-924.
 - [x] J — expense on `/kasa/<id>`: the row and balance appear. The POST has `x-action-revalidated: 1` and the new row in its flight. _Evidence: POST rev1, 0 GET, row+balance visible 437-463 ms._
 - [x] J — investment create on `/inwestycje`: the row appears. _Evidence: POST rev1, 0 GET, row visible._
 - [x] J — one more FormDialog form (worker / cash register / equipment) from a page listing it: the row appears. _Evidence: /kasy register: POST rev1, 0 GET, 283-417 ms._
-- [ ] J — staging, after deploy: one expense on preview shows the row without a reload. _Left open: staging deploy skipped by instruction._
+- [ ] J — staging, after deploy: every changed site — the per-site list lives in `context/foundation/manual-checks.md` § EX-908. _Left open: staging not deployed yet._
 - [x] E — „Zapisz jako domyślną kasę" stops offering to save right after success, and a reopened expense dialog preselects the new register. _Evidence: POST rev1, 0 GET; reopened dialog preselects new register._
 - [x] I — a cancelled transfer shows cancelled, and the balance moves. _Evidence: POST rev1, 0 GET, 36-51 ms._
 - [x] H — an investment trashed from the listing leaves the list. _Evidence: POST rev1, 0 GET, 31-61 ms._
