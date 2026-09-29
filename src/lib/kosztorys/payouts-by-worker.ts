@@ -18,8 +18,10 @@ export function resolveWorkerName(
 }
 
 /**
- * Never re-split this into its own `GROUP BY worker_id` query: a second cache entry over the same
- * WHERE can serve the block's totals from a different snapshot than the list beneath them.
+ * Within one investment's subcontractor block, never re-split this into its own `GROUP BY worker_id`
+ * query: a second cache entry over the same WHERE can serve the block's totals from a different
+ * snapshot than the list beneath them. The cross-investment pair read (`worker-payout-pairs.ts`)
+ * feeds other surfaces and is not that split.
  *
  * The null-worker bucket keeps its own entry rather than being folded or dropped — see the query
  * that lets those rows through (`get-payout-transactions.ts`).

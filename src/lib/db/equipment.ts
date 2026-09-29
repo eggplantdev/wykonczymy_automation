@@ -1,4 +1,5 @@
 import { sql } from '@payloadcms/db-vercel-postgres'
+import { sqlList } from '@/lib/db/sql-list'
 import type { Payload } from 'payload'
 import { LIVE_EQUIPMENT_STATUSES } from '@/lib/equipment/equipment-status'
 import { toEquipmentEventRow, toEquipmentRow } from '@/lib/equipment/rows'
@@ -81,12 +82,7 @@ export const loadEquipmentById = async (
  * Retired statuses are excluded: a sold drill whose last event still names Marek is history, not
  * something he is holding — and this is the figure someone reads at a termination settlement.
  */
-// A list literal rather than a bound array: the driver flattens a JS array into one parameter per
-// element, which `= ANY($n)` then reads as a malformed array literal.
-const LIVE_STATUSES = sql`(${sql.join(
-  LIVE_EQUIPMENT_STATUSES.map((status) => sql`${status}`),
-  sql.raw(', '),
-)})`
+const LIVE_STATUSES = sql`(${sqlList(LIVE_EQUIPMENT_STATUSES)})`
 
 export const loadEquipmentAtLocation = async (
   payload: Payload,
@@ -95,9 +91,7 @@ export const loadEquipmentAtLocation = async (
   const db = await getDb(payload)
 
   const location =
-    target.kind === 'holder'
-      ? sql`c.holder_id = ${target.id}`
-      : sql`c.warehouse_id = ${target.id}`
+    target.kind === 'holder' ? sql`c.holder_id = ${target.id}` : sql`c.warehouse_id = ${target.id}`
 
   const result = await db.execute(sql`
     WITH current_state AS (${CURRENT_STATE})

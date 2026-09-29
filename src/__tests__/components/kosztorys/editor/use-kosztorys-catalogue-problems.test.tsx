@@ -11,9 +11,6 @@ import {
 } from '@/lib/kosztorys/row-conditions/registry'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
-}))
 // The grid's writes are irrelevant here — the risk is the counter, which is recomputed off `rows`
 // before any of them lands. The stubbed 'use server' module throws on call, so they are replaced.
 vi.mock('@/lib/actions/kosztorys', () => ({

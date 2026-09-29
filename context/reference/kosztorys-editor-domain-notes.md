@@ -653,10 +653,24 @@ j.m.` wśród wierszy policzonych** (wpisane z palca są wykluczone: to decyzje 
       (`bucketDepositsByPlane`) + migracja `20260721_1`.
   - **Rabat też jest na płaszczyźnie prac — gruntuje się** (właściciel, 2026-07-19). Rabat to
     **obniżka prac**, a nie ruch gotówki ani koszt materiału, więc dzieli oś netto/brutto z
-    pracami: `rabat_brutto = rabat_netto × (1 + vat)`. Dowód z arkusza: `S = N × cena − rabat`,
-    a na osi brutto cała ta linia gruntuje, więc efektywny rabat brutto = `rabat × (1+vat)`.
+    pracami: `rabat_brutto = rabat_netto × (1 + vat)`. Arkusz tego nie rozstrzyga — jego rabat
+    (kolumna R) to procent, a procent nie ma osi; podstawą jest orzeczenie właściciela.
     To **odróżnia rabat** od materiałów / korekty / wpłat (te są nominalne). Bez tego brutto-
     kaskada się nie spina: „Suma prac" brutto − rabat nominalny ≠ „Robocizna" brutto.
+  - **Rabat kwotowy wpisuje się na dowolnej osi (2026-09-29, EX-933).** Gruntowanie to reguła
+    liczenia, nie reguła wpisu. Przy rozliczeniu brutto właściciel umawia się na „5000 zł mniej"
+    brutto — pole przyjmowało tylko netto, więc 5000 stawało się −5400,00 w Podsumowaniu (inw. 112,
+    VAT 8%). Rabat globalny ma teraz dwa pola, netto i brutto, jedno „Zapisz"; drugie przelicza się
+    na żywo po stawce VAT inwestycji. **Zapisujemy tylko netto** — wpis brutto jako
+    `brutto / (1 + vat)` z sześcioma miejscami po przecinku, żeby po gruntowaniu wrócił co do grosza
+    (netto zaokrąglone do groszy potrafi zgubić grosz). Wszystkie odczyty bez zmian, bez migracji.
+    Zmiana stawki VAT przesuwa więc brutto rabatu, a netto zostaje — spójnie z pracami. Rabat per
+    pozycja zostaje netto (osobna decyzja, nieruszona). Rabaty wpisane przed zmianą są netto i tak
+    zostają; inw. 112 wymaga ręcznego przepisania 5000 w pole brutto.
+    Odrzucone: pole idące za trybem rozliczenia ze znacznikiem osi przy kwocie — oś wybiera
+    właściciel przy wpisie, a po zmianie VAT brutto ma się przesunąć, więc nie ma czego kotwiczyć;
+    oraz kwota nominalna na obu osiach, jak strata — rozspójnia fakturę (brutto ≠ netto × (1 + vat),
+    na inw. 112 o 400 zł).
   - **Skutek dla `Podsumowania` (edytor):** kolumna brutto dotyczy wierszy z płaszczyzny prac —
     „Suma prac wykonanych", **„Rabat"** oraz „Robocizna/Do zapłaty" (gruntowana po rabacie).
     Materiały budowlane/wykończeniowe, korekta i wpłaty = wartość nominalna (brak wiersza
@@ -713,9 +727,9 @@ j.m.` wśród wierszy policzonych** (wpisane z palca są wykluczone: to decyzje 
     Rabat nie jest już ręczną transakcją — staje się kwotą **readonly z arkusza**
     (kosztorysu), pokazywaną w **widoku inwestycji** i wchodzącą w **podsumowanie tej
     inwestycji**. Skutek: nie ma już `Σ RABAT` do rekoncyliacji — rabat inwestycji =
-    rabat kosztorysowy wprost. **To rozpuszcza otwarte pytanie EX-539** (transakcja
-    `RABAT` netto vs brutto) — bez ręcznej transakcji `RABAT` nie ma osi wpisu do
-    rozstrzygnięcia. (EX-536 / zaliczka pozostaje osobno.) Do zbudowania w widoku
+    rabat kosztorysowy wprost. To rozpuszcza pytanie o oś transakcji `RABAT` — bez ręcznej
+    transakcji nie ma osi wpisu do rozstrzygnięcia (oś wpisu rabatu kosztorysowego rozstrzyga
+    EX-933, wyżej). (EX-536 / zaliczka pozostaje osobno.) Do zbudowania w widoku
     inwestycji — należy do EX-535.
 
 - **Rabat dwutrybowy:** `discount_type` ∈ {procent, kwota} + `discount_value`.
@@ -728,6 +742,7 @@ O zastąpieniu rabatów per pozycja decyduje **tryb, nie kwota**: „Kwotowy" wy
 per pozycja przy **każdej** wartości, łącznie z 0 zł. Stąd wybór trybu **od razu zapisuje** —
 czekanie na kwotę zostawiało listę obiecującą zastąpienie, którego silnik nie robił.
 
+- **Kwota wpisuje się w netto albo w brutto, zapisuje się netto** — patrz sekcja VAT wyżej (EX-933).
 - **Kwota startowa = suma rabatów per pozycja** przy aktywnym widoku, więc przełączenie
   na „Kwotowy" nie rusza żadnej liczby na ekranie: użytkownik najpierw wybiera mechanizm,
   potem zmienia liczbę. (0 zł też by działało, ale czytałoby się jak „skasuj rabaty".)
@@ -1624,6 +1639,10 @@ localStorage, lustro, cache) musiał wiedzieć, który szablon warsztat akurat t
   jest w koszu. „Usuń na zawsze" zawsze wymaga wpisania nazwy, bo szablon nigdy nie ma Przedmiaru,
   więc test „kosztorys w użyciu" by go nie złapał. Po 30 dniach usuwa go sprzątanie, a kaskada
   zabiera drzewo i punkty przywracania. Kosztorysy założone z szablonu zostają — mają własną kopię.
+  Nazwy nie zwalniamy celowo (`investments_szablon_name_idx` nie patrzy na `trashed_at`). Wolna
+  nazwa przeniosłaby kolizję na „Przywróć", a `restoreInvestmentAction` to goły `payload.update`,
+  więc 23505 trafiłby do toastu po angielsku. Zajęta nazwa nie wymaga migracji, a przywrócenie
+  nigdy się nie zderzy.
 - **Nazwa jest tożsamością**: unikalna wśród szablonów bez względu na wielkość liter i spacje na
   brzegach (`investments_szablon_name_idx`).
 - **„Ostatnia edycja" na liście to `content_edited_at`**, nie `updated_at` — ten drugi jest tokenem
@@ -1690,3 +1709,26 @@ tam wymaga podania `executedQtyByItem` do `sortValueGetter`.
 
 **Nazwa: „bez pozycji", nie „pusta".** „Pusta sekcja" znaczy już u właściciela sekcję, której
 prace nie mają wpisanych wartości. W kodzie to `itemless`.
+
+**„Wersje" nie pokazuje dodania ani usunięcia sekcji bez pozycji.** Porównanie wersji idzie po
+pracach (`history/diff-versions.ts`), więc sekcja bez prac nie daje wiersza różnicy. Zostaje tak,
+dopóki właściciel nie poprosi.
+
+## Wypłaty per para inwestycja × pracownik (EX-919, 2026-09-29)
+
+„Pozostało do wypłaty" na liście pracowników i dialog „Rozlicz wypłaty" liczą na **parze
+inwestycja × pracownik**: wykonane na jego etapach po jego stawce − jego wypłaty na tej inwestycji.
+Ten sam wzór co blok Podwykonawcy, tylko rozcięty na pary. Pełne zasady liczby:
+`context/foundation/investment-financials-and-discount.md` § „Pozostało do wypłaty" per worker.
+
+- **„Nieprzypisane"** — etapy bez pracownika i wypłaty bez pracownika tworzą jedną szarą pozycję
+  („przypisz, żeby wypłacić"). Tak samo grupuje je blok Podwykonawcy, więc wiersze dialogu z listy
+  inwestycji sumują się do kolumny. Wypłaty bez pracownika to tylko stare wpisy (III–IV 2026);
+  dziś wypłaty bez pracownika nie da się zapisać.
+- **Stany pary, w tej kolejności:** nieprzypisane → bez rozliczenia etapu („ustaw rozliczenie
+  etapu") → inwestycja zakończona („przywróć na Aktywna") → nadpłata → rozliczone → do wypłaty.
+  Wypłacić można tylko trzy ostatnie.
+- **Zaliczka** — kwota ponad wykonaną pracę jest dozwolona, ale jawna: czerwone „nadpłata X" przy
+  wierszu, zdanie „X ponad wykonaną pracę — zapisze się jako zaliczka", a opis wypłaty dostaje
+  „w tym zaliczka X zł". Słowo zostaje mimo znaczenia „wpłata inwestora" w słowniku — kontekst
+  wypłaty dla pracownika je rozstrzyga. Wiersz już nadpłacony startuje odznaczony i pusty.

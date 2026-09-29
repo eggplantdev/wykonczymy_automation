@@ -1,7 +1,7 @@
 'use client'
 
-import type { ReactNode } from 'react'
 import { createColumnHelper, type CellContext } from '@tanstack/react-table'
+import { pluralize } from '@/lib/utils/polish-plural'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 import { isAdminOrOwnerRole, type RoleT } from '@/lib/auth/roles'
@@ -11,9 +11,11 @@ import { SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/labels'
 import type { InvestmentRowT } from '@/types/table-rows'
 import { INVESTMENT_HEADER_TIPS } from '@/components/tables/investments-header-tips'
 import { BalanceCell } from '@/components/ui/balance-cell'
+import { Button } from '@/components/ui/button'
 import { InvestmentStatusBadge } from '@/components/investments/investment-status-badge'
 import { ContactLink } from '@/components/ui/contact-link'
 import { LabelHintIcon } from '@/components/ui/label-hint-icon'
+import { HintedValue } from '@/components/tables/hinted-value'
 import { offPlaneDepositSentence } from '@/lib/kosztorys/off-plane-deposit-copy'
 import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
 import { TrashInvestmentButton } from '@/components/investments/trash-investment-button'
@@ -63,17 +65,6 @@ function withheldFigureCell(info: CellContext<InvestmentRowT, number | undefined
   return value === undefined ? <UnsettledStages /> : <BalanceCell value={value} />
 }
 
-// A numeric cell that may carry a hint icon next to it. Right-aligned inline so the icon rides with
-// the number instead of pinning to the column edge, which is what put the two figures out of line.
-function HintedValue({ children, hint }: { children: ReactNode; hint: ReactNode }) {
-  return (
-    <span className="inline-flex items-center justify-end gap-1">
-      {children}
-      {hint}
-    </span>
-  )
-}
-
 // The tryb decides which bilans EXISTS — one column per investment, never two (owner, 2026-08-23).
 // The other one isn't merely uninteresting, it is unbuilt: since nothing is derived at VAT, a bilans
 // brutto on an investment settled netto deducts only the przelewy and silently drops every wpłata
@@ -97,9 +88,10 @@ const balanceOrUndefined = (plane: 'net' | 'gross') => (row: InvestmentRowT) =>
 
 type InvestmentColumnOptionsT = {
   userRole: RoleT
+  onSettle: (investment: InvestmentRowT) => void
 }
 
-export function getInvestmentColumns({ userRole }: InvestmentColumnOptionsT) {
+export function getInvestmentColumns({ userRole, onSettle }: InvestmentColumnOptionsT) {
   const isAdminOrOwner = isAdminOrOwnerRole(userRole)
   return [
     col.accessor('name', {
@@ -262,7 +254,30 @@ export function getInvestmentColumns({ userRole }: InvestmentColumnOptionsT) {
       sortUndefined: 'last',
       header: SUBCONTRACTOR_FIGURE_LABELS.remaining,
       meta: { align: 'right', tooltip: INVESTMENT_HEADER_TIPS.subcontractorRemaining },
-      cell: withheldFigureCell,
+      cell: (info) => {
+        const value = info.getValue()
+        if (value === undefined || !hasKosztorysReading(info.row.original)) {
+          return withheldFigureCell(info)
+        }
+        const owedWorkers = info.row.original.subcontractorsOwed ?? 0
+        return (
+          <Button
+            variant="link"
+            className="h-auto flex-col items-end gap-0 p-0"
+            onClick={() => onSettle(info.row.original)}
+          >
+            <BalanceCell
+              value={value}
+              className={roundToCents(value) === 0 ? 'text-chart-green' : undefined}
+            />
+            {owedWorkers > 1 && (
+              <span className="text-muted-foreground text-xs font-normal">
+                {owedWorkers} {pluralize(owedWorkers, ['pracownika', 'pracowników', 'pracowników'])}
+              </span>
+            )}
+          </Button>
+        )
+      },
     }),
     col.accessor('address', {
       id: 'address',

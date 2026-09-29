@@ -5,7 +5,7 @@ import * as Collapsible from '@radix-ui/react-collapsible'
 import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { Separator } from '@/components/ui/separator'
-import { usePersistedEnum } from '@/hooks/use-persisted-enum'
+import { usePersistedFlag } from '@/hooks/use-persisted-enum'
 
 type CollapsibleSectionSizeT = 'lg' | 'sm'
 
@@ -30,7 +30,7 @@ const SIZE: Record<CollapsibleSectionSizeT, { title: string; chevron: string }> 
 
 const OPEN_STATES = ['open', 'closed'] as const
 
-// Both hooks always run — a conditional hook is illegal, and an unused usePersistedEnum on an empty
+// Both hooks always run — a conditional hook is illegal, and an unused usePersistedFlag on an empty
 // key only ever reads a key nobody writes. The stored snapshot falls back to `defaultOpen`, so server
 // and first client render agree and a remembered-closed section collapses just after hydration.
 function useSectionOpen(
@@ -38,14 +38,9 @@ function useSectionOpen(
   defaultOpen: boolean,
 ): [boolean, (open: boolean) => void] {
   const [local, setLocal] = useState(defaultOpen)
-  const [stored, setStored] = usePersistedEnum(
-    storageKey ?? '',
-    OPEN_STATES,
-    defaultOpen ? 'open' : 'closed',
-  )
+  const stored = usePersistedFlag(storageKey ?? '', OPEN_STATES, defaultOpen)
 
-  if (!storageKey) return [local, setLocal]
-  return [stored === 'open', (open) => setStored(open ? 'open' : 'closed')]
+  return storageKey ? stored : [local, setLocal]
 }
 
 export function CollapsibleSection({

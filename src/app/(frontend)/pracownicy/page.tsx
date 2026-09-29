@@ -2,7 +2,8 @@ import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { ADMIN_OR_OWNER_MANAGER_ROLES } from '@/lib/auth/roles'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
-import { fetchWorkerBalances } from '@/lib/queries/balances'
+import { fetchWorkerPayoutPairs } from '@/lib/queries/balances'
+import { workerColumnFigures } from '@/lib/kosztorys/worker-payout-pairs'
 import { UserDataTable } from '@/components/users/user-data-table'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { PAGE_TITLES } from '@/lib/constants/sections'
@@ -12,7 +13,8 @@ export default async function UsersListPage() {
   const session = await requireAuth(ADMIN_OR_OWNER_MANAGER_ROLES)
   if (!session.success) redirect('/')
 
-  const [refData, workerBalances] = await Promise.all([fetchReferenceData(), fetchWorkerBalances()])
+  const [refData, pairs] = await Promise.all([fetchReferenceData(), fetchWorkerPayoutPairs()])
+  const figuresByWorker = workerColumnFigures(pairs)
 
   const registerMap = new Map(refData.cashRegisters.map((cr) => [cr.id, cr.name]))
 
@@ -25,7 +27,7 @@ export default async function UsersListPage() {
     defaultCashRegisterName: worker.defaultCashRegisterId
       ? registerMap.get(worker.defaultCashRegisterId)
       : undefined,
-    balance: workerBalances[String(worker.id)] ?? 0,
+    payoutRemaining: figuresByWorker.get(worker.id),
   }))
 
   return (

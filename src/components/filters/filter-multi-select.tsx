@@ -61,6 +61,7 @@ type FilterMultiSelectPropsT = {
     // arrive already ordered by it — this component only notices where it changes. Omitted by a
     // caller whose rows are one flat list.
     groupLabel?: string
+    description?: string
     active: boolean
     onToggle: () => void
     disabled?: boolean
@@ -342,7 +343,16 @@ export function FilterMultiSelect({
                         onSelect={toggle.onToggle}
                       >
                         <CheckIcon className={cn(!toggle.active && 'opacity-0')} />
-                        {toggle.label}
+                        {toggle.description ? (
+                          <span className="flex flex-col">
+                            {toggle.label}
+                            <span className="text-muted-foreground text-xs">
+                              {toggle.description}
+                            </span>
+                          </span>
+                        ) : (
+                          toggle.label
+                        )}
                       </CommandItem>
                     ))}
                   </CommandGroup>

@@ -1,6 +1,6 @@
 'use client'
 
-import { usePersistedEnum } from '@/hooks/use-persisted-enum'
+import { usePersistedFlag } from '@/hooks/use-persisted-enum'
 
 // Whether the bottom totals panel is expanded, persisted globally in localStorage: a reading
 // preference of the person, not of one kosztorys — same `table-columns:` family as the money-axis /
@@ -16,10 +16,5 @@ const EMPTY_STORAGE_KEY = 'table-columns:kosztorys-totals-open-empty'
 const STATES = ['open', 'closed'] as const
 
 export function useTotalsPanelOpen(hasRows = true): [boolean, (open: boolean) => void] {
-  const [state, setState] = usePersistedEnum(
-    hasRows ? STORAGE_KEY : EMPTY_STORAGE_KEY,
-    STATES,
-    hasRows ? 'open' : 'closed',
-  )
-  return [state === 'open', (open) => setState(open ? 'open' : 'closed')]
+  return usePersistedFlag(hasRows ? STORAGE_KEY : EMPTY_STORAGE_KEY, STATES, hasRows)
 }

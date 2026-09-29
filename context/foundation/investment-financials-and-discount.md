@@ -186,6 +186,35 @@ The parity spec compares it with the panel's own `computeSubcontractorSummary`, 
 listing's withholding rule to the panel side — otherwise every unconfirmed investment is a false
 mismatch.
 
+### „Pozostało do wypłaty" per worker (EX-919)
+
+`/pracownicy` shows the same figure cut by **investment × worker pair**: należne on his etapy at his
+stawka − his PAYOUTs on that investment. One read (`fetchWorkerPayoutPairs`) feeds the employee
+column, the „Rozlicz wypłaty" dialog from both lists, and sums back to the investment listing's cell.
+
+- **No netting, four figures apart** (owner, 2026-09-29): „do zapłaty aktywne", „do zapłaty
+  zakończone", „nadpłata aktywne", „nadpłata zakończone" — each with its count of investments and its
+  own kwota; a debt on one job is not paid by a zaliczka on another. The list's „Filtry" menu ticks
+  „Aktywne / Zakończone inwestycje" apart (default: aktywne only) — an unticked one drops its two
+  lines; nothing to show at all reads a green 0.
+- **No kosztorys → no pair**, so legacy PAYOUTs don't paint every long-standing worker as overpaid.
+  PAYOUTs without an investment (salary, loans, fuel) are outside the figure entirely.
+- **A withheld pair is only that worker's.** An etap with executed work but no rozliczenie withholds
+  its worker's pair; the others on the investment still compute.
+- **Unassigned etapy and wypłaty bez pracownika never reach a worker.** They fold into one
+  „Nieprzypisane" row, shown greyed in the dialog opened from the investment, so its rows still sum
+  to the listing cell.
+- **The dialog books on the figures it showed.** The action recomputes each pair at submit and refuses
+  the whole batch if any moved; paying past the executed work is allowed, and the PAYOUT's opis gets
+  „w tym zaliczka X zł".
+
+The employee list's all-time „Wypłaty" column went: it summed salary, loans and gifts with work pay.
+
+It is a separate dialog, not the wydatek form, because that form holds inwestycja and pracownik once
+for every line. A per-worker roster on the wypłata form was built and dropped before (`36a53a48`,
+2026-07-29): it put a second, staler copy of the figures beside the amount being typed. That is why
+the dialog reads fresh on open and refuses a figure that moved.
+
 ---
 
 ## The four modifiers — how each bends the two formulas

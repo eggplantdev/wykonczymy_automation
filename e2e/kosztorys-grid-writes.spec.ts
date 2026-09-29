@@ -58,10 +58,10 @@ async function typeStageQty(
   await commitCellValue(cell, String(qty))
 }
 
-// Count the full-route refreshes the editor asks for. `router.refresh()` re-fetches the CURRENT
-// route as an RSC payload, so it is visible as a request to this pathname carrying `RSC: 1` — a
-// prefetch carries the same header and is excluded by its own. Counting requests rather than reading
-// the hook is deliberate: the cost EX-604 is about is the payload on the wire.
+// A refetch — a `router.refresh()`, or the router re-reading an entry an autosave marked stale — pulls
+// the CURRENT route as an RSC payload: a request to this pathname carrying `RSC: 1`. A prefetch carries
+// the same header and is excluded by its own. Counting requests rather than reading the hook is
+// deliberate: the cost EX-604 is about is the payload on the wire.
 function countRouteRefreshes(page: Page, pathname: string): () => number {
   let refreshes = 0
   page.on('request', (request) => {
@@ -102,7 +102,7 @@ test('„Pomiar (razem etapy)" cannot be typed into and follows the etapy live',
   await expect(await rowCell(page, 'Praca dwa', SUM_COLUMN)).toHaveText(formatNet(SEEDED_DONE))
 })
 
-test('a run of cell edits reaches Postgres and refreshes the route once, not once per cell', async ({
+test('a run of cell edits reaches Postgres and refetches the route at most once per cell', async ({
   page,
 }) => {
   const pathname = `/inwestycje/${seed.writes}/kosztorys_v2`
@@ -127,14 +127,11 @@ test('a run of cell edits reaches Postgres and refreshes the route once, not onc
   await expandSummaryPanel(page)
   await expect(page.getByText(formatNet(executedNet)).first()).toBeVisible({ timeout: 20_000 })
 
-  // Two things fetch this route per edit, and the ceiling is what separates them from a third.
-  // Every autosave expires its tag, which marks the client router's entry stale and costs ONE refetch
-  // no matter what the editor does; the editor's trailing `router.refresh()` costs a second, because
-  // 700 ms of debounce cannot coalesce cells a person — or Playwright — takes longer than that to
-  // type. Both are the floor. What EX-604 removed is the autosave's OWN route re-render, a third
-  // fetch per cell, so two-per-edit passes and the regression does not.
+  // A stage-quantity autosave defers its tag's expiry (`EXPIRE_NEXT`), so its response carries no
+  // render and the router follows it with ONE refetch. That floor per edit is also the ceiling:
+  // anything above it is a refresh stacked on top of the autosave.
   expect(refreshes()).toBeGreaterThanOrEqual(1)
-  expect(refreshes()).toBeLessThanOrEqual(typed.length * 2)
+  expect(refreshes()).toBeLessThanOrEqual(typed.length)
 
   // The grid seeds its rows into `useState` at mount, so „the value is on screen" and „the value is
   // in Postgres" are two different facts — only a reload reads the second, and only once every save

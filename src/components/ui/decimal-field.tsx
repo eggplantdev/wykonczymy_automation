@@ -39,14 +39,14 @@ type PropsT = {
   emptyAs?: number
   // Commit behind a „Zapisz" button instead of on blur. For a field whose write reshapes figures
   // across the whole panel, where leaving the input must not be enough to trigger it — the same
-  // contract DiscountValueField holds for the rabat kwota, so the settings popover reads as one form.
+  // contract the rabat fields hold, so the settings popover reads as one form.
   withSave?: boolean
   disabled?: boolean
   onCommit: (n: number) => void
 }
 
-// Uncontrolled + `key` on the value (remount after router.refresh), commit on blur/Enter — no
-// useEffect (project rule).
+// Uncontrolled + `key` on the value (remount when a render brings a new one), commit on
+// blur/Enter — no useEffect (project rule).
 export function DecimalField({
   label,
   labelAbove = false,

@@ -8,6 +8,7 @@ import { useSnapshotList } from '@/components/kosztorys/editor/hooks/use-snapsho
 import { restoreSnapshotAction, type SnapshotListItemT } from '@/lib/actions/kosztorys-snapshots'
 import { formatPLDateTime } from '@/lib/utils/format-date'
 import { pluralize } from '@/lib/utils/polish-plural'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 
 type PropsT = {
@@ -15,7 +16,7 @@ type PropsT = {
   investmentName: string
   open: boolean
   onOpenChange: (open: boolean) => void
-  // Called after a successful restore so the parent can refresh + remount the editor.
+  // Called after a successful restore so the parent remounts the editor.
   onRestored: () => void
 }
 
@@ -41,7 +42,7 @@ export function KosztorysVersionsDrawer({
   async function handleRestore(snapshot: SnapshotListItemT) {
     setPendingRestore(null)
     setRestoringId(snapshot.id)
-    const res = await restoreSnapshotAction(snapshot.id, investmentId)
+    const res = await settleAction(() => restoreSnapshotAction(snapshot.id, investmentId))
     setRestoringId(null)
     if (!res.success) {
       toastMessage(res.error ?? 'Nie udało się przywrócić wersji', 'error', 4000)

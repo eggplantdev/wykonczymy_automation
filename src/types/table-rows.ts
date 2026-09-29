@@ -4,6 +4,7 @@ import type { SheetStatusT } from '@/lib/constants/sheets'
 import type { RoleT } from '@/lib/auth/roles'
 import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 import type { StrandedDepositsT } from '@/lib/kosztorys/off-plane-deposits'
+import type { WorkerColumnFiguresT } from '@/lib/kosztorys/worker-payout-pairs'
 
 /** The shapes a listing query hands to the table that renders it — a contract between the two
  *  layers, not a property of either. They live here rather than in the table component because the
@@ -49,6 +50,8 @@ export type InvestmentRowT = {
    *  work with no rozliczenie (the należne is short) — `undefined` for the same `sortUndefined`
    *  reason as `marginV2`; the cell tells the two apart by `hasKosztorys`. */
   subcontractorRemaining?: number
+  /** Workers still owed on this investment — how many rows the „Rozlicz wypłaty" dialog will prefill. */
+  subcontractorsOwed?: number
   address: string
   phone: string
   email: string
@@ -106,5 +109,6 @@ export type UserRowT = {
   email: string
   active: boolean
   defaultCashRegisterName?: string
-  balance: number
+  /** Absent when the worker holds no pair on any investment with a kosztorys. */
+  payoutRemaining?: WorkerColumnFiguresT
 }

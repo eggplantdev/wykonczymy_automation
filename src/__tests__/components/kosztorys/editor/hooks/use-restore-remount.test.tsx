@@ -33,6 +33,17 @@ describe('useRestoreRemount', () => {
     expect(result.current.remountKey).toBe(1)
   })
 
+  it('remounts when the fresh tree landed before it was armed', () => {
+    const { result, rerender } = renderHook(({ token }) => useRestoreRemount(token), {
+      initialProps: { token: 'rev-1' },
+    })
+
+    rerender({ token: 'rev-2' })
+    act(() => result.current.triggerRestore('rev-1'))
+
+    expect(result.current.remountKey).toBe(1)
+  })
+
   it('is one-shot — the next routine refresh does not remount', () => {
     const { result, rerender } = renderHook(({ token }) => useRestoreRemount(token), {
       initialProps: { token: 'rev-1' },

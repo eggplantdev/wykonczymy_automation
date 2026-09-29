@@ -2,6 +2,7 @@
 
 import { createColumnHelper } from '@tanstack/react-table'
 import { DataTable } from '@/components/tables/data-table/data-table'
+import { ColumnTotalRow } from '@/components/tables/data-table/column-total-row'
 import { Description } from '@/components/ui/description'
 import { sumKnown } from '@/lib/utils/sum-known'
 import { formatPLNOrDash } from '@/lib/utils/format-currency'
@@ -68,26 +69,15 @@ export function EquipmentHistory({ history }: { history: EquipmentEventRowT[] })
       initialSorting={[{ id: 'occurredAt', desc: true }]}
       // What the tool has cost since it was bought — every serwis entry, summed where the reader is
       // already looking at them instead of on a second screen.
-      footer={(visibleColumnIds) => {
-        const costIndex = visibleColumnIds.indexOf(COST_COLUMN_ID)
-        if (costIndex < 0) return null
-
-        return (
-          <tr>
-            {costIndex > 0 && (
-              <td className="font-bold" colSpan={costIndex}>
-                Koszty serwisu
-              </td>
-            )}
-            <td className="text-right font-bold tabular-nums">
-              {formatPLNOrDash(sumKnown(history.map((event) => event.cost)))}
-            </td>
-            {visibleColumnIds.slice(costIndex + 1).map((id) => (
-              <td key={id} />
-            ))}
-          </tr>
-        )
-      }}
+      footer={(visibleColumnIds) => (
+        <ColumnTotalRow
+          visibleColumnIds={visibleColumnIds}
+          columnId={COST_COLUMN_ID}
+          label="Koszty serwisu"
+        >
+          {formatPLNOrDash(sumKnown(history.map((event) => event.cost)))}
+        </ColumnTotalRow>
+      )}
     />
   )
 }

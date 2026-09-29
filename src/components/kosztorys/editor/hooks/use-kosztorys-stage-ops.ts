@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { addStageAction, removeStageAction, updateStageAction } from '@/lib/actions/kosztorys'
+import { settleAction } from '@/lib/utils/settle-action'
 import { stageKey, stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import type {
   KosztorysStageT,
@@ -47,7 +48,7 @@ export function useKosztorysStageOps({
   // A new stage adds a `stage_<id>: 0` key to every current row + snapshot (like patchRows for
   // coeffs), so the column renders 0s (not blanks) and the first progress entry diffs correctly.
   async function handleAddStage(plane: ToolPlaneT) {
-    const res = await addStageAction(investmentId, plane)
+    const res = await settleAction(() => addStageAction(investmentId, plane))
     if (!res.success) return reportFailure(res.error, res.code)
     const { id, ordinal } = res.data
     setStages((s) => [...s, { id, ordinal, label: null, plane, workerId: null }])
@@ -58,7 +59,7 @@ export function useKosztorysStageOps({
   }
 
   async function handleRemoveStage(stageId: number) {
-    const res = await removeStageAction(stageId)
+    const res = await settleAction(() => removeStageAction(stageId))
     if (!res.success) return reportFailure(res.error, res.code)
     setStages((s) => s.filter((st) => st.id !== stageId))
     const key = stageKey(stageId)

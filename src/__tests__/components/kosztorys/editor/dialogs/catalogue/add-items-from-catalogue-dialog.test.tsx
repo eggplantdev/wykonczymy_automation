@@ -31,7 +31,7 @@ const CATALOGUE: WorkCatalogueItemT[] = [
 ]
 
 // DataTable's row reaches for the app router, which jsdom has no mount for.
-vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }) }))
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }))
 
 // The list is virtualized, and the virtualizer sizes its window from `offsetHeight` — which jsdom,
 // laying nothing out, reports as 0, so no row would render at all. With every element 400 tall the

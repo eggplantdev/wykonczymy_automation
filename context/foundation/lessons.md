@@ -669,6 +669,19 @@
   owns every figure the removed render would have refreshed, or the siblings go stale until the next
   navigation. Decoupling and client-side ownership are one refactor, not two. No amount of tag
   precision is a substitute.
+  The same mechanism read the other way (EX-908): **a revalidating action's response IS the
+  render**, so a client `router.refresh()` after it is a second full render of warm data with
+  nothing new — sixteen sites did it, one of them (the catalogue-compare save) three layers deep for
+  three renders. A client refetch belongs only after a write that produced no render: a route
+  handler, an upload API, an `after()`-expired action, or an action that **threw** (the editor's
+  clear / reload / import pass `refetch` only from their `catch`).
+  Timing, from the EX-908 after-run: code after `await action()` usually runs before that action's
+  render commits (`resolve(actionResult)` precedes it), but not always — in 3 of 24 runs the tree had
+  already landed, so a „remount on the next tree" latch armed in the continuation waited for a change
+  that was over. Arm it from the token the action **started** from (`useRestoreRemount`'s `since`).
+  The render is applied even when a store fired the action after its dialog unmounted (`callServer`
+  runs its own transition on a module-level queue), so an unmounted caller is no reason to refresh
+  either — `use-form-submit`'s refresh had been re-added (`097eb8c8`) on a diagnosis nobody reproduced.
 - **Second exit (EX-876)**: a tag expired inside `after()` lands in `pendingRevalidatedTags` only
   after the response headers are written, and is flushed by `withExecuteRevalidates` from there — so
   `x-action-revalidated` never counts it, the action stays render-free, and the next read still
@@ -677,7 +690,8 @@
   from the result: „Otwórz szablon" used to push + `router.refresh()` + revalidate, three renders to
   show a tree the transaction already had in hand.
 - **Applies to**: any "this write shouldn't re-render that" instinct on a server action; `updateTag`
-  vs `revalidateTag` reasoning about render cost.
+  vs `revalidateTag` reasoning about render cost; any `router.refresh()` written after an `await`ed
+  action.
 
 ## Neon latency is bimodal — separate warm from cold before believing any per-request number
 
@@ -2228,6 +2242,10 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
   _open_ — a trashed row shows up somewhere, visible and harmless. Hide it at the one read
   chokepoint (`fetchReferenceData`) and lock writes at the existing gate (`investmentGateFor`, the
   same gate „zakończona" uses) instead of teaching every read about the trash.
+  A kind with its own reader module is a second chokepoint. Szablony (EX-914) never pass through
+  `fetchReferenceData`, so every reader in `lib/db/presets.ts` filters `trashed_at` by hand. Before
+  opening the trash to a new kind, list its readers: each unfiltered reader is one place a trashed
+  row leaks back in.
 - **Applies to**: any new soft delete or archive state on a Payload collection.
 
 ## Turning on `enableVirtualization` in `DataTable` is a layout change, not a flag
@@ -2376,3 +2394,24 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
   residue.
 - **Applies to**: any debounced autosave (kosztorys editor, settings fields) that grows a
   "don't lose the last edit" requirement.
+
+## A print document's vertical margin goes on @page — body padding does not repeat in Safari
+
+- **Context**: Any HTML document printed via the browser dialog (`src/lib/kosztorys/print/`,
+  `acceptance-protocol/`, `transfers/build-transfers-print-html.ts`, any new one).
+- **Problem**: „Protokół odbioru” kept every margin as body padding + `box-decoration-break: clone`.
+  Chrome clones the padding onto each page; Safari ignores `box-decoration-break` on a block split
+  across pages, so page 2+ started its table at the sheet edge. The offer/worker PDFs had already
+  solved this (`print/styles.ts`) and the protocol reinvented it wrong.
+- **Rule**: Split the margin: vertical on `@page` (repeats on every page in every browser),
+  horizontal as body padding (survives Chrome's „Marginesy: Brak”). Never rely on
+  `box-decoration-break` for page fragments. A new print document copies the split from
+  `print/styles.ts`, and is checked in Safari's print preview on a 2+ page document.
+- **Applies to**: plan, implement, impl-review
+
+## A group-by projection cannot hold an empty group — promote the parent to state, keep "has content" gates on the projection
+
+- **Context**: The kosztorys editor („sekcja bez pozycji", 2026-09-29). `rows` holds pozycje only. Section order, name and colour used to be re-derived from it (`sectionRepresentatives`, `groupBySection`, `computeMoveEdges`).
+- **Problem**: A projection loses nothing only while every group is non-empty. So „every section has ≥1 pozycja" was enforced from three sides: a seeded blank first item, a last-item delete that cascaded to the section, and a band builder that skipped an itemless section. It read like a business rule. In fact it was a rendering workaround (`6b44f8fd`) that a review gate and EX-578 later hardened. The DB, loader, snapshots, szablony and sheet import already carried itemless sections, and the editor dropped them in `treeToRows`.
+- **Rule**: When a child list can be empty, make the parent first-class state beside it (`sections` next to `rows`, joined by `sectionId`), the shape the server already has. Never fake the parent with a placeholder child in `rows`: that list feeds the diff, the totals and `prevById`, and the fake row leaks into all three. Route each consumer by its question. „Which sections exist, in what order" reads `sections`. „Is there any content" stays on the item-derived `subtotals`: toolbar, preview header and totals panel gate on `subtotals.length > 0`, so seeding zero-item entries there flips every one of those gates. Before you defend an „always ≥1" invariant as domain, check in git who asked for it.
+- **Applies to**: plan, plan-review, implement, impl-review

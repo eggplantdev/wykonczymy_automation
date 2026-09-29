@@ -9,6 +9,10 @@ working, fix it here as part of the pass.
 `context/foundation/manual-checks.md` — a `##` section per slice. A slice with unticked boxes is not
 `Done` (Linear project „Wykonczymy"; an open finding keeps the issue out of Done).
 
+**Tracker:** a finding not fixed during the pass is filed in Linear — team Ex-plant, project
+„Wykonczymy", title and body in Polish, label `Bug` for a defect — and its line gets
+`**Linear: EX-…**` and a tick.
+
 ## Local target
 
 - **Safe DB:** the isolated `db-test` container on **5435** (`DB_POSTGRES_URL_TEST`, db
@@ -20,6 +24,9 @@ working, fix it here as part of the pass.
     external calls; `INV=<id>` picks the investment). `src/scripts/seed-kosztorys.ts` reads the **live**
     Google Sheet — only deliberately, and it wipes that investment's kosztorys. Other planes:
     `seed:deposits:test`, `seed:materials-net:test` (see AGENTS.md → Databases).
+  - Worker payouts (EX-919): `pnpm seed:worker-payouts` — two fabricated workers on four „Seed
+    wypłaty" investments covering payable, two workers + „Nieprzypisane", an etap without rozliczenie
+    and a zakończona inwestycja. Idempotent; refuses a non-localhost DB.
 - **Boot:** `NEXT_DIST_DIR=.next-e2e DB_POSTGRES_URL="$DB_POSTGRES_URL_TEST" pnpm exec next dev --turbo -p 3010`
   (after `set -a; source .env; set +a`). `.next-e2e` is gitignored — never use an un-ignored dist dir:
   Tailwind v4 scans the root and poisons the user's server CSS (`Parsing CSS source code failed`;
@@ -167,6 +174,10 @@ handle from `browser_evaluate`.
 `page.route` + `abort()`, or, where the MCP has no `page.route`, a `window.fetch` patch returning 500
 for them. Page loads keep working; check the toast and the revert, then confirm with psql that
 nothing was written.
+
+**Offline is not a failed action.** Playwright `setOffline(true)` right after clicking a Server
+Action makes Next hard-navigate to `chrome-error://` — the page and its error toast are gone, so the
+`catch` path is never observed. Abort the `next-action` POST as above instead.
 
 **Blob deletion:** list the store (`list({ prefix })`). Re-fetching the file URL still answers `200`
 from the browser's HTTP cache right after the delete.

@@ -1,4 +1,5 @@
 import { sql } from '@payloadcms/db-vercel-postgres'
+import { sqlList } from '@/lib/db/sql-list'
 import type { Payload, PayloadRequest, Where } from 'payload'
 import { perfStart } from '@/lib/perf'
 import { deriveCategoryBreakdowns, deriveFinancials } from '@/lib/db/investment-financials'
@@ -14,10 +15,7 @@ import { SETTLEMENT_MODE_DEFAULT, type SettlementModeT } from '@/lib/kosztorys/s
 
 // Parameterized `(type, …)` IN-list derived from the single DEPOSIT_TYPES source, so the
 // deposit-vs-expense split isn't re-inlined as a literal in every balance query.
-const depositTypesInList = sql`(${sql.join(
-  DEPOSIT_TYPES.map((type) => sql`${type}`),
-  sql.raw(', '),
-)})`
+const depositTypesInList = sql`(${sqlList(DEPOSIT_TYPES)})`
 
 /**
  * SUM balance for a cash register using SQL aggregation.
@@ -100,32 +98,6 @@ export const sumAllRegisterBalances = async (payload: Payload): Promise<Map<numb
     map.set(Number(row.register_id), Number(row.balance))
   }
   console.log(`[PERF] query.sumAllRegisterBalances ${elapsed()}ms (${map.size} registers)`)
-  return map
-}
-
-/**
- * SUM payout amounts for ALL workers in one query (GROUP BY).
- * Returns a Map<workerId, totalPayouts>.
- */
-export const sumAllWorkerBalances = async (payload: Payload): Promise<Map<number, number>> => {
-  const elapsed = perfStart()
-  const db = await getDb(payload)
-
-  const result = await db.execute(sql`
-    SELECT worker_id,
-      COALESCE(SUM(amount), 0) AS balance
-    FROM transactions
-    WHERE worker_id IS NOT NULL
-      AND type = 'PAYOUT'
-      AND cancelled IS NOT TRUE
-    GROUP BY worker_id
-  `)
-
-  const map = new Map<number, number>()
-  for (const row of result.rows) {
-    map.set(Number(row.worker_id), Number(row.balance))
-  }
-  console.log(`[PERF] query.sumAllWorkerBalances ${elapsed()}ms (${map.size} workers)`)
   return map
 }
 

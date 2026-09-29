@@ -32,8 +32,6 @@ vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
   }),
 }))
 
-vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }))
-
 const COMPARISON: CatalogueComparisonT = {
   matching: 3,
   diffs: [

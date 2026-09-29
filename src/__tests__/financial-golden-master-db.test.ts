@@ -3,11 +3,7 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import type { Payload } from 'payload'
-import {
-  sumAllInvestmentFinancials,
-  sumAllRegisterBalances,
-  sumAllWorkerBalances,
-} from '@/lib/db/sum-transfers'
+import { sumAllInvestmentFinancials, sumAllRegisterBalances } from '@/lib/db/sum-transfers'
 import { getDb } from '@/lib/db/get-db'
 import { calculateBalance } from '@/lib/db/calculate-balance'
 import { calculateMargin } from '@/lib/db/calculate-margin'
@@ -87,10 +83,9 @@ type SnapshotT = {
     grossDepositsWithNet: number
   }
   /** Per-entity hash of the transaction rows that feed that entity's figures — see readInputHashes. */
-  inputHashes: { investments: HashMapT; registers: HashMapT; workers: HashMapT }
+  inputHashes: { investments: HashMapT; registers: HashMapT }
   investments: Record<string, InvestmentSnapshotT>
   registers: Record<string, number>
-  workers: Record<string, number>
 }
 
 const ZERO_FINANCIALS: InvestmentFinancialsT = {
@@ -114,7 +109,7 @@ const toPairs = (costs: { categoryId: number; total: number }[]): CategoryPairT[
 
 /**
  * A hash over every transaction column that feeds any figure below, taken PER ENTITY: one
- * per investment, per register, per worker.
+ * per investment and per register.
  *
  * A whole-dataset checksum was the obvious shape and the wrong one. The pre-push hook
  * refreshes `dumps/dump-latest.sql` from prod on every push, so a single new transaction
@@ -133,7 +128,7 @@ async function readInputHashes(payload: Payload) {
   const result = await db.execute(sql`
     WITH signed AS (
       SELECT
-        id, investment_id, source_register_id, target_register_id, worker_id,
+        id, investment_id, source_register_id, target_register_id,
         id || '|' || type || '|' || amount
           || '|' || COALESCE(net_amount::text, '')
           || '|' || COALESCE(vat_plane::text, '')
@@ -152,14 +147,12 @@ async function readInputHashes(payload: Payload) {
       SELECT 'registers', source_register_id, id, sig FROM signed WHERE source_register_id IS NOT NULL
       UNION ALL
       SELECT 'registers', target_register_id, id, sig FROM signed WHERE target_register_id IS NOT NULL
-      UNION ALL
-      SELECT 'workers', worker_id, id, sig FROM signed WHERE worker_id IS NOT NULL
     )
     SELECT scope, key, md5(string_agg(sig, ',' ORDER BY id)) AS hash
     FROM scoped GROUP BY scope, key
   `)
 
-  const hashes: SnapshotT['inputHashes'] = { investments: {}, registers: {}, workers: {} }
+  const hashes: SnapshotT['inputHashes'] = { investments: {}, registers: {} }
   for (const row of result.rows) {
     hashes[String(row.scope) as keyof SnapshotT['inputHashes']][String(row.key)] = String(row.hash)
   }
@@ -260,20 +253,18 @@ async function buildSnapshot(payload: Payload): Promise<{
   snapshot: SnapshotT
   names: Map<string, string>
 }> {
-  const [inputs, investmentsPage, financialsMap, registerBalances, workerBalances] =
-    await Promise.all([
-      readInputHashes(payload),
-      payload.find({
-        collection: 'investments',
-        limit: 0,
-        pagination: false,
-        depth: 0,
-        overrideAccess: true,
-      }),
-      sumAllInvestmentFinancials(payload),
-      sumAllRegisterBalances(payload),
-      sumAllWorkerBalances(payload),
-    ])
+  const [inputs, investmentsPage, financialsMap, registerBalances] = await Promise.all([
+    readInputHashes(payload),
+    payload.find({
+      collection: 'investments',
+      limit: 0,
+      pagination: false,
+      depth: 0,
+      overrideAccess: true,
+    }),
+    sumAllInvestmentFinancials(payload),
+    sumAllRegisterBalances(payload),
+  ])
 
   const db = await getDb(payload)
   const [clientTotalRows, subcontractorDueRows, depositPlaneSumRows] = await Promise.all([
@@ -341,7 +332,6 @@ async function buildSnapshot(payload: Payload): Promise<{
       inputHashes: inputs.hashes,
       investments,
       registers: mapToRecord(registerBalances),
-      workers: mapToRecord(workerBalances),
     },
     names,
   }
@@ -519,7 +509,6 @@ describe.skipIf(!ENV_READY)('financial golden master — every figure, every inv
 
     for (const [scope, wasMap, nowMap] of [
       ['registers', expected.registers, actual.registers],
-      ['workers', expected.workers, actual.workers],
     ] as const) {
       const singular = scope.slice(0, -1)
       for (const key of Object.keys(wasMap)) {

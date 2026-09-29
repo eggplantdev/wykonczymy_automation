@@ -1,6 +1,7 @@
 // No `server-only` here (half of src/lib/db skips it too): the katalog seed script reaches this
 // module under tsx, where that import throws.
 import { sql } from '@payloadcms/db-vercel-postgres'
+import { sqlList } from '@/lib/db/sql-list'
 import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import type { DbExecutorT } from './get-db'
 import { isoOrNull } from './row-coerce'
@@ -105,10 +106,7 @@ export async function templateOwnersOfSections(
     FROM kosztorys_sections s
     JOIN investments inv ON inv.id = s.investment_id
     WHERE ${liveTemplate('inv')}
-      AND s.id IN (${sql.join(
-        sectionIds.map((id) => sql`${id}`),
-        sql.raw(', '),
-      )})
+      AND s.id IN (${sqlList(sectionIds)})
   `)
   return new Map(res.rows.map((row) => [Number(row.id), Number(row.investment_id)]))
 }

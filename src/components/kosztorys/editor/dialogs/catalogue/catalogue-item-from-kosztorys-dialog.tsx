@@ -46,15 +46,12 @@ export function CatalogueItemFromKosztorysDialog({
   catalogue,
   open,
   onOpenChange,
-  onSaved,
 }: {
   itemId: number
   // Only for the kategoria suggestions — the preview fetch is what reads the praca's own katalog entry.
   catalogue: readonly WorkCatalogueItemT[]
   open: boolean
   onOpenChange: (open: boolean) => void
-  // Fired on a landed write, so a caller listing this praca can drop it from the list.
-  onSaved?: () => void
 }) {
   const preview = useCatalogueSavePreview(itemId, open, onOpenChange)
 
@@ -92,16 +89,11 @@ export function CatalogueItemFromKosztorysDialog({
               formId={`catalogue-item-from-kosztorys-${itemId}`}
               defaultValues={defaultsFrom(preview)}
               categorySuggestions={categorySuggestions}
-              // `onSaved` hangs off the WRITE, not off `onSubmitSuccess`: the submit is optimistic,
-              // so the success callback fires while the action is still in flight and a caller
-              // re-reading there would re-read the state the form was opened on.
-              action={async (data) => {
-                const res = await (existing
+              action={(data) =>
+                existing
                   ? updateCatalogueItemAction(existing.id, data)
-                  : createCatalogueItemAction(data))
-                if (res.success) onSaved?.()
-                return res
-              }}
+                  : createCatalogueItemAction(data)
+              }
               successMessage={existing ? 'Pozycja zaktualizowana' : 'Dodano do katalogu'}
               submitLabel={existing ? 'Zapisz' : 'Dodaj'}
               submittingLabel="Zapisywanie..."

@@ -3,11 +3,11 @@
 import { useState } from 'react'
 import { Ban, Banknote, Percent } from 'lucide-react'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
+import { DiscountAmountPairField } from '@/components/kosztorys/summary/settings/discount-amount-pair-field'
 import { DiscountValueField } from '@/components/kosztorys/summary/settings/discount-value-field'
 import { SettingsSection } from '@/components/kosztorys/summary/settings/settings-section'
 import { globalDiscountForMode } from '@/lib/kosztorys/calc'
 import { applyPercentDiscountSchema } from '@/lib/kosztorys/percent-discount'
-import { roundToCents } from '@/lib/utils/round-to-cents'
 import { SimpleSelect, type SelectOptionT } from '@/components/ui/simple-select'
 
 type DiscountModeT = 'off' | 'amount' | 'percent'
@@ -23,7 +23,7 @@ const DISCOUNT_MODE_OPTIONS: SelectOptionT[] = [
 const DISCOUNT_MODE_DESCRIPTIONS: Record<DiscountModeT, string> = {
   off: 'Rabaty dodane do poszczególnych pozycji nadal wpływają na kwotę rozliczenia.',
   amount:
-    'Kwota netto odejmowana raz od sumy wykonanych prac. Nie łączy się z rabatami per pozycja — zastępuje je. Rabat nie wpływa na ceny podwykonawców.',
+    'Kwota odejmowana raz od sumy wykonanych prac. Wpisz ją w netto albo w brutto — drugą przeliczamy po stawce VAT inwestycji. Nie łączy się z rabatami per pozycja — zastępuje je. Rabat nie wpływa na ceny podwykonawców.',
   percent:
     'Jednorazowo wpisuje ten sam % w rabat każdej pozycji, nadpisując istniejące. Rabat nie wpływa na ceny podwykonawców.',
 }
@@ -37,6 +37,7 @@ function pozycji(count: number): string {
 // props thread through KosztorysTotalsPanel.
 export function GlobalDiscountControl({ disabled = false }: { disabled?: boolean }) {
   const {
+    tree,
     globalDiscount,
     perItemDiscountTotal,
     itemsWithDiscountCount,
@@ -74,26 +75,20 @@ export function GlobalDiscountControl({ disabled = false }: { disabled?: boolean
         variant="toolbarSm"
       />
       {mode === 'amount' && (
-        <DiscountValueField
-          suffix="zł"
-          // `String` is not a formatter — it prints all 17 digits of whatever is stored, which is
-          // how a kwota persisted before the write-side rounding still reads „172024,28000000003".
-          value={String(roundToCents(globalDiscount.value))}
-          placeholder="zł"
+        <DiscountAmountPairField
+          value={globalDiscount.value}
+          vatRate={tree.vatRate}
           disabled={disabled}
-          isValid={(n) => n >= 0}
-          onApply={(n) => handleGlobalDiscountChange({ type: 'amount', value: n })}
+          onApply={(net) => handleGlobalDiscountChange({ type: 'amount', value: net })}
         />
       )}
       {mode === 'percent' && (
         <DiscountValueField
           suffix="%"
-          value=""
           placeholder="%"
           disabled={disabled}
           isValid={(percent) => applyPercentDiscountSchema.safeParse({ percent }).success}
           onApply={handleApplyPercentDiscount}
-          clearOnApply
           // With no rabat anywhere the write is not destructive, and a dialog would be a warning about
           // nothing — warnings that fire on nothing stop being read.
           confirm={

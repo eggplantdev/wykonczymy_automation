@@ -8,7 +8,9 @@ import {
   fetchInvestmentFinancials,
   fetchKosztorysClientTotals,
   fetchKosztorysSubcontractorDue,
+  fetchWorkerPayoutPairs,
 } from '@/lib/queries/balances'
+import { owedWorkersByInvestment } from '@/lib/kosztorys/worker-payout-pairs'
 import { shapeInvestments } from '@/lib/queries/shape-investments'
 import { perfStart } from '@/lib/perf'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
@@ -21,21 +23,23 @@ import type { InvestmentRowT } from '@/types/table-rows'
 export async function fetchAllInvestments(): Promise<InvestmentRowT[]> {
   const { user } = await requireAuth(MANAGEMENT_ROLES)
   if (!user) throw new Error('Nie jesteś zalogowany')
-  const [refData, financials, kosztorysTotals, subcontractorDue, depositPlaneSums] =
+  const [refData, financials, kosztorysTotals, subcontractorDue, depositPlaneSums, pairs] =
     await Promise.all([
       fetchReferenceData(),
       fetchInvestmentFinancials(),
       fetchKosztorysClientTotals(),
       fetchKosztorysSubcontractorDue(),
       fetchDepositPlaneSums(),
+      fetchWorkerPayoutPairs(),
     ])
+  const owedWorkers = owedWorkersByInvestment(pairs)
   return shapeInvestments(
     refData.investments,
     financials,
     kosztorysTotals,
     subcontractorDue,
     depositPlaneSums,
-  )
+  ).map((row) => ({ ...row, subcontractorsOwed: owedWorkers.get(row.id) }))
 }
 
 // Shared page guard: parse the route id, require a management session, and load the investment —

@@ -7,10 +7,8 @@ import { checkSubcontractorPrice } from '@/lib/kosztorys/subcontractor-price-gua
 import { FLAGGED_TONE } from '@/components/kosztorys/flagged-tone'
 import { subcontractorPolicy } from '@/lib/kosztorys/subcontractor-price-edit'
 import { useCellDraft } from '@/components/kosztorys/editor/grid/cells/use-cell-draft'
-import {
-  priceText,
-  type SubcontractorCellDataT,
-} from '@/components/kosztorys/editor/grid/cells/subcontractor/cell-data'
+import { type SubcontractorCellDataT } from '@/components/kosztorys/editor/grid/cells/subcontractor/cell-data'
+import { moneyText } from '@/lib/utils/decimal-text'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 // The "Cena" column in the subcontractor view. Editable in both modes — a hand-typed price IS „kwota
@@ -47,7 +45,7 @@ export function SubcontractorPriceCell({
   const body =
     source === 'coeff' ? (
       <ReadOnlyCellText muted danger={message != null}>
-        {priceText(viewPrice(rowData, view))}
+        {moneyText(viewPrice(rowData, view))}
       </ReadOnlyCellText>
     ) : (
       <EditableCellInput
@@ -55,7 +53,7 @@ export function SubcontractorPriceCell({
         className={
           message ? FLAGGED_TONE : source === 'auto' ? 'text-muted-foreground italic' : undefined
         }
-        value={edit.draft ?? priceText(viewPrice(rowData, view))}
+        value={edit.draft ?? moneyText(viewPrice(rowData, view))}
         focus={focus}
       />
     )

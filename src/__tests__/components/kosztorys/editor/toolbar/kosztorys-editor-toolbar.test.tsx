@@ -62,6 +62,7 @@ const editorContext = {
   handleAddStage: vi.fn(),
   handleAppendedCatalogueItems: vi.fn(),
   rows: [],
+  sections: [],
   stages: [],
   workers: [],
 } as unknown as EditorContextT

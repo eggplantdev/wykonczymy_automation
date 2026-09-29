@@ -3,6 +3,7 @@
 import { useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { countCatalogueUsage } from '@/lib/queries/catalogue-usage'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import type { CatalogueUsageT } from '@/lib/kosztorys/work-catalogue/types'
 
@@ -13,7 +14,7 @@ export function CountUsageButton({ onCounted }: { onCounted: (usage: CatalogueUs
 
   const count = () =>
     startTransition(async () => {
-      const result = await countCatalogueUsage()
+      const result = await settleAction(countCatalogueUsage)
       if (!result.success) {
         toastMessage(result.error, 'error')
         return

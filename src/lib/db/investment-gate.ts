@@ -1,5 +1,6 @@
 import { sql } from '@payloadcms/db-vercel-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
+import { sqlList } from '@/lib/db/sql-list'
 import {
   INVESTMENT_LOCKED_MESSAGE,
   INVESTMENT_TRASHED_MESSAGE,
@@ -64,6 +65,28 @@ export async function investmentLockMessage(
 ): Promise<string | undefined> {
   const { lockMessage } = await investmentGateFor(db, investmentId)
   return lockMessage
+}
+
+/**
+ * Several investments taken `FOR UPDATE` in id order — the order is what keeps two overlapping
+ * multi-investment writes from deadlocking — with each one's name and gate read in the same
+ * statement. A missing id is simply absent from the map.
+ */
+export async function lockInvestmentGates(
+  db: DbExecutorT,
+  investmentIds: readonly number[],
+): Promise<Map<number, { name: string; lockMessage: string | undefined }>> {
+  const res = await db.execute(sql`
+    SELECT id, name, status, trashed_at FROM investments
+    WHERE id IN (${sqlList(investmentIds)})
+    ORDER BY id FOR UPDATE
+  `)
+  return new Map(
+    res.rows.map((row) => [
+      Number(row.id),
+      { name: String(row.name), lockMessage: lockMessageOf(row) },
+    ]),
+  )
 }
 
 /**

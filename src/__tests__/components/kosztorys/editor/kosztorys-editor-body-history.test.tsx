@@ -11,7 +11,7 @@ import type { WorkerAudienceT } from '@/lib/kosztorys/worker-view/types'
 import { item, stage, tree, version } from '@/__tests__/helpers/kosztorys-history'
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
+  useRouter: () => ({ push: vi.fn() }),
   usePathname: () => '/k/token',
 }))
 

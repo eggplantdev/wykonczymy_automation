@@ -243,18 +243,16 @@ describe('KosztorysWorkersMenu', () => {
     open.mockRestore()
   })
 
-  // The settings are firm-wide: a manager saving them would change every worker's live link.
-  it('opens the view settings read-only for a manager', async () => {
+  // The settings are firm-wide, and the owner handed them to managers on purpose (0f664eec).
+  it('lets a manager edit the view settings', async () => {
     renderMenu('MANAGER')
     await openMenu()
     await userEvent.click(screen.getByRole('menuitem', { name: /Ustawienia widoku/ }))
 
     const dialog = await screen.findByRole('dialog', { name: 'Ustawienia widoku pracownika' })
-    expect(
-      await within(dialog).findByRole('checkbox', { name: 'Stawka j.m. netto' }),
-    ).toBeDisabled()
-    expect(within(dialog).getByRole('button', { name: 'Zapisz' })).toBeDisabled()
-    expect(within(dialog).getByRole('button', { name: /Ustaw kolejność kolumn/ })).toBeDisabled()
+    expect(await within(dialog).findByRole('checkbox', { name: 'Stawka j.m. netto' })).toBeEnabled()
+    expect(within(dialog).getByRole('button', { name: 'Zapisz' })).toBeEnabled()
+    expect(within(dialog).getByRole('button', { name: /Ustaw kolejność kolumn/ })).toBeEnabled()
   })
 
   it('returns the owner’s reorder to the built-in order on reset', async () => {

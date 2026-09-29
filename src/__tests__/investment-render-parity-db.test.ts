@@ -37,6 +37,7 @@ import type {
   KosztorysSubcontractorDueMapT,
 } from '@/lib/queries/balances'
 import type { InvestmentStatusT } from '@/lib/constants/investment-status'
+import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import type { InvestmentRefT } from '@/types/reference-data'
 
 // REAL-PATH parity: assemble each figure the way each PAGE assembles it, over the real DB, for every
@@ -63,8 +64,14 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
       const { getPayload } = await import('payload')
       const config = (await import('@payload-config')).default
       payload = await getPayload({ config })
+      // The listing's own set (`fetchReferenceData`): a szablon or a trashed investment is never
+      // rendered there, so a figure it disagrees on is not a mismatch anyone can see.
       const inv = await payload.find({
         collection: 'investments',
+        where: {
+          status: { not_equals: TEMPLATE_INVESTMENT_STATUS },
+          trashedAt: { exists: false },
+        },
         limit: 0,
         pagination: false,
         depth: 0,

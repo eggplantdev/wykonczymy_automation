@@ -36,6 +36,7 @@ const SUBCONTRACTOR_DUE: SubcontractorDueByPlaneT = {
   hasUnconfirmedPlane: false,
   byStage: new Map(),
   byWorker: new Map(),
+  unconfirmedWorkers: new Set(),
 }
 
 const INVESTMENT: InvestmentRefT = {

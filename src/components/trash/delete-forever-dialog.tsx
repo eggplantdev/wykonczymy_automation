@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
 import { Input } from '@/components/ui/input'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
 import { deleteInvestmentForeverAction } from '@/lib/actions/investment-trash'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 
 type PropsT = {
@@ -31,7 +31,6 @@ const TEMPLATE_COPY = {
 }
 
 export function DeleteForeverDialog({ investment, open, onClose }: PropsT) {
-  const router = useRouter()
   const copy = investment.isTemplate ? TEMPLATE_COPY : INVESTMENT_COPY
   const [typedName, setTypedName] = useState('')
   const [pending, startTransition] = useTransition()
@@ -43,11 +42,10 @@ export function DeleteForeverDialog({ investment, open, onClose }: PropsT) {
 
   const onConfirm = () => {
     startTransition(async () => {
-      const res = await deleteInvestmentForeverAction(investment.id, typedName)
+      const res = await settleAction(() => deleteInvestmentForeverAction(investment.id, typedName))
       if (!res.success) return toastMessage(res.error ?? copy.failed, 'error')
       toastMessage(copy.deleted, 'success')
       close()
-      router.refresh()
     })
   }
 

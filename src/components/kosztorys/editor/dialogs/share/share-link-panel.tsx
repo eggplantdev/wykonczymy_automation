@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Description } from '@/components/ui/description'
 import { copyToClipboard } from '@/lib/utils/copy-to-clipboard'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import type { ActionResultT } from '@/types/action'
 
@@ -42,7 +43,7 @@ export function ShareLinkPanel({
 
   const runGenerate = () =>
     startTransition(async () => {
-      const res = await generate()
+      const res = await settleAction(generate)
       if (!res.success) return toastMessage(res.error, 'error')
       onTokenChange(res.data)
       toastMessage('Link gotowy. Poprzedni (jeśli był) przestał działać.', 'success')
@@ -50,7 +51,7 @@ export function ShareLinkPanel({
 
   const runRevoke = () =>
     startTransition(async () => {
-      const res = await revoke()
+      const res = await settleAction(revoke)
       if (!res.success) return toastMessage(res.error, 'error')
       onTokenChange(null)
       setConfirmingRevoke(false)

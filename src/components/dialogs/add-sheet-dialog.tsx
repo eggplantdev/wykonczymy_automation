@@ -2,7 +2,6 @@
 
 import { type ReactNode, useState, useTransition } from 'react'
 import { Copy } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '@/components/ui/dialog'
@@ -26,7 +25,6 @@ export function AddSheetDialog({ trigger }: PropsT) {
   const [name, setName] = useState('')
   const [saEmail, setSaEmail] = useState('')
   const [pending, startTransition] = useTransition()
-  const router = useRouter()
 
   const handleOpenChange = (next: boolean) => {
     setOpen(next)
@@ -52,7 +50,6 @@ export function AddSheetDialog({ trigger }: PropsT) {
       setOpen(false)
       setLink('')
       setName('')
-      router.refresh()
     })
   }
 

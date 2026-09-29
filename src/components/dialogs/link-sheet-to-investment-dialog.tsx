@@ -1,7 +1,6 @@
 'use client'
 
 import { type ReactNode, useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -11,6 +10,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { SimpleSelect } from '@/components/ui/simple-select'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import { linkSheetToInvestmentAction } from '@/lib/actions/sheets'
 
@@ -34,19 +34,17 @@ export function LinkSheetToInvestmentDialog({
   const [open, setOpen] = useState(false)
   const [selectedId, setSelectedId] = useState<string>('')
   const [pending, startTransition] = useTransition()
-  const router = useRouter()
 
   const onSubmit = () => {
     if (!selectedId) return
     const investmentId = Number(selectedId)
     startTransition(async () => {
-      const res = await linkSheetToInvestmentAction(sheetId, investmentId)
+      const res = await settleAction(() => linkSheetToInvestmentAction(sheetId, investmentId))
       if (!res.success) return toastMessage(res.error, 'error')
       const investment = availableInvestments.find((i) => i.id === investmentId)
       toastMessage(`Dodano „${sheetName}” do inwestycji „${investment?.name ?? ''}”.`, 'success')
       setOpen(false)
       setSelectedId('')
-      router.refresh()
     })
   }
 

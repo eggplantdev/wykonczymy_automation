@@ -5,6 +5,7 @@ import { DeleteButton } from '@/components/ui/row-actions/delete-button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { EditCatalogueItemDialog } from '@/components/dialogs/edit-catalogue-item-dialog'
 import { deleteCatalogueItemAction } from '@/lib/actions/work-catalogue'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
@@ -18,7 +19,7 @@ export function CatalogueRowActions({ item, categorySuggestions }: PropsT) {
 
   const onDelete = () => {
     startTransition(async () => {
-      const res = await deleteCatalogueItemAction(item.id)
+      const res = await settleAction(() => deleteCatalogueItemAction(item.id))
       if (!res.success) return toastMessage(res.error ?? 'Nie udało się usunąć pozycji', 'error')
       toastMessage('Usunięto pozycję z katalogu.', 'success')
       setConfirming(false)

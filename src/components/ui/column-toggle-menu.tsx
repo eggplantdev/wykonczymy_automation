@@ -49,6 +49,7 @@ type PropsT = {
   hiddenCount?: number
   align?: 'start' | 'end'
   className?: string
+  contentClassName?: string
 }
 
 // Below this the list fits on screen and a search box is just noise; above it (kosztorys stages push
@@ -65,6 +66,7 @@ export function ColumnToggleMenu({
   hiddenCount,
   align = 'end',
   className,
+  contentClassName = 'w-72',
 }: PropsT) {
   const [orderOpen, setOrderOpen] = useState(false)
 
@@ -82,7 +84,7 @@ export function ColumnToggleMenu({
             {badgeCount > 0 ? `Kolumny (${badgeCount})` : 'Kolumny'}
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align={align} className="w-72">
+        <DropdownMenuContent align={align} className={contentClassName}>
           {sections}
           {sections && items.length > 0 && <DropdownMenuSeparator />}
           {items.length > 0 && (

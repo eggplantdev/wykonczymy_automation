@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import type { ActionResultT } from '@/types/action'
 
@@ -76,7 +77,7 @@ export function useMediaRemoval<FileT extends { id?: number }>({
     const runner = fileId === undefined ? removeAll : () => removeOne(fileId)
     if (!runner) return
 
-    const result = await runner()
+    const result = await settleAction(runner)
     if (!result.success) {
       toastMessage(result.error ?? labels.error, 'error')
       return

@@ -62,9 +62,10 @@ describe('CACHE_TAGS', () => {
     expect(CACHE_TAGS).toHaveProperty('otherCategories')
   })
 
-  it('values follow collection: prefix pattern', () => {
+  // `table:` names a raw-SQL table with no Payload collection behind it (kosztorys_snapshots).
+  it('values follow the collection: / table: prefix pattern', () => {
     for (const value of Object.values(CACHE_TAGS)) {
-      expect(value).toMatch(/^collection:.+/)
+      expect(value).toMatch(/^(collection|table):.+/)
     }
   })
 })

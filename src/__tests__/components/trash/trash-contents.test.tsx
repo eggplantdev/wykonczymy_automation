@@ -1,12 +1,8 @@
 import { render, screen, within } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 import { TrashContents } from '@/components/trash/trash-contents'
 import type { TrashedInvestmentT } from '@/lib/queries/trash'
-
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
-}))
 
 const row = (id: number, name: string, isTemplate: boolean): TrashedInvestmentT => ({
   id,

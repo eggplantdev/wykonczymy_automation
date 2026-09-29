@@ -138,6 +138,7 @@ describe('subcontractorDueByPlane', () => {
       hasUnconfirmedPlane: false,
       byStage: new Map(),
       byWorker: new Map(),
+      unconfirmedWorkers: new Set(),
     })
   })
 })

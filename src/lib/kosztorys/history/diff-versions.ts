@@ -14,7 +14,6 @@ import type {
 import type {
   DiscountChangeT,
   FieldChangeT,
-  HistoryDiscountT,
   HistoryVersionT,
   ItemChangeT,
   ItemRefT,
@@ -81,10 +80,11 @@ function matchStages(past: KosztorysStageT[], current: KosztorysStageT[]) {
 const sameDiscount = (a: GlobalDiscountT, b: GlobalDiscountT) =>
   a.type === b.type && (a.type === null || !moneyChanged(a.value, b.value))
 
-function diffDiscount(past: HistoryDiscountT, current: HistoryDiscountT): DiscountChangeT {
-  if (!past.known || !current.known) return { state: 'unknown' }
-  const before = { type: past.type, value: past.value }
-  const after = { type: current.type, value: current.value }
+function diffDiscount(past: HistoryVersionT, current: HistoryVersionT): DiscountChangeT {
+  const [was, now] = [past.discount, current.discount]
+  if (!was.known || !now.known) return { state: 'unknown' }
+  const before = { type: was.type, value: was.value, vatRate: past.tree.vatRate }
+  const after = { type: now.type, value: now.value, vatRate: current.tree.vatRate }
   return sameDiscount(before, after) ? { state: 'same' } : { state: 'changed', before, after }
 }
 
@@ -171,7 +171,7 @@ export function diffVersions(past: HistoryVersionT, current: HistoryVersionT): V
     removed: pastRows.filter((row) => !matchedItems.has(row.id)).map(itemRef),
     changed,
     addedStages,
-    discount: diffDiscount(past.discount, current.discount),
+    discount: diffDiscount(past, current),
   }
 }
 

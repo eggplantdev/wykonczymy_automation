@@ -6,7 +6,7 @@ import { countCatalogueUsage } from '@/lib/queries/catalogue-usage'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn(), refresh: vi.fn() }),
+  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn() }),
   usePathname: () => '/katalog-prac',
   useSearchParams: () => new URLSearchParams(),
 }))

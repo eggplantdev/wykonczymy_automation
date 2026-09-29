@@ -1,7 +1,6 @@
 'use client'
 
 import { type ReactNode, useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Description } from '@/components/ui/description'
@@ -24,7 +23,6 @@ export function SheetSetupDialog({ investmentId, trigger }: PropsT) {
   const [link, setLink] = useState('')
   const [saEmail, setSaEmail] = useState('')
   const [pending, startTransition] = useTransition()
-  const router = useRouter()
 
   // Load the service-account email when the dialog opens, so the link section can
   // tell the user exactly who to share their sheet with (fetched lazily, once).
@@ -40,7 +38,6 @@ export function SheetSetupDialog({ investmentId, trigger }: PropsT) {
     toastMessage(message, 'success')
     setOpen(false)
     setLink('')
-    router.refresh()
   }
 
   const onLink = () => {

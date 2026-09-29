@@ -1,5 +1,6 @@
 import 'server-only'
 import { sql } from '@payloadcms/db-vercel-postgres'
+import { sqlList } from '@/lib/db/sql-list'
 import {
   LOCKED_INVESTMENT_STATUS,
   TEMPLATE_INVESTMENT_STATUS,
@@ -189,10 +190,7 @@ export async function getHistorySnapshots(
     SELECT id, kind, label, taken_at, schema_version, payload
     FROM kosztorys_snapshots
     WHERE investment_id = ${investmentId}
-      AND id IN (${sql.join(
-        ids.map((id) => sql`${id}`),
-        sql.raw(', '),
-      )})
+      AND id IN (${sqlList(ids)})
       AND ${IS_HISTORY_KIND}
   `)
   return new Map(

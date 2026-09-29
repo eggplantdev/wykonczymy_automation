@@ -1,5 +1,6 @@
 import 'server-only'
 import { sql } from '@payloadcms/db-vercel-postgres'
+import { sqlList } from '@/lib/db/sql-list'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import { itemWithColumnDefaults, type StoredSnapshotPayloadT } from './snapshot-format'
 import { insertItems, insertSections, remapNewIds } from './insert-rows'
@@ -35,10 +36,7 @@ async function liveWorkerIds(db: DbExecutorT, ids: number[]): Promise<Set<number
   // transaction; the id set is bounded by etap count, so it costs nothing worth measuring.
   const res = await db.execute(sql`
     SELECT id FROM users
-    WHERE id IN (${sql.join(
-      ids.map((id) => sql`${id}`),
-      sql.raw(', '),
-    )})
+    WHERE id IN (${sqlList(ids)})
     FOR SHARE
   `)
   return new Set(res.rows.map((row) => Number(row.id)))

@@ -1,4 +1,5 @@
 import { useOptimistic, startTransition, useCallback } from 'react'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import type { ActionResultT } from '@/types/action'
 
@@ -17,7 +18,7 @@ export function useOptimisticToggle<TRow extends { id: number }>(
     (id: number, newActive: boolean) => {
       startTransition(async () => {
         addOptimistic({ id, update: getUpdate(newActive) })
-        const result = await serverAction(id, newActive)
+        const result = await settleAction(() => serverAction(id, newActive))
         if (!result.success) toastMessage(result.error, 'error')
       })
     },

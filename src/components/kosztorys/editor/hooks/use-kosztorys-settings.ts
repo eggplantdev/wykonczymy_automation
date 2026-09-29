@@ -18,7 +18,6 @@ import {
 import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 import type { GlobalDiscountT, KosztorysTreeT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { inverseGlobalCoeffPatch } from '@/lib/kosztorys/v2-rows'
-import { roundToCents } from '@/lib/utils/round-to-cents'
 import { MATERIALS_PRICING_IMPACT, SETTLEMENT_MODE_IMPACT } from '@/lib/kosztorys/investor-impact'
 import { useInvestorImpactConfirm } from '@/components/kosztorys/editor/hooks/use-investor-impact-confirm'
 import { usePendingStore } from '@/stores/pending-store'
@@ -52,7 +51,7 @@ export function useKosztorysSettings({
   // Global discount in local state (like `rows`/`stages`): the toggle patches it optimistically so
   // the derived total, column visibility, and per-item suppression all move in one render. Reading
   // `tree.globalDiscount` instead would leave the total + columns lagging the row flag until
-  // router.refresh() lands — the transient the "never disagree" invariant below forbids.
+  // the action's render lands — the transient the "never disagree" invariant below forbids.
   const [globalDiscount, setGlobalDiscount] = useState<GlobalDiscountT>(tree.globalDiscount)
   const globalDiscountActive = isGlobalDiscountActive(globalDiscount)
   // Undo/redo call applyGlobalDiscount through a closure captured when the entry was pushed, where
@@ -90,7 +89,7 @@ export function useKosztorysSettings({
       () => updateInvestmentCoeffsAction(investmentId, patch),
       () => {
         // Roll the optimistic coefficients back so the grid doesn't show an unsaved price (the
-        // once-only useState seed means a plain refresh can't reseed it). No-op on an empty kosztorys.
+        // once-only useState seed means a render can't reseed it). No-op on an empty kosztorys.
         if (!sample) return
         const restored: { globalWToolsCoeff?: number; globalOwnToolsCoeff?: number } = {}
         if (patch.wToolsCoeff != null) restored.globalWToolsCoeff = sample.globalWToolsCoeff
@@ -116,9 +115,9 @@ export function useKosztorysSettings({
   }
 
   // Changing the per-investment VAT rate recomputes every brutto figure. vatRate is denormalized
-  // on every row, so patch them all optimistically (router.refresh alone won't reseed `rows` — the
-  // useState initializer runs once at mount); then persist + refresh for the panel. `vatRate` is a
-  // fraction (0.08), converted from the panel's percent input at the commit site.
+  // on every row, so patch them all optimistically (the action's render alone won't reseed `rows` —
+  // the useState initializer runs once at mount); then persist, and the action's render carries the
+  // panel. `vatRate` is a fraction (0.08), converted from the panel's percent input at the commit site.
   async function applyVat(vatRate: number) {
     const prevVatRate = rowsRef.current[0]?.vatRate
     patchRows(
@@ -173,7 +172,7 @@ export function useKosztorysSettings({
   }
 
   // The settlement mode isn't denormalized onto the rows, so there's nothing to patch optimistically:
-  // persist, then let the refresh reseed `tree` for the panel that reads it.
+  // persist, then let the action's render reseed `tree` for the panel that reads it.
   async function applySettlementMode(mode: SettlementModeT) {
     return optimisticSettingSave(
       () => updateInvestmentSettlementModeAction(investmentId, mode),
@@ -195,7 +194,7 @@ export function useKosztorysSettings({
   }
 
   // Same shape as the settlement mode: not denormalized onto the rows, so there is nothing to patch
-  // optimistically — persist, then let the refresh reseed `tree` for the panel that reads it.
+  // optimistically — persist, then let the action's render reseed `tree` for the panel that reads it.
   async function applyMaterialsNetRate(rate: number | null) {
     return optimisticSettingSave(
       () => updateInvestmentMaterialsNetRateAction(investmentId, rate),
@@ -253,15 +252,13 @@ export function useKosztorysSettings({
   }
 
   function handleGlobalDiscountChange(next: GlobalDiscountT) {
-    // Quantized on the way in, so nothing sub-grosz is ever persisted: the kwota is stored money the
-    // field mirrors back as text, and a seeded Σ rabatów carries float residue from the products it
-    // sums. Rounded BEFORE the no-op check, or a dirty stored value never matches its clean twin.
-    const clean = { ...next, value: roundToCents(next.value) }
+    // Not rounded here: the kwota field already sent grosze or six places (discountNetFromGross), and
+    // cutting a brutto entry to grosze would re-gross it a grosz off what was typed.
     // saveSetting's own guard is identity-based, which never fires on a fresh object — so the
     // no-op check is here, by field. Without it every „Kwotowy" re-pick and every re-commit of an
     // unchanged kwota would put a do-nothing entry on the undo stack.
-    if (globalDiscount.type === clean.type && globalDiscount.value === clean.value) return
-    saveSetting('Zmiana rabatu globalnego', applyGlobalDiscount, globalDiscount, clean)
+    if (globalDiscount.type === next.type && globalDiscount.value === next.value) return
+    saveSetting('Zmiana rabatu globalnego', applyGlobalDiscount, globalDiscount, next)
   }
 
   // Percent rabat bulk-apply: a one-shot tool, not stored state (unlike handleGlobalDiscountChange).
@@ -280,7 +277,7 @@ export function useKosztorysSettings({
       (r) => ({ ...r, discountType: 'percent', discountValue: percent }),
     )
     // Roll each row's rabat back to its pre-apply value on failure — the once-only useState seed means
-    // a refresh can't reseed it.
+    // a render can't reseed it.
     return optimisticSettingSave(
       () => applyPercentDiscountToAllItemsAction(investmentId, percent),
       () =>

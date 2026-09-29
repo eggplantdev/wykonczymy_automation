@@ -12,6 +12,7 @@ import {
   type CatalogueRateColumnsT,
 } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
 import { formatPLN } from '@/lib/utils/format-currency'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import { useCatalogueSavePreview } from './use-catalogue-save-preview'
 
@@ -91,10 +92,8 @@ export function SaveItemToCatalogueDialog({
     if (!preview || saving) return
     setConfirming(false)
     setSaving(true)
-    const res = await saveItemToCatalogueAction(
-      itemId,
-      overwrites ? 'overwrite' : 'new',
-      keepCategory,
+    const res = await settleAction(() =>
+      saveItemToCatalogueAction(itemId, overwrites ? 'overwrite' : 'new', keepCategory),
     )
     setSaving(false)
     if (!res.success) {

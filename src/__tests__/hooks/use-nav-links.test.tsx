@@ -25,4 +25,8 @@ describe('useNavLinks', () => {
   it.each<RoleT>(['EMPLOYEE'])('hides „Kosz" from %s', (role) => {
     expect(hrefsFor(role)).not.toContain('/kosz')
   })
+
+  it('offers EMPLOYEE only „Transakcje" — every other route redirects the role back to „/"', () => {
+    expect(hrefsFor('EMPLOYEE')).toEqual(['/'])
+  })
 })
