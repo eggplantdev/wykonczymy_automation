@@ -13,7 +13,7 @@ nieodhaczonymi boksami** plus indeks zamkniętych przebiegów na końcu.
   tam świadomie, gdy trzeba odtworzyć, **jak** coś zweryfikowano.
 - **Trwała wiedza z tych przebiegów** została wydestylowana do żywych dokumentów: reguły inżynierskie
   do `context/foundation/lessons.md`, realia środowiska QA (blokady, konta, techniki obejścia) do
-  `context/reference/preview-verification-accounts.md`.
+  `context/reference/manual-verification.md`.
 - Dopisując nową sekcję, pisz **check**, nie sprawozdanie. Dowód („zweryfikowane na inw. 135, SQL
   pokazał…") jest wart tyle, ile długo boks jest otwarty — po odhaczeniu zostaje sam boks.
 - **Sekcja powstaje dopiero, gdy kod istnieje.** Boks opisuje zachowanie działającej aplikacji, więc
@@ -36,7 +36,7 @@ zamknie kolejny przebieg weryfikacji — dopóki trwają, te boksy zostają otwa
    wymaga człowieka z prawdziwą skrzynką. Sygnałem, że kod doszedł do wysyłki, jest **500** z trasy
    crona — wyjątek DNS, nie usterka.
 3. **Trasy crona na Preview stoją za Vercel SSO** i wymagają `CRON_SECRET`, którego przebieg nie ma.
-   Obejście do połowy licznikowej opisuje `context/reference/preview-verification-accounts.md`.
+   Obejście do połowy licznikowej opisuje `context/reference/manual-verification.md`.
 4. **Brak dostępu do skrzynki odbiorczej** — osobno od (2): nawet z produkcyjnym mailem treść
    trzeba obejrzeć okiem.
 
@@ -1397,7 +1397,7 @@ addytywna — na produkcję **przed** pushem; DROP starych kolumn to EX-886, po 
       ma tylko jeden etap, więc druga połowa zdania nie miała czego pokazać na żywo; logika
       `emptySettlementColumnIds` (`src/lib/kosztorys/settlement-columns.ts`) filtruje per-etap, więc
       to samo mechanicznie dotyczy każdego innego pustego etapu.
-- [x] „Wygeneruj ofertę w PDF" drukuje te same kolumny co Podgląd. Kod: `build-offer-print-html.ts`
+- [x] „Wygeneruj ofertę w PDF" drukuje te same kolumny co Podgląd. Kod: `print/offer.ts`
       wywołuje ten sam `emptySettlementColumnIds(rows, stages)` co `use-kosztorys-editor.ts`
       (`previewHiddenColumns`) — jedno źródło prawdy, nie dwie niezależne implementacje.
 - [x] Podgląd wykonawcy dalej pokazuje puste etapy. Kod: `previewHiddenColumns` w

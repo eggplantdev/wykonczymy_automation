@@ -1,5 +1,5 @@
 // Idempotent find-or-upsert of the permanent staging OWNER used to log in to the Vercel
-// preview app for manual verification passes (see .claude/skills/verify-manual-checks Step 0-alt).
+// preview app for manual verification passes (see context/reference/manual-verification.md).
 // Unlike seed-e2e-user.ts this deliberately targets a REMOTE db (the preview Neon branch), so the
 // guard is the inverse of a localhost check: it refuses anything but the preview URL, and prod even
 // if the two were ever set equal — this machine holds the prod credential too.
