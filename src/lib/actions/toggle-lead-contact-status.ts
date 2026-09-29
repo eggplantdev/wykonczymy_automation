@@ -6,7 +6,8 @@ import { revalidateCollections } from '@/lib/cache/revalidate'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import type { ActionResultT } from '@/types/action'
-import { getErrorMessage } from './run-action'
+import { toActionFailure } from '@/lib/actions/action-failure'
+import { logError } from '@/lib/utils/log-error'
 
 export async function toggleLeadContactStatus(
   id: number,
@@ -27,6 +28,7 @@ export async function toggleLeadContactStatus(
     revalidateCollections(['leads'])
     return { success: true }
   } catch (err) {
-    return { success: false, error: getErrorMessage(err) }
+    logError('[TOGGLE_LEAD_CONTACT_STATUS]', err)
+    return toActionFailure(err)
   }
 }

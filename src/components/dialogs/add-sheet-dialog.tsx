@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '@/components/ui/dialog'
 import { copyToClipboard } from '@/lib/utils/copy-to-clipboard'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import { ExternalLink } from '@/components/ui/external-link'
 import { getServiceAccountEmailAction } from '@/lib/actions/investments'
@@ -44,7 +45,7 @@ export function AddSheetDialog({ trigger }: PropsT) {
   const onSubmit = () => {
     if (!link.trim()) return
     startTransition(async () => {
-      const res = await addUnlinkedSheetAction(link, name || undefined)
+      const res = await settleAction(() => addUnlinkedSheetAction(link, name || undefined))
       if (!res.success) return toastMessage(res.error, 'error')
       toastMessage(`Dodano kosztorys „${res.data.name}".`, 'success')
       setOpen(false)

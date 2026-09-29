@@ -1,11 +1,13 @@
 import { mapWithConcurrency } from '@/lib/utils/map-with-concurrency'
-import { uploadMediaFromClient } from '@/lib/media/client-upload'
+import { UploadRefusedError, uploadMediaFromClient } from '@/lib/media/client-upload'
 import type { MediaKindT } from '@/types/media'
 
 // Cap parallel uploads to match the receipt-generation path (GENERATION_CONCURRENCY): batch-add lets a user
 // attach 10-20+ receipts, and submitting them all at once would fire that many simultaneous upload requests.
 // Bounds the Blob PUTs only — `createMediaRow` serializes the row creates itself.
 const UPLOAD_CONCURRENCY = 4
+
+export const UPLOAD_FAILED = 'Nie udało się przesłać plików — spróbuj ponownie.'
 
 /**
  * Thrown when any page of a submit fails to upload. Carries the ids that DID land, because those
@@ -48,7 +50,8 @@ export async function resolveUploadIdRows(
     try {
       return await upload(file)
     } catch (err) {
-      failure ??= err instanceof Error ? err.message : 'Nie udało się przesłać plików'
+      // A failed request or the Blob SDK speaks English; only a refusal is worded for the user.
+      failure ??= err instanceof UploadRefusedError ? err.message : UPLOAD_FAILED
       return undefined
     }
   })

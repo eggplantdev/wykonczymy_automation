@@ -7,7 +7,8 @@ import type { CACHE_TAGS } from '@/lib/cache/tags'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import type { ActionResultT } from '@/types/action'
-import { getErrorMessage } from './run-action'
+import { toActionFailure } from '@/lib/actions/action-failure'
+import { logError } from '@/lib/utils/log-error'
 
 type ToggleConfigT = {
   collection: 'users' | 'cash-registers'
@@ -36,7 +37,8 @@ async function toggleActive(
     revalidateCollections([cfg.cacheTag])
     return { success: true }
   } catch (err) {
-    return { success: false, error: getErrorMessage(err) }
+    logError('[TOGGLE_ACTIVE]', err)
+    return toActionFailure(err)
   }
 }
 

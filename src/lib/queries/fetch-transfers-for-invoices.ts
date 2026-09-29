@@ -7,7 +7,8 @@ import { fetchAllTransferRows } from '@/lib/queries/fetch-transfer-rows'
 import { validTransferSort } from '@/lib/queries/transfer-sort'
 import type { TransferRowT } from '@/types/transfers'
 import type { ActionResultT } from '@/types/action'
-import { getErrorMessage } from '@/lib/actions/run-action'
+import { toActionFailure } from '@/lib/actions/action-failure'
+import { logError } from '@/lib/utils/log-error'
 import { perfStart } from '@/lib/perf'
 
 type FetchFilteredTransfersOptsT = {
@@ -41,6 +42,7 @@ export async function fetchFilteredTransfers(
     console.log(`[PERF] fetchFilteredTransfers ${elapsed()}ms (${rows.length} rows)`)
     return { success: true, data: rows }
   } catch (err) {
-    return { success: false, error: getErrorMessage(err) }
+    logError('[FETCH_TRANSFERS_FOR_INVOICES]', err)
+    return toActionFailure(err)
   }
 }

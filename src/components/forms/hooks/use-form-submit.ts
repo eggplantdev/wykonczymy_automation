@@ -1,4 +1,4 @@
-import { logError } from '@/lib/utils/log-error'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import type { ActionResultT } from '@/types/action'
@@ -24,20 +24,7 @@ export function useFormSubmit(formId: string) {
     if (isRecovering) clearSubmission()
 
     if (keepOpen) {
-      let result: ActionResultT
-      try {
-        result = await opts.action()
-      } catch (err) {
-        // A save that throws rather than returning a failure — dropped connection, a deploy
-        // invalidating the action id — would otherwise end in silence, the form looking untouched.
-        logError('[FORM_SUBMIT]', err)
-        toastMessage(
-          err instanceof Error ? err.message : 'Wystąpił nieoczekiwany błąd',
-          'error',
-          5000,
-        )
-        return
-      }
+      const result = await settleAction(opts.action)
       if (result.success) {
         toastMessage(opts.successMessage, 'success')
         if (result.warning) toastMessage(result.warning, 'warning', 6000)

@@ -4,6 +4,7 @@ import { describe, it, expect, vi } from 'vitest'
 // calls it (upload is injected here), so stub the module to keep the import Node-safe.
 vi.mock('@/lib/utils/compress-image', () => ({ compressImage: async (f: File) => f }))
 
+import { UploadRefusedError } from '@/lib/media/client-upload'
 import { MediaUploadError, resolveUploadIdRows } from '@/lib/media/upload-ids'
 
 const file = (name: string) => ({ name }) as File
@@ -61,7 +62,7 @@ describe('resolveUploadIdRows', () => {
   // to hand them back — a bare throw leaks them.
   it('reports the already-uploaded ids when a page fails', async () => {
     const upload = vi.fn(async (f: File) => {
-      if (f.name === 'p2.jpg') throw new Error('413')
+      if (f.name === 'p2.jpg') throw new UploadRefusedError('413')
       return Number(f.name.replace(/\D/g, ''))
     })
     const files = new Map<number, File[]>([[0, [file('p1.jpg'), file('p2.jpg')]]])
@@ -71,5 +72,16 @@ describe('resolveUploadIdRows', () => {
       uploadedIds: [1],
     })
     await expect(resolveUploadIdRows(1, files, upload)).rejects.toBeInstanceOf(MediaUploadError)
+  })
+
+  it('reports a failed request in Polish, not the browser message', async () => {
+    const upload = vi.fn(async () => {
+      throw new TypeError('Failed to fetch')
+    })
+    const files = new Map<number, File[]>([[0, [file('p1.jpg')]]])
+
+    await expect(resolveUploadIdRows(1, files, upload)).rejects.toMatchObject({
+      message: 'Nie udało się przesłać plików — spróbuj ponownie.',
+    })
   })
 })

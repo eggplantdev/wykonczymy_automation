@@ -49,4 +49,22 @@ describe('createMediaRow', () => {
 
     expect(results.map((result) => result.status)).toEqual(['rejected', 'fulfilled'])
   })
+
+  it('rejects a refused file with a Polish message naming it, not the Payload error text', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({ errors: [{ message: 'The following field is invalid: file' }] }),
+            { status: 400 },
+          ),
+      ),
+    )
+
+    const rejection = createMediaRow('minted-name.pdf', pdf('faktura.pdf'), {})
+
+    await expect(rejection).rejects.toThrow('„faktura.pdf"')
+    await expect(rejection).rejects.not.toThrow('The following field is invalid')
+  })
 })

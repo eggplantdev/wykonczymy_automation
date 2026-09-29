@@ -16,10 +16,6 @@ type ActionCtxT = { payload: Payload; user: SessionUserT }
 
 const DEFAULT_ERROR = 'Wystąpił błąd'
 
-export function getErrorMessage(err: unknown): string {
-  return err instanceof Error ? err.message : DEFAULT_ERROR
-}
-
 const firstZodError = (error: ZodError): string => error.issues[0]?.message ?? DEFAULT_ERROR
 
 export function validateAction<TData>(
