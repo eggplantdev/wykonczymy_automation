@@ -1,7 +1,7 @@
 ---
 change_id: redundant-router-refresh
 title: router.refresh() po akcjach z updateTag — audyt i usunięcie zbędnych renderów
-status: implementing
+status: implemented
 created: 2026-09-29
 updated: 2026-09-29
 archived_at: null

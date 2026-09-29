@@ -2165,3 +2165,13 @@ decyzja właściciela.
 - [ ] Edytor → „Pracownicy" → pracownik → „Drukuj PDF": te same pasy, w tym na kolumnach etapów.
 - [ ] Na wydrukowanej kartce (albo podglądzie wydruku z tłem) pasy są wyraźnie widoczne, a cienkie
       linie między wierszami nadal widać w szarych kolumnach.
+
+## EX-908 — redundant-router-refresh — zapis bez drugiego renderu (2026-09-29)
+
+Pozostałe 25 boksów przeszło na buildzie produkcyjnym (:3100, baza 5435) — dowody w
+`context/changes/2026-09-29-redundant-router-refresh/manual-checks.md`. Test E2E dla A–H/K: EX-924.
+
+- [ ] Staging, po wdrożeniu: wydatek dodany na `/kasa/<id>` pojawia się w tabeli bez przeładowania,
+      a w zakładce Network jest POST akcji i żadnego GET-a RSC poza prefetchami.
+- [ ] Lokalnie zapis do arkusza Google (np. przelew na inwestycji z podpiętym arkuszem) nadal jest
+      odrzucany („Refusing to write…" w logu serwera) i nic nie trafia do Google.

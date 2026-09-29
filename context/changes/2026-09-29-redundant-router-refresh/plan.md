@@ -588,5 +588,7 @@ Run **once**, after the final phase:
 
 #### Automated
 
-- [ ] 4.1 `baseline.md` has an after-run part covering every before table
-- [ ] 4.2 `manual-checks.md` exists in the change folder
+- [x] 4.1 `baseline.md` has an after-run part covering every before table
+- [x] 4.2 `manual-checks.md` exists in the change folder
+
+E2E backlog for A–H/K: EX-924.
