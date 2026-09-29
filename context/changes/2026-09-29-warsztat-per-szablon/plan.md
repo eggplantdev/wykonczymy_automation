@@ -766,10 +766,10 @@ Uruchamiane **raz**, po ostatniej fazie:
 
 #### Automated
 
-- [x] 1.1 Migracja wchodzi na lokalną bazę 5433 (po zrzucie punktu powrotu)
-- [x] 1.2 Weryfikacja danych na 5433: szablony, liczby sekcji/pozycji, brak nieprzypisanych punktów na #151
-- [x] 1.3 `down` → `up` przechodzi na 5433
-- [x] 1.4 `pnpm test:parity` zielony
+- [x] 1.1 Migracja wchodzi na lokalną bazę 5433 (po zrzucie punktu powrotu) — 5e26b9d1
+- [x] 1.2 Weryfikacja danych na 5433: szablony, liczby sekcji/pozycji, brak nieprzypisanych punktów na #151 — 5e26b9d1
+- [x] 1.3 `down` → `up` przechodzi na 5433 — 5e26b9d1
+- [x] 1.4 `pnpm test:parity` zielony — 5e26b9d1
 
 ### Phase 2: Warstwa danych, czytelnicy i bramka
 
