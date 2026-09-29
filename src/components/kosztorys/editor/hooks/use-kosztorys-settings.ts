@@ -18,7 +18,6 @@ import {
 import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 import type { GlobalDiscountT, KosztorysTreeT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { inverseGlobalCoeffPatch } from '@/lib/kosztorys/v2-rows'
-import { roundToCents } from '@/lib/utils/round-to-cents'
 import { MATERIALS_PRICING_IMPACT, SETTLEMENT_MODE_IMPACT } from '@/lib/kosztorys/investor-impact'
 import { useInvestorImpactConfirm } from '@/components/kosztorys/editor/hooks/use-investor-impact-confirm'
 import { usePendingStore } from '@/stores/pending-store'
@@ -253,15 +252,13 @@ export function useKosztorysSettings({
   }
 
   function handleGlobalDiscountChange(next: GlobalDiscountT) {
-    // Quantized on the way in, so nothing sub-grosz is ever persisted: the kwota is stored money the
-    // field mirrors back as text, and a seeded Σ rabatów carries float residue from the products it
-    // sums. Rounded BEFORE the no-op check, or a dirty stored value never matches its clean twin.
-    const clean = { ...next, value: roundToCents(next.value) }
+    // Not rounded here: the kwota field already sent grosze or six places (discountNetFromGross), and
+    // cutting a brutto entry to grosze would re-gross it a grosz off what was typed.
     // saveSetting's own guard is identity-based, which never fires on a fresh object — so the
     // no-op check is here, by field. Without it every „Kwotowy" re-pick and every re-commit of an
     // unchanged kwota would put a do-nothing entry on the undo stack.
-    if (globalDiscount.type === clean.type && globalDiscount.value === clean.value) return
-    saveSetting('Zmiana rabatu globalnego', applyGlobalDiscount, globalDiscount, clean)
+    if (globalDiscount.type === next.type && globalDiscount.value === next.value) return
+    saveSetting('Zmiana rabatu globalnego', applyGlobalDiscount, globalDiscount, next)
   }
 
   // Percent rabat bulk-apply: a one-shot tool, not stored state (unlike handleGlobalDiscountChange).

@@ -33,6 +33,31 @@ describe('versionChangeRows', () => {
   })
 })
 
+describe('versionChangeRows — rabat', () => {
+  const items = [item(1, 'Płytki', 10, 100)]
+
+  it('pokazuje kwotę w netto i brutto, każdą po stawce VAT swojej wersji', () => {
+    const past = version(items, [], [], {
+      globalDiscount: { type: 'amount', value: 1000 },
+      vatRate: 0.23,
+    })
+    const current = version(items, [], [], {
+      globalDiscount: { type: 'amount', value: 5000 / 1.08 },
+      vatRate: 0.08,
+    })
+    const [row] = versionChangeRows(diffVersions(past, current))
+    expect(row).toMatchObject({ what: 'Rabat' })
+    expect(row.before).toMatch(/^1\s?000,00\szł netto \/ 1\s?230,00\szł brutto$/)
+    expect(row.after).toMatch(/^4\s?629,63\szł netto \/ 5\s?000,00\szł brutto$/)
+  })
+
+  it('brak rabatu to „brak"', () => {
+    const past = version(items)
+    const current = version(items, [], [], { globalDiscount: { type: 'amount', value: 100 } })
+    expect(versionChangeRows(diffVersions(past, current))[0]).toMatchObject({ before: 'brak' })
+  })
+})
+
 describe('countChangeRows', () => {
   it('counts exactly the rows the version view lists', () => {
     const past = version([item(1, 'Płytki', 12, 100), item(2, 'Fugi', 3, 50)])

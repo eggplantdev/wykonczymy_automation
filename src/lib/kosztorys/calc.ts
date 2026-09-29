@@ -1,4 +1,5 @@
 import { OVERRIDE_COEFF_FIELDS, OVERRIDE_FIELDS } from '@/lib/kosztorys/constants'
+import { round6 } from '@/lib/utils/round'
 import type {
   GlobalDiscountT,
   KosztorysGlobalCoeffsT,
@@ -213,6 +214,15 @@ export function toGross(net: number, vatRate: number): number {
  */
 export function toNet(gross: number, vatRate: number): number {
   return gross / (1 + vatRate)
+}
+
+/**
+ * A rabat kwotowy typed in brutto, as the netto that is stored (EX-933). Six places, not grosze: a
+ * grosz-rounded netto can re-gross a grosz off the brutto that was typed (0,07 zł at 8% reads back
+ * as 0,06).
+ */
+export function discountNetFromGross(gross: number, vatRate: number): number {
+  return round6(toNet(gross, vatRate))
 }
 
 /**

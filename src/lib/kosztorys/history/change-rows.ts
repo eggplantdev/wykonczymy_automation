@@ -1,8 +1,8 @@
 import { differenceNoun } from '@/lib/kosztorys/counted-nouns'
 import { formatNet, formatQty, formatQtyWithUnit } from '@/lib/kosztorys/format'
-import type { GlobalDiscountT } from '@/lib/kosztorys/types'
+import { toGross } from '@/lib/kosztorys/calc'
 import { formatPLN } from '@/lib/utils/format-currency'
-import type { FieldChangeT, ItemRefT, VersionDiffT } from './types'
+import type { DiscountAtVatT, FieldChangeT, ItemRefT, VersionDiffT } from './types'
 
 const FORMAT_BY_FIELD: Record<FieldChangeT['field'], (value: number) => string> = {
   plannedQty: formatQty,
@@ -26,8 +26,10 @@ export type ChangeRowT = {
 
 const describe = (item: ItemRefT) => item.description ?? '—'
 
-const discountText = (discount: GlobalDiscountT) =>
-  discount.type === 'amount' ? formatPLN(discount.value) : 'brak'
+const discountText = (discount: DiscountAtVatT) =>
+  discount.type === 'amount'
+    ? `${formatPLN(discount.value)} netto / ${formatPLN(toGross(discount.value, discount.vatRate))} brutto`
+    : 'brak'
 
 function changeLabel(change: FieldChangeT): string {
   switch (change.field) {

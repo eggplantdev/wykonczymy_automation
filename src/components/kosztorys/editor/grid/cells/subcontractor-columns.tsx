@@ -1,5 +1,5 @@
 import { Column } from 'react-datasheet-grid'
-import { decimalText } from '@/lib/utils/decimal-text'
+import { decimalText, moneyText } from '@/lib/utils/decimal-text'
 import { priceSourceOf, shownCoeff, viewPrice } from '@/lib/kosztorys/calc'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import {
@@ -7,10 +7,7 @@ import {
   subcontractorPolicy,
 } from '@/lib/kosztorys/subcontractor-price-edit'
 import { cellPaste } from '@/lib/kosztorys/cell-edit'
-import {
-  cellData,
-  priceText,
-} from '@/components/kosztorys/editor/grid/cells/subcontractor/cell-data'
+import { cellData } from '@/components/kosztorys/editor/grid/cells/subcontractor/cell-data'
 import { SubcontractorCoeffCell } from '@/components/kosztorys/editor/grid/cells/subcontractor/coeff-cell'
 import { SubcontractorModeCell } from '@/components/kosztorys/editor/grid/cells/subcontractor/mode-cell'
 import { SubcontractorPriceCell } from '@/components/kosztorys/editor/grid/cells/subcontractor/price-cell'
@@ -39,7 +36,7 @@ export function subcontractorPriceColumn(
     columnData: cellData(view),
     component: SubcontractorPriceCell,
     disabled: ({ rowData }) => authorsCoeff(rowData, view),
-    copyValue: ({ rowData }) => priceText(viewPrice(rowData, view)),
+    copyValue: ({ rowData }) => moneyText(viewPrice(rowData, view)),
     pasteValue: ({ rowData, value }) => cellPaste(value, rowData, policy),
     deleteValue: ({ rowData }) => policy.clear(rowData),
   }

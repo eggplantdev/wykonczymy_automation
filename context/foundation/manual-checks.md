@@ -2353,3 +2353,21 @@ i Piotr Seedowy).
       zachowania, wcześniej zapisane ustawienia się nie resetują).
 - [ ] Jako MANAGER: kolumna i dialog działają tak samo.
 - [ ] (tylko produkcja) wypłaty pojawiają się w zakładce „transfery" arkusza właściciela.
+
+## EX-933 — global-rabat-on-settlement-axis — rabat kwotowy w netto albo w brutto (2026-09-29)
+
+- [ ] Inw. 112 (Szeligowska 57b/7, brutto, 8%) → Podsumowanie → ustawienia → Rabat „Kwotowy":
+      wpisanie 5000 w pole „brutto" pokazuje 4629,63 w „netto" jeszcze przed zapisem. Po „Zapisz"
+      kolumna brutto pokazuje Rabat −5000,00.
+- [ ] Ta sama inwestycja: „Pozostało do zapłaty" brutto jest dokładnie o 5000,00 niższe niż przy
+      rabacie „Wyłączony".
+- [ ] Inwestycja netto (np. inw. 106): zapisana kwota stoi bez zmian w „netto" (2419,00), „brutto"
+      pokazuje ją po stawce VAT inwestycji, Podsumowanie się nie zmienia.
+- [ ] Ctrl+Z po zapisaniu kwoty przywraca w obu polach poprzednią kwotę.
+- [ ] Zmiana stawki VAT przy zapisanej kwocie: „brutto" idzie za nową stawką, „netto" zostaje.
+- [ ] Przełączenie „Wyłączony" → „Kwotowy": pola startują od sumy rabatów z pozycji.
+- [ ] Inw. 112 → Historia zmian: wpis po zapisaniu 5000 brutto pokazuje w wierszu Rabat
+      „… netto / 5 000,00 brutto".
+- [ ] Kosztorys → widok podwykonawcy → kolumna „Cena": ceny wyliczone ze współczynnika pokazują się
+      i edytują w groszach, a kopiowanie komórki daje tę samą kwotę co przed zmianą (refaktor
+      formatowania — bez zmiany zachowania).

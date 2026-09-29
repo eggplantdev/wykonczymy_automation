@@ -1,5 +1,3 @@
-import { decimalText } from '@/lib/utils/decimal-text'
-import { roundToCents } from '@/lib/utils/round-to-cents'
 import type { ToolPlaneT } from '@/lib/kosztorys/types'
 
 // Everything the cells need to know about which plane they are editing. Travels via
@@ -13,6 +11,3 @@ export type SubcontractorCellDataT = {
 }
 
 export const cellData = (view: ToolPlaneT): SubcontractorCellDataT => ({ view })
-
-// A derived price carries the float tail of client × coeff; the cell edits grosze, not the tail.
-export const priceText = (value: number): string => decimalText(roundToCents(value))

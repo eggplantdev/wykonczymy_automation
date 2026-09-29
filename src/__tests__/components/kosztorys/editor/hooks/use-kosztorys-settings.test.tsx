@@ -5,9 +5,11 @@ import { useKosztorysSettings } from '@/components/kosztorys/editor/hooks/use-ko
 import type { KosztorysTreeT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 import type { ActionResultT } from '@/types/action'
 import {
+  updateInvestmentGlobalDiscountAction,
   updateInvestmentMaterialsNetRateAction,
   updateInvestmentVatAction,
 } from '@/lib/actions/kosztorys'
+import { discountNetFromGross } from '@/lib/kosztorys/calc'
 import { usePendingStore } from '@/stores/pending-store'
 
 vi.mock('@/lib/actions/kosztorys', () => ({
@@ -34,12 +36,12 @@ function deferred() {
   return { promise, settle }
 }
 
-function renderSettings() {
+function renderSettings(tree: KosztorysTreeT = TREE) {
   const rowsRef = { current: [{ vatRate: 0.23 }] as unknown as KosztorysV2RowT[] }
   return renderHook(() =>
     useKosztorysSettings({
       investmentId: 1,
-      tree: TREE,
+      tree,
       rowsRef,
       patchRows: vi.fn(),
       pushReversible: vi.fn(),
@@ -137,5 +139,27 @@ describe('useKosztorysSettings — two „Opcje rozliczenia" saves in flight at 
 
     expect(result.current.investorImpactConfirm.open).toBe(true)
     expect(updateInvestmentMaterialsNetRateAction).not.toHaveBeenCalled()
+  })
+})
+
+describe('useKosztorysSettings — rabat kwotowy', () => {
+  // EX-933: cut to grosze, some brutto entries re-gross a grosz off what was typed.
+  it('stores a kwota typed in brutto at six places, not grosze', async () => {
+    vi.mocked(updateInvestmentGlobalDiscountAction).mockResolvedValue({
+      success: true,
+    } as ActionResultT)
+    const { result } = renderSettings({
+      ...TREE,
+      globalDiscount: { type: 'amount', value: 0 },
+    } as KosztorysTreeT)
+
+    await act(async () => {
+      result.current.handleGlobalDiscountChange({ type: 'amount', value: discountNetFromGross(5000, 0.08) })
+    })
+
+    expect(updateInvestmentGlobalDiscountAction).toHaveBeenCalledWith(1, {
+      globalDiscountType: 'amount',
+      globalDiscountValue: 4629.62963,
+    })
   })
 })

@@ -14,7 +14,8 @@ import {
   rowCell,
 } from './drivers/kosztorys-grid'
 import {
-  applyDiscountValue,
+  applyDiscountAmount,
+  applyDiscountPercent,
   openPanelView,
   openSettlementOptions,
   pickDiscountMode,
@@ -130,7 +131,7 @@ test('rabat globalny wyłącza rabaty per pozycja, nie kasując ich', async ({ p
 
   // Now move the kwota. Only the global figure can answer for this: the pozycja still carries 50 zł.
   await openSettlementOptions(page)
-  await applyDiscountValue(page, GLOBAL_DISCOUNT)
+  await applyDiscountAmount(page, GLOBAL_DISCOUNT)
   await page.keyboard.press('Escape')
 
   const global = await summaryFigures(page)
@@ -167,7 +168,7 @@ test('tryb „%" nadpisuje rabat każdej pozycji i pyta, zanim to zrobi', async 
 
   await openSettlementOptions(page)
   await pickDiscountMode(page, '%')
-  await applyDiscountValue(page, PERCENT)
+  await applyDiscountPercent(page, PERCENT)
 
   // The dialog stands in for undo, which this write has none of — so it is part of the contract, not
   // chrome. It is offered only because a rabat exists to lose.

@@ -98,14 +98,21 @@ describe('diffVersions', () => {
 
   describe('rabat', () => {
     const items = [item(1, 'Płytki', 10, 100)]
-    const withDiscount = (value: number) =>
-      version(items, [], [], { globalDiscount: { type: 'amount', value } })
+    const withDiscount = (value: number, vatRate = 0.08) =>
+      version(items, [], [], { globalDiscount: { type: 'amount', value }, vatRate })
 
     it('known → known reports the change', () => {
       expect(diffVersions(withDiscount(500), withDiscount(300)).discount).toEqual({
         state: 'changed',
-        before: { type: 'amount', value: 500 },
-        after: { type: 'amount', value: 300 },
+        before: { type: 'amount', value: 500, vatRate: 0.08 },
+        after: { type: 'amount', value: 300, vatRate: 0.08 },
+      })
+    })
+
+    it('each side carries the stawka VAT of its own version', () => {
+      expect(diffVersions(withDiscount(500, 0.08), withDiscount(300, 0.23)).discount).toMatchObject({
+        before: { vatRate: 0.08 },
+        after: { vatRate: 0.23 },
       })
     })
 
