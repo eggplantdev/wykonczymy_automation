@@ -65,6 +65,8 @@ function html(rows: KosztorysV2RowT[], overrides: Partial<OfferPrintArgsT> = {})
   })
 }
 
+const header = (label: string) => new RegExp(`<th[^>]*><span>${label}</span></th>`)
+
 const zloty = (n: number) =>
   `${Math.round(n).toLocaleString('pl-PL', { maximumFractionDigits: 0, useGrouping: 'always' })} zł`
 
@@ -165,7 +167,7 @@ describe('buildOfferPrintHtml — papier pokazuje to, co ekran', () => {
 
     const out = html([only], showing('remaining'))
 
-    expect(out).toContain('<th class="num"><span>Pozostało</span></th>')
+    expect(out).toMatch(header('Pozostało'))
     expect(out).toContain(zloty(1000))
   })
 
@@ -202,7 +204,6 @@ describe('buildOfferPrintHtml — papier pokazuje to, co ekran', () => {
 // The same rule the podgląd applies (`emptySettlementColumnIds`), so paper and screen agree column
 // for column.
 describe('buildOfferPrintHtml — kolumny rozliczenia dopiero z wpisami', () => {
-  const header = (label: string) => new RegExp(`<th[^>]*><span>${label}</span></th>`)
   const [stage1, stage2] = CTX.stages
 
   it('bez wpisów drukuje samą ofertę', () => {
@@ -311,7 +312,7 @@ describe('buildOfferPrintHtml — struktura tabeli', () => {
   it('ukrycie kolumny w ustawieniach podglądu zabiera ją i z papieru', () => {
     const out = html([row()], hiding('price'))
 
-    expect(out).not.toContain('<th class="num"><span>Cena j.m.</span></th>')
+    expect(out).not.toMatch(header('Cena j.m.'))
     expect(out).toContain('<th><span>Opis prac</span></th>')
   })
 })

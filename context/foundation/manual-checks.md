@@ -2157,3 +2157,11 @@ decyzja właściciela.
       się nie zgadza; po potwierdzeniu wiersz znika z `/kosz`.
 - [ ] Kosztorys założony wcześniej z tego szablonu jest bez zmian po przeniesieniu do kosza i po
       usunięciu na zawsze.
+
+## 2026-09-29 — pasy kolumn na wydrukach
+
+- [ ] Edytor → „Inwestor" → „Wygeneruj ofertę w PDF": co druga kolumna (od drugiej) ma szare tło od
+      nagłówka do ostatniej pozycji; „Opis prac" jest biały, paski sekcji i ich „Razem —" bez pasów.
+- [ ] Edytor → „Pracownicy" → pracownik → „Drukuj PDF": te same pasy, w tym na kolumnach etapów.
+- [ ] Na wydrukowanej kartce (albo podglądzie wydruku z tłem) pasy są wyraźnie widoczne, a cienkie
+      linie między wierszami nadal widać w szarych kolumnach.

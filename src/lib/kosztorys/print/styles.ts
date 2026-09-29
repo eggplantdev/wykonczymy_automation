@@ -70,6 +70,9 @@ td.rail { border-left: 2px solid; padding-left: 11px;
         padding-left: 4px; padding-right: 5px; }
 .price { color: #71717a; }
 .value { font-weight: 500; }
+/* Stronger than the screen's 2% mix, which vanishes on paper. Section bands and their „Razem" rows
+   carry no stripe, so a band still reads as one bar. */
+th.stripe, td.stripe { background-color: #e9e9ec; }
 
 /* --- sections ------------------------------------------------------------ */
 /* The rail carries the section's hue down its rows, so the offer stays navigable once the band that
