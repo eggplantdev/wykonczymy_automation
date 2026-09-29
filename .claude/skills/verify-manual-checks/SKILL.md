@@ -56,7 +56,14 @@ target, dispatch, and report back.
    > credential), do NOT sit in a retry loop: finish whatever it does not touch and return early with
    > that blocker at the top — per Non-negotiable 5.
 
-3. **Relay** the subagent's tally to the user (the subagent's report isn't shown to them). Keep
+3. **Watch for a wedged pass.** A hung `browser_*` call (a native dialog, a stuck page) freezes the
+   subagent silently — it never reaches its next tool round, so a `SendMessage` to it is never read.
+   Liveness = the registry's mtime (`stat -f '%Sm' context/foundation/manual-checks.md`) and the
+   subagent's output file (`stat -L`, never read it). No movement in either for ~15 min → `TaskStop`
+   it, kill the Playwright MCP Chrome (`pkill -f 'user-data-dir=.*ms-playwright-mcp'`), and
+   re-dispatch a fresh agent targeting **only the still-unchecked boxes** — ticks already written
+   survive, so nothing verified is lost. Don't wait for a ping reply first.
+4. **Relay** the subagent's tally to the user (the subagent's report isn't shown to them). Keep
    Linear/slice status in sync per the gate rules — open findings mean the slice is **not `Done`**.
 
 Do not run Steps 0–4 in the main loop yourself, even if the pass "looks quick" — the dispatch is the
@@ -114,30 +121,27 @@ replaces it:
   `DB_POSTGRES_URL_PROD`.
 - **Confirm the deployed build carries the slice before believing a missing feature.** This repo has a
   standing "staging runs the old build" gap. `git log -1 --format='%h %ci' origin/staging`, then
-  `npx vercel ls` — the newest **Preview** deployment must be no older than that commit. A feature
-  absent from an older build is a stale deploy, not a finding.
-- **Login — there is no stored staging credential, and this is what cost a previous pass its first
-  half-hour.** `ADMIN`/`PASS` in `.env` are dead, the OWNER rows in the preview DB
-  have no password written down anywhere, and **`src/scripts/seed-e2e-user.ts` refuses to run** against a non-localhost host on
-  purpose (it would plant a committed plaintext password in a remote DB — don't defeat that guard).
-  The route that works: a throwaway Local-API script that **resets the password of an existing
-  `*.test` OWNER** to a freshly generated secret, run with `DB_POSTGRES_URL` overridden to the preview
-  URL. **Look the account up first — don't trust a name written here:** the preview DB is re-restored
-  from prod dumps, so a QA user minted on it vanishes with the next restore (`qa-gate@wykonczymy.test`,
-  named here until 2026-09-22, is gone; `verify-owner-ex748@wykonczymy.test` is the one present then):
-  `psql "$DB_POSTGRES_URL_PREVIEW" -Atc "select email from users where role='OWNER' and email like '%.test'"`.
-  Create one only when that returns nothing — every pass that minted its own while one existed left
-  another OWNER row behind. Three details or it fails:
-  - the script must live **under `src/scripts/`** (the `@payload-config` alias doesn't resolve from a
-    scratchpad path) and wrap its body in an `async main()` (tsx transpiles to CJS — top-level `await`
-    is a build error);
-  - `payload.update` needs `context: { skipRevalidation: true }`, same as the create path;
-  - a Nodemailer `getaddrinfo disabled.invalid` error printing on the way out is the expected outgoing-
-    mail gate (see AGENTS.md), **not** a failure — check for the `password reset for id …` line.
+  the deploy status of that commit — `npx vercel ls` fails here on a project-link error, so read it
+  from GitHub instead: `gh api repos/eggplantdev/wykonczymy_automation/commits/<sha>/status --jq
+'.statuses[] | .context + " " + .state'` must show the Vercel context `success`. A feature absent
+  from an older build is a stale deploy, not a finding.
+- **A check written as "run the cron locally"** runs on staging instead, from the page (`curl` gets
+  the SSO 401): `browser_evaluate` → `fetch('/api/cron/<route>', {headers: {Authorization: 'Bearer '
+  - '<CRON_SECRET from .env>'}})`, then verify the rows on the preview DB. Say in the tick that it ran
+    on staging.
+- **Login — one command, one fixed QA user.** Run **`pnpm qa:staging-user`** first, every pass. It
+  upserts the OWNER `STAGING_QA_EMAIL` (`qa-staging@wykonczymy.test`) on the preview DB with the
+  password `STAGING_QA_PASSWORD` from `.env` — creating it after a prod-dump restore wiped it, resetting
+  the password otherwise — and refuses any DB that is not `DB_POSTGRES_URL_PREVIEW`. Look for the
+  `created OWNER` / `password reset` line; a Nodemailer `getaddrinfo disabled.invalid` error on the way
+  out is the outgoing-mail gate (AGENTS.md), not a failure. Never write a throwaway reset script and
+  never mint a second OWNER. (`seed-e2e-user.ts` refuses non-localhost on purpose — its password is
+  committed; this one lives only in `.env`.)
 
   Then log the browser in from the page itself, which sets the cookie without touching the SSO session:
-  `browser_evaluate` → `fetch('/api/users/login', {method:'POST', …})` with that e-mail and password,
-  and assert the response's `user.role`. Delete the throwaway script at close-out; leave the QA user.
+  `browser_evaluate` → `fetch('/api/users/login', {method:'POST', …})` with those two values, and assert
+  the response's `user.role === 'OWNER'`. A `curl` to staging gets `401 Protected deployment` (Vercel
+  SSO) — only the browser, which holds the SSO session, can reach the host.
 
 - **Never `browser_close`, never clear all cookies** — that wipes the Vercel preview SSO bypass and
   locks you out of the host entirely (memory `debugging-clearcookies-kills-vercel-preview-sso`).
@@ -268,9 +272,14 @@ anti-pattern this exists to stop (see `lessons.md` → "Driving react-datasheet-
 
 - **Never click a control that reaches the real `window.print()`.** The native print dialog is a
   modal the automated browser cannot dismiss: every subsequent `browser_*` call hangs until the
-  session is torn down. Verify print behaviour by intercepting instead — override `window.open` and
-  `window.print` via `browser_evaluate` _before_ clicking, then assert the generated document's DOM
-  (rows, column set and order, sorting, line breaks, omitted columns). The one genuinely undrivable
+  session is torn down. Every document prints from a **popup** (`src/lib/utils/print-window.ts`:
+  `window.open('', '_blank')` → `document.write` → `popup.print()`), so stubbing the page's own
+  `window.print` does nothing — that is what hung a 2026-09-28 pass for 40 min. Stub `print` on the
+  popup itself, via `browser_evaluate` _before_ clicking:
+  `const open = window.open; window.open = (...a) => { const w = open.apply(window, a); w.print = () => { window.__printed = w.document.documentElement.outerHTML; w.close() }; return w }`
+  then read `window.__printed` and assert the generated document's DOM (rows, column set and order,
+  sorting, line breaks, omitted columns). If a dialog does open anyway, the pass is dead: return with
+  it as the blocker — the only recovery is killing the Playwright MCP Chrome. The one genuinely undrivable
   part — a real dialog opening and the window closing when it is dismissed — is a `Wymaga człowieka`
   finding, not something to keep trying.
 - **Tick each box the moment you settle it; never batch the writes to the end.** A pass that holds a
