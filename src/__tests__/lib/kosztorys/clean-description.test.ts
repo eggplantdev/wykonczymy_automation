@@ -35,6 +35,13 @@ describe('cleanDescription', () => {
     expect(moved).toEqual([])
   })
 
+  // 13 prace across the prod dump read „wg. projektu"; a bulk run would have raised every one.
+  it('does not start a sentence after „wg."', () => {
+    expect(cleanDescription('Sufit podwieszany z LED wg. projektu')).toBe(
+      'Sufit podwieszany z LED wg. projektu',
+    )
+  })
+
   it('is idempotent, so the button survives being pressed twice', () => {
     for (const text of [
       'lutowanie tasm ledowych',

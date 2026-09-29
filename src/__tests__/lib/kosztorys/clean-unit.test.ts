@@ -15,12 +15,12 @@ describe('cleanUnit', () => {
     expect(cleanUnit('klp')).toBe('kpl')
     expect(cleanUnit('KLP.')).toBe('kpl')
     expect(cleanUnit('kp')).toBe('kpl')
+    expect(cleanUnit('n2')).toBe('m²')
   })
 
   // Why the fix list is short: a wrong guess reprices a praca, so these surface in the katalog report
   // for a human instead.
   it('leaves alone what it cannot name, case included', () => {
-    expect(cleanUnit('n2')).toBe('n2')
     expect(cleanUnit('180')).toBe('180')
     expect(cleanUnit('big bag')).toBe('big bag')
     expect(cleanUnit('kontener')).toBe('kontener')
@@ -35,7 +35,7 @@ describe('cleanUnit', () => {
   // Cleaning may change how a j.m. is SPELLED, never which praca it is — only the typo list is
   // allowed to move identity, and it moves it on purpose.
   it('leaves the matching identity untouched outside the typo list', () => {
-    for (const unit of ['m2', 'm²', 'szt.', 'm.b.', 'KPL', 'big bag', 'Mg', 'n2'])
+    for (const unit of ['m2', 'm²', 'szt.', 'm.b.', 'KPL', 'big bag', 'Mg'])
       expect(foldUnit(cleanUnit(unit))).toBe(foldUnit(unit))
   })
 })
