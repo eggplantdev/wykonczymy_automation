@@ -1257,6 +1257,39 @@ stays live and overrides positions, so a ▲/▼ move would vanish on reload —
 one order. It lives in the column header, not the section menu, because one section can't be sorted
 in isolation.
 
+## Katalog prac: Filtry, Problemy i „Policz użycia" (2026-09-29, EX-863 / EX-873)
+
+`/katalog-prac` dostał te same dwa menu co edytor i tę samą semantykę: w „Filtrach" zaznaczone =
+widoczne, a włączony filtr chowa swoje trafienia; „Problemy" są wyłączne i włączony problem
+zostawia tylko swoje trafienia. Liczniki idą po całym katalogu, więc nie drgają, gdy zmienia się
+szukanie czy „Kategoria". Obok „Kategorii" stoi filtr „j.m.", a pusta j.m. ma własną opcję
+„bez j.m.".
+
+- **Sufit jest per płaszczyzna, nie „65 %".** „Ponad" i „w granicy" czytają ten sam predykat co
+  czerwona komórka udziału: 65 % z narzędziami i 55,25 % bez narzędzi.
+- **„W granicy" nie obejmuje „auto" ani prac bez ceny j.m.** „Auto" nie nazywa żadnej stawki, bo
+  wycenia się z inwestycji, do której trafi, a liczenie jej „w granicy" obiecywałoby limit, którego
+  nikt nie sprawdził. Na każdej płaszczyźnie cztery kubełki składają się w cały katalog: ponad,
+  w granicy, auto oraz nie-auto bez ceny.
+- **Problemy to „bez ceny j.m." i „stawka 0 zł" na każdej płaszczyźnie.** Stawka 0 liczy się tylko
+  przy kwocie albo mnożniku, bo przy „auto" zera nikt nie wpisał.
+
+**„Policz użycia" — co znaczy „używana".** Praca z katalogu jest używana w inwestycji, gdy któraś
+pozycja jej kosztorysu ma przedmiar > 0 albo postęp na którymkolwiek etapie. Dopasowanie idzie po
+kluczu opis + j.m., tak jak porównanie z katalogiem. Wyceny się liczą. Poza zakresem są inwestycje
+w koszu i o statusie „szablon". Liczba w kolumnie „Kosztorysy" to **liczba różnych inwestycji**, nie
+pozycji: praca powtórzona w pięciu łazienkach jednego mieszkania to dalej jeden kosztorys.
+
+- **Na kliknięcie, nie przy wejściu.** Odczyt przechodzi przez wszystkie kosztorysy, a odpowiedź
+  ma wartość tylko dla kogoś, kto właśnie porządkuje cennik. Ponowne kliknięcie liczy od nowa.
+- **Grupa „Użycie" nie jest zapamiętywana.** Po przeładowaniu nie ma liczby, po której dałoby się
+  filtrować. Zapamiętane „nieużywane" filtrowałoby więc albo po niczym, albo po liczbie, której
+  nikt nie policzył. Dlatego zwykłe filtry siedzą w localStorage, a „Użycie" tylko w stanie strony.
+- **Podpowiedzi nigdy się nie liczą.** Lista „Używane, a brak w katalogu" pokazuje przy każdej
+  pracy do trzech kandydatów z katalogu („może chodzi o…"). To tylko wskazówka: kolumna „Kosztorysy"
+  liczy wyłącznie dokładne dopasowania, bo bliskie trafienie zawyżyłoby wpis, którego nikt nie użył.
+  Tak samo znacznik „występuje z inną j.m." jedynie nazywa prawie-duplikat i niczego nie dolicza.
+
 ## Wpłaty a tryb rozliczenia (czwarty przebieg, 2026-08-23)
 
 **Nic nie przechodzi przez VAT.** Wpłata niesie wyłącznie te kwoty, które naprawdę miała:

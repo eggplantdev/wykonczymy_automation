@@ -629,12 +629,12 @@ The full unit suite runs only when asked (memory: no full suite unasked). Pre-pu
 
 #### Automated
 
-- [x] 4.1 Usage conditions empty before the click, partition after
-- [x] 4.2 uncatalogued-usage-list DOM spec
-- [x] 4.3 Editor catalogue-missing-list specs stay green after the CandidateRow extraction
+- [x] 4.1 Usage conditions empty before the click, partition after — 9c21694b
+- [x] 4.2 uncatalogued-usage-list DOM spec — 9c21694b
+- [x] 4.3 Editor catalogue-missing-list specs stay green after the CandidateRow extraction — 9c21694b
 
 ### Phase 5: Docs
 
 #### Automated
 
-- [ ] 5.1 No automated check — prose only
+- [x] 5.1 No automated check — prose only

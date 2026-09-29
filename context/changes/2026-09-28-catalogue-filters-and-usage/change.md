@@ -48,7 +48,9 @@ Punkty otwarte (rozstrzygnięte niżej):
 ### Decyzje 2026-09-29 (przed `/10x-plan`)
 
 - **Zakres EX-863:** „Problemy" = bez ceny j.m.; stawka 0 z narzędziami; stawka 0 bez narzędzi.
-  „Filtry" = źródło stawki (kwota / mnożnik / auto) per widok; ponad 65 % / w granicy per widok.
+  „Filtry" = źródło stawki (kwota / mnożnik / auto) per widok; ponad sufit / w granicy per widok —
+  sufit per płaszczyzna (65 % z narzędziami, 55,25 % bez narzędzi), ten sam co czerwona komórka.
+  „W granicy" wyklucza „auto" i prace bez ceny j.m. (plan, 2026-09-29).
   Osobno filtr „j.m." obok „Kategorii".
 - **Połączenie:** „Policz użycia" zostaje przyciskiem na tabeli katalogu. Po kliknięciu kolumna
   „Kosztorysy" (liczba) i grupa „Użycie" w „Filtrach" (nieużywane / używane) — przed kliknięciem
