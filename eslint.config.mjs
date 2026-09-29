@@ -119,6 +119,8 @@ export default ts.config(
       'scripts/blob-snapshot.mjs',
       'scripts/blob-restore.mjs',
       'scripts/share-sheets-with-reader.mjs',
+      // Change-folder measurement tools (spikes), archived with their change.
+      'context/**',
     ],
   },
 )
