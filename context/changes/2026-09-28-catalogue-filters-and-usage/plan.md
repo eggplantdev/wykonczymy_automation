@@ -726,6 +726,6 @@ The full unit suite runs only when asked (memory: no full suite unasked). Pre-pu
 
 #### Automated
 
-- [x] 6.1 catalogue-near-duplicates node spec (inflection, j.m. in opis, one word, numbers, two words, prefix guard)
-- [x] 6.2 Registry + problems-menu-model specs cover the duplicate Problem
-- [x] 6.3 Whole-tree gate re-run (typecheck, lint)
+- [x] 6.1 catalogue-near-duplicates node spec (inflection, j.m. in opis, one word, numbers, two words, prefix guard) — 2c6109a5
+- [x] 6.2 Registry + problems-menu-model specs cover the duplicate Problem — 2c6109a5
+- [x] 6.3 Whole-tree gate re-run (typecheck, lint) — 2c6109a5
