@@ -2336,5 +2336,20 @@ i Piotr Seedowy).
 - [ ] Przy „Seed wypłaty C" komórka pokazuje „ustaw etapy" i nie da się jej kliknąć.
 - [ ] Otwórz dialog w dwóch kartach, wypłać w drugiej, potem w pierwszej: pierwsza odmawia
       z ostrzeżeniem, przeładowuje kwoty i zostaje otwarta; nic nie zostaje zapisane.
+- [ ] Dwie karty z tym samym dialogiem Jana, w obu zaznaczone „A", „Wypłać" kliknięte w obu niemal
+      jednocześnie: w transakcjach jest dokładnie jedna wypłata za „A"; druga karta pokazuje
+      ostrzeżenie „Kwoty zmieniły się…" i nowe kwoty.
+- [ ] Otwórz dialog Jana, w drugiej karcie zmień ilość w etapie „Seed wypłaty A" w kosztorysie,
+      wróć i kliknij „Wypłać": ostrzeżenie, a przeładowane „Pozostało" już uwzględnia zmianę;
+      ponowne „Wypłać" przechodzi, nie odmawia drugi raz.
+- [ ] Pracownik, który ma wyłącznie etapy bez rozliczenia (np. zdejmij Piotra z etapu w „Seed
+      wypłaty B"): komórka pokazuje zielone 0,00 zł i „1 bez rozliczenia etapu". **Decyzja:** czy
+      zielone 0 nie czyta się tu jak „rozliczony" — jeśli tak, zamiast niego wyszarzone „—".
+- [ ] Dialog: „Razem" stoi w stopce pogrubione, a kwota wyrównana do prawej pod kolumną kwot.
+- [ ] `/flota` i karta sprzętu: stopka „Razem" / „Koszty serwisu" wygląda i sumuje jak przedtem,
+      a po ukryciu kolumny kosztów znika (wspólny wiersz sumy — bez zmiany zachowania).
+- [ ] Zapamiętany stan przeżywa przeładowanie jak przedtem: zwinięty pasek boczny, zwinięta sekcja
+      na stronie inwestycji, otwarty panel podsumowań w kosztorysie (wspólny zapis — bez zmiany
+      zachowania, wcześniej zapisane ustawienia się nie resetują).
 - [ ] Jako MANAGER: kolumna i dialog działają tak samo.
 - [ ] (tylko produkcja) wypłaty pojawiają się w zakładce „transfery" arkusza właściciela.
