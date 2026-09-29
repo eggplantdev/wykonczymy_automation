@@ -48,9 +48,9 @@ export function KosztorysEditorV2(props: PropsT) {
     autoSnapshot.skipNext()
   }
 
-  // Shared by every path that swaps the whole tree under the editor, called from the action's
-  // continuation. The action's own render may already have committed by then, so the latch is armed
-  // from `treeToken` as this closure saw it — the tree from before the action.
+  // Runs in the action's continuation, by which point the action's own render may already have
+  // committed — so the latch is armed from `treeToken` as this closure saw it, the tree from before
+  // the action.
   const handleTreeReplaced: OnTreeReplacedT = ({ refetch } = {}) => {
     reseed(treeToken)
     if (refetch) router.refresh()

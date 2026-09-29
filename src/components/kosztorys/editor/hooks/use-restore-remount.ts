@@ -1,15 +1,15 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 
 type RestoreRemountT = {
   // Bump on the body's `key` to remount it. A restore reseeds the WHOLE grid, so it remounts the body
   // rather than patching rows in place — a full remount intentionally discards sort/filter/optimistic
   // state (lessons.md: never remount on a routine tree change).
   remountKey: number
-  // Arm the one-shot: remount once the tree differs from `since` (default: the tree on screen now).
-  // An action's continuation passes the token it started from, because the action's own render can
-  // commit before the continuation runs.
+  // Arm the one-shot: remount once the tree differs from `since` (default: the tree the body was
+  // seeded from). An action's continuation passes the token it started from, because the action's own
+  // render can commit before the continuation runs.
   triggerRestore: (since?: string) => void
 }
 
@@ -26,18 +26,18 @@ type RestoreRemountT = {
 export function useRestoreRemount(token: string): RestoreRemountT {
   const [remountKey, setRemountKey] = useState(0)
   const [armedFrom, setArmedFrom] = useState<string | null>(null)
-  const renderedToken = useRef(token)
-  // Recording the rendered value in a ref during render is the documented "store info from previous
-  // render" pattern (the rule is too strict here) — same sanctioned use as use-kosztorys-editor.ts.
-  // eslint-disable-next-line react-hooks/refs
-  renderedToken.current = token
+  // Not the token on screen: any ordinary write renders the route, so by the time a write comes back
+  // NOT_FOUND the tree prop can already hold the other tab's change while the mount-seeded rows don't.
+  // Arming from that token would wait for a change that has already landed.
+  const [seededFrom, setSeededFrom] = useState(token)
   if (armedFrom !== null && token !== armedFrom) {
     setArmedFrom(null)
+    setSeededFrom(token)
     setRemountKey((k) => k + 1)
   }
 
   return {
     remountKey,
-    triggerRestore: (since) => setArmedFrom(since ?? renderedToken.current),
+    triggerRestore: (since) => setArmedFrom(since ?? seededFrom),
   }
 }

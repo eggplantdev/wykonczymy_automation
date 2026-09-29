@@ -2254,7 +2254,8 @@ Po każdej zmianie sprawdź **sumy**: wartość wiersza, sumę sekcji, sumy etap
       razem poprawiony tekst bez przeładowania.
 - [ ] Dwie karty tego samego kosztorysu: w drugiej usuń pozycję, w pierwszej zmień jej Przedmiar —
       pierwsza pokazuje komunikat „Kosztorys zmienił się w innym miejscu…" i przeładowuje rozpiskę
-      bez tej pozycji.
+      bez tej pozycji. Drugi wariant: w pierwszej karcie najpierw zmień Przedmiar **innej** pozycji,
+      dopiero potem tej usuniętej — rozpiska też się przeładowuje, a komunikat nie wraca przy kolejnej edycji.
 - [ ] „Wyczyść kosztorys" przy zerwanym połączeniu (DevTools → Network → Offline zaraz po kliknięciu,
       potem Online): komunikat o błędzie, a po powrocie sieci rozpiska zgodna z bazą.
 
