@@ -21,14 +21,6 @@ import {
   selectV2ToggleItems,
 } from '@/components/kosztorys/editor/grid/column-selection'
 import {
-  rowDiscountForView,
-  rowDoneFraction,
-  rowPlannedNetForView,
-  stageValueForView,
-  toGross,
-  viewPrice,
-} from '@/lib/kosztorys/calc'
-import {
   discountValueColumn,
   discountTypeColumn,
 } from '@/components/kosztorys/editor/grid/cells/discount-columns'
@@ -53,11 +45,9 @@ import {
   hasStagesOverPlanned,
   isRemainingOverrun,
   measureDiscrepancy,
-  rowRemainingForExecutedQty,
-  rowRemainingForView,
-  rowTotalQtyDone,
-  rowValueForView,
 } from '@/lib/kosztorys/settlement-rows'
+import { computedColumnValues } from '@/lib/kosztorys/column-values'
+import { memoisedByRow } from '@/lib/kosztorys/memoised-by-row'
 import { activeSortPick } from '@/lib/kosztorys/row-view'
 import { stagesForView } from '@/lib/kosztorys/settlement-view'
 import { stagesMatchingEngaged } from '@/lib/kosztorys/stage-conditions'
@@ -142,28 +132,21 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   const viewStages = stagesForView(stages, view)
 
   // Narrowed HERE and nowhere else, so the three stage axes below cannot drift apart — and
-  // deliberately NOT fed to `totalQtyDone`, whose denominator is Σ etapów of the whole view: hiding
+  // deliberately NOT fed to the resolver, whose denominator is Σ etapów of the whole view: hiding
   // columns would otherwise reprice the ones left standing.
   const shownStages = stagesMatchingEngaged(viewStages, opts.engagedStageConditionIds ?? [])
 
-  // Rows are replaced immutably on every edit, so row identity is a self-invalidating cache key — a
-  // stale value can't outlive the row it was computed from.
-  const memoisedByRow = <T,>(compute: (row: KosztorysV2RowT) => T) => {
-    const cache = new WeakMap<KosztorysV2RowT, { value: T }>()
-    return (row: KosztorysV2RowT) => {
-      const hit = cache.get(row)
-      if (hit) return hit.value
-      const value = compute(row)
-      cache.set(row, { value })
-      return value
-    }
-  }
-
-  // The denominator every stage-value cell divides by. 2×|etapy| such cells per row would otherwise
-  // each re-run the O(|etapy|) reduce for the SAME number, making a row O(|etapy|²).
-  const totalQtyDone = memoisedByRow((row: KosztorysV2RowT) =>
-    rowTotalQtyDone(row, viewStages, view),
-  )
+  // One resolver per assembly, so every stage-value cell shares its per-row Σ etapów memo.
+  const valueOf = computedColumnValues({
+    stages,
+    view,
+    executedQtyByItem: opts.workerSurface?.executedQtyByItem,
+  })
+  const resolvedColumn = (
+    id: string,
+    style?: Parameters<typeof computedColumn>[3],
+    format?: Parameters<typeof computedColumn>[4],
+  ) => computedColumn(id, columnTitle(id, opts), valueOf(id), style, format)
 
   // Przedmiar (sheet N) leads the stage columns so the offered quantity reads before the per-etap
   // execution it is measured against.
@@ -200,7 +183,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       : []
 
   const stageQtySum: Column<KosztorysV2RowT> = {
-    ...computedColumn('stageQtySum', columnTitle('stageQtySum', opts), (r) => totalQtyDone(r)),
+    ...resolvedColumn('stageQtySum'),
     minWidth: 110,
   }
   const unit = unitColumn(columnTitle('unit', opts))
@@ -212,21 +195,12 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       ? [
           discountValueColumn(columnTitle('discountValue', opts)),
           discountTypeColumn(columnTitle('discountType', opts)),
-          computedColumn('discountAmount', columnTitle('discountAmount', opts), (r) =>
-            rowDiscountForView(r, totalQtyDone(r), view),
-          ),
-          computedColumn('discountAmountGross', columnTitle('discountAmountGross', opts), (r) =>
-            toGross(rowDiscountForView(r, totalQtyDone(r), view), r.vatRate),
-          ),
+          resolvedColumn('discountAmount'),
+          resolvedColumn('discountAmountGross'),
         ]
       : []
 
-  const pricing: Column<KosztorysV2RowT>[] = [
-    computedColumn('priceGross', columnTitle('priceGross', opts), (r) =>
-      toGross(viewPrice(r, view), r.vatRate),
-    ),
-    ...discountCols,
-  ]
+  const pricing: Column<KosztorysV2RowT>[] = [resolvedColumn('priceGross'), ...discountCols]
 
   const stageCols: Column<KosztorysV2RowT>[] = shownStages.map((st) => {
     // The qty field IS the column id, so the sort wiring is the shape `columnTitle()` builds; the
@@ -279,31 +253,26 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
 
   // The sheet's V–AE. Computed at render, never a row field — hence the separate id namespace.
   const stageValueNetCols: Column<KosztorysV2RowT>[] = shownStages.map((st) => {
-    const qtyKey = stageKey(st.id)
     const field = stageValueNetKey(st.id)
-    const header = stageValueHeader(st, 'netto', STAGE_VALUE_NET_COLUMN_GROUP, field, opts)
-    return computedColumn(field, header, (r) =>
-      stageValueForView(r, r[qtyKey] ?? 0, totalQtyDone(r), view),
+    return computedColumn(
+      field,
+      stageValueHeader(st, 'netto', STAGE_VALUE_NET_COLUMN_GROUP, field, opts),
+      valueOf(field),
     )
   })
 
   const stageValueGrossCols: Column<KosztorysV2RowT>[] = shownStages.map((st) => {
-    const qtyKey = stageKey(st.id)
     const field = stageValueGrossKey(st.id)
-    const header = stageValueHeader(st, 'brutto', STAGE_VALUE_GROSS_COLUMN_GROUP, field, opts)
-    return computedColumn(field, header, (r) =>
-      toGross(stageValueForView(r, r[qtyKey] ?? 0, totalQtyDone(r), view), r.vatRate),
+    return computedColumn(
+      field,
+      stageValueHeader(st, 'brutto', STAGE_VALUE_GROSS_COLUMN_GROUP, field, opts),
+      valueOf(field),
     )
   })
 
-  // Computes at `'client'` outright, not at `view`: PRZEDMIAR_ANCHORED_COLUMNS drops these outside
-  // the client view, so a `view`-reactive formula would imply a subcontractor reading that doesn't
-  // exist.
   const donePercent: Column<KosztorysV2RowT>[] = [
-    computedColumn(
+    resolvedColumn(
       'donePercent',
-      columnTitle('donePercent', opts),
-      (r) => rowDoneFraction(r, rowTotalQtyDone(r, stages, 'client')),
       {
         // More executed than offered. The >100% says so too, but only the tint says it at a glance
         // across a thousand rows.
@@ -315,28 +284,13 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   ]
 
   const plannedValue: Column<KosztorysV2RowT>[] = [
-    computedColumn('plannedNet', columnTitle('plannedNet', opts), (r) =>
-      rowPlannedNetForView(r, 'client'),
-    ),
-    computedColumn('plannedGross', columnTitle('plannedGross', opts), (r) =>
-      toGross(rowPlannedNetForView(r, 'client'), r.vatRate),
-    ),
-    computedColumn('plannedNetForPlane', columnTitle('plannedNetForPlane', opts), (r) =>
-      rowPlannedNetForView(r, view),
-    ),
+    resolvedColumn('plannedNet'),
+    resolvedColumn('plannedGross'),
+    resolvedColumn('plannedNetForPlane'),
   ]
 
-  const net = computedColumn(
-    'net',
-    columnTitle('net', opts),
-    (r) => rowValueForView(r, stages, view),
-    {
-      emphasize: true,
-    },
-  )
-  const gross = computedColumn('gross', columnTitle('gross', opts), (r) =>
-    toGross(rowValueForView(r, stages, view), r.vatRate),
-  )
+  const net = resolvedColumn('net', { emphasize: true })
+  const gross = resolvedColumn('gross')
 
   // Komentarz (sheet col T). Sits at the Praca/Postęp seam and carries the left border, so it
   // doubles as the block divider — layer-neutral, hence always visible.
@@ -353,36 +307,22 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
 
   // Red on the very rows the footer total leaves out — one predicate, so the two never disagree.
   // Brutto is judged on its netto: same sign, and one tolerance axis instead of two.
-  const overrunTone = (remaining: number) => (isRemainingOverrun(remaining) ? 'danger' : 'muted')
-  const remainingTone = (r: KosztorysV2RowT) =>
-    overrunTone(rowRemainingForView(r, stages, 'client'))
+  const overrunTone = (netId: string) => {
+    const remainingOf = valueOf(netId)
+    return (r: KosztorysV2RowT) => (isRemainingOverrun(remainingOf(r) ?? 0) ? 'danger' : 'muted')
+  }
+  const remainingTone = overrunTone('remaining')
   const remaining: Column<KosztorysV2RowT>[] = [
-    computedColumn(
-      'remaining',
-      columnTitle('remaining', opts),
-      (r) => rowRemainingForView(r, stages, 'client'),
-      { tone: remainingTone },
-    ),
-    computedColumn(
-      'remainingGross',
-      columnTitle('remainingGross', opts),
-      (r) => toGross(rowRemainingForView(r, stages, 'client'), r.vatRate),
-      { tone: remainingTone },
-    ),
+    resolvedColumn('remaining', { tone: remainingTone }),
+    resolvedColumn('remainingGross', { tone: remainingTone }),
   ]
   // Assembled on the worker surface only: anywhere else there is no all-etapy quantity to read, and
   // a figure built from the view's etapy alone would call another crew's work unfinished.
-  const worker = opts.workerSurface
-  const remainingForWorker = (r: KosztorysV2RowT) =>
-    rowRemainingForExecutedQty(r, worker?.executedQtyByItem[r.id] ?? 0, view)
-  const remainingForPlane: Column<KosztorysV2RowT>[] = worker
+  const remainingForPlane: Column<KosztorysV2RowT>[] = opts.workerSurface
     ? [
-        computedColumn(
-          'remainingForPlane',
-          columnTitle('remainingForPlane', opts),
-          remainingForWorker,
-          { tone: (r) => overrunTone(remainingForWorker(r)) },
-        ),
+        resolvedColumn('remainingForPlane', {
+          tone: overrunTone('remainingForPlane'),
+        }),
       ]
     : []
 

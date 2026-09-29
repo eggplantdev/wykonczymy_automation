@@ -1,6 +1,6 @@
 import { buildKosztorysPrintHtml } from '@/lib/kosztorys/print/build-html'
 import { documentRows } from '@/lib/kosztorys/print/document-rows'
-import { OFFER_PRICE_VIEW, offerPrintColumns, zloty } from '@/lib/kosztorys/print/offer-columns'
+import { offerPrintColumns, zloty } from '@/lib/kosztorys/print/offer-columns'
 import { WIDE_PRINT_STYLES } from '@/lib/kosztorys/print/styles'
 import { bypassedByGlobalDiscount } from '@/lib/kosztorys/column-config'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view/settings'
@@ -51,9 +51,7 @@ export function buildOfferPrintHtml({
   )
   return buildKosztorysPrintHtml({
     rows: documentRows(rows, stages, settings.hideEmptyRows),
-    stages,
     columns,
-    priceView: OFFER_PRICE_VIEW,
     documentKind: 'Kosztorys ofertowy',
     title: investmentName,
     pageTitle: investmentName,

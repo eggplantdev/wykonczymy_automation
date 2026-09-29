@@ -1523,3 +1523,24 @@ lista kolumn warsztatu jest odpowiedzią na to, nie kosmetyką.
 **Kosztorysy zasiane z szablonu są kopiami zamrożonymi** — edycja szablonu nigdy nie rusza
 istniejących kosztorysów. To zdanie znosi jedyny argument, który mógłby bronić jawnego „Zapisz"
 w warsztacie.
+
+## Destylat: jedna wartość na kolumnę liczoną (EX-894, 2026-09-29)
+
+**Kolumna liczona ma jedną funkcję wartości — `column-values.ts` — i czytają ją wszyscy:** komórka,
+klucz sortowania, sumy kolumn, sumy sekcji i oba wydruki. Dryf komórka↔sortowanie zdarzył się dwa
+razy (EX-487, EX-894), za każdym razem, bo liczba była składana osobno w kilku miejscach. Test
+zgodności iteruje kolumny, które siatka **faktycznie składa**, a nie ręczną listę — lista sama by
+dryfowała, a nowa kolumna liczona jest objęta testem od dnia dodania.
+
+**Czego w niej nie ma, i dlaczego.** Kolumny edytowalne (cena, stawki, współczynniki, źródło ceny)
+nie mają złożonej wartości, która mogłaby się rozjechać — dzielą z sortowaniem prymitywy z `calc.ts`
+(`viewPrice`, `shownCoeff`, `priceSourceOf`). „Rozbieżność" też zostaje poza nią: jej komórka czyta
+cały obiekt `measureDiscrepancy`, sortowanie tylko `.net`.
+
+**Sumy etapów zostają na `stageAxisForView`**, bo wycenia wiersz raz dla wszystkich etapów naraz —
+przejście przez funkcję wartości kolumna po kolumnie byłoby O(|etapy|²) na wierszu. Zgodność z
+komórkami pilnuje test w `column-totals.test.ts`.
+
+**Widok pracownika nie ma sortowania**, więc klucz sortowania nigdy nie dostaje ilości wykonanej
+przez wszystkie ekipy i „Pozostało" pracownika nie da się po nim posortować. Dołożenie sortowania
+tam wymaga podania `executedQtyByItem` do `sortValueGetter`.

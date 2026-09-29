@@ -1,16 +1,6 @@
-import {
-  rowDiscountForView,
-  rowDoneFraction,
-  rowPlannedNetForView,
-  viewPrice,
-  type PriceViewT,
-} from '@/lib/kosztorys/calc'
+import { viewPrice, type PriceViewT } from '@/lib/kosztorys/calc'
+import { computedColumnValues } from '@/lib/kosztorys/column-values'
 import { formatPercent, formatQty } from '@/lib/kosztorys/format'
-import {
-  rowRemainingForView,
-  rowTotalQtyDone,
-  rowValueForView,
-} from '@/lib/kosztorys/settlement-rows'
 import { clientDocumentColumns } from '@/lib/kosztorys/client-view/settings'
 import { columnLabelForView } from '@/lib/kosztorys/column-config'
 import { PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/client-view/columns'
@@ -18,7 +8,8 @@ import {
   DESCRIPTION_COLUMN,
   PLANNED_QTY_COLUMN,
   UNIT_COLUMN,
-  moneyColumn,
+  computedMoneyColumn,
+  formattedValue,
   qtyColumn,
   stageNetColumns,
   stageQtyColumns,
@@ -26,7 +17,7 @@ import {
 } from '@/lib/kosztorys/print/columns'
 import { STAGE_VALUE_NET_COLUMN_GROUP, STAGES_COLUMN_GROUP } from '@/lib/kosztorys/stage-keys'
 import { decimalText } from '@/lib/utils/decimal-text'
-import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
+import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import type { ColumnRanksT } from '@/lib/table/column-order'
 
 // A złoty, no grosze: the sheet's offer prints „19 495 zł" and a client reading a scope of works has
@@ -39,10 +30,9 @@ import type { ColumnRanksT } from '@/lib/table/column-order'
 // The owner's sheet groups every figure.
 export const zloty = (n: number) =>
   `${Math.round(n).toLocaleString('pl-PL', { maximumFractionDigits: 0, useGrouping: 'always' })} zł`
-// The offer is priced for the client and nothing else. Passed to every `cell` by the builder rather
-// than written into each one: a plane repeated per column can be changed in four of five places, and the
-// fifth would print one crew's stawka on a client's offer.
-export const OFFER_PRICE_VIEW: PriceViewT = 'client'
+// One constant for every figure on the offer: a plane repeated per column can be changed in four of
+// five places, and the fifth would print one crew's stawka on a client's offer.
+const OFFER_PRICE_VIEW: PriceViewT = 'client'
 const clientLabel = (key: string) => columnLabelForView(key, OFFER_PRICE_VIEW)
 
 const DISCOUNT_TYPE_TEXT: Record<string, string> = { percent: '%', amount: 'zł' }
@@ -50,8 +40,9 @@ const DISCOUNT_TYPE_TEXT: Record<string, string> = { percent: '%', amount: 'zł'
 // Every column of the client's document the paper can carry, keyed as CLIENT_DOCUMENT_COLUMNS names
 // it; a stage group expands to one column per etap.
 function offerColumnsByKey(stages: KosztorysStageT[]): Record<string, PrintColumnT[]> {
-  const discount = (row: KosztorysV2RowT, view: PriceViewT, printStages: KosztorysStageT[]) =>
-    rowDiscountForView(row, rowTotalQtyDone(row, printStages, view), view)
+  const valueOf = computedColumnValues({ stages, view: OFFER_PRICE_VIEW })
+  const money = computedMoneyColumn(valueOf, zloty)
+  const donePercent = valueOf('donePercent')
   return {
     description: [DESCRIPTION_COLUMN],
     plannedQty: [PLANNED_QTY_COLUMN],
@@ -63,18 +54,16 @@ function offerColumnsByKey(stages: KosztorysStageT[]): Record<string, PrintColum
         colClass: 'c-price',
         cellClass: 'num price',
         headerClass: 'num',
-        cell: (row, view) => zloty(viewPrice(row, view)),
+        cell: (row) => zloty(viewPrice(row, OFFER_PRICE_VIEW)),
       },
     ],
-    plannedNet: [
-      moneyColumn('plannedNet', 'Wartość netto', (row, view) =>
-        zloty(rowPlannedNetForView(row, view)),
-      ),
-    ],
+    plannedNet: [money('plannedNet', 'Wartość netto')],
     [STAGES_COLUMN_GROUP]: stageQtyColumns(stages),
     stageQtySum: [
-      qtyColumn('stageQtySum', clientLabel('stageQtySum'), (row, view, printStages) =>
-        formatQty(rowTotalQtyDone(row, printStages, view)),
+      qtyColumn(
+        'stageQtySum',
+        clientLabel('stageQtySum'),
+        formattedValue(valueOf('stageQtySum'), formatQty),
       ),
     ],
     discountValue: [
@@ -87,27 +76,15 @@ function offerColumnsByKey(stages: KosztorysStageT[]): Record<string, PrintColum
         row.discountType ? DISCOUNT_TYPE_TEXT[row.discountType] : '',
       ),
     ],
-    discountAmount: [
-      moneyColumn('discountAmount', clientLabel('discountAmount'), (row, view, printStages) =>
-        zloty(discount(row, view, printStages)),
-      ),
-    ],
-    [STAGE_VALUE_NET_COLUMN_GROUP]: stageNetColumns(stages, zloty),
-    net: [
-      moneyColumn('net', clientLabel('net'), (row, view, printStages) =>
-        zloty(rowValueForView(row, printStages, view)),
-      ),
-    ],
+    discountAmount: [money('discountAmount', clientLabel('discountAmount'))],
+    [STAGE_VALUE_NET_COLUMN_GROUP]: stageNetColumns(stages, valueOf, zloty),
+    net: [money('net', clientLabel('net'))],
     donePercent: [
-      qtyColumn('donePercent', clientLabel('donePercent'), (row, _view, printStages) =>
-        formatPercent(rowDoneFraction(row, rowTotalQtyDone(row, printStages, 'client'))),
+      qtyColumn('donePercent', clientLabel('donePercent'), (row) =>
+        formatPercent(donePercent(row)),
       ),
     ],
-    remaining: [
-      moneyColumn('remaining', 'Pozostało', (row, view, printStages) =>
-        zloty(rowRemainingForView(row, printStages, view)),
-      ),
-    ],
+    remaining: [money('remaining', 'Pozostało')],
   }
 }
 

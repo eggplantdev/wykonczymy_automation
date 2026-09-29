@@ -12,7 +12,6 @@ import { stageKey } from '@/lib/kosztorys/stage-keys'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
 import { columnTotalsForRows } from '@/lib/kosztorys/column-totals'
 import { groupBySection } from '@/lib/kosztorys/row-ops'
-import { rowRemainingForView } from '@/lib/kosztorys/settlement-rows'
 import { sanitizeClientViewSettings } from '@/lib/kosztorys/client-view/settings'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
@@ -167,7 +166,7 @@ describe('buildOfferPrintHtml — papier pokazuje to, co ekran', () => {
     const out = html([only], showing('remaining'))
 
     expect(out).toContain('<th class="num"><span>Pozostało</span></th>')
-    expect(out).toContain(zloty(rowRemainingForView(only, CTX.stages, 'client')))
+    expect(out).toContain(zloty(1000))
   })
 
   it('suma sekcji stoi pod „Wartość netto", nie pod kolumną obok', () => {

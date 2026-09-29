@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import { columnTotalsForRows } from '@/lib/kosztorys/column-totals'
+import { computedColumnValues } from '@/lib/kosztorys/column-values'
+import { stagesForView } from '@/lib/kosztorys/settlement-view'
 import { stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
@@ -189,11 +191,31 @@ describe('columnTotalsForRows', () => {
     expect(net).toBeGreaterThan(totals().get('net') ?? 0)
   })
 
+  it('totals the rabat taken per row, netto and brutto', () => {
+    // Row 2's kwota rabatu of 8, taken on its full przedmiar of 4.
+    expect(totals().get('discountAmount')).toBe(8)
+    expect(totals().get('discountAmountGross')).toBeCloseTo(8 * 1.08, 10)
+  })
+
   it('returns a zeroed set for an empty row set, so a section with no items totals nothing', () => {
     const empty = totals([])
 
     expect(empty.get('net')).toBe(0)
     expect(empty.get('remaining')).toBe(0)
     expect(empty.get('discountAmount')).toBe(0)
+  })
+})
+
+// The etap axis is priced by `stageAxisForView`, for speed, not by summing its cells — so it is the
+// one total that can drift from the column it sits under.
+describe('columnTotalsForRows — the etap axis totals its own cells', () => {
+  it.each(['client', 'w_tools', 'own_tools'] as const)('%s view', (view) => {
+    const result = columnTotalsForRows(rows, tree.stages, view, tree.vatRate)
+    const valueOf = computedColumnValues({ stages: tree.stages, view })
+    for (const stage of stagesForView(tree.stages, view)) {
+      const id = stageValueNetKey(stage.id)
+      const cellSum = rows.reduce((sum, row) => sum + (valueOf(id)(row) ?? 0), 0)
+      expect(result.get(id), id).toBeCloseTo(cellSum)
+    }
   })
 })
