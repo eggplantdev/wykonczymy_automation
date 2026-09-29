@@ -4,8 +4,21 @@ researcher: Claude (Opus 5.5)
 git_commit: 4c3ee036
 branch: catalogue-filters-and-usage
 repository: wykonczymy
-topic: "Extending the /kosz trash beyond investments — hard-deleted kosztorys records, fleet, equipment, workers, cash registers"
-tags: [research, codebase, trash, kosz, soft-delete, users, cash-registers, vehicles, equipment, presets, sheets]
+topic: 'Extending the /kosz trash beyond investments — hard-deleted kosztorys records, fleet, equipment, workers, cash registers'
+tags:
+  [
+    research,
+    codebase,
+    trash,
+    kosz,
+    soft-delete,
+    users,
+    cash-registers,
+    vehicles,
+    equipment,
+    presets,
+    sheets,
+  ]
 status: complete
 last_updated: 2026-09-29
 last_updated_by: Claude (Opus 5.5)
@@ -119,19 +132,19 @@ trash risk row; E2E backlog is EX-874.
 
 No `customers` collection exists. Every in-app delete path:
 
-| Entity | UI | Delete in app | Hard/soft | Cascade | Who |
-|---|---|---|---|---|---|
-| Inwestycje | /inwestycje | trash → `/kosz` | soft | kosztorys tree, versions, share links | A/O/M |
-| **Szablony kosztorysów** (`investments`, status `szablon`) | /szablony | `deletePresetAction` (`src/lib/actions/kosztorys-presets.ts:140-160`), button `components/presets/preset-row-actions.tsx:47`, dialog "zniknie bezpowrotnie" | **hard** | whole tree + all versions | A/O |
-| **Kosztorysy v1** (`kosztoryses`) | /kosztorysy | `deleteSheetAction` (`src/lib/actions/sheets.ts:272-294`), button `components/sheets/linked-sheet-actions.tsx:70` "Usuń kosztorys", "Tej operacji nie można cofnąć" | **hard** (Google Sheet stays on Drive) | unlinks its investment | A/O |
-| **Katalog prac** (`work-catalogue-items`) | /katalog-prac | `src/lib/actions/work-catalogue.ts:85-90`, `components/work-catalogue/catalogue-row-actions.tsx:32` | **hard** | nothing (kosztorysy keep their own copies) | A/O/M |
-| Kosztorys sections/items/stages | editor | `src/lib/actions/kosztorys.ts` | hard, but snapshot first → undoable via Wersje | children | A/O/M |
-| Share links (investor / worker) | editor dialogs | revoke | hard (token; re-share mints a new one) | — | A/O/M |
-| Media | galleries | detach → `deleteUnreferencedMedia` | hard incl. Blob; own trash planned (`kosz-plikow`) | — | A/O |
-| Zgłoszenia (`leads`) | /zgloszenia | **none** (only `/admin`) | — | `leads_rels` | A/O |
-| Transakcje | / | cancel only | soft (`cancelled` + reversal row) | — | — |
-| Pracownicy / Kasy | /pracownicy, /kasy | deactivate only | soft (`active`) | — | — |
-| Flota / Sprzęt / Magazyny | /flota, /sprzet | **none** | — | — | — |
+| Entity                                                     | UI                 | Delete in app                                                                                                                                                       | Hard/soft                                          | Cascade                                    | Who   |
+| ---------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- | ------------------------------------------ | ----- |
+| Inwestycje                                                 | /inwestycje        | trash → `/kosz`                                                                                                                                                     | soft                                               | kosztorys tree, versions, share links      | A/O/M |
+| **Szablony kosztorysów** (`investments`, status `szablon`) | /szablony          | `deletePresetAction` (`src/lib/actions/kosztorys-presets.ts:140-160`), button `components/presets/preset-row-actions.tsx:47`, dialog "zniknie bezpowrotnie"         | **hard**                                           | whole tree + all versions                  | A/O   |
+| **Kosztorysy v1** (`kosztoryses`)                          | /kosztorysy        | `deleteSheetAction` (`src/lib/actions/sheets.ts:272-294`), button `components/sheets/linked-sheet-actions.tsx:70` "Usuń kosztorys", "Tej operacji nie można cofnąć" | **hard** (Google Sheet stays on Drive)             | unlinks its investment                     | A/O   |
+| **Katalog prac** (`work-catalogue-items`)                  | /katalog-prac      | `src/lib/actions/work-catalogue.ts:85-90`, `components/work-catalogue/catalogue-row-actions.tsx:32`                                                                 | **hard**                                           | nothing (kosztorysy keep their own copies) | A/O/M |
+| Kosztorys sections/items/stages                            | editor             | `src/lib/actions/kosztorys.ts`                                                                                                                                      | hard, but snapshot first → undoable via Wersje     | children                                   | A/O/M |
+| Share links (investor / worker)                            | editor dialogs     | revoke                                                                                                                                                              | hard (token; re-share mints a new one)             | —                                          | A/O/M |
+| Media                                                      | galleries          | detach → `deleteUnreferencedMedia`                                                                                                                                  | hard incl. Blob; own trash planned (`kosz-plikow`) | —                                          | A/O   |
+| Zgłoszenia (`leads`)                                       | /zgloszenia        | **none** (only `/admin`)                                                                                                                                            | —                                                  | `leads_rels`                               | A/O   |
+| Transakcje                                                 | /                  | cancel only                                                                                                                                                         | soft (`cancelled` + reversal row)                  | —                                          | —     |
+| Pracownicy / Kasy                                          | /pracownicy, /kasy | deactivate only                                                                                                                                                     | soft (`active`)                                    | —                                          | —     |
+| Flota / Sprzęt / Magazyny                                  | /flota, /sprzet    | **none**                                                                                                                                                            | —                                                  | —                                          | —     |
 
 Ranked candidates for "customers": **Kosztorysy v1** (literal "Usuń kosztorys" + "cannot be
 undone"; "customers" is a plausible voice-to-text of "kosztorysy"), **Szablony** (hard, explicitly
@@ -169,16 +182,16 @@ that refuses while any event points at it (`warehouses.ts:10-20`).
 
 **FK graph** (migrations `20260818_1_add_fleet.ts`, `20260903_0_add_equipment.ts`):
 
-| child → parent | ON DELETE |
-|---|---|
-| `vehicle_inspections.vehicle_id` (NOT NULL) → vehicles | CASCADE |
-| `vehicle_inspections_rels.*` → inspections / media | CASCADE |
-| `equipment_events.equipment_id` (NOT NULL) → equipment | CASCADE |
-| `equipment_events.holder_id` → users | RESTRICT (+ users probe) |
-| `equipment_events.warehouse_id` → warehouses | RESTRICT (+ hook) |
-| `equipment_events.investment_id` → investments | SET NULL |
-| `equipment_events.created_by_id` → users | SET NULL |
-| `equipment_events_rels.*` → events / media | CASCADE |
+| child → parent                                         | ON DELETE                |
+| ------------------------------------------------------ | ------------------------ |
+| `vehicle_inspections.vehicle_id` (NOT NULL) → vehicles | CASCADE                  |
+| `vehicle_inspections_rels.*` → inspections / media     | CASCADE                  |
+| `equipment_events.equipment_id` (NOT NULL) → equipment | CASCADE                  |
+| `equipment_events.holder_id` → users                   | RESTRICT (+ users probe) |
+| `equipment_events.warehouse_id` → warehouses           | RESTRICT (+ hook)        |
+| `equipment_events.investment_id` → investments         | SET NULL                 |
+| `equipment_events.created_by_id` → users               | SET NULL                 |
+| `equipment_events_rels.*` → events / media             | CASCADE                  |
 
 Nothing outside points **at** a vehicle or an equipment item — no transfers (fleet "Koszty" is the sum
 of inspection `cost`, `src/lib/fleet/costs.ts`), no investments. So nothing needs protecting on the
@@ -267,17 +280,17 @@ Plain authorship (media uploader, snapshot `takenBy`) is deliberately **not** a 
 
 #### 6.2 References to `users.id`
 
-| table.column | null | ON DELETE | probe |
-|---|---|---|---|
-| `transactions.worker_id` (wypłata recipient) | yes | SET NULL | blocks (live) |
-| `transactions.created_by_id` / `updated_by_id` | yes | SET NULL | blocks (live) — CANCELLATION rows are live, so whoever cancelled anything is blocked |
-| `amount_edits.edited_by_id` | yes | SET NULL | blocks |
-| `cash_registers.owner_id` | **NOT NULL** | SET NULL (declared) ⇒ effectively RESTRICT (23502) | blocks |
-| `kosztorys_stages.worker_id` | yes | SET NULL | blocks (incl. trashed investments) |
-| `equipment_events.holder_id` | yes | RESTRICT | blocks (any event, past too) |
-| `equipment_events.created_by_id`, `media.created_by_id`, `kosztorys_snapshots.taken_by` | yes | SET NULL | no (deliberate) |
-| `kosztorys_worker_shares.worker_id` | NOT NULL | CASCADE | no |
-| `notification_reads.user_id`, `users_sessions`, `payload_preferences_rels`, `payload_locked_documents_rels` | — | CASCADE | no, harmless |
+| table.column                                                                                                | null         | ON DELETE                                          | probe                                                                                |
+| ----------------------------------------------------------------------------------------------------------- | ------------ | -------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `transactions.worker_id` (wypłata recipient)                                                                | yes          | SET NULL                                           | blocks (live)                                                                        |
+| `transactions.created_by_id` / `updated_by_id`                                                              | yes          | SET NULL                                           | blocks (live) — CANCELLATION rows are live, so whoever cancelled anything is blocked |
+| `amount_edits.edited_by_id`                                                                                 | yes          | SET NULL                                           | blocks                                                                               |
+| `cash_registers.owner_id`                                                                                   | **NOT NULL** | SET NULL (declared) ⇒ effectively RESTRICT (23502) | blocks                                                                               |
+| `kosztorys_stages.worker_id`                                                                                | yes          | SET NULL                                           | blocks (incl. trashed investments)                                                   |
+| `equipment_events.holder_id`                                                                                | yes          | RESTRICT                                           | blocks (any event, past too)                                                         |
+| `equipment_events.created_by_id`, `media.created_by_id`, `kosztorys_snapshots.taken_by`                     | yes          | SET NULL                                           | no (deliberate)                                                                      |
+| `kosztorys_worker_shares.worker_id`                                                                         | NOT NULL     | CASCADE                                            | no                                                                                   |
+| `notification_reads.user_id`, `users_sessions`, `payload_preferences_rels`, `payload_locked_documents_rels` | —            | CASCADE                                            | no, harmless                                                                         |
 
 Non-FK: snapshot JSON stores etap `worker_id` — `liveWorkerIds`
 (`src/lib/kosztorys/insert-kosztorys-tree.ts:23-43`) drops ids that no longer exist but would
@@ -352,14 +365,14 @@ lose FKs) and `equipmentEvents` (`created_by` nulled).
 
 ## 8. Proposed split (by cost and dependency)
 
-| # | Change | Why this order | Size |
-|---|---|---|---|
-| 0 | Prep: move retention constant, per-section `/kosz` empty state | every later change touches both | XS — fold into #1 |
-| 1 | **Szablony → kosz** (Kosztorysy v1 dropped — owner, 2026-09-29) — implemented in `kosz-szablonow` (EX-914) | column, blocker, purge already exist; reverses one decision | S |
-| 2 | **Flota → kosz** | one read chokepoint, no outside FKs | S |
-| 3 | **Sprzęt → kosz** | no outside FKs, but ~6 raw-SQL read sites + held-item question | M |
-| 4 | **Kasy → kosz** | before workers — a worker's delete depends on their kasa; probe + `active` exist; picker/name-map split is the work | M |
-| 5 | **Pracownicy → kosz** | biggest: login + JWT gate, owned-kasa pair, last-owner guard, `/p/` link, ~20 read sites | L |
+| #   | Change                                                                                                     | Why this order                                                                                                      | Size              |
+| --- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| 0   | Prep: move retention constant, per-section `/kosz` empty state                                             | every later change touches both                                                                                     | XS — fold into #1 |
+| 1   | **Szablony → kosz** (Kosztorysy v1 dropped — owner, 2026-09-29) — implemented in `kosz-szablonow` (EX-914) | column, blocker, purge already exist; reverses one decision                                                         | S                 |
+| 2   | **Flota → kosz**                                                                                           | one read chokepoint, no outside FKs                                                                                 | S                 |
+| 3   | **Sprzęt → kosz**                                                                                          | no outside FKs, but ~6 raw-SQL read sites + held-item question                                                      | M                 |
+| 4   | **Kasy → kosz**                                                                                            | before workers — a worker's delete depends on their kasa; probe + `active` exist; picker/name-map split is the work | M                 |
+| 5   | **Pracownicy → kosz**                                                                                      | biggest: login + JWT gate, owned-kasa pair, last-owner guard, `/p/` link, ~20 read sites                            | L                 |
 
 Katalog prac (hard delete, A/O/M) and Zgłoszenia (no delete) are not in scope unless the owner names
 them.
