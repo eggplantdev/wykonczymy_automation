@@ -98,7 +98,7 @@ Shaping preserved for whoever opens it as its own change:
 
 - Open for its frame/plan: what it does to `sectionSubtotalsForView` and the footer's
   `Suma netto`/`Suma brutto` (unconditional today, independent of the picker by design).
-- The adjacent **parked POC TODO** (the POC slice-1 design, deleted 2026-08-08 — reachable via `git log --follow` on `context/archive/kosztorys-poc-in-app/`)
+- The adjacent **parked POC TODO** (the POC slice-1 design, deleted 2026-08-08 — reachable via `git log -- context/archive/kosztorys-poc-in-app/`)
   travels with it — but is now **partly obsolete**: it demands a netto/brutto mode for the Sekcje
   panel + a toolbar counter; the footer already shows both, and the counter was never built. What
   survives is only "per-section rows are netto-only".

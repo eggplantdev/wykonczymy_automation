@@ -17,7 +17,7 @@ builds the missing persistence (tables, collections, query, actions) and the edi
 (dynamic stage columns + "Pozostało") around it.
 
 - **Roadmap slice:** S-04, `context/foundation/roadmap.md`. PRD ref FR-004. Prereq: S-01.
-- **Decision register:** `context/archive/kosztorys-poc-in-app/` (POC decisions on stages).
+- **Decision register:** POC decision register (POC decisions on stages; folded into `roadmap.md`, raw doc deleted 2026-09-29).
 - **Owner calls (2026-07-09):** editable stage labels; include the computed "Pozostało"
   column; delete a stage via a control on its column header (blocked when any item has
   non-zero progress in it).

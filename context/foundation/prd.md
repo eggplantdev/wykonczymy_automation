@@ -42,10 +42,9 @@ Nothing E2E is automated or CI-runnable.
 
 Prior design work this PRD builds on:
 
-- `context/archive/kosztorys-poc-in-app/` — the archived POC docs that superseded the
-  deleted 2026-05-28 design draft: their D1–D13 decisions and draft data shape were
-  resolved and built in the POC. The decision register itself was folded into
-  `context/foundation/roadmap.md` when the change was archived.
+- The kosztorys in-app POC, which superseded the deleted 2026-05-28 design draft: its D1–D13
+  decisions and draft data shape were resolved and built there. Its decision register was folded
+  into `context/foundation/roadmap.md`; the raw POC docs were deleted 2026-09-29 (git history).
 - `context/reference/kosztorys-sync.md` — the current mirror's authoritative behaviour.
 
 ## Problem Statement & Motivation
