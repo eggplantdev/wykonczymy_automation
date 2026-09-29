@@ -6,7 +6,7 @@ import { FileArchive, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toastMessage } from '@/lib/utils/toast'
 import { useFileArchive } from '@/hooks/use-file-archive'
-import { fetchFilteredTransfers } from '@/lib/actions/fetch-transfers-for-invoices'
+import { fetchFilteredTransfers } from '@/lib/queries/fetch-transfers-for-invoices'
 import { INVOICE_ARCHIVE_COPY } from '@/lib/media/wording'
 
 type InvoiceDownloadButtonPropsT = {

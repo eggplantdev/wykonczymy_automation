@@ -576,7 +576,7 @@
   the query. If the _caller_ supplies the filter, the auth check is the only bound and the action is
   not reusable — route around it (server-render the rows into props, or write a scoped read that takes
   an id, not a `Where`).
-- **Applies to**: `src/lib/actions/fetch-transfers-for-invoices.ts`, and any `'use server'` read whose parameter is a query
+- **Applies to**: `src/lib/queries/fetch-transfers-for-invoices.ts`, and any `'use server'` read whose parameter is a query
   rather than an identifier.
 
 ## An exhaustiveness assertion only protects while both sides are authored independently

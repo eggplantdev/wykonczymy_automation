@@ -7,7 +7,7 @@ import type { Table } from '@tanstack/react-table'
 import { Loader2, Printer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toastMessage } from '@/lib/utils/toast'
-import { fetchFilteredTransfers } from '@/lib/actions/fetch-transfers-for-invoices'
+import { fetchFilteredTransfers } from '@/lib/queries/fetch-transfers-for-invoices'
 import { columnLabel } from '@/lib/table/column-label'
 import {
   buildTransfersPrintHtml,
