@@ -34,7 +34,7 @@ describe('investment lock', () => {
         ['completed', INVESTMENT_LOCKED_MESSAGE],
         ['active', undefined],
         ['planowana', undefined],
-        // The templates workbench is editable on purpose — it is unbookable, not locked.
+        // A szablon is editable on purpose — it is unbookable, not locked.
         ['szablon', undefined],
       ] as const) {
         mockExecute.mockResolvedValueOnce({ rows: [{ status, trashed_at: null }] })
@@ -70,7 +70,7 @@ describe('investment lock', () => {
       expect(await investmentGateForRow(db, kind, 7)).toEqual({
         investmentId: 42,
         lockMessage: undefined,
-        templatePresetId: null,
+        isTemplate: false,
       })
       expect(lastSqlChunks()).toContain(table)
     })
@@ -83,7 +83,7 @@ describe('investment lock', () => {
       expect(await investmentGateForRow(db, 'item', 7)).toEqual({
         investmentId: 42,
         lockMessage: INVESTMENT_LOCKED_MESSAGE,
-        templatePresetId: null,
+        isTemplate: false,
       })
     })
 
@@ -97,17 +97,15 @@ describe('investment lock', () => {
       )
     })
 
-    // The third fact the same row already carries: a mutation on the warsztat owes a mirror into
-    // the szablon it holds, and asking for that pointer separately would double the round trip.
-    it('carries the szablon pointer of the warsztat row', async () => {
+    // The third fact the same row already carries: a write into a szablon moves its „ostatnio
+    // edytowany", and asking for the status separately would double the round trip.
+    it('marks a szablon row as a template', async () => {
       const db = await getDb(fakePayload)
-      mockExecute.mockResolvedValueOnce({
-        rows: [{ id: 42, status: 'szablon', template_preset_id: 5 }],
-      })
+      mockExecute.mockResolvedValueOnce({ rows: [{ id: 42, status: 'szablon' }] })
       expect(await investmentGateForRow(db, 'item', 7)).toEqual({
         investmentId: 42,
         lockMessage: undefined,
-        templatePresetId: 5,
+        isTemplate: true,
       })
     })
 

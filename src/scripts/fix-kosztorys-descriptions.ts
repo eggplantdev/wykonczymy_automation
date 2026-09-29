@@ -1,12 +1,12 @@
 // Bulk run of the „Popraw literówki" cleanup (opis prac + j.m.) — the same rules the Opcje button
-// applies, but over many inwestycje and over saved szablony at once. Dry by default; pass APPLY=1 to write.
+// applies, but over many inwestycje at once — szablony included, since a szablon is an investment.
+// Dry by default; pass APPLY=1 to write.
 //
 //   INV=90 node --env-file=.env --import tsx src/scripts/fix-kosztorys-descriptions.ts
-//   INV=all APPLY=1 PRESETS=1 node --env-file=.env --import tsx src/scripts/fix-kosztorys-descriptions.ts
+//   INV=all APPLY=1 node --env-file=.env --import tsx src/scripts/fix-kosztorys-descriptions.ts
 //
 //   INV        investment id, or `all` for every investment (default: all)
 //   APPLY      1 = write, anything else = dry run that only prints the diff
-//   PRESETS    1 = clean saved preset payloads as well
 //   CATALOGUE  1 = clean „Katalog prac" too, and only it (skips inwestycje)
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getPayload } from 'payload'
@@ -21,10 +21,7 @@ import { catalogueKey } from '../lib/kosztorys/work-catalogue/catalogue-key'
 
 const INV = process.env.INV ?? 'all'
 const APPLY = process.env.APPLY === '1'
-const PRESETS = process.env.PRESETS === '1'
 const CATALOGUE = process.env.CATALOGUE === '1'
-
-type PresetPayloadT = { items?: { description?: string; unit?: string }[] }
 
 async function investmentIds(db: DbExecutorT): Promise<number[]> {
   if (INV !== 'all') return [Number(INV)]
@@ -52,27 +49,6 @@ async function fixItems(db: DbExecutorT): Promise<void> {
     if (APPLY && changed.length > 0) await setItemTexts(db, investmentId, changed)
   }
   console.log(`\npozycje: ${touched} do poprawy z ${scanned} przejrzanych`)
-}
-
-async function fixPresets(db: DbExecutorT): Promise<void> {
-  const res = await db.execute(sql`SELECT id, name, payload FROM kosztorys_presets`)
-  for (const row of res.rows) {
-    const preset = row.payload as PresetPayloadT
-    let touched = 0
-    for (const item of preset.items ?? []) {
-      const description = item.description ? cleanDescription(item.description) : item.description
-      const unit = item.unit ? cleanUnit(item.unit) : item.unit
-      if (description === item.description && unit === item.unit) continue
-      item.description = description
-      item.unit = unit
-      touched += 1
-    }
-    console.log(`szablon „${String(row.name)}": ${touched} pozycji do poprawy`)
-    if (APPLY && touched > 0)
-      await db.execute(
-        sql`UPDATE kosztorys_presets SET payload = ${JSON.stringify(preset)}::jsonb WHERE id = ${Number(row.id)}`,
-      )
-  }
 }
 
 /**
@@ -135,7 +111,6 @@ async function main() {
     process.exit(0)
   }
   await fixItems(db)
-  if (PRESETS) await fixPresets(db)
   console.log(APPLY ? 'ZAPISANE' : 'PRÓBA — nic nie zapisano (APPLY=1 zapisuje)')
   process.exit(0)
 }

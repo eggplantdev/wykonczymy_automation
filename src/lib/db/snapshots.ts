@@ -48,13 +48,6 @@ export type SnapshotMetaT = {
   takenBy: number | null
 }
 
-// A restore point belongs to the szablon the investment held when it was taken. For a real
-// investment `template_preset_id` is NULL on both sides and the clause is a no-op; for the warsztat —
-// one investment shared by every szablon — it keeps one szablon's history out of another's. Stamped
-// from the investment row so no caller can forget it.
-const HELD_PRESET = (investmentId: number) =>
-  sql`(SELECT "template_preset_id" FROM investments WHERE id = ${investmentId})`
-
 export async function insertSnapshot(
   db: DbExecutorT,
   params: {
@@ -70,20 +63,19 @@ export async function insertSnapshot(
   const takenAt = params.takenAt ? sql`${params.takenAt.toISOString()}::timestamptz` : sql`now()`
   const res = await db.execute(sql`
     INSERT INTO kosztorys_snapshots (
-      investment_id, kind, label, taken_by, schema_version, payload, template_preset_id, taken_at
+      investment_id, kind, label, taken_by, schema_version, payload, taken_at
     )
     VALUES (
       ${params.investmentId}, ${params.kind}, ${params.label}, ${params.takenBy},
-      ${SNAPSHOT_SCHEMA_VERSION}, ${JSON.stringify(params.payload)}::jsonb,
-      ${HELD_PRESET(params.investmentId)}, ${takenAt}
+      ${SNAPSHOT_SCHEMA_VERSION}, ${JSON.stringify(params.payload)}::jsonb, ${takenAt}
     )
     RETURNING id
   `)
   return Number(res.rows[0].id)
 }
 
-// The investments whose kosztorys may still change: szablon (the workbench) and completed (locked)
-// fall out by status, the trash by its own column.
+// The investments whose kosztorys may still change: szablony and completed (locked) fall out by
+// status, the trash by its own column.
 export async function listDailyEligibleInvestmentIds(db: DbExecutorT): Promise<number[]> {
   const res = await db.execute(sql`
     SELECT id FROM investments
@@ -114,19 +106,15 @@ export async function latestSnapshot(
 }
 
 // The restore path resolves the target investment from the row itself rather than trusting a
-// client-passed value. Null when the id doesn't exist or the point belongs to a szablon the warsztat
-// no longer holds — filtering the drawer only shapes what is OFFERED, and a stale tab still holds the
-// old ids. The caller reports both as „nie znaleziono wersji".
+// client-passed value. The caller reports a missing id as „nie znaleziono wersji".
 export async function getSnapshot(
   db: DbExecutorT,
   snapshotId: number,
 ): Promise<{ investmentId: number; payload: StoredSnapshotPayloadT } | null> {
   const res = await db.execute(sql`
-    SELECT s.investment_id, s.schema_version, s.payload
-    FROM kosztorys_snapshots s
-    JOIN investments i ON i.id = s.investment_id
-    WHERE s.id = ${snapshotId}
-      AND s.template_preset_id IS NOT DISTINCT FROM i.template_preset_id
+    SELECT investment_id, schema_version, payload
+    FROM kosztorys_snapshots
+    WHERE id = ${snapshotId}
   `)
   const row = res.rows[0]
   if (!row) return null
@@ -142,7 +130,6 @@ export async function listSnapshots(
     SELECT id, investment_id, kind, label, taken_at, taken_by
     FROM kosztorys_snapshots
     WHERE investment_id = ${investmentId}
-      AND template_preset_id IS NOT DISTINCT FROM ${HELD_PRESET(investmentId)}
     ORDER BY taken_at DESC, id DESC
   `)
   return res.rows.map((row) => ({
@@ -183,7 +170,6 @@ export async function listHistoryMetas(
       FROM kosztorys_snapshots
       WHERE investment_id = ${investmentId}
         AND ${IS_HISTORY_KIND}
-        AND template_preset_id IS NOT DISTINCT FROM ${HELD_PRESET(investmentId)}
     ) ranked
     WHERE kind = 'named' OR rn = 1
     ORDER BY taken_at, id
@@ -208,7 +194,6 @@ export async function getHistorySnapshots(
         sql.raw(', '),
       )})
       AND ${IS_HISTORY_KIND}
-      AND template_preset_id IS NOT DISTINCT FROM ${HELD_PRESET(investmentId)}
   `)
   return new Map(
     res.rows.map((row) => {

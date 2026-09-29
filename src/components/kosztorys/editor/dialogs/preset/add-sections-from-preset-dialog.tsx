@@ -10,12 +10,7 @@ import { useSearchFilter } from '@/hooks/use-search-filter'
 import type { AppendedSliceT } from '@/lib/kosztorys/append-preset-sections'
 import { cn } from '@/lib/utils/cn'
 import { toastMessage } from '@/lib/utils/toast'
-import {
-  getPresetName,
-  groupPresetSections,
-  isGroupFullySelected,
-  metaKey,
-} from './preset-picker-groups'
+import { getPresetName, groupPresetSections, isGroupFullySelected } from './preset-picker-groups'
 import { sectionNoun } from '@/lib/kosztorys/counted-nouns'
 import { usePresetSections } from './use-preset-sections'
 
@@ -35,7 +30,7 @@ export function AddSectionsFromPresetDialog({
   onAppended,
 }: PropsT) {
   const { sections, resetSections } = usePresetSections(open)
-  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [selected, setSelected] = useState<Set<number>>(new Set())
   const [activePresetId, setActivePresetId] = useState<number | null>(null)
   // Below `sm` (48rem — this repo overrides the scale) only one pane fits, so this drives which of
   // the two is shown. Both stay mounted at every width — above `sm` the state is inert.
@@ -67,7 +62,7 @@ export function AddSectionsFromPresetDialog({
     onOpenChange(next)
   }
 
-  function toggle(key: string) {
+  function toggle(key: number) {
     setSelected((prev) => {
       const next = new Set(prev)
       if (next.has(key)) next.delete(key)
@@ -77,7 +72,7 @@ export function AddSectionsFromPresetDialog({
   }
 
   // Loading a whole szablon into an empty kosztorys is the common case, so it stays one click.
-  function toggleGroup(keys: string[]) {
+  function toggleGroup(keys: number[]) {
     setSelected((prev) => {
       const next = new Set(prev)
       if (keys.every((key) => next.has(key))) keys.forEach((key) => next.delete(key))
@@ -87,18 +82,19 @@ export function AddSectionsFromPresetDialog({
   }
 
   async function handleConfirm() {
-    const selections = (sections ?? [])
-      .filter((meta) => selected.has(metaKey(meta)))
-      .map((meta) => ({ presetId: meta.presetId, sectionId: meta.sectionId }))
-    if (selections.length === 0) return
+    // In the szablony's order, not the order they were ticked in.
+    const sectionIds = (sections ?? [])
+      .map((meta) => meta.sectionId)
+      .filter((id) => selected.has(id))
+    if (sectionIds.length === 0) return
     setPending(true)
-    const res = await appendPresetSectionsAction(investmentId, selections)
+    const res = await appendPresetSectionsAction(investmentId, sectionIds)
     setPending(false)
     if (!res.success) {
       toastMessage(res.error ?? 'Nie udało się dodać sekcji', 'error', 4000)
       return
     }
-    toastMessage(selections.length === 1 ? 'Dodano sekcję' : 'Dodano sekcje', 'success')
+    toastMessage(sectionIds.length === 1 ? 'Dodano sekcję' : 'Dodano sekcje', 'success')
     handleOpenChange(false)
     onAppended(res.data)
   }
@@ -194,7 +190,7 @@ export function AddSectionsFromPresetDialog({
                   the user cannot see. */}
                 <button
                   type="button"
-                  onClick={() => toggleGroup(activeGroup.metas.map(metaKey))}
+                  onClick={() => toggleGroup(activeGroup.metas.map((meta) => meta.sectionId))}
                   aria-pressed={allActiveSelected}
                   className="hover:bg-accent flex w-full items-center gap-2 px-3 py-2 text-left"
                 >
@@ -204,7 +200,7 @@ export function AddSectionsFromPresetDialog({
                   </span>
                 </button>
                 {activeGroup.metas.map((meta) => {
-                  const key = metaKey(meta)
+                  const key = meta.sectionId
                   const isSelected = selected.has(key)
                   return (
                     <button

@@ -114,7 +114,7 @@ export function KosztorysEditorBody({
   history,
   locked = false,
   hasSheet = false,
-  templatePresetId,
+  isTemplate = false,
   undoRedo = NOOP_UNDO_REDO,
   onOpenVersions,
   onTreeReplaced,
@@ -129,8 +129,7 @@ export function KosztorysEditorBody({
   // priced off a coefficient hand the crew a cut of it (EX-708). The breakdown carries no link back
   // to a pozycja, so this is all the kosztorys can know.
   const hasSettledMaterial = panelData.settledBreakdown.length > 0
-  const isWorkshop = templatePresetId != null
-  const noun = editorNoun(templatePresetId)
+  const noun = editorNoun(isTemplate)
   // The investor's history never reaches a crew's document, whatever a caller passes.
   const investorHistory = worker ? undefined : history
   const pastVersion = investorHistory?.version ?? null
@@ -158,7 +157,7 @@ export function KosztorysEditorBody({
     hasSettledMaterial,
     workCatalogue,
     onStaleTree,
-    isWorkshop,
+    isTemplate,
     filledStageIds,
   })
   const {
@@ -410,8 +409,7 @@ export function KosztorysEditorBody({
         onTreeReplaced,
         openImport: editor.readOnly ? undefined : openImport,
         hasSheet,
-        templatePresetId,
-        isWorkshop,
+        isTemplate,
         noun,
       }}
     >
@@ -453,7 +451,7 @@ export function KosztorysEditorBody({
               <>
                 <KosztorysEditorToolbar
                   protocolSource={
-                    investment && !isWorkshop
+                    investment && !isTemplate
                       ? {
                           investment,
                           materials: {

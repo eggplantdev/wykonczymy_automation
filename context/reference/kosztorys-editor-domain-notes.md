@@ -1482,8 +1482,9 @@ warunku jest migracją cudzych danych bez migracji.** Gdyby para „powyżej suf
 `overpriced-*`, zapisany ptaszek „pokaż tylko zepsute" stałby się „ukryj zepsute" — dokładne
 odwrócenie. Nowy warunek dostaje **nowe id**, stare zostają porzucone.
 
-**Warsztat to jedna inwestycja dla wszystkich szablonów**, a ten sam klucz jest kluczowany po
-`investmentId` — więc ptaszek ustawiony przy szablonie A jest wciąż włączony po otwarciu B.
+Ten sam klucz jest kluczowany po `investmentId`, a szablon jest własną inwestycją (EX-893), więc
+ptaszki każdego szablonu żyją osobno. Do 2026-09-29 wszystkie szablony dzieliły jeden warsztat
+i ptaszek z A był wciąż włączony po otwarciu B.
 
 **Bramka bywa ergonomią, nie niezmiennikiem — sprawdź, czy trwały stan już ją omija.** Bramka
 płaszczyzny w `offeredFilterConditions` wyglądała na ochronę spójności; nie była. Zaangażowany filtr
@@ -1493,10 +1494,10 @@ zadaniem (EX-714) była **długość listy**. Kasując taką bramkę, trzeba prz
 (tu: próg licznika), a nie to, na które wygląda.
 
 **„Lista kolumn jest zamknięta" nie znaczy „widok nic nie robi".** `WORKSHOP_VISIBLE_COLUMNS` mrozi
-kolumny warsztatu, ale `sort-value.ts` czyta `view` **poza** zestawem kolumn — warsztat sortował po
+kolumny szablonu, ale `sort-value.ts` czyta `view` **poza** zestawem kolumn — szablon sortował po
 stawce wykonawcy, wyświetlając cenę klienta. Pochodne widoku żyją poza listą kolumn.
 
-**`pickView` jest jedynym zapisującym klucz widoku** (`kosztorys-view:<mirrorId>`). Ukrycie samego
+**`pickView` jest jedynym zapisującym klucz widoku** (`kosztorys-view:<investmentId>`). Ukrycie samego
 przycisku zamraża na zawsze każdą przeglądarkę, która wcześniej stanęła na obcej płaszczyźnie —
 zdjęcie kontrolki i przypięcie płaszczyzny muszą iść w jednej zmianie. Przypięciu podlega
 `persistedView`, nie całe wyrażenie widoku: ulotna nakładka z „Problemów" ma zostać, bo to ona
@@ -1510,22 +1511,34 @@ przy każdej zmianie drzewa" musi siadać w akcji, nie w edytorze.
 pozycji, ustawienia i hurtowe zastąpienie. Wiszą już na nim undo/redo i bramka auto-snapshotu; każda
 kolejna funkcja oparta na nim dziedziczy tę dziurę.
 
-**Koszt jednego lustra szablonu — zmierzony (2026-09-22).** `kosztorys_presets.payload` to ~310–325 B
-tekstu JSON na pozycję (~58–65 B po TOAST); największe lokalne drzewo (379 pozycji) = 124 530 B.
-Kolumna ma `attstorage = 'x'`, więc **HOT update jest niemożliwy** — każdy zapis to nowy łańcuch
-TOAST. Jedno lustro ≈ 250 KB ruchu do Neona, a wklejka w 50 komórek bez dławika = 50 równoległych
-luster ≈ 12,5 MB na jedno Ctrl-V. Dlatego dławik siedzi w **bazie** (`mirrored_at`), nie w timerze:
-serverless nie utrzyma timera między requestami.
+**Odcięcie pól per budowa dzieje się przy odczycie szablonu, nie przy zapisie.**
+`serialize-preset.ts` zeruje przedmiar, pomiar z arkusza i rabat, i wyrzuca etapy z wykonaniem —
+za każdym razem, gdy szablon zasiewa nową inwestycję, jest „Wczytany" albo oddaje sekcje. Drzewo
+samego szablonu trzyma to, co w nim wpisano, więc zamknięta lista kolumn szablonu
+(`WORKSHOP_VISIBLE_COLUMNS`) nie jest kosmetyką: pole, którego nie da się wpisać, nie zniknie
+potem po cichu przy użyciu szablonu.
 
-**Serializacja szablonu jest stratna, a warsztat o tym nie mówi.** `serialize-preset.ts` zeruje
-`plannedQty`, `sheetMeasuredQty`, `discountType`, `discountValue`, `note` i wyrzuca całe `stages`
-i `progress` — a menu „Dodaj" w warsztacie oferuje „Etap — …" i pełną siatkę. Pod autozapisem strata
-przestaje być jednym świadomym kliknięciem i staje się ciągłym, niewidocznym rozjazdem. Zamknięta
-lista kolumn warsztatu jest odpowiedzią na to, nie kosmetyką.
+## Szablon jest inwestycją o statusie `szablon` (EX-893, 2026-09-29)
+
+Treść szablonu to **drzewo kosztorysu jego własnej inwestycji** — ta sama tabela sekcji i prac, te
+same akcje, te same „Wersje". Nie ma już biblioteki jsonb (`kosztorys_presets`), wspólnego warsztatu
+ani wskaźnika „który szablon jest teraz otwarty". Cała seria błędów tamtego modelu brała się z tego,
+że id warsztatu **zmieniało znaczenie w czasie**: każdy czytelnik (punkty przywracania, klucze
+localStorage, lustro, cache) musiał wiedzieć, który szablon warsztat akurat trzyma.
+
+- **Status jest nieodwołalny w obie strony.** Szablon rodzi się wyłącznie przez `createTemplate`,
+  a `guardTemplateStatus` odmawia nadania albo zdjęcia `szablon` przy edycji. Szablon nie trafia
+  do kosza — usuwa się go z listy szablonów, a kaskada zabiera drzewo i punkty przywracania.
+- **Nazwa jest tożsamością**: unikalna wśród szablonów bez względu na wielkość liter i spacje na
+  brzegach (`investments_szablon_name_idx`).
+- **„Ostatnia edycja" na liście to `content_edited_at`**, nie `updated_at` — ten drugi jest tokenem
+  remountu edytora, więc zapis w szablonie go nie rusza.
+- **Nadpisanie szablonu** („Zapisz jako szablon" → „Nadpisz istniejący") zostawia na nim punkt
+  „Przed nadpisaniem: <źródło>", więc jest odwracalne z jego „Wersji".
 
 **Kosztorysy zasiane z szablonu są kopiami zamrożonymi** — edycja szablonu nigdy nie rusza
 istniejących kosztorysów. To zdanie znosi jedyny argument, który mógłby bronić jawnego „Zapisz"
-w warsztacie.
+w szablonie.
 
 ## Destylat: jedna wartość na kolumnę liczoną (EX-894, 2026-09-29)
 

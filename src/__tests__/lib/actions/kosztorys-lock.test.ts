@@ -192,8 +192,8 @@ describe.skipIf(!ENV_READY)('a completed investment refuses every kosztorys writ
 
   it('still saves a preset from the locked kosztorys', async () => {
     const name = `${FIXTURE_PREFIX}preset-${Date.now()}`
-    expect((await savePresetAction(investmentId, name, 'new')).success).toBe(true)
-    await db.execute(sql`DELETE FROM kosztorys_presets WHERE name = ${name}`)
+    expect((await savePresetAction(investmentId, { mode: 'new', name })).success).toBe(true)
+    await db.execute(sql`DELETE FROM investments WHERE name = ${name}`)
   })
 })
 

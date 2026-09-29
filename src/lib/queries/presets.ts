@@ -12,10 +12,11 @@ import {
   type PresetMetaT,
   type PresetSectionMetaT,
 } from '@/lib/db/presets'
-import { getWorkshop } from '@/lib/db/workshop-investment'
 
 // Single cached read backing every preset picker. Argument-free — one global entry, correct for a
-// cross-investment library. Invalidated by savePresetAction (the only writer) via the `presets` tag.
+// cross-investment library. Invalidated through the `presets` tag by every szablon lifecycle action
+// and by `investmentAction`'s tail on a szablon edit. Deliberately not tagged with the kosztorys
+// tables: those move on every investment's edit anywhere (EX-849).
 export const getPresets = unstable_cache(
   async (): Promise<PresetMetaT[]> => {
     const payload = await getPayload({ config })
@@ -66,18 +67,11 @@ export async function getPresetRows(): Promise<PresetRowT[]> {
   })
 }
 
-// Everything /szablony/[id] needs in one round trip. `investmentId` is only set when the workbench
-// actually holds this szablon — otherwise a stale tab would render whatever it last held under this
-// name. Read-only: provisioning happens in the „Otwórz" action, never on page render.
-export type WorkshopViewT = { presetName: string; investmentId: number | null }
-
-export async function getWorkshopView(presetId: number): Promise<WorkshopViewT | null> {
+// Uncached: a szablon created a moment ago must render before its `presets` expiry lands.
+export async function getTemplateView(id: number): Promise<{ name: string } | null> {
   const payload = await getPayload({ config })
-  const db = await getDb(payload)
-  const [presetName, workshop] = await Promise.all([getPresetName(db, presetId), getWorkshop(db)])
-  if (presetName == null) return null
-
-  return { presetName, investmentId: workshop?.presetId === presetId ? workshop.id : null }
+  const name = await getPresetName(await getDb(payload), id)
+  return name == null ? null : { name }
 }
 
 // Uncached, like the page title: „Nowy szablon" navigates before its `presets` expiry lands (it runs

@@ -27,7 +27,7 @@ export function KosztorysAddMenu() {
     handleAddSection,
     handleAppendedSections,
     handleAddStage,
-    isWorkshop,
+    isTemplate,
   } = useKosztorysEditorContext()
   const openCataloguePicker = useCataloguePicker()
   // Owned here, OUTSIDE the dropdown content: the menu unmounts on close, so a dialog rendered inside
@@ -79,7 +79,7 @@ export function KosztorysAddMenu() {
               forced the same way: an unassigned etap is a legitimate resting state (it earns its own
               residual row), so it is picked later from the etap header, not here. */}
           {/* A szablon carries no etapy, so the workbench has nothing to open one on. */}
-          {!isWorkshop &&
+          {!isTemplate &&
             TOOL_PLANES.map((plane) => (
               <DropdownMenuItem key={plane} onSelect={() => handleAddStage(plane)}>
                 {planeIcon(plane)}

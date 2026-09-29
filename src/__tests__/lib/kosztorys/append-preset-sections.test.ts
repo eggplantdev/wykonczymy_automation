@@ -1,13 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
-import { sql } from '@payloadcms/db-vercel-postgres'
-import { getDb } from '@/lib/db/get-db'
 import { serializeKosztorys } from '@/lib/kosztorys/serialize-kosztorys'
-import { serializeKosztorysAsPreset } from '@/lib/kosztorys/serialize-preset'
-import { insertPreset } from '@/lib/db/presets'
 import { appendPresetSectionsAction } from '@/lib/actions/kosztorys-presets'
 import type { SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
+import { createTestTemplate } from '@/__tests__/helpers/template'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
 // Same discipline as serialize-apply-preset: exercise against the REAL DB and assert PERSISTED state
@@ -26,7 +23,6 @@ const PRESET_PREFIX = 'append-spec-'
 
 describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
   let payload: Payload
-  let db: Awaited<ReturnType<typeof getDb>>
   const investmentIds: number[] = []
 
   async function createInvestment(name: string) {
@@ -68,19 +64,13 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
     return sectionIds[0]
   }
 
-  // Build a source investment with one named section, serialize it as a preset, store it, and return
-  // the preset id + the in-payload section id the picker/action addresses it by.
+  // A szablon with one named section whose live tree carries przedmiar and rabat — the append must
+  // strip both. Returns the live section id the picker addresses it by.
   async function buildPreset(nameSuffix: string, sectionName: string, color: string | null = null) {
-    const sourceId = await createInvestment(`${PRESET_PREFIX}src-${nameSuffix}`)
-    await addSection(sourceId, sectionName, 0, color)
-    const payloadSnap = await serializeKosztorysAsPreset(sourceId)
-    const presetId = await insertPreset(db, {
-      name: `${PRESET_PREFIX}${nameSuffix}`,
-      createdBy: null,
-      payload: payloadSnap,
-    })
-    const sectionId = payloadSnap.sections[0].id
-    return { presetId: presetId!, sectionId }
+    const presetId = await createTestTemplate(payload, `${PRESET_PREFIX}${nameSuffix}`)
+    investmentIds.push(presetId)
+    const sectionId = await addSection(presetId, sectionName, 0, color)
+    return { sectionId }
   }
 
   const sectionsByOrder = (tree: SnapshotPayloadT) =>
@@ -90,23 +80,21 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
     const { getPayload } = await import('payload')
     const config = (await import('@payload-config')).default
     payload = await getPayload({ config })
-    db = await getDb(payload)
   })
 
   afterAll(async () => {
     for (const id of investmentIds) {
       await deleteTestInvestment(payload, id)
     }
-    await db.execute(sql`DELETE FROM kosztorys_presets WHERE name LIKE ${PRESET_PREFIX + '%'}`)
   })
 
   it('(a) appends a section after existing ones, values intact and job fields zeroed', async () => {
-    const { presetId, sectionId } = await buildPreset('a', 'Malowanie')
+    const { sectionId } = await buildPreset('a', 'Malowanie')
 
     const targetId = await createInvestment(`${PRESET_PREFIX}target-a`)
     await addSection(targetId, 'Istniejąca', 0)
 
-    const result = await appendPresetSectionsAction(targetId, [{ presetId, sectionId }])
+    const result = await appendPresetSectionsAction(targetId, [sectionId])
     expect(result.success).toBe(true)
 
     const after = await serializeKosztorys(targetId)
@@ -134,10 +122,7 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
     const second = await buildPreset('b2', 'Sekcja B2')
 
     const targetId = await createInvestment(`${PRESET_PREFIX}target-b`)
-    const result = await appendPresetSectionsAction(targetId, [
-      { presetId: first.presetId, sectionId: first.sectionId },
-      { presetId: second.presetId, sectionId: second.sectionId },
-    ])
+    const result = await appendPresetSectionsAction(targetId, [first.sectionId, second.sectionId])
     expect(result.success).toBe(true)
 
     const after = await serializeKosztorys(targetId)
@@ -147,10 +132,10 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
   })
 
   it('(c) appends into an empty kosztorys (no empty-guard)', async () => {
-    const { presetId, sectionId } = await buildPreset('c', 'Sekcja C')
+    const { sectionId } = await buildPreset('c', 'Sekcja C')
 
     const targetId = await createInvestment(`${PRESET_PREFIX}target-c`)
-    const result = await appendPresetSectionsAction(targetId, [{ presetId, sectionId }])
+    const result = await appendPresetSectionsAction(targetId, [sectionId])
     expect(result.success).toBe(true)
 
     const after = await serializeKosztorys(targetId)
@@ -160,13 +145,13 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
   })
 
   it('(d) unknown sectionId → error and nothing persisted', async () => {
-    const { presetId } = await buildPreset('d', 'Sekcja D')
+    await buildPreset('d', 'Sekcja D')
 
     const targetId = await createInvestment(`${PRESET_PREFIX}target-d`)
     await addSection(targetId, 'Nietknięta', 0)
     const before = await serializeKosztorys(targetId)
 
-    const result = await appendPresetSectionsAction(targetId, [{ presetId, sectionId: 999_999 }])
+    const result = await appendPresetSectionsAction(targetId, [999_999])
     expect(result.success).toBe(false)
 
     const after = await serializeKosztorys(targetId)
@@ -176,12 +161,12 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
   })
 
   it('(e) appending a section whose name already exists in the target succeeds', async () => {
-    const { presetId, sectionId } = await buildPreset('e', 'Łazienka')
+    const { sectionId } = await buildPreset('e', 'Łazienka')
 
     const targetId = await createInvestment(`${PRESET_PREFIX}target-e`)
     await addSection(targetId, 'Łazienka', 0)
 
-    const result = await appendPresetSectionsAction(targetId, [{ presetId, sectionId }])
+    const result = await appendPresetSectionsAction(targetId, [sectionId])
     expect(result.success).toBe(true)
 
     const after = await serializeKosztorys(targetId)
@@ -192,10 +177,10 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
   // section table (here `color`) silently never round-tripped — the preset kept the colour, the
   // appended copy came back unpinned.
   it('(f) the section colour survives the preset round trip', async () => {
-    const { presetId, sectionId } = await buildPreset('f', 'Sekcja F', 'teal-deep')
+    const { sectionId } = await buildPreset('f', 'Sekcja F', 'teal-deep')
 
     const targetId = await createInvestment(`${PRESET_PREFIX}target-f`)
-    const result = await appendPresetSectionsAction(targetId, [{ presetId, sectionId }])
+    const result = await appendPresetSectionsAction(targetId, [sectionId])
     expect(result.success).toBe(true)
 
     const after = await serializeKosztorys(targetId)
@@ -203,12 +188,25 @@ describe.skipIf(!ENV_READY)('appendPresetSections (DB)', () => {
   })
 
   it('(g) an unpinned section round-trips as unpinned, not as a dropped column', async () => {
-    const { presetId, sectionId } = await buildPreset('g', 'Sekcja G')
+    const { sectionId } = await buildPreset('g', 'Sekcja G')
 
     const targetId = await createInvestment(`${PRESET_PREFIX}target-g`)
-    await appendPresetSectionsAction(targetId, [{ presetId, sectionId }])
+    await appendPresetSectionsAction(targetId, [sectionId])
 
     const after = await serializeKosztorys(targetId)
     expect(after.sections.find((s) => s.name === 'Sekcja G')?.color).toBeNull()
+  })
+
+  // A section id names its investment on its own, so an ordinary investment's section must not be
+  // copyable by guessing its id — only a szablon is a source.
+  it('(h) refuses a section of an ordinary investment and persists nothing', async () => {
+    const sourceId = await createInvestment(`${PRESET_PREFIX}not-a-template`)
+    const sectionId = await addSection(sourceId, 'Klienta', 0)
+
+    const targetId = await createInvestment(`${PRESET_PREFIX}target-h`)
+    const result = await appendPresetSectionsAction(targetId, [sectionId])
+
+    expect(result).toEqual({ success: false, error: 'Nie znaleziono sekcji w szablonie' })
+    expect((await serializeKosztorys(targetId)).sections).toHaveLength(0)
   })
 })

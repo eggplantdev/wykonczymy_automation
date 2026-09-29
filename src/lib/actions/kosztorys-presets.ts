@@ -1,236 +1,220 @@
 'use server'
 
+import { sql } from '@payloadcms/db-vercel-postgres'
 import { z } from 'zod'
 import { investmentAction } from '@/lib/actions/investment-action'
-import { mirrorWorkshopPreset } from '@/lib/kosztorys/mirror-workshop-preset'
 import { ownerOnlyAction } from '@/lib/actions/owner-only-action'
 import { protectedAction, validateAction } from '@/lib/actions/run-action'
-import { expireCollectionsAfterResponse, revalidateCollections } from '@/lib/cache/revalidate'
+import { expireCollectionsAfterResponse } from '@/lib/cache/revalidate'
 import { KOSZTORYS_TREE_TAGS } from '@/lib/cache/tags'
 import { getDb } from '@/lib/db/get-db'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import {
-  deletePreset,
-  getPreset,
-  insertPreset,
+  isTemplateInvestment,
+  markPresetEdited,
   renamePreset,
-  upsertPresetByName,
+  templateOwnersOfSections,
 } from '@/lib/db/presets'
-import { getWorkshop } from '@/lib/db/workshop-investment'
 import {
   appendPresetSections,
   type AppendedSliceT,
   type SectionSliceT,
 } from '@/lib/kosztorys/append-preset-sections'
-import { DEFAULT_COEFFS, DEFAULT_VAT } from '@/lib/kosztorys/constants'
+import { createTemplate } from '@/lib/kosztorys/create-template'
 import {
   reloadInvestmentFromPreset,
   type ReloadFromPresetResultT,
 } from '@/lib/kosztorys/reload-from-preset'
-import { openPresetInWorkshop, type WorkshopTreeT } from '@/lib/kosztorys/open-preset-in-workshop'
-import { emptySnapshotPayload } from '@/lib/kosztorys/snapshot-format'
+import { replaceTreeWithSnapshot } from '@/lib/kosztorys/replace-tree-with-snapshot'
+import type { SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 import { serializeKosztorysAsPreset } from '@/lib/kosztorys/serialize-preset'
 import type { ActionResultT } from '@/types/action'
 
-const savePresetSchema = z.object({
-  name: z.string().trim().min(1, 'Podaj nazwę szablonu'),
-  mode: z.enum(['new', 'overwrite']),
-})
+const nameSchema = z.string().trim().min(1, 'Podaj nazwę szablonu')
+const idSchema = z.number().int().positive()
 
 const NAME_TAKEN_MESSAGE = 'Szablon o tej nazwie już istnieje'
+const TEMPLATE_NOT_FOUND = 'Nie znaleziono szablonu'
 
-// "Zapisz jako preset" — serialize with job fields stripped, store under a name. `mode: 'new'`
-// inserts (rejected if taken); `mode: 'overwrite'` upserts in place. Only writer of presets, so it
-// owns invalidating the cached picker read (getPresets).
+// The hooks' own revalidation would fire per write and inside the transaction; each action expires
+// what it changed itself.
+const SKIP_HOOK_REVALIDATION = { skipRevalidation: true }
+
+export type SavePresetInputT =
+  | { mode: 'new'; name: string }
+  | { mode: 'overwrite'; targetId: number }
+
+const savePresetSchema = z.discriminatedUnion('mode', [
+  z.object({ mode: z.literal('new'), name: nameSchema }),
+  z.object({ mode: z.literal('overwrite'), targetId: idSchema }),
+])
+
+const preOverwriteLabel = (sourceName: string) => `Przed nadpisaniem: ${sourceName}`
+
+// „Zapisz jako szablon" — the source's rozpiska with job fields stripped. `new` founds a szablon;
+// `overwrite` replaces an existing one's tree, leaving a restore point on it, so the overwrite is
+// undoable from that szablon's „Wersje".
+//
+// Deliberately ungated by the source's lock: a szablon is not a change to the source, and a finished
+// kosztorys is a good source for one.
 export async function savePresetAction(
   investmentId: number,
-  name: string,
-  mode: 'new' | 'overwrite',
+  input: SavePresetInputT,
 ): Promise<ActionResultT> {
-  // Deliberately ungated: a preset is a GLOBAL template, not a change to the investment — and a
-  // finished kosztorys is a good source for one.
   return protectedAction(
     'savePresetAction',
     async ({ payload, user }) => {
-      const parsed = validateAction(savePresetSchema, { name, mode })
+      const parsed = validateAction(savePresetSchema, input)
       if (!parsed.success) return parsed
+      const data = parsed.data
 
-      const db = await getDb(payload)
-      const preset = await serializeKosztorysAsPreset(investmentId)
-
-      if (parsed.data.mode === 'overwrite') {
-        await upsertPresetByName(db, {
-          name: parsed.data.name,
-          createdBy: user.id,
-          payload: preset,
-        })
+      if (data.mode === 'new') {
+        const created = await withPayloadTransaction(
+          payload,
+          async (req) =>
+            createTemplate(payload, req, {
+              name: data.name,
+              tree: await serializeKosztorysAsPreset(investmentId, req),
+            }),
+          SKIP_HOOK_REVALIDATION,
+        )
+        if (created === 'name-taken') return { success: false, error: NAME_TAKEN_MESSAGE }
         return { success: true }
       }
 
-      const id = await insertPreset(db, {
-        name: parsed.data.name,
-        createdBy: user.id,
-        payload: preset,
+      if (data.targetId === investmentId) {
+        return { success: false, error: 'Szablonu nie nadpisuje się nim samym' }
+      }
+      const db = await getDb(payload)
+      if (!(await isTemplateInvestment(db, data.targetId))) {
+        return { success: false, error: TEMPLATE_NOT_FOUND }
+      }
+      const sourceName = await db.execute(
+        sql`SELECT name FROM investments WHERE id = ${investmentId}`,
+      )
+      await replaceTreeWithSnapshot(payload, {
+        investmentId: data.targetId,
+        label: preOverwriteLabel(String(sourceName.rows[0]?.name ?? '')),
+        takenBy: user.id,
+        tree: await serializeKosztorysAsPreset(investmentId),
+        clearGlobalDiscount: true,
       })
-      if (id == null) return { success: false, error: NAME_TAKEN_MESSAGE }
+      await markPresetEdited(db, data.targetId)
       return { success: true }
     },
     ['presets'],
   )
 }
 
-const createEmptyPresetSchema = z.object({ name: savePresetSchema.shape.name })
-
-// The second way a szablon is born, and the only one that needs no source kosztorys: an empty tree
-// the user then builds in the warsztat. Same power as savePresetAction — writing into the library,
-// not destroying it — so the same `protectedAction` gate.
-//
-// `settings` is inert here (a preset's VAT/coeffs are retained but never applied on load), yet the
-// payload type demands it; it takes the defaults rather than invented numbers so nothing reads as a
-// second source of truth for a rate.
+// The only way a szablon is born without a source kosztorys: an empty tree the user then builds on
+// its own page.
 export async function createEmptyPresetAction(
   name: string,
 ): Promise<ActionResultT<{ id: number }>> {
-  return protectedAction('createEmptyPresetAction', async ({ payload, user }) => {
-    const parsed = validateAction(createEmptyPresetSchema, { name })
+  return protectedAction('createEmptyPresetAction', async ({ payload }) => {
+    const parsed = validateAction(z.object({ name: nameSchema }), { name })
     if (!parsed.success) return parsed
 
-    const id = await insertPreset(await getDb(payload), {
-      name: parsed.data.name,
-      createdBy: user.id,
-      payload: emptySnapshotPayload({
-        wToolsCoeff: DEFAULT_COEFFS.wTools,
-        ownToolsCoeff: DEFAULT_COEFFS.ownTools,
-        vatRate: DEFAULT_VAT,
-      }),
-    })
-    if (id == null) return { success: false, error: NAME_TAKEN_MESSAGE }
+    const created = await withPayloadTransaction(
+      payload,
+      (req) => createTemplate(payload, req, { name: parsed.data.name }),
+      SKIP_HOOK_REVALIDATION,
+    )
+    if (created === 'name-taken') return { success: false, error: NAME_TAKEN_MESSAGE }
     // After the response: the dialog navigates away at once, and an inline expiry would first
     // re-render /szablony inside this POST for a list nobody is looking at (lessons.md, EX-597).
     expireCollectionsAfterResponse(['presets'])
-    return { success: true, data: { id } }
+    return { success: true, data: created }
   })
 }
 
-// Destroying a shared library entry is a different power from writing into it: savePresetAction
-// stays open to MANAGEMENT_ROLES, these two do not.
+// Destroying a szablon is a different power from writing into one: savePresetAction stays open to
+// MANAGEMENT_ROLES, these two do not.
 const OWNER_ONLY_PRESET_MESSAGE =
   'Tylko właściciel lub administrator może usuwać i przemianowywać szablony.'
 
-const presetIdSchema = z.object({ id: z.number().int().positive() })
+const presetIdSchema = z.object({ id: idSchema })
 
-// Irreversible, and nothing warns — the only FK into kosztorys_presets is the warsztat's pointer,
-// which ON DELETE SET NULL quietly clears (see deletePreset).
+// Irreversible: the DB cascade takes the szablon's tree and its restore points with it. Through
+// `payload.delete` rather than raw SQL, like every other investment delete.
 export async function deletePresetAction(id: number): Promise<ActionResultT> {
-  return ownerOnlyAction('deletePresetAction', OWNER_ONLY_PRESET_MESSAGE, async ({ payload }) => {
-    const parsed = validateAction(presetIdSchema, { id })
-    if (!parsed.success) return parsed
+  return ownerOnlyAction(
+    'deletePresetAction',
+    OWNER_ONLY_PRESET_MESSAGE,
+    async ({ payload }) => {
+      const parsed = validateAction(presetIdSchema, { id })
+      if (!parsed.success) return parsed
 
-    const deleted = await deletePreset(await getDb(payload), parsed.data.id)
-    if (!deleted) return { success: false, error: 'Nie znaleziono szablonu' }
-    // `ownerOnlyAction` takes no revalidate-tags argument (it wraps protectedAction without one), so
-    // the cache write is the handler's job — precedent: revalidateNotificationRecipients().
-    revalidateCollections(['presets'])
-    return { success: true }
-  })
+      if (!(await isTemplateInvestment(await getDb(payload), parsed.data.id))) {
+        return { success: false, error: TEMPLATE_NOT_FOUND }
+      }
+      await payload.delete({
+        collection: 'investments',
+        id: parsed.data.id,
+        overrideAccess: true,
+        context: SKIP_HOOK_REVALIDATION,
+      })
+      return { success: true }
+    },
+    ['presets'],
+  )
 }
 
-const renamePresetSchema = presetIdSchema.extend({
-  name: savePresetSchema.shape.name,
-})
-
-// The name IS the szablon's identity (UNIQUE, and the only thing the pickers show), so this is an
+// The name IS the szablon's identity (unique, and the only thing the pickers show), so this is an
 // identity change, not cosmetics.
 export async function renamePresetAction(id: number, name: string): Promise<ActionResultT> {
-  return ownerOnlyAction('renamePresetAction', OWNER_ONLY_PRESET_MESSAGE, async ({ payload }) => {
-    const parsed = validateAction(renamePresetSchema, { id, name })
-    if (!parsed.success) return parsed
+  return ownerOnlyAction(
+    'renamePresetAction',
+    OWNER_ONLY_PRESET_MESSAGE,
+    async ({ payload }) => {
+      const parsed = validateAction(presetIdSchema.extend({ name: nameSchema }), { id, name })
+      if (!parsed.success) return parsed
 
-    const renamed = await renamePreset(await getDb(payload), parsed.data.id, parsed.data.name)
-    if (!renamed) return { success: false, error: NAME_TAKEN_MESSAGE }
-    revalidateCollections(['presets'])
-    return { success: true }
-  })
+      const renamed = await renamePreset(await getDb(payload), parsed.data.id, parsed.data.name)
+      if (!renamed) return { success: false, error: NAME_TAKEN_MESSAGE }
+      return { success: true }
+    },
+    ['presets'],
+  )
 }
 
-// No tags, and nothing expired before the response: any invalidation inside the action re-renders
-// the calling route and wipes the client prefetch cache (lessons.md, EX-597). The only cached reader
-// this can change is the szablon library, and only when the eviction changed the outgoing copy.
-export async function openPresetInWorkshopAction(
-  presetId: number,
-): Promise<ActionResultT<WorkshopTreeT>> {
-  return protectedAction('openPresetInWorkshopAction', async ({ payload }) => {
-    const parsed = validateAction(presetIdSchema, { id: presetId })
-    if (!parsed.success) return parsed
-
-    const opened = await openPresetInWorkshop(payload, { presetId: parsed.data.id })
-    if (!opened) return { success: false, error: 'Nie znaleziono szablonu' }
-
-    if (opened.libraryChanged) expireCollectionsAfterResponse(['presets'])
-    return { success: true, data: { investmentId: opened.investmentId, tree: opened.tree } }
-  })
-}
-
-// The tail-closer: the mirror's throttle loses the last change by definition, because no further
-// mutation follows to carry it in. Called on idle and on leaving the workbench, so unconditional
-// (`force`) and fire-and-forget — success is silent, exactly as it is on an investment.
-//
-// The pointer guard sits inside the mirror's transaction: the workbench is one row shared by
-// everyone, so between the render and this flush someone may have opened a different szablon.
-export async function flushWorkshopPresetAction(presetId: number): Promise<ActionResultT> {
-  return protectedAction('flushWorkshopPresetAction', async ({ payload }) => {
-    const parsed = validateAction(presetIdSchema, { id: presetId })
-    if (!parsed.success) return parsed
-
-    const workshop = await getWorkshop(await getDb(payload))
-    if (!workshop) return { success: false, error: 'Warsztat szablonów jest pusty' }
-
-    await mirrorWorkshopPreset(payload, {
-      investmentId: workshop.id,
-      templatePresetId: parsed.data.id,
-      force: true,
-    })
-    return { success: true }
-  })
-}
+const SECTION_NOT_IN_TEMPLATE = 'Nie znaleziono sekcji w szablonie'
 
 const appendSectionsSchema = z.object({
   investmentId: z.number().int().positive(),
-  selections: z
-    .array(
-      z.object({ presetId: z.number().int().positive(), sectionId: z.number().int().positive() }),
-    )
-    .min(1, 'Wybierz co najmniej jedną sekcję'),
+  sectionIds: z.array(z.number().int().positive()).min(1, 'Wybierz co najmniej jedną sekcję'),
 })
 
-// Appends chosen sections (preset id + in-payload section id) to a kosztorys. Payloads are resolved
-// server-side via `getPreset` — the client sends only ids, so it can't inject section data. Runs in
-// one transaction, returning the created slice with new ids for optimistic patching.
+// Appends chosen szablon sections to a kosztorys. The client sends live section ids only; the server
+// resolves which szablon owns each and reads it through the preset serializer, so neither a forged
+// tree nor a section of an ordinary investment can reach the target. Runs in one transaction,
+// returning the created slice with new ids for optimistic patching.
 export async function appendPresetSectionsAction(
   investmentId: number,
-  selections: { presetId: number; sectionId: number }[],
+  sectionIds: number[],
 ): Promise<ActionResultT<AppendedSliceT>> {
   return investmentAction(
     'appendPresetSectionsAction',
     { investmentId },
     async ({ payload }) => {
-      const parsed = validateAction(appendSectionsSchema, { investmentId, selections })
+      const parsed = validateAction(appendSectionsSchema, { investmentId, sectionIds })
       if (!parsed.success) return parsed
 
-      // Resolve each preset payload once (a preset can contribute several sections), preserving the
-      // client's selection order so appended sections land in the order he picked them.
-      const presetCache = new Map<number, Awaited<ReturnType<typeof getPreset>>>()
-      const db = await getDb(payload)
+      const owners = await templateOwnersOfSections(await getDb(payload), parsed.data.sectionIds)
+      // A szablon can contribute several sections, so each is serialized once; the loop keeps the
+      // client's order so appended sections land in the order they were picked.
+      const trees = new Map<number, SnapshotPayloadT>()
       const slices: SectionSliceT[] = []
-      for (const { presetId, sectionId } of parsed.data.selections) {
-        if (!presetCache.has(presetId)) presetCache.set(presetId, await getPreset(db, presetId))
-        const preset = presetCache.get(presetId)
-        if (!preset) return { success: false, error: 'Nie znaleziono szablonu' }
-
-        const section = (preset.payload.sections ?? []).find((s) => s.id === sectionId)
-        if (!section) return { success: false, error: 'Nie znaleziono sekcji w szablonie' }
-        const items = (preset.payload.items ?? []).filter((it) => it.sectionId === sectionId)
-        slices.push({ section, items })
+      for (const sectionId of parsed.data.sectionIds) {
+        const templateId = owners.get(sectionId)
+        if (templateId == null) return { success: false, error: SECTION_NOT_IN_TEMPLATE }
+        if (!trees.has(templateId)) {
+          trees.set(templateId, await serializeKosztorysAsPreset(templateId))
+        }
+        const tree = trees.get(templateId)!
+        const section = tree.sections.find((s) => s.id === sectionId)
+        if (!section) return { success: false, error: SECTION_NOT_IN_TEMPLATE }
+        slices.push({ section, items: tree.items.filter((it) => it.sectionId === sectionId) })
       }
 
       const created = await withPayloadTransaction(
@@ -267,7 +251,7 @@ export async function reloadFromPresetAction(
         presetId: parsed.data.presetId,
         takenBy: user.id,
       })
-      if (!data) return { success: false, error: 'Nie znaleziono szablonu' }
+      if (!data) return { success: false, error: TEMPLATE_NOT_FOUND }
       return { success: true, data }
     },
     [...KOSZTORYS_TREE_TAGS],

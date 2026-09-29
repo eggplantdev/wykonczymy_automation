@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { revalidateCollections } from '@/__tests__/stubs/cache-revalidate'
+import {
+  expireCollectionsAfterResponse,
+  revalidateCollections,
+} from '@/__tests__/stubs/cache-revalidate'
 
 // The wrapper is the kosztorys plane's only chokepoint (raw SQL bypasses hooks and `access`), so
 // three things are asserted: it refuses on a locked investment, it resolves a row id to its
@@ -10,12 +13,12 @@ vi.mock('server-only', () => ({}))
 
 const lockState = vi.hoisted(() => ({
   lockMessage: undefined as string | undefined,
-  templatePresetId: null as number | null,
+  isTemplate: false,
   rowOwner: undefined as
-    | { investmentId: number; lockMessage: string | undefined; templatePresetId: number | null }
+    | { investmentId: number; lockMessage: string | undefined; isTemplate: boolean }
     | undefined,
 }))
-const mirrorWorkshopPreset = vi.hoisted(() => vi.fn())
+const markPresetEdited = vi.hoisted(() => vi.fn())
 
 vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: vi.fn(async () => ({
@@ -33,11 +36,11 @@ vi.mock('@/lib/db/get-db', () => ({ getDb: vi.fn(async () => ({ execute: vi.fn()
 vi.mock('@/lib/db/investment-gate', () => ({
   investmentGateFor: vi.fn(async () => ({
     lockMessage: lockState.lockMessage,
-    templatePresetId: lockState.templatePresetId,
+    isTemplate: lockState.isTemplate,
   })),
   investmentGateForRow: vi.fn(async () => lockState.rowOwner),
 }))
-vi.mock('@/lib/kosztorys/mirror-workshop-preset', () => ({ mirrorWorkshopPreset }))
+vi.mock('@/lib/db/presets', () => ({ markPresetEdited }))
 
 const { investmentAction } = await import('@/lib/actions/investment-action')
 const { INVESTMENT_LOCKED_MESSAGE, INVESTMENT_TRASHED_MESSAGE } =
@@ -47,10 +50,11 @@ const { investmentGateFor, investmentGateForRow } = await import('@/lib/db/inves
 describe('investmentAction', () => {
   beforeEach(() => {
     lockState.lockMessage = undefined
-    lockState.templatePresetId = null
-    lockState.rowOwner = { investmentId: 5, lockMessage: undefined, templatePresetId: null }
+    lockState.isTemplate = false
+    lockState.rowOwner = { investmentId: 5, lockMessage: undefined, isTemplate: false }
     revalidateCollections.mockClear()
-    mirrorWorkshopPreset.mockClear()
+    expireCollectionsAfterResponse.mockClear()
+    markPresetEdited.mockClear()
     vi.mocked(investmentGateFor).mockClear()
     vi.mocked(investmentGateForRow).mockClear()
   })
@@ -90,7 +94,7 @@ describe('investmentAction', () => {
     lockState.rowOwner = {
       investmentId: 5,
       lockMessage: INVESTMENT_LOCKED_MESSAGE,
-      templatePresetId: null,
+      isTemplate: false,
     }
     const handler = vi.fn(async () => ({ success: true as const }))
     const result = await investmentAction('t', { kind: 'item', id: 3 }, handler)
@@ -119,27 +123,32 @@ describe('investmentAction', () => {
     expect(revalidateCollections).toHaveBeenCalledWith(['kosztorysItems'], { deferRefresh: true })
   })
 
-  // The szablon autosave hangs off the same point as the lock, so an ordinary investment must not
-  // even hear about it — otherwise every mutation in the app would pay to serialize a foreign tree.
-  it('mirrors into the szablon only when the target is the warsztat', async () => {
+  // The szablon list sorts by „ostatnio edytowany", so a write into a szablon owes it a fresh stamp —
+  // and an ordinary investment must not pay for that on every mutation in the app.
+  it('stamps the szablon as edited only when the target is a szablon', async () => {
     await investmentAction('t', { investmentId: 5 }, async () => ({ success: true }))
-    expect(mirrorWorkshopPreset).not.toHaveBeenCalled()
+    expect(markPresetEdited).not.toHaveBeenCalled()
+    expect(expireCollectionsAfterResponse).not.toHaveBeenCalled()
 
-    lockState.templatePresetId = 42
+    lockState.isTemplate = true
     await investmentAction('t', { investmentId: 5 }, async () => ({ success: true }))
-    expect(mirrorWorkshopPreset).toHaveBeenCalledWith(expect.anything(), {
-      investmentId: 5,
-      templatePresetId: 42,
-    })
+    expect(markPresetEdited).toHaveBeenCalledWith(expect.anything(), 5)
+    expect(expireCollectionsAfterResponse).toHaveBeenCalledWith(['presets'])
   })
 
-  it('does not mirror a handler that failed', async () => {
-    lockState.templatePresetId = 42
+  it('stamps the owning szablon of a row write', async () => {
+    lockState.rowOwner = { investmentId: 9, lockMessage: undefined, isTemplate: true }
+    await investmentAction('t', { kind: 'item', id: 3 }, async () => ({ success: true }))
+    expect(markPresetEdited).toHaveBeenCalledWith(expect.anything(), 9)
+  })
+
+  it('does not stamp a handler that failed', async () => {
+    lockState.isTemplate = true
     await investmentAction('t', { investmentId: 5 }, async () => ({
       success: false,
       error: 'nie',
     }))
-    expect(mirrorWorkshopPreset).not.toHaveBeenCalled()
+    expect(markPresetEdited).not.toHaveBeenCalled()
   })
 
   it('does not revalidate when the lock refuses', async () => {
