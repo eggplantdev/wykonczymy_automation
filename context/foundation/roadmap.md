@@ -626,7 +626,7 @@ Kept for the record; pulled out of the numbered sequence because they carry no e
   woła natywny dialog druku, więc spec Playwrighta przypinałby albo `about:blank`, albo atrapę
   `window.print` — czyli nie to, co ma ochronę. Co jest testowalne — lista kolumn ograniczona
   sufitem `PREVIEW_VISIBLE_COLUMNS`, filtr klienta, sumy — ma spece jednostkowe
-  (`build-offer-print-html.test.ts`). Weryfikacja samego papieru zostaje manualna.
+  (`print/offer.test.ts`). Weryfikacja samego papieru zostaje manualna.
 - **Outcome (dropped, except the offer print):** the owner can print/PDF, CSV-export, or hand the
   client a live formula sheet of a kosztorys.
 - **Change ID:** kosztorys-export. **PRD refs:** FR-008 — **unimplemented**, deliberately, by this cut.

@@ -1757,10 +1757,10 @@ co było otwarte wcześniej.
       brutto, nie pokazuje jej ani w podglądzie, ani w linku, ani w PDF.
       **Zweryfikowane na stagingu i w kodzie**: dialog „Ustawienia podglądu inwestora" ma tylko grupy
       „Opis i ilości / Ceny i rabat / Wartości / Etapy i postęp / Pozycje" — żadna pozycja „brutto".
-      `PREVIEW_VISIBLE_COLUMNS` / `CLIENT_VIEW_GROUPS` w `src/lib/kosztorys/column-config.ts` (linia
-      ~200: „so a gross figure is not offered as a tick at all — and a stored tick for one fails
+      `PREVIEW_VISIBLE_COLUMNS` / `CLIENT_VIEW_GROUPS` w `src/lib/kosztorys/client-view/columns.ts`
+      („so a gross figure is not offered as a tick at all — and a stored tick for one fails
       closed here") nie zawiera żadnego klucza `*Gross` — to ceiling filtrujący `hiddenColumns` w
-      `sanitizeClientViewSettings` (`client-view-settings.ts`), więc klucz spoza ceiling jest
+      `sanitizeClientViewSettings` (`client-view/settings.ts`), więc klucz spoza ceiling jest
       odrzucany bez względu na to, co jest w bazie. Dowód na żywych danych: inw. 21 (302 poz., wiersz
       `kosztorys_client_view` sprzed zawężenia) ma w `hidden_columns` sześć kluczy brutto
       (`priceGross`, `discountAmountGross`, `plannedGross`, `gross`, `remainingGross`,

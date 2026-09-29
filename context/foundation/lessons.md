@@ -2183,7 +2183,7 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
   would be parameterised for exactly one consumer.
 - **Rule**: a caller count is a prompt to re-ask the extraction question, not its answer — what
   decides is how much of the SHAPE is common, not how many files duplicate a skeleton.
-- **Applies to**: dedup / `/simplify` passes over `build-offer-print-html.ts` vs `build-transfers-print-html.ts`.
+- **Applies to**: dedup / `/simplify` passes over `print/offer.ts` vs `build-transfers-print-html.ts`.
 
 ## Soft delete: pick the mechanism whose forgotten filter is harmless — Payload `trash: true` fails closed into Blob deletion
 
