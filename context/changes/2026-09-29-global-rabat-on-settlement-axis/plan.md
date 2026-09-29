@@ -325,14 +325,14 @@ stored 5000 stays until the owner re-types 5000 in „brutto" after deploy. Tell
 
 #### Automated
 
-- [x] 1.1 Round-trip spec passes
-- [x] 1.2 Settings hook spec still passes
+- [x] 1.1 Round-trip spec passes — 4b0cf124
+- [x] 1.2 Settings hook spec still passes — 4b0cf124
 
 ### Phase 2: Linked netto/brutto inputs
 
 #### Automated
 
-- [ ] 2.1 Pair-field spec passes
+- [x] 2.1 Pair-field spec passes
 
 ### Phase 3: „Historia zmian" shows the pair
 
