@@ -24,6 +24,9 @@ working, fix it here as part of the pass.
     external calls; `INV=<id>` picks the investment). `src/scripts/seed-kosztorys.ts` reads the **live**
     Google Sheet — only deliberately, and it wipes that investment's kosztorys. Other planes:
     `seed:deposits:test`, `seed:materials-net:test` (see AGENTS.md → Databases).
+  - Worker payouts (EX-919): `pnpm seed:worker-payouts` — two fabricated workers on four „Seed
+    wypłaty" investments covering payable, two workers + „Nieprzypisane", an etap without rozliczenie
+    and a zakończona inwestycja. Idempotent; refuses a non-localhost DB.
 - **Boot:** `NEXT_DIST_DIR=.next-e2e DB_POSTGRES_URL="$DB_POSTGRES_URL_TEST" pnpm exec next dev --turbo -p 3010`
   (after `set -a; source .env; set +a`). `.next-e2e` is gitignored — never use an un-ignored dist dir:
   Tailwind v4 scans the root and poisons the user's server CSS (`Parsing CSS source code failed`;

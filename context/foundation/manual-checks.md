@@ -2303,3 +2303,26 @@ kliknięciem.
       zostaje na liście.
 - [ ] Po powrocie sieci ta sama akcja (np. „Przenieś do kosza") przechodzi normalnie — toast
       sukcesu, bez komunikatu o braku połączenia.
+
+## EX-919 — worker-payout-remaining — „Pozostało do wypłaty" per pracownik i „Rozlicz wypłaty" (2026-09-29)
+
+Dane: `pnpm seed:worker-payouts` na bazie testowej (inwestycje „Seed wypłaty A–D", pracownicy Jan
+i Piotr Seedowy).
+
+- [ ] `/pracownicy`: kolumny „Wypłaty" już nie ma; w jej miejscu „Pozostało do wypłaty". U Jana
+      Seedowego to suma z „Seed wypłaty A" i „B" (bez zakończonej „D"), u Piotra suma z „B" i dopisek
+      „1 bez rozliczenia etapu".
+- [ ] Klik w kwotę u Jana otwiera „Rozlicz wypłaty — Jan Seedowy", a nie kartę pracownika. Wiersze
+      „Seed wypłaty A/B/D" mają Wykonane / Wypłacone / Pozostało; „D" jest wyszarzona z „Inwestycja
+      zakończona — przywróć na Aktywna, żeby wypłacić".
+- [ ] Wypłać „A" dokładnie, a „B" o 100 zł więcej: przy „B" jest czerwone „nadpłata" i zdanie
+      „… ponad wykonaną pracę — zapisze się jako zaliczka". „Razem" to suma obu kwot. Po „Wypłać"
+      dialog się zamyka, kolumna się odświeża, a w transakcjach są dwie wypłaty; opis drugiej
+      zawiera „w tym zaliczka 100,00 zł".
+- [ ] `/inwestycje` → „Pozostało do wypłaty" przy „Seed wypłaty B": dialog pokazuje Jana, Piotra
+      i szary wiersz „Nieprzypisane"; Pozostało wszystkich wierszy sumuje się do kwoty w komórce.
+- [ ] Przy „Seed wypłaty C" komórka pokazuje „ustaw etapy" i nie da się jej kliknąć.
+- [ ] Otwórz dialog w dwóch kartach, wypłać w drugiej, potem w pierwszej: pierwsza odmawia
+      z ostrzeżeniem, przeładowuje kwoty i zostaje otwarta; nic nie zostaje zapisane.
+- [ ] Jako MANAGER: kolumna i dialog działają tak samo.
+- [ ] (tylko produkcja) wypłaty pojawiają się w zakładce „transfery" arkusza właściciela.
