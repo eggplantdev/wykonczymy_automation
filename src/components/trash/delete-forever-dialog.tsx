@@ -9,15 +9,30 @@ import { deleteInvestmentForeverAction } from '@/lib/actions/investment-trash'
 import { toastMessage } from '@/lib/utils/toast'
 
 type PropsT = {
-  investment: { id: number; name: string; isKosztorysUsed: boolean }
+  investment: { id: number; name: string; isKosztorysUsed: boolean; isTemplate: boolean }
   open: boolean
   onClose: () => void
 }
 
-const LOST = 'kosztorys (pozycje i wersje), przypięcia zdjęć, link dla inwestora'
+const INVESTMENT_COPY = {
+  lost: 'kosztorys (pozycje i wersje), przypięcia zdjęć, link dla inwestora',
+  askReason: 'Kosztorys tej inwestycji jest w użyciu.',
+  nameLabel: 'Nazwa inwestycji',
+  deleted: 'Inwestycja usunięta na zawsze.',
+}
+
+// A szablon always asks for its name: its content is its whole value, and no Przedmiar ever makes it
+// „used".
+const TEMPLATE_COPY = {
+  lost: 'sekcje, pozycje i wersje szablonu',
+  askReason: 'Kosztorysy założone z tego szablonu zostają bez zmian.',
+  nameLabel: 'Nazwa szablonu',
+  deleted: 'Szablon usunięty na zawsze.',
+}
 
 export function DeleteForeverDialog({ investment, open, onClose }: PropsT) {
   const router = useRouter()
+  const copy = investment.isTemplate ? TEMPLATE_COPY : INVESTMENT_COPY
   const [typedName, setTypedName] = useState('')
   const [pending, startTransition] = useTransition()
 
@@ -30,18 +45,18 @@ export function DeleteForeverDialog({ investment, open, onClose }: PropsT) {
     startTransition(async () => {
       const res = await deleteInvestmentForeverAction(investment.id, typedName)
       if (!res.success) return toastMessage(res.error ?? 'Nie udało się usunąć inwestycji', 'error')
-      toastMessage('Inwestycja usunięta na zawsze.', 'success')
+      toastMessage(copy.deleted, 'success')
       close()
       router.refresh()
     })
   }
 
-  if (!investment.isKosztorysUsed) {
+  if (!investment.isKosztorysUsed && !investment.isTemplate) {
     return (
       <ConfirmDialog
         open={open}
         title="Usunąć na zawsze?"
-        description={`„${investment.name}" zniknie bezpowrotnie, razem z: ${LOST}.`}
+        description={`„${investment.name}" zniknie bezpowrotnie, razem z: ${copy.lost}.`}
         confirmLabel="Usuń na zawsze"
         onConfirm={onConfirm}
         onCancel={close}
@@ -56,7 +71,7 @@ export function DeleteForeverDialog({ investment, open, onClose }: PropsT) {
       open={open}
       onOpenChange={(next) => !next && close()}
       title="Usunąć na zawsze?"
-      description={`Kosztorys tej inwestycji jest w użyciu. Zniknie bezpowrotnie: ${LOST}. Wpisz nazwę „${investment.name}", żeby potwierdzić.`}
+      description={`Zniknie bezpowrotnie: ${copy.lost}. ${copy.askReason} Wpisz nazwę „${investment.name}", żeby potwierdzić.`}
       confirmLabel="Usuń na zawsze"
       onConfirm={onConfirm}
       confirmDisabled={!nameMatches}
@@ -67,7 +82,7 @@ export function DeleteForeverDialog({ investment, open, onClose }: PropsT) {
         value={typedName}
         onChange={(event) => setTypedName(event.target.value)}
         onKeyDown={(event) => event.key === 'Enter' && nameMatches && !pending && onConfirm()}
-        aria-label="Nazwa inwestycji"
+        aria-label={copy.nameLabel}
         autoFocus
       />
     </FormDialogShell>

@@ -15,10 +15,10 @@ vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
 const NAME = 'Mieszkanie Kowalskich'
 
-const renderDialog = (isKosztorysUsed: boolean) =>
+const renderDialog = (isKosztorysUsed: boolean, isTemplate = false) =>
   render(
     <DeleteForeverDialog
-      investment={{ id: 7, name: NAME, isKosztorysUsed }}
+      investment={{ id: 7, name: NAME, isKosztorysUsed, isTemplate }}
       open
       onClose={() => {}}
     />,
@@ -48,5 +48,16 @@ describe('DeleteForeverDialog', () => {
 
     expect(await screen.findByRole('button', { name: 'Usuń na zawsze' })).toBeEnabled()
     expect(screen.queryByLabelText('Nazwa inwestycji')).not.toBeInTheDocument()
+  })
+
+  it('asks for the name of a szablon even though its kosztorys is never used', async () => {
+    const user = userEvent.setup()
+    renderDialog(false, true)
+    const confirm = await screen.findByRole('button', { name: 'Usuń na zawsze' })
+    const input = screen.getByLabelText('Nazwa szablonu')
+
+    expect(confirm).toBeDisabled()
+    await user.type(input, NAME)
+    expect(confirm).toBeEnabled()
   })
 })

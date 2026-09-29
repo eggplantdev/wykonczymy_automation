@@ -356,15 +356,15 @@ Run once, after Phase 3:
 
 #### Automated
 
-- [x] 2.1 investment-trash.db.test.ts (actions) — szablon trash/restore by MANAGER; typed-name delete-forever with cascade
-- [x] 2.2 investment-trash.db.test.ts (db) — isTemplate flag; szablon purgeable past retention
-- [x] 2.3 purge-trash.db.test.ts — szablon past retention purged
-- [x] 2.4 kosztorys-presets.test.ts — deletePresetAction cases removed, suite green
+- [x] 2.1 investment-trash.db.test.ts (actions) — szablon trash/restore by MANAGER; typed-name delete-forever with cascade — 97a4377c
+- [x] 2.2 investment-trash.db.test.ts (db) — isTemplate flag; szablon purgeable past retention — 97a4377c
+- [x] 2.3 purge-trash.db.test.ts — szablon past retention purged — 97a4377c
+- [x] 2.4 kosztorys-presets.test.ts — deletePresetAction cases removed, suite green — 97a4377c
 
 ### Phase 3: /szablony and /kosz, plus docs
 
 #### Automated
 
-- [ ] 3.1 delete-forever-dialog.test.tsx — szablon always asks for the name
-- [ ] 3.2 trash-contents.test.tsx — sections per kind, page-level empty state
-- [ ] 3.3 preset-row-actions.test.tsx — confirm calls trashInvestmentAction
+- [x] 3.1 delete-forever-dialog.test.tsx — szablon always asks for the name
+- [x] 3.2 trash-contents.test.tsx — sections per kind, page-level empty state
+- [x] 3.3 preset-row-actions.test.tsx — confirm calls trashInvestmentAction

@@ -19,7 +19,10 @@ export function TrashedInvestmentActions({ investment }: { investment: TrashedIn
     startTransition(async () => {
       const res = await restoreInvestmentAction(investment.id)
       if (!res.success) return toastMessage(res.error ?? 'Nie udało się przywrócić', 'error')
-      toastMessage('Inwestycja przywrócona.', 'success')
+      toastMessage(
+        investment.isTemplate ? 'Szablon przywrócony.' : 'Inwestycja przywrócona.',
+        'success',
+      )
       router.refresh()
     })
   }

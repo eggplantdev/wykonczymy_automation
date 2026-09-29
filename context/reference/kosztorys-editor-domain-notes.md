@@ -1618,8 +1618,12 @@ ani wskaźnika „który szablon jest teraz otwarty". Cała seria błędów tamt
 localStorage, lustro, cache) musiał wiedzieć, który szablon warsztat akurat trzyma.
 
 - **Status jest nieodwołalny w obie strony.** Szablon rodzi się wyłącznie przez `createTemplate`,
-  a `guardTemplateStatus` odmawia nadania albo zdjęcia `szablon` przy edycji. Szablon nie trafia
-  do kosza — usuwa się go z listy szablonów, a kaskada zabiera drzewo i punkty przywracania.
+  a `guardTemplateStatus` odmawia nadania albo zdjęcia `szablon` przy edycji.
+- **Szablon trafia do kosza (EX-914)**, tą samą drogą co inwestycja. Znika wtedy z listy szablonów
+  i z każdego wyboru szablonu, a jego nazwa **zostaje zajęta** — próba jej użycia mówi, że szablon
+  jest w koszu. „Usuń na zawsze" zawsze wymaga wpisania nazwy, bo szablon nigdy nie ma Przedmiaru,
+  więc test „kosztorys w użyciu" by go nie złapał. Po 30 dniach usuwa go sprzątanie, a kaskada
+  zabiera drzewo i punkty przywracania. Kosztorysy założone z szablonu zostają — mają własną kopię.
 - **Nazwa jest tożsamością**: unikalna wśród szablonów bez względu na wielkość liter i spacje na
   brzegach (`investments_szablon_name_idx`).
 - **„Ostatnia edycja" na liście to `content_edited_at`**, nie `updated_at` — ten drugi jest tokenem
