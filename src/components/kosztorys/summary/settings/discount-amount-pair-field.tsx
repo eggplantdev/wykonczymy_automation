@@ -3,7 +3,8 @@
 import { type KeyboardEvent, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { DecimalInput } from '@/components/ui/decimal-input'
-import { toGross, toNet } from '@/lib/kosztorys/calc'
+import { discountNetFromGross, toGross, toNet } from '@/lib/kosztorys/calc'
+import { moneyText } from '@/lib/utils/decimal-text'
 import { parseDecimalInput } from '@/lib/utils/parse-decimal-input'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 
@@ -17,58 +18,42 @@ type PropsT = {
   onApply: (net: number) => void
 }
 
-const moneyText = (amount: number) => String(roundToCents(amount))
-
 function parsedAmount(raw: string): number | null {
   const parsed = parseDecimalInput(raw)
   return parsed.kind === 'value' && parsed.value >= 0 ? parsed.value : null
 }
 
-// The owner types the kwota on whichever axis the deal was agreed in; the other field shows its
-// counterpart live. Only the netto is stored, so a brutto entry commits `toNet` at full precision —
-// crossing through a grosz-rounded netto would re-gross a grosz off what was typed.
-// Commits only through „Zapisz" or Enter, never on blur, like DiscountValueField.
+// Only the netto is stored, so a brutto entry commits `discountNetFromGross` at six places — crossing
+// through a grosz-rounded netto would re-gross a grosz off what was typed.
 export function DiscountAmountPairField({ value, vatRate, disabled = false, onApply }: PropsT) {
   const storedNet = moneyText(value)
   const storedGross = moneyText(toGross(value, vatRate))
 
-  const [net, setNet] = useState(storedNet)
-  const [gross, setGross] = useState(storedGross)
-  const [edited, setEdited] = useState<AxisT | null>(null)
+  // The text typed on one axis; the other field is derived from it.
+  const [draft, setDraft] = useState<{ axis: AxisT; raw: string } | null>(null)
 
   // Undo, a rolled-back save, a mode reseed or a new stawka VAT all move the stored pair without
-  // touching these inputs — resync so neither shows a figure that is no longer stored.
+  // touching these inputs — drop the draft so neither shows a figure that is no longer stored.
   const seenKey = `${value}|${vatRate}`
   const [seen, setSeen] = useState(seenKey)
   if (seen !== seenKey) {
     setSeen(seenKey)
-    setNet(storedNet)
-    setGross(storedGross)
-    setEdited(null)
+    setDraft(null)
   }
 
-  function typeNet(raw: string) {
-    setNet(raw)
-    setEdited('net')
-    const amount = parsedAmount(raw)
-    setGross(amount == null ? '' : moneyText(toGross(amount, vatRate)))
-  }
-
-  function typeGross(raw: string) {
-    setGross(raw)
-    setEdited('gross')
-    const amount = parsedAmount(raw)
-    setNet(amount == null ? '' : moneyText(toNet(amount, vatRate)))
-  }
-
-  const typed = edited === 'net' ? parsedAmount(net) : edited === 'gross' ? parsedAmount(gross) : null
-  // Compared as text against the stored pair so „Zapisz" stays inert until something changed.
-  const changed = edited === 'net' ? net !== storedNet : gross !== storedGross
-  const canApply = typed != null && changed
+  const typed = draft == null ? null : parsedAmount(draft.raw)
+  const counterpart =
+    draft == null || typed == null
+      ? ''
+      : moneyText(draft.axis === 'net' ? toGross(typed, vatRate) : toNet(typed, vatRate))
+  const net = draft == null ? storedNet : draft.axis === 'net' ? draft.raw : counterpart
+  const gross = draft == null ? storedGross : draft.axis === 'gross' ? draft.raw : counterpart
+  const canApply =
+    draft != null && typed != null && draft.raw !== (draft.axis === 'net' ? storedNet : storedGross)
 
   function apply() {
-    if (!canApply || typed == null) return
-    onApply(edited === 'gross' ? toNet(typed, vatRate) : typed)
+    if (!canApply) return
+    onApply(draft.axis === 'gross' ? discountNetFromGross(typed, vatRate) : roundToCents(typed))
   }
 
   function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
@@ -83,7 +68,7 @@ export function DiscountAmountPairField({ value, vatRate, disabled = false, onAp
           value={net}
           placeholder="zł"
           disabled={disabled}
-          onChange={(e) => typeNet(e.target.value)}
+          onChange={(e) => setDraft({ axis: 'net', raw: e.target.value })}
           onKeyDown={onKeyDown}
           className="text-chart-green rounded-md"
         />
@@ -95,7 +80,7 @@ export function DiscountAmountPairField({ value, vatRate, disabled = false, onAp
           value={gross}
           placeholder="zł"
           disabled={disabled}
-          onChange={(e) => typeGross(e.target.value)}
+          onChange={(e) => setDraft({ axis: 'gross', raw: e.target.value })}
           onKeyDown={onKeyDown}
           className="text-chart-green rounded-md"
         />

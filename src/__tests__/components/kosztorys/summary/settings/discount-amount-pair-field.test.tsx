@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { DiscountAmountPairField } from '@/components/kosztorys/summary/settings/discount-amount-pair-field'
-import { toNet } from '@/lib/kosztorys/calc'
+import { discountNetFromGross } from '@/lib/kosztorys/calc'
 
 const onApply = vi.fn()
 
@@ -28,11 +28,11 @@ describe('Rabat kwotowy — pola netto i brutto', () => {
     await user.clear(gross)
     await user.type(gross, '5000')
 
-    expect(net).toHaveValue('4629.63')
+    expect(net).toHaveValue('4629,63')
     expect(onApply).not.toHaveBeenCalled()
 
     await user.click(save)
-    expect(onApply).toHaveBeenCalledWith(toNet(5000, 0.08))
+    expect(onApply).toHaveBeenCalledWith(discountNetFromGross(5000, 0.08))
   })
 
   it('kwota wpisana w netto pokazuje brutto i zapisuje się bez przeliczenia', async () => {
@@ -46,6 +46,25 @@ describe('Rabat kwotowy — pola netto i brutto', () => {
     expect(onApply).toHaveBeenCalledWith(1000)
   })
 
+  it('kwota wpisana w netto zapisuje się w groszach', async () => {
+    const { user, net, save } = renderField()
+
+    await user.clear(net)
+    await user.type(net, '1000,006')
+    await user.click(save)
+
+    expect(onApply).toHaveBeenCalledWith(1000.01)
+  })
+
+  it('„Zapisz" nie reaguje na tę samą kwotę wpisaną z przecinkiem', async () => {
+    const { user, net, save } = renderField(1000.5)
+
+    expect(net).toHaveValue('1000,5')
+    await user.clear(net)
+    await user.type(net, '1000,5')
+    expect(save).toBeDisabled()
+  })
+
   it('Enter zapisuje, wyjście z pola nie', async () => {
     const { user, gross } = renderField()
 
@@ -56,7 +75,7 @@ describe('Rabat kwotowy — pola netto i brutto', () => {
 
     await user.click(gross)
     await user.keyboard('{Enter}')
-    expect(onApply).toHaveBeenCalledWith(toNet(540, 0.08))
+    expect(onApply).toHaveBeenCalledWith(discountNetFromGross(540, 0.08))
   })
 
   it('„Zapisz" jest nieaktywne, dopóki nic się nie zmieniło', async () => {

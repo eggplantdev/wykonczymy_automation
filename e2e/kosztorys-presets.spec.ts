@@ -13,7 +13,7 @@ import {
   versionsDrawer,
 } from './drivers/kosztorys-grid'
 import {
-  applyDiscountValue,
+  applyDiscountAmount,
   discountModeSelect,
   openSettlementOptions,
   pickDiscountMode,
@@ -201,7 +201,7 @@ test('„Wczytaj szablon…" zastępuje całą rozpiskę bez przeładowania, zer
   // and an unset one could not show that.
   await withSettlementOptions(page, async () => {
     await pickDiscountMode(page, 'Kwotowy')
-    await applyDiscountValue(page, 500)
+    await applyDiscountAmount(page, 500)
   })
 
   await pickKosztorysOption(page, RELOAD_PRESET_ITEM)

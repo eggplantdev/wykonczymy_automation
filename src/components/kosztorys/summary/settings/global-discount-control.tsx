@@ -35,14 +35,9 @@ function pozycji(count: number): string {
 
 // Reads the setters straight from the editor context (the panel renders inside the provider), so no
 // props thread through KosztorysTotalsPanel.
-export function GlobalDiscountControl({
-  disabled = false,
-  vatRate,
-}: {
-  disabled?: boolean
-  vatRate: number
-}) {
+export function GlobalDiscountControl({ disabled = false }: { disabled?: boolean }) {
   const {
+    tree,
     globalDiscount,
     perItemDiscountTotal,
     itemsWithDiscountCount,
@@ -82,7 +77,7 @@ export function GlobalDiscountControl({
       {mode === 'amount' && (
         <DiscountAmountPairField
           value={globalDiscount.value}
-          vatRate={vatRate}
+          vatRate={tree.vatRate}
           disabled={disabled}
           onApply={(net) => handleGlobalDiscountChange({ type: 'amount', value: net })}
         />
@@ -90,12 +85,10 @@ export function GlobalDiscountControl({
       {mode === 'percent' && (
         <DiscountValueField
           suffix="%"
-          value=""
           placeholder="%"
           disabled={disabled}
           isValid={(percent) => applyPercentDiscountSchema.safeParse({ percent }).success}
           onApply={handleApplyPercentDiscount}
-          clearOnApply
           // With no rabat anywhere the write is not destructive, and a dialog would be a warning about
           // nothing — warnings that fire on nothing stop being read.
           confirm={

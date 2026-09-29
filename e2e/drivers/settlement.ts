@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test'
+import { expect, type Locator, type Page } from '@playwright/test'
 import { parsePln } from '../support/money'
 import { waitForHydration } from '../support/wait'
 import { expandSummaryPanel } from './kosztorys-grid'
@@ -70,11 +70,21 @@ const discountSection = (page: Page) =>
 
 // Both rabat modes commit the same way: type, then „Zapisz". Nothing is written on blur — a rabat is
 // a deal-level concession, so leaving the field must never be enough to change it.
-export async function applyDiscountValue(page: Page, value: number): Promise<void> {
+async function commitDiscount(
+  page: Page,
+  field: (section: Locator) => Locator,
+  value: number,
+): Promise<void> {
   const section = discountSection(page)
-  await section.getByRole('textbox').fill(String(value))
+  await field(section).fill(String(value))
   await section.getByRole('button', { name: 'Zapisz', exact: true }).click()
 }
+
+export const applyDiscountAmount = (page: Page, net: number) =>
+  commitDiscount(page, (section) => section.getByLabel(/netto/), net)
+
+export const applyDiscountPercent = (page: Page, percent: number) =>
+  commitDiscount(page, (section) => section.getByRole('textbox'), percent)
 
 // The panel's view toggle is a radiogroup („Podsumowanie" / „Materiały" / „Marża"); the pick is
 // persisted per user, so a spec that wants a given tab must select it rather than assume it.

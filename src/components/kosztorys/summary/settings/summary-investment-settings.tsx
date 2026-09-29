@@ -88,7 +88,7 @@ export function SummaryInvestmentSettings({
             lockedReason={pricingLockedReason}
           />
           {showSettingsBar && <VatRateField disabled={isSaving} />}
-          {showSettingsBar && <GlobalDiscountControl disabled={isSaving} vatRate={vatRate} />}
+          {showSettingsBar && <GlobalDiscountControl disabled={isSaving} />}
         </div>
       </PopoverContent>
     </Popover>
