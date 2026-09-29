@@ -18,7 +18,6 @@ import { DropdownCheckGroups, type DropdownCheckItemT } from '@/components/ui/dr
 
 type PropsT = {
   toggles: readonly DropdownCheckItemT[]
-  // Exclusive — picking the engaged one again releases it.
   onSelect: (id: string) => void
 }
 

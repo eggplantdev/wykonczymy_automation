@@ -1,10 +1,8 @@
 'use client'
 
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
-import {
-  CandidateRow,
-  hintLead,
-} from '@/components/kosztorys/editor/dialogs/catalogue/catalogue-candidate-row'
+import { CandidateRow } from '@/components/kosztorys/editor/dialogs/catalogue/catalogue-candidate-row'
+import { hintLead } from '@/lib/kosztorys/work-catalogue/hint-lead'
 import type { UncataloguedUsageT } from '@/lib/kosztorys/work-catalogue/types'
 
 /**

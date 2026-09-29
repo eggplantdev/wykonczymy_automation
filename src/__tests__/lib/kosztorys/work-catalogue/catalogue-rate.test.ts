@@ -95,7 +95,7 @@ describe('catalogueRateAmount', () => {
     expect(catalogueRateAmount(entryAt(200, { rate: null, coeff: 0.5 }), 'w_tools')).toBe(100)
   })
 
-  // „Auto" nie ma złotówki w katalogu — należy do inwestycji, więc nie ma czego mierzyć.
+  // „Auto" carries no złotówki in the catalogue — it belongs to the investment, so there is nothing to measure.
   it('„auto" nie ma kwoty', () => {
     expect(catalogueRateAmount(entryAt(200, { rate: null, coeff: null }), 'w_tools')).toBeNull()
   })
@@ -106,14 +106,14 @@ describe('catalogueRateAmount', () => {
   })
 })
 
-// Czerwona komórka udziału i filtry „ponad" / „w granicy" pytają tutaj — jedna odpowiedź dla obu.
+// The red udział cell and the „ponad" / „w granicy" filters both ask here — one answer for both.
 describe('isCatalogueOverCeiling', () => {
   it('kwota ponad sufit płaszczyzny jest ponad, w granicy nie jest', () => {
     expect(isCatalogueOverCeiling(entryAt(100, { rate: 66, coeff: null }), 'w_tools')).toBe(true)
     expect(isCatalogueOverCeiling(entryAt(100, { rate: 65, coeff: null }), 'w_tools')).toBe(false)
   })
 
-  // Bez narzędzi sufit jest niższy (55,25 %) — 60 zł mieści się w 65 %, a tu już nie.
+  // The bez narzędzi ceiling is lower (55,25 %) — 60 zł fits under 65 %, but not here.
   it('sufit jest per płaszczyzna', () => {
     const entry = entryAt(100, { rate: 60, coeff: null }, { rate: 60, coeff: null })
     expect(isCatalogueOverCeiling(entry, 'w_tools')).toBe(false)

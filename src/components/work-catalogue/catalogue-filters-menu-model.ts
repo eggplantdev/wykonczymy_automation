@@ -1,5 +1,6 @@
 import type { DropdownCheckItemT } from '@/components/ui/dropdown-check-groups'
 import type { CatalogueConditionT } from '@/lib/kosztorys/work-catalogue/catalogue-conditions'
+import { capitalize } from '@/lib/utils/capitalize'
 
 type ArgsT = {
   // Already ordered by group — the menu prints a heading wherever the group changes.
@@ -27,5 +28,3 @@ export function catalogueFiltersMenuModel({
       active: !engagedIds.has(condition.id),
     }))
 }
-
-const capitalize = (text: string) => text.charAt(0).toLocaleUpperCase('pl-PL') + text.slice(1)

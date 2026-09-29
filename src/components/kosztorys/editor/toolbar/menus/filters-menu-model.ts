@@ -1,6 +1,7 @@
 import type { CrewAxisT } from '@/lib/kosztorys/crew-axis'
 import { FILTER_GROUPS } from '@/lib/kosztorys/filter-groups'
 import { offeredFilterConditions } from '@/lib/kosztorys/row-conditions/queries'
+import { capitalize } from '@/lib/utils/capitalize'
 
 export type FilterToggleT = {
   id: string
@@ -40,11 +41,6 @@ type ArgsT = {
  * registry reshuffle cannot interleave two axes. The two agree today, and a spec pins that — the
  * active-filters bar reads registry order, and the bar and the menu are two readings of one set.
  */
-// „Pozycje " opened every row until 2026-09-28 and the list stopped being scannable: the heading above
-// already says the rows are pozycje, so the word was five characters of preamble before the one thing
-// that differs — and on the plane-bound rows it pushed the label onto three lines.
-const capitalize = (text: string) => text.charAt(0).toLocaleUpperCase('pl-PL') + text.slice(1)
-
 export function filtersMenuModel({
   engagedIds,
   counts,
@@ -63,6 +59,8 @@ export function filtersMenuModel({
       .map(({ condition, count }) => ({
         id: condition.id,
         groupLabel: group.label,
+        // No „Pozycje " prefix: the heading above already says the rows are pozycje, and on the
+        // plane-bound rows the word pushed the label onto three lines.
         label: `${condition.menuLabel ?? capitalize(condition.label)} (${count})`,
         active: !engagedIds.has(condition.id),
       })),

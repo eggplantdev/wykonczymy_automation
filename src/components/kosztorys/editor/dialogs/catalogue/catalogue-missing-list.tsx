@@ -5,10 +5,8 @@ import { Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SearchFilterInput } from '@/components/filters/search-filter-input'
 import { useSearchFilter } from '@/hooks/use-search-filter'
-import {
-  CandidateRow,
-  hintLead,
-} from '@/components/kosztorys/editor/dialogs/catalogue/catalogue-candidate-row'
+import { CandidateRow } from '@/components/kosztorys/editor/dialogs/catalogue/catalogue-candidate-row'
+import { hintLead } from '@/lib/kosztorys/work-catalogue/hint-lead'
 import type { CatalogueMissingT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
 const SEARCH_RESULT_LIMIT = 8

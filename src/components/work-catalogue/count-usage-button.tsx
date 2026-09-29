@@ -7,7 +7,7 @@ import { toastMessage } from '@/lib/utils/toast'
 import type { CatalogueUsageT } from '@/lib/kosztorys/work-catalogue/types'
 
 // A click, not a load: the read walks every kosztorys, and the answer is only worth its cost to
-// whoever is about to prune the cennik. Clicking again recounts.
+// whoever is about to prune the cennik.
 export function CountUsageButton({ onCounted }: { onCounted: (usage: CatalogueUsageT) => void }) {
   const [pending, startTransition] = useTransition()
 
