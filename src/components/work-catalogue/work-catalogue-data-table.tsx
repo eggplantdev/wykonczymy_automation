@@ -1,6 +1,6 @@
 'use client'
 
-import { useDeferredValue, useMemo } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { Ruler, Tags } from 'lucide-react'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
@@ -17,6 +17,8 @@ import {
 } from '@/components/work-catalogue/catalogue-active-filters-model'
 import { CatalogueFiltersMenu } from '@/components/work-catalogue/catalogue-filters-menu'
 import { catalogueFiltersMenuModel } from '@/components/work-catalogue/catalogue-filters-menu-model'
+import { CountUsageButton } from '@/components/work-catalogue/count-usage-button'
+import { UncataloguedUsageList } from '@/components/work-catalogue/uncatalogued-usage-list'
 import { CatalogueProblemsMenu } from '@/components/work-catalogue/catalogue-problems-menu'
 import { catalogueProblemsMenuModel } from '@/components/work-catalogue/catalogue-problems-menu-model'
 import { useEngagedIds } from '@/hooks/use-engaged-ids'
@@ -32,11 +34,12 @@ import {
   CATALOGUE_CONDITIONS,
   CATALOGUE_PROBLEM_IDS,
   applyCatalogueConditions,
+  catalogueUsageConditions,
   countCatalogueConditions,
 } from '@/lib/kosztorys/work-catalogue/catalogue-conditions'
 import { compareDescriptions } from '@/lib/kosztorys/work-catalogue/compare-descriptions'
 import { itemNoun } from '@/lib/kosztorys/counted-nouns'
-import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
+import type { CatalogueUsageT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
 const INITIAL_SORTING = [{ id: 'description', desc: false }]
 
@@ -55,6 +58,38 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
     clear: clearConditions,
   } = useEngagedIds('work-catalogue-filters')
 
+  const [usage, setUsage] = useState<CatalogueUsageT | null>(null)
+  // Beside the persisted set, never in it — see `catalogueUsageConditions`.
+  const [engagedUsageIds, setEngagedUsageIds] = useState<ReadonlySet<string>>(new Set())
+  const usageConditions = catalogueUsageConditions(usage)
+  const isUsageId = (id: string) => usageConditions.some((condition) => condition.id === id)
+  const conditions = [...CATALOGUE_CONDITIONS, ...usageConditions]
+  const allEngagedIds = new Set([...engagedIds, ...engagedUsageIds])
+
+  function setUsageEngaged(ids: readonly string[], engaged: boolean) {
+    setEngagedUsageIds((prev) => {
+      const next = new Set(prev)
+      for (const id of ids) {
+        if (engaged) next.add(id)
+        else next.delete(id)
+      }
+      return next
+    })
+  }
+
+  function toggleFilter(id: string) {
+    if (isUsageId(id)) setUsageEngaged([id], !engagedUsageIds.has(id))
+    else toggleCondition(id)
+  }
+
+  function setFiltersEngaged(ids: readonly string[], engaged: boolean) {
+    setUsageEngaged(ids.filter(isUsageId), engaged)
+    setMany(
+      ids.filter((id) => !isUsageId(id)),
+      engaged,
+    )
+  }
+
   // Every control ANDs, so the order only decides what gets recomputed: search runs first because it
   // folds its haystacks once per input array, and a condition toggle would otherwise refold them all.
   // The condition counts read `data`, never this chain, so no count moves when another control does.
@@ -63,7 +98,7 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
     searchTerm,
     setSearchTerm,
   } = useSearchFilter(data, getSearchableText)
-  const conditioned = applyCatalogueConditions(searched, CATALOGUE_CONDITIONS, engagedIds)
+  const conditioned = applyCatalogueConditions(searched, conditions, allEngagedIds)
   const {
     filteredData: categorised,
     values: categories,
@@ -75,10 +110,10 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
     setValues: setUnits,
   } = useClientMultiFilter(categorised, getUnit)
 
-  const counts = countCatalogueConditions(data, CATALOGUE_CONDITIONS)
+  const counts = countCatalogueConditions(data, conditions)
   const filterToggles = catalogueFiltersMenuModel({
-    conditions: CATALOGUE_CONDITIONS,
-    engagedIds,
+    conditions,
+    engagedIds: allEngagedIds,
     counts,
   })
   const problemToggles = catalogueProblemsMenuModel({ engagedIds, counts })
@@ -95,8 +130,8 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
   const unitOptions = useMemo(() => catalogueUnitOptions(data), [data])
 
   const chips = catalogueActiveFiltersModel({
-    conditions: CATALOGUE_CONDITIONS,
-    engagedIds,
+    conditions,
+    engagedIds: allEngagedIds,
     counts,
     search: searchTerm,
     categories: { values: categories, options: categoryOptions },
@@ -105,6 +140,7 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
 
   function resetFilters() {
     clearConditions()
+    setEngagedUsageIds(new Set())
     setSearchTerm('')
     setCategories([])
     setUnits([])
@@ -113,7 +149,7 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
   function removeChip(chip: CatalogueActiveFilterChipT) {
     switch (chip.removal) {
       case 'condition':
-        return toggleCondition(chip.id)
+        return toggleFilter(chip.id)
       case 'problem':
         return toggleExclusive(chip.id, CATALOGUE_PROBLEM_IDS)
       case 'search':
@@ -138,80 +174,88 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
   )
 
   const columns = useMemo(
-    () => getWorkCatalogueColumns({ categorySuggestions, ordinals }),
-    [categorySuggestions, ordinals],
+    () => getWorkCatalogueColumns({ categorySuggestions, ordinals, usage }),
+    [categorySuggestions, ordinals, usage],
   )
 
   return (
-    <DataTable
-      data={deferredRows}
-      columns={columns}
-      storageKey="work-catalogue"
-      initialSorting={INITIAL_SORTING}
-      aboveToolbar={
-        /* Counted off `filteredData`, not off the deferred list the table renders: behind the
+    <>
+      <DataTable
+        data={deferredRows}
+        columns={columns}
+        storageKey="work-catalogue"
+        initialSorting={INITIAL_SORTING}
+        aboveToolbar={
+          /* Counted off `filteredData`, not off the deferred list the table renders: behind the
            spinner the count would still be naming the previous search for as long as ~950 rows
            take to redraw. */
-        <span className="text-muted-foreground block text-sm">
-          {filteredData.length} {itemNoun(filteredData.length)}
-          {filteredData.length !== data.length && ` z ${data.length}`}
-        </span>
-      }
-      belowToolbar={
-        <ActiveFiltersBar chips={chips} onRemove={removeChip} onClearAll={resetFilters} />
-      }
-      toolbar={({ table, columnVisibility: cv, ...order }) => (
-        <DataTableToolbar
-          columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
-          search={{
-            value: searchTerm,
-            onChange: setSearchTerm,
-            placeholder: 'Szukaj pracy...',
-          }}
-          filters={
-            <>
-              <FilterMultiSelect
-                label="Kategoria"
-                options={categoryOptions}
-                values={categories}
-                onValuesChange={setCategories}
-                icon={Tags}
-                searchable
-                triggerClassName={GRID_FILTER_TRIGGER_CLASS}
-              />
-              <FilterMultiSelect
-                label="j.m."
-                options={unitOptions}
-                values={units}
-                onValuesChange={setUnits}
-                icon={Ruler}
-                searchable
-                triggerClassName={GRID_FILTER_TRIGGER_CLASS}
-              />
-              <CatalogueFiltersMenu
-                toggles={filterToggles}
-                onToggle={toggleCondition}
-                // Ticked = visible, so „all ticked" means none engaged.
-                onToggleAll={(ids, visible) => setMany(ids, !visible)}
-                resetAction={{
-                  label: 'Zresetuj filtry',
-                  onReset: resetFilters,
-                  disabled: chips.length === 0,
-                }}
-              />
-              <CatalogueProblemsMenu
-                toggles={problemToggles}
-                onSelect={(id) => toggleExclusive(id, CATALOGUE_PROBLEM_IDS)}
-              />
-              {/* Always mounted: toggling it would resize the flex row and nudge the buttons
+          <span className="text-muted-foreground block text-sm">
+            {filteredData.length} {itemNoun(filteredData.length)}
+            {filteredData.length !== data.length && ` z ${data.length}`}
+          </span>
+        }
+        belowToolbar={
+          <ActiveFiltersBar chips={chips} onRemove={removeChip} onClearAll={resetFilters} />
+        }
+        toolbar={({ table, columnVisibility: cv, ...order }) => (
+          <DataTableToolbar
+            columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
+            search={{
+              value: searchTerm,
+              onChange: setSearchTerm,
+              placeholder: 'Szukaj pracy...',
+            }}
+            filters={
+              <>
+                <FilterMultiSelect
+                  label="Kategoria"
+                  options={categoryOptions}
+                  values={categories}
+                  onValuesChange={setCategories}
+                  icon={Tags}
+                  searchable
+                  triggerClassName={GRID_FILTER_TRIGGER_CLASS}
+                />
+                <FilterMultiSelect
+                  label="j.m."
+                  options={unitOptions}
+                  values={units}
+                  onValuesChange={setUnits}
+                  icon={Ruler}
+                  searchable
+                  triggerClassName={GRID_FILTER_TRIGGER_CLASS}
+                />
+                <CatalogueFiltersMenu
+                  toggles={filterToggles}
+                  onToggle={toggleFilter}
+                  // Ticked = visible, so „all ticked" means none engaged.
+                  onToggleAll={(ids, visible) => setFiltersEngaged(ids, !visible)}
+                  resetAction={{
+                    label: 'Zresetuj filtry',
+                    onReset: resetFilters,
+                    disabled: chips.length === 0,
+                  }}
+                />
+                <CatalogueProblemsMenu
+                  toggles={problemToggles}
+                  onSelect={(id) => toggleExclusive(id, CATALOGUE_PROBLEM_IDS)}
+                />
+                {/* Always mounted: toggling it would resize the flex row and nudge the buttons
                   sideways on every keystroke. Gone below `sm` instead — there the toolbar is a grid,
                   so an invisible spinner holds a whole cell and opens a phantom row. */}
-              <GradientSpinner className={cn('max-sm:hidden', !busy && 'invisible')} />
-            </>
-          }
-          actions={<AddCatalogueItemDialog categorySuggestions={categorySuggestions} />}
-        />
-      )}
-    />
+                <GradientSpinner className={cn('max-sm:hidden', !busy && 'invisible')} />
+              </>
+            }
+            actions={
+              <>
+                <CountUsageButton onCounted={setUsage} />
+                <AddCatalogueItemDialog categorySuggestions={categorySuggestions} />
+              </>
+            }
+          />
+        )}
+      />
+      {usage && <UncataloguedUsageList groups={usage.uncatalogued} />}
+    </>
   )
 }

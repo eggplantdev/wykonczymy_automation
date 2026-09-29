@@ -622,16 +622,16 @@ The full unit suite runs only when asked (memory: no full suite unasked). Pre-pu
 
 #### Automated
 
-- [x] 3.1 catalogue-usage node spec (distinct inwestycje, folding, inna j.m., uncatalogued + hints)
-- [x] 3.2 catalogue-usage DB spec (inclusion / exclusion incl. szablon, kosz, wycena)
+- [x] 3.1 catalogue-usage node spec (distinct inwestycje, folding, inna j.m., uncatalogued + hints) — 51c181ab
+- [x] 3.2 catalogue-usage DB spec (inclusion / exclusion incl. szablon, kosz, wycena) — 51c181ab
 
 ### Phase 4: Usage UI (EX-873)
 
 #### Automated
 
-- [ ] 4.1 Usage conditions empty before the click, partition after
-- [ ] 4.2 uncatalogued-usage-list DOM spec
-- [ ] 4.3 Editor catalogue-missing-list specs stay green after the CandidateRow extraction
+- [x] 4.1 Usage conditions empty before the click, partition after
+- [x] 4.2 uncatalogued-usage-list DOM spec
+- [x] 4.3 Editor catalogue-missing-list specs stay green after the CandidateRow extraction
 
 ### Phase 5: Docs
 

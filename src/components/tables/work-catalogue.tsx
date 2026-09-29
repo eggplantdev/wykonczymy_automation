@@ -17,7 +17,7 @@ import {
 } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
 import { CatalogueRowActions } from '@/components/work-catalogue/catalogue-row-actions'
 import type { ToolPlaneT } from '@/lib/kosztorys/types'
-import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
+import type { CatalogueUsageT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
 const col = createColumnHelper<WorkCatalogueItemT>()
 
@@ -89,15 +89,29 @@ const lpColumn = (ordinals: ReadonlyMap<number, number>) =>
 // The picker's `size`s: its virtualized list lays out fixed, so the narrow columns hold these widths
 // and the opis fills the rest with its `size` as the floor. Their sum stays inside `dialog-xl` on a
 // 1440 screen. /katalog-prac lays out from content and never reads them.
-const descriptionColumn = col.accessor('description', {
-  id: 'description',
-  header: 'Opis pracy',
-  size: 320,
-  sortingFn: (first, second) =>
-    compareDescriptions(first.original.description, second.original.description),
-  meta: { minWidth: 'min-w-112', fill: true },
-  cell: (info) => <span className="block font-medium">{info.getValue()}</span>,
-})
+const descriptionColumnWith = (otherUnitIds: ReadonlySet<number>) =>
+  col.accessor('description', {
+    id: 'description',
+    header: 'Opis pracy',
+    size: 320,
+    sortingFn: (first, second) =>
+      compareDescriptions(first.original.description, second.original.description),
+    meta: { minWidth: 'min-w-112', fill: true },
+    cell: (info) => (
+      <span className="block font-medium">
+        {info.getValue()}
+        {/* The same opis priced under another j.m. is not this wpis — it is a near-duplicate the
+            cennik may want to merge, so it is named here and never counted into „Kosztorysy". */}
+        {otherUnitIds.has(info.row.original.id) && (
+          <span className="text-muted-foreground block text-xs font-normal">
+            występuje z inną j.m.
+          </span>
+        )}
+      </span>
+    ),
+  })
+
+const descriptionColumn = descriptionColumnWith(new Set())
 
 const categoryColumn = col.accessor((row) => row.category ?? '', {
   id: 'category',
@@ -196,16 +210,29 @@ export const WORK_CATALOGUE_PICKER_COLUMNS = [
   ownToolsRateColumn,
 ]
 
+// Counts distinct inwestycje, not pozycje: a praca repeated across five łazienki of one mieszkanie is
+// still one kosztorys that would miss it. Absent until „Policz użycia" — a column of zeros before the
+// count would read as „nothing uses anything".
+const usageColumn = (usage: CatalogueUsageT) =>
+  col.accessor((row) => usage.byId[row.id] ?? 0, {
+    id: 'kosztorysCount',
+    header: 'Kosztorysy',
+    meta: { align: 'right' },
+    cell: (info) => <span className="tabular-nums">{info.getValue()}</span>,
+  })
+
 export function getWorkCatalogueColumns({
   categorySuggestions,
   ordinals,
+  usage,
 }: {
   categorySuggestions: readonly string[]
   ordinals: ReadonlyMap<number, number>
+  usage: CatalogueUsageT | null
 }) {
   return [
     lpColumn(ordinals),
-    descriptionColumn,
+    usage ? descriptionColumnWith(new Set(usage.otherUnitIds)) : descriptionColumn,
     categoryColumn,
     unitColumn,
     clientPriceColumn,
@@ -215,6 +242,7 @@ export function getWorkCatalogueColumns({
     ownToolsSourceColumn,
     ownToolsRateColumn,
     ownToolsShareColumn,
+    ...(usage ? [usageColumn(usage)] : []),
 
     col.display({
       id: 'actions',

@@ -8,7 +8,7 @@ import {
   catalogueSourceOf,
   isCatalogueOverCeiling,
 } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
-import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
+import type { CatalogueUsageT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 import type { PriceSourceT, ToolPlaneT } from '@/lib/kosztorys/types'
 
 export type CatalogueConditionT = {
@@ -89,6 +89,30 @@ const FILTERS: CatalogueConditionT[] = [
 export const CATALOGUE_CONDITIONS: CatalogueConditionT[] = [...PROBLEMS, ...FILTERS]
 
 export const CATALOGUE_PROBLEM_IDS = PROBLEMS.map((condition) => condition.id)
+
+// Built off a count taken on a click, so the group only exists once there is one — and its ids are
+// never persisted: after a reload there is no count to filter by, and a stored „nieużywane" would
+// either narrow by nothing or by a count nobody took.
+export function catalogueUsageConditions(usage: CatalogueUsageT | null): CatalogueConditionT[] {
+  if (!usage) return []
+  const isUsed = (entry: WorkCatalogueItemT) => (usage.byId[entry.id] ?? 0) > 0
+  return [
+    {
+      id: 'catalogue-usage-unused',
+      kind: 'filter',
+      group: 'Użycie',
+      label: 'nieużywane',
+      matches: (entry) => !isUsed(entry),
+    },
+    {
+      id: 'catalogue-usage-used',
+      kind: 'filter',
+      group: 'Użycie',
+      label: 'używane',
+      matches: isUsed,
+    },
+  ]
+}
 
 export function countCatalogueConditions(
   rows: readonly WorkCatalogueItemT[],

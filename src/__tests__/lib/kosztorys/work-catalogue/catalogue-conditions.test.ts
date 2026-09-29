@@ -3,6 +3,7 @@ import {
   CATALOGUE_CONDITIONS,
   CATALOGUE_PROBLEM_IDS,
   applyCatalogueConditions,
+  catalogueUsageConditions,
   countCatalogueConditions,
 } from '@/lib/kosztorys/work-catalogue/catalogue-conditions'
 import { isCatalogueOverCeiling } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
@@ -141,5 +142,29 @@ describe('registry', () => {
   it('never repeats a label, which cmdk keys its rows by', () => {
     const labels = CATALOGUE_CONDITIONS.map((candidate) => candidate.label)
     expect(new Set(labels).size).toBe(labels.length)
+  })
+})
+
+describe('catalogueUsageConditions', () => {
+  it('has no „Użycie" group before a count is taken', () => {
+    expect(catalogueUsageConditions(null)).toEqual([])
+  })
+
+  it('„nieużywane" and „używane" partition the catalogue, a missing id counting as unused', () => {
+    const used = entry()
+    const zero = entry()
+    const absent = entry()
+    const rows = [used, zero, absent]
+    const conditions = catalogueUsageConditions({
+      byId: { [used.id]: 2, [zero.id]: 0 },
+      otherUnitIds: [],
+      uncatalogued: [],
+    })
+    const counts = countCatalogueConditions(rows, conditions)
+    expect(counts.get('catalogue-usage-used')).toBe(1)
+    expect(counts.get('catalogue-usage-unused')).toBe(2)
+    expect(applyCatalogueConditions(rows, conditions, new Set(['catalogue-usage-unused']))).toEqual(
+      [used],
+    )
   })
 })
