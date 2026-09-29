@@ -8,6 +8,7 @@ describe('investment status gates', () => {
   it.each([
     ['active', true, false],
     ['planowana', true, false],
+    ['quote', true, false],
     ['completed', false, true],
     ['szablon', true, false],
   ] as const)('%s: bookable=%s locked=%s', (status, bookable, locked) => {

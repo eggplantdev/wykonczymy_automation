@@ -16,6 +16,10 @@ import type { InvestmentFormDataT } from './investment-schema'
 import type { PresetMetaT } from '@/lib/db/presets'
 import type { ActionResultT } from '@/types/action'
 import { isLockedStatus } from '@/lib/constants/investment-lock'
+import {
+  INVESTMENT_STATUS_LABELS,
+  PICKABLE_INVESTMENT_STATUSES,
+} from '@/lib/constants/investment-status'
 
 type InvestmentFormPropsT = {
   formId: string
@@ -150,9 +154,11 @@ export function InvestmentForm({
             <form.AppField name="status">
               {(field) => (
                 <field.Select label="Status" showError>
-                  <SelectItem value="planowana">Planowana</SelectItem>
-                  <SelectItem value="active">Aktywna</SelectItem>
-                  <SelectItem value="completed">Zakończona</SelectItem>
+                  {PICKABLE_INVESTMENT_STATUSES.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {INVESTMENT_STATUS_LABELS[status].pl}
+                    </SelectItem>
+                  ))}
                 </field.Select>
               )}
             </form.AppField>

@@ -6,21 +6,17 @@ import { investmentDeleteBlocker } from '@/lib/investments/delete-blocker'
 import { guardInvestmentStatusUnlock } from '@/hooks/investments/guard-status-unlock'
 import { guardTemplateStatus } from '@/hooks/investments/guard-template-status'
 import { stampCompletedAt } from '@/hooks/investments/stamp-completed-at'
+import { INVESTMENT_STATUSES, INVESTMENT_STATUS_LABELS } from '@/lib/constants/investment-status'
 import { DEFAULT_COEFFS, DEFAULT_VAT } from '@/lib/kosztorys/constants'
 import {
   SETTLEMENT_MODE_ADMIN_OPTIONS,
   SETTLEMENT_MODE_DEFAULT,
 } from '@/lib/kosztorys/settlement-mode'
 
-const STATUS_OPTIONS = [
-  { label: { en: 'Planned', pl: 'Planowana' }, value: 'planowana' },
-  { label: { en: 'Active', pl: 'Aktywna' }, value: 'active' },
-  { label: { en: 'Completed', pl: 'Zakończona' }, value: 'completed' },
-  // Never picked by hand — a szablon is born only through createTemplate
-  // (src/lib/kosztorys/create-template.ts), and guardTemplateStatus keeps the value from being set
-  // or dropped on an update.
-  { label: { en: 'Template', pl: 'Szablon' }, value: 'szablon' },
-] as const
+const STATUS_OPTIONS = INVESTMENT_STATUSES.map((value) => ({
+  label: INVESTMENT_STATUS_LABELS[value],
+  value,
+}))
 
 export const Investments: CollectionConfig = {
   slug: 'investments',
@@ -97,7 +93,7 @@ export const Investments: CollectionConfig = {
       required: true,
       defaultValue: 'active',
       label: { en: 'Status', pl: 'Status' },
-      options: [...STATUS_OPTIONS],
+      options: STATUS_OPTIONS,
     },
     // Defaults for the sheet, which a single pozycja may override. „Bez narzędzi" is not independent:
     // the sheet derives it as „z narzędziami" less 15%, which is why DEFAULT_COEFFS owns both and the

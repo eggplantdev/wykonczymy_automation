@@ -1,5 +1,6 @@
 import type { RoleT } from '@/lib/auth/roles'
 import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
+import type { InvestmentStatusT } from '@/lib/constants/investment-status'
 
 export type ReferenceItemT = {
   id: number
@@ -12,7 +13,7 @@ export type ReferenceItemT = {
 
 export type CashRegisterTypeT = 'MAIN' | 'AUXILIARY' | 'VIRTUAL' | 'WORKER'
 
-export type InvestmentStatusT = 'active' | 'completed' | 'planowana' | 'szablon'
+export type { InvestmentStatusT } from '@/lib/constants/investment-status'
 
 export type CashRegisterRefT = Omit<ReferenceItemT, 'type'> & {
   type: CashRegisterTypeT
