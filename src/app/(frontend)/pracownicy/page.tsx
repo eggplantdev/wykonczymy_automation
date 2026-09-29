@@ -5,6 +5,7 @@ import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { fetchWorkerBalances } from '@/lib/queries/balances'
 import { UserDataTable } from '@/components/users/user-data-table'
 import { PageWrapper } from '@/components/ui/page-wrapper'
+import { PAGE_TITLES } from '@/lib/constants/sections'
 import type { UserRowT } from '@/types/table-rows'
 
 export default async function UsersListPage() {
@@ -28,7 +29,7 @@ export default async function UsersListPage() {
   }))
 
   return (
-    <PageWrapper title="Pracownicy">
+    <PageWrapper title={PAGE_TITLES.employees}>
       <UserDataTable data={rows} cashRegisters={refData.cashRegisters} />
     </PageWrapper>
   )

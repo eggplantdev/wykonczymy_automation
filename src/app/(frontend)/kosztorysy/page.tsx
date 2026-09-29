@@ -6,6 +6,7 @@ import { fetchAllSheets } from '@/lib/queries/sheets'
 import { ALL_SHEETS_URL } from '@/lib/constants/sheets'
 import { ExternalLink } from '@/components/ui/external-link'
 import { PageWrapper } from '@/components/ui/page-wrapper'
+import { PAGE_TITLES } from '@/lib/constants/sections'
 import { KosztorysDataTable } from '@/components/sheets/kosztorys-data-table'
 import { InvestmentsWithoutSheetTable } from '@/components/sheets/investments-without-sheet-table'
 import type { KosztorysRowT, InvestmentWithoutSheetRowT } from '@/types/table-rows'
@@ -54,7 +55,7 @@ export default async function SheetsListPage() {
   }))
 
   return (
-    <PageWrapper title="Kosztorysy v1">
+    <PageWrapper title={PAGE_TITLES.sheets}>
       <div className="flex flex-wrap items-center justify-end gap-3">
         <ExternalLink href={ALL_SHEETS_URL}>Otwórz arkusze google ↗</ExternalLink>
       </div>

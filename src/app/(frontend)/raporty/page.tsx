@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { ADMIN_OR_OWNER_ROLES } from '@/lib/auth/roles'
 import { PageWrapper } from '@/components/ui/page-wrapper'
+import { PAGE_TITLES } from '@/lib/constants/sections'
 import { EmptyState } from '@/components/ui/empty-state'
 
 /**
@@ -18,7 +19,7 @@ export default async function TransactionsReportPage() {
   if (!session.success) redirect('/zaloguj')
 
   return (
-    <PageWrapper title="Raporty">
+    <PageWrapper title={PAGE_TITLES.reports}>
       <EmptyState
         title="W budowie"
         description="Raport jest wyłączony — marża i bilans nie uwzględniały obniżek za rozliczanie wydatków po kwocie netto, więc nie zgadzały się z kartami inwestycji. Wróci, gdy będą liczone poprawnie."

@@ -18,6 +18,23 @@ export const SECTION_IDS = {
   transactions: 'transakcje',
 } as const
 
+// One title per list page, read by its nav link, its heading and its `loading.tsx` — the loading
+// title is swapped for the heading when the page lands, so two spellings would visibly flicker.
+export const PAGE_TITLES = {
+  transactions: 'Transakcje',
+  registers: 'Kasy',
+  investments: 'Inwestycje',
+  leads: 'Zgłoszenia',
+  sheets: 'Kosztorysy v1',
+  workCatalog: 'Katalog prac',
+  templates: 'Szablony kosztorysów',
+  fleet: 'Flota',
+  equipment: 'Sprzęt',
+  employees: 'Pracownicy',
+  trash: 'Kosz',
+  reports: 'Raporty',
+} as const
+
 export type NavLinkT = {
   href: string
   label: string
@@ -26,19 +43,19 @@ export type NavLinkT = {
 }
 
 export const SECTION_LINKS: NavLinkT[] = [
-  { href: '/', label: 'Transakcje', icon: ArrowLeftRight },
-  { href: '/kasy', label: 'Kasy', icon: Wallet },
-  { href: '/inwestycje', label: 'Inwestycje', icon: Building },
-  { href: '/zgloszenia', label: 'Zgłoszenia', icon: Inbox, unreadStream: 'leads' },
+  { href: '/', label: PAGE_TITLES.transactions, icon: ArrowLeftRight },
+  { href: '/kasy', label: PAGE_TITLES.registers, icon: Wallet },
+  { href: '/inwestycje', label: PAGE_TITLES.investments, icon: Building },
+  { href: '/zgloszenia', label: PAGE_TITLES.leads, icon: Inbox, unreadStream: 'leads' },
 ]
 
 export const MANAGEMENT_LINKS: NavLinkT[] = [
-  { href: '/kosztorysy', label: 'Kosztorysy v1', icon: FileSpreadsheet },
-  { href: '/katalog-prac', label: 'Katalog prac', icon: ListChecks },
-  { href: '/szablony', label: 'Szablony kosztorysów', icon: LayoutTemplate },
-  { href: '/flota', label: 'Flota', icon: Car, unreadStream: 'fleet' },
-  { href: '/sprzet', label: 'Sprzęt', icon: Wrench, unreadStream: 'equipment' },
-  { href: '/pracownicy', label: 'Pracownicy', icon: Users },
+  { href: '/kosztorysy', label: PAGE_TITLES.sheets, icon: FileSpreadsheet },
+  { href: '/katalog-prac', label: PAGE_TITLES.workCatalog, icon: ListChecks },
+  { href: '/szablony', label: PAGE_TITLES.templates, icon: LayoutTemplate },
+  { href: '/flota', label: PAGE_TITLES.fleet, icon: Car, unreadStream: 'fleet' },
+  { href: '/sprzet', label: PAGE_TITLES.equipment, icon: Wrench, unreadStream: 'equipment' },
+  { href: '/pracownicy', label: PAGE_TITLES.employees, icon: Users },
 ]
 
-export const OWNER_LINKS: NavLinkT[] = [{ href: '/kosz', label: 'Kosz', icon: Trash2 }]
+export const OWNER_LINKS: NavLinkT[] = [{ href: '/kosz', label: PAGE_TITLES.trash, icon: Trash2 }]

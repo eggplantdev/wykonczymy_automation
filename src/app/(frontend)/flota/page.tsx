@@ -10,6 +10,7 @@ import { FleetDataTable } from '@/components/fleet/fleet-data-table'
 import { RecipientListCard } from '@/components/notification-recipients/recipient-list-card'
 import { Description } from '@/components/ui/description'
 import { PageWrapper } from '@/components/ui/page-wrapper'
+import { PAGE_TITLES } from '@/lib/constants/sections'
 import { pluralize } from '@/lib/utils/polish-plural'
 
 export default async function FleetPage() {
@@ -25,7 +26,7 @@ export default async function FleetPage() {
   const activeCount = fleet.filter((vehicle) => vehicle.status === 'ACTIVE').length
 
   return (
-    <PageWrapper title="Flota">
+    <PageWrapper title={PAGE_TITLES.fleet}>
       <Description>
         {activeCount} {pluralize(activeCount, ['pojazd', 'pojazdy', 'pojazdów'])} w użyciu
       </Description>
