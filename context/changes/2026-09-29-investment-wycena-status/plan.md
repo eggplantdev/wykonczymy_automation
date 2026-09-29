@@ -266,13 +266,13 @@ jej nie ma, dopóki ktoś jej nie ustawi.
 
 #### Automated
 
-- [x] 1.1 Migracja przechodzi lokalnie (5433): `pnpm exec payload migrate`
-- [x] 1.2 Specy fazy przechodzą: investment-lock, stamp-completed-at, guard-template-status
-- [x] 1.3 Spec DB przechodzi: `pnpm test:integration`
-- [x] 1.4 Typy Payloada wygenerowane z `quote`: `pnpm generate:types`
+- [x] 1.1 Migracja przechodzi lokalnie (5433): `pnpm exec payload migrate` — 1af4174f
+- [x] 1.2 Specy fazy przechodzą: investment-lock, stamp-completed-at, guard-template-status — 1af4174f
+- [x] 1.3 Spec DB przechodzi: `pnpm test:integration` — 1af4174f
+- [x] 1.4 Typy Payloada wygenerowane z `quote`: `pnpm generate:types` — 1af4174f
 
 ### Phase 2: Filtr statusów na jednej liście i dziedziczenie zapisanego wyboru
 
 #### Automated
 
-- [ ] 2.1 Spec filtra przechodzi: `pnpm exec vitest run src/__tests__/use-status-filter.test.ts`
+- [x] 2.1 Spec filtra przechodzi: `pnpm exec vitest run src/__tests__/use-status-filter.test.ts`
