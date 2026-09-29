@@ -1,18 +1,18 @@
 'use client'
 
-import { SheetAccessBlock } from '@/components/kosztorys/editor/dialogs/sheet-access-block'
-import { SheetMissingColumnsBlock } from '@/components/kosztorys/editor/dialogs/sheet-missing-columns-block'
-import { SheetPointedColumnsBlock } from '@/components/kosztorys/editor/dialogs/sheet-pointed-columns-block'
-import { SheetProblemsBlock } from '@/components/kosztorys/editor/dialogs/sheet-problems-block'
-import { SheetRatesBlock } from '@/components/kosztorys/editor/dialogs/sheet-rates-block'
-import { SheetReportBlock } from '@/components/kosztorys/editor/dialogs/sheet-report-block'
-import { SheetReportDialog } from '@/components/kosztorys/editor/dialogs/sheet-report-dialog'
+import { SheetAccessBlock } from '@/components/kosztorys/editor/dialogs/sheet/sheet-access-block'
+import { SheetMissingColumnsBlock } from '@/components/kosztorys/editor/dialogs/sheet/sheet-missing-columns-block'
+import { SheetPointedColumnsBlock } from '@/components/kosztorys/editor/dialogs/sheet/sheet-pointed-columns-block'
+import { SheetProblemsBlock } from '@/components/kosztorys/editor/dialogs/sheet/sheet-problems-block'
+import { SheetRatesBlock } from '@/components/kosztorys/editor/dialogs/sheet/sheet-rates-block'
+import { SheetReportBlock } from '@/components/kosztorys/editor/dialogs/report/sheet-report-block'
+import { SheetReportDialog } from '@/components/kosztorys/editor/dialogs/report/sheet-report-dialog'
 import {
   ComparisonRow,
   ComparisonTable,
   ItemList,
   ReportFold,
-} from '@/components/kosztorys/editor/dialogs/sheet-report-parts'
+} from '@/components/kosztorys/editor/dialogs/report/sheet-report-parts'
 import { itemHasPhrase, itemNoun, itemNounLocative } from '@/lib/kosztorys/counted-nouns'
 import type { SheetCompareResultT } from '@/lib/actions/kosztorys-import'
 import { MONEY_TOLERANCE } from '@/lib/kosztorys/calc'

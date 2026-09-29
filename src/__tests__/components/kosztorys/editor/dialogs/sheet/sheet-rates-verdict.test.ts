@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ratesVerdict } from '@/components/kosztorys/editor/dialogs/sheet-rates-verdict'
+import { ratesVerdict } from '@/components/kosztorys/editor/dialogs/sheet/sheet-rates-verdict'
 import type { StaleRateT } from '@/lib/kosztorys/sheet-import/build-sheet-comparison'
 import type { ReportedRateResolutionT } from '@/lib/kosztorys/sheet-import/resolve-rates'
 

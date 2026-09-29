@@ -1,7 +1,7 @@
 'use client'
 
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
-import { ShareLinkPanel } from '@/components/kosztorys/editor/dialogs/share-link-panel'
+import { ShareLinkPanel } from '@/components/kosztorys/editor/dialogs/share/share-link-panel'
 import {
   generateWorkerShareLinkAction,
   revokeWorkerShareLinkAction,

@@ -2,14 +2,14 @@
 
 import { useState, useTransition } from 'react'
 import { DialogActions } from '@/components/ui/dialog-actions'
-import { SheetAccessBlock } from '@/components/kosztorys/editor/dialogs/sheet-access-block'
-import { SheetColumnPicker } from '@/components/kosztorys/editor/dialogs/sheet-column-picker'
-import { evaluateImportGate } from '@/components/kosztorys/editor/dialogs/sheet-import-gate'
-import { SheetPointedColumnsBlock } from '@/components/kosztorys/editor/dialogs/sheet-pointed-columns-block'
-import { SheetProblemsBlock } from '@/components/kosztorys/editor/dialogs/sheet-problems-block'
-import { SheetRatesBlock } from '@/components/kosztorys/editor/dialogs/sheet-rates-block'
-import { SheetReportBlock } from '@/components/kosztorys/editor/dialogs/sheet-report-block'
-import { SheetReportDialog } from '@/components/kosztorys/editor/dialogs/sheet-report-dialog'
+import { SheetAccessBlock } from '@/components/kosztorys/editor/dialogs/sheet/sheet-access-block'
+import { SheetColumnPicker } from '@/components/kosztorys/editor/dialogs/sheet/sheet-column-picker'
+import { evaluateImportGate } from '@/components/kosztorys/editor/dialogs/sheet/sheet-import-gate'
+import { SheetPointedColumnsBlock } from '@/components/kosztorys/editor/dialogs/sheet/sheet-pointed-columns-block'
+import { SheetProblemsBlock } from '@/components/kosztorys/editor/dialogs/sheet/sheet-problems-block'
+import { SheetRatesBlock } from '@/components/kosztorys/editor/dialogs/sheet/sheet-rates-block'
+import { SheetReportBlock } from '@/components/kosztorys/editor/dialogs/report/sheet-report-block'
+import { SheetReportDialog } from '@/components/kosztorys/editor/dialogs/report/sheet-report-dialog'
 import {
   ComparisonRow,
   ComparisonTable,
@@ -17,7 +17,7 @@ import {
   ReportFold,
   ReportRow,
   ReportTable,
-} from '@/components/kosztorys/editor/dialogs/sheet-report-parts'
+} from '@/components/kosztorys/editor/dialogs/report/sheet-report-parts'
 import { columnNoun, itemNoun, itemVanishesPhrase } from '@/lib/kosztorys/counted-nouns'
 import { applyKosztorysImport, type ImportPreviewT } from '@/lib/actions/kosztorys-import'
 import { PLANE_LABELS } from '@/lib/kosztorys/labels'

@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi, type Mock } from 'vitest'
 
-import { CatalogueMissingList } from '@/components/kosztorys/editor/dialogs/catalogue-missing-list'
+import { CatalogueMissingList } from '@/components/kosztorys/editor/dialogs/catalogue/catalogue-missing-list'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import type { CatalogueMissingT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 

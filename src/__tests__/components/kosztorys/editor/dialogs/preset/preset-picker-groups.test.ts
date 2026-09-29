@@ -3,7 +3,7 @@ import {
   groupPresetSections,
   isGroupFullySelected,
   metaKey,
-} from '@/components/kosztorys/editor/dialogs/preset-picker-groups'
+} from '@/components/kosztorys/editor/dialogs/preset/preset-picker-groups'
 import type { PresetSectionMetaT } from '@/lib/db/presets'
 
 const meta = (

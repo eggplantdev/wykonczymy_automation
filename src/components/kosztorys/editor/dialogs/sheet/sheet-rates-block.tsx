@@ -1,15 +1,15 @@
 'use client'
 
-import { SheetReportBlock } from '@/components/kosztorys/editor/dialogs/sheet-report-block'
+import { SheetReportBlock } from '@/components/kosztorys/editor/dialogs/report/sheet-report-block'
 import {
   ReportFold,
   ReportRow,
   ReportTable,
-} from '@/components/kosztorys/editor/dialogs/sheet-report-parts'
+} from '@/components/kosztorys/editor/dialogs/report/sheet-report-parts'
 import {
   ratesVerdict,
   type RatesReportModeT,
-} from '@/components/kosztorys/editor/dialogs/sheet-rates-verdict'
+} from '@/components/kosztorys/editor/dialogs/sheet/sheet-rates-verdict'
 import { MONEY_TOLERANCE } from '@/lib/kosztorys/calc'
 import { PLANE_LABELS } from '@/lib/kosztorys/labels'
 import type { StaleRateT } from '@/lib/kosztorys/sheet-import/build-sheet-comparison'

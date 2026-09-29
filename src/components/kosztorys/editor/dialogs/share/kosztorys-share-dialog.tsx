@@ -3,7 +3,7 @@
 import { Settings2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
-import { ShareLinkPanel } from '@/components/kosztorys/editor/dialogs/share-link-panel'
+import { ShareLinkPanel } from '@/components/kosztorys/editor/dialogs/share/share-link-panel'
 import { generateShareLinkAction, revokeShareLinkAction } from '@/lib/actions/kosztorys-share'
 import { investorShareUrl } from '@/lib/kosztorys/client-view/share-url'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'

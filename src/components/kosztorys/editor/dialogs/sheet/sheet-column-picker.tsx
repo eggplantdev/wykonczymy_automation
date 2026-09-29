@@ -3,7 +3,7 @@
 import { useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { SimpleSelect } from '@/components/ui/simple-select'
-import { toColumnOptions } from '@/components/kosztorys/editor/dialogs/sheet-column-picker-options'
+import { toColumnOptions } from '@/components/kosztorys/editor/dialogs/sheet/sheet-column-picker-options'
 import { clearSheetColumnMappingAction, saveSheetColumnMappingAction } from '@/lib/actions/sheets'
 import { FIELD_LABELS, type ColumnFieldT } from '@/lib/kosztorys/sheet-import/columns'
 import type { CandidateColumnT } from '@/lib/kosztorys/sheet-import/resolve-columns'

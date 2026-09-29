@@ -2,7 +2,7 @@
 
 import { Copy } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { SheetReportBlock } from '@/components/kosztorys/editor/dialogs/sheet-report-block'
+import { SheetReportBlock } from '@/components/kosztorys/editor/dialogs/report/sheet-report-block'
 import type {
   SheetFailureReasonT,
   SheetFailureT,

@@ -3,18 +3,18 @@
 import { useDeferredValue, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { CatalogueItemFromKosztorysDialog } from '@/components/kosztorys/editor/dialogs/catalogue-item-from-kosztorys-dialog'
-import { SheetReportBlock } from '@/components/kosztorys/editor/dialogs/sheet-report-block'
-import { SheetReportDialog } from '@/components/kosztorys/editor/dialogs/sheet-report-dialog'
-import { ReportFold } from '@/components/kosztorys/editor/dialogs/sheet-report-parts'
-import { CatalogueDiffTable } from '@/components/kosztorys/editor/dialogs/catalogue-diff-table'
-import { CatalogueMissingList } from '@/components/kosztorys/editor/dialogs/catalogue-missing-list'
+import { CatalogueItemFromKosztorysDialog } from '@/components/kosztorys/editor/dialogs/catalogue/catalogue-item-from-kosztorys-dialog'
+import { SheetReportBlock } from '@/components/kosztorys/editor/dialogs/report/sheet-report-block'
+import { SheetReportDialog } from '@/components/kosztorys/editor/dialogs/report/sheet-report-dialog'
+import { ReportFold } from '@/components/kosztorys/editor/dialogs/report/sheet-report-parts'
+import { CatalogueDiffTable } from '@/components/kosztorys/editor/dialogs/catalogue/catalogue-diff-table'
+import { CatalogueMissingList } from '@/components/kosztorys/editor/dialogs/catalogue/catalogue-missing-list'
 import {
   diffsVerdict,
   emptyReportReason,
   matchingVerdict,
   missingVerdict,
-} from '@/components/kosztorys/editor/dialogs/catalogue-compare-words'
+} from '@/components/kosztorys/editor/dialogs/catalogue/catalogue-compare-words'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { differenceNoun, itemNoun } from '@/lib/kosztorys/counted-nouns'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'

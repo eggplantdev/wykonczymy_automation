@@ -20,7 +20,7 @@ import {
 import { CellMenuTrigger } from '@/components/ui/datasheet-grid/cell-menu-trigger'
 import { REMOVAL_CONFIRM_DESCRIPTION } from '@/components/kosztorys/editor/grid/menus/removal-confirm'
 import { RowHeightMenuItems } from '@/components/kosztorys/editor/grid/menus/row-height-menu-items'
-import { SaveItemToCatalogueDialog } from '@/components/kosztorys/editor/dialogs/save-item-to-catalogue-dialog'
+import { SaveItemToCatalogueDialog } from '@/components/kosztorys/editor/dialogs/catalogue/save-item-to-catalogue-dialog'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 type PropsT = {

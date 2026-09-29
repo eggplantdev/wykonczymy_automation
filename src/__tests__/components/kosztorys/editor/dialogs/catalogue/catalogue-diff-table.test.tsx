@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
-import { CatalogueDiffTable } from '@/components/kosztorys/editor/dialogs/catalogue-diff-table'
+import { CatalogueDiffTable } from '@/components/kosztorys/editor/dialogs/catalogue/catalogue-diff-table'
 import type {
   CatalogueFigureDiffT,
   CataloguePriceDiffT,

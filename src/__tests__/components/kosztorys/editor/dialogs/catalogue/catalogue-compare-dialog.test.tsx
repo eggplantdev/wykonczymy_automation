@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { CatalogueCompareDialog } from '@/components/kosztorys/editor/dialogs/catalogue-compare-dialog'
+import { CatalogueCompareDialog } from '@/components/kosztorys/editor/dialogs/catalogue/catalogue-compare-dialog'
 import { CATALOGUE_DIVERGENCE_CONDITION_ID } from '@/lib/kosztorys/row-conditions/registry'
 import { PROBLEM_IDS } from '@/lib/kosztorys/problem-conditions'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'

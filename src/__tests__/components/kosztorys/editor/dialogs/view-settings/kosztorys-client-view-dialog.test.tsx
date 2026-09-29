@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { KosztorysClientViewDialog } from '@/components/kosztorys/editor/dialogs/kosztorys-client-view-dialog'
+import { KosztorysClientViewDialog } from '@/components/kosztorys/editor/dialogs/view-settings/kosztorys-client-view-dialog'
 import { CurrentUserProvider } from '@/hooks/use-current-user'
 import {
   clientDocumentColumns,

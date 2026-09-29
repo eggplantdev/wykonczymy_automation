@@ -22,7 +22,7 @@ import { useRowHeightCacheReset } from '@/components/kosztorys/editor/hooks/use-
 import { useWrapColumnWidths } from '@/components/kosztorys/editor/hooks/use-wrap-column-widths'
 import { useUndoKeyboard } from '@/components/kosztorys/editor/hooks/use-undo-keyboard'
 import { useSheetImport } from '@/components/kosztorys/editor/hooks/use-sheet-import'
-import { SheetImportDialog } from '@/components/kosztorys/editor/dialogs/sheet-import-dialog'
+import { SheetImportDialog } from '@/components/kosztorys/editor/dialogs/sheet/sheet-import-dialog'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { sectionFooterLabelColumnId } from '@/components/kosztorys/editor/grid/cells/section-footer-cell'
 import { sectionBandLabelColumnId } from '@/components/kosztorys/editor/grid/cells/section-header-cell'

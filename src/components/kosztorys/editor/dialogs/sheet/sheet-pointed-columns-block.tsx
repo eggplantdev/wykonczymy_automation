@@ -1,7 +1,7 @@
 'use client'
 
-import { SheetColumnPicker } from '@/components/kosztorys/editor/dialogs/sheet-column-picker'
-import { SheetReportBlock } from '@/components/kosztorys/editor/dialogs/sheet-report-block'
+import { SheetColumnPicker } from '@/components/kosztorys/editor/dialogs/sheet/sheet-column-picker'
+import { SheetReportBlock } from '@/components/kosztorys/editor/dialogs/report/sheet-report-block'
 import type { UnresolvedColumnsT } from '@/lib/kosztorys/sheet-import/resolve-columns'
 
 /**

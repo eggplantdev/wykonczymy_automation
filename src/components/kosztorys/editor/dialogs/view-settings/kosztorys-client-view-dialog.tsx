@@ -5,7 +5,7 @@ import { useDraft } from '@/hooks/use-draft'
 import { Button } from '@/components/ui/button'
 import { Description } from '@/components/ui/description'
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/ui/dialog'
-import { ClientViewSettingsForm } from '@/components/kosztorys/editor/dialogs/client-view-settings-form'
+import { ClientViewSettingsForm } from '@/components/kosztorys/editor/dialogs/view-settings/client-view-settings-form'
 import {
   saveClientViewDefaultsAction,
   saveClientViewSettingsAction,

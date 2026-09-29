@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   requiredFields,
   toColumnOptions,
-} from '@/components/kosztorys/editor/dialogs/sheet-column-picker-options'
+} from '@/components/kosztorys/editor/dialogs/sheet/sheet-column-picker-options'
 import type { CandidateColumnT } from '@/lib/kosztorys/sheet-import/resolve-columns'
 
 const candidate = (column: number, letter: string, labels: string[] = []): CandidateColumnT => ({

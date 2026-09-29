@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, use, useCallback, useState, type ReactNode } from 'react'
-import { AddItemsFromCatalogueDialog } from '@/components/kosztorys/editor/dialogs/add-items-from-catalogue-dialog'
+import { AddItemsFromCatalogueDialog } from '@/components/kosztorys/editor/dialogs/catalogue/add-items-from-catalogue-dialog'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
 type OpenCataloguePickerT = (sectionId?: number) => void
