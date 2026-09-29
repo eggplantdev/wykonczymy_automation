@@ -637,4 +637,4 @@ The full unit suite runs only when asked (memory: no full suite unasked). Pre-pu
 
 #### Automated
 
-- [x] 5.1 No automated check — prose only
+- [x] 5.1 No automated check — prose only — b6b1dd1b

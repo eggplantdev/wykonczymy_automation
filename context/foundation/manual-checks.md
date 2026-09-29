@@ -2064,3 +2064,36 @@ decyzja właściciela.
 - [ ] Kosz → „Usuń na zawsze" przy kosztorysie w użyciu (okno z wpisywaniem nazwy): po potwierdzeniu
       przycisk pokazuje „Usuwam…" do końca akcji — to okno ma działający stan „w toku" i ma go
       zachować.
+
+## catalogue-filters-and-usage — „Filtry", „Problemy" i „Policz użycia" w katalogu prac (EX-863, EX-873, 2026-09-29)
+
+### Phase 1: Wspólne elementy filtrów
+
+- [ ] Edytor kosztorysu: filtry dalej zapamiętują się per inwestycja, pasek chipów wygląda i działa
+      jak wcześniej, a „Wyczyść wszystko" pojawia się dopiero od 2 chipów.
+- [ ] `/katalog-prac`: czerwone komórki „% ceny klienta" są takie same jak przed zmianą.
+
+### Phase 2: Filtry, Problemy i j.m.
+
+- [ ] „Problemy" pojawia się tylko, gdy któraś praca nie ma ceny j.m. albo ma stawkę 0 zł, a wybór
+      problemu zawęża tabelę dokładnie do tych prac.
+- [ ] Liczniki w „Filtrach" nie zmieniają się, gdy zmienia się szukanie, „Kategoria" albo „j.m.".
+- [ ] „Ponad 55,25 % — bez narzędzi" wybiera dokładnie prace z czerwoną komórką w tej kolumnie.
+- [ ] Filtry przetrwają przeładowanie strony. Chipy zdejmują się pojedynczo, a „Wyczyść wszystko"
+      zdejmuje wszystko.
+
+### Phase 4: Policz użycia
+
+- [ ] Przed kliknięciem „Policz użycia" nie ma kolumny „Kosztorysy", grupy „Użycie" ani listy
+      „Używane, a brak w katalogu".
+- [ ] Po kliknięciu liczby w „Kosztorysy" zgadzają się z ręcznym policzeniem dla 2–3 prac.
+- [ ] „Nieużywane" zawęża do prac z liczbą 0. Po przeładowaniu grupy nie ma i nic nie zostaje przez
+      nią zawężone.
+- [ ] Praca, której opis występuje też z inną j.m., ma znacznik „występuje z inną j.m.".
+- [ ] Lista „Używane, a brak w katalogu" jest ułożona po liczbie kosztorysów, a podpowiedź nigdy nie
+      dolicza się do „Kosztorysy".
+- [ ] Nowy kosztorys, który używa pracy, podnosi jej liczbę przy następnym kliknięciu.
+
+### Phase 5: Dokumentacja
+
+- [ ] Notatki domenowe (`kosztorys-editor-domain-notes.md`) opisują to, co robi strona.
