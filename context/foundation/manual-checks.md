@@ -709,9 +709,9 @@ field.value)` na **zrenderowanym węźle**, nie na surowej wartości: `Telefon`/
   wejścia do marży), zero przycisków plików w toolbarze. Zgodne z checkiem.
 - Sprawdzenie #11: tekst checklisty mówił „pięć zakładek" — na żywo (`/k/<token>` z inw. 137 i
   `/podglad-inwestora/106`) są **trzy**: Podsumowanie/Materiały/Robocizna. Nie defekt —
-  `allowedSummaryViews` (`src/components/kosztorys/summary/allowed-summary-views.ts`) gubi
+  `allowedSummaryViews` (`src/components/kosztorys/summary/model/summary-views.ts`) gubi
   „Podwykonawcy" i „Marża" na `preview` **niezależnie** od tej zmiany (starsza bramka, potwierdzona
-  testem `allowedSummaryViews.test.ts`: „podgląd klienta gubi «Podwykonawcy» i «Marża», nawet gdy
+  testem `model/summary-views.test.ts`: „podgląd klienta gubi «Podwykonawcy» i «Marża», nawet gdy
   liczby przyszły"). Ta zmiana dokłada tylko trzecią bramkę („Inwestycja" na `!preview &&
 hasInvestmentInfo`), z tym samym efektem. Poprawiłem liczbę w treści checka (linia wyżej) — plan
   najwyraźniej się przeliczył.
