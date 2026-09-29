@@ -12,10 +12,7 @@ import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { cleanItemTexts } from '@/lib/kosztorys/clean-item-texts'
 import { itemPatchSchema } from '@/lib/kosztorys/item-patch-schema'
 import { getItemTexts, setItemTexts } from '@/lib/db/kosztorys-item-texts'
-import {
-  createSectionWithFirstItem,
-  type CreatedSectionWithItemT,
-} from '@/lib/kosztorys/create-section'
+import { createSection, type CreatedSectionT } from '@/lib/kosztorys/create-section'
 import { createBlankItem, sectionOwnerAndNextItemOrder } from '@/lib/kosztorys/create-item'
 import {
   insertDirectionSchema,
@@ -296,9 +293,8 @@ export async function clearKosztorysAction(investmentId: number): Promise<Action
   )
 }
 
-// Prepends a section at the TOP, WITH its first blank item — see createSectionWithFirstItem for why
-// the pair is one call (and one round trip for the client) rather than two actions. The shift and
-// the create share one transaction: a double-fired add would otherwise land two sections on 0.
+// Prepends a bare section at the TOP. The shift and the create share one transaction: a double-fired
+// add would otherwise land two sections on 0.
 //
 // One case the transaction cannot serialize: an investment with NO sections yet. `shiftDisplayOrderFrom`
 // takes its lock on the rows it is pushing down, and there are none — so two concurrent first-adds
@@ -307,7 +303,7 @@ export async function clearKosztorysAction(investmentId: number): Promise<Action
 // to close it would put every section insert behind a lock the rest of the editor also wants.
 export async function addSectionAction(
   investmentId: number,
-): Promise<ActionResultT<CreatedSectionWithItemT>> {
+): Promise<ActionResultT<CreatedSectionT>> {
   return investmentAction(
     'addSectionAction',
     { investmentId },
@@ -317,13 +313,13 @@ export async function addSectionAction(
         async (req) => {
           const txDb = await getDb(payload, req)
           await shiftDisplayOrderFrom(txDb, 'kosztorys-sections', investmentId, 0)
-          return createSectionWithFirstItem(payload, { investmentId, displayOrder: 0, req })
+          return createSection(payload, { investmentId, displayOrder: 0, req })
         },
         { skipRevalidation: true },
       )
       return { success: true, data: created }
     },
-    ['kosztorysSections', 'kosztorysItems'],
+    ['kosztorysSections'],
   )
 }
 
@@ -355,7 +351,7 @@ const insertSectionSchema = z.object({
 export async function insertSectionAction(
   anchorSectionId: number,
   dir: InsertDirectionT,
-): Promise<ActionResultT<CreatedSectionWithItemT>> {
+): Promise<ActionResultT<CreatedSectionT>> {
   return investmentAction(
     'insertSectionAction',
     { kind: 'section', id: anchorSectionId },
@@ -374,7 +370,7 @@ export async function insertSectionAction(
           )
           if (!slot) return null
           await shiftDisplayOrderFrom(txDb, 'kosztorys-sections', slot.ownerId, slot.at)
-          return createSectionWithFirstItem(payload, {
+          return createSection(payload, {
             investmentId: slot.ownerId,
             displayOrder: slot.at,
             req,
@@ -385,7 +381,7 @@ export async function insertSectionAction(
       if (!created) return { success: false, error: SECTION_MISSING }
       return { success: true, data: created }
     },
-    ['kosztorysSections', 'kosztorysItems'],
+    ['kosztorysSections'],
   )
 }
 

@@ -26,8 +26,9 @@ export function KosztorysEditorV2(props: PropsT) {
   const [versionsOpen, setVersionsOpen] = useState(false)
   // The latch's freshness token. `revision` (investment.updatedAt) alone answers a restore and an
   // import — both bump it — but not a row deleted in ANOTHER tab, which changes nothing on the
-  // investment and is one of the ways a write comes back NOT_FOUND. The item count closes that half.
-  const treeToken = `${tree.revision}:${tree.sections.reduce((n, section) => n + section.items.length, 0)}`
+  // investment and is one of the ways a write comes back NOT_FOUND. The item and section counts close
+  // that half — a sekcja bez pozycji moves only the second.
+  const treeToken = `${tree.revision}:${tree.sections.length}:${tree.sections.reduce((n, section) => n + section.items.length, 0)}`
   const { remountKey, triggerRestore } = useRestoreRemount(treeToken)
 
   // Live stack revision for the interval closure (which captures values at setup time, so it can't

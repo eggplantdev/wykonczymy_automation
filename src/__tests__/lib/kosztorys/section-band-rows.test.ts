@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import {
-  baseOrdinals,
-  buildSectionBandRows,
-  sectionRepresentatives,
-} from '@/lib/kosztorys/section-band-rows'
+import { baseOrdinals, buildSectionBandRows } from '@/lib/kosztorys/section-band-rows'
 import {
   isSectionFooterRow,
   isSectionHeaderRow,
@@ -209,17 +205,5 @@ describe('baseOrdinals — a pozycja keeps its number', () => {
     const ordinals = baseOrdinals(VIEW_ROWS)
 
     expect([row(2, 10), row(5, 20)].map((r) => ordinals.get(r.id))).toEqual([2, 5])
-  })
-})
-
-describe('sectionRepresentatives', () => {
-  it('names each section once, in the order it first appears', () => {
-    expect(sectionRepresentatives(VIEW_ROWS).map((r) => r.sectionId)).toEqual([10, 20])
-  })
-
-  it('keeps the first row of a section as its representative even when the section is split', () => {
-    const reps = sectionRepresentatives([row(4, 20), row(1, 10), row(5, 20)])
-
-    expect(reps.map((r) => r.id)).toEqual([4, 1])
   })
 })

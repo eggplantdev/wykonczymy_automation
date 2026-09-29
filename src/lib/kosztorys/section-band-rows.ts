@@ -17,12 +17,6 @@ type OptsT = {
   showItemless: boolean
 }
 
-export function sectionRepresentatives(rows: readonly KosztorysV2RowT[]): KosztorysV2RowT[] {
-  const bySection = new Map<number, KosztorysV2RowT>()
-  for (const row of rows) if (!bySection.has(row.sectionId)) bySection.set(row.sectionId, row)
-  return [...bySection.values()]
-}
-
 /**
  * A pozycja's number: its rank among the rows passed in, in display order.
  *

@@ -13,7 +13,7 @@ import { createTestInvestment } from '@/__tests__/helpers/investment'
 //   DO2 — the ▲▼ swap exchanges exactly two rows and leaves every display_order distinct (there is
 //         no unique constraint, so a half-applied swap would silently collide).
 //   DO3 — a swap burst racing an insert over the same rows never aborts a transaction.
-//   DO4 — a section never survives a failed first item.
+//   DO4 — a new section is created bare: no pozycja is seeded into it.
 //
 // Same mock surface as the sibling action specs: requireAuth needs a request/cookie we lack in node,
 // and revalidation touches next/cache outside a request context.
@@ -151,7 +151,7 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
       if (!section.success) return
       const sectionId = section.data.section.id
 
-      // addSectionAction already seeded item @0 — two more give 0,1,2.
+      await addItemAction(sectionId)
       await addItemAction(sectionId)
       await addItemAction(sectionId)
       const before = await itemIdsInOrder(sectionId)
@@ -184,8 +184,6 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
 
       expect(await sectionOrders(investmentId)).toEqual([0, 1, 2])
       expect(await sectionIdsInOrder(investmentId)).toEqual([added.data.section.id, ...before])
-      // A section is never created alone — a 0-item section renders as 0 rows.
-      expect(await itemOrders(added.data.section.id)).toEqual([0])
     })
 
     it('inserting a section mid-investment shifts the tail and lands at the index', async () => {
@@ -208,32 +206,23 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
         before[1],
         before[2],
       ])
-      // A section is never created alone — a 0-item section renders as 0 rows.
-      expect(await itemOrders(inserted.data.section.id)).toEqual([0])
     })
   })
 
-  // A section whose first item failed to create would survive as a 0-item section, and a 0-item
-  // section emits zero rows — so it is invisible in the grid while still occupying a display_order
-  // slot, unreachable and undeletable. The pair must roll back together on every path that mints a
-  // section.
-  describe('a section never survives a failed first item (DO4)', () => {
-    it('rolls the section back when its first item fails', async () => {
+  // The editor draws a sekcja bez pozycji as a header band of its own, so nothing is seeded to make
+  // it visible — a seeded blank row would be a pozycja nobody asked for.
+  describe('a new section is created bare (DO4)', () => {
+    it('adding or inserting a section creates no pozycja', async () => {
       const investmentId = await freshInvestment()
-      const create = payload.create.bind(payload)
-      const spy = vi
-        .spyOn(payload, 'create')
-        .mockImplementation(async (args: Parameters<typeof create>[0]) => {
-          if (args.collection === 'kosztorys-items') throw new Error('item create blew up')
-          return create(args)
-        })
-      try {
-        const res = await addSectionAction(investmentId)
-        expect(res.success).toBe(false)
-      } finally {
-        spy.mockRestore()
-      }
-      expect(await sectionOrders(investmentId)).toEqual([])
+      const added = await addSectionAction(investmentId)
+      expect(added.success).toBe(true)
+      if (!added.success) return
+      const inserted = await insertSectionAction(added.data.section.id, 'below')
+      expect(inserted.success).toBe(true)
+      if (!inserted.success) return
+
+      expect(await itemOrders(added.data.section.id)).toEqual([])
+      expect(await itemOrders(inserted.data.section.id)).toEqual([])
     })
   })
 
@@ -244,6 +233,7 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
       expect(section.success).toBe(true)
       if (!section.success) return
       const sectionId = section.data.section.id
+      await addItemAction(sectionId)
       const second = await addItemAction(sectionId)
       const third = await addItemAction(sectionId)
       expect([second.success, third.success]).toEqual([true, true])
@@ -266,6 +256,7 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
       expect(section.success).toBe(true)
       if (!section.success) return
       const sectionId = section.data.section.id
+      await addItemAction(sectionId)
       const middle = await addItemAction(sectionId)
       const last = await addItemAction(sectionId)
       expect([middle.success, last.success]).toEqual([true, true])
@@ -287,6 +278,7 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
       expect(section.success).toBe(true)
       if (!section.success) return
       const sectionId = section.data.section.id
+      await addItemAction(sectionId)
       const second = await addItemAction(sectionId)
       expect(second.success).toBe(true)
       if (!second.success) return
@@ -307,6 +299,8 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
       const second = await addSectionAction(investmentId)
       expect([first.success, second.success]).toEqual([true, true])
       if (!first.success || !second.success) return
+      await addItemAction(first.data.section.id)
+      await addItemAction(second.data.section.id)
       const [firstSectionItem] = await itemIdsInOrder(first.data.section.id)
       const secondSectionBefore = await itemIdsInOrder(second.data.section.id)
 
@@ -386,6 +380,7 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
       expect(section.success).toBe(true)
       if (!section.success) return
       const sectionId = section.data.section.id
+      await addItemAction(sectionId)
 
       // Ids ascending but display_order descending after the swaps below — the shift's scan order
       // and the swap's id order then disagree, which is the arrangement that deadlocks.
@@ -421,9 +416,8 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
       if (!first.success || !second.success) return
       const [sectionA, sectionB] = [first.data.section.id, second.data.section.id]
 
-      // Each addSectionAction seeds one item; one more each gives two per section.
-      await addItemAction(sectionA)
-      await addItemAction(sectionB)
+      for (const sectionId of [sectionA, sectionA, sectionB, sectionB])
+        await addItemAction(sectionId)
       const [a0, a1] = await itemIdsInOrder(sectionA)
       const [b0, b1] = await itemIdsInOrder(sectionB)
 
@@ -446,6 +440,7 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
       const sectionId = section.data.section.id
 
       await addItemAction(sectionId)
+      await addItemAction(sectionId)
       const [i0, i1] = await itemIdsInOrder(sectionId)
       const doomed = await addItemAction(sectionId)
       expect(doomed.success).toBe(true)
@@ -466,6 +461,7 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
       const theirSection = await addSectionAction(theirs)
       expect([mySection.success, theirSection.success]).toEqual([true, true])
       if (!mySection.success || !theirSection.success) return
+      await addItemAction(theirSection.data.section.id)
 
       const [theirItem] = await itemIdsInOrder(theirSection.data.section.id)
       const baked = await renumberKosztorysOrderAction(mine, [theirItem])

@@ -90,18 +90,17 @@ describe.skipIf(!ENV_READY)('renumberKosztorysOrderAction (DB)', () => {
     return res.rows.map((r) => Number(r.display_order))
   }
 
-  // addSectionAction seeds item @0; `extra` more give a 1+extra-row section.
-  async function sectionWithItems(investmentId: number, extra: number): Promise<number> {
+  async function sectionWithItems(investmentId: number, count: number): Promise<number> {
     const section = await addSectionAction(investmentId)
     if (!section.success) throw new Error('section fixture failed')
-    for (let i = 0; i < extra; i++) await addItemAction(section.data.section.id)
+    for (let i = 0; i < count; i++) await addItemAction(section.data.section.id)
     return section.data.section.id
   }
 
   it('renumbers every section in one call, each restarting at 0 (RK1)', async () => {
     const investmentId = await freshInvestment()
-    const first = await sectionWithItems(investmentId, 1)
-    const second = await sectionWithItems(investmentId, 1)
+    const first = await sectionWithItems(investmentId, 2)
+    const second = await sectionWithItems(investmentId, 2)
     const [a, b] = await itemIdsInOrder(first)
     const [c, d] = await itemIdsInOrder(second)
 
@@ -116,9 +115,9 @@ describe.skipIf(!ENV_READY)('renumberKosztorysOrderAction (DB)', () => {
 
   it('refuses ids belonging to another investment and writes nothing (RK2)', async () => {
     const investmentId = await freshInvestment()
-    const mine = await sectionWithItems(investmentId, 1)
+    const mine = await sectionWithItems(investmentId, 2)
     const otherInvestmentId = await freshInvestment()
-    const theirs = await sectionWithItems(otherInvestmentId, 1)
+    const theirs = await sectionWithItems(otherInvestmentId, 2)
     const [a, b] = await itemIdsInOrder(mine)
     const [foreign] = await itemIdsInOrder(theirs)
     const theirsBefore = await itemIdsInOrder(theirs)
@@ -132,7 +131,7 @@ describe.skipIf(!ENV_READY)('renumberKosztorysOrderAction (DB)', () => {
 
   it('refuses a duplicate id (RK3)', async () => {
     const investmentId = await freshInvestment()
-    const sectionId = await sectionWithItems(investmentId, 1)
+    const sectionId = await sectionWithItems(investmentId, 2)
     const [a, b] = await itemIdsInOrder(sectionId)
 
     const res = await renumberKosztorysOrderAction(investmentId, [a, a, b])
@@ -143,7 +142,7 @@ describe.skipIf(!ENV_READY)('renumberKosztorysOrderAction (DB)', () => {
 
   it('refuses the whole bake when one id is stale (RK4)', async () => {
     const investmentId = await freshInvestment()
-    const sectionId = await sectionWithItems(investmentId, 2)
+    const sectionId = await sectionWithItems(investmentId, 3)
     const [a, b, c] = await itemIdsInOrder(sectionId)
     await removeItemAction(c)
 

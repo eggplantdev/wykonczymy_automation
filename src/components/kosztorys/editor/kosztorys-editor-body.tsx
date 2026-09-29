@@ -193,7 +193,8 @@ export function KosztorysEditorBody({
     clientEmptyRowIds,
     resetFilters,
     ordinalByRowId,
-    sectionRows,
+    sections,
+    showItemless,
     setSearch,
     collapsedSectionIds,
     toggleSectionCollapsed,
@@ -284,15 +285,19 @@ export function KosztorysEditorBody({
   const engagedHiderList = engagedHiders(engagedConditionIds)
   const engagedDiagnostics = engagedConditionsOfKind(engagedConditionIds, 'diagnostic')
   const emptyByFilter = engagedHiderList.length > 0
+  // Full-dataset rather than the rendered rows: `gridRows` always carries the spacer + „Razem" rows, and
+  // a no-hit search empties `viewRows` over a kosztorys that is not in fact empty. The owner's
+  // sekcja bez pozycji is content; the client's document never shows one.
+  const isEmpty = preview ? subtotals.length === 0 : sections.length === 0
   const bodyRows = useMemo(
     () =>
       buildSectionBandRows(viewRows, {
         enabled: sectionBandsVisible(sort),
         collapsedSectionIds,
-        sections: sectionRows,
-        showItemless: false,
+        sections,
+        showItemless,
       }),
-    [viewRows, collapsedSectionIds, sort, sectionRows],
+    [viewRows, collapsedSectionIds, sort, sections, showItemless],
   )
   const gridRows = useMemo(() => [...bodyRows, makeSpacerRow(), makeTotalsRow()], [bodyRows])
   const datasheetRef = useRef<DataSheetGridRef>(null)
@@ -520,10 +525,7 @@ export function KosztorysEditorBody({
                   }
                 />
               </div>
-              {/* Emptiness is judged on `subtotals` (full-dataset) rather than the rendered rows:
-              `gridRows` always carries the spacer + „Razem" rows, and a no-hit search empties
-              `viewRows` over a kosztorys that is not in fact empty. */}
-              {subtotals.length === 0 && (
+              {isEmpty && (
                 <EmptyState
                   className="pointer-events-none absolute inset-0"
                   title={`${noun.Nominative} jest pusty`}
@@ -550,7 +552,7 @@ export function KosztorysEditorBody({
               {/* The sibling state: rows exist, the search matched none of them. Gated on the search term
               rather than on `viewRows` alone so the „Wyczyść" advice can never be offered to someone
               who never typed anything. Unreachable in the client view, which renders no search field. */}
-              {subtotals.length > 0 && viewRows.length === 0 && search.trim() !== '' && (
+              {!isEmpty && viewRows.length === 0 && search.trim() !== '' && (
                 <EmptyState
                   className="pointer-events-none absolute inset-0"
                   title="Brak wyników"
@@ -573,7 +575,7 @@ export function KosztorysEditorBody({
               {/* Gated on the RECOGNISED conditions, not on the raw persisted set: an id left over from a
               condition a later release removed is a no-op for the grid, and counting it here would
               title the overlay „Brak pozycji " with nothing after it. */}
-              {subtotals.length > 0 &&
+              {!isEmpty &&
                 viewRows.length === 0 &&
                 search.trim() === '' &&
                 (emptyByFilter || engagedDiagnostics.length > 0) && (

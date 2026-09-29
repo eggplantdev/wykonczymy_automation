@@ -8,7 +8,6 @@ import {
   hasStagesOverPlanned,
 } from '@/lib/kosztorys/settlement-rows'
 import { applyRestoreItem, revertField } from '@/lib/kosztorys/row-ops'
-import { isLastItemInSection } from '@/lib/kosztorys/delete-policy'
 import { rowDoneFraction } from '@/lib/kosztorys/calc'
 import { computedColumnValues } from '@/lib/kosztorys/column-values'
 import {
@@ -493,25 +492,6 @@ describe('wartość wiersza idzie za etapami', () => {
       expect(aWtools.net).toBe(5000) // pieniądze idą za widokiem…
       expect(aWtools.share).toBeCloseTo(aClient.share, 10) // …udział nie
     })
-  })
-})
-
-describe('isLastItemInSection', () => {
-  const row = (id: number, sectionId: number) => ({ id, sectionId }) as unknown as KosztorysV2RowT
-
-  it('sekcja ma jeszcze inne pozycje → nie jest ostatnia', () => {
-    const rows = [row(1, 10), row(2, 10), row(3, 20)]
-    expect(isLastItemInSection(rows, rows[0])).toBe(false)
-  })
-
-  it('jedyna pozycja swojej sekcji → jest ostatnia, choć kosztorys ma inne sekcje', () => {
-    const rows = [row(1, 10), row(2, 20)]
-    expect(isLastItemInSection(rows, rows[1])).toBe(true)
-  })
-
-  it('jedyna pozycja całego kosztorysu → jest ostatnia (opróżnienie do zera jest dozwolone)', () => {
-    const rows = [row(1, 10)]
-    expect(isLastItemInSection(rows, rows[0])).toBe(true)
   })
 })
 

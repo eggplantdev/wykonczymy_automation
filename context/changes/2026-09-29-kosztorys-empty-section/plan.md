@@ -559,17 +559,17 @@ None. There is no schema change. Existing data has 0 itemless sections.
 
 #### Automated
 
-- [x] 1.1 `section-list` unit spec covers each op, incl. `orderRowsBySections` placing a middle itemless section's first item between its neighbours
-- [x] 1.2 `section-band-rows` spec: itemless → header only when `showItemless`, nothing when off; collapsed populated → header only
-- [x] 1.3 `move-edges` spec: an itemless first/last section owns the edge
-- [x] 1.4 `row-ops` spec: `catalogueSlicePlacement` folds into a known itemless section, reseeds only an unknown one
+- [x] 1.1 `section-list` unit spec covers each op, incl. `orderRowsBySections` placing a middle itemless section's first item between its neighbours — 5bbc2499
+- [x] 1.2 `section-band-rows` spec: itemless → header only when `showItemless`, nothing when off; collapsed populated → header only — 5bbc2499
+- [x] 1.3 `move-edges` spec: an itemless first/last section owns the edge — 5bbc2499
+- [x] 1.4 `row-ops` spec: `catalogueSlicePlacement` folds into a known itemless section, reseeds only an unknown one — 5bbc2499
 
 ### Phase 2: Sections as editor state + bare section create
 
 #### Automated
 
-- [ ] 2.1 renderHook spec: itemless section in `sections`; last-item delete keeps the section; add section = meta, no row; first item re-lays between neighbours; itemless rename persists; section delete prunes its undo commands
-- [ ] 2.2 DB integration: `addSectionAction` / `insertSectionAction` create zero items; updated fixtures pass (`pnpm test:integration`)
+- [x] 2.1 renderHook spec: itemless section in `sections`; last-item delete keeps the section; add section = meta, no row; first item re-lays between neighbours; itemless rename persists; section delete prunes its undo commands
+- [x] 2.2 DB integration: `addSectionAction` / `insertSectionAction` create zero items; updated fixtures pass (`pnpm test:integration`)
 - [ ] 2.3 `pnpm typecheck` passes with `delete-policy.ts`, `buildNewSectionRow`, `neighborSectionId`, `swapSectionBlock`, `applyInsertSectionRow`, `sectionRepresentatives` removed
 
 ### Phase 3: Itemless section UI

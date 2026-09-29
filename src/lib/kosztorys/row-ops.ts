@@ -156,23 +156,6 @@ export function groupBySection(rows: KosztorysV2RowT[]): Map<number, KosztorysV2
   return groupInOrder(rows, (row) => row.sectionId)
 }
 
-// Splice the first row of a newly inserted section into the display sequence, just before or just
-// after the anchor section's block.
-export function applyInsertSectionRow(
-  rows: KosztorysV2RowT[],
-  anchorSectionId: number,
-  row: KosztorysV2RowT,
-  dir: 'above' | 'below',
-): KosztorysV2RowT[] {
-  const blocks = groupBySection(rows)
-  const seq = [...blocks.keys()]
-  const pos = seq.indexOf(anchorSectionId)
-  if (pos < 0) return [...rows, row]
-  seq.splice(dir === 'above' ? pos : pos + 1, 0, row.sectionId)
-  blocks.set(row.sectionId, [row])
-  return regroupByKeys(blocks, seq)
-}
-
 // „Zapisz kolejność": re-lay every block in the id sequence just sent to the server. A row the
 // sequence doesn't mention keeps the slot it occupies, so a stale sequence degrades to a partial
 // reorder rather than a scramble — the mentioned rows are sorted into the positions they already
@@ -194,32 +177,6 @@ export function applyKosztorysOrder(
     )
   }
   return regroupByKeys(blocks, [...blocks.keys()])
-}
-
-export function neighborSectionId(
-  rows: KosztorysV2RowT[],
-  sectionId: number,
-  dir: 'up' | 'down',
-): number | undefined {
-  const seq = [...groupBySection(rows).keys()]
-  const pos = seq.indexOf(sectionId)
-  if (pos < 0) return undefined
-  return seq[dir === 'up' ? pos - 1 : pos + 1]
-}
-
-// Move a whole section one place (▲/▼). Same reference on a no-op (edge / unknown id).
-export function swapSectionBlock(
-  rows: KosztorysV2RowT[],
-  sectionId: number,
-  dir: 'up' | 'down',
-): KosztorysV2RowT[] {
-  const blocks = groupBySection(rows)
-  const seq = [...blocks.keys()]
-  const pos = seq.indexOf(sectionId)
-  const targetPos = dir === 'up' ? pos - 1 : pos + 1
-  if (pos < 0 || targetPos < 0 || targetPos >= seq.length) return rows
-  ;[seq[pos], seq[targetPos]] = [seq[targetPos], seq[pos]]
-  return regroupByKeys(blocks, seq)
 }
 
 // Neighbor of an item within ITS section in the ▲/▼ direction (same sequence as swapItemInSection).
