@@ -1,10 +1,10 @@
 ---
 change_id: instant-page-shell
 title: Instant navigation — page title in the prefetched shell, loader only below it
-status: implemented
+status: archived
 created: 2026-09-28
 updated: 2026-09-29
-archived_at: null
+archived_at: 2026-09-29T05:21:18Z
 branch: instant-page-shell
 worktree: null
 ---
