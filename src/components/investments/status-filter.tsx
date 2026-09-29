@@ -8,6 +8,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  keepMenuOpen,
 } from '@/components/ui/dropdown-menu'
 import { FilterTriggerButton } from '@/components/filters/filter-trigger-button'
 import {
@@ -43,13 +44,7 @@ export function StatusFilter({ selectedStatuses, onToggle, triggerClassName }: S
         <DropdownMenuLabel>Widoczne statusy</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {PICKABLE_INVESTMENT_STATUSES.map((status) => (
-          <DropdownMenuItem
-            key={status}
-            // Plain items + preventDefault, not DropdownMenuCheckboxItem: the menu must survive a
-            // toggle so several statuses can be flipped in one visit.
-            onSelect={(e) => e.preventDefault()}
-            onClick={() => onToggle(status)}
-          >
+          <DropdownMenuItem key={status} onSelect={keepMenuOpen(() => onToggle(status))}>
             <CheckIcon className={cn(!selectedStatuses.has(status) && 'opacity-0')} />
             {INVESTMENT_STATUS_LABELS[status].pl}
           </DropdownMenuItem>

@@ -73,14 +73,16 @@ export function StageHeader({
 
   // Moving executed work off someone is the one destructive-feeling edit here: it drops their
   // „pozostało" by the amount and raises the new person's. Confirm only in that case — assigning an
-  // empty etap, or filling in a blank assignment, needs no ceremony.
+  // empty etap, or filling in a blank assignment, needs no ceremony. Returns whether the confirm
+  // opened, because the menu has to close for it.
   function pickWorker(workerId: number | null) {
-    if (workerId === stage.workerId) return
+    if (workerId === stage.workerId) return false
     if (executedValue > 0 && stage.workerId != null) {
       setPendingWorkerId(workerId)
-      return
+      return true
     }
     onSetWorker?.(stage.id, workerId)
+    return false
   }
 
   // No handlers = a read-only mount (preview): render the bare label, no menu/rename/delete AND no

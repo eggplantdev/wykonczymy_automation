@@ -12,6 +12,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  keepMenuOpen,
 } from '@/components/ui/dropdown-menu'
 import { DropdownCheckGroups } from '@/components/ui/dropdown-check-groups'
 import { CatalogueCompareMenuItem } from '@/components/kosztorys/editor/actions/catalogue-compare-action'
@@ -78,13 +79,13 @@ export function KosztorysProblemsMenu() {
                 „Filtry" toggles are that menu's to undo, and a reset here that reached them would
                 undo things this menu never did. */}
             <DropdownMenuItem
-              onSelect={() => toggleConditionExclusive(engaged.id, PROBLEM_IDS)}
+              onSelect={keepMenuOpen(() => toggleConditionExclusive(engaged.id, PROBLEM_IDS))}
               className="text-muted-foreground"
             >
               <RotateCcw />
               Zresetuj filtry
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={refreshProblemRows}>
+            <DropdownMenuItem onSelect={keepMenuOpen(refreshProblemRows)}>
               <RefreshCw />
               Odśwież — ukryj poprawione
             </DropdownMenuItem>

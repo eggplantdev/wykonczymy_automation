@@ -24,9 +24,6 @@ import {
   type PairAxisConfigT,
 } from '@/lib/kosztorys/axis-checkboxes'
 
-// preventDefault keeps the menu open so several axes can be flipped in one visit.
-const keepOpen = (event: Event) => event.preventDefault()
-
 // One axis (Kwoty / Warstwy) as a labelled checkbox pair over its four-state union: each box
 // flips its side via togglePairAxis, both checked = show all, both unchecked = hide the axis.
 function AxisSection<T extends string>({
@@ -52,7 +49,6 @@ function AxisSection<T extends string>({
           <DropdownMenuCheckboxRow
             key={option.value}
             checked={checks[box]}
-            onSelect={keepOpen}
             onCheckedChange={() => onChange(togglePairAxis(value, box, config))}
             label={option.label}
             trailing={option.icon}

@@ -69,10 +69,23 @@ function DropdownMenuItem({
   )
 }
 
+// An `onSelect` for an item whose effect is visible inside the menu itself — a toggle, a sort, a
+// filter. Radix closes the menu on every select; preventDefault keeps it open so the pick can be read
+// back (or changed again) without reopening.
+function keepMenuOpen(action?: () => void) {
+  return (event: Event) => {
+    event.preventDefault()
+    action?.()
+  }
+}
+
+// Stays open by default: a checkbox is a state you set, not a command you run. Pass `onSelect` to
+// opt back into closing — a pick that opens a dialog has to, or the menu's focus trap fights it.
 function DropdownMenuCheckboxItem({
   className,
   children,
   checked,
+  onSelect = keepMenuOpen(),
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.CheckboxItem>) {
   return (
@@ -83,6 +96,7 @@ function DropdownMenuCheckboxItem({
         className,
       )}
       checked={checked}
+      onSelect={onSelect}
       {...props}
     >
       <span className="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
@@ -245,4 +259,5 @@ export {
   DropdownMenuSub,
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
+  keepMenuOpen,
 }
