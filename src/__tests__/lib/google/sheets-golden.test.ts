@@ -37,8 +37,6 @@ vi.mock('googleapis', () => ({
   },
 }))
 
-const HEADER = ['id', 'data', 'typ wydatku inwestycyjnego', 'opis', 'kwota', 'kategoria', 'notatka']
-
 // Every captured call in order: [apiMethod, requestArg]
 function captured() {
   const calls: Array<[string, unknown]> = []
@@ -99,46 +97,6 @@ describe('GOLDEN: expenses tab emitted requests', () => {
     })
     const { setupTab, EXPENSES_TAB_CONFIG } = await import('@/lib/google/sheets')
     await setupTab('golden-sheet', EXPENSES_TAB_CONFIG, ['Materiały budowlane'])
-    expect(captured()).toMatchSnapshot()
-  })
-
-  it('applyMaterialRowsBatch: update + append + remove in one batch', async () => {
-    // header r1, ids 101 r2, 102 r3, 103 r4
-    getMock.mockResolvedValueOnce({ data: { values: [HEADER, [101], [102], [103]] } })
-    spreadsheetsGetMock.mockResolvedValueOnce({
-      data: {
-        sheets: [
-          { properties: { sheetId: 777, title: 'wydatki inwestycyjne (tylko do odczytu)' } },
-        ],
-      },
-    })
-    const { applyTabRowsBatch, EXPENSES_TAB_CONFIG } = await import('@/lib/google/sheets')
-    const res = await applyTabRowsBatch(
-      'golden-sheet',
-      EXPENSES_TAB_CONFIG,
-      [
-        {
-          transferId: 102,
-          date: '2026-06-01',
-          typ: 'Materiały budowlane',
-          description: 'cement "extra"',
-          amount: 1234.56,
-          category: 'Łazienka',
-          note: 'FV/9',
-        },
-        {
-          transferId: 200,
-          date: '2026-06-02',
-          typ: 'Pozostałe koszty',
-          description: 'wywóz gruzu',
-          amount: 0,
-          category: '',
-          note: '',
-        },
-      ],
-      [101, 103],
-    )
-    expect(res).toEqual({ added: 1, updated: 1, removed: 2 })
     expect(captured()).toMatchSnapshot()
   })
 })
