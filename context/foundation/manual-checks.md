@@ -8,7 +8,7 @@ One living checklist for every slice — the project's QA registry. Each `##` se
 w 90% dowody weryfikacyjne zamkniętych slice'ów, nie instrukcje. Zostają **wyłącznie sekcje z
 nieodhaczonymi boksami** plus indeks zamkniętych przebiegów na końcu.
 
-- **Pełny zapis, verbatim:** `git show d426e567^:context/foundation/manual-checks.md` — 94 sekcje,
+- **Pełny zapis, verbatim:** `context/archive/manual-checks/2026-09-15-pelny-rejestr.md` — 94 sekcje,
   71 bloków `### Findings`, komplet dowodów. Agenci nie czytają `context/archive/`, więc sięga się
   tam świadomie, gdy trzeba odtworzyć, **jak** coś zweryfikowano.
 - **Trwała wiedza z tych przebiegów** została wydestylowana do żywych dokumentów: reguły inżynierskie
@@ -390,7 +390,7 @@ Jedna linia na slice, **wszystkie 94** — liczby są policzone z pełnego rejes
 w „Otwarte" (tam boksy bywają scalone, więc liczba nieodhaczonych może się różnić od reszty z tej
 kolumny — to ten sam fakt zapisany raz zamiast dwa). `0/0` to sekcja czysto prozatorska, bez boksów.
 `ostatnia weryfikacja` to najpóźniejsza data w sekcji; `—` znaczy, że sekcja żadnej nie nosiła.
-Pełne dowody, verbatim: `git show d426e567^:context/foundation/manual-checks.md`.
+Pełne dowody, verbatim: `context/archive/manual-checks/2026-09-15-pelny-rejestr.md`.
 
 | slice                                                                                                                    | boksy | ostatnia weryfikacja |
 | ------------------------------------------------------------------------------------------------------------------------ | ----- | -------------------- |
