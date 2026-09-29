@@ -1901,3 +1901,11 @@ widokach wykonawców. Rozpiska z seeda (`INV=6`) wystarczy do sortowania i liczb
 - [ ] Zablokowany pracownik z linkiem: „Link" → okno pokazuje powód i tylko „Wyłącz link" →
       potwierdzenie → `/p/…/<token>` daje 404; po ponownym otwarciu „Pracownicy" „Link" jest wyłączony
       (albo pracownik bez etapów znika z menu).
+- [ ] Zablokowany pracownik **bez** wydanego linku: powód widać pod nazwiskiem, a „Link" i „Drukuj
+      PDF" są wyłączone. „Podgląd" działa i pokazuje ten sam komunikat, który dostałby pracownik.
+- [ ] Pracownik bez blokady: „Link" otwiera zwykłe okno z „Kopiuj" (albo z „Wygeneruj link", gdy
+      linku jeszcze nie ma). Przy blokadzie nic poza tym się nie zmieniło.
+- [ ] Po „Wyłącz link" zdejmij blokadę (ustaw rozliczenie etapu albo przypnij pracownika z powrotem):
+      „Link" wydaje **nowy** token, a stary `/p/…/<token>` dalej zwraca 404.
+- [ ] DevTools → Network → Offline, potem „Link" przy zablokowanym pracowniku z linkiem: pojawia się
+      toast z błędem, okno się zamyka i nigdzie nie ma „Link nie jest wydany." ani „Wygeneruj link".

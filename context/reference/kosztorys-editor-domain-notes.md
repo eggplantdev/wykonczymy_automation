@@ -375,6 +375,9 @@ właśnie po to, żeby jej nie przepisywać.
   także po dezaktywacji pracownika — i zawsze osiągalne: blokada wyłącza generowanie linku, nie jego
   wyłączenie, a pracownik odpięty od wszystkich etapów zostaje w menu, dopóki ma żywy link (EX-888).
   Token przeżywa blokadę, więc bez tego stary link po jej zdjęciu znów pokazałby ceny.
+  Automatycznego odwołania przy odpięciu ostatniego etapu świadomie nie ma: ponowne przypięcie
+  wymagałoby wtedy nowego linku. Kto ma żywy link, menu czyta przy każdym otwarciu, a nie z propsów
+  edytora. Dzięki temu po odwołaniu dane są świeże i nie ma przeciągania przez kontekst (EX-496).
 - **Stawka wynika z rozliczenia jego etapów** — nikt jej nie wybiera, a widok jest do niej
   przypięty: zła stawka to wyjątek, nie cicha naprawa. Ceny klienta, „Wartości netto" po cenie
   klienta, rabatu, brutto, mnożnika i cudzych etapów nie da się włączyć żadnym ustawieniem —
