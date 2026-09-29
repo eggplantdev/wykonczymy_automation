@@ -69,7 +69,7 @@ export function PresetRowActions({ preset }: { preset: PresetRowT }) {
       <ConfirmDialog
         open={confirmingDelete}
         title="Usunąć szablon?"
-        description={`„${preset.name}" zniknie z biblioteki bezpowrotnie. Kosztorysy założone z tego szablonu zostają bez zmian — mają własną kopię.`}
+        description={`„${preset.name}" zniknie bezpowrotnie, razem ze swoimi wersjami. Kosztorysy założone z tego szablonu zostają bez zmian — mają własną kopię.`}
         confirmLabel="Usuń"
         pending={pending}
         pendingLabel="Usuwam…"

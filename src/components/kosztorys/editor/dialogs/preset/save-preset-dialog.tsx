@@ -12,13 +12,13 @@ import { useKosztorysActions } from '@/components/kosztorys/editor/actions/koszt
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
 // "Zapisz jako nowy szablon…" — save this rozpiska as a reusable, cross-investment template, itself
-// either a new named template or an overwrite of an existing one (name picked from the list).
+// either a new named template or an overwrite of an existing one.
 export function SavePresetDialog() {
   const { investmentId, isWorkshop } = useKosztorysEditorContext()
   const { open, setOpen: onOpenChange, existingPresets } = useKosztorysActions().savePreset
   const [name, setName] = useState('')
   const [mode, setMode] = useState<'new' | 'overwrite'>('new')
-  const [overwriteName, setOverwriteName] = useState('')
+  const [overwriteId, setOverwriteId] = useState('')
   const [saving, setSaving] = useState(false)
 
   function handleOpenChange(next: boolean) {
@@ -26,16 +26,20 @@ export function SavePresetDialog() {
     if (next) return
     setName('')
     setMode('new')
-    setOverwriteName('')
+    setOverwriteId('')
   }
 
-  const targetName = mode === 'new' ? name.trim() : overwriteName
-  const canSave = targetName.length > 0 && !saving
+  // A szablon overwritten by itself would only lose its przedmiar — the action refuses it anyway.
+  const targets = existingPresets.filter((preset) => preset.id !== investmentId)
+  const canSave = (mode === 'new' ? name.trim() : overwriteId).length > 0 && !saving
 
   async function handleSave() {
     if (!canSave) return
     setSaving(true)
-    const res = await savePresetAction(investmentId, targetName, mode)
+    const res = await savePresetAction(
+      investmentId,
+      mode === 'new' ? { mode, name: name.trim() } : { mode, targetId: Number(overwriteId) },
+    )
     setSaving(false)
     if (!res.success) {
       toastMessage(res.error ?? 'Nie udało się zapisać szablonu', 'error', 4000)
@@ -50,18 +54,18 @@ export function SavePresetDialog() {
       open={open}
       onOpenChange={handleOpenChange}
       title="Zapisz jako nowy szablon…"
-      // The workbench has no „this investment" for a szablon to be independent of — the whole
-      // sentence is about something that is not there, so it is rewritten, not word-swapped.
+      // A szablon has no „this investment" for a copy to be independent of — the whole sentence is
+      // about something that is not there, so it is rewritten, not word-swapped.
       description={
         !isWorkshop
           ? 'Szablon — wzór kosztorysu wielokrotnego użytku, niezależny od tej inwestycji. Posłuży do szybkiego założenia kosztorysu na innych inwestycjach.'
-          : 'Odkłada bieżącą rozpiskę do biblioteki jako osobny szablon. Warsztat zostaje przy tym, który edytujesz.'
+          : 'Zapisuje kopię bieżącej rozpiski jako osobny szablon. Ten, który edytujesz, się nie zmienia.'
       }
       confirmLabel="Zapisz"
       onConfirm={() => void handleSave()}
       confirmDisabled={!canSave}
     >
-      {existingPresets.length > 0 && (
+      {targets.length > 0 && (
         <ToggleGroup
           options={[
             { value: 'new', label: 'Nowy' },
@@ -75,10 +79,10 @@ export function SavePresetDialog() {
 
       {mode === 'overwrite' ? (
         <SimpleSelect
-          value={overwriteName}
-          onValueChange={setOverwriteName}
+          value={overwriteId}
+          onValueChange={setOverwriteId}
           placeholder="Wybierz szablon do nadpisania"
-          options={existingPresets.map((preset) => ({ value: preset.name, label: preset.name }))}
+          options={targets.map((preset) => ({ value: String(preset.id), label: preset.name }))}
         />
       ) : (
         <Input
@@ -94,7 +98,7 @@ export function SavePresetDialog() {
 
       {mode === 'overwrite' && (
         <Description tone="error" size="xs">
-          Nadpisanie trwale zastąpi zawartość wybranego szablonu — tej operacji nie można cofnąć.
+          Nadpisanie zastąpi zawartość wybranego szablonu. Poprzednią przywrócisz z jego „Wersji”.
         </Description>
       )}
     </FormDialogShell>

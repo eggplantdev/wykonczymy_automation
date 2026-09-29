@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
 import { Check } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { DialogActions } from '@/components/ui/dialog-actions'
@@ -15,7 +14,6 @@ import { getPresetName, groupPresetSections, type PresetGroupT } from './preset-
 import { itemNoun, sectionNoun } from '@/lib/kosztorys/counted-nouns'
 import { usePresetSections } from './use-preset-sections'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
-import { presetOpenHref } from '@/components/presets/preset-open-href'
 
 const countItems = (group: PresetGroupT) =>
   group.metas.reduce((total, meta) => total + meta.itemCount, 0)
@@ -37,37 +35,30 @@ const COPY = {
     confirm: 'Wczytaj i zastąp',
   },
   szablon: {
-    title: 'Przełącz na inny szablon',
+    title: 'Wczytaj szablon',
     description:
-      'Warsztat przejdzie na wybrany szablon. Bieżący zostaje w bibliotece ze swoją ostatnią treścią — nic z niego nie ginie. Jego stan sprzed przełączenia zapisze się też jako wersja.',
-    empty: 'Biblioteka nie ma innego szablonu niż ten.',
-    outgoing: 'Schodzi z warsztatu',
-    incoming: 'Wchodzi',
-    confirm: 'Przełącz',
+      'Treść tego szablonu zostanie zastąpiona kopią wybranego — wybrany się nie zmienia. Stan sprzed wczytania zapisze się automatycznie — wrócisz do niego przez „Wczytaj”.',
+    empty: 'Nie ma innego szablonu niż ten.',
+    outgoing: 'Zniknie',
+    incoming: 'Wejdzie',
+    confirm: 'Wczytaj i zastąp',
   },
 } as const
 
 // The counterpart to „Dodaj sekcję z szablonu", which appends; this one replaces, so both counts are
-// stated before the confirm.
-//
-// Two windows in one, because the gesture is the same and the meaning is not. On an inwestycja it
-// REPLACES this kosztorys with a copy of a szablon. In the warsztat it MOVES the warsztat onto
-// another szablon — the same route as clicking it in the library — because a replace there would
-// overwrite the szablon the pointer still names with another szablon's content.
+// stated before the confirm. The same replace on a kosztorys and on a szablon — only the wording
+// differs, because on a szablon it is that szablon's content being swapped.
 export function ReloadFromPresetDialog() {
-  const { tree, investmentId, onTreeReplaced, templatePresetId, isWorkshop } =
-    useKosztorysEditorContext()
+  const { tree, investmentId, onTreeReplaced, isWorkshop } = useKosztorysEditorContext()
   const { open, setOpen: onOpenChange } = useKosztorysActions().reloadPreset
   const { sections, resetSections } = usePresetSections(open)
   const [selectedPresetId, setSelectedPresetId] = useState<number | null>(null)
   const [pending, startTransition] = useTransition()
-  const router = useRouter()
   const copy = COPY[isWorkshop ? 'szablon' : 'kosztorys']
 
   const groups = groupPresetSections(sections ?? [], new Set()).filter(
-    // Switching the workbench to the szablon it already holds reloads it from its own content —
-    // a gesture with no effect that still looks like a choice.
-    (group) => group.presetId !== templatePresetId,
+    // A szablon reloaded from itself would only lose its przedmiar — the action refuses it anyway.
+    (group) => group.presetId !== investmentId,
   )
   const {
     filteredData: filteredGroups,
@@ -87,12 +78,6 @@ export function ReloadFromPresetDialog() {
 
   function handleConfirm() {
     if (!selected) return
-    if (isWorkshop) {
-      // Leaving this page flushes the outgoing szablon before the open runs.
-      router.push(presetOpenHref(selected.presetId))
-      handleOpenChange(false)
-      return
-    }
     startTransition(async () => {
       try {
         const result = await reloadFromPresetAction(investmentId, selected.presetId)
@@ -174,8 +159,6 @@ export function ReloadFromPresetDialog() {
         <DialogActions
           confirmLabel={copy.confirm}
           pending={pending}
-          // Not in COPY: the workbench branch never starts the transition — it navigates and closes
-          // — so a szablon wording here would be a label nobody can reach.
           pendingLabel="Wczytuję…"
           onConfirm={handleConfirm}
           onCancel={() => handleOpenChange(false)}

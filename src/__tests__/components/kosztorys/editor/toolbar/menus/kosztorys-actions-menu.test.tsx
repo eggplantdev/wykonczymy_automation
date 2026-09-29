@@ -89,7 +89,7 @@ describe('KosztorysActionsMenu', () => {
     await openOptions()
 
     expect(screen.getByRole('menuitem', { name: /Wyczyść szablon…/ })).toBeInTheDocument()
-    expect(screen.getByRole('menuitem', { name: /Przełącz na inny szablon…/ })).toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: /Wczytaj szablon…/ })).toBeInTheDocument()
     expect(screen.getByRole('menu')).not.toHaveTextContent(/kosztorys/i)
   })
 })

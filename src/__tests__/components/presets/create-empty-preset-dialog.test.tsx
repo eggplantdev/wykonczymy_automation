@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 
 import { CreateEmptyPresetDialog } from '@/components/presets/create-empty-preset-dialog'
-import { presetOpenHref } from '@/components/presets/preset-open-href'
 import { createEmptyPresetAction } from '@/lib/actions/kosztorys-presets'
 import { toastMessage } from '@/lib/utils/toast'
 
@@ -46,7 +45,7 @@ describe('CreateEmptyPresetDialog', () => {
     expect(await screen.findByLabelText('Nazwa szablonu')).toHaveValue('Łazienka')
   })
 
-  it('goes to the new szablon with the open flag and closes first', async () => {
+  it('goes to the new szablon and closes first', async () => {
     vi.mocked(createEmptyPresetAction).mockResolvedValue({ success: true, data: { id: 42 } })
     const user = userEvent.setup()
     render(<CreateEmptyPresetDialog />)
@@ -55,7 +54,7 @@ describe('CreateEmptyPresetDialog', () => {
     await user.type(await screen.findByLabelText('Nazwa szablonu'), 'Kuchnia')
     await user.click(screen.getByRole('button', { name: 'Załóż' }))
 
-    await waitFor(() => expect(push).toHaveBeenCalledWith(presetOpenHref(42)))
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/szablony/42'))
     expect(screen.queryByLabelText('Nazwa szablonu')).not.toBeInTheDocument()
   })
 })

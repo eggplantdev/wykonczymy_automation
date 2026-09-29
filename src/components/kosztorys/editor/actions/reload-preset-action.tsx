@@ -14,10 +14,10 @@ export function ReloadPresetMenuItem() {
     <DropdownMenuItem onSelect={() => reloadPreset.setOpen(true)}>
       <FileDown />
       <MenuItemBody
-        label={isWorkshop ? 'Przełącz na inny szablon…' : 'Wczytaj szablon…'}
+        label="Wczytaj szablon…"
         description={
           isWorkshop
-            ? 'Otwórz w warsztacie inny szablon. Bieżący zostaje w bibliotece.'
+            ? 'Zastąp treść tego szablonu kopią innego.'
             : 'Zastąp całą rozpiskę zapisanym szablonem.'
         }
       />

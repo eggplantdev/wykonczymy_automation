@@ -775,14 +775,14 @@ Uruchamiane **raz**, po ostatniej fazie:
 
 #### Automated
 
-- [x] 2.1 Specy fazy 2 zielone (`pnpm exec vitest run …`)
-- [x] 2.2 Spec hooka statusu zielony
+- [x] 2.1 Specy fazy 2 zielone (`pnpm exec vitest run …`) — 6e427028
+- [x] 2.2 Spec hooka statusu zielony — 6e427028
 
 ### Phase 3: Cykl życia szablonu i dialogi
 
 #### Automated
 
-- [ ] 3.1 Specy fazy 3 zielone (`pnpm exec vitest run …`)
+- [x] 3.1 Specy fazy 3 zielone (`pnpm exec vitest run …`)
 
 ### Phase 4: Strona szablonu, edytor i sprzątanie martwego kodu
 

@@ -1,16 +1,12 @@
-import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
+import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import { SNAPSHOT_SCHEMA_VERSION, type SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
-import { acquireTestWorkshop } from '@/__tests__/helpers/workshop'
-import {
-  expireCollectionsAfterResponse,
-  revalidateCollections,
-  revalidateEntities,
-} from '@/__tests__/stubs/cache-revalidate'
-import { revalidateTag, updateTag } from '@/__tests__/stubs/next-cache'
+import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { createTestTemplate } from '@/__tests__/helpers/template'
 
 // „Wczytaj szablon" replaces a whole rozpiska behind an automatic snapshot, so every assertion is on
 // PERSISTED state: a success result would hide a failed write, and „odwracalne" is real only if the
@@ -27,64 +23,70 @@ vi.mock('@/lib/auth/require-auth', () => ({
 }))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
+// A live szablon cannot hold a tree that breaks on insert — its own unique indexes stop it — so the
+// rollback case swaps in a serialized tree whose etapy collide on (investment_id, ordinal), the
+// cheapest way to make `restoreKosztorys` throw AFTER the wipe and the snapshot insert.
+const serializeControl = vi.hoisted(() => ({ brokenId: 0, broken: null as unknown }))
+vi.mock('@/lib/kosztorys/serialize-preset', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/kosztorys/serialize-preset')>()
+  return {
+    ...actual,
+    serializeKosztorysAsPreset: vi.fn(
+      async (...args: Parameters<typeof actual.serializeKosztorysAsPreset>) =>
+        args[0] === serializeControl.brokenId
+          ? (serializeControl.broken as SnapshotPayloadT)
+          : actual.serializeKosztorysAsPreset(...args),
+    ),
+  }
+})
+
 const {
   createEmptyPresetAction,
-  openPresetInWorkshopAction,
+  deletePresetAction,
   reloadFromPresetAction,
-  flushWorkshopPresetAction,
+  renamePresetAction,
+  savePresetAction,
 } = await import('@/lib/actions/kosztorys-presets')
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
-const PRESET_NAME = 'ex560-reload-fixture'
-// A second szablon whose payload violates the (investment_id, ordinal) unique index — the cheapest
-// way to make `restoreKosztorys` throw AFTER the wipe and the snapshot insert.
-const BROKEN_PRESET_NAME = 'ex560-reload-fixture-broken'
-const PRE_RELOAD_LABEL = `Przed wczytaniem: ${PRESET_NAME}`
+const NAME_TAKEN_MESSAGE = 'Szablon o tej nazwie już istnieje'
+
+// Szablon names are unique across the whole shared DB, so every run takes its own.
+const uniqueName = (name: string) => `${name} ${crypto.randomUUID().slice(0, 8)}`
+
 const INVESTMENT_VAT = 8
 const INVESTMENT_COEFFS = { wToolsCoeff: 1.4, ownToolsCoeff: 1.7 }
 const INVESTMENT_DISCOUNT = 5000
-// Deliberately absurd and different from the investment's own: a preset must never carry one job's
-// pricing config onto another, so these values landing on the target would be the bug.
-const PRESET_SETTINGS = { wToolsCoeff: 0.11, ownToolsCoeff: 0.22, vatRate: 99 }
-
-function presetPayload(): SnapshotPayloadT {
-  return {
-    schemaVersion: SNAPSHOT_SCHEMA_VERSION,
-    sections: [{ id: 1, name: 'Z szablonu', displayOrder: 0, color: null }],
-    items: [
-      {
-        id: 1,
-        sectionId: 1,
-        displayOrder: 0,
-        description: 'Praca z szablonu',
-        unit: 'm2',
-        plannedQty: 0,
-        sheetMeasuredQty: null,
-        discountType: null,
-        discountValue: 0,
-        clientPrice: 100,
-        wToolsOverrideValue: null,
-        ownToolsOverrideValue: null,
-        wToolsOverrideCoeff: null,
-        ownToolsOverrideCoeff: null,
-        note: null,
-      },
-    ],
-    stages: [],
-    progress: [],
-    settings: PRESET_SETTINGS,
-  }
-}
+// Deliberately different from the investment's own: a szablon must never carry its pricing config
+// onto another job, so these values landing on the target would be the bug.
+const TEMPLATE_SETTINGS = { wToolsCoeff: 0.11, ownToolsCoeff: 0.22, vatRate: 23 }
 
 function brokenPresetPayload(): SnapshotPayloadT {
   return {
-    ...presetPayload(),
+    schemaVersion: SNAPSHOT_SCHEMA_VERSION,
+    sections: [{ id: 1, name: 'Z szablonu', displayOrder: 0, color: null }],
+    items: [],
     stages: [
       { id: 1, ordinal: 1, label: 'Etap 1', plane: null, workerId: null },
       { id: 2, ordinal: 1, label: 'Etap 1 znowu', plane: null, workerId: null },
     ],
+    progress: [],
+    settings: TEMPLATE_SETTINGS,
   }
+}
+
+async function firstUserId(payload: Payload): Promise<number> {
+  const users = await payload.find({ collection: 'users', limit: 1, depth: 0, overrideAccess: true })
+  const firstUser = users.docs[0]
+  if (!firstUser) throw new Error('no user in the DB to attribute the action to')
+  return Number(firstUser.id)
+}
+
+// A delete spec removes some of its own fixtures, so teardown skips the ones already gone.
+async function deleteIfPresent(payload: Payload, db: Awaited<ReturnType<typeof getDb>>, id: number) {
+  const res = await db.execute(sql`SELECT 1 FROM investments WHERE id = ${id}`)
+  if (res.rows.length > 0) await deleteTestInvestment(payload, id)
 }
 
 describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', () => {
@@ -92,22 +94,16 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
   let db: Awaited<ReturnType<typeof getDb>>
   let investmentId: number
   let presetId: number
+  let presetName: string
   let brokenPresetId: number
+  let ordinaryId: number
 
   beforeAll(async () => {
     const { getPayload } = await import('payload')
     const config = (await import('@payload-config')).default
     payload = await getPayload({ config })
     db = await getDb(payload)
-    const users = await payload.find({
-      collection: 'users',
-      limit: 1,
-      depth: 0,
-      overrideAccess: true,
-    })
-    const firstUser = users.docs[0]
-    if (!firstUser) throw new Error('no user in the DB to attribute the snapshot to')
-    authState.userId = Number(firstUser.id)
+    authState.userId = await firstUserId(payload)
 
     investmentId = await createTestInvestment(payload, 'ex560-reload-preset-test', {
       vatRate: INVESTMENT_VAT,
@@ -115,24 +111,42 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
       ownToolsCoeff: INVESTMENT_COEFFS.ownToolsCoeff,
     })
 
-    const { upsertPresetByName } = await import('@/lib/db/presets')
-    presetId = await upsertPresetByName(db, {
-      name: PRESET_NAME,
-      createdBy: authState.userId,
-      payload: presetPayload(),
+    presetName = uniqueName('ex560-reload-fixture')
+    presetId = await createTestInvestment(payload, presetName, {
+      status: TEMPLATE_INVESTMENT_STATUS,
+      ...TEMPLATE_SETTINGS,
     })
-    brokenPresetId = await upsertPresetByName(db, {
-      name: BROKEN_PRESET_NAME,
-      createdBy: authState.userId,
-      payload: brokenPresetPayload(),
+    // The szablon's own przedmiar and rabat — typed into its editor like on any kosztorys — must not
+    // ride along into the investment it is loaded into.
+    await createKosztorysTree(payload, presetId, {
+      sections: [
+        {
+          name: 'Z szablonu',
+          items: [
+            {
+              description: 'Praca z szablonu',
+              unit: 'm2',
+              plannedQty: 9,
+              clientPrice: 100,
+              discountType: 'percent',
+              discountValue: 10,
+            },
+          ],
+        },
+      ],
     })
+    brokenPresetId = await createTestTemplate(payload, 'ex560-reload-fixture-broken')
+    serializeControl.brokenId = brokenPresetId
+    serializeControl.broken = brokenPresetPayload()
+
+    ordinaryId = await createTestInvestment(payload, 'ex560-reload-ordinary-source')
+    await createKosztorysTree(payload, ordinaryId, { sections: [{ name: 'Cudza rozpiska' }] })
   })
 
   afterAll(async () => {
-    if (investmentId) await deleteTestInvestment(payload, investmentId)
-    await db.execute(
-      sql`DELETE FROM kosztorys_presets WHERE name IN (${PRESET_NAME}, ${BROKEN_PRESET_NAME})`,
-    )
+    for (const id of [investmentId, presetId, brokenPresetId, ordinaryId]) {
+      if (id) await deleteTestInvestment(payload, id)
+    }
   })
 
   // Every kind of row the wipe has to reach, so a partial wipe can't pass.
@@ -236,7 +250,7 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
       SELECT id FROM kosztorys_snapshots
       WHERE investment_id = ${investmentId}
         AND kind = 'manual'
-        AND label = ${PRE_RELOAD_LABEL}
+        AND label = ${`Przed wczytaniem: ${presetName}`}
       ORDER BY id DESC
     `)
     return res.rows.map((row) => Number(row.id))
@@ -262,8 +276,23 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
     expect(await progressQty()).toEqual([])
   })
 
-  // The preset payload keeps snapshot shape-parity, `settings` included, but applying those would drag
-  // one job's pricing config onto another — `restoreKosztorys` is handed the CURRENT settings instead.
+  it('takes the szablon’s rozpiska without its przedmiar and rabat', async () => {
+    await seedLiveTree()
+
+    await reloadFromPresetAction(investmentId, presetId)
+
+    const res = await db.execute(sql`
+      SELECT planned_qty, discount_type, discount_value, client_price FROM kosztorys_items
+      WHERE investment_id = ${investmentId}
+    `)
+    expect(res.rows.map((row) => Number(row.client_price))).toEqual([100])
+    expect(res.rows[0]).toMatchObject({ discount_type: null })
+    expect(Number(res.rows[0].planned_qty)).toBe(0)
+    expect(Number(res.rows[0].discount_value)).toBe(0)
+  })
+
+  // The szablon is an investment with its own VAT and coefficients, but applying those would drag
+  // its pricing config onto another job — `restoreKosztorys` is handed the CURRENT settings instead.
   it('leaves the investment’s own VAT and coefficients alone rather than taking the szablon’s', async () => {
     await seedLiveTree()
 
@@ -307,15 +336,21 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
     expect(await progressQty()).toEqual([4])
   })
 
-  it('writes nothing — not even a snapshot — when the szablon does not exist', async () => {
+  // Only a szablon is a source: an ordinary investment's id would copy a client's rozpiska into
+  // someone else's, and the investment itself would only lose its przedmiar.
+  it.each([
+    ['does not exist', () => 2_000_000_000],
+    ['is an ordinary investment', () => ordinaryId],
+    ['is the investment itself', () => investmentId],
+  ])('writes nothing — not even a snapshot — when the source %s', async (_, sourceId) => {
     await seedLiveTree()
-    const before = await preReloadSnapshotIds()
+    const before = await allSnapshotIds()
 
-    const result = await reloadFromPresetAction(investmentId, 2_000_000_000)
+    const result = await reloadFromPresetAction(investmentId, sourceId())
 
-    expect(result).toMatchObject({ success: false })
+    expect(result).toMatchObject({ success: false, error: 'Nie znaleziono szablonu' })
     expect(await sectionNames()).toEqual(['Stan sprzed wczytania'])
-    expect(await preReloadSnapshotIds()).toEqual(before)
+    expect(await allSnapshotIds()).toEqual(before)
   })
 
   // The case above never enters the transaction. The snapshot is written on the transaction handle
@@ -335,437 +370,206 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
   })
 })
 
-// The warsztat is ONE row shared by everyone, so between the render and the flush someone may have
-// opened a different szablon in it. The pointer is read at the moment of the WRITE, and the
-// assertions go to the stored payloads — a step-aside that wrote anyway looks identical in the
-// action's result.
-describe.skipIf(!ENV_READY)('flushWorkshopPresetAction — strażnik wskaźnika (DB)', () => {
+// A szablon is an investment with status `szablon`, so every lifecycle assertion reads the
+// investments row and its tree — never the action's result alone.
+describe.skipIf(!ENV_READY)('szablon lifecycle — persisted state (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
-  let workshop: Awaited<ReturnType<typeof acquireTestWorkshop>>
-  let sectionId: number
-  let heldPresetId: number
-  let otherPresetId: number
-
-  const SECTION_NAME = 'Sekcja w warsztacie'
+  const created: number[] = []
+  let sourceId: number
+  let sourceName: string
 
   beforeAll(async () => {
     const { getPayload } = await import('payload')
     const config = (await import('@payload-config')).default
     payload = await getPayload({ config })
     db = await getDb(payload)
+    authState.userId = await firstUserId(payload)
 
-    const users = await payload.find({
-      collection: 'users',
-      limit: 1,
-      depth: 0,
-      overrideAccess: true,
+    sourceName = uniqueName('lifecycle-source')
+    sourceId = await createTestInvestment(payload, sourceName)
+    created.push(sourceId)
+    await createKosztorysTree(payload, sourceId, {
+      sections: [
+        {
+          name: 'Łazienka',
+          items: [
+            {
+              description: 'Płytki',
+              unit: 'm2',
+              plannedQty: 14,
+              clientPrice: 120,
+              discountType: 'amount',
+              discountValue: 50,
+            },
+          ],
+        },
+      ],
+      stages: [{ label: 'Etap 1' }],
     })
-    const firstUser = users.docs[0]
-    if (!firstUser) throw new Error('no user in the DB to attribute the save to')
-    authState.userId = Number(firstUser.id)
-
-    workshop = await acquireTestWorkshop(payload)
-    // Real content in the warsztat, so „it saved nothing" is distinguishable from „both szablony
-    // were empty anyway".
-    const section = await payload.create({
-      collection: 'kosztorys-sections',
-      data: { investment: workshop.id, name: SECTION_NAME, displayOrder: 0 },
-      context: { skipRevalidation: true },
-      overrideAccess: true,
-    })
-    sectionId = Number(section.id)
-
-    const { upsertPresetByName } = await import('@/lib/db/presets')
-    heldPresetId = await upsertPresetByName(db, {
-      name: 'warsztat-save-held',
-      createdBy: authState.userId,
-      payload: { ...presetPayload(), sections: [], items: [] },
-    })
-    otherPresetId = await upsertPresetByName(db, {
-      name: 'warsztat-save-other',
-      createdBy: authState.userId,
-      payload: { ...presetPayload(), sections: [], items: [] },
-    })
-
-    const { setWorkshopPreset } = await import('@/lib/db/workshop-investment')
-    await setWorkshopPreset(db, workshop.id, heldPresetId)
   })
 
   afterAll(async () => {
-    if (sectionId) {
-      await payload.delete({
-        collection: 'kosztorys-sections',
-        id: sectionId,
-        context: { skipRevalidation: true },
-        overrideAccess: true,
-      })
+    for (const id of created) await deleteIfPresent(payload, db, id)
+  })
+
+  async function templateByName(name: string) {
+    const res = await db.execute(sql`
+      SELECT id, status, content_edited_at FROM investments WHERE name = ${name}
+    `)
+    for (const row of res.rows) created.push(Number(row.id))
+    return res.rows
+  }
+
+  async function treeOf(id: number) {
+    const sections = await db.execute(sql`
+      SELECT name FROM kosztorys_sections WHERE investment_id = ${id} ORDER BY display_order
+    `)
+    const items = await db.execute(sql`
+      SELECT description, planned_qty, discount_type, discount_value FROM kosztorys_items
+      WHERE investment_id = ${id} ORDER BY id
+    `)
+    const stages = await db.execute(sql`SELECT 1 FROM kosztorys_stages WHERE investment_id = ${id}`)
+    return {
+      sections: sections.rows.map((row) => String(row.name)),
+      items: items.rows.map((row) => ({
+        description: String(row.description),
+        plannedQty: Number(row.planned_qty),
+        discountType: row.discount_type,
+        discountValue: Number(row.discount_value),
+      })),
+      stages: stages.rows.length,
     }
-    await workshop.release()
-    await db.execute(
-      sql`DELETE FROM kosztorys_presets WHERE name IN ('warsztat-save-held', 'warsztat-save-other')`,
-    )
-  })
-
-  async function sectionNamesOf(presetId: number): Promise<string[]> {
-    const { getPreset } = await import('@/lib/db/presets')
-    const preset = await getPreset(db, presetId)
-    return (preset?.payload.sections ?? []).map((section) => section.name)
   }
 
-  it('writes the warsztat’s content into the szablon it actually holds', async () => {
-    const result = await flushWorkshopPresetAction(heldPresetId)
-
-    expect(result).toMatchObject({ success: true })
-    // Contains, not equals: the warsztat is BORROWED from production (see `acquireTestWorkshop`), so
-    // whatever sekcje it already holds are part of its content and get written too. Pinning the exact
-    // list would assert that prod's warsztat is empty, which it stopped being.
-    expect(await sectionNamesOf(heldPresetId)).toContain(SECTION_NAME)
-  })
-
-  // The flush is fire-and-forget, so a step-aside is SILENT — the user clicked nothing that could
-  // have failed. The only thing to check here is that the other szablon was left untouched.
-  it('nie dotyka szablonu, którego warsztat nie trzyma', async () => {
-    const result = await flushWorkshopPresetAction(otherPresetId)
-
-    expect(result).toMatchObject({ success: true })
-    expect(await sectionNamesOf(otherPresetId)).toEqual([])
-  })
-})
-
-// „Otwórz" swaps the warsztat's whole tree, so every assertion reads the DB back: the pointer, the
-// warsztat rows, the library copies and their `updated_at`. The action's result says only that it
-// returned — a switch that half-committed would report success just the same.
-describe.skipIf(!ENV_READY)('openPresetInWorkshopAction — persisted state (DB)', () => {
-  let payload: Payload
-  let db: Awaited<ReturnType<typeof getDb>>
-  let workshop: Awaited<ReturnType<typeof acquireTestWorkshop>>
-  let presetA: number
-  let presetB: number
-  let brokenPresetId: number
-
-  const NAME_A = 'otworz-fixture-a'
-  const NAME_B = 'otworz-fixture-b'
-  const NAME_BROKEN = 'otworz-fixture-broken'
-
-  function payloadWithSection(name: string): SnapshotPayloadT {
-    const base = presetPayload()
-    return { ...base, sections: [{ ...base.sections[0], name }] }
+  const STRIPPED_SOURCE_TREE = {
+    sections: ['Łazienka'],
+    items: [{ description: 'Płytki', plannedQty: 0, discountType: null, discountValue: 0 }],
+    stages: 0,
   }
 
-  beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
-    db = await getDb(payload)
+  it('an empty szablon is a stamped szablon investment with no tree', async () => {
+    const name = uniqueName('lifecycle-empty')
 
-    const users = await payload.find({
-      collection: 'users',
-      limit: 1,
-      depth: 0,
-      overrideAccess: true,
-    })
-    const firstUser = users.docs[0]
-    if (!firstUser) throw new Error('no user in the DB to attribute the szablony to')
-    authState.userId = Number(firstUser.id)
+    const result = await createEmptyPresetAction(name)
 
-    workshop = await acquireTestWorkshop(payload)
-
-    const { upsertPresetByName } = await import('@/lib/db/presets')
-    presetA = await upsertPresetByName(db, {
-      name: NAME_A,
-      createdBy: authState.userId,
-      payload: payloadWithSection('Sekcja A'),
-    })
-    presetB = await upsertPresetByName(db, {
-      name: NAME_B,
-      createdBy: authState.userId,
-      payload: payloadWithSection('Sekcja B'),
-    })
-    brokenPresetId = await upsertPresetByName(db, {
-      name: NAME_BROKEN,
-      createdBy: authState.userId,
-      payload: brokenPresetPayload(),
-    })
-  })
-
-  // Every case starts from an empty pointer and pristine library copies, so a case never inherits
-  // the previous one's warsztat — the first open in each is a real swap.
-  beforeEach(async () => {
-    await setLibraryCopy(presetA, payloadWithSection('Sekcja A'))
-    await setLibraryCopy(presetB, payloadWithSection('Sekcja B'))
-    const { setWorkshopPreset } = await import('@/lib/db/workshop-investment')
-    await setWorkshopPreset(db, workshop.id, null)
-    vi.mocked(revalidateCollections).mockClear()
-    vi.mocked(revalidateEntities).mockClear()
-    vi.mocked(expireCollectionsAfterResponse).mockClear()
-    updateTag.mockClear()
-    revalidateTag.mockClear()
-  })
-
-  afterAll(async () => {
-    await workshop.release()
-    await db.execute(
-      sql`DELETE FROM kosztorys_presets WHERE name IN (${NAME_A}, ${NAME_B}, ${NAME_BROKEN})`,
-    )
-  })
-
-  // Raw SQL, not `updatePresetPayload`: resetting a fixture must not move the `updated_at` the
-  // cases assert on.
-  async function setLibraryCopy(presetId: number, content: SnapshotPayloadT): Promise<void> {
-    await db.execute(sql`
-      UPDATE kosztorys_presets SET payload = ${JSON.stringify(content)}::jsonb WHERE id = ${presetId}
-    `)
-  }
-
-  async function pointer(): Promise<number | null | undefined> {
-    const { getWorkshop } = await import('@/lib/db/workshop-investment')
-    return (await getWorkshop(db))?.presetId
-  }
-
-  async function workshopSections(): Promise<{ id: number; name: string }[]> {
-    const res = await db.execute(sql`
-      SELECT id, name FROM kosztorys_sections WHERE investment_id = ${workshop.id}
-      ORDER BY display_order, id
-    `)
-    return res.rows.map((row) => ({ id: Number(row.id), name: String(row.name) }))
-  }
-
-  async function librarySectionNames(presetId: number): Promise<string[]> {
-    const { getPreset } = await import('@/lib/db/presets')
-    const preset = await getPreset(db, presetId)
-    return (preset?.payload.sections ?? []).map((section) => section.name)
-  }
-
-  async function libraryUpdatedAt(presetId: number): Promise<string> {
-    const res = await db.execute(
-      sql`SELECT updated_at::text AS stamp FROM kosztorys_presets WHERE id = ${presetId}`,
-    )
-    return String(res.rows[0]?.stamp)
-  }
-
-  async function workshopSnapshotCount(): Promise<number> {
-    const res = await db.execute(
-      sql`SELECT COUNT(*) AS count FROM kosztorys_snapshots WHERE investment_id = ${workshop.id}`,
-    )
-    return Number(res.rows[0].count)
-  }
-
-  // The page renders the returned tree instead of re-querying, so it has to BE the stored one.
-  it('returns the tree it wrote and points the warsztat at the szablon', async () => {
-    const result = await openPresetInWorkshopAction(presetA)
-
-    const { buildKosztorysTree } = await import('@/lib/queries/kosztorys')
-    expect(result).toEqual({
-      success: true,
-      data: { investmentId: workshop.id, tree: await buildKosztorysTree(workshop.id) },
-    })
-    expect(await pointer()).toBe(presetA)
-    expect((await workshopSections()).map((section) => section.name)).toEqual(['Sekcja A'])
-  })
-
-  // Browser back + the same row again, or a StrictMode double effect: the held szablon is already
-  // there, and rewriting it would cost a swap and float it to the top of the library.
-  it('re-opening the held szablon writes nothing', async () => {
-    await openPresetInWorkshopAction(presetA)
-    const rowsBefore = await workshopSections()
-    const stampBefore = await libraryUpdatedAt(presetA)
-    const snapshotsBefore = await workshopSnapshotCount()
-
-    const result = await openPresetInWorkshopAction(presetA)
-
-    expect(result).toMatchObject({ success: true })
-    expect(await workshopSections()).toEqual(rowsBefore)
-    expect(await libraryUpdatedAt(presetA)).toBe(stampBefore)
-    expect(await workshopSnapshotCount()).toBe(snapshotsBefore)
-  })
-
-  it('a switch mirrors the outgoing szablon’s last edit into the library', async () => {
-    await openPresetInWorkshopAction(presetA)
-    // Straight to the table, so no autosave mirror carries it — only the eviction can.
-    await db.execute(sql`
-      UPDATE kosztorys_sections SET name = 'Edycja w A' WHERE investment_id = ${workshop.id}
-    `)
-
-    const result = await openPresetInWorkshopAction(presetB)
-
-    expect(result).toMatchObject({ success: true })
-    expect(await librarySectionNames(presetA)).toEqual(['Edycja w A'])
-    expect(await pointer()).toBe(presetB)
-    expect((await workshopSections()).map((section) => section.name)).toEqual(['Sekcja B'])
-    expect(expireCollectionsAfterResponse).toHaveBeenCalledWith(['presets'])
-  })
-
-  // The re-inserted tree carries fresh row ids, so a byte comparison would call every eviction a
-  // change — and the library is ordered by `updated_at`.
-  it('a switch leaves an untouched outgoing szablon’s updated_at alone', async () => {
-    await openPresetInWorkshopAction(presetA)
-    const stampBefore = await libraryUpdatedAt(presetA)
-
-    await openPresetInWorkshopAction(presetB)
-
-    expect(await libraryUpdatedAt(presetA)).toBe(stampBefore)
-    expect(expireCollectionsAfterResponse).not.toHaveBeenCalled()
-  })
-
-  // The library copy, mirrored in the same transaction, is the restore point.
-  it('a switch writes no snapshot', async () => {
-    const snapshotsBefore = await workshopSnapshotCount()
-
-    await openPresetInWorkshopAction(presetA)
-    await openPresetInWorkshopAction(presetB)
-
-    expect(await workshopSnapshotCount()).toBe(snapshotsBefore)
-  })
-
-  // The pointer race: split across commits, A-replace, B-replace, B-set, A-set left B's tree under
-  // pointer A, and the next mirror wrote B's content into szablon A.
-  it('two concurrent opens leave the pointer naming the szablon the warsztat holds', async () => {
-    const results = await Promise.all([
-      openPresetInWorkshopAction(presetA),
-      openPresetInWorkshopAction(presetB),
-    ])
-
-    expect(results).toEqual([
-      expect.objectContaining({ success: true }),
-      expect.objectContaining({ success: true }),
-    ])
-    const held = await pointer()
-    expect([presetA, presetB]).toContain(held)
-    expect((await workshopSections()).map((section) => section.name)).toEqual(
-      await librarySectionNames(held as number),
-    )
-  })
-
-  it('a failed restore leaves the pointer, the tree and the outgoing szablon as they were', async () => {
-    await openPresetInWorkshopAction(presetA)
-    await db.execute(sql`
-      UPDATE kosztorys_sections SET name = 'Edycja w A' WHERE investment_id = ${workshop.id}
-    `)
-    const rowsBefore = await workshopSections()
-    const stampBefore = await libraryUpdatedAt(presetA)
-
-    const result = await openPresetInWorkshopAction(brokenPresetId)
-
-    expect(result).toMatchObject({ success: false })
-    expect(await pointer()).toBe(presetA)
-    expect(await workshopSections()).toEqual(rowsBefore)
-    expect(await librarySectionNames(presetA)).toEqual(['Sekcja A'])
-    expect(await libraryUpdatedAt(presetA)).toBe(stampBefore)
-  })
-
-  // Any tag touched before the response re-renders /szablony/[id] and wipes the client prefetch
-  // cache (lessons.md, EX-597) — the cost this action exists to avoid.
-  it('revalidates nothing before the response', async () => {
-    await openPresetInWorkshopAction(presetA)
-    await db.execute(sql`
-      UPDATE kosztorys_sections SET name = 'Edycja w A' WHERE investment_id = ${workshop.id}
-    `)
-
-    await openPresetInWorkshopAction(presetB)
-
-    expect(revalidateCollections).not.toHaveBeenCalled()
-    expect(revalidateEntities).not.toHaveBeenCalled()
-    expect(updateTag).not.toHaveBeenCalled()
-    expect(revalidateTag).not.toHaveBeenCalled()
-  })
-
-  it('writes nothing when the szablon does not exist', async () => {
-    await openPresetInWorkshopAction(presetA)
-    const rowsBefore = await workshopSections()
-
-    const result = await openPresetInWorkshopAction(2_000_000_000)
-
-    expect(result).toEqual({ success: false, error: 'Nie znaleziono szablonu' })
-    expect(await pointer()).toBe(presetA)
-    expect(await workshopSections()).toEqual(rowsBefore)
-  })
-})
-
-// Creating a szablon with no source kosztorys. Assertions go to the stored row and to the warsztat
-// tree AFTER loading it: `insertPreset` returning an id says nothing about whether an empty payload
-// survives `replaceTreeWithSnapshot`, which is the only real risk on this path.
-describe.skipIf(!ENV_READY)('createEmptyPresetAction — persisted state (DB)', () => {
-  let payload: Payload
-  let db: Awaited<ReturnType<typeof getDb>>
-  let workshop: Awaited<ReturnType<typeof acquireTestWorkshop>>
-
-  const EMPTY_PRESET_NAME = 'pusty-szablon-fixture'
-
-  beforeAll(async () => {
-    const { getPayload } = await import('payload')
-    const config = (await import('@payload-config')).default
-    payload = await getPayload({ config })
-    db = await getDb(payload)
-
-    const users = await payload.find({
-      collection: 'users',
-      limit: 1,
-      depth: 0,
-      overrideAccess: true,
-    })
-    const firstUser = users.docs[0]
-    if (!firstUser) throw new Error('no user in the DB to attribute the preset to')
-    authState.userId = Number(firstUser.id)
-
-    workshop = await acquireTestWorkshop(payload)
-    // Entering, not asserting: the szablon library is shared, so a leftover row from a failed run
-    // would make the „nazwa zajęta" case pass for the wrong reason.
-    await db.execute(sql`DELETE FROM kosztorys_presets WHERE name = ${EMPTY_PRESET_NAME}`)
-  })
-
-  afterAll(async () => {
-    await workshop.release()
-    await db.execute(sql`DELETE FROM kosztorys_presets WHERE name = ${EMPTY_PRESET_NAME}`)
-  })
-
-  async function storedPresets(): Promise<
-    { id: number; schemaVersion: number; payload: SnapshotPayloadT }[]
-  > {
-    const res = await db.execute(sql`
-      SELECT id, schema_version, payload FROM kosztorys_presets WHERE name = ${EMPTY_PRESET_NAME}
-    `)
-    return res.rows.map((row) => ({
-      id: Number(row.id),
-      schemaVersion: Number(row.schema_version),
-      payload: row.payload as SnapshotPayloadT,
-    }))
-  }
-
-  async function workshopSectionCount(): Promise<number> {
-    const res = await db.execute(sql`
-      SELECT COUNT(*) AS count FROM kosztorys_sections WHERE investment_id = ${workshop.id}
-    `)
-    return Number(res.rows[0].count)
-  }
-
-  it('stores one szablon with an empty tree under the current format', async () => {
-    const result = await createEmptyPresetAction(EMPTY_PRESET_NAME)
-
-    expect(result).toMatchObject({ success: true })
-    const rows = await storedPresets()
+    const rows = await templateByName(name)
     expect(rows).toHaveLength(1)
-    expect(rows[0].schemaVersion).toBe(SNAPSHOT_SCHEMA_VERSION)
-    expect(rows[0].payload.sections).toEqual([])
-    expect(rows[0].payload.items).toEqual([])
-    expect(result).toMatchObject({ data: { id: rows[0].id } })
+    expect(rows[0].status).toBe(TEMPLATE_INVESTMENT_STATUS)
+    // Stamped, or a new szablon would sort below every edited one on the list it was made from.
+    expect(rows[0].content_edited_at).not.toBeNull()
+    expect(result).toEqual({ success: true, data: { id: Number(rows[0].id) } })
+    expect((await treeOf(Number(rows[0].id))).sections).toEqual([])
   })
 
-  it('refuses a name already in the library and leaves the single row alone', async () => {
-    const result = await createEmptyPresetAction(EMPTY_PRESET_NAME)
+  it('„Zapisz jako nowy” founds a szablon with the source’s rozpiska, job figures stripped', async () => {
+    const name = uniqueName('lifecycle-new')
 
-    expect(result).toMatchObject({ success: false })
-    expect(await storedPresets()).toHaveLength(1)
+    expect(await savePresetAction(sourceId, { mode: 'new', name })).toEqual({ success: true })
+
+    const rows = await templateByName(name)
+    expect(rows).toHaveLength(1)
+    expect(rows[0].status).toBe(TEMPLATE_INVESTMENT_STATUS)
+    expect(await treeOf(Number(rows[0].id))).toEqual(STRIPPED_SOURCE_TREE)
   })
 
-  // „Otwórz" on a szablon with nothing in it: the warsztat has to come out EMPTY rather than throwing
-  // on a tree with no sekcje to remap.
-  it('loads into the warsztat as an empty rozpiska', async () => {
-    const [preset] = await storedPresets()
+  // The unique index compares lower(trim(name)); the actions have to say so in Polish before the
+  // driver answers with an English 23505.
+  it.each([
+    ['other case', (name: string) => name.toUpperCase()],
+    ['edge spaces', (name: string) => `  ${name}  `],
+  ])('refuses a taken name (%s) on every path that names a szablon', async (_, variant) => {
+    const takenName = uniqueName('lifecycle-taken')
+    const taken = await createTestInvestment(payload, takenName, { status: TEMPLATE_INVESTMENT_STATUS })
+    const other = await createTestTemplate(payload, 'lifecycle-rename-me')
+    created.push(taken, other)
 
-    const result = await openPresetInWorkshopAction(preset.id)
+    const refused = { success: false, error: NAME_TAKEN_MESSAGE }
+    expect(await createEmptyPresetAction(variant(takenName))).toEqual(refused)
+    expect(await savePresetAction(sourceId, { mode: 'new', name: variant(takenName) })).toEqual(
+      refused,
+    )
+    expect(await renamePresetAction(other, variant(takenName))).toEqual(refused)
 
-    expect(result).toMatchObject({ success: true })
-    expect(await workshopSectionCount()).toBe(0)
+    const sameName = await db.execute(sql`
+      SELECT id FROM investments
+      WHERE status = ${TEMPLATE_INVESTMENT_STATUS} AND lower(trim(name)) = lower(${takenName})
+    `)
+    expect(sameName.rows.map((row) => Number(row.id))).toEqual([taken])
+  })
+
+  it('„Nadpisz” replaces the target’s tree, leaves it a restore point and spares the source', async () => {
+    const targetId = await createTestTemplate(payload, 'lifecycle-overwrite')
+    created.push(targetId)
+    await createKosztorysTree(payload, targetId, { sections: [{ name: 'Stara treść' }] })
+    const sourceBefore = await treeOf(sourceId)
+
+    expect(await savePresetAction(sourceId, { mode: 'overwrite', targetId })).toEqual({
+      success: true,
+    })
+
+    expect(await treeOf(targetId)).toEqual(STRIPPED_SOURCE_TREE)
+    expect(await treeOf(sourceId)).toEqual(sourceBefore)
+    const points = await db.execute(sql`
+      SELECT label FROM kosztorys_snapshots WHERE investment_id = ${targetId}
+    `)
+    expect(points.rows.map((row) => row.label)).toEqual([`Przed nadpisaniem: ${sourceName}`])
+  })
+
+  it.each([
+    ['an ordinary investment', () => sourceId, 'Szablonu nie nadpisuje się nim samym'],
+    ['a missing id', () => 2_000_000_000, 'Nie znaleziono szablonu'],
+  ])('„Nadpisz” refuses %s as the target', async (_, targetId, error) => {
+    const before = await treeOf(sourceId)
+
+    expect(await savePresetAction(sourceId, { mode: 'overwrite', targetId: targetId() })).toEqual({
+      success: false,
+      error,
+    })
+    expect(await treeOf(sourceId)).toEqual(before)
+  })
+
+  it('„Nadpisz” refuses an ordinary investment other than the source', async () => {
+    const ordinary = await createTestInvestment(payload, 'lifecycle-ordinary-target')
+    created.push(ordinary)
+    await createKosztorysTree(payload, ordinary, { sections: [{ name: 'Klienta' }] })
+
+    expect(
+      await savePresetAction(sourceId, { mode: 'overwrite', targetId: ordinary }),
+    ).toMatchObject({ success: false, error: 'Nie znaleziono szablonu' })
+    expect((await treeOf(ordinary)).sections).toEqual(['Klienta'])
+  })
+
+  // The cascade is the delete: a szablon's tree and its restore points have no owner once it goes.
+  it('deleting a szablon takes its sections, items and restore points with it', async () => {
+    const templateId = await createTestTemplate(payload, 'lifecycle-delete')
+    created.push(templateId)
+    await createKosztorysTree(payload, templateId, {
+      sections: [{ name: 'Do usunięcia', items: [{ description: 'x', unit: 'm2' }] }],
+    })
+    await savePresetAction(sourceId, { mode: 'overwrite', targetId: templateId })
+
+    expect(await deletePresetAction(templateId)).toEqual({ success: true })
+
+    const left = await db.execute(sql`
+      SELECT
+        (SELECT COUNT(*) FROM investments WHERE id = ${templateId}) AS investments,
+        (SELECT COUNT(*) FROM kosztorys_sections WHERE investment_id = ${templateId}) AS sections,
+        (SELECT COUNT(*) FROM kosztorys_items WHERE investment_id = ${templateId}) AS items,
+        (SELECT COUNT(*) FROM kosztorys_snapshots WHERE investment_id = ${templateId}) AS snapshots
+    `)
+    expect(left.rows[0]).toEqual({ investments: '0', sections: '0', items: '0', snapshots: '0' })
+  })
+
+  it('refuses to delete an ordinary investment through the szablon list', async () => {
+    const ordinary = await createTestInvestment(payload, 'lifecycle-ordinary-delete')
+    created.push(ordinary)
+
+    expect(await deletePresetAction(ordinary)).toEqual({
+      success: false,
+      error: 'Nie znaleziono szablonu',
+    })
+    const res = await db.execute(sql`SELECT 1 FROM investments WHERE id = ${ordinary}`)
+    expect(res.rows).toHaveLength(1)
   })
 })
