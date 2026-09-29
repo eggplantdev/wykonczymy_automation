@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { catalogueCategoryOptions } from '@/lib/kosztorys/work-catalogue/category-options'
+import {
+  catalogueCategoryOptions,
+  catalogueUnitOptions,
+} from '@/lib/kosztorys/work-catalogue/category-options'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
 const item = (category: string | null): WorkCatalogueItemT => ({
@@ -35,5 +38,16 @@ describe('catalogueCategoryOptions', () => {
       item('Łazienka'),
     ])
     expect(options.map((option) => option.value)).toEqual(['Łazienka', 'Malarskie', 'Zbrojenie'])
+  })
+})
+
+describe('catalogueUnitOptions', () => {
+  it('gives a praca with no j.m. its own option and sorts the rest', () => {
+    const units = ['m2', '', 'szt', 'm2'].map((unit) => ({ ...item(null), unit }))
+    expect(catalogueUnitOptions(units)).toEqual([
+      { value: '', label: 'bez j.m.' },
+      { value: 'm2', label: 'm2' },
+      { value: 'szt', label: 'szt' },
+    ])
   })
 })

@@ -15,3 +15,10 @@ export function catalogueCategorySuggestions(items: readonly WorkCatalogueItemT[
     .map((option) => option.value)
     .filter((value) => value !== '')
 }
+
+// Same reasoning as Kategoria: a praca without a j.m. needs an option, or picking any j.m. strands it.
+export function catalogueUnitOptions(items: readonly WorkCatalogueItemT[]) {
+  return [...new Set(items.map((item) => item.unit))]
+    .sort((a, b) => a.localeCompare(b, 'pl'))
+    .map((unit) => ({ value: unit, label: unit || 'bez j.m.' }))
+}

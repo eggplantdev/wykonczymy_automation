@@ -607,16 +607,16 @@ The full unit suite runs only when asked (memory: no full suite unasked). Pre-pu
 
 #### Automated
 
-- [x] 1.1 Editor engaged-conditions + active-filters-bar specs stay green
-- [x] 1.2 catalogue-rate spec covers catalogueRateAmount / isCatalogueOverCeiling
+- [x] 1.1 Editor engaged-conditions + active-filters-bar specs stay green — f5e05c0e
+- [x] 1.2 catalogue-rate spec covers catalogueRateAmount / isCatalogueOverCeiling — f5e05c0e
 
 ### Phase 2: Filtry / Problemy / j.m. on the catalogue (EX-863)
 
 #### Automated
 
-- [ ] 2.1 catalogue-conditions spec (predicates, per-plane partition, counts, apply)
-- [ ] 2.2 catalogue menu-model + chip-model specs
-- [ ] 2.3 category-options spec covers catalogueUnitOptions
+- [x] 2.1 catalogue-conditions spec (predicates, per-plane partition, counts, apply)
+- [x] 2.2 catalogue menu-model + chip-model specs
+- [x] 2.3 category-options spec covers catalogueUnitOptions
 
 ### Phase 3: Usage read (EX-873 data)
 
