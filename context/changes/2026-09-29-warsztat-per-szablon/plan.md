@@ -797,6 +797,6 @@ Uruchamiane **raz**, po ostatniej fazie:
 
 #### Automated
 
-- [ ] 5.1 Migracja B wchodzi na 5433; brak tabeli i kolumn, lista bez „Warsztat szablonów"
+- [x] 5.1 Migracja B wchodzi na 5433; brak tabeli i kolumn, lista bez „Warsztat szablonów" — zweryfikowane na 5433 po merge 7bc7f282
 - [x] 5.2 `pnpm test:integration` przechodzi — 0e0909e3
 - [x] 5.3 `pnpm test:parity` zielony po B — 0e0909e3
