@@ -1,6 +1,7 @@
 'use client'
 
 import { createColumnHelper, type CellContext } from '@tanstack/react-table'
+import { pluralize } from '@/lib/utils/polish-plural'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 import { isAdminOrOwnerRole, type RoleT } from '@/lib/auth/roles'
@@ -258,9 +259,22 @@ export function getInvestmentColumns({ userRole, onSettle }: InvestmentColumnOpt
         if (value === undefined || !hasKosztorysReading(info.row.original)) {
           return withheldFigureCell(info)
         }
+        const owedWorkers = info.row.original.subcontractorsOwed ?? 0
         return (
-          <Button variant="link" className="h-auto p-0" onClick={() => onSettle(info.row.original)}>
-            <BalanceCell value={value} />
+          <Button
+            variant="link"
+            className="h-auto flex-col items-end gap-0 p-0"
+            onClick={() => onSettle(info.row.original)}
+          >
+            <BalanceCell
+              value={value}
+              className={roundToCents(value) === 0 ? 'text-chart-green' : undefined}
+            />
+            {owedWorkers > 1 && (
+              <span className="text-muted-foreground text-xs font-normal">
+                {owedWorkers} {pluralize(owedWorkers, ['pracownika', 'pracowników', 'pracowników'])}
+              </span>
+            )}
           </Button>
         )
       },
