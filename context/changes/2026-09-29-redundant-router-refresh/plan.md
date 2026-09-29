@@ -567,15 +567,15 @@ Run **once**, after the final phase:
 
 #### Automated
 
-- [x] 1.1 Touched DOM specs pass
-- [x] 1.2 Refresh grep over Phase 1 files returns nothing
+- [x] 1.1 Touched DOM specs pass — 10314c9e
+- [x] 1.2 Refresh grep over Phase 1 files returns nothing — 10314c9e
 
 ### Phase 2: Sheet actions
 
 #### Automated
 
-- [ ] 2.1 Touched DOM specs pass
-- [ ] 2.2 Refresh grep over the four sheet files returns nothing
+- [x] 2.1 Touched DOM specs pass
+- [x] 2.2 Refresh grep over the four sheet files returns nothing
 
 ### Phase 3: Kosztorys editor
 

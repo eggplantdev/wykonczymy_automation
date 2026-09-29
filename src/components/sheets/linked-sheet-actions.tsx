@@ -2,7 +2,6 @@
 
 import { useState, startTransition } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { FileSpreadsheet, Unlink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
@@ -26,7 +25,6 @@ type DialogT = 'unlink' | 'delete' | undefined
 // can't use anyway.
 export function LinkedSheetActions({ sheetId, investmentId, investmentName }: PropsT) {
   const [dialog, setDialog] = useState<DialogT>(undefined)
-  const router = useRouter()
   const { role } = useCurrentUser()
   const canDelete = isAdminOrOwnerRole(role)
 
@@ -36,7 +34,6 @@ export function LinkedSheetActions({ sheetId, investmentId, investmentName }: Pr
       if (!res.success) return toastMessage(res.error, 'error')
       toastMessage(`Odłączono kosztorys od inwestycji „${investmentName}”.`, 'success')
       setDialog(undefined)
-      router.refresh()
     })
   }
 
@@ -46,7 +43,6 @@ export function LinkedSheetActions({ sheetId, investmentId, investmentName }: Pr
       if (!res.success) return toastMessage(res.error, 'error')
       toastMessage('Usunięto kosztorys.', 'success')
       setDialog(undefined)
-      router.refresh()
     })
   }
 

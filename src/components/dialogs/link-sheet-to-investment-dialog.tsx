@@ -1,7 +1,6 @@
 'use client'
 
 import { type ReactNode, useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -34,7 +33,6 @@ export function LinkSheetToInvestmentDialog({
   const [open, setOpen] = useState(false)
   const [selectedId, setSelectedId] = useState<string>('')
   const [pending, startTransition] = useTransition()
-  const router = useRouter()
 
   const onSubmit = () => {
     if (!selectedId) return
@@ -46,7 +44,6 @@ export function LinkSheetToInvestmentDialog({
       toastMessage(`Dodano „${sheetName}” do inwestycji „${investment?.name ?? ''}”.`, 'success')
       setOpen(false)
       setSelectedId('')
-      router.refresh()
     })
   }
 
