@@ -111,8 +111,8 @@ the exception — material the company eats, so it _does_ hit marża.
 **Settled material is a netto cost — owner ruling, 2026-07-26** (not a mode, nothing to gate). Open
 gap: `totalSettled` still sums the brutto `amount` of a brutto-booked settled expense, so marża is
 understated by its VAT. Parked because a brutto expense stores neither a netto nor a VAT rate, and
-the investment's `vatRate` is the client's rate on prace, not the shop's. The Linear issue that held
-it (EX-595) no longer exists.
+the investment's `vatRate` is the client's rate on prace, not the shop's. Tracked as EX-898 (EX-595,
+which held it before, no longer exists).
 
 **The reclaimed VAT does not change this — owner ruling, 2026-07-26.** The company deducts input
 VAT, so a 1230 zł receipt costs it 1000, while the client returns the full 1230 (they pay exactly
