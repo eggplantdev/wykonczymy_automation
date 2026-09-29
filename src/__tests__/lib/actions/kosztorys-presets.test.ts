@@ -553,6 +553,23 @@ describe.skipIf(!ENV_READY)('szablon lifecycle — persisted state (DB)', () => 
     expect(sameName.rows.map((row) => Number(row.id))).toEqual([trashed])
   })
 
+  // A stale /szablony tab renames a szablon another tab already trashed, into a name someone holds:
+  // the name clash is not why the rename failed, and saying so sends the owner to pick another name.
+  it('renaming a szablon that is not live says it is gone, even into a held name', async () => {
+    const heldName = uniqueName('lifecycle-held')
+    const holder = await createTestInvestment(payload, heldName, {
+      status: TEMPLATE_INVESTMENT_STATUS,
+    })
+    const trashed = await createTestTemplate(payload, 'lifecycle-rename-trashed')
+    const ordinary = await createTestInvestment(payload, 'lifecycle-rename-ordinary')
+    created.push(holder, trashed, ordinary)
+    await trashDaysAgo(db, trashed, 0)
+
+    const gone = { success: false, error: 'Nie znaleziono szablonu' }
+    expect(await renamePresetAction(trashed, heldName)).toEqual(gone)
+    expect(await renamePresetAction(ordinary, heldName)).toEqual(gone)
+  })
+
   it('„Nadpisz” refuses a szablon in the trash and leaves its tree as it was', async () => {
     const trashed = await createTestTemplate(payload, 'lifecycle-overwrite-trashed')
     created.push(trashed)

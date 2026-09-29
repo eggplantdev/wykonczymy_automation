@@ -153,6 +153,10 @@ export async function renamePresetAction(id: number, name: string): Promise<Acti
       if (!parsed.success) return parsed
 
       const db = await getDb(payload)
+      // Before the name lookup: a target that is gone would otherwise report whoever holds the name.
+      if (!(await isTemplateInvestment(db, parsed.data.id))) {
+        return { success: false, error: TEMPLATE_NOT_FOUND }
+      }
       if (await renamePreset(db, parsed.data.id, parsed.data.name)) return { success: true }
       const holder = await presetNameHolder(db, parsed.data.name, parsed.data.id)
       if (holder) return nameHeldError(holder)

@@ -2154,6 +2154,9 @@ decyzja właściciela.
       się nie zgadza; po potwierdzeniu wiersz znika z `/kosz`.
 - [ ] Kosztorys założony wcześniej z tego szablonu jest bez zmian po przeniesieniu do kosza i po
       usunięciu na zawsze.
+- [ ] Dwie karty `/szablony`: w pierwszej przenieś szablon A do kosza, w drugiej (bez odświeżania)
+      zmień nazwę A na nazwę innego szablonu — komunikat brzmi „Nie znaleziono szablonu", a nie
+      „Szablon o tej nazwie już istnieje".
 
 ## 2026-09-29 — pasy kolumn na wydrukach
 
