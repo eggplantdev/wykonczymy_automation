@@ -91,7 +91,7 @@ export const Investments: CollectionConfig = {
       name: 'status',
       type: 'select',
       required: true,
-      defaultValue: 'active',
+      defaultValue: 'quote',
       label: { en: 'Status', pl: 'Status' },
       options: STATUS_OPTIONS,
     },

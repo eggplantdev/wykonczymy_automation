@@ -167,8 +167,9 @@ nie kasuje historii otwartej inwestycji) i #13 (guard szablonu).
 1. Wartość w bazie: **`quote`**, etykieta UI „Wycena". Nie dopisujemy jej do tabeli zamrożonych polskich
    wartości w glosariuszu.
 2. Promocja leada **zostaje `planowana`**.
-3. Kolejność cyklu życia: **Planowana → Wycena → Aktywna → Zakończona**. Migracja
-   `ADD VALUE 'quote' AFTER 'planowana'`, a listy UI w tej kolejności.
+3. Kolejność cyklu życia: ~~Planowana → Wycena → Aktywna → Zakończona~~ — **zmienione po implementacji**
+   na **Wycena → Planowana → Aktywna → Zakończona**, a nowa inwestycja dostaje domyślnie Wycenę. Zob.
+   Amendment w `plan.md`.
 4. Kolaps list statusów do jednej stałej: **tak, w tej zmianie**.
 
 ## Open Questions (resolved — see Decisions)

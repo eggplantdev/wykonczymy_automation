@@ -1978,14 +1978,16 @@ sprzed migracji, nie względem stałej liczby.
 
 ### Phase 1: Jedna lista statusów i status „Wycena"
 
-- [ ] Dialog „Edytuj” inwestycji: lista statusów to kolejno Planowana, Wycena, Aktywna, Zakończona.
+- [ ] Dialog „Nowa inwestycja”: status jest domyślnie ustawiony na Wycena, a dodana inwestycja ma
+      bursztynowy badge „Wycena”.
+- [ ] Dialog „Edytuj” inwestycji: lista statusów to kolejno Wycena, Planowana, Aktywna, Zakończona.
       Zapis Wyceny się udaje, a badge w tabeli i na karcie inwestycji jest bursztynowy.
 - [ ] Inwestycja w Wycenie nie pojawia się w pickerze wpłaty/wydatku, dopóki „Aktywne” jest
       włączone. Po wyłączeniu jest widoczna, tak jak Planowana.
 
 ### Phase 2: Filtr statusów i zapisany wybór
 
-- [ ] `/inwestycje` z czystym localStorage: filtr pokazuje Planowana, Wycena, Aktywna, Zakończona,
-      zaznaczone są Planowana, Wycena i Aktywna.
+- [ ] `/inwestycje` z czystym localStorage: filtr pokazuje Wycena, Planowana, Aktywna, Zakończona,
+      zaznaczone są Wycena, Planowana i Aktywna.
 - [ ] Zapisany wcześniej filtr „tylko Aktywna”: Wycena jest odznaczona. Zapisany „Planowana +
       Aktywna”: Wycena jest zaznaczona.

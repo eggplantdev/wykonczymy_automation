@@ -5,7 +5,7 @@ import { createJsonMapStore, useJsonMap, type JsonMapStoreT } from '@/hooks/crea
 import { PICKABLE_INVESTMENT_STATUSES } from '@/lib/constants/investment-status'
 import type { InvestmentStatusT } from '@/types/reference-data'
 
-const DEFAULT_STATUSES: InvestmentStatusT[] = ['planowana', 'quote', 'active']
+const DEFAULT_STATUSES: InvestmentStatusT[] = ['quote', 'planowana', 'active']
 // Read by StatusFilter too, so the checkboxes and the persisted map can't drift.
 export const FILTERABLE_STATUSES = PICKABLE_INVESTMENT_STATUSES
 

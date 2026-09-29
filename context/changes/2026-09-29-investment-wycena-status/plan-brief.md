@@ -17,8 +17,8 @@ badge mają własne kopie listy, a zapisany w localStorage filtr ukryłby nowy s
 
 ## Desired End State
 
-Wycenę da się ustawić w dialogu, ma bursztynowy badge i jest domyślnie widoczna w filtrze. Kolejność
-wszędzie: Planowana, Wycena, Aktywna, Zakończona. Kto miał zapisany filtr, widzi Wyceny tak, jak widział
+Wycenę da się ustawić w dialogu, ma bursztynowy badge i jest domyślnie widoczna w filtrze. Nowa
+inwestycja zaczyna jako Wycena. Kolejność wszędzie: Wycena, Planowana, Aktywna, Zakończona. Kto miał zapisany filtr, widzi Wyceny tak, jak widział
 Planowane. Kolejny status to jedna pozycja w stałej, a resztę wskazuje typecheck.
 
 ## Key Decisions Made
@@ -27,7 +27,8 @@ Planowane. Kolejny status to jedna pozycja w stałej, a resztę wskazuje typeche
 | -------------------------------- | ----------------------------------------- | ------------------------------------------------------------- | -------- |
 | Wartość w bazie                  | `quote`, etykieta „Wycena”                | reguła nazewnictwa AGENTS.md: polski tylko dla nazw z arkusza | Research |
 | Promocja leada                   | zostaje Planowana                         | właściciel                                                    | Research |
-| Kolejność                        | Planowana → Wycena → Aktywna → Zakończona | właściciel; enum `AFTER 'planowana'`                          | Research |
+| Kolejność                        | Wycena → Planowana → Aktywna → Zakończona | właściciel (zmienione po implementacji)                       | Plan     |
+| Status nowej inwestycji          | Wycena                                    | właściciel: wycena to pierwszy etap                           | Plan     |
 | Jedna stała statusów             | tak, w tej zmianie                        | zamienia 3 ciche miejsca w błędy typu                         | Research |
 | Zapisany filtr bez klucza Wyceny | dziedziczy po Planowanej                  | kto ukrył Planowane, nie zobaczy nagle Wycen                  | Plan     |
 | Kolor badge'a                    | amber                                     | sky, emerald, muted i violet są zajęte                        | Plan     |

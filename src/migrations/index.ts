@@ -103,6 +103,7 @@ import * as migration_20260929_0_drop_client_view_variants from './20260929_0_dr
 import * as migration_20260929_1_szablon_as_investment from './20260929_1_szablon_as_investment'
 import * as migration_20260929_2_drop_kosztorys_presets from './20260929_2_drop_kosztorys_presets'
 import * as migration_20260929_3_add_quote_investment_status from './20260929_3_add_quote_investment_status'
+import * as migration_20260929_4_quote_is_the_default_status from './20260929_4_quote_is_the_default_status'
 
 export const migrations = [
   {
@@ -629,5 +630,10 @@ export const migrations = [
     up: migration_20260929_3_add_quote_investment_status.up,
     down: migration_20260929_3_add_quote_investment_status.down,
     name: '20260929_3_add_quote_investment_status',
+  },
+  {
+    up: migration_20260929_4_quote_is_the_default_status.up,
+    down: migration_20260929_4_quote_is_the_default_status.down,
+    name: '20260929_4_quote_is_the_default_status',
   },
 ]

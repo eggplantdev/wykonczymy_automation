@@ -769,7 +769,7 @@ wybierać, co inwestor może sprawdzić. Z tego samego powodu właściciel nie m
 
 **Retencja** (`gcSnapshots`): `auto`/`manual` bez zmian (30 dni wszystko → dzień do 120 → tydzień do
 365 → koniec). `daily` i `named` nie podlegają pasmom ani limitowi 365 dni: żyją, dopóki inwestycja
-jest Planowana, Wycena lub Aktywna, a po Zakończonej jeszcze rok od `investments.completed_at` (ustawiane
+jest w Wycenie, Planowana lub Aktywna, a po Zakończonej jeszcze rok od `investments.completed_at` (ustawiane
 przy przejściu na Zakończoną, zerowane przy ponownym otwarciu). Zakończona bez `completed_at` trzyma
 historię — brak danych nigdy jej nie kasuje. Planowana liczy się jako żywa, bo to negocjacje, kiedy
 zmiany oferty ważą najbardziej; `named` żyją tak samo, bo to je inwestor najbardziej chce odnaleźć

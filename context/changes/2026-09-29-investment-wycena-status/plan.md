@@ -29,7 +29,8 @@ Pełna mapa: `research.md`. W skrócie:
 - Inwestycję można ustawić na „Wycena” w dialogu edycji i dodawania. Zapis przechodzi przez akcję,
   walidację kolekcji i enum w Postgresie.
 - Badge „Wycena” (amber) w tabeli i na karcie inwestycji.
-- Filtr statusów pokazuje kolejno: Planowana, Wycena, Aktywna, Zakończona. Wycena jest domyślnie widoczna.
+- Filtr statusów pokazuje kolejno: Wycena, Planowana, Aktywna, Zakończona. Wycena jest domyślnie widoczna.
+- Nowa inwestycja dostaje domyślnie Wycenę (zob. **Amendment**).
   Przy zapisanym filtrze bez klucza `quote` Wycena przyjmuje zapisaną wartość Planowanej.
 - Kolejny status to jedna pozycja w krotce i jeden wpis w każdej mapie `Record`. Typecheck wskazuje
   każde miejsce do uzupełnienia.
@@ -65,8 +66,8 @@ dodaje regułę dziedziczenia dla zapisanych map. Kolejność ma znaczenie: faza
 
 ## Critical Implementation Details
 
-- **Kolejność w enumie Postgresa.** Wartość dodaj przez `ADD VALUE IF NOT EXISTS 'quote' AFTER 'planowana'`.
-  Nowej wartości **nie wolno użyć** w tej samej migracji (bez `UPDATE`, bez `DEFAULT`), bo Postgres odrzuca
+- **Enum Postgresa.** Wartość dodaj przez `ADD VALUE IF NOT EXISTS 'quote'`, bez klauzuli pozycji (zob.
+  **Amendment**). Nowej wartości **nie wolno użyć** w tej samej migracji (bez `UPDATE`, bez `DEFAULT`), bo Postgres odrzuca
   użycie wartości dodanej w tej samej transakcji.
 - **Dziedziczenie filtra dotyczy tylko zapisanych map.** Pusta mapa nadal daje `DEFAULT_STATUSES`.
   Jawne all-false starego formatu (`{planowana:false, active:false, completed:false}`) musi dawać pusty
@@ -121,7 +122,7 @@ które typecheck wymusza.
 **Intent**: Dodaje wartość do enuma. Addytywna, więc prod trzeba zmigrować **przed** pushem
 (`pnpm db:migrate:prod`, robi to człowiek).
 
-**Contract**: `ALTER TYPE "enum_investments_status" ADD VALUE IF NOT EXISTS 'quote' AFTER 'planowana'`.
+**Contract**: `ALTER TYPE "enum_investments_status" ADD VALUE IF NOT EXISTS 'quote'`.
 `down()` to udokumentowany no-op, jak w `20260718_0`. Przed migracją na współdzielonej bazie trzeba
 sprawdzić `git status src/migrations` (AGENTS.md).
 
@@ -152,7 +153,7 @@ granicy kolekcja ↔ enum, której nie widzi żaden typ.
 
 #### Manual Verification:
 
-- W dialogu „Edytuj” inwestycji lista statusów pokazuje kolejno Planowana, Wycena, Aktywna, Zakończona;
+- W dialogu „Edytuj” inwestycji lista statusów pokazuje kolejno Wycena, Planowana, Aktywna, Zakończona;
   zapis Wyceny się udaje i badge jest bursztynowy.
 - Inwestycja w Wycenie pojawia się w pickerze wpłaty/wydatku dopiero po wyłączeniu „Aktywne”, jak planowana.
 
@@ -200,7 +201,7 @@ wybór.
 **Files**:
 
 - `context/reference/kosztorys-editor-domain-notes.md:772-774`: „Planowana lub Aktywna” staje się
-  „Planowana, Wycena lub Aktywna”.
+  „Wycena, Planowana lub Aktywna”.
 - `context/foundation/lessons.md`, lekcja „Status inwestycji to etykieta, nie bramka” (`:1680`): dopisek, że
   od tej zmiany lista żyje w `src/lib/constants/investment-status.ts`, więc jej punkt (1) jest spłacony.
   Nowa reguła: zapisana w localStorage mapa flag to trwały schemat, a nowy klucz potrzebuje reguły dla
@@ -252,7 +253,18 @@ jej nie ma, dopóki ktoś jej nie ustawi.
 - `pnpm test:integration`
 - `pnpm build`
 
-## References
+## Amendment (właściciel, 2026-09-29, po implementacji)
+
+Wycena to **pierwszy** etap: cykl życia to Wycena → Planowana → Aktywna → Zakończona, a nowa inwestycja
+dostaje domyślnie Wycenę. Zmienia to decyzję 3 z researchu (Wycena była po Planowanej).
+
+- `INVESTMENT_STATUSES`, `PICKABLE_INVESTMENT_STATUSES` i etykiety: `quote` na początku.
+- Domyślny status: `defaultValue` kolekcji, `EMPTY_DEFAULTS` w dialogu „Nowa inwestycja” i nowa migracja
+  `20260929_4_quote_is_the_default_status` (`SET DEFAULT 'quote'` na kolumnie). Osobny plik, bo Postgres
+  nie pozwala użyć wartości enuma w transakcji, która ją dodała.
+- `20260929_3` traci `AFTER 'planowana'`. Enum nigdy nie był w kolejności cyklu życia (`active, completed,
+planowana, …`) i nic po nim nie sortuje, więc pozycja nic nie znaczyła.
+- Promocja leada zostaje przy Planowanej (decyzja 2 nie zmieniona).
 
 - Research: `context/changes/2026-09-29-investment-wycena-status/research.md`
 - Precedens: `context/archive/2026-07-16-investment-planowana-status/`, `src/migrations/20260718_0_add_planowana_investment_status.ts`
@@ -276,3 +288,10 @@ jej nie ma, dopóki ktoś jej nie ustawi.
 #### Automated
 
 - [x] 2.1 Spec filtra przechodzi: `pnpm exec vitest run src/__tests__/use-status-filter.test.ts` — c56b9f16
+
+### Amendment: Wycena jako pierwszy etap i domyślny status
+
+#### Automated
+
+- [x] A.1 Migracja `20260929_4` przechodzi lokalnie (5433) i na 5435
+- [x] A.2 Spec DB: inwestycja bez statusu zapisuje się jako `quote`

@@ -16,7 +16,7 @@ const EMPTY_DEFAULTS: InvestmentFormValuesT = {
   contactPerson: '',
   notes: '',
   review: '',
-  status: 'active',
+  status: 'quote',
   presetId: '',
 }
 

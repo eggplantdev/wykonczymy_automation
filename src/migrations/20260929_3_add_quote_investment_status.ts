@@ -2,11 +2,13 @@ import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-ve
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
 // Fifth investment status `quote` („Wycena"), behaving exactly like `planowana`. Additive — no
-// data migration. AFTER 'planowana' keeps the enum in lifecycle order. The value is not *used* in
-// this transaction, which is what lets ADD VALUE run inside Payload's migration transaction.
+// data migration. No position clause: the enum was never in lifecycle order and nothing sorts by it —
+// the pickers' order is `INVESTMENT_STATUSES`. The value is not *used* in this transaction, which is
+// what lets ADD VALUE run inside Payload's migration transaction — making it the column default is
+// 20260929_4's job for that reason.
 export async function up({ db }: MigrateUpArgs): Promise<void> {
   await db.execute(sql`
-    ALTER TYPE "enum_investments_status" ADD VALUE IF NOT EXISTS 'quote' AFTER 'planowana';
+    ALTER TYPE "enum_investments_status" ADD VALUE IF NOT EXISTS 'quote';
   `)
 }
 
