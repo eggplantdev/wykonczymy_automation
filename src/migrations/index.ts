@@ -99,6 +99,7 @@ import * as migration_20260928_1_kosztorys_worker_view from './20260928_1_koszto
 import * as migration_20260928_2_client_view_single_set from './20260928_2_client_view_single_set'
 import * as migration_20260928_3_investment_completed_at from './20260928_3_investment_completed_at'
 import * as migration_20260928_4_document_column_ranks from './20260928_4_document_column_ranks'
+import * as migration_20260929_0_drop_client_view_variants from './20260929_0_drop_client_view_variants'
 
 export const migrations = [
   {
@@ -605,5 +606,10 @@ export const migrations = [
     up: migration_20260928_4_document_column_ranks.up,
     down: migration_20260928_4_document_column_ranks.down,
     name: '20260928_4_document_column_ranks',
+  },
+  {
+    up: migration_20260929_0_drop_client_view_variants.up,
+    down: migration_20260929_0_drop_client_view_variants.down,
+    name: '20260929_0_drop_client_view_variants',
   },
 ]
