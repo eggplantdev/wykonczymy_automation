@@ -13,6 +13,7 @@ import { financialsOnReading, readingFromKosztorys } from '@/lib/kosztorys/summa
 import { billedMaterials, computeAmountDue } from '@/lib/kosztorys/summary-economics'
 import { marginV2 } from '@/lib/kosztorys/margin-v2'
 import { NOTHING_DUE } from '@/lib/kosztorys/subcontractor-due'
+import { roundToCents } from '@/lib/utils/round-to-cents'
 import { ZERO_FINANCIALS } from '@/types/investment-financials'
 import type { InvestmentRefT } from '@/types/reference-data'
 import type { InvestmentRowT } from '@/types/table-rows'
@@ -64,6 +65,9 @@ export function shapeInvestments(
       netRate,
       financials.totalLoss,
     )
+    // No kosztorys is an answer here as much as it is for robocizna: nothing is owed to a crew for
+    // work nobody entered, so the zero settlement is a fact, not a missing input.
+    const settlement = subcontractorDueRecord[String(inv.id)] ?? NOTHING_DUE
     return {
       id: inv.id,
       name: inv.name,
@@ -94,10 +98,12 @@ export function shapeInvestments(
       // plane. Run on the kosztorys robocizna it was a third figure that matched no surface in the
       // app — same name as the investment page's, 235 908,25 zl apart from it on „11 Listopada 40".
       margin: calculateMargin(transactionFinancials),
-      // No kosztorys is an answer here as much as it is for robocizna: nothing is owed to a crew for
-      // work nobody entered, so the zero settlement is a fact, not a missing input.
-      marginV2:
-        marginV2(financials, subcontractorDueRecord[String(inv.id)] ?? NOTHING_DUE) ?? undefined,
+      marginV2: marginV2(financials, settlement) ?? undefined,
+      // Rounded like the panel's headline (`computeSubcontractorSummary`), so the two print one kwota.
+      subcontractorRemaining:
+        clientTotals === undefined || settlement.hasUnconfirmedPlane
+          ? undefined
+          : roundToCents(settlement.due - financials.totalPayouts),
       address: inv.address,
       phone: inv.phone,
       email: inv.email,

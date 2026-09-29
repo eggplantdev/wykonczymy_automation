@@ -443,8 +443,15 @@ describe('shapeInvestments robocizna source', () => {
 
     expect(zeroProgress.hasKosztorys).toBe(true)
     expect(absent.hasKosztorys).toBe(false)
-    // Presence changes nothing else: every figure still reads the zero the same way.
-    expect({ ...zeroProgress, hasKosztorys: false }).toEqual(absent)
+    // Presence withholds „Pozostało do wypłaty" and changes nothing else: every other figure still
+    // reads the zero the same way.
+    expect(zeroProgress.subcontractorRemaining).toBe(-1000) // nothing owed, 1000 paid
+    expect(absent.subcontractorRemaining).toBeUndefined()
+    expect({
+      ...zeroProgress,
+      hasKosztorys: false,
+      subcontractorRemaining: undefined,
+    }).toEqual(absent)
   })
 
   it('reads presence off the entry, not off the figure it carries', () => {
@@ -536,6 +543,73 @@ describe('shapeInvestments marża v2', () => {
     const [row] = shapeInvestments([baseInv], transactionFinancials, NO_MAP, NO_MAP, NO_DEPOSITS)
 
     expect(row.marginV2).toBe(-500) // 0 robocizny − 300 wliczonych − 200 straty
+  })
+})
+
+// The Podwykonawcy headline on the listing: należne from the kosztorys minus the wypłaty booked as
+// transfers. Reuses the marża v2 fixtures, whose wypłaty (1000) differ from every należne below, so a
+// figure reading marża's terms instead would fail.
+describe('shapeInvestments pozostało do wypłaty', () => {
+  const transactionFinancials: InvestmentFinancialsMapT = {
+    '5': { ...ZERO_FINANCIALS, totalLaborCosts: 3900, totalPayouts: 1000, totalSettled: 300 },
+  }
+  const kosztorysTotals: KosztorysClientTotalsMapT = {
+    '5': {
+      doneNet: 4500,
+      laborCostsNetFromKosztorys: 5000,
+      discountNetFromKosztorys: 500,
+      globalDiscountNet: 0,
+    },
+  }
+  const remainingFor = (
+    due: number,
+    hasUnconfirmedPlane = false,
+    totals: KosztorysClientTotalsMapT = kosztorysTotals,
+    financials: InvestmentFinancialsMapT = transactionFinancials,
+  ) =>
+    shapeInvestments(
+      [baseInv],
+      financials,
+      totals,
+      { '5': { due, hasUnconfirmedPlane } },
+      NO_DEPOSITS,
+    )[0].subcontractorRemaining
+
+  it('is what the crews are owed for executed work, less what they were paid', () => {
+    expect(remainingFor(1750)).toBe(750)
+  })
+
+  it('goes negative when the crews were paid more than they executed', () => {
+    expect(remainingFor(800)).toBe(-200)
+  })
+
+  it('withholds the figure when an etap carries work with no rozliczenie', () => {
+    // The należne would be short by an unknown amount, so any number would understate the debt.
+    expect(remainingFor(1750, true)).toBeUndefined()
+  })
+
+  it('withholds the figure for an investment with no kosztorys', () => {
+    // Otherwise it would read −wypłaty and sort legacy investments in among real overpayments.
+    expect(remainingFor(1750, false, NO_MAP)).toBeUndefined()
+  })
+
+  it('reads −wypłaty for a kosztorys with no executed work yet', () => {
+    // No fold row for the investment: nothing is owed, so the crews were paid ahead of the work.
+    const [row] = shapeInvestments(
+      [baseInv],
+      transactionFinancials,
+      kosztorysTotals,
+      NO_MAP,
+      NO_DEPOSITS,
+    )
+
+    expect(row.subcontractorRemaining).toBe(-1000)
+  })
+
+  it('rounds float residue to exactly zero grosz', () => {
+    const paid030: InvestmentFinancialsMapT = { '5': { ...ZERO_FINANCIALS, totalPayouts: 0.3 } }
+
+    expect(remainingFor(0.1 + 0.2, false, kosztorysTotals, paid030)).toBe(0)
   })
 })
 
