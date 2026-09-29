@@ -349,7 +349,7 @@ test('„Sekcja z szablonu…" zbiera zaznaczenia z dwóch szablonów i dokleja 
   await expect(presetDialog(page).getByRole('button', { name: 'Dodaj (1)' })).toBeVisible()
 
   // Switching szablon means FILTERING szablon A out of the left pane — the selection lives in a
-  // `Set<"presetId:sectionId">` above both panes, and a regress that hangs it off the visible list
+  // `Set` of section ids above both panes, and a regress that hangs it off the visible list
   // drops the first pick silently. The counter is the only place on screen that says otherwise.
   await openPreset(page, presetB)
   await presetDialog(page).getByRole('button', { name: 'Sekcja szablonu B' }).click()

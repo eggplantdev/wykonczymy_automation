@@ -788,9 +788,9 @@ Uruchamiane **raz**, po ostatniej fazie:
 
 #### Automated
 
-- [x] 4.1 Grep starego modelu trafia wyłącznie w `src/migrations/`
-- [x] 4.2 `pnpm generate:types` przechodzi
-- [x] 4.3 Specy przepięte na `createTestTemplate` zielone
+- [x] 4.1 Grep starego modelu trafia wyłącznie w `src/migrations/` — b957cb51
+- [x] 4.2 `pnpm generate:types` przechodzi — b957cb51
+- [x] 4.3 Specy przepięte na `createTestTemplate` zielone — b957cb51
 
 ### Phase 5: Migracja B (destrukcyjna), E2E spec i dokumentacja
 

@@ -35,11 +35,9 @@ import {
 //     (the `remountKey` latch in kosztorys-editor-v2), while leaving behind a restore point that
 //     brings back the etapy and the wykonanie the szablon does not carry.
 //
-// The tests run in order and share one szablon, because there is no other way to make one: a preset
-// payload is written by `serializeKosztorysAsPreset`, which is `server-only` and out of reach of a
-// seed script. Saving it through the dialog IS the first scenario, so the library the other two read
-// is the one the app wrote — `mode: 'serial'` makes a failure there stop them rather than let them
-// fail on its absence and hide the real cause.
+// The tests run in order and share one szablon: saving it through the dialog IS the first scenario,
+// so the szablon the other two read is the one the app wrote. `mode: 'serial'` makes a failure there
+// stop them rather than let them fail on its absence and hide the real cause.
 test.use({ storageState: 'e2e/.auth/user.json' })
 test.describe.configure({ mode: 'serial' })
 
@@ -47,8 +45,8 @@ type PresetSeedT = { source: number; reload: number }
 
 let seed: PresetSeedT
 
-// The szablon library is GLOBAL and the test DB is never reset, so the name has to be this run's own
-// — otherwise the second run saves a duplicate of the first run's szablon and scenario 1 is testing
+// Szablon names are unique across the app and the test DB is never reset, so the name has to be this
+// run's own — otherwise the second run saves a duplicate of the first run's szablon and scenario 1 is testing
 // the refusal it means to reach only by accident.
 const presetName = `E2E Szablon ${Date.now()}`
 

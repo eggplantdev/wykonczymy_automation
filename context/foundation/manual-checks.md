@@ -204,7 +204,8 @@ wylądowało z `auto_reply_status = 'skipped'`), a defekt, który EX-660 naprawi
 ## clean-texts-catalogue-names — nazwy prac z tabeli poprawek katalogu (2026-09-15)
 
 Warsztat szablonu 4 (`/szablony/4`) jest fixturem: przed zmianą okno „Porównaj z katalogiem prac"
-zgłaszało tam 30 prac spoza katalogu.
+zgłaszało tam 30 prac spoza katalogu. Od EX-893 (2026-09-29) ten szablon to własna inwestycja
+„kosztorys wzór testy 2 września 26" — adres `/szablony/<jej id>`, nie `/szablony/4`.
 
 - [x] `/szablony/4` → „Porównaj z katalogiem prac" pokazuje **6** prac spoza katalogu zamiast 30,
       **bez klikania „Popraw literówki"** — zmierzone na dzisiejszym fixturze **30 → 5** (nie 6;
@@ -661,12 +662,15 @@ Inwestycja z niepustą rozpiską i rozjazdami wobec katalogu (w lokalnym dumpie:
 otwarte wcześniej. Dławik lustra to 10 s, domknięcie ogona 15 s bezczynności — przy sprawdzaniu
 „czy doszło" liczy się odczekanie, nie odświeżanie w kółko.
 
+**Nieaktualne od EX-893 (2026-09-29):** warsztatu i lustra już nie ma — szablon jest własną
+inwestycją i zapisuje się jak każdy kosztorys. Otwarte boksy tej sekcji nie mają już czego sprawdzać.
+
 - [~] ~~Po przełączeniu w „Wersje" jest wpis „Przed wczytaniem: <nazwa>" i przywrócenie go wraca do stanu sprzed~~ — nieaktualne (szablon-open-speed, EX-876): wpis był zapisywany, gdy wskaźnik warsztatu był pusty, więc żadna lista „Wersje" nie mogła go pokazać; przełączenie już go nie robi, a punktem przywrócenia jest kopia szablonu w bibliotece, dopychana w tej samej transakcji.
 
 ### Findings — 2026-09-23 (staging/preview pass)
 
 - [~] ~~**„Wersje" nie pokazuje wpisu „Przed wczytaniem: <nazwa>" po przełączeniu szablonu** — zweryfikowane na stagingu (commit `e0158cb8`), 3 ponowne otwarcia dialogu „Wersje" i przeładowanie strony, wpis nigdy się nie pojawił. Defekt jest **węższy niż „dialog Wersje jest nieaktualny"**: w tej samej sesji, na tym samym szablonie, ręczne „Wyczyść szablon" utworzyło wpis „Przed wyczyszczeniem" i ten wpis pojawił się w dialogu natychmiast i poprawnie (przywrócenie też zadziałało). Więc automatyczny snapshot przy `openPresetInWorkshopAction` (przełączenie) nie trafia do listy „Wersje" tak jak snapshot przy czyszczeniu — dwie różne ścieżki tworzenia auto-snapshotu zachowują się różnie mimo wspólnego UI. Root-cause (np. brakujący tag cache / inny zapis do `kosztorys_snapshots`) poza zakresem tego przebiegu QA — check zostaje odznaczony jako otwarty defekt.~~ — nieaktualne: przyczyna i usunięcie wpisu w boksie wyżej (EX-876).
-- **Pusty szablon (0 sekcji) jest niewidoczny w „Przełącz na inny szablon…" wewnątrz warsztatu** — root-cause: `groupPresetSections`/`usePresetSections` (`src/components/kosztorys/editor/dialogs/preset/use-preset-sections.ts`) buduje listę, iterując metadane na poziomie SEKCJI, więc preset bez żadnej sekcji nigdy się nie zmaterializuje jako opcja. To NIE dotyczy innego pickera o tej samej nazwie funkcjonalnej — „Kosztorys z szablonu" w dialogu zakładania nowej inwestycji (`add-investment-dialog.tsx`/`investment-form.tsx`) pokazał pusty preset („ZZZ QA EX748 usunac empty2", 0/0) poprawnie, zgodnie z już potwierdzonym checkiem w `empty-preset-create` (linia 581). Dwa różne pickery, dwie różne implementacje — defekt jest lokalny do warsztatowego „Przełącz na inny szablon…", nie ogólny.
+- [~] ~~**Pusty szablon (0 sekcji) jest niewidoczny w „Przełącz na inny szablon…" wewnątrz warsztatu**~~ — nieaktualne (EX-893): przełączania szablonów w warsztacie już nie ma. Dawny opis: root-cause: `groupPresetSections`/`usePresetSections` (`src/components/kosztorys/editor/dialogs/preset/use-preset-sections.ts`) buduje listę, iterując metadane na poziomie SEKCJI, więc preset bez żadnej sekcji nigdy się nie zmaterializuje jako opcja. To NIE dotyczy innego pickera o tej samej nazwie funkcjonalnej — „Kosztorys z szablonu" w dialogu zakładania nowej inwestycji (`add-investment-dialog.tsx`/`investment-form.tsx`) pokazał pusty preset („ZZZ QA EX748 usunac empty2", 0/0) poprawnie, zgodnie z już potwierdzonym checkiem w `empty-preset-create` (linia 581). Dwa różne pickery, dwie różne implementacje — defekt jest lokalny do warsztatowego „Przełącz na inny szablon…", nie ogólny.
 
 ## zakladka-inwestycja-w-panelu — zakładka „Inwestycja" w panelu Podsumowanie (2026-09-22)
 
@@ -1622,7 +1626,8 @@ addytywna — na produkcję **przed** pushem; DROP starych kolumn to EX-886, po 
 ## szablon-open-speed — „Otwórz szablon" bez przeładowania trasy (EX-876, 2026-09-28)
 
 `/szablony` i `/szablony/[id]`. Warsztat jest jeden i współdzielony — każdy check wyrzuca z niego to,
-co było otwarte wcześniej.
+co było otwarte wcześniej. **Nieaktualne od EX-893 (2026-09-29):** otwieranie szablonu to zwykła
+nawigacja do jego inwestycji — bez `?open=1`, promptu „nie jest teraz otwarty" i przełączania.
 
 - [x] Najechanie na szablon na liście i kliknięcie: od razu szkielet ładowania, potem nazwa z loaderem, potem edytor — bez kilkusekundowego zawieszenia z listą wciąż na ekranie
       **Zweryfikowane na stagingu:** klik wiersza „QA test szablon B" z `/szablony` wylądował z pełną
@@ -1684,7 +1689,7 @@ co było otwarte wcześniej.
 
 ### Findings — 2026-09-28
 
-- [ ] **„Przełącz na inny szablon…" wisi długo zanim POST się rozstrzygnie** — przełączenie z warsztatu
+- [~] **Nieaktualne (EX-893): `openPresetInWorkshopAction` i przełączanie skasowane.** ~~**„Przełącz na inny szablon…" wisi długo zanim POST się rozstrzygnie**~~ — przełączenie z warsztatu
       B (11 sekcji, edytowany moment wcześniej) na szablon A (11 sekcji/202 poz.) pokazywało
       `PageLoading` (🚧) przez ok. 90 s zanim `POST /szablony/4?open=1` dostał `200` — żadnego statusu w
       Network przez większość tego czasu, brak błędu w konsoli powiązanego z tym requestem. Po

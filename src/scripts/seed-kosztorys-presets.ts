@@ -1,6 +1,6 @@
 // E2E fixture for EX-442 (szablony kosztorysu). Two investments: `source` — 2 sekcje with przedmiar
 // and stage progress, the per-job fields a szablon must drop; `reload` — one sekcja/praca, replaced
-// by „Wczytaj szablon…". No preset row seeded: `serializeKosztorysAsPreset` is server-only.
+// by „Wczytaj szablon…". No szablon seeded — the spec's first scenario saves it through the dialog.
 //
 // Run: DB_POSTGRES_URL=$DB_POSTGRES_URL_TEST node --env-file=.env --import tsx src/scripts/seed-kosztorys-presets.ts
 // Emits: PRESET_SEED={"source":<id>,"reload":<id>}
