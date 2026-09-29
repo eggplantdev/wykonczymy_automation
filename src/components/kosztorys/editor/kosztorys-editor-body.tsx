@@ -16,7 +16,10 @@ import { BrandLogo } from '@/components/ui/brand-logo'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
 import { useKosztorysEditor } from '@/components/kosztorys/editor/use-kosztorys-editor'
-import { KosztorysEditorProvider } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
+import {
+  KosztorysEditorProvider,
+  type OnTreeReplacedT,
+} from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { CataloguePickerHost } from '@/components/kosztorys/editor/actions/catalogue-picker-host'
 import { useRowHeightCacheReset } from '@/components/kosztorys/editor/hooks/use-row-height-cache-reset'
 import { useWrapColumnWidths } from '@/components/kosztorys/editor/hooks/use-wrap-column-widths'
@@ -93,7 +96,7 @@ type PropsT = KosztorysEditorDataT & {
   // Optional because the read-only client body omits it and falls back to NOOP_UNDO_REDO.
   undoRedo?: UndoRedoApiT
   onOpenVersions?: () => void
-  onTreeReplaced?: () => void
+  onTreeReplaced?: OnTreeReplacedT
   // Reseed after a write was refused because its row is gone (the tree was replaced elsewhere).
   onStaleTree?: () => Promise<void>
 }

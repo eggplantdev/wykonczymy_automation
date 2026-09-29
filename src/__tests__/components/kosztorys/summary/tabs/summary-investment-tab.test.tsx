@@ -5,10 +5,6 @@ import { SummaryInvestmentTab } from '@/components/kosztorys/summary/tabs/summar
 import type { InvestmentRefT } from '@/types/reference-data'
 import type { MediaFileT } from '@/types/media'
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn(), refresh: vi.fn() }),
-}))
-
 // The gallery's actions are `'use server'`, and the harness swaps those for stubs that THROW when
 // called. Nothing in this spec calls them, but the modules are imported eagerly.
 vi.mock('@/lib/actions/investment-assets', () => ({

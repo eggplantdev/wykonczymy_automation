@@ -5,9 +5,6 @@ import { describe, expect, it, vi } from 'vitest'
 import { DeleteForeverDialog } from '@/components/trash/delete-forever-dialog'
 import { deleteInvestmentForeverAction } from '@/lib/actions/investment-trash'
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
-}))
 vi.mock('@/lib/actions/investment-trash', () => ({
   deleteInvestmentForeverAction: vi.fn(async () => ({ success: true })),
 }))

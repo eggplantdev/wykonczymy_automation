@@ -270,3 +270,70 @@ action dominates and the refresh GET lands right after the POST. Server per add 
 `inwestycje/386 data fetch` + 2 `InvestmentSummaryPanel`, i.e. POST render + refresh render.
 "Header not captured" means the probe missed the POST's response headers on a ~3 s response, so it
 is not a missing `x-action-revalidated`. The 2-render count comes from the server log.
+
+---
+
+# After — EX-908
+
+Same rig (prod build on :3100, 5435 test DB), driven by standalone Playwright/CDP Chromium instead of
+the MCP browser (busy). Renders = `[PERF]` lines. First cold run per flow discarded from the numbers
+below. POST = `next-action` requests, GET = non-prefetch `RSC: 1`, PF = prefetches (unchanged vs before).
+
+## Per flow
+
+| flow                                   | POST           | GET                              | PF      | renders/save | visible ms                            |
+| -------------------------------------- | -------------- | -------------------------------- | ------- | ------------ | ------------------------------------- |
+| J expense /kasa/5                      | 1 (rev 1)      | 0                                | 34      | 1            | 437-463                               |
+| I cancel                               | 1 (rev 1)      | 0                                | 34      | 1            | 36-51                                 |
+| E default register                     | 1 (rev 1)      | 0                                | 34      | 1            | 133-509                               |
+| J investment create                    | 1 (rev 1)      | 0                                | 78-80   | -            | 321-1228                              |
+| H trash / F restore / G delete forever | 1 (rev 1) each | 0                                | 24-26   | -            | 31-61 / 309-501 / -                   |
+| J register /kasy                       | 1 (rev 1)      | 0                                | 26      | -            | 283-417                               |
+| A unlink / B link / C add / A delete   | 1 (rev 1) each | 0                                | 106-110 | 1            | 230-376 (C 946-1389, POST-bound)      |
+| D SheetButton                          | 1 (rev 1)      | 0                                | 31      | 1            | 3058-3494 (POST 2.6-3.2 s)            |
+| P etap 383                             | 1              | 1 (70-190 ms after POST; no 2nd) | 26      | 1            | -                                     |
+| P Przedmiar 383                        | 1              | 0                                | 26      | 1            | -                                     |
+| P burst of 3 etap                      | 3              | 3                                | 26      | 3            | totals equal after reload             |
+| P large 149 (Przedmiar x3)             | 1              | 0                                | 26      | 1            | 106-154                               |
+| M undo/redo                            | 1              | 0                                | 26      | 1            | 321-443 / 331-340 (incl ~300 ms menu) |
+| N section from template                | 1              | 0                                | 26      | fan-out 1    | 126-518                               |
+| N remove section                       | 1              | 0                                | -       | 1            | -                                     |
+| O catalogue item                       | 1              | 0                                | 26      | 1            | 99-165                                |
+| K compare -> Dodaj do katalogu         | 1              | 0                                | 26      | 1            | 91-150                                |
+| L reload szablon                       | 1              | 0                                | 26      | 1            | 113-145                               |
+| L clear                                | 1              | 0                                | 26      | 1            | 116-130                               |
+| L restore version                      | 1              | 0                                | -       | 1            | body remounts, no reload              |
+
+## Delta
+
+| flow                    | before GET / renders    | after | delta             | visible ms before -> after                  |
+| ----------------------- | ----------------------- | ----- | ----------------- | ------------------------------------------- |
+| J expense               | 1 GET / 2               | 0 / 1 | -1 GET, -1 render | - -> 437-463                                |
+| I cancel                | 1 / 2                   | 0 / 1 | -1, -1            | - -> 36-51                                  |
+| E                       | 1 / 2                   | 0 / 1 | -1, -1            | - -> 133-509                                |
+| A/B/C/A-delete          | 1 / 2                   | 0 / 1 | -1, -1            | - -> 230-376                                |
+| D                       | 1 / 2                   | 0 / 1 | -1, -1            | POST-bound ~3.3 s both                      |
+| P etap                  | 2 GET (2nd ~750 ms) / 2 | 1 / 1 | -1, -1            | -                                           |
+| P Przedmiar             | 1 / 2                   | 0 / 1 | -1, -1            | -                                           |
+| P burst of 3            | 4 / 4                   | 3 / 3 | -1, -1            | -                                           |
+| M undo/redo             | 1 / 2                   | 0 / 1 | -1, -1            | - -> 321-443 (incl menu)                    |
+| N section from template | 1 / 2                   | 0 / 1 | -1, -1            | 120-173 -> 126-518 (POST 115-292 in window) |
+| O catalogue             | 1 / 2                   | 0 / 1 | -1, -1            | 72-178 -> 99-165                            |
+| K compare               | 2 / 3                   | 0 / 1 | -2, -2            | 64-115 -> 91-150                            |
+| L clear                 | 1 / 2                   | 0 / 1 | -1, -1            | 236-329 -> 116-130 (painted from POST)      |
+| L reload                | 1 / 2                   | 0 / 1 | -1, -1            | 110-133 -> 113-145                          |
+
+Visible times that rose (N, O, K) are POST-bound: the window now ends at the POST render instead of a
+refresh GET that used to land inside a fast window; no visible regression beyond POST latency.
+
+## Latch paths and PF
+
+- Restore version: tree -> empty and empty -> tree both remount from the action's own render (1 POST, 0 GET); edit right after remount saved and persisted. OK.
+- Zastap szablonem / Wyczyść: remount without reload, 1 POST, 0 GET. OK.
+- Popraw literówki: 1 POST, 0 GET, live grid updates in ~21 of 24 runs. INTERMITTENT STALE in 3 early runs (grid kept the typo until reload; POST flight and DB had the fix; toast not seen). Cause: the latch was armed in `.then`, after the action's render had already committed, so it waited for a change that had already happened. Fixed by arming from the pre-action token (`use-restore-remount.test.tsx` "remounts when the fresh tree landed before it was armed"); after the fix 14/14 runs updated live.
+- Compare with sheet / sheet import: UNPROVEN. Only inv 66 is sheet-linked ("Pobierz z arkusza Google…", "Porównaj z arkuszem…" present) and running import would overwrite its data; writes to Google are refused locally by design.
+- Interrupted clear: route-abort of the POST (real `setOffline` makes Next hard-navigate to chrome-error, toast lost, tree intact after reload). Abort: toast „Czyszczenie przerwane" at 65 ms, 1 RSC GET at 55 ms, tree unchanged.
+- Stale tree: FAILED. Tab 2 deletes a row, tab 1 edits it: POST1 NOT_FOUND, toast „Kosztorys zmienił się…" (~966 ms), POST2 (`refreshDataAction`) rev 1 and its flight (replayed) lacks the deleted row, but tab 1 never remounted (DOM marker survived 8 s); reload showed the row gone. After the latch fix (arm from the token on screen when `handleStaleTree` runs, not from the render order): 4/4 runs on 383/384/391 remount without the row. Most likely the same ordering race as „Popraw literówki"; not proven, because no build of `4c3ee036` was measured.
+- PF question: PF counts are unchanged (26 editor, 34 kasa, 106-110 sheets); prefetches come from the action's invalidation, not from the removed refresh.
+
+Deviations: CDP Chromium instead of MCP browser; worktree `node_modules` is a real copy; renders counted from `[PERF]`; etap edit on the 411-item fixture not measured (cell disabled); fixtures 389/390 drifted, 3 `ARKASA-*` registers and some catalogue rows left in 5435.

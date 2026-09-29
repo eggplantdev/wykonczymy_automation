@@ -669,6 +669,12 @@
   owns every figure the removed render would have refreshed, or the siblings go stale until the next
   navigation. Decoupling and client-side ownership are one refactor, not two. No amount of tag
   precision is a substitute.
+  The same mechanism read the other way (EX-908): **a revalidating action's response IS the
+  render**, so a client `router.refresh()` after it is a second full render of warm data with
+  nothing new — sixteen sites did it, one of them (the catalogue-compare save) three layers deep for
+  three renders. A client refetch belongs only after a write that produced no render: a route
+  handler, an upload API, an `after()`-expired action, or an action that **threw** (the editor's
+  clear / reload / import pass `refetch` only from their `catch`).
 - **Second exit (EX-876)**: a tag expired inside `after()` lands in `pendingRevalidatedTags` only
   after the response headers are written, and is flushed by `withExecuteRevalidates` from there — so
   `x-action-revalidated` never counts it, the action stays render-free, and the next read still
@@ -677,7 +683,8 @@
   from the result: „Otwórz szablon" used to push + `router.refresh()` + revalidate, three renders to
   show a tree the transaction already had in hand.
 - **Applies to**: any "this write shouldn't re-render that" instinct on a server action; `updateTag`
-  vs `revalidateTag` reasoning about render cost.
+  vs `revalidateTag` reasoning about render cost; any `router.refresh()` written after an `await`ed
+  action.
 
 ## Neon latency is bimodal — separate warm from cold before believing any per-request number
 

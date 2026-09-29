@@ -33,6 +33,7 @@ import type { ToolPlaneT } from '@/lib/kosztorys/types'
 import { SimpleSelect } from '@/components/ui/simple-select'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { toastMessage } from '@/lib/utils/toast'
+import type { OnTreeReplacedT } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
 type PropsT = {
   investmentId: number
@@ -41,7 +42,7 @@ type PropsT = {
   preview: ImportPreviewT | null
   error: string | null
   loaded: boolean
-  onImported: () => void
+  onImported: OnTreeReplacedT
   // Re-reads the sheet with the new pointing in place, so the window answers in place instead of
   // asking the owner to close it and try again.
   onMappingSaved: () => void
@@ -79,6 +80,7 @@ export function SheetImportDialog({
 
   function handleConfirm() {
     startTransition(async () => {
+      let refetch = false
       try {
         const result = await applyKosztorysImport(investmentId, plane === NO_PLANE ? null : plane)
         if (!result.success) {
@@ -91,9 +93,10 @@ export function SheetImportDialog({
         // A transport-level rejection can arrive AFTER the replacement committed, so the grid may
         // already hold rows that no longer exist.
         toastMessage('Pobieranie przerwane — odświeżam kosztorys', 'error', 6000)
+        refetch = true
       }
       onOpenChange(false)
-      onImported()
+      onImported({ refetch })
     })
   }
 

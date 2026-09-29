@@ -31,7 +31,7 @@ const HYDRATION_POLL_MS = 50
  *
  * Retrying the nudge rather than the wait is the other half: the failures this replaced were clicks
  * React dropped mid-remount — a dialog still tearing down, a toolbar re-rendering under an autosave's
- * `router.refresh()`. Playwright reports „click action done", nothing opens, and no amount of waiting
+ * render. Playwright reports „click action done", nothing opens, and no amount of waiting
  * brings back a menu that already closed. `nudge` owns its own „am I already there" guard, so a
  * control that settled on the first look is not clicked twice.
  */
@@ -70,11 +70,11 @@ export async function waitForHydration(
  * `unstable_cache` entry at once, and the only honest way for a spec to read what a write actually
  * persisted.
  *
- * A write's own `router.refresh()` is not: the list query is an `unstable_cache` entry, and a link
+ * A write's own render is not: the list query is an `unstable_cache` entry, and a link
  * prefetch whose render began BEFORE the write lands its stale rows in that entry AFTER the action
- * expired the tag. The refresh then re-reads a poisoned entry and the row keeps its pre-write face
+ * expired the tag. The render then re-reads a poisoned entry and the row keeps its pre-write face
  * until something else invalidates it. Measured in a full-suite run: `transactions_rels` held the
- * new invoice and the refresh payload still carried `invoices: []` for that row.
+ * new invoice and the render payload still carried `invoices: []` for that row.
  */
 export async function refreshData(page: Page): Promise<void> {
   const refresh = page.getByRole('button', { name: 'Odśwież dane' })

@@ -9,7 +9,6 @@ import type { ReferenceDataT } from '@/types/reference-data'
 import type { RoleT } from '@/lib/auth/roles'
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
   usePathname: () => '/kasa',
 }))
 vi.mock('@/lib/actions/transfers', () => ({

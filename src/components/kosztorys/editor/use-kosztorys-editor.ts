@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { useDebouncedSave } from '@/components/kosztorys/editor/hooks/use-debounced-save'
 import { useStaleTreeRecovery } from '@/components/kosztorys/editor/hooks/use-stale-tree-recovery'
 import {
@@ -152,9 +151,6 @@ type ArgsT = {
 
 // Longer than the debounced save (500ms) so a burst is captured only once its writes are scheduled.
 const UNDO_COALESCE_MS = 700
-// Separate knob from UNDO_COALESCE_MS despite the matching value — that one sizes an undo entry, this
-// one decides when the server's recomputed totals are worth a round trip.
-const TOTALS_REFRESH_DEBOUNCE_MS = 700
 
 const NO_ROW_IDS: ReadonlySet<number> = new Set()
 
@@ -178,7 +174,6 @@ export function useKosztorysEditor({
   // Interaction, split from disclosure: `preview` decides what a client is SHOWN, this decides whether
   // anything may be written.
   const readOnly = preview || locked
-  const router = useRouter()
   const { recoverStaleTree, reportFailure } = useStaleTreeRecovery(onStaleTree)
   const { save, runNow } = useDebouncedSave(500, recoverStaleTree)
   // Owned by the shell (KosztorysEditorV2). Capture pushes here; toolbar + keyboard call undo/redo.
@@ -280,7 +275,6 @@ export function useKosztorysEditor({
   const pendingFields = useRef<FieldChangeT[]>([])
   const pendingStages = useRef<StageChangeT[]>([])
   const flushTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   // Reactive mirror of „a burst is buffering" (the refs aren't), so the toolbar button and Cmd+Z agree
   // during the coalesce window instead of the button staying greyed while the shortcut works (EX-526 #5).
   const [hasPendingBurst, setHasPendingBurst] = useState(false)
@@ -356,12 +350,11 @@ export function useKosztorysEditor({
     clearBurstIfEmpty()
   }
 
-  // A restore remounts the body: drop dangling timers so a pending flush can't close over the outgoing
-  // mount's setRows, and a pending refresh can't re-render a route the user has left.
+  // A restore remounts the body: drop a dangling flush so it can't close over the outgoing mount's
+  // setRows.
   useEffect(() => {
     return () => {
       if (flushTimer.current) clearTimeout(flushTimer.current)
-      if (refreshTimer.current) clearTimeout(refreshTimer.current)
     }
   }, [])
 
@@ -750,9 +743,8 @@ export function useKosztorysEditor({
       (r) => patchById.has(r.id),
       (r) => ({ ...r, ...patchById.get(r.id) }) as KosztorysV2RowT,
     )
-    // On failure roll the optimistic apply back via `revertOne` — the trailing `router.refresh()` can't,
-    // since `rows` is the mount-frozen useState seed (EX-441), so without this a rejected inverse leaves
-    // the grid diverged from the DB behind a toast.
+    // On failure roll the optimistic apply back via `revertOne` — `rows` is the mount-frozen useState
+    // seed (EX-441), so no render can, and a rejected inverse would leave the grid diverged from the DB.
     await Promise.all(
       planReversalWrites(fields, stages, dir).map((w) =>
         w.kind === 'field'
@@ -769,12 +761,10 @@ export function useKosztorysEditor({
             ),
       ),
     )
-    // Pull recomputed section/stage totals once the inverse writes have committed.
-    router.refresh()
   }
 
   // The inverse of „w górę" is „w dół", so undo and redo are one call with the direction flipped. No
-  // prevById touch (display_order isn't diffed) and no totals refresh (a reorder moves no figure).
+  // prevById touch (display_order isn't diffed).
   // The neighbour is re-derived rather than replayed from the one captured at push time: the server
   // exchanges with whatever is rank-adjacent NOW, so a stale id diverges the moment a row lands between
   // the pair. A refusal must put the pair back, or the grid shows an order no reload can reproduce.
@@ -1025,12 +1015,12 @@ export function useKosztorysEditor({
     return built
   }
 
-  // router.refresh() alone can't add them (mount-frozen `rows`, EX-441).
+  // New rows reach the grid only through this local patch, never through a render (mount-frozen
+  // `rows`, EX-441).
   function handleAppendedSections(slice: KosztorysTreeT['sections']) {
     const appended = rowsFromSections(slice)
     commitSections([...sectionsRef.current, ...treeToSections({ sections: slice })])
     setRows((rs) => [...rs, ...appended])
-    router.refresh()
   }
 
   // A sekcja the picker just minted lands at the TOP as one band, the way addSectionAction places one.
@@ -1056,7 +1046,6 @@ export function useKosztorysEditor({
       setRows((rs) => orderRowsBySections(appended.reduce(applyAddItem, rs), order))
     }
     unfoldSection(slice.id)
-    router.refresh()
   }
 
   async function handleRemoveSection(sectionId: number) {
@@ -1159,7 +1148,7 @@ export function useKosztorysEditor({
    * (that is what stops a tampered payload pricing a praca), so there is nothing to show until the
    * write answers, and nothing to revert if it doesn't.
    *
-   * `patchRows`, never a refresh: `rows` is a mount-frozen seed, and `catalogueComparison` is a memo
+   * `patchRows`, never a refetch: `rows` is a mount-frozen seed, and `catalogueComparison` is a memo
    * over `rows`, so the report and the „Problemy" counters shrink in the same render — the window
    * stays open and the sort and filters the owner set to find these prace survive.
    */
@@ -1218,7 +1207,7 @@ export function useKosztorysEditor({
   }
 
   // The markup coefficients are denormalized on every row but changed OUTSIDE the grid, and
-  // router.refresh() won't pick them up — `rows` is a mount-frozen useState seed, so without this patch
+  // the action's render won't pick them up — `rows` is a mount-frozen useState seed, so without this patch
   // the „Cena" column shows the stale value until a reload.
   function patchRows(
     match: (row: KosztorysV2RowT) => boolean,
@@ -1272,11 +1261,6 @@ export function useKosztorysEditor({
     if (changedById.size > 0) {
       // Merge by id so filter/sort don't lose hidden rows.
       setRows((master) => master.map((r) => changedById.get(r.id) ?? r))
-      // Only when something changed — an unconditional refresh on a spurious onChange could loop the render.
-      // Restarting the timer is what makes „quiets down" true: unclamped, a run of edited cells queues one
-      // full-route refresh each.
-      if (refreshTimer.current) clearTimeout(refreshTimer.current)
-      refreshTimer.current = setTimeout(() => router.refresh(), TOTALS_REFRESH_DEBOUNCE_MS)
     }
   }
 

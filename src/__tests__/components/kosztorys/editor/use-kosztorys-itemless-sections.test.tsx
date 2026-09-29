@@ -17,9 +17,6 @@ import {
   updateSectionFieldAction,
 } from '@/lib/actions/kosztorys'
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
-}))
 vi.mock('@/lib/actions/kosztorys', () => ({
   addItemAction: vi.fn(),
   addSectionAction: vi.fn(),

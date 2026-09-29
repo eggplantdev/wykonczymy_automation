@@ -9,7 +9,7 @@ import type { FleetRowT } from '@/types/fleet'
 import { bare } from '@/__tests__/helpers/money'
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn(), refresh: vi.fn() }),
+  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn() }),
   usePathname: () => '/flota',
   useSearchParams: () => new URLSearchParams(),
 }))

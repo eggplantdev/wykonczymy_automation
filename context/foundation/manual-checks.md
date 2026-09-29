@@ -2371,3 +2371,102 @@ i Piotr Seedowy).
 - [ ] Kosztorys → widok podwykonawcy → kolumna „Cena": ceny wyliczone ze współczynnika pokazują się
       i edytują w groszach, a kopiowanie komórki daje tę samą kwotę co przed zmianą (refaktor
       formatowania — bez zmiany zachowania).
+
+
+## EX-908 — redundant-router-refresh — nieaktualne dane po zapisie, staging (2026-09-29)
+
+Po każdym zapisie aplikacja nie prosi już serwera o drugi render strony — nowe dane przychodzą
+wyłącznie w odpowiedzi akcji. Lokalnie (build produkcyjny, baza 5435) przeszło 25 sprawdzeń —
+dowody w `context/changes/2026-09-29-redundant-router-refresh/manual-checks.md`. Tu jest **każde**
+zmienione miejsce jeszcze raz, na stagingu: prawdziwe opóźnienia sieci, cache Vercela i kilka
+instancji funkcji to warunki, których lokalny build nie odtwarza. Test E2E dla A–H/K: EX-924.
+
+**Każdy boks to trzy kroki, wszystkie muszą przejść:**
+
+1. **Od razu:** po kliknięciu zmiana jest widoczna **bez przeładowania** (bez F5), w ciągu ~2 s.
+2. **Po F5:** przeładowana strona pokazuje to samo — zapis doszedł do bazy.
+3. **Gdzie indziej:** przejście linkiem w nawigacji (nie F5) na stronę wskazaną w boksie pokazuje
+   już nową wartość — żadna inna strona nie trzyma starej kopii.
+
+Logowanie: `pnpm qa:staging-user` (OWNER na preview DB), potem `context/reference/manual-verification.md`.
+Staging musi mieć wdrożony commit z EX-908 (status Vercela `success` dla `origin/staging`).
+
+### Formularze (wspólny zapis `use-form-submit` — wszystkie okna poniżej)
+
+- [ ] „Nowy wydatek" (górna belka) na `/kasa/<id>`: wiersz i saldo kasy; gdzie indziej: `/kasy` —
+      saldo tej kasy, `/inwestycje/<id>` — wydatek na liście inwestycji.
+- [ ] „Nowa wpłata" (górna belka) na `/inwestycje/<id>`: wpłata i bilans inwestycji; gdzie indziej:
+      `/inwestycje` — bilans w wierszu, `/kasa/<id>` — saldo kasy.
+- [ ] „Transfer między kasami" (górna belka) na `/kasy`: oba salda; gdzie indziej: `/kasa/<id>` obu kas.
+- [ ] „Edytuj transakcję" w tabeli transakcji — zmień kwotę: wiersz i saldo; gdzie indziej: `/kasy`.
+- [ ] Nowa inwestycja na `/inwestycje`: wiersz na liście; gdzie indziej: wybór inwestycji w
+      „Nowy wydatek".
+- [ ] Edycja inwestycji (nazwa) na `/inwestycje/<id>`: nazwa w nagłówku i w górnej belce; gdzie
+      indziej: `/inwestycje`.
+- [ ] Nowa kasa na `/kasy` i edycja nazwy na `/kasa/<id>`: wiersz / nagłówek; gdzie indziej: wybór
+      kasy w „Nowy wydatek".
+- [ ] Nowy pracownik na `/pracownicy` i edycja na `/pracownicy/<id>`: wiersz / nagłówek; gdzie
+      indziej: `/pracownicy`.
+- [ ] Sprzęt: dodanie na `/sprzet`, edycja i „Przekaż sprzęt" na `/sprzet/<id>`: wiersz, dane i nowy
+      posiadacz; gdzie indziej: `/sprzet`.
+- [ ] Flota: dodanie pojazdu na `/flota`, edycja i „Nowy przegląd" na `/flota/<id>`: wiersz, dane,
+      przegląd; gdzie indziej: `/flota`.
+- [ ] Katalog prac: dodanie i edycja pozycji: wiersz; gdzie indziej: „Dodaj pracę z katalogu do
+      sekcji…" w edytorze kosztorysu pokazuje nową/zmienioną pozycję.
+- [ ] Lista odbiorców powiadomień (karta na `/sprzet`, `/flota` albo `/zgloszenia`) — zapisz zmianę:
+      karta pokazuje nową listę; gdzie indziej: ta sama karta na drugiej z tych stron.
+- [ ] `/zgloszenia` → „Nowa inwestycja ze zgłoszenia" → „Utwórz": zgłoszenie zmienia stan; gdzie
+      indziej: nowa inwestycja na `/inwestycje`.
+- [ ] „Zapisz jako domyślną kasę" w „Nowy wydatek": przycisk od razu przestaje proponować zapis;
+      po zamknięciu i ponownym otwarciu okna ta kasa jest wybrana.
+
+### Transakcje i kosz
+
+- [ ] Anulowanie transakcji: wiersz oznaczony jako anulowany, saldo się cofa; gdzie indziej:
+      `/kasy` i `/inwestycje/<id>`.
+- [ ] Przeniesienie inwestycji do kosza z listy `/inwestycje`: znika z listy; gdzie indziej: jest na `/kosz`.
+- [ ] „Przywróć" na `/kosz`: znika z kosza; gdzie indziej: wraca na `/inwestycje`.
+- [ ] „Usuń na zawsze" na `/kosz`: wiersz znika; gdzie indziej: nie ma go ani na `/kosz` po
+      przejściu z innej strony, ani na `/inwestycje`.
+
+### Kosztorysy (arkusze)
+
+- [ ] `/kosztorysy` → odłączenie arkusza od inwestycji: wiersz bez inwestycji; gdzie indziej:
+      `/inwestycje/<id>` nie pokazuje już „Otwórz".
+- [ ] `/kosztorysy` → usunięcie kosztorysu: wiersz znika.
+- [ ] `/kosztorysy` → podpięcie arkusza do inwestycji: wiersz z nazwą inwestycji; gdzie indziej:
+      `/inwestycje/<id>` pokazuje „Otwórz".
+- [ ] „Nowy kosztorys" na `/kosztorysy`: nowy wiersz.
+- [ ] „Dodaj kosztorys" na `/inwestycje/<id>`: pojawia się „Otwórz"; gdzie indziej: wiersz na `/kosztorysy`.
+
+### Edytor kosztorysu
+
+Po każdej zmianie sprawdź **sumy**: wartość wiersza, sumę sekcji, sumy etapów i panel
+„Podsumowanie" — to one wcześniej odświeżały się osobnym zapytaniem ~0,7 s po edycji.
+
+- [ ] Przedmiar, Cena j.m. i rabat w wierszu: wartość wiersza, suma sekcji i „Podsumowanie"; gdzie
+      indziej: `/inwestycje/<id>` — robocizna z kosztorysu.
+- [ ] Ilość w kolumnie etapu: suma etapu i „Pozostało"; trzy szybkie edycje pod rząd — końcowe sumy
+      zgadzają się z tym, co pokazuje F5.
+- [ ] Duży kosztorys (kilkaset pozycji): edycja komórki — sumy poprawne, strona nie przycina.
+- [ ] „Cofnij" / „Ponów" po edycji: wartość i sumy wracają; po F5 to samo.
+- [ ] „Sekcja z szablonu…": sekcja i sumy.
+- [ ] „Dodaj pracę z katalogu do sekcji…": wiersz i sumy.
+- [ ] „Porównaj z katalogiem" → „Dodaj do katalogu" → „Dodaj": pozycja znika z „Brak w katalogu";
+      gdzie indziej: katalog prac pokazuje nową pozycję.
+- [ ] „Zastąp całą rozpiskę zapisanym szablonem": cała rozpiska podmieniona, komunikat widoczny.
+- [ ] „Wyczyść kosztorys": „Kosztorys jest pusty"; gdzie indziej: `/inwestycje/<id>` — robocizna 0.
+- [ ] „Wersje" → przywrócenie wersji: rozpiska z tej wersji; zaraz potem edycja komórki zapisuje się.
+- [ ] „Popraw literówki w opisie prac i j.m." — trzy razy pod rząd na wierszu z literówką: za każdym
+      razem poprawiony tekst bez przeładowania.
+- [ ] Dwie karty tego samego kosztorysu: w drugiej usuń pozycję, w pierwszej zmień jej Przedmiar —
+      pierwsza pokazuje komunikat „Kosztorys zmienił się w innym miejscu…" i przeładowuje rozpiskę
+      bez tej pozycji. Drugi wariant: w pierwszej karcie najpierw zmień Przedmiar **innej** pozycji,
+      dopiero potem tej usuniętej — rozpiska też się przeładowuje, a komunikat nie wraca przy kolejnej edycji.
+- [ ] „Wyczyść kosztorys" przy zerwanym połączeniu (DevTools → Network → Offline zaraz po kliknięciu,
+      potem Online): komunikat o błędzie, a po powrocie sieci rozpiska zgodna z bazą.
+
+### Poza stagingiem
+
+- [ ] Lokalnie zapis do arkusza Google (np. przelew na inwestycji z podpiętym arkuszem) nadal jest
+      odrzucany („Refusing to write…" w logu serwera) i nic nie trafia do Google.

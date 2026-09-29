@@ -1,12 +1,12 @@
 ---
 change_id: redundant-router-refresh
 title: router.refresh() po akcjach z updateTag — audyt i usunięcie zbędnych renderów
-status: planned
+status: implemented
 created: 2026-09-29
 updated: 2026-09-29
 archived_at: null
-branch: null
-worktree: null
+branch: redundant-router-refresh
+worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/redundant-router-refresh
 ---
 
 ## Notes

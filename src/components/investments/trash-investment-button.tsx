@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, startTransition } from 'react'
-import { useRouter } from 'next/navigation'
 import { DeleteButton } from '@/components/ui/row-actions/delete-button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { trashInvestmentAction } from '@/lib/actions/investment-trash'
@@ -13,7 +12,6 @@ export function TrashInvestmentButton({
 }: {
   investment: { id: number; name: string }
 }) {
-  const router = useRouter()
   const [confirming, setConfirming] = useState(false)
 
   const onConfirm = () => {
@@ -22,7 +20,6 @@ export function TrashInvestmentButton({
       setConfirming(false)
       if (!res.success) return toastMessage(res.error ?? 'Nie udało się usunąć inwestycji', 'error')
       toastMessage('Inwestycja przeniesiona do kosza.', 'success')
-      router.refresh()
     })
   }
 
