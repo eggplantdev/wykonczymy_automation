@@ -5,7 +5,7 @@ Anchor: test-plan risk #16, „write not visible after save". Rig: the after-run
 
 Every box is the same check: after the click, the change is visible **without a reload**, and
 Network shows the action POST and **no** non-prefetch RSC GET for that path (prefetch GETs don't
-count). The E2E backlog issue for A–H/K is recorded here once filed.
+count). E2E backlog for A–H/K: EX-924.
 
 ### Forms, transfers, trash
 
