@@ -338,10 +338,10 @@ stored 5000 stays until the owner re-types 5000 in „brutto" after deploy. Tell
 
 #### Automated
 
-- [x] 3.1 History specs pass
+- [x] 3.1 History specs pass — ff23f873
 
 ### Phase 4: Docs
 
 #### Automated
 
-- [ ] 4.1 None (prose-only phase)
+- [x] 4.1 None (prose-only phase)
