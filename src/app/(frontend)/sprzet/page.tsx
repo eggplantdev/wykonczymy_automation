@@ -11,6 +11,7 @@ import { EquipmentDataTable } from '@/components/equipment/equipment-data-table'
 import { RecipientListCard } from '@/components/notification-recipients/recipient-list-card'
 import { Description } from '@/components/ui/description'
 import { PageWrapper } from '@/components/ui/page-wrapper'
+import { PAGE_TITLES } from '@/lib/constants/sections'
 import { isLiveStatus } from '@/lib/equipment/equipment-status'
 import { warsawToday } from '@/lib/utils/days'
 import { pluralize } from '@/lib/utils/polish-plural'
@@ -31,7 +32,7 @@ export default async function EquipmentPage() {
   const inUse = equipment.filter((item) => isLiveStatus(item.status)).length
 
   return (
-    <PageWrapper title="Sprzęt">
+    <PageWrapper title={PAGE_TITLES.equipment}>
       <Description>
         {inUse} {pluralize(inUse, ['sztuka', 'sztuki', 'sztuk'])} w użyciu
       </Description>

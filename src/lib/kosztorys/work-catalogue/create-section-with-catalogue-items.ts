@@ -49,9 +49,8 @@ async function appendIntoSectionNamed(
  * Create a sekcja at the TOP of the rozpiska and write cennik pozycje into it, or — when a sekcja of
  * that name already exists — append into that one instead. THE CALLER OWNS THE TRANSACTION.
  *
- * No blank first item: `createSectionWithFirstItem` mints one so a 0-row sekcja is visible at all,
- * and here the pozycje are the rows. Top placement mirrors `addSectionAction` — a sekcja appended to
- * the end of a 1000-row kosztorys has to be hunted for.
+ * Top placement mirrors `addSectionAction` — a sekcja appended to the end of a 1000-row kosztorys
+ * has to be hunted for.
  */
 export async function createSectionWithCatalogueItems(
   payload: Payload,

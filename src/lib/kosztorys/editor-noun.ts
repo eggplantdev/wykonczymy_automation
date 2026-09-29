@@ -1,4 +1,4 @@
-// The same editor renders two things: a kosztorys on an inwestycja and a szablon in the warsztat.
+// The same editor renders two things: a kosztorys on an inwestycja and a szablon.
 // Every label that names the document has to say which one it is — a generic word („dokument",
 // „rozpiska") would be wrong on both screens rather than right on neither.
 //
@@ -27,6 +27,6 @@ const SZABLON: EditorNounT = {
   genitive: 'szablonu',
 }
 
-export function editorNoun(templatePresetId: number | undefined): EditorNounT {
-  return templatePresetId == null ? KOSZTORYS : SZABLON
+export function editorNoun(isTemplate: boolean | undefined): EditorNounT {
+  return isTemplate ? SZABLON : KOSZTORYS
 }

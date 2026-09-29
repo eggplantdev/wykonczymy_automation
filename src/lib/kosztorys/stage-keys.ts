@@ -33,7 +33,7 @@ export function stageValueGrossKey(stageId: number): string {
 }
 
 // The inverses of the builders above, for code that receives a key and has to recover the etap it
-// belongs to (sort-value.ts, diffRow).
+// belongs to (column-values.ts, diffRow).
 //
 // A key from the WRONG namespace must resolve to null, not to a number — `Number('Gross_7')` is NaN
 // but `Number('')` is 0, so a bare Number() on a mis-routed key would silently name etap 0.

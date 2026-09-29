@@ -93,7 +93,7 @@ describe('GenerateOfferMenuItem', () => {
 
     expect(readClientViewSettings).not.toHaveBeenCalled()
     expect(printWindow.document.write.mock.calls[0]![0]).not.toContain(
-      '<th class="num">Cena j.m.</th>',
+      '<th class="num"><span>Cena j.m.</span></th>',
     )
   })
 })

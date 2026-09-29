@@ -3,17 +3,16 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import {
-  claimPresetMirror,
-  deletePreset,
-  getPreset,
-  insertPreset,
+  isPresetNameTaken,
   listPresetSections,
+  markPresetEdited,
   listPresets,
   renamePreset,
-  updatePresetPayload,
+  templateOwnersOfSections,
 } from '@/lib/db/presets'
-import type { KosztorysItemT, KosztorysSectionT } from '@/lib/kosztorys/types'
-import type { SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
+import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
+import { createTestTemplate } from '@/__tests__/helpers/template'
+import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
@@ -22,48 +21,15 @@ const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SEC
 describe.skipIf(!ENV_READY)('listPresetSections (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
-  const presetNames = ['ex622-fixture-a', 'ex622-fixture-b']
-  const presetIdByName = new Map<string, number>()
+  const created: number[] = []
+  let idA: number
+  let idB: number
+  let sectionsA: number[]
+  let sectionB: number
+  let nameB: string
 
-  function section(id: number, displayOrder: number): KosztorysSectionT {
-    return {
-      id,
-      name: `sekcja-${id}`,
-      displayOrder,
-      color: null,
-    }
-  }
-
-  function item(id: number, sectionId: number): KosztorysItemT {
-    return {
-      id,
-      sectionId,
-      displayOrder: id,
-      description: `pozycja-${id}`,
-      unit: 'm2',
-      plannedQty: 1,
-      sheetMeasuredQty: null,
-      discountType: null,
-      discountValue: 0,
-      clientPrice: 100,
-      wToolsOverrideValue: null,
-      ownToolsOverrideValue: null,
-      wToolsOverrideCoeff: null,
-      ownToolsOverrideCoeff: null,
-      note: null,
-    }
-  }
-
-  function presetPayload(sections: KosztorysSectionT[], items: KosztorysItemT[]): SnapshotPayloadT {
-    return {
-      schemaVersion: 1,
-      sections,
-      items,
-      stages: [],
-      progress: [],
-      settings: { wToolsCoeff: 0, ownToolsCoeff: 0, vatRate: 0 },
-    }
-  }
+  const items = (n: number) =>
+    Array.from({ length: n }, (_, i) => ({ description: `pozycja-${i}`, unit: 'm2' }))
 
   beforeAll(async () => {
     const { getPayload } = await import('payload')
@@ -71,91 +37,78 @@ describe.skipIf(!ENV_READY)('listPresetSections (DB)', () => {
     payload = await getPayload({ config })
     db = await getDb(payload)
 
-    // Preset A: three sections, the middle one empty, and TWO sharing displayOrder 1 so the
-    // payload-array tiebreaker is exercised rather than assumed.
-    const idA = await insertPreset(db, {
-      name: presetNames[0],
-      createdBy: null,
-      payload: presetPayload(
-        [section(10, 1), section(11, 1), section(12, 0)],
-        [item(100, 10), item(101, 10), item(102, 12)],
-      ),
-    })
-    // Preset B reuses section id 10 — a section id is only unique WITHIN its preset, so a count
-    // keyed on sectionId alone would bleed A's items into B's row.
-    const idB = await insertPreset(db, {
-      name: presetNames[1],
-      createdBy: null,
-      payload: presetPayload([section(10, 0)], [item(200, 10), item(201, 10), item(202, 10)]),
-    })
-    if (idA == null || idB == null) throw new Error('fixture presets already exist — stale run?')
-    presetIdByName.set(presetNames[0], idA)
-    presetIdByName.set(presetNames[1], idB)
+    // A: three sections, the middle one empty, and TWO sharing displayOrder 1 so the id tiebreaker is
+    // exercised rather than assumed. B is created second, so it lists first.
+    idA = await createTestTemplate(payload, 'ex622-fixture-a')
+    idB = await createTestTemplate(payload, 'ex622-fixture-b')
+    created.push(idA, idB)
+    sectionsA = (
+      await createKosztorysTree(payload, idA, {
+        sections: [
+          { name: 'sekcja-10', displayOrder: 1, items: items(2) },
+          { name: 'sekcja-11', displayOrder: 1 },
+          { name: 'sekcja-12', displayOrder: 0, items: items(1) },
+        ],
+      })
+    ).sectionIds
+    sectionB = (
+      await createKosztorysTree(payload, idB, {
+        sections: [{ name: 'sekcja-b', displayOrder: 0, items: items(3) }],
+      })
+    ).sectionIds[0]
+    nameB = (await listPresets(db)).find((preset) => preset.id === idB)!.name
   })
 
   afterAll(async () => {
-    await db.execute(sql`DELETE FROM kosztorys_presets WHERE name LIKE 'ex622-fixture-%'`)
+    for (const id of created) await deleteTestInvestment(payload, id)
   })
 
-  it('counts items per section within their own preset', async () => {
+  it('counts items per live section', async () => {
     const metas = await listPresetSections(db)
-    const idA = presetIdByName.get(presetNames[0])
-    const idB = presetIdByName.get(presetNames[1])
 
     const countsA = metas
       .filter((meta) => meta.presetId === idA)
       .map((meta) => [meta.sectionId, meta.itemCount])
     expect(countsA).toEqual([
-      [12, 1],
-      [10, 2],
-      [11, 0],
+      [sectionsA[2], 1],
+      [sectionsA[0], 2],
+      [sectionsA[1], 0],
     ])
-
-    // Section id 10 again, but B's own three items — not A's two, and not all five.
-    const countsB = metas
-      .filter((meta) => meta.presetId === idB)
-      .map((meta) => [meta.sectionId, meta.itemCount])
-    expect(countsB).toEqual([[10, 3]])
+    expect(metas.filter((meta) => meta.presetId === idB).map((meta) => meta.itemCount)).toEqual([3])
   })
 
-  it('carries the preset and section names onto every meta', async () => {
+  it('carries the szablon and section names onto every meta', async () => {
     const metas = await listPresetSections(db)
-    const first = metas.find((meta) => meta.presetId === presetIdByName.get(presetNames[1]))
 
-    expect(first).toMatchObject({ presetName: presetNames[1], sectionName: 'sekcja-10' })
+    expect(metas.find((meta) => meta.sectionId === sectionB)).toMatchObject({
+      presetId: idB,
+      presetName: nameB,
+      sectionName: 'sekcja-b',
+    })
   })
 
   // The precondition the picker's grouping rests on (preset-picker-groups): interleaved metas would
-  // split one preset into two groups.
-  it("returns one preset's sections consecutively, newest preset first", async () => {
+  // split one szablon into two groups.
+  it("returns one szablon's sections consecutively, newest szablon first", async () => {
     const metas = await listPresetSections(db)
-    const idA = presetIdByName.get(presetNames[0])!
-    const idB = presetIdByName.get(presetNames[1])!
 
     const ours = metas.filter((meta) => meta.presetId === idA || meta.presetId === idB)
     expect(ours.map((meta) => meta.presetId)).toEqual([idB, idA, idA, idA])
   })
+
+  it('lists no section of an ordinary investment', async () => {
+    const ordinary = await createTestInvestment(payload, 'ex622-fixture-ordinary')
+    created.push(ordinary)
+    await createKosztorysTree(payload, ordinary, { sections: [{ name: 'klienta' }] })
+
+    expect((await listPresetSections(db)).some((meta) => meta.presetId === ordinary)).toBe(false)
+  })
 })
 
-// Asserted on the persisted rows (via listPresets), never on a return value — a success result can
-// hide a failed write.
-describe.skipIf(!ENV_READY)('deletePreset / renamePreset (DB)', () => {
+describe.skipIf(!ENV_READY)('templateOwnersOfSections (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
-  const emptyPayload: SnapshotPayloadT = {
-    schemaVersion: 1,
-    sections: [],
-    items: [],
-    stages: [],
-    progress: [],
-    settings: { wToolsCoeff: 0, ownToolsCoeff: 0, vatRate: 0 },
-  }
-
-  async function makePreset(name: string): Promise<number> {
-    const id = await insertPreset(db, { name, createdBy: null, payload: emptyPayload })
-    if (id == null) throw new Error(`fixture preset ${name} already exists — stale run?`)
-    return id
-  }
+  const created: number[] = []
 
   beforeAll(async () => {
     const { getPayload } = await import('payload')
@@ -165,110 +118,116 @@ describe.skipIf(!ENV_READY)('deletePreset / renamePreset (DB)', () => {
   })
 
   afterAll(async () => {
-    await db.execute(sql`DELETE FROM kosztorys_presets WHERE name LIKE 'crud-fixture-%'`)
+    for (const id of created) await deleteTestInvestment(payload, id)
   })
 
-  it('removes the szablon from the library', async () => {
-    const id = await makePreset('crud-fixture-doomed')
+  it("maps a szablon's section to it and leaves an ordinary investment's out", async () => {
+    const template = await createTestTemplate(payload, 'owners-fixture')
+    const ordinary = await createTestInvestment(payload, 'owners-fixture-ordinary')
+    created.push(template, ordinary)
+    const [inTemplate] = (
+      await createKosztorysTree(payload, template, { sections: [{ name: 'a' }] })
+    ).sectionIds
+    const [inOrdinary] = (
+      await createKosztorysTree(payload, ordinary, { sections: [{ name: 'b' }] })
+    ).sectionIds
 
-    expect(await deletePreset(db, id)).toBe(true)
-    expect((await listPresets(db)).some((preset) => preset.id === id)).toBe(false)
+    const owners = await templateOwnersOfSections(db, [inTemplate, inOrdinary])
+    expect([...owners]).toEqual([[inTemplate, template]])
+  })
+})
+
+// Asserted on the persisted rows (via listPresets), never on a return value — a success result can
+// hide a failed write.
+describe.skipIf(!ENV_READY)('renamePreset / listPresets (DB)', () => {
+  let payload: Payload
+  let db: Awaited<ReturnType<typeof getDb>>
+  const created: number[] = []
+
+  async function makeTemplate(name: string): Promise<number> {
+    const id = await createTestTemplate(payload, name)
+    created.push(id)
+    return id
+  }
+
+  const nameOf = async (id: number) =>
+    (await listPresets(db)).find((preset) => preset.id === id)?.name
+
+  beforeAll(async () => {
+    const { getPayload } = await import('payload')
+    const config = (await import('@payload-config')).default
+    payload = await getPayload({ config })
+    db = await getDb(payload)
   })
 
-  it('reports a delete that matched nothing', async () => {
-    const id = await makePreset('crud-fixture-gone')
-    await deletePreset(db, id)
-
-    expect(await deletePreset(db, id)).toBe(false)
+  afterAll(async () => {
+    for (const id of created) await deleteTestInvestment(payload, id)
   })
 
   it('renames in place, keeping the id', async () => {
-    const id = await makePreset('crud-fixture-old-name')
+    const id = await makeTemplate('crud-fixture-old-name')
+    const next = `crud-fixture-new-name ${id}`
 
-    expect(await renamePreset(db, id, 'crud-fixture-new-name')).toBe(true)
-    expect((await listPresets(db)).find((preset) => preset.id === id)?.name).toBe(
-      'crud-fixture-new-name',
-    )
+    expect(await renamePreset(db, id, next)).toBe(true)
+    expect(await nameOf(id)).toBe(next)
   })
 
-  // „Zapisz" in the warsztat overwrites the szablon it HOLDS, by id — the name is not its address.
-  it('overwrites the payload in place, keeping the id', async () => {
-    const id = await makePreset('crud-fixture-overwritten')
+  // `updated_at` is the editor's remount token — a rename moving it would reset the owner's sort and
+  // filters in an open editor.
+  it('leaves updated_at alone', async () => {
+    const id = await makeTemplate('crud-fixture-remount')
+    const before = await db.execute(sql`SELECT updated_at FROM investments WHERE id = ${id}`)
 
-    const filled: SnapshotPayloadT = {
-      ...emptyPayload,
-      sections: [{ id: 1, name: 'Nowa sekcja', displayOrder: 0, color: null }],
-    }
-    expect(await updatePresetPayload(db, { id, payload: filled })).toBe(true)
+    await renamePreset(db, id, `crud-fixture-remount-renamed ${id}`)
 
-    const stored = await getPreset(db, id)
-    expect(stored?.payload.sections.map((section) => section.name)).toEqual(['Nowa sekcja'])
+    const after = await db.execute(sql`SELECT updated_at FROM investments WHERE id = ${id}`)
+    expect(after.rows[0].updated_at).toEqual(before.rows[0].updated_at)
   })
 
-  // An UPDATE and not an upsert: someone deleting a szablon while another manager has it open in the
-  // warsztat must not have it silently resurrected by that manager's next save.
-  it('resurrects nothing when the szablon was deleted while it was open', async () => {
-    const id = await makePreset('crud-fixture-deleted-under-us')
-    await deletePreset(db, id)
+  it('renames no ordinary investment', async () => {
+    const ordinary = await createTestInvestment(payload, 'crud-fixture-ordinary')
+    created.push(ordinary)
 
-    expect(await updatePresetPayload(db, { id, payload: emptyPayload })).toBe(false)
-    expect((await listPresets(db)).some((preset) => preset.id === id)).toBe(false)
+    expect(await renamePreset(db, ordinary, `crud-fixture-hijacked ${ordinary}`)).toBe(false)
   })
 
-  // Under autosave this runs unattended on every mutation, so „who created this szablon" would
-  // drift into „who last hit a key" if the write touched created_by.
-  it('leaves created_by alone and stamps updated_at', async () => {
-    const author = await db.execute(sql`SELECT id FROM users ORDER BY id LIMIT 1`)
-    const createdBy = author.rows[0] ? Number(author.rows[0].id) : null
-    const id = await insertPreset(db, {
-      name: 'crud-fixture-authored',
-      createdBy,
-      payload: emptyPayload,
-    })
-    if (id == null) throw new Error('fixture preset already exists — stale run?')
+  // The collision guard lives in SQL and matches the unique index — case and edge spaces don't make
+  // a name new.
+  it.each([
+    ['same case', (name: string) => name],
+    ['other case', (name: string) => name.toUpperCase()],
+    ['edge spaces', (name: string) => `  ${name}  `],
+  ])('refuses a taken name (%s) without touching either szablon', async (_, variant) => {
+    const mine = await makeTemplate('crud-fixture-mine')
+    const theirs = await makeTemplate('crud-fixture-theirs')
+    const mineName = await nameOf(mine)
+    const theirsName = (await nameOf(theirs))!
 
-    await updatePresetPayload(db, { id, payload: emptyPayload })
-
-    expect((await listPresets(db)).find((preset) => preset.id === id)?.createdBy).toBe(createdBy)
-    const stamps = await db.execute(sql`SELECT updated_at FROM kosztorys_presets WHERE id = ${id}`)
-    expect(stamps.rows[0]?.updated_at).not.toBeNull()
+    expect(await isPresetNameTaken(db, variant(theirsName))).toBe(true)
+    expect(await renamePreset(db, mine, variant(theirsName))).toBe(false)
+    expect(await nameOf(mine)).toBe(mineName)
+    expect(await nameOf(theirs)).toBe(theirsName)
   })
 
-  // The throttle is a CLAIM, not a read: two concurrent mutations both pass a „has the window
-  // elapsed" SELECT, and only one may own the window.
-  it('claims the mirror window once and refuses until it elapses', async () => {
-    const id = await makePreset('crud-fixture-throttled')
+  it('treats its own name as free when renaming itself', async () => {
+    const id = await makeTemplate('crud-fixture-self')
 
-    expect(await claimPresetMirror(db, id)).toBe(true)
-    expect(await claimPresetMirror(db, id)).toBe(false)
+    expect(await isPresetNameTaken(db, (await nameOf(id))!, id)).toBe(false)
+  })
+
+  // The listing sorts by the last edit, because that is the figure that moves — a szablon is created
+  // once and worked on for weeks. The trap is a szablon migrated without a stamp: a plain DESC would
+  // drop it out of the view.
+  it('sorts by the last edit and keeps an unstamped szablon in the list', async () => {
+    const stale = await makeTemplate('crud-fixture-order-stale')
+    const fresh = await makeTemplate('crud-fixture-order-fresh')
+    const legacy = await makeTemplate('crud-fixture-order-legacy')
 
     await db.execute(
-      sql`UPDATE kosztorys_presets SET mirrored_at = now() - interval '1 hour' WHERE id = ${id}`,
+      sql`UPDATE investments SET content_edited_at = now() - interval '2 days' WHERE id = ${stale}`,
     )
-    expect(await claimPresetMirror(db, id)).toBe(true)
-  })
-
-  it('claims nothing for a szablon that is gone', async () => {
-    const id = await makePreset('crud-fixture-claim-gone')
-    await deletePreset(db, id)
-
-    expect(await claimPresetMirror(db, id)).toBe(false)
-  })
-
-  // The listing sorts by the last edit, because that is the figure that moves under autosave — a
-  // szablon is created once and worked on for weeks. The trap is the szablony that predate the
-  // column: they carry no `updated_at` at all, and a plain DESC would drop them out of the view.
-  // `legacy` fakes one by nulling the stamp back out, because creating a szablon now stamps it.
-  it('sorts by the last edit and keeps a never-edited szablon in the list', async () => {
-    const stale = await makePreset('crud-fixture-order-stale')
-    const fresh = await makePreset('crud-fixture-order-fresh')
-    const legacy = await makePreset('crud-fixture-order-legacy')
-
-    await db.execute(
-      sql`UPDATE kosztorys_presets SET updated_at = now() - interval '2 days' WHERE id = ${stale}`,
-    )
-    await db.execute(sql`UPDATE kosztorys_presets SET updated_at = now() WHERE id = ${fresh}`)
-    await db.execute(sql`UPDATE kosztorys_presets SET updated_at = NULL WHERE id = ${legacy}`)
+    await db.execute(sql`UPDATE investments SET content_edited_at = now() WHERE id = ${fresh}`)
+    await db.execute(sql`UPDATE investments SET content_edited_at = NULL WHERE id = ${legacy}`)
 
     const ours = (await listPresets(db)).filter((preset) =>
       [stale, fresh, legacy].includes(preset.id),
@@ -276,39 +235,39 @@ describe.skipIf(!ENV_READY)('deletePreset / renamePreset (DB)', () => {
 
     expect(ours.map((preset) => preset.id)).toEqual([fresh, stale, legacy])
     expect(ours.find((preset) => preset.id === legacy)?.updatedAt).toBeNull()
-    expect(ours.find((preset) => preset.id === fresh)?.updatedAt).not.toBeNull()
   })
 
-  // A szablon created a second ago is the one the owner is about to open, so it belongs at the TOP
-  // of a list sorted by last edit — not in the NULLS-LAST tail reserved for rows predating the
-  // column. Renaming is an edit too: the list is what it drives, so a rename has to move the row.
-  it('stamps the modification date on creation and on a rename', async () => {
-    const created = await makePreset('crud-fixture-stamp-created')
-
-    const stamps = await db.execute(
-      sql`SELECT updated_at FROM kosztorys_presets WHERE id = ${created}`,
-    )
-    expect(stamps.rows[0]?.updated_at).not.toBeNull()
-
+  // A renamed szablon is the one the owner just touched, so the rename moves it to the top.
+  it('moves a renamed szablon to the top', async () => {
+    const id = await makeTemplate('crud-fixture-stamp')
     await db.execute(
-      sql`UPDATE kosztorys_presets SET updated_at = now() - interval '2 days' WHERE id = ${created}`,
+      sql`UPDATE investments SET content_edited_at = now() - interval '2 days' WHERE id = ${id}`,
     )
-    expect(await renamePreset(db, created, 'crud-fixture-stamp-renamed')).toBe(true)
 
-    const after = await listPresets(db)
-    expect(after[0]?.id).toBe(created)
+    expect(await renamePreset(db, id, `crud-fixture-stamp-renamed ${id}`)).toBe(true)
+    expect((await listPresets(db))[0]?.id).toBe(id)
   })
 
-  // The collision guard lives in SQL, so a partial write would be a szablon renamed onto a name it
-  // doesn't own.
-  it('refuses a taken name without touching either szablon', async () => {
-    const mine = await makePreset('crud-fixture-mine')
-    const theirs = await makePreset('crud-fixture-theirs')
+  // Every write into a szablon stamps it (investmentAction); `updated_at` staying put is what keeps an
+  // open editor from remounting under the user's hands.
+  it('stamps an edit without moving updated_at', async () => {
+    const id = await makeTemplate('crud-fixture-edited')
+    await db.execute(
+      sql`UPDATE investments SET content_edited_at = now() - interval '2 days' WHERE id = ${id}`,
+    )
+    const before = await db.execute(sql`SELECT updated_at FROM investments WHERE id = ${id}`)
 
-    expect(await renamePreset(db, mine, 'crud-fixture-theirs')).toBe(false)
+    await markPresetEdited(db, id)
 
-    const byId = new Map((await listPresets(db)).map((preset) => [preset.id, preset.name]))
-    expect(byId.get(mine)).toBe('crud-fixture-mine')
-    expect(byId.get(theirs)).toBe('crud-fixture-theirs')
+    const after = await db.execute(sql`SELECT updated_at FROM investments WHERE id = ${id}`)
+    expect(after.rows[0].updated_at).toEqual(before.rows[0].updated_at)
+    expect((await listPresets(db))[0]?.id).toBe(id)
+  })
+
+  it('lists no ordinary investment', async () => {
+    const ordinary = await createTestInvestment(payload, 'crud-fixture-not-listed')
+    created.push(ordinary)
+
+    expect((await listPresets(db)).some((preset) => preset.id === ordinary)).toBe(false)
   })
 })

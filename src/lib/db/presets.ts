@@ -1,33 +1,26 @@
-// No `server-only` here (half of src/lib/db skips it too): the katalog seed script runs `getPreset`
-// under tsx, where that import throws.
+// No `server-only` here (half of src/lib/db skips it too): the katalog seed script reaches this
+// module under tsx, where that import throws.
 import { sql } from '@payloadcms/db-vercel-postgres'
-import {
-  SNAPSHOT_SCHEMA_VERSION,
-  assertReadableSchemaVersion,
-  type SnapshotPayloadT,
-  type StoredSnapshotPayloadT,
-} from '@/lib/kosztorys/snapshot-format'
-import { PRESET_MIRROR_THROTTLE_SECONDS } from '@/lib/constants/preset-mirror'
+import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import type { DbExecutorT } from './get-db'
 import { isoOrNull } from './row-coerce'
 
-// The single reader/writer of the raw kosztorys_presets table (no Payload collection — the
-// notification_reads pattern). A preset is a GLOBAL, cross-investment template: a stripped kosztorys
-// tree in `payload` jsonb, same shape as a snapshot. `name` is its identity, UNIQUE.
+// A szablon is an investment with status `szablon`; its kosztorys tree is the szablon's content and
+// is read through the kosztorys path (`serializeKosztorysAsPreset`), never here. This module owns
+// only what the pickers and the /szablony list show about one.
 
-// Without the jsonb `payload`: a picker must never load the full tree for every preset.
 export type PresetMetaT = {
+  // The investment's id.
   id: number
   name: string
   createdAt: string
-  // `null` on a szablon nobody has touched since the autosave shipped — the column arrived later
-  // and was not backfilled.
+  // `content_edited_at`, not `updated_at`: the latter is the editor's remount token and moves on
+  // things that are not edits. `null` only on a szablon migrated from a row that never had a stamp.
   updatedAt: string | null
-  createdBy: number | null
 }
 
-// One row per section across ALL presets. `sectionId` is the section's id INSIDE the preset payload,
-// paired with `presetId` so the append action can resolve it back — never a live sections id.
+// One row per LIVE section across all szablony. `sectionId` is a real kosztorys_sections id, so it
+// names its szablon on its own; `presetId` rides along for the picker's grouping.
 export type PresetSectionMetaT = {
   presetId: number
   presetName: string
@@ -36,136 +29,96 @@ export type PresetSectionMetaT = {
   itemCount: number
 }
 
-// `ON CONFLICT DO NOTHING` returns no row on a duplicate name, so the caller words the message
-// without sniffing PG error shapes — and race-free, since the UNIQUE(name) constraint is the arbiter.
-export async function insertPreset(
-  db: DbExecutorT,
-  params: { name: string; createdBy: number | null; payload: SnapshotPayloadT },
-): Promise<number | null> {
+export async function isTemplateInvestment(db: DbExecutorT, id: number): Promise<boolean> {
   const res = await db.execute(sql`
-    INSERT INTO kosztorys_presets (name, schema_version, payload, created_by, updated_at)
-    VALUES (
-      ${params.name}, ${SNAPSHOT_SCHEMA_VERSION}, ${JSON.stringify(params.payload)}::jsonb,
-      ${params.createdBy}, now()
-    )
-    ON CONFLICT (name) DO NOTHING
-    RETURNING id
-  `)
-  const row = res.rows[0]
-  return row ? Number(row.id) : null
-}
-
-// Leaves the id and created_at stable. Kosztorysy spawned from it stay frozen — there is no FK back
-// to the preset.
-export async function upsertPresetByName(
-  db: DbExecutorT,
-  params: { name: string; createdBy: number | null; payload: SnapshotPayloadT },
-): Promise<number> {
-  const res = await db.execute(sql`
-    INSERT INTO kosztorys_presets (name, schema_version, payload, created_by, updated_at)
-    VALUES (
-      ${params.name}, ${SNAPSHOT_SCHEMA_VERSION}, ${JSON.stringify(params.payload)}::jsonb,
-      ${params.createdBy}, now()
-    )
-    ON CONFLICT (name) DO UPDATE SET
-      schema_version = EXCLUDED.schema_version,
-      payload = EXCLUDED.payload,
-      created_by = EXCLUDED.created_by,
-      updated_at = now()
-    RETURNING id
-  `)
-  return Number(res.rows[0].id)
-}
-
-// An UPDATE and not an upsert: the workbench must never resurrect a szablon someone deleted while
-// it was open, and `false` is how the caller learns the row is gone.
-//
-// `created_by` is deliberately NOT touched: under autosave every keystroke would otherwise turn
-// „who created this szablon" into „who last hit a key".
-export async function updatePresetPayload(
-  db: DbExecutorT,
-  params: { id: number; payload: SnapshotPayloadT },
-): Promise<boolean> {
-  const res = await db.execute(sql`
-    UPDATE kosztorys_presets SET
-      schema_version = ${SNAPSHOT_SCHEMA_VERSION},
-      payload = ${JSON.stringify(params.payload)}::jsonb,
-      updated_at = now(),
-      mirrored_at = now()
-    WHERE id = ${params.id}
-    RETURNING id
+    SELECT 1 FROM investments WHERE id = ${id} AND status = ${TEMPLATE_INVESTMENT_STATUS}
   `)
   return res.rows.length > 0
 }
 
-/**
- * The autosave throttle, as an atomic CLAIM rather than a read: two concurrent mutations would both
- * pass a „has the window elapsed" SELECT and both mirror. Whoever's UPDATE moves `mirrored_at` owns
- * this window; everyone else gets no row back and steps aside.
- *
- * The comparison runs IN THE DATABASE because serverless instances share no clock.
- */
-export async function claimPresetMirror(db: DbExecutorT, presetId: number): Promise<boolean> {
+export async function getPresetName(db: DbExecutorT, id: number): Promise<string | null> {
   const res = await db.execute(sql`
-    UPDATE kosztorys_presets SET mirrored_at = now()
-    WHERE id = ${presetId}
-      AND (
-        mirrored_at IS NULL
-        OR mirrored_at < now() - make_interval(secs => ${PRESET_MIRROR_THROTTLE_SECONDS})
+    SELECT name FROM investments WHERE id = ${id} AND status = ${TEMPLATE_INVESTMENT_STATUS}
+  `)
+  const row = res.rows[0]
+  return row ? String(row.name) : null
+}
+
+// The comparison `investments_szablon_name_idx` enforces, so a create path can word the refusal in
+// Polish before the index answers with the driver's English 23505.
+const SAME_NAME = (name: string) => sql`lower(trim(name)) = lower(trim(${name}))`
+
+export async function isPresetNameTaken(
+  db: DbExecutorT,
+  name: string,
+  exceptId?: number,
+): Promise<boolean> {
+  const res = await db.execute(sql`
+    SELECT 1 FROM investments
+    WHERE status = ${TEMPLATE_INVESTMENT_STATUS} AND ${SAME_NAME(name)}
+      ${exceptId == null ? sql`` : sql`AND id <> ${exceptId}`}
+    LIMIT 1
+  `)
+  return res.rows.length > 0
+}
+
+// Raw SQL rather than `payload.update`, which would bump `updated_at` — the editor's remount token.
+// A rename is an edit as far as the list is concerned: it moves the row to the top.
+// `false` = the name is taken or the id is not a szablon; both mean „nothing was renamed".
+export async function renamePreset(db: DbExecutorT, id: number, name: string): Promise<boolean> {
+  const res = await db.execute(sql`
+    UPDATE investments SET name = ${name}, content_edited_at = now()
+    WHERE id = ${id} AND status = ${TEMPLATE_INVESTMENT_STATUS}
+      AND NOT EXISTS (
+        SELECT 1 FROM investments
+        WHERE status = ${TEMPLATE_INVESTMENT_STATUS} AND ${SAME_NAME(name)} AND id <> ${id}
       )
     RETURNING id
   `)
   return res.rows.length > 0
 }
 
-// The seed path resolves the payload from the row itself rather than trusting a client-passed value.
-export async function getPreset(
+// Section id → the szablon that owns it. A section of an ordinary investment is simply absent, so the
+// caller cannot be talked into copying one by an id.
+export async function templateOwnersOfSections(
   db: DbExecutorT,
-  presetId: number,
-): Promise<{ name: string; payload: StoredSnapshotPayloadT } | null> {
+  sectionIds: readonly number[],
+): Promise<Map<number, number>> {
+  if (sectionIds.length === 0) return new Map()
   const res = await db.execute(sql`
-    SELECT name, schema_version, payload FROM kosztorys_presets WHERE id = ${presetId}
+    SELECT s.id, s.investment_id
+    FROM kosztorys_sections s
+    JOIN investments inv ON inv.id = s.investment_id
+    WHERE inv.status = ${TEMPLATE_INVESTMENT_STATUS}
+      AND s.id IN (${sql.join(
+        sectionIds.map((id) => sql`${id}`),
+        sql.raw(', '),
+      )})
   `)
-  const row = res.rows[0]
-  if (!row) return null
-  assertReadableSchemaVersion(Number(row.schema_version), 'preset')
-  return { name: String(row.name), payload: row.payload as StoredSnapshotPayloadT }
+  return new Map(res.rows.map((row) => [Number(row.id), Number(row.investment_id)]))
 }
 
-// Separate from `getPreset` because the workbench page needs a title only, and the payload is the one
-// large column in this table.
-export async function getPresetName(db: DbExecutorT, presetId: number): Promise<string | null> {
-  const res = await db.execute(sql`SELECT name FROM kosztorys_presets WHERE id = ${presetId}`)
-  const row = res.rows[0]
-  return row ? String(row.name) : null
+// The list sorts by the last edit, and a szablon created a second ago is the one about to be opened.
+export async function markPresetEdited(db: DbExecutorT, id: number): Promise<void> {
+  await db.execute(sql`UPDATE investments SET content_edited_at = now() WHERE id = ${id}`)
 }
 
-// Counted in SQL (EX-622): this needs nothing from the payloads but a tally, so shipping them to Node
-// would decode megabytes for a few hundred small metas on every `presets` cache miss.
-//
-// The `counts` CTE expands `items` ONCE per preset. Counting inside the section-row lateral would
-// re-expand the array per section — measured 50× slower on a 2-preset/320-item library.
-//
-// `WITH ORDINALITY` is load-bearing: Postgres' sort is unstable where JS's `.sort` was, and the
-// picker's grouping needs one preset's metas CONSECUTIVELY, so the array position breaks ties.
+// The picker's grouping needs one szablon's sections CONSECUTIVELY, hence the szablon keys lead the
+// ORDER BY.
 export async function listPresetSections(db: DbExecutorT): Promise<PresetSectionMetaT[]> {
   const res = await db.execute(sql`
-    WITH counts AS (
-      SELECT p.id AS preset_id, i.value->>'sectionId' AS section_id, COUNT(*) AS item_count
-      FROM kosztorys_presets p
-      CROSS JOIN LATERAL jsonb_array_elements(p.payload->'items') i
-      GROUP BY 1, 2
-    )
     SELECT
-      p.id                      AS preset_id,
-      p.name                    AS preset_name,
-      (s.value->>'id')::int     AS section_id,
-      s.value->>'name'          AS section_name,
-      COALESCE(c.item_count, 0) AS item_count
-    FROM kosztorys_presets p
-    CROSS JOIN LATERAL jsonb_array_elements(p.payload->'sections') WITH ORDINALITY AS s(value, ord)
-    LEFT JOIN counts c ON c.preset_id = p.id AND c.section_id = s.value->>'id'
-    ORDER BY p.created_at DESC, p.id DESC, (s.value->>'displayOrder')::numeric, s.ord
+      inv.id            AS preset_id,
+      inv.name          AS preset_name,
+      s.id              AS section_id,
+      s.name            AS section_name,
+      COUNT(it.id)      AS item_count
+    FROM investments inv
+    JOIN kosztorys_sections s ON s.investment_id = inv.id
+    LEFT JOIN kosztorys_items it ON it.section_id = s.id
+    WHERE inv.status = ${TEMPLATE_INVESTMENT_STATUS}
+    GROUP BY inv.id, s.id
+    ORDER BY inv.created_at DESC, inv.id DESC, s.display_order, s.id
   `)
   return res.rows.map((row) => ({
     presetId: Number(row.preset_id),
@@ -176,47 +129,20 @@ export async function listPresetSections(db: DbExecutorT): Promise<PresetSection
   }))
 }
 
-// No versioning, no trash. A spawned kosztorys is a frozen copy, not a reference, so nothing
-// downstream breaks; the one FK here, `investments.template_preset_id`, is ON DELETE SET NULL, so
-// deleting a szablon somebody has open empties the warsztat's pointer instead of dangling it.
-export async function deletePreset(db: DbExecutorT, presetId: number): Promise<boolean> {
-  const res = await db.execute(sql`
-    DELETE FROM kosztorys_presets WHERE id = ${presetId} RETURNING id
-  `)
-  return res.rows.length > 0
-}
-
-// The collision guard sits in SQL rather than in a catch on PG 23505, or the UNIQUE constraint
-// surfaces as the driver's English sentence in a Polish UI. `false` = the name is taken or the id is
-// gone — both mean „nothing was renamed", and the caller tells them apart by having listed the row.
-export async function renamePreset(
-  db: DbExecutorT,
-  presetId: number,
-  name: string,
-): Promise<boolean> {
-  const res = await db.execute(sql`
-    UPDATE kosztorys_presets SET name = ${name}, updated_at = now()
-    WHERE id = ${presetId}
-      AND NOT EXISTS (SELECT 1 FROM kosztorys_presets WHERE name = ${name} AND id <> ${presetId})
-    RETURNING id
-  `)
-  return res.rows.length > 0
-}
-
 export async function listPresets(db: DbExecutorT): Promise<PresetMetaT[]> {
   const res = await db.execute(sql`
-    SELECT id, name, created_at, updated_at, created_by
-    FROM kosztorys_presets
+    SELECT id, name, created_at, content_edited_at
+    FROM investments
+    WHERE status = ${TEMPLATE_INVESTMENT_STATUS}
     -- Sorted by the last edit, because that is what moves: a szablon is created once and worked on
-    -- for weeks. NULLS LAST keeps the never-edited ones in the list, below the live ones, ordered
-    -- among themselves by creation.
-    ORDER BY updated_at DESC NULLS LAST, created_at DESC, id DESC
+    -- for weeks. NULLS LAST keeps a szablon migrated without a stamp in the list, below the live
+    -- ones, ordered among themselves by creation.
+    ORDER BY content_edited_at DESC NULLS LAST, created_at DESC, id DESC
   `)
   return res.rows.map((row) => ({
     id: Number(row.id),
     name: String(row.name),
     createdAt: isoOrNull(row.created_at) ?? '',
-    updatedAt: isoOrNull(row.updated_at),
-    createdBy: row.created_by == null ? null : Number(row.created_by),
+    updatedAt: isoOrNull(row.content_edited_at),
   }))
 }

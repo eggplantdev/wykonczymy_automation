@@ -4,7 +4,7 @@ import config from '@payload-config'
 import {
   sanitizeClientViewSettings,
   type ClientViewSettingsT,
-} from '@/lib/kosztorys/client-view-settings'
+} from '@/lib/kosztorys/client-view/settings'
 import type { ColumnRanksT } from '@/lib/table/column-order'
 
 export type ClientViewSettingsReadT = {

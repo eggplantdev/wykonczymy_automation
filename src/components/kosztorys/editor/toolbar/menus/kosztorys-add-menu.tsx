@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useCataloguePicker } from '@/components/kosztorys/editor/actions/catalogue-picker-host'
-import { AddSectionsFromPresetDialog } from '@/components/kosztorys/editor/dialogs/add-sections-from-preset-dialog'
+import { AddSectionsFromPresetDialog } from '@/components/kosztorys/editor/dialogs/preset/add-sections-from-preset-dialog'
 import { planeIcon } from '@/components/kosztorys/editor/plane-icons'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { PLANE_LABELS } from '@/lib/kosztorys/labels'
@@ -22,12 +22,12 @@ import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 export function KosztorysAddMenu() {
   const {
     investmentId,
-    subtotals,
+    sections,
     handleAddItem,
     handleAddSection,
     handleAppendedSections,
     handleAddStage,
-    isWorkshop,
+    isTemplate,
   } = useKosztorysEditorContext()
   const openCataloguePicker = useCataloguePicker()
   // Owned here, OUTSIDE the dropdown content: the menu unmounts on close, so a dialog rendered inside
@@ -45,10 +45,16 @@ export function KosztorysAddMenu() {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           {/* No section is preselected — any default lands the praca where the user isn't looking,
-              which is the whole reason this is a picker. With no sekcja to offer, „Praca" goes
-              through handleAddSection, which mints a section WITH its first pozycja inside. */}
-          {subtotals.length === 0 ? (
-            <DropdownMenuItem onSelect={handleAddSection}>
+              which is the whole reason this is a picker. With no sekcja to offer, „Praca" mints a
+              bare one first; should the pozycja then fail, the sekcja bez pozycji left behind is a
+              legitimate state, not a leak. */}
+          {sections.length === 0 ? (
+            <DropdownMenuItem
+              onSelect={async () => {
+                const sectionId = await handleAddSection()
+                if (sectionId !== undefined) await handleAddItem(sectionId)
+              }}
+            >
               <Hammer />
               Praca
             </DropdownMenuItem>
@@ -59,7 +65,7 @@ export function KosztorysAddMenu() {
                 Praca
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent>
-                {subtotals.map((section) => (
+                {sections.map((section) => (
                   <DropdownMenuItem
                     key={section.sectionId}
                     onSelect={() => handleAddItem(section.sectionId)}
@@ -79,7 +85,7 @@ export function KosztorysAddMenu() {
               forced the same way: an unassigned etap is a legitimate resting state (it earns its own
               residual row), so it is picked later from the etap header, not here. */}
           {/* A szablon carries no etapy, so the workbench has nothing to open one on. */}
-          {!isWorkshop &&
+          {!isTemplate &&
             TOOL_PLANES.map((plane) => (
               <DropdownMenuItem key={plane} onSelect={() => handleAddStage(plane)}>
                 {planeIcon(plane)}

@@ -4,7 +4,7 @@ import {
   buildV2Grid,
 } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
-import { WORKSHOP_VISIBLE_COLUMNS } from '@/lib/kosztorys/column-config'
+import { WORKSHOP_VISIBLE_COLUMNS } from '@/lib/kosztorys/workshop-columns'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'

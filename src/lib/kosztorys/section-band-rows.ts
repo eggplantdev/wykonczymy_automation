@@ -1,6 +1,6 @@
 import { groupBySection } from '@/lib/kosztorys/row-ops'
 import { makeSectionFooterRow, makeSectionHeaderRow } from '@/lib/kosztorys/synthetic-rows'
-import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
+import type { KosztorysV2RowT, SectionMetaT } from '@/lib/kosztorys/types'
 
 type OptsT = {
   collapsedSectionIds: ReadonlySet<number>
@@ -9,16 +9,12 @@ type OptsT = {
   // collapsed section with no band left to re-expand it would be rows the user can't get back.
   // A sort scoped to the sections keeps the rows contiguous, so the bands stay.
   enabled: boolean
-  // Every section in the base dataset, in display order, each represented by one of its rows (the
-  // band reads name and colour off it). Taken from the FULL dataset, not the filtered view, so the
-  // sections keep their original order regardless of which ones the filter thinned out.
-  sections: readonly KosztorysV2RowT[]
-}
-
-export function sectionRepresentatives(rows: readonly KosztorysV2RowT[]): KosztorysV2RowT[] {
-  const bySection = new Map<number, KosztorysV2RowT>()
-  for (const row of rows) if (!bySection.has(row.sectionId)) bySection.set(row.sectionId, row)
-  return [...bySection.values()]
+  // Every section in display order, the itemless ones included — the list, not the filtered view, so
+  // the sections keep their order regardless of which ones the filter thinned out.
+  sections: readonly SectionMetaT[]
+  // Off under search, filters and every client output: there a header with nothing under it is the
+  // same noise as a section the filter emptied.
+  showItemless: boolean
 }
 
 /**
@@ -42,16 +38,22 @@ export function baseOrdinals(rows: readonly KosztorysV2RowT[]): Map<number, numb
  */
 export function buildSectionBandRows(
   viewRows: KosztorysV2RowT[],
-  { collapsedSectionIds, enabled, sections }: OptsT,
+  { collapsedSectionIds, enabled, sections, showItemless }: OptsT,
 ): KosztorysV2RowT[] {
-  if (!enabled) return viewRows
+  // With no rows there is nothing for the sort to scatter, and dropping the bands would leave an
+  // all-itemless kosztorys as a blank grid with no „Dodaj pracę" to start it from.
+  if (!enabled && viewRows.length > 0) return viewRows
 
   const bySection = groupBySection(viewRows)
 
   const rows: KosztorysV2RowT[] = []
   for (const section of sections) {
     const group = bySection.get(section.sectionId)
-    if (!group) continue
+    if (!group) {
+      // Its sum is zero by construction, so the footer would only restate that.
+      if (showItemless) rows.push(makeSectionHeaderRow(section))
+      continue
+    }
     bySection.delete(section.sectionId)
     rows.push(makeSectionHeaderRow(section))
     // A collapsed section shows its header alone: the footer sums the rows it hides, so it goes

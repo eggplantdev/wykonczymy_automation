@@ -5,7 +5,7 @@ import {
   getClientViewSettings,
   getClientViewSettingsRead,
 } from '@/lib/queries/kosztorys-client-view'
-import { sanitizeClientViewSettings } from '@/lib/kosztorys/client-view-settings'
+import { sanitizeClientViewSettings } from '@/lib/kosztorys/client-view/settings'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 
 // The resolution chain decides what a client is served, so it runs against the REAL DB: a `where`

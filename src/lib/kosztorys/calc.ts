@@ -162,7 +162,7 @@ export function asViewPricing(
  * next price change breaks.
  *
  * Here rather than in the cell, because three surfaces read it and the cell is only one of them:
- * the komórka, `copyValue`, and `columnSortValue`. Sorting off `overrideCoeffFor` while the cell
+ * the komórka, `copyValue`, and `sortValueGetter`. Sorting off `overrideCoeffFor` while the cell
  * rendered this put a row showing 0,65 under a row showing 0,4.
  */
 export function shownCoeff(row: ViewPricingT, view: ToolPlaneT): number | null {

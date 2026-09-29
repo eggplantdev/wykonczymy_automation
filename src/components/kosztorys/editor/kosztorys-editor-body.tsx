@@ -22,7 +22,7 @@ import { useRowHeightCacheReset } from '@/components/kosztorys/editor/hooks/use-
 import { useWrapColumnWidths } from '@/components/kosztorys/editor/hooks/use-wrap-column-widths'
 import { useUndoKeyboard } from '@/components/kosztorys/editor/hooks/use-undo-keyboard'
 import { useSheetImport } from '@/components/kosztorys/editor/hooks/use-sheet-import'
-import { SheetImportDialog } from '@/components/kosztorys/editor/dialogs/sheet-import-dialog'
+import { SheetImportDialog } from '@/components/kosztorys/editor/dialogs/sheet/sheet-import-dialog'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { sectionFooterLabelColumnId } from '@/components/kosztorys/editor/grid/cells/section-footer-cell'
 import { sectionBandLabelColumnId } from '@/components/kosztorys/editor/grid/cells/section-header-cell'
@@ -59,7 +59,7 @@ import {
   resolveHeaderRowHeight,
   resolveRowHeight,
 } from '@/lib/kosztorys/row-height'
-import { RowHeightFitProvider } from '@/components/kosztorys/editor/actions/row-height-fit-context'
+import { RowHeightFitProvider } from '@/components/kosztorys/editor/grid/row-height-fit-context'
 import { measureTextWidth } from '@/lib/utils/text-measure'
 import { sectionColorRail } from '@/lib/kosztorys/section-colors'
 import { orderCommandsEnabled, sectionBandsVisible } from '@/lib/kosztorys/order-commands'
@@ -76,7 +76,7 @@ import { PreviewHeaderActions } from '@/components/kosztorys/editor/preview-head
 import { historyGridTree, stageIdsFilledNow } from '@/lib/kosztorys/history/history-grid'
 import type { InvestorHistoryT } from '@/lib/kosztorys/history/types'
 import type { KosztorysEditorDataT, KosztorysV2RowT } from '@/lib/kosztorys/types'
-import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
+import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view/settings'
 import type { WorkerAudienceT } from '@/lib/kosztorys/worker-view/types'
 
 type PropsT = KosztorysEditorDataT & {
@@ -114,7 +114,7 @@ export function KosztorysEditorBody({
   history,
   locked = false,
   hasSheet = false,
-  templatePresetId,
+  isTemplate = false,
   undoRedo = NOOP_UNDO_REDO,
   onOpenVersions,
   onTreeReplaced,
@@ -129,8 +129,7 @@ export function KosztorysEditorBody({
   // priced off a coefficient hand the crew a cut of it (EX-708). The breakdown carries no link back
   // to a pozycja, so this is all the kosztorys can know.
   const hasSettledMaterial = panelData.settledBreakdown.length > 0
-  const isWorkshop = templatePresetId != null
-  const noun = editorNoun(templatePresetId)
+  const noun = editorNoun(isTemplate)
   // The investor's history never reaches a crew's document, whatever a caller passes.
   const investorHistory = worker ? undefined : history
   const pastVersion = investorHistory?.version ?? null
@@ -158,7 +157,7 @@ export function KosztorysEditorBody({
     hasSettledMaterial,
     workCatalogue,
     onStaleTree,
-    isWorkshop,
+    isTemplate,
     filledStageIds,
   })
   const {
@@ -193,7 +192,8 @@ export function KosztorysEditorBody({
     clientEmptyRowIds,
     resetFilters,
     ordinalByRowId,
-    sectionRows,
+    sections,
+    showItemless,
     setSearch,
     collapsedSectionIds,
     toggleSectionCollapsed,
@@ -203,6 +203,7 @@ export function KosztorysEditorBody({
     moveEdges,
     onSetSectionColor,
     onRemoveSection,
+    onAddItem,
     onChange,
   } = editor
 
@@ -226,12 +227,13 @@ export function KosztorysEditorBody({
       // Built here so the bundle's identity is the memo's own — a fresh object per render would land
       // on every column's `columnData` and redraw the whole grid.
       actions:
-        onInsertSection && onReorderSection && onSetSectionColor && onRemoveSection
+        onInsertSection && onReorderSection && onSetSectionColor && onRemoveSection && onAddItem
           ? {
               onInsert: onInsertSection,
               onReorder: onReorderSection,
               onSetColor: onSetSectionColor,
               onRemove: onRemoveSection,
+              onAddItem,
             }
           : undefined,
       sortActive: !orderCommandsEnabled(sort),
@@ -247,6 +249,7 @@ export function KosztorysEditorBody({
       onReorderSection,
       onSetSectionColor,
       onRemoveSection,
+      onAddItem,
       sort,
       moveEdges,
       columns,
@@ -284,14 +287,19 @@ export function KosztorysEditorBody({
   const engagedHiderList = engagedHiders(engagedConditionIds)
   const engagedDiagnostics = engagedConditionsOfKind(engagedConditionIds, 'diagnostic')
   const emptyByFilter = engagedHiderList.length > 0
+  // Full-dataset rather than the rendered rows: `gridRows` always carries the spacer + „Razem" rows, and
+  // a no-hit search empties `viewRows` over a kosztorys that is not in fact empty. The owner's
+  // sekcja bez pozycji is content; the client's document never shows one.
+  const isEmpty = preview ? subtotals.length === 0 : sections.length === 0
   const bodyRows = useMemo(
     () =>
       buildSectionBandRows(viewRows, {
         enabled: sectionBandsVisible(sort),
         collapsedSectionIds,
-        sections: sectionRows,
+        sections,
+        showItemless,
       }),
-    [viewRows, collapsedSectionIds, sort, sectionRows],
+    [viewRows, collapsedSectionIds, sort, sections, showItemless],
   )
   const gridRows = useMemo(() => [...bodyRows, makeSpacerRow(), makeTotalsRow()], [bodyRows])
   const datasheetRef = useRef<DataSheetGridRef>(null)
@@ -404,8 +412,7 @@ export function KosztorysEditorBody({
         onTreeReplaced,
         openImport: editor.readOnly ? undefined : openImport,
         hasSheet,
-        templatePresetId,
-        isWorkshop,
+        isTemplate,
         noun,
       }}
     >
@@ -447,7 +454,7 @@ export function KosztorysEditorBody({
               <>
                 <KosztorysEditorToolbar
                   protocolSource={
-                    investment && !isWorkshop
+                    investment && !isTemplate
                       ? {
                           investment,
                           materials: {
@@ -519,10 +526,7 @@ export function KosztorysEditorBody({
                   }
                 />
               </div>
-              {/* Emptiness is judged on `subtotals` (full-dataset) rather than the rendered rows:
-              `gridRows` always carries the spacer + „Razem" rows, and a no-hit search empties
-              `viewRows` over a kosztorys that is not in fact empty. */}
-              {subtotals.length === 0 && (
+              {isEmpty && (
                 <EmptyState
                   className="pointer-events-none absolute inset-0"
                   title={`${noun.Nominative} jest pusty`}
@@ -549,7 +553,7 @@ export function KosztorysEditorBody({
               {/* The sibling state: rows exist, the search matched none of them. Gated on the search term
               rather than on `viewRows` alone so the „Wyczyść" advice can never be offered to someone
               who never typed anything. Unreachable in the client view, which renders no search field. */}
-              {subtotals.length > 0 && viewRows.length === 0 && search.trim() !== '' && (
+              {!isEmpty && viewRows.length === 0 && search.trim() !== '' && (
                 <EmptyState
                   className="pointer-events-none absolute inset-0"
                   title="Brak wyników"
@@ -572,7 +576,7 @@ export function KosztorysEditorBody({
               {/* Gated on the RECOGNISED conditions, not on the raw persisted set: an id left over from a
               condition a later release removed is a no-op for the grid, and counting it here would
               title the overlay „Brak pozycji " with nothing after it. */}
-              {subtotals.length > 0 &&
+              {!isEmpty &&
                 viewRows.length === 0 &&
                 search.trim() === '' &&
                 (emptyByFilter || engagedDiagnostics.length > 0) && (

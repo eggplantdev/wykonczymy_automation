@@ -79,17 +79,16 @@ export function applyAddItem(rows: KosztorysV2RowT[], row: KosztorysV2RowT): Kos
 export type CatalogueSlicePlacementT = 'prepend' | 'fold' | 'reseed'
 
 // `reseed` is the case the two obvious branches miss: the server matched the typed nazwa to a sekcja
-// this grid holds no row for — emptied of its pozycje (a 0-row sekcja is absent from the picker's
-// list, which is why the nazwa was typed at all) or created elsewhere since mount. `applyAddItem`
-// would then have no anchor and append past the LAST sekcja, drawing the band in the wrong place
-// until a full reload, because `rows` is mount-frozen (EX-441).
+// this grid doesn't list — created elsewhere since mount. There is no band to fold into, and `rows`
+// is mount-frozen (EX-441), so only a re-seed from the server draws it. A listed sekcja with no
+// pozycje folds: the section list already places it.
 export function catalogueSlicePlacement(
-  rows: readonly KosztorysV2RowT[],
+  sectionIds: ReadonlySet<number>,
   sectionId: number,
   createdSection: boolean,
 ): CatalogueSlicePlacementT {
   if (createdSection) return 'prepend'
-  return rows.some((row) => row.sectionId === sectionId) ? 'fold' : 'reseed'
+  return sectionIds.has(sectionId) ? 'fold' : 'reseed'
 }
 
 export function applyRemoveItem(rows: KosztorysV2RowT[], itemId: number): KosztorysV2RowT[] {
@@ -157,23 +156,6 @@ export function groupBySection(rows: KosztorysV2RowT[]): Map<number, KosztorysV2
   return groupInOrder(rows, (row) => row.sectionId)
 }
 
-// Splice the first row of a newly inserted section into the display sequence, just before or just
-// after the anchor section's block.
-export function applyInsertSectionRow(
-  rows: KosztorysV2RowT[],
-  anchorSectionId: number,
-  row: KosztorysV2RowT,
-  dir: 'above' | 'below',
-): KosztorysV2RowT[] {
-  const blocks = groupBySection(rows)
-  const seq = [...blocks.keys()]
-  const pos = seq.indexOf(anchorSectionId)
-  if (pos < 0) return [...rows, row]
-  seq.splice(dir === 'above' ? pos : pos + 1, 0, row.sectionId)
-  blocks.set(row.sectionId, [row])
-  return regroupByKeys(blocks, seq)
-}
-
 // „Zapisz kolejność": re-lay every block in the id sequence just sent to the server. A row the
 // sequence doesn't mention keeps the slot it occupies, so a stale sequence degrades to a partial
 // reorder rather than a scramble — the mentioned rows are sorted into the positions they already
@@ -195,32 +177,6 @@ export function applyKosztorysOrder(
     )
   }
   return regroupByKeys(blocks, [...blocks.keys()])
-}
-
-export function neighborSectionId(
-  rows: KosztorysV2RowT[],
-  sectionId: number,
-  dir: 'up' | 'down',
-): number | undefined {
-  const seq = [...groupBySection(rows).keys()]
-  const pos = seq.indexOf(sectionId)
-  if (pos < 0) return undefined
-  return seq[dir === 'up' ? pos - 1 : pos + 1]
-}
-
-// Move a whole section one place (▲/▼). Same reference on a no-op (edge / unknown id).
-export function swapSectionBlock(
-  rows: KosztorysV2RowT[],
-  sectionId: number,
-  dir: 'up' | 'down',
-): KosztorysV2RowT[] {
-  const blocks = groupBySection(rows)
-  const seq = [...blocks.keys()]
-  const pos = seq.indexOf(sectionId)
-  const targetPos = dir === 'up' ? pos - 1 : pos + 1
-  if (pos < 0 || targetPos < 0 || targetPos >= seq.length) return rows
-  ;[seq[pos], seq[targetPos]] = [seq[targetPos], seq[pos]]
-  return regroupByKeys(blocks, seq)
 }
 
 // Neighbor of an item within ITS section in the ▲/▼ direction (same sequence as swapItemInSection).

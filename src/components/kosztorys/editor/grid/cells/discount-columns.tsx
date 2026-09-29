@@ -4,6 +4,7 @@ import { CellSelectMenu } from '@/components/ui/datasheet-grid/cell-select-menu'
 import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-text'
 import { EditableCellInput } from '@/components/ui/datasheet-grid/editable-cell-input'
 import { discountFromType, discountPolicy } from '@/lib/kosztorys/discount-edit'
+import { DISCOUNT_TYPE_LABELS } from '@/lib/kosztorys/labels'
 import { cellPaste } from '@/lib/kosztorys/cell-edit'
 import { useCellDraft } from '@/components/kosztorys/editor/grid/cells/use-cell-draft'
 import { decimalText } from '@/lib/utils/decimal-text'
@@ -12,8 +13,8 @@ import type { DiscountTypeT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 const DISCOUNT_OPTIONS: { value: string; label: string }[] = [
   { value: '', label: 'Bez rabatu' },
-  { value: 'percent', label: '%' },
-  { value: 'amount', label: 'zł' },
+  { value: 'percent', label: DISCOUNT_TYPE_LABELS.percent },
+  { value: 'amount', label: DISCOUNT_TYPE_LABELS.amount },
 ]
 
 // The type/value transitions live in discount-edit.ts — see there for why they're paired.

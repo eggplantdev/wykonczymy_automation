@@ -110,3 +110,52 @@ describe('Belka sekcji — komórka akcji', () => {
     expect(screen.queryByRole('button')).toBeNull()
   })
 })
+
+const actions = {
+  onInsert: vi.fn(),
+  onReorder: vi.fn(),
+  onSetColor: vi.fn(),
+  onRemove: vi.fn(),
+  onAddItem: vi.fn(),
+}
+
+function bandWith(itemCount: number) {
+  const ctx: SectionHeaderContextT = {
+    ...context(),
+    figures: new Map([[SECTION_ID, { itemCount, net: 0 }]]),
+    actions,
+  }
+  const view = render(<SectionHeaderCell rowData={ROW} slot="label" context={ctx} />)
+  return { ...view, user: userEvent.setup() }
+}
+
+const chevron = (container: HTMLElement) =>
+  container.querySelector('.lucide-chevron-down, .lucide-chevron-right')
+
+describe('Belka sekcji bez pozycji', () => {
+  it('daje „Dodaj pracę” zamiast strzałki i nie zwija się kliknięciem', async () => {
+    const { user, container } = bandWith(0)
+
+    expect(chevron(container)).toBeNull()
+    expect(screen.getByRole('button', { name: 'Dodaj pracę' })).toBeInTheDocument()
+    await user.click(container.firstElementChild as Element)
+
+    expect(onToggleCollapsed).not.toHaveBeenCalled()
+  })
+
+  it('dodaje pracę do tej sekcji', async () => {
+    const { user } = bandWith(0)
+
+    await user.click(screen.getByRole('button', { name: 'Dodaj pracę' }))
+
+    expect(actions.onAddItem).toHaveBeenCalledExactlyOnceWith(SECTION_ID)
+    expect(onToggleCollapsed).not.toHaveBeenCalled()
+  })
+
+  it('znika z belki, gdy sekcja ma pozycje', () => {
+    const { container } = bandWith(2)
+
+    expect(screen.queryByRole('button', { name: 'Dodaj pracę' })).toBeNull()
+    expect(chevron(container)).not.toBeNull()
+  })
+})

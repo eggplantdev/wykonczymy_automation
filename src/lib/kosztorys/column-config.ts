@@ -1,9 +1,8 @@
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import { PLANE_LABELS } from '@/lib/kosztorys/labels'
 import { planeDashSuffix } from '@/lib/kosztorys/format'
-import { ALL_PLANE_PRICE_KEYS, planePriceKeyParts } from '@/lib/kosztorys/plane-price-keys'
+import { planePriceKeyParts } from '@/lib/kosztorys/plane-price-keys'
 import {
-  STAGES_COLUMN_GROUP,
   STAGE_VALUE_GROSS_COLUMN_GROUP,
   STAGE_VALUE_NET_COLUMN_GROUP,
 } from '@/lib/kosztorys/stage-keys'
@@ -177,154 +176,10 @@ const DISCOUNT_COLUMN_IDS: ReadonlySet<string> = new Set([
 export const bypassedByGlobalDiscount = (key: string, globalDiscountActive = false) =>
   globalDiscountActive && DISCOUNT_COLUMN_IDS.has(key)
 
-// What a client may see on the share view — an ALLOWLIST, keyed by toggleKey like the maps above.
-// Allowlist, not a denylist: a column added later is invisible to clients until someone puts it here,
-// so the disclosure decision is forced at definition time rather than discovered as a leak.
-//
-// Its reach is column IDENTITY, not price plane: `price`/`net` are allowlisted and compute at
-// whatever `view` is active, so this set does NOT by itself keep a subcontractor figure off the page.
-// It is half a lock — the other half pins the plane, see `assertDisclosurePair`. `priceMode` is
-// absent here and that absence is load-bearing, not belt-and-braces: the szablon workbench reads
-// the client plane and assembles the column anyway (`assembleV2Columns`), so this list is the only
-// thing keeping a contractor's price source off a client's document.
-//
-// Written as groups because the settings dialog offers the same columns as ticks and needs headings
-// for them; the allowlist below is their flattening, so a column cannot be offerable-but-barred (or
-// visible-but-unhideable) — there is only one list.
-export type ClientViewGroupT = {
+export type ColumnGroupT = {
   label: string
   keys: readonly string[]
 }
-
-// No brutto column anywhere on the investor's document (owner, 2026-09-28): the offer is quoted netto,
-// so a gross figure is not offered as a tick at all — and a stored tick for one fails closed here.
-export const CLIENT_VIEW_GROUPS: readonly ClientViewGroupT[] = [
-  {
-    label: 'Opis i ilości',
-    keys: ['description', 'plannedQty', 'stageQtySum', 'unit'],
-  },
-  {
-    label: 'Ceny i rabat',
-    keys: ['price', 'discountType', 'discountValue', 'discountAmount'],
-  },
-  {
-    label: 'Wartości',
-    // No `note`: the sheet's „komentarz" is owner-authored internal free text (owner ruling,
-    // 2026-07-20) — the client DTO drops it too, so this is the matching half of that decision.
-    keys: ['plannedNet', 'net', 'remaining'],
-  },
-  {
-    label: 'Etapy i postęp',
-    keys: [STAGES_COLUMN_GROUP, STAGE_VALUE_NET_COLUMN_GROUP, 'donePercent'],
-  },
-]
-
-export const PREVIEW_VISIBLE_COLUMNS: ReadonlySet<string> = new Set(
-  CLIENT_VIEW_GROUPS.flatMap((group) => group.keys),
-)
-
-// Always first and never hidden on both documents: a row with no „Opis prac" names nothing, and the
-// PDF's section total writes its „Razem — <sekcja>" label into the cells left of the money column,
-// which is only guaranteed to exist while this column leads.
-export const DOCUMENT_PINNED_COLUMN = 'description'
-
-// The investor's document — podgląd, link and „Generuj ofertę" alike — in reading order, which is not
-// the sheet's: the offered scope reads as one phrase (ilość, j.m., cena, wartość) ahead of the etapy,
-// and the pomiar follows the etapy it sums (owner, 2026-09-28). One list for the screen and the paper,
-// so the two cannot print different columns or the same ones in a different order. The same keys as
-// CLIENT_VIEW_GROUPS, which orders them for the settings dialog instead.
-export const CLIENT_DOCUMENT_COLUMNS: readonly string[] = [
-  'description',
-  'plannedQty',
-  'unit',
-  'price',
-  'plannedNet',
-  STAGES_COLUMN_GROUP,
-  'stageQtySum',
-  'discountValue',
-  'discountType',
-  'discountAmount',
-  STAGE_VALUE_NET_COLUMN_GROUP,
-  'net',
-  'donePercent',
-  'remaining',
-]
-
-// The worker view's stawka, as a LOGICAL key: the column it stands for is `price__<plane>`, and which
-// plane is decided per worker, at render (`workerVisibleColumns`). Stored settings hold this key, so
-// one firm-wide tick answers for both rozliczenia — and no stored value can ever name `price`, the
-// client's price.
-export const WORKER_RATE_KEY = 'rate'
-
-// The worker view's ceiling (design #13, EX-875), as ticks for the settings dialog. A separate list
-// from CLIENT_VIEW_GROUPS, not a subset of it, because the two surfaces disclose opposite prices: a
-// key missing here is a column no setting can put on a worker's screen. The client price, rabat,
-// brutto, the client-priced „Wartość przedmiaru" / „Pozostało" / „% wykonania" and „Komentarz" are
-// absent by construction — the first two alone would give the margin away.
-export const WORKER_VIEW_GROUPS: readonly ClientViewGroupT[] = [
-  {
-    label: 'Opis i ilości',
-    keys: ['description', 'plannedQty', 'stageQtySum', 'unit'],
-  },
-  {
-    label: 'Stawka i wartości',
-    keys: [WORKER_RATE_KEY, 'plannedNetForPlane', 'net', 'remainingForPlane'],
-  },
-  {
-    label: 'Etapy',
-    keys: [STAGES_COLUMN_GROUP, STAGE_VALUE_NET_COLUMN_GROUP],
-  },
-]
-
-// The worker's document — his link, the owner's Podgląd and his PDF — in reading order. Same reasons
-// and same contract as CLIENT_DOCUMENT_COLUMNS, over the keys of WORKER_VIEW_GROUPS.
-export const WORKER_DOCUMENT_COLUMNS: readonly string[] = [
-  'description',
-  'plannedQty',
-  'unit',
-  WORKER_RATE_KEY,
-  'plannedNetForPlane',
-  STAGES_COLUMN_GROUP,
-  'stageQtySum',
-  STAGE_VALUE_NET_COLUMN_GROUP,
-  'net',
-  'remainingForPlane',
-]
-
-// The workbench's column list — exactly what a szablon carries to the next job. The rest of the
-// grid (przedmiar, etapy, rabat, wartości, postęp) is not „hidden" here and not „read-only": it is
-// simply absent, because a value typed into a szablon would arrive nowhere — `serializeKosztorysAsPreset`
-// zeroes it on every save. A column added later is absent from the workbench until someone
-// deliberately writes it in here, and that is the intended default side.
-//
-// This list is BOTH the ceiling and the floor (see `selectV2Columns`): the map of hidden columns is
-// one per browser, so a tick set on an ordinary kosztorys must neither add a column here nor take
-// one away — the workbench has no picker to answer it with.
-//
-// Full ids, never the base key (see `basePriceKey`) — hence `ALL_PLANE_PRICE_KEYS`, so a third plane
-// cannot arrive with one of its two columns missing. Both halves, because a NADPISANA stawka travels:
-// `serializeKosztorysAsPreset` zeroes only the per-job fields, and the mode is derived from that same
-// nullable override — so the source is a control the workbench could otherwise neither show nor type
-// a value for. An un-overridden stawka is `clientPrice ×` the coefficient and travels no better than
-// `priceGross` below; typing into the cell is what creates the override that does.
-//
-// No `priceGross` either (owner ruling, 2026-09-22), and for a sharper reason than „not needed": it
-// is a COMPUTED column, netto × the row's VAT — and a preset's `settings` are retained but ignored
-// on apply, so that VAT is the workbench's own and never travels to the next budowa. The figure
-// would therefore be right on this screen and wrong everywhere the szablon is used.
-//
-// `actions` is on the list despite carrying nothing to the next budowa: the grid runs `lockRows`, so
-// the „Akcje" menu is the only route to usuń / przesuń / wstaw a pozycja. This list reads as "what a
-// szablon carries", which is why a column that is pure affordance was missed once already.
-export const WORKSHOP_VISIBLE_COLUMNS: ReadonlySet<string> = new Set([
-  'actions',
-  'sectionName',
-  'description',
-  'unit',
-  'price',
-  ...ALL_PLANE_PRICE_KEYS,
-  'note',
-])
 
 // The stage axis multiplies the grid's stage block, and brutto per stage is the less-read of the pair
 // — derivable from the netto beside it at a fixed rate. „Sekcja" repeats one name down every row of

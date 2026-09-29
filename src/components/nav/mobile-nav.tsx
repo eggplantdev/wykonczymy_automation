@@ -39,8 +39,9 @@ export function MobileNav() {
   const [open, setOpen] = useState(false)
   const [openedOn, setOpenedOn] = useState<string | null>(null)
 
-  // Closes when the navigation COMMITS, not on tap: these links are never prefetched, so an onClick
-  // close left a blank wait that read as a dead tap. Clearing `openedOn` keeps Back from reopening.
+  // Closes when the navigation COMMITS, not on tap: until the route's shell arrives there is nothing
+  // new to show, so an onClick close left a blank wait that read as a dead tap. Clearing `openedOn`
+  // keeps Back from reopening.
   if (open && openedOn !== pathname) {
     setOpen(false)
     setOpenedOn(null)

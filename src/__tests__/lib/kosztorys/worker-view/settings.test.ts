@@ -1,11 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { WORKER_VIEW_GROUPS } from '@/lib/kosztorys/column-config'
+import { WORKER_VIEW_GROUPS, workerColumnLabel } from '@/lib/kosztorys/worker-view/columns'
 import { ALL_PLANE_PRICE_KEYS, planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import { STAGES_COLUMN_GROUP } from '@/lib/kosztorys/stage-keys'
 import {
   WORKER_VIEW_DEFAULT_SETTINGS,
   sanitizeWorkerViewSettings,
-  workerColumnLabel,
   workerDocumentColumns,
   workerVisibleColumns,
 } from '@/lib/kosztorys/worker-view/settings'

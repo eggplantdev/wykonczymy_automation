@@ -22,6 +22,7 @@
     "db:migrate:preview": "source .env && DB_POSTGRES_URL=\"$DB_POSTGRES_URL_PREVIEW\" payload migrate",
     "wt:new": "bash scripts/worktree-new.sh",
     "wt:rm": "bash scripts/worktree-rm.sh",
+    "qa:staging-user": "source .env && DB_POSTGRES_URL=\"$DB_POSTGRES_URL_PREVIEW\" node --env-file=.env --import tsx src/scripts/ensure-staging-qa-user.ts",
     "seed:e2e": "node --env-file=.env --import tsx src/scripts/seed-e2e-user.ts",
     "seed:kosztorys-recon": "node --env-file=.env --import tsx src/scripts/seed-kosztorys-reconciliation.ts",
     "seed:kosztorys-deletes": "source .env && DB_POSTGRES_URL=\"$DB_POSTGRES_URL_TEST\" node --env-file=.env --import tsx src/scripts/seed-kosztorys-deletes.ts",

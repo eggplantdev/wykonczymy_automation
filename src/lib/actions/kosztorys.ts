@@ -9,14 +9,10 @@ import { getDb } from '@/lib/db/get-db'
 import { investmentGateForRow } from '@/lib/db/investment-gate'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
-import { cleanDescription } from '@/lib/kosztorys/clean-description'
+import { cleanItemTexts } from '@/lib/kosztorys/clean-item-texts'
 import { itemPatchSchema } from '@/lib/kosztorys/item-patch-schema'
-import { cleanUnit } from '@/lib/kosztorys/clean-unit'
 import { getItemTexts, setItemTexts } from '@/lib/db/kosztorys-item-texts'
-import {
-  createSectionWithFirstItem,
-  type CreatedSectionWithItemT,
-} from '@/lib/kosztorys/create-section'
+import { createSection, type CreatedSectionT } from '@/lib/kosztorys/create-section'
 import { createBlankItem, sectionOwnerAndNextItemOrder } from '@/lib/kosztorys/create-item'
 import {
   insertDirectionSchema,
@@ -90,7 +86,6 @@ const investmentGlobalDiscountSchema = z.object({
 export type SectionPatchT = z.infer<typeof sectionPatchSchema>
 export type InvestmentCoeffsPatchT = z.infer<typeof investmentCoeffsSchema>
 export type InvestmentGlobalDiscountPatchT = z.infer<typeof investmentGlobalDiscountSchema>
-
 
 // The three per-cell autosaves below defer the refresh: the editor seeds `rows` once at mount and
 // recomputes the panel optimistically, so the re-render reseeds nothing it reads. The only cached
@@ -250,22 +245,14 @@ export async function applyPercentDiscountToAllItemsAction(
 }
 
 // „Popraw literówki". Bulk overwrite of hand-typed text, irrecoverable by in-session undo, so it
-// snapshots first like applyPercentDiscountToAllItemsAction. A blank column is left blank rather
-// than cleaned into '', which would count every empty praca as „poprawiona".
+// snapshots first like applyPercentDiscountToAllItemsAction.
 export async function cleanItemTextsAction(investmentId: number): Promise<ActionResultT<number>> {
   return investmentAction(
     'cleanItemTextsAction',
     { investmentId },
     async ({ payload, user }) => {
       const db = await getDb(payload)
-      const rows = await getItemTexts(db, investmentId)
-      const changed = rows.flatMap((row) => {
-        const description = row.description ? cleanDescription(row.description) : row.description
-        const unit = row.unit ? cleanUnit(row.unit) : row.unit
-        return description === row.description && unit === row.unit
-          ? []
-          : [{ id: row.id, description, unit }]
-      })
+      const changed = cleanItemTexts(await getItemTexts(db, investmentId))
       if (changed.length === 0) return { success: true, data: 0 }
 
       await captureAutoSnapshot(db, investmentId, user.id)
@@ -274,7 +261,6 @@ export async function cleanItemTextsAction(investmentId: number): Promise<Action
     ['kosztorysItems'],
   )
 }
-
 
 const clearKosztorysSchema = z.object({ investmentId: z.number().int().positive() })
 
@@ -307,9 +293,8 @@ export async function clearKosztorysAction(investmentId: number): Promise<Action
   )
 }
 
-// Prepends a section at the TOP, WITH its first blank item — see createSectionWithFirstItem for why
-// the pair is one call (and one round trip for the client) rather than two actions. The shift and
-// the create share one transaction: a double-fired add would otherwise land two sections on 0.
+// Prepends a bare section at the TOP. The shift and the create share one transaction: a double-fired
+// add would otherwise land two sections on 0.
 //
 // One case the transaction cannot serialize: an investment with NO sections yet. `shiftDisplayOrderFrom`
 // takes its lock on the rows it is pushing down, and there are none — so two concurrent first-adds
@@ -318,7 +303,7 @@ export async function clearKosztorysAction(investmentId: number): Promise<Action
 // to close it would put every section insert behind a lock the rest of the editor also wants.
 export async function addSectionAction(
   investmentId: number,
-): Promise<ActionResultT<CreatedSectionWithItemT>> {
+): Promise<ActionResultT<CreatedSectionT>> {
   return investmentAction(
     'addSectionAction',
     { investmentId },
@@ -328,13 +313,13 @@ export async function addSectionAction(
         async (req) => {
           const txDb = await getDb(payload, req)
           await shiftDisplayOrderFrom(txDb, 'kosztorys-sections', investmentId, 0)
-          return createSectionWithFirstItem(payload, { investmentId, displayOrder: 0, req })
+          return createSection(payload, { investmentId, displayOrder: 0, req })
         },
         { skipRevalidation: true },
       )
       return { success: true, data: created }
     },
-    ['kosztorysSections', 'kosztorysItems'],
+    ['kosztorysSections'],
   )
 }
 
@@ -366,7 +351,7 @@ const insertSectionSchema = z.object({
 export async function insertSectionAction(
   anchorSectionId: number,
   dir: InsertDirectionT,
-): Promise<ActionResultT<CreatedSectionWithItemT>> {
+): Promise<ActionResultT<CreatedSectionT>> {
   return investmentAction(
     'insertSectionAction',
     { kind: 'section', id: anchorSectionId },
@@ -385,7 +370,7 @@ export async function insertSectionAction(
           )
           if (!slot) return null
           await shiftDisplayOrderFrom(txDb, 'kosztorys-sections', slot.ownerId, slot.at)
-          return createSectionWithFirstItem(payload, {
+          return createSection(payload, {
             investmentId: slot.ownerId,
             displayOrder: slot.at,
             req,
@@ -396,7 +381,7 @@ export async function insertSectionAction(
       if (!created) return { success: false, error: SECTION_MISSING }
       return { success: true, data: created }
     },
-    ['kosztorysSections', 'kosztorysItems'],
+    ['kosztorysSections'],
   )
 }
 
@@ -602,7 +587,6 @@ export async function renumberKosztorysOrderAction(
     ['kosztorysItems'],
   )
 }
-
 
 // A new etap is created WITH its plane — the picker is forced at creation (the add menu offers
 // „z narzędziami" / „bez narzędzi", never a plane-less „Etap"), so no new stage is ever null.

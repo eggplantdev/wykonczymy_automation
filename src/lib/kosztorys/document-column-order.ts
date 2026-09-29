@@ -1,5 +1,9 @@
-import { DOCUMENT_PINNED_COLUMN } from '@/lib/kosztorys/column-config'
 import { baseRanksFromKeys, orderColumnKeys, type ColumnRanksT } from '@/lib/table/column-order'
+
+// Always first and never hidden on both documents: a row with no „Opis prac" names nothing, and the
+// PDF's section total writes its „Razem — <sekcja>" label into the cells left of the money column,
+// which is only guaranteed to exist while this column leads.
+export const DOCUMENT_PINNED_COLUMN = 'description'
 
 function unpinned(keys: readonly string[]): string[] {
   return keys.filter((key) => key !== DOCUMENT_PINNED_COLUMN)

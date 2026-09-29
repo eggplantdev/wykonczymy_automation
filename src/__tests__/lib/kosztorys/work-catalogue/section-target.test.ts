@@ -1,20 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import type { SectionSubtotalT } from '@/lib/kosztorys/types'
+import type { SectionMetaT } from '@/lib/kosztorys/types'
 import {
   resolveSectionTarget,
   sectionNameOptions,
 } from '@/lib/kosztorys/work-catalogue/section-target'
 
-const section = (sectionId: number, sectionName: string): SectionSubtotalT => ({
+// A sekcja bez pozycji is a target too, and pointing the picker at it must not mint a same-named twin.
+const section = (sectionId: number, sectionName: string): SectionMetaT => ({
   sectionId,
   sectionName,
   sectionColor: null,
-  net: 0,
-  plannedNet: 0,
-  discount: 0,
-  share: 0,
-  completionRatio: null,
-  itemCount: 0,
 })
 
 const SECTIONS = [section(1, 'Łazienka'), section(2, 'Kuchnia')]

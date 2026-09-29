@@ -389,8 +389,8 @@ one place the feature-first rule is deliberately overridden, because `scripts/te
 discovers the DB-backed specs by grepping that tree. A colocated spec is simply never run by the
 pre-push gate. Inside it, mirror the source path **in full, every intermediate directory included** —
 `src/lib/db/x.ts` → `src/__tests__/lib/db/x.test.ts`, and a deep component path keeps its depth:
-`src/components/kosztorys/editor/dialogs/preset-picker-groups.ts` →
-`src/__tests__/components/kosztorys/editor/dialogs/preset-picker-groups.test.ts`. Never file a spec
+`src/components/kosztorys/editor/dialogs/preset/preset-picker-groups.ts` →
+`src/__tests__/components/kosztorys/editor/dialogs/preset/preset-picker-groups.test.ts`. Never file a spec
 under the mirror of a directory that isn't its source — a spec for a `components/**` module goes under
 `__tests__/components/**` even when its subject is kosztorys logic. Several specs may share one source
 file; they differ by filename, not by folder. The top level holds older specs that predate the
@@ -405,6 +405,10 @@ Don't hand-roll tests or pick the layer by feel — route to a skill. Always sta
 - **Protecting existing code** → `/10x-research` → `/10x-plan` → `/10x-implement`, anchored on the risk.
 - **Browser-level / multi-boundary risk** → **`/10x-e2e`** — Playwright harness lives in `e2e/` (`pnpm test:e2e`, isolated 5435 `db-test`); add browser specs there. A browser-level slice **owes** its E2E: author it at the review gate, or defer it into the **E2E backlog** — a Linear issue labelled `e2e-backlog` in project "Wykonczymy" (`slice-review-gate` Step 3 blocks archive until the E2E box is authored or filed with that issue id). "Deferred to `/10x-e2e`" in a commit message does **not** discharge it.
 - **A bug that slipped past the tests (test-driven debugging) — mandatory, not optional.** Reproduce it with a **failing test first**, then fix — never silently patch. Assert the **persisted / observable state, not the action's return value** — a success result can hide a failed write. The repro test stays as the regression guard for the path that had none.
+
+**Manual verification** (the `verify-manual-checks` pass, local or staging) reads its project profile
+from `context/reference/manual-verification.md` — safe DB, boot command, logins, staging deploy check,
+repo-specific browser traps.
 
 `context/foundation/test-plan.md` exists — anchor new tests on a risk it names rather than on "cover this file". For a risk it doesn't cover yet, extend it with `/10x-test-plan` before writing the tests.
 

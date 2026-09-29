@@ -5,7 +5,7 @@ import { fetchManagerDashboardData } from '@/lib/queries/dashboard'
 import { UserRegisterStats } from '@/components/dashboard/user-register-stats'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
-import { SECTION_IDS } from '@/lib/constants/sections'
+import { PAGE_TITLES, SECTION_IDS } from '@/lib/constants/sections'
 import { perfStart } from '@/lib/perf'
 
 type ManagerDashboardPropsT = {
@@ -28,7 +28,7 @@ export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT)
   console.log(`[PERF] ManagerDashboard fetchManagerDashboardData ${step()}ms`)
 
   return (
-    <PageWrapper title="Transakcje">
+    <PageWrapper title={PAGE_TITLES.transactions}>
       <UserRegisterStats cashRegisters={visibleRegisters} showAllRegisters={isAdminOrOwner} />
 
       {/* Recent transactions */}

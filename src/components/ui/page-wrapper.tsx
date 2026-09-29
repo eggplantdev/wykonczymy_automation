@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils/cn'
 
 type PageWrapperPropsT = {
-  title: string
+  title: ReactNode
   description?: string
   children?: ReactNode
   className?: string

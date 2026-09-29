@@ -14,11 +14,13 @@ export const fmtOrDash = (value: number | null) => (value == null ? '—' : fmt(
 // executed than offered).
 type ComputedCellToneT = 'muted' | 'danger'
 
+type ComputedCellFormatT = (value: number | null) => string
+
 type ComputedCellDataT = {
   compute: (r: KosztorysV2RowT) => number | null
   tone: ComputedCellToneT | ((r: KosztorysV2RowT) => ComputedCellToneT)
   emphasize?: boolean
-  format: (value: number | null) => string
+  format: ComputedCellFormatT
   // Per-row explanation, `null` on the rows that need none — a `danger` tone tells the user
   // something is wrong but not what, and a computed cell has nowhere else to say it.
   tip?: (r: KosztorysV2RowT) => string | null
@@ -54,16 +56,14 @@ function ComputedCell({ rowData, columnData }: CellProps<KosztorysV2RowT, Comput
   )
 }
 
+export type ComputedColumnStyleT = Partial<Pick<ComputedCellDataT, 'tone' | 'emphasize' | 'tip'>>
+
 export function computedColumn(
   id: string,
   titleNode: ReactNode,
   compute: (r: KosztorysV2RowT) => number | null,
-  style: {
-    tone?: ComputedCellToneT | ((r: KosztorysV2RowT) => ComputedCellToneT)
-    emphasize?: boolean
-    tip?: (r: KosztorysV2RowT) => string | null
-  } = {},
-  format: (value: number | null) => string = fmtOrDash,
+  style: ComputedColumnStyleT = {},
+  format: ComputedCellFormatT = fmtOrDash,
 ): Column<KosztorysV2RowT> {
   return {
     id,

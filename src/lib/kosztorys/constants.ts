@@ -42,8 +42,8 @@ export const DEFAULT_UNIT = 'szt'
 // rather than a blank line. Persisted server-side by createBlankItem and mirrored optimistically.
 export const DEFAULT_ITEM_DESCRIPTION = 'Nowa praca'
 
-// Placeholder name pre-filled on every new section — the single source. createSectionWithFirstItem
-// writes it server-side; the optimistic row mirrors it client-side.
+// Placeholder name pre-filled on every new section — the single source. createSection writes it
+// server-side; the optimistic section meta mirrors it client-side.
 export const DEFAULT_SECTION_NAME = 'Nowa sekcja'
 
 // The grid's identity column. Every synthetic row (the „Razem" band and both section bands) puts its

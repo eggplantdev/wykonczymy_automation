@@ -1,4 +1,4 @@
-import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
+import type { KosztorysV2RowT, SectionMetaT } from '@/lib/kosztorys/types'
 
 // Every synthetic grid row lives in the negative id namespace — the spacer (-2) and „Razem" (-1) at
 // the top of it, then one band per section: headers below -1000, footers below -1000000. That leaves
@@ -46,7 +46,7 @@ export function makeSpacerRow(): KosztorysV2RowT {
   return { id: SPACER_ROW_ID } as unknown as KosztorysV2RowT
 }
 
-export function makeSectionHeaderRow(row: KosztorysV2RowT): KosztorysV2RowT {
+export function makeSectionHeaderRow(row: SectionMetaT): KosztorysV2RowT {
   return {
     id: sectionHeaderRowId(row.sectionId),
     sectionId: row.sectionId,
@@ -55,7 +55,7 @@ export function makeSectionHeaderRow(row: KosztorysV2RowT): KosztorysV2RowT {
   } as unknown as KosztorysV2RowT
 }
 
-export function makeSectionFooterRow(row: KosztorysV2RowT): KosztorysV2RowT {
+export function makeSectionFooterRow(row: SectionMetaT): KosztorysV2RowT {
   return {
     id: sectionFooterRowId(row.sectionId),
     sectionId: row.sectionId,

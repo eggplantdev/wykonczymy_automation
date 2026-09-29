@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { KosztorysEditorBody } from '@/components/kosztorys/editor/kosztorys-editor-body'
-import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
+import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view/settings'
 import { diffVersions } from '@/lib/kosztorys/history/diff-versions'
 import { liveVersion } from '@/lib/kosztorys/history/snapshot-to-tree'
 import type { HistoryVersionT, InvestorHistoryT } from '@/lib/kosztorys/history/types'

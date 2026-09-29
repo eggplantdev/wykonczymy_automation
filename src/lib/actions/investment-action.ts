@@ -1,14 +1,15 @@
 import 'server-only'
 import type { Payload } from 'payload'
 import { protectedAction } from '@/lib/actions/run-action'
+import { expireCollectionsAfterResponse } from '@/lib/cache/revalidate'
 import { getDb } from '@/lib/db/get-db'
+import { markPresetEdited } from '@/lib/db/presets'
 import {
   investmentGateFor,
   investmentGateForRow,
   type GateTargetKindT,
   type InvestmentGateT,
 } from '@/lib/db/investment-gate'
-import { mirrorWorkshopPreset } from '@/lib/kosztorys/mirror-workshop-preset'
 import type { SessionUserT } from '@/types/auth'
 import type { ActionResultT } from '@/types/action'
 import type { CACHE_TAGS } from '@/lib/cache/tags'
@@ -50,7 +51,7 @@ export function investmentAction<TData = undefined>(
 
       // The two targets differ only in how the investment is NAMED — given outright, or reached
       // through the row's parent. Resolving both into one gate keeps the lock check, the handler and
-      // the mirror on a single tail: written as two branches, each of those was spelled twice.
+      // the szablon bookkeeping on a single tail: written as two branches, each of those was spelled twice.
       let gate: { investmentId: number } & InvestmentGateT
 
       if ('investmentId' in target) {
@@ -81,14 +82,13 @@ export function investmentAction<TData = undefined>(
 
       const result = await handler({ ...ctx, investmentId: gate.investmentId })
 
-      // The szablon autosave hangs HERE, not on the client, because this is the one point every one
-      // of the few dozen ways to change the tree passes through; a client debounce catches a handful
-      // of them.
-      if (result.success && gate.templatePresetId != null) {
-        await mirrorWorkshopPreset(ctx.payload, {
-          investmentId: gate.investmentId,
-          templatePresetId: gate.templatePresetId,
-        })
+      // HERE because this is the one point every one of the few dozen ways to change the tree passes
+      // through. Raw SQL, not `payload.update`: that would bump `updated_at`, the editor's remount
+      // token, and reset the owner's sort and filters on every cell. The pickers expire after the
+      // response, or every autosave would re-render the calling route (lessons.md, EX-597).
+      if (result.success && gate.isTemplate) {
+        await markPresetEdited(db, gate.investmentId)
+        expireCollectionsAfterResponse(['presets'])
       }
       return result
     },

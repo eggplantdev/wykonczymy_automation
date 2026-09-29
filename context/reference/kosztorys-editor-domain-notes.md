@@ -104,7 +104,7 @@ AF = T - V - W - X - Y - Z - AA…AE     bilans         = wartość − Σ etap�
 ```
 
 Appka jest z tym 1:1 w `V` (`stageValueForView`). **Nie** w `AF`: skoro `O` = Σ etapów, arkuszowe
-`AF` = `T − Σ(V:AE)` jest tożsamościowo zerem, więc „Pozostało" (`rowRemainingForView`) celowo
+`AF` = `T − Σ(V:AE)` jest tożsamościowo zerem, więc „Pozostało" (`rowRemainingForExecutedQty`) celowo
 kotwiczy do `S` (oferty), nie do `T` — patrz „Oferta i wykonanie" niżej. Potwierdza P9.
 
 ### BRAK sumy per etap — zweryfikowane
@@ -372,7 +372,12 @@ właśnie po to, żeby jej nie przepisywać.
   etapy), ale tylko kolumny swoich etapów. Etap bez rozliczenia albo etapy na dwóch rozliczeniach →
   menu blokuje link i PDF („Ustaw rozliczenie etapu" / „Etapy pracownika mają różne rozliczenia");
   pracownik bez etapów → link działa i mówi „Brak przypisanych etapów". Odwołanie tylko świadomie,
-  także po dezaktywacji pracownika.
+  także po dezaktywacji pracownika — i zawsze osiągalne: blokada wyłącza generowanie linku, nie jego
+  wyłączenie, a pracownik odpięty od wszystkich etapów zostaje w menu, dopóki ma żywy link (EX-888).
+  Token przeżywa blokadę, więc bez tego stary link po jej zdjęciu znów pokazałby ceny.
+  Automatycznego odwołania przy odpięciu ostatniego etapu świadomie nie ma: ponowne przypięcie
+  wymagałoby wtedy nowego linku. Kto ma żywy link, menu czyta przy każdym otwarciu, a nie z propsów
+  edytora. Dzięki temu po odwołaniu dane są świeże i nie ma przeciągania przez kontekst (EX-496).
 - **Stawka wynika z rozliczenia jego etapów** — nikt jej nie wybiera, a widok jest do niej
   przypięty: zła stawka to wyjątek, nie cicha naprawa. Ceny klienta, „Wartości netto" po cenie
   klienta, rabatu, brutto, mnożnika i cudzych etapów nie da się włączyć żadnym ustawieniem —
@@ -448,7 +453,7 @@ protokół jest dokumentem na papier, nie bytem w bazie.
 
   Konsekwencja architektoniczna: wartość wykonania zależy od etapów, więc `calc.ts` (czysta
   warstwa cenowa, `ViewPricingT` nie widzi etapów) **nie może** jej policzyć. Warstwa
-  rozliczeniowa — `rowValueForView`, `rowRemainingForView`, `sectionSubtotalsForView` — mieszka
+  rozliczeniowa — `rowValueForView`, `rowRemainingForExecutedQty`, `sectionSubtotalsForView` — mieszka
   w `v2-rows.ts`, które etapy zna. `rowPlannedNetForView` (oferta = z Przedmiaru) zostaje w
   `calc.ts`, bo jej ilością jest Przedmiar, a nie etapy.
 
@@ -742,16 +747,26 @@ Historia sprzed wdrożenia to najnowszy `auto` z każdego dnia, który przetrwa�
 **Stare reguły dla starych wierszy:** przeszłe `manual` nie stają się kamieniami milowymi, a przeszłe
 `auto` dalej przerzedzają się i wygasają pasmami.
 
+**Dlaczego jedna wersja z końca dnia**, a nie wersje 10-minutowe ani lista wybrana przez właściciela:
+wersje co 10 min pokazują stany w połowie edycji, a lista układana przez właściciela pozwalałaby mu
+wybierać, co inwestor może sprawdzić. Z tego samego powodu właściciel nie może ukryć dnia.
+
 **Retencja** (`gcSnapshots`): `auto`/`manual` bez zmian (30 dni wszystko → dzień do 120 → tydzień do
 365 → koniec). `daily` i `named` nie podlegają pasmom ani limitowi 365 dni: żyją, dopóki inwestycja
 jest Planowana lub Aktywna, a po Zakończonej jeszcze rok od `investments.completed_at` (ustawiane
 przy przejściu na Zakończoną, zerowane przy ponownym otwarciu). Zakończona bez `completed_at` trzyma
-historię — brak danych nigdy jej nie kasuje. Właściciel nie może ukryć dnia przed inwestorem.
+historię — brak danych nigdy jej nie kasuje. Planowana liczy się jako żywa, bo to negocjacje, kiedy
+zmiany oferty ważą najbardziej; `named` żyją tak samo, bo to je inwestor najbardziej chce odnaleźć
+(„Oferta podpisana"), a wcześniej ginęły po 365 dniach jak wszystko. Inwestycja w koszu nie potrzebuje
+osobnej reguły: nocny job jej nie obejmuje, a `selectPurgeableInvestmentIds` kasuje tylko te
+z nieużywanym kosztorysem — użyta inwestycja zachowuje `daily`/`named` do przywrócenia z kosza.
 
 **Porównywanie wersji odwraca decyzję S-06 „bez diffowania"** (`context/archive/2026-07-10-kosztorys-snapshots/`),
 ale tylko na potrzeby wyświetlenia — przywracanie działa jak przedtem. Pozycje dopasowuje się po id,
-a gdy zbiory id są rozłączne (przywrócenie albo „wczytaj szablon" nadaje nowe), po nazwie sekcji +
-opisie + j.m. Zmiana „Pomiaru z natury" liczy się per etap. Wersja zapisana, zanim migawka niosła
+a to, czego id nie sparowały (przywrócenie albo „wczytaj szablon" nadaje nowe), po nazwie sekcji +
+opisie + j.m. — per pozycja, więc przywrócenie z dopisanymi potem pozycjami też się paruje. Świadomie przyjęty skutek uboczny: usunięcie pozycji i dodanie takiej
+samej (sekcja + opis + j.m.) czyta się jako jedną zmienioną — tak samo widzi to inwestor na papierze.
+Zmiana „Pomiaru z natury" liczy się per etap. Wersja zapisana, zanim migawka niosła
 rabat, pokazuje „Rabat nieznany", nigdy „0,00 zł" — brak pola w payloadzie JEST tym znacznikiem.
 Kolumny i wiersze dnia z przeszłości idą za **dzisiejszymi** ustawieniami widoku klienta; panel
 „Podsumowanie" (wpłaty, bilans) jest wtedy ukryty, bo czyta dzisiejsze kwoty.
@@ -1467,8 +1482,9 @@ warunku jest migracją cudzych danych bez migracji.** Gdyby para „powyżej suf
 `overpriced-*`, zapisany ptaszek „pokaż tylko zepsute" stałby się „ukryj zepsute" — dokładne
 odwrócenie. Nowy warunek dostaje **nowe id**, stare zostają porzucone.
 
-**Warsztat to jedna inwestycja dla wszystkich szablonów**, a ten sam klucz jest kluczowany po
-`investmentId` — więc ptaszek ustawiony przy szablonie A jest wciąż włączony po otwarciu B.
+Ten sam klucz jest kluczowany po `investmentId`, a szablon jest własną inwestycją (EX-893), więc
+ptaszki każdego szablonu żyją osobno. Do 2026-09-29 wszystkie szablony dzieliły jeden warsztat
+i ptaszek z A był wciąż włączony po otwarciu B.
 
 **Bramka bywa ergonomią, nie niezmiennikiem — sprawdź, czy trwały stan już ją omija.** Bramka
 płaszczyzny w `offeredFilterConditions` wyglądała na ochronę spójności; nie była. Zaangażowany filtr
@@ -1478,10 +1494,10 @@ zadaniem (EX-714) była **długość listy**. Kasując taką bramkę, trzeba prz
 (tu: próg licznika), a nie to, na które wygląda.
 
 **„Lista kolumn jest zamknięta" nie znaczy „widok nic nie robi".** `WORKSHOP_VISIBLE_COLUMNS` mrozi
-kolumny warsztatu, ale `sort-value.ts` czyta `view` **poza** zestawem kolumn — warsztat sortował po
+kolumny szablonu, ale `sort-value.ts` czyta `view` **poza** zestawem kolumn — szablon sortował po
 stawce wykonawcy, wyświetlając cenę klienta. Pochodne widoku żyją poza listą kolumn.
 
-**`pickView` jest jedynym zapisującym klucz widoku** (`kosztorys-view:<mirrorId>`). Ukrycie samego
+**`pickView` jest jedynym zapisującym klucz widoku** (`kosztorys-view:<investmentId>`). Ukrycie samego
 przycisku zamraża na zawsze każdą przeglądarkę, która wcześniej stanęła na obcej płaszczyźnie —
 zdjęcie kontrolki i przypięcie płaszczyzny muszą iść w jednej zmianie. Przypięciu podlega
 `persistedView`, nie całe wyrażenie widoku: ulotna nakładka z „Problemów" ma zostać, bo to ona
@@ -1495,19 +1511,86 @@ przy każdej zmianie drzewa" musi siadać w akcji, nie w edytorze.
 pozycji, ustawienia i hurtowe zastąpienie. Wiszą już na nim undo/redo i bramka auto-snapshotu; każda
 kolejna funkcja oparta na nim dziedziczy tę dziurę.
 
-**Koszt jednego lustra szablonu — zmierzony (2026-09-22).** `kosztorys_presets.payload` to ~310–325 B
-tekstu JSON na pozycję (~58–65 B po TOAST); największe lokalne drzewo (379 pozycji) = 124 530 B.
-Kolumna ma `attstorage = 'x'`, więc **HOT update jest niemożliwy** — każdy zapis to nowy łańcuch
-TOAST. Jedno lustro ≈ 250 KB ruchu do Neona, a wklejka w 50 komórek bez dławika = 50 równoległych
-luster ≈ 12,5 MB na jedno Ctrl-V. Dlatego dławik siedzi w **bazie** (`mirrored_at`), nie w timerze:
-serverless nie utrzyma timera między requestami.
+**Odcięcie pól per budowa dzieje się przy odczycie szablonu, nie przy zapisie.**
+`serialize-preset.ts` zeruje przedmiar, pomiar z arkusza i rabat, i wyrzuca etapy z wykonaniem —
+za każdym razem, gdy szablon zasiewa nową inwestycję, jest „Wczytany" albo oddaje sekcje. Drzewo
+samego szablonu trzyma to, co w nim wpisano, więc zamknięta lista kolumn szablonu
+(`WORKSHOP_VISIBLE_COLUMNS`) nie jest kosmetyką: pole, którego nie da się wpisać, nie zniknie
+potem po cichu przy użyciu szablonu.
 
-**Serializacja szablonu jest stratna, a warsztat o tym nie mówi.** `serialize-preset.ts` zeruje
-`plannedQty`, `sheetMeasuredQty`, `discountType`, `discountValue`, `note` i wyrzuca całe `stages`
-i `progress` — a menu „Dodaj" w warsztacie oferuje „Etap — …" i pełną siatkę. Pod autozapisem strata
-przestaje być jednym świadomym kliknięciem i staje się ciągłym, niewidocznym rozjazdem. Zamknięta
-lista kolumn warsztatu jest odpowiedzią na to, nie kosmetyką.
+## Szablon jest inwestycją o statusie `szablon` (EX-893, 2026-09-29)
+
+Treść szablonu to **drzewo kosztorysu jego własnej inwestycji** — ta sama tabela sekcji i prac, te
+same akcje, te same „Wersje". Nie ma już biblioteki jsonb (`kosztorys_presets`), wspólnego warsztatu
+ani wskaźnika „który szablon jest teraz otwarty". Cała seria błędów tamtego modelu brała się z tego,
+że id warsztatu **zmieniało znaczenie w czasie**: każdy czytelnik (punkty przywracania, klucze
+localStorage, lustro, cache) musiał wiedzieć, który szablon warsztat akurat trzyma.
+
+- **Status jest nieodwołalny w obie strony.** Szablon rodzi się wyłącznie przez `createTemplate`,
+  a `guardTemplateStatus` odmawia nadania albo zdjęcia `szablon` przy edycji. Szablon nie trafia
+  do kosza — usuwa się go z listy szablonów, a kaskada zabiera drzewo i punkty przywracania.
+- **Nazwa jest tożsamością**: unikalna wśród szablonów bez względu na wielkość liter i spacje na
+  brzegach (`investments_szablon_name_idx`).
+- **„Ostatnia edycja" na liście to `content_edited_at`**, nie `updated_at` — ten drugi jest tokenem
+  remountu edytora, więc zapis w szablonie go nie rusza.
+- **Nadpisanie szablonu** („Zapisz jako szablon" → „Nadpisz istniejący") zostawia na nim punkt
+  „Przed nadpisaniem: <źródło>", więc jest odwracalne z jego „Wersji".
+
+**Wdrożenie na produkcję to dwie migracje, rozdzielone deployem.** `20260929_1_szablon_as_investment`
+(addytywna: zakłada szablony z jsonb, przepina punkty przywracania) idzie na Neona **przed** pushem
+kodu. `20260929_2_drop_kosztorys_presets` (destrukcyjna: warsztat, tabela, kolumny
+`template_preset_id`) — **dopiero gdy nowy deploy żyje**, bo stary kod czyta te kolumny w każdym
+`payload.find` na inwestycjach (42703). Między A a deployem nie edytuje się szablonów: stary kod pisze
+jeszcze do jsonb, a A już go przepisała. B rozpoznaje warsztat jako najstarszy `szablon` bez nazwy
+z biblioteki, nigdy po wskaźniku — usunięcie otwartego szablonu zeruje wskaźnik (tak było na prodzie
+29.09).
 
 **Kosztorysy zasiane z szablonu są kopiami zamrożonymi** — edycja szablonu nigdy nie rusza
 istniejących kosztorysów. To zdanie znosi jedyny argument, który mógłby bronić jawnego „Zapisz"
-w warsztacie.
+w szablonie.
+
+## Destylat: jedna wartość na kolumnę liczoną (EX-894, 2026-09-29)
+
+**Kolumna liczona ma jedną funkcję wartości — `column-values.ts` — i czytają ją wszyscy:** komórka,
+klucz sortowania, sumy kolumn, sumy sekcji i oba wydruki. Dryf komórka↔sortowanie zdarzył się dwa
+razy (EX-487, EX-894), za każdym razem, bo liczba była składana osobno w kilku miejscach. Test
+zgodności iteruje kolumny, które siatka **faktycznie składa**, a nie ręczną listę — lista sama by
+dryfowała, a nowa kolumna liczona jest objęta testem od dnia dodania.
+
+**Czego w niej nie ma, i dlaczego.** Kolumny edytowalne (cena, stawki, współczynniki, źródło ceny)
+nie mają złożonej wartości, która mogłaby się rozjechać — dzielą z sortowaniem prymitywy z `calc.ts`
+(`viewPrice`, `shownCoeff`, `priceSourceOf`). „Rozbieżność" też zostaje poza nią: jej komórka czyta
+cały obiekt `measureDiscrepancy`, sortowanie tylko `.net`.
+
+**Sumy etapów zostają na `stageAxisForView`**, bo wycenia wiersz raz dla wszystkich etapów naraz —
+przejście przez funkcję wartości kolumna po kolumnie byłoby O(|etapy|²) na wierszu. Zgodność z
+komórkami pilnuje test w `column-totals.test.ts`.
+
+**Widok pracownika nie ma sortowania**, więc klucz sortowania nigdy nie dostaje ilości wykonanej
+przez wszystkie ekipy i „Pozostało" pracownika nie da się po nim posortować. Dołożenie sortowania
+tam wymaga podania `executedQtyByItem` do `sortValueGetter`.
+
+## Sekcja bez pozycji (2026-09-29)
+
+**Sekcja istnieje niezależnie od swoich prac.**
+
+- „Dodaj → Sekcja" i „Wstaw sekcję powyżej/poniżej" tworzą samą belkę, bez pustej pracy w środku.
+- Usunięcie ostatniej pracy zostawia sekcję na miejscu. Kaskady „ostatnia praca zabiera sekcję" już
+  nie ma, a sekcję usuwa się tylko jawnie, z jej menu ⋯.
+- Właściciel dostał to wprost, bo tak działa jego arkusz: nagłówek sekcji stoi nad pustymi wierszami.
+
+**W edytorze to sama belka**: kropka, nazwa, „(0 poz.)" i przycisk „+ Dodaj pracę".
+
+- Nie ma strzałki, bo nie ma czego zwijać.
+- Klik w belkę nic nie robi.
+- „Dodaj pracę" jest też w menu ⋯ każdej sekcji.
+- Sekcja bez pozycji jest celem dla „Dodaj → Praca" i dla katalogu.
+
+**Znika tam, gdzie nie ma nic do pokazania.**
+
+- W edytorze znika, gdy działa wyszukiwarka albo filtr, bo nie pasuje do żadnego zapytania.
+- W każdym wyjściu do klienta: podglądzie, linku, „Wydruku oferty" i druku pracownika. Oferta
+  bez prac to szum.
+
+**Nazwa: „bez pozycji", nie „pusta".** „Pusta sekcja" znaczy już u właściciela sekcję, której
+prace nie mają wpisanych wartości. W kodzie to `itemless`.

@@ -3,6 +3,7 @@ import { requireAuth } from '@/lib/auth/require-auth'
 import { ADMIN_OR_OWNER_MANAGER_ROLES } from '@/lib/auth/roles'
 import { getWorkCatalogue } from '@/lib/queries/work-catalogue'
 import { PageWrapper } from '@/components/ui/page-wrapper'
+import { PAGE_TITLES } from '@/lib/constants/sections'
 import { WorkCatalogueDataTable } from '@/components/work-catalogue/work-catalogue-data-table'
 
 export default async function WorkCataloguePage() {
@@ -12,7 +13,7 @@ export default async function WorkCataloguePage() {
   const items = await getWorkCatalogue()
 
   return (
-    <PageWrapper title="Katalog prac">
+    <PageWrapper title={PAGE_TITLES.workCatalog}>
       <WorkCatalogueDataTable data={items} />
     </PageWrapper>
   )

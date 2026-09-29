@@ -1,1 +1,1 @@
-export { PageLoading as default } from '@/components/ui/loader/page-loading'
+export { DetailPageLoading as default } from '@/components/ui/loader/page-loading'

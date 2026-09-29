@@ -6,12 +6,10 @@ import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
-import { presetOpenHref } from '@/components/presets/preset-open-href'
 import { createEmptyPresetAction } from '@/lib/actions/kosztorys-presets'
 import { toastMessage } from '@/lib/utils/toast'
 
-// The other way into the warsztat: a szablon built from nothing rather than copied from a kosztorys.
-// It goes straight there on success, because an empty szablon sitting on the list is worth nothing
+// A szablon built from nothing rather than copied from a kosztorys. It opens straight away on success, because an empty szablon sitting on the list is worth nothing
 // until someone puts a sekcja in it.
 export function CreateEmptyPresetDialog() {
   const [open, setOpen] = useState(false)
@@ -26,10 +24,10 @@ export function CreateEmptyPresetDialog() {
       const res = await createEmptyPresetAction(name)
       if (!res.success) return toastMessage(res.error ?? 'Nie udało się założyć szablonu', 'error')
       // Before the navigation, never after: a dialog still mounted when the page under it is torn
-      // down stays on screen over the warsztat.
+      // down stays on screen over the szablon.
       setOpen(false)
       setName('')
-      router.push(presetOpenHref(res.data.id))
+      router.push(`/szablony/${res.data.id}`)
     })
   }
 
@@ -44,7 +42,7 @@ export function CreateEmptyPresetDialog() {
         open={open}
         onOpenChange={setOpen}
         title="Nowy szablon"
-        description="Zakłada pusty szablon i otwiera go w warsztacie, gdzie dokładasz sekcje i prace."
+        description="Zakłada pusty szablon i otwiera go — dokładasz w nim sekcje i prace."
         confirmLabel="Załóż"
         onConfirm={onConfirm}
         confirmDisabled={!canSave}

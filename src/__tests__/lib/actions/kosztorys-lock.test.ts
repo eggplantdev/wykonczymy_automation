@@ -91,7 +91,9 @@ describe.skipIf(!ENV_READY)('a completed investment refuses every kosztorys writ
     const section = await addSectionAction(investmentId)
     if (!section.success) throw new Error('fixture: addSectionAction failed')
     sectionId = section.data.section.id
-    itemId = section.data.item.id
+    const item = await addItemAction(sectionId)
+    if (!item.success) throw new Error('fixture: addItemAction failed')
+    itemId = item.data.id
 
     const stage = await addStageAction(investmentId, 'w_tools')
     if (!stage.success) throw new Error('fixture: addStageAction failed')
@@ -190,8 +192,8 @@ describe.skipIf(!ENV_READY)('a completed investment refuses every kosztorys writ
 
   it('still saves a preset from the locked kosztorys', async () => {
     const name = `${FIXTURE_PREFIX}preset-${Date.now()}`
-    expect((await savePresetAction(investmentId, name, 'new')).success).toBe(true)
-    await db.execute(sql`DELETE FROM kosztorys_presets WHERE name = ${name}`)
+    expect((await savePresetAction(investmentId, { mode: 'new', name })).success).toBe(true)
+    await db.execute(sql`DELETE FROM investments WHERE name = ${name}`)
   })
 })
 
@@ -217,7 +219,10 @@ describe.skipIf(!ENV_READY)('an active investment still writes (DB)', () => {
     const section = await addSectionAction(investmentId)
     expect(section.success).toBe(true)
     if (!section.success) return
-    expect(await updateItemFieldAction(section.data.item.id, { description: 'ok' })).toEqual({
+    const item = await addItemAction(section.data.section.id)
+    expect(item.success).toBe(true)
+    if (!item.success) return
+    expect(await updateItemFieldAction(item.data.id, { description: 'ok' })).toEqual({
       success: true,
     })
   })

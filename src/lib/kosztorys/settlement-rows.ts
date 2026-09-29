@@ -1,9 +1,4 @@
-import {
-  MONEY_TOLERANCE,
-  netForQtyForView,
-  rowPlannedNetForView,
-  type PriceViewT,
-} from '@/lib/kosztorys/calc'
+import { MONEY_TOLERANCE, netForQtyForView, type PriceViewT } from '@/lib/kosztorys/calc'
 import { stageAppliesToView } from '@/lib/kosztorys/settlement-view'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
@@ -48,7 +43,7 @@ export function rowValueForView(
 }
 
 /**
- * How much of the OFFER is left: the przedmiar's value minus what the stages have executed.
+ * How much of the OFFER is left: the przedmiar's value minus the value of `executedQty`.
  *
  * This is where we knowingly break parity with the sheet. Its AF anchors on T — the executed value —
  * and since O IS the stage sum, AF = T − Σ(V:AE) is identically zero: a dead column. Anchored on S
@@ -63,20 +58,10 @@ export function rowValueForView(
  * the rest of it — it shows on its own line, in red (EX-885). This reverses EX-686, which netted
  * overruns into the total after inv. 31 read +64 311 zł „left" on a kosztorys 23 602 zł past its
  * offer; the red row is now what says that.
- */
-export function rowRemainingForView(
-  row: KosztorysV2RowT,
-  stages: KosztorysStageT[],
-  view: PriceViewT,
-): number {
-  return netForQtyForView(row, row.plannedQty ?? 0, view) - rowValueForView(row, stages, view)
-}
-
-/**
- * The worker view's „Pozostało" (EX-875 design #9): the same przedmiar-anchored reading, but the
- * executed quantity is handed in rather than summed off `stages`. The worker's grid carries his etapy
- * only, and a pozycja another crew finished is not work still owed to anyone — so the quantity comes
- * from every etap of the investment, while the price stays his stawka.
+ *
+ * The quantity is handed in because the two readers count it differently: the owner's grid sums the
+ * view's etapy, the worker view (EX-875 design #9) sums every etap of the investment — a pozycja
+ * another crew finished is not work still owed to anyone — while the price stays his stawka.
  */
 export function rowRemainingForExecutedQty(
   row: KosztorysV2RowT,

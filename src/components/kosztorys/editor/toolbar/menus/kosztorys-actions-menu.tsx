@@ -23,14 +23,14 @@ import { KosztorysInvestorMenu } from '@/components/kosztorys/editor/toolbar/men
 import { KosztorysWorkersMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-workers-menu'
 import { SaveVersionDialog } from '@/components/kosztorys/editor/dialogs/save-version-dialog'
 import { ClearKosztorysDialog } from '@/components/kosztorys/editor/dialogs/clear-kosztorys-dialog'
-import { SavePresetDialog } from '@/components/kosztorys/editor/dialogs/save-preset-dialog'
-import { ReloadFromPresetDialog } from '@/components/kosztorys/editor/dialogs/reload-from-preset-dialog'
-import { SheetCompareDialog } from '@/components/kosztorys/editor/dialogs/sheet-compare-dialog'
-import { CatalogueCompareDialog } from '@/components/kosztorys/editor/dialogs/catalogue-compare-dialog'
-import { KosztorysClientViewDialog } from '@/components/kosztorys/editor/dialogs/kosztorys-client-view-dialog'
-import { KosztorysShareDialog } from '@/components/kosztorys/editor/dialogs/kosztorys-share-dialog'
-import { KosztorysWorkerShareDialog } from '@/components/kosztorys/editor/dialogs/kosztorys-worker-share-dialog'
-import { KosztorysWorkerViewDialog } from '@/components/kosztorys/editor/dialogs/kosztorys-worker-view-dialog'
+import { SavePresetDialog } from '@/components/kosztorys/editor/dialogs/preset/save-preset-dialog'
+import { ReloadFromPresetDialog } from '@/components/kosztorys/editor/dialogs/preset/reload-from-preset-dialog'
+import { SheetCompareDialog } from '@/components/kosztorys/editor/dialogs/sheet/sheet-compare-dialog'
+import { CatalogueCompareDialog } from '@/components/kosztorys/editor/dialogs/catalogue/catalogue-compare-dialog'
+import { KosztorysClientViewDialog } from '@/components/kosztorys/editor/dialogs/view-settings/kosztorys-client-view-dialog'
+import { KosztorysShareDialog } from '@/components/kosztorys/editor/dialogs/share/kosztorys-share-dialog'
+import { KosztorysWorkerShareDialog } from '@/components/kosztorys/editor/dialogs/share/kosztorys-worker-share-dialog'
+import { KosztorysWorkerViewDialog } from '@/components/kosztorys/editor/dialogs/view-settings/kosztorys-worker-view-dialog'
 import {
   AcceptanceProtocolDialog,
   type AcceptanceProtocolSourceT,
@@ -53,7 +53,7 @@ export function KosztorysActionsMenu({
     readOnly,
     fitRowsToContent,
     toggleFitRowsToContent,
-    isWorkshop,
+    isTemplate,
     noun,
   } = useKosztorysEditorContext()
 
@@ -62,7 +62,7 @@ export function KosztorysActionsMenu({
       {/* A szablon has no investor and no crew on its etapy, so the previews through their eyes and
           the share links have nobody to address here. The „Arkusz Google" section drops out by
           itself — `hasSheet` gates it, and the workbench has no sheet attached. */}
-      {!isWorkshop && (
+      {!isTemplate && (
         <>
           <KosztorysWorkersMenu />
           <KosztorysInvestorMenu hasProtocol={protocolSource != null} />

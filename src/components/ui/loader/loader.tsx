@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { FixedClientLoader } from './fixed-client-loader'
-import { Spinner } from './spinner'
+import { ContentLoading } from './page-loading'
 import { cn } from '@/lib/utils/cn'
 
 export type PropsT = {
@@ -23,7 +23,7 @@ export const Loader = ({
   const spinner = loaderComponent ? (
     <div className={`animate-bounce`}>{loaderComponent}</div>
   ) : (
-    <p className="animate-bounce text-3xl font-semibold lg:text-5xl">🚧</p>
+    <ContentLoading />
   )
 
   const comp = (

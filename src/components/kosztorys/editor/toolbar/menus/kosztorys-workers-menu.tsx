@@ -17,16 +17,18 @@ import {
   WorkerViewSettingsMenuItem,
 } from '@/components/kosztorys/editor/actions/worker-actions'
 import { WorkerPrintMenuItem } from '@/components/kosztorys/editor/actions/worker-print-action'
+import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { assignedWorkers } from '@/lib/kosztorys/worker-view/assigned-workers'
 import { WORKER_SCOPE_BLOCK_MESSAGES } from '@/lib/kosztorys/worker-view/labels'
 
 // Mounted inside KosztorysActionsProvider (see KosztorysActionsMenu), which its items and dialogs read from.
 export function KosztorysWorkersMenu() {
   const { stages, workers } = useKosztorysEditorContext()
-  const assigned = assignedWorkers(stages, workers)
+  const { worker } = useKosztorysActions()
+  const assigned = assignedWorkers(stages, workers, worker.linkHolders)
 
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={(open) => open && worker.requestLinkHolders()}>
       <DropdownMenuTrigger asChild>
         <Button size="sm" variant="outline">
           <Users />
@@ -51,7 +53,10 @@ export function KosztorysWorkersMenu() {
               <DropdownMenuLabel>{name}</DropdownMenuLabel>
               {blockReason && <p className="text-destructive px-2 pb-1 text-xs">{blockReason}</p>}
               <WorkerPreviewMenuItem target={{ id, name }} />
-              <WorkerShareMenuItem target={{ id, name }} disabled={blockReason !== undefined} />
+              <WorkerShareMenuItem
+                target={{ id, name, blockReason }}
+                disabled={blockReason !== undefined && !worker.linkHolders.has(id)}
+              />
               <WorkerPrintMenuItem workerId={id} disabled={blockReason !== undefined} />
               <DropdownMenuSeparator />
             </Fragment>

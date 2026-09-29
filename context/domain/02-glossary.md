@@ -156,7 +156,7 @@ Same reasoning closes the subcontractor figures: `remaining` and `dueNet`
 | cash settlement        | Rozliczenie mieszane | —                     | `computeCashSettlement` (`CashSettlementT`: `combinedNet`/`remainderNet`/`remainderGross`/`invoice`/`cash`/`total`) | B   | — (EX-536)                                                         | `summary-economics.ts:125`   |
 | deposits split         | Rozliczenie wpłat    | —                     | `depositsSplit` / `bucketDepositsByPlane` (`DepositsSplitT`: `paidNet`/`paidGross`/`remainingNet`/`remainingGross`) | B   | — (EX-536)                                                         | `summary-economics.ts:144`   |
 | deposit row            | Wpłata (wiersz)      | —                     | `DepositTransactionRowT`                                                                                            | B   | — (EX-536)                                                         | `types/reference-data.ts:63` |
-| the paying party       | Inwestor             | —                     | `client*` (see note)                                                                                                | B   | `clientView`, `clientPrice`, `view === 'client'` — ruled permanent | `client-view-settings.ts`    |
+| the paying party       | Inwestor             | —                     | `client*` (see note)                                                                                                | B   | `clientView`, `clientPrice`, `view === 'client'` — ruled permanent | `client-view/settings.ts`    |
 
 **`stage deposit` / `zaliczki` — retired (EX-536).** The deposit→etap tagging bridge is gone:
 `lib/kosztorys/zaliczki.ts` deleted, the `kosztorys_stage_id` column dropped from `transactions`

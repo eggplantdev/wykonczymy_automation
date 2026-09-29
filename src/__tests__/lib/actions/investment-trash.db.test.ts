@@ -5,7 +5,7 @@ import { getDb } from '@/lib/db/get-db'
 import { entityTag } from '@/lib/cache/tags'
 import { createTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
-import { acquireTestWorkshop } from '@/__tests__/helpers/workshop'
+import { createTestTemplate } from '@/__tests__/helpers/template'
 import { revalidateEntities } from '@/__tests__/stubs/cache-revalidate'
 
 // Asserted on persisted rows: a trash that reports success but never stamps `trashed_at`, or a
@@ -90,16 +90,16 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
     expect(await trashedAt(id)).toBeNull()
   })
 
-  it('refuses the szablon workshop', async () => {
-    const workshop = await acquireTestWorkshop(payload)
-    try {
-      const result = await actions.trashInvestmentAction(workshop.id)
+  it('refuses a szablon', async () => {
+    const template = await createTestTemplate(payload, `${PREFIX} szablon`)
 
-      expect(result).toEqual({ success: false, error: 'Warsztatu szablonów nie można usunąć.' })
-      expect(await trashedAt(workshop.id)).toBeNull()
-    } finally {
-      await workshop.release()
-    }
+    const result = await actions.trashInvestmentAction(template)
+
+    expect(result).toEqual({
+      success: false,
+      error: 'Szablonu nie przenosi się do kosza — usuń go z listy szablonów.',
+    })
+    expect(await trashedAt(template)).toBeNull()
   })
 
   it('refuses while a live transaction points at the investment, not a cancelled one', async () => {
@@ -126,7 +126,10 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
 
     expect((await actions.trashInvestmentAction(id)).success).toBe(true)
     expect(await trashedAt(id)).not.toBeNull()
-    expect(revalidateEntities).toHaveBeenCalledWith([entityTag('investment', id)], expect.anything())
+    expect(revalidateEntities).toHaveBeenCalledWith(
+      [entityTag('investment', id)],
+      expect.anything(),
+    )
 
     expect((await actions.restoreInvestmentAction(id)).success).toBe(true)
     expect(await trashedAt(id)).toBeNull()

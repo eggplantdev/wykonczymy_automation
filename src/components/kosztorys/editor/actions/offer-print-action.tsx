@@ -6,12 +6,10 @@ import { MenuItemBody } from '@/components/kosztorys/editor/actions/menu-item-bo
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { toastMessage } from '@/lib/utils/toast'
 import { openPrintWindow, writeAndPrint } from '@/lib/utils/print-window'
-import {
-  buildOfferPrintHtml,
-  offeredRows,
-} from '@/lib/kosztorys/offer-print/build-offer-print-html'
-import { resolveSectionFills } from '@/lib/kosztorys/offer-print/print-popup'
-import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view-settings'
+import { buildOfferPrintHtml } from '@/lib/kosztorys/print/offer'
+import { documentRows } from '@/lib/kosztorys/print/document-rows'
+import { resolveSectionFills } from '@/lib/kosztorys/print/section-fills'
+import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view/settings'
 import { readClientViewSettings } from '@/lib/queries/client-view-settings-endpoint'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 
@@ -54,7 +52,7 @@ export function GenerateOfferMenuItem() {
       // The `rows.length` guard above cannot answer this: the offer is the rows the CLIENT's hider
       // leaves standing, and a kosztorys whose every pozycja is empty on both axes survives it only
       // to print a branded header over an empty table.
-      if (offeredRows(rows, stages, settings).length === 0) {
+      if (documentRows(rows, stages, settings.hideEmptyRows).length === 0) {
         target.close()
         toastMessage('Brak pozycji do wydruku — wszystkie są puste', 'info')
         return

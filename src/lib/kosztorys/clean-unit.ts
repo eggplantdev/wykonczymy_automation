@@ -4,12 +4,12 @@ import { foldUnit } from '@/lib/kosztorys/sheet-import/columns'
 // Text cleanup for „j.m.", sibling of `cleanDescription`: every rule is idempotent, so the owner
 // can press the button as often as they like.
 
-// Transposed letters `foldUnit` can't reach (`klp`/`kpl` split one praca's katalog entry in two).
-// Only known transpositions — `n2`/`m2` and stray `2`/`180` are deliberate ilości, not typos, and
-// the katalog report is where those surface instead.
+// Typos `foldUnit` can't reach (`klp`/`kpl` split one praca's katalog entry in two). Only ones the
+// owner confirmed — a stray `2` or `180` is an ilość typed into the wrong column, not a j.m.
 const UNIT_TYPO_FIXES: Readonly<Record<string, string>> = {
   klp: 'kpl',
   kp: 'kpl',
+  n2: 'm2',
 }
 
 // Cleaning can't just return the fold: `foldUnit('m²')` is `m2`, but `m²` is what the combobox

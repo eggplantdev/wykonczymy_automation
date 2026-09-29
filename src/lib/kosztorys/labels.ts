@@ -1,4 +1,4 @@
-import type { PriceSourceT, ToolPlaneT } from '@/lib/kosztorys/types'
+import type { DiscountTypeT, PriceSourceT, ToolPlaneT } from '@/lib/kosztorys/types'
 
 export const PLANE_LABELS: Record<ToolPlaneT, string> = {
   w_tools: 'Z narzędziami (podwykonawca)',
@@ -9,6 +9,8 @@ export const RATE_LABELS: Record<ToolPlaneT, string> = {
   w_tools: `Stawka ${PLANE_LABELS.w_tools.toLowerCase()}`,
   own_tools: `Stawka ${PLANE_LABELS.own_tools.toLowerCase()}`,
 }
+
+export const DISCOUNT_TYPE_LABELS: Record<DiscountTypeT, string> = { percent: '%', amount: 'zł' }
 
 // The Polish names of the three crew-rate sources (`PRICE_SOURCES`). Labels name the SOURCE, not
 // the arithmetic.

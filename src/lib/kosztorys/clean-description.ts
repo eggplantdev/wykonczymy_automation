@@ -67,6 +67,7 @@ const ABBREVIATIONS = new Set([
   'np.',
   'ok.',
   'tj.',
+  'wg.',
   'm.in.',
   'szt.',
   'ul.',

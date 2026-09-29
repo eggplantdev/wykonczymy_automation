@@ -13,6 +13,7 @@ import { LeadsDataTable } from '@/components/leads/leads-data-table'
 import { RecipientListCard } from '@/components/notification-recipients/recipient-list-card'
 import { Description } from '@/components/ui/description'
 import { PageWrapper } from '@/components/ui/page-wrapper'
+import { PAGE_TITLES } from '@/lib/constants/sections'
 import type { PagePropsT } from '@/types/page'
 
 export default async function LeadsPage({ searchParams }: PagePropsT) {
@@ -44,7 +45,7 @@ export default async function LeadsPage({ searchParams }: PagePropsT) {
   const canEditRecipients = isAdminOrOwnerRole(session.user.role)
 
   return (
-    <PageWrapper title="Zgłoszenia">
+    <PageWrapper title={PAGE_TITLES.leads}>
       <Description>{leads.newCount} nowych</Description>
       <LeadsDataTable
         data={leads.rows}

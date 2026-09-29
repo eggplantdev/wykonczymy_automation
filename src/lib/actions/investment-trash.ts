@@ -45,7 +45,10 @@ export async function trashInvestmentAction(investmentId: number): Promise<Actio
           })
           if (!investment) return { success: false, error: MISSING_MESSAGE }
           if (investment.status === TEMPLATE_INVESTMENT_STATUS) {
-            return { success: false, error: 'Warsztatu szablonów nie można usunąć.' }
+            return {
+              success: false,
+              error: 'Szablonu nie przenosi się do kosza — usuń go z listy szablonów.',
+            }
           }
           if (investment.trashedAt) return { success: true }
 

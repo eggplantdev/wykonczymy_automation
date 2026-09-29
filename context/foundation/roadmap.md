@@ -45,7 +45,7 @@ top_blocker: none
 >   `Wartość przedmiaru netto/brutto`** (`rowPlannedNetForView`), rabat applied, so it differs from
 >   `Netto` by qty alone. New work, not parity — there was no sheet behaviour to copy.
 > - **The app's stage math is 1:1 with the sheet.** `T = O*Q-(Q*R)*O`, `V = D*$Q-(D*$Q*$R)`,
->   `AF = T-V-W-…-AE` — matching `stageValueForView` / `rowRemainingForView` exactly. `AF`
+>   `AF = T-V-W-…-AE` — matching `stageValueForView` / `rowRemainingForExecutedQty` exactly. `AF`
 >   ("pozostało do rozliczenia") is progress control, not a billing figure — confirms P9.
 > - **Section total** = `T4 = SUM(T5:T21)` on the section header row; `U4 = T4` mirrors it so the
 >   `Podsumowanie` tab's `SUMIF` can find it.
@@ -122,7 +122,7 @@ top_blocker: none
 > discount folds into S-01; robocizna netto/brutto into S-01/S-02. Full rationale + the POC
 > decisions + owner's four calls: reconciled into this roadmap (the `kosztorys-mvp` decision
 > register that captured them was deleted 2026-07-24 with no rescue needed — its content is this
-> file); raw POC docs at `context/archive/kosztorys-poc-in-app/`.
+> file); the raw POC docs were deleted 2026-09-29 as fully distilled (git history).
 
 ## Where work is tracked
 
@@ -229,7 +229,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Deploy / infra:** present — Vercel (build runs `generate:types` + `next build`; migrations applied deliberately, not by build).
 - **Observability:** partial — `perfStart()` perf logging only; no error tracking (`global-error.tsx` has no reporter). **Un-parked 2026-07-11 into O-01 `sentry-observability`** (still `proposed`, EX-433) — the original "out of scope for this phase" no longer holds.
 - **Test / E2E:** present — Vitest unit specs under `src/__tests__`; Playwright harness under `e2e/` (F-01 done). → band 4 grows coverage on top.
-- **In-app kosztorys editor:** building — kosztorys was Google-Sheet-backed (the `kosztoryses` collection holds a sheet id, UI is `iframe-view.tsx` + a one-way `INVESTMENT_EXPENSE` mirror + sync button — `src/collections/sheets.ts`, `src/components/sheets`). The in-app editor ships across band 1 (S-01+), porting the POC's tested core (`calc.ts`/`v2-rows.ts` + `kosztorys_sections/items/stages/stage_progress` schema). See `context/archive/kosztorys-poc-in-app/`.
+- **In-app kosztorys editor:** building — kosztorys was Google-Sheet-backed (the `kosztoryses` collection holds a sheet id, UI is `iframe-view.tsx` + a one-way `INVESTMENT_EXPENSE` mirror + sync button — `src/collections/sheets.ts`, `src/components/sheets`). The in-app editor ships across band 1 (S-01+), porting the POC's tested core (`calc.ts`/`v2-rows.ts` + `kosztorys_sections/items/stages/stage_progress` schema).
 
 ## Foundations
 
@@ -626,7 +626,7 @@ Kept for the record; pulled out of the numbered sequence because they carry no e
   woła natywny dialog druku, więc spec Playwrighta przypinałby albo `about:blank`, albo atrapę
   `window.print` — czyli nie to, co ma ochronę. Co jest testowalne — lista kolumn ograniczona
   sufitem `PREVIEW_VISIBLE_COLUMNS`, filtr klienta, sumy — ma spece jednostkowe
-  (`build-offer-print-html.test.ts`). Weryfikacja samego papieru zostaje manualna.
+  (`print/offer.test.ts`). Weryfikacja samego papieru zostaje manualna.
 - **Outcome (dropped, except the offer print):** the owner can print/PDF, CSV-export, or hand the
   client a live formula sheet of a kosztorys.
 - **Change ID:** kosztorys-export. **PRD refs:** FR-008 — **unimplemented**, deliberately, by this cut.
@@ -695,8 +695,7 @@ Kept for the record; pulled out of the numbered sequence because they carry no e
 
 - **CUT (2026-07-08):** pokoje are out of scope (owner, POC 2026-06-20). The POC's
   `kosztorys_rooms` table is a dead orphan — do not build. Room-measurement formulas were
-  recognised during the POC but parked; revive only via a new change (see
-  `context/archive/kosztorys-poc-in-app/`).
+  recognised during the POC but parked; revive only via a new change.
 - **Outcome (dropped):** a Manager+ user can manage room (pokoje) measurements per investment.
 - **Change ID:** kosztorys-rooms
 - **Was:** S-05 (pre-2026-07-10 numbering).
@@ -740,7 +739,7 @@ These are the PRD's open questions, carried verbatim. The user called the top bl
 under and are best resolved before that slice is planned. Per-slice context lives in each
 slice's Unknowns.
 
-**Resolved by the POC (2026-07-08)** — kept for the record; see `context/archive/kosztorys-poc-in-app/`:
+**Resolved by the POC (2026-07-08)** — kept for the record:
 
 1. ~~**Per-item discount (rabat).**~~ **Resolved:** two-mode discount (`percent`/`amount`), folded into S-01.
 2. ~~**VAT.**~~ **Resolved:** one rate per investment, netto entry / brutto computed — carved into **S-05**.

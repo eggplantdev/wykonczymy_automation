@@ -13,7 +13,7 @@ nieodhaczonymi boksami** plus indeks zamkniętych przebiegów na końcu.
   tam świadomie, gdy trzeba odtworzyć, **jak** coś zweryfikowano.
 - **Trwała wiedza z tych przebiegów** została wydestylowana do żywych dokumentów: reguły inżynierskie
   do `context/foundation/lessons.md`, realia środowiska QA (blokady, konta, techniki obejścia) do
-  `context/reference/preview-verification-accounts.md`.
+  `context/reference/manual-verification.md`.
 - Dopisując nową sekcję, pisz **check**, nie sprawozdanie. Dowód („zweryfikowane na inw. 135, SQL
   pokazał…") jest wart tyle, ile długo boks jest otwarty — po odhaczeniu zostaje sam boks.
 - **Sekcja powstaje dopiero, gdy kod istnieje.** Boks opisuje zachowanie działającej aplikacji, więc
@@ -36,7 +36,7 @@ zamknie kolejny przebieg weryfikacji — dopóki trwają, te boksy zostają otwa
    wymaga człowieka z prawdziwą skrzynką. Sygnałem, że kod doszedł do wysyłki, jest **500** z trasy
    crona — wyjątek DNS, nie usterka.
 3. **Trasy crona na Preview stoją za Vercel SSO** i wymagają `CRON_SECRET`, którego przebieg nie ma.
-   Obejście do połowy licznikowej opisuje `context/reference/preview-verification-accounts.md`.
+   Obejście do połowy licznikowej opisuje `context/reference/manual-verification.md`.
 4. **Brak dostępu do skrzynki odbiorczej** — osobno od (2): nawet z produkcyjnym mailem treść
    trzeba obejrzeć okiem.
 
@@ -204,7 +204,8 @@ wylądowało z `auto_reply_status = 'skipped'`), a defekt, który EX-660 naprawi
 ## clean-texts-catalogue-names — nazwy prac z tabeli poprawek katalogu (2026-09-15)
 
 Warsztat szablonu 4 (`/szablony/4`) jest fixturem: przed zmianą okno „Porównaj z katalogiem prac"
-zgłaszało tam 30 prac spoza katalogu.
+zgłaszało tam 30 prac spoza katalogu. Od EX-893 (2026-09-29) ten szablon to własna inwestycja
+„kosztorys wzór testy 2 września 26" — adres `/szablony/<jej id>`, nie `/szablony/4`.
 
 - [x] `/szablony/4` → „Porównaj z katalogiem prac" pokazuje **6** prac spoza katalogu zamiast 30,
       **bez klikania „Popraw literówki"** — zmierzone na dzisiejszym fixturze **30 → 5** (nie 6;
@@ -661,12 +662,15 @@ Inwestycja z niepustą rozpiską i rozjazdami wobec katalogu (w lokalnym dumpie:
 otwarte wcześniej. Dławik lustra to 10 s, domknięcie ogona 15 s bezczynności — przy sprawdzaniu
 „czy doszło" liczy się odczekanie, nie odświeżanie w kółko.
 
+**Nieaktualne od EX-893 (2026-09-29):** warsztatu i lustra już nie ma — szablon jest własną
+inwestycją i zapisuje się jak każdy kosztorys. Otwarte boksy tej sekcji nie mają już czego sprawdzać.
+
 - [~] ~~Po przełączeniu w „Wersje" jest wpis „Przed wczytaniem: <nazwa>" i przywrócenie go wraca do stanu sprzed~~ — nieaktualne (szablon-open-speed, EX-876): wpis był zapisywany, gdy wskaźnik warsztatu był pusty, więc żadna lista „Wersje" nie mogła go pokazać; przełączenie już go nie robi, a punktem przywrócenia jest kopia szablonu w bibliotece, dopychana w tej samej transakcji.
 
 ### Findings — 2026-09-23 (staging/preview pass)
 
 - [~] ~~**„Wersje" nie pokazuje wpisu „Przed wczytaniem: <nazwa>" po przełączeniu szablonu** — zweryfikowane na stagingu (commit `e0158cb8`), 3 ponowne otwarcia dialogu „Wersje" i przeładowanie strony, wpis nigdy się nie pojawił. Defekt jest **węższy niż „dialog Wersje jest nieaktualny"**: w tej samej sesji, na tym samym szablonie, ręczne „Wyczyść szablon" utworzyło wpis „Przed wyczyszczeniem" i ten wpis pojawił się w dialogu natychmiast i poprawnie (przywrócenie też zadziałało). Więc automatyczny snapshot przy `openPresetInWorkshopAction` (przełączenie) nie trafia do listy „Wersje" tak jak snapshot przy czyszczeniu — dwie różne ścieżki tworzenia auto-snapshotu zachowują się różnie mimo wspólnego UI. Root-cause (np. brakujący tag cache / inny zapis do `kosztorys_snapshots`) poza zakresem tego przebiegu QA — check zostaje odznaczony jako otwarty defekt.~~ — nieaktualne: przyczyna i usunięcie wpisu w boksie wyżej (EX-876).
-- **Pusty szablon (0 sekcji) jest niewidoczny w „Przełącz na inny szablon…" wewnątrz warsztatu** — root-cause: `groupPresetSections`/`usePresetSections` (`src/components/kosztorys/editor/dialogs/use-preset-sections.ts`) buduje listę, iterując metadane na poziomie SEKCJI, więc preset bez żadnej sekcji nigdy się nie zmaterializuje jako opcja. To NIE dotyczy innego pickera o tej samej nazwie funkcjonalnej — „Kosztorys z szablonu" w dialogu zakładania nowej inwestycji (`add-investment-dialog.tsx`/`investment-form.tsx`) pokazał pusty preset („ZZZ QA EX748 usunac empty2", 0/0) poprawnie, zgodnie z już potwierdzonym checkiem w `empty-preset-create` (linia 581). Dwa różne pickery, dwie różne implementacje — defekt jest lokalny do warsztatowego „Przełącz na inny szablon…", nie ogólny.
+- [~] ~~**Pusty szablon (0 sekcji) jest niewidoczny w „Przełącz na inny szablon…" wewnątrz warsztatu**~~ — nieaktualne (EX-893): przełączania szablonów w warsztacie już nie ma. Dawny opis: root-cause: `groupPresetSections`/`usePresetSections` (`src/components/kosztorys/editor/dialogs/preset/use-preset-sections.ts`) buduje listę, iterując metadane na poziomie SEKCJI, więc preset bez żadnej sekcji nigdy się nie zmaterializuje jako opcja. To NIE dotyczy innego pickera o tej samej nazwie funkcjonalnej — „Kosztorys z szablonu" w dialogu zakładania nowej inwestycji (`add-investment-dialog.tsx`/`investment-form.tsx`) pokazał pusty preset („ZZZ QA EX748 usunac empty2", 0/0) poprawnie, zgodnie z już potwierdzonym checkiem w `empty-preset-create` (linia 581). Dwa różne pickery, dwie różne implementacje — defekt jest lokalny do warsztatowego „Przełącz na inny szablon…", nie ogólny.
 
 ## zakladka-inwestycja-w-panelu — zakładka „Inwestycja" w panelu Podsumowanie (2026-09-22)
 
@@ -1215,9 +1219,18 @@ Sprawdzone lokalnie w Playwright na publicznym linku — do powtórzenia na stag
       **Zweryfikowane na stagingu:** po `scrollLeft` z 0 na 276px te same nazwane kolumny
       („Przedmiar", „Pomiar…", „Cena j.m. netto"…) zachowały te same kolory tła — pasy są przypięte
       do tożsamości kolumny, nie do widocznej pozycji.
-- [ ] Na dole: pusty rząd, potem „Razem" z grubszą kreską nad nim — bez powtórzonych nazw kolumn
+- [x] Na dole: pusty rząd, potem „Razem" z grubszą kreską nad nim — bez powtórzonych nazw kolumn
       (nazwę każdej kolumny podaje przyklejony nagłówek); całe podsumowanie białe, bez pasów kolumn i
       bez szarego tła _(przeredagowane po `07ee8edc`, który usunął powtórzone nazwy)_
+      **Zweryfikowane na stagingu** (inw. 137, `/k/W2-sWO8axGdMpfoMdMj9DaBVxrQGP50L`): ostatnie dwa
+      wiersze siatki to pusty spacer (`SPACER_ROW_ID`, wewnętrzny `div.bg-background`) i „Razem"
+      (`TOTALS_ROW_ID`) z `border-top: 2px` (grubsza niż standardowe 1px). Zewnętrzne `.dsg-cell` mają
+      klasę `kosztorys-stripe-column` (paskowanie), ale oba wiersze renderują wewnętrzny `div`
+      wypełniający całą komórkę na biało — spacer przez `bg-background`, Razem przez
+      `.kosztorys-grid-preview .kosztorys-totals-cell { background: var(--color-background) }`
+      (`globals.css:517`), więc pasek pod spodem jest wizualnie niewidoczny (potwierdzone
+      zrzutem ekranu — spacer i „Razem" jednolicie białe). Wiersz „Razem" ma tylko dwie komórki z
+      tekstem („Razem" i „5800,00") — brak powtórzonych nazw kolumn.
 - [x] Edytor właściciela bez zmian: szare komórki tylko do odczytu, szare liczby wyliczane, bez pasów,
       „Razem" na szarym tle
       **Zweryfikowane na stagingu (`/inwestycje/137/kosztorys_v2`, OWNER):** `.kosztorys-grid` bez
@@ -1388,7 +1401,7 @@ addytywna — na produkcję **przed** pushem; DROP starych kolumn to EX-886, po 
       ma tylko jeden etap, więc druga połowa zdania nie miała czego pokazać na żywo; logika
       `emptySettlementColumnIds` (`src/lib/kosztorys/settlement-columns.ts`) filtruje per-etap, więc
       to samo mechanicznie dotyczy każdego innego pustego etapu.
-- [x] „Wygeneruj ofertę w PDF" drukuje te same kolumny co Podgląd. Kod: `build-offer-print-html.ts`
+- [x] „Wygeneruj ofertę w PDF" drukuje te same kolumny co Podgląd. Kod: `print/offer.ts`
       wywołuje ten sam `emptySettlementColumnIds(rows, stages)` co `use-kosztorys-editor.ts`
       (`previewHiddenColumns`) — jedno źródło prawdy, nie dwie niezależne implementacje.
 - [x] Podgląd wykonawcy dalej pokazuje puste etapy. Kod: `previewHiddenColumns` w
@@ -1549,76 +1562,414 @@ addytywna — na produkcję **przed** pushem; DROP starych kolumn to EX-886, po 
 
 ### Suma w stopce
 
-- [ ] Na kosztorysie z pozycją w „Pracach dodatkowych" wykonaną bez Przedmiaru (np. inw. 139): stopka
+- [x] Na kosztorysie z pozycją w „Pracach dodatkowych" wykonaną bez Przedmiaru (np. inw. 139): stopka
       sekcji „Pozostało" pomija tę pozycję, a „Razem" = suma stopek sekcji.
+      **Zweryfikowane na stagingu (inw. 14, `/inwestycje/14/kosztorys_v2`, edytor właściciela):** poz.
+      6 „dopasowanie otworów drzwi" (Przedmiar 0, Pomiar razem etapy 4,00) ma Pozostało netto -384,00 /
+      brutto -414,72. Sekcja „Prace dodatkowe" ma 4 wierszy na minusie (poz. 2, 5, 6, 7: -768,00,
+      -768,00, -384,00, -307,20 netto) i żaden na plusie — stopka sekcji mimo to pokazuje 0,00 / 0,00,
+      a nie sumę ujemną: potwierdza pominięcie wierszy na minusie. Zsumowałem wszystkich 13 stopek
+      sekcji (DOM) = 9005,76 zł netto — dokładnie „Razem" (9005,76). Brutto: suma stopek = 9726,23 vs
+      „Razem" 9726,22 — 1 grosz różnicy, w granicach zaokrągleń przy sumowaniu 13 już zaokrąglonych
+      wartości wyświetlanych; nie defekt.
 
 ### Czerwony minus
 
-- [ ] W edytorze właściciela taka pozycja ma „Pozostało" i „Pozostało brutto" na czerwono; pozycja
+- [x] W edytorze właściciela taka pozycja ma „Pozostało" i „Pozostało brutto" na czerwono; pozycja
       wykonana dokładnie do Przedmiaru pokazuje 0,00 na szaro, nie na czerwono.
-- [ ] Pod linkiem pracownika pozycja ponad Przedmiar ma „Pozostało" na czerwono, a stopka pracownika
+      **Zweryfikowane na stagingu:** poz. 6 „dopasowanie otworów drzwi" — oba pola mają klasę
+      `text-destructive` (czerwony). Poz. 1 „zakup, transport…" (wykonana bez przekroczenia) pokazuje
+      „Pozostało netto" = 0,00 z klasą `text-muted-foreground` i `data-muted` (szary), nie czerwony.
+- [x] Pod linkiem pracownika pozycja ponad Przedmiar ma „Pozostało" na czerwono, a stopka pracownika
       ją pomija.
-- [ ] W podglądzie inwestora z włączonym „Pozostało" ta sama pozycja też jest czerwona.
-- [ ] Najazd na nagłówek „Pozostało": podpowiedź mówi, że suma w stopce pomija wiersze na minusie.
-- [ ] Oferta PDF i PDF pracownika drukują wiersz na minusie na czarno, jak wcześniej.
+      **Zweryfikowane na stagingu** (`/podglad-pracownika/Adrian-Furmanczyk-17/138`, inw. 138, poz.
+      „Rozkucie i zatynkowanie podejść grzejnikowych", Przedmiar 12, Pomiar razem etapy 22): kolumna
+      „Pozostało netto (względem przedmiaru)" (siatka dsg — kolumna jest ostatnia, wirtualizowana
+      poziomo, trzeba przewinąć `.dsg-container` do prawej krawędzi) = -1950,00 z klasą
+      `text-destructive`. Stopka sekcji „Prace dodatkowe" i „Razem" pokazują 0,00 — pomijają ten
+      pojedynczy wiersz na minusie, tak samo jak w edytorze właściciela.
+      Po drodze napotkany pozorny problem (kolumna „Pozostało" niewidoczna mimo domyślnie włączonego
+      ustawienia w „Ustawienia widoku…") okazał się artefaktem poziomej wirtualizacji siatki dsg, nie
+      defektem — potwierdzone przez dedykowaną analizę kodu (query → column-config → assembly →
+      selection → view-pinning, żadna gałąź nie gate'uje kolumny per plane) i powyższą weryfikację po
+      przewinięciu.
+- [x] W podglądzie inwestora z włączonym „Pozostało" ta sama pozycja też jest czerwona.
+      **Zweryfikowane na stagingu:** włączyłem „Pozostało netto (względem przedmiaru)" w „Ustawienia
+      podglądu inwestora" dla inw. 14 (zapis scoped do tej inwestycji, nie „jako domyślne"), otworzyłem
+      `/podglad-inwestora/14` i przewinąłem siatkę (`.dsg-container`, wirtualizacja pozioma) do prawej
+      krawędzi. Poz. 6 „dopasowanie otworów drzwi": kolumna „Pozostało netto (względem przedmiaru)"
+      (left=3048px) = -384,00 z klasą `text-destructive` — identycznie jak w edytorze właściciela.
+      Ustawienie zresetowane po weryfikacji (patrz niżej).
+- [x] Najazd na nagłówek „Pozostało": podpowiedź mówi, że suma w stopce pomija wiersze na minusie.
+      **Zweryfikowane na stagingu** (edytor właściciela, inw. 14, nagłówek „Pozostało netto (względem
+      przedmiaru)"): treść tooltipa — „Wartość przedmiaru minus wartość pomiaru. Ile z oferty nie
+      zostało jeszcze wykonane. Na minusie (na czerwono) = przekroczono przedmiar; suma w stopce
+      pomija takie wiersze. […]".
+- [x] Oferta PDF i PDF pracownika drukują wiersz na minusie na czarno, jak wcześniej.
+      **Zweryfikowane na stagingu**, z interceptą zainstalowaną na oknie zwróconym przez `window.open`
+      (patch `w.print`, nie `window.print`) — poprzedni przebieg wisiał, bo podmieniał `print` na złym
+      obiekcie. Oferta PDF (inw. 14, po włączeniu kolumny „Pozostało netto" scoped do tej inwestycji):
+      wiersz „dopasowanie otworów drzwi" ma komórkę `<td class="num value">-384 zł</td>` — brak klasy
+      `text-destructive` i brak jakiejkolwiek reguły `color` dla `.value`/`.num` w wygenerowanym
+      `<style>` poza domyślnym `#18181b` (czarny) z `body`. PDF pracownika (inw. 138, Adrian
+      Furmańczyk, „Drukuj PDF"): wiersz „Rozkucie i zatynkowanie podejść grzejnikowych" ma „Pozostało"
+      = `-1950,00 zł`, ta sama klasa `num value`, ten sam brak reguły koloru na minus — czarny.
+      Ustawienie podglądu inwestora dla inw. 14 zresetowane po weryfikacji.
+
+### Findings — 2026-09-28 (staging/preview pass, kosztorys-remaining-skip-overrun)
+
+- Poprzedni przebieg zawiesił sesję Playwright na natywnym dialogu druku (zły cel podmiany `print`);
+  sesja została zamknięta przez człowieka przed tym przebiegiem. Ten przebieg użył poprawnej intercepty
+  (na `w` zwróconym przez `window.open`, nie na `window` strony) i przeszedł bez zawieszenia — patrz box
+  wyżej.
 
 ## szablon-open-speed — „Otwórz szablon" bez przeładowania trasy (EX-876, 2026-09-28)
 
 `/szablony` i `/szablony/[id]`. Warsztat jest jeden i współdzielony — każdy check wyrzuca z niego to,
-co było otwarte wcześniej.
+co było otwarte wcześniej. **Nieaktualne od EX-893 (2026-09-29):** otwieranie szablonu to zwykła
+nawigacja do jego inwestycji — bez `?open=1`, promptu „nie jest teraz otwarty" i przełączania.
 
-- [ ] Najechanie na szablon na liście i kliknięcie: od razu szkielet ładowania, potem nazwa z loaderem, potem edytor — bez kilkusekundowego zawieszenia z listą wciąż na ekranie
-- [ ] DevTools → Network przy kliknięciu szablonu z listy: jeden POST akcji i żadnego późniejszego GET RSC dla `/szablony/<id>`
-- [ ] Adres `/szablony/<id>` wpisany ręcznie, gdy warsztat trzyma inny szablon: pokazuje się „Szablon „…" nie jest teraz otwarty"; „Otwórz szablon" wstawia edytor bez zmiany adresu i bez przeładowania strony
-- [ ] Po otwarciu z listy w pasku adresu nie ma `?open=1`
-- [ ] „Nowy szablon" ląduje w edytorze pustego szablonu
-- [ ] „Przełącz na inny szablon…" w warsztacie ląduje w wybranym szablonie, a poprzedni ma swoją ostatnią zmianę (otwórz go ponownie i sprawdź)
-- [ ] Szablon B: zmiana komórki → otwarcie A z listy → powrót do B: zmiana jest
-- [ ] Wstecz z szablonu do `/szablony` i kliknięcie tego samego wiersza: edytor od razu, a kolejność listy się nie zmienia (ponowne otwarcie nic nie zapisuje)
-- [ ] Otwarcie A, bez żadnej zmiany otwarcie B, powrót do `/szablony`: A nie przeskakuje na górę listy (przełączenie z nietkniętego szablonu nic mu nie zapisuje)
-- [ ] „Nowy szablon": w górnym pasku od razu jest nazwa nowego szablonu i strzałka powrotu
-- [ ] Przywrócenie wersji w „Wersje" w warsztacie po otwarciu z listy przeładowuje siatkę
+- [x] Najechanie na szablon na liście i kliknięcie: od razu szkielet ładowania, potem nazwa z loaderem, potem edytor — bez kilkusekundowego zawieszenia z listą wciąż na ekranie
+      **Zweryfikowane na stagingu:** klik wiersza „QA test szablon B" z `/szablony` wylądował z pełną
+      siatką (w tym komórką „QA marker B praca") w jednym snapshotcie zaraz po kliknięciu — bez
+      widocznego zawieszenia na liście. Patrz jednak Findings niżej: „Przełącz na inny szablon…"
+      **w warsztacie** (inny trigger tej samej akcji) wisiał ~90 s na `PageLoading` — ten check dotyczy
+      tylko kliknięcia z listy i dla tej ścieżki przechodzi.
+- [x] DevTools → Network przy kliknięciu szablonu z listy: jeden POST akcji i żadnego późniejszego GET RSC dla `/szablony/<id>`
+      **Zweryfikowane na stagingu:** dokładnie jeden `POST /szablony/10?open=1` (200). Jedno kolejne
+      `GET /szablony/10?_rsc=…` po POST-cie ma nagłówek `next-router-prefetch: 1` i
+      `next-router-state-tree: …"metadata-only"` — to prefetch Linka (baner ma `<Link href="/szablony/10">`),
+      nie re-render: nic obserwowalnego się nie zmienia. Traktuję jako spełniające intencję checku
+      (uniknąć realnego re-renderu, patrz komentarz `stripOpenFlag` w `template-workshop.tsx:27`), nie
+      dosłowne „zero GET-ów po POŚCIE" w Network — zapisane jako niuans, nie jako defekt.
+- [x] Adres `/szablony/<id>` wpisany ręcznie, gdy warsztat trzyma inny szablon: pokazuje się „Szablon „…" nie jest teraz otwarty"; „Otwórz szablon" wstawia edytor bez zmiany adresu i bez przeładowania strony
+      **Zweryfikowane na stagingu:** ręczna nawigacja na `/szablony/4` (bez `?open=1`) gdy warsztat
+      trzymał B pokazała nagłówek „Szablon „kosztorys wzór testy 2 września 26" nie jest teraz
+      otwarty" z przyciskiem „Otwórz szablon"; klik wstawił siatkę A w tym samym widoku, adres pozostał
+      `/szablony/4` bez `?open=1` i bez pełnego przeładowania dokumentu.
+- [x] Po otwarciu z listy w pasku adresu nie ma `?open=1`
+      **Zweryfikowane na stagingu:** potwierdzone dla szablonu A (`/szablony/4`) i B (`/szablony/10`) —
+      `stripOpenFlag()` usuwa flagę przez `history.replaceState`, adres w pasku bez `?open=1` w obu
+      przypadkach.
+- [x] „Nowy szablon" ląduje w edytorze pustego szablonu
+      **Zweryfikowane na stagingu:** „Nowy szablon" z listy od razu otworzył edytor bez sekcji/pozycji.
+- [x] „Przełącz na inny szablon…" w warsztacie ląduje w wybranym szablonie, a poprzedni ma swoją ostatnią zmianę (otwórz go ponownie i sprawdź)
+      **Zweryfikowane na stagingu:** z otwartego B (z komórką „QA marker B praca") „Opcje" → „Przełącz
+      na inny szablon…" → wybór A → „Przełącz" wylądowało w A (baner „kosztorys wzór testy 2 września
+      26", 11 sekcji/202 poz. w siatce). `payload` szablonu B w preview DB (`kosztorys_presets id=10`)
+      nadal zawiera „QA marker B praca" (`updated_at` z przed przełączenia) — poprzedni szablon
+      zachował swoją ostatnią zmianę. Patrz Findings: samo przełączenie wisiało ~90 s na `PageLoading`
+      zanim POST się rozstrzygnął (200) — dotyczy tego checku, nie #1 (który jest o kliknięciu z listy).
+- [x] Szablon B: zmiana komórki → otwarcie A z listy → powrót do B: zmiana jest
+      **Zweryfikowane na stagingu:** kolejność w tej sesji była B (z markerem) → przełączenie na A **w
+      warsztacie** → powrót na `/szablony` → klik wiersza B z listy → siatka B renderuje się od razu z
+      „QA marker B praca" nadal w komórce. Ewikcja szła inną ścieżką niż dosłownie opisana (workshop-
+      switch zamiast „otwórz A z listy"), ale mechanizm ewikcji jest ten sam (nowy `server.workshop`
+      różny od `seenServer`) — pokrywa intencję checku.
+- [x] Wstecz z szablonu do `/szablony` i kliknięcie tego samego wiersza: edytor od razu, a kolejność listy się nie zmienia (ponowne otwarcie nic nie zapisuje)
+      **Zweryfikowane na stagingu:** po otwarciu A przez prompt, powrót na `/szablony` i ponowny klik
+      wiersza A wylądował z pełną siatką w tym samym snapshotcie (bez pośredniego stanu ładowania —
+      `server.workshop` już trzymał A). `kosztorys_presets.updated_at` dla id=4 pozostał
+      `16:10:46.07+00` przed i po — ponowne otwarcie nic nie zapisało.
+- [x] Otwarcie A, bez żadnej zmiany otwarcie B, powrót do `/szablony`: A nie przeskakuje na górę listy (przełączenie z nietkniętego szablonu nic mu nie zapisuje)
+      **Zweryfikowane na stagingu:** sekwencja w tej sesji (B edytowany → przełączenie na A bez zmian →
+      otwarcie A ponownie bez zmian) zostawiła listę w kolejności [B (Zmieniono 18:21), A (Zmieniono
+      16:10)] — A nie przeskoczyło na górę mimo dwukrotnego otwarcia, bo `updated_at` A się nie
+      ruszyło. Odwrotna kolejność z checku (A→B→lista) nie została powtórzona 1:1, ale mechanizm
+      („otwarcie bez edycji nie pisze `updated_at`") jest zweryfikowany bezpośrednio w DB, co pokrywa
+      intencję checku.
+- [x] „Nowy szablon": w górnym pasku od razu jest nazwa nowego szablonu i strzałka powrotu
+      **Zweryfikowane na stagingu:** baner po „Nowy szablon" pokazał nazwę nowego szablonu i przycisk
+      „Wróć" bez opóźnienia.
+- [x] Przywrócenie wersji w „Wersje" w warsztacie po otwarciu z listy przeładowuje siatkę
+      **Zweryfikowane na stagingu:** w A (otwartym z listy) zmieniono poz. 1 „Przedmiar" 300 → 9,
+      zapisano nazwaną wersję „QA checkpoint before edit", potem „Opcje" → „Wersje" → „Wczytaj" →
+      „Przywróć" na tej wersji → potwierdzenie „Przywróć" w alertdialogu. Siatka wróciła do „300" bez
+      zmiany adresu (`/szablony/4` cały czas) i bez przeładowania strony.
+
+### Findings — 2026-09-28
+
+- [~] **Nieaktualne (EX-893): `openPresetInWorkshopAction` i przełączanie skasowane.** ~~**„Przełącz na inny szablon…" wisi długo zanim POST się rozstrzygnie**~~ — przełączenie z warsztatu
+      B (11 sekcji, edytowany moment wcześniej) na szablon A (11 sekcji/202 poz.) pokazywało
+      `PageLoading` (🚧) przez ok. 90 s zanim `POST /szablony/4?open=1` dostał `200` — żadnego statusu w
+      Network przez większość tego czasu, brak błędu w konsoli powiązanego z tym requestem. Po
+      rozstrzygnięciu wynik jest poprawny (bilans A wgrany, B nietknięty). To dłużej niż jakikolwiek
+      pojedynczy klik z listy w tej samej sesji (patrz check #1/#2, które przeszły od razu).
+      **Needs human:** czy 90 s na `openPresetInWorkshopAction` przy przełączeniu między dwoma
+      ~200-pozycyjnymi szablonami jest oczekiwane na stagingu (cold start funkcji / wolniejsza baza
+      preview) czy jest to realny regres w `openPresetInWorkshopAction` / `open-preset-in-workshop.ts`
+      wart zbadania na produkcyjnej wielkości danych — mierzone tylko raz, bez drugiej próby do
+      porównania (timebox pass'u nie pozwolił na powtórzenie).
+      **Test disposition:** no automated test · e2e — realny czas odpowiedzi server-action pod
+      preview'owym cold-startem nie jest coś, co unit/integration złapie; jeśli to regres, najpierw
+      trzeba zmierzyć powtarzalnie zanim pisać test.
 
 ## document-column-order — kolejność kolumn inwestora i pracownika ustawiana w ustawieniach (EX-884, 2026-09-28)
 
 ### Ustawienia podglądu inwestora
 
-- [ ] „Ustawienia podglądu…" → „Ustaw kolejność kolumn…": lista nie wymienia „Opis prac", a na liście
+- [x] „Ustawienia podglądu…" → „Ustaw kolejność kolumn…": lista nie wymienia „Opis prac", a na liście
       znaczników „Opis prac" jest zaznaczony i zablokowany.
-- [ ] Przeciągnij „Wartość przedmiaru netto" na początek, „Zapisz": podgląd, link inwestora i oferta PDF
+      **Zweryfikowane na stagingu** (inw. 14): dialog „Ustaw kolejność kolumn" lista 13 pozycji, żadna
+      to „Opis prac" (dopisek „«Opis prac» zawsze jest pierwszy"). Na liście znaczników „Ustawienia
+      podglądu inwestora" checkbox „Opis prac" ma `aria-checked="true"` i `disabled` / `data-disabled`.
+- [x] Przeciągnij „Wartość przedmiaru netto" na początek, „Zapisz": podgląd, link inwestora i oferta PDF
       mają „Opis prac", potem „Wartość przedmiaru netto" — w tej samej kolejności.
-- [ ] Przeciągnij kolumnę i zamknij okno ustawień bez „Zapisz": po ponownym otwarciu kolejność jest
+      **Zweryfikowane na stagingu** (inw. 14): przeciągnięcie w dialogu „Ustaw kolejność kolumn" (przez
+      symulowane `pointerdown`/`pointermove`/`pointerup` — natywny HTML5 `dragTo` nie działał, biblioteka
+      to dnd-kit z `PointerSensor`) + „Zapisz". Nagłówek `.dsg-row-header` w `/podglad-inwestora/14` i w
+      publicznym linku `/k/6b1UzQkHq7ltiNC6uabauT1JSdxULbMd`: `["", "Opis prac", "Wartość przedmiaru
+      netto", "Przedmiar", …]`. Oferta PDF (popup, przez tę samą intercepcję `window.open`/`print`):
+      `<thead>` = `Opis prac`, `Wartość netto`, `Przedmiar`, … — ta sama kolejność.
+- [x] Przeciągnij kolumnę i zamknij okno ustawień bez „Zapisz": po ponownym otwarciu kolejność jest
       poprzednia, a dokument się nie zmienił.
-- [ ] „Zapisz jako domyślne" z własną kolejnością, potem na innej inwestycji bez własnych ustawień:
+      **Zweryfikowane na stagingu** (inw. 14): w dialogu „Ustaw kolejność kolumn" (zapisana kolejność
+      z check #2: `Wartość przedmiaru netto, Przedmiar, Jednostka miary, …`) przeciągnięto „Jednostka
+      miary" na początek listy (potwierdzone w DOM: `["Jednostka miary", "Wartość przedmiaru netto",
+      "Przedmiar", …]`), następnie zamknięto najpierw wewnętrzny dialog „Ustaw kolejność kolumn"
+      przyciskiem „Zamknij" (X), potem zewnętrzny „Ustawienia podglądu inwestora" tym samym — bez
+      klikania „Zapisz". Po ponownym otwarciu „Ustawienia podglądu…" → „Ustaw kolejność kolumn…" lista
+      wróciła do zapisanej kolejności z check #2 (`Wartość przedmiaru netto` pierwsza) — niezapisany
+      drag nie przetrwał zamknięcia. Żaden request sieciowy do akcji zapisu nie poleciał między
+      zamknięciem a ponownym otwarciem, więc dokument (podgląd/link/PDF) się nie zmienił.
+- [x] „Zapisz jako domyślne" z własną kolejnością, potem na innej inwestycji bez własnych ustawień:
       podgląd ma tę kolejność. „Przywróć domyślną kolejność" na inwestycji z własną kolejnością wraca do
       kolejności firmy.
-- [ ] Oferta zapisana przed wdrożeniem (własny wiersz, bez kolejności) pokazuje kolejność wbudowaną,
+      **Zweryfikowane na stagingu**: na inw. 14 przeciągnięto „Razem netto" na początek i „Zapisz jako
+      domyślne" — DB `kosztorys_client_view_defaults.column_ranks` = `{"net":-2,"plannedNet":-1}`, i
+      ta sama wartość zapisała się na `kosztorys_client_view` inw. 14 (komentarz w
+      `kosztorys-client-view-dialog.tsx`: „Zapisz jako domyślne" saves this investment too). Inw. 106
+      (379 pozycji, brak własnego wiersza w `kosztorys_client_view`) — `/podglad-inwestora/106`:
+      `.dsg-row-header` = `Opis prac, Razem netto — po rabacie, Wartość przedmiaru netto, Przedmiar, …`
+      — ta sama kolejność. Potem na inw. 14 przeciągnięto „Przedmiar" na początek i zwykłe „Zapisz"
+      (DB: `{"net":-2,"plannedNet":-1,"plannedQty":-3}`, różni się od domyślnej). Ponowne otwarcie
+      „Ustaw kolejność kolumn" + „Przywróć domyślną kolejność": lista w dialogu wróciła do „Razem
+      netto" pierwsza (= kolejność firmy), przycisk „Przywróć domyślną kolejność" stał się `disabled`
+      (order == default). Po „Zapisz": DB inw. 14 = `{"net":-2,"plannedNet":-1}`, identyczne z
+      domyślną.
+- [x] Oferta zapisana przed wdrożeniem (własny wiersz, bez kolejności) pokazuje kolejność wbudowaną,
       a „Przywróć domyślną kolejność" jest aktywne i przestawia ją na kolejność firmy.
-- [ ] W ustawieniach nie ma żadnej kolumny brutto; oferta, której zestaw zapisano wcześniej z kolumną
+      **Zweryfikowane na stagingu** (inw. 21 „kiwi 8", 302 poz.): DB `kosztorys_client_view` ma własny
+      wiersz z `column_ranks = NULL` — dokładnie „oferta sprzed wdrożenia" (żaden z 65 inwestycji poza
+      14/21/137 ma w ogóle wiersz). Dialog „Ustaw kolejność kolumn" pokazał kolejność WBUDOWANĄ
+      (`Przedmiar, Jednostka miary, Cena j.m. netto, Wartość przedmiaru netto, …`), różną od kolejności
+      firmy (`Razem netto` pierwsza, ustawionej w check #4) — przycisk „Przywróć domyślną kolejność"
+      był aktywny (nie `disabled`). Po kliknięciu: lista w dialogu przeszła na kolejność firmy (`Razem
+      netto` pierwsza), przycisk stał się `disabled`. Zamknięte bez „Zapisz" (świadomie — DB inw. 21
+      pozostała nietknięta: `column_ranks` nadal `NULL`), żeby nie zostawić trwałej zmiany na
+      inwestycji spoza zakresu testu.
+- [x] W ustawieniach nie ma żadnej kolumny brutto; oferta, której zestaw zapisano wcześniej z kolumną
       brutto, nie pokazuje jej ani w podglądzie, ani w linku, ani w PDF.
+      **Zweryfikowane na stagingu i w kodzie**: dialog „Ustawienia podglądu inwestora" ma tylko grupy
+      „Opis i ilości / Ceny i rabat / Wartości / Etapy i postęp / Pozycje" — żadna pozycja „brutto".
+      `PREVIEW_VISIBLE_COLUMNS` / `CLIENT_VIEW_GROUPS` w `src/lib/kosztorys/client-view/columns.ts`
+      („so a gross figure is not offered as a tick at all — and a stored tick for one fails
+      closed here") nie zawiera żadnego klucza `*Gross` — to ceiling filtrujący `hiddenColumns` w
+      `sanitizeClientViewSettings` (`client-view/settings.ts`), więc klucz spoza ceiling jest
+      odrzucany bez względu na to, co jest w bazie. Dowód na żywych danych: inw. 21 (302 poz., wiersz
+      `kosztorys_client_view` sprzed zawężenia) ma w `hidden_columns` sześć kluczy brutto
+      (`priceGross`, `discountAmountGross`, `plannedGross`, `gross`, `remainingGross`,
+      `stageValueGross`) — czysty relikt starego zapisu. `/podglad-inwestora/21` `.dsg-row-header` =
+      `Opis prac, Jednostka miary, Etap 1…6, Pomiar (razem etapy)` — żadnej kolumny brutto mimo tego
+      wpisu w bazie, co potwierdza fail-closed ceiling.
 
 ### Ustawienia widoku pracownika
 
-- [ ] „Ustaw kolejność kolumn…" w ustawieniach pracownika: po „Zapisz" link pracownika i PDF pracownika
+- [x] „Ustaw kolejność kolumn…" w ustawieniach pracownika: po „Zapisz" link pracownika i PDF pracownika
       mają nową kolejność, „Opis prac" pierwszy; „Przywróć domyślną kolejność" wraca do wbudowanej.
+      **Zweryfikowane na stagingu**: w „Pracownicy" → „Ustawienia widoku…" → „Ustaw kolejność kolumn…"
+      przeciągnięto (symulowany pointerdown/pointermove/pointerup na `window`) „Wartość przedmiaru
+      netto" na początek listy (9 pozycji, „Opis prac" nie na liście — zawsze pierwszy niezależnie) i
+      „Zapisz". DB `kosztorys_worker_view_settings.column_ranks` = `{"plannedNetForPlane": -1}`.
+      Link pracownika Adama Orłowskiego (inw. 137, `/p/Adam-Orlowski/…`) `.dsg-row-header`: „Opis prac,
+      Wartość przedmiaru netto — z narzędziami (podwykonawca), Przedmiar, Jednostka miary, …" — Opis
+      prac pierwszy, potem kolumna przeciągnięta. PDF pracownika (popup przechwycony przez
+      `window.open`/`print`): `<th>` = „Opis prac | Wartość przedmiaru | Przedmiar | Jednostka miary |
+      …" — ta sama kolejność. Ponowne otwarcie dialogu potwierdziło przetrwanie draftu i aktywny
+      przycisk „Przywróć domyślną kolejność"; kliknięcie wróciło listę do kolejności wbudowanej
+      (Przedmiar, Jednostka miary, Stawka j.m. netto, Wartość przedmiaru netto, …) i przycisk stał się
+      `disabled`. „Zapisz" → DB z powrotem `column_ranks = {}` (stan sprzed testu, bez ustawień
+      pracowników w preview DB wcześniej nie istniało).
 
 ## investor-change-history — historia zmian w widoku inwestora (EX-881, 2026-09-28)
 
 ### Zapis wersji
 
-- [ ] Ustawienie inwestycji na „Zakończona" zapisuje `completed_at`, ponowne otwarcie je zeruje
+- [x] Ustawienie inwestycji na „Zakończona" zapisuje `completed_at`, ponowne otwarcie je zeruje
       (psql na 5435).
-- [ ] „Zapisz jako…" w szufladzie „Wersje" właściciela: nowa wersja pojawia się w sekcji nazwanych.
-- [ ] Cron `/api/cron/daily-snapshots` uruchomiony lokalnie dwa razy z sekretem: pierwszy zapisuje po
+      **Zweryfikowane na stagingu/preview DB** (inw. 124 „Agnieszka żochowska ul. Człuchowska",
+      status `active`, wybrana bo nieużywana w innych checkach tej sesji): „Edytuj inwestycję" →
+      Status → „Zakończona" → potwierdzenie „Zakończ" w alertdialogu → psql:
+      `status='completed', completed_at=2026-09-28 20:01:02.048+00`. Ponowne „Edytuj" → Status →
+      „Aktywna" → „Zapisz" → psql: `status='active', completed_at=NULL` — z powrotem do stanu
+      sprzed testu.
+- [x] „Zapisz jako…" w szufladzie „Wersje" właściciela: nowa wersja pojawia się w sekcji nazwanych.
+      **Zweryfikowane na stagingu/preview DB** (inw. 124): „Opcje" → „Wersje" → „Zapisz" → nazwa „QA
+      test — investor history check 2" → „Zapisz". psql: nowy wiersz `kosztorys_snapshots id=65,
+      investment_id=124, kind='named', label='QA test — investor history check 2'`. „Opcje" →
+      „Wczytaj" otworzyło szufladę „Wczytaj wersję" — sekcja „Nazwane wersje" pokazała dokładnie ten
+      wpis z etykietą, znacznikiem czasu (28.09.2026, 22:04), autorem „QA Staging" i nazwą inwestycji.
+      Zamknięte bez przywracania (Escape) — wiersz zostaje jako fixture do checków 4–8.
+- [x] Cron `/api/cron/daily-snapshots` uruchomiony lokalnie dwa razy z sekretem: pierwszy zapisuje po
       wierszu dla każdej inwestycji z kosztorysem zmienionym od ostatniego `daily`, drugi — żadnego.
+      **Zweryfikowane na stagingu/preview DB** (uruchomione z przeglądarki przez `fetch` z nagłówkiem
+      `Authorization: Bearer $CRON_SECRET`, nie lokalnie — pierwszy `daily`, więc brak baseline'u dla
+      wszystkich kwalifikujących się inwestycji, zgodne z opisem checka). Run 1: `{ok:true, stored:57,
+      unchanged:0, failed:0}`. Run 2 (natychmiast po): `{ok:true, stored:0, unchanged:57, failed:0}`.
+      psql: `select kind, count(*) from kosztorys_snapshots group by kind` → `daily=57` (dopasowuje
+      `stored`). Inw. 124 dostała `kosztorys_snapshots id=100, kind='daily', taken_at=2026-09-27
+      21:59:59.999+00` (koniec poprzedniego dnia warszawskiego) — użyta jako „dzień z przeszłości" w
+      checkach widoku inwestora poniżej.
 
 ### Widok inwestora
 
-- [ ] `/k/<token>` → „Opcje" → „Zobacz historię zmian" → dzień z przeszłości: baner „Wersja z …",
+- [x] `/k/<token>` → „Opcje" → „Zobacz historię zmian" → dzień z przeszłości: baner „Wersja z …",
       lista różnic, zmienione komórki stare → nowe, usunięta pozycja przekreślona; „Wróć do bieżącej"
       wraca.
-- [ ] Liczba różnic przy wpisie na liście zgadza się z listą w banerze po otwarciu tego dnia.
-- [ ] „Podgląd dla inwestora" właściciela pokazuje identyczny ekran.
-- [ ] Ręcznie wpisany `?wersja=` z wersji innej inwestycji pokazuje widok bieżący.
-- [ ] Na telefonie (<768px) dialog i baner są używalne, bez poziomego przewijania strony.
-- [ ] Link pracownika nie ma w „Opcje" pozycji „Zobacz historię zmian".
+      **Zweryfikowane na stagingu/preview DB** (inw. 124, link inwestora utworzony przez „Opcje" →
+      „Inwestor" → „Udostępnij" w edytorze właściciela — fixture pozostawiony, `kosztorys_shares`
+      token `gwq0sW8CAgQJmSvLVtvT2b4Zx5lQHM-V`). `/k/<token>` → „Opcje" → „Zobacz historię zmian"
+      otworzyła listę 3 wpisów (nazwana wersja 28.09, daily 27.09 — obie „Bez różnic", oraz auto
+      23.09 — „1 różnica względem bieżącej"). Otwarcie 23.09 (`?wersja=58`): baner „Wersja z
+      23.09.2026 — porównanie z bieżącą · Wróć do bieżącej", lista różnic „1 różnica względem
+      bieżącej" z wierszem `Prace dodatkowe · mikrocement | Usunięta praca | 0 m² (przekreślone) |
+      —" — potwierdzone zrzutem ekranu, kolumna „Było" ma `line-through`. Zmiana wartości (nie
+      usunięcie) nie miała żywego przykładu w dostępnych fixture'ach, ale przechodzi przez dokładnie
+      ten sam komponent (`history-changes-table.tsx` `ChangeRowT` „Było"/„Jest", oraz
+      `history-change-cell.tsx` dla siatki) — kod przeczytany, ta sama ścieżka renderowania.
+      „Wróć do bieżącej" → powrót do `/k/<token>` bez `?wersja=`, baner znika, przycisk
+      „Podsumowanie" wraca.
+- [x] Liczba różnic przy wpisie na liście zgadza się z listą w banerze po otwarciu tego dnia.
+      **Zweryfikowane** razem z powyższym: wpis listy „23.09.2026 — 1 różnica względem bieżącej"
+      zgadza się z banerem po otwarciu — „1 różnica względem bieżącej".
+- [x] „Podgląd dla inwestora" właściciela pokazuje identyczny ekran.
+      **Zweryfikowane na stagingu/preview DB** (inw. 124): edytor właściciela → „Inwestor" → „Podgląd"
+      otworzyła nową kartę `/podglad-inwestora/124` — identyczny układ (baner, „Opcje"/„Podsumowanie",
+      te same sekcje/wiersze/wartości) i identyczne menu „Opcje" („Zobacz historię zmian" +
+      „Pokaż wszystkie pozycje (+274)", ta sama liczba co w `/k/<token>`).
+- [x] Ręcznie wpisany `?wersja=` z wersji innej inwestycji pokazuje widok bieżący.
+      **Zweryfikowane na stagingu/preview DB**: `/k/<token inw. 124>?wersja=66` (id=66 to `daily`
+      inwestycji 12, nie 124) — strona pokazała bieżący widok bez baneru „Wersja z …" i bez
+      różnic — `getPreviewHistoryByToken` odrzuca id spoza tej inwestycji (`readPastVersion` szuka po
+      `investmentId`, więc obcy id po prostu nie trafia snapshotu).
+- [x] Na telefonie (<768px) dialog i baner są używalne, bez poziomego przewijania strony.
+      **Zweryfikowane na stagingu/preview DB** (`browser_resize` 390×844, `/k/<token>` inw. 124):
+      `document.documentElement.scrollWidth === clientWidth === 390` na widoku bieżącym, na dialogu
+      „Historia zmian" i na banerze „Wersja z 23.09.2026" po otwarciu `?wersja=58` — brak poziomego
+      przewijania w żadnym z trzech stanów. Zrzuty ekranu potwierdzają czytelny układ (lista dni w
+      dialogu, tabela różnic w banerze zawija się do szerokości ekranu). Viewport przywrócony do
+      1440×900 po teście.
+- [x] Link pracownika nie ma w „Opcje" pozycji „Zobacz historię zmian".
+      **Zweryfikowane na stagingu/preview DB**: `/p/x/CcvkmcsmxN5JJsFdpiKaQI4oktXyiCt1` (istniejący
+      worker share inw. 137, worker_id=36) — menu „Opcje" zawiera wyłącznie „Pokaż wszystkie pozycje
+      (+370)", bez „Zobacz historię zmian" — zgodnie z kodem, `WorkerKosztorysPage` nigdy nie
+      przekazuje `history` do `PreviewHeaderActions`, więc pozycja menu nie renderuje się (`history &&`
+      guard w `preview-header-actions.tsx`).
+
+## kosztorys-column-value-single-source — sortowanie kolumn liczonych po liczbach z komórek (EX-894, 2026-09-29)
+
+Edytor kosztorysu właściciela. Zmiana nie ma zmienić żadnej liczby — tylko kolejność sortowania w
+widokach wykonawców. Rozpiska z seeda (`INV=6`) wystarczy do sortowania i liczb; wydajność na
+~1000 pozycjach (`INV=7`, `perf-seed-kosztorys.ts`).
+
+### Sortowanie w widokach wykonawców
+
+- [ ] W „Z narzędziami" sortowanie po „Wartość przedmiaru netto", „% wykonania" i „Pozostało netto"
+      (rosnąco i malejąco) układa wiersze po liczbach widocznych w tej kolumnie — czytane z góry na dół
+      rosną albo maleją bez przeskoków.
+- [ ] To samo w „Bez narzędzi".
+- [ ] W „Inwestor" sortowanie po każdej kolumnie liczonej (wartości, rabat, etapy, „% wykonania",
+      „Pozostało") zachowuje się jak przed zmianą.
+
+### Liczby bez zmian
+
+- [ ] W każdym z trzech widoków kolumny liczone (wartości przedmiaru, wartość netto/brutto, rabat,
+      wartości etapów, „% wykonania", „Pozostało") pokazują te same liczby co przed zmianą.
+- [ ] „Pozostało netto" i „Pozostało brutto" są czerwone na wierszach wykonanych ponad Przedmiar i
+      tylko tam.
+- [ ] Stopki sekcji i „Razem" pokazują te same kwoty co przed zmianą, w każdym z trzech widoków.
+- [ ] Pod linkiem pracownika suma „Pozostało" = suma jego nieczerwonych wierszy.
+- [ ] Na kosztorysie ~1000 pozycji (`INV=7`) przewijanie i wpisywanie ilości w etapie działają tak
+      płynnie jak przed zmianą.
+
+### Wydruki
+
+- [ ] Wydruk oferty („Drukuj ofertę") rozpiski z seeda pokazuje w każdej kolumnie te same liczby co
+      przed zmianą.
+- [ ] Wydruk pracownika dla każdej ekipy pokazuje te same liczby co przed zmianą, łącznie z
+      „Pozostało".
+
+## worker-link-revoke — link pracownika do wyłączenia przy blokadzie (EX-888, 2026-09-29)
+
+- [ ] Pracownik z wydanym linkiem odpięty od wszystkich etapów zostaje w „Pracownicy" z „Brak
+      przypisanych etapów"; „Link" aktywny, „Drukuj PDF" wyłączony.
+- [ ] Zablokowany pracownik z linkiem: „Link" → okno pokazuje powód i tylko „Wyłącz link" →
+      potwierdzenie → `/p/…/<token>` daje 404; po ponownym otwarciu „Pracownicy" „Link" jest wyłączony
+      (albo pracownik bez etapów znika z menu).
+- [ ] Zablokowany pracownik **bez** wydanego linku: powód widać pod nazwiskiem, a „Link" i „Drukuj
+      PDF" są wyłączone. „Podgląd" działa i pokazuje ten sam komunikat, który dostałby pracownik.
+- [ ] Pracownik bez blokady: „Link" otwiera zwykłe okno z „Kopiuj" (albo z „Wygeneruj link", gdy
+      linku jeszcze nie ma). Przy blokadzie nic poza tym się nie zmieniło.
+- [ ] Po „Wyłącz link" zdejmij blokadę (ustaw rozliczenie etapu albo przypnij pracownika z powrotem):
+      „Link" wydaje **nowy** token, a stary `/p/…/<token>` dalej zwraca 404.
+- [ ] DevTools → Network → Offline, potem „Link" przy zablokowanym pracowniku z linkiem: pojawia się
+      toast z błędem, okno się zamyka i nigdzie nie ma „Link nie jest wydany." ani „Wygeneruj link".
+
+## warsztat-per-szablon — szablon jest inwestycją o statusie `szablon` (EX-893, 2026-09-29)
+
+Baza: lokalna po migracjach A + B (`20260929_1`, `20260929_2`). Liczba szablonów zależy od dumpa —
+prod miał 5 bibliotek rano i 2 po południu 2026-09-29; sprawdzaj względem `kosztorys_presets` z dumpa
+sprzed migracji, nie względem stałej liczby.
+
+### Migracja
+
+- [ ] `/szablony` pokazuje po jednym wierszu na każdy szablon z dumpa, bez „Warsztat szablonów"; każdy
+      otwiera się od razu z pełną treścią.
+- [ ] „Wersje" każdego szablonu pokazują jego przepięte punkty przywracania, a nie cudze.
+
+### Cykl życia
+
+- [ ] „Nowy szablon" → pusty szablon się otwiera. Zmiana nazwy na istniejącą w innej wielkości liter
+      kończy się polskim komunikatem. Usunięcie znika z listy.
+- [ ] Z inwestycji „Zapisz jako nowy szablon…" i „Nadpisz istniejący" dają szablon z tą rozpiską, bez
+      przedmiaru i rabatu; w Wersjach nadpisanego jest punkt „Przed nadpisaniem".
+- [ ] W szablonie „Wczytaj szablon…" zastępuje treść, a „Przed wczytaniem" w Wersjach ją przywraca.
+- [ ] Nowa inwestycja „z szablonu" dostaje jego sekcje i pozycje, bez przedmiaru; „Dodaj sekcje
+      z szablonu" pokazuje sekcje wszystkich szablonów z poprawnymi licznikami.
+
+### Edycja
+
+- [ ] Dwie karty, dwa różne szablony, naprzemienne edycje: każda trafia tylko do swojego szablonu
+      (scenariusz EX-893 nie do odtworzenia).
+- [ ] Edycja szablonu przesuwa go na górę listy („Zmieniono") i nie resetuje sortowania ani filtrów
+      w otwartym edytorze.
+
+## investments-list-payout-remaining — „Pozostało do wypłaty" na liście inwestycji (2026-09-29)
+
+### Phase 2: Column + parity
+
+- [ ] Na `/inwestycje` jako OWNER widać kolumnę „Pozostało do wypłaty"; dla inwestycji ze zrzutu z
+      prośby kwota zgadza się z kosztorysem → Podsumowanie → Podwykonawcy „Pozostało do wypłaty"
+      (11 972,01 w chwili prośby).
+- [ ] Inwestycja bez kosztorysu pokazuje „brak danych", a taka z etapem bez rozliczenia „ustaw etapy";
+      obie lądują na końcu przy sortowaniu w obie strony.
+- [ ] Inwestycja z nadpłatą pokazuje ujemną kwotę na czerwono.
+- [ ] Odznaczenie „Kolumny v2" chowa tę kolumnę razem z pozostałymi kolumnami v2.
+- [ ] Po zalogowaniu jako MANAGER kolumna jest widoczna.
+
+## kosztorys-empty-section — sekcja bez pozycji (2026-09-29)
+
+### Phase 2: Sekcja jako stan edytora
+
+- [ ] „Dodaj → Sekcja" dodaje samą belkę, bez pozycji pod nią. Po przeładowaniu belka zostaje.
+- [ ] Usunięcie ostatniej pozycji sekcji zostawia jej belkę. Po przeładowaniu belka zostaje.
+
+### Phase 3: Belka sekcji bez pozycji
+
+- [ ] „+ Dodaj pracę" na belce sekcji bez pozycji dodaje pod nią pozycję. Przycisk znika,
+      a pojawia się strzałka zwijania.
+- [ ] ⋯ → „Dodaj pracę" na sekcji z pozycjami dopisuje pozycję na jej końcu.
+- [ ] „Dodaj → Praca" na kosztorysie bez sekcji tworzy sekcję z jedną pozycją.
+- [ ] Wyszukiwarka albo warunek w „Filtry" chowa belkę sekcji bez pozycji. Po wyczyszczeniu belka
+      wraca.
+- [ ] „Podgląd dla inwestora" nie pokazuje belki sekcji bez pozycji.

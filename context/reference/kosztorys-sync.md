@@ -21,8 +21,7 @@
 >
 > **Operational pointer, not a design of record.** The current frozen-column contract lives in
 > `context/foundation/lessons.md` — trust it, not this file. The go-forward in-app editor is tracked
-> in `context/foundation/roadmap.md` (S-01+); its raw POC docs are archived at
-> `context/archive/kosztorys-poc-in-app/`.
+> in `context/foundation/roadmap.md` (S-01+).
 
 ## What it is
 

@@ -6,7 +6,7 @@ import { OWNER_ONLY_CLIENT_VIEW_DEFAULTS_MESSAGE } from '@/lib/kosztorys/owner-o
 import {
   sanitizeClientViewSettings,
   type ClientViewSettingsT,
-} from '@/lib/kosztorys/client-view-settings'
+} from '@/lib/kosztorys/client-view/settings'
 import { findClientViewRow } from '@/lib/queries/kosztorys-client-view'
 import type { ActionResultT } from '@/types/action'
 
