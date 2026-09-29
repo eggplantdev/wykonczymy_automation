@@ -65,7 +65,8 @@ function html(rows: KosztorysV2RowT[], overrides: Partial<OfferPrintArgsT> = {})
   })
 }
 
-const header = (label: string) => new RegExp(`<th[^>]*><span>${label}</span></th>`)
+const header = (label: string) =>
+  new RegExp(`<th[^>]*><span>${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}</span></th>`)
 
 const zloty = (n: number) =>
   `${Math.round(n).toLocaleString('pl-PL', { maximumFractionDigits: 0, useGrouping: 'always' })} zł`

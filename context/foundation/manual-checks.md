@@ -2227,3 +2227,13 @@ decyzja właściciela.
 - [ ] Na wydrukowanej kartce (albo podglądzie wydruku z tłem) pasy są wyraźnie widoczne, a cienkie
       linie między wierszami nadal widać w szarych kolumnach.
       _Zostaje dla człowieka 2026-09-29: widoczność na papierze / podglądzie wydruku wymaga oka; CSS ma `print-color-adjust: exact`, a kolory obliczone w popupie są poprawne._
+
+## 2026-09-29 — kolumna „Wartość netto (razem etapy)" na dokumencie inwestora
+
+- [ ] Kosztorys z wpisanymi etapami → „Udostępnij" → otwórz link inwestora: kolumna z wartością
+      wykonanych prac nazywa się „Wartość netto (razem etapy)" — nigdzie w nagłówkach nie ma „po
+      rabacie", także gdy kosztorys ma rabat.
+- [ ] Ten sam kosztorys → „Generuj ofertę": nagłówek tej kolumny na wydruku brzmi tak samo, a jej
+      kwoty zgadzają się z podglądem.
+- [ ] Edytor, widok klienta → nagłówek i lista „Kolumny" pokazują „Wartość netto (razem etapy)";
+      po przełączeniu na widok ekipy ta kolumna nadal nazywa się „Suma etapy <ekipa> netto".
