@@ -2353,3 +2353,6 @@ i Piotr Seedowy).
 - [ ] Przełączenie „Wyłączony" → „Kwotowy": pola startują od sumy rabatów z pozycji.
 - [ ] Inw. 112 → Historia zmian: wpis po zapisaniu 5000 brutto pokazuje w wierszu Rabat
       „… netto / 5 000,00 brutto".
+- [ ] Kosztorys → widok podwykonawcy → kolumna „Cena": ceny wyliczone ze współczynnika pokazują się
+      i edytują w groszach, a kopiowanie komórki daje tę samą kwotę co przed zmianą (refaktor
+      formatowania — bez zmiany zachowania).
