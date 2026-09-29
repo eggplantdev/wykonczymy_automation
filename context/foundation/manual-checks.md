@@ -1901,3 +1901,16 @@ widokach wykonawców. Rozpiska z seeda (`INV=6`) wystarczy do sortowania i liczb
 - [ ] Zablokowany pracownik z linkiem: „Link" → okno pokazuje powód i tylko „Wyłącz link" →
       potwierdzenie → `/p/…/<token>` daje 404; po ponownym otwarciu „Pracownicy" „Link" jest wyłączony
       (albo pracownik bez etapów znika z menu).
+
+## investments-list-payout-remaining — „Pozostało do wypłaty" na liście inwestycji (2026-09-29)
+
+### Phase 2: Column + parity
+
+- [ ] Na `/inwestycje` jako OWNER widać kolumnę „Pozostało do wypłaty"; dla inwestycji ze zrzutu z
+      prośby kwota zgadza się z kosztorysem → Podsumowanie → Podwykonawcy „Pozostało do wypłaty"
+      (11 972,01 w chwili prośby).
+- [ ] Inwestycja bez kosztorysu pokazuje „brak danych", a taka z etapem bez rozliczenia „ustaw etapy";
+      obie lądują na końcu przy sortowaniu w obie strony.
+- [ ] Inwestycja z nadpłatą pokazuje ujemną kwotę na czerwono.
+- [ ] Odznaczenie „Kolumny v2" chowa tę kolumnę razem z pozostałymi kolumnami v2.
+- [ ] Po zalogowaniu jako MANAGER kolumna jest widoczna.

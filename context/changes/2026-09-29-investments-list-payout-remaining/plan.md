@@ -281,4 +281,4 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 2.1 Parity spec passes against `db-test`: `pnpm test:parity`
+- [x] 2.1 Parity spec passes against `db-test`: `pnpm test:parity` — 57e97c77

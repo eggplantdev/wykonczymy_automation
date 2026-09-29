@@ -1,7 +1,7 @@
 ---
 change_id: investments-list-payout-remaining
 title: Show „Pozostało do wypłaty" per investment on the investments list
-status: implementing
+status: implemented
 created: 2026-09-29
 updated: 2026-09-29
 archived_at: null
