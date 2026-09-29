@@ -24,10 +24,13 @@ export type FieldChangeT =
 
 export type ItemChangeT = { item: ItemRefT; fields: FieldChangeT[] }
 
+// Each side carries the stawka VAT of its own version, so its brutto reads as it did back then.
+export type DiscountAtVatT = GlobalDiscountT & { vatRate: number }
+
 export type DiscountChangeT =
   | { state: 'unknown' }
   | { state: 'same' }
-  | { state: 'changed'; before: GlobalDiscountT; after: GlobalDiscountT }
+  | { state: 'changed'; before: DiscountAtVatT; after: DiscountAtVatT }
 
 export type VersionDiffT = {
   added: ItemRefT[]

@@ -332,13 +332,13 @@ stored 5000 stays until the owner re-types 5000 in „brutto" after deploy. Tell
 
 #### Automated
 
-- [x] 2.1 Pair-field spec passes
+- [x] 2.1 Pair-field spec passes — 05f80d58
 
 ### Phase 3: „Historia zmian" shows the pair
 
 #### Automated
 
-- [ ] 3.1 History specs pass
+- [x] 3.1 History specs pass
 
 ### Phase 4: Docs
 
