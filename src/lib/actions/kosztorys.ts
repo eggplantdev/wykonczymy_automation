@@ -9,9 +9,8 @@ import { getDb } from '@/lib/db/get-db'
 import { investmentGateForRow } from '@/lib/db/investment-gate'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
-import { cleanDescription } from '@/lib/kosztorys/clean-description'
+import { cleanItemTexts } from '@/lib/kosztorys/clean-item-texts'
 import { itemPatchSchema } from '@/lib/kosztorys/item-patch-schema'
-import { cleanUnit } from '@/lib/kosztorys/clean-unit'
 import { getItemTexts, setItemTexts } from '@/lib/db/kosztorys-item-texts'
 import {
   createSectionWithFirstItem,
@@ -90,7 +89,6 @@ const investmentGlobalDiscountSchema = z.object({
 export type SectionPatchT = z.infer<typeof sectionPatchSchema>
 export type InvestmentCoeffsPatchT = z.infer<typeof investmentCoeffsSchema>
 export type InvestmentGlobalDiscountPatchT = z.infer<typeof investmentGlobalDiscountSchema>
-
 
 // The three per-cell autosaves below defer the refresh: the editor seeds `rows` once at mount and
 // recomputes the panel optimistically, so the re-render reseeds nothing it reads. The only cached
@@ -250,22 +248,14 @@ export async function applyPercentDiscountToAllItemsAction(
 }
 
 // „Popraw literówki". Bulk overwrite of hand-typed text, irrecoverable by in-session undo, so it
-// snapshots first like applyPercentDiscountToAllItemsAction. A blank column is left blank rather
-// than cleaned into '', which would count every empty praca as „poprawiona".
+// snapshots first like applyPercentDiscountToAllItemsAction.
 export async function cleanItemTextsAction(investmentId: number): Promise<ActionResultT<number>> {
   return investmentAction(
     'cleanItemTextsAction',
     { investmentId },
     async ({ payload, user }) => {
       const db = await getDb(payload)
-      const rows = await getItemTexts(db, investmentId)
-      const changed = rows.flatMap((row) => {
-        const description = row.description ? cleanDescription(row.description) : row.description
-        const unit = row.unit ? cleanUnit(row.unit) : row.unit
-        return description === row.description && unit === row.unit
-          ? []
-          : [{ id: row.id, description, unit }]
-      })
+      const changed = cleanItemTexts(await getItemTexts(db, investmentId))
       if (changed.length === 0) return { success: true, data: 0 }
 
       await captureAutoSnapshot(db, investmentId, user.id)
@@ -274,7 +264,6 @@ export async function cleanItemTextsAction(investmentId: number): Promise<Action
     ['kosztorysItems'],
   )
 }
-
 
 const clearKosztorysSchema = z.object({ investmentId: z.number().int().positive() })
 
@@ -602,7 +591,6 @@ export async function renumberKosztorysOrderAction(
     ['kosztorysItems'],
   )
 }
-
 
 // A new etap is created WITH its plane — the picker is forced at creation (the add menu offers
 // „z narzędziami" / „bez narzędzi", never a plane-less „Etap"), so no new stage is ever null.
