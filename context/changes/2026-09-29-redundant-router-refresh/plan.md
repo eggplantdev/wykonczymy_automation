@@ -574,15 +574,15 @@ Run **once**, after the final phase:
 
 #### Automated
 
-- [x] 2.1 Touched DOM specs pass
-- [x] 2.2 Refresh grep over the four sheet files returns nothing
+- [x] 2.1 Touched DOM specs pass — 9bf7c6b5
+- [x] 2.2 Refresh grep over the four sheet files returns nothing — 9bf7c6b5
 
 ### Phase 3: Kosztorys editor
 
 #### Automated
 
-- [ ] 3.1 Touched editor DOM specs + `use-restore-remount.test.tsx` pass
-- [ ] 3.2 Repo-wide refresh grep returns only the gated call in `kosztorys-editor-v2.tsx`
+- [x] 3.1 Touched editor DOM specs + `use-restore-remount.test.tsx` pass — efcdfd77
+- [x] 3.2 Repo-wide refresh grep returns only the gated call in `kosztorys-editor-v2.tsx` — efcdfd77
 
 ### Phase 4: After-run, manual checks, backlog, docs
 
