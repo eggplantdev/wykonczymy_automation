@@ -173,11 +173,11 @@ Celina (no etapy) and Bogdan (blocked) as holders in the new cases. No node spec
 
 #### Automated
 
-- [x] 1.1 DOM spec: a no-etapy link holder appears with „Brak przypisanych etapów", „Link" enabled, „Drukuj PDF" disabled
-- [x] 1.2 DOM spec: a blocked worker without a link keeps „Link" disabled; a blocked holder has it enabled
+- [x] 1.1 DOM spec: a no-etapy link holder appears with „Brak przypisanych etapów", „Link" enabled, „Drukuj PDF" disabled — a0cdbd2a
+- [x] 1.2 DOM spec: a blocked worker without a link keeps „Link" disabled; a blocked holder has it enabled — a0cdbd2a
 
 ### Phase 2: Revoke-only dialog
 
 #### Automated
 
-- [ ] 2.1 DOM spec: a blocked holder's dialog shows the reason and „Wyłącz link", with no address field and no „Wygeneruj nowy"; confirming calls `revokeWorkerShareLinkAction`
+- [x] 2.1 DOM spec: a blocked holder's dialog shows the reason and „Wyłącz link", with no address field and no „Wygeneruj nowy"; confirming calls `revokeWorkerShareLinkAction`

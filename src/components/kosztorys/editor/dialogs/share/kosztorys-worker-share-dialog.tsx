@@ -20,7 +20,8 @@ export function KosztorysWorkerShareDialog() {
     setShareOpen: onOpenChange,
     shareToken: token,
     shareLoaded: loaded,
-    setShareToken: onTokenChange,
+    setShareToken,
+    dropLinkHolder,
   } = useKosztorysActions().worker
 
   const url = token && target ? workerShareUrl(FRONTEND_URL, target.name, token) : ''
@@ -39,7 +40,11 @@ export function KosztorysWorkerShareDialog() {
             url={url}
             generate={() => generateWorkerShareLinkAction({ investmentId, workerId: target.id })}
             revoke={() => revokeWorkerShareLinkAction({ investmentId, workerId: target.id })}
-            onTokenChange={onTokenChange}
+            onTokenChange={(next) => {
+              setShareToken(next)
+              if (next === null) dropLinkHolder(target.id)
+            }}
+            blockReason={target.blockReason}
             revokeTitle={`Wyłączyć link dla: ${target.name}?`}
             revokeDescription="Pracownik natychmiast straci dostęp do kosztorysu. Tej akcji nie da się cofnąć — aby przywrócić dostęp, musisz wygenerować nowy link (stary adres już nie zadziała)."
           />

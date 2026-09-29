@@ -372,7 +372,9 @@ właśnie po to, żeby jej nie przepisywać.
   etapy), ale tylko kolumny swoich etapów. Etap bez rozliczenia albo etapy na dwóch rozliczeniach →
   menu blokuje link i PDF („Ustaw rozliczenie etapu" / „Etapy pracownika mają różne rozliczenia");
   pracownik bez etapów → link działa i mówi „Brak przypisanych etapów". Odwołanie tylko świadomie,
-  także po dezaktywacji pracownika.
+  także po dezaktywacji pracownika — i zawsze osiągalne: blokada wyłącza generowanie linku, nie jego
+  wyłączenie, a pracownik odpięty od wszystkich etapów zostaje w menu, dopóki ma żywy link (EX-888).
+  Token przeżywa blokadę, więc bez tego stary link po jej zdjęciu znów pokazałby ceny.
 - **Stawka wynika z rozliczenia jego etapów** — nikt jej nie wybiera, a widok jest do niej
   przypięty: zła stawka to wyjątek, nie cicha naprawa. Ceny klienta, „Wartości netto" po cenie
   klienta, rabatu, brutto, mnożnika i cudzych etapów nie da się włączyć żadnym ustawieniem —

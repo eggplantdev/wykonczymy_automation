@@ -129,6 +129,31 @@ describe('KosztorysWorkersMenu', () => {
     expect(readWorkerShareHolders).toHaveBeenCalledWith(INVESTMENT_ID)
   })
 
+  it('lets a blocked holder’s link only be switched off, saying why', async () => {
+    readWorkerShareHolders.mockResolvedValue([20])
+    readWorkerShareToken.mockResolvedValue('tok-bogdan')
+    renderMenu()
+    await openMenu()
+    await waitFor(() => expect(linkItems()[1]).not.toHaveAttribute('aria-disabled'))
+    await userEvent.click(linkItems()[1])
+
+    const dialog = await screen.findByRole('dialog', { name: /Bogdan Kowal/ })
+    const revoke = await within(dialog).findByRole('button', { name: 'Wyłącz link' })
+    expect(within(dialog).getByText('Ustaw rozliczenie etapu')).toBeInTheDocument()
+    expect(within(dialog).queryByRole('textbox')).not.toBeInTheDocument()
+    expect(within(dialog).queryByRole('button', { name: /Wygeneruj/ })).not.toBeInTheDocument()
+    expect(within(dialog).queryByRole('button', { name: 'Kopiuj link' })).not.toBeInTheDocument()
+
+    await userEvent.click(revoke)
+    const confirm = await screen.findByRole('alertdialog')
+    await userEvent.click(within(confirm).getByRole('button', { name: 'Wyłącz link' }))
+
+    expect(revokeWorkerShareLinkAction).toHaveBeenCalledWith({
+      investmentId: INVESTMENT_ID,
+      workerId: 20,
+    })
+  })
+
   it('keeps listing a worker unpinned from every etap while they hold a link', async () => {
     readWorkerShareHolders.mockResolvedValue([30])
     renderMenu()

@@ -19,6 +19,9 @@ type PropsT = {
   onTokenChange: (token: string | null) => void
   revokeTitle: string
   revokeDescription: string
+  // Set when the audience's view cannot be priced: a live token outlives the block, so only
+  // switching it off is offered — handing out a link whose page shows a notice would be pointless.
+  blockReason?: string
   children?: ReactNode
 }
 
@@ -31,6 +34,7 @@ export function ShareLinkPanel({
   onTokenChange,
   revokeTitle,
   revokeDescription,
+  blockReason,
   children,
 }: PropsT) {
   const [confirmingRevoke, setConfirmingRevoke] = useState(false)
@@ -55,9 +59,25 @@ export function ShareLinkPanel({
 
   if (!loaded) return <p className="text-muted-foreground text-sm">Sprawdzanie…</p>
 
+  const revokeButton = (
+    <Button
+      variant="destructive"
+      size="sm"
+      onClick={() => setConfirmingRevoke(true)}
+      disabled={pending}
+    >
+      Wyłącz link
+    </Button>
+  )
+
   return (
     <>
-      {token ? (
+      {blockReason !== undefined ? (
+        <div className="flex flex-col items-start gap-3">
+          <p className="text-destructive text-sm">{blockReason}</p>
+          {token ? revokeButton : <Description size="xs">Link nie jest wydany.</Description>}
+        </div>
+      ) : token ? (
         <div className="flex flex-col gap-3">
           <div className="flex gap-2">
             <Input readOnly value={url} onFocus={(event) => event.currentTarget.select()} />
@@ -74,14 +94,7 @@ export function ShareLinkPanel({
             <Button variant="outline" size="sm" onClick={runGenerate} disabled={pending}>
               Wygeneruj nowy
             </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => setConfirmingRevoke(true)}
-              disabled={pending}
-            >
-              Wyłącz link
-            </Button>
+            {revokeButton}
           </div>
           <Description size="xs">
             „Wygeneruj nowy" unieważnia obecny link — stary adres przestaje działać.
