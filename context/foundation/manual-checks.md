@@ -2403,3 +2403,10 @@ Każdy boks: po kliknięciu zmiana widoczna **bez przeładowania**, a w Network 
       _Zweryfikowano 2026-09-29 (lokalnie): przerwany POST (`page.route` abort — prawdziwy `setOffline` przechodzi na `chrome-error://`): komunikat po 65 ms, 1 GET po 55 ms._
 - [x] Dwie karty: w drugiej usuń pozycję, w pierwszej ją edytuj — rozpiska przeładowuje się bez tej pozycji.
       _Zweryfikowano 2026-09-29 (lokalnie): 4/4 po poprawce zatrzasku (wcześniej brak przeładowania w 8 s)._
+
+## 2026-09-29 — kosztorys-menu-widths
+
+- [ ] Edytor kosztorysu → pasek narzędzi: menu „Kolumny" i „Sekcje" są tak samo szerokie jak
+      „Problemy" i „Filtry"; długie nazwy kolumn („Pomiar — suma etapów z narzędziami
+      (podwykonawca)") mieszczą się w jednej linii albo zawijają się rzadziej niż wcześniej.
+- [ ] Dowolna tabela z listą (np. Transakcje) → „Kolumny": menu ma dotychczasową szerokość.
