@@ -36,3 +36,7 @@ Base: `e98f6b5b` (staging) · branch `global-rabat-on-settlement-axis` · Step 0
 Ran /simplify (reuse + primitive-reuse-scan, simplification, efficiency, altitude) — 6 applied, 0 proposed, 5 dropped/dismissed; each finding folded into ## Findings (tagged simplify / reuse-scan). Typecheck + eslint clean, 11 touched spec files / 72 tests green.
 
 ## Tests & suite
+- typecheck · clean
+- eslint (changed files) · clean
+- touched specs · 11 files / 72 tests green
+- full unit suite, build, e2e · skipped by user (2026-09-29); pre-push runs the unit leg. The e2e specs `kosztorys-presets` and `kosztorys-global-discount-overrides` ran against the old driver shape and have NOT been run since the driver split
