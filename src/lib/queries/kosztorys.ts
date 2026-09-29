@@ -11,6 +11,9 @@ import type { KosztorysItemT, KosztorysSectionT, KosztorysTreeT } from '@/lib/ko
 
 // S-01: sections + items of a single investment, ordered by displayOrder → displayOrder.
 // S-04: stages (ordered by ordinal) + sparse per-item progress. S-05: per-investment VAT rate.
+// Deliberately not wrapped in React `cache()`: an action that reads, mutates and re-renders
+// (`applyPercentRabatToAllItemsAction`) would get the pre-mutation tree back. Rejected twice —
+// context/archive/2026-07-27-decouple-panel-write-refresh/change.md, EX-850.
 export async function getKosztorysTree(
   investmentId: number,
   req?: PayloadRequest,

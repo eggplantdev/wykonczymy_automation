@@ -24,7 +24,8 @@ const TIMEOUT_MS = 10_000
  * prefix, which the landing's own age sweep reclaims.
  */
 export async function releaseLandingAssets(submissionId: string): Promise<void> {
-  // Absent while the landing half is unbuilt.
+  // Unset means the landing silently never gets its cleanup (production until 2026-09-22). It must
+  // name the landing's public alias — the project-scoped one answers 401 (Deployment Protection).
   const url = serverEnv.LANDING_CLEANUP_URL
   if (!url) return
 

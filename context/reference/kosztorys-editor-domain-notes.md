@@ -1016,6 +1016,9 @@ niesie własną kwotę, czy ma własną krotność ceny klienta.
 mnożnik` przy każdym odczycie. Mnożnik inwestycji jej nie dotyczy, ale **podniesienie ceny dla
   inwestora podnosi z nią stawkę ekipy** — to jedyna rzecz, której zamrożona kwota nie umie.
 
+Własny mnożnik ustawia się **na pojedynczą pracę** — mnożnika na sekcję nie ma „i nie będzie"
+(właściciel, 2026-09-23).
+
 **Pierwszeństwo: mnożnik > kwota > auto**, rozstrzygane w jednym miejscu na płaszczyznę
 (`priceSourceOf` dla rozpiski, `catalogueSourceOf` dla cennika). Wiersz niosący obie kolumny naraz
 to stan, którego zapis nie dopuszcza — `normalizeOverridePatch` czyści drugą kolumnę w tym samym
