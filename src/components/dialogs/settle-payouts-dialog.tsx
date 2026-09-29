@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
-import { ContentLoading } from '@/components/ui/loader/page-loading'
+import { GradientSpinner } from '@/components/ui/gradient-spinner'
 import { SettlePayoutsForm } from '@/components/forms/settle-payouts-form/settle-payouts-form'
 import {
   fetchSettlePayoutRows,
@@ -65,7 +65,9 @@ export function SettlePayoutsDialog({ target, onClose }: SettlePayoutsDialogProp
           {error ? (
             <p className="text-destructive text-sm">{error}</p>
           ) : !data || !target ? (
-            <ContentLoading />
+            <div className="flex h-40 items-center justify-center">
+              <GradientSpinner className="size-6" />
+            </div>
           ) : (
             <SettlePayoutsForm
               key={targetKey}
@@ -76,6 +78,11 @@ export function SettlePayoutsDialog({ target, onClose }: SettlePayoutsDialogProp
               cashRegisters={data.cashRegisters}
               defaultCashRegisterId={data.defaultCashRegisterId}
               labelHeader={target.kind === 'worker' ? 'Inwestycja' : 'Pracownik'}
+              labelHref={
+                target.kind === 'worker'
+                  ? (row) => `/inwestycje/${row.investmentId}/kosztorys_v2`
+                  : undefined
+              }
               onSubmitSuccess={close}
             />
           )}

@@ -39,7 +39,11 @@ const ROWS: SettleRowT[] = [
   row({ investmentId: 4, label: 'Dębowa', remaining: 0, state: 'withheld' }),
 ]
 
-function renderForm(rows = ROWS, reloadRows = vi.fn(async () => rows)) {
+function renderForm(
+  rows = ROWS,
+  reloadRows = vi.fn(async () => rows),
+  labelHref?: (row: SettleRowT) => string,
+) {
   const onSubmitSuccess = vi.fn()
   render(
     <SettlePayoutsForm
@@ -48,6 +52,7 @@ function renderForm(rows = ROWS, reloadRows = vi.fn(async () => rows)) {
       cashRegisters={[{ id: 5, name: 'Kasa główna', type: 'MAIN', active: true }]}
       defaultCashRegisterId={5}
       labelHeader="Inwestycja"
+      labelHref={labelHref}
       onSubmitSuccess={onSubmitSuccess}
     />,
   )
@@ -67,6 +72,7 @@ beforeEach(() => {
 describe('SettlePayoutsForm', () => {
   it('prefills a payable row with its remaining and leaves a nadpłata unticked and empty', () => {
     renderForm()
+    expect(screen.queryByRole('link')).not.toBeInTheDocument()
     expect(tick('Akacjowa')).toBeChecked()
     expect(amount('Akacjowa')).toHaveValue('800')
     expect(tick('Brzozowa')).not.toBeChecked()
@@ -80,24 +86,35 @@ describe('SettlePayoutsForm', () => {
     expect(cells).toContain(bare(formatPLN(700)))
   })
 
-  it('reads „zostanie / rozliczone / nadpłata" live from the typed amount', async () => {
+  it('links each label to the page the dialog names', () => {
+    renderForm(ROWS, undefined, (r) => `/inwestycje/${r.investmentId}/kosztorys_v2`)
+    expect(screen.getByRole('link', { name: 'Brzozowa' })).toHaveAttribute(
+      'href',
+      '/inwestycje/2/kosztorys_v2',
+    )
+  })
+
+  it('reads „Pozostało do rozliczenia" live from the typed amount', async () => {
     const user = userEvent.setup()
     renderForm()
     const input = amount('Akacjowa')
+    const afterPayout = () => {
+      const headers = screen.getAllByRole('columnheader')
+      const index = headers.findIndex((h) => h.textContent === 'Pozostało do rozliczenia')
+      return bare(
+        screen.getByText('Akacjowa').closest('tr')!.querySelectorAll('td')[index].textContent ?? '',
+      )
+    }
 
-    expect(rowOf('Akacjowa').getByText('rozliczone')).toBeInTheDocument()
+    expect(afterPayout()).toBe(bare(formatPLN(0)))
 
     await user.clear(input)
     await user.type(input, '500')
-    expect(bare(rowOf('Akacjowa').getByText(/zostanie/).textContent!)).toBe(
-      bare(`zostanie ${formatPLN(300)}`),
-    )
+    expect(afterPayout()).toBe(bare(formatPLN(300)))
 
     await user.clear(input)
     await user.type(input, '900')
-    expect(bare(rowOf('Akacjowa').getByText(/^nadpłata/).textContent!)).toBe(
-      bare(`nadpłata ${formatPLN(100)}`),
-    )
+    expect(afterPayout()).toBe(bare(formatPLN(-100)))
   })
 
   it('warns about a zaliczka only on the row paid past its work', async () => {
@@ -133,12 +150,18 @@ describe('SettlePayoutsForm', () => {
     expect(razem()).toContain(bare(formatPLN(50)))
   })
 
-  it('greys a blocked row out with its reason and does not let it be ticked', () => {
+  it('greys a blocked row out with a tag, its reason behind a tip, and does not let it be ticked', () => {
     renderForm()
     expect(tick('Cisowa')).toBeDisabled()
     expect(tick('Dębowa')).toBeDisabled()
-    expect(rowOf('Cisowa').getByText(BLOCKED_PAIR_REASON.locked)).toBeInTheDocument()
-    expect(rowOf('Dębowa').getByText(BLOCKED_PAIR_REASON.withheld)).toBeInTheDocument()
+    expect(rowOf('Cisowa').getByText('Zakończona')).toBeInTheDocument()
+    expect(
+      rowOf('Cisowa').getByRole('button', { name: BLOCKED_PAIR_REASON.locked }),
+    ).toBeInTheDocument()
+    expect(rowOf('Dębowa').getByText('Bez rozliczenia')).toBeInTheDocument()
+    expect(
+      rowOf('Dębowa').getByRole('button', { name: BLOCKED_PAIR_REASON.withheld }),
+    ).toBeInTheDocument()
     expect(screen.queryByRole('textbox', { name: 'Kwota wypłaty: Cisowa' })).not.toBeInTheDocument()
   })
 

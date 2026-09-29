@@ -3,27 +3,18 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
 import { FieldGroup } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
 import { CashRegisterField, DateField, DescriptionField } from '@/components/forms/form-fields'
 import { settlePayoutsAction } from '@/lib/actions/settle-payouts'
-import {
-  BLOCKED_PAIR_REASON,
-  BOOKABLE_STATES,
-  paidAheadOf,
-  type SettleRowT,
-} from '@/lib/kosztorys/worker-payout-pairs'
-import { cn } from '@/lib/utils/cn'
+import type { SettleRowT } from '@/lib/kosztorys/worker-payout-pairs'
 import { warsawToday } from '@/lib/utils/days'
-import { formatPLN } from '@/lib/utils/format-currency'
 import { logError } from '@/lib/utils/log-error'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 import { toastMessage } from '@/lib/utils/toast'
 import type { CashRegisterRefT } from '@/types/reference-data'
-
-type RowValueT = { ticked: boolean; amount: string }
+import { amountOf, isValidAmount, type RowValueT } from './row-value'
+import { SettlePayoutsTable } from './settle-payouts-table'
 
 type FormValuesT = {
   date: string
@@ -42,16 +33,6 @@ function prefill(rows: SettleRowT[]): RowValueT[] {
   )
 }
 
-const amountOf = (value: RowValueT) => Number(value.amount.replace(',', '.'))
-const isValidAmount = (value: RowValueT) => amountOf(value) > 0
-
-function AfterPayout({ remaining, amount }: { remaining: number; amount: number }) {
-  const after = roundToCents(remaining - amount)
-  if (after > 0) return <span>zostanie {formatPLN(after)}</span>
-  if (after === 0) return <span className="text-chart-green">rozliczone</span>
-  return <span className="text-destructive">nadpłata {formatPLN(-after)}</span>
-}
-
 type SettlePayoutsFormPropsT = {
   initialRows: SettleRowT[]
   /** Re-reads the rows after the action refused a batch built on figures that have since moved. */
@@ -60,6 +41,8 @@ type SettlePayoutsFormPropsT = {
   defaultCashRegisterId: number | undefined
   /** Header of the label column — the other side of the pair from the dialog's target. */
   labelHeader: string
+  /** Where a row's label leads, when the other side of the pair has a page worth checking. */
+  labelHref?: (row: SettleRowT) => string
   onSubmitSuccess: () => void
 }
 
@@ -74,6 +57,7 @@ export function SettlePayoutsForm({
   cashRegisters,
   defaultCashRegisterId,
   labelHeader,
+  labelHref,
   onSubmitSuccess,
 }: SettlePayoutsFormPropsT) {
   const router = useRouter()
@@ -167,94 +151,16 @@ export function SettlePayoutsForm({
         {rows.length === 0 ? (
           <p className="text-muted-foreground mt-6 text-sm">Brak wypłat do rozliczenia.</p>
         ) : (
-          <table className="mt-6 w-full text-sm">
-            <thead>
-              <tr className="text-muted-foreground text-left text-xs">
-                <th className="w-8" />
-                <th className="py-1 font-medium">{labelHeader}</th>
-                <th className="py-1 text-right font-medium">Wykonane</th>
-                <th className="py-1 text-right font-medium">Wypłacone</th>
-                <th className="py-1 text-right font-medium">Pozostało</th>
-                <th className="w-36 py-1 pl-4 font-medium">Kwota wypłaty</th>
-                <th className="py-1 text-right font-medium">Po wypłacie</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row, index) => {
-                const key = `${row.investmentId}:${row.workerId}`
-                const bookable = BOOKABLE_STATES.has(row.state)
-                const value = rowValues[index] ?? { ticked: false, amount: '' }
-                const amount = isValidAmount(value) ? amountOf(value) : 0
-                const ahead = value.ticked ? paidAheadOf(row.remaining, amount) : 0
-                return (
-                  <tr key={key} className={cn('border-t align-top', !bookable && 'opacity-60')}>
-                    <td className="py-2">
-                      <form.Field name={`rows[${index}].ticked`}>
-                        {(field) => (
-                          <Checkbox
-                            aria-label={`Wypłać: ${row.label}`}
-                            checked={field.state.value}
-                            disabled={!bookable}
-                            onCheckedChange={(checked) => field.handleChange(checked === true)}
-                          />
-                        )}
-                      </form.Field>
-                    </td>
-                    <td className="py-2">{row.label}</td>
-                    <td className="py-2 text-right">{formatPLN(row.due)}</td>
-                    <td className="py-2 text-right">{formatPLN(row.paid)}</td>
-                    <td className={cn('py-2 text-right', row.remaining < 0 && 'text-destructive')}>
-                      {formatPLN(row.remaining)}
-                    </td>
-                    {bookable ? (
-                      <>
-                        <td className="py-1 pl-4">
-                          <form.Field name={`rows[${index}].amount`}>
-                            {(field) => (
-                              <Input
-                                aria-label={`Kwota wypłaty: ${row.label}`}
-                                inputMode="decimal"
-                                value={field.state.value}
-                                disabled={!value.ticked}
-                                aria-invalid={value.ticked && !isValidAmount(value)}
-                                onChange={(e) => field.handleChange(e.target.value)}
-                              />
-                            )}
-                          </form.Field>
-                          {ahead > 0 && (
-                            <p className="text-destructive mt-1 text-xs">
-                              {formatPLN(ahead)} ponad wykonaną pracę — zapisze się jako zaliczka
-                            </p>
-                          )}
-                        </td>
-                        <td className="py-2 text-right">
-                          {value.ticked && isValidAmount(value) ? (
-                            <AfterPayout remaining={row.remaining} amount={amount} />
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
-                          )}
-                        </td>
-                      </>
-                    ) : (
-                      <td colSpan={2} className="text-muted-foreground py-2 pl-4 text-xs">
-                        {BLOCKED_PAIR_REASON[row.state as keyof typeof BLOCKED_PAIR_REASON]}
-                      </td>
-                    )}
-                  </tr>
-                )
-              })}
-            </tbody>
-            <tfoot>
-              <tr className="border-t font-medium">
-                <td />
-                <td className="py-2" colSpan={4}>
-                  Razem
-                </td>
-                <td className="py-2 pl-4">{formatPLN(total)}</td>
-                <td />
-              </tr>
-            </tfoot>
-          </table>
+          <SettlePayoutsTable
+            className="mt-6"
+            rows={rows}
+            values={rowValues}
+            total={total}
+            labelHeader={labelHeader}
+            labelHref={labelHref}
+            onTick={(index, ticked) => form.setFieldValue(`rows[${index}].ticked`, ticked)}
+            onAmount={(index, amount) => form.setFieldValue(`rows[${index}].amount`, amount)}
+          />
         )}
 
         <footer className="mt-6">
