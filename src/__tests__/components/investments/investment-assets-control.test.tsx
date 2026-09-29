@@ -4,10 +4,6 @@ import userEvent from '@testing-library/user-event'
 import { InvestmentAssetsControl } from '@/components/investments/investment-assets-control'
 import type { MediaFileT } from '@/types/media'
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn(), prefetch: vi.fn(), refresh: vi.fn() }),
-}))
-
 const removeInvestmentAssetAction = vi.fn()
 const removeAllInvestmentAssetsAction = vi.fn()
 vi.mock('@/lib/actions/investment-assets', () => ({

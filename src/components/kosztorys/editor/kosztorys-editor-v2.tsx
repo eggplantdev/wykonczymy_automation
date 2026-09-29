@@ -7,6 +7,7 @@ import { KosztorysVersionsDrawer } from '@/components/kosztorys/editor/dialogs/k
 import { useAutoSnapshot } from '@/components/kosztorys/editor/hooks/use-auto-snapshot'
 import { useRestoreRemount } from '@/components/kosztorys/editor/hooks/use-restore-remount'
 import { useUndoRedo } from '@/components/kosztorys/editor/hooks/use-undo-redo'
+import type { OnTreeReplacedT } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { refreshDataAction } from '@/lib/actions/refresh'
 import type { KosztorysEditorDataT } from '@/lib/kosztorys/types'
 
@@ -38,11 +39,9 @@ export function KosztorysEditorV2(props: PropsT) {
   revisionRef.current = undoRedo.revision
   const autoSnapshot = useAutoSnapshot(investmentId, revisionRef)
 
-  // Shared by every path that swaps the whole tree under the editor — restoring a version, importing
-  // the Google sheet, reloading from a szablon and clearing all land here. The action's own render
-  // carries the fresh tree into the latch; `refetch` is for a caller whose action threw, so no render
-  // arrived and one has to be asked for.
-  function handleTreeReplaced({ refetch }: { refetch?: boolean } = {}) {
+  // Shared by every path that swaps the whole tree under the editor. The action's own render carries
+  // the fresh tree into the latch.
+  const handleTreeReplaced: OnTreeReplacedT = ({ refetch } = {}) => {
     triggerRestore()
     if (refetch) router.refresh()
     // Reseeding the whole grid via a body remount — drop the stack whose commands close over
@@ -60,9 +59,7 @@ export function KosztorysEditorV2(props: PropsT) {
   // and letting the prop landing drive the remount has no such ordering to get wrong.
   // `refreshDataAction` is the sidebar's „Odśwież dane" — data, not the page.
   function handleStaleTree() {
-    triggerRestore()
-    undoRedo.reset()
-    autoSnapshot.skipNext()
+    handleTreeReplaced()
     return refreshDataAction()
   }
 

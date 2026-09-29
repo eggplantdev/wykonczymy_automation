@@ -7,8 +7,8 @@ type RestoreRemountT = {
   // rather than patching rows in place — a full remount intentionally discards sort/filter/optimistic
   // state (lessons.md: never remount on a routine tree change).
   remountKey: number
-  // Arm the one-shot: the next fresh-tree signal remounts. Call once the replacing action has
-  // resolved — its render commits after the continuation, so the latch is armed in time.
+  // Arm the one-shot: the next fresh-tree signal remounts. Arm it before the fresh tree commits — a
+  // replacing action's render commits after its continuation, so arming once it resolved is in time.
   triggerRestore: () => void
 }
 

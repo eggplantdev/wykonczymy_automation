@@ -743,9 +743,8 @@ export function useKosztorysEditor({
       (r) => patchById.has(r.id),
       (r) => ({ ...r, ...patchById.get(r.id) }) as KosztorysV2RowT,
     )
-    // On failure roll the optimistic apply back via `revertOne` — no render, the action's own included,
-    // can, since `rows` is the mount-frozen useState seed (EX-441), so without this a rejected inverse
-    // leaves the grid diverged from the DB behind a toast.
+    // On failure roll the optimistic apply back via `revertOne` — `rows` is the mount-frozen useState
+    // seed (EX-441), so no render can, and a rejected inverse would leave the grid diverged from the DB.
     await Promise.all(
       planReversalWrites(fields, stages, dir).map((w) =>
         w.kind === 'field'

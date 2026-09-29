@@ -15,7 +15,7 @@ type PropsT = {
   investmentName: string
   open: boolean
   onOpenChange: (open: boolean) => void
-  // Called after a successful restore so the parent can refresh + remount the editor.
+  // Called after a successful restore so the parent remounts the editor.
   onRestored: () => void
 }
 

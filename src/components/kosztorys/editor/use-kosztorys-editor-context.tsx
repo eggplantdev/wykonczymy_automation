@@ -17,8 +17,7 @@ type KosztorysEditorContextT = ReturnType<typeof useKosztorysEditor> & {
   tree: KosztorysTreeT
   // Absent in preview — the versions button lives in the toolbar, which the client render omits.
   onOpenVersions?: () => void
-  // Fires after the whole tree is swapped out (version restore, sheet import, reload, clear) — remounts
-  // the body.
+  // Fires after the whole tree is swapped out — remounts the body.
   onTreeReplaced?: OnTreeReplacedT
   // Opens „Pobierz z arkusza Google". Owned above the toolbar because the empty-kosztorys screen
   // offers it too. Absent in preview, which renders neither trigger.

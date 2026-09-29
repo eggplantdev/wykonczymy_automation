@@ -6,9 +6,6 @@ import { PromoteLeadDialog } from '@/components/leads/promote-lead-dialog'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import type { LeadRowT } from '@/types/leads'
 
-vi.mock('next/navigation', () => ({
-  usePathname: () => '/zgloszenia',
-}))
 vi.mock('@/lib/actions/promote-lead', () => ({
   promoteLeadAction: vi.fn(async () => ({ success: true })),
 }))

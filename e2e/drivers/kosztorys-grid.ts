@@ -155,8 +155,8 @@ export async function expectCellValue(cell: Locator, value: string): Promise<voi
 // Commit a typed figure into the cell that is already open for editing.
 //
 // The Enter goes to the INPUT, never to `page.keyboard`, which delivers to `document.activeElement`
-// — and in this editor that is not reliably the cell being typed into. An autosave's
-// `router.refresh()` re-renders the grid mid-edit, the input unmounts, and focus falls back to
+// — and in this editor that is not reliably the cell being typed into. An autosave's route
+// refetch re-renders the grid mid-edit, the input unmounts, and focus falls back to
 // whatever Radix last restored it to: in `kosztorys-global-discount-overrides` that was the
 // discount-type menu trigger one cell over, so Enter OPENED that menu instead of committing. A Radix
 // menu marks the rest of the document `aria-hidden`, so every later `getByRole` found nothing and the

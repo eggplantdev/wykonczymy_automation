@@ -12,9 +12,6 @@ import { CurrentUserProvider } from '@/hooks/use-current-user'
 
 const editorState = vi.hoisted(() => ({ isTemplate: false }))
 
-// The dialogs hang beside the menu as siblings (see KosztorysActionsProvider), so they render
-// together with it — and one of them reaches for the Next router, which jsdom does not have.
-
 vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
   useKosztorysEditorContext: () => ({
     investmentId: 1,

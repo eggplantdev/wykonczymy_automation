@@ -136,8 +136,8 @@ export type KosztorysTreeT = {
   // The `active` flag is denormalized onto each row; the amount is subtracted once at the total level.
   globalDiscount: GlobalDiscountT
   // Change token = investment.updatedAt (ISO), which a restore always bumps. The editor shell keys
-  // its restore remount on it rather than on the `tree` prop's identity, which router.refresh
-  // reshapes every time.
+  // its restore remount on it rather than on the `tree` prop's identity, which every render
+  // reshapes.
   revision: string
 }
 

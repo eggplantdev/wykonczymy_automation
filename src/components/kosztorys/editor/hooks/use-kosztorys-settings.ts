@@ -90,7 +90,7 @@ export function useKosztorysSettings({
       () => updateInvestmentCoeffsAction(investmentId, patch),
       () => {
         // Roll the optimistic coefficients back so the grid doesn't show an unsaved price (the
-        // once-only useState seed means a plain refresh can't reseed it). No-op on an empty kosztorys.
+        // once-only useState seed means a render can't reseed it). No-op on an empty kosztorys.
         if (!sample) return
         const restored: { globalWToolsCoeff?: number; globalOwnToolsCoeff?: number } = {}
         if (patch.wToolsCoeff != null) restored.globalWToolsCoeff = sample.globalWToolsCoeff
@@ -280,7 +280,7 @@ export function useKosztorysSettings({
       (r) => ({ ...r, discountType: 'percent', discountValue: percent }),
     )
     // Roll each row's rabat back to its pre-apply value on failure — the once-only useState seed means
-    // a refresh can't reseed it.
+    // a render can't reseed it.
     return optimisticSettingSave(
       () => applyPercentDiscountToAllItemsAction(investmentId, percent),
       () =>

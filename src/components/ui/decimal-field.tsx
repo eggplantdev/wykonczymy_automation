@@ -45,8 +45,8 @@ type PropsT = {
   onCommit: (n: number) => void
 }
 
-// Uncontrolled + `key` on the value (remount after router.refresh), commit on blur/Enter — no
-// useEffect (project rule).
+// Uncontrolled + `key` on the value (remount when a render brings a new one), commit on
+// blur/Enter — no useEffect (project rule).
 export function DecimalField({
   label,
   labelAbove = false,
