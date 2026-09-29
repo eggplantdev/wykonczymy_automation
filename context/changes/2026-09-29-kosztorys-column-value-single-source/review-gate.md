@@ -43,3 +43,8 @@ audit (flag-only).
 Ran /simplify — 6 applied, 0 proposed, 1 skipped, 1 dismissed, 2 dropped; each finding folded into ## Findings (tagged simplify).
 
 ## Tests & suite
+
+- typecheck (`tsc --noEmit`) — clean
+- eslint on the changed files — clean
+- `pnpm test` (unit, node + dom) — 4322 passed, 1 failed: `resolve-id.test.ts` „CACHE_TAGS values follow collection: prefix pattern", which is pre-existing and fails on the staging base `6fb13641` too; unrelated
+- integration / build — deferred by the user (the pre-push hook gates them); e2e not run

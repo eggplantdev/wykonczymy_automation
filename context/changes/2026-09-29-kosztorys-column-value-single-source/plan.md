@@ -374,4 +374,7 @@ Run **once**, after the final phase:
 
 #### Automated
 
-- [ ] 4.1 Print specs pass unchanged
+- [x] 4.1 Print specs pass unchanged — 833942da
+
+> Phase 4 note: `PrintColumnT` became `cell: (row) => string`, so `build-html` no longer takes
+> stages / price view; both prints read one shared `computedColumnValues`. Review fixes: 3494c857.
