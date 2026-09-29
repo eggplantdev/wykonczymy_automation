@@ -80,14 +80,20 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
 
   afterAll(purge)
 
-  it('refuses a MANAGER', async () => {
+  it('lets a MANAGER trash, restore and delete forever', async () => {
     const id = await createTestInvestment(payload, `${PREFIX} manager`)
     session.role = 'MANAGER'
 
-    const result = await actions.trashInvestmentAction(id)
+    expect((await actions.trashInvestmentAction(id)).success).toBe(true)
+    expect(await trashedAt(id)).not.toBeNull()
 
-    expect(result.success).toBe(false)
+    expect((await actions.restoreInvestmentAction(id)).success).toBe(true)
     expect(await trashedAt(id)).toBeNull()
+
+    await actions.trashInvestmentAction(id)
+    expect((await actions.deleteInvestmentForeverAction(id)).success).toBe(true)
+    const { rows } = await db.execute(sql`SELECT 1 FROM investments WHERE id = ${id}`)
+    expect(rows).toHaveLength(0)
   })
 
   it('refuses a szablon', async () => {

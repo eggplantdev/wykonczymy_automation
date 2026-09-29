@@ -1,6 +1,6 @@
 'use server'
 
-import { ownerOnlyAction } from '@/lib/actions/owner-only-action'
+import { protectedAction } from '@/lib/actions/run-action'
 import {
   INVESTMENT_DELETE_TAGS,
   INVESTMENT_TRASH_TAGS,
@@ -17,7 +17,6 @@ import {
 } from '@/lib/investments/delete-investment-forever'
 import type { ActionResultT } from '@/types/action'
 
-const FORBIDDEN_MESSAGE = 'Tylko właściciel lub administrator może usuwać inwestycje.'
 const MISSING_MESSAGE = 'Inwestycja nie istnieje.'
 
 // The caller expires the tags itself, through the wrapper — the hooks' own revalidation would
@@ -25,9 +24,8 @@ const MISSING_MESSAGE = 'Inwestycja nie istnieje.'
 const SKIP_HOOK_REVALIDATION = { skipRevalidation: true }
 
 export async function trashInvestmentAction(investmentId: number): Promise<ActionResultT> {
-  return ownerOnlyAction(
+  return protectedAction(
     'trashInvestmentAction',
-    FORBIDDEN_MESSAGE,
     async ({ payload }) =>
       // READ COMMITTED with no row lock, so a transfer committed between the count and the write
       // still lands on a trashed investment. Accepted: the delete re-counts and refuses, and
@@ -74,9 +72,8 @@ export async function trashInvestmentAction(investmentId: number): Promise<Actio
 }
 
 export async function restoreInvestmentAction(investmentId: number): Promise<ActionResultT> {
-  return ownerOnlyAction(
+  return protectedAction(
     'restoreInvestmentAction',
-    FORBIDDEN_MESSAGE,
     async ({ payload }) => {
       await payload.update({
         collection: 'investments',
@@ -100,9 +97,8 @@ export async function deleteInvestmentForeverAction(
   investmentId: number,
   confirmName?: string,
 ): Promise<ActionResultT> {
-  return ownerOnlyAction(
+  return protectedAction(
     'deleteInvestmentForeverAction',
-    FORBIDDEN_MESSAGE,
     async ({ payload }) => {
       const investment = await payload.findByID({
         collection: 'investments',
