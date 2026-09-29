@@ -35,7 +35,12 @@ describe('worker view settings', () => {
       hideEmptyRows: false,
     })
 
-    expect(settings).toEqual({ hiddenColumns: ['unit'], hideEmptyRows: false, columnRanks: {} })
+    expect(settings).toEqual({
+      hiddenColumns: ['unit'],
+      hideEmptyRows: false,
+      hidePlannedOnceExecuted: true,
+      columnRanks: {},
+    })
   })
 
   it.each([undefined, null, 'x', 42, { hiddenColumns: 'price' }])(
@@ -51,8 +56,22 @@ describe('worker view settings', () => {
     expect(WORKER_VIEW_DEFAULT_SETTINGS).toEqual({
       hiddenColumns: [],
       hideEmptyRows: true,
+      hidePlannedOnceExecuted: true,
       columnRanks: {},
     })
+  })
+
+  it('keeps a stored „hide przedmiar once work exists" off, and reads anything else as on', () => {
+    expect(
+      sanitizeWorkerViewSettings({ hidePlannedOnceExecuted: false }).hidePlannedOnceExecuted,
+    ).toBe(false)
+    for (const raw of [undefined, null, 'false', 0, true]) {
+      expect(
+        sanitizeWorkerViewSettings({ hidePlannedOnceExecuted: raw }).hidePlannedOnceExecuted,
+        String(raw),
+      ).toBe(true)
+    }
+    expect(sanitizeWorkerViewSettings(null).hidePlannedOnceExecuted).toBe(true)
   })
 
   it("resolves the stawka to the worker's plane and never to the client price or the other plane", () => {

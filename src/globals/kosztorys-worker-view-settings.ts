@@ -28,5 +28,10 @@ export const KosztorysWorkerViewSettings: GlobalConfig = {
       type: 'checkbox',
       defaultValue: true,
     },
+    {
+      name: 'hidePlannedOnceExecuted',
+      type: 'checkbox',
+      defaultValue: true,
+    },
   ],
 }

@@ -104,6 +104,7 @@ import * as migration_20260929_1_szablon_as_investment from './20260929_1_szablo
 import * as migration_20260929_2_drop_kosztorys_presets from './20260929_2_drop_kosztorys_presets'
 import * as migration_20260929_3_add_quote_investment_status from './20260929_3_add_quote_investment_status'
 import * as migration_20260929_4_quote_is_the_default_status from './20260929_4_quote_is_the_default_status'
+import * as migration_20260929_5_worker_view_hide_planned from './20260929_5_worker_view_hide_planned'
 
 export const migrations = [
   {
@@ -635,5 +636,10 @@ export const migrations = [
     up: migration_20260929_4_quote_is_the_default_status.up,
     down: migration_20260929_4_quote_is_the_default_status.down,
     name: '20260929_4_quote_is_the_default_status',
+  },
+  {
+    up: migration_20260929_5_worker_view_hide_planned.up,
+    down: migration_20260929_5_worker_view_hide_planned.down,
+    name: '20260929_5_worker_view_hide_planned',
   },
 ]

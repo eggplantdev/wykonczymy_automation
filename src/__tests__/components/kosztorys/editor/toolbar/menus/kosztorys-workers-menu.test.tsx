@@ -38,6 +38,7 @@ vi.mock('@/lib/queries/worker-view-settings-endpoint', () => ({
   readWorkerViewSettings: vi.fn(async () => ({
     hiddenColumns: [],
     hideEmptyRows: true,
+    hidePlannedOnceExecuted: true,
     columnRanks: {},
   })),
 }))
