@@ -20,6 +20,14 @@ const NO_DEPOSITS: DepositPlaneSumsMapT = {}
 const paidNet = (amount: number): DepositPlaneSumsMapT => ({
   '5': { paidNet: amount, paidGrossNet: 0, paidGross: 0, paidNetCount: 1 },
 })
+const kosztorysTotals: KosztorysClientTotalsMapT = {
+  '5': {
+    doneNet: 4500,
+    laborCostsNetFromKosztorys: 5000,
+    discountNetFromKosztorys: 500,
+    globalDiscountNet: 0,
+  },
+}
 
 const baseInv: InvestmentRefT = {
   id: 5,
@@ -340,15 +348,6 @@ describe('shapeInvestments robocizna source', () => {
     },
   }
 
-  const kosztorysTotals: KosztorysClientTotalsMapT = {
-    '5': {
-      doneNet: 4500,
-      laborCostsNetFromKosztorys: 5000,
-      discountNetFromKosztorys: 500,
-      globalDiscountNet: 0,
-    },
-  }
-
   it('builds bilans and marża from the kosztorys pair', () => {
     const [row] = shapeInvestments(
       [baseInv],
@@ -443,10 +442,6 @@ describe('shapeInvestments robocizna source', () => {
 
     expect(zeroProgress.hasKosztorys).toBe(true)
     expect(absent.hasKosztorys).toBe(false)
-    // Presence withholds „Pozostało do wypłaty" and changes nothing else: every other figure still
-    // reads the zero the same way.
-    expect(zeroProgress.subcontractorRemaining).toBe(-1000) // nothing owed, 1000 paid
-    expect(absent.subcontractorRemaining).toBeUndefined()
     expect({
       ...zeroProgress,
       hasKosztorys: false,
@@ -494,15 +489,6 @@ describe('shapeInvestments marża v2', () => {
     },
   }
 
-  const kosztorysTotals: KosztorysClientTotalsMapT = {
-    '5': {
-      doneNet: 4500,
-      laborCostsNetFromKosztorys: 5000,
-      discountNetFromKosztorys: 500,
-      globalDiscountNet: 0,
-    },
-  }
-
   it('prices the crew from the kosztorys, not from the wypłaty', () => {
     const [row] = shapeInvestments(
       [baseInv],
@@ -546,26 +532,22 @@ describe('shapeInvestments marża v2', () => {
   })
 })
 
-// The Podwykonawcy headline on the listing: należne from the kosztorys minus the wypłaty booked as
-// transfers. Reuses the marża v2 fixtures, whose wypłaty (1000) differ from every należne below, so a
-// figure reading marża's terms instead would fail.
+// The wypłaty (1000) differ from every należne below, so a figure reading the wrong operand fails.
 describe('shapeInvestments pozostało do wypłaty', () => {
   const transactionFinancials: InvestmentFinancialsMapT = {
-    '5': { ...ZERO_FINANCIALS, totalLaborCosts: 3900, totalPayouts: 1000, totalSettled: 300 },
-  }
-  const kosztorysTotals: KosztorysClientTotalsMapT = {
-    '5': {
-      doneNet: 4500,
-      laborCostsNetFromKosztorys: 5000,
-      discountNetFromKosztorys: 500,
-      globalDiscountNet: 0,
-    },
+    '5': { ...ZERO_FINANCIALS, totalPayouts: 1000 },
   }
   const remainingFor = (
     due: number,
-    hasUnconfirmedPlane = false,
-    totals: KosztorysClientTotalsMapT = kosztorysTotals,
-    financials: InvestmentFinancialsMapT = transactionFinancials,
+    {
+      hasUnconfirmedPlane = false,
+      totals = kosztorysTotals,
+      financials = transactionFinancials,
+    }: {
+      hasUnconfirmedPlane?: boolean
+      totals?: KosztorysClientTotalsMapT
+      financials?: InvestmentFinancialsMapT
+    } = {},
   ) =>
     shapeInvestments(
       [baseInv],
@@ -585,16 +567,15 @@ describe('shapeInvestments pozostało do wypłaty', () => {
 
   it('withholds the figure when an etap carries work with no rozliczenie', () => {
     // The należne would be short by an unknown amount, so any number would understate the debt.
-    expect(remainingFor(1750, true)).toBeUndefined()
+    expect(remainingFor(1750, { hasUnconfirmedPlane: true })).toBeUndefined()
   })
 
   it('withholds the figure for an investment with no kosztorys', () => {
     // Otherwise it would read −wypłaty and sort legacy investments in among real overpayments.
-    expect(remainingFor(1750, false, NO_MAP)).toBeUndefined()
+    expect(remainingFor(1750, { totals: NO_MAP })).toBeUndefined()
   })
 
   it('reads −wypłaty for a kosztorys with no executed work yet', () => {
-    // No fold row for the investment: nothing is owed, so the crews were paid ahead of the work.
     const [row] = shapeInvestments(
       [baseInv],
       transactionFinancials,
@@ -609,7 +590,7 @@ describe('shapeInvestments pozostało do wypłaty', () => {
   it('rounds float residue to exactly zero grosz', () => {
     const paid030: InvestmentFinancialsMapT = { '5': { ...ZERO_FINANCIALS, totalPayouts: 0.3 } }
 
-    expect(remainingFor(0.1 + 0.2, false, kosztorysTotals, paid030)).toBe(0)
+    expect(remainingFor(0.1 + 0.2, { financials: paid030 })).toBe(0)
   })
 })
 

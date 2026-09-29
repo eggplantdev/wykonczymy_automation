@@ -30,7 +30,7 @@ rozliczenie, and „brak danych" where there is no kosztorys; both sort last. Th
 |---|---|---|---|
 | Etap with work but no rozliczenie | Withhold → „ustaw etapy" | The short figure understates the debt, which is the wrong direction for a debt scan; same as Marża v2 | Plan |
 | No kosztorys | „brak danych" | `−wypłaty` would paint every legacy investment as overpaid | Plan |
-| Role gate | None: all management roles | Owner's call; matches the ungated Podwykonawcy tab | Plan |
+| Role gate | None: all management roles | Owner's call; matches the editor's ungated Podwykonawcy tab (the investment page gates it) | Plan |
 | Negative value | Red number only | Mirrors the tab; the overpayment wording is still open | Plan |
 | „Kolumny v2" switch | Joins it | The figure is kosztorys-sourced | Plan |
 | Data source | Reuse the existing fold + `totalPayouts` | No new SQL, cache or migration; one definition shared with the editor | Research |

@@ -140,6 +140,7 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
       // Two planes, and NOT interchangeable: the v1 columns are the raw transactions the detail page
       // feeds v1, the v2 columns the same figures rebased onto the kosztorys reading. Comparing a v1
       // column against the rebased object let the listing marża drift 235 908,25 zł while green.
+      const invTotals = kosztorysTotals[String(inv.id)]
       const transactionFin = deriveFinancials(
         byType,
         breakdowns.categoryCosts,
@@ -150,7 +151,7 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
       )
       const detailFin = financialsOnReading(
         transactionFin,
-        readingFromKosztorys(kosztorysTotals[String(inv.id)]),
+        readingFromKosztorys(invTotals),
       )
       if (transactionFin.materialsNetBilled !== 0) covered.netBilled++
       if (transactionFin.materialsNetDiscount !== 0) covered.concession++
@@ -183,7 +184,7 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
       // sum over `financialsOnReading` deducts `totalIncome`, which counts a przelew at its brutto
       // where the netto plane deducts the netto the faktura named — 230 zł apart on a 1230/1000 wpłata.
       const detailAmountDue = computeAmountDue(
-        readingFromKosztorys(kosztorysTotals[String(inv.id)]).laborCostsNet,
+        readingFromKosztorys(invTotals).laborCostsNet,
         depositPairFromPlaneSums(depositPlaneSums[String(inv.id)] ?? NO_DEPOSIT_SUMS),
         { grossBase: detailFin.materialsGrossBase, netBilled: detailFin.materialsNetBilled },
         inv.vatRate,
@@ -230,11 +231,10 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
           `#${inv.id} ${inv.name} · marża v2: listing=${listingMarginV2} detail=${detailMarginV2}`,
         )
       }
-      // The Podwykonawcy headline through the panel's own calls. The panel never withholds — it
-      // prints the short figure beside a hint — so the listing's rule is applied here first, or
-      // every unconfirmed investment would read as a mismatch.
+      // The panel never withholds — it prints the short figure beside a hint — so the listing's
+      // rule is applied here first, or every unconfirmed investment would read as a mismatch.
       const detailRemaining =
-        kosztorysTotals[String(inv.id)] === undefined || byPlane.hasUnconfirmedPlane
+        invTotals === undefined || byPlane.hasUnconfirmedPlane
           ? undefined
           : computeSubcontractorSummary(
               byPlane.combined,

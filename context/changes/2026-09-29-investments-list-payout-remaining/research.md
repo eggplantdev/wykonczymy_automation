@@ -139,7 +139,10 @@ an investment without a kosztorys shows, the role gate, and v2-switch membership
   counts in neither figure. A badge is the only signal.
 - `context/archive/2026-07-27-kosztorys-stage-worker-assignment/` (EX-613) — one worker per etap.
   Unassigned etapy go to a leftover bucket. A negative pozostało is always red. One pure function
-  feeds both the editor and the DB. The panel is not role-gated.
+  feeds both the editor and the DB. The editor's Podwykonawcy tab is not role-gated; the investment
+  page's summary panel is — it passes `subcontractorDue` only under `canSeeMargin`
+  (`investment-summary-panel.tsx:61-69`). The ungated listing column follows the owner's call, not
+  that precedent.
 - `context/archive/2026-08-18-marza-prognoza-rzeczywista/` — introduced the SQL fold for the listing,
   because full trees were ~10 MB per 200 investments. A plane-less etap withholds Marża v2 („ustaw
   etapy") on the listing. The overpayment wording is still open: „Nadpłata" / „nadpłacone" /

@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { createColumnHelper } from '@tanstack/react-table'
+import { createColumnHelper, type CellContext } from '@tanstack/react-table'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 import { isAdminOrOwnerRole, type RoleT } from '@/lib/auth/roles'
@@ -51,10 +51,16 @@ function NoKosztorysData() {
   return <span className="text-muted-foreground text-xs">brak danych</span>
 }
 
-// A row with an unsettled etap has no amount at all — zero would claim the crew works for free. The
-// prompt names what the owner has to do to get the number back.
+// A row with an unsettled etap has no amount at all — zero would read as a real figure: a crew
+// working for free on the marża, a crew paid in full on „Pozostało do wypłaty".
 function UnsettledStages() {
   return <span className="text-muted-foreground text-xs">ustaw etapy</span>
+}
+
+function withheldFigureCell(info: CellContext<InvestmentRowT, number | undefined>) {
+  const value = info.getValue()
+  if (!hasKosztorysReading(info.row.original)) return <NoKosztorysData />
+  return value === undefined ? <UnsettledStages /> : <BalanceCell value={value} />
 }
 
 // A numeric cell that may carry a hint icon next to it. Right-aligned inline so the icon rides with
@@ -181,11 +187,7 @@ export function getInvestmentColumns({ userRole }: InvestmentColumnOptionsT) {
             sortUndefined: 'last',
             header: 'Marża v2',
             meta: { align: 'right', tooltip: INVESTMENT_HEADER_TIPS.marginV2 },
-            cell: (info) => {
-              const value = info.getValue()
-              if (!hasKosztorysReading(info.row.original)) return <NoKosztorysData />
-              return value === undefined ? <UnsettledStages /> : <BalanceCell value={value} />
-            },
+            cell: withheldFigureCell,
           }),
         ]
       : []),
@@ -254,17 +256,13 @@ export function getInvestmentColumns({ userRole }: InvestmentColumnOptionsT) {
         ]
       : []),
     // Ungated, unlike „Wypłaty" beside it: the owner wants every management role to see where a
-    // crew is still owed money. Red when negative, like the Podwykonawcy panel it mirrors.
+    // crew is still owed money.
     col.accessor('subcontractorRemaining', {
       id: 'subcontractorRemaining',
       sortUndefined: 'last',
       header: SUBCONTRACTOR_FIGURE_LABELS.remaining,
       meta: { align: 'right', tooltip: INVESTMENT_HEADER_TIPS.subcontractorRemaining },
-      cell: (info) => {
-        const value = info.getValue()
-        if (!hasKosztorysReading(info.row.original)) return <NoKosztorysData />
-        return value === undefined ? <UnsettledStages /> : <BalanceCell value={value} />
-      },
+      cell: withheldFigureCell,
     }),
     col.accessor('address', {
       id: 'address',
