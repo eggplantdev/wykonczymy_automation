@@ -581,11 +581,11 @@ Run once, after the final phase:
 
 #### Automated
 
-- [ ] 4.1 Form DOM spec passes (`settle-payouts-form.test.tsx`)
+- [x] 4.1 Form DOM spec passes (`settle-payouts-form.test.tsx`) — 25ef414e
 
 ### Phase 5: Seed, docs, closure
 
 #### Automated
 
-- [ ] 5.1 Seed runs twice cleanly against the test DB
-- [ ] 5.2 e2e-backlog issue id recorded
+- [x] 5.1 Seed runs twice cleanly against the test DB
+- [x] 5.2 e2e-backlog issue id recorded — EX-925

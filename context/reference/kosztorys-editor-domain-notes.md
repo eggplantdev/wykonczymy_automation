@@ -1690,3 +1690,23 @@ tam wymaga podania `executedQtyByItem` do `sortValueGetter`.
 
 **Nazwa: „bez pozycji", nie „pusta".** „Pusta sekcja" znaczy już u właściciela sekcję, której
 prace nie mają wpisanych wartości. W kodzie to `itemless`.
+
+## Wypłaty per para inwestycja × pracownik (EX-919, 2026-09-29)
+
+„Pozostało do wypłaty" na liście pracowników i dialog „Rozlicz wypłaty" liczą na **parze
+inwestycja × pracownik**: wykonane na jego etapach po jego stawce − jego wypłaty na tej inwestycji.
+Ten sam wzór co blok Podwykonawcy, tylko rozcięty na pary. Pełne zasady liczby:
+`context/foundation/investment-financials-and-discount.md` § „Pozostało do wypłaty" per worker.
+
+- **„Nieprzypisane"** — etapy bez pracownika i wypłaty bez pracownika tworzą jedną szarą pozycję
+  („przypisz, żeby wypłacić"). Tak samo grupuje je blok Podwykonawcy, więc wiersze dialogu z listy
+  inwestycji sumują się do kolumny. Wypłaty bez pracownika to tylko stare wpisy (III–IV 2026);
+  dziś wypłaty bez pracownika nie da się zapisać.
+- **Stany pary, w tej kolejności:** nieprzypisane → bez rozliczenia etapu („ustaw rozliczenie
+  etapu") → inwestycja zakończona („przywróć na Aktywna") → nadpłata → rozliczone → do wypłaty.
+  Wypłacić można tylko trzy ostatnie.
+- **Zaliczka** — kwota ponad wykonaną pracę jest dozwolona, ale jawna: czerwone „nadpłata X" przy
+  wierszu, zdanie „X ponad wykonaną pracę — zapisze się jako zaliczka", a opis wypłaty dostaje
+  „w tym zaliczka X zł". Słowo zostaje mimo znaczenia „wpłata inwestora" w słowniku — kontekst
+  wypłaty dla pracownika je rozstrzyga. Wiersz już nadpłacony startuje odznaczony i pusty.
+
