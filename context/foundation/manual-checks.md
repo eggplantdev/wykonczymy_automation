@@ -2093,6 +2093,12 @@ decyzja właściciela.
 - [ ] Lista „Używane, a brak w katalogu" jest ułożona po liczbie kosztorysów, a podpowiedź nigdy nie
       dolicza się do „Kosztorysy".
 - [ ] Nowy kosztorys, który używa pracy, podnosi jej liczbę przy następnym kliknięciu.
+- [ ] Po „Policz użycia" dodaj pracę przez „Nowa praca": kolumna „Kosztorysy", grupa „Użycie" i lista
+      „Używane, a brak w katalogu" znikają (nowa praca nie pokazuje „0"), a kolejne kliknięcie liczy
+      od nowa.
+- [ ] W „Brakuje w cenniku" w edytorze i na liście „Używane, a brak w katalogu" podpowiedź dla tej
+      samej nazwy z inną j.m. nadal zaczyna się od „ta sama nazwa, inna j.m.:" (przeniesienie kodu —
+      bez zmiany zachowania).
 
 ### Phase 5: Dokumentacja
 
@@ -2109,3 +2115,5 @@ decyzja właściciela.
       oznaczone.
 - [ ] Wybrany problem „z możliwym duplikatem" przetrwa przeładowanie strony, a pisanie w szukaniu
       nie przycina.
+- [ ] Pary o wspólnym tylko początku słowa („Wykonanie podłogi …" / „Wykonanie podłączenia …") **nie**
+      są oznaczone.
