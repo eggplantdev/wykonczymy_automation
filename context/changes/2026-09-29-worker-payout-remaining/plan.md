@@ -567,15 +567,15 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 2.1 Golden master regenerated and green
-- [x] 2.2 `sum-transfers.test.ts` passes without worker-balance cases
-- [x] 2.3 Column DOM spec passes (`components/tables/users.test.tsx`)
+- [x] 2.1 Golden master regenerated and green — 52c252bd
+- [x] 2.2 `sum-transfers.test.ts` passes without worker-balance cases — 52c252bd
+- [x] 2.3 Column DOM spec passes (`components/tables/users.test.tsx`) — 52c252bd
 
 ### Phase 3: Booking action
 
 #### Automated
 
-- [ ] 3.1 DB action spec passes (`lib/actions/settle-payouts.test.ts`)
+- [x] 3.1 DB action spec passes (`lib/actions/settle-payouts.test.ts`)
 
 ### Phase 4: „Rozlicz wypłaty" dialog
 
