@@ -72,8 +72,7 @@ function renderPanel(overrides: Partial<ComponentProps<typeof SummaryPanelConten
       materialsNetRate={null}
       financials={FINANCIALS}
       subcontractorDue={SUBCONTRACTOR_DUE}
-      showPies={false}
-      showTransactionLists={false}
+      host="editor"
       {...overrides}
     />,
   )

@@ -1,6 +1,5 @@
 'use client'
 
-import { type ReactNode } from 'react'
 import { cn } from '@/lib/utils/cn'
 import { effectiveMaterialsNetRate, type SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 import { ToggleGroup, type OptionT } from '@/components/ui/toggle-group'
@@ -45,7 +44,45 @@ const SUMMARY_VIEW_OPTIONS: OptionT<SummaryViewT>[] = [
   { value: 'investment', label: 'Inwestycja' },
 ]
 
-const ALL_SUMMARY_VIEWS = SUMMARY_VIEW_OPTIONS.map((option) => option.value)
+type HostLayoutT = {
+  // Which views this host offers, in toggle order. A host that omits a view need not supply the props
+  // that only feed it — hence those props are optional.
+  views: SummaryViewT[]
+  // VAT + rabat globalny editing. Reads the editor context, so only the editor host, which sits
+  // inside KosztorysEditorProvider, may turn it on.
+  settingsBar: boolean
+  // Off on a host that already lists every transaction next to the panel (the investment page's
+  // transfers table): wydatki drops its materiały list, wpłaty keeps only the Razem buckets.
+  transactionLists: boolean
+  // Off on a host where the panel is one block among several rather than a full-height overlay: the
+  // overview's share pie is the first thing worth dropping when vertical space is tight.
+  pies: boolean
+  // Off on a host that already indents the page, where the panel's own side padding would land ON TOP
+  // of the page gutter and sit the whole block a step right of everything around it.
+  gutter?: string
+}
+
+type SummaryHostT = 'editor' | 'investment'
+
+// One row per host, so no caller can ask for a combination that neither host renders.
+const HOST_LAYOUT: Record<SummaryHostT, HostLayoutT> = {
+  editor: {
+    views: SUMMARY_VIEW_OPTIONS.map((option) => option.value),
+    settingsBar: true,
+    transactionLists: true,
+    pies: true,
+    gutter: 'px-4',
+  },
+  // Robocizna (etapy) stays editor-only — it needs the stage grid to make sense. Podwykonawcy is
+  // dropped because the transfers table below this panel already lists every wypłata — as it does
+  // every wpłata, which is why `transactionLists` is off too. Marża renders for ADMIN/OWNER only.
+  investment: {
+    views: ['summary', 'expenses', 'margin'],
+    settingsBar: false,
+    transactionLists: false,
+    pies: false,
+  },
+}
 
 type PropsT = {
   investmentId: number
@@ -88,24 +125,8 @@ type PropsT = {
   // A settings write is in flight. None of them is optimistic — the server recomputes every figure
   // they move — so the block is disabled until the fresh values arrive.
   isSavingSettings?: boolean
-  // Which views this host offers, in toggle order. A host that omits a view need not supply the props
-  // that only feed it — hence every prop below is optional.
-  views?: SummaryViewT[]
-  // Rendered in the pinned top bar beside the view toggle (the investment page's v1/v2 reading toggle).
-  topBarSlot?: ReactNode
-  // VAT + rabat globalny editing. Reads the editor context, so only a host inside
-  // KosztorysEditorProvider may turn it on.
-  showSettingsBar?: boolean
-  // Off on a host that already lists every transaction next to the panel (the investment page's
-  // transfers table): wydatki drops its materiały list, wpłaty keeps only the Razem buckets.
-  showTransactionLists?: boolean
-  // Off on a host where the panel is one block among several rather than a full-height overlay (the
-  // investment page): the overview's share pie is the first thing worth dropping when vertical space is tight.
-  showPies?: boolean
-  // On a host that already indents the page (the investment page), the panel's own side padding
-  // lands ON TOP of the page gutter and the whole block sits a step right of everything around it.
-  // The overlay host has no gutter of its own, so the padding stays on by default.
-  flush?: boolean
+  // Where the panel is mounted — picks the views and the layout the host needs (HOST_LAYOUT).
+  host: SummaryHostT
   // Read-only client render: gate the mismatch scream and render internal links as plain text.
   preview?: boolean
   stages?: KosztorysStageT[]
@@ -160,12 +181,7 @@ export function SummaryPanelContent({
   materialsNetRate,
   onMaterialsNetRateChange,
   isSavingSettings = false,
-  views = ALL_SUMMARY_VIEWS,
-  topBarSlot,
-  showSettingsBar = false,
-  showTransactionLists = true,
-  showPies = true,
-  flush = false,
+  host,
   preview = false,
   stages,
   stageTotals,
@@ -189,7 +205,8 @@ export function SummaryPanelContent({
   // This component reads no session on purpose: it also renders under (share), which mounts no
   // CurrentUserProvider — so who may see „Marża" arrives as `preview` plus the presence of
   // `financials`, both decided by the host.
-  const allowedViews = allowedSummaryViews(views, {
+  const layout = HOST_LAYOUT[host]
+  const allowedViews = allowedSummaryViews(layout.views, {
     preview,
     hasMarginInputs: financials !== undefined && subcontractorDue !== undefined,
     hasInvestmentInfo: investment !== undefined,
@@ -217,7 +234,6 @@ export function SummaryPanelContent({
   // Derived once for both surfaces that offer the choice: the popover and the Materiały tab print
   // this same lock, so they can never disagree about whether the choice is available.
   const pricingLockedReason = settlementMode === 'GROSS' ? MATERIALS_GROSS_LOCK_REASON : undefined
-  const gutter = flush ? undefined : 'px-4'
   const materials: MaterialsT = { grossBase: materialsGrossBase, netBilled: materialsNetBilled }
   const amountDue = computeAmountDue(
     laborCostsNet,
@@ -233,7 +249,9 @@ export function SummaryPanelContent({
           settings block sat here once as an inline section and had to be evicted: growing it squeezed
           SummaryScrollRegion into a sliver, two containers fighting over one fixed height. It is back
           as a popover, whose content is portalled out of flow and so adds no height to this bar. */}
-      <div className={cn('flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 pt-4', gutter)}>
+      <div
+        className={cn('flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 pt-4', layout.gutter)}
+      >
         <ToggleGroup
           options={viewOptions}
           value={view}
@@ -256,10 +274,9 @@ export function SummaryPanelContent({
             onMaterialsNetRateChange={onMaterialsNetRateChange}
             pricingLockedReason={pricingLockedReason}
             isSaving={isSavingSettings}
-            showSettingsBar={showSettingsBar}
+            showSettingsBar={layout.settingsBar}
           />
         )}
-        {topBarSlot}
       </div>
       <SummaryScrollRegion>
         {view === 'subcontractors' && subcontractorDue ? (
@@ -269,11 +286,11 @@ export function SummaryPanelContent({
             payoutTransactions={payoutTransactions ?? []}
             stages={stages}
             workers={workers}
-            showGlobalSettings={showSettingsBar}
-            showTransactions={showTransactionLists}
+            showGlobalSettings={layout.settingsBar}
+            showTransactions={layout.transactionLists}
           />
         ) : (
-          <div className={cn('flex w-full flex-col gap-y-4 pt-4 pb-4', gutter)}>
+          <div className={cn('flex w-full flex-col gap-y-4 pt-4 pb-4', layout.gutter)}>
             {view === 'summary' && (
               <SummaryOverviewTab
                 investmentId={investmentId}
@@ -293,9 +310,9 @@ export function SummaryPanelContent({
                 materialsNetRate={effectiveNetRate}
                 paidPair={paidPair}
                 depositRows={depositTransactions}
-                showDeposits={showTransactionLists}
+                showDeposits={layout.transactionLists}
                 preview={preview}
-                showPie={showPies}
+                showPie={layout.pies}
               />
             )}
             {view === 'expenses' && (
@@ -313,7 +330,7 @@ export function SummaryPanelContent({
                 isSavingSettings={isSavingSettings}
                 pricingLockedReason={pricingLockedReason}
                 preview={preview}
-                showTransactions={showTransactionLists}
+                showTransactions={layout.transactionLists}
               />
             )}
 

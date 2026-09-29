@@ -46,8 +46,7 @@ function renderPanel(settlementMode: SettlementModeT = 'NET') {
       materialsNetRate={0.23}
       onMaterialsNetRateChange={onMaterialsNetRateChange}
       financials={ZERO_FINANCIALS}
-      showPies={false}
-      showTransactionLists={false}
+      host="investment"
     />,
   )
   return userEvent.setup()
