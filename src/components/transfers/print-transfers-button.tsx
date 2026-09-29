@@ -6,6 +6,7 @@ import type { Where } from 'payload'
 import type { Table } from '@tanstack/react-table'
 import { Loader2, Printer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import { fetchFilteredTransfers } from '@/lib/queries/fetch-transfers-for-invoices'
 import { columnLabel } from '@/lib/table/column-label'
@@ -48,10 +49,12 @@ export function PrintTransfersButton({ where, table, title }: PrintTransfersButt
     startTransition(async () => {
       // Refetches instead of reusing the table's rows: the table is paginated, the printout isn't.
       // The screen's sort key travels along, so both sets order the same way.
-      const result = await fetchFilteredTransfers(where, {
-        skipMedia: true,
-        sort: sortingStateToParam(table.getState().sorting) || undefined,
-      })
+      const result = await settleAction(() =>
+        fetchFilteredTransfers(where, {
+          skipMedia: true,
+          sort: sortingStateToParam(table.getState().sorting) || undefined,
+        }),
+      )
       if (!result.success) {
         printWindow.close()
         toastMessage(result.error ?? 'Nie udało się pobrać danych', 'error')

@@ -11,6 +11,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { SimpleSelect } from '@/components/ui/simple-select'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import { linkSheetToInvestmentAction } from '@/lib/actions/sheets'
 
@@ -40,7 +41,7 @@ export function LinkSheetToInvestmentDialog({
     if (!selectedId) return
     const investmentId = Number(selectedId)
     startTransition(async () => {
-      const res = await linkSheetToInvestmentAction(sheetId, investmentId)
+      const res = await settleAction(() => linkSheetToInvestmentAction(sheetId, investmentId))
       if (!res.success) return toastMessage(res.error, 'error')
       const investment = availableInvestments.find((i) => i.id === investmentId)
       toastMessage(`Dodano „${sheetName}” do inwestycji „${investment?.name ?? ''}”.`, 'success')

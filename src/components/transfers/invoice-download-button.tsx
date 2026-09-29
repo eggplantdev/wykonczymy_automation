@@ -4,6 +4,7 @@ import { useTransition } from 'react'
 import type { Where } from 'payload'
 import { FileArchive, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import { useFileArchive } from '@/hooks/use-file-archive'
 import { fetchFilteredTransfers } from '@/lib/queries/fetch-transfers-for-invoices'
@@ -24,7 +25,7 @@ export function InvoiceDownloadButton({ where }: InvoiceDownloadButtonPropsT) {
   function handleDownload() {
     startTransition(async () => {
       // Refetches instead of reusing the table's rows: the table is paginated, the ZIP is not.
-      const result = await fetchFilteredTransfers(where)
+      const result = await settleAction(() => fetchFilteredTransfers(where))
       if (!result.success) {
         toastMessage(result.error ?? 'Nie udało się pobrać danych', 'error')
         return

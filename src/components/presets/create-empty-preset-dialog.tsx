@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
 import { createEmptyPresetAction } from '@/lib/actions/kosztorys-presets'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 
 // A szablon built from nothing rather than copied from a kosztorys. It opens straight away on success, because an empty szablon sitting on the list is worth nothing
@@ -21,7 +22,7 @@ export function CreateEmptyPresetDialog() {
 
   const onConfirm = () => {
     startTransition(async () => {
-      const res = await createEmptyPresetAction(name)
+      const res = await settleAction(() => createEmptyPresetAction(name))
       if (!res.success) return toastMessage(res.error ?? 'Nie udało się założyć szablonu', 'error')
       // Before the navigation, never after: a dialog still mounted when the page under it is torn
       // down stays on screen over the szablon.

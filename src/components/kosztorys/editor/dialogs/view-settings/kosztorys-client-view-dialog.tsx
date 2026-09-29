@@ -10,6 +10,7 @@ import {
   saveClientViewSettingsAction,
 } from '@/lib/actions/kosztorys-client-view'
 import { sanitizeClientViewSettings } from '@/lib/kosztorys/client-view/settings'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
@@ -34,14 +35,14 @@ export function KosztorysClientViewDialog() {
       // „Zapisz jako domyślne" saves this investment too, never only the firm-wide default: the
       // default applies to investments with no settings of their own, so writing it alone would
       // leave the kosztorys the owner is looking at unchanged by the button they just pressed.
-      const res = await saveClientViewSettingsAction(investmentId, draft)
+      const res = await settleAction(() => saveClientViewSettingsAction(investmentId, draft))
       if (!res.success) return toastMessage(res.error, 'error')
       // Published before the second write is attempted: that row IS saved, so leaving the parent on
       // the old value after a failed defaults write would make the editor and the DB disagree. The
       // sanitized copy, not the draft, for the same reason — the server stored that one.
       onSaved(sanitizeClientViewSettings(draft))
       if (asDefaults) {
-        const defaults = await saveClientViewDefaultsAction(draft)
+        const defaults = await settleAction(() => saveClientViewDefaultsAction(draft))
         if (!defaults.success) {
           return toastMessage(
             `Zapisano dla tej inwestycji, ale nie jako domyślne: ${defaults.error}`,

@@ -7,6 +7,7 @@ import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
 import { DeleteButton } from '@/components/ui/row-actions/delete-button'
 import { DeleteForeverDialog } from '@/components/trash/delete-forever-dialog'
 import { restoreInvestmentAction } from '@/lib/actions/investment-trash'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import type { TrashedInvestmentT } from '@/lib/queries/trash'
 
@@ -17,7 +18,7 @@ export function TrashedInvestmentActions({ investment }: { investment: TrashedIn
 
   const onRestore = () => {
     startTransition(async () => {
-      const res = await restoreInvestmentAction(investment.id)
+      const res = await settleAction(() => restoreInvestmentAction(investment.id))
       if (!res.success) return toastMessage(res.error ?? 'Nie udało się przywrócić', 'error')
       toastMessage(
         investment.isTemplate ? 'Szablon przywrócony.' : 'Inwestycja przywrócona.',

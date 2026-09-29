@@ -7,6 +7,7 @@ import { toColumnOptions } from '@/components/kosztorys/editor/dialogs/sheet/she
 import { clearSheetColumnMappingAction, saveSheetColumnMappingAction } from '@/lib/actions/sheets'
 import { FIELD_LABELS, type ColumnFieldT } from '@/lib/kosztorys/sheet-import/columns'
 import type { CandidateColumnT } from '@/lib/kosztorys/sheet-import/resolve-columns'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 
 type PropsT = {
@@ -35,7 +36,7 @@ export function SheetColumnPicker({ investmentId, missing, pointed, candidates, 
 
   function run(action: () => Promise<{ success: boolean; error?: string }>) {
     startTransition(async () => {
-      const result = await action()
+      const result = await settleAction(action)
       if (!result.success) {
         toastMessage(result.error ?? 'Nie udało się zapisać wskazania kolumny', 'error', 6000)
         return

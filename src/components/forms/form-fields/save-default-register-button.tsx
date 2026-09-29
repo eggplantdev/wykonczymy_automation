@@ -6,6 +6,7 @@ import { Check, Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { setDefaultCashRegisterAction } from '@/lib/actions/user-preferences'
 import { useFieldValue } from '@/components/forms/hooks/use-field-value'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import type { FormWithFieldT } from '@/components/forms/hooks/form-hooks'
 
@@ -32,7 +33,7 @@ export function SaveDefaultRegisterButton({
 
   function handleSave() {
     startTransition(async () => {
-      const result = await setDefaultCashRegisterAction(Number(selectedId))
+      const result = await settleAction(() => setDefaultCashRegisterAction(Number(selectedId)))
       if (!result.success) {
         toastMessage(result.error, 'error', 4000)
         return

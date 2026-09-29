@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { DialogActions } from '@/components/ui/dialog-actions'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import {
   applyMaterialSync,
@@ -22,13 +23,13 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
 
   const onSetupConfirm = () => {
     startTransition(async () => {
-      const setup = await setupSheetAction(investmentId)
+      const setup = await settleAction(() => setupSheetAction(investmentId))
       if (!setup.success) {
         toastMessage(setup.error, 'error')
         return
       }
       // Reset wipes the tab — immediately re-sync so the rows come back.
-      const applied = await applyMaterialSync(investmentId)
+      const applied = await settleAction(() => applyMaterialSync(investmentId))
       setSetupOpen(false)
       if (!applied.success) {
         toastMessage(
@@ -52,7 +53,7 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
 
   const onCheck = () => {
     startTransition(async () => {
-      const res = await previewMaterialSync(investmentId)
+      const res = await settleAction(() => previewMaterialSync(investmentId))
       if (!res.success) {
         toastMessage(res.error, 'error')
         return
@@ -64,7 +65,7 @@ export function SyncButton({ investmentId }: { investmentId: number }) {
   const onConfirm = () => {
     if (!preview) return
     startTransition(async () => {
-      const res = await applyMaterialSync(investmentId)
+      const res = await settleAction(() => applyMaterialSync(investmentId))
       if (!res.success) {
         toastMessage(res.error, 'error')
         return

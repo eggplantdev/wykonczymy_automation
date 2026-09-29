@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
 import { DeleteButton } from '@/components/ui/row-actions/delete-button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
@@ -32,7 +33,7 @@ export function LinkedSheetActions({ sheetId, investmentId, investmentName }: Pr
 
   const onUnlink = () => {
     startTransition(async () => {
-      const res = await unlinkSheetFromInvestmentAction(sheetId)
+      const res = await settleAction(() => unlinkSheetFromInvestmentAction(sheetId))
       if (!res.success) return toastMessage(res.error, 'error')
       toastMessage(`Odłączono kosztorys od inwestycji „${investmentName}”.`, 'success')
       setDialog(undefined)
@@ -42,7 +43,7 @@ export function LinkedSheetActions({ sheetId, investmentId, investmentName }: Pr
 
   const onDelete = () => {
     startTransition(async () => {
-      const res = await deleteSheetAction(sheetId)
+      const res = await settleAction(() => deleteSheetAction(sheetId))
       if (!res.success) return toastMessage(res.error, 'error')
       toastMessage('Usunięto kosztorys.', 'success')
       setDialog(undefined)

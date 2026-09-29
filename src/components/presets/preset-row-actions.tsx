@@ -8,6 +8,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
 import { trashInvestmentAction } from '@/lib/actions/investment-trash'
 import { renamePresetAction } from '@/lib/actions/kosztorys-presets'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import type { PresetRowT } from '@/lib/queries/presets'
 
@@ -19,7 +20,7 @@ export function PresetRowActions({ preset }: { preset: PresetRowT }) {
 
   const onTrash = () => {
     startTransition(async () => {
-      const res = await trashInvestmentAction(preset.id)
+      const res = await settleAction(() => trashInvestmentAction(preset.id))
       setConfirmingTrash(false)
       if (!res.success)
         return toastMessage(res.error ?? 'Nie udało się przenieść szablonu do kosza', 'error')
@@ -29,7 +30,7 @@ export function PresetRowActions({ preset }: { preset: PresetRowT }) {
 
   const onRename = () => {
     startTransition(async () => {
-      const res = await renamePresetAction(preset.id, draftName)
+      const res = await settleAction(() => renamePresetAction(preset.id, draftName))
       if (!res.success) return toastMessage(res.error ?? 'Nie udało się zmienić nazwy', 'error')
       toastMessage('Nazwa zmieniona.', 'success')
       setRenaming(false)
