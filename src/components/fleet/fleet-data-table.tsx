@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo } from 'react'
 import { DataTable } from '@/components/tables/data-table/data-table'
+import { ColumnTotalRow } from '@/components/tables/data-table/column-total-row'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import { ColumnToggle } from '@/components/filters/column-toggle'
 import { COSTS_COLUMN_ID, getFleetColumns } from '@/components/tables/fleet'
@@ -30,28 +31,15 @@ export function FleetDataTable({ data }: { data: FleetRowT[] }) {
       // Retired cars stay listed — their history is still the answer to "when did we last…".
       getRowClassName={(row) => (row.status === 'RETIRED' ? 'opacity-60' : '')}
       // Summed from the rendered rows, so the total matches what the search box left on screen.
-      footer={(visibleColumnIds) => {
-        const costsIndex = visibleColumnIds.indexOf(COSTS_COLUMN_ID)
-        if (costsIndex < 0) return null
-
-        return (
-          <tr>
-            {/* Nothing to its left once every other column is toggled off — the number is what the
-                  row is for, so it survives losing its label. */}
-            {costsIndex > 0 && (
-              <td className="font-bold" colSpan={costsIndex}>
-                Razem
-              </td>
-            )}
-            <td className="text-right font-bold tabular-nums">
-              {formatPLNOrDash(sumKnown(filteredData.map((row) => row.totalCosts)))}
-            </td>
-            {visibleColumnIds.slice(costsIndex + 1).map((id) => (
-              <td key={id} />
-            ))}
-          </tr>
-        )
-      }}
+      footer={(visibleColumnIds) => (
+        <ColumnTotalRow
+          visibleColumnIds={visibleColumnIds}
+          columnId={COSTS_COLUMN_ID}
+          label="Razem"
+        >
+          {formatPLNOrDash(sumKnown(filteredData.map((row) => row.totalCosts)))}
+        </ColumnTotalRow>
+      )}
       toolbar={({ table, columnVisibility: cv, ...order }) => (
         <DataTableToolbar
           search={{ value: searchTerm, onChange: setSearchTerm }}
