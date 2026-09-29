@@ -275,4 +275,4 @@ jej nie ma, dopóki ktoś jej nie ustawi.
 
 #### Automated
 
-- [x] 2.1 Spec filtra przechodzi: `pnpm exec vitest run src/__tests__/use-status-filter.test.ts`
+- [x] 2.1 Spec filtra przechodzi: `pnpm exec vitest run src/__tests__/use-status-filter.test.ts` — c56b9f16

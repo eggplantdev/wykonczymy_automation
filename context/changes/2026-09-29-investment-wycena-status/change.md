@@ -1,7 +1,7 @@
 ---
 change_id: investment-wycena-status
 title: Nowy status inwestycji „Wycena" — zachowuje się jak „Planowana", służy tylko filtrowaniu
-status: implementing
+status: implemented
 created: 2026-09-29
 updated: 2026-09-29
 archived_at: null

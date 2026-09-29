@@ -1973,3 +1973,19 @@ sprzed migracji, nie względem stałej liczby.
 - [ ] Wyszukiwarka albo warunek w „Filtry" chowa belkę sekcji bez pozycji. Po wyczyszczeniu belka
       wraca.
 - [ ] „Podgląd dla inwestora" nie pokazuje belki sekcji bez pozycji.
+
+## investment-wycena-status — status inwestycji „Wycena" (2026-09-29)
+
+### Phase 1: Jedna lista statusów i status „Wycena"
+
+- [ ] Dialog „Edytuj” inwestycji: lista statusów to kolejno Planowana, Wycena, Aktywna, Zakończona.
+      Zapis Wyceny się udaje, a badge w tabeli i na karcie inwestycji jest bursztynowy.
+- [ ] Inwestycja w Wycenie nie pojawia się w pickerze wpłaty/wydatku, dopóki „Aktywne” jest
+      włączone. Po wyłączeniu jest widoczna, tak jak Planowana.
+
+### Phase 2: Filtr statusów i zapisany wybór
+
+- [ ] `/inwestycje` z czystym localStorage: filtr pokazuje Planowana, Wycena, Aktywna, Zakończona,
+      zaznaczone są Planowana, Wycena i Aktywna.
+- [ ] Zapisany wcześniej filtr „tylko Aktywna”: Wycena jest odznaczona. Zapisany „Planowana +
+      Aktywna”: Wycena jest zaznaczona.
