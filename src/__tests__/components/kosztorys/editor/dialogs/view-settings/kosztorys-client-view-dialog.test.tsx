@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { KosztorysClientViewDialog } from '@/components/kosztorys/editor/dialogs/view-settings/kosztorys-client-view-dialog'
-import { CurrentUserProvider } from '@/hooks/use-current-user'
 import {
   clientDocumentColumns,
   sanitizeClientViewSettings,
@@ -48,11 +47,7 @@ function renderDialog(settings: ClientViewSettingsT = sanitizeClientViewSettings
     setClientView,
     defaultColumnRanks: FIRM_RANKS,
   }
-  render(
-    <CurrentUserProvider user={{ id: 1, email: 'o@example.test', name: 'Testowy', role: 'OWNER' }}>
-      <KosztorysClientViewDialog />
-    </CurrentUserProvider>,
-  )
+  render(<KosztorysClientViewDialog />)
   return screen.getByRole('dialog', { name: 'Ustawienia podglądu inwestora' })
 }
 

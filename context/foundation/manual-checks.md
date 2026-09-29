@@ -1519,14 +1519,11 @@ addytywna — na produkcję **przed** pushem; DROP starych kolumn to EX-886, po 
 
 ### Ustawienia widoku pracowników
 
-- [x] Jako MANAGER okno ustawień jest tylko do odczytu. Jako OWNER odznaczenie kolumny chowa ją pod
-      każdym linkiem pracownika. Zweryfikowano żywo (staging, inw. 137, Pracownicy → Ustawienia
-      widoku…): jako MANAGER wszystkie 11 checkboxów mają `[disabled]`, „Zapisz" jest disabled, i widnieje
-      komunikat „Tylko właściciel może zmieniać ustawienia widoku pracownika". Jako OWNER odznaczono
-      „Jednostka miary" i zapisano — kolumna zniknęła z nagłówków pod linkiem pracownika Adama
-      Orłowskiego (nadal obecna w edytorze, bo ten czyta swój własny widok klienta, nie
-      `worker.settings`), a pozostała w edytorze. Ustawienie przywrócone (kolumna z powrotem
-      zaznaczona i zapisana) po weryfikacji.
+- [ ] Jako MANAGER okno „Ustawienia widoku pracownika" jest edytowalne: odznaczenie kolumny
+      i „Zapisz" chowa ją pod każdym linkiem pracownika. (Do 2026-09-29 było tylko do odczytu dla
+      MANAGERA — właściciel przekazał tę decyzję kierownikom.)
+- [ ] Jako MANAGER w „Ustawieniach podglądu inwestora" przycisk „Zapisz jako domyślne" jest aktywny
+      i zapis zmienia domyślne kolumny dla inwestycji bez własnych ustawień.
 
 ### PDF pracownika
 

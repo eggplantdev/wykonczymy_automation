@@ -1,5 +1,5 @@
 import type { GlobalConfig } from 'payload'
-import { isAdminOrOwner, isAdminOrOwnerOrManager } from '@/access'
+import { isAdminOrOwnerOrManager } from '@/access'
 
 // One column set for every worker link in the firm, with no per-investment override: the worker
 // view is a working tool, not a document tailored per client. Stores what is HIDDEN, so the code
@@ -11,7 +11,7 @@ export const KosztorysWorkerViewSettings: GlobalConfig = {
   admin: { group: { en: 'Kosztorys', pl: 'Kosztorys' } },
   access: {
     read: isAdminOrOwnerOrManager,
-    update: isAdminOrOwner,
+    update: isAdminOrOwnerOrManager,
   },
   fields: [
     {

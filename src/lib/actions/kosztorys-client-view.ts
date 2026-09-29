@@ -1,8 +1,6 @@
 'use server'
 
-import { ownerOnlyAction } from '@/lib/actions/owner-only-action'
 import { protectedAction } from '@/lib/actions/run-action'
-import { OWNER_ONLY_CLIENT_VIEW_DEFAULTS_MESSAGE } from '@/lib/kosztorys/owner-only-messages'
 import {
   sanitizeClientViewSettings,
   type ClientViewSettingsT,
@@ -47,15 +45,11 @@ export async function saveClientViewSettingsAction(
 export async function saveClientViewDefaultsAction(
   settings: ClientViewSettingsT,
 ): Promise<ActionResultT> {
-  return ownerOnlyAction(
-    'saveClientViewDefaultsAction',
-    OWNER_ONLY_CLIENT_VIEW_DEFAULTS_MESSAGE,
-    async ({ payload }) => {
-      await payload.updateGlobal({
-        slug: 'kosztorys-client-view-defaults',
-        data: sanitizeClientViewSettings(settings),
-      })
-      return { success: true }
-    },
-  )
+  return protectedAction('saveClientViewDefaultsAction', async ({ payload }) => {
+    await payload.updateGlobal({
+      slug: 'kosztorys-client-view-defaults',
+      data: sanitizeClientViewSettings(settings),
+    })
+    return { success: true }
+  })
 }
