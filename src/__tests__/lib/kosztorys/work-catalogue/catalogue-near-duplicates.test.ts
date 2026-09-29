@@ -84,6 +84,8 @@ describe('findNearDuplicates', () => {
       entry('Szlifowanie podłączenia'),
       entry('Montaż przedłużek'),
       entry('Montaż przedpokoju'),
+      entry('Wykonanie podłogi drewnianej'),
+      entry('Wykonanie podłączenia drewnianej'),
     ]
 
     expect(findNearDuplicates(catalogue).size).toBe(0)

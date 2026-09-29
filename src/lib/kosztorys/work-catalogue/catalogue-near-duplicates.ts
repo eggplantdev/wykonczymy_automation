@@ -57,12 +57,12 @@ const sharedPrefix = (left: string, right: string) => {
 }
 
 // The Polish ending is at most ~3 letters, so a word counts as the same once all but those agree —
-// „syfonu" / „syfonów", „kratki" / „kratek". The floor of 4 keeps „podłodze" off „podłączenie"; the
-// ending rule keeps „przedłużek" off „przedpokoju", which share five.
+// „syfonu" / „syfonów", „kratki" / „kratek". Measured on the LONGER word: off the shorter one,
+// „podłogi" would pass as „podłączenia" on the four letters they share.
 const sameWord = (left: string, right: string) => {
   if (left === right) return true
   const prefix = sharedPrefix(left, right)
-  return prefix >= 4 && prefix >= Math.min(left.length, right.length) - 3
+  return prefix >= 4 && prefix >= Math.max(left.length, right.length) - 3
 }
 
 const unmatched = (words: readonly string[], against: readonly string[]) =>
@@ -93,7 +93,9 @@ export function findNearDuplicates(
   const byNumbers = new Map<string, ShapeT[]>()
   for (const entry of catalogue) {
     const shape = shapeOf(entry, units)
-    byNumbers.set(shape.numbers, [...(byNumbers.get(shape.numbers) ?? []), shape])
+    const bucket = byNumbers.get(shape.numbers)
+    if (bucket) bucket.push(shape)
+    else byNumbers.set(shape.numbers, [shape])
   }
 
   const twins = new Map<number, NearDuplicateT[]>()

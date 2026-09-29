@@ -23,6 +23,7 @@ describe.skipIf(!ENV_READY)('selectUsedKosztorysItems (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
   let usedDescriptions: Set<string>
+  let blankInvestmentRows: number
 
   const purge = () => db.execute(sql`DELETE FROM investments WHERE name LIKE ${`${PREFIX}%`}`)
 
@@ -62,12 +63,13 @@ describe.skipIf(!ENV_READY)('selectUsedKosztorysItems (DB)', () => {
     )
     const trashed = await withItem('trashed', `${PREFIX} trashed`)
     await trashDaysAgo(db, trashed, WITHIN_RETENTION_DAYS)
+    const blank = await withItem('blank', '  ')
 
+    const used = await selectUsedKosztorysItems(db)
     usedDescriptions = new Set(
-      (await selectUsedKosztorysItems(db))
-        .map((row) => row.description)
-        .filter((description) => description.startsWith(PREFIX)),
+      used.map((row) => row.description).filter((description) => description.startsWith(PREFIX)),
     )
+    blankInvestmentRows = used.filter((row) => row.investmentId === blank).length
   })
 
   afterAll(purge)
@@ -91,5 +93,11 @@ describe.skipIf(!ENV_READY)('selectUsedKosztorysItems (DB)', () => {
   it('skips szablony and inwestycje in the kosz', () => {
     expect(usedDescriptions.has(`${PREFIX} template`)).toBe(false)
     expect(usedDescriptions.has(`${PREFIX} trashed`)).toBe(false)
+  })
+
+  // A row added in the editor carries its Przedmiar before anyone names it, and a nameless praca
+  // would surface in „Używane, a brak w katalogu" as a bare j.m.
+  it('skips a pozycja without an opis', () => {
+    expect(blankInvestmentRows).toBe(0)
   })
 })

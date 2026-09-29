@@ -66,6 +66,14 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
   const [usage, setUsage] = useState<CatalogueUsageT | null>(null)
   // Beside the persisted set, never in it — see `catalogueUsageConditions`.
   const [engagedUsageIds, setEngagedUsageIds] = useState<ReadonlySet<string>>(new Set())
+  // A count taken before the cennik changed would show a praca added since as „0" and match it to
+  // „nieużywane" — exactly what someone pruning the cennik deletes. Dropped, not kept: re-count.
+  const [countedFor, setCountedFor] = useState(data)
+  if (countedFor !== data) {
+    setCountedFor(data)
+    setUsage(null)
+    setEngagedUsageIds(new Set())
+  }
   const usageConditions = catalogueUsageConditions(usage)
   const isUsageId = (id: string) => usageConditions.some((condition) => condition.id === id)
   const conditions = [
