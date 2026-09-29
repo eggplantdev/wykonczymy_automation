@@ -2418,3 +2418,17 @@ Każdy boks: po kliknięciu zmiana widoczna **bez przeładowania**, a w Network 
       albo własną nazwą, nie tylko pierwsze sześć; ilości etapów 7+ zgadzają się z arkuszem.
 - [ ] Arkusz z sześcioma etapami „wykonano" i bez dopisanych kolumn: import daje te same etapy co
       wcześniej.
+
+## 2026-09-29 — dodawanie etapu z oknem potwierdzenia
+
+- [ ] Edytor kosztorysu z co najmniej jednym etapem → „Dodaj" → „Etap…": okno „Dodaj etap" ma
+      podpowiedziane rozliczenie i pracownika / ekipę z ostatniego etapu (tego najbardziej po prawej).
+- [ ] W tym oknie zmień rozliczenie i pracownika → „Dodaj": nowy etap ma w nagłówku dokładnie
+      wybrane wartości, a po odświeżeniu strony nadal je ma.
+- [ ] Otwórz okno, zmień pracownika, zamknij „Anuluj", otwórz ponownie: znów podpowiedź z ostatniego
+      etapu, nie porzucony wybór.
+- [ ] Kosztorys bez etapów → „Etap…": rozliczenie jest puste, a „Dodaj" nieaktywne, dopóki się go nie
+      wybierze; pracownik „Bez przypisania".
+- [ ] Ostatni etap przypisany do osoby już nieaktywnej: jest podpowiedziana i widnieje na liście;
+      pozostali nieaktywni nie.
+- [ ] Szablon (warsztat) → „Dodaj": nie ma pozycji „Etap…".

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { FolderPlus, Hammer, LibraryBig, ListChecks, Plus } from 'lucide-react'
+import { Columns3, FolderPlus, Hammer, LibraryBig, ListChecks, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -13,11 +13,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useCataloguePicker } from '@/components/kosztorys/editor/actions/catalogue-picker-host'
+import { AddStageDialog } from '@/components/kosztorys/editor/dialogs/add-stage-dialog'
 import { AddSectionsFromPresetDialog } from '@/components/kosztorys/editor/dialogs/preset/add-sections-from-preset-dialog'
-import { planeIcon } from '@/components/kosztorys/editor/plane-icons'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
-import { PLANE_LABELS } from '@/lib/kosztorys/labels'
-import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 
 export function KosztorysAddMenu() {
   const {
@@ -26,13 +24,13 @@ export function KosztorysAddMenu() {
     handleAddItem,
     handleAddSection,
     handleAppendedSections,
-    handleAddStage,
     isTemplate,
   } = useKosztorysEditorContext()
   const openCataloguePicker = useCataloguePicker()
   // Owned here, OUTSIDE the dropdown content: the menu unmounts on close, so a dialog rendered inside
   // it would unmount before it could open.
   const [presetDialogOpen, setPresetDialogOpen] = useState(false)
+  const [stageDialogOpen, setStageDialogOpen] = useState(false)
 
   return (
     <>
@@ -80,18 +78,13 @@ export function KosztorysAddMenu() {
             <ListChecks />
             Praca z katalogu…
           </DropdownMenuItem>
-          {/* Plane is forced at creation — each etap plane is its own top-level item, so there is no
-              plane-less „Etap" and no new stage is ever unconfirmed. The worker is deliberately NOT
-              forced the same way: an unassigned etap is a legitimate resting state (it earns its own
-              residual row), so it is picked later from the etap header, not here. */}
           {/* A szablon carries no etapy, so the workbench has nothing to open one on. */}
-          {!isTemplate &&
-            TOOL_PLANES.map((plane) => (
-              <DropdownMenuItem key={plane} onSelect={() => handleAddStage(plane)}>
-                {planeIcon(plane)}
-                Etap — {PLANE_LABELS[plane].toLowerCase()}
-              </DropdownMenuItem>
-            ))}
+          {!isTemplate && (
+            <DropdownMenuItem onSelect={() => setStageDialogOpen(true)}>
+              <Columns3 />
+              Etap…
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem onSelect={handleAddSection}>
             <FolderPlus />
             Sekcja
@@ -108,6 +101,7 @@ export function KosztorysAddMenu() {
         onOpenChange={setPresetDialogOpen}
         onAppended={handleAppendedSections}
       />
+      <AddStageDialog open={stageDialogOpen} onOpenChange={setStageDialogOpen} />
     </>
   )
 }
