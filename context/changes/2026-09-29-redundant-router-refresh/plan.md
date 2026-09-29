@@ -567,8 +567,8 @@ Run **once**, after the final phase:
 
 #### Automated
 
-- [ ] 1.1 Touched DOM specs pass
-- [ ] 1.2 Refresh grep over Phase 1 files returns nothing
+- [x] 1.1 Touched DOM specs pass
+- [x] 1.2 Refresh grep over Phase 1 files returns nothing
 
 ### Phase 2: Sheet actions
 

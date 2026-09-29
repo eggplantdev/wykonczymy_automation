@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
 import { RotateCcw } from 'lucide-react'
 import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
 import { DeleteButton } from '@/components/ui/row-actions/delete-button'
@@ -11,7 +10,6 @@ import { toastMessage } from '@/lib/utils/toast'
 import type { TrashedInvestmentT } from '@/lib/queries/trash'
 
 export function TrashedInvestmentActions({ investment }: { investment: TrashedInvestmentT }) {
-  const router = useRouter()
   const [deleting, setDeleting] = useState(false)
   const [pending, startTransition] = useTransition()
 
@@ -23,7 +21,6 @@ export function TrashedInvestmentActions({ investment }: { investment: TrashedIn
         investment.isTemplate ? 'Szablon przywrócony.' : 'Inwestycja przywrócona.',
         'success',
       )
-      router.refresh()
     })
   }
 

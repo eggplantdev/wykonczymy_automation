@@ -7,7 +7,6 @@ import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import type { LeadRowT } from '@/types/leads'
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
   usePathname: () => '/zgloszenia',
 }))
 vi.mock('@/lib/actions/promote-lead', () => ({

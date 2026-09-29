@@ -8,7 +8,6 @@ import type {
   WorkCatalogueItemFormValuesT,
 } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
 
-vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }))
 vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
 const ITEM: WorkCatalogueItemFormValuesT = {

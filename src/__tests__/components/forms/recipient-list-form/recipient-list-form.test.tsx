@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { RecipientListForm } from '@/components/forms/recipient-list-form/recipient-list-form'
 
-vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }))
 vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
 // The rule is enforced twice: the action refuses an empty array (tested), the form refuses to

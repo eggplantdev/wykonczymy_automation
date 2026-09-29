@@ -13,7 +13,6 @@ import type {
 import type { ActionResultT } from '@/types/action'
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
   usePathname: () => '/flota',
 }))
 vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))

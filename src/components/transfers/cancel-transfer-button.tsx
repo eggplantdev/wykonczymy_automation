@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Ban } from 'lucide-react'
 import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
@@ -23,7 +22,6 @@ export function CancelTransferButton({ transactionId }: CancelTransferButtonProp
   const [open, setOpen] = useState(false)
   const [reason, setReason] = useState('')
   const [isPending, setIsPending] = useState(false)
-  const router = useRouter()
 
   const trimmedReason = reason.trim()
   const isReasonValid = trimmedReason.length >= REASON_MIN_LENGTH
@@ -43,7 +41,6 @@ export function CancelTransferButton({ transactionId }: CancelTransferButtonProp
     if (result.success) {
       toastMessage('Transakcja została anulowana', 'success')
       handleOpenChange(false)
-      router.refresh()
     } else {
       toastMessage(result.error, 'error')
     }
