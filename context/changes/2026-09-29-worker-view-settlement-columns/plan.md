@@ -254,7 +254,7 @@ before the push that ships the code.
 
 #### Automated
 
-- [x] 2.1 Unit spec for workerDataHiddenColumns
-- [x] 2.2 Grid worker-columns spec
-- [x] 2.3 Investor preview-columns spec unchanged after rename
-- [x] 2.4 Worker PDF spec
+- [x] 2.1 Unit spec for workerDataHiddenColumns — 611e4edf
+- [x] 2.2 Grid worker-columns spec — 611e4edf
+- [x] 2.3 Investor preview-columns spec unchanged after rename — 611e4edf
+- [x] 2.4 Worker PDF spec — 611e4edf

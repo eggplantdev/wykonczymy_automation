@@ -1,7 +1,7 @@
 ---
 change_id: worker-view-settlement-columns
 title: Worker view reveals settlement columns on first entry and can drop przedmiar once work exists
-status: implementing
+status: implemented
 created: 2026-09-29
 updated: 2026-09-29
 archived_at: null
