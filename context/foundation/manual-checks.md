@@ -1865,3 +1865,32 @@ nawigacja do jego inwestycji — bez `?open=1`, promptu „nie jest teraz otwart
       (+370)", bez „Zobacz historię zmian" — zgodnie z kodem, `WorkerKosztorysPage` nigdy nie
       przekazuje `history` do `PreviewHeaderActions`, więc pozycja menu nie renderuje się (`history &&`
       guard w `preview-header-actions.tsx`).
+
+## warsztat-per-szablon — szablon jest inwestycją o statusie `szablon` (EX-893, 2026-09-29)
+
+Baza: lokalna po migracjach A + B (`20260929_1`, `20260929_2`). Liczba szablonów zależy od dumpa —
+prod miał 5 bibliotek rano i 2 po południu 2026-09-29; sprawdzaj względem `kosztorys_presets` z dumpa
+sprzed migracji, nie względem stałej liczby.
+
+### Migracja
+
+- [ ] `/szablony` pokazuje po jednym wierszu na każdy szablon z dumpa, bez „Warsztat szablonów"; każdy
+      otwiera się od razu z pełną treścią.
+- [ ] „Wersje" każdego szablonu pokazują jego przepięte punkty przywracania, a nie cudze.
+
+### Cykl życia
+
+- [ ] „Nowy szablon" → pusty szablon się otwiera. Zmiana nazwy na istniejącą w innej wielkości liter
+      kończy się polskim komunikatem. Usunięcie znika z listy.
+- [ ] Z inwestycji „Zapisz jako nowy szablon…" i „Nadpisz istniejący" dają szablon z tą rozpiską, bez
+      przedmiaru i rabatu; w Wersjach nadpisanego jest punkt „Przed nadpisaniem".
+- [ ] W szablonie „Wczytaj szablon…" zastępuje treść, a „Przed wczytaniem" w Wersjach ją przywraca.
+- [ ] Nowa inwestycja „z szablonu" dostaje jego sekcje i pozycje, bez przedmiaru; „Dodaj sekcje
+      z szablonu" pokazuje sekcje wszystkich szablonów z poprawnymi licznikami.
+
+### Edycja
+
+- [ ] Dwie karty, dwa różne szablony, naprzemienne edycje: każda trafia tylko do swojego szablonu
+      (scenariusz EX-893 nie do odtworzenia).
+- [ ] Edycja szablonu przesuwa go na górę listy („Zmieniono") i nie resetuje sortowania ani filtrów
+      w otwartym edytorze.
