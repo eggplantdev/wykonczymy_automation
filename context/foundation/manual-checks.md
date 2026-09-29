@@ -2246,8 +2246,8 @@ i Piotr Seedowy).
 ## EX-908 — redundant-router-refresh — nieaktualne dane po zapisie, staging (2026-09-29)
 
 Po każdym zapisie aplikacja nie prosi już serwera o drugi render strony — nowe dane przychodzą
-wyłącznie w odpowiedzi akcji. Lokalnie (build produkcyjny, baza 5435) przeszło 25 sprawdzeń —
-dowody w `git show e2b1ce60:context/changes/2026-09-29-redundant-router-refresh/manual-checks.md`. Tu jest **każde**
+wyłącznie w odpowiedzi akcji. Lokalnie (build produkcyjny, baza 5435) przeszły sprawdzenia z
+§ „Lokalnie" na końcu tej sekcji. Tu jest **każde**
 zmienione miejsce jeszcze raz, na stagingu: prawdziwe opóźnienia sieci, cache Vercela i kilka
 instancji funkcji to warunki, których lokalny build nie odtwarza. Test E2E dla A–H/K: EX-924.
 
@@ -2340,3 +2340,66 @@ Po każdej zmianie sprawdź **sumy**: wartość wiersza, sumę sekcji, sumy etap
 
 - [ ] Lokalnie zapis do arkusza Google (np. przelew na inwestycji z podpiętym arkuszem) nadal jest
       odrzucany („Refusing to write…" w logu serwera) i nic nie trafia do Google.
+
+### Lokalnie — build produkcyjny na :3100, baza 5435 (2026-09-29)
+
+Każdy boks: po kliknięciu zmiana widoczna **bez przeładowania**, a w Network jest POST akcji i
+**żaden** GET RSC tej ścieżki poza prefetchem.
+
+- [x] „Nowy wydatek" na `/kasa/<id>`: wiersz i saldo; POST ma `x-action-revalidated: 1` i nowy wiersz.
+      _Zweryfikowano 2026-09-29 (lokalnie): POST rev1, 0 GET, wiersz i saldo po 437–463 ms._
+- [x] Nowa inwestycja na `/inwestycje`: wiersz na liście.
+      _Zweryfikowano 2026-09-29 (lokalnie): POST rev1, 0 GET._
+- [x] Jeszcze jedno okno formularza (pracownik / kasa / sprzęt) na stronie z listą: wiersz na liście.
+      _Zweryfikowano 2026-09-29 (lokalnie): nowa kasa na `/kasy`: POST rev1, 0 GET, 283–417 ms._
+- [x] „Zapisz jako domyślną kasę": przycisk od razu przestaje proponować zapis, ponownie otwarte
+      okno „Nowy wydatek" ma tę kasę wybraną.
+      _Zweryfikowano 2026-09-29 (lokalnie): POST rev1, 0 GET._
+- [x] Anulowanie transakcji: wiersz anulowany, saldo się cofa.
+      _Zweryfikowano 2026-09-29 (lokalnie): POST rev1, 0 GET, 36–51 ms._
+- [x] Inwestycja do kosza z listy `/inwestycje`: znika z listy.
+      _Zweryfikowano 2026-09-29 (lokalnie): POST rev1, 0 GET, 31–61 ms._
+- [x] „Przywróć" na `/kosz`: wiersz znika.
+      _Zweryfikowano 2026-09-29 (lokalnie): POST rev1, 0 GET, 309–501 ms._
+- [x] „Usuń na zawsze" na `/kosz`: wiersz znika.
+      _Zweryfikowano 2026-09-29 (lokalnie): POST rev1, 0 GET._
+- [x] `/kosztorysy` → odłączenie arkusza: wiersz bez inwestycji.
+      _Zweryfikowano 2026-09-29 (lokalnie): POST rev1, 0 GET, 234–344 ms przy POST 59–97 ms._
+- [x] `/kosztorysy` → usunięcie kosztorysu: wiersz znika.
+      _Zweryfikowano 2026-09-29 (lokalnie): POST rev1, 0 GET, 262–376 ms._
+- [x] `/kosztorysy` → podpięcie arkusza: wiersz z nazwą inwestycji.
+      _Zweryfikowano 2026-09-29 (lokalnie): POST rev1, 0 GET, 230–421 ms._
+- [x] „Nowy kosztorys": nowy wiersz.
+      _Zweryfikowano 2026-09-29 (lokalnie): POST rev1, 0 GET, 946–1389 ms (POST 800–1530 ms — sprawdzenie dostępu)._
+- [x] „Dodaj kosztorys" na `/inwestycje/<id>`: pojawia się „Otwórz".
+      _Zweryfikowano 2026-09-29 (lokalnie): POST rev1, 0 GET, ~3,3 s — czas POST-a._
+- [x] Edycja ilości w etapie na małym kosztorysie: sumy się zmieniają; 1 POST + 1 GET, bez drugiego
+      GET ~750 ms później.
+      _Zweryfikowano 2026-09-29 (lokalnie): 1 POST + 1 GET ~70–190 ms po nim, drugiego GET brak._
+- [x] Edycja Przedmiaru: sumy z samego POST-a, 0 GET.
+      _Zweryfikowano 2026-09-29 (lokalnie): 0 GET, 1 render._
+- [x] Trzy edycje etapu pod rząd: 3 GET (było 4), końcowe sumy poprawne.
+      _Zweryfikowano 2026-09-29 (lokalnie): 3 POST, 3 GET, sumy zgodne po przeładowaniu._
+- [x] Duży kosztorys (411 pozycji): 1 render na edycję, sumy poprawne.
+      _Zweryfikowano 2026-09-29 (lokalnie): Przedmiar na 149: 1 POST, 0 GET, 1 render (komórka etapu wyłączona na fixturze — etapu nie mierzono)._
+- [x] „Cofnij" / „Ponów": wartość i sumy wracają, bez GET na każde cofnięcie.
+      _Zweryfikowano 2026-09-29 (lokalnie): 3 cykle, 0 GET na każdy, wartości wracają._
+- [x] „Sekcja z szablonu…": sekcja i sumy.
+      _Zweryfikowano 2026-09-29 (lokalnie): POST rev1, 0 GET._
+- [x] „Dodaj pracę z katalogu do sekcji…": wiersz i sumy.
+      _Zweryfikowano 2026-09-29 (lokalnie): POST rev1, 0 GET, 99–165 ms._
+- [x] „Porównaj z katalogiem" → „Dodaj do katalogu" → „Dodaj": pozycja znika z „Brak w katalogu";
+      0 GET (było 2).
+      _Zweryfikowano 2026-09-29 (lokalnie): POST rev1, 0 GET (było 2)._
+- [x] „Zastąp całą rozpiskę zapisanym szablonem": rozpiska podmieniona, komunikat widoczny.
+      _Zweryfikowano 2026-09-29 (lokalnie): 5 razy: POST rev1, 0 GET, komunikat po 113–145 ms._
+- [x] „Wyczyść kosztorys": „Kosztorys jest pusty".
+      _Zweryfikowano 2026-09-29 (lokalnie): POST rev1, 0 GET, pusty stan po 116–130 ms (było 236–329)._
+- [x] „Wersje" → przywrócenie wersji: rozpiska z tej wersji.
+      _Zweryfikowano 2026-09-29 (lokalnie): przełączanie rozpiska ↔ pusty, 1 POST, 0 GET, późniejsza edycja zapisana._
+- [x] „Popraw literówki w opisie prac i j.m.": poprawiony tekst bez przeładowania.
+      _Zweryfikowano 2026-09-29 (lokalnie): 14/14 po poprawce zatrzasku (było 21/24 — render akcji docierał przed uzbrojeniem zatrzasku); import i porównanie z arkuszem nie sprawdzone (tylko inw. 66 ma arkusz)._
+- [x] „Wyczyść kosztorys" przerwany w transporcie: komunikat o błędzie i jeden GET RSC po powrocie sieci.
+      _Zweryfikowano 2026-09-29 (lokalnie): przerwany POST (`page.route` abort — prawdziwy `setOffline` przechodzi na `chrome-error://`): komunikat po 65 ms, 1 GET po 55 ms._
+- [x] Dwie karty: w drugiej usuń pozycję, w pierwszej ją edytuj — rozpiska przeładowuje się bez tej pozycji.
+      _Zweryfikowano 2026-09-29 (lokalnie): 4/4 po poprawce zatrzasku (wcześniej brak przeładowania w 8 s)._
