@@ -3,7 +3,7 @@ project: 'Wykonczymy — off-sheets phase 1'
 version: 1
 status: active
 created: 2026-06-12
-updated: 2026-09-17
+updated: 2026-09-29
 prd_version: 1
 main_goal: quality
 top_blocker: none
@@ -13,7 +13,7 @@ top_blocker: none
 
 > Derived from `context/foundation/prd.md` (v1) + probed codebase baseline.
 > Edit-in-place; archive when superseded.
-> Slices are ordered by number (F-01, S-01…S-19; `O-01`/`O-02` are standalone, outside the arc), and the number _is_ the order — to reorder, renumber the slice, never move a row/block out of numeric sequence. The "At a glance" table is the index.
+> Slices are ordered by number (F-01, S-01…S-19; `O-02` is standalone, outside the arc — `O-01` was removed 2026-09-29, see [Parked](#parked)), and the number _is_ the order — to reorder, renumber the slice, never move a row/block out of numeric sequence. The "At a glance" table is the index.
 
 > **Sheet-parity reference — read before designing any editor slice.**
 > `context/reference/kosztorys-editor-domain-notes.md` is the domain reference for the original
@@ -165,26 +165,25 @@ One row per F-NN / S-NN — the index and the backlog handoff in one place. **Pl
 
 Bands: **editor parity S-01–S-09** → **financial-plane bridge S-11–S-12** → **client share / import S-13, S-15** → **testing S-16** (done 2026-09-22) → **cutover S-19** (done 2026-08-25). Every numbered slice is `done`; the arc is closed. S-10, S-14, S-17 and S-18 are missing on purpose — `kosztorys-column-rbac` (2026-08-18), `kosztorys-export` (2026-08-15), `financial-core-smoke` (2026-08-25) and `kosztorys-hardening` (2026-08-25) were cut whole and their numbers kept as tombstones; see [Cut & folded slices](#cut--folded-slices).
 
-| ID   | Change ID                       | Outcome (user can …)                                                                    | Prerequisites      | PRD refs                      | Status   | Plan-ready |
-| ---- | ------------------------------- | --------------------------------------------------------------------------------------- | ------------------ | ----------------------------- | -------- | ---------- |
-| F-01 | e2e-harness                     | (foundation) Playwright E2E harness, CI-runnable, isolated DB                           | —                  | FR-011                        | done     | —          |
-| O-01 | sentry-observability            | capture prod errors + tracing + session replay in Sentry (standalone infra)             | —                  | — (owner request)             | proposed | yes        |
-| O-02 | rwd-mobile                      | make the app usable on a phone: navigation, adding + showing transactions (standalone)  | —                  | — (owner request)             | done     | —          |
-| S-01 | kosztorys-sections-items        | author kosztorys sections + items in-app with live totals                               | —                  | FR-001, FR-002, FR-007, US-01 | done     | —          |
-| S-02 | kosztorys-price-models          | record three price models per item and toggle the pricing view                          | S-01               | FR-003                        | done     | —          |
-| S-03 | kosztorys-stages                | manage stages (etapy) and record per-item, per-stage progress                           | S-01               | FR-004                        | done     | —          |
-| S-04 | kosztorys-subcontractor-pricing | price subcontractor work via markup coefficient + per-item override                     | S-01, S-02         | — (POC)                       | done     | —          |
-| S-05 | kosztorys-vat                   | set VAT per investment; enter net, compute gross                                        | S-01               | — (POC)                       | done     | yes        |
-| S-06 | kosztorys-snapshots             | save + restore point-in-time versions of a kosztorys (durable net)                      | S-01               | — (owner request)             | done     | yes        |
-| S-07 | kosztorys-undo                  | fast in-session undo/redo of the last editor edit(s)                                    | S-01               | — (owner request)             | done     | yes        |
-| S-08 | kosztorys-delete-guard          | confirm-then-snapshot when deleting a populated row / section / stage / column (EX-477) | S-01               | — (owner request)             | done     | yes        |
-| S-09 | kosztorys-preset                | seed from a preset; save as preset (autocomplete carved out → EX-434, since cut)        | S-01               | (owner request)               | done     | yes        |
-| S-11 | kosztorys-bridge                | read kosztorys figures joined into the investment financial plane (read-only)           | S-01, S-03         | — (owner request)             | done     | —          |
-| S-12 | robocizna-from-kosztorys        | see investment robocizna + rabat derived from the kosztorys, not manual transfers       | S-11               | — (owner request)             | done     | —          |
-| S-13 | kosztorys-client-share          | share a live, read-only client view of a kosztorys via a token link (EX-532)            | S-01, S-02, S-04   | — (owner request)             | done     | —          |
-| S-15 | kosztorys-importer              | import an existing sheet kosztorys into the app                                         | S-01 (full parity) | FR-010, FR-016                | done     | —          |
-| S-16 | editor-e2e-coverage             | (gate) rely on automated E2E over the editor before release                             | F-01, S-01…S-15    | FR-013                        | done     | —          |
-| S-19 | new-investment-no-sheet         | create a new investment with no Google Sheet, kosztorys app-only                        | S-16               | FR-009, FR-014, FR-016, US-01 | done     | —          |
+| ID   | Change ID                       | Outcome (user can …)                                                                    | Prerequisites      | PRD refs                      | Status | Plan-ready |
+| ---- | ------------------------------- | --------------------------------------------------------------------------------------- | ------------------ | ----------------------------- | ------ | ---------- |
+| F-01 | e2e-harness                     | (foundation) Playwright E2E harness, CI-runnable, isolated DB                           | —                  | FR-011                        | done   | —          |
+| O-02 | rwd-mobile                      | make the app usable on a phone: navigation, adding + showing transactions (standalone)  | —                  | — (owner request)             | done   | —          |
+| S-01 | kosztorys-sections-items        | author kosztorys sections + items in-app with live totals                               | —                  | FR-001, FR-002, FR-007, US-01 | done   | —          |
+| S-02 | kosztorys-price-models          | record three price models per item and toggle the pricing view                          | S-01               | FR-003                        | done   | —          |
+| S-03 | kosztorys-stages                | manage stages (etapy) and record per-item, per-stage progress                           | S-01               | FR-004                        | done   | —          |
+| S-04 | kosztorys-subcontractor-pricing | price subcontractor work via markup coefficient + per-item override                     | S-01, S-02         | — (POC)                       | done   | —          |
+| S-05 | kosztorys-vat                   | set VAT per investment; enter net, compute gross                                        | S-01               | — (POC)                       | done   | yes        |
+| S-06 | kosztorys-snapshots             | save + restore point-in-time versions of a kosztorys (durable net)                      | S-01               | — (owner request)             | done   | yes        |
+| S-07 | kosztorys-undo                  | fast in-session undo/redo of the last editor edit(s)                                    | S-01               | — (owner request)             | done   | yes        |
+| S-08 | kosztorys-delete-guard          | confirm-then-snapshot when deleting a populated row / section / stage / column (EX-477) | S-01               | — (owner request)             | done   | yes        |
+| S-09 | kosztorys-preset                | seed from a preset; save as preset (autocomplete carved out → EX-434, since cut)        | S-01               | (owner request)               | done   | yes        |
+| S-11 | kosztorys-bridge                | read kosztorys figures joined into the investment financial plane (read-only)           | S-01, S-03         | — (owner request)             | done   | —          |
+| S-12 | robocizna-from-kosztorys        | see investment robocizna + rabat derived from the kosztorys, not manual transfers       | S-11               | — (owner request)             | done   | —          |
+| S-13 | kosztorys-client-share          | share a live, read-only client view of a kosztorys via a token link (EX-532)            | S-01, S-02, S-04   | — (owner request)             | done   | —          |
+| S-15 | kosztorys-importer              | import an existing sheet kosztorys into the app                                         | S-01 (full parity) | FR-010, FR-016                | done   | —          |
+| S-16 | editor-e2e-coverage             | (gate) rely on automated E2E over the editor before release                             | F-01, S-01…S-15    | FR-013                        | done   | —          |
+| S-19 | new-investment-no-sheet         | create a new investment with no Google Sheet, kosztorys app-only                        | S-16               | FR-009, FR-014, FR-016, US-01 | done   | —          |
 
 **Cut / folded (unnumbered):** `kosztorys-rooms` — CUT (pokoje out of scope, 2026-07-08). `kosztorys-catalogue` — FOLDED into S-09 (2026-07-09), then the autocomplete carved back out as `kosztorys-item-autocomplete` — now CUT (2026-07-28, superseded by EX-503 section-append). See [Cut & folded slices](#cut--folded-slices).
 
@@ -215,7 +214,7 @@ on the same seam, so it is band-2 work rather than a new slice: no roadmap row, 
 EX-649. What it changes structurally is that `marginV2` stands **beside** `calculateMargin`; nothing
 in bands 1–5 is redirected by it.
 
-Within band 1, `S-01` (north star) heads the track; `S-02`–`S-09` all build on it and run in parallel (`S-04` also needs `S-02`). `F-01` (harness) is independent and can run any time; it unblocks the band-4 test slices. `O-01` (Sentry observability) and `O-02` (RWD) are likewise standalone — no dependency on any slice, ship any time.
+Within band 1, `S-01` (north star) heads the track; `S-02`–`S-09` all build on it and run in parallel (`S-04` also needs `S-02`). `F-01` (harness) is independent and can run any time; it unblocks the band-4 test slices. `O-02` (RWD) is likewise standalone — no dependency on any slice, ship any time.
 
 ## Baseline
 
@@ -227,7 +226,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Data:** present — Postgres (Neon prod / docker local on 5433), Payload migrations, raw SQL via `@vercel/postgres` (`src/lib/db`, `src/migrations`).
 - **Auth:** present — JWT `payload-token` cookie, four roles (ADMIN/OWNER/MANAGER/EMPLOYEE) (`src/lib/auth`, `src/access`).
 - **Deploy / infra:** present — Vercel (build runs `generate:types` + `next build`; migrations applied deliberately, not by build).
-- **Observability:** partial — `perfStart()` perf logging only; no error tracking (`global-error.tsx` has no reporter). **Un-parked 2026-07-11 into O-01 `sentry-observability`** (still `proposed`, EX-433) — the original "out of scope for this phase" no longer holds.
+- **Observability:** partial — `perfStart()` perf logging only; no error tracking (`global-error.tsx` has no reporter). Sentry is a later feature, not a roadmap slice — see [Parked](#parked).
 - **Test / E2E:** present — Vitest unit specs under `src/__tests__`; Playwright harness under `e2e/` (F-01 done). → band 4 grows coverage on top.
 - **In-app kosztorys editor:** building — kosztorys was Google-Sheet-backed (the `kosztoryses` collection holds a sheet id, UI is `iframe-view.tsx` + a one-way `INVESTMENT_EXPENSE` mirror + sync button — `src/collections/sheets.ts`, `src/components/sheets`). The in-app editor ships across band 1 (S-01+), porting the POC's tested core (`calc.ts`/`v2-rows.ts` + `kosztorys_sections/items/stages/stage_progress` schema).
 
@@ -247,30 +246,12 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Risk:** Every band-4 E2E slice depends on it and the financial core is guardrail #1. Risk: a flaky harness erodes trust in the suite — keep the first spec minimal and deterministic.
 - **Status:** done — harness shipped; `e2e/` carries `global-setup.ts` + auth fixture and **32 spec files / 67 tests** against the isolated 5435 `db-test` container. Band-3 slices are unblocked.
 
-### O-01: Sentry error tracking + tracing + session replay
-
-- **Outcome:** production runtime failures are captured and triageable — unhandled exceptions (client via `global-error.tsx`, server via the `protectedAction()` catch path + Payload route handlers), performance tracing spans, and session replays flow to a Sentry project. Replaces the current blind spot where a failed prod write is invisible unless a user reports it.
-- **Change ID:** sentry-observability
-- **PRD refs:** — (un-parks the parked "Observability / error tracking" non-goal; owner request 2026-07-11)
-- **Prerequisites:** — (independent of the whole S-arc, like F-01; can ship any time)
-- **Parallel with:** everything
-- **Placement:** standalone infra slice, outside S-01…S-19 — not renumbered into the editor arc.
-- **Scope:** `@sentry/nextjs` — errors + tracing + session replay, **production only** (gate init on env so preview/local stay silent and the free quota stays clean). Free Developer tier: 5k errors / 5M spans / 50 replays per month, 1 seat — sufficient for this low-traffic internal tool.
-- **Problems to solve at plan time:**
-  - **Env layer:** `SENTRY_AUTH_TOKEN` (build, source maps), `NEXT_PUBLIC_SENTRY_DSN`, and an env gate — all through `src/lib/env/schema.ts`, never raw `process.env` (AGENTS.md). `NEXT_PUBLIC_SENTRY_DSN` is client-side → `env/index.ts`; the token is build-only.
-  - **Replay privacy (load-bearing):** replay records real sessions containing financial data (registers, marża, client amounts). Must enable `maskAllText` / `blockAllMedia` and verify no money figures leak into replays before this ships. This is the main risk.
-  - **Source maps on Vercel:** the Sentry build plugin needs the auth token in the Vercel build env; confirm it doesn't fight the existing `generate:types` + `next build` pipeline.
-  - **Instrumentation surface:** `instrumentation.ts` + `sentry.client/server/edge.config.ts`; wire `global-error.tsx` (currently no reporter) and confirm `protectedAction()` errors surface (Next auto-instruments server actions, but verify).
-  - **Quota guard:** low `tracesSampleRate` / `replaysSessionSampleRate` so 5M spans / 50 replays aren't burned; keep `replaysOnErrorSampleRate` higher (replay only when something breaks).
-- **Risk:** additive, touches no financial write path. Primary risk is a **PII/financial-data leak via unmasked session replay** — the guardrail is verifying masking on a real prod-shaped session before enabling replay. Secondary: source-map upload misconfig makes stack traces useless (unminified verification needed). Seat limit (1 user) caps triage to the owner — acceptable now.
-- **Status:** proposed
-
 ### O-02: RWD — make the app usable on a phone
 
 - **Outcome:** on a phone a user can navigate the app, add a transaction, and read the transaction list without fighting the layout. Not desktop parity — the three named flows work, the obvious breakage everywhere else is gone.
 - **Change ID:** rwd-mobile
 - **PRD refs:** — (owner request 2026-09-16)
-- **Prerequisites:** — (independent of the whole S-arc, like F-01 and O-01; can ship any time)
+- **Prerequisites:** — (independent of the whole S-arc, like F-01; can ship any time)
 - **Parallel with:** everything
 - **Placement:** standalone cross-cutting UI slice, outside S-01…S-19 — not renumbered into the editor arc.
 - **Scope:** phased, explicitly NOT a parity push. Must work on mobile: **navigation**, **adding a transaction**, **showing transactions**. The in-app kosztorys editor is a desktop surface by the owner's call — in scope only to the extent that it must not break the page.
@@ -770,7 +751,7 @@ Lifted from PRD `## Non-Goals` — explicitly out of scope for this arc.
 - **Multi-currency** — Why parked: PLN only, confirmed non-goal.
 - **Multi-tenant catalogues** — Why parked: single shared catalogue; PRD non-goal.
 - **Schema-level customization** (per-investment custom columns / arbitrary-field sidecars) — Why parked: a free-text note field covers ad-hoc needs; PRD non-goal.
-- **Observability / error tracking** — ~~parked~~ **un-parked 2026-07-11** into standalone slice **O-01 `sentry-observability`** (Sentry errors + tracing + replay, prod only). Runs independently of the editor arc.
+- **Observability / error tracking (Sentry)** — Why parked: the app has run in production without it for months, so it gates no milestone. Un-parked into slice O-01 on 2026-07-11, re-parked 2026-09-29 as a later feature; O-01's number is retired, not reused. Scope and risks live in Linear EX-433.
 
 ## Done
 
