@@ -59,7 +59,7 @@ export function SettlePayoutsDialog({ target, onClose }: SettlePayoutsDialogProp
 
   return (
     <Dialog open={target !== null} onOpenChange={(open) => !open && close()}>
-      <DialogContent className="sm:max-w-3xl">
+      <DialogContent className="sm:max-w-4xl">
         <DialogHeader title={target ? `Rozlicz wypłaty — ${target.name}` : 'Rozlicz wypłaty'} />
         <div className="mt-6 pr-1">
           {error ? (

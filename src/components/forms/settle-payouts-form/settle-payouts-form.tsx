@@ -172,6 +172,8 @@ export function SettlePayoutsForm({
               <tr className="text-muted-foreground text-left text-xs">
                 <th className="w-8" />
                 <th className="py-1 font-medium">{labelHeader}</th>
+                <th className="py-1 text-right font-medium">Wykonane</th>
+                <th className="py-1 text-right font-medium">Wypłacone</th>
                 <th className="py-1 text-right font-medium">Pozostało</th>
                 <th className="w-36 py-1 pl-4 font-medium">Kwota wypłaty</th>
                 <th className="py-1 text-right font-medium">Po wypłacie</th>
@@ -199,6 +201,8 @@ export function SettlePayoutsForm({
                       </form.Field>
                     </td>
                     <td className="py-2">{row.label}</td>
+                    <td className="py-2 text-right">{formatPLN(row.due)}</td>
+                    <td className="py-2 text-right">{formatPLN(row.paid)}</td>
                     <td className={cn('py-2 text-right', row.remaining < 0 && 'text-destructive')}>
                       {formatPLN(row.remaining)}
                     </td>
@@ -243,7 +247,7 @@ export function SettlePayoutsForm({
             <tfoot>
               <tr className="border-t font-medium">
                 <td />
-                <td className="py-2" colSpan={2}>
+                <td className="py-2" colSpan={4}>
                   Razem
                 </td>
                 <td className="py-2 pl-4">{formatPLN(total)}</td>

@@ -73,6 +73,13 @@ describe('SettlePayoutsForm', () => {
     expect(amount('Brzozowa')).toHaveValue('')
   })
 
+  it('shows what was executed and what was paid beside the remaining', () => {
+    renderForm()
+    const cells = bare(screen.getByText('Brzozowa').closest('tr')!.textContent ?? '')
+    expect(cells).toContain(bare(formatPLN(500)))
+    expect(cells).toContain(bare(formatPLN(700)))
+  })
+
   it('reads „zostanie / rozliczone / nadpłata" live from the typed amount', async () => {
     const user = userEvent.setup()
     renderForm()
