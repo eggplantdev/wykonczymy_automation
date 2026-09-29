@@ -180,4 +180,4 @@ Celina (no etapy) and Bogdan (blocked) as holders in the new cases. No node spec
 
 #### Automated
 
-- [x] 2.1 DOM spec: a blocked holder's dialog shows the reason and „Wyłącz link", with no address field and no „Wygeneruj nowy"; confirming calls `revokeWorkerShareLinkAction`
+- [x] 2.1 DOM spec: a blocked holder's dialog shows the reason and „Wyłącz link", with no address field and no „Wygeneruj nowy"; confirming calls `revokeWorkerShareLinkAction` — 8de81ece

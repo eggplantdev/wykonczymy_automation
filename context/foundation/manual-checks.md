@@ -1893,3 +1893,11 @@ widokach wykonawców. Rozpiska z seeda (`INV=6`) wystarczy do sortowania i liczb
       przed zmianą.
 - [ ] Wydruk pracownika dla każdej ekipy pokazuje te same liczby co przed zmianą, łącznie z
       „Pozostało".
+
+## worker-link-revoke — link pracownika do wyłączenia przy blokadzie (EX-888, 2026-09-29)
+
+- [ ] Pracownik z wydanym linkiem odpięty od wszystkich etapów zostaje w „Pracownicy" z „Brak
+      przypisanych etapów"; „Link" aktywny, „Drukuj PDF" wyłączony.
+- [ ] Zablokowany pracownik z linkiem: „Link" → okno pokazuje powód i tylko „Wyłącz link" →
+      potwierdzenie → `/p/…/<token>` daje 404; po ponownym otwarciu „Pracownicy" „Link" jest wyłączony
+      (albo pracownik bez etapów znika z menu).

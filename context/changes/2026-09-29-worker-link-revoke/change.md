@@ -1,7 +1,7 @@
 ---
 change_id: worker-link-revoke
 title: Worker link revocable when scope is blocked or the worker has no etapy (EX-888)
-status: implementing
+status: implemented
 created: 2026-09-29
 updated: 2026-09-29
 archived_at: null
