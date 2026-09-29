@@ -1,10 +1,10 @@
 ---
 change_id: kosztorys-column-value-single-source
 title: One value function per computed kosztorys column, shared by cell and sort (EX-894)
-status: implemented
+status: archived
 created: 2026-09-29
 updated: 2026-09-29
-archived_at: null
+archived_at: 2026-09-29T05:59:25Z
 branch: kosztorys-column-value-single-source
 worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/kosztorys-column-value-single-source
 ---
