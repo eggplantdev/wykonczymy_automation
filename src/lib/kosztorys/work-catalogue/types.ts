@@ -161,3 +161,21 @@ export type AppendedCatalogueSliceT = {
 }
 
 export type NewSectionCatalogueSliceT = AppendedCatalogueSliceT & { createdSection: boolean }
+
+// A used klucz the cennik has no row for. Its opis / j.m. are the spelling most pozycje use, since
+// the klucz itself is folded past anything the owner would recognise.
+export type UncataloguedUsageT = {
+  key: string
+  description: string
+  unit: string
+  kosztorysCount: number
+  hints: CatalogueHintT[]
+}
+
+// Plain records and arrays only: it crosses the server-action boundary.
+export type CatalogueUsageT = {
+  // Cennik id → distinct inwestycje using it. An id absent here is unused.
+  byId: Record<number, number>
+  otherUnitIds: number[]
+  uncatalogued: UncataloguedUsageT[]
+}

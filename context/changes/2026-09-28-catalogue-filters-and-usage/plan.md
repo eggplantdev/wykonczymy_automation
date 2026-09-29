@@ -614,16 +614,16 @@ The full unit suite runs only when asked (memory: no full suite unasked). Pre-pu
 
 #### Automated
 
-- [x] 2.1 catalogue-conditions spec (predicates, per-plane partition, counts, apply)
-- [x] 2.2 catalogue menu-model + chip-model specs
-- [x] 2.3 category-options spec covers catalogueUnitOptions
+- [x] 2.1 catalogue-conditions spec (predicates, per-plane partition, counts, apply) — 2086fa3b
+- [x] 2.2 catalogue menu-model + chip-model specs — 2086fa3b
+- [x] 2.3 category-options spec covers catalogueUnitOptions — 2086fa3b
 
 ### Phase 3: Usage read (EX-873 data)
 
 #### Automated
 
-- [ ] 3.1 catalogue-usage node spec (distinct inwestycje, folding, inna j.m., uncatalogued + hints)
-- [ ] 3.2 catalogue-usage DB spec (inclusion / exclusion incl. szablon, kosz, wycena)
+- [x] 3.1 catalogue-usage node spec (distinct inwestycje, folding, inna j.m., uncatalogued + hints)
+- [x] 3.2 catalogue-usage DB spec (inclusion / exclusion incl. szablon, kosz, wycena)
 
 ### Phase 4: Usage UI (EX-873)
 
