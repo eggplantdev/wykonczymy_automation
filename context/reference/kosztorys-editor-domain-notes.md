@@ -1569,3 +1569,28 @@ komórkami pilnuje test w `column-totals.test.ts`.
 **Widok pracownika nie ma sortowania**, więc klucz sortowania nigdy nie dostaje ilości wykonanej
 przez wszystkie ekipy i „Pozostało" pracownika nie da się po nim posortować. Dołożenie sortowania
 tam wymaga podania `executedQtyByItem` do `sortValueGetter`.
+
+## Sekcja bez pozycji (2026-09-29)
+
+**Sekcja istnieje niezależnie od swoich prac.**
+
+- „Dodaj → Sekcja" i „Wstaw sekcję powyżej/poniżej" tworzą samą belkę, bez pustej pracy w środku.
+- Usunięcie ostatniej pracy zostawia sekcję na miejscu. Kaskady „ostatnia praca zabiera sekcję" już
+  nie ma, a sekcję usuwa się tylko jawnie, z jej menu ⋯.
+- Właściciel dostał to wprost, bo tak działa jego arkusz: nagłówek sekcji stoi nad pustymi wierszami.
+
+**W edytorze to sama belka**: kropka, nazwa, „(0 poz.)" i przycisk „+ Dodaj pracę".
+
+- Nie ma strzałki, bo nie ma czego zwijać.
+- Klik w belkę nic nie robi.
+- „Dodaj pracę" jest też w menu ⋯ każdej sekcji.
+- Sekcja bez pozycji jest celem dla „Dodaj → Praca" i dla katalogu.
+
+**Znika tam, gdzie nie ma nic do pokazania.**
+
+- W edytorze znika, gdy działa wyszukiwarka albo filtr, bo nie pasuje do żadnego zapytania.
+- W każdym wyjściu do klienta: podglądzie, linku, „Wydruku oferty" i druku pracownika. Oferta
+  bez prac to szum.
+
+**Nazwa: „bez pozycji", nie „pusta".** „Pusta sekcja" znaczy już u właściciela sekcję, której
+prace nie mają wpisanych wartości. W kodzie to `itemless`.

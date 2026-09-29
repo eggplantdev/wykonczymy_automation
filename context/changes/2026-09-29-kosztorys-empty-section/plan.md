@@ -576,12 +576,12 @@ None. There is no schema change. Existing data has 0 itemless sections.
 
 #### Automated
 
-- [x] 3.1 `section-header-cell` DOM spec: itemless → „Dodaj pracę", no chevron, no collapse toggle; click calls `onAddItem`; populated → no button
-- [x] 3.2 `section-target` unit spec: an existing itemless section name resolves to that section
+- [x] 3.1 `section-header-cell` DOM spec: itemless → „Dodaj pracę", no chevron, no collapse toggle; click calls `onAddItem`; populated → no button — 2cee8858
+- [x] 3.2 `section-target` unit spec: an existing itemless section name resolves to that section — 2cee8858
 - [ ] 3.3 `pnpm typecheck && pnpm lint`
 
 ### Phase 4: E2E specs + docs
 
 #### Automated
 
-- [ ] 4.1 E2E specs updated and typecheck (not executed)
+- [x] 4.1 E2E specs updated and typecheck (not executed)

@@ -1,10 +1,10 @@
-// E2E fixture for EX-472 (editor structure commands). Six investments, one per test — each mutates
+// E2E fixture for EX-472 (editor structure commands). Seven investments, one per test — each mutates
 // its rozpiska. Shapes are the minimum that keeps each command falsifiable (3 sekcje for moves,
 // per-section prace for targeting, non-empty presetAppend). No preset row: it is saved through the
 // dialog, since `serializeKosztorysAsPreset` is server-only.
 //
 // Run: DB_POSTGRES_URL=$DB_POSTGRES_URL_TEST node --env-file=.env --import tsx src/scripts/seed-kosztorys-structure.ts
-// Emits: STRUCTURE_SEED={"items":<id>,"sections":<id>,"target":<id>,"presetA":<id>,"presetB":<id>,"presetAppend":<id>}
+// Emits: STRUCTURE_SEED={"items":<id>,"sections":<id>,"target":<id>,"presetA":<id>,"presetB":<id>,"presetAppend":<id>,"bare":<id>}
 import { getPayload } from 'payload'
 import config from '../payload.config'
 
@@ -38,6 +38,8 @@ const PRESET_A_SHAPE: ShapeT = [
 const PRESET_B_SHAPE: ShapeT = [{ section: 'Sekcja szablonu B', items: ['Praca z szablonu B'] }]
 
 const PRESET_APPEND_SHAPE: ShapeT = [{ section: 'Sekcja zastana', items: ['Praca zastana'] }]
+
+const BARE_SHAPE: ShapeT = [{ section: 'Sekcja istniejąca', items: ['Praca istniejąca'] }]
 
 async function seedInvestment(
   payload: Awaited<ReturnType<typeof getPayload>>,
@@ -95,6 +97,7 @@ async function main() {
       `E2E Struktura doklejenie ${stamp}`,
       PRESET_APPEND_SHAPE,
     ),
+    bare: await seedInvestment(payload, `E2E Struktura bez pozycji ${stamp}`, BARE_SHAPE),
   }
 
   console.log(`STRUCTURE_SEED=${JSON.stringify(seed)}`)
