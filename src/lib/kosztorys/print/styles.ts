@@ -111,6 +111,8 @@ tr.band-total td.rail { border-top: none; background-position: 0 0; }
 // column's width, and wrap at 14mm so that label does not set the header row's height either.
 // The rotation sits on the span, not the th: WebKit ignores writing-mode on a table cell but still
 // applies its transform, so Safari printed every header horizontal and upside down.
+// The span sets its own text-align because `.num`'s right-align outranks `th` and, once rotated, pins a
+// wrapped label to the top while a one-line label sits at the bottom.
 export const WIDE_PRINT_STYLES = `
 @page { size: A4 landscape; }
 body { padding-left: 10mm; padding-right: 10mm; }
@@ -119,7 +121,7 @@ td, .unit { font-size: 5.5pt; }
 th { font-size: 4.5pt; letter-spacing: 0; padding: 4px 2px; white-space: normal; height: 14mm;
      text-align: left; vertical-align: bottom; }
 th > span { display: inline-block; writing-mode: vertical-rl; transform: rotate(180deg);
-            max-height: 14mm; }
+            max-height: 14mm; text-align: left; }
 col.c-qty { width: 9mm; } col.c-unit { width: 12mm; } col.c-price { width: 13mm; }
 col.c-value { width: 15mm; } col.c-stage-qty { width: 8mm; }
 .num, th.num { padding-left: 2px; padding-right: 2px; }
