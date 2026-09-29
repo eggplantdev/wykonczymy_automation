@@ -352,16 +352,16 @@ Run **once**, after the final phase:
 
 #### Automated
 
-- [ ] 1.1 EX-894 spec fails before step 2–3, passes after
-- [ ] 1.2 Resolver unit spec passes
-- [ ] 1.3 Existing sort specs pass
+- [x] 1.1 EX-894 spec fails before step 2–3, passes after — efcebbc6
+- [x] 1.2 Resolver unit spec passes — efcebbc6
+- [x] 1.3 Existing sort specs pass — efcebbc6
 
 ### Phase 2: Grid cells read the resolver + parity spec
 
 #### Automated
 
-- [ ] 2.1 Parity spec passes
-- [ ] 2.2 Existing grid column specs pass
+- [x] 2.1 Parity spec passes
+- [x] 2.2 Existing grid column specs pass
 
 ### Phase 3: Totals read the resolver
 
