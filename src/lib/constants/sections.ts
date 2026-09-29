@@ -42,14 +42,15 @@ export type NavLinkT = {
   unreadStream?: UnreadStreamT
 }
 
+// The one route EMPLOYEE may open; every MANAGEMENT_LINKS route redirects that role back here.
 export const SECTION_LINKS: NavLinkT[] = [
   { href: '/', label: PAGE_TITLES.transactions, icon: ArrowLeftRight },
-  { href: '/kasy', label: PAGE_TITLES.registers, icon: Wallet },
-  { href: '/inwestycje', label: PAGE_TITLES.investments, icon: Building },
-  { href: '/zgloszenia', label: PAGE_TITLES.leads, icon: Inbox, unreadStream: 'leads' },
 ]
 
 export const MANAGEMENT_LINKS: NavLinkT[] = [
+  { href: '/kasy', label: PAGE_TITLES.registers, icon: Wallet },
+  { href: '/inwestycje', label: PAGE_TITLES.investments, icon: Building },
+  { href: '/zgloszenia', label: PAGE_TITLES.leads, icon: Inbox, unreadStream: 'leads' },
   { href: '/kosztorysy', label: PAGE_TITLES.sheets, icon: FileSpreadsheet },
   { href: '/katalog-prac', label: PAGE_TITLES.workCatalog, icon: ListChecks },
   { href: '/szablony', label: PAGE_TITLES.templates, icon: LayoutTemplate },
