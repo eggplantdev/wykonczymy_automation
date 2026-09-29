@@ -2282,3 +2282,24 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
   Index with `.at(0)` (typed `| undefined`) where emptiness is possible; `noUncheckedIndexedAccess`
   would have caught it.
 - **Applies to**: refactors of component state, `/simplify` passes.
+
+## An extra query in a parallel fan-out is not a cost until you time the whole fan-out
+
+- **Context**: review-gate efficiency findings on cached listing reads (2026-09-29, EX-903). The
+  gate filed "`selectKosztorysSubcontractorDue` is a second full scan of the tables
+  `selectKosztorysClientTotals` scans — two Neon round-trips per cache miss; merge them into one CTE".
+- **Problem**: the finding counted queries, not time. Both already run inside one `Promise.all` in
+  `fetchAllInvestments`, so the listing waits for the slowest read, not the sum. Measured on the
+  local DB (30 warm runs, more kosztorys items than prod): subcontractorDue 3.9 ms median — second
+  fastest of the four folds; the whole fan-out 9.4 ms, and 8.3 ms with it removed outright. The
+  "same joins" premise was also false: client totals is item-driven (per-item rabat, rows with no
+  progress still carry the global rabat), subcontractor due is etap-driven (price depends on the
+  etap's plane) and scopes items to the etap's investment, which client totals does not. Merging
+  would have fused two formulas, each pinned 1:1 to its own TS reference and parity spec, to save
+  ~1 ms.
+- **Rule**: before filing or doing a "merge these queries / one fewer round-trip" change, check
+  whether the queries already run in parallel and time the fan-out with and without the one you'd
+  remove. Below a few ms of saving, drop it — especially when each query is a parity-pinned copy of
+  a TS formula. Local timings can't show Neon network or cold starts (see "Neon latency is bimodal"
+  above), but a merge doesn't remove that cost from a parallel fan-out either.
+- **Applies to**: impl-review, plan-review, `/simplify`, review-gate efficiency findings.
