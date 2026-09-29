@@ -101,6 +101,7 @@ import * as migration_20260928_3_investment_completed_at from './20260928_3_inve
 import * as migration_20260928_4_document_column_ranks from './20260928_4_document_column_ranks'
 import * as migration_20260929_0_drop_client_view_variants from './20260929_0_drop_client_view_variants'
 import * as migration_20260929_1_szablon_as_investment from './20260929_1_szablon_as_investment'
+import * as migration_20260929_2_drop_kosztorys_presets from './20260929_2_drop_kosztorys_presets'
 
 export const migrations = [
   {
@@ -617,5 +618,10 @@ export const migrations = [
     up: migration_20260929_1_szablon_as_investment.up,
     down: migration_20260929_1_szablon_as_investment.down,
     name: '20260929_1_szablon_as_investment',
+  },
+  {
+    up: migration_20260929_2_drop_kosztorys_presets.up,
+    down: migration_20260929_2_drop_kosztorys_presets.down,
+    name: '20260929_2_drop_kosztorys_presets',
   },
 ]
