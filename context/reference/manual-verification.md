@@ -20,13 +20,9 @@ working, fix it here as part of the pass.
   the last dump), never `DB_POSTGRES_URL_PROD`.
   - Reset: `pnpm db:import:test` (prod dump → test DB; also starts the container).
   - Migrate: `pnpm db:migrate:test` — run from the worktree. The dump is often behind the branch.
-  - Seed kosztorys content (not in the dump): `pnpm seed:kosztorys:test` (synthetic ~1000-row, no
-    external calls; `INV=<id>` picks the investment). `src/scripts/seed-kosztorys.ts` reads the **live**
-    Google Sheet — only deliberately, and it wipes that investment's kosztorys. Other planes:
-    `seed:deposits:test`, `seed:materials-net:test` (see AGENTS.md → Databases).
-  - Worker payouts (EX-919): `pnpm seed:worker-payouts` — two fabricated workers on four „Seed
-    wypłaty" investments covering payable, two workers + „Nieprzypisane", an etap without rozliczenie
-    and a zakończona inwestycja. Idempotent; refuses a non-localhost DB.
+  - Test state: find it in the dump's real data or create it through the UI (see **Test data** below).
+    Seeds (`seed:kosztorys:test`, `seed:deposits:test`, `seed:materials-net:test`,
+    `seed:worker-payouts`) are a last resort for a state the UI cannot produce.
 - **Boot:** `NEXT_DIST_DIR=.next-e2e DB_POSTGRES_URL="$DB_POSTGRES_URL_TEST" pnpm exec next dev --turbo -p 3010`
   (after `set -a; source .env; set +a`). `.next-e2e` is gitignored — never use an un-ignored dist dir:
   Tailwind v4 scans the root and poisons the user's server CSS (`Parsing CSS source code failed`;
@@ -37,6 +33,22 @@ working, fix it here as part of the pass.
   credentials in `src/scripts/e2e-user-credentials.ts`. `ADMIN`/`PASS` in `.env` are dead. Most
   kosztorys/stage controls need `MANAGEMENT_ROLES` (OWNER/MANAGER); a role-gated page without the role
   answers with a bare 404/redirect.
+
+## Test data — UI first, staging preferred
+
+**Staging is the default target.** Local is for a branch that isn't deployed yet, not a fallback for
+a staging check that needs setup. Per check: find a real record already in the required state
+(read-only SQL on `DB_POSTGRES_URL_PREVIEW`, or the UI); if none exists, **create the state through
+the app's own UI** — book the wypłata, change the etap, flip the investment status — and undo it the
+same way at the end (cancel the transfer, restore the value). Record what was created in the pass
+report. A seed script is a last resort for a state the UI cannot produce; most of ours refuse a
+remote host (`assertLocalDb`), and that refusal is **not** a reason to move the pass to local.
+
+**Writing on the preview DB is isolated** (`context/reference/outgoing-effects-isolation.md`): a
+Sheets write is refused by Google (reader credential only), mail dies on `EMAIL_HOST=disabled.invalid`,
+Blob points at the preview store. A check whose write would still escape — a real person, an external
+service, production — is returned as a blocker naming the missing isolation. We fix the isolation;
+we don't retreat to local.
 
 ## Staging target
 
@@ -156,8 +168,8 @@ patrz „Repo-specific traps" wyżej.
 więc objawem jest „baza działa, ale nie da się do niej podłączyć". Wolne miejsce na dysku hosta nie
 jest sygnałem; liczy się dysk maszyny wirtualnej Docker Desktop.
 
-**Fikstury preview są zmienne.** Inwestycje 135/136/137 pojawiają się i znikają przy kolejnych
-reseedach — identyfikator z poprzedniego przebiegu weryfikacji nie jest stałą.
+**Dane preview są zmienne.** Każde odtworzenie preview DB z dumpu zmienia zawartość — identyfikator
+rekordu z poprzedniego przebiegu weryfikacji nie jest stałą; szukaj stanu od nowa.
 
 **Undo coalescing defeats per-call edits.** Grid undo merges edits within `UNDO_COALESCE_MS` (700 ms),
 and each separate Playwright MCP call is slower (`browser_type` alone takes >1 s). To check that
