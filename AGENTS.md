@@ -72,10 +72,12 @@ _„wypełniony kosztorys do testów"_, real values across all figures **plus** 
 tabs (`wydatki inwestycyjne` / `transfery` / `rozliczone R+M`) baked in:
 
 ```
-1qN68vcevWgq0fXckdh4cuyBJ4iGZNlivVuHDvLuzWy4    # tab kosztorys_robocizny, gid=70964819
+1qN68vcevWgq0fXckdh4cuyBJ4iGZNlivVuHDvLuzWy4    # tab "kosztorys_robocizny(dla inwestora) " (trailing space), gid=70964819
 ```
 
-Also shared read-only with the service account. Nine tabs (adds `materiały`, `pokoje`, `Podsumowanie`,
+Also shared read-only with the service account. Its labor tab name drifted from the canonical
+`kosztorys_robocizny`, so the importer's exact `LABOR_TAB` match does not find it — on purpose, see
+the domain notes. Nine tabs (adds `materiały`, `pokoje`, `Podsumowanie`,
 the two `zakres pracy z/bez narzędzi` catalogues). Its layout carries column `T = „komentarz"` and the
 `U–AE` per-etap wartość axis (`AE` = bilans), so it's the canonical fixture for parity/import work.
 **Caveat (owner):** some formulas in this test sheet are broken here and there — treat it as a rich
@@ -153,6 +155,8 @@ shape tracks the sheet's current state. Domain background: `context/reference/ko
 ### Migrations
 
 `pnpm migrate:create` has emitted phantom drift since ~March 2026 (missing `.json` snapshots), so **hand-write migrations**: copy the structure of the latest file in `src/migrations/` and adjust FK constraints / internal Payload tables by hand. Don't trust an auto-generated migration blindly.
+
+**`payload migrate` reads the working tree, not the branch.** In a tree shared with other sessions it also applies their **uncommitted** migration files — on 2026-09-28 `db:migrate:preview` pushed another session's `kosztorys_worker_view` to the preview DB ahead of its deploy. Run `git status src/migrations` before any migrate against a shared database.
 
 **Migrations are NO LONGER run by the build.** `payload migrate` was removed from `pnpm build` so a Vercel deploy (incl. previews) can never touch the schema — code and schema are separate planes. Apply migrations to prod deliberately with **`pnpm db:migrate:prod`** (dumps Neon prod first, then `payload migrate` against `DB_POSTGRES_URL_PROD`), run by a **human**, never the agent. A `.husky/pre-push` gate reminds you on a push to `main` that adds `src/migrations/*.ts`. **Order follows the direction of the migration.** Additive (the new code needs a column that isn't there yet) → migrate prod **before** pushing. Destructive (a `DROP COLUMN`) → the reverse, because the column is what the _old_ code needs: push first, migrate once the new deploy is live, or every request in between hits a live SELECT naming a dropped column (Postgres 42703). This is a **deploy-time** gate, not a phase gate — writing the migration and the local code that reads the column is one continuous local task; do not stop implementation or mark a plan phase "blocked on prod" while nothing is being pushed. The prod step is owed only when the code actually ships. Pattern owned by the `payload-prod-migrate` skill.
 
@@ -266,6 +270,14 @@ component itself lives in `src/components/nav/` — and the slot needs a `defaul
 don't match. `@investmentCrumb` (the investment name + back arrow in the top bar) is the first and
 currently only instance; mirror its shape rather than inventing a second arrangement.
 
+**`loading.tsx` is the only instant part of a navigation (EX-877).** With PPR off, a dynamic route's
+prefetch carries layouts + `loading.tsx` and nothing a page renders before its own `<Suspense>`. So a
+list route's `loading.tsx` renders `TitledPageLoading` with the page's title from `PAGE_TITLES`
+(`lib/constants/sections.ts`), the same constant the nav link and the heading read — two spellings
+would flicker when the page replaces the fallback. `[id]` routes use `DetailPageLoading` (a bar, no
+name); editor routes keep the bare `PageLoading`. `(frontend)/loading.tsx` stays untitled on purpose:
+every segment without its own inherits it, and a new route must not flash „Transakcje".
+
 **Editor hooks (EX-521).** `use-kosztorys-editor.ts` at the editor root is the **composition entry**
 — it wires sub-hooks together and owns the return shape components read. Each cohesive cluster it
 delegates to (stage ops, settlement settings, view state, …) is one leaf hook under
@@ -362,10 +374,11 @@ The transfer-type union lives in `src/collections/transfers.ts` — read it ther
 Non-obvious rules:
 
 - `LABOR_COST` (robocizna) has **no source register** — it is a billing/markup figure, not a cash movement. It feeds the margin (`marża = robocizna − wypłaty − rabat − strata`), not the cash ledger.
-- `CORRECTION` may be negative (invoice credits).
+- `CORRECTION` must be negative (invoice credits) — `getAmountError` (`src/lib/utils/validation.ts`) rejects `amount >= 0`.
 - `RABAT` (rabat) is a labour discount: **no source register**, positive amount, requires an investment. It hits **both** figures — lowers `marża` and raises `bilans` (the client owes less) — unlike `CORRECTION`, which moves only the balance.
 - `LOSS` (strata) is a company-absorbed cost: **no source register**, positive amount, investment **required** (EX-675). Like `RABAT` it hits **both** figures — lowers `marża` and raises `bilans` (the client stops owing what the company swallowed). The two differ on the brutto plane: a rabat is a concession on the _price_, so it grosses by VAT, while a strata deducts at **face value** on netto and brutto alike and never widens the VAT base.
 - Cancellation is an audit trail: the original is marked `cancelled: true`, a new `CANCELLATION` row links back to it.
+- `COMPANY_FUNDING` is offered only to ADMIN/OWNER, and only client-side (`deposit-form.tsx`) — an owner ruling (EX-557): a MANAGER could post it through the API, and that is accepted. Don't re-raise it.
 - Cash register balances are **not** stored — they are computed on read by cached functions. The transfer hooks (`hooks/transfers/recalculate-balances.ts`) only revalidate cache tags; nothing is written back.
 
 **`LABOR_COST` and `RABAT` are bookable again, temporarily (EX-649, reversing EX-555 — EX-712 closes it).** EX-555 took both out of the transfer dialog because robocizna and rabat come from the **kosztorys**. That holds only once an investment's kosztorys is IN the app: while it is still a spreadsheet the reading returns 0 zł and, with the dialog also refusing the booking, the investment could be settled by no route at all. So both are offered again for **every** investment, with no gating — double-counting is made **visible** rather than prevented, by the „Robocizna v1 / v2" columns on the investments listing and by the v2 reconciliation. **EX-712 removes both entries, and those columns, once the rozjazd between the two is zero everywhere.** Everything else about the two types was never touched: the enum, existing rows, history, filters, cancellation and sheet sync.
@@ -382,6 +395,7 @@ Three test homes by layer, and **the file extension picks the runner**: **unit**
 
 - **A `'use server'` module is stubbed, not imported** (`stubServerActions` in `vitest.config.ts`) — Next swaps it for an RPC stub before it reaches the browser, and without the same swap one statically-imported action drags Payload, the DB client and a live Nodemailer socket into a jsdom spec. Every stubbed export **throws** when called: assert the UI on the way to the action, or `vi.mock` the action explicitly.
 - **A spec that mocks `@/lib/cache/revalidate` takes the shared stub**, not a hand-rolled factory: `vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))`, importing the spy from that stub when it wants to assert. 34 specs each named only the exports their own action happened to call, so adding one export to the real module broke the ones that didn't list it — the missing import came back `undefined` and `protectedAction` swallowed the TypeError into `{ success: false }`, which reads as a business-logic failure, not a mock gap. It is not aliased globally like `next/cache` because `revalidate.test.ts` tests the real module.
+- **Never add a constant to a module specs mock by hand.** `@/lib/utils/toast` is mocked with a hand-written factory in ~22 specs, so a constant exported from it comes back `undefined` in every one of them — `NOTICE_MS` landing there broke 12 tests with „Number of calls: 0". The wording and timing of a notice live in `lib/utils/notice.ts`; `toast.ts` stays the side effect alone.
 - **jsdom has no layout engine**, so `matchMedia`, `ResizeObserver` and `scrollIntoView` are stubbed in `src/__tests__/setup/dom.ts`. Radix and cmdk gate on them; without the stubs a popover mounts and instantly hides, and the failure reads as a bad selector.
 
 **Vitest specs live under `src/__tests__`, never colocated next to their source** — this is the
@@ -424,6 +438,7 @@ Non-blocking refactor/cleanup findings live in Linear, in the same **"Wykonczymy
   `vercel.json` entry, not a second stream bolted onto another feature's handler.
   `context/reference/blob-recovery-runbook.md` documents a Hobby-era incident and reads like current state.
 - React Compiler is enabled — don't hand-write `useMemo` / `useCallback` for things it handles
+- **Phone scope is deliberately narrow (owner, 2026-09-16, EX-785):** on a phone only navigation, adding a transaction and showing transactions must work. The kosztorys editor is desktop-only beyond not breaking the page. No app-wide touch-target floor (a 44px one was applied and reverted); no `/admin` link in the mobile menu.
 - **The breakpoint scale is overridden** in `src/styles/globals.css` — `sm`=768px, `md`=1024px, `lg`=1280px, where Tailwind ships 640/768/1024. `sm:` is this app's single mobile→desktop break; `md:` is a second, tablet-large step used almost only by the marketing pages. Any snippet pasted from shadcn/upstream docs assumes the stock scale and fires one step too late. **Re-map it onto this scale by intent, not by tier name (EX-624):** an upstream `sm:` and an upstream `md:` are both mobile→desktop splits here, so both become `sm:`. Never add a 640 breakpoint to reproduce upstream's — this app has one mobile→desktop line and it is 768.
 - `src/app/(payload)/layout.tsx` must include `importMap`, `serverFunction`, and `handleServerFunctions`
 - A `console.error` that must become a Sentry capture once Sentry is wired gets a `// TODO(EX-449) SENTRY-REQUIRED:` marker (greppable + shows in the IDE TODO panel) — never a bare comment

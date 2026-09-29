@@ -76,10 +76,11 @@ export function buildKosztorysReconciliation({
   const laborCosts = reconcile(laborCostsNetFromKosztorys, laborCostsNetFromTransactions)
   const discount = reconcile(discountNetFromKosztorys, discountNetFromTransactions)
 
-  // Nothing on the transactions plane at all ⇒ nothing to reconcile against. Since the write-switch
-  // (EX-555) no new LABOR_COST or RABAT can be booked, so every investment created from here on would
-  // otherwise scream forever — an alarm that fires on everything verifies nothing. The alert exists
-  // for the OLD investments, which do carry bookings.
+  // Nothing on the transactions plane at all ⇒ nothing to reconcile against. Since EX-555 robocizna
+  // and rabat come from the kosztorys (LABOR_COST / RABAT are bookable again only until EX-712), so an
+  // investment settled through its kosztorys books neither and would otherwise scream forever — an
+  // alarm that fires on everything verifies nothing. The alert exists for the investments that do
+  // carry bookings.
   //
   // Silenced per INVESTMENT, never per figure: a per-figure rule would mute „robocizna zaksięgowana,
   // rabat nie", which is precisely the gap `showDiscount` (settlement-summary.tsx) forces onto the screen.

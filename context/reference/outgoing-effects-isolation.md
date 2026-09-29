@@ -7,7 +7,7 @@ tak mocna jak maszyna, która ją liczy. **Bramką jest zawsze poświadczenie:**
 nasz kod.
 
 Ustalone 2026-08-26/27 przy zmianie `sheet-write-env-guard`; źródło pierwotne (z błędami poprawionymi
-niżej) to `context/archive/*-sheet-write-env-guard/research.md`.
+niżej) to `context/archive/2026-08-26-sheet-write-env-guard/change.md`.
 
 ## Stan bramek
 
@@ -100,6 +100,11 @@ Google, poza maszyną, i nie da się jej przegadać.
 Kolejność podmiany wynikała z tego samego rachunku: dotychczasowe konto **zostało** piszącym (było
 już Edytorem na wszystkich 56 arkuszach, więc zero ponownego udostępniania i ani chwili, w której
 produkcja traci zapis), a nowe, czytające, dostało wyłącznie addytywne nadania Przeglądającego.
+
+**No reverse refusal, on purpose.** Unlike `blobTokenRefusal`, the env layer does NOT refuse an
+Editor credential outside production (`schema.ts` only requires it IN production). Your own Editor
+account, shared only on your own test sheet and never a client's, is the one way to work on the
+write path locally; a reverse refusal would close it.
 
 ## Zasada
 

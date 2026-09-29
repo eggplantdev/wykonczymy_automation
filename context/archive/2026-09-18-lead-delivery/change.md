@@ -14,9 +14,9 @@ worktree: null
 **This change has two homes.** The work does not fit in one repo, so the same `change.md` lives at
 `2026-09-18-lead-delivery/` in **both** `landing_26` and `wykonczymy`. It is one change with one set
 of decisions; the copies are kept in step by hand, and a decision recorded on one side is not agreed
-until it reads the same on the other. The two halves archive apart: this repo's half is built, so its
-copy moved to `context/archive/` on 2026-09-21, while `landing_26` keeps its copy under
-`context/changes/` until its own half exists.
+until it reads the same on the other. Both halves are built and archived; the landing's copy is
+`landing_26/context/archive/2026-09-18-lead-delivery/`. The current wire is
+`context/reference/landing-intake-contract.md` — this file is the why behind it.
 
 `2026-09-17-s2-contact-form` in `landing_26` built the form and deliberately stopped short of a sink —
 `submitContactForm` validates and returns `{ ok: true }` with the comment "No sink yet — where a
@@ -99,6 +99,9 @@ did; the decisions below are that agreement.
   qualified by hand anyway, and choosing which assets are worth carrying over is the same pass as
   saying what they are. A MIME-based guess at intake would be noise until a human looked regardless.
   `kind` is therefore not an intake field.
+  > **Superseded (EX-829, 2026-09-22):** `kind` is set not at promotion but by the upload-time
+  > plan marker (`useMediaUpload`) or „Oznacz jako rzut" in the gallery (`setMediaKindAction`,
+  > `src/lib/actions/media-kind.ts`); the app writes only `projekt`. "Not an intake field" still holds.
 
 - **2026-09-18 — the outbox is a queue, not a second inbox.** Owner's call, against the advice
   recorded at the time: the cheaper option was inline retry plus an e-mail backstop (which is what
@@ -214,6 +217,9 @@ did; the decisions below are that agreement.
     does _not_ have, so its bytes are the only copy left — the sweep below will not take it either,
     because it belongs to a submission that was delivered. It is deleted by hand once the failure is
     understood.
+    > **Superseded:** the sweep DOES reclaim it once the age window passes (delivered ⇒ no live
+    > queue row), so the failure e-mail carries an implicit deadline — `landing-intake-contract.md`,
+    > "Partial deliveries".
   - **The callback is non-fatal on both ends.** `wykonczymy` catches and logs it and still answers
     200 — the lead is already stored and the assets already attached, so a landing that is down must
     not turn a delivered submission into a retried one. The cost of a missed callback is an orphan
@@ -292,51 +298,6 @@ did; the decisions below are that agreement.
   "defence in depth" without naming a mechanism. Platform rules on the two public paths need no
   dependency and no second store, which is what a landing page should cost. The tradeoff is that the
   rules live in Vercel's config rather than the repo, so they are a manual check, not a test.
-
-## Build status — 2026-09-21
-
-Written down because "the env vars are set and the deploy is green" was read once as "the feature is
-ready", and it is not the same claim. The deployment plane and the feature plane are listed apart on
-purpose.
-
-**On `wykonczymy`, built and on staging** (`dace70ce`, deploy `wykonczymy-ew3ujwrl4`, typecheck clean,
-14 route specs + 5 callback specs green):
-
-- `POST /api/webhooks/landing` — signature (403), envelope (400), `captureLead` (the only step
-  allowed to 500), serial asset fetch, attach, redelivery guard.
-- `signBody()` in `verify-signature.ts` — one signer for both directions, so the inbound verify and
-  the outbound sign cannot drift apart. **Scoped since 2026-09-21:** the key is
-  `HMAC(LANDING_WEBHOOK_SECRET, scope)`, `landing-submission` inbound and `landing-cleanup`
-  outbound, so a captured submission signature is not also a valid delete instruction (Meta's
-  `x-hub-signature-256` stays on the bare app secret). **The landing must sign and verify the same
-  way** — mirrored into `src/lib/contact/sign.ts` there, and specified in the shared contract doc.
-- `releaseLandingAssets()` — the delete-on-delivery callback. Fires only when the number of files we
-  hold equals the number the envelope listed — counted, not inferred from an empty `failed[]` — and
-  only once the attach write has committed. Never throws, and runs behind `after()`, so a landing
-  that is down cannot turn a delivered submission into a retried one.
-- `LANDING_CLEANUP_URL` — optional in the schema. Absent means the callback is skipped and the
-  webhook still answers `200`; the cost is an orphaned prefix the landing's sweep reclaims.
-- `LANDING_WEBHOOK_SECRET` and `LANDING_BLOB_HOST` are set on both projects × both environments, one
-  shared value each. This staging build is the **first one baked with the re-created secret**, so a
-  signed POST from the landing is now what proves the two sides actually match — nothing before it
-  did.
-
-**On `landing_26`, unbuilt.** `submitContactForm` still ends at "No sink yet". Missing: the
-`submissions` queue collection, the token route with prefix pinning, the signed forward, the cleanup
-receiver, the age sweep.
-
-**Blocking an end-to-end test, and none of it is the agent's to do:**
-
-1. **Protection Bypass for Automation** — the wykonczymy project has none (`protectionBypass = None`,
-   read off the projects API; it is per-project, so nothing is inherited team-wide). Until the owner
-   mints one in Settings → Deployment Protection, a POST to the staging preview URL is answered `401`
-   before it ever reaches the route, and the landing must then send it as `x-vercel-protection-bypass`.
-2. **`EMAIL_HOST` on wykonczymy Preview** — `vercel env pull` returns it empty because it is
-   sensitive, so its value is **unknown**, not verified. If it is the real SMTP host rather than
-   `disabled.invalid`, a test lead mails real employees: `notification-recipients` is a Payload global,
-   so it lives in the DB, and every non-production DB here is a restored prod dump. Read it in the
-   dashboard before firing anything.
-3. **`LANDING_CLEANUP_URL`** — deliberately not set yet. Add it once the landing's receiver exists.
 
 ## Open
 

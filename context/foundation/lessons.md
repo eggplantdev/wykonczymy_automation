@@ -1558,6 +1558,7 @@ is the test of the test, and skipping it is how a decorative assertion gets comm
 - **Context**: `summariseCosts` deliberately **omitted** an inspection type with no priced entry rather than showing `0 zł`, with the reasoning written in three places — the function's comment, a test named after it, and a manual check. The owner then asked for a costs column where a vehicle with no priced inspections reads `0 zł`. `fleet-costs-column`, 2026-08-24.
 - **Problem**: the two are flatly contradictory, and the tempting resolution is the cheap one — change what the column renders and leave the source optional. That produces a figure that means two things at once: `0 zł` for a vehicle that genuinely cost nothing, and `0 zł` for one where nobody typed a price. Aggregate them into a footer total and the ambiguity is no longer even visible per row. The precedent that _does_ license a hard zero (`investment-financials-and-discount.md`: „an empty kosztorys is an answer, not a question to forward to the transfers") works only because that source plane is complete and authoritative. The fleet's `cost` was optional, so empty was not yet an answer.
 - **Rule**: (1) A display rule that distinguishes "unknown" from "zero" is load-bearing; you retire it by making the unknown impossible — here, `cost` becomes `required` plus a `NOT NULL` migration — not by collapsing the two at the render layer. If you cannot close the source, keep the distinction. (2) When a rule is asserted in a comment, a test, and a checklist, all three are part of the change that reverses it; leaving one behind lets the old rule get re-derived. (3) Watch the sort, not just the cell: an accessor returning `0` for "unknown" sorts that vehicle as the cheapest — the same defect as the `sortUndefined: 'last'` no-op already fixed on this table, where „brak danych" sorted as most urgent. (4) One figure, one rule: the card and the listing must compute it with the same function, or you have shipped two answers to one question.
+- **Superseded (`c487c4dc`, 2026-08-25):** `cost` is optional again — the imported sheet carries no prices, so `required` would have turned nine unknowns into nine „0 zł". Rule (1) held by its other branch: the source could not be closed, so the distinction was kept and unknown renders „—".
 - **Applies to**: implement, plan, code-review
 
 ## A rename splits into two halves with opposite economics — and the half with a deadline is the worthless one
@@ -2086,6 +2087,9 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
   re-crop, OCR, download-full — establish **which ingest path produced the file**. An ingest that
   compresses is a one-way door: the original never existed server-side, so no download path can
   restore it. Name the paths that keep the bytes and scope the feature's payoff to those.
+- **Old media is not repaired (owner, 2026-09-22):** no `kind` backfill, no reprocessing of uploads
+  crushed by the old `1920×1080` box, no attempt to recover originals. EX-829 fixes new uploads
+  only; don't reopen it.
 - **Applies to**: 10x-plan, 10x-research, impl-review, any media/preview feature.
 
 ## Post-response cleanup belongs in `after()`, and a spec that stubs `after` to a no-op silently deletes the work it was meant to test
@@ -2183,7 +2187,7 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
 ## A caller count that once killed an extraction doesn't settle it the next time — re-check what is actually shared
 
 - **Context**: wydruk-oferty (2026-09-23) added a third caller of `openPrintWindow`, after a shared
-  print-shell helper had been rejected at two callers (`context/archive/2026-09-14-transfer-print-return/review-gate.md`).
+  print-shell helper had been rejected at two callers (transfer-print-return's review gate).
 - **Problem**: three callers repeating the doctype skeleton, row emission and the `document.write`
   lint exception looks like the signal a caller count is supposed to give. It wasn't: the offer has
   section bands, colour rails and section subtotals the transfers table doesn't, so a shared builder
@@ -2225,3 +2229,39 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
   collapses instead of leaving an empty band; (4) budget the summed sizes against the container —
   `dialog-xl` is `min(80vw, 75rem)`, ~1120 px on a 1440 screen.
 - **Applies to**: any `DataTable` / `VirtualizedTableBody` consumer switched to virtualization.
+
+## A Playwright timeout in this suite almost never means "slow machine" — it means a locator that no longer describes the UI
+
+- **Context**: e2e-backlog-audit (2026-09-15). EX-676 and EX-473 both reported as a spec hanging
+  120 s; both were blamed on load before anyone looked.
+- **Problem**: Playwright waits for what isn't there, so spec rot and machine load share one
+  symptom. EX-473's fixture `'Plac Hellera 3'` didn't exist on 5435 (it is `Plac Hallera 6`), so a
+  missed click left a popover open and the next iteration hung; behind it the submit button had
+  become „Zapisz", not „Dodaj".
+- **Rule**: before calling a timeout a flake, check that the text the spec waits for exists in
+  `src/`, and that the fixture row exists in the 5435 DB.
+- **Applies to**: any red E2E spec, `/10x-e2e`, flake triage.
+
+## react-datasheet-grid paste is strictly positional — disabling a band row's cells does not stop the shift
+
+- **Context**: kosztorys section header rows (2026-07-26, EX-584). The grid interleaves synthetic
+  section-band and footer rows with pozycje.
+- **Problem**: a multi-row paste spanning a section boundary loses one line. The library writes
+  `newData[min.row + rowIndex]` (`DataSheetGrid.js:540-600`), and `isCellDisabled` skips only the
+  write, never the index — so the clipboard slides one row per band it crosses.
+- **Rule**: only a paste interception that re-expands the clipboard around band indices fixes it.
+  Unfixed; EX-584 was deleted from Linear without a fix.
+- **Applies to**: any change to the kosztorys grid's paste path or its synthetic rows.
+
+## Turning state into a derived value moves its read above the guards it was safe behind
+
+- **Context**: scalable preset section picker (2026-07-28, EX-618). A review-gate state→derived fix
+  crashed the dialog on every open.
+- **Problem**: `activeGroup` fell back to `groups[0]`, `undefined` while `sections` was still `null`.
+  As state it was only read behind the `sections.length === 0` guard; as a derived value the read
+  moved to the top of the component body. `groups[0]` types as `PresetGroupT`, not `| undefined`, so
+  `tsc` could not see it.
+- **Rule**: after converting state to a derived value, re-check every guard the old read sat behind.
+  Index with `.at(0)` (typed `| undefined`) where emptiness is possible; `noUncheckedIndexedAccess`
+  would have caught it.
+- **Applies to**: refactors of component state, `/simplify` passes.

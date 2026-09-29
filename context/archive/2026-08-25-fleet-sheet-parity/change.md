@@ -67,6 +67,6 @@ type, verified by a separate read rather than by the script's own tally.
 `src/scripts/import-fleet-sheet.ts` is therefore deleted, as the decision to leave no permanent
 bridge to the sheet required.
 
-Still open: the browser pass over the imported prod rows, and the cache lag — the script writes with
-`skipRevalidation` and a CLI process cannot revalidate a deployed Next.js cache, so `/flota` serves
-the pre-import dataset until the `staging` → `main` deploy comes up on a cold cache.
+Open at archive, never ruled on: an exempt („bezterminowo") inspection type can still be flagged
+„do wymiany" (`vehicle-flags.tsx` offers every `PERFORMED_INSPECTION_TYPES` entry), and the prod split
+of the Knaus into make `Knaus` / model `Przyczepa` was the importer's guess, not confirmed by the owner.

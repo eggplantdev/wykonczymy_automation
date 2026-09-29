@@ -1,6 +1,6 @@
 ---
 change_id: legacy-sheet-work-import
-title: Import brakujących prac ze starych arkuszy do katalogu prac
+title: Import works missing from the catalogue out of the old client sheets
 status: archived
 created: 2026-08-31
 updated: 2026-09-01
@@ -11,99 +11,56 @@ worktree: null
 
 ## Notes
 
-Jednorazowa akcja: katalog prac powstaje z kosztorysu wzór (~400 prac), ale część prac
-występuje tylko w starych arkuszach inwestycji. Trzeba je stamtąd wyciągnąć i dołożyć do
-katalogu jako dodatkowe pozycje.
+One-off action: the work catalogue is built from the template kosztorys (~400 works), but some works
+exist only in old investment sheets. Pull them out and add them to the catalogue.
 
-**Blokada kolejnościowa:** rusza dopiero, gdy katalog istnieje i jest wypełniony wzorem
-(`context/changes/2026-08-31-work-item-catalog/`). Wcześniej „brakujące" znaczy „wszystkie".
+Pipeline, dumps, report figures and the 2026-09-02 prod load (940 items):
+`context/reference/legacy-sheet-dumps.md`.
 
-### Ustalenia z właścicielem (2026-08-31) — wejście do planu, nie hipotezy
+### Owner rulings (2026-08-31)
 
-1. **Zakres: wszystkie 56 arkuszy**, nie tylko zakończone inwestycje — trwające niosą
-   najświeższe ceny, a przy regule „najnowszy arkusz" to one wygrywają.
-2. **Cena: z najnowszego arkusza**, w którym praca występuje. Rozrzut cen i liczba wystąpień
-   idą do raportu jako informacja przy weryfikacji (po nich widać, czy pozycja jest realną
-   pracą, czy dopiskiem z jednej budowy).
-3. **Stawki podwykonawców wchodzą razem z ceną**, z tego samego arkusza co ona — jako
-   zamrożone kwoty, zgodnie z modelem katalogu.
-4. **Bez progu wystąpień.** Wchodzi wszystko, czego nie ma w katalogu. Odrzucona wcześniejsza
-   propozycja filtrowania jednorazowych dopisków — właściciel: „nie będzie ich parę tysięcy".
-5. **Znacznik = wyraźny dopisek do nazwy pozycji**, kasowany ręcznie przy przeglądzie
-   katalogu. Świadomie ŻADNEGO pola w bazie — plan katalogu nic z tego powodu nie dokłada.
-6. **Ostrożne sklejanie wariantów nazw** (szyk słów, skróty, liczba mnoga), bez rozmytego
-   progu podobieństwa. Uzasadnienie: cena wchodzi z najnowszego arkusza, więc złe sklejenie
-   dwóch różnych prac = zła cena, której przy przeglądzie NIE widać (widać jedną, wiarygodnie
-   wyglądającą pozycję). Duplikat widać i się go kasuje — jest tańszy.
-7. **Forma: skrypt offline, trzy przebiegi** — (a) zassanie wszystkich arkuszy na dysk raz
-   (API Google jest limitowane, przy 56 arkuszach łatwo o 429), (b) analiza na kopii bez
-   ruchu sieciowego, (c) raport do przejrzenia. Import nie zapisuje nic sam.
-8. **Akcja jednorazowa.** Nie wraca. Stąd: bez idempotencji, bez odporności na drugie
-   uruchomienie, bez testów, bez miejsca w aplikacji — skrypt do skasowania po akcji.
+1. **Scope: all 56 sheets**, not only completed investments — ongoing ones carry the freshest prices,
+   and under the "newest sheet" rule they win.
+2. **Price: from the newest sheet** the work appears in. Price spread and occurrence count go into
+   the report as review aids (they show whether an item is real work or a one-site addition).
+3. **Subcontractor rates come with the price**, from the same sheet — as frozen amounts, per the
+   catalogue's model.
+4. **No occurrence threshold.** Everything missing from the catalogue goes in. The earlier proposal
+   to filter one-off additions was rejected — owner: "there won't be a few thousand of them".
+5. **Marker = a visible tag in the item name**, deleted by hand during review. Deliberately NO DB
+   field. Accepted consequences: the tag travels into the kosztorys and the offer if nobody removes
+   it (seen as a plus — it forces a reaction), and it breaks name matching until review.
+6. **Cautious merging of name variants** (word order, abbreviations, plural), no fuzzy similarity
+   threshold. Why: the price comes from the newest sheet, so a wrong merge of two different works =
+   a wrong price that review CAN'T see (it sees one plausible item). A duplicate is visible and
+   deleted — cheaper.
+7. **Offline script, three passes** — (a) pull all sheets to disk once (Google's API is
+   rate-limited; 56 sheets easily hit 429), (b) analyse the copy with no network, (c) a report to
+   review. The import writes nothing on its own.
+8. **One-off.** No idempotency, no rerun safety, no tests, no place in the app — scripts deleted
+   after the action.
 
-### Świadomie przyjęte skutki punktu 5 (dopisek w nazwie)
+Unit normalization (m2 / m² / mkw, szt / szt.): the same name in m² and in mb is TWO different works
+and must never be merged. The same work legitimately costs differently across investments (another
+crew → another price); the catalogue copies the price on insert and never keeps it live, so the
+report says "differs from the price list", never "is wrong".
 
-- Dopisek pojedzie do kosztorysu i dalej do oferty, jeśli ktoś go nie skasuje. Uznane za
-  zaletę (wymusza reakcję).
-- Dopisek psuje dopasowanie po nazwie, więc taka pozycja wyjdzie w „Porównaj z cennikiem"
-  jako „brak w cenniku" do czasu przeglądu. Przy akcji jednorazowej to stan przejściowy,
-  więc nic tego nie musi odcinać programowo.
+### Prod gets the result, not a rerun (2026-09-01)
 
-### Co ma nowy kod, a co jest przeróbką
+All work happened on the local DB — template seed, the three import passes, then the owner's review
+in the app (deleting junk, fixing prices, removing tags), which must never be repeated. Production
+got **an export of the whole reviewed local `work_catalogue_items`** as a one-off, insert-only load
+by `match_key` — the template included, so prod matches what was reviewed on screen. No separate
+`seed-work-catalogue.ts` run on prod.
 
-Nowe: normalizacja j.m. (m2 / m² / mkw, szt / szt. — a ta sama nazwa z m² i z mb to DWIE
-różne prace, nie wolno ich scalić), ostrożne grupowanie wariantów nazw, wybór ceny
-z najnowszego arkusza.
+### As built — deviations (2026-09-01)
 
-Do przerobienia (istnieje): czytanie arkuszy i rozpoznawanie kolumn, klucz tożsamości pracy
-po znormalizowanej nazwie (dziś zawężony do sekcji + numeru wystąpienia — katalog musi zdjąć
-oba zawężenia), parser cennika „zakres pracy z/bez narzędzi" wraz z rozstrzyganiem
-sprzeczności między dwiema zakładkami. Nowa oś sprzeczności, której dziś nie ma: ten sam
-spór MIĘDZY arkuszami.
+1. **The marker is a SUFFIX, not a prefix** (owner, mid-change). The listing sorts by name, so a
+   suffix puts the sheet work next to its template twin — exactly the comparison review makes; a
+   prefix would dump every added item into one block under „[".
+2. **Description typos fixed** by `cleanDescription`. The ban covered units (a typo dictionary there
+   is a blind decision), not descriptions; verified empirically that on 946 rows it changed no key.
 
-Napięcie do pilnowania (roadmap.md:420): ta sama praca kosztuje różnie w różnych
-inwestycjach (inna ekipa → inna cena). Katalog tego nie łamie, bo cena jest kopiowana przy
-wstawieniu i nigdy żywa — ale raport ma mówić „różni się od cennika", nigdy „jest błędna".
-
-### Ustalenie: prod dostaje wynik, nie powtórkę akcji (2026-09-01)
-
-Prod nie ma jeszcze tabeli `work_catalogue_items` (katalog żyje na gałęziach, nie na `main`),
-więc akcja nie jest „zrób lokalnie, powtórz na produkcji". Cała praca dzieje się na lokalnej
-bazie, a produkcja dostaje jej **wynik jako dane**:
-
-1. lokalnie: wsad wzoru (`seed-work-catalogue.ts`, szablon 373 pozycje → 194 unikalne klucze)
-   - trzy przebiegi importu ze starych arkuszy,
-2. lokalnie: przegląd w aplikacji — kasowanie śmieci, poprawki cen, zdejmowanie dopisków.
-   To jest praca, której nie wolno powtarzać,
-3. produkcja: **eksport całego lokalnego `work_catalogue_items`** jako jednorazowy wsad, po
-   merge'u katalogu na `main` i migracji. Bez zasysania arkuszy, bez analizy, bez przeglądu.
-
-Skutki dla planu:
-
-- Skrypt importu pisze wyłącznie do lokalnej bazy — nie potrzebuje ścieżki „nazwij bazę jawnie
-  przy wywołaniu", którą ma `seed-work-catalogue.ts`, bo nigdy nie celuje w produkcję.
-- Dochodzi drobny krok: eksport katalogu do pliku + wsad tego pliku (insert-only po
-  `match_key`). Kształtem to `seed-work-catalogue.ts`, więc przeróbka, nie nowy kod.
-- Produkcja dostaje **wyłącznie** ten eksport — wzór też jedzie z lokalnego, przejrzanego
-  stanu. Żadnego osobnego uruchomienia `seed-work-catalogue.ts` na produkcji; inaczej wzór na
-  produkcji różniłby się od tego, co było oglądane na ekranie.
-- Warunek: między przeglądem a wsadem nikt nie zanieczyszcza lokalnego katalogu danymi
-  testowymi — to on jest źródłem.
-
-### Jak to wyszło — odstępstwa od ustaleń (2026-09-01)
-
-1. **Dopisek to SUFIKS, nie prefiks** (decyzja właściciela w trakcie). Listing sortuje po nazwie,
-   więc sufiks stawia pracę z arkusza obok jej bliźniaczki ze wzoru — a to jest dokładnie to
-   porównanie, które robi przegląd; prefiks zsypałby wszystkie dołożone pozycje w jeden blok pod
-   „[". Sam dopisek i zdejmowanie go mieszkają w `lib/kosztorys/work-catalogue/legacy-marker.ts`,
-   bo `match_key` liczy nie tylko skrypt, ale i formularz katalogu — patrz wpis w `lessons.md`.
-2. **Skrypty jednorazowe skasowane od razu po akcji**, nie „kiedyś": zassanie, analiza, raport
-   i wsad kandydatów (dziesięć plików). Zostały tylko eksport katalogu, wsad z pliku i sam JSON —
-   te mają pracę do wykonania jeszcze po tej zmianie, na produkcji (EX-763). Punkt 8 ustaleń
-   przewidywał kasację całości; ta trójka znika dopiero po wgraniu katalogu na produkcję.
-3. **Literówki w OPISACH poprawione** przez `cleanDescription`. Zakaz z ustaleń dotyczył j.m.
-   (gdzie słownik literówek to decyzja na ślepo), nie opisów; sprawdzone empirycznie, że
-   na 946 wierszach nie ruszyło to ani jednego klucza.
-
-Przegląd katalogu przez właściciela trwa (liczba pozycji spadła 946 → 940 w trakcie bramki);
-wgranie na produkcję opisuje EX-763 — robi to człowiek.
+> **Superseded (2026-09-22, `21199377`, migration `20260922_1_catalogue_legacy_marker_cleanup`):**
+> the „[stary arkusz]" marker and `legacy-marker.ts` are gone — the review was finished and the tag
+> machinery removed.

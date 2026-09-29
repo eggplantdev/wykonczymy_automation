@@ -1,6 +1,6 @@
 ---
 change_id: sheet-live-compare
-title: Porównanie z arkuszem na żywo zamiast raportu z importu
+title: Live comparison with the sheet instead of an import report
 status: archived
 created: 2026-08-13
 updated: 2026-08-14
@@ -11,89 +11,72 @@ worktree: null
 
 ## Notes
 
-Ta zmiana jest domknięciem EX-686 (kasuje akcję, którą tamta dodała), więc jej commity leżą na
-gałęzi `pomiar-bez-etapu` — jedna gałąź na obie. Osobna `sheet-live-compare` była pomyłką i została
-usunięta.
+Closes out EX-686 (it deletes the action that change added), so its commits sit on the
+`pomiar-bez-etapu` branch — one branch for both.
 
-akcja „Porównaj z arkuszem": czytanie arkusza na żywo, rachunek obu stron, wykrywanie podejrzanych
-formuł (Pomiar przepisany z Przedmiaru, Przedmiar liczony z etapu) i osobna akcja „zaciągnij pomiary
-z arkusza" odświeżająca liczby odniesienia bez pełnego importu
+The „Porównaj z arkuszem" (compare with sheet) action: reads the sheet live, computes both sides,
+flags suspicious formulas (Pomiar copied from Przedmiar, Przedmiar computed from a stage) and refreshes
+the stored reference numbers without a full import.
 
-Faza 6 zlała tę osobną akcję z porównaniem — odświeżenie dzieje się przy otwarciu okna, przycisku
-już nie ma.
+Origin (dogfooding investment 31, 2026-08-13): the sheet showed „wartość netto 508 196 zł", the app
+491 519,25 zł. The 16 677,70 zł gap sat in 26 items where the sheet's Pomiar z natury is the formula
+`=N` — a copied Przedmiar, not a measurement. The import deliberately doesn't take those, so the
+discrepancy column is structurally blind on them and zero discrepancies proves nothing. Full formula
+anomaly scan: `context/reference/kosztorys-sheet/formula-anomalies.md`.
 
-Skąd to wyszło (dogfooding inwestycji 31, 2026-08-13): arkusz pokazuje „wartość netto 508 196 zł",
-aplikacja 491 519,25 zł. Różnica 16 677,70 zł siedzi w 26 pozycjach, na których arkusz ma Pomiar
-z natury jako formułę `=N` — czyli przepisany Przedmiar, nie pomiar. Import celowo takich nie
-zaciąga (`sheet-import/parse-robocizna.ts`, `readMeasuredQty`), więc kolumna „Rozjazd" jest na nich
-strukturalnie ślepa i zero rozjazdów nie dowodzi zgodności.
+Rejected: storing the import report in the DB plus a button to open it. A pre-import snapshot goes
+stale along with the sheet anyway, so reading on demand is better.
 
-Pełny skan anomalii formuł tego arkusza: `context/reference/kosztorys-sheet/formula-anomalies.md`.
+Role split:
 
-Odrzucone po drodze: zapisywanie raportu z importu do bazy + przycisk do jego otwierania. Migawka
-sprzed importu i tak dezaktualizuje się razem z arkuszem, więc lepszy jest odczyt na żądanie.
+- the discrepancy column in the grid — a per-item worklist, runs off the stored number, works without
+  the sheet;
+- „Porównaj z arkuszem" — the wider two-sided calculation plus formula health, needs a live connection;
+- the stored reference number stops being an import-day snapshot and becomes a refreshable cache.
 
-Podział ról, który ma z tego wyjść:
+Knowingly accepted risk: without sheet access (revoked share, deleted tab, no network) the view doesn't
+work at all.
 
-- „Rozjazd" w siatce — lista robocza per pozycja, stoi na zapisanej liczbie, działa bez arkusza
-- „Porównaj z arkuszem" — szerszy rachunek obu stron + zdrowie formuł, wymaga żywego połączenia
-- zapisana liczba odniesienia przestaje być zdjęciem z dnia importu i staje się odświeżalnym cache'em
+## Owner ruling (2026-08-13): the „Etapy są prawdą" action goes
 
-Świadomie przyjęte ryzyko: bez dostępu do arkusza (cofnięte udostępnienie, usunięta zakładka, brak
-sieci) widok nie zadziała w ogóle.
+The row-menu action deleted the stored reference number to silence a discrepancy. Removed because it
+treated the symptom by deleting data instead of showing the mismatch, worked per row against a
+problem that is collective (26 items at once), and was the only reason refreshing would have to
+arbitrate anything.
 
-## Decyzja właściciela (2026-08-13): akcja „Etapy są prawdą" znika
+## Owner rulings (2026-08-14, after clicking through investment 31) — phase 6
 
-Akcja w menu wiersza kasowała zapisaną liczbę odniesienia, żeby wyciszyć rozjazd. Powody usunięcia:
-gasiła objaw kasując dane zamiast pokazać niezgodność, działała per wiersz przeciwko problemowi,
-który jest zbiorowy (26 pozycji naraz), i była jedynym powodem, dla którego odświeżanie pomiarów
-musiałoby cokolwiek rozstrzygać. Rozjazd zamyka się teraz poprawieniem arkusza albo wypełnieniem
-etapów — innego wyjścia nie ma.
+- **Refreshing is not a choice.** The stored number is a copy of the sheet's Pomiar; since the dialog
+  reads the sheet live anyway, "keep the old copy" is an answer nobody would pick. The button went;
+  refresh happens on open and the dialog reports what changed.
+- **The mass class gets a count, point classes get rows.** „Pomiar przepisany z Przedmiaru" (241 of
+  336) is collective and closes by fixing the sheet or filling stages. „Przedmiar liczony z etapu" (7)
+  and error values are fixed one cell at a time — those are listed.
+- **The row number is a link** straight to the cell in the sheet.
 
-## Decyzje właściciela (2026-08-14, po przeklikaniu inwestycji 31) — faza 6
+Why the list had been useless: one shared 25-sample bucket for all three classes, filled in row
+order — the mass class exhausted it before the first point-class row appeared, so the dialog just
+listed the top of the sheet with no label of what was wrong.
 
-- **Zaciąganie pomiarów nie jest wyborem.** Zapisana liczba odniesienia to kopia Pomiaru z arkusza;
-  skoro okno i tak czyta arkusz na żywo, „zostaw starą kopię" nie jest odpowiedzią, którą ktokolwiek
-  wybierze. Przycisk znika, zaciąganie dzieje się przy otwarciu, okno melduje co zmieniło.
-- **Klasa masowa dostaje liczbę, klasy punktowe dostają wiersze.** „Pomiar przepisany z Przedmiaru"
-  (241 z 336) jest zbiorowy i zamyka się poprawieniem arkusza albo wypełnieniem etapów. „Przedmiar
-  liczony z etapu" (7) i wartości błędu poprawia się po jednej komórce — te wypisujemy.
-- **Numer wiersza jest linkiem** prosto do komórki w arkuszu.
+## Phase 7 — recorded retroactively at the review gate (2026-08-14)
 
-Powód, dla którego lista była bezużyteczna: jeden wspólny 25-elementowy koszyk próbek dla wszystkich
-trzech klas, zapełniany w kolejności wierszy — klasa masowa wyczerpywała go, zanim padł pierwszy
-wiersz klasy punktowej. Efekt: okno wypisywało po prostu górę arkusza, bez podpisu co komu dolega.
+- **„Rozjazd" → „Pozostało do rozliczenia"** (`0bdea8c9`): same subtraction, but the number is a
+  balance line, not a defect — the only way to zero it is to enter stage quantities, i.e. declare the
+  work done.
 
-## Faza 7 — dopisana wstecz przy bramce review (2026-08-14)
+  > **Superseded (2026-08-18):** the column is now „Rozjazd między arkuszem Google a apką" and shows
+  > only with the „z pomiarem do rozpisania na etapy" filter, not on every imported kosztorys
+  > (`src/lib/kosztorys/column-config.ts`, domain notes § „Kolumna nazywa się").
 
-Pięć commitów weszło już po domknięciu planu na fazie 6. Nie były to poprawki fazy 6, tylko druga
-tura decyzji — spisane tutaj, bo dwie z nich są rozstrzygnięciami domenowymi, a nie zmianami kodu.
+- **Comparison dialog rewrite** (`0345d520`) — full, untrimmed per-item diff lists. A deliberate
+  reversal of phase 3's cap: the list's sum **is** the table figure, so trimming it would lie about the
+  sum. The cap stays on formula samples, where the count sits beside them anyway.
+- **Subcontractor rates in both dialogs** (`405cdc7a`, `488a3bc9`). The plan assumed the comparison
+  never calls the price list; now it does. The property behind that survives: a missing price list
+  doesn't break the comparison (`readRateTabs` returns an empty list instead of throwing; `ok: false`
+  still comes only from `resolveRobocizna`), pinned by a spec.
 
-- **„Rozjazd" → „Pozostało do rozliczenia"** (`0bdea8c9`). Odejmowanie zostaje to samo; zmienia się
-  to, czym ta liczba **jest**. „Rozjazd" nazywał usterką coś, co jest zwykłą linią bilansową:
-  jedyny sposób na wyzerowanie tej kolumny to wpisać ilości w etapy, czyli zadeklarować pracę jako
-  wykonaną. Dlatego kolumna pokazuje się teraz przy każdym zaimportowanym kosztorysie, a nie tylko
-  tam, gdzie coś się rozjeżdża. Trafiło do `kosztorys-editor-domain-notes.md`.
-- **„Wartość netto" w podsumowaniu arkusza liczy się z Pomiaru, nie z Przedmiaru** (`d8c2fdbc`).
-  Zestawialiśmy ją z wartością przedmiaru — czyli z liczbą, której arkusz nigdzie nie sumuje. To była
-  usterka fazy 2. U części klientów ten sam wiersz sumuje jednak ofertę, więc porównanie najpierw
-  sprawdza, którą z naszych sum wiersz faktycznie trafia. Też w notatkach domenowych.
-- **Przepisanie okna porównania** (`0345d520`) — inny model kwot (wykonanie plus „pozostało" po obu
-  stronach) i pełne, nieprzycięte listy różnic per praca. Świadome cofnięcie limitu z fazy 3: suma
-  tej listy **jest** liczbą z tabeli, więc skrócenie listy byłoby kłamstwem o sumie. Limit został
-  natomiast na próbkach formuł, gdzie liczba i tak stoi obok.
-- **Stawki podwykonawców w obu oknach** (`405cdc7a`, `488a3bc9`). Plan zakładał, że porównanie nie
-  woła cennika w ogóle — teraz woła. Właściwość, która za tym stała, żyje: brak cennika nie wywraca
-  porównania (`readRateTabs` oddaje pustą listę zamiast rzucić, `ok: false` nadal wychodzi wyłącznie
-  z `resolveRobocizna`), i jest przypięta specem.
+## Deferred
 
-Pożyczony zakres, spoza tej zmiany — odnotowany, żeby równoległa sesja się nie zdziwiła:
-`fe6ccc8c` (przycinanie etykiety w pasku sekcji, usterka CSS bez związku z arkuszem) oraz
-`ff3dc0e6` (`unresolvedOptional` w miejsce listy rozpoznanych kolumn), który wchodzi w
-`columns.ts` / `resolve-columns.ts` — terytorium `context/changes/2026-08-14-sheet-column-mapping/`.
-
-## Odroczone
-
-E2E dla obu akcji: **EX-687** (`e2e-backlog`) — najpierw trzeba mieć podstawiony klient Sheets,
-inaczej spec przeglądarkowy nie ma czego asertować. Ten sam brak dotyczy EX-686 i jest odnotowany
-w tym samym zgłoszeniu, żeby nie tworzyć drugiego za tą samą zaporą.
+E2E for both actions: **EX-687** (`e2e-backlog`) — needs a stubbed Sheets client first, otherwise a
+browser spec has nothing to assert. EX-686 has the same gap, noted on the same issue.

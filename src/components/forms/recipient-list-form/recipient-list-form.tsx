@@ -60,6 +60,9 @@ export function RecipientListForm({
             <div className="space-y-3">
               {emailsField.state.value.map((row, index) => (
                 <div key={row.id} className="flex items-end gap-2">
+                  {/* type="email" fires native validation before Zod, so the app's own message
+                      rarely shows — accepted: the save is blocked either way, and `text` would lose
+                      the mobile e-mail keyboard and autofill. */}
                   <form.AppField name={`emails[${index}].email`}>
                     {(field) => (
                       <field.Input

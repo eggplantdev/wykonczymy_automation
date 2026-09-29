@@ -47,6 +47,10 @@ working, fix it here as part of the pass.
   `fetch('/api/users/login', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email, password})})`
   and assert `user.role === 'OWNER'`. Never write a throwaway reset script, never mint another OWNER.
   For two-role checks use the pair below.
+- **Investor share links point at production by default** (owner, 2026-09-15). `/k/<token>` is built
+  from `NEXT_PUBLIC_FRONTEND_URL`, deliberately not derived from the branch URL; the one exception is
+  a Preview value scoped to the `staging` branch. `NEXT_PUBLIC_*` is fixed at build time, so a change
+  needs a redeploy.
 - **Cron routes:** from the page, `fetch('/api/cron/<route>', {headers: {Authorization: 'Bearer <CRON_SECRET from .env>'}})`.
 - **Known noise, not a finding:** an `[OPTIONS] … => 400` on every page load is the `vercel.live`
   preview toolbar's preflight, not app code.
@@ -101,7 +105,7 @@ zapobiega po stronie lokalnej.
 ## Realia środowiska weryfikacyjnego
 
 Zdestylowane z `context/foundation/manual-checks.md` przy jego przycięciu 2026-09-15 (pełny rejestr:
-`context/archive/manual-checks/2026-09-15-pelny-rejestr.md`). To są rzeczy, na które kolejny
+`git show d426e567^:context/foundation/manual-checks.md`). To są rzeczy, na które kolejny
 weryfikator straci godzinę, jeśli ich nie przeczyta.
 
 ### Stałe blokady — czego na stagingu zweryfikować się NIE DA
@@ -149,3 +153,35 @@ jest sygnałem; liczy się dysk maszyny wirtualnej Docker Desktop.
 
 **Fikstury preview są zmienne.** Inwestycje 135/136/137 pojawiają się i znikają przy kolejnych
 reseedach — identyfikator z poprzedniego przebiegu weryfikacji nie jest stałą.
+
+**Undo coalescing defeats per-call edits.** Grid undo merges edits within `UNDO_COALESCE_MS` (700 ms),
+and each separate Playwright MCP call is slower (`browser_type` alone takes >1 s). To check that
+several edits undo in one step, make them inside one `browser_evaluate`.
+
+**The kosztorys „Filtry" menu is inverted too.** Every option starts ticked; unticking hides those
+rows (chip „Ukryto: …"), it never narrows to them. Only „Problemy" means show-only („Tylko: …").
+
+**Grid resize handles capture the pointer** (`setPointerCapture`). `browser_drag` never shows the
+intermediate state; send `pointerdown` → `pointermove`×N → `pointerup` to the `role="separator"`
+handle from `browser_evaluate`.
+
+**Forcing a failed save without going offline:** fail only POSTs carrying a `next-action` header —
+`page.route` + `abort()`, or, where the MCP has no `page.route`, a `window.fetch` patch returning 500
+for them. Page loads keep working; check the toast and the revert, then confirm with psql that
+nothing was written.
+
+**Blob deletion:** list the store (`list({ prefix })`). Re-fetching the file URL still answers `200`
+from the browser's HTTP cache right after the delete.
+
+**Nav badges clear themselves.** Loading a stream's own page (`/flota`, `/flota/[id]`, `/sprzet`,
+`/zgloszenia`) calls `markSeen`, so any UI path that creates the fixture also marks it read. Insert
+the row by SQL, check the badge from a page outside that stream, then delete the row.
+
+**Grid paste under headless Playwright.** The OS clipboard is blocked. For a selected, not-editing
+cell dispatch `new ClipboardEvent('paste', {clipboardData})` on `document` (dsg listens there and
+routes through `cellPaste`); for an open cell use `document.execCommand('insertText', …)`, since dsg
+skips its paste route while editing.
+
+**Scroll-during-edit is reproducible.** dsg re-scrolls only when the active cell changes, so
+`page.mouse.wheel()` over `.dsg-container` genuinely unmounts the row being edited. PageDown moves
+focus and ends the edit first.

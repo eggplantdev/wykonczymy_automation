@@ -270,6 +270,11 @@ liczone na żywo: wartość wiersza, sumy sekcji/całości, V, marża, brutto
 - **bez przycisku „Zapisz"** — feel arkusza + skala (1000+ wierszy: zapisujemy
   tylko zmienione pole, nie cały arkusz).
 
+**A settings save that throws reverts like `{success:false}`** (owner, 2026-09-15, EX-597): revert
+and toast, never keep-and-reload. Accepted tradeoff: if the connection drops after the request reached
+the server, the write may persist while the screen shows the reverted value — a narrower risk than
+two different failure behaviours.
+
 ## Druk / eksport (G) — CIĘTE (2026-08-15)
 
 > **Cała ta sekcja jest nieaktualna.** Eksport kosztorysu wycięty w całości:
@@ -359,6 +364,12 @@ stanem inwestycji, a nie preferencją.
 Ustawienia czytane są **obok** cache'owanego payloadu podglądu (jeden indeksowany odczyt), więc
 zapis działa od następnego żądania bez tagu cache, a zmiana domyślnych firmy nie unieważnia drzewa
 żadnej inwestycji.
+
+**„Pobierz faktury" on the investor link is intended** (owner, EX-569, 2026-07-25). Supplier invoices
+— names, prices, hence the margin — in the client's hands is the point of the feature, not an
+oversight. Caveat: Blob URLs are public, unguessable and permanent (`read: () => true` on media), so
+revoking the share token does not revoke an invoice URL already obtained; closing that means a proxy
+or signed URLs, a separate decision.
 
 ## Widok pracownika — link imienny i PDF, tylko odczyt (EX-875, 2026-09-28)
 
@@ -450,6 +461,9 @@ protokół jest dokumentem na papier, nie bytem w bazie.
     zostało do zrobienia" (EX-885, odwraca EX-686, gdzie nadwyżka pomniejszała sumę). Nie mylić z „Rozjazdem między arkuszem Google a apką" — tamten odejmuje sumę
     etapów od Pomiaru z natury z arkusza, a nie od Przedmiaru.
   - **„% wykonania"** = `Σ etapów / Przedmiar` (nie z sumy etapów — inaczej `Σ/Σ = 100%` wszędzie).
+    It stays next to the summary's „Postęp prac" on purpose (EX-703, owner re-confirmed 2026-08-17):
+    the summary is value-weighted over the whole kosztorys, the column is quantity-weighted per row,
+    so only the column says which position lags.
 
   Konsekwencja architektoniczna: wartość wykonania zależy od etapów, więc `calc.ts` (czysta
   warstwa cenowa, `ViewPricingT` nie widzi etapów) **nie może** jej policzyć. Warstwa
@@ -492,6 +506,8 @@ protokół jest dokumentem na papier, nie bytem w bazie.
   Z tego samego powodu nie ma jej w liście „Kolumny": widoczność należy do filtra, więc zapisany
   ptaszek nie może go zawetować. Komórka „Pomiar (razem etapy)" nie ma już podpowiedzi
   z rozbiciem arkusz/etapy — liczby czyta się w kolumnie, nie z dymka.
+  **No alarm styling** (owner, 2026-09-15): the column appears only under that filter and only on
+  rows that differ, so its presence is the signal — no red header or background.
 
   **„Wartość netto" w podsumowaniu arkusza liczy się z Pomiaru, nie z Przedmiaru.** Wcześniej
   zestawialiśmy ją z wartością przedmiaru — czyli z liczbą, której arkusz nigdzie nie sumuje.
@@ -761,7 +777,7 @@ zmiany oferty ważą najbardziej; `named` żyją tak samo, bo to je inwestor naj
 osobnej reguły: nocny job jej nie obejmuje, a `selectPurgeableInvestmentIds` kasuje tylko te
 z nieużywanym kosztorysem — użyta inwestycja zachowuje `daily`/`named` do przywrócenia z kosza.
 
-**Porównywanie wersji odwraca decyzję S-06 „bez diffowania"** (`context/archive/2026-07-10-kosztorys-snapshots/`),
+**Porównywanie wersji odwraca decyzję S-06 „bez diffowania"** (`2026-07-10-kosztorys-snapshots` (archive deleted 2026-09-29; git history)),
 ale tylko na potrzeby wyświetlenia — przywracanie działa jak przedtem. Pozycje dopasowuje się po id,
 a to, czego id nie sparowały (przywrócenie albo „wczytaj szablon" nadaje nowe), po nazwie sekcji +
 opisie + j.m. — per pozycja, więc przywrócenie z dopisanymi potem pozycjami też się paruje. Świadomie przyjęty skutek uboczny: usunięcie pozycji i dodanie takiej
@@ -1004,7 +1020,7 @@ się w ogóle: dokument klienta nie pokazuje, skąd firma bierze stawkę ekipy.
 Mnożnik wiersza wpisuje się **dziesiętnie (`0,55`), nie procentowo** — tak jak globalny mnożnik
 inwestycji o jeden pasek narzędzi obok. Ta sama decyzja w dwóch notacjach to wklejenie pomylone o 100×.
 
-**Trzecie źródło było wycięte przez rok i wróciło** (właściciel: cięcie 2026-09-01/EX-766,
+**Trzecie źródło było wycięte przez trzy tygodnie i wróciło** (właściciel: cięcie 2026-09-01/EX-766,
 przywrócenie 2026-09-23/EX-865). Wycięto je, bo nie używał go nikt — zero wierszy w jakiejkolwiek
 bazie — a kosztem był **wspólny slot na wartość**, w którym „200" znaczyło raz 200 zł, a raz ×200.
 Wróciło, bo braku nie da się obejść: zamrożona kwota odpada od ceny inwestora w chwili, w której ta
@@ -1188,6 +1204,16 @@ w złą stronę:
   przemyśleć od nowa.
 - **Podgląd inwestora nie ma problemów w ogóle** — ani grupy, ani trójkąta. Dokument klienta nie nosi
   księgowych wątpliwości firmy.
+- **A revealed column overrides only the column-picker checkbox** — never the amount axis, the layer
+  or the client view. While a problem is engaged, unticking its revealed column is a **dead click on
+  purpose**: the checkbox shows the stored state (ticked would lie about it; greyed out would need a
+  third state nobody asked for).
+- **The latch that keeps a row visible while you fix it bypasses conditions only, never search** — a
+  search is a question asked now. Deferring the refilter until blur was rejected: the row still
+  vanished the moment Tab moved to the next column.
+- **„Bez ceny j.m." does not switch the view** (owner): the price is typed on the investor side but
+  repaired in subcontractor-only columns, so there is no one right view. Same for „z pomiarem do
+  rozpisania" and both stage problems.
 
 **Pasek aktywnych filtrów — co go kształtuje (2026-08-18, EX-713/EX-714).** Pasek nazywa każde
 źródło, które właśnie skraca siatkę, i każde zdejmuje się jednym kliknięciem. Dwie decyzje warto
@@ -1213,6 +1239,11 @@ issue i nie powinno powstać.
 sortowanie „w całym kosztorysie" zdejmuje pasy (i razem z nimi zwinięcia — inaczej zwinięta sekcja
 nie miałaby czym się rozwinąć). Sortowanie „w sekcjach" zostawia wiersze na miejscu, więc pasy,
 sumy i zwinięcia zostają.
+
+**„Zapisz kolejność" saves the result (`display_order`), never the sort rule** (EX-688). A stored rule
+stays live and overrides positions, so a ▲/▼ move would vanish on reload — two sources of truth for
+one order. It lives in the column header, not the section menu, because one section can't be sorted
+in isolation.
 
 ## Wpłaty a tryb rozliczenia (czwarty przebieg, 2026-08-23)
 
@@ -1336,7 +1367,7 @@ this section is the original phrasing/context for those questions.
   **wszystkich trzech** wariantów ceny (klient + oba podwykonawcy), po stawce
   inwestycji. Uzasadnienie właściciela: „czytam brutto podwykonawcy".
   Rozstrzyga sprzeczność w zapisach slice'u S-05: `plan-brief.md:33`
-  (`context/archive/2026-07-10-kosztorys-vat/`) nazywał brutto „figurą decyzji
+  (`2026-07-10-kosztorys-vat` (archive deleted 2026-09-29; git history)) nazywał brutto „figurą decyzji
   klienta" (sugerując tylko widok klienta), a wdrożony `plan.md:232` tego samego
   slice'u mówi „Brutto consistent across all three price views" — **wygrywa
   zachowanie wdrożone**, które jest zgodne z odpowiedzią właściciela.
@@ -1438,8 +1469,8 @@ this section is the original phrasing/context for those questions.
 
 ## Fakty domenowe z weryfikacji manualnej (destylat 2026-09-15)
 
-Wyciągnięte z `context/foundation/manual-checks.md` przy jego przycięciu; pełny rejestr leży w
-`context/archive/manual-checks/2026-09-15-pelny-rejestr.md`.
+Wyciągnięte z `context/foundation/manual-checks.md` przy jego przycięciu; pełny rejestr:
+`git show d426e567^:context/foundation/manual-checks.md`.
 
 **Etap bez planu (`plane = NULL`) jest nie do utworzenia z UI — i tak ma być.** Rozstrzygnięcie
 właściciela (2026-09-14): każdy etap zakładany w aplikacji dostaje `w_tools` albo `own_tools`.
