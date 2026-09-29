@@ -144,6 +144,27 @@ and a crew paid ahead as a loss.
 Guarded by `investment-render-parity-db.test.ts` (listing's `marża v2` vs the same figure computed
 from the tree) and by the SQL↔TS parity of the listing fold in `kosztorys-subcontractor-due.test.ts`.
 
+### „Pozostało do wypłaty" on the listing
+
+The same należne feeds a second listing column: the kosztorys Podwykonawcy headline, `należne −
+wypłaty`, so the owner can scan where crews are still owed without opening each kosztorys. It
+withholds more readily than the panel does, on purpose:
+
+- **Unconfirmed plane → „ustaw etapy".** The panel prints the short należne beside a hint; a list
+  scanned for debt cannot, because a short należne understates what is owed — the dangerous
+  direction for this figure.
+- **No kosztorys → „brak danych", not `−wypłaty`.** Unlike marża v2, where no kosztorys is a real
+  zero, here it would paint every legacy investment as overpaid and sort them in among the real
+  overpayments. A kosztorys with items but no executed work does read `−wypłaty`: the crews were
+  genuinely paid ahead.
+- **Ungated.** Every management role sees it, although it lets a MANAGER derive Σ wypłat, which the
+  „Wypłaty" column hides from them — the owner's call (2026-09-29). The investment page's panel still
+  gates the figure behind `canSeeMargin`.
+
+The parity spec compares it with the panel's own `computeSubcontractorSummary`, after applying the
+listing's withholding rule to the panel side — otherwise every unconfirmed investment is a false
+mismatch.
+
 ---
 
 ## The four modifiers — how each bends the two formulas
