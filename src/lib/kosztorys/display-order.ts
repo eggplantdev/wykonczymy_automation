@@ -2,6 +2,7 @@ import 'server-only'
 import { z } from 'zod'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
+import { sqlList } from '@/lib/db/sql-list'
 
 // Sections and items each had their own copy of the insert-shift and the ▲▼ swap, and the copies
 // drifted on transaction policy alone (EX-578) — one scope-parameterised home is what stops that.
@@ -229,10 +230,7 @@ export async function renumberDisplayOrder(
   refs: DisplayOrderRefT[],
 ): Promise<void> {
   const { table } = ORDER_SCOPES[scope]
-  const ids = sql.join(
-    refs.map((r) => sql`${r.id}`),
-    sql.raw(', '),
-  )
+  const ids = sqlList(refs.map((r) => r.id))
   const values = sql.join(
     refs.map((r) => sql`(${r.id}::int, ${r.displayOrder}::int)`),
     sql.raw(', '),

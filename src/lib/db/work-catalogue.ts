@@ -1,6 +1,7 @@
 // No `server-only` here: the katalog seed script runs these helpers under tsx, where it throws
 // (same reason as kosztorys-descriptions.ts).
 import { sql } from '@payloadcms/db-vercel-postgres'
+import { sqlList } from '@/lib/db/sql-list'
 import type {
   CatalogueSeedItemT,
   CatalogueSourceItemT,
@@ -42,10 +43,7 @@ export async function listCatalogueItemsByIds(
   const result = await db.execute(sql`
     SELECT ${CATALOGUE_COLUMNS}
     FROM work_catalogue_items
-    WHERE id IN (${sql.join(
-      ids.map((id) => sql`${id}`),
-      sql.raw(', '),
-    )})
+    WHERE id IN (${sqlList(ids)})
   `)
   const byId = new Map(result.rows.map((row) => [Number(row.id), toCatalogueItem(row)]))
   return ids.flatMap((id) => {
@@ -76,10 +74,7 @@ export async function listCatalogueItemsByMatchKeys(
   const result = await db.execute(sql`
     SELECT ${CATALOGUE_COLUMNS}
     FROM work_catalogue_items
-    WHERE match_key IN (${sql.join(
-      matchKeys.map((key) => sql`${key}`),
-      sql.raw(', '),
-    )})
+    WHERE match_key IN (${sqlList(matchKeys)})
   `)
   return result.rows.map(toCatalogueItem)
 }

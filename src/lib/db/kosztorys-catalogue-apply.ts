@@ -1,6 +1,7 @@
 // No `server-only` here (half of src/lib/db skips it too), for the same reason as
 // kosztorys-item-texts.ts: these helpers have to stay importable from a tsx script.
 import { sql } from '@payloadcms/db-vercel-postgres'
+import { sqlList } from '@/lib/db/sql-list'
 import type { DbExecutorT } from '@/lib/db/get-db'
 
 // What the klucz is rebuilt from server-side. The wire carries ids and field names only, so the
@@ -36,10 +37,7 @@ export async function listItemsForCatalogueApply(
     SELECT id, description, unit
     FROM kosztorys_items
     WHERE investment_id = ${investmentId}
-      AND id IN (${sql.join(
-        ids.map((id) => sql`${id}`),
-        sql.raw(', '),
-      )})
+      AND id IN (${sqlList(ids)})
   `)
   return res.rows.map((row) => ({
     id: Number(row.id),

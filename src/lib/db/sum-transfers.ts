@@ -1,4 +1,5 @@
 import { sql } from '@payloadcms/db-vercel-postgres'
+import { sqlList } from '@/lib/db/sql-list'
 import type { Payload, PayloadRequest, Where } from 'payload'
 import { perfStart } from '@/lib/perf'
 import { deriveCategoryBreakdowns, deriveFinancials } from '@/lib/db/investment-financials'
@@ -14,10 +15,7 @@ import { SETTLEMENT_MODE_DEFAULT, type SettlementModeT } from '@/lib/kosztorys/s
 
 // Parameterized `(type, …)` IN-list derived from the single DEPOSIT_TYPES source, so the
 // deposit-vs-expense split isn't re-inlined as a literal in every balance query.
-const depositTypesInList = sql`(${sql.join(
-  DEPOSIT_TYPES.map((type) => sql`${type}`),
-  sql.raw(', '),
-)})`
+const depositTypesInList = sql`(${sqlList(DEPOSIT_TYPES)})`
 
 /**
  * SUM balance for a cash register using SQL aggregation.
