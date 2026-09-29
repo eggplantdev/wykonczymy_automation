@@ -1,7 +1,6 @@
 import { ReactNode } from 'react'
 import { FixedClientLoader } from './fixed-client-loader'
 import { ContentLoading } from './page-loading'
-import { Spinner } from './spinner'
 import { cn } from '@/lib/utils/cn'
 
 export type PropsT = {

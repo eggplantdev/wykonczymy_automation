@@ -1,32 +1,27 @@
 import { viewPrice } from '@/lib/kosztorys/calc'
 import { computedColumnValues } from '@/lib/kosztorys/column-values'
-import { formatQty } from '@/lib/kosztorys/format'
 import {
   DESCRIPTION_COLUMN,
   PLANNED_QTY_COLUMN,
   UNIT_COLUMN,
   computedMoneyColumn,
-  formattedValue,
+  computedQtyColumn,
   moneyColumn,
-  qtyColumn,
   stageNetColumns,
   stageQtyColumns,
   type PrintColumnT,
 } from '@/lib/kosztorys/print/columns'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import { STAGE_VALUE_NET_COLUMN_GROUP, STAGES_COLUMN_GROUP } from '@/lib/kosztorys/stage-keys'
-import {
-  workerColumnLabel,
-  workerDocumentColumns,
-  workerVisibleColumns,
-} from '@/lib/kosztorys/worker-view/settings'
+import { workerColumnLabel } from '@/lib/kosztorys/worker-view/columns'
+import { workerDocumentColumns, workerVisibleColumns } from '@/lib/kosztorys/worker-view/settings'
 import type { KosztorysStageT, ToolPlaneT } from '@/lib/kosztorys/types'
 import { formatPLN } from '@/lib/utils/format-currency'
 import type { ColumnRanksT } from '@/lib/table/column-order'
 
 export type WorkerPrintColumnsArgsT = {
   plane: ToolPlaneT
-  // His etapy only — the projection's `tree.stages`.
+  // Only the worker's own etapy — the projection's `tree.stages`.
   stages: KosztorysStageT[]
   hiddenColumns: readonly string[]
   columnRanks: ColumnRanksT
@@ -34,7 +29,7 @@ export type WorkerPrintColumnsArgsT = {
 }
 
 /**
- * The worker's printed columns: `workerDocumentColumns`, the list his podgląd renders from, capped by
+ * The worker's printed columns: `workerDocumentColumns`, the list their podgląd renders from, capped by
  * `workerVisibleColumns` — so the paper can neither carry a column the settings bar from the screen
  * nor print one in another place. Priced in grosze, unlike the offer: a stawka of 7,50 zł rounded to
  * „8 zł" is a different rate, not a tidier one.
@@ -63,11 +58,7 @@ export function workerPrintColumns({
     plannedNetForPlane: [money('plannedNetForPlane', 'Wartość przedmiaru')],
     [STAGES_COLUMN_GROUP]: stageQtyColumns(stages),
     stageQtySum: [
-      qtyColumn(
-        'stageQtySum',
-        workerColumnLabel('stageQtySum') ?? '',
-        formattedValue(valueOf('stageQtySum'), formatQty),
-      ),
+      computedQtyColumn(valueOf)('stageQtySum', workerColumnLabel('stageQtySum') ?? ''),
     ],
     [STAGE_VALUE_NET_COLUMN_GROUP]: stageNetColumns(stages, valueOf, formatPLN),
     net: [money('net', workerColumnLabel('net') ?? '')],

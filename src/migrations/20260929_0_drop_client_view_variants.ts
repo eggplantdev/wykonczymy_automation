@@ -4,7 +4,7 @@ import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-ve
 // EX-886, the deferred half of 20260928_2: that migration brought back the flat
 // `hidden_columns` / `hide_empty_rows` pair, backfilled it from `mode` + `variants`, and left the
 // variant pair standing because the unauthenticated `/k/:token` route read it under the old code.
-// DEPLOY ORDER IS THE REVERSE OF AGENTS.md's DEFAULT: the code that no longer names `mode` /
+// DEPLOY ORDER (destructive — AGENTS.md › Migrations): the code that no longer names `mode` /
 // `variants` ships first, this migration second — and never before 20260928_2 on the same target,
 // whose backfill reads both columns.
 // `down()` restores the shape only; the variant sets themselves are not recoverable.

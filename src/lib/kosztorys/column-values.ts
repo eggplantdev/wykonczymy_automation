@@ -18,7 +18,7 @@ import {
 } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
-export type ColumnValueCtxT = {
+type ColumnValueCtxT = {
   stages: KosztorysStageT[]
   view: PriceViewT
   // The worker surface's all-etapy quantity — only with it does `remainingForPlane` resolve.

@@ -1,8 +1,6 @@
 import type { ColumnGroupT } from '@/lib/kosztorys/column-config'
 import { STAGES_COLUMN_GROUP, STAGE_VALUE_NET_COLUMN_GROUP } from '@/lib/kosztorys/stage-keys'
 
-// What a client may see on the share view — an ALLOWLIST, keyed by toggleKey like the maps in
-// `column-config.ts`.
 // Allowlist, not a denylist: a column added later is invisible to clients until someone puts it here,
 // so the disclosure decision is forced at definition time rather than discovered as a leak.
 //

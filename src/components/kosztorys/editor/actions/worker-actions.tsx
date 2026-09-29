@@ -17,7 +17,6 @@ import type { WorkerViewSettingsT } from '@/lib/kosztorys/worker-view/settings'
 import { toastMessage } from '@/lib/utils/toast'
 import { workerPreviewSegment } from '@/lib/kosztorys/worker-view/name-slug'
 
-// `blockReason` set: the scope cannot be priced, so the dialog only lets a live link be switched off.
 export type WorkerShareTargetT = { id: number; name: string; blockReason?: string }
 
 export type WorkerActionsT = {
@@ -78,7 +77,9 @@ export function useWorkerActions(): WorkerActionsT {
         if (isCurrent()) setShareToken(token)
       })
       .catch(() => {
-        if (isCurrent()) toastMessage('Nie udało się sprawdzić linku', 'error')
+        if (!isCurrent()) return
+        toastMessage('Nie udało się sprawdzić linku', 'error')
+        setShareOpen(false)
       })
       .finally(() => {
         if (isCurrent()) setShareLoaded(true)
@@ -97,7 +98,13 @@ export function useWorkerActions(): WorkerActionsT {
   }
 
   function dropLinkHolder(workerId: number) {
-    setLinkHolders((holders) => new Set([...holders].filter((id) => id !== workerId)))
+    // A read already in flight answers from before the revoke and would put the worker back.
+    holdersRequest.start()
+    setLinkHolders((holders) => {
+      const next = new Set(holders)
+      next.delete(workerId)
+      return next
+    })
   }
 
   return {

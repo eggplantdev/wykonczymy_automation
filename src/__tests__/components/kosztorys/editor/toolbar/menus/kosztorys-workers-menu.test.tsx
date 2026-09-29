@@ -8,8 +8,7 @@ import { KosztorysWorkerViewDialog } from '@/components/kosztorys/editor/dialogs
 import { CurrentUserProvider } from '@/hooks/use-current-user'
 import type { RoleT } from '@/lib/auth/roles'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
-import { WORKER_DOCUMENT_COLUMNS } from '@/lib/kosztorys/worker-view/columns'
-import { workerColumnLabel } from '@/lib/kosztorys/worker-view/settings'
+import { WORKER_DOCUMENT_COLUMNS, workerColumnLabel } from '@/lib/kosztorys/worker-view/columns'
 
 const INVESTMENT_ID = 12
 
@@ -154,6 +153,45 @@ describe('KosztorysWorkersMenu', () => {
     })
   })
 
+  // A holder read started before the revoke carries the server's pre-revoke answer.
+  it('keeps a revoked blocked worker’s link disabled when an older holder read lands late', async () => {
+    let resolveStale: (ids: number[]) => void = () => {}
+    readWorkerShareHolders
+      .mockResolvedValueOnce([20])
+      .mockReturnValueOnce(new Promise<number[]>((resolve) => (resolveStale = resolve)))
+      .mockReturnValue(new Promise<number[]>(() => {}))
+    readWorkerShareToken.mockResolvedValue('tok-bogdan')
+    renderMenu()
+    await openMenu()
+    await waitFor(() => expect(linkItems()[1]).not.toHaveAttribute('aria-disabled'))
+    await userEvent.keyboard('{Escape}')
+    await openMenu()
+    await userEvent.click(linkItems()[1])
+
+    const dialog = await screen.findByRole('dialog', { name: /Bogdan Kowal/ })
+    await userEvent.click(await within(dialog).findByRole('button', { name: 'Wyłącz link' }))
+    const confirm = await screen.findByRole('alertdialog')
+    await userEvent.click(within(confirm).getByRole('button', { name: 'Wyłącz link' }))
+    await within(dialog).findByText('Link nie jest wydany.')
+    resolveStale([20])
+    await userEvent.keyboard('{Escape}')
+    await openMenu()
+
+    expect(linkItems()[1]).toHaveAttribute('aria-disabled', 'true')
+  })
+
+  // Showing „nie jest wydany" — or offering „Wygeneruj link", which rotates a live one — on a read
+  // that failed would state something nobody checked.
+  it('closes the link dialog when the token cannot be read', async () => {
+    readWorkerShareToken.mockRejectedValue(new Error('offline'))
+    renderMenu()
+    await openMenu()
+    await userEvent.click(linkItems()[0])
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(screen.queryByRole('button', { name: /Wygeneruj/ })).not.toBeInTheDocument()
+  })
+
   it('keeps listing a worker unpinned from every etap while they hold a link', async () => {
     readWorkerShareHolders.mockResolvedValue([30])
     renderMenu()
@@ -162,10 +200,11 @@ describe('KosztorysWorkersMenu', () => {
     const menu = screen.getByRole('menu')
     expect(await within(menu).findByText('Celina Wiśniewska')).toBeInTheDocument()
     expect(within(menu).getByText('Brak przypisanych etapów')).toBeInTheDocument()
-    const [, , celina] = linkItems()
+    const [, bogdan, celina] = linkItems()
     const [, , celinaPrint] = printItems()
     expect(celina).not.toHaveAttribute('aria-disabled')
     expect(celinaPrint).toHaveAttribute('aria-disabled', 'true')
+    expect(bogdan).toHaveAttribute('aria-disabled', 'true')
   })
 
   // The link is handed out per investment, as the investor's is — so a manager may do it.

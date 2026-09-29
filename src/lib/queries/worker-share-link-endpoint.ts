@@ -15,8 +15,6 @@ export async function readWorkerShareToken(key: WorkerShareKeyT): Promise<string
   return (await findShare(payload, workerShare(key)))?.token ?? null
 }
 
-// The „Pracownicy" menu lists these even when blocked or without etapy — a live token outlives
-// the block, so revoking it has to stay reachable.
 export async function readWorkerShareHolders(investmentId: number): Promise<number[]> {
   const session = await requireAuth(MANAGEMENT_ROLES)
   if (!session.success) throw new Error(session.error)

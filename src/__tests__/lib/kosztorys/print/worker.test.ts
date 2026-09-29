@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { buildWorkerPrintHtml } from '@/lib/kosztorys/print/worker'
+import { workerPrintColumns } from '@/lib/kosztorys/print/worker-columns'
+import { WORKER_DOCUMENT_COLUMNS } from '@/lib/kosztorys/worker-view/columns'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import { computeWorkerSummary } from '@/lib/kosztorys/worker-view/summary'
 import type { WorkerViewSettingsT } from '@/lib/kosztorys/worker-view/settings'
@@ -13,7 +15,7 @@ const CLIENT_PRICES = [37, 23]
 const OWN_RATE = 9.75
 const RATE = 12.5
 
-// The projection as the server hands it over: his two etapy only. Another crew's etap on item 1
+// The projection as the server hands it over: the worker's two etapy only. Another crew's etap on item 1
 // (qty 3) survives solely in `executedQtyByItem`, which is what „Pozostało" reads.
 const stages: KosztorysStageT[] = [
   { id: 100, ordinal: 1, label: 'Tynki', plane: 'w_tools', workerId: WORKER },
@@ -86,7 +88,7 @@ describe('buildWorkerPrintHtml', () => {
     expect(out).toContain('<title>Mieszkanie na Kazimierzu — Anna Nowak</title>')
   })
 
-  it('prints his stawka and never the client price or the other rozliczenie’s rate', () => {
+  it('prints the worker’s stawka and never the client price or the other rozliczenie’s rate', () => {
     const out = html()
 
     expect(out).toContain(formatPLN(RATE))
@@ -147,8 +149,8 @@ describe('buildWorkerPrintHtml', () => {
     expect(out).not.toContain('Pozostało do wypłaty')
   })
 
-  it('reads „Pozostało” off every crew’s work, not only his', () => {
-    // Item 1: 5 planned, 5 done across the investment (2 by him) — nothing owed on it.
+  it('reads „Pozostało” off every crew’s work, not only the worker’s', () => {
+    // Item 1: 5 planned, 5 done across the investment (2 by this worker) — nothing owed on it.
     const out = html(projection({ hiddenColumns: ['description', 'plannedQty', 'unit'] }))
     const firstRow = out.slice(out.indexOf('<tr><td'), out.indexOf('</tr>', out.indexOf('<tr><td')))
 
@@ -161,4 +163,16 @@ describe('buildWorkerPrintHtml', () => {
     expect(out).not.toContain('Stawka j.m.')
     expect(out).toContain('Wartość przedmiaru')
   })
+})
+
+// A key without a print mapping would vanish from the worker's paper silently — on their link, missing from the PDF.
+it.each(WORKER_DOCUMENT_COLUMNS)('„%s" ma kolumnę na wydruku pracownika', (key) => {
+  const columns = workerPrintColumns({
+    plane: 'w_tools',
+    stages,
+    hiddenColumns: WORKER_DOCUMENT_COLUMNS.filter((other) => other !== key),
+    columnRanks: {},
+    executedQtyByItem: {},
+  })
+  expect(columns.length).toBeGreaterThan(0)
 })

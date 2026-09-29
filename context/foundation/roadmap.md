@@ -45,7 +45,7 @@ top_blocker: none
 >   `Wartość przedmiaru netto/brutto`** (`rowPlannedNetForView`), rabat applied, so it differs from
 >   `Netto` by qty alone. New work, not parity — there was no sheet behaviour to copy.
 > - **The app's stage math is 1:1 with the sheet.** `T = O*Q-(Q*R)*O`, `V = D*$Q-(D*$Q*$R)`,
->   `AF = T-V-W-…-AE` — matching `stageValueForView` / `rowRemainingForView` exactly. `AF`
+>   `AF = T-V-W-…-AE` — matching `stageValueForView` / `rowRemainingForExecutedQty` exactly. `AF`
 >   ("pozostało do rozliczenia") is progress control, not a billing figure — confirms P9.
 > - **Section total** = `T4 = SUM(T5:T21)` on the section header row; `U4 = T4` mirrors it so the
 >   `Podsumowanie` tab's `SUMIF` can find it.

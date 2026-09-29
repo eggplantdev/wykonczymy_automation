@@ -1,7 +1,7 @@
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { resolveWorkerScope, type WorkerScopeT } from '@/lib/kosztorys/worker-view/scope'
 
-export type AssignedWorkerT = { id: number; name: string; scope: WorkerScopeT; hasLink: boolean }
+export type AssignedWorkerT = { id: number; name: string; scope: WorkerScopeT }
 
 /**
  * The „Pracownicy" menu's rows: every worker who holds an etap, once, in etap order, then everyone
@@ -24,12 +24,7 @@ export function assignedWorkers(
     seen.add(workerId)
     const name = names.get(workerId)
     if (name === undefined) continue
-    assigned.push({
-      id: workerId,
-      name,
-      scope: resolveWorkerScope(stages, workerId),
-      hasLink: linkHolders.has(workerId),
-    })
+    assigned.push({ id: workerId, name, scope: resolveWorkerScope(stages, workerId) })
   }
   return assigned
 }

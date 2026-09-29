@@ -1,9 +1,8 @@
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import { PLANE_LABELS } from '@/lib/kosztorys/labels'
 import { planeDashSuffix } from '@/lib/kosztorys/format'
-import { ALL_PLANE_PRICE_KEYS, planePriceKeyParts } from '@/lib/kosztorys/plane-price-keys'
+import { planePriceKeyParts } from '@/lib/kosztorys/plane-price-keys'
 import {
-  STAGES_COLUMN_GROUP,
   STAGE_VALUE_GROSS_COLUMN_GROUP,
   STAGE_VALUE_NET_COLUMN_GROUP,
 } from '@/lib/kosztorys/stage-keys'
@@ -177,10 +176,6 @@ const DISCOUNT_COLUMN_IDS: ReadonlySet<string> = new Set([
 export const bypassedByGlobalDiscount = (key: string, globalDiscountActive = false) =>
   globalDiscountActive && DISCOUNT_COLUMN_IDS.has(key)
 
-// One audience's column ticks, as the settings dialog groups them. Each audience owns its own list
-// (`client-view/columns.ts`, `worker-view/columns.ts`) and flattens it into that audience's
-// allowlist, so a column cannot be offerable-but-barred (or visible-but-unhideable) — per audience
-// there is only one list.
 export type ColumnGroupT = {
   label: string
   keys: readonly string[]

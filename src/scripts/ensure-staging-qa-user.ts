@@ -43,7 +43,8 @@ export async function ensureStagingQaUser(): Promise<void> {
     await payload.update({
       collection: 'users',
       id: existing.docs[0].id,
-      data: { password: STAGING_QA_PASSWORD, role: 'OWNER' },
+      // Five failed logins lock the account, and a new password alone does not lift that.
+      data: { password: STAGING_QA_PASSWORD, role: 'OWNER', loginAttempts: 0, lockUntil: null },
       // The Users afterChange hook calls revalidateTag, which throws outside a request
       // context (Local API script). skipRevalidation bypasses it.
       context: { skipRevalidation: true },
@@ -65,7 +66,6 @@ export async function ensureStagingQaUser(): Promise<void> {
   console.log(`[ensure-staging-qa-user] created OWNER id ${created.id}: ${STAGING_QA_EMAIL}`)
 }
 
-// Only run the CLI flow when executed directly, so importing elsewhere stays side-effect free.
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   ensureStagingQaUser()
     .then(() => process.exit(0))

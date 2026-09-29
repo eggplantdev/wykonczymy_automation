@@ -59,7 +59,7 @@ import {
   resolveHeaderRowHeight,
   resolveRowHeight,
 } from '@/lib/kosztorys/row-height'
-import { RowHeightFitProvider } from '@/components/kosztorys/editor/actions/row-height-fit-context'
+import { RowHeightFitProvider } from '@/components/kosztorys/editor/grid/row-height-fit-context'
 import { measureTextWidth } from '@/lib/utils/text-measure'
 import { sectionColorRail } from '@/lib/kosztorys/section-colors'
 import { orderCommandsEnabled, sectionBandsVisible } from '@/lib/kosztorys/order-commands'

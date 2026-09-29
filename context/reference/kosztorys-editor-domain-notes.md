@@ -104,7 +104,7 @@ AF = T - V - W - X - Y - Z - AA…AE     bilans         = wartość − Σ etap�
 ```
 
 Appka jest z tym 1:1 w `V` (`stageValueForView`). **Nie** w `AF`: skoro `O` = Σ etapów, arkuszowe
-`AF` = `T − Σ(V:AE)` jest tożsamościowo zerem, więc „Pozostało" (`rowRemainingForView`) celowo
+`AF` = `T − Σ(V:AE)` jest tożsamościowo zerem, więc „Pozostało" (`rowRemainingForExecutedQty`) celowo
 kotwiczy do `S` (oferty), nie do `T` — patrz „Oferta i wykonanie" niżej. Potwierdza P9.
 
 ### BRAK sumy per etap — zweryfikowane
@@ -450,7 +450,7 @@ protokół jest dokumentem na papier, nie bytem w bazie.
 
   Konsekwencja architektoniczna: wartość wykonania zależy od etapów, więc `calc.ts` (czysta
   warstwa cenowa, `ViewPricingT` nie widzi etapów) **nie może** jej policzyć. Warstwa
-  rozliczeniowa — `rowValueForView`, `rowRemainingForView`, `sectionSubtotalsForView` — mieszka
+  rozliczeniowa — `rowValueForView`, `rowRemainingForExecutedQty`, `sectionSubtotalsForView` — mieszka
   w `v2-rows.ts`, które etapy zna. `rowPlannedNetForView` (oferta = z Przedmiaru) zostaje w
   `calc.ts`, bo jej ilością jest Przedmiar, a nie etapy.
 

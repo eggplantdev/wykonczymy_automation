@@ -1,4 +1,4 @@
-import type { ColumnGroupT } from '@/lib/kosztorys/column-config'
+import { COLUMN_LABELS, type ColumnGroupT } from '@/lib/kosztorys/column-config'
 import { STAGES_COLUMN_GROUP, STAGE_VALUE_NET_COLUMN_GROUP } from '@/lib/kosztorys/stage-keys'
 
 // The worker view's stawka, as a LOGICAL key: the column it stands for is `price__<plane>`, and which
@@ -27,7 +27,7 @@ export const WORKER_VIEW_GROUPS: readonly ColumnGroupT[] = [
   },
 ]
 
-// The worker's document — his link, the owner's Podgląd and his PDF — in reading order. Same reasons
+// The worker's document — their link, the owner's Podgląd and their PDF — in reading order. Same reasons
 // and same contract as CLIENT_DOCUMENT_COLUMNS, over the keys of WORKER_VIEW_GROUPS.
 export const WORKER_DOCUMENT_COLUMNS: readonly string[] = [
   'description',
@@ -41,3 +41,14 @@ export const WORKER_DOCUMENT_COLUMNS: readonly string[] = [
   'net',
   'remainingForPlane',
 ]
+
+// Plane-agnostic names for the dialog: one tick answers for both rozliczenia, so it cannot quote the
+// grid's per-plane header.
+const WORKER_LABEL_OVERRIDES: Record<string, string> = {
+  [WORKER_RATE_KEY]: 'Stawka j.m. netto',
+  net: 'Wartość wykonana netto',
+}
+
+export function workerColumnLabel(key: string): string | undefined {
+  return WORKER_LABEL_OVERRIDES[key] ?? COLUMN_LABELS[key]
+}

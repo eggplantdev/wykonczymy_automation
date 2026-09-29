@@ -3,7 +3,7 @@ import type { PrintColumnT } from '@/lib/kosztorys/print/columns'
 import { PRINT_STYLES } from '@/lib/kosztorys/print/styles'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
-export type KosztorysPrintArgsT = {
+type KosztorysPrintArgsT = {
   // Already the rows to print — which pozycje an audience sees is its own rule, decided by the caller.
   rows: KosztorysV2RowT[]
   // Already capped by the audience's ceiling: this builder renders what it is handed and knows no

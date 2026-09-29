@@ -81,6 +81,11 @@ export const qtyColumn = (
   cell,
 })
 
+export const computedQtyColumn =
+  (valueOf: ColumnValuesT) =>
+  (key: string, label: string): PrintColumnT =>
+    qtyColumn(key, label, formattedValue(valueOf(key), formatQty))
+
 const perStage = (
   stages: KosztorysStageT[],
   column: (stage: KosztorysStageT, qtyKey: StageKeyT) => PrintColumnT,

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { buildOfferPrintHtml, type OfferPrintArgsT } from '@/lib/kosztorys/print/offer'
-import { printableKeys } from '@/lib/kosztorys/print/offer-columns'
+import { offerPrintColumns, printableKeys } from '@/lib/kosztorys/print/offer-columns'
 import { columnLabelForView } from '@/lib/kosztorys/column-config'
 import {
   CLIENT_DOCUMENT_COLUMNS,
@@ -333,6 +333,13 @@ describe('sufit ujawniania', () => {
   it('kolumna z sufitu przechodzi, dopóki właściciel jej nie ukryje', () => {
     expect(printableKeys(['price'], [])).toEqual(['price'])
     expect(printableKeys(['price'], ['price'])).toEqual([])
+  })
+
+  // A key without a print mapping would vanish from the paper silently — shown on the screen, missing
+  // from the PDF.
+  it.each(printableKeys(CLIENT_DOCUMENT_COLUMNS, []))('„%s" ma kolumnę na wydruku', (key) => {
+    const others = CLIENT_DOCUMENT_COLUMNS.filter((other) => other !== key)
+    expect(offerPrintColumns(CTX.stages, others, {}).length).toBeGreaterThan(0)
   })
 })
 

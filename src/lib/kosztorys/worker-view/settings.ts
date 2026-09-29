@@ -1,11 +1,13 @@
-import { COLUMN_LABELS } from '@/lib/kosztorys/column-config'
-import { DOCUMENT_PINNED_COLUMN } from '@/lib/kosztorys/document-column-order'
+import {
+  DOCUMENT_PINNED_COLUMN,
+  orderDocumentKeys,
+  sanitizeDocumentRanks,
+} from '@/lib/kosztorys/document-column-order'
 import {
   WORKER_DOCUMENT_COLUMNS,
   WORKER_RATE_KEY,
   WORKER_VIEW_GROUPS,
 } from '@/lib/kosztorys/worker-view/columns'
-import { orderDocumentKeys, sanitizeDocumentRanks } from '@/lib/kosztorys/document-column-order'
 import { planePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import type { ToolPlaneT } from '@/lib/kosztorys/types'
 import type { ColumnRanksT } from '@/lib/table/column-order'
@@ -26,17 +28,6 @@ export const WORKER_VIEW_DEFAULT_SETTINGS: WorkerViewSettingsT = {
   hiddenColumns: [],
   hideEmptyRows: true,
   columnRanks: {},
-}
-
-// Plane-agnostic names for the dialog: one tick answers for both rozliczenia, so it cannot quote the
-// grid's per-plane header.
-const WORKER_LABEL_OVERRIDES: Record<string, string> = {
-  [WORKER_RATE_KEY]: 'Stawka j.m. netto',
-  net: 'Wartość wykonana netto',
-}
-
-export function workerColumnLabel(key: string): string | undefined {
-  return WORKER_LABEL_OVERRIDES[key] ?? COLUMN_LABELS[key]
 }
 
 // Same fail-closed contract as `sanitizeClientViewSettings`: a key outside the worker ceiling is

@@ -1,6 +1,7 @@
 import { viewPrice, type PriceViewT } from '@/lib/kosztorys/calc'
 import { computedColumnValues } from '@/lib/kosztorys/column-values'
-import { formatPercent, formatQty } from '@/lib/kosztorys/format'
+import { formatPercent } from '@/lib/kosztorys/format'
+import { DISCOUNT_TYPE_LABELS } from '@/lib/kosztorys/labels'
 import { clientDocumentColumns } from '@/lib/kosztorys/client-view/settings'
 import { columnLabelForView } from '@/lib/kosztorys/column-config'
 import { PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/client-view/columns'
@@ -9,7 +10,7 @@ import {
   PLANNED_QTY_COLUMN,
   UNIT_COLUMN,
   computedMoneyColumn,
-  formattedValue,
+  computedQtyColumn,
   qtyColumn,
   stageNetColumns,
   stageQtyColumns,
@@ -35,8 +36,6 @@ export const zloty = (n: number) =>
 const OFFER_PRICE_VIEW: PriceViewT = 'client'
 const clientLabel = (key: string) => columnLabelForView(key, OFFER_PRICE_VIEW)
 
-const DISCOUNT_TYPE_TEXT: Record<string, string> = { percent: '%', amount: 'zł' }
-
 // Every column of the client's document the paper can carry, keyed as CLIENT_DOCUMENT_COLUMNS names
 // it; a stage group expands to one column per etap.
 function offerColumnsByKey(stages: KosztorysStageT[]): Record<string, PrintColumnT[]> {
@@ -59,13 +58,7 @@ function offerColumnsByKey(stages: KosztorysStageT[]): Record<string, PrintColum
     ],
     plannedNet: [money('plannedNet', 'Wartość netto')],
     [STAGES_COLUMN_GROUP]: stageQtyColumns(stages),
-    stageQtySum: [
-      qtyColumn(
-        'stageQtySum',
-        clientLabel('stageQtySum'),
-        formattedValue(valueOf('stageQtySum'), formatQty),
-      ),
-    ],
+    stageQtySum: [computedQtyColumn(valueOf)('stageQtySum', clientLabel('stageQtySum'))],
     discountValue: [
       qtyColumn('discountValue', clientLabel('discountValue'), (row) =>
         decimalText(row.discountValue),
@@ -73,7 +66,7 @@ function offerColumnsByKey(stages: KosztorysStageT[]): Record<string, PrintColum
     ],
     discountType: [
       qtyColumn('discountType', clientLabel('discountType'), (row) =>
-        row.discountType ? DISCOUNT_TYPE_TEXT[row.discountType] : '',
+        row.discountType ? DISCOUNT_TYPE_LABELS[row.discountType] : '',
       ),
     ],
     discountAmount: [money('discountAmount', clientLabel('discountAmount'))],

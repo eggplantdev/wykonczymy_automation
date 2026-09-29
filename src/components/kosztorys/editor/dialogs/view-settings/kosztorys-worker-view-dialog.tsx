@@ -8,8 +8,12 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/
 import { ViewSettingsFields } from '@/components/kosztorys/editor/dialogs/view-settings/view-settings-fields'
 import { saveWorkerViewSettingsAction } from '@/lib/actions/kosztorys-worker-view'
 import { DocumentColumnOrderButton } from '@/components/kosztorys/editor/dialogs/view-settings/document-column-order-button'
-import { WORKER_DOCUMENT_COLUMNS, WORKER_VIEW_GROUPS } from '@/lib/kosztorys/worker-view/columns'
-import { sanitizeWorkerViewSettings, workerColumnLabel } from '@/lib/kosztorys/worker-view/settings'
+import {
+  WORKER_DOCUMENT_COLUMNS,
+  WORKER_VIEW_GROUPS,
+  workerColumnLabel,
+} from '@/lib/kosztorys/worker-view/columns'
+import { sanitizeWorkerViewSettings } from '@/lib/kosztorys/worker-view/settings'
 import { OWNER_ONLY_WORKER_VIEW_SETTINGS_MESSAGE } from '@/lib/kosztorys/owner-only-messages'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { useCurrentUser } from '@/hooks/use-current-user'

@@ -3,7 +3,7 @@
 import { UnfoldVertical } from 'lucide-react'
 
 import { DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
-import { useRowHeightFit } from '@/components/kosztorys/editor/actions/row-height-fit-context'
+import { useRowHeightFit } from '@/components/kosztorys/editor/grid/row-height-fit-context'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 /**

@@ -4,7 +4,10 @@ import { Column, keyColumn } from 'react-datasheet-grid'
 import { StageHeader } from '@/components/kosztorys/editor/grid/stage-header'
 import { STAGE_HEADER_COPY } from '@/components/kosztorys/editor/grid/stage-header-copy'
 import { decimalColumn } from '@/components/kosztorys/editor/grid/cells/decimal-column'
-import { computedColumn } from '@/components/kosztorys/editor/grid/cells/computed-cell'
+import {
+  computedColumn,
+  type ComputedColumnStyleT,
+} from '@/components/kosztorys/editor/grid/cells/computed-cell'
 import { divergenceColumn } from '@/components/kosztorys/editor/grid/cells/divergence-cell'
 import {
   subcontractorCoeffColumn,
@@ -136,7 +139,6 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   // columns would otherwise reprice the ones left standing.
   const shownStages = stagesMatchingEngaged(viewStages, opts.engagedStageConditionIds ?? [])
 
-  // One resolver per assembly, so every stage-value cell shares its per-row Σ etapów memo.
   const valueOf = computedColumnValues({
     stages,
     view,
@@ -144,8 +146,8 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   })
   const resolvedColumn = (
     id: string,
-    style?: Parameters<typeof computedColumn>[3],
-    format?: Parameters<typeof computedColumn>[4],
+    style?: ComputedColumnStyleT,
+    format?: (value: number | null) => string,
   ) => computedColumn(id, columnTitle(id, opts), valueOf(id), style, format)
 
   // Przedmiar (sheet N) leads the stage columns so the offered quantity reads before the per-etap

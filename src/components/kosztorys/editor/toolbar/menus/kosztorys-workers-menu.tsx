@@ -44,7 +44,7 @@ export function KosztorysWorkersMenu() {
             <DropdownMenuSeparator />
           </>
         )}
-        {assigned.map(({ id, name, scope, hasLink }) => {
+        {assigned.map(({ id, name, scope }) => {
           // Podgląd stays open when blocked: it shows the owner the same notice the worker would get.
           const blockReason =
             scope.kind === 'blocked' ? WORKER_SCOPE_BLOCK_MESSAGES[scope.reason] : undefined
@@ -53,10 +53,9 @@ export function KosztorysWorkersMenu() {
               <DropdownMenuLabel>{name}</DropdownMenuLabel>
               {blockReason && <p className="text-destructive px-2 pb-1 text-xs">{blockReason}</p>}
               <WorkerPreviewMenuItem target={{ id, name }} />
-              {/* Blocked, the link only opens to switch off a live token — which outlives the block. */}
               <WorkerShareMenuItem
                 target={{ id, name, blockReason }}
-                disabled={blockReason !== undefined && !hasLink}
+                disabled={blockReason !== undefined && !worker.linkHolders.has(id)}
               />
               <WorkerPrintMenuItem workerId={id} disabled={blockReason !== undefined} />
               <DropdownMenuSeparator />
