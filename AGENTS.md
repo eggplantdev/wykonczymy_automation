@@ -295,6 +295,8 @@ Most are self-describing (`src/collections`, `src/access`, `src/stores`, …). T
 
 - `src/lib/db` — the raw-SQL **data-access** layer: a statement plus its row mapper, nothing else. Auth,
   caching and view-shaping belong one layer up in `src/lib/queries`, and mutations in `src/lib/actions`.
+  The line is one statement vs orchestration, not read vs write: a single `UPDATE`/`INSERT` with its
+  mapper stays here, and multi-step logic such as find-or-create is what moves to `lib/actions`.
   It started as financial calculations only and is now much wider (`get-db`, `where-to-sql`,
   `with-payload-transaction`, `snapshots`, `presets`, `notifications`, `kosztorys-tree`) — read the rule,
   not the original theme, when deciding whether a new file lands here.

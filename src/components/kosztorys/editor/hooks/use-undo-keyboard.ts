@@ -4,10 +4,12 @@ import { useEffect } from 'react'
 
 // Global Cmd/Ctrl+Z → undo, Cmd/Ctrl+Shift+Z (and Ctrl+Y) → redo for the kosztorys editor.
 //
-// FLAGGED heuristic (needs browser verification): the shortcut drives OUR stack only when no
-// editable field is focused. While a grid cell / rename / snapshot-label input is in active
-// text-edit, the key falls through to react-datasheet-grid's native character-level undo (and the
-// browser's input undo). If focus detection proves unreliable, this is the seam to revisit
+// The shortcut drives OUR stack only when no editable field is focused. While a grid cell / rename /
+// snapshot-label input is in active text-edit, the key falls through to react-datasheet-grid's
+// native character-level undo (and the browser's input undo) — pinned by
+// `e2e/kosztorys-undo-redo.spec.ts`. Known residue: a coefficient-field commit in the global
+// settings can leave that input focused through the refresh, so Cmd+Z silently does nothing; the
+// toolbar Cofnij/Ponów buttons are the reliable path. If that matters, this is the seam to revisit
 // (read dsg's active-cell edit state, or scope the listener to the grid container).
 export function useUndoKeyboard(undo: () => void, redo: () => void) {
   useEffect(() => {

@@ -22,6 +22,11 @@ export const investmentAssetsField = (investmentId: number) =>
  * read-modify-write races if a caller sends one file per call, and the reclaim must be awaited (see
  * below). A per-collection copy is a second place for a fix to miss, and a missed one leaks Blob
  * files silently.
+ *
+ * Two writers on one field inside the same find→update window still lose one of their lists. Accepted:
+ * each surface gates upload and delete on one busy flag, so it takes two tabs on one investment, and
+ * no bytes are lost — the reclaim only deletes ids this writer read. If writers multiply, serialize
+ * here (a transaction or a diff write), not with another client gate.
  */
 export async function setUploadField(
   payload: Payload,

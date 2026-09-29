@@ -2303,3 +2303,76 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
   a TS formula. Local timings can't show Neon network or cold starts (see "Neon latency is bimodal"
   above), but a merge doesn't remove that cost from a parallel fan-out either.
 - **Applies to**: impl-review, plan-review, `/simplify`, review-gate efficiency findings.
+
+## A long declarative registry is one kind of thing — line count is not a cohesion signal
+
+- **Context**: `module-cohesion` audit at the `wydruk-oferty` review gate (2026-09-23, EX-868) flagged
+  `src/lib/kosztorys/row-conditions/registry.ts` (538 LOC) as "eight modules posing as one array" and
+  proposed cutting it per `FILTER_GROUPS` into `groups/<group>.ts`. Cancelled after analysis
+  (2026-09-28).
+- **Problem**: the file is 34 homogeneous `RowConditionT` literals (the Registry pattern), ~60% of the
+  lines being rationale comments. The proposed axis covered 20 of 34 entries — the 13 diagnostics
+  group by `problemGroup`, `client-empty` by nothing — so a full cut is ~10 files on two axes. The
+  helpers (`qtyDone`, `priceColumnsFor`, `isEmptyOnBothAxes`) are shared across groups **on purpose**,
+  so they'd become a `helpers.ts` imported everywhere: the same coupling, smeared, and the „named once
+  so the pair cannot be edited apart" comments lose the pair they sit beside. Display order is a
+  contract, and a composing file adds a spread-order failure mode no type catches. Every consumer
+  reads the whole `ROW_CONDITIONS`, so a split isolates nothing, and `git log --follow` stops tracing
+  rationale-heavy blame.
+- **Rule**: judge a big file by the number of **kinds** it holds and the number of **reasons it
+  changes**, not by LOC. A flat declarative table whose commits almost all append a sibling entry is
+  cohesive; split it only once one group grows its own non-trivial logic (today's lone candidate:
+  `settledAtPercentRate`, a domain predicate like `isOwnRateOverCeiling`).
+- **Applies to**: `module-cohesion-audit`, `/simplify`, review-gate structural findings.
+
+## Recount a reuse or perf finding against the code before filing it — four of them did not survive
+
+- **Context**: backlog triage of review-gate findings (2026-09-22 → 09-28). Four filed findings were
+  cancelled because their premise fell apart on a recount, not because they were deprioritised.
+- **Problem**:
+  - **"Third hand-copied lead webhook skeleton" (EX-827)** — there were two copies; `facebook-leads`
+    differs in every step (200 on bad JSON so Meta stops retrying, per-lead `safeParse` on a second
+    Meta call, `continue` on a bad schema, N captures, conditional revalidate, a deliberate 500 to
+    force batch redelivery, its own `GET` handshake). A helper spanning the two real copies needed
+    eight parameters to save ~29 lines, and what is genuinely shared (`captureLead`,
+    `notifyShapeAlert`, `verifySignature`, the `*ToStoreLeadInput` mappers) was already in
+    `src/lib/leads/`. The two "unrecorded drifts" were protocol-forced: the landing HMACs the **raw**
+    body so it must read it before authorising, WordPress can't sign so wpforms checks a header
+    first, and only wpforms alarms on a missing email because only wpforms extracts it heuristically.
+  - **"Investment-asset actions copy the invoice actions" (EX-834)** — the ~45 duplicated lines had
+    already collapsed into `setUploadField`; the three proposed wrappers were each one line replacing
+    one line, net ~+3 lines and three new names.
+  - **"Lead gallery bypasses the media cache, 375 ms per keystroke" (EX-828)** — 375 ms was the old
+    ORM sweep of the whole `media` table, a different query. The lead path is an id-scoped find
+    bounded by the page (≤30 docs today ≈ 12 ms), behind `unstable_cache` and a 300 ms debounce. The
+    proposed fix would have widened `fetchAllMedia` by ~88 kB per cache entry, eating the headroom
+    under the ~2 MB per-entry ceiling that is the documented reason it is narrow.
+  - **"Every media upload expires the whole investments plan" (EX-830)** — the investment half was
+    real (fixed by EX-849's `entityTags`); the invoice half was not: transfer lists render invoices
+    under `CACHE_TAGS.transfers`, so an invoice change must expire it, and `recalcAfterChange` bumps it
+    anyway.
+- **Rule**: before filing a reuse finding, count the copies by reading them and price the helper's
+  signature in parameters against the lines it removes — when the parameters are the code, there is
+  no win. Treat a difference between copies as possibly **forced by the sender's protocol** until
+  `git log` / the comments say otherwise; a helper would freeze or erase it. Before filing a perf
+  finding, cite a measurement of **that exact path** at current data volume, and check the fix
+  doesn't spend a limit the existing shape was sized against. Before narrowing a cache tag, list what
+  renders under it.
+- **Applies to**: review-gate `/simplify` reuse and efficiency passes, `primitive-reuse-scan`, filing
+  to the Linear backlog.
+
+## Flush on tab close with `visibilitychange`, not `sendBeacon` — a beacon cannot call a Server Action
+
+- **Context**: EX-843 (2026-09-23) needed a pending debounced write to survive the tab being closed.
+  The mechanism it guarded (the workshop mirror) was later removed by EX-893, but the editor's
+  debounced autosave has no tab-close flush either, so the question will come back.
+- **Problem**: the textbook answer, `pagehide` + `navigator.sendBeacon`, does not reach a Server
+  Action: a beacon cannot set the `Next-Action` header, so it would need a new Route Handler with its
+  own auth — a second write path for one edge case.
+- **Rule**: flush on `visibilitychange` → `document.visibilityState === 'hidden'` with an ordinary
+  Server Action call. Chrome and Firefox fire `hidden` just before `pagehide` on tab close, so the
+  request leaves in time. It is best-effort: a crash or a lost connection still drops the write. A
+  dirty-flag column healed on the next read was weighed and rejected as out of proportion for that
+  residue.
+- **Applies to**: any debounced autosave (kosztorys editor, settings fields) that grows a
+  "don't lose the last edit" requirement.
