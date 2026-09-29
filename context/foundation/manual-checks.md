@@ -1404,7 +1404,8 @@ addytywna — na produkcję **przed** pushem; DROP starych kolumn to EX-886, po 
 - [x] „Wygeneruj ofertę w PDF" drukuje te same kolumny co Podgląd. Kod: `print/offer.ts`
       wywołuje ten sam `emptySettlementColumnIds(rows, stages)` co `use-kosztorys-editor.ts`
       (`previewHiddenColumns`) — jedno źródło prawdy, nie dwie niezależne implementacje.
-- [x] Podgląd wykonawcy dalej pokazuje puste etapy. Kod: `previewHiddenColumns` w
+- [x] _Nieaktualne od 2026-09-29 (worker-view-settlement-columns): widok pracownika też ukrywa puste
+      etapy._ Podgląd wykonawcy dalej pokazuje puste etapy. Kod: `previewHiddenColumns` w
       `use-kosztorys-editor.ts` liczy się tylko `preview && !worker` — bramka `!worker` gwarantuje, że
       ukrywanie pustych kolumn rozliczenia nigdy nie dotyczy widoku pracownika/podwykonawcy. Widok
       „Bez narzędzi (pracownik)" na inwestycji 137 (zweryfikowany wcześniej w tej sesji) pokazywał
@@ -2002,24 +2003,3 @@ sprzed migracji, nie względem stałej liczby.
 - [ ] Jako MANAGER: „Usuń na zawsze" przy kosztorysie w użyciu żąda wpisania nazwy i dopiero po niej
       usuwa.
 - [ ] Jako EMPLOYEE: w menu nie ma „Kosz", a wejście na `/kosz` z adresu przekierowuje.
-
-## worker-view-settlement-columns — widok pracownika: rozliczenie po pierwszym wpisie, przedmiar znika (2026-09-29)
-
-Wymaga migracji `20260929_5_worker_view_hide_planned` na bazie, na której sprawdzasz.
-
-### Phase 1: Checkbox w „Ustawienia widoku pracownika"
-
-- [ ] Na świeżej bazie „Ustawienia widoku pracownika" pokazuje zaznaczony „Ukryj przedmiar i wartość
-      przedmiaru, gdy w etapach są już wpisy"; odznaczenie + Zapisz przetrwa przeładowanie strony.
-- [ ] Jako MANAGER checkbox jest wyłączony.
-
-### Phase 2: Kolumny na linku, w Podglądzie i w PDF
-
-- [ ] Pracownik z pustymi wszystkimi etapami: link, Podgląd i PDF pokazują Przedmiar i Wartość
-      przedmiaru, bez „Pomiar (razem etapy)", bez „Wartość wykonana" i bez kolumn etapów.
-- [ ] Po wpisaniu ilości w jednym jego etapie: Przedmiar i Wartość przedmiaru znikają; pojawiają się
-      ten etap, „Pomiar (razem etapy)" i „Wartość wykonana"; jego drugi, pusty etap — nie.
-- [ ] W PDF po tym wpisie sumy sekcji i „Razem" stoją pod „Wartość wykonana", nie znikają.
-- [ ] Odznaczony checkbox: Przedmiar i Wartość przedmiaru wracają obok kolumn rozliczenia na
-      wszystkich trzech powierzchniach.
-- [ ] Wpis w etapie INNEJ ekipy nie zmienia dokumentu tego pracownika.

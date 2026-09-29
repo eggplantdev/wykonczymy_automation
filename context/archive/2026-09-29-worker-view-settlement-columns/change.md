@@ -1,10 +1,10 @@
 ---
 change_id: worker-view-settlement-columns
 title: Worker view reveals settlement columns on first entry and can drop przedmiar once work exists
-status: implemented
+status: archived
 created: 2026-09-29
 updated: 2026-09-29
-archived_at: null
+archived_at: 2026-09-29T09:14:41Z
 branch: staging # shared working tree — switching HEAD would redirect parallel agents' commits
 worktree: null
 ---
