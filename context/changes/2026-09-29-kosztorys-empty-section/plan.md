@@ -569,7 +569,7 @@ None. There is no schema change. Existing data has 0 itemless sections.
 #### Automated
 
 - [x] 2.1 renderHook spec: itemless section in `sections`; last-item delete keeps the section; add section = meta, no row; first item re-lays between neighbours; itemless rename persists; section delete prunes its undo commands — 1edb9aa0
-- [x] 2.2 DB integration: `addSectionAction` / `insertSectionAction` create zero items; updated fixtures pass (`pnpm test:integration`) — 1edb9aa0
+- [ ] 2.2 DB integration: `addSectionAction` / `insertSectionAction` create zero items; updated fixtures pass (`pnpm test:integration`) — 1edb9aa0 (not run — deferred by user, review-gate F2)
 - [x] 2.3 `pnpm typecheck` passes with `delete-policy.ts`, `buildNewSectionRow`, `neighborSectionId`, `swapSectionBlock`, `applyInsertSectionRow`, `sectionRepresentatives` removed
 
 ### Phase 3: Itemless section UI

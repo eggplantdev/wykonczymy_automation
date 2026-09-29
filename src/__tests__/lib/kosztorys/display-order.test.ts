@@ -209,8 +209,6 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
     })
   })
 
-  // The editor draws a sekcja bez pozycji as a header band of its own, so nothing is seeded to make
-  // it visible — a seeded blank row would be a pozycja nobody asked for.
   describe('a new section is created bare (DO4)', () => {
     it('adding or inserting a section creates no pozycja', async () => {
       const investmentId = await freshInvestment()

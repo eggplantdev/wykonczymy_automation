@@ -5,8 +5,7 @@ import {
   sectionNameOptions,
 } from '@/lib/kosztorys/work-catalogue/section-target'
 
-// The editor's section list, not the item-derived subtotals: a sekcja bez pozycji is a target too,
-// and pointing the picker at it must not mint a same-named twin.
+// A sekcja bez pozycji is a target too, and pointing the picker at it must not mint a same-named twin.
 const section = (sectionId: number, sectionName: string): SectionMetaT => ({
   sectionId,
   sectionName,

@@ -333,7 +333,6 @@ test('„Dodaj → Sekcja" puts a bare band on top, „Dodaj pracę" fills it, a
   await reloadEditor(page)
   await expect.poll(() => rozpiska(page)).toEqual(filled)
 
-  // Deleting the last praca leaves the sekcja standing, back to its bare band.
   await openRowMenu(page, DEFAULT_ITEM_DESCRIPTION)
   await menuItem(page, 'Usuń pozycję').click()
   const deleted = serverAction(page)
