@@ -28,7 +28,7 @@ const editorContext = {
   setLayer: vi.fn(),
   subtotals: [],
   readOnly: false,
-  isWorkshop: false,
+  isTemplate: false,
   noun: { accusative: 'kosztorys' },
   hasSheet: false,
   globalDiscount: { type: null, value: 0 },
@@ -111,7 +111,7 @@ describe('KosztorysEditorToolbar — „Widok cen"', () => {
   // neither of which the owner came to the szablon to change. Its plane is pinned instead, which is
   // what makes dropping the control safe: `pickView` is the only writer of the stored view.
   it('drops it on the szablon workbench', () => {
-    renderToolbar({ isWorkshop: true })
+    renderToolbar({ isTemplate: true })
 
     expect(screen.queryByRole('group', { name: 'Widok cen' })).not.toBeInTheDocument()
   })

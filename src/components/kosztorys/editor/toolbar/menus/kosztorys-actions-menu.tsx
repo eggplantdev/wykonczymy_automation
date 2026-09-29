@@ -53,7 +53,7 @@ export function KosztorysActionsMenu({
     readOnly,
     fitRowsToContent,
     toggleFitRowsToContent,
-    isWorkshop,
+    isTemplate,
     noun,
   } = useKosztorysEditorContext()
 
@@ -62,7 +62,7 @@ export function KosztorysActionsMenu({
       {/* A szablon has no investor and no crew on its etapy, so the previews through their eyes and
           the share links have nobody to address here. The „Arkusz Google" section drops out by
           itself — `hasSheet` gates it, and the workbench has no sheet attached. */}
-      {!isWorkshop && (
+      {!isTemplate && (
         <>
           <KosztorysWorkersMenu />
           <KosztorysInvestorMenu hasProtocol={protocolSource != null} />

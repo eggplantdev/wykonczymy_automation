@@ -19,12 +19,10 @@ type KosztorysEditorContextT = ReturnType<typeof useKosztorysEditor> & {
   // offers it too. Absent in preview, which renders neither trigger.
   openImport?: () => void
   hasSheet: boolean
-  templatePresetId?: number
-  // Derived from `templatePresetId`, and published rather than re-derived: eight controls asked
-  // „== null" and six called `editorNoun` for themselves, so „what is this editor" was answered in
-  // fourteen places that had to agree. Both are cheap — a boolean and one of two module constants —
-  // so nothing is memoised and the value identity is the same as the literal around it.
-  isWorkshop: boolean
+  // Published rather than re-derived: eight controls asked „is this a szablon" and six called
+  // `editorNoun` for themselves, so „what is this editor" was answered in fourteen places that had to
+  // agree. Both are cheap — a boolean and one of two module constants — so nothing is memoised.
+  isTemplate: boolean
   noun: EditorNounT
 }
 

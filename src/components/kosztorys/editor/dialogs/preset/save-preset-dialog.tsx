@@ -14,7 +14,7 @@ import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kos
 // "Zapisz jako nowy szablon…" — save this rozpiska as a reusable, cross-investment template, itself
 // either a new named template or an overwrite of an existing one.
 export function SavePresetDialog() {
-  const { investmentId, isWorkshop } = useKosztorysEditorContext()
+  const { investmentId, isTemplate } = useKosztorysEditorContext()
   const { open, setOpen: onOpenChange, existingPresets } = useKosztorysActions().savePreset
   const [name, setName] = useState('')
   const [mode, setMode] = useState<'new' | 'overwrite'>('new')
@@ -57,7 +57,7 @@ export function SavePresetDialog() {
       // A szablon has no „this investment" for a copy to be independent of — the whole sentence is
       // about something that is not there, so it is rewritten, not word-swapped.
       description={
-        !isWorkshop
+        !isTemplate
           ? 'Szablon — wzór kosztorysu wielokrotnego użytku, niezależny od tej inwestycji. Posłuży do szybkiego założenia kosztorysu na innych inwestycjach.'
           : 'Zapisuje kopię bieżącej rozpiski jako osobny szablon. Ten, który edytujesz, się nie zmienia.'
       }

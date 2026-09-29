@@ -782,15 +782,15 @@ Uruchamiane **raz**, po ostatniej fazie:
 
 #### Automated
 
-- [x] 3.1 Specy fazy 3 zielone (`pnpm exec vitest run …`)
+- [x] 3.1 Specy fazy 3 zielone (`pnpm exec vitest run …`) — d7b0953a
 
 ### Phase 4: Strona szablonu, edytor i sprzątanie martwego kodu
 
 #### Automated
 
-- [ ] 4.1 Grep starego modelu trafia wyłącznie w `src/migrations/`
-- [ ] 4.2 `pnpm generate:types` przechodzi
-- [ ] 4.3 Specy przepięte na `createTestTemplate` zielone
+- [x] 4.1 Grep starego modelu trafia wyłącznie w `src/migrations/`
+- [x] 4.2 `pnpm generate:types` przechodzi
+- [x] 4.3 Specy przepięte na `createTestTemplate` zielone
 
 ### Phase 5: Migracja B (destrukcyjna), E2E spec i dokumentacja
 

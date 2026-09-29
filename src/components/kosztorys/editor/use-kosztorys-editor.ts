@@ -133,9 +133,8 @@ type ArgsT = {
   workCatalogue?: WorkCatalogueItemT[]
   // Reseed-the-whole-tree path for a write that returns NOT_FOUND. Absent on the read-only body.
   onStaleTree?: () => Promise<void>
-  // The szablon workbench — the grid narrows to what a szablon carries. A boolean, not the id:
-  // the hook has no use for the id, and `buildV2Grid` runs unmemoized, so the value must be stable.
-  isWorkshop?: boolean
+  // The szablon workbench — the grid narrows to what a szablon carries.
+  isTemplate?: boolean
   // A past version's grid: etapy the present has filled, so their columns stay on screen.
   filledStageIds?: ReadonlySet<number>
 }
@@ -162,7 +161,7 @@ export function useKosztorysEditor({
   hasSettledMaterial = false,
   workCatalogue,
   onStaleTree,
-  isWorkshop = false,
+  isTemplate = false,
   filledStageIds,
 }: ArgsT) {
   // Interaction, split from disclosure: `preview` decides what a client is SHOWN, this decides whether
@@ -211,7 +210,7 @@ export function useKosztorysEditor({
     preview,
     clientView: documentSettings,
     workerPlane: worker?.plane,
-    isWorkshop,
+    isTemplate,
   })
 
   // Committed on handle release, not per pointermove — that would be a write per pixel.
@@ -561,7 +560,7 @@ export function useKosztorysEditor({
           executedQtyByItem: worker.executedQtyByItem,
         }
       : undefined,
-    workshopVisible: isWorkshop,
+    workshopVisible: isTemplate,
   }
   const { columns, columnToggleItems, columnBaseRanks } = buildV2Grid(columnOpts)
   // A sort must not outlive its column: a money-axis or view toggle can drop the sorted column and its

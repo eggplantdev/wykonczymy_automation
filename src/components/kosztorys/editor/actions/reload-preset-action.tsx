@@ -8,7 +8,7 @@ import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kos
 
 export function ReloadPresetMenuItem() {
   const { reloadPreset } = useKosztorysActions()
-  const { isWorkshop } = useKosztorysEditorContext()
+  const { isTemplate } = useKosztorysEditorContext()
 
   return (
     <DropdownMenuItem onSelect={() => reloadPreset.setOpen(true)}>
@@ -16,7 +16,7 @@ export function ReloadPresetMenuItem() {
       <MenuItemBody
         label="Wczytaj szablon…"
         description={
-          isWorkshop
+          isTemplate
             ? 'Zastąp treść tego szablonu kopią innego.'
             : 'Zastąp całą rozpiskę zapisanym szablonem.'
         }

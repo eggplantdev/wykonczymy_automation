@@ -16,8 +16,9 @@ const STATUS_OPTIONS = [
   { label: { en: 'Planned', pl: 'Planowana' }, value: 'planowana' },
   { label: { en: 'Active', pl: 'Aktywna' }, value: 'active' },
   { label: { en: 'Completed', pl: 'Zakończona' }, value: 'completed' },
-  // Never picked by hand — resolveWorkshopInvestment is the only writer
-  // (src/lib/kosztorys/provision-workshop.ts); declared so generate:types knows the value exists.
+  // Never picked by hand — a szablon is born only through createTemplate
+  // (src/lib/kosztorys/create-template.ts), and guardTemplateStatus keeps the value from being set
+  // or dropped on an update.
   { label: { en: 'Template', pl: 'Szablon' }, value: 'szablon' },
 ] as const
 
@@ -158,15 +159,6 @@ export const Investments: CollectionConfig = {
       type: 'number',
       defaultValue: 0,
       label: { en: 'Global discount value', pl: 'Rabat globalny — wartość' },
-    },
-    // Which kosztorys_presets row is loaded into the `szablon` investment. Written by raw SQL
-    // (setWorkshopPreset), but declared here because a column the collection doesn't know stays out of
-    // Payload's drizzle schema and generated types.
-    {
-      name: 'templatePresetId',
-      type: 'number',
-      admin: { hidden: true },
-      label: { en: 'Loaded template id', pl: 'Id wczytanego szablonu' },
     },
     // Set by the trash actions only (src/lib/actions/investment-trash.ts). Deliberately not
     // `deletedAt`: that name is Payload's own `trash: true` column, which fails reads closed.

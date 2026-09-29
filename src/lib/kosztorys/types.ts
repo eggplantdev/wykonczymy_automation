@@ -177,10 +177,8 @@ export type KosztorysEditorDataT = {
   // „Zakończona": every money-moving write is refused server-side. The editor still renders in FULL
   // — this is about interaction, not disclosure, which is what `preview` is about.
   locked?: boolean
-  // Set ONLY by the szablon workbench; its presence is what tells the toolbar „Zapisz" overwrites a
-  // szablon rather than asking for a name. The id and not the name, because the name can be taken by
-  // another szablon between opening and saving. Never derived from the pathname.
-  templatePresetId?: number
+  // Set ONLY by the szablon page. Never derived from the pathname.
+  isTemplate?: boolean
   // Optional on cost, not on visibility: the client share renders no stage menu (EX-613).
   workers?: WorkerRefT[]
   // The whole cennik, for the in-browser comparison behind the katalog problems. Optional for the

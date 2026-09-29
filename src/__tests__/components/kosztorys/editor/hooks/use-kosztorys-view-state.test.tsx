@@ -29,7 +29,7 @@ describe('useKosztorysViewState — płaszczyzna cen', () => {
     parkOn('own_tools')
 
     const { result } = renderHook(() =>
-      useKosztorysViewState({ investmentId: INVESTMENT_ID, preview: false, isWorkshop: true }),
+      useKosztorysViewState({ investmentId: INVESTMENT_ID, preview: false, isTemplate: true }),
     )
 
     expect(result.current.view).toBe('client')
@@ -39,7 +39,7 @@ describe('useKosztorysViewState — płaszczyzna cen', () => {
   // renders on its own plane — so it still rides above the pin.
   it('still lets an engaged problem take the workbench to the plane it judges', () => {
     const { result } = renderHook(() =>
-      useKosztorysViewState({ investmentId: INVESTMENT_ID, preview: false, isWorkshop: true }),
+      useKosztorysViewState({ investmentId: INVESTMENT_ID, preview: false, isTemplate: true }),
     )
 
     act(() => result.current.toggleConditionExclusive('negative-rate-own-tools', []))

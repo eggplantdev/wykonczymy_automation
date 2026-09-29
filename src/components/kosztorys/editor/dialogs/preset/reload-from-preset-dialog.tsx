@@ -49,12 +49,12 @@ const COPY = {
 // stated before the confirm. The same replace on a kosztorys and on a szablon — only the wording
 // differs, because on a szablon it is that szablon's content being swapped.
 export function ReloadFromPresetDialog() {
-  const { tree, investmentId, onTreeReplaced, isWorkshop } = useKosztorysEditorContext()
+  const { tree, investmentId, onTreeReplaced, isTemplate } = useKosztorysEditorContext()
   const { open, setOpen: onOpenChange } = useKosztorysActions().reloadPreset
   const { sections, resetSections } = usePresetSections(open)
   const [selectedPresetId, setSelectedPresetId] = useState<number | null>(null)
   const [pending, startTransition] = useTransition()
-  const copy = COPY[isWorkshop ? 'szablon' : 'kosztorys']
+  const copy = COPY[isTemplate ? 'szablon' : 'kosztorys']
 
   const groups = groupPresetSections(sections ?? [], new Set()).filter(
     // A szablon reloaded from itself would only lose its przedmiar — the action refuses it anyway.

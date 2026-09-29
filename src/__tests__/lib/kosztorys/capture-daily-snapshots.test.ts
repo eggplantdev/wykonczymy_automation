@@ -10,7 +10,7 @@ import {
   trashDaysAgo,
 } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
-import { acquireTestWorkshop } from '@/__tests__/helpers/workshop'
+import { createTestTemplate } from '@/__tests__/helpers/template'
 
 vi.mock('server-only', () => ({}))
 
@@ -95,16 +95,13 @@ describe.skipIf(!ENV_READY)('captureDailySnapshot (DB)', () => {
     const active = await investment('daily-eligible-active')
     const planned = await investment('daily-eligible-planned', { status: 'planowana' })
     const completed = await investment('daily-eligible-completed', { status: 'completed' })
-    const workshop = await acquireTestWorkshop(payload)
+    const template = await createTestTemplate(payload, 'daily-eligible-szablon')
+    created.push(template)
     const trashed = await investment('daily-eligible-trashed')
     await trashDaysAgo(db, trashed, 1)
 
-    try {
-      const eligible = await listDailyEligibleInvestmentIds(db)
-      expect(eligible).toEqual(expect.arrayContaining([active, planned]))
-      for (const id of [completed, workshop.id, trashed]) expect(eligible).not.toContain(id)
-    } finally {
-      await workshop.release()
-    }
+    const eligible = await listDailyEligibleInvestmentIds(db)
+    expect(eligible).toEqual(expect.arrayContaining([active, planned]))
+    for (const id of [completed, template, trashed]) expect(eligible).not.toContain(id)
   })
 })

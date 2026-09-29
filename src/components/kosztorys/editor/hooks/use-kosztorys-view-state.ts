@@ -22,7 +22,7 @@ type ArgsT = {
   // The worker surface's plane: the preview pins to it instead of 'client'.
   workerPlane?: ToolPlaneT
   // The szablon workbench, which pins the base plane — see `view` below.
-  isWorkshop?: boolean
+  isTemplate?: boolean
 }
 
 const EMPTY_COLLAPSED: ReadonlySet<number> = new Set()
@@ -33,7 +33,7 @@ export function useKosztorysViewState({
   preview,
   clientView,
   workerPlane,
-  isWorkshop = false,
+  isTemplate = false,
 }: ArgsT) {
   const [persistedView, setView] = usePriceView(investmentId)
   const [search, setSearch] = useState('')
@@ -69,7 +69,7 @@ export function useKosztorysViewState({
   // above it, because that is the gesture that walks the reader to a fault.
   const view: PriceViewT = preview
     ? (workerPlane ?? 'client')
-    : (problemPlane ?? (isWorkshop ? 'client' : persistedView))
+    : (problemPlane ?? (isTemplate ? 'client' : persistedView))
   const [sort, setSort] = useState<SortStateT>(null)
   // Folded sections, driven by a band's chevron and by the „Sekcje" menu (unticking folds rather
   // than filtering, so a hidden section still shows its total). Not persisted: a remembered fold

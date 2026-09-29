@@ -10,7 +10,7 @@ import { CurrentUserProvider } from '@/hooks/use-current-user'
 // talks about a „kosztorys" until someone asks it which screen it is on. The assertions read what
 // is visible once the menu opens — the noun table can be right while the component never reads it.
 
-const editorState = vi.hoisted(() => ({ templatePresetId: undefined as number | undefined }))
+const editorState = vi.hoisted(() => ({ isTemplate: false }))
 
 // The dialogs hang beside the menu as siblings (see KosztorysActionsProvider), so they render
 // together with it — and one of them reaches for the Next router, which jsdom does not have.
@@ -39,16 +39,15 @@ vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
     handleAcceptCatalogueName: vi.fn(),
     engagedConditionIds: new Set<string>(),
     toggleConditionExclusive: vi.fn(),
-    templatePresetId: editorState.templatePresetId,
     // Derived exactly as KosztorysEditorBody derives it, so the spec still drives the whole menu
-    // off the one input the screen has — which szablon the workbench holds.
-    isWorkshop: editorState.templatePresetId != null,
-    noun: editorNoun(editorState.templatePresetId),
+    // off the one input the screen has.
+    isTemplate: editorState.isTemplate,
+    noun: editorNoun(editorState.isTemplate),
   }),
 }))
 
-function renderToolbar(templatePresetId: number | undefined) {
-  editorState.templatePresetId = templatePresetId
+function renderToolbar(isTemplate: boolean) {
+  editorState.isTemplate = isTemplate
   render(
     <CurrentUserProvider user={{ id: 1, email: 'm@t.com', name: 'Manager', role: 'MANAGER' }}>
       <KosztorysActionsProvider>
@@ -64,7 +63,7 @@ const openOptions = () => userEvent.click(screen.getByRole('button', { name: 'Op
 
 describe('KosztorysActionsMenu', () => {
   it('na inwestycji zostaje przy kosztorysie i przy inwestorze', async () => {
-    renderToolbar(undefined)
+    renderToolbar(false)
 
     expect(screen.getByRole('button', { name: 'Inwestor' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Pracownicy' })).toBeInTheDocument()
@@ -77,15 +76,15 @@ describe('KosztorysActionsMenu', () => {
 
   // A szablon has no investor and no crew on its etapy, so the previews through their eyes and the
   // share links have nobody to address.
-  it('w warsztacie nie oferuje inwestora ani pracowników', () => {
-    renderToolbar(7)
+  it('na szablonie nie oferuje inwestora ani pracowników', () => {
+    renderToolbar(true)
 
     expect(screen.queryByRole('button', { name: 'Inwestor' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Pracownicy' })).not.toBeInTheDocument()
   })
 
-  it('w warsztacie mówi „szablon”, nie „kosztorys”', async () => {
-    renderToolbar(7)
+  it('na szablonie mówi „szablon”, nie „kosztorys”', async () => {
+    renderToolbar(true)
     await openOptions()
 
     expect(screen.getByRole('menuitem', { name: /Wyczyść szablon…/ })).toBeInTheDocument()

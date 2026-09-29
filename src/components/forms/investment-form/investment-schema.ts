@@ -9,8 +9,9 @@ export const investmentFormSchema = z.object({
   contactPerson: z.string(),
   notes: z.string(),
   review: z.string(),
-  // No `szablon`: a szablon is born only through the szablon actions (guard-template-status).
-  status: z.enum(['active', 'completed', 'planowana']),
+  // Accepted so an edit that round-trips a szablon's status validates; no <SelectItem> offers it,
+  // and guardTemplateStatus refuses setting or dropping it.
+  status: z.enum(['active', 'completed', 'planowana', 'szablon']),
   // Optional seed template, only meaningful on create ('' = start empty). Not an investments
   // column — createInvestmentAction strips it and seeds the new investment's kosztorys from it.
   presetId: z.string(),
