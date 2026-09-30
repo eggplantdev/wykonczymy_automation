@@ -3,6 +3,8 @@ import { unstable_cache } from 'next/cache'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { CACHE_TAGS } from '@/lib/cache/tags'
+import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
+import { requireAuth } from '@/lib/auth/require-auth'
 import { getDb } from '@/lib/db/get-db'
 import {
   listPresets,
@@ -65,10 +67,14 @@ export async function getPresetRows(): Promise<PresetRowT[]> {
   })
 }
 
-// React `cache` on top of the cross-request one: the page and its crumb both ask within one render,
-// and the library lookup is a linear scan. Safe to read from the cache because every szablon writer
-// expires `presets` inline — a create included, so the szablon exists here before its page renders.
+// The page and its crumb both ask within one render, so `cache` saves the second read of the whole
+// library. Safe to read from the cache because every szablon writer expires `presets` inline — a
+// create included, so the szablon exists here before its page renders. The role gate is the crumb's:
+// a slot can't redirect, and without it a non-management session would read the library.
 export const getTemplateName = cache(async (id: number): Promise<string | undefined> => {
+  const { success } = await requireAuth(MANAGEMENT_ROLES)
+  if (!success) return undefined
+
   const presets = await getPresets()
   return presets.find((preset) => preset.id === id)?.name
 })

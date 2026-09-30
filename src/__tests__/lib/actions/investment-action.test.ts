@@ -124,7 +124,7 @@ describe('investmentAction', () => {
   it('stamps the szablon as edited only when the target is a szablon', async () => {
     await investmentAction('t', { investmentId: 5 }, async () => ({ success: true }))
     expect(markPresetEdited).not.toHaveBeenCalled()
-    expect(revalidateCollections).not.toHaveBeenCalledWith(['presets'], undefined)
+    expect(revalidateCollections).not.toHaveBeenCalled()
 
     lockState.isTemplate = true
     await investmentAction('t', { investmentId: 5 }, async () => ({ success: true }))

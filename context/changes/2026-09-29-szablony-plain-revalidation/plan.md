@@ -362,5 +362,5 @@ Run **once**, after the final phase:
 
 #### Automated
 
-- [x] 3.1 E2E test authored in `e2e/kosztorys-presets.spec.ts` (run on the user's go)
+- [x] 3.1 E2E test authored in `e2e/kosztorys-presets.spec.ts` (run on the user's go) — 7c1a6ad1
 - [ ] 3.2 `baseline.md` `# After` section with a verdict for flows 1, 2, 3, 5, 6

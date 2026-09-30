@@ -25,8 +25,8 @@ function expire(tag: string, deferRefresh: boolean) {
  * touched inside an action sets `x-action-revalidated`; `updateTag` streams the fresh render back in
  * the action response, while `EXPIRE_NEXT` leaves the POST without one and the client follows up
  * with a GET of the current route (lessons.md, EX-597). Both also wipe the client prefetch cache.
- * The only write that re-renders nothing is one that leaves the server-action path — a route
- * handler, which sets no `x-action-revalidated`.
+ * The only write that invalidates a tag and re-renders nothing is one that leaves the server-action
+ * path — a route handler, which sets no `x-action-revalidated`.
  *
  * `deferRefresh` only helps raw-SQL writes (the EX-597 autosaves). A `payload.update` on a collection
  * with a revalidating afterChange hook fires `revalidateTag(…, EXPIRE_NOW)` in the same request, so

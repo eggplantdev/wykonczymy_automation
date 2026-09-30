@@ -84,8 +84,8 @@ export function investmentAction<TData = undefined>(
 
       // HERE because this is the one point every one of the few dozen ways to change the tree passes
       // through. Raw SQL, not `payload.update`: that would bump `updated_at`, the editor's remount
-      // token, and reset the owner's sort and filters on every cell. The pickers expire inline: the
-      // tree write re-renders the route anyway, and `opts` keeps a deferred autosave deferred.
+      // token, and reset the owner's sort and filters on every cell. The library expiry follows the
+      // caller's `deferRefresh`, so a szablon autosave costs no more than any other.
       if (result.success && gate.isTemplate) {
         await markPresetEdited(db, gate.investmentId)
         revalidateCollections(['presets'], opts)
