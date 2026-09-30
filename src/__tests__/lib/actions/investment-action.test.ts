@@ -1,8 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import {
-  expireCollectionsAfterResponse,
-  revalidateCollections,
-} from '@/__tests__/stubs/cache-revalidate'
+import { revalidateCollections } from '@/__tests__/stubs/cache-revalidate'
 
 // The wrapper is the kosztorys plane's only chokepoint (raw SQL bypasses hooks and `access`), so
 // three things are asserted: it refuses on a locked investment, it resolves a row id to its
@@ -53,7 +50,6 @@ describe('investmentAction', () => {
     lockState.isTemplate = false
     lockState.rowOwner = { investmentId: 5, lockMessage: undefined, isTemplate: false }
     revalidateCollections.mockClear()
-    expireCollectionsAfterResponse.mockClear()
     markPresetEdited.mockClear()
     vi.mocked(investmentGateFor).mockClear()
     vi.mocked(investmentGateForRow).mockClear()
@@ -128,12 +124,26 @@ describe('investmentAction', () => {
   it('stamps the szablon as edited only when the target is a szablon', async () => {
     await investmentAction('t', { investmentId: 5 }, async () => ({ success: true }))
     expect(markPresetEdited).not.toHaveBeenCalled()
-    expect(expireCollectionsAfterResponse).not.toHaveBeenCalled()
+    expect(revalidateCollections).not.toHaveBeenCalledWith(['presets'], undefined)
 
     lockState.isTemplate = true
     await investmentAction('t', { investmentId: 5 }, async () => ({ success: true }))
     expect(markPresetEdited).toHaveBeenCalledWith(expect.anything(), 5)
-    expect(expireCollectionsAfterResponse).toHaveBeenCalledWith(['presets'])
+    expect(revalidateCollections).toHaveBeenCalledWith(['presets'], undefined)
+  })
+
+  // A per-cell autosave into a szablon must stay deferred: an inline `updateTag` on `presets` would
+  // put back the render EX-597 took out of every edit.
+  it('carries deferRefresh onto the szablon library expiry', async () => {
+    lockState.isTemplate = true
+    await investmentAction(
+      't',
+      { investmentId: 5 },
+      async () => ({ success: true }),
+      ['kosztorysItems'],
+      { deferRefresh: true },
+    )
+    expect(revalidateCollections).toHaveBeenCalledWith(['presets'], { deferRefresh: true })
   })
 
   it('stamps the owning szablon of a row write', async () => {

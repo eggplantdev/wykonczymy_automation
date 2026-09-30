@@ -673,7 +673,7 @@
   render**, so a client `router.refresh()` after it is a second full render of warm data with
   nothing new — sixteen sites did it, one of them (the catalogue-compare save) three layers deep for
   three renders. A client refetch belongs only after a write that produced no render: a route
-  handler, an upload API, an `after()`-expired action, or an action that **threw** (the editor's
+  handler, an upload API, or an action that **threw** (the editor's
   clear / reload / import pass `refetch` only from their `catch`).
   Timing, from the EX-908 after-run: code after `await action()` usually runs before that action's
   render commits (`resolve(actionResult)` precedes it), but not always — in 3 of 24 runs the tree had
@@ -682,13 +682,15 @@
   The render is applied even when a store fired the action after its dialog unmounted (`callServer`
   runs its own transition on a module-level queue), so an unmounted caller is no reason to refresh
   either — `use-form-submit`'s refresh had been re-added (`097eb8c8`) on a diagnosis nobody reproduced.
-- **Second exit (EX-876)**: a tag expired inside `after()` lands in `pendingRevalidatedTags` only
-  after the response headers are written, and is flushed by `withExecuteRevalidates` from there — so
-  `x-action-revalidated` never counts it, the action stays render-free, and the next read still
-  misses (`expireCollectionsAfterResponse`). That covers a cache the **calling page doesn't
-  render**. For the one it does, the action returns the state it produced and the client renders
-  from the result: „Otwórz szablon" used to push + `router.refresh()` + revalidate, three renders to
-  show a tree the transaction already had in hand.
+- **No second exit via `after()` (EX-876 → EX-909)**: a tag expired inside `after()` lands after
+  the response headers, so `x-action-revalidated` never counts it and the action renders nothing —
+  but it also leaves the **client router cache** holding the pre-write payload. The szablony
+  library ran on it for a release: the server cache was fresh, yet a browser Back to `/szablony`
+  after „Nowy szablon” restored the list without the new row (0/4 runs), and every reader of the
+  tag had to be written to bypass the cache to stay correct. Expire inline and pay the render. When
+  the calling page renders the result itself, the action returns the state it produced and the
+  client renders from that: „Otwórz szablon" used to push + `router.refresh()` + revalidate, three
+  renders to show a tree the transaction already had in hand.
 - **Applies to**: any "this write shouldn't re-render that" instinct on a server action; `updateTag`
   vs `revalidateTag` reasoning about render cost; any `router.refresh()` written after an `await`ed
   action.

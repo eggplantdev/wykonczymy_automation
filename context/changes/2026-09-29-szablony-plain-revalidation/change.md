@@ -1,12 +1,12 @@
 ---
 change_id: szablony-plain-revalidation
 title: Szablony na tę samą ścieżkę rewalidacji co inwestycje, z baseline'em przed/po
-status: preparing
+status: implementing
 created: 2026-09-29
-updated: 2026-09-29
+updated: 2026-09-30
 archived_at: null
-branch: null
-worktree: null
+branch: szablony-plain-revalidation
+worktree: ../wykonczymy-worktrees/szablony-plain-revalidation
 ---
 
 ## Notes

@@ -2650,3 +2650,14 @@ Każdy boks: po kliknięciu zmiana widoczna **bez przeładowania**, a w Network 
       formularzu wydatku, okno zdjęć leada) otwierają się na szerokość swojego pola i nic w nich
       nie jest ucięte.
 
+
+## EX-909 — szablony-plain-revalidation
+
+- [ ] Szablony kosztorysów → „Nowy szablon" → nazwa → „Załóż" → otwiera się nowy szablon; wróć
+      przyciskiem „Wstecz" przeglądarki (bez odświeżania) → nowy szablon jest na liście.
+- [ ] To samo, ale wróć przyciskiem „Wróć" na stronie szablonu → nowy szablon jest na liście.
+- [ ] Załóż szablon o nazwie, która już istnieje → komunikat „Szablon o tej nazwie już istnieje",
+      okno zostaje otwarte, lista bez zmian.
+- [ ] W szablonie zmień „Cena j.m. netto" pozycji, wróć do listy szablonów → ten szablon jest na
+      górze listy (ostatnio edytowany); edycja komórki nie powoduje mignięcia ani przeładowania
+      strony szablonu.
