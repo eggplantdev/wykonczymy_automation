@@ -67,3 +67,14 @@ Decided with the owner after research (2026-09-30):
   new entry in the problem filter.
 - **Removing the reszta holder requires picking a new one** in the dialog. Restoring a snapshot whose
   reszta holder was deleted (non-interactive) hands the reszta to the first remaining member.
+
+Implementation notes (review gate, 2026-09-30):
+
+- **The copied split keeps the percentages but zeroes the fixed amounts.** A new etap has no executed
+  work yet, and the cap above refuses any fixed amount against a pool of 0 — copying the amounts
+  would make the add itself fail.
+- **`src/lib/db/stage-memberships.ts` is a second db file for `kosztorys_stage_workers`** on purpose:
+  it holds the users delete guard's count, which `collections/users.ts` imports, so it must stay out
+  of `server-only` (the Payload type-generation graph loads it). The writes live in `db/stage-split.ts`.
+- **The import keeps `workerId` on its per-etap defaults** and turns it into a one-person split at the
+  write — the sheet has no split to import.
