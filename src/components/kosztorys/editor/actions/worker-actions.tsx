@@ -24,6 +24,7 @@ import {
   workerReportShareUrl,
   workerShareUrl,
 } from '@/lib/kosztorys/worker-view/name-slug'
+import { settleAction } from '@/lib/utils/settle-action'
 
 // Carries an action's own error text past the promise chain, so the toast names what failed.
 class ShareLinkError extends Error {}
@@ -122,7 +123,7 @@ export function useWorkerActions(): WorkerActionsT {
     // A blocked worker's link opens only to be switched off, so it is read, never minted or copied.
     if (target.blockReason !== undefined) return show(readWorkerShareToken(key, target.kind))
 
-    const token = ensureWorkerLinkAction(key, target.kind).then((result) => {
+    const token = settleAction(() => ensureWorkerLinkAction(key, target.kind)).then((result) => {
       if (!result.success) throw new ShareLinkError(result.error)
       return result.data
     })

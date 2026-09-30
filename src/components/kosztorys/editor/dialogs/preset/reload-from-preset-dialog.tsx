@@ -9,6 +9,7 @@ import { reloadFromPresetAction } from '@/lib/actions/kosztorys-presets'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { useSearchFilter } from '@/hooks/use-search-filter'
 import { cn } from '@/lib/utils/cn'
+import { settleTreeReplace } from '@/lib/kosztorys/settle-tree-replace'
 import { toastMessage } from '@/lib/utils/toast'
 import { getPresetName, groupPresetSections, type PresetGroupT } from './preset-picker-groups'
 import { itemNoun, sectionNoun } from '@/lib/kosztorys/counted-nouns'
@@ -79,23 +80,14 @@ export function ReloadFromPresetDialog() {
   function handleConfirm() {
     if (!selected) return
     startTransition(async () => {
-      let refetch = false
-      try {
-        const result = await reloadFromPresetAction(investmentId, selected.presetId)
-        if (!result.success) {
-          toastMessage(result.error, 'error', 6000)
-          return
-        }
-        toastMessage(`Wczytano: ${summary(result.data.sections, result.data.items)}`, 'success')
-      } catch {
-        // A transport-level rejection can arrive AFTER the transaction committed, so the grid may
-        // already be rendering rows that no longer exist. Refreshing regardless is the safe read —
-        // on a genuinely failed call it just re-fetches the unchanged tree.
-        toastMessage('Wczytywanie przerwane — odświeżam kosztorys', 'error', 6000)
-        refetch = true
-      }
+      const replaced = await settleTreeReplace(
+        () => reloadFromPresetAction(investmentId, selected.presetId),
+        'Wczytywanie przerwane — odświeżam kosztorys',
+        ({ data }) => toastMessage(`Wczytano: ${summary(data.sections, data.items)}`, 'success'),
+      )
+      if (!replaced) return
       handleOpenChange(false)
-      onTreeReplaced?.({ refetch })
+      onTreeReplaced?.(replaced)
     })
   }
 

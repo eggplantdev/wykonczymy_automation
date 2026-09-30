@@ -9,6 +9,7 @@ import { parseReportQty } from '@/lib/kosztorys/worker-report/parse-report-qty'
 import { sendWorkerReportAction } from '@/lib/actions/worker-report'
 import type { SendReportLineT, WorkerReportFormDataT } from '@/lib/kosztorys/worker-report/types'
 import { toastMessage } from '@/lib/utils/toast'
+import { settleAction } from '@/lib/utils/settle-action'
 
 export type SentT = { lineCount: number }
 
@@ -51,7 +52,9 @@ export function SendBar({ token, data, draft, onSent }: PropsT) {
 
   const send = async () => {
     setIsSending(true)
-    const result = await sendWorkerReportAction(token, [...itemLines, ...extraLines])
+    const result = await settleAction(() =>
+      sendWorkerReportAction(token, [...itemLines, ...extraLines]),
+    )
     setIsSending(false)
     setIsConfirmOpen(false)
     // The szkic survives a refused send, so nothing he typed is lost to a closed investment or a

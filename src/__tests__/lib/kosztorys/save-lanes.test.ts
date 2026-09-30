@@ -74,20 +74,20 @@ describe('createSaveLanes', () => {
     expect(onError).toHaveBeenCalledWith('rejected by server', undefined)
   })
 
-  it('routes a thrown/rejected action to onError and never rejects the lane (EX-526 #3)', async () => {
+  // A rejection is a request that never completed — the browser's own text („Failed to fetch") is
+  // not a message for the user, and the code keeps it apart from a refusal the caller must reseed on.
+  it('routes a rejected action to onError as a coded Polish failure and never rejects the lane (EX-940)', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
     const lanes = createSaveLanes()
     const onError = vi.fn()
-    // enqueue must resolve (not reject) even though the action throws.
     await expect(
-      lanes.enqueue(
-        'item:1:name',
-        async () => {
-          throw new Error('network down')
-        },
-        onError,
-      ),
+      lanes.enqueue('item:1:name', () => Promise.reject(new TypeError('Failed to fetch')), onError),
     ).resolves.toBeUndefined()
-    expect(onError).toHaveBeenCalledWith('network down')
+    expect(onError).toHaveBeenCalledWith(expect.stringMatching(/Brak połączenia/), 'REQUEST_FAILED')
+    expect(onError).not.toHaveBeenCalledWith(
+      expect.stringMatching(/Failed to fetch/),
+      expect.anything(),
+    )
   })
 
   // Without the code the caller can only match on the sentence, and „your row is gone" would keep

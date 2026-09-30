@@ -5,6 +5,7 @@ import { FileStack } from 'lucide-react'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { MenuItemBody } from '@/components/kosztorys/editor/actions/menu-item-body'
 import { getPresetOptions } from '@/lib/queries/preset-pickers'
+import { settleAction } from '@/lib/utils/settle-action'
 import type { PresetMetaT } from '@/lib/db/presets'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 
@@ -21,7 +22,7 @@ export function useSavePresetAction(): SavePresetActionT {
 
   function requestOpen() {
     setOpen(true)
-    void getPresetOptions().then((res) => {
+    void settleAction(getPresetOptions).then((res) => {
       if (res.success) setExistingPresets(res.data)
     })
   }

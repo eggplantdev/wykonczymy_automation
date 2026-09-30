@@ -6,6 +6,7 @@ import { useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { refreshDataAction } from '@/lib/actions/refresh'
 import { cn } from '@/lib/utils/cn'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 
 type RefreshDataButtonPropsT = React.ComponentProps<typeof Button> & {
@@ -23,7 +24,8 @@ export function RefreshDataButton({ collapsed = false, ...props }: RefreshDataBu
       className={cn(collapsed && 'px-0')}
       onClick={() =>
         startRefreshTransition(async () => {
-          await refreshDataAction()
+          const res = await settleAction(refreshDataAction)
+          if (!res.success) return toastMessage(res.error, 'error')
           toastMessage('Dane odświeżone')
         })
       }

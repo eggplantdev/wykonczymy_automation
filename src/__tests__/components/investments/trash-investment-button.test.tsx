@@ -4,7 +4,8 @@ import userEvent from '@testing-library/user-event'
 import { TrashInvestmentButton } from '@/components/investments/trash-investment-button'
 
 const refresh = vi.fn()
-vi.mock('next/navigation', () => ({
+vi.mock('next/navigation', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('next/navigation')>()),
   useRouter: () => ({ push: vi.fn(), prefetch: vi.fn(), refresh }),
 }))
 

@@ -106,7 +106,7 @@ type PropsT = KosztorysEditorDataT & {
   onOpenVersions?: () => void
   onTreeReplaced?: OnTreeReplacedT
   // Reseed after a write was refused because its row is gone (the tree was replaced elsewhere).
-  onStaleTree?: () => Promise<void>
+  onStaleTree?: () => Promise<unknown>
   // Only ever with `worker`.
   report?: ReportModeT & {
     header: (controls: ReportGridControlsT) => ReactNode

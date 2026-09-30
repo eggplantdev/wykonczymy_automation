@@ -7,6 +7,7 @@ import type { KosztorysItemT, NewItemPlacementT } from '@/lib/kosztorys/types'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import { NewItemForm } from './new-item-form'
+import { settleAction } from '@/lib/utils/settle-action'
 
 const FORM_ID = 'new-item'
 
@@ -74,7 +75,9 @@ export function NewItemDialog({
             kosztorysUnits={kosztorysUnits}
             keepOpen={keepOpen}
             action={async (payload) => {
-              const result = await addItemAction({ ...payload, placement: landing.placement })
+              const result = await settleAction(() =>
+                addItemAction({ ...payload, placement: landing.placement }),
+              )
               if (result.success) {
                 onPlaced(result.data.item, landing.placement)
                 setLanding(nextLanding(landing, result.data.item))

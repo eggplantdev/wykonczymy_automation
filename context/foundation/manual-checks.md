@@ -2683,7 +2683,6 @@ Każdy boks: po kliknięciu zmiana widoczna **bez przeładowania**, a w Network 
 - EX-939 jest częściowe: arkusze inwestycji do ok. 126 (np. 48, 108, 115) czytają się na stagingu, 130+ i 139–145 nadal nie.
 - [x] Kasa „QA-908 Kasa A2” (id 43) nie ma na liście kas w „Rozlicz” — **odrzucone**: `cash_registers.active = false` (SQL, 2026-09-30), lista pokazuje tylko aktywne kasy.
 
-
 ## EX-942 — okna edycji nie gubią wpisanych danych po nieudanym zapisie (2026-09-30)
 
 Stan: dowolny rekord do edycji; „nieudany zapis" = DevTools → Network → Offline tuż przed kliknięciem „Zapisz"/„Dodaj".
@@ -2870,3 +2869,23 @@ Link zbudowany na stagingu wskazuje na produkcję — przed otwarciem podmień h
       ten wiersz, w pierwszej zapisz: okno się zamyka, siatka się odświeża, nic się nie zawiesza.
 - [ ] Katalog prac → „Dodaj pozycję” i edycja pozycji: pola „Kategoria” i „j.m.” działają jak
       dotąd (wybór z listy i wpisanie nowej wartości).
+
+## EX-940 — request-failed-actions — zerwane połączenie kończy się polskim komunikatem (2026-09-30)
+
+Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTools → Network → Offline tuż przed akcją.
+
+- [ ] Sidebar „Wyloguj" z siecią: wylogowuje i ląduje na /zaloguj.
+- [ ] Kosztorys offline → zmień „Przedmiar" w komórce: toast „Brak połączenia z serwerem…", komórka wraca do poprzedniej wartości, nigdzie „Failed to fetch".
+- [ ] Offline → zmień rabat w „Opcje rozliczenia": polski komunikat, wartość wraca.
+- [ ] Kosztorys offline → przesuń pozycję ▲/▼: kolejność wraca, polski toast; Cmd+Z nic nie robi.
+- [ ] Kosztorys → „Dodaj pozycję" → wypełnij „Nowa praca" → zapisz offline: polski toast, okno zostaje otwarte z wpisanymi danymi, nic nie przybywa w siatce.
+- [ ] Kosztorys offline → „Dodaj sekcję": polski toast, nic nie przybywa, brak strony błędu.
+- [ ] „Wyczyść kosztorys" → potwierdź offline: „Czyszczenie przerwane — odświeżam…", okno się zamyka; po powrocie sieci siatka pokazuje prawdziwy stan.
+- [ ] „Wersje" → przywróć wersję offline: „Przywracanie przerwane — odświeżam kosztorys", okno się zamyka, brak strony błędu.
+- [ ] Transakcje → „Anuluj transakcję" offline: polski toast, przyciski i pole powodu znów aktywne.
+- [ ] /zaloguj offline → „Zaloguj": komunikat pod formularzem, przycisk wraca do „Zaloguj".
+- [ ] Sidebar „Odśwież dane" offline: toast błędu, brak strony błędu.
+- [ ] Formularz wydatku → „Dodaj magazyn" offline: toast błędu, brak strony błędu.
+- [ ] Link pracownika → zgłoszenie prac → „Wyślij" offline: polski toast, szkic zostaje, przycisk wraca do „Wyślij".
+- [ ] Kosztorys → menu inwestora → „Udostępnij" offline (pierwszy raz dla tej inwestycji): toast „Brak połączenia z serwerem…", nic nie trafia do schowka, brak strony błędu.
+- [ ] „Wczytaj szablon…" i „Pobierz z arkusza Google…" → potwierdź offline: „…przerwane — odświeżam kosztorys", okno się zamyka; po powrocie sieci siatka pokazuje prawdziwy stan.

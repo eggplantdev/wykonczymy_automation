@@ -11,6 +11,7 @@ import { ActiveFilterLabel } from '@/components/filters/active-filter-label'
 import { useMediaRemoval } from '@/hooks/use-media-removal'
 import { attachLeadAssetsAction, removeLeadAssetAction } from '@/lib/actions/lead-assets'
 import { getInvestmentAssetIds } from '@/lib/queries/investment-asset-ids'
+import { settleAction } from '@/lib/utils/settle-action'
 import {
   LEAD_ASSET_PREVIEW_LABELS,
   LEAD_ASSET_STRIP_GRID,
@@ -72,7 +73,7 @@ export function LeadAssetsDialog({ lead, investments }: PropsT) {
 
     let cancelled = false
     setAttachedIds(null)
-    void getInvestmentAssetIds(target).then((result) => {
+    void settleAction(() => getInvestmentAssetIds(target)).then((result) => {
       if (cancelled || !result.success) return
       setAttachedIds(new Set(result.data))
     })

@@ -36,6 +36,7 @@ import { STAGE_HEADER_COPY } from '@/components/kosztorys/editor/grid/stage-head
 import { isActiveRef } from '@/lib/utils/is-active-ref'
 import type { WorkerRefT } from '@/types/reference-data'
 import { formatPLN } from '@/lib/utils/format-currency'
+import { settleTreeReplace } from '@/lib/kosztorys/settle-tree-replace'
 import { toastMessage } from '@/lib/utils/toast'
 import type { OnTreeReplacedT } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
@@ -90,27 +91,18 @@ export function SheetImportDialog({
 
   function handleConfirm() {
     startTransition(async () => {
-      let refetch = false
-      try {
-        const result = await applyKosztorysImport(
-          investmentId,
-          plane === NO_PLANE ? null : plane,
-          workerId,
-        )
-        if (!result.success) {
-          toastMessage(result.error, 'error', 6000)
-          return
-        }
-        const { sections, items, stages } = result.data
-        toastMessage(`Wczytano: ${sections} sekcji · ${items} prac · ${stages} etapów`, 'success')
-      } catch {
-        // A transport-level rejection can arrive AFTER the replacement committed, so the grid may
-        // already hold rows that no longer exist.
-        toastMessage('Pobieranie przerwane — odświeżam kosztorys', 'error', 6000)
-        refetch = true
-      }
+      const replaced = await settleTreeReplace(
+        () => applyKosztorysImport(investmentId, plane === NO_PLANE ? null : plane, workerId),
+        'Pobieranie przerwane — odświeżam kosztorys',
+        ({ data: { sections, items, stages } }) =>
+          toastMessage(
+            `Wczytano: ${sections} sekcji · ${items} prac · ${stages} etapów`,
+            'success',
+          ),
+      )
+      if (!replaced) return
       onOpenChange(false)
-      onImported({ refetch })
+      onImported(replaced)
     })
   }
 

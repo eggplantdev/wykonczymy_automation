@@ -461,36 +461,36 @@ Run once, after the final phase:
 
 #### Automated
 
-- [ ] 1.1 `pnpm exec vitest run src/__tests__/lib/utils/settle-action.test.ts` passes
+- [x] 1.1 `pnpm exec vitest run src/__tests__/lib/utils/settle-action.test.ts` passes — c3794d63
 
 ### Phase 2: Kosztorys autosave lanes and settings
 
 #### Automated
 
-- [ ] 2.1 save-lanes, optimistic-setting-save and use-debounced-save specs pass
+- [x] 2.1 save-lanes, optimistic-setting-save and use-debounced-save specs pass — 621b62f4
 
 ### Phase 3: Editor structural operations
 
 #### Automated
 
-- [ ] 3.1 use-kosztorys-editor-request-failed and use-kosztorys-itemless-sections specs pass
+- [x] 3.1 use-kosztorys-editor-request-failed and use-kosztorys-itemless-sections specs pass — 388f0892
 
 ### Phase 4: Tree-replacing dialogs and the versions drawer
 
 #### Automated
 
-- [ ] 4.1 sheet-import-dialog, kosztorys-versions-drawer and clean-item-texts-action specs pass
+- [x] 4.1 sheet-import-dialog, kosztorys-versions-drawer and clean-item-texts-action specs pass — 0c258662
 
 ### Phase 5: Remaining call sites
 
 #### Automated
 
-- [ ] 5.1 cancel-transfer-button and login-form specs pass
+- [x] 5.1 cancel-transfer-button and login-form specs pass — 2e7b5dd4
 
 ### Phase 6: ESLint guard
 
 #### Automated
 
-- [ ] 6.1 `pnpm lint` passes
-- [ ] 6.2 The rule fires on a probe `await fooAction()` in a component
-- [ ] 6.3 `process.env.X` in a component is still reported
+- [x] 6.1 `pnpm lint` passes — 25167725
+- [x] 6.2 The rule fires on a probe `await fooAction()` in a component — 25167725
+- [x] 6.3 `process.env.X` in a component is still reported — 25167725

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { SelectItem } from '@/components/ui/select'
 import { createWarehouseAction } from '@/lib/actions/warehouses'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import type { FormWithFieldT } from '@/components/forms/hooks/form-hooks'
 import type { WarehouseOptionT } from '@/lib/equipment/types'
@@ -32,7 +33,7 @@ export function WarehouseField({ form, warehouses }: WarehouseFieldPropsT) {
     if (!name || saving) return
 
     startSaving(async () => {
-      const result = await createWarehouseAction(name)
+      const result = await settleAction(() => createWarehouseAction(name))
       if (!result.success) {
         toastMessage(result.error, 'error')
         return
