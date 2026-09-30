@@ -500,6 +500,10 @@ lock only via a refused save.
   the blocker, `cancelled IS NOT TRUE`).
 - The form takes `isOwnerLocked`.
 
+> **Addendum (review gate, 2026-09-30):** built differently. The edit dialog lives on `/kasa/[id]`,
+> not on the `/kasy` rows, so the page computes `isOwnerLocked` from `cashRegisterDeleteBlocker` —
+> the same predicate the update guard enforces. No `isUsed` column and no `selectUsedRegisterIds`.
+
 #### 5. Docs
 
 **Files**:
@@ -573,8 +577,8 @@ See the Phase 4 Manual Verification.
 
 ## Performance Considerations
 
-`fetchReferenceData` keeps one query; the partition happens in JS. The `/kasy` `isUsed` flag is one
-grouped `SELECT DISTINCT` over `transactions` by register. That is fine at ~4k transactions and 38 kasy.
+`fetchReferenceData` keeps one query; the partition happens in JS. The owner lock is one count for
+the one kasa `/kasa/[id]` shows.
 
 ## Migration Notes
 
