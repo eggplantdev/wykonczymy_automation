@@ -286,7 +286,16 @@ describe('subcontractorDueByPlane — shared etapy', () => {
           name: 'Sekcja A',
           displayOrder: 0,
           color: null,
-          items: [{ ...baseItem, id: 1, plannedQty: 1, wToolsOverrideValue: 32593.76 }],
+          items: [
+            {
+              ...baseItem,
+              id: 1,
+              description: 'A',
+              plannedQty: 1,
+              clientPrice: 0,
+              wToolsOverrideValue: 32593.76,
+            },
+          ],
         },
       ],
       stages: [{ id: 100, ordinal: 1, label: null, plane: 'w_tools', split }],
