@@ -2766,3 +2766,5 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
 - [ ] /zaloguj offline → „Zaloguj": komunikat pod formularzem, przycisk wraca do „Zaloguj".
 - [ ] Sidebar „Odśwież dane" offline: toast błędu, brak strony błędu.
 - [ ] Formularz wydatku → „Dodaj magazyn" offline: toast błędu, brak strony błędu.
+- [ ] Kosztorys → menu inwestora → „Udostępnij" offline (pierwszy raz dla tej inwestycji): toast „Brak połączenia z serwerem…", nic nie trafia do schowka, brak strony błędu.
+- [ ] „Wczytaj szablon…" i „Pobierz z arkusza Google…" → potwierdź offline: „…przerwane — odświeżam kosztorys", okno się zamyka; po powrocie sieci siatka pokazuje prawdziwy stan.
