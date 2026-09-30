@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
-import type { ExtraWorkT } from '@/components/kosztorys/worker-report/types'
+import { extraState } from '@/components/kosztorys/worker-report/extra-state'
 import type { useReportDraft } from '@/components/kosztorys/worker-report/use-report-draft'
 import { parseReportQty } from '@/lib/kosztorys/worker-report/parse-report-qty'
 import { sendWorkerReportAction } from '@/lib/actions/worker-report'
@@ -19,16 +19,6 @@ type PropsT = {
   data: WorkerReportFormDataT
   draft: ReturnType<typeof useReportDraft>
   onSent: (sent: SentT) => void
-}
-
-// An untouched row added on the grid is skipped like an empty pozycja; a half-filled one blocks the
-// send, since dropping it silently would lose work he meant to report.
-function extraState(extra: ExtraWorkT): 'blank' | 'complete' | 'invalid' {
-  const qty = parseReportQty(extra.qty)
-  if (extra.description.trim() === '' && extra.unit === '' && qty.kind === 'empty') return 'blank'
-  if (extra.description.trim() !== '' && extra.unit !== '' && qty.kind === 'value')
-    return 'complete'
-  return 'invalid'
 }
 
 export function SendBar({ token, data, draft, onSent }: PropsT) {
@@ -84,9 +74,7 @@ export function SendBar({ token, data, draft, onSent }: PropsT) {
   return (
     <>
       <div className="flex items-center gap-3">
-        {hasInvalid && (
-          <p className="text-destructive text-sm whitespace-nowrap">Popraw błędne ilości</p>
-        )}
+        {hasInvalid && <p className="text-destructive text-sm whitespace-nowrap">Popraw błędy</p>}
         <Button
           disabled={lineCount === 0 || hasInvalid || isSending}
           onClick={() => setIsConfirmOpen(true)}

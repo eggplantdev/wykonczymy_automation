@@ -2775,6 +2775,9 @@ Link zbudowany na stagingu wskazuje na produkcję — przed otwarciem podmień h
       1280px wszystko w jednej linii. Przycisk pod wierszami to „Dodaj więcej”.
 - [ ] Po dodaniu pracy spoza rozpiski (z opisem) pod tabelą, nad „Wyślij”, jest sekcja „Prace spoza
       rozpiski” z opisem, ilością i j.m.; pusty wiersz się w niej nie pokazuje, a po wysłaniu znika.
+- [ ] „Nowa praca”: wpisz sam opis (bez j.m. i ilości) → „Gotowe”, Esc i kliknięcie obok nie
+      zamykają okna; pojawia się „Popraw błędy — …”, a brakujące pola są czerwone. Po uzupełnieniu
+      albo usunięciu wiersza okno się zamyka. Przy „Wyślij” błędna ilość w tabeli daje „Popraw błędy”.
 - [ ] Zakończona inwestycja: link pokazuje komunikat zamiast formularza, a wysyłka z wcześniej
       otwartej strony jest odrzucona.
 - [ ] Szkic z wpisami, potem „Wyczyść kosztorys” u kierownika: po odświeżeniu link pokazuje „N pozycji

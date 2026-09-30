@@ -49,6 +49,7 @@ type PropsT = {
   variant?: SelectVariantT
   // Merged onto the trigger after the variant preset — call sites tune width/text here (e.g. "w-fit").
   className?: string
+  invalid?: boolean
 }
 
 // Options-array shorthand for the common Select shape (trigger + value + mapped items). For
@@ -61,16 +62,21 @@ export function SimpleSelect({
   disabled,
   variant = 'default',
   className,
+  invalid,
 }: PropsT) {
   const preset = VARIANT[variant]
   return (
     <Select value={value} onValueChange={onValueChange} disabled={disabled}>
       {preset.buttonTrigger ? (
-        <SelectButtonTrigger className={cn(preset.className, className)}>
+        <SelectButtonTrigger aria-invalid={invalid} className={cn(preset.className, className)}>
           <SelectValue placeholder={placeholder} />
         </SelectButtonTrigger>
       ) : (
-        <SelectTrigger size={preset.size} className={cn(preset.className, className)}>
+        <SelectTrigger
+          size={preset.size}
+          aria-invalid={invalid}
+          className={cn(preset.className, className)}
+        >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
       )}
