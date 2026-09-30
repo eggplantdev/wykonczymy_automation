@@ -2689,3 +2689,23 @@ Stan: dowolny rekord do edycji; „nieudany zapis" = DevTools → Network → Of
 - [ ] Kosztorys → wiersz → „Dodaj do katalogu" (albo „Edytuj w katalogu") → zmień kategorię i stawkę → offline → „Dodaj": polski toast błędu, okno zostaje otwarte z wpisanymi wartościami; po powrocie sieci ponowne „Dodaj" zapisuje i zamyka okno.
 - [ ] To samo w „Edytuj pojazd", „Edytuj transakcję" (z dołączonym plikiem faktury) i „Edytuj pozycję katalogu": po błędzie okno otwarte, pola i plik na miejscu.
 - [ ] Zapis z siecią w dowolnym z tych okien: przycisk pokazuje „Zapisywanie...", okno zamyka się po chwili, zmiana widać na liście bez przeładowania.
+
+## EX-909 — szablony-plain-revalidation
+
+- [ ] Szablony kosztorysów → „Nowy szablon" → nazwa → „Załóż" → otwiera się nowy szablon, bez
+      mignięcia „Nie znaleziono" po drodze; wróć przyciskiem „Wstecz" przeglądarki (bez
+      odświeżania) → nowy szablon jest na liście.
+- [ ] To samo, ale wróć przyciskiem „Wróć" na stronie szablonu → nowy szablon jest na liście.
+- [ ] Załóż szablon o nazwie, która już istnieje → komunikat „Szablon o tej nazwie już istnieje",
+      okno zostaje otwarte, lista bez zmian.
+- [ ] W szablonie zmień „Cena j.m. netto" pozycji, wróć do listy szablonów → ten szablon jest na
+      górze listy (ostatnio edytowany); edycja komórki nie powoduje mignięcia ani przeładowania
+      strony szablonu.
+- [ ] To samo w szablonie z ~1000 pozycji: zapis komórki bez widocznego opóźnienia względem małego
+      szablonu.
+- [ ] Otwórz szablon z listy → w górnym pasku nazwa szablonu i „Wróć"; zmień nazwę szablonu na
+      liście → po wejściu w niego pasek i tytuł pokazują nową nazwę.
+- [ ] Wpisz ręcznie adres nieistniejącego szablonu (`/szablony/999999`) → „Nie znaleziono"; tak samo
+      dla szablonu przeniesionego do kosza.
+- [ ] Zalogowany jako pracownik (EMPLOYEE) → adres `/szablony/<id>` istniejącego szablonu: w górnym
+      pasku nie ma nazwy szablonu.
