@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Columns3, FolderPlus, Hammer, LibraryBig, ListChecks, Plus } from 'lucide-react'
+import { FolderPlus, Hammer, LibraryBig, ListChecks, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -13,9 +13,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useCataloguePicker } from '@/components/kosztorys/editor/actions/catalogue-picker-host'
-import { AddStageDialog } from '@/components/kosztorys/editor/dialogs/add-stage-dialog'
 import { AddSectionsFromPresetDialog } from '@/components/kosztorys/editor/dialogs/preset/add-sections-from-preset-dialog'
+import { planeIcon } from '@/components/kosztorys/editor/plane-icons'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
+import { PLANE_LABELS } from '@/lib/kosztorys/labels'
+import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 
 export function KosztorysAddMenu() {
   const {
@@ -24,13 +26,17 @@ export function KosztorysAddMenu() {
     handleAddItem,
     handleAddSection,
     handleAppendedSections,
+    handleAddStage,
+    stages,
     isTemplate,
   } = useKosztorysEditorContext()
   const openCataloguePicker = useCataloguePicker()
   // Owned here, OUTSIDE the dropdown content: the menu unmounts on close, so a dialog rendered inside
   // it would unmount before it could open.
   const [presetDialogOpen, setPresetDialogOpen] = useState(false)
-  const [stageDialogOpen, setStageDialogOpen] = useState(false)
+  // `stages` is ordinal-ordered, so this is the right-most etap.
+  const lastStage = stages.at(-1)
+  const lastPlane = lastStage?.plane
 
   return (
     <>
@@ -79,12 +85,26 @@ export function KosztorysAddMenu() {
             Praca z katalogu…
           </DropdownMenuItem>
           {/* A szablon carries no etapy, so the workbench has nothing to open one on. */}
-          {!isTemplate && (
-            <DropdownMenuItem onSelect={() => setStageDialogOpen(true)}>
-              <Columns3 />
-              Etap…
-            </DropdownMenuItem>
-          )}
+          {/* Etapy are opened one after another for the same crew on the same terms, so a new one
+              copies the last one's rozliczenie and wykonawca — both stay editable in its header.
+              With nothing to copy the rozliczenie is picked here, never defaulted: it decides which
+              crew's stawka prices every quantity booked into the etap. */}
+          {!isTemplate &&
+            (lastPlane ? (
+              <DropdownMenuItem
+                onSelect={() => handleAddStage(lastPlane, lastStage?.workerId ?? null)}
+              >
+                {planeIcon(lastPlane)}
+                Etap
+              </DropdownMenuItem>
+            ) : (
+              TOOL_PLANES.map((plane) => (
+                <DropdownMenuItem key={plane} onSelect={() => handleAddStage(plane, null)}>
+                  {planeIcon(plane)}
+                  Etap — {PLANE_LABELS[plane].toLowerCase()}
+                </DropdownMenuItem>
+              ))
+            ))}
           <DropdownMenuItem onSelect={handleAddSection}>
             <FolderPlus />
             Sekcja
@@ -101,7 +121,6 @@ export function KosztorysAddMenu() {
         onOpenChange={setPresetDialogOpen}
         onAppended={handleAppendedSections}
       />
-      <AddStageDialog open={stageDialogOpen} onOpenChange={setStageDialogOpen} />
     </>
   )
 }
