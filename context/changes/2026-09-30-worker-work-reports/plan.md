@@ -905,17 +905,17 @@ The full `pnpm test` runs only when the user asks.
 
 #### Automated
 
-- [x] 3.1 Accept action DB spec
-- [x] 3.2 `drain` unit spec
-- [x] 3.3 Acceptance hook DOM spec
-- [x] 3.4 External-change reload DOM spec
+- [x] 3.1 Accept action DB spec — 99936d8e
+- [x] 3.2 `drain` unit spec — 99936d8e
+- [x] 3.3 Acceptance hook DOM spec — 99936d8e
+- [x] 3.4 External-change reload DOM spec — 99936d8e
 
 ### Phase 4: Surfacing — nav, count, deep link
 
 #### Automated
 
-- [ ] 4.1 Badge boundary DOM spec
-- [ ] 4.2 Toolbar button DOM spec
+- [x] 4.1 Badge boundary DOM spec
+- [x] 4.2 Toolbar button DOM spec
 
 ### Phase 5: Owed layout and editor seams
 

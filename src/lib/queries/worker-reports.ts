@@ -7,8 +7,10 @@ import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { getDb } from '@/lib/db/get-db'
 import {
   countPendingForInvestment,
+  listPendingReports,
   listWorkerReports,
   readWorkerReport,
+  type PendingReportRowT,
   type WorkerReportLineRowT,
   type WorkerReportRowT,
 } from '@/lib/db/worker-reports'
@@ -38,6 +40,10 @@ export async function readInvestmentReport(
   const found = await readWorkerReport(db, investmentId, reportId)
   if (!found) return undefined
   return { ...toSummary(found.report), lines: found.lines.map(toLine) }
+}
+
+export async function listAllPendingReports(): Promise<PendingReportRowT[]> {
+  return listPendingReports(await managementDb())
 }
 
 export async function countInvestmentPendingReports(investmentId: number): Promise<number> {

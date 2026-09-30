@@ -5,12 +5,14 @@ import {
   countUnreadLeads,
   countUnreadWarranties,
 } from '@/lib/db/notifications'
+import { getDb } from '@/lib/db/get-db'
+import { countPendingReports } from '@/lib/db/worker-reports'
 import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
 import { isManagementRole } from '@/lib/auth/roles'
 import { warsawToday } from '@/lib/utils/days'
 import type { UnreadCountsT } from '@/types/notifications'
 
-const NONE: UnreadCountsT = { leads: 0, fleet: 0, equipment: 0 }
+const NONE: UnreadCountsT = { leads: 0, fleet: 0, equipment: 0, workReports: 0 }
 
 /**
  * Reads the session itself rather than taking a `userId`/`role` pair: a caller-supplied identity is one
@@ -24,11 +26,12 @@ export async function fetchUnreadCounts(): Promise<UnreadCountsT> {
   const payload = await getPayload({ config })
   const today = warsawToday()
 
-  const [leads, fleet, equipment] = await Promise.all([
+  const [leads, fleet, equipment, workReports] = await Promise.all([
     countUnreadLeads(payload, user.id),
     countUnreadFleetDeadlines(payload, user.id, today),
     countUnreadWarranties(payload, user.id, today),
+    getDb(payload).then(countPendingReports),
   ])
 
-  return { leads, fleet, equipment }
+  return { leads, fleet, equipment, workReports }
 }
