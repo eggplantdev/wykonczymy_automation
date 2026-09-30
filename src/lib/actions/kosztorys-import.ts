@@ -14,6 +14,7 @@ import {
   buildImportPlan,
   type ImportPlanT,
   type ImportReportT,
+  type StageDefaultsT,
 } from '@/lib/kosztorys/sheet-import/build-import-plan'
 import { buildMeasuredQtyRefresh } from '@/lib/kosztorys/sheet-import/build-measured-qty-refresh'
 import {
@@ -76,14 +77,14 @@ export type ApplyImportResultT = {
 async function derivePlan(
   investmentId: number,
   sheet: InvestmentSheetT,
-  plane: ToolPlaneT | null = null,
+  stageDefaults?: StageDefaultsT,
 ): Promise<ImportPlanT> {
   const grids = await readImportGrids(getReadonlySheetsClient(), sheet.googleSheetId)
   return buildImportPlan(
     grids,
     await serializeKosztorys(investmentId),
     sheet.sheetColumnMapping,
-    plane,
+    stageDefaults,
   )
 }
 
@@ -275,9 +276,12 @@ export async function compareWithSheet(
 // cannot decide what gets written.
 export async function applyKosztorysImport(
   investmentId: number,
-  // Anything but the two planes is read as „nie ustawiaj" rather than refused: a client sending
-  // nonsense here asks for undecided etapy, which is what an import without a pick produces anyway.
+  // A plane other than the two, or a workerId that is not a positive integer, is read as „nie
+  // ustawiaj" rather than refused: a client sending nonsense here asks for undecided etapy, which is
+  // what an import without a pick produces anyway. An id that is no live user is dropped by the tree
+  // insert.
   plane?: ToolPlaneT | null,
+  workerId?: number | null,
 ): Promise<ActionResultT<ApplyImportResultT>> {
   return investmentAction<ApplyImportResultT>(
     'applyKosztorysImport',
@@ -288,11 +292,13 @@ export async function applyKosztorysImport(
 
       let plan: ImportPlanT
       try {
-        plan = await derivePlan(
-          investmentId,
-          sheet,
-          TOOL_PLANES.includes(plane as ToolPlaneT) ? (plane as ToolPlaneT) : null,
-        )
+        plan = await derivePlan(investmentId, sheet, {
+          plane: TOOL_PLANES.includes(plane as ToolPlaneT) ? (plane as ToolPlaneT) : null,
+          workerId:
+            typeof workerId === 'number' && Number.isInteger(workerId) && workerId > 0
+              ? workerId
+              : null,
+        })
       } catch (error) {
         return { success: false, error: sheetFailureMessage(error) }
       }

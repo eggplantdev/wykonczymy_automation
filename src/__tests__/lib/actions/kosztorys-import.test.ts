@@ -102,6 +102,18 @@ describe.skipIf(!ENV_READY)('kosztorys import actions — persisted state (DB)',
     expect(await sectionNames()).toEqual(['Prace dodatkowe', 'Klimatyzacja'])
   })
 
+  it('writes the picked rozliczenie and wykonawca onto every imported etap', async () => {
+    await applyKosztorysImport(investmentId, 'own_tools', authState.userId)
+
+    const stages = await db.execute(sql`
+      SELECT plane, worker_id FROM kosztorys_stages WHERE investment_id = ${investmentId}
+    `)
+    expect(stages.rows.length).toBeGreaterThan(0)
+    expect(stages.rows).toEqual(
+      stages.rows.map(() => ({ plane: 'own_tools', worker_id: authState.userId })),
+    )
+  })
+
   // The bug this pins cost 151 stawki half a percent each and looked deliberate in the editor: the
   // import hands a praca running at the cennik's own markup to the global coefficient („auto"), but
   // `replaceTreeWithSnapshot` overwrote the plan's settings with the investment's live ones — so

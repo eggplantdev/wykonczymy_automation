@@ -672,7 +672,7 @@ export function KosztorysEditorBody({
                 document.body,
               )}
             {/* One instance for both triggers — the „Opcje" menu and the empty-kosztorys screen. */}
-            {!preview && <SheetImportDialog {...importDialogProps} />}
+            {!preview && <SheetImportDialog {...importDialogProps} workers={editor.workers} />}
             {/* Rendered here, not next to the pickers: the same confirm stands in front of the inline
             controls in „Podsumowanie"/„Materiały" and of their twins in „Opcje rozliczenia". */}
             {!preview && <ConfirmDialog {...editor.investorImpactConfirm} />}

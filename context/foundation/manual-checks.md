@@ -2634,3 +2634,19 @@ Każdy boks: po kliknięciu zmiana widoczna **bez przeładowania**, a w Network 
 - [ ] Z domyślną kasą „Aktualne saldo" pojawia się bez dotykania „Kasa"; zmiana kasy odświeża saldo;
       „Saldo po wypłacie" jest mniejsze o „Razem".
 - [ ] Po wypłacie nigdzie (opis przelewu, historia) nie widać kwoty do rozdysponowania.
+## 2026-09-30 — import z arkusza ustawia jednego wykonawcę wszystkim etapom
+
+- [ ] Inwestycja z arkuszem → „Importuj z arkusza": w bloku „Rozliczenie i wykonawca etapów" obok
+      rozliczenia jest wybór pracownika / ekipy; dopóki rozliczenie to „Nie ustawiaj", wybór
+      wykonawcy jest wyszarzony.
+- [ ] Wybierz rozliczenie i pracownika → „Pobierz i zastąp": każdy zaimportowany etap ma to
+      rozliczenie i tego pracownika w nagłówku; po odświeżeniu strony nadal.
+- [ ] Wybierz pracownika, potem wróć rozliczeniem na „Nie ustawiaj" → import: etapy wchodzą bez
+      rozliczenia i „Bez przypisania".
+- [ ] Wybierz pracownika → „Anuluj" → otwórz import ponownie: oba pola wracają do „Nie ustawiaj" /
+      „Bez przypisania".
+- [ ] Lista pracowników w imporcie pokazuje tylko aktywnych.
+- [ ] Rozwijane listy z wyszukiwarką w innych miejscach (np. pole inwestycji / pracownika w
+      formularzu wydatku, okno zdjęć leada) otwierają się na szerokość swojego pola i nic w nich
+      nie jest ucięte.
+
