@@ -18,6 +18,35 @@ export type CataloguePlacementT = {
   nextDisplayOrder: number
 }
 
+// What a praca is made of before it has a place: the cena and the pair of kolumny per płaszczyzna,
+// at most one of them set. A katalog entry and a praca typed into „Nowa praca" both reduce to this.
+export type ItemFieldsT = Pick<
+  KosztorysItemT,
+  | 'description'
+  | 'unit'
+  | 'clientPrice'
+  | 'wToolsOverrideValue'
+  | 'ownToolsOverrideValue'
+  | 'wToolsOverrideCoeff'
+  | 'ownToolsOverrideCoeff'
+>
+
+export const itemFromFields = (
+  fields: ItemFieldsT,
+  sectionId: number,
+  displayOrder: number,
+): KosztorysItemT => ({
+  ...fields,
+  id: 0,
+  sectionId,
+  displayOrder,
+  plannedQty: 0,
+  sheetMeasuredQty: null,
+  discountType: null,
+  discountValue: 0,
+  note: null,
+})
+
 // Both sides model the stawka the same way — the same pair of kolumny, the same trzy źródła — so a
 // katalog „auto" stays „auto" and derives from THIS investment's global współczynnik, a kwota stała
 // arrives verbatim, and a mnożnik arrives as a mnożnik and re-prices itself off the cena j.m. it
@@ -27,23 +56,35 @@ export const catalogueEntryAsItem = (
   catalogueItem: WorkCatalogueItemT,
   sectionId: number,
   displayOrder: number,
-): KosztorysItemT => ({
-  id: 0,
-  sectionId,
-  displayOrder,
-  description: catalogueItem.description,
-  unit: catalogueItem.unit,
-  plannedQty: 0,
-  sheetMeasuredQty: null,
-  discountType: null,
-  discountValue: 0,
-  clientPrice: catalogueItem.clientPrice,
-  wToolsOverrideValue: catalogueItem.wToolsRate,
-  ownToolsOverrideValue: catalogueItem.ownToolsRate,
-  wToolsOverrideCoeff: catalogueItem.wToolsRateCoeff,
-  ownToolsOverrideCoeff: catalogueItem.ownToolsRateCoeff,
-  note: null,
-})
+): KosztorysItemT =>
+  itemFromFields(
+    {
+      description: catalogueItem.description,
+      unit: catalogueItem.unit,
+      clientPrice: catalogueItem.clientPrice,
+      wToolsOverrideValue: catalogueItem.wToolsRate,
+      ownToolsOverrideValue: catalogueItem.ownToolsRate,
+      wToolsOverrideCoeff: catalogueItem.wToolsRateCoeff,
+      ownToolsOverrideCoeff: catalogueItem.ownToolsRateCoeff,
+    },
+    sectionId,
+    displayOrder,
+  )
+
+// The ceiling WARNS and does not block: a price the owner entered on purpose must not be refused by
+// the row it lands in, but he still gets told which praca crossed it.
+//
+// `asViewPricing` supplies zero globals, which is inert here: the guard judges a stawka this wiersz
+// authored, and neither of those two źródła reads a global — a kwota is frozen, a mnożnik prices off
+// the cena j.m. So it needs no investment context to reach its verdict.
+export const ceilingWarnings = (items: readonly KosztorysItemT[]): string[] =>
+  items.flatMap((item) => {
+    const pricing = asViewPricing(item)
+    const problems = TOOL_PLANES.flatMap(
+      (plane) => checkSubcontractorPrice(pricing, plane)?.message ?? [],
+    )
+    return problems.map((problem) => `„${item.description}": ${problem}`)
+  })
 
 /**
  * Write cennik pozycje into a sekcja starting at `nextDisplayOrder`. THE CALLER OWNS THE TRANSACTION.
@@ -52,9 +93,6 @@ export const catalogueEntryAsItem = (
  * `shiftDisplayOrderFrom` moves the tail by exactly +1, so an insert-at of N rows would silently
  * collide. Each row gets `next + i` — DISTINCT display_orders, because `insertItems` maps RETURNING
  * ids back by `(section_id, display_order)` and degrades to positional order on a tie.
- *
- * The ceiling WARNS and does not block: a katalog price the owner entered on purpose must not be
- * refused by the row it is being copied into, but he still gets told which praca crossed it.
  */
 export async function placeCatalogueItems(
   db: DbExecutorT,
@@ -65,17 +103,7 @@ export async function placeCatalogueItems(
   const items = catalogueItems.map((catalogueItem, i) =>
     catalogueEntryAsItem(catalogueItem, sectionId, placement.nextDisplayOrder + i),
   )
-
-  // `asViewPricing` supplies zero globals, which is inert here: the guard judges a stawka this wiersz
-  // authored, and neither of those two źródła reads a global — a kwota is frozen, a mnożnik prices off
-  // the cena j.m. So it needs no investment context to reach its verdict.
-  const warnings = items.flatMap((item) => {
-    const pricing = asViewPricing(item)
-    const problems = TOOL_PLANES.flatMap(
-      (plane) => checkSubcontractorPrice(pricing, plane)?.message ?? [],
-    )
-    return problems.map((problem) => `„${item.description}": ${problem}`)
-  })
+  const warnings = ceilingWarnings(items)
 
   const newIds = await insertItems(
     db,

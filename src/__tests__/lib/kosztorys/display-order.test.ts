@@ -3,6 +3,7 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment } from '@/__tests__/helpers/investment'
+import { appendAt, insertNextTo } from '@/__tests__/helpers/new-item-input'
 
 // The display_order mechanics sections and items now share (EX-578), driven against the REAL DB and
 // asserting PERSISTED order, not an action's return value — a success result can hide a failed write.
@@ -30,7 +31,6 @@ vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalida
 const {
   addItemAction,
   addSectionAction,
-  insertItemAction,
   insertSectionAction,
   removeItemAction,
   removeSectionAction,
@@ -151,24 +151,24 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
       if (!section.success) return
       const sectionId = section.data.section.id
 
-      await addItemAction(sectionId)
-      await addItemAction(sectionId)
-      await addItemAction(sectionId)
+      await addItemAction(appendAt(sectionId))
+      await addItemAction(appendAt(sectionId))
+      await addItemAction(appendAt(sectionId))
       const before = await itemIdsInOrder(sectionId)
       expect(await itemOrders(sectionId)).toEqual([0, 1, 2])
 
-      const inserted = await insertItemAction(before[0], 'below')
+      const inserted = await addItemAction(insertNextTo(before[0], 'below'))
       expect(inserted.success).toBe(true)
       if (!inserted.success) return
 
       // The old 1,2 became 2,3 and the new row took 1 — no gap, no collision.
       expect(await itemOrders(sectionId)).toEqual([0, 1, 2, 3])
-      expect(await itemOrderById(inserted.data.id)).toBe(1)
+      expect(await itemOrderById(inserted.data.item.id)).toBe(1)
       // The tail keeps its RELATIVE order — a shift that renumbered 1,2 as 3,2 would still read
       // [0,1,2,3] above.
       expect(await itemIdsInOrder(sectionId)).toEqual([
         before[0],
-        inserted.data.id,
+        inserted.data.item.id,
         before[1],
         before[2],
       ])
@@ -231,17 +231,17 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
       expect(section.success).toBe(true)
       if (!section.success) return
       const sectionId = section.data.section.id
-      await addItemAction(sectionId)
-      const second = await addItemAction(sectionId)
-      const third = await addItemAction(sectionId)
+      await addItemAction(appendAt(sectionId))
+      const second = await addItemAction(appendAt(sectionId))
+      const third = await addItemAction(appendAt(sectionId))
       expect([second.success, third.success]).toEqual([true, true])
       if (!second.success || !third.success) return
 
-      const swapped = await swapItemOrderAction(second.data.id, 'down')
+      const swapped = await swapItemOrderAction(second.data.item.id, 'down')
       expect(swapped.success).toBe(true)
 
-      expect(await itemOrderById(second.data.id)).toBe(2)
-      expect(await itemOrderById(third.data.id)).toBe(1)
+      expect(await itemOrderById(second.data.item.id)).toBe(2)
+      expect(await itemOrderById(third.data.item.id)).toBe(1)
       const orders = await itemOrders(sectionId)
       expect(new Set(orders).size).toBe(orders.length)
     })
@@ -254,20 +254,20 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
       expect(section.success).toBe(true)
       if (!section.success) return
       const sectionId = section.data.section.id
-      await addItemAction(sectionId)
-      const middle = await addItemAction(sectionId)
-      const last = await addItemAction(sectionId)
+      await addItemAction(appendAt(sectionId))
+      const middle = await addItemAction(appendAt(sectionId))
+      const last = await addItemAction(appendAt(sectionId))
       expect([middle.success, last.success]).toEqual([true, true])
       if (!middle.success || !last.success) return
       const [first] = await itemIdsInOrder(sectionId)
 
-      await removeItemAction(middle.data.id)
+      await removeItemAction(middle.data.item.id)
       expect(await itemOrders(sectionId)).toEqual([0, 2])
 
-      const swapped = await swapItemOrderAction(last.data.id, 'up')
+      const swapped = await swapItemOrderAction(last.data.item.id, 'up')
       expect(swapped.success).toBe(true)
 
-      expect(await itemIdsInOrder(sectionId)).toEqual([last.data.id, first])
+      expect(await itemIdsInOrder(sectionId)).toEqual([last.data.item.id, first])
     })
 
     it('is a successful no-op at either end of a section', async () => {
@@ -276,8 +276,8 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
       expect(section.success).toBe(true)
       if (!section.success) return
       const sectionId = section.data.section.id
-      await addItemAction(sectionId)
-      const second = await addItemAction(sectionId)
+      await addItemAction(appendAt(sectionId))
+      const second = await addItemAction(appendAt(sectionId))
       expect(second.success).toBe(true)
       if (!second.success) return
       const before = await itemIdsInOrder(sectionId)
@@ -297,8 +297,8 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
       const second = await addSectionAction(investmentId)
       expect([first.success, second.success]).toEqual([true, true])
       if (!first.success || !second.success) return
-      await addItemAction(first.data.section.id)
-      await addItemAction(second.data.section.id)
+      await addItemAction(appendAt(first.data.section.id))
+      await addItemAction(appendAt(second.data.section.id))
       const [firstSectionItem] = await itemIdsInOrder(first.data.section.id)
       const secondSectionBefore = await itemIdsInOrder(second.data.section.id)
 
@@ -378,11 +378,11 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
       expect(section.success).toBe(true)
       if (!section.success) return
       const sectionId = section.data.section.id
-      await addItemAction(sectionId)
+      await addItemAction(appendAt(sectionId))
 
       // Ids ascending but display_order descending after the swaps below — the shift's scan order
       // and the swap's id order then disagree, which is the arrangement that deadlocks.
-      const created = [await addItemAction(sectionId), await addItemAction(sectionId)]
+      const created = [await addItemAction(appendAt(sectionId)), await addItemAction(appendAt(sectionId))]
       expect(created.map((r) => r.success)).toEqual([true, true])
       const [a, b] = created
       if (!a.success || !b.success) return
@@ -392,8 +392,8 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
       // (an insert can land between a swap's neighbour read and its write), so distinctness is not a
       // property it guarantees. A deadlock is — it aborts a transaction outright.
       const racing = Array.from({ length: 12 }, (_, index) => index).flatMap((round) => [
-        swapItemOrderAction(a.data.id, round % 2 === 0 ? 'down' : 'up'),
-        insertItemAction(b.data.id, 'above'),
+        swapItemOrderAction(a.data.item.id, round % 2 === 0 ? 'down' : 'up'),
+        addItemAction(insertNextTo(b.data.item.id, 'above')),
       ])
       const results = await Promise.all(racing)
 
@@ -415,7 +415,7 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
       const [sectionA, sectionB] = [first.data.section.id, second.data.section.id]
 
       for (const sectionId of [sectionA, sectionA, sectionB, sectionB])
-        await addItemAction(sectionId)
+        await addItemAction(appendAt(sectionId))
       const [a0, a1] = await itemIdsInOrder(sectionA)
       const [b0, b1] = await itemIdsInOrder(sectionB)
 
@@ -437,17 +437,17 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
       if (!section.success) return
       const sectionId = section.data.section.id
 
-      await addItemAction(sectionId)
-      await addItemAction(sectionId)
+      await addItemAction(appendAt(sectionId))
+      await addItemAction(appendAt(sectionId))
       const [i0, i1] = await itemIdsInOrder(sectionId)
-      const doomed = await addItemAction(sectionId)
+      const doomed = await addItemAction(appendAt(sectionId))
       expect(doomed.success).toBe(true)
       if (!doomed.success) return
-      await removeItemAction(doomed.data.id)
+      await removeItemAction(doomed.data.item.id)
 
       // The reversal is valid on its own; the deleted third id is what must sink it. If the guard
       // and the bake were two statements, the first two rows would already be renumbered here.
-      const baked = await renumberKosztorysOrderAction(investmentId, [i1, i0, doomed.data.id])
+      const baked = await renumberKosztorysOrderAction(investmentId, [i1, i0, doomed.data.item.id])
       expect(baked.success).toBe(false)
       expect(await itemIdsInOrder(sectionId)).toEqual([i0, i1])
     })
@@ -459,7 +459,7 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
       const theirSection = await addSectionAction(theirs)
       expect([mySection.success, theirSection.success]).toEqual([true, true])
       if (!mySection.success || !theirSection.success) return
-      await addItemAction(theirSection.data.section.id)
+      await addItemAction(appendAt(theirSection.data.section.id))
 
       const [theirItem] = await itemIdsInOrder(theirSection.data.section.id)
       const baked = await renumberKosztorysOrderAction(mine, [theirItem])
