@@ -929,4 +929,4 @@ The full `pnpm test` runs only when the user asks.
 
 #### Automated
 
-- [x] 6.1 Docs updated (lessons 253, AGENTS.md phone scope, domain notes)
+- [x] 6.1 Docs updated (lessons 253, AGENTS.md phone scope, domain notes) — 17ec2f5d

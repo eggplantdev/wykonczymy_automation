@@ -1,7 +1,7 @@
 ---
 change_id: worker-work-reports
 title: Workers report executed quantities in their etapy; a manager verifies and accepts them
-status: implementing
+status: implemented
 created: 2026-09-30
 updated: 2026-09-30
 archived_at: null

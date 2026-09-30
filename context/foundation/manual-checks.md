@@ -2750,3 +2750,60 @@ Stan: dowolny rekord do edycji; „nieudany zapis" = DevTools → Network → Of
       „Nieprzypisane" z 0,00 zł.
 - [ ] Dialog „Pracownicy etapu…": wartość z trzema miejscami po przecinku (np. 33,335%) nie daje się
       zapisać; 33,33% się zapisuje i po odświeżeniu strony zostaje 33,33%.
+
+## EX-947 — worker-work-reports — pracownik zgłasza ilości, kierownik przyjmuje (2026-09-30)
+
+Link zbudowany na stagingu wskazuje na produkcję — przed otwarciem podmień host na staging.
+
+**Pracownik**
+
+- [ ] „Pracownicy” → pracownik z etapem → „Link do zgłoszeń”: wygeneruj, skopiuj, odwołaj. Dla
+      pracownika bez etapu link jest zablokowany.
+- [ ] Link w prywatnym oknie przy 390px: formularz się pokazuje, wpisane ilości przeżywają
+      odświeżenie, „Wyślij do weryfikacji” zapisuje zgłoszenie, czyści szkic, a na liście zgłoszeń
+      pojawia się „czeka”.
+- [ ] „Ograniczona rozpiska” przy 390px: tylko „Opis prac” i „Zgłaszam”; przy 1280px: Lp, „Opis
+      prac”, j.m. i „Zgłaszam”.
+- [ ] „Wszystkie kolumny”: strona przewija się w bok, nagłówek tabeli trzyma się góry, siatka nie
+      miga.
+- [ ] Praca spoza rozpiski: dodaj wiersz z opisem, j.m. i ilością — wysyła się razem ze
+      zgłoszeniem.
+- [ ] Zakończona inwestycja: link pokazuje komunikat zamiast formularza, a wysyłka z wcześniej
+      otwartej strony jest odrzucona.
+- [ ] Szkic z wpisami, potem „Wyczyść kosztorys” u kierownika: po odświeżeniu link pokazuje „N pozycji
+      ze szkicu zniknęło z rozpiski”.
+
+**Kierownik — przyjęcie**
+
+- [ ] Rozpiska → „Zgłoszenia prac” → zgłoszenie: zaznacz część linii, popraw jedną ilość, „Dodaj do”
+      ostatni etap pracownika → „Przyjmij n pozycji”. Kolumna etapu pokazuje starą ilość plus
+      przyjętą bez odświeżania, a „Cofnij” tego nie cofa.
+- [ ] Przyjęcie do „Nowy etap”: pojawia się nowa kolumna etapu z następnym numerem, przypisana
+      zgłaszającemu na 100%, a jego link do rozpiski pokazuje nowe ilości.
+- [ ] Praca spoza rozpiski z Ceną j.m. i sekcją: w tej sekcji pojawia się nowa pozycja bez
+      przedmiaru, a „Problemy” ją wykazują.
+- [ ] Na liście wyboru etapu nie ma etapów innych ekip.
+- [ ] Dwie karty na tej samej rozpisce: przyjmij w pierwszej, przełącz na drugą — przeładowuje się z
+      komunikatem i pokazuje przyjęte ilości.
+- [ ] „Wczytaj”: po przyjęciu jest automatyczna wersja sprzed przyjęcia.
+- [ ] Odrzuć zgłoszenie: otwiera się tylko do odczytu jako „Odrzucone”, a pracownik widzi
+      „odrzucone”.
+- [ ] Zgłoszenie oczekujące, potem „Wyczyść kosztorys”: jego linie są „do przypisania ręcznie” i da
+      się je przypiąć do pozycji albo przyjąć jako pracę spoza rozpiski.
+
+**Nawigacja i licznik**
+
+- [ ] Przy oczekującym zgłoszeniu menu pokazuje „Zgłoszenia prac” z licznikiem; strona je wymienia,
+      a wiersz otwiera rozpiskę z tym zgłoszeniem. Odświeżenie po zamknięciu okna go nie otwiera
+      ponownie.
+- [ ] Będąc na „Zgłoszenia prac”, znaczek „Zgłoszenia” (leady) dalej pokazuje swoją liczbę.
+- [ ] Po przyjęciu ostatniego oczekującego przycisk na pasku rozpiski znika, a licznik w menu spada
+      przy następnym przejściu.
+
+**Bez zmian w innych widokach**
+
+- [ ] Edytor kierownika, Podgląd, link inwestora i link pracownika wyglądają i działają jak
+      wcześniej.
+- [ ] Podgląd i link pracownika: żadnej czerwonej komórki, także w wierszu ponad przedmiar i przy
+      stawce ponad pułap. W edytorze kierownika oba dalej są czerwone.
+- [ ] Usunięcie pracownika, który ma zgłoszenie, jest odrzucone z komunikatem.
