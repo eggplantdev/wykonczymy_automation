@@ -2624,3 +2624,13 @@ Każdy boks: po kliknięciu zmiana widoczna **bez przeładowania**, a w Network 
       (podwykonawca)" / „Etap — bez narzędzi (pracownik)"; wybrana tworzy etap z tym rozliczeniem
       i bez przypisania.
 - [ ] Szablon (warsztat) → „Dodaj": nie ma żadnej pozycji „Etap".
+
+## 2026-09-30 — „Rozlicz wypłaty": kwota do rozdysponowania i saldo kasy
+
+- [ ] Pracownicy → „Rozlicz": wpisz 10 000 w „Do rozdysponowania", na jednej inwestycji 4 000 →
+      w stopce „Zostało do rozdysponowania" 6 000,00 zł; puste pole = brak tego wiersza.
+- [ ] Podnieś kwoty tak, by „Razem" przekroczyło kwotę do rozdysponowania → „Wypłać" wyszarzone
+      z komunikatem „Przekroczono kwotę do rozdysponowania o …"; obniż → znów aktywne.
+- [ ] Z domyślną kasą „Aktualne saldo" pojawia się bez dotykania „Kasa"; zmiana kasy odświeża saldo;
+      „Saldo po wypłacie" jest mniejsze o „Razem".
+- [ ] Po wypłacie nigdzie (opis przelewu, historia) nie widać kwoty do rozdysponowania.

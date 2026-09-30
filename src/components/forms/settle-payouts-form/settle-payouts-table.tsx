@@ -126,16 +126,21 @@ function AfterPayoutCell({ row, index }: { row: SettleRowT; index: number }) {
   if (!value.ticked || !isValidAmount(value))
     return <span className="text-muted-foreground">—</span>
 
-  const after = roundToCents(row.remaining - amountOf(value))
+  return <RemainderAmount value={roundToCents(row.remaining - amountOf(value))} />
+}
+
+// Zero reads as settled and below zero as overshot — the reverse of `SignedMoneyDisplay`, where
+// positive is the good side.
+function RemainderAmount({ value }: { value: number }) {
   return (
     <span
       className={cn(
         'whitespace-nowrap',
-        after === 0 && 'text-chart-green',
-        after < 0 && 'text-destructive',
+        value === 0 && 'text-chart-green',
+        value < 0 && 'text-destructive',
       )}
     >
-      {formatPLN(after)}
+      {formatPLN(value)}
     </span>
   )
 }
@@ -191,12 +196,14 @@ const COLUMNS = [
 type SettlePayoutsTablePropsT = SettleTableContextT & {
   rows: SettleRowT[]
   total: number
+  poolLeft: number | null
   className?: string
 }
 
 export function SettlePayoutsTable({
   rows,
   total,
+  poolLeft,
   className,
   ...context
 }: SettlePayoutsTablePropsT) {
@@ -208,13 +215,24 @@ export function SettlePayoutsTable({
         columns={COLUMNS}
         getRowClassName={(row) => (isBlocked(row.state) ? 'opacity-60' : '')}
         footer={(visibleColumnIds) => (
-          <ColumnTotalRow
-            visibleColumnIds={visibleColumnIds}
-            columnId={AMOUNT_COLUMN_ID}
-            label="Razem"
-          >
-            {formatPLN(total)}
-          </ColumnTotalRow>
+          <>
+            <ColumnTotalRow
+              visibleColumnIds={visibleColumnIds}
+              columnId={AMOUNT_COLUMN_ID}
+              label="Razem"
+            >
+              {formatPLN(total)}
+            </ColumnTotalRow>
+            {poolLeft !== null && (
+              <ColumnTotalRow
+                visibleColumnIds={visibleColumnIds}
+                columnId={AMOUNT_COLUMN_ID}
+                label="Zostało do rozdysponowania"
+              >
+                <RemainderAmount value={poolLeft} />
+              </ColumnTotalRow>
+            )}
+          </>
         )}
       />
     </SettleTableContext>

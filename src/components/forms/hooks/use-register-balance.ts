@@ -3,8 +3,8 @@ import { useLatestRequest } from '@/hooks/use-latest-request'
 import { toastMessage } from '@/lib/utils/toast'
 import { getRegisterBalance } from '@/lib/queries/register-balance'
 
-export function useRegisterBalance() {
-  const [registerBalance, setRegisterBalance] = useState<number | null>(null)
+export function useRegisterBalance(initialBalance?: number) {
+  const [registerBalance, setRegisterBalance] = useState<number | null>(initialBalance ?? null)
   const [isRegisterBalanceLoading, setIsRegisterBalanceLoading] = useState(false)
   const request = useLatestRequest()
 

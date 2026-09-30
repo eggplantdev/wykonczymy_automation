@@ -84,6 +84,7 @@ function SettleDialogBody({
       }
       cashRegisters={data.cashRegisters}
       defaultCashRegisterId={data.defaultCashRegisterId}
+      defaultRegisterBalance={data.defaultRegisterBalance}
       labelHeader={target.kind === 'worker' ? 'Inwestycja' : 'Pracownik'}
       labelHref={
         target.kind === 'worker'
