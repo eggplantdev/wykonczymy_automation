@@ -661,7 +661,7 @@ const stageSplitSchema = z
     members: z.array(
       z.object({
         workerId: z.number().int().positive(),
-        value: z.number().finite(),
+        value: z.number(),
         takesRest: z.boolean(),
       }),
     ),

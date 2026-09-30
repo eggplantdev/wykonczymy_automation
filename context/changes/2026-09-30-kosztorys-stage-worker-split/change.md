@@ -1,7 +1,7 @@
 ---
 change_id: kosztorys-stage-worker-split
 title: Several workers per etap, splitting its executed-work pool by percent or by amount
-status: implementing
+status: implemented
 created: 2026-09-30
 updated: 2026-09-30
 archived_at: null
