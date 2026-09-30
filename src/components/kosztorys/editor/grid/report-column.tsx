@@ -20,10 +20,12 @@ const REPORT_COLUMN_CLASS = 'kosztorys-report-column'
 // globals.css greys these: every figure he reads but may not type, so „Zgłaszam” is the one dark number.
 const READONLY_FIGURE_CLASS = 'kosztorys-report-readonly-figure'
 const TEXT_COLUMN_IDS: ReadonlySet<string> = new Set(['description', 'note', 'sectionName', 'unit'])
-// Compact leaves Opis prac and „Zgłaszam”; the number needs a fixed slot, the description the rest.
+// Compact leaves Opis prac, „Zgłaszam” and — on a wide screen — j.m.; those two get fixed slots, the
+// description the rest.
 const REPORT_WIDTH = 140
 // On a phone the description needs every pixel; the header hint wraps to four lines and still fits.
 const COMPACT_REPORT_WIDTH = 110
+const COMPACT_UNIT_WIDTH = 80
 const COMPACT_DESCRIPTION_MIN_WIDTH = 240
 
 const reportColumn: Column<KosztorysV2RowT> = {
@@ -113,7 +115,16 @@ function withReportColumn(
   if (isCompact) {
     const description = columns.find((column) => column.id === 'description')
     // By id, like Opis prac: the owner's worker view may have hidden it. A phone has no room for it.
-    const unit = isWide ? columns.find((column) => column.id === 'unit') : undefined
+    const shownUnit = isWide ? columns.find((column) => column.id === 'unit') : undefined
+    // Fixed like „Zgłaszam”, so all the room a wide screen adds goes to Opis prac.
+    const unit = shownUnit && {
+      ...shownUnit,
+      basis: COMPACT_UNIT_WIDTH,
+      grow: 0,
+      shrink: 0,
+      minWidth: COMPACT_UNIT_WIDTH,
+      maxWidth: COMPACT_UNIT_WIDTH,
+    }
     // Unpinned: a width the owner dragged on the full sheet would leave the compact one half empty.
     const stretched = description && {
       ...description,
@@ -129,7 +140,7 @@ function withReportColumn(
       minWidth: COMPACT_REPORT_WIDTH,
       maxWidth: COMPACT_REPORT_WIDTH,
     }
-    return [stretched, unit, narrowed].filter((column) => column !== undefined)
+    return [stretched, narrowed, unit].filter((column) => column !== undefined)
   }
   const lastStage = columns.findLastIndex((column) => column.id?.startsWith(STAGE_QTY_PREFIX))
   const anchor =

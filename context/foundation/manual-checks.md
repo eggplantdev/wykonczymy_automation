@@ -2759,11 +2759,14 @@ Link zbudowany na stagingu wskazuje na produkcję — przed otwarciem podmień h
 
 - [ ] „Pracownicy” → pracownik z etapem → „Link do zgłoszeń”: wygeneruj, skopiuj, odwołaj. Dla
       pracownika bez etapu link jest zablokowany.
+- [ ] „Pracownicy” → pracownik bez blokady → „Link” i „Link do zgłoszeń”: samo kliknięcie kopiuje
+      link do schowka (toast „Link skopiowany do schowka.”), jak „Udostępnij” inwestora; drugie
+      kliknięcie kopiuje ten sam link. W Safari też.
 - [ ] Link w prywatnym oknie przy 390px: formularz się pokazuje, wpisane ilości przeżywają
       odświeżenie, „Wyślij do weryfikacji” zapisuje zgłoszenie, czyści szkic, a na liście zgłoszeń
       pojawia się „czeka”.
 - [ ] „Ograniczona rozpiska” przy 390px: tylko „Opis prac” i „Zgłaszam”; przy 1280px: Lp, „Opis
-      prac”, j.m. i „Zgłaszam”.
+      prac”, „Zgłaszam” i j.m. — j.m. i „Zgłaszam” mają stałą szerokość, resztę bierze „Opis prac”.
 - [ ] „Wszystkie kolumny”: strona przewija się w bok, nagłówek tabeli trzyma się góry, siatka nie
       miga.
 - [ ] Praca spoza rozpiski: dodaj wiersz z opisem, j.m. i ilością — wysyła się razem ze
