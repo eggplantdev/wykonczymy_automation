@@ -97,6 +97,22 @@ export type ViewPricingT = KosztorysItemT & {
 // plane: such an etap belongs to no subcontractor bill and counts toward neither settlement figure.
 export type ToolPlaneT = 'w_tools' | 'own_tools'
 
+// EX-943: an etap's executed-work value is split between its workers. Every member but one carries an
+// entered value; the member with `takesRest` gets whatever the others leave. `value` is percent points
+// (25 = 25%) in 'percent' mode and zł in 'amount' mode, and is meaningless on the rest holder.
+export type StageSplitModeT = 'percent' | 'amount'
+
+export type StageMemberT = {
+  workerId: number
+  value: number
+  takesRest: boolean
+}
+
+export type StageSplitT = {
+  mode: StageSplitModeT
+  members: StageMemberT[]
+}
+
 export type KosztorysStageT = {
   id: number
   ordinal: number
