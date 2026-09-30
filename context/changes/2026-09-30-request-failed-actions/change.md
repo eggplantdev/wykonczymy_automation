@@ -1,7 +1,7 @@
 ---
 change_id: request-failed-actions
 title: A server action whose request never arrived ends in a Polish failure branch everywhere (EX-940)
-status: preparing
+status: planned
 created: 2026-09-30
 updated: 2026-09-30
 archived_at: null
