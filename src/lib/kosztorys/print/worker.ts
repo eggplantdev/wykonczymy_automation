@@ -9,7 +9,7 @@ import { workerPrintColumns } from '@/lib/kosztorys/print/worker-columns'
 import { groupBySection } from '@/lib/kosztorys/row-ops'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import { workerDataHiddenColumns } from '@/lib/kosztorys/worker-view/columns'
-import type { WorkerSummaryT } from '@/lib/kosztorys/worker-view/summary'
+import { stageLines, type WorkerSummaryT } from '@/lib/kosztorys/worker-view/summary'
 import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
 
 export type WorkerPrintArgsT = {
@@ -27,7 +27,9 @@ const footerRow = (label: string, amount: number, rowClass = '') =>
 function workerFooterHtml(summary: WorkerSummaryT): string {
   const rows = [
     footerRow('Wartość przedmiaru (Twoja stawka)', summary.plannedNet),
-    ...summary.executedByStage.map((stage) => footerRow(stage.label, stage.net, 'sub')),
+    ...summary.executedByStage
+      .flatMap(stageLines)
+      .map((line) => footerRow(line.label, line.amount, 'sub')),
     footerRow('Wykonane razem', summary.executedNet),
     ...summary.payouts.map((payout) => footerRow(formatPLDate(payout.date), payout.amount, 'sub')),
     footerRow('Wypłacone', summary.paidNet),
@@ -47,6 +49,8 @@ ${rows.join('\n')}
  * The worker's PDF, built off the same projection his link renders — never the editor's rows, which
  * carry every etap and the client price. The totals are the projection's own: the grand total is the
  * summary's figure for the money column, so the paper cannot add up to one the footer contradicts.
+ * On a shared etap the rows are the whole etap's, so the executed grand total is too — his share is
+ * a footer line of its own.
  */
 export function buildWorkerPrintHtml({ data, logoUrl, fillByColorKey }: WorkerPrintArgsT): string {
   const { tree, worker, investmentName } = data
@@ -81,7 +85,10 @@ export function buildWorkerPrintHtml({ data, logoUrl, fillByColorKey }: WorkerPr
     fillByColorKey,
     moneyKey,
     money: formatPLN,
-    totalNet: moneyKey === 'net' ? worker.summary.executedNet : worker.summary.plannedNet,
+    totalNet:
+      moneyKey === 'net'
+        ? worker.summary.executedByStage.reduce((total, stage) => total + stage.wholeNet, 0)
+        : worker.summary.plannedNet,
     sectionNetById,
     extraStyles: WIDE_PRINT_STYLES,
     footerHtml: workerFooterHtml(worker.summary),

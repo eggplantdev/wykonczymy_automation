@@ -78,8 +78,8 @@ describe('computeWorkerSummary', () => {
     expect(summary.executedNet).toBe(byWorker)
     expect(summary.executedNet).toBe((2 + 1) * 12)
     expect(summary.executedByStage).toEqual([
-      { stageId: 100, label: 'Tynki', net: 24 },
-      { stageId: 102, label: 'Etap 3', net: 12 },
+      { stageId: 100, label: 'Tynki', net: 24, wholeNet: 24, share: null },
+      { stageId: 102, label: 'Etap 3', net: 12, wholeNet: 12, share: null },
     ])
   })
 
@@ -110,5 +110,61 @@ describe('computeWorkerSummary', () => {
 
     expect(Object.is(summary.owed, 0)).toBe(true)
     expect(summary.isOverpaid).toBe(false)
+  })
+})
+
+// Etap 101 (3 × 12 = 36 zł of work) shared: worker 5 on 25%, worker 9 on the rest.
+describe('computeWorkerSummary — a shared etap', () => {
+  const shared: KosztorysStageT = {
+    ...stages[1],
+    split: {
+      mode: 'percent',
+      members: [
+        { workerId: WORKER, value: 25, takesRest: false },
+        { workerId: OTHER, value: 0, takesRest: true },
+      ],
+    },
+  }
+  const summarizeShared = (workerId: number, stage = shared) =>
+    computeWorkerSummary({
+      rows,
+      stages: [stage],
+      plane: 'w_tools',
+      workerId,
+      payoutRows: [],
+    })
+
+  it('credits his share and shows the whole etap beside it', () => {
+    const summary = summarizeShared(WORKER)
+
+    expect(summary.executedNet).toBe(9)
+    expect(summary.executedByStage).toEqual([
+      { stageId: 101, label: 'Etap 2', net: 9, wholeNet: 36, share: { percent: 25, amount: 9 } },
+    ])
+  })
+
+  it('gives the rest holder the effective remainder', () => {
+    expect(summarizeShared(OTHER).executedByStage[0].share).toEqual({ percent: 75, amount: 27 })
+  })
+
+  it('still says the percentage before any work, with nothing to credit', () => {
+    const idle = computeWorkerSummary({
+      rows: treeToRows({ ...tree, progress: [] }),
+      stages: [shared],
+      plane: 'w_tools',
+      workerId: OTHER,
+      payoutRows: [],
+    })
+
+    expect(idle.executedByStage[0].share).toEqual({ percent: 75, amount: 0 })
+  })
+
+  it('names no co-worker anywhere in what it returns', () => {
+    const out = JSON.stringify(summarizeShared(WORKER))
+
+    // Worker 9's id equals worker 5's 9 zł, so the guard is on shape: no member list, no worker id,
+    // and not the co-worker's 27 zł.
+    expect(out).not.toMatch(/workerId|members|takesRest/)
+    expect(out).not.toContain('27')
   })
 })

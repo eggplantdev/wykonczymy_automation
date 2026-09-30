@@ -751,16 +751,16 @@ The full `pnpm test` runs only if the user asks, per the standing rule.
 
 #### Automated
 
-- [x] 4.1 `stage-split-draft.test.ts` passes
-- [x] 4.2 `stage-split-dialog.test.tsx` passes
-- [x] 4.3 Updated workers-menu and add-menu DOM specs pass
+- [x] 4.1 `stage-split-draft.test.ts` passes — b6622bf7
+- [x] 4.2 `stage-split-dialog.test.tsx` passes — b6622bf7
+- [x] 4.3 Updated workers-menu and add-menu DOM specs pass — b6622bf7
 
 ### Phase 5: Worker link, Podgląd and PDF
 
 #### Automated
 
-- [ ] 5.1 `worker-view/summary.test.ts` passes (share per shared etap, no co-worker data)
-- [ ] 5.2 `print/worker.test.ts` passes (whole-etap totals, footer share)
+- [x] 5.1 `worker-view/summary.test.ts` passes (share per shared etap, no co-worker data)
+- [x] 5.2 `print/worker.test.ts` passes (whole-etap totals, footer share)
 
 ### Phase 6: Living docs
 

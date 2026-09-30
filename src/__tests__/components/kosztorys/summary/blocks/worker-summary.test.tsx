@@ -8,8 +8,14 @@ import { bare } from '@/__tests__/helpers/money'
 const summary = (overrides: Partial<WorkerSummaryT> = {}): WorkerSummaryT => ({
   plannedNet: 12_000,
   executedByStage: [
-    { stageId: 1, label: 'Etap 1', net: 3_000 },
-    { stageId: 2, label: 'Etap 2', net: 1_500 },
+    { stageId: 1, label: 'Etap 1', net: 3_000, wholeNet: 3_000, share: null },
+    {
+      stageId: 2,
+      label: 'Etap 2',
+      net: 1_500,
+      wholeNet: 6_000,
+      share: { percent: 25, amount: 1_500 },
+    },
   ],
   executedNet: 4_500,
   payouts: [
@@ -36,10 +42,17 @@ describe('WorkerSummary', () => {
     render(<WorkerSummary summary={summary()} />)
 
     expect(valueBeside('Wartość przedmiaru (Twoja stawka)')).toContain('12000,00')
-    expect(valueBeside('Etap 2')).toContain('1500,00')
+    expect(valueBeside('Etap 1')).toContain('3000,00')
     expect(valueBeside('Wykonane razem')).toContain('4500,00')
     expect(valueBeside('Wypłacone')).toContain('3000,00')
     expect(valueBeside('Pozostało do wypłaty')).toContain('1500,00')
+  })
+
+  it('shows a shared etap whole, with his share on a line of its own', () => {
+    render(<WorkerSummary summary={summary()} />)
+
+    expect(valueBeside('Etap 2 (cały etap)')).toContain('6000,00')
+    expect(valueBeside('Twój udział: 25,0%')).toContain('1500,00')
   })
 
   // A payout's description is often an internal note (design #10) — the block has no slot for it.

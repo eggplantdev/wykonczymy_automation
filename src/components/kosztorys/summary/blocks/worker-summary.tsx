@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/summary-grid'
 import { formatNet } from '@/lib/kosztorys/format'
 import { formatPLDate } from '@/lib/utils/format-date'
-import type { WorkerSummaryT } from '@/lib/kosztorys/worker-view/summary'
+import { stageLines, type WorkerSummaryT } from '@/lib/kosztorys/worker-view/summary'
 
 // An overpayment is named rather than printed as a minus — „Pozostało do wypłaty −300" reads as a
 // debt the firm owes, which is the opposite of what it is.
@@ -23,12 +23,14 @@ export function WorkerSummary({ summary }: { summary: WorkerSummaryT }) {
       <SummaryLabelCell>Wartość przedmiaru (Twoja stawka)</SummaryLabelCell>
       <SummaryValueCell>{formatNet(summary.plannedNet)}</SummaryValueCell>
 
-      {summary.executedByStage.map((stage) => (
-        <div key={stage.stageId} className="contents">
-          <SummaryLabelCell muted>{stage.label}</SummaryLabelCell>
-          <SummaryValueCell muted>{formatNet(stage.net)}</SummaryValueCell>
-        </div>
-      ))}
+      {summary.executedByStage.flatMap((stage) =>
+        stageLines(stage).map((line) => (
+          <div key={`${stage.stageId}-${line.label}`} className="contents">
+            <SummaryLabelCell muted>{line.label}</SummaryLabelCell>
+            <SummaryValueCell muted>{formatNet(line.amount)}</SummaryValueCell>
+          </div>
+        )),
+      )}
       <SummaryLabelCell weight="medium">Wykonane razem</SummaryLabelCell>
       <SummaryValueCell weight="medium">{formatNet(summary.executedNet)}</SummaryValueCell>
 

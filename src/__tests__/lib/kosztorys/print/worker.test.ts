@@ -124,6 +124,41 @@ describe('buildWorkerPrintHtml', () => {
     expect(out).toContain(sectionTotal(summary.plannedNet))
   })
 
+  // Sharing etap 100 (2 × 12,5 = 25 zł) 40/60 with worker 9: the rows stay the whole etap's, so the
+  // section and grand totals do too, and his share is its own footer line.
+  it('totals a shared etap whole and puts his share in the footer', () => {
+    const sharedStages: KosztorysStageT[] = [
+      {
+        ...stages[0],
+        split: {
+          mode: 'percent',
+          members: [
+            { workerId: WORKER, value: 40, takesRest: false },
+            { workerId: 9, value: 0, takesRest: true },
+          ],
+        },
+      },
+      stages[1],
+    ]
+    const sharedTree = { ...tree, stages: sharedStages }
+    const data = projection({}, [], sharedTree)
+    data.worker.summary = computeWorkerSummary({
+      rows: treeToRows(sharedTree),
+      stages: sharedStages,
+      plane: 'w_tools',
+      workerId: WORKER,
+      payoutRows: [],
+    })
+    const out = html(data)
+    const whole = 2 * RATE + 1 * RATE
+
+    expect(out).toContain(sectionTotal(whole))
+    expect(out).toContain(footerLine('Tynki (cały etap)', 2 * RATE))
+    expect(out).toContain(footerLine('Twój udział: 40,0%', 0.4 * 2 * RATE))
+    expect(out).toContain(footerLine('Wykonane razem', data.worker.summary.executedNet))
+    expect(data.worker.summary.executedNet).toBe(0.4 * 2 * RATE + RATE)
+  })
+
   it('prints in the owner’s stored order, the stawka under its plane-agnostic key', () => {
     const out = html(
       projection({
