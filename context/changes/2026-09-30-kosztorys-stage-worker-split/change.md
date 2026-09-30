@@ -6,7 +6,7 @@ created: 2026-09-30
 updated: 2026-09-30
 archived_at: null
 branch: kosztorys-stage-worker-split
-worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/kosztorys-stage-worker-split
+worktree: null
 ---
 
 ## Notes
