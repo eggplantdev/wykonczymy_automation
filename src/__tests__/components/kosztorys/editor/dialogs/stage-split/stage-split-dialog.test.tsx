@@ -70,9 +70,18 @@ describe('„Pracownicy etapu…"', () => {
     expect(saveButton()).toBeDisabled()
   })
 
+  it('refuses „Zapisz" while a value is not a number', async () => {
+    const user = renderDialog()
+    await type(user, 1, 'abc')
+    expect(saveButton()).toBeDisabled()
+    expect(shares()).toEqual([formatPLN(700), formatPLN(300), formatPLN(0)])
+  })
+
   it('refuses „Zapisz" while the fixed amounts pass the pool', async () => {
     const user = renderDialog()
     await user.click(screen.getByRole('radio', { name: 'Kwotowo' }))
+    // The typed kwota IS the share, so there is no separate „Udział" to show next to it.
+    expect(screen.queryByText('Udział')).toBeNull()
     await type(user, 0, '1200')
     expect(saveButton()).toBeDisabled()
   })
@@ -82,7 +91,23 @@ describe('„Pracownicy etapu…"', () => {
     await user.click(screen.getByRole('button', { name: 'Usuń Anna' }))
     expect(saveButton()).toBeDisabled()
 
-    await user.click(screen.getAllByRole('radio', { name: 'reszta' })[0])
+    await user.click(screen.getByRole('checkbox', { name: 'Główny — Bob' }))
+    expect(saveButton()).toBeEnabled()
+  })
+
+  it('offers no split for one person — they take the whole pool', async () => {
+    const user = renderDialog({
+      mode: 'percent',
+      members: [
+        { workerId: ANNA, value: 0, takesRest: true },
+        { workerId: BOB, value: 30, takesRest: false },
+      ],
+    })
+    await user.click(screen.getByRole('button', { name: 'Usuń Anna' }))
+
+    expect(screen.queryByRole('radio', { name: 'Kwotowo' })).toBeNull()
+    expect(screen.queryByRole('checkbox')).toBeNull()
+    expect(shares()).toEqual([formatPLN(1000)])
     expect(saveButton()).toBeEnabled()
   })
 

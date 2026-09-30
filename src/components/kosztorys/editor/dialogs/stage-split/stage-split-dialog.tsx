@@ -1,13 +1,16 @@
 'use client'
 
-import { useState } from 'react'
-import { X } from 'lucide-react'
+import { Fragment, useState } from 'react'
+import { CheckIcon, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { Combobox } from '@/components/ui/combobox'
-import { DecimalField } from '@/components/ui/decimal-field'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
+import { Input } from '@/components/ui/input'
+import { SearchSelect } from '@/components/ui/search-select'
 import { ToggleGroup } from '@/components/ui/toggle-group'
+import { cn } from '@/lib/utils/cn'
+import { decimalText } from '@/lib/utils/decimal-text'
+import { parseDecimalInput } from '@/lib/utils/parse-decimal-input'
 import {
   addMember,
   draftError,
@@ -43,89 +46,173 @@ type PropsT = {
 export function StageSplitDialog({ stageLabel, split, pool, workers, onSave, onClose }: PropsT) {
   const [draft, setDraft] = useState(() => draftFrom(split))
   const error = draftError(draft, pool)
-  const { shares } = splitStagePool(pool, draft)
+  // A half-typed entry is NaN until it parses; the live figures read it as 0 meanwhile.
+  const counted = {
+    ...draft,
+    members: draft.members.map((member) =>
+      Number.isFinite(member.value) ? member : { ...member, value: 0 },
+    ),
+  }
+  const { shares } = splitStagePool(pool, counted)
   const nameOf = (workerId: number) =>
-    workers.find((worker) => worker.id === workerId)?.name ?? 'nieznana osoba'
+    workers.find((worker) => worker.id === workerId)?.name ?? 'nieznany pracownik'
   const memberIds = new Set(draft.members.map((member) => member.workerId))
   const addable = activeOrSelected(workers, true, null).filter(
     (worker) => !memberIds.has(worker.id),
   )
+
+  // One person is not a split: they take the whole pool, so the mode and the rest pick have nothing
+  // to decide.
+  const splitting = draft.members.length > 1
+  const othersPercent = counted.members
+    .filter((member) => !member.takesRest)
+    .reduce((sum, member) => sum + member.value, 0)
+  const byAmount = draft.mode === 'amount'
+  const restPercent = `${Math.max(0, 100 - othersPercent).toLocaleString('pl-PL', { maximumFractionDigits: 2 })}%`
 
   return (
     <FormDialogShell
       open
       onOpenChange={(open) => !open && onClose()}
       title={`Pracownicy etapu „${stageLabel}"`}
-      description={`Do podziału: ${formatPLN(Math.max(0, pool))} wykonanej pracy.`}
+      description={`Kwota do podziału (${stageLabel}): ${formatPLN(Math.max(0, pool))}`}
       confirmLabel="Zapisz"
       confirmDisabled={error != null}
       onConfirm={() => {
         onSave(draftToSave(draft))
         onClose()
       }}
+      contentClassName="sm:max-w-xl"
     >
-      <div className="flex flex-col gap-y-3">
-        <ToggleGroup
-          options={MODE_OPTIONS}
-          value={draft.mode}
-          onChange={(mode) => setDraft(setMode(draft, mode))}
-          aria-label="Sposób podziału"
-        />
-
-        {draft.members.length === 0 ? (
-          <p className="text-muted-foreground text-xs">Bez przypisania — dodaj osobę poniżej.</p>
-        ) : (
-          <ul className="flex flex-col gap-y-2">
-            {draft.members.map((member) => (
-              <li key={member.workerId} className="flex items-center gap-x-2 text-sm">
-                <span className="min-w-0 flex-1 truncate">{nameOf(member.workerId)}</span>
-                <label className="text-muted-foreground flex items-center gap-x-1 text-xs">
-                  <input
-                    type="radio"
-                    name="rest-holder"
-                    checked={member.takesRest}
-                    onChange={() => setDraft(setRestHolder(draft, member.workerId))}
-                  />
-                  reszta
-                </label>
-                <div className="w-24">
-                  {member.takesRest ? (
-                    <span className="text-muted-foreground block text-right text-xs">reszta</span>
-                  ) : (
-                    <DecimalField
-                      value={member.value}
-                      min={0}
-                      max={draft.mode === 'percent' ? 100 : undefined}
-                      emptyAs={0}
-                      suffix={draft.mode === 'percent' ? '%' : 'zł'}
-                      onCommit={(value) => setDraft(setValue(draft, member.workerId, value))}
-                    />
-                  )}
-                </div>
-                <span className="w-24 text-right tabular-nums" data-testid="member-share">
-                  {formatPLN(shares.get(member.workerId) ?? 0)}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="xs"
-                  aria-label={`Usuń ${nameOf(member.workerId)}`}
-                  onClick={() => setDraft(removeMember(draft, member.workerId))}
-                >
-                  <X />
-                </Button>
-              </li>
-            ))}
-          </ul>
+      <div className="flex flex-col gap-y-4">
+        {splitting && (
+          <ToggleGroup
+            options={MODE_OPTIONS}
+            value={draft.mode}
+            onChange={(mode) => setDraft(setMode(draft, mode))}
+            aria-label="Sposób podziału"
+          />
         )}
 
-        <Combobox
-          modal
+        {draft.members.length === 0 ? (
+          <p className="text-muted-foreground text-sm">
+            Bez przypisania — dodaj pracownika poniżej.
+          </p>
+        ) : !splitting ? (
+          <div className="flex items-center gap-x-3 text-sm">
+            <span className="flex-1 break-words">{nameOf(draft.members[0].workerId)}</span>
+            <span className="tabular-nums" data-testid="member-share">
+              {formatPLN(shares.get(draft.members[0].workerId) ?? 0)}
+            </span>
+            <Button
+              variant="ghost"
+              size="xs"
+              aria-label={`Usuń ${nameOf(draft.members[0].workerId)}`}
+              onClick={() => setDraft(removeMember(draft, draft.members[0].workerId))}
+            >
+              <X />
+            </Button>
+          </div>
+        ) : (
+          <div
+            className={cn(
+              'grid items-center gap-x-3 gap-y-2 text-sm',
+              byAmount
+                ? 'grid-cols-[auto_minmax(0,1fr)_9rem_2rem]'
+                : 'grid-cols-[auto_minmax(0,1fr)_8rem_7rem_2rem]',
+            )}
+          >
+            <span className="text-muted-foreground text-xs">Główny</span>
+            <span className="text-muted-foreground text-xs">Pracownik</span>
+            {!byAmount && <span className="text-muted-foreground text-right text-xs">Udział</span>}
+            <span className="text-muted-foreground text-right text-xs">Kwota</span>
+            <span />
+            {draft.members.map((member) => {
+              const share = (
+                <span className="text-right tabular-nums" data-testid="member-share">
+                  {formatPLN(shares.get(member.workerId) ?? 0)}
+                </span>
+              )
+              return (
+                <Fragment key={member.workerId}>
+                  {/* Clicking the holder again is a no-op: someone must take the rest, so the only
+                      way off it is picking somebody else. */}
+                  <button
+                    type="button"
+                    role="checkbox"
+                    aria-checked={member.takesRest}
+                    aria-label={`Główny — ${nameOf(member.workerId)}`}
+                    className="group hover:bg-accent focus-visible:ring-ring/50 flex size-7 items-center justify-center justify-self-center rounded-sm outline-none focus-visible:ring-3"
+                    onClick={() => setDraft(setRestHolder(draft, member.workerId))}
+                  >
+                    <CheckIcon
+                      className={cn(
+                        'size-4',
+                        !member.takesRest && 'opacity-0 group-hover:opacity-40',
+                      )}
+                    />
+                  </button>
+                  <span className="break-words">{nameOf(member.workerId)}</span>
+                  {member.takesRest ? (
+                    <>
+                      {!byAmount && (
+                        <span className="text-muted-foreground text-right tabular-nums">
+                          {restPercent}
+                        </span>
+                      )}
+                      {share}
+                    </>
+                  ) : (
+                    <>
+                      <span className="flex items-center gap-1">
+                        {/* Uncontrolled so a half-typed „12," survives; keyed on the mode because a
+                            switch zeroes every value underneath it. Garbage goes in as NaN, which
+                            the split's own validation refuses, so „Zapisz" can't save a figure
+                            nobody sees. */}
+                        <Input
+                          key={draft.mode}
+                          aria-label={`${byAmount ? 'Kwota' : 'Udział'} — ${nameOf(member.workerId)}`}
+                          inputMode="decimal"
+                          placeholder="0"
+                          className="text-right"
+                          defaultValue={member.value === 0 ? '' : decimalText(member.value)}
+                          onChange={(event) => {
+                            const parsed = parseDecimalInput(event.target.value)
+                            const value =
+                              parsed.kind === 'value'
+                                ? parsed.value
+                                : parsed.kind === 'empty'
+                                  ? 0
+                                  : NaN
+                            setDraft(setValue(draft, member.workerId, value))
+                          }}
+                        />
+                        <span className="text-muted-foreground">{byAmount ? 'zł' : '%'}</span>
+                      </span>
+                      {!byAmount && share}
+                    </>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    aria-label={`Usuń ${nameOf(member.workerId)}`}
+                    onClick={() => setDraft(removeMember(draft, member.workerId))}
+                  >
+                    <X />
+                  </Button>
+                </Fragment>
+              )
+            })}
+          </div>
+        )}
+
+        <SearchSelect
           value=""
-          options={addable.map((worker) => worker.name)}
-          placeholder="Dodaj osobę..."
-          onChange={(name) => {
-            const worker = addable.find((candidate) => candidate.name === name)
-            if (worker) setDraft(addMember(draft, worker.id))
+          items={addable.map((worker) => ({ value: String(worker.id), label: worker.name }))}
+          placeholder="Dodaj pracownika..."
+          searchPlaceholder="Szukaj pracownika..."
+          onChange={(id) => {
+            if (id) setDraft(addMember(draft, Number(id)))
           }}
         />
 

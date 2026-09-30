@@ -2715,21 +2715,26 @@ Stan: dowolny rekord do edycji; „nieudany zapis" = DevTools → Network → Of
 ## EX-943 — kosztorys-stage-worker-split — kilku pracowników na etap (2026-09-30)
 
 - [ ] Nagłówek etapu → „Pracownicy etapu…": dodaj czterech pracowników, podział „Procentowo",
-      25/25/25 i czwarty na „reszcie" → „Zapisz"; nagłówek pokazuje „<osoba na reszcie> +3", a przy
+      25/25/25 i czwarty zaznaczony jako „Główny" → „Zapisz"; nagłówek pokazuje „<główny> +3", a przy
       każdej osobie w oknie widać jej kwotę z wykonanej pracy etapu.
-- [ ] Ten sam etap „Kwotowo": trzy kwoty stałe i reszta; suma kwot większa niż wykonana praca etapu
+- [ ] Ten sam etap „Kwotowo": trzy kwoty stałe i główny; suma kwot większa niż wykonana praca etapu
       → „Zapisz" wyszarzone z komunikatem; w granicach puli → zapis przechodzi.
 - [ ] Przełączenie „Procentowo" ↔ „Kwotowo" zeruje wszystkie wartości; nowa osoba wchodzi z 0;
-      usunięcie osoby na „reszcie" blokuje zapis, dopóki nie wskażesz nowej.
+      usunięcie głównego (przy trzech i więcej osobach) blokuje zapis, dopóki nie wskażesz nowego.
+- [ ] „Pracownicy etapu…" z jednym pracownikiem: brak przełącznika „Procentowo/Kwotowo" i kolumny
+      „Główny", pracownik dostaje całą wykonaną pracę etapu; z dwóch usuń jednego → drugi od razu
+      dostaje całość i „Zapisz" jest aktywne.
+- [ ] Wybór „Dodaj pracownika..." wygląda jak pole z ramką, lista otwiera się pod nim, przewija się
+      i filtruje po wpisaniu fragmentu nazwiska.
 - [ ] Etap bez rozliczenia: „Pracownicy etapu…" nieaktywne z podpowiedzią, że najpierw trzeba
       ustawić rozliczenie.
-- [ ] Etap bez wykonanej pracy: okno pokazuje „Do podziału: 0,00 zł" i każdemu 0 zł.
-- [ ] Podział 25/25/25/reszta na etapie z wykonaną pracą: „Podsumowanie podwykonawców", lista
+- [ ] Etap bez wykonanej pracy: okno pokazuje „Kwota do podziału (<nazwa etapu>): 0,00 zł" i każdemu 0 zł.
+- [ ] Podział 25/25/25 + główny na etapie z wykonaną pracą: „Podsumowanie podwykonawców", lista
       „Pracownicy", „Rozlicz wypłaty" i kolumna „Pozostało do wypłaty" na liście inwestycji pokazują
       każdemu jego część, a części sumują się do wartości etapu.
 - [ ] Podział kwotowy, potem zmniejsz „Pomiar z natury" tak, by kwoty przekroczyły wykonaną pracę:
       w nagłówku etapu pojawia się znacznik „popraw podział", „Problemy" ma pozycję z tym etapem,
-      kwoty maleją proporcjonalnie, a osoba na „reszcie" dostaje 0 zł. Po poprawieniu podziału
+      kwoty maleją proporcjonalnie, a główny dostaje 0 zł. Po poprawieniu podziału
       znacznik znika.
 - [ ] Link pracownika z 25% udziału (i PDF z jego widoku): wiersze i „Razem" dotyczą całego etapu,
       „Wartość przedmiaru" to cały przedmiar, a osobno widać „Twój udział: 25,0%" z kwotą; nigdzie nie

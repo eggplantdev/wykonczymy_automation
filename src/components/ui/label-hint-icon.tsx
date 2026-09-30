@@ -30,7 +30,7 @@ const VARIANT = {
     className: 'text-destructive',
     ariaLabel: 'Podział etapu do poprawienia',
     content:
-      'Wykonana praca spadła poniżej wpisanych kwot, więc zostały proporcjonalnie zmniejszone, a osoba biorąca resztę dostaje 0 zł. Popraw podział w „Pracownicy etapu…".',
+      'Wykonana praca spadła poniżej wpisanych kwot, więc zostały proporcjonalnie zmniejszone, a główny dostaje 0 zł. Popraw podział w „Pracownicy etapu…".',
   },
   noStages: {
     Icon: TriangleAlert,

@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { DialogActions } from '@/components/ui/dialog-actions'
+import { cn } from '@/lib/utils/cn'
 
 type PropsT = {
   open: boolean
@@ -15,6 +16,7 @@ type PropsT = {
   confirmDisabled?: boolean
   pending?: boolean
   pendingLabel?: string
+  contentClassName?: string
 }
 
 // Self-controlled (open/onOpenChange props, no optimistic store) shell for the standard kosztorys
@@ -32,10 +34,11 @@ export function FormDialogShell({
   confirmDisabled = false,
   pending,
   pendingLabel,
+  contentClassName,
 }: PropsT) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-sm">
+      <DialogContent className={cn('sm:max-w-sm', contentClassName)}>
         <DialogHeader title={title} description={description} />
         {children}
         <DialogActions
