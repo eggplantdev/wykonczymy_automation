@@ -10,8 +10,6 @@ export const INVESTMENT_TRASHED_MESSAGE = 'Inwestycja jest w koszu — przywró�
 
 export const TEMPLATE_TRASHED_MESSAGE = 'Szablon jest w koszu — przywróć go, żeby coś zmienić.'
 
-export const TRASH_RETENTION_DAYS = 30
-
 /**
  * „Zakończona" IS the status lock — the one comparison, spelled once; the trash is the gate's other,
  * non-status reason. Six layers ask it (the panel's access rules, both gates, the editor page, the

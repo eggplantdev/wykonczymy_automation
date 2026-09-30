@@ -4,7 +4,7 @@ import config from '@payload-config'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { getDb } from '@/lib/db/get-db'
-import { TRASH_RETENTION_DAYS } from '@/lib/constants/investment-lock'
+import { ENTITY_TRASH_RETENTION_DAYS } from '@/lib/constants/trash'
 import { fetchTrashedInvestments, type TrashedInvestmentRowT } from '@/lib/db/investment-trash'
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -27,7 +27,7 @@ export async function getTrashedInvestments(): Promise<TrashedInvestmentT[]> {
     ...row,
     daysLeft: Math.max(
       0,
-      Math.ceil((row.trashedAt.getTime() + TRASH_RETENTION_DAYS * DAY_MS - now) / DAY_MS),
+      Math.ceil((row.trashedAt.getTime() + ENTITY_TRASH_RETENTION_DAYS * DAY_MS - now) / DAY_MS),
     ),
   }))
 }

@@ -1,6 +1,6 @@
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
-import { TRASH_RETENTION_DAYS } from '@/lib/constants/investment-lock'
+import { ENTITY_TRASH_RETENTION_DAYS } from '@/lib/constants/trash'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import type { Investment } from '@/payload-types'
 import { SETTLEMENT_MODE_DEFAULT } from '@/lib/kosztorys/settlement-mode'
@@ -41,13 +41,20 @@ export async function deleteTestInvestment(payload: Payload, id: number): Promis
   })
 }
 
-export const PAST_RETENTION_DAYS = TRASH_RETENTION_DAYS + 1
-export const WITHIN_RETENTION_DAYS = TRASH_RETENTION_DAYS - 1
+export const PAST_RETENTION_DAYS = ENTITY_TRASH_RETENTION_DAYS + 1
+export const WITHIN_RETENTION_DAYS = ENTITY_TRASH_RETENTION_DAYS - 1
+
+type TrashableTableT = 'investments' | 'cash_registers'
 
 // Backdates the trash marker in SQL — retention is measured against `now()`, which no Payload write
 // can move.
-export async function trashDaysAgo(db: DbExecutorT, id: number, days: number): Promise<void> {
+export async function trashDaysAgo(
+  db: DbExecutorT,
+  id: number,
+  days: number,
+  table: TrashableTableT = 'investments',
+): Promise<void> {
   await db.execute(sql`
-    UPDATE investments SET trashed_at = now() - make_interval(days => ${days}) WHERE id = ${id}
+    UPDATE ${sql.raw(table)} SET trashed_at = now() - make_interval(days => ${days}) WHERE id = ${id}
   `)
 }

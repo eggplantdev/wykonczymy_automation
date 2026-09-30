@@ -617,18 +617,18 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 2.1 Transfer-mapping spec passes (trashed name kept + flagged)
-- [x] 2.2 Ref-data SQL drift spec passes
+- [x] 2.1 Transfer-mapping spec passes (trashed name kept + flagged) — 98bb3291
+- [x] 2.2 Ref-data SQL drift spec passes — 98bb3291
 
 ### Phase 3: Trash backend, purge, cron, retention constant
 
 #### Automated
 
-- [ ] 3.1 Cash-register trash actions DB spec passes
-- [ ] 3.2 Cash-register trash SQL DB spec passes
-- [ ] 3.3 Cash-register purge DB spec passes
-- [ ] 3.4 Cron cleanup route spec passes with the new step
-- [ ] 3.5 Investment trash specs still green after the constant move
+- [x] 3.1 Cash-register trash actions DB spec passes
+- [x] 3.2 Cash-register trash SQL DB spec passes
+- [x] 3.3 Cash-register purge DB spec passes
+- [x] 3.4 Cron cleanup route spec passes with the new step
+- [x] 3.5 Investment trash specs still green after the constant move
 
 ### Phase 4: `/kosz` kinds, `/kasy` entry, owner-lock UI, docs
 

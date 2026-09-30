@@ -79,6 +79,18 @@ export const INVESTMENT_DELETE_TAGS = [
   'equipmentEvents',
 ] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
 
+// A kasa's trash also clears every user default pointing at it, in raw SQL — no users hook fires.
+export const CASH_REGISTER_TRASH_TAGS = [
+  'cashRegisters',
+  'users',
+] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
+
+// The FK strips the deleted kasa from its cancelled transactions, again without a hook.
+export const CASH_REGISTER_DELETE_TAGS = [
+  ...CASH_REGISTER_TRASH_TAGS,
+  'transfers',
+] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
+
 /**
  * The second argument every `revalidateTag` call outside a Server Action must pass.
  *

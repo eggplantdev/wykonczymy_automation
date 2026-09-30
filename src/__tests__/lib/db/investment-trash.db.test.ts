@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
-import { TRASH_RETENTION_DAYS } from '@/lib/constants/investment-lock'
+import { ENTITY_TRASH_RETENTION_DAYS } from '@/lib/constants/trash'
 import { getDb } from '@/lib/db/get-db'
 import {
   createTestInvestment,
@@ -92,7 +92,7 @@ describe.skipIf(!ENV_READY)('investment trash queries (DB)', () => {
   it('purges only unused investments past retention, and counts the used ones it skipped', async () => {
     const { purgeable, skippedKosztorys } = await trash.selectPurgeableInvestmentIds(
       db,
-      TRASH_RETENTION_DAYS,
+      ENTITY_TRASH_RETENTION_DAYS,
     )
     const ours = new Set([planned, measured, priceOnly, empty, fresh, template])
 
