@@ -1,3 +1,4 @@
+import { settleAction } from '@/lib/utils/settle-action'
 import type { ActionErrorCodeT, ActionResultT } from '@/types/action'
 
 // A per-key serialized write lane. Every write for a given key (item field, item×stage) chains behind
@@ -25,8 +26,8 @@ export function createSaveLanes() {
   // A settled tail is dropped from this map so it can't grow unbounded across a session.
   const tails = new Map<string, Promise<void>>()
 
-  // Chain `run` behind the key's current tail. Failures (logical `!success` or a thrown/rejected
-  // action) route to `onError` and are swallowed so the lane never rejects and the next write still
+  // Chain `run` behind the key's current tail. Failures (logical `!success` or a rejected request,
+  // coded `REQUEST_FAILED`) route to `onError` and are swallowed so the lane never rejects and the next write still
   // runs. The failure's `code` rides along: a write refused because its row is GONE needs a different
   // recovery from one refused on its value, and the message alone can't be branched on. Returns the
   // promise for *this* write settling.
@@ -37,12 +38,8 @@ export function createSaveLanes() {
   ): Promise<void> {
     const prev = tails.get(key) ?? Promise.resolve()
     const next = prev.then(async () => {
-      try {
-        const res = await run()
-        if (!res.success) onError?.(res.error, res.code)
-      } catch (error) {
-        onError?.(error instanceof Error ? error.message : 'Błąd zapisu')
-      }
+      const res = await settleAction(run)
+      if (!res.success) onError?.(res.error, res.code)
     })
     tails.set(key, next)
     void next.then(() => {

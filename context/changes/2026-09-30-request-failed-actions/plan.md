@@ -461,13 +461,13 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 1.1 `pnpm exec vitest run src/__tests__/lib/utils/settle-action.test.ts` passes
+- [x] 1.1 `pnpm exec vitest run src/__tests__/lib/utils/settle-action.test.ts` passes — c3794d63
 
 ### Phase 2: Kosztorys autosave lanes and settings
 
 #### Automated
 
-- [ ] 2.1 save-lanes, optimistic-setting-save and use-debounced-save specs pass
+- [x] 2.1 save-lanes, optimistic-setting-save and use-debounced-save specs pass
 
 ### Phase 3: Editor structural operations
 
