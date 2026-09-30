@@ -2823,3 +2823,30 @@ Link zbudowany na stagingu wskazuje na produkcję — przed otwarciem podmień h
 - [ ] Podgląd i link pracownika: żadnej czerwonej komórki, także w wierszu ponad przedmiar i przy
       stawce ponad pułap. W edytorze kierownika oba dalej są czerwone.
 - [ ] Usunięcie pracownika, który ma zgłoszenie, jest odrzucone z komunikatem.
+
+## EX-951 — kosztorys-new-item-dialog — „Nowa praca” jako formularz (2026-09-30)
+
+- [ ] Menu wiersza → „Wstaw powyżej” / „Wstaw poniżej”: otwiera się „Nowa praca”; po zapisie praca
+      stoi bezpośrednio nad / pod tym wierszem, bez odświeżania.
+- [ ] „+ Dodaj pracę” na pasku pustej sekcji i „Dodaj pracę” w menu ⋯ sekcji: praca ląduje na
+      końcu tej sekcji. Zwinięta sekcja się rozwija.
+- [ ] Pasek narzędzi „Dodaj → Praca → [sekcja]”: praca ląduje na końcu wybranej sekcji. Na
+      kosztorysie bez sekcji najpierw pojawia się sekcja, a okno otwiera się dla niej.
+- [ ] Stawki: „auto” liczy się ze współczynnika inwestycji, kwota stała pokazuje wpisaną kwotę,
+      a mnożnik liczy się od „Ceny j.m.”.
+- [ ] Stawka podwykonawcy powyżej 65% ceny: praca się zapisuje, pojawia się toast z ostrzeżeniem.
+- [ ] Ptaszek „Dodaj pracę do katalogu prac” z nowym opisem + j.m.: pozycja pojawia się
+      w „Katalogu prac” z wpisaną kategorią. Bez ptaszka pola „Kategoria” nie ma.
+- [ ] Ptaszek z opisem + j.m., które już są w katalogu: okno pokazuje ceny „stare → nowe”;
+      „Wróć”, Esc i kliknięcie obok wracają do formularza bez zapisu; „Tylko do kosztorysu”
+      zapisuje pracę, a katalog zostaje bez zmian; „Nadpisz w katalogu” aktualizuje pozycję
+      i zostawia jej kategorię, chyba że odznaczysz „Zostaw kategorię z katalogu”.
+- [ ] „Nie zamykaj po zapisaniu”: po zapisie formularz jest pusty, a druga praca ląduje pod
+      pierwszą.
+- [ ] Przy sortowaniu kolumny „Wstaw powyżej/poniżej” jest nieaktywne, a „Dodaj pracę” dokłada na
+      końcu sekcji.
+- [ ] Zakończona (zablokowana) inwestycja i podgląd klienta: nie ma żadnego wejścia do dodania
+      pracy.
+- [ ] Szablon: wejścia w „Akcje” otwierają ten sam formularz, ptaszek katalogu działa.
+- [ ] Po otwarciu i zamknięciu „Nowej pracy” inne okno „Dodaj …” pokazuje „Nie zamykaj po
+      zapisaniu” jak dotąd, a okno bez tej opcji nie ma zbłąkanego ptaszka.

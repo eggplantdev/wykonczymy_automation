@@ -459,7 +459,7 @@ Run once, after Phase 3:
 
 #### Automated
 
-- [x] 3.1 Editor hook specs pass
-- [x] 3.2 Toolbar and menu specs pass
-- [x] 3.3 Row-ops spec passes
-- [x] 3.4 No blank-row symbol survives
+- [x] 3.1 Editor hook specs pass — fbfefd76
+- [x] 3.2 Toolbar and menu specs pass — fbfefd76
+- [x] 3.3 Row-ops spec passes — fbfefd76
+- [x] 3.4 No blank-row symbol survives — fbfefd76
