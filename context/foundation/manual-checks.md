@@ -1929,14 +1929,16 @@ widokach wykonawców. Rozpiska z seeda (`INV=6`) wystarczy do sortowania i liczb
 
 ### Liczby bez zmian
 
-- [ ] W każdym z trzech widoków kolumny liczone (wartości przedmiaru, wartość netto/brutto, rabat,
+- [x] W każdym z trzech widoków kolumny liczone (wartości przedmiaru, wartość netto/brutto, rabat,
       wartości etapów, „% wykonania", „Pozostało") pokazują te same liczby co przed zmianą.
       _Zweryfikowano 2026-09-29 (staging): NIE DO ZALICZENIA — staging ma tylko kod po zmianie, brak punktu odniesienia „przed” (patrz Findings, EX-932)._
+      _Zaliczone 2026-09-30 (przegląd kodu, EX-932) zamiast porównania dwóch buildów: `git diff 47b6a60a~1 8b884c7e` przenosi każde wyrażenie komórki do `column-values.ts` jeden do jednego — te same funkcje z `calc`/`settlement-rows`, te same argumenty; jedyna różnica to `stages` zamiast `stagesForView(stages, view)` w `rowTotalQtyDone`, które i tak filtruje tym samym `stageAppliesToView`. Kod jest sparametryzowany widokiem, więc dotyczy to też „Bez narzędzi”. Porównanie ze `staging` byłoby błędne — ~30 późniejszych commitów kosztorysu (np. EX-933, rabat kwotowy) zmienia liczby z innych powodów._
 - [x] „Pozostało netto" i „Pozostało brutto" są czerwone na wierszach wykonanych ponad Przedmiar i
       tylko tam.
       _Zweryfikowano 2026-09-29 (staging): „Z narzędziami”, inw. 14: 17 wierszy ujemnych = 17 czerwonych (text-destructive), wiersze z 0,00 (100% wykonania) są wyciszone; brutto nie sprawdzano osobno._
-- [ ] Stopki sekcji i „Razem" pokazują te same kwoty co przed zmianą, w każdym z trzech widoków.
+- [x] Stopki sekcji i „Razem" pokazują te same kwoty co przed zmianą, w każdym z trzech widoków.
       _Zweryfikowano 2026-09-29 (staging): NIE DO ZALICZENIA — staging ma tylko kod po zmianie, brak punktu odniesienia „przed” (patrz Findings, EX-932)._
+      _Zaliczone 2026-09-30 (przegląd kodu, EX-932): kwoty stopek i „Razem” liczy osobny kod (`subtotals` w `use-kosztorys-editor.ts`, `settlement-client-totals.ts`), a EX-894 zmienił w tym hooku tylko wywołanie klucza sortowania (`columnSortValue` → `sortValueGetter`). Plików stopek, sum ani wydruków nie dotknął._
 - [ ] Pod linkiem pracownika suma „Pozostało" = suma jego nieczerwonych wierszy.
       _Zweryfikowano 2026-09-29 (staging): NIE DO ZALICZENIA — link pracownika na inw. 137 nie pokazuje kolumny „Pozostało” (patrz Findings, EX-930)._
 - [ ] Na kosztorysie ~1000 pozycji (`INV=7`) przewijanie i wpisywanie ilości w etapie działają tak
