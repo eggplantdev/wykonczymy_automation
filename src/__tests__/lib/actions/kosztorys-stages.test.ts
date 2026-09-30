@@ -259,6 +259,20 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
       expect(await splitOf(stageId)).toEqual({ mode: 'percent', members: [] })
     })
 
+    it('refuses a split nobody takes the rest of, instead of electing one', async () => {
+      const stageId = await createStage('w_tools')
+      const res = await updateStageSplitAction(stageId, {
+        mode: 'percent',
+        members: [
+          { workerId: authState.userId, value: 30, takesRest: false },
+          { workerId: authState.otherUserId, value: 20, takesRest: false },
+        ],
+      })
+
+      expect(res.success).toBe(false)
+      expect((await splitOf(stageId)).members).toEqual([])
+    })
+
     it('leaves the workers alone when a label is renamed', async () => {
       const stageId = await createStage('w_tools')
       await updateStageSplitAction(stageId, {

@@ -18,7 +18,7 @@ import { planeIcon } from '@/components/kosztorys/editor/plane-icons'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { PLANE_LABELS } from '@/lib/kosztorys/labels'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
-import { copyStageSplit } from '@/lib/kosztorys/stage-worker-split'
+import { copyStageSplit } from '@/lib/kosztorys/stage-split'
 
 export function KosztorysAddMenu() {
   const {

@@ -8,7 +8,7 @@ import { restoreKosztorys } from '@/lib/kosztorys/restore-kosztorys'
 import type { SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
-import { oneWorkerSplit, restHolderId } from '@/lib/kosztorys/stage-worker-split'
+import { oneWorkerSplit, restHolderId } from '@/lib/kosztorys/stage-split'
 
 // The serialize→restore pair is the dangerous wipe-and-reinsert core, so we exercise it against the
 // REAL DB and assert PERSISTED state: restore is only correct if a re-serialize of the live tree

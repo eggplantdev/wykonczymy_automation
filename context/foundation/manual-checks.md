@@ -2745,3 +2745,8 @@ Stan: dowolny rekord do edycji; „nieudany zapis" = DevTools → Network → Of
       osobę bez „+N", a jej należne i wypłaty się nie zmieniły.
 - [ ] Pracownik będący tylko członkiem podziału etapu: próba usunięcia go jest odrzucona z
       komunikatem o etapach kosztorysu.
+- [ ] Etap podzielony procentowo na trzy osoby (np. 33,33% / 12,5% / główny), wszystkie etapy
+      przypisane: „Podsumowanie podwykonawców" i „Rozlicz wypłaty" nie pokazują wiersza
+      „Nieprzypisane" z 0,00 zł.
+- [ ] Dialog „Pracownicy etapu…": wartość z trzema miejscami po przecinku (np. 33,335%) nie daje się
+      zapisać; 33,33% się zapisuje i po odświeżeniu strony zostaje 33,33%.

@@ -31,7 +31,6 @@ type ArgsT = {
   reportFailure: (error: string, code?: ActionErrorCodeT) => void
 }
 
-// The etap columns themselves: add/remove one, and the three header edits (label, plane, split).
 // Touches the rows only through `patchRows` and never the undo stack — a stage column is structure,
 // not a cell edit.
 export function useKosztorysStageOps({
@@ -80,17 +79,18 @@ export function useKosztorysStageOps({
     )
   }
 
-  // Shared by all three header edits so they inherit the cell edits' revert-on-error discipline.
+  // Shared by the header edits so they inherit the cell edits' revert-on-error discipline.
   // The revert restores the prior value only if nothing newer landed on the field meanwhile (it
   // still reads `value`) — which is what makes a slow rejected write safe to roll back.
   //
   // `saveKey` is passed rather than derived from `field`: it is the debounce identity, so renaming a
   // field must not silently re-bucket in-flight saves.
-  function patchStageField<K extends keyof StagePatchT & keyof KosztorysStageT>(
+  function patchStageField<K extends keyof KosztorysStageT>(
     stageId: number,
     field: K,
-    value: StagePatchT[K],
+    value: KosztorysStageT[K],
     saveKey: string,
+    write?: () => ReturnType<typeof updateStageAction>,
   ) {
     const current = stagesRef.current.find((st) => st.id === stageId)
     if (current && current[field] === value) return
@@ -100,7 +100,7 @@ export function useKosztorysStageOps({
     setStages((s) => s.map((st) => (st.id === stageId ? withField(st, value) : st)))
     save(
       `${saveKey}:${stageId}`,
-      () => updateStageAction(stageId, { [field]: value } as StagePatchT),
+      write ?? (() => updateStageAction(stageId, { [field]: value } as StagePatchT)),
       () =>
         setStages((s) =>
           s.map((st) => (st.id === stageId && st[field] === value ? withField(st, prev) : st)),
@@ -122,20 +122,11 @@ export function useKosztorysStageOps({
     patchStageField(stageId, 'plane', plane, 'stage-plane')
   }
 
-  // The whole split in one write, never field by field (see updateStageSplitAction). No no-op guard:
-  // the dialog only saves on „Zapisz". `null` is „Bez przypisania". No undo push, matching plane.
+  // The whole split in one write, never field by field (see updateStageSplitAction). `null` is „Bez
+  // przypisania". No undo push, matching plane.
   function handleSetStageSplit(stageId: number, split: StageSplitT | null) {
-    const prev = stagesRef.current.find((st) => st.id === stageId)?.split ?? null
-    const withSplit = (next: StageSplitT | null) => (st: KosztorysStageT) =>
-      st.id === stageId ? { ...st, split: next } : st
-    setStages((s) => s.map(withSplit(split)))
-    save(
-      `stage-split:${stageId}`,
-      () => updateStageSplitAction(stageId, split),
-      () =>
-        setStages((s) =>
-          s.map((st) => (st.id === stageId && st.split === split ? { ...st, split: prev } : st)),
-        ),
+    patchStageField(stageId, 'split', split, 'stage-split', () =>
+      updateStageSplitAction(stageId, split),
     )
   }
 

@@ -1,6 +1,6 @@
 import { viewPrice } from '@/lib/kosztorys/calc'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
-import { splitStagePool } from '@/lib/kosztorys/stage-worker-split'
+import { splitStagePool } from '@/lib/kosztorys/stage-split'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 /** The crew side of the margin, as `subcontractorDueByPlane` reports it — the amount and the reason
@@ -29,7 +29,7 @@ export type SubcontractorDueByPlaneT = {
   // The same money partitioned by WHO is to do it (EX-613), each etap divided by its split
   // (`splitStagePool`, EX-943); `null` = etapy with nobody assigned. Σ values === `combined` by
   // construction — the residual is its own entry, never spread over the assigned workers. Two
-  // consequences worth knowing before reading a figure off this:
+  // consequences:
   // - a worker spanning both planes is NOT derivable from `wTools`/`ownTools`; only this map knows.
   // - a plane-less etap credits nobody, assigned or not — it is skipped before this map is touched,
   //   so a worker can hold etapy and still owe 0 (`hasUnconfirmedPlane` is what says why).
@@ -37,8 +37,6 @@ export type SubcontractorDueByPlaneT = {
   // `byWorker` one level finer, per etap — a worker's share of each etap for the worker view. An etap
   // with nobody assigned has no entry.
   byStageWorker: Map<number, Map<number, number>>
-  // Etapy whose fixed amounts outgrew the pool after the save and were shrunk pro rata — the
-  // „popraw podział" signal.
   scaledDownStageIds: Set<number>
   // Every member of a plane-less etap WITH executed qty (`null` = unassigned) — the per-worker half of
   // `hasUnconfirmedPlane`, which is exactly `unconfirmedWorkers.size > 0`. No app surface reads it:
@@ -96,20 +94,10 @@ export function subcontractorDueByPlane(
     if (plane === 'w_tools') wTools += planeTotal
     else ownTools += planeTotal
     byStage.set(st.id, planeTotal)
-    if (!st.split) {
-      credit(null, planeTotal)
-      continue
-    }
-    const { shares, scaledDown } = splitStagePool(planeTotal, st.split)
-    let shared = 0
-    for (const [workerId, share] of shares) {
-      credit(workerId, share)
-      shared += share
-    }
-    // Only a negative pool (qty corrected below zero) leaves money unshared, since no share is ever
-    // negative. It stays unattributed rather than vanishing, so Σ byWorker keeps equal to `combined`.
-    if (planeTotal !== shared) credit(null, planeTotal - shared)
-    byStageWorker.set(st.id, shares)
+    const { shares, unattributed, scaledDown } = splitStagePool(planeTotal, st.split)
+    for (const [workerId, share] of shares) credit(workerId, share)
+    if (!st.split || unattributed) credit(null, unattributed)
+    if (st.split) byStageWorker.set(st.id, shares)
     if (scaledDown) scaledDownStageIds.add(st.id)
   }
   return {

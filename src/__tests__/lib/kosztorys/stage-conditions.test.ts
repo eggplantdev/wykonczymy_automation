@@ -6,10 +6,17 @@ import {
   stagesMatchingEngaged,
 } from '@/lib/kosztorys/stage-conditions'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
-import { oneWorkerSplit } from '@/lib/kosztorys/stage-worker-split'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 
 function stage(overrides: Partial<KosztorysStageT> = {}): KosztorysStageT {
-  return { id: 1, ordinal: 1, label: null, plane: 'w_tools', split: oneWorkerSplit(5), ...overrides }
+  return {
+    id: 1,
+    ordinal: 1,
+    label: null,
+    plane: 'w_tools',
+    split: oneWorkerSplit(5),
+    ...overrides,
+  }
 }
 
 const BARE = stage({ id: 1, plane: null, split: null })

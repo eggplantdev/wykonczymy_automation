@@ -1,4 +1,4 @@
-import { validateStageSplit } from '@/lib/kosztorys/stage-worker-split'
+import { validateStageSplit } from '@/lib/kosztorys/stage-split'
 import type { StageSplitModeT, StageSplitT } from '@/lib/kosztorys/types'
 
 // The „Pracownicy etapu…" dialog's editing rules, React-free (EX-943). The draft is a StageSplitT that

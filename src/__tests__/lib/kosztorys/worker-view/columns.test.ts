@@ -3,7 +3,7 @@ import { workerDataHiddenColumns } from '@/lib/kosztorys/worker-view/columns'
 import { stageKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
-import { oneWorkerSplit } from '@/lib/kosztorys/stage-worker-split'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 
 // Already narrowed to his etapy, as the projection hands them over.
 const STAGES: KosztorysStageT[] = [

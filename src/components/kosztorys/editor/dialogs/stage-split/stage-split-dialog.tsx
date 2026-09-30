@@ -4,6 +4,7 @@ import { Fragment, useState } from 'react'
 import { CheckIcon, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { STAGE_HEADER_COPY } from '@/components/kosztorys/editor/grid/stage-header-copy'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
 import { Input } from '@/components/ui/input'
 import { SearchSelect } from '@/components/ui/search-select'
@@ -21,9 +22,10 @@ import {
   setRestHolder,
   setValue,
 } from '@/lib/kosztorys/stage-split-draft'
-import { splitStagePool } from '@/lib/kosztorys/stage-worker-split'
+import { resolveWorkerName } from '@/lib/kosztorys/payouts-by-worker'
+import { splitStagePool } from '@/lib/kosztorys/stage-split'
 import { formatPLN } from '@/lib/utils/format-currency'
-import { activeOrSelected } from '@/lib/utils/is-active-ref'
+import { isActiveRef } from '@/lib/utils/is-active-ref'
 import type { StageSplitModeT, StageSplitT } from '@/lib/kosztorys/types'
 import type { WorkerRefT } from '@/types/reference-data'
 
@@ -54,21 +56,28 @@ export function StageSplitDialog({ stageLabel, split, pool, workers, onSave, onC
     ),
   }
   const { shares } = splitStagePool(pool, counted)
-  const nameOf = (workerId: number) =>
-    workers.find((worker) => worker.id === workerId)?.name ?? 'nieznany pracownik'
+  const nameById = new Map(workers.map((worker) => [worker.id, worker.name]))
+  const nameOf = (workerId: number) => resolveWorkerName(workerId, nameById)
   const memberIds = new Set(draft.members.map((member) => member.workerId))
-  const addable = activeOrSelected(workers, true, null).filter(
-    (worker) => !memberIds.has(worker.id),
-  )
+  const addable = workers.filter((worker) => isActiveRef(worker) && !memberIds.has(worker.id))
 
   // One person is not a split: they take the whole pool, so the mode and the rest pick have nothing
   // to decide.
   const splitting = draft.members.length > 1
-  const othersPercent = counted.members
-    .filter((member) => !member.takesRest)
-    .reduce((sum, member) => sum + member.value, 0)
   const byAmount = draft.mode === 'amount'
-  const restPercent = `${Math.max(0, 100 - othersPercent).toLocaleString('pl-PL', { maximumFractionDigits: 2 })}%`
+  // A percent split of 100 comes out as the percentages themselves.
+  const percentOf = (workerId: number) =>
+    `${(splitStagePool(100, counted).shares.get(workerId) ?? 0).toLocaleString('pl-PL', { maximumFractionDigits: 2 })}%`
+  const removeButton = (workerId: number) => (
+    <Button
+      variant="ghost"
+      size="xs"
+      aria-label={`Usuń ${nameOf(workerId)}`}
+      onClick={() => setDraft(removeMember(draft, workerId))}
+    >
+      <X />
+    </Button>
+  )
 
   return (
     <FormDialogShell
@@ -96,7 +105,7 @@ export function StageSplitDialog({ stageLabel, split, pool, workers, onSave, onC
 
         {draft.members.length === 0 ? (
           <p className="text-muted-foreground text-sm">
-            Bez przypisania — dodaj pracownika poniżej.
+            {STAGE_HEADER_COPY.workerUnassigned} — dodaj pracownika poniżej.
           </p>
         ) : !splitting ? (
           <div className="flex items-center gap-x-3 text-sm">
@@ -104,14 +113,7 @@ export function StageSplitDialog({ stageLabel, split, pool, workers, onSave, onC
             <span className="tabular-nums" data-testid="member-share">
               {formatPLN(shares.get(draft.members[0].workerId) ?? 0)}
             </span>
-            <Button
-              variant="ghost"
-              size="xs"
-              aria-label={`Usuń ${nameOf(draft.members[0].workerId)}`}
-              onClick={() => setDraft(removeMember(draft, draft.members[0].workerId))}
-            >
-              <X />
-            </Button>
+            {removeButton(draft.members[0].workerId)}
           </div>
         ) : (
           <div
@@ -157,7 +159,7 @@ export function StageSplitDialog({ stageLabel, split, pool, workers, onSave, onC
                     <>
                       {!byAmount && (
                         <span className="text-muted-foreground text-right tabular-nums">
-                          {restPercent}
+                          {percentOf(member.workerId)}
                         </span>
                       )}
                       {share}
@@ -192,14 +194,7 @@ export function StageSplitDialog({ stageLabel, split, pool, workers, onSave, onC
                       {!byAmount && share}
                     </>
                   )}
-                  <Button
-                    variant="ghost"
-                    size="xs"
-                    aria-label={`Usuń ${nameOf(member.workerId)}`}
-                    onClick={() => setDraft(removeMember(draft, member.workerId))}
-                  >
-                    <X />
-                  </Button>
+                  {removeButton(member.workerId)}
                 </Fragment>
               )
             })}
@@ -210,7 +205,8 @@ export function StageSplitDialog({ stageLabel, split, pool, workers, onSave, onC
           value=""
           items={addable.map((worker) => ({ value: String(worker.id), label: worker.name }))}
           placeholder="Dodaj pracownika..."
-          searchPlaceholder="Szukaj pracownika..."
+          searchPlaceholder={STAGE_HEADER_COPY.searchPlaceholder}
+          emptyMessage={STAGE_HEADER_COPY.searchEmpty}
           onChange={(id) => {
             if (id) setDraft(addMember(draft, Number(id)))
           }}

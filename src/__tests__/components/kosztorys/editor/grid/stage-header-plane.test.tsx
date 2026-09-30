@@ -6,7 +6,7 @@ import { StageHeader } from '@/components/kosztorys/editor/grid/stage-header'
 import { STAGE_HEADER_COPY as COPY } from '@/components/kosztorys/editor/grid/stage-header-copy'
 import { PLANE_LABELS } from '@/lib/kosztorys/labels'
 import type { KosztorysStageT, ToolPlaneT } from '@/lib/kosztorys/types'
-import { oneWorkerSplit } from '@/lib/kosztorys/stage-worker-split'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 import type { WorkerRefT } from '@/types/reference-data'
 
 const STAGE_ID = 7
@@ -100,7 +100,10 @@ describe('Nagłówek etapu — podział czeka na rozliczenie', () => {
 
 describe('Nagłówek etapu — kto pracuje', () => {
   const BOB = 2
-  const TWO: WorkerRefT[] = [...WORKERS, { id: BOB, name: 'Bob', role: 'EMPLOYEE', email: 'b@t.test' }]
+  const TWO: WorkerRefT[] = [
+    ...WORKERS,
+    { id: BOB, name: 'Bob', role: 'EMPLOYEE', email: 'b@t.test' },
+  ]
 
   it('pokazuje osobę z resztą i liczbę pozostałych', () => {
     render(

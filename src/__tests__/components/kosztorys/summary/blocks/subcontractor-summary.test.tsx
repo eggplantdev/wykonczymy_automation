@@ -8,7 +8,7 @@ import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import type { WorkerRefT } from '@/types/reference-data'
 import type { PayoutTransactionRowT } from '@/types/transfers'
 import { bare } from '@/__tests__/helpers/money'
-import { oneWorkerSplit } from '@/lib/kosztorys/stage-worker-split'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 
 const INVESTMENT_ID = 4
 

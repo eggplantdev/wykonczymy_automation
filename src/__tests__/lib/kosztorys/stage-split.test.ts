@@ -3,7 +3,7 @@ import {
   normalizeStageSplit,
   splitStagePool,
   validateStageSplit,
-} from '@/lib/kosztorys/stage-worker-split'
+} from '@/lib/kosztorys/stage-split'
 import type { StageMemberT, StageSplitT } from '@/lib/kosztorys/types'
 
 const entered = (workerId: number, value: number): StageMemberT => ({
@@ -95,6 +95,25 @@ describe('splitStagePool', () => {
     const { shares } = splitStagePool(pool, percent(entered(1, 33.33), entered(2, 12.5), rest(3)))
     expect(sum(shares)).toBeCloseTo(pool, 10)
   })
+
+  it('leaves the whole pool unattributed on an etap nobody is on', () => {
+    expect(splitStagePool(500, null)).toEqual({
+      shares: new Map(),
+      unattributed: 500,
+      scaledDown: false,
+    })
+  })
+
+  it('leaves a negative pool unattributed rather than billing it to the workers', () => {
+    const { shares, unattributed } = splitStagePool(-50, percent(entered(1, 40), rest(2)))
+    expect(unattributed).toBe(-50)
+    expect([...shares.values()]).toEqual([0, 0])
+  })
+
+  it('attributes a full split entirely, float residue included', () => {
+    const pool = 1000 / 3
+    expect(splitStagePool(pool, percent(entered(1, 33.33), rest(2))).unattributed).toBe(0)
+  })
 })
 
 describe('normalizeStageSplit', () => {
@@ -140,6 +159,12 @@ describe('validateStageSplit', () => {
 
   it('refuses a value that is not a number', () => {
     expect(validateStageSplit(percent(entered(1, Number.NaN), rest(2)), 100)).not.toBeNull()
+  })
+
+  it('refuses a value finer than the stored two decimals', () => {
+    expect(validateStageSplit(amount(entered(1, 100.005), rest(2)), 1000)).not.toBeNull()
+    expect(validateStageSplit(percent(entered(1, 33.335), rest(2)), 1000)).not.toBeNull()
+    expect(validateStageSplit(percent(entered(1, 33.33), rest(2)), 1000)).toBeNull()
   })
 
   it('refuses a negative value', () => {

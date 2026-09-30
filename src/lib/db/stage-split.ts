@@ -28,6 +28,8 @@ export async function replaceStageSplit(
   if (split) await insertStageMembers(db, [{ stageId, split }])
 }
 
+export const STAGE_MEMBER_INSERT_COLUMNS = ['stage_id', 'worker_id', 'value', 'takes_rest'] as const
+
 /** Members of freshly inserted etapy; the caller owns `split_mode` on the etap row. */
 export async function insertStageMembers(
   db: DbExecutorT,
@@ -40,7 +42,7 @@ export async function insertStageMembers(
   )
   if (rows.length === 0) return
   await db.execute(sql`
-    INSERT INTO kosztorys_stage_workers (stage_id, worker_id, value, takes_rest)
+    INSERT INTO kosztorys_stage_workers (${sql.raw(STAGE_MEMBER_INSERT_COLUMNS.join(', '))})
     VALUES ${sql.join(rows, sql.raw(', '))}
   `)
 }

@@ -25,7 +25,8 @@ import { STAGE_HEADER_COPY as COPY } from './stage-header-copy'
 import { SortIcon, SortMenuItems } from './sort-menu-items'
 import { cn } from '@/lib/utils/cn'
 import type { SortPickT } from '@/lib/kosztorys/row-view'
-import { restHolderId } from '@/lib/kosztorys/stage-worker-split'
+import { resolveWorkerName } from '@/lib/kosztorys/payouts-by-worker'
+import { restHolderId } from '@/lib/kosztorys/stage-split'
 import type { KosztorysStageT, StageSplitT, ToolPlaneT } from '@/lib/kosztorys/types'
 import type { WorkerRefT } from '@/types/reference-data'
 
@@ -43,7 +44,6 @@ type PropsT = {
   // The etap's executed value at its own plane — the pool the split dialog divides, the same figure
   // the panel credits. 0 (or absent) means nothing has been executed here yet.
   executedValue?: number
-  // Fixed amounts outgrew the pool since the save — „popraw podział".
   scaledDown?: boolean
 }
 
@@ -68,13 +68,13 @@ export function StageHeader({
   const [splitOpen, setSplitOpen] = useState(false)
 
   const allWorkers = workers ?? []
+  const nameById = new Map(allWorkers.map((worker) => [worker.id, worker.name]))
   const restHolder = restHolderId(stage.split)
   const others = (stage.split?.members.length ?? 1) - 1
   const workerLine =
     restHolder == null
       ? null
-      : `${allWorkers.find((worker) => worker.id === restHolder)?.name ?? COPY.workerUnknown}` +
-        (others > 0 ? ` +${others}` : '')
+      : resolveWorkerName(restHolder, nameById) + (others > 0 ? ` +${others}` : '')
 
   // No handlers = a read-only mount (preview): render the bare label, no menu/rename/delete AND no
   // plane icon or warning — the rozliczenie is internal subcontractor information, never client-facing.

@@ -12,7 +12,7 @@ import { sheetCoeffs, type SheetCoeffsT } from './sheet-coeffs'
 import { compareFooterTotals, type FooterComparisonT } from './footer-totals'
 import { keyItems } from './item-key'
 import { groupInOrder } from '@/lib/utils/group-in-order'
-import { oneWorkerSplit } from '@/lib/kosztorys/stage-worker-split'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 import { parseLaborTab } from './parse-labor-tab'
 import { type ImportGridsT } from './read-sheet'
 import {

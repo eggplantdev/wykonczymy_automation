@@ -6,7 +6,7 @@ import type {
   StageProgressT,
   StageSplitT,
 } from '@/lib/kosztorys/types'
-import { normalizeStageSplit, oneWorkerSplit } from '@/lib/kosztorys/stage-worker-split'
+import { normalizeStageSplit, oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 
 export type SnapshotKindT = 'manual' | 'auto' | 'named' | 'daily'
 

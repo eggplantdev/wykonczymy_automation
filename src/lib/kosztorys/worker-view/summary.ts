@@ -1,6 +1,7 @@
 import { rowPlannedNetForView } from '@/lib/kosztorys/calc'
 import { formatPercentPrecise } from '@/lib/kosztorys/format'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
+import { splitStagePool } from '@/lib/kosztorys/stage-split'
 import { subcontractorDueByPlane } from '@/lib/kosztorys/subcontractor-due'
 import type {
   KosztorysStageT,
@@ -100,11 +101,8 @@ function shareOf(
   if (wholeNet > 0) return { percent: (amount / wholeNet) * 100, amount }
   // No executed work yet: a percent split still says what he will get, an amount split can't.
   if (split.mode === 'amount') return { percent: null, amount }
-  const member = split.members.find((candidate) => candidate.workerId === workerId)
-  const othersPercent = split.members
-    .filter((candidate) => !candidate.takesRest)
-    .reduce((total, candidate) => total + candidate.value, 0)
-  return { percent: member?.takesRest ? 100 - othersPercent : (member?.value ?? 0), amount }
+  // A percent split of 100 comes out as the percentages themselves.
+  return { percent: splitStagePool(100, split).shares.get(workerId) ?? 0, amount }
 }
 
 /**

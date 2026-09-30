@@ -9,7 +9,7 @@ import { CurrentUserProvider } from '@/hooks/use-current-user'
 import type { RoleT } from '@/lib/auth/roles'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { WORKER_DOCUMENT_COLUMNS, workerColumnLabel } from '@/lib/kosztorys/worker-view/columns'
-import { oneWorkerSplit } from '@/lib/kosztorys/stage-worker-split'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 
 const INVESTMENT_ID = 12
 

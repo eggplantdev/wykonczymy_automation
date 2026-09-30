@@ -3,10 +3,8 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import { sqlList } from '@/lib/db/sql-list'
 import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import { subcontractorDueColumns, subcontractorLinesCte } from './kosztorys-subcontractor-due'
-import {
-  foldWorkerPayoutPairs,
-  type WorkerPayoutPairRowT,
-} from '@/lib/kosztorys/worker-payout-pairs'
+import { foldWorkerPayoutPairs } from '@/lib/kosztorys/worker-payout-pairs-fold'
+import type { WorkerPayoutPairRowT } from '@/lib/kosztorys/worker-payout-pairs'
 import { mapStageSplit } from './kosztorys-tree'
 import type { DbExecutorT } from './get-db'
 

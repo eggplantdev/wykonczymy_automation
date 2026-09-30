@@ -3,7 +3,7 @@ import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import { stageKey, stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
-import { oneWorkerSplit } from '@/lib/kosztorys/stage-worker-split'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 
 // An engaged etap problem narrows which etapy get columns — a reading gesture, not a data filter. What
 // is asserted here is the narrowing itself: which etapy survive it, and that all three etap axes
@@ -18,7 +18,13 @@ const NO_WORKER: KosztorysStageT = {
   plane: 'w_tools',
   split: null,
 }
-const FINE: KosztorysStageT = { id: 11, ordinal: 3, label: 'Etap 3', plane: 'w_tools', split: oneWorkerSplit(5) }
+const FINE: KosztorysStageT = {
+  id: 11,
+  ordinal: 3,
+  label: 'Etap 3',
+  plane: 'w_tools',
+  split: oneWorkerSplit(5),
+}
 const STAGES = [BARE, NO_WORKER, FINE]
 
 const columnIds = (opts: Partial<BuildV2ColumnsOptsT> = {}) =>

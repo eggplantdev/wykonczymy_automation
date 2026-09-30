@@ -4,7 +4,7 @@ import { fold } from '@/lib/kosztorys/sheet-import/columns'
 import type { ImportGridsT } from '@/lib/kosztorys/sheet-import/read-sheet'
 import { SNAPSHOT_SCHEMA_VERSION, type SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 import { BIALOSTOCKA_ROWS, ratesTab } from '@/__tests__/fixtures/kosztorys-sheet/rows'
-import { oneWorkerSplit } from '@/lib/kosztorys/stage-worker-split'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 
 const RATES = [
   { description: 'zakup, transport i wniesienie towaru budowlanego', wTools: 975, ownTools: 750 },

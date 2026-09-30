@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { resolveWorkerScope } from '@/lib/kosztorys/worker-view/scope'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
-import { oneWorkerSplit } from '@/lib/kosztorys/stage-worker-split'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 
 const stage = (id: number, plane: KosztorysStageT['plane'], workerId: number | null) => ({
   id,

@@ -4,7 +4,7 @@ import { sectionSubtotalsForView } from '@/lib/kosztorys/settlement-aggregates'
 import { sumSectionSubtotalsNet } from '@/lib/kosztorys/settlement-client-totals'
 import { hasStagesOverPlanned, rowTotalQtyDone } from '@/lib/kosztorys/settlement-rows'
 import { subcontractorDueByPlane } from '@/lib/kosztorys/subcontractor-due'
-import { oneWorkerSplit } from '@/lib/kosztorys/stage-worker-split'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 import type { KosztorysStageT, KosztorysTreeT, StageSplitT } from '@/lib/kosztorys/types'
 import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 
@@ -266,6 +266,35 @@ describe('subcontractorDueByPlane — shared etapy', () => {
     const due = subcontractorDueByPlane(treeToRows(tree), tree.stages)
     expect([...due.unconfirmedWorkers]).toEqual([7, 8])
     expect(due.byWorker.size).toBe(0)
+  })
+
+  // 32593.76 × (33.33% + 12.5% + rest) re-sums to pool + 3.6e-12 — enough to surface an empty
+  // „Nieprzypisane" row in the summary when the residue is read as unassigned money.
+  it('credits nobody unassigned on the float residue of a full split', () => {
+    const split: StageSplitT = {
+      mode: 'percent',
+      members: [
+        { workerId: 7, value: 33.33, takesRest: false },
+        { workerId: 9, value: 12.5, takesRest: false },
+        { workerId: 8, value: 0, takesRest: true },
+      ],
+    }
+    const tree = makeTree({
+      sections: [
+        {
+          id: 10,
+          name: 'Sekcja A',
+          displayOrder: 0,
+          color: null,
+          items: [{ ...baseItem, id: 1, plannedQty: 1, wToolsOverrideValue: 32593.76 }],
+        },
+      ],
+      stages: [{ id: 100, ordinal: 1, label: null, plane: 'w_tools', split }],
+      progress: [{ itemId: 1, stageId: 100, qtyDone: 1 }],
+    })
+    const due = subcontractorDueByPlane(treeToRows(tree), tree.stages)
+    expect(due.byStage.get(100)).toBe(32593.76)
+    expect(due.byWorker.has(null)).toBe(false)
   })
 })
 

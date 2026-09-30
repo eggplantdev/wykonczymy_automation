@@ -17,7 +17,6 @@ export type StageConditionT = {
 
 /** What a stage predicate needs beyond the etap itself — figures only the rozpiska can answer. */
 export type StageContextT = {
-  // Etapy whose fixed amounts outgrew the executed work (`subcontractorDueByPlane`).
   scaledDownStageIds: ReadonlySet<number>
 }
 

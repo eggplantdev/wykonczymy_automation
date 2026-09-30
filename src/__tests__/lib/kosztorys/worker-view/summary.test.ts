@@ -5,7 +5,7 @@ import { computeWorkerSummary } from '@/lib/kosztorys/worker-view/summary'
 import type { KosztorysStageT, KosztorysTreeT } from '@/lib/kosztorys/types'
 import type { PayoutTransactionRowT } from '@/types/transfers'
 import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
-import { oneWorkerSplit, restHolderId } from '@/lib/kosztorys/stage-worker-split'
+import { oneWorkerSplit, restHolderId } from '@/lib/kosztorys/stage-split'
 
 const WORKER = 5
 const OTHER = 9

@@ -6,7 +6,7 @@ import {
 import type { WorkerRefT } from '@/types/reference-data'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import type { SubcontractorPayoutRowT } from '@/types/transfers'
-import { oneWorkerSplit } from '@/lib/kosztorys/stage-worker-split'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 
 const payout = (workerId: number | null, total: number, name = 'x'): SubcontractorPayoutRowT => ({
   workerId,
@@ -140,7 +140,9 @@ describe('computeSubcontractorSummary — per-worker attribution', () => {
     it('no_executed_work — etapy assigned, nothing earned on them yet', () => {
       expect(stateFor(0, 150, [stage(10, 1)])).toBe('no_executed_work')
       expect(
-        stateFor(0, 150, [{ id: 10, ordinal: 1, label: null, plane: null, split: oneWorkerSplit(1) }]),
+        stateFor(0, 150, [
+          { id: 10, ordinal: 1, label: null, plane: null, split: oneWorkerSplit(1) },
+        ]),
       ).toBe('no_executed_work')
     })
 

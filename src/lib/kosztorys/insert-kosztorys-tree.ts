@@ -3,7 +3,7 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import { sqlList } from '@/lib/db/sql-list'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import { insertStageMembers } from '@/lib/db/stage-split'
-import { normalizeStageSplit } from './stage-worker-split'
+import { normalizeStageSplit } from '@/lib/kosztorys/stage-split'
 import {
   itemWithColumnDefaults,
   storedStageSplit,

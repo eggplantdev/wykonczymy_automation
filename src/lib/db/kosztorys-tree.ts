@@ -11,7 +11,7 @@ import type {
   StageSplitT,
   ToolPlaneT,
 } from '@/lib/kosztorys/types'
-import { normalizeStageSplit } from '@/lib/kosztorys/stage-worker-split'
+import { normalizeStageSplit } from '@/lib/kosztorys/stage-split'
 import type { DbExecutorT } from './get-db'
 import { numOrNull } from './row-coerce'
 

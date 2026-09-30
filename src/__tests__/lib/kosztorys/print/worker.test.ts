@@ -10,7 +10,7 @@ import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
-import { oneWorkerSplit } from '@/lib/kosztorys/stage-worker-split'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 
 const WORKER = 5
 const CLIENT_PRICES = [37, 23]

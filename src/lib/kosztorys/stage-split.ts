@@ -2,8 +2,16 @@ import { formatPLN } from '@/lib/utils/format-currency'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 import type { StageSplitT } from '@/lib/kosztorys/types'
 
-export type StageSharesT = {
+// EX-613's rule, kept: without a plane the etap has no price, so a share of it is a share of nothing.
+export const STAGE_SPLIT_NEEDS_PLANE =
+  'Najpierw wybierz rozliczenie etapu — bez niego etap nie ma ceny, więc nikomu nic nie nalicza.'
+
+type StageSharesT = {
   shares: Map<number, number>
+  // What nobody on the etap takes: the whole pool of an etap without workers, and a negative pool
+  // (qty corrected below zero), which is shared as zeros. Credited to „Nieprzypisane" so Σ shares +
+  // this === pool. Never a float residue of a full split — that would be a phantom unassigned row.
+  unattributed: number
   // The pool fell below the fixed amounts after they were saved, so they were shrunk pro rata and
   // the rest holder got 0 — the etap's „popraw podział" signal.
   scaledDown: boolean
@@ -17,14 +25,15 @@ export type StageSharesT = {
  * No rounding: Σ shares === pool in floating point, and display rounds. A pool of 0 or less credits
  * nobody („nie dzielimy pieniędzy, których nie ma").
  */
-export function splitStagePool(pool: number, split: StageSplitT): StageSharesT {
+export function splitStagePool(pool: number, split: StageSplitT | null): StageSharesT {
   const shares = new Map<number, number>()
+  if (!split) return { shares, unattributed: pool, scaledDown: false }
   const entered = split.members.filter((member) => !member.takesRest)
   const restHolder = split.members.find((member) => member.takesRest)
 
   if (pool <= 0) {
     for (const member of split.members) shares.set(member.workerId, 0)
-    return { shares, scaledDown: false }
+    return { shares, unattributed: pool, scaledDown: false }
   }
 
   const wanted = entered.map((member) =>
@@ -47,7 +56,7 @@ export function splitStagePool(pool: number, split: StageSplitT): StageSharesT {
     // `pool − paid` can land at -1e-13 on float residue; a share is never negative.
     shares.set(restHolder.workerId, Math.max(0, pool - paid))
   }
-  return { shares, scaledDown }
+  return { shares, unattributed: 0, scaledDown }
 }
 
 /** The whole etap to one person — what a single wykonawca, the import and a legacy snapshot mean. */
@@ -102,6 +111,11 @@ export function validateStageSplit(split: StageSplitT, pool: number): string | n
   const entered = members.filter((member) => !member.takesRest)
   if (entered.some((member) => !Number.isFinite(member.value))) return 'Wpisz poprawną liczbę.'
   if (entered.some((member) => member.value < 0)) return 'Udział nie może być ujemny.'
+  // The column is numeric(12,2): a finer value would pass here and be rounded by Postgres, so the
+  // editor and the next load would disagree by a grosz.
+  if (entered.some((member) => roundToCents(member.value) !== member.value)) {
+    return 'Najwyżej dwa miejsca po przecinku.'
+  }
   const enteredTotal = roundToCents(entered.reduce((total, member) => total + member.value, 0))
   if (split.mode === 'percent') {
     return enteredTotal > 100 ? 'Suma procentów przekracza 100%.' : null

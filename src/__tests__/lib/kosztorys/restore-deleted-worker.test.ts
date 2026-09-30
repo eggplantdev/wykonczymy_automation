@@ -8,7 +8,7 @@ import { restoreKosztorys } from '@/lib/kosztorys/restore-kosztorys'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
-import { restHolderId } from '@/lib/kosztorys/stage-worker-split'
+import { restHolderId } from '@/lib/kosztorys/stage-split'
 
 // A snapshot records `worker_id` per etap, so it outlives the person it names. `ON DELETE SET NULL`
 // on the column protects the LIVE row when that person is deleted — it says nothing about a restore
@@ -118,7 +118,8 @@ describe.skipIf(!ENV_READY)('restore with a since-deleted etap assignee (DB)', (
     // Assert the PERSISTED tree, not just the call's return: the reported count is what the toast
     // shows, but only the rows say what actually landed.
     const after = await serializeKosztorys(investmentId)
-    const splitOf = (ordinal: number) => after.stages.find((stage) => stage.ordinal === ordinal)?.split
+    const splitOf = (ordinal: number) =>
+      after.stages.find((stage) => stage.ordinal === ordinal)?.split
     expect(after.stages.map((stage) => stage.ordinal).sort()).toEqual([1, 2, 3])
     expect(splitOf(1)).toBeNull()
     expect(restHolderId(splitOf(2) ?? null)).toBe(keptWorkerId)

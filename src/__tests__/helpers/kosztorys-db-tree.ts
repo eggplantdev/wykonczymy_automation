@@ -2,7 +2,7 @@ import type { Payload } from 'payload'
 import type { KosztorysItem, KosztorysSection, KosztorysStage } from '@/payload-types'
 import { getDb } from '@/lib/db/get-db'
 import { insertStageMembers } from '@/lib/db/stage-split'
-import { oneWorkerSplit } from '@/lib/kosztorys/stage-worker-split'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 import type { StageSplitT } from '@/lib/kosztorys/types'
 
 // One declarative literal per tree, so a DB-gated spec states its fixture instead of assembling it —
@@ -123,7 +123,8 @@ export async function createKosztorysTree(
       ...FIXTURE_CONTEXT,
     })
     stageIds.push(Number(created.id))
-    if (split) await insertStageMembers(await getDb(payload), [{ stageId: Number(created.id), split }])
+    if (split)
+      await insertStageMembers(await getDb(payload), [{ stageId: Number(created.id), split }])
   }
 
   for (const entry of spec.progress ?? []) {

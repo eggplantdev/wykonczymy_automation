@@ -34,7 +34,11 @@ import { emptySnapshotPayload } from '@/lib/kosztorys/snapshot-format'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import type { ActionResultT } from '@/types/action'
 import type { ItemPatchT, StagePatchT, StageSplitT, ToolPlaneT } from '@/lib/kosztorys/types'
-import { normalizeStageSplit, validateStageSplit } from '@/lib/kosztorys/stage-worker-split'
+import {
+  normalizeStageSplit,
+  STAGE_SPLIT_NEEDS_PLANE,
+  validateStageSplit,
+} from '@/lib/kosztorys/stage-split'
 import { insertStageMembers, replaceStageSplit, selectStagePool } from '@/lib/db/stage-split'
 
 // Derived from TOOL_PLANES so a plane added to the pickers can't be silently rejected here.
@@ -609,7 +613,7 @@ export async function addStageAction(
       const normalized = normalizeStageSplit(parsedSplit.data)
       // A new etap has no executed work, so only a 0 zł amount could pass the cap; the copied
       // percentages are what carries over.
-      const refusal = normalized && validateStageSplit(normalized, 0)
+      const refusal = parsedSplit.data && normalized && validateStageSplit(parsedSplit.data, 0)
       if (refusal) return { success: false, error: refusal }
       return withPayloadTransaction(
         payload,
@@ -688,8 +692,6 @@ export async function updateStageAction(
 }
 
 const STAGE_MISSING = 'Etap nie istnieje.'
-// EX-613's rule, kept: without a plane the etap has no price, so a share of it would be a share of nothing.
-const STAGE_SPLIT_NEEDS_PLANE = 'Najpierw wybierz rozliczenie etapu — bez niego etap nikomu nic nie nalicza.'
 
 // The whole split in one call: mode and members are one concept, and two patches would have states
 // no single save produces (lessons.md). The cap is checked against the pool priced here, inside the
@@ -704,6 +706,8 @@ export async function updateStageSplitAction(
     async ({ payload }) => {
       const parsed = validateAction(stageSplitSchema, split)
       if (!parsed.success) return parsed
+      // Validated as sent, written normalized: normalizing repairs a missing rest holder by zeroing
+      // the first member's amount, which would move money instead of refusing the save.
       const normalized = normalizeStageSplit(parsed.data)
       return withPayloadTransaction(
         payload,
@@ -713,12 +717,11 @@ export async function updateStageSplitAction(
             SELECT plane FROM kosztorys_stages WHERE id = ${stageId} FOR UPDATE
           `)
           const stage = res.rows[0]
-          if (!stage) return { success: false, error: STAGE_MISSING }
-          if (normalized && stage.plane == null) {
-            return { success: false, error: STAGE_SPLIT_NEEDS_PLANE }
-          }
-          if (normalized) {
-            const refusal = validateStageSplit(normalized, await selectStagePool(txDb, stageId))
+          // Deleted between the gate and the lock: the code makes the editor reseed its tree.
+          if (!stage) return { success: false, error: STAGE_MISSING, code: 'NOT_FOUND' }
+          if (parsed.data && normalized) {
+            if (stage.plane == null) return { success: false, error: STAGE_SPLIT_NEEDS_PLANE }
+            const refusal = validateStageSplit(parsed.data, await selectStagePool(txDb, stageId))
             if (refusal) return { success: false, error: refusal }
           }
           await replaceStageSplit(txDb, stageId, normalized)
