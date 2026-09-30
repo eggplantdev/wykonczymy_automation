@@ -473,13 +473,13 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 3.1 use-kosztorys-editor-request-failed and use-kosztorys-itemless-sections specs pass
+- [x] 3.1 use-kosztorys-editor-request-failed and use-kosztorys-itemless-sections specs pass — 388f0892
 
 ### Phase 4: Tree-replacing dialogs and the versions drawer
 
 #### Automated
 
-- [ ] 4.1 sheet-import-dialog, kosztorys-versions-drawer and clean-item-texts-action specs pass
+- [x] 4.1 sheet-import-dialog, kosztorys-versions-drawer and clean-item-texts-action specs pass
 
 ### Phase 5: Remaining call sites
 
