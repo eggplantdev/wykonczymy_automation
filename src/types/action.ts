@@ -2,9 +2,11 @@
  * Machine-readable failure kind, set alongside the human `error` where the CALLER can react to the
  * kind rather than to the sentence. `NOT_FOUND` means the row the write targeted is gone — for an
  * editor holding a mount-frozen copy of the tree that is not "your edit was rejected", it is "your
- * whole copy is stale", which is a different recovery (reseed) than a revert.
+ * whole copy is stale", which is a different recovery (reseed) than a revert. `REQUEST_FAILED` is
+ * set only client-side by `settleAction`: the request never completed, so whether the write
+ * committed is unknown.
  */
-export type ActionErrorCodeT = 'NOT_FOUND'
+export type ActionErrorCodeT = 'NOT_FOUND' | 'REQUEST_FAILED'
 
 type FailureT = { success: false; error: string; code?: ActionErrorCodeT }
 
