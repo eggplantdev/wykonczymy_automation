@@ -16,7 +16,10 @@ import { BrandLogo } from '@/components/ui/brand-logo'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
 import { useKosztorysEditor } from '@/components/kosztorys/editor/use-kosztorys-editor'
-import { reportEditorSeams } from '@/components/kosztorys/editor/grid/report-column'
+import {
+  reportEditorSeams,
+  type ReportModeT,
+} from '@/components/kosztorys/editor/grid/report-column'
 import { useMediaQuery } from '@/hooks/use-media-query'
 import { DESKTOP_MEDIA_QUERY } from '@/lib/constants/breakpoints'
 import {
@@ -85,7 +88,6 @@ import type { InvestorHistoryT } from '@/lib/kosztorys/history/types'
 import type { KosztorysEditorDataT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view/settings'
 import type { WorkerAudienceT } from '@/lib/kosztorys/worker-view/types'
-import type { ReportModeT } from '@/lib/kosztorys/worker-report/types'
 
 type PropsT = KosztorysEditorDataT & {
   // Read-only public render: hides the mutation chrome, kills persistence, gates the footer's
@@ -104,8 +106,7 @@ type PropsT = KosztorysEditorDataT & {
   onTreeReplaced?: OnTreeReplacedT
   // Reseed after a write was refused because its row is gone (the tree was replaced elsewhere).
   onStaleTree?: () => Promise<void>
-  // The worker's document as a report form — his header
-  // replaces the preview's, and „Zgłaszam” takes input. Only ever with `worker`.
+  // Only ever with `worker`.
   report?: ReportModeT & {
     header: (controls: ReportGridControlsT) => ReactNode
     // Rendered inside dsg's container, right after the last row.

@@ -3,7 +3,6 @@ import type { WorkerReportFormDataT } from '@/lib/kosztorys/worker-report/types'
 
 const COMMON_UNIT_COUNT = 6
 
-// Narrowed on the server so the client payload carries no price: the form is not the worker view.
 export function toWorkerReportFormData(
   data: Extract<WorkerKosztorysT, { kind: 'ready' }>,
 ): WorkerReportFormDataT {

@@ -5,6 +5,7 @@ import { getDb } from '@/lib/db/get-db'
 import {
   claimPendingReport,
   insertWorkerReport,
+  listDecidableReports,
   pendingQtyByItem,
   readWorkerReport,
 } from '@/lib/db/worker-reports'
@@ -174,6 +175,29 @@ describe.skipIf(!ENV_READY)('worker report data access (DB)', () => {
     expect((await readWorkerReport(db, investmentId, reportId))?.report.status).toBe('pending')
   })
 
+  it('lists a decided report after the pending queue, not only the queue', async () => {
+    const rejected = await insertWorkerReport(db, {
+      investmentId,
+      workerId,
+      lines: [rozpiskaLine(itemIds[0], 1)],
+    })
+    await claimPendingReport(db, investmentId, rejected, 'rejected', otherWorkerId)
+    const pending = await insertWorkerReport(db, {
+      investmentId,
+      workerId,
+      lines: [rozpiskaLine(itemIds[0], 1)],
+    })
+
+    const ours = (await listDecidableReports(db)).filter((row) => row.investmentId === investmentId)
+    const order = ours.map((row) => row.id)
+
+    expect(ours.find((row) => row.id === rejected)).toMatchObject({ status: 'rejected' })
+    expect(order.indexOf(pending)).toBeLessThan(order.indexOf(rejected))
+    expect(ours.findLastIndex((row) => row.status === 'pending')).toBeLessThan(
+      ours.findIndex((row) => row.status !== 'pending'),
+    )
+  })
+
   it('sums only this worker’s pending lines per pozycja', async () => {
     const [probe] = itemIds.slice(1)
     await insertWorkerReport(db, { investmentId, workerId, lines: [rozpiskaLine(probe, 2)] })
@@ -192,6 +216,6 @@ describe.skipIf(!ENV_READY)('worker report data access (DB)', () => {
 
     const pending = await pendingQtyByItem(db, investmentId, workerId)
 
-    expect(pending.get(probe)).toBe(2.5)
+    expect(pending[probe]).toBe(2.5)
   })
 })

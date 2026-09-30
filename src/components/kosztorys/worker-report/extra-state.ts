@@ -10,3 +10,10 @@ export function extraState(extra: ExtraWorkT): 'blank' | 'complete' | 'invalid' 
     return 'complete'
   return 'invalid'
 }
+
+export const blankExtra = (): ExtraWorkT => ({
+  key: crypto.randomUUID(),
+  description: '',
+  unit: '',
+  qty: '',
+})

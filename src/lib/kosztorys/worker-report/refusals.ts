@@ -6,5 +6,13 @@ export const REPORT_REFUSALS = {
   closed: 'Ta inwestycja jest zamknięta — zgłoszenia prac nie są już przyjmowane.',
   template: 'Szablon nie przyjmuje zgłoszeń prac.',
   inactiveWorker: 'Twoje konto jest nieaktywne. Skontaktuj się z kierownikiem.',
-  foreignItem: 'Część pozycji zniknęła z rozpiski. Odśwież stronę i sprawdź zgłoszenie.',
+  foreignItem: 'Część prac zniknęła z rozpiski. Odśwież stronę i sprawdź zgłoszenie.',
+} as const
+
+// The review dialog blocks „Przyjmij" with the sentence the server would refuse it with.
+export const ACCEPT_REFUSALS = {
+  lostRecordedStage:
+    'Część zgłoszenia przyjęto do etapu, którego już nie ma albo w którym nie ma już tego pracownika. Odznacz te prace, zanim dodasz resztę do innego etapu.',
+  unsettledPlane:
+    'Rozliczenie etapów tego pracownika nie jest ustalone — wybierz jeden z jego etapów.',
 } as const

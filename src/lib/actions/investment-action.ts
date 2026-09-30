@@ -42,7 +42,7 @@ export function investmentAction<TData = undefined>(
     investmentId: number
   }) => Promise<ActionResultT<TData>>,
   revalidate?: (keyof typeof CACHE_TAGS)[],
-  opts?: { deferRefresh?: boolean },
+  opts?: { deferRefresh?: boolean; entityTags?: string[] },
 ): Promise<ActionResultT<TData>> {
   return protectedAction<TData>(
     label,

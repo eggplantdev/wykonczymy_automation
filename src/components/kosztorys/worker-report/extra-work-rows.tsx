@@ -4,7 +4,7 @@ import { Plus, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { SimpleSelect } from '@/components/ui/simple-select'
-import { extraState } from '@/components/kosztorys/worker-report/extra-state'
+import { blankExtra, extraState } from '@/components/kosztorys/worker-report/extra-state'
 import type { ExtraWorkT } from '@/components/kosztorys/worker-report/types'
 import { parseReportQty } from '@/lib/kosztorys/worker-report/parse-report-qty'
 import { unitOptions } from '@/lib/kosztorys/worker-report/unit-options'
@@ -18,7 +18,6 @@ type PropsT = {
   showsMissing: boolean
 }
 
-// Work from outside the rozpiska as plain rows — typed in place, one row per work.
 export function ExtraWorkRows({ extras, commonUnits, onSave, onRemove, showsMissing }: PropsT) {
   return (
     <div>
@@ -68,12 +67,7 @@ export function ExtraWorkRows({ extras, commonUnits, onSave, onRemove, showsMiss
           )
         })}
       </div>
-      <Button
-        variant="outline"
-        size="sm"
-        className="mt-3"
-        onClick={() => onSave({ key: crypto.randomUUID(), description: '', unit: '', qty: '' })}
-      >
+      <Button variant="outline" size="sm" className="mt-3" onClick={() => onSave(blankExtra())}>
         <Plus />
         Dodaj więcej
       </Button>

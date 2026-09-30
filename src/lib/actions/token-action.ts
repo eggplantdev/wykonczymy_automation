@@ -2,9 +2,9 @@ import 'server-only'
 import type { Payload } from 'payload'
 import { runAuthorizedHandler } from '@/lib/actions/run-action'
 import { getDb, type DbExecutorT } from '@/lib/db/get-db'
-import { investmentGateFor } from '@/lib/db/investment-gate'
-import { readReportShare } from '@/lib/db/worker-reports'
+import { readReportShare } from '@/lib/db/worker-report-share'
 import { REPORT_REFUSALS } from '@/lib/kosztorys/worker-report/refusals'
+import { reportShareRefusal } from '@/lib/kosztorys/worker-report/share-refusal'
 import { WORKER_SCOPE_BLOCK_MESSAGES } from '@/lib/kosztorys/worker-view/labels'
 import { resolveWorkerScope } from '@/lib/kosztorys/worker-view/scope'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
@@ -45,11 +45,8 @@ export async function tokenAction<TData = undefined>(
       const share = await readReportShare(db, token)
       if (!share) return refuse(REPORT_REFUSALS.unknownToken)
 
-      const gate = await investmentGateFor(db, share.investmentId)
-      if (gate.lockMessage) return refuse(REPORT_REFUSALS.closed)
-      if (gate.isTemplate) return refuse(REPORT_REFUSALS.template)
-
-      if (!share.isWorkerActive) return refuse(REPORT_REFUSALS.inactiveWorker)
+      const refusal = await reportShareRefusal(db, share)
+      if (refusal) return refuse(refusal)
 
       const tree = await buildKosztorysTree(share.investmentId)
       const scope = resolveWorkerScope(tree.stages, share.workerId)

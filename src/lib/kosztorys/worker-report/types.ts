@@ -1,10 +1,8 @@
+import type { z } from 'zod'
+import type { StageProgressCellT } from '@/lib/db/stage-progress'
 import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
-import type {
-  KosztorysItemT,
-  KosztorysSectionT,
-  KosztorysStageT,
-  ToolPlaneT,
-} from '@/lib/kosztorys/types'
+import type { acceptSchema, sendLineSchema } from '@/lib/kosztorys/worker-report/schemas'
+import type { KosztorysItemT, KosztorysSectionT, KosztorysStageT } from '@/lib/kosztorys/types'
 
 export type ReportFormItemT = {
   id: number
@@ -29,23 +27,7 @@ export type WorkerReportFormDataT = {
   commonUnits: string[]
 }
 
-// His rozpiska grid as a report form. His etapy stay read-only; he types into one extra „Zgłaszam”
-// column, and every edit lands in his draft instead of the server. Which etap it goes to is the
-// kierownik's call at verification.
-export type ReportModeT = {
-  // What the draft already holds, so a reload reopens the column with his unsent work in it.
-  initialQtyByItem: Record<number, number>
-  pendingQtyByItem: Record<number, number>
-  // Only Opis prac and „Zgłaszam” — the rest of the sheet is context he can switch back to.
-  isCompact: boolean
-  onReportQty: (itemId: number, qty: number) => void
-}
-
-// What the worker's browser sends: a rozpiska line names only its pozycja — opis, j.m. and sekcja are
-// copied on the server from the live pozycja, never taken from the client.
-export type SendReportLineT =
-  | { kind: 'rozpiska'; itemId: number; qty: number }
-  | { kind: 'extra'; description: string; unit: string; qty: number }
+export type SendReportLineT = z.input<typeof sendLineSchema>
 
 export type ReportLineKindT = 'rozpiska' | 'extra'
 
@@ -93,28 +75,15 @@ export type WorkerReportSummaryT = {
 
 export type WorkerReportT = WorkerReportSummaryT & { lines: ReportLineT[] }
 
-export type AcceptTargetT = { kind: 'stage'; stageId: number } | { kind: 'new'; plane?: ToolPlaneT }
+export type AcceptReportInputT = z.input<typeof acceptSchema>
 
-export type AcceptReportInputT = {
-  investmentId: number
-  reportId: number
-  target: AcceptTargetT
-  // `itemId` only for a line re-pointed by hand after its pozycja was deleted.
-  lines: { lineId: number; acceptedQty: number; itemId?: number }[]
-  extras: {
-    lineId: number
-    acceptedQty: number
-    sectionId: number
-    clientPrice?: number
-    catalogueItemId?: number
-  }[]
-}
+export type AcceptTargetT = AcceptReportInputT['target']
 
 export type AcceptReportResultT = {
   // Only when the report went to „Nowy etap".
   stage: KosztorysStageT | undefined
   appended: (KosztorysSectionT & { items: KosztorysItemT[] })[]
   // Absolute figures after the addition — the client never re-adds.
-  cells: { itemId: number; stageId: number; qtyDone: number }[]
+  cells: StageProgressCellT[]
   revision: string
 }

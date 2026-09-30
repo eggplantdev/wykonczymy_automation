@@ -1,16 +1,15 @@
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
+import type { ReportLineKindT, ReportStatusT } from '@/lib/kosztorys/worker-report/types'
 import type { DbExecutorT } from './get-db'
-import { isoOrNull, numOrNull, text } from './row-coerce'
+import { sqlList } from './sql-list'
+import { isoOrNull, numOrNull, text, textOrNull } from './row-coerce'
 
 // Not `server-only`: the users collection's delete guard imports `countReportsByWorker`, and that
 // graph also loads under `payload generate:types`, where `server-only` throws.
 
-export type WorkerReportStatusT = 'pending' | 'accepted' | 'rejected'
-export type WorkerReportLineKindT = 'rozpiska' | 'extra'
-
 export type WorkerReportLineInputT = {
-  kind: WorkerReportLineKindT
+  kind: ReportLineKindT
   itemId: number | null
   description: string
   unit: string
@@ -23,7 +22,7 @@ export type WorkerReportRowT = {
   investmentId: number
   workerId: number
   workerName: string
-  status: WorkerReportStatusT
+  status: ReportStatusT
   sentAt: string
   decidedAt: string | null
   decidedByName: string | null
@@ -37,7 +36,7 @@ export type WorkerReportRowT = {
 export type WorkerReportLineRowT = {
   id: number
   position: number
-  kind: WorkerReportLineKindT
+  kind: ReportLineKindT
   itemId: number | null
   description: string
   unit: string
@@ -48,13 +47,15 @@ export type WorkerReportLineRowT = {
   catalogueItemId: number | null
 }
 
-export type PendingReportRowT = {
+export type ReportListRowT = {
   id: number
   investmentId: number
   investmentName: string
   workerName: string
+  status: ReportStatusT
   sentAt: string
   lineCount: number
+  acceptedLineCount: number
 }
 
 // A report on a zakończona or trashed investment can be neither accepted nor rejected — the gate
@@ -80,13 +81,13 @@ function toReportRow(row: Record<string, unknown>): WorkerReportRowT {
     investmentId: Number(row.investment_id),
     workerId: Number(row.worker_id),
     workerName: text(row.worker_name),
-    status: row.status as WorkerReportStatusT,
+    status: row.status as ReportStatusT,
     sentAt: isoOrNull(row.sent_at) ?? '',
     decidedAt: isoOrNull(row.decided_at),
-    decidedByName: row.decided_by_name == null ? null : String(row.decided_by_name),
+    decidedByName: textOrNull(row.decided_by_name),
     targetStageId: numOrNull(row.target_stage_id),
     targetStageOrdinal: numOrNull(row.target_stage_ordinal),
-    targetStageLabel: row.target_stage_label == null ? null : String(row.target_stage_label),
+    targetStageLabel: textOrNull(row.target_stage_label),
     lineCount: Number(row.line_count ?? 0),
     acceptedLineCount: Number(row.accepted_line_count ?? 0),
   }
@@ -96,52 +97,15 @@ function toLineRow(row: Record<string, unknown>): WorkerReportLineRowT {
   return {
     id: Number(row.id),
     position: Number(row.position),
-    kind: row.kind as WorkerReportLineKindT,
+    kind: row.kind as ReportLineKindT,
     itemId: numOrNull(row.item_id),
     description: text(row.description),
     unit: text(row.unit),
-    sectionName: row.section_name == null ? null : String(row.section_name),
+    sectionName: textOrNull(row.section_name),
     reportedQty: Number(row.reported_qty),
     acceptedQty: numOrNull(row.accepted_qty),
     createdItemId: numOrNull(row.created_item_id),
     catalogueItemId: numOrNull(row.catalogue_item_id),
-  }
-}
-
-export type ReportShareT = {
-  investmentId: number
-  investmentName: string
-  workerId: number
-  workerName: string
-  isWorkerActive: boolean
-}
-
-/**
- * The report link's token check. Deliberately blind to the investment's status and trash: the page
- * explains a zakończona or trashed investment instead of 404ing, and the gate refuses its writes.
- */
-export async function readReportShare(
-  db: DbExecutorT,
-  token: string,
-): Promise<ReportShareT | null> {
-  if (!token) return null
-  const res = await db.execute(sql`
-    SELECT s.investment_id, i.name AS investment_name, s.worker_id, w.name AS worker_name,
-      w.active AS worker_active
-    FROM worker_report_shares s
-    JOIN investments i ON i.id = s.investment_id
-    JOIN users w ON w.id = s.worker_id
-    WHERE s.token = ${token}
-  `)
-  const row = res.rows[0]
-  if (!row) return null
-  return {
-    investmentId: Number(row.investment_id),
-    investmentName: text(row.investment_name),
-    workerId: Number(row.worker_id),
-    workerName: text(row.worker_name),
-    // A NULL predates the column's default; Payload reads it as active too.
-    isWorkerActive: row.worker_active !== false,
   }
 }
 
@@ -176,23 +140,12 @@ export async function insertWorkerReport(
 export async function listWorkerReports(
   db: DbExecutorT,
   investmentId: number,
+  workerId?: number,
 ): Promise<WorkerReportRowT[]> {
   const res = await db.execute(sql`
     SELECT ${REPORT_COLUMNS} FROM worker_reports r ${REPORT_JOINS}
     WHERE r.investment_id = ${investmentId}
-    ORDER BY r.sent_at DESC, r.id DESC
-  `)
-  return res.rows.map(toReportRow)
-}
-
-export async function listWorkerReportsForWorker(
-  db: DbExecutorT,
-  investmentId: number,
-  workerId: number,
-): Promise<WorkerReportRowT[]> {
-  const res = await db.execute(sql`
-    SELECT ${REPORT_COLUMNS} FROM worker_reports r ${REPORT_JOINS}
-    WHERE r.investment_id = ${investmentId} AND r.worker_id = ${workerId}
+      ${workerId === undefined ? sql`` : sql`AND r.worker_id = ${workerId}`}
     ORDER BY r.sent_at DESC, r.id DESC
   `)
   return res.rows.map(toReportRow)
@@ -220,25 +173,31 @@ export async function readWorkerReport(
   return { report: toReportRow(row), lines: linesRes.rows.map(toLineRow) }
 }
 
-/** Every pending report the kierownik can still decide, oldest first — the queue, not a history. */
-export async function listPendingReports(db: DbExecutorT): Promise<PendingReportRowT[]> {
+/**
+ * Every report the kierownik can still act on — a decided one too, since its open lines stay
+ * acceptable. The pending queue first, then the rest newest first.
+ */
+export async function listDecidableReports(db: DbExecutorT): Promise<ReportListRowT[]> {
   const res = await db.execute(sql`
-    SELECT r.id, r.investment_id, i.name AS investment_name, w.name AS worker_name, r.sent_at,
-      (SELECT count(*)::int FROM worker_report_lines l WHERE l.report_id = r.id) AS line_count
-    FROM worker_reports r
+    SELECT ${REPORT_COLUMNS}, i.name AS investment_name
+    FROM worker_reports r ${REPORT_JOINS}
     JOIN investments i ON i.id = r.investment_id
-    JOIN users w ON w.id = r.worker_id
-    WHERE r.status = 'pending' AND ${DECIDABLE_INVESTMENT}
-    ORDER BY r.sent_at, r.id
+    WHERE ${DECIDABLE_INVESTMENT}
+    ORDER BY r.status <> 'pending', r.sent_at DESC, r.id DESC
   `)
-  return res.rows.map((row) => ({
-    id: Number(row.id),
-    investmentId: Number(row.investment_id),
-    investmentName: text(row.investment_name),
-    workerName: text(row.worker_name),
-    sentAt: isoOrNull(row.sent_at) ?? '',
-    lineCount: Number(row.line_count ?? 0),
-  }))
+  return res.rows.map((row) => {
+    const report = toReportRow(row)
+    return {
+      id: report.id,
+      investmentId: report.investmentId,
+      investmentName: text(row.investment_name),
+      workerName: report.workerName,
+      status: report.status,
+      sentAt: report.sentAt,
+      lineCount: report.lineCount,
+      acceptedLineCount: report.acceptedLineCount,
+    }
+  })
 }
 
 export async function countPendingReports(db: DbExecutorT): Promise<number> {
@@ -266,7 +225,7 @@ export async function pendingQtyByItem(
   db: DbExecutorT,
   investmentId: number,
   workerId: number,
-): Promise<Map<number, number>> {
+): Promise<Record<number, number>> {
   const res = await db.execute(sql`
     SELECT l.item_id, sum(l.reported_qty) AS qty
     FROM worker_report_lines l
@@ -275,7 +234,7 @@ export async function pendingQtyByItem(
       AND r.status = 'pending' AND l.item_id IS NOT NULL
     GROUP BY l.item_id
   `)
-  return new Map(res.rows.map((row) => [Number(row.item_id), Number(row.qty)]))
+  return Object.fromEntries(res.rows.map((row) => [Number(row.item_id), Number(row.qty)]))
 }
 
 /**
@@ -286,7 +245,7 @@ export async function claimPendingReport(
   db: DbExecutorT,
   investmentId: number,
   reportId: number,
-  status: Exclude<WorkerReportStatusT, 'pending'>,
+  status: Exclude<ReportStatusT, 'pending'>,
   userId: number,
 ): Promise<number | null> {
   const res = await db.execute(sql`
@@ -299,16 +258,69 @@ export async function claimPendingReport(
   return row ? Number(row.worker_id) : null
 }
 
+/**
+ * Whatever the report's status: a line odrzucona — or a whole report odrzucone — can still be
+ * przyjęta later. Two accepts of one report are serialised by the investment row lock the caller
+ * holds (`lockInvestmentGates`), not by this UPDATE. The etap's ordinal and label are copied, so a
+ * later rename or delete of it does not rewrite the record; without one the record stays as it was.
+ */
+export async function markReportAccepted(
+  db: DbExecutorT,
+  reportId: number,
+  userId: number,
+  stage: { id: number; ordinal: number; label: string | null } | undefined,
+): Promise<void> {
+  const target = stage
+    ? sql`, target_stage_id = ${stage.id}, target_stage_ordinal = ${stage.ordinal},
+        target_stage_label = ${stage.label}`
+    : sql``
+  await db.execute(sql`
+    UPDATE worker_reports
+    SET status = 'accepted', decided_at = now(), decided_by = ${userId} ${target}
+    WHERE id = ${reportId}
+  `)
+}
+
+/**
+ * An undone praca spoza rozpiski is left pointing at the pozycja its accept created, so accepting it
+ * again adds to that pozycja instead of minting a second one.
+ */
+export async function clearLinesAcceptance(
+  db: DbExecutorT,
+  reportId: number,
+  lineIds: number[],
+): Promise<void> {
+  if (lineIds.length === 0) return
+  await db.execute(sql`
+    UPDATE worker_report_lines
+    SET accepted_qty = NULL, item_id = COALESCE(created_item_id, item_id), created_item_id = NULL,
+      catalogue_item_id = NULL
+    WHERE id IN (${sqlList(lineIds)}) AND report_id = ${reportId}
+  `)
+}
+
+// Undecided again once nothing of it is accepted: back in the queue, free to go to any etap.
+export async function reopenReportIfNoneAccepted(db: DbExecutorT, reportId: number): Promise<void> {
+  await db.execute(sql`
+    UPDATE worker_reports
+    SET status = 'pending', decided_at = NULL, decided_by = NULL, target_stage_id = NULL,
+      target_stage_ordinal = NULL, target_stage_label = NULL
+    WHERE id = ${reportId} AND NOT EXISTS (
+      SELECT 1 FROM worker_report_lines l WHERE l.report_id = ${reportId} AND l.accepted_qty IS NOT NULL
+    )
+  `)
+}
+
 export type ReportLineDecisionT = {
   lineId: number
   acceptedQty: number
-  // Set only for a line re-pointed to a pozycja (#14) or turned into one (an extra).
+  // Set only for a line re-pointed to a pozycja or turned into one (an extra).
   itemId?: number
   createdItemId?: number
   catalogueItemId?: number
 }
 
-/** Lines left out of `decisions` stay `accepted_qty = NULL` — on a decided report, a rejected line. */
+/** Lines left out of `decisions` stay `accepted_qty = NULL`. */
 export async function updateReportLines(
   db: DbExecutorT,
   reportId: number,
@@ -325,25 +337,11 @@ export async function updateReportLines(
     UPDATE worker_report_lines l
     SET accepted_qty = v.accepted_qty,
       item_id = COALESCE(v.item_id, l.item_id),
-      created_item_id = v.created_item_id,
+      created_item_id = COALESCE(v.created_item_id, l.created_item_id),
       catalogue_item_id = COALESCE(v.catalogue_item_id, l.catalogue_item_id)
     FROM (VALUES ${sql.join(values, sql.raw(', '))})
       AS v(line_id, accepted_qty, item_id, created_item_id, catalogue_item_id)
     WHERE l.id = v.line_id AND l.report_id = ${reportId}
-  `)
-}
-
-/** Ordinal and label are copied: a later rename or delete of the etap must not rewrite the record. */
-export async function setReportTarget(
-  db: DbExecutorT,
-  reportId: number,
-  stage: { id: number; ordinal: number; label: string | null },
-): Promise<void> {
-  await db.execute(sql`
-    UPDATE worker_reports
-    SET target_stage_id = ${stage.id}, target_stage_ordinal = ${stage.ordinal},
-      target_stage_label = ${stage.label}
-    WHERE id = ${reportId}
   `)
 }
 

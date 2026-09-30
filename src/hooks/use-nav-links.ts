@@ -7,7 +7,7 @@ import { MANAGEMENT_LINKS, SECTION_LINKS, type NavLinkT } from '@/lib/constants/
 
 // „/" is every path's prefix, so „Transakcje" would light up on every screen — it matches exactly,
 // while a section link also claims its sub-pages (`/inwestycje/12` keeps „Inwestycje" lit).
-function isActiveLink(pathname: string, href: string): boolean {
+export function isActiveLink(pathname: string, href: string): boolean {
   return href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`)
 }
 

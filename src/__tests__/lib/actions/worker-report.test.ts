@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
-import { listWorkerReportsForWorker, readWorkerReport } from '@/lib/db/worker-reports'
+import { listWorkerReports, readWorkerReport } from '@/lib/db/worker-reports'
 import type { SendReportLineT } from '@/lib/kosztorys/worker-report/types'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
@@ -23,7 +23,7 @@ describe.skipIf(!ENV_READY)('sendWorkerReportAction (DB)', () => {
   let itemId: number
   let token: string
 
-  const storedReports = () => listWorkerReportsForWorker(db, investmentId, workerId)
+  const storedReports = () => listWorkerReports(db, investmentId, workerId)
 
   beforeAll(async () => {
     const { getPayload } = await import('payload')

@@ -3,13 +3,9 @@
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { ShareLinkPanel } from '@/components/kosztorys/editor/dialogs/share/share-link-panel'
 import {
-  generateWorkerShareLinkAction,
-  revokeWorkerShareLinkAction,
+  generateWorkerLinkAction,
+  revokeWorkerLinkAction,
 } from '@/lib/actions/kosztorys-worker-share'
-import {
-  generateWorkerReportLinkAction,
-  revokeWorkerReportLinkAction,
-} from '@/lib/actions/worker-report-share'
 import { FRONTEND_URL } from '@/lib/env'
 import { workerReportShareUrl, workerShareUrl } from '@/lib/kosztorys/worker-view/name-slug'
 import type { WorkerLinkKindT } from '@/lib/kosztorys/worker-view/types'
@@ -24,8 +20,6 @@ const LINK_KINDS = {
     revokeDescription:
       'Pracownik natychmiast straci dostęp do kosztorysu. Tej akcji nie da się cofnąć — aby przywrócić dostęp, musisz wygenerować nowy link (stary adres już nie zadziała).',
     url: workerShareUrl,
-    generate: generateWorkerShareLinkAction,
-    revoke: revokeWorkerShareLinkAction,
   },
   report: {
     title: 'Link do zgłoszeń',
@@ -34,8 +28,6 @@ const LINK_KINDS = {
     revokeDescription:
       'Pracownik natychmiast straci możliwość wysyłania zgłoszeń. Wysłane zgłoszenia zostają. Aby przywrócić dostęp, musisz wygenerować nowy link (stary adres już nie zadziała).',
     url: workerReportShareUrl,
-    generate: generateWorkerReportLinkAction,
-    revoke: revokeWorkerReportLinkAction,
   },
 } satisfies Record<WorkerLinkKindT, unknown>
 
@@ -67,8 +59,12 @@ export function KosztorysWorkerShareDialog() {
             loaded={loaded}
             token={token}
             url={url}
-            generate={() => kind.generate({ investmentId, workerId: target.id })}
-            revoke={() => kind.revoke({ investmentId, workerId: target.id })}
+            generate={() =>
+              generateWorkerLinkAction({ investmentId, workerId: target.id }, target.kind)
+            }
+            revoke={() =>
+              revokeWorkerLinkAction({ investmentId, workerId: target.id }, target.kind)
+            }
             onTokenChange={(next) => {
               setShareToken(next)
               if (next === null) dropLinkHolder(target.id, target.kind)

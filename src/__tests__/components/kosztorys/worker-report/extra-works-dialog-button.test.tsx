@@ -24,7 +24,6 @@ function Harness() {
 }
 
 describe('ExtraWorksDialogButton', () => {
-  // A half-filled row behind a closed dialog surfaced only as a blocked „Wyślij” with a wrong reason.
   it('refuses to close on a half-filled row and says what is missing', async () => {
     render(<Harness />)
     await userEvent.click(screen.getByRole('button', { name: /Nowa praca/ }))

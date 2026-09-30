@@ -2,21 +2,16 @@
 
 import { useState } from 'react'
 import { ChevronRight } from 'lucide-react'
-import { BADGE_BASE, BADGE_TONE } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { WorkerReportStatusBadge } from '@/components/worker-reports/worker-report-status-badge'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
 import type { WorkerReportSummaryT } from '@/lib/kosztorys/worker-report/types'
-import { cn } from '@/lib/utils/cn'
 import { formatPLDate, formatPLDateTime } from '@/lib/utils/format-date'
-import { pluralize } from '@/lib/utils/polish-plural'
+import { itemNoun } from '@/lib/kosztorys/counted-nouns'
 
 type PropsT = { reports: WorkerReportSummaryT[]; onOpen: (reportId: number) => void }
 
 type GroupingT = 'date' | 'worker'
-
-const POZYCJA_FORMS = ['pozycja', 'pozycje', 'pozycji'] as const
-
-const PENDING_TONE = 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200'
 
 export function WorkerReportsList({ reports, onOpen }: PropsT) {
   const [grouping, setGrouping] = useState<GroupingT>('date')
@@ -25,11 +20,10 @@ export function WorkerReportsList({ reports, onOpen }: PropsT) {
     return <p className="text-muted-foreground py-8 text-sm">Brak zgłoszeń prac.</p>
   }
 
-  const groups = new Map<string, WorkerReportSummaryT[]>()
-  for (const report of [...reports].sort((a, b) => b.sentAt.localeCompare(a.sentAt))) {
-    const groupKey = grouping === 'date' ? formatPLDate(report.sentAt) : report.workerName
-    groups.set(groupKey, [...(groups.get(groupKey) ?? []), report])
-  }
+  const groups = Map.groupBy(
+    reports.toSorted((first, second) => second.sentAt.localeCompare(first.sentAt)),
+    (report) => (grouping === 'date' ? formatPLDate(report.sentAt) : report.workerName),
+  )
 
   return (
     <div className="flex min-h-0 flex-col gap-3">
@@ -78,9 +72,9 @@ export function WorkerReportsList({ reports, onOpen }: PropsT) {
                       )}
                     </span>
                     <span className="text-muted-foreground tabular-nums">
-                      {report.lineCount} {pluralize(report.lineCount, POZYCJA_FORMS)}
+                      {report.lineCount} {itemNoun(report.lineCount)}
                     </span>
-                    <StatusBadge report={report} />
+                    <WorkerReportStatusBadge {...report} />
                     <ChevronRight className="text-muted-foreground size-4" />
                   </button>
                 </li>
@@ -90,21 +84,5 @@ export function WorkerReportsList({ reports, onOpen }: PropsT) {
         ))}
       </div>
     </div>
-  )
-}
-
-function StatusBadge({ report }: { report: WorkerReportSummaryT }) {
-  if (report.status === 'pending') {
-    return <span className={cn(BADGE_BASE, PENDING_TONE)}>Do sprawdzenia</span>
-  }
-  if (report.status === 'rejected') {
-    return <span className={cn(BADGE_BASE, BADGE_TONE.muted)}>Odrzucone</span>
-  }
-  return (
-    <span className={cn(BADGE_BASE, BADGE_TONE.positive)}>
-      {report.acceptedLineCount === report.lineCount
-        ? 'Przyjęte'
-        : `Przyjęte ${report.acceptedLineCount} z ${report.lineCount}`}
-    </span>
   )
 }

@@ -6,12 +6,14 @@ import { BrandedHeader } from '@/components/kosztorys/worker-report/branded-head
 import { DraftExtraWorks } from '@/components/kosztorys/worker-report/draft-extra-works'
 import { ExtraWorksDialogButton } from '@/components/kosztorys/worker-report/extra-works-dialog-button'
 import { ReportBar } from '@/components/kosztorys/worker-report/report-bar'
-import { POZYCJA_FORMS, SendBar, type SentT } from '@/components/kosztorys/worker-report/send-bar'
+import { SendBar, type SentT } from '@/components/kosztorys/worker-report/send-bar'
+import { itemNoun } from '@/lib/kosztorys/counted-nouns'
 import { SentReports } from '@/components/kosztorys/worker-report/sent-reports'
 import type { useReportDraft } from '@/components/kosztorys/worker-report/use-report-draft'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils/cn'
+import { decimalText } from '@/lib/utils/decimal-text'
 import { pluralize } from '@/lib/utils/polish-plural'
 import { parseReportQty } from '@/lib/kosztorys/worker-report/parse-report-qty'
 import type { WorkerReportRowT } from '@/lib/db/worker-reports'
@@ -39,7 +41,7 @@ function draftQtyByItem(qtyByItem: Record<number, string>): Record<number, numbe
   )
 }
 
-// The report typed straight into his rozpiska. Mount it only once the draft has loaded — the grid
+// Mount it only once the draft has loaded — the grid
 // seeds from it once.
 export function ReportGrid({
   token,
@@ -74,14 +76,13 @@ export function ReportGrid({
         pendingQtyByItem,
         isCompact: !isAllColumns,
         // A negative stays in the draft as typed, so the send bar can refuse it.
-        onReportQty: (itemId, qty) =>
-          draft.setQty(itemId, qty === 0 ? '' : String(qty).replace('.', ',')),
+        onReportQty: (itemId, qty) => draft.setQty(itemId, qty === 0 ? '' : decimalText(qty)),
         header: (controls) => (
           <>
             <BrandedHeader data={data} />
             {draft.droppedCount > 0 && (
               <p className="border-border border-b px-4 py-2 text-sm text-amber-700 dark:text-amber-400">
-                {draft.droppedCount} {pluralize(draft.droppedCount, POZYCJA_FORMS)} ze szkicu{' '}
+                {draft.droppedCount} {itemNoun(draft.droppedCount)} ze szkicu{' '}
                 {pluralize(draft.droppedCount, VANISHED_FORMS)} z rozpiski.
               </p>
             )}

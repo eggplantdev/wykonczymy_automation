@@ -19,6 +19,9 @@ import { KosztorysEditorV2 } from '@/components/kosztorys/editor/kosztorys-edito
 import { perfStart } from '@/lib/perf'
 import { isLockedStatus } from '@/lib/constants/investment-lock'
 import { countInvestmentPendingReports } from '@/lib/queries/worker-reports'
+import { REPORT_PARAM } from '@/lib/kosztorys/worker-report/report-param'
+import { parseIdParam } from '@/lib/utils/parse-id-param'
+import type { ResolvedSearchParamsT } from '@/types/page'
 
 // The in-app kosztorys editor ("kosztorys_v2"). Always available — every investment has one,
 // the editor renders its own empty state. The legacy Google Sheet lives at /kosztorys.
@@ -27,11 +30,11 @@ export default async function InvestmentKosztorysV2Page({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ zgloszenie?: string }>
+  searchParams: Promise<ResolvedSearchParamsT>
 }) {
   const elapsed = perfStart()
   const { id } = await params
-  const { zgloszenie } = await searchParams
+  const openReportId = parseIdParam((await searchParams)[REPORT_PARAM])
   const investmentId = parseInvestmentId(id)
   // Both awaits sit before the fan-out for one reason: getKosztorysTree throws — for a failed
   // session AND for a missing investment — so anything folded into the Promise.all beside it is
@@ -116,13 +119,8 @@ export default async function InvestmentKosztorysV2Page({
       locked={isLockedStatus(investment.status)}
       workerReports={{
         pendingCount: pendingReportCount,
-        openReportId: parseReportId(zgloszenie),
+        openReportId,
       }}
     />
   )
-}
-
-function parseReportId(value: string | undefined): number | undefined {
-  const reportId = Number(value)
-  return Number.isInteger(reportId) && reportId > 0 ? reportId : undefined
 }

@@ -5,7 +5,7 @@ import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { ExtraWorkRows } from '@/components/kosztorys/worker-report/extra-work-rows'
-import { extraState } from '@/components/kosztorys/worker-report/extra-state'
+import { blankExtra, extraState } from '@/components/kosztorys/worker-report/extra-state'
 import type { ExtraWorkT } from '@/components/kosztorys/worker-report/types'
 
 type PropsT = {
@@ -15,20 +15,12 @@ type PropsT = {
   onRemove: (key: string) => void
 }
 
-const blankExtra = (): ExtraWorkT => ({
-  key: crypto.randomUUID(),
-  description: '',
-  unit: '',
-  qty: '',
-})
-
 export function ExtraWorksDialogButton({ extras, commonUnits, onSave, onRemove }: PropsT) {
   const [isOpen, setIsOpen] = useState(false)
   const [isCloseRefused, setIsCloseRefused] = useState(false)
   const hasInvalid = extras.some((extra) => extraState(extra) === 'invalid')
 
   const open = () => {
-    // Opens on a row to type into rather than on an empty list with a button.
     if (extras.length === 0) onSave(blankExtra())
     setIsOpen(true)
   }

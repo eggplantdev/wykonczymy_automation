@@ -10,8 +10,6 @@ import { sendWorkerReportAction } from '@/lib/actions/worker-report'
 import type { SendReportLineT, WorkerReportFormDataT } from '@/lib/kosztorys/worker-report/types'
 import { toastMessage } from '@/lib/utils/toast'
 
-export const POZYCJA_FORMS = ['pozycja', 'pozycje', 'pozycji'] as const
-
 export type SentT = { lineCount: number }
 
 type PropsT = {
@@ -24,38 +22,34 @@ type PropsT = {
 export function SendBar({ token, data, draft, onSent }: PropsT) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const [isSending, setIsSending] = useState(false)
-  const qtyOf = (itemId: number) => draft.draft.qtyByItem[itemId] ?? ''
-
-  const allItems = data.sections.flatMap((section) => section.items)
-  const filledItemCount = allItems.filter(
-    (item) => parseReportQty(qtyOf(item.id)).kind === 'value',
-  ).length
-  const completeExtras = draft.draft.extras.filter((extra) => extraState(extra) === 'complete')
-  const extraCount = completeExtras.length
-  const lineCount = filledItemCount + extraCount
+  const itemQtys = data.sections
+    .flatMap((section) => section.items)
+    .map((item) => ({
+      itemId: item.id,
+      parsed: parseReportQty(draft.draft.qtyByItem[item.id] ?? ''),
+    }))
+  const itemLines = itemQtys.flatMap(({ itemId, parsed }): SendReportLineT[] =>
+    parsed.kind === 'value' ? [{ kind: 'rozpiska', itemId, qty: parsed.value }] : [],
+  )
+  const extraLines = draft.draft.extras.flatMap((extra): SendReportLineT[] => {
+    const parsed = parseReportQty(extra.qty)
+    return extraState(extra) === 'complete' && parsed.kind === 'value'
+      ? [
+          {
+            kind: 'extra',
+            description: extra.description.trim(),
+            unit: extra.unit,
+            qty: parsed.value,
+          },
+        ]
+      : []
+  })
+  const lineCount = itemLines.length + extraLines.length
   const hasInvalid =
-    allItems.some((item) => parseReportQty(qtyOf(item.id)).kind === 'invalid') ||
+    itemQtys.some(({ parsed }) => parsed.kind === 'invalid') ||
     draft.draft.extras.some((extra) => extraState(extra) === 'invalid')
 
   const send = async () => {
-    const itemLines = allItems.flatMap((item): SendReportLineT[] => {
-      const parsed = parseReportQty(qtyOf(item.id))
-      return parsed.kind === 'value'
-        ? [{ kind: 'rozpiska', itemId: item.id, qty: parsed.value }]
-        : []
-    })
-    const extraLines = completeExtras.flatMap((extra): SendReportLineT[] => {
-      const parsed = parseReportQty(extra.qty)
-      if (parsed.kind !== 'value') return []
-      return [
-        {
-          kind: 'extra',
-          description: extra.description.trim(),
-          unit: extra.unit,
-          qty: parsed.value,
-        },
-      ]
-    })
     setIsSending(true)
     const result = await sendWorkerReportAction(token, [...itemLines, ...extraLines])
     setIsSending(false)
@@ -87,7 +81,7 @@ export function SendBar({ token, data, draft, onSent }: PropsT) {
         open={isConfirmOpen}
         variant="neutral"
         title="Wysłać do weryfikacji?"
-        description={`${filledItemCount} z rozpiski, ${extraCount} dopisanych ręcznie. Po wysłaniu zgłoszenia nie można już zmienić.`}
+        description={`${itemLines.length} z rozpiski, ${extraLines.length} dopisanych ręcznie. Po wysłaniu zgłoszenia nie można już zmienić.`}
         confirmLabel="Wyślij"
         onConfirm={send}
         onCancel={() => setIsConfirmOpen(false)}

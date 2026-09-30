@@ -1,8 +1,7 @@
-import { POZYCJA_FORMS } from '@/components/kosztorys/worker-report/send-bar'
+import { itemNoun } from '@/lib/kosztorys/counted-nouns'
 import type { WorkerReportRowT } from '@/lib/db/worker-reports'
 import { cn } from '@/lib/utils/cn'
 import { formatPLDateTime } from '@/lib/utils/format-date'
-import { pluralize } from '@/lib/utils/polish-plural'
 
 function statusLabel(report: WorkerReportRowT): string {
   if (report.status === 'pending') return 'czeka'
@@ -20,8 +19,7 @@ export function SentReports({ reports }: { reports: WorkerReportRowT[] }) {
         {reports.map((report) => (
           <li key={report.id} className="flex items-center justify-between gap-4 py-2">
             <span>
-              {formatPLDateTime(report.sentAt)} · {report.lineCount}{' '}
-              {pluralize(report.lineCount, POZYCJA_FORMS)}
+              {formatPLDateTime(report.sentAt)} · {report.lineCount} {itemNoun(report.lineCount)}
             </span>
             <span
               className={cn(

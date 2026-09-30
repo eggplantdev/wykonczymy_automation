@@ -2,13 +2,13 @@ import { renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useWorkerReportAcceptance } from '@/components/kosztorys/editor/hooks/use-worker-report-acceptance'
-import { acceptWorkerReportAction } from '@/lib/actions/worker-report'
+import { acceptWorkerReportAction } from '@/lib/actions/accept-worker-report'
 import { stageLane } from '@/lib/kosztorys/save-lanes'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 import type { AcceptReportResultT } from '@/lib/kosztorys/worker-report/types'
 
-vi.mock('@/lib/actions/worker-report', () => ({
+vi.mock('@/lib/actions/accept-worker-report', () => ({
   acceptWorkerReportAction: vi.fn(),
   rejectWorkerReportAction: vi.fn(),
 }))
@@ -68,11 +68,15 @@ describe('useWorkerReportAcceptance', () => {
         target: { kind: 'stage', stageId: 30 },
         lines: [{ lineId: 1, acceptedQty: 7 }],
         extras: [],
+        undone: [2],
       },
-      [10],
+      [
+        { itemId: 10, stageId: 30 },
+        { itemId: 11, stageId: 20 },
+      ],
     )
 
-    expect(args.drain).toHaveBeenCalledWith([stageLane(10, 30)])
+    expect(args.drain).toHaveBeenCalledWith([stageLane(10, 30), stageLane(11, 20)])
     expect(calls).toEqual([
       'flush',
       'drain',
@@ -90,7 +94,7 @@ describe('useWorkerReportAcceptance', () => {
     const { result, args } = renderAcceptance()
 
     await result.current.acceptReport(
-      { investmentId: 1, reportId: 7, target: { kind: 'new' }, lines: [], extras: [] },
+      { investmentId: 1, reportId: 7, target: { kind: 'new' }, lines: [], extras: [], undone: [] },
       [],
     )
 
@@ -107,6 +111,35 @@ describe('useWorkerReportAcceptance', () => {
     expect(args.adoptRevision).toHaveBeenCalledWith('rev-2')
   })
 
+  it('writes both etapy of a pozycja the save moved in two', async () => {
+    const { result, args } = renderAcceptance()
+    vi.mocked(acceptWorkerReportAction).mockResolvedValueOnce({
+      success: true,
+      data: {
+        stage: undefined,
+        appended: [],
+        cells: [
+          { itemId: 10, stageId: 20, qtyDone: 1 },
+          { itemId: 10, stageId: 30, qtyDone: 4 },
+        ],
+        revision: 'rev-3',
+      },
+    })
+
+    await result.current.acceptReport(
+      { investmentId: 1, reportId: 7, target: { kind: 'new' }, lines: [], extras: [], undone: [] },
+      [],
+    )
+
+    const [, patch] = vi.mocked(args.patchRows).mock.calls[0] as [
+      unknown,
+      (row: KosztorysV2RowT) => KosztorysV2RowT,
+    ]
+    const row = { id: 10, [stageKey(20)]: 6, [stageKey(30)]: 0 } as unknown as KosztorysV2RowT
+    expect(patch(row)).toMatchObject({ [stageKey(20)]: 1, [stageKey(30)]: 4 })
+    expect(args.pruneByIds).toHaveBeenCalledWith([10])
+  })
+
   it('touches nothing in the grid when the accept is refused', async () => {
     const { result, args } = renderAcceptance()
     vi.mocked(acceptWorkerReportAction).mockResolvedValueOnce({
@@ -115,7 +148,7 @@ describe('useWorkerReportAcceptance', () => {
     })
 
     const accepted = await result.current.acceptReport(
-      { investmentId: 1, reportId: 7, target: { kind: 'new' }, lines: [], extras: [] },
+      { investmentId: 1, reportId: 7, target: { kind: 'new' }, lines: [], extras: [], undone: [] },
       [],
     )
 

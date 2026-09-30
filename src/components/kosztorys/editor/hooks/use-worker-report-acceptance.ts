@@ -1,6 +1,10 @@
 'use client'
 
-import { acceptWorkerReportAction, rejectWorkerReportAction } from '@/lib/actions/worker-report'
+import {
+  acceptWorkerReportAction,
+  rejectWorkerReportAction,
+} from '@/lib/actions/accept-worker-report'
+import type { StageCellT } from '@/components/kosztorys/editor/dialogs/worker-reports/line-draft'
 import { stageLane } from '@/lib/kosztorys/save-lanes'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
@@ -43,32 +47,32 @@ export function useWorkerReportAcceptance({
   adoptRevision,
   reportFailure,
 }: ArgsT) {
-  // `itemIds` are the pozycje the rozpiska lines add to — the only cells with a lane to drain.
-  async function acceptReport(input: AcceptReportInputT, itemIds: number[]): Promise<boolean> {
+  // `cells` are the existing ones the save moves — a pozycja or an etap it creates has no lane yet.
+  async function acceptReport(input: AcceptReportInputT, cells: StageCellT[]): Promise<boolean> {
     flushUndoBuffer()
-    if (input.target.kind === 'stage') {
-      const { stageId } = input.target
-      await drain(itemIds.map((itemId) => stageLane(itemId, stageId)))
-    }
+    await drain(cells.map((cell) => stageLane(cell.itemId, cell.stageId)))
     const res = await settleAction(() => acceptWorkerReportAction(input))
     if (!res.success) {
       reportFailure(res.error, res.code)
       return false
     }
-    const { stage, appended, cells, revision } = res.data
+    const { stage, appended, revision } = res.data
     if (stage) adoptStage(stage)
     for (const slice of appended) appendItems(slice, stage ? [stage] : [])
-    const qtyByItem = new Map(cells.map((cell) => [cell.itemId, cell]))
+    // One pozycja may move in two etapy: an untick out of the old one, an accept into a new one.
+    const cellsByItem = Map.groupBy(res.data.cells, (cell) => cell.itemId)
     patchRows(
-      (row) => qtyByItem.has(row.id),
-      (row) => {
-        const cell = qtyByItem.get(row.id) as AcceptReportResultT['cells'][number]
-        return { ...row, [stageKey(cell.stageId)]: cell.qtyDone }
-      },
+      (row) => cellsByItem.has(row.id),
+      (row) => ({
+        ...row,
+        ...Object.fromEntries(
+          (cellsByItem.get(row.id) ?? []).map((cell) => [stageKey(cell.stageId), cell.qtyDone]),
+        ),
+      }),
     )
     // An undo of an earlier edit to one of these cells would write its old absolute figure back
     // over the addition.
-    pruneByIds([...qtyByItem.keys()])
+    pruneByIds([...cellsByItem.keys()])
     adoptRevision(revision)
     return true
   }

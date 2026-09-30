@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react'
 import { BrandLogo } from '@/components/ui/brand-logo'
 import type { WorkerReportFormDataT } from '@/lib/kosztorys/worker-report/types'
 
@@ -6,10 +5,8 @@ import type { WorkerReportFormDataT } from '@/lib/kosztorys/worker-report/types'
 // knows whose page it is.
 export function BrandedHeader({
   data,
-  children,
 }: {
   data: Pick<WorkerReportFormDataT, 'investmentName' | 'workerName'>
-  children?: ReactNode
 }) {
   return (
     <header className="border-border flex items-center gap-4 border-b px-4 py-3 sm:py-5">
@@ -23,7 +20,6 @@ export function BrandedHeader({
           <dd className="min-w-0 truncate">{data.workerName}</dd>
         </dl>
       </div>
-      {children && <div className="flex shrink-0 flex-wrap justify-end gap-2">{children}</div>}
     </header>
   )
 }

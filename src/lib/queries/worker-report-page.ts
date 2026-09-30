@@ -2,17 +2,12 @@ import 'server-only'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { getDb } from '@/lib/db/get-db'
-import { investmentGateFor } from '@/lib/db/investment-gate'
-import {
-  listWorkerReportsForWorker,
-  pendingQtyByItem,
-  readReportShare,
-  type WorkerReportRowT,
-} from '@/lib/db/worker-reports'
-import { REPORT_REFUSALS } from '@/lib/kosztorys/worker-report/refusals'
+import { listWorkerReports, pendingQtyByItem, type WorkerReportRowT } from '@/lib/db/worker-reports'
+import { readReportShare } from '@/lib/db/worker-report-share'
+import { reportShareRefusal } from '@/lib/kosztorys/worker-report/share-refusal'
 import { WORKER_SCOPE_BLOCK_MESSAGES } from '@/lib/kosztorys/worker-view/labels'
 import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
-import { getWorkerKosztorysByReportToken } from '@/lib/queries/worker-kosztorys'
+import { getWorkerKosztorysByReportShare } from '@/lib/queries/worker-kosztorys'
 
 export type WorkerReportPageT =
   | { kind: 'notice'; investmentName: string; workerName: string; message: string }
@@ -26,8 +21,7 @@ export type WorkerReportPageT =
 
 /**
  * The public report page's whole read, uncached: a revoke, a deactivation or a zakończenie must
- * bite on the next load. The checks run in `tokenAction`'s order, so the page never offers a form
- * whose send would be refused. Null = unknown or revoked token, which the route 404s.
+ * bite on the next load. Null = unknown or revoked token, which the route 404s.
  */
 export async function getWorkerReportPage(token: string): Promise<WorkerReportPageT | null> {
   const payload = await getPayload({ config })
@@ -42,23 +36,15 @@ export async function getWorkerReportPage(token: string): Promise<WorkerReportPa
     message,
   })
 
-  const gate = await investmentGateFor(db, share.investmentId)
-  if (gate.lockMessage) return notice(REPORT_REFUSALS.closed)
-  if (gate.isTemplate) return notice(REPORT_REFUSALS.template)
-  if (!share.isWorkerActive) return notice(REPORT_REFUSALS.inactiveWorker)
+  const refusal = await reportShareRefusal(db, share)
+  if (refusal) return notice(refusal)
 
-  const document = await getWorkerKosztorysByReportToken(token)
+  const [document, pending, sentReports] = await Promise.all([
+    getWorkerKosztorysByReportShare(share),
+    pendingQtyByItem(db, share.investmentId, share.workerId),
+    listWorkerReports(db, share.investmentId, share.workerId),
+  ])
   if (!document) return null
   if (document.kind === 'blocked') return notice(WORKER_SCOPE_BLOCK_MESSAGES[document.reason])
-
-  const [pending, sentReports] = await Promise.all([
-    pendingQtyByItem(db, share.investmentId, share.workerId),
-    listWorkerReportsForWorker(db, share.investmentId, share.workerId),
-  ])
-  return {
-    kind: 'ready',
-    document,
-    pendingQtyByItem: Object.fromEntries(pending),
-    sentReports,
-  }
+  return { kind: 'ready', document, pendingQtyByItem: pending, sentReports }
 }

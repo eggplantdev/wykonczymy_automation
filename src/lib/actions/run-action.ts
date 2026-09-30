@@ -31,9 +31,7 @@ type RevalidateT = (keyof typeof CACHE_TAGS)[]
 type RevalidateOptsT = { deferRefresh?: boolean; entityTags?: string[] }
 
 /**
- * The tail every action wrapper shares once its caller is authorized — payload, the handler, the
- * revalidation on success, perf lines, and a throw turned into a failure. Exported for
- * `tokenAction`, whose caller is a token rather than a session; not an action wrapper on its own.
+ * Exported for `tokenAction`, whose caller is a token rather than a session; not an action wrapper on its own.
  */
 export async function runAuthorizedHandler<TData>(
   label: string,

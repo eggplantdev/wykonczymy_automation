@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { WorkerReportsSeedT } from '@/lib/kosztorys/types'
+import { REPORT_PARAM } from '@/lib/kosztorys/worker-report/report-param'
 
 export type WorkerReportsActionT = {
   open: boolean
@@ -42,7 +43,7 @@ export function useWorkerReportsAction(seed: WorkerReportsSeedT | undefined): Wo
 // list read among them, which then never settles. The History API rather than `router.replace`,
 // which would re-render the page's server tree.
 function stripDeepLink() {
-  if (new URLSearchParams(window.location.search).has('zgloszenie')) {
+  if (new URLSearchParams(window.location.search).has(REPORT_PARAM)) {
     window.history.replaceState(null, '', window.location.pathname)
   }
 }

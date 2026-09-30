@@ -1,18 +1,30 @@
 import type { CellProps, Column } from 'react-datasheet-grid'
 import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-text'
 import { decimalColumn } from '@/components/kosztorys/editor/grid/cells/decimal-column'
+import { pinnedWidth } from '@/components/kosztorys/editor/grid/column-sizing'
 import { withCellClass } from '@/components/kosztorys/editor/grid/kosztorys-synthetic-rows'
 import { numericFieldPolicy } from '@/lib/kosztorys/cell-edit'
 import { formatQty } from '@/lib/kosztorys/format'
 import { STAGE_QTY_PREFIX, stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysV2RowT, StageKeyT } from '@/lib/kosztorys/types'
 import type { PreviewSeamsT } from '@/components/kosztorys/editor/use-kosztorys-editor'
-import type { ReportModeT } from '@/lib/kosztorys/worker-report/types'
+
+// His rozpiska grid as a report form. His etapy stay read-only; he types into one extra „Zgłaszam”
+// column, and every edit lands in his draft instead of the server. Which etap it goes to is the
+// kierownik's call at verification.
+export type ReportModeT = {
+  // What the draft already holds, so a reload reopens the column with his unsent work in it.
+  initialQtyByItem: Record<number, number>
+  pendingQtyByItem: Record<number, number>
+  // Only Opis prac and „Zgłaszam” — the rest of the sheet is context he can switch back to.
+  isCompact: boolean
+  onReportQty: (itemId: number, qty: number) => void
+}
 
 // A stage id no etap can hold (serial ids start at 1), so the report rides the stage-qty field
 // plumbing — the diff reports it like an etap edit — while every Σ etapów, which iterates the real
 // etapy, never counts it into Pomiar.
-export const REPORT_STAGE_ID = 0
+const REPORT_STAGE_ID = 0
 const REPORT_FIELD = stageKey(REPORT_STAGE_ID)
 
 // globals.css frames the column, so the one place he may type stands out of a read-only sheet.
@@ -20,8 +32,6 @@ const REPORT_COLUMN_CLASS = 'kosztorys-report-column'
 // globals.css greys these: every figure he reads but may not type, so „Zgłaszam” is the one dark number.
 const READONLY_FIGURE_CLASS = 'kosztorys-report-readonly-figure'
 const TEXT_COLUMN_IDS: ReadonlySet<string> = new Set(['description', 'note', 'sectionName', 'unit'])
-// Compact leaves Opis prac, „Zgłaszam” and — on a wide screen — j.m.; those two get fixed slots, the
-// description the rest.
 const REPORT_WIDTH = 140
 // On a phone the description needs every pixel; the header hint wraps to four lines and still fits.
 const COMPACT_REPORT_WIDTH = 110
@@ -31,7 +41,7 @@ const COMPACT_DESCRIPTION_MIN_WIDTH = 240
 const reportColumn: Column<KosztorysV2RowT> = {
   ...decimalColumn(
     REPORT_FIELD,
-    // A div, not a span: the preview bolds every header span, and the hint must stay quiet.
+    // The preview bolds every header span, and the hint must stay quiet.
     <div className="flex flex-col gap-0.5 whitespace-normal">
       <div className="font-bold">Zgłaszam</div>
       <div className="text-muted-foreground text-xs leading-tight">
@@ -40,11 +50,7 @@ const reportColumn: Column<KosztorysV2RowT> = {
     </div>,
     numericFieldPolicy<StageKeyT, KosztorysV2RowT>(REPORT_FIELD, formatQty),
   ),
-  basis: REPORT_WIDTH,
-  grow: 0,
-  shrink: 0,
-  minWidth: REPORT_WIDTH,
-  maxWidth: REPORT_WIDTH,
+  ...pinnedWidth(REPORT_WIDTH),
   cellClassName: REPORT_COLUMN_CLASS,
   headerClassName: REPORT_COLUMN_CLASS,
 }
@@ -76,11 +82,7 @@ function pendingColumn(
     component: PendingQtyCell,
     disabled: true,
     copyValue: ({ rowData }) => pendingQtyByItem[rowData.id] ?? '',
-    basis: PENDING_WIDTH,
-    grow: 0,
-    shrink: 0,
-    minWidth: PENDING_WIDTH,
-    maxWidth: PENDING_WIDTH,
+    ...pinnedWidth(PENDING_WIDTH),
   }
 }
 
@@ -104,8 +106,7 @@ export function reportEditorSeams(report: ReportModeT, isWide: boolean): Preview
   }
 }
 
-// „Zgłaszam” right after his last etap, on the read-only worker grid. „Czeka” rides only the full
-// sheet: on the compact view a third figure would push „Zgłaszam” off a phone, and his sent reports
+// „Czeka” rides only the full sheet: on the compact view a third figure would push „Zgłaszam” off a phone, and his sent reports
 // list says the same thing below the grid.
 function withReportColumn(
   columns: Column<KosztorysV2RowT>[],
@@ -117,14 +118,7 @@ function withReportColumn(
     // By id, like Opis prac: the owner's worker view may have hidden it. A phone has no room for it.
     const shownUnit = isWide ? columns.find((column) => column.id === 'unit') : undefined
     // Fixed like „Zgłaszam”, so all the room a wide screen adds goes to Opis prac.
-    const unit = shownUnit && {
-      ...shownUnit,
-      basis: COMPACT_UNIT_WIDTH,
-      grow: 0,
-      shrink: 0,
-      minWidth: COMPACT_UNIT_WIDTH,
-      maxWidth: COMPACT_UNIT_WIDTH,
-    }
+    const unit = shownUnit && { ...shownUnit, ...pinnedWidth(COMPACT_UNIT_WIDTH) }
     // Unpinned: a width the owner dragged on the full sheet would leave the compact one half empty.
     const stretched = description && {
       ...description,
@@ -134,12 +128,7 @@ function withReportColumn(
       minWidth: COMPACT_DESCRIPTION_MIN_WIDTH,
       maxWidth: undefined,
     }
-    const narrowed = {
-      ...reportColumn,
-      basis: COMPACT_REPORT_WIDTH,
-      minWidth: COMPACT_REPORT_WIDTH,
-      maxWidth: COMPACT_REPORT_WIDTH,
-    }
+    const narrowed = { ...reportColumn, ...pinnedWidth(COMPACT_REPORT_WIDTH) }
     return [stretched, narrowed, unit].filter((column) => column !== undefined)
   }
   const lastStage = columns.findLastIndex((column) => column.id?.startsWith(STAGE_QTY_PREFIX))

@@ -55,11 +55,11 @@ vi.mock('@/lib/queries/worker-share-link-endpoint', () => ({
   readWorkerShareHolders,
 }))
 const ensureWorkerLinkAction = vi.hoisted(() => vi.fn())
-const revokeWorkerShareLinkAction = vi.hoisted(() => vi.fn())
+const revokeWorkerLinkAction = vi.hoisted(() => vi.fn())
 vi.mock('@/lib/actions/kosztorys-worker-share', () => ({
   ensureWorkerLinkAction,
-  generateWorkerShareLinkAction: vi.fn(),
-  revokeWorkerShareLinkAction,
+  generateWorkerLinkAction: vi.fn(),
+  revokeWorkerLinkAction,
 }))
 
 const getWorkerKosztorysPrintData = vi.hoisted(() => vi.fn())
@@ -76,7 +76,7 @@ beforeEach(() => {
   ensureWorkerLinkAction.mockResolvedValue({ success: true, data: 'tok-anna' })
   readWorkerShareToken.mockResolvedValue('tok-anna')
   readWorkerShareHolders.mockResolvedValue(holders([]))
-  revokeWorkerShareLinkAction.mockResolvedValue({ success: true })
+  revokeWorkerLinkAction.mockResolvedValue({ success: true })
   getWorkerKosztorysPrintData.mockResolvedValue(null)
 })
 
@@ -162,10 +162,10 @@ describe('KosztorysWorkersMenu', () => {
     const confirm = await screen.findByRole('alertdialog')
     await userEvent.click(within(confirm).getByRole('button', { name: 'Wyłącz link' }))
 
-    expect(revokeWorkerShareLinkAction).toHaveBeenCalledWith({
-      investmentId: INVESTMENT_ID,
-      workerId: 20,
-    })
+    expect(revokeWorkerLinkAction).toHaveBeenCalledWith(
+      { investmentId: INVESTMENT_ID, workerId: 20 },
+      'rozpiska',
+    )
   })
 
   // A holder read started before the revoke carries the server's pre-revoke answer.

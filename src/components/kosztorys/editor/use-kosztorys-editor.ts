@@ -1050,10 +1050,11 @@ export function useKosztorysEditor({
   }
 
   // A sekcja the picker just minted lands at the TOP as one band, the way addSectionAction places one.
-  // Folding in order is what keeps the katalog's selection order.
+  // Folding in order is what keeps the katalog's selection order. An accepted report never mints one.
   function handleAppendedCatalogueItems(
     slice: KosztorysTreeT['sections'][number],
     createdSection: boolean,
+    newStages: KosztorysStageT[] = [],
   ) {
     const placement = catalogueSlicePlacement(
       new Set(sectionsRef.current.map((section) => section.sectionId)),
@@ -1061,7 +1062,7 @@ export function useKosztorysEditor({
       createdSection,
     )
     if (placement === 'reseed') return recoverStaleTree()
-    const appended = rowsFromSections([slice])
+    const appended = rowsFromSections([slice], newStages)
     if (placement === 'prepend') {
       const [meta] = treeToSections({ sections: [slice] })
       commitSections(insertSection(sectionsRef.current, meta, null))
@@ -1071,18 +1072,6 @@ export function useKosztorysEditor({
       const order = sectionsRef.current
       setRows((rs) => orderRowsBySections(appended.reduce(applyAddItem, rs), order))
     }
-    unfoldSection(slice.id)
-  }
-
-  // Only into a sekcja this window already shows: the accept names one the dialog offered from it.
-  function appendAcceptedItems(
-    slice: KosztorysTreeT['sections'][number],
-    newStages: KosztorysStageT[],
-  ) {
-    const order = sectionsRef.current
-    if (!order.some((section) => section.sectionId === slice.id)) return recoverStaleTree()
-    const appended = rowsFromSections([slice], newStages)
-    setRows((rs) => orderRowsBySections(appended.reduce(applyAddItem, rs), order))
     unfoldSection(slice.id)
   }
 
@@ -1105,7 +1094,7 @@ export function useKosztorysEditor({
     flushUndoBuffer,
     drain,
     adoptStage,
-    appendItems: appendAcceptedItems,
+    appendItems: (slice, newStages) => handleAppendedCatalogueItems(slice, false, newStages),
     patchRows,
     pruneByIds,
     adoptRevision,

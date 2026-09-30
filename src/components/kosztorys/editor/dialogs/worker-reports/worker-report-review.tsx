@@ -8,11 +8,12 @@ import { Label } from '@/components/ui/label'
 import { SimpleSelect } from '@/components/ui/simple-select'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import {
-  acceptedQty,
-  exactItemMatch,
+  buildAccept,
+  catalogueSwap,
+  initialDrafts,
   isLineReady,
   lineGroup,
-  qtyInputText,
+  partitionLines,
   type ItemFiguresT,
   type LineDraftT,
   type LineGroupT,
@@ -26,20 +27,16 @@ import { stageKey } from '@/lib/kosztorys/stage-keys'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import type { KosztorysV2RowT, ToolPlaneT } from '@/lib/kosztorys/types'
+import { rowTotalQtyDone } from '@/lib/kosztorys/settlement-rows'
 import {
   closestEntries,
   hintCandidates,
 } from '@/lib/kosztorys/work-catalogue/build-catalogue-comparison'
-import type {
-  AcceptReportInputT,
-  AcceptTargetT,
-  ReportLineT,
-  WorkerReportT,
-} from '@/lib/kosztorys/worker-report/types'
-import { resolveWorkerScope } from '@/lib/kosztorys/worker-view/scope'
+import type { AcceptTargetT, ReportLineT, WorkerReportT } from '@/lib/kosztorys/worker-report/types'
+import { ACCEPT_REFUSALS } from '@/lib/kosztorys/worker-report/refusals'
+import { isStageMember, resolveWorkerScope } from '@/lib/kosztorys/worker-view/scope'
 import { formatPLDateTime } from '@/lib/utils/format-date'
-import { parseDecimalInput } from '@/lib/utils/parse-decimal-input'
-import { pluralize } from '@/lib/utils/polish-plural'
+import { itemNounAccusative } from '@/lib/kosztorys/counted-nouns'
 import { toastMessage } from '@/lib/utils/toast'
 
 type PropsT = {
@@ -48,7 +45,6 @@ type PropsT = {
   onDecided: () => void
 }
 
-const POZYCJA_FORMS = ['pozycję', 'pozycje', 'pozycji'] as const
 const NEW_STAGE = 'new'
 
 const GROUPS: { group: LineGroupT; title: string; hint: string }[] = [
@@ -64,47 +60,56 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
   const { rows, stages, sections, workCatalogue, acceptReport, rejectReport } =
     useKosztorysEditorContext()
   const catalogue = workCatalogue ?? []
-  const isReadOnly = report.status !== 'pending'
-  const liveItemIds = new Set(rows.map((row) => row.id))
-  const [drafts, setDrafts] = useState(() => initialDrafts(report, rows, liveItemIds))
+  const isPending = report.status === 'pending'
+  const rowById = new Map(rows.map((row) => [row.id, row]))
+  const [drafts, setDrafts] = useState(() => initialDrafts(report, rows))
   // Only his own etapy: an addition to someone else's would pay that crew for his work.
   const ownStages = stages
-    .filter((stage) => stage.split?.members.some((member) => member.workerId === report.workerId))
+    .filter((stage) => isStageMember(stage, report.workerId))
     .toSorted((first, second) => first.ordinal - second.ordinal)
   const scope = resolveWorkerScope(stages, report.workerId)
+  // The server holds a later accept to the etap the report already went to, while it exists.
+  const recordedStage = ownStages.find((stage) => stage.id === report.target?.stageId)
+  const hasRecordedFigures = stages.some((stage) => stage.id === report.target?.stageId)
   // The latest of his etapy is the one work usually continues.
-  const [target, setTarget] = useState(() => String(ownStages.at(-1)?.id ?? NEW_STAGE))
+  const [target, setTarget] = useState(() =>
+    String(recordedStage?.id ?? ownStages.at(-1)?.id ?? NEW_STAGE),
+  )
   const [plane, setPlane] = useState<ToolPlaneT | undefined>()
-  const [isPending, setIsPending] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const [isRejectOpen, setIsRejectOpen] = useState(false)
   const targetStageId = target === NEW_STAGE ? undefined : Number(target)
   const targetStage = ownStages.find((stage) => stage.id === targetStageId)
   const stageTitle = targetStage ? stageLabel(targetStage) : 'Nowy etap'
 
   const itemIdOf = (line: ReportLineT): number | undefined =>
-    line.itemId !== undefined && liveItemIds.has(line.itemId) ? line.itemId : drafts[line.id].itemId
+    line.itemId !== undefined && rowById.has(line.itemId) ? line.itemId : drafts[line.id].itemId
   const figuresOf = (row: KosztorysV2RowT | undefined): ItemFiguresT | undefined => {
     if (!row) return undefined
     return {
       stageQty: targetStageId === undefined ? 0 : (row[stageKey(targetStageId)] ?? 0),
-      measuredQty: stages.reduce((sum, stage) => sum + (row[stageKey(stage.id)] ?? 0), 0),
+      measuredQty: rowTotalQtyDone(row, stages, 'client'),
       plannedQty: row.plannedQty,
     }
   }
   const sectionOrder = new Map(sections.map((section, index) => [section.sectionName, index]))
   const reviewRows: ReviewRowT[] = report.lines
     .map((line) => {
-      const itemId = line.kind === 'rozpiska' ? itemIdOf(line) : line.createdItemId
-      const row = rows.find((candidate) => candidate.id === itemId)
+      const isRozpiska = lineGroup(line, drafts[line.id]) === 'rozpiska'
+      const itemId = isRozpiska ? itemIdOf(line) : line.createdItemId
+      const row = itemId === undefined ? undefined : rowById.get(itemId)
       const sectionName = row?.sectionName ?? line.sectionName ?? ''
       return {
         ...line,
         sectionName,
         sectionColor: row?.sectionColor ?? null,
         sectionOrder: sectionOrder.get(sectionName) ?? sections.length,
-        figures: line.kind === 'rozpiska' ? figuresOf(row) : undefined,
+        figures: isRozpiska ? figuresOf(row) : undefined,
+        itemDescription: row?.description ?? undefined,
         isUnassigned:
-          line.kind === 'rozpiska' && (line.itemId === undefined || !liveItemIds.has(line.itemId)),
+          line.kind === 'rozpiska' && (line.itemId === undefined || !rowById.has(line.itemId)),
+        isAccepted: line.acceptedQty !== undefined,
+        isFigureLive: hasRecordedFigures && rowById.has(line.createdItemId ?? line.itemId ?? -1),
       }
     })
     .toSorted((first, second) => first.sectionOrder - second.sectionOrder)
@@ -116,10 +121,6 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
       .filter((line) => lineGroup(line, drafts[line.id]) === 'extra')
       .map((line) => [line.id, closestEntries(line.description, candidates)]),
   )
-  const catalogueOptions = catalogue.map((entry) => ({
-    value: String(entry.id),
-    label: `${entry.description} (${entry.unit})`,
-  }))
   const itemOptions = rows.map((row) => ({
     value: String(row.id),
     label: `${row.description ?? ''} (${row.unit ?? ''}) · ${row.sectionName}`,
@@ -137,23 +138,38 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
     label: section.sectionName,
   }))
 
+  const {
+    open: openLines,
+    ticked: tickedLines,
+    accepted: acceptedLines,
+    changed: changedLines,
+    undone: undoneLines,
+  } = partitionLines(report.lines, drafts)
+  // The rest joins the report's etap, so none can go anywhere while that etap is gone or no longer his.
+  const isTiedToLostStage = acceptedLines.length > undoneLines.length && !recordedStage
   const needsPlane = targetStageId === undefined && scope.kind === 'blocked'
-  const targetProblem =
-    needsPlane && scope.reason !== 'no-stages'
-      ? 'Rozliczenie etapów tego pracownika nie jest ustalone — wybierz jeden z jego etapów.'
+  const needsPlanePick = needsPlane && scope.reason === 'no-stages'
+  const targetProblem = isTiedToLostStage
+    ? ACCEPT_REFUSALS.lostRecordedStage
+    : needsPlane && !needsPlanePick
+      ? ACCEPT_REFUSALS.unsettledPlane
       : undefined
-  const tickedLines = report.lines.filter((line) => drafts[line.id].isTicked)
+  const changeCount = tickedLines.length + changedLines.length + undoneLines.length
+  // Only a line going into an etap for the first time needs one chosen.
+  const isTargetReady =
+    tickedLines.length === 0 ||
+    (targetProblem === undefined && (!needsPlanePick || plane !== undefined))
   const isReady =
-    targetProblem === undefined &&
-    (!needsPlane || scope.reason !== 'no-stages' || plane !== undefined) &&
-    report.lines.every((line) =>
-      isLineReady(line, drafts[line.id], line.kind === 'rozpiska' ? itemIdOf(line) : undefined),
-    )
+    isTargetReady &&
+    report.lines.every((line) => isLineReady(line, drafts[line.id], itemIdOf(line)))
+
+  const updateDraft = (lineId: number, patch: Partial<LineDraftT>) =>
+    setDrafts((current) => ({ ...current, [lineId]: { ...current[lineId], ...patch } }))
 
   const decide = async (run: () => Promise<boolean>, doneMessage: string) => {
-    setIsPending(true)
+    setIsSaving(true)
     const isDone = await run()
-    setIsPending(false)
+    setIsSaving(false)
     if (!isDone) return
     toastMessage(doneMessage)
     onDecided()
@@ -164,37 +180,13 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
       targetStageId === undefined
         ? { kind: 'new', plane }
         : { kind: 'stage', stageId: targetStageId }
-    const input: AcceptReportInputT = {
-      investmentId: report.investmentId,
-      reportId: report.id,
-      target: acceptTarget,
-      lines: [],
-      extras: [],
-    }
-    const touchedItemIds: number[] = []
-    for (const line of tickedLines) {
-      const draft = drafts[line.id]
-      if (lineGroup(line, draft) === 'rozpiska') {
-        const itemId = itemIdOf(line) as number
-        touchedItemIds.push(itemId)
-        input.lines.push({
-          lineId: line.id,
-          acceptedQty: acceptedQty(draft),
-          itemId: itemId === line.itemId ? undefined : itemId,
-        })
-        continue
-      }
-      const price = parseDecimalInput(draft.unitPrice)
-      input.extras.push({
-        lineId: line.id,
-        acceptedQty: acceptedQty(draft),
-        sectionId: Number(draft.sectionId),
-        clientPrice:
-          draft.catalogueId === undefined && price.kind === 'value' ? price.value : undefined,
-        catalogueItemId: draft.catalogueId,
-      })
-    }
-    void decide(() => acceptReport(input, touchedItemIds), 'Zgłoszenie przyjęte do rozpiski')
+    const { input, cells } = buildAccept(report, drafts, acceptTarget, itemIdOf)
+    void decide(
+      () => acceptReport(input, cells),
+      acceptedLines.length === 0
+        ? 'Zgłoszenie przyjęte do rozpiski'
+        : 'Zapisano zmiany w zgłoszeniu',
+    )
   }
 
   return (
@@ -208,42 +200,44 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
               ` · sprawdzono ${formatPLDateTime(report.decidedAt)}${report.decidedBy ? ` (${report.decidedBy})` : ''}`}
           </p>
         </div>
-        {isReadOnly ? (
-          report.target && (
-            <p className="text-sm">
-              Dodano do:{' '}
-              <span className="font-medium">
-                {stageLabel({ ordinal: report.target.ordinal, label: report.target.label ?? null })}
-              </span>
-            </p>
-          )
+        {report.target && (openLines.length === 0 || recordedStage || isTiedToLostStage) ? (
+          <p className="text-sm">
+            Dodano do:{' '}
+            <span className="font-medium">
+              {stageLabel({ ordinal: report.target.ordinal, label: report.target.label ?? null })}
+            </span>
+          </p>
         ) : (
-          <div className="flex flex-wrap items-end gap-3">
-            <Label className="gap-2 text-sm font-normal">
-              Dodaj do
-              <SimpleSelect
-                value={target}
-                onValueChange={setTarget}
-                options={targetOptions}
-                className="w-56"
-              />
-            </Label>
-            {needsPlane && scope.reason === 'no-stages' && (
+          openLines.length > 0 && (
+            <div className="flex flex-wrap items-end gap-3">
               <Label className="gap-2 text-sm font-normal">
-                Rozliczenie
+                Dodaj do
                 <SimpleSelect
-                  value={plane ?? ''}
-                  onValueChange={(value) => setPlane(value as ToolPlaneT)}
-                  options={planeOptions}
-                  placeholder="Wybierz"
-                  className="w-44"
+                  value={target}
+                  onValueChange={setTarget}
+                  options={targetOptions}
+                  className="w-56"
                 />
               </Label>
-            )}
-          </div>
+              {needsPlanePick && (
+                <Label className="gap-2 text-sm font-normal">
+                  Rozliczenie
+                  <SimpleSelect
+                    value={plane ?? ''}
+                    onValueChange={(value) => setPlane(value as ToolPlaneT)}
+                    options={planeOptions}
+                    placeholder="Wybierz"
+                    className="w-44"
+                  />
+                </Label>
+              )}
+            </div>
+          )
         )}
       </div>
-      {targetProblem && <p className="text-destructive text-sm">{targetProblem}</p>}
+      {targetProblem && tickedLines.length > 0 && (
+        <p className="text-destructive text-sm">{targetProblem}</p>
+      )}
 
       <div className="max-h-dialog-scroll flex min-h-0 flex-col gap-6 overflow-y-auto pr-1">
         {GROUPS.map(({ group, title, hint }) => {
@@ -259,18 +253,13 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
                 group={group}
                 rows={lines}
                 drafts={drafts}
-                onChange={(lineId, patch) =>
-                  setDrafts((current) => ({
-                    ...current,
-                    [lineId]: { ...current[lineId], ...patch },
-                  }))
-                }
+                onChange={updateDraft}
                 sectionOptions={sectionOptions}
                 itemOptions={itemOptions}
                 catalogue={catalogue}
-                catalogueOptions={catalogueOptions}
+                kosztorysItems={rows}
+                onCatalogueSwap={(lineId, entry) => updateDraft(lineId, catalogueSwap(entry, rows))}
                 hintsByLine={hintsByLine}
-                isReadOnly={isReadOnly}
                 stageTitle={stageTitle}
               />
             </section>
@@ -278,35 +267,32 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
         })}
       </div>
 
-      {isReadOnly ? (
-        <DialogFooter>
+      <DialogFooter>
+        {isPending ? (
+          <Button
+            variant="ghost"
+            className="text-destructive mr-auto"
+            disabled={isSaving}
+            onClick={() => setIsRejectOpen(true)}
+          >
+            Odrzuć zgłoszenie
+          </Button>
+        ) : (
           <p className="text-muted-foreground mr-auto self-center text-sm">
             {report.status === 'rejected'
               ? 'Zgłoszenie odrzucone w całości.'
               : `Przyjęto ${report.acceptedLineCount} z ${report.lineCount}.`}
           </p>
-          <Button variant="outline" onClick={onBack}>
-            Wszystkie zgłoszenia
-          </Button>
-        </DialogFooter>
-      ) : (
-        <DialogFooter>
-          <Button
-            variant="ghost"
-            className="text-destructive mr-auto"
-            disabled={isPending}
-            onClick={() => setIsRejectOpen(true)}
-          >
-            Odrzuć zgłoszenie
-          </Button>
-          <Button variant="outline" onClick={onBack}>
-            Wszystkie zgłoszenia
-          </Button>
-          <Button disabled={isPending || tickedLines.length === 0 || !isReady} onClick={accept}>
-            Przyjmij {tickedLines.length} {pluralize(tickedLines.length, POZYCJA_FORMS)}
-          </Button>
-        </DialogFooter>
-      )}
+        )}
+        <Button variant="outline" onClick={onBack}>
+          Wszystkie zgłoszenia
+        </Button>
+        <Button disabled={isSaving || changeCount === 0 || !isReady} onClick={accept}>
+          {acceptedLines.length === 0
+            ? `Przyjmij ${tickedLines.length} ${itemNounAccusative(tickedLines.length)}`
+            : 'Zapisz zmiany'}
+        </Button>
+      </DialogFooter>
 
       <ConfirmDialog
         open={isRejectOpen}
@@ -320,30 +306,5 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
         onCancel={() => setIsRejectOpen(false)}
       />
     </div>
-  )
-}
-
-function initialDrafts(
-  report: WorkerReportT,
-  rows: KosztorysV2RowT[],
-  liveItemIds: ReadonlySet<number>,
-): Record<number, LineDraftT> {
-  const sectionOfItem = new Map(rows.map((row) => [row.id, String(row.sectionId)]))
-  return Object.fromEntries(
-    report.lines.map((line) => {
-      const isGone =
-        line.kind === 'rozpiska' && (line.itemId === undefined || !liveItemIds.has(line.itemId))
-      const draft: LineDraftT = {
-        isTicked: line.acceptedQty !== undefined,
-        qty: qtyInputText(line.acceptedQty ?? line.reportedQty),
-        itemId: isGone && report.status === 'pending' ? exactItemMatch(line, rows) : undefined,
-        isExtra: line.kind === 'rozpiska' && line.createdItemId !== undefined,
-        sectionId:
-          line.createdItemId === undefined ? '' : (sectionOfItem.get(line.createdItemId) ?? ''),
-        unitPrice: '',
-        catalogueId: line.catalogueItemId,
-      }
-      return [line.id, draft]
-    }),
   )
 }

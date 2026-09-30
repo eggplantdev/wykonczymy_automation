@@ -508,7 +508,7 @@
   --dsg-scroll-shadow-color: color-mix(in oklab, var(--color-foreground) 20%, transparent);
 }
 
-/* Shared with the worker's report form, so a section's band reads the same on both surfaces. */
+/* Shared with the report review table, so a section's band reads the same as in the grid. */
 .kosztorys-grid,
 .worker-report {
   --section-rail-width: 3px;
@@ -519,8 +519,6 @@
   --section-band-tint: 18%;
 }
 
-/* The report surfaces are DataTables, not dsg, so they take the grid's cues directly: the rail down
-   each row's left edge, and the section's own band tint on its name. */
 /* Mixed into the neutral border rather than the pure colour: a full-strength rule on every row
    would outshout the rail that says where the section is. */
 .worker-report tr.worker-report-rail {
@@ -609,8 +607,7 @@
   background: color-mix(in oklab, var(--color-foreground) 2%, var(--color-background));
 }
 
-/* „Zgłaszam”, the one column he types into, framed and lit on his read-only
-   rozpiska. After the stripe rule, which has the same specificity and would otherwise win. dsg's own
+/* After the stripe rule, which has the same specificity and would otherwise win. dsg's own
    1px grid lines ride the same box-shadow, so they are restated. */
 .kosztorys-grid.kosztorys-grid-preview .dsg-cell.kosztorys-report-column {
   background: color-mix(in oklab, var(--color-report-accent) 14%, var(--color-background));
@@ -629,8 +626,7 @@
     inset 0 -1px var(--header-rule-color, var(--dsg-border-color));
 }
 
-/* The figures he only reads, greyed so the one he types stands out. The
-   `[data-muted]` half outranks the preview's rule above, which darkens a muted figure again. */
+/* The `[data-muted]` half outranks the preview's rule above, which darkens a muted figure again. */
 .kosztorys-grid.kosztorys-grid-report .dsg-cell.kosztorys-report-readonly-figure,
 .kosztorys-grid.kosztorys-grid-report .dsg-cell.kosztorys-report-readonly-figure [data-muted] {
   color: var(--color-muted-foreground);

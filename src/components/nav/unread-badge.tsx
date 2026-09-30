@@ -3,6 +3,7 @@
 import { Suspense } from 'react'
 import { usePathname } from 'next/navigation'
 import { CountBadge } from '@/components/ui/count-badge'
+import { isActiveLink } from '@/hooks/use-nav-links'
 import { useUnreadCounts } from '@/hooks/use-unread-counts'
 import type { UnreadStreamT } from '@/types/notifications'
 
@@ -12,7 +13,7 @@ import type { UnreadStreamT } from '@/types/notifications'
  * that page's render advances the seen cursor after the shell already counted. A queue stream has no
  * cursor: opening its page decides nothing, so its count stays.
  */
-const QUEUE_STREAMS: ReadonlySet<UnreadStreamT> = new Set(['workReports'])
+const QUEUE_STREAMS: ReadonlySet<UnreadStreamT> = new Set(['workerReports'])
 
 export function UnreadBadge({ stream, path }: { stream: UnreadStreamT; path: string }) {
   // Nothing to fall back to: a bubble is absent at 0 anyway, so the nav item renders without one
@@ -28,7 +29,6 @@ function UnreadBadgeCount({ stream, path }: { stream: UnreadStreamT; path: strin
   const counts = useUnreadCounts()
   const pathname = usePathname()
 
-  // A bare prefix would let „/zgloszenia-prac" zero the „/zgloszenia" badge.
-  const isOwnPage = pathname === path || pathname.startsWith(`${path}/`)
+  const isOwnPage = isActiveLink(pathname, path)
   return <CountBadge count={isOwnPage && !QUEUE_STREAMS.has(stream) ? 0 : counts[stream]} />
 }
