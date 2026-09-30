@@ -1942,6 +1942,7 @@ widokach wykonawców. Rozpiska z seeda (`INV=6`) wystarczy do sortowania i liczb
 - [ ] Na kosztorysie ~1000 pozycji (`INV=7`) przewijanie i wpisywanie ilości w etapie działają tak
       płynnie jak przed zmianą.
       _Zweryfikowano 2026-09-29 (staging): NIE DO ZALICZENIA — wymaga lokalnego seeda `INV=7` (poza stagingiem), płynność to odczucie człowieka (patrz Findings, EX-932)._
+      _2026-09-30: największy kosztorys na stagingu to inw. 106 (379 pozycji, status „zakończona”, tylko odczyt) i 137 (377) — ok. 3× mniej niż ~1000; płynność i tak jest oceną człowieka. Boks zostaje otwarty (human)._
 
 ### Wydruki
 
@@ -2627,13 +2628,6 @@ Każdy boks: po kliknięciu zmiana widoczna **bez przeładowania**, a w Network 
 
 ## 2026-09-30 — „Rozlicz wypłaty": kwota do rozdysponowania i saldo kasy
 
-- [ ] Pracownicy → „Rozlicz": wpisz 10 000 w „Do rozdysponowania", na jednej inwestycji 4 000 →
-      w stopce „Zostało do rozdysponowania" 6 000,00 zł; puste pole = brak tego wiersza.
-- [ ] Podnieś kwoty tak, by „Razem" przekroczyło kwotę do rozdysponowania → „Wypłać" wyszarzone
-      z komunikatem „Przekroczono kwotę do rozdysponowania o …"; obniż → znów aktywne.
-- [ ] Z domyślną kasą „Aktualne saldo" pojawia się bez dotykania „Kasa"; zmiana kasy odświeża saldo;
-      „Saldo po wypłacie" jest mniejsze o „Razem".
-- [ ] Po wypłacie nigdzie (opis przelewu, historia) nie widać kwoty do rozdysponowania.
 ## 2026-09-30 — import z arkusza ustawia jednego wykonawcę wszystkim etapom
 
 - [ ] Inwestycja z arkuszem → „Importuj z arkusza": w bloku „Rozliczenie i wykonawca etapów" obok
