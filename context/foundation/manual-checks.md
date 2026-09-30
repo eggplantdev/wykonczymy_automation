@@ -2750,3 +2750,19 @@ Stan: dowolny rekord do edycji; „nieudany zapis" = DevTools → Network → Of
       „Nieprzypisane" z 0,00 zł.
 - [ ] Dialog „Pracownicy etapu…": wartość z trzema miejscami po przecinku (np. 33,335%) nie daje się
       zapisać; 33,33% się zapisuje i po odświeżeniu strony zostaje 33,33%.
+
+## EX-940 — request-failed-actions — zerwane połączenie kończy się polskim komunikatem (2026-09-30)
+
+Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTools → Network → Offline tuż przed akcją.
+
+- [ ] Sidebar „Wyloguj" z siecią: wylogowuje i ląduje na /zaloguj.
+- [ ] Kosztorys offline → zmień „Przedmiar" w komórce: toast „Brak połączenia z serwerem…", komórka wraca do poprzedniej wartości, nigdzie „Failed to fetch".
+- [ ] Offline → zmień rabat w „Opcje rozliczenia": polski komunikat, wartość wraca.
+- [ ] Kosztorys offline → przesuń pozycję ▲/▼: kolejność wraca, polski toast; Cmd+Z nic nie robi.
+- [ ] Kosztorys offline → „Dodaj pozycję" / „Dodaj sekcję": polski toast, nic nie przybywa, brak strony błędu.
+- [ ] „Wyczyść kosztorys" → potwierdź offline: „Czyszczenie przerwane — odświeżam…", okno się zamyka; po powrocie sieci siatka pokazuje prawdziwy stan.
+- [ ] „Wersje" → przywróć wersję offline: „Przywracanie przerwane — odświeżam kosztorys", okno się zamyka, brak strony błędu.
+- [ ] Transakcje → „Anuluj transakcję" offline: polski toast, przyciski i pole powodu znów aktywne.
+- [ ] /zaloguj offline → „Zaloguj": komunikat pod formularzem, przycisk wraca do „Zaloguj".
+- [ ] Sidebar „Odśwież dane" offline: toast błędu, brak strony błędu.
+- [ ] Formularz wydatku → „Dodaj magazyn" offline: toast błędu, brak strony błędu.
