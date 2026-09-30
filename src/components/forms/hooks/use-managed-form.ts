@@ -45,6 +45,11 @@ type UseManagedFormArgsT<TValues, TData> = {
    */
   confirmBeforeSubmit?: (values: TValues) => SubmitConfirmCopyT | null
   /**
+   * The general form of the gate above, for a question the caller asks with its own UI: resolving
+   * `false` returns to the form with nothing sent. Runs after `confirmBeforeSubmit`.
+   */
+  beforeSubmit?: (values: TValues) => Promise<boolean>
+  /**
    * Whether typed values outlive the dialog. Only sound on a CREATE form, where the draft is the
    * only copy of what was typed and the record it describes does not exist yet.
    *
@@ -74,6 +79,7 @@ export function useManagedForm<TValues, TData>({
   onReset,
   mergeStored,
   confirmBeforeSubmit,
+  beforeSubmit,
   persistDraft = true,
 }: UseManagedFormArgsT<TValues, TData>) {
   const { submit } = useFormSubmit(formId)
@@ -129,6 +135,7 @@ export function useManagedForm<TValues, TData>({
         setAsked(null)
         if (!confirmed) return false
       }
+      if (beforeSubmit && !(await beforeSubmit(value as TValues))) return false
 
       await submit(!!keepOpen, {
         action: () => action(toData(value as TValues)),

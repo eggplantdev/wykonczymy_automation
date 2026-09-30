@@ -443,17 +443,17 @@ Run once, after Phase 3:
 
 #### Automated
 
-- [x] 1.1 New action spec passes
-- [x] 1.2 Retargeted specs pass
-- [x] 1.3 Katalog specs still pass on the extracted helpers
+- [x] 1.1 New action spec passes — fbd8624c
+- [x] 1.2 Retargeted specs pass — fbd8624c
+- [x] 1.3 Katalog specs still pass on the extracted helpers — fbd8624c
 
 ### Phase 2: The „Nowa praca” form and its collision confirm
 
 #### Automated
 
-- [ ] 2.1 Form spec passes
-- [ ] 2.2 Hook spec passes
-- [ ] 2.3 Katalog form spec unchanged-green
+- [x] 2.1 Form spec passes
+- [x] 2.2 Hook spec passes
+- [x] 2.3 Katalog form spec unchanged-green
 
 ### Phase 3: Editor wiring and removal of the blank-row path
 
