@@ -2850,3 +2850,7 @@ Link zbudowany na stagingu wskazuje na produkcję — przed otwarciem podmień h
 - [ ] Szablon: wejścia w „Akcje” otwierają ten sam formularz, ptaszek katalogu działa.
 - [ ] Po otwarciu i zamknięciu „Nowej pracy” inne okno „Dodaj …” pokazuje „Nie zamykaj po
       zapisaniu” jak dotąd, a okno bez tej opcji nie ma zbłąkanego ptaszka.
+- [ ] Dwie karty z tym samym kosztorysem: w pierwszej „Wstaw poniżej” na wierszu, w drugiej usuń
+      ten wiersz, w pierwszej zapisz: okno się zamyka, siatka się odświeża, nic się nie zawiesza.
+- [ ] Katalog prac → „Dodaj pozycję” i edycja pozycji: pola „Kategoria” i „j.m.” działają jak
+      dotąd (wybór z listy i wpisanie nowej wartości).
