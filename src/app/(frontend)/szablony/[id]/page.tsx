@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { getTemplateView } from '@/lib/queries/presets'
+import { getTemplateName } from '@/lib/queries/presets'
 import { getKosztorysTree } from '@/lib/queries/kosztorys'
 import { getWorkCatalogue } from '@/lib/queries/work-catalogue'
 import { requireManagementPage } from '@/lib/auth/require-management-page'
@@ -16,8 +16,8 @@ export default async function TemplatePage({ params }: DynamicPagePropsT) {
 
   await requireManagementPage()
 
-  const template = await getTemplateView(templateId)
-  if (!template) notFound()
+  const name = await getTemplateName(templateId)
+  if (name === undefined) notFound()
 
   const [tree, workCatalogue] = await Promise.all([
     getKosztorysTree(templateId),
@@ -28,7 +28,7 @@ export default async function TemplatePage({ params }: DynamicPagePropsT) {
     <KosztorysEditorV2
       investmentId={templateId}
       tree={tree}
-      investmentName={template.name}
+      investmentName={name}
       isTemplate
       workCatalogue={workCatalogue}
       materialsGrossBase={0}

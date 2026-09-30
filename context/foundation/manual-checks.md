@@ -2661,3 +2661,7 @@ Każdy boks: po kliknięciu zmiana widoczna **bez przeładowania**, a w Network 
 - [ ] W szablonie zmień „Cena j.m. netto" pozycji, wróć do listy szablonów → ten szablon jest na
       górze listy (ostatnio edytowany); edycja komórki nie powoduje mignięcia ani przeładowania
       strony szablonu.
+- [ ] Otwórz szablon z listy → w górnym pasku nazwa szablonu i „Wróć"; zmień nazwę szablonu na
+      liście → po wejściu w niego pasek i tytuł pokazują nową nazwę.
+- [ ] Wpisz ręcznie adres nieistniejącego szablonu (`/szablony/999999`) → „Nie znaleziono"; tak samo
+      dla szablonu przeniesionego do kosza.

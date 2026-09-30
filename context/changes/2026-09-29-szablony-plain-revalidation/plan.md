@@ -346,17 +346,17 @@ Run **once**, after the final phase:
 
 #### Automated
 
-- [x] 1.1 `investment-action.test.ts` passes
-- [x] 1.2 `revalidate.test.ts` passes
-- [x] 1.3 `kosztorys-presets.test.ts` passes
-- [x] 1.4 No `expireCollectionsAfterResponse` left in `src` or `context/foundation`
+- [x] 1.1 `investment-action.test.ts` passes — 94814a9a
+- [x] 1.2 `revalidate.test.ts` passes — 94814a9a
+- [x] 1.3 `kosztorys-presets.test.ts` passes — 94814a9a
+- [x] 1.4 No `expireCollectionsAfterResponse` left in `src` or `context/foundation` — 94814a9a
 
 ### Phase 2: Szablon name from the cached library
 
 #### Automated
 
-- [ ] 2.1 No `getTemplateView` / `getPresetNameForCrumb` left in `src`
-- [ ] 2.2 `presets.test.ts` passes
+- [x] 2.1 No `getTemplateView` / `getPresetNameForCrumb` left in `src`
+- [x] 2.2 `presets.test.ts` passes
 
 ### Phase 3: Regression guard and after-run
 
