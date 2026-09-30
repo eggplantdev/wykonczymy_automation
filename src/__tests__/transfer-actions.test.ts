@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { Payload } from 'payload'
+import { warsawToday } from '@/lib/utils/days'
 
 // ── Mocks ────────────────────────────────────────────────────────────────
 
@@ -663,7 +664,8 @@ describe('cancelTransferAction', () => {
 
     await cancelTransferAction(10, { reason: VALID_CANCEL_REASON })
 
-    const today = new Date().toISOString().split('T')[0]
+    // Warsaw's day, not UTC's: the two differ between 00:00 and 02:00 local time.
+    const today = warsawToday()
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         collection: 'transactions',
