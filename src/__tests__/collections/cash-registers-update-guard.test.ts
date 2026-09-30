@@ -6,7 +6,7 @@ import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import {
   CASH_REGISTER_OWNER_LOCKED_MESSAGE,
   CASH_REGISTER_TRASHED_MESSAGE,
-} from '@/lib/constants/trash'
+} from '@/lib/constants/cash-register-lock'
 
 // Every assertion reads the row back: a refused update that still wrote something is the failure this
 // guards, and a rejected promise alone would not show it.
@@ -111,6 +111,20 @@ describe.skipIf(!ENV_READY)('cash-registers update guard (DB)', () => {
 
     await updateRegister(id, { name: 'Nowa nazwa', owner: ownerId })
     expect((await readRow(id)).name).toBe('Nowa nazwa')
+  })
+
+  it('ignores trashedAt on an access-checked update (a MANAGER REST PATCH)', async () => {
+    const id = await createRegister('Kasa z REST')
+
+    await payload.update({
+      collection: 'cash-registers',
+      id,
+      data: { trashedAt: new Date().toISOString() },
+      overrideAccess: false,
+      user: { id: ownerId, role: 'MANAGER', collection: 'users' } as never,
+      context: { skipRevalidation: true },
+    })
+    expect((await readRow(id)).trashed_at).toBeNull()
   })
 
   it('lets the owner of an unused kasa change', async () => {

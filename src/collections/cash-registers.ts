@@ -77,10 +77,12 @@ export const CashRegisters: CollectionConfig = {
         update: isAdminOrOwnerField,
       },
     },
-    // Set by the trash actions only (src/lib/actions/cash-register-trash.ts).
+    // Closed to access-checked writes: a REST PATCH would skip the use check, the default clearing and
+    // the MAIN hiding that the trash actions (overrideAccess) run.
     {
       name: 'trashedAt',
       type: 'date',
+      access: { create: () => false, update: () => false },
       admin: { hidden: true },
       label: { en: 'Trashed at', pl: 'W koszu od' },
     },

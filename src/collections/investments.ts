@@ -156,11 +156,13 @@ export const Investments: CollectionConfig = {
       defaultValue: 0,
       label: { en: 'Global discount value', pl: 'Rabat globalny — wartość' },
     },
-    // Set by the trash actions only (src/lib/actions/investment-trash.ts). Deliberately not
-    // `deletedAt`: that name is Payload's own `trash: true` column, which fails reads closed.
+    // Written only by the trash actions (overrideAccess) — closed to REST, which would skip their
+    // checks. Deliberately not `deletedAt`: that name is Payload's own `trash: true` column, which
+    // fails reads closed.
     {
       name: 'trashedAt',
       type: 'date',
+      access: { create: () => false, update: () => false },
       admin: { hidden: true },
       label: { en: 'Trashed at', pl: 'W koszu od' },
     },
