@@ -885,21 +885,21 @@ The full `pnpm test` runs only when the user asks.
 
 #### Automated
 
-- [x] 1.1 Migration applies to dev and test DBs
-- [x] 1.2 `pnpm generate:types` succeeds
-- [x] 1.3 Report layer DB spec
-- [x] 1.4 `addStageProgress` DB spec
-- [x] 1.5 Restore keeps reports DB spec
-- [x] 1.6 User delete refused DB spec
+- [x] 1.1 Migration applies to dev and test DBs — 5b856f81
+- [x] 1.2 `pnpm generate:types` succeeds — 5b856f81
+- [x] 1.3 Report layer DB spec — 5b856f81
+- [x] 1.4 `addStageProgress` DB spec — 5b856f81
+- [x] 1.5 Restore keeps reports DB spec — 5b856f81
+- [x] 1.6 User delete refused DB spec — 5b856f81
 
 ### Phase 2: The worker's side
 
 #### Automated
 
-- [ ] 2.1 `tokenAction` refusal spec
-- [ ] 2.2 Send action DB spec
-- [ ] 2.3 Szkic prune DOM spec
-- [ ] 2.4 Proxy allowlist spec
+- [x] 2.1 `tokenAction` refusal spec
+- [x] 2.2 Send action DB spec
+- [x] 2.3 Szkic prune DOM spec
+- [x] 2.4 Proxy allowlist spec
 
 ### Phase 3: The kierownik's side
 

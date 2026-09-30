@@ -12,6 +12,8 @@ import type { WorkerAudienceT, WorkerKosztorysT } from '@/lib/kosztorys/worker-v
 import { getWorkerViewSettings } from '@/lib/queries/kosztorys-worker-view'
 import { fetchPayoutTransactionsForInvestment } from '@/lib/queries/investment-transactions'
 import { buildKosztorysTree } from '@/lib/queries/kosztorys'
+import { getDb } from '@/lib/db/get-db'
+import { readReportShare } from '@/lib/db/worker-reports'
 
 // The cached half: everything but the settings, which are attached per request below.
 type WorkerKosztorysCoreT =
@@ -151,6 +153,19 @@ export async function getWorkerKosztorysByToken(token: string): Promise<WorkerKo
     typeof share.investment === 'object' ? share.investment.id : Number(share.investment)
   const workerId = typeof share.worker === 'object' ? share.worker.id : Number(share.worker)
   return withWorkerSettings(investmentId, workerId)
+}
+
+/**
+ * The report link's projection: the same token discipline as the rozpiska link, against the other
+ * table. Not filtered by trash — the report page explains a closed investment instead of 404ing.
+ */
+export async function getWorkerKosztorysByReportToken(
+  token: string,
+): Promise<WorkerKosztorysT | null> {
+  const payload = await getPayload({ config })
+  const share = await readReportShare(await getDb(payload), token)
+  if (!share) return null
+  return withWorkerSettings(share.investmentId, share.workerId)
 }
 
 export async function getWorkerKosztorysPreview(

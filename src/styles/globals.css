@@ -30,6 +30,9 @@
   --breakpoint-xl: 90rem; /* 1440px - Desktop Large */
   --breakpoint-2xl: 120rem; /* 1920px - 3XL */
 
+  /* The worker's „Zgłaszam” column — Spotify green, brighter than the palette's greens on purpose. */
+  --color-report-accent: #1db954;
+
   /* SHADCN  */
   /* Border Radius */
   --radius: 0.625rem;
@@ -355,6 +358,22 @@
   background: var(--color-background);
 }
 
+/* The worker's report scrolls with the page, so dsg's container must not be a scroller: any overflow
+   other than visible would make it the sticky header's scroll parent and pin nothing. The cost is
+   virtualisation — every row renders, which one worker's rozpiska can afford. The full rozpiska is
+   wider than a phone, so the page itself scrolls sideways. */
+.kosztorys-grid.kosztorys-grid-report .dsg-container {
+  height: auto !important;
+  overflow: visible;
+  padding-bottom: 0;
+}
+
+/* The compact report fits the screen, so anything past its edge is cut rather than scrolled to.
+   `clip` is not a scroller, so the sticky header survives. */
+.kosztorys-grid.kosztorys-grid-report-compact .dsg-container {
+  overflow-x: clip;
+}
+
 /* dsg overlays a position: sticky "scrollable view" frame over the virtualized row list, meant to
    draw a "more content this way" scroll-shadow cue at whichever edges still have unscrolled content.
    Because it's sticky, the frame itself never moves with the internal scroll — border AND box-shadow
@@ -487,13 +506,41 @@
   --dsg-header-text-color: var(--color-muted-foreground);
   --dsg-header-active-text-color: var(--color-foreground);
   --dsg-scroll-shadow-color: color-mix(in oklab, var(--color-foreground) 20%, transparent);
+}
 
+/* Shared with the worker's report form, so a section's band reads the same on both surfaces. */
+.kosztorys-grid,
+.worker-report {
   --section-rail-width: 3px;
   --section-divider-width: 2px;
   /* Thinner than the opening rule: the heavy divider is what marks where a section STARTS. */
   --section-footer-divider-width: 1px;
   --section-rail-tint: 14%;
   --section-band-tint: 18%;
+}
+
+/* The report surfaces are DataTables, not dsg, so they take the grid's cues directly: the rail down
+   each row's left edge, and the section's own band tint on its name. */
+/* Mixed into the neutral border rather than the pure colour: a full-strength rule on every row
+   would outshout the rail that says where the section is. */
+.worker-report tr.worker-report-rail {
+  border-bottom-color: color-mix(
+    in oklab,
+    var(--section-rail, var(--color-border)) 55%,
+    var(--color-border)
+  );
+}
+
+.worker-report tr.worker-report-rail > td:first-child {
+  box-shadow: inset var(--section-rail-width) 0 0 var(--section-rail, transparent);
+}
+
+.worker-report .worker-report-section {
+  background: color-mix(
+    in oklab,
+    var(--section-rail, var(--color-muted-foreground)) var(--section-band-tint),
+    var(--color-background)
+  );
 }
 
 /* The grey fill tells the owner "you can't type here" apart from the cells they can. In the
@@ -560,6 +607,33 @@
    stripe so the band still reads as one bar. */
 .kosztorys-grid.kosztorys-grid-preview .dsg-cell.kosztorys-stripe-column {
   background: color-mix(in oklab, var(--color-foreground) 2%, var(--color-background));
+}
+
+/* SPIKE (worker-work-reports): „Zgłaszam”, the one column he types into, framed and lit on his read-only
+   rozpiska. After the stripe rule, which has the same specificity and would otherwise win. dsg's own
+   1px grid lines ride the same box-shadow, so they are restated. */
+.kosztorys-grid.kosztorys-grid-preview .dsg-cell.kosztorys-report-column {
+  background: color-mix(in oklab, var(--color-report-accent) 14%, var(--color-background));
+  box-shadow:
+    inset 2px 0 var(--color-report-accent),
+    inset -2px 0 var(--color-report-accent),
+    0 1px var(--dsg-border-color);
+}
+
+.kosztorys-grid.kosztorys-grid-preview .dsg-cell-header.kosztorys-report-column {
+  background: color-mix(in oklab, var(--color-report-accent) 14%, var(--color-background));
+  box-shadow:
+    inset 2px 0 var(--color-report-accent),
+    inset -2px 0 var(--color-report-accent),
+    inset 0 2px var(--color-report-accent),
+    inset 0 -1px var(--header-rule-color, var(--dsg-border-color));
+}
+
+/* SPIKE (worker-work-reports): the figures he only reads, greyed so the one he types stands out. The
+   `[data-muted]` half outranks the preview's rule above, which darkens a muted figure again. */
+.kosztorys-grid.kosztorys-grid-report .dsg-cell.kosztorys-report-readonly-figure,
+.kosztorys-grid.kosztorys-grid-report .dsg-cell.kosztorys-report-readonly-figure [data-muted] {
+  color: var(--color-muted-foreground);
 }
 
 /* Section identity is carried by two quiet cues instead of a background wash: a colour rail down the

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Eye, Settings2, Share2 } from 'lucide-react'
+import { ClipboardPen, Eye, Settings2, Share2 } from 'lucide-react'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { MenuItemBody } from '@/components/kosztorys/editor/actions/menu-item-body'
@@ -14,10 +14,16 @@ import {
 } from '@/lib/queries/worker-share-link-endpoint'
 import { readWorkerViewSettings } from '@/lib/queries/worker-view-settings-endpoint'
 import type { WorkerViewSettingsT } from '@/lib/kosztorys/worker-view/settings'
+import type { WorkerLinkKindT } from '@/lib/kosztorys/worker-view/types'
 import { toastMessage } from '@/lib/utils/toast'
 import { workerPreviewSegment } from '@/lib/kosztorys/worker-view/name-slug'
 
-export type WorkerShareTargetT = { id: number; name: string; blockReason?: string }
+export type WorkerShareTargetT = {
+  id: number
+  name: string
+  kind: WorkerLinkKindT
+  blockReason?: string
+}
 
 export type WorkerActionsT = {
   settings: WorkerViewSettingsT | null
@@ -32,9 +38,11 @@ export type WorkerActionsT = {
   setShareToken: (token: string | null) => void
   shareLoaded: boolean
   requestShare: (target: WorkerShareTargetT) => void
+  // Either kind — who the menu keeps listing.
   linkHolders: ReadonlySet<number>
+  holdsLink: (workerId: number, kind: WorkerLinkKindT) => boolean
   requestLinkHolders: () => void
-  dropLinkHolder: (workerId: number) => void
+  dropLinkHolder: (workerId: number, kind: WorkerLinkKindT) => void
 }
 
 // Fetched on the click, not by the dialogs, for the Radix reason `useInvestorActions` gives.
@@ -46,7 +54,11 @@ export function useWorkerActions(): WorkerActionsT {
   const [shareOpen, setShareOpen] = useState(false)
   const [shareToken, setShareToken] = useState<string | null>(null)
   const [shareLoaded, setShareLoaded] = useState(false)
-  const [linkHolders, setLinkHolders] = useState<ReadonlySet<number>>(new Set())
+  const [holdersByKind, setHoldersByKind] = useState<Record<WorkerLinkKindT, ReadonlySet<number>>>({
+    rozpiska: new Set(),
+    report: new Set(),
+  })
+  const linkHolders = new Set([...holdersByKind.rozpiska, ...holdersByKind.report])
   const settingsRequest = useLatestRequest()
   // Latest-wins: with one dialog serving every worker, a slow read for the first landing after a
   // click on the second would put the first worker's link under the second one's name.
@@ -72,7 +84,7 @@ export function useWorkerActions(): WorkerActionsT {
     setShareOpen(true)
     setShareToken(null)
     setShareLoaded(false)
-    void readWorkerShareToken({ investmentId, workerId: target.id })
+    void readWorkerShareToken({ investmentId, workerId: target.id }, target.kind)
       .then((token) => {
         if (isCurrent()) setShareToken(token)
       })
@@ -89,21 +101,23 @@ export function useWorkerActions(): WorkerActionsT {
   function requestLinkHolders() {
     const isCurrent = holdersRequest.start()
     void readWorkerShareHolders(investmentId)
-      .then((ids) => {
-        if (isCurrent()) setLinkHolders(new Set(ids))
+      .then((holders) => {
+        if (isCurrent()) {
+          setHoldersByKind({ rozpiska: new Set(holders.rozpiska), report: new Set(holders.report) })
+        }
       })
       .catch(() => {
         if (isCurrent()) toastMessage('Nie udało się sprawdzić linków pracowników', 'error')
       })
   }
 
-  function dropLinkHolder(workerId: number) {
+  function dropLinkHolder(workerId: number, kind: WorkerLinkKindT) {
     // A read already in flight answers from before the revoke and would put the worker back.
     holdersRequest.start()
-    setLinkHolders((holders) => {
-      const next = new Set(holders)
+    setHoldersByKind((holders) => {
+      const next = new Set(holders[kind])
       next.delete(workerId)
-      return next
+      return { ...holders, [kind]: next }
     })
   }
 
@@ -121,12 +135,17 @@ export function useWorkerActions(): WorkerActionsT {
     shareLoaded,
     requestShare,
     linkHolders,
+    holdsLink: (workerId, kind) => holdersByKind[kind].has(workerId),
     requestLinkHolders,
     dropLinkHolder,
   }
 }
 
-export function WorkerPreviewMenuItem({ target }: { target: WorkerShareTargetT }) {
+export function WorkerPreviewMenuItem({
+  target,
+}: {
+  target: Pick<WorkerShareTargetT, 'id' | 'name'>
+}) {
   const { investmentId } = useKosztorysEditorContext()
   return (
     <DropdownMenuItem asChild>
@@ -141,6 +160,11 @@ export function WorkerPreviewMenuItem({ target }: { target: WorkerShareTargetT }
   )
 }
 
+const SHARE_MENU_LABEL: Record<WorkerLinkKindT, string> = {
+  rozpiska: 'Link',
+  report: 'Link do zgłoszeń',
+}
+
 export function WorkerShareMenuItem({
   target,
   disabled,
@@ -149,10 +173,11 @@ export function WorkerShareMenuItem({
   disabled: boolean
 }) {
   const { worker } = useKosztorysActions()
+  const Icon = target.kind === 'report' ? ClipboardPen : Share2
   return (
     <DropdownMenuItem disabled={disabled} onSelect={() => worker.requestShare(target)}>
-      <Share2 />
-      Link
+      <Icon />
+      {SHARE_MENU_LABEL[target.kind]}
     </DropdownMenuItem>
   )
 }

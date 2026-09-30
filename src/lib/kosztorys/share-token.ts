@@ -10,6 +10,7 @@ const TOKEN_BYTES = 24
 export type ShareRowT =
   | { collection: 'kosztorys-shares'; owner: { investment: number } }
   | { collection: 'kosztorys-worker-shares'; owner: { investment: number; worker: number } }
+  | { collection: 'worker-report-shares'; owner: { investment: number; worker: number } }
 
 export type WorkerShareKeyT = { investmentId: number; workerId: number }
 
@@ -20,6 +21,11 @@ export const investorShare = (investmentId: number): ShareRowT => ({
 
 export const workerShare = ({ investmentId, workerId }: WorkerShareKeyT): ShareRowT => ({
   collection: 'kosztorys-worker-shares',
+  owner: { investment: investmentId, worker: workerId },
+})
+
+export const workerReportShare = ({ investmentId, workerId }: WorkerShareKeyT): ShareRowT => ({
+  collection: 'worker-report-shares',
   owner: { investment: investmentId, worker: workerId },
 })
 

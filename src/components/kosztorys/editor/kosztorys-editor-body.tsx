@@ -1,7 +1,7 @@
 'use client'
 
 import 'react-datasheet-grid/dist/style.css'
-import { useMemo, useRef } from 'react'
+import { useMemo, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { SheetIcon } from 'lucide-react'
 // `DynamicDataSheetGrid`, not `DataSheetGrid`: the library aliases the plain name to
@@ -39,6 +39,7 @@ import {
   type RowResizeApiT,
 } from '@/components/kosztorys/editor/grid/ordinal-gutter-column'
 import { buildSectionBandRows } from '@/lib/kosztorys/section-band-rows'
+import { gridMinWidth } from '@/lib/kosztorys/grid-min-width'
 import { engagedConditionsOfKind, engagedHiders } from '@/lib/kosztorys/row-conditions/queries'
 import { emptyGridCopy } from '@/lib/kosztorys/empty-grid-copy'
 import { editorNoun } from '@/lib/kosztorys/editor-noun'
@@ -81,6 +82,7 @@ import type { InvestorHistoryT } from '@/lib/kosztorys/history/types'
 import type { KosztorysEditorDataT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view/settings'
 import type { WorkerAudienceT } from '@/lib/kosztorys/worker-view/types'
+import type { ReportModeT } from '@/lib/kosztorys/worker-report/types'
 
 type PropsT = KosztorysEditorDataT & {
   // Read-only public render: hides the mutation chrome, kills persistence, gates the footer's
@@ -99,6 +101,20 @@ type PropsT = KosztorysEditorDataT & {
   onTreeReplaced?: OnTreeReplacedT
   // Reseed after a write was refused because its row is gone (the tree was replaced elsewhere).
   onStaleTree?: () => Promise<void>
+  // The worker's document as a report form — his header
+  // replaces the preview's, and „Zgłaszam” takes input. Only ever with `worker`.
+  report?: ReportModeT & {
+    header: (controls: ReportGridControlsT) => ReactNode
+    // Rendered inside dsg's container, right after the last row.
+    footer: ReactNode
+  }
+}
+
+export type ReportGridControlsT = {
+  search: string
+  onSearch: (value: string) => void
+  showAllRows: boolean
+  onShowAllRows: (value: boolean) => void
 }
 
 // Seeds the grid from `tree` at mount, so remounting it with a fresh `key` is how a restore re-seeds
@@ -122,6 +138,7 @@ export function KosztorysEditorBody({
   onOpenVersions,
   onTreeReplaced,
   onStaleTree,
+  report,
   workers,
   workCatalogue,
   assets,
@@ -162,6 +179,12 @@ export function KosztorysEditorBody({
     onStaleTree,
     isTemplate,
     filledStageIds,
+    report: report && {
+      initialQtyByItem: report.initialQtyByItem,
+      pendingQtyByItem: report.pendingQtyByItem,
+      isCompact: report.isCompact,
+      onReportQty: report.onReportQty,
+    },
   })
   const {
     gridRef,
@@ -216,6 +239,7 @@ export function KosztorysEditorBody({
 
   // Off `subtotals`, which counts the whole document rather than the visible rows, so a search
   // narrows the screen without changing what a section says it holds or what it is worth.
+  const isReportCompact = report?.isCompact ?? false
   const sectionHeader = useMemo(
     () => ({
       figures: new Map(
@@ -242,8 +266,10 @@ export function KosztorysEditorBody({
       sortActive: !orderCommandsEnabled(sort),
       moveEdges,
       labelColumnId: sectionBandLabelColumnId(columns.map((column) => column.id)),
+      isBare: isReportCompact,
     }),
     [
+      isReportCompact,
       subtotals,
       collapsedSectionIds,
       toggleSectionCollapsed,
@@ -294,16 +320,16 @@ export function KosztorysEditorBody({
   // a no-hit search empties `viewRows` over a kosztorys that is not in fact empty. The owner's
   // sekcja bez pozycji is content; the client's document never shows one.
   const isEmpty = preview ? subtotals.length === 0 : sections.length === 0
-  const bodyRows = useMemo(
-    () =>
-      buildSectionBandRows(viewRows, {
-        enabled: sectionBandsVisible(sort),
-        collapsedSectionIds,
-        sections,
-        showItemless,
-      }),
-    [viewRows, collapsedSectionIds, sort, sections, showItemless],
-  )
+  const bodyRows = useMemo(() => {
+    const banded = buildSectionBandRows(viewRows, {
+      enabled: sectionBandsVisible(sort),
+      collapsedSectionIds,
+      sections,
+      showItemless,
+    })
+    // The compact report shows no money, so a „Razem" band would be an empty frame.
+    return isReportCompact ? banded.filter((row) => !isSectionFooterRow(row.id)) : banded
+  }, [viewRows, collapsedSectionIds, sort, sections, showItemless, isReportCompact])
   const gridRows = useMemo(() => [...bodyRows, makeSpacerRow(), makeTotalsRow()], [bodyRows])
   const datasheetRef = useRef<DataSheetGridRef>(null)
   const gridRowKeys = useMemo(() => gridRows.map((row) => String(row.id)), [gridRows])
@@ -324,6 +350,11 @@ export function KosztorysEditorBody({
   // rows below an inserted one — the owner's toggle included, since flipping it changes what every
   // row measures to without saying which rows changed.
   const sizeToContent = preview || fitRowsToContent
+  // dsg offers no slot inside its scroller, so the footer is portaled into it. The grid is imported
+  // statically, so its container is in the DOM by the time this sibling's ref fires.
+  const [reportFooterAnchor, setReportFooterAnchor] = useState<HTMLElement | null>(null)
+  const reportFooterHost =
+    reportFooterAnchor?.parentElement?.querySelector<HTMLElement>('.dsg-container') ?? undefined
   useRowHeightCacheReset(datasheetRef, gridRowKeys, rowHeights, sizeToContent ? wrap : undefined)
   // The empty grid names what emptied it. The two kinds empty it for opposite reasons: an unticked
   // filter because EVERY pozycja fell into what was unticked, a diagnostic because NONE matched —
@@ -384,6 +415,11 @@ export function KosztorysEditorBody({
     () => ordinalGutterColumn({ ordinals: ordinalByRowId, resize: rowResize }),
     [ordinalByRowId, rowResize],
   )
+  // The full report is wider than a phone and the page scrolls sideways, but dsg renders only the
+  // columns inside its own box — so the box gets the columns' width up front. Not `max-content`: dsg
+  // answers a box that fits with `width: 100%`, which collapses it again, and the two loop.
+  const reportMinWidth =
+    report && !report.isCompact ? gridMinWidth(gridColumns, gutterColumn.basis ?? 40) : undefined
 
   // Kosztorys client-view nets against the investment's transaction sums — net to net, since the
   // ledger carries no VAT. Through the same lib fn the investment page calls, so the two can't
@@ -429,11 +465,21 @@ export function KosztorysEditorBody({
               its height there would leave a dead band, so the preview takes the whole viewport. */}
           <div
             className={cn(
-              'flex w-full flex-col overflow-hidden',
-              preview ? 'h-dvh' : 'h-below-top-nav',
+              'flex w-full flex-col',
+              // The worker's report scrolls as a page: his header scrolls away and the table
+              // header sticks, instead of the grid scrolling under a pinned top.
+              report ? 'min-h-dvh' : 'overflow-hidden',
+              !report && (preview ? 'h-dvh' : 'h-below-top-nav'),
             )}
           >
-            {preview ? (
+            {report ? (
+              report.header({
+                search,
+                onSearch: setSearch,
+                showAllRows,
+                onShowAllRows: setShowAllRows,
+              })
+            ) : preview ? (
               <header className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b px-4 py-3 sm:px-5 sm:py-5">
                 <BrandLogo height={54} priority className="shrink-0 max-sm:h-11" />
                 {/* Its own row below `sm`, beside the logo from there up. Logo plus a `lg` button
@@ -480,21 +526,31 @@ export function KosztorysEditorBody({
             needs px for virtualization; without it, it renders all 1000 rows.
             The grid track `minmax(0,1fr)` gives a DEFINITE width (= viewport): the grid doesn't
             stretch the container to the sum of the columns, it scrolls them internally instead. */}
-            <div className="relative flex min-h-0 flex-1 overflow-hidden">
+            <div className={cn('relative flex min-h-0 flex-1', !report && 'overflow-hidden')}>
               {/* min-w-0 lets the wrapper shrink below its content in a flex context;
               grid-cols-1 still gives the grid a definite width (anti-flicker). */}
               <div
                 ref={gridRef}
-                className="grid min-h-0 min-w-0 flex-1 grid-cols-1 overflow-hidden"
+                className={cn(
+                  'grid min-h-0 min-w-0 flex-1 grid-cols-1',
+                  !report && 'overflow-hidden',
+                )}
               >
                 <DynamicDataSheetGrid
                   ref={datasheetRef}
-                  className={cn('kosztorys-grid', preview && 'kosztorys-grid-preview')}
+                  className={cn(
+                    'kosztorys-grid',
+                    preview && 'kosztorys-grid-preview',
+                    report && 'kosztorys-grid-report',
+                    isReportCompact && 'kosztorys-grid-report-compact',
+                  )}
+                  style={reportMinWidth ? { minWidth: reportMinWidth } : undefined}
                   value={gridRows}
                   // Strip the appended spacer + „Razem" rows before the editor's diff sees them — display-only.
                   onChange={(rows) => onChange(rows.filter((row) => !isSyntheticRow(row.id)))}
                   columns={gridColumns}
-                  gutterColumn={gutterColumn}
+                  // The compact report is Opis + „Zgłaszam” only; Lp would be a third column he reads nothing in.
+                  gutterColumn={report?.isCompact ? false : gutterColumn}
                   height={gridHeight}
                   rowHeight={({ rowData }) =>
                     resolveRowHeight({
@@ -528,6 +584,8 @@ export function KosztorysEditorBody({
                     )
                   }
                 />
+                {report && <span hidden ref={setReportFooterAnchor} />}
+                {report && reportFooterHost && createPortal(report.footer, reportFooterHost)}
               </div>
               {isEmpty && (
                 <EmptyState
@@ -609,7 +667,7 @@ export function KosztorysEditorBody({
               full-height sheet of zeros nobody could fold away. */}
               {/* The worker's document swaps the whole panel for his own balance: every tab of the
               investor's reads the client's money, none of which is his to see. */}
-              {worker && subtotals.length > 0 && (
+              {worker && !report && subtotals.length > 0 && (
                 <TotalsPanelOverlay hasRows>
                   <SummaryScrollRegion className="px-4 py-4">
                     <WorkerSummary summary={worker.summary} />
