@@ -5,6 +5,33 @@ import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import { fixupPluginRules } from '@eslint/compat'
 import { noDomainDriftRule } from './eslint-rules/no-domain-drift.mjs'
 
+const ENV_IGNORES = ['src/lib/env/**', 'src/payload.config.ts', 'src/scripts/**', 'src/__tests__/**']
+
+const NO_RAW_ENV = {
+  // matches `process.env.X`, but allows `process.env.NODE_ENV`
+  selector:
+    "MemberExpression[object.object.name='process'][object.property.name='env']:not([property.name='NODE_ENV'])",
+  message:
+    'Read env through the validated env layer (env/index.ts / env/server.ts), never raw process.env.',
+}
+
+// A server action rejects client-side when its request never arrives (offline, a deploy invalidating
+// the action id) — `protectedAction` only catches handler throws. Matched by the `…Action` naming
+// convention, so a `'use server'` export named otherwise (`getPresetOptions`) slips through.
+const ACTION_CALL = "[callee.name=/Action$/]:not([callee.name='settleAction'])"
+const IN_TRY = 'TryStatement[handler] > BlockStatement.block *'
+const THEN_WITHOUT_REJECTION =
+  "CallExpression[callee.property.name='then'][arguments.length<2]:not(MemberExpression[property.name='catch'] > CallExpression.object)"
+const UNSETTLED_ACTION_MESSAGE =
+  'A server action call can reject when the request never arrives — wrap it in settleAction() (or settled()) from @/lib/utils/settle-action.'
+const UNSETTLED_ACTION = [
+  `AwaitExpression:not(${IN_TRY}) > CallExpression${ACTION_CALL}`,
+  `UnaryExpression[operator='void'] > CallExpression${ACTION_CALL}`,
+  `${THEN_WITHOUT_REJECTION} > MemberExpression.callee > CallExpression.object${ACTION_CALL}`,
+  `CallExpression[callee.name='startTransition'] > ArrowFunctionExpression > CallExpression.body${ACTION_CALL}`,
+  `ExpressionStatement:not(${IN_TRY}) > CallExpression.expression${ACTION_CALL}`,
+].map((selector) => ({ selector, message: UNSETTLED_ACTION_MESSAGE }))
+
 export default ts.config(
   {
     extends: [js.configs.recommended, ...ts.configs.recommended],
@@ -42,18 +69,24 @@ export default ts.config(
     // in the Payload CLI graph where `server-only` can't be imported), and tests (which seed
     // process.env).
     files: ['src/**/*.{ts,tsx}'],
-    ignores: ['src/lib/env/**', 'src/payload.config.ts', 'src/scripts/**', 'src/__tests__/**'],
+    ignores: ENV_IGNORES,
     rules: {
-      'no-restricted-syntax': [
-        'error',
-        {
-          // matches `process.env.X`, but allows `process.env.NODE_ENV`
-          selector:
-            "MemberExpression[object.object.name='process'][object.property.name='env']:not([property.name='NODE_ENV'])",
-          message:
-            'Read env through the validated env layer (env/index.ts / env/server.ts), never raw process.env.',
-        },
-      ],
+      'no-restricted-syntax': ['error', NO_RAW_ENV],
+    },
+  },
+  {
+    // Client code only: `src/lib` actions call each other server-side, and the rest of `src/hooks` is
+    // Payload hooks. A second `no-restricted-syntax` replaces the env block's selectors for these
+    // files, so NO_RAW_ENV is repeated.
+    files: [
+      'src/components/**/*.{ts,tsx}',
+      'src/hooks/use-*.{ts,tsx}',
+      'src/app/**/*.{ts,tsx}',
+      'src/stores/**/*.ts',
+    ],
+    ignores: ENV_IGNORES,
+    rules: {
+      'no-restricted-syntax': ['error', NO_RAW_ENV, ...UNSETTLED_ACTION],
     },
   },
   {

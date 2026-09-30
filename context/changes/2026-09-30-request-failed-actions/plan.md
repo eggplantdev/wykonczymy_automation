@@ -485,12 +485,12 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 5.1 cancel-transfer-button and login-form specs pass
+- [x] 5.1 cancel-transfer-button and login-form specs pass — 2e7b5dd4
 
 ### Phase 6: ESLint guard
 
 #### Automated
 
-- [ ] 6.1 `pnpm lint` passes
-- [ ] 6.2 The rule fires on a probe `await fooAction()` in a component
-- [ ] 6.3 `process.env.X` in a component is still reported
+- [x] 6.1 `pnpm lint` passes
+- [x] 6.2 The rule fires on a probe `await fooAction()` in a component
+- [x] 6.3 `process.env.X` in a component is still reported

@@ -75,6 +75,8 @@ export function useInvestorActions(): InvestorActionsT {
     const isCurrent = shareRequest.start()
     setShareOpen(true)
     setShareLoaded(false)
+    // A rejection is caught on the stored promise below, which also feeds the clipboard copy.
+    // eslint-disable-next-line no-restricted-syntax
     const token = ensureShareLinkAction(investmentId).then((result) => {
       if (!result.success) throw new ShareLinkError(result.error)
       if (isCurrent()) setShareToken(result.data)
