@@ -23,6 +23,7 @@ import { KosztorysSections } from '@/collections/kosztorys-sections'
 import { KosztorysShares } from '@/collections/kosztorys-shares'
 import { KosztorysStages } from '@/collections/kosztorys-stages'
 import { KosztorysWorkerShares } from '@/collections/kosztorys-worker-shares'
+import { WorkerReportShares } from '@/collections/worker-report-shares'
 import { StageProgress } from '@/collections/stage-progress'
 import { Leads } from '@/collections/leads'
 import { Media } from '@/collections/media'
@@ -97,6 +98,7 @@ export default buildConfig({
     KosztorysStages,
     KosztorysShares,
     KosztorysWorkerShares,
+    WorkerReportShares,
     KosztorysClientView,
     StageProgress,
     Transfers,

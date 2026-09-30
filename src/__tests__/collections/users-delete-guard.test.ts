@@ -131,11 +131,36 @@ describe.skipIf(!ENV_READY)('users beforeDelete guard (DB)', () => {
     expect(await workerExists()).toBe(true)
   })
 
+  // `worker_reports.worker_id` is ON DELETE CASCADE, so without the probe the delete would take
+  // every report he sent with it.
+  it('refuses to delete a worker whose only reference is a work report', async () => {
+    await db.execute(sql`DELETE FROM kosztorys_stage_workers WHERE worker_id = ${workerId}`)
+    await db.execute(sql`
+      INSERT INTO worker_reports (investment_id, worker_id) VALUES (${investmentId}, ${workerId})
+    `)
+
+    await expect(
+      payload.delete({
+        collection: 'users',
+        id: workerId,
+        overrideAccess: true,
+        context: { skipRevalidation: true },
+      }),
+    ).rejects.toThrow(/zgłoszenia prac: 1/)
+
+    expect(await workerExists()).toBe(true)
+    const reports = await db.execute(
+      sql`SELECT 1 FROM worker_reports WHERE worker_id = ${workerId}`,
+    )
+    expect(reports.rows).toHaveLength(1)
+  })
+
   // Positive control: without it the assertions above would also pass on a hook that blocks every delete.
   it('allows the delete once nothing references the worker', async () => {
     await db.execute(sql`DELETE FROM transactions WHERE description = 'delete-guard payout'`)
     await db.execute(sql`DELETE FROM amount_edits WHERE edited_by_id = ${workerId}`)
     await db.execute(sql`DELETE FROM kosztorys_stage_workers WHERE worker_id = ${workerId}`)
+    await db.execute(sql`DELETE FROM worker_reports WHERE worker_id = ${workerId}`)
 
     await payload.delete({
       collection: 'users',
