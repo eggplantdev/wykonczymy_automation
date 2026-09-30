@@ -1,10 +1,10 @@
 ---
 change_id: worker-work-reports
 title: Workers report executed quantities in their etapy; a manager verifies and accepts them
-status: implemented
+status: archived
 created: 2026-09-30
-updated: 2026-09-30
-archived_at: null
+updated: 2026-10-01
+archived_at: 2026-09-30T23:01:47Z
 branch: staging # shared working tree — switching HEAD would redirect parallel agents' commits
 worktree: null
 ---

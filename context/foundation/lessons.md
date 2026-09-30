@@ -2442,3 +2442,27 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
 - **Problem**: Unwrapped, that rejection left pending flags stuck forever, escaped `startTransition`, and put the browser's English „Failed to fetch" into the grid autosave toast. Three traps in the fix: (1) a naive `catch` also swallows Next's redirect, so logout logged a failed request and never navigated; (2) the grid lanes reseeding on failure rode the same dead connection, reset undo and armed the remount latch; (3) a tree-replacing dialog that treats every `!success` alike drops the refetch, although the write may already have committed server-side.
 - **Rule**: Call actions as `settleAction(() => xAction(…))`; it calls `unstable_rethrow` first so redirects pass. On `code: 'REQUEST_FAILED'`, a lane **reverts** its optimistic edit and never reseeds, while a tree-replacing dialog **refetches** via `settleTreeReplace` (`src/lib/kosztorys/settle-tree-replace.ts`). Don't wrap a call whose rejection is itself the signal: `handleStaleTree`'s `refreshDataAction()` must reject, because `use-stale-tree-recovery` turns that into its own message. The ESLint `UNSETTLED_ACTION` selectors in `eslint.config.mjs` enforce the wrap by name. A server export not ending in `Action` slips past, and so does a call nested in a callback under any `try`/`catch`. Both gaps are accepted.
 - **Applies to**: plan, implement, impl-review
+
+## A server write into cells the grid also autosaves: drain those lanes first, write in one transaction, patch absolute figures back
+
+- **Context**: Any server action that writes kosztorys cells the open editor also autosaves. The first one was accepting a worker report (EX-947, `lib/actions/accept-worker-report.ts` + `editor/hooks/use-worker-report-acceptance.ts`): it adds the accepted ilości into an etap's stage cells.
+- **Problem**: Four traps, each of which loses or double-counts a quantity.
+  1. `useDebouncedSave.runNow` **cancels** a pending debounced save for its key instead of flushing it. So a typed-but-unsaved cell the acceptance also touches is silently dropped.
+  2. `INSERT … ON CONFLICT DO UPDATE` that touches one row twice in one statement is Postgres error 21000. Two report lines on one pozycja do exactly that.
+  3. Re-applying the addition on the client double-counts it against whatever the server already summed.
+  4. JS arithmetic leaks float noise into a `numeric` column: 0,3 − 0,2 = 0,09999999999999998.
+- **Rule**:
+  - **Drain before the write.** The client awaits `drain(keys)` on the lanes of every (pozycja, etap) the write touches before calling the action.
+  - **Write in one `withPayloadTransaction`, in this order:**
+    1. `lockInvestmentGates`, which also serialises two concurrent accepts;
+    2. read the state;
+    3. validate and run the stale check;
+    4. `captureAutoSnapshot(tx, …)`, before any tree write;
+    5. create a new etap (`MAX+1`) if there is one;
+    6. write the extras;
+    7. the additive upsert, **summed per pozycja first**, `RETURNING` the absolute ilość;
+    8. bump `investments.updated_at`.
+  - **Patch back, don't re-add.** The accepting window sets the cells to those absolute figures and never re-adds on the client.
+  - **Round JS math.** Every JS-computed difference or sum goes through `round6` before it is bound.
+  - **Detect external writes by revision.** A plain cell edit does not bump `updated_at`, so a changed `tree.revision` is a precise "structural or external write" signal. Another open window reloads on focus/visibility when it sees one.
+- **Applies to**: plan, implement, impl-review
