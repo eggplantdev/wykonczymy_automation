@@ -32,6 +32,7 @@ describe('getUserDefaultCashRegisterId', () => {
       workers: [
         { id: 10, name: 'Jan', role: 'EMPLOYEE', email: 'j@x.com', defaultCashRegisterId: 5 },
       ],
+      cashRegisters: [{ id: 5, name: 'Kasa Jana', type: 'WORKER' }],
     })
     expect(getUserDefaultCashRegisterId(data)).toBe(5)
   })
@@ -62,8 +63,21 @@ describe('getDefaultCashRegister', () => {
       workers: [
         { id: 10, name: 'Admin', role: 'ADMIN', email: 'a@x.com', defaultCashRegisterId: 2 },
       ],
+      cashRegisters: [{ id: 2, name: 'Kasa główna', type: 'MAIN' }],
     })
     expect(getDefaultCashRegister(data)).toBe('2')
+  })
+
+  it('returns empty string when the default kasa is no longer offered (trashed under an open form)', () => {
+    const data = makeRefData({
+      currentUserId: 10,
+      workers: [
+        { id: 10, name: 'Admin', role: 'ADMIN', email: 'a@x.com', defaultCashRegisterId: 2 },
+      ],
+      cashRegisters: [{ id: 3, name: 'Kasa pomocnicza', type: 'AUXILIARY' }],
+      trashedCashRegisters: [{ id: 2, name: 'Kasa główna', type: 'MAIN' }],
+    })
+    expect(getDefaultCashRegister(data)).toBe('')
   })
 
   it('returns empty string when no default register', () => {
