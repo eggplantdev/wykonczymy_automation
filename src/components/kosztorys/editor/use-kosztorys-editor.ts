@@ -143,7 +143,7 @@ type ArgsT = {
   // what switches both rows off — an empty array would mean „nothing is in the cennik".
   workCatalogue?: WorkCatalogueItemT[]
   // Reseed-the-whole-tree path for a write that returns NOT_FOUND. Absent on the read-only body.
-  onStaleTree?: () => Promise<void>
+  onStaleTree?: () => Promise<unknown>
   // The szablon workbench — the grid narrows to what a szablon carries.
   isTemplate?: boolean
   // A past version's grid: etapy the present has filled, so their columns stay on screen.

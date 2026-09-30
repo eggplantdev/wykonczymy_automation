@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { ToggleGroup } from '@/components/ui/toggle-group'
 import { SimpleSelect } from '@/components/ui/simple-select'
 import { savePresetAction } from '@/lib/actions/kosztorys-presets'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
@@ -36,9 +37,11 @@ export function SavePresetDialog() {
   async function handleSave() {
     if (!canSave) return
     setSaving(true)
-    const res = await savePresetAction(
-      investmentId,
-      mode === 'new' ? { mode, name: name.trim() } : { mode, targetId: Number(overwriteId) },
+    const res = await settleAction(() =>
+      savePresetAction(
+        investmentId,
+        mode === 'new' ? { mode, name: name.trim() } : { mode, targetId: Number(overwriteId) },
+      ),
     )
     setSaving(false)
     if (!res.success) {

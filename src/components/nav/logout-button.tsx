@@ -6,6 +6,8 @@ import { useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { logoutAction } from '@/lib/actions/auth'
 import { cn } from '@/lib/utils/cn'
+import { settleAction } from '@/lib/utils/settle-action'
+import { toastMessage } from '@/lib/utils/toast'
 
 type LogoutButtonPropsT = React.ComponentProps<typeof Button> & {
   collapsed?: boolean
@@ -24,7 +26,11 @@ export function LogoutButton({ collapsed = false, beforeLogout, ...props }: Logo
       className={cn(collapsed && 'px-0')}
       onClick={() => {
         beforeLogout?.()
-        startTransition(() => logoutAction())
+        startTransition(async () => {
+          // Only a failed request ever returns — a logout that lands redirects.
+          const res = await settleAction(logoutAction)
+          toastMessage(res.error, 'error')
+        })
       }}
       disabled={isPending}
       aria-label="Wyloguj"

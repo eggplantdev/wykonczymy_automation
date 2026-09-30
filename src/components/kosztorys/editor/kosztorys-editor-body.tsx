@@ -98,7 +98,7 @@ type PropsT = KosztorysEditorDataT & {
   onOpenVersions?: () => void
   onTreeReplaced?: OnTreeReplacedT
   // Reseed after a write was refused because its row is gone (the tree was replaced elsewhere).
-  onStaleTree?: () => Promise<void>
+  onStaleTree?: () => Promise<unknown>
 }
 
 // Seeds the grid from `tree` at mount, so remounting it with a fresh `key` is how a restore re-seeds

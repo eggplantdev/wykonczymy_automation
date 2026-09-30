@@ -4,4 +4,5 @@ import { revalidatePath } from 'next/cache'
 
 export async function refreshDataAction() {
   revalidatePath('/', 'layout')
+  return { success: true as const }
 }

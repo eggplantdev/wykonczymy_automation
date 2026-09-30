@@ -56,7 +56,7 @@ const TREE = makeTree({
       color: null,
       items: [
         { ...baseItem, id: 1, description: 'Malowanie', plannedQty: 1, clientPrice: 100 },
-        { ...baseItem, id: 2, description: 'Gruntowanie', displayOrder: 1, plannedQty: 1 },
+        { ...baseItem, id: 2, description: 'Gruntowanie', displayOrder: 1, plannedQty: 1, clientPrice: 50 },
       ],
     },
   ],

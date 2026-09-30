@@ -9,6 +9,7 @@ import { appendPresetSectionsAction } from '@/lib/actions/kosztorys-presets'
 import { useSearchFilter } from '@/hooks/use-search-filter'
 import type { AppendedSliceT } from '@/lib/kosztorys/append-preset-sections'
 import { cn } from '@/lib/utils/cn'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import { getPresetName, groupPresetSections, isGroupFullySelected } from './preset-picker-groups'
 import { sectionNoun } from '@/lib/kosztorys/counted-nouns'
@@ -88,7 +89,7 @@ export function AddSectionsFromPresetDialog({
       .filter((id) => selected.has(id))
     if (sectionIds.length === 0) return
     setPending(true)
-    const res = await appendPresetSectionsAction(investmentId, sectionIds)
+    const res = await settleAction(() => appendPresetSectionsAction(investmentId, sectionIds))
     setPending(false)
     if (!res.success) {
       toastMessage(res.error ?? 'Nie udało się dodać sekcji', 'error', 4000)

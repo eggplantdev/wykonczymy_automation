@@ -479,13 +479,13 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 4.1 sheet-import-dialog, kosztorys-versions-drawer and clean-item-texts-action specs pass
+- [x] 4.1 sheet-import-dialog, kosztorys-versions-drawer and clean-item-texts-action specs pass — 0c258662
 
 ### Phase 5: Remaining call sites
 
 #### Automated
 
-- [ ] 5.1 cancel-transfer-button and login-form specs pass
+- [x] 5.1 cancel-transfer-button and login-form specs pass
 
 ### Phase 6: ESLint guard
 
