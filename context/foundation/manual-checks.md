@@ -2773,6 +2773,8 @@ Link zbudowany na stagingu wskazuje na produkcję — przed otwarciem podmień h
       zgłoszeniem.
 - [ ] „Nowa praca” przy 390px: „Opis prac” na całą szerokość, j.m. i ilość w linii pod nim; przy
       1280px wszystko w jednej linii. Przycisk pod wierszami to „Dodaj więcej”.
+- [ ] Po dodaniu pracy spoza rozpiski (z opisem) pod tabelą, nad „Wyślij”, jest sekcja „Prace spoza
+      rozpiski” z opisem, ilością i j.m.; pusty wiersz się w niej nie pokazuje, a po wysłaniu znika.
 - [ ] Zakończona inwestycja: link pokazuje komunikat zamiast formularza, a wysyłka z wcześniej
       otwartej strony jest odrzucona.
 - [ ] Szkic z wpisami, potem „Wyczyść kosztorys” u kierownika: po odświeżeniu link pokazuje „N pozycji

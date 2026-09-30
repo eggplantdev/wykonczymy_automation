@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { KosztorysEditorBody } from '@/components/kosztorys/editor/kosztorys-editor-body'
 import { BrandedHeader } from '@/components/kosztorys/worker-report/branded-header'
+import { DraftExtraWorks } from '@/components/kosztorys/worker-report/draft-extra-works'
 import { ExtraWorksDialogButton } from '@/components/kosztorys/worker-report/extra-works-dialog-button'
 import { ReportBar } from '@/components/kosztorys/worker-report/report-bar'
 import { POZYCJA_FORMS, SendBar, type SentT } from '@/components/kosztorys/worker-report/send-bar'
@@ -109,6 +110,7 @@ export function ReportGrid({
         footer: (
           // All columns are wider than the screen; screen-wide, the buttons stay in view.
           <div className={cn('sticky left-0', isAllColumns && 'w-screen')}>
+            <DraftExtraWorks extras={draft.draft.extras} />
             <div className="flex items-center justify-end gap-2 px-4 py-4">
               <ExtraWorksDialogButton
                 extras={draft.draft.extras}
