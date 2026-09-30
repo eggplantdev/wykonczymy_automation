@@ -2812,6 +2812,9 @@ Link zbudowany na stagingu wskazuje na produkcję — przed otwarciem podmień h
 - [ ] Klik w wiersz na „Zgłoszenia prac” (bez przeładowania strony) otwiera rozpiskę z tym
       zgłoszeniem — wczytuje się, nie wisi na „Wczytywanie…”. Adres ma `?zgloszenie=` do zamknięcia
       okna; po zamknięciu i przeładowaniu okno się nie otwiera.
+- [ ] Przegląd zgłoszenia, prace z rozpiski: kolumna etapu nosi nazwę etapu wybranego w „Dodaj do”
+      („Nowy etap” dla nowego) i zmienia się razem z wyborem; dalej osobno „Przedmiar” i „Pomiar
+      (razem etapy)”. Zaznaczona ilość przesuwa etap i pomiar („12 → 15”), przedmiar stoi.
 
 **Bez zmian w innych widokach**
 

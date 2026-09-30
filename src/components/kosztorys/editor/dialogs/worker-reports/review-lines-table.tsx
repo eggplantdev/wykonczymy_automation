@@ -20,6 +20,7 @@ import {
 import { sectionColumn } from '@/components/kosztorys/worker-report/report-columns'
 import { reportRowClassName } from '@/components/kosztorys/worker-report/report-row-class-name'
 import { formatQty, formatQtyWithUnit } from '@/lib/kosztorys/format'
+import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
 import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import { compareDescriptions } from '@/lib/kosztorys/work-catalogue/compare-descriptions'
 import type { CatalogueHintT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
@@ -47,6 +48,7 @@ type ReviewTableContextT = {
   catalogueOptions: SearchSelectItemT[]
   hintsByLine: Record<number, CatalogueHintT[]>
   isReadOnly: boolean
+  stageTitle: string
 }
 
 // A context, not props on the columns: `flexRender` mounts a `cell` function as a component, so
@@ -145,32 +147,36 @@ function RozpiskaDescriptionCell({ row }: { row: ReviewRowT }) {
   )
 }
 
-// Acceptance adds to the etap, so the manager sees both what is there and what it becomes.
+function StageHeader() {
+  return useReviewTable().stageTitle
+}
+
+// Acceptance adds to the etap and so to the pomiar: the manager sees what is there and what it becomes.
+function GrowingQty({ before, added }: { before: number; added: number }) {
+  if (added === 0) return formatQty(before)
+  return (
+    <span className="whitespace-nowrap">
+      <span className="text-muted-foreground">{formatQty(before)} → </span>
+      <span className="font-medium">{formatQty(before + added)}</span>
+    </span>
+  )
+}
+
 function StageCell({ row }: { row: ReviewRowT }) {
   const added = acceptedQty(useReviewTable().drafts[row.id])
   if (!row.figures) return null
-  if (added === 0) return formatQty(row.figures.stageQty)
-  return (
-    <span className="whitespace-nowrap">
-      <span className="text-muted-foreground">{formatQty(row.figures.stageQty)} → </span>
-      <span className="font-medium">{formatQty(row.figures.stageQty + added)}</span>
-    </span>
-  )
+  return <GrowingQty before={row.figures.stageQty} added={added} />
 }
 
 function MeasuredCell({ row }: { row: ReviewRowT }) {
   const added = acceptedQty(useReviewTable().drafts[row.id])
   if (!row.figures) return null
-  const measuredAfter = row.figures.measuredQty + added
-  const isOverPlanned = row.figures.plannedQty > 0 && measuredAfter > row.figures.plannedQty
+  const { measuredQty, plannedQty } = row.figures
+  const isOverPlanned = plannedQty > 0 && measuredQty + added > plannedQty
   return (
     <span className="whitespace-nowrap">
       <span className={cn(isOverPlanned && 'text-amber-600 dark:text-amber-400')}>
-        {formatQty(measuredAfter)}
-      </span>
-      <span className="text-muted-foreground">
-        {' / '}
-        {row.figures.plannedQty > 0 ? formatQty(row.figures.plannedQty) : 'bez przedmiaru'}
+        <GrowingQty before={measuredQty} added={added} />
       </span>
       {isOverPlanned && (
         <span className="block text-xs text-amber-600 dark:text-amber-400">
@@ -316,13 +322,25 @@ const acceptedColumn = col.display({
 })
 const stageColumn = col.accessor((row) => row.figures?.stageQty ?? 0, {
   id: 'stage',
-  header: 'W etapie',
+  header: () => <StageHeader />,
   meta: { align: 'right' },
   cell: ({ row }) => <StageCell row={row.original} />,
 })
-const measuredColumn = col.accessor((row) => row.figures?.plannedQty ?? 0, {
+const plannedColumn = col.accessor((row) => row.figures?.plannedQty ?? 0, {
+  id: 'planned',
+  header: COLUMN_LABELS.plannedQty,
+  meta: { align: 'right' },
+  cell: ({ row }) =>
+    row.original.figures &&
+    (row.original.figures.plannedQty > 0 ? (
+      formatQty(row.original.figures.plannedQty)
+    ) : (
+      <span className="text-muted-foreground">—</span>
+    )),
+})
+const measuredColumn = col.accessor((row) => row.figures?.measuredQty ?? 0, {
   id: 'measured',
-  header: 'Pomiar / Przedmiar',
+  header: COLUMN_LABELS.stageQtySum,
   meta: { align: 'right' },
   cell: ({ row }) => <MeasuredCell row={row.original} />,
 })
@@ -354,6 +372,7 @@ const COLUMNS_BY_GROUP = {
     reportedColumn,
     acceptedColumn,
     stageColumn,
+    plannedColumn,
     measuredColumn,
   ],
   extra: [

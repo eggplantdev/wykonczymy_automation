@@ -78,6 +78,8 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
   const [isPending, setIsPending] = useState(false)
   const [isRejectOpen, setIsRejectOpen] = useState(false)
   const targetStageId = target === NEW_STAGE ? undefined : Number(target)
+  const targetStage = ownStages.find((stage) => stage.id === targetStageId)
+  const stageTitle = targetStage ? stageLabel(targetStage) : 'Nowy etap'
 
   const itemIdOf = (line: ReportLineT): number | undefined =>
     line.itemId !== undefined && liveItemIds.has(line.itemId) ? line.itemId : drafts[line.id].itemId
@@ -269,6 +271,7 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
                 catalogueOptions={catalogueOptions}
                 hintsByLine={hintsByLine}
                 isReadOnly={isReadOnly}
+                stageTitle={stageTitle}
               />
             </section>
           )
