@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useDebouncedSave } from '@/components/kosztorys/editor/hooks/use-debounced-save'
 import { useStaleTreeRecovery } from '@/components/kosztorys/editor/hooks/use-stale-tree-recovery'
+import { useExternalChangeReload } from '@/components/kosztorys/editor/hooks/use-external-change-reload'
+import { useWorkerReportAcceptance } from '@/components/kosztorys/editor/hooks/use-worker-report-acceptance'
 import {
   coalesceFieldChanges,
   coalesceStageChanges,
@@ -118,6 +120,7 @@ import { applyCatalogueToKosztorysAction } from '@/lib/actions/catalogue-to-kosz
 import { buildCatalogueComparison } from '@/lib/kosztorys/work-catalogue/build-catalogue-comparison'
 import type {
   ItemPatchT,
+  KosztorysStageT,
   KosztorysTreeT,
   KosztorysV2RowT,
   SectionMetaT,
@@ -184,7 +187,7 @@ export function useKosztorysEditor({
   // anything may be written.
   const readOnly = preview || locked
   const { recoverStaleTree, reportFailure } = useStaleTreeRecovery(onStaleTree)
-  const { save, runNow } = useDebouncedSave(500, recoverStaleTree)
+  const { save, runNow, drain } = useDebouncedSave(500, recoverStaleTree)
   // Owned by the shell (KosztorysEditorV2). Capture pushes here; toolbar + keyboard call undo/redo.
   const { push, undo, redo, canUndo, canRedo, pruneByIds, amendTop } = undoRedo
   const [gridRef, gridHeight, gridNode] = useElementHeight()
@@ -268,6 +271,7 @@ export function useKosztorysEditor({
 
   const {
     stages,
+    adoptStage,
     handleAddStage,
     handleRemoveStage,
     handleRenameStage,
@@ -1016,10 +1020,13 @@ export function useKosztorysEditor({
 
   // Built through treeToRows with the CURRENT stages + global discount, so server-committed rows carry
   // today's stage columns and rabat flag. Real ids, so there is no temp-id reconciliation.
-  function rowsFromSections(treeSections: KosztorysTreeT['sections']) {
+  function rowsFromSections(
+    treeSections: KosztorysTreeT['sections'],
+    newStages: KosztorysStageT[] = [],
+  ) {
     const built = treeToRows({
       sections: treeSections,
-      stages,
+      stages: [...stages, ...newStages],
       progress: [],
       globalCoeffs: tree.globalCoeffs,
       vatRate: tree.vatRate,
@@ -1064,6 +1071,44 @@ export function useKosztorysEditor({
     }
     unfoldSection(slice.id)
   }
+
+  // Only into a sekcja this window already shows: the accept names one the dialog offered from it.
+  function appendAcceptedItems(
+    slice: KosztorysTreeT['sections'][number],
+    newStages: KosztorysStageT[],
+  ) {
+    const order = sectionsRef.current
+    if (!order.some((section) => section.sectionId === slice.id)) return recoverStaleTree()
+    const appended = rowsFromSections([slice], newStages)
+    setRows((rs) => orderRowsBySections(appended.reduce(applyAddItem, rs), order))
+    unfoldSection(slice.id)
+  }
+
+  const { adoptRevision } = useExternalChangeReload({
+    investmentId,
+    revision: tree.revision,
+    enabled: !readOnly && onStaleTree !== undefined,
+    onChanged: () => {
+      toastMessage(
+        'Rozpiska zmieniła się w innym oknie — wczytano aktualną wersję.',
+        'warning',
+        6000,
+      )
+      void onStaleTree?.()
+    },
+  })
+
+  const { acceptReport, rejectReport } = useWorkerReportAcceptance({
+    investmentId,
+    flushUndoBuffer,
+    drain,
+    adoptStage,
+    appendItems: appendAcceptedItems,
+    patchRows,
+    pruneByIds,
+    adoptRevision,
+    reportFailure,
+  })
 
   async function handleRemoveSection(sectionId: number) {
     // The summary confirms first (EX-477); a populated section cascade-deletes its items + stage_progress
@@ -1397,6 +1442,8 @@ export function useKosztorysEditor({
     handleAppendedSections,
     handleAppendedCatalogueItems,
     handleAddStage,
+    acceptReport,
+    rejectReport,
     handleGlobalCoeffChange,
     handleVatChange,
     handleSettlementModeChange,

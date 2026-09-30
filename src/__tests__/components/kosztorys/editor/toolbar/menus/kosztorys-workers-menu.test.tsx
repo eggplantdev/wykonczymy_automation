@@ -63,9 +63,12 @@ vi.mock('@/lib/actions/kosztorys-worker-share', () => ({
 const getWorkerKosztorysPrintData = vi.hoisted(() => vi.fn())
 vi.mock('@/lib/queries/worker-kosztorys-print-endpoint', () => ({ getWorkerKosztorysPrintData }))
 
+// Rozpiska links only, unless a spec says otherwise.
+const holders = (rozpiska: number[], report: number[] = []) => ({ rozpiska, report })
+
 beforeEach(() => {
   readWorkerShareToken.mockResolvedValue('tok-anna')
-  readWorkerShareHolders.mockResolvedValue([])
+  readWorkerShareHolders.mockResolvedValue(holders([]))
   revokeWorkerShareLinkAction.mockResolvedValue({ success: true })
   getWorkerKosztorysPrintData.mockResolvedValue(null)
 })
@@ -86,6 +89,7 @@ const openMenu = () => userEvent.click(screen.getByRole('button', { name: 'Praco
 
 // Items render in worker order, so the n-th „Link" belongs to the n-th listed worker.
 const linkItems = () => screen.getAllByRole('menuitem', { name: 'Link' })
+const reportLinkItems = () => screen.getAllByRole('menuitem', { name: 'Link do zgłoszeń' })
 const printItems = () => screen.getAllByRole('menuitem', { name: 'Drukuj PDF' })
 
 describe('KosztorysWorkersMenu', () => {
@@ -121,7 +125,7 @@ describe('KosztorysWorkersMenu', () => {
   // A live token outlives the block: once the rozliczenie is set it shows prices again, so the owner
   // must be able to switch it off while the worker is still blocked.
   it('opens a blocked worker’s link while they hold one', async () => {
-    readWorkerShareHolders.mockResolvedValue([20])
+    readWorkerShareHolders.mockResolvedValue(holders([20]))
     renderMenu()
     await openMenu()
 
@@ -131,7 +135,7 @@ describe('KosztorysWorkersMenu', () => {
   })
 
   it('lets a blocked holder’s link only be switched off, saying why', async () => {
-    readWorkerShareHolders.mockResolvedValue([20])
+    readWorkerShareHolders.mockResolvedValue(holders([20]))
     readWorkerShareToken.mockResolvedValue('tok-bogdan')
     renderMenu()
     await openMenu()
@@ -159,9 +163,11 @@ describe('KosztorysWorkersMenu', () => {
   it('keeps a revoked blocked worker’s link disabled when an older holder read lands late', async () => {
     let resolveStale: (ids: number[]) => void = () => {}
     readWorkerShareHolders
-      .mockResolvedValueOnce([20])
-      .mockReturnValueOnce(new Promise<number[]>((resolve) => (resolveStale = resolve)))
-      .mockReturnValue(new Promise<number[]>(() => {}))
+      .mockResolvedValueOnce(holders([20]))
+      .mockReturnValueOnce(
+        new Promise((resolve) => (resolveStale = (ids) => resolve(holders(ids)))),
+      )
+      .mockReturnValue(new Promise(() => {}))
     readWorkerShareToken.mockResolvedValue('tok-bogdan')
     renderMenu()
     await openMenu()
@@ -195,7 +201,7 @@ describe('KosztorysWorkersMenu', () => {
   })
 
   it('keeps listing a worker unpinned from every etap while they hold a link', async () => {
-    readWorkerShareHolders.mockResolvedValue([30])
+    readWorkerShareHolders.mockResolvedValue(holders([30]))
     renderMenu()
     await openMenu()
 
@@ -225,10 +231,37 @@ describe('KosztorysWorkersMenu', () => {
     expect(
       await within(dialog).findByDisplayValue(/\/p\/Anna-Nowak\/tok-anna$/),
     ).toBeInTheDocument()
-    expect(readWorkerShareToken).toHaveBeenCalledWith({
-      investmentId: INVESTMENT_ID,
-      workerId: 10,
-    })
+    expect(readWorkerShareToken).toHaveBeenCalledWith(
+      { investmentId: INVESTMENT_ID, workerId: 10 },
+      'rozpiska',
+    )
+  })
+
+  it('opens a worker’s report link on its own route', async () => {
+    readWorkerShareToken.mockResolvedValue('tok-report')
+    renderMenu()
+    await openMenu()
+    await userEvent.click(reportLinkItems()[0])
+
+    const dialog = await screen.findByRole('dialog', { name: /Link do zgłoszeń — Anna Nowak/ })
+    expect(
+      await within(dialog).findByDisplayValue(/\/zgloszenie-prac\/Anna-Nowak\/tok-report$/),
+    ).toBeInTheDocument()
+    expect(readWorkerShareToken).toHaveBeenCalledWith(
+      { investmentId: INVESTMENT_ID, workerId: 10 },
+      'report',
+    )
+  })
+
+  // Each kind is switched off on its own: a blocked worker holding only a rozpiska link cannot be
+  // handed a fresh report link from the same menu.
+  it('opens a blocked worker’s report link only while he holds that kind', async () => {
+    readWorkerShareHolders.mockResolvedValue(holders([20]))
+    renderMenu()
+    await openMenu()
+
+    await waitFor(() => expect(linkItems()[1]).not.toHaveAttribute('aria-disabled'))
+    expect(reportLinkItems()[1]).toHaveAttribute('aria-disabled', 'true')
   })
 
   it('lets a manager print a worker’s PDF, reading that worker’s projection', async () => {

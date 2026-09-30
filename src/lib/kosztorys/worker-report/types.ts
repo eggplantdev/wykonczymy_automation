@@ -1,4 +1,10 @@
 import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
+import type {
+  KosztorysItemT,
+  KosztorysSectionT,
+  KosztorysStageT,
+  ToolPlaneT,
+} from '@/lib/kosztorys/types'
 
 export type ReportFormItemT = {
   id: number
@@ -41,43 +47,74 @@ export type SendReportLineT =
   | { kind: 'rozpiska'; itemId: number; qty: number }
   | { kind: 'extra'; description: string; unit: string; qty: number }
 
-export type ReportLineKindT = 'rozpiska' | 'manual'
+export type ReportLineKindT = 'rozpiska' | 'extra'
+
+export type ReportStatusT = 'pending' | 'accepted' | 'rejected'
 
 // Opis + j.m. are copied onto the line when it is sent, so a later rename or delete of the pozycja
 // does not rewrite what the worker reported.
 export type ReportLineT = {
-  key: string
+  id: number
   kind: ReportLineKindT
+  // Gone once its pozycja was deleted (a restore, „Wyczyść kosztorys") — the line is then re-pointed
+  // by hand.
   itemId: number | undefined
   description: string
   unit: string
-  qty: number
   sectionName: string | undefined
+  reportedQty: number
+  // Undefined on a pending report, and on a decided one for a line that was not accepted.
+  acceptedQty: number | undefined
+  createdItemId: number | undefined
+  catalogueItemId: number | undefined
 }
 
-export type ReportStatusT = 'pending' | 'accepted' | 'rejected'
-
-export type LineDecisionT = {
-  isAccepted: boolean
-  // Set when the manager recognised a dopisana praca as a katalog wpis and swapped it in.
-  catalogueId: number | undefined
-  qty: number
-  sectionId: number | undefined
-  unitPrice: number | undefined
+// Ordinal and label are copied, so a later rename or delete of the etap does not rewrite where the
+// kierownik put it. `stageId` is gone once the etap was deleted.
+export type ReportTargetT = {
+  stageId: number | undefined
+  ordinal: number
+  label: string | undefined
 }
 
-// The label is copied, so a later rename of the etap does not rewrite where the kierownik put it.
-export type ReportTargetT = { kind: 'newStage' } | { kind: 'stage'; stageId: number; label: string }
-
-export type WorkerReportT = {
-  id: string
+export type WorkerReportSummaryT = {
+  id: number
   investmentId: number
   workerId: number
   workerName: string
   sentAt: string
   status: ReportStatusT
-  lines: ReportLineT[]
-  decisions: Record<string, LineDecisionT> | undefined
-  target: ReportTargetT | undefined
   decidedAt: string | undefined
+  decidedBy: string | undefined
+  target: ReportTargetT | undefined
+  lineCount: number
+  acceptedLineCount: number
+}
+
+export type WorkerReportT = WorkerReportSummaryT & { lines: ReportLineT[] }
+
+export type AcceptTargetT = { kind: 'stage'; stageId: number } | { kind: 'new'; plane?: ToolPlaneT }
+
+export type AcceptReportInputT = {
+  investmentId: number
+  reportId: number
+  target: AcceptTargetT
+  // `itemId` only for a line re-pointed by hand after its pozycja was deleted.
+  lines: { lineId: number; acceptedQty: number; itemId?: number }[]
+  extras: {
+    lineId: number
+    acceptedQty: number
+    sectionId: number
+    clientPrice?: number
+    catalogueItemId?: number
+  }[]
+}
+
+export type AcceptReportResultT = {
+  // Only when the report went to „Nowy etap".
+  stage: KosztorysStageT | undefined
+  appended: (KosztorysSectionT & { items: KosztorysItemT[] })[]
+  // Absolute figures after the addition — the client never re-adds.
+  cells: { itemId: number; stageId: number; qtyDone: number }[]
+  revision: string
 }

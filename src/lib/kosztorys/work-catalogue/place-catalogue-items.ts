@@ -23,7 +23,7 @@ export type CataloguePlacementT = {
 // arrives verbatim, and a mnożnik arrives as a mnożnik and re-prices itself off the cena j.m. it
 // lands on. Copying at most one column per płaszczyzna is what keeps the pair legal: two set columns
 // is the state `normalizeOverridePatch` exists to prevent.
-const asItem = (
+export const catalogueEntryAsItem = (
   catalogueItem: WorkCatalogueItemT,
   sectionId: number,
   displayOrder: number,
@@ -63,7 +63,7 @@ export async function placeCatalogueItems(
 ): Promise<AppendedCatalogueSliceT> {
   const sectionId = placement.section.id
   const items = catalogueItems.map((catalogueItem, i) =>
-    asItem(catalogueItem, sectionId, placement.nextDisplayOrder + i),
+    catalogueEntryAsItem(catalogueItem, sectionId, placement.nextDisplayOrder + i),
   )
 
   // `asViewPricing` supplies zero globals, which is inert here: the guard judges a stawka this wiersz

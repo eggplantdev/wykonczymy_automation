@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createSaveLanes } from '@/lib/kosztorys/save-lanes'
+import { createDebouncedSaves, createSaveLanes } from '@/lib/kosztorys/save-lanes'
 import type { ActionResultT } from '@/types/action'
 
 const ok = (): ActionResultT => ({ success: true })
@@ -111,5 +111,71 @@ describe('createSaveLanes', () => {
       return ok()
     })
     expect(ran).toEqual(['first', 'second'])
+  })
+})
+
+describe('drain', () => {
+  it('waits for an in-flight write on a listed lane', async () => {
+    const lanes = createSaveLanes()
+    const gate = deferred<void>()
+    let isStored = false
+    void lanes.enqueue('progress:1:2', async () => {
+      await gate.promise
+      isStored = true
+      return ok()
+    })
+
+    let isDrained = false
+    const drained = lanes.drain(['progress:1:2']).then(() => {
+      isDrained = true
+    })
+    await Promise.resolve()
+    expect(isDrained).toBe(false)
+
+    gate.resolve()
+    await drained
+    expect(isStored).toBe(true)
+  })
+
+  it('fires a pending debounced save instead of dropping it, and waits for it', async () => {
+    vi.useFakeTimers()
+    try {
+      const lanes = createSaveLanes()
+      const stored: number[] = []
+      const saves = createDebouncedSaves(500, (key, run) => lanes.enqueue(key, run), lanes)
+      saves.save('progress:1:2', async () => {
+        stored.push(7)
+        return ok()
+      })
+
+      await saves.drain(['progress:1:2'])
+      expect(stored).toEqual([7])
+
+      // The timer it replaced must not fire a second write.
+      await vi.advanceTimersByTimeAsync(1000)
+      expect(stored).toEqual([7])
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('leaves a pending save on an unlisted lane to its timer', async () => {
+    vi.useFakeTimers()
+    try {
+      const lanes = createSaveLanes()
+      const stored: string[] = []
+      const saves = createDebouncedSaves(500, (key, run) => lanes.enqueue(key, run), lanes)
+      saves.save('progress:9:2', async () => {
+        stored.push('other')
+        return ok()
+      })
+
+      await saves.drain(['progress:1:2'])
+      expect(stored).toEqual([])
+      await vi.advanceTimersByTimeAsync(500)
+      expect(stored).toEqual(['other'])
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })

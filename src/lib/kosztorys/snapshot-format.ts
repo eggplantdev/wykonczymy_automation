@@ -149,7 +149,7 @@ export function storedStageSplit(stage: StoredStageT): StageSplitT | null {
 //
 // It lives at the payload readers (insertKosztorysTree, appendPresetSections) and
 // not at the bind in insert-rows.ts, because those primitives are also called by appendCatalogueItems,
-// which builds its rows in code (`asItem`) where a missing value is a caller bug to surface, not absorb.
+// which builds its rows in code (`catalogueEntryAsItem`) where a missing value is a caller bug to surface, not absorb.
 //
 // `displayOrder` takes the row's INDEX rather than 0: it is the natural key remapNewIds joins
 // RETURNING on, so a constant would tie it batch-wide, drop the remap to positional, and restore the

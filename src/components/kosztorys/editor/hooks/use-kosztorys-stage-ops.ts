@@ -56,10 +56,15 @@ export function useKosztorysStageOps({
     const res = await settleAction(() => addStageAction(investmentId, plane, split))
     if (!res.success) return reportFailure(res.error, res.code)
     const { id, ordinal } = res.data
-    setStages((s) => [...s, { id, ordinal, label: null, plane, split }])
+    adoptStage({ id, ordinal, label: null, plane, split })
+  }
+
+  // An etap the server already created — an accepted report's „Nowy etap".
+  function adoptStage(stage: KosztorysStageT) {
+    setStages((s) => [...s, stage])
     patchRows(
       () => true,
-      (r) => ({ ...r, [stageKey(id)]: 0 }),
+      (r) => ({ ...r, [stageKey(stage.id)]: 0 }),
     )
   }
 
@@ -132,6 +137,7 @@ export function useKosztorysStageOps({
 
   return {
     stages,
+    adoptStage,
     handleAddStage,
     handleRemoveStage,
     handleRenameStage,

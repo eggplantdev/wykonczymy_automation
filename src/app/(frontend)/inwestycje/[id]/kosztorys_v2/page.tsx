@@ -18,16 +18,20 @@ import { requireManagementPage } from '@/lib/auth/require-management-page'
 import { KosztorysEditorV2 } from '@/components/kosztorys/editor/kosztorys-editor-v2'
 import { perfStart } from '@/lib/perf'
 import { isLockedStatus } from '@/lib/constants/investment-lock'
+import { countInvestmentPendingReports } from '@/lib/queries/worker-reports'
 
 // The in-app kosztorys editor ("kosztorys_v2"). Always available — every investment has one,
 // the editor renders its own empty state. The legacy Google Sheet lives at /kosztorys.
 export default async function InvestmentKosztorysV2Page({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ zgloszenie?: string }>
 }) {
   const elapsed = perfStart()
   const { id } = await params
+  const { zgloszenie } = await searchParams
   const investmentId = parseInvestmentId(id)
   // Both awaits sit before the fan-out for one reason: getKosztorysTree throws — for a failed
   // session AND for a missing investment — so anything folded into the Promise.all beside it is
@@ -57,6 +61,7 @@ export default async function InvestmentKosztorysV2Page({
   const workCataloguePromise = getWorkCatalogue()
   // Cached on `investment:<id>`, so an upload from either surface invalidates it.
   const assetsPromise = fetchInvestmentAssets(investmentId)
+  const pendingReportsPromise = countInvestmentPendingReports(investmentId)
   const [
     tree,
     financialsSource,
@@ -65,6 +70,7 @@ export default async function InvestmentKosztorysV2Page({
     materialTransactions,
     workCatalogue,
     assets,
+    pendingReportCount,
   ] = await Promise.all([
     treePromise,
     financialsPromise,
@@ -73,10 +79,11 @@ export default async function InvestmentKosztorysV2Page({
     materialTxPromise,
     workCataloguePromise,
     assetsPromise,
+    pendingReportsPromise,
   ])
   console.log(
-    `[PERF] kosztorys_v2/${investmentId} 7-fetch fan-out ${elapsed()}ms ` +
-      `(tree + financials source + 3 transaction lists + work catalogue + assets)`,
+    `[PERF] kosztorys_v2/${investmentId} 8-fetch fan-out ${elapsed()}ms ` +
+      `(tree + financials source + 3 transaction lists + work catalogue + assets + pending reports)`,
   )
   const { financials, materialsBreakdown, settledBreakdown } = deriveWholeInvestmentFinancials(
     financialsSource,
@@ -107,6 +114,15 @@ export default async function InvestmentKosztorysV2Page({
       investment={investment}
       hasSheet={investment.hasSheet}
       locked={isLockedStatus(investment.status)}
+      workerReports={{
+        pendingCount: pendingReportCount,
+        openReportId: parseReportId(zgloszenie),
+      }}
     />
   )
+}
+
+function parseReportId(value: string | undefined): number | undefined {
+  const reportId = Number(value)
+  return Number.isInteger(reportId) && reportId > 0 ? reportId : undefined
 }

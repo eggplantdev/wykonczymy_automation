@@ -1,6 +1,7 @@
 import 'server-only'
 import { sql } from '@payloadcms/db-vercel-postgres'
-import type { StageSplitT } from '@/lib/kosztorys/types'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
+import type { KosztorysStageT, StageSplitT, ToolPlaneT } from '@/lib/kosztorys/types'
 import { subcontractorDueColumns, subcontractorLinesCte } from './kosztorys-subcontractor-due'
 import type { DbExecutorT } from './get-db'
 
@@ -45,4 +46,25 @@ export async function insertStageMembers(
     INSERT INTO kosztorys_stage_workers (${sql.raw(STAGE_MEMBER_INSERT_COLUMNS.join(', '))})
     VALUES ${sql.join(rows, sql.raw(', '))}
   `)
+}
+
+/** „Nowy etap" for an accepted report: the next number, the worker's plane, and him at 100%. */
+export async function insertWorkerStage(
+  db: DbExecutorT,
+  investmentId: number,
+  plane: ToolPlaneT,
+  workerId: number,
+): Promise<KosztorysStageT> {
+  const split = oneWorkerSplit(workerId)
+  // The investment row is already locked by the caller, so two accepts cannot read the same MAX.
+  const res = await db.execute(sql`
+    INSERT INTO kosztorys_stages (investment_id, ordinal, label, plane, split_mode)
+    SELECT ${investmentId}, COALESCE(MAX(ordinal), 0) + 1, NULL, ${plane}, ${split.mode}
+    FROM kosztorys_stages WHERE investment_id = ${investmentId}
+    RETURNING id, ordinal
+  `)
+  const row = res.rows[0]
+  const stage = { id: Number(row.id), ordinal: Number(row.ordinal), label: null, plane, split }
+  await insertStageMembers(db, [{ stageId: stage.id, split }])
+  return stage
 }

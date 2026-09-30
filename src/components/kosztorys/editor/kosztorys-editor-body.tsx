@@ -143,6 +143,7 @@ export function KosztorysEditorBody({
   workCatalogue,
   assets,
   investment,
+  workerReports,
   ...panelData
 }: PropsT) {
   // A rozliczony wydatek means material was folded into robocizna, which is what makes a pozycja
@@ -502,6 +503,7 @@ export function KosztorysEditorBody({
             ) : (
               <>
                 <KosztorysEditorToolbar
+                  workerReports={workerReports}
                   protocolSource={
                     investment && !isTemplate
                       ? {

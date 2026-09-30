@@ -207,6 +207,14 @@ export type KosztorysEditorDataT = {
   // `assets` above: `undefined` means this surface has no investment at all (the szablon workbench,
   // both shares).
   investment?: InvestmentRefT
+  // Only the investment page reads the reports; every other surface has none to show.
+  workerReports?: WorkerReportsSeedT
+}
+
+export type WorkerReportsSeedT = {
+  pendingCount: number
+  // From a „Zgłoszenia prac" row: the report the dialog opens on.
+  openReportId: number | undefined
 }
 
 // --- v2 variant (react-datasheet-grid): a flat row with stages flattened

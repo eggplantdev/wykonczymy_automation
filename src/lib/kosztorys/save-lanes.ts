@@ -51,5 +51,65 @@ export function createSaveLanes() {
     return next
   }
 
-  return { enqueue }
+  // Settles once every listed lane's current tail has — whatever was enqueued on them before the call.
+  async function drain(keys: Iterable<string>): Promise<void> {
+    await Promise.all([...new Set(keys)].map((key) => tails.get(key) ?? Promise.resolve()))
+  }
+
+  return { enqueue, drain }
+}
+
+type DispatchT = (key: string, run: LaneRunT, onError?: () => void) => Promise<void>
+
+/**
+ * The debounce in front of the lanes. `drain` FIRES a pending timer rather than cancelling it: a
+ * caller about to write the same cells from the server (an accepted worker report adds to them) needs
+ * the owner's just-typed figure stored first, or the server adds to the value before it and the
+ * autosave then overwrites the sum.
+ */
+export function createDebouncedSaves(
+  delay: number,
+  dispatch: DispatchT,
+  lanes: Pick<ReturnType<typeof createSaveLanes>, 'drain'>,
+) {
+  const pending = new Map<string, { timer: ReturnType<typeof setTimeout>; fire: () => void }>()
+
+  function cancel(key: string) {
+    const entry = pending.get(key)
+    if (!entry) return
+    clearTimeout(entry.timer)
+    pending.delete(key)
+  }
+
+  function save(key: string, run: LaneRunT, onError?: () => void) {
+    cancel(key)
+    const fire = () => {
+      pending.delete(key)
+      void dispatch(key, run, onError)
+    }
+    pending.set(key, { timer: setTimeout(fire, delay), fire })
+  }
+
+  function runNow(key: string, run: LaneRunT, onError?: () => void) {
+    cancel(key)
+    return dispatch(key, run, onError)
+  }
+
+  async function drain(keys: Iterable<string>): Promise<void> {
+    const unique = [...new Set(keys)]
+    for (const key of unique) {
+      const entry = pending.get(key)
+      if (!entry) continue
+      clearTimeout(entry.timer)
+      entry.fire()
+    }
+    await lanes.drain(unique)
+  }
+
+  function dispose() {
+    for (const { timer } of pending.values()) clearTimeout(timer)
+    pending.clear()
+  }
+
+  return { save, cancel, runNow, drain, dispose }
 }

@@ -896,19 +896,19 @@ The full `pnpm test` runs only when the user asks.
 
 #### Automated
 
-- [x] 2.1 `tokenAction` refusal spec
-- [x] 2.2 Send action DB spec
-- [x] 2.3 Szkic prune DOM spec
-- [x] 2.4 Proxy allowlist spec
+- [x] 2.1 `tokenAction` refusal spec — a0e62334
+- [x] 2.2 Send action DB spec — a0e62334
+- [x] 2.3 Szkic prune DOM spec — a0e62334
+- [x] 2.4 Proxy allowlist spec — a0e62334
 
 ### Phase 3: The kierownik's side
 
 #### Automated
 
-- [ ] 3.1 Accept action DB spec
-- [ ] 3.2 `drain` unit spec
-- [ ] 3.3 Acceptance hook DOM spec
-- [ ] 3.4 External-change reload DOM spec
+- [x] 3.1 Accept action DB spec
+- [x] 3.2 `drain` unit spec
+- [x] 3.3 Acceptance hook DOM spec
+- [x] 3.4 External-change reload DOM spec
 
 ### Phase 4: Surfacing — nav, count, deep link
 
