@@ -135,6 +135,7 @@ export function useManagedForm<TValues, TData>({
         successMessage,
         onSubmitSuccess,
         onReset: reset,
+        awaitBeforeClose: !persistDraft,
       })
 
       return false

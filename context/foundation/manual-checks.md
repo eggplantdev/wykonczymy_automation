@@ -2644,3 +2644,11 @@ Każdy boks: po kliknięciu zmiana widoczna **bez przeładowania**, a w Network 
       formularzu wydatku, okno zdjęć leada) otwierają się na szerokość swojego pola i nic w nich
       nie jest ucięte.
 
+
+## EX-942 — okna edycji nie gubią wpisanych danych po nieudanym zapisie (2026-09-30)
+
+Stan: dowolny rekord do edycji; „nieudany zapis" = DevTools → Network → Offline tuż przed kliknięciem „Zapisz"/„Dodaj".
+
+- [ ] Kosztorys → wiersz → „Dodaj do katalogu" (albo „Edytuj w katalogu") → zmień kategorię i stawkę → offline → „Dodaj": polski toast błędu, okno zostaje otwarte z wpisanymi wartościami; po powrocie sieci ponowne „Dodaj" zapisuje i zamyka okno.
+- [ ] To samo w „Edytuj pojazd", „Edytuj transakcję" (z dołączonym plikiem faktury) i „Edytuj pozycję katalogu": po błędzie okno otwarte, pola i plik na miejscu.
+- [ ] Zapis z siecią w dowolnym z tych okien: przycisk pokazuje „Zapisywanie...", okno zamyka się po chwili, zmiana widać na liście bez przeładowania.
