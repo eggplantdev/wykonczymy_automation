@@ -2809,6 +2809,9 @@ Link zbudowany na stagingu wskazuje na produkcję — przed otwarciem podmień h
 - [ ] Będąc na „Zgłoszenia prac”, znaczek „Zgłoszenia” (leady) dalej pokazuje swoją liczbę.
 - [ ] Po przyjęciu ostatniego oczekującego przycisk na pasku rozpiski znika, a licznik w menu spada
       przy następnym przejściu.
+- [ ] Klik w wiersz na „Zgłoszenia prac” (bez przeładowania strony) otwiera rozpiskę z tym
+      zgłoszeniem — wczytuje się, nie wisi na „Wczytywanie…”. Adres ma `?zgloszenie=` do zamknięcia
+      okna; po zamknięciu i przeładowaniu okno się nie otwiera.
 
 **Bez zmian w innych widokach**
 

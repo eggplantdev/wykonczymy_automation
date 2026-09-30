@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { WorkerReportsSeedT } from '@/lib/kosztorys/types'
 
 export type WorkerReportsActionT = {
@@ -19,17 +19,13 @@ export function useWorkerReportsAction(seed: WorkerReportsSeedT | undefined): Wo
   const [reportId, setReportId] = useState(deepLinkedId)
   const [pendingCount, setPendingCount] = useState(seed?.pendingCount ?? 0)
 
-  // Stripped once it has opened the dialog, so a reload after closing it does not reopen it. The
-  // History API rather than `router.replace`: Next syncs it without re-rendering the page's server tree.
-  useEffect(() => {
-    if (deepLinkedId !== undefined) window.history.replaceState(null, '', window.location.pathname)
-  }, [deepLinkedId])
-
   return {
     open,
     setOpen: (next) => {
       setOpen(next)
-      if (!next) setReportId(undefined)
+      if (next) return
+      setReportId(undefined)
+      stripDeepLink()
     },
     reportId,
     openReport: (next) => {
@@ -38,5 +34,15 @@ export function useWorkerReportsAction(seed: WorkerReportsSeedT | undefined): Wo
     },
     pendingCount,
     setPendingCount,
+  }
+}
+
+// So a reload after closing does not reopen the report. Not on mount: Next answers a replaceState
+// with a router restore, and a restore discards every server action still in flight — the dialog's
+// list read among them, which then never settles. The History API rather than `router.replace`,
+// which would re-render the page's server tree.
+function stripDeepLink() {
+  if (new URLSearchParams(window.location.search).has('zgloszenie')) {
+    window.history.replaceState(null, '', window.location.pathname)
   }
 }
