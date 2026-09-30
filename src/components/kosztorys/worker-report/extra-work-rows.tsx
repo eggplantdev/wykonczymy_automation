@@ -19,15 +19,15 @@ type PropsT = {
 export function ExtraWorkRows({ extras, commonUnits, onSave, onRemove }: PropsT) {
   return (
     <div>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-4 sm:gap-2">
         {extras.map((extra) => (
-          <div key={extra.key} className="flex items-center gap-2">
+          <div key={extra.key} className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
             <Input
               aria-label="Opis prac"
               value={extra.description}
               onChange={(event) => onSave({ ...extra, description: event.target.value })}
               placeholder="Opis prac"
-              className="h-9 min-w-0 flex-1"
+              className="h-9 min-w-0 basis-full sm:flex-1 sm:basis-0"
             />
             <SimpleSelect
               value={extra.unit}
@@ -37,7 +37,7 @@ export function ExtraWorkRows({ extras, commonUnits, onSave, onRemove }: PropsT)
                 label: option,
               }))}
               placeholder="J.m."
-              className="h-9 w-28"
+              className="h-9 min-w-0 flex-1 sm:w-28 sm:flex-none"
             />
             <Input
               aria-label="Zgłaszam"
@@ -46,7 +46,7 @@ export function ExtraWorkRows({ extras, commonUnits, onSave, onRemove }: PropsT)
               onChange={(event) => onSave({ ...extra, qty: event.target.value })}
               aria-invalid={parseReportQty(extra.qty).kind === 'invalid'}
               placeholder="Ilość"
-              className="h-9 w-24 text-right tabular-nums"
+              className="h-9 min-w-0 flex-1 text-right tabular-nums sm:w-24 sm:flex-none"
             />
             <Button
               variant="ghost"
@@ -66,7 +66,7 @@ export function ExtraWorkRows({ extras, commonUnits, onSave, onRemove }: PropsT)
         onClick={() => onSave({ key: crypto.randomUUID(), description: '', unit: '', qty: '' })}
       >
         <Plus />
-        Dodaj pracę spoza rozpiski
+        Dodaj więcej
       </Button>
     </div>
   )
