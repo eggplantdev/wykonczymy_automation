@@ -12,6 +12,7 @@ import { makePreventDelete } from '@/hooks/prevent-delete'
 import { guardDefaultRegister } from '@/hooks/users/guard-default-register'
 import { excludingCancelled } from '@/lib/db/delete-blocker'
 import { countStageMemberships } from '@/lib/db/stage-memberships'
+import { countReportsByWorker } from '@/lib/db/worker-reports'
 import { ROLES, ROLE_LABELS } from '@/lib/auth/roles'
 
 // Block a hard delete while a FIGURE or its audit trail still names this person: a wypłata whose
@@ -56,6 +57,11 @@ const preventDeleteWithReferences = makePreventDelete({
     {
       count: countStageMemberships,
       label: 'etapy kosztorysu',
+    },
+    // What he reported is the record of work he claims to have done; the CASCADE would erase it.
+    {
+      count: countReportsByWorker,
+      label: 'zgłoszenia prac',
     },
     // Not authorship: this names who was HOLDING a tool. Deleting the row would erase the only
     // answer to „who had it last" for anything still in that person's hands.

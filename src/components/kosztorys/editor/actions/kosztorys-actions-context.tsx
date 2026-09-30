@@ -21,6 +21,12 @@ import {
   useWorkerActions,
   type WorkerActionsT,
 } from '@/components/kosztorys/editor/actions/worker-actions'
+import {
+  useWorkerReportsAction,
+  type WorkerReportsActionT,
+} from '@/components/kosztorys/editor/actions/worker-reports-action'
+import { WorkerReportsDialog } from '@/components/kosztorys/editor/dialogs/worker-reports/worker-reports-dialog'
+import type { WorkerReportsSeedT } from '@/lib/kosztorys/types'
 
 type KosztorysActionsT = {
   version: DialogToggleT
@@ -32,6 +38,8 @@ type KosztorysActionsT = {
   investor: InvestorActionsT
   worker: WorkerActionsT
   acceptanceProtocol: DialogToggleT
+  // Undefined where the investment has no reports to show (the szablon workbench).
+  workerReports: WorkerReportsActionT | undefined
 }
 
 const KosztorysActionsContext = createContext<KosztorysActionsT | null>(null)
@@ -41,7 +49,13 @@ const KosztorysActionsContext = createContext<KosztorysActionsT | null>(null)
 // state therefore lives here instead of being threaded from the menu down to both sides.
 // Deliberately NOT part of KosztorysEditorProvider — only the menu and its dialogs consume this, so a
 // „Udostępnij" fetch landing cannot churn the grid (the EX-496 regression).
-export function KosztorysActionsProvider({ children }: { children: ReactNode }) {
+export function KosztorysActionsProvider({
+  children,
+  workerReports: workerReportsSeed,
+}: {
+  children: ReactNode
+  workerReports?: WorkerReportsSeedT
+}) {
   const version = useDialogToggle()
   const clear = useDialogToggle()
   const reloadPreset = useDialogToggle()
@@ -51,6 +65,7 @@ export function KosztorysActionsProvider({ children }: { children: ReactNode }) 
   const investor = useInvestorActions()
   const worker = useWorkerActions()
   const acceptanceProtocol = useDialogToggle()
+  const workerReports = useWorkerReportsAction(workerReportsSeed)
   const value: KosztorysActionsT = {
     version,
     clear,
@@ -61,9 +76,16 @@ export function KosztorysActionsProvider({ children }: { children: ReactNode }) 
     investor,
     worker,
     acceptanceProtocol,
+    workerReports: workerReportsSeed ? workerReports : undefined,
   }
 
-  return <KosztorysActionsContext value={value}>{children}</KosztorysActionsContext>
+  return (
+    <KosztorysActionsContext value={value}>
+      {children}
+      {/* One instance for the toolbar button, „Pracownicy" and the deep link. */}
+      {workerReportsSeed && <WorkerReportsDialog action={workerReports} />}
+    </KosztorysActionsContext>
+  )
 }
 
 export function useKosztorysActions() {

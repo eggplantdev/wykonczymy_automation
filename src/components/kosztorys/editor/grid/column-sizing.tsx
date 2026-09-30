@@ -7,6 +7,11 @@ import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 const DEFAULT_COLUMN_MIN_WIDTH = 130
 
+// Pinning = a rigid width independent of dsg's flex algorithm: min=max=basis=W,
+// grow/shrink 0. (dsg ignored `basis` alone on overflow — it fell back to minWidth.)
+export const pinnedWidth = (width: number) =>
+  ({ basis: width, grow: 0, shrink: 0, minWidth: width, maxWidth: width }) as const
+
 export function withResize(
   col: Column<KosztorysV2RowT>,
   opts: Pick<BuildV2ColumnsOptsT, 'onGuide' | 'onCommitColumn' | 'widths'>,
@@ -20,12 +25,8 @@ export function withResize(
   // viewport), so this is the actual initial width, not just a drag limit.
   const min = col.minWidth ?? DEFAULT_COLUMN_MIN_WIDTH
   const pinned = opts.widths?.[col.id]
-  // Pinning = a rigid width independent of dsg's flex algorithm: min=max=basis=W,
-  // grow/shrink 0. (dsg ignored `basis` alone on overflow — it fell back to minWidth.)
   const sized: Column<KosztorysV2RowT> =
-    pinned != null
-      ? { ...col, basis: pinned, grow: 0, shrink: 0, minWidth: pinned, maxWidth: pinned }
-      : { ...col, minWidth: min }
+    pinned != null ? { ...col, ...pinnedWidth(pinned) } : { ...col, minWidth: min }
   return {
     ...sized,
     title: (

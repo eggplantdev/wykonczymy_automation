@@ -18,16 +18,23 @@ import { requireManagementPage } from '@/lib/auth/require-management-page'
 import { KosztorysEditorV2 } from '@/components/kosztorys/editor/kosztorys-editor-v2'
 import { perfStart } from '@/lib/perf'
 import { isLockedStatus } from '@/lib/constants/investment-lock'
+import { countInvestmentPendingReports } from '@/lib/queries/worker-reports'
+import { REPORT_PARAM } from '@/lib/kosztorys/worker-report/report-param'
+import { parseIdParam } from '@/lib/utils/parse-id-param'
+import type { ResolvedSearchParamsT } from '@/types/page'
 
 // The in-app kosztorys editor ("kosztorys_v2"). Always available — every investment has one,
 // the editor renders its own empty state. The legacy Google Sheet lives at /kosztorys.
 export default async function InvestmentKosztorysV2Page({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<ResolvedSearchParamsT>
 }) {
   const elapsed = perfStart()
   const { id } = await params
+  const openReportId = parseIdParam((await searchParams)[REPORT_PARAM])
   const investmentId = parseInvestmentId(id)
   // Both awaits sit before the fan-out for one reason: getKosztorysTree throws — for a failed
   // session AND for a missing investment — so anything folded into the Promise.all beside it is
@@ -57,6 +64,7 @@ export default async function InvestmentKosztorysV2Page({
   const workCataloguePromise = getWorkCatalogue()
   // Cached on `investment:<id>`, so an upload from either surface invalidates it.
   const assetsPromise = fetchInvestmentAssets(investmentId)
+  const pendingReportsPromise = countInvestmentPendingReports(investmentId)
   const [
     tree,
     financialsSource,
@@ -65,6 +73,7 @@ export default async function InvestmentKosztorysV2Page({
     materialTransactions,
     workCatalogue,
     assets,
+    pendingReportCount,
   ] = await Promise.all([
     treePromise,
     financialsPromise,
@@ -73,10 +82,11 @@ export default async function InvestmentKosztorysV2Page({
     materialTxPromise,
     workCataloguePromise,
     assetsPromise,
+    pendingReportsPromise,
   ])
   console.log(
-    `[PERF] kosztorys_v2/${investmentId} 7-fetch fan-out ${elapsed()}ms ` +
-      `(tree + financials source + 3 transaction lists + work catalogue + assets)`,
+    `[PERF] kosztorys_v2/${investmentId} 8-fetch fan-out ${elapsed()}ms ` +
+      `(tree + financials source + 3 transaction lists + work catalogue + assets + pending reports)`,
   )
   const { financials, materialsBreakdown, settledBreakdown } = deriveWholeInvestmentFinancials(
     financialsSource,
@@ -107,6 +117,10 @@ export default async function InvestmentKosztorysV2Page({
       investment={investment}
       hasSheet={investment.hasSheet}
       locked={isLockedStatus(investment.status)}
+      workerReports={{
+        pendingCount: pendingReportCount,
+        openReportId,
+      }}
     />
   )
 }

@@ -40,7 +40,7 @@ Fan-out: `/10x-impl-review` (APPROVED), `/code-review`, `tailwind-v4-audit` (0 f
 - [x] fixed · comment-noise · `src/lib/cash-registers/trash-cash-register.ts:7` · first JSDoc sentence restated the signature — deleted
 - [x] dismissed · comment-noise · `src/hooks/cash-registers/guard-update.ts:11` · „read-only apart from its restore" — explains the non-obvious `resolved('trashedAt')` condition
 - [x] dismissed · comment-noise · `src/lib/cash-registers/delete-blocker.ts:4` · „spelled once: … all ask it" — tells the next reader not to fork the predicate
-- [x] fixed · comment-noise · `src/migrations/20260930_2_cash_register_trashed_at.ts:3` · „Hand-written" + descriptive sentence — trimmed to the shape reason and the additive/migrate-first paragraph
+- [x] fixed · comment-noise · `src/migrations/20260930_3_cash_register_trashed_at.ts:3` · „Hand-written" + descriptive sentence — trimmed to the shape reason and the additive/migrate-first paragraph
 - [x] fixed · comment-noise · `src/__tests__/hooks/transfers/validate-register-trash.test.ts:5` · header trimmed to the consequence; adapter narration deleted
 - [x] fixed · comment-noise · `src/__tests__/lib/actions/cash-register-trash.db.test.ts:8` · trimmed to the session-mock sentence; duplicate MAIN comment at the MANAGER test deleted
 - [x] fixed · comment-noise · `src/lib/queries/trash.ts:38` · MAIN comment duplicated the action JSDoc — deleted

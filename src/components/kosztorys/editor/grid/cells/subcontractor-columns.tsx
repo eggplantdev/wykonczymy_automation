@@ -28,12 +28,13 @@ const authorsCoeff = (rowData: KosztorysV2RowT, view: ToolPlaneT) =>
 export function subcontractorPriceColumn(
   view: ToolPlaneT,
   titleNode: ReactNode,
+  isDocument = false,
 ): Column<KosztorysV2RowT> {
   const policy = subcontractorPolicy<KosztorysV2RowT>(view)
   return {
     id: planePriceKey('price', view),
     title: titleNode,
-    columnData: cellData(view),
+    columnData: cellData(view, isDocument),
     component: SubcontractorPriceCell,
     disabled: ({ rowData }) => authorsCoeff(rowData, view),
     copyValue: ({ rowData }) => moneyText(viewPrice(rowData, view)),

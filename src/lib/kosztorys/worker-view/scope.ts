@@ -6,6 +6,9 @@ export type WorkerScopeT =
   | { kind: 'ready'; plane: ToolPlaneT; stages: KosztorysStageT[] }
   | { kind: 'blocked'; reason: WorkerScopeBlockReasonT }
 
+export const isStageMember = (stage: KosztorysStageT | undefined, workerId: number): boolean =>
+  stage?.split?.members.some((member) => member.workerId === workerId) ?? false
+
 /**
  * Which etapy a worker's view shows, and whether it may show prices at all. The one decision the
  * „Pracownicy" menu (disable), the mint action (refuse) and the page (notice instead of prices) all
@@ -16,9 +19,7 @@ export type WorkerScopeT =
  * reported first — it is the fix the owner makes in the same menu.
  */
 export function resolveWorkerScope(stages: KosztorysStageT[], workerId: number): WorkerScopeT {
-  const own = stages.filter((stage) =>
-    stage.split?.members.some((member) => member.workerId === workerId),
-  )
+  const own = stages.filter((stage) => isStageMember(stage, workerId))
   if (own.length === 0) return { kind: 'blocked', reason: 'no-stages' }
   const planes = new Set<ToolPlaneT>()
   for (const stage of own) {

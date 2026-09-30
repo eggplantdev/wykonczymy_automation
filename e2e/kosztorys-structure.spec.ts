@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
 import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
-import { DEFAULT_ITEM_DESCRIPTION, DEFAULT_SECTION_NAME } from '@/lib/kosztorys/constants'
+import { DEFAULT_SECTION_NAME } from '@/lib/kosztorys/constants'
 import { refreshReferenceData, runSeedScript } from './support/seeds'
 import {
   collapseSummaryPanel,
@@ -49,10 +49,6 @@ test.beforeAll(async ({ browser }) => {
   await refreshReferenceData(browser)
 })
 
-// The rozpiska as the grid renders it, top to bottom: „# nazwa" for a section band, the praca's opis
-// for an item row — so a freshly added one shows up under its default opis, which is how the commands
-// under test announce themselves.
-//
 // Rows are told apart by what they CARRY, not by index: a band holds its name in an input (the
 // inline rename), an item row is the only kind with an „Akcje wiersza" trigger, and the „Razem"
 // footers, the spacer and the grand total have neither. The opis column is located through the
@@ -120,6 +116,33 @@ async function runCommand(page: Page, command: string | RegExp): Promise<void> {
   await settled
 }
 
+const newItemDialog = (page: Page) => page.getByRole('dialog').filter({ hasText: 'Nowa praca' })
+
+// Every „add a praca" entry opens the „Nowa praca" form; the praca exists only once it is saved, so
+// the wait is on the save's server action, not on the click that opened the form.
+async function fillNewItem(
+  page: Page,
+  description: string,
+  { catalogue = false }: { catalogue?: boolean } = {},
+): Promise<void> {
+  const dialog = newItemDialog(page)
+  await dialog.getByLabel('Opis pracy').fill(description)
+  await dialog.getByRole('combobox', { name: 'Wybierz lub wpisz nową…' }).first().click()
+  await page.keyboard.type('m²')
+  await page.keyboard.press('Enter')
+  await dialog.getByLabel('Cena j.m. (PLN)').fill('50')
+  if (catalogue) {
+    await dialog.getByRole('checkbox', { name: 'Dodaj pracę do katalogu prac' }).click()
+  }
+}
+
+async function saveNewItem(page: Page): Promise<void> {
+  const saved = serverAction(page)
+  await newItemDialog(page).getByRole('button', { name: 'Dodaj', exact: true }).click()
+  await saved
+  await expect(newItemDialog(page)).toHaveCount(0)
+}
+
 async function reloadEditor(page: Page): Promise<void> {
   await page.reload()
   await collapseSummaryPanel(page)
@@ -154,11 +177,13 @@ test('inserting and deleting prace through the row menu rewrites the order, and 
   // where a display_order collision would show: the new praca and the one it displaced would both
   // claim the same slot, and the reload below would then order them by id instead.
   await openRowMenu(page, 'Praca alfa dwa')
-  await runCommand(page, 'Wstaw powyżej')
+  await menuItem(page, 'Wstaw powyżej').click()
+  await fillNewItem(page, 'Praca wstawiona')
+  await saveNewItem(page)
   const afterInsert = [
     '# Sekcja alfa',
     'Praca alfa jeden',
-    DEFAULT_ITEM_DESCRIPTION,
+    'Praca wstawiona',
     'Praca alfa dwa',
     'Praca alfa trzy',
     '# Sekcja beta',
@@ -184,7 +209,7 @@ test('inserting and deleting prace through the row menu rewrites the order, and 
   const afterDelete = [
     '# Sekcja alfa',
     'Praca alfa jeden',
-    DEFAULT_ITEM_DESCRIPTION,
+    'Praca wstawiona',
     'Praca alfa dwa',
     '# Sekcja beta',
     'Praca beta jeden',
@@ -284,13 +309,18 @@ test('„Dodaj → Praca" lands in the sekcja picked in the submenu, not the one
   await page.getByRole('button', { name: 'Dodaj' }).click()
   await page.getByRole('menuitem', { name: 'Praca', exact: true }).click()
   await menuItem(page, 'Sekcja docelowa').click()
+  // The katalog is global and never reset, so the opis is this run's own — a second run would
+  // otherwise collide with the first run's entry.
+  const description = `Zadanie z katalogu ${Date.now()}`
+  await fillNewItem(page, description, { catalogue: true })
+  await saveNewItem(page)
 
   const afterAdd = [
     '# Sekcja pierwsza',
     'Zadanie pierwsze',
     '# Sekcja docelowa',
     'Zadanie docelowe',
-    DEFAULT_ITEM_DESCRIPTION,
+    description,
     '# Sekcja ostatnia',
     'Zadanie ostatnie',
   ]
@@ -299,6 +329,19 @@ test('„Dodaj → Praca" lands in the sekcja picked in the submenu, not the one
   // The grid patches its own rows from the action's answer, so the session that added the praca sees
   // it under the right band whether or not the server agreed about which band that was.
   await reloadEditor(page)
+  await expect.poll(() => rozpiska(page)).toEqual(afterAdd)
+
+  // The katalog write rode the same transaction as the praca: the same opis + j.m. offered to the
+  // katalog again is now a collision, and „Wróć" leaves both the katalog and the rozpiska alone.
+  await openSectionMenu(page, 'Sekcja docelowa')
+  await page.getByRole('menuitem', { name: 'Dodaj pracę', exact: true }).click()
+  await fillNewItem(page, description, { catalogue: true })
+  await newItemDialog(page).getByRole('button', { name: 'Dodaj', exact: true }).click()
+  const collision = page.getByRole('alertdialog').filter({ hasText: 'jest już w katalogu' })
+  await expect(collision).toBeVisible()
+  await collision.getByRole('button', { name: 'Wróć' }).click()
+  await page.keyboard.press('Escape')
+  await expect(newItemDialog(page)).toHaveCount(0)
   await expect.poll(() => rozpiska(page)).toEqual(afterAdd)
 })
 
@@ -316,12 +359,12 @@ test('„Dodaj → Sekcja" puts a bare band on top, „Dodaj pracę" fills it, a
   await reloadEditor(page)
   await expect.poll(() => rozpiska(page)).toEqual(bare)
 
-  const added = serverAction(page)
   await band(page, DEFAULT_SECTION_NAME).getByRole('button', { name: 'Dodaj pracę' }).click()
-  await added
+  await fillNewItem(page, 'Pierwsza praca sekcji')
+  await saveNewItem(page)
   const filled = [
     `# ${DEFAULT_SECTION_NAME}`,
-    DEFAULT_ITEM_DESCRIPTION,
+    'Pierwsza praca sekcji',
     '# Sekcja istniejąca',
     'Praca istniejąca',
   ]
@@ -333,7 +376,7 @@ test('„Dodaj → Sekcja" puts a bare band on top, „Dodaj pracę" fills it, a
   await reloadEditor(page)
   await expect.poll(() => rozpiska(page)).toEqual(filled)
 
-  await openRowMenu(page, DEFAULT_ITEM_DESCRIPTION)
+  await openRowMenu(page, 'Pierwsza praca sekcji')
   await menuItem(page, 'Usuń pozycję').click()
   const deleted = serverAction(page)
   await page.getByRole('alertdialog').getByRole('button', { name: 'Usuń' }).click()

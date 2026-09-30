@@ -2,6 +2,7 @@
 // values — the query fetches with depth 0.
 // VAT is a single rate per investment (KosztorysTreeT.vatRate), not per section/item.
 
+import type { InsertDirectionT } from '@/lib/kosztorys/display-order'
 import type { STAGE_QTY_PREFIX } from '@/lib/kosztorys/stage-keys'
 import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
@@ -60,6 +61,10 @@ export type KosztorysItemT = {
 // Where a plane's subcontractor stawka comes from. One vocabulary for all four surfaces that branch
 // on it (siatka, sufit, filtry, katalog) — they used to encode it as booleans and drifted.
 export type PriceSourceT = 'auto' | 'coeff' | 'amount'
+
+export type NewItemPlacementT =
+  | { kind: 'end'; sectionId: number }
+  | { kind: 'next-to'; anchorItemId: number; dir: InsertDirectionT }
 
 // Single source of truth for the autosave patch: imported by the pure core (v2-rows diffRow) and by
 // updateItemFieldAction, whose zod validation is derived from this shape.
@@ -207,6 +212,14 @@ export type KosztorysEditorDataT = {
   // `assets` above: `undefined` means this surface has no investment at all (the szablon workbench,
   // both shares).
   investment?: InvestmentRefT
+  // Only the investment page reads the reports; every other surface has none to show.
+  workerReports?: WorkerReportsSeedT
+}
+
+export type WorkerReportsSeedT = {
+  pendingCount: number
+  // From a „Zgłoszenia prac" row: the report the dialog opens on.
+  openReportId: number | undefined
 }
 
 // --- v2 variant (react-datasheet-grid): a flat row with stages flattened

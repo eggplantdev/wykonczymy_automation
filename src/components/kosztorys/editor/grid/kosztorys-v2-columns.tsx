@@ -82,6 +82,8 @@ const PLANE_UNCONFIRMED_CELL = {
 // the grid renders what's visible — no second registry of „which columns are in this view" to drift.
 function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[] {
   const { stages, view } = opts
+  // Red is the owner's alarm: the investor and the worker can act on none of it (owner, 2026-09-30).
+  const isDocument = opts.previewVisible === true || opts.workerSurface != null
   // Both planes' rates in EVERY view, so the owner compares them without switching tabs. Not a copy:
   // the same factories with the other plane, and the cells read their own `columnData.view`.
   //
@@ -90,7 +92,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   // PREVIEW_VISIBLE_COLUMNS having neither, so a later allowlist edit cannot leak them on its own.
   // The worker surface refuses them for the same reason: a crew seeing its own mnożnik can read the
   // client price straight back off its stawka.
-  const withMode = !opts.previewVisible && !opts.workerSurface
+  const withMode = !isDocument
   const subcontractorPriceCols: Column<KosztorysV2RowT>[] = TOOL_PLANES.flatMap((plane) => [
     ...(withMode
       ? [
@@ -98,7 +100,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
           subcontractorCoeffColumn(plane, columnTitle(planePriceKey('priceCoeff', plane), opts)),
         ]
       : []),
-    subcontractorPriceColumn(plane, columnTitle(planePriceKey('price', plane), opts)),
+    subcontractorPriceColumn(plane, columnTitle(planePriceKey('price', plane), opts), isDocument),
   ])
   // All three prices in EVERY view (owner, 2026-09-22): the offer price is what both stawki derive
   // from and what the ceiling guard judges them against, so a crew view owes the owner the
@@ -151,7 +153,14 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     id: string,
     style?: ComputedColumnStyleT,
     format?: (value: number | null) => string,
-  ) => computedColumn(id, columnTitle(id, opts), valueOf(id), style, format)
+  ) =>
+    computedColumn(
+      id,
+      columnTitle(id, opts),
+      valueOf(id),
+      isDocument ? { emphasize: style?.emphasize } : style,
+      format,
+    )
 
   // Przedmiar (sheet N) leads the stage columns so the offered quantity reads before the per-etap
   // execution it is measured against.
@@ -232,7 +241,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     //
     // A COMPUTED cell rather than a `disabled` editable one, because dsg's disabled cell is silent:
     // you type and nothing happens. Same copy as the header badge, hung where the lock is discovered.
-    if (st.plane == null) {
+    if (st.plane == null && !isDocument) {
       return {
         ...computedColumn(
           qtyField,

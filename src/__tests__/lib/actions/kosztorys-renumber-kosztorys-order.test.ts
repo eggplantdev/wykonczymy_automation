@@ -3,6 +3,7 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment } from '@/__tests__/helpers/investment'
+import { appendAt } from '@/__tests__/helpers/new-item-input'
 
 // „Zapisz kolejność" — the multi-section write, driven against the REAL DB and
 // asserting the PERSISTED sequence (a success result can hide a failed write).
@@ -93,7 +94,7 @@ describe.skipIf(!ENV_READY)('renumberKosztorysOrderAction (DB)', () => {
   async function sectionWithItems(investmentId: number, count: number): Promise<number> {
     const section = await addSectionAction(investmentId)
     if (!section.success) throw new Error('section fixture failed')
-    for (let i = 0; i < count; i++) await addItemAction(section.data.section.id)
+    for (let i = 0; i < count; i++) await addItemAction(appendAt(section.data.section.id))
     return section.data.section.id
   }
 

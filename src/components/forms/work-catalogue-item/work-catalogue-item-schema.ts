@@ -4,8 +4,9 @@ import { RATE_LABELS } from '@/lib/kosztorys/labels'
 import {
   catalogueSourceOf,
   type CatalogueRateColumnsT,
+  type CatalogueRateT,
 } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
-import { parseDecimalInput } from '@/lib/utils/parse-decimal-input'
+import { parseDecimalInput, toMoney } from '@/lib/utils/parse-decimal-input'
 
 // A blank „Cena j.m." must be refused HERE rather than by the domain schema below: `Number('')` is 0,
 // so it would otherwise save a 0 zł pozycja — and a 0 zł cena also silences the ceiling for that
@@ -48,7 +49,7 @@ const RATE_PLANES = [
 
 // Form-input layer: every field is a string, as the HTML controls produce them — except the źródło,
 // which is a choice rather than something typed.
-const baseSchema = z.object({
+export const workCatalogueItemBaseSchema = z.object({
   description: z.string().min(1, 'Opis pracy jest wymagany'),
   category: z.string(),
   unit: z.string().min(1, 'Jednostka miary jest wymagana'),
@@ -64,10 +65,20 @@ const baseSchema = z.object({
   ownToolsCoeff: z.string(),
 })
 
+export type RatePlaneValuesT = Pick<
+  z.infer<typeof workCatalogueItemBaseSchema>,
+  | 'wToolsSource'
+  | 'wToolsRate'
+  | 'wToolsCoeff'
+  | 'ownToolsSource'
+  | 'ownToolsRate'
+  | 'ownToolsCoeff'
+>
+
 // The guard on a stawka is conditional on ITS OWN źródło, and a field-level refinement cannot see a
 // sibling field — so it lives on the object. „Auto" is a decision; a blank field under either of the
 // other two źródła is still „zapomniałem" and still says so, under the field that is actually empty.
-export const workCatalogueItemFormSchema = baseSchema.superRefine((value, ctx) => {
+export function refineRatePlanes(value: RatePlaneValuesT, ctx: z.RefinementCtx) {
   for (const plane of RATE_PLANES) {
     const source = value[plane.source]
     if (source === 'auto') continue
@@ -78,9 +89,35 @@ export const workCatalogueItemFormSchema = baseSchema.superRefine((value, ctx) =
         : moneyIssue(plane.label, value[plane.rate])
     if (message) ctx.addIssue({ code: 'custom', message, path: [field] })
   }
-})
+}
+
+export const workCatalogueItemFormSchema = workCatalogueItemBaseSchema.superRefine(refineRatePlanes)
 
 const text = (value: number | null): string => value?.toString() ?? ''
+
+export type PlaneT = 'wTools' | 'ownTools'
+
+// Only the picked źródło's field is read: whatever the unpicked one left behind is stale.
+const rateColumns = (plane: PlaneT, value: RatePlaneValuesT): CatalogueRateT => {
+  const source = value[`${plane}Source`]
+  return {
+    rate: source === 'amount' ? toMoney(value[`${plane}Rate`]) : null,
+    coeff: source === 'coeff' ? toMoney(value[`${plane}Coeff`]) : null,
+  }
+}
+
+// „Co formularz pokazuje" → „co katalog trzyma"; `rateFormValues` is the way back.
+export const catalogueFigures = (value: RatePlaneValuesT & { clientPrice: string }) => {
+  const wTools = rateColumns('wTools', value)
+  const ownTools = rateColumns('ownTools', value)
+  return {
+    clientPrice: toMoney(value.clientPrice),
+    wToolsRate: wTools.rate,
+    wToolsRateCoeff: wTools.coeff,
+    ownToolsRate: ownTools.rate,
+    ownToolsRateCoeff: ownTools.coeff,
+  }
+}
 
 /**
  * „Co katalog trzyma" → „co formularz pokazuje", in one place so the trzy dialogi opening this form
@@ -97,6 +134,19 @@ export const rateFormValues = (item: CatalogueRateColumnsT) => ({
 
 export type WorkCatalogueItemFormValuesT = z.infer<typeof workCatalogueItemFormSchema>
 
+export const EMPTY_CATALOGUE_ITEM_VALUES: WorkCatalogueItemFormValuesT = {
+  description: '',
+  category: '',
+  unit: '',
+  clientPrice: '',
+  wToolsSource: 'auto',
+  wToolsRate: '',
+  wToolsCoeff: '',
+  ownToolsSource: 'auto',
+  ownToolsRate: '',
+  ownToolsCoeff: '',
+}
+
 const money = (label: string) =>
   z.number({ message: `${label} musi być liczbą` }).min(0, `${label} nie może być ujemna`)
 
@@ -110,7 +160,7 @@ const coeff = (label: string) =>
 // result — the pair of kolumn, at most one of them set. `matchKey` is absent on purpose too: it is
 // derived server-side from opis + j.m., and Zod strips unknown keys, so a client that sends one is
 // simply ignored.
-export const workCatalogueItemSchema = baseSchema
+export const workCatalogueItemSchema = workCatalogueItemBaseSchema
   .omit({ wToolsSource: true, ownToolsSource: true, wToolsCoeff: true, ownToolsCoeff: true })
   .extend({
     category: z.string().default(''),

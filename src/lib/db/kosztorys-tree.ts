@@ -13,7 +13,7 @@ import type {
 } from '@/lib/kosztorys/types'
 import { normalizeStageSplit } from '@/lib/kosztorys/stage-split'
 import type { DbExecutorT } from './get-db'
-import { numOrNull } from './row-coerce'
+import { numOrNull, textOrNull } from './row-coerce'
 
 // Everything behind the editor tree in ONE round trip.
 //
@@ -28,7 +28,6 @@ import { numOrNull } from './row-coerce'
 // because a null column must read as 0, not NaN.
 
 const num = (v: unknown): number => Number(v ?? 0)
-const str = (v: unknown): string | null => (v == null ? null : String(v))
 
 export type KosztorysTreeDataT = {
   sections: KosztorysSectionT[]
@@ -130,7 +129,7 @@ export async function selectKosztorysTreeData(
       vatRate: numOrNull(row.vat_rate),
       settlementMode: String(row.settlement_mode) as SettlementModeT,
       materialsNetRate: numOrNull(row.materials_net_rate),
-      globalDiscountType: str(row.global_discount_type),
+      globalDiscountType: textOrNull(row.global_discount_type),
       globalDiscountValue: num(row.global_discount_value),
       // Payload handed callers an ISO string; the driver hands back a Date. The revision token is
       // compared by value in the editor shell, so the format has to stay stable.
@@ -152,13 +151,13 @@ const mapItem = (row: RowT): KosztorysItemT & { sectionId: number } => ({
   id: Number(row.id),
   sectionId: Number(row.section_id),
   displayOrder: num(row.display_order),
-  description: str(row.description),
-  unit: str(row.unit),
+  description: textOrNull(row.description),
+  unit: textOrNull(row.unit),
   plannedQty: num(row.planned_qty),
   // `numOrNull`, not `num`: NULL means „the sheet made no claim" and must not collapse to a claim
   // of zero, which would flag every unmeasured row as diverged.
   sheetMeasuredQty: numOrNull(row.sheet_measured_qty),
-  discountType: str(row.discount_type) as DiscountTypeT | null,
+  discountType: textOrNull(row.discount_type) as DiscountTypeT | null,
   discountValue: num(row.discount_value),
   clientPrice: num(row.client_price),
   // `numOrNull`, not `num`: NULL is „auto", and folding it to 0 would price the praca at zero
@@ -169,14 +168,14 @@ const mapItem = (row: RowT): KosztorysItemT & { sectionId: number } => ({
   // someone chose — a stawka of zero złotych (EX-865).
   wToolsOverrideCoeff: numOrNull(row.w_tools_override_coeff),
   ownToolsOverrideCoeff: numOrNull(row.own_tools_override_coeff),
-  note: str(row.note),
+  note: textOrNull(row.note),
 })
 
 const mapStage = (row: RowT, members: RowT[]): KosztorysStageT => ({
   id: Number(row.id),
   ordinal: num(row.ordinal),
-  label: str(row.label),
-  plane: str(row.plane) as ToolPlaneT | null,
+  label: textOrNull(row.label),
+  plane: textOrNull(row.plane) as ToolPlaneT | null,
   split: mapStageSplit(row.split_mode, members),
 })
 

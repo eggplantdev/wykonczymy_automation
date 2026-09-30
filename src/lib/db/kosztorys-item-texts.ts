@@ -2,6 +2,7 @@
 // under tsx, where that import throws.
 import { sql } from '@payloadcms/db-vercel-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
+import { textOrNull } from '@/lib/db/row-coerce'
 
 // The two hand-typed text columns travel together: one button cleans both, and a praca with a blank
 // opis can still carry a j.m. worth tidying.
@@ -15,8 +16,8 @@ export async function getItemTexts(db: DbExecutorT, investmentId: number): Promi
   `)
   return res.rows.map((row) => ({
     id: Number(row.id),
-    description: row.description == null ? null : String(row.description),
-    unit: row.unit == null ? null : String(row.unit),
+    description: textOrNull(row.description),
+    unit: textOrNull(row.unit),
   }))
 }
 

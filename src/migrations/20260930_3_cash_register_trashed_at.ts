@@ -4,9 +4,12 @@ import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-ve
 //
 // Additive — nullable, no DEFAULT, no backfill: every existing kasa stays live. So this goes to
 // production BEFORE the code that filters on it ships.
+//
+// IF NOT EXISTS: it ran on local DBs as `20260930_2_…` before a merge renumbered it, and Payload
+// matches migrations by name, so those DBs run it a second time.
 export async function up({ db }: MigrateUpArgs): Promise<void> {
   await db.execute(sql`
-    ALTER TABLE "cash_registers" ADD COLUMN "trashed_at" timestamp(3) with time zone;
+    ALTER TABLE "cash_registers" ADD COLUMN IF NOT EXISTS "trashed_at" timestamp(3) with time zone;
   `)
 }
 

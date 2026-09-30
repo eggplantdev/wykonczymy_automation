@@ -27,31 +27,28 @@ export function validateAction<TData>(
   return { success: true, data: parsed.data }
 }
 
+type RevalidateT = (keyof typeof CACHE_TAGS)[]
+type RevalidateOptsT = { deferRefresh?: boolean; entityTags?: string[] }
+
 /**
- * Auth + payload + try/catch + perf + revalidation wrapper for actions.
- *
- * `entityTags` is the per-row alternative to the collection list: an action that touches exactly one
- * row can expire that row's readers (`entityTag('investment', id)`) instead of every reader of the
- * collection. Both are applied when both are given.
+ * Exported for `tokenAction`, whose caller is a token rather than a session; not an action wrapper on its own.
  */
-export async function protectedAction<TData = undefined>(
+export async function runAuthorizedHandler<TData>(
   label: string,
-  handler: (ctx: ActionCtxT) => Promise<ActionResultT<TData>>,
-  revalidate?: (keyof typeof CACHE_TAGS)[],
-  opts?: { deferRefresh?: boolean; entityTags?: string[] },
+  handler: (payload: Payload) => Promise<ActionResultT<TData>>,
+  revalidate?: RevalidateT,
+  opts?: RevalidateOptsT,
+  timing: { elapsed: () => number; started: number } = {
+    elapsed: perfStart(),
+    started: performance.now(),
+  },
 ): Promise<ActionResultT<TData>> {
-  const elapsed = perfStart()
-  const started = performance.now()
-
-  const session = await requireAuth(MANAGEMENT_ROLES)
-  if (!session.success) return { success: false, error: session.error } as ActionResultT<TData>
-  console.log(`[PERF]   requireAuth ${elapsed()}ms`)
-
+  const { elapsed, started } = timing
   try {
     const payload = await getPayload({ config })
     console.log(`[PERF]   getPayload ${elapsed()}ms`)
 
-    const result = await handler({ payload, user: session.user })
+    const result = await handler(payload)
     console.log(`[PERF]   handler done ${elapsed()}ms`)
 
     if (result.success) {
@@ -66,4 +63,33 @@ export async function protectedAction<TData = undefined>(
     logError(`[ACTION_ERROR] ${label}`, err)
     return toActionFailure(err) as ActionResultT<TData>
   }
+}
+
+/**
+ * Auth + payload + try/catch + perf + revalidation wrapper for actions.
+ *
+ * `entityTags` is the per-row alternative to the collection list: an action that touches exactly one
+ * row can expire that row's readers (`entityTag('investment', id)`) instead of every reader of the
+ * collection. Both are applied when both are given.
+ */
+export async function protectedAction<TData = undefined>(
+  label: string,
+  handler: (ctx: ActionCtxT) => Promise<ActionResultT<TData>>,
+  revalidate?: RevalidateT,
+  opts?: RevalidateOptsT,
+): Promise<ActionResultT<TData>> {
+  const elapsed = perfStart()
+  const started = performance.now()
+
+  const session = await requireAuth(MANAGEMENT_ROLES)
+  if (!session.success) return { success: false, error: session.error } as ActionResultT<TData>
+  console.log(`[PERF]   requireAuth ${elapsed()}ms`)
+
+  return runAuthorizedHandler(
+    label,
+    (payload) => handler({ payload, user: session.user }),
+    revalidate,
+    opts,
+    { elapsed, started },
+  )
 }

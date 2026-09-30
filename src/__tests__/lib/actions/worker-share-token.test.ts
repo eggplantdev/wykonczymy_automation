@@ -22,7 +22,7 @@ vi.mock('@/lib/auth/require-auth', () => ({
   ),
 }))
 
-const { generateWorkerShareLinkAction, revokeWorkerShareLinkAction } =
+const { generateWorkerLinkAction, revokeWorkerLinkAction } =
   await import('@/lib/actions/kosztorys-worker-share')
 const { getWorkerKosztorysByToken } = await import('@/lib/queries/worker-kosztorys')
 
@@ -84,7 +84,10 @@ describe.skipIf(!ENV_READY)('kosztorys worker share token lifecycle (DB)', () =>
   })
 
   it('generates a token and persists exactly one row for the pair', async () => {
-    const res = await generateWorkerShareLinkAction({ investmentId, workerId: readyWorkerId })
+    const res = await generateWorkerLinkAction(
+      { investmentId, workerId: readyWorkerId },
+      'rozpiska',
+    )
     expect(res.success).toBe(true)
 
     const tokens = await persistedTokens(readyWorkerId)
@@ -95,7 +98,10 @@ describe.skipIf(!ENV_READY)('kosztorys worker share token lifecycle (DB)', () =>
   it('rotating replaces the token in place — the old one stops resolving', async () => {
     const [oldToken] = await persistedTokens(readyWorkerId)
 
-    const rotated = await generateWorkerShareLinkAction({ investmentId, workerId: readyWorkerId })
+    const rotated = await generateWorkerLinkAction(
+      { investmentId, workerId: readyWorkerId },
+      'rozpiska',
+    )
     const newToken = rotated.success ? rotated.data : ''
     expect(newToken).not.toBe(oldToken)
     expect(await persistedTokens(readyWorkerId)).toEqual([newToken])
@@ -106,7 +112,10 @@ describe.skipIf(!ENV_READY)('kosztorys worker share token lifecycle (DB)', () =>
   it('lets a MANAGER rotate the link, like the investor link', async () => {
     const [before] = await persistedTokens(readyWorkerId)
     authState.role = 'MANAGER'
-    const res = await generateWorkerShareLinkAction({ investmentId, workerId: readyWorkerId })
+    const res = await generateWorkerLinkAction(
+      { investmentId, workerId: readyWorkerId },
+      'rozpiska',
+    )
     authState.role = 'OWNER'
 
     expect(res.success).toBe(true)
@@ -118,7 +127,10 @@ describe.skipIf(!ENV_READY)('kosztorys worker share token lifecycle (DB)', () =>
   it('rejects an EMPLOYEE without touching the row', async () => {
     const before = await persistedTokens(readyWorkerId)
     authState.role = 'EMPLOYEE'
-    const res = await generateWorkerShareLinkAction({ investmentId, workerId: readyWorkerId })
+    const res = await generateWorkerLinkAction(
+      { investmentId, workerId: readyWorkerId },
+      'rozpiska',
+    )
     authState.role = 'OWNER'
 
     expect(res.success).toBe(false)
@@ -141,7 +153,10 @@ describe.skipIf(!ENV_READY)('kosztorys worker share token lifecycle (DB)', () =>
   })
 
   it('refuses to mint for a worker whose etapy mix rozliczenia', async () => {
-    const res = await generateWorkerShareLinkAction({ investmentId, workerId: mixedWorkerId })
+    const res = await generateWorkerLinkAction(
+      { investmentId, workerId: mixedWorkerId },
+      'rozpiska',
+    )
     expect(res).toMatchObject({
       success: false,
       error: WORKER_SCOPE_BLOCK_MESSAGES['mixed-planes'],
@@ -150,7 +165,10 @@ describe.skipIf(!ENV_READY)('kosztorys worker share token lifecycle (DB)', () =>
   })
 
   it('refuses to mint for a worker whose etap has no rozliczenie', async () => {
-    const res = await generateWorkerShareLinkAction({ investmentId, workerId: unconfirmedWorkerId })
+    const res = await generateWorkerLinkAction(
+      { investmentId, workerId: unconfirmedWorkerId },
+      'rozpiska',
+    )
     expect(res).toMatchObject({
       success: false,
       error: WORKER_SCOPE_BLOCK_MESSAGES['unconfirmed-plane'],
@@ -161,7 +179,7 @@ describe.skipIf(!ENV_READY)('kosztorys worker share token lifecycle (DB)', () =>
   it('revoking deletes the row and the token stops resolving', async () => {
     const [token] = await persistedTokens(readyWorkerId)
 
-    const res = await revokeWorkerShareLinkAction({ investmentId, workerId: readyWorkerId })
+    const res = await revokeWorkerLinkAction({ investmentId, workerId: readyWorkerId }, 'rozpiska')
     expect(res.success).toBe(true)
     expect(await persistedTokens(readyWorkerId)).toEqual([])
     expect(await getWorkerKosztorysByToken(token)).toBeNull()

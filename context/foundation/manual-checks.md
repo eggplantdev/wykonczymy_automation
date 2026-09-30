@@ -2683,7 +2683,6 @@ Każdy boks: po kliknięciu zmiana widoczna **bez przeładowania**, a w Network 
 - EX-939 jest częściowe: arkusze inwestycji do ok. 126 (np. 48, 108, 115) czytają się na stagingu, 130+ i 139–145 nadal nie.
 - [x] Kasa „QA-908 Kasa A2” (id 43) nie ma na liście kas w „Rozlicz” — **odrzucone**: `cash_registers.active = false` (SQL, 2026-09-30), lista pokazuje tylko aktywne kasy.
 
-
 ## EX-942 — okna edycji nie gubią wpisanych danych po nieudanym zapisie (2026-09-30)
 
 Stan: dowolny rekord do edycji; „nieudany zapis" = DevTools → Network → Offline tuż przed kliknięciem „Zapisz"/„Dodaj".
@@ -2771,3 +2770,143 @@ Stan: dowolny rekord do edycji; „nieudany zapis" = DevTools → Network → Of
 - [ ] Edycja kasy z transakcjami: pole „Właściciel" jest nieaktywne z podpowiedzią; w kasie bez
       transakcji właściciela da się zmienić.
 - [ ] Jako MANAGER: kasa główna w koszu nie pojawia się w `/kosz` (jako OWNER — pojawia się).
+
+## EX-947 — worker-work-reports — pracownik zgłasza ilości, kierownik przyjmuje (2026-09-30)
+
+Link zbudowany na stagingu wskazuje na produkcję — przed otwarciem podmień host na staging.
+
+**Pracownik**
+
+- [ ] „Pracownicy” → pracownik z etapem → „Link do zgłoszeń”: wygeneruj, skopiuj, odwołaj. Dla
+      pracownika bez etapu link jest zablokowany.
+- [ ] „Pracownicy” → pracownik bez blokady → „Link” i „Link do zgłoszeń”: samo kliknięcie kopiuje
+      link do schowka (toast „Link skopiowany do schowka.”), jak „Udostępnij” inwestora; drugie
+      kliknięcie kopiuje ten sam link. W Safari też.
+- [ ] Link w prywatnym oknie przy 390px: formularz się pokazuje, wpisane ilości przeżywają
+      odświeżenie, „Wyślij do weryfikacji” zapisuje zgłoszenie, czyści szkic, a na liście zgłoszeń
+      pojawia się „czeka”.
+- [ ] „Ograniczona rozpiska” przy 390px: tylko „Opis prac” i „Zgłaszam”; przy 1280px: Lp, „Opis
+      prac”, „Zgłaszam” i j.m. — j.m. i „Zgłaszam” mają stałą szerokość, resztę bierze „Opis prac”.
+- [ ] „Wszystkie kolumny”: strona przewija się w bok, nagłówek tabeli trzyma się góry, siatka nie
+      miga.
+- [ ] Praca spoza rozpiski: dodaj wiersz z opisem, j.m. i ilością — wysyła się razem ze
+      zgłoszeniem.
+- [ ] „Nowa praca” przy 390px: „Opis prac” na całą szerokość, j.m. i ilość w linii pod nim; przy
+      1280px wszystko w jednej linii. Przycisk pod wierszami to „Dodaj więcej”.
+- [ ] Po dodaniu pracy spoza rozpiski (z opisem) pod tabelą, nad „Wyślij”, jest sekcja „Prace spoza
+      rozpiski” z opisem, ilością i j.m.; pusty wiersz się w niej nie pokazuje, a po wysłaniu znika.
+- [ ] „Nowa praca”: wpisz sam opis (bez j.m. i ilości) → „Gotowe”, Esc i kliknięcie obok nie
+      zamykają okna; pojawia się „Popraw błędy — …”, a brakujące pola są czerwone. Po uzupełnieniu
+      albo usunięciu wiersza okno się zamyka. Przy „Wyślij” błędna ilość w tabeli daje „Popraw błędy”.
+- [ ] Zakończona inwestycja: link pokazuje komunikat zamiast formularza, a wysyłka z wcześniej
+      otwartej strony jest odrzucona.
+- [ ] Szkic z wpisami, potem „Wyczyść kosztorys” u kierownika: po odświeżeniu link pokazuje „N prac
+      ze szkicu zniknęło z rozpiski”.
+
+**Kierownik — przyjęcie**
+
+- [ ] Rozpiska → „Zgłoszenia prac” → zgłoszenie: zaznacz część linii, popraw jedną ilość, „Dodaj do”
+      ostatni etap pracownika → „Przyjmij n prac”. Kolumna etapu pokazuje starą ilość plus
+      przyjętą bez odświeżania, a „Cofnij” tego nie cofa.
+- [ ] Przyjęcie do „Nowy etap”: pojawia się nowa kolumna etapu z następnym numerem, przypisana
+      zgłaszającemu na 100%, a jego link do rozpiski pokazuje nowe ilości.
+- [ ] Praca spoza rozpiski z Ceną j.m. i sekcją: w tej sekcji pojawia się nowa pozycja bez
+      przedmiaru, a „Problemy” ją wykazują.
+- [ ] Na liście wyboru etapu nie ma etapów innych ekip.
+- [ ] Dwie karty na tej samej rozpisce: przyjmij w pierwszej, przełącz na drugą — przeładowuje się z
+      komunikatem i pokazuje przyjęte ilości.
+- [ ] „Wczytaj”: po przyjęciu jest automatyczna wersja sprzed przyjęcia.
+- [ ] Odrzuć zgłoszenie: otwiera się jako „Odrzucone”, a pracownik widzi „odrzucone”. Da się je
+      potem przyjąć — zaznacz prace, „Przyjmij n prac”, status zmienia się na „Przyjęte”.
+- [ ] Przyjęte zgłoszenie, otwórz ponownie: przyjęte prace są zaznaczone. Zmień ilość jednej — pod
+      nią „było X”, a „Zapisz zmiany” przesuwa etap tylko o różnicę. Odznacz drugą — „cofasz X”, po
+      zapisie etap maleje o X. Odznacz wszystkie → zgłoszenie wraca do „Do sprawdzenia”.
+- [ ] Przyjęte do etapu, potem usuń ten etap: przy dodaniu reszty zgłoszenia do innego etapu pojawia
+      się „Część zgłoszenia przyjęto do etapu, którego już nie ma…”, a przycisk nie zapisuje.
+      Odznaczenie przyjętych prac to odblokowuje.
+- [ ] To samo przyjęte zgłoszenie w dwóch kartach: zmień ilość tej samej pracy w obu, zapisz w
+      pierwszej, potem w drugiej —
+      druga dostaje „Zgłoszenie zmieniło się w innym oknie — odśwież je.” i nic nie zapisuje.
+- [ ] Praca spoza rozpiski → „Podmień na pracę z katalogu” → praca, która już jest w rozpisce:
+      komunikat „Jest już w rozpisce — ilość doda się do tej pozycji.”, po przyjęciu ilość trafia do
+      tej pozycji, nie powstaje druga. Praca spoza rozpiski daje „…trafi tam jako nowa pozycja…”.
+- [ ] Zgłoszenie oczekujące, potem „Wyczyść kosztorys”: jego linie są „do przypisania ręcznie” i da
+      się je przypiąć do pozycji albo przyjąć jako pracę spoza rozpiski.
+
+**Nawigacja i licznik**
+
+- [ ] Przy oczekującym zgłoszeniu menu pokazuje „Zgłoszenia prac” z licznikiem; strona je wymienia,
+      a wiersz otwiera rozpiskę z tym zgłoszeniem. Odświeżenie po zamknięciu okna go nie otwiera
+      ponownie.
+- [ ] „Zgłoszenia prac” wymienia też zgłoszenia przyjęte i odrzucone, każde ze statusem; licznik w
+      menu liczy tylko oczekujące. Po odrzuceniu w rozpisce licznik w menu spada od razu.
+- [ ] Będąc na „Zgłoszenia prac”, znaczek „Zgłoszenia” (leady) dalej pokazuje swoją liczbę.
+- [ ] Po przyjęciu ostatniego oczekującego przycisk na pasku rozpiski znika, a licznik w menu spada
+      przy następnym przejściu.
+- [ ] Klik w wiersz na „Zgłoszenia prac” (bez przeładowania strony) otwiera rozpiskę z tym
+      zgłoszeniem — wczytuje się, nie wisi na „Wczytywanie…”. Adres ma `?zgloszenie=` do zamknięcia
+      okna; po zamknięciu i przeładowaniu okno się nie otwiera.
+- [ ] Przegląd zgłoszenia, prace z rozpiski: kolumna etapu nosi nazwę etapu wybranego w „Dodaj do”
+      („Nowy etap” dla nowego) i zmienia się razem z wyborem; dalej osobno „Przedmiar” i „Pomiar
+      (razem etapy)”. Zaznaczona ilość przesuwa etap i pomiar („12 → 15”), przedmiar stoi.
+
+**Bez zmian w innych widokach**
+
+- [ ] Edytor kierownika, Podgląd, link inwestora i link pracownika wyglądają i działają jak
+      wcześniej.
+- [ ] Podgląd i link pracownika: żadnej czerwonej komórki, także w wierszu ponad przedmiar i przy
+      stawce ponad pułap. W edytorze kierownika oba dalej są czerwone.
+- [ ] Usunięcie pracownika, który ma zgłoszenie, jest odrzucone z komunikatem.
+- [ ] Podgląd inwestora i link inwestora z `?wersja=` zapisanej wersji pokazują tę wersję; z
+      `?wersja=abc` albo nieistniejącym numerem — bieżącą rozpiskę, bez błędu.
+
+## EX-951 — kosztorys-new-item-dialog — „Nowa praca” jako formularz (2026-09-30)
+
+- [ ] Menu wiersza → „Wstaw powyżej” / „Wstaw poniżej”: otwiera się „Nowa praca”; po zapisie praca
+      stoi bezpośrednio nad / pod tym wierszem, bez odświeżania.
+- [ ] „+ Dodaj pracę” na pasku pustej sekcji i „Dodaj pracę” w menu ⋯ sekcji: praca ląduje na
+      końcu tej sekcji. Zwinięta sekcja się rozwija.
+- [ ] Pasek narzędzi „Dodaj → Praca → [sekcja]”: praca ląduje na końcu wybranej sekcji. Na
+      kosztorysie bez sekcji najpierw pojawia się sekcja, a okno otwiera się dla niej.
+- [ ] Stawki: „auto” liczy się ze współczynnika inwestycji, kwota stała pokazuje wpisaną kwotę,
+      a mnożnik liczy się od „Ceny j.m.”.
+- [ ] Stawka podwykonawcy powyżej 65% ceny: praca się zapisuje, pojawia się toast z ostrzeżeniem.
+- [ ] Ptaszek „Dodaj pracę do katalogu prac” z nowym opisem + j.m.: pozycja pojawia się
+      w „Katalogu prac” z wpisaną kategorią. Bez ptaszka pola „Kategoria” nie ma.
+- [ ] Ptaszek z opisem + j.m., które już są w katalogu: okno pokazuje ceny „stare → nowe”;
+      „Wróć”, Esc i kliknięcie obok wracają do formularza bez zapisu; „Tylko do kosztorysu”
+      zapisuje pracę, a katalog zostaje bez zmian; „Nadpisz w katalogu” aktualizuje pozycję
+      i zostawia jej kategorię, chyba że odznaczysz „Zostaw kategorię z katalogu”.
+- [ ] „Nie zamykaj po zapisaniu”: po zapisie formularz jest pusty, a druga praca ląduje pod
+      pierwszą.
+- [ ] Przy sortowaniu kolumny „Wstaw powyżej/poniżej” jest nieaktywne, a „Dodaj pracę” dokłada na
+      końcu sekcji.
+- [ ] Zakończona (zablokowana) inwestycja i podgląd klienta: nie ma żadnego wejścia do dodania
+      pracy.
+- [ ] Szablon: wejścia w „Akcje” otwierają ten sam formularz, ptaszek katalogu działa.
+- [ ] Po otwarciu i zamknięciu „Nowej pracy” inne okno „Dodaj …” pokazuje „Nie zamykaj po
+      zapisaniu” jak dotąd, a okno bez tej opcji nie ma zbłąkanego ptaszka.
+- [ ] Dwie karty z tym samym kosztorysem: w pierwszej „Wstaw poniżej” na wierszu, w drugiej usuń
+      ten wiersz, w pierwszej zapisz: okno się zamyka, siatka się odświeża, nic się nie zawiesza.
+- [ ] Katalog prac → „Dodaj pozycję” i edycja pozycji: pola „Kategoria” i „j.m.” działają jak
+      dotąd (wybór z listy i wpisanie nowej wartości).
+
+## EX-940 — request-failed-actions — zerwane połączenie kończy się polskim komunikatem (2026-09-30)
+
+Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTools → Network → Offline tuż przed akcją.
+
+- [ ] Sidebar „Wyloguj" z siecią: wylogowuje i ląduje na /zaloguj.
+- [ ] Kosztorys offline → zmień „Przedmiar" w komórce: toast „Brak połączenia z serwerem…", komórka wraca do poprzedniej wartości, nigdzie „Failed to fetch".
+- [ ] Offline → zmień rabat w „Opcje rozliczenia": polski komunikat, wartość wraca.
+- [ ] Kosztorys offline → przesuń pozycję ▲/▼: kolejność wraca, polski toast; Cmd+Z nic nie robi.
+- [ ] Kosztorys → „Dodaj pozycję" → wypełnij „Nowa praca" → zapisz offline: polski toast, okno zostaje otwarte z wpisanymi danymi, nic nie przybywa w siatce.
+- [ ] Kosztorys offline → „Dodaj sekcję": polski toast, nic nie przybywa, brak strony błędu.
+- [ ] „Wyczyść kosztorys" → potwierdź offline: „Czyszczenie przerwane — odświeżam…", okno się zamyka; po powrocie sieci siatka pokazuje prawdziwy stan.
+- [ ] „Wersje" → przywróć wersję offline: „Przywracanie przerwane — odświeżam kosztorys", okno się zamyka, brak strony błędu.
+- [ ] Transakcje → „Anuluj transakcję" offline: polski toast, przyciski i pole powodu znów aktywne.
+- [ ] /zaloguj offline → „Zaloguj": komunikat pod formularzem, przycisk wraca do „Zaloguj".
+- [ ] Sidebar „Odśwież dane" offline: toast błędu, brak strony błędu.
+- [ ] Formularz wydatku → „Dodaj magazyn" offline: toast błędu, brak strony błędu.
+- [ ] Link pracownika → zgłoszenie prac → „Wyślij" offline: polski toast, szkic zostaje, przycisk wraca do „Wyślij".
+- [ ] Kosztorys → menu inwestora → „Udostępnij" offline (pierwszy raz dla tej inwestycji): toast „Brak połączenia z serwerem…", nic nie trafia do schowka, brak strony błędu.
+- [ ] „Wczytaj szablon…" i „Pobierz z arkusza Google…" → potwierdź offline: „…przerwane — odświeżam kosztorys", okno się zamyka; po powrocie sieci siatka pokazuje prawdziwy stan.

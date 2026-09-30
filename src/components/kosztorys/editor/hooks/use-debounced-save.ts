@@ -1,7 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useRef } from 'react'
-import { createSaveLanes } from '@/lib/kosztorys/save-lanes'
+import { useEffect, useRef, useState } from 'react'
+import { createDebouncedSaves, createSaveLanes } from '@/lib/kosztorys/save-lanes'
 import { toastMessage } from '@/lib/utils/toast'
 import type { ActionResultT } from '@/types/action'
 
@@ -13,28 +13,20 @@ import type { ActionResultT } from '@/types/action'
 // per-key serialized lane, so writes to the same cell can never overlap. That is what lets an undo's
 // inverse write reliably land *after* an in-flight forward save instead of racing it (EX-526 #1).
 export function useDebouncedSave(delay = 500, onStale?: () => void) {
-  const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>())
   // Read at failure time, not at dispatch time, so the handler doesn't have to be stable.
   const onStaleRef = useRef(onStale)
-  onStaleRef.current = onStale
-  const lanesRef = useRef<ReturnType<typeof createSaveLanes> | null>(null)
-  lanesRef.current ??= createSaveLanes()
-  const lanes = lanesRef.current
-
   useEffect(() => {
-    const map = timers.current
-    return () => map.forEach((t) => clearTimeout(t))
-  }, [])
-
-  // Enqueue a write on the key's lane, toasting + reverting on failure (logical or thrown — the lane
-  // catches both). Returns the promise for this write settling.
-  //
-  // NOT_FOUND is the one failure that is not about this write: the row is gone, so the grid's whole
-  // mount-frozen copy of the tree is stale and every other pending write will fail the same way.
-  // Reverting one cell there is theatre — it would restore a value from a tree that no longer exists —
-  // so the failure is handed to `onStale`, which reseeds instead, and neither toasts nor reverts here.
-  const dispatch = useCallback(
-    (key: string, run: () => Promise<ActionResultT>, onError?: () => void) =>
+    onStaleRef.current = onStale
+  })
+  // The ref is read only when a write fails, never while rendering.
+  // eslint-disable-next-line react-hooks/refs
+  const [saves] = useState(() => {
+    const lanes = createSaveLanes()
+    // NOT_FOUND is the one failure that is not about this write: the row is gone, so the grid's whole
+    // mount-frozen copy of the tree is stale and every other pending write will fail the same way.
+    // Reverting one cell there is theatre — it would restore a value from a tree that no longer exists —
+    // so the failure is handed to `onStale`, which reseeds instead, and neither toasts nor reverts here.
+    const dispatch = (key: string, run: () => Promise<ActionResultT>, onError?: () => void) =>
       lanes.enqueue(key, run, (message, code) => {
         if (code === 'NOT_FOUND' && onStaleRef.current) {
           onStaleRef.current()
@@ -42,44 +34,11 @@ export function useDebouncedSave(delay = 500, onStale?: () => void) {
         }
         toastMessage(message, 'error', 5000)
         onError?.()
-      }),
-    [lanes],
-  )
+      })
+    return createDebouncedSaves(delay, dispatch, lanes)
+  })
 
-  const save = useCallback(
-    (key: string, run: () => Promise<ActionResultT>, onError?: () => void) => {
-      const existing = timers.current.get(key)
-      if (existing) clearTimeout(existing)
-      const t = setTimeout(() => {
-        // Drop the fired timer so `cancel` never inspects a dead entry and the map can't grow across
-        // a session. Guard on identity: a `save` for the same key mid-flight may have replaced it.
-        if (timers.current.get(key) === t) timers.current.delete(key)
-        void dispatch(key, run, onError)
-      }, delay)
-      timers.current.set(key, t)
-    },
-    [delay, dispatch],
-  )
+  useEffect(() => () => saves.dispose(), [saves])
 
-  // Drop a key's pending timer so an undo can pre-empt a not-yet-fired debounced save.
-  const cancel = useCallback((key: string) => {
-    const existing = timers.current.get(key)
-    if (existing) {
-      clearTimeout(existing)
-      timers.current.delete(key)
-    }
-  }, [])
-
-  // Fire a write immediately, cancelling any pending debounced save for the key first. The lane still
-  // serializes it behind an already-in-flight forward save (which `cancel` can't stop), so an undo's
-  // inverse write can't be overwritten by a slower forward one. Returns the settle promise.
-  const runNow = useCallback(
-    (key: string, run: () => Promise<ActionResultT>, onError?: () => void) => {
-      cancel(key)
-      return dispatch(key, run, onError)
-    },
-    [cancel, dispatch],
-  )
-
-  return { save, cancel, runNow }
+  return { save: saves.save, cancel: saves.cancel, runNow: saves.runNow, drain: saves.drain }
 }

@@ -3,6 +3,7 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment } from '@/__tests__/helpers/investment'
+import { appendAt, insertNextTo } from '@/__tests__/helpers/new-item-input'
 
 // The kosztorys plane's gate is the action wrapper, not a hook — a dozen places write raw SQL that
 // no collection hook or Payload `access` rule ever sees. So the assertion has to be the SERVER'S
@@ -28,7 +29,6 @@ const {
   applyPercentDiscountToAllItemsAction,
   cleanItemTextsAction,
   clearKosztorysAction,
-  insertItemAction,
   insertSectionAction,
   removeItemAction,
   removeSectionAction,
@@ -91,9 +91,9 @@ describe.skipIf(!ENV_READY)('a completed investment refuses every kosztorys writ
     const section = await addSectionAction(investmentId)
     if (!section.success) throw new Error('fixture: addSectionAction failed')
     sectionId = section.data.section.id
-    const item = await addItemAction(sectionId)
+    const item = await addItemAction(appendAt(sectionId))
     if (!item.success) throw new Error('fixture: addItemAction failed')
-    itemId = item.data.id
+    itemId = item.data.item.id
 
     const stage = await addStageAction(investmentId, 'w_tools')
     if (!stage.success) throw new Error('fixture: addStageAction failed')
@@ -146,8 +146,8 @@ describe.skipIf(!ENV_READY)('a completed investment refuses every kosztorys writ
     ['removeSectionAction', () => removeSectionAction(sectionId)],
     ['insertSectionAction', () => insertSectionAction(sectionId, 'above')],
     ['swapSectionOrderAction', () => swapSectionOrderAction(sectionId, 'up')],
-    ['addItemAction', () => addItemAction(sectionId)],
-    ['insertItemAction', () => insertItemAction(itemId, 'above')],
+    ['addItemAction (end)', () => addItemAction(appendAt(sectionId))],
+    ['addItemAction (next-to)', () => addItemAction(insertNextTo(itemId, 'above'))],
     ['removeItemAction', () => removeItemAction(itemId)],
     ['swapItemOrderAction', () => swapItemOrderAction(itemId, 'up')],
     ['renumberKosztorysOrderAction', () => renumberKosztorysOrderAction(investmentId, [itemId])],
@@ -219,10 +219,10 @@ describe.skipIf(!ENV_READY)('an active investment still writes (DB)', () => {
     const section = await addSectionAction(investmentId)
     expect(section.success).toBe(true)
     if (!section.success) return
-    const item = await addItemAction(section.data.section.id)
+    const item = await addItemAction(appendAt(section.data.section.id))
     expect(item.success).toBe(true)
     if (!item.success) return
-    expect(await updateItemFieldAction(item.data.id, { description: 'ok' })).toEqual({
+    expect(await updateItemFieldAction(item.data.item.id, { description: 'ok' })).toEqual({
       success: true,
     })
   })

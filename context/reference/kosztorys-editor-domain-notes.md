@@ -376,6 +376,8 @@ or signed URLs, a separate decision.
 Pracownik / podwykonawca dostaje od ownera **imienny** widok kosztorysu inwestycji: link `/p/⟨nazwisko⟩/[token]`
 albo PDF, oba z menu „Pracownicy" w edytorze. Link i PDF generuje ADMIN / OWNER / MANAGER (jak u
 inwestora); ustawienia widoku pracownika są **jedne na firmę** i zapisuje je tylko ADMIN / OWNER.
+Kliknięcie „Link" / „Link do zgłoszeń" działa jak „Udostępnij" inwestora: oddaje żywy link albo
+wydaje nowy i kopiuje go do schowka — u pracownika zablokowanego tylko pokazuje link do wyłączenia.
 Część 2 (pracownik wpisuje ilości w swoich etapach) to osobna zmiana — link identyfikuje pracownika
 właśnie po to, żeby jej nie przepisywać.
 
@@ -422,6 +424,35 @@ właśnie po to, żeby jej nie przepisywać.
   7,50 zł zaokrąglona do „8 zł" to inna stawka. Na papier idą te same kolumny, w tej samej
   kolejności, co w podglądzie pracownika — po tej samej regule wpisów, więc „Σ etapów" i „Wartość
   wykonana" pojawiają się dopiero po pierwszym wpisie.
+
+### Zgłoszenia prac — pracownik zgłasza ilości, kierownik przyjmuje (EX-947, 2026-09-30)
+
+- **Dwa osobne linki.** Rozpiska pracownika (`/p/…`) to podsumowanie i rozliczenie; link „Zgłoszenie
+  prac" (`/zgloszenie-prac/…`) tylko zbiera ilości. Oba z menu „Pracownicy", pod tą samą blokadą:
+  kto nie może mieć rozpiski (brak etapu, etap bez rozliczenia, mieszane rozliczenia), ten nie
+  zgłasza. Działa na telefonie — jedyny wyjątek od wąskiego zakresu telefonu.
+- **Pracownik wpisuje ilość w j.m. pozycji** w kolumnie „Zgłaszam" na swojej rozpisce, plus prace
+  spoza rozpiski (opis, j.m., ilość). Szkic żyje w przeglądarce; do bazy trafia dopiero wysłane
+  zgłoszenie. Wysłane jest ostateczne — poprawka to nowe zgłoszenie, a złe kierownik odrzuca. Na
+  zakończonej inwestycji wysyłka jest zablokowana.
+- **Kierownik** widzi zgłoszenia w nawigacji („Zgłoszenia prac", z licznikiem oczekujących we
+  wszystkich inwestycjach) i w przycisku na pasku rozpiski. Przyjęcie dzieje się w rozpisce: wybiera
+  etap zgłaszającego albo „Nowy etap" (następny numer, zgłaszający na 100%), może poprawić ilości,
+  a pracom spoza rozpiski daje sekcję i Cenę j.m. Nigdy do etapu innej ekipy.
+- **Przyjęcie DODAJE** do ilości etapu — pracownik zgłasza do tego samego etapu wiele razy. Przed
+  przyjęciem zapisuje się automatyczna wersja, więc da się je cofnąć z „Wczytaj".
+- **Decyzję da się zmienić.** Przyjęta praca zostaje zaznaczona i edytowalna: zmiana ilości
+  przesuwa etap o różnicę, odznaczenie zdejmuje ją z etapu. Odrzucone zgłoszenie — i odznaczona
+  praca — można przyjąć później. Póki coś w zgłoszeniu jest przyjęte, resztę dodaje się do tego
+  samego etapu; jeśli ten etap usunięto albo pracownika w nim już nie ma, najpierw trzeba odznaczyć
+  przyjęte prace. Zmiana zrobiona w innym oknie odmawia zapisu z prośbą o odświeżenie.
+- **„Przyjęte" nie wraca po przywróceniu wersji.** Przywrócenie wersji sprzed przyjęcia zdejmuje
+  dodane ilości, a zgłoszenie dalej czyta „Przyjęte" — świadomie przyjęta rozbieżność.
+- **Zgłoszenie przeżywa podmianę rozpiski** (przywrócenie wersji, import, „Wczytaj szablon",
+  „Wyczyść kosztorys"): linia, której pozycja zniknęła, przychodzi jako „do przypisania ręcznie".
+  Szkic takie linie po prostu gubi, z komunikatem.
+- **Przyjęta praca spoza rozpiski** staje się pozycją bez przedmiaru z wykonaną pracą, więc pojawia
+  się w „Problemach" jako „wykonane bez przedmiaru" — to sygnał, że ofertę trzeba uzupełnić.
 
 ## Protokół odbioru prac — druk z menu „Inwestor" (2026-09-28)
 
@@ -924,6 +955,33 @@ padły wprost od właściciela, nie są domysłem implementacji:
   przemianowania; **inline rename w siatce wciąż potrafi zrobić bliźniaka** — bramki unikalności tam
   nie ma; dopasowanie jest **case-insensitive**, czyli nazwy różniące się wielkością liter to dla
   właściciela jedna sekcja.
+
+### „Nowa praca" — formularz zamiast pustego wiersza (EX-951, 2026-09-30)
+
+Każde wejście, które dodaje pracę ręcznie — „Wstaw powyżej/poniżej" w menu wiersza, „Dodaj pracę" na
+pasku sekcji i w jej menu, „Dodaj → Praca → [sekcja]" w pasku narzędzi — otwiera formularz: opis,
+j.m., „Cena j.m." i obie stawki podwykonawcy (źródło „auto" / kwota / mnożnik, jak w katalogu).
+Praca powstaje dopiero przy zapisie, **od razu wypełniona** — pusty wiersz „Nowa praca" do
+dopisywania w siatce zniknął ze wszystkich ścieżek. Rozstrzygnięcia właściciela:
+
+- **Miejsce:** „Wstaw powyżej/poniżej" kładzie pracę przy wierszu, z którego go wywołano; pozostałe
+  wejścia — na koniec sekcji. Bez żadnej sekcji „Dodaj → Praca" najpierw zakłada sekcję.
+- **Bez pola „Przedmiar"** — przedmiar wpisuje się w siatce, jak dotąd. „auto" przy stawce znaczy
+  „bez nadpisania", nie zero.
+- **„Nie zamykaj po zapisaniu"** czyści formularz; następna praca ląduje **pod właśnie zapisaną**,
+  a „na koniec sekcji" zostaje na końcu. Zwinięta sekcja rozwija się po zapisie. Stawka powyżej
+  65% ceny daje ostrzeżenie toastem (ten sam sufit, co wyżej). Dodanie nie wchodzi na stos
+  „Cofnij".
+- **„Dodaj pracę do katalogu prac"** — ptaszek, zawsze odznaczony na starcie. Dopiero z nim pojawia
+  się „Kategoria", podpowiedziana nazwą sekcji bez numeru porządkowego. Wpis w katalogu zapisuje się
+  w **tej samej transakcji** co praca — albo oba, albo nic.
+- **Kolizja w katalogu** (ten sam opis + j.m., reguła `matchKey`) nie jest błędem, tylko pytaniem
+  z trzema odpowiedziami, z cenami „stare → nowe": **„Nadpisz w katalogu"**, **„Tylko do
+  kosztorysu"** i **„Wróć"** (Escape i klik obok to też „Wróć"). „Tylko do kosztorysu" istnieje,
+  bo odmowa nadpisania katalogu nie jest odmową pracy: właściciel chce wtedy pracę w kosztorysie,
+  a katalog nietknięty — tak/nie tego nie wyrazi. Escape nigdy niczego nie zapisuje. Przy
+  nadpisaniu kategoria z katalogu **zostaje** domyślnie (przełącznik „Zostaw kategorię
+  z katalogu").
 
 ## Domyślne
 

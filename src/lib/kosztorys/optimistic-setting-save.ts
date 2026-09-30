@@ -1,4 +1,5 @@
 import type { ActionResultT } from '@/types/action'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 
 /**
@@ -11,19 +12,10 @@ export async function optimisticSettingSave(
   revert: () => void,
   errorMessage: string,
 ): Promise<boolean> {
-  let res: ActionResultT
-  try {
-    res = await persist()
-  } catch {
-    // A transport-level failure (5xx, dropped connection) throws client-side, bypassing
-    // protectedAction's result contract — without this catch it hit the error boundary mid-patch.
-    revert()
-    toastMessage(errorMessage, 'warning', 4000)
-    return false
-  }
+  const res = await settleAction(persist)
   if (res.success) return true
   revert()
-  toastMessage(res.error, 'warning', 4000)
+  toastMessage(res.code === 'REQUEST_FAILED' ? errorMessage : res.error, 'warning', 4000)
   return false
 }
 

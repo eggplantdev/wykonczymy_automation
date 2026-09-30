@@ -12,6 +12,7 @@ import {
   CANCEL_REASON_MAX_LENGTH as REASON_MAX_LENGTH,
   CANCEL_REASON_MIN_LENGTH as REASON_MIN_LENGTH,
 } from '@/lib/schemas/transfer'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 
 type CancelTransferButtonPropsT = {
@@ -35,7 +36,9 @@ export function CancelTransferButton({ transactionId }: CancelTransferButtonProp
   async function handleConfirm() {
     if (!isReasonValid) return
     setIsPending(true)
-    const result = await cancelTransferAction(transactionId, { reason: trimmedReason })
+    const result = await settleAction(() =>
+      cancelTransferAction(transactionId, { reason: trimmedReason }),
+    )
     setIsPending(false)
 
     if (result.success) {

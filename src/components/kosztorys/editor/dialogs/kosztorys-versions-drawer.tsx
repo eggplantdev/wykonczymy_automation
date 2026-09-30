@@ -8,16 +8,16 @@ import { useSnapshotList } from '@/components/kosztorys/editor/hooks/use-snapsho
 import { restoreSnapshotAction, type SnapshotListItemT } from '@/lib/actions/kosztorys-snapshots'
 import { formatPLDateTime } from '@/lib/utils/format-date'
 import { pluralize } from '@/lib/utils/polish-plural'
-import { settleAction } from '@/lib/utils/settle-action'
+import { settleTreeReplace } from '@/lib/kosztorys/settle-tree-replace'
 import { toastMessage } from '@/lib/utils/toast'
+import type { OnTreeReplacedT } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
 type PropsT = {
   investmentId: number
   investmentName: string
   open: boolean
   onOpenChange: (open: boolean) => void
-  // Called after a successful restore so the parent remounts the editor.
-  onRestored: () => void
+  onRestored: OnTreeReplacedT
 }
 
 // History panel: named manual versions are the prominent targetable entries; auto snapshots are the
@@ -42,30 +42,33 @@ export function KosztorysVersionsDrawer({
   async function handleRestore(snapshot: SnapshotListItemT) {
     setPendingRestore(null)
     setRestoringId(snapshot.id)
-    const res = await settleAction(() => restoreSnapshotAction(snapshot.id, investmentId))
+    const replaced = await settleTreeReplace(
+      () => restoreSnapshotAction(snapshot.id, investmentId),
+      'Przywracanie przerwane — odświeżam kosztorys',
+      ({ data }) => {
+        // A warning, not a success, when assignments were dropped: the restore moved money the owner
+        // did not ask to move — należne recorded for a since-deleted person now sits in „Bez
+        // przypisanego pracownika". Their name can't be shown; the row they were on is gone from `users`.
+        const dropped = data.droppedWorkerAssignments
+        if (dropped > 0) {
+          toastMessage(
+            // The count is per etap, not per person — n etapy may have named one deleted worker or n
+            // of them — so the cause clause stays number-free rather than asserting a headcount it
+            // doesn't know.
+            `Przywrócono wersję. ${dropped} ${pluralize(dropped, ['etap', 'etapy', 'etapów'])} bez przypisania — nie odtworzono przypisań do usuniętych pracowników.`,
+            'warning',
+            8000,
+          )
+        } else {
+          toastMessage('Przywrócono wersję', 'success')
+        }
+      },
+    )
     setRestoringId(null)
-    if (!res.success) {
-      toastMessage(res.error ?? 'Nie udało się przywrócić wersji', 'error', 4000)
-      return
-    }
-    // A warning, not a success, when assignments were dropped: the restore moved money the owner did
-    // not ask to move — należne recorded for a since-deleted person now sits in „Bez przypisanego
-    // pracownika". Their name can't be shown; the row they were on is gone from `users`.
-    const dropped = res.data?.droppedWorkerAssignments ?? 0
-    if (dropped > 0) {
-      toastMessage(
-        // The count is per etap, not per person — n etapy may have named one deleted worker or n of
-        // them — so the cause clause stays number-free rather than asserting a headcount it doesn't know.
-        `Przywrócono wersję. ${dropped} ${pluralize(dropped, ['etap', 'etapy', 'etapów'])} bez przypisania — nie odtworzono przypisań do usuniętych pracowników.`,
-        'warning',
-        8000,
-      )
-    } else {
-      toastMessage('Przywrócono wersję', 'success')
-    }
+    if (!replaced) return
     onOpenChange(false)
     resetSnapshots()
-    onRestored()
+    onRestored(replaced)
   }
 
   const named = snapshots?.filter((s) => s.kind === 'manual' || s.kind === 'named') ?? []

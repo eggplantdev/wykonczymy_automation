@@ -8,8 +8,8 @@ import {
 } from '@/components/kosztorys/editor/hooks/use-undo-redo'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
+import type { KosztorysItemT } from '@/lib/kosztorys/types'
 import {
-  addItemAction,
   addSectionAction,
   removeItemAction,
   removeSectionAction,
@@ -18,9 +18,7 @@ import {
 } from '@/lib/actions/kosztorys'
 
 vi.mock('@/lib/actions/kosztorys', () => ({
-  addItemAction: vi.fn(),
   addSectionAction: vi.fn(),
-  insertItemAction: vi.fn(),
   insertSectionAction: vi.fn(),
   removeItemAction: vi.fn(async () => ({ success: true })),
   removeSectionAction: vi.fn(async () => ({ success: true })),
@@ -148,36 +146,63 @@ describe('sekcja bez pozycji w edytorze', () => {
     expect(result.current.rows.map((row) => row.id)).toEqual([1, 3])
   })
 
-  it('places the first pozycja of the middle itemless section between its neighbours', async () => {
-    vi.mocked(addItemAction).mockResolvedValue({
-      success: true,
-      data: { id: 2, displayOrder: 0 },
-    })
-    const { result } = renderEditor()
-
-    await act(async () => {
-      await result.current.handleAddItem(20)
-    })
-
-    expect(result.current.rows.map((row) => row.id)).toEqual([1, 2, 3])
-    expect(result.current.rows[1]).toMatchObject({ sectionId: 20, sectionName: 'Kuchnia' })
+  // What the „Nowa praca" dialog hands back once the server has saved the praca.
+  const savedItem = (id: number, sectionId: number): KosztorysItemT => ({
+    ...baseItem,
+    id,
+    sectionId,
+    description: 'Nowa praca',
+    plannedQty: 0,
+    clientPrice: 80,
   })
 
-  it('keeps a first pozycja under its own band when the last one is deleted mid-add', async () => {
-    vi.mocked(addItemAction).mockResolvedValue({
-      success: true,
-      data: { id: 2, displayOrder: 0 },
+  it('opens the dialog for the end of the sekcja', () => {
+    const { result } = renderEditor()
+    const open = vi.fn()
+    result.current.newItemDialogRef.current = open
+
+    act(() => result.current.handleAddItem(20))
+
+    expect(open).toHaveBeenCalledWith({ kind: 'end', sectionId: 20 })
+  })
+
+  it('places the first pozycja of the middle itemless section between its neighbours', () => {
+    const { result } = renderEditor()
+
+    act(() => result.current.placeNewItem(savedItem(2, 20), { kind: 'end', sectionId: 20 }))
+
+    expect(result.current.rows.map((row) => row.id)).toEqual([1, 2, 3])
+    expect(result.current.rows[1]).toMatchObject({
+      sectionId: 20,
+      sectionName: 'Kuchnia',
+      description: 'Nowa praca',
     })
+  })
+
+  it('keeps a first pozycja under its own band when the last one went while the dialog was open', async () => {
     const { result } = renderEditor()
     const lastOfSalon = result.current.rows.find((row) => row.id === 1)
 
     await act(async () => {
-      const adding = result.current.handleAddItem(10)
       if (lastOfSalon) await grid.opts?.onRemoveItem?.(lastOfSalon)
-      await adding
     })
+    act(() => result.current.placeNewItem(savedItem(2, 10), { kind: 'end', sectionId: 10 }))
 
     expect(result.current.rows.map((row) => row.id)).toEqual([2, 3])
+  })
+
+  it('places a praca next to its anchor', () => {
+    const { result } = renderEditor()
+
+    act(() =>
+      result.current.placeNewItem(savedItem(4, 30), {
+        kind: 'next-to',
+        anchorItemId: 3,
+        dir: 'above',
+      }),
+    )
+
+    expect(result.current.rows.map((row) => row.id)).toEqual([1, 4, 3])
   })
 
   it('shows itemless bands despite a persisted id of a condition that no longer exists', () => {

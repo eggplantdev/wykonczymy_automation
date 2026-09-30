@@ -8,6 +8,8 @@ export const numOrNull = (v: unknown): number | null => (v == null ? null : Numb
 /** A text column as a string, never `null` — an absent name renders as „—", not as the word "null". */
 export const text = (v: unknown): string => (v == null ? '' : String(v))
 
+export const textOrNull = (v: unknown): string | null => (v == null ? null : String(v))
+
 /** A real instant. Day-only columns go through `toWarsawDay` instead — see `lib/utils/days.ts`. */
 export const isoOrNull = (v: unknown): string | null =>
   v == null ? null : v instanceof Date ? v.toISOString() : String(v)

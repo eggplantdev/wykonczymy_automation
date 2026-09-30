@@ -1,8 +1,6 @@
 import 'server-only'
 import { sql } from '@payloadcms/db-vercel-postgres'
-import type { Payload, PayloadRequest } from 'payload'
 import type { DbExecutorT } from '@/lib/db/get-db'
-import { DEFAULT_ITEM_DESCRIPTION, DEFAULT_UNIT } from '@/lib/kosztorys/constants'
 import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import type { KosztorysSectionT } from '@/lib/kosztorys/types'
 
@@ -42,31 +40,4 @@ export async function sectionOwnerAndNextItemOrder(
       color: (row.color as SectionColorKeyT | null) ?? null,
     },
   }
-}
-
-// Every blank position the app mints — append and insert-at — is this one row shape. Three copies had already drifted apart on which defaults they set (EX-578).
-export async function createBlankItem(
-  payload: Payload,
-  {
-    investmentId,
-    sectionId,
-    displayOrder,
-    req,
-  }: { investmentId: number; sectionId: number; displayOrder: number; req?: PayloadRequest },
-): Promise<NewRowT> {
-  const created = await payload.create({
-    collection: 'kosztorys-items',
-    req,
-    data: {
-      investment: investmentId,
-      section: sectionId,
-      displayOrder,
-      description: DEFAULT_ITEM_DESCRIPTION,
-      unit: DEFAULT_UNIT,
-      plannedQty: 0,
-      discountValue: 0,
-      clientPrice: 0,
-    },
-  })
-  return { id: created.id, displayOrder }
 }
