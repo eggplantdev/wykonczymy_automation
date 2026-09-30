@@ -94,7 +94,7 @@ import {
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import { sectionFooterRowId, sectionHeaderRowId } from '@/lib/kosztorys/synthetic-rows'
 import { roundToCents } from '@/lib/utils/round-to-cents'
-import { settled } from '@/lib/utils/settle-action'
+import { settleAction } from '@/lib/utils/settle-action'
 import {
   addItemAction,
   addSectionAction,
@@ -154,21 +154,6 @@ type ArgsT = {
 const UNDO_COALESCE_MS = 700
 
 const NO_ROW_IDS: ReadonlySet<number> = new Set()
-
-// Every structural write already reverts on `!success`; wrapping here makes a request that never
-// arrived take that same branch instead of rejecting past it.
-const settledOps = {
-  swapItemOrder: settled(swapItemOrderAction),
-  addItem: settled(addItemAction),
-  insertItem: settled(insertItemAction),
-  removeItem: settled(removeItemAction),
-  renumberOrder: settled(renumberKosztorysOrderAction),
-  swapSectionOrder: settled(swapSectionOrderAction),
-  insertSection: settled(insertSectionAction),
-  addSection: settled(addSectionAction),
-  removeSection: settled(removeSectionAction),
-  updateItemField: settled(updateItemFieldAction),
-}
 
 // Handlers never fire an action from inside a setRows updater — that would move the Router during
 // render.
@@ -792,7 +777,7 @@ export function useKosztorysEditor({
   // stack claiming a swap that never happened, and Cmd+Z would then overshoot by one slot (EX-737).
   // `amendTop` is identity-guarded, so anything the user did since makes this a silent no-op.
   async function persistItemSwap(itemId: number, dir: 'up' | 'down', command?: UndoCommandT) {
-    const res = await settledOps.swapItemOrder(itemId, dir)
+    const res = await settleAction(() => swapItemOrderAction(itemId, dir))
     if (res.success) return
     setRows((rs) => swapItemInSection(rs, itemId, dir === 'up' ? 'down' : 'up'))
     if (command) amendTop(command, null)
@@ -833,7 +818,7 @@ export function useKosztorysEditor({
   }
 
   async function handleAddItem(sectionId: number) {
-    const res = await settledOps.addItem(sectionId)
+    const res = await settleAction(() => addItemAction(sectionId))
     if (!res.success) return reportFailure(res.error, res.code)
     const meta = sectionMeta(sectionId)
     const row = makeBlankRow({
@@ -859,7 +844,7 @@ export function useKosztorysEditor({
   // against a price-sorted view, so it no-ops while a column sort is active.
   async function handleInsertItem(anchorRow: KosztorysV2RowT, dir: 'above' | 'below') {
     if (!orderCommandsEnabled(sort)) return
-    const res = await settledOps.insertItem(anchorRow.id, dir)
+    const res = await settleAction(() => insertItemAction(anchorRow.id, dir))
     if (!res.success) return reportFailure(res.error, res.code)
     const sample = sectionMeta(anchorRow.sectionId) ?? anchorRow
     const row = makeBlankRow({
@@ -884,7 +869,7 @@ export function useKosztorysEditor({
     // against a dead id, and `setStageProgressAction` (an absolute upsert) could recreate an orphan (EX-526 #2).
     flushUndoBuffer()
     pruneByIds([row.id])
-    const res = await settledOps.removeItem(row.id)
+    const res = await settleAction(() => removeItemAction(row.id))
     if (!res.success) {
       // Server rejected: restore the row after the neighbour it followed, resolved against the current rows
       // so a concurrent edit during the await can't misplace it. The pruned undo history stays gone.
@@ -920,7 +905,7 @@ export function useKosztorysEditor({
   // `revertTo` is the fallback when one stale id rejects the entire write.
   async function runKosztorysRenumber(next: number[], revertTo: number[]) {
     setRows((rs) => applyKosztorysOrder(rs, next))
-    const res = await settledOps.renumberOrder(investmentId, next)
+    const res = await settleAction(() => renumberKosztorysOrderAction(investmentId, next))
     if (!res.success) {
       setRows((rs) => applyKosztorysOrder(rs, revertTo))
       reportFailure(res.error, res.code)
@@ -949,7 +934,7 @@ export function useKosztorysEditor({
 
   // Section twin of persistItemSwap, down to the rollback and the undo retraction.
   async function persistSectionSwap(sectionId: number, dir: 'up' | 'down', command?: UndoCommandT) {
-    const res = await settledOps.swapSectionOrder(sectionId, dir)
+    const res = await settleAction(() => swapSectionOrderAction(sectionId, dir))
     if (res.success) return
     const back = swapSection(sectionsRef.current, sectionId, dir === 'up' ? 'down' : 'up')
     if (back) applySectionOrder(back)
@@ -999,7 +984,7 @@ export function useKosztorysEditor({
 
   async function handleInsertSection(anchorSectionId: number, dir: 'above' | 'below') {
     if (!orderCommandsEnabled(sort)) return
-    const res = await settledOps.insertSection(anchorSectionId, dir)
+    const res = await settleAction(() => insertSectionAction(anchorSectionId, dir))
     if (!res.success) return reportFailure(res.error, res.code)
     const meta = newSectionMeta(res.data.section.id)
     commitSections(insertSection(sectionsRef.current, meta, anchorSectionId, dir))
@@ -1007,7 +992,7 @@ export function useKosztorysEditor({
 
   // Resolves to the new section's id, so „Dodaj → Praca" on an empty kosztorys can put a pozycja in it.
   async function handleAddSection(): Promise<number | undefined> {
-    const res = await settledOps.addSection(investmentId)
+    const res = await settleAction(() => addSectionAction(investmentId))
     if (!res.success) {
       reportFailure(res.error, res.code)
       return undefined
@@ -1093,7 +1078,7 @@ export function useKosztorysEditor({
     pruneByIds([sectionHeaderRowId(sectionId), ...removed.map((r) => r.id)])
     // collapsedSectionIds is left alone: an id whose section left the list folds nothing, and it keeps
     // the fold state if the server rejects and the section comes back.
-    const res = await settledOps.removeSection(sectionId)
+    const res = await settleAction(() => removeSectionAction(sectionId))
     if (!res.success) {
       // Server rejected (predicate drift).
       for (const r of removed) prevById.current.set(r.id, r)
@@ -1175,15 +1160,7 @@ export function useKosztorysEditor({
   async function handleApplyCatalogueToItems(
     selections: { itemId: number; fields: SeedConflictFieldT[] }[],
   ): Promise<boolean> {
-    let res
-    try {
-      res = await applyCatalogueToKosztorysAction(investmentId, selections)
-    } catch {
-      // A transport-level failure throws client-side, bypassing the result contract — without this
-      // the whole editor hits its error boundary over one failed bulk write.
-      toastMessage('Nie udało się zaktualizować kosztorysu', 'warning', 4000)
-      return false
-    }
+    const res = await settleAction(() => applyCatalogueToKosztorysAction(investmentId, selections))
     if (!res.success) {
       toastMessage(res.error, 'warning', 4000)
       return false
@@ -1213,7 +1190,7 @@ export function useKosztorysEditor({
       (r) => r.id === itemId,
       (r) => ({ ...r, description: name.description, unit: name.unit }),
     )
-    const res = await settledOps.updateItemField(itemId, name)
+    const res = await settleAction(() => updateItemFieldAction(itemId, name))
     if (!res.success) {
       if (before)
         patchRows(

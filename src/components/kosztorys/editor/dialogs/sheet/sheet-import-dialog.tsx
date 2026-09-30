@@ -36,7 +36,7 @@ import { STAGE_HEADER_COPY } from '@/components/kosztorys/editor/grid/stage-head
 import { isActiveRef } from '@/lib/utils/is-active-ref'
 import type { WorkerRefT } from '@/types/reference-data'
 import { formatPLN } from '@/lib/utils/format-currency'
-import { settleAction } from '@/lib/utils/settle-action'
+import { settleTreeReplace } from '@/lib/kosztorys/settle-tree-replace'
 import { toastMessage } from '@/lib/utils/toast'
 import type { OnTreeReplacedT } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
@@ -91,23 +91,18 @@ export function SheetImportDialog({
 
   function handleConfirm() {
     startTransition(async () => {
-      const result = await settleAction(() =>
-        applyKosztorysImport(investmentId, plane === NO_PLANE ? null : plane, workerId),
+      const replaced = await settleTreeReplace(
+        () => applyKosztorysImport(investmentId, plane === NO_PLANE ? null : plane, workerId),
+        'Pobieranie przerwane — odświeżam kosztorys',
+        ({ data: { sections, items, stages } }) =>
+          toastMessage(
+            `Wczytano: ${sections} sekcji · ${items} prac · ${stages} etapów`,
+            'success',
+          ),
       )
-      // A request that never completed may still have committed the replacement, so the grid may
-      // already hold rows that no longer exist.
-      const refetch = !result.success && result.code === 'REQUEST_FAILED'
-      if (refetch) {
-        toastMessage('Pobieranie przerwane — odświeżam kosztorys', 'error', 6000)
-      } else if (!result.success) {
-        toastMessage(result.error, 'error', 6000)
-        return
-      } else {
-        const { sections, items, stages } = result.data
-        toastMessage(`Wczytano: ${sections} sekcji · ${items} prac · ${stages} etapów`, 'success')
-      }
+      if (!replaced) return
       onOpenChange(false)
-      onImported({ refetch })
+      onImported(replaced)
     })
   }
 

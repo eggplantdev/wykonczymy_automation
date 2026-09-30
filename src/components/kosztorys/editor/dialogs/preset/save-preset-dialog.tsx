@@ -45,7 +45,7 @@ export function SavePresetDialog() {
     )
     setSaving(false)
     if (!res.success) {
-      toastMessage(res.error ?? 'Nie udało się zapisać szablonu', 'error', 4000)
+      toastMessage(res.error, 'error', 4000)
       return
     }
     toastMessage('Zapisano szablon', 'success')

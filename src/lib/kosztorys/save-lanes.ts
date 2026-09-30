@@ -26,11 +26,10 @@ export function createSaveLanes() {
   // A settled tail is dropped from this map so it can't grow unbounded across a session.
   const tails = new Map<string, Promise<void>>()
 
-  // Chain `run` behind the key's current tail. Failures (logical `!success` or a rejected request,
-  // coded `REQUEST_FAILED`) route to `onError` and are swallowed so the lane never rejects and the next write still
-  // runs. The failure's `code` rides along: a write refused because its row is GONE needs a different
-  // recovery from one refused on its value, and the message alone can't be branched on. Returns the
-  // promise for *this* write settling.
+  // Chain `run` behind the key's current tail. Failures route to `onError` and are swallowed so the
+  // lane never rejects and the next write still runs. The failure's `code` rides along: a write
+  // refused because its row is GONE needs a different recovery from one refused on its value, and
+  // the message alone can't be branched on. Returns the promise for *this* write settling.
   function enqueue(
     key: string,
     run: LaneRunT,

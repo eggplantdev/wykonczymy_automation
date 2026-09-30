@@ -8,7 +8,7 @@
  */
 export type ActionErrorCodeT = 'NOT_FOUND' | 'REQUEST_FAILED'
 
-type FailureT = { success: false; error: string; code?: ActionErrorCodeT }
+export type FailureT = { success: false; error: string; code?: ActionErrorCodeT }
 
 /**
  * Discriminated result every server action returns. With TData, success carries a payload.

@@ -13,6 +13,7 @@ import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view/settings'
 import type { ColumnRanksT } from '@/lib/table/column-order'
 import { copyToClipboardAsync } from '@/lib/utils/copy-to-clipboard'
 import { investorShareUrl } from '@/lib/kosztorys/client-view/share-url'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 
@@ -75,9 +76,7 @@ export function useInvestorActions(): InvestorActionsT {
     const isCurrent = shareRequest.start()
     setShareOpen(true)
     setShareLoaded(false)
-    // A rejection is caught on the stored promise below, which also feeds the clipboard copy.
-    // eslint-disable-next-line no-restricted-syntax
-    const token = ensureShareLinkAction(investmentId).then((result) => {
+    const token = settleAction(() => ensureShareLinkAction(investmentId)).then((result) => {
       if (!result.success) throw new ShareLinkError(result.error)
       if (isCurrent()) setShareToken(result.data)
       return result.data

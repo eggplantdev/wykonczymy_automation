@@ -92,7 +92,7 @@ export function AddSectionsFromPresetDialog({
     const res = await settleAction(() => appendPresetSectionsAction(investmentId, sectionIds))
     setPending(false)
     if (!res.success) {
-      toastMessage(res.error ?? 'Nie udało się dodać sekcji', 'error', 4000)
+      toastMessage(res.error, 'error', 4000)
       return
     }
     toastMessage(sectionIds.length === 1 ? 'Dodano sekcję' : 'Dodano sekcje', 'success')

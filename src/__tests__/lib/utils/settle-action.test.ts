@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { redirect } from 'next/navigation'
-import { settleAction, settled } from '@/lib/utils/settle-action'
+import { settleAction } from '@/lib/utils/settle-action'
 
 describe('settleAction', () => {
   beforeEach(() => vi.spyOn(console, 'error').mockImplementation(() => {}))
@@ -25,21 +25,5 @@ describe('settleAction', () => {
         redirect('/zaloguj')
       }),
     ).rejects.toMatchObject({ digest: expect.stringMatching(/^NEXT_REDIRECT/) })
-  })
-})
-
-describe('settled', () => {
-  beforeEach(() => vi.spyOn(console, 'error').mockImplementation(() => {}))
-  afterEach(() => vi.restoreAllMocks())
-
-  it('forwards the arguments to the wrapped action', async () => {
-    const action = vi.fn(async (id: number, name: string) => ({ success: true as const, id, name }))
-    expect(await settled(action)(7, 'Etap')).toEqual({ success: true, id: 7, name: 'Etap' })
-    expect(action).toHaveBeenCalledWith(7, 'Etap')
-  })
-
-  it('settles a rejection of the wrapped action', async () => {
-    const action = vi.fn(() => Promise.reject(new TypeError('Failed to fetch')))
-    expect(await settled(action)()).toMatchObject({ success: false, code: 'REQUEST_FAILED' })
   })
 })

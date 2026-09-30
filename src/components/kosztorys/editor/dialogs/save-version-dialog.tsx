@@ -35,7 +35,7 @@ export function SaveVersionDialog() {
     const res = await settleAction(() => saveSnapshotAction(investmentId, label))
     setSaving(false)
     if (!res.success) {
-      toastMessage(res.error ?? 'Nie udało się zapisać wersji', 'error', 4000)
+      toastMessage(res.error, 'error', 4000)
       return
     }
     toastMessage('Zapisano wersję', 'success')
