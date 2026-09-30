@@ -20,7 +20,7 @@ export type ReconcileSweepResultT = {
   scanned: number
   /** Forms whose Graph calls threw; the rest of the sweep still ran. */
   failedForms: string[]
-  /** Forms that filled a whole `PER_FORM_LIMIT` page with new leads — older ones may lie past it. */
+  /** Forms whose full `PER_FORM_LIMIT` page ended on a new lead — older ones may lie past it. */
   saturatedForms: string[]
 }
 

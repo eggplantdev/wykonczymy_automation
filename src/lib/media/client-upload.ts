@@ -8,6 +8,11 @@ import type { MediaKindT } from '@/types/media'
 const TOKEN_ROUTE = '/api/vercel-blob-client-upload-route'
 const MEDIA_ROUTE = '/api/media'
 
+/** An upload refused for a reason worded for the user — the only failure whose message reaches a toast. */
+export class UploadRefusedError extends Error {
+  name = 'UploadRefusedError'
+}
+
 /**
  * Upload a picked file to the media collection from the browser. Two hops, because the bytes must
  * not cross a Vercel function: the browser PUTs them straight to Blob, then asks Payload to create
@@ -19,11 +24,6 @@ const MEDIA_ROUTE = '/api/media'
  * have to be the same string; `uniqueFileName` already sanitizes, so the collection's
  * `beforeChange` sanitize pass is a no-op on it rather than a rename that would orphan the key.
  */
-/** An upload refused for a reason worded for the user — the only failure whose message reaches a toast. */
-export class UploadRefusedError extends Error {
-  name = 'UploadRefusedError'
-}
-
 export async function uploadMediaFromClient(
   file: File,
   data: { kind?: MediaKindT } = {},
