@@ -18,9 +18,14 @@ export function addMember(draft: StageSplitT, workerId: number): StageSplitT {
   }
 }
 
-/** Removing the rest holder leaves nobody on the rest — the save stays refused until one is picked. */
+/**
+ * Removing the rest holder leaves nobody on the rest — the save stays refused until one is picked.
+ * Except when one person is left: there is nothing to split, so they take the whole pool.
+ */
 export function removeMember(draft: StageSplitT, workerId: number): StageSplitT {
-  return { ...draft, members: draft.members.filter((member) => member.workerId !== workerId) }
+  const members = draft.members.filter((member) => member.workerId !== workerId)
+  if (members.length === 1) return setRestHolder({ ...draft, members }, members[0].workerId)
+  return { ...draft, members }
 }
 
 /** Percentages and złote don't translate into each other, so a switch starts every value from 0. */

@@ -92,14 +92,15 @@ export function normalizeStageSplit(split: StageSplitT | null): StageSplitT | nu
 /** Why a split cannot be saved against the etap's current executed-work `pool`, or null. */
 export function validateStageSplit(split: StageSplitT, pool: number): string | null {
   const { members } = split
-  if (members.length === 0) return 'Dodaj co najmniej jedną osobę.'
+  if (members.length === 0) return 'Dodaj co najmniej jednego pracownika.'
   if (members.filter((member) => member.takesRest).length !== 1) {
-    return 'Wskaż jedną osobę, która bierze resztę.'
+    return 'Wskaż głównego — pracownika, który dostaje to, co zostaje.'
   }
   if (new Set(members.map((member) => member.workerId)).size !== members.length) {
-    return 'Ta sama osoba jest w podziale dwa razy.'
+    return 'Ten sam pracownik jest w podziale dwa razy.'
   }
   const entered = members.filter((member) => !member.takesRest)
+  if (entered.some((member) => !Number.isFinite(member.value))) return 'Wpisz poprawną liczbę.'
   if (entered.some((member) => member.value < 0)) return 'Udział nie może być ujemny.'
   const enteredTotal = roundToCents(entered.reduce((total, member) => total + member.value, 0))
   if (split.mode === 'percent') {

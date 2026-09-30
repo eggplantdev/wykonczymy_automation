@@ -39,9 +39,15 @@ describe('the split draft', () => {
   })
 
   it('refuses to save without a rest holder until one is picked', () => {
-    const orphaned = removeMember(twoPeople(), ANNA)
+    const orphaned = removeMember(addMember(twoPeople(), CEZARY), ANNA)
     expect(draftError(orphaned, 1000)).not.toBeNull()
     expect(draftError(setRestHolder(orphaned, BOB), 1000)).toBeNull()
+  })
+
+  it('puts the one person left on the rest — nobody to split with', () => {
+    const alone = removeMember(twoPeople(), ANNA)
+    expect(alone.members).toEqual([{ workerId: BOB, value: 0, takesRest: true }])
+    expect(draftError(alone, 1000)).toBeNull()
   })
 
   it('saves an emptied etap as unassigned, not as an invalid split', () => {

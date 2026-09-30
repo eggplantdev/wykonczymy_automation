@@ -66,10 +66,7 @@ describe('splitStagePool', () => {
   })
 
   it('splits nothing when no work was executed', () => {
-    for (const split of [
-      percent(entered(1, 50), rest(2)),
-      amount(entered(1, 500), rest(2)),
-    ]) {
+    for (const split of [percent(entered(1, 50), rest(2)), amount(entered(1, 500), rest(2))]) {
       const { shares, scaledDown } = splitStagePool(0, split)
       expect([...shares.values()]).toEqual([0, 0])
       expect(scaledDown).toBe(false)
@@ -139,6 +136,10 @@ describe('validateStageSplit', () => {
 
   it('refuses the same worker twice', () => {
     expect(validateStageSplit(percent(entered(1, 10), rest(1)), 100)).not.toBeNull()
+  })
+
+  it('refuses a value that is not a number', () => {
+    expect(validateStageSplit(percent(entered(1, Number.NaN), rest(2)), 100)).not.toBeNull()
   })
 
   it('refuses a negative value', () => {
