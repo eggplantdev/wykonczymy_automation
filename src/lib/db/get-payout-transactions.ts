@@ -2,6 +2,7 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import type { Payload } from 'payload'
 import { perfStart } from '@/lib/perf'
 import { getDb } from '@/lib/db/get-db'
+import { textOrNull } from '@/lib/db/row-coerce'
 import type { PayoutTransactionRowT } from '@/types/transfers'
 
 /**
@@ -31,7 +32,7 @@ export const getPayoutTransactionsForInvestment = async (
     // lexically == chronologically sortable — the client DataTable re-sorts „Wg daty" on it directly.
     date: String(row.date),
     amount: Number(row.amount),
-    description: row.description == null ? null : String(row.description),
+    description: textOrNull(row.description),
   }))
   console.log(
     `[PERF] query.getPayoutTransactionsForInvestment ${elapsed()}ms (${rows.length} rows)`,
