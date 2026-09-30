@@ -45,7 +45,7 @@ async function findOrCreateWorker(payload: Payload, spec: { email: string; name:
   if (existing.docs[0]) return Number(existing.docs[0].id)
   const created = await payload.create({
     collection: 'users',
-    data: { ...spec, password: `seed-${Date.now()}`, role: 'EMPLOYEE', active: true },
+    data: { ...spec, password: `seed-${Date.now()}`, role: 'EMPLOYEE', active: true }, // ggignore
     overrideAccess: true,
     context: { skipRevalidation: true },
   })

@@ -13,7 +13,7 @@ vi.mock('@/lib/db/get-db', () => ({
   getDb: vi.fn().mockResolvedValue({ execute: (...args: unknown[]) => mockDbExecute(...args) }),
 }))
 
-const { getErrorMessage, validateAction } = await import('@/lib/actions/run-action')
+const { validateAction } = await import('@/lib/actions/run-action')
 const { validateSourceRegister } = await import('@/lib/actions/validate-source-register')
 
 const fakePayload = {} as Payload
@@ -37,26 +37,6 @@ function mockRegisterLookup(registerId: number | undefined) {
 
 beforeEach(() => {
   mockDbExecute.mockReset()
-})
-
-// ── getErrorMessage ──────────────────────────────────────────────────────
-
-describe('getErrorMessage', () => {
-  it('extracts message from Error instance', () => {
-    expect(getErrorMessage(new Error('boom'))).toBe('boom')
-  })
-
-  it('returns default for non-Error', () => {
-    expect(getErrorMessage('string error')).toBe('Wystąpił błąd')
-  })
-
-  it('returns default for null', () => {
-    expect(getErrorMessage(null)).toBe('Wystąpił błąd')
-  })
-
-  it('returns default for undefined', () => {
-    expect(getErrorMessage(undefined)).toBe('Wystąpił błąd')
-  })
 })
 
 // ── validateAction ───────────────────────────────────────────────────────

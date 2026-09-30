@@ -41,6 +41,20 @@ describe('resolveLaborColumns with a stored column pointing', () => {
     expect(result.missingFields).toEqual([{ field: 'netValue', required: true, reason: 'absent' }])
   })
 
+  it('runs unmarked etapy up to a Przedmiar the owner pointed at', () => {
+    // Markers on D–I only and the Przedmiar header overwritten: the pointing is the only thing that
+    // says where the etapy stop, and N itself must stay free to be pointed at.
+    const grid = BIALOSTOCKA_LABOR_HEADER.map((row) => [...row])
+    for (const column of ['J', 'K', 'L', 'M']) grid[1][col(column)] = ''
+    for (const row of [0, 2]) grid[row][col('N')] = 'Przesyłam wstępny kosztorys.'
+
+    const result = resolveLaborColumns(grid, { plannedQty: col('N') })
+    expectResolved(result)
+
+    expect(result.columns.plannedQty).toBe(col('N'))
+    expect(result.stages).toEqual({ firstColumn: col('D'), count: 10 }) // D–M
+  })
+
   it('ignores a pointing at a column read off the etapy position', () => {
     // B is the ordinal between „nazwa sekcji" and „opis pracy" — no field's own, but not free either.
     const result = resolveLaborColumns(UNNAMED_NET_VALUE_LABOR_HEADER, { netValue: col('B') })

@@ -6,6 +6,7 @@ import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { MenuItemBody } from '@/components/kosztorys/editor/actions/menu-item-body'
 import { cleanItemTextsAction } from '@/lib/actions/kosztorys'
+import { logError } from '@/lib/utils/log-error'
 import { toastMessage } from '@/lib/utils/toast'
 
 // The one action with no dialog, so its state stays inside the item instead of being lifted.
@@ -24,7 +25,13 @@ export function CleanItemTextsMenuItem() {
         toastMessage(`Poprawiono pozycje: ${res.data}`, 'success')
         onTreeReplaced?.()
       })
-      .catch(() => toastMessage('Nie udało się poprawić pozycji', 'error'))
+      .catch((err) => {
+        logError('[CLEAN_ITEM_TEXTS]', err)
+        // A transport-level rejection can arrive after the rewrite committed; refetch so the grid
+        // doesn't autosave the old text back over it.
+        toastMessage('Nie udało się poprawić pozycji — odświeżam kosztorys', 'error')
+        onTreeReplaced?.({ refetch: true })
+      })
       .finally(() => setCleaning(false))
   }
 

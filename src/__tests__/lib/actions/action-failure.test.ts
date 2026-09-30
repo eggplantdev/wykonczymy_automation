@@ -14,6 +14,26 @@ describe('toActionFailure', () => {
     expect(failure.error).not.toBe('Nie znaleziono')
   })
 
+  // A Drizzle-wrapped Postgres failure's message is the whole statement plus its bind params — once
+  // 60 KB of JSON in a toast after a user row was recreated under a new id (FK on `taken_by`).
+  it('hides a failed query behind a generic message', () => {
+    const driverError = Object.assign(
+      new Error('insert or update violates foreign key constraint'),
+      {
+        severity: 'ERROR',
+        code: '23503',
+      },
+    )
+    const queryError = Object.assign(
+      new Error('Failed query: INSERT INTO kosztorys_snapshots (taken_by) VALUES ($1)\nparams: 7'),
+      { query: 'INSERT INTO kosztorys_snapshots (taken_by) VALUES ($1)', params: [7] },
+      { cause: driverError },
+    )
+
+    expect(toActionFailure(queryError).error).not.toMatch(/Failed query|INSERT|foreign key/)
+    expect(toActionFailure(driverError).error).not.toMatch(/foreign key/)
+  })
+
   it('leaves any other error untagged, with its own message', () => {
     const failure = toActionFailure(new Error('Kwota musi być dodatnia'))
 

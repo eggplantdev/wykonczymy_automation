@@ -1,9 +1,10 @@
-import { render, screen } from '@testing-library/react'
+import { render, renderHook, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import type { ColumnDef } from '@tanstack/react-table'
+import { getCoreRowModel, useReactTable, type ColumnDef } from '@tanstack/react-table'
 import { describe, expect, it, vi } from 'vitest'
 
 import { DataTable } from '@/components/tables/data-table/data-table'
+import { DataTableRow } from '@/components/tables/data-table/data-table-row'
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), prefetch: vi.fn() }),
@@ -88,28 +89,38 @@ describe('DataTable — header and body agree on which columns are visible', () 
 })
 
 // The symptom above only appears in a compiled build, where the React Compiler memoizes
-// <DataTableRow> and a visibility toggle changes none of its props — vitest goes through esbuild, so
-// those assertions pass with or without the fix. What IS observable in jsdom is the mechanism: the
-// visible-column set is part of the row's key, so changing it remounts the row.
-describe('DataTable — the row key that defeats the compiler cache', () => {
-  it('replaces the row element when the visible-column set changes', async () => {
+// <DataTableRow> on its props — vitest goes through esbuild, so those assertions pass with or without
+// the fix. What IS observable in jsdom is the mechanism: the row renders the cells it is handed, so a
+// column change reaches it through a prop rather than a remount.
+describe('DataTable — rows follow column visibility through their cells', () => {
+  it('renders exactly the cells it is handed', () => {
+    const table = renderHook(() =>
+      useReactTable({ data: DATA, columns: COLUMNS, getCoreRowModel: getCoreRowModel() }),
+    ).result.current
+    const row = table.getRowModel().rows[0]!
+    const cells = row.getAllCells().filter((cell) => cell.column.id !== 'net')
+
+    render(
+      <table>
+        <tbody>
+          <DataTableRow row={row} cells={cells} />
+        </tbody>
+      </table>,
+    )
+
+    const texts = [...screen.getByRole('row').querySelectorAll('td')].map(
+      (cell) => cell.textContent,
+    )
+    expect(texts).toEqual(['Wylewka', 'Etap 1'])
+  })
+
+  it('keeps the row element when the visible-column set changes', async () => {
     const user = renderTable()
     const before = firstBodyRow()
 
     await user.click(screen.getByText('toggle:net'))
 
-    expect(firstBodyRow()).not.toBe(before)
-  })
-
-  it('reuses the row element on a re-render that leaves the columns alone', async () => {
-    const user = renderTable()
-    const before = firstBodyRow()
-
-    // Sorting by etap re-renders the table and leaves this data in the order it was already in, so the
-    // key is stable and React keeps the node — without that half the previous assertion is vacuous.
-    await user.click(screen.getByText('Etap'))
-
-    expect(firstRowTexts()).toEqual(['Wylewka', '1200', 'Etap 1'])
+    expect(firstRowTexts()).toEqual(['Wylewka', 'Etap 1'])
     expect(firstBodyRow()).toBe(before)
   })
 })

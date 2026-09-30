@@ -20,7 +20,7 @@ export type ReconcileSweepResultT = {
   scanned: number
   /** Forms whose Graph calls threw; the rest of the sweep still ran. */
   failedForms: string[]
-  /** Forms that filled a whole `PER_FORM_LIMIT` page — older leads may lie past it. */
+  /** Forms that filled a whole `PER_FORM_LIMIT` page with new leads — older ones may lie past it. */
   saturatedForms: string[]
 }
 
@@ -52,12 +52,9 @@ export async function runLeadReconcileSweep(payload: Payload): Promise<Reconcile
       const rawLeads = await fetchRecentLeads(form.id, PER_FORM_LIMIT)
       if (rawLeads.length === 0) continue
 
-      // A full page means the window, not the backlog, decided where we stopped, and the leads past
-      // it are unreachable. The caller surfaces this in the alert.
-      if (rawLeads.length >= PER_FORM_LIMIT) saturatedForms.push(form.id)
-
       // Carries Meta's field types for normalizeLead; the name comes from the forms listing.
       const { questions } = await fetchForm(form.id)
+      let oldest: { time: number; created: boolean } | undefined
 
       for (const raw of rawLeads) {
         const parsed = leadSchema.safeParse(raw)
@@ -86,8 +83,10 @@ export async function runLeadReconcileSweep(payload: Payload): Promise<Reconcile
           },
         )
 
-        // Guards the `recovered` list only — a redelivered row's unsent channels are `captureLead`'s
-        // business and it has dealt with them by now.
+        const time = Date.parse(parsed.data.created_time)
+        if (!oldest || time < oldest.time) oldest = { time, created }
+
+        // A redelivered row's unsent channels are `captureLead`'s business and it has dealt with them.
         if (!created) continue
 
         recovered.push({
@@ -97,6 +96,12 @@ export async function runLeadReconcileSweep(payload: Payload): Promise<Reconcile
           submittedAt: lead.submittedAt,
         })
       }
+
+      // Decided by the page's OLDEST lead alone: a full page ending on a new one means the window, not
+      // the backlog, decided where we stopped, and the leads past it are unreachable. A stored newer
+      // lead only says the webhook came back; a dormant form fills the page with old ones and ends on
+      // a stored lead, so it stays quiet. The caller surfaces this in the alert.
+      if (rawLeads.length >= PER_FORM_LIMIT && oldest?.created) saturatedForms.push(form.id)
     } catch (err) {
       // TODO(EX-449) SENTRY-REQUIRED: a form the sweep can never read is a permanent hole.
       console.error(`[reconcile-sweep] Form ${form.id} failed`, err)

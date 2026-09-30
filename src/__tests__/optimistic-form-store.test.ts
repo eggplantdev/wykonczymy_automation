@@ -203,6 +203,24 @@ describe('submitOptimistically raises the global pill', () => {
     await vi.waitFor(() => expect(pending().size).toBe(0))
   })
 
+  it('reports a failed request in Polish, not the browser message', async () => {
+    store().submitOptimistically(
+      'transfer',
+      files,
+      vi.fn(() => Promise.reject(new TypeError('Failed to fetch'))),
+      'OK',
+      vi.fn(),
+    )
+
+    await vi.waitFor(() => expect(store().submission?.status).toBe('failed'))
+    expect(store().submission?.error).toMatch(/^Brak połączenia z serwerem/)
+    expect(mockToastMessage).toHaveBeenCalledWith(
+      expect.stringMatching(/^Brak połączenia z serwerem/),
+      'error',
+      5000,
+    )
+  })
+
   it('a second save in flight keeps its own key alive when the first settles', async () => {
     store().submitOptimistically(
       'transfer',

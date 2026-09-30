@@ -1,12 +1,15 @@
 'use client'
 
 import React from 'react'
-import { flexRender, type Row } from '@tanstack/react-table'
+import { flexRender, type Cell, type Row } from '@tanstack/react-table'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils/cn'
 
 type DataTableRowPropsT<TData> = {
   row: Row<TData>
+  /** `row.getVisibleCells()`, read by the parent: the `row` object outlives a column change, so a
+   * compiled row reading its own cells would keep printing the old columns. */
+  cells: Cell<TData, unknown>[]
   getRowHref?: (row: TData) => string | undefined
   getRowClassName?: (row: TData) => string
   /** The virtualizer's `measureElement` — it reads the row's position from `data-index`. */
@@ -16,6 +19,7 @@ type DataTableRowPropsT<TData> = {
 
 export function DataTableRow<TData>({
   row,
+  cells,
   getRowHref,
   getRowClassName,
   measureRef,
@@ -59,7 +63,7 @@ export function DataTableRow<TData>({
       onClick={handleClick}
       onMouseEnter={handleMouseEnter}
     >
-      {row.getVisibleCells().map((cell) => {
+      {cells.map((cell) => {
         const align = cell.column.columnDef.meta?.align
         const minWidth = cell.column.columnDef.meta?.minWidth
         return (

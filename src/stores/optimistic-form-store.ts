@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { usePendingStore } from '@/stores/pending-store'
 import { toastMessage } from '@/lib/utils/toast'
 import { logError } from '@/lib/utils/log-error'
+import { settleAction } from '@/lib/utils/settle-action'
 import type { ActionResultT } from '@/types/action'
 
 type PendingSubmissionT = {
@@ -69,7 +70,7 @@ export const useOptimisticFormStore = create<OptimisticFormStoreT>()((set) => ({
     usePendingStore.getState().start(formId, 'Zapisywanie…')
 
     // Fire-and-forget — runs after dialog unmounts
-    action()
+    settleAction(action)
       .then((result) => {
         if (result.success) {
           set({ submission: null })
@@ -88,8 +89,10 @@ export const useOptimisticFormStore = create<OptimisticFormStoreT>()((set) => ({
         }
       })
       .catch((err) => {
+        // Only our own handlers land here (`settleAction` folds a failed request into the result), so
+        // their message is a developer's, not the user's.
         logError('[OPTIMISTIC_SUBMIT]', err)
-        const errorMessage = err instanceof Error ? err.message : 'Wystąpił nieoczekiwany błąd'
+        const errorMessage = 'Wystąpił nieoczekiwany błąd'
         set((state) => ({
           openFormId: formId,
           submission: state.submission

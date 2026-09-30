@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Description } from '@/components/ui/description'
 import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '@/components/ui/dialog'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import { getServiceAccountEmailAction, linkSheetAction } from '@/lib/actions/investments'
 import { ExternalLink } from '../ui/external-link'
@@ -43,7 +44,7 @@ export function SheetSetupDialog({ investmentId, trigger }: PropsT) {
   const onLink = () => {
     if (!link.trim()) return
     startTransition(async () => {
-      const res = await linkSheetAction(investmentId, link)
+      const res = await settleAction(() => linkSheetAction(investmentId, link))
       if (!res.success) return toastMessage(res.error, 'error')
       finish(`Dodano kosztorys „${res.data.title}”.`)
     })

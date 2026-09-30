@@ -1,3 +1,4 @@
+import { logError } from '@/lib/utils/log-error'
 import { uniqueFileName } from '@/lib/utils/unique-file-name'
 import { validateUploadFile } from '@/lib/utils/validate-upload-file'
 import type { MediaKindT } from '@/types/media'
@@ -18,12 +19,17 @@ const MEDIA_ROUTE = '/api/media'
  * have to be the same string; `uniqueFileName` already sanitizes, so the collection's
  * `beforeChange` sanitize pass is a no-op on it rather than a rename that would orphan the key.
  */
+/** An upload refused for a reason worded for the user — the only failure whose message reaches a toast. */
+export class UploadRefusedError extends Error {
+  name = 'UploadRefusedError'
+}
+
 export async function uploadMediaFromClient(
   file: File,
   data: { kind?: MediaKindT } = {},
 ): Promise<number> {
   const error = validateUploadFile(file)
-  if (error) throw new Error(error)
+  if (error) throw new UploadRefusedError(error)
 
   const filename = uniqueFileName(file.name)
 
@@ -78,12 +84,21 @@ async function postMediaRow(
   const response = await fetch(MEDIA_ROUTE, { method: 'POST', body: formData })
   const body = await response.json().catch(() => undefined)
 
+  // Payload's `errors[0].message` is English and names neither the file nor the cause, and the
+  // caller toasts this message verbatim. A 400 is the upload pipeline refusing the bytes themselves
+  // (a PDF with no xref table, measured on staging).
   if (!response.ok) {
-    throw new Error(body?.errors?.[0]?.message ?? `Upload nie powiódł się (${response.status})`)
+    logError(`[client-upload] POST ${MEDIA_ROUTE} ${response.status}`, body?.errors)
+    throw new UploadRefusedError(
+      response.status === 400
+        ? `Plik „${file.name}" został odrzucony — może być uszkodzony.`
+        : `Nie udało się zapisać pliku „${file.name}" (${response.status}) — spróbuj ponownie.`,
+    )
   }
   // An `ok` response with an unparseable body (an edge interstitial) would otherwise surface as a
   // bare TypeError — and the caller puts `err.message` straight into a user-facing toast.
   const id = body?.doc?.id
-  if (typeof id !== 'number') throw new Error('Upload nie powiódł się — serwer nie zwrócił pliku')
+  if (typeof id !== 'number')
+    throw new UploadRefusedError('Upload nie powiódł się — serwer nie zwrócił pliku')
   return id
 }

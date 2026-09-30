@@ -38,7 +38,6 @@ export function VirtualizedTableBody<TData>({
 }: VirtualizedTableBodyPropsT<TData>) {
   const virtualItems = virtualizer.getVirtualItems()
   const colCount = visibleColumnIdList.length
-  const visibleColumnKey = visibleColumnIdList.join('_')
   // `table-auto` sizes columns from whatever rows the virtualizer currently renders, so columns
   // resize mid-scroll — a colgroup + fixed layout pins them to the column defs' sizes instead.
   const leafHeaders = headerGroups.at(-1)?.headers ?? []
@@ -77,8 +76,9 @@ export function VirtualizedTableBody<TData>({
                 const row = rows[virtualRow.index]!
                 return (
                   <DataTableRow
-                    key={`${row.id}:${visibleColumnKey}`}
+                    key={row.id}
                     row={row}
+                    cells={row.getVisibleCells()}
                     measureRef={virtualizer.measureElement}
                     index={virtualRow.index}
                     getRowHref={getRowHref}

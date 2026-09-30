@@ -19,9 +19,9 @@ import { captureLead } from '@/lib/leads/capture-lead'
 import type { Payload } from 'payload'
 
 // Fabricated, PII-free. 'adres_e-mail' key → email via normalizeLead's heuristic.
-const rawLead = (id: string) => ({
+const rawLead = (id: string, createdTime = '2026-07-08T07:09:14+0000') => ({
   id,
-  created_time: '2026-07-08T07:09:14+0000',
+  created_time: createdTime,
   field_data: [{ name: 'adres_e-mail', values: [`${id}@example.com`] }],
 })
 
@@ -208,6 +208,40 @@ describe('runLeadReconcileSweep', () => {
       failedForms: [],
       saturatedForms: ['A'],
     })
+  })
+
+  it('does not flag a dormant form whose full page is all stored leads', async () => {
+    const fullPage = Array.from({ length: PER_FORM_LIMIT }, (_, index) => rawLead(`a${index}`))
+    vi.mocked(listLeadForms).mockResolvedValue([form('A', PER_FORM_LIMIT + 15)])
+    vi.mocked(fetchRecentLeads).mockResolvedValue(fullPage)
+    vi.mocked(captureLead).mockResolvedValue({ lead: { id: 11 }, created: false } as never)
+
+    const result = await runLeadReconcileSweep(payload)
+
+    expect(result.saturatedForms).toEqual([])
+  })
+
+  // The webhook came back before the sweep ran: the newest lead is stored, but the blackout's 99
+  // leads fill the rest of the page and more may lie past it.
+  it('flags a full page whose oldest lead is new, even when a newer one is stored', async () => {
+    const minutesAgo = (minutes: number) =>
+      new Date(Date.UTC(2026, 6, 8) - minutes * 60_000).toISOString()
+    const fullPage = Array.from({ length: PER_FORM_LIMIT }, (_, index) =>
+      rawLead(index === 0 ? 'newest' : `a${index}`, minutesAgo(index)),
+    )
+    vi.mocked(listLeadForms).mockResolvedValue([form('A', PER_FORM_LIMIT + 15)])
+    vi.mocked(fetchRecentLeads).mockResolvedValue(fullPage)
+    vi.mocked(captureLead).mockImplementation(
+      async (_payload, input) =>
+        ({
+          lead: { id: 11 },
+          created: input.externalId !== 'newest',
+        }) as never,
+    )
+
+    const result = await runLeadReconcileSweep(payload)
+
+    expect(result.saturatedForms).toEqual(['A'])
   })
 
   it('does not flag a form whose page came back short of the limit', async () => {

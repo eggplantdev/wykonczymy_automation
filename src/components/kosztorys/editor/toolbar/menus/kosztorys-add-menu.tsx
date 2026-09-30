@@ -27,12 +27,16 @@ export function KosztorysAddMenu() {
     handleAddSection,
     handleAppendedSections,
     handleAddStage,
+    stages,
     isTemplate,
   } = useKosztorysEditorContext()
   const openCataloguePicker = useCataloguePicker()
   // Owned here, OUTSIDE the dropdown content: the menu unmounts on close, so a dialog rendered inside
   // it would unmount before it could open.
   const [presetDialogOpen, setPresetDialogOpen] = useState(false)
+  // `stages` is ordinal-ordered, so this is the right-most etap.
+  const lastStage = stages.at(-1)
+  const lastPlane = lastStage?.plane
 
   return (
     <>
@@ -80,17 +84,26 @@ export function KosztorysAddMenu() {
             <ListChecks />
             Praca z katalogu…
           </DropdownMenuItem>
-          {/* Plane is forced at creation — each etap plane is its own top-level item, so there is no
-              plane-less „Etap" and no new stage is ever unconfirmed. The worker is deliberately NOT
-              forced the same way: an unassigned etap is a legitimate resting state (it earns its own
-              residual row), so it is picked later from the etap header, not here. */}
           {/* A szablon carries no etapy, so the workbench has nothing to open one on. */}
+          {/* Etapy are opened one after another for the same crew on the same terms, so a new one
+              copies the last one's rozliczenie and wykonawca — both stay editable in its header.
+              With nothing to copy the rozliczenie is picked here, never defaulted: it decides which
+              crew's stawka prices every quantity booked into the etap. */}
           {!isTemplate &&
-            TOOL_PLANES.map((plane) => (
-              <DropdownMenuItem key={plane} onSelect={() => handleAddStage(plane)}>
-                {planeIcon(plane)}
-                Etap — {PLANE_LABELS[plane].toLowerCase()}
+            (lastPlane ? (
+              <DropdownMenuItem
+                onSelect={() => handleAddStage(lastPlane, lastStage?.workerId ?? null)}
+              >
+                {planeIcon(lastPlane)}
+                Etap
               </DropdownMenuItem>
+            ) : (
+              TOOL_PLANES.map((plane) => (
+                <DropdownMenuItem key={plane} onSelect={() => handleAddStage(plane, null)}>
+                  {planeIcon(plane)}
+                  Etap — {PLANE_LABELS[plane].toLowerCase()}
+                </DropdownMenuItem>
+              ))
             ))}
           <DropdownMenuItem onSelect={handleAddSection}>
             <FolderPlus />

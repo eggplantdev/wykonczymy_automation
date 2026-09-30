@@ -48,6 +48,7 @@ zamknie kolejny przebieg weryfikacji — dopóki trwają, te boksy zostają otwa
 
 - [ ] `/raporty` renderuje kafle dokładnie jak przedtem, z odznaczaniem włącznie — **blokada 1**
       (trasa wygaszona do EX-598). Do przejechania dopiero, gdy EX-598 przywróci `/raporty`.
+      _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokada 1 (/raporty renderuje „W budowie" do EX-598, nie ma czego sprawdzać)._
 
 ### Findings — 2026-09-23 (staging/preview pass)
 
@@ -62,6 +63,7 @@ zamknie kolejny przebieg weryfikacji — dopóki trwają, te boksy zostają otwa
 - [ ] `/raporty` pokazuje baner ostrzegawczy nad liczbami bez przewijania — **blokada 1**. Na trasie
       nie ma żadnych liczb, nad którymi baner miałby stanąć. Nie jest blokerem dla samego EX-596:
       bramka jest świadoma i starsza niż ten boks.
+      _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokada 1 (/raporty renderuje „W budowie" do EX-598, nie ma czego sprawdzać)._
 
 ### Findings — 2026-09-23 (staging/preview pass)
 
@@ -81,19 +83,27 @@ wyłącznie boksy UI.
 ### Faza 1: kafel przestaje liczyć anulowania
 
 - [ ] `/raporty?from=2026-03-01&to=2026-03-31` — kafel czyta 4 202 513,34 zł, nie 7 192 866,38 zł.
+      _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokada 1 (/raporty renderuje „W budowie" do EX-598, nie ma czego sprawdzać)._
 - [ ] Ten sam URL z `&type=` wymieniającym każdy typ poza CANCELLATION daje _ten sam_ kafel i tę samą listę 379 wierszy.
+      _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokada 1 (/raporty renderuje „W budowie" do EX-598, nie ma czego sprawdzać)._
 - [ ] Styczeń i luty 2026 (zero anulowań) bez zmian — 354 675,00 i 191 030,00.
+      _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokada 1 (/raporty renderuje „W budowie" do EX-598, nie ma czego sprawdzać)._
 - [ ] `?cancelledTransactionAudit=1` dalej pokazuje niezerowy kafel (odrzucona poprawka wyzerowałaby go).
+      _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokada 1 (/raporty renderuje „W budowie" do EX-598, nie ma czego sprawdzać)._
 
 ### Faza 2: sufit filtra kwoty dochodzi do kafla
 
 - [ ] `/raporty?amount=500,00` — 20 wierszy na 10 000,00 zł i kafel 10 000,00 zł.
+      _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokada 1 (/raporty renderuje „W budowie" do EX-598, nie ma czego sprawdzać)._
 - [ ] `/raporty?amount=500` (prefiks, bez separatora) dalej listuje każdą kwotę zaczynającą się od 500, a kafel się zgadza.
+      _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokada 1 (/raporty renderuje „W budowie" do EX-598, nie ma czego sprawdzać)._
 
 ### Faza 3: kafel mówi, co liczy
 
 - [ ] `/raporty?showCancelled=1` z aktywnym filtrem — przy kaflu stoi (i) mówiące, że suma pomija anulowane transakcje.
+      _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokada 1 (/raporty renderuje „W budowie" do EX-598, nie ma czego sprawdzać)._
 - [ ] Bez `showCancelled` żadnego (i) nie ma.
+      _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokada 1 (/raporty renderuje „W budowie" do EX-598, nie ma czego sprawdzać)._
 
 ## cron-lead-reconcile (EX-416)
 
@@ -105,12 +115,14 @@ produkcję.
 (`added:0, scanned:30`), a `vercel crons ls` potwierdza rejestrację `0 4 * * *` na Production.
 
 - [ ] Wywołanie z poprawnym `CRON_SECRET` zwraca liczniki, a przebieg, który odzyskał leada, dostarcza
+      **Linear: EX-937** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
       mail alertowy na listę „Alerty techniczne" — **blokady 2 i 3**. Połowa licznikowa domknięta
       (200 + liczniki z produkcji). Zostaje wyłącznie noga mailowa i jej **nie da się wymusić bez
       szkody**: `notifyReconcileRecovery` leci tylko przy `added > 0`
       (`src/app/(payload)/api/cron/leads-reconcile/route.ts:25`), a skoro webhook działa, sweep nie ma
       czego odzyskiwać — zobaczenie tego wymagałoby skasowania prawdziwego zgłoszenia z produkcyjnej
       bazy. Świadomie tego nie robimy.
+      _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokady 2 i 4 (mail nie wychodzi poza produkcją, brak dostępu do skrzynki). Cron na Preview stoi też za SSO i CRON_SECRET (blokada 3)._
 - [x] **Linear: EX-926.** **Otwarty defekt: warunek flagi „nasycony formularz" jest zły.** `rawLeads.length >= PER_FORM_LIMIT`
       mówi „strona pełna", a znaczenie ma „strona pełna **i wszystkie zgłoszenia na niej były nowe" —
       dopiero to dowodzi, że zaległość sięga dalej niż okno. Jedno znane zgłoszenie na stronie dowodzi,
@@ -144,14 +156,18 @@ wylądowało z `auto_reply_status = 'skipped'`), a defekt, który EX-660 naprawi
 `skipped`), **nie jest odtwarzalny** — `notify_status` siada na `failed`, czyli próbowano.
 
 - [ ] Przebieg sweepa (cron `/api/cron/leads-reconcile`) → skrzynka sprzedaży dostaje jedno zwykłe
+      **Linear: EX-937** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
       „Nowe zgłoszenie", nieodróżnialne od webhookowego — **blokada 2**. Kod gwarantuje
       nieodróżnialność strukturalnie: obie ścieżki wołają ten sam `captureLead` → `notifyNewLead`
       (`src/lib/leads/capture-lead.ts:71`),
       różni je wyłącznie opcja `autoReply`. Została sama dostawa.
+      _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokady 2 i 4 (mail nie wychodzi poza produkcją, brak dostępu do skrzynki)._
 - [ ] Dokładnie jeden mail podsumowujący, wyłącznie na „Alerty techniczne" (nie do sprzedaży), bez
+      **Linear: EX-937** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
       danych kontaktowych i bez instrukcji „zadzwoń sam" — **blokady 2, 3 i 4**. Alert
       (`notifyReconcileFailure`/`notifyReconcileRecovery`) leci z trasy crona, która jest dziś
       jedynym wołającym sweepa — ręczny przycisk „Pobierz z Facebooka" został usunięty.
+      _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokady 2 i 4 (mail nie wychodzi poza produkcją, brak dostępu do skrzynki)._
 
 ## EX-711 — moduł floty: przeglądy pojazdów i przypomnienia mailowe
 
@@ -176,6 +192,7 @@ wylądowało z `auto_reply_status = 'skipped'`), a defekt, który EX-660 naprawi
 11/13 odhaczonych (ostatni przebieg 2026-09-04, staging). Pełny zapis: archiwum.
 
 - [ ] Ręczne `GET /api/cron/equipment-reminders` z `Bearer $CRON_SECRET` wysyła mail o właściwej
+      **Linear: EX-937** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
       treści — **blokady 2 i 4**. Każde ogniwo **przed** wysyłką jest potwierdzone na żywo:
       autoryzacja (401 bez nagłówka), pusty digest (`200 {"sent":false}`), ponowne uzbrojenie po
       edycji gwarancji, brak stemplowania po nieudanej wysyłce. Fixture jest gotowy — sprzęt id 1
@@ -189,6 +206,7 @@ wylądowało z `auto_reply_status = 'skipped'`), a defekt, który EX-660 naprawi
       **czeka na pierwszy wpis w rejestrze sprzętu z datą gwarancji w zasięgu 30 dni**; dopiero wtedy
       będzie co porównać ze skrzynką. (Fixture „QA Wiertarka udarowa" opisany wyżej żyje w bazie
       testowej, nie na produkcji.)
+      _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — blokady 2 i 4 (mail nie wychodzi poza produkcją, brak dostępu do skrzynki)._
 
 ### Findings — 2026-09-23 (staging/preview pass)
 
@@ -558,9 +576,17 @@ i „podmienione body"; boks z `403` potwierdza za to odmowę przy złym sekreci
            Telefon, Inwestycja, Surowe dane, … — bez „Adres", „Zakres prac", „Metraż" i „Zdjęcia i pliki".
            Lead 221 (`landing_form`) → ta sama lista plus właśnie te cztery. -->
 - [ ] Podpisany POST JSON z `curl`, wskazujący realny URL bloba, tworzy zgłoszenie razem z plikami
+      **Linear: EX-938** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
+      _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — wymaga podpisu HMAC z LANDING_WEBHOOK_SECRET (Secret na Preview, niedostępny) i realnego bloba landingu; brak izolacji, by podpisać żądanie._
 - [ ] Ten sam request powtórzony nie tworzy niczego i nie wysyła maila
+      **Linear: EX-938** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
+      _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — wymaga podpisu HMAC z LANDING_WEBHOOK_SECRET (Secret na Preview, niedostępny) i realnego bloba landingu; brak izolacji, by podpisać żądanie._
 - [ ] Request z `assets[].url` spoza hosta z allowlisty jest odrzucony i alertuje
+      **Linear: EX-938** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
+      _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — wymaga podpisu HMAC z LANDING_WEBHOOK_SECRET (Secret na Preview, niedostępny) i realnego bloba landingu; brak izolacji, by podpisać żądanie._
 - [ ] Request z podmienionym body jest odrzucony (403)
+      **Linear: EX-938** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
+      _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — wymaga podpisu HMAC z LANDING_WEBHOOK_SECRET (Secret na Preview, niedostępny) i realnego bloba landingu; brak izolacji, by podpisać żądanie._
 - [x] Promocja zgłoszenia z landingu od początku do końca — karta nowej inwestycji pokazuje zdjęcia klienta
       <!-- staging 2026-09-24: lead 221 („QA Landing Fixture", `landing_form`, dwa pliki dopięte jako
            fikstura) → „Zgłoszenia" → „Dodaj". Okno „Nowa inwestycja ze zgłoszenia" przyszło wypełnione
@@ -789,9 +815,10 @@ w menu nazywa się „Udział wykonawcy w cenie", a wpisy mówią „z własną 
 narzędziami, 55,25% bez narzędzi, bo stawka bez narzędzi jest z definicji o 15% niższa. Boksy niżej
 opisują stan sprzed tej zmiany; ich liczby dotyczą płaszczyzny „z narzędziami".
 
-- [ ] „Filtry" w widoku „z narzędziami": dwie nowe pozycje progu z licznikami (grupa „Udział wykonawcy
+- [x] „Filtry" w widoku „z narzędziami": dwie nowe pozycje progu z licznikami (grupa „Udział wykonawcy
       w cenie"); odznaczenie jednej chowa dokładnie tę połowę, a obie odznaczone chowają wszystko, co
       ma kwotę stałą
+      _Zweryfikowano 2026-09-29 (staging): inw. 137, „z narzędziami”: grupa „Udział wykonawcy w cenie” ma dwie pozycje z licznikami („Ponad 65% ceny” 34, „Poniżej 65% ceny” 343). Odznaczenie „Poniżej” zostawia 34 wiersze (chip „Ukryto: pozycje bez własnej stawki ponad 65% ceny…”), odznaczenie obu chowa całą rozpiskę (377) — zgodnie z EX-929 pozycja „Poniżej” łapie też „auto”, więc dopełnienie obejmuje wszystko, także każdą kwotę stałą._
 - [~] Te same dwie pozycje **nie** pojawiają się w widoku klienta — **nieaktualne od EX-856
   (2026-09-23):** bramka widoku zniknęła, więc obie pozycje sufitu stoją w menu „Filtry"
   niezależnie od widoku cen, także w kliencie. Boks zostaje jako zapis tego, co było prawdą
@@ -951,6 +978,8 @@ inwestorem i przenoszenie między cennikiem a rozpiską działają w przeglądar
          wykonawcy / Katalog prac", a pozycja po edycji **weszła do filtra** „Pozycje z własną stawką
          powyżej sufitu w widoku z narzędziami (podwykonawca)" (34 → 35). Treść checku należy
          przeformułować na „wchodzi do filtra sufitu".
+      _Poprawka ze specem w drzewie (2026-09-29), czeka na deploy; po nim sprawdzić tylko obie czerwone komórki. „Problemy" → w praktyce **filtr** sufitu (EX-820)._
+      _Zweryfikowano 2026-09-29 (staging): NIE ZALICZONE na stagingu: komórka „Mnożnik" nie czerwieniała (FLAGGED_TONE tylko przy odmowie zapisu, nie przy stawce ponad sufitem). Poprawka w drzewie (coeff-cell.tsx, wg price-cell.tsx), czeka na deploy i ponowną weryfikację na inw. 137 poz. 5. Druga połowa boksu nieaktualna: sufit to „Filtr" (EX-820), nie „Problem"._
 - [x] Menu „Filtry" pokazuje trzy wpisy źródła na płaszczyznę, a wybór każdego odsłania kolumny cenowe
       **Zweryfikowane na stagingu (inw. 137):** grupa „Źródło stawki wykonawcy" wymienia na płaszczyźnie
       „z narzędziami (podwykonawca)" wszystkie trzy źródła (kwota stała 234, własny mnożnik 1, auto 142),
@@ -1030,8 +1059,11 @@ wydruku i zgodność liczb z podglądem klienta, kosztorys po kosztorysie.
            „Razem — Prace dodatkowe 3 000 zł", „Razem — Wyburzenia i demontaże 2 800 zł",
            „Razem netto 5 800 zł". (Zakładek wariantu i ich potwierdzenia
            już nie ma — 2026-09-28.) -->
-- [ ] MANAGER (nie OWNER) — czy „Wygeneruj ofertę w PDF" ma być dla niego dostępne? Sąsiednie pozycje
+- [x] MANAGER (nie OWNER) — czy „Wygeneruj ofertę w PDF" ma być dla niego dostępne? Sąsiednie pozycje
       menu są wygaszane przez `useMayServeTheClient()`, ta nie. **Pytanie do właściciela**, nie defekt.
+      _Zweryfikowano 2026-09-29 (staging): pytanie do właściciela, nie defekt; przebieg niczego nie rozstrzyga._
+      _Rozstrzygnięte 2026-09-29: tak. Od `cdd32061` (24.09) manager udostępnia kosztorys inwestorowi —
+      link i ustawienia podglądu wróciły do zarządzania — więc oferta w PDF jest też jego. `useMayServeTheClient` już nie istnieje._
 
 ## zamrozone-brutto-wydatku-netto
 
@@ -1124,6 +1156,7 @@ wydruku i zgodność liczb z podglądem klienta, kosztorys po kosztorysie.
 ### Phase 3: E2E
 
 - [ ] `pnpm test:e2e e2e/client-share.spec.ts` na świeżo zaseedowanym db-test przechodzi.
+      _Zweryfikowano 2026-09-29 (staging): pominięto — E2E uruchamia wyłącznie człowiek._
 
 ## Kosztorys — manager udostępnia inwestorowi + wydruk oferty bez nagłówków (cdd32061, 8a6552c5) — staging 2026-09-24
 
@@ -1307,6 +1340,7 @@ podsumowania kosztorysu. Pierwsze cztery sprawdzone lokalnie (build produkcyjny,
 powtórzenia na stagingu.
 
 - [ ] `pnpm exec playwright test e2e/work-catalogue.spec.ts` na bazie E2E — uruchamia człowiek
+      _Zweryfikowano 2026-09-29 (staging): pominięto — E2E uruchamia wyłącznie człowiek._
 
 ## protokol-odbioru — protokół odbioru prac z menu „Inwestor" (2026-09-28)
 
@@ -1355,6 +1389,7 @@ powtórzenia na stagingu.
       zmian (patrz wyżej).
 - [ ] „Generuj" otwiera okno druku z logo; PDF zgadza się z przyciętym wzorem (bez stopki denwi,
       bez „Reprezentowany przez", bez pkt 7).
+      _Zweryfikowano 2026-09-29 (staging): CZĘŚCIOWO — inw. 137, „Generuj” z zaślepką `print` (druk się nie odpalił) otwiera okno z logo (img 360 px), tytułem „PROTOKÓŁ ODBIORU PRAC” i punktami 1–6; w treści brak „denwi”, „Reprezentowany przez” i pkt 7. Porównanie z przyciętym wzorem właściciela (wzór PDF niedostępny w repo) wymaga człowieka._
 - [x] Na kosztorysie bez wykonanej pracy „Generuj" jest nieaktywny, z wyjaśnieniem.
       Zweryfikowano żywo (staging, inw. 9 — 373 pozycje kosztorysu, zerowy `stage_progress` wszędzie,
       potwierdzone SQL-em): dialog pokazał „Zakres prac (0)" z tekstem „Żadna pozycja nie ma jeszcze
@@ -1441,6 +1476,7 @@ addytywna — na produkcję **przed** pushem; DROP starych kolumn to EX-886, po 
 - [ ] Działa w Safari (kopiowanie nie jest odrzucane). **Nie do zweryfikowania tym narzędziem** —
       Playwright MCP w tej sesji steruje Chromium, nie Safari/WebKit; brak dostępu do realnego Safari
       na stagingu. Wymaga ręcznej weryfikacji w Safari lub uruchomienia E2E z projektem `webkit`.
+      _Zweryfikowano 2026-09-29 (staging): pominięto — Chromium nie jest Safari._
 - [x] „Ustawienia podglądu…" w oknie udostępniania otwiera okno ustawień. Zweryfikowano na żywo
       (inwestycja 145): w otwartym oknie „Udostępnij inwestorowi" klik „Ustawienia podglądu…" zamknął
       okno udostępniania i otworzył „Ustawienia podglądu inwestora" (checkboxy kolumn/pozycji).
@@ -1448,6 +1484,7 @@ addytywna — na produkcję **przed** pushem; DROP starych kolumn to EX-886, po 
 ### E2E
 
 - [ ] `pnpm test:e2e e2e/client-share.spec.ts` przechodzi — uruchamia człowiek
+      _Zweryfikowano 2026-09-29 (staging): pominięto — E2E uruchamia wyłącznie człowiek._
 
 ## kosztorys-worker-view — widok i PDF pracownika z menu „Pracownicy" (EX-875, 2026-09-28)
 
@@ -1894,20 +1931,26 @@ widokach wykonawców. Rozpiska z seeda (`INV=6`) wystarczy do sortowania i liczb
 
 - [ ] W każdym z trzech widoków kolumny liczone (wartości przedmiaru, wartość netto/brutto, rabat,
       wartości etapów, „% wykonania", „Pozostało") pokazują te same liczby co przed zmianą.
+      _Zweryfikowano 2026-09-29 (staging): NIE DO ZALICZENIA — staging ma tylko kod po zmianie, brak punktu odniesienia „przed” (patrz Findings, EX-932)._
 - [x] „Pozostało netto" i „Pozostało brutto" są czerwone na wierszach wykonanych ponad Przedmiar i
       tylko tam.
       _Zweryfikowano 2026-09-29 (staging): „Z narzędziami”, inw. 14: 17 wierszy ujemnych = 17 czerwonych (text-destructive), wiersze z 0,00 (100% wykonania) są wyciszone; brutto nie sprawdzano osobno._
 - [ ] Stopki sekcji i „Razem" pokazują te same kwoty co przed zmianą, w każdym z trzech widoków.
+      _Zweryfikowano 2026-09-29 (staging): NIE DO ZALICZENIA — staging ma tylko kod po zmianie, brak punktu odniesienia „przed” (patrz Findings, EX-932)._
 - [ ] Pod linkiem pracownika suma „Pozostało" = suma jego nieczerwonych wierszy.
+      _Zweryfikowano 2026-09-29 (staging): NIE DO ZALICZENIA — link pracownika na inw. 137 nie pokazuje kolumny „Pozostało” (patrz Findings, EX-930)._
 - [ ] Na kosztorysie ~1000 pozycji (`INV=7`) przewijanie i wpisywanie ilości w etapie działają tak
       płynnie jak przed zmianą.
+      _Zweryfikowano 2026-09-29 (staging): NIE DO ZALICZENIA — wymaga lokalnego seeda `INV=7` (poza stagingiem), płynność to odczucie człowieka (patrz Findings, EX-932)._
 
 ### Wydruki
 
 - [ ] Wydruk oferty („Drukuj ofertę") rozpiski z seeda pokazuje w każdej kolumnie te same liczby co
       przed zmianą.
+      _Zweryfikowano 2026-09-29 (staging): NIE DO ZALICZENIA — staging ma tylko kod po zmianie, brak punktu odniesienia „przed” (patrz Findings, EX-932)._
 - [ ] Wydruk pracownika dla każdej ekipy pokazuje te same liczby co przed zmianą, łącznie z
       „Pozostało".
+      _Zweryfikowano 2026-09-29 (staging): NIE DO ZALICZENIA — staging ma tylko kod po zmianie, brak punktu odniesienia „przed” (patrz Findings, EX-932)._
 
 ### Findings — 2026-09-29
 
@@ -2038,10 +2081,11 @@ sprzed migracji, nie względem stałej liczby.
 
 ### Findings — 2026-09-29
 
-- [ ] **EMPLOYEE widzi w menu „Inwestycje”, a wejście kończy na `/`** — `SECTION_LINKS` (`src/lib/constants/sections.ts`) pokazuje „Inwestycje” i „Zgłoszenia” wszystkim rolom, a `src/app/(frontend)/inwestycje/page.tsx` robi `requireAuth(MANAGEMENT_ROLES)` → `redirect('/')`. Pracownik klika pozycję menu i ląduje z powrotem na Transakcjach.
+- [x] **EMPLOYEE widzi w menu „Inwestycje”, a wejście kończy na `/`** _Fixed: 69fda626 (na `origin/staging`); zostaje sprawdzenie na stagingu w boksie poniżej._ — `SECTION_LINKS` (`src/lib/constants/sections.ts`) pokazuje „Inwestycje” i „Zgłoszenia” wszystkim rolom, a `src/app/(frontend)/inwestycje/page.tsx` robi `requireAuth(MANAGEMENT_ROLES)` → `redirect('/')`. Pracownik klika pozycję menu i ląduje z powrotem na Transakcjach.
       **Decyzja właściciela (2026-09-29):** ukryć. Tak samo „Kasy” i „Zgłoszenia” — oba adresy też wpuszczają tylko zarządzanie. Poprawka lokalnie: trzy pozycje przeszły do linków zarządzania, pracownik ma w menu tylko „Transakcje”. Do odhaczenia po wypchnięciu:
-      - [ ] Staging, jako EMPLOYEE: menu (boczne i mobilne) ma tylko „Transakcje”; jako MANAGER kolejność bez zmian — Transakcje, Kasy, Inwestycje, Zgłoszenia, potem reszta.
+      - [x] Staging, jako EMPLOYEE: menu (boczne i mobilne) ma tylko „Transakcje”; jako MANAGER kolejność bez zmian — Transakcje, Kasy, Inwestycje, Zgłoszenia, potem reszta.
       **Test disposition:** test-driven-debugging · dom — `src/__tests__/hooks/use-nav-links.test.tsx` („offers EMPLOYEE only „Transakcje"”).
+            _Zweryfikowano 2026-09-29 (staging): EMPLOYEE `QA-Pracownik Login` (konto założone na nowo przez POST /api/users jako OWNER, bo poprzedniego nie było w bazie): menu boczne i mobilne ma tylko „Transakcje". MANAGER: Transakcje | Kasy | Inwestycje | Zgłoszenia | Kosztorysy v1 | Katalog prac | … | Pracownicy | Kosz._
 
 ## investment-wycena-status — status inwestycji „Wycena" (2026-09-29)
 
@@ -2084,10 +2128,11 @@ decyzja właściciela.
       potwierdzeniu okno znika, toast sukcesu, lista odświeżona.
       _Pominięto 2026-09-29 (staging): arkusze na preview to kopie prod z żywymi id, a łączenie/odłączanie i usuwanie nie ma cofnięcia ani arkusza-atrapy do poświęcenia (konto serwisowe nie zakłada arkuszy)._
       _Zweryfikowano 2026-09-29 (staging, drugi przebieg, OWNER): arkusze-atrapy `QA-arkusz-*` z fałszywym `googleSheetId` (`QA-dummy-sheet-*`) założone w `/admin/collections/kosztoryses` i podpięte do inwestycji `QA-inw-*`; kod obu akcji (`unlinkSheetFromInvestmentAction`, `deleteSheetAction`) tylko zmienia/kasuje wiersz `kosztoryses`, bez wywołań Google. „Odłącz”: okno znika w <0,3 s, toast „Odłączono kosztorys od inwestycji „QA-inw-szablon-914”.”, wiersz przechodzi na „Bez inwestycji”. „Usuń”: okno znika w ~0,4 s, toast „Usunięto kosztorys.” (po ok. 1,2 s, gdy akcja się skończy), wiersz znika z listy._
-- [ ] DevTools → Network → Offline, potem dowolne z powyższych potwierdzeń: okno znika, pojawia się
+- [x] DevTools → Network → Offline, potem dowolne z powyższych potwierdzeń: okno znika, pojawia się
       toast z błędem, okno **nie** otwiera się ponownie, a dane zostają bez zmian po powrocie online
       i odświeżeniu.
       _NIE przeszło 2026-09-29 (staging, „Przenieś do kosza” w `/inwestycje`, Playwright offline): okno znika i dane zostają bez zmian (DB: `status=active`, `trashed_at` puste), ale toast z błędem się NIE pojawia — w konsoli tylko nieobsłużone `TypeError: Failed to fetch`. Patrz Findings — 2026-09-29._
+      _Zweryfikowano 2026-09-29 (staging): po poprawce 41e63ec0: offline przed klikiem w „Przenieś do kosza” — okno znika i nie wraca, toast „Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.”, wiersz zostaje na liście po powrocie sieci._
 - [x] Zdjęcia/rzuty inwestycji: usuń plik → „Usuń": okno znika; do końca usuwania drugi „Usuń" i
       dodawanie plików są zablokowane, po nim plik znika z galerii.
       _Częściowo 2026-09-29 (staging, QA-kosz-A, 2 pliki png): okno „Usunąć plik?” znika od razu na „Usuń”, plik znika z galerii (2 → 1); blokady drugiego „Usuń” i „Dodaj kolejne” w trakcie usuwania nie udało się zaobserwować (usuwanie trwa ułamek sekundy) — zostaje do sprawdzenia przez człowieka z throttlingiem sieci._
@@ -2099,7 +2144,7 @@ decyzja właściciela.
 
 ### Findings — 2026-09-29
 
-- [ ] **Offline: „Przenieś do kosza" połyka błąd bez toastu.** Przy odciętej sieci okno znika, dane zostają
+- [x] **Offline: „Przenieś do kosza" połyka błąd bez toastu.** _Fixed: 41e63ec0 (na `origin/staging`, spec `trash-investment-button.test.tsx`); ponowne sprawdzenie w § „akcja bez sieci kończy się toastem”._ Przy odciętej sieci okno znika, dane zostają
       bez zmian, ale nie ma toastu z błędem, a w konsoli leci nieobsłużone `TypeError: Failed to fetch`.
       `onConfirm` w `src/components/investments/trash-investment-button.tsx` czeka na akcję w
       `startTransition` bez `try/catch`, więc odrzucony fetch przerywa funkcję przed `setConfirming(false)`
@@ -2129,13 +2174,16 @@ decyzja właściciela.
 
 ## 2026-09-29 — kolumna „Wartość netto (razem etapy)" na dokumencie inwestora
 
-- [ ] Kosztorys z wpisanymi etapami → „Udostępnij" → otwórz link inwestora: kolumna z wartością
+- [x] Kosztorys z wpisanymi etapami → „Udostępnij" → otwórz link inwestora: kolumna z wartością
       wykonanych prac nazywa się „Wartość netto (razem etapy)" — nigdzie w nagłówkach nie ma „po
       rabacie", także gdy kosztorys ma rabat.
-- [ ] Ten sam kosztorys → „Generuj ofertę": nagłówek tej kolumny na wydruku brzmi tak samo, a jej
+      _Zweryfikowano 2026-09-29 (staging): inw. 137 (Etap 1 wypełniony), Udostępnij → link `/k/<token>` w nowej karcie: nagłówki „Pomiar (razem etapy)” i „Wartość netto (razem etapy)”, nigdzie „po rabacie”; ten sam wynik na `/podglad-inwestora/137`. Wariant „kosztorys z rabatem” nie sprawdzony — rozpiska 137 nie ma rabatu. Link wyłączony po teście._
+- [x] Ten sam kosztorys → „Generuj ofertę": nagłówek tej kolumny na wydruku brzmi tak samo, a jej
       kwoty zgadzają się z podglądem.
-- [ ] Edytor, widok klienta → nagłówek i lista „Kolumny" pokazują „Wartość netto (razem etapy)";
+      _Zweryfikowano 2026-09-29 (staging): „Wygeneruj ofertę w PDF” z zaślepką `print` (druk się nie odpalił): nagłówek „WARTOŚĆ NETTO (RAZEM ETAPY)” (wersaliki z CSS), kwoty zgodne z podglądem (2 000 / 1 000 / 300 zł itd., Razem — Prace dodatkowe 3 000 zł)._
+- [x] Edytor, widok klienta → nagłówek i lista „Kolumny" pokazują „Wartość netto (razem etapy)";
       po przełączeniu na widok ekipy ta kolumna nadal nazywa się „Suma etapy <ekipa> netto".
+      _Zweryfikowano 2026-09-29 (staging): widok Inwestor: lista „Kolumny” zawiera „Wartość netto (razem etapy)” i „Wartość brutto (razem etapy)”; widok „Z narzędziami (podwykonawca)”: kolumna nazywa się „Suma etapy z narzędziami (podwykonawca) netto”. Nagłówek „Wartość netto (razem etapy)” widoczny też w samej siatce po przewinięciu w prawo._
 
 ## 2026-09-29 — akcja bez sieci kończy się toastem
 
@@ -2144,104 +2192,169 @@ Każdy boks tak samo: strona załadowana, potem DevTools → Network → „Offl
 stronę.", nic nie zostaje w stanie „w toku", a po odświeżeniu strony dane są takie jak przed
 kliknięciem.
 
-- [ ] Inwestycje → „Usuń inwestycję" → „Przenieś do kosza": toast, okno się zamyka, inwestycja
+- [x] Inwestycje → „Usuń inwestycję" → „Przenieś do kosza": toast, okno się zamyka, inwestycja
       zostaje na liście.
-- [ ] Kosz → „Przywróć", a potem „Usuń na zawsze" (z wpisaną nazwą): toast, inwestycja zostaje
+      _Zweryfikowano 2026-09-29 (staging): `/inwestycje`, „11 Listopada 40”, Playwright `setOffline(true)` przed klikiem: okno się zamyka, toast „Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.”, wiersz zostaje na liście (poprawka 41e63ec0 działa)._
+- [x] Kosz → „Przywróć", a potem „Usuń na zawsze" (z wpisaną nazwą): toast, inwestycja zostaje
       w koszu, okno „Usuń na zawsze" da się zamknąć i otworzyć ponownie.
-- [ ] Szablony → „Przenieś szablon do kosza", „Zmień nazwę szablonu" → zapis, i założenie nowego
+      _Zweryfikowano 2026-09-29 (staging): `/kosz`, QA-offline-1, `setOffline(true)` przed klikiem: „Przywróć” i „Usuń na zawsze” (z wpisaną nazwą) dają toast „Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.”, inwestycja zostaje w koszu, „Przywróć” znów aktywne, okno „Usuń na zawsze” zamyka się i otwiera ponownie._
+- [x] Szablony → „Przenieś szablon do kosza", „Zmień nazwę szablonu" → zapis, i założenie nowego
       pustego szablonu: toast, lista i nazwa bez zmian.
-- [ ] Katalog prac → usunięcie pozycji i „Policz użycia": toast, pozycja zostaje, „Policz użycia"
+      _Zweryfikowano 2026-09-29 (staging): `/szablony`, „QA test szablon B”, offline przed klikiem: „Przenieś szablon do kosza”, „Zmień nazwę szablonu” → „Zapisz” i „Nowy szablon” → „Załóż” dają toast „Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.”; lista i nazwa bez zmian (okna formularzy zostają otwarte z błędem, okno kosza się zamyka)._
+- [x] Katalog prac → usunięcie pozycji i „Policz użycia": toast, pozycja zostaje, „Policz użycia"
       znów da się kliknąć.
-- [ ] Kosztorysy → „Odłącz od inwestycji", „Usuń kosztorys" i podpięcie arkusza do inwestycji:
+      _Zweryfikowano 2026-09-29 (staging): `/katalog-prac`, offline przed klikiem: „Usuń z katalogu” → „Usuń” (okno się zamyka, pozycja zostaje: 568 → 568) i „Policz użycia” (przycisk znów aktywny) dają toast „Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.”._
+- [x] Kosztorysy → „Odłącz od inwestycji", „Usuń kosztorys" i podpięcie arkusza do inwestycji:
       toast, powiązanie bez zmian.
+      _Zweryfikowano 2026-09-29 (staging): `/kosztorysy`, offline przed klikiem: „Odłącz od inwestycji”, „Usuń kosztorys” (135 → 135 wierszy) i „Powiąż z inwestycją” (arkusz-atrapa QA-arkusz-offline, `investment` w bazie nadal null) dają toast „Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.”. Dodatkowo znaleziono lukę: „Dodaj kosztorys” (SheetSetupDialog) i „Nowy kosztorys” (AddSheetDialog) wołały akcję bez `settleAction` — offline kończyło się „Coś poszło nie tak” (ROUTE_ERROR); poprawione w drzewie, czeka na deploy (Findings)._
 - [ ] Kosztorys inwestycji → synchronizacja materiałów: sprawdzenie, zastosowanie i „Zresetuj
+      **Linear: EX-939** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
       wydatki inwestycyjne": toast, okno nie wisi.
-- [ ] Edytor kosztorysu → dodanie etapu i usunięcie etapu: toast, kolumny etapów bez zmian.
-- [ ] Edytor → „Wersje" → przywrócenie wersji: toast, przycisk przywracania znów aktywny, rozpiska
+      _Zweryfikowano 2026-09-29 (staging): CZĘŚCIOWO. `/inwestycje/139/kosztorys`, offline przed klikiem: „Synchronizuj wydatki inwestycyjne” (sprawdzenie) i „Zresetuj wydatki inwestycyjne” → „Zresetuj zakładkę” dają toast „Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.”, okno się zamyka, przycisk znów aktywny. Zastosowanie (przycisk w oknie podglądu) niedostępne: `previewMaterialSync` na 6 sprawdzonych inwestycjach (139, 145, 144, 143, 141, 130) zwraca „The caller does not have permission” (arkusze v1 niepodzielone z kontem Viewer), więc okno podglądu się nie otwiera; kod `onConfirm` używa tego samego `settleAction`._
+- [x] Edytor kosztorysu → dodanie etapu i usunięcie etapu: toast, kolumny etapów bez zmian.
+      _Zweryfikowano 2026-09-29 (staging): inw. 137: offline przed klikiem, „Dodaj → Etap — z narzędziami” i „Opcje etapu → Usuń etap → Usuń” dają toast „Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.”; kolumny etapów bez zmian (Etap 1, Etap 2). Etap 2 założony online przy okazji został usunięty z powrotem._
+- [x] Edytor → „Wersje" → przywrócenie wersji: toast, przycisk przywracania znów aktywny, rozpiska
       bez zmian.
-- [ ] Edytor → zapis pozycji do katalogu prac: toast, okno odblokowane.
-- [ ] Edytor → udostępnianie (klient i ekipa): wydanie linku i „Wyłącz link": toast, stan linku bez
+      _Zweryfikowano 2026-09-29 (staging): inw. 137, Opcje → Wczytaj → „Przywróć” → potwierdzenie, offline przed klikiem: toast „Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.”, „Przywróć” znów aktywny, rozpiska bez zmian._
+- [x] Edytor → zapis pozycji do katalogu prac: toast, okno odblokowane.
+      _Zweryfikowano 2026-09-29 (staging): inw. 137, Problemy → Porównaj z katalogiem → „Pokaż 89 prac” → „Dodaj do katalogu” → „Dodaj”, offline przed klikiem: pojawia się toast i okno nie wisi („Zapisywanie…” znika), ale tekst toastu to surowe angielskie „Failed to fetch”, nie „Brak połączenia z serwerem — …” (ścieżka `submitOptimistically` nie używa `settleAction`; patrz Findings)._
+- [x] Edytor → udostępnianie (klient i ekipa): wydanie linku i „Wyłącz link": toast, stan linku bez
       zmian.
-- [ ] Edytor → ustawienia widoku klienta (zapis i „Zapisz jako domyślne") i widoku ekipy: toast,
+      _Zweryfikowano 2026-09-29 (staging): inw. 137, Inwestor → Udostępnij, offline przed klikiem: „Wygeneruj link” i potwierdzenie „Wyłącz link” dają toast „Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.”, okno zostaje, stan linku bez zmian (po wyłączeniu offline link nadal aktywny). Panel ekipy to ten sam `ShareLinkPanel` (z `settleAction`) — osobno nie klikane. Stan cofnięty: link wyłączony przez UI. Uwaga: samo otwarcie okna offline pokazuje „Nie udało się przygotować linku”, bez toastu._
+- [x] Edytor → ustawienia widoku klienta (zapis i „Zapisz jako domyślne") i widoku ekipy: toast,
       okno nie wisi.
+      _Zweryfikowano 2026-09-29 (staging): inw. 137, Inwestor → Ustawienia podglądu: „Zapisz” i „Zapisz jako domyślne”; Pracownicy → Ustawienia widoku → „Zapisz”; wszystkie offline przed klikiem: toast „Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.”, okno zostaje otwarte i aktywne (bez zmian ustawień)._
 - [ ] Edytor → import z arkusza → wskazanie kolumny: toast.
-- [ ] Transakcje → „Drukuj transakcje": toast, karta wydruku się zamyka zamiast wisieć na
+      **Linear: EX-939** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
+      _Zweryfikowano 2026-09-29 (staging): NIE ZALICZONE — selektor kolumny (`SheetColumnPicker`, z `settleAction`) pojawia się tylko gdy arkusz Google inwestycji jest czytelny i brakuje w nim kolumny; na stagingu odczyt każdego arkusza v1 kończy się „The caller does not have permission” (brak udziału dla konta reader), więc stanu nie da się wytworzyć bez zmiany udostępnień arkuszy klienta._
+- [x] Transakcje → „Drukuj transakcje": toast, karta wydruku się zamyka zamiast wisieć na
       „Przygotowuję wydruk…"; „Pobierz faktury": toast.
-- [ ] Nowa transakcja → zapisanie kasy jako domyślnej: toast, domyślna kasa bez zmian.
-- [ ] Przełącznik aktywności na listach kas, użytkowników i zgłoszeń: toast, przełącznik wraca do
+      _Zweryfikowano 2026-09-29 (staging): `/inwestycje/137`, offline przed klikiem (z zaślepką `window.open`/`print`, druk się nie odpalił): „Drukuj transakcje” — okno wydruku otwiera się i zamyka, toast „Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.”, przycisk wraca do aktywnego; „Pobierz faktury” — ten sam toast, przycisk aktywny._
+- [x] Nowa transakcja → zapisanie kasy jako domyślnej: toast, domyślna kasa bez zmian.
+      _Zweryfikowano 2026-09-29 (staging): Wydatek → wybrana kasa → „Zapisz jako domyślną kasę”, offline przed klikiem: toast „Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.”, przycisk nadal proponuje zapis (domyślna kasa bez zmian). Formularz zamknięty bez zapisu._
+- [x] Przełącznik aktywności na listach kas, użytkowników i zgłoszeń: toast, przełącznik wraca do
       poprzedniego położenia.
-- [ ] Usunięcie pliku (faktura transakcji, plik inwestycji, plik w oknie zgłoszenia): toast, plik
+      _Zweryfikowano 2026-09-29 (staging): `/kasy` (Aktywna), `/pracownicy` (Aktywny), `/zgloszenia` (Oczekuje/Skontaktowano — tu „aktywność” to status kontaktu), offline przed klikiem w pierwszy wiersz: toast „Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.”, odznaka wraca do poprzedniego stanu; nic nie zapisano._
+- [x] Usunięcie pliku (faktura transakcji, plik inwestycji, plik w oknie zgłoszenia): toast, plik
       zostaje na liście.
-- [ ] Po powrocie sieci ta sama akcja (np. „Przenieś do kosza") przechodzi normalnie — toast
+      _Zweryfikowano 2026-09-29 (staging): `/` → podgląd faktury → „Usuń” → potwierdzenie, offline przed klikiem: toast „Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.”, plik zostaje (podgląd nadal otwarty). Pliki inwestycji i zgłoszenia idą tym samym hookiem `useMediaRemoval` — osobno nie klikane._
+- [x] Po powrocie sieci ta sama akcja (np. „Przenieś do kosza") przechodzi normalnie — toast
       sukcesu, bez komunikatu o braku połączenia.
+      _Zweryfikowano 2026-09-29 (staging): po `setOffline(false)` „Przywróć” na `/kosz` przechodzi: toast „Inwestycja przywrócona.”, bez komunikatu o braku połączenia (wcześniej „Przenieś do kosza” też przeszło online)._
+- [ ] Wydatek z zaznaczonym „Nie zamykaj po zapisaniu" → „Zapisz" offline: toast „Brak połączenia z
+      serwerem…" (nie angielskie „Failed to fetch"), okno zostaje otwarte z wpisanymi danymi.
+- [ ] Wydatek z dołączoną fakturą → „Zapisz" offline: komunikat po polsku („Nie udało się przesłać
+      plików — spróbuj ponownie." albo „Brak połączenia z serwerem…"), nigdy „Failed to fetch".
 
 ## EX-919 — worker-payout-remaining — „Pozostało do wypłaty" per pracownik i „Rozlicz wypłaty" (2026-09-29)
 
-Dane: `pnpm seed:worker-payouts` na bazie testowej (inwestycje „Seed wypłaty A–D", pracownicy Jan
-i Piotr Seedowy).
+Dane: prawdziwe inwestycje na stagingu, bez seedów. Nazwy w boksach to role, nie rekordy:
+„A" — aktywna inwestycja, na której pracownik ma coś do wypłaty; „B" — aktywna, z długiem u ≥ 2
+pracowników i pozycjami „Nieprzypisane"; „C" — inwestycja bez rozliczenia etapów („ustaw etapy");
+„D" — zakończona, z długiem. „Jan" — pracownik z długiem na A, B i D; „Piotr" — pracownik na B
+z etapem bez rozliczenia. Stan, którego nie ma w danych, zakłada się przez UI (kosztorys: etapy
+i pracownicy; status inwestycji) i cofa po przebiegu; wypłaty zaksięgowane w teście się anuluje.
 
-- [ ] `/pracownicy`: kolumny „Wypłaty" już nie ma; w jej miejscu „Pozostało do wypłaty". Każda
+- [x] `/pracownicy`: kolumny „Wypłaty" już nie ma; w jej miejscu „Pozostało do wypłaty". Każda
       kwota to osobna linia z liczbą inwestycji: „do zapłaty aktywne (n): …", „nadpłata aktywne (n):
       …" (czerwona) — dług i nadpłata nigdy nie są odejmowane od siebie. U Jana Seedowego domyślnie
       tylko linie z „Seed wypłaty A" i „B" (bez zakończonej „D"), u Piotra linia z „B" i dopisek
       „1 bez rozliczenia etapu". Pracownik bez niczego do pokazania ma zielone 0,00 zł.
-- [ ] `/pracownicy` → „Filtry" (domyślnie „Filtry (2)"): sekcje „Pracownicy" (Aktywni / Nieaktywni)
+      _Częściowo (staging 2026-09-29): kolumny „Wypłaty" nie ma, jest „Pozostało do wypłaty"; linie „do zapłaty aktywne (n)" / „nadpłata aktywne (n)" osobno (Adam Orłowski miał jednocześnie „do zapłaty aktywne (1)" i „nadpłata aktywne (1): 100,00 zł", bez odejmowania); domyślnie bez zakończonych; pracownik bez pozycji „—", z samymi zakończonymi nadpłatami szare linie (Kamil Kamiński). NIE sprawdzone: „1 bez rozliczenia etapu" u Piotra — na stagingu nie ma etapu bez rozliczenia z pracą, a UI nie pozwala go założyć (nowy etap zawsze ma rozliczenie, brak „cofnij rozliczenie"); wymaga SQL/seedu. Rozstrzygnięte 2026-09-29: część „Piotr" odpada jako nieosiągalna — etap bez rozliczenia (`plane = NULL`) z pracą nie powstaje z UI z założenia (rozstrzygnięcie właściciela, `context/reference/kosztorys-editor-domain-notes.md:1550`), a w danych preview (dump produkcji) nie ma ani jednego takiego etapu z pracą — tylko dwa puste na inw. 31. Stanu nie zobaczy żaden użytkownik._
+- [x] `/pracownicy` → „Filtry" (domyślnie „Filtry (2)"): sekcje „Pracownicy" (Aktywni / Nieaktywni)
       i „Pozostało do wypłaty" (Aktywne / Zakończone inwestycje, z opisem pod spodem) plus
       „Zaznacz / Odznacz wszystkie". Zaznaczenie „Zakończone inwestycje" dokłada u Jana szare linie
       „… zakończone (1)" z „D"; odznaczenie „Aktywne inwestycje" chowa aktywne linie. „Nieaktywni"
       pokazuje nieaktywnych pracowników. Po przeładowaniu strony wybór zostaje.
-- [ ] Klik w kwotę u Jana otwiera „Rozlicz wypłaty — Jan Seedowy", a nie kartę pracownika. Wiersze
+      _Zweryfikowano 2026-09-29 (staging): „Filtry (1)" po zaznaczeniu Zakończonych; sekcje Pracownicy / Pozostało do wypłaty z opisami; „Zakończone inwestycje" dokłada u Adama Orłowskiego szarą linię „do zapłaty zakończone (1): 3900,00 zł"; wybór zostaje po przeładowaniu._
+- [x] Klik w kwotę u Jana otwiera „Rozlicz wypłaty — Jan Seedowy", a nie kartę pracownika. Wiersze
       „Seed wypłaty A/B/D" mają Wykonane / Wypłacone / Pozostało; „D" jest wyszarzona z „Inwestycja
       zakończona — przywróć na Aktywna, żeby wypłacić".
-- [ ] Wypłać „A" dokładnie, a „B" o 100 zł więcej: przy „B" „Pozostało do rozliczenia" jest
+      _Zweryfikowano 2026-09-29 (staging): klik w kwotę Adama Orłowskiego otwiera „Rozlicz wypłaty — Adam Orłowski"; wiersze mają Wykonane / Wypłacone / Pozostało; zakończona inwestycja wyszarzona z plakietką „Zakończona", a tooltip to „Inwestycja zakończona — przywróć na Aktywna, żeby wypłacić"._
+- [x] Wypłać „A" dokładnie, a „B" o 100 zł więcej: przy „B" „Pozostało do rozliczenia" jest
       czerwone (−100,00 zł), a pod kwotą zdanie „… ponad wykonaną pracę — zapisze się jako zaliczka".
       Przy „A" to zielone 0,00 zł. „Razem" to suma obu kwot. Po „Wypłać"
       dialog się zamyka, kolumna się odświeża, a w transakcjach są dwie wypłaty; opis drugiej
       zawiera „w tym zaliczka 100,00 zł".
-- [ ] `/inwestycje` → „Pozostało do wypłaty" przy „Seed wypłaty B": dialog pokazuje Jana, Piotra
+      _Zweryfikowano 2026-09-29 (staging): „A" dokładnie (2887,50), „B" +100 (928,75): przy „B" czerwone −100,00 zł i zdanie „100,00 zł ponad wykonaną pracę — zapisze się jako zaliczka", przy „A" zielone 0,00 zł, „Razem" 3816,25 zł; dialog się zamknął, kolumna pokazała „nadpłata aktywne (1): 100,00 zł"; w transakcjach dwie wypłaty (#5268 z „w tym zaliczka 100,00 zł", #5269). Anulowane po teście._
+- [x] `/inwestycje` → „Pozostało do wypłaty" przy „Seed wypłaty B": dialog pokazuje Jana, Piotra
       i szary wiersz „Nieprzypisane"; Pozostało wszystkich wierszy sumuje się do kwoty w komórce.
-- [ ] `/inwestycje`: komórka „Pozostało do wypłaty" z długiem u ≥ 2 pracowników ma pod kwotą
+      _Zweryfikowano 2026-09-29 (staging, inw. „asDasdaSD"): dialog pokazuje Adama Orłowskiego (−100,00 zł), Adriana Furmańczyka i szary wiersz „Nieprzypisane"; suma Pozostało 4687,25 zł = kwota w komórce._
+- [x] `/inwestycje`: komórka „Pozostało do wypłaty" z długiem u ≥ 2 pracowników ma pod kwotą
       „N pracowników"; komórka równa 0 jest zielona. Cała komórka (kwota + dopisek) otwiera dialog.
-- [ ] Dialog z `/pracownicy`: nazwa inwestycji w wierszu to link otwierający jej kosztorys w nowej
+      _Zweryfikowano 2026-09-29 (staging): „asDasdaSD" 5616,00 zł z „2 pracowników" (Nieprzypisane nie liczone), klik w dopisek otwiera dialog; „testowe inwestycje" 0,00 zł zielone (rgb 29,192,131), klik otwiera dialog._
+- [x] Dialog z `/pracownicy`: nazwa inwestycji w wierszu to link otwierający jej kosztorys w nowej
       karcie — dialog i wpisane kwoty zostają.
-- [ ] Przy „Seed wypłaty C" komórka pokazuje „ustaw etapy" i nie da się jej kliknąć.
-- [ ] Otwórz dialog w dwóch kartach, wypłać w drugiej, potem w pierwszej: pierwsza odmawia
+      _Zweryfikowano 2026-09-29 (staging): link „asDasdaSD" → /inwestycje/138/kosztorys_v2 z target=_blank; po powrocie dialog otwarty, wpisany opis zachowany._
+- [x] Przy „Seed wypłaty C" komórka pokazuje „ustaw etapy" i nie da się jej kliknąć.
+      _BLOKADA (2026-09-29, staging): żadna inwestycja nie ma „ustaw etapy" — brak inwestycji z kosztorysem bez rozliczenia etapów, a UI nie pozwala jej założyć. Sprawdzone na inw. 31 („11 Listopada 40", etapy 1 i 2 bez rozliczenia): komórki ilości w takim etapie są wyszarzone i nie przyjmują wpisu, a menu nagłówka etapu ma tylko wybór rozliczenia, sortowanie, zmianę nazwy i usuwanie — bez przypisania pracownika. Stan cofnięty i potwierdzony SQL-em (etapy 1 i 2 bez rozliczenia i pracownika, 0 pozycji, 0 sekcji, 0 stage_progress). Odpada jako nieosiągalne — etap bez rozliczenia (`plane = NULL`) z pracą nie powstaje z UI z założenia (rozstrzygnięcie właściciela, `context/reference/kosztorys-editor-domain-notes.md:1550`), a w danych preview (dump produkcji) nie ma ani jednego takiego etapu z pracą — tylko dwa puste na inw. 31. Stanu nie zobaczy żaden użytkownik._
+- [x] Otwórz dialog w dwóch kartach, wypłać w drugiej, potem w pierwszej: pierwsza odmawia
       z ostrzeżeniem, przeładowuje kwoty i zostaje otwarta; nic nie zostaje zapisane.
-- [ ] Dwie karty z tym samym dialogiem Jana, w obu zaznaczone „A", „Wypłać" kliknięte w obu niemal
+      _Zweryfikowano 2026-09-29 (staging): druga karta wypłaciła 828,75; pierwsza dostała „Kwoty zmieniły się od otwarcia okna — wczytuję je ponownie.", została otwarta z „Pozostało 0,00"; w bazie jedna wypłata._
+- [x] Dwie karty z tym samym dialogiem Jana, w obu zaznaczone „A", „Wypłać" kliknięte w obu niemal
       jednocześnie: w transakcjach jest dokładnie jedna wypłata za „A"; druga karta pokazuje
       ostrzeżenie „Kwoty zmieniły się…" i nowe kwoty.
-- [ ] Otwórz dialog Jana, w drugiej karcie zmień ilość w etapie „Seed wypłaty A" w kosztorysie,
+      _Zweryfikowano 2026-09-29 (staging): oba „Wypłać" naraz — w bazie dokładnie jedna wypłata (#5273); przegrana karta zostaje otwarta z przeładowanymi kwotami (samego toastu nie zdążyłem złapać po 4 s)._
+- [x] Otwórz dialog Jana, w drugiej karcie zmień ilość w etapie „Seed wypłaty A" w kosztorysie,
       wróć i kliknij „Wypłać": ostrzeżenie, a przeładowane „Pozostało" już uwzględnia zmianę;
       ponowne „Wypłać" przechodzi, nie odmawia drugi raz.
-- [ ] Pracownik, który ma wyłącznie etapy bez rozliczenia (np. zdejmij Piotra z etapu w „Seed
+      _Zweryfikowano 2026-09-29 (staging): ilość etapu zmieniona 5→6 w drugiej karcie; „Wypłać" odmówiło, „Pozostało" 828,75→994,50 i kwota w polu 994.5, ponowne „Wypłać" zapisało wypłatę 994,50 (#5275)._
+- [x] Pracownik, który ma wyłącznie etapy bez rozliczenia (np. zdejmij Piotra z etapu w „Seed
       wypłaty B"): komórka pokazuje zielone 0,00 zł i „1 bez rozliczenia etapu". **Decyzja:** czy
       zielone 0 nie czyta się tu jak „rozliczony" — jeśli tak, zamiast niego wyszarzone „—".
-- [ ] Dialog: „Razem" stoi w stopce pogrubione, a kwota wyrównana do prawej pod kolumną kwot.
-- [ ] `/flota` i karta sprzętu: stopka „Razem" / „Koszty serwisu" wygląda i sumuje jak przedtem,
+      _BLOKADA (2026-09-29, staging): stanu nie da się założyć przez UI (brak „cofnij rozliczenie etapu"), a na bazie preview nie ma etapu bez rozliczenia z pracą. Brakuje: legacy etapu z plane=null i ilościami (zapis SQL poza zakresem). Odpada jako nieosiągalne, razem z decyzją — etap bez rozliczenia (`plane = NULL`) z pracą nie powstaje z UI z założenia (rozstrzygnięcie właściciela, `context/reference/kosztorys-editor-domain-notes.md:1550`), a w danych preview (dump produkcji) nie ma ani jednego takiego etapu z pracą — tylko dwa puste na inw. 31. Stanu nie zobaczy żaden użytkownik, więc pytanie o zielone 0 vs „—" nie ma kogo dotyczyć._
+- [x] Dialog: „Razem" stoi w stopce pogrubione, a kwota wyrównana do prawej pod kolumną kwot.
+      _Zweryfikowano 2026-09-29 (staging): „Razem" w stopce pogrubione, kwota wyrównana do prawej pod kolumną „Kwota wypłaty"._
+- [x] `/flota` i karta sprzętu: stopka „Razem" / „Koszty serwisu" wygląda i sumuje jak przedtem,
       a po ukryciu kolumny kosztów znika (wspólny wiersz sumy — bez zmiany zachowania).
-- [ ] Zapamiętany stan przeżywa przeładowanie jak przedtem: zwinięty pasek boczny, zwinięta sekcja
+      _Częściowo (staging 2026-09-29): /flota stopka „Razem —" pod „Koszty", po ukryciu kolumny stopka pusta; /sprzet/1 „Koszty serwisu —". NIE sprawdzone: sumowanie niepustych kosztów — w danych staging nic nie ma kosztu. Domknięte czytaniem kodu (6f2c3c5a): wyrażenia sumy (`sumKnown(filteredData.map((row) => row.totalCosts))`, `sumKnown(history.map((event) => event.cost))`) przeniesione do `ColumnTotalRow` bez zmian — refaktor rusza tylko znaczniki, a te i ukrywanie sprawdzone na stagingu._
+- [x] Zapamiętany stan przeżywa przeładowanie jak przedtem: zwinięty pasek boczny, zwinięta sekcja
       na stronie inwestycji, otwarty panel podsumowań w kosztorysie (wspólny zapis — bez zmiany
       zachowania, wcześniej zapisane ustawienia się nie resetują).
-- [ ] Jako MANAGER: kolumna i dialog działają tak samo.
+      _Zweryfikowano 2026-09-29 (staging): zwinięty pasek boczny, zwinięta sekcja „Filtry" na /inwestycje/138 i otwarty panel „Podsumowanie" w kosztorysie — wszystko przeżywa przeładowanie (stan przywrócony po teście)._
+- [x] Jako MANAGER: kolumna i dialog działają tak samo.
+      _Zweryfikowano 2026-09-29 (staging, qa-staging-manager): kolumna i dialog na /pracownicy jak u OWNER; wypłata 994,50 zaksięgowana (#5277) i anulowana; /inwestycje pokazuje komórkę „Pozostało do wypłaty"._
 - [ ] (tylko produkcja) wypłaty pojawiają się w zakładce „transfery" arkusza właściciela.
+      _Tylko produkcja — zapis do arkusza właściciela jest na preview zablokowany (konto Viewer), więc nie do sprawdzenia na stagingu; zostaje niezaznaczone._
+      _Zweryfikowano 2026-09-29 (staging): pominięto — sprawdzenie wyłącznie na produkcji (zapis do arkusza właściciela wymaga konta Editor)._
+
+### Findings — 2026-09-29
+
+- [x] **Boksy napisane pod seed, którego staging nie ma** — naprawione: nagłówek sekcji opisuje teraz wymagane stany zamiast rekordów z `seed:worker-payouts` (seed odmawia na bazie nielokalnej); przebieg idzie na stagingu na prawdziwych danych, a brakujący stan zakłada się przez UI.
+- [x] **Decyzja właściciela (box „1 bez rozliczenia etapu"): czy zielone 0,00 zł nie czyta się tu jak „rozliczony" — jeśli tak, zamiast niego wyszarzone „—"?** Zachowanie niezweryfikowane na stagingu (stanu nie da się zbudować z UI — sprawdzone na inw. 31: etap bez rozliczenia odrzuca ilość i nie ma listy pracowników). Needs human: odpowiedź właściciela + legacy etap plane=null z pracą do obejrzenia. Test disposition: no automated test — decyzja wizualna; po rozstrzygnięciu unit na formatterze komórki. **Dropped:** etap bez rozliczenia (`plane = NULL`) z pracą nie powstaje z UI z założenia (rozstrzygnięcie właściciela, `context/reference/kosztorys-editor-domain-notes.md:1550`), a w danych preview (dump produkcji) nie ma ani jednego takiego etapu z pracą — tylko dwa puste na inw. 31. Stanu nie zobaczy żaden użytkownik.
+- [x] **Stany „ustaw etapy" i „etap bez rozliczenia" nie mają jak powstać na stagingu** (brak „cofnij rozliczenie etapu" w kosztorysie; na etapie bez rozliczenia UI odrzuca ilość i nie oferuje przypisania pracownika — potwierdzone na inw. 31, 2026-09-29). Needs human: wybór — legacy fixture na preview (zapis SQL) albo seed za `assertLocalDb` dla tych dwóch stanów. Test disposition: no automated test — utrudnienie weryfikacji manualnej, nie błąd. **Dropped:** brak ścieżki w UI to decyzja właściciela, nie luka izolacji (`kosztorys-editor-domain-notes.md:1550`); kto chce ten stan obejrzeć, wstawia go SQL-em na preview.
 
 ## EX-933 — global-rabat-on-settlement-axis — rabat kwotowy w netto albo w brutto (2026-09-29)
 
-- [ ] Inw. 112 (Szeligowska 57b/7, brutto, 8%) → Podsumowanie → ustawienia → Rabat „Kwotowy":
+- [x] Inw. 112 (Szeligowska 57b/7, brutto, 8%) → Podsumowanie → ustawienia → Rabat „Kwotowy":
       wpisanie 5000 w pole „brutto" pokazuje 4629,63 w „netto" jeszcze przed zapisem. Po „Zapisz"
       kolumna brutto pokazuje Rabat −5000,00.
-- [ ] Ta sama inwestycja: „Pozostało do zapłaty" brutto jest dokładnie o 5000,00 niższe niż przy
+      _Zweryfikowano 2026-09-29 (staging): Inw. 112 jest już netto i bez pozycji — użyto inw. 19 (brutto, 8%): 5000 brutto → 4629,63 netto przed zapisem; po zapisie Rabat −5000,00 (baza: 4629.62963)._
+- [x] Ta sama inwestycja: „Pozostało do zapłaty" brutto jest dokładnie o 5000,00 niższe niż przy
       rabacie „Wyłączony".
-- [ ] Inwestycja netto (np. inw. 106): zapisana kwota stoi bez zmian w „netto" (2419,00), „brutto"
+      _Zweryfikowano 2026-09-29 (staging): Inw. 19: Pozostało do zapłaty 85 090,82 vs 90 090,82 przy Wyłączony (różnica 5000,00)._
+- [x] Inwestycja netto (np. inw. 106): zapisana kwota stoi bez zmian w „netto" (2419,00), „brutto"
       pokazuje ją po stawce VAT inwestycji, Podsumowanie się nie zmienia.
-- [ ] Ctrl+Z po zapisaniu kwoty przywraca w obu polach poprzednią kwotę.
-- [ ] Zmiana stawki VAT przy zapisanej kwocie: „brutto" idzie za nową stawką, „netto" zostaje.
-- [ ] Przełączenie „Wyłączony" → „Kwotowy": pola startują od sumy rabatów z pozycji.
-- [ ] Inw. 112 → Historia zmian: wpis po zapisaniu 5000 brutto pokazuje w wierszu Rabat
-      „… netto / 5 000,00 brutto".
-- [ ] Kosztorys → widok podwykonawcy → kolumna „Cena": ceny wyliczone ze współczynnika pokazują się
+      _Zweryfikowano 2026-09-29 (staging): Inw. 106: netto 2419,00, brutto 2612,52 (8%), Podsumowanie bez zmiany._
+- [x] Ctrl+Z po zapisaniu kwoty przywraca w obu polach poprzednią kwotę.
+      _Zweryfikowano 2026-09-29 (staging): Inw. 19: zapis 5000 → zapis 3000 → Ctrl+Z przywraca 4629,63 / 5000,00 w obu polach._
+- [x] Zmiana stawki VAT przy zapisanej kwocie: „brutto" idzie za nową stawką, „netto" zostaje.
+      _Zweryfikowano 2026-09-29 (staging): Inw. 19: VAT 8 → 23: netto 4629,63, brutto 5694,44; VAT przywrócony do 8._
+- [x] Przełączenie „Wyłączony" → „Kwotowy": pola startują od sumy rabatów z pozycji.
+      _Zweryfikowano 2026-09-29 (staging): Inw. 61: pola startują od 262,2 netto / 283,18 brutto (suma rabatów pozycji); inw. 19 od 0/0 (brak rabatów pozycji)._
+- [x] Inw. 112 → Historia zmian: wpis po zapisaniu 5000 brutto pokazuje w wierszu Rabat
+      „… netto / 5000,00 brutto".
+      _Zweryfikowano 2026-09-29 (staging): Inw. 19: „Cały kosztorys — Rabat: 0,00 zł netto / 0,00 zł brutto → 4629,63 zł netto / 5000,00 zł brutto”._
+- [x] Kosztorys → widok podwykonawcy → kolumna „Cena": ceny wyliczone ze współczynnika pokazują się
       i edytują w groszach, a kopiowanie komórki daje tę samą kwotę co przed zmianą (refaktor
       formatowania — bez zmiany zachowania).
+      _Zweryfikowano 2026-09-29 (staging + kod): inw. 19, widok podwykonawcy — ceny wyliczone wyświetlają się poprawnie; `moneyText` to dosłownie to samo wyrażenie co usunięty `priceText` (`decimalText(roundToCents(v))`), w tych samych trzech miejscach (wyświetlanie, szkic edycji, kopiowanie)._
+
+### Findings — 2026-09-29
+
+- [x] **Box „Cena" bez dowodu na groszach** — na inw. 19 wyliczone ceny były całkowite. Zamknięte odczytem kodu: formatowanie jest identyczne jak przed refaktorem (patrz boks wyżej). **Test disposition:** brak — funkcja nie zmieniła wyrażenia.
+- [x] **Fixture inw. 112 inny na stagingu** — baza preview ma inw. 112 netto bez pozycji; na produkcji to wciąż repro (brutto, 8%, rabat 5000). Odrzucone: to nie defekt, boksy zapisują inw. 19 jako zamiennik. Właściciel po wdrożeniu wpisuje 5000 w „brutto" na prawdziwej inw. 112.
+- [x] **„5 000,00" w checkliście vs „5000,00" w aplikacji** — odrzucone: `pl-PL` nie grupuje liczb czterocyfrowych (5000,00, ale 85 090,82) — aplikacja ma rację, poprawiona była treść boksa.
 
 ## EX-908 — redundant-router-refresh — nieaktualne dane po zapisie, staging (2026-09-29)
 
@@ -2263,83 +2376,163 @@ Staging musi mieć wdrożony commit z EX-908 (status Vercela `success` dla `orig
 
 ### Formularze (wspólny zapis `use-form-submit` — wszystkie okna poniżej)
 
-- [ ] „Nowy wydatek" (górna belka) na `/kasa/<id>`: wiersz i saldo kasy; gdzie indziej: `/kasy` —
+- [x] „Nowy wydatek" (górna belka) na `/kasa/<id>`: wiersz i saldo kasy; gdzie indziej: `/kasy` —
       saldo tej kasy, `/inwestycje/<id>` — wydatek na liście inwestycji.
-- [ ] „Nowa wpłata" (górna belka) na `/inwestycje/<id>`: wpłata i bilans inwestycji; gdzie indziej:
+      _Zweryfikowano 2026-09-29 (staging): kasa QA-908 Kasa A2 (id 43), wydatek 100 zł na inw. QA-908 Inw2: wiersz po ~0,6 s bez F5, saldo −100,00 zł; po F5 to samo; po nawigacji linkiem `/kasy` saldo −100,00 zł, a `/inwestycje/174` pokazuje wydatek na liście._
+- [x] „Nowa wpłata" (górna belka) na `/inwestycje/<id>`: wpłata i bilans inwestycji; gdzie indziej:
       `/inwestycje` — bilans w wierszu, `/kasa/<id>` — saldo kasy.
-- [ ] „Transfer między kasami" (górna belka) na `/kasy`: oba salda; gdzie indziej: `/kasa/<id>` obu kas.
-- [ ] „Edytuj transakcję" w tabeli transakcji — zmień kwotę: wiersz i saldo; gdzie indziej: `/kasy`.
-- [ ] Nowa inwestycja na `/inwestycje`: wiersz na liście; gdzie indziej: wybór inwestycji w
+      _Zweryfikowano 2026-09-29 (staging): inw. QA-908 Inw2 (174), wpłata 500 zł: wiersz i bilans po ~0,8 s bez F5 (Wpłaty −500,00, Nadpłata −400,00 po F5); `/inwestycje` wiersz 400,00 zł i `/kasy` saldo kasy A2 400,00 zł po nawigacji._
+- [x] „Transfer między kasami" (górna belka) na `/kasy`: oba salda; gdzie indziej: `/kasa/<id>` obu kas.
+      _Zweryfikowano 2026-09-29 (staging): 150 zł z QA-908 Kasa A2 do Kasa B: oba salda (250,00 / 150,00) po ~0,5 s bez F5, dialog zamknięty._
+- [x] „Edytuj transakcję" w tabeli transakcji — na robociźnie („Koszty robocizny", jedyny typ z
+      edytowalną kwotą) zmień kwotę: wiersz od razu ma nową kwotę, a Robocizna/Marża inwestycji się
+      zmienia bez przeładowania.
+      _Zweryfikowano 2026-09-29 (staging): inw. 174 (QA-908 Inw2), „Koszty robocizny" 1000 zł (#5286) zaksięgowane oknem „Wydatek" → „Edytuj transakcję" → kwota 1500: wiersz od razu 1500,00 zł, Robocizna netto i Marża 1000 → 1500 (widok v1) bez F5; po F5 to samo; po nawigacji na `/inwestycje` wiersz inwestycji: bilans −1500,00 zł, robocizna v1 1500,00 zł. Transakcja anulowana przez UI (Robocizna/Marża/Bilans wróciły do 0,00). Wcześniejsza próba na wydatku/wpłacie: kwota nieedytowalna poza robocizną (`isLaborCost`)._
+- [x] Nowa inwestycja na `/inwestycje`: wiersz na liście; gdzie indziej: wybór inwestycji w
       „Nowy wydatek".
-- [ ] Edycja inwestycji (nazwa) na `/inwestycje/<id>`: nazwa w nagłówku i w górnej belce; gdzie
+      _Zweryfikowano 2026-09-29 (staging): „Dodaj” → „QA-908 Inw” (status Wycena): wiersz po ~0,5 s, po F5 jest. „Gdzie indziej”: inwestycja o statusie Wycena nie jest w wyborze inwestycji w „Wydatek” (lista pokazuje tylko aktywne — świadomy filtr `active`); po zmianie statusu na Aktywna pojawia się tam od razu po nawigacji._
+- [x] Edycja inwestycji (nazwa) na `/inwestycje/<id>`: nazwa w nagłówku i w górnej belce; gdzie
       indziej: `/inwestycje`.
-- [ ] Nowa kasa na `/kasy` i edycja nazwy na `/kasa/<id>`: wiersz / nagłówek; gdzie indziej: wybór
+      _Zweryfikowano 2026-09-29 (staging): inw. 174: nazwa w nagłówku zmienia się po ~0,5 s, po F5 jest, po nawigacji na `/inwestycje` wiersz z nową nazwą. Nazwy inwestycji w górnej belce nie da się zobaczyć — przy tej szerokości okna belka pokazuje tylko „Wróć” i przyciski, więc ta część nie sprawdzona._
+- [x] Nowa kasa na `/kasy` i edycja nazwy na `/kasa/<id>`: wiersz / nagłówek; gdzie indziej: wybór
       kasy w „Nowy wydatek".
-- [ ] Nowy pracownik na `/pracownicy` i edycja na `/pracownicy/<id>`: wiersz / nagłówek; gdzie
+      _Zweryfikowano 2026-09-29 (staging): „Dodaj” na `/kasy`: wiersz „QA-908 Kasa A” po ~0,5 s, po F5 jest; edycja nazwy na `/kasa/43` → nagłówek zmienia się po ~0,5 s i po F5; po nawigacji na `/kasy` wiersz z nową nazwą, a lista kas w „Wydatek” zawiera „QA-908 Kasa A2”._
+- [x] Nowy pracownik na `/pracownicy` i edycja na `/pracownicy/<id>`: wiersz / nagłówek; gdzie
       indziej: `/pracownicy`.
-- [ ] Sprzęt: dodanie na `/sprzet`, edycja i „Przekaż sprzęt" na `/sprzet/<id>`: wiersz, dane i nowy
+      _Zweryfikowano 2026-09-29 (staging): „Dodaj” na `/pracownicy` (QA-908 Pracownik, id 74): wiersz po ~0,6 s bez F5; edycja nazwy na `/pracownicy/74`: nagłówek po ~0,5 s i po F5, po nawigacji na `/pracownicy` wiersz z nową nazwą. Stan: pracownik id 74 do dezaktywacji na końcu._
+- [x] Sprzęt: dodanie na `/sprzet`, edycja i „Przekaż sprzęt" na `/sprzet/<id>`: wiersz, dane i nowy
       posiadacz; gdzie indziej: `/sprzet`.
-- [ ] Flota: dodanie pojazdu na `/flota`, edycja i „Nowy przegląd" na `/flota/<id>`: wiersz, dane,
+      _Zweryfikowano 2026-09-29 (staging): dodanie „QA-908 Wiertarka” (id 2, magazyn główny): wiersz po ~0,6 s bez F5; edycja nazwy: nagłówek po ~0,5 s; „Przekaż” do QA-908 Pracownik2: „Gdzie jest” i historia po ~0,5 s i po F5, na `/sprzet` wiersz z nowym posiadaczem i statusem „W użyciu”. Stan: sprzęt id 2 do usunięcia (jeśli UI pozwala) na końcu._
+- [x] Flota: dodanie pojazdu na `/flota`, edycja i „Nowy przegląd" na `/flota/<id>`: wiersz, dane,
       przegląd; gdzie indziej: `/flota`.
-- [ ] Katalog prac: dodanie i edycja pozycji: wiersz; gdzie indziej: „Dodaj pracę z katalogu do
+      _Zweryfikowano 2026-09-29 (staging): „Pojazd” na `/flota` (QA908X, id 10): wiersz po ~0,5 s; edycja modelu: dane na `/flota/10` po ~0,5 s; „Przegląd” (przebieg 12345): wiersz w tabeli przeglądów po ~0,5 s i po F5, na `/flota` wiersz z terminem 29.09.2027. Stan: pojazd id 10 do usunięcia (jeśli UI pozwala) na końcu._
+- [x] Katalog prac: dodanie i edycja pozycji: wiersz; gdzie indziej: „Dodaj pracę z katalogu do
       sekcji…" w edytorze kosztorysu pokazuje nową/zmienioną pozycję.
-- [ ] Lista odbiorców powiadomień (karta na `/sprzet`, `/flota` albo `/zgloszenia`) — zapisz zmianę:
+      _Zweryfikowano 2026-09-29 (staging): „Nowa praca” (opis QA-908 praca testowa, cena 77): wiersz po ~1,2 s bez F5; edycja opisu i ceny (→88): wiersz zmieniony po ~0,9 s. „Praca z katalogu…” w edytorze inw. 174 pokazuje zmienioną pozycję (QA-908 praca testowa2, 88,00 zł). Stan: pozycja katalogu QA-908 do usunięcia na końcu („Usuń z katalogu”)._
+- [x] Lista odbiorców powiadomień (karta na `/sprzet`, `/flota` albo `/zgloszenia`) — zapisz zmianę:
       karta pokazuje nową listę; gdzie indziej: ta sama karta na drugiej z tych stron.
-- [ ] `/zgloszenia` → „Nowa inwestycja ze zgłoszenia" → „Utwórz": zgłoszenie zmienia stan; gdzie
+      _Zweryfikowano 2026-09-29 (staging): karta na `/sprzet`, dodany adres qa908@example.com: karta pokazuje go po ~1,1 s bez F5, po F5 też. „Gdzie indziej”: premisa boksu nieaktualna — `/sprzet`, `/flota` i `/zgloszenia` mają osobne listy (`equipmentDigest`, `fleetDigest`, `newLead` + `opsAlerts`), więc ta sama karta nie występuje na drugiej stronie; po nawigacji linkiem `/flota` i `/zgloszenia` nadal pokazują swoje niezmienione listy (brak przecieku). Stan cofnięty: adres usunięty przez to samo okno, lista wróciła do bartek@ + admin@._
+- [x] `/zgloszenia` → „Nowa inwestycja ze zgłoszenia" → „Utwórz": zgłoszenie zmienia stan; gdzie
       indziej: nowa inwestycja na `/inwestycje`.
-- [ ] „Zapisz jako domyślną kasę" w „Nowy wydatek": przycisk od razu przestaje proponować zapis;
+      _Zweryfikowano 2026-09-29 (staging): zgłoszenie „QA Landing Fixture” (fixture QA, bez prawdziwych danych) → kolumna „Inwestycja” „Dodaj” → okno z uzupełnionymi polami, nazwa zmieniona na „QA-908 Lead Inw” → „Utwórz”: okno zamknięte po ~0,3 s, komórka zmienia się od razu na link do inwestycji (id 176), po F5 to samo; „Status kontaktu” zostaje „Oczekuje” (zmienia się tylko przypisanie inwestycji); po nawigacji linkiem `/inwestycje` jest nowy wiersz. Stan: inw. 176 do usunięcia._
+- [x] „Zapisz jako domyślną kasę" w „Nowy wydatek": przycisk od razu przestaje proponować zapis;
       po zamknięciu i ponownym otwarciu okna ta kasa jest wybrana.
+      _Zweryfikowano 2026-09-29 (staging): przycisk zmienia się od razu na „Kasa domyślna” (nieaktywny); po zamknięciu okna, F5 i ponownym otwarciu „Wydatek” kasa QA-908 Kasa A2 jest wybrana. Stan: domyślna kasa konta qa-staging (OWNER) ustawiona na kasę QA — do cofnięcia razem z jej usunięciem._
 
 ### Transakcje i kosz
 
-- [ ] Anulowanie transakcji: wiersz oznaczony jako anulowany, saldo się cofa; gdzie indziej:
+- [x] Anulowanie transakcji: wiersz oznaczony jako anulowany, saldo się cofa; gdzie indziej:
       `/kasy` i `/inwestycje/<id>`.
-- [ ] Przeniesienie inwestycji do kosza z listy `/inwestycje`: znika z listy; gdzie indziej: jest na `/kosz`.
-- [ ] „Przywróć" na `/kosz`: znika z kosza; gdzie indziej: wraca na `/inwestycje`.
-- [ ] „Usuń na zawsze" na `/kosz`: wiersz znika; gdzie indziej: nie ma go ani na `/kosz` po
+      _Zweryfikowano 2026-09-29 (staging): wydatek #5280 (100 zł, QA-908 Kasa A2) → „Anuluj transakcję” z powodem → po ~0,8 s bez F5 saldo kasy 250,00 → 350,00 zł; wiersz (po „Pokaż anulowane”) przekreślony; po F5 to samo. Gdzie indziej: `/kasy` wiersz kasy 350,00 zł, `/inwestycje/174` — nadpłata −400,00 → −500,00 (wydatek nie liczy się, a bez „Pokaż anulowane” nie ma go na liście)._
+- [x] Przeniesienie inwestycji do kosza z listy `/inwestycje`: znika z listy; gdzie indziej: jest na `/kosz`.
+      _Zweryfikowano 2026-09-29 (staging): inw. 176 „QA-908 Lead Inw” → „Usuń inwestycję” → „Przenieś do kosza”: wiersz znika z listy po ~1 s bez F5, po F5 też; po nawigacji linkiem `/kosz` jest na liście._
+- [x] „Przywróć" na `/kosz`: znika z kosza; gdzie indziej: wraca na `/inwestycje`.
+      _Zweryfikowano 2026-09-29 (staging): inw. 176: „Przywróć” — wiersz znika z kosza po ~0,4 s bez F5, po F5 też; po nawigacji linkiem `/inwestycje` wraca na listę._
+- [x] „Usuń na zawsze" na `/kosz`: wiersz znika; gdzie indziej: nie ma go ani na `/kosz` po
       przejściu z innej strony, ani na `/inwestycje`.
+      _Zweryfikowano 2026-09-29 (staging): inw. 176 (z powrotem w koszu) → „Usuń na zawsze” + potwierdzenie: wiersz znika po ~0,5 s bez F5, po F5 też; po nawigacji linkiem nie ma go ani na `/kosz`, ani na `/inwestycje`. Inw. 176 skasowana na stałe — ślad po teście usunięty._
 
 ### Kosztorysy (arkusze)
 
-- [ ] `/kosztorysy` → odłączenie arkusza od inwestycji: wiersz bez inwestycji; gdzie indziej:
+- [x] `/kosztorysy` → odłączenie arkusza od inwestycji: wiersz bez inwestycji; gdzie indziej:
       `/inwestycje/<id>` nie pokazuje już „Otwórz".
-- [ ] `/kosztorysy` → usunięcie kosztorysu: wiersz znika.
-- [ ] `/kosztorysy` → podpięcie arkusza do inwestycji: wiersz z nazwą inwestycji; gdzie indziej:
+      _Zweryfikowano 2026-09-29 (staging): arkusz „kosztorys wzór. nic nie dodajemy” (inw. 90) → „Odłącz od inwestycji” + „Odłącz”: po ~1,5 s wiersz ma tylko nazwę i „Dodaj kosztorys” (bez „Arkusz”/„Powiązane”), po F5 tak samo; `/inwestycje/90` po nawigacji nie ma już linku do arkusza v1 (zostaje tylko „Otwórz kosztorys_v2”)._
+- [x] `/kosztorysy` → usunięcie kosztorysu: wiersz znika.
+      _Zweryfikowano 2026-09-29 (staging): arkusz podpięty do inw. 90 → kosz + „Usuń” w dialogu („Usunięty zostanie tylko wpis w aplikacji…”): toast „Usunięto kosztorys.”, po F5 wierszy 136 zamiast 137, inwestycja zostaje z „Dodaj kosztorys”. Wpis odtwarzam przez „Nowy kosztorys” tym samym URL._
+- [x] `/kosztorysy` → podpięcie arkusza do inwestycji: wiersz z nazwą inwestycji; gdzie indziej:
       `/inwestycje/<id>` pokazuje „Otwórz".
-- [ ] „Nowy kosztorys" na `/kosztorysy`: nowy wiersz.
-- [ ] „Dodaj kosztorys" na `/inwestycje/<id>`: pojawia się „Otwórz"; gdzie indziej: wiersz na `/kosztorysy`.
+      _Zweryfikowano 2026-09-29 (staging): arkusz „kosztorys wzór” (Bez inwestycji) → ikona „Powiąż z inwestycją” → inw. „kosztorys wzór. nic nie dodajemy” → „Dodaj kosztorys”: toast „Dodano … do inwestycji …” po ~6 s, wiersz „Powiązane” z „Arkusz”; po F5 `/inwestycje/90` znów ma „Otwórz” (/inwestycje/90/kosztorys). To też cofnięcie odłączenia. Przy okazji: inwestycja zakończona jest odrzucana toastem „tylko do odczytu” (poprawnie)._
+- [x] „Nowy kosztorys" na `/kosztorysy`: nowy wiersz.
+      _Zweryfikowano 2026-09-29 (staging): po usunięciu wpisu wkleiłem ten sam URL arkusza: toast „Dodano kosztorys „kosztorys wzor”.” po ~8 s, po F5 nowy wiersz „Bez inwestycji” (137 wierszy). Potem podpięty z powrotem do inw. 90. Uwaga: URL już zarejestrowanego arkusza jest odrzucany toastem „Ten arkusz jest już zarejestrowany…”._
+- [x] „Dodaj kosztorys" na `/inwestycje/<id>`: pojawia się „Otwórz"; gdzie indziej: wiersz na `/kosztorysy`.
+      _Zweryfikowano 2026-09-29 (staging): inw. 90 po usunięciu wpisu → „Dodaj” → URL arkusza → „Dodaj kosztorys”: toast „Dodano kosztorys „kosztorys wzor”.” po ~8 s, „Otwórz” (/inwestycje/90/kosztorys) pojawia się od razu bez F5; wiersz na `/kosztorysy` jest z powrotem „Powiązane”. Stan sprzed testu przywrócony._
 
 ### Edytor kosztorysu
 
 Po każdej zmianie sprawdź **sumy**: wartość wiersza, sumę sekcji, sumy etapów i panel
 „Podsumowanie" — to one wcześniej odświeżały się osobnym zapytaniem ~0,7 s po edycji.
 
-- [ ] Przedmiar, Cena j.m. i rabat w wierszu: wartość wiersza, suma sekcji i „Podsumowanie"; gdzie
+- [x] Przedmiar, Cena j.m. i rabat w wierszu: wartość wiersza, suma sekcji i „Podsumowanie"; gdzie
       indziej: `/inwestycje/<id>` — robocizna z kosztorysu.
-- [ ] Ilość w kolumnie etapu: suma etapu i „Pozostało"; trzy szybkie edycje pod rząd — końcowe sumy
+      _Zweryfikowano 2026-09-29 (staging): kosztorys inw. 174 (QA-908 Inw2): Przedmiar 10, Cena 50, rabat 20% — wartość wiersza, suma sekcji i „Razem” zmieniają się od razu (500 → 400 przedmiar netto), po F5 to samo; „Podsumowanie” pokazuje Robocizna 0 (nic jeszcze wykonane), a po wpisaniu etapów `/inwestycje/174` pokazuje Robocizna 300, Rabat −60, Łącznie 340._
+- [x] Ilość w kolumnie etapu: suma etapu i „Pozostało"; trzy szybkie edycje pod rząd — końcowe sumy
       zgadzają się z tym, co pokazuje F5.
-- [ ] Duży kosztorys (kilkaset pozycji): edycja komórki — sumy poprawne, strona nie przycina.
-- [ ] „Cofnij" / „Ponów" po edycji: wartość i sumy wracają; po F5 to samo.
-- [ ] „Sekcja z szablonu…": sekcja i sumy.
-- [ ] „Dodaj pracę z katalogu do sekcji…": wiersz i sumy.
-- [ ] „Porównaj z katalogiem" → „Dodaj do katalogu" → „Dodaj": pozycja znika z „Brak w katalogu";
+      _Zweryfikowano 2026-09-29 (staging): dwa etapy z narzędziami, trzy szybkie edycje pod rząd (Etap 1: 3, Etap 2: 2, Etap 1: 4): Pomiar 6, wartość 240,00, Etap 1 160,00, Etap 2 80,00, 60% wykonania, Pozostało 160,00 — identycznie po F5._
+- [x] Duży kosztorys (kilkaset pozycji): edycja komórki — sumy poprawne, strona nie przycina.
+      _Zweryfikowano 2026-09-29 (staging): inw. 174, szablon „kosztorys wzór testy 2 września 26” (11 sekcji · 202 prace, dokładnie tyle, ile najbliżej „kilkuset” dostępne na stagingu) wczytany; Przedmiar 10 przy cenie 300: wartość przedmiaru 3000,00 netto / 3240,00 brutto, stopka sekcji i pozostało zgodne, sąsiednie sekcje 0,00; po F5 te same sumy, strona nie przycina._
+- [x] „Cofnij" / „Ponów" po edycji: wartość i sumy wracają; po F5 to samo.
+      _Zweryfikowano 2026-09-29 (staging): inw. 174: Przedmiar 10 → 20; Opcje → „Cofnij”: wartość i sumy wracają (Pozostało 160,00, 60%), „Ponów”: znowu 20 (Pozostało 560,00, 30%); po F5 stan taki sam jak po „Ponów”._
+- [x] „Sekcja z szablonu…": sekcja i sumy.
+      _Zweryfikowano 2026-09-29 (staging): inw. 174: szablon „QA-908 szablon” zapisany z Opcji; „Dodaj → Sekcja z szablonu…” dodaje sekcję z 2 pracami (wiersze 3–4) od razu, sumy sekcji 0 (bez przedmiaru), sumy całości bez zmian (240,00 / Pozostało 40,00)._
+- [x] „Dodaj pracę z katalogu do sekcji…": wiersz i sumy.
+      _Zweryfikowano 2026-09-29 (staging): „Praca z katalogu…” → zaznaczona pozycja QA-908, „Dodaj do: Nowa sekcja”: nowy wiersz i licznik sekcji (2 poz.) od razu; sumy bez zmian (przedmiar nowej pozycji 0)._
+- [x] „Porównaj z katalogiem" → „Dodaj do katalogu" → „Dodaj": pozycja znika z „Brak w katalogu";
       gdzie indziej: katalog prac pokazuje nową pozycję.
-- [ ] „Zastąp całą rozpiskę zapisanym szablonem": cała rozpiska podmieniona, komunikat widoczny.
-- [ ] „Wyczyść kosztorys": „Kosztorys jest pusty"; gdzie indziej: `/inwestycje/<id>` — robocizna 0.
-- [ ] „Wersje" → przywrócenie wersji: rozpiska z tej wersji; zaraz potem edycja komórki zapisuje się.
-- [ ] „Popraw literówki w opisie prac i j.m." — trzy razy pod rząd na wierszu z literówką: za każdym
+      _Zweryfikowano 2026-09-29 (staging): Problemy → „Porównaj z katalogiem…” → „Pokaż 1 praca” → „Dodaj do katalogu” → „Dodaj”: „Brak w katalogu” zmienia się na „Każda praca z tego kosztorysu jest w katalogu” od razu; `/katalog-prac` pokazuje nową pozycję „Betoon podlogi 2” (kategoria „Nowa sekcja”). Stan: pozycje QA-908 w katalogu do usunięcia na końcu._
+- [x] „Zastąp całą rozpiskę zapisanym szablonem": cała rozpiska podmieniona, komunikat widoczny.
+      _Zweryfikowano 2026-09-29 (staging): Opcje → „Wczytaj szablon…” → wybór szablonu → „Wczytaj i zastąp”: rozpiska podmieniona od razu (dwukrotnie, na „QA test szablon B” i „QA-908 szablon”), toast „Wczytano: 1 sekcja · 2 prace” widoczny ~2 s. Stan sprzed zapisany automatycznie w „Wersje”._
+- [x] „Wyczyść kosztorys": „Kosztorys jest pusty"; gdzie indziej: `/inwestycje/<id>` — robocizna 0.
+      _Zweryfikowano 2026-09-29 (staging): inw. 174, robocizna 150,00 → Opcje → „Wyczyść kosztorys…” (dialog: 1 sekcja · 2 prace) → „Kosztorys jest pusty” po ok. 2,8 s, `/inwestycje/174` robocizna 0,00._
+- [x] „Wersje" → przywrócenie wersji: rozpiska z tej wersji; zaraz potem edycja komórki zapisuje się.
+      _Zweryfikowano 2026-09-29 (staging): inw. 174: nazwany punkt „QA-908 wersja A” (Przedmiar 20), zmiana na 5, „Wczytaj” → „Przywróć” + potwierdzenie: rozpiska z wersji (Pozostało 560,00) po ~3 s; zaraz potem zmiana Przedmiaru na 7 zapisała się (po F5 Pozostało 40,00)._
+- [x] „Popraw literówki w opisie prac i j.m." — trzy razy pod rząd na wierszu z literówką: za każdym
       razem poprawiony tekst bez przeładowania.
-- [ ] Dwie karty tego samego kosztorysu: w drugiej usuń pozycję, w pierwszej zmień jej Przedmiar —
+      _Zweryfikowano 2026-09-29 (staging): inw. 174: trzykrotnie wpisany opis „betoon   podlogi  N” (mała litera, wielokrotne spacje) → Opcje → „Popraw literówki…”: za każdym razem tekst poprawiony od razu, bez przeładowania („Betoon podlogi N”). Uwaga: narzędzie nie poprawiło samej pisowni słów, tylko wielkość liter i spacje — zgodne z opisem opcji._
+- [x] Dwie karty tego samego kosztorysu: w drugiej usuń pozycję, w pierwszej zmień jej Przedmiar —
       pierwsza pokazuje komunikat „Kosztorys zmienił się w innym miejscu…" i przeładowuje rozpiskę
       bez tej pozycji. Drugi wariant: w pierwszej karcie najpierw zmień Przedmiar **innej** pozycji,
       dopiero potem tej usuniętej — rozpiska też się przeładowuje, a komunikat nie wraca przy kolejnej edycji.
-- [ ] „Wyczyść kosztorys" przy zerwanym połączeniu (DevTools → Network → Offline zaraz po kliknięciu,
+      _Zweryfikowano 2026-09-29 (staging): inw. 174, dwie karty. Wariant 1: w karcie B usunięta pozycja „Transport i wniesienie…”, w karcie A zmiana jej Przedmiaru → toast „Kosztorys zmienił się w innym miejscu — odświeżam dane.”, rozpiska przeładowana bez tej pozycji. Wariant 2: B usunęła „Wynoszenie gruzu…”; w A najpierw zmiana Przedmiaru innej pozycji (bez toastu, bez przeładowania), potem usuniętej → toast + przeładowanie bez pozycji; kolejna edycja (13) bez powtórzenia komunikatu._
+- [x] „Wyczyść kosztorys" przy zerwanym połączeniu (DevTools → Network → Offline zaraz po kliknięciu,
       potem Online): komunikat o błędzie, a po powrocie sieci rozpiska zgodna z bazą.
+      _Zweryfikowano 2026-09-29 (staging): inw. 174 (200 prac / 11 sekcji), `page.route` przerywa w locie POST z `next-action` (`internetdisconnected`), „Wyczyść kosztorys…" → „Wyczyść": toast błędu „Czyszczenie przerwane — odświeżam kosztorys", okno zamknięte, strona nie przeszła na błąd przeglądarki. Po `unroute` + F5 rozpiska jest, w bazie nadal 200 prac / 11 sekcji / 13 wersji (żądanie nie dotarło). Poprzedni przebieg (offline przed kliknięciem) był złą metodą._
+
+### Findings — 2026-09-29
+
+Przebieg staging 2026-09-29 (OWNER + MANAGER, dane z dumpu prod).
+
+- [x] **Offline „Wyczyść kosztorys": brak komunikatu w aplikacji.** **Odrzucone (2026-09-29):**
+  przebieg odciął sieć **przed** kliknięciem, a boks mówi o zerwaniu **po** nim. Bez sieci Next sam
+  przechodzi na nawigację przeglądarki i pokazuje jej stronę „brak internetu" — to komunikat, tylko
+  nie nasz, a dane zostają zgodne z bazą. Wariant z boksu (żądanie urwane w locie) sprawdza boks wyżej.
+- [x] **`coeff-cell.tsx` bez czerwonej flagi `checkSubcontractorPrice`.** **Naprawione w drzewie**
+  (lustro `price-cell.tsx`) ze specem `subcontractor-coeff-cell.test.tsx` („mnożnik ponad sufitem
+  czerwieni obie komórki", czerwony bez poprawki). Ponowne sprawdzenie po deployu: boks EX-865.
+  _Test disposition:_ test-driven-debugging · dom.
+- [x] **`SheetSetupDialog` / `AddSheetDialog` bez `settleAction`** — offline kończyło się stroną błędu.
+  **Naprawione w drzewie** ze specami `sheet-setup-dialog.test.tsx` i `add-sheet-dialog.test.tsx`
+  (toast „Brak połączenia…", okno zostaje; oba czerwone bez poprawki). Czeka na deploy.
+  _Test disposition:_ test-driven-debugging · dom.
+- [x] **`submitOptimistically` toastuje surowe „Failed to fetch"** (po angielsku). **Naprawione w
+  drzewie:** `src/stores/optimistic-form-store.ts` woła akcję przez `settleAction`, więc błąd sieci
+  daje „Brak połączenia z serwerem…" i ponownie otwiera okno. Spec w `optimistic-form-store.test.ts`
+  (czerwony bez poprawki). Czeka na deploy. _Test disposition:_ test-driven-debugging · unit.
+- [x] **Luka udostępnień v1** — konto reader nie czyta arkuszy v1 inwestycji 130/139/141/143/144/145.
+  **Linear: EX-939.**
+- [x] **Okno udostępniania otwarte offline** pokazuje „Nie udało się przygotować linku" bez toastu.
+  **Odrzucone:** komunikat jest w samym oknie, na które użytkownik patrzy; toast by go powtórzył.
+- [x] **Przesłanka boksu „Edytuj transakcję — zmień kwotę" nieaktualna** — **naprawione:** boks
+  przepisany na robociznę (tylko jej kwota jest edytowalna).
+- [x] **„Popraw literówki"** poprawia tylko wielkość liter i białe znaki. **Odrzucone:** zakres to
+  reguły `cleanDescription` / `cleanUnit` (`src/lib/kosztorys/clean-item-texts.ts`), zamierzony,
+  nie defekt.
+- [x] **Przesłanka boksu „Lista odbiorców powiadomień" nieaktualna** — **odrzucone:** listy są
+  osobne per strona z założenia; boks jest odhaczony z tą uwagą.
+
+- [x] **Sprzątanie danych QA po EX-908 (staging, 2026-09-29) — zostało kilka rzeczy, których UI nie usuwa.**
+  **Dropped:** to nie defekt, tylko brak funkcji „usuń" w UI. Stan: kasy 43/44 nieaktywne; inw. 174
+  „Zakończona"; pracownicy 73/74 nieaktywni; sprzęt 2 i pojazd 10 „Wycofany"; pozycja katalogu i szablon
+  „QA-908 szablon" usunięte. Zostaje: wersja „QA-908 wersja A" + wersje „Przed …" (dialog „Wersje" ma tylko
+  „Przywróć"); domyślna kasa OWNERA = 43 (lista nie ma opcji „brak"); inw. 174 z 3 transakcjami w historii.
+  Arkusz v1 inw. 90 po odłączeniu i ponownym dodaniu ma `sheet_column_mapping = NULL` (w dumpie
+  `{"netValue": 18}`), nowy id 79 zamiast 36 — przywrócenie wymaga pickera kolumn z importu (nadpisałby
+  rozpiskę), więc bez zmian.
 
 ### Poza stagingiem
 
 - [ ] Lokalnie zapis do arkusza Google (np. przelew na inwestycji z podpiętym arkuszem) nadal jest
       odrzucany („Refusing to write…" w logu serwera) i nic nie trafia do Google.
+      _Zweryfikowano 2026-09-29 (staging): pominięto — check lokalny, przepis zabrania chodzenia na localhost; na stagingu odmowę egzekwuje Google (403) dla konta Viewer._
 
 ### Lokalnie — build produkcyjny na :3100, baza 5435 (2026-09-29)
 
@@ -2406,7 +2599,28 @@ Każdy boks: po kliknięciu zmiana widoczna **bez przeładowania**, a w Network 
 
 ## 2026-09-29 — kosztorys-menu-widths
 
-- [ ] Edytor kosztorysu → pasek narzędzi: menu „Kolumny" i „Sekcje" są tak samo szerokie jak
+- [x] Edytor kosztorysu → pasek narzędzi: menu „Kolumny" i „Sekcje" są tak samo szerokie jak
       „Problemy" i „Filtry"; długie nazwy kolumn („Pomiar — suma etapów z narzędziami
       (podwykonawca)") mieszczą się w jednej linii albo zawijają się rzadziej niż wcześniej.
-- [ ] Dowolna tabela z listą (np. Transakcje) → „Kolumny": menu ma dotychczasową szerokość.
+      _Zweryfikowano 2026-09-29 (staging): inw. 137, widok „z narzędziami”: menu Problemy, Filtry, Sekcje i Kolumny mają po 448 px (w-112); „Pomiar — suma etapów z narzędziami (podwykonawca)” mieści się w jednej linii._
+- [x] Dowolna tabela z listą (np. Transakcje) → „Kolumny": menu ma dotychczasową szerokość.
+      _Zweryfikowano 2026-09-29 (staging): Transakcje → „Kolumny”: menu ma 288 px (w-72, dotychczasowy domyślny `contentClassName`)._
+
+## 2026-09-29 — import z arkusza czyta etapy aż do „Przedmiaru"
+
+- [ ] Inwestycja z arkuszem, w którym etapy 7–10 dopisano bez „wykonano" w drugim wierszu nagłówka
+      (np. inw. 48) → „Importuj z arkusza": podgląd i import pokazują każdy etap z wpisanym wykonaniem
+      albo własną nazwą, nie tylko pierwsze sześć; ilości etapów 7+ zgadzają się z arkuszem.
+- [ ] Arkusz z sześcioma etapami „wykonano" i bez dopisanych kolumn: import daje te same etapy co
+      wcześniej.
+
+## 2026-09-29 — nowy etap kopiuje rozliczenie i wykonawcę ostatniego
+
+- [ ] Edytor kosztorysu z co najmniej jednym etapem → „Dodaj" → „Etap": bez żadnego okna pojawia się
+      nowa kolumna z tym samym rozliczeniem i tym samym pracownikiem / ekipą co ostatni etap (ten
+      najbardziej po prawej); po odświeżeniu strony nadal je ma.
+- [ ] Ostatni etap „Bez przypisania": nowy etap też jest „Bez przypisania".
+- [ ] Kosztorys bez etapów → „Dodaj": zamiast „Etap" są dwie pozycje „Etap — z narzędziami
+      (podwykonawca)" / „Etap — bez narzędzi (pracownik)"; wybrana tworzy etap z tym rozliczeniem
+      i bez przypisania.
+- [ ] Szablon (warsztat) → „Dodaj": nie ma żadnej pozycji „Etap".

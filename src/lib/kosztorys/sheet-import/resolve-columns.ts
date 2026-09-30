@@ -96,6 +96,26 @@ function findStages(block: unknown[][]): StageColumnsT | null {
   return { firstColumn, count }
 }
 
+// The etapy end where Przedmiar begins, not where the markers do. Owners add etapy 7–10 to a
+// 6-etap sheet without typing „wykonano", captioned „etap 8", „8 etap ", or nothing at all, while
+// the sheet's own pomiar still sums every column up to Przedmiar (`=SUM(D:M)`). Stopping at the last
+// marker dropped every wykonanie booked past it, in silence (inv 14, 25, 48). An empty column swept
+// in here is harmless: the parser keeps an etap only if it carries wykonanie or a name.
+//
+// Only a located Przedmiar bounds the run. With its header overwritten the next field is Pomiar,
+// and running up to that would swallow the very column the owner has to point Przedmiar at. Any
+// field sitting between the markers and Przedmiar stops the run early rather than being read as an
+// etap.
+function extendToPrzedmiar(
+  stages: StageColumnsT,
+  columns: Partial<Record<ColumnFieldT, number>>,
+): StageColumnsT {
+  const markerEnd = stages.firstColumn + stages.count
+  if (columns.plannedQty === undefined || columns.plannedQty < markerEnd) return stages
+  const nextField = Math.min(...Object.values(columns).filter((column) => column >= markerEnd))
+  return { ...stages, count: nextField - stages.firstColumn }
+}
+
 // `hits` rides along only until the sentence is written — the count is what tells an ambiguous field
 // „zmień nazwę tej drugiej" from a plain absence.
 type UnresolvedFieldT = MissingFieldT & { hits: number }
@@ -227,6 +247,14 @@ export function resolveLaborColumns(
     if (entry.required) problems.push(problemFor(entry))
   }
 
+  // After the pointing, so a Przedmiar the owner pointed at bounds the run like a recognised one.
+  const extendedStages = stages && extendToPrzedmiar(stages, columns)
+  if (stages && extendedStages) {
+    for (let offset = stages.count; offset < extendedStages.count; offset += 1) {
+      taken.add(stages.firstColumn + offset)
+    }
+  }
+
   const candidates = findCandidates(block, taken, blockWidth)
 
   const { plannedQty, unit, clientPrice, netValue } = columns
@@ -235,7 +263,7 @@ export function resolveLaborColumns(
   // made `problems` non-empty.
   if (
     problems.length > 0 ||
-    !stages ||
+    !extendedStages ||
     plannedQty === undefined ||
     unit === undefined ||
     clientPrice === undefined ||
@@ -255,7 +283,7 @@ export function resolveLaborColumns(
       clientPrice,
       netValue,
     },
-    stages,
+    stages: extendedStages,
     missingFields,
     candidates,
     pointedFields,

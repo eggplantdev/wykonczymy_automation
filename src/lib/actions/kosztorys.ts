@@ -594,12 +594,13 @@ export async function renumberKosztorysOrderAction(
 export async function addStageAction(
   investmentId: number,
   plane: ToolPlaneT,
+  workerId: number | null = null,
 ): Promise<ActionResultT<{ id: number; ordinal: number }>> {
   return investmentAction(
     'addStageAction',
     { investmentId },
     async ({ payload }) => {
-      const parsed = validateAction(stagePatchSchema, { plane })
+      const parsed = validateAction(stagePatchSchema, { plane, workerId })
       if (!parsed.success) return parsed
       const existing = await payload.find({
         collection: 'kosztorys-stages',
@@ -611,7 +612,7 @@ export async function addStageAction(
       const nextOrdinal = (existing.docs[0]?.ordinal ?? 0) + 1
       const created = await payload.create({
         collection: 'kosztorys-stages',
-        data: { investment: investmentId, ordinal: nextOrdinal, plane },
+        data: { investment: investmentId, ordinal: nextOrdinal, plane, worker: workerId },
       })
       return { success: true, data: { id: created.id, ordinal: nextOrdinal } }
     },

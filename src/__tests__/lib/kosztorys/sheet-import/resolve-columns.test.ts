@@ -75,6 +75,21 @@ describe('resolveLaborColumns', () => {
     expect(result.stages.count).toBe(10) // not 20
   })
 
+  it('runs the etapy up to Przedmiar when the owner added columns without „wykonano"', () => {
+    // Siennicka (inv 48) / inv 14: markers on D–I only; the added etapy are captioned however the
+    // owner typed them, or not at all, and the sheet's pomiar still sums D:M.
+    const grid = BIALOSTOCKA_LABOR_HEADER.map((row) => [...row])
+    for (const column of [9, 10, 11, 12]) grid[1][column] = ''
+    grid[0][10] = 'etap 8'
+    grid[2][10] = 'etap 8 mikolaj'
+    grid[0][12] = ''
+    grid[2][12] = ''
+
+    const result = resolveLaborColumns(grid)
+    expectResolved(result)
+    expect(result.stages).toEqual({ firstColumn: 3, count: 10 }) // D–M
+  })
+
   it('resolves a layout where the money block is not adjacent to Wartość netto', () => {
     const result = resolveLaborColumns(ALTOWA_LABOR_HEADER)
     expectResolved(result)

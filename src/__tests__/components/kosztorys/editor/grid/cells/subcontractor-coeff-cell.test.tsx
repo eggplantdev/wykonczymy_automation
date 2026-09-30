@@ -94,6 +94,15 @@ describe('„Mnożnik" — trzecie źródło stawki wykonawcy', () => {
     expect(priceText()).toBe('80')
   })
 
+  // Właściciel, 2026-09-23: czerwień na obu komórkach. Na stagingu czerwieniała sama cena, bo mnożnik
+  // barwił się tylko przy odmowie zapisu, a przekroczenie sufitu zapis przepuszcza.
+  it('mnożnik ponad sufitem czerwieni obie komórki', () => {
+    const { coeffInput } = renderTrio({ wToolsOverrideCoeff: 0.9 })
+
+    expect(coeffInput()).toHaveClass('text-destructive')
+    expect(screen.getByTestId('price').querySelector('.text-destructive')).not.toBeNull()
+  })
+
   it('mnożnik 0 to stawka zero złotych, nie powrót do „auto"', () => {
     const { priceText, source } = renderTrio({ wToolsOverrideCoeff: 0 })
 

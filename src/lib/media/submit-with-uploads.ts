@@ -1,5 +1,10 @@
 import { discardOrphanedUploads } from '@/lib/media/discard-orphaned-uploads'
-import { MediaUploadError, resolveUploadIdRows, resolveUploadIds } from '@/lib/media/upload-ids'
+import {
+  MediaUploadError,
+  UPLOAD_FAILED,
+  resolveUploadIdRows,
+  resolveUploadIds,
+} from '@/lib/media/upload-ids'
 import type { ActionResultT } from '@/types/action'
 import type { MediaKindT } from '@/types/media'
 
@@ -22,10 +27,7 @@ async function withOrphanCleanup<TIds>(
       success: false,
       // Only the upload error phrases itself for this UI; anything else is transport or a
       // chunk-load failure, whose message is not something to put in front of the user.
-      error:
-        err instanceof MediaUploadError
-          ? err.message
-          : 'Nie udało się przesłać plików — spróbuj ponownie.',
+      error: err instanceof MediaUploadError ? err.message : UPLOAD_FAILED,
     }
   }
 

@@ -47,11 +47,11 @@ export function useKosztorysStageOps({
 
   // A new stage adds a `stage_<id>: 0` key to every current row + snapshot (like patchRows for
   // coeffs), so the column renders 0s (not blanks) and the first progress entry diffs correctly.
-  async function handleAddStage(plane: ToolPlaneT) {
-    const res = await settleAction(() => addStageAction(investmentId, plane))
+  async function handleAddStage(plane: ToolPlaneT, workerId: number | null) {
+    const res = await settleAction(() => addStageAction(investmentId, plane, workerId))
     if (!res.success) return reportFailure(res.error, res.code)
     const { id, ordinal } = res.data
-    setStages((s) => [...s, { id, ordinal, label: null, plane, workerId: null }])
+    setStages((s) => [...s, { id, ordinal, label: null, plane, workerId }])
     patchRows(
       () => true,
       (r) => ({ ...r, [stageKey(id)]: 0 }),
