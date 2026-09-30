@@ -1,10 +1,10 @@
 ---
 change_id: kosztorys-new-item-dialog
 title: Add a praca through a form dialog instead of a blank row
-status: implemented
+status: archived
 created: 2026-09-30
 updated: 2026-09-30
-archived_at: null
+archived_at: 2026-09-30T21:31:46Z
 branch: kosztorys-new-item-dialog
 worktree: ../wykonczymy-worktrees/kosztorys-new-item-dialog
 ---
