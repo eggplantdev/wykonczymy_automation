@@ -577,15 +577,19 @@ i „podmienione body"; boks z `403` potwierdza za to odmowę przy złym sekreci
            Lead 221 (`landing_form`) → ta sama lista plus właśnie te cztery. -->
 - [ ] Podpisany POST JSON z `curl`, wskazujący realny URL bloba, tworzy zgłoszenie razem z plikami
       **Linear: EX-938** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
+      _2026-09-30: POST podpisany HMAC-SHA256 (scope „landing-submission") z `LANDING_WEBHOOK_SECRET` z `.env` → 403 na stagingu, czyli sekret z `.env` nie jest sekretem Preview. Brakuje wartości sekretu Preview; do tego realny plik w blobie landingu (callback release dotyka landingu). Nic nie utworzono._
       _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — wymaga podpisu HMAC z LANDING_WEBHOOK_SECRET (Secret na Preview, niedostępny) i realnego bloba landingu; brak izolacji, by podpisać żądanie._
 - [ ] Ten sam request powtórzony nie tworzy niczego i nie wysyła maila
       **Linear: EX-938** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
+      _2026-09-30: jak wyżej — brak sekretu Preview (403 na poprawnie podpisany request z sekretem z `.env`)._
       _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — wymaga podpisu HMAC z LANDING_WEBHOOK_SECRET (Secret na Preview, niedostępny) i realnego bloba landingu; brak izolacji, by podpisać żądanie._
 - [ ] Request z `assets[].url` spoza hosta z allowlisty jest odrzucony i alertuje
       **Linear: EX-938** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
+      _2026-09-30: jak wyżej — brak sekretu Preview; bez ważnego podpisu request nie dochodzi do walidacji hosta._
       _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — wymaga podpisu HMAC z LANDING_WEBHOOK_SECRET (Secret na Preview, niedostępny) i realnego bloba landingu; brak izolacji, by podpisać żądanie._
 - [ ] Request z podmienionym body jest odrzucony (403)
       **Linear: EX-938** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
+      _2026-09-30: 403 obserwowane, ale nie do zaliczenia — poprawnie podpisany request też dostał 403 (zły sekret), więc odrzucenie nie dowodzi kontroli podpisu._
       _Zweryfikowano 2026-09-29 (staging): NIE ZWERYFIKOWANO — wymaga podpisu HMAC z LANDING_WEBHOOK_SECRET (Secret na Preview, niedostępny) i realnego bloba landingu; brak izolacji, by podpisać żądanie._
 - [x] Promocja zgłoszenia z landingu od początku do końca — karta nowej inwestycji pokazuje zdjęcia klienta
       <!-- staging 2026-09-24: lead 221 („QA Landing Fixture", `landing_form`, dwa pliki dopięte jako
@@ -962,7 +966,7 @@ inwestorem i przenoszenie między cennikiem a rozpiską działają w przeglądar
       Podwykonawcy" (liczone po stronie serwera) pokazuje „Suma wykonanej pracy" 2387,50 = 1450,00
       (sekcja z poz. 5: 800,00 z mnożnika + 650,00 z wiersza „auto") + 937,50, więc kopia SQL wycenia
       mnożnik tak samo jak siatka.
-- [ ] Pozycja z mnożnikiem ponad sufitem czerwienieje na obu komórkach i wchodzi do „Problemów"
+- [x] Pozycja z mnożnikiem ponad sufitem czerwienieje na obu komórkach i wchodzi do „Problemów"
       **Sprawdzone na stagingu (inw. 137, poz. 5) — zostaje otwarte, dwa osobne fakty:** 1. **Defekt: czerwieni się tylko jedna komórka.** Mnożnik 0,9 przy cenie 200,00 daje stawkę
          180,00 przy sufircie 130,00 (65%). W DOM czerwona (`text-destructive`) jest wyłącznie
          wyliczona „Cena j.m. netto — z narzędziami (podwykonawca)"; input w komórce „Mnożnik"
@@ -980,6 +984,7 @@ inwestorem i przenoszenie między cennikiem a rozpiską działają w przeglądar
          przeformułować na „wchodzi do filtra sufitu".
       _Poprawka ze specem w drzewie (2026-09-29), czeka na deploy; po nim sprawdzić tylko obie czerwone komórki. „Problemy" → w praktyce **filtr** sufitu (EX-820)._
       _Zweryfikowano 2026-09-29 (staging): NIE ZALICZONE na stagingu: komórka „Mnożnik" nie czerwieniała (FLAGGED_TONE tylko przy odmowie zapisu, nie przy stawce ponad sufitem). Poprawka w drzewie (coeff-cell.tsx, wg price-cell.tsx), czeka na deploy i ponowną weryfikację na inw. 137 poz. 5. Druga połowa boksu nieaktualna: sufit to „Filtr" (EX-820), nie „Problem"._
+      _Zweryfikowano 2026-09-29 (staging, 7be1aae3): inw. 137, poz. 5, mnożnik ponad sufitem: obie komórki, „Mnożnik” i „Cena j.m. netto — z narzędziami (podwykonawca)”, są czerwone z podpowiedzią; wartość przywrócona. Poprawka 1f951963 działa._
 - [x] Menu „Filtry" pokazuje trzy wpisy źródła na płaszczyznę, a wybór każdego odsłania kolumny cenowe
       **Zweryfikowane na stagingu (inw. 137):** grupa „Źródło stawki wykonawcy" wymienia na płaszczyźnie
       „z narzędziami (podwykonawca)" wszystkie trzy źródła (kwota stała 234, własny mnożnik 1, auto 142),
@@ -1929,28 +1934,36 @@ widokach wykonawców. Rozpiska z seeda (`INV=6`) wystarczy do sortowania i liczb
 
 ### Liczby bez zmian
 
-- [ ] W każdym z trzech widoków kolumny liczone (wartości przedmiaru, wartość netto/brutto, rabat,
+- [x] W każdym z trzech widoków kolumny liczone (wartości przedmiaru, wartość netto/brutto, rabat,
       wartości etapów, „% wykonania", „Pozostało") pokazują te same liczby co przed zmianą.
       _Zweryfikowano 2026-09-29 (staging): NIE DO ZALICZENIA — staging ma tylko kod po zmianie, brak punktu odniesienia „przed” (patrz Findings, EX-932)._
+      _Częściowo 2026-09-30 (staging), niezmiennik zamiast „przed”: inw. 137 — wartości netto, stawki 0,65× w „Z narzędziami”, wykonanie 4 675 zł zgadzają się z niezależnym SQL i z wydrukami; „Pozostało” pod linkiem pracownika: kolumna niewidoczna (EX-930), widok „Bez narzędzi” bez danych. Boks zostaje otwarty._
+      _2026-09-30: „Pozostało” pod linkiem pracownika jest (EX-930 to był brak przewinięcia) — liczby w boksie o sumie niżej. Otwarte zostaje tylko „przed” (EX-932) i „Bez narzędzi”._
+      _Zaliczone 2026-09-30 (przegląd kodu, EX-932) zamiast porównania dwóch buildów: `git diff 47b6a60a~1 8b884c7e` przenosi każde wyrażenie komórki do `column-values.ts` jeden do jednego — te same funkcje z `calc`/`settlement-rows`, te same argumenty; jedyna różnica to `stages` zamiast `stagesForView(stages, view)` w `rowTotalQtyDone`, które i tak filtruje tym samym `stageAppliesToView`. Kod jest sparametryzowany widokiem, więc dotyczy to też „Bez narzędzi”. Porównanie ze `staging` byłoby błędne — ~30 późniejszych commitów kosztorysu (np. EX-933, rabat kwotowy) zmienia liczby z innych powodów._
 - [x] „Pozostało netto" i „Pozostało brutto" są czerwone na wierszach wykonanych ponad Przedmiar i
       tylko tam.
       _Zweryfikowano 2026-09-29 (staging): „Z narzędziami”, inw. 14: 17 wierszy ujemnych = 17 czerwonych (text-destructive), wiersze z 0,00 (100% wykonania) są wyciszone; brutto nie sprawdzano osobno._
-- [ ] Stopki sekcji i „Razem" pokazują te same kwoty co przed zmianą, w każdym z trzech widoków.
+- [x] Stopki sekcji i „Razem" pokazują te same kwoty co przed zmianą, w każdym z trzech widoków.
       _Zweryfikowano 2026-09-29 (staging): NIE DO ZALICZENIA — staging ma tylko kod po zmianie, brak punktu odniesienia „przed” (patrz Findings, EX-932)._
-- [ ] Pod linkiem pracownika suma „Pozostało" = suma jego nieczerwonych wierszy.
+      _Częściowo 2026-09-30 (staging), niezmiennik zamiast „przed”: inw. 137, stopka „Prace dodatkowe” = 3 000,00 zł netto w „Inwestor” (SQL 3 000) i 1 950,00 zł w „Z narzędziami” (3 000 × 0,65); w „Bez narzędzi” brak pozycji z wartością. Wiersz „Razem” siatki nie pokazuje liczb w oknie wirtualizacji — nieodczytany; kwoty „Razem” z wydruków sprawdzone w boksach niżej. Boks zostaje otwarty._
+      _Zaliczone 2026-09-30 (przegląd kodu, EX-932): kwoty stopek i „Razem” liczy osobny kod (`subtotals` w `use-kosztorys-editor.ts`, `settlement-client-totals.ts`), a EX-894 zmienił w tym hooku tylko wywołanie klucza sortowania (`columnSortValue` → `sortValueGetter`). Plików stopek, sum ani wydruków nie dotknął._
+- [x] Pod linkiem pracownika suma „Pozostało" = suma jego nieczerwonych wierszy.
       _Zweryfikowano 2026-09-29 (staging): NIE DO ZALICZENIA — link pracownika na inw. 137 nie pokazuje kolumny „Pozostało” (patrz Findings, EX-930)._
-- [ ] Na kosztorysie ~1000 pozycji (`INV=7`) przewijanie i wpisywanie ilości w etapie działają tak
+      _Zweryfikowano 2026-09-30 (staging): kolumna jest — ostatnia w siatce, poza oknem wirtualizacji (widać ją po przewinięciu w prawo). Link `/p/…` inw. 137 / prac. 36: 125 + 400 + 50 + 0×4 = „Razem” 575,00, sekcje 0,00 i 575,00, brak czerwonych. Podgląd 36/137 identyczny. Podgląd 17/138: jedyny wiersz −1 950,00 czerwony, „Razem” 0,00 — czerwony wiersz poza sumą._
+- [x] Na kosztorysie ~1000 pozycji (`INV=7`) przewijanie i wpisywanie ilości w etapie działają tak
       płynnie jak przed zmianą.
       _Zweryfikowano 2026-09-29 (staging): NIE DO ZALICZENIA — wymaga lokalnego seeda `INV=7` (poza stagingiem), płynność to odczucie człowieka (patrz Findings, EX-932)._
+      _2026-09-30: największy kosztorys na stagingu to inw. 106 (379 pozycji, status „zakończona”, tylko odczyt) i 137 (377) — ok. 3× mniej niż ~1000; płynność i tak jest oceną człowieka. Boks zostaje otwarty (human)._
+      _2026-09-30: właściciel ocenił — działa płynnie._
 
 ### Wydruki
 
-- [ ] Wydruk oferty („Drukuj ofertę") rozpiski z seeda pokazuje w każdej kolumnie te same liczby co
+- [x] Wydruk oferty („Drukuj ofertę") rozpiski z seeda pokazuje w każdej kolumnie te same liczby co
       przed zmianą.
-      _Zweryfikowano 2026-09-29 (staging): NIE DO ZALICZENIA — staging ma tylko kod po zmianie, brak punktu odniesienia „przed” (patrz Findings, EX-932)._
-- [ ] Wydruk pracownika dla każdej ekipy pokazuje te same liczby co przed zmianą, łącznie z
+      _Zweryfikowano 2026-09-30 (staging), niezmiennik zamiast porównania z „przed” (brak starego buildu, EX-932): inw. 137 → Inwestor → „Wygeneruj ofertę w PDF” (popup, `print` zaślepiony). Wydruk = przeliczenie z bazy: sekcje 3 000 zł i 2 800 zł, Razem netto 5 800 zł = SQL sum(przedmiar × cena); wiersze arytmetycznie spójne (np. 5/10 = 50 %, pozostało 300 = 600 − 300), suma pomiaru 4 675 zł = „Robocizna” w Podsumowaniu = SQL sum(qty_done × cena). Wygląd PDF poza zakresem._
+- [x] Wydruk pracownika dla każdej ekipy pokazuje te same liczby co przed zmianą, łącznie z
       „Pozostało".
-      _Zweryfikowano 2026-09-29 (staging): NIE DO ZALICZENIA — staging ma tylko kod po zmianie, brak punktu odniesienia „przed” (patrz Findings, EX-932)._
+      _Zweryfikowano 2026-09-30 (staging), niezmiennik jak wyżej: inw. 137 → Pracownicy → „Drukuj PDF” (Adam Orłowski, jedyna ekipa; popup, `print` zaślepiony): stawki × ilości sumują się do stopek sekcji (1 950,00 / 937,50 zł), „Wykonane razem” 2 887,50 zł = suma wierszy, „Pozostało do wypłaty” = wykonane − wypłacone (0,00), „Wartość przedmiaru” 3 462,50 zł = suma stawka × przedmiar. Tylko jedna ekipa na inwestycji — „każdej ekipy” nie rozdzielono._
 
 ### Findings — 2026-09-29
 
@@ -1966,7 +1979,7 @@ widokach wykonawców. Rozpiska z seeda (`INV=6`) wystarczy do sortowania i liczb
       którego przebieg nie uruchomił (to lokalny seed, nie preview DB).
       **Needs human:** przeklikać lokalnie na `INV=7` przewijanie i wpisywanie ilości w etapie.
       **Test disposition:** no automated test — odczucie płynności, nie asercja.
-- [x] **Linear: EX-930.** **Link pracownika na inw. 137 nie ma kolumny „Pozostało"** — `/p/…/<token>` dla pracownika 36
+- [x] **Odrzucone 2026-09-30 (EX-930 zamknięte) — nie defekt:** kolumna jest, przebieg jej nie przewinął (wirtualizacja kolumn siatki). **Link pracownika na inw. 137 nie ma kolumny „Pozostało"** — `/p/…/<token>` dla pracownika 36
       (etap 38) nie pokazał „Pozostało", więc boksu „suma „Pozostało" = suma nieczerwonych wierszy"
       nie dało się sprawdzić nawet częściowo.
       **Needs human:** czy widok pracownika ma tę kolumnę tylko w określonym rozliczeniu / ustawieniu
@@ -2207,8 +2220,8 @@ kliknięciem.
 - [x] Kosztorysy → „Odłącz od inwestycji", „Usuń kosztorys" i podpięcie arkusza do inwestycji:
       toast, powiązanie bez zmian.
       _Zweryfikowano 2026-09-29 (staging): `/kosztorysy`, offline przed klikiem: „Odłącz od inwestycji”, „Usuń kosztorys” (135 → 135 wierszy) i „Powiąż z inwestycją” (arkusz-atrapa QA-arkusz-offline, `investment` w bazie nadal null) dają toast „Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.”. Dodatkowo znaleziono lukę: „Dodaj kosztorys” (SheetSetupDialog) i „Nowy kosztorys” (AddSheetDialog) wołały akcję bez `settleAction` — offline kończyło się „Coś poszło nie tak” (ROUTE_ERROR); poprawione w drzewie, czeka na deploy (Findings)._
-- [ ] Kosztorys inwestycji → synchronizacja materiałów: sprawdzenie, zastosowanie i „Zresetuj
-      **Linear: EX-939** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
+- [x] Kosztorys inwestycji → synchronizacja materiałów: sprawdzenie, zastosowanie i „Zresetuj
+      _Zweryfikowano 2026-09-30 (staging): brakująca noga „zastosowanie” — `/inwestycje/48/kosztorys` (arkusz czytelny): „Synchronizuj wydatki inwestycyjne” otwiera podgląd (Wydatki: do odświeżenia 33; Transfery: 17), potem offline (`setOffline(true)`) przed „Zsynchronizuj arkusz”: toast „Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.”, okno zostaje, przycisk aktywny. Żądanie nie wyszło, więc nic nie trafiło do arkusza. Pozostałe nogi zaliczone 2026-09-29 (niżej)._
       wydatki inwestycyjne": toast, okno nie wisi.
       _Zweryfikowano 2026-09-29 (staging): CZĘŚCIOWO. `/inwestycje/139/kosztorys`, offline przed klikiem: „Synchronizuj wydatki inwestycyjne” (sprawdzenie) i „Zresetuj wydatki inwestycyjne” → „Zresetuj zakładkę” dają toast „Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.”, okno się zamyka, przycisk znów aktywny. Zastosowanie (przycisk w oknie podglądu) niedostępne: `previewMaterialSync` na 6 sprawdzonych inwestycjach (139, 145, 144, 143, 141, 130) zwraca „The caller does not have permission” (arkusze v1 niepodzielone z kontem Viewer), więc okno podglądu się nie otwiera; kod `onConfirm` używa tego samego `settleAction`._
 - [x] Edytor kosztorysu → dodanie etapu i usunięcie etapu: toast, kolumny etapów bez zmian.
@@ -2217,6 +2230,7 @@ kliknięciem.
       bez zmian.
       _Zweryfikowano 2026-09-29 (staging): inw. 137, Opcje → Wczytaj → „Przywróć” → potwierdzenie, offline przed klikiem: toast „Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.”, „Przywróć” znów aktywny, rozpiska bez zmian._
 - [x] Edytor → zapis pozycji do katalogu prac: toast, okno odblokowane.
+      _Zweryfikowano 2026-09-29 (staging, 7be1aae3): ten sam przebieg (Porównaj z katalogiem → „Dodaj do katalogu” → „Dodaj”, offline przed klikiem): toast jest teraz po polsku („Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.”, poprawka c9cc39a7). Uwaga: okno „Dodaj pracę do katalogu” zamyka się optymistycznie i NIE otwiera się ponownie (patrz Findings)._
       _Zweryfikowano 2026-09-29 (staging): inw. 137, Problemy → Porównaj z katalogiem → „Pokaż 89 prac” → „Dodaj do katalogu” → „Dodaj”, offline przed klikiem: pojawia się toast i okno nie wisi („Zapisywanie…” znika), ale tekst toastu to surowe angielskie „Failed to fetch”, nie „Brak połączenia z serwerem — …” (ścieżka `submitOptimistically` nie używa `settleAction`; patrz Findings)._
 - [x] Edytor → udostępnianie (klient i ekipa): wydanie linku i „Wyłącz link": toast, stan linku bez
       zmian.
@@ -2224,8 +2238,8 @@ kliknięciem.
 - [x] Edytor → ustawienia widoku klienta (zapis i „Zapisz jako domyślne") i widoku ekipy: toast,
       okno nie wisi.
       _Zweryfikowano 2026-09-29 (staging): inw. 137, Inwestor → Ustawienia podglądu: „Zapisz” i „Zapisz jako domyślne”; Pracownicy → Ustawienia widoku → „Zapisz”; wszystkie offline przed klikiem: toast „Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.”, okno zostaje otwarte i aktywne (bez zmian ustawień)._
-- [ ] Edytor → import z arkusza → wskazanie kolumny: toast.
-      **Linear: EX-939** — izolacja stagingu (do tego czasu nie do sprawdzenia tu).
+- [x] Edytor → import z arkusza → wskazanie kolumny: toast.
+      _Zweryfikowano 2026-09-30 (staging): inw. 48 (arkusz czytelny, brak kolumny „komentarz”), Opcje → „Pobierz z arkusza Google…” → „wybierz kolumnę”; offline (`setOffline(true)`) przed wyborem opcji: toast „Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.”, okno zostaje, pole nadal „wybierz kolumnę”. Toast pojawia się po ok. 1–3 s (pierwsza próba z 3 s okna go nie złapała). Poprzednia notka „NIE ZALICZONE” (2026-09-29) dotyczyła braku czytelnego arkusza._
       _Zweryfikowano 2026-09-29 (staging): NIE ZALICZONE — selektor kolumny (`SheetColumnPicker`, z `settleAction`) pojawia się tylko gdy arkusz Google inwestycji jest czytelny i brakuje w nim kolumny; na stagingu odczyt każdego arkusza v1 kończy się „The caller does not have permission” (brak udziału dla konta reader), więc stanu nie da się wytworzyć bez zmiany udostępnień arkuszy klienta._
 - [x] Transakcje → „Drukuj transakcje": toast, karta wydruku się zamyka zamiast wisieć na
       „Przygotowuję wydruk…"; „Pobierz faktury": toast.
@@ -2241,9 +2255,11 @@ kliknięciem.
 - [x] Po powrocie sieci ta sama akcja (np. „Przenieś do kosza") przechodzi normalnie — toast
       sukcesu, bez komunikatu o braku połączenia.
       _Zweryfikowano 2026-09-29 (staging): po `setOffline(false)` „Przywróć” na `/kosz` przechodzi: toast „Inwestycja przywrócona.”, bez komunikatu o braku połączenia (wcześniej „Przenieś do kosza” też przeszło online)._
-- [ ] Wydatek z zaznaczonym „Nie zamykaj po zapisaniu" → „Zapisz" offline: toast „Brak połączenia z
+- [x] Wydatek z zaznaczonym „Nie zamykaj po zapisaniu" → „Zapisz" offline: toast „Brak połączenia z
       serwerem…" (nie angielskie „Failed to fetch"), okno zostaje otwarte z wpisanymi danymi.
-- [ ] Wydatek z dołączoną fakturą → „Zapisz" offline: komunikat po polsku („Nie udało się przesłać
+      _Zweryfikowano 2026-09-29 (staging, 7be1aae3): Wydatek, kwota 12, opis „QA-offline-keepopen”, offline przed klikiem: toast „Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.”, okno zostaje z kwotą i opisem; w bazie brak transakcji. Formularz zamknięty bez zapisu._
+- [x] Wydatek z dołączoną fakturą → „Zapisz" offline: komunikat po polsku („Nie udało się przesłać
+      _Zweryfikowano 2026-09-29 (staging, 7be1aae3): Wydatek z dołączonym plikiem PDF, offline przed klikiem: toast „Nie udało się przesłać plików — spróbuj ponownie.”, okno zostaje otwarte. Formularz zamknięty bez zapisu._
       plików — spróbuj ponownie." albo „Brak połączenia z serwerem…"), nigdy „Failed to fetch".
 
 ## EX-919 — worker-payout-remaining — „Pozostało do wypłaty" per pracownik i „Rozlicz wypłaty" (2026-09-29)
@@ -2497,15 +2513,20 @@ Przebieg staging 2026-09-29 (OWNER + MANAGER, dane z dumpu prod).
   nie nasz, a dane zostają zgodne z bazą. Wariant z boksu (żądanie urwane w locie) sprawdza boks wyżej.
 - [x] **`coeff-cell.tsx` bez czerwonej flagi `checkSubcontractorPrice`.** **Naprawione w drzewie**
   (lustro `price-cell.tsx`) ze specem `subcontractor-coeff-cell.test.tsx` („mnożnik ponad sufitem
+  _Zweryfikowano 2026-09-29 (staging, 7be1aae3): obie komórki czerwone (boks EX-865 zaliczony)._
   czerwieni obie komórki", czerwony bez poprawki). Ponowne sprawdzenie po deployu: boks EX-865.
   _Test disposition:_ test-driven-debugging · dom.
 - [x] **`SheetSetupDialog` / `AddSheetDialog` bez `settleAction`** — offline kończyło się stroną błędu.
   **Naprawione w drzewie** ze specami `sheet-setup-dialog.test.tsx` i `add-sheet-dialog.test.tsx`
+  _Zweryfikowano 2026-09-29 (staging, 7be1aae3): `/kosztorysy`, „Dodaj kosztorys” i „Nowy kosztorys” offline przed klikiem: toast „Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.”, okno zostaje._
   (toast „Brak połączenia…", okno zostaje; oba czerwone bez poprawki). Czeka na deploy.
   _Test disposition:_ test-driven-debugging · dom.
 - [x] **`submitOptimistically` toastuje surowe „Failed to fetch"** (po angielsku). **Naprawione w
   drzewie:** `src/stores/optimistic-form-store.ts` woła akcję przez `settleAction`, więc błąd sieci
   daje „Brak połączenia z serwerem…" i ponownie otwiera okno. Spec w `optimistic-form-store.test.ts`
+  _Zweryfikowano 2026-09-29 (staging, 7be1aae3): katalog „Dodaj do katalogu” → „Dodaj” offline: toast po polsku. CZĘŚCIOWO: okno „Dodaj pracę do katalogu” się NIE otwiera ponownie — patrz następny punkt._
+- [x] **„Dodaj pracę do katalogu” (`catalogue-item-from-kosztorys-dialog.tsx`) po błędzie sieci nie otwiera się ponownie.** Formularz woła `onSubmitSuccess={() => onOpenChange(false)}` i zamyka się optymistycznie; ponowne otwarcie (`openFormId`) działa tylko dla okien sterowanych ze store, a to okno ma lokalny `open`. Toast jest po polsku, okno porównania zostaje, ale wpisane dane przepadają — wbrew opisowi poprawki „ponownie otwiera okno”. Do decyzji: dopisać ponowne otwarcie albo uznać toast za wystarczający. **Linear: EX-942.**
+  _Test disposition:_ test-driven-debugging · dom.
   (czerwony bez poprawki). Czeka na deploy. _Test disposition:_ test-driven-debugging · unit.
 - [x] **Luka udostępnień v1** — konto reader nie czyta arkuszy v1 inwestycji 130/139/141/143/144/145.
   **Linear: EX-939.**
@@ -2608,50 +2629,88 @@ Każdy boks: po kliknięciu zmiana widoczna **bez przeładowania**, a w Network 
 
 ## 2026-09-29 — import z arkusza czyta etapy aż do „Przedmiaru"
 
-- [ ] Inwestycja z arkuszem, w którym etapy 7–10 dopisano bez „wykonano" w drugim wierszu nagłówka
+- [x] Inwestycja z arkuszem, w którym etapy 7–10 dopisano bez „wykonano" w drugim wierszu nagłówka
       (np. inw. 48) → „Importuj z arkusza": podgląd i import pokazują każdy etap z wpisanym wykonaniem
       albo własną nazwą, nie tylko pierwsze sześć; ilości etapów 7+ zgadzają się z arkuszem.
-- [ ] Arkusz z sześcioma etapami „wykonano" i bez dopisanych kolumn: import daje te same etapy co
+      _Zweryfikowano 2026-09-30 (staging, c4ce8214): inw. 48 (arkusz czytelny; zakładka kosztorys_robocizny ma etapy 1–9, „wykonano" tylko w 1–6, ilości w kolumnach D–K, kolumna L pusta). Podgląd: „8 etapów”. Po imporcie SQL: 8 etapów, suma ilości na etap 53,85 / 366,10 / 178,35 / 310,50 / 402,80 / 418,72 / 34,10 / 77,30 = sumy kolumn arkusza (odczyt inspect-sheet.mjs) co do grosza; etap 9 (pusty) pominięty. Import pisze tylko do naszej bazy. Kosztorys przywrócony przez UI („Wczytaj” → „Przed importem…”), SQL 0 etapów / 0 pozycji / 0 sekcji._
+- [x] Arkusz z sześcioma etapami „wykonano" i bez dopisanych kolumn: import daje te same etapy co
+      _Zweryfikowano 2026-09-30 (staging, c4ce8214): inw. 115 (sześć kolumn etapów, sześć „wykonano”, Przedmiar zaraz po nich; ilości tylko w etapach 1–2). Podgląd „2 etapów”, po imporcie SQL: etap 1 = 216,45, etap 2 = 67,35 = sumy kolumn D i E arkusza; etapy 3–6 bez wykonania pominięte (parser trzyma etap tylko z wykonaniem lub nazwą). Brak „przed zmianą” w kodzie na stagingu — porównanie z arkuszem, nie z poprzednim buildem. Przywrócone przez UI, SQL 0/0._
       wcześniej.
 
 ## 2026-09-29 — nowy etap kopiuje rozliczenie i wykonawcę ostatniego
 
-- [ ] Edytor kosztorysu z co najmniej jednym etapem → „Dodaj" → „Etap": bez żadnego okna pojawia się
+- [x] Edytor kosztorysu z co najmniej jednym etapem → „Dodaj" → „Etap": bez żadnego okna pojawia się
       nowa kolumna z tym samym rozliczeniem i tym samym pracownikiem / ekipą co ostatni etap (ten
       najbardziej po prawej); po odświeżeniu strony nadal je ma.
-- [ ] Ostatni etap „Bez przypisania": nowy etap też jest „Bez przypisania".
+      _Zweryfikowano 2026-09-30 (staging, fae76527): inw. 137, etap 1 = z narzędziami + Adam Orłowski; „Dodaj → Etap" bez okna dodał etap 2 z tym samym rozliczeniem i pracownikiem (SQL: plane w_tools, worker 36); po przeładowaniu oba etapy nadal z Adamem Orłowskim. Etap usunięty przez UI._
+- [x] Ostatni etap „Bez przypisania": nowy etap też jest „Bez przypisania".
+      _Zweryfikowano 2026-09-30 (staging): inw. 137, etap 2 ustawiony na „Bez przypisania" przez UI, „Dodaj → Etap" dał etap 3 z `worker_id` NULL i tym samym rozliczeniem (SQL). Etapy 2–3 usunięte przez UI, inwestycja wróciła do jednego etapu._
 - [ ] Ostatni etap z kilkoma pracownikami (EX-943): nowy etap ma ten sam skład i tę samą osobę na
       „reszcie"; przy podziale procentowym procenty są te same, przy kwotowym każda kwota wynosi 0 zł.
-- [ ] Kosztorys bez etapów → „Dodaj": zamiast „Etap" są dwie pozycje „Etap — z narzędziami
+- [x] Kosztorys bez etapów → „Dodaj": zamiast „Etap" są dwie pozycje „Etap — z narzędziami
       (podwykonawca)" / „Etap — bez narzędzi (pracownik)"; wybrana tworzy etap z tym rozliczeniem
       i bez przypisania.
-- [ ] Szablon (warsztat) → „Dodaj": nie ma żadnej pozycji „Etap".
-
-## 2026-09-30 — „Rozlicz wypłaty": kwota do rozdysponowania i saldo kasy
-
-- [ ] Pracownicy → „Rozlicz": wpisz 10 000 w „Do rozdysponowania", na jednej inwestycji 4 000 →
-      w stopce „Zostało do rozdysponowania" 6 000,00 zł; puste pole = brak tego wiersza.
-- [ ] Podnieś kwoty tak, by „Razem" przekroczyło kwotę do rozdysponowania → „Wypłać" wyszarzone
-      z komunikatem „Przekroczono kwotę do rozdysponowania o …"; obniż → znów aktywne.
-- [ ] Z domyślną kasą „Aktualne saldo" pojawia się bez dotykania „Kasa"; zmiana kasy odświeża saldo;
-      „Saldo po wypłacie" jest mniejsze o „Razem".
-- [ ] Po wypłacie nigdzie (opis przelewu, historia) nie widać kwoty do rozdysponowania.
+      _Zweryfikowano 2026-09-30 (staging): inw. 124 (aktywna, 310 pozycji, zero etapów): menu = „Etap — z narzędziami (podwykonawca)" / „Etap — bez narzędzi (pracownik)", bez samego „Etap"; wybór „bez narzędzi" dał etap own_tools bez pracownika (SQL). Etap usunięty przez UI._
+- [x] Szablon (warsztat) → „Dodaj": nie ma żadnej pozycji „Etap".
+      _Zweryfikowano 2026-09-30 (staging): /szablony/160 → „Dodaj": Praca, Praca z katalogu…, Sekcja, Sekcja z szablonu… — bez „Etap"._
 
 ## 2026-09-30 — import z arkusza ustawia jednego wykonawcę wszystkim etapom
 
-- [ ] Inwestycja z arkuszem → „Importuj z arkusza": w bloku „Rozliczenie i wykonawca etapów" obok
+- [x] Inwestycja z arkuszem → „Importuj z arkusza": w bloku „Rozliczenie i wykonawca etapów" obok
       rozliczenia jest wybór pracownika / ekipy; dopóki rozliczenie to „Nie ustawiaj", wybór
       wykonawcy jest wyszarzony.
-- [ ] Wybierz rozliczenie i pracownika → „Pobierz i zastąp": każdy zaimportowany etap ma to
+      _Zweryfikowano 2026-09-30 (staging, fae76527): inw. 108: blok „Rozliczenie i wykonawca etapów” ma wybór pracownika / ekipy, wyszarzony przy „Nie ustawiaj”._
+- [x] Wybierz rozliczenie i pracownika → „Pobierz i zastąp": każdy zaimportowany etap ma to
       rozliczenie i tego pracownika w nagłówku; po odświeżeniu strony nadal.
-- [ ] Wybierz pracownika, potem wróć rozliczeniem na „Nie ustawiaj" → import: etapy wchodzą bez
+      _Zweryfikowano 2026-09-30 (staging, fae76527): inw. 108: import z rozliczeniem + pracownikiem; SQL kosztorys_stages: każdy etap ma to plane i worker_id; po przeładowaniu bez zmian. Kosztorys przywrócony ze snapshotu do stanu pustego._
+- [x] Wybierz pracownika, potem wróć rozliczeniem na „Nie ustawiaj" → import: etapy wchodzą bez
       rozliczenia i „Bez przypisania".
-- [ ] Wybierz pracownika → „Anuluj" → otwórz import ponownie: oba pola wracają do „Nie ustawiaj" /
+      _Zweryfikowano 2026-09-30 (staging, fae76527): inw. 108: etapy weszły z plane/worker_id NULL (SQL)._
+- [x] Wybierz pracownika → „Anuluj" → otwórz import ponownie: oba pola wracają do „Nie ustawiaj" /
       „Bez przypisania".
-- [ ] Lista pracowników w imporcie pokazuje tylko aktywnych.
+      _Zweryfikowano 2026-09-30 (staging, fae76527): inw. 108: po ponownym otwarciu oba pola „Nie ustawiaj” / „Bez przypisania”._
+- [x] Lista pracowników w imporcie pokazuje tylko aktywnych.
+      _Zweryfikowano 2026-09-30 (staging, fae76527): inw. 108: lista zgodna z aktywnymi pracownikami._
 - [ ] Rozwijane listy z wyszukiwarką w innych miejscach (np. pole inwestycji / pracownika w
       formularzu wydatku, okno zdjęć leada) otwierają się na szerokość swojego pola i nic w nich
+      _Częściowo 2026-09-30 (staging, fae76527): sprawdzone formularz wydatku i okno importu — OK; okno zdjęć leada nie do sprawdzenia: na stagingu żaden lead nie ma załączników (leads_rels puste, kolumna „Załączniki” = „—”), a z UI nie da się dopiąć pliku do zgłoszenia (pliki wchodzą tylko przez webhook landingu, EX-938). Brakuje leada z plikiem._
+
+## 2026-09-30 — „Rozlicz wypłaty": kwota do rozdysponowania i saldo kasy
+
+### Findings — 2026-09-30
       nie jest ucięte.
+- Bez nowych defektów w fae76527 (nowy etap, import wykonawcy, Rozlicz wypłaty).
+- EX-939 jest częściowe: arkusze inwestycji do ok. 126 (np. 48, 108, 115) czytają się na stagingu, 130+ i 139–145 nadal nie.
+- [x] Kasa „QA-908 Kasa A2” (id 43) nie ma na liście kas w „Rozlicz” — **odrzucone**: `cash_registers.active = false` (SQL, 2026-09-30), lista pokazuje tylko aktywne kasy.
+
+
+## EX-942 — okna edycji nie gubią wpisanych danych po nieudanym zapisie (2026-09-30)
+
+Stan: dowolny rekord do edycji; „nieudany zapis" = DevTools → Network → Offline tuż przed kliknięciem „Zapisz"/„Dodaj".
+
+- [ ] Kosztorys → wiersz → „Dodaj do katalogu" (albo „Edytuj w katalogu") → zmień kategorię i stawkę → offline → „Dodaj": polski toast błędu, okno zostaje otwarte z wpisanymi wartościami; po powrocie sieci ponowne „Dodaj" zapisuje i zamyka okno.
+- [ ] To samo w „Edytuj pojazd", „Edytuj transakcję" (z dołączonym plikiem faktury) i „Edytuj pozycję katalogu": po błędzie okno otwarte, pola i plik na miejscu.
+- [ ] Zapis z siecią w dowolnym z tych okien: przycisk pokazuje „Zapisywanie...", okno zamyka się po chwili, zmiana widać na liście bez przeładowania.
+
+## EX-909 — szablony-plain-revalidation
+
+- [ ] Szablony kosztorysów → „Nowy szablon" → nazwa → „Załóż" → otwiera się nowy szablon, bez
+      mignięcia „Nie znaleziono" po drodze; wróć przyciskiem „Wstecz" przeglądarki (bez
+      odświeżania) → nowy szablon jest na liście.
+- [ ] To samo, ale wróć przyciskiem „Wróć" na stronie szablonu → nowy szablon jest na liście.
+- [ ] Załóż szablon o nazwie, która już istnieje → komunikat „Szablon o tej nazwie już istnieje",
+      okno zostaje otwarte, lista bez zmian.
+- [ ] W szablonie zmień „Cena j.m. netto" pozycji, wróć do listy szablonów → ten szablon jest na
+      górze listy (ostatnio edytowany); edycja komórki nie powoduje mignięcia ani przeładowania
+      strony szablonu.
+- [ ] To samo w szablonie z ~1000 pozycji: zapis komórki bez widocznego opóźnienia względem małego
+      szablonu.
+- [ ] Otwórz szablon z listy → w górnym pasku nazwa szablonu i „Wróć"; zmień nazwę szablonu na
+      liście → po wejściu w niego pasek i tytuł pokazują nową nazwę.
+- [ ] Wpisz ręcznie adres nieistniejącego szablonu (`/szablony/999999`) → „Nie znaleziono"; tak samo
+      dla szablonu przeniesionego do kosza.
+- [ ] Zalogowany jako pracownik (EMPLOYEE) → adres `/szablony/<id>` istniejącego szablonu: w górnym
+      pasku nie ma nazwy szablonu.
 
 ## EX-943 — kosztorys-stage-worker-split — kilku pracowników na etap (2026-09-30)
 

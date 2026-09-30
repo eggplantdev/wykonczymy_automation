@@ -1,3 +1,4 @@
+import { cache } from 'react'
 import { unstable_cache } from 'next/cache'
 import { getPayload } from 'payload'
 import config from '@payload-config'
@@ -6,7 +7,6 @@ import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { getDb } from '@/lib/db/get-db'
 import {
-  getPresetName,
   listPresets,
   listPresetSections,
   type PresetMetaT,
@@ -67,21 +67,14 @@ export async function getPresetRows(): Promise<PresetRowT[]> {
   })
 }
 
-// Uncached: a szablon created a moment ago must render before its `presets` expiry lands.
-export async function getTemplateView(id: number): Promise<{ name: string } | null> {
-  const payload = await getPayload({ config })
-  const name = await getPresetName(await getDb(payload), id)
-  return name == null ? null : { name }
-}
-
-// Uncached, like the page title: „Nowy szablon" navigates before its `presets` expiry lands (it runs
-// after the response), so the cached library would not know the szablon the crumb names.
-export async function getPresetNameForCrumb(id: string): Promise<string | null> {
+// The page and its crumb both ask within one render, so `cache` saves the second read of the whole
+// library. Safe to read from the cache because every szablon writer expires `presets` inline — a
+// create included, so the szablon exists here before its page renders. The role gate is the crumb's:
+// a slot can't redirect, and without it a non-management session would read the library.
+export const getTemplateName = cache(async (id: number): Promise<string | undefined> => {
   const { success } = await requireAuth(MANAGEMENT_ROLES)
-  if (!success) return null
+  if (!success) return undefined
 
-  const presetId = Number(id)
-  if (!Number.isInteger(presetId)) return null
-  const payload = await getPayload({ config })
-  return getPresetName(await getDb(payload), presetId)
-}
+  const presets = await getPresets()
+  return presets.find((preset) => preset.id === id)?.name
+})

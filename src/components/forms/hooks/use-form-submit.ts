@@ -10,6 +10,11 @@ type SubmitOptionsT = {
   onSubmitSuccess: () => void
   /** Clearing in full, the form reset included — this hook never touches the form. */
   onReset: () => void
+  /**
+   * Wait for the result before closing, for a form with no draft: the open dialog is the only copy
+   * of what was typed, so an optimistic close loses it on a failed save.
+   */
+  awaitBeforeClose?: boolean
 }
 
 export function useFormSubmit(formId: string) {
@@ -23,12 +28,13 @@ export function useFormSubmit(formId: string) {
   async function submit(keepOpen: boolean, opts: SubmitOptionsT) {
     if (isRecovering) clearSubmission()
 
-    if (keepOpen) {
+    if (keepOpen || opts.awaitBeforeClose) {
       const result = await settleAction(opts.action)
       if (result.success) {
         toastMessage(opts.successMessage, 'success')
         if (result.warning) toastMessage(result.warning, 'warning', 6000)
         opts.onReset()
+        if (!keepOpen) opts.onSubmitSuccess()
       } else {
         toastMessage(result.error, 'error')
       }

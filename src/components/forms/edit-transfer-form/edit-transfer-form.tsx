@@ -106,6 +106,7 @@ export function EditTransferForm({
         successMessage: 'Transakcja zaktualizowana',
         onSubmitSuccess,
         onReset: handleReset,
+        awaitBeforeClose: true,
       })
 
       return false

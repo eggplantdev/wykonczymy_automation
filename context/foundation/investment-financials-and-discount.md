@@ -209,6 +209,13 @@ column, the „Rozlicz wypłaty" dialog from both lists, and sums back to the in
 - **The dialog books on the figures it showed.** The action recomputes each pair at submit and refuses
   the whole batch if any moved; paying past the executed work is allowed, and the PAYOUT's opis gets
   „w tym zaliczka X zł".
+- **„Do rozdysponowania" is a calculator, never a booking figure** (owner, 2026-09-30). The owner
+  pays out of a fixed sum in hand, so the dialog takes an optional kwota and shows what is left of it;
+  it is never sent to the action, the opis or storage. Exceeding it blocks „Wypłać" — typing the kwota
+  states the cash limit, so going past it is a mistake. The register's saldo is the opposite: a
+  „Saldo po wypłacie" below zero never blocks, because a register may legitimately go negative. The
+  preselected register's saldo comes back with the rows from the open-time read, so it shows without
+  a mount effect or a second round trip.
 
 The employee list's all-time „Wypłaty" column went: it summed salary, loans and gifts with work pay.
 
