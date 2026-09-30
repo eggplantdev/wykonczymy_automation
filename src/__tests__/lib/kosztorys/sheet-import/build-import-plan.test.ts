@@ -71,6 +71,28 @@ describe('buildImportPlan', () => {
     expect(report.counts).toMatchObject({ sections: 2, items: 3, stages: 3 })
   })
 
+  it('stamps every etap with the rozliczenie and wykonawca picked for the import', () => {
+    const built = buildImportPlan(source(), currentTree(), undefined, {
+      plane: 'own_tools',
+      workerId: 5,
+    })
+    if (!built.ok) expect.fail(built.problems.join(' | '))
+
+    expect(built.tree.stages.map(({ plane, workerId }) => ({ plane, workerId }))).toEqual(
+      Array(3).fill({ plane: 'own_tools', workerId: 5 }),
+    )
+  })
+
+  it('assigns no wykonawca to etapy left without a rozliczenie', () => {
+    const built = buildImportPlan(source(), currentTree(), undefined, {
+      plane: null,
+      workerId: 5,
+    })
+    if (!built.ok) expect.fail(built.problems.join(' | '))
+
+    expect(built.tree.stages.every((stage) => stage.workerId === null)).toBe(true)
+  })
+
   it('takes the global multipliers from the cennik’s own formulas, leaving VAT alone', () => {
     // The sheet marks up every praca by the same 0,65 / 0,5 — that IS the investment's multiplier,
     // and adopting it is what lets those prace enter as „auto". VAT has no cell in the sheet, so

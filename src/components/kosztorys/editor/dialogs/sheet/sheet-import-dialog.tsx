@@ -30,13 +30,18 @@ import type {
   UnresolvedReasonT,
 } from '@/lib/kosztorys/sheet-import/resolve-columns'
 import type { ToolPlaneT } from '@/lib/kosztorys/types'
+import { SearchSelect } from '@/components/ui/search-select'
 import { SimpleSelect } from '@/components/ui/simple-select'
+import { STAGE_HEADER_COPY } from '@/components/kosztorys/editor/grid/stage-header-copy'
+import { isActiveRef } from '@/lib/utils/is-active-ref'
+import type { WorkerRefT } from '@/types/reference-data'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { toastMessage } from '@/lib/utils/toast'
 import type { OnTreeReplacedT } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
 type PropsT = {
   investmentId: number
+  workers: WorkerRefT[]
   open: boolean
   onOpenChange: (open: boolean) => void
   preview: ImportPreviewT | null
@@ -57,6 +62,7 @@ const MISSING_COLUMN_REASONS: Record<UnresolvedReasonT, string> = {
 // nothing rendered here is trusted on the way back.
 export function SheetImportDialog({
   investmentId,
+  workers,
   open,
   onOpenChange,
   preview,
@@ -67,13 +73,17 @@ export function SheetImportDialog({
 }: PropsT) {
   const [pending, startTransition] = useTransition()
   const [plane, setPlane] = useState<PlanePickT>(NO_PLANE)
+  const [workerId, setWorkerId] = useState<number | null>(null)
 
   // The dialog is mounted once for both triggers, so closing it never unmounts the pick — and a
-  // rozliczenie nobody chose this time would stamp every imported etap.
+  // rozliczenie or wykonawca nobody chose this time would stamp every imported etap.
   const [openedWith, setOpenedWith] = useState(open)
   if (open !== openedWith) {
     setOpenedWith(open)
-    if (open) setPlane(NO_PLANE)
+    if (open) {
+      setPlane(NO_PLANE)
+      setWorkerId(null)
+    }
   }
 
   const { confirmDisabled, mismatchedTotals } = evaluateImportGate(preview, loaded, pending)
@@ -82,7 +92,11 @@ export function SheetImportDialog({
     startTransition(async () => {
       let refetch = false
       try {
-        const result = await applyKosztorysImport(investmentId, plane === NO_PLANE ? null : plane)
+        const result = await applyKosztorysImport(
+          investmentId,
+          plane === NO_PLANE ? null : plane,
+          workerId,
+        )
         if (!result.success) {
           toastMessage(result.error, 'error', 6000)
           return
@@ -134,7 +148,15 @@ export function SheetImportDialog({
         ) : (
           <>
             <ScopeBlock report={report} />
-            {report.counts.stages > 0 && <PlaneBlock plane={plane} onChange={setPlane} />}
+            {report.counts.stages > 0 && (
+              <StageDefaultsBlock
+                plane={plane}
+                onPlaneChange={setPlane}
+                workers={workers}
+                workerId={workerId}
+                onWorkerChange={setWorkerId}
+              />
+            )}
             <ColumnsBlock
               investmentId={investmentId}
               missing={report.missingColumns}
@@ -164,24 +186,50 @@ const PLANE_OPTIONS = [
 ]
 
 // One pick for the whole kosztorys; the odd etap out gets changed in its own header afterwards.
-function PlaneBlock({
+function StageDefaultsBlock({
   plane,
-  onChange,
+  onPlaneChange,
+  workers,
+  workerId,
+  onWorkerChange,
 }: {
   plane: PlanePickT
-  onChange: (plane: PlanePickT) => void
+  onPlaneChange: (plane: PlanePickT) => void
+  workers: WorkerRefT[]
+  workerId: number | null
+  onWorkerChange: (workerId: number | null) => void
 }) {
+  const workerItems = [
+    { value: '', label: STAGE_HEADER_COPY.workerUnassigned },
+    ...workers.filter(isActiveRef).map((worker) => ({
+      value: String(worker.id),
+      label: worker.name,
+    })),
+  ]
+
   return (
     <SheetReportBlock
-      title="Rozliczenie etapów"
-      verdict="Arkusz tego nie ma — ustaw raz dla wszystkich etapów. Bez tego etapy wejdą zablokowane."
+      title="Rozliczenie i wykonawca etapów"
+      verdict="Arkusz tego nie ma — ustaw raz dla wszystkich etapów. Bez rozliczenia etapy wejdą zablokowane."
     >
-      <SimpleSelect
-        value={plane}
-        onValueChange={(value) => onChange(value as PlanePickT)}
-        options={PLANE_OPTIONS}
-        variant="toolbarSm"
-      />
+      <div className="flex flex-wrap gap-2">
+        <SimpleSelect
+          value={plane}
+          onValueChange={(value) => onPlaneChange(value as PlanePickT)}
+          options={PLANE_OPTIONS}
+          variant="toolbarSm"
+        />
+        <SearchSelect
+          value={plane === NO_PLANE || workerId === null ? '' : String(workerId)}
+          // The picker hands back '' for a re-pick of the chosen row as well as for „Bez przypisania".
+          onChange={(next) => onWorkerChange(next === '' ? null : Number(next))}
+          items={workerItems}
+          searchPlaceholder={STAGE_HEADER_COPY.searchPlaceholder}
+          emptyMessage={STAGE_HEADER_COPY.searchEmpty}
+          disabled={plane === NO_PLANE}
+          className="h-7 w-auto min-w-56 px-2 text-xs"
+        />
+      </div>
     </SheetReportBlock>
   )
 }

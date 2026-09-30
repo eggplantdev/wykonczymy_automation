@@ -10,6 +10,7 @@ import {
   type SettleRowT,
 } from '@/lib/kosztorys/worker-payout-pairs'
 import { getDb } from '@/lib/db/get-db'
+import { sumRegisterBalance } from '@/lib/db/sum-transfers'
 import { selectWorkerPayoutPairs } from '@/lib/db/worker-payout-pairs'
 import { perfStart } from '@/lib/perf'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
@@ -21,6 +22,8 @@ export type SettlePayoutRowsT = {
   rows: SettleRowT[]
   cashRegisters: CashRegisterRefT[]
   defaultCashRegisterId: number | undefined
+  /** Read here because the preselected register never fires the select's change that loads it. */
+  defaultRegisterBalance: number | undefined
 }
 
 /**
@@ -34,16 +37,15 @@ export async function fetchSettlePayoutRows(target: SettleTargetT): Promise<Sett
   const session = await requireAuth(MANAGEMENT_ROLES)
   if (!session.success) throw new Error(session.error)
 
+  const payload = await getPayload({ config })
   const [refData, pairs] = await Promise.all([
     fetchReferenceData(),
-    getPayload({ config })
-      .then((payload) => getDb(payload))
-      .then((db) =>
-        selectWorkerPayoutPairs(
-          db,
-          target.kind === 'investment' ? { investmentIds: [target.id] } : undefined,
-        ),
+    getDb(payload).then((db) =>
+      selectWorkerPayoutPairs(
+        db,
+        target.kind === 'investment' ? { investmentIds: [target.id] } : undefined,
       ),
+    ),
   ])
   const rows =
     target.kind === 'worker'
@@ -57,12 +59,19 @@ export async function fetchSettlePayoutRows(target: SettleTargetT): Promise<Sett
           target.id,
           new Map(refData.workers.map((worker) => [worker.id, worker.name])),
         )
+  const defaultCashRegisterId = refData.workers.find(
+    (worker) => worker.id === session.user.id,
+  )?.defaultCashRegisterId
+  const defaultRegisterBalance =
+    defaultCashRegisterId === undefined
+      ? undefined
+      : await sumRegisterBalance(payload, defaultCashRegisterId)
   console.log(`[PERF] fetchSettlePayoutRows(${target.kind}:${target.id}) ${elapsed()}ms`)
 
   return {
     rows,
     cashRegisters: refData.cashRegisters,
-    defaultCashRegisterId: refData.workers.find((worker) => worker.id === session.user.id)
-      ?.defaultCashRegisterId,
+    defaultCashRegisterId,
+    defaultRegisterBalance,
   }
 }

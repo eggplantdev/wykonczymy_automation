@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { SheetImportDialog } from '@/components/kosztorys/editor/dialogs/sheet/sheet-import-dialog'
 import type { ImportPreviewT } from '@/lib/actions/kosztorys-import'
 import type { FooterComparisonT } from '@/lib/kosztorys/sheet-import/footer-totals'
+import type { WorkerRefT } from '@/types/reference-data'
 
 const applyKosztorysImport = vi.fn(async (..._args: unknown[]) => ({
   success: true as const,
@@ -46,6 +47,11 @@ const PREVIEW: ImportPreviewT = {
   },
 }
 
+const WORKERS: WorkerRefT[] = [
+  { id: 5, name: 'Ekipa Nowak', active: true, role: 'EMPLOYEE', email: 'nowak@example.test' },
+  { id: 6, name: 'Jan Kowalski', active: false, role: 'EMPLOYEE', email: 'jan@example.test' },
+]
+
 const NO_PLANE_LABEL = 'Nie ustawiaj — wybiorę w kosztorysie'
 const W_TOOLS_LABEL = 'Wszystkie z narzędziami (podwykonawca)'
 
@@ -58,6 +64,7 @@ function DialogHost() {
       <button onClick={() => setOpen(true)}>Pobierz z arkusza</button>
       <SheetImportDialog
         investmentId={INVESTMENT_ID}
+        workers={WORKERS}
         open={open}
         onOpenChange={setOpen}
         preview={PREVIEW}
@@ -73,14 +80,21 @@ function DialogHost() {
 function renderDialog() {
   render(<DialogHost />)
   const user = userEvent.setup()
+  // Radix mirrors the picked item's text into the trigger, so the trigger IS the current pick.
+  const source = () => screen.getAllByRole('combobox')[0]
+  const worker = () => screen.getAllByRole('combobox')[1]
   return {
     user,
     openDialog: () => user.click(screen.getByRole('button', { name: 'Pobierz z arkusza' })),
-    // Radix mirrors the picked item's text into the trigger, so the trigger IS the current pick.
-    source: () => screen.getByRole('combobox'),
+    source,
+    worker,
     pickPlane: async (label: string) => {
-      await user.click(screen.getByRole('combobox'))
+      await user.click(source())
       await user.click(await screen.findByRole('option', { name: label }))
+    },
+    pickWorker: async (name: string) => {
+      await user.click(worker())
+      await user.click(await screen.findByRole('option', { name }))
     },
   }
 }
@@ -119,7 +133,7 @@ describe('SheetImportDialog — the rozliczenie pick is per-opening', () => {
     await pickPlane(W_TOOLS_LABEL)
     await user.click(screen.getByRole('button', { name: 'Pobierz i zastąp' }))
 
-    expect(applyKosztorysImport).toHaveBeenCalledWith(INVESTMENT_ID, 'w_tools')
+    expect(applyKosztorysImport).toHaveBeenCalledWith(INVESTMENT_ID, 'w_tools', null)
   })
 
   it('sends no rozliczenie when the reopened dialog was left alone', async () => {
@@ -132,6 +146,51 @@ describe('SheetImportDialog — the rozliczenie pick is per-opening', () => {
     await openDialog()
     await user.click(screen.getByRole('button', { name: 'Pobierz i zastąp' }))
 
-    expect(applyKosztorysImport).toHaveBeenCalledWith(INVESTMENT_ID, null)
+    expect(applyKosztorysImport).toHaveBeenCalledWith(INVESTMENT_ID, null, null)
+  })
+})
+
+describe('SheetImportDialog — one wykonawca for every imported etap', () => {
+  it('sends the wykonawca picked alongside the rozliczenie', async () => {
+    const { user, openDialog, pickPlane, pickWorker } = renderDialog()
+
+    await openDialog()
+    await pickPlane(W_TOOLS_LABEL)
+    await pickWorker('Ekipa Nowak')
+    await user.click(screen.getByRole('button', { name: 'Pobierz i zastąp' }))
+
+    expect(applyKosztorysImport).toHaveBeenCalledWith(INVESTMENT_ID, 'w_tools', 5)
+  })
+
+  it('keeps the wykonawca locked until a rozliczenie is picked', async () => {
+    const { openDialog, worker } = renderDialog()
+
+    await openDialog()
+
+    expect(worker()).toBeDisabled()
+  })
+
+  it('reads a re-picked wykonawca as none', async () => {
+    const { user, openDialog, pickPlane, pickWorker, worker } = renderDialog()
+
+    await openDialog()
+    await pickPlane(W_TOOLS_LABEL)
+    await pickWorker('Ekipa Nowak')
+    await pickWorker('Ekipa Nowak')
+    expect(worker()).toHaveTextContent('Bez przypisania')
+    await user.click(screen.getByRole('button', { name: 'Pobierz i zastąp' }))
+
+    expect(applyKosztorysImport).toHaveBeenCalledWith(INVESTMENT_ID, 'w_tools', null)
+  })
+
+  it('offers only active workers', async () => {
+    const { user, openDialog, pickPlane, worker } = renderDialog()
+
+    await openDialog()
+    await pickPlane(W_TOOLS_LABEL)
+    await user.click(worker())
+
+    expect(await screen.findByRole('option', { name: 'Ekipa Nowak' })).toBeInTheDocument()
+    expect(screen.queryByRole('option', { name: 'Jan Kowalski' })).not.toBeInTheDocument()
   })
 })

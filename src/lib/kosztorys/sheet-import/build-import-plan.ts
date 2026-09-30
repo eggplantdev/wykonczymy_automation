@@ -4,7 +4,6 @@ import type {
   KosztorysSectionT,
   KosztorysStageT,
   StageProgressT,
-  ToolPlaneT,
 } from '@/lib/kosztorys/types'
 import { FIELD_LABELS, isOptionalField, type ColumnFieldT, type OptionalFieldT } from './columns'
 import type { SheetColumnMappingT } from './sheet-column-mapping'
@@ -68,6 +67,8 @@ export type ImportReportT = {
   warnings: string[]
 }
 
+export type StageDefaultsT = Pick<KosztorysStageT, 'plane' | 'workerId'>
+
 export type ImportFailureT = { ok: false; problems: string[] } & UnresolvedColumnsT
 
 export type ImportPlanT =
@@ -83,10 +84,10 @@ export function buildImportPlan(
   grids: ImportGridsT,
   currentTree: SnapshotPayloadT,
   mapping?: SheetColumnMappingT,
-  // One rozliczenie for every imported etap, or null to leave them undecided. The sheet has no
-  // column for it, so this is the owner's answer, given once in the import window — picking it per
-  // etap afterwards is ten menus over etapy the grid keeps locked until they are set.
-  plane: ToolPlaneT | null = null,
+  // One rozliczenie and one wykonawca for every imported etap, or null to leave them undecided. The
+  // sheet has no column for either, so this is the owner's answer, given once in the import window —
+  // picking them per etap afterwards is ten menus over etapy the grid keeps locked until they are set.
+  stageDefaults: StageDefaultsT = { plane: null, workerId: null },
 ): ImportPlanT {
   const resolvedLaborColumns = resolveLaborColumns(grids.laborGrid, mapping)
   const { missingFields, candidates, pointedFields } = resolvedLaborColumns
@@ -230,7 +231,12 @@ export function buildImportPlan(
     }
   }
 
-  const stages: KosztorysStageT[] = parsed.stages.map((stage) => ({ ...stage, plane }))
+  const stages: KosztorysStageT[] = parsed.stages.map((stage) => ({
+    ...stage,
+    plane: stageDefaults.plane,
+    // A wykonawca on an etap with no rozliczenie would be named against a silent 0 zł należne.
+    workerId: stageDefaults.plane ? stageDefaults.workerId : null,
+  }))
 
   // „Zastąp" means the sheet decides what the rozpiska contains: a praca it doesn't have stops
   // existing, rather than being appended beside the sheet's own copy. The owner is told what goes

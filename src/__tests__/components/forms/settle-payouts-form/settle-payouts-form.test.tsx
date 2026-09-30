@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { SettlePayoutsForm } from '@/components/forms/settle-payouts-form/settle-payouts-form'
 import { settlePayoutsAction } from '@/lib/actions/settle-payouts'
+import { getRegisterBalance } from '@/lib/queries/register-balance'
 import { toastMessage } from '@/lib/utils/toast'
 import { BLOCKED_PAIR_REASON, type SettleRowT } from '@/lib/kosztorys/worker-payout-pairs'
 import { formatPLN } from '@/lib/utils/format-currency'
@@ -14,6 +15,7 @@ vi.mock('next/navigation', () => ({
 }))
 vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 vi.mock('@/lib/actions/settle-payouts', () => ({ settlePayoutsAction: vi.fn() }))
+vi.mock('@/lib/queries/register-balance', () => ({ getRegisterBalance: vi.fn() }))
 
 const row = (overrides: Partial<SettleRowT>): SettleRowT => ({
   investmentId: 1,
@@ -44,6 +46,7 @@ function renderForm(
   rows = ROWS,
   reloadRows = vi.fn(async () => rows),
   labelHref?: (row: SettleRowT) => string,
+  defaultRegisterBalance?: number,
 ) {
   const onSubmitSuccess = vi.fn()
   render(
@@ -52,6 +55,7 @@ function renderForm(
       reloadRows={reloadRows}
       cashRegisters={[{ id: 5, name: 'Kasa główna', type: 'MAIN', active: true }]}
       defaultCashRegisterId={5}
+      defaultRegisterBalance={defaultRegisterBalance}
       labelHeader="Inwestycja"
       labelHref={labelHref}
       onSubmitSuccess={onSubmitSuccess}
@@ -63,11 +67,31 @@ function renderForm(
 const rowOf = (label: string) => within(screen.getByText(label).closest('tr')!)
 const tick = (label: string) => screen.getByRole('checkbox', { name: `Wypłać: ${label}` })
 const amount = (label: string) => screen.getByRole('textbox', { name: `Kwota wypłaty: ${label}` })
+const retype = async (user: ReturnType<typeof userEvent.setup>, label: string, value: string) => {
+  await user.clear(amount(label))
+  await user.type(amount(label), value)
+}
 const submit = () => screen.getByRole('button', { name: 'Wypłać' })
 const razem = () => bare(screen.getByText('Razem').closest('tr')!.textContent ?? '')
+const pool = () => screen.getByLabelText('Do rozdysponowania')
+const POOL_LEFT = 'Zostało do rozdysponowania'
+const poolLeft = () => bare(screen.getByText(POOL_LEFT).closest('tr')!.textContent ?? '')
+const registerBalanceText = async () =>
+  bare((await screen.findByText(/Aktualne saldo/)).textContent!)
+const registerBalanceAfter = () => bare(screen.getByText(/Saldo po wypłacie/).textContent!)
+const staleRefusal = () =>
+  vi.mocked(settlePayoutsAction).mockResolvedValue({
+    success: false,
+    stale: true,
+    error: 'Kwoty zmieniły się',
+  })
 
 beforeEach(() => {
   vi.mocked(settlePayoutsAction).mockReset()
+  // Pending by default: a saldo re-read resolving after a test ends lands outside act().
+  vi.mocked(getRegisterBalance)
+    .mockReset()
+    .mockImplementation(() => new Promise(() => {}))
 })
 
 describe('SettlePayoutsForm', () => {
@@ -123,8 +147,7 @@ describe('SettlePayoutsForm', () => {
     renderForm()
     expect(screen.queryByText(/ponad wykonaną pracę/)).not.toBeInTheDocument()
 
-    await user.clear(amount('Akacjowa'))
-    await user.type(amount('Akacjowa'), '1000')
+    await retype(user, 'Akacjowa', '1000')
     expect(bare(rowOf('Akacjowa').getByText(/ponad wykonaną pracę/).textContent!)).toContain(
       bare(formatPLN(200)),
     )
@@ -197,11 +220,7 @@ describe('SettlePayoutsForm', () => {
 
   it('reloads the rows in place when the figures moved, and stays open', async () => {
     const user = userEvent.setup()
-    vi.mocked(settlePayoutsAction).mockResolvedValue({
-      success: false,
-      stale: true,
-      error: 'Kwoty zmieniły się',
-    })
+    staleRefusal()
     const fresh = [row({ remaining: 450, paid: 550 })]
     const { onSubmitSuccess, reloadRows } = renderForm(
       ROWS,
@@ -218,11 +237,7 @@ describe('SettlePayoutsForm', () => {
 
   it('says so when the reload after a stale refusal fails, and lets the owner submit again', async () => {
     const user = userEvent.setup()
-    vi.mocked(settlePayoutsAction).mockResolvedValue({
-      success: false,
-      stale: true,
-      error: 'Kwoty zmieniły się',
-    })
+    staleRefusal()
     renderForm(
       ROWS,
       vi.fn(async () => {
@@ -236,5 +251,95 @@ describe('SettlePayoutsForm', () => {
       expect(toastMessage).toHaveBeenCalledWith(expect.stringMatching(/zamknij/i), 'error', 6000),
     )
     expect(submit()).toBeEnabled()
+  })
+
+  describe('Do rozdysponowania', () => {
+    it('shows what is left of the kwota after the typed amounts', async () => {
+      const user = userEvent.setup()
+      renderForm()
+      await user.type(pool(), '10000')
+      await retype(user, 'Akacjowa', '4000')
+      expect(poolLeft()).toContain(bare(formatPLN(6000)))
+    })
+
+    it('adds no row and blocks nothing while the kwota is empty or unreadable', async () => {
+      const user = userEvent.setup()
+      renderForm()
+      expect(screen.queryByText(POOL_LEFT)).not.toBeInTheDocument()
+
+      await user.type(pool(), '1e')
+      expect(screen.queryByText(POOL_LEFT)).not.toBeInTheDocument()
+      expect(submit()).toBeEnabled()
+    })
+
+    it('blocks „Wypłać" while Razem exceeds the kwota, and releases it once it fits', async () => {
+      const user = userEvent.setup()
+      renderForm()
+      await user.type(pool(), '500')
+
+      expect(submit()).toBeDisabled()
+      expect(bare(screen.getByText(/Przekroczono kwotę/).textContent!)).toContain(
+        bare(formatPLN(300)),
+      )
+
+      await retype(user, 'Akacjowa', '500')
+      expect(submit()).toBeEnabled()
+      expect(poolLeft()).toContain(bare(formatPLN(0)))
+      expect(screen.queryByText(/Przekroczono kwotę/)).not.toBeInTheDocument()
+    })
+
+    it('never sends the kwota to the action', async () => {
+      const user = userEvent.setup()
+      vi.mocked(settlePayoutsAction).mockResolvedValue({ success: true })
+      const { onSubmitSuccess } = renderForm()
+      await user.type(pool(), '1000')
+      await user.click(submit())
+
+      await waitFor(() => expect(onSubmitSuccess).toHaveBeenCalledOnce())
+      expect(Object.keys(vi.mocked(settlePayoutsAction).mock.calls[0][0])).not.toContain('pool')
+    })
+
+    it('keeps the kwota through a stale-figures reload and recounts against the fresh rows', async () => {
+      const user = userEvent.setup()
+      staleRefusal()
+      renderForm(
+        ROWS,
+        vi.fn(async () => [row({ remaining: 450, paid: 550 })]),
+      )
+      await user.type(pool(), '1000')
+      await user.click(submit())
+
+      await waitFor(() => expect(amount('Akacjowa')).toHaveValue('450'))
+      expect(pool()).toHaveValue('1000')
+      expect(poolLeft()).toContain(bare(formatPLN(550)))
+    })
+  })
+
+  describe('saldo kasy', () => {
+    it('shows the preselected register saldo on open and the saldo left after the payout', async () => {
+      renderForm(ROWS, undefined, undefined, 3000)
+      expect(await registerBalanceText()).toContain(bare(formatPLN(3000)))
+      expect(registerBalanceAfter()).toContain(bare(formatPLN(2200)))
+    })
+
+    it('lets the payout go through even when it takes the register below zero', async () => {
+      renderForm(ROWS, undefined, undefined, 500)
+      expect(await registerBalanceText()).toContain(bare(formatPLN(500)))
+      expect(registerBalanceAfter()).toContain(bare(formatPLN(-300)))
+      expect(submit()).toBeEnabled()
+    })
+
+    it('re-reads the saldo after a stale refusal, since other payouts moved the register', async () => {
+      const user = userEvent.setup()
+      vi.mocked(getRegisterBalance).mockResolvedValue({ registerBalance: 2500 })
+      staleRefusal()
+      renderForm(ROWS, undefined, undefined, 3000)
+      expect(await registerBalanceText()).toContain(bare(formatPLN(3000)))
+
+      await user.click(submit())
+      await waitFor(async () =>
+        expect(await registerBalanceText()).toContain(bare(formatPLN(2500))),
+      )
+    })
   })
 })
