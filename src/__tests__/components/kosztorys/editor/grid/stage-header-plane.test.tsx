@@ -71,27 +71,67 @@ describe('Nagłówek etapu — rozliczenie niepotwierdzone', () => {
   })
 })
 
-// Assigning a person to an etap with no rozliczenie would name them owed 0 zł — the settlement pass
-// rejects such an etap before computing any kwota. So the roster waits, rather than staying silent.
-describe('Nagłówek etapu — roster czeka na rozliczenie', () => {
-  it('nie daje kogo przypisać, dopóki rozliczenia nie ma, i mówi dlaczego', async () => {
+// Splitting an etap with no rozliczenie would divide a silent 0 zł — the settlement pass rejects such
+// an etap before computing any kwota. So the split waits, rather than staying silent.
+describe('Nagłówek etapu — podział czeka na rozliczenie', () => {
+  it('blokuje „Pracownicy etapu…", dopóki rozliczenia nie ma, i mówi dlaczego', async () => {
     const user = renderHeader(null)
     await openMenu(user)
 
     const menu = within(screen.getByRole('menu'))
     expect(menu.getByText(COPY.workerNeedsPlane)).toBeInTheDocument()
-    expect(menu.queryByRole('menuitemcheckbox', { name: 'Anna' })).toBeNull()
-    expect(menu.queryByRole('menuitemcheckbox', { name: COPY.workerUnassigned })).toBeNull()
+    expect(menu.getByRole('menuitem', { name: COPY.splitAction })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
   })
 
-  it('otwiera roster, gdy rozliczenie jest wybrane', async () => {
+  it('otwiera okno podziału, gdy rozliczenie jest wybrane', async () => {
     const user = renderHeader('w_tools')
     await openMenu(user)
 
     const menu = within(screen.getByRole('menu'))
     expect(menu.queryByText(COPY.workerNeedsPlane)).toBeNull()
 
-    await user.click(menu.getByRole('menuitemcheckbox', { name: 'Anna' }))
-    expect(onSetSplit).toHaveBeenCalledWith(STAGE_ID, oneWorkerSplit(ANNA))
+    await user.click(menu.getByRole('menuitem', { name: COPY.splitAction }))
+    expect(screen.getByRole('dialog', { name: /Pracownicy etapu/ })).toBeInTheDocument()
+  })
+})
+
+describe('Nagłówek etapu — kto pracuje', () => {
+  const BOB = 2
+  const TWO: WorkerRefT[] = [...WORKERS, { id: BOB, name: 'Bob', role: 'EMPLOYEE', email: 'b@t.test' }]
+
+  it('pokazuje osobę z resztą i liczbę pozostałych', () => {
+    render(
+      <StageHeader
+        stage={{
+          ...stage('w_tools'),
+          split: {
+            mode: 'percent',
+            members: [
+              { workerId: BOB, value: 30, takesRest: false },
+              { workerId: ANNA, value: 0, takesRest: true },
+            ],
+          },
+        }}
+        workers={TWO}
+        onSetSplit={onSetSplit}
+      />,
+    )
+    expect(screen.getByText('Anna +1')).toBeInTheDocument()
+  })
+
+  it('oznacza podział do poprawienia', () => {
+    render(
+      <StageHeader
+        stage={{ ...stage('w_tools'), split: oneWorkerSplit(ANNA) }}
+        workers={WORKERS}
+        onSetSplit={onSetSplit}
+        scaledDown
+      />,
+    )
+    expect(screen.getByLabelText('Podział etapu do poprawienia')).toBeInTheDocument()
+    expect(screen.getByText('Anna')).toBeInTheDocument()
   })
 })

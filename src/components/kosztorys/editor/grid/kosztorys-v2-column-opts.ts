@@ -22,8 +22,10 @@ export type BuildV2ColumnsOptsT = {
   onSetStagePlane?: (stageId: number, plane: ToolPlaneT) => void
   workers?: WorkerRefT[]
   onSetStageSplit?: (stageId: number, split: StageSplitT | null) => void
-  // Only so the reassignment confirm can quote the amount being moved.
+  // The pool the split dialog divides and caps fixed amounts at.
   executedValueByStage?: Map<number, number>
+  // Etapy whose fixed amounts outgrew the pool — the header marker and the problem filter.
+  scaledDownStageIds?: ReadonlySet<number>
   sort?: SortStateT
   onSetSort?: (field: string, pick: SortPickT | null) => void
   // Column picker: true = this column is off — by the user's stored choice OR by

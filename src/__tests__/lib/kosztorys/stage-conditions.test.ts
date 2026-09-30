@@ -25,6 +25,12 @@ describe('the stage conditions, each on its boundary', () => {
     expect(countMatchingStages([BARE, NO_WORKER, FINE], 'stage-no-worker')).toBe(2)
   })
 
+  it('„z podziałem do poprawienia" reads only the scaled-down set it is handed', () => {
+    const context = { scaledDownStageIds: new Set([FINE.id]) }
+    expect(countMatchingStages([BARE, NO_WORKER, FINE], 'stage-split-scaled', context)).toBe(1)
+    expect(countMatchingStages([BARE, NO_WORKER, FINE], 'stage-split-scaled')).toBe(0)
+  })
+
   it('reads an unknown id as zero', () => {
     expect(countMatchingStages([BARE], 'no-such-condition')).toBe(0)
   })

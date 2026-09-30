@@ -743,17 +743,17 @@ The full `pnpm test` runs only if the user asks, per the standing rule.
 
 #### Automated
 
-- [x] 3.1 Pure pairs-fold spec passes
-- [x] 3.2 DB pairs parity + Σ pairs = listing pass with split fixtures
-- [x] 3.3 `settle-payouts.test.ts` and `kosztorys-subcontractor-due.test.ts` pass
+- [x] 3.1 Pure pairs-fold spec passes — 4293a756
+- [x] 3.2 DB pairs parity + Σ pairs = listing pass with split fixtures — 4293a756
+- [x] 3.3 `settle-payouts.test.ts` and `kosztorys-subcontractor-due.test.ts` pass — 4293a756
 
 ### Phase 4: Editor UI — „Pracownicy etapu…"
 
 #### Automated
 
-- [ ] 4.1 `stage-split-draft.test.ts` passes
-- [ ] 4.2 `stage-split-dialog.test.tsx` passes
-- [ ] 4.3 Updated workers-menu and add-menu DOM specs pass
+- [x] 4.1 `stage-split-draft.test.ts` passes
+- [x] 4.2 `stage-split-dialog.test.tsx` passes
+- [x] 4.3 Updated workers-menu and add-menu DOM specs pass
 
 ### Phase 5: Worker link, Podgląd and PDF
 

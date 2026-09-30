@@ -137,7 +137,10 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   // Narrowed HERE and nowhere else, so the three stage axes below cannot drift apart — and
   // deliberately NOT fed to the resolver, whose denominator is Σ etapów of the whole view: hiding
   // columns would otherwise reprice the ones left standing.
-  const shownStages = stagesMatchingEngaged(viewStages, opts.engagedStageConditionIds ?? [])
+  const scaledDownStageIds = opts.scaledDownStageIds ?? new Set<number>()
+  const shownStages = stagesMatchingEngaged(viewStages, opts.engagedStageConditionIds ?? [], {
+    scaledDownStageIds,
+  })
 
   const valueOf = computedColumnValues({
     stages,
@@ -220,6 +223,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
         onSort={opts.onSetSort && ((pick) => opts.onSetSort?.(qtyField, pick))}
         onPersistOrder={opts.onPersistKosztorysOrder}
         executedValue={opts.executedValueByStage?.get(st.id) ?? 0}
+        scaledDown={scaledDownStageIds.has(st.id)}
       />
     )
     // Locked until the rozliczenie is picked: qty typed here would be work nobody gets billed for.

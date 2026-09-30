@@ -488,9 +488,12 @@ export function useKosztorysEditor({
     const viewStages = stagesForView(stages, view)
     return STAGE_CONDITIONS.map(
       (condition) =>
-        [condition.id, preview ? 0 : countMatchingStages(viewStages, condition.id)] as const,
+        [
+          condition.id,
+          preview ? 0 : countMatchingStages(viewStages, condition.id, subcontractorDue),
+        ] as const,
     )
-  }, [preview, stages, view])
+  }, [preview, stages, view, subcontractorDue])
   const conditionCounts = useMemo(
     () => new Map([...rowConditionCounts, ...stageConditionCounts]),
     [rowConditionCounts, stageConditionCounts],
@@ -541,6 +544,7 @@ export function useKosztorysEditor({
     onSetStageSplit: editorOnly(handleSetStageSplit),
     workers,
     executedValueByStage: subcontractorDue.byStage,
+    scaledDownStageIds: subcontractorDue.scaledDownStageIds,
     sort,
     onSetSort: editorOnly(setSortField),
     isHidden,
