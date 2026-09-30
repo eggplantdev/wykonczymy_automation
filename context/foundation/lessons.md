@@ -687,7 +687,10 @@
   but it also leaves the **client router cache** holding the pre-write payload. The szablony
   library ran on it for a release: the server cache was fresh, yet a browser Back to `/szablony`
   after „Nowy szablon” restored the list without the new row (0/4 runs), and every reader of the
-  tag had to be written to bypass the cache to stay correct. Expire inline and pay the render. When
+  tag had to be written to bypass the cache to stay correct. An `after()` expiry is defensible only
+  when the write must stay render-free **and** nothing else in the same action already renders — the
+  szablon tail failed the second test, since the tree write re-renders the route anyway. Otherwise
+  expire inline and pay the render. When
   the calling page renders the result itself, the action returns the state it produced and the
   client renders from that: „Otwórz szablon" used to push + `router.refresh()` + revalidate, three
   renders to show a tree the transaction already had in hand.

@@ -8,19 +8,9 @@ run — the Playwright browser is never driven unasked; its boxes live in `manua
 
 ## Findings
 
-- [x] 🟡 WARNING · fixed · impl-review · `context/foundation/manual-checks.md` · § EX-909 lacked the crumb, the nonexistent/trashed szablon 404 and the EMPLOYEE no-crumb checks — added
-- [x] 🟡 WARNING · fixed · code-review · `src/__tests__/lib/actions/investment-action.test.ts:127` · the stamps test never asserted that an ordinary investment skips the `presets` expiry — `not.toHaveBeenCalled()` added
-      test: TDD · unit — the assertion is the guard; green
-- [x] 🟡 WARNING · fixed · code-review · `e2e/szablony-list.spec.ts` · the Back-shows-the-new-szablon E2E was appended to `kosztorys-presets.spec.ts`, whose fixtures it doesn't share — moved to its own spec
-      test: TDD · e2e — the spec itself is the regression guard for EX-909; authored, run owed (3.2)
-- [x] 🟡 WARNING · fixed · feature-first-structure / structure-scatter-audit · `src/components/nav/template-crumb.tsx:13`, `src/app/(frontend)/szablony/[id]/page.tsx:15` · hand-rolled id validation beside `investment-id.ts`; the role gate sat in the crumb instead of the query — now `isInvestmentId` / `parseInvestmentId`, and `getTemplateName` gates itself like `getInvestmentName`
-      test: no automated test · — covered by the existing `investment-id` spec and manual checks 7–8
 - [x] 🔵 OBSERVATION · dismissed · code-review · `src/lib/queries/presets.ts` · a `listPresets` read in flight across an inline `updateTag` can store a pre-write entry — millisecond window, ~5 users, and the next szablon write heals it; not worth a lock
       test: no automated test · — race not reproducible deterministically
 - [x] 🔵 OBSERVATION · dismissed · impl-review · `context/foundation/lessons.md` · plan said delete the EX-876 bullet; it was rewritten instead — it still carries the „Otwórz szablon" return-the-state rule, so a rewrite is the right call
-- [x] fixed · impl-review · `src/lib/cache/revalidate.ts` · doc still named the deleted `after()` exit as a second route — reworded to the route-handler case only
-- [x] fixed · code-review · `src/lib/actions/investment-action.ts:88` · comment claimed the tree write re-renders the route, contradicting the `deferRefresh` the next line forwards — rewritten to say the expiry follows the caller's `deferRefresh` (raised again by the simplify altitude pass)
-- [x] fixed · comment-noise-audit · `src/lib/actions/kosztorys-presets.ts`, `src/lib/queries/presets.ts`, `e2e/szablony-list.spec.ts` · narration trimmed to the why (inline expiry vs Back, cached-name safety, no reload in the spec)
 - [x] dismissed · module-cohesion-audit · `src/lib/queries/presets.ts` · flagged mixed concerns — list, picker and name reads share one cache tag and one liveness predicate; cohesive
 - [x] dismissed · simplify · `src/components/nav/template-crumb.tsx:13` · guard then `Number(id)` re-parses — the guard keeps junk ids off the auth + library read; intended
 - [x] dismissed · simplify · `src/lib/queries/presets.ts` · `getTemplateName` scans the whole library for one name — deliberate: shares the `presets` tag instead of an uncached single-row read; ~65 rows
