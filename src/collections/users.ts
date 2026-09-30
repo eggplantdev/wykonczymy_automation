@@ -9,6 +9,7 @@ import { forgotPasswordEmailHTML } from '@/lib/email/forgot-password-template'
 import type { CollectionConfig, Where } from 'payload'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 import { makePreventDelete } from '@/hooks/prevent-delete'
+import { guardDefaultRegister } from '@/hooks/users/guard-default-register'
 import { excludingCancelled } from '@/lib/db/delete-blocker'
 import { countStageMemberships } from '@/lib/db/stage-memberships'
 import { ROLES, ROLE_LABELS } from '@/lib/auth/roles'
@@ -83,6 +84,7 @@ export const Users: CollectionConfig = {
     },
   },
   hooks: {
+    beforeChange: [guardDefaultRegister],
     beforeDelete: [preventDeleteWithReferences],
     afterChange: [makeRevalidateAfterChange('users')],
     afterDelete: [makeRevalidateAfterDelete('users')],
