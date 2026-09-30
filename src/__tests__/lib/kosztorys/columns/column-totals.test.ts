@@ -43,8 +43,8 @@ const tree: KosztorysTreeT = makeTree({
     },
   ],
   stages: [
-    { id: 100, ordinal: 1, label: null, plane: 'w_tools', workerId: null },
-    { id: 101, ordinal: 2, label: null, plane: 'own_tools', workerId: null },
+    { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null },
+    { id: 101, ordinal: 2, label: null, plane: 'own_tools', split: null },
   ],
   progress: [
     { itemId: 1, stageId: 100, qtyDone: 2 },
@@ -128,7 +128,7 @@ describe('columnTotalsForRows', () => {
           ],
         },
       ],
-      stages: [{ id: 100, ordinal: 1, label: null, plane: 'w_tools', workerId: null }],
+      stages: [{ id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null }],
       progress: [{ itemId: 60, stageId: 100, qtyDone: 1 }],
       vatRate: 0.08,
     })

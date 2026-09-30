@@ -20,6 +20,12 @@ import {
 // drifting out of alignment with its column list — that one is on the roundtrip spec's coverage.
 const EXCLUDED = ['id', 'created_at', 'updated_at']
 
+// A column still in the schema that nothing reads any more — kept only so the code deployed before it
+// keeps running, and dropped by a later migration (EX-943). Delete the entry with that migration.
+const RETIRED: Record<string, readonly string[]> = {
+  kosztorys_stages: ['worker_id'],
+}
+
 const INSERT_COLUMNS: Record<string, readonly string[]> = {
   kosztorys_sections: SECTION_INSERT_COLUMNS,
   kosztorys_items: ITEM_INSERT_COLUMNS,
@@ -54,7 +60,7 @@ describe.skipIf(!ENV_READY)('restore INSERT column lists vs live schema (DB)', (
 
       const live = res.rows
         .map((row) => String(row.column_name))
-        .filter((name) => !EXCLUDED.includes(name))
+        .filter((name) => !EXCLUDED.includes(name) && !RETIRED[table]?.includes(name))
         .sort()
 
       expect(live).toEqual([...INSERT_COLUMNS[table]].sort())

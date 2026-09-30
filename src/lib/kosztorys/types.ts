@@ -118,16 +118,16 @@ export type KosztorysStageT = {
   ordinal: number
   label: string | null
   plane: ToolPlaneT | null
-  workerId: number | null
+  // null = nobody assigned. Never a split without members — the reader normalises that to null.
+  split: StageSplitT | null
 }
 
 // Mirrors ItemPatchT; the action's zod validation is derived from this shape. plane is never patched
-// to null — an explicit pick only ever confirms a concrete plane.
+// to null — an explicit pick only ever confirms a concrete plane. The split is not a patch field: its
+// mode and members are one concept and are written whole by `updateStageSplitAction`.
 export type StagePatchT = Partial<{
   label: string | null
   plane: ToolPlaneT
-  // Nullable unlike plane: „Bez przypisania" is a legal edit, so the patch must be able to clear it.
-  workerId: number | null
 }>
 
 export type StageProgressT = {

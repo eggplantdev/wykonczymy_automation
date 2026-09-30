@@ -9,16 +9,17 @@ import { CurrentUserProvider } from '@/hooks/use-current-user'
 import type { RoleT } from '@/lib/auth/roles'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { WORKER_DOCUMENT_COLUMNS, workerColumnLabel } from '@/lib/kosztorys/worker-view/columns'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-worker-split'
 
 const INVESTMENT_ID = 12
 
 // Anna holds two etapy (listed once), Bogdan one with no rozliczenie yet (blocked), Celina none.
 // Bogdan is inactive: a person deactivated mid-investment still owns their etapy.
 const STAGES: KosztorysStageT[] = [
-  { id: 1, ordinal: 1, label: 'Etap 1', plane: 'w_tools', workerId: 10 },
-  { id: 2, ordinal: 2, label: 'Etap 2', plane: null, workerId: 20 },
-  { id: 3, ordinal: 3, label: 'Etap 3', plane: 'w_tools', workerId: 10 },
-  { id: 4, ordinal: 4, label: 'Etap 4', plane: 'own_tools', workerId: null },
+  { id: 1, ordinal: 1, label: 'Etap 1', plane: 'w_tools', split: oneWorkerSplit(10) },
+  { id: 2, ordinal: 2, label: 'Etap 2', plane: null, split: oneWorkerSplit(20) },
+  { id: 3, ordinal: 3, label: 'Etap 3', plane: 'w_tools', split: oneWorkerSplit(10) },
+  { id: 4, ordinal: 4, label: 'Etap 4', plane: 'own_tools', split: null },
 ]
 const ROSTER = [
   { id: 10, name: 'Anna Nowak', active: true },

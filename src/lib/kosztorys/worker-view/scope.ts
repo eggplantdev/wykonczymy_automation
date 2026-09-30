@@ -16,7 +16,9 @@ export type WorkerScopeT =
  * reported first — it is the fix the owner makes in the same menu.
  */
 export function resolveWorkerScope(stages: KosztorysStageT[], workerId: number): WorkerScopeT {
-  const own = stages.filter((stage) => stage.workerId === workerId)
+  const own = stages.filter((stage) =>
+    stage.split?.members.some((member) => member.workerId === workerId),
+  )
   if (own.length === 0) return { kind: 'blocked', reason: 'no-stages' }
   const planes = new Set<ToolPlaneT>()
   for (const stage of own) {

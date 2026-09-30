@@ -226,7 +226,7 @@ export function parseLaborTab(
         ? columnCaption
         : `Etap ${sheetStageNumber(columnCaption, column)}`,
       plane: null,
-      workerId: null,
+      split: null,
     }
   })
 

@@ -15,8 +15,8 @@ import { row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
 // reads — a constant can be right while the selection still drops half of it.
 
 const STAGES: KosztorysStageT[] = [
-  { id: 7, ordinal: 1, label: 'Etap 1', plane: null, workerId: null },
-  { id: 9, ordinal: 2, label: 'Etap 2', plane: null, workerId: null },
+  { id: 7, ordinal: 1, label: 'Etap 1', plane: null, split: null },
+  { id: 9, ordinal: 2, label: 'Etap 2', plane: null, split: null },
 ]
 
 const stageRow = (overrides: Parameters<typeof row>[0] = {}) =>

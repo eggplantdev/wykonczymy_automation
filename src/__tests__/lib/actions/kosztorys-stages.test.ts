@@ -13,7 +13,7 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 vi.mock('server-only', () => ({}))
 // A real user id (looked up in beforeAll), not a hardcoded 1: removeStageAction now takes a
 // pre-delete snapshot whose taken_by FKs users.id, and a fresh prod-dump test DB has no user 1.
-const authState = vi.hoisted(() => ({ userId: 0 }))
+const authState = vi.hoisted(() => ({ userId: 0, otherUserId: 0 }))
 vi.mock('@/lib/auth/require-auth', () => ({
   requireAuth: vi.fn().mockImplementation(async () => ({
     success: true,
@@ -22,7 +22,7 @@ vi.mock('@/lib/auth/require-auth', () => ({
 }))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
-const { removeStageAction, setStageProgressAction, updateStageAction } =
+const { removeStageAction, setStageProgressAction, updateStageAction, updateStageSplitAction } =
   await import('@/lib/actions/kosztorys')
 
 // Gated like the sibling guard spec: skips with no DB env (portable), FAILS if env is set but the
@@ -49,13 +49,14 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
     investmentId = await createTestInvestment(payload, `kosztorys-stages-test-${Date.now()}`)
     const users = await payload.find({
       collection: 'users',
-      limit: 1,
+      limit: 2,
       depth: 0,
       overrideAccess: true,
     })
     const firstUser = users.docs[0]
     if (!firstUser) throw new Error('no user in the DB to attribute the pre-delete snapshot to')
     authState.userId = Number(firstUser.id)
+    authState.otherUserId = Number(users.docs[1]?.id ?? firstUser.id)
   })
 
   afterAll(async () => {
@@ -103,12 +104,17 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
     return Number(item.id)
   }
 
-  async function createStage(): Promise<number> {
+  async function createStage(plane: 'w_tools' | 'own_tools' | null = null): Promise<number> {
     const stage = await payload.create({
       collection: 'kosztorys-stages',
       // Distinct high ordinal base from the sibling delete-guard spec (9000+): both run in parallel
       // against the same investment, and (investment_id, ordinal) is UNIQUE — overlapping bases collide.
-      data: { investment: investmentId, ordinal: 90000 + createdStages.length },
+      data: {
+        splitMode: 'percent',
+        investment: investmentId,
+        ordinal: 90000 + createdStages.length,
+        plane,
+      },
       overrideAccess: true,
       ...ctx,
     })
@@ -184,39 +190,84 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
     })
   })
 
-  describe('updateStageAction — worker assignment (EX-613)', () => {
-    // The patch key is `workerId`, the collection field is the `worker` relationship — the action
-    // translates between them. Assert the COLUMN, not the action's result: a silently dropped key
-    // still returns success.
-    async function workerIdOf(stageId: number): Promise<number | null> {
-      const res = await db.execute(
-        sql`SELECT worker_id FROM kosztorys_stages WHERE id = ${stageId}`,
+  describe('updateStageSplitAction — the workers of an etap (EX-943)', () => {
+    // Assert the ROWS, not the action's result: a silently dropped member still returns success.
+    async function splitOf(stageId: number) {
+      const mode = await db.execute(
+        sql`SELECT split_mode FROM kosztorys_stages WHERE id = ${stageId}`,
       )
-      const raw = (res.rows[0] as { worker_id: number | null }).worker_id
-      return raw == null ? null : Number(raw)
+      const members = await db.execute(sql`
+        SELECT worker_id, value, takes_rest FROM kosztorys_stage_workers
+        WHERE stage_id = ${stageId} ORDER BY id
+      `)
+      return {
+        mode: (mode.rows[0] as { split_mode: string }).split_mode,
+        members: members.rows.map((row) => [
+          Number(row.worker_id),
+          Number(row.value),
+          row.takes_rest === true,
+        ]),
+      }
     }
 
-    it('persists the assignment and clears it back to null', async () => {
-      const stageId = await createStage()
-      expect(await workerIdOf(stageId)).toBeNull()
+    it('writes the mode and the members together, and clears them back', async () => {
+      const stageId = await createStage('w_tools')
+      const split = {
+        mode: 'percent' as const,
+        members: [
+          { workerId: authState.userId, value: 0, takesRest: true },
+          { workerId: authState.otherUserId, value: 25, takesRest: false },
+        ],
+      }
 
-      const assigned = await updateStageAction(stageId, { workerId: authState.userId })
-      expect(assigned.success).toBe(true)
-      expect(await workerIdOf(stageId)).toBe(authState.userId)
+      expect((await updateStageSplitAction(stageId, split)).success).toBe(true)
+      expect(await splitOf(stageId)).toEqual({
+        mode: 'percent',
+        members: [
+          [authState.userId, 0, true],
+          [authState.otherUserId, 25, false],
+        ],
+      })
 
-      const cleared = await updateStageAction(stageId, { workerId: null })
-      expect(cleared.success).toBe(true)
-      expect(await workerIdOf(stageId)).toBeNull()
+      expect((await updateStageSplitAction(stageId, null)).success).toBe(true)
+      expect((await splitOf(stageId)).members).toEqual([])
     })
 
-    it('leaves the assignment alone when the patch omits workerId', async () => {
-      const stageId = await createStage()
-      await updateStageAction(stageId, { workerId: authState.userId })
+    it('refuses workers on an etap with no rozliczenie, writing nothing', async () => {
+      const stageId = await createStage(null)
+      const res = await updateStageSplitAction(stageId, {
+        mode: 'percent',
+        members: [{ workerId: authState.userId, value: 0, takesRest: true }],
+      })
 
-      const res = await updateStageAction(stageId, { label: 'przemianowany' })
+      expect(res.success).toBe(false)
+      expect((await splitOf(stageId)).members).toEqual([])
+    })
 
-      expect(res.success).toBe(true)
-      expect(await workerIdOf(stageId)).toBe(authState.userId)
+    it('refuses a fixed amount above the executed work, writing nothing', async () => {
+      // No stage progress → the pool is 0 zł, so any amount above zero is over it.
+      const stageId = await createStage('w_tools')
+      const res = await updateStageSplitAction(stageId, {
+        mode: 'amount',
+        members: [
+          { workerId: authState.userId, value: 0, takesRest: true },
+          { workerId: authState.otherUserId, value: 100, takesRest: false },
+        ],
+      })
+
+      expect(res.success).toBe(false)
+      expect(await splitOf(stageId)).toEqual({ mode: 'percent', members: [] })
+    })
+
+    it('leaves the workers alone when a label is renamed', async () => {
+      const stageId = await createStage('w_tools')
+      await updateStageSplitAction(stageId, {
+        mode: 'percent',
+        members: [{ workerId: authState.userId, value: 0, takesRest: true }],
+      })
+
+      expect((await updateStageAction(stageId, { label: 'przemianowany' })).success).toBe(true)
+      expect((await splitOf(stageId)).members).toEqual([[authState.userId, 0, true]])
     })
   })
 

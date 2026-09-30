@@ -16,7 +16,7 @@ import type { KosztorysStageT, ToolPlaneT } from '@/lib/kosztorys/types'
 // same plane twice.
 
 const STAGES: KosztorysStageT[] = [
-  { id: 7, ordinal: 1, label: 'Etap 1', plane: null, workerId: null },
+  { id: 7, ordinal: 1, label: 'Etap 1', plane: null, split: null },
 ]
 
 const PLANES: ToolPlaneT[] = ['w_tools', 'own_tools']

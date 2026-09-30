@@ -14,7 +14,7 @@ import type { KosztorysStageT } from '@/lib/kosztorys/types'
 // lets a column through, or drops one.
 
 const STAGES: KosztorysStageT[] = [
-  { id: 7, ordinal: 1, label: 'Etap 1', plane: null, workerId: null },
+  { id: 7, ordinal: 1, label: 'Etap 1', plane: null, split: null },
 ]
 
 function workshopIds(extra: Partial<BuildV2ColumnsOptsT> = {}): string[] {

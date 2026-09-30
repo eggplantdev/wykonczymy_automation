@@ -95,7 +95,9 @@ export function computeSubcontractorSummary(
   // credits anyone, so a worker holding only plane-less etapy is absent from `byWorker` while being
   // very much assigned. Reading "has etapy" off the money is what would mislabel them „nie ma
   // przypisanych etapów" and send the owner looking for the wrong mistake.
-  const assignedWorkerIds = new Set<number | null>(stages.map((stage) => stage.workerId))
+  const assignedWorkerIds = new Set<number | null>(
+    stages.flatMap((stage) => stage.split?.members.map((member) => member.workerId) ?? [null]),
+  )
 
   const workerIds = new Set<number | null>([
     ...payoutByWorker.keys(),

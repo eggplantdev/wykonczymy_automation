@@ -106,11 +106,14 @@ describe.skipIf(!ENV_READY)('kosztorys import actions — persisted state (DB)',
     await applyKosztorysImport(investmentId, 'own_tools', authState.userId)
 
     const stages = await db.execute(sql`
-      SELECT plane, worker_id FROM kosztorys_stages WHERE investment_id = ${investmentId}
+      SELECT ks.plane, ksw.worker_id, ksw.takes_rest
+      FROM kosztorys_stages ks
+      LEFT JOIN kosztorys_stage_workers ksw ON ksw.stage_id = ks.id
+      WHERE ks.investment_id = ${investmentId}
     `)
     expect(stages.rows.length).toBeGreaterThan(0)
     expect(stages.rows).toEqual(
-      stages.rows.map(() => ({ plane: 'own_tools', worker_id: authState.userId })),
+      stages.rows.map(() => ({ plane: 'own_tools', worker_id: authState.userId, takes_rest: true })),
     )
   })
 

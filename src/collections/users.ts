@@ -10,6 +10,7 @@ import type { CollectionConfig, Where } from 'payload'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 import { makePreventDelete } from '@/hooks/prevent-delete'
 import { excludingCancelled } from '@/lib/db/delete-blocker'
+import { countStageMemberships } from '@/lib/db/stage-memberships'
 import { ROLES, ROLE_LABELS } from '@/lib/auth/roles'
 
 // Block a hard delete while a FIGURE or its audit trail still names this person: a wypłata whose
@@ -52,8 +53,7 @@ const preventDeleteWithReferences = makePreventDelete({
       label: 'kasy',
     },
     {
-      collection: 'kosztorys-stages',
-      where: (id) => ({ worker: { equals: id } }),
+      count: countStageMemberships,
       label: 'etapy kosztorysu',
     },
     // Not authorship: this names who was HOLDING a tool. Deleting the row would erase the only

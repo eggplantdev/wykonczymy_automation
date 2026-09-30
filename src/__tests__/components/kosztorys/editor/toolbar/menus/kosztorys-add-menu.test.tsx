@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { KosztorysAddMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-add-menu'
-import type { KosztorysStageT } from '@/lib/kosztorys/types'
+import type { KosztorysStageT, StageSplitT } from '@/lib/kosztorys/types'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-worker-split'
 
 const handleAddStage = vi.hoisted(() => vi.fn())
 const editor = vi.hoisted(() => ({ stages: [] as KosztorysStageT[] }))
@@ -33,16 +34,30 @@ describe('KosztorysAddMenu — „Etap"', () => {
 
   // Etapy are opened one after another for the same crew on the same terms, so a new one copies
   // the last one's rozliczenie and wykonawca instead of asking.
-  it('adds an etap with the last etap’s rozliczenie and wykonawca', async () => {
+  it('adds an etap with the last etap’s rozliczenie and podział', async () => {
+    const split: StageSplitT = {
+      mode: 'amount',
+      members: [
+        { workerId: 5, value: 0, takesRest: true },
+        { workerId: 6, value: 300, takesRest: false },
+      ],
+    }
     editor.stages = [
-      { id: 11, ordinal: 1, label: null, plane: 'w_tools', workerId: 6 },
-      { id: 12, ordinal: 2, label: null, plane: 'own_tools', workerId: 5 },
+      { id: 11, ordinal: 1, label: null, plane: 'w_tools', split: oneWorkerSplit(6) },
+      { id: 12, ordinal: 2, label: null, plane: 'own_tools', split },
     ]
     await openMenu()
 
     await userEvent.click(screen.getByRole('menuitem', { name: 'Etap' }))
 
-    expect(handleAddStage).toHaveBeenCalledWith('own_tools', 5)
+    // A new etap has no executed work, so the kwoty stałe restart at 0 under the save-time cap.
+    expect(handleAddStage).toHaveBeenCalledWith('own_tools', {
+      mode: 'amount',
+      members: [
+        { workerId: 5, value: 0, takesRest: true },
+        { workerId: 6, value: 0, takesRest: false },
+      ],
+    })
   })
 
   it('asks for the rozliczenie when there is no etap to copy', async () => {

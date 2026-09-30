@@ -12,6 +12,7 @@ import { sheetCoeffs, type SheetCoeffsT } from './sheet-coeffs'
 import { compareFooterTotals, type FooterComparisonT } from './footer-totals'
 import { keyItems } from './item-key'
 import { groupInOrder } from '@/lib/utils/group-in-order'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-worker-split'
 import { parseLaborTab } from './parse-labor-tab'
 import { type ImportGridsT } from './read-sheet'
 import {
@@ -67,7 +68,7 @@ export type ImportReportT = {
   warnings: string[]
 }
 
-export type StageDefaultsT = Pick<KosztorysStageT, 'plane' | 'workerId'>
+export type StageDefaultsT = Pick<KosztorysStageT, 'plane'> & { workerId: number | null }
 
 export type ImportFailureT = { ok: false; problems: string[] } & UnresolvedColumnsT
 
@@ -235,7 +236,10 @@ export function buildImportPlan(
     ...stage,
     plane: stageDefaults.plane,
     // A wykonawca on an etap with no rozliczenie would be named against a silent 0 zł należne.
-    workerId: stageDefaults.plane ? stageDefaults.workerId : null,
+    split:
+      stageDefaults.plane && stageDefaults.workerId != null
+        ? oneWorkerSplit(stageDefaults.workerId)
+        : null,
   }))
 
   // „Zastąp" means the sheet decides what the rozpiska contains: a praca it doesn't have stops

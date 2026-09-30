@@ -4,7 +4,9 @@ import type {
   KosztorysSectionT,
   KosztorysStageT,
   StageProgressT,
+  StageSplitT,
 } from '@/lib/kosztorys/types'
+import { normalizeStageSplit, oneWorkerSplit } from '@/lib/kosztorys/stage-worker-split'
 
 export type SnapshotKindT = 'manual' | 'auto' | 'named' | 'daily'
 
@@ -118,11 +120,24 @@ export type StoredSnapshotPayloadT = {
     | 'wToolsOverrideCoeff'
     | 'ownToolsOverrideCoeff'
   >[]
-  stages: KosztorysStageT[]
+  stages: StoredStageT[]
   progress: TolerantT<StageProgressT, 'qtyDone'>[]
   settings?: Partial<SnapshotSettingsT>
   // Absent on every row written before the investor history shipped: an UNKNOWN rabat, not 0 zł.
   globalDiscount?: GlobalDiscountT
+}
+
+// A row captured before EX-943 holds one `workerId` and no `split`; the schema version was not
+// bumped for it (lessons.md), so the stage type says both shapes can arrive.
+export type StoredStageT = Omit<KosztorysStageT, 'split'> & {
+  split?: StageSplitT | null
+  workerId?: number | null
+}
+
+/** A stored etap's split, reading a pre-EX-943 `workerId` as that one person taking the whole etap. */
+export function storedStageSplit(stage: StoredStageT): StageSplitT | null {
+  if (stage.split !== undefined) return normalizeStageSplit(stage.split)
+  return stage.workerId == null ? null : oneWorkerSplit(stage.workerId)
 }
 
 // An absent key is NOT the same as a stored null: the `sql` tag emits NOTHING for `undefined`, so the

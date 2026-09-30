@@ -26,7 +26,8 @@ import { STAGE_HEADER_COPY as COPY } from './stage-header-copy'
 import { SortIcon, SortMenuItems } from './sort-menu-items'
 import { cn } from '@/lib/utils/cn'
 import type { SortPickT } from '@/lib/kosztorys/row-view'
-import type { KosztorysStageT, ToolPlaneT } from '@/lib/kosztorys/types'
+import { oneWorkerSplit, restHolderId } from '@/lib/kosztorys/stage-worker-split'
+import type { KosztorysStageT, StageSplitT, ToolPlaneT } from '@/lib/kosztorys/types'
 import type { WorkerRefT } from '@/types/reference-data'
 
 type PropsT = {
@@ -35,7 +36,7 @@ type PropsT = {
   onRemove?: (stageId: number) => void
   onSetPlane?: (stageId: number, plane: ToolPlaneT) => void
   workers?: WorkerRefT[]
-  onSetWorker?: (stageId: number, workerId: number | null) => void
+  onSetSplit?: (stageId: number, split: StageSplitT | null) => void
   // Sorting by this etap's quantity — its header is the only place that offers it.
   sort?: SortPickT | null
   onSort?: (pick: SortPickT | null) => void
@@ -51,7 +52,7 @@ export function StageHeader({
   onRemove,
   onSetPlane,
   workers,
-  onSetWorker,
+  onSetSplit,
   sort = null,
   onSort,
   onPersistOrder,
@@ -69,15 +70,20 @@ export function StageHeader({
   // The reference query is unfiltered; the roster section below is what narrows it to active workers,
   // and it says so on screen with a toggle rather than silently dropping names.
   const allWorkers = workers ?? []
-  const assignedWorker = allWorkers.find((worker) => worker.id === stage.workerId)
+  const assignedWorkerId = restHolderId(stage.split)
+  const assignedWorker = allWorkers.find((worker) => worker.id === assignedWorkerId)
+  const onSetWorker =
+    onSetSplit &&
+    ((stageId: number, workerId: number | null) =>
+      onSetSplit(stageId, workerId == null ? null : oneWorkerSplit(workerId)))
 
   // Moving executed work off someone is the one destructive-feeling edit here: it drops their
   // „pozostało" by the amount and raises the new person's. Confirm only in that case — assigning an
   // empty etap, or filling in a blank assignment, needs no ceremony. Returns whether the confirm
   // opened, because the menu has to close for it.
   function pickWorker(workerId: number | null) {
-    if (workerId === stage.workerId) return false
-    if (executedValue > 0 && stage.workerId != null) {
+    if (workerId === assignedWorkerId) return false
+    if (executedValue > 0 && assignedWorkerId != null) {
       setPendingWorkerId(workerId)
       return true
     }
@@ -198,7 +204,7 @@ export function StageHeader({
             ) : (
               <StageWorkerSection
                 workers={allWorkers}
-                selectedId={stage.workerId}
+                selectedId={assignedWorkerId}
                 onPick={pickWorker}
               />
             )}

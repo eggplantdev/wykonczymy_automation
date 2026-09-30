@@ -1,4 +1,5 @@
 import type { CollectionSlug, Payload, PayloadRequest, Where } from 'payload'
+import { getDb, type DbExecutorT } from '@/lib/db/get-db'
 
 /**
  * Narrow a `transactions` probe to rows that still mean something.
@@ -19,11 +20,13 @@ export function excludingCancelled(where: Where): Where {
 }
 
 type DeleteProbeT = {
-  collection: CollectionSlug
-  where: (id: string | number) => Where
   /** Names the referencing data in the refusal, e.g. „transakcje" → „(transakcje: 5)". */
   label: string
-}
+} & (
+  | { collection: CollectionSlug; where: (id: string | number) => Where }
+  // For a reference held by a raw table Payload has no collection for.
+  | { count: (db: DbExecutorT, id: string | number) => Promise<number> }
+)
 
 export type DeleteBlockerT = (
   payload: Payload,
@@ -52,10 +55,14 @@ export function makeDeleteBlocker({
     // referencing rows and this one in a single transaction must not be refused on pre-delete state.
     const blockers = (
       await Promise.all(
-        probes.map(async ({ collection, where, label }) => {
-          const { totalDocs } = await payload.count({ collection, where: where(id), req })
+        probes.map(async (probe) => {
+          const total =
+            'count' in probe
+              ? await probe.count(await getDb(payload, req), id)
+              : (await payload.count({ collection: probe.collection, where: probe.where(id), req }))
+                  .totalDocs
 
-          return totalDocs > 0 ? `${label}: ${totalDocs}` : null
+          return total > 0 ? `${probe.label}: ${total}` : null
         }),
       )
     ).filter((entry) => entry !== null)

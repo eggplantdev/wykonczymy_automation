@@ -43,15 +43,19 @@ export const KosztorysStages: CollectionConfig = {
         { value: 'own_tools', label: { en: 'Without tools', pl: 'Bez narzędzi' } },
       ],
     },
-    // Who is to do this etap (EX-613). Unlike `plane`, null is a legitimate resting state, not an
-    // unconfirmed default: an unassigned etap gets its own residual row in the subcontractor
-    // summary and its quantity entry stays open.
+    // How the etap's executed-work value is split between its workers (EX-943). The workers
+    // themselves live in the raw `kosztorys_stage_workers` table, written only by
+    // `updateStageSplitAction` together with this field.
     {
-      name: 'worker',
-      type: 'relationship',
-      relationTo: 'users',
-      required: false,
-      label: { en: 'Worker', pl: 'Pracownik' },
+      name: 'splitMode',
+      type: 'select',
+      required: true,
+      defaultValue: 'percent',
+      label: { en: 'Split mode', pl: 'Podział' },
+      options: [
+        { value: 'percent', label: { en: 'Percent', pl: 'Procentowo' } },
+        { value: 'amount', label: { en: 'Amount', pl: 'Kwotowo' } },
+      ],
     },
   ],
 }

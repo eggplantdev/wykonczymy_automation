@@ -8,6 +8,7 @@ import { restoreKosztorys } from '@/lib/kosztorys/restore-kosztorys'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { restHolderId } from '@/lib/kosztorys/stage-worker-split'
 
 // A snapshot records `worker_id` per etap, so it outlives the person it names. `ON DELETE SET NULL`
 // on the column protects the LIVE row when that person is deleted — it says nothing about a restore
@@ -75,6 +76,19 @@ describe.skipIf(!ENV_READY)('restore with a since-deleted etap assignee (DB)', (
         // The second etap's assignee outlives the restore. Without it, an implementation that simply
         // blanket-nulled `worker_id` on every restore would pass — losing every assignment silently.
         { label: 'Etap 2', worker: keptWorkerId },
+        // Shared etap whose rest holder is the one deleted: the survivor must inherit the rest, not
+        // leave an etap nobody takes the remainder of.
+        {
+          label: 'Etap 3',
+          plane: 'w_tools',
+          split: {
+            mode: 'percent',
+            members: [
+              { workerId: doomedWorkerId, value: 0, takesRest: true },
+              { workerId: keptWorkerId, value: 30, takesRest: false },
+            ],
+          },
+        },
       ],
     })
   })
@@ -86,7 +100,9 @@ describe.skipIf(!ENV_READY)('restore with a since-deleted etap assignee (DB)', (
 
   it('restores the etapy with the assignment cleared instead of failing on the FK', async () => {
     const snapshot = await serializeKosztorys(investmentId)
-    expect(snapshot.stages.find((stage) => stage.ordinal === 1)?.workerId).toBe(doomedWorkerId)
+    expect(restHolderId(snapshot.stages.find((stage) => stage.ordinal === 1)!.split)).toBe(
+      doomedWorkerId,
+    )
 
     // The hard delete an admin performs in the Payload panel. The owned cash register goes first —
     // `cash_registers.owner_id` is NOT NULL, so Postgres refuses the user delete while it stands.
@@ -102,10 +118,12 @@ describe.skipIf(!ENV_READY)('restore with a since-deleted etap assignee (DB)', (
     // Assert the PERSISTED tree, not just the call's return: the reported count is what the toast
     // shows, but only the rows say what actually landed.
     const after = await serializeKosztorys(investmentId)
-    expect(after.stages.map((stage) => stage.ordinal).sort()).toEqual([1, 2])
-    expect(after.stages.find((stage) => stage.ordinal === 1)?.workerId).toBeNull()
-    expect(after.stages.find((stage) => stage.ordinal === 2)?.workerId).toBe(keptWorkerId)
+    const splitOf = (ordinal: number) => after.stages.find((stage) => stage.ordinal === ordinal)?.split
+    expect(after.stages.map((stage) => stage.ordinal).sort()).toEqual([1, 2, 3])
+    expect(splitOf(1)).toBeNull()
+    expect(restHolderId(splitOf(2) ?? null)).toBe(keptWorkerId)
+    expect(splitOf(3)?.members).toEqual([{ workerId: keptWorkerId, value: 0, takesRest: true }])
     expect(after.items).toHaveLength(1)
-    expect(result.droppedWorkerAssignments).toBe(1)
+    expect(result.droppedWorkerAssignments).toBe(2)
   })
 })

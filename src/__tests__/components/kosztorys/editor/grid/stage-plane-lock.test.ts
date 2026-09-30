@@ -9,8 +9,8 @@ import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 // it is discovered (the cell), not only on the header badge nobody looks at after typing.
 
 const STAGES: KosztorysStageT[] = [
-  { id: 7, ordinal: 1, label: 'Bez rozliczenia', plane: null, workerId: null },
-  { id: 9, ordinal: 2, label: 'Rozliczony', plane: 'w_tools', workerId: null },
+  { id: 7, ordinal: 1, label: 'Bez rozliczenia', plane: null, split: null },
+  { id: 9, ordinal: 2, label: 'Rozliczony', plane: 'w_tools', split: null },
 ]
 
 const ROW = { id: 1, sectionId: 10, [stageKey(7)]: 12 } as unknown as KosztorysV2RowT

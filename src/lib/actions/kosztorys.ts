@@ -33,7 +33,9 @@ import { SETTLEMENT_MODES, type SettlementModeT } from '@/lib/kosztorys/settleme
 import { emptySnapshotPayload } from '@/lib/kosztorys/snapshot-format'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import type { ActionResultT } from '@/types/action'
-import type { ItemPatchT, StagePatchT, ToolPlaneT } from '@/lib/kosztorys/types'
+import type { ItemPatchT, StagePatchT, StageSplitT, ToolPlaneT } from '@/lib/kosztorys/types'
+import { normalizeStageSplit, validateStageSplit } from '@/lib/kosztorys/stage-worker-split'
+import { insertStageMembers, replaceStageSplit, selectStagePool } from '@/lib/db/stage-split'
 
 // Derived from TOOL_PLANES so a plane added to the pickers can't be silently rejected here.
 const stagePlaneSchema = z.enum(TOOL_PLANES)
@@ -594,27 +596,52 @@ export async function renumberKosztorysOrderAction(
 export async function addStageAction(
   investmentId: number,
   plane: ToolPlaneT,
-  workerId: number | null = null,
+  split: StageSplitT | null = null,
 ): Promise<ActionResultT<{ id: number; ordinal: number }>> {
   return investmentAction(
     'addStageAction',
     { investmentId },
     async ({ payload }) => {
-      const parsed = validateAction(stagePatchSchema, { plane, workerId })
+      const parsed = validateAction(stagePatchSchema, { plane })
       if (!parsed.success) return parsed
-      const existing = await payload.find({
-        collection: 'kosztorys-stages',
-        where: { investment: { equals: investmentId } },
-        sort: '-ordinal',
-        limit: 1,
-        depth: 0,
-      })
-      const nextOrdinal = (existing.docs[0]?.ordinal ?? 0) + 1
-      const created = await payload.create({
-        collection: 'kosztorys-stages',
-        data: { investment: investmentId, ordinal: nextOrdinal, plane, worker: workerId },
-      })
-      return { success: true, data: { id: created.id, ordinal: nextOrdinal } }
+      const parsedSplit = validateAction(stageSplitSchema, split)
+      if (!parsedSplit.success) return parsedSplit
+      const normalized = normalizeStageSplit(parsedSplit.data)
+      // A new etap has no executed work, so only a 0 zł amount could pass the cap; the copied
+      // percentages are what carries over.
+      const refusal = normalized && validateStageSplit(normalized, 0)
+      if (refusal) return { success: false, error: refusal }
+      return withPayloadTransaction(
+        payload,
+        async (req) => {
+          const existing = await payload.find({
+            collection: 'kosztorys-stages',
+            where: { investment: { equals: investmentId } },
+            sort: '-ordinal',
+            limit: 1,
+            depth: 0,
+            req,
+          })
+          const nextOrdinal = (existing.docs[0]?.ordinal ?? 0) + 1
+          const created = await payload.create({
+            collection: 'kosztorys-stages',
+            data: {
+              investment: investmentId,
+              ordinal: nextOrdinal,
+              plane,
+              splitMode: normalized?.mode ?? 'percent',
+            },
+            req,
+          })
+          if (normalized) {
+            await insertStageMembers(await getDb(payload, req), [
+              { stageId: created.id, split: normalized },
+            ])
+          }
+          return { success: true as const, data: { id: created.id, ordinal: nextOrdinal } }
+        },
+        { skipRevalidation: true },
+      )
     },
     ['kosztorysStages'],
   )
@@ -625,9 +652,21 @@ const stagePatchSchema = z
   .object({
     label: z.string().nullable(),
     plane: stagePlaneSchema,
-    workerId: z.number().int().positive().nullable(),
   })
   .partial()
+
+const stageSplitSchema = z
+  .object({
+    mode: z.enum(['percent', 'amount']),
+    members: z.array(
+      z.object({
+        workerId: z.number().int().positive(),
+        value: z.number().finite(),
+        takesRest: z.boolean(),
+      }),
+    ),
+  })
+  .nullable()
 
 // A plane patch only ever writes a concrete value — an explicit pick confirms the plane and clears
 // the unconfirmed (null) warning; there is no "un-confirm" path.
@@ -641,12 +680,52 @@ export async function updateStageAction(
     async ({ payload }) => {
       const parsed = validateAction(stagePatchSchema, patch)
       if (!parsed.success) return parsed
-      // The patch key is workerId (the tree carries flat *_id values); the collection field is the
-      // `worker` relationship — translate at this boundary, nowhere else.
-      const { workerId, ...rest } = parsed.data
-      const data = 'workerId' in parsed.data ? { ...rest, worker: workerId } : rest
-      await payload.update({ collection: 'kosztorys-stages', id: stageId, data })
+      await payload.update({ collection: 'kosztorys-stages', id: stageId, data: parsed.data })
       return { success: true }
+    },
+    ['kosztorysStages'],
+  )
+}
+
+const STAGE_MISSING = 'Etap nie istnieje.'
+// EX-613's rule, kept: without a plane the etap has no price, so a share of it would be a share of nothing.
+const STAGE_SPLIT_NEEDS_PLANE = 'Najpierw wybierz rozliczenie etapu — bez niego etap nikomu nic nie nalicza.'
+
+// The whole split in one call: mode and members are one concept, and two patches would have states
+// no single save produces (lessons.md). The cap is checked against the pool priced here, inside the
+// transaction, never against the figure the dialog last saw.
+export async function updateStageSplitAction(
+  stageId: number,
+  split: StageSplitT | null,
+): Promise<ActionResultT> {
+  return investmentAction(
+    'updateStageSplitAction',
+    { kind: 'stage', id: stageId },
+    async ({ payload }) => {
+      const parsed = validateAction(stageSplitSchema, split)
+      if (!parsed.success) return parsed
+      const normalized = normalizeStageSplit(parsed.data)
+      return withPayloadTransaction(
+        payload,
+        async (req): Promise<ActionResultT> => {
+          const txDb = await getDb(payload, req)
+          const res = await txDb.execute(sql`
+            SELECT plane FROM kosztorys_stages WHERE id = ${stageId} FOR UPDATE
+          `)
+          const stage = res.rows[0]
+          if (!stage) return { success: false, error: STAGE_MISSING }
+          if (normalized && stage.plane == null) {
+            return { success: false, error: STAGE_SPLIT_NEEDS_PLANE }
+          }
+          if (normalized) {
+            const refusal = validateStageSplit(normalized, await selectStagePool(txDb, stageId))
+            if (refusal) return { success: false, error: refusal }
+          }
+          await replaceStageSplit(txDb, stageId, normalized)
+          return { success: true }
+        },
+        { skipRevalidation: true },
+      )
     },
     ['kosztorysStages'],
   )

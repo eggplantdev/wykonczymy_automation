@@ -10,13 +10,14 @@ import type { KosztorysStageT, ToolPlaneT } from '@/lib/kosztorys/types'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import { workerDataHiddenColumns } from '@/lib/kosztorys/worker-view/columns'
 import { row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-worker-split'
 
 // The worker's document: a closed list at his plane. Asserted on rendered ids, like the investor's
 // preview, because the ids are what reaches his screen.
 
 // Already narrowed to his etapy, as the projection hands them over.
 const STAGES: KosztorysStageT[] = [
-  { id: 7, ordinal: 1, label: 'Etap 1', plane: 'w_tools', workerId: 3 },
+  { id: 7, ordinal: 1, label: 'Etap 1', plane: 'w_tools', split: oneWorkerSplit(3) },
 ]
 
 function workerOpts(
@@ -153,7 +154,7 @@ describe('worker columns', () => {
 describe('worker columns the data takes off', () => {
   const stages: KosztorysStageT[] = [
     ...STAGES,
-    { id: 9, ordinal: 2, label: 'Etap 2', plane: 'w_tools', workerId: 3 },
+    { id: 9, ordinal: 2, label: 'Etap 2', plane: 'w_tools', split: oneWorkerSplit(3) },
   ]
   const stageRow = (overrides: Parameters<typeof row>[0] = {}) =>
     row({ [stageKey(7)]: 0, [stageKey(9)]: 0, ...overrides })

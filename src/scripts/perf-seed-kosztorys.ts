@@ -38,6 +38,7 @@ async function run() {
       // „marża rzeczywista nieznana", and the parity guard would compare null with null on the only
       // investment in the test DB that has a kosztorys at all (EX-649).
       data: {
+        splitMode: 'percent',
         investment: INVESTMENT_ID,
         ordinal: ord,
         plane: ord % 2 === 0 ? 'own_tools' : 'w_tools',

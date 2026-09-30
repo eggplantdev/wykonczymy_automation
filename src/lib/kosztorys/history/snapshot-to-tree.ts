@@ -1,5 +1,6 @@
 import {
   itemWithColumnDefaults,
+  storedStageSplit,
   type StoredSnapshotPayloadT,
 } from '@/lib/kosztorys/snapshot-format'
 import type { KosztorysItemT, KosztorysTreeT } from '@/lib/kosztorys/types'
@@ -32,7 +33,13 @@ export function snapshotToTree(
       displayOrder: section.displayOrder ?? index,
       items: itemsBySection.get(section.id) ?? [],
     })),
-    stages: payload.stages,
+    stages: payload.stages.map((stage) => ({
+      id: stage.id,
+      ordinal: stage.ordinal,
+      label: stage.label,
+      plane: stage.plane,
+      split: storedStageSplit(stage),
+    })),
     progress: payload.progress.map((entry) => ({ ...entry, qtyDone: entry.qtyDone ?? 0 })),
     globalCoeffs: {
       wTools: payload.settings?.wToolsCoeff ?? live.globalCoeffs.wTools,

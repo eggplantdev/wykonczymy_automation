@@ -4,6 +4,7 @@ import { fold } from '@/lib/kosztorys/sheet-import/columns'
 import type { ImportGridsT } from '@/lib/kosztorys/sheet-import/read-sheet'
 import { SNAPSHOT_SCHEMA_VERSION, type SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 import { BIALOSTOCKA_ROWS, ratesTab } from '@/__tests__/fixtures/kosztorys-sheet/rows'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-worker-split'
 
 const RATES = [
   { description: 'zakup, transport i wniesienie towaru budowlanego', wTools: 975, ownTools: 750 },
@@ -48,7 +49,7 @@ function currentTree(overrides: Partial<SnapshotPayloadT> = {}): SnapshotPayload
       ordinal: index + 1,
       label: null,
       plane: null,
-      workerId: null,
+      split: null,
     })),
     progress: [],
     settings: { wToolsCoeff: 0.71, ownToolsCoeff: 0.42, vatRate: 8 },
@@ -78,8 +79,8 @@ describe('buildImportPlan', () => {
     })
     if (!built.ok) expect.fail(built.problems.join(' | '))
 
-    expect(built.tree.stages.map(({ plane, workerId }) => ({ plane, workerId }))).toEqual(
-      Array(3).fill({ plane: 'own_tools', workerId: 5 }),
+    expect(built.tree.stages.map(({ plane, split }) => ({ plane, split }))).toEqual(
+      Array(3).fill({ plane: 'own_tools', split: oneWorkerSplit(5) }),
     )
   })
 
@@ -90,7 +91,7 @@ describe('buildImportPlan', () => {
     })
     if (!built.ok) expect.fail(built.problems.join(' | '))
 
-    expect(built.tree.stages.every((stage) => stage.workerId === null)).toBe(true)
+    expect(built.tree.stages.every((stage) => stage.split === null)).toBe(true)
   })
 
   it('takes the global multipliers from the cennik’s own formulas, leaving VAT alone', () => {

@@ -8,6 +8,7 @@ import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import type { WorkerRefT } from '@/types/reference-data'
 import type { PayoutTransactionRowT } from '@/types/transfers'
 import { bare } from '@/__tests__/helpers/money'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-worker-split'
 
 const INVESTMENT_ID = 4
 
@@ -29,7 +30,7 @@ const stage = (id: number, workerId: number | null): KosztorysStageT => ({
   ordinal: id,
   label: null,
   plane: 'w_tools',
-  workerId,
+  split: workerId == null ? null : oneWorkerSplit(workerId),
 })
 
 // Bartek ma przypisany etap, na którym nic jeszcze nie wykonano — to jego zaliczka, nie nadpłata.
@@ -50,6 +51,8 @@ const DUE: SubcontractorDueByPlaneT = {
     [null, 2_000],
   ]),
   unconfirmedWorkers: new Set(),
+  byStageWorker: new Map(),
+  scaledDownStageIds: new Set(),
 }
 
 const PAYOUTS: PayoutTransactionRowT[] = [

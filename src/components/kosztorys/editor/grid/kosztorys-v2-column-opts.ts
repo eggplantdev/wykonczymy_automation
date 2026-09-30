@@ -6,7 +6,12 @@ import type { CrewAxisT } from '@/lib/kosztorys/crew-axis'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { MoveEdgesT } from '@/lib/kosztorys/move-edges'
 import type { SortPickT, SortStateT } from '@/lib/kosztorys/row-view'
-import type { KosztorysStageT, KosztorysV2RowT, ToolPlaneT } from '@/lib/kosztorys/types'
+import type {
+  KosztorysStageT,
+  KosztorysV2RowT,
+  StageSplitT,
+  ToolPlaneT,
+} from '@/lib/kosztorys/types'
 import type { WorkerRefT } from '@/types/reference-data'
 
 export type BuildV2ColumnsOptsT = {
@@ -16,7 +21,7 @@ export type BuildV2ColumnsOptsT = {
   onRenameStage?: (stageId: number, label: string) => void
   onSetStagePlane?: (stageId: number, plane: ToolPlaneT) => void
   workers?: WorkerRefT[]
-  onSetStageWorker?: (stageId: number, workerId: number | null) => void
+  onSetStageSplit?: (stageId: number, split: StageSplitT | null) => void
   // Only so the reassignment confirm can quote the amount being moved.
   executedValueByStage?: Map<number, number>
   sort?: SortStateT

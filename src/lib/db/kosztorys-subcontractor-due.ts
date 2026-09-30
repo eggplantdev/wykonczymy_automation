@@ -27,6 +27,7 @@ export const subcontractorLinesCte = sql`
   lines AS (
     SELECT
       ks.investment_id,
+      ks.id AS stage_id,
       ks.plane,
       ks.worker_id,
       sp.qty_done,

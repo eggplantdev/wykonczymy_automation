@@ -215,7 +215,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
         onRemove={opts.onRemoveStage}
         onSetPlane={opts.onSetStagePlane}
         workers={opts.workers}
-        onSetWorker={opts.onSetStageWorker}
+        onSetSplit={opts.onSetStageSplit}
         sort={activeSortPick(opts.sort, qtyField)}
         onSort={opts.onSetSort && ((pick) => opts.onSetSort?.(qtyField, pick))}
         onPersistOrder={opts.onPersistKosztorysOrder}

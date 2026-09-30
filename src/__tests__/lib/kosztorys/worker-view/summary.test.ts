@@ -5,6 +5,7 @@ import { computeWorkerSummary } from '@/lib/kosztorys/worker-view/summary'
 import type { KosztorysStageT, KosztorysTreeT } from '@/lib/kosztorys/types'
 import type { PayoutTransactionRowT } from '@/types/transfers'
 import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
+import { oneWorkerSplit, restHolderId } from '@/lib/kosztorys/stage-worker-split'
 
 const WORKER = 5
 const OTHER = 9
@@ -12,9 +13,9 @@ const OTHER = 9
 // Worker 5 holds etapy 100 and 102 (z narzędziami, stawka 12); worker 9 holds etap 101 on the same
 // plane. Row 2 carries a client rabat, which must never reach the crew's figures.
 const stages: KosztorysStageT[] = [
-  { id: 100, ordinal: 1, label: 'Tynki', plane: 'w_tools', workerId: WORKER },
-  { id: 101, ordinal: 2, label: null, plane: 'w_tools', workerId: OTHER },
-  { id: 102, ordinal: 3, label: null, plane: 'w_tools', workerId: WORKER },
+  { id: 100, ordinal: 1, label: 'Tynki', plane: 'w_tools', split: oneWorkerSplit(WORKER) },
+  { id: 101, ordinal: 2, label: null, plane: 'w_tools', split: oneWorkerSplit(OTHER) },
+  { id: 102, ordinal: 3, label: null, plane: 'w_tools', split: oneWorkerSplit(WORKER) },
 ]
 const tree: KosztorysTreeT = makeTree({
   sections: [
@@ -46,7 +47,7 @@ const tree: KosztorysTreeT = makeTree({
   vatRate: 0.08,
 })
 const rows = treeToRows(tree)
-const hisStages = stages.filter((stage) => stage.workerId === WORKER)
+const hisStages = stages.filter((stage) => restHolderId(stage.split) === WORKER)
 
 const payout = (workerId: number | null, amount: number, date = '2026-09-01') => ({
   workerId,

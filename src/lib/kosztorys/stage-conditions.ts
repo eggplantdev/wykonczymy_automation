@@ -30,7 +30,7 @@ export const STAGE_CONDITIONS: StageConditionT[] = [
     // Counted independently of the one above, so a bare etap appears in both (owner): each row says
     // literally what it is written to say.
     label: 'bez przypisanego wykonawcy',
-    matches: (stage) => stage.workerId == null,
+    matches: (stage) => stage.split == null,
   },
 ]
 

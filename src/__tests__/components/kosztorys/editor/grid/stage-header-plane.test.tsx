@@ -6,6 +6,7 @@ import { StageHeader } from '@/components/kosztorys/editor/grid/stage-header'
 import { STAGE_HEADER_COPY as COPY } from '@/components/kosztorys/editor/grid/stage-header-copy'
 import { PLANE_LABELS } from '@/lib/kosztorys/labels'
 import type { KosztorysStageT, ToolPlaneT } from '@/lib/kosztorys/types'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-worker-split'
 import type { WorkerRefT } from '@/types/reference-data'
 
 const STAGE_ID = 7
@@ -18,11 +19,11 @@ const stage = (plane: ToolPlaneT | null): KosztorysStageT => ({
   ordinal: 1,
   label: 'Łazienka',
   plane,
-  workerId: null,
+  split: null,
 })
 
 const onSetPlane = vi.fn()
-const onSetWorker = vi.fn()
+const onSetSplit = vi.fn()
 
 function renderHeader(plane: ToolPlaneT | null) {
   render(
@@ -32,7 +33,7 @@ function renderHeader(plane: ToolPlaneT | null) {
       onRemove={vi.fn()}
       onSetPlane={onSetPlane}
       workers={WORKERS}
-      onSetWorker={onSetWorker}
+      onSetSplit={onSetSplit}
     />,
   )
   return userEvent.setup()
@@ -91,6 +92,6 @@ describe('Nagłówek etapu — roster czeka na rozliczenie', () => {
     expect(menu.queryByText(COPY.workerNeedsPlane)).toBeNull()
 
     await user.click(menu.getByRole('menuitemcheckbox', { name: 'Anna' }))
-    expect(onSetWorker).toHaveBeenCalledWith(STAGE_ID, ANNA)
+    expect(onSetSplit).toHaveBeenCalledWith(STAGE_ID, oneWorkerSplit(ANNA))
   })
 })

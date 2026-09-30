@@ -35,8 +35,8 @@ const tree: KosztorysTreeT = makeTree({
   // Mixed planes on purpose: with both stages left unassigned every subcontractor-view assertion
   // below reduces to 0-vs-something and passes without exercising the plane filter at all.
   stages: [
-    { id: 100, ordinal: 1, label: null, plane: 'w_tools', workerId: null },
-    { id: 101, ordinal: 2, label: null, plane: 'own_tools', workerId: null },
+    { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null },
+    { id: 101, ordinal: 2, label: null, plane: 'own_tools', split: null },
   ],
   progress: [
     { itemId: 1, stageId: 100, qtyDone: 2 },

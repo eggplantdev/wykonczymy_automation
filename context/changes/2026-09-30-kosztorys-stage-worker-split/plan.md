@@ -727,17 +727,17 @@ The full `pnpm test` runs only if the user asks, per the standing rule.
 
 #### Automated
 
-- [x] 1.1 `stage-worker-split.test.ts` passes (percent, amount, pro-rata shrink, pool 0, one-person identity, no negative share, Σ = pool, normalisation, validation)
+- [x] 1.1 `stage-worker-split.test.ts` passes (percent, amount, pro-rata shrink, pool 0, one-person identity, no negative share, Σ = pool, normalisation, validation) — 8f7993b8
 
 ### Phase 2: Storage, reads, writes and the reference fold
 
 #### Automated
 
-- [ ] 2.1 Migration applies to local and `db-test`; the running app reads the new table
-- [ ] 2.2 Fold, summary, scope and stage-conditions specs pass with splits
-- [ ] 2.3 Stage action specs pass (persisted split read back, cap refusal leaves DB unchanged, plane-less refusal, add-etap copies split)
-- [ ] 2.4 Restore / snapshot-to-tree / import / user-delete-guard specs pass
-- [ ] 2.5 `pnpm test:parity` green on the regenerated fixture, figures diffed unchanged
+- [x] 2.1 Migration applies to local and `db-test`; the running app reads the new table
+- [x] 2.2 Fold, summary, scope and stage-conditions specs pass with splits
+- [x] 2.3 Stage action specs pass (persisted split read back, cap refusal leaves DB unchanged, plane-less refusal, add-etap copies split)
+- [x] 2.4 Restore / snapshot-to-tree / import / user-delete-guard specs pass
+- [x] 2.5 `pnpm test:parity` green on the regenerated fixture, figures diffed unchanged (fixture needed no regeneration: a one-person split hashes as the old `worker_id`)
 
 ### Phase 3: Cross-investment path on the same rule
 

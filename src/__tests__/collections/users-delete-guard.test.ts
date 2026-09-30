@@ -104,10 +104,38 @@ describe.skipIf(!ENV_READY)('users beforeDelete guard (DB)', () => {
     expect(await workerExists()).toBe(true)
   })
 
+  // The membership table's FK is ON DELETE CASCADE, so without the probe the delete would silently
+  // take the worker's share out of the etap's split.
+  it('refuses to delete a worker who is only a member of an etap split', async () => {
+    await db.execute(sql`DELETE FROM amount_edits WHERE edited_by_id = ${workerId}`)
+    const stage = await payload.create({
+      collection: 'kosztorys-stages',
+      data: { investment: investmentId, ordinal: 1, splitMode: 'percent' },
+      overrideAccess: true,
+      context: { skipRevalidation: true },
+    })
+    await db.execute(sql`
+      INSERT INTO kosztorys_stage_workers (stage_id, worker_id, value, takes_rest)
+      VALUES (${stage.id}, ${workerId}, 25, false)
+    `)
+
+    await expect(
+      payload.delete({
+        collection: 'users',
+        id: workerId,
+        overrideAccess: true,
+        context: { skipRevalidation: true },
+      }),
+    ).rejects.toThrow(/etapy kosztorysu: 1/)
+
+    expect(await workerExists()).toBe(true)
+  })
+
   // Positive control: without it the assertions above would also pass on a hook that blocks every delete.
   it('allows the delete once nothing references the worker', async () => {
     await db.execute(sql`DELETE FROM transactions WHERE description = 'delete-guard payout'`)
     await db.execute(sql`DELETE FROM amount_edits WHERE edited_by_id = ${workerId}`)
+    await db.execute(sql`DELETE FROM kosztorys_stage_workers WHERE worker_id = ${workerId}`)
 
     await payload.delete({
       collection: 'users',

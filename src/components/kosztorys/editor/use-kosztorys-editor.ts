@@ -261,7 +261,7 @@ export function useKosztorysEditor({
     handleRemoveStage,
     handleRenameStage,
     handleSetStagePlane,
-    handleSetStageWorker,
+    handleSetStageSplit,
   } = useKosztorysStageOps({
     investmentId,
     initialStages: tree.stages,
@@ -538,7 +538,7 @@ export function useKosztorysEditor({
     onRemoveStage: editorOnly(handleRemoveStage),
     onRenameStage: editorOnly(handleRenameStage),
     onSetStagePlane: editorOnly(handleSetStagePlane),
-    onSetStageWorker: editorOnly(handleSetStageWorker),
+    onSetStageSplit: editorOnly(handleSetStageSplit),
     workers,
     executedValueByStage: subcontractorDue.byStage,
     sort,

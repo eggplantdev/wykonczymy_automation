@@ -135,7 +135,7 @@ describe('parseLaborTab', () => {
     // The sheet's own caption („1 etap ilość") is not a name — but its NUMBER is kept, so a skipped
     // column never shifts what the surviving etapy are called.
     expect(stages.map((stage) => stage.label)).toEqual(['Etap 1', 'Etap 2', 'Etap 3'])
-    expect(stages.every((stage) => !stage.plane && !stage.workerId)).toBe(true)
+    expect(stages.every((stage) => !stage.plane && !stage.split)).toBe(true)
   })
 
   it('renumbers the surviving etapy to a contiguous run', () => {

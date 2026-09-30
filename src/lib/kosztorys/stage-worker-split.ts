@@ -50,6 +50,24 @@ export function splitStagePool(pool: number, split: StageSplitT): StageSharesT {
   return { shares, scaledDown }
 }
 
+/** The whole etap to one person — what a single wykonawca, the import and a legacy snapshot mean. */
+export function oneWorkerSplit(workerId: number): StageSplitT {
+  return { mode: 'percent', members: [{ workerId, value: 0, takesRest: true }] }
+}
+
+/**
+ * The split a new etap inherits from the last one. Percentages carry over; fixed amounts are zeroed,
+ * because a new etap has no executed work and the cap refuses any amount above it.
+ */
+export function copyStageSplit(split: StageSplitT | null): StageSplitT | null {
+  if (!split || split.mode === 'percent') return split
+  return { mode: 'amount', members: split.members.map((member) => ({ ...member, value: 0 })) }
+}
+
+export function restHolderId(split: StageSplitT | null): number | null {
+  return split?.members.find((member) => member.takesRest)?.workerId ?? null
+}
+
 /**
  * The stored split read into a shape `splitStagePool` can trust: no members is no split, and exactly
  * one member takes the rest — the first flagged one, else the first member. The DB enforces at most

@@ -8,8 +8,10 @@ import type {
   KosztorysSectionT,
   KosztorysStageT,
   StageProgressT,
+  StageSplitT,
   ToolPlaneT,
 } from '@/lib/kosztorys/types'
+import { normalizeStageSplit } from '@/lib/kosztorys/stage-worker-split'
 import type { DbExecutorT } from './get-db'
 import { numOrNull } from './row-coerce'
 
@@ -77,10 +79,21 @@ export async function selectKosztorysTreeData(
       (
         SELECT coalesce(json_agg(st ORDER BY st.ordinal, st.id), '[]'::json)
         FROM (
-          SELECT id, ordinal, label, plane, worker_id
+          SELECT id, ordinal, label, plane, split_mode
           FROM kosztorys_stages WHERE investment_id = ${investmentId}
         ) st
       ) AS stages,
+      -- Flat beside the etapy rather than nested in them, so each subselect stays one plain SELECT
+      -- the SQL-drift spec can read.
+      (
+        SELECT coalesce(json_agg(m ORDER BY m.stage_id, m.id), '[]'::json)
+        FROM (
+          SELECT ksw.id, ksw.stage_id, ksw.worker_id, ksw.value, ksw.takes_rest
+          FROM kosztorys_stage_workers ksw
+          JOIN kosztorys_stages ks ON ks.id = ksw.stage_id
+          WHERE ks.investment_id = ${investmentId}
+        ) m
+      ) AS stage_members,
       -- stage_progress carries no investment column, so it reaches the investment through its item.
       (
         SELECT coalesce(json_agg(p ORDER BY p.item_id, p.stage_id), '[]'::json)
@@ -100,10 +113,16 @@ export async function selectKosztorysTreeData(
   const row = res.rows[0]
   if (!row) return null
 
+  const membersByStage = Map.groupBy(row.stage_members as RowT[], (member) =>
+    Number(member.stage_id),
+  )
+
   return {
     sections: (row.sections as RowT[]).map(mapSection),
     items: (row.items as RowT[]).map(mapItem),
-    stages: (row.stages as RowT[]).map(mapStage),
+    stages: (row.stages as RowT[]).map((stage) =>
+      mapStage(stage, membersByStage.get(Number(stage.id)) ?? []),
+    ),
     progress: (row.progress as RowT[]).map(mapProgress),
     investment: {
       wToolsCoeff: numOrNull(row.w_tools_coeff),
@@ -153,13 +172,26 @@ const mapItem = (row: RowT): KosztorysItemT & { sectionId: number } => ({
   note: str(row.note),
 })
 
-const mapStage = (row: RowT): KosztorysStageT => ({
+const mapStage = (row: RowT, members: RowT[]): KosztorysStageT => ({
   id: Number(row.id),
   ordinal: num(row.ordinal),
   label: str(row.label),
   plane: str(row.plane) as ToolPlaneT | null,
-  workerId: numOrNull(row.worker_id),
+  split: mapStageSplit(row.split_mode, members),
 })
+
+// Shared by every raw read of an etap's members, so the tree, the pairs path and the worker view
+// agree on what a stored split means.
+export function mapStageSplit(mode: unknown, members: RowT[]): StageSplitT | null {
+  return normalizeStageSplit({
+    mode: mode === 'amount' ? 'amount' : 'percent',
+    members: members.map((member) => ({
+      workerId: Number(member.worker_id),
+      value: num(member.value),
+      takesRest: member.takes_rest === true,
+    })),
+  })
+}
 
 const mapProgress = (row: RowT): StageProgressT => ({
   itemId: Number(row.item_id),

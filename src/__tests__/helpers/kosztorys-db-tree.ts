@@ -1,5 +1,9 @@
 import type { Payload } from 'payload'
 import type { KosztorysItem, KosztorysSection, KosztorysStage } from '@/payload-types'
+import { getDb } from '@/lib/db/get-db'
+import { insertStageMembers } from '@/lib/db/stage-split'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-worker-split'
+import type { StageSplitT } from '@/lib/kosztorys/types'
 
 // One declarative literal per tree, so a DB-gated spec states its fixture instead of assembling it —
 // hand-built payload.create runs cost ~60 lines before a spec asserted anything and let each spec's
@@ -22,8 +26,10 @@ type ItemSpecT = Partial<
   Omit<KosztorysItem, 'id' | 'investment' | 'section' | 'createdAt' | 'updatedAt'>
 >
 
+// `worker` is shorthand for the one-person split most specs want; `split` states any other.
 type StageSpecT = Partial<Omit<KosztorysStage, 'id' | 'investment' | 'createdAt' | 'updatedAt'>> & {
   worker?: number | null
+  split?: StageSplitT | null
 }
 
 // Items and stages are addressed by position — `item` indexes the FLATTENED item list (declaration
@@ -102,6 +108,7 @@ export async function createKosztorysTree(
   }
 
   for (const [stageIndex, stage] of (spec.stages ?? []).entries()) {
+    const split = stage.split ?? (stage.worker != null ? oneWorkerSplit(stage.worker) : null)
     const created = await payload.create({
       collection: 'kosztorys-stages',
       data: {
@@ -111,11 +118,12 @@ export async function createKosztorysTree(
         ordinal: stage.ordinal ?? stageIndex + 1,
         label: stage.label ?? null,
         plane: stage.plane ?? null,
-        worker: stage.worker ?? null,
+        splitMode: split?.mode ?? 'percent',
       },
       ...FIXTURE_CONTEXT,
     })
     stageIds.push(Number(created.id))
+    if (split) await insertStageMembers(await getDb(payload), [{ stageId: Number(created.id), split }])
   }
 
   for (const entry of spec.progress ?? []) {

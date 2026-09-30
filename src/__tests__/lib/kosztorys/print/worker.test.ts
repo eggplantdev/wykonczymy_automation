@@ -10,6 +10,7 @@ import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-worker-split'
 
 const WORKER = 5
 const CLIENT_PRICES = [37, 23]
@@ -19,8 +20,8 @@ const RATE = 12.5
 // The projection as the server hands it over: the worker's two etapy only. Another crew's etap on item 1
 // (qty 3) survives solely in `executedQtyByItem`, which is what „Pozostało" reads.
 const stages: KosztorysStageT[] = [
-  { id: 100, ordinal: 1, label: 'Tynki', plane: 'w_tools', workerId: WORKER },
-  { id: 102, ordinal: 3, label: null, plane: 'w_tools', workerId: WORKER },
+  { id: 100, ordinal: 1, label: 'Tynki', plane: 'w_tools', split: oneWorkerSplit(WORKER) },
+  { id: 102, ordinal: 3, label: null, plane: 'w_tools', split: oneWorkerSplit(WORKER) },
 ]
 const rates = { wToolsOverrideValue: RATE, ownToolsOverrideValue: OWN_RATE }
 const treeWith = (progress: { itemId: number; stageId: number; qtyDone: number }[]) =>

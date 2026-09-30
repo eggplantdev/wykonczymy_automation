@@ -1,13 +1,19 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { addStageAction, removeStageAction, updateStageAction } from '@/lib/actions/kosztorys'
+import {
+  addStageAction,
+  removeStageAction,
+  updateStageAction,
+  updateStageSplitAction,
+} from '@/lib/actions/kosztorys'
 import { settleAction } from '@/lib/utils/settle-action'
 import { stageKey, stageValueGrossKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import type {
   KosztorysStageT,
   KosztorysV2RowT,
   StagePatchT,
+  StageSplitT,
   ToolPlaneT,
 } from '@/lib/kosztorys/types'
 import type { ActionErrorCodeT, ActionResultT } from '@/types/action'
@@ -25,7 +31,7 @@ type ArgsT = {
   reportFailure: (error: string, code?: ActionErrorCodeT) => void
 }
 
-// The etap columns themselves: add/remove one, and the three header edits (label, plane, worker).
+// The etap columns themselves: add/remove one, and the three header edits (label, plane, split).
 // Touches the rows only through `patchRows` and never the undo stack — a stage column is structure,
 // not a cell edit.
 export function useKosztorysStageOps({
@@ -47,11 +53,11 @@ export function useKosztorysStageOps({
 
   // A new stage adds a `stage_<id>: 0` key to every current row + snapshot (like patchRows for
   // coeffs), so the column renders 0s (not blanks) and the first progress entry diffs correctly.
-  async function handleAddStage(plane: ToolPlaneT, workerId: number | null) {
-    const res = await settleAction(() => addStageAction(investmentId, plane, workerId))
+  async function handleAddStage(plane: ToolPlaneT, split: StageSplitT | null) {
+    const res = await settleAction(() => addStageAction(investmentId, plane, split))
     if (!res.success) return reportFailure(res.error, res.code)
     const { id, ordinal } = res.data
-    setStages((s) => [...s, { id, ordinal, label: null, plane, workerId }])
+    setStages((s) => [...s, { id, ordinal, label: null, plane, split }])
     patchRows(
       () => true,
       (r) => ({ ...r, [stageKey(id)]: 0 }),
@@ -116,10 +122,21 @@ export function useKosztorysStageOps({
     patchStageField(stageId, 'plane', plane, 'stage-plane')
   }
 
-  // `null` is a legal target here („Bez przypisania"), unlike plane. No undo push — matching plane,
-  // and reassigning back is the exact inverse.
-  function handleSetStageWorker(stageId: number, workerId: number | null) {
-    patchStageField(stageId, 'workerId', workerId, 'stage-worker')
+  // The whole split in one write, never field by field (see updateStageSplitAction). No no-op guard:
+  // the dialog only saves on „Zapisz". `null` is „Bez przypisania". No undo push, matching plane.
+  function handleSetStageSplit(stageId: number, split: StageSplitT | null) {
+    const prev = stagesRef.current.find((st) => st.id === stageId)?.split ?? null
+    const withSplit = (next: StageSplitT | null) => (st: KosztorysStageT) =>
+      st.id === stageId ? { ...st, split: next } : st
+    setStages((s) => s.map(withSplit(split)))
+    save(
+      `stage-split:${stageId}`,
+      () => updateStageSplitAction(stageId, split),
+      () =>
+        setStages((s) =>
+          s.map((st) => (st.id === stageId && st.split === split ? { ...st, split: prev } : st)),
+        ),
+    )
   }
 
   return {
@@ -128,6 +145,6 @@ export function useKosztorysStageOps({
     handleRemoveStage,
     handleRenameStage,
     handleSetStagePlane,
-    handleSetStageWorker,
+    handleSetStageSplit,
   }
 }

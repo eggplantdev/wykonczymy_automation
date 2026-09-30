@@ -2,7 +2,13 @@ import 'server-only'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { sqlList } from '@/lib/db/sql-list'
 import type { DbExecutorT } from '@/lib/db/get-db'
-import { itemWithColumnDefaults, type StoredSnapshotPayloadT } from './snapshot-format'
+import { insertStageMembers } from '@/lib/db/stage-split'
+import { normalizeStageSplit } from './stage-worker-split'
+import {
+  itemWithColumnDefaults,
+  storedStageSplit,
+  type StoredSnapshotPayloadT,
+} from './snapshot-format'
 import { insertItems, insertSections, remapNewIds } from './insert-rows'
 
 export const STAGE_INSERT_COLUMNS = [
@@ -10,24 +16,24 @@ export const STAGE_INSERT_COLUMNS = [
   'ordinal',
   'label',
   'plane',
-  'worker_id',
+  'split_mode',
 ] as const
 export const PROGRESS_INSERT_COLUMNS = ['item_id', 'stage_id', 'qty_done'] as const
 
 export type InsertKosztorysTreeResultT = {
-  // Etapy whose recorded assignee no longer exists, restored unassigned. Per ETAP, not per person —
-  // it is the number of rows whose attribution moved to the residual bucket, which is what the
-  // owner is being warned about.
+  // Etap memberships whose person no longer exists, dropped on restore — one per (etap, person). Their
+  // share moves to the rest of the etap, or to the residual bucket when nobody is left.
   droppedWorkerAssignments: number
 }
 
-// A snapshot outlives the people it names, and `worker_id` is the one column here pointing at a row
-// this module doesn't own. `ON DELETE SET NULL` covers the LIVE etap when someone is deleted; it does
-// nothing for a restore re-INSERTing the recorded id afterwards, which meets the FK head-on and takes
-// the WHOLE restore down with it (EX-641). Since the person can never come back, blocking would make
-// that snapshot permanently unrestorable — so a dangling assignee is dropped and the etap restored
-// unassigned, the same tolerance this module already applies to a dangling parent. Unassigned is a
-// legitimate resting state (the summary has a residual row for it), not a corrupted one.
+// A snapshot outlives the people it names, and an etap member is the one row here pointing at a row
+// this module doesn't own. The live FK cascades when someone is deleted; it does nothing for a
+// restore re-INSERTing the recorded id afterwards, which meets the FK head-on and takes the WHOLE
+// restore down with it (EX-641). Since the person can never come back, blocking would make that
+// snapshot permanently unrestorable — so a dangling member is dropped and the split normalised (the
+// next member takes the rest; nobody left = unassigned), the same tolerance this module already
+// applies to a dangling parent. Unassigned is a legitimate resting state (the summary has a residual
+// row for it), not a corrupted one.
 async function liveWorkerIds(db: DbExecutorT, ids: number[]): Promise<Set<number>> {
   if (ids.length === 0) return new Set()
   // FOR SHARE, not a bare SELECT: under READ COMMITTED a plain read takes no lock, so a user
@@ -77,19 +83,22 @@ export async function insertKosztorysTree(
 
   const stages = tree.stages ?? []
   const stageIdMap = new Map<number, number>()
+  const recordedSplits = stages.map(storedStageSplit)
   const live = await liveWorkerIds(db, [
-    ...new Set(stages.map((s) => s.workerId).filter((id) => id != null)),
+    ...new Set(recordedSplits.flatMap((split) => split?.members.map((m) => m.workerId) ?? [])),
   ])
-  const assigneeOf = (s: (typeof stages)[number]) =>
-    s.workerId != null && live.has(s.workerId) ? s.workerId : null
-  const droppedWorkerAssignments = stages.filter(
-    (s) => s.workerId != null && !live.has(s.workerId),
-  ).length
+  let droppedWorkerAssignments = 0
+  const splits = recordedSplits.map((split) => {
+    if (!split) return null
+    const members = split.members.filter((member) => live.has(member.workerId))
+    droppedWorkerAssignments += split.members.length - members.length
+    return normalizeStageSplit({ mode: split.mode, members })
+  })
 
   if (stages.length > 0) {
     const rows = stages.map(
-      (s) =>
-        sql`(${investmentId}, ${s.ordinal}, ${s.label ?? null}, ${s.plane ?? null}, ${assigneeOf(s)})`,
+      (s, i) =>
+        sql`(${investmentId}, ${s.ordinal}, ${s.label ?? null}, ${s.plane ?? null}, ${splits[i]?.mode ?? 'percent'})`,
     )
     const res = await db.execute(sql`
       INSERT INTO kosztorys_stages (${sql.raw(STAGE_INSERT_COLUMNS.join(', '))})
@@ -105,6 +114,13 @@ export async function insertKosztorysTree(
       'kosztorys_stages',
     )
     stages.forEach((s, i) => stageIdMap.set(s.id, stageIds[i]))
+    await insertStageMembers(
+      db,
+      stageIds.flatMap((stageId, i) => {
+        const split = splits[i]
+        return split ? [{ stageId, split }] : []
+      }),
+    )
   }
 
   // Skip a progress row whose item or stage is absent (dangling FK).
