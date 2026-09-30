@@ -248,3 +248,26 @@ test('„Wczytaj szablon…" zastępuje całą rozpiskę bez przeładowania, zer
   const restoredStage = await rowCell(page, 'Praca do zastąpienia', 'Etap 1')
   await expect(restoredStage.locator('input')).toHaveValue('2')
 })
+
+// EX-909 — the library's expiry used to run after the response, so the create POST rendered nothing
+// and the router kept the `/szablony` payload it had cached before the click. The server cache was
+// fresh; a Back restored the stale list anyway. A reload would hide exactly that, so there is none.
+test('„Nowy szablon" → Wstecz: lista pokazuje nowy szablon bez przeładowania', async ({ page }) => {
+  const name = `E2E Nowy szablon ${Date.now()}`
+
+  await page.goto('/szablony')
+  const create = page.getByRole('button', { name: 'Nowy szablon' })
+  await waitForHydration(create)
+  await create.click()
+
+  const dialog = page.getByRole('dialog').filter({ hasText: 'Nowy szablon' })
+  await dialog.getByLabel('Nazwa szablonu').fill(name)
+  await dialog.getByRole('button', { name: 'Załóż', exact: true }).click()
+
+  await page.waitForURL(/\/szablony\/\d+/)
+  await expect(page.getByRole('link', { name, exact: true })).toBeVisible({ timeout: 20_000 })
+
+  await page.goBack()
+  await page.waitForURL(/\/szablony$/)
+  await expect(page.getByText(name, { exact: true })).toBeVisible()
+})

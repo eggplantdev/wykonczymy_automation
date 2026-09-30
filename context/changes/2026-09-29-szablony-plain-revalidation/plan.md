@@ -355,12 +355,12 @@ Run **once**, after the final phase:
 
 #### Automated
 
-- [x] 2.1 No `getTemplateView` / `getPresetNameForCrumb` left in `src`
-- [x] 2.2 `presets.test.ts` passes
+- [x] 2.1 No `getTemplateView` / `getPresetNameForCrumb` left in `src` — 879fd90b
+- [x] 2.2 `presets.test.ts` passes — 879fd90b
 
 ### Phase 3: Regression guard and after-run
 
 #### Automated
 
-- [ ] 3.1 E2E test authored in `e2e/kosztorys-presets.spec.ts` (run on the user's go)
+- [x] 3.1 E2E test authored in `e2e/kosztorys-presets.spec.ts` (run on the user's go)
 - [ ] 3.2 `baseline.md` `# After` section with a verdict for flows 1, 2, 3, 5, 6
