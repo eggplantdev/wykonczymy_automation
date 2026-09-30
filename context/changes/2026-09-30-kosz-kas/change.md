@@ -1,7 +1,7 @@
 ---
 change_id: kosz-kas
 title: Trash for an unused kasa — trash, restore, delete forever, a /kosz section
-status: implementing
+status: implemented
 created: 2026-09-30
 updated: 2026-09-30
 archived_at: null

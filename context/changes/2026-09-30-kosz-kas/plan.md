@@ -634,5 +634,5 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 4.1 Trash DOM specs pass (kasa section, plain confirm, typed name kept for investments)
-- [x] 4.2 Trash-rows query spec passes
+- [x] 4.1 Trash DOM specs pass (kasa section, plain confirm, typed name kept for investments) — 57b1118b
+- [x] 4.2 Trash-rows query spec passes — 57b1118b

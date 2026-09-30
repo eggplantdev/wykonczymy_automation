@@ -2750,3 +2750,24 @@ Stan: dowolny rekord do edycji; „nieudany zapis" = DevTools → Network → Of
       „Nieprzypisane" z 0,00 zł.
 - [ ] Dialog „Pracownicy etapu…": wartość z trzema miejscami po przecinku (np. 33,335%) nie daje się
       zapisać; 33,33% się zapisuje i po odświeżeniu strony zostaje 33,33%.
+
+## EX-917 — kosz-kas
+
+- [ ] Jako MANAGER, `/kasy` → „Usuń kasę" przy nieużywanej kasie pomocniczej → „Przenieść do kosza?"
+      → potwierdź: kasa znika z `/kasy`, z kafelków na pulpicie, z wyboru kasy w wydatku, wpłacie i
+      transferze wewnętrznym oraz z filtrów listy transakcji.
+- [ ] „Usuń kasę" przy kasie z nieanulowanymi transakcjami: odmowa w toaście z liczbą transakcji,
+      kasa zostaje na liście.
+- [ ] Kasa, na której są tylko anulowane transakcje, po przeniesieniu do kosza: lista transakcji
+      nadal pokazuje jej nazwę (bez linku), a `/kasa/<id>` daje 404.
+- [ ] Formularz wydatku otwarty przed przeniesieniem kasy do kosza, zapisany z tą kasą: zapis
+      odrzucony z komunikatem „Kasa jest w koszu…".
+- [ ] Użytkownik, którego domyślną kasą była kasa z kosza, otwiera nowy wydatek: pole kasy jest
+      puste, nic nie jest wybrane w tle.
+- [ ] `/kosz` → sekcja „Kasy" → „Przywróć": kasa wraca na `/kasy`, pulpit i do wyborów; domyślna kasa
+      użytkownika pozostaje pusta.
+- [ ] `/kosz` → „Kasy" → „Usuń na zawsze": zwykłe potwierdzenie bez wpisywania nazwy, kasa znika
+      z kosza na dobre.
+- [ ] Edycja kasy z transakcjami: pole „Właściciel" jest nieaktywne z podpowiedzią; w kasie bez
+      transakcji właściciela da się zmienić.
+- [ ] Jako MANAGER: kasa główna w koszu nie pojawia się w `/kosz` (jako OWNER — pojawia się).
