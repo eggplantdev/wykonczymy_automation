@@ -1,9 +1,9 @@
 import { sql } from '@payloadcms/db-vercel-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import { sqlList } from '@/lib/db/sql-list'
-import { CASH_REGISTER_TRASHED_MESSAGE } from '@/lib/constants/trash'
+import { CASH_REGISTER_TRASHED_MESSAGE } from '@/lib/constants/cash-register-lock'
 
-/** The refusal when any of these kasy sits in the trash. A missing id is not trashed. */
+/** A missing id is not trashed. */
 export async function trashedRegisterMessage(
   db: DbExecutorT,
   ids: readonly number[],

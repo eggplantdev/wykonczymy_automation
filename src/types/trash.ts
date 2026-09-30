@@ -9,6 +9,9 @@ export type TrashRowT = {
   daysLeft: number
   /** False for an investment whose kosztorys was used — only a manual delete removes it. */
   autoPurges: boolean
-  /** The delete-forever dialog asks for the typed name before it lets the delete through. */
   mustTypeName: boolean
 }
+
+export type DeleteForeverResultT =
+  | { ok: true }
+  | { ok: false; reason: 'not-trashed' | 'blocked' | 'error'; message: string }

@@ -1,6 +1,6 @@
 import 'server-only'
 import { APIError, type Payload, type PayloadRequest } from 'payload'
-import type { DeleteForeverResultT } from '@/lib/investments/delete-investment-forever'
+import type { DeleteForeverResultT } from '@/types/trash'
 import { logError } from '@/lib/utils/log-error'
 
 export const CASH_REGISTER_NOT_TRASHED_MESSAGE = 'Najpierw przenieś kasę do kosza.'

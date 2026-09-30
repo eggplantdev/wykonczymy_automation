@@ -3,7 +3,7 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
-import { CASH_REGISTER_TRASHED_MESSAGE } from '@/lib/constants/trash'
+import { CASH_REGISTER_TRASHED_MESSAGE } from '@/lib/constants/cash-register-lock'
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 

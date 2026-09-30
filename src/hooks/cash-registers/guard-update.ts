@@ -4,7 +4,7 @@ import { cashRegisterDeleteBlocker } from '@/lib/cash-registers/delete-blocker'
 import {
   CASH_REGISTER_OWNER_LOCKED_MESSAGE,
   CASH_REGISTER_TRASHED_MESSAGE,
-} from '@/lib/constants/trash'
+} from '@/lib/constants/cash-register-lock'
 import { resolveId } from '@/lib/utils/resolve-id'
 
 /**

@@ -1,12 +1,9 @@
 import 'server-only'
 import { APIError, type Payload } from 'payload'
 import { logError } from '@/lib/utils/log-error'
+import type { DeleteForeverResultT } from '@/types/trash'
 
 export const NOT_TRASHED_MESSAGE = 'Najpierw przenieś inwestycję do kosza.'
-
-export type DeleteForeverResultT =
-  | { ok: true }
-  | { ok: false; reason: 'not-trashed' | 'blocked' | 'error'; message: string }
 
 /**
  * Through `payload.delete`, never raw SQL: `beforeDelete` re-counts live transactions inside the

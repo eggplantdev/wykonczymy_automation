@@ -1,13 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import { validateTransfer } from '@/hooks/transfers/validate'
-import { CASH_REGISTER_TRASHED_MESSAGE } from '@/lib/constants/trash'
+import { CASH_REGISTER_TRASHED_MESSAGE } from '@/lib/constants/cash-register-lock'
 
-// The pickers only HIDE a trashed kasa; a form left open from before the trash, or a default still
-// held in its state, would book into it anyway. This hook is the gate that refuses — and it must do
-// so without freezing the cancelled rows that are the only ones still pointing at a trashed kasa.
-//
-// The adapter double answers the kasa query by id (TRASHED_ID is in the trash, every other kasa is
-// live) and every investment query with „aktywna".
+// A form left open from before the trash would still book into the kasa; this hook refuses it —
+// without freezing the cancelled rows that are the only ones still pointing at a trashed kasa.
 const TRASHED_ID = 66
 const LIVE_ID = 1
 
