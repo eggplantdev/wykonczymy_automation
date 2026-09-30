@@ -467,13 +467,13 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 2.1 save-lanes, optimistic-setting-save and use-debounced-save specs pass
+- [x] 2.1 save-lanes, optimistic-setting-save and use-debounced-save specs pass — 621b62f4
 
 ### Phase 3: Editor structural operations
 
 #### Automated
 
-- [ ] 3.1 use-kosztorys-editor-request-failed and use-kosztorys-itemless-sections specs pass
+- [x] 3.1 use-kosztorys-editor-request-failed and use-kosztorys-itemless-sections specs pass
 
 ### Phase 4: Tree-replacing dialogs and the versions drawer
 
