@@ -1,7 +1,4 @@
-import { DEFAULT_ITEM_DESCRIPTION, DEFAULT_UNIT } from '@/lib/kosztorys/constants'
-import { stageKey } from '@/lib/kosztorys/stage-keys'
-import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
-import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
+import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { groupInOrder, regroupByKeys } from '@/lib/utils/group-in-order'
 
 // Revert a row field to its pre-edit value (revert-on-error autosave), but ONLY
@@ -18,50 +15,6 @@ export function revertField(
     if (r.id !== id || r[field] !== attempted) return r
     return { ...r, [field]: prevValue } as KosztorysV2RowT
   })
-}
-
-export type BlankRowInputT = {
-  id: number
-  displayOrder: number
-  sectionId: number
-  sectionName: string
-  sectionColor: SectionColorKeyT | null
-  vatRate: number
-  globalDiscountActive: boolean
-  globalWToolsCoeff: number
-  globalOwnToolsCoeff: number
-  stages: KosztorysStageT[]
-}
-
-// Blank item row = createBlankItem's server defaults + denormalized section fields
-// + stage_*=0. Built optimistically from the known id/displayOrder returned by the action.
-export function buildBlankRow(input: BlankRowInputT): KosztorysV2RowT {
-  const stageFields: Record<string, number> = {}
-  for (const st of input.stages) stageFields[stageKey(st.id)] = 0
-  return {
-    id: input.id,
-    sectionId: input.sectionId,
-    displayOrder: input.displayOrder,
-    description: DEFAULT_ITEM_DESCRIPTION,
-    unit: DEFAULT_UNIT,
-    plannedQty: 0,
-    sheetMeasuredQty: null,
-    discountType: null,
-    discountValue: 0,
-    clientPrice: 0,
-    wToolsOverrideValue: null,
-    ownToolsOverrideValue: null,
-    wToolsOverrideCoeff: null,
-    ownToolsOverrideCoeff: null,
-    note: null,
-    sectionName: input.sectionName,
-    sectionColor: input.sectionColor,
-    vatRate: input.vatRate,
-    globalDiscountActive: input.globalDiscountActive,
-    globalWToolsCoeff: input.globalWToolsCoeff,
-    globalOwnToolsCoeff: input.globalOwnToolsCoeff,
-    ...stageFields,
-  } as KosztorysV2RowT
 }
 
 // Lands after the LAST row of its own section, not at the end of the array: the grid groups rows into

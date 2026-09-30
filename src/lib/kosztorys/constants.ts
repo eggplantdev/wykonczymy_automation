@@ -38,10 +38,6 @@ export const DEFAULT_VAT = 0.08
 export const UNIT_SUGGESTIONS = ['m²', 'szt', 'mb', 'kpl', 'pkt'] as const
 export const DEFAULT_UNIT = 'szt'
 
-// Placeholder description pre-filled on every new position so a fresh row reads as an item to rename
-// rather than a blank line. Persisted server-side by createBlankItem and mirrored optimistically.
-export const DEFAULT_ITEM_DESCRIPTION = 'Nowa praca'
-
 // Placeholder name pre-filled on every new section — the single source. createSection writes it
 // server-side; the optimistic section meta mirrors it client-side.
 export const DEFAULT_SECTION_NAME = 'Nowa sekcja'

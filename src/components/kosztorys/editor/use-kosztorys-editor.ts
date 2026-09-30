@@ -44,13 +44,11 @@ import {
   applyRemoveItem,
   applyRestoreItem,
   applyKosztorysOrder,
-  buildBlankRow,
   catalogueSlicePlacement,
   groupBySection,
   revertField,
   sectionNeighbor,
   swapItemInSection,
-  type BlankRowInputT,
 } from '@/lib/kosztorys/row-ops'
 import { columnTotalsForRows } from '@/lib/kosztorys/columns/column-totals'
 import { sectionSubtotalsForView, stageAxisForView } from '@/lib/kosztorys/settlement-aggregates'
@@ -98,9 +96,7 @@ import { stageKey } from '@/lib/kosztorys/stage-keys'
 import { sectionFooterRowId, sectionHeaderRowId } from '@/lib/kosztorys/synthetic-rows'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 import {
-  addItemAction,
   addSectionAction,
-  insertItemAction,
   insertSectionAction,
   removeItemAction,
   removeSectionAction,
@@ -115,9 +111,11 @@ import { applyCatalogueToKosztorysAction } from '@/lib/actions/catalogue-to-kosz
 import { buildCatalogueComparison } from '@/lib/kosztorys/work-catalogue/build-catalogue-comparison'
 import type {
   ItemPatchT,
+  KosztorysItemT,
   KosztorysStageT,
   KosztorysTreeT,
   KosztorysV2RowT,
+  NewItemPlacementT,
   SectionMetaT,
 } from '@/lib/kosztorys/types'
 import type { SeedConflictFieldT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
@@ -270,6 +268,8 @@ export function useKosztorysEditor({
   const sectionsRef = useRef(sections)
   // eslint-disable-next-line react-hooks/refs
   sectionsRef.current = sections
+  // Filled by `NewItemHost`. A ref, not state: opening the dialog must not re-render the grid (EX-496).
+  const newItemDialogRef = useRef<((placement: NewItemPlacementT) => void) | null>(null)
 
   const {
     stages,
@@ -807,23 +807,6 @@ export function useKosztorysEditor({
     void persistItemSwap(itemId, dir)
   }
 
-  // The tree-level half (VAT, coefficients, stage axis) is identical at every insert point, so the three
-  // callers spell out only what differs: which row, in which section.
-  type BlankRowIdentityT = Pick<
-    BlankRowInputT,
-    'id' | 'displayOrder' | 'sectionId' | 'sectionName' | 'sectionColor'
-  >
-  function makeBlankRow(identity: BlankRowIdentityT) {
-    return buildBlankRow({
-      ...identity,
-      vatRate: tree.vatRate,
-      globalDiscountActive,
-      globalWToolsCoeff: tree.globalCoeffs.wTools,
-      globalOwnToolsCoeff: tree.globalCoeffs.ownTools,
-      stages,
-    })
-  }
-
   // Latest-value write alongside the state, so a second section gesture before the next render reads
   // the list the first one produced.
   function commitSections(next: SectionMetaT[]) {
@@ -835,45 +818,44 @@ export function useKosztorysEditor({
     return sectionsRef.current.find((section) => section.sectionId === sectionId)
   }
 
-  async function handleAddItem(sectionId: number) {
-    const res = await addItemAction(sectionId)
-    if (!res.success) return reportFailure(res.error, res.code)
-    const meta = sectionMeta(sectionId)
-    const row = makeBlankRow({
-      id: res.data.id,
-      displayOrder: res.data.displayOrder,
-      sectionId,
-      sectionName: meta?.sectionName ?? DEFAULT_SECTION_NAME,
-      sectionColor: meta?.sectionColor ?? null,
-    })
-    prevById.current.set(row.id, row)
-    // A section's first pozycja has no row to follow, so applyAddItem appends it past every other
-    // block; the re-lay puts it back under its own band. Asked of the updater's rows, not rowsRef:
-    // a delete of the section's last pozycja can land while addItemAction is in flight.
-    const order = sectionsRef.current
-    setRows((rs) => {
-      const next = applyAddItem(rs, row)
-      return rs.some((r) => r.sectionId === sectionId) ? next : orderRowsBySections(next, order)
-    })
-    unfoldSection(sectionId)
+  // „Nowa praca" is a form (EX-951), so both entry points only choose where the praca goes; the host
+  // owns the dialog and hands the saved praca back through `placeNewItem`.
+  function handleAddItem(sectionId: number) {
+    newItemDialogRef.current?.({ kind: 'end', sectionId })
   }
 
-  // Inserts a blank row at the anchor's display slot ±1 within its section. „Above/below" means nothing
-  // against a price-sorted view, so it no-ops while a column sort is active.
-  async function handleInsertItem(anchorRow: KosztorysV2RowT, dir: 'above' | 'below') {
+  // „Above/below" means nothing against a price-sorted view, so it no-ops while a column sort is active.
+  function handleInsertItem(anchorRow: KosztorysV2RowT, dir: 'above' | 'below') {
     if (!orderCommandsEnabled(sort)) return
-    const res = await insertItemAction(anchorRow.id, dir)
-    if (!res.success) return reportFailure(res.error, res.code)
-    const sample = sectionMeta(anchorRow.sectionId) ?? anchorRow
-    const row = makeBlankRow({
-      id: res.data.id,
-      displayOrder: res.data.displayOrder,
-      sectionId: anchorRow.sectionId,
-      sectionName: sample.sectionName,
-      sectionColor: sample.sectionColor,
-    })
-    prevById.current.set(row.id, row)
-    setRows((rs) => applyInsertItem(rs, anchorRow.id, row, dir))
+    newItemDialogRef.current?.({ kind: 'next-to', anchorItemId: anchorRow.id, dir })
+  }
+
+  function placeNewItem(item: KosztorysItemT, placement: NewItemPlacementT) {
+    const meta = sectionMeta(item.sectionId)
+    const [row] = rowsFromSections([
+      {
+        id: item.sectionId,
+        name: meta?.sectionName ?? DEFAULT_SECTION_NAME,
+        displayOrder: 0,
+        color: meta?.sectionColor ?? null,
+        items: [item],
+      },
+    ])
+    if (placement.kind === 'next-to') {
+      setRows((rs) => applyInsertItem(rs, placement.anchorItemId, row, placement.dir))
+    } else {
+      // A section's first pozycja has no row to follow, so applyAddItem appends it past every other
+      // block; the re-lay puts it back under its own band. Asked of the updater's rows, not rowsRef:
+      // a delete of the section's last pozycja can land while the dialog is open.
+      const order = sectionsRef.current
+      setRows((rs) => {
+        const next = applyAddItem(rs, row)
+        return rs.some((r) => r.sectionId === item.sectionId)
+          ? next
+          : orderRowsBySections(next, order)
+      })
+    }
+    unfoldSection(item.sectionId)
   }
 
   async function handleRemoveItem(row: KosztorysV2RowT) {
@@ -1441,6 +1423,8 @@ export function useKosztorysEditor({
     readOnly,
     onChange,
     handleAddItem,
+    placeNewItem,
+    newItemDialogRef,
     handleAddSection,
     handleAppendedSections,
     handleAppendedCatalogueItems,

@@ -24,6 +24,7 @@ import {
   type OnTreeReplacedT,
 } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { CataloguePickerHost } from '@/components/kosztorys/editor/actions/catalogue-picker-host'
+import { NewItemHost } from '@/components/kosztorys/editor/actions/new-item-host'
 import { useRowHeightCacheReset } from '@/components/kosztorys/editor/hooks/use-row-height-cache-reset'
 import { useWrapColumnWidths } from '@/components/kosztorys/editor/hooks/use-wrap-column-widths'
 import { useUndoKeyboard } from '@/components/kosztorys/editor/hooks/use-undo-keyboard'
@@ -465,279 +466,283 @@ export function KosztorysEditorBody({
         {/* Mounted in the preview too: nothing there can open it, and a conditional wrapper would
             mean two copies of the whole body. */}
         <CataloguePickerHost>
-          {/* The client view mounts under the bare (share) layout, which has no TopNav — subtracting
+          <NewItemHost>
+            {/* The client view mounts under the bare (share) layout, which has no TopNav — subtracting
               its height there would leave a dead band, so the preview takes the whole viewport. */}
-          <div
-            className={cn(
-              'flex w-full flex-col',
-              pageScroll ? 'min-h-dvh' : 'overflow-hidden',
-              !pageScroll && (preview ? 'h-dvh' : 'h-below-top-nav'),
-            )}
-          >
-            {report ? (
-              report.header({
-                search,
-                onSearch: setSearch,
-                showAllRows,
-                onShowAllRows: setShowAllRows,
-              })
-            ) : preview ? (
-              <header className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b px-4 py-3 sm:px-5 sm:py-5">
-                <BrandLogo height={54} priority className="shrink-0 max-sm:h-11" />
-                {/* Its own row below `sm`, beside the logo from there up. Logo plus a `lg` button
+            <div
+              className={cn(
+                'flex w-full flex-col',
+                pageScroll ? 'min-h-dvh' : 'overflow-hidden',
+                !pageScroll && (preview ? 'h-dvh' : 'h-below-top-nav'),
+              )}
+            >
+              {report ? (
+                report.header({
+                  search,
+                  onSearch: setSearch,
+                  showAllRows,
+                  onShowAllRows: setShowAllRows,
+                })
+              ) : preview ? (
+                <header className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b px-4 py-3 sm:px-5 sm:py-5">
+                  <BrandLogo height={54} priority className="shrink-0 max-sm:h-11" />
+                  {/* Its own row below `sm`, beside the logo from there up. Logo plus a `lg` button
                     leave a phone no width for a name, and the name is what the client is here to
                     read — so it takes the second line rather than an ellipsis. */}
-                <div className="order-last w-full min-w-0 sm:order-none sm:w-auto sm:flex-1">
-                  <h1 className="truncate text-base font-medium">{investmentName}</h1>
-                  {/* Its own line: appended to a long investment name it was the part the ellipsis
+                  <div className="order-last w-full min-w-0 sm:order-none sm:w-auto sm:flex-1">
+                    <h1 className="truncate text-base font-medium">{investmentName}</h1>
+                    {/* Its own line: appended to a long investment name it was the part the ellipsis
                       cut, and on the worker's document the name is what makes it his. */}
-                  {worker && <p className="truncate text-sm font-medium">{worker.name}</p>}
-                </div>
-                <PreviewHeaderActions
-                  history={investorHistory}
-                  hasRows={subtotals.length > 0}
-                  emptyRowCount={clientEmptyRowIds.size}
-                  showAllRows={showAllRows}
-                  onShowAllRowsChange={setShowAllRows}
-                />
-              </header>
-            ) : (
-              <>
-                <KosztorysEditorToolbar
-                  workerReports={workerReports}
-                  protocolSource={
-                    investment && !isTemplate
-                      ? {
-                          investment,
-                          materials: {
-                            grossBase: panelData.materialsGrossBase,
-                            netBilled: panelData.materialsNetBilled,
-                          },
-                          depositTransactions,
-                          lossAmount: investmentLoss,
-                        }
-                      : undefined
-                  }
-                />
-                {/* Without this the editor just looks broken — cells refuse focus and nothing says why.
+                    {worker && <p className="truncate text-sm font-medium">{worker.name}</p>}
+                  </div>
+                  <PreviewHeaderActions
+                    history={investorHistory}
+                    hasRows={subtotals.length > 0}
+                    emptyRowCount={clientEmptyRowIds.size}
+                    showAllRows={showAllRows}
+                    onShowAllRowsChange={setShowAllRows}
+                  />
+                </header>
+              ) : (
+                <>
+                  <KosztorysEditorToolbar
+                    workerReports={workerReports}
+                    protocolSource={
+                      investment && !isTemplate
+                        ? {
+                            investment,
+                            materials: {
+                              grossBase: panelData.materialsGrossBase,
+                              netBilled: panelData.materialsNetBilled,
+                            },
+                            depositTransactions,
+                            lossAmount: investmentLoss,
+                          }
+                        : undefined
+                    }
+                  />
+                  {/* Without this the editor just looks broken — cells refuse focus and nothing says why.
                   Never under the preview: the client's document knows nothing of our statuses. */}
-                {locked && <KosztorysLockedBanner />}
-              </>
-            )}
-            {preview && <HistoryBanner version={pastVersion} />}
-            {/* We measure the container height (flex-1) and pass it to the grid — datasheet-grid
+                  {locked && <KosztorysLockedBanner />}
+                </>
+              )}
+              {preview && <HistoryBanner version={pastVersion} />}
+              {/* We measure the container height (flex-1) and pass it to the grid — datasheet-grid
             needs px for virtualization; without it, it renders all 1000 rows.
             The grid track `minmax(0,1fr)` gives a DEFINITE width (= viewport): the grid doesn't
             stretch the container to the sum of the columns, it scrolls them internally instead. */}
-            <div className={cn('relative flex min-h-0 flex-1', !pageScroll && 'overflow-hidden')}>
-              {/* min-w-0 lets the wrapper shrink below its content in a flex context;
+              <div className={cn('relative flex min-h-0 flex-1', !pageScroll && 'overflow-hidden')}>
+                {/* min-w-0 lets the wrapper shrink below its content in a flex context;
               grid-cols-1 still gives the grid a definite width (anti-flicker). */}
-              <div
-                ref={gridRef}
-                className={cn(
-                  'grid min-h-0 min-w-0 flex-1 grid-cols-1',
-                  !pageScroll && 'overflow-hidden',
-                )}
-              >
-                <DynamicDataSheetGrid
-                  ref={datasheetRef}
+                <div
+                  ref={gridRef}
                   className={cn(
-                    'kosztorys-grid',
-                    preview && 'kosztorys-grid-preview',
-                    report && 'kosztorys-grid-report',
-                    isReportCompact && 'kosztorys-grid-report-compact',
+                    'grid min-h-0 min-w-0 flex-1 grid-cols-1',
+                    !pageScroll && 'overflow-hidden',
                   )}
-                  style={reportMinWidth ? { minWidth: reportMinWidth } : undefined}
-                  value={gridRows}
-                  // Strip the appended spacer + „Razem" rows before the editor's diff sees them — display-only.
-                  onChange={(rows) => onChange(rows.filter((row) => !isSyntheticRow(row.id)))}
-                  columns={gridColumns}
-                  // A phone's compact report is Opis + „Zgłaszam” only; Lp would take width he needs.
-                  gutterColumn={isReportCompact && !isWide ? false : gutterColumn}
-                  height={gridHeight}
-                  rowHeight={({ rowData }) =>
-                    resolveRowHeight({
-                      isSectionBand: isSectionHeaderRow(rowData.id),
-                      // The client's heights come from the content, full stop — the owner's drags live
-                      // in the same localStorage origin, so reading them here would let the owner's
-                      // flattened editor rows clip the offer they open to check.
-                      override: preview ? undefined : rowHeights[String(rowData.id)],
-                      contentLines:
-                        sizeToContent && !isSyntheticRow(rowData.id)
-                          ? contentLinesFor(rowData)
-                          : undefined,
-                    })
-                  }
-                  // Tall enough that verbose column labels („Pozostało netto (względem przedmiaru)" etc.)
-                  // wrap onto two rows instead of truncating — and draggable from the same handle as a
-                  // row, since which labels wrap depends on how wide the owner made their columns.
-                  headerRowHeight={resolveHeaderRowHeight(
-                    preview ? undefined : rowHeights[HEADER_HEIGHT_KEY],
-                  )}
-                  lockRows
-                  rowKey={({ rowData }) => String(rowData.id)}
-                  rowClassName={({ rowData }) =>
-                    cn(
-                      sectionColorRail(rowData.sectionColor),
-                      isSectionHeaderRow(rowData.id) && 'kosztorys-section-header',
-                      isSectionFooterRow(rowData.id) && 'kosztorys-section-footer',
-                      clipCueClass(rowData),
-                      showAllRows && clientEmptyRowIds.has(rowData.id) && 'kosztorys-revealed-row',
-                      removedItemIds.has(rowData.id) && 'kosztorys-history-removed',
-                    )
-                  }
-                />
-                {report && <span hidden ref={setReportFooterAnchor} />}
-                {report && reportFooterHost && createPortal(report.footer, reportFooterHost)}
-              </div>
-              {isEmpty && (
-                <EmptyState
-                  className="pointer-events-none absolute inset-0"
-                  title={`${noun.Nominative} jest pusty`}
-                  // The client view renders no toolbar, so it has no „Dodaj" menu to point at.
-                  description={
-                    preview ? undefined : 'Dodaj sekcję lub etap z menu „Dodaj" powyżej.'
-                  }
                 >
-                  {/* Typing a rozpiska by hand is the rarer of the two starts — the sheet already holds
-                  it. Buried in „Opcje" it is the one moment nobody finds it. */}
-                  {!editor.readOnly && hasSheet && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="pointer-events-auto"
-                      onClick={openImport}
-                    >
-                      <SheetIcon />
-                      Pobierz z arkusza Google…
-                    </Button>
-                  )}
-                </EmptyState>
-              )}
-              {/* The sibling state: rows exist, the search matched none of them. Gated on the search term
-              rather than on `viewRows` alone so the „Wyczyść" advice can never be offered to someone
-              who never typed anything. Unreachable in the client view, which renders no search field. */}
-              {!isEmpty && viewRows.length === 0 && search.trim() !== '' && (
-                <EmptyState
-                  className="pointer-events-none absolute inset-0"
-                  title="Brak wyników"
-                  description={`Żadna pozycja nie pasuje do „${search.trim()}".`}
-                >
-                  {/* The overlay is click-through so the grid stays usable; the button opts back in. */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="pointer-events-auto"
-                    onClick={() => setSearch('')}
-                  >
-                    Wyczyść wyszukiwanie
-                  </Button>
-                </EmptyState>
-              )}
-              {/* A filter emptying itself is the goal state, not a dead end — nothing is left in the
-              state it was looking for, so say that rather than leave a blank grid. Search takes
-              precedence above: with both on, „nie pasuje do…" is the more specific explanation. */}
-              {/* Gated on the RECOGNISED conditions, not on the raw persisted set: an id left over from a
-              condition a later release removed is a no-op for the grid, and counting it here would
-              title the overlay „Brak pozycji " with nothing after it. */}
-              {!isEmpty &&
-                viewRows.length === 0 &&
-                search.trim() === '' &&
-                (emptyByFilter || engagedDiagnostics.length > 0) && (
+                  <DynamicDataSheetGrid
+                    ref={datasheetRef}
+                    className={cn(
+                      'kosztorys-grid',
+                      preview && 'kosztorys-grid-preview',
+                      report && 'kosztorys-grid-report',
+                      isReportCompact && 'kosztorys-grid-report-compact',
+                    )}
+                    style={reportMinWidth ? { minWidth: reportMinWidth } : undefined}
+                    value={gridRows}
+                    // Strip the appended spacer + „Razem" rows before the editor's diff sees them — display-only.
+                    onChange={(rows) => onChange(rows.filter((row) => !isSyntheticRow(row.id)))}
+                    columns={gridColumns}
+                    // A phone's compact report is Opis + „Zgłaszam” only; Lp would take width he needs.
+                    gutterColumn={isReportCompact && !isWide ? false : gutterColumn}
+                    height={gridHeight}
+                    rowHeight={({ rowData }) =>
+                      resolveRowHeight({
+                        isSectionBand: isSectionHeaderRow(rowData.id),
+                        // The client's heights come from the content, full stop — the owner's drags live
+                        // in the same localStorage origin, so reading them here would let the owner's
+                        // flattened editor rows clip the offer they open to check.
+                        override: preview ? undefined : rowHeights[String(rowData.id)],
+                        contentLines:
+                          sizeToContent && !isSyntheticRow(rowData.id)
+                            ? contentLinesFor(rowData)
+                            : undefined,
+                      })
+                    }
+                    // Tall enough that verbose column labels („Pozostało netto (względem przedmiaru)" etc.)
+                    // wrap onto two rows instead of truncating — and draggable from the same handle as a
+                    // row, since which labels wrap depends on how wide the owner made their columns.
+                    headerRowHeight={resolveHeaderRowHeight(
+                      preview ? undefined : rowHeights[HEADER_HEIGHT_KEY],
+                    )}
+                    lockRows
+                    rowKey={({ rowData }) => String(rowData.id)}
+                    rowClassName={({ rowData }) =>
+                      cn(
+                        sectionColorRail(rowData.sectionColor),
+                        isSectionHeaderRow(rowData.id) && 'kosztorys-section-header',
+                        isSectionFooterRow(rowData.id) && 'kosztorys-section-footer',
+                        clipCueClass(rowData),
+                        showAllRows &&
+                          clientEmptyRowIds.has(rowData.id) &&
+                          'kosztorys-revealed-row',
+                        removedItemIds.has(rowData.id) && 'kosztorys-history-removed',
+                      )
+                    }
+                  />
+                  {report && <span hidden ref={setReportFooterAnchor} />}
+                  {report && reportFooterHost && createPortal(report.footer, reportFooterHost)}
+                </div>
+                {isEmpty && (
                   <EmptyState
                     className="pointer-events-none absolute inset-0"
-                    title={emptyCopy.title}
-                    description={emptyCopy.description}
+                    title={`${noun.Nominative} jest pusty`}
+                    // The client view renders no toolbar, so it has no „Dodaj" menu to point at.
+                    description={
+                      preview ? undefined : 'Dodaj sekcję lub etap z menu „Dodaj" powyżej.'
+                    }
                   >
-                    {/* The client has no „Filtry" menu, so nothing there is theirs to reset. */}
-                    {!preview && (
+                    {/* Typing a rozpiska by hand is the rarer of the two starts — the sheet already holds
+                  it. Buried in „Opcje" it is the one moment nobody finds it. */}
+                    {!editor.readOnly && hasSheet && (
                       <Button
                         variant="outline"
                         size="sm"
                         className="pointer-events-auto"
-                        onClick={resetFilters}
+                        onClick={openImport}
                       >
-                        Zresetuj filtry
+                        <SheetIcon />
+                        Pobierz z arkusza Google…
                       </Button>
                     )}
                   </EmptyState>
                 )}
-              {/* An opaque overlay over the WHOLE grid area, not a flex track: open, the summary takes the
+                {/* The sibling state: rows exist, the search matched none of them. Gated on the search term
+              rather than on `viewRows` alone so the „Wyczyść" advice can never be offered to someone
+              who never typed anything. Unreachable in the client view, which renders no search field. */}
+                {!isEmpty && viewRows.length === 0 && search.trim() !== '' && (
+                  <EmptyState
+                    className="pointer-events-none absolute inset-0"
+                    title="Brak wyników"
+                    description={`Żadna pozycja nie pasuje do „${search.trim()}".`}
+                  >
+                    {/* The overlay is click-through so the grid stays usable; the button opts back in. */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="pointer-events-auto"
+                      onClick={() => setSearch('')}
+                    >
+                      Wyczyść wyszukiwanie
+                    </Button>
+                  </EmptyState>
+                )}
+                {/* A filter emptying itself is the goal state, not a dead end — nothing is left in the
+              state it was looking for, so say that rather than leave a blank grid. Search takes
+              precedence above: with both on, „nie pasuje do…" is the more specific explanation. */}
+                {/* Gated on the RECOGNISED conditions, not on the raw persisted set: an id left over from a
+              condition a later release removed is a no-op for the grid, and counting it here would
+              title the overlay „Brak pozycji " with nothing after it. */}
+                {!isEmpty &&
+                  viewRows.length === 0 &&
+                  search.trim() === '' &&
+                  (emptyByFilter || engagedDiagnostics.length > 0) && (
+                    <EmptyState
+                      className="pointer-events-none absolute inset-0"
+                      title={emptyCopy.title}
+                      description={emptyCopy.description}
+                    >
+                      {/* The client has no „Filtry" menu, so nothing there is theirs to reset. */}
+                      {!preview && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="pointer-events-auto"
+                          onClick={resetFilters}
+                        >
+                          Zresetuj filtry
+                        </Button>
+                      )}
+                    </EmptyState>
+                  )}
+                {/* An opaque overlay over the WHOLE grid area, not a flex track: open, the summary takes the
               editor's screen and the grid keeps its full height underneath rather than being squeezed
               into what is left. For the owner it mounts whatever the row count, because „Inwestycja"
               has something to say on an empty kosztorys. The client document keeps the row gate: it
               has no such tab, and its toggle is `disabled` there, so a panel left open would be a
               full-height sheet of zeros nobody could fold away. */}
-              {/* The worker's document swaps the whole panel for his own balance: every tab of the
+                {/* The worker's document swaps the whole panel for his own balance: every tab of the
               investor's reads the client's money, none of which is his to see. */}
-              {worker && !report && subtotals.length > 0 && (
-                <TotalsPanelOverlay hasRows>
-                  <SummaryScrollRegion className="px-4 py-4">
-                    <WorkerSummary summary={worker.summary} />
-                  </SummaryScrollRegion>
-                </TotalsPanelOverlay>
-              )}
-              {!worker && !pastVersion && (!preview || subtotals.length > 0) && (
-                <KosztorysTotalsPanel
-                  hasRows={subtotals.length > 0}
-                  {...panelData}
-                  investmentId={investmentId}
-                  investmentName={investmentName}
-                  investment={investment}
-                  assets={assets}
-                  depositTransactions={depositTransactions}
-                  stages={stages}
-                  stageTotals={stageTotals}
-                  workers={workers}
-                  subcontractorDue={subcontractorDue}
-                  marginForecastByPlane={marginForecastByPlane}
-                  totalNet={totalNet}
-                  laborCostsNet={laborCostsNet}
-                  sectionSubtotals={progressSubtotals}
-                  discountAmount={discountNetFromKosztorys}
-                  lossAmount={investmentLoss}
-                  reconciliation={reconciliation}
-                  vatRate={tree.vatRate}
-                  settlementMode={tree.settlementMode}
-                  onSettlementModeChange={
-                    editor.readOnly ? undefined : editor.handleSettlementModeChange
-                  }
-                  materialsNetRate={tree.materialsNetRate}
-                  onMaterialsNetRateChange={
-                    editor.readOnly ? undefined : editor.handleMaterialsNetRateChange
-                  }
-                  isSavingSettings={editor.isSavingSettings}
-                  preview={preview}
-                />
-              )}
-            </div>
-            {/* Vertical guide while dragging a column edge (left = cursor viewport X). Portaled to body:
+                {worker && !report && subtotals.length > 0 && (
+                  <TotalsPanelOverlay hasRows>
+                    <SummaryScrollRegion className="px-4 py-4">
+                      <WorkerSummary summary={worker.summary} />
+                    </SummaryScrollRegion>
+                  </TotalsPanelOverlay>
+                )}
+                {!worker && !pastVersion && (!preview || subtotals.length > 0) && (
+                  <KosztorysTotalsPanel
+                    hasRows={subtotals.length > 0}
+                    {...panelData}
+                    investmentId={investmentId}
+                    investmentName={investmentName}
+                    investment={investment}
+                    assets={assets}
+                    depositTransactions={depositTransactions}
+                    stages={stages}
+                    stageTotals={stageTotals}
+                    workers={workers}
+                    subcontractorDue={subcontractorDue}
+                    marginForecastByPlane={marginForecastByPlane}
+                    totalNet={totalNet}
+                    laborCostsNet={laborCostsNet}
+                    sectionSubtotals={progressSubtotals}
+                    discountAmount={discountNetFromKosztorys}
+                    lossAmount={investmentLoss}
+                    reconciliation={reconciliation}
+                    vatRate={tree.vatRate}
+                    settlementMode={tree.settlementMode}
+                    onSettlementModeChange={
+                      editor.readOnly ? undefined : editor.handleSettlementModeChange
+                    }
+                    materialsNetRate={tree.materialsNetRate}
+                    onMaterialsNetRateChange={
+                      editor.readOnly ? undefined : editor.handleMaterialsNetRateChange
+                    }
+                    isSavingSettings={editor.isSavingSettings}
+                    preview={preview}
+                  />
+                )}
+              </div>
+              {/* Vertical guide while dragging a column edge (left = cursor viewport X). Portaled to body:
             <main> uses transform-gpu, which would otherwise make this `fixed` element measure `left`
             from <main> (sidebar-offset) instead of the viewport — same containing-block trap as the
             context menu. */}
-            {guideX !== null &&
-              createPortal(
-                <div
-                  className="bg-primary/70 pointer-events-none fixed inset-y-0 z-50 w-px"
-                  style={{ left: guideX }}
-                />,
-                document.body,
-              )}
-            {/* Its horizontal twin, for a row-height drag — same portal, same reason. */}
-            {guideY !== null &&
-              createPortal(
-                <div
-                  className="bg-primary/70 pointer-events-none fixed inset-x-0 z-50 h-px"
-                  style={{ top: guideY }}
-                />,
-                document.body,
-              )}
-            {/* One instance for both triggers — the „Opcje" menu and the empty-kosztorys screen. */}
-            {!preview && <SheetImportDialog {...importDialogProps} workers={editor.workers} />}
-            {/* Rendered here, not next to the pickers: the same confirm stands in front of the inline
+              {guideX !== null &&
+                createPortal(
+                  <div
+                    className="bg-primary/70 pointer-events-none fixed inset-y-0 z-50 w-px"
+                    style={{ left: guideX }}
+                  />,
+                  document.body,
+                )}
+              {/* Its horizontal twin, for a row-height drag — same portal, same reason. */}
+              {guideY !== null &&
+                createPortal(
+                  <div
+                    className="bg-primary/70 pointer-events-none fixed inset-x-0 z-50 h-px"
+                    style={{ top: guideY }}
+                  />,
+                  document.body,
+                )}
+              {/* One instance for both triggers — the „Opcje" menu and the empty-kosztorys screen. */}
+              {!preview && <SheetImportDialog {...importDialogProps} workers={editor.workers} />}
+              {/* Rendered here, not next to the pickers: the same confirm stands in front of the inline
             controls in „Podsumowanie"/„Materiały" and of their twins in „Opcje rozliczenia". */}
-            {!preview && <ConfirmDialog {...editor.investorImpactConfirm} />}
-          </div>
+              {!preview && <ConfirmDialog {...editor.investorImpactConfirm} />}
+            </div>
+          </NewItemHost>
         </CataloguePickerHost>
       </RowHeightFitProvider>
     </KosztorysEditorProvider>

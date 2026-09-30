@@ -451,15 +451,15 @@ Run once, after Phase 3:
 
 #### Automated
 
-- [x] 2.1 Form spec passes
-- [x] 2.2 Hook spec passes
-- [x] 2.3 Katalog form spec unchanged-green
+- [x] 2.1 Form spec passes — 3723589e
+- [x] 2.2 Hook spec passes — 3723589e
+- [x] 2.3 Katalog form spec unchanged-green — 3723589e
 
 ### Phase 3: Editor wiring and removal of the blank-row path
 
 #### Automated
 
-- [ ] 3.1 Editor hook specs pass
-- [ ] 3.2 Toolbar and menu specs pass
-- [ ] 3.3 Row-ops spec passes
-- [ ] 3.4 No blank-row symbol survives
+- [x] 3.1 Editor hook specs pass
+- [x] 3.2 Toolbar and menu specs pass
+- [x] 3.3 Row-ops spec passes
+- [x] 3.4 No blank-row symbol survives

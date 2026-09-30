@@ -373,7 +373,7 @@ const insertSectionSchema = z.object({
   dir: insertDirectionSchema,
 })
 
-// Section-level twin of insertItemAction. The caller names an anchor and a direction, not a
+// Section-level twin of addItemAction's next-to placement. The caller names an anchor and a direction, not a
 // display_order: resolving the slot inside the transaction is what makes it correct under a
 // concurrent insert, and it drops the investment id from the wire (it is the anchor's).
 export async function insertSectionAction(

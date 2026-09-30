@@ -24,7 +24,7 @@ const nextLanding = (landing: LandingT, saved: KosztorysItemT): LandingT =>
     ? landing
     : {
         placement: { kind: 'next-to', anchorItemId: saved.id, dir: 'below' },
-        anchorDescription: saved.description,
+        anchorDescription: saved.description ?? '',
       }
 
 /**
