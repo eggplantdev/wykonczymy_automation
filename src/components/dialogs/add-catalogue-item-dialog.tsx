@@ -5,20 +5,7 @@ import { Button } from '@/components/ui/button'
 import { FormDialog } from '@/components/ui/form-dialog'
 import { WorkCatalogueItemForm } from '@/components/forms/work-catalogue-item/work-catalogue-item-form'
 import { createCatalogueItemAction } from '@/lib/actions/work-catalogue'
-import type { WorkCatalogueItemFormValuesT } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
-
-const EMPTY_DEFAULTS: WorkCatalogueItemFormValuesT = {
-  description: '',
-  category: '',
-  unit: '',
-  clientPrice: '',
-  wToolsSource: 'auto',
-  wToolsRate: '',
-  wToolsCoeff: '',
-  ownToolsSource: 'auto',
-  ownToolsRate: '',
-  ownToolsCoeff: '',
-}
+import { EMPTY_CATALOGUE_ITEM_VALUES } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
 
 export function AddCatalogueItemDialog({
   categorySuggestions,
@@ -39,7 +26,7 @@ export function AddCatalogueItemDialog({
       {(onSubmitSuccess, keepOpen) => (
         <WorkCatalogueItemForm
           formId="add-catalogue-item"
-          defaultValues={EMPTY_DEFAULTS}
+          defaultValues={EMPTY_CATALOGUE_ITEM_VALUES}
           categorySuggestions={categorySuggestions}
           action={createCatalogueItemAction}
           successMessage="Praca dodana do katalogu"

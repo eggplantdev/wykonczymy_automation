@@ -7,7 +7,7 @@ import { SimpleSelect } from '@/components/ui/simple-select'
 import { blankExtra, extraState } from '@/components/kosztorys/worker-report/extra-state'
 import type { ExtraWorkT } from '@/components/kosztorys/worker-report/types'
 import { parseReportQty } from '@/lib/kosztorys/worker-report/parse-report-qty'
-import { unitOptions } from '@/lib/kosztorys/worker-report/unit-options'
+import { unitOptions } from '@/lib/kosztorys/unit-options'
 
 type PropsT = {
   extras: ExtraWorkT[]

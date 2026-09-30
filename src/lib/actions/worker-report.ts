@@ -7,7 +7,7 @@ import { insertWorkerReport, type WorkerReportLineInputT } from '@/lib/db/worker
 import { cleanUnit } from '@/lib/kosztorys/clean-unit'
 import { sendLineSchema } from '@/lib/kosztorys/worker-report/schemas'
 import type { SendReportLineT } from '@/lib/kosztorys/worker-report/types'
-import { unitOptions } from '@/lib/kosztorys/worker-report/unit-options'
+import { unitOptions } from '@/lib/kosztorys/unit-options'
 import type { ActionResultT } from '@/types/action'
 
 const MAX_LINES = 2000

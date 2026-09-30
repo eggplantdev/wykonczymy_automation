@@ -43,3 +43,31 @@ describe('useManagedForm — a failed save on a form without a draft', () => {
     expect(result.current.form.state.values.name).toBe('Nowa nazwa')
   })
 })
+
+describe('useManagedForm — beforeSubmit', () => {
+  it('sends nothing and keeps the values when it answers false', async () => {
+    const action = vi.fn(async () => ({ success: true as const }))
+    const onSubmitSuccess = vi.fn()
+    const { result } = renderHook(() =>
+      useManagedForm<ValuesT, ValuesT>({
+        formId: 'before-submit-test',
+        useFormStore: useTestFormStore,
+        schema: z.object({ name: z.string() }),
+        defaultValues: { name: '' },
+        successMessage: 'Zapisano',
+        onSubmitSuccess,
+        toData: (values) => values,
+        action,
+        persistDraft: false,
+        beforeSubmit: async () => false,
+      }),
+    )
+
+    act(() => result.current.form.setFieldValue('name', 'Wpisana'))
+    await act(() => result.current.form.handleSubmit())
+
+    expect(action).not.toHaveBeenCalled()
+    expect(onSubmitSuccess).not.toHaveBeenCalled()
+    expect(result.current.form.state.values.name).toBe('Wpisana')
+  })
+})

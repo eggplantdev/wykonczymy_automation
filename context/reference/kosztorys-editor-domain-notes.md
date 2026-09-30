@@ -956,6 +956,33 @@ padły wprost od właściciela, nie są domysłem implementacji:
   nie ma; dopasowanie jest **case-insensitive**, czyli nazwy różniące się wielkością liter to dla
   właściciela jedna sekcja.
 
+### „Nowa praca" — formularz zamiast pustego wiersza (EX-951, 2026-09-30)
+
+Każde wejście, które dodaje pracę ręcznie — „Wstaw powyżej/poniżej" w menu wiersza, „Dodaj pracę" na
+pasku sekcji i w jej menu, „Dodaj → Praca → [sekcja]" w pasku narzędzi — otwiera formularz: opis,
+j.m., „Cena j.m." i obie stawki podwykonawcy (źródło „auto" / kwota / mnożnik, jak w katalogu).
+Praca powstaje dopiero przy zapisie, **od razu wypełniona** — pusty wiersz „Nowa praca" do
+dopisywania w siatce zniknął ze wszystkich ścieżek. Rozstrzygnięcia właściciela:
+
+- **Miejsce:** „Wstaw powyżej/poniżej" kładzie pracę przy wierszu, z którego go wywołano; pozostałe
+  wejścia — na koniec sekcji. Bez żadnej sekcji „Dodaj → Praca" najpierw zakłada sekcję.
+- **Bez pola „Przedmiar"** — przedmiar wpisuje się w siatce, jak dotąd. „auto" przy stawce znaczy
+  „bez nadpisania", nie zero.
+- **„Nie zamykaj po zapisaniu"** czyści formularz; następna praca ląduje **pod właśnie zapisaną**,
+  a „na koniec sekcji" zostaje na końcu. Zwinięta sekcja rozwija się po zapisie. Stawka powyżej
+  65% ceny daje ostrzeżenie toastem (ten sam sufit, co wyżej). Dodanie nie wchodzi na stos
+  „Cofnij".
+- **„Dodaj pracę do katalogu prac"** — ptaszek, zawsze odznaczony na starcie. Dopiero z nim pojawia
+  się „Kategoria", podpowiedziana nazwą sekcji bez numeru porządkowego. Wpis w katalogu zapisuje się
+  w **tej samej transakcji** co praca — albo oba, albo nic.
+- **Kolizja w katalogu** (ten sam opis + j.m., reguła `matchKey`) nie jest błędem, tylko pytaniem
+  z trzema odpowiedziami, z cenami „stare → nowe": **„Nadpisz w katalogu"**, **„Tylko do
+  kosztorysu"** i **„Wróć"** (Escape i klik obok to też „Wróć"). „Tylko do kosztorysu" istnieje,
+  bo odmowa nadpisania katalogu nie jest odmową pracy: właściciel chce wtedy pracę w kosztorysie,
+  a katalog nietknięty — tak/nie tego nie wyrazi. Escape nigdy niczego nie zapisuje. Przy
+  nadpisaniu kategoria z katalogu **zostaje** domyślnie (przełącznik „Zostaw kategorię
+  z katalogu").
+
 ## Domyślne
 
 PLN • netto+brutto z `vat_rate` per pozycja • hard-delete • reorder strzałkami

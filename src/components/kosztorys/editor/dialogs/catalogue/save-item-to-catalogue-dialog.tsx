@@ -5,53 +5,15 @@ import { CheckboxRow } from '@/components/ui/checkbox-row'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Description } from '@/components/ui/description'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
-import { RATE_LABELS } from '@/lib/kosztorys/labels'
 import { saveItemToCatalogueAction } from '@/lib/actions/work-catalogue'
-import {
-  catalogueRateText,
-  type CatalogueRateColumnsT,
-} from '@/lib/kosztorys/work-catalogue/catalogue-rate'
-import { formatPLN } from '@/lib/utils/format-currency'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import { useCatalogueSavePreview } from './use-catalogue-save-preview'
-
-type PricesT = CatalogueRateColumnsT & { clientPrice: number }
-
-const NO_CATEGORY = 'bez kategorii'
-
-// Rendered for both sides so „nadpisz" is a decision about numbers rather than about a name. An
-// EMPTY kategoria is a value like any other — hence `undefined` (not falsiness) hides the row, so
-// „bez kategorii" still renders on both sides.
-function PriceList({
-  title,
-  prices,
-  category,
-}: {
-  title: string
-  prices: PricesT
-  category?: string | null
-}) {
-  const rows: [string, string, boolean][] = [
-    ['Cena j.m.', formatPLN(prices.clientPrice), true],
-    [RATE_LABELS.w_tools, catalogueRateText(prices, 'w_tools'), true],
-    [RATE_LABELS.own_tools, catalogueRateText(prices, 'own_tools'), true],
-    ...(category !== undefined
-      ? ([['Kategoria', category || NO_CATEGORY, false]] as [string, string, boolean][])
-      : []),
-  ]
-  return (
-    <div className="space-y-1">
-      <p className="text-muted-foreground text-xs">{title}</p>
-      {rows.map(([label, value, numeric]) => (
-        <div key={label} className="flex justify-between text-sm">
-          <span className="text-muted-foreground">{label}</span>
-          <span className={numeric ? 'tabular-nums' : undefined}>{value}</span>
-        </div>
-      ))}
-    </div>
-  )
-}
+import {
+  categoriesDiffer,
+  overwriteSentence,
+} from '@/lib/kosztorys/work-catalogue/catalogue-overwrite-text'
+import { PriceList } from './catalogue-overwrite-prices'
 
 // „Zapisz do katalogu…" from the row menu. Every figure comes from the server preview — the same
 // derivation the save itself runs — so what the dialog shows is what lands in the cennik.
@@ -76,10 +38,8 @@ export function SaveItemToCatalogueDialog({
   // future kosztorys copies from, and the katalog keeps no history, so that branch asks first.
   const existing = preview?.existing ?? null
   const overwrites = existing != null
-  // `|| null`, not `??`: an empty kategoria and a missing one are the same thing to the owner, and
-  // the Payload admin can leave `''` in the column where every in-app write folds it to NULL.
   const categoryDiffers =
-    existing != null && (existing.category || null) !== (preview?.candidate.category || null)
+    existing != null && preview != null && categoriesDiffer(existing, preview.candidate)
   const savedCategory = keepCategory ? existing?.category : preview?.candidate.category
 
   function requestSave() {
@@ -162,7 +122,7 @@ export function SaveItemToCatalogueDialog({
         <ConfirmDialog
           open={confirming}
           title={`Nadpisać „${existing.description}" w katalogu?`}
-          description={`Stare stawki przepadną — katalog nie trzyma historii. Cena j.m. ${formatPLN(existing.clientPrice)} → ${formatPLN(preview.candidate.clientPrice)}, ${RATE_LABELS.w_tools.toLowerCase()} ${catalogueRateText(existing, 'w_tools')} → ${catalogueRateText(preview.candidate, 'w_tools')}, ${RATE_LABELS.own_tools.toLowerCase()} ${catalogueRateText(existing, 'own_tools')} → ${catalogueRateText(preview.candidate, 'own_tools')}.${categoryDiffers && !keepCategory ? ` Kategoria w katalogu zmieni się z „${existing.category || NO_CATEGORY}" na „${preview.candidate.category || NO_CATEGORY}".` : ''} Kosztorysy, w których ta praca już siedzi, zostają bez zmian. Jeśli chcesz dodać osobną pozycję zamiast nadpisać tę — anuluj i zmień nazwę pracy w rozpisce.`}
+          description={`${overwriteSentence(existing, preview.candidate, categoryDiffers && !keepCategory)} Jeśli chcesz dodać osobną pozycję zamiast nadpisać tę — anuluj i zmień nazwę pracy w rozpisce.`}
           confirmLabel="Nadpisz"
           onConfirm={() => void handleSave()}
           onCancel={() => setConfirming(false)}
