@@ -21,7 +21,11 @@ describe('useWorkerReportsAction — a deep-linked report', () => {
   it('keeps the query while the dialog is open and strips it on close', async () => {
     window.history.replaceState(null, '', '/inwestycje/12/kosztorys_v2?zgloszenie=5')
 
-    render(<KosztorysActionsProvider workerReports={{ pendingCount: 1, openReportId: 5 }} />)
+    render(
+      <KosztorysActionsProvider workerReports={{ pendingCount: 1, openReportId: 5 }}>
+        {null}
+      </KosztorysActionsProvider>,
+    )
     expect(await screen.findByRole('dialog', { name: 'Zgłoszenia prac' })).toBeInTheDocument()
     expect(window.location.search).toBe('?zgloszenie=5')
 
