@@ -2426,7 +2426,7 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
 
 - **Context**: The kasa trash (EX-917). `fetchReferenceData().cashRegisters` fed both the pickers and the transfers list's id → name map.
 - **Problem**: Filtering trashed kasy out of that one list hides them from the pickers, which is right. But a cancelled transaction that still points at the kasa then renders its register as blank, because the name map reads the same list. Leaving them in has the opposite failure: every picker, filter and dashboard tile has to remember to skip them by hand, and one missed reader fails open.
-- **Rule**: Split at the source into two arrays, the live one under the old name and a `trashed…` twin. Every existing reader keeps reading the live one, so it is safe by default. Only a reader that resolves a stored id to a name reads the union. Pair it with a write gate in the collection hook for a stale form or a REST call that still names the trashed row.
+- **Rule**: Split at the source into two arrays, the live one under the old name and a `trashed…` twin. Every existing reader keeps reading the live one, so it is safe by default. Only a reader that resolves a stored id to a name reads the union. Pair it with a write gate in the collection hook for a stale form or a REST call that still names the trashed row. Split upstream of `activeOrSelected` (EX-643), never inside it: "keep what is already selected" is right for an inactive row and wrong for a trashed one, which has no valid reason to stay selected.
 - **Applies to**: plan, implement, impl-review — any new trashed kind (kasa, worker, equipment)
 
 ## A refusal returned from `withPayloadTransaction` still commits — decide every refusal before the first write

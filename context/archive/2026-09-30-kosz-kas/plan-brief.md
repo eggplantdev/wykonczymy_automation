@@ -25,18 +25,18 @@ default. `/kosz` gets a „Kasy" section. A used kasa's owner is locked.
 
 ## Key Decisions Made
 
-| Decision | Choice | Why | Source |
-| --- | --- | --- | --- |
-| What counts as use | Live transactions only | The owner's ruling; the existing delete guard already says so | Research (owner) |
-| WORKER kasa on its own | Always trashable | The employee lands on a 404 dashboard, a state 21 employees already have | Plan |
-| Owner handover | Locked once the kasa has live transactions (hook + disabled field) | „A kasa cannot be handed over" was not true in the code | Plan |
-| Auto-purge | Yes, after 30 days | A trashable kasa is empty by definition | Plan |
-| Delete-forever confirm | Plain confirm always | Nothing of value is lost beyond cancelled rows' kasa name | Plan |
-| MANAGER and MAIN | Hidden in `/kosz`, refused in the actions | A MANAGER never sees MAIN anywhere else | Plan |
-| Default kasa on trash | Cleared on trash, not restored | One write instead of four reader filters | Plan |
-| Name map vs pickers | Ref data split into live + trashed; only the name map reads both | A new picker cannot forget the filter (risk #15) | Plan |
-| Write gate | Transfers `validate` hook, after the cancellation early returns | The only complete gate; a stale form or default otherwise books into the trash | Research |
-| Retention constant | `ENTITY_TRASH_RETENTION_DAYS` in `constants/trash.ts` | Avoids a name clash with the planned file trash | Plan |
+| Decision               | Choice                                                             | Why                                                                            | Source           |
+| ---------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------ | ---------------- |
+| What counts as use     | Live transactions only                                             | The owner's ruling; the existing delete guard already says so                  | Research (owner) |
+| WORKER kasa on its own | Always trashable                                                   | The employee lands on a 404 dashboard, a state 21 employees already have       | Plan             |
+| Owner handover         | Locked once the kasa has live transactions (hook + disabled field) | „A kasa cannot be handed over" was not true in the code                        | Plan             |
+| Auto-purge             | Yes, after 30 days                                                 | A trashable kasa is empty by definition                                        | Plan             |
+| Delete-forever confirm | Plain confirm always                                               | Nothing of value is lost beyond cancelled rows' kasa name                      | Plan             |
+| MANAGER and MAIN       | Hidden in `/kosz`, refused in the actions                          | A MANAGER never sees MAIN anywhere else                                        | Plan             |
+| Default kasa on trash  | Cleared on trash, not restored                                     | One write instead of four reader filters                                       | Plan             |
+| Name map vs pickers    | Ref data split into live + trashed; only the name map reads both   | A new picker cannot forget the filter (risk #15)                               | Plan             |
+| Write gate             | Transfers `validate` hook, after the cancellation early returns    | The only complete gate; a stale form or default otherwise books into the trash | Research         |
+| Retention constant     | `ENTITY_TRASH_RETENTION_DAYS` in `constants/trash.ts`              | Avoids a name clash with the planned file trash                                | Plan             |
 
 ## Scope
 
@@ -80,12 +80,12 @@ Two differences from the investment trash:
 
 ## Phases at a Glance
 
-| Phase | What it delivers | Key risk |
-| --- | --- | --- |
-| 1. Schema + server gates | Column; booking, edit, default and owner refusals | Gate placement breaking cancellation or invoice attach |
-| 2. Readers | Live/trashed split; names kept on rows | A consumer silently needing the trashed list |
+| Phase                     | What it delivers                                          | Key risk                                                      |
+| ------------------------- | --------------------------------------------------------- | ------------------------------------------------------------- |
+| 1. Schema + server gates  | Column; booking, edit, default and owner refusals         | Gate placement breaking cancellation or invoice attach        |
+| 2. Readers                | Live/trashed split; names kept on rows                    | A consumer silently needing the trashed list                  |
 | 3. Backend + purge + cron | Trash/restore/delete-forever, 30-day purge, constant move | Default-clear bypasses user hooks; the tag list must cover it |
-| 4. UI + docs | `/kosz` „Kasy", „Do kosza", locked owner field | Template/investment copy regressing in the kinds refactor |
+| 4. UI + docs              | `/kosz` „Kasy", „Do kosza", locked owner field            | Template/investment copy regressing in the kinds refactor     |
 
 **Prerequisites:** the local DB is migrated from this worktree (check `git status src/migrations` in
 the main checkout first). Worktree `../wykonczymy-worktrees/kosz-kas`, branch `kosz-kas`.

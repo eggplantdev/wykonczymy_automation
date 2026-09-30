@@ -1,10 +1,10 @@
 ---
 change_id: kosz-kas
 title: Trash for an unused kasa — trash, restore, delete forever, a /kosz section
-status: implemented
+status: archived
 created: 2026-09-30
-updated: 2026-09-30
-archived_at: null
+updated: 2026-10-01
+archived_at: 2026-09-30T22:20:02Z
 branch: kosz-kas
 worktree: ../wykonczymy-worktrees/kosz-kas
 ---
