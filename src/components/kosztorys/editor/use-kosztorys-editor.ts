@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import type { Column } from 'react-datasheet-grid'
 import { useDebouncedSave } from '@/components/kosztorys/editor/hooks/use-debounced-save'
 import { useStaleTreeRecovery } from '@/components/kosztorys/editor/hooks/use-stale-tree-recovery'
 import { useExternalChangeReload } from '@/components/kosztorys/editor/hooks/use-external-change-reload'
@@ -15,12 +16,6 @@ import {
   type StageChangeT,
 } from '@/lib/kosztorys/undo-coalesce'
 import { planGridChanges } from '@/lib/kosztorys/grid-change-plan'
-import {
-  REPORT_STAGE_ID,
-  withReportColumn,
-  withReportQty,
-} from '@/components/kosztorys/editor/grid/report-column'
-import type { ReportModeT } from '@/lib/kosztorys/worker-report/types'
 import { itemFieldLane, stageLane } from '@/lib/kosztorys/save-lanes'
 import { buildReversalPatches, planReversalWrites } from '@/lib/kosztorys/undo-reversal'
 import type { UndoCommandT, UndoRedoApiT } from '@/components/kosztorys/editor/hooks/use-undo-redo'
@@ -156,8 +151,15 @@ type ArgsT = {
   isTemplate?: boolean
   // A past version's grid: etapy the present has filled, so their columns stay on screen.
   filledStageIds?: ReadonlySet<number>
-  // Only ever with `preview` and `worker`.
-  report?: ReportModeT
+  // Only ever with `preview`.
+  seams?: PreviewSeamsT
+}
+
+// What a read-only document with one input column of its own supplies — the worker's report form.
+export type PreviewSeamsT = {
+  transformColumns: (columns: Column<KosztorysV2RowT>[]) => Column<KosztorysV2RowT>[]
+  initialRowPatch: (rows: KosztorysV2RowT[]) => KosztorysV2RowT[]
+  onPreviewChange: (stageChanges: StageChangeT[]) => void
 }
 
 // Longer than the debounced save (500ms) so a burst is captured only once its writes are scheduled.
@@ -181,7 +183,7 @@ export function useKosztorysEditor({
   onStaleTree,
   isTemplate = false,
   filledStageIds,
-  report,
+  seams,
 }: ArgsT) {
   // Interaction, split from disclosure: `preview` decides what a client is SHOWN, this decides whether
   // anything may be written.
@@ -196,7 +198,7 @@ export function useKosztorysEditor({
   // out leaves every call site reaching in — the indirection on the hot path EX-496 was reverted over.
   // Settle EX-422 first: if rowsRef/prevById stop being load-bearing, what's left to extract is smaller.
   const [rows, setRows] = useState<KosztorysV2RowT[]>(() =>
-    report ? withReportQty(treeToRows(tree), report.initialQtyByItem) : treeToRows(tree),
+    seams ? seams.initialRowPatch(treeToRows(tree)) : treeToRows(tree),
   )
   // The only place a section without pozycje exists. `rows` stays laid out as contiguous blocks in
   // this order.
@@ -601,7 +603,7 @@ export function useKosztorysEditor({
   }
   const grid = buildV2Grid(columnOpts)
   const { columnToggleItems, columnBaseRanks } = grid
-  const columns = report ? withReportColumn(grid.columns, report) : grid.columns
+  const columns = seams ? seams.transformColumns(grid.columns) : grid.columns
   // A sort must not outlive its column: a money-axis or view toggle can drop the sorted column and its
   // SortHeader — the only control that clears the sort — freezing the rows in an unexplained order with
   // the row actions disabled (EX-486). Cleared as real state, not derived, so it doesn't resurrect if
@@ -1281,12 +1283,13 @@ export function useKosztorysEditor({
     }
   }
 
-  // Every other column is disabled, so „Zgłaszam” is the only change a batch can carry.
-  function applyReportChanges(next: KosztorysV2RowT[], mode: ReportModeT) {
+  // Nothing is saved: the seam's owner decides where the one editable column's figures go.
+  function applyPreviewChanges(
+    next: KosztorysV2RowT[],
+    onPreviewChange: PreviewSeamsT['onPreviewChange'],
+  ) {
     const { stageChanges, changedById } = planGridChanges(next, prevById.current)
-    for (const change of stageChanges) {
-      if (change.stageId === REPORT_STAGE_ID) mode.onReportQty(change.id, change.after)
-    }
+    onPreviewChange(stageChanges)
     for (const row of next) if (prevById.current.has(row.id)) prevById.current.set(row.id, row)
     if (changedById.size > 0) setRows((master) => master.map((r) => changedById.get(r.id) ?? r))
   }
@@ -1295,7 +1298,7 @@ export function useKosztorysEditor({
     // A zakończona inwestycja is already stopped by `disabled: true` on every column, but a preview grid
     // is served to an anonymous visitor — belt as well as braces.
     if (preview) {
-      if (report) applyReportChanges(next, report)
+      if (seams) applyPreviewChanges(next, seams.onPreviewChange)
       return
     }
     const { fieldChanges, stageChanges, changedById } = planGridChanges(next, prevById.current)

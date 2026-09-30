@@ -16,6 +16,9 @@ import { BrandLogo } from '@/components/ui/brand-logo'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
 import { useKosztorysEditor } from '@/components/kosztorys/editor/use-kosztorys-editor'
+import { reportEditorSeams } from '@/components/kosztorys/editor/grid/report-column'
+import { useMediaQuery } from '@/hooks/use-media-query'
+import { DESKTOP_MEDIA_QUERY } from '@/lib/constants/breakpoints'
 import {
   KosztorysEditorProvider,
   type OnTreeReplacedT,
@@ -166,6 +169,8 @@ export function KosztorysEditorBody({
     () => new Set(pastVersion?.diff.removed.map(({ id }) => id)),
     [pastVersion],
   )
+  // The compact report keeps Lp and j.m. where a desktop has the room.
+  const isWide = useMediaQuery(DESKTOP_MEDIA_QUERY)
   const editor = useKosztorysEditor({
     investmentId,
     tree: gridTree,
@@ -180,12 +185,7 @@ export function KosztorysEditorBody({
     onStaleTree,
     isTemplate,
     filledStageIds,
-    report: report && {
-      initialQtyByItem: report.initialQtyByItem,
-      pendingQtyByItem: report.pendingQtyByItem,
-      isCompact: report.isCompact,
-      onReportQty: report.onReportQty,
-    },
+    seams: report && reportEditorSeams(report, isWide),
   })
   const {
     gridRef,
@@ -241,6 +241,9 @@ export function KosztorysEditorBody({
   // Off `subtotals`, which counts the whole document rather than the visible rows, so a search
   // narrows the screen without changing what a section says it holds or what it is worth.
   const isReportCompact = report?.isCompact ?? false
+  // The worker's report scrolls as a page: his header scrolls away and the table header sticks,
+  // instead of the grid scrolling under a pinned top.
+  const pageScroll = report !== undefined
   const sectionHeader = useMemo(
     () => ({
       figures: new Map(
@@ -467,10 +470,8 @@ export function KosztorysEditorBody({
           <div
             className={cn(
               'flex w-full flex-col',
-              // The worker's report scrolls as a page: his header scrolls away and the table
-              // header sticks, instead of the grid scrolling under a pinned top.
-              report ? 'min-h-dvh' : 'overflow-hidden',
-              !report && (preview ? 'h-dvh' : 'h-below-top-nav'),
+              pageScroll ? 'min-h-dvh' : 'overflow-hidden',
+              !pageScroll && (preview ? 'h-dvh' : 'h-below-top-nav'),
             )}
           >
             {report ? (
@@ -528,14 +529,14 @@ export function KosztorysEditorBody({
             needs px for virtualization; without it, it renders all 1000 rows.
             The grid track `minmax(0,1fr)` gives a DEFINITE width (= viewport): the grid doesn't
             stretch the container to the sum of the columns, it scrolls them internally instead. */}
-            <div className={cn('relative flex min-h-0 flex-1', !report && 'overflow-hidden')}>
+            <div className={cn('relative flex min-h-0 flex-1', !pageScroll && 'overflow-hidden')}>
               {/* min-w-0 lets the wrapper shrink below its content in a flex context;
               grid-cols-1 still gives the grid a definite width (anti-flicker). */}
               <div
                 ref={gridRef}
                 className={cn(
                   'grid min-h-0 min-w-0 flex-1 grid-cols-1',
-                  !report && 'overflow-hidden',
+                  !pageScroll && 'overflow-hidden',
                 )}
               >
                 <DynamicDataSheetGrid
@@ -551,8 +552,8 @@ export function KosztorysEditorBody({
                   // Strip the appended spacer + „Razem" rows before the editor's diff sees them — display-only.
                   onChange={(rows) => onChange(rows.filter((row) => !isSyntheticRow(row.id)))}
                   columns={gridColumns}
-                  // The compact report is Opis + „Zgłaszam” only; Lp would be a third column he reads nothing in.
-                  gutterColumn={report?.isCompact ? false : gutterColumn}
+                  // A phone's compact report is Opis + „Zgłaszam” only; Lp would take width he needs.
+                  gutterColumn={isReportCompact && !isWide ? false : gutterColumn}
                   height={gridHeight}
                   rowHeight={({ rowData }) =>
                     resolveRowHeight({

@@ -6,6 +6,7 @@ import { numericFieldPolicy } from '@/lib/kosztorys/cell-edit'
 import { formatQty } from '@/lib/kosztorys/format'
 import { STAGE_QTY_PREFIX, stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysV2RowT, StageKeyT } from '@/lib/kosztorys/types'
+import type { PreviewSeamsT } from '@/components/kosztorys/editor/use-kosztorys-editor'
 import type { ReportModeT } from '@/lib/kosztorys/worker-report/types'
 
 // A stage id no etap can hold (serial ids start at 1), so the report rides the stage-qty field
@@ -81,22 +82,38 @@ function pendingColumn(
   }
 }
 
-export function withReportQty(
+function withReportQty(
   rows: KosztorysV2RowT[],
   qtyByItem: ReportModeT['initialQtyByItem'],
 ): KosztorysV2RowT[] {
   return rows.map((row) => ({ ...row, [REPORT_FIELD]: qtyByItem[row.id] ?? 0 }))
 }
 
+export function reportEditorSeams(report: ReportModeT, isWide: boolean): PreviewSeamsT {
+  return {
+    transformColumns: (columns) => withReportColumn(columns, report, isWide),
+    initialRowPatch: (rows) => withReportQty(rows, report.initialQtyByItem),
+    // Every other column is disabled, so „Zgłaszam” is the only change a batch can carry.
+    onPreviewChange: (stageChanges) => {
+      for (const change of stageChanges) {
+        if (change.stageId === REPORT_STAGE_ID) report.onReportQty(change.id, change.after)
+      }
+    },
+  }
+}
+
 // „Zgłaszam” right after his last etap, on the read-only worker grid. „Czeka” rides only the full
-// sheet: on a phone's compact view a third column would push „Zgłaszam” off screen, and his sent
-// reports list says the same thing below the grid.
-export function withReportColumn(
+// sheet: on the compact view a third figure would push „Zgłaszam” off a phone, and his sent reports
+// list says the same thing below the grid.
+function withReportColumn(
   columns: Column<KosztorysV2RowT>[],
   { isCompact, pendingQtyByItem }: Pick<ReportModeT, 'isCompact' | 'pendingQtyByItem'>,
+  isWide: boolean,
 ): Column<KosztorysV2RowT>[] {
   if (isCompact) {
     const description = columns.find((column) => column.id === 'description')
+    // By id, like Opis prac: the owner's worker view may have hidden it. A phone has no room for it.
+    const unit = isWide ? columns.find((column) => column.id === 'unit') : undefined
     // Unpinned: a width the owner dragged on the full sheet would leave the compact one half empty.
     const stretched = description && {
       ...description,
@@ -112,7 +129,7 @@ export function withReportColumn(
       minWidth: COMPACT_REPORT_WIDTH,
       maxWidth: COMPACT_REPORT_WIDTH,
     }
-    return stretched ? [stretched, narrowed] : [narrowed]
+    return [stretched, unit, narrowed].filter((column) => column !== undefined)
   }
   const lastStage = columns.findLastIndex((column) => column.id?.startsWith(STAGE_QTY_PREFIX))
   const anchor =

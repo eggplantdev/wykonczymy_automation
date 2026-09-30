@@ -15,7 +15,7 @@ type PropsT = {
   onRemove: (key: string) => void
 }
 
-// SPIKE: work from outside the rozpiska as plain rows — typed in place, one row per work.
+// Work from outside the rozpiska as plain rows — typed in place, one row per work.
 export function ExtraWorkRows({ extras, commonUnits, onSave, onRemove }: PropsT) {
   return (
     <div>

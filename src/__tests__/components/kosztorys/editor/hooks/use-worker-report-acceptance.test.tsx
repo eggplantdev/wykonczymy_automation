@@ -94,7 +94,10 @@ describe('useWorkerReportAcceptance', () => {
       [],
     )
 
-    const [match, patch] = vi.mocked(args.patchRows).mock.calls[0]
+    const [match, patch] = vi.mocked(args.patchRows).mock.calls[0] as [
+      (row: KosztorysV2RowT) => boolean,
+      (row: KosztorysV2RowT) => KosztorysV2RowT,
+    ]
     const row = { id: 10, [stageKey(30)]: 5 } as unknown as KosztorysV2RowT
     const untouched = { id: 11 } as unknown as KosztorysV2RowT
     expect(match(row)).toBe(true)

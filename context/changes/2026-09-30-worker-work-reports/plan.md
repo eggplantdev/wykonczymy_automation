@@ -914,16 +914,16 @@ The full `pnpm test` runs only when the user asks.
 
 #### Automated
 
-- [x] 4.1 Badge boundary DOM spec
-- [x] 4.2 Toolbar button DOM spec
+- [x] 4.1 Badge boundary DOM spec — e0244f47
+- [x] 4.2 Toolbar button DOM spec — e0244f47
 
 ### Phase 5: Owed layout and editor seams
 
 #### Automated
 
-- [ ] 5.1 `useMediaQuery` DOM spec
-- [ ] 5.2 Existing editor specs pass unchanged
-- [ ] 5.3 Document-alarms specs pass
+- [x] 5.1 `useMediaQuery` DOM spec
+- [x] 5.2 Existing editor specs pass unchanged
+- [x] 5.3 Document-alarms specs pass
 
 ### Phase 6: Living docs
 

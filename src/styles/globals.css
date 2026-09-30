@@ -609,7 +609,7 @@
   background: color-mix(in oklab, var(--color-foreground) 2%, var(--color-background));
 }
 
-/* SPIKE (worker-work-reports): „Zgłaszam”, the one column he types into, framed and lit on his read-only
+/* „Zgłaszam”, the one column he types into, framed and lit on his read-only
    rozpiska. After the stripe rule, which has the same specificity and would otherwise win. dsg's own
    1px grid lines ride the same box-shadow, so they are restated. */
 .kosztorys-grid.kosztorys-grid-preview .dsg-cell.kosztorys-report-column {
@@ -629,7 +629,7 @@
     inset 0 -1px var(--header-rule-color, var(--dsg-border-color));
 }
 
-/* SPIKE (worker-work-reports): the figures he only reads, greyed so the one he types stands out. The
+/* The figures he only reads, greyed so the one he types stands out. The
    `[data-muted]` half outranks the preview's rule above, which darkens a muted figure again. */
 .kosztorys-grid.kosztorys-grid-report .dsg-cell.kosztorys-report-readonly-figure,
 .kosztorys-grid.kosztorys-grid-report .dsg-cell.kosztorys-report-readonly-figure [data-muted] {

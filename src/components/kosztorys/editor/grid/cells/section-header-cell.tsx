@@ -34,6 +34,8 @@ export type SectionHeaderContextT = {
   moveEdges?: MoveEdgesT
   // Which column paints the label — resolved per render off the visible order, never a fixed id.
   labelColumnId?: string
+  // The worker's compact report: the name alone, cut at the cell, so the band never widens the page.
+  isBare?: boolean
 }
 
 // dsg has no colspan, so the band is painted per column: one column carries the whole label, one
@@ -131,12 +133,15 @@ export function SectionHeaderCell({
         // `w-max` + the `overflow: visible` rule in globals.css let the band out of the cell, so a
         // long name isn't clipped at the „Sekcja" column's width.
         className={cn(
-          'flex h-full w-max items-center gap-2 px-2 text-lg font-semibold',
+          'flex h-full items-center gap-2 px-2 text-lg font-semibold',
+          context.isBare ? 'w-full min-w-0' : 'w-max',
           foldable && 'hover:bg-accent/50 cursor-pointer',
         )}
       >
         <SectionDot />
-        {onRename ? (
+        {context.isBare ? (
+          <span className="truncate">{rowData.sectionName ?? ''}</span>
+        ) : onRename ? (
           <SectionNameCell
             rowData={rowData}
             onRename={onRename}
@@ -149,12 +154,14 @@ export function SectionHeaderCell({
         ) : (
           <span className="shrink-0 whitespace-nowrap">{rowData.sectionName ?? ''}</span>
         )}
-        <span className="text-muted-foreground shrink-0 text-sm font-normal">
-          ({itemCount} poz.)
-        </span>
+        {!context.isBare && (
+          <span className="text-muted-foreground shrink-0 text-sm font-normal">
+            ({itemCount} poz.)
+          </span>
+        )}
         {/* „netto" spelled out: the grid carries a netto and a brutto reading of every money column,
             so a bare amount on the band leaves the reader guessing which one this is. */}
-        {net !== 0 && (
+        {!context.isBare && net !== 0 && (
           <span className="shrink-0 text-sm whitespace-nowrap">
             <span className="font-medium tabular-nums">{formatNet(net)} zł</span>
             <span className="text-muted-foreground font-normal"> netto</span>
