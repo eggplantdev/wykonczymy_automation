@@ -38,4 +38,9 @@ Ran /simplify (reuse / simplification / efficiency / altitude) — 1 applied, 0 
 - `pnpm exec tsc --noEmit` — clean (after the simplify pass).
 - `investment-action`, `revalidate`, `investment-id` specs — 30/30.
 - `kosztorys-presets.test.ts` (DB, 5435) — pass.
-- Full `pnpm test` / `pnpm test:e2e` — not run; awaiting the user's go (never run unasked). Plan 3.2 (after-run) stays open until then.
+- Full `pnpm test` — 416 files / 4532 tests passed, 0 failed (83 files skipped, env-gated).
+- `e2e/szablony-list.spec.ts` — **not run, blocked by worktree infra**, not by the slice. Turbopack
+  rejects the symlinked `node_modules` ("points out of the filesystem root"). The lessons.md fallback,
+  `next build --webpack`, fails Next's build type check on the untouched
+  `(payload)/admin/[[...segments]]/page.tsx`, most likely because Payload's types resolve through the
+  symlink twice. `tsc --noEmit` is clean. Run it from a real checkout; plan 3.2 stays open until then.
