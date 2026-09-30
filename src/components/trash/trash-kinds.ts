@@ -14,7 +14,6 @@ type TrashKindConfigT = {
   restore: (id: number) => Promise<ActionResultT>
   restored: string
   deleteForever: (id: number, confirmName?: string) => Promise<ActionResultT>
-  /** What goes with the row; omitted when the row takes nothing with it. */
   lost?: string
   /** Why the dialog asks for the name — only read by a kind whose rows can require it. */
   askReason?: string

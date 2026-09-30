@@ -35,7 +35,6 @@ export function shapeTrashRows(
       autoPurges: !row.isKosztorysUsed,
       mustTypeName: row.isKosztorysUsed || row.isTemplate,
     })),
-    // A MANAGER never sees MAIN (`/kasy`, `/kasa/[id]`, and the actions answer „Kasa nie istnieje.").
     ...cashRegisters
       .filter((row) => isAdminOrOwner || row.type !== 'MAIN')
       .map((row) => ({

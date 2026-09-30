@@ -5,8 +5,8 @@ import { clearDefaultRegister } from '@/lib/db/cash-register-trash'
 import { getDb } from '@/lib/db/get-db'
 
 /**
- * The refusal, or `undefined` once the kasa is in the trash. Takes the caller's `req` so a worker's
- * trash (EX-918) can put the kasa and the worker in one transaction.
+ * Takes the caller's `req` so a worker's trash (EX-918) can put the kasa and the worker in one
+ * transaction.
  *
  * Refused on exactly what a hard delete refuses on, so nothing sits in the trash that could never
  * leave it. The default is cleared rather than kept: a picker that no longer offers the kasa would

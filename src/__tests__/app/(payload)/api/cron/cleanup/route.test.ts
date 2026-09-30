@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server'
 
 // Payload and the DB are mocked out: the reject path never reaches them, and the authorized path
 // only needs to prove what the route FORWARDS. The steps themselves are covered against a real DB in
-// lib/db/snapshots.test.ts and the two purge-trash.db.test.ts specs.
+// their own specs.
 vi.mock('@payload-config', () => ({ default: {} }))
 vi.mock('payload', () => ({ getPayload: vi.fn() }))
 vi.mock('@/lib/db/get-db', () => ({ getDb: vi.fn() }))

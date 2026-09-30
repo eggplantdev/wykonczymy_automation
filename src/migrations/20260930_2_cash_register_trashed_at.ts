@@ -1,9 +1,6 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-vercel-postgres'
 
-// Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-//
-// The kasa trash (kosz-kas, EX-917): NULL = live, a timestamp = in the trash since then. The same
-// shape as `investments.trashed_at`, and for the same reason not Payload's `trash: true`.
+// The same shape as `investments.trashed_at`, and for the same reason not Payload's `trash: true`.
 //
 // Additive — nullable, no DEFAULT, no backfill: every existing kasa stays live. So this goes to
 // production BEFORE the code that filters on it ships.

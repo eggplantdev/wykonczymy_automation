@@ -5,9 +5,7 @@ import { getDb } from '@/lib/db/get-db'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { revalidateCollections } from '@/__tests__/stubs/cache-revalidate'
 
-// Asserted on persisted rows: a trash that reports success but never stamps `trashed_at`, or leaves
-// a user's default pointing at the trashed kasa, reads identically at the action's return value. The
-// session is mocked rather than `requireAuth`, so the role gate under test is the real one.
+// The session is mocked rather than `requireAuth`, so the role gate under test is the real one.
 
 vi.mock('server-only', () => ({}))
 
@@ -128,7 +126,6 @@ describe.skipIf(!ENV_READY)('cash-register trash actions (DB)', () => {
     ])
   })
 
-  // A MANAGER never sees MAIN, so the kasa answers as missing — and stays untouched.
   it('refuses a MANAGER every action on a MAIN kasa', async () => {
     const live = await createRegister('Główna żywa', 'MAIN')
     const trashed = await createRegister('Główna w koszu', 'MAIN')
