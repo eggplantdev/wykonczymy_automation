@@ -4,17 +4,11 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
-import {
-  findShare,
-  workerReportShare,
-  workerShare,
-  type WorkerShareKeyT,
-} from '@/lib/kosztorys/share-token'
+import { findShare, WORKER_LINK_SHARES, type WorkerShareKeyT } from '@/lib/kosztorys/share-token'
 import type { WorkerLinkKindT } from '@/lib/kosztorys/worker-view/types'
 
-const SHARE_BY_KIND = { rozpiska: workerShare, report: workerReportShare } as const
-
-// A read, never a mint: a worker gets a link only from „Wygeneruj link" in the dialog.
+// A read, never a mint: a blocked worker's link opens only to be switched off, and a mint there
+// would hand out a page that can only show a notice.
 export async function readWorkerShareToken(
   key: WorkerShareKeyT,
   kind: WorkerLinkKindT = 'rozpiska',
@@ -23,7 +17,7 @@ export async function readWorkerShareToken(
   if (!session.success) throw new Error(session.error)
 
   const payload = await getPayload({ config })
-  return (await findShare(payload, SHARE_BY_KIND[kind](key)))?.token ?? null
+  return (await findShare(payload, WORKER_LINK_SHARES[kind](key)))?.token ?? null
 }
 
 // Per kind: a worker unassigned from every etap who still holds only a report link must stay listed,

@@ -8,6 +8,8 @@ import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kos
 import { MenuItemBody } from '@/components/kosztorys/editor/actions/menu-item-body'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { useLatestRequest } from '@/hooks/use-latest-request'
+import { ensureWorkerLinkAction } from '@/lib/actions/kosztorys-worker-share'
+import { FRONTEND_URL } from '@/lib/env'
 import {
   readWorkerShareHolders,
   readWorkerShareToken,
@@ -15,8 +17,21 @@ import {
 import { readWorkerViewSettings } from '@/lib/queries/worker-view-settings-endpoint'
 import type { WorkerViewSettingsT } from '@/lib/kosztorys/worker-view/settings'
 import type { WorkerLinkKindT } from '@/lib/kosztorys/worker-view/types'
+import { copyToClipboardAsync } from '@/lib/utils/copy-to-clipboard'
 import { toastMessage } from '@/lib/utils/toast'
-import { workerPreviewSegment } from '@/lib/kosztorys/worker-view/name-slug'
+import {
+  workerPreviewSegment,
+  workerReportShareUrl,
+  workerShareUrl,
+} from '@/lib/kosztorys/worker-view/name-slug'
+
+// Carries an action's own error text past the promise chain, so the toast names what failed.
+class ShareLinkError extends Error {}
+
+const LINK_URL: Record<WorkerLinkKindT, typeof workerShareUrl> = {
+  rozpiska: workerShareUrl,
+  report: workerReportShareUrl,
+}
 
 export type WorkerShareTargetT = {
   id: number
@@ -84,18 +99,38 @@ export function useWorkerActions(): WorkerActionsT {
     setShareOpen(true)
     setShareToken(null)
     setShareLoaded(false)
-    void readWorkerShareToken({ investmentId, workerId: target.id }, target.kind)
-      .then((token) => {
-        if (isCurrent()) setShareToken(token)
-      })
-      .catch(() => {
-        if (!isCurrent()) return
-        toastMessage('Nie udało się sprawdzić linku', 'error')
-        setShareOpen(false)
-      })
-      .finally(() => {
-        if (isCurrent()) setShareLoaded(true)
-      })
+    const key = { investmentId, workerId: target.id }
+
+    function show(token: Promise<string | null>) {
+      void token
+        .then((next) => {
+          if (isCurrent()) setShareToken(next)
+        })
+        .catch((error: unknown) => {
+          if (!isCurrent()) return
+          toastMessage(
+            error instanceof ShareLinkError ? error.message : 'Nie udało się przygotować linku',
+            'error',
+          )
+          setShareOpen(false)
+        })
+        .finally(() => {
+          if (isCurrent()) setShareLoaded(true)
+        })
+    }
+
+    // A blocked worker's link opens only to be switched off, so it is read, never minted or copied.
+    if (target.blockReason !== undefined) return show(readWorkerShareToken(key, target.kind))
+
+    const token = ensureWorkerLinkAction(key, target.kind).then((result) => {
+      if (!result.success) throw new ShareLinkError(result.error)
+      return result.data
+    })
+    show(token)
+    copyToClipboardAsync(
+      token.then((next) => LINK_URL[target.kind](FRONTEND_URL, target.name, next)),
+      'Link skopiowany do schowka.',
+    )
   }
 
   function requestLinkHolders() {

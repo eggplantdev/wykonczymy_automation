@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { KosztorysActionsProvider } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
@@ -54,8 +54,10 @@ vi.mock('@/lib/queries/worker-share-link-endpoint', () => ({
   readWorkerShareToken,
   readWorkerShareHolders,
 }))
+const ensureWorkerLinkAction = vi.hoisted(() => vi.fn())
 const revokeWorkerShareLinkAction = vi.hoisted(() => vi.fn())
 vi.mock('@/lib/actions/kosztorys-worker-share', () => ({
+  ensureWorkerLinkAction,
   generateWorkerShareLinkAction: vi.fn(),
   revokeWorkerShareLinkAction,
 }))
@@ -66,12 +68,19 @@ vi.mock('@/lib/queries/worker-kosztorys-print-endpoint', () => ({ getWorkerKoszt
 // Rozpiska links only, unless a spec says otherwise.
 const holders = (rozpiska: number[], report: number[] = []) => ({ rozpiska, report })
 
+const writeText = vi.fn()
+
 beforeEach(() => {
+  writeText.mockResolvedValue(undefined)
+  Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
+  ensureWorkerLinkAction.mockResolvedValue({ success: true, data: 'tok-anna' })
   readWorkerShareToken.mockResolvedValue('tok-anna')
   readWorkerShareHolders.mockResolvedValue(holders([]))
   revokeWorkerShareLinkAction.mockResolvedValue({ success: true })
   getWorkerKosztorysPrintData.mockResolvedValue(null)
 })
+
+afterEach(() => vi.clearAllMocks())
 
 function renderMenu(role: RoleT = 'MANAGER') {
   render(
@@ -190,8 +199,8 @@ describe('KosztorysWorkersMenu', () => {
 
   // Showing „nie jest wydany" — or offering „Wygeneruj link", which rotates a live one — on a read
   // that failed would state something nobody checked.
-  it('closes the link dialog when the token cannot be read', async () => {
-    readWorkerShareToken.mockRejectedValue(new Error('offline'))
+  it('closes the link dialog when the link cannot be prepared', async () => {
+    ensureWorkerLinkAction.mockRejectedValue(new Error('offline'))
     renderMenu()
     await openMenu()
     await userEvent.click(linkItems()[0])
@@ -231,14 +240,39 @@ describe('KosztorysWorkersMenu', () => {
     expect(
       await within(dialog).findByDisplayValue(/\/p\/Anna-Nowak\/tok-anna$/),
     ).toBeInTheDocument()
-    expect(readWorkerShareToken).toHaveBeenCalledWith(
+    expect(ensureWorkerLinkAction).toHaveBeenCalledWith(
       { investmentId: INVESTMENT_ID, workerId: 10 },
       'rozpiska',
     )
   })
 
+  // Like the investor's „Udostępnij": the click is the hand-out, so the link lands in the clipboard.
+  it('copies a worker’s link on the click', async () => {
+    renderMenu()
+    await openMenu()
+    await userEvent.click(linkItems()[0])
+
+    await waitFor(() =>
+      expect(writeText).toHaveBeenCalledWith(expect.stringMatching(/\/p\/Anna-Nowak\/tok-anna$/)),
+    )
+  })
+
+  // A blocked holder's link opens only to be switched off — a copy would hand out a notice page.
+  it('neither mints nor copies a blocked holder’s link', async () => {
+    readWorkerShareHolders.mockResolvedValue(holders([20]))
+    readWorkerShareToken.mockResolvedValue('tok-bogdan')
+    renderMenu()
+    await openMenu()
+    await waitFor(() => expect(linkItems()[1]).not.toHaveAttribute('aria-disabled'))
+    await userEvent.click(linkItems()[1])
+
+    await screen.findByRole('dialog', { name: /Bogdan Kowal/ })
+    expect(ensureWorkerLinkAction).not.toHaveBeenCalled()
+    expect(writeText).not.toHaveBeenCalled()
+  })
+
   it('opens a worker’s report link on its own route', async () => {
-    readWorkerShareToken.mockResolvedValue('tok-report')
+    ensureWorkerLinkAction.mockResolvedValue({ success: true, data: 'tok-report' })
     renderMenu()
     await openMenu()
     await userEvent.click(reportLinkItems()[0])
@@ -247,9 +281,14 @@ describe('KosztorysWorkersMenu', () => {
     expect(
       await within(dialog).findByDisplayValue(/\/zgloszenie-prac\/Anna-Nowak\/tok-report$/),
     ).toBeInTheDocument()
-    expect(readWorkerShareToken).toHaveBeenCalledWith(
+    expect(ensureWorkerLinkAction).toHaveBeenCalledWith(
       { investmentId: INVESTMENT_ID, workerId: 10 },
       'report',
+    )
+    await waitFor(() =>
+      expect(writeText).toHaveBeenCalledWith(
+        expect.stringMatching(/\/zgloszenie-prac\/Anna-Nowak\/tok-report$/),
+      ),
     )
   })
 

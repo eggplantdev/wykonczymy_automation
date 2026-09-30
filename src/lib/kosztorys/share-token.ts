@@ -1,6 +1,7 @@
 import 'server-only'
 import { randomBytes } from 'node:crypto'
 import type { Payload } from 'payload'
+import type { WorkerLinkKindT } from '@/lib/kosztorys/worker-view/types'
 import type { ActionResultT } from '@/types/action'
 
 // 24 bytes ≈ 192 bits of entropy — the token IS the credential for an unauthenticated page, so it
@@ -28,6 +29,11 @@ export const workerReportShare = ({ investmentId, workerId }: WorkerShareKeyT): 
   collection: 'worker-report-shares',
   owner: { investment: investmentId, worker: workerId },
 })
+
+export const WORKER_LINK_SHARES: Record<WorkerLinkKindT, (key: WorkerShareKeyT) => ShareRowT> = {
+  rozpiska: workerShare,
+  report: workerReportShare,
+}
 
 export async function findShare(payload: Payload, row: ShareRowT) {
   const where = Object.fromEntries(

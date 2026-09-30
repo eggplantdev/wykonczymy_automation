@@ -376,6 +376,8 @@ or signed URLs, a separate decision.
 Pracownik / podwykonawca dostaje od ownera **imienny** widok kosztorysu inwestycji: link `/p/⟨nazwisko⟩/[token]`
 albo PDF, oba z menu „Pracownicy" w edytorze. Link i PDF generuje ADMIN / OWNER / MANAGER (jak u
 inwestora); ustawienia widoku pracownika są **jedne na firmę** i zapisuje je tylko ADMIN / OWNER.
+Kliknięcie „Link" / „Link do zgłoszeń" działa jak „Udostępnij" inwestora: oddaje żywy link albo
+wydaje nowy i kopiuje go do schowka — u pracownika zablokowanego tylko pokazuje link do wyłączenia.
 Część 2 (pracownik wpisuje ilości w swoich etapach) to osobna zmiana — link identyfikuje pracownika
 właśnie po to, żeby jej nie przepisywać.
 

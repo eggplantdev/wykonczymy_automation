@@ -1,33 +1,27 @@
 'use server'
 
 import { protectedAction } from '@/lib/actions/run-action'
-import { WORKER_SCOPE_BLOCK_MESSAGES } from '@/lib/kosztorys/worker-view/labels'
-import { resolveWorkerScope } from '@/lib/kosztorys/worker-view/scope'
-import {
-  deleteShare,
-  workerShare,
-  writeShareToken,
-  type WorkerShareKeyT,
-} from '@/lib/kosztorys/share-token'
-import { buildKosztorysTree } from '@/lib/queries/kosztorys'
+import { writeWorkerLink } from '@/lib/actions/write-worker-link'
+import { deleteShare, workerShare, type WorkerShareKeyT } from '@/lib/kosztorys/share-token'
+import type { WorkerLinkKindT } from '@/lib/kosztorys/worker-view/types'
 import type { ActionResultT } from '@/types/action'
 
-/**
- * Refused while that worker's scope is blocked: the menu disables
- * the button, but a stale menu (an etap's rozliczenie cleared in another tab) must not be able to
- * mint a link whose page could only ever show a notice.
- */
+// The menu's click, like the investor's „Udostępnij": a live link is handed back untouched.
+export async function ensureWorkerLinkAction(
+  key: WorkerShareKeyT,
+  kind: WorkerLinkKindT,
+): Promise<ActionResultT<string>> {
+  return protectedAction<string>('ensureWorkerLinkAction', ({ payload }) =>
+    writeWorkerLink(payload, key, kind, { rotate: false }),
+  )
+}
+
 export async function generateWorkerShareLinkAction(
   key: WorkerShareKeyT,
 ): Promise<ActionResultT<string>> {
-  return protectedAction<string>('generateWorkerShareLinkAction', async ({ payload }) => {
-    const tree = await buildKosztorysTree(key.investmentId)
-    const scope = resolveWorkerScope(tree.stages, key.workerId)
-    if (scope.kind === 'blocked') {
-      return { success: false, error: WORKER_SCOPE_BLOCK_MESSAGES[scope.reason] }
-    }
-    return writeShareToken(payload, workerShare(key), { rotate: true })
-  })
+  return protectedAction<string>('generateWorkerShareLinkAction', ({ payload }) =>
+    writeWorkerLink(payload, key, 'rozpiska', { rotate: true }),
+  )
 }
 
 export async function revokeWorkerShareLinkAction(key: WorkerShareKeyT): Promise<ActionResultT> {
