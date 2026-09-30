@@ -1,5 +1,6 @@
 import type { InvestmentFinancialsT } from '@/types/investment-financials'
 import type { SubcontractorSettlementT } from '@/lib/kosztorys/subcontractor-due'
+import { roundToCents } from '@/lib/utils/round-to-cents'
 
 /**
  * It stands BESIDE `calculateMargin`, which is untouched and still live on v1 — the investment card
@@ -20,17 +21,20 @@ import type { SubcontractorSettlementT } from '@/lib/kosztorys/subcontractor-due
  * figure would read high by an unknown amount. Zero would assert the work was free and a default
  * plane would guess what the owner has to pick anyway — so there is no figure until the etapy are
  * set. `null` rather than a flag beside the amount, so no caller can render the number by accident.
+ *
+ * Rounded here, not by each caller: the listing's `due` is a Postgres SUM and the investment page's a
+ * JS fold, so the unrounded figures differ by float residue and a half grosz could print two ways.
  */
 export function marginV2(
   financials: InvestmentFinancialsT,
   subcontractor: SubcontractorSettlementT,
 ): number | null {
   if (subcontractor.hasUnconfirmedPlane) return null
-  return (
+  return roundToCents(
     financials.totalLaborCosts -
-    financials.totalDiscount -
-    subcontractor.due -
-    financials.totalSettled -
-    financials.totalLoss
+      financials.totalDiscount -
+      subcontractor.due -
+      financials.totalSettled -
+      financials.totalLoss,
   )
 }

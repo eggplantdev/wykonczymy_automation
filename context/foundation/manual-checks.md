@@ -2910,3 +2910,9 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
 - [ ] Link pracownika → zgłoszenie prac → „Wyślij" offline: polski toast, szkic zostaje, przycisk wraca do „Wyślij".
 - [ ] Kosztorys → menu inwestora → „Udostępnij" offline (pierwszy raz dla tej inwestycji): toast „Brak połączenia z serwerem…", nic nie trafia do schowka, brak strony błędu.
 - [ ] „Wczytaj szablon…" i „Pobierz z arkusza Google…" → potwierdź offline: „…przerwane — odświeżam kosztorys", okno się zamyka; po powrocie sieci siatka pokazuje prawdziwy stan.
+
+## 2026-10-01 — marza-v2-half-grosz — lista i strona inwestycji pokazują tę samą marżę v2
+
+- [ ] Lista „Inwestycje" → kolumna „Marża v2" i „Pozostało do wypłaty" dla inwestycji, w której
+      kosztorys ma wykonane ilości z ułamkiem (np. 2,5 × stawka z groszami) → otwórz tę inwestycję:
+      marża v2 i „Pozostało" na stronie inwestycji są co do grosza równe tym z listy.

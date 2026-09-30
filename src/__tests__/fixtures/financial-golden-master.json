@@ -228,7 +228,7 @@
       "totalSettled": 0,
       "balance": 192225.55,
       "margin": 57362,
-      "marginV2": -650389.48,
+      "marginV2": -650389.47,
       "deposits": {
         "paidNet": 122508,
         "paidGrossNet": 175000,
@@ -495,7 +495,7 @@
       "totalSettled": 0,
       "balance": 0,
       "margin": 44733.1,
-      "marginV2": 36489.16,
+      "marginV2": 36489.17,
       "deposits": {
         "paidNet": 89212.47,
         "paidGrossNet": 0,
@@ -2521,7 +2521,7 @@
       "totalSettled": 0,
       "balance": -506.19,
       "margin": -296.5,
-      "marginV2": 13007.97,
+      "marginV2": 13007.98,
       "deposits": {
         "paidNet": 0,
         "paidGrossNet": 2962.96,
