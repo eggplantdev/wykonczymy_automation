@@ -624,15 +624,15 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 3.1 Cash-register trash actions DB spec passes
-- [x] 3.2 Cash-register trash SQL DB spec passes
-- [x] 3.3 Cash-register purge DB spec passes
-- [x] 3.4 Cron cleanup route spec passes with the new step
-- [x] 3.5 Investment trash specs still green after the constant move
+- [x] 3.1 Cash-register trash actions DB spec passes — ae8ec8e7
+- [x] 3.2 Cash-register trash SQL DB spec passes — ae8ec8e7
+- [x] 3.3 Cash-register purge DB spec passes — ae8ec8e7
+- [x] 3.4 Cron cleanup route spec passes with the new step — ae8ec8e7
+- [x] 3.5 Investment trash specs still green after the constant move — ae8ec8e7
 
 ### Phase 4: `/kosz` kinds, `/kasy` entry, owner-lock UI, docs
 
 #### Automated
 
-- [ ] 4.1 Trash DOM specs pass (kasa section, plain confirm, typed name kept for investments)
-- [ ] 4.2 Trash-rows query spec passes
+- [x] 4.1 Trash DOM specs pass (kasa section, plain confirm, typed name kept for investments)
+- [x] 4.2 Trash-rows query spec passes

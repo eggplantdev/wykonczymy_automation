@@ -4,34 +4,19 @@ import { useState, useTransition } from 'react'
 import { Input } from '@/components/ui/input'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
-import { deleteInvestmentForeverAction } from '@/lib/actions/investment-trash'
+import { TRASH_KINDS } from '@/components/trash/trash-kinds'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
+import type { TrashRowT } from '@/types/trash'
 
 type PropsT = {
-  investment: { id: number; name: string; isKosztorysUsed: boolean; isTemplate: boolean }
+  row: TrashRowT
   open: boolean
   onClose: () => void
 }
 
-const INVESTMENT_COPY = {
-  lost: 'kosztorys (pozycje i wersje), przypięcia zdjęć, link dla inwestora',
-  askReason: 'Kosztorys tej inwestycji jest w użyciu.',
-  nameLabel: 'Nazwa inwestycji',
-  deleted: 'Inwestycja usunięta na zawsze.',
-  failed: 'Nie udało się usunąć inwestycji',
-}
-
-const TEMPLATE_COPY = {
-  lost: 'sekcje, pozycje i wersje szablonu',
-  askReason: 'Kosztorysy założone z tego szablonu zostają bez zmian.',
-  nameLabel: 'Nazwa szablonu',
-  deleted: 'Szablon usunięty na zawsze.',
-  failed: 'Nie udało się usunąć szablonu',
-}
-
-export function DeleteForeverDialog({ investment, open, onClose }: PropsT) {
-  const copy = investment.isTemplate ? TEMPLATE_COPY : INVESTMENT_COPY
+export function DeleteForeverDialog({ row, open, onClose }: PropsT) {
+  const copy = TRASH_KINDS[row.kind]
   const [typedName, setTypedName] = useState('')
   const [pending, startTransition] = useTransition()
 
@@ -42,20 +27,23 @@ export function DeleteForeverDialog({ investment, open, onClose }: PropsT) {
 
   const onConfirm = () => {
     startTransition(async () => {
-      const res = await settleAction(() => deleteInvestmentForeverAction(investment.id, typedName))
+      const res = await settleAction(() => copy.deleteForever(row.id, typedName))
       if (!res.success) return toastMessage(res.error ?? copy.failed, 'error')
       toastMessage(copy.deleted, 'success')
       close()
     })
   }
 
-  const mustTypeName = investment.isKosztorysUsed || investment.isTemplate
-  if (!mustTypeName) {
+  if (!row.mustTypeName) {
     return (
       <ConfirmDialog
         open={open}
         title="Usunąć na zawsze?"
-        description={`„${investment.name}" zniknie bezpowrotnie, razem z: ${copy.lost}.`}
+        description={
+          copy.lost
+            ? `„${row.name}" zniknie bezpowrotnie, razem z: ${copy.lost}.`
+            : `„${row.name}" zniknie bezpowrotnie.`
+        }
         confirmLabel="Usuń na zawsze"
         onConfirm={onConfirm}
         onCancel={close}
@@ -63,14 +51,14 @@ export function DeleteForeverDialog({ investment, open, onClose }: PropsT) {
     )
   }
 
-  const nameMatches = typedName.trim() === investment.name.trim()
+  const nameMatches = typedName.trim() === row.name.trim()
 
   return (
     <FormDialogShell
       open={open}
       onOpenChange={(next) => !next && close()}
       title="Usunąć na zawsze?"
-      description={`${copy.askReason} Zniknie bezpowrotnie: ${copy.lost}. Wpisz nazwę „${investment.name}", żeby potwierdzić.`}
+      description={`${copy.askReason} Zniknie bezpowrotnie: ${copy.lost}. Wpisz nazwę „${row.name}", żeby potwierdzić.`}
       confirmLabel="Usuń na zawsze"
       onConfirm={onConfirm}
       confirmDisabled={!nameMatches}

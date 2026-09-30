@@ -31,7 +31,7 @@ type DeleteProbeT = {
 export type DeleteBlockerT = (
   payload: Payload,
   id: string | number,
-  req: PayloadRequest,
+  req?: PayloadRequest,
 ) => Promise<string | undefined>
 
 /**

@@ -9,6 +9,7 @@ import { EntityComboboxField } from '@/components/forms/form-fields'
 import { REGISTER_TYPE_LABELS } from '@/components/tables/cash-registers'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
+import { CASH_REGISTER_OWNER_LOCKED_MESSAGE } from '@/lib/constants/trash'
 import { cashRegisterFormSchema, type CashRegisterFormValuesT } from './cash-register-schema'
 import { useCashRegisterFormStore } from '@/stores/form-stores'
 import type { CashRegisterFormDataT } from './cash-register-schema'
@@ -29,6 +30,8 @@ type CashRegisterFormPropsT = {
   /** False on the edit dialogs — see `useManagedForm`. */
   persistDraft?: boolean
   workers: WorkerRefT[]
+  /** A kasa with live transactions keeps its owner — the server refuses the change too. */
+  isOwnerLocked?: boolean
 }
 
 export function CashRegisterForm({
@@ -42,6 +45,7 @@ export function CashRegisterForm({
   keepOpen,
   persistDraft,
   workers,
+  isOwnerLocked,
 }: CashRegisterFormPropsT) {
   // Mirrors what the collection allows a MANAGER to write: the type is forced to AUXILIARY and
   // `active` is admin/owner-only at field level, so showing either would be a control whose value
@@ -73,7 +77,12 @@ export function CashRegisterForm({
           {(field) => <field.Input label="Nazwa" placeholder="Nazwa kasy" showError />}
         </form.AppField>
 
-        <EntityComboboxField form={form} variant="owner" items={workers} />
+        <EntityComboboxField
+          form={form}
+          variant="owner"
+          items={workers}
+          lockedReason={isOwnerLocked ? CASH_REGISTER_OWNER_LOCKED_MESSAGE : undefined}
+        />
 
         {canSetTypeAndActive && (
           <>

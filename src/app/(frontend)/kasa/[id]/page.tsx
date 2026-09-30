@@ -1,4 +1,6 @@
 import { redirect, notFound } from 'next/navigation'
+import { getPayload } from 'payload'
+import config from '@payload-config'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { isAdminOrOwnerRole, isManagementRole, ROLES } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/utils/pagination'
@@ -6,6 +8,7 @@ import { parseTransferSort } from '@/lib/queries/transfer-sort'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { fetchRegisterBalances } from '@/lib/queries/balances'
 import { buildTransferFilters } from '@/lib/queries/transfer-filters'
+import { cashRegisterDeleteBlocker } from '@/lib/cash-registers/delete-blocker'
 import { perfStart } from '@/lib/perf'
 import { buildFilterConfig } from '@/lib/utils/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
@@ -60,9 +63,19 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
     ? (refData.workers.find((w) => w.id === register.ownerId)?.name ?? '—')
     : '—'
 
+  const isOwnerLocked =
+    isManager &&
+    (await cashRegisterDeleteBlocker(await getPayload({ config }), registerId)) !== undefined
+
   return (
     <PageWrapper title={register.name}>
-      {isManager && <EditCashRegisterDialog register={register} workers={refData.workers} />}
+      {isManager && (
+        <EditCashRegisterDialog
+          register={register}
+          workers={refData.workers}
+          isOwnerLocked={isOwnerLocked}
+        />
+      )}
       <InfoList items={[{ label: 'Właściciel', value: ownerName }]} />
       <SignedMoneyDisplay amount={registerBalance} />
 

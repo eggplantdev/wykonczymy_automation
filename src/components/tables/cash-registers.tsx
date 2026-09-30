@@ -3,6 +3,7 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import { BalanceCell } from '@/components/ui/balance-cell'
 import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
+import { TrashCashRegisterButton } from '@/components/cash-registers/trash-cash-register-button'
 import type { CashRegisterTypeT } from '@/types/reference-data'
 import type { CashRegisterRowT } from '@/types/table-rows'
 
@@ -57,6 +58,16 @@ export function getCashRegisterColumns(onToggle: (id: number, newActive: boolean
           activeLabel="Aktywna"
           inactiveLabel="Nieaktywna"
         />
+      ),
+    }),
+    col.display({
+      id: 'actions',
+      header: 'Akcje',
+      meta: { align: 'right' },
+      cell: (info) => (
+        <div className="flex items-center justify-end gap-1">
+          <TrashCashRegisterButton cashRegister={info.row.original} />
+        </div>
       ),
     }),
   ]
