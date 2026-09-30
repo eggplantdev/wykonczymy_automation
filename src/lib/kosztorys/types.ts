@@ -62,7 +62,6 @@ export type KosztorysItemT = {
 // on it (siatka, sufit, filtry, katalog) — they used to encode it as booleans and drifted.
 export type PriceSourceT = 'auto' | 'coeff' | 'amount'
 
-// Where „Nowa praca" lands: after the last praca of a sekcja, or directly above/below one praca.
 export type NewItemPlacementT =
   | { kind: 'end'; sectionId: number }
   | { kind: 'next-to'; anchorItemId: number; dir: InsertDirectionT }

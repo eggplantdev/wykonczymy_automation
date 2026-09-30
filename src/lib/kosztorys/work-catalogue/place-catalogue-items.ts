@@ -1,10 +1,9 @@
 import 'server-only'
 import type { DbExecutorT } from '@/lib/db/get-db'
-import { asViewPricing } from '@/lib/kosztorys/calc'
-import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import { insertItems } from '@/lib/kosztorys/insert-rows'
-import { checkSubcontractorPrice } from '@/lib/kosztorys/subcontractor-price-guard'
-import type { KosztorysItemT, KosztorysSectionT } from '@/lib/kosztorys/types'
+import { itemFromFields } from '@/lib/kosztorys/item-from-fields'
+import { ceilingWarnings } from '@/lib/kosztorys/subcontractor-price-guard'
+import type { KosztorysSectionT } from '@/lib/kosztorys/types'
 import type {
   AppendedCatalogueSliceT,
   WorkCatalogueItemT,
@@ -17,74 +16,6 @@ export type CataloguePlacementT = {
   section: KosztorysSectionT
   nextDisplayOrder: number
 }
-
-// What a praca is made of before it has a place: the cena and the pair of kolumny per płaszczyzna,
-// at most one of them set. A katalog entry and a praca typed into „Nowa praca" both reduce to this.
-export type ItemFieldsT = Pick<
-  KosztorysItemT,
-  | 'description'
-  | 'unit'
-  | 'clientPrice'
-  | 'wToolsOverrideValue'
-  | 'ownToolsOverrideValue'
-  | 'wToolsOverrideCoeff'
-  | 'ownToolsOverrideCoeff'
->
-
-export const itemFromFields = (
-  fields: ItemFieldsT,
-  sectionId: number,
-  displayOrder: number,
-): KosztorysItemT => ({
-  ...fields,
-  id: 0,
-  sectionId,
-  displayOrder,
-  plannedQty: 0,
-  sheetMeasuredQty: null,
-  discountType: null,
-  discountValue: 0,
-  note: null,
-})
-
-// Both sides model the stawka the same way — the same pair of kolumny, the same trzy źródła — so a
-// katalog „auto" stays „auto" and derives from THIS investment's global współczynnik, a kwota stała
-// arrives verbatim, and a mnożnik arrives as a mnożnik and re-prices itself off the cena j.m. it
-// lands on. Copying at most one column per płaszczyzna is what keeps the pair legal: two set columns
-// is the state `normalizeOverridePatch` exists to prevent.
-export const catalogueEntryAsItem = (
-  catalogueItem: WorkCatalogueItemT,
-  sectionId: number,
-  displayOrder: number,
-): KosztorysItemT =>
-  itemFromFields(
-    {
-      description: catalogueItem.description,
-      unit: catalogueItem.unit,
-      clientPrice: catalogueItem.clientPrice,
-      wToolsOverrideValue: catalogueItem.wToolsRate,
-      ownToolsOverrideValue: catalogueItem.ownToolsRate,
-      wToolsOverrideCoeff: catalogueItem.wToolsRateCoeff,
-      ownToolsOverrideCoeff: catalogueItem.ownToolsRateCoeff,
-    },
-    sectionId,
-    displayOrder,
-  )
-
-// The ceiling WARNS and does not block: a price the owner entered on purpose must not be refused by
-// the row it lands in, but he still gets told which praca crossed it.
-//
-// `asViewPricing` supplies zero globals, which is inert here: the guard judges a stawka this wiersz
-// authored, and neither of those two źródła reads a global — a kwota is frozen, a mnożnik prices off
-// the cena j.m. So it needs no investment context to reach its verdict.
-export const ceilingWarnings = (items: readonly KosztorysItemT[]): string[] =>
-  items.flatMap((item) => {
-    const pricing = asViewPricing(item)
-    const problems = TOOL_PLANES.flatMap(
-      (plane) => checkSubcontractorPrice(pricing, plane)?.message ?? [],
-    )
-    return problems.map((problem) => `„${item.description}": ${problem}`)
-  })
 
 /**
  * Write cennik pozycje into a sekcja starting at `nextDisplayOrder`. THE CALLER OWNS THE TRANSACTION.
@@ -101,7 +32,7 @@ export async function placeCatalogueItems(
 ): Promise<AppendedCatalogueSliceT> {
   const sectionId = placement.section.id
   const items = catalogueItems.map((catalogueItem, i) =>
-    catalogueEntryAsItem(catalogueItem, sectionId, placement.nextDisplayOrder + i),
+    itemFromFields(catalogueItem, sectionId, placement.nextDisplayOrder + i),
   )
   const warnings = ceilingWarnings(items)
 

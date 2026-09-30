@@ -63,7 +63,7 @@ export function applyRestoreItem(
   return [...rows.slice(0, at), row, ...rows.slice(at)]
 }
 
-// Splice a blank row into the display sequence just before or just after the anchor. Array position
+// Splice a row into the display sequence just before or just after the anchor. Array position
 // (not display_order) drives the unsorted grid render, so the row lands at the anchor's array index.
 // The server's tail shift needs no client mirror: no client code does arithmetic on display_order.
 export function applyInsertItem(

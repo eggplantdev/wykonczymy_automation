@@ -1,16 +1,12 @@
 'use client'
 
-import { toMoney } from '@/lib/utils/parse-decimal-input'
 import { useFieldValue } from '@/components/forms/hooks/use-field-value'
 import type { FormWithFieldT } from '@/components/forms/hooks/form-hooks'
 import { SelectItem } from '@/components/ui/select'
 import { PRICE_SOURCES } from '@/lib/kosztorys/constants'
 import { RATE_LABELS } from '@/lib/kosztorys/labels'
 import type { PriceSourceT } from '@/lib/kosztorys/types'
-import type { CatalogueRateT } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
-import type { RatePlaneValuesT } from './work-catalogue-item-schema'
-
-export type PlaneT = 'wTools' | 'ownTools'
+import type { PlaneT } from './work-catalogue-item-schema'
 
 export type RateFieldNameT = `${PlaneT}${'Source' | 'Rate' | 'Coeff'}`
 
@@ -18,17 +14,6 @@ const PLANE_LABEL = {
   wTools: RATE_LABELS.w_tools,
   ownTools: RATE_LABELS.own_tools,
 } as const
-
-// What gets stored for one płaszczyzna, derived from the źródło the owner picked: at most one of the
-// two kolumn carries a number, and „auto" carries neither. The form's own coeff/rate strings are
-// deliberately not both read — whichever field the unpicked źródło left behind is stale.
-export const rateColumns = (plane: PlaneT, value: RatePlaneValuesT): CatalogueRateT => {
-  const source = value[`${plane}Source`]
-  return {
-    rate: source === 'amount' ? toMoney(value[`${plane}Rate`]) : null,
-    coeff: source === 'coeff' ? toMoney(value[`${plane}Coeff`]) : null,
-  }
-}
 
 // The selector carries the plane's own name: with both on „auto" the two inputs are gone, so the
 // selectors are the only thing left to tell the planes apart.

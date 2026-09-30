@@ -5,12 +5,6 @@ import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import type { AddItemInputT } from '@/lib/actions/kosztorys'
 
-// „Nowa praca" from the dialog, against the REAL DB and asserting the PERSISTED rows: the fields land
-// in the override columns the rozpiska reads, an insert-at moves the tail, and the optional katalog
-// write shares the praca's transaction — a refusal writes neither, a thrown katalog write takes the
-// praca down with it.
-//
-// Same mock surface as the sibling action specs.
 const authState = vi.hoisted(() => ({ userId: 0 }))
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/require-auth', () => ({
@@ -184,7 +178,11 @@ describe.skipIf(!ENV_READY)('addItemAction — praca z okna (DB)', () => {
     const description = `Do katalogu ${suffix}`
 
     const result = await addItemAction(
-      atEnd(sectionId, { description, category: 'Łazienka' }, { mode: 'new', keepCatalogueCategory: true }),
+      atEnd(
+        sectionId,
+        { description, category: 'Łazienka' },
+        { mode: 'new', keepCatalogueCategory: true },
+      ),
     )
     expect(result.success).toBe(true)
 
@@ -202,7 +200,9 @@ describe.skipIf(!ENV_READY)('addItemAction — praca z okna (DB)', () => {
     const catalogue = { mode: 'new' as const, keepCatalogueCategory: true }
     await addItemAction(atEnd(sectionId, { description }, catalogue))
 
-    const result = await addItemAction(atEnd(sectionId, { description, clientPrice: 999 }, catalogue))
+    const result = await addItemAction(
+      atEnd(sectionId, { description, clientPrice: 999 }, catalogue),
+    )
     expect(result.success).toBe(false)
 
     expect(await itemsOf(sectionId)).toHaveLength(1)
@@ -215,7 +215,11 @@ describe.skipIf(!ENV_READY)('addItemAction — praca z okna (DB)', () => {
     const sectionId = await createSection()
     const description = `Nadpisywana ${suffix}`
     await addItemAction(
-      atEnd(sectionId, { description, category: 'Stara' }, { mode: 'new', keepCatalogueCategory: true }),
+      atEnd(
+        sectionId,
+        { description, category: 'Stara' },
+        { mode: 'new', keepCatalogueCategory: true },
+      ),
     )
     const [before] = await catalogueRows(description)
 
@@ -243,11 +247,19 @@ describe.skipIf(!ENV_READY)('addItemAction — praca z okna (DB)', () => {
     const sectionId = await createSection()
     const description = `Nowa kategoria ${suffix}`
     await addItemAction(
-      atEnd(sectionId, { description, category: 'Stara' }, { mode: 'new', keepCatalogueCategory: true }),
+      atEnd(
+        sectionId,
+        { description, category: 'Stara' },
+        { mode: 'new', keepCatalogueCategory: true },
+      ),
     )
 
     await addItemAction(
-      atEnd(sectionId, { description, category: 'Nowa' }, { mode: 'overwrite', keepCatalogueCategory: false }),
+      atEnd(
+        sectionId,
+        { description, category: 'Nowa' },
+        { mode: 'overwrite', keepCatalogueCategory: false },
+      ),
     )
 
     const [entry] = await catalogueRows(description)

@@ -11,7 +11,7 @@ import type { NewItemPlacementT } from '@/lib/kosztorys/types'
 // the dialog re-renders only this host, never the grid (EX-496). The editor hook reaches it through
 // a ref it owns, which this host fills.
 export function NewItemHost({ children }: { children: ReactNode }) {
-  const { rows, sections, workCatalogue, newItemDialogRef, placeNewItem } =
+  const { rows, sections, workCatalogue, newItemDialogRef, placeNewItem, recoverStaleTree } =
     useKosztorysEditorContext()
   const [placement, setPlacement] = useState<NewItemPlacementT | null>(null)
 
@@ -22,34 +22,31 @@ export function NewItemHost({ children }: { children: ReactNode }) {
     }
   }, [newItemDialogRef])
 
-  if (!placement) return children
-
   // Resolved at render, not at open: the toolbar's zero-sekcje path opens the dialog for a sekcja
   // that reaches context in the same render as the placement.
-  const sectionId =
-    placement.kind === 'end'
-      ? placement.sectionId
-      : rows.find((row) => row.id === placement.anchorItemId)?.sectionId
+  const anchorRow =
+    placement?.kind === 'next-to'
+      ? rows.find((row) => row.id === placement.anchorItemId)
+      : undefined
+  const sectionId = placement?.kind === 'end' ? placement.sectionId : anchorRow?.sectionId
   const sectionName =
     sections.find((section) => section.sectionId === sectionId)?.sectionName ?? DEFAULT_SECTION_NAME
-  const anchorDescription =
-    placement.kind === 'next-to'
-      ? (rows.find((row) => row.id === placement.anchorItemId)?.description ?? '')
-      : undefined
-  const kosztorysUnits = rows.flatMap((row) => (row.unit ? [row.unit] : []))
 
   return (
     <>
       {children}
-      <NewItemDialog
-        placement={placement}
-        sectionName={sectionName}
-        anchorDescription={anchorDescription}
-        workCatalogue={workCatalogue ?? []}
-        kosztorysUnits={kosztorysUnits}
-        onPlaced={placeNewItem}
-        onClose={() => setPlacement(null)}
-      />
+      {placement && (
+        <NewItemDialog
+          placement={placement}
+          sectionName={sectionName}
+          anchorDescription={anchorRow?.description ?? undefined}
+          workCatalogue={workCatalogue ?? []}
+          kosztorysUnits={rows.flatMap((row) => (row.unit ? [row.unit] : []))}
+          onPlaced={placeNewItem}
+          onStaleTree={recoverStaleTree}
+          onClose={() => setPlacement(null)}
+        />
+      )}
     </>
   )
 }

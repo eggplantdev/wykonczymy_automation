@@ -34,9 +34,8 @@ export const DEFAULT_COEFFS = { wTools: 0.65, ownTools: 0.5525 } as const
 export const DEFAULT_VAT = 0.08
 
 // Unit (j.m.) combobox: suggestions cover ~97% of the real data; the cell stays creatable, so any
-// custom unit is still enterable. DEFAULT_UNIT pre-fills every new item so no row lands blank.
+// custom unit is still enterable.
 export const UNIT_SUGGESTIONS = ['m²', 'szt', 'mb', 'kpl', 'pkt'] as const
-export const DEFAULT_UNIT = 'szt'
 
 // Placeholder name pre-filled on every new section — the single source. createSection writes it
 // server-side; the optimistic section meta mirrors it client-side.

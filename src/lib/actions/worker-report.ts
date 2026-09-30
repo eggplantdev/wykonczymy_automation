@@ -33,9 +33,9 @@ import type {
   KosztorysStageT,
   ToolPlaneT,
 } from '@/lib/kosztorys/types'
-import { catalogueEntryAsItem } from '@/lib/kosztorys/work-catalogue/place-catalogue-items'
+import { itemFromFields } from '@/lib/kosztorys/item-from-fields'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
-import { unitOptions } from '@/lib/kosztorys/worker-report/unit-options'
+import { unitOptions } from '@/lib/kosztorys/unit-options'
 import { resolveWorkerScope } from '@/lib/kosztorys/worker-view/scope'
 import type {
   AcceptReportInputT,
@@ -415,7 +415,7 @@ function extraAsItem(
 ): KosztorysItemT {
   const entry =
     extra.catalogueItemId === undefined ? undefined : catalogue.get(extra.catalogueItemId)
-  if (entry) return catalogueEntryAsItem(entry, section.id, displayOrder)
+  if (entry) return itemFromFields(entry, section.id, displayOrder)
   return {
     id: 0,
     sectionId: section.id,

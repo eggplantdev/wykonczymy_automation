@@ -45,8 +45,8 @@ type UseManagedFormArgsT<TValues, TData> = {
    */
   confirmBeforeSubmit?: (values: TValues) => SubmitConfirmCopyT | null
   /**
-   * The general form of the gate above, for a question the caller asks with its own UI: resolving
-   * `false` returns to the form with nothing sent. Runs after `confirmBeforeSubmit`.
+   * A gate whose question the caller renders with its own UI: resolving `false` returns to the form
+   * with nothing sent. Runs after `confirmBeforeSubmit`.
    */
   beforeSubmit?: (values: TValues) => Promise<boolean>
   /**

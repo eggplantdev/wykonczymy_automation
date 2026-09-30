@@ -1,8 +1,8 @@
-import { priceSourceOf, subcontractorPrice } from '@/lib/kosztorys/calc'
-import { DEFAULT_COEFFS } from '@/lib/kosztorys/constants'
+import { asViewPricing, priceSourceOf, subcontractorPrice } from '@/lib/kosztorys/calc'
+import { DEFAULT_COEFFS, TOOL_PLANES } from '@/lib/kosztorys/constants'
 import type { CellVerdictT } from '@/lib/kosztorys/cell-edit'
 import { formatCoeff, formatNet } from '@/lib/kosztorys/format'
-import type { ToolPlaneT, ViewPricingT } from '@/lib/kosztorys/types'
+import type { KosztorysItemT, ToolPlaneT, ViewPricingT } from '@/lib/kosztorys/types'
 
 /**
  * The company's floor on its own cut: a crew may be paid at most this share of the client price. A
@@ -162,3 +162,21 @@ export function checkSubcontractorPrice(row: ViewPricingT, view: ToolPlaneT): Ce
     message: `Cena wykonawcy przekracza ${clientShareCeilingLabel(view)} ceny dla inwestora (maks. ${formatNet(maxSubcontractorPrice(row, view))}).`,
   }
 }
+
+// The ceiling WARNS and does not block: a price the owner entered on purpose must not be refused by
+// the row it lands in, but he still gets told which praca crossed it.
+//
+// `asViewPricing` supplies zero globals, which is inert here: the guard judges a stawka this wiersz
+// authored, and neither of those two źródła reads a global — a kwota is frozen, a mnożnik prices off
+// the cena j.m. So it needs no investment context to reach its verdict.
+//
+// A Set per praca because the negative-price sentence does not name the płaszczyzna: both below zero
+// would otherwise toast the same line twice.
+export const ceilingWarnings = (items: readonly KosztorysItemT[]): string[] =>
+  items.flatMap((item) => {
+    const pricing = asViewPricing(item)
+    const problems = new Set(
+      TOOL_PLANES.flatMap((plane) => checkSubcontractorPrice(pricing, plane)?.message ?? []),
+    )
+    return [...problems].map((problem) => `„${item.description}": ${problem}`)
+  })

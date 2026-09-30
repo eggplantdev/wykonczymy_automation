@@ -1,10 +1,7 @@
 'use client'
 
-import { toMoney } from '@/lib/utils/parse-decimal-input'
 import { FieldGroup } from '@/components/ui/field'
-import { Combobox } from '@/components/ui/combobox'
 import { useManagedForm } from '@/components/forms/hooks/use-managed-form'
-import FormBase from '@/components/forms/form-components/form-base'
 import { FormShell } from '@/components/forms/form-components/form-shell'
 import FormFooter from '@/components/forms/form-components/form-footer'
 import { UNIT_SUGGESTIONS } from '@/lib/kosztorys/constants'
@@ -12,11 +9,13 @@ import { PRICE_SOURCE_LABELS } from '@/lib/kosztorys/labels'
 import type { PriceSourceT } from '@/lib/kosztorys/types'
 import { useWorkCatalogueItemFormStore } from '@/stores/form-stores'
 import {
+  catalogueFigures,
   workCatalogueItemFormSchema,
   type WorkCatalogueItemDataT,
   type WorkCatalogueItemFormValuesT,
 } from './work-catalogue-item-schema'
-import { RateField, rateColumns } from './rate-fields'
+import { RateField } from './rate-fields'
+import { CreatableComboboxField } from './creatable-combobox-field'
 import type { ActionResultT } from '@/types/action'
 
 type WorkCatalogueItemFormPropsT = {
@@ -41,9 +40,6 @@ const SOURCE_OPTION_LABELS: Record<PriceSourceT, string> = {
   auto: 'auto — ze współczynnika inwestycji, do której praca trafi',
 }
 
-// Matches `Input`, so the two comboboxes read as fields you can type into rather than as captions.
-const COMBOBOX_FIELD = 'border-input bg-background h-9 w-full rounded-md border px-3'
-
 export function WorkCatalogueItemForm({
   formId,
   defaultValues,
@@ -66,20 +62,12 @@ export function WorkCatalogueItemForm({
     onSubmitSuccess,
     action,
     persistDraft,
-    toData: (value) => {
-      const wTools = rateColumns('wTools', value)
-      const ownTools = rateColumns('ownTools', value)
-      return {
-        description: value.description,
-        category: value.category,
-        unit: value.unit,
-        clientPrice: toMoney(value.clientPrice),
-        wToolsRate: wTools.rate,
-        wToolsRateCoeff: wTools.coeff,
-        ownToolsRate: ownTools.rate,
-        ownToolsRateCoeff: ownTools.coeff,
-      }
-    },
+    toData: (value) => ({
+      description: value.description,
+      category: value.category,
+      unit: value.unit,
+      ...catalogueFigures(value),
+    }),
   })
 
   return (
@@ -92,37 +80,11 @@ export function WorkCatalogueItemForm({
         </form.AppField>
 
         <form.AppField name="category">
-          {(field) => (
-            <FormBase label="Kategoria" showError>
-              <Combobox
-                value={field.state.value}
-                onChange={field.handleChange}
-                options={categorySuggestions}
-                allowCustom
-                modal
-                className={COMBOBOX_FIELD}
-                contentClassName="w-(--radix-popover-trigger-width)"
-                placeholder="Wybierz lub wpisz nową…"
-              />
-            </FormBase>
-          )}
+          {() => <CreatableComboboxField label="Kategoria" options={categorySuggestions} />}
         </form.AppField>
 
         <form.AppField name="unit">
-          {(field) => (
-            <FormBase label="j.m." showError>
-              <Combobox
-                value={field.state.value}
-                onChange={field.handleChange}
-                options={UNIT_SUGGESTIONS}
-                allowCustom
-                modal
-                className={COMBOBOX_FIELD}
-                contentClassName="w-(--radix-popover-trigger-width)"
-                placeholder="Wybierz lub wpisz nową…"
-              />
-            </FormBase>
-          )}
+          {() => <CreatableComboboxField label="j.m." options={UNIT_SUGGESTIONS} />}
         </form.AppField>
 
         <form.AppField name="clientPrice">

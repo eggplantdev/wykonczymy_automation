@@ -9,7 +9,11 @@ import { saveItemToCatalogueAction } from '@/lib/actions/work-catalogue'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import { useCatalogueSavePreview } from './use-catalogue-save-preview'
-import { categoriesDiffer, overwriteSentence, PriceList } from './catalogue-overwrite-prices'
+import {
+  categoriesDiffer,
+  overwriteSentence,
+} from '@/lib/kosztorys/work-catalogue/catalogue-overwrite-text'
+import { PriceList } from './catalogue-overwrite-prices'
 
 // „Zapisz do katalogu…" from the row menu. Every figure comes from the server preview — the same
 // derivation the save itself runs — so what the dialog shows is what lands in the cennik.

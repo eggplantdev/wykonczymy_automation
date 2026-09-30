@@ -12,10 +12,13 @@ const FORM_ID = 'new-item'
 
 type LandingT = { placement: NewItemPlacementT; anchorDescription?: string }
 
-const describeLanding = ({ placement, anchorDescription }: LandingT, sectionName: string) =>
-  placement.kind === 'end'
-    ? `Praca trafi na koniec sekcji „${sectionName}".`
-    : `Praca trafi ${placement.dir === 'above' ? 'nad' : 'pod'} „${anchorDescription ?? ''}".`
+function describeLanding({ placement, anchorDescription }: LandingT, sectionName: string) {
+  if (placement.kind === 'end') return `Praca trafi na koniec sekcji „${sectionName}".`
+  const side = placement.dir === 'above' ? 'nad' : 'pod'
+  return anchorDescription
+    ? `Praca trafi ${side} „${anchorDescription}".`
+    : `Praca trafi ${side} pracę bez opisu.`
+}
 
 // With „Nie zamykaj po zapisaniu" the next praca lands under the one just saved, so a run of pracy
 // typed in a row keeps its order. An end-of-sekcja placement already does that by itself.
@@ -27,10 +30,7 @@ const nextLanding = (landing: LandingT, saved: KosztorysItemT): LandingT =>
         anchorDescription: saved.description ?? '',
       }
 
-/**
- * „Nowa praca" — a praca is created filled, from a form, instead of as a blank row to be typed into.
- * Mounted only while a placement is chosen; the host owns that choice.
- */
+// Mounted only while a placement is chosen; the host owns that choice.
 export function NewItemDialog({
   placement,
   sectionName,
@@ -38,6 +38,7 @@ export function NewItemDialog({
   workCatalogue,
   kosztorysUnits,
   onPlaced,
+  onStaleTree,
   onClose,
 }: {
   placement: NewItemPlacementT
@@ -46,6 +47,7 @@ export function NewItemDialog({
   workCatalogue: readonly WorkCatalogueItemT[]
   kosztorysUnits: readonly string[]
   onPlaced: (item: KosztorysItemT, placement: NewItemPlacementT) => void
+  onStaleTree: () => void
   onClose: () => void
 }) {
   const [landing, setLanding] = useState<LandingT>({ placement, anchorDescription })
@@ -64,8 +66,6 @@ export function NewItemDialog({
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
         <DialogHeader title="Nowa praca" description={describeLanding(landing, sectionName)} />
-        {/* `DialogContent` is a `gap-4` column, so this only tops the gap up to the 24px every other
-            form dialog puts between its nagłówek and the first field. */}
         <div className="mt-2">
           <NewItemForm
             formId={FORM_ID}
@@ -78,6 +78,11 @@ export function NewItemDialog({
               if (result.success) {
                 onPlaced(result.data.item, landing.placement)
                 setLanding(nextLanding(landing, result.data.item))
+              } else if (result.code === 'NOT_FOUND') {
+                // The anchor praca was deleted in another tab: every retry would fail the same way
+                // until the grid reseeds.
+                onStaleTree()
+                onClose()
               }
               return result
             }}

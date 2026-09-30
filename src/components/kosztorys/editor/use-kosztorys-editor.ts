@@ -1425,6 +1425,7 @@ export function useKosztorysEditor({
     handleAddItem,
     placeNewItem,
     newItemDialogRef,
+    recoverStaleTree,
     handleAddSection,
     handleAppendedSections,
     handleAppendedCatalogueItems,

@@ -36,6 +36,7 @@ const savedItem = (input: AddItemInputT) =>
 
 function renderDialog(placement: NewItemPlacementT = { kind: 'end', sectionId: 3 }) {
   const onPlaced = vi.fn()
+  const onStaleTree = vi.fn()
   const onClose = vi.fn()
   render(
     <NewItemDialog
@@ -45,6 +46,7 @@ function renderDialog(placement: NewItemPlacementT = { kind: 'end', sectionId: 3
       workCatalogue={[CATALOGUE_ENTRY]}
       kosztorysUnits={[]}
       onPlaced={onPlaced}
+      onStaleTree={onStaleTree}
       onClose={onClose}
     />,
   )
@@ -64,7 +66,7 @@ function renderDialog(placement: NewItemPlacementT = { kind: 'end', sectionId: 3
     user.click(screen.getByRole('checkbox', { name: 'Dodaj pracę do katalogu prac' }))
   const save = () => user.click(screen.getByRole('button', { name: 'Dodaj' }))
 
-  return { user, onPlaced, onClose, typeInto, fill, tickCatalogue, save }
+  return { user, onPlaced, onStaleTree, onClose, typeInto, fill, tickCatalogue, save }
 }
 
 beforeEach(() => {
@@ -122,6 +124,36 @@ describe('NewItemDialog — kategoria', () => {
     await waitFor(() => expect(action).toHaveBeenCalledTimes(1))
     expect(sent(0).catalogue).toEqual({ mode: 'new', keepCatalogueCategory: true })
     expect(sent(0).data.category).toBe('Łazienka')
+  })
+})
+
+describe('NewItemDialog — anchor praca gone', () => {
+  it('hands a NOT_FOUND to the stale-tree recovery and closes', async () => {
+    action.mockResolvedValueOnce({ success: false, error: 'Nie znaleziono.', code: 'NOT_FOUND' })
+    const { fill, save, onStaleTree, onClose, onPlaced } = renderDialog({
+      kind: 'next-to',
+      anchorItemId: 5,
+      dir: 'below',
+    })
+
+    await fill('Nowa praca testowa')
+    await save()
+
+    await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1))
+    expect(onStaleTree).toHaveBeenCalledTimes(1)
+    expect(onPlaced).not.toHaveBeenCalled()
+  })
+
+  it('keeps the dialog open on any other failure', async () => {
+    action.mockResolvedValueOnce({ success: false, error: 'Błąd zapisu.' })
+    const { fill, save, onStaleTree, onClose } = renderDialog()
+
+    await fill('Nowa praca testowa')
+    await save()
+
+    await waitFor(() => expect(action).toHaveBeenCalledTimes(1))
+    expect(onStaleTree).not.toHaveBeenCalled()
+    expect(onClose).not.toHaveBeenCalled()
   })
 })
 

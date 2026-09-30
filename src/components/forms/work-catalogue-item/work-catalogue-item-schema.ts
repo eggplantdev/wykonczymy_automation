@@ -4,8 +4,9 @@ import { RATE_LABELS } from '@/lib/kosztorys/labels'
 import {
   catalogueSourceOf,
   type CatalogueRateColumnsT,
+  type CatalogueRateT,
 } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
-import { parseDecimalInput } from '@/lib/utils/parse-decimal-input'
+import { parseDecimalInput, toMoney } from '@/lib/utils/parse-decimal-input'
 
 // A blank „Cena j.m." must be refused HERE rather than by the domain schema below: `Number('')` is 0,
 // so it would otherwise save a 0 zł pozycja — and a 0 zł cena also silences the ceiling for that
@@ -94,6 +95,30 @@ export const workCatalogueItemFormSchema = workCatalogueItemBaseSchema.superRefi
 
 const text = (value: number | null): string => value?.toString() ?? ''
 
+export type PlaneT = 'wTools' | 'ownTools'
+
+// Only the picked źródło's field is read: whatever the unpicked one left behind is stale.
+const rateColumns = (plane: PlaneT, value: RatePlaneValuesT): CatalogueRateT => {
+  const source = value[`${plane}Source`]
+  return {
+    rate: source === 'amount' ? toMoney(value[`${plane}Rate`]) : null,
+    coeff: source === 'coeff' ? toMoney(value[`${plane}Coeff`]) : null,
+  }
+}
+
+// „Co formularz pokazuje" → „co katalog trzyma"; `rateFormValues` is the way back.
+export const catalogueFigures = (value: RatePlaneValuesT & { clientPrice: string }) => {
+  const wTools = rateColumns('wTools', value)
+  const ownTools = rateColumns('ownTools', value)
+  return {
+    clientPrice: toMoney(value.clientPrice),
+    wToolsRate: wTools.rate,
+    wToolsRateCoeff: wTools.coeff,
+    ownToolsRate: ownTools.rate,
+    ownToolsRateCoeff: ownTools.coeff,
+  }
+}
+
 /**
  * „Co katalog trzyma" → „co formularz pokazuje", in one place so the trzy dialogi opening this form
  * cannot each decode the pair of kolumn their own way.
@@ -108,6 +133,19 @@ export const rateFormValues = (item: CatalogueRateColumnsT) => ({
 })
 
 export type WorkCatalogueItemFormValuesT = z.infer<typeof workCatalogueItemFormSchema>
+
+export const EMPTY_CATALOGUE_ITEM_VALUES: WorkCatalogueItemFormValuesT = {
+  description: '',
+  category: '',
+  unit: '',
+  clientPrice: '',
+  wToolsSource: 'auto',
+  wToolsRate: '',
+  wToolsCoeff: '',
+  ownToolsSource: 'auto',
+  ownToolsRate: '',
+  ownToolsCoeff: '',
+}
 
 const money = (label: string) =>
   z.number({ message: `${label} musi być liczbą` }).min(0, `${label} nie może być ujemna`)

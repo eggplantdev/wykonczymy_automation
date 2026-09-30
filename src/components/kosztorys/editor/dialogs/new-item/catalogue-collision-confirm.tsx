@@ -13,9 +13,9 @@ import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 import {
   categoriesDiffer,
   overwriteSentence,
-  PriceList,
   type CataloguePricesT,
-} from '@/components/kosztorys/editor/dialogs/catalogue/catalogue-overwrite-prices'
+} from '@/lib/kosztorys/work-catalogue/catalogue-overwrite-text'
+import { PriceList } from '@/components/kosztorys/editor/dialogs/catalogue/catalogue-overwrite-prices'
 
 export type CollisionChoiceT =
   | { kind: 'overwrite'; keepCatalogueCategory: boolean }

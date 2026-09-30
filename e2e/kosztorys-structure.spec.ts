@@ -49,9 +49,6 @@ test.beforeAll(async ({ browser }) => {
   await refreshReferenceData(browser)
 })
 
-// The rozpiska as the grid renders it, top to bottom: „# nazwa" for a section band, the praca's opis
-// for an item row — so a freshly added one shows up under the opis typed into „Nowa praca".
-//
 // Rows are told apart by what they CARRY, not by index: a band holds its name in an input (the
 // inline rename), an item row is the only kind with an „Akcje wiersza" trigger, and the „Razem"
 // footers, the spacer and the grand total have neither. The opis column is located through the

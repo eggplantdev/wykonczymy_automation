@@ -6,7 +6,6 @@ import { investmentAction } from '@/lib/actions/investment-action'
 import { validateAction } from '@/lib/actions/run-action'
 import { KOSZTORYS_TREE_TAGS } from '@/lib/cache/tags'
 import { getDb, type DbExecutorT } from '@/lib/db/get-db'
-import { investmentGateForRow } from '@/lib/db/investment-gate'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { cleanItemTexts } from '@/lib/kosztorys/clean-item-texts'
@@ -15,20 +14,14 @@ import { getItemTexts, setItemTexts } from '@/lib/db/kosztorys-item-texts'
 import { createSection, type CreatedSectionT } from '@/lib/kosztorys/create-section'
 import { sectionOwnerAndNextItemOrder } from '@/lib/kosztorys/create-item'
 import { insertItems } from '@/lib/kosztorys/insert-rows'
-import {
-  ceilingWarnings,
-  itemFromFields,
-} from '@/lib/kosztorys/work-catalogue/place-catalogue-items'
+import { itemFromFields } from '@/lib/kosztorys/item-from-fields'
+import { ceilingWarnings } from '@/lib/kosztorys/subcontractor-price-guard'
 import {
   applyCatalogueWrite,
   catalogueRow,
   resolveCatalogueWrite,
-  type CatalogueWriteModeT,
 } from '@/lib/kosztorys/work-catalogue/write-catalogue-entry'
-import {
-  workCatalogueItemSchema,
-  type WorkCatalogueItemDataT,
-} from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
+import { workCatalogueItemSchema } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
 import {
   insertDirectionSchema,
   moveOrderSchema,
@@ -465,11 +458,7 @@ const addItemSchema = z.object({
     .nullable(),
 })
 
-export type AddItemInputT = {
-  placement: NewItemPlacementT
-  data: WorkCatalogueItemDataT
-  catalogue: { mode: CatalogueWriteModeT; keepCatalogueCategory: boolean } | null
-}
+export type AddItemInputT = z.infer<typeof addItemSchema>
 
 const EMPTY_ITEM_TEXT_ERROR = 'Praca musi mieć opis i jednostkę miary.'
 
@@ -478,31 +467,21 @@ const EMPTY_ITEM_TEXT_ERROR = 'Praca musi mieć opis i jednostkę miary.'
 async function resolveNewItemSlot(
   db: DbExecutorT,
   placement: NewItemPlacementT,
-): Promise<{ investmentId: number; sectionId: number; displayOrder: number } | { error: string }> {
+): Promise<{ sectionId: number; displayOrder: number } | { error: string }> {
   if (placement.kind === 'end') {
     const owner = await sectionOwnerAndNextItemOrder(db, placement.sectionId)
     if (!owner) return { error: SECTION_MISSING }
-    return {
-      investmentId: owner.investmentId,
-      sectionId: placement.sectionId,
-      displayOrder: owner.nextDisplayOrder,
-    }
+    return { sectionId: placement.sectionId, displayOrder: owner.nextDisplayOrder }
   }
   const slot = await resolveInsertSlot(db, 'kosztorys-items', placement.anchorItemId, placement.dir)
   if (!slot) return { error: ITEM_MISSING }
-  // Only the investment is needed here — the slot is already resolved, so the append-position
-  // aggregate `sectionOwnerAndNextItemOrder` would compute is dead weight held under the
-  // section-wide lock.
-  const owner = (await investmentGateForRow(db, 'section', slot.ownerId))?.investmentId
-  if (owner == null) return { error: SECTION_MISSING }
   await shiftDisplayOrderFrom(db, 'kosztorys-items', slot.ownerId, slot.at)
-  return { investmentId: owner, sectionId: slot.ownerId, displayOrder: slot.at }
+  return { sectionId: slot.ownerId, displayOrder: slot.at }
 }
 
 /**
- * „Nowa praca": a praca with the fields typed into the dialog, at the placement, and — when the owner
- * ticked „Dodaj pracę do katalogu prac" — the katalog entry in the SAME transaction, so a failed
- * katalog write takes the praca down with it rather than leaving half of what was asked for.
+ * The katalog entry rides the praca's transaction, so a failed katalog write takes the praca down
+ * with it rather than leaving half of what was asked for.
  *
  * `'workCatalogue'` is revalidated unconditionally: the collection's own hook is silenced by
  * `skipRevalidation`, and a static list cannot say „only when written" — one extra tag expiry on a
@@ -519,21 +498,13 @@ export async function addItemAction(
   return investmentAction(
     'addItemAction',
     target,
-    async ({ payload }) => {
+    async ({ payload, investmentId }) => {
       const parsed = validateAction(addItemSchema, input)
       if (!parsed.success) return parsed
       const { placement, data, catalogue } = parsed.data
 
-      const fields = {
-        description: data.description.trim(),
-        unit: data.unit.trim(),
-        clientPrice: data.clientPrice,
-        wToolsOverrideValue: data.wToolsRate,
-        ownToolsOverrideValue: data.ownToolsRate,
-        wToolsOverrideCoeff: data.wToolsRateCoeff,
-        ownToolsOverrideCoeff: data.ownToolsRateCoeff,
-      }
-      if (!fields.description || !fields.unit) {
+      const row = catalogueRow(data)
+      if (!row.description || !row.unit) {
         return { success: false, error: EMPTY_ITEM_TEXT_ERROR }
       }
 
@@ -544,32 +515,26 @@ export async function addItemAction(
 
           // Before the first write: a returned failure still commits, so a refusal found after the
           // insert would leave the praca in without the katalog entry the owner asked for.
-          const candidate = catalogue ? catalogueRow(data) : null
-          const resolved =
-            candidate && catalogue
-              ? await resolveCatalogueWrite(txDb, candidate.matchKey, catalogue.mode)
-              : null
-          if (resolved && 'error' in resolved) return { success: false, error: resolved.error }
+          let catalogueWrite: Parameters<typeof applyCatalogueWrite>[2] | null = null
+          if (catalogue) {
+            const resolved = await resolveCatalogueWrite(txDb, row.matchKey, catalogue.mode)
+            if ('error' in resolved) return { success: false, error: resolved.error }
+            catalogueWrite = {
+              candidate: row,
+              existing: resolved.existing,
+              keepCatalogueCategory: catalogue.keepCatalogueCategory,
+            }
+          }
 
           const slot = await resolveNewItemSlot(txDb, placement)
           if ('error' in slot) return { success: false, error: slot.error }
 
-          const item = itemFromFields(fields, slot.sectionId, slot.displayOrder)
-          const [id] = await insertItems(txDb, slot.investmentId, [
-            { sectionId: slot.sectionId, item },
-          ])
+          const item = itemFromFields(row, slot.sectionId, slot.displayOrder)
+          const [id] = await insertItems(txDb, investmentId, [{ sectionId: slot.sectionId, item }])
 
-          if (candidate && catalogue && resolved) {
-            await applyCatalogueWrite(payload, req, {
-              candidate,
-              existing: resolved.existing,
-              keepCatalogueCategory: catalogue.keepCatalogueCategory,
-            })
-          }
+          if (catalogueWrite) await applyCatalogueWrite(payload, req, catalogueWrite)
 
-          // A Set because the guard's sentence does not name the płaszczyzna: both over the ceiling
-          // would otherwise toast the same line twice.
-          const warnings = [...new Set(ceilingWarnings([item]))]
+          const warnings = ceilingWarnings([item])
           return {
             success: true,
             data: { item: { ...item, id } },
