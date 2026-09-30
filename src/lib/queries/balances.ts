@@ -140,6 +140,6 @@ export const fetchWorkerPayoutPairs = unstable_cache(
     console.log(`[PERF] query.fetchWorkerPayoutPairs ${elapsed()}ms (${rows.length} pairs)`)
     return rows
   },
-  ['worker-payout-pairs-v1'],
+  ['worker-payout-pairs-v2'],
   { tags: [...KOSZTORYS_CLIENT_TOTALS_TAGS, CACHE_TAGS.transfers] },
 )

@@ -6,6 +6,7 @@ import { getPayoutTransactionsForInvestment } from '@/lib/db/get-payout-transact
 import { selectKosztorysSubcontractorDue } from '@/lib/db/kosztorys-subcontractor-due'
 import { sumAllInvestmentFinancials } from '@/lib/db/sum-transfers'
 import { selectWorkerPayoutPairs } from '@/lib/db/worker-payout-pairs'
+import type { StageSplitT } from '@/lib/kosztorys/types'
 import type { WorkerPayoutPairRowT } from '@/lib/kosztorys/worker-payout-pairs'
 import {
   LOCKED_INVESTMENT_STATUS,
@@ -51,8 +52,18 @@ describe.skipIf(!ENV_READY)('selectWorkerPayoutPairs (DB)', () => {
 
   // clean: two workers on settled etapy, an unassigned etap, a worker-less wypłata and a worker paid
   // with no etap there. withheld: worker b also holds a plane-less etap with work on it.
-  // locked: a zakończona inwestycja. The last three must not appear at all.
-  const created = { clean: 0, withheld: 0, locked: 0, template: 0, trashed: 0, bare: 0 }
+  // locked: a zakończona inwestycja. split: etapy shared by percent, by amount, and by an amount the
+  // pool no longer covers. splitWithheld: a plane-less shared etap. The last three must not appear.
+  const created = {
+    clean: 0,
+    withheld: 0,
+    locked: 0,
+    split: 0,
+    splitWithheld: 0,
+    template: 0,
+    trashed: 0,
+    bare: 0,
+  }
 
   async function payout(
     investmentId: number | null,
@@ -72,7 +83,11 @@ describe.skipIf(!ENV_READY)('selectWorkerPayoutPairs (DB)', () => {
   }
 
   const settledTree = (
-    stages: { plane: 'w_tools' | 'own_tools' | null; worker: number | null }[],
+    stages: {
+      plane: 'w_tools' | 'own_tools' | null
+      worker?: number | null
+      split?: StageSplitT
+    }[],
   ) => ({
     sections: [{ name: 'Sekcja A', items: ITEMS }],
     stages: stages.map((stage, index) => ({ label: `Etap ${index + 1}`, ...stage })),
@@ -134,6 +149,51 @@ describe.skipIf(!ENV_READY)('selectWorkerPayoutPairs (DB)', () => {
       ]),
     )
     await payout(created.withheld, worker.b, 300)
+
+    const rest = (workerId: number) => ({ workerId, value: 0, takesRest: true })
+    await createKosztorysTree(
+      payload,
+      created.split,
+      settledTree([
+        {
+          plane: 'w_tools',
+          split: {
+            mode: 'percent',
+            members: [{ workerId: worker.a, value: 40, takesRest: false }, rest(worker.b)],
+          },
+        },
+        {
+          plane: 'own_tools',
+          split: {
+            mode: 'amount',
+            members: [{ workerId: worker.b, value: 50, takesRest: false }, rest(worker.c)],
+          },
+        },
+        {
+          plane: 'w_tools',
+          split: {
+            mode: 'amount',
+            members: [{ workerId: worker.c, value: 99999, takesRest: false }, rest(worker.a)],
+          },
+        },
+      ]),
+    )
+    await payout(created.split, worker.b, 120)
+
+    await createKosztorysTree(
+      payload,
+      created.splitWithheld,
+      settledTree([
+        { plane: 'w_tools', worker: worker.b },
+        {
+          plane: null,
+          split: {
+            mode: 'percent',
+            members: [{ workerId: worker.a, value: 50, takesRest: false }, rest(worker.c)],
+          },
+        },
+      ]),
+    )
 
     // Trees are written while the investment is still active — a zakończona or szablon refuses them.
     for (const key of ['locked', 'template', 'trashed'] as const) {
@@ -221,6 +281,34 @@ describe.skipIf(!ENV_READY)('selectWorkerPayoutPairs (DB)', () => {
 
     expect(pairs.find((pair) => pair.workerId === worker.b)!.hasUnconfirmedPlane).toBe(true)
     expect(pairs.find((pair) => pair.workerId === worker.a)!.hasUnconfirmedPlane).toBe(false)
+  })
+
+  it('shares a split etap between its workers the way the TS reference does', async () => {
+    const pairs = await expectParity(created.split)
+
+    expect(pairs.map((pair) => pair.workerId).sort()).toEqual([worker.a, worker.b, worker.c].sort())
+    expect(pairs.every((pair) => pair.due > 0)).toBe(true)
+  })
+
+  it('sums a split investment to the listing’s „Pozostało do wypłaty" to the grosz', async () => {
+    const [pairs, dueRows, financials] = await Promise.all([
+      pairsFor(created.split),
+      selectKosztorysSubcontractorDue(db),
+      sumAllInvestmentFinancials(payload),
+    ])
+    const due = dueRows.find((row) => row.investmentId === created.split)!
+    const listing = due.due - financials.get(created.split)!.totalPayouts
+    const summed = pairs.reduce((sum, pair) => sum + pair.due - pair.paid, 0)
+
+    expect(summed).toBeCloseTo(listing, CENT)
+  })
+
+  it('withholds every member of a plane-less split etap, and nobody else', async () => {
+    const pairs = await expectParity(created.splitWithheld)
+    const flag = (workerId: number) =>
+      pairs.find((pair) => pair.workerId === workerId)!.hasUnconfirmedPlane
+
+    expect([flag(worker.a), flag(worker.c), flag(worker.b)]).toEqual([true, true, false])
   })
 
   it('keeps a zakończona inwestycja, carrying its status', async () => {

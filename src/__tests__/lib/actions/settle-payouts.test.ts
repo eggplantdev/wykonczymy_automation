@@ -40,8 +40,8 @@ describe.skipIf(!ENV_READY)('settlePayoutsAction (DB)', () => {
   const worker = { a: 0, b: 0 }
   let registerId = 0
   // a, b: worker a alone on a settled etap. withheld: worker b on a plane-less etap. locked: worker a,
-  // then set to zakończona. unassigned: an etap with nobody on it.
-  const created = { a: 0, b: 0, withheld: 0, locked: 0, unassigned: 0 }
+  // then set to zakończona. unassigned: an etap with nobody on it. split: one etap shared by a and b.
+  const created = { a: 0, b: 0, withheld: 0, locked: 0, unassigned: 0, split: 0 }
 
   const tree = (plane: 'w_tools' | null, stageWorker: number | null) => ({
     sections: [{ name: 'Sekcja', items: ITEMS }],
@@ -111,6 +111,22 @@ describe.skipIf(!ENV_READY)('settlePayoutsAction (DB)', () => {
     await createKosztorysTree(payload, created.withheld, tree(null, worker.b))
     await createKosztorysTree(payload, created.locked, tree('w_tools', worker.a))
     await createKosztorysTree(payload, created.unassigned, tree('w_tools', null))
+    await createKosztorysTree(payload, created.split, {
+      ...tree('w_tools', null),
+      stages: [
+        {
+          label: 'Etap 1',
+          plane: 'w_tools',
+          split: {
+            mode: 'percent',
+            members: [
+              { workerId: worker.a, value: 25, takesRest: false },
+              { workerId: worker.b, value: 0, takesRest: true },
+            ],
+          },
+        },
+      ],
+    })
     await db.execute(
       sql`UPDATE investments SET status = ${LOCKED_INVESTMENT_STATUS} WHERE id = ${created.locked}`,
     )
@@ -165,6 +181,40 @@ describe.skipIf(!ENV_READY)('settlePayoutsAction (DB)', () => {
     })
     expect(ahead).toMatchObject({ investment_id: created.b, amount: remainingB + 150 })
     expect(ahead.description).toMatch(new RegExp(`^${marker}\\nw tym zaliczka 150,00`))
+  })
+
+  it('settles both workers of a shared etap, each at their own share', async () => {
+    const [remainingA, remainingB] = await Promise.all([
+      remainingOf(created.split, worker.a),
+      remainingOf(created.split, worker.b),
+    ])
+    expect(remainingA).toBeGreaterThan(0)
+    expect(remainingB).toBeCloseTo(remainingA * 3, 1)
+
+    const result = await submit(marker, [
+      {
+        investmentId: created.split,
+        workerId: worker.a,
+        amount: remainingA,
+        expectedRemaining: remainingA,
+      },
+      {
+        investmentId: created.split,
+        workerId: worker.b,
+        amount: remainingB,
+        expectedRemaining: remainingB,
+      },
+    ])
+    expect(result).toMatchObject({ success: true })
+
+    expect((await booked()).map((row) => [row.worker_id, row.amount])).toEqual(
+      expect.arrayContaining([
+        [worker.a, remainingA],
+        [worker.b, remainingB],
+      ]),
+    )
+    expect(await remainingOf(created.split, worker.a)).toBe(0)
+    expect(await remainingOf(created.split, worker.b)).toBe(0)
   })
 
   it('refuses the whole batch when a figure moved since the dialog opened', async () => {

@@ -733,19 +733,19 @@ The full `pnpm test` runs only if the user asks, per the standing rule.
 
 #### Automated
 
-- [x] 2.1 Migration applies to local and `db-test`; the running app reads the new table
-- [x] 2.2 Fold, summary, scope and stage-conditions specs pass with splits
-- [x] 2.3 Stage action specs pass (persisted split read back, cap refusal leaves DB unchanged, plane-less refusal, add-etap copies split)
-- [x] 2.4 Restore / snapshot-to-tree / import / user-delete-guard specs pass
-- [x] 2.5 `pnpm test:parity` green on the regenerated fixture, figures diffed unchanged (fixture needed no regeneration: a one-person split hashes as the old `worker_id`)
+- [x] 2.1 Migration applies to local and `db-test`; the running app reads the new table — e06fe7ad
+- [x] 2.2 Fold, summary, scope and stage-conditions specs pass with splits — e06fe7ad
+- [x] 2.3 Stage action specs pass (persisted split read back, cap refusal leaves DB unchanged, plane-less refusal, add-etap copies split) — e06fe7ad
+- [x] 2.4 Restore / snapshot-to-tree / import / user-delete-guard specs pass — e06fe7ad
+- [x] 2.5 `pnpm test:parity` green on the regenerated fixture, figures diffed unchanged (fixture needed no regeneration: a one-person split hashes as the old `worker_id`) — e06fe7ad
 
 ### Phase 3: Cross-investment path on the same rule
 
 #### Automated
 
-- [ ] 3.1 Pure pairs-fold spec passes
-- [ ] 3.2 DB pairs parity + Σ pairs = listing pass with split fixtures
-- [ ] 3.3 `settle-payouts.test.ts` and `kosztorys-subcontractor-due.test.ts` pass
+- [x] 3.1 Pure pairs-fold spec passes
+- [x] 3.2 DB pairs parity + Σ pairs = listing pass with split fixtures
+- [x] 3.3 `settle-payouts.test.ts` and `kosztorys-subcontractor-due.test.ts` pass
 
 ### Phase 4: Editor UI — „Pracownicy etapu…"
 
