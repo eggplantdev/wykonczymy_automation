@@ -19,6 +19,7 @@ vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 const referenceDataFor = (currentUserRole: RoleT) =>
   ({
     cashRegisters: [{ id: 1, name: 'Kasa główna', type: 'MAIN' as const }],
+    trashedCashRegisters: [],
     investments: [],
     workers: [],
     otherCategories: [],

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 
 import {
+  buildTransferLookups,
   mapTransferRow,
   type TransferDocT,
   type TransferLookupsT,
@@ -16,6 +17,7 @@ const mediaMap = new Map<number, MediaInfoT>([media(11), media(22), media(33)])
 
 const emptyLookups = (): TransferLookupsT => ({
   cashRegisters: new Map(),
+  trashedCashRegisterIds: new Set(),
   investments: new Map(),
   users: new Map(),
   expenseCategories: new Map(),
@@ -51,5 +53,36 @@ describe('mapTransferRow', () => {
 
   it('leaves the list empty when no invoice is attached', () => {
     expect(mapTransferRow(doc(null), emptyLookups()).invoices).toEqual([])
+  })
+})
+
+// The ref data hands pickers the live kasy only, so the name map is the one reader that has to put
+// the trashed ones back — or a cancelled row on a trashed kasa loses its name to „—".
+describe('buildTransferLookups — a trashed kasa', () => {
+  const lookups = buildTransferLookups(
+    {
+      cashRegisters: [{ id: 1, name: 'Kasa główna', type: 'MAIN' }],
+      trashedCashRegisters: [{ id: 2, name: 'Kasa w koszu', type: 'AUXILIARY' }],
+      investments: [],
+      workers: [],
+      otherCategories: [],
+      expenseCategories: [],
+    },
+    mediaMap,
+  )
+
+  it('keeps its name on the row and flags it', () => {
+    const row = mapTransferRow({ ...doc([]), sourceRegister: 2, cancelled: true }, lookups)
+
+    expect(row.sourceRegisterName).toBe('Kasa w koszu')
+    expect(row.sourceRegisterTrashed).toBe(true)
+  })
+
+  it('leaves a live kasa unflagged', () => {
+    const row = mapTransferRow({ ...doc([]), sourceRegister: 1, targetRegister: 2 }, lookups)
+
+    expect(row.sourceRegisterName).toBe('Kasa główna')
+    expect(row.sourceRegisterTrashed).toBe(false)
+    expect(row.targetRegisterTrashed).toBe(true)
   })
 })

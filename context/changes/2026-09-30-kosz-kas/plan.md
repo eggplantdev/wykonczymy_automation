@@ -607,18 +607,18 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 1.1 Migration applies to the local DB
-- [x] 1.2 Transfers kasa gate spec passes
-- [x] 1.3 Cash-register update guard spec passes
-- [x] 1.4 Users default-kasa guard spec passes
-- [x] 1.5 Existing cash-register delete guard still green
+- [x] 1.1 Migration applies to the local DB — a628e120
+- [x] 1.2 Transfers kasa gate spec passes — a628e120
+- [x] 1.3 Cash-register update guard spec passes — a628e120
+- [x] 1.4 Users default-kasa guard spec passes — a628e120
+- [x] 1.5 Existing cash-register delete guard still green — a628e120
 
 ### Phase 2: Readers
 
 #### Automated
 
-- [ ] 2.1 Transfer-mapping spec passes (trashed name kept + flagged)
-- [ ] 2.2 Ref-data SQL drift spec passes
+- [x] 2.1 Transfer-mapping spec passes (trashed name kept + flagged)
+- [x] 2.2 Ref-data SQL drift spec passes
 
 ### Phase 3: Trash backend, purge, cron, retention constant
 

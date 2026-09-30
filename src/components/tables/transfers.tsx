@@ -133,10 +133,12 @@ const allColumns = [
     header: 'Kasa źródłowa',
     meta: { minWidth: 'min-w-40', printValue: (row) => row.sourceRegisterName },
     cell: (info) => {
-      const id = info.row.original.sourceRegisterId
+      const { sourceRegisterId: id, sourceRegisterTrashed: isTrashed } = info.row.original
       const name = info.getValue()
       return (
-        <OptionalLink href={name !== '—' && id ? `/kasa/${id}` : undefined}>{name}</OptionalLink>
+        <OptionalLink href={name !== '—' && id && !isTrashed ? `/kasa/${id}` : undefined}>
+          {name}
+        </OptionalLink>
       )
     },
   }),
@@ -145,10 +147,12 @@ const allColumns = [
     header: 'Kasa docelowa',
     meta: { printValue: (row) => row.targetRegisterName },
     cell: (info) => {
-      const id = info.row.original.targetRegisterId
+      const { targetRegisterId: id, targetRegisterTrashed: isTrashed } = info.row.original
       const name = info.getValue()
       return (
-        <OptionalLink href={name !== '—' && id ? `/kasa/${id}` : undefined}>{name}</OptionalLink>
+        <OptionalLink href={name !== '—' && id && !isTrashed ? `/kasa/${id}` : undefined}>
+          {name}
+        </OptionalLink>
       )
     },
   }),

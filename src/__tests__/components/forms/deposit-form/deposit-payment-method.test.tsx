@@ -34,6 +34,7 @@ const INVESTMENT = {
 
 const REFERENCE_DATA = {
   cashRegisters: [{ id: 1, name: 'Kasa główna', type: 'MAIN' as const }],
+  trashedCashRegisters: [],
   investments: [INVESTMENT],
   workers: [],
   otherCategories: [],

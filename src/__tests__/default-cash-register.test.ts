@@ -11,6 +11,7 @@ const baseRefData: ReferenceDataT = {
   currentUserId: 10,
   currentUserRole: 'ADMIN',
   cashRegisters: [],
+  trashedCashRegisters: [],
   investments: [],
   workers: [],
   otherCategories: [],

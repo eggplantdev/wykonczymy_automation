@@ -51,7 +51,8 @@ export const fetchReferenceData = cache(
 
       const [crResult, invResult, usersResult, catResult, expCatResult] = await Promise.all([
         db.execute(sql`
-        SELECT id, name, type::text, active::boolean, owner_id::integer
+        SELECT id, name, type::text, active::boolean, owner_id::integer,
+               (trashed_at IS NOT NULL) AS trashed
         FROM cash_registers
         ORDER BY name
       `),
@@ -96,13 +97,21 @@ export const fetchReferenceData = cache(
         expCatResult.rows.length
       console.log(`[PERF] query.fetchReferenceData ${elapsed()}ms (5 SQL, ${totalRows} rows)`)
 
-      const cashRegisters: CashRegisterRefT[] = crResult.rows.map((row) => ({
-        id: Number(row.id),
-        name: row.name as string,
-        type: (row.type as CashRegisterTypeT) ?? 'AUXILIARY',
-        active: row.active as boolean,
-        ownerId: row.owner_id ? Number(row.owner_id) : undefined,
+      const cashRegisterRows = crResult.rows.map((row) => ({
+        isTrashed: Boolean(row.trashed),
+        register: {
+          id: Number(row.id),
+          name: row.name as string,
+          type: (row.type as CashRegisterTypeT) ?? 'AUXILIARY',
+          active: row.active as boolean,
+          ownerId: row.owner_id ? Number(row.owner_id) : undefined,
+        } satisfies CashRegisterRefT,
       }))
+      // Split, not filtered: the list doubles as the name map for transaction rows, and a cancelled
+      // row on a trashed kasa must keep saying which kasa it was. Every picker and listing reads the
+      // live half, so a new consumer cannot forget to hide the trash.
+      const cashRegisters = cashRegisterRows.filter((r) => !r.isTrashed).map((r) => r.register)
+      const trashedCashRegisters = cashRegisterRows.filter((r) => r.isTrashed).map((r) => r.register)
 
       const investments: InvestmentRefT[] = invResult.rows.map((row) => ({
         id: Number(row.id),
@@ -144,6 +153,7 @@ export const fetchReferenceData = cache(
 
       return {
         cashRegisters,
+        trashedCashRegisters,
         investments,
         workers,
         otherCategories,
@@ -153,7 +163,7 @@ export const fetchReferenceData = cache(
     // Bumped whenever the returned SHAPE changes. A tag only marks an entry stale — it still SERVES
     // the old payload once, and one missing a field the reader now dereferences crashes the page or
     // renders NaN. The bump makes it unreachable instead.
-    ['reference-data-v2'],
+    ['reference-data-v3'],
     {
       tags: [
         CACHE_TAGS.cashRegisters,

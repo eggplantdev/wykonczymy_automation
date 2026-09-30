@@ -22,6 +22,9 @@ export type TransferRowT = {
   sourceRegisterName: string
   targetRegisterId: number | null
   targetRegisterName: string
+  // A trashed kasa keeps its name here but has no page to link to.
+  sourceRegisterTrashed: boolean
+  targetRegisterTrashed: boolean
   investmentId: number | null
   investmentName: string
   expenseCategoryId: number | null

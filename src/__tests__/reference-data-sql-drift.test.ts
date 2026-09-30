@@ -16,7 +16,7 @@ type EntityT = {
 }
 
 const ENTITIES: EntityT[] = [
-  { label: 'cash_registers', table: 'cash_registers', mappingConst: 'cashRegisters' },
+  { label: 'cash_registers', table: 'cash_registers', mappingConst: 'cashRegisterRows' },
   { label: 'investments', table: 'investments', mappingConst: 'investments' },
   { label: 'users', table: 'users', mappingConst: 'workers' },
   { label: 'other_categories', table: 'other_categories', mappingConst: 'otherCategories' },

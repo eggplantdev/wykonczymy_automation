@@ -52,6 +52,8 @@ export type ExpenseCategoryRefT = {
 
 export type ReferenceDataBaseT = {
   cashRegisters: CashRegisterRefT[]
+  /** For naming a trashed kasa on its old transaction rows only — never a picker or listing. */
+  trashedCashRegisters: CashRegisterRefT[]
   investments: InvestmentRefT[]
   workers: WorkerRefT[]
   otherCategories: OtherCategoryRefT[]
