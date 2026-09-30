@@ -9,6 +9,13 @@ describe('roundToCents', () => {
     expect(roundToCents(5000 - 2.5 * 1125.89)).toBe(2185.28)
   })
 
+  // The listing shows bilans as a negative number and the investment page shows the same amount as a
+  // positive „Pozostało do zapłaty", so a half grosz must round to the same magnitude on either sign.
+  it('rounds a negative half grosz to the mirror of the positive one', () => {
+    expect(roundToCents(-120818.885)).toBe(-roundToCents(120818.885))
+    expect(roundToCents(-2185.275)).toBe(-2185.28)
+  })
+
   it('still rounds an amount just below the half down', () => {
     expect(roundToCents(2185.2749)).toBe(2185.27)
   })
