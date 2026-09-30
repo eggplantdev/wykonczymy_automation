@@ -380,7 +380,9 @@ Część 2 (pracownik wpisuje ilości w swoich etapach) to osobna zmiana — lin
 właśnie po to, żeby jej nie przepisywać.
 
 - **Zakres = przypisanie etapu.** Pracownik widzi wszystkie pozycje (Przedmiar nie dzieli się na
-  etapy), ale tylko kolumny swoich etapów. Etap bez rozliczenia albo etapy na dwóch rozliczeniach →
+  etapy), ale tylko kolumny swoich etapów — także etapu, który dzieli z innymi (EX-943). Na takim
+  etapie ilości i kwoty w wierszach są **całego etapu**; jego część idzie osobną linią „Twój udział"
+  w podsumowaniu, a współpracowników dokument nie wymienia z imienia ani kwoty. Etap bez rozliczenia albo etapy na dwóch rozliczeniach →
   menu blokuje link i PDF („Ustaw rozliczenie etapu" / „Etapy pracownika mają różne rozliczenia");
   pracownik bez etapów → link działa i mówi „Brak przypisanych etapów". Odwołanie tylko świadomie,
   także po dezaktywacji pracownika — i zawsze osiągalne: blokada wyłącza generowanie linku, nie jego
@@ -410,7 +412,9 @@ właśnie po to, żeby jej nie przepisywać.
   wpisy" (domyślnie zaznaczony): po pierwszym wpisie „Przedmiar" i „Wartość przedmiaru netto"
   schodzą z dokumentu, a sumy sekcji w PDF liczą wtedy wartość wykonaną. „Pozostało" i podsumowanie
   nie podlegają checkboxowi. Jedna funkcja (`workerDataHiddenColumns`) karmi link, Podgląd i PDF.
-- **Podsumowanie**: wartość przedmiaru po jego stawce → wykonane per etap + razem → wypłacone (lista:
+- **Podsumowanie**: wartość przedmiaru po jego stawce (cały przedmiar, także na wspólnym etapie) →
+  wykonane per etap + razem — etap wspólny to dwie linie: „⟨etap⟩ (cały etap)" i „Twój udział: 25%"
+  z jego złotówkami po ewentualnym proporcjonalnym zmniejszeniu; „razem" sumuje udziały → wypłacone (lista:
   data i kwota, **bez opisu** — opis bywa wewnętrzną notatką) → pozostało do wypłaty; nadwyżka
   wypłat to „Nadpłata" z dodatnią kwotą, nigdy liczba ujemna.
 - **PDF** to ten sam generator co oferta, z projekcji pracownika (nigdy z wierszy edytora, które
@@ -596,7 +600,7 @@ j.m.` wśród wierszy policzonych** (wpisane z palca są wykluczone: to decyzje 
   pod tabelką, a per wiersz byłoby tym samym zdaniem powtórzonym w kółko.
 - **Import zastępuje w całości i NIC nie przenosi ze starego drzewa — także tego, czego arkusz nie
   ma** (właściciel, 2026-08-24; zamyka EX-717 jako „nie robimy"). Dla pracy, którą import rozpoznał
-  jako tę samą, przepada etykieta etapu, plan „z narzędziami / bez narzędzi", przypisany pracownik
+  jako tę samą, przepada etykieta etapu, plan „z narzędziami / bez narzędzi", podział etapu na pracowników
   i wpisane w aplikacji wykonanie — arkusz żadnego z nich nie zna, więc nie są zastępowane, tylko
   znikają. To **nie jest** przeoczenie do naprawienia: „zastąp" znaczy zastąp, a przenoszenie
   metadanych dla części prac zrobiłoby z jednego przycisku dwa różne zachowania zależne od tego, czy
@@ -978,6 +982,26 @@ to dalsza, opcjonalna warstwa — nie mieszać jej do tej zmiany.
 `plane`), nie na transakcji — bo most transakcja→etap raz już istniał i został wyrwany (EX-536,
 migracja `20260721_0`), a domknięcie go kosztowało dwie poprawki na spójność tagów, gdy wiersz
 nadrzędny się przesuwał. Przypisanie na etapie tego problemu nie ma.
+
+**Kilku pracowników na etap (EX-943).** Etap ma **podział**: listę osób (`kosztorys_stage_workers`)
+i tryb — procentowo albo kwotowo — jeden na etap. Każda osoba poza jedną ma wpisaną wartość, a jedna
+bierze **resztę**. Dzielona pula to wykonana praca etapu na jego rozliczeniu, przed rabatem
+(pomiar × stawka podwykonawcy) — ta sama liczba, która wcześniej szła w całości do jednej osoby.
+Reguły właściciela (2026-09-30):
+
+- **Nie dzielimy pieniędzy, których nie ma.** Pula 0 → każdy ma 0; stała kwota nie może przy zapisie
+  przekroczyć bieżącej puli, suma procentów nie może przekroczyć 100, żaden udział nie jest ujemny.
+- **Pula spadła po zapisie** (pomiar poprawiony w dół, tańsze rozliczenie) — tej edycji nikt nie
+  blokuje, więc stałe kwoty kurczą się proporcjonalnie, reszta dostaje 0, a etap dostaje znacznik
+  „popraw podział" w nagłówku i w filtrze problemów („z podziałem do poprawienia").
+- **Etap bez rozliczenia nikomu nic nie liczy** i flaguje każdego członka podziału.
+- **„Dodaj etap" kopiuje podział ostatniego**: procenty przechodzą, kwoty się zerują (nowy etap nie
+  ma puli, a limit odrzuciłby każdą kwotę).
+- Jedna reguła arytmetyczna (`splitStagePool`) dla obu ścieżek pieniędzy — panelu edytora i
+  „Rozlicz wypłaty" — żeby ekran nie mógł przypisać komuś innej kwoty niż wypłaty.
+
+Istniejące przypisania przeszły migracją jako podział jednoosobowy (ta osoba bierze resztę), więc
+żadna liczba się nie ruszyła. `kosztorys_stages.worker_id` zostaje do osobnej, destrukcyjnej migracji.
 
 Dwie konsekwencje, które łatwo przeoczyć:
 

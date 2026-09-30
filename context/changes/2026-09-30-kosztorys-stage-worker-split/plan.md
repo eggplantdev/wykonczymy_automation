@@ -759,11 +759,11 @@ The full `pnpm test` runs only if the user asks, per the standing rule.
 
 #### Automated
 
-- [x] 5.1 `worker-view/summary.test.ts` passes (share per shared etap, no co-worker data)
-- [x] 5.2 `print/worker.test.ts` passes (whole-etap totals, footer share)
+- [x] 5.1 `worker-view/summary.test.ts` passes (share per shared etap, no co-worker data) — bd371cef
+- [x] 5.2 `print/worker.test.ts` passes (whole-etap totals, footer share) — bd371cef
 
 ### Phase 6: Living docs
 
 #### Automated
 
-- [ ] 6.1 No automated check — prose-only phase
+- [x] 6.1 No automated check — prose-only phase

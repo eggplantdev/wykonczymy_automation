@@ -189,7 +189,9 @@ mismatch.
 ### „Pozostało do wypłaty" per worker (EX-919)
 
 `/pracownicy` shows the same figure cut by **investment × worker pair**: należne on his etapy at his
-stawka − his PAYOUTs on that investment. One read (`fetchWorkerPayoutPairs`) feeds the employee
+stawka − his PAYOUTs on that investment. On an etap split between several workers (EX-943) his
+należne is **his share** of the etap's pool — `splitStagePool`, the same rule the editor's panel
+runs — so the pairs of one etap still sum to the etap. One read (`fetchWorkerPayoutPairs`) feeds the employee
 column, the „Rozlicz wypłaty" dialog from both lists, and sums back to the investment listing's cell.
 
 - **No netting, four figures apart** (owner, 2026-09-29): „do zapłaty aktywne", „do zapłaty
@@ -199,8 +201,8 @@ column, the „Rozlicz wypłaty" dialog from both lists, and sums back to the in
   lines; nothing to show at all reads a green 0.
 - **No kosztorys → no pair**, so legacy PAYOUTs don't paint every long-standing worker as overpaid.
   PAYOUTs without an investment (salary, loans, fuel) are outside the figure entirely.
-- **A withheld pair is only that worker's.** An etap with executed work but no rozliczenie withholds
-  its worker's pair; the others on the investment still compute.
+- **A withheld pair is only that etap's workers'.** An etap with executed work but no rozliczenie
+  withholds the pair of every worker in its split; the others on the investment still compute.
 - **Unassigned etapy and wypłaty bez pracownika never reach a worker.** They fold into one
   „Nieprzypisane" row, shown greyed in the dialog opened from the investment, so its rows still sum
   to the listing cell.

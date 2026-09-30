@@ -2620,6 +2620,8 @@ Każdy boks: po kliknięciu zmiana widoczna **bez przeładowania**, a w Network 
       nowa kolumna z tym samym rozliczeniem i tym samym pracownikiem / ekipą co ostatni etap (ten
       najbardziej po prawej); po odświeżeniu strony nadal je ma.
 - [ ] Ostatni etap „Bez przypisania": nowy etap też jest „Bez przypisania".
+- [ ] Ostatni etap z kilkoma pracownikami (EX-943): nowy etap ma ten sam skład i tę samą osobę na
+      „reszcie"; przy podziale procentowym procenty są te same, przy kwotowym każda kwota wynosi 0 zł.
 - [ ] Kosztorys bez etapów → „Dodaj": zamiast „Etap" są dwie pozycje „Etap — z narzędziami
       (podwykonawca)" / „Etap — bez narzędzi (pracownik)"; wybrana tworzy etap z tym rozliczeniem
       i bez przypisania.
@@ -2634,6 +2636,7 @@ Każdy boks: po kliknięciu zmiana widoczna **bez przeładowania**, a w Network 
 - [ ] Z domyślną kasą „Aktualne saldo" pojawia się bez dotykania „Kasa"; zmiana kasy odświeża saldo;
       „Saldo po wypłacie" jest mniejsze o „Razem".
 - [ ] Po wypłacie nigdzie (opis przelewu, historia) nie widać kwoty do rozdysponowania.
+
 ## 2026-09-30 — import z arkusza ustawia jednego wykonawcę wszystkim etapom
 
 - [ ] Inwestycja z arkuszem → „Importuj z arkusza": w bloku „Rozliczenie i wykonawca etapów" obok
@@ -2650,3 +2653,31 @@ Każdy boks: po kliknięciu zmiana widoczna **bez przeładowania**, a w Network 
       formularzu wydatku, okno zdjęć leada) otwierają się na szerokość swojego pola i nic w nich
       nie jest ucięte.
 
+## EX-943 — kosztorys-stage-worker-split — kilku pracowników na etap (2026-09-30)
+
+- [ ] Nagłówek etapu → „Pracownicy etapu…": dodaj czterech pracowników, podział „Procentowo",
+      25/25/25 i czwarty na „reszcie" → „Zapisz"; nagłówek pokazuje „<osoba na reszcie> +3", a przy
+      każdej osobie w oknie widać jej kwotę z wykonanej pracy etapu.
+- [ ] Ten sam etap „Kwotowo": trzy kwoty stałe i reszta; suma kwot większa niż wykonana praca etapu
+      → „Zapisz" wyszarzone z komunikatem; w granicach puli → zapis przechodzi.
+- [ ] Przełączenie „Procentowo" ↔ „Kwotowo" zeruje wszystkie wartości; nowa osoba wchodzi z 0;
+      usunięcie osoby na „reszcie" blokuje zapis, dopóki nie wskażesz nowej.
+- [ ] Etap bez rozliczenia: „Pracownicy etapu…" nieaktywne z podpowiedzią, że najpierw trzeba
+      ustawić rozliczenie.
+- [ ] Etap bez wykonanej pracy: okno pokazuje „Do podziału: 0,00 zł" i każdemu 0 zł.
+- [ ] Podział 25/25/25/reszta na etapie z wykonaną pracą: „Podsumowanie podwykonawców", lista
+      „Pracownicy", „Rozlicz wypłaty" i kolumna „Pozostało do wypłaty" na liście inwestycji pokazują
+      każdemu jego część, a części sumują się do wartości etapu.
+- [ ] Podział kwotowy, potem zmniejsz „Pomiar z natury" tak, by kwoty przekroczyły wykonaną pracę:
+      w nagłówku etapu pojawia się znacznik „popraw podział", „Problemy" ma pozycję z tym etapem,
+      kwoty maleją proporcjonalnie, a osoba na „reszcie" dostaje 0 zł. Po poprawieniu podziału
+      znacznik znika.
+- [ ] Link pracownika z 25% udziału (i PDF z jego widoku): wiersze i „Razem" dotyczą całego etapu,
+      „Wartość przedmiaru" to cały przedmiar, a osobno widać „Twój udział: 25,0%" z kwotą; nigdzie nie
+      ma imion pozostałych osób z etapu.
+- [ ] Link pracownika, który jest sam na swoich etapach: widok i PDF wyglądają jak przed zmianą (bez
+      wiersza „Twój udział").
+- [ ] Etap sprzed zmiany z jednym przypisanym pracownikiem: po wdrożeniu nagłówek pokazuje tę samą
+      osobę bez „+N", a jej należne i wypłaty się nie zmieniły.
+- [ ] Pracownik będący tylko członkiem podziału etapu: próba usunięcia go jest odrzucona z
+      komunikatem o etapach kosztorysu.
