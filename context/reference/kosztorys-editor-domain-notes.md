@@ -441,6 +441,11 @@ właśnie po to, żeby jej nie przepisywać.
   a pracom spoza rozpiski daje sekcję i Cenę j.m. Nigdy do etapu innej ekipy.
 - **Przyjęcie DODAJE** do ilości etapu — pracownik zgłasza do tego samego etapu wiele razy. Przed
   przyjęciem zapisuje się automatyczna wersja, więc da się je cofnąć z „Wczytaj".
+- **Decyzję da się zmienić.** Przyjęta praca zostaje zaznaczona i edytowalna: zmiana ilości
+  przesuwa etap o różnicę, odznaczenie zdejmuje ją z etapu. Odrzucone zgłoszenie — i odznaczona
+  praca — można przyjąć później. Póki coś w zgłoszeniu jest przyjęte, resztę dodaje się do tego
+  samego etapu; jeśli ten etap usunięto albo pracownika w nim już nie ma, najpierw trzeba odznaczyć
+  przyjęte prace. Zmiana zrobiona w innym oknie odmawia zapisu z prośbą o odświeżenie.
 - **„Przyjęte" nie wraca po przywróceniu wersji.** Przywrócenie wersji sprzed przyjęcia zdejmuje
   dodane ilości, a zgłoszenie dalej czyta „Przyjęte" — świadomie przyjęta rozbieżność.
 - **Zgłoszenie przeżywa podmianę rozpiski** (przywrócenie wersji, import, „Wczytaj szablon",

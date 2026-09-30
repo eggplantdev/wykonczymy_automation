@@ -2780,13 +2780,13 @@ Link zbudowany na stagingu wskazuje na produkcję — przed otwarciem podmień h
       albo usunięciu wiersza okno się zamyka. Przy „Wyślij” błędna ilość w tabeli daje „Popraw błędy”.
 - [ ] Zakończona inwestycja: link pokazuje komunikat zamiast formularza, a wysyłka z wcześniej
       otwartej strony jest odrzucona.
-- [ ] Szkic z wpisami, potem „Wyczyść kosztorys” u kierownika: po odświeżeniu link pokazuje „N pozycji
+- [ ] Szkic z wpisami, potem „Wyczyść kosztorys” u kierownika: po odświeżeniu link pokazuje „N prac
       ze szkicu zniknęło z rozpiski”.
 
 **Kierownik — przyjęcie**
 
 - [ ] Rozpiska → „Zgłoszenia prac” → zgłoszenie: zaznacz część linii, popraw jedną ilość, „Dodaj do”
-      ostatni etap pracownika → „Przyjmij n pozycji”. Kolumna etapu pokazuje starą ilość plus
+      ostatni etap pracownika → „Przyjmij n prac”. Kolumna etapu pokazuje starą ilość plus
       przyjętą bez odświeżania, a „Cofnij” tego nie cofa.
 - [ ] Przyjęcie do „Nowy etap”: pojawia się nowa kolumna etapu z następnym numerem, przypisana
       zgłaszającemu na 100%, a jego link do rozpiski pokazuje nowe ilości.
@@ -2796,8 +2796,20 @@ Link zbudowany na stagingu wskazuje na produkcję — przed otwarciem podmień h
 - [ ] Dwie karty na tej samej rozpisce: przyjmij w pierwszej, przełącz na drugą — przeładowuje się z
       komunikatem i pokazuje przyjęte ilości.
 - [ ] „Wczytaj”: po przyjęciu jest automatyczna wersja sprzed przyjęcia.
-- [ ] Odrzuć zgłoszenie: otwiera się tylko do odczytu jako „Odrzucone”, a pracownik widzi
-      „odrzucone”.
+- [ ] Odrzuć zgłoszenie: otwiera się jako „Odrzucone”, a pracownik widzi „odrzucone”. Da się je
+      potem przyjąć — zaznacz prace, „Przyjmij n prac”, status zmienia się na „Przyjęte”.
+- [ ] Przyjęte zgłoszenie, otwórz ponownie: przyjęte prace są zaznaczone. Zmień ilość jednej — pod
+      nią „było X”, a „Zapisz zmiany” przesuwa etap tylko o różnicę. Odznacz drugą — „cofasz X”, po
+      zapisie etap maleje o X. Odznacz wszystkie → zgłoszenie wraca do „Do sprawdzenia”.
+- [ ] Przyjęte do etapu, potem usuń ten etap: przy dodaniu reszty zgłoszenia do innego etapu pojawia
+      się „Część zgłoszenia przyjęto do etapu, którego już nie ma…”, a przycisk nie zapisuje.
+      Odznaczenie przyjętych prac to odblokowuje.
+- [ ] To samo przyjęte zgłoszenie w dwóch kartach: zmień ilość tej samej pracy w obu, zapisz w
+      pierwszej, potem w drugiej —
+      druga dostaje „Zgłoszenie zmieniło się w innym oknie — odśwież je.” i nic nie zapisuje.
+- [ ] Praca spoza rozpiski → „Podmień na pracę z katalogu” → praca, która już jest w rozpisce:
+      komunikat „Jest już w rozpisce — ilość doda się do tej pozycji.”, po przyjęciu ilość trafia do
+      tej pozycji, nie powstaje druga. Praca spoza rozpiski daje „…trafi tam jako nowa pozycja…”.
 - [ ] Zgłoszenie oczekujące, potem „Wyczyść kosztorys”: jego linie są „do przypisania ręcznie” i da
       się je przypiąć do pozycji albo przyjąć jako pracę spoza rozpiski.
 
@@ -2806,6 +2818,8 @@ Link zbudowany na stagingu wskazuje na produkcję — przed otwarciem podmień h
 - [ ] Przy oczekującym zgłoszeniu menu pokazuje „Zgłoszenia prac” z licznikiem; strona je wymienia,
       a wiersz otwiera rozpiskę z tym zgłoszeniem. Odświeżenie po zamknięciu okna go nie otwiera
       ponownie.
+- [ ] „Zgłoszenia prac” wymienia też zgłoszenia przyjęte i odrzucone, każde ze statusem; licznik w
+      menu liczy tylko oczekujące. Po odrzuceniu w rozpisce licznik w menu spada od razu.
 - [ ] Będąc na „Zgłoszenia prac”, znaczek „Zgłoszenia” (leady) dalej pokazuje swoją liczbę.
 - [ ] Po przyjęciu ostatniego oczekującego przycisk na pasku rozpiski znika, a licznik w menu spada
       przy następnym przejściu.
@@ -2823,3 +2837,5 @@ Link zbudowany na stagingu wskazuje na produkcję — przed otwarciem podmień h
 - [ ] Podgląd i link pracownika: żadnej czerwonej komórki, także w wierszu ponad przedmiar i przy
       stawce ponad pułap. W edytorze kierownika oba dalej są czerwone.
 - [ ] Usunięcie pracownika, który ma zgłoszenie, jest odrzucone z komunikatem.
+- [ ] Podgląd inwestora i link inwestora z `?wersja=` zapisanej wersji pokazują tę wersję; z
+      `?wersja=abc` albo nieistniejącym numerem — bieżącą rozpiskę, bez błędu.

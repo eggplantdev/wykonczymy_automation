@@ -75,8 +75,8 @@ Owner decisions 1–25 in `change.md` are authoritative. `research.md` §1–7 i
 - **Storing a send.** „Wyślij do weryfikacji” stores the report in two raw tables. Opis, j.m. and
   sekcja are copied onto each line.
 - **Where a kierownik sees pending reports.** He sees the count:
-  - in the nav's „Zgłoszenia prac” (`/zgloszenia-prac`), which lists pending reports across
-    investments;
+  - in the nav's „Zgłoszenia prac” (`/zgloszenia-prac`), which lists reports across investments,
+    decided ones too;
   - on the toolbar button „Zgłoszenia prac (n)”;
   - in the „Pracownicy” menu.
 
@@ -90,7 +90,23 @@ Owner decisions 1–25 in `change.md` are authoritative. `research.md` §1–7 i
   An auto version is saved first. The accepting window patches itself in place and drops undo for
   the touched pozycje. Any other open window reloads its tree on focus (#25).
 
-- **Rejecting and history.** Rejecting records the decision. Decided reports reopen read-only.
+- **Rejecting and history.** Rejecting records the decision. A rejected report — or a line left
+  unticked in an accepted one — can still be accepted later (owner, 2026-09-30: a decision can be
+  changed); the accept then decides it again.
+- **Changing an accepted report.** Accepted lines stay ticked and editable in one „Zapisz zmiany”:
+  - a changed ilość moves the etap by the difference only, in the etap the report went to;
+  - an unticked line takes its ilość back out, floored at zero;
+  - once nothing is accepted any more, the report is „Do sprawdzenia” again, free to go to any etap;
+  - a praca spoza rozpiski keeps its pozycja after an untick, and a re-accept adds to it;
+  - an accepted line's pozycja, sekcja and cena are fixed here — those are edited in the rozpiska;
+  - while any line stays accepted, the rest goes only into the etap the report already went to. If
+    that etap was deleted, or the worker is no longer in it, adding is refused until those lines are
+    unticked (owner: refuse, no migration) — their changes would otherwise land in the new etap;
+  - every changed line carries the przyjęta ilość the window loaded (`seenQty`); a mismatch, or a
+    save that changes nothing, is refused as „Zgłoszenie zmieniło się w innym oknie — odśwież je.”
+
+  An auto version is saved before every save, as for the first accept.
+
 - **Lines that lost their pozycja.** A pending report whose pozycja vanished shows that line as
   „do przypisania ręcznie”. The kierownik re-points it to a pozycja, with a suggestion by opis + j.m.,
   or treats it as a praca spoza rozpiski (#14).
@@ -182,9 +198,11 @@ rolled into `context/foundation/manual-checks.md`.
 **Acceptance write order.** Everything below runs inside one `withPayloadTransaction`:
 
 1. `lockInvestmentGates`.
-2. `UPDATE worker_reports SET status='accepted' … WHERE id AND investment_id AND status='pending'
-RETURNING worker_id`. Zero rows means refuse; this is also the double-click guard.
-3. Validate the pozycje and the target (see the security note below).
+2. Read the report and the tree. The lock from step 1 is what serialises two accepts of one report
+   (the double-click guard): the second one reads the first's result and fails the stale check.
+3. Validate the pozycje and the target (see the security note below), then the stale check
+   (`seenQty`), the recorded-etap rule and the no-op refusal from „Changing an accepted report”.
+   `markReportAccepted` sets the status whatever it was — a rejected report can be accepted.
 4. `captureAutoSnapshot(tx, …)` — **before** any tree write, so the saved version is the
    pre-accept state.
 5. Create the new etap, if any: `MAX(ordinal)+1`, its plane, and `insertStageMembers(oneWorkerSplit)`.
@@ -200,7 +218,8 @@ Never snapshot outside the transaction (lesson ~260).
 **The accepting window.** Order matters:
 
 1. `flushUndoBuffer()`.
-2. `drain` the lanes of every `(item, targetStage)` cell touched.
+2. `drain` the lanes of every `(item, stage)` cell touched — a change or an untick hits the recorded
+   etap, a fresh line the target, and one pozycja may move in both.
 3. Call the action.
 4. On success:
    - adopt the new etap;
@@ -230,7 +249,8 @@ The kierownik's accept / reject stays on `investmentAction` and does **not** re-
 the investment and have the reporting worker as a member (#16).
 
 **Floating point.** Reported and accepted qty are `numeric`. Use `parseReportQty` on input and
-refuse ≤ 0. The upsert sums in SQL, so no client rounding reaches the stored figure.
+refuse ≤ 0. A change's difference and a pozycja's sum are computed in JS, so both go through
+`round6` (the qty scale) before binding — an unrounded 0,3 − 0,2 binds as 0,09999999999999998.
 
 ## Phase 1: Storage
 
@@ -606,7 +626,8 @@ result.
 - **Lines that lost their pozycja.** A pending line whose pozycja is gone renders „do przypisania
   ręcznie”, with a pozycja picker preselected by an exact opis + j.m. match. It can also be moved
   to „Spoza rozpiski”.
-- **Decided reports** reopen read-only, showing who decided and when.
+- **Decided reports** show who decided and when. Both stay editable: an accepted one keeps its lines
+  ticked, a rejected one can still be accepted (see „Changing an accepted report” above).
 - Drop the spike toast.
 
 ### Success Criteria
@@ -618,7 +639,12 @@ result.
   - two lines for one pozycja are summed and do not error;
   - „Nowy etap” gets the next number, the worker's plane, and him at 100%;
   - an extra becomes a pozycja bez przedmiaru with `client_price` set;
-  - a second accept of the same report is refused and changes nothing;
+  - sending the same decision again adds nothing twice;
+  - a changed accepted ilość adds only the difference, also in a pozycja made from a praca spoza
+    rozpiski;
+  - an unticked line comes back out and reopens the report once nothing stays accepted;
+  - an undone praca spoza rozpiski is re-accepted into the same pozycja;
+  - a removal stops at zero, and into a deleted etap only clears the record;
   - a target etap without the worker is refused;
   - an auto version is written and holds the **pre**-accept figures;
   - a forced mid-transaction throw leaves the report pending and the tree and the snapshot table
@@ -642,6 +668,8 @@ result.
 - With a second tab open on the same rozpiska, accept in the first. Switching to the second reloads
   it with the toast.
 - Reject a report: it reopens read-only as „Odrzucone”, and the worker's page shows „odrzucone”.
+- Reopen an accepted report, lower one ilość and untick another → „Zapisz zmiany”. The etap drops by
+  the difference and by the unticked ilość. Untick the rest: the report is „Do sprawdzenia” again.
 - After „Wyczyść kosztorys” with a report pending, its lines show „do przypisania ręcznie” and can
   be re-pointed.
 
@@ -677,8 +705,8 @@ cursor, so there is no seen epoch and it does **not** zero on its own page. `Unr
 `MANAGEMENT_LINKS` entry `/zgloszenia-prac` with the stream),
 `src/app/(frontend)/zgloszenia-prac/page.tsx` + `loading.tsx` (`TitledPageLoading`, per EX-877)
 
-**Intent**: A shared `DataTable` of pending reports across investments: inwestycja, pracownik,
-wysłano, pozycji. Rows link to the deep link. `requireManagementPage`. The read is uncached.
+**Intent**: A shared `DataTable` of every report across investments, decided ones too, with a
+status badge: inwestycja, pracownik, wysłano, prace, status. Pagination and filters: EX-955. Rows link to the deep link. `requireManagementPage`. The read is uncached.
 
 #### 4. Deep link and shared dialog toggle
 
@@ -867,6 +895,17 @@ Per phase above. Phone checks at 390px. Share links built on staging point at pr
 - Build succeeds: `pnpm build`
 
 The full `pnpm test` runs only when the user asks.
+
+## Additions made during implementation
+
+Unplanned but deliberate, recorded at the review gate:
+
+- **Katalog swap into an existing pozycja.** Swapping a praca spoza rozpiski for a katalog wpis that
+  already sits in the rozpiska adds the ilość to that pozycja instead of minting a second copy
+  (`catalogueSwap` in `line-draft.ts`). A wpis present in several sekcje is left for the kierownik to
+  point at one.
+- **Links mint on copy.** In the „Pracownicy” menu a click on either link kind (rozpiska, zgłoszenia)
+  mints the link if the worker has none yet and copies it (`ensureWorkerLinkAction`).
 
 ## References
 

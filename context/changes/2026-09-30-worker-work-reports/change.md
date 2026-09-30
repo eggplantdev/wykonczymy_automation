@@ -242,6 +242,14 @@ the top.
 25. **Acceptance happens inside the rozpiska.** The accepting window patches its own etap figures and
     drops its undo history for those cells; any other open window reloads rather than overwrite the
     accepted amount.
+26. **A decision can be changed** (supersedes „a decided report reopens read-only” from spike 2).
+    An accepted line stays ticked and editable: a changed ilość moves the etap by the difference, an
+    untick takes it back out. A rejected report — and a line left unticked — can still be accepted.
+27. **While a line stays accepted, the rest goes into the same etap.** If that etap was deleted or
+    the worker is no longer in it, adding is refused until those lines are unticked — no migration
+    of the old figures to a new etap.
+28. **Report screens count „prace”**, not „pozycje”.
+29. **The all-reports list is paginated and filtered like the other listings** — EX-955.
 
 ### Persistence and access — grounded (2026-09-30)
 
@@ -268,4 +276,5 @@ the top.
   matches a bare prefix, so the badge match takes the same `${href}/` boundary as `isActiveLink`. Deep link `…/kosztorys_v2?zgloszenie=<id>`, no precedent in the app; the dialog
   toggle moves into `KosztorysActionsProvider` so toolbar button, menu and deep link share it.
 - **Report reads are uncached.** Acceptance expires `stageProgress` (+ `kosztorysStages` /
-  `kosztorysItems` when it creates them), which also refreshes the worker's rozpiska link.
+  `kosztorysItems` when it creates them), which also refreshes the worker's rozpiska link. Rejecting expires only the investment's entity tag — nothing cached reads a report; the expiry
+  is what re-renders the shell's nav badge.
