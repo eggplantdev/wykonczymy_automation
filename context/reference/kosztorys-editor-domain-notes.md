@@ -423,6 +423,30 @@ właśnie po to, żeby jej nie przepisywać.
   kolejności, co w podglądzie pracownika — po tej samej regule wpisów, więc „Σ etapów" i „Wartość
   wykonana" pojawiają się dopiero po pierwszym wpisie.
 
+### Zgłoszenia prac — pracownik zgłasza ilości, kierownik przyjmuje (EX-947, 2026-09-30)
+
+- **Dwa osobne linki.** Rozpiska pracownika (`/p/…`) to podsumowanie i rozliczenie; link „Zgłoszenie
+  prac" (`/zgloszenie-prac/…`) tylko zbiera ilości. Oba z menu „Pracownicy", pod tą samą blokadą:
+  kto nie może mieć rozpiski (brak etapu, etap bez rozliczenia, mieszane rozliczenia), ten nie
+  zgłasza. Działa na telefonie — jedyny wyjątek od wąskiego zakresu telefonu.
+- **Pracownik wpisuje ilość w j.m. pozycji** w kolumnie „Zgłaszam" na swojej rozpisce, plus prace
+  spoza rozpiski (opis, j.m., ilość). Szkic żyje w przeglądarce; do bazy trafia dopiero wysłane
+  zgłoszenie. Wysłane jest ostateczne — poprawka to nowe zgłoszenie, a złe kierownik odrzuca. Na
+  zakończonej inwestycji wysyłka jest zablokowana.
+- **Kierownik** widzi zgłoszenia w nawigacji („Zgłoszenia prac", z licznikiem oczekujących we
+  wszystkich inwestycjach) i w przycisku na pasku rozpiski. Przyjęcie dzieje się w rozpisce: wybiera
+  etap zgłaszającego albo „Nowy etap" (następny numer, zgłaszający na 100%), może poprawić ilości,
+  a pracom spoza rozpiski daje sekcję i Cenę j.m. Nigdy do etapu innej ekipy.
+- **Przyjęcie DODAJE** do ilości etapu — pracownik zgłasza do tego samego etapu wiele razy. Przed
+  przyjęciem zapisuje się automatyczna wersja, więc da się je cofnąć z „Wczytaj".
+- **„Przyjęte" nie wraca po przywróceniu wersji.** Przywrócenie wersji sprzed przyjęcia zdejmuje
+  dodane ilości, a zgłoszenie dalej czyta „Przyjęte" — świadomie przyjęta rozbieżność.
+- **Zgłoszenie przeżywa podmianę rozpiski** (przywrócenie wersji, import, „Wczytaj szablon",
+  „Wyczyść kosztorys"): linia, której pozycja zniknęła, przychodzi jako „do przypisania ręcznie".
+  Szkic takie linie po prostu gubi, z komunikatem.
+- **Przyjęta praca spoza rozpiski** staje się pozycją bez przedmiaru z wykonaną pracą, więc pojawia
+  się w „Problemach" jako „wykonane bez przedmiaru" — to sygnał, że ofertę trzeba uzupełnić.
+
 ## Protokół odbioru prac — druk z menu „Inwestor" (2026-09-28)
 
 Protokół, który właściciel podpisuje z klientem na budowie, wychodzi z aplikacji wstępnie

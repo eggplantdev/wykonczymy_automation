@@ -921,12 +921,12 @@ The full `pnpm test` runs only when the user asks.
 
 #### Automated
 
-- [x] 5.1 `useMediaQuery` DOM spec
-- [x] 5.2 Existing editor specs pass unchanged
-- [x] 5.3 Document-alarms specs pass
+- [x] 5.1 `useMediaQuery` DOM spec — 235d15d5
+- [x] 5.2 Existing editor specs pass unchanged — 235d15d5
+- [x] 5.3 Document-alarms specs pass — 235d15d5
 
 ### Phase 6: Living docs
 
 #### Automated
 
-- [ ] 6.1 Docs updated (lessons 253, AGENTS.md phone scope, domain notes)
+- [x] 6.1 Docs updated (lessons 253, AGENTS.md phone scope, domain notes)
