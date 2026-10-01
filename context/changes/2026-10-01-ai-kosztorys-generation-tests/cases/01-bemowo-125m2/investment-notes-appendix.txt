@@ -1,0 +1,37 @@
+=== Wycena AI (test, 2026-10-01) — Przedmiar z pomiaru rysunków ===
+Kosztorys wypełnił agent. Przy każdej pozycji z Przedmiarem > 0 Komentarz mówi, skąd wzięła się ilość. Ceny j.m. są z szablonu „Kosztorys 2026”, bez rabatu.
+Pozycje spoza szablonu są dopisane na końcu sekcji. Najpierw sprawdzone w katalogu prac: „Skucie glifu przy oknie” jest z katalogu, a luksferów, siedzisk G-K, klejenia dużych luster, koordynacji i sprzątania w katalogu nie ma. Agent nie wymyśla cen: te pozycje mają Cenę j.m. 0 zł i czekają na wycenę.
+
+Przedmiar 0 świadomie:
+- klimatyzacja, drzwi / drzwi ukryte / kaseta Eclisse, podłoga drewniana — firmy zewnętrzne;
+- demontaże z rynku wtórnego — stan deweloperski;
+- blaty, zabudowy stolarskie, panele tapicerowane i akustyczne — stolarz;
+- punkty elektryczne w sekcji „Łazienka” — cała elektryka policzona raz, w sekcji „Instalacja elektryczna”.
+
+Założenia:
+- gładzie Q3 (Q4 ≈ +7,6 tys. zł), fuga cementowa (epoksydowa ≈ +2,8 tys. zł);
+- limewash wyceniony pozycją „Malowanie ścian farbą strukturalną…” (100 zł/m²); ani szablon, ani katalog nie mają osobnej pozycji;
+- ściany do wykończenia = tylko te, które rysunek 11 zaznacza kolorem; za zabudową kuchni i częścią szaf nie liczono;
+- pod panelami tapicerowanymi i akustycznymi nie liczono gładzi;
+- płytki: ułożona powierzchnia z rysunku, nie z listy zakupowej (lista ma zapas);
+- nad drzwiami dopisano ≈ 7 m² do malowania w kolorze;
+- okna sypialni i gabinetu bez etykiety ho — przyjęto 186 cm.
+
+Pytania do klientki / na wizję lokalną:
+1. Czy za szafami robimy gładź? Rysunek: gabinet tak, sypialnia i drugi korytarz nie.
+2. Czy za każdą maskownicą jest karnisz? Narysowane 5,8 mb karnisza i 15,2 mb maskownic. Jeśli tak, karnisze = 15,2 mb.
+3. Płyta 120×278 w łazience: pas na rysunku ma 1,48 mb, a lista zakupowa 2 płyty.
+4. Ile grzejników wymieniamy: mail mówi 5 pokojowych, lista zakupowa 6. Policzone 6 + 2 łazienkowe.
+5. Materiał ścian (miękki czy żelbet) — od tego zależą bruzdy, wyburzenia i wkucia.
+6. Wymiary wyburzanej ściany w drugim korytarzu i nowych ścianek — założone ≈ 8 m² i ≈ 4 m².
+7. Które punkty wod-kan w łazienkach już są u dewelopera (założone 14 nowych lub przenoszonych). Czy pod odpływ liniowy trzeba obniżać kanalizację?
+8. Szyba prysznicowa i parawan nawannowy — nie ma ich na liście zakupowej.
+9. Mata kompensacyjna pod 120×120 i wyrównanie ścian pod płyty 120×278 — zależy od tynku i wylewki.
+10. Zlew podwieszany — czy wkleja go firma od blatu?
+11. Rozdzielnia: dołożyć 14 bezpieczników czy przebudować?
+12. Długości: szynoprzewód w korytarzu 4 mb, bruzdy LED w suficie 6,5 mb, Ethernet 34 mb — założone.
+13. Cokół w holu: listwa czy cokół z płytki? Założona listwa.
+14. Trzecie duże lustro klejone — mail mówi o trzech, projekt pokazuje dwa.
+15. Podkucie ościeży pod płytę meblową — które okno? Założone okno w salonie 145×186.
+
+Pełna dokumentacja testu: context/changes/2026-10-01-ai-kosztorys-generation-tests/cases/01-bemowo-125m2

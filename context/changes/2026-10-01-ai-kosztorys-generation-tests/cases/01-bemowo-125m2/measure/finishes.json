@@ -1,0 +1,49 @@
+{
+  "farba Flugger półsatyna (szara)": {
+    "kuchnia": 2.51,
+    "salon": 11.41,
+    "drugi korytarz": 8.85,
+    "pom. gosp.": 6.51,
+    "gabinet": 6.99
+  },
+  "limewash": {
+    "korytarz": 14.24,
+    "salon": 6.29,
+    "sypialnia": 11.65
+  },
+  "limewash + Aqua Ceramic (łazienka)": {
+    "łaz. główna": 5.49
+  },
+  "0-120 farba + naklejka, >120 tapeta Harry (dzieci)": {
+    "dzieci": 11.81,
+    "poza pokojami": 3.26
+  },
+  "0-120 farba, >120 tapeta Caselio (bawialnia)": {
+    "bawialnia": 15.23,
+    "poza pokojami": 1.76
+  },
+  "0-120 panele tapicerowane, >120 tapeta Caselio": {
+    "bawialnia": 3.23
+  },
+  "panele akustyczne": {
+    "gabinet": 4.12
+  },
+  "płytki Mirage Norr Melk 120x120": {
+    "druga łaz.": 4.8
+  },
+  "0-120 Fossil 5x25, >120 farba wodoodporna": {
+    "druga łaz.": 3.02
+  },
+  "Mirage Elysian Line 120x278": {
+    "łaz. główna": 1.48
+  },
+  "0-120 Caesar 120x120, >120 Swan 5x25": {
+    "łaz. główna": 1.74
+  },
+  "Mirage Elysian 120x120": {
+    "łaz. główna": 3.64
+  },
+  "płytki na wannie Bars Swan (kreskowane)": {
+    "łaz. główna": 1.2
+  }
+}

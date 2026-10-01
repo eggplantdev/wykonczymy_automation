@@ -1,0 +1,53 @@
+[
+  {
+    "section": "Łazienka",
+    "catalogueId": null,
+    "description": "Ścianka z luksferów ze zbrojeniem, fugowaniem i obróbką",
+    "unit": "kpl",
+    "qty": 1,
+    "clientPrice": 0,
+    "note": "łazienka mała, ściana prysznica: 1919/8 Alpha 3×13 szt. ≈ 1,4 m². Brak w katalogu — do wyceny."
+  },
+  {
+    "section": "Ściany i sufity bez łazienek",
+    "catalogueId": null,
+    "description": "Siedzisko z G-K pod oknem z wnęką na grzejnik i kratką",
+    "unit": "szt",
+    "qty": 2,
+    "clientPrice": 0,
+    "note": "salon 145 cm h=62, bawialnia 152–169 cm gł. 30. Brak w katalogu — do wyceny. Najbliżej „Zabudowa ścian z GK na stelażu + przedścianki” 250 zł/m²."
+  },
+  {
+    "section": "Ściany i sufity bez łazienek",
+    "catalogueId": null,
+    "description": "Klejenie dużego lustra na ścianę",
+    "unit": "szt",
+    "qty": 3,
+    "clientPrice": 0,
+    "note": "korytarz, salon (Optiwhite) + trzecie z maila. Brak w katalogu — do wyceny. Najbliżej „Montaż lustra - zwykłe wiszące” 120 zł."
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "catalogueId": 252,
+    "qty": 5.2,
+    "note": "podkucie ościeży okna w salonie pod płytę meblową (str. 3). Założono okno 145×186: boki + góra."
+  },
+  {
+    "section": "Prace dodatkowe",
+    "catalogueId": null,
+    "description": "Koordynacja i nadzór prac",
+    "unit": "kpl",
+    "qty": 1,
+    "clientPrice": 0,
+    "note": "pkt 17 maila. Brak w katalogu — do wyceny."
+  },
+  {
+    "section": "Prace dodatkowe",
+    "catalogueId": null,
+    "description": "Sprzątanie końcowe",
+    "unit": "kpl",
+    "qty": 1,
+    "clientPrice": 0,
+    "note": "pkt 18 maila. Brak w katalogu — do wyceny."
+  }
+]

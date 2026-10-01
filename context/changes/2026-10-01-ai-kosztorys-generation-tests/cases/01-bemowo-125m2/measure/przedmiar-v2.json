@@ -1,0 +1,607 @@
+[
+  {
+    "id": 41502,
+    "qty": 1,
+    "note": "cały okres remontu"
+  },
+  {
+    "id": 41504,
+    "qty": 1,
+    "note": "płytki wielkoformatowe, armatura, tapety, listwy"
+  },
+  {
+    "id": 41505,
+    "qty": 2,
+    "note": "odpady z etapu wykończeniowego"
+  },
+  {
+    "id": 41506,
+    "qty": 1,
+    "note": "gruz: ściana w drugim korytarzu, otwór pod kasetę Eclisse, przesunięcia otworów (str. 3)"
+  },
+  {
+    "id": 41520,
+    "qty": 15,
+    "note": "łaz. duża: umywalka + grzejnik na inne ściany; łaz. mała: grzejnik + prysznic; zlew przesunięty do 100 cm"
+  },
+  {
+    "id": 41522,
+    "qty": 140,
+    "note": "bilans gniazd: 80 nowych (13 do 25 cm, 47 25–100 cm, 18 ponad 100 cm, 2 od skrzynki) + ~30 nowych przewodów oświetleniowych + 4 łączniki + Ethernet"
+  },
+  {
+    "id": 41523,
+    "qty": 40,
+    "note": "założenie: ~20% tras w ścianach/stropie żelbetowym"
+  },
+  {
+    "id": 41525,
+    "qty": 8,
+    "note": "wg listy zakupowej: 6 pokojowych + 2 łazienkowe (mail mówi o 5 + 2)"
+  },
+  {
+    "id": 41547,
+    "qty": 1,
+    "note": "nowy otwór pod drzwi ukryte 81×208 (str. 3)"
+  },
+  {
+    "id": 41550,
+    "qty": 15,
+    "note": "ściana w drugim korytarzu ≈ 8 m² + otwór pod kasetę Eclisse 263×260 ≈ 6,8 m²"
+  },
+  {
+    "id": 41554,
+    "qty": 125.6,
+    "note": "j.m. w rozpisce to kpl, ale cena 25 zł to stawka za m² mieszkania"
+  },
+  {
+    "id": 41558,
+    "qty": 66.4,
+    "note": "listwy MD236 zmierzone na rys. 10 (warstwa pomarańczowa, minus otwory)"
+  },
+  {
+    "id": 41561,
+    "qty": 1,
+    "note": "płytki w holu dochodzą do drzwi wejściowych"
+  },
+  {
+    "id": 41562,
+    "qty": 18,
+    "note": "hol 6,1 + podłoga kuchni 8,7 + ściany kuchni 3,3"
+  },
+  {
+    "id": 41563,
+    "qty": 15,
+    "note": "hol + kuchnia (deska Bauwerk — firma zewnętrzna)"
+  },
+  {
+    "id": 41570,
+    "qty": 66.4,
+    "note": "listwy MD236 zmierzone na rys. 10 (warstwa pomarańczowa, minus otwory)"
+  },
+  {
+    "id": 41577,
+    "qty": 6.1,
+    "note": "hol: mozaika Paradyż Modernizm na siatce 30,9×30,9, 64 arkusze netto"
+  },
+  {
+    "id": 41583,
+    "qty": 6,
+    "note": "przejścia płytki ↔ deska bez listew: hol/pokoje, kuchnia/salon"
+  },
+  {
+    "id": 41591,
+    "qty": 6,
+    "note": "ślad po wyburzonej ścianie + otwór Eclisse"
+  },
+  {
+    "id": 41595,
+    "qty": 121.4,
+    "note": "pasy wykończeń z rys. 11 (107.9 mb) + nadproża drzwi"
+  },
+  {
+    "id": 41598,
+    "qty": 115,
+    "note": "sufity pomieszczeń suchych: 125,6 − 6,74 − 4,11"
+  },
+  {
+    "id": 41600,
+    "qty": 250,
+    "note": "pasy wykończeń z rys. 11 × wysokość z rys. 3 − okna + nadproża; malowane 198.9 + tapety 44.1 + nadproża 7.0; bez paneli tapicerowanych i akustycznych"
+  },
+  {
+    "id": 41603,
+    "qty": 320.6,
+    "note": "sufity 114,7 + ściany malowane 205.9"
+  },
+  {
+    "id": 41605,
+    "qty": 364.7,
+    "note": "gładzie: ściany 250.0 + sufity 114,7"
+  },
+  {
+    "id": 41608,
+    "qty": 115,
+    "note": "sufity pomieszczeń suchych"
+  },
+  {
+    "id": 41612,
+    "qty": 81.7,
+    "note": "limewash z rys. 11: korytarz, część salonu, sypialnia − okno sypialni"
+  },
+  {
+    "id": 41614,
+    "qty": 124.2,
+    "note": "Flugger NCS S 1002-Y20R 83.7 + dzieci 0–120 16.3 + bawialnia 0–120 17.2 + nadproża"
+  },
+  {
+    "id": 41615,
+    "qty": 5.8,
+    "note": "karnisze narysowane na rys. 10 (warstwa fioletowa)"
+  },
+  {
+    "id": 41616,
+    "qty": 26,
+    "note": "sypialnia: Decor System DSS03, 12 szt. × 2,4 m"
+  },
+  {
+    "id": 41617,
+    "qty": 15.2,
+    "note": "maskownice LK-01 zmierzone na rys. 10"
+  },
+  {
+    "id": 41622,
+    "qty": 23,
+    "note": "kaseta Eclisse 263 cm z pogrubieniem do 13 cm ≈ 6,9 + dobudowy ścianek ≈ 4 + 2× zasklepienie otworu 90 cm ≈ 3,8 + wygłuszenie ściany łaz. małej od pokoju dzieci ≈ 8"
+  },
+  {
+    "id": 41625,
+    "qty": 2,
+    "note": "jedno zamurowanie otworu (str. 3)"
+  },
+  {
+    "id": 41629,
+    "qty": 195,
+    "note": "tynkowanie bruzd elektrycznych i wod-kan"
+  },
+  {
+    "id": 41630,
+    "qty": 35.3,
+    "note": "linia 120 cm: dzieci + bawialnia (pasy z rys. 11); styki pionowe kolorów nieliczone"
+  },
+  {
+    "id": 41631,
+    "qty": 1,
+    "note": "po stolarzu (panele tapicerowane, akustyczne, zabudowy)"
+  },
+  {
+    "id": 41632,
+    "qty": 2,
+    "note": "dwa przesunięcia otworu (str. 3)"
+  },
+  {
+    "id": 41635,
+    "qty": 45.4,
+    "note": "glify: 8 okien × (2 × wysokość + szerokość)"
+  },
+  {
+    "id": 41636,
+    "qty": 30,
+    "note": "łączenia płyt na nowych zabudowach GK"
+  },
+  {
+    "id": 41637,
+    "qty": 50.6,
+    "note": "tapety > 120 cm z rys. 11: dzieci 19.7 + bawialnia 24.4; + sypialnia MILO 6,5 z listy zakupowej"
+  },
+  {
+    "id": 41639,
+    "qty": 40,
+    "note": "krawędzie po wyburzeniach, przesunięciach, nowym otworze i zmniejszeniach otworów"
+  },
+  {
+    "id": 41640,
+    "qty": 4,
+    "note": "zamurowanie — obie strony"
+  },
+  {
+    "id": 41642,
+    "qty": 30,
+    "note": "narożniki zabudów GK, siedzisk, kasety Eclisse, zaoblenie R5"
+  },
+  {
+    "id": 41646,
+    "qty": 19,
+    "note": "styk płytki/ściana malowana/sufit w obu łazienkach"
+  },
+  {
+    "id": 41647,
+    "qty": 2,
+    "note": "bidetki w obu łazienkach"
+  },
+  {
+    "id": 41648,
+    "qty": 2,
+    "note": "baterie umywalkowe podtynkowe w obu łazienkach"
+  },
+  {
+    "id": 41649,
+    "qty": 2,
+    "note": "zestaw wannowy (wylewka, słuchawka, FixFit) + zestaw prysznicowy (deszczownica 36 cm, słuchawka, FixFit)"
+  },
+  {
+    "id": 41651,
+    "qty": 75.1,
+    "note": "podłogi + ściany z rys. 11 + sufity łazienek"
+  },
+  {
+    "id": 41653,
+    "qty": 6.7,
+    "note": "jak płytki małoformatowe"
+  },
+  {
+    "id": 41655,
+    "qty": 38.9,
+    "note": "podłogi + ściany wielkoformatowe z rys. 11"
+  },
+  {
+    "id": 41656,
+    "qty": 14,
+    "note": "łaz. duża: umywalka 3, wanna z iBox 3, odpływ suszarki 1, bidetka 2; łaz. mała: iBox prysznica 2, odpływ liniowy 1, bidetka 2"
+  },
+  {
+    "id": 41659,
+    "qty": 29.5,
+    "note": "sufity łazienek 10,85 + limewash Aqua Ceramic łaz. duża 14.4 + farba wodoodporna nad Fossil 4.3"
+  },
+  {
+    "id": 41660,
+    "qty": 16,
+    "note": "haczyki, uchwyty na papier, szczotki WC, mydelniczki, drabinka, siedzisko składane, 2 dozowniki w kuchni"
+  },
+  {
+    "id": 41662,
+    "qty": 3,
+    "note": "łaz. duża: termostat wannowy iBox; łaz. mała: ShowerSelect + zawór przestawny (2× iBox)"
+  },
+  {
+    "id": 41664,
+    "qty": 2,
+    "note": "obie umywalki"
+  },
+  {
+    "id": 41666,
+    "qty": 2,
+    "note": "bidetki podtynkowe (element + bateria)"
+  },
+  {
+    "id": 41669,
+    "qty": 2,
+    "note": "Geberit Duofix w obu łazienkach"
+  },
+  {
+    "id": 41671,
+    "qty": 1,
+    "note": "grzałka grzejnika wodno-elektrycznego Luxrad (łaz. mała)"
+  },
+  {
+    "id": 41675,
+    "qty": 2,
+    "note": "po jednej na łazienkę"
+  },
+  {
+    "id": 41677,
+    "qty": 2,
+    "note": "lustra łazienkowe"
+  },
+  {
+    "id": 41680,
+    "qty": 1,
+    "note": "RainDrain 90 cm z uBox; przy 120×120 na podłodze — jednospadkowy"
+  },
+  {
+    "id": 41683,
+    "qty": 4,
+    "note": "łaz. duża: 2 zabudowy h=120; łaz. mała: przedścianka h=120 z wnęką 25×15 + przedścianka h=120 (−10 cm) (str. 4)"
+  },
+  {
+    "id": 41685,
+    "qty": 2,
+    "note": "umywalki"
+  },
+  {
+    "id": 41687,
+    "qty": 2,
+    "note": "łaz. duża podblatowa (blat — firma zewnętrzna), łaz. mała"
+  },
+  {
+    "id": 41690,
+    "qty": 1,
+    "note": "Villeroy & Boch Oberon 170×75 na nóżkach, front z Bars Swan"
+  },
+  {
+    "id": 41692,
+    "qty": 2,
+    "note": "miski w obu łazienkach"
+  },
+  {
+    "id": 41693,
+    "qty": 2,
+    "note": "zawory pod zlew w kuchni"
+  },
+  {
+    "id": 41694,
+    "qty": 1,
+    "note": "łaz. duża"
+  },
+  {
+    "id": 41695,
+    "qty": 1,
+    "note": "łaz. duża — odpływ suszarki"
+  },
+  {
+    "id": 41696,
+    "qty": 22,
+    "note": "podłogi 10,85 + strefy mokre ścian ≈ 11"
+  },
+  {
+    "id": 41697,
+    "qty": 10.85,
+    "note": "pod 120×120 na obu podłogach"
+  },
+  {
+    "id": 41698,
+    "qty": 30,
+    "note": "wanna, prysznic, umywalki, narożniki wewnętrzne"
+  },
+  {
+    "id": 41700,
+    "qty": 15,
+    "note": "krawędzie zabudów geberitów, przedścianki wanny, wnęk, frontu wanny"
+  },
+  {
+    "id": 41705,
+    "qty": 10.85,
+    "note": "Caesar Bloomstone 6,74 (łaz. duża) + Norr Melk 4,11 (łaz. mała)"
+  },
+  {
+    "id": 41711,
+    "qty": 6.7,
+    "note": "Swan 5×25 > 120 cm 2.5 + Bars na froncie wanny 0,56 + Fossil 0–120 3.6"
+  },
+  {
+    "id": 41712,
+    "qty": 24.2,
+    "note": "Caesar 0–120 2.1 + Elysian 120×120 9.5 + Norr Melk 12.6"
+  },
+  {
+    "id": 41714,
+    "qty": 3.9,
+    "note": "Elysian Line 120×278 — pas na rys. 11 × wysokość"
+  },
+  {
+    "id": 41716,
+    "qty": 10,
+    "note": "półki wnęki na kosmetyki (4× 40 cm), wnęka 25×15, blaty zabudów, przedścianka wanny"
+  },
+  {
+    "id": 41717,
+    "qty": 20,
+    "note": "wyjścia baterii podtynkowych, deszczownicy, FixFit, bidetek, gniazd"
+  },
+  {
+    "id": 41719,
+    "qty": 27,
+    "note": "obwody podłóg + narożniki strefy prysznica i wanny"
+  },
+  {
+    "id": 41720,
+    "qty": 3,
+    "note": "3 zaślepione przyłącza wody po drugim mieszkaniu"
+  },
+  {
+    "id": 41722,
+    "qty": 1,
+    "note": "łaz. mała — wnęka 25×15 w przedściance"
+  },
+  {
+    "id": 41724,
+    "qty": 1,
+    "note": "łaz. duża — wnęka na kosmetyki z półkami"
+  },
+  {
+    "id": 41728,
+    "qty": 1.7,
+    "note": "przedścianka za wanną h=90, gł. ~8 cm, pod baterię podtynkową"
+  },
+  {
+    "id": 41732,
+    "qty": 4,
+    "note": "lodówka, zmywarka, płyta, piekarnik"
+  },
+  {
+    "id": 41733,
+    "qty": 1,
+    "note": "Fontas z filtrem"
+  },
+  {
+    "id": 41734,
+    "qty": 3,
+    "note": "LED pod szafkami wiszącymi"
+  },
+  {
+    "id": 41736,
+    "qty": 1,
+    "note": ""
+  },
+  {
+    "id": 41737,
+    "qty": 1,
+    "note": "Blanco Subline podwieszany"
+  },
+  {
+    "id": 41739,
+    "qty": 1,
+    "note": ""
+  },
+  {
+    "id": 41740,
+    "qty": 1,
+    "note": ""
+  },
+  {
+    "id": 41741,
+    "qty": 1,
+    "note": ""
+  },
+  {
+    "id": 41744,
+    "qty": 2,
+    "note": "fartuch Mallorca Cream 6,5×20 (153 szt.)"
+  },
+  {
+    "id": 41745,
+    "qty": 1.3,
+    "note": "Soft Harmony 120×55 przy oknie"
+  },
+  {
+    "id": 41746,
+    "qty": 8.7,
+    "note": "Soft Harmony 119,8×119,8 na podłodze"
+  },
+  {
+    "id": 41760,
+    "qty": 1,
+    "note": "drzwi ukryte montuje firma zewnętrzna — po naszej stronie obróbka"
+  },
+  {
+    "id": 41764,
+    "qty": 2,
+    "note": "dwa zmniejszenia otworu (str. 3)"
+  },
+  {
+    "id": 41771,
+    "qty": 1,
+    "note": "nowe gniazdo 400 V"
+  },
+  {
+    "id": 41772,
+    "qty": 20,
+    "note": "łączenia na ~10 odcinkach LED"
+  },
+  {
+    "id": 41774,
+    "qty": 5,
+    "note": "Ethernet: gniazda RJ45 na końcach 3 kabli ST45↔ST44 + drugi kabel do salonu"
+  },
+  {
+    "id": 41775,
+    "qty": 127,
+    "note": "wymiana całego osprzętu na Karlik Mini: 75 gniazd 230 V + 12 szczelnych + 2× 400 V + 4 TV + 6 RJ45 + ~28 łączników"
+  },
+  {
+    "id": 41779,
+    "qty": 6,
+    "note": "wszystkie kinkiety z projektu"
+  },
+  {
+    "id": 41780,
+    "qty": 6,
+    "note": "lampy wiszące: salon (Beryl), dzieci, sypialnia, bawialnia ×2, korytarz"
+  },
+  {
+    "id": 41783,
+    "qty": 1,
+    "note": ""
+  },
+  {
+    "id": 41784,
+    "qty": 6.5,
+    "note": "bruzda LED w suficie: salon ≈ 4 + łaz. duża ≈ 2,5"
+  },
+  {
+    "id": 41785,
+    "qty": 26,
+    "note": "pozostałe oprawy sufitowe z 32 w projekcie"
+  },
+  {
+    "id": 41788,
+    "qty": 4,
+    "note": "szynoprzewód w korytarzu"
+  },
+  {
+    "id": 41789,
+    "qty": 15.2,
+    "note": "LED za maskownicami — jak maskownice"
+  },
+  {
+    "id": 41790,
+    "qty": 10,
+    "note": "osobno włączane grupy LED"
+  },
+  {
+    "id": 41793,
+    "qty": 4,
+    "note": "korytarze"
+  },
+  {
+    "id": 41797,
+    "qty": 14,
+    "note": "14 nowych obwodów (34 w projekcie, 20 z przewodów dewelopera)"
+  },
+  {
+    "id": 41798,
+    "qty": 15,
+    "note": "założenie: część punktów w żelbecie"
+  },
+  {
+    "id": 41799,
+    "qty": 34,
+    "note": "Ethernet: 3× kat. 5E ST45↔ST44 w nowym peszlu + drugi kabel ST45 → salon"
+  },
+  {
+    "id": 41801,
+    "qty": 46,
+    "note": "nowe wypusty: 24 oprawy + 5 kinkietów + 17 zasilań LED / 230 V"
+  },
+  {
+    "id": 41802,
+    "qty": 4,
+    "note": "bilans: 1 TV + 3 RJ45 nowe"
+  },
+  {
+    "id": 41803,
+    "qty": 83,
+    "note": "bilans: 54 gniazda 230 V + 11 szczelnych + 8 podłączeń urządzeń + 2 kable pod zabudowę + 8 nowych miejsc łączników"
+  },
+  {
+    "id": 41805,
+    "qty": 4,
+    "note": "Jaga: sypialnia (Strada), kuchnia, 2× do zabudowy pod siedziskami"
+  },
+  {
+    "id": 41807,
+    "qty": 1,
+    "note": "system filtrujący pod zlewem"
+  },
+  {
+    "id": 41808,
+    "qty": 4,
+    "note": "Vertex Plan 2200×300 (bawialnia, dzieci) + Luxrad Ovaltic + Luxrad wodno-elektryczny"
+  },
+  {
+    "id": 41809,
+    "qty": 8,
+    "note": "grzejniki łazienkowe przeniesione (2× 2 pkt) + wysunięcie 2 grzejników na przedściankę (2× 2 pkt)"
+  },
+  {
+    "id": 41810,
+    "qty": 3,
+    "note": "zlew: woda ciepła, zimna, odpływ — przesunięcie do 100 cm"
+  },
+  {
+    "id": 41811,
+    "qty": 4,
+    "note": "podejścia przenoszonych/wysuwanych grzejników"
+  }
+]
