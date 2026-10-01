@@ -120,8 +120,14 @@ import type {
   NewItemPlacementT,
   SectionMetaT,
 } from '@/lib/kosztorys/types'
-import type { SeedConflictFieldT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
+import type {
+  CatalogueNameT,
+  SeedConflictFieldT,
+  WorkCatalogueItemT,
+} from '@/lib/kosztorys/work-catalogue/types'
 import { toastMessage } from '@/lib/utils/toast'
+import { useTranslation } from '@/hooks/use-translation'
+import { mergeTranslations } from '@/lib/i18n/description-translations'
 import type { WorkerRefT } from '@/types/reference-data'
 
 type ArgsT = {
@@ -554,6 +560,7 @@ export function useKosztorysEditor({
   const moveEdges = useMemo(() => computeMoveEdges(rows, sections), [rows, sections])
 
   const onAddItem = editorOnly(handleAddItem)
+  const gridDictionary = useTranslation('grid')
 
   const columnOpts = {
     view,
@@ -603,6 +610,7 @@ export function useKosztorysEditor({
         }
       : undefined,
     workshopVisible: isTemplate,
+    dictionary: gridDictionary,
   }
   const grid = buildV2Grid(columnOpts)
   const { columnToggleItems, columnBaseRanks } = grid
@@ -1216,19 +1224,32 @@ export function useKosztorysEditor({
    */
   async function handleAcceptCatalogueName(
     itemId: number,
-    name: { description: string; unit: string },
+    name: CatalogueNameT,
   ): Promise<boolean> {
     const before = rowsRef.current.find((r) => r.id === itemId)
+    const patch = {
+      ...name,
+      descriptionTranslations: mergeTranslations(
+        before?.descriptionTranslations,
+        name.descriptionTranslations,
+        name.description,
+      ),
+    }
     patchRows(
       (r) => r.id === itemId,
-      (r) => ({ ...r, description: name.description, unit: name.unit }),
+      (r) => ({ ...r, ...patch }),
     )
-    const res = await settleAction(() => updateItemFieldAction(itemId, name))
+    const res = await settleAction(() => updateItemFieldAction(itemId, patch))
     if (!res.success) {
       if (before)
         patchRows(
           (r) => r.id === itemId,
-          (r) => ({ ...r, description: before.description, unit: before.unit }),
+          (r) => ({
+            ...r,
+            description: before.description,
+            unit: before.unit,
+            descriptionTranslations: before.descriptionTranslations,
+          }),
         )
       toastMessage(res.error, 'warning', 4000)
       return false

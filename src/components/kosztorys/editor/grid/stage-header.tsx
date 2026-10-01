@@ -21,6 +21,7 @@ import { StageSplitDialog } from '@/components/kosztorys/editor/dialogs/stage-sp
 import { PLANE_LABELS } from '@/lib/kosztorys/labels'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
+import { useTranslation } from '@/hooks/use-translation'
 import { STAGE_HEADER_COPY as COPY } from './stage-header-copy'
 import { SortIcon, SortMenuItems } from './sort-menu-items'
 import { cn } from '@/lib/utils/cn'
@@ -60,7 +61,8 @@ export function StageHeader({
   executedValue = 0,
   scaledDown = false,
 }: PropsT) {
-  const label = stageLabel(stage)
+  const gridDictionary = useTranslation('grid')
+  const label = stageLabel(stage, gridDictionary)
   const { editing, start, inputProps } = useInlineRename((name) =>
     onRename?.(stage.id, name.trim()),
   )

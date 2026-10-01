@@ -4,6 +4,7 @@ import { toCatalogueCandidate } from '@/lib/kosztorys/work-catalogue/item-to-cat
 
 const source = (overrides: Partial<CatalogueSourceItemT> = {}): CatalogueSourceItemT => ({
   description: 'Ułożenie płytek',
+  descriptionTranslations: {},
   unit: 'm2',
   sectionName: 'Łazienka 1',
   clientPrice: 200,
@@ -47,5 +48,18 @@ describe('toCatalogueCandidate', () => {
 
     expect(candidate.clientPrice).toBe(250)
     expect(candidate.category).toBe('Łazienka')
+  })
+
+  it('tłumaczenie aktualne względem opisu ze spacją zostaje aktualne po przycięciu opisu', () => {
+    const candidate = toCatalogueCandidate(
+      source({
+        description: 'Ułożenie płytek ',
+        descriptionTranslations: { uk: { text: 'Укладання плитки', source: 'Ułożenie płytek ' } },
+      }),
+    )
+
+    expect(candidate.descriptionTranslations).toEqual({
+      uk: { text: 'Укладання плитки', source: 'Ułożenie płytek' },
+    })
   })
 })

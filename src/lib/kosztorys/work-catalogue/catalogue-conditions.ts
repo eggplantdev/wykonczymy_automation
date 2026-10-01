@@ -1,3 +1,5 @@
+import { isTranslationStale, translationText } from '@/lib/i18n/description-translations'
+import { LANGUAGE_SHORT, TRANSLATION_LANGUAGES } from '@/lib/i18n/languages'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import { planeDashSuffix } from '@/lib/kosztorys/format'
 import { PLANE_LABELS, PRICE_SOURCE_LABELS } from '@/lib/kosztorys/labels'
@@ -51,6 +53,23 @@ const PROBLEMS: CatalogueConditionT[] = [
       matches: (entry) => namesRate(entry, plane) && catalogueRateAmount(entry, plane) === 0,
     }),
   ),
+  ...TRANSLATION_LANGUAGES.flatMap((language): CatalogueConditionT[] => [
+    {
+      id: `catalogue-no-translation-${language}`,
+      kind: 'problem',
+      group: 'Tłumaczenia',
+      label: `bez tłumaczenia (${LANGUAGE_SHORT[language]})`,
+      matches: (entry) => translationText(entry.descriptionTranslations, language) === '',
+    },
+    {
+      id: `catalogue-stale-translation-${language}`,
+      kind: 'problem',
+      group: 'Tłumaczenia',
+      label: `z nieaktualnym tłumaczeniem (${LANGUAGE_SHORT[language]})`,
+      matches: (entry) =>
+        isTranslationStale(entry.descriptionTranslations, language, entry.description),
+    },
+  ]),
 ]
 
 // The plane rides in every label, not only in the heading: cmdk keys its rows by label, and „auto"

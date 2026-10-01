@@ -3,7 +3,12 @@ import type { Payload, PayloadRequest } from 'payload'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import { findCatalogueItemByKey } from '@/lib/db/work-catalogue'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
-import type { CatalogueSeedItemT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
+import type {
+  CatalogueCandidateT,
+  CatalogueSeedItemT,
+  WorkCatalogueItemT,
+} from '@/lib/kosztorys/work-catalogue/types'
+import { mergeTranslations } from '@/lib/i18n/description-translations'
 import type { WorkCatalogueItemDataT } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
 
 // Out of the `'use server'` action file so a kosztorys action can write the katalog inside its own
@@ -60,7 +65,7 @@ export async function applyCatalogueWrite(
     existing,
     keepCatalogueCategory,
   }: {
-    candidate: CatalogueSeedItemT
+    candidate: CatalogueCandidateT
     existing: WorkCatalogueItemT | null
     keepCatalogueCategory: boolean
   },
@@ -72,7 +77,15 @@ export async function applyCatalogueWrite(
   await payload.update({
     collection: 'work-catalogue-items',
     id: existing.id,
-    data: keepCatalogueCategory ? { ...candidate, category: existing.category } : candidate,
+    data: {
+      ...candidate,
+      ...(keepCatalogueCategory && { category: existing.category }),
+      descriptionTranslations: mergeTranslations(
+        existing.descriptionTranslations,
+        candidate.descriptionTranslations,
+        candidate.description,
+      ),
+    },
     req,
   })
 }

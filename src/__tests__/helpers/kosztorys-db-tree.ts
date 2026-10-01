@@ -89,6 +89,7 @@ export async function createKosztorysTree(
           section: Number(created.id),
           displayOrder: item.displayOrder ?? itemIndex,
           description: item.description ?? null,
+          descriptionTranslations: item.descriptionTranslations ?? {},
           unit: item.unit ?? null,
           plannedQty: item.plannedQty ?? 0,
           sheetMeasuredQty: item.sheetMeasuredQty ?? null,

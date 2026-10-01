@@ -3,6 +3,8 @@ import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-
 import { decimalColumn } from '@/components/kosztorys/editor/grid/cells/decimal-column'
 import { pinnedWidth } from '@/components/kosztorys/editor/grid/column-sizing'
 import { withCellClass } from '@/components/kosztorys/editor/grid/kosztorys-synthetic-rows'
+import { useTranslation } from '@/hooks/use-translation'
+import type { MessageKeyT } from '@/lib/i18n/translations'
 import { numericFieldPolicy } from '@/lib/kosztorys/cell-edit'
 import { formatQty } from '@/lib/kosztorys/format'
 import { STAGE_QTY_PREFIX, stageKey } from '@/lib/kosztorys/stage-keys'
@@ -38,16 +40,28 @@ const COMPACT_REPORT_WIDTH = 110
 const COMPACT_UNIT_WIDTH = 80
 const COMPACT_DESCRIPTION_MIN_WIDTH = 240
 
+// A component, not inline JSX: the column is a module constant, so only a render can read the language.
+function ReportHeader({
+  label,
+  hint,
+}: {
+  label: MessageKeyT<'report'>
+  hint: MessageKeyT<'report'>
+}) {
+  const { t } = useTranslation('report')
+  // The preview bolds every header span, and the hint must stay quiet.
+  return (
+    <div className="flex flex-col gap-0.5 whitespace-normal">
+      <div className="font-bold">{t(label)}</div>
+      <div className="text-muted-foreground text-xs leading-tight">{t(hint)}</div>
+    </div>
+  )
+}
+
 const reportColumn: Column<KosztorysV2RowT> = {
   ...decimalColumn(
     REPORT_FIELD,
-    // The preview bolds every header span, and the hint must stay quiet.
-    <div className="flex flex-col gap-0.5 whitespace-normal">
-      <div className="font-bold">Zgłaszam</div>
-      <div className="text-muted-foreground text-xs leading-tight">
-        wpisz, ile wykonano od ostatniego zgłoszenia.
-      </div>
-    </div>,
+    <ReportHeader label="reportColumn" hint="reportColumnHint" />,
     numericFieldPolicy<StageKeyT, KosztorysV2RowT>(REPORT_FIELD, formatQty),
   ),
   ...pinnedWidth(REPORT_WIDTH),
@@ -72,12 +86,7 @@ function pendingColumn(
 ): Column<KosztorysV2RowT, PendingCellDataT> {
   return {
     id: 'reportPending',
-    title: (
-      <div className="flex flex-col gap-0.5 whitespace-normal">
-        <div className="font-bold">Czeka</div>
-        <div className="text-muted-foreground text-xs leading-tight">wysłane, niesprawdzone</div>
-      </div>
-    ),
+    title: <ReportHeader label="pendingColumn" hint="pendingColumnHint" />,
     columnData: { pendingQtyByItem },
     component: PendingQtyCell,
     disabled: true,

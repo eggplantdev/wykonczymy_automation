@@ -1,13 +1,32 @@
+import { pl } from '@/lib/i18n/dictionaries/pl'
+import type { MessageKeyT } from '@/lib/i18n/translations'
+
+export type ReportNoticeKeyT = MessageKeyT<'notices'>
+
 // Shared by the report page (a notice instead of the form) and `tokenAction` (a refused send from a
-// page opened before the state changed), so the worker reads the same sentence either way.
+// page opened before the state changed), so the worker reads the same sentence either way. Worded by
+// the Polish dictionary, so the key the report page translates can never drift from the text.
 export const REPORT_REFUSALS = {
-  unknownToken: 'Ten link wygasł albo został cofnięty. Poproś kierownika o nowy.',
+  unknownToken: pl.notices.unknownToken,
   // The gate's own sentences tell a kierownik to reopen the investment — a control the worker has not got.
-  closed: 'Ta inwestycja jest zamknięta — zgłoszenia prac nie są już przyjmowane.',
-  template: 'Szablon nie przyjmuje zgłoszeń prac.',
-  inactiveWorker: 'Twoje konto jest nieaktywne. Skontaktuj się z kierownikiem.',
-  foreignItem: 'Część prac zniknęła z rozpiski. Odśwież stronę i sprawdź zgłoszenie.',
-} as const
+  closed: pl.notices.closed,
+  template: pl.notices.template,
+  inactiveWorker: pl.notices.inactiveWorker,
+  foreignItem: pl.notices.foreignItem,
+} as const satisfies Partial<Record<ReportNoticeKeyT, string>>
+
+export type ReportRefusalKeyT = keyof typeof REPORT_REFUSALS
+
+export const reportRefusal = (key: ReportNoticeKeyT) => ({
+  success: false as const,
+  error: pl.notices[key],
+  messageKey: key,
+})
+
+// A Zod refusal carries only its sentence. The report schemas word theirs from the Polish dictionary,
+// so the sentence finds its key back.
+export const reportNoticeKeyOf = (text: string): ReportNoticeKeyT | undefined =>
+  (Object.keys(pl.notices) as ReportNoticeKeyT[]).find((key) => pl.notices[key] === text)
 
 // The review dialog blocks „Przyjmij" with the sentence the server would refuse it with.
 export const ACCEPT_REFUSALS = {

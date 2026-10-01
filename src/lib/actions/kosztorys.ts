@@ -504,7 +504,7 @@ export async function addItemAction(
       if (!parsed.success) return parsed
       const { placement, data, catalogue } = parsed.data
 
-      const row = catalogueRow(data)
+      const row = { ...catalogueRow(data), descriptionTranslations: {} }
       if (!row.description || !row.unit) {
         return { success: false, error: EMPTY_ITEM_TEXT_ERROR }
       }

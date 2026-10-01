@@ -4,9 +4,12 @@ import { describe, expect, it, vi, type Mock } from 'vitest'
 
 import { CatalogueMissingList } from '@/components/kosztorys/editor/dialogs/catalogue/catalogue-missing-list'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
-import type { CatalogueMissingT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
-
-type CatalogueNameT = { description: string; unit: string }
+import type {
+  CatalogueHintT,
+  CatalogueMissingT,
+  CatalogueNameT,
+  WorkCatalogueItemT,
+} from '@/lib/kosztorys/work-catalogue/types'
 
 // Accepting a candidate is a WRITE dressed as a hint, and the two things that make it correct are
 // invisible to the engine spec: that it carries the j.m. along with the opis, and that a praca whose
@@ -18,6 +21,7 @@ const entry = (over: Partial<WorkCatalogueItemT> = {}): WorkCatalogueItemT => {
   return {
     id: 1,
     description,
+    descriptionTranslations: {},
     category: null,
     unit,
     clientPrice: 45,
@@ -29,6 +33,16 @@ const entry = (over: Partial<WorkCatalogueItemT> = {}): WorkCatalogueItemT => {
     ...over,
   }
 }
+
+const hint = (over: Partial<CatalogueHintT> = {}): CatalogueHintT => ({
+  id: 7,
+  description: 'Montaż syfonu',
+  descriptionTranslations: {},
+  unit: 'szt',
+  clientPrice: 45,
+  score: 0.9,
+  ...over,
+})
 
 const row = (over: Partial<CatalogueMissingT> = {}): CatalogueMissingT => ({
   itemId: 11,
@@ -66,12 +80,32 @@ function renderList({
 
 describe('CatalogueMissingList — przyjęcie kandydata', () => {
   it('wysyła opis i j.m. kandydata, nie sam opis', async () => {
-    const hint = { id: 7, description: 'Montaż syfonu', unit: 'szt', clientPrice: 45, score: 0.9 }
-    const onAcceptName = renderList({ missing: [row({ hints: [hint] })] })
+    const onAcceptName = renderList({ missing: [row({ hints: [hint()] })] })
 
     await userEvent.click(screen.getByRole('button', { name: /Montaż syfonu/ }))
 
-    expect(onAcceptName).toHaveBeenCalledWith(11, { description: 'Montaż syfonu', unit: 'szt' })
+    expect(onAcceptName).toHaveBeenCalledWith(11, {
+      description: 'Montaż syfonu',
+      unit: 'szt',
+      descriptionTranslations: {},
+    })
+  })
+
+  // The praca's own tłumaczenie was made from the name it gives up, so it would read „nieaktualne"
+  // and the pracownik would see Polish where the katalog has their language.
+  it('przenosi tłumaczenia kandydata razem z jego nazwą', async () => {
+    const descriptionTranslations = { uk: { text: 'Монтаж сифона', source: 'Montaż syfonu' } }
+    const onAcceptName = renderList({
+      missing: [row({ hints: [hint({ descriptionTranslations })] })],
+    })
+
+    await userEvent.click(screen.getByRole('button', { name: /Montaż syfonu/ }))
+
+    expect(onAcceptName).toHaveBeenCalledWith(11, {
+      description: 'Montaż syfonu',
+      unit: 'szt',
+      descriptionTranslations,
+    })
   })
 
   it('rozróżnia kandydatów jednostką i ceną, bo nazwy bywają identyczne', () => {
@@ -79,8 +113,8 @@ describe('CatalogueMissingList — przyjęcie kandydata', () => {
       missing: [
         row({
           hints: [
-            { id: 7, description: 'Montaż syfonów', unit: 'szt', clientPrice: 45, score: 0.99 },
-            { id: 8, description: 'Montaż syfonów', unit: 'm2', clientPrice: 60, score: 0.99 },
+            hint({ description: 'Montaż syfonów', score: 0.99 }),
+            hint({ id: 8, description: 'Montaż syfonów', unit: 'm2', clientPrice: 60, score: 0.99 }),
           ],
         }),
       ],
@@ -94,7 +128,7 @@ describe('CatalogueMissingList — przyjęcie kandydata', () => {
     renderList({
       missing: [
         row({
-          hints: [{ id: 7, description: 'Montaż syfonów', unit: 'szt', clientPrice: 45, score: 1 }],
+          hints: [hint({ description: 'Montaż syfonów', score: 1 })],
         }),
       ],
     })
@@ -108,7 +142,7 @@ describe('CatalogueMissingList — przyjęcie kandydata', () => {
       missing: [
         row({
           hints: [
-            { id: 7, description: 'Montaż syfonu', unit: 'szt', clientPrice: 45, score: 0.9 },
+            hint(),
           ],
         }),
       ],
@@ -126,7 +160,11 @@ describe('CatalogueMissingList — przyjęcie kandydata', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Wybierz z katalogu…' }))
     await userEvent.click(screen.getByRole('button', { name: /Wylewki/ }))
 
-    expect(onAcceptName).toHaveBeenCalledWith(11, { description: 'Wylewki', unit: 'm2' })
+    expect(onAcceptName).toHaveBeenCalledWith(11, {
+      description: 'Wylewki',
+      unit: 'm2',
+      descriptionTranslations: {},
+    })
   })
 
   it('zawęża wyszukiwarkę do wpisanej frazy', async () => {
@@ -150,7 +188,7 @@ describe('CatalogueMissingList — przyjęcie kandydata', () => {
       missing: [
         row({
           hints: [
-            { id: 7, description: 'Montaż syfonu', unit: 'szt', clientPrice: 45, score: 0.9 },
+            hint(),
           ],
         }),
       ],

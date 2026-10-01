@@ -21,6 +21,7 @@ const ITEM: WorkCatalogueItemFormValuesT = {
   ownToolsSource: 'auto',
   ownToolsRate: '',
   ownToolsCoeff: '',
+  translations: { uk: '', ru: '' },
 }
 
 const W_TOOLS_RATE = 'Stawka z narzędziami (podwykonawca) (PLN)'

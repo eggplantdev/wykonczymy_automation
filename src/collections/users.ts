@@ -15,6 +15,7 @@ import { guardUserUpdate } from '@/hooks/users/guard-update'
 import { refuseDisabledLogin } from '@/hooks/users/refuse-disabled-login'
 import { workerDeleteBlocker } from '@/lib/workers/delete-blocker'
 import { ROLES, ROLE_LABELS } from '@/lib/auth/roles'
+import { LANGUAGES, isLanguage } from '@/lib/i18n/languages'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -78,6 +79,15 @@ export const Users: CollectionConfig = {
         create: isAdminOrOwnerField,
         update: isAdminOrOwnerField,
       },
+    },
+    // Text, not a select: a select is a Postgres enum, and every new language would be a migration.
+    // Empty = Polish.
+    {
+      name: 'language',
+      type: 'text',
+      label: { en: 'Language', pl: 'Język' },
+      validate: (value: string | null | undefined) =>
+        value == null || value === '' || isLanguage(value) || `Dozwolone: ${LANGUAGES.join(', ')}`,
     },
     {
       name: 'active',

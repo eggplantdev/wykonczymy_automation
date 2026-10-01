@@ -149,6 +149,53 @@ describe.skipIf(!ENV_READY)('work catalogue actions (DB)', () => {
     expect(Number(stored.ownToolsRate)).toBe(15)
   })
 
+  it('a price-only edit from a dialog opened before the translations existed keeps them', async () => {
+    const data = item({ unit: 'mb' })
+    expect((await createCatalogueItemAction(data)).success).toBe(true)
+    const row = await track(data)
+    const id = Number(row!.id)
+    // Translations land behind the dialog's back — the fill script writes raw SQL, no cache expiry.
+    await payload.update({
+      collection: 'work-catalogue-items',
+      id,
+      data: { descriptionTranslations: { uk: { text: 'Фарбування стін', source: data.description } } },
+    })
+
+    // The dialog's copy of the row predates them: empty texts, nothing edited.
+    const result = await updateCatalogueItemAction(id, {
+      ...data,
+      clientPrice: 41,
+      translationSeed: {},
+      translationEdits: {},
+    })
+    expect(result.success).toBe(true)
+
+    const stored = await payload.findByID({ collection: 'work-catalogue-items', id, depth: 0 })
+    expect(Number(stored.clientPrice)).toBe(41)
+    expect(stored.descriptionTranslations).toEqual({
+      uk: { text: 'Фарбування стін', source: data.description },
+    })
+  })
+
+  it('an edited language is stamped against the opis; the others stay as stored', async () => {
+    const data = item({ unit: 'mb' })
+    const [row] = await rowsFor(data)
+    const id = Number(row!.id)
+
+    const result = await updateCatalogueItemAction(id, {
+      ...data,
+      translationSeed: {},
+      translationEdits: { ru: 'Покраска стен' },
+    })
+    expect(result.success).toBe(true)
+
+    const stored = await payload.findByID({ collection: 'work-catalogue-items', id, depth: 0 })
+    expect(stored.descriptionTranslations).toEqual({
+      uk: { text: 'Фарбування стін', source: data.description },
+      ru: { text: 'Покраска стен', source: data.description },
+    })
+  })
+
   it('deletes a row', async () => {
     const [existing] = await rowsFor(item({ unit: 'szt' }))
     const id = Number(existing!.id)

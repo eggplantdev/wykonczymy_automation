@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { descriptionTranslationsSchema } from '@/lib/i18n/description-translations'
 
 /**
  * Wire shape of a single-cell autosave — every field optional, because the grid diffs a row into one
@@ -11,6 +12,9 @@ import { z } from 'zod'
 export const itemPatchSchema = z
   .object({
     description: z.string().nullable(),
+    // The whole map, never one language: a json update replaces the column, so a single-language
+    // patch would wipe the others.
+    descriptionTranslations: descriptionTranslationsSchema,
     unit: z.string().nullable(),
     plannedQty: z.coerce.number(),
     discountType: z.enum(['percent', 'amount']).nullable(),

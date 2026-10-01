@@ -178,6 +178,7 @@ export function parseLaborTab(
       sectionId: currentSectionId,
       displayOrder: items.length,
       description,
+      descriptionTranslations: {},
       unit: text(row[columns.unit]) || null,
       plannedQty: number(row[columns.plannedQty]),
       discountType: discountFraction > 0 ? 'percent' : null,

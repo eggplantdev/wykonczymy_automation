@@ -4,11 +4,22 @@
  * editor holding a mount-frozen copy of the tree that is not "your edit was rejected", it is "your
  * whole copy is stale", which is a different recovery (reseed) than a revert. `REQUEST_FAILED` is
  * set only client-side by `settleAction`: the request never completed, so whether the write
- * committed is unknown.
+ * committed is unknown. `DATABASE_ERROR` marks a driver failure whose text was replaced, so a
+ * translating surface can word it without matching the Polish sentence.
  */
-export type ActionErrorCodeT = 'NOT_FOUND' | 'REQUEST_FAILED'
+export type ActionErrorCodeT = 'NOT_FOUND' | 'REQUEST_FAILED' | 'DATABASE_ERROR'
 
-export type FailureT = { success: false; error: string; code?: ActionErrorCodeT }
+/**
+ * `messageKey` names the dictionary entry `error` was worded from, for a surface that shows the
+ * failure in the reader's language (the worker's report link). `error` stays Polish for every other
+ * caller.
+ */
+export type FailureT = {
+  success: false
+  error: string
+  code?: ActionErrorCodeT
+  messageKey?: string
+}
 
 /**
  * Discriminated result every server action returns. With TData, success carries a payload.

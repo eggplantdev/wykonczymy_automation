@@ -7,6 +7,7 @@ import { CACHE_TAGS } from '@/lib/cache/tags'
 import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import type { RoleT } from '@/lib/auth/roles'
 import { getDb } from '@/lib/db/get-db'
+import { toLanguage } from '@/lib/i18n/languages'
 import { DEFAULT_VAT } from '@/lib/kosztorys/constants'
 import { SETTLEMENT_MODE_DEFAULT, type SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 import { perfStart } from '@/lib/perf'
@@ -82,7 +83,7 @@ export const fetchReferenceData = cache(
       `),
         db.execute(sql`
         SELECT id, name, role::text, active::boolean, email, default_cash_register_id::integer,
-               (trashed_at IS NOT NULL) AS trashed
+               language, (trashed_at IS NOT NULL) AS trashed
         FROM users
         ORDER BY name
       `),
@@ -151,6 +152,7 @@ export const fetchReferenceData = cache(
           defaultCashRegisterId: row.default_cash_register_id
             ? Number(row.default_cash_register_id)
             : undefined,
+          language: toLanguage(row.language),
         } satisfies WorkerRefT,
       }))
       const [workers, trashedWorkers] = splitTrashed(workerRows)
@@ -179,7 +181,7 @@ export const fetchReferenceData = cache(
     // Bumped whenever the returned SHAPE changes. A tag only marks an entry stale — it still SERVES
     // the old payload once, and one missing a field the reader now dereferences crashes the page or
     // renders NaN. The bump makes it unreachable instead.
-    ['reference-data-v5'],
+    ['reference-data-v6'],
     {
       tags: [
         CACHE_TAGS.cashRegisters,

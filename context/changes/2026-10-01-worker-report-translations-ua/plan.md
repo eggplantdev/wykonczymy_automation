@@ -836,44 +836,44 @@ Run once, after the final phase:
 
 #### Automated
 
-- [ ] 1.1 Migration applies to the test DB
-- [ ] 1.2 Round-trip + schema-drift specs carry the field (5435)
-- [ ] 1.3 Old payload without the key restores as `{}`
-- [ ] 1.4 `itemFromFields` copies the field
+- [x] 1.1 Migration applies to the test DB — c8decfaf
+- [x] 1.2 Round-trip + schema-drift specs carry the field (5435) — c8decfaf
+- [x] 1.3 Old payload without the key restores as `{}` — c8decfaf
+- [x] 1.4 `itemFromFields` copies the field — c8decfaf
 
 ### Phase 2: Copy rules and the manager's editing surfaces
 
 #### Automated
 
-- [ ] 2.1 Unit specs: merge, restamp, import plan, rozpiska condition, katalog conditions
-- [ ] 2.2 Translation cell out-mapping stamps `source`
+- [x] 2.1 Unit specs: merge, restamp, import plan, rozpiska condition, katalog conditions — e42cb1fd
+- [x] 2.2 Translation cell out-mapping stamps `source` — e42cb1fd
 
 ### Phase 3: The worker's language
 
 #### Automated
 
-- [ ] 3.1 Worker schema language mapping spec
+- [x] 3.1 Worker schema language mapping spec — 0e3bec88
 
 ### Phase 4: The i18n core
 
 #### Automated
 
-- [ ] 4.1 Provider DOM spec
-- [ ] 4.2 Translations / plurals unit spec
+- [x] 4.1 Provider DOM spec — 1d7dbb2f
+- [x] 4.2 Translations / plurals unit spec — 1d7dbb2f
 
 ### Phase 5: The report link in Ukrainian
 
 #### Automated
 
-- [ ] 5.1 Extras dialog spec green without provider + `uk` case
-- [ ] 5.2 Report grid DOM spec under `uk` vs Polish default
-- [ ] 5.3 `translateTree` unit spec
-- [ ] 5.4 Token-action / worker-report specs assert `messageKey`
-- [ ] 5.5 Column-label specs green with no dictionary
+- [x] 5.1 Extras dialog spec green without provider + `uk` case — 9c6250ef
+- [x] 5.2 Report grid DOM spec under `uk` vs Polish default — 9c6250ef
+- [x] 5.3 `translateTree` unit spec — 9c6250ef
+- [x] 5.4 Token-action / worker-report specs assert `messageKey` — 9c6250ef
+- [x] 5.5 Column-label specs green with no dictionary — 9c6250ef
 
 ### Phase 6: The fill script, translations and docs
 
 #### Automated
 
-- [ ] 6.1 Fill-script matcher unit spec
-- [ ] 6.2 Dry run against local prints counts, writes nothing
+- [x] 6.1 Fill-script matcher unit spec — 83af91f4
+- [x] 6.2 Dry run against local prints counts, writes nothing — 83af91f4

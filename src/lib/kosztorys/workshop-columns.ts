@@ -1,4 +1,5 @@
 import { ALL_PLANE_PRICE_KEYS } from '@/lib/kosztorys/plane-price-keys'
+import { ALL_TRANSLATION_COLUMN_KEYS } from '@/lib/kosztorys/translation-column-keys'
 
 // The workbench's column list — exactly what a szablon carries to the next job. The rest of the
 // grid (przedmiar, etapy, rabat, wartości, postęp) is not „hidden" here and not „read-only": it is
@@ -22,6 +23,9 @@ import { ALL_PLANE_PRICE_KEYS } from '@/lib/kosztorys/plane-price-keys'
 // on apply, so that VAT is the workbench's own and never travels to the next budowa. The figure
 // would therefore be right on this screen and wrong everywhere the szablon is used.
 //
+// The translated opisy travel with the szablon, and a szablon is where katalog-born rows get
+// reviewed before they reach a crew.
+//
 // `actions` is on the list despite carrying nothing to the next budowa: the grid runs `lockRows`, so
 // the „Akcje" menu is the only route to usuń / przesuń / wstaw a pozycja. This list reads as "what a
 // szablon carries", which is why a column that is pure affordance was missed once already.
@@ -29,6 +33,7 @@ export const WORKSHOP_VISIBLE_COLUMNS: ReadonlySet<string> = new Set([
   'actions',
   'sectionName',
   'description',
+  ...ALL_TRANSLATION_COLUMN_KEYS,
   'unit',
   'price',
   ...ALL_PLANE_PRICE_KEYS,

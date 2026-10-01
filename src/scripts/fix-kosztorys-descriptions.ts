@@ -21,6 +21,7 @@ import { cleanItemTexts } from '../lib/kosztorys/clean-item-texts'
 import { cleanUnit } from '../lib/kosztorys/clean-unit'
 import { listCatalogueItems } from '../lib/db/work-catalogue'
 import { catalogueKey } from '../lib/kosztorys/work-catalogue/catalogue-key'
+import { restampTranslations } from '../lib/i18n/description-translations'
 
 const INV = process.env.INV ?? 'all'
 const APPLY = process.env.APPLY === '1'
@@ -99,10 +100,16 @@ async function fixCatalogue(db: DbExecutorT): Promise<void> {
   }
 
   if (!APPLY) return
-  for (const { item, description, unit, matchKey } of changed)
-    await db.execute(
-      sql`UPDATE work_catalogue_items SET description = ${description}, unit = ${unit}, match_key = ${matchKey} WHERE id = ${item.id}`,
+  for (const { item, description, unit, matchKey } of changed) {
+    const translations = restampTranslations(
+      item.descriptionTranslations,
+      item.description,
+      description,
     )
+    await db.execute(
+      sql`UPDATE work_catalogue_items SET description = ${description}, unit = ${unit}, match_key = ${matchKey}, description_translations = ${JSON.stringify(translations)}::jsonb WHERE id = ${item.id}`,
+    )
+  }
 }
 
 async function main() {

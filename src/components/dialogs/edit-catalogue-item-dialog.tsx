@@ -5,6 +5,7 @@ import { FormDialog } from '@/components/ui/form-dialog'
 import { WorkCatalogueItemForm } from '@/components/forms/work-catalogue-item/work-catalogue-item-form'
 import { rateFormValues } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
 import { updateCatalogueItemAction } from '@/lib/actions/work-catalogue'
+import { translationTexts } from '@/lib/i18n/description-translations'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
 type EditCatalogueItemDialogPropsT = {
@@ -35,7 +36,9 @@ export function EditCatalogueItemDialog({
             unit: item.unit,
             clientPrice: String(item.clientPrice),
             ...rateFormValues(item),
+            translations: translationTexts(item.descriptionTranslations),
           }}
+          translationBaseline={item.descriptionTranslations}
           categorySuggestions={categorySuggestions}
           action={(data) => updateCatalogueItemAction(item.id, data)}
           successMessage="Pozycja zaktualizowana"

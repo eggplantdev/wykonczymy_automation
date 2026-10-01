@@ -4,20 +4,27 @@ import config from '@payload-config'
 import { getDb } from '@/lib/db/get-db'
 import { listWorkerReports, pendingQtyByItem, type WorkerReportRowT } from '@/lib/db/worker-reports'
 import { readReportShare } from '@/lib/db/worker-report-share'
+import { DEFAULT_LANGUAGE, type LanguageT } from '@/lib/i18n/languages'
+import type { ReportNoticeKeyT } from '@/lib/kosztorys/worker-report/refusals'
 import { reportShareRefusal } from '@/lib/kosztorys/worker-report/share-refusal'
-import { WORKER_SCOPE_BLOCK_MESSAGES } from '@/lib/kosztorys/worker-view/labels'
+import { WORKER_SCOPE_BLOCK_NOTICE_KEYS } from '@/lib/kosztorys/worker-view/labels'
 import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
 import { getWorkerKosztorysByReportShare } from '@/lib/queries/worker-kosztorys'
 
-export type WorkerReportPageT =
-  | { kind: 'notice'; investmentName: string; workerName: string; message: string }
-  | {
-      kind: 'ready'
-      document: Extract<WorkerKosztorysT, { kind: 'ready' }>
-      // What he sent and nobody has decided yet, per pozycja — so a repeat report shows before he sends it.
-      pendingQtyByItem: Record<number, number>
-      sentReports: WorkerReportRowT[]
-    }
+// The page's opening language, before the worker's own switcher choice is read on the device.
+type ReportLocaleT = { language: LanguageT; workerId: number }
+
+export type WorkerReportPageT = ReportLocaleT &
+  (
+    | { kind: 'notice'; investmentName: string; workerName: string; messageKey: ReportNoticeKeyT }
+    | {
+        kind: 'ready'
+        document: Extract<WorkerKosztorysT, { kind: 'ready' }>
+        // What he sent and nobody has decided yet, per pozycja — so a repeat report shows before he sends it.
+        pendingQtyByItem: Record<number, number>
+        sentReports: WorkerReportRowT[]
+      }
+  )
 
 /**
  * The public report page's whole read, uncached: a revoke, a deactivation or a zakończenie must
@@ -29,11 +36,16 @@ export async function getWorkerReportPage(token: string): Promise<WorkerReportPa
   const share = await readReportShare(db, token)
   if (!share) return null
 
-  const notice = (message: string): WorkerReportPageT => ({
+  const locale: ReportLocaleT = {
+    language: share.language ?? DEFAULT_LANGUAGE,
+    workerId: share.workerId,
+  }
+  const notice = (messageKey: ReportNoticeKeyT): WorkerReportPageT => ({
+    ...locale,
     kind: 'notice',
     investmentName: share.investmentName,
     workerName: share.workerName,
-    message,
+    messageKey,
   })
 
   const refusal = await reportShareRefusal(db, share)
@@ -45,6 +57,6 @@ export async function getWorkerReportPage(token: string): Promise<WorkerReportPa
     listWorkerReports(db, share.investmentId, share.workerId),
   ])
   if (!document) return null
-  if (document.kind === 'blocked') return notice(WORKER_SCOPE_BLOCK_MESSAGES[document.reason])
-  return { kind: 'ready', document, pendingQtyByItem: pending, sentReports }
+  if (document.kind === 'blocked') return notice(WORKER_SCOPE_BLOCK_NOTICE_KEYS[document.reason])
+  return { ...locale, kind: 'ready', document, pendingQtyByItem: pending, sentReports }
 }

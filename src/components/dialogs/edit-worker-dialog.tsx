@@ -4,6 +4,7 @@ import { EditButton } from '@/components/ui/row-actions/edit-button'
 import { FormDialog } from '@/components/ui/form-dialog'
 import { WorkerForm } from '@/components/forms/worker-form/worker-form'
 import { updateWorkerAction } from '@/lib/actions/workers'
+import { DEFAULT_LANGUAGE } from '@/lib/i18n/languages'
 import type { WorkerRefT, ReferenceItemT } from '@/types/reference-data'
 
 type EditWorkerDialogPropsT = {
@@ -33,6 +34,7 @@ export function EditWorkerDialog({ worker, cashRegisters }: EditWorkerDialogProp
             defaultCashRegister: worker.defaultCashRegisterId
               ? String(worker.defaultCashRegisterId)
               : '',
+            language: worker.language ?? DEFAULT_LANGUAGE,
           }}
           action={(data) => updateWorkerAction(worker.id, data)}
           successMessage="Pracownik zaktualizowany"

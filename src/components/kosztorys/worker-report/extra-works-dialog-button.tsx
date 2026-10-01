@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/compone
 import { ExtraWorkRows } from '@/components/kosztorys/worker-report/extra-work-rows'
 import { blankExtra, extraState } from '@/components/kosztorys/worker-report/extra-state'
 import type { ExtraWorkT } from '@/components/kosztorys/worker-report/types'
+import { useTranslation } from '@/hooks/use-translation'
 
 type PropsT = {
   extras: ExtraWorkT[]
@@ -18,6 +19,8 @@ type PropsT = {
 export function ExtraWorksDialogButton({ extras, commonUnits, onSave, onRemove }: PropsT) {
   const [isOpen, setIsOpen] = useState(false)
   const [isCloseRefused, setIsCloseRefused] = useState(false)
+  const { t } = useTranslation('report')
+  const { t: tCommon } = useTranslation('common')
   const hasInvalid = extras.some((extra) => extraState(extra) === 'invalid')
 
   const open = () => {
@@ -37,16 +40,14 @@ export function ExtraWorksDialogButton({ extras, commonUnits, onSave, onRemove }
     <>
       <Button variant="outline" size="sm" onClick={open}>
         <Plus />
-        Nowa praca
+        {t('newWork')}
         {extras.length > 0 && ` (${extras.length})`}
       </Button>
       <Dialog open={isOpen} onOpenChange={(next) => (next ? setIsOpen(true) : close())}>
-        <DialogContent className="sm:max-w-dialog-lg">
+        <DialogContent className="sm:max-w-dialog-lg" closeLabel={tCommon('close')}>
           <div className="flex flex-col gap-1">
-            <DialogTitle>Prace spoza rozpiski</DialogTitle>
-            <DialogDescription>
-              Każda praca to osobny wiersz. Stawkę uzupełni kierownik przy weryfikacji.
-            </DialogDescription>
+            <DialogTitle>{t('extrasTitle')}</DialogTitle>
+            <DialogDescription>{t('extrasDescription')}</DialogDescription>
           </div>
           <div className="max-h-dialog-scroll overflow-y-auto">
             <ExtraWorkRows
@@ -59,11 +60,9 @@ export function ExtraWorksDialogButton({ extras, commonUnits, onSave, onRemove }
           </div>
           <div className="flex items-center justify-end gap-3">
             {isCloseRefused && hasInvalid && (
-              <p className="text-destructive text-sm">
-                Popraw błędy — uzupełnij opis, j.m. i ilość albo usuń wiersz.
-              </p>
+              <p className="text-destructive text-sm">{t('extrasFixErrors')}</p>
             )}
-            <Button onClick={close}>Gotowe</Button>
+            <Button onClick={close}>{t('done')}</Button>
           </div>
         </DialogContent>
       </Dialog>

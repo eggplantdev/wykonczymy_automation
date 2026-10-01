@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { useTranslation } from '@/hooks/use-translation'
 
 type PropsT = {
   search: string
@@ -10,6 +11,7 @@ type PropsT = {
 }
 
 export function ReportBar({ search, onSearch, chips, className }: PropsT) {
+  const { t } = useTranslation('report')
   return (
     <div className={className}>
       <div className="relative w-full max-w-md">
@@ -17,7 +19,7 @@ export function ReportBar({ search, onSearch, chips, className }: PropsT) {
         <Input
           value={search}
           onChange={(event) => onSearch(event.target.value)}
-          placeholder="Szukaj pracy…"
+          placeholder={t('searchPlaceholder')}
           className="h-10 pl-9"
         />
       </div>

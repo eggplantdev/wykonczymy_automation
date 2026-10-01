@@ -9,6 +9,7 @@ import {
   KosztorysSectionActionsMenu,
   type SectionBandActionsT,
 } from '@/components/kosztorys/editor/grid/menus/kosztorys-section-actions-menu'
+import { useTranslation } from '@/hooks/use-translation'
 import { formatNet } from '@/lib/kosztorys/format'
 import { cn } from '@/lib/utils/cn'
 import { canMoveSection, type MoveEdgesT } from '@/lib/kosztorys/move-edges'
@@ -87,7 +88,8 @@ export function SectionHeaderCell({
   const foldable = itemCount > 0
   const collapsed = foldable && context.collapsedSectionIds.has(rowData.sectionId)
   const toggle = () => context.onToggleCollapsed(rowData.sectionId)
-  const title = foldable ? (collapsed ? 'Rozwiń sekcję' : 'Zwiń sekcję') : undefined
+  const { t } = useTranslation('grid')
+  const title = foldable ? t(collapsed ? 'expandSection' : 'collapseSection') : undefined
   const { actions } = context
 
   if (slot === 'actions') {
@@ -156,7 +158,7 @@ export function SectionHeaderCell({
         )}
         {!context.isBare && (
           <span className="text-muted-foreground shrink-0 text-sm font-normal">
-            ({itemCount} poz.)
+            {t('sectionItems', { count: itemCount })}
           </span>
         )}
         {/* „netto" spelled out: the grid carries a netto and a brutto reading of every money column,
@@ -164,7 +166,7 @@ export function SectionHeaderCell({
         {!context.isBare && net !== 0 && (
           <span className="shrink-0 text-sm whitespace-nowrap">
             <span className="font-medium tabular-nums">{formatNet(net)} zł</span>
-            <span className="text-muted-foreground font-normal"> netto</span>
+            <span className="text-muted-foreground font-normal"> {t('netSuffix')}</span>
           </span>
         )}
         {foldable && <Chevron className="text-muted-foreground size-4 shrink-0" />}

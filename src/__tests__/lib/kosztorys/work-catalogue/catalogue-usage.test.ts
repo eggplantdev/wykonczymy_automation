@@ -6,6 +6,7 @@ import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 const entry = (id: number, description: string, unit: string): WorkCatalogueItemT => ({
   id,
   description,
+  descriptionTranslations: {},
   category: null,
   unit,
   clientPrice: 100,
@@ -19,6 +20,7 @@ const entry = (id: number, description: string, unit: string): WorkCatalogueItem
 const used = (investmentId: number, description: string, unit: string | null = 'm2') => ({
   investmentId,
   description,
+  descriptionTranslations: {},
   unit,
 })
 

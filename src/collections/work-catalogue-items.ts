@@ -31,6 +31,11 @@ export const WorkCatalogueItems: CollectionConfig = {
       label: { en: 'Description', pl: 'Opis pracy' },
     },
     {
+      name: 'descriptionTranslations',
+      type: 'json',
+      defaultValue: {},
+    },
+    {
       name: 'category',
       type: 'text',
       label: { en: 'Category', pl: 'Kategoria' },

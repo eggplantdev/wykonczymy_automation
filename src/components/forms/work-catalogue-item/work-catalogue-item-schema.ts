@@ -1,4 +1,10 @@
 import { z } from 'zod'
+import {
+  descriptionTranslationsSchema,
+  translationTexts,
+  translationTextsSchema,
+} from '@/lib/i18n/description-translations'
+import { TRANSLATION_LANGUAGES } from '@/lib/i18n/languages'
 import { PRICE_SOURCES } from '@/lib/kosztorys/constants'
 import { RATE_LABELS } from '@/lib/kosztorys/labels'
 import {
@@ -63,6 +69,9 @@ export const workCatalogueItemBaseSchema = z.object({
   ownToolsSource: z.enum(PRICE_SOURCES),
   ownToolsRate: z.string(),
   ownToolsCoeff: z.string(),
+  // One text per language, blank = untranslated. The catch lets a draft persisted before the field
+  // existed still submit, instead of failing on a field nobody can see.
+  translations: z.record(z.enum(TRANSLATION_LANGUAGES), z.string()).catch(translationTexts({})),
 })
 
 export type RatePlaneValuesT = Pick<
@@ -145,6 +154,7 @@ export const EMPTY_CATALOGUE_ITEM_VALUES: WorkCatalogueItemFormValuesT = {
   ownToolsSource: 'auto',
   ownToolsRate: '',
   ownToolsCoeff: '',
+  translations: translationTexts({}),
 }
 
 const money = (label: string) =>
@@ -161,9 +171,20 @@ const coeff = (label: string) =>
 // derived server-side from opis + j.m., and Zod strips unknown keys, so a client that sends one is
 // simply ignored.
 export const workCatalogueItemSchema = workCatalogueItemBaseSchema
-  .omit({ wToolsSource: true, ownToolsSource: true, wToolsCoeff: true, ownToolsCoeff: true })
+  .omit({
+    wToolsSource: true,
+    ownToolsSource: true,
+    wToolsCoeff: true,
+    ownToolsCoeff: true,
+    translations: true,
+  })
   .extend({
     category: z.string().default(''),
+    // Never the whole map: a dialog opened on a cached row would write its stale copy back over
+    // translations saved since. Only the texts the form changed travel, and the action applies them
+    // to the stored row — or, for a new entry, to the seed it was opened with (the praca's map).
+    translationEdits: translationTextsSchema.optional(),
+    translationSeed: descriptionTranslationsSchema.optional(),
     clientPrice: money('Cena j.m.'),
     // A blank field is NOT „auto" — the form layer above still refuses it.
     wToolsRate: money(RATE_LABELS.w_tools).nullable(),

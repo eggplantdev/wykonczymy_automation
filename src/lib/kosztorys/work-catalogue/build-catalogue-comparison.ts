@@ -56,6 +56,7 @@ export function closestEntries(
     .map(({ entry, pairs: candidatePairs }) => ({
       id: entry.id,
       description: entry.description,
+      descriptionTranslations: entry.descriptionTranslations,
       unit: entry.unit,
       clientPrice: entry.clientPrice,
       score: diceSimilarity(pairs, candidatePairs),

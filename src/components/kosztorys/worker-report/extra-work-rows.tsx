@@ -8,6 +8,7 @@ import { blankExtra, extraState } from '@/components/kosztorys/worker-report/ext
 import type { ExtraWorkT } from '@/components/kosztorys/worker-report/types'
 import { parseReportQty } from '@/lib/kosztorys/worker-report/parse-report-qty'
 import { unitOptions } from '@/lib/kosztorys/unit-options'
+import { useTranslation } from '@/hooks/use-translation'
 
 type PropsT = {
   extras: ExtraWorkT[]
@@ -19,6 +20,7 @@ type PropsT = {
 }
 
 export function ExtraWorkRows({ extras, commonUnits, onSave, onRemove, showsMissing }: PropsT) {
+  const { t } = useTranslation('report')
   return (
     <div>
       <div className="flex flex-col gap-4 sm:gap-2">
@@ -28,10 +30,10 @@ export function ExtraWorkRows({ extras, commonUnits, onSave, onRemove, showsMiss
           return (
             <div key={extra.key} className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
               <Input
-                aria-label="Opis prac"
+                aria-label={t('descriptionPlaceholder')}
                 value={extra.description}
                 onChange={(event) => onSave({ ...extra, description: event.target.value })}
-                placeholder="Opis prac"
+                placeholder={t('descriptionPlaceholder')}
                 aria-invalid={isMissing && extra.description.trim() === ''}
                 className="h-9 min-w-0 basis-full sm:flex-1 sm:basis-0"
               />
@@ -42,23 +44,23 @@ export function ExtraWorkRows({ extras, commonUnits, onSave, onRemove, showsMiss
                   value: option,
                   label: option,
                 }))}
-                placeholder="J.m."
+                placeholder={t('unitPlaceholder')}
                 invalid={isMissing && extra.unit === ''}
                 className="h-9 min-w-0 flex-1 sm:w-28 sm:flex-none"
               />
               <Input
-                aria-label="Zgłaszam"
+                aria-label={t('reportColumn')}
                 inputMode="decimal"
                 value={extra.qty}
                 onChange={(event) => onSave({ ...extra, qty: event.target.value })}
                 aria-invalid={qty.kind === 'invalid' || (isMissing && qty.kind === 'empty')}
-                placeholder="Ilość"
+                placeholder={t('qtyPlaceholder')}
                 className="h-9 min-w-0 flex-1 text-right tabular-nums sm:w-24 sm:flex-none"
               />
               <Button
                 variant="ghost"
                 size="icon"
-                aria-label="Usuń pracę"
+                aria-label={t('removeWork')}
                 onClick={() => onRemove(extra.key)}
               >
                 <X />
@@ -69,7 +71,7 @@ export function ExtraWorkRows({ extras, commonUnits, onSave, onRemove, showsMiss
       </div>
       <Button variant="outline" size="sm" className="mt-3" onClick={() => onSave(blankExtra())}>
         <Plus />
-        Dodaj więcej
+        {t('addMore')}
       </Button>
     </div>
   )

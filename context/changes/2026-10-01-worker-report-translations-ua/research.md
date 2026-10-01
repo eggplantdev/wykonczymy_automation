@@ -24,6 +24,17 @@ last_updated_note: 'Added follow-up: identity by id vs by opis — split into tw
 
 # Research: EX-948 — Ukrainian translations for the worker surfaces
 
+> **Partly superseded by `change.md` § Decisions and `plan.md` — read those first.** Three proposals
+> here did not ship:
+>
+> - **The text dictionary keyed by the Polish opis** (§3, Follow-up §2) was replaced by a translation
+>   on the row (`description_translations`), copied like the opis and filled by a re-runnable script.
+> - **The language as an enum column, `DEFAULT 'pl' NOT NULL`** (§4) became a nullable plain text
+>   field (null = Polish): an enum makes every new language a migration. „Language only on the token
+>   route, never on Podgląd" (§4) was overruled too — Podgląd opens in the worker's language.
+> - **„Wszystkie kolumny"** (Open Questions §3) is translated in full, not hidden or cut to the compact
+>   view: `/p` and the PDF show the full column set anyway.
+
 **Date**: 2026-10-01T07:53:53+0200
 **Researcher**: Claude (Opus 5.5)
 **Git Commit**: 4039d4f4

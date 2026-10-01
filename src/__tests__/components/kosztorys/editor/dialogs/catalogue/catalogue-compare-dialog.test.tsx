@@ -112,6 +112,7 @@ describe('CatalogueCompareDialog — „Pokaż w rozpisce"', () => {
       {
         id: 7,
         description: 'Montaż syfonu',
+        descriptionTranslations: {},
         category: null,
         unit: 'szt',
         clientPrice: 45,
@@ -129,6 +130,7 @@ describe('CatalogueCompareDialog — „Pokaż w rozpisce"', () => {
 
     expect(handleAcceptCatalogueName).toHaveBeenCalledWith(21, {
       description: 'Montaż syfonu',
+      descriptionTranslations: {},
       unit: 'szt',
     })
   })

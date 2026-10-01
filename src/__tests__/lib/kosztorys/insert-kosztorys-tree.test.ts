@@ -61,7 +61,8 @@ describe.skipIf(!ENV_READY)('insertKosztorysTree tolerates an older payload (DB)
     )
 
     const res = await db.execute(sql`
-      SELECT planned_qty, discount_value, client_price, w_tools_override_value, own_tools_override_value
+      SELECT planned_qty, discount_value, client_price, w_tools_override_value, own_tools_override_value,
+             description_translations
       FROM kosztorys_items WHERE investment_id = ${investmentId}
     `)
     expect(res.rows).toHaveLength(1)
@@ -73,6 +74,7 @@ describe.skipIf(!ENV_READY)('insertKosztorysTree tolerates an older payload (DB)
       // chose (EX-766).
       w_tools_override_value: null,
       own_tools_override_value: null,
+      description_translations: {},
     })
   })
 

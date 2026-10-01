@@ -17,6 +17,7 @@ const COMBOBOX = 'Wybierz lub wpisz nową…'
 const CATALOGUE_ENTRY: WorkCatalogueItemT = {
   id: 7,
   description: 'Malowanie ścian',
+  descriptionTranslations: {},
   category: 'Wykończenia',
   unit: 'm²',
   clientPrice: 40,

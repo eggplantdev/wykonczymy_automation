@@ -3191,3 +3191,43 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
       komunikat „Szablon przeniesiony do kosza." i szablon jest w `/kosz`.
 - [ ] Dodaj auto z rejestracją wpisaną małymi literami i ze spacjami (np. „ ab 123 " → istniejące
       „AB 123" w koszu): komunikat i tak odsyła do Kosza; nowe auto zapisuje się wielkimi literami.
+
+## EX-948 — worker-report-translations-ua — link „Zgłoszenie prac" po ukraińsku i rosyjsku (2026-10-01)
+
+- [ ] „Pracownicy" → edycja pracownika: pole „Domyślny język" (puste / Polski / Українська / Русский) zapisuje
+      się i wraca po ponownym otwarciu; pracownik bez języka nadal daje się zapisać.
+- [ ] Pracownik z językiem „Українська", inwestycja otwarta, kopia bazy po uzupełnieniu tłumaczeń:
+      jego link „Zgłoszenie prac" otwiera się po ukraińsku — nagłówki, podpowiedzi, „Razem", pasy
+      sekcji, przycisk wysyłki, historia wysłanych — a opisy prac są ukraińskie; praca bez
+      tłumaczenia pokazuje polski opis.
+- [ ] Na tym samym linku przełącznik języka → Русский: strona i opisy przechodzą na rosyjski;
+      po odświeżeniu wybór zostaje. Link innego pracownika w tej samej przeglądarce otwiera się
+      w JEGO języku, nie w wybranym przed chwilą.
+- [ ] Przełącznik języka w nagłówku linku wygląda jak inne przyciski aplikacji (obrys, ta sama
+      wysokość); każda opcja i przycisk pokazują flagę obok nazwy języka.
+- [ ] „Pracownicy" → edycja pracownika, pole „Domyślny język": każda opcja i wybrana wartość mają flagę
+      obok nazwy; strona pracownika pokazuje „Domyślny język" z tą samą flagą.
+- [ ] Telefon (390px), link po ukraińsku: „Wszystkie kolumny" pokazuje przetłumaczone nagłówki,
+      dialog „Prace spoza rozpiski" jest po ukraińsku, a wysłanie zgłoszenia działa; liczby mają
+      przecinek dziesiętny, jak po polsku.
+- [ ] Pracownik bez języka: link otwiera się po polsku, wygląda jak przed zmianą.
+- [ ] Komunikaty odmowy (link wyłączony, inwestycja zakończona) po ukraińsku dla pracownika
+      z językiem „Українська".
+- [ ] Rozpiska (kierownik): kolumny „Opis prac (UA)" / „Opis prac (RU)" są ukryte domyślnie
+      i dają się włączyć; wpisanie tłumaczenia zapisuje się. Zmiana polskiego opisu tej pozycji:
+      „Problemy" → „z nieaktualnym tłumaczeniem (UA)" ją pokazuje; przywrócenie opisu ją zdejmuje.
+- [ ] „Dodaj pracę z katalogu": praca z tłumaczeniem w katalogu trafia do rozpiski razem
+      z tłumaczeniem w „Opis prac (UA)".
+- [ ] „Popraw literówki" na pozycji z aktualnym tłumaczeniem: po poprawce tłumaczenie nie jest
+      oznaczone jako nieaktualne.
+- [ ] „Zapisz do katalogu" nad istniejącym wpisem: tłumaczenie z pozycji nadpisuje katalogowe;
+      pozycja bez tłumaczenia zostawia katalogowe.
+- [ ] Katalog prac: kolumny „Opis pracy (UA)" / „(RU)", edycja w formularzu wpisu, a „Problemy"
+      → „bez tłumaczenia (UA)" i „z nieaktualnym tłumaczeniem (UA)" filtrują poprawnie.
+- [ ] Import z arkusza: pozycja, której opis i j.m. zgadzają się z katalogiem, przychodzi
+      z tłumaczeniem z katalogu.
+- [ ] Telefon (390px), link pracownika: przełącznik języka w nagłówku pokazuje samą flagę i nie
+      ściska nagłówka; rozwinięta lista nadal nazywa każdy język.
+- [ ] „Porównaj z katalogiem" → „Brak w katalogu": kliknięcie podpowiedzi „może chodzi o…", która
+      ma tłumaczenie w katalogu, zmienia nazwę pozycji i wpisuje to tłumaczenie w „Opis prac (UA)".
+- [ ] Katalog prac: wpis z tłumaczeniem → zmiana samej ceny i zapis: tłumaczenie zostaje.
