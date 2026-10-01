@@ -89,7 +89,9 @@ describe.skipIf(!ENV_READY)('tokenAction gates (DB)', () => {
     await db.execute(sql`
       UPDATE investments SET status = 'active', trashed_at = NULL WHERE id = ${investmentId}
     `)
-    await db.execute(sql`UPDATE users SET active = true WHERE id = ${readyWorkerId}`)
+    await db.execute(
+      sql`UPDATE users SET active = true, trashed_at = NULL WHERE id = ${readyWorkerId}`,
+    )
     await db.execute(sql`DELETE FROM worker_report_shares WHERE investment_id = ${investmentId}`)
   })
 
@@ -134,6 +136,13 @@ describe.skipIf(!ENV_READY)('tokenAction gates (DB)', () => {
   it('refuses an inactive worker', async () => {
     const token = await mintToken(readyWorkerId)
     await db.execute(sql`UPDATE users SET active = false WHERE id = ${readyWorkerId}`)
+    expect(await run(token)).toEqual({ success: false, error: REPORT_REFUSALS.inactiveWorker })
+    expect(handler).not.toHaveBeenCalled()
+  })
+
+  it('refuses a worker in the kosz, even one still marked active', async () => {
+    const token = await mintToken(readyWorkerId)
+    await db.execute(sql`UPDATE users SET trashed_at = now() WHERE id = ${readyWorkerId}`)
     expect(await run(token)).toEqual({ success: false, error: REPORT_REFUSALS.inactiveWorker })
     expect(handler).not.toHaveBeenCalled()
   })

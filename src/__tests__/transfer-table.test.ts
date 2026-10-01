@@ -36,6 +36,7 @@ const refData = {
   ],
   trashedCashRegisters: [],
   trashedInvestments: [],
+  trashedWorkers: [],
   investments: [{ id: 10, name: 'Inwestycja A', ...stubInvestment }],
   workers: [
     { id: 100, name: 'Jan Kowalski', role: 'MANAGER' as const, email: '' },

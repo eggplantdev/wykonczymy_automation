@@ -17,6 +17,7 @@ import { getAmountError, getNetAmountError } from '@/lib/utils/validation'
 import { getDb } from '@/lib/db/get-db'
 import { investmentLockMessage } from '@/lib/db/investment-gate'
 import { trashedRegisterMessage } from '@/lib/db/cash-register-gate'
+import { trashedWorkerMessage } from '@/lib/db/worker-gate'
 import { resolveId } from '@/lib/utils/resolve-id'
 import { isInvoiceOnlyPatch } from '@/hooks/transfers/invoice-only-patch'
 
@@ -108,11 +109,16 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
     const id = resolveId(next)
     return id !== undefined && (operation === 'create' || id !== resolveId(stored)) ? [id] : []
   })
-  const trashedMessage = await trashedRegisterMessage(
-    await getDb(req.payload, req),
-    newRegisterIds,
-  )
+  const db = await getDb(req.payload, req)
+  const trashedMessage = await trashedRegisterMessage(db, newRegisterIds)
   if (trashedMessage) throw new APIError(trashedMessage, 403)
+
+  // Same rule for the worker: only one this write newly names.
+  const workerId = resolveId(worker)
+  const isNewWorker =
+    workerId !== undefined && (operation === 'create' || workerId !== resolveId(original?.worker))
+  const trashedWorker = isNewWorker ? await trashedWorkerMessage(db, [workerId]) : undefined
+  if (trashedWorker) throw new APIError(trashedWorker, 403)
 
   const errors: string[] = []
 

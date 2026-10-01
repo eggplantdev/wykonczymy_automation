@@ -33,7 +33,8 @@ export type InsertKosztorysTreeResultT = {
 // snapshot permanently unrestorable — so a dangling member is dropped and the split normalised (the
 // next member takes the rest; nobody left = unassigned), the same tolerance this module already
 // applies to a dangling parent. Unassigned is a legitimate resting state (the summary has a residual
-// row for it), not a corrupted one.
+// row for it), not a corrupted one. A worker in the kosz is dropped the same way: restoring a
+// snapshot must not put back on an etap someone the split editor would refuse (EX-918).
 async function liveWorkerIds(db: DbExecutorT, ids: number[]): Promise<Set<number>> {
   if (ids.length === 0) return new Set()
   // FOR SHARE, not a bare SELECT: under READ COMMITTED a plain read takes no lock, so a user
@@ -42,7 +43,7 @@ async function liveWorkerIds(db: DbExecutorT, ids: number[]): Promise<Set<number
   // transaction; the id set is bounded by etap count, so it costs nothing worth measuring.
   const res = await db.execute(sql`
     SELECT id FROM users
-    WHERE id IN (${sqlList(ids)})
+    WHERE id IN (${sqlList(ids)}) AND trashed_at IS NULL
     FOR SHARE
   `)
   return new Set(res.rows.map((row) => Number(row.id)))

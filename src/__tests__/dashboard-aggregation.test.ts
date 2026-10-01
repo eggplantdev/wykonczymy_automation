@@ -25,6 +25,7 @@ const mockRefData: ReferenceDataBaseT = {
   ],
   trashedCashRegisters: [],
   trashedInvestments: [],
+  trashedWorkers: [],
   investments: [
     {
       id: 10,

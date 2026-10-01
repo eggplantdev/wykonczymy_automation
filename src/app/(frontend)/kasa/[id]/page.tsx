@@ -60,7 +60,8 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
   if (!isManager && register.ownerId !== user.id) notFound()
 
   const ownerName = register.ownerId
-    ? (refData.workers.find((w) => w.id === register.ownerId)?.name ?? '—')
+    ? ([...refData.workers, ...refData.trashedWorkers].find((w) => w.id === register.ownerId)
+        ?.name ?? '—')
     : '—'
 
   const isOwnerLocked =

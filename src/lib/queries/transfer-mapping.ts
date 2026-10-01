@@ -33,7 +33,7 @@ export function buildTransferLookups(
     cashRegisters: toNameMap([...refData.cashRegisters, ...refData.trashedCashRegisters]),
     trashedCashRegisterIds: new Set(refData.trashedCashRegisters.map((register) => register.id)),
     investments: toNameMap(refData.investments),
-    users: toNameMap(refData.workers),
+    users: toNameMap([...refData.workers, ...refData.trashedWorkers]),
     expenseCategories: toNameMap(refData.expenseCategories),
     otherCategories: toNameMap(refData.otherCategories),
     media: mediaMap,

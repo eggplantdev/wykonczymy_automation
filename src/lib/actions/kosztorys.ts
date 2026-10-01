@@ -55,6 +55,7 @@ import {
   validateStageSplit,
 } from '@/lib/kosztorys/stage-split'
 import { insertStageMembers, replaceStageSplit, selectStagePool } from '@/lib/db/stage-split'
+import { trashedWorkerMessage } from '@/lib/db/worker-gate'
 
 // Derived from TOOL_PLANES so a plane added to the pickers can't be silently rejected here.
 const stagePlaneSchema = z.enum(TOOL_PLANES)
@@ -675,6 +676,11 @@ export async function addStageAction(
       return withPayloadTransaction(
         payload,
         async (req) => {
+          const trashedWorker = await trashedWorkerMessage(
+            await getDb(payload, req),
+            normalized?.members.map((member) => member.workerId) ?? [],
+          )
+          if (trashedWorker) return { success: false as const, error: trashedWorker }
           const existing = await payload.find({
             collection: 'kosztorys-stages',
             where: { investment: { equals: investmentId } },
@@ -781,6 +787,11 @@ export async function updateStageSplitAction(
             const refusal = validateStageSplit(parsed.data, await selectStagePool(txDb, stageId))
             if (refusal) return { success: false, error: refusal }
           }
+          const trashedWorker = await trashedWorkerMessage(
+            txDb,
+            normalized?.members.map((member) => member.workerId) ?? [],
+          )
+          if (trashedWorker) return { success: false, error: trashedWorker }
           await replaceStageSplit(txDb, stageId, normalized)
           return { success: true }
         },

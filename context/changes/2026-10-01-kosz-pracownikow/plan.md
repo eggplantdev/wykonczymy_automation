@@ -541,24 +541,24 @@ Run once, after Phase 5:
 
 #### Automated
 
-- [x] 1.1 Migration applies to the local DB
-- [x] 1.2 Users delete guard: self, last OWNER, last ADMIN refused; trashed OWNER not counted
-- [x] 1.3 Users update guard: trashed user's edit refused, restore allowed
-- [x] 1.4 Login refusal: trashed and inactive refused, session revoked, wrong password unchanged
-- [x] 1.5 `loginAction` maps `DisabledAccount` to the sentence
-- [x] 1.6 Deactivation deletes the user's sessions
+- [x] 1.1 Migration applies to the local DB — c8da93ab
+- [x] 1.2 Users delete guard: self, last OWNER, last ADMIN refused; trashed OWNER not counted — c8da93ab
+- [x] 1.3 Users update guard: trashed user's edit refused, restore allowed — c8da93ab
+- [x] 1.4 Login refusal: trashed and inactive refused, session revoked, wrong password unchanged — c8da93ab
+- [x] 1.5 `loginAction` maps `DisabledAccount` to the sentence — c8da93ab
+- [x] 1.6 Deactivation deletes the user's sessions — c8da93ab
 
 ### Phase 2: Readers and write gates
 
 #### Automated
 
-- [ ] 2.1 PAYOUT to a trashed worker refused; cancellation still works
-- [ ] 2.2 Trashed worker named on a cancelled row
-- [ ] 2.3 Reference-data SQL drift spec green
-- [ ] 2.4 Stage split / add stage refused; `liveWorkerIds` drops a trashed member
-- [ ] 2.5 Kasa owner → trashed refused; kasa restore while owner trashed refused
-- [ ] 2.6 Equipment holder trashed refused
-- [ ] 2.7 Report share refuses a trashed worker
+- [x] 2.1 PAYOUT to a trashed worker refused; cancellation still works
+- [x] 2.2 Trashed worker named on a cancelled row
+- [x] 2.3 Reference-data SQL drift spec green
+- [x] 2.4 Stage split / add stage refused; `liveWorkerIds` drops a trashed member
+- [x] 2.5 Kasa owner → trashed refused; kasa restore while owner trashed refused
+- [x] 2.6 Equipment holder trashed refused
+- [x] 2.7 Report share refuses a trashed worker
 
 ### Phase 3: Trash core, actions, purge
 

@@ -1,6 +1,8 @@
 import { APIError, type CollectionBeforeValidateHook } from 'payload'
 import type { EquipmentEvent } from '@/payload-types'
 import { resolveId } from '@/lib/utils/resolve-id'
+import { getDb } from '@/lib/db/get-db'
+import { trashedWorkerMessage } from '@/lib/db/worker-gate'
 import {
   MULTIPLE_TARGETS_MESSAGE,
   NO_TARGET_MESSAGE,
@@ -18,7 +20,11 @@ type EventDataT = Partial<EquipmentEvent>
  * entry; a row naming a person or a warehouse is a handover. A second column saying the same thing
  * would be the first thing to disagree with itself.
  */
-export const validateEquipmentEvent: CollectionBeforeValidateHook = ({ data, originalDoc }) => {
+export const validateEquipmentEvent: CollectionBeforeValidateHook = async ({
+  data,
+  originalDoc,
+  req,
+}) => {
   const d = data as EventDataT
   const original = originalDoc as EventDataT | undefined
 
@@ -43,6 +49,11 @@ export const validateEquipmentEvent: CollectionBeforeValidateHook = ({ data, ori
 
   if (targets.length > 1) {
     throw new APIError(MULTIPLE_TARGETS_MESSAGE, 400)
+  }
+
+  if (holder !== undefined && holder !== resolveId(original?.holder)) {
+    const trashed = await trashedWorkerMessage(await getDb(req.payload, req), [holder])
+    if (trashed) throw new APIError(trashed, 403)
   }
 
   // Normalised here rather than trusted from the caller, so the „gdzie jest" query can read the

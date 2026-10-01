@@ -81,7 +81,8 @@ export const fetchReferenceData = cache(
         ORDER BY i.name
       `),
         db.execute(sql`
-        SELECT id, name, role::text, active::boolean, email, default_cash_register_id::integer
+        SELECT id, name, role::text, active::boolean, email, default_cash_register_id::integer,
+               (trashed_at IS NOT NULL) AS trashed
         FROM users
         ORDER BY name
       `),
@@ -139,16 +140,20 @@ export const fetchReferenceData = cache(
       }))
       const [investments, trashedInvestments] = splitTrashed(investmentRows)
 
-      const workers: WorkerRefT[] = usersResult.rows.map((row) => ({
-        id: Number(row.id),
-        name: row.name as string,
-        role: (row.role as RoleT) ?? 'EMPLOYEE',
-        active: row.active as boolean,
-        email: (row.email as string) ?? '',
-        defaultCashRegisterId: row.default_cash_register_id
-          ? Number(row.default_cash_register_id)
-          : undefined,
+      const workerRows = usersResult.rows.map((row) => ({
+        isTrashed: Boolean(row.trashed),
+        ref: {
+          id: Number(row.id),
+          name: row.name as string,
+          role: (row.role as RoleT) ?? 'EMPLOYEE',
+          active: row.active as boolean,
+          email: (row.email as string) ?? '',
+          defaultCashRegisterId: row.default_cash_register_id
+            ? Number(row.default_cash_register_id)
+            : undefined,
+        } satisfies WorkerRefT,
       }))
+      const [workers, trashedWorkers] = splitTrashed(workerRows)
 
       const otherCategories: OtherCategoryRefT[] = catResult.rows.map((row) => ({
         id: Number(row.id),
@@ -166,6 +171,7 @@ export const fetchReferenceData = cache(
         investments,
         trashedInvestments,
         workers,
+        trashedWorkers,
         otherCategories,
         expenseCategories,
       }
@@ -173,7 +179,7 @@ export const fetchReferenceData = cache(
     // Bumped whenever the returned SHAPE changes. A tag only marks an entry stale — it still SERVES
     // the old payload once, and one missing a field the reader now dereferences crashes the page or
     // renders NaN. The bump makes it unreachable instead.
-    ['reference-data-v4'],
+    ['reference-data-v5'],
     {
       tags: [
         CACHE_TAGS.cashRegisters,

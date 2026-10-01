@@ -3138,3 +3138,11 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
       `/admin` jest wylogowany.
 - [ ] `/admin` → Użytkownicy → spróbuj usunąć własne konto: odmowa „Nie można przenieść do kosza ani
       usunąć własnego konta."
+- [ ] Z pracownikiem w koszu: ani dialog nowej transakcji na `/transakcje`, ani podział etapu
+      w kosztorysie, ani wydanie sprzętu na `/sprzet` nie proponują go na liście.
+- [ ] Anulowana wypłata dla pracownika, który jest teraz w koszu: na `/transakcje` dalej widać jego
+      imię i nazwisko, nie „—".
+- [ ] Pracownik w koszu otwiera swój link do zgłoszenia prac: „Twoje konto jest nieaktywne.
+      Skontaktuj się z kierownikiem.", bez formularza.
+- [ ] `/kosz` → przywróć kasę pracownika, który dalej jest w koszu: odmowa „Przywróć pracownika —
+      kasa wraca razem z nim."

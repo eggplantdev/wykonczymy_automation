@@ -8,6 +8,7 @@ export type ReportShareT = {
   workerId: number
   workerName: string
   isWorkerActive: boolean
+  isWorkerTrashed: boolean
 }
 
 /**
@@ -21,7 +22,7 @@ export async function readReportShare(
   if (!token) return null
   const res = await db.execute(sql`
     SELECT s.investment_id, i.name AS investment_name, s.worker_id, w.name AS worker_name,
-      w.active AS worker_active
+      w.active AS worker_active, (w.trashed_at IS NOT NULL) AS worker_trashed
     FROM worker_report_shares s
     JOIN investments i ON i.id = s.investment_id
     JOIN users w ON w.id = s.worker_id
@@ -36,5 +37,6 @@ export async function readReportShare(
     workerName: text(row.worker_name),
     // A NULL predates the column's default; Payload reads it as active too.
     isWorkerActive: row.worker_active !== false,
+    isWorkerTrashed: row.worker_trashed === true,
   }
 }

@@ -128,3 +128,62 @@ describe.skipIf(!ENV_READY)('restore with a since-deleted etap assignee (DB)', (
     expect(result.droppedWorkerAssignments).toBe(2)
   })
 })
+
+// A worker in the kosz still satisfies the FK, so nothing forces the restore to drop them — only the
+// rule that a trashed worker never lands on an etap does (EX-918).
+describe.skipIf(!ENV_READY)('restore with a since-trashed etap assignee (DB)', () => {
+  let payload: Payload
+  let db: Awaited<ReturnType<typeof getDb>>
+  let investmentId: number
+  let trashedWorkerId: number
+
+  beforeAll(async () => {
+    const { getPayload } = await import('payload')
+    const config = (await import('@payload-config')).default
+    payload = await getPayload({ config })
+    db = await getDb(payload)
+
+    investmentId = await createTestInvestment(payload, 'restore-trashed-worker-test')
+    const worker = await payload.create({
+      collection: 'users',
+      data: {
+        name: 'Ktoś W Koszu',
+        role: 'EMPLOYEE',
+        email: 'restore-trashed-worker@test.local',
+        password: 'test-password-123',
+      },
+      context: { skipRevalidation: true },
+    })
+    trashedWorkerId = Number(worker.id)
+
+    await createKosztorysTree(payload, investmentId, {
+      sections: [
+        {
+          name: 'Sekcja A',
+          items: [{ description: 'Malowanie', unit: 'm2', plannedQty: 10, clientPrice: 100 }],
+        },
+      ],
+      stages: [{ label: 'Etap 1', worker: trashedWorkerId }],
+    })
+  })
+
+  afterAll(async () => {
+    if (investmentId) await deleteTestInvestment(payload, investmentId)
+    await purgeFixtureUsers(db)
+  })
+
+  it('drops the trashed assignee like a deleted one', async () => {
+    const snapshot = await serializeKosztorys(investmentId)
+    await db.execute(sql`UPDATE users SET trashed_at = now() WHERE id = ${trashedWorkerId}`)
+
+    const result = await withPayloadTransaction(
+      payload,
+      (req) => restoreKosztorys(payload, req, investmentId, snapshot),
+      { skipRevalidation: true },
+    )
+
+    const after = await serializeKosztorys(investmentId)
+    expect(after.stages.find((stage) => stage.ordinal === 1)?.split).toBeNull()
+    expect(result.droppedWorkerAssignments).toBe(1)
+  })
+})

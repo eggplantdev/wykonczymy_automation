@@ -13,6 +13,7 @@ const baseRefData: ReferenceDataT = {
   cashRegisters: [],
   trashedCashRegisters: [],
   trashedInvestments: [],
+  trashedWorkers: [],
   investments: [],
   workers: [],
   otherCategories: [],
@@ -78,6 +79,7 @@ describe('getDefaultCashRegister', () => {
       cashRegisters: [{ id: 3, name: 'Kasa pomocnicza', type: 'AUXILIARY' }],
       trashedCashRegisters: [{ id: 2, name: 'Kasa główna', type: 'MAIN' }],
       trashedInvestments: [],
+      trashedWorkers: [],
     })
     expect(getDefaultCashRegister(data)).toBe('')
   })

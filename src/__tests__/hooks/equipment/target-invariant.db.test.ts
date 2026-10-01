@@ -4,6 +4,7 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
+import { WORKER_TRASHED_MESSAGE } from '@/lib/constants/worker-lock'
 
 // „Gdzie jest sprzęt" is read off the newest event, so an event with no target — or with two — is not
 // a cosmetic data problem: it makes the derived answer either missing or ambiguous for the whole
@@ -41,7 +42,12 @@ describe.skipIf(!ENV_READY)('an equipment event lands on exactly one target (DB)
   const createEvent = (data: Record<string, unknown>) =>
     payload.create({
       collection: 'equipment-events',
-      data: { equipment: equipmentId, occurredAt: '2026-09-01T00:00:00.000Z', note: MARKER, ...data },
+      data: {
+        equipment: equipmentId,
+        occurredAt: '2026-09-01T00:00:00.000Z',
+        note: MARKER,
+        ...data,
+      },
       overrideAccess: true,
       context: { skipRevalidation: true },
     } as Parameters<Payload['create']>[0])
@@ -180,6 +186,19 @@ describe.skipIf(!ENV_READY)('an equipment event lands on exactly one target (DB)
   // The one case a create-only spec would miss: a partial update carries only the NEW target, so the
   // hook has to read the stored row to see the old one — and clear it rather than count it as a
   // second target.
+  it('refuses handing an item to a worker in the kosz, writing no event', async () => {
+    const heldBy = sql`SELECT count(*)::int AS n FROM equipment_events
+      WHERE note = ${MARKER} AND holder_id = ${holderId}`
+    const before = (await db.execute(heldBy)).rows[0]?.n
+    await db.execute(sql`UPDATE users SET trashed_at = now() WHERE id = ${holderId}`)
+    try {
+      await expect(createEvent({ holder: holderId })).rejects.toThrow(WORKER_TRASHED_MESSAGE)
+      expect((await db.execute(heldBy)).rows[0]?.n).toBe(before)
+    } finally {
+      await db.execute(sql`UPDATE users SET trashed_at = NULL WHERE id = ${holderId}`)
+    }
+  })
+
   it('moves a held item to a warehouse without tripping the two-target check', async () => {
     const created = await createEvent({ holder: holderId })
     const moved = await payload.update({

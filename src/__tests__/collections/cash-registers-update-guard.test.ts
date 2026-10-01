@@ -7,6 +7,7 @@ import {
   CASH_REGISTER_OWNER_LOCKED_MESSAGE,
   CASH_REGISTER_TRASHED_MESSAGE,
 } from '@/lib/constants/cash-register-lock'
+import { OWNER_TRASHED_RESTORE_MESSAGE, WORKER_TRASHED_MESSAGE } from '@/lib/constants/worker-lock'
 
 // Every assertion reads the row back: a refused update that still wrote something is the failure this
 // guards, and a rejected promise alone would not show it.
@@ -132,5 +133,58 @@ describe.skipIf(!ENV_READY)('cash-registers update guard (DB)', () => {
 
     await updateRegister(id, { owner: otherOwnerId })
     expect(Number((await readRow(id)).owner_id)).toBe(otherOwnerId)
+  })
+
+  describe('an owner in the kosz (EX-918)', () => {
+    async function withOtherOwnerTrashed(run: () => Promise<void>) {
+      await db.execute(sql`UPDATE users SET trashed_at = now() WHERE id = ${otherOwnerId}`)
+      try {
+        await run()
+      } finally {
+        await db.execute(sql`UPDATE users SET trashed_at = NULL WHERE id = ${otherOwnerId}`)
+      }
+    }
+
+    it('refuses a new kasa for a trashed worker', async () => {
+      await withOtherOwnerTrashed(async () => {
+        await expect(
+          payload.create({
+            collection: 'cash-registers',
+            data: { name: 'Kasa dla kosza', type: 'AUXILIARY', owner: otherOwnerId },
+            context: { skipRevalidation: true },
+          }),
+        ).rejects.toThrow(WORKER_TRASHED_MESSAGE)
+      })
+      const rows = await db.execute(
+        sql`SELECT id FROM cash_registers WHERE owner_id = ${otherOwnerId} AND name = 'Kasa dla kosza'`,
+      )
+      expect(rows.rows).toEqual([])
+    })
+
+    it('refuses handing an unused kasa to a trashed worker', async () => {
+      const id = await createRegister('Kasa pusta, właściciel w koszu')
+      await withOtherOwnerTrashed(async () => {
+        await expect(updateRegister(id, { owner: otherOwnerId })).rejects.toThrow(
+          WORKER_TRASHED_MESSAGE,
+        )
+      })
+      expect(Number((await readRow(id)).owner_id)).toBe(ownerId)
+    })
+
+    it('refuses restoring a kasa while its owner is in the kosz', async () => {
+      const register = await payload.create({
+        collection: 'cash-registers',
+        data: { name: 'Kasa pracownika w koszu', type: 'AUXILIARY', owner: otherOwnerId },
+        context: { skipRevalidation: true },
+      })
+      const id = Number(register.id)
+      await db.execute(sql`UPDATE cash_registers SET trashed_at = now() WHERE id = ${id}`)
+      await withOtherOwnerTrashed(async () => {
+        await expect(updateRegister(id, { trashedAt: null })).rejects.toThrow(
+          OWNER_TRASHED_RESTORE_MESSAGE,
+        )
+      })
+      expect((await readRow(id)).trashed_at).not.toBeNull()
+    })
   })
 })

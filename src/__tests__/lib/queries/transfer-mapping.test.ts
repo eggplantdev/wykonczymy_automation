@@ -66,6 +66,7 @@ describe('buildTransferLookups — a trashed kasa', () => {
       trashedInvestments: [],
       investments: [],
       workers: [],
+      trashedWorkers: [],
       otherCategories: [],
       expenseCategories: [],
     },
@@ -85,5 +86,28 @@ describe('buildTransferLookups — a trashed kasa', () => {
     expect(row.sourceRegisterName).toBe('Kasa główna')
     expect(row.sourceRegisterTrashed).toBe(false)
     expect(row.targetRegisterTrashed).toBe(true)
+  })
+})
+
+describe('buildTransferLookups — a trashed worker', () => {
+  const lookups = buildTransferLookups(
+    {
+      cashRegisters: [],
+      trashedCashRegisters: [],
+      trashedInvestments: [],
+      investments: [],
+      workers: [{ id: 1, name: 'Jan Aktywny', role: 'EMPLOYEE', email: '' }],
+      trashedWorkers: [{ id: 2, name: 'Piotr W Koszu', role: 'EMPLOYEE', email: '' }],
+      otherCategories: [],
+      expenseCategories: [],
+    },
+    mediaMap,
+  )
+
+  it('keeps his name on a cancelled row he received and authored', () => {
+    const row = mapTransferRow({ ...doc([]), worker: 2, createdBy: 2, cancelled: true }, lookups)
+
+    expect(row.workerName).toBe('Piotr W Koszu')
+    expect(row.createdByName).toBe('Piotr W Koszu')
   })
 })

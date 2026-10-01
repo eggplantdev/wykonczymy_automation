@@ -22,8 +22,14 @@ vi.mock('@/lib/auth/require-auth', () => ({
 }))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
-const { removeStageAction, setStageProgressAction, updateStageAction, updateStageSplitAction } =
-  await import('@/lib/actions/kosztorys')
+const {
+  addStageAction,
+  removeStageAction,
+  setStageProgressAction,
+  updateStageAction,
+  updateStageSplitAction,
+} = await import('@/lib/actions/kosztorys')
+const { WORKER_TRASHED_MESSAGE } = await import('@/lib/constants/worker-lock')
 
 // Gated like the sibling guard spec: skips with no DB env (portable), FAILS if env is set but the
 // DB is unreachable. Run against the local DB with `--env-file=.env`.
@@ -282,6 +288,61 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
 
       expect((await updateStageAction(stageId, { label: 'przemianowany' })).success).toBe(true)
       expect((await splitOf(stageId)).members).toEqual([[authState.userId, 0, true]])
+    })
+  })
+
+  describe('a worker in the kosz (EX-918)', () => {
+    // A prod-dump user borrowed for the test, so it goes back to live whatever the assertion does.
+    async function withTrashedOther(run: () => Promise<void>) {
+      await db.execute(sql`UPDATE users SET trashed_at = now() WHERE id = ${authState.otherUserId}`)
+      try {
+        await run()
+      } finally {
+        await db.execute(
+          sql`UPDATE users SET trashed_at = NULL WHERE id = ${authState.otherUserId}`,
+        )
+      }
+    }
+
+    async function membersOf(stageId: number) {
+      const res = await db.execute(
+        sql`SELECT worker_id FROM kosztorys_stage_workers WHERE stage_id = ${stageId}`,
+      )
+      return res.rows.map((row) => Number(row.worker_id))
+    }
+
+    it('refuses to put a trashed worker on an etap, writing nothing', async () => {
+      const stageId = await createStage('w_tools')
+      await withTrashedOther(async () => {
+        const res = await updateStageSplitAction(stageId, {
+          mode: 'percent',
+          members: [
+            { workerId: authState.userId, value: 0, takesRest: true },
+            { workerId: authState.otherUserId, value: 25, takesRest: false },
+          ],
+        })
+
+        expect(res).toEqual({ success: false, error: WORKER_TRASHED_MESSAGE })
+        expect(await membersOf(stageId)).toEqual([])
+      })
+    })
+
+    it('refuses a new etap naming a trashed worker, creating no etap', async () => {
+      const before = await db.execute(
+        sql`SELECT count(*)::int AS n FROM kosztorys_stages WHERE investment_id = ${investmentId}`,
+      )
+      await withTrashedOther(async () => {
+        const res = await addStageAction(investmentId, 'w_tools', {
+          mode: 'percent',
+          members: [{ workerId: authState.otherUserId, value: 0, takesRest: true }],
+        })
+
+        expect(res).toEqual({ success: false, error: WORKER_TRASHED_MESSAGE })
+      })
+      const after = await db.execute(
+        sql`SELECT count(*)::int AS n FROM kosztorys_stages WHERE investment_id = ${investmentId}`,
+      )
+      expect(after.rows[0]?.n).toBe(before.rows[0]?.n)
     })
   })
 

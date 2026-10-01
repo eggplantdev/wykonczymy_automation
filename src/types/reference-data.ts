@@ -58,6 +58,8 @@ export type ReferenceDataBaseT = {
   /** Only for opening a trashed investment read-only from /kosz — never a picker or listing. */
   trashedInvestments: InvestmentRefT[]
   workers: WorkerRefT[]
+  /** For naming a trashed worker on old rows only — never a picker or listing. */
+  trashedWorkers: WorkerRefT[]
   otherCategories: OtherCategoryRefT[]
   expenseCategories: ExpenseCategoryRefT[]
 }
