@@ -1,7 +1,7 @@
 'use client'
 
 import { Fragment } from 'react'
-import { ClipboardCheck, Users } from 'lucide-react'
+import { FileUser, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -45,7 +45,7 @@ export function KosztorysWorkersMenu() {
         {workerReports && (
           <>
             <DropdownMenuItem onSelect={() => workerReports.openReport()}>
-              <ClipboardCheck />
+              <FileUser />
               Zgłoszenia wykonanych prac
               {workerReports.pendingCount > 0 && (
                 <span className="text-muted-foreground ml-auto text-xs">

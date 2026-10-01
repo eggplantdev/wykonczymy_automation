@@ -1,6 +1,6 @@
 'use client'
 
-import { ClipboardCheck } from 'lucide-react'
+import { FileUser } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 
@@ -17,7 +17,7 @@ export function WorkerReportsButton() {
       className="border-amber-400 bg-amber-50 text-amber-900 hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200"
       onClick={() => workerReports.openReport()}
     >
-      <ClipboardCheck />
+      <FileUser />
       Zgłoszenia wykonanych prac ({workerReports.pendingCount})
     </Button>
   )

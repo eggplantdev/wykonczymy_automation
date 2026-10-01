@@ -3082,3 +3082,11 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
       menu zostaje sama ikona, a najechanie pokazuje „Kosz".
 - [ ] Telefon (390px), menu z hamburgera: „Kosz" jest pod „Admin" i otwiera stronę „Kosz", a menu
       się zamyka. Pracownik (EMPLOYEE) nie widzi „Kosza" ani na desktopie, ani na telefonie.
+
+## 2026-10-01 — zgloszenia-prac-pod-pracownikami
+
+- [ ] Menu boczne (rola zarządzająca): „Zgłoszenia wykonanych prac" stoją zaraz pod „Pracownicy",
+      jako ostatnia sekcja przed dolnymi przyciskami, z ikoną kartki z osobą; licznik oczekujących
+      zgłoszeń dalej się pokazuje.
+- [ ] Rozpiska z oczekującym zgłoszeniem: przycisk „Zgłoszenia wykonanych prac (n)" na pasku i
+      pozycja w menu „Pracownicy" mają tę samą ikonę kartki z osobą, inną niż „Protokół odbioru".
