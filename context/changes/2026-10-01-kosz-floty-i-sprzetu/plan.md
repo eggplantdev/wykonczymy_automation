@@ -541,17 +541,17 @@ Run once, after Phase 4: `pnpm exec tsc --noEmit`, `pnpm lint`, and the touched 
 
 #### Automated
 
-- [x] 2.1 Vehicle trash actions db spec
-- [x] 2.2 Equipment trash actions db spec
-- [x] 2.3 Vehicle and equipment purge db specs
-- [x] 2.4 Cleanup cron route spec with both steps
+- [x] 2.1 Vehicle trash actions db spec — a202fcab
+- [x] 2.2 Equipment trash actions db spec — a202fcab
+- [x] 2.3 Vehicle and equipment purge db specs — a202fcab
+- [x] 2.4 Cleanup cron route spec with both steps — a202fcab
 
 ### Phase 3: Duplicate registration / serial
 
 #### Automated
 
-- [ ] 3.1 Duplicate plate refused; trashed holder names the Kosz
-- [ ] 3.2 Duplicate serial refused; trashed holder names the Kosz; blank serials pass
+- [x] 3.1 Duplicate plate refused; trashed holder names the Kosz
+- [x] 3.2 Duplicate serial refused; trashed holder names the Kosz; blank serials pass
 
 ### Phase 4: UI, `/kosz`, docs
 
