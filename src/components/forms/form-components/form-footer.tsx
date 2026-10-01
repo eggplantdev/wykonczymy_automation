@@ -12,7 +12,8 @@ type FormFooterPropsT = {
   // Block submit on top of the form's own isSubmitting — e.g. while files are still ingesting, so a
   // row can't save before its processed file lands in the ref (would upload nothing for that row).
   disabled?: boolean
-  /** From `useManagedForm` — hides the loader while the submit waits on a question. */
+  // The form counts as submitting while its question is open, and the full-screen loader would cover
+  // the question.
   awaitingAnswer?: boolean
 }
 

@@ -70,10 +70,7 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
   const rateFor = (investmentId: string | undefined) =>
     investmentFor(investmentId)?.vatRate ?? DEFAULT_VAT
 
-  const { form, reset, submitConfirm, awaitingAnswer } = useManagedForm<
-    DepositFormValuesT,
-    CreateTransferFormT
-  >({
+  const { form, reset, submitConfirm } = useManagedForm<DepositFormValuesT, CreateTransferFormT>({
     formId: FORM_ID,
     useFormStore: useDepositFormStore,
     schema: transferFormSchema,
@@ -255,7 +252,7 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
           />
         </FieldGroup>
 
-        <FormFooter className="mt-6" awaitingAnswer={awaitingAnswer} />
+        <FormFooter className="mt-6" awaitingAnswer={submitConfirm.open} />
       </FormShell>
 
       <ConfirmDialog {...submitConfirm} />

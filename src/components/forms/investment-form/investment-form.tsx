@@ -57,57 +57,56 @@ export function InvestmentForm({
 }: InvestmentFormPropsT) {
   const { files, isIngesting, inputKey, fileInputProps, reset: resetFiles } = useFilePickIngest()
 
-  const { form, reset, submitConfirm, awaitingAnswer } = useManagedForm<
-    InvestmentFormValuesT,
-    InvestmentFormDataT
-  >({
-    formId,
-    useFormStore: useInvestmentFormStore,
-    schema: investmentFormSchema,
-    defaultValues,
-    keepOpen,
-    successMessage,
-    onSubmitSuccess,
-    persistDraft,
-    onReset: resetFiles,
-    // Upload first, then create — the investment must never reference a media id that failed to
-    // land.
-    action: async (data) => {
-      if (!collectAssets) return action(data)
+  const { form, reset, submitConfirm } = useManagedForm<InvestmentFormValuesT, InvestmentFormDataT>(
+    {
+      formId,
+      useFormStore: useInvestmentFormStore,
+      schema: investmentFormSchema,
+      defaultValues,
+      keepOpen,
+      successMessage,
+      onSubmitSuccess,
+      persistDraft,
+      onReset: resetFiles,
+      // Upload first, then create — the investment must never reference a media id that failed to
+      // land.
+      action: async (data) => {
+        if (!collectAssets) return action(data)
 
-      // Backstop to the disabled submit button, which Enter bypasses: a file still ingesting is
-      // not in `files` yet, so the inwestycja would save without its zdjęcia.
-      if (isIngesting) {
-        return { success: false, error: 'Poczekaj na przetworzenie plików.' }
-      }
+        // Backstop to the disabled submit button, which Enter bypasses: a file still ingesting is
+        // not in `files` yet, so the inwestycja would save without its zdjęcia.
+        if (isIngesting) {
+          return { success: false, error: 'Poczekaj na przetworzenie plików.' }
+        }
 
-      return submitWithUploads(files, (assets) => action({ ...data, assets }))
+        return submitWithUploads(files, (assets) => action({ ...data, assets }))
+      },
+      // Only on the way IN, and only from another status: „Zakończona" is a one-way door for everyone
+      // but właściciel/admin, so the person closing the investment is told what they are giving up
+      // before the write, not by a refusal afterwards.
+      confirmBeforeSubmit: (value) =>
+        isLockedStatus(value.status) && !isLockedStatus(defaultValues.status)
+          ? {
+              title: 'Zakończyć inwestycję?',
+              description:
+                'Zakończona inwestycja jest tylko do odczytu — nikt nie dopisze transakcji ani nie zmieni kosztorysu. Odblokować może ją wyłącznie właściciel lub administrator, ustawiając status z powrotem na „Aktywna".',
+              confirmLabel: 'Zakończ',
+              cancelLabel: 'Anuluj',
+            }
+          : null,
+      toData: (value) => ({
+        name: value.name,
+        address: value.address,
+        phone: value.phone,
+        email: value.email,
+        contactPerson: value.contactPerson,
+        notes: value.notes,
+        review: value.review,
+        status: value.status,
+        presetId: value.presetId,
+      }),
     },
-    // Only on the way IN, and only from another status: „Zakończona" is a one-way door for everyone
-    // but właściciel/admin, so the person closing the investment is told what they are giving up
-    // before the write, not by a refusal afterwards.
-    confirmBeforeSubmit: (value) =>
-      isLockedStatus(value.status) && !isLockedStatus(defaultValues.status)
-        ? {
-            title: 'Zakończyć inwestycję?',
-            description:
-              'Zakończona inwestycja jest tylko do odczytu — nikt nie dopisze transakcji ani nie zmieni kosztorysu. Odblokować może ją wyłącznie właściciel lub administrator, ustawiając status z powrotem na „Aktywna".',
-            confirmLabel: 'Zakończ',
-            cancelLabel: 'Anuluj',
-          }
-        : null,
-    toData: (value) => ({
-      name: value.name,
-      address: value.address,
-      phone: value.phone,
-      email: value.email,
-      contactPerson: value.contactPerson,
-      notes: value.notes,
-      review: value.review,
-      status: value.status,
-      presetId: value.presetId,
-    }),
-  })
+  )
 
   return (
     <>
@@ -196,7 +195,7 @@ export function InvestmentForm({
           submittingLabel={submittingLabel}
           className="mt-6"
           disabled={isIngesting}
-          awaitingAnswer={awaitingAnswer}
+          awaitingAnswer={submitConfirm.open}
         />
       </FormShell>
 
