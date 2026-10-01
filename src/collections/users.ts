@@ -14,6 +14,7 @@ import { excludingCancelled } from '@/lib/db/delete-blocker'
 import { countStageMemberships } from '@/lib/db/stage-memberships'
 import { countReportsByWorker } from '@/lib/db/worker-reports'
 import { ROLES, ROLE_LABELS } from '@/lib/auth/roles'
+import { LANGUAGES, isLanguage } from '@/lib/i18n/languages'
 
 // Block a hard delete while a FIGURE or its audit trail still names this person: a wypłata whose
 // recipient is unknown, an amount edit with no editor, an etap with no podwykonawca. Deactivation
@@ -136,6 +137,15 @@ export const Users: CollectionConfig = {
         create: isAdminOrOwnerField,
         update: isAdminOrOwnerField,
       },
+    },
+    // Text, not a select: a select is a Postgres enum, and every new language would be a migration.
+    // Empty = Polish.
+    {
+      name: 'language',
+      type: 'text',
+      label: { en: 'Language', pl: 'Język' },
+      validate: (value: string | null | undefined) =>
+        value == null || value === '' || isLanguage(value) || `Dozwolone: ${LANGUAGES.join(', ')}`,
     },
     {
       name: 'active',

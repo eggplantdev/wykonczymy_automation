@@ -1,6 +1,7 @@
 import { sql } from '@payloadcms/db-vercel-postgres'
 import type { DbExecutorT } from './get-db'
 import { text } from './row-coerce'
+import { toLanguage, type LanguageT } from '@/lib/i18n/languages'
 
 export type ReportShareT = {
   investmentId: number
@@ -8,6 +9,7 @@ export type ReportShareT = {
   workerId: number
   workerName: string
   isWorkerActive: boolean
+  language: LanguageT | null
 }
 
 /**
@@ -21,7 +23,7 @@ export async function readReportShare(
   if (!token) return null
   const res = await db.execute(sql`
     SELECT s.investment_id, i.name AS investment_name, s.worker_id, w.name AS worker_name,
-      w.active AS worker_active
+      w.active AS worker_active, w.language AS worker_language
     FROM worker_report_shares s
     JOIN investments i ON i.id = s.investment_id
     JOIN users w ON w.id = s.worker_id
@@ -36,5 +38,6 @@ export async function readReportShare(
     workerName: text(row.worker_name),
     // A NULL predates the column's default; Payload reads it as active too.
     isWorkerActive: row.worker_active !== false,
+    language: toLanguage(row.worker_language),
   }
 }

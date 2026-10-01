@@ -845,14 +845,14 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 2.1 Unit specs: merge, restamp, import plan, rozpiska condition, katalog conditions
-- [x] 2.2 Translation cell out-mapping stamps `source`
+- [x] 2.1 Unit specs: merge, restamp, import plan, rozpiska condition, katalog conditions — e42cb1fd
+- [x] 2.2 Translation cell out-mapping stamps `source` — e42cb1fd
 
 ### Phase 3: The worker's language
 
 #### Automated
 
-- [ ] 3.1 Worker schema language mapping spec
+- [x] 3.1 Worker schema language mapping spec
 
 ### Phase 4: The i18n core
 

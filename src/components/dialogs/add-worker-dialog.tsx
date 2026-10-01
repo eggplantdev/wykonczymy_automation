@@ -14,6 +14,7 @@ const EMPTY_DEFAULTS: WorkerFormValuesT = {
   role: 'EMPLOYEE',
   active: true,
   defaultCashRegister: '',
+  language: 'pl',
 }
 
 type AddWorkerDialogPropsT = {

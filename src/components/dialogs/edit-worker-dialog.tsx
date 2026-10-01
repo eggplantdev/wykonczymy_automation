@@ -33,6 +33,7 @@ export function EditWorkerDialog({ worker, cashRegisters }: EditWorkerDialogProp
             defaultCashRegister: worker.defaultCashRegisterId
               ? String(worker.defaultCashRegisterId)
               : '',
+            language: worker.language ?? 'pl',
           }}
           action={(data) => updateWorkerAction(worker.id, data)}
           successMessage="Pracownik zaktualizowany"

@@ -9,6 +9,7 @@ import { CashRegisterField } from '@/components/forms/form-fields'
 import { workerFormSchema, type WorkerFormValuesT } from './worker-schema'
 import { useWorkerFormStore } from '@/stores/form-stores'
 import { ROLES, ROLE_LABELS } from '@/lib/auth/roles'
+import { LANGUAGES, LANGUAGE_LABELS } from '@/lib/i18n/languages'
 import type { WorkerFormDataT } from './worker-schema'
 import type { ReferenceItemT } from '@/types/reference-data'
 import type { ActionResultT } from '@/types/action'
@@ -57,6 +58,7 @@ export function WorkerForm({
       defaultCashRegister: value.defaultCashRegister
         ? Number(value.defaultCashRegister)
         : undefined,
+      language: value.language === 'pl' ? null : value.language,
     }),
   })
 
@@ -79,6 +81,18 @@ export function WorkerForm({
               {ROLES.map((role) => (
                 <SelectItem key={role} value={role}>
                   {ROLE_LABELS[role].pl}
+                </SelectItem>
+              ))}
+            </field.Select>
+          )}
+        </form.AppField>
+
+        <form.AppField name="language">
+          {(field) => (
+            <field.Select label="Język" showError>
+              {LANGUAGES.map((language) => (
+                <SelectItem key={language} value={language}>
+                  {LANGUAGE_LABELS[language]}
                 </SelectItem>
               ))}
             </field.Select>
