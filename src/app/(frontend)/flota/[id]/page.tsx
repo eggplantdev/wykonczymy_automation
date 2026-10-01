@@ -17,6 +17,7 @@ import { currentPolicyLabel } from '@/lib/fleet/policy-label'
 import { isOilChangeOverdue } from '@/lib/fleet/thresholds'
 import { cn } from '@/lib/utils/cn'
 import { formatKmOrDash } from '@/lib/utils/format-distance'
+import { makeModel } from '@/lib/utils/make-model'
 import type { DynamicPagePropsT } from '@/types/page'
 
 export default async function VehicleDetailPage({ params }: DynamicPagePropsT) {
@@ -38,7 +39,7 @@ export default async function VehicleDetailPage({ params }: DynamicPagePropsT) {
   return (
     <PageWrapper
       title={vehicle.registration}
-      description={`${vehicle.make} ${vehicle.model}${vehicle.year ? ` · ${vehicle.year}` : ''}`}
+      description={`${makeModel(vehicle)}${vehicle.year ? ` · ${vehicle.year}` : ''}`}
     >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="space-y-4">

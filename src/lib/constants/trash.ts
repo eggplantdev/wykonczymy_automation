@@ -12,8 +12,6 @@ export const isNameConfirmed = (typed: string | undefined, name: string): boolea
 
 export const NAME_MISMATCH_MESSAGE = 'Wpisana nazwa się nie zgadza.'
 
-export const INVESTMENT_DELETE_FAILED_MESSAGE = 'Nie udało się usunąć inwestycji'
-
 // Owner ruling (2026-10-01): an investment in progress is never deleted, whatever its kosztorys holds.
 export const UNDELETABLE_INVESTMENT_STATUS = 'active' satisfies InvestmentStatusT
 

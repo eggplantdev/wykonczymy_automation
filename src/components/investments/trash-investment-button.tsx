@@ -6,7 +6,6 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { trashInvestmentAction } from '@/lib/actions/investment-trash'
 import {
   ACTIVE_INVESTMENT_DELETE_MESSAGE,
-  INVESTMENT_DELETE_FAILED_MESSAGE,
   isUndeletableStatus,
   KOSZTORYS_IN_USE_WARNING,
 } from '@/lib/constants/trash'
@@ -38,7 +37,7 @@ export function TrashInvestmentButton({
     startTransition(async () => {
       const res = await settleAction(() => trashInvestmentAction(investment.id))
       setAsking(null)
-      if (!res.success) return toastMessage(res.error ?? INVESTMENT_DELETE_FAILED_MESSAGE, 'error')
+      if (!res.success) return toastMessage(res.error, 'error')
       toastMessage('Inwestycja przeniesiona do kosza.', 'success')
     })
   }

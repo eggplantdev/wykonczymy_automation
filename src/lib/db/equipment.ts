@@ -28,7 +28,7 @@ const CURRENT_STATE = sql`
 `
 
 // One join set, written once: the listing, the location filter and the employee card all render the
-// same row and must never disagree about what „u kogo" means.
+// same row and must never disagree about what „u kogo" means — nor about a trashed item being gone.
 const OVERVIEW_COLUMNS = sql`
   q.id, q.name, q.serial_number, q.make, q.model, q.status,
   q.purchase_date, q.warranty_until, q.purchase_price, q.note,
@@ -37,7 +37,7 @@ const OVERVIEW_COLUMNS = sql`
 `
 
 const OVERVIEW_JOINS = sql`
-  FROM equipment q
+  FROM (SELECT * FROM equipment WHERE trashed_at IS NULL) q
   LEFT JOIN current_state c ON c.equipment_id = q.id
   LEFT JOIN users u ON u.id = c.holder_id
   LEFT JOIN warehouses w ON w.id = c.warehouse_id
@@ -51,7 +51,6 @@ export const loadEquipmentOverview = async (payload: Payload): Promise<Equipment
     WITH current_state AS (${CURRENT_STATE})
     SELECT ${OVERVIEW_COLUMNS}
     ${OVERVIEW_JOINS}
-    WHERE q.trashed_at IS NULL
     ORDER BY q.name ASC, q.id ASC
   `)
 
@@ -69,7 +68,6 @@ export const loadEquipmentById = async (
     SELECT ${OVERVIEW_COLUMNS}
     ${OVERVIEW_JOINS}
     WHERE q.id = ${id}
-      AND q.trashed_at IS NULL
   `)
 
   return result.rows.length === 0 ? null : toEquipmentRow(result.rows[0])
@@ -101,7 +99,6 @@ export const loadEquipmentAtLocation = async (
     ${OVERVIEW_JOINS}
     WHERE ${location}
       AND q.status::text IN ${LIVE_STATUSES}
-      AND q.trashed_at IS NULL
     ORDER BY q.name ASC, q.id ASC
   `)
 

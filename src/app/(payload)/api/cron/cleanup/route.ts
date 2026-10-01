@@ -34,19 +34,12 @@ export async function GET(request: NextRequest) {
   const workerTrash = await runStep('workerTrash', () => purgeWorkerTrash(payload, db))
   const vehicleTrash = await runStep('vehicleTrash', () => purgeVehicleTrash(payload, db))
   const equipmentTrash = await runStep('equipmentTrash', () => purgeEquipmentTrash(payload, db))
-  const steps = [snapshots, trash, cashRegisterTrash, workerTrash, vehicleTrash, equipmentTrash]
+  const results = { snapshots, trash, cashRegisterTrash, workerTrash, vehicleTrash, equipmentTrash }
+  const steps = Object.values(results)
   const threw = steps.filter((step) => step === null).length
 
   return NextResponse.json(
-    {
-      ok: threw === 0,
-      snapshots,
-      trash,
-      cashRegisterTrash,
-      workerTrash,
-      vehicleTrash,
-      equipmentTrash,
-    },
+    { ok: threw === 0, ...results },
     { status: threw === steps.length ? 500 : 200 },
   )
 }

@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { Input } from '@/components/ui/input'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
 import { TRASH_KINDS } from '@/components/trash/trash-kinds'
+import { isNameConfirmed } from '@/lib/constants/trash'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import type { TrashRowT } from '@/types/trash'
@@ -27,13 +28,13 @@ export function DeleteForeverDialog({ row, open, onClose }: PropsT) {
   const onConfirm = () => {
     startTransition(async () => {
       const res = await settleAction(() => copy.deleteForever(row.id, typedName))
-      if (!res.success) return toastMessage(res.error ?? copy.failed, 'error')
+      if (!res.success) return toastMessage(res.error, 'error')
       toastMessage(copy.deleted, 'success')
       close()
     })
   }
 
-  const nameMatches = typedName.trim() === row.name.trim()
+  const nameMatches = isNameConfirmed(typedName, row.name)
 
   return (
     <FormDialogShell

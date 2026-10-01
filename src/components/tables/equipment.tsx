@@ -7,7 +7,7 @@ import { EquipmentStatusBadge } from '@/components/equipment/equipment-status-ba
 import { LocationCell } from '@/components/equipment/location-cell'
 import { WarrantyCell } from '@/components/equipment/warranty-cell'
 import { isLiveStatus } from '@/lib/equipment/equipment-status'
-import { makeModel } from '@/lib/equipment/rows'
+import { makeModel } from '@/lib/utils/make-model'
 import { classifyWarranty, warrantyDaysLeft } from '@/lib/equipment/warranty-thresholds'
 import type { EquipmentRowT, WarehouseOptionT } from '@/lib/equipment/types'
 import type { DayT } from '@/lib/utils/days'
@@ -128,7 +128,6 @@ export function getEquipmentColumns({
             description={describeEquipmentTrash(info.row.original)}
             trash={() => trashEquipmentAction(info.row.original.id)}
             trashed="Sprzęt przeniesiony do kosza."
-            failed="Nie udało się usunąć sprzętu"
           />
         </div>
       ),

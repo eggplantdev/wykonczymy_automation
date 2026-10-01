@@ -1,6 +1,7 @@
 import 'server-only'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
+import { text } from '@/lib/db/row-coerce'
 
 export type TrashedEquipmentRowT = {
   id: number
@@ -21,9 +22,9 @@ export async function fetchTrashedEquipment(db: DbExecutorT): Promise<TrashedEqu
   return rows.map((row) => ({
     id: Number(row.id),
     name: String(row.name),
-    make: (row.make as string | null) ?? '',
-    model: (row.model as string | null) ?? '',
-    serialNumber: (row.serial_number as string | null) ?? '',
+    make: text(row.make),
+    model: text(row.model),
+    serialNumber: text(row.serial_number),
     trashedAt: new Date(row.trashed_at as string),
   }))
 }

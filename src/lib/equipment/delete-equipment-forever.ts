@@ -1,9 +1,9 @@
 import 'server-only'
-import type { Payload, PayloadRequest } from 'payload'
+import type { Payload } from 'payload'
 import type { DeleteForeverResultT } from '@/types/trash'
 import { logError } from '@/lib/utils/log-error'
 
-export const EQUIPMENT_NOT_TRASHED_MESSAGE = 'Najpierw przenieś sprzęt do kosza.'
+const EQUIPMENT_NOT_TRASHED_MESSAGE = 'Najpierw przenieś sprzęt do kosza.'
 
 /**
  * No refusal branch: nothing outside the register points at an item, and its handovers go with it.
@@ -12,7 +12,6 @@ export const EQUIPMENT_NOT_TRASHED_MESSAGE = 'Najpierw przenieś sprzęt do kosz
 export async function deleteTrashedEquipment(
   payload: Payload,
   equipmentId: number,
-  req?: PayloadRequest,
 ): Promise<DeleteForeverResultT> {
   try {
     const item = await payload.findByID({
@@ -21,7 +20,6 @@ export async function deleteTrashedEquipment(
       depth: 0,
       overrideAccess: true,
       disableErrors: true,
-      req,
     })
     if (!item?.trashedAt) {
       return { ok: false, reason: 'not-trashed', message: EQUIPMENT_NOT_TRASHED_MESSAGE }
@@ -32,7 +30,6 @@ export async function deleteTrashedEquipment(
       id: equipmentId,
       overrideAccess: true,
       context: { skipRevalidation: true },
-      req,
     })
     return { ok: true }
   } catch (err) {

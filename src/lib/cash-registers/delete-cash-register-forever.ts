@@ -1,5 +1,5 @@
 import 'server-only'
-import { APIError, type Payload, type PayloadRequest } from 'payload'
+import { APIError, type Payload } from 'payload'
 import type { DeleteForeverResultT } from '@/types/trash'
 import { logError } from '@/lib/utils/log-error'
 
@@ -15,7 +15,6 @@ export const CASH_REGISTER_NOT_TRASHED_MESSAGE = 'Najpierw przenieś kasę do ko
 export async function deleteTrashedCashRegister(
   payload: Payload,
   registerId: number,
-  req?: PayloadRequest,
 ): Promise<DeleteForeverResultT> {
   try {
     const register = await payload.findByID({
@@ -24,7 +23,6 @@ export async function deleteTrashedCashRegister(
       depth: 0,
       overrideAccess: true,
       disableErrors: true,
-      req,
     })
     if (!register?.trashedAt) {
       return { ok: false, reason: 'not-trashed', message: CASH_REGISTER_NOT_TRASHED_MESSAGE }
@@ -35,7 +33,6 @@ export async function deleteTrashedCashRegister(
       id: registerId,
       overrideAccess: true,
       context: { skipRevalidation: true },
-      req,
     })
     return { ok: true }
   } catch (err) {

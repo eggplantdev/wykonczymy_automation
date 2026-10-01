@@ -18,7 +18,7 @@ import {
 import { fetchTrashedWorkers, type TrashedWorkerRowT } from '@/lib/db/worker-trash'
 import { fetchTrashedVehicles, type TrashedVehicleRowT } from '@/lib/db/vehicle-trash'
 import { fetchTrashedEquipment, type TrashedEquipmentRowT } from '@/lib/db/equipment-trash'
-import { makeModel } from '@/lib/equipment/rows'
+import { makeModel } from '@/lib/utils/make-model'
 import type { TrashRowT } from '@/types/trash'
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -41,61 +41,45 @@ export function shapeTrashRows(
       Math.ceil((trashedAt.getTime() + ENTITY_TRASH_RETENTION_DAYS * DAY_MS - now) / DAY_MS),
     )
 
+  // The live default for a kind with no exception; investments and workers override their part.
+  const base = (row: { id: number; trashedAt: Date }) => ({
+    id: row.id,
+    trashedAt: row.trashedAt,
+    daysLeft: daysLeft(row.trashedAt),
+    autoPurges: true,
+    hasSheet: false,
+    pairedRegisters: [] as string[],
+  })
+
   return [
     ...investments.map((row) => ({
+      ...base(row),
       kind: row.isTemplate ? ('template' as const) : ('investment' as const),
-      id: row.id,
       name: row.name,
-      trashedAt: row.trashedAt,
-      daysLeft: daysLeft(row.trashedAt),
       autoPurges: !row.isKosztorysUsed && !row.isUndeletable,
       hasSheet: row.hasSheet,
-      pairedRegisters: [],
     })),
     ...cashRegisters
       .filter((row) => isAdminOrOwnerRole(viewerRole) || row.type !== 'MAIN')
-      .map((row) => ({
-        kind: 'cash-register' as const,
-        id: row.id,
-        name: row.name,
-        trashedAt: row.trashedAt,
-        daysLeft: daysLeft(row.trashedAt),
-        autoPurges: true,
-        hasSheet: false,
-        pairedRegisters: [],
-      })),
+      .map((row) => ({ ...base(row), kind: 'cash-register' as const, name: row.name })),
     ...workers
       .filter((row) => canManageAccount(viewerRole, row.role))
       .map((row) => ({
+        ...base(row),
         kind: 'worker' as const,
-        id: row.id,
         name: row.name,
-        trashedAt: row.trashedAt,
-        daysLeft: daysLeft(row.trashedAt),
-        autoPurges: true,
-        hasSheet: false,
         pairedRegisters: row.registerNames,
       })),
     ...vehicles.map((row) => ({
+      ...base(row),
       kind: 'vehicle' as const,
-      id: row.id,
       name: row.registration,
-      trashedAt: row.trashedAt,
-      daysLeft: daysLeft(row.trashedAt),
-      autoPurges: true,
-      hasSheet: false,
-      pairedRegisters: [],
       detail: makeModel(row) || undefined,
     })),
     ...equipment.map((row) => ({
+      ...base(row),
       kind: 'equipment' as const,
-      id: row.id,
       name: row.name,
-      trashedAt: row.trashedAt,
-      daysLeft: daysLeft(row.trashedAt),
-      autoPurges: true,
-      hasSheet: false,
-      pairedRegisters: [],
       detail:
         [makeModel(row), row.serialNumber && `nr ser. ${row.serialNumber}`]
           .filter(Boolean)

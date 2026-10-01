@@ -1,9 +1,9 @@
 import 'server-only'
-import type { Payload, PayloadRequest } from 'payload'
+import type { Payload } from 'payload'
 import type { DeleteForeverResultT } from '@/types/trash'
 import { logError } from '@/lib/utils/log-error'
 
-export const VEHICLE_NOT_TRASHED_MESSAGE = 'Najpierw przenieś pojazd do kosza.'
+const VEHICLE_NOT_TRASHED_MESSAGE = 'Najpierw przenieś pojazd do kosza.'
 
 /**
  * No refusal branch: nothing outside the fleet points at a vehicle, and its inspections go with it.
@@ -12,7 +12,6 @@ export const VEHICLE_NOT_TRASHED_MESSAGE = 'Najpierw przenieś pojazd do kosza.'
 export async function deleteTrashedVehicle(
   payload: Payload,
   vehicleId: number,
-  req?: PayloadRequest,
 ): Promise<DeleteForeverResultT> {
   try {
     const vehicle = await payload.findByID({
@@ -21,7 +20,6 @@ export async function deleteTrashedVehicle(
       depth: 0,
       overrideAccess: true,
       disableErrors: true,
-      req,
     })
     if (!vehicle?.trashedAt) {
       return { ok: false, reason: 'not-trashed', message: VEHICLE_NOT_TRASHED_MESSAGE }
@@ -32,7 +30,6 @@ export async function deleteTrashedVehicle(
       id: vehicleId,
       overrideAccess: true,
       context: { skipRevalidation: true },
-      req,
     })
     return { ok: true }
   } catch (err) {

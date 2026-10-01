@@ -14,16 +14,9 @@ import type { WorkerColumnFiguresT } from '@/lib/kosztorys/worker-payout-pairs'
 import { cn } from '@/lib/utils/cn'
 import { TrashRowButton } from '@/components/trash/trash-row-button'
 import { trashWorkerAction } from '@/lib/actions/worker-trash'
+import { describeWorkerTrash } from '@/lib/workers/describe-trash'
 
 const col = createColumnHelper<UserRowT>()
-
-function describeWorkerTrash(name: string, registerNames: string[]): string {
-  const withRegisters =
-    registerNames.length === 0
-      ? ''
-      : ` Razem z nim ${registerNames.length === 1 ? 'kasa' : 'kasy'}: ${registerNames.join(', ')}.`
-  return `Przenieść „${name}" do kosza? Nie zaloguje się, dopóki go nie przywrócisz.${withRegisters}`
-}
 
 const PAYOUT_LINES = [
   { label: 'do zapłaty aktywne', bucket: 'active', kind: 'owed', className: undefined },
@@ -161,7 +154,6 @@ export function getUserColumns({ onToggle, onSettle }: UserColumnOptionsT) {
               )}
               trash={() => trashWorkerAction(info.row.original.id)}
               trashed="Pracownik przeniesiony do kosza."
-              failed="Nie udało się usunąć pracownika"
             />
           </div>
         ),

@@ -17,7 +17,6 @@ const renderButton = (trash: () => Promise<ActionResultT>) =>
       description={DESCRIPTION}
       trash={trash}
       trashed="Pojazd przeniesiony do kosza"
-      failed="Nie udało się przenieść pojazdu do kosza"
     />,
   )
 

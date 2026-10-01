@@ -7,6 +7,7 @@ import { OilIntervalBadge } from '@/components/fleet/oil-interval-badge'
 import { FlagBadge } from '@/components/fleet/flag-badge'
 import { INSPECTION_TYPE_LABELS, SCHEDULED_INSPECTION_TYPES } from '@/lib/fleet/inspection-types'
 import { formatPLNOrDash } from '@/lib/utils/format-currency'
+import { makeModel } from '@/lib/utils/make-model'
 import { TrashRowButton } from '@/components/trash/trash-row-button'
 import { trashVehicleAction } from '@/lib/actions/vehicle-trash'
 import { describeVehicleTrash } from '@/lib/fleet/describe-trash'
@@ -23,7 +24,7 @@ export function getFleetColumns() {
       header: 'Rejestracja',
       cell: (info) => <span className="font-medium">{info.getValue()}</span>,
     }),
-    col.accessor((row) => `${row.make} ${row.model}`, {
+    col.accessor((row) => makeModel(row), {
       id: 'vehicle',
       header: 'Pojazd',
       cell: (info) => (
@@ -112,7 +113,6 @@ export function getFleetColumns() {
             description={describeVehicleTrash(info.row.original)}
             trash={() => trashVehicleAction(info.row.original.id)}
             trashed="Pojazd przeniesiony do kosza."
-            failed="Nie udało się usunąć pojazdu"
           />
         </div>
       ),

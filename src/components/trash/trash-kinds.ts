@@ -9,7 +9,7 @@ import {
 import { deleteWorkerForeverAction, restoreWorkerAction } from '@/lib/actions/worker-trash'
 import { deleteVehicleForeverAction, restoreVehicleAction } from '@/lib/actions/vehicle-trash'
 import { deleteEquipmentForeverAction, restoreEquipmentAction } from '@/lib/actions/equipment-trash'
-import { INVESTMENT_DELETE_FAILED_MESSAGE, KOSZTORYS_IN_USE_WARNING } from '@/lib/constants/trash'
+import { KOSZTORYS_IN_USE_WARNING } from '@/lib/constants/trash'
 import type { ActionResultT } from '@/types/action'
 import type { TrashKindT, TrashRowT } from '@/types/trash'
 
@@ -22,7 +22,6 @@ type TrashKindConfigT = {
   note?: (row: TrashRowT) => string | undefined
   nameLabel: string
   deleted: string
-  failed: string
 }
 
 // Declaration order is the order of the /kosz sections.
@@ -37,7 +36,6 @@ export const TRASH_KINDS: Record<TrashKindT, TrashKindConfigT> = {
     note: (row) => (row.autoPurges ? undefined : KOSZTORYS_IN_USE_WARNING),
     nameLabel: 'Nazwa inwestycji',
     deleted: 'Inwestycja usunięta na zawsze.',
-    failed: INVESTMENT_DELETE_FAILED_MESSAGE,
   },
   template: {
     sectionTitle: 'Szablony',
@@ -48,7 +46,6 @@ export const TRASH_KINDS: Record<TrashKindT, TrashKindConfigT> = {
     note: () => 'Kosztorysy założone z tego szablonu zostają bez zmian.',
     nameLabel: 'Nazwa szablonu',
     deleted: 'Szablon usunięty na zawsze.',
-    failed: 'Nie udało się usunąć szablonu',
   },
   'cash-register': {
     sectionTitle: 'Kasy',
@@ -57,7 +54,6 @@ export const TRASH_KINDS: Record<TrashKindT, TrashKindConfigT> = {
     deleteForever: deleteCashRegisterForeverAction,
     nameLabel: 'Nazwa kasy',
     deleted: 'Kasa usunięta na zawsze.',
-    failed: 'Nie udało się usunąć kasy',
   },
   worker: {
     sectionTitle: 'Pracownicy',
@@ -67,7 +63,6 @@ export const TRASH_KINDS: Record<TrashKindT, TrashKindConfigT> = {
     lost: 'jego kasy z kosza oraz jego nazwisko na anulowanych transakcjach',
     nameLabel: 'Imię i nazwisko',
     deleted: 'Pracownik usunięty na zawsze.',
-    failed: 'Nie udało się usunąć pracownika',
   },
   vehicle: {
     sectionTitle: 'Flota',
@@ -77,7 +72,6 @@ export const TRASH_KINDS: Record<TrashKindT, TrashKindConfigT> = {
     lost: 'historia przeglądów i ich załączniki',
     nameLabel: 'Rejestracja',
     deleted: 'Pojazd usunięty na zawsze.',
-    failed: 'Nie udało się usunąć pojazdu',
   },
   equipment: {
     sectionTitle: 'Sprzęt',
@@ -87,7 +81,6 @@ export const TRASH_KINDS: Record<TrashKindT, TrashKindConfigT> = {
     lost: 'historia przekazań',
     nameLabel: 'Nazwa sprzętu',
     deleted: 'Sprzęt usunięty na zawsze.',
-    failed: 'Nie udało się usunąć sprzętu',
   },
 }
 

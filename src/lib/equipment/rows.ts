@@ -93,9 +93,6 @@ export const toEquipmentRow = (raw: Record<string, unknown>): EquipmentRowT => (
   investmentName: text(raw.investment_name),
 })
 
-export const makeModel = (item: { make: string; model: string }): string =>
-  [item.make, item.model].filter(Boolean).join(' ')
-
 /** Only a workshop is prefixed — an item there is unavailable. */
 export const targetLabel = (target: EquipmentTargetT): string =>
   target.kind === 'service' ? `Serwis: ${target.name}` : target.name

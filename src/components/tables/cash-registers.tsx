@@ -72,7 +72,6 @@ export function getCashRegisterColumns(onToggle: (id: number, newActive: boolean
             description={`Przenieść „${info.row.original.name}" do kosza? Możesz ją przywrócić z Kosza.`}
             trash={() => trashCashRegisterAction(info.row.original.id)}
             trashed="Kasa przeniesiona do kosza."
-            failed="Nie udało się usunąć kasy"
           />
         </div>
       ),
