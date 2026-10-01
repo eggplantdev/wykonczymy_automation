@@ -1,18 +1,13 @@
 'use client'
 
 import { SimpleSelect } from '@/components/ui/simple-select'
-import { LanguageFlag } from '@/components/kosztorys/worker-report/language-flag'
+import { LanguageLabel } from '@/components/ui/language-label'
 import { useI18nContext } from '@/lib/i18n/i18n-context'
-import { LANGUAGES, LANGUAGE_LABELS, languageSchema } from '@/lib/i18n/languages'
+import { LANGUAGES, languageSchema } from '@/lib/i18n/languages'
 
 const OPTIONS = LANGUAGES.map((language) => ({
   value: language,
-  label: (
-    <span className="flex items-center gap-2">
-      <LanguageFlag language={language} />
-      {LANGUAGE_LABELS[language]}
-    </span>
-  ),
+  label: <LanguageLabel language={language} />,
 }))
 
 export function LanguageSwitcher() {

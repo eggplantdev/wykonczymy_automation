@@ -9,7 +9,8 @@ import { CashRegisterField } from '@/components/forms/form-fields'
 import { workerFormSchema, type WorkerFormValuesT } from './worker-schema'
 import { useWorkerFormStore } from '@/stores/form-stores'
 import { ROLES, ROLE_LABELS } from '@/lib/auth/roles'
-import { LANGUAGES, LANGUAGE_LABELS } from '@/lib/i18n/languages'
+import { LanguageLabel } from '@/components/ui/language-label'
+import { LANGUAGES } from '@/lib/i18n/languages'
 import type { WorkerFormDataT } from './worker-schema'
 import type { ReferenceItemT } from '@/types/reference-data'
 import type { ActionResultT } from '@/types/action'
@@ -89,10 +90,10 @@ export function WorkerForm({
 
         <form.AppField name="language">
           {(field) => (
-            <field.Select label="Język" showError>
+            <field.Select label="Domyślny język" showError>
               {LANGUAGES.map((language) => (
                 <SelectItem key={language} value={language}>
-                  {LANGUAGE_LABELS[language]}
+                  <LanguageLabel language={language} />
                 </SelectItem>
               ))}
             </field.Select>
