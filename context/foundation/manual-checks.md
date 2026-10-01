@@ -3105,7 +3105,7 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
 - [ ] Przełącznik języka w nagłówku linku wygląda jak inne przyciski aplikacji (obrys, ta sama
       wysokość); każda opcja i przycisk pokazują flagę obok nazwy języka.
 - [ ] „Pracownicy" → edycja pracownika, pole „Domyślny język": każda opcja i wybrana wartość mają flagę
-      obok nazwy; strona pracownika pokazuje „Język" z tą samą flagą.
+      obok nazwy; strona pracownika pokazuje „Domyślny język" z tą samą flagą.
 - [ ] Telefon (390px), link po ukraińsku: „Wszystkie kolumny" pokazuje przetłumaczone nagłówki,
       dialog „Prace spoza rozpiski" jest po ukraińsku, a wysłanie zgłoszenia działa; liczby mają
       przecinek dziesiętny, jak po polsku.

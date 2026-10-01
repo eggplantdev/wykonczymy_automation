@@ -51,7 +51,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
     { label: 'Rola', value: ROLE_LABELS[role].pl },
     { label: 'Email', value: worker.email },
     { label: 'Status', value: worker.active ? 'Aktywny' : 'Nieaktywny' },
-    { label: 'Język', value: <LanguageLabel language={worker.language ?? 'pl'} /> },
+    { label: 'Domyślny język', value: <LanguageLabel language={worker.language ?? 'pl'} /> },
     ...(registerName ? [{ label: 'Domyślna kasa', value: registerName }] : []),
   ]
 
