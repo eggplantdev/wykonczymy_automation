@@ -9,10 +9,6 @@ structure-scatter-audit, comment-noise-audit. Tailwind audit: clean.
 
 ## Findings
 
-- [x] 🟡 WARNING · fixed · code-review + impl-review · `src/lib/actions/toggle-active.ts:57` · deactivation (`toggleUserActive`) locks the account out and drops its sessions, but had none of the trash guards — a MANAGER could deactivate the OWNER, the last OWNER/ADMIN could deactivate themselves → owner's call (2026-10-01): same rules as the trash — `refusal` hook reuses `fetchRemovalSubject` + `canManageAccount` + `removalRefusal`; refusal messages now name „wyłączyć"
-      test: TDD · integration — `toggle-active.db.test.ts`: MANAGER→OWNER refused, self refused (red first), MANAGER→EMPLOYEE allowed
-- [x] 🟡 WARNING · fixed · impl-review · `src/__tests__/reference-data-sql-drift.test.ts` · drift spec failed (Progress 2.3 was checked on a red spec) — `mappingConst` repointed at `workerRows` / `investmentRows`, 5/5 green
-      test: no automated test — the spec itself is the guard, now green
 - [x] 🔵 OBSERVATION · dropped · code-review · `src/lib/db/worker-trash.ts` · „razem z" list in /kosz names every kasa the worker owns in the trash, incl. one trashed earlier on its own — matches what Usuń na zawsze removes; restore brings back only the paired ones and the rest stay in /kosz → Kasy
       test: no automated test — no defect
 - [x] 🔵 OBSERVATION · dropped · code-review · `src/collections/users.ts` · a new account cannot reuse a trashed worker's email until that worker is deleted for good — minor, the message is Payload's own unique-email error
@@ -23,13 +19,9 @@ structure-scatter-audit, comment-noise-audit. Tailwind audit: clean.
 - [x] 🔵 OBSERVATION · dismissed · code-review · `src/hooks/users/refuse-disabled-login.ts` · a request already in flight when the account is trashed completes — millisecond window, JWT is the stated revocation boundary
 - [x] 🔵 OBSERVATION · dismissed · impl-review · `src/components/users/trash-worker-button.tsx` · label „Usuń pracownika" vs plan wording — matches the kasa sibling „Usuń kasę"
 - [x] 🔵 OBSERVATION · dismissed · impl-review · plan drift (helper names / file split) — benign, behaviour as planned
-- [x] fixed · feature-first-structure · `src/components/workers/trash-worker-button.tsx` · lone file in a new `workers/` dir; its only consumer is `tables/users.tsx` → moved to `src/components/users/`
-- [x] fixed · comment-noise-audit · `src/lib/constants/worker-lock.ts:7` · JSDoc on `OWNER_TRASHED_RESTORE_MESSAGE` restated the message — deleted
 - [x] dismissed · comment-noise-audit · `worker-gate.ts`, `types/reference-data.ts`, `types/table-rows.ts`, `types/trash.ts`, `actions/worker-trash.ts`, `workers/delete-blocker.ts`, `trash-kinds.ts`, `worker-lock.ts` · flagged comments each carry a consequence or a pin (why the name is pinned, why missing ≠ forbidden, why picker-excluded) — kept
 - [x] dropped · module-cohesion-audit · `src/lib/db/worker-trash.ts` · unused-outside-file export `WORKER_NOT_TRASHED_MESSAGE` — same shape as the kasa / investment twins
 - [x] dropped · structure-scatter-audit · trash-gate modules split across `lib/db/*-gate.ts` and `lib/workers/` — follows the kasa layout one-to-one
-- [x] fixed · simplify · `src/hooks/transfers/validate.ts:105` · worker trash check re-implemented the „newly named id" rule ten lines above → one local `newlyNamed`, one refusal chain
-- [x] fixed · simplify · `src/lib/db/worker-report-share.ts:25` · `isWorkerActive` + `isWorkerTrashed` read only as an OR → one `isWorkerLive` computed in SQL
 - [x] dropped · simplify · `src/lib/workers/delete-worker-forever.ts:52` · third copy of the delete-forever catch block (kasa, investment) — 5 lines × 3 files, not worth the churn
 - [x] dropped · simplify · `src/lib/actions/worker-trash.ts:101` · `accountRemovalRefusal` on a trashed target can only refuse self → a `workerId === user.id` check saves one query — kept for one policy call across trash and delete
 - [x] dropped · simplify · `src/lib/workers/delete-worker-forever.ts` · worker row read twice (action + helper) — one PK read on a rare action

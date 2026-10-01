@@ -1,10 +1,10 @@
 ---
 change_id: kosz-pracownikow
 title: Kosz — trash an unused worker (pracownicy)
-status: implemented
+status: archived
 created: 2026-10-01
 updated: 2026-10-01
-archived_at: null
+archived_at: 2026-10-01T12:19:23Z
 branch: staging
 worktree: null
 ---

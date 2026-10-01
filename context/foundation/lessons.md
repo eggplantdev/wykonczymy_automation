@@ -2476,3 +2476,10 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
   - A Vercel env change needs `vercel redeploy <prod-url> --target production` before it takes effect.
   - Mail failure is the one error no user reports: the client just never hears back. Every failed send must raise an alert that does **not** travel over the same SMTP (EX-958) — until then, `leads.notifyStatus = failed` is the dated record of an outage, and the first place to look.
 - **Applies to**: plan, implement, impl-review, any env or hosting change touching mail
+
+## Close a disabled account at the door, not per request — the gap that stays open fails safe
+
+- **Context**: Trashing or deactivating a user (EX-918). The app's `getCurrentUserJwt` verifies the JWT and never reads the DB — a choice made for latency in the M21 perf push (`56591165`), not measured since. Payload's own strategy (`/admin`, REST) does read the user and checks the JWT's `sid` against `users_sessions`.
+- **Problem**: Until EX-918 nothing in auth read `active`, so a deactivated account of any role could log in and act. Four ways to close it were costed: refuse at login; delete the stored sessions; a `trashed_at`/`active` read in `getCurrentUserJwt` (one indexed read, ~20 ms warm on Neon, or an entity-tagged cache); or accept the window. Only the per-request read closes an app session that is already open, and it puts a DB read back into every request the M21 push took it out of.
+- **Rule**: Refuse at the door (`beforeLogin`) and delete the account's `users_sessions` rows on trash and on deactivation — that closes new logins everywhere and `/admin` / REST at once, at zero per-request cost. The open app session (≤ 7 days, the JWT lifetime) is accepted because it fails safe: anything it writes stamps the user's id, which makes the account **used**, and the `beforeDelete` re-count then refuses delete-forever and the purge logs `blocked` — no data is lost. Reach for the per-request check only if that window ever has to close for a reason beyond the trash.
+- **Applies to**: plan, implement — any new way an account stops being allowed in
