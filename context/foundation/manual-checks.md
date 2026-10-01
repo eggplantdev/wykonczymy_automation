@@ -3187,3 +3187,7 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
 - [ ] Jako kierownik: obie sekcje w `/kosz` widoczne, „Usuń", „Przywróć" i „Usuń na zawsze" działają.
 - [ ] `/kasy` i `/pracownicy` → „Usuń" dalej działa jak wcześniej: to samo pytanie, ten sam
       komunikat po przeniesieniu do kosza.
+- [ ] `/szablony` → „Przenieś szablon do kosza": to samo pytanie co wcześniej, po potwierdzeniu
+      komunikat „Szablon przeniesiony do kosza." i szablon jest w `/kosz`.
+- [ ] Dodaj auto z rejestracją wpisaną małymi literami i ze spacjami (np. „ ab 123 " → istniejące
+      „AB 123" w koszu): komunikat i tak odsyła do Kosza; nowe auto zapisuje się wielkimi literami.
