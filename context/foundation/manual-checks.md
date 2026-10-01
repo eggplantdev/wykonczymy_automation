@@ -3102,6 +3102,8 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
 - [ ] Na tym samym linku przełącznik języka → Русский: strona i opisy przechodzą na rosyjski;
       po odświeżeniu wybór zostaje. Link innego pracownika w tej samej przeglądarce otwiera się
       w JEGO języku, nie w wybranym przed chwilą.
+- [ ] Przełącznik języka w nagłówku linku wygląda jak inne przyciski aplikacji (obrys, ta sama
+      wysokość); każda opcja i przycisk pokazują flagę obok nazwy języka.
 - [ ] Telefon (390px), link po ukraińsku: „Wszystkie kolumny" pokazuje przetłumaczone nagłówki,
       dialog „Prace spoza rozpiski" jest po ukraińsku, a wysłanie zgłoszenia działa; liczby mają
       przecinek dziesiętny, jak po polsku.
