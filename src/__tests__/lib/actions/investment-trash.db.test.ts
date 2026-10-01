@@ -5,7 +5,10 @@ import { getDb } from '@/lib/db/get-db'
 import { entityTag } from '@/lib/cache/tags'
 import { getPresetName } from '@/lib/db/presets'
 import { createTestInvestment, trashDaysAgo } from '@/__tests__/helpers/investment'
-import { ACTIVE_INVESTMENT_DELETE_MESSAGE } from '@/lib/constants/investment-lock'
+import {
+  ACTIVE_INVESTMENT_DELETE_MESSAGE,
+  TRASHED_ACTIVE_INVESTMENT_DELETE_MESSAGE,
+} from '@/lib/constants/trash'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { createTestTemplate } from '@/__tests__/helpers/template'
 import { revalidateCollections, revalidateEntities } from '@/__tests__/stubs/cache-revalidate'
@@ -178,7 +181,7 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
 
     const result = await actions.deleteInvestmentForeverAction(id)
 
-    expect(result).toEqual({ success: false, error: ACTIVE_INVESTMENT_DELETE_MESSAGE })
+    expect(result).toEqual({ success: false, error: TRASHED_ACTIVE_INVESTMENT_DELETE_MESSAGE })
     const { rows } = await db.execute(sql`SELECT 1 FROM investments WHERE id = ${id}`)
     expect(rows).toHaveLength(1)
   })

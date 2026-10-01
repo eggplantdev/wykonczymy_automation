@@ -1,7 +1,9 @@
+import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { parseInvestmentId } from '@/lib/queries/investment-id'
-import { requireInvestmentOr404 } from '@/lib/queries/investments'
+import { fetchReferenceData, findInvestmentRef } from '@/lib/queries/reference-data'
+import { requireManagementPage } from '@/lib/auth/require-management-page'
 import { getInvestmentSheetId } from '@/lib/google/sheet-lookup'
 import { SheetButton } from '@/components/dialogs/sheet-button'
 import { SheetIframeView } from '@/components/sheets/iframe-view'
@@ -24,17 +26,20 @@ export default async function InvestmentKosztorysPage({
   const sheetIdPromise = getPayload({ config }).then((payload) =>
     getInvestmentSheetId(payload, investmentId),
   )
-  const [{ investment, trashed }, sheetId] = await Promise.all([
-    requireInvestmentOr404(id, { allowTrashed: true }),
+  const [refData, sheetId] = await Promise.all([
+    requireManagementPage().then(() => fetchReferenceData()),
     sheetIdPromise,
   ])
+  const found = findInvestmentRef(refData, investmentId)
+  if (!found) notFound()
+  const { investment, trashed } = found
 
   if (sheetId) {
     return (
       <SheetIframeView
         sheetId={sheetId}
         investmentName={investment.name}
-        // Sync writes the transfers into the sheet; a trashed investment is read-only.
+        // Sync writes the transfers into the sheet
         toolbar={trashed ? undefined : <SyncButton investmentId={investmentId} />}
       />
     )

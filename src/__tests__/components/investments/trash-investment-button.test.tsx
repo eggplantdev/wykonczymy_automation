@@ -26,7 +26,11 @@ vi.mock('@/lib/utils/toast', () => ({
 }))
 
 async function openDialog() {
-  render(<TrashInvestmentButton investment={{ id: 7, name: 'Mieszkanie Mokotów' }} />)
+  render(
+    <TrashInvestmentButton
+      investment={{ id: 7, name: 'Mieszkanie Mokotów', status: 'completed', hasKosztorys: true }}
+    />,
+  )
   await userEvent.click(screen.getByRole('button', { name: 'Usuń inwestycję' }))
 }
 
@@ -39,11 +43,11 @@ describe('TrashInvestmentButton', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.spyOn(console, 'error').mockImplementation(() => {})
-    getInvestmentKosztorysUsed.mockResolvedValue(false)
+    getInvestmentKosztorysUsed.mockResolvedValue({ success: true, data: false })
   })
 
   it('warns that the kosztorys is in use before moving it to the trash', async () => {
-    getInvestmentKosztorysUsed.mockResolvedValue(true)
+    getInvestmentKosztorysUsed.mockResolvedValue({ success: true, data: true })
 
     await openDialog()
 

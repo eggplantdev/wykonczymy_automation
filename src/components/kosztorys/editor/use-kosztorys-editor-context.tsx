@@ -27,6 +27,7 @@ type KosztorysEditorContextT = ReturnType<typeof useKosztorysEditor> & {
   // `editorNoun` for themselves, so „what is this editor" was answered in fourteen places that had to
   // agree. Both are cheap — a boolean and one of two module constants — so nothing is memoised.
   isTemplate: boolean
+  isTrashed: boolean
   noun: EditorNounT
 }
 

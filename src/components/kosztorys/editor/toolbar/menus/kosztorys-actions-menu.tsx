@@ -54,6 +54,7 @@ export function KosztorysActionsMenu({
     fitRowsToContent,
     toggleFitRowsToContent,
     isTemplate,
+    isTrashed,
     noun,
   } = useKosztorysEditorContext()
 
@@ -61,8 +62,9 @@ export function KosztorysActionsMenu({
     <>
       {/* A szablon has no investor and no crew on its etapy, so the previews through their eyes and
           the share links have nobody to address here. The „Arkusz Google" section drops out by
-          itself — `hasSheet` gates it, and the workbench has no sheet attached. */}
-      {!isTemplate && (
+          itself — `hasSheet` gates it, and the workbench has no sheet attached. A trashed investment's
+          links refuse to open, so its menus would only hand out dead ones. */}
+      {!isTemplate && !isTrashed && (
         <>
           <KosztorysWorkersMenu />
           <KosztorysInvestorMenu hasProtocol={protocolSource != null} />

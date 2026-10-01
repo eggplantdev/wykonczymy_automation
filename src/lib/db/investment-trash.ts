@@ -1,6 +1,7 @@
 import 'server-only'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
+import { isUndeletableStatus, UNDELETABLE_INVESTMENT_STATUS } from '@/lib/constants/trash'
 import type { DbExecutorT } from '@/lib/db/get-db'
 
 // „Realnie użyty" (owner's ruling): someone typed a Przedmiar or measured work on a stage. Price,
@@ -26,13 +27,13 @@ export type TrashedInvestmentRowT = {
   trashedAt: Date
   isKosztorysUsed: boolean
   isTemplate: boolean
+  isUndeletable: boolean
   hasSheet: boolean
 }
 
 export async function fetchTrashedInvestments(db: DbExecutorT): Promise<TrashedInvestmentRowT[]> {
   const { rows } = await db.execute(sql`
-    SELECT i.id, i.name, i.trashed_at, ${KOSZTORYS_USED} AS used,
-      i.status = ${TEMPLATE_INVESTMENT_STATUS} AS is_template,
+    SELECT i.id, i.name, i.status::text, i.trashed_at, ${KOSZTORYS_USED} AS used,
       EXISTS (
         SELECT 1 FROM kosztoryses k WHERE k.investment_id = i.id AND k.google_sheet_id IS NOT NULL
       ) AS has_sheet
@@ -45,7 +46,8 @@ export async function fetchTrashedInvestments(db: DbExecutorT): Promise<TrashedI
     name: String(row.name),
     trashedAt: new Date(row.trashed_at as string),
     isKosztorysUsed: row.used === true,
-    isTemplate: row.is_template === true,
+    isTemplate: row.status === TEMPLATE_INVESTMENT_STATUS,
+    isUndeletable: isUndeletableStatus(row.status as string),
     hasSheet: row.has_sheet === true,
   }))
 }
@@ -65,6 +67,7 @@ export async function selectPurgeableInvestmentIds(
     SELECT i.id, ${KOSZTORYS_USED} AS used
     FROM investments i
     WHERE i.trashed_at < now() - make_interval(days => ${olderThanDays})
+      AND i.status <> ${UNDELETABLE_INVESTMENT_STATUS}
     ORDER BY i.id
   `)
   return {

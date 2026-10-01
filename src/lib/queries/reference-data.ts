@@ -38,6 +38,13 @@ export const fetchExpenseCategories = unstable_cache(
   { tags: [CACHE_TAGS.expenseCategories] },
 )
 
+function splitTrashed<T>(rows: { isTrashed: boolean; ref: T }[]): [live: T[], trashed: T[]] {
+  const live: T[] = []
+  const trashed: T[] = []
+  for (const row of rows) (row.isTrashed ? trashed : live).push(row.ref)
+  return [live, trashed]
+}
+
 // Both caches, because they dedupe on different axes: `unstable_cache` spans requests but re-runs on
 // tag invalidation, while `cache()` collapses calls *within* one render — the page, the transfers
 // table and the nav each call this, so it ran 3× per render (EX-597). Safe only because nothing reads
@@ -98,7 +105,7 @@ export const fetchReferenceData = cache(
 
       const cashRegisterRows = crResult.rows.map((row) => ({
         isTrashed: Boolean(row.trashed),
-        register: {
+        ref: {
           id: Number(row.id),
           name: row.name as string,
           type: (row.type as CashRegisterTypeT) ?? 'AUXILIARY',
@@ -109,14 +116,11 @@ export const fetchReferenceData = cache(
       // Split, not filtered: the list doubles as the name map for transaction rows, and a cancelled
       // row on a trashed kasa must keep saying which kasa it was. Every picker and listing reads the
       // live half, so a new consumer cannot forget to hide the trash.
-      const cashRegisters = cashRegisterRows.filter((r) => !r.isTrashed).map((r) => r.register)
-      const trashedCashRegisters = cashRegisterRows
-        .filter((r) => r.isTrashed)
-        .map((r) => r.register)
+      const [cashRegisters, trashedCashRegisters] = splitTrashed(cashRegisterRows)
 
       const investmentRows = invResult.rows.map((row) => ({
         isTrashed: Boolean(row.trashed),
-        investment: {
+        ref: {
           id: Number(row.id),
           name: row.name as string,
           status: (row.status as InvestmentStatusT) ?? 'active',
@@ -133,8 +137,7 @@ export const fetchReferenceData = cache(
           hasSheet: Boolean(row.has_sheet),
         } satisfies InvestmentRefT,
       }))
-      const investments = investmentRows.filter((r) => !r.isTrashed).map((r) => r.investment)
-      const trashedInvestments = investmentRows.filter((r) => r.isTrashed).map((r) => r.investment)
+      const [investments, trashedInvestments] = splitTrashed(investmentRows)
 
       const workers: WorkerRefT[] = usersResult.rows.map((row) => ({
         id: Number(row.id),
@@ -186,7 +189,6 @@ export const fetchReferenceData = cache(
   ),
 )
 
-/** The investment a page was opened on, live or trashed — the one lookup that reaches both halves. */
 export function findInvestmentRef(
   refData: Pick<ReferenceDataBaseT, 'investments' | 'trashedInvestments'>,
   investmentId: number,

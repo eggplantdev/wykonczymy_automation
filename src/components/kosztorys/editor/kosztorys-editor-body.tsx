@@ -458,6 +458,7 @@ export function KosztorysEditorBody({
         openImport: editor.readOnly ? undefined : openImport,
         hasSheet,
         isTemplate,
+        isTrashed: lock === 'trashed',
         noun,
       }}
     >

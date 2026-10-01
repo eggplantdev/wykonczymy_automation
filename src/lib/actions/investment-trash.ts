@@ -6,11 +6,12 @@ import {
   INVESTMENT_TRASH_TAGS,
   investmentEntityOpts,
 } from '@/lib/cache/tags'
+import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import {
   ACTIVE_INVESTMENT_DELETE_MESSAGE,
   isUndeletableStatus,
-  TEMPLATE_INVESTMENT_STATUS,
-} from '@/lib/constants/investment-lock'
+  TRASHED_ACTIVE_INVESTMENT_DELETE_MESSAGE,
+} from '@/lib/constants/trash'
 import { getDb } from '@/lib/db/get-db'
 import { isKosztorysUsed } from '@/lib/db/investment-trash'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
@@ -112,9 +113,9 @@ export async function deleteInvestmentForeverAction(
       })
       if (!investment) return { success: false, error: MISSING_MESSAGE }
       if (!investment.trashedAt) return { success: false, error: NOT_TRASHED_MESSAGE }
-      // A trashed investment has no page to edit its status on, so this is one trashed before the rule.
+      // Only one trashed before the rule can be here: an active investment no longer reaches the trash.
       if (isUndeletableStatus(investment.status)) {
-        return { success: false, error: ACTIVE_INVESTMENT_DELETE_MESSAGE }
+        return { success: false, error: TRASHED_ACTIVE_INVESTMENT_DELETE_MESSAGE }
       }
 
       const mustTypeName =

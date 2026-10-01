@@ -43,19 +43,18 @@ export async function fetchAllInvestments(): Promise<InvestmentRowT[]> {
 }
 
 // Shared page guard: parse the route id, require a management session, and load the investment —
-// bouncing to notFound() on a bad/missing/trashed id and to the login page on a failed auth — unless the
-// page opts into `allowTrashed` and renders read-only. Returns the investment (non-null past this
-// point) plus the numeric id the page needs. Pages that already hold
+// bouncing to notFound() on a bad/missing/trashed id and to the login page on a failed auth. Returns the
+// investment (non-null past this point) plus the numeric id the page needs. Pages that already hold
 // the investment from another fetch (e.g. the detail page's refData) don't use this — it would double
 // the load.
-export async function requireInvestmentOr404(id: string, { allowTrashed = false } = {}) {
+export async function requireInvestmentOr404(id: string) {
   const investmentId = parseInvestmentId(id)
   await requireManagementPage()
 
   const investment = await getInvestment(id)
-  if (!investment || (investment.trashedAt && !allowTrashed)) notFound()
+  if (!investment || investment.trashedAt) notFound()
 
-  return { investmentId, investment, trashed: Boolean(investment.trashedAt) }
+  return { investmentId, investment }
 }
 
 // Name only, for the top-bar crumb. Reads it off the already-warm reference data instead of querying:

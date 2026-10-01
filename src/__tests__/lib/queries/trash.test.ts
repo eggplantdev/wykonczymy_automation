@@ -16,6 +16,7 @@ const investment = (id: number, flags: Partial<TrashedInvestmentRowT>): TrashedI
   trashedAt: TRASHED_AT,
   isKosztorysUsed: false,
   isTemplate: false,
+  isUndeletable: false,
   hasSheet: false,
   ...flags,
 })

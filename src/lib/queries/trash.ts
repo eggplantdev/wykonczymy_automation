@@ -32,7 +32,7 @@ export function shapeTrashRows(
       name: row.name,
       trashedAt: row.trashedAt,
       daysLeft: daysLeft(row.trashedAt),
-      autoPurges: !row.isKosztorysUsed,
+      autoPurges: !row.isKosztorysUsed && !row.isUndeletable,
       mustTypeName: row.isKosztorysUsed || row.isTemplate,
       hasSheet: row.hasSheet,
     })),
