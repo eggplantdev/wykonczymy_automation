@@ -30,7 +30,7 @@ export async function createCatalogueItemAction(data: WorkCatalogueItemDataT) {
       if ('error' in resolved) return { success: false, error: resolved.error }
 
       await applyCatalogueWrite(payload, undefined, {
-        candidate: row,
+        candidate: { ...row, descriptionTranslations: {} },
         existing: null,
         keepCatalogueCategory: true,
       })

@@ -11,6 +11,7 @@ function item(id: number, sectionId: number, overrides: Partial<KosztorysItemT> 
     sectionId,
     displayOrder: id,
     description: `Pozycja ${id}`,
+    descriptionTranslations: {},
     unit: 'm2',
     plannedQty: 10,
     sheetMeasuredQty: null,

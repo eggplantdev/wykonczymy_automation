@@ -373,6 +373,7 @@ function extraAsItem(
     sectionId: section.id,
     displayOrder,
     description: line.description,
+    descriptionTranslations: {},
     unit: line.unit,
     plannedQty: 0,
     sheetMeasuredQty: null,

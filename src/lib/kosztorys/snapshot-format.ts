@@ -7,6 +7,7 @@ import type {
   StageSplitT,
 } from '@/lib/kosztorys/types'
 import { normalizeStageSplit, oneWorkerSplit } from '@/lib/kosztorys/stage-split'
+import { toDescriptionTranslations } from '@/lib/i18n/description-translations'
 
 export type SnapshotKindT = 'manual' | 'auto' | 'named' | 'daily'
 
@@ -119,6 +120,7 @@ export type StoredSnapshotPayloadT = {
     | 'ownToolsOverrideValue'
     | 'wToolsOverrideCoeff'
     | 'ownToolsOverrideCoeff'
+    | 'descriptionTranslations'
   >[]
   stages: StoredStageT[]
   progress: TolerantT<StageProgressT, 'qtyDone'>[]
@@ -171,5 +173,7 @@ export function itemWithColumnDefaults(
     // it was written when no mnożnik existed. `?? 0` would invent a stawka of zero złotych.
     wToolsOverrideCoeff: item.wToolsOverrideCoeff ?? null,
     ownToolsOverrideCoeff: item.ownToolsOverrideCoeff ?? null,
+    // NOT NULL DEFAULT '{}': a snapshot older than the translations reads as „no translation".
+    descriptionTranslations: toDescriptionTranslations(item.descriptionTranslations),
   }
 }

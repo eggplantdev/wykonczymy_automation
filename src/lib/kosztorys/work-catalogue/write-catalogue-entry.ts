@@ -3,7 +3,12 @@ import type { Payload, PayloadRequest } from 'payload'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import { findCatalogueItemByKey } from '@/lib/db/work-catalogue'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
-import type { CatalogueSeedItemT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
+import type {
+  CatalogueCandidateT,
+  CatalogueSeedItemT,
+  WorkCatalogueItemT,
+} from '@/lib/kosztorys/work-catalogue/types'
+import { mergeTranslations } from '@/lib/i18n/description-translations'
 import type { WorkCatalogueItemDataT } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
 
 // Out of the `'use server'` action file so a kosztorys action can write the katalog inside its own
@@ -51,7 +56,8 @@ export async function resolveCatalogueWrite(
 // IS a create: refusing it would be pedantry about a race nobody caused.
 //
 // `keepCatalogueCategory` protects the cennik: the candidate's kategoria comes from one kosztorys'
-// sekcja, local context, while the katalog owns its own.
+// sekcja, local context, while the katalog owns its own. Translations merge per language: the
+// candidate's wins where it has one, and the katalog keeps every language the candidate lacks.
 export async function applyCatalogueWrite(
   payload: Payload,
   req: PayloadRequest | undefined,
@@ -60,7 +66,7 @@ export async function applyCatalogueWrite(
     existing,
     keepCatalogueCategory,
   }: {
-    candidate: CatalogueSeedItemT
+    candidate: CatalogueCandidateT
     existing: WorkCatalogueItemT | null
     keepCatalogueCategory: boolean
   },
@@ -72,7 +78,14 @@ export async function applyCatalogueWrite(
   await payload.update({
     collection: 'work-catalogue-items',
     id: existing.id,
-    data: keepCatalogueCategory ? { ...candidate, category: existing.category } : candidate,
+    data: {
+      ...candidate,
+      ...(keepCatalogueCategory && { category: existing.category }),
+      descriptionTranslations: mergeTranslations(
+        existing.descriptionTranslations,
+        candidate.descriptionTranslations,
+      ),
+    },
     req,
   })
 }

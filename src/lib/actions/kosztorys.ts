@@ -503,7 +503,8 @@ export async function addItemAction(
       if (!parsed.success) return parsed
       const { placement, data, catalogue } = parsed.data
 
-      const row = catalogueRow(data)
+      // A praca typed by hand starts untranslated, in the rozpiska and in the katalog alike.
+      const row = { ...catalogueRow(data), descriptionTranslations: {} }
       if (!row.description || !row.unit) {
         return { success: false, error: EMPTY_ITEM_TEXT_ERROR }
       }

@@ -31,6 +31,7 @@ function currentTree(overrides: Partial<SnapshotPayloadT> = {}): SnapshotPayload
         sectionId: 7,
         displayOrder: 0,
         description: 'montaż jednostki wewnętrznej',
+        descriptionTranslations: {},
         unit: 'szt.',
         plannedQty: 9,
         sheetMeasuredQty: 99,

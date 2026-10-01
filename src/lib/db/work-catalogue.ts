@@ -2,6 +2,7 @@
 // (same reason as kosztorys-descriptions.ts).
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { sqlList } from '@/lib/db/sql-list'
+import { toDescriptionTranslations } from '@/lib/i18n/description-translations'
 import type {
   CatalogueSeedItemT,
   CatalogueSourceItemT,
@@ -10,7 +11,7 @@ import type {
 import type { DbExecutorT } from './get-db'
 import { numOrNull } from './row-coerce'
 
-const CATALOGUE_COLUMNS = sql`id, description, category, unit, client_price, w_tools_rate, w_tools_rate_coeff, own_tools_rate, own_tools_rate_coeff, match_key`
+const CATALOGUE_COLUMNS = sql`id, description, description_translations, category, unit, client_price, w_tools_rate, w_tools_rate_coeff, own_tools_rate, own_tools_rate_coeff, match_key`
 
 const toRate = (value: unknown): number | null => (value == null ? null : Number(value))
 
@@ -18,6 +19,7 @@ export function toCatalogueItem(row: Record<string, unknown>): WorkCatalogueItem
   return {
     id: Number(row.id),
     description: row.description as string,
+    descriptionTranslations: toDescriptionTranslations(row.description_translations),
     category: (row.category as string | null) ?? null,
     unit: row.unit as string,
     clientPrice: Number(row.client_price),
@@ -128,7 +130,7 @@ export async function getCatalogueSourceItem(
   itemId: number,
 ): Promise<CatalogueSourceItemT | undefined> {
   const result = await db.execute(sql`
-    SELECT ki.description, ki.unit, ki.client_price,
+    SELECT ki.description, ki.description_translations, ki.unit, ki.client_price,
            ki.w_tools_override_value, ki.w_tools_override_coeff,
            ki.own_tools_override_value, ki.own_tools_override_coeff,
            ks.name AS section_name
@@ -141,6 +143,7 @@ export async function getCatalogueSourceItem(
 
   return {
     description: (row.description as string | null) ?? '',
+    descriptionTranslations: toDescriptionTranslations(row.description_translations),
     unit: (row.unit as string | null) ?? '',
     sectionName: (row.section_name as string | null) ?? '',
     clientPrice: Number(row.client_price),

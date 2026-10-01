@@ -108,6 +108,7 @@ import * as migration_20260929_5_worker_view_hide_planned from './20260929_5_wor
 import * as migration_20260930_1_add_kosztorys_stage_workers from './20260930_1_add_kosztorys_stage_workers'
 import * as migration_20260930_2_add_worker_reports from './20260930_2_add_worker_reports'
 import * as migration_20260930_3_cash_register_trashed_at from './20260930_3_cash_register_trashed_at'
+import * as migration_20261001_0_description_translations from './20261001_0_description_translations'
 
 export const migrations = [
   {
@@ -659,5 +660,10 @@ export const migrations = [
     up: migration_20260930_3_cash_register_trashed_at.up,
     down: migration_20260930_3_cash_register_trashed_at.down,
     name: '20260930_3_cash_register_trashed_at',
+  },
+  {
+    up: migration_20261001_0_description_translations.up,
+    down: migration_20261001_0_description_translations.down,
+    name: '20261001_0_description_translations',
   },
 ]

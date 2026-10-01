@@ -4,6 +4,7 @@ import { toCatalogueCandidate } from '@/lib/kosztorys/work-catalogue/item-to-cat
 
 const source = (overrides: Partial<CatalogueSourceItemT> = {}): CatalogueSourceItemT => ({
   description: 'Ułożenie płytek',
+  descriptionTranslations: {},
   unit: 'm2',
   sectionName: 'Łazienka 1',
   clientPrice: 200,

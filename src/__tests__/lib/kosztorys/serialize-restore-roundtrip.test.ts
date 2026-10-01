@@ -144,6 +144,15 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
             },
             {
               description: 'Ścianka działowa — GK 12,5 „podwójna"\ndruga linia opisu',
+              // Two languages, one of them out of date: `source` must survive verbatim, or a restore
+              // silently clears every „nieaktualne tłumaczenie" warning.
+              descriptionTranslations: {
+                uk: { text: 'Перегородка — ГК 12,5 „подвійна"', source: 'Ścianka działowa — GK 12,5' },
+                ru: {
+                  text: 'Перегородка — ГК 12,5 „двойная"',
+                  source: 'Ścianka działowa — GK 12,5 „podwójna"\ndruga linia opisu',
+                },
+              },
               unit: 'mb',
               plannedQty: 12.5,
               // Fractional and different from the przedmiar: a field dropped from the VALUES tuple or

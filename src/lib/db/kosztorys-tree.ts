@@ -12,6 +12,7 @@ import type {
   ToolPlaneT,
 } from '@/lib/kosztorys/types'
 import { normalizeStageSplit } from '@/lib/kosztorys/stage-split'
+import { toDescriptionTranslations } from '@/lib/i18n/description-translations'
 import type { DbExecutorT } from './get-db'
 import { numOrNull, textOrNull } from './row-coerce'
 
@@ -66,7 +67,7 @@ export async function selectKosztorysTreeData(
       (
         SELECT coalesce(json_agg(i ORDER BY i.display_order, i.id), '[]'::json)
         FROM (
-          SELECT id, section_id, display_order, description, unit, planned_qty,
+          SELECT id, section_id, display_order, description, description_translations, unit, planned_qty,
                  sheet_measured_qty,
                  discount_type, discount_value, client_price,
                  w_tools_override_value, own_tools_override_value,
@@ -152,6 +153,7 @@ const mapItem = (row: RowT): KosztorysItemT & { sectionId: number } => ({
   sectionId: Number(row.section_id),
   displayOrder: num(row.display_order),
   description: textOrNull(row.description),
+  descriptionTranslations: toDescriptionTranslations(row.description_translations),
   unit: textOrNull(row.unit),
   plannedQty: num(row.planned_qty),
   // `numOrNull`, not `num`: NULL means „the sheet made no claim" and must not collapse to a claim

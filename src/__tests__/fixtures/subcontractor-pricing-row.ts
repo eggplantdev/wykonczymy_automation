@@ -10,6 +10,7 @@ export function pricingRow(overrides: Partial<ViewPricingT> = {}): ViewPricingT 
     sectionId: 10,
     displayOrder: 0,
     description: 'Malowanie',
+    descriptionTranslations: {},
     unit: 'm2',
     plannedQty: 10,
     sheetMeasuredQty: null,

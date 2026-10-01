@@ -64,6 +64,7 @@ const CATALOGUE: WorkCatalogueItemT[] = [
   {
     id: 1,
     description: 'Malowanie ścian',
+    descriptionTranslations: {},
     category: null,
     unit: 'm2',
     clientPrice: 120,

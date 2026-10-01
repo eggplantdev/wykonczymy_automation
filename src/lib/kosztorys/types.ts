@@ -8,6 +8,7 @@ import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 import type { InvestmentFinancialsT, MaterialsBreakdownRowT } from '@/types/investment-financials'
 import type { MediaFileT } from '@/types/media'
+import type { DescriptionTranslationsT } from '@/lib/i18n/description-translations'
 import type { InvestmentRefT, WorkerRefT } from '@/types/reference-data'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 import type {
@@ -35,6 +36,8 @@ export type KosztorysItemT = {
   sectionId: number
   displayOrder: number
   description: string | null
+  // Copied with the opis wherever the opis is copied; never re-read from the katalog afterwards.
+  descriptionTranslations: DescriptionTranslationsT
   unit: string | null
   plannedQty: number
   // „Pomiar z natury" as the imported sheet typed it — a reconciliation reference, never an input to
@@ -72,6 +75,7 @@ export type ItemPatchT = Partial<
   Pick<
     KosztorysItemT,
     | 'description'
+    | 'descriptionTranslations'
     | 'unit'
     | 'plannedQty'
     | 'discountType'

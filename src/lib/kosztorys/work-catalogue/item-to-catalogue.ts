@@ -2,7 +2,10 @@ import type { ViewPricingT } from '@/lib/kosztorys/types'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { impliedCatalogueRate } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
 import { stripSectionOrdinal } from '@/lib/kosztorys/work-catalogue/section-category'
-import type { CatalogueSeedItemT, CatalogueSourceItemT } from '@/lib/kosztorys/work-catalogue/types'
+import type {
+  CatalogueCandidateT,
+  CatalogueSourceItemT,
+} from '@/lib/kosztorys/work-catalogue/types'
 
 // Pricing reads a whole row; the fields it never touches on this path (quantities, rabat, notatka)
 // are supplied at their neutral values so the two planes can be asked the same question they answer
@@ -12,6 +15,7 @@ const asPricing = (source: CatalogueSourceItemT): ViewPricingT => ({
   sectionId: 0,
   displayOrder: 0,
   description: source.description,
+  descriptionTranslations: source.descriptionTranslations,
   unit: source.unit,
   plannedQty: 0,
   sheetMeasuredQty: null,
@@ -35,7 +39,7 @@ const asPricing = (source: CatalogueSourceItemT): ViewPricingT => ({
  * `impliedCatalogueRate`. Cena is the pre-rabat `clientPrice`: a rabat is a concession on one offer,
  * never part of the cennik.
  */
-export function toCatalogueCandidate(source: CatalogueSourceItemT): CatalogueSeedItemT {
+export function toCatalogueCandidate(source: CatalogueSourceItemT): CatalogueCandidateT {
   const pricing = asPricing(source)
   const description = source.description.trim()
   const unit = source.unit.trim()
@@ -44,6 +48,7 @@ export function toCatalogueCandidate(source: CatalogueSourceItemT): CatalogueSee
   const ownTools = impliedCatalogueRate(pricing, 'own_tools')
   return {
     description,
+    descriptionTranslations: source.descriptionTranslations,
     category: category || null,
     unit,
     clientPrice: source.clientPrice,

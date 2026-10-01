@@ -836,10 +836,10 @@ Run once, after the final phase:
 
 #### Automated
 
-- [ ] 1.1 Migration applies to the test DB
-- [ ] 1.2 Round-trip + schema-drift specs carry the field (5435)
-- [ ] 1.3 Old payload without the key restores as `{}`
-- [ ] 1.4 `itemFromFields` copies the field
+- [x] 1.1 Migration applies to the test DB
+- [x] 1.2 Round-trip + schema-drift specs carry the field (5435)
+- [x] 1.3 Old payload without the key restores as `{}`
+- [x] 1.4 `itemFromFields` copies the field
 
 ### Phase 2: Copy rules and the manager's editing surfaces
 

@@ -1,12 +1,12 @@
 ---
 change_id: worker-report-translations-ua
 title: Ukrainian translations for the worker report surface
-status: planned
+status: implementing
 created: 2026-10-01
 updated: 2026-10-01
 archived_at: null
-branch: null
-worktree: null
+branch: ex-948-worker-report-translations-ua
+worktree: .claude/worktrees/ex-948-translations
 ---
 
 ## Notes
@@ -124,6 +124,10 @@ Linear: **EX-948** under umbrella **EX-946**. Slice 1 (EX-947) is archived at
 - **„Zapisz do katalogu" over an existing entry: the pozycja's translation wins if it has one (user,
   2026-10-01, /10x-plan).** This is decided per language. Where the pozycja has none, the katalog
   keeps its own.
+- **Russian ships with this change, next to Ukrainian (user, 2026-10-01, during implementation).**
+  It is the first proof of the „one list entry plus files" rule. A worker can be set to Русский,
+  the switcher offers it, and the rozpiska and katalog get an „Opis prac (RU)" column and RU problems.
+  The fill script runs once per language.
 - **The worker's language is a plain text field, not a select (plan, 2026-10-01).** A Payload select
   always creates a Postgres enum, so every new language would need a migration. This supersedes the
   enum proposal in `research.md`.

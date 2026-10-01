@@ -5,6 +5,7 @@ import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 export type ItemFieldsT = Pick<
   WorkCatalogueItemT,
   | 'description'
+  | 'descriptionTranslations'
   | 'unit'
   | 'clientPrice'
   | 'wToolsRate'
@@ -27,6 +28,7 @@ export const itemFromFields = (
   sectionId,
   displayOrder,
   description: fields.description,
+  descriptionTranslations: fields.descriptionTranslations,
   unit: fields.unit,
   clientPrice: fields.clientPrice,
   wToolsOverrideValue: fields.wToolsRate,

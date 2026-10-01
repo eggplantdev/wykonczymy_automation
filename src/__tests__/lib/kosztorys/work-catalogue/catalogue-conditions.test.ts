@@ -14,6 +14,7 @@ let nextId = 1
 const entry = (fields: Partial<WorkCatalogueItemT> = {}): WorkCatalogueItemT => ({
   id: nextId++,
   description: 'Malowanie',
+  descriptionTranslations: {},
   category: null,
   unit: 'm2',
   clientPrice: 100,

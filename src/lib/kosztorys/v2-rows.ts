@@ -5,6 +5,7 @@ import type { ItemPatchT, KosztorysTreeT, KosztorysV2RowT, StageKeyT } from '@/l
 // Item fields editable in the grid (= the keys of ItemPatchT). The diff compares only these.
 const ITEM_FIELDS = [
   'description',
+  'descriptionTranslations',
   'unit',
   'plannedQty',
   'discountType',

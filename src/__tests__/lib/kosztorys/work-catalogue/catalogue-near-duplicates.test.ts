@@ -9,6 +9,7 @@ const entry = (
 ): WorkCatalogueItemT => ({
   id: nextId++,
   description,
+  descriptionTranslations: {},
   category: null,
   unit: 'szt',
   clientPrice: 100,

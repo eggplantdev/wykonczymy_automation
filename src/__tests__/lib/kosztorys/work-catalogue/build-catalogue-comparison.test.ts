@@ -19,6 +19,7 @@ const item = (overrides: Partial<KosztorysItemT> = {}): KosztorysItemT => ({
   sectionId: 1,
   displayOrder: 0,
   description: 'Malowanie ścian',
+  descriptionTranslations: {},
   unit: 'm2',
   plannedQty: 10,
   sheetMeasuredQty: null,
@@ -39,6 +40,7 @@ const entry = (overrides: Partial<WorkCatalogueItemT> = {}): WorkCatalogueItemT 
   return {
     id: 1,
     description,
+    descriptionTranslations: {},
     category: null,
     unit,
     clientPrice: 100,
@@ -289,6 +291,7 @@ describe('attachCatalogueHints', () => {
     itemId: 1,
     section: 'Salon',
     description,
+    descriptionTranslations: {},
     unit: 'm2',
     hints: [],
   })

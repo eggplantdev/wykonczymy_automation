@@ -18,6 +18,7 @@ const entry = (over: Partial<WorkCatalogueItemT> = {}): WorkCatalogueItemT => {
   return {
     id: 1,
     description,
+    descriptionTranslations: {},
     category: null,
     unit,
     clientPrice: 45,

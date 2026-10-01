@@ -22,6 +22,7 @@ const item = (overrides: Partial<KosztorysItemT> & { id: number }): KosztorysIte
   sectionId: 1,
   displayOrder: 0,
   description: null,
+  descriptionTranslations: {},
   unit: null,
   plannedQty: 0,
   sheetMeasuredQty: null,
