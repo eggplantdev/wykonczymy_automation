@@ -1,6 +1,6 @@
 import type { InvestmentStatusT } from '@/lib/constants/investment-status'
 
-// Investments, szablony and kasy share it; the file trash keeps its own, shorter window.
+// Every /kosz kind shares it; the file trash keeps its own, shorter window.
 export const ENTITY_TRASH_RETENTION_DAYS = 30
 
 export const KOSZTORYS_IN_USE_WARNING =

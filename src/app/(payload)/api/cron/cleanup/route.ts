@@ -7,6 +7,8 @@ import { isAuthorizedCronRequest } from '@/lib/cron/verify-cron-request'
 import { getDb } from '@/lib/db/get-db'
 import { gcSnapshots } from '@/lib/db/snapshots'
 import { purgeCashRegisterTrash } from '@/lib/cash-registers/purge-trash'
+import { purgeEquipmentTrash } from '@/lib/equipment/purge-trash'
+import { purgeVehicleTrash } from '@/lib/fleet/purge-trash'
 import { purgeTrash } from '@/lib/investments/purge-trash'
 import { purgeWorkerTrash } from '@/lib/workers/purge-trash'
 
@@ -30,11 +32,21 @@ export async function GET(request: NextRequest) {
     purgeCashRegisterTrash(payload, db),
   )
   const workerTrash = await runStep('workerTrash', () => purgeWorkerTrash(payload, db))
-  const steps = [snapshots, trash, cashRegisterTrash, workerTrash]
+  const vehicleTrash = await runStep('vehicleTrash', () => purgeVehicleTrash(payload, db))
+  const equipmentTrash = await runStep('equipmentTrash', () => purgeEquipmentTrash(payload, db))
+  const steps = [snapshots, trash, cashRegisterTrash, workerTrash, vehicleTrash, equipmentTrash]
   const threw = steps.filter((step) => step === null).length
 
   return NextResponse.json(
-    { ok: threw === 0, snapshots, trash, cashRegisterTrash, workerTrash },
+    {
+      ok: threw === 0,
+      snapshots,
+      trash,
+      cashRegisterTrash,
+      workerTrash,
+      vehicleTrash,
+      equipmentTrash,
+    },
     { status: threw === steps.length ? 500 : 200 },
   )
 }

@@ -531,20 +531,20 @@ Run once, after Phase 4: `pnpm exec tsc --noEmit`, `pnpm lint`, and the touched 
 
 #### Automated
 
-- [x] 1.1 Migration applies to the local DB; types regenerated
-- [x] 1.2 Fleet dataset skips a trashed vehicle and its inspections
-- [x] 1.3 „Flota" and „Sprzęt" badges skip a trashed row
-- [x] 1.4 Equipment overview / by id / at location skip a trashed item
-- [x] 1.5 Warranty rows skip a trashed item
+- [x] 1.1 Migration applies to the local DB; types regenerated — 7fa65735
+- [x] 1.2 Fleet dataset skips a trashed vehicle and its inspections — 7fa65735
+- [x] 1.3 „Flota" and „Sprzęt" badges skip a trashed row — 7fa65735
+- [x] 1.4 Equipment overview / by id / at location skip a trashed item — 7fa65735
+- [x] 1.5 Warranty rows skip a trashed item — 7fa65735
 
 ### Phase 2: Trash, restore, delete forever, purge
 
 #### Automated
 
-- [ ] 2.1 Vehicle trash actions db spec
-- [ ] 2.2 Equipment trash actions db spec
-- [ ] 2.3 Vehicle and equipment purge db specs
-- [ ] 2.4 Cleanup cron route spec with both steps
+- [x] 2.1 Vehicle trash actions db spec
+- [x] 2.2 Equipment trash actions db spec
+- [x] 2.3 Vehicle and equipment purge db specs
+- [x] 2.4 Cleanup cron route spec with both steps
 
 ### Phase 3: Duplicate registration / serial
 

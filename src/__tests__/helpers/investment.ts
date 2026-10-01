@@ -44,7 +44,7 @@ export async function deleteTestInvestment(payload: Payload, id: number): Promis
 export const PAST_RETENTION_DAYS = ENTITY_TRASH_RETENTION_DAYS + 1
 export const WITHIN_RETENTION_DAYS = ENTITY_TRASH_RETENTION_DAYS - 1
 
-type TrashableTableT = 'investments' | 'cash_registers'
+type TrashableTableT = 'investments' | 'cash_registers' | 'vehicles' | 'equipment'
 
 // Backdates the trash marker in SQL — retention is measured against `now()`, which no Payload write
 // can move.

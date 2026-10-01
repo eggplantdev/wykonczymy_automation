@@ -104,6 +104,28 @@ export const WORKER_DELETE_TAGS = [
   'equipmentEvents',
 ] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
 
+// Nothing outside the fleet names a vehicle, so its trash moves only the fleet readers.
+export const VEHICLE_TRASH_TAGS = [
+  'vehicles',
+] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
+
+// The DB cascade removes its inspections without a hook.
+export const VEHICLE_DELETE_TAGS = [
+  ...VEHICLE_TRASH_TAGS,
+  'vehicleInspections',
+] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
+
+// Nothing outside the register names an item, so its trash moves only the equipment readers.
+export const EQUIPMENT_TRASH_TAGS = [
+  'equipment',
+] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
+
+// The DB cascade removes its handovers without a hook.
+export const EQUIPMENT_DELETE_TAGS = [
+  ...EQUIPMENT_TRASH_TAGS,
+  'equipmentEvents',
+] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
+
 /**
  * The second argument every `revalidateTag` call outside a Server Action must pass.
  *
