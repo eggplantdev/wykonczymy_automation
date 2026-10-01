@@ -30,16 +30,31 @@ This is an experiment, not a feature. Nothing here ships. Each test case gets it
 ## Method (per case)
 
 1. Store the client's message in `cases/<n>/inputs/client-inquiry.md`, with contacts redacted.
-2. Create the investment on the **local** DB:
-   - status `planowana`;
-   - kosztorys seeded from the current szablon with Przedmiar 0;
-   - the email in the notes;
-   - the PDFs attached.
+2. **Create the investment on production and scaffold the case** with one command,
+   `scripts/new-case-prod.ts`. It needs three things, all of which stay outside the repo:
+   - `TOKEN_FILE`: a file holding a user's `payload-token`;
+   - `SOURCE_JSON`: the client fields `{ name, address, phone, email, contactPerson, notes }`, with the
+     email text in `notes`;
+   - `FILES_DIR`: the folder of files the client sent.
 
-   The script is in `scripts/create-investment.ts`. It must be copied into `src/scripts/` to run.
-   Run it with `node --env-file=.env --conditions=react-server --import tsx`.
+   It uploads every PDF and image in the folder. The kind is guessed from the name: an image is a
+   `zdjecie`, a shopping list or offer is `inne`, and everything else is `projekt`. It then creates the
+   investment (`planowana`, kosztorys seeded from szablon `PRESET_ID`, default 165) and writes
+   `cases/<CASE>/case.json` and `inputs/rozpiska-szablon-<id>.txt`. Run `DRY=1` first: it checks the
+   name is free, the szablon, and the action ids, and prints the kind it picked for each file.
 
-3. Dump the szablon's rozpiska into `inputs/rozpiska-szablon-<id>.txt`.
+   ```bash
+   TOKEN_FILE=… SOURCE_JSON=… FILES_DIR=… CASE=02-<slug> [DRY=1] \
+     node --import tsx context/changes/2026-10-01-ai-kosztorys-generation-tests/scripts/new-case-prod.ts
+   ```
+
+   Both scripts work through the deployed app (`scripts/prod-client.ts`), with the same server
+   actions and Blob upload the browser uses. They read the action ids from the deployed chunks on
+   every run, so a deploy doesn't break them. Case 1 instead ran on the local DB first, using
+   `cases/01-bemowo-125m2/scripts/create-investment.ts`.
+
+3. (Done by step 2.) The rozpiska dump keeps the szablon's ids. The fill matches by section and
+   description, so the ids don't need to survive the seeding.
 4. The agent reads the email and all PDFs, maps the scope to rozpiska positions, and writes
    `przedmiar-proposal.md`. That file contains:
    - the quantities;
@@ -57,13 +72,15 @@ This is an experiment, not a feature. Nothing here ships. Each test case gets it
 6. **Check works outside the szablon against the katalog prac** (`work_catalogue_items`) before
    inventing a position. Use the katalog's description, unit and Cena j.m. when one fits. The list
    goes into `measure/new-works.json` (`catalogueId` set for a katalog match).
-7. **Write into the kosztorys** (local DB) with `scripts/fill-kosztorys.ts`, which, like
-   `create-investment.ts`, is copied into `src/scripts/` to run:
-   - Przedmiar and Komentarz on the szablon positions;
-   - new positions appended to their section;
-   - `investment-notes-appendix.txt` appended to the investment notes.
+7. **Write into the kosztorys** on production with `scripts/fill-case-prod.ts`
+   (`TOKEN_FILE=… CASE=… [DRY=1]`). It reads the paths it needs from `case.json`:
+   - `measure/przedmiar.json`, `[{ id, qty, note }]` by rozpiska id: Przedmiar and Komentarz on the
+     szablon positions;
+   - `measure/new-works.json`: new positions appended to their section;
+   - `investment-notes-appendix.txt`: appended to the investment notes.
 
-   It refuses a kosztorys that already has any Przedmiar ≠ 0.
+   It matches every row before writing anything. It refuses a kosztorys that already has any
+   Przedmiar ≠ 0; `SKIP_ROWS=1` adds only the new works and the notes.
 
 8. **Evaluation (not done yet for any case):** compare v1 and v2 against the owner's real offer for
    the same client, position by position.
@@ -139,7 +156,8 @@ What did not work:
   this is a test-harness detail, not a product problem.
 
 - **On production as #168** (same 316 positions, 127 with Przedmiar, 203 764 zł, 5 PDFs, notes).
-  `scripts/fill-prod.ts` drives the deployed app over HTTP with a user's session — the server actions
+  A per-case script (since generalized into `scripts/new-case-prod.ts` + `scripts/fill-case-prod.ts`)
+  drove the deployed app over HTTP with a user's session — the server actions
   the browser calls (ids read from the deployed client chunks) and the browser→Blob upload — so
   permissions, the investment lock and cache revalidation all apply, and nothing touches the database
   directly. Two traps: production runs `main`, not `staging`, so an action's signature must be read
@@ -244,8 +262,8 @@ amend it.
       must stand out more than 0 zł does (procedure rule 9). Still open: how it renders on the row
       and the total, and how settlement treats it.
 - [ ] **Later, not now (owner, 2026-10-01).** Give the agent a write path instead of a per-case script.
-      `fill-prod.ts` with its two JSON inputs (`przedmiar-v2.json`, `new-works.json`) is already the
-      output contract and already writes through the app; a generic version keyed by investment id
-      (and not tied to scraped action ids) would let a fresh agent end its run in the kosztorys.
+      `fill-case-prod.ts` with its JSON inputs (`przedmiar.json`, `new-works.json`) is already the
+      output contract and writes through the app. What is still missing is a path that doesn't
+      depend on action ids scraped from the client chunks.
 - [ ] Measure the lengths still guessed (bruzdy, kable, LED, Ethernet) from the electrical drawings,
       or decide they stay per-point assumptions.
