@@ -6,6 +6,7 @@ import {
   catalogueSwap,
   initialDrafts,
   lineGroup,
+  previewQtyChange,
   qtyChange,
   type LineDraftT,
 } from '@/components/kosztorys/editor/dialogs/worker-reports/line-draft'
@@ -106,6 +107,15 @@ describe('decyzja w zgłoszeniu', () => {
     expect(acceptedQtyNote(accepted, { ...draft, qty: '4' }, true)).toBe('było 6')
     expect(acceptedQtyNote(accepted, unticked, true)).toBe('cofasz 6')
     expect(acceptedQtyNote(accepted, unticked, false)).toBe('nie ma już czego cofnąć')
+  })
+
+  it('odznaczona przyjęta praca z usuniętego etapu nie rusza podglądu etapu ani pomiaru', () => {
+    const accepted = line({ acceptedQty: 1.5 })
+    const unticked = { ...draft, isTicked: false }
+
+    expect(previewQtyChange(accepted, unticked, true)).toBe(-1.5)
+    expect(previewQtyChange(accepted, unticked, false)).toBe(0)
+    expect(previewQtyChange(line({}), { ...draft, qty: '2' }, false)).toBe(2)
   })
 
   it('zmiana i odznaczenie idą do etapu zgłoszenia, nowa praca do wybranego', () => {

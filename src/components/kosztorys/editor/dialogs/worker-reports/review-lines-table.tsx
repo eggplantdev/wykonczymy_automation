@@ -14,7 +14,7 @@ import { DataTable } from '@/components/tables/data-table/data-table'
 import {
   acceptedQtyNote,
   isLineReady,
-  qtyChange,
+  previewQtyChange,
   UNDO_CATALOGUE_SWAP,
   type ItemFiguresT,
   type LineDraftT,
@@ -171,13 +171,13 @@ function GrowingQty({ before, added }: { before: number; added: number }) {
 }
 
 function StageCell({ row }: { row: ReviewRowT }) {
-  const added = qtyChange(row, useReviewTable().drafts[row.id])
+  const added = previewQtyChange(row, useReviewTable().drafts[row.id], row.isFigureLive)
   if (!row.figures) return null
   return <GrowingQty before={row.figures.stageQty} added={added} />
 }
 
 function MeasuredCell({ row }: { row: ReviewRowT }) {
-  const added = qtyChange(row, useReviewTable().drafts[row.id])
+  const added = previewQtyChange(row, useReviewTable().drafts[row.id], row.isFigureLive)
   if (!row.figures) return null
   const { measuredQty, plannedQty } = row.figures
   const isOverPlanned = plannedQty > 0 && measuredQty + added > plannedQty

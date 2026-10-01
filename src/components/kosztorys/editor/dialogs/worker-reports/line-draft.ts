@@ -77,6 +77,17 @@ export function qtyChange(line: Pick<ReportLineT, 'acceptedQty'>, draft: LineDra
   return acceptedQty(draft) - (line.acceptedQty ?? 0)
 }
 
+// The etap and pomiar columns: an accepted line whose etap or pozycja is gone takes nothing back
+// on save, so the columns must not show it going down either.
+export function previewQtyChange(
+  line: Pick<ReportLineT, 'acceptedQty'>,
+  draft: LineDraftT,
+  isFigureLive: boolean,
+): number {
+  if (line.acceptedQty !== undefined && !isFigureLive) return 0
+  return qtyChange(line, draft)
+}
+
 // Under the ilość of an accepted line: what saving does to the figure already in the etap. A deleted
 // etap or pozycja took that figure with it, so an untick then clears only the record.
 export function acceptedQtyNote(
