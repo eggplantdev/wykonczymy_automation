@@ -3146,3 +3146,18 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
       Skontaktuj się z kierownikiem.", bez formularza.
 - [ ] `/kosz` → przywróć kasę pracownika, który dalej jest w koszu: odmowa „Przywróć pracownika —
       kasa wraca razem z nim."
+- [ ] `/pracownicy` → „Usuń pracownika" u nieużywanego pracownika z kasą: pytanie wymienia jego
+      kasę; po potwierdzeniu znika z `/pracownicy`, a jego kasa z `/kasy`.
+- [ ] `/kosz` → sekcja „Pracownicy" pokazuje go z dopiskiem „razem z kasą: …"; tej kasy nie ma
+      osobno w sekcji „Kasy".
+- [ ] `/kosz` → „Przywróć" u pracownika: wraca na `/pracownicy` i jego kasa wraca na `/kasy`.
+- [ ] Ponownie do kosza, potem „Usuń na zawsze": przycisk aktywny dopiero po wpisaniu dokładnego
+      imienia i nazwiska; po usunięciu znika z `/kosz` razem z kasą.
+- [ ] Pracownik z transakcją lub wypłatą: „Usuń pracownika" odmawia z powodem, nic nie trafia do
+      kosza.
+- [ ] Jako kierownik: „Usuń pracownika" jest tylko przy kontach pracowników — nie przy właścicielu,
+      adminie, innym kierowniku ani przy własnym wierszu; w `/kosz` widzi tylko pracowników.
+- [ ] Jedyny aktywny admin (lub właściciel) do kosza z konta innego właściciela/admina: odmowa
+      „Nie można usunąć ostatniego aktywnego konta z rolą …".
+- [ ] `/kosz` → „Usuń na zawsze" u kasy i u inwestycji bez wpisanego kosztorysu: oba pytają o nazwę,
+      przycisk nieaktywny do jej wpisania.

@@ -581,6 +581,6 @@ Run once, after Phase 5:
 
 #### Automated
 
-- [x] 5.1 Delete-forever dialog asks for the name for every kind
-- [x] 5.2 Kasa delete forever refuses a wrong name
-- [x] 5.3 Unused investment delete forever requires the name
+- [x] 5.1 Delete-forever dialog asks for the name for every kind — 2e51b751
+- [x] 5.2 Kasa delete forever refuses a wrong name — 2e51b751
+- [x] 5.3 Unused investment delete forever requires the name — 2e51b751
