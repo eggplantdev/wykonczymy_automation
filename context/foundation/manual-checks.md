@@ -3095,8 +3095,9 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
 
 ## 2026-10-01 — kosz-inwestycji-blokady
 
-- [ ] Inwestycja o statusie „Aktywna" → „Usuń inwestycję" → potwierdź: pojawia się błąd „Nie można
-      usunąć aktywnej inwestycji. Najpierw zmień jej status.", a inwestycja nie trafia do Kosza.
+- [ ] Inwestycja o statusie „Aktywna" → „Usuń inwestycję": od razu pojawia się błąd „Nie można
+      usunąć aktywnej inwestycji. Najpierw zmień jej status.", bez okna potwierdzenia, a inwestycja
+      nie trafia do Kosza.
 - [ ] Inwestycja nieaktywna z wpisanym przedmiarem lub ilościami na etapach → „Usuń inwestycję":
       okno ostrzega, że kosztorys jest w użyciu, zanim przeniesie do Kosza. Inwestycja z pustym
       kosztorysem: okno bez ostrzeżenia.
@@ -3105,6 +3106,12 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
       „Kosztorys v2" otwierają strony bez przywracania. Każda pokazuje pasek „Inwestycja jest w koszu
       — tylko do odczytu…", nie da się nic edytować, nie ma „Edytuj inwestycję" ani synchronizacji
       arkusza.
+- [ ] Kosztorys v2 inwestycji z Kosza → menu akcji: brak pozycji „Inwestor" i „Pracownicy".
+- [ ] Kosztorys v2 inwestycji z Kosza → zakładka „Inwestycja": próba zapisania pola lub dodania /
+      usunięcia zdjęcia kończy się błędem „Inwestycja jest w koszu…", a po odświeżeniu nic się nie
+      zmieniło.
+- [ ] Kosz z inwestycją o statusie „Aktywna" (trafiła tam przed tą zmianą): wiersz nie obiecuje, że
+      „usunie się sam", a „Usuń na zawsze" mówi, by najpierw ją przywrócić i zmienić status.
 
 ## 2026-10-01 — loader-nad-pytaniem
 
@@ -3112,6 +3119,7 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
       bez 🚧 na tekście; po „Zakończ" 🚧 pojawia się na czas zapisu.
 - [ ] Nowa praca w kosztorysie z „Dodaj do katalogu" i nazwą, która już jest w katalogu: okno
       kolizji czytelne, bez 🚧.
+- [ ] Edytuj inwestycję bez zmiany statusu → „Zapisz": 🚧 pokazuje się na czas zapisu, jak dawniej.
 
 ## 2026-10-01 — notatki-podzialy-linii
 
