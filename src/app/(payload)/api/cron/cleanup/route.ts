@@ -8,6 +8,7 @@ import { getDb } from '@/lib/db/get-db'
 import { gcSnapshots } from '@/lib/db/snapshots'
 import { purgeCashRegisterTrash } from '@/lib/cash-registers/purge-trash'
 import { purgeTrash } from '@/lib/investments/purge-trash'
+import { purgeWorkerTrash } from '@/lib/workers/purge-trash'
 
 export const maxDuration = 300
 
@@ -28,11 +29,12 @@ export async function GET(request: NextRequest) {
   const cashRegisterTrash = await runStep('cashRegisterTrash', () =>
     purgeCashRegisterTrash(payload, db),
   )
-  const steps = [snapshots, trash, cashRegisterTrash]
+  const workerTrash = await runStep('workerTrash', () => purgeWorkerTrash(payload, db))
+  const steps = [snapshots, trash, cashRegisterTrash, workerTrash]
   const threw = steps.filter((step) => step === null).length
 
   return NextResponse.json(
-    { ok: threw === 0, snapshots, trash, cashRegisterTrash },
+    { ok: threw === 0, snapshots, trash, cashRegisterTrash, workerTrash },
     { status: threw === steps.length ? 500 : 200 },
   )
 }

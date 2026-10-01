@@ -10,13 +10,19 @@ export type TrashedCashRegisterRowT = {
   trashedAt: Date
 }
 
+// A kasa whose owner is in the trash went there WITH him: it is listed, restored and purged as part of
+// the worker, never on its own (EX-918).
+const OWNER_LIVE = sql`NOT EXISTS (
+  SELECT 1 FROM users u WHERE u.id = cash_registers.owner_id AND u.trashed_at IS NOT NULL
+)`
+
 export async function fetchTrashedCashRegisters(
   db: DbExecutorT,
 ): Promise<TrashedCashRegisterRowT[]> {
   const { rows } = await db.execute(sql`
     SELECT id, name, type, trashed_at
     FROM cash_registers
-    WHERE trashed_at IS NOT NULL
+    WHERE trashed_at IS NOT NULL AND ${OWNER_LIVE}
     ORDER BY trashed_at DESC
   `)
   return rows.map((row) => ({
@@ -33,7 +39,7 @@ export async function selectPurgeableCashRegisterIds(
 ): Promise<number[]> {
   const { rows } = await db.execute(sql`
     SELECT id FROM cash_registers
-    WHERE trashed_at < now() - make_interval(days => ${olderThanDays})
+    WHERE trashed_at < now() - make_interval(days => ${olderThanDays}) AND ${OWNER_LIVE}
     ORDER BY id
   `)
   return rows.map((row) => Number(row.id))

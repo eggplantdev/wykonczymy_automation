@@ -91,6 +91,19 @@ export const CASH_REGISTER_DELETE_TAGS = [
   'transfers',
 ] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
 
+// A worker goes to the trash with his kasy, so his tags are theirs.
+export const WORKER_TRASH_TAGS = [
+  'users',
+  'cashRegisters',
+] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
+
+// The FKs strip him from cancelled transactions and equipment events, again without a hook.
+export const WORKER_DELETE_TAGS = [
+  ...WORKER_TRASH_TAGS,
+  'transfers',
+  'equipmentEvents',
+] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
+
 /**
  * The second argument every `revalidateTag` call outside a Server Action must pass.
  *

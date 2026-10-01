@@ -22,6 +22,7 @@ describe.skipIf(!ENV_READY)('purgeCashRegisterTrash (DB)', () => {
   let expired: number
   let recent: number
   let pinned: number
+  let withTrashedOwner: number
 
   const exists = async (id: number) => {
     const { rows } = await db.execute(sql`SELECT 1 FROM cash_registers WHERE id = ${id}`)
@@ -65,6 +66,32 @@ describe.skipIf(!ENV_READY)('purgeCashRegisterTrash (DB)', () => {
     await trashDaysAgo(db, expired, PAST_RETENTION_DAYS, 'cash_registers')
     await trashDaysAgo(db, recent, WITHIN_RETENTION_DAYS, 'cash_registers')
     await trashDaysAgo(db, pinned, PAST_RETENTION_DAYS, 'cash_registers')
+    // A kasa that went to the trash with its owner is the worker step's to purge, never this one's.
+    const trashedOwnerId = Number(
+      (
+        await payload.create({
+          collection: 'users',
+          data: {
+            name: 'Kosz Kas Purge Właściciel w koszu',
+            role: 'EMPLOYEE',
+            email: 'kosz-kas-purge-trashed-owner@test.local',
+            password: 'test-password-123',
+          },
+          context: { skipRevalidation: true },
+        })
+      ).id,
+    )
+    withTrashedOwner = Number(
+      (
+        await payload.create({
+          collection: 'cash-registers',
+          data: { name: 'Kasa pracownika w koszu', type: 'AUXILIARY', owner: trashedOwnerId },
+          context: { skipRevalidation: true },
+        })
+      ).id,
+    )
+    await trashDaysAgo(db, withTrashedOwner, PAST_RETENTION_DAYS, 'cash_registers')
+    await db.execute(sql`UPDATE users SET trashed_at = now() WHERE id = ${trashedOwnerId}`)
     // Only raw SQL gets past the write gate — the shape a purge must still refuse to orphan.
     await db.execute(sql`
       INSERT INTO transactions (description, amount, date, type, payment_method, source_register_id)
@@ -84,6 +111,7 @@ describe.skipIf(!ENV_READY)('purgeCashRegisterTrash (DB)', () => {
     expect(await exists(expired)).toBe(false)
     expect(await exists(recent)).toBe(true)
     expect(await exists(pinned)).toBe(true)
+    expect(await exists(withTrashedOwner)).toBe(true)
     expect(result.blocked).toBeGreaterThanOrEqual(1)
   })
 })

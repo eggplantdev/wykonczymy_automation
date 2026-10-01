@@ -552,22 +552,22 @@ Run once, after Phase 5:
 
 #### Automated
 
-- [x] 2.1 PAYOUT to a trashed worker refused; cancellation still works
-- [x] 2.2 Trashed worker named on a cancelled row
-- [x] 2.3 Reference-data SQL drift spec green
-- [x] 2.4 Stage split / add stage refused; `liveWorkerIds` drops a trashed member
-- [x] 2.5 Kasa owner → trashed refused; kasa restore while owner trashed refused
-- [x] 2.6 Equipment holder trashed refused
-- [x] 2.7 Report share refuses a trashed worker
+- [x] 2.1 PAYOUT to a trashed worker refused; cancellation still works — 1364ddc5
+- [x] 2.2 Trashed worker named on a cancelled row — 1364ddc5
+- [x] 2.3 Reference-data SQL drift spec green — 1364ddc5
+- [x] 2.4 Stage split / add stage refused; `liveWorkerIds` drops a trashed member — 1364ddc5
+- [x] 2.5 Kasa owner → trashed refused; kasa restore while owner trashed refused — 1364ddc5
+- [x] 2.6 Equipment holder trashed refused — 1364ddc5
+- [x] 2.7 Report share refuses a trashed worker — 1364ddc5
 
 ### Phase 3: Trash core, actions, purge
 
 #### Automated
 
-- [ ] 3.1 Worker trash actions db spec (pair, all-or-nothing, guards, sessions, restore, delete forever)
-- [ ] 3.2 Worker purge db spec
-- [ ] 3.3 Kasa purge skips kasy with a trashed owner
-- [ ] 3.4 Cleanup cron route spec with the new step
+- [x] 3.1 Worker trash actions db spec (pair, all-or-nothing, guards, sessions, restore, delete forever)
+- [x] 3.2 Worker purge db spec
+- [x] 3.3 Kasa purge skips kasy with a trashed owner
+- [x] 3.4 Cleanup cron route spec with the new step
 
 ### Phase 4: UI
 
