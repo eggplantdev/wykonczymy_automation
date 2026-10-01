@@ -102,23 +102,18 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
   // Below both early returns, unlike the investment lock: a cancelled row is the only kind that can
   // still name a trashed kasa, and it must stay cancellable and invoice-attachable. Only a kasa this
   // write NEWLY names is checked, so an edit of an older row is not refused over its unchanged kasa.
-  const newRegisterIds = [
-    [sourceRegister, original?.sourceRegister],
-    [targetRegister, original?.targetRegister],
-  ].flatMap(([next, stored]) => {
+  // The worker follows the same rule.
+  const newlyNamed = (next: unknown, stored: unknown): number[] => {
     const id = resolveId(next)
     return id !== undefined && (operation === 'create' || id !== resolveId(stored)) ? [id] : []
-  })
+  }
   const db = await getDb(req.payload, req)
-  const trashedMessage = await trashedRegisterMessage(db, newRegisterIds)
+  const trashedMessage =
+    (await trashedRegisterMessage(db, [
+      ...newlyNamed(sourceRegister, original?.sourceRegister),
+      ...newlyNamed(targetRegister, original?.targetRegister),
+    ])) ?? (await trashedWorkerMessage(db, newlyNamed(worker, original?.worker)))
   if (trashedMessage) throw new APIError(trashedMessage, 403)
-
-  // Same rule for the worker: only one this write newly names.
-  const workerId = resolveId(worker)
-  const isNewWorker =
-    workerId !== undefined && (operation === 'create' || workerId !== resolveId(original?.worker))
-  const trashedWorker = isNewWorker ? await trashedWorkerMessage(db, [workerId]) : undefined
-  if (trashedWorker) throw new APIError(trashedWorker, 403)
 
   const errors: string[] = []
 

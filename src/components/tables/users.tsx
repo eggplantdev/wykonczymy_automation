@@ -12,7 +12,7 @@ import { HintedValue } from '@/components/tables/hinted-value'
 import { SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/labels'
 import type { WorkerColumnFiguresT } from '@/lib/kosztorys/worker-payout-pairs'
 import { cn } from '@/lib/utils/cn'
-import { TrashWorkerButton } from '@/components/workers/trash-worker-button'
+import { TrashWorkerButton } from '@/components/users/trash-worker-button'
 
 const col = createColumnHelper<UserRowT>()
 

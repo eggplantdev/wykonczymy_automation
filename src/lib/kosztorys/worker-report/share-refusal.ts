@@ -11,6 +11,6 @@ export async function reportShareRefusal(
   const gate = await investmentGateFor(db, share.investmentId)
   if (gate.lockMessage) return REPORT_REFUSALS.closed
   if (gate.isTemplate) return REPORT_REFUSALS.template
-  if (!share.isWorkerActive || share.isWorkerTrashed) return REPORT_REFUSALS.inactiveWorker
+  if (!share.isWorkerLive) return REPORT_REFUSALS.inactiveWorker
   return undefined
 }

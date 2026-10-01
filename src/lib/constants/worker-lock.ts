@@ -4,7 +4,6 @@ import { ROLE_LABELS, type RoleT } from '@/lib/auth/roles'
 
 export const WORKER_TRASHED_MESSAGE = 'Pracownik jest w koszu — przywróć go, żeby coś zmienić.'
 
-/** A trashed worker's kasy left the app with them, so they come back only through the worker. */
 export const OWNER_TRASHED_RESTORE_MESSAGE = 'Przywróć pracownika — kasa wraca razem z nim.'
 
 export const SELF_REMOVAL_MESSAGE = 'Nie można przenieść do kosza ani usunąć własnego konta.'
