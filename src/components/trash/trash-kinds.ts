@@ -9,16 +9,15 @@ import {
 import { deleteWorkerForeverAction, restoreWorkerAction } from '@/lib/actions/worker-trash'
 import { INVESTMENT_DELETE_FAILED_MESSAGE, KOSZTORYS_IN_USE_WARNING } from '@/lib/constants/trash'
 import type { ActionResultT } from '@/types/action'
-import type { TrashKindT } from '@/types/trash'
+import type { TrashKindT, TrashRowT } from '@/types/trash'
 
 type TrashKindConfigT = {
   sectionTitle: string
   restore: (id: number) => Promise<ActionResultT>
   restored: string
-  deleteForever: (id: number, confirmName?: string) => Promise<ActionResultT>
+  deleteForever: (id: number, confirmName: string) => Promise<ActionResultT>
   lost?: string
-  /** Why the dialog asks for the name — only read by a kind whose rows can require it. */
-  askReason?: string
+  note?: (row: TrashRowT) => string | undefined
   nameLabel: string
   deleted: string
   failed: string
@@ -32,7 +31,8 @@ export const TRASH_KINDS: Record<TrashKindT, TrashKindConfigT> = {
     restored: 'Inwestycja przywrócona.',
     deleteForever: deleteInvestmentForeverAction,
     lost: 'kosztorys (pozycje i wersje), przypięcia zdjęć, link dla inwestora',
-    askReason: KOSZTORYS_IN_USE_WARNING,
+    // Read the way the /kosz row reads it: no auto-purge means „kosztorys w użyciu".
+    note: (row) => (row.autoPurges ? undefined : KOSZTORYS_IN_USE_WARNING),
     nameLabel: 'Nazwa inwestycji',
     deleted: 'Inwestycja usunięta na zawsze.',
     failed: INVESTMENT_DELETE_FAILED_MESSAGE,
@@ -43,7 +43,7 @@ export const TRASH_KINDS: Record<TrashKindT, TrashKindConfigT> = {
     restored: 'Szablon przywrócony.',
     deleteForever: deleteInvestmentForeverAction,
     lost: 'sekcje, pozycje i wersje szablonu',
-    askReason: 'Kosztorysy założone z tego szablonu zostają bez zmian.',
+    note: () => 'Kosztorysy założone z tego szablonu zostają bez zmian.',
     nameLabel: 'Nazwa szablonu',
     deleted: 'Szablon usunięty na zawsze.',
     failed: 'Nie udało się usunąć szablonu',
@@ -61,9 +61,8 @@ export const TRASH_KINDS: Record<TrashKindT, TrashKindConfigT> = {
     sectionTitle: 'Pracownicy',
     restore: restoreWorkerAction,
     restored: 'Pracownik przywrócony razem ze swoimi kasami.',
-    deleteForever: (id, confirmName) => deleteWorkerForeverAction(id, confirmName ?? ''),
+    deleteForever: deleteWorkerForeverAction,
     lost: 'jego kasy z kosza oraz jego nazwisko na anulowanych transakcjach',
-    askReason: 'Konto zniknie razem z kasami, które poszły z nim do kosza.',
     nameLabel: 'Imię i nazwisko',
     deleted: 'Pracownik usunięty na zawsze.',
     failed: 'Nie udało się usunąć pracownika',

@@ -2,7 +2,6 @@
 
 import { useState, useTransition } from 'react'
 import { Input } from '@/components/ui/input'
-import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
 import { TRASH_KINDS } from '@/components/trash/trash-kinds'
 import { settleAction } from '@/lib/utils/settle-action'
@@ -34,23 +33,6 @@ export function DeleteForeverDialog({ row, open, onClose }: PropsT) {
     })
   }
 
-  if (!row.mustTypeName) {
-    return (
-      <ConfirmDialog
-        open={open}
-        title="Usunąć na zawsze?"
-        description={
-          copy.lost
-            ? `„${row.name}" zniknie bezpowrotnie, razem z: ${copy.lost}.`
-            : `„${row.name}" zniknie bezpowrotnie.`
-        }
-        confirmLabel="Usuń na zawsze"
-        onConfirm={onConfirm}
-        onCancel={close}
-      />
-    )
-  }
-
   const nameMatches = typedName.trim() === row.name.trim()
 
   return (
@@ -58,7 +40,15 @@ export function DeleteForeverDialog({ row, open, onClose }: PropsT) {
       open={open}
       onOpenChange={(next) => !next && close()}
       title="Usunąć na zawsze?"
-      description={`${copy.askReason} Zniknie bezpowrotnie: ${copy.lost}. Wpisz nazwę „${row.name}", żeby potwierdzić.`}
+      description={[
+        copy.note?.(row),
+        copy.lost
+          ? `„${row.name}" zniknie bezpowrotnie, razem z: ${copy.lost}.`
+          : `„${row.name}" zniknie bezpowrotnie.`,
+        'Wpisz nazwę, żeby potwierdzić.',
+      ]
+        .filter(Boolean)
+        .join(' ')}
       confirmLabel="Usuń na zawsze"
       onConfirm={onConfirm}
       confirmDisabled={!nameMatches}

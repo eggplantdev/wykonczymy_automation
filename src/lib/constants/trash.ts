@@ -6,6 +6,12 @@ export const ENTITY_TRASH_RETENTION_DAYS = 30
 export const KOSZTORYS_IN_USE_WARNING =
   'Kosztorys tej inwestycji jest w użyciu — ma wpisany przedmiar lub ilości na etapach.'
 
+// Every „Usuń na zawsze" asks for the name, and the server checks it, so the dialog is not the guard.
+export const isNameConfirmed = (typed: string | undefined, name: string): boolean =>
+  typed?.trim() === name.trim()
+
+export const NAME_MISMATCH_MESSAGE = 'Wpisana nazwa się nie zgadza.'
+
 export const INVESTMENT_DELETE_FAILED_MESSAGE = 'Nie udało się usunąć inwestycji'
 
 // Owner ruling (2026-10-01): an investment in progress is never deleted, whatever its kosztorys holds.

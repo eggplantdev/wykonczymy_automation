@@ -4,6 +4,7 @@ import type { Payload, PayloadRequest } from 'payload'
 import { protectedAction } from '@/lib/actions/run-action'
 import { canManageAccount } from '@/lib/auth/roles'
 import { WORKER_DELETE_TAGS, WORKER_TRASH_TAGS } from '@/lib/cache/tags'
+import { isNameConfirmed, NAME_MISMATCH_MESSAGE } from '@/lib/constants/trash'
 import { getDb } from '@/lib/db/get-db'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { accountRemovalRefusal } from '@/lib/workers/account-removal'
@@ -15,8 +16,6 @@ import type { ActionResultT } from '@/types/action'
 import type { SessionUserT } from '@/types/auth'
 
 const MISSING_MESSAGE = 'Pracownik nie istnieje.'
-
-const CONFIRM_NAME_MISMATCH_MESSAGE = 'Wpisana nazwa nie zgadza się z nazwą pracownika.'
 
 // The caller expires the tags itself, through the wrapper — the hooks' own revalidation would
 // fire once per write and inside the transaction.
@@ -95,8 +94,8 @@ export async function deleteWorkerForeverAction(
     async ({ payload, user }) => {
       const worker = await findManageableWorker(payload, user, workerId)
       if (!worker) return { success: false, error: MISSING_MESSAGE }
-      if (confirmName.trim() !== worker.name.trim()) {
-        return { success: false, error: CONFIRM_NAME_MISMATCH_MESSAGE }
+      if (!isNameConfirmed(confirmName, worker.name)) {
+        return { success: false, error: NAME_MISMATCH_MESSAGE }
       }
 
       const refusal = await accountRemovalRefusal(await getDb(payload), {

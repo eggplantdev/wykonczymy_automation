@@ -99,7 +99,9 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
     expect(await trashedAt(id)).toBeNull()
 
     expect((await actions.trashInvestmentAction(id)).success).toBe(true)
-    expect((await actions.deleteInvestmentForeverAction(id)).success).toBe(true)
+    expect((await actions.deleteInvestmentForeverAction(id, `${PREFIX} manager`)).success).toBe(
+      true,
+    )
     const { rows } = await db.execute(sql`SELECT 1 FROM investments WHERE id = ${id}`)
     expect(rows).toHaveLength(0)
   })
@@ -112,7 +114,9 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
 
     expect((await actions.trashInvestmentAction(live)).success).toBe(false)
     expect((await actions.restoreInvestmentAction(trashed)).success).toBe(false)
-    expect((await actions.deleteInvestmentForeverAction(trashed)).success).toBe(false)
+    expect(
+      (await actions.deleteInvestmentForeverAction(trashed, `${PREFIX} employee-trashed`)).success,
+    ).toBe(false)
 
     expect(await trashedAt(live)).toBeNull()
     expect(await trashedAt(trashed)).not.toBeNull()
@@ -135,7 +139,7 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
     const name = (await getPresetName(db, template))!
     await actions.trashInvestmentAction(template)
 
-    for (const typed of [undefined, 'zła nazwa']) {
+    for (const typed of ['', 'zła nazwa']) {
       expect(await actions.deleteInvestmentForeverAction(template, typed)).toEqual({
         success: false,
         error: 'Wpisana nazwa się nie zgadza.',
@@ -179,7 +183,7 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
     })
     await trashDaysAgo(db, id, 1)
 
-    const result = await actions.deleteInvestmentForeverAction(id)
+    const result = await actions.deleteInvestmentForeverAction(id, `${PREFIX} active-trashed`)
 
     expect(result).toEqual({ success: false, error: TRASHED_ACTIVE_INVESTMENT_DELETE_MESSAGE })
     const { rows } = await db.execute(sql`SELECT 1 FROM investments WHERE id = ${id}`)
@@ -207,7 +211,7 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
   it('refuses to delete forever an investment that is not in the trash', async () => {
     const id = await createInvestment(`${PREFIX} not-trashed`)
 
-    const result = await actions.deleteInvestmentForeverAction(id)
+    const result = await actions.deleteInvestmentForeverAction(id, `${PREFIX} not-trashed`)
 
     expect(result).toEqual({ success: false, error: 'Najpierw przenieś inwestycję do kosza.' })
     expect(await countRows('kosztorys_items', id)).toBe(0)
@@ -231,7 +235,7 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
     })
     await actions.trashInvestmentAction(id)
 
-    const withoutName = await actions.deleteInvestmentForeverAction(id)
+    const withoutName = await actions.deleteInvestmentForeverAction(id, '')
     const wrongName = await actions.deleteInvestmentForeverAction(id, 'inna nazwa')
 
     expect(withoutName.success).toBe(false)
@@ -248,16 +252,21 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
     expect(await countProgress(itemIds[0])).toBe(0)
   })
 
-  it('deletes an unused kosztorys without asking for the name', async () => {
-    const id = await createInvestment(`${PREFIX} unused`)
+  it('demands the name for an unused kosztorys too', async () => {
+    const name = `${PREFIX} unused`
+    const id = await createInvestment(name)
     await createKosztorysTree(payload, id, {
       sections: [{ name: 'S', items: [{ plannedQty: 0, clientPrice: 80 }] }],
     })
     await actions.trashInvestmentAction(id)
 
-    const result = await actions.deleteInvestmentForeverAction(id)
+    expect(await actions.deleteInvestmentForeverAction(id, '')).toEqual({
+      success: false,
+      error: 'Wpisana nazwa się nie zgadza.',
+    })
+    expect(await countRows('kosztorys_items', id)).toBe(1)
 
-    expect(result.success).toBe(true)
+    expect((await actions.deleteInvestmentForeverAction(id, name)).success).toBe(true)
     expect(await countRows('kosztorys_items', id)).toBe(0)
   })
 })

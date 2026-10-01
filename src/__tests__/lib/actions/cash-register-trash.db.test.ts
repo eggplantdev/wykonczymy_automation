@@ -108,7 +108,25 @@ describe.skipIf(!ENV_READY)('cash-register trash actions (DB)', () => {
     expect(await trashedAt(id)).toBeNull()
 
     expect((await actions.trashCashRegisterAction(id)).success).toBe(true)
-    expect((await actions.deleteCashRegisterForeverAction(id)).success).toBe(true)
+    expect((await actions.deleteCashRegisterForeverAction(id, 'Kasa managera')).success).toBe(true)
+    expect(await exists(id)).toBe(false)
+  })
+
+  it('refuses a delete forever whose typed name does not match', async () => {
+    const id = await createRegister('Kasa do potwierdzenia')
+    await actions.trashCashRegisterAction(id)
+
+    for (const typed of ['', 'Kasa do potwierdzeni']) {
+      expect(await actions.deleteCashRegisterForeverAction(id, typed)).toEqual({
+        success: false,
+        error: 'Wpisana nazwa się nie zgadza.',
+      })
+    }
+    expect(await exists(id)).toBe(true)
+
+    expect(
+      (await actions.deleteCashRegisterForeverAction(id, ' Kasa do potwierdzenia ')).success,
+    ).toBe(true)
     expect(await exists(id)).toBe(false)
   })
 
@@ -118,7 +136,7 @@ describe.skipIf(!ENV_READY)('cash-register trash actions (DB)', () => {
     await actions.trashCashRegisterAction(id)
     expect(revalidateCollections.mock.calls.at(-1)?.[0]).toEqual(['cashRegisters', 'users'])
 
-    await actions.deleteCashRegisterForeverAction(id)
+    await actions.deleteCashRegisterForeverAction(id, 'Kasa tagi')
     expect(revalidateCollections.mock.calls.at(-1)?.[0]).toEqual([
       'cashRegisters',
       'users',
@@ -137,7 +155,9 @@ describe.skipIf(!ENV_READY)('cash-register trash actions (DB)', () => {
       error: 'Kasa nie istnieje.',
     })
     expect((await actions.restoreCashRegisterAction(trashed)).success).toBe(false)
-    expect((await actions.deleteCashRegisterForeverAction(trashed)).success).toBe(false)
+    expect((await actions.deleteCashRegisterForeverAction(trashed, 'Główna w koszu')).success).toBe(
+      false,
+    )
 
     expect(await trashedAt(live)).toBeNull()
     expect(await trashedAt(trashed)).not.toBeNull()
@@ -151,7 +171,9 @@ describe.skipIf(!ENV_READY)('cash-register trash actions (DB)', () => {
 
     expect((await actions.trashCashRegisterAction(live)).success).toBe(false)
     expect((await actions.restoreCashRegisterAction(trashed)).success).toBe(false)
-    expect((await actions.deleteCashRegisterForeverAction(trashed)).success).toBe(false)
+    expect(
+      (await actions.deleteCashRegisterForeverAction(trashed, 'Pracownik w koszu')).success,
+    ).toBe(false)
 
     expect(await trashedAt(live)).toBeNull()
     expect(await trashedAt(trashed)).not.toBeNull()
@@ -172,7 +194,9 @@ describe.skipIf(!ENV_READY)('cash-register trash actions (DB)', () => {
     const transactionId = await insertTransaction(id, true)
 
     expect((await actions.trashCashRegisterAction(id)).success).toBe(true)
-    expect((await actions.deleteCashRegisterForeverAction(id)).success).toBe(true)
+    expect((await actions.deleteCashRegisterForeverAction(id, 'Kasa z anulowaną')).success).toBe(
+      true,
+    )
 
     const { rows } = await db.execute(
       sql`SELECT source_register_id FROM transactions WHERE id = ${transactionId}`,
@@ -195,7 +219,7 @@ describe.skipIf(!ENV_READY)('cash-register trash actions (DB)', () => {
   it('refuses to delete forever a kasa that is not in the trash', async () => {
     const id = await createRegister('Kasa poza koszem')
 
-    expect(await actions.deleteCashRegisterForeverAction(id)).toEqual({
+    expect(await actions.deleteCashRegisterForeverAction(id, 'Kasa poza koszem')).toEqual({
       success: false,
       error: 'Najpierw przenieś kasę do kosza.',
     })

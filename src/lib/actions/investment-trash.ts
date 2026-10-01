@@ -6,14 +6,13 @@ import {
   INVESTMENT_TRASH_TAGS,
   investmentEntityOpts,
 } from '@/lib/cache/tags'
-import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import {
   ACTIVE_INVESTMENT_DELETE_MESSAGE,
+  isNameConfirmed,
   isUndeletableStatus,
+  NAME_MISMATCH_MESSAGE,
   TRASHED_ACTIVE_INVESTMENT_DELETE_MESSAGE,
 } from '@/lib/constants/trash'
-import { getDb } from '@/lib/db/get-db'
-import { isKosztorysUsed } from '@/lib/db/investment-trash'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { investmentDeleteBlocker } from '@/lib/investments/delete-blocker'
 import {
@@ -91,15 +90,9 @@ export async function restoreInvestmentAction(investmentId: number): Promise<Act
   )
 }
 
-/**
- * The name check lives here, server-side, so the dialog is a convenience rather than the guard: an
- * investment whose kosztorys was really used cannot be deleted by a direct call that skips it. A
- * szablon always asks — its content IS its value, and it never carries the quantities that make an
- * investment's kosztorys „used".
- */
 export async function deleteInvestmentForeverAction(
   investmentId: number,
-  confirmName?: string,
+  confirmName: string,
 ): Promise<ActionResultT> {
   return protectedAction(
     'deleteInvestmentForeverAction',
@@ -118,11 +111,8 @@ export async function deleteInvestmentForeverAction(
         return { success: false, error: TRASHED_ACTIVE_INVESTMENT_DELETE_MESSAGE }
       }
 
-      const mustTypeName =
-        investment.status === TEMPLATE_INVESTMENT_STATUS ||
-        (await isKosztorysUsed(await getDb(payload), investmentId))
-      if (mustTypeName && confirmName?.trim() !== investment.name.trim()) {
-        return { success: false, error: 'Wpisana nazwa się nie zgadza.' }
+      if (!isNameConfirmed(confirmName, investment.name)) {
+        return { success: false, error: NAME_MISMATCH_MESSAGE }
       }
 
       const result = await deleteTrashedInvestment(payload, investmentId)

@@ -39,7 +39,7 @@ const worker = (id: number, role: RoleT, registerNames: string[] = []): TrashedW
 })
 
 describe('shapeTrashRows', () => {
-  it('keeps the investment semantics: a used kosztorys asks for the name and never auto-purges', () => {
+  it('keeps the investment semantics: a used kosztorys never auto-purges', () => {
     const rows = shapeTrashRows(
       [
         investment(1, {}),
@@ -51,21 +51,14 @@ describe('shapeTrashRows', () => {
       { viewerRole: 'OWNER', now: NOW },
     )
 
-    expect(
-      rows.map(({ kind, id, autoPurges, mustTypeName }) => ({
-        kind,
-        id,
-        autoPurges,
-        mustTypeName,
-      })),
-    ).toEqual([
-      { kind: 'investment', id: 1, autoPurges: true, mustTypeName: false },
-      { kind: 'investment', id: 2, autoPurges: false, mustTypeName: true },
-      { kind: 'template', id: 3, autoPurges: true, mustTypeName: true },
+    expect(rows.map(({ kind, id, autoPurges }) => ({ kind, id, autoPurges }))).toEqual([
+      { kind: 'investment', id: 1, autoPurges: true },
+      { kind: 'investment', id: 2, autoPurges: false },
+      { kind: 'template', id: 3, autoPurges: true },
     ])
   })
 
-  it('maps a kasa to an auto-purging row on a plain confirm, counting down the same retention', () => {
+  it('maps a kasa to an auto-purging row, counting down the same retention', () => {
     const [row] = shapeTrashRows([], [kasa(10, 'AUXILIARY')], [], {
       viewerRole: 'OWNER',
       now: NOW,
@@ -78,7 +71,6 @@ describe('shapeTrashRows', () => {
       trashedAt: TRASHED_AT,
       daysLeft: 20,
       autoPurges: true,
-      mustTypeName: false,
       hasSheet: false,
       pairedRegisters: [],
     })
@@ -95,7 +87,7 @@ describe('shapeTrashRows', () => {
     ).toEqual([10, 11])
   })
 
-  it('maps a worker to a row that names his kasy and always asks for the name', () => {
+  it('maps a worker to a row that names his kasy', () => {
     const [row] = shapeTrashRows([], [], [worker(20, 'EMPLOYEE', ['Kasa Jana'])], {
       viewerRole: 'OWNER',
       now: NOW,
@@ -108,7 +100,6 @@ describe('shapeTrashRows', () => {
       trashedAt: TRASHED_AT,
       daysLeft: 20,
       autoPurges: true,
-      mustTypeName: true,
       hasSheet: false,
       pairedRegisters: ['Kasa Jana'],
     })

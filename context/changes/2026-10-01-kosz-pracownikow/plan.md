@@ -573,14 +573,14 @@ Run once, after Phase 5:
 
 #### Automated
 
-- [x] 4.1 `shapeTrashRows` worker rows, kasy names, MANAGER filter, paired kasy absent from „Kasy"
-- [x] 4.2 `/kosz` renders the „Pracownicy" section
-- [x] 4.3 „Do kosza" hidden on own row and for MANAGER on non-EMPLOYEE rows
+- [x] 4.1 `shapeTrashRows` worker rows, kasy names, MANAGER filter, paired kasy absent from „Kasy" — e955bd1e
+- [x] 4.2 `/kosz` renders the „Pracownicy" section — e955bd1e
+- [x] 4.3 „Do kosza" hidden on own row and for MANAGER on non-EMPLOYEE rows — e955bd1e
 
 ### Phase 5: One `/kosz` policy + docs
 
 #### Automated
 
-- [ ] 5.1 Delete-forever dialog asks for the name for every kind
-- [ ] 5.2 Kasa delete forever refuses a wrong name
-- [ ] 5.3 Unused investment delete forever requires the name
+- [x] 5.1 Delete-forever dialog asks for the name for every kind
+- [x] 5.2 Kasa delete forever refuses a wrong name
+- [x] 5.3 Unused investment delete forever requires the name

@@ -4,6 +4,7 @@ import type { Payload, PayloadRequest } from 'payload'
 import { protectedAction } from '@/lib/actions/run-action'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { CASH_REGISTER_DELETE_TAGS, CASH_REGISTER_TRASH_TAGS } from '@/lib/cache/tags'
+import { isNameConfirmed, NAME_MISMATCH_MESSAGE } from '@/lib/constants/trash'
 import { deleteTrashedCashRegister } from '@/lib/cash-registers/delete-cash-register-forever'
 import { trashCashRegister } from '@/lib/cash-registers/trash-cash-register'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
@@ -86,12 +87,16 @@ export async function restoreCashRegisterAction(registerId: number): Promise<Act
 
 export async function deleteCashRegisterForeverAction(
   registerId: number,
+  confirmName: string,
 ): Promise<ActionResultT> {
   return protectedAction(
     'deleteCashRegisterForeverAction',
     async ({ payload, user }) => {
       const register = await findVisibleRegister(payload, user, registerId)
       if (!register) return { success: false, error: MISSING_MESSAGE }
+      if (!isNameConfirmed(confirmName, register.name)) {
+        return { success: false, error: NAME_MISMATCH_MESSAGE }
+      }
 
       const result = await deleteTrashedCashRegister(payload, registerId)
       return result.ok ? { success: true } : { success: false, error: result.message }

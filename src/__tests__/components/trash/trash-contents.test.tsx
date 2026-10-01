@@ -12,7 +12,6 @@ const row = (id: number, name: string, kind: TrashKindT): TrashRowT => ({
   daysLeft: 21,
   hasSheet: false,
   autoPurges: true,
-  mustTypeName: kind === 'template' || kind === 'worker',
   pairedRegisters: [],
 })
 
