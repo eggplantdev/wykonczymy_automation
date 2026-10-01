@@ -2916,3 +2916,11 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
 - [ ] Lista „Inwestycje" → kolumna „Marża v2" i „Pozostało do wypłaty" dla inwestycji, w której
       kosztorys ma wykonane ilości z ułamkiem (np. 2,5 × stawka z groszami) → otwórz tę inwestycję:
       marża v2 i „Pozostało" na stronie inwestycji są co do grosza równe tym z listy.
+
+## 2026-10-01 — sidebar-scroll — przy niskim oknie menu boczne się przewija
+
+- [ ] Desktop (≥768px), zmniejsz wysokość okna tak, żeby linki menu się nie mieściły: logo i linki
+      przewijają się razem, a przyciski na dole („Ciemny motyw" … „Wyloguj") zostają w całości
+      widoczne i nie wychodzą poza ekran.
+- [ ] To samo przy zwiniętym menu: plakietka nieprzeczytanych (np. przy „Flota") nie jest obcięta
+      przy krawędzi.

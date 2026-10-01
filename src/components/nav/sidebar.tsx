@@ -51,17 +51,19 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
           </span>
         </button>
       </SimpleTooltip>
-      <Link href="/" className="mx-auto flex items-center py-3">
-        <BrandLogo height={collapsed ? 36 : 54} priority />
-      </Link>
-      {/* Navigation */}
-      <nav className="flex flex-col gap-1">
-        {links.map((link) => (
-          <CollapsibleTooltip key={link.href} collapsed={collapsed} label={link.label}>
-            <NavLinkItem link={link} active={isActive(link.href)} collapsed={collapsed} />
-          </CollapsibleTooltip>
-        ))}
-      </nav>
+      {/* `-m-1 p-1`: the scroll container clips, and the collapsed unread badge overhangs its row by 4px. */}
+      <div className="-m-1 flex min-h-0 flex-col overflow-y-auto p-1">
+        <Link href="/" className="mx-auto flex items-center py-3">
+          <BrandLogo height={collapsed ? 36 : 54} priority />
+        </Link>
+        <nav className="flex flex-col gap-1">
+          {links.map((link) => (
+            <CollapsibleTooltip key={link.href} collapsed={collapsed} label={link.label}>
+              <NavLinkItem link={link} active={isActive(link.href)} collapsed={collapsed} />
+            </CollapsibleTooltip>
+          ))}
+        </nav>
+      </div>
       {/* User info + actions */}
       <div className="mt-auto flex flex-col gap-2 pt-4">
         {!collapsed && <div className="text-foreground text-sm font-medium">{user.name}</div>}
