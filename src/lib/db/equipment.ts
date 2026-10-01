@@ -51,6 +51,7 @@ export const loadEquipmentOverview = async (payload: Payload): Promise<Equipment
     WITH current_state AS (${CURRENT_STATE})
     SELECT ${OVERVIEW_COLUMNS}
     ${OVERVIEW_JOINS}
+    WHERE q.trashed_at IS NULL
     ORDER BY q.name ASC, q.id ASC
   `)
 
@@ -68,6 +69,7 @@ export const loadEquipmentById = async (
     SELECT ${OVERVIEW_COLUMNS}
     ${OVERVIEW_JOINS}
     WHERE q.id = ${id}
+      AND q.trashed_at IS NULL
   `)
 
   return result.rows.length === 0 ? null : toEquipmentRow(result.rows[0])
@@ -99,6 +101,7 @@ export const loadEquipmentAtLocation = async (
     ${OVERVIEW_JOINS}
     WHERE ${location}
       AND q.status::text IN ${LIVE_STATUSES}
+      AND q.trashed_at IS NULL
     ORDER BY q.name ASC, q.id ASC
   `)
 
