@@ -39,15 +39,17 @@ describe('WorkerReportsButton', () => {
   it('is absent while nothing waits', () => {
     renderButton(0)
 
-    expect(screen.queryByRole('button', { name: /Zgłoszenia prac/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Zgłoszenia wykonanych prac/ })).toBeNull()
   })
 
   it('shows the count and opens the shared dialog on the list', async () => {
     renderButton(1)
 
-    await userEvent.click(screen.getByRole('button', { name: 'Zgłoszenia prac (1)' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Zgłoszenia wykonanych prac (1)' }))
 
-    expect(await screen.findByRole('dialog', { name: 'Zgłoszenia prac' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('dialog', { name: 'Zgłoszenia wykonanych prac' }),
+    ).toBeInTheDocument()
     expect(await screen.findByText('Anna Nowak')).toBeInTheDocument()
   })
 })

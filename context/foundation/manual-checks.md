@@ -2924,3 +2924,16 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
       widoczne i nie wychodzą poza ekran.
 - [ ] To samo przy zwiniętym menu: plakietka nieprzeczytanych (np. przy „Flota") nie jest obcięta
       przy krawędzi.
+      widoczne i nie wychodzą poza ekran.
+- [ ] To samo przy zwiniętym menu: plakietka nieprzeczytanych (np. przy „Flota") nie jest obcięta
+      przy krawędzi.
+
+## 2026-10-01 — nazwy-zgloszen
+
+- [ ] Menu boczne: zamiast „Zgłoszenia" jest „Zgłoszenia z formularzy", a zamiast „Zgłoszenia prac"
+      jest „Zgłoszenia wykonanych prac"; nagłówek obu stron i tytuł w trakcie ładowania mówią to
+      samo, bez mignięcia starej nazwy. Pasek menu nie ucina żadnej etykiety ani plakietki z liczbą.
+- [ ] Rozpiska inwestycji z oczekującym zgłoszeniem pracownika: przycisk na pasku „Zgłoszenia
+      wykonanych prac (n)" mieści się obok „Problemy", a pozycja w menu „Pracownicy" pokazuje pełną
+      nazwę i „n do sprawdzenia" w jednym wierszu; okno po kliknięciu ma tytuł „Zgłoszenia
+      wykonanych prac".

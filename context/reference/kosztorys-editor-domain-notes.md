@@ -425,7 +425,7 @@ właśnie po to, żeby jej nie przepisywać.
   kolejności, co w podglądzie pracownika — po tej samej regule wpisów, więc „Σ etapów" i „Wartość
   wykonana" pojawiają się dopiero po pierwszym wpisie.
 
-### Zgłoszenia prac — pracownik zgłasza ilości, kierownik przyjmuje (EX-947, 2026-09-30)
+### Zgłoszenia wykonanych prac — pracownik zgłasza ilości, kierownik przyjmuje (EX-947, 2026-09-30)
 
 - **Dwa osobne linki.** Rozpiska pracownika (`/p/…`) to podsumowanie i rozliczenie; link „Zgłoszenie
   prac" (`/zgloszenie-prac/…`) tylko zbiera ilości. Oba z menu „Pracownicy", pod tą samą blokadą:
@@ -435,7 +435,7 @@ właśnie po to, żeby jej nie przepisywać.
   spoza rozpiski (opis, j.m., ilość). Szkic żyje w przeglądarce; do bazy trafia dopiero wysłane
   zgłoszenie. Wysłane jest ostateczne — poprawka to nowe zgłoszenie, a złe kierownik odrzuca. Na
   zakończonej inwestycji wysyłka jest zablokowana.
-- **Kierownik** widzi zgłoszenia w nawigacji („Zgłoszenia prac", z licznikiem oczekujących we
+- **Kierownik** widzi zgłoszenia w nawigacji („Zgłoszenia wykonanych prac", z licznikiem oczekujących we
   wszystkich inwestycjach) i w przycisku na pasku rozpiski. Przyjęcie dzieje się w rozpisce: wybiera
   etap zgłaszającego albo „Nowy etap" (następny numer, zgłaszający na 100%), może poprawić ilości,
   a pracom spoza rozpiski daje sekcję i Cenę j.m. Nigdy do etapu innej ekipy.

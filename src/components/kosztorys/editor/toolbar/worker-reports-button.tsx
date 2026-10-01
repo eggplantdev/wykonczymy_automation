@@ -18,7 +18,7 @@ export function WorkerReportsButton() {
       onClick={() => workerReports.openReport()}
     >
       <ClipboardCheck />
-      Zgłoszenia prac ({workerReports.pendingCount})
+      Zgłoszenia wykonanych prac ({workerReports.pendingCount})
     </Button>
   )
 }

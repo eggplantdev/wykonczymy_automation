@@ -17,7 +17,7 @@ export function WorkerReportsList({ reports, onOpen }: PropsT) {
   const [grouping, setGrouping] = useState<GroupingT>('date')
 
   if (reports.length === 0) {
-    return <p className="text-muted-foreground py-8 text-sm">Brak zgłoszeń prac.</p>
+    return <p className="text-muted-foreground py-8 text-sm">Brak zgłoszeń wykonanych prac.</p>
   }
 
   const groups = Map.groupBy(

@@ -22,7 +22,7 @@ function renderBadge(stream: UnreadStreamT, path: string, at: string) {
 }
 
 describe('UnreadBadge', () => {
-  it('keeps the leads count on „Zgłoszenia prac", a sibling path sharing its prefix', async () => {
+  it('keeps the leads count on „Zgłoszenia wykonanych prac", a sibling path sharing its prefix', async () => {
     renderBadge('leads', '/zgloszenia', '/zgloszenia-prac')
 
     expect(screen.getByText('3')).toBeInTheDocument()

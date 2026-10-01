@@ -26,7 +26,9 @@ describe('useWorkerReportsAction — a deep-linked report', () => {
         {null}
       </KosztorysActionsProvider>,
     )
-    expect(await screen.findByRole('dialog', { name: 'Zgłoszenia prac' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('dialog', { name: 'Zgłoszenia wykonanych prac' }),
+    ).toBeInTheDocument()
     expect(window.location.search).toBe('?zgloszenie=5')
 
     await userEvent.keyboard('{Escape}')

@@ -20,7 +20,7 @@ export function WorkerReportsDialog({ action }: PropsT) {
     <Dialog open={action.open} onOpenChange={action.setOpen}>
       <DialogContent className="sm:max-w-dialog-xl">
         <DialogHeader
-          title="Zgłoszenia prac"
+          title="Zgłoszenia wykonanych prac"
           description="Pracownicy zgłaszają wykonane ilości ze swojego linku. Zaznacz, co przyjmujesz — trafi do rozpiski."
         />
         {/* Mounted only while open, so every open rereads what the workers sent. */}

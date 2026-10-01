@@ -46,7 +46,7 @@ export function KosztorysWorkersMenu() {
           <>
             <DropdownMenuItem onSelect={() => workerReports.openReport()}>
               <ClipboardCheck />
-              Zgłoszenia prac
+              Zgłoszenia wykonanych prac
               {workerReports.pendingCount > 0 && (
                 <span className="text-muted-foreground ml-auto text-xs">
                   {workerReports.pendingCount} do sprawdzenia
