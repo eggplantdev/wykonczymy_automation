@@ -454,6 +454,44 @@ właśnie po to, żeby jej nie przepisywać.
 - **Przyjęta praca spoza rozpiski** staje się pozycją bez przedmiaru z wykonaną pracą, więc pojawia
   się w „Problemach" jako „wykonane bez przedmiaru" — to sygnał, że ofertę trzeba uzupełnić.
 
+### Tłumaczenia dla pracownika — ukraiński i rosyjski (EX-948, 2026-10-01)
+
+~90% ekipy to Ukraińcy, więc polski jest wyjątkiem, nie domyślnym przypadkiem. Ta zmiana tłumaczy
+**link „Zgłoszenie prac"** w całości: obie siatki, „Prace spoza rozpiski", wysyłkę, historię
+wysłanych i strony z komunikatami. Rozpiska `/p`, PDF pracownika i „Podgląd pracownika" przyjdą
+w kolejnych częściach EX-946, na tym samym rusztowaniu.
+
+- **Język pracownika jest opcjonalny** (Polski / Українська / Русский); pusty = polski, kierownik
+  nie musi go wypełniać. Na stronie jest przełącznik języka — wybór pamięta przeglądarka, osobno dla
+  każdego pracownika, i ma pierwszeństwo przed językiem zapisanym. Nowy język to wpis na liście
+  i słownik, bez migracji.
+- **Tłumaczenie opisu prac żyje na wierszu**, jedno na język — osobno na pozycji i na wpisie
+  katalogu. Rozpiska ma kolumny „Opis prac (UA)" / „Opis prac (RU)" (ukryte domyślnie), katalog —
+  „Opis pracy (UA)" / „Opis pracy (RU)". Bez tłumaczenia pracownik widzi polski opis. Polskiego oryginału pod tłumaczeniem nie
+  ma — do tego służy przełącznik.
+- **Kopiuje się jak opis**: wybór pracy z katalogu i import z arkusza (dla opisów zgodnych
+  z katalogiem) przenoszą tłumaczenie katalogu do wiersza. Potem to zwykły tekst na wierszu —
+  poprawka w katalogu nie rusza istniejących pozycji, tak jak z opisem.
+- **Zmiana polskiego opisu NIE kasuje tłumaczenia.** Tłumaczenie pamięta opis, z którego powstało;
+  gdy opis się zmieni, rozpiska pokazuje je w „Problemach" jako „z nieaktualnym tłumaczeniem",
+  a powrót do starego opisu sam gasi ostrzeżenie. Ostrzega się tylko kierownika — pracownik widzi
+  nieaktualne tłumaczenie takie, jakie jest. Katalog ma w „Problemach" „bez tłumaczenia" i „z
+  nieaktualnym tłumaczeniem", osobno dla każdego języka. Przycisk „przetłumacz ponownie" (AI)
+  przyjdzie z osobną zmianą — ta nie woła AI.
+- **„Popraw literówki" utrzymuje aktualne tłumaczenie aktualnym** — literówka nie zmienia sensu.
+  Tłumaczenie, które już było nieaktualne, zostaje nieaktualne.
+- **„Zapisz do katalogu" nad istniejącym wpisem**: dla każdego języka osobno wygrywa tłumaczenie
+  pozycji, jeśli je ma; inaczej katalog zachowuje swoje.
+- **Prace spoza rozpiski wpisane po ukraińsku zostają jak wpisane** — kierownik przegląda je
+  w oryginale.
+- **Uzupełnianie hurtem to skrypt do powtarzania, nie jednorazowa migracja**
+  (`src/scripts/fill-description-translations.ts`, opis uruchomienia w nagłówku). Liczy braki sam,
+  z aktualnych danych, dopasowuje po polskim tekście opisu, wypełnia **tylko puste** tłumaczenia
+  i nigdy nie nadpisuje wpisanego ręcznie — drugie uruchomienie wypełnia 0. Zakres: katalog
+  i pozycje otwartych inwestycji (z szablonami). Bez `--apply` niczego nie zapisuje; na produkcji
+  uruchamia go człowiek. Zapisuje z pominięciem cache — katalog i rozpiski pokazują nowe teksty po
+  pierwszej edycji katalogu albo komórki rozpiski.
+
 ## Protokół odbioru prac — druk z menu „Inwestor" (2026-09-28)
 
 Protokół, który właściciel podpisuje z klientem na budowie, wychodzi z aplikacji wstępnie

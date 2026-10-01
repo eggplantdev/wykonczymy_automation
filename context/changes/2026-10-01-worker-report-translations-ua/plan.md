@@ -865,15 +865,15 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 5.1 Extras dialog spec green without provider + `uk` case
-- [x] 5.2 Report grid DOM spec under `uk` vs Polish default
-- [x] 5.3 `translateTree` unit spec
-- [x] 5.4 Token-action / worker-report specs assert `messageKey`
-- [x] 5.5 Column-label specs green with no dictionary
+- [x] 5.1 Extras dialog spec green without provider + `uk` case — 9c6250ef
+- [x] 5.2 Report grid DOM spec under `uk` vs Polish default — 9c6250ef
+- [x] 5.3 `translateTree` unit spec — 9c6250ef
+- [x] 5.4 Token-action / worker-report specs assert `messageKey` — 9c6250ef
+- [x] 5.5 Column-label specs green with no dictionary — 9c6250ef
 
 ### Phase 6: The fill script, translations and docs
 
 #### Automated
 
-- [ ] 6.1 Fill-script matcher unit spec
-- [ ] 6.2 Dry run against local prints counts, writes nothing
+- [x] 6.1 Fill-script matcher unit spec
+- [x] 6.2 Dry run against local prints counts, writes nothing
