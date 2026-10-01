@@ -3127,3 +3127,14 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
       (akapity, listy), zamiast zlewać się w jeden blok tekstu. To samo w kosztorysie v2, zakładka
       „Inwestycja".
 - [ ] Inwestycja z wieloliniową „Opinią": karta pokazuje ją z podziałami linii.
+
+## EX-918 — kosz-pracownikow
+
+- [ ] `/pracownicy` → odznacz „Aktywny" u pracownika, potem zaloguj się na jego konto: komunikat
+      „To konto jest wyłączone. Skontaktuj się z właścicielem firmy.", nie „Nieprawidłowy email
+      lub hasło".
+- [ ] To samo konto ze złym hasłem: dalej „Nieprawidłowy email lub hasło".
+- [ ] Pracownik zalogowany w `/admin` w drugiej przeglądarce → odznacz mu „Aktywny": po odświeżeniu
+      `/admin` jest wylogowany.
+- [ ] `/admin` → Użytkownicy → spróbuj usunąć własne konto: odmowa „Nie można przenieść do kosza ani
+      usunąć własnego konta."

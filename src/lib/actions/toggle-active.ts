@@ -1,6 +1,6 @@
 'use server'
 
-import { getPayload } from 'payload'
+import { getPayload, type Payload } from 'payload'
 import config from '@payload-config'
 import { revalidateCollections } from '@/lib/cache/revalidate'
 import type { CACHE_TAGS } from '@/lib/cache/tags'
@@ -9,12 +9,15 @@ import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import type { ActionResultT } from '@/types/action'
 import { toActionFailure } from '@/lib/actions/action-failure'
 import { logError } from '@/lib/utils/log-error'
+import { getDb } from '@/lib/db/get-db'
+import { deleteUserSessions } from '@/lib/db/user-sessions'
 
 type ToggleConfigT = {
   collection: 'users' | 'cash-registers'
   cacheTag: keyof typeof CACHE_TAGS
   data: (active: boolean) => Record<string, unknown>
   overrideAccess?: boolean
+  afterUpdate?: (payload: Payload, id: number, active: boolean) => Promise<void>
 }
 
 async function toggleActive(
@@ -33,6 +36,7 @@ async function toggleActive(
       data: cfg.data(active),
       ...(cfg.overrideAccess ? { overrideAccess: true } : {}),
     })
+    await cfg.afterUpdate?.(payload, id, active)
 
     revalidateCollections([cfg.cacheTag])
     return { success: true }
@@ -48,6 +52,11 @@ export async function toggleUserActive(id: number, active: boolean) {
     cacheTag: 'users',
     data: (active) => ({ active }),
     overrideAccess: true,
+    // A deactivated account is refused at login; this also shuts the `/admin` and REST sessions it
+    // already holds. After the update, which would otherwise write them back.
+    afterUpdate: async (payload, id, active) => {
+      if (!active) await deleteUserSessions(await getDb(payload), id)
+    },
   })
 }
 

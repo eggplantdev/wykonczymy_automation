@@ -19,7 +19,7 @@ export function excludingCancelled(where: Where): Where {
   return { and: [where, { cancelled: { not_equals: true } }] }
 }
 
-type DeleteProbeT = {
+export type DeleteProbeT = {
   /** Names the referencing data in the refusal, e.g. „transakcje" → „(transakcje: 5)". */
   label: string
 } & (

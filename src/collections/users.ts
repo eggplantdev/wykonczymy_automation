@@ -6,74 +6,15 @@ import {
   isAdminOrOwnerOrManager,
 } from '@/access'
 import { forgotPasswordEmailHTML } from '@/lib/email/forgot-password-template'
-import type { CollectionConfig, Where } from 'payload'
+import type { CollectionConfig } from 'payload'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
-import { makePreventDelete } from '@/hooks/prevent-delete'
+import { refuseDeleteWhen } from '@/hooks/prevent-delete'
+import { guardAccountRemoval } from '@/hooks/users/guard-account-removal'
 import { guardDefaultRegister } from '@/hooks/users/guard-default-register'
-import { excludingCancelled } from '@/lib/db/delete-blocker'
-import { countStageMemberships } from '@/lib/db/stage-memberships'
-import { countReportsByWorker } from '@/lib/db/worker-reports'
+import { guardUserUpdate } from '@/hooks/users/guard-update'
+import { refuseDisabledLogin } from '@/hooks/users/refuse-disabled-login'
+import { workerDeleteBlocker } from '@/lib/workers/delete-blocker'
 import { ROLES, ROLE_LABELS } from '@/lib/auth/roles'
-
-// Block a hard delete while a FIGURE or its audit trail still names this person: a wypłata whose
-// recipient is unknown, an amount edit with no editor, an etap with no podwykonawca. Deactivation
-// (`active`) is the intended way for someone to leave; it keeps the row, so every past figure still
-// says who it was about.
-// Plain authorship is deliberately NOT a blocker — a media uploader, a snapshot's `takenBy`, a
-// preset's `createdBy` name who touched something, not what a złotówka means, and blocking on them
-// would freeze an account after one upload.
-const preventDeleteWithReferences = makePreventDelete({
-  probes: [
-    {
-      collection: 'transactions',
-      // Cancelled rows are exempt — see `excludingCancelled`. The other three probes have no such
-      // notion, and `cash-registers.owner_id` is NOT NULL, so anyone holding a kasa stays blocked.
-      // Authorship is exempted with the rest, not just `worker`: the delete is what erases the name,
-      // so refusing it over a cancelled row's `createdBy` preserves no identity — it only makes the
-      // account undeletable. A cancelled row's „Utworzone przez" going empty is the cost, and it is
-      // the same cost the row's live siblings would impose by blocking the delete outright.
-      where: (id): Where =>
-        excludingCancelled({
-          or: [
-            { worker: { equals: id } },
-            { createdBy: { equals: id } },
-            { updatedBy: { equals: id } },
-          ],
-        }),
-      label: 'transakcje',
-    },
-    {
-      collection: 'amount-edits',
-      where: (id) => ({ editedBy: { equals: id } }),
-      label: 'zmiany kwot',
-    },
-    // The only NOT NULL FK of the four: without this probe the delete fails anyway, but with a raw
-    // 23502 instead of a sentence naming the kasa.
-    {
-      collection: 'cash-registers',
-      where: (id) => ({ owner: { equals: id } }),
-      label: 'kasy',
-    },
-    {
-      count: countStageMemberships,
-      label: 'etapy kosztorysu',
-    },
-    // What he reported is the record of work he claims to have done; the CASCADE would erase it.
-    {
-      count: countReportsByWorker,
-      label: 'zgłoszenia prac',
-    },
-    // Not authorship: this names who was HOLDING a tool. Deleting the row would erase the only
-    // answer to „who had it last" for anything still in that person's hands.
-    {
-      collection: 'equipment-events',
-      where: (id) => ({ holder: { equals: id } }),
-      label: 'sprzęt',
-    },
-  ],
-  message: (blockers) =>
-    `Nie można usunąć pracownika — jest powiązany z danymi (${blockers.join(', ')}). Zamiast usuwać, odznacz „Aktywny".`,
-})
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -90,8 +31,9 @@ export const Users: CollectionConfig = {
     },
   },
   hooks: {
-    beforeChange: [guardDefaultRegister],
-    beforeDelete: [preventDeleteWithReferences],
+    beforeLogin: [refuseDisabledLogin],
+    beforeChange: [guardUserUpdate, guardDefaultRegister],
+    beforeDelete: [guardAccountRemoval, refuseDeleteWhen(workerDeleteBlocker)],
     afterChange: [makeRevalidateAfterChange('users')],
     afterDelete: [makeRevalidateAfterDelete('users')],
   },
@@ -152,6 +94,15 @@ export const Users: CollectionConfig = {
       type: 'relationship',
       relationTo: 'cash-registers',
       label: { en: 'Default Cash Register', pl: 'Domyślna kasa' },
+    },
+    // Closed to access-checked writes: a REST PATCH would skip the use check, the kasy and the
+    // session purge that the trash actions (overrideAccess) run.
+    {
+      name: 'trashedAt',
+      type: 'date',
+      access: { create: () => false, update: () => false },
+      admin: { hidden: true },
+      label: { en: 'Trashed at', pl: 'W koszu od' },
     },
   ],
 }

@@ -13,6 +13,8 @@ vi.mock('@payloadcms/next/auth', () => ({
 vi.mock('@payload-config', () => ({ default: {} }))
 
 const { loginAction } = await import('@/lib/actions/auth')
+const { DISABLED_ACCOUNT_ERROR, DISABLED_ACCOUNT_MESSAGE } =
+  await import('@/lib/constants/worker-lock')
 
 describe('loginAction', () => {
   beforeEach(() => {
@@ -31,6 +33,16 @@ describe('loginAction', () => {
 
     expect(result.success).toBe(false)
     expect(result.error).toMatch(/zablokowane/i)
+  })
+
+  it('maps a disabled-account refusal to its own sentence', async () => {
+    const disabled = new Error('irrelevant')
+    disabled.name = DISABLED_ACCOUNT_ERROR
+    mockLogin.mockRejectedValue(disabled)
+
+    const result = await loginAction({ email: 'a@b.pl', password: 'x' })
+
+    expect(result).toEqual({ success: false, error: DISABLED_ACCOUNT_MESSAGE })
   })
 
   it('maps any other login failure to the generic message', async () => {
