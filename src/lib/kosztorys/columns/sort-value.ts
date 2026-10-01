@@ -2,6 +2,8 @@ import { priceSourceOf, shownCoeff, viewPrice, type PriceViewT } from '@/lib/kos
 import { columnValueResolver } from '@/lib/kosztorys/columns/column-values'
 import { measureDiscrepancy } from '@/lib/kosztorys/settlement-rows'
 import { planePriceKeyParts } from '@/lib/kosztorys/plane-price-keys'
+import { translationText } from '@/lib/i18n/description-translations'
+import { translationColumnLanguage } from '@/lib/kosztorys/translation-column-keys'
 import type { KosztorysStageT, KosztorysV2RowT, PriceSourceT } from '@/lib/kosztorys/types'
 
 // Rosnąco = coraz dalej od współczynnika inwestycji: auto, potem mnożnik, który wciąż chodzi za ceną,
@@ -41,6 +43,10 @@ export function sortValueGetter(
     // Alphabetical would put „auto" after „kwota stała".
     return (row) => PRICE_SOURCE_ORDER[priceSourceOf(row, plane)]
   }
+
+  const translationLanguage = translationColumnLanguage(field)
+  if (translationLanguage !== null)
+    return (row) => translationText(row.descriptionTranslations, translationLanguage) || null
 
   switch (field) {
     // The client's own price column — the only price id left without a plane, and assembled only in

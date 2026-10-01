@@ -30,7 +30,7 @@ export async function createCatalogueItemAction(data: WorkCatalogueItemDataT) {
       if ('error' in resolved) return { success: false, error: resolved.error }
 
       await applyCatalogueWrite(payload, undefined, {
-        candidate: { ...row, descriptionTranslations: {} },
+        candidate: { ...row, descriptionTranslations: parsed.data.descriptionTranslations ?? {} },
         existing: null,
         keepCatalogueCategory: true,
       })
@@ -55,7 +55,12 @@ export async function updateCatalogueItemAction(id: number, data: WorkCatalogueI
       const holder = await findCatalogueItemByKey(await getDb(payload), row.matchKey)
       if (holder && holder.id !== id) return { success: false, error: DUPLICATE_ERROR }
 
-      await payload.update({ collection: 'work-catalogue-items', id, data: row })
+      const { descriptionTranslations } = parsed.data
+      await payload.update({
+        collection: 'work-catalogue-items',
+        id,
+        data: { ...row, ...(descriptionTranslations && { descriptionTranslations }) },
+      })
 
       return { success: true }
     },

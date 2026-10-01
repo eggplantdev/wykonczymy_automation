@@ -4,6 +4,11 @@ import { FieldGroup } from '@/components/ui/field'
 import { useManagedForm } from '@/components/forms/hooks/use-managed-form'
 import { FormShell } from '@/components/forms/form-components/form-shell'
 import FormFooter from '@/components/forms/form-components/form-footer'
+import {
+  translationsFromTexts,
+  type DescriptionTranslationsT,
+} from '@/lib/i18n/description-translations'
+import { LANGUAGE_SHORT, TRANSLATION_LANGUAGES } from '@/lib/i18n/languages'
 import { UNIT_SUGGESTIONS } from '@/lib/kosztorys/constants'
 import { PRICE_SOURCE_LABELS } from '@/lib/kosztorys/labels'
 import type { PriceSourceT } from '@/lib/kosztorys/types'
@@ -31,6 +36,8 @@ type WorkCatalogueItemFormPropsT = {
   keepOpen?: boolean
   /** False on the edit dialog — see `useManagedForm`. */
   persistDraft?: boolean
+  /** The map the translation fields were filled from; a new entry has none. */
+  translationBaseline?: DescriptionTranslationsT
 }
 
 // The katalog names its own „auto" — a cennik wpis has no inwestycja yet, so the sentence has to say
@@ -51,6 +58,7 @@ export function WorkCatalogueItemForm({
   onSubmitSuccess,
   keepOpen,
   persistDraft,
+  translationBaseline,
 }: WorkCatalogueItemFormPropsT) {
   const { form, reset } = useManagedForm<WorkCatalogueItemFormValuesT, WorkCatalogueItemDataT>({
     formId,
@@ -67,6 +75,11 @@ export function WorkCatalogueItemForm({
       category: value.category,
       unit: value.unit,
       ...catalogueFigures(value),
+      descriptionTranslations: translationsFromTexts(
+        translationBaseline,
+        value.translations,
+        value.description.trim(),
+      ),
     }),
   })
 
@@ -78,6 +91,12 @@ export function WorkCatalogueItemForm({
             <field.Textarea label="Opis pracy" rows={2} placeholder="Malowanie ścian" showError />
           )}
         </form.AppField>
+
+        {TRANSLATION_LANGUAGES.map((language) => (
+          <form.AppField key={language} name={`translations.${language}`}>
+            {(field) => <field.Textarea label={`Opis pracy (${LANGUAGE_SHORT[language]})`} rows={2} />}
+          </form.AppField>
+        ))}
 
         <form.AppField name="category">
           {() => <CreatableComboboxField label="Kategoria" options={categorySuggestions} />}

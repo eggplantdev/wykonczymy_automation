@@ -2,6 +2,11 @@ import type { PriceViewT } from '@/lib/kosztorys/calc'
 import { PLANE_LABELS } from '@/lib/kosztorys/labels'
 import { planeDashSuffix } from '@/lib/kosztorys/format'
 import { planePriceKeyParts } from '@/lib/kosztorys/plane-price-keys'
+import { LANGUAGE_SHORT } from '@/lib/i18n/languages'
+import {
+  ALL_TRANSLATION_COLUMN_KEYS,
+  translationColumnLanguage,
+} from '@/lib/kosztorys/translation-column-keys'
 import {
   STAGE_VALUE_GROSS_COLUMN_GROUP,
   STAGE_VALUE_NET_COLUMN_GROUP,
@@ -63,6 +68,9 @@ export function columnLabelForView(id: string, view: PriceViewT): string {
     const { base, plane } = planePrice
     return `${COLUMN_LABELS[base] ?? id}${planeDashSuffix(plane)}`
   }
+  const translationLanguage = translationColumnLanguage(id)
+  if (translationLanguage !== null)
+    return `${COLUMN_LABELS.description} (${LANGUAGE_SHORT[translationLanguage]})`
   const label = COLUMN_LABELS[id] ?? id
   if (id === 'net' || id === 'gross') {
     if (view === 'client') return label
@@ -141,6 +149,7 @@ export const LAYER_NEUTRAL_COLUMNS: ReadonlySet<string> = new Set([
   'actions',
   'sectionName',
   'description',
+  ...ALL_TRANSLATION_COLUMN_KEYS,
   'stageQtySum',
   // A rozjazd is a to-do about the etapy, so it belongs to the progress reading — but it is also the
   // reason to go back and fix the offer's execution record, so dropping it in „Praca" would hide the
@@ -196,4 +205,7 @@ export type ColumnGroupT = {
 export const DEFAULT_HIDDEN_COLUMNS: ReadonlySet<string> = new Set([
   STAGE_VALUE_GROSS_COLUMN_GROUP,
   'sectionName',
+  // Only the rozpiska rows a crew that reads it will be sent need a translation, so the column is
+  // opened when there is one to type, not carried on every kosztorys.
+  ...ALL_TRANSLATION_COLUMN_KEYS,
 ])

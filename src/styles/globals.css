@@ -429,6 +429,8 @@
    already the containing block its `::after` anchors to. */
 .kosztorys-grid .dsg-row.kosztorys-clipped-sectionName .dsg-cell.kosztorys-wrap-sectionName::after,
 .kosztorys-grid .dsg-row.kosztorys-clipped-description .dsg-cell.kosztorys-wrap-description::after,
+.kosztorys-grid .dsg-row.kosztorys-clipped-descriptionTranslation__uk .dsg-cell.kosztorys-wrap-descriptionTranslation__uk::after,
+.kosztorys-grid .dsg-row.kosztorys-clipped-descriptionTranslation__ru .dsg-cell.kosztorys-wrap-descriptionTranslation__ru::after,
 .kosztorys-grid .dsg-row.kosztorys-clipped-note .dsg-cell.kosztorys-wrap-note::after {
   content: '…';
   position: absolute;

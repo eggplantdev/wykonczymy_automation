@@ -4,6 +4,7 @@ import {
   mergeTranslations,
   restampTranslations,
   toDescriptionTranslations,
+  translationsFromTexts,
   withTranslation,
 } from '@/lib/i18n/description-translations'
 
@@ -91,5 +92,21 @@ describe('restampTranslations', () => {
       uk: { text: 'Фарбування', source: 'Malowanie' },
       ru: { text: 'Покраска', source: 'Malowanie starego tynku' },
     })
+  })
+})
+
+describe('translationsFromTexts — the katalog form back onto its map', () => {
+  const stale = { text: 'Фарбування', source: 'Malowanie' }
+
+  it('leaves an untouched language alone, so a stale translation stays stale', () => {
+    expect(
+      translationsFromTexts({ uk: stale }, { uk: 'Фарбування', ru: '' }, 'Malowanie ścian'),
+    ).toEqual({ uk: stale })
+  })
+
+  it('stamps a changed text against the form’s opis and drops an emptied one', () => {
+    expect(
+      translationsFromTexts({ uk: stale }, { uk: '', ru: 'Покраска стен' }, 'Malowanie ścian'),
+    ).toEqual({ ru: { text: 'Покраска стен', source: 'Malowanie ścian' } })
   })
 })

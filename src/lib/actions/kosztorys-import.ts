@@ -4,6 +4,8 @@ import { investmentAction } from '@/lib/actions/investment-action'
 import { protectedAction } from '@/lib/actions/run-action'
 import { KOSZTORYS_TREE_TAGS } from '@/lib/cache/tags'
 import { getDb } from '@/lib/db/get-db'
+import { listCatalogueTranslationsByMatchKey } from '@/lib/db/work-catalogue'
+import type { DescriptionTranslationsT } from '@/lib/i18n/description-translations'
 import { setSheetMeasuredQty } from '@/lib/db/kosztorys-sheet-measured-qty'
 import { getInvestmentSheet, MISSING_SHEET, type InvestmentSheetT } from '@/lib/google/sheet-lookup'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
@@ -78,6 +80,7 @@ async function derivePlan(
   investmentId: number,
   sheet: InvestmentSheetT,
   stageDefaults?: StageDefaultsT,
+  catalogueTranslations?: ReadonlyMap<string, DescriptionTranslationsT>,
 ): Promise<ImportPlanT> {
   const grids = await readImportGrids(getReadonlySheetsClient(), sheet.googleSheetId)
   return buildImportPlan(
@@ -85,6 +88,7 @@ async function derivePlan(
     await serializeKosztorys(investmentId),
     sheet.sheetColumnMapping,
     stageDefaults,
+    catalogueTranslations,
   )
 }
 
@@ -290,15 +294,23 @@ export async function applyKosztorysImport(
       const sheet = await getInvestmentSheet(payload, investmentId)
       if (!sheet) return { success: false, error: MISSING_SHEET }
 
+      // Outside the try: a database read failing here is not „nie udało się odczytać arkusza".
+      // The preview skips it because translations change nothing it reports.
+      const catalogueTranslations = await listCatalogueTranslationsByMatchKey(await getDb(payload))
       let plan: ImportPlanT
       try {
-        plan = await derivePlan(investmentId, sheet, {
-          plane: TOOL_PLANES.includes(plane as ToolPlaneT) ? (plane as ToolPlaneT) : null,
-          workerId:
-            typeof workerId === 'number' && Number.isInteger(workerId) && workerId > 0
-              ? workerId
-              : null,
-        })
+        plan = await derivePlan(
+          investmentId,
+          sheet,
+          {
+            plane: TOOL_PLANES.includes(plane as ToolPlaneT) ? (plane as ToolPlaneT) : null,
+            workerId:
+              typeof workerId === 'number' && Number.isInteger(workerId) && workerId > 0
+                ? workerId
+                : null,
+          },
+          catalogueTranslations,
+        )
       } catch (error) {
         return { success: false, error: sheetFailureMessage(error) }
       }

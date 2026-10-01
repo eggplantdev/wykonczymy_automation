@@ -447,3 +447,30 @@ describe('„ze stawką wykonawcy od ceny z materiałem" — the overpaid-crew g
     )
   })
 })
+
+describe('„z nieaktualnym tłumaczeniem" — per language', () => {
+  const OPIS = 'Gruntowanie ścian'
+  const current = { text: 'Ґрунтування стін', source: OPIS }
+
+  // Missing is not stale: a pozycja nobody translated into ru must not light up the ru diagnostic.
+  it('fires once the opis moved on, only for the language that carries the translation', () => {
+    const moved = row({ description: `${OPIS} i sufitów`, descriptionTranslations: { uk: current } })
+    expect(matches('stale-translation-uk', moved)).toBe(true)
+    expect(matches('stale-translation-ru', moved)).toBe(false)
+  })
+
+  it('stays quiet on a current translation and on none at all', () => {
+    expect(
+      matches('stale-translation-uk', row({ description: OPIS, descriptionTranslations: { uk: current } })),
+    ).toBe(false)
+    expect(
+      matches('stale-translation-uk', row({ description: OPIS, descriptionTranslations: {} })),
+    ).toBe(false)
+  })
+
+  it('reveals the column of its own language', () => {
+    expect(columnsRevealedBy(['stale-translation-ru'])).toEqual(
+      new Set(['descriptionTranslation__ru']),
+    )
+  })
+})

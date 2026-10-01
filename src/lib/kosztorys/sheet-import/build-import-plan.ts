@@ -1,3 +1,5 @@
+import type { DescriptionTranslationsT } from '@/lib/i18n/description-translations'
+import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { SNAPSHOT_SCHEMA_VERSION, type SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 import type {
   KosztorysItemT,
@@ -89,6 +91,9 @@ export function buildImportPlan(
   // sheet has no column for either, so this is the owner's answer, given once in the import window —
   // picking them per etap afterwards is ten menus over etapy the grid keeps locked until they are set.
   stageDefaults: StageDefaultsT = { plane: null, workerId: null },
+  // By katalog match key. The sheet has no column for translations, so a praca new to the rozpiska
+  // takes the katalog's, as picking it from the katalog would.
+  catalogueTranslations: ReadonlyMap<string, DescriptionTranslationsT> = new Map(),
 ): ImportPlanT {
   const resolvedLaborColumns = resolveLaborColumns(grids.laborGrid, mapping)
   const { missingFields, candidates, pointedFields } = resolvedLaborColumns
@@ -224,6 +229,12 @@ export function buildImportPlan(
         // is the sheet's own claim and the app never edits it: whatever the sheet says today is the
         // answer, including „nothing typed here any more".
         note: current?.note ?? null,
+        // A loose katalog match can bring a translation made from a different opis; the row then
+        // reads as out of date, which is the truthful state.
+        descriptionTranslations:
+          current?.descriptionTranslations ??
+          catalogueTranslations.get(catalogueKey(sheetItem.description ?? '', sheetItem.unit)) ??
+          {},
       })
 
       for (const entry of parsedProgressByItem.get(sheetItem.id) ?? []) {

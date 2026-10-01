@@ -2,7 +2,10 @@
 // (same reason as kosztorys-descriptions.ts).
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { sqlList } from '@/lib/db/sql-list'
-import { toDescriptionTranslations } from '@/lib/i18n/description-translations'
+import {
+  toDescriptionTranslations,
+  type DescriptionTranslationsT,
+} from '@/lib/i18n/description-translations'
 import type {
   CatalogueSeedItemT,
   CatalogueSourceItemT,
@@ -79,6 +82,27 @@ export async function listCatalogueItemsByMatchKeys(
     WHERE match_key IN (${sqlList(matchKeys)})
   `)
   return result.rows.map(toCatalogueItem)
+}
+
+/**
+ * Every katalog translation, keyed by the katalog's own identity for a praca. The sheet import needs
+ * it before it has parsed a row, so it cannot ask for a known set of keys; only translated rows
+ * travel.
+ */
+export async function listCatalogueTranslationsByMatchKey(
+  db: DbExecutorT,
+): Promise<Map<string, DescriptionTranslationsT>> {
+  const result = await db.execute(sql`
+    SELECT match_key, description_translations
+    FROM work_catalogue_items
+    WHERE description_translations <> '{}'::jsonb
+  `)
+  return new Map(
+    result.rows.map((row) => [
+      String(row.match_key),
+      toDescriptionTranslations(row.description_translations),
+    ]),
+  )
 }
 
 /** What the seed subtracts before proposing anything. */

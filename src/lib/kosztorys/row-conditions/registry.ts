@@ -10,6 +10,9 @@ import {
   clientShareCeilingLabel,
 } from '@/lib/kosztorys/subcontractor-price-guard'
 import type { KosztorysV2RowT, ToolPlaneT } from '@/lib/kosztorys/types'
+import { isTranslationStale } from '@/lib/i18n/description-translations'
+import { LANGUAGE_SHORT, TRANSLATION_LANGUAGES } from '@/lib/i18n/languages'
+import { translationColumnKey } from '@/lib/kosztorys/translation-column-keys'
 
 // The pomiar, from the host's precomputed map when there is one and the long way when there is not.
 // Six entries below ask this question, so reading it through one accessor is also what keeps them
@@ -555,4 +558,17 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     problemLabel: (count) => percentRateProblemLabel('own_tools', count),
     matches: (row, ctx) => settledAtPercentRate(row, ctx, 'own_tools'),
   },
+  // The opis moved on and its translation did not, so the crew reads the old scope. A missing
+  // translation is not listed: most rozpiski never reach a crew that needs one, and the katalog is
+  // where „bez tłumaczenia" is worked through.
+  ...TRANSLATION_LANGUAGES.map(
+    (language): RowConditionT => ({
+      id: `stale-translation-${language}`,
+      label: `z nieaktualnym tłumaczeniem (${LANGUAGE_SHORT[language]})`,
+      kind: 'diagnostic',
+      problemGroup: 'translations',
+      revealsColumns: [translationColumnKey(language)],
+      matches: (row) => isTranslationStale(row.descriptionTranslations, language, row.description),
+    }),
+  ),
 ]

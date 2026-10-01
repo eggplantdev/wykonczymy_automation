@@ -29,6 +29,9 @@ import {
 } from '@/components/kosztorys/editor/grid/cells/discount-columns'
 import { unitColumn } from '@/components/kosztorys/editor/grid/cells/unit-column'
 import { sectionNameColumn } from '@/components/kosztorys/editor/grid/cells/section-name-cell'
+import { translationColumn } from '@/components/kosztorys/editor/grid/cells/translation-column'
+import { TRANSLATION_LANGUAGES } from '@/lib/i18n/languages'
+import { translationColumnKey } from '@/lib/kosztorys/translation-column-keys'
 import { wrapColumnClass } from '@/lib/kosztorys/row-content-lines'
 import { longTextColumn } from '@/components/ui/datasheet-grid/long-text-cell'
 import { type ColumnToggleItemT } from '@/components/ui/column-toggle-menu'
@@ -130,6 +133,9 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       headerClassName: wrapColumnClass('description'),
       cellClassName: wrapColumnClass('description'),
     }),
+    ...TRANSLATION_LANGUAGES.map((language) =>
+      translationColumn(language, columnTitle(translationColumnKey(language), opts)),
+    ),
   ]
 
   // A subcontractor view is one crew's bill, so only that plane's etapy get columns. Nothing becomes

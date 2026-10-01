@@ -50,6 +50,9 @@ type DataTablePropsT<TData> = {
   virtualContainerClassName?: string
   /** localStorage key for persisting column visibility */
   storageKey?: string
+  /** Visibility before the viewer touches anything, e.g. `{ x: false }` for a column hidden by
+   * default. Only the viewer's deviations from it are stored. */
+  defaultColumnVisibility?: VisibilityState
   /** Sort applied on first render. Defaults to none. Ignored when `sorting` is controlled. */
   initialSorting?: SortingState
   /** Controlled sort — pass with `onSortingChange` and the caller is expected to fetch rows already
@@ -78,6 +81,7 @@ export function DataTable<TData>({
   virtualContainerHeight = 600,
   virtualContainerClassName,
   storageKey,
+  defaultColumnVisibility = {},
   initialSorting = [],
   sorting: controlledSorting,
   onSortingChange,
@@ -92,13 +96,14 @@ export function DataTable<TData>({
   const [localSorting, setLocalSorting] = useState<SortingState>(initialSorting)
   const isManualSorting = controlledSorting !== undefined && onSortingChange !== undefined
   const sorting = isManualSorting ? controlledSorting : localSorting
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [storedVisibility, setStoredVisibility] = useState<VisibilityState>({})
+  const columnVisibility = { ...defaultColumnVisibility, ...storedVisibility }
   const [ranks, setRanks] = useState<ColumnRanksT>({})
 
   // Apply persisted visibility and order after hydration to avoid server/client mismatch
   useEffect(() => {
     if (!storageKey) return
-    setColumnVisibility(readVisibility(storageKey))
+    setStoredVisibility(readVisibility(storageKey))
     setRanks(readOrder(storageKey))
   }, [storageKey])
 
@@ -138,11 +143,15 @@ export function DataTable<TData>({
     // second key would vanish on the next render.
     enableMultiSort: !isManualSorting,
     onColumnVisibilityChange: (updater) => {
-      setColumnVisibility((prev) => {
-        const next = typeof updater === 'function' ? updater(prev) : updater
-        if (storageKey) writeVisibility(storageKey, next)
-        return next
-      })
+      const next = typeof updater === 'function' ? updater(columnVisibility) : updater
+      // A stored default would pin today's default for this viewer even after the default changes.
+      const deviations = Object.fromEntries(
+        Object.entries(next).filter(
+          ([id, visible]) => visible !== (defaultColumnVisibility[id] ?? true),
+        ),
+      )
+      setStoredVisibility(deviations)
+      if (storageKey) writeVisibility(storageKey, deviations)
     },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),

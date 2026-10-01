@@ -59,6 +59,32 @@ export function withTranslation(
   return next
 }
 
+export type TranslationTextsT = Partial<Record<TranslationLanguageT, string>>
+
+export const translationTexts = (
+  translations: DescriptionTranslationsT | undefined,
+): Record<TranslationLanguageT, string> =>
+  Object.fromEntries(
+    TRANSLATION_LANGUAGES.map((language) => [language, translationText(translations, language)]),
+  ) as Record<TranslationLanguageT, string>
+
+// A form's texts back onto the map it was opened with. Only a language whose text changed is stamped
+// against the form's opis: an untouched one keeps its `source`, so saving an unrelated field cannot
+// mark a stale translation current.
+export function translationsFromTexts(
+  baseline: DescriptionTranslationsT | undefined,
+  texts: TranslationTextsT | undefined,
+  description: string,
+): DescriptionTranslationsT {
+  let next: DescriptionTranslationsT = { ...baseline }
+  for (const language of TRANSLATION_LANGUAGES) {
+    const text = texts?.[language]
+    if (text === undefined || text === translationText(baseline, language)) continue
+    next = withTranslation(next, language, text, description)
+  }
+  return next
+}
+
 // Per language, the incoming translation wins when it has one; otherwise the existing one stays.
 export function mergeTranslations(
   existing: DescriptionTranslationsT | undefined,

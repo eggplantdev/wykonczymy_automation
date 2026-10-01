@@ -24,7 +24,10 @@ import { catalogueProblemsMenuModel } from '@/components/work-catalogue/catalogu
 import { useEngagedIds } from '@/hooks/use-engaged-ids'
 import { useClientMultiFilter } from '@/hooks/use-client-multi-filter'
 import { useSearchFilter } from '@/hooks/use-search-filter'
-import { getWorkCatalogueColumns } from '@/components/tables/work-catalogue'
+import {
+  getWorkCatalogueColumns,
+  WORK_CATALOGUE_DEFAULT_VISIBILITY,
+} from '@/components/tables/work-catalogue'
 import {
   catalogueCategoryOptions,
   catalogueCategorySuggestions,
@@ -201,6 +204,7 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
         data={deferredRows}
         columns={columns}
         storageKey="work-catalogue"
+        defaultColumnVisibility={WORK_CATALOGUE_DEFAULT_VISIBILITY}
         initialSorting={INITIAL_SORTING}
         aboveToolbar={
           /* Counted off `filteredData`, not off the deferred list the table renders: behind the

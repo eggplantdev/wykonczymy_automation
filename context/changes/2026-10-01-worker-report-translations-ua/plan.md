@@ -836,17 +836,17 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 1.1 Migration applies to the test DB
-- [x] 1.2 Round-trip + schema-drift specs carry the field (5435)
-- [x] 1.3 Old payload without the key restores as `{}`
-- [x] 1.4 `itemFromFields` copies the field
+- [x] 1.1 Migration applies to the test DB — c8decfaf
+- [x] 1.2 Round-trip + schema-drift specs carry the field (5435) — c8decfaf
+- [x] 1.3 Old payload without the key restores as `{}` — c8decfaf
+- [x] 1.4 `itemFromFields` copies the field — c8decfaf
 
 ### Phase 2: Copy rules and the manager's editing surfaces
 
 #### Automated
 
-- [ ] 2.1 Unit specs: merge, restamp, import plan, rozpiska condition, katalog conditions
-- [ ] 2.2 Translation cell out-mapping stamps `source`
+- [x] 2.1 Unit specs: merge, restamp, import plan, rozpiska condition, katalog conditions
+- [x] 2.2 Translation cell out-mapping stamps `source`
 
 ### Phase 3: The worker's language
 
