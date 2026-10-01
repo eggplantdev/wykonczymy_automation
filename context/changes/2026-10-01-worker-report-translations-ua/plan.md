@@ -852,14 +852,14 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 3.1 Worker schema language mapping spec
+- [x] 3.1 Worker schema language mapping spec — 0e3bec88
 
 ### Phase 4: The i18n core
 
 #### Automated
 
-- [ ] 4.1 Provider DOM spec
-- [ ] 4.2 Translations / plurals unit spec
+- [x] 4.1 Provider DOM spec
+- [x] 4.2 Translations / plurals unit spec
 
 ### Phase 5: The report link in Ukrainian
 
