@@ -12,6 +12,8 @@ type FormFooterPropsT = {
   // Block submit on top of the form's own isSubmitting — e.g. while files are still ingesting, so a
   // row can't save before its processed file lands in the ref (would upload nothing for that row).
   disabled?: boolean
+  /** From `useManagedForm` — hides the loader while the submit waits on a question. */
+  awaitingAnswer?: boolean
 }
 
 export default function FormFooter({
@@ -19,6 +21,7 @@ export default function FormFooter({
   submittingLabel,
   className,
   disabled = false,
+  awaitingAnswer = false,
 }: FormFooterPropsT) {
   const form = useFormContext()
   const keepOpen = useOptimisticFormStore((s) => s.keepOpen)
@@ -48,7 +51,7 @@ export default function FormFooter({
           <p className="text-destructive mt-2 text-sm font-medium">Formularz zawiera błędy</p>
         )}
       </footer>
-      <Loader loading={isSubmitting} portal />
+      <Loader loading={isSubmitting && !awaitingAnswer} portal />
     </>
   )
 }

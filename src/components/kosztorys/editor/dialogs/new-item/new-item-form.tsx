@@ -54,7 +54,7 @@ export function NewItemForm({
     answer: (choice: CollisionChoiceT) => void
   } | null>(null)
 
-  const { form, reset } = useManagedForm<NewItemFormValuesT, NewItemPayloadT>({
+  const { form, reset, awaitingAnswer } = useManagedForm<NewItemFormValuesT, NewItemPayloadT>({
     formId,
     useFormStore: useNewItemFormStore,
     schema: newItemFormSchema,
@@ -150,7 +150,12 @@ export function NewItemForm({
           )}
         </FieldGroup>
 
-        <FormFooter label="Dodaj" submittingLabel="Zapisywanie..." className="mt-6" />
+        <FormFooter
+          label="Dodaj"
+          submittingLabel="Zapisywanie..."
+          className="mt-6"
+          awaitingAnswer={awaitingAnswer}
+        />
       </FormShell>
 
       {collision && (

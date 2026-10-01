@@ -90,6 +90,9 @@ export function useManagedForm<TValues, TData>({
     copy: SubmitConfirmCopyT
     answer: (confirmed: boolean) => void
   } | null>(null)
+  // The form counts as submitting while a question is open, so its full-screen loader would sit on
+  // top of the question.
+  const [awaitingAnswer, setAwaitingAnswer] = useState(false)
 
   const storedFormId = useFormStore((s) => s.formId)
   const storedValues = useFormStore((s) => s.formData)
@@ -129,13 +132,18 @@ export function useManagedForm<TValues, TData>({
       onChangeDebounceMs: 500,
     },
     onSubmit: async ({ value }) => {
-      const copy = confirmBeforeSubmit?.(value as TValues)
-      if (copy) {
-        const confirmed = await new Promise<boolean>((answer) => setAsked({ copy, answer }))
-        setAsked(null)
-        if (!confirmed) return false
+      setAwaitingAnswer(true)
+      try {
+        const copy = confirmBeforeSubmit?.(value as TValues)
+        if (copy) {
+          const confirmed = await new Promise<boolean>((answer) => setAsked({ copy, answer }))
+          setAsked(null)
+          if (!confirmed) return false
+        }
+        if (beforeSubmit && !(await beforeSubmit(value as TValues))) return false
+      } finally {
+        setAwaitingAnswer(false)
       }
-      if (beforeSubmit && !(await beforeSubmit(value as TValues))) return false
 
       await submit(!!keepOpen, {
         action: () => action(toData(value as TValues)),
@@ -154,6 +162,7 @@ export function useManagedForm<TValues, TData>({
   return {
     form,
     reset,
+    awaitingAnswer,
     // Spreadable onto ConfirmDialog. Empty title while closed — the dialog renders nothing then.
     submitConfirm: {
       open: asked !== null,
