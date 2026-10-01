@@ -111,4 +111,7 @@ export type UserRowT = {
   defaultCashRegisterName?: string
   /** Absent when the worker holds no pair on any investment with a kosztorys. */
   payoutRemaining?: WorkerColumnFiguresT
+  /** Names of the kasy he owns — they go to the trash with him. */
+  registerNames: string[]
+  canTrash: boolean
 }

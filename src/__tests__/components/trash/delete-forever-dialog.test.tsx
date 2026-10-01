@@ -31,6 +31,7 @@ const renderDialog = (kind: TrashKindT, mustTypeName: boolean) =>
         hasSheet: false,
         autoPurges: !mustTypeName,
         mustTypeName,
+        pairedRegisters: [],
       }}
       open
       onClose={() => {}}

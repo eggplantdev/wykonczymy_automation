@@ -2,7 +2,12 @@ import 'server-only'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { isAdminOrOwnerRole, MANAGEMENT_ROLES } from '@/lib/auth/roles'
+import {
+  canManageAccount,
+  isAdminOrOwnerRole,
+  MANAGEMENT_ROLES,
+  type RoleT,
+} from '@/lib/auth/roles'
 import { getDb } from '@/lib/db/get-db'
 import { ENTITY_TRASH_RETENTION_DAYS } from '@/lib/constants/trash'
 import { fetchTrashedInvestments, type TrashedInvestmentRowT } from '@/lib/db/investment-trash'
@@ -10,6 +15,7 @@ import {
   fetchTrashedCashRegisters,
   type TrashedCashRegisterRowT,
 } from '@/lib/db/cash-register-trash'
+import { fetchTrashedWorkers, type TrashedWorkerRowT } from '@/lib/db/worker-trash'
 import type { TrashRowT } from '@/types/trash'
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -17,7 +23,8 @@ const DAY_MS = 24 * 60 * 60 * 1000
 export function shapeTrashRows(
   investments: TrashedInvestmentRowT[],
   cashRegisters: TrashedCashRegisterRowT[],
-  { isAdminOrOwner, now }: { isAdminOrOwner: boolean; now: number },
+  workers: TrashedWorkerRowT[],
+  { viewerRole, now }: { viewerRole: RoleT; now: number },
 ): TrashRowT[] {
   const daysLeft = (trashedAt: Date) =>
     Math.max(
@@ -35,9 +42,10 @@ export function shapeTrashRows(
       autoPurges: !row.isKosztorysUsed && !row.isUndeletable,
       mustTypeName: row.isKosztorysUsed || row.isTemplate,
       hasSheet: row.hasSheet,
+      pairedRegisters: [],
     })),
     ...cashRegisters
-      .filter((row) => isAdminOrOwner || row.type !== 'MAIN')
+      .filter((row) => isAdminOrOwnerRole(viewerRole) || row.type !== 'MAIN')
       .map((row) => ({
         kind: 'cash-register' as const,
         id: row.id,
@@ -47,6 +55,20 @@ export function shapeTrashRows(
         autoPurges: true,
         mustTypeName: false,
         hasSheet: false,
+        pairedRegisters: [],
+      })),
+    ...workers
+      .filter((row) => canManageAccount(viewerRole, row.role))
+      .map((row) => ({
+        kind: 'worker' as const,
+        id: row.id,
+        name: row.name,
+        trashedAt: row.trashedAt,
+        daysLeft: daysLeft(row.trashedAt),
+        autoPurges: true,
+        mustTypeName: true,
+        hasSheet: false,
+        pairedRegisters: row.registerNames,
       })),
   ]
 }
@@ -58,13 +80,14 @@ export async function getTrashContents(): Promise<TrashRowT[]> {
 
   const payload = await getPayload({ config })
   const db = await getDb(payload)
-  const [investments, cashRegisters] = await Promise.all([
+  const [investments, cashRegisters, workers] = await Promise.all([
     fetchTrashedInvestments(db),
     fetchTrashedCashRegisters(db),
+    fetchTrashedWorkers(db),
   ])
 
-  return shapeTrashRows(investments, cashRegisters, {
-    isAdminOrOwner: isAdminOrOwnerRole(session.user.role),
+  return shapeTrashRows(investments, cashRegisters, workers, {
+    viewerRole: session.user.role,
     now: Date.now(),
   })
 }

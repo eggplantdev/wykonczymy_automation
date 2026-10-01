@@ -21,6 +21,17 @@ export const isManagementRole = (role: RoleT): boolean =>
 export const isAdminOrOwnerRole = (role: RoleT): boolean =>
   (ADMIN_OR_OWNER_ROLES as readonly string[]).includes(role)
 
+/** A MANAGER manages EMPLOYEE accounts only; anyone above answers to him as missing (EX-918). */
+export const canManageAccount = (actorRole: RoleT, targetRole: RoleT): boolean =>
+  actorRole !== 'MANAGER' || targetRole === 'EMPLOYEE'
+
+type AccountT = { id: number; role: RoleT }
+
+// Offered only where the trash action would not refuse on the actor alone — the last-OWNER and
+// used-account refusals need the DB and stay the action's to say.
+export const canTrashAccount = (actor: AccountT, target: AccountT): boolean =>
+  actor.id !== target.id && canManageAccount(actor.role, target.role)
+
 type CanMutateTransferArgsT = {
   role: RoleT
   userId: number

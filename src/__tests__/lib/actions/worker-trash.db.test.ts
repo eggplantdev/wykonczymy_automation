@@ -112,6 +112,14 @@ describe.skipIf(!ENV_READY)('worker trash actions (DB)', () => {
       sql`SELECT count(*)::int AS n FROM users_sessions WHERE _parent_id = ${worker.id}`,
     )
     expect(Number(rows[0]?.n)).toBe(0)
+
+    // Listed as the worker, with his kasa named — never as a kasa of its own.
+    const { fetchTrashedWorkers } = await import('@/lib/db/worker-trash')
+    const { fetchTrashedCashRegisters } = await import('@/lib/db/cash-register-trash')
+    expect(
+      (await fetchTrashedWorkers(db)).find((row) => row.id === worker.id)?.registerNames,
+    ).toEqual(['Kasa pracownika'])
+    expect((await fetchTrashedCashRegisters(db)).map((row) => row.id)).not.toContain(registerId)
   })
 
   it('refuses a worker named on a live transaction', async () => {
@@ -156,8 +164,7 @@ describe.skipIf(!ENV_READY)('worker trash actions (DB)', () => {
 
     const result = await actions.trashWorkerAction(owner.id)
 
-    expect(result.success).toBe(false)
-    expect(result.error).toMatch(/nie istnieje/)
+    expect(result).toEqual({ success: false, error: 'Pracownik nie istnieje.' })
     expect(await userTrashedAt(owner.id)).toBeNull()
   })
 

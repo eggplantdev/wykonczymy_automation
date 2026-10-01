@@ -564,18 +564,18 @@ Run once, after Phase 5:
 
 #### Automated
 
-- [x] 3.1 Worker trash actions db spec (pair, all-or-nothing, guards, sessions, restore, delete forever)
-- [x] 3.2 Worker purge db spec
-- [x] 3.3 Kasa purge skips kasy with a trashed owner
-- [x] 3.4 Cleanup cron route spec with the new step
+- [x] 3.1 Worker trash actions db spec (pair, all-or-nothing, guards, sessions, restore, delete forever) — c332ecc2
+- [x] 3.2 Worker purge db spec — c332ecc2
+- [x] 3.3 Kasa purge skips kasy with a trashed owner — c332ecc2
+- [x] 3.4 Cleanup cron route spec with the new step — c332ecc2
 
 ### Phase 4: UI
 
 #### Automated
 
-- [ ] 4.1 `shapeTrashRows` worker rows, kasy names, MANAGER filter, paired kasy absent from „Kasy"
-- [ ] 4.2 `/kosz` renders the „Pracownicy" section
-- [ ] 4.3 „Do kosza" hidden on own row and for MANAGER on non-EMPLOYEE rows
+- [x] 4.1 `shapeTrashRows` worker rows, kasy names, MANAGER filter, paired kasy absent from „Kasy"
+- [x] 4.2 `/kosz` renders the „Pracownicy" section
+- [x] 4.3 „Do kosza" hidden on own row and for MANAGER on non-EMPLOYEE rows
 
 ### Phase 5: One `/kosz` policy + docs
 

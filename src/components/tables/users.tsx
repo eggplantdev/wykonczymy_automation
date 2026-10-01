@@ -12,6 +12,7 @@ import { HintedValue } from '@/components/tables/hinted-value'
 import { SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/labels'
 import type { WorkerColumnFiguresT } from '@/lib/kosztorys/worker-payout-pairs'
 import { cn } from '@/lib/utils/cn'
+import { TrashWorkerButton } from '@/components/workers/trash-worker-button'
 
 const col = createColumnHelper<UserRowT>()
 
@@ -135,6 +136,17 @@ export function getUserColumns({ onToggle, onSettle }: UserColumnOptionsT) {
       id: 'defaultCashRegister',
       header: 'Domyślna kasa',
       cell: (info) => info.getValue() ?? '—',
+    }),
+    col.display({
+      id: 'actions',
+      header: 'Akcje',
+      meta: { align: 'right' },
+      cell: (info) =>
+        info.row.original.canTrash && (
+          <div className="flex items-center justify-end gap-1">
+            <TrashWorkerButton worker={info.row.original} />
+          </div>
+        ),
     }),
   ]
 }

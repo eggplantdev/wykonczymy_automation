@@ -2,6 +2,7 @@
 
 import type { Payload, PayloadRequest } from 'payload'
 import { protectedAction } from '@/lib/actions/run-action'
+import { canManageAccount } from '@/lib/auth/roles'
 import { WORKER_DELETE_TAGS, WORKER_TRASH_TAGS } from '@/lib/cache/tags'
 import { getDb } from '@/lib/db/get-db'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
@@ -21,10 +22,7 @@ const CONFIRM_NAME_MISMATCH_MESSAGE = 'Wpisana nazwa nie zgadza się z nazwą pr
 // fire once per write and inside the transaction.
 const SKIP_HOOK_REVALIDATION = { skipRevalidation: true }
 
-/**
- * The worker, or `undefined` when this user may not act on him. A MANAGER manages EMPLOYEE accounts
- * only, so anyone above answers as missing rather than as forbidden — like a MAIN kasa for a MANAGER.
- */
+// Missing rather than forbidden, like a MAIN kasa for a MANAGER.
 async function findManageableWorker(
   payload: Payload,
   user: SessionUserT,
@@ -40,7 +38,7 @@ async function findManageableWorker(
     req,
   })
   if (!worker) return undefined
-  if (user.role === 'MANAGER' && worker.role !== 'EMPLOYEE') return undefined
+  if (!canManageAccount(user.role, worker.role)) return undefined
   return worker
 }
 

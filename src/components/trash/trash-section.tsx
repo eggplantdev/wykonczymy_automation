@@ -25,6 +25,12 @@ export function TrashSection({ title, rows }: { title: string; rows: TrashRowT[]
               <span className="text-muted-foreground text-sm">
                 W koszu od {formatPLDate(row.trashedAt)} · {fateOf(row)}
               </span>
+              {row.pairedRegisters.length > 0 && (
+                <span className="text-muted-foreground text-sm">
+                  razem z {row.pairedRegisters.length === 1 ? 'kasą' : 'kasami'}:{' '}
+                  {row.pairedRegisters.join(', ')}
+                </span>
+              )}
               {row.kind === 'investment' && <TrashedInvestmentLinks row={row} />}
             </div>
             <TrashedRowActions row={row} />

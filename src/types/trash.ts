@@ -1,4 +1,4 @@
-export type TrashKindT = 'investment' | 'template' | 'cash-register'
+export type TrashKindT = 'investment' | 'template' | 'cash-register' | 'worker'
 
 export type TrashRowT = {
   kind: TrashKindT
@@ -12,6 +12,8 @@ export type TrashRowT = {
   mustTypeName: boolean
   /** Whether the row opens a kosztorys v1 (the Google sheet) — only an investment can. */
   hasSheet: boolean
+  /** The kasy that went to the trash with a worker — empty for every other kind. */
+  pairedRegisters: string[]
 }
 
 export type DeleteForeverResultT =

@@ -12,7 +12,8 @@ const row = (id: number, name: string, kind: TrashKindT): TrashRowT => ({
   daysLeft: 21,
   hasSheet: false,
   autoPurges: true,
-  mustTypeName: kind === 'template',
+  mustTypeName: kind === 'template' || kind === 'worker',
+  pairedRegisters: [],
 })
 
 const section = (title: string) =>
@@ -72,6 +73,20 @@ describe('TrashContents', () => {
     ])
     expect(hrefs('Dom Nowaków')).toEqual(['/inwestycje/4', '/inwestycje/4/kosztorys_v2'])
     expect(hrefs('Kasa Adriana')).toEqual([])
+  })
+
+  it('lists a worker under „Pracownicy” with the kasy that went with him', () => {
+    render(
+      <TrashContents
+        rows={[
+          { ...row(5, 'Jan Kowalski', 'worker'), pairedRegisters: ['Kasa Jana', 'Kasa budowy'] },
+        ]}
+      />,
+    )
+
+    const workers = section('Pracownicy') as HTMLElement
+    expect(within(workers).getByText('Jan Kowalski')).toBeVisible()
+    expect(within(workers).getByText('razem z kasami: Kasa Jana, Kasa budowy')).toBeVisible()
   })
 
   it('says the trash is empty only when every kind is', () => {

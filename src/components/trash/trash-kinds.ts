@@ -6,6 +6,7 @@ import {
   deleteInvestmentForeverAction,
   restoreInvestmentAction,
 } from '@/lib/actions/investment-trash'
+import { deleteWorkerForeverAction, restoreWorkerAction } from '@/lib/actions/worker-trash'
 import { INVESTMENT_DELETE_FAILED_MESSAGE, KOSZTORYS_IN_USE_WARNING } from '@/lib/constants/trash'
 import type { ActionResultT } from '@/types/action'
 import type { TrashKindT } from '@/types/trash'
@@ -55,6 +56,17 @@ export const TRASH_KINDS: Record<TrashKindT, TrashKindConfigT> = {
     nameLabel: 'Nazwa kasy',
     deleted: 'Kasa usunięta na zawsze.',
     failed: 'Nie udało się usunąć kasy',
+  },
+  worker: {
+    sectionTitle: 'Pracownicy',
+    restore: restoreWorkerAction,
+    restored: 'Pracownik przywrócony razem ze swoimi kasami.',
+    deleteForever: (id, confirmName) => deleteWorkerForeverAction(id, confirmName ?? ''),
+    lost: 'jego kasy z kosza oraz jego nazwisko na anulowanych transakcjach',
+    askReason: 'Konto zniknie razem z kasami, które poszły z nim do kosza.',
+    nameLabel: 'Imię i nazwisko',
+    deleted: 'Pracownik usunięty na zawsze.',
+    failed: 'Nie udało się usunąć pracownika',
   },
 }
 
