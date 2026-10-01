@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react'
 import { cellKeystroke, cellSettle, type CellEditPolicyT } from '@/lib/kosztorys/cell-edit'
+import { useTranslation } from '@/lib/i18n/use-translation'
 import { NOTICE_MS, rejectedEntryMessage } from '@/lib/utils/notice'
 import { toastMessage } from '@/lib/utils/toast'
 import type { StopEditingT } from '@/components/ui/datasheet-grid/types'
@@ -20,6 +21,7 @@ export function useCellDraft<RowT extends { id: number }, EntryT>(
   policy: CellEditPolicyT<RowT, EntryT>,
   stopEditing: StopEditingT,
 ) {
+  const gridDictionary = useTranslation('grid')
   const [blockReason, setBlockReason] = useState<string | null>(null)
   // A draft, not the row: bound straight to the row, a half-typed „50," would snap back mid-keystroke.
   const [edit, setEdit] = useState<CellEditT<EntryT> | null>(null)
@@ -69,6 +71,7 @@ export function useCellDraft<RowT extends { id: number }, EntryT>(
         rejectedEntryMessage(
           policy.restoredLabel(settled.restored),
           settled.reason === 'blocked' ? 'blocked' : 'invalid',
+          gridDictionary,
         ),
         'error',
         NOTICE_MS,

@@ -1,3 +1,5 @@
+import { DEFAULT_LANGUAGE } from '@/lib/i18n/languages'
+import { createTranslator, type TranslatorT } from '@/lib/i18n/translations'
 import { activeFilterHidesPhrase } from '@/lib/kosztorys/counted-nouns'
 import { listLabels } from '@/lib/kosztorys/row-conditions/queries'
 import type { RowConditionT } from '@/lib/kosztorys/row-conditions/types'
@@ -10,7 +12,11 @@ type ArgsT = {
   hiders: readonly RowConditionT[]
   /** Engaged conditions that KEEP only what they match — the toolbar's „Problemy" list. */
   diagnostics: readonly RowConditionT[]
+  // Only the document branches are translated: the filter branches are the owner's.
+  dictionary?: TranslatorT<'grid'>
 }
+
+const POLISH_GRID = createTranslator(DEFAULT_LANGUAGE, 'grid')
 
 /**
  * Past this many engaged hiders the sentence stops answering the question it exists for: the full set
@@ -36,11 +42,16 @@ function hidersDescription(hiders: readonly RowConditionT[]): string | undefined
  * they read straight after „Filtr chowa pozycje ". Past `MAX_NAMED_HIDERS` the count replaces the
  * list — it still says where to go, which is all the naming ever bought.
  */
-export function emptyGridCopy({ preview, hiders, diagnostics }: ArgsT): EmptyGridCopyT {
+export function emptyGridCopy({
+  preview,
+  hiders,
+  diagnostics,
+  dictionary = POLISH_GRID,
+}: ArgsT): EmptyGridCopyT {
   if (preview) {
     return {
-      title: 'Brak pozycji do pokazania',
-      description: 'Żadna pozycja nie ma jeszcze przedmiaru ani wykonanej pracy.',
+      title: dictionary.t('emptyDocumentTitle'),
+      description: dictionary.t('emptyDocumentDescription'),
     }
   }
   if (hiders.length > 0) {
@@ -54,5 +65,5 @@ export function emptyGridCopy({ preview, hiders, diagnostics }: ArgsT): EmptyGri
   }
   // Nothing engaged, nothing to name. `kosztorys-editor-body` never asks, but without this branch the
   // overlay reads „Brak pozycji " with a trailing space and credits a filter that is off.
-  return { title: 'Brak pozycji do pokazania' }
+  return { title: dictionary.t('emptyDocumentTitle') }
 }

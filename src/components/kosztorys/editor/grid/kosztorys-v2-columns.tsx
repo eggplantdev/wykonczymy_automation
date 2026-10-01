@@ -277,7 +277,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     const field = stageValueNetKey(st.id)
     return computedColumn(
       field,
-      stageValueHeader(st, 'netto', STAGE_VALUE_NET_COLUMN_GROUP, field, opts),
+      stageValueHeader(st, 'net', STAGE_VALUE_NET_COLUMN_GROUP, field, opts),
       valueOf(field),
     )
   })
@@ -286,7 +286,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     const field = stageValueGrossKey(st.id)
     return computedColumn(
       field,
-      stageValueHeader(st, 'brutto', STAGE_VALUE_GROSS_COLUMN_GROUP, field, opts),
+      stageValueHeader(st, 'gross', STAGE_VALUE_GROSS_COLUMN_GROUP, field, opts),
       valueOf(field),
     )
   })

@@ -1,12 +1,14 @@
 import { z } from 'zod'
+import { pl } from '@/lib/i18n/dictionaries/pl'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 
 // Beside the types, not in the actions: a `'use server'` module can export only async functions.
 
 const idSchema = z.number().int().positive()
 
-// The worker's send and the kierownik's accept refuse a non-positive ilość with one sentence.
-const reportQtySchema = z.number().positive('Ilość musi być większa od zera')
+// The worker's send and the kierownik's accept refuse a non-positive ilość with one sentence. The
+// worker-facing sentences come from the dictionary, so the send action can name their key.
+const reportQtySchema = z.number().positive(pl.notices.qtyPositive)
 
 // A rozpiska line names only its pozycja — opis, j.m. and sekcja are copied on the server from the
 // live pozycja, never taken from the client.
@@ -18,8 +20,8 @@ export const sendLineSchema = z.discriminatedUnion('kind', [
   }),
   z.object({
     kind: z.literal('extra'),
-    description: z.string().trim().min(1, 'Opisz dopisaną pracę').max(1000),
-    unit: z.string().trim().min(1, 'Wybierz j.m. dopisanej pracy').max(40),
+    description: z.string().trim().min(1, pl.notices.extraDescription).max(1000),
+    unit: z.string().trim().min(1, pl.notices.extraUnit).max(40),
     qty: reportQtySchema,
   }),
 ])

@@ -121,6 +121,7 @@ import type {
 } from '@/lib/kosztorys/types'
 import type { SeedConflictFieldT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 import { toastMessage } from '@/lib/utils/toast'
+import { useTranslation } from '@/lib/i18n/use-translation'
 import type { WorkerRefT } from '@/types/reference-data'
 
 type ArgsT = {
@@ -552,6 +553,7 @@ export function useKosztorysEditor({
   const moveEdges = useMemo(() => computeMoveEdges(rows, sections), [rows, sections])
 
   const onAddItem = editorOnly(handleAddItem)
+  const gridDictionary = useTranslation('grid')
 
   const columnOpts = {
     view,
@@ -601,6 +603,7 @@ export function useKosztorysEditor({
         }
       : undefined,
     workshopVisible: isTemplate,
+    dictionary: gridDictionary,
   }
   const grid = buildV2Grid(columnOpts)
   const { columnToggleItems, columnBaseRanks } = grid

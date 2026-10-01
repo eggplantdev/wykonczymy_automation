@@ -858,18 +858,18 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 4.1 Provider DOM spec
-- [x] 4.2 Translations / plurals unit spec
+- [x] 4.1 Provider DOM spec — 1d7dbb2f
+- [x] 4.2 Translations / plurals unit spec — 1d7dbb2f
 
 ### Phase 5: The report link in Ukrainian
 
 #### Automated
 
-- [ ] 5.1 Extras dialog spec green without provider + `uk` case
-- [ ] 5.2 Report grid DOM spec under `uk` vs Polish default
-- [ ] 5.3 `translateTree` unit spec
-- [ ] 5.4 Token-action / worker-report specs assert `messageKey`
-- [ ] 5.5 Column-label specs green with no dictionary
+- [x] 5.1 Extras dialog spec green without provider + `uk` case
+- [x] 5.2 Report grid DOM spec under `uk` vs Polish default
+- [x] 5.3 `translateTree` unit spec
+- [x] 5.4 Token-action / worker-report specs assert `messageKey`
+- [x] 5.5 Column-label specs green with no dictionary
 
 ### Phase 6: The fill script, translations and docs
 

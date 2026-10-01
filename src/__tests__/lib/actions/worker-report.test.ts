@@ -116,7 +116,11 @@ describe.skipIf(!ENV_READY)('sendWorkerReportAction (DB)', () => {
   it.each([0, -2])('refuses a quantity of %s and stores nothing', async (qty) => {
     const before = await storedReports()
     const res = await sendWorkerReportAction(token, [{ kind: 'rozpiska', itemId, qty }])
-    expect(res).toEqual({ success: false, error: 'Ilość musi być większa od zera' })
+    expect(res).toEqual({
+      success: false,
+      error: 'Ilość musi być większa od zera',
+      messageKey: 'qtyPositive',
+    })
     expect(await storedReports()).toHaveLength(before.length)
   })
 

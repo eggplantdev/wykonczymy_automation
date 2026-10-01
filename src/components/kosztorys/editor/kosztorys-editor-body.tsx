@@ -50,6 +50,7 @@ import { gridMinWidth } from '@/lib/kosztorys/grid-min-width'
 import { engagedConditionsOfKind, engagedHiders } from '@/lib/kosztorys/row-conditions/queries'
 import { emptyGridCopy } from '@/lib/kosztorys/empty-grid-copy'
 import { editorNoun } from '@/lib/kosztorys/editor-noun'
+import { useTranslation } from '@/lib/i18n/use-translation'
 import {
   isSectionFooterRow,
   isSectionHeaderRow,
@@ -156,6 +157,8 @@ export function KosztorysEditorBody({
   // to a pozycja, so this is all the kosztorys can know.
   const hasSettledMaterial = panelData.settledBreakdown.length > 0
   const noun = editorNoun(isTemplate)
+  const gridCopy = useTranslation('grid')
+  const totalLabel = gridCopy.t('total')
   // The investor's history never reaches a crew's document, whatever a caller passes.
   const investorHistory = worker ? undefined : history
   const pastVersion = investorHistory?.version ?? null
@@ -314,10 +317,10 @@ export function KosztorysEditorBody({
                   headerClassName: cn(column.headerClassName, STRIPE_COLUMN_CLASS),
                 }
               : column,
-            { totals: columnTotals, sectionHeader, sectionFooter },
+            { totals: columnTotals, totalLabel, sectionHeader, sectionFooter },
           ),
         ),
-    [columns, pastVersion, preview, columnTotals, sectionHeader, sectionFooter],
+    [columns, pastVersion, preview, columnTotals, totalLabel, sectionHeader, sectionFooter],
   )
   const engagedHiderList = engagedHiders(engagedConditionIds)
   const engagedDiagnostics = engagedConditionsOfKind(engagedConditionIds, 'diagnostic')
@@ -369,6 +372,7 @@ export function KosztorysEditorBody({
     preview,
     hiders: engagedHiderList,
     diagnostics: engagedDiagnostics,
+    dictionary: gridCopy,
   })
   // Absent in the preview: the client has no handle to drag.
   const rowResize: RowResizeApiT | undefined = useMemo(
@@ -598,7 +602,9 @@ export function KosztorysEditorBody({
                 {isEmpty && (
                   <EmptyState
                     className="pointer-events-none absolute inset-0"
-                    title={`${noun.Nominative} jest pusty`}
+                    title={
+                      isTemplate ? `${noun.Nominative} jest pusty` : gridCopy.t('emptyKosztorys')
+                    }
                     // The client view renders no toolbar, so it has no „Dodaj" menu to point at.
                     description={
                       preview ? undefined : 'Dodaj sekcję lub etap z menu „Dodaj" powyżej.'
@@ -625,8 +631,8 @@ export function KosztorysEditorBody({
                 {!isEmpty && viewRows.length === 0 && search.trim() !== '' && (
                   <EmptyState
                     className="pointer-events-none absolute inset-0"
-                    title="Brak wyników"
-                    description={`Żadna pozycja nie pasuje do „${search.trim()}".`}
+                    title={gridCopy.t('noResults')}
+                    description={gridCopy.t('noResultsDescription', { query: search.trim() })}
                   >
                     {/* The overlay is click-through so the grid stays usable; the button opts back in. */}
                     <Button
@@ -635,7 +641,7 @@ export function KosztorysEditorBody({
                       className="pointer-events-auto"
                       onClick={() => setSearch('')}
                     >
-                      Wyczyść wyszukiwanie
+                      {gridCopy.t('clearSearch')}
                     </Button>
                   </EmptyState>
                 )}

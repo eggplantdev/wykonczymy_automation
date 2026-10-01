@@ -75,12 +75,23 @@ export type TranslatorT<NS extends NamespaceT> = {
   tp: (key: PluralKeyT<NS>, count: number, params?: TranslationParamsT) => string
 }
 
+const translators = new Map<string, unknown>()
+
 // The non-React entry: the server and the pure column builders take a translator, not a hook.
-export const createTranslator = <NS extends NamespaceT>(
+// One instance per locale and namespace, so a translator in a memo's dependencies (the editor's
+// columns) changes only when the language does.
+export function createTranslator<NS extends NamespaceT>(
   locale: LanguageT,
   namespace: NS,
-): TranslatorT<NS> => ({
-  locale,
-  t: (key, params) => translate(locale, namespace, key, params),
-  tp: (key, count, params) => translatePlural(locale, namespace, key, count, params),
-})
+): TranslatorT<NS> {
+  const cacheKey = `${locale}:${namespace}`
+  const cached = translators.get(cacheKey)
+  if (cached) return cached as TranslatorT<NS>
+  const translator: TranslatorT<NS> = {
+    locale,
+    t: (key, params) => translate(locale, namespace, key, params),
+    tp: (key, count, params) => translatePlural(locale, namespace, key, count, params),
+  }
+  translators.set(cacheKey, translator)
+  return translator
+}

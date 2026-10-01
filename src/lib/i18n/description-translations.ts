@@ -9,7 +9,9 @@ import {
 // „out of date": the opis moved on and the translation did not.
 export type DescriptionTranslationT = { text: string; source: string }
 
-export type DescriptionTranslationsT = Partial<Record<TranslationLanguageT, DescriptionTranslationT>>
+export type DescriptionTranslationsT = Partial<
+  Record<TranslationLanguageT, DescriptionTranslationT>
+>
 
 const translationSchema = z.object({ text: z.string(), source: z.string() })
 

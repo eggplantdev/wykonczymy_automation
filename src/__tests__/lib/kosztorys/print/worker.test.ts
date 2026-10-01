@@ -220,7 +220,7 @@ describe('buildWorkerPrintHtml', () => {
   })
 
   describe('columns the data takes off — the same rule the link renders by', () => {
-    const [tynki, second] = stages.map(stageLabel)
+    const [tynki, second] = stages.map((each) => stageLabel(each))
 
     it('prints the offer shape before any entry in his etapy, whatever the checkbox says', () => {
       for (const hidePlannedOnceExecuted of [true, false]) {

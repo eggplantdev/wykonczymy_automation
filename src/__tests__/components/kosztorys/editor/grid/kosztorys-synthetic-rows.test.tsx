@@ -57,6 +57,7 @@ function renderRow(rowData: KosztorysV2RowT, columnIds: readonly string[] = COLU
     },
     sectionFooter: { figures: FIGURES, labelColumnId: sectionFooterLabelColumnId(columnIds) },
     totals: TOTALS,
+    totalLabel: 'Razem',
   }
   const columns = columnIds.map((id) =>
     withSyntheticRows({ id, component: BaseCell } as unknown as Column<KosztorysV2RowT>, context),

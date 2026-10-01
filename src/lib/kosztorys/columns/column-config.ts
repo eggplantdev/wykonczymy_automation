@@ -1,8 +1,9 @@
 import type { PriceViewT } from '@/lib/kosztorys/calc'
-import { PLANE_LABELS } from '@/lib/kosztorys/labels'
-import { planeDashSuffix } from '@/lib/kosztorys/format'
+import { PLANE_LABEL_KEYS, PLANE_LABELS } from '@/lib/kosztorys/labels'
 import { planePriceKeyParts } from '@/lib/kosztorys/plane-price-keys'
-import { LANGUAGE_SHORT } from '@/lib/i18n/languages'
+import { pl } from '@/lib/i18n/dictionaries/pl'
+import { DEFAULT_LANGUAGE, LANGUAGE_SHORT } from '@/lib/i18n/languages'
+import { createTranslator, type MessageKeyT, type TranslatorT } from '@/lib/i18n/translations'
 import {
   ALL_TRANSLATION_COLUMN_KEYS,
   translationColumnLanguage,
@@ -17,16 +18,16 @@ import {
 export const COLUMN_LABELS: Record<string, string> = {
   actions: 'Akcje',
   sectionName: 'Sekcja',
-  description: 'Opis prac',
-  plannedQty: 'Przedmiar',
+  description: pl.grid.description,
+  plannedQty: pl.grid.plannedQty,
   stageQtySum: 'Pomiar (razem etapy)',
   // Names both sides of its subtraction in the header: the column is read at a glance, so needing a
   // tooltip to learn which two figures are being compared would defeat it.
   divergence: 'Rozjazd między arkuszem Google a apką',
-  unit: 'Jednostka miary',
+  unit: pl.grid.unit,
   priceMode: 'Źródło ceny wykonawcy',
   priceCoeff: 'Mnożnik',
-  price: 'Cena j.m. netto',
+  price: pl.grid.price,
   priceGross: 'Cena j.m. brutto',
   discountType: 'Rabat',
   discountValue: 'Rabat wart.',
@@ -34,8 +35,8 @@ export const COLUMN_LABELS: Record<string, string> = {
   discountAmountGross: 'Rabat kwota brutto',
   plannedNet: 'Wartość przedmiaru netto',
   plannedGross: 'Wartość przedmiaru brutto',
-  plannedNetForPlane: 'Wartość przedmiaru netto',
-  remainingForPlane: 'Pozostało netto (względem przedmiaru)',
+  plannedNetForPlane: pl.grid.plannedNetForPlane,
+  remainingForPlane: pl.grid.remainingForPlane,
   net: 'Wartość netto (razem etapy)',
   gross: 'Wartość brutto (razem etapy)',
   remaining: 'Pozostało netto (względem przedmiaru)',
@@ -46,6 +47,19 @@ export const COLUMN_LABELS: Record<string, string> = {
   donePercent: '% wykonania (względem przedmiaru)',
   note: 'Komentarz',
 }
+
+// The labels the worker's link renders, keyed into the `grid` dictionary. A map rather than a key
+// lookup by column id: `net` and `stageValueNet` name other things there.
+const TRANSLATED_LABEL_KEYS: Partial<Record<string, MessageKeyT<'grid'>>> = {
+  description: 'description',
+  plannedQty: 'plannedQty',
+  unit: 'unit',
+  price: 'price',
+  plannedNetForPlane: 'plannedNetForPlane',
+  remainingForPlane: 'remainingForPlane',
+}
+
+const POLISH_GRID = createTranslator(DEFAULT_LANGUAGE, 'grid')
 
 /**
  * The two labels that mean different things per view, resolved in the same module that owns every
@@ -59,28 +73,41 @@ export const COLUMN_LABELS: Record<string, string> = {
  * „Pomiar": the whole scope's executed quantity vs only this crew's etapy (settlement-rows.ts
  * `rowTotalQtyDone`).
  */
-export function columnLabelForView(id: string, view: PriceViewT): string {
+export function columnLabelForView(
+  id: string,
+  view: PriceViewT,
+  dictionary: TranslatorT<'grid'> = POLISH_GRID,
+): string {
+  const labelOf = (key: string) => {
+    const translated = TRANSLATED_LABEL_KEYS[key]
+    return translated ? dictionary.t(translated) : (COLUMN_LABELS[key] ?? key)
+  }
+  const planeOf = (plane: keyof typeof PLANE_LABEL_KEYS) =>
+    dictionary.t(PLANE_LABEL_KEYS[plane]).toLowerCase()
   // A subcontractor rate names its plane in the label, because both planes are on screen at once and
   // the picker is a flat list — „Cena j.m. netto" twice would be unreadable. Built from the base entry
   // so one rename moves both planes.
   const planePrice = planePriceKeyParts(id)
   if (planePrice !== null) {
     const { base, plane } = planePrice
-    return `${COLUMN_LABELS[base] ?? id}${planeDashSuffix(plane)}`
+    return `${labelOf(base)} — ${planeOf(plane)}`
   }
   const translationLanguage = translationColumnLanguage(id)
   if (translationLanguage !== null)
-    return `${COLUMN_LABELS.description} (${LANGUAGE_SHORT[translationLanguage]})`
-  const label = COLUMN_LABELS[id] ?? id
+    return `${labelOf('description')} (${LANGUAGE_SHORT[translationLanguage]})`
+  const label = labelOf(id)
   if (id === 'net' || id === 'gross') {
     if (view === 'client') return label
-    return `Suma etapy ${PLANE_LABELS[view].toLowerCase()} ${id === 'net' ? 'netto' : 'brutto'}`
+    // Brutto never reaches the worker's link, so only netto has a translation.
+    return id === 'net'
+      ? dictionary.t('netForPlane', { plane: planeOf(view) })
+      : `Suma etapy ${PLANE_LABELS[view].toLowerCase()} brutto`
   }
   if (id === 'stageQtySum' && view !== 'client')
-    return `Pomiar — suma etapów ${PLANE_LABELS[view].toLowerCase()}`
+    return dictionary.t('stageQtySumForPlane', { plane: planeOf(view) })
   // Shares its base label with „Wartość przedmiaru netto", which stays at the client price in every
   // view; the plane suffix is the only thing telling the two apart on one screen.
-  if (id === 'plannedNetForPlane' && view !== 'client') return `${label}${planeDashSuffix(view)}`
+  if (id === 'plannedNetForPlane' && view !== 'client') return `${label} — ${planeOf(view)}`
   return label
 }
 

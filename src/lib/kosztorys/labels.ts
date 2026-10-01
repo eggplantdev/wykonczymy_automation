@@ -1,8 +1,16 @@
+import { pl } from '@/lib/i18n/dictionaries/pl'
+import type { MessageKeyT } from '@/lib/i18n/translations'
 import type { DiscountTypeT, PriceSourceT, ToolPlaneT } from '@/lib/kosztorys/types'
 
+// The worker's link names his plane in his language, so the key travels beside the Polish label.
+export const PLANE_LABEL_KEYS: Record<ToolPlaneT, MessageKeyT<'grid'>> = {
+  w_tools: 'planeWithTools',
+  own_tools: 'planeOwnTools',
+}
+
 export const PLANE_LABELS: Record<ToolPlaneT, string> = {
-  w_tools: 'Z narzędziami (podwykonawca)',
-  own_tools: 'Bez narzędzi (pracownik)',
+  w_tools: pl.grid[PLANE_LABEL_KEYS.w_tools],
+  own_tools: pl.grid[PLANE_LABEL_KEYS.own_tools],
 }
 
 export const RATE_LABELS: Record<ToolPlaneT, string> = {

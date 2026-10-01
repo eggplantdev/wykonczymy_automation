@@ -7,14 +7,14 @@ import { DraftExtraWorks } from '@/components/kosztorys/worker-report/draft-extr
 import { ExtraWorksDialogButton } from '@/components/kosztorys/worker-report/extra-works-dialog-button'
 import { ReportBar } from '@/components/kosztorys/worker-report/report-bar'
 import { SendBar, type SentT } from '@/components/kosztorys/worker-report/send-bar'
-import { itemNoun } from '@/lib/kosztorys/counted-nouns'
 import { SentReports } from '@/components/kosztorys/worker-report/sent-reports'
 import type { useReportDraft } from '@/components/kosztorys/worker-report/use-report-draft'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
+import { translateTree } from '@/lib/i18n/translate-tree'
+import { useTranslation } from '@/lib/i18n/use-translation'
 import { cn } from '@/lib/utils/cn'
 import { decimalText } from '@/lib/utils/decimal-text'
-import { pluralize } from '@/lib/utils/polish-plural'
 import { parseReportQty } from '@/lib/kosztorys/worker-report/parse-report-qty'
 import type { WorkerReportRowT } from '@/lib/db/worker-reports'
 import type { WorkerReportFormDataT } from '@/lib/kosztorys/worker-report/types'
@@ -29,8 +29,6 @@ type PropsT = {
   sentReports: WorkerReportRowT[]
   onSent: (sent: SentT) => void
 }
-
-const VANISHED_FORMS = ['zniknęła', 'zniknęły', 'zniknęło'] as const
 
 function draftQtyByItem(qtyByItem: Record<number, string>): Record<number, number> {
   return Object.fromEntries(
@@ -53,15 +51,25 @@ export function ReportGrid({
   onSent,
 }: PropsT) {
   const [isAllColumns, setIsAllColumns] = useState(false)
-  const [initialQtyByItem] = useState(() => draftQtyByItem(draft.draft.qtyByItem))
+  const { locale, t, tp } = useTranslation('report')
+  // The body seeds its rows once, so a language switch remounts it — reseeded from the draft as it
+  // is now, or what he typed since the first mount would vanish from the column.
+  const [seed, setSeed] = useState(() => ({
+    locale,
+    initialQtyByItem: draftQtyByItem(draft.draft.qtyByItem),
+  }))
+  if (seed.locale !== locale) {
+    setSeed({ locale, initialQtyByItem: draftQtyByItem(draft.draft.qtyByItem) })
+  }
 
   return (
     <KosztorysEditorBody
+      key={seed.locale}
       preview
       worker={document.worker}
       investmentId={document.investmentId}
       investmentName={document.investmentName}
-      tree={document.tree}
+      tree={translateTree(document.tree, locale)}
       materialsGrossBase={0}
       materialsNetBilled={0}
       materialsBreakdown={[]}
@@ -72,7 +80,7 @@ export function ReportGrid({
       depositTransactions={[]}
       materialTransactions={[]}
       report={{
-        initialQtyByItem,
+        initialQtyByItem: seed.initialQtyByItem,
         pendingQtyByItem,
         isCompact: !isAllColumns,
         // A negative stays in the draft as typed, so the send bar can refuse it.
@@ -82,8 +90,7 @@ export function ReportGrid({
             <BrandedHeader data={data} />
             {draft.droppedCount > 0 && (
               <p className="border-border border-b px-4 py-2 text-sm text-amber-700 dark:text-amber-400">
-                {draft.droppedCount} {itemNoun(draft.droppedCount)} ze szkicu{' '}
-                {pluralize(draft.droppedCount, VANISHED_FORMS)} z rozpiski.
+                {tp('draftDropped', draft.droppedCount)}
               </p>
             )}
             <ReportBar
@@ -97,11 +104,11 @@ export function ReportGrid({
                       checked={controls.showAllRows}
                       onCheckedChange={controls.onShowAllRows}
                     />
-                    Wszystkie prace
+                    {t('allWorks')}
                   </Label>
                   <Label className="gap-2 text-xs font-normal">
                     <Switch checked={isAllColumns} onCheckedChange={setIsAllColumns} />
-                    Wszystkie kolumny
+                    {t('allColumns')}
                   </Label>
                 </>
               }

@@ -5,6 +5,7 @@ import { validateAction } from '@/lib/actions/run-action'
 import { tokenAction } from '@/lib/actions/token-action'
 import { insertWorkerReport, type WorkerReportLineInputT } from '@/lib/db/worker-reports'
 import { cleanUnit } from '@/lib/kosztorys/clean-unit'
+import { reportNoticeKeyOf } from '@/lib/kosztorys/worker-report/refusals'
 import { sendLineSchema } from '@/lib/kosztorys/worker-report/schemas'
 import type { SendReportLineT } from '@/lib/kosztorys/worker-report/types'
 import { unitOptions } from '@/lib/kosztorys/unit-options'
@@ -27,7 +28,7 @@ export async function sendWorkerReportAction(
   lines: SendReportLineT[],
 ): Promise<ActionResultT<{ reportId: number }>> {
   const parsed = validateAction(linesSchema, lines)
-  if (!parsed.success) return parsed
+  if (!parsed.success) return { ...parsed, messageKey: reportNoticeKeyOf(parsed.error) }
 
   const itemIds = parsed.data.flatMap((line) => (line.kind === 'rozpiska' ? [line.itemId] : []))
   if (new Set(itemIds).size !== itemIds.length) {

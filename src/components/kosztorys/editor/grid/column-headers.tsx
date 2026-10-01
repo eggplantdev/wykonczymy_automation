@@ -5,6 +5,7 @@ import { SortHeader } from '@/components/kosztorys/editor/grid/sort-header'
 import { HeaderLabel } from '@/components/ui/datasheet-grid/header-label'
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import { type BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
+import type { TranslatorT } from '@/lib/i18n/translations'
 import { columnLabelForView } from '@/lib/kosztorys/columns/column-config'
 import { headerTipFor } from '@/lib/kosztorys/header-tips'
 import { activeSortPick } from '@/lib/kosztorys/row-view'
@@ -45,21 +46,28 @@ function sortableHeader(
   return tip ? withTip(node, tip) : node
 }
 
+function surfaceDictionary(
+  opts: Pick<BuildV2ColumnsOptsT, 'workerSurface' | 'dictionary'>,
+): TranslatorT<'grid'> | undefined {
+  return opts.workerSurface ? opts.dictionary : undefined
+}
+
 // The label is resolved from `field`, never passed in: every header and the column picker then read
 // the same resolver, so a label that becomes view-dependent can't land in one and miss the other.
 export function columnTitle(
   field: string,
   opts: Pick<
     BuildV2ColumnsOptsT,
-    'sort' | 'onSetSort' | 'onPersistKosztorysOrder' | 'view' | 'workerSurface'
+    'sort' | 'onSetSort' | 'onPersistKosztorysOrder' | 'view' | 'workerSurface' | 'dictionary'
   >,
 ): ReactNode {
+  const dictionary = surfaceDictionary(opts)
   return sortableHeader(
-    columnLabelForView(field, opts.view),
+    columnLabelForView(field, opts.view, dictionary),
     field,
     // Base key: a plane's „Cena j.m. netto" and „Źródło ceny wykonawcy" explain the same figure on
     // both planes, so the tip is written once and every plane reads it.
-    headerTipFor(field, { workerSurface: !!opts.workerSurface }),
+    headerTipFor(field, { workerSurface: !!opts.workerSurface, dictionary }),
     opts,
   )
 }
@@ -71,18 +79,24 @@ export function columnTitle(
 // than a static column label.
 export function stageValueHeader(
   stage: KosztorysStageT,
-  suffix: string,
+  axis: 'net' | 'gross',
   group: string,
   field: string,
   opts: Pick<
     BuildV2ColumnsOptsT,
-    'sort' | 'onSetSort' | 'onPersistKosztorysOrder' | 'workerSurface'
+    'sort' | 'onSetSort' | 'onPersistKosztorysOrder' | 'workerSurface' | 'dictionary'
   >,
 ): ReactNode {
+  const dictionary = surfaceDictionary(opts)
+  // Brutto never reaches the worker's link, so only netto has a translation.
+  const label =
+    dictionary && axis === 'net'
+      ? dictionary.t('stageValueNetHeader', { stage: stageLabel(stage, dictionary) })
+      : `${stageLabel(stage)} ${axis === 'net' ? 'netto' : 'brutto'}`
   return sortableHeader(
-    `${stageLabel(stage)} ${suffix}`,
+    label,
     field,
-    headerTipFor(group, { workerSurface: !!opts.workerSurface }),
+    headerTipFor(group, { workerSurface: !!opts.workerSurface, dictionary }),
     opts,
   )
 }

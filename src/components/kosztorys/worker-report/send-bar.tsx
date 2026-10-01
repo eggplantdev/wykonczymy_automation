@@ -8,6 +8,8 @@ import type { useReportDraft } from '@/components/kosztorys/worker-report/use-re
 import { parseReportQty } from '@/lib/kosztorys/worker-report/parse-report-qty'
 import { sendWorkerReportAction } from '@/lib/actions/worker-report'
 import type { SendReportLineT, WorkerReportFormDataT } from '@/lib/kosztorys/worker-report/types'
+import { failureMessage } from '@/lib/i18n/failure-message'
+import { useTranslation } from '@/lib/i18n/use-translation'
 import { toastMessage } from '@/lib/utils/toast'
 import { settleAction } from '@/lib/utils/settle-action'
 
@@ -23,6 +25,8 @@ type PropsT = {
 export function SendBar({ token, data, draft, onSent }: PropsT) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const [isSending, setIsSending] = useState(false)
+  const { locale, t } = useTranslation('report')
+  const { t: tCommon } = useTranslation('common')
   const itemQtys = data.sections
     .flatMap((section) => section.items)
     .map((item) => ({
@@ -60,32 +64,36 @@ export function SendBar({ token, data, draft, onSent }: PropsT) {
     // The szkic survives a refused send, so nothing he typed is lost to a closed investment or a
     // dropped connection.
     if (!result.success) {
-      toastMessage(result.error, 'error', 6000)
+      toastMessage(failureMessage(locale, result), 'error', 6000)
       return
     }
     draft.clear()
-    toastMessage('Zgłoszenie wysłane do weryfikacji')
+    toastMessage(t('sentToast'))
     onSent({ lineCount })
   }
 
   return (
     <>
       <div className="flex items-center gap-3">
-        {hasInvalid && <p className="text-destructive text-sm whitespace-nowrap">Popraw błędy</p>}
+        {hasInvalid && <p className="text-destructive text-sm whitespace-nowrap">{t('fixErrors')}</p>}
         <Button
           disabled={lineCount === 0 || hasInvalid || isSending}
           onClick={() => setIsConfirmOpen(true)}
         >
-          {isSending ? 'Wysyłanie…' : 'Wyślij'}
+          {isSending ? t('sending') : t('send')}
         </Button>
       </div>
 
       <ConfirmDialog
         open={isConfirmOpen}
         variant="neutral"
-        title="Wysłać do weryfikacji?"
-        description={`${itemLines.length} z rozpiski, ${extraLines.length} dopisanych ręcznie. Po wysłaniu zgłoszenia nie można już zmienić.`}
-        confirmLabel="Wyślij"
+        title={t('confirmTitle')}
+        description={t('confirmDescription', {
+          items: itemLines.length,
+          extras: extraLines.length,
+        })}
+        confirmLabel={t('send')}
+        cancelLabel={tCommon('cancel')}
         onConfirm={send}
         onCancel={() => setIsConfirmOpen(false)}
       />

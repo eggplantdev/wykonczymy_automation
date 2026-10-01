@@ -44,9 +44,11 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  closeLabel = 'Zamknij',
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
+  closeLabel?: string
 }) {
   return (
     <DialogPortal data-slot="dialog-portal">
@@ -70,7 +72,7 @@ function DialogContent({
           <DialogPrimitive.Close
             data-slot="dialog-close"
             className="text-foreground hover:bg-accent absolute top-2 right-2 rounded-md p-3 transition-colors focus:ring-2 focus:ring-offset-2 focus:outline-hidden"
-            aria-label="Zamknij"
+            aria-label={closeLabel}
           >
             <X className="size-6" />
           </DialogPrimitive.Close>

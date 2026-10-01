@@ -4,6 +4,9 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ExtraWorksDialogButton } from '@/components/kosztorys/worker-report/extra-works-dialog-button'
 import type { ExtraWorkT } from '@/components/kosztorys/worker-report/types'
+import { ru } from '@/lib/i18n/dictionaries/ru'
+import { uk } from '@/lib/i18n/dictionaries/uk'
+import { TranslationsProvider } from '@/lib/i18n/translations-provider'
 
 function Harness() {
   const [extras, setExtras] = useState<ExtraWorkT[]>([])
@@ -51,5 +54,32 @@ describe('ExtraWorksDialogButton', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: 'Gotowe' }))
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it.each([
+    ['uk', uk],
+    ['ru', ru],
+  ] as const)('speaks %s to a worker who chose it', async (locale, dictionary) => {
+    render(
+      <TranslationsProvider initialLocale={locale} workerId={1}>
+        <Harness />
+      </TranslationsProvider>,
+    )
+    const copy = dictionary.report
+    await userEvent.click(screen.getByRole('button', { name: new RegExp(copy.newWork) }))
+    const dialog = screen.getByRole('dialog')
+    await userEvent.type(
+      within(dialog).getByRole('textbox', { name: copy.descriptionPlaceholder }),
+      'Монтаж',
+    )
+
+    await userEvent.click(within(dialog).getByRole('button', { name: copy.done }))
+
+    expect(within(dialog).getByText(copy.extrasFixErrors)).toBeInTheDocument()
+    expect(within(dialog).getByRole('textbox', { name: copy.reportColumn })).toHaveAttribute(
+      'aria-invalid',
+      'true',
+    )
+    expect(within(dialog).queryByText(/Popraw błędy/)).not.toBeInTheDocument()
   })
 })

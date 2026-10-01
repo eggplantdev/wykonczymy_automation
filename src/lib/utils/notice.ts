@@ -1,3 +1,6 @@
+import { DEFAULT_LANGUAGE } from '@/lib/i18n/languages'
+import { createTranslator, type TranslatorT } from '@/lib/i18n/translations'
+
 // The WORDING and the timing of a notice, kept apart from `toast.ts`, which is the side effect that
 // shows one. 22 specs mock that module to keep react-toastify out of jsdom, each factory naming only
 // `toastMessage` — so a constant living there came back `undefined` in every one of them. Nothing has
@@ -7,13 +10,16 @@
 // it reports a figure that was just committed.
 export const NOTICE_MS = 5000
 
+const POLISH_GRID = createTranslator(DEFAULT_LANGUAGE, 'grid')
+
 // One sentence for a refused entry, so a grid cell and a settings field word the same refusal. The
 // „przywrócono …" half is appended only where the refusal displaced a figure — garbage that displaced
 // nothing is reported quietly.
 export const rejectedEntryMessage = (
   restored: string | null,
   kind: 'invalid' | 'blocked' = 'invalid',
+  dictionary: TranslatorT<'grid'> = POLISH_GRID,
 ) =>
-  `${kind === 'blocked' ? 'Wartość odrzucona' : 'Nieprawidłowa wartość'}${
-    restored == null ? '' : ` — przywrócono ${restored}`
+  `${dictionary.t(kind === 'blocked' ? 'rejectedBlocked' : 'rejectedInvalid')}${
+    restored == null ? '' : ` — ${dictionary.t('rejectedRestored', { value: restored })}`
   }.`

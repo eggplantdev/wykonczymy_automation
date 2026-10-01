@@ -15,6 +15,13 @@ vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalida
 
 const { tokenAction } = await import('@/lib/actions/token-action')
 
+// The Polish sentence stays for every caller; the key is what the worker's page translates.
+const refused = (key: keyof typeof REPORT_REFUSALS) => ({
+  success: false,
+  error: REPORT_REFUSALS[key],
+  messageKey: key,
+})
+
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
 describe.skipIf(!ENV_READY)('tokenAction gates (DB)', () => {
@@ -103,38 +110,35 @@ describe.skipIf(!ENV_READY)('tokenAction gates (DB)', () => {
   })
 
   it('refuses an unknown token', async () => {
-    expect(await run('no-such-token')).toEqual({
-      success: false,
-      error: REPORT_REFUSALS.unknownToken,
-    })
+    expect(await run('no-such-token')).toEqual(refused('unknownToken'))
     expect(handler).not.toHaveBeenCalled()
   })
 
   it('refuses a revoked token', async () => {
     const token = await mintToken(readyWorkerId)
     await db.execute(sql`DELETE FROM worker_report_shares WHERE token = ${token}`)
-    expect(await run(token)).toEqual({ success: false, error: REPORT_REFUSALS.unknownToken })
+    expect(await run(token)).toEqual(refused('unknownToken'))
     expect(handler).not.toHaveBeenCalled()
   })
 
   it('refuses a zakończona investment', async () => {
     const token = await mintToken(readyWorkerId)
     await db.execute(sql`UPDATE investments SET status = 'completed' WHERE id = ${investmentId}`)
-    expect(await run(token)).toEqual({ success: false, error: REPORT_REFUSALS.closed })
+    expect(await run(token)).toEqual(refused('closed'))
     expect(handler).not.toHaveBeenCalled()
   })
 
   it('refuses a trashed investment', async () => {
     const token = await mintToken(readyWorkerId)
     await db.execute(sql`UPDATE investments SET trashed_at = now() WHERE id = ${investmentId}`)
-    expect(await run(token)).toEqual({ success: false, error: REPORT_REFUSALS.closed })
+    expect(await run(token)).toEqual(refused('closed'))
     expect(handler).not.toHaveBeenCalled()
   })
 
   it('refuses an inactive worker', async () => {
     const token = await mintToken(readyWorkerId)
     await db.execute(sql`UPDATE users SET active = false WHERE id = ${readyWorkerId}`)
-    expect(await run(token)).toEqual({ success: false, error: REPORT_REFUSALS.inactiveWorker })
+    expect(await run(token)).toEqual(refused('inactiveWorker'))
     expect(handler).not.toHaveBeenCalled()
   })
 
@@ -143,16 +147,14 @@ describe.skipIf(!ENV_READY)('tokenAction gates (DB)', () => {
     expect(await run(token)).toEqual({
       success: false,
       error: WORKER_SCOPE_BLOCK_MESSAGES['unconfirmed-plane'],
+      messageKey: 'unconfirmedPlane',
     })
     expect(handler).not.toHaveBeenCalled()
   })
 
   it('refuses a pozycja of another investment', async () => {
     const token = await mintToken(readyWorkerId)
-    expect(await run(token, [ownItemId, foreignItemId])).toEqual({
-      success: false,
-      error: REPORT_REFUSALS.foreignItem,
-    })
+    expect(await run(token, [ownItemId, foreignItemId])).toEqual(refused('foreignItem'))
     expect(handler).not.toHaveBeenCalled()
   })
 })

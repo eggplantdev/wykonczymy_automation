@@ -6,13 +6,13 @@ import { Button } from '@/components/ui/button'
 import { BrandedHeader } from '@/components/kosztorys/worker-report/branded-header'
 import { ReportGrid } from '@/components/kosztorys/worker-report/report-grid'
 import type { SentT } from '@/components/kosztorys/worker-report/send-bar'
-import { itemNoun } from '@/lib/kosztorys/counted-nouns'
 import { SentReports } from '@/components/kosztorys/worker-report/sent-reports'
 import {
   reportDraftKey,
   useReportDraft,
 } from '@/components/kosztorys/worker-report/use-report-draft'
 import type { WorkerReportRowT } from '@/lib/db/worker-reports'
+import { useTranslation } from '@/lib/i18n/use-translation'
 import { toWorkerReportFormData } from '@/lib/kosztorys/worker-report/to-form-data'
 import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
 
@@ -26,6 +26,7 @@ type PropsT = {
 export function WorkerReportForm({ token, document, pendingQtyByItem, sentReports }: PropsT) {
   const data = toWorkerReportFormData(document)
   const router = useRouter()
+  const { t, tp } = useTranslation('report')
   const [sent, setSent] = useState<SentT | undefined>()
   const [liveItemIds] = useState(
     () => new Set(data.sections.flatMap((section) => section.items.map((item) => item.id))),
@@ -37,13 +38,10 @@ export function WorkerReportForm({ token, document, pendingQtyByItem, sentReport
       <main className="mx-auto flex min-h-dvh w-full max-w-6xl flex-col">
         <BrandedHeader data={data} />
         <div className="flex flex-col items-start gap-4 px-4 py-10">
-          <h2 className="text-lg font-semibold">Wysłano do weryfikacji</h2>
-          <p className="text-muted-foreground text-sm">
-            {sent.lineCount} {itemNoun(sent.lineCount)}. Kierownik sprawdzi zgłoszenie i przeniesie
-            je do etapu w rozpisce.
-          </p>
+          <h2 className="text-lg font-semibold">{t('sentTitle')}</h2>
+          <p className="text-muted-foreground text-sm">{tp('sentBody', sent.lineCount)}</p>
           <Button variant="outline" onClick={() => setSent(undefined)}>
-            Nowe zgłoszenie
+            {t('newReport')}
           </Button>
         </div>
         <SentReports reports={sentReports} />

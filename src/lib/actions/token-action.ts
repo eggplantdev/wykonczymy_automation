@@ -3,9 +3,12 @@ import type { Payload } from 'payload'
 import { runAuthorizedHandler } from '@/lib/actions/run-action'
 import { getDb, type DbExecutorT } from '@/lib/db/get-db'
 import { readReportShare } from '@/lib/db/worker-report-share'
-import { REPORT_REFUSALS } from '@/lib/kosztorys/worker-report/refusals'
+import {
+  reportRefusal,
+  WORKER_SCOPE_BLOCK_NOTICE_KEYS,
+  type ReportNoticeKeyT,
+} from '@/lib/kosztorys/worker-report/refusals'
 import { reportShareRefusal } from '@/lib/kosztorys/worker-report/share-refusal'
-import { WORKER_SCOPE_BLOCK_MESSAGES } from '@/lib/kosztorys/worker-view/labels'
 import { resolveWorkerScope } from '@/lib/kosztorys/worker-view/scope'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 import { buildKosztorysTree } from '@/lib/queries/kosztorys'
@@ -39,25 +42,23 @@ export async function tokenAction<TData = undefined>(
   return runAuthorizedHandler<TData>(
     label,
     async (payload) => {
-      const refuse = (error: string) => ({ success: false, error }) as ActionResultT<TData>
+      const refuse = (key: ReportNoticeKeyT) => reportRefusal(key) as ActionResultT<TData>
       const db = await getDb(payload)
 
       const share = await readReportShare(db, token)
-      if (!share) return refuse(REPORT_REFUSALS.unknownToken)
+      if (!share) return refuse('unknownToken')
 
       const refusal = await reportShareRefusal(db, share)
       if (refusal) return refuse(refusal)
 
       const tree = await buildKosztorysTree(share.investmentId)
       const scope = resolveWorkerScope(tree.stages, share.workerId)
-      if (scope.kind === 'blocked') return refuse(WORKER_SCOPE_BLOCK_MESSAGES[scope.reason])
+      if (scope.kind === 'blocked') return refuse(WORKER_SCOPE_BLOCK_NOTICE_KEYS[scope.reason])
 
       const ownItemIds = new Set(
         tree.sections.flatMap((section) => section.items.map((item) => item.id)),
       )
-      if (itemIds.some((itemId) => !ownItemIds.has(itemId))) {
-        return refuse(REPORT_REFUSALS.foreignItem)
-      }
+      if (itemIds.some((itemId) => !ownItemIds.has(itemId))) return refuse('foreignItem')
 
       return handler({
         payload,

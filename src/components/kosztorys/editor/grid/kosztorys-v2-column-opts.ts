@@ -13,6 +13,7 @@ import type {
   ToolPlaneT,
 } from '@/lib/kosztorys/types'
 import type { WorkerRefT } from '@/types/reference-data'
+import type { TranslatorT } from '@/lib/i18n/translations'
 
 export type BuildV2ColumnsOptsT = {
   view: PriceViewT
@@ -127,4 +128,7 @@ export type BuildV2ColumnsOptsT = {
   }
   // Which crew's rate columns are on screen — see crew-axis.ts. Absent = CREW_AXIS_DEFAULT.
   crewAxis?: CrewAxisT
+  // The worker's language for the headers and tips; read only with `workerSurface`, so every other
+  // surface stays Polish whatever the caller passes.
+  dictionary?: TranslatorT<'grid'>
 }
