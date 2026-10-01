@@ -24,7 +24,7 @@ export const PAGE_TITLES = {
   transactions: 'Transakcje',
   registers: 'Kasy',
   investments: 'Inwestycje',
-  leads: 'Zgłoszenia z formularzy',
+  leads: 'Zgłoszenia z formularzy kontaktowych',
   workerReports: 'Zgłoszenia wykonanych prac',
   sheets: 'Kosztorysy v1',
   workCatalog: 'Katalog prac',
@@ -54,7 +54,6 @@ export const SECTION_LINKS: NavLinkT[] = [
 export const MANAGEMENT_LINKS: NavLinkT[] = [
   { href: '/kasy', label: PAGE_TITLES.registers, icon: Wallet },
   { href: '/inwestycje', label: PAGE_TITLES.investments, icon: Building },
-  { href: '/zgloszenia', label: PAGE_TITLES.leads, icon: Inbox, unreadStream: 'leads' },
   { href: '/kosztorysy', label: PAGE_TITLES.sheets, icon: FileSpreadsheet },
   { href: '/katalog-prac', label: PAGE_TITLES.workCatalog, icon: ListChecks },
   { href: '/szablony', label: PAGE_TITLES.templates, icon: LayoutTemplate },
@@ -67,4 +66,5 @@ export const MANAGEMENT_LINKS: NavLinkT[] = [
     icon: FileUser,
     unreadStream: 'workerReports',
   },
+  { href: '/zgloszenia', label: PAGE_TITLES.leads, icon: Inbox, unreadStream: 'leads' },
 ]

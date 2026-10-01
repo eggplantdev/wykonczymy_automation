@@ -3067,9 +3067,11 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
 
 ## 2026-10-01 — nazwy-zgloszen
 
-- [ ] Menu boczne: zamiast „Zgłoszenia" jest „Zgłoszenia z formularzy", a zamiast „Zgłoszenia prac"
-      jest „Zgłoszenia wykonanych prac"; nagłówek obu stron i tytuł w trakcie ładowania mówią to
-      samo, bez mignięcia starej nazwy. Pasek menu nie ucina żadnej etykiety ani plakietki z liczbą.
+- [ ] Menu boczne: zamiast „Zgłoszenia" jest „Zgłoszenia z formularzy kontaktowych" (ostatnia
+      pozycja menu), a zamiast „Zgłoszenia prac" jest „Zgłoszenia wykonanych prac"; nagłówek obu
+      stron i tytuł w trakcie ładowania mówią to samo, bez mignięcia starej nazwy. Menu boczne ma
+      stałą szerokość; długie nazwy zawijają się do drugiej linii, nic nie jest ucięte, a plakietka
+      z liczbą zostaje przy prawej krawędzi. Menu w telefonie: długie nazwy też się zawijają.
 - [ ] Rozpiska inwestycji z oczekującym zgłoszeniem pracownika: przycisk na pasku „Zgłoszenia
       wykonanych prac (n)" mieści się obok „Problemy", a pozycja w menu „Pracownicy" pokazuje pełną
       nazwę i „n do sprawdzenia" w jednym wierszu; okno po kliknięciu ma tytuł „Zgłoszenia
