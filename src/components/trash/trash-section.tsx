@@ -22,6 +22,7 @@ export function TrashSection({ title, rows }: { title: string; rows: TrashRowT[]
           >
             <div className="flex flex-col gap-0.5">
               <span className="text-foreground font-medium">{row.name}</span>
+              {row.detail && <span className="text-muted-foreground text-sm">{row.detail}</span>}
               <span className="text-muted-foreground text-sm">
                 W koszu od {formatPLDate(row.trashedAt)} · {fateOf(row)}
               </span>

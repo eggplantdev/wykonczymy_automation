@@ -53,6 +53,7 @@ export const toRow = (
     ),
     activeFlags: activeFlags(vehicle.flags, events, today),
     totalCosts: totalCost(events, costRange),
+    inspectionCount: events.length,
   }
 }
 

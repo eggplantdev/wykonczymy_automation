@@ -6,6 +6,8 @@ import { DeleteForeverDialog } from '@/components/trash/delete-forever-dialog'
 import { deleteCashRegisterForeverAction } from '@/lib/actions/cash-register-trash'
 import { deleteInvestmentForeverAction } from '@/lib/actions/investment-trash'
 import { deleteWorkerForeverAction } from '@/lib/actions/worker-trash'
+import { deleteVehicleForeverAction } from '@/lib/actions/vehicle-trash'
+import { deleteEquipmentForeverAction } from '@/lib/actions/equipment-trash'
 import { KOSZTORYS_IN_USE_WARNING } from '@/lib/constants/trash'
 import type { TrashKindT } from '@/types/trash'
 
@@ -20,6 +22,14 @@ vi.mock('@/lib/actions/cash-register-trash', () => ({
 vi.mock('@/lib/actions/worker-trash', () => ({
   deleteWorkerForeverAction: vi.fn(async () => ({ success: true })),
   restoreWorkerAction: vi.fn(),
+}))
+vi.mock('@/lib/actions/vehicle-trash', () => ({
+  deleteVehicleForeverAction: vi.fn(async () => ({ success: true })),
+  restoreVehicleAction: vi.fn(),
+}))
+vi.mock('@/lib/actions/equipment-trash', () => ({
+  deleteEquipmentForeverAction: vi.fn(async () => ({ success: true })),
+  restoreEquipmentAction: vi.fn(),
 }))
 vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
@@ -49,6 +59,8 @@ describe('DeleteForeverDialog', () => {
     ['template', 'Nazwa szablonu', deleteInvestmentForeverAction],
     ['cash-register', 'Nazwa kasy', deleteCashRegisterForeverAction],
     ['worker', 'Imię i nazwisko', deleteWorkerForeverAction],
+    ['vehicle', 'Rejestracja', deleteVehicleForeverAction],
+    ['equipment', 'Nazwa sprzętu', deleteEquipmentForeverAction],
   ] as const)(
     'keeps confirm disabled for a %s until the exact name is typed',
     async (kind, label, action) => {

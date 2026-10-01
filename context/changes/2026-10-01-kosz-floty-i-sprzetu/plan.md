@@ -550,15 +550,15 @@ Run once, after Phase 4: `pnpm exec tsc --noEmit`, `pnpm lint`, and the touched 
 
 #### Automated
 
-- [x] 3.1 Duplicate plate refused; trashed holder names the Kosz
-- [x] 3.2 Duplicate serial refused; trashed holder names the Kosz; blank serials pass
+- [x] 3.1 Duplicate plate refused; trashed holder names the Kosz — e0e5d0e9
+- [x] 3.2 Duplicate serial refused; trashed holder names the Kosz; blank serials pass — e0e5d0e9
 
 ### Phase 4: UI, `/kosz`, docs
 
 #### Automated
 
-- [ ] 4.1 `shapeTrashRows` vehicle and item rows with detail
-- [ ] 4.2 `/kosz` renders „Flota" and „Sprzęt"
-- [ ] 4.3 Shared trash button spec; kasa and worker migrated
-- [ ] 4.4 Fleet actions column and warning descriptions
-- [ ] 4.5 Typecheck and lint clean
+- [x] 4.1 `shapeTrashRows` vehicle and item rows with detail
+- [x] 4.2 `/kosz` renders „Flota" and „Sprzęt"
+- [x] 4.3 Shared trash button spec; kasa and worker migrated
+- [x] 4.4 Fleet actions column and warning descriptions
+- [x] 4.5 Typecheck and lint clean

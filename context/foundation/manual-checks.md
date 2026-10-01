@@ -3166,3 +3166,24 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
       „Aktywny".
 - [ ] `/kosz` → „Usuń na zawsze" u kasy i u inwestycji bez wpisanego kosztorysu: oba pytają o nazwę,
       przycisk nieaktywny do jej wpisania.
+
+## EX-915/916 — kosz-floty-i-sprzetu
+
+- [ ] `/flota` → „Usuń pojazd" przy aktywnym aucie z przeglądami: pytanie mówi, że przypomnienia
+      o przeglądach przestaną przychodzić i że po 30 dniach zniknie razem z historią przeglądów (z
+      ich liczbą).
+- [ ] Po potwierdzeniu: auta nie ma na `/flota`, jego strona `/flota/[id]` daje 404, a licznik przy
+      „Flota" w menu go nie liczy.
+- [ ] `/kosz` → sekcja „Flota" pokazuje auto po rejestracji, z marką i modelem pod spodem.
+- [ ] `/kosz` → „Przywróć": auto wraca na `/flota` z tym samym statusem i przeglądami.
+- [ ] Ponownie do kosza, potem „Usuń na zawsze": przycisk aktywny dopiero po wpisaniu dokładnej
+      rejestracji; po usunięciu auta nie ma nigdzie.
+- [ ] `/sprzet` → „Usuń" przy sprzęcie, który ma pracownik: pytanie wymienia tego pracownika. Po
+      potwierdzeniu sprzętu nie ma na `/sprzet` ani na karcie pracownika.
+- [ ] `/kosz` → sekcja „Sprzęt": nazwa, pod nią marka, model i numer seryjny. Przywróć, potem znowu
+      do kosza i „Usuń na zawsze" po wpisaniu nazwy.
+- [ ] Dodaj auto z rejestracją auta leżącego w koszu: komunikat odsyła do Kosza („…jest w Koszu —
+      przywróć go stamtąd."). To samo dla numeru seryjnego sprzętu w koszu.
+- [ ] Jako kierownik: obie sekcje w `/kosz` widoczne, „Usuń", „Przywróć" i „Usuń na zawsze" działają.
+- [ ] `/kasy` i `/pracownicy` → „Usuń" dalej działa jak wcześniej: to samo pytanie, ten sam
+      komunikat po przeniesieniu do kosza.

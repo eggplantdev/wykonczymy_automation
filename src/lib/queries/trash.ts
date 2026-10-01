@@ -16,14 +16,23 @@ import {
   type TrashedCashRegisterRowT,
 } from '@/lib/db/cash-register-trash'
 import { fetchTrashedWorkers, type TrashedWorkerRowT } from '@/lib/db/worker-trash'
+import { fetchTrashedVehicles, type TrashedVehicleRowT } from '@/lib/db/vehicle-trash'
+import { fetchTrashedEquipment, type TrashedEquipmentRowT } from '@/lib/db/equipment-trash'
+import { makeModel } from '@/lib/equipment/rows'
 import type { TrashRowT } from '@/types/trash'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
+type TrashListsT = {
+  investments: TrashedInvestmentRowT[]
+  cashRegisters: TrashedCashRegisterRowT[]
+  workers: TrashedWorkerRowT[]
+  vehicles: TrashedVehicleRowT[]
+  equipment: TrashedEquipmentRowT[]
+}
+
 export function shapeTrashRows(
-  investments: TrashedInvestmentRowT[],
-  cashRegisters: TrashedCashRegisterRowT[],
-  workers: TrashedWorkerRowT[],
+  { investments, cashRegisters, workers, vehicles, equipment }: TrashListsT,
   { viewerRole, now }: { viewerRole: RoleT; now: number },
 ): TrashRowT[] {
   const daysLeft = (trashedAt: Date) =>
@@ -67,6 +76,31 @@ export function shapeTrashRows(
         hasSheet: false,
         pairedRegisters: row.registerNames,
       })),
+    ...vehicles.map((row) => ({
+      kind: 'vehicle' as const,
+      id: row.id,
+      name: row.registration,
+      trashedAt: row.trashedAt,
+      daysLeft: daysLeft(row.trashedAt),
+      autoPurges: true,
+      hasSheet: false,
+      pairedRegisters: [],
+      detail: makeModel(row) || undefined,
+    })),
+    ...equipment.map((row) => ({
+      kind: 'equipment' as const,
+      id: row.id,
+      name: row.name,
+      trashedAt: row.trashedAt,
+      daysLeft: daysLeft(row.trashedAt),
+      autoPurges: true,
+      hasSheet: false,
+      pairedRegisters: [],
+      detail:
+        [makeModel(row), row.serialNumber && `nr ser. ${row.serialNumber}`]
+          .filter(Boolean)
+          .join(' · ') || undefined,
+    })),
   ]
 }
 
@@ -77,14 +111,16 @@ export async function getTrashContents(): Promise<TrashRowT[]> {
 
   const payload = await getPayload({ config })
   const db = await getDb(payload)
-  const [investments, cashRegisters, workers] = await Promise.all([
+  const [investments, cashRegisters, workers, vehicles, equipment] = await Promise.all([
     fetchTrashedInvestments(db),
     fetchTrashedCashRegisters(db),
     fetchTrashedWorkers(db),
+    fetchTrashedVehicles(db),
+    fetchTrashedEquipment(db),
   ])
 
-  return shapeTrashRows(investments, cashRegisters, workers, {
-    viewerRole: session.user.role,
-    now: Date.now(),
-  })
+  return shapeTrashRows(
+    { investments, cashRegisters, workers, vehicles, equipment },
+    { viewerRole: session.user.role, now: Date.now() },
+  )
 }

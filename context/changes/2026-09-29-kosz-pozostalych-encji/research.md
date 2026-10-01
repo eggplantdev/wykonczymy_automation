@@ -205,6 +205,8 @@ equipment catalogue decided "lifecycle is its own field" — end-of-life keeps t
 (`context/archive/2026-09-01-katalog-sprzetu/change.md:34-37`). So the trash here is for mistaken /
 duplicate / test entries, not end of life.
 
+**Shipped without the "unused" gate** — see the superseded note under Owner decisions.
+
 **Read sites to filter:**
 
 - **Fleet — one chokepoint.** `loadFleetDataset` (`src/lib/fleet/dataset.ts:29-35`) feeds the
@@ -435,6 +437,9 @@ them.
 - **Trash is for mistaken / never-used entries only.** `active` (workers, kasy) and the lifecycle
   statuses (`RETIRED`, `SOLD`, `LOST`, …) stay the way to retire something with history. So every kind
   gates the trash on an "unused" predicate.
+  **Superseded for flota and sprzęt (EX-915/916, 2026-10-01):** every vehicle has inspections, so
+  the owner dropped the predicate there — both trash with warnings only, and the history goes with
+  the row (`context/changes/2026-10-01-kosz-floty-i-sprzetu/plan.md`).
 - **MANAGER has full parity** with the owner on every new trash section, as on the investment trash.
   (Workers carry one residual: a MANAGER may only update EMPLOYEE rows today — `access/index.ts:45-49`
   — so whether parity reaches trashing an OWNER/ADMIN is decided in change #5.)

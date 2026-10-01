@@ -39,6 +39,7 @@ const fleetRow = (id: number, registration: string, totalCosts: number | null): 
   latestOdometer: null,
   kmSinceOilChange: null,
   totalCosts,
+  inspectionCount: 0,
 })
 
 const FLEET = [
@@ -84,5 +85,20 @@ describe('Flota — stopka „Razem" mówi o tym, co widać', () => {
     await user.click(await screen.findByRole('option', { name: 'Koszty' }))
 
     expect(screen.queryByText('Razem'), 'stopka bez kolumny kosztów').not.toBeInTheDocument()
+  })
+})
+
+describe('Flota — „Usuń" w wierszu', () => {
+  it('ostrzega przed utratą przeglądów, zanim przeniesie pojazd do kosza', async () => {
+    render(<FleetDataTable data={[{ ...fleetRow(1, 'WX 1000A', null), inspectionCount: 3 }]} />)
+    const user = userEvent.setup()
+
+    await user.click(screen.getByRole('button', { name: 'Usuń pojazd' }))
+
+    expect(
+      await screen.findByText(
+        'Przenieść „WX 1000A" do kosza? Możesz go przywrócić z Kosza. Przypomnienia o przeglądach przestaną przychodzić. Po 30 dniach zniknie razem z historią przeglądów (3).',
+      ),
+    ).toBeVisible()
   })
 })

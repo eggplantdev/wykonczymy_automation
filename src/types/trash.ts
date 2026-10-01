@@ -1,4 +1,10 @@
-export type TrashKindT = 'investment' | 'template' | 'cash-register' | 'worker'
+export type TrashKindT =
+  | 'investment'
+  | 'template'
+  | 'cash-register'
+  | 'worker'
+  | 'vehicle'
+  | 'equipment'
 
 export type TrashRowT = {
   kind: TrashKindT
@@ -13,6 +19,8 @@ export type TrashRowT = {
   hasSheet: boolean
   /** The kasy that went to the trash with a worker — empty for every other kind. */
   pairedRegisters: string[]
+  /** What tells two rows of one name apart — three „szlifierka" are three different tools. */
+  detail?: string
 }
 
 export type DeleteForeverResultT =

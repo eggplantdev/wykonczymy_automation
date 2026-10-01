@@ -12,9 +12,18 @@ import { HintedValue } from '@/components/tables/hinted-value'
 import { SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/labels'
 import type { WorkerColumnFiguresT } from '@/lib/kosztorys/worker-payout-pairs'
 import { cn } from '@/lib/utils/cn'
-import { TrashWorkerButton } from '@/components/users/trash-worker-button'
+import { TrashRowButton } from '@/components/trash/trash-row-button'
+import { trashWorkerAction } from '@/lib/actions/worker-trash'
 
 const col = createColumnHelper<UserRowT>()
+
+function describeWorkerTrash(name: string, registerNames: string[]): string {
+  const withRegisters =
+    registerNames.length === 0
+      ? ''
+      : ` Razem z nim ${registerNames.length === 1 ? 'kasa' : 'kasy'}: ${registerNames.join(', ')}.`
+  return `Przenieść „${name}" do kosza? Nie zaloguje się, dopóki go nie przywrócisz.${withRegisters}`
+}
 
 const PAYOUT_LINES = [
   { label: 'do zapłaty aktywne', bucket: 'active', kind: 'owed', className: undefined },
@@ -144,7 +153,16 @@ export function getUserColumns({ onToggle, onSettle }: UserColumnOptionsT) {
       cell: (info) =>
         info.row.original.canTrash && (
           <div className="flex items-center justify-end gap-1">
-            <TrashWorkerButton worker={info.row.original} />
+            <TrashRowButton
+              label="Usuń pracownika"
+              description={describeWorkerTrash(
+                info.row.original.name,
+                info.row.original.registerNames,
+              )}
+              trash={() => trashWorkerAction(info.row.original.id)}
+              trashed="Pracownik przeniesiony do kosza."
+              failed="Nie udało się usunąć pracownika"
+            />
           </div>
         ),
     }),

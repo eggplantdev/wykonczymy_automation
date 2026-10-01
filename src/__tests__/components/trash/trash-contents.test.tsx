@@ -88,6 +88,26 @@ describe('TrashContents', () => {
     expect(within(workers).getByText('razem z kasami: Kasa Jana, Kasa budowy')).toBeVisible()
   })
 
+  it('lists cars under „Flota” and items under „Sprzęt”, after „Pracownicy”, with the detail line', () => {
+    render(
+      <TrashContents
+        rows={[
+          { ...row(7, 'Szlifierka', 'equipment'), detail: 'Makita GA5030 · nr ser. SN-1' },
+          { ...row(6, 'WX 1000A', 'vehicle'), detail: 'Ford Transit' },
+          row(5, 'Jan Kowalski', 'worker'),
+        ]}
+      />,
+    )
+
+    expect(
+      screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent),
+    ).toEqual(['Pracownicy', 'Flota', 'Sprzęt'])
+    expect(within(section('Flota') as HTMLElement).getByText('Ford Transit')).toBeVisible()
+    expect(
+      within(section('Sprzęt') as HTMLElement).getByText('Makita GA5030 · nr ser. SN-1'),
+    ).toBeVisible()
+  })
+
   it('says the trash is empty only when every kind is', () => {
     const { rerender } = render(<TrashContents rows={[]} />)
     expect(screen.getByText('Kosz jest pusty')).toBeInTheDocument()

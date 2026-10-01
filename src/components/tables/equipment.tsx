@@ -12,6 +12,9 @@ import { classifyWarranty, warrantyDaysLeft } from '@/lib/equipment/warranty-thr
 import type { EquipmentRowT, WarehouseOptionT } from '@/lib/equipment/types'
 import type { DayT } from '@/lib/utils/days'
 import type { InvestmentRefT, WorkerRefT } from '@/types/reference-data'
+import { TrashRowButton } from '@/components/trash/trash-row-button'
+import { trashEquipmentAction } from '@/lib/actions/equipment-trash'
+import { describeEquipmentTrash } from '@/lib/equipment/describe-trash'
 
 const col = createColumnHelper<EquipmentRowT>()
 
@@ -120,6 +123,13 @@ export function getEquipmentColumns({
             investments={investments}
           />
           <EditEquipmentDialog equipment={info.row.original} />
+          <TrashRowButton
+            label="Usuń sprzęt"
+            description={describeEquipmentTrash(info.row.original)}
+            trash={() => trashEquipmentAction(info.row.original.id)}
+            trashed="Sprzęt przeniesiony do kosza."
+            failed="Nie udało się usunąć sprzętu"
+          />
         </div>
       ),
     }),

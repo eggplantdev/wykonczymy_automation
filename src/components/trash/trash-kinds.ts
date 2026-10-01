@@ -7,6 +7,8 @@ import {
   restoreInvestmentAction,
 } from '@/lib/actions/investment-trash'
 import { deleteWorkerForeverAction, restoreWorkerAction } from '@/lib/actions/worker-trash'
+import { deleteVehicleForeverAction, restoreVehicleAction } from '@/lib/actions/vehicle-trash'
+import { deleteEquipmentForeverAction, restoreEquipmentAction } from '@/lib/actions/equipment-trash'
 import { INVESTMENT_DELETE_FAILED_MESSAGE, KOSZTORYS_IN_USE_WARNING } from '@/lib/constants/trash'
 import type { ActionResultT } from '@/types/action'
 import type { TrashKindT, TrashRowT } from '@/types/trash'
@@ -66,6 +68,26 @@ export const TRASH_KINDS: Record<TrashKindT, TrashKindConfigT> = {
     nameLabel: 'Imię i nazwisko',
     deleted: 'Pracownik usunięty na zawsze.',
     failed: 'Nie udało się usunąć pracownika',
+  },
+  vehicle: {
+    sectionTitle: 'Flota',
+    restore: restoreVehicleAction,
+    restored: 'Pojazd przywrócony.',
+    deleteForever: deleteVehicleForeverAction,
+    lost: 'historia przeglądów i ich załączniki',
+    nameLabel: 'Rejestracja',
+    deleted: 'Pojazd usunięty na zawsze.',
+    failed: 'Nie udało się usunąć pojazdu',
+  },
+  equipment: {
+    sectionTitle: 'Sprzęt',
+    restore: restoreEquipmentAction,
+    restored: 'Sprzęt przywrócony.',
+    deleteForever: deleteEquipmentForeverAction,
+    lost: 'historia przekazań',
+    nameLabel: 'Nazwa sprzętu',
+    deleted: 'Sprzęt usunięty na zawsze.',
+    failed: 'Nie udało się usunąć sprzętu',
   },
 }
 

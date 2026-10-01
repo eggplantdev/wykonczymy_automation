@@ -3,7 +3,8 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import { BalanceCell } from '@/components/ui/balance-cell'
 import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
-import { TrashCashRegisterButton } from '@/components/cash-registers/trash-cash-register-button'
+import { TrashRowButton } from '@/components/trash/trash-row-button'
+import { trashCashRegisterAction } from '@/lib/actions/cash-register-trash'
 import type { CashRegisterTypeT } from '@/types/reference-data'
 import type { CashRegisterRowT } from '@/types/table-rows'
 
@@ -66,7 +67,13 @@ export function getCashRegisterColumns(onToggle: (id: number, newActive: boolean
       meta: { align: 'right' },
       cell: (info) => (
         <div className="flex items-center justify-end gap-1">
-          <TrashCashRegisterButton cashRegister={info.row.original} />
+          <TrashRowButton
+            label="Usuń kasę"
+            description={`Przenieść „${info.row.original.name}" do kosza? Możesz ją przywrócić z Kosza.`}
+            trash={() => trashCashRegisterAction(info.row.original.id)}
+            trashed="Kasa przeniesiona do kosza."
+            failed="Nie udało się usunąć kasy"
+          />
         </div>
       ),
     }),
