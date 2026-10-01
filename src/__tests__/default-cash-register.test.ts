@@ -30,7 +30,7 @@ describe('getUserDefaultCashRegisterId', () => {
     const data = makeRefData({
       currentUserId: 10,
       workers: [
-        { id: 10, name: 'Jan', role: 'EMPLOYEE', email: 'j@x.com', defaultCashRegisterId: 5 },
+        { id: 10, name: 'Jan', role: 'EMPLOYEE', email: 'j@x.com', language: null, defaultCashRegisterId: 5 },
       ],
       cashRegisters: [{ id: 5, name: 'Kasa Jana', type: 'WORKER' }],
     })
@@ -40,7 +40,7 @@ describe('getUserDefaultCashRegisterId', () => {
   it('returns undefined when worker not found', () => {
     const data = makeRefData({
       currentUserId: 10,
-      workers: [{ id: 99, name: 'Other', role: 'EMPLOYEE', email: 'o@x.com' }],
+      workers: [{ id: 99, name: 'Other', role: 'EMPLOYEE', email: 'o@x.com', language: null }],
     })
     expect(getUserDefaultCashRegisterId(data)).toBeUndefined()
   })
@@ -48,7 +48,7 @@ describe('getUserDefaultCashRegisterId', () => {
   it('returns undefined when worker has no defaultCashRegisterId', () => {
     const data = makeRefData({
       currentUserId: 10,
-      workers: [{ id: 10, name: 'Jan', role: 'EMPLOYEE', email: 'j@x.com' }],
+      workers: [{ id: 10, name: 'Jan', role: 'EMPLOYEE', email: 'j@x.com', language: null }],
     })
     expect(getUserDefaultCashRegisterId(data)).toBeUndefined()
   })
@@ -61,7 +61,7 @@ describe('getDefaultCashRegister', () => {
     const data = makeRefData({
       currentUserId: 10,
       workers: [
-        { id: 10, name: 'Admin', role: 'ADMIN', email: 'a@x.com', defaultCashRegisterId: 2 },
+        { id: 10, name: 'Admin', role: 'ADMIN', email: 'a@x.com', language: null, defaultCashRegisterId: 2 },
       ],
       cashRegisters: [{ id: 2, name: 'Kasa główna', type: 'MAIN' }],
     })
@@ -72,7 +72,7 @@ describe('getDefaultCashRegister', () => {
     const data = makeRefData({
       currentUserId: 10,
       workers: [
-        { id: 10, name: 'Admin', role: 'ADMIN', email: 'a@x.com', defaultCashRegisterId: 2 },
+        { id: 10, name: 'Admin', role: 'ADMIN', email: 'a@x.com', language: null, defaultCashRegisterId: 2 },
       ],
       cashRegisters: [{ id: 3, name: 'Kasa pomocnicza', type: 'AUXILIARY' }],
       trashedCashRegisters: [{ id: 2, name: 'Kasa główna', type: 'MAIN' }],
@@ -83,7 +83,7 @@ describe('getDefaultCashRegister', () => {
   it('returns empty string when no default register', () => {
     const data = makeRefData({
       currentUserId: 10,
-      workers: [{ id: 10, name: 'Jan', role: 'EMPLOYEE', email: 'j@x.com' }],
+      workers: [{ id: 10, name: 'Jan', role: 'EMPLOYEE', email: 'j@x.com', language: null }],
     })
     expect(getDefaultCashRegister(data)).toBe('')
   })

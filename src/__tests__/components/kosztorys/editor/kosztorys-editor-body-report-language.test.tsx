@@ -39,7 +39,7 @@ beforeAll(() => {
 const WORKER_ID = 1
 const STAGES = [stage(7, 1, 'Płytki')]
 const CURRENT = tree([item(1, 'Płytki', 12, 100)], STAGES, [
-  { itemId: 1, stageId: 7, qtyDone: 5, workerId: WORKER_ID },
+  { itemId: 1, stageId: 7, qtyDone: 5 },
 ])
 
 const WORKER: WorkerAudienceT = {

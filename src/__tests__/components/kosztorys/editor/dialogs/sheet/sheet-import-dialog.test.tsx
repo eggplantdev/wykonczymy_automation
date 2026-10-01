@@ -51,8 +51,8 @@ const PREVIEW: ImportPreviewT = {
 }
 
 const WORKERS: WorkerRefT[] = [
-  { id: 5, name: 'Ekipa Nowak', active: true, role: 'EMPLOYEE', email: 'nowak@example.test' },
-  { id: 6, name: 'Jan Kowalski', active: false, role: 'EMPLOYEE', email: 'jan@example.test' },
+  { id: 5, name: 'Ekipa Nowak', active: true, role: 'EMPLOYEE', email: 'nowak@example.test', language: null },
+  { id: 6, name: 'Jan Kowalski', active: false, role: 'EMPLOYEE', email: 'jan@example.test', language: null },
 ]
 
 const NO_PLANE_LABEL = 'Nie ustawiaj — wybiorę w kosztorysie'

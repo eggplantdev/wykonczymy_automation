@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { I18nContext } from '@/lib/i18n/i18n-context'
 import { languageSchema, type LanguageT } from '@/lib/i18n/languages'
 
@@ -31,15 +31,18 @@ type PropsT = {
   children: ReactNode
 }
 
-export function TranslationsProvider({ initialLocale, workerId, children }: PropsT) {
-  const [locale, setLocaleState] = useState(initialLocale)
+const subscribeToNothing = () => () => {}
 
-  // After mount, not in the initial state: the server renders the stored language, and reading
-  // storage during render would hydrate a different tree than it sent.
-  useEffect(() => {
-    const stored = readStoredLocale(workerId)
-    if (stored) setLocaleState(stored)
-  }, [workerId])
+export function TranslationsProvider({ initialLocale, workerId, children }: PropsT) {
+  // The server snapshot is `undefined`: hydration matches the server's render in the worker's saved
+  // language, and only then switches to the choice this browser remembers.
+  const storedLocale = useSyncExternalStore(
+    subscribeToNothing,
+    () => readStoredLocale(workerId),
+    () => undefined,
+  )
+  const [chosenLocale, setChosenLocale] = useState<LanguageT>()
+  const locale = chosenLocale ?? storedLocale ?? initialLocale
 
   // `<html>` belongs to the root layout, which cannot know the worker's language.
   useEffect(() => {
@@ -48,7 +51,7 @@ export function TranslationsProvider({ initialLocale, workerId, children }: Prop
 
   const setLocale = (next: LanguageT) => {
     storeLocale(workerId, next)
-    setLocaleState(next)
+    setChosenLocale(next)
   }
 
   return <I18nContext value={{ locale, setLocale }}>{children}</I18nContext>

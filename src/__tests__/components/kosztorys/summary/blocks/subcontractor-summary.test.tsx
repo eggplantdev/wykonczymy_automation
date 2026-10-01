@@ -21,6 +21,7 @@ const worker = (id: number, name: string): WorkerRefT => ({
   name,
   role: 'EMPLOYEE',
   email: `${name.toLowerCase()}@t.test`,
+  language: null,
 })
 
 const WORKERS = [worker(ANNA, 'Anna'), worker(BARTEK, 'Bartek'), worker(CELINA, 'Celina')]

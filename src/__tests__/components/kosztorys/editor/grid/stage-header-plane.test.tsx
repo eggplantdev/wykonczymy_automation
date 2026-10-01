@@ -12,7 +12,7 @@ import type { WorkerRefT } from '@/types/reference-data'
 const STAGE_ID = 7
 const ANNA = 1
 
-const WORKERS: WorkerRefT[] = [{ id: ANNA, name: 'Anna', role: 'EMPLOYEE', email: 'anna@t.test' }]
+const WORKERS: WorkerRefT[] = [{ id: ANNA, name: 'Anna', role: 'EMPLOYEE', email: 'anna@t.test', language: null }]
 
 const stage = (plane: ToolPlaneT | null): KosztorysStageT => ({
   id: STAGE_ID,
@@ -102,7 +102,7 @@ describe('Nagłówek etapu — kto pracuje', () => {
   const BOB = 2
   const TWO: WorkerRefT[] = [
     ...WORKERS,
-    { id: BOB, name: 'Bob', role: 'EMPLOYEE', email: 'b@t.test' },
+    { id: BOB, name: 'Bob', role: 'EMPLOYEE', email: 'b@t.test', language: null },
   ]
 
   it('pokazuje osobę z resztą i liczbę pozostałych', () => {

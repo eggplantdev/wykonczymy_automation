@@ -37,8 +37,8 @@ const refData = {
   trashedCashRegisters: [],
   investments: [{ id: 10, name: 'Inwestycja A', ...stubInvestment }],
   workers: [
-    { id: 100, name: 'Jan Kowalski', role: 'MANAGER' as const, email: '' },
-    { id: 101, name: 'Anna Nowak', role: 'EMPLOYEE' as const, email: '' },
+    { id: 100, name: 'Jan Kowalski', role: 'MANAGER' as const, email: '', language: null },
+    { id: 101, name: 'Anna Nowak', role: 'EMPLOYEE' as const, email: '', language: null },
   ],
   otherCategories: [{ id: 50, name: 'Materiały' }],
   expenseCategories: [{ id: 60, name: 'Materiały budowlane' }],
