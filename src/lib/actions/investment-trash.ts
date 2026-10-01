@@ -6,7 +6,11 @@ import {
   INVESTMENT_TRASH_TAGS,
   investmentEntityOpts,
 } from '@/lib/cache/tags'
-import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
+import {
+  ACTIVE_INVESTMENT_DELETE_MESSAGE,
+  isUndeletableStatus,
+  TEMPLATE_INVESTMENT_STATUS,
+} from '@/lib/constants/investment-lock'
 import { getDb } from '@/lib/db/get-db'
 import { isKosztorysUsed } from '@/lib/db/investment-trash'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
@@ -43,6 +47,9 @@ export async function trashInvestmentAction(investmentId: number): Promise<Actio
           })
           if (!investment) return { success: false, error: MISSING_MESSAGE }
           if (investment.trashedAt) return { success: true }
+          if (isUndeletableStatus(investment.status)) {
+            return { success: false, error: ACTIVE_INVESTMENT_DELETE_MESSAGE }
+          }
 
           // Refused on exactly what a hard delete refuses on, so nothing sits in the trash that
           // could never leave it.
@@ -105,6 +112,10 @@ export async function deleteInvestmentForeverAction(
       })
       if (!investment) return { success: false, error: MISSING_MESSAGE }
       if (!investment.trashedAt) return { success: false, error: NOT_TRASHED_MESSAGE }
+      // A trashed investment has no page to edit its status on, so this is one trashed before the rule.
+      if (isUndeletableStatus(investment.status)) {
+        return { success: false, error: ACTIVE_INVESTMENT_DELETE_MESSAGE }
+      }
 
       const mustTypeName =
         investment.status === TEMPLATE_INVESTMENT_STATUS ||

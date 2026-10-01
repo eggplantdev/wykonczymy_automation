@@ -35,6 +35,7 @@ const refData = {
     { id: 2, name: 'Kasa pomocnicza', type: 'AUXILIARY' as const, balance: 0 },
   ],
   trashedCashRegisters: [],
+  trashedInvestments: [],
   investments: [{ id: 10, name: 'Inwestycja A', ...stubInvestment }],
   workers: [
     { id: 100, name: 'Jan Kowalski', role: 'MANAGER' as const, email: '' },

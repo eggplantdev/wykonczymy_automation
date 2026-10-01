@@ -3,7 +3,7 @@ import { parseInvestmentId } from '@/lib/queries/investment-id'
 import { getKosztorysTree } from '@/lib/queries/kosztorys'
 import { getWorkCatalogue } from '@/lib/queries/work-catalogue'
 import { fetchInvestmentAssets } from '@/lib/queries/investment-assets'
-import { fetchReferenceData } from '@/lib/queries/reference-data'
+import { fetchReferenceData, findInvestmentRef } from '@/lib/queries/reference-data'
 import {
   fetchPayoutTransactionsForInvestment,
   fetchDepositTransactionsForInvestment,
@@ -17,7 +17,7 @@ import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { requireManagementPage } from '@/lib/auth/require-management-page'
 import { KosztorysEditorV2 } from '@/components/kosztorys/editor/kosztorys-editor-v2'
 import { perfStart } from '@/lib/perf'
-import { isLockedStatus } from '@/lib/constants/investment-lock'
+import { investmentLockOf } from '@/lib/constants/investment-lock'
 import { countInvestmentPendingReports } from '@/lib/queries/worker-reports'
 import { REPORT_PARAM } from '@/lib/kosztorys/worker-report/report-param'
 import { parseIdParam } from '@/lib/utils/parse-id-param'
@@ -46,8 +46,9 @@ export default async function InvestmentKosztorysV2Page({
   // Name, existence and the linked-sheet flag all ride along on reference data — a dedicated
   // findByID bought none of the three. Its one cost: a tag marks this entry stale but still serves
   // it once, so an investment created seconds ago 404s until the next request.
-  const investment = refData.investments.find((i) => i.id === investmentId)
-  if (!investment) notFound()
+  const found = findInvestmentRef(refData, investmentId)
+  if (!found) notFound()
+  const { investment, trashed } = found
 
   const treePromise = getKosztorysTree(investmentId)
   // Read-only bridge to the financial plane: the investment's live material spend (unsettled
@@ -116,7 +117,7 @@ export default async function InvestmentKosztorysV2Page({
       assets={assets}
       investment={investment}
       hasSheet={investment.hasSheet}
-      locked={isLockedStatus(investment.status)}
+      lock={investmentLockOf({ status: investment.status, trashed })}
       workerReports={{
         pendingCount: pendingReportCount,
         openReportId,

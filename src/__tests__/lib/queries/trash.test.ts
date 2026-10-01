@@ -16,6 +16,7 @@ const investment = (id: number, flags: Partial<TrashedInvestmentRowT>): TrashedI
   trashedAt: TRASHED_AT,
   isKosztorysUsed: false,
   isTemplate: false,
+  hasSheet: false,
   ...flags,
 })
 
@@ -63,6 +64,7 @@ describe('shapeTrashRows', () => {
       daysLeft: 20,
       autoPurges: true,
       mustTypeName: false,
+      hasSheet: false,
     })
   })
 

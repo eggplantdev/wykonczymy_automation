@@ -81,6 +81,7 @@ import { workerDataHiddenColumns } from '@/lib/kosztorys/worker-view/columns'
 import { baseOrdinals } from '@/lib/kosztorys/section-band-rows'
 import { reconcileSort, sortValueGetter } from '@/lib/kosztorys/columns/sort-value'
 import { planKosztorysRenumber } from '@/lib/kosztorys/display-order-plan'
+import type { InvestmentLockT } from '@/lib/constants/investment-lock'
 import { DEFAULT_SECTION_NAME } from '@/lib/kosztorys/constants'
 import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import {
@@ -133,9 +134,10 @@ type ArgsT = {
   // Only consumed under `preview` — the owner's editor has none, and the settings dialog reads its own.
   clientView?: ClientViewSettingsT
   worker?: WorkerAudienceT
-  // „Zakończona" — the server refuses every write. Kept apart from `preview`: the two agree on
-  // interaction and disagree on disclosure, and a locked investment is still the owner's OWN document.
-  locked?: boolean
+  // „Zakończona" or in the trash — the server refuses every write. Kept apart from `preview`: the two
+  // agree on interaction and disagree on disclosure, and a locked investment is still the owner's OWN
+  // document.
+  lock?: InvestmentLockT
   undoRedo: UndoRedoApiT
   // Absent on the client share path, which renders no menu.
   workers?: WorkerRefT[]
@@ -174,7 +176,7 @@ export function useKosztorysEditor({
   preview = false,
   clientView,
   worker,
-  locked = false,
+  lock,
   undoRedo,
   workers,
   hasSettledMaterial = false,
@@ -186,7 +188,7 @@ export function useKosztorysEditor({
 }: ArgsT) {
   // Interaction, split from disclosure: `preview` decides what a client is SHOWN, this decides whether
   // anything may be written.
-  const readOnly = preview || locked
+  const readOnly = preview || lock !== undefined
   const { recoverStaleTree, reportFailure } = useStaleTreeRecovery(onStaleTree)
   const { save, runNow, drain } = useDebouncedSave(500, recoverStaleTree)
   // Owned by the shell (KosztorysEditorV2). Capture pushes here; toolbar + keyboard call undo/redo.

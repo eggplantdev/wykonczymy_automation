@@ -2,6 +2,7 @@
 // values — the query fetches with depth 0.
 // VAT is a single rate per investment (KosztorysTreeT.vatRate), not per section/item.
 
+import type { InvestmentLockT } from '@/lib/constants/investment-lock'
 import type { InsertDirectionT } from '@/lib/kosztorys/display-order'
 import type { STAGE_QTY_PREFIX } from '@/lib/kosztorys/stage-keys'
 import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
@@ -195,9 +196,9 @@ export type KosztorysEditorDataT = {
   // Gates the toolbar's „Arkusz Google" entries, which would otherwise offer an import that can only
   // answer „Inwestycja nie ma kosztorysu.". Optional: the client share renders no toolbar.
   hasSheet?: boolean
-  // „Zakończona": every money-moving write is refused server-side. The editor still renders in FULL
-  // — this is about interaction, not disclosure, which is what `preview` is about.
-  locked?: boolean
+  // „Zakończona" or in the trash: every write is refused server-side. The editor still renders in
+  // FULL — this is about interaction, not disclosure, which is what `preview` is about.
+  lock?: InvestmentLockT
   // Set ONLY by the szablon page. Never derived from the pathname.
   isTemplate?: boolean
   // Optional on cost, not on visibility: the client share renders no stage menu (EX-613).

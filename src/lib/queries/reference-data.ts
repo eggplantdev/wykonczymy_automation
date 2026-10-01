@@ -61,17 +61,16 @@ export const fetchReferenceData = cache(
         //
         // The szablon workbench is excluded HERE, once, rather than by every consumer: it is not an
         // investment, and filtering it per-surface had already leaked into the transfers filter
-        // dropdowns and the investments listing. A trashed investment is excluded for the same reason
-        // — this predicate hides it from the listing, the pickers, the dashboard and the crumb, and
-        // 404s its detail page; the kosztorys pages and the share link filter it again on their own.
+        // dropdowns and the investments listing. A trashed investment is split off below rather than
+        // dropped: /kosz still opens it read-only, while every listing and picker reads the live half.
         db.execute(sql`
-        SELECT i.id, i.name, i.status::text,
+        SELECT i.id, i.name, i.status::text, (i.trashed_at IS NOT NULL) AS trashed,
                i.address, i.phone, i.email, i.contact_person, i.notes, i.review,
                i.materials_net_rate::float8, i.settlement_mode::text, i.vat_rate::float8,
                (k.google_sheet_id IS NOT NULL) AS has_sheet
         FROM investments i
         LEFT JOIN kosztoryses k ON k.investment_id = i.id
-        WHERE i.status <> ${TEMPLATE_INVESTMENT_STATUS} AND i.trashed_at IS NULL
+        WHERE i.status <> ${TEMPLATE_INVESTMENT_STATUS}
         ORDER BY i.name
       `),
         db.execute(sql`
@@ -111,24 +110,31 @@ export const fetchReferenceData = cache(
       // row on a trashed kasa must keep saying which kasa it was. Every picker and listing reads the
       // live half, so a new consumer cannot forget to hide the trash.
       const cashRegisters = cashRegisterRows.filter((r) => !r.isTrashed).map((r) => r.register)
-      const trashedCashRegisters = cashRegisterRows.filter((r) => r.isTrashed).map((r) => r.register)
+      const trashedCashRegisters = cashRegisterRows
+        .filter((r) => r.isTrashed)
+        .map((r) => r.register)
 
-      const investments: InvestmentRefT[] = invResult.rows.map((row) => ({
-        id: Number(row.id),
-        name: row.name as string,
-        status: (row.status as InvestmentStatusT) ?? 'active',
-        active: row.status === 'active',
-        address: (row.address as string) ?? '',
-        phone: (row.phone as string) ?? '',
-        email: (row.email as string) ?? '',
-        contactPerson: (row.contact_person as string) ?? '',
-        notes: (row.notes as string) ?? '',
-        review: (row.review as string) ?? '',
-        materialsNetRate: row.materials_net_rate == null ? null : Number(row.materials_net_rate),
-        settlementMode: (row.settlement_mode as SettlementModeT) ?? SETTLEMENT_MODE_DEFAULT,
-        vatRate: row.vat_rate == null ? DEFAULT_VAT : Number(row.vat_rate),
-        hasSheet: Boolean(row.has_sheet),
+      const investmentRows = invResult.rows.map((row) => ({
+        isTrashed: Boolean(row.trashed),
+        investment: {
+          id: Number(row.id),
+          name: row.name as string,
+          status: (row.status as InvestmentStatusT) ?? 'active',
+          active: row.status === 'active',
+          address: (row.address as string) ?? '',
+          phone: (row.phone as string) ?? '',
+          email: (row.email as string) ?? '',
+          contactPerson: (row.contact_person as string) ?? '',
+          notes: (row.notes as string) ?? '',
+          review: (row.review as string) ?? '',
+          materialsNetRate: row.materials_net_rate == null ? null : Number(row.materials_net_rate),
+          settlementMode: (row.settlement_mode as SettlementModeT) ?? SETTLEMENT_MODE_DEFAULT,
+          vatRate: row.vat_rate == null ? DEFAULT_VAT : Number(row.vat_rate),
+          hasSheet: Boolean(row.has_sheet),
+        } satisfies InvestmentRefT,
       }))
+      const investments = investmentRows.filter((r) => !r.isTrashed).map((r) => r.investment)
+      const trashedInvestments = investmentRows.filter((r) => r.isTrashed).map((r) => r.investment)
 
       const workers: WorkerRefT[] = usersResult.rows.map((row) => ({
         id: Number(row.id),
@@ -155,6 +161,7 @@ export const fetchReferenceData = cache(
         cashRegisters,
         trashedCashRegisters,
         investments,
+        trashedInvestments,
         workers,
         otherCategories,
         expenseCategories,
@@ -163,7 +170,7 @@ export const fetchReferenceData = cache(
     // Bumped whenever the returned SHAPE changes. A tag only marks an entry stale — it still SERVES
     // the old payload once, and one missing a field the reader now dereferences crashes the page or
     // renders NaN. The bump makes it unreachable instead.
-    ['reference-data-v3'],
+    ['reference-data-v4'],
     {
       tags: [
         CACHE_TAGS.cashRegisters,
@@ -178,3 +185,14 @@ export const fetchReferenceData = cache(
     },
   ),
 )
+
+/** The investment a page was opened on, live or trashed — the one lookup that reaches both halves. */
+export function findInvestmentRef(
+  refData: Pick<ReferenceDataBaseT, 'investments' | 'trashedInvestments'>,
+  investmentId: number,
+): { investment: InvestmentRefT; trashed: boolean } | undefined {
+  const live = refData.investments.find((i) => i.id === investmentId)
+  if (live) return { investment: live, trashed: false }
+  const trashed = refData.trashedInvestments.find((i) => i.id === investmentId)
+  return trashed && { investment: trashed, trashed: true }
+}

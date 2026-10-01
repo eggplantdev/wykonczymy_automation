@@ -1,3 +1,4 @@
+import { TrashedInvestmentLinks } from '@/components/trash/trashed-investment-links'
 import { TrashedRowActions } from '@/components/trash/trashed-row-actions'
 import { daysLabel } from '@/lib/utils/deadline-label'
 import { formatPLDate } from '@/lib/utils/format-date'
@@ -24,6 +25,7 @@ export function TrashSection({ title, rows }: { title: string; rows: TrashRowT[]
               <span className="text-muted-foreground text-sm">
                 W koszu od {formatPLDate(row.trashedAt)} · {fateOf(row)}
               </span>
+              {row.kind === 'investment' && <TrashedInvestmentLinks row={row} />}
             </div>
             <TrashedRowActions row={row} />
           </li>

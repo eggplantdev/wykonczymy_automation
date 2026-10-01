@@ -10,6 +10,8 @@ export type TrashRowT = {
   /** False for an investment whose kosztorys was used — only a manual delete removes it. */
   autoPurges: boolean
   mustTypeName: boolean
+  /** Whether the row opens a kosztorys v1 (the Google sheet) — only an investment can. */
+  hasSheet: boolean
 }
 
 export type DeleteForeverResultT =

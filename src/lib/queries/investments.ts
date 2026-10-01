@@ -13,7 +13,7 @@ import {
 import { owedWorkersByInvestment } from '@/lib/kosztorys/worker-payout-pairs'
 import { shapeInvestments } from '@/lib/queries/shape-investments'
 import { perfStart } from '@/lib/perf'
-import { fetchReferenceData } from '@/lib/queries/reference-data'
+import { fetchReferenceData, findInvestmentRef } from '@/lib/queries/reference-data'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { requireManagementPage } from '@/lib/auth/require-management-page'
@@ -43,18 +43,19 @@ export async function fetchAllInvestments(): Promise<InvestmentRowT[]> {
 }
 
 // Shared page guard: parse the route id, require a management session, and load the investment —
-// bouncing to notFound() on a bad/missing/trashed id and to the login page on a failed auth. Returns the
-// investment (non-null past this point) plus the numeric id the page needs. Pages that already hold
+// bouncing to notFound() on a bad/missing/trashed id and to the login page on a failed auth — unless the
+// page opts into `allowTrashed` and renders read-only. Returns the investment (non-null past this
+// point) plus the numeric id the page needs. Pages that already hold
 // the investment from another fetch (e.g. the detail page's refData) don't use this — it would double
 // the load.
-export async function requireInvestmentOr404(id: string) {
+export async function requireInvestmentOr404(id: string, { allowTrashed = false } = {}) {
   const investmentId = parseInvestmentId(id)
   await requireManagementPage()
 
   const investment = await getInvestment(id)
-  if (!investment || investment.trashedAt) notFound()
+  if (!investment || (investment.trashedAt && !allowTrashed)) notFound()
 
-  return { investmentId, investment }
+  return { investmentId, investment, trashed: Boolean(investment.trashedAt) }
 }
 
 // Name only, for the top-bar crumb. Reads it off the already-warm reference data instead of querying:
@@ -66,8 +67,7 @@ export async function getInvestmentName(id: string): Promise<string | null> {
   const { success } = await requireAuth(MANAGEMENT_ROLES)
   if (!success) return null
 
-  const { investments } = await fetchReferenceData()
-  return investments.find((investment) => String(investment.id) === id)?.name ?? null
+  return findInvestmentRef(await fetchReferenceData(), Number(id))?.investment.name ?? null
 }
 
 export async function getInvestment(id: string) {

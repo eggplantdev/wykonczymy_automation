@@ -24,6 +24,7 @@ const mockRefData: ReferenceDataBaseT = {
     { id: 6, name: 'Worker Reg Emp2', type: 'WORKER', active: true, ownerId: 4 },
   ],
   trashedCashRegisters: [],
+  trashedInvestments: [],
   investments: [
     {
       id: 10,

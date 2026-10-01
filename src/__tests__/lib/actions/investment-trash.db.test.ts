@@ -4,7 +4,8 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { entityTag } from '@/lib/cache/tags'
 import { getPresetName } from '@/lib/db/presets'
-import { createTestInvestment } from '@/__tests__/helpers/investment'
+import { createTestInvestment, trashDaysAgo } from '@/__tests__/helpers/investment'
+import { ACTIVE_INVESTMENT_DELETE_MESSAGE } from '@/lib/constants/investment-lock'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { createTestTemplate } from '@/__tests__/helpers/template'
 import { revalidateCollections, revalidateEntities } from '@/__tests__/stubs/cache-revalidate'
@@ -36,6 +37,10 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
     `)
     await db.execute(sql`DELETE FROM investments WHERE name LIKE ${`${PREFIX}%`}`)
   }
+
+  // Not the helper's `active` default: an active investment is exactly what the trash refuses.
+  const createInvestment = (name: string) =>
+    createTestInvestment(payload, name, { status: 'quote' })
 
   const trashedAt = async (id: number) => {
     const { rows } = await db.execute(sql`SELECT trashed_at FROM investments WHERE id = ${id}`)
@@ -81,7 +86,7 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
   afterAll(purge)
 
   it('lets a MANAGER trash, restore and delete forever', async () => {
-    const id = await createTestInvestment(payload, `${PREFIX} manager`)
+    const id = await createInvestment(`${PREFIX} manager`)
     session.role = 'MANAGER'
 
     expect((await actions.trashInvestmentAction(id)).success).toBe(true)
@@ -97,8 +102,8 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
   })
 
   it('refuses an EMPLOYEE every trash action', async () => {
-    const live = await createTestInvestment(payload, `${PREFIX} employee-live`)
-    const trashed = await createTestInvestment(payload, `${PREFIX} employee-trashed`)
+    const live = await createInvestment(`${PREFIX} employee-live`)
+    const trashed = await createInvestment(`${PREFIX} employee-trashed`)
     await actions.trashInvestmentAction(trashed)
     session.role = 'EMPLOYEE'
 
@@ -141,9 +146,9 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
   })
 
   it('refuses while a live transaction points at the investment, not a cancelled one', async () => {
-    const live = await createTestInvestment(payload, `${PREFIX} live-transaction`)
+    const live = await createInvestment(`${PREFIX} live-transaction`)
     await insertTransaction(live, false)
-    const cancelled = await createTestInvestment(payload, `${PREFIX} cancelled-transaction`)
+    const cancelled = await createInvestment(`${PREFIX} cancelled-transaction`)
     await insertTransaction(cancelled, true)
 
     const refused = await actions.trashInvestmentAction(live)
@@ -156,8 +161,30 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
     expect(await trashedAt(cancelled)).not.toBeNull()
   })
 
+  it('refuses to trash an active investment', async () => {
+    const id = await createTestInvestment(payload, `${PREFIX} active`, { status: 'active' })
+
+    const result = await actions.trashInvestmentAction(id)
+
+    expect(result).toEqual({ success: false, error: ACTIVE_INVESTMENT_DELETE_MESSAGE })
+    expect(await trashedAt(id)).toBeNull()
+  })
+
+  it('refuses to delete forever an active investment that reached the trash before the rule', async () => {
+    const id = await createTestInvestment(payload, `${PREFIX} active-trashed`, {
+      status: 'active',
+    })
+    await trashDaysAgo(db, id, 1)
+
+    const result = await actions.deleteInvestmentForeverAction(id)
+
+    expect(result).toEqual({ success: false, error: ACTIVE_INVESTMENT_DELETE_MESSAGE })
+    const { rows } = await db.execute(sql`SELECT 1 FROM investments WHERE id = ${id}`)
+    expect(rows).toHaveLength(1)
+  })
+
   it('round-trips trash and restore without touching the kosztorys', async () => {
-    const id = await createTestInvestment(payload, `${PREFIX} round-trip`)
+    const id = await createInvestment(`${PREFIX} round-trip`)
     await createKosztorysTree(payload, id, {
       sections: [{ name: 'S', items: [{ plannedQty: 2 }, { plannedQty: 5 }] }],
     })
@@ -175,7 +202,7 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
   })
 
   it('refuses to delete forever an investment that is not in the trash', async () => {
-    const id = await createTestInvestment(payload, `${PREFIX} not-trashed`)
+    const id = await createInvestment(`${PREFIX} not-trashed`)
 
     const result = await actions.deleteInvestmentForeverAction(id)
 
@@ -187,7 +214,7 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
 
   it('demands the name for a used kosztorys, then deletes it with everything under it', async () => {
     const name = `${PREFIX} used`
-    const id = await createTestInvestment(payload, name)
+    const id = await createInvestment(name)
     const { itemIds } = await createKosztorysTree(payload, id, {
       sections: [{ name: 'S', items: [{ plannedQty: 4 }] }],
       stages: [{}],
@@ -219,7 +246,7 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
   })
 
   it('deletes an unused kosztorys without asking for the name', async () => {
-    const id = await createTestInvestment(payload, `${PREFIX} unused`)
+    const id = await createInvestment(`${PREFIX} unused`)
     await createKosztorysTree(payload, id, {
       sections: [{ name: 'S', items: [{ plannedQty: 0, clientPrice: 80 }] }],
     })

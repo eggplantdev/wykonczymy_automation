@@ -136,7 +136,7 @@ export function KosztorysEditorBody({
   clientView,
   worker,
   history,
-  locked = false,
+  lock,
   hasSheet = false,
   isTemplate = false,
   undoRedo = NOOP_UNDO_REDO,
@@ -179,7 +179,7 @@ export function KosztorysEditorBody({
     preview,
     clientView,
     worker,
-    locked,
+    lock,
     undoRedo,
     workers,
     hasSettledMaterial,
@@ -524,7 +524,7 @@ export function KosztorysEditorBody({
                   />
                   {/* Without this the editor just looks broken — cells refuse focus and nothing says why.
                   Never under the preview: the client's document knows nothing of our statuses. */}
-                  {locked && <KosztorysLockedBanner />}
+                  {lock && <KosztorysLockedBanner lock={lock} />}
                 </>
               )}
               {preview && <HistoryBanner version={pastVersion} />}

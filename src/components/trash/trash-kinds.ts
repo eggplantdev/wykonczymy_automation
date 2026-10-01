@@ -6,6 +6,7 @@ import {
   deleteInvestmentForeverAction,
   restoreInvestmentAction,
 } from '@/lib/actions/investment-trash'
+import { KOSZTORYS_IN_USE_WARNING } from '@/lib/constants/trash'
 import type { ActionResultT } from '@/types/action'
 import type { TrashKindT } from '@/types/trash'
 
@@ -30,7 +31,7 @@ export const TRASH_KINDS: Record<TrashKindT, TrashKindConfigT> = {
     restored: 'Inwestycja przywrócona.',
     deleteForever: deleteInvestmentForeverAction,
     lost: 'kosztorys (pozycje i wersje), przypięcia zdjęć, link dla inwestora',
-    askReason: 'Kosztorys tej inwestycji jest w użyciu.',
+    askReason: KOSZTORYS_IN_USE_WARNING,
     nameLabel: 'Nazwa inwestycji',
     deleted: 'Inwestycja usunięta na zawsze.',
     failed: 'Nie udało się usunąć inwestycji',

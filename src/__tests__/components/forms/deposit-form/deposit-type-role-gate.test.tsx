@@ -20,6 +20,7 @@ const referenceDataFor = (currentUserRole: RoleT) =>
   ({
     cashRegisters: [{ id: 1, name: 'Kasa główna', type: 'MAIN' as const }],
     trashedCashRegisters: [],
+    trashedInvestments: [],
     investments: [],
     workers: [],
     otherCategories: [],

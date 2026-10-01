@@ -63,6 +63,7 @@ describe('buildTransferLookups — a trashed kasa', () => {
     {
       cashRegisters: [{ id: 1, name: 'Kasa główna', type: 'MAIN' }],
       trashedCashRegisters: [{ id: 2, name: 'Kasa w koszu', type: 'AUXILIARY' }],
+      trashedInvestments: [],
       investments: [],
       workers: [],
       otherCategories: [],

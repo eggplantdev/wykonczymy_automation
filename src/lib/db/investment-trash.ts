@@ -26,12 +26,16 @@ export type TrashedInvestmentRowT = {
   trashedAt: Date
   isKosztorysUsed: boolean
   isTemplate: boolean
+  hasSheet: boolean
 }
 
 export async function fetchTrashedInvestments(db: DbExecutorT): Promise<TrashedInvestmentRowT[]> {
   const { rows } = await db.execute(sql`
     SELECT i.id, i.name, i.trashed_at, ${KOSZTORYS_USED} AS used,
-      i.status = ${TEMPLATE_INVESTMENT_STATUS} AS is_template
+      i.status = ${TEMPLATE_INVESTMENT_STATUS} AS is_template,
+      EXISTS (
+        SELECT 1 FROM kosztoryses k WHERE k.investment_id = i.id AND k.google_sheet_id IS NOT NULL
+      ) AS has_sheet
     FROM investments i
     WHERE i.trashed_at IS NOT NULL
     ORDER BY i.trashed_at DESC
@@ -42,6 +46,7 @@ export async function fetchTrashedInvestments(db: DbExecutorT): Promise<TrashedI
     trashedAt: new Date(row.trashed_at as string),
     isKosztorysUsed: row.used === true,
     isTemplate: row.is_template === true,
+    hasSheet: row.has_sheet === true,
   }))
 }
 

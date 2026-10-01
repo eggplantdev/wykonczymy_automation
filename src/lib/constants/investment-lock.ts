@@ -8,6 +8,9 @@ export const INVESTMENT_LOCKED_MESSAGE =
 
 export const INVESTMENT_TRASHED_MESSAGE = 'Inwestycja jest w koszu — przywróć ją, żeby coś zmienić.'
 
+export const ACTIVE_INVESTMENT_DELETE_MESSAGE =
+  'Nie można usunąć aktywnej inwestycji. Najpierw zmień jej status.'
+
 export const TEMPLATE_TRASHED_MESSAGE = 'Szablon jest w koszu — przywróć go, żeby coś zmienić.'
 
 /**
@@ -19,6 +22,22 @@ export const LOCKED_INVESTMENT_STATUS = 'completed' satisfies InvestmentStatusT
 
 export const isLockedStatus = (status: string | null | undefined): boolean =>
   status === LOCKED_INVESTMENT_STATUS
+
+/** Why an investment is read-only — the editor and the investment page each name it in a banner. */
+export type InvestmentLockT = 'completed' | 'trashed'
+
+export const investmentLockOf = (investment: {
+  status: string
+  trashed: boolean
+}): InvestmentLockT | undefined => {
+  if (investment.trashed) return 'trashed'
+  if (isLockedStatus(investment.status)) return 'completed'
+  return undefined
+}
+
+// Owner ruling (2026-10-01): an investment in progress is never deleted, whatever its kosztorys holds.
+export const isUndeletableStatus = (status: string | null | undefined): boolean =>
+  status === ('active' satisfies InvestmentStatusT)
 
 /**
  * A szablon is an investment with this status, its kosztorys being the szablon's content. It is NOT

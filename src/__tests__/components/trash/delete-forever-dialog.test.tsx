@@ -28,6 +28,7 @@ const renderDialog = (kind: TrashKindT, mustTypeName: boolean) =>
         name: NAME,
         trashedAt: new Date('2026-09-20T10:00:00Z'),
         daysLeft: 21,
+        hasSheet: false,
         autoPurges: !mustTypeName,
         mustTypeName,
       }}

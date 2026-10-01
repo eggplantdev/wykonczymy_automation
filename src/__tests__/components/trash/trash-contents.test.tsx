@@ -10,6 +10,7 @@ const row = (id: number, name: string, kind: TrashKindT): TrashRowT => ({
   name,
   trashedAt: new Date('2026-09-20T10:00:00Z'),
   daysLeft: 21,
+  hasSheet: false,
   autoPurges: true,
   mustTypeName: kind === 'template',
 })
@@ -46,6 +47,31 @@ describe('TrashContents', () => {
     const kasy = section('Kasy') as HTMLElement
     expect(within(kasy).getByText('Kasa Adriana')).toBeVisible()
     expect(within(kasy).queryByText('Mieszkanie Kowalskich')).not.toBeInTheDocument()
+  })
+
+  it('opens a trashed investment and its kosztorysy without restoring it, a kasa not at all', () => {
+    render(
+      <TrashContents
+        rows={[
+          { ...row(1, 'Mieszkanie Kowalskich', 'investment'), hasSheet: true },
+          row(4, 'Dom Nowaków', 'investment'),
+          row(3, 'Kasa Adriana', 'cash-register'),
+        ]}
+      />,
+    )
+
+    const hrefs = (text: string) =>
+      within(screen.getByText(text).closest('li') as HTMLElement)
+        .queryAllByRole('link')
+        .map((link) => link.getAttribute('href'))
+
+    expect(hrefs('Mieszkanie Kowalskich')).toEqual([
+      '/inwestycje/1',
+      '/inwestycje/1/kosztorys',
+      '/inwestycje/1/kosztorys_v2',
+    ])
+    expect(hrefs('Dom Nowaków')).toEqual(['/inwestycje/4', '/inwestycje/4/kosztorys_v2'])
+    expect(hrefs('Kasa Adriana')).toEqual([])
   })
 
   it('says the trash is empty only when every kind is', () => {

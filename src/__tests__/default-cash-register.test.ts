@@ -12,6 +12,7 @@ const baseRefData: ReferenceDataT = {
   currentUserRole: 'ADMIN',
   cashRegisters: [],
   trashedCashRegisters: [],
+  trashedInvestments: [],
   investments: [],
   workers: [],
   otherCategories: [],
@@ -76,6 +77,7 @@ describe('getDefaultCashRegister', () => {
       ],
       cashRegisters: [{ id: 3, name: 'Kasa pomocnicza', type: 'AUXILIARY' }],
       trashedCashRegisters: [{ id: 2, name: 'Kasa główna', type: 'MAIN' }],
+      trashedInvestments: [],
     })
     expect(getDefaultCashRegister(data)).toBe('')
   })

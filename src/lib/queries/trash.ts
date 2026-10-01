@@ -34,6 +34,7 @@ export function shapeTrashRows(
       daysLeft: daysLeft(row.trashedAt),
       autoPurges: !row.isKosztorysUsed,
       mustTypeName: row.isKosztorysUsed || row.isTemplate,
+      hasSheet: row.hasSheet,
     })),
     ...cashRegisters
       .filter((row) => isAdminOrOwner || row.type !== 'MAIN')
@@ -45,6 +46,7 @@ export function shapeTrashRows(
         daysLeft: daysLeft(row.trashedAt),
         autoPurges: true,
         mustTypeName: false,
+        hasSheet: false,
       })),
   ]
 }

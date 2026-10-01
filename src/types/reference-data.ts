@@ -55,6 +55,8 @@ export type ReferenceDataBaseT = {
   /** For naming a trashed kasa on its old transaction rows only — never a picker or listing. */
   trashedCashRegisters: CashRegisterRefT[]
   investments: InvestmentRefT[]
+  /** Only for opening a trashed investment read-only from /kosz — never a picker or listing. */
+  trashedInvestments: InvestmentRefT[]
   workers: WorkerRefT[]
   otherCategories: OtherCategoryRefT[]
   expenseCategories: ExpenseCategoryRefT[]
