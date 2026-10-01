@@ -50,7 +50,7 @@ describe.skipIf(!ENV_READY)('vehicle registration clash (DB)', () => {
     payload = await getPayload({ config })
     db = await getDb(payload)
     actions = await import('@/lib/actions/fleet')
-    await db.execute(sql`DELETE FROM vehicles WHERE registration LIKE ${`${PREFIX}%`}`)
+    await db.execute(sql`DELETE FROM vehicles WHERE upper(trim(registration)) LIKE ${`${PREFIX}%`}`)
 
     const create = async (registration: string) =>
       Number(
@@ -69,7 +69,7 @@ describe.skipIf(!ENV_READY)('vehicle registration clash (DB)', () => {
   })
 
   afterAll(async () => {
-    await db.execute(sql`DELETE FROM vehicles WHERE registration LIKE ${`${PREFIX}%`}`)
+    await db.execute(sql`DELETE FROM vehicles WHERE upper(trim(registration)) LIKE ${`${PREFIX}%`}`)
   })
 
   it('refuses a new car with a live car’s plate', async () => {
@@ -96,6 +96,15 @@ describe.skipIf(!ENV_READY)('vehicle registration clash (DB)', () => {
       error: `Pojazd o rejestracji ${PREFIX}KOSZ jest w Koszu — przywróć go stamtąd.`,
     })
     expect(await countWith(`${PREFIX}LIVE`)).toBe(1)
+  })
+
+  // The unique index is case-sensitive, so a plate stored as typed would let „ab123" and „AB123"
+  // coexist as two cars.
+  it('stores the plate the way the clash check reads it', async () => {
+    expect((await actions.createVehicleAction(form(` ${PREFIX.toLowerCase()}new `))).success).toBe(
+      true,
+    )
+    expect(await countWith(`${PREFIX}NEW`)).toBe(1)
   })
 
   it('lets a car be saved with its own plate', async () => {

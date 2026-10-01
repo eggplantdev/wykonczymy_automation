@@ -24,8 +24,7 @@ const flagsSchema = z.array(z.enum(PERFORMED_INSPECTION_TYPES))
 
 // A trashed car still holds its plate, so the refusal has to say where to find it — otherwise the
 // owner is told the plate is taken by a car no listing shows.
-async function registrationClash(payload: Payload, registration: string, ownId?: number) {
-  const plate = registration.trim().toUpperCase()
+async function registrationClash(payload: Payload, plate: string, ownId?: number) {
   const { docs } = await payload.find({
     collection: 'vehicles',
     where: {

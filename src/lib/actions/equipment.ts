@@ -16,8 +16,7 @@ import { protectedAction, validateAction } from './run-action'
 
 // A trashed item still holds its serial, so the refusal has to say where to find it — otherwise the
 // owner is told the serial is taken by an item no listing shows.
-async function serialClash(payload: Payload, serialNumber: string | null, ownId?: number) {
-  const serial = serialNumber?.trim()
+async function serialClash(payload: Payload, serial: string | null, ownId?: number) {
   if (!serial) return undefined
   const { docs } = await payload.find({
     collection: 'equipment',

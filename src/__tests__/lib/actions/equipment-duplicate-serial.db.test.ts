@@ -147,6 +147,12 @@ describe.skipIf(!ENV_READY)('equipment serial clash (DB)', () => {
     expect(result.success).toBe(true)
   })
 
+  // The clash check reads the trimmed serial; one stored as typed would slip past it next time.
+  it('stores the serial the way the clash check reads it', async () => {
+    expect((await add(`  ${PREFIX}-NOWY  `)).success).toBe(true)
+    expect(await countWith(`${PREFIX}-NOWY`)).toBe(1)
+  })
+
   it('lets two items be added with the serial left blank', async () => {
     expect((await add(null)).success).toBe(true)
     expect((await add(null)).success).toBe(true)

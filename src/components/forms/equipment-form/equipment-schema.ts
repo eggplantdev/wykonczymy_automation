@@ -29,7 +29,8 @@ export type EquipmentFormValuesT = z.infer<typeof equipmentFormShape>
 const equipmentDataShape = {
   // `null`, not `''`: the column carries a unique index, and Postgres treats two empty strings as a
   // collision — so the second nameplate-less item would be refused. Two NULLs never collide.
-  serialNumber: z.string().nullable(),
+  // Trimmed because the clash check reads it trimmed.
+  serialNumber: z.string().trim().nullable(),
   purchaseDate: z.string().nullable(),
   warrantyUntil: z.string().nullable(),
   // `null`, not `undefined`: Payload reads a missing key on update as „leave the column alone", so
