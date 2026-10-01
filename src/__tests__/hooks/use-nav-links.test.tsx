@@ -18,13 +18,12 @@ const hrefsFor = (role: RoleT) => {
 }
 
 describe('useNavLinks', () => {
-  it.each<RoleT>(['OWNER', 'ADMIN', 'MANAGER'])('puts „Kosz" last for %s', (role) => {
-    expect(hrefsFor(role).at(-1)).toBe('/kosz')
-  })
-
-  it.each<RoleT>(['EMPLOYEE'])('hides „Kosz" from %s', (role) => {
-    expect(hrefsFor(role)).not.toContain('/kosz')
-  })
+  it.each<RoleT>(['OWNER', 'ADMIN', 'MANAGER', 'EMPLOYEE'])(
+    'leaves „Kosz" out of the section list for %s — it is a bottom action',
+    (role) => {
+      expect(hrefsFor(role)).not.toContain('/kosz')
+    },
+  )
 
   it('offers EMPLOYEE only „Transakcje" — every other route redirects the role back to „/"', () => {
     expect(hrefsFor('EMPLOYEE')).toEqual(['/'])

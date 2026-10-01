@@ -2937,3 +2937,11 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
       wykonanych prac (n)" mieści się obok „Problemy", a pozycja w menu „Pracownicy" pokazuje pełną
       nazwę i „n do sprawdzenia" w jednym wierszu; okno po kliknięciu ma tytuł „Zgłoszenia
       wykonanych prac".
+
+## 2026-10-01 — kosz-pod-adminem
+
+- [ ] Menu boczne (rola zarządzająca): „Kosz" nie ma go już na liście sekcji — stoi na dole, zaraz
+      pod „Admin", w tym samym obrysie; na stronie „Kosz" przycisk jest podświetlony. Po zwinięciu
+      menu zostaje sama ikona, a najechanie pokazuje „Kosz".
+- [ ] Telefon (390px), menu z hamburgera: „Kosz" jest pod „Admin" i otwiera stronę „Kosz", a menu
+      się zamyka. Pracownik (EMPLOYEE) nie widzi „Kosza" ani na desktopie, ani na telefonie.

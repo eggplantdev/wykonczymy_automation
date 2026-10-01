@@ -7,7 +7,9 @@ import { NavLinkItem } from '@/components/nav/nav-link-item'
 import { LogoutButton } from '@/components/nav/logout-button'
 import { RefreshDataButton } from '@/components/nav/refresh-data-button'
 import { AdminButton } from '@/components/nav/admin-button'
+import { TrashButton } from '@/components/nav/trash-button'
 import { cn } from '@/lib/utils/cn'
+import { PAGE_TITLES, TRASH_HREF } from '@/lib/constants/sections'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { useNavLinks } from '@/hooks/use-nav-links'
 import { useSidebarCollapsed } from '@/hooks/use-sidebar-collapsed'
@@ -76,6 +78,9 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
           </CollapsibleTooltip>
           <CollapsibleTooltip collapsed={collapsed} label="Admin">
             <AdminButton collapsed={collapsed} />
+          </CollapsibleTooltip>
+          <CollapsibleTooltip collapsed={collapsed} label={PAGE_TITLES.trash}>
+            <TrashButton collapsed={collapsed} active={isActive(TRASH_HREF)} />
           </CollapsibleTooltip>
           {/* <Button variant="outline" size="sm" asChild aria-label="Poczta (Roundcube)">
             <Link href={roundcubeUrl} target="_blank" rel="noopener noreferrer">

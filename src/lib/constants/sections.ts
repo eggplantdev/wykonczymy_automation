@@ -7,7 +7,6 @@ import {
   Inbox,
   LayoutTemplate,
   ListChecks,
-  Trash2,
   Users,
   Wallet,
   Wrench,
@@ -37,6 +36,9 @@ export const PAGE_TITLES = {
   reports: 'Raporty',
 } as const
 
+// Not in MANAGEMENT_LINKS: „Kosz" sits with the bottom actions, under „Admin".
+export const TRASH_HREF = '/kosz'
+
 export type NavLinkT = {
   href: string
   label: string
@@ -65,5 +67,4 @@ export const MANAGEMENT_LINKS: NavLinkT[] = [
   { href: '/flota', label: PAGE_TITLES.fleet, icon: Car, unreadStream: 'fleet' },
   { href: '/sprzet', label: PAGE_TITLES.equipment, icon: Wrench, unreadStream: 'equipment' },
   { href: '/pracownicy', label: PAGE_TITLES.employees, icon: Users },
-  { href: '/kosz', label: PAGE_TITLES.trash, icon: Trash2 },
 ]
