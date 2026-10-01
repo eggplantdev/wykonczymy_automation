@@ -9,8 +9,8 @@ structure-scatter-audit, comment-noise-audit. Tailwind audit: clean.
 
 ## Findings
 
-- [ ] 🟡 WARNING · proposed · code-review + impl-review · `src/lib/actions/toggle-active.ts:57` · deactivation (`toggleUserActive`) now locks the account out and drops its sessions, but has none of the trash guards — a MANAGER can deactivate the OWNER, the last OWNER/ADMIN can deactivate themselves — changes what a MANAGER may do, so it waits for the owner's call
-      test: TDD · integration — db spec: MANAGER deactivating OWNER refused, last OWNER deactivating self refused
+- [x] 🟡 WARNING · fixed · code-review + impl-review · `src/lib/actions/toggle-active.ts:57` · deactivation (`toggleUserActive`) locks the account out and drops its sessions, but had none of the trash guards — a MANAGER could deactivate the OWNER, the last OWNER/ADMIN could deactivate themselves → owner's call (2026-10-01): same rules as the trash — `refusal` hook reuses `fetchRemovalSubject` + `canManageAccount` + `removalRefusal`; refusal messages now name „wyłączyć"
+      test: TDD · integration — `toggle-active.db.test.ts`: MANAGER→OWNER refused, self refused (red first), MANAGER→EMPLOYEE allowed
 - [x] 🟡 WARNING · fixed · impl-review · `src/__tests__/reference-data-sql-drift.test.ts` · drift spec failed (Progress 2.3 was checked on a red spec) — `mappingConst` repointed at `workerRows` / `investmentRows`, 5/5 green
       test: no automated test — the spec itself is the guard, now green
 - [x] 🔵 OBSERVATION · dropped · code-review · `src/lib/db/worker-trash.ts` · „razem z" list in /kosz names every kasa the worker owns in the trash, incl. one trashed earlier on its own — matches what Usuń na zawsze removes; restore brings back only the paired ones and the rest stay in /kosz → Kasy
@@ -51,4 +51,5 @@ Ran /simplify (reuse, simplification, efficiency, altitude) — 2 applied, 1 ski
 
 - `tsc --noEmit` — `src` clean (only errors are in another session's `context/changes/2026-10-01-ai-kosztorys-generation-tests/**/fill-kosztorys.ts`).
 - Touched specs: `reference-data-sql-drift` 5/5; `validate-hook` + `hooks/transfers/*` 115 passed; DB specs on 5435 (`token-action`, `worker-report`, transfers `*.db`) 30/30.
-- Full suite: not run — awaiting the user's go.
+- F2 fix: `toggle-active.db`, `toggle-actions`, `account-removal`, `users-delete-guard`, `worker-trash.db` — 41/41 on 5435.
+- Full suite: not run — user declined (touched specs suffice).

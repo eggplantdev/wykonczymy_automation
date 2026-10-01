@@ -6,10 +6,13 @@ export const WORKER_TRASHED_MESSAGE = 'Pracownik jest w koszu — przywróć go,
 
 export const OWNER_TRASHED_RESTORE_MESSAGE = 'Przywróć pracownika — kasa wraca razem z nim.'
 
-export const SELF_REMOVAL_MESSAGE = 'Nie można przenieść do kosza ani usunąć własnego konta.'
+export const SELF_REMOVAL_MESSAGE =
+  'Nie można wyłączyć, przenieść do kosza ani usunąć własnego konta.'
 
 export const lastRoleMessage = (role: RoleT): string =>
-  `Nie można usunąć ostatniego aktywnego konta z rolą „${ROLE_LABELS[role].pl}".`
+  `Nie można wyłączyć ani usunąć ostatniego aktywnego konta z rolą „${ROLE_LABELS[role].pl}".`
+
+export const MANAGER_SCOPE_MESSAGE = 'Kierownik może zmieniać tylko konta pracowników.'
 
 /** The roles an account must keep at least one live holder of — nobody else can administer them. */
 export const GUARDED_ROLES: readonly RoleT[] = ['OWNER', 'ADMIN']

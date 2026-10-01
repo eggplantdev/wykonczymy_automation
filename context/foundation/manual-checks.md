@@ -3136,8 +3136,12 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
 - [ ] To samo konto ze złym hasłem: dalej „Nieprawidłowy email lub hasło".
 - [ ] Pracownik zalogowany w `/admin` w drugiej przeglądarce → odznacz mu „Aktywny": po odświeżeniu
       `/admin` jest wylogowany.
-- [ ] `/admin` → Użytkownicy → spróbuj usunąć własne konto: odmowa „Nie można przenieść do kosza ani
-      usunąć własnego konta."
+- [ ] `/admin` → Użytkownicy → spróbuj usunąć własne konto: odmowa „Nie można wyłączyć, przenieść do
+      kosza ani usunąć własnego konta."
+- [ ] `/pracownicy` → odznacz „Aktywny" przy własnym wierszu: odmowa „Nie można wyłączyć, przenieść
+      do kosza ani usunąć własnego konta.", przełącznik wraca na zaznaczony.
+- [ ] Jako kierownik → odznacz „Aktywny" u właściciela: odmowa „Kierownik może zmieniać tylko konta
+      pracowników.", właściciel dalej się loguje.
 - [ ] Z pracownikiem w koszu: ani dialog nowej transakcji na `/transakcje`, ani podział etapu
       w kosztorysie, ani wydanie sprzętu na `/sprzet` nie proponują go na liście.
 - [ ] Anulowana wypłata dla pracownika, który jest teraz w koszu: na `/transakcje` dalej widać jego
@@ -3158,6 +3162,7 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
 - [ ] Jako kierownik: „Usuń pracownika" jest tylko przy kontach pracowników — nie przy właścicielu,
       adminie, innym kierowniku ani przy własnym wierszu; w `/kosz` widzi tylko pracowników.
 - [ ] Jedyny aktywny admin (lub właściciel) do kosza z konta innego właściciela/admina: odmowa
-      „Nie można usunąć ostatniego aktywnego konta z rolą …".
+      „Nie można wyłączyć ani usunąć ostatniego aktywnego konta z rolą …"; to samo przy odznaczeniu mu
+      „Aktywny".
 - [ ] `/kosz` → „Usuń na zawsze" u kasy i u inwestycji bez wpisanego kosztorysu: oba pytają o nazwę,
       przycisk nieaktywny do jej wpisania.
