@@ -3090,3 +3090,23 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
       zgłoszeń dalej się pokazuje.
 - [ ] Rozpiska z oczekującym zgłoszeniem: przycisk „Zgłoszenia wykonanych prac (n)" na pasku i
       pozycja w menu „Pracownicy" mają tę samą ikonę kartki z osobą, inną niż „Protokół odbioru".
+
+## 2026-10-01 — kosz-inwestycji-blokady
+
+- [ ] Inwestycja o statusie „Aktywna" → „Usuń inwestycję" → potwierdź: pojawia się błąd „Nie można
+      usunąć aktywnej inwestycji. Najpierw zmień jej status.", a inwestycja nie trafia do Kosza.
+- [ ] Inwestycja nieaktywna z wpisanym przedmiarem lub ilościami na etapach → „Usuń inwestycję":
+      okno ostrzega, że kosztorys jest w użyciu, zanim przeniesie do Kosza. Inwestycja z pustym
+      kosztorysem: okno bez ostrzeżenia.
+- [ ] Kosz → taka inwestycja → „Usuń na zawsze": okno powtarza to samo ostrzeżenie o kosztorysie.
+- [ ] Kosz → wiersz inwestycji: linki „Inwestycja", „Kosztorys v1" (tylko gdy ma arkusz) i
+      „Kosztorys v2" otwierają strony bez przywracania. Każda pokazuje pasek „Inwestycja jest w koszu
+      — tylko do odczytu…", nie da się nic edytować, nie ma „Edytuj inwestycję" ani synchronizacji
+      arkusza.
+
+## 2026-10-01 — loader-nad-pytaniem
+
+- [ ] Edytuj inwestycję → status „Zakończona" → „Zapisz": okno „Zakończyć inwestycję?" jest czytelne,
+      bez 🚧 na tekście; po „Zakończ" 🚧 pojawia się na czas zapisu.
+- [ ] Nowa praca w kosztorysie z „Dodaj do katalogu" i nazwą, która już jest w katalogu: okno
+      kolizji czytelne, bez 🚧.
