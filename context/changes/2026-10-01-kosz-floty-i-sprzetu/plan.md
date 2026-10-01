@@ -557,8 +557,8 @@ Run once, after Phase 4: `pnpm exec tsc --noEmit`, `pnpm lint`, and the touched 
 
 #### Automated
 
-- [x] 4.1 `shapeTrashRows` vehicle and item rows with detail
-- [x] 4.2 `/kosz` renders „Flota" and „Sprzęt"
-- [x] 4.3 Shared trash button spec; kasa and worker migrated
-- [x] 4.4 Fleet actions column and warning descriptions
-- [x] 4.5 Typecheck and lint clean
+- [x] 4.1 `shapeTrashRows` vehicle and item rows with detail — 29b0fa86
+- [x] 4.2 `/kosz` renders „Flota" and „Sprzęt" — 29b0fa86
+- [x] 4.3 Shared trash button spec; kasa and worker migrated — 29b0fa86
+- [x] 4.4 Fleet actions column and warning descriptions — 29b0fa86
+- [x] 4.5 Typecheck and lint clean — 29b0fa86

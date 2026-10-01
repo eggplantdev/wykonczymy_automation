@@ -1,7 +1,7 @@
 ---
 change_id: kosz-floty-i-sprzetu
 title: Kosz — trash a vehicle (Flota) and an equipment item (Sprzęt), warnings instead of a blocker
-status: implementing
+status: implemented
 created: 2026-10-01
 updated: 2026-10-01
 archived_at: null
