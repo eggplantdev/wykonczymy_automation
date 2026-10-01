@@ -1,7 +1,7 @@
 ---
 change_id: worker-report-translations-ua
 title: Ukrainian translations for the worker report surface
-status: implementing
+status: implemented
 created: 2026-10-01
 updated: 2026-10-01
 archived_at: null

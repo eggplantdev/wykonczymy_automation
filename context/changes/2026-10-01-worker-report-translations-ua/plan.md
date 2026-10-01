@@ -875,5 +875,5 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 6.1 Fill-script matcher unit spec
-- [x] 6.2 Dry run against local prints counts, writes nothing
+- [x] 6.1 Fill-script matcher unit spec — 83af91f4
+- [x] 6.2 Dry run against local prints counts, writes nothing — 83af91f4
