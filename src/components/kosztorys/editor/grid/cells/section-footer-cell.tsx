@@ -1,6 +1,6 @@
 'use client'
 
-import { useTranslation } from '@/lib/i18n/use-translation'
+import { useTranslation } from '@/hooks/use-translation'
 import { IDENTITY_COLUMN_ID } from '@/lib/kosztorys/constants'
 import { formatNet } from '@/lib/kosztorys/format'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'

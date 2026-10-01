@@ -49,4 +49,17 @@ describe('toCatalogueCandidate', () => {
     expect(candidate.clientPrice).toBe(250)
     expect(candidate.category).toBe('Łazienka')
   })
+
+  it('tłumaczenie aktualne względem opisu ze spacją zostaje aktualne po przycięciu opisu', () => {
+    const candidate = toCatalogueCandidate(
+      source({
+        description: 'Ułożenie płytek ',
+        descriptionTranslations: { uk: { text: 'Укладання плитки', source: 'Ułożenie płytek ' } },
+      }),
+    )
+
+    expect(candidate.descriptionTranslations).toEqual({
+      uk: { text: 'Укладання плитки', source: 'Ułożenie płytek' },
+    })
+  })
 })

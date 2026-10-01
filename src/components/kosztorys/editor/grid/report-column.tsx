@@ -3,7 +3,7 @@ import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-
 import { decimalColumn } from '@/components/kosztorys/editor/grid/cells/decimal-column'
 import { pinnedWidth } from '@/components/kosztorys/editor/grid/column-sizing'
 import { withCellClass } from '@/components/kosztorys/editor/grid/kosztorys-synthetic-rows'
-import { useTranslation } from '@/lib/i18n/use-translation'
+import { useTranslation } from '@/hooks/use-translation'
 import type { MessageKeyT } from '@/lib/i18n/translations'
 import { numericFieldPolicy } from '@/lib/kosztorys/cell-edit'
 import { formatQty } from '@/lib/kosztorys/format'
@@ -40,8 +40,7 @@ const COMPACT_REPORT_WIDTH = 110
 const COMPACT_UNIT_WIDTH = 80
 const COMPACT_DESCRIPTION_MIN_WIDTH = 240
 
-// A component, not inline JSX: the column is a module constant, and only a component can read the
-// worker's language.
+// A component, not inline JSX: the column is a module constant, so only a render can read the language.
 function ReportHeader({
   label,
   hint,

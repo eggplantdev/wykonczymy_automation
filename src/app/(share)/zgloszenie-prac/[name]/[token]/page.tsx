@@ -6,12 +6,11 @@ import { ReportNotice } from '@/components/kosztorys/worker-report/report-notice
 import { WorkerReportForm } from '@/components/kosztorys/worker-report/worker-report-form'
 import { DEFAULT_LANGUAGE } from '@/lib/i18n/languages'
 import { translate } from '@/lib/i18n/translations'
-import { TranslationsProvider } from '@/lib/i18n/translations-provider'
+import { TranslationsProvider } from '@/components/kosztorys/worker-report/translations-provider'
 import { getWorkerReportPage } from '@/lib/queries/worker-report-page'
 
 type ParamsT = { params: Promise<{ name: string; token: string }> }
 
-// The metadata and the page read the same token in one request.
 const readPage = cache(getWorkerReportPage)
 
 export async function generateMetadata({ params }: ParamsT): Promise<Metadata> {

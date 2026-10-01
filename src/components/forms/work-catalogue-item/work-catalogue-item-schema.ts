@@ -2,6 +2,7 @@ import { z } from 'zod'
 import {
   descriptionTranslationsSchema,
   translationTexts,
+  translationTextsSchema,
 } from '@/lib/i18n/description-translations'
 import { TRANSLATION_LANGUAGES } from '@/lib/i18n/languages'
 import { PRICE_SOURCES } from '@/lib/kosztorys/constants'
@@ -68,9 +69,8 @@ export const workCatalogueItemBaseSchema = z.object({
   ownToolsSource: z.enum(PRICE_SOURCES),
   ownToolsRate: z.string(),
   ownToolsCoeff: z.string(),
-  // One text per language, blank = untranslated. The `source` stamp is the form's job on the way out
-  // (`translationsFromTexts`), because only it knows which texts were edited. The catch lets a draft
-  // persisted before the field existed still submit, instead of failing on a field nobody can see.
+  // One text per language, blank = untranslated. The catch lets a draft persisted before the field
+  // existed still submit, instead of failing on a field nobody can see.
   translations: z.record(z.enum(TRANSLATION_LANGUAGES), z.string()).catch(translationTexts({})),
 })
 
@@ -180,8 +180,11 @@ export const workCatalogueItemSchema = workCatalogueItemBaseSchema
   })
   .extend({
     category: z.string().default(''),
-    // Absent = leave the stored map alone; present = the whole map, since a json value is replaced.
-    descriptionTranslations: descriptionTranslationsSchema.optional(),
+    // Never the whole map: a dialog opened on a cached row would write its stale copy back over
+    // translations saved since. Only the texts the form changed travel, and the action applies them
+    // to the stored row — or, for a new entry, to the seed it was opened with (the praca's map).
+    translationEdits: translationTextsSchema.optional(),
+    translationSeed: descriptionTranslationsSchema.optional(),
     clientPrice: money('Cena j.m.'),
     // A blank field is NOT „auto" — the form layer above still refuses it.
     wToolsRate: money(RATE_LABELS.w_tools).nullable(),

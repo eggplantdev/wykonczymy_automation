@@ -14,8 +14,7 @@ export const formatPLDate = (date: string | Date) =>
     timeZone: PL_TIME_ZONE,
   })
 
-/** Formats a date string as dd.mm.yyyy, hh:mm (Polish locale). */
-// `locale` changes only the wording; the clock stays Polish, where the work was done.
+/** dd.mm.yyyy, hh:mm. `locale` changes only the wording; the clock stays Polish, where the work was done. */
 export const formatPLDateTime = (date: string | Date, locale = 'pl-PL') =>
   new Date(date).toLocaleString(locale, {
     day: '2-digit',

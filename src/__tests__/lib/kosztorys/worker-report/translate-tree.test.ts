@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { translateTree } from '@/lib/i18n/translate-tree'
+import { translateTree } from '@/lib/kosztorys/worker-report/translate-tree'
 import type { DescriptionTranslationsT } from '@/lib/i18n/description-translations'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 

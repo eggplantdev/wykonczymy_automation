@@ -4,9 +4,10 @@
  * editor holding a mount-frozen copy of the tree that is not "your edit was rejected", it is "your
  * whole copy is stale", which is a different recovery (reseed) than a revert. `REQUEST_FAILED` is
  * set only client-side by `settleAction`: the request never completed, so whether the write
- * committed is unknown.
+ * committed is unknown. `DATABASE_ERROR` marks a driver failure whose text was replaced, so a
+ * translating surface can word it without matching the Polish sentence.
  */
-export type ActionErrorCodeT = 'NOT_FOUND' | 'REQUEST_FAILED'
+export type ActionErrorCodeT = 'NOT_FOUND' | 'REQUEST_FAILED' | 'DATABASE_ERROR'
 
 /**
  * `messageKey` names the dictionary entry `error` was worded from, for a surface that shows the

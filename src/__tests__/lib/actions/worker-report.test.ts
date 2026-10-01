@@ -129,7 +129,7 @@ describe.skipIf(!ENV_READY)('sendWorkerReportAction (DB)', () => {
     const res = await sendWorkerReportAction(token, [
       { kind: 'extra', description: 'Coś', unit: 'beczka', qty: 1 },
     ])
-    expect(res.success).toBe(false)
+    expect(res).toMatchObject({ success: false, messageKey: 'unknownUnit' })
     expect(await storedReports()).toHaveLength(before.length)
   })
 

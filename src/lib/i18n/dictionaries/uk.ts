@@ -22,6 +22,7 @@ export const uk: TranslationsT = {
     qtyPositive: 'Кількість має бути більшою за нуль',
     extraDescription: 'Опишіть додану роботу',
     extraUnit: 'Виберіть од. виміру доданої роботи',
+    unknownUnit: 'Цієї од. виміру вже немає в списку. Оновіть сторінку і виберіть од. виміру ще раз.',
   },
   report: {
     pageTitle: 'Звіт про роботи',

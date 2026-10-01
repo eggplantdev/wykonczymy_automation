@@ -5,8 +5,7 @@ import { cleanUnit } from '@/lib/kosztorys/clean-unit'
 
 /**
  * The rows „Popraw literówki" would rewrite. A blank column is left blank rather than cleaned into
- * '', which would count every empty praca as „poprawiona". A typo fix does not change meaning, so a
- * translation that was current against the old opis stays current against the cleaned one.
+ * '', which would count every empty praca as „poprawiona".
  */
 export function cleanItemTexts(rows: readonly ItemTextRowT[]): ItemTextRowT[] {
   return rows.flatMap((row) => {

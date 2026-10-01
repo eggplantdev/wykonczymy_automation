@@ -23,6 +23,7 @@ export const pl = {
     qtyPositive: 'Ilość musi być większa od zera',
     extraDescription: 'Opisz dopisaną pracę',
     extraUnit: 'Wybierz j.m. dopisanej pracy',
+    unknownUnit: 'Tej j.m. nie ma już na liście. Odśwież stronę i wybierz j.m. jeszcze raz.',
   },
   report: {
     pageTitle: 'Zgłoszenie prac',

@@ -1,4 +1,7 @@
-import type { DescriptionTranslationsT } from '@/lib/i18n/description-translations'
+import {
+  mergeTranslations,
+  type DescriptionTranslationsT,
+} from '@/lib/i18n/description-translations'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { SNAPSHOT_SCHEMA_VERSION, type SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 import type {
@@ -229,12 +232,13 @@ export function buildImportPlan(
         // is the sheet's own claim and the app never edits it: whatever the sheet says today is the
         // answer, including „nothing typed here any more".
         note: current?.note ?? null,
-        // A loose katalog match can bring a translation made from a different opis; the row then
-        // reads as out of date, which is the truthful state.
-        descriptionTranslations:
-          current?.descriptionTranslations ??
-          catalogueTranslations.get(catalogueKey(sheetItem.description ?? '', sheetItem.unit)) ??
-          {},
+        // The app's own translation wins per language, unless the sheet renamed the opis under it
+        // and the katalog holds one made from the new name; the katalog fills the languages it lacks.
+        descriptionTranslations: mergeTranslations(
+          catalogueTranslations.get(catalogueKey(sheetItem.description ?? '', sheetItem.unit)),
+          current?.descriptionTranslations,
+          sheetItem.description ?? '',
+        ),
       })
 
       for (const entry of parsedProgressByItem.get(sheetItem.id) ?? []) {

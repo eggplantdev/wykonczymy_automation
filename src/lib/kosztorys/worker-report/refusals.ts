@@ -1,6 +1,5 @@
 import { pl } from '@/lib/i18n/dictionaries/pl'
 import type { MessageKeyT } from '@/lib/i18n/translations'
-import type { WorkerScopeBlockReasonT } from '@/lib/kosztorys/worker-view/scope'
 
 export type ReportNoticeKeyT = MessageKeyT<'notices'>
 
@@ -17,12 +16,6 @@ export const REPORT_REFUSALS = {
 } as const satisfies Partial<Record<ReportNoticeKeyT, string>>
 
 export type ReportRefusalKeyT = keyof typeof REPORT_REFUSALS
-
-export const WORKER_SCOPE_BLOCK_NOTICE_KEYS: Record<WorkerScopeBlockReasonT, ReportNoticeKeyT> = {
-  'no-stages': 'noStages',
-  'unconfirmed-plane': 'unconfirmedPlane',
-  'mixed-planes': 'mixedPlanes',
-}
 
 export const reportRefusal = (key: ReportNoticeKeyT) => ({
   success: false as const,

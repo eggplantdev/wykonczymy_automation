@@ -1,3 +1,4 @@
+import { restampTranslations } from '@/lib/i18n/description-translations'
 import type { ViewPricingT } from '@/lib/kosztorys/types'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { impliedCatalogueRate } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
@@ -48,7 +49,11 @@ export function toCatalogueCandidate(source: CatalogueSourceItemT): CatalogueCan
   const ownTools = impliedCatalogueRate(pricing, 'own_tools')
   return {
     description,
-    descriptionTranslations: source.descriptionTranslations,
+    descriptionTranslations: restampTranslations(
+      source.descriptionTranslations,
+      source.description,
+      description,
+    ),
     category: category || null,
     unit,
     clientPrice: source.clientPrice,

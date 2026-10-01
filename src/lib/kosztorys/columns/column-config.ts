@@ -2,8 +2,8 @@ import type { PriceViewT } from '@/lib/kosztorys/calc'
 import { PLANE_LABEL_KEYS, PLANE_LABELS } from '@/lib/kosztorys/labels'
 import { planePriceKeyParts } from '@/lib/kosztorys/plane-price-keys'
 import { pl } from '@/lib/i18n/dictionaries/pl'
-import { DEFAULT_LANGUAGE, LANGUAGE_SHORT } from '@/lib/i18n/languages'
-import { createTranslator, type MessageKeyT, type TranslatorT } from '@/lib/i18n/translations'
+import { LANGUAGE_SHORT } from '@/lib/i18n/languages'
+import { POLISH_GRID, type MessageKeyT, type TranslatorT } from '@/lib/i18n/translations'
 import {
   ALL_TRANSLATION_COLUMN_KEYS,
   translationColumnLanguage,
@@ -58,8 +58,6 @@ const TRANSLATED_LABEL_KEYS: Partial<Record<string, MessageKeyT<'grid'>>> = {
   plannedNetForPlane: 'plannedNetForPlane',
   remainingForPlane: 'remainingForPlane',
 }
-
-const POLISH_GRID = createTranslator(DEFAULT_LANGUAGE, 'grid')
 
 /**
  * The two labels that mean different things per view, resolved in the same module that owns every

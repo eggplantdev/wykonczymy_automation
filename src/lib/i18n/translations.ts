@@ -1,7 +1,7 @@
 import { pl } from '@/lib/i18n/dictionaries/pl'
 import { ru } from '@/lib/i18n/dictionaries/ru'
 import { uk } from '@/lib/i18n/dictionaries/uk'
-import type { LanguageT } from '@/lib/i18n/languages'
+import { DEFAULT_LANGUAGE, type LanguageT } from '@/lib/i18n/languages'
 
 export type TranslationsT = typeof pl
 export type NamespaceT = keyof TranslationsT
@@ -77,7 +77,6 @@ export type TranslatorT<NS extends NamespaceT> = {
 
 const translators = new Map<string, unknown>()
 
-// The non-React entry: the server and the pure column builders take a translator, not a hook.
 // One instance per locale and namespace, so a translator in a memo's dependencies (the editor's
 // columns) changes only when the language does.
 export function createTranslator<NS extends NamespaceT>(
@@ -95,3 +94,6 @@ export function createTranslator<NS extends NamespaceT>(
   translators.set(cacheKey, translator)
   return translator
 }
+
+// The default every grid-copy builder falls back to: the manager surfaces never pass a translator.
+export const POLISH_GRID = createTranslator(DEFAULT_LANGUAGE, 'grid')

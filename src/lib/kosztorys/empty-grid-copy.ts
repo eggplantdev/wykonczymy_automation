@@ -1,5 +1,4 @@
-import { DEFAULT_LANGUAGE } from '@/lib/i18n/languages'
-import { createTranslator, type TranslatorT } from '@/lib/i18n/translations'
+import { POLISH_GRID, type TranslatorT } from '@/lib/i18n/translations'
 import { activeFilterHidesPhrase } from '@/lib/kosztorys/counted-nouns'
 import { listLabels } from '@/lib/kosztorys/row-conditions/queries'
 import type { RowConditionT } from '@/lib/kosztorys/row-conditions/types'
@@ -15,8 +14,6 @@ type ArgsT = {
   // Only the document branches are translated: the filter branches are the owner's.
   dictionary?: TranslatorT<'grid'>
 }
-
-const POLISH_GRID = createTranslator(DEFAULT_LANGUAGE, 'grid')
 
 /**
  * Past this many engaged hiders the sentence stops answering the question it exists for: the full set

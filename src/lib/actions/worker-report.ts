@@ -5,7 +5,7 @@ import { validateAction } from '@/lib/actions/run-action'
 import { tokenAction } from '@/lib/actions/token-action'
 import { insertWorkerReport, type WorkerReportLineInputT } from '@/lib/db/worker-reports'
 import { cleanUnit } from '@/lib/kosztorys/clean-unit'
-import { reportNoticeKeyOf } from '@/lib/kosztorys/worker-report/refusals'
+import { reportNoticeKeyOf, reportRefusal } from '@/lib/kosztorys/worker-report/refusals'
 import { sendLineSchema } from '@/lib/kosztorys/worker-report/schemas'
 import type { SendReportLineT } from '@/lib/kosztorys/worker-report/types'
 import { unitOptions } from '@/lib/kosztorys/unit-options'
@@ -68,9 +68,7 @@ export async function sendWorkerReportAction(
           continue
         }
         const unit = cleanUnit(line.unit)
-        if (!allowedUnits.has(unit)) {
-          return { success: false, error: `Nieznana j.m. „${line.unit}”` }
-        }
+        if (!allowedUnits.has(unit)) return reportRefusal('unknownUnit')
         stored.push({
           kind: 'extra',
           itemId: null,

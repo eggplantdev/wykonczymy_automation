@@ -56,8 +56,7 @@ export async function resolveCatalogueWrite(
 // IS a create: refusing it would be pedantry about a race nobody caused.
 //
 // `keepCatalogueCategory` protects the cennik: the candidate's kategoria comes from one kosztorys'
-// sekcja, local context, while the katalog owns its own. Translations merge per language: the
-// candidate's wins where it has one, and the katalog keeps every language the candidate lacks.
+// sekcja, local context, while the katalog owns its own.
 export async function applyCatalogueWrite(
   payload: Payload,
   req: PayloadRequest | undefined,
@@ -84,6 +83,7 @@ export async function applyCatalogueWrite(
       descriptionTranslations: mergeTranslations(
         existing.descriptionTranslations,
         candidate.descriptionTranslations,
+        candidate.description,
       ),
     },
     req,

@@ -31,7 +31,6 @@ export const WorkCatalogueItems: CollectionConfig = {
       label: { en: 'Description', pl: 'Opis pracy' },
     },
     {
-      // Same shape and same name as on `kosztorys-items` — one concept, one name.
       name: 'descriptionTranslations',
       type: 'json',
       defaultValue: {},

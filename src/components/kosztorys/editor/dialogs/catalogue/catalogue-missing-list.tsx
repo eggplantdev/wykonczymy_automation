@@ -7,11 +7,13 @@ import { SearchFilterInput } from '@/components/filters/search-filter-input'
 import { useSearchFilter } from '@/hooks/use-search-filter'
 import { CandidateRow } from '@/components/kosztorys/editor/dialogs/catalogue/catalogue-candidate-row'
 import { hintLead } from '@/lib/kosztorys/work-catalogue/hint-lead'
-import type { CatalogueMissingT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
+import type {
+  CatalogueMissingT,
+  CatalogueNameT,
+  WorkCatalogueItemT,
+} from '@/lib/kosztorys/work-catalogue/types'
 
 const SEARCH_RESULT_LIMIT = 8
-
-type CatalogueNameT = { description: string; unit: string }
 
 /**
  * „Brak w katalogu" — the prace the cennik has never heard of, each with up to three candidates it
@@ -85,7 +87,7 @@ export function CatalogueMissingList({
                 key={hint.id}
                 entry={hint}
                 readOnly={readOnly}
-                onClick={() => onAcceptName(row.itemId, hintName(hint))}
+                onClick={() => onAcceptName(row.itemId, catalogueNameOf(hint))}
               />
             ))}
             {/* Offered even with no candidates — nothing scored above the threshold is the case
@@ -109,7 +111,7 @@ export function CatalogueMissingList({
             <CatalogueSearch
               catalogue={catalogue}
               onPick={async (entry) => {
-                const saved = await onAcceptName(row.itemId, hintName(entry))
+                const saved = await onAcceptName(row.itemId, catalogueNameOf(entry))
                 if (saved) setSearchingItemId(null)
               }}
             />
@@ -120,12 +122,13 @@ export function CatalogueMissingList({
   )
 }
 
-const hintName = (entry: { description: string; unit: string }): CatalogueNameT => ({
-  description: entry.description,
-  unit: entry.unit,
-})
+const catalogueNameOf = ({
+  description,
+  unit,
+  descriptionTranslations,
+}: CatalogueNameT): CatalogueNameT => ({ description, unit, descriptionTranslations })
 
-const searchText = (entry: WorkCatalogueItemT) => `${entry.description} ${entry.unit}`
+const searchText =(entry: WorkCatalogueItemT) => `${entry.description} ${entry.unit}`
 
 // No `readOnly` here: the only way to open this is the toggle that a read-only viewer never gets.
 function CatalogueSearch({

@@ -2,7 +2,8 @@
 
 import { z } from 'zod'
 import { getDb } from '@/lib/db/get-db'
-import { findCatalogueItemByKey } from '@/lib/db/work-catalogue'
+import { findCatalogueItemByKey, listCatalogueItemsByIds } from '@/lib/db/work-catalogue'
+import { translationsFromTexts } from '@/lib/i18n/description-translations'
 import { catalogueSaveState } from '@/lib/queries/work-catalogue'
 import type { CatalogueSeedItemT } from '@/lib/kosztorys/work-catalogue/types'
 import {
@@ -30,7 +31,14 @@ export async function createCatalogueItemAction(data: WorkCatalogueItemDataT) {
       if ('error' in resolved) return { success: false, error: resolved.error }
 
       await applyCatalogueWrite(payload, undefined, {
-        candidate: { ...row, descriptionTranslations: parsed.data.descriptionTranslations ?? {} },
+        candidate: {
+          ...row,
+          descriptionTranslations: translationsFromTexts(
+            parsed.data.translationSeed,
+            parsed.data.translationEdits,
+            row.description,
+          ),
+        },
         existing: null,
         keepCatalogueCategory: true,
       })
@@ -52,14 +60,23 @@ export async function updateCatalogueItemAction(id: number, data: WorkCatalogueI
 
       // Editing the opis or j.m. re-derives the key, so an edit can collide exactly like a create.
       // The row being edited is excluded — otherwise saving it unchanged would collide with itself.
-      const holder = await findCatalogueItemByKey(await getDb(payload), row.matchKey)
+      const db = await getDb(payload)
+      const holder = await findCatalogueItemByKey(db, row.matchKey)
       if (holder && holder.id !== id) return { success: false, error: DUPLICATE_ERROR }
 
-      const { descriptionTranslations } = parsed.data
+      // An edit that keeps the opis and j.m. finds its own row as the holder — the common price-only save.
+      const stored = holder ?? (await listCatalogueItemsByIds(db, [id]))[0]
       await payload.update({
         collection: 'work-catalogue-items',
         id,
-        data: { ...row, ...(descriptionTranslations && { descriptionTranslations }) },
+        data: {
+          ...row,
+          descriptionTranslations: translationsFromTexts(
+            stored?.descriptionTranslations,
+            parsed.data.translationEdits,
+            row.description,
+          ),
+        },
       })
 
       return { success: true }

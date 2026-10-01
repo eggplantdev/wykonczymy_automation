@@ -47,8 +47,7 @@ export const isTranslationStale = (
   return entry != null && entry.source !== (description ?? '')
 }
 
-// One language's new text, with `source` stamped from the opis it is typed against. An empty text
-// removes the language, so „bez tłumaczenia" and an emptied cell read the same.
+// An empty text removes the language, so „bez tłumaczenia" and an emptied cell read the same.
 export function withTranslation(
   translations: DescriptionTranslationsT | undefined,
   language: TranslationLanguageT,
@@ -70,32 +69,50 @@ export const translationTexts = (
     TRANSLATION_LANGUAGES.map((language) => [language, translationText(translations, language)]),
   ) as Record<TranslationLanguageT, string>
 
-// A form's texts back onto the map it was opened with. Only a language whose text changed is stamped
-// against the form's opis: an untouched one keeps its `source`, so saving an unrelated field cannot
-// mark a stale translation current.
+export const translationTextsSchema = z.partialRecord(z.enum(TRANSLATION_LANGUAGES), z.string())
+
+export const changedTranslationTexts = (
+  baseline: DescriptionTranslationsT | undefined,
+  texts: TranslationTextsT | undefined,
+): TranslationTextsT => {
+  const changed: TranslationTextsT = {}
+  for (const language of TRANSLATION_LANGUAGES) {
+    const text = texts?.[language]
+    if (text !== undefined && text !== translationText(baseline, language)) changed[language] = text
+  }
+  return changed
+}
+
+// Only a language whose text changed is stamped against the opis: an untouched one keeps its
+// `source`, so saving an unrelated field cannot mark a stale translation current.
 export function translationsFromTexts(
   baseline: DescriptionTranslationsT | undefined,
   texts: TranslationTextsT | undefined,
   description: string,
 ): DescriptionTranslationsT {
+  const changed = changedTranslationTexts(baseline, texts)
   let next: DescriptionTranslationsT = { ...baseline }
   for (const language of TRANSLATION_LANGUAGES) {
-    const text = texts?.[language]
-    if (text === undefined || text === translationText(baseline, language)) continue
-    next = withTranslation(next, language, text, description)
+    const text = changed[language]
+    if (text !== undefined) next = withTranslation(next, language, text, description)
   }
   return next
 }
 
-// Per language, the incoming translation wins when it has one; otherwise the existing one stays.
+// Per language, the incoming translation wins when it has one — unless it was made from another opis
+// and the existing one matches `description`, the opis the merged map will sit under.
 export function mergeTranslations(
   existing: DescriptionTranslationsT | undefined,
   incoming: DescriptionTranslationsT | undefined,
+  description: string,
 ): DescriptionTranslationsT {
   const out: DescriptionTranslationsT = { ...existing }
   for (const language of TRANSLATION_LANGUAGES) {
     const entry = incoming?.[language]
-    if (entry && entry.text.trim() !== '') out[language] = entry
+    if (!entry || entry.text.trim() === '') continue
+    const keepsExisting =
+      entry.source !== description && existing?.[language]?.source === description
+    if (!keepsExisting) out[language] = entry
   }
   return out
 }

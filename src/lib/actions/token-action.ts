@@ -3,12 +3,9 @@ import type { Payload } from 'payload'
 import { runAuthorizedHandler } from '@/lib/actions/run-action'
 import { getDb, type DbExecutorT } from '@/lib/db/get-db'
 import { readReportShare } from '@/lib/db/worker-report-share'
-import {
-  reportRefusal,
-  WORKER_SCOPE_BLOCK_NOTICE_KEYS,
-  type ReportNoticeKeyT,
-} from '@/lib/kosztorys/worker-report/refusals'
+import { reportRefusal, type ReportNoticeKeyT } from '@/lib/kosztorys/worker-report/refusals'
 import { reportShareRefusal } from '@/lib/kosztorys/worker-report/share-refusal'
+import { WORKER_SCOPE_BLOCK_NOTICE_KEYS } from '@/lib/kosztorys/worker-view/labels'
 import { resolveWorkerScope } from '@/lib/kosztorys/worker-view/scope'
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 import { buildKosztorysTree } from '@/lib/queries/kosztorys'

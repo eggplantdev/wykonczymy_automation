@@ -142,17 +142,21 @@ export function DataTable<TData>({
     // Multi-sort can't survive a controlled sort: it round-trips through one URL parameter, so a
     // second key would vanish on the next render.
     enableMultiSort: !isManualSorting,
-    onColumnVisibilityChange: (updater) => {
-      const next = typeof updater === 'function' ? updater(columnVisibility) : updater
-      // A stored default would pin today's default for this viewer even after the default changes.
-      const deviations = Object.fromEntries(
-        Object.entries(next).filter(
-          ([id, visible]) => visible !== (defaultColumnVisibility[id] ?? true),
-        ),
-      )
-      setStoredVisibility(deviations)
-      if (storageKey) writeVisibility(storageKey, deviations)
-    },
+    // Functional, so two toggles in one tick each build on the other instead of on the render's copy.
+    // The storage write inside is idempotent, so a doubled updater call writes the same value twice.
+    onColumnVisibilityChange: (updater) =>
+      setStoredVisibility((stored) => {
+        const current = { ...defaultColumnVisibility, ...stored }
+        const next = typeof updater === 'function' ? updater(current) : updater
+        // A stored default would pin today's default for this viewer even after the default changes.
+        const deviations = Object.fromEntries(
+          Object.entries(next).filter(
+            ([id, visible]) => visible !== (defaultColumnVisibility[id] ?? true),
+          ),
+        )
+        if (storageKey) writeVisibility(storageKey, deviations)
+        return deviations
+      }),
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
   })

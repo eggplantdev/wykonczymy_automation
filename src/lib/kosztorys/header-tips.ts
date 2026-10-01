@@ -1,6 +1,5 @@
 import { pl } from '@/lib/i18n/dictionaries/pl'
-import { DEFAULT_LANGUAGE } from '@/lib/i18n/languages'
-import { createTranslator, type MessageKeyT, type TranslatorT } from '@/lib/i18n/translations'
+import { POLISH_GRID, type MessageKeyT, type TranslatorT } from '@/lib/i18n/translations'
 import { basePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import {
   STAGE_VALUE_GROSS_COLUMN_GROUP,
@@ -50,8 +49,6 @@ const WORKER_TIP_KEYS: Partial<Record<string, MessageKeyT<'grid'>>> = {
   [STAGE_VALUE_NET_COLUMN_GROUP]: 'tipStageValueNet',
   remainingForPlane: 'tipRemainingForPlane',
 }
-
-const POLISH_GRID = createTranslator(DEFAULT_LANGUAGE, 'grid')
 
 /**
  * The map's only reader, so the base-key resolution lives here rather than at a call site — same

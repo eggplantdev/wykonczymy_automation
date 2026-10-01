@@ -4,17 +4,13 @@ import {
   type TranslationLanguageT,
 } from '@/lib/i18n/languages'
 
-// The translated-opis column key namespace, on the plane-price-keys.ts pattern: config (label, layer)
-// resolves by the base key, visibility matches the full id. The id is persisted in stored column
-// settings, so it is never renamed.
-export const TRANSLATION_COLUMN_BASE_KEY = 'descriptionTranslation'
+// The id is persisted in stored column settings, so it is never renamed.
+const PREFIX = 'descriptionTranslation__'
 
-export type TranslationColumnKeyT = `descriptionTranslation__${TranslationLanguageT}`
-
-const PREFIX = `${TRANSLATION_COLUMN_BASE_KEY}__`
+export type TranslationColumnKeyT = `${typeof PREFIX}${TranslationLanguageT}`
 
 export function translationColumnKey(language: TranslationLanguageT): TranslationColumnKeyT {
-  return `${TRANSLATION_COLUMN_BASE_KEY}__${language}`
+  return `${PREFIX}${language}`
 }
 
 // An unknown suffix resolves to null rather than a default language: a wrong language would read
@@ -27,9 +23,3 @@ export function translationColumnLanguage(key: string): TranslationLanguageT | n
 
 export const ALL_TRANSLATION_COLUMN_KEYS: readonly TranslationColumnKeyT[] =
   TRANSLATION_LANGUAGES.map(translationColumnKey)
-
-// The key the configuration maps are keyed by (label, layer, hidden default) — one entry for every
-// language, so a new language needs no new config row.
-export function baseTranslationColumnKey(key: string): string {
-  return translationColumnLanguage(key) === null ? key : TRANSLATION_COLUMN_BASE_KEY
-}

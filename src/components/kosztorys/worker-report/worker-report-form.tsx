@@ -12,7 +12,7 @@ import {
   useReportDraft,
 } from '@/components/kosztorys/worker-report/use-report-draft'
 import type { WorkerReportRowT } from '@/lib/db/worker-reports'
-import { useTranslation } from '@/lib/i18n/use-translation'
+import { useTranslation } from '@/hooks/use-translation'
 import { toWorkerReportFormData } from '@/lib/kosztorys/worker-report/to-form-data'
 import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
 

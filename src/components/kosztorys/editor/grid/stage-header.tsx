@@ -21,7 +21,7 @@ import { StageSplitDialog } from '@/components/kosztorys/editor/dialogs/stage-sp
 import { PLANE_LABELS } from '@/lib/kosztorys/labels'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
-import { useTranslation } from '@/lib/i18n/use-translation'
+import { useTranslation } from '@/hooks/use-translation'
 import { STAGE_HEADER_COPY as COPY } from './stage-header-copy'
 import { SortIcon, SortMenuItems } from './sort-menu-items'
 import { cn } from '@/lib/utils/cn'

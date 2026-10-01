@@ -5,7 +5,7 @@ import { useManagedForm } from '@/components/forms/hooks/use-managed-form'
 import { FormShell } from '@/components/forms/form-components/form-shell'
 import FormFooter from '@/components/forms/form-components/form-footer'
 import {
-  translationsFromTexts,
+  changedTranslationTexts,
   type DescriptionTranslationsT,
 } from '@/lib/i18n/description-translations'
 import { LANGUAGE_SHORT, TRANSLATION_LANGUAGES } from '@/lib/i18n/languages'
@@ -75,11 +75,8 @@ export function WorkCatalogueItemForm({
       category: value.category,
       unit: value.unit,
       ...catalogueFigures(value),
-      descriptionTranslations: translationsFromTexts(
-        translationBaseline,
-        value.translations,
-        value.description.trim(),
-      ),
+      translationEdits: changedTranslationTexts(translationBaseline, value.translations),
+      translationSeed: translationBaseline,
     }),
   })
 

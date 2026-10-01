@@ -10,7 +10,16 @@ const groups: UncataloguedUsageT[] = [
     description: 'Montaż syfonu',
     unit: 'szt',
     kosztorysCount: 4,
-    hints: [{ id: 1, description: 'Montaż syfonów', unit: 'szt', clientPrice: 80, score: 0.9 }],
+    hints: [
+      {
+        id: 1,
+        description: 'Montaż syfonów',
+        descriptionTranslations: {},
+        unit: 'szt',
+        clientPrice: 80,
+        score: 0.9,
+      },
+    ],
   },
   {
     key: 'fugowanie|mb',

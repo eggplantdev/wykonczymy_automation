@@ -1,18 +1,14 @@
 import { NotFound } from 'payload'
+import { pl } from '@/lib/i18n/dictionaries/pl'
 import type { ActionErrorCodeT } from '@/types/action'
 
 // Payload's own NotFound sentence is the bare word „Nie znaleziono" (its pl `general:notFound`), which
 // tells the user neither what is missing nor what to do about it. Re-worded here — and, the part that
 // matters, tagged with a code the caller can branch on: a write refused because its row is GONE means
 // the caller's whole copy of the data is stale, which is a reseed, not a per-field revert.
-const STALE_ROW_ERROR = 'Ten rekord już nie istnieje — dane zmieniły się w innym miejscu.'
-
+//
 // A database error's own text is English at best and, once Drizzle wraps it, the whole failed
-// statement plus its bind params. `protectedAction` has already logged the original. Worded for reads
-// too: the `lib/queries` reads run through `protectedAction` as well.
-const DATABASE_ERROR = 'Nie udało się wykonać operacji — odśwież stronę i spróbuj ponownie.'
-
-const DEFAULT_ERROR = 'Wystąpił błąd'
+// statement plus its bind params. `protectedAction` has already logged the original.
 
 type ActionFailureT = { success: false; error: string; code?: ActionErrorCodeT }
 
@@ -29,7 +25,11 @@ function isDatabaseError(err: unknown): boolean {
 
 /** Thrown error → the failure branch of `ActionResultT`. */
 export function toActionFailure(err: unknown): ActionFailureT {
-  if (err instanceof NotFound) return { success: false, error: STALE_ROW_ERROR, code: 'NOT_FOUND' }
-  if (isDatabaseError(err)) return { success: false, error: DATABASE_ERROR }
-  return { success: false, error: err instanceof Error ? err.message : DEFAULT_ERROR }
+  if (err instanceof NotFound) {
+    return { success: false, error: pl.common.staleRow, code: 'NOT_FOUND' }
+  }
+  if (isDatabaseError(err)) {
+    return { success: false, error: pl.common.databaseError, code: 'DATABASE_ERROR' }
+  }
+  return { success: false, error: err instanceof Error ? err.message : pl.common.genericError }
 }

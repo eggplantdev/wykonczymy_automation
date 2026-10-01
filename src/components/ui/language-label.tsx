@@ -19,7 +19,7 @@ export function LanguageLabel({ language }: { language: LanguageT }) {
           <span key={stripe} className={`flex-1 ${stripe}`} />
         ))}
       </span>
-      {LANGUAGE_LABELS[language]}
+      <span data-slot="language-name">{LANGUAGE_LABELS[language]}</span>
     </span>
   )
 }

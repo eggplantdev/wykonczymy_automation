@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { ADMIN_OR_OWNER_MANAGER_ROLES, ROLE_LABELS } from '@/lib/auth/roles'
 import { LanguageLabel } from '@/components/ui/language-label'
+import { DEFAULT_LANGUAGE } from '@/lib/i18n/languages'
 import { parsePagination } from '@/lib/utils/pagination'
 import { parseTransferSort } from '@/lib/queries/transfer-sort'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
@@ -51,7 +52,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
     { label: 'Rola', value: ROLE_LABELS[role].pl },
     { label: 'Email', value: worker.email },
     { label: 'Status', value: worker.active ? 'Aktywny' : 'Nieaktywny' },
-    { label: 'Domyślny język', value: <LanguageLabel language={worker.language ?? 'pl'} /> },
+    { label: 'Domyślny język', value: <LanguageLabel language={worker.language ?? DEFAULT_LANGUAGE} /> },
     ...(registerName ? [{ label: 'Domyślna kasa', value: registerName }] : []),
   ]
 

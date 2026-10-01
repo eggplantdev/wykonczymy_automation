@@ -1,5 +1,5 @@
 import type { ExtraWorkT } from '@/components/kosztorys/worker-report/types'
-import { useTranslation } from '@/lib/i18n/use-translation'
+import { useTranslation } from '@/hooks/use-translation'
 
 // The blank row the dialog opens on is not a work yet.
 export function DraftExtraWorks({ extras }: { extras: ExtraWorkT[] }) {

@@ -6,7 +6,7 @@ import { ExtraWorksDialogButton } from '@/components/kosztorys/worker-report/ext
 import type { ExtraWorkT } from '@/components/kosztorys/worker-report/types'
 import { ru } from '@/lib/i18n/dictionaries/ru'
 import { uk } from '@/lib/i18n/dictionaries/uk'
-import { TranslationsProvider } from '@/lib/i18n/translations-provider'
+import { TranslationsProvider } from '@/components/kosztorys/worker-report/translations-provider'
 
 function Harness() {
   const [extras, setExtras] = useState<ExtraWorkT[]>([])

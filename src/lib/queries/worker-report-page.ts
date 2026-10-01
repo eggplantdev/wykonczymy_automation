@@ -5,11 +5,9 @@ import { getDb } from '@/lib/db/get-db'
 import { listWorkerReports, pendingQtyByItem, type WorkerReportRowT } from '@/lib/db/worker-reports'
 import { readReportShare } from '@/lib/db/worker-report-share'
 import { DEFAULT_LANGUAGE, type LanguageT } from '@/lib/i18n/languages'
-import {
-  WORKER_SCOPE_BLOCK_NOTICE_KEYS,
-  type ReportNoticeKeyT,
-} from '@/lib/kosztorys/worker-report/refusals'
+import type { ReportNoticeKeyT } from '@/lib/kosztorys/worker-report/refusals'
 import { reportShareRefusal } from '@/lib/kosztorys/worker-report/share-refusal'
+import { WORKER_SCOPE_BLOCK_NOTICE_KEYS } from '@/lib/kosztorys/worker-view/labels'
 import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
 import { getWorkerKosztorysByReportShare } from '@/lib/queries/worker-kosztorys'
 

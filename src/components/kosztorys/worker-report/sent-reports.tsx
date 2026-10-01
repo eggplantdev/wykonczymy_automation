@@ -1,7 +1,7 @@
 'use client'
 
 import type { WorkerReportRowT } from '@/lib/db/worker-reports'
-import { useTranslation } from '@/lib/i18n/use-translation'
+import { useTranslation } from '@/hooks/use-translation'
 import { cn } from '@/lib/utils/cn'
 import { formatPLDateTime } from '@/lib/utils/format-date'
 

@@ -15,7 +15,6 @@ vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalida
 
 const { tokenAction } = await import('@/lib/actions/token-action')
 
-// The Polish sentence stays for every caller; the key is what the worker's page translates.
 const refused = (key: keyof typeof REPORT_REFUSALS) => ({
   success: false,
   error: REPORT_REFUSALS[key],

@@ -9,7 +9,7 @@ import { parseReportQty } from '@/lib/kosztorys/worker-report/parse-report-qty'
 import { sendWorkerReportAction } from '@/lib/actions/worker-report'
 import type { SendReportLineT, WorkerReportFormDataT } from '@/lib/kosztorys/worker-report/types'
 import { failureMessage } from '@/lib/i18n/failure-message'
-import { useTranslation } from '@/lib/i18n/use-translation'
+import { useTranslation } from '@/hooks/use-translation'
 import { toastMessage } from '@/lib/utils/toast'
 import { settleAction } from '@/lib/utils/settle-action'
 

@@ -7,7 +7,6 @@ export type LanguageT = (typeof LANGUAGES)[number]
 
 export const DEFAULT_LANGUAGE: LanguageT = 'pl'
 
-// Polish is the language the opis is typed in, so it never carries a translation of itself.
 export type TranslationLanguageT = Exclude<LanguageT, 'pl'>
 export const TRANSLATION_LANGUAGES = LANGUAGES.filter(
   (language): language is TranslationLanguageT => language !== 'pl',
@@ -34,5 +33,4 @@ export const isLanguage = (value: unknown): value is LanguageT =>
 export const isTranslationLanguage = (value: unknown): value is TranslationLanguageT =>
   isLanguage(value) && value !== 'pl'
 
-// A stored worker language as the app reads it: anything unknown is no language at all.
 export const toLanguage = (value: unknown): LanguageT | null => (isLanguage(value) ? value : null)

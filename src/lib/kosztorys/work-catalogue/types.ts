@@ -32,6 +32,10 @@ export type CatalogueSeedItemT = Omit<WorkCatalogueItemT, 'id' | 'descriptionTra
 export type CatalogueCandidateT = CatalogueSeedItemT &
   Pick<WorkCatalogueItemT, 'descriptionTranslations'>
 
+// What a praca takes over when it accepts a katalog name. The translations come along with the opis:
+// the praca's own were made from the name it is giving up.
+export type CatalogueNameT = Pick<WorkCatalogueItemT, 'description' | 'unit' | 'descriptionTranslations'>
+
 // One occurrence of a klucz inside the szablon, kept only so a rozbieżność can be shown with the
 // sekcja it came from — the owner recognises „Łazienka 1 mówi 300 zł" and nothing else.
 export type SeedOccurrenceT = {
@@ -116,13 +120,10 @@ export type CataloguePriceDiffT = {
 // A „może chodzi o…" candidate. It carries the cennik row whole rather than its opis, because the
 // three closest names are routinely the SAME name — 168 prace in the local dataset differ from their
 // candidate only by j.m. — so the j.m. and the cena are what actually tell two candidates apart.
-export type CatalogueHintT = {
-  id: number
-  description: string
-  unit: string
-  clientPrice: number
-  score: number
-}
+export type CatalogueHintT = Pick<
+  WorkCatalogueItemT,
+  'id' | 'description' | 'descriptionTranslations' | 'unit' | 'clientPrice'
+> & { score: number }
 
 export type CatalogueMissingT = {
   itemId: number

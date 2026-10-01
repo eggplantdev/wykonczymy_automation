@@ -19,8 +19,6 @@ import { catalogueRateText } from '@/lib/kosztorys/work-catalogue/catalogue-rate
 import { formatPLN } from '@/lib/utils/format-currency'
 import { useCatalogueSavePreview } from './use-catalogue-save-preview'
 
-// The katalog's translation wins on an overwrite, as its kategoria does; a new entry starts from the
-// praca's.
 const translationBaselineOf = ({ candidate, existing }: CatalogueSavePreviewT) =>
   existing?.descriptionTranslations ?? candidate.descriptionTranslations
 

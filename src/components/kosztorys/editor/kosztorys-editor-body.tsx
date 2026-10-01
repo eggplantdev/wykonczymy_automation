@@ -50,7 +50,7 @@ import { gridMinWidth } from '@/lib/kosztorys/grid-min-width'
 import { engagedConditionsOfKind, engagedHiders } from '@/lib/kosztorys/row-conditions/queries'
 import { emptyGridCopy } from '@/lib/kosztorys/empty-grid-copy'
 import { editorNoun } from '@/lib/kosztorys/editor-noun'
-import { useTranslation } from '@/lib/i18n/use-translation'
+import { useTranslation } from '@/hooks/use-translation'
 import {
   isSectionFooterRow,
   isSectionHeaderRow,

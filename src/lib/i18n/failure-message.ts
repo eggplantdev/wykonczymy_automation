@@ -1,4 +1,3 @@
-import { pl } from '@/lib/i18n/dictionaries/pl'
 import type { LanguageT } from '@/lib/i18n/languages'
 import { isMessageKey, translate, type MessageKeyT } from '@/lib/i18n/translations'
 import type { FailureT } from '@/types/action'
@@ -6,7 +5,7 @@ import type { FailureT } from '@/types/action'
 function commonKeyOf(failure: FailureT): MessageKeyT<'common'> {
   if (failure.code === 'REQUEST_FAILED') return 'requestFailed'
   if (failure.code === 'NOT_FOUND') return 'staleRow'
-  if (failure.error === pl.common.databaseError) return 'databaseError'
+  if (failure.code === 'DATABASE_ERROR') return 'databaseError'
   return 'genericError'
 }
 

@@ -1,8 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { act, render, screen } from '@testing-library/react'
-import { useI18nContext } from '@/lib/i18n/i18n-context'
-import { TranslationsProvider } from '@/lib/i18n/translations-provider'
-import { useTranslation } from '@/lib/i18n/use-translation'
+import { useI18nContext, useTranslation } from '@/hooks/use-translation'
+import { TranslationsProvider } from '@/components/kosztorys/worker-report/translations-provider'
 import type { LanguageT } from '@/lib/i18n/languages'
 
 const WORKER_ID = 7

@@ -69,11 +69,23 @@ describe('mergeTranslations', () => {
           ru: { text: 'старый', source: 'Malowanie' },
         },
         { uk: { text: 'новий', source: 'Malowanie ścian' } },
+        'Malowanie ścian',
       ),
     ).toEqual({
       uk: { text: 'новий', source: 'Malowanie ścian' },
       ru: { text: 'старый', source: 'Malowanie' },
     })
+  })
+
+  it('keeps a current translation over an incoming one made from another opis', () => {
+    const current = { text: 'Фарбування стін', source: 'Malowanie ścian' }
+    expect(
+      mergeTranslations(
+        { uk: current },
+        { uk: { text: 'Фарбування', source: 'Malowanie' } },
+        'Malowanie ścian',
+      ),
+    ).toEqual({ uk: current })
   })
 })
 

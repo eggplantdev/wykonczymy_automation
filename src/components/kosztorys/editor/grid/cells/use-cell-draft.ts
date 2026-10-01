@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react'
 import { cellKeystroke, cellSettle, type CellEditPolicyT } from '@/lib/kosztorys/cell-edit'
-import { useTranslation } from '@/lib/i18n/use-translation'
+import { useTranslation } from '@/hooks/use-translation'
 import { NOTICE_MS, rejectedEntryMessage } from '@/lib/utils/notice'
 import { toastMessage } from '@/lib/utils/toast'
 import type { StopEditingT } from '@/components/ui/datasheet-grid/types'

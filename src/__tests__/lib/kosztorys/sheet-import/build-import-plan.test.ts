@@ -341,6 +341,25 @@ describe('buildImportPlan', () => {
       expect(item.descriptionTranslations).toEqual(ukrainian('власний', MATCHED_PRACA))
     })
 
+    it('takes the katalog’s translation over the praca’s own made from an older opis', () => {
+      const current = currentTree()
+      current.items[0].descriptionTranslations = ukrainian('старий', 'montaż jednostki')
+
+      const item = planWithCatalogue(current).find((row) => row.description === MATCHED_PRACA)!
+
+      expect(item.descriptionTranslations).toEqual(
+        ukrainian(`katalog: ${MATCHED_PRACA}`, MATCHED_PRACA),
+      )
+    })
+
+    it('gives a matched praca without a translation the katalog’s, per language', () => {
+      const item = planWithCatalogue().find((row) => row.description === MATCHED_PRACA)!
+
+      expect(item.descriptionTranslations).toEqual(
+        ukrainian(`katalog: ${MATCHED_PRACA}`, MATCHED_PRACA),
+      )
+    })
+
     it('gives a praca new to the rozpiska the katalog’s translation', () => {
       const item = planWithCatalogue().find((row) => row.description === NEW_PRACA)!
 

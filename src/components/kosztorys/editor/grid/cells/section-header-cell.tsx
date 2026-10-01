@@ -9,7 +9,7 @@ import {
   KosztorysSectionActionsMenu,
   type SectionBandActionsT,
 } from '@/components/kosztorys/editor/grid/menus/kosztorys-section-actions-menu'
-import { useTranslation } from '@/lib/i18n/use-translation'
+import { useTranslation } from '@/hooks/use-translation'
 import { formatNet } from '@/lib/kosztorys/format'
 import { cn } from '@/lib/utils/cn'
 import { canMoveSection, type MoveEdgesT } from '@/lib/kosztorys/move-edges'
