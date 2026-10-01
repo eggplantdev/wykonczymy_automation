@@ -3112,3 +3112,10 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
       bez 🚧 na tekście; po „Zakończ" 🚧 pojawia się na czas zapisu.
 - [ ] Nowa praca w kosztorysie z „Dodaj do katalogu" i nazwą, która już jest w katalogu: okno
       kolizji czytelne, bez 🚧.
+
+## 2026-10-01 — notatki-podzialy-linii
+
+- [ ] Inwestycja z wieloliniowymi „Notatkami" → karta inwestycji: notatka zachowuje podziały linii
+      (akapity, listy), zamiast zlewać się w jeden blok tekstu. To samo w kosztorysie v2, zakładka
+      „Inwestycja".
+- [ ] Inwestycja z wieloliniową „Opinią": karta pokazuje ją z podziałami linii.

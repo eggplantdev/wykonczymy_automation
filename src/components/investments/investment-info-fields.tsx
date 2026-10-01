@@ -23,8 +23,15 @@ export function buildInvestmentInfoFields(
       value: investment.email && <ContactLink type="email" value={investment.email} />,
     },
     { label: 'Osoba kontaktowa', value: investment.contactPerson },
-    { label: 'Notatki', value: investment.notes },
-    { label: 'Opinia', value: investment.review },
+    // Free text typed in a textarea: its line breaks are the only structure it has.
+    {
+      label: 'Notatki',
+      value: investment.notes && <span className="whitespace-pre-line">{investment.notes}</span>,
+    },
+    {
+      label: 'Opinia',
+      value: investment.review && <span className="whitespace-pre-line">{investment.review}</span>,
+    },
     { label: 'Status', value: INVESTMENT_STATUS_LABELS[investment.status].pl },
   ].filter((field) => field.value)
 }
