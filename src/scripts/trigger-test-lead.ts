@@ -7,7 +7,7 @@
 // SAFETY: sends one real email. Local DB not touched.
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { renderBrandedEmail } from '@/lib/leads/email-template'
+import { renderBrandedEmail } from '@/lib/email/branded-template'
 
 const TO = 'konradantonik@gmail.com'
 

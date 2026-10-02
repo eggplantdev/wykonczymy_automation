@@ -125,7 +125,7 @@ describe('notifyNewLead', () => {
 
 describe('sendAutoReply', () => {
   // Assert the routing contract only — NOT the copy. Wording churns constantly;
-  // template mechanics (logo, escaping, line breaks) are covered in email-template.test.ts.
+  // template mechanics (logo, escaping, line breaks) are covered in lib/email/branded-template.test.ts.
   it('sends TO the lead, FROM the authenticated reply address, with the logo embedded', async () => {
     const sendEmail = vi.fn().mockResolvedValue({})
     await sendAutoReply(fakePayload(sendEmail), lead)
