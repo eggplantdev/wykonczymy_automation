@@ -1,7 +1,7 @@
 ---
 change_id: investment-review-request
 title: Google review request email for a completed investment
-status: implementing
+status: implemented
 created: 2026-10-02
 updated: 2026-10-02
 archived_at: null
@@ -30,3 +30,12 @@ Linear: EX-973. Prośba o opinię Google dla zakończonej inwestycji. Decisions 
    the old code still SELECTs `review` (drop → after the deploy). Split into two migrations.
 6. Who can send: ADMIN / OWNER / MANAGER.
 7. Email copy: agent drafts in Polish, owner iterates.
+
+Deviations from the plan (accepted at the review gate):
+
+- The prompt after „Zakończona" is a separate dialog opened after the save, not part of the
+  „Zakończyć inwestycję?" confirm. It is hosted once in the shell (`ReviewPromptHost`), because the
+  listing hides completed rows by default and the row that triggered it unmounts.
+- The listing trigger sits in „Akcje", not in the „Opinia" column, which shows „Wysłano" / „—".
+- The action refuses a trashed investment, with the shared trashed message.
+- The old `review` column is dropped in EX-974, after this deploy.
