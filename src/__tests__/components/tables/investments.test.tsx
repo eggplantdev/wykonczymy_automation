@@ -29,7 +29,7 @@ const investment = (overrides: Partial<InvestmentRowT> = {}): InvestmentRowT => 
   totalLaborCostsFromTransactions: 0,
   totalPayouts: 0,
   totalInvestmentExpense: 18661.21,
-  totalSettled: 0,
+  totalSettled: 150,
   balance: -18661.21,
   balanceGross: -20154.11,
   balanceFromTransactions: -18661.21,
@@ -130,12 +130,16 @@ describe('investments listing without a kosztorys', () => {
       />,
     )
 
-    await userEvent.click(screen.getAllByRole('columnheader')[columnIndex(BALANCE_NET)])
+    const header = screen.getAllByRole('columnheader')[columnIndex(BALANCE_NET)]
+    await userEvent.click(header)
+    const firstOrder = rowNames()
+    await userEvent.click(header)
 
     expect([
       ['C', 'A', 'B', 'D'],
       ['B', 'A', 'C', 'D'],
-    ]).toContainEqual(rowNames())
+    ]).toContainEqual(firstOrder)
+    expect(rowNames()).toEqual([...firstOrder.slice(0, 3).reverse(), 'D'])
   })
 
   it('keeps a withheld „Pozostało do wypłaty" last', async () => {
@@ -150,9 +154,13 @@ describe('investments listing without a kosztorys', () => {
       />,
     )
 
-    await userEvent.click(screen.getAllByRole('columnheader')[columnIndex(REMAINING)])
+    const header = screen.getAllByRole('columnheader')[columnIndex(REMAINING)]
+    await userEvent.click(header)
+    const firstOrder = rowNames()
+    await userEvent.click(header)
 
-    expect(rowNames().at(-1)).toBe('A')
+    expect(firstOrder.at(-1)).toBe('A')
+    expect(rowNames()).toEqual([firstOrder[1], firstOrder[0], 'A'])
   })
 })
 

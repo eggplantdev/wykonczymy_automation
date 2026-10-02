@@ -1526,7 +1526,7 @@ czerwony tekst zostaje na stałe. Mieszany nazywa fakt o inwestycji — „tu ob
 nie inną arytmetykę.
 
 **Lista inwestycji pokazuje jeden bilans na tryb.** Widoczna jest kolumna tego trybu, w którym
-inwestycja jest rozliczana; druga mówi „nie dotyczy". Mieszane idzie na **netto**, dokładnie jak
+inwestycja jest rozliczana; druga nazywa tryb („rozliczenie brutto / netto / mieszane"). Mieszane idzie na **netto**, dokładnie jak
 panel: bilans brutto odliczyłby wyłącznie przelewy i po cichu zgubił każdą gotówkę (na jednej
 inwestycji testowej to różnica między +1 162,22 a −53 500). W trybie brutto ta różnica jest uczciwa —
 te wpłaty są tam już zaznaczone na czerwono. W mieszanym gotówka jest legalna, więc ta sama liczba
