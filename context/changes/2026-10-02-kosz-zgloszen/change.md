@@ -1,7 +1,7 @@
 ---
 change_id: kosz-zgloszen
 title: Kosz — bulk-trash leads, restore, and erase instead of delete
-status: implementing
+status: implemented
 created: 2026-10-02
 updated: 2026-10-02
 archived_at: null
