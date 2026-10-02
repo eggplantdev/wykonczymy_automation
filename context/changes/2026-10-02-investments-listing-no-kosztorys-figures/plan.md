@@ -322,12 +322,12 @@ The full suite is not run unasked (owner preference). The pre-push hook runs it 
 
 #### Automated
 
-- [x] 1.1 New spec fails on the unchanged source
-- [x] 1.2 New spec passes after the cell change
+- [x] 1.1 New spec fails on the unchanged source — 93faea01
+- [x] 1.2 New spec passes after the cell change — 93faea01
 
 ### Phase 2: Reverse the rule wherever it is stated
 
 #### Automated
 
-- [ ] 2.1 No „brak danych" / „nie dotyczy" left in the listing's sources
-- [ ] 2.2 shape-investments spec still passes
+- [x] 2.1 No „brak danych" / „nie dotyczy" left in the listing's sources
+- [x] 2.2 shape-investments spec still passes

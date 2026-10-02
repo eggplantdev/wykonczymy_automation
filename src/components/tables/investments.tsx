@@ -65,8 +65,8 @@ function withheldFigureCell(info: CellContext<InvestmentRowT, number | undefined
 // The other one isn't merely uninteresting, it is unbuilt: since nothing is derived at VAT, a bilans
 // brutto on an investment settled netto deducts only the przelewy and silently drops every wpłata
 // gotówka. The same projection the Podsumowanie panel reads, so the listing can never print a kwota
-// the panel refuses to show. The cell names the tryb rather than saying „nie dotyczy", so the reader
-// sees why without opening the investment.
+// the panel refuses to show. The cell names the tryb, so the reader sees why without opening the
+// investment.
 function OtherSettlementMode({ row }: { row: InvestmentRowT }) {
   return (
     <span className="text-muted-foreground text-xs">

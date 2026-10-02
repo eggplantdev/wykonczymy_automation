@@ -2071,6 +2071,7 @@ sprzed migracji, nie względem stałej liczby.
 - [x] Inwestycja bez kosztorysu pokazuje „brak danych", a taka z etapem bez rozliczenia „ustaw etapy";
       obie lądują na końcu przy sortowaniu w obie strony.
       _Zweryfikowano 2026-09-29 (staging): „brak danych" (122 wierszy) i „ustaw etapy" (fixture: etap 35 inw. 138 chwilowo bez rozliczenia, przywrócony) lądują na końcu przy sortowaniu w obie strony._
+      _Zmienione 2026-10-02 (investments-listing-no-kosztorys-figures): bez kosztorysu ta kolumna pokazuje teraz „brak kosztorysu"._
 - [x] Inwestycja z nadpłatą pokazuje ujemną kwotę na czerwono.
       _Zweryfikowano 2026-09-29 (staging): −16 572,00 / −6291,60 / −790,11 z klasą czerwoną._
 - [x] Odznaczenie „Kolumny v2" chowa tę kolumnę razem z pozostałymi kolumnami v2.

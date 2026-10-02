@@ -61,8 +61,9 @@ export type InvestmentRowT = {
   hasSheet: boolean
   /** Whether the investment HAS a kosztorys, which none of the figures above can answer: „pomiar z
    *  natury" is the etap sum (EX-494), so a fully entered rozpiska with no etap progress reads zero
-   *  robocizny — identical to no kosztorys at all. The v2 columns withhold on this, not on the
-   *  figure, or they print „brak danych" over real data. */
+   *  robocizny — identical to no kosztorys at all. „Pozostało do wypłaty" withholds on this, not on
+   *  the figure, or a zero-progress kosztorys would hide its real −wypłaty; the trash button reads
+   *  it too. */
   hasKosztorys: boolean
   // No column renders these — the whole row is handed to EditInvestmentDialog, whose form needs
   // them. `vatRate` is the exception that also prices `balanceGross`.
