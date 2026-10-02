@@ -1,19 +1,20 @@
 'use client'
 
 import { useState } from 'react'
+import { useLoadOnOpen } from '@/components/kosztorys/editor/hooks/use-load-on-open'
 import { Description } from '@/components/ui/description'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
 import { Input } from '@/components/ui/input'
+import { LanguageLabel } from '@/components/ui/language-label'
 import { Label } from '@/components/ui/label'
+import { useDraft } from '@/hooks/use-draft'
 import { saveSectionTranslationsAction } from '@/lib/actions/section-translations'
-import {
-  LANGUAGE_LABELS,
-  TRANSLATION_LANGUAGES,
-  type TranslationLanguageT,
-} from '@/lib/i18n/languages'
+import { TRANSLATION_LANGUAGES } from '@/lib/i18n/languages'
+import { getSectionTranslationForName } from '@/lib/queries/section-translations-endpoint'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
-import { useSectionTranslationOnOpen } from './use-section-translation-on-open'
+
+const LOAD_FAILED = 'Nie udało się wczytać tłumaczenia sekcji'
 
 export function SectionTranslationDialog({
   sectionName,
@@ -24,21 +25,20 @@ export function SectionTranslationDialog({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
-  const loaded = useSectionTranslationOnOpen(sectionName, open, onOpenChange)
-  // Edits sit over the loaded values, so the fields fill the moment the read lands without an
-  // effect copying it into state.
-  const [edits, setEdits] = useState<Partial<Record<TranslationLanguageT, string>>>({})
+  const loaded = useLoadOnOpen(
+    getSectionTranslationForName,
+    sectionName,
+    open,
+    onOpenChange,
+    LOAD_FAILED,
+  )
+  const [draft, setDraft] = useDraft(loaded)
   const [saving, setSaving] = useState(false)
 
-  const valueOf = (language: TranslationLanguageT) => edits[language] ?? loaded?.[language] ?? ''
-
   async function handleSave() {
-    if (!loaded || saving) return
+    if (!draft || saving) return
     setSaving(true)
-    const typed = Object.fromEntries(
-      TRANSLATION_LANGUAGES.map((language) => [language, valueOf(language)]),
-    ) as Record<TranslationLanguageT, string>
-    const res = await settleAction(() => saveSectionTranslationsAction(sectionName, typed))
+    const res = await settleAction(() => saveSectionTranslationsAction(sectionName, draft))
     setSaving(false)
     if (!res.success) {
       toastMessage(res.error, 'error', 4000)
@@ -56,18 +56,21 @@ export function SectionTranslationDialog({
       description="Tłumaczenie jest wspólne dla każdej rozpiski z sekcją o tej nazwie i pracownik widzi je w linku do zgłoszenia prac; liczby z nazwy podstawiają się dla każdej sekcji osobno."
       confirmLabel="Zapisz"
       onConfirm={() => void handleSave()}
-      confirmDisabled={!loaded || saving}
+      confirmDisabled={!draft || saving}
     >
       <p className="text-sm font-medium">{sectionName}</p>
-      {!loaded ? (
+      {!draft ? (
         <Description size="xs">Wczytywanie…</Description>
       ) : (
         TRANSLATION_LANGUAGES.map((language) => (
           <Label key={language} className="flex-col items-stretch gap-1 text-xs font-normal">
-            {LANGUAGE_LABELS[language]}
+            <LanguageLabel language={language} />
             <Input
-              value={valueOf(language)}
-              onChange={(e) => setEdits((prev) => ({ ...prev, [language]: e.target.value }))}
+              value={draft[language]}
+              onChange={(e) => {
+                const value = e.target.value
+                setDraft((prev) => prev && { ...prev, [language]: value })
+              }}
             />
           </Label>
         ))
