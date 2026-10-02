@@ -10,14 +10,18 @@ import { translationColumnKey } from '@/lib/kosztorys/translation-column-keys'
 import { wrapColumnClass } from '@/lib/kosztorys/row-content-lines'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
+// An object, never the bare language: `withSyntheticRows` spreads `columnData`, which turns a string
+// into an object.
+type TranslationCellDataT = { language: TranslationLanguageT }
+
 function TranslationCell({
   rowData,
   setRowData,
   focus,
   disabled,
   stopEditing,
-  columnData: language,
-}: CellProps<KosztorysV2RowT, TranslationLanguageT>) {
+  columnData: { language },
+}: CellProps<KosztorysV2RowT, TranslationCellDataT>) {
   return (
     <LongTextCell
       value={translationText(rowData.descriptionTranslations, language) || null}
@@ -32,12 +36,12 @@ function TranslationCell({
 export function translationColumn(
   language: TranslationLanguageT,
   titleNode: ReactNode,
-): Column<KosztorysV2RowT, TranslationLanguageT> {
+): Column<KosztorysV2RowT, TranslationCellDataT> {
   const id = translationColumnKey(language)
   return {
     id,
     title: titleNode,
-    columnData: language,
+    columnData: { language },
     component: TranslationCell,
     minWidth: 360,
     grow: 2,
