@@ -20,48 +20,42 @@ export type StageBreakdownT = {
 }
 
 /**
- * „Podsumowanie pracowników" one level finer: each etap's value and who takes how much of it. Read
- * off the same `subcontractorDueByPlane` pass, so a worker's column total is his „Suma wykonanej
- * pracy" by construction. The unassigned remainder of an etap goes to the `null` column, as it does
- * in `byWorker`. An etap with nothing executed, or with no rozliczenie, shows nothing to divide and
- * is left out; so is a worker who takes nothing from the etapy that remain.
+ * „Podsumowanie pracowników" one level finer, read off `byStageWorker` — the map `byWorker` sums — so
+ * a worker's column total is his „Suma wykonanej pracy" by construction, the unassigned remainder
+ * in the `null` column. An etap with nothing executed, or with no rozliczenie, shows nothing to
+ * divide and is left out; so is a worker who takes nothing from the etapy that remain.
  */
 export function subcontractorStageBreakdown(
   due: SubcontractorDueByPlaneT,
   stages: KosztorysStageT[],
   workers: StageBreakdownWorkerT[],
 ): StageBreakdownT {
-  const priced = stages.filter((stage) => roundToCents(due.byStage.get(stage.id) ?? 0) !== 0)
-  const cellsOf = (stage: KosztorysStageT) => {
+  const priced = stages.flatMap((stage) => {
     const wholeNet = due.byStage.get(stage.id) ?? 0
-    const shares = due.byStageWorker.get(stage.id)
-    const unattributed = stage.split
-      ? wholeNet - [...(shares?.values() ?? [])].reduce((sum, share) => sum + share, 0)
-      : wholeNet
-    return workers.map(({ workerId }) => {
-      if (workerId === null) return roundToCents(unattributed) === 0 ? null : unattributed
-      return shares?.get(workerId) ?? null
-    })
-  }
-  const allCells = priced.map(cellsOf)
-  const kept = workers
-    .map((_, column) => column)
-    .filter((column) => allCells.some((cells) => cells[column] !== null))
+    return roundToCents(wholeNet) === 0 ? [] : [{ stage, wholeNet }]
+  })
+  const columns = workers
+    .map((worker) => ({
+      worker,
+      cells: priced.map(({ stage }) => {
+        const share = due.byStageWorker.get(stage.id)?.get(worker.workerId)
+        return share === undefined || roundToCents(share) === 0 ? null : share
+      }),
+    }))
+    .filter(({ cells }) => cells.some((cell) => cell !== null))
 
-  const rows = priced.map((stage, index) => ({
+  const rows = priced.map(({ stage, wholeNet }, index) => ({
     stageId: stage.id,
     label: stageLabel(stage),
-    wholeNet: due.byStage.get(stage.id) ?? 0,
-    shares: kept.map((column) => allCells[index][column]),
+    wholeNet,
+    shares: columns.map(({ cells }) => cells[index]),
   }))
   return {
-    workers: kept.map((column) => workers[column]),
+    workers: columns.map(({ worker }) => worker),
     rows,
     totals: {
       wholeNet: rows.reduce((sum, row) => sum + row.wholeNet, 0),
-      shares: kept.map((_, column) =>
-        rows.reduce((sum, row) => sum + (row.shares[column] ?? 0), 0),
-      ),
+      shares: columns.map(({ cells }) => cells.reduce<number>((sum, cell) => sum + (cell ?? 0), 0)),
     },
   }
 }

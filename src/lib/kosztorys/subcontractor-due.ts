@@ -34,9 +34,9 @@ export type SubcontractorDueByPlaneT = {
   // - a plane-less etap credits nobody, assigned or not — it is skipped before this map is touched,
   //   so a worker can hold etapy and still owe 0 (`hasUnconfirmedPlane` is what says why).
   byWorker: Map<number | null, number>
-  // `byWorker` one level finer, per etap — a worker's share of each etap for the worker view. An etap
-  // with nobody assigned has no entry.
-  byStageWorker: Map<number, Map<number, number>>
+  // `byWorker` one level finer, per priced etap, with the same `null` remainder — so Σ over etapy is
+  // `byWorker` and no reader has to split an etap a second time.
+  byStageWorker: Map<number, Map<number | null, number>>
   scaledDownStageIds: Set<number>
   // Every member of a plane-less etap WITH executed qty (`null` = unassigned) — the per-worker half of
   // `hasUnconfirmedPlane`, which is exactly `unconfirmedWorkers.size > 0`. No app surface reads it:
@@ -69,7 +69,7 @@ export function subcontractorDueByPlane(
   const unconfirmedWorkers = new Set<number | null>()
   const byStage = new Map<number, number>()
   const byWorker = new Map<number | null, number>()
-  const byStageWorker = new Map<number, Map<number, number>>()
+  const byStageWorker = new Map<number, Map<number | null, number>>()
   const scaledDownStageIds = new Set<number>()
   const credit = (workerId: number | null, amount: number) =>
     byWorker.set(workerId, (byWorker.get(workerId) ?? 0) + amount)
@@ -95,9 +95,10 @@ export function subcontractorDueByPlane(
     else ownTools += planeTotal
     byStage.set(st.id, planeTotal)
     const { shares, unattributed, scaledDown } = splitStagePool(planeTotal, st.split)
-    for (const [workerId, share] of shares) credit(workerId, share)
-    if (!st.split || unattributed) credit(null, unattributed)
-    if (st.split) byStageWorker.set(st.id, shares)
+    const stageShares = new Map<number | null, number>(shares)
+    if (!st.split || unattributed) stageShares.set(null, unattributed)
+    for (const [workerId, share] of stageShares) credit(workerId, share)
+    byStageWorker.set(st.id, stageShares)
     if (scaledDown) scaledDownStageIds.add(st.id)
   }
   return {

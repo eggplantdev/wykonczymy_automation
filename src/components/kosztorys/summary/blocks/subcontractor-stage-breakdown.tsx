@@ -1,6 +1,7 @@
 'use client'
 
 import {
+  SUMMARY_LABEL_COL,
   SUMMARY_VALUE_COL,
   SummaryHeaderCell,
   SummaryLabelCell,
@@ -16,7 +17,7 @@ export function SubcontractorStageBreakdown({ breakdown }: { breakdown: StageBre
 
   return (
     <SummaryTable
-      cols={`auto ${Array(workers.length + 1)
+      cols={`${SUMMARY_LABEL_COL} ${Array(workers.length + 1)
         .fill(SUMMARY_VALUE_COL)
         .join(' ')}`}
       className="h-fit w-fit"

@@ -22,7 +22,7 @@ type PropsT = {
   // The PAYOUT rows, already date-desc from the query. Both the sortable list and the per-worker Σ
   // come off these — a host cannot hand in a total that disagrees with the rows beneath it.
   payoutTransactions: PayoutTransactionRowT[]
-  // The etap list and the roster, both only for the per-worker table: stages say who is ASSIGNED
+  // The etap list and the roster: stages say who is ASSIGNED
   // (even where nothing is owed yet), workers supply names the payout rows don't carry.
   stages?: KosztorysStageT[]
   workers?: WorkerRefT[]
@@ -31,7 +31,8 @@ type PropsT = {
   showGlobalSettings?: boolean
   // Off on a host that already lists every transaction next to the panel (the investment page's
   // transfers table). One signal, not two: the host that drops the lists is the compact host, so the
-  // per-plane split rows and the per-worker table go with them, leaving the three totals that matter.
+  // per-plane split rows and the per-worker and per-etap tables go with them, leaving the three totals
+  // that matter.
   showTransactions?: boolean
 }
 
