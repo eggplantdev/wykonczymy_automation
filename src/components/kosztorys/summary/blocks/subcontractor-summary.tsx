@@ -2,11 +2,13 @@
 
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { SubcontractorHeadlineSummary } from '@/components/kosztorys/summary/blocks/subcontractor-headline-summary'
+import { SubcontractorStageBreakdown } from '@/components/kosztorys/summary/blocks/subcontractor-stage-breakdown'
 import { SubcontractorWorkerTotals } from '@/components/kosztorys/summary/blocks/subcontractor-worker-totals'
 import { SubcontractorPayoutsTable } from '@/components/kosztorys/summary/tables/subcontractor-payouts-table'
 import { EditorGlobalSettings } from '@/components/kosztorys/editor/toolbar/editor-global-settings'
 import { computeSubcontractorSummary } from '@/lib/kosztorys/subcontractor-summary'
 import { derivePayoutsByWorker } from '@/lib/kosztorys/payouts-by-worker'
+import { subcontractorStageBreakdown } from '@/lib/kosztorys/subcontractor-stage-breakdown'
 import type { SubcontractorDueByPlaneT } from '@/lib/kosztorys/subcontractor-due'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import type { WorkerRefT } from '@/types/reference-data'
@@ -50,6 +52,7 @@ export function SubcontractorSummary({
     stages,
     workers,
   })
+  const breakdown = subcontractorStageBreakdown(subcontractorDue, stages ?? [], summary.rows)
 
   return (
     <div className="text-foreground flex w-full flex-col gap-y-4 px-4 pt-4 pb-4 text-sm">
@@ -68,6 +71,10 @@ export function SubcontractorSummary({
           showPlanes={showTransactions}
         />
       </div>
+
+      {showTransactions && breakdown.rows.length > 0 && (
+        <SubcontractorStageBreakdown breakdown={breakdown} />
+      )}
 
       {showTransactions && payoutTransactions.length > 0 && (
         <CollapsibleSection title="Lista wpłat" size="sm" defaultOpen={false}>

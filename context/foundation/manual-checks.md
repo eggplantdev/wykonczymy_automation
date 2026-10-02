@@ -3321,3 +3321,11 @@ Na staging najpierw `pnpm db:migrate:preview` (nowa kolumna `review_requested` w
 - [x] dropped — a duplicate of the two still-open send boxes, which carry it · 🔵 OBSERVATION · wysyłka prośby (boks „Inwestycja bez emaila klienta…" i boks z prawdziwym `EMAIL_HOST`) niezweryfikowana: staging nie wysyła poczty (komunikat „Nie udało się wysłać wiadomości. Spróbuj ponownie."; `email` i `review_requested` pozostają bez zmian — zgodnie z projektem „send first"). Walidacja i dialog sprawdzone na inwestycji testowej 180 (adres `@test.local`), potem inwestycja w koszu.
       Needs human: sprawdzić z prawdziwym `EMAIL_HOST` na własny adres.
 - [x] dismissed — both layers refuse it, which is the behaviour the ticked box asks for · 🔵 OBSERVATION · dialog „Poproś o opinię": adres bez „@" blokuje natywna walidacja przeglądarki, adres typu `foo@bar` — walidacja Zod (komunikat „Nieprawidłowy adres email").
+
+## 2026-10-02 — podsumowanie-pracownika-tabele
+
+- [ ] Link pracownika (`/p/…`) dla pracownika ze wspólnym etapem → podsumowanie to trzy tabele jedna pod drugą: „Wykonane" (etap | Wartość etapu | Twój udział | Kwota netto, „Razem" pod Wartością etapu i pod Kwotą netto), potem „Twoje rozliczenie", potem „Wypłaty" (data | opis | kwota + „Razem"). Brak wiersza „Wartość przedmiaru".
+- [ ] Ten sam pracownik w Podglądzie właściciela i w PDF → te same tabele w tej samej kolejności i z tymi samymi kwotami co w linku.
+- [ ] Pracownik, którego żaden etap nie jest wspólny → tabela „Wykonane" ma tylko kolumnę Kwota netto.
+- [ ] Link na telefonie (390px) → tabele mieszczą się bez poziomego przewijania strony.
+- [ ] Edytor → zakładka Podwykonawcy na inwestycji z etapem dzielonym między pracowników → tabela „Podział etapów": wiersz na każdy etap z wykonaną pracą, kolumna na każdego pracownika (kwota i procent pod nią, „—" gdy nie ma udziału), a „Razem" pracownika równa się jego „Sumie wykonanej pracy" w „Podsumowaniu pracowników".
