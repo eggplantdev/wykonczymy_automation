@@ -383,8 +383,8 @@ właśnie po to, żeby jej nie przepisywać.
 
 - **Zakres = przypisanie etapu.** Pracownik widzi wszystkie pozycje (Przedmiar nie dzieli się na
   etapy), ale tylko kolumny swoich etapów — także etapu, który dzieli z innymi (EX-943). Na takim
-  etapie ilości i kwoty w wierszach są **całego etapu**; jego część idzie osobną linią „Twój udział"
-  w podsumowaniu, a współpracowników dokument nie wymienia z imienia ani kwoty. Etap bez rozliczenia albo etapy na dwóch rozliczeniach →
+  etapie ilości i kwoty w wierszach są **całego etapu**; jego część stoi w podsumowaniu w kolumnie
+  „Twój udział", a współpracowników dokument nie wymienia z imienia ani kwoty. Etap bez rozliczenia albo etapy na dwóch rozliczeniach →
   menu blokuje link i PDF („Ustaw rozliczenie etapu" / „Etapy pracownika mają różne rozliczenia");
   pracownik bez etapów → link działa i mówi „Brak przypisanych etapów". Odwołanie tylko świadomie,
   także po dezaktywacji pracownika — i zawsze osiągalne: blokada wyłącza generowanie linku, nie jego
@@ -414,11 +414,13 @@ właśnie po to, żeby jej nie przepisywać.
   wpisy" (domyślnie zaznaczony): po pierwszym wpisie „Przedmiar" i „Wartość przedmiaru netto"
   schodzą z dokumentu, a sumy sekcji w PDF liczą wtedy wartość wykonaną. „Pozostało" i podsumowanie
   nie podlegają checkboxowi. Jedna funkcja (`workerDataHiddenColumns`) karmi link, Podgląd i PDF.
-- **Podsumowanie**: wartość przedmiaru po jego stawce (cały przedmiar, także na wspólnym etapie) →
-  wykonane per etap + razem — etap wspólny to dwie linie: „⟨etap⟩ (cały etap)" i „Twój udział: 25%"
-  z jego złotówkami po ewentualnym proporcjonalnym zmniejszeniu; „razem" sumuje udziały → wypłacone (lista:
-  data i kwota, **bez opisu** — opis bywa wewnętrzną notatką) → pozostało do wypłaty; nadwyżka
-  wypłat to „Nadpłata" z dodatnią kwotą, nigdy liczba ujemna.
+- **Podsumowanie** (bez wartości przedmiaru — pracownik rozliczany jest z pracy wykonanej): trzy
+  tabele jedna pod drugą, w linku i w PDF w tej samej kolejności. (1) „Wykonane": etap | Wartość
+  etapu | Twój udział | Kwota netto + „Razem" pod obiema kwotami; dwie środkowe kolumny są tylko,
+  gdy któryś jego etap jest wspólny, a jego kwota to udział po ewentualnym proporcjonalnym
+  zmniejszeniu, więc „Razem" sumuje udziały. (2) „Twoje rozliczenie": wykonane razem → wypłacone →
+  pozostało do wypłaty; nadwyżka wypłat to „Nadpłata" z dodatnią kwotą, nigdy liczba ujemna.
+  (3) „Wypłaty": data | opis (pisany dla pracownika) | kwota + „Razem".
 - **PDF** to ten sam generator co oferta, z projekcji pracownika (nigdy z wierszy edytora, które
   niosą cenę klienta): A4 poziomo, bo każdy etap dokłada dwie kolumny; kwoty z groszami, bo stawka
   7,50 zł zaokrąglona do „8 zł" to inna stawka. Na papier idą te same kolumny, w tej samej

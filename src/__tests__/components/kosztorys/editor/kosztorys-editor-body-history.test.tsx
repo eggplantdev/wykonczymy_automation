@@ -138,6 +138,7 @@ describe('investor history view', () => {
       summary: {
         plannedNet: 0,
         executedByStage: [],
+        stagesWholeNet: 0,
         executedNet: 0,
         payouts: [],
         paidNet: 0,

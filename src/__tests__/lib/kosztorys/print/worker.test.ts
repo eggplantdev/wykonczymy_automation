@@ -70,7 +70,7 @@ function projection(
           workerId: WORKER,
           amount,
           date: `2026-09-0${index + 1}`,
-          description: 'notatka wewnętrzna',
+          description: 'ZUS lipiec',
         })),
       }),
       settings: {
@@ -113,20 +113,20 @@ describe('buildWorkerPrintHtml', () => {
     expect(out).not.toContain('Cena j.m.')
   })
 
-  it('totals the przedmiar and the executed work to the summary’s own figures', () => {
+  it('totals the table to the przedmiar, the footer to the executed work alone', () => {
     const data = projection({ hidePlannedOnceExecuted: false })
     const out = html(data)
     const { summary } = data.worker
 
     expect(summary.plannedNet).toBe((5 + 4) * RATE)
-    expect(out).toContain(footerLine('Wartość przedmiaru (Twoja stawka)', summary.plannedNet))
+    expect(out).not.toContain('Twoja stawka)')
     expect(out).toContain(footerLine('Wykonane razem', summary.executedNet))
     expect(out).toContain(sectionTotal(summary.plannedNet))
   })
 
   // Sharing etap 100 (2 × 12,5 = 25 zł) 40/60 with worker 9: the rows stay the whole etap's, so the
-  // section and grand totals do too, and his share is its own footer line.
-  it('totals a shared etap whole and puts his share in the footer', () => {
+  // section and grand totals do too, and the footer's etap table carries his share beside the whole.
+  it('totals a shared etap whole and prints his share beside it in the etap table', () => {
     const sharedStages: KosztorysStageT[] = [
       {
         ...stages[0],
@@ -153,10 +153,19 @@ describe('buildWorkerPrintHtml', () => {
     const whole = 2 * RATE + 1 * RATE
 
     expect(out).toContain(sectionTotal(whole))
-    expect(out).toContain(footerLine('Tynki (cały etap)', 2 * RATE))
-    expect(out).toContain(footerLine('Twój udział: 40,0%', 0.4 * 2 * RATE))
-    expect(out).toContain(footerLine('Wykonane razem', data.worker.summary.executedNet))
-    expect(data.worker.summary.executedNet).toBe(0.4 * 2 * RATE + RATE)
+    const { summary } = data.worker
+    const values = (...cells: string[]) =>
+      cells.map((cell) => `<td class="value">${cell}</td>`).join('')
+
+    expect(out).toContain(
+      `<td class="label">Tynki</td>${values(formatPLN(2 * RATE), '40,0%', formatPLN(0.4 * 2 * RATE))}`,
+    )
+    expect(out).toContain(
+      `<td class="label">Razem</td>${values(formatPLN(whole), '', formatPLN(summary.executedNet))}`,
+    )
+    expect(out).toContain(footerLine('Wykonane razem', summary.executedNet))
+    expect(summary.executedNet).toBe(0.4 * 2 * RATE + RATE)
+    expect(out.indexOf('>Wykonane<')).toBeLessThan(out.indexOf('Wykonane razem'))
   })
 
   it('prints in the owner’s stored order, the stawka under its plane-agnostic key', () => {
@@ -195,6 +204,21 @@ describe('buildWorkerPrintHtml', () => {
     expect(totalsOf(hidden)).toBe(totalsOf(shown))
   })
 
+  it('prints the payouts in a table of their own, after the balance', () => {
+    const out = html(projection({}, [50]))
+    const payoutRow = `<td class="label">01.09.2026</td><td class="label">ZUS lipiec</td><td class="value">${formatPLN(50)}</td>`
+
+    expect(out).toContain(payoutRow)
+    expect(out).toContain(
+      `<td class="label" colspan="2">Razem</td><td class="value">${formatPLN(50)}</td>`,
+    )
+    expect(out.indexOf('</table>', out.indexOf('Wypłacone'))).toBeLessThan(out.indexOf(payoutRow))
+  })
+
+  it('prints no payouts table when nothing was paid', () => {
+    expect(html(projection({}, []))).not.toContain('>Wypłaty<')
+  })
+
   it('names an overpayment „Nadpłata” with a positive amount', () => {
     const data = projection({}, [50])
     const out = html(data)
@@ -213,7 +237,7 @@ describe('buildWorkerPrintHtml', () => {
   })
 
   it('drops a column the worker settings hide', () => {
-    const out = html(projection({ hiddenColumns: ['rate'] }))
+    const out = html(projection({ hiddenColumns: ['rate'], hidePlannedOnceExecuted: false }))
 
     expect(out).not.toContain('Stawka j.m.')
     expect(out).toContain('Wartość przedmiaru')

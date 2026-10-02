@@ -16,14 +16,17 @@ export type WorkerSummaryT = {
   // What the whole przedmiar earns him: przedmiar × his stawka, no rabat (a client concession).
   plannedNet: number
   executedByStage: WorkerStageLineT[]
+  // Σ of his etapy whole, co-workers included — the „Wartość etapu" column's total.
+  stagesWholeNet: number
   executedNet: number
-  // Date and amount only: a payout's description is often an internal note (design #10).
-  payouts: { date: string; amount: number }[]
+  payouts: WorkerPayoutT[]
   paidNet: number
   // executed − paid; negative is an overpayment, rendered as „Nadpłata" rather than a minus.
   owed: number
   isOverpaid: boolean
 }
+
+export type WorkerPayoutT = { date: string; amount: number; description: string | null }
 
 // His share of a shared etap. `amount` is what he is credited — after any pro-rata shrink — and
 // `percent` is that amount's part of the whole etap; null where an amount split has no pool yet.
@@ -67,22 +70,24 @@ export function computeWorkerSummary({
   const executedNet = due.byWorker.get(workerId) ?? 0
   const payouts = payoutRows
     .filter((row) => row.workerId === workerId)
-    .map(({ date, amount }) => ({ date, amount }))
+    .map(({ date, amount, description }) => ({ date, amount, description }))
   const paidNet = roundToCents(payouts.reduce((sum, row) => sum + row.amount, 0))
   const owed = roundToCents(executedNet - paidNet)
+  const executedByStage = stages.map((stage) => {
+    const wholeNet = due.byStage.get(stage.id) ?? 0
+    const net = due.byStageWorker.get(stage.id)?.get(workerId) ?? 0
+    return {
+      stageId: stage.id,
+      label: stageLabel(stage),
+      net,
+      wholeNet,
+      share: shareOf(stage.split, workerId, wholeNet, net),
+    }
+  })
   return {
     plannedNet: rows.reduce((sum, row) => sum + rowPlannedNetForView(row, plane), 0),
-    executedByStage: stages.map((stage) => {
-      const wholeNet = due.byStage.get(stage.id) ?? 0
-      const net = due.byStageWorker.get(stage.id)?.get(workerId) ?? 0
-      return {
-        stageId: stage.id,
-        label: stageLabel(stage),
-        net,
-        wholeNet,
-        share: shareOf(stage.split, workerId, wholeNet, net),
-      }
-    }),
+    executedByStage,
+    stagesWholeNet: roundToCents(executedByStage.reduce((sum, stage) => sum + stage.wholeNet, 0)),
     executedNet,
     payouts,
     paidNet,
@@ -106,16 +111,10 @@ function shareOf(
 }
 
 /**
- * The footer lines one etap contributes, shared by the link and the PDF so the two read alike. A
- * shared etap names the whole etap and his share on separate lines — the rows above it are the
- * whole etap's, so a single line with his share would not match them.
+ * The „Twój udział" cell of one etap, shared by the link and the PDF so the two read alike. A
+ * one-person etap is all his; an amount split with no executed work yet has no percent to show.
  */
-export function stageLines(line: WorkerStageLineT): { label: string; amount: number }[] {
-  if (!line.share) return [{ label: line.label, amount: line.net }]
-  const percent =
-    line.share.percent == null ? '' : `: ${formatPercentPrecise(line.share.percent / 100)}`
-  return [
-    { label: `${line.label} (cały etap)`, amount: line.wholeNet },
-    { label: `Twój udział${percent}`, amount: line.share.amount },
-  ]
+export function stageShareLabel(line: WorkerStageLineT): string {
+  if (!line.share) return formatPercentPrecise(1)
+  return line.share.percent == null ? '—' : formatPercentPrecise(line.share.percent / 100)
 }

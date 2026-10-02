@@ -9,7 +9,7 @@ import { workerPrintColumns } from '@/lib/kosztorys/print/worker-columns'
 import { groupBySection } from '@/lib/kosztorys/row-ops'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import { workerDataHiddenColumns } from '@/lib/kosztorys/worker-view/columns'
-import { stageLines, type WorkerSummaryT } from '@/lib/kosztorys/worker-view/summary'
+import { stageShareLabel, type WorkerSummaryT } from '@/lib/kosztorys/worker-view/summary'
 import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
 
 export type WorkerPrintArgsT = {
@@ -18,31 +18,63 @@ export type WorkerPrintArgsT = {
   fillByColorKey: ReadonlyMap<string, string>
 }
 
-const footerRow = (label: string, amount: number, rowClass = '') =>
-  `<tr${rowClass ? ` class="${rowClass}"` : ''}><td class="label">${escapeHtml(label)}</td>` +
-  `<td class="value">${formatPLN(amount)}</td></tr>`
+const row = (labels: string[], values: string[], rowClass = '') =>
+  `<tr${rowClass ? ` class="${rowClass}"` : ''}>` +
+  labels.map((label) => `<td class="label">${escapeHtml(label)}</td>`).join('') +
+  values.map((value) => `<td class="value">${escapeHtml(value)}</td>`).join('') +
+  '</tr>'
 
-// The web page's `WorkerSummary`, on paper: the same figures in the same order, so the two documents
+// The breakdowns under the balance rather than inside it, so an etap or a payout is never read as one
+// of the balance's own figures.
+const WORKER_PRINT_STYLES = `
+.totals { flex-direction: column; align-items: flex-end; gap: 6mm; }
+.totals tr.head td { font-size: 6pt; color: #a1a1aa; border-bottom: 1px solid #e4e4e7; }
+`
+
+// The web page's `WorkerSummary`, on paper: the same tables in the same order, so the two documents
 // a worker may hold side by side read alike.
 function workerFooterHtml(summary: WorkerSummaryT): string {
-  const rows = [
-    footerRow('Wartość przedmiaru (Twoja stawka)', summary.plannedNet),
-    ...summary.executedByStage
-      .flatMap(stageLines)
-      .map((line) => footerRow(line.label, line.amount, 'sub')),
-    footerRow('Wykonane razem', summary.executedNet),
-    ...summary.payouts.map((payout) => footerRow(formatPLDate(payout.date), payout.amount, 'sub')),
-    footerRow('Wypłacone', summary.paidNet),
-    footerRow(
-      summary.isOverpaid ? 'Nadpłata' : 'Pozostało do wypłaty',
-      Math.abs(summary.owed),
+  const balance = [
+    row(['Wykonane razem'], [formatPLN(summary.executedNet)]),
+    row(['Wypłacone'], [formatPLN(summary.paidNet)]),
+    row(
+      [summary.isOverpaid ? 'Nadpłata' : 'Pozostało do wypłaty'],
+      [formatPLN(Math.abs(summary.owed))],
       'grand',
     ),
   ]
+  const hasSharedStage = summary.executedByStage.some((stage) => stage.share)
+  const executed = [
+    row(
+      ['Wykonane'],
+      hasSharedStage ? ['Wartość etapu', 'Twój udział', 'Kwota netto'] : ['Kwota netto'],
+      'head',
+    ),
+    ...summary.executedByStage.map((stage) =>
+      row(
+        [stage.label],
+        hasSharedStage
+          ? [formatPLN(stage.wholeNet), stageShareLabel(stage), formatPLN(stage.net)]
+          : [formatPLN(stage.net)],
+      ),
+    ),
+    row(
+      ['Razem'],
+      hasSharedStage
+        ? [formatPLN(summary.stagesWholeNet), '', formatPLN(summary.executedNet)]
+        : [formatPLN(summary.executedNet)],
+    ),
+  ]
+  const payouts = [
+    row(['Wypłaty', 'Opis'], ['Kwota netto'], 'head'),
+    ...summary.payouts.map((payout) =>
+      row([formatPLDate(payout.date), payout.description ?? ''], [formatPLN(payout.amount)]),
+    ),
+    `<tr><td class="label" colspan="2">Razem</td><td class="value">${formatPLN(summary.paidNet)}</td></tr>`,
+  ]
+  const table = (rows: string[]) => `<table><tbody>\n${rows.join('\n')}\n</tbody></table>`
   return `
-<div class="totals"><table><tbody>
-${rows.join('\n')}
-</tbody></table></div>`
+<div class="totals">${table(executed)}${table(balance)}${summary.payouts.length ? table(payouts) : ''}</div>`
 }
 
 /**
@@ -85,12 +117,9 @@ export function buildWorkerPrintHtml({ data, logoUrl, fillByColorKey }: WorkerPr
     fillByColorKey,
     moneyKey,
     money: formatPLN,
-    totalNet:
-      moneyKey === 'net'
-        ? worker.summary.executedByStage.reduce((total, stage) => total + stage.wholeNet, 0)
-        : worker.summary.plannedNet,
+    totalNet: moneyKey === 'net' ? worker.summary.stagesWholeNet : worker.summary.plannedNet,
     sectionNetById,
-    extraStyles: WIDE_PRINT_STYLES,
+    extraStyles: WIDE_PRINT_STYLES + WORKER_PRINT_STYLES,
     footerHtml: workerFooterHtml(worker.summary),
   })
 }

@@ -111,7 +111,7 @@ async function buildWorkerKosztorysData(
 // The guard cannot live inside: `requireAuth` reads cookies, which throws inside unstable_cache.
 const cachedWorkerKosztorysData = unstable_cache(
   buildWorkerKosztorysData,
-  ['worker-kosztorys-data-v3'],
+  ['worker-kosztorys-data-v4'],
   { tags: WORKER_KOSZTORYS_TAGS },
 )
 

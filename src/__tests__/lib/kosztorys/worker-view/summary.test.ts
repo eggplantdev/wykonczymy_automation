@@ -53,7 +53,7 @@ const payout = (workerId: number | null, amount: number, date = '2026-09-01') =>
   workerId,
   amount,
   date,
-  description: 'notatka wewnętrzna',
+  description: 'ZUS lipiec',
 })
 
 function summarize(payoutRows: PayoutTransactionRowT[]) {
@@ -91,10 +91,10 @@ describe('computeWorkerSummary', () => {
     expect(summary.isOverpaid).toBe(false)
   })
 
-  it('lists his payouts by date and amount, never their description', () => {
+  it('lists his payouts with their description', () => {
     const summary = summarize([payout(WORKER, 10, '2026-09-02'), payout(OTHER, 1)])
 
-    expect(summary.payouts).toEqual([{ date: '2026-09-02', amount: 10 }])
+    expect(summary.payouts).toEqual([{ date: '2026-09-02', amount: 10, description: 'ZUS lipiec' }])
   })
 
   it('flags an overpayment instead of reading it as a debt', () => {
