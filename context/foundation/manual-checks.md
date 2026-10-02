@@ -3301,3 +3301,29 @@ Na staging najpierw `pnpm db:migrate:preview` (nowa kolumna `review_requested` w
 - [ ] Link na telefonie (390px) → tabele mieszczą się bez poziomego przewijania strony.
 - [ ] Edytor → zakładka Podwykonawcy na inwestycji z etapem dzielonym między pracowników → tabela „Podział etapów": wiersz na każdy etap z wykonaną pracą, kolumna na każdego pracownika (kwota i procent pod nią, „—" gdy nie ma udziału), a „Razem" pracownika równa się jego „Sumie wykonanej pracy" w „Podsumowaniu pracowników".
 - [ ] PDF pracownika z długą listą wypłat (kilkadziesiąt) → tabela, która nie mieści się na stronie, przechodzi na następną sama, a tabele nad nią zostają na poprzedniej (bez pustej połowy strony). PDF oferty dla klienta → podsumowanie w stopce nadal stoi przy prawej krawędzi.
+
+## EX-965 — kosztorys-section-translations — nazwy sekcji po ukraińsku i rosyjsku na linku „Zgłoszenie prac"
+
+Na staging najpierw `pnpm db:migrate:preview` (nowa tabela z listą tłumaczeń nazw sekcji, z listą startową).
+
+- [ ] Rozpiska inwestycji z sekcją „Łazienka 2" → menu sekcji → „Tłumaczenie sekcji…": pole
+      Українська pokazuje ukraińską nazwę z „2" na miejscu, Русский — rosyjską.
+- [ ] W tym oknie wpisz po ukraińsku „3" zamiast „2" → „Zapisz": komunikat podaje oczekiwaną liczbę
+      „2", a okno zostaje otwarte.
+- [ ] Sekcja o jednorazowej nazwie (np. „Pralnia"): wpisz oba tłumaczenia, zapisz, potem wyczyść oba
+      pola i zapisz — po ponownym otwarciu oba pola są puste.
+- [ ] „Tłumaczenie sekcji…" jest w menu sekcji także w edytorze szablonu; na zablokowanej inwestycji
+      menu sekcji nie ma wcale.
+- [ ] Link „Zgłoszenie prac" pracownika z językiem „Українська", inwestycja z nazwami sekcji
+      z szablonu: każdy pas sekcji i każde „Razem …" (w „Wszystkie kolumny") jest po ukraińsku,
+      „Łazienka 2" zachowuje swoje 2. Przełącznik → Русский: po rosyjsku; → Polski: po polsku.
+- [ ] Na tym linku po ukraińsku wyszukaj ukraińskie słowo z nazwy sekcji: znajdują się prace tej
+      sekcji.
+- [ ] Zmień nazwę sekcji w rozpisce na nową (np. „Garderoba"): na linku jest po polsku. Dodaj jej
+      tłumaczenie UA w „Tłumaczenie sekcji…" i odśwież link: jest po ukraińsku, bez wdrożenia
+      i bez czekania.
+- [ ] Wyślij zgłoszenie z linku po ukraińsku i otwórz je w przeglądzie zgłoszeń w rozpisce: nazwy
+      sekcji są po polsku.
+- [ ] W edytorze otwórz menu sekcji klawiaturą i wybierz „Tłumaczenie sekcji…" Enterem; w polu
+      Українська użyj strzałek i Tab: kursor porusza się w polu i między polami okna, a aktywna
+      komórka rozpiski pod oknem się nie przesuwa.

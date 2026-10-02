@@ -38,6 +38,7 @@ export default async function WorkerReportPage({ params }: ParamsT) {
           document={page.document}
           pendingQtyByItem={page.pendingQtyByItem}
           sentReports={page.sentReports}
+          sectionTranslations={page.sectionTranslations}
         />
       )}
     </TranslationsProvider>

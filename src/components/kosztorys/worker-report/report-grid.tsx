@@ -12,6 +12,7 @@ import type { useReportDraft } from '@/components/kosztorys/worker-report/use-re
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { translateTree } from '@/lib/kosztorys/worker-report/translate-tree'
+import type { SectionTranslationMapT } from '@/lib/i18n/section-translations'
 import { useTranslation } from '@/hooks/use-translation'
 import { cn } from '@/lib/utils/cn'
 import { decimalText } from '@/lib/utils/decimal-text'
@@ -27,6 +28,7 @@ type PropsT = {
   draft: ReturnType<typeof useReportDraft>
   pendingQtyByItem: Record<number, number>
   sentReports: WorkerReportRowT[]
+  sectionTranslations: SectionTranslationMapT
   onSent: (sent: SentT) => void
 }
 
@@ -48,6 +50,7 @@ export function ReportGrid({
   draft,
   pendingQtyByItem,
   sentReports,
+  sectionTranslations,
   onSent,
 }: PropsT) {
   const [isAllColumns, setIsAllColumns] = useState(false)
@@ -69,7 +72,7 @@ export function ReportGrid({
       worker={document.worker}
       investmentId={document.investmentId}
       investmentName={document.investmentName}
-      tree={translateTree(document.tree, locale)}
+      tree={translateTree(document.tree, locale, sectionTranslations)}
       materialsGrossBase={0}
       materialsNetBilled={0}
       materialsBreakdown={[]}

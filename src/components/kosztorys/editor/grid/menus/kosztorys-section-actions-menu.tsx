@@ -6,6 +6,7 @@ import {
   ArrowDownToLine,
   ArrowUp,
   ArrowUpToLine,
+  Languages,
   ListChecks,
   Plus,
   Trash2,
@@ -20,6 +21,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { CellMenuTrigger } from '@/components/ui/datasheet-grid/cell-menu-trigger'
 import { useCataloguePicker } from '@/components/kosztorys/editor/actions/catalogue-picker-host'
+import { SectionTranslationDialog } from '@/components/kosztorys/editor/dialogs/section-translation/section-translation-dialog'
 import { SectionColorPicker } from '@/components/kosztorys/editor/grid/menus/section-color-picker'
 import { REMOVAL_CONFIRM_DESCRIPTION } from '@/components/kosztorys/editor/grid/menus/removal-confirm'
 import { RowHeightMenuItems } from '@/components/kosztorys/editor/grid/menus/row-height-menu-items'
@@ -63,6 +65,7 @@ export function KosztorysSectionActionsMenu({
   actions: SectionBandActionsT
 }) {
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [translationOpen, setTranslationOpen] = useState(false)
   const openCataloguePicker = useCataloguePicker()
 
   return (
@@ -115,6 +118,10 @@ export function KosztorysSectionActionsMenu({
             <ListChecks />
             Dodaj pracę z katalogu do sekcji…
           </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => setTranslationOpen(true)}>
+            <Languages />
+            Tłumaczenie sekcji…
+          </DropdownMenuItem>
           <RowHeightMenuItems row={row} />
           <DropdownMenuItem variant="destructive" onSelect={() => setConfirmOpen(true)}>
             <Trash2 />
@@ -133,6 +140,9 @@ export function KosztorysSectionActionsMenu({
         }}
         onCancel={() => setConfirmOpen(false)}
       />
+      {translationOpen && (
+        <SectionTranslationDialog sectionName={name} open onOpenChange={setTranslationOpen} />
+      )}
     </>
   )
 }
