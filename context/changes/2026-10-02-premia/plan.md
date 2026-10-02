@@ -514,12 +514,12 @@ Run once, after the final phase.
 
 #### Automated
 
-- [x] 4.1 Action spec
-- [x] 4.2 settle-payouts-form DOM spec
-- [x] 4.3 DOM spec for the Podwykonawcy header button
+- [x] 4.1 Action spec — 786b9894
+- [x] 4.2 settle-payouts-form DOM spec — 786b9894
+- [x] 4.3 DOM spec for the Podwykonawcy header button — 786b9894
 
 ### Phase 5: Living docs
 
 #### Automated
 
-- [ ] 5.1 None — prose-only phase
+- [x] 5.1 None — prose-only phase
