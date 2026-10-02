@@ -92,12 +92,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Capture failed' }, { status: 500 })
   }
 
+  // An erased lead's files were dropped on purpose: download none, and let the landing drop its copy.
+  if (lead.erasedAt) {
+    if (submission.assets?.length) after(() => releaseLandingAssets(submission.submissionId))
+    revalidateTag(CACHE_TAGS.leads, EXPIRE_NOW)
+    return NextResponse.json({ received: true }, { status: 200 })
+  }
+
   // A redelivery that already carries its files must not download a second set. One that carries
-  // none is the crash-between-capture-and-attach case, and does get another go — unless the lead
-  // was erased, whose files were dropped on purpose.
+  // none is the crash-between-capture-and-attach case, and does get another go.
   const alreadyHeld = uploadFieldIds(lead.assets).length
-  const isErased = Boolean(lead.erasedAt)
-  const assets = alreadyHeld || isErased ? [] : (submission.assets ?? [])
+  const assets = alreadyHeld ? [] : (submission.assets ?? [])
 
   // Serial, not Promise.all: concurrent Payload writes share a Neon session and silently commit
   // one. Serial also keeps peak memory at one file rather than the whole set.
@@ -143,9 +148,8 @@ export async function POST(request: NextRequest) {
   //
   // Deliberately after the response: the callback may wait on a landing that is allowed to be
   // down, and 10 s of that latency on a delivered enquiry is what makes the sender retry.
-  // An erased lead counts as holding everything: its files are unwanted, so the prefix may go.
+  const held = alreadyHeld || (failed.length ? 0 : mediaIds.length)
   const expected = submission.assets?.length ?? 0
-  const held = isErased ? expected : alreadyHeld || (failed.length ? 0 : mediaIds.length)
   if (expected > 0 && held === expected) {
     after(() => releaseLandingAssets(submission.submissionId))
   }
