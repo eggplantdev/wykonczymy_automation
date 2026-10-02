@@ -597,6 +597,15 @@ describe('shapeInvestments pozostało do wypłaty', () => {
     expect(row.subcontractorRemaining).toBe(-1000)
   })
 
+  // The premia's whole point: it closes an overpayment on this figure without touching `due`.
+  it('counts a premia as owed on top of the executed work', () => {
+    const withBonus: InvestmentFinancialsMapT = {
+      '5': { ...ZERO_FINANCIALS, totalPayouts: 1000, totalBonus: 200 },
+    }
+
+    expect(remainingFor(800, { financials: withBonus })).toBe(0)
+  })
+
   it('rounds float residue to exactly zero grosz', () => {
     const paid030: InvestmentFinancialsMapT = { '5': { ...ZERO_FINANCIALS, totalPayouts: 0.3 } }
 

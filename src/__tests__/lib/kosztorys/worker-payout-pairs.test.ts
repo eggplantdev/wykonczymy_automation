@@ -16,6 +16,7 @@ const pair = (overrides: Partial<WorkerPayoutPairRowT> = {}): WorkerPayoutPairRo
   workerId: 10,
   due: 1000,
   paid: 0,
+  bonus: 0,
   hasUnconfirmedPlane: false,
   investmentStatus: 'active',
   ...overrides,
@@ -31,6 +32,15 @@ describe('classifyPair', () => {
     ['unassigned', pair({ workerId: null, hasUnconfirmedPlane: true })],
   ])('%s', (state, row) => {
     expect(classifyPair(row).state).toBe(state)
+  })
+
+  // EX-979: the premia is owed on top of the work, so it closes exactly the nadpłata it was booked for.
+  it('a premia equal to the nadpłata settles the pair', () => {
+    const overpaid = pair({ due: 1000, paid: 1205.01 })
+    expect(classifyPair(overpaid)).toMatchObject({ state: 'overpaid' })
+    const evened = classifyPair({ ...overpaid, bonus: 205.01 })
+    expect(evened.state).toBe('settled')
+    expect(evened.remaining).toBeCloseTo(0, 10)
   })
 
   it('reads a float residue as settled, not as a nadpłata', () => {

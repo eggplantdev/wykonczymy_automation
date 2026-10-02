@@ -11,6 +11,9 @@ export type WorkerPayoutPairRowT = {
   workerId: number | null
   due: number
   paid: number
+  /** Σ premii (BONUS) — owed on top of `due`, kept apart from it so the etap totals still equal the
+   *  executed work. */
+  bonus: number
   hasUnconfirmedPlane: boolean
   investmentStatus: string
 }
@@ -39,7 +42,7 @@ export const isBlocked = (state: PairStateT): state is BlockedStateT => state in
  * unknown); the lock beats the sign.
  */
 export function classifyPair(row: WorkerPayoutPairRowT): { remaining: number; state: PairStateT } {
-  const remaining = row.due - row.paid
+  const remaining = row.due + row.bonus - row.paid
   const rounded = roundToCents(remaining)
   const state: PairStateT =
     row.workerId === null
@@ -143,6 +146,7 @@ export type SettleRowT = {
   /** The other side of the pair from the dialog's target — an investment or a worker name. */
   label: string
   due: number
+  bonus: number
   paid: number
   remaining: number
   state: PairStateT
@@ -155,6 +159,7 @@ function toSettleRow(row: WorkerPayoutPairRowT, label: string): SettleRowT {
     workerId: row.workerId,
     label,
     due: roundToCents(row.due),
+    bonus: roundToCents(row.bonus),
     paid: roundToCents(row.paid),
     remaining: roundToCents(remaining),
     state,
@@ -164,7 +169,10 @@ function toSettleRow(row: WorkerPayoutPairRowT, label: string): SettleRowT {
 // Assigned to an etap with nothing executed and nothing paid: no figure to settle. A zaliczka before
 // any work goes through the plain wypłata form, not a row of zeros in every dialog.
 const hasFigures = (row: WorkerPayoutPairRowT) =>
-  row.hasUnconfirmedPlane || roundToCents(row.due) !== 0 || roundToCents(row.paid) !== 0
+  row.hasUnconfirmedPlane ||
+  roundToCents(row.due) !== 0 ||
+  roundToCents(row.bonus) !== 0 ||
+  roundToCents(row.paid) !== 0
 
 const byLabel = (a: SettleRowT, b: SettleRowT) => a.label.localeCompare(b.label, 'pl')
 

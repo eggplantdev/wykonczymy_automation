@@ -234,6 +234,23 @@ describe.skipIf(!ENV_READY)('settlePayoutsAction (DB)', () => {
     expect(await booked()).toHaveLength(0)
   })
 
+  // EX-979: a premia moves the pair like a wypłata does, so a dialog opened before it is stale.
+  it('reads a premia into the pair and refuses a submit that predates it', async () => {
+    const before = await remainingOf(created.a, worker.a)
+    await db.execute(sql`
+      INSERT INTO transactions (description, amount, date, type, payment_method, investment_id, worker_id)
+      VALUES (${`${marker}-premia`}, 50, now(), 'BONUS'::enum_transactions_type, 'TRANSFER',
+        ${created.a}, ${worker.a})
+    `)
+    expect(await remainingOf(created.a, worker.a)).toBe(roundToCents(before + 50))
+
+    const result = await submit(marker, [
+      { investmentId: created.a, workerId: worker.a, amount: 10, expectedRemaining: before },
+    ])
+    expect(result).toMatchObject({ success: false, stale: true })
+    expect(await booked()).toHaveLength(0)
+  })
+
   it('books only one of two overlapping submits of the same pair', async () => {
     const remainingA = await remainingOf(created.a, worker.a)
     const row = {

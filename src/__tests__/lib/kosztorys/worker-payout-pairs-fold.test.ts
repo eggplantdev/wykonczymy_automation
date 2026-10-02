@@ -75,6 +75,7 @@ describe('foldWorkerPayoutPairs', () => {
         workerId: null,
         due: 500,
         paid: 0,
+        bonus: 0,
         hasUnconfirmedPlane: false,
         investmentStatus: 'active',
       },
@@ -119,15 +120,15 @@ describe('foldWorkerPayoutPairs', () => {
         [101, { mode: 'percent', members: [{ workerId: 10, value: 0, takesRest: true }] }],
       ]),
       [
-        { investmentId: 1, workerId: 10, paid: 150 },
-        { investmentId: 2, workerId: 30, paid: 80 },
+        { investmentId: 1, workerId: 10, paid: 150, bonus: 25 },
+        { investmentId: 2, workerId: 30, paid: 80, bonus: 0 },
       ],
       new Map([
         [1, 'active'],
         [2, LOCKED_INVESTMENT_STATUS],
       ]),
     )
-    expect(byWorker(rows)['10']).toMatchObject({ due: 500, paid: 150 })
+    expect(byWorker(rows)['10']).toMatchObject({ due: 500, paid: 150, bonus: 25 })
     expect(byWorker(rows)['30']).toMatchObject({
       investmentId: 2,
       due: 0,

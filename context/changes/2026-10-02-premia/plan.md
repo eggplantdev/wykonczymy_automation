@@ -486,22 +486,22 @@ Run once, after the final phase.
 
 #### Automated
 
-- [x] 1.1 Migration applies to the local DB
-- [x] 1.2 Spec/constants truth tables updated and green
-- [x] 1.3 Validate-hook, transfer-schema and clear-fields-for-type specs cover BONUS
-- [x] 1.4 derive-financials-bucketing spec: BONUS → totalBonus only
-- [x] 1.5 margin-v2 spec drops by the bonus; v1 unchanged
-- [x] 1.6 sum-transfers spec: BONUS moves no kasa
+- [x] 1.1 Migration applies to the local DB — 6c341e23
+- [x] 1.2 Spec/constants truth tables updated and green — 6c341e23
+- [x] 1.3 Validate-hook, transfer-schema and clear-fields-for-type specs cover BONUS — 6c341e23
+- [x] 1.4 derive-financials-bucketing spec: BONUS → totalBonus only — 6c341e23
+- [x] 1.5 margin-v2 spec drops by the bonus; v1 unchanged — 6c341e23
+- [x] 1.6 sum-transfers spec: BONUS moves no kasa — 6c341e23
 
 ### Phase 2: „Pozostało do wypłaty" counts the premia on all owner surfaces
 
 #### Automated
 
-- [ ] 2.1 worker-payout-pairs fold/classify unit spec
-- [ ] 2.2 DB parity spec with a BONUS row
-- [ ] 2.3 get-payout-transactions spec
-- [ ] 2.4 subcontractor-summary spec
-- [ ] 2.5 settle-payouts spec
+- [x] 2.1 worker-payout-pairs fold/classify unit spec
+- [x] 2.2 DB parity spec with a BONUS row
+- [x] 2.3 get-payout-transactions spec
+- [x] 2.4 subcontractor-summary spec
+- [x] 2.5 settle-payouts spec
 
 ### Phase 3: The worker's link and PDF
 

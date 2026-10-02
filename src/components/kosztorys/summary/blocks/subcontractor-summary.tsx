@@ -54,6 +54,8 @@ export function SubcontractorSummary({
     workers,
   })
   const breakdown = subcontractorStageBreakdown(subcontractorDue, stages ?? [], summary.rows)
+  // A premia is an entitlement, not cash out — it reads in the totals above, never as a wypłata.
+  const cashPayouts = payoutTransactions.filter((tx) => tx.type === 'PAYOUT')
 
   return (
     <div className="text-foreground flex w-full flex-col gap-y-4 px-4 pt-4 pb-4 text-sm">
@@ -77,12 +79,12 @@ export function SubcontractorSummary({
         <SubcontractorStageBreakdown breakdown={breakdown} />
       )}
 
-      {showTransactions && payoutTransactions.length > 0 && (
+      {showTransactions && cashPayouts.length > 0 && (
         <CollapsibleSection title="Lista wpłat" size="sm" defaultOpen={false}>
           <SubcontractorPayoutsTable
             investmentId={investmentId}
             payouts={payouts}
-            payoutTransactions={payoutTransactions}
+            payoutTransactions={cashPayouts}
           />
         </CollapsibleSection>
       )}

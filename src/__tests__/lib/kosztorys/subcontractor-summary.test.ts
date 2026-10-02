@@ -11,6 +11,7 @@ import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 const payout = (workerId: number | null, total: number, name = 'x'): SubcontractorPayoutRowT => ({
   workerId,
   total,
+  bonus: 0,
   name,
 })
 
@@ -257,5 +258,48 @@ describe('subcontractorRowTotals — „Razem" cannot drift from the headline', 
     })
     expect(subcontractorRowTotals(summary.rows).remaining).toBe(400)
     expect(summary.remaining).toBe(1000)
+  })
+})
+
+// EX-979: a premia is owed on top of executed work, never folded into the należne itself.
+describe('computeSubcontractorSummary — premia', () => {
+  const withBonus = (workerId: number | null, paid: number, bonus: number) => ({
+    ...payout(workerId, paid, 'Anna'),
+    bonus,
+  })
+
+  it('closes the nadpłata it was booked for, on the row and the headline alike', () => {
+    const summary = computeSubcontractorSummary(1000, [withBonus(1, 1205.01, 205.01)], {
+      byWorker: new Map([[1, 1000]]),
+      stages: [stage(10, 1)],
+    })
+
+    expect(summary.dueNet).toBe(1000)
+    expect(summary.bonusTotal).toBe(205.01)
+    expect(summary.remaining).toBe(0)
+    expect(summary.rows[0]).toMatchObject({ bonus: 205.01, remaining: 0, state: 'settled' })
+  })
+
+  it('reads a worker holding only a premia as overpaid, not as having no etapy', () => {
+    const summary = computeSubcontractorSummary(0, [withBonus(1, 300, 100)], {
+      byWorker: new Map(),
+      stages: [],
+    })
+
+    expect(summary.rows[0]).toMatchObject({ remaining: -200, state: 'overpaid' })
+  })
+
+  it('carries the premia into „Razem"', () => {
+    const summary = computeSubcontractorSummary(1000, [withBonus(1, 1300, 300)], {
+      byWorker: new Map([[1, 1000]]),
+      stages: [stage(10, 1)],
+    })
+
+    expect(subcontractorRowTotals(summary.rows)).toEqual({
+      due: 1000,
+      bonus: 300,
+      paid: 1300,
+      remaining: 0,
+    })
   })
 })

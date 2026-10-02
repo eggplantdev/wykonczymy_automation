@@ -10,7 +10,12 @@ export type StageDueRowT = {
   hasUnconfirmedPlane: boolean
 }
 
-export type PaidRowT = { investmentId: number; workerId: number | null; paid: number }
+export type PaidRowT = {
+  investmentId: number
+  workerId: number | null
+  paid: number
+  bonus: number
+}
 
 /**
  * The per-etap pools and the wypłaty folded into (investment, worker) pairs, by the same rules
@@ -34,6 +39,7 @@ export function foldWorkerPayoutPairs(
         workerId,
         due: 0,
         paid: 0,
+        bonus: 0,
         hasUnconfirmedPlane: false,
         investmentStatus: statuses.get(investmentId) ?? '',
       }
@@ -54,7 +60,11 @@ export function foldWorkerPayoutPairs(
     // An etap nobody is on reaches the null pair even at 0 zł, so its flag does too.
     if (!split || unattributed) credit(row, null, unattributed)
   }
-  for (const row of paid) pairOf(row.investmentId, row.workerId).paid += row.paid
+  for (const row of paid) {
+    const pair = pairOf(row.investmentId, row.workerId)
+    pair.paid += row.paid
+    pair.bonus += row.bonus
+  }
 
   return [...pairs.values()]
 }

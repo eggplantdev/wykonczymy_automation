@@ -67,6 +67,7 @@ function projection(
         plane: 'w_tools',
         workerId: WORKER,
         payoutRows: paid.map((amount, index) => ({
+          type: 'PAYOUT' as const,
           workerId: WORKER,
           amount,
           date: `2026-09-0${index + 1}`,

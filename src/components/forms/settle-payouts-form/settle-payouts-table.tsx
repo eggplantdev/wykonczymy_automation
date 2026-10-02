@@ -147,6 +147,7 @@ function RemainderAmount({ value }: { value: number }) {
 
 const col = createColumnHelper<SettleRowT>()
 const AMOUNT_COLUMN_ID = 'amount'
+const BONUS_COLUMN_ID = 'bonus'
 
 const money = (value: number) => <span className="whitespace-nowrap">{formatPLN(value)}</span>
 
@@ -162,6 +163,12 @@ const COLUMNS = [
   }),
   col.accessor('due', {
     header: 'Wykonane',
+    meta: { align: 'right' },
+    cell: (info) => money(info.getValue()),
+  }),
+  col.accessor('bonus', {
+    id: BONUS_COLUMN_ID,
+    header: 'Premia',
     meta: { align: 'right' },
     cell: (info) => money(info.getValue()),
   }),
@@ -213,6 +220,8 @@ export function SettlePayoutsTable({
         className={className}
         data={rows}
         columns={COLUMNS}
+        // Shown only once a premia exists, so „Pozostało" still tallies across the visible columns.
+        defaultColumnVisibility={{ [BONUS_COLUMN_ID]: rows.some((row) => row.bonus !== 0) }}
         getRowClassName={(row) => (isBlocked(row.state) ? 'opacity-60' : '')}
         footer={(visibleColumnIds) => (
           <>

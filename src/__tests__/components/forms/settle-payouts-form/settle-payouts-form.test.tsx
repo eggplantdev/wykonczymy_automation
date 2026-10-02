@@ -22,6 +22,7 @@ const row = (overrides: Partial<SettleRowT>): SettleRowT => ({
   workerId: 10,
   label: 'Akacjowa',
   due: 1000,
+  bonus: 0,
   paid: 200,
   remaining: 800,
   state: 'payable',

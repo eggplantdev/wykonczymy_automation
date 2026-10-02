@@ -103,7 +103,7 @@ export function shapeInvestments(
       subcontractorRemaining:
         clientTotals === undefined || settlement.hasUnconfirmedPlane
           ? undefined
-          : roundToCents(settlement.due - financials.totalPayouts),
+          : roundToCents(settlement.due + financials.totalBonus - financials.totalPayouts),
       address: inv.address,
       phone: inv.phone,
       email: inv.email,

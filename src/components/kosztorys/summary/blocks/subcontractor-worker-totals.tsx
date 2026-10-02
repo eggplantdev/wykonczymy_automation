@@ -62,14 +62,15 @@ export function SubcontractorWorkerTotals({
   rows: SubcontractorWorkerRowT[]
 }) {
   const totals = subcontractorRowTotals(rows)
+  // Only once a premia exists, so a crew without one keeps its three-column table.
+  const showBonus = totals.bonus !== 0 || rows.some((row) => row.bonus !== 0)
+  const valueCols = Array.from({ length: showBonus ? 4 : 3 }, () => SUMMARY_VALUE_COL).join(' ')
 
   return (
-    <SummaryTable
-      cols={`${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL} ${SUMMARY_VALUE_COL} ${SUMMARY_VALUE_COL}`}
-      className="h-fit w-fit"
-    >
+    <SummaryTable cols={`${SUMMARY_LABEL_COL} ${valueCols}`} className="h-fit w-fit">
       <SummaryHeaderCell variant="label">Podsumowanie pracowników</SummaryHeaderCell>
       <SummaryHeaderCell>{SUBCONTRACTOR_FIGURE_LABELS.due}</SummaryHeaderCell>
+      {showBonus && <SummaryHeaderCell>{SUBCONTRACTOR_FIGURE_LABELS.bonus}</SummaryHeaderCell>}
       <SummaryHeaderCell>{SUBCONTRACTOR_FIGURE_LABELS.payouts}</SummaryHeaderCell>
       <SummaryHeaderCell>{SUBCONTRACTOR_FIGURE_LABELS.remaining}</SummaryHeaderCell>
 
@@ -83,7 +84,7 @@ export function SubcontractorWorkerTotals({
                   row.workerId === null
                     ? undefined
                     : investmentTransfersHref(investmentId, {
-                        types: ['PAYOUT'],
+                        types: ['PAYOUT', 'BONUS'],
                         worker: row.workerId,
                       })
                 }
@@ -92,6 +93,7 @@ export function SubcontractorWorkerTotals({
               </OptionalLink>
             </SummaryLabelCell>
             <SummaryValueCell>{formatNet(row.due)}</SummaryValueCell>
+            {showBonus && <SummaryValueCell>{formatNet(row.bonus)}</SummaryValueCell>}
             <SummaryValueCell tone="success" weight="medium">
               {formatNet(row.paid)}
             </SummaryValueCell>
@@ -104,6 +106,7 @@ export function SubcontractorWorkerTotals({
           nobody is assigned to reads as part of one balance rather than a fourth unrelated row. */}
       <SummaryLabelCell weight="bold">Razem</SummaryLabelCell>
       <SummaryValueCell weight="bold">{formatNet(totals.due)}</SummaryValueCell>
+      {showBonus && <SummaryValueCell weight="bold">{formatNet(totals.bonus)}</SummaryValueCell>}
       <SummaryValueCell tone="success" weight="bold">
         {formatNet(totals.paid)}
       </SummaryValueCell>

@@ -10,6 +10,7 @@ const workers = [
 ] as WorkerRefT[]
 
 const payout = (workerId: number | null, amount: number): PayoutTransactionRowT => ({
+  type: 'PAYOUT',
   workerId,
   amount,
   date: '2026-07-18 09:00:00+00',
@@ -24,7 +25,22 @@ describe('derivePayoutsByWorker', () => {
     const rows = derivePayoutsByWorker([payout(1, 1000), payout(1, 250.5), payout(2, 400)], workers)
 
     expect(rows).toHaveLength(2)
-    expect(rowFor(1, rows)).toEqual({ workerId: 1, total: 1250.5, name: 'Jan Kowalski' })
+    expect(rowFor(1, rows)).toEqual({ workerId: 1, total: 1250.5, bonus: 0, name: 'Jan Kowalski' })
+  })
+
+  // EX-979: a premia is owed, not paid — summed beside the wypłaty, never into them.
+  it('sums premie apart from wypłaty', () => {
+    const rows = derivePayoutsByWorker(
+      [payout(1, 1000), { ...payout(1, 205.01), type: 'BONUS' }],
+      workers,
+    )
+
+    expect(rowFor(1, rows)).toEqual({
+      workerId: 1,
+      total: 1000,
+      bonus: 205.01,
+      name: 'Jan Kowalski',
+    })
   })
 
   it('keeps the null-worker bucket as its own row rather than merging or dropping it', () => {
@@ -36,6 +52,7 @@ describe('derivePayoutsByWorker', () => {
     expect(rowFor(null, rows)).toEqual({
       workerId: null,
       total: 500,
+      bonus: 0,
       name: UNASSIGNED_WORKER_NAME,
     })
     expect(rowFor(1, rows)?.total).toBe(1000)
@@ -44,7 +61,12 @@ describe('derivePayoutsByWorker', () => {
   it('labels a worker id the roster does not know rather than dropping the money', () => {
     const rows = derivePayoutsByWorker([payout(99, 750)], workers)
 
-    expect(rowFor(99, rows)).toEqual({ workerId: 99, total: 750, name: 'Nieznany pracownik' })
+    expect(rowFor(99, rows)).toEqual({
+      workerId: 99,
+      total: 750,
+      bonus: 0,
+      name: 'Nieznany pracownik',
+    })
   })
 
   it('rounds a grouped total to cents', () => {

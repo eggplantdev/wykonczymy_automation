@@ -42,7 +42,7 @@ export function MarginActualTable({ financials, subcontractor }: PropsT) {
   // Rounded before the sign is read: `due` is a sum through fractional plane coefficients and
   // `totalPayouts` a raw SUM, so paying out exactly the displayed amount — the commonest case —
   // leaves ~1e-13 behind and would paint a settled crew red as „Nadpłata 0,00".
-  const remaining = roundToCents(subcontractor.due - totalPayouts)
+  const remaining = roundToCents(subcontractor.due + totalBonus - totalPayouts)
 
   return (
     <>
@@ -94,41 +94,49 @@ export function MarginActualTable({ financials, subcontractor }: PropsT) {
       {/* Withheld on the same condition as the margin above: with an etap holding executed work
           and no rozliczenie, `due` is short by an unknown amount, and „Nadpłata" derived from it
           would name an overpayment that does not exist. */}
-      {!subcontractor.hasUnconfirmedPlane && (subcontractor.due !== 0 || totalPayouts !== 0) && (
-        <>
-          <Description className="max-w-xl" size="xs">
-            {PAYOUT_GAP_DESCRIPTION}
-          </Description>
-          <SummaryTable cols={MARGIN_TABLE_COLS} className="w-fit">
-            <SummaryHeaderCell variant="label">Rozliczenie z ekipą</SummaryHeaderCell>
-            <SummaryHeaderCell>Kwota</SummaryHeaderCell>
+      {!subcontractor.hasUnconfirmedPlane &&
+        (subcontractor.due !== 0 || totalPayouts !== 0 || totalBonus !== 0) && (
+          <>
+            <Description className="max-w-xl" size="xs">
+              {PAYOUT_GAP_DESCRIPTION}
+            </Description>
+            <SummaryTable cols={MARGIN_TABLE_COLS} className="w-fit">
+              <SummaryHeaderCell variant="label">Rozliczenie z ekipą</SummaryHeaderCell>
+              <SummaryHeaderCell>Kwota</SummaryHeaderCell>
 
-            <SummaryRow
-              label={SUBCONTRACTOR_FIGURE_LABELS.due}
-              line={faceValue(subcontractor.due)}
-              axis="net"
-            />
-            <SummaryRow
-              label={SUBCONTRACTOR_FIGURE_LABELS.payouts}
-              line={faceValue(-totalPayouts)}
-              axis="net"
-              discount
-            />
-            <SummaryRow
-              label={remaining < 0 ? 'Nadpłata' : SUBCONTRACTOR_FIGURE_LABELS.remaining}
-              hint={
-                remaining < 0
-                  ? 'Ekipa dostała więcej, niż jest warta wykonana praca — zaliczka przed robotą albo nieodhaczone etapy.'
-                  : undefined
-              }
-              line={faceValue(remaining < 0 ? -remaining : remaining)}
-              axis="net"
-              bold
-              danger={remaining < 0}
-            />
-          </SummaryTable>
-        </>
-      )}
+              <SummaryRow
+                label={SUBCONTRACTOR_FIGURE_LABELS.due}
+                line={faceValue(subcontractor.due)}
+                axis="net"
+              />
+              {totalBonus !== 0 && (
+                <SummaryRow
+                  label={SUBCONTRACTOR_FIGURE_LABELS.bonus}
+                  line={faceValue(totalBonus)}
+                  axis="net"
+                />
+              )}
+              <SummaryRow
+                label={SUBCONTRACTOR_FIGURE_LABELS.payouts}
+                line={faceValue(-totalPayouts)}
+                axis="net"
+                discount
+              />
+              <SummaryRow
+                label={remaining < 0 ? 'Nadpłata' : SUBCONTRACTOR_FIGURE_LABELS.remaining}
+                hint={
+                  remaining < 0
+                    ? 'Ekipa dostała więcej, niż jest warta wykonana praca — zaliczka przed robotą albo nieodhaczone etapy.'
+                    : undefined
+                }
+                line={faceValue(remaining < 0 ? -remaining : remaining)}
+                axis="net"
+                bold
+                danger={remaining < 0}
+              />
+            </SummaryTable>
+          </>
+        )}
     </>
   )
 }

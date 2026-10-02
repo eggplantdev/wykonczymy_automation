@@ -57,9 +57,9 @@ const DUE: SubcontractorDueByPlaneT = {
 }
 
 const PAYOUTS: PayoutTransactionRowT[] = [
-  { workerId: ANNA, date: '2026-09-01', amount: 2_000, description: null },
-  { workerId: BARTEK, date: '2026-09-02', amount: 500, description: null },
-  { workerId: CELINA, date: '2026-09-03', amount: 2_500, description: null },
+  { type: 'PAYOUT', workerId: ANNA, date: '2026-09-01', amount: 2_000, description: null },
+  { type: 'PAYOUT', workerId: BARTEK, date: '2026-09-02', amount: 500, description: null },
+  { type: 'PAYOUT', workerId: CELINA, date: '2026-09-03', amount: 2_500, description: null },
 ]
 
 function renderBlock(showTransactions = true, due: SubcontractorDueByPlaneT = DUE) {
@@ -101,12 +101,12 @@ function amountsAfter(scope: HTMLElement, label: string): string[] {
 // Pomylona atrybucja mówi o cudzych pieniądzach, a ujemne „pozostało" znaczy coś odwrotnego niż
 // obiecuje nagłówek kolumny.
 describe('Podsumowanie pracowników — czyj to dług', () => {
-  it('prowadzi z wiersza na wypłaty tej jednej osoby', () => {
+  it('prowadzi z wiersza na wypłaty i premie tej jednej osoby', () => {
     renderBlock()
 
     expect(within(workerRow('Anna')).getByRole('link', { name: 'Anna' })).toHaveAttribute(
       'href',
-      investmentTransfersHref(INVESTMENT_ID, { types: ['PAYOUT'], worker: ANNA }),
+      investmentTransfersHref(INVESTMENT_ID, { types: ['PAYOUT', 'BONUS'], worker: ANNA }),
     )
   })
 

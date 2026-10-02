@@ -24,7 +24,7 @@ export async function fetchPayoutTransactionsForInvestment(
       const payload = await getPayload({ config })
       return getPayoutTransactionsForInvestment(payload, investmentId)
     },
-    ['payout-transactions', String(investmentId)],
+    ['payout-transactions-v2', String(investmentId)],
     { tags: [CACHE_TAGS.transfers] },
   )()
 }
