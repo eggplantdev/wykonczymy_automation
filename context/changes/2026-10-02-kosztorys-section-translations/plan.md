@@ -481,3 +481,16 @@ Run **once**, after the final phase.
 #### Automated
 
 - [x] 3.1 translate-tree spec passes with section-name cases — f48a006d
+
+## Deviations (recorded at the review gate)
+
+- Migration landed as `20261002_2_section_translations.ts`: `_0_` was taken by
+  `leads_trashed_erased_at`, and `_1_` by staging's `investments_review_requested`.
+- The seed has 23 keys, not 22: `garaż` was found in the test DB.
+- The read is `src/lib/queries/section-translations-endpoint.ts`, following the `-endpoint` naming of the
+  other `'use server'` wrappers. It returns `ActionResultT`, and the dialog loads it through the shared
+  `editor/hooks/use-load-on-open.ts`.
+- A literal standalone `#` in a section name is escaped in its key (`\#`), so it keys apart from the
+  numbered rooms instead of sharing their entry. `renderSectionName` returns `null` when no usable
+  template exists.
+- The Phase 1 manual DB check was dropped. The seed-key spec and the applied test-DB migration cover it.

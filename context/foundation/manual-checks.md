@@ -3278,3 +3278,6 @@ Na staging najpierw `pnpm db:migrate:preview` (nowa tabela z listą tłumaczeń 
       i bez czekania.
 - [ ] Wyślij zgłoszenie z linku po ukraińsku i otwórz je w przeglądzie zgłoszeń w rozpisce: nazwy
       sekcji są po polsku.
+- [ ] W edytorze otwórz menu sekcji klawiaturą i wybierz „Tłumaczenie sekcji…" Enterem; w polu
+      Українська użyj strzałek i Tab: kursor porusza się w polu i między polami okna, a aktywna
+      komórka rozpiski pod oknem się nie przesuwa.
