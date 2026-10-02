@@ -27,7 +27,13 @@ describe.skipIf(!ENV_READY)('a trashed lead is hidden from its readers (DB)', ()
   const createLead = async (name: string) => {
     const lead = await payload.create({
       collection: 'leads',
-      data: { source: 'website_form', name },
+      data: {
+        source: 'website_form',
+        name,
+        contactStatus: 'new',
+        notifyStatus: 'sent',
+        autoReplyStatus: 'skipped',
+      },
       overrideAccess: true,
       context: { skipRevalidation: true },
     })

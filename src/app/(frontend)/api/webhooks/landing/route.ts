@@ -93,9 +93,11 @@ export async function POST(request: NextRequest) {
   }
 
   // A redelivery that already carries its files must not download a second set. One that carries
-  // none is the crash-between-capture-and-attach case, and does get another go.
+  // none is the crash-between-capture-and-attach case, and does get another go — unless the lead
+  // was erased, whose files were dropped on purpose.
   const alreadyHeld = uploadFieldIds(lead.assets).length
-  const assets = alreadyHeld ? [] : (submission.assets ?? [])
+  const isErased = Boolean(lead.erasedAt)
+  const assets = alreadyHeld || isErased ? [] : (submission.assets ?? [])
 
   // Serial, not Promise.all: concurrent Payload writes share a Neon session and silently commit
   // one. Serial also keeps peak memory at one file rather than the whole set.
@@ -141,8 +143,9 @@ export async function POST(request: NextRequest) {
   //
   // Deliberately after the response: the callback may wait on a landing that is allowed to be
   // down, and 10 s of that latency on a delivered enquiry is what makes the sender retry.
-  const held = alreadyHeld || (failed.length ? 0 : mediaIds.length)
+  // An erased lead counts as holding everything: its files are unwanted, so the prefix may go.
   const expected = submission.assets?.length ?? 0
+  const held = isErased ? expected : alreadyHeld || (failed.length ? 0 : mediaIds.length)
   if (expected > 0 && held === expected) {
     after(() => releaseLandingAssets(submission.submissionId))
   }

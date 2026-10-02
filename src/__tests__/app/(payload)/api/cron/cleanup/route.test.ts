@@ -13,6 +13,7 @@ vi.mock('@/lib/cash-registers/purge-trash', () => ({ purgeCashRegisterTrash: vi.
 vi.mock('@/lib/workers/purge-trash', () => ({ purgeWorkerTrash: vi.fn() }))
 vi.mock('@/lib/fleet/purge-trash', () => ({ purgeVehicleTrash: vi.fn() }))
 vi.mock('@/lib/equipment/purge-trash', () => ({ purgeEquipmentTrash: vi.fn() }))
+vi.mock('@/lib/leads/purge-trash', () => ({ purgeLeadTrash: vi.fn() }))
 
 import { GET } from '@/app/(payload)/api/cron/cleanup/route'
 import { getPayload } from 'payload'
@@ -22,6 +23,7 @@ import { purgeCashRegisterTrash } from '@/lib/cash-registers/purge-trash'
 import { purgeWorkerTrash } from '@/lib/workers/purge-trash'
 import { purgeVehicleTrash } from '@/lib/fleet/purge-trash'
 import { purgeEquipmentTrash } from '@/lib/equipment/purge-trash'
+import { purgeLeadTrash } from '@/lib/leads/purge-trash'
 import { revalidateTag } from '@/__tests__/stubs/next-cache'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 
@@ -30,6 +32,7 @@ const CASH_REGISTER_TRASH = { purged: 1, blocked: 0, failed: 0 }
 const WORKER_TRASH = { purged: 1, blocked: 1, failed: 0 }
 const VEHICLE_TRASH = { purged: 1, failed: 0 }
 const EQUIPMENT_TRASH = { purged: 2, failed: 0 }
+const LEAD_TRASH = { purged: 3, failed: 0 }
 
 describe('cron cleanup route', () => {
   const previous = process.env.CRON_SECRET
@@ -40,6 +43,7 @@ describe('cron cleanup route', () => {
     vi.mocked(purgeWorkerTrash).mockResolvedValue(WORKER_TRASH)
     vi.mocked(purgeVehicleTrash).mockResolvedValue(VEHICLE_TRASH)
     vi.mocked(purgeEquipmentTrash).mockResolvedValue(EQUIPMENT_TRASH)
+    vi.mocked(purgeLeadTrash).mockResolvedValue(LEAD_TRASH)
   })
 
   afterEach(() => {
@@ -93,6 +97,7 @@ describe('cron cleanup route', () => {
       workerTrash: WORKER_TRASH,
       vehicleTrash: VEHICLE_TRASH,
       equipmentTrash: EQUIPMENT_TRASH,
+      leadTrash: LEAD_TRASH,
     })
     // The investor's history list is cached; a sweep that removed versions must evict it.
     expect(revalidateTag).toHaveBeenCalledWith(CACHE_TAGS.kosztorysSnapshots, { expire: 0 })
@@ -119,6 +124,7 @@ describe('cron cleanup route', () => {
       workerTrash: WORKER_TRASH,
       vehicleTrash: VEHICLE_TRASH,
       equipmentTrash: EQUIPMENT_TRASH,
+      leadTrash: LEAD_TRASH,
     })
   })
 
@@ -136,6 +142,7 @@ describe('cron cleanup route', () => {
       workerTrash: WORKER_TRASH,
       vehicleTrash: VEHICLE_TRASH,
       equipmentTrash: EQUIPMENT_TRASH,
+      leadTrash: LEAD_TRASH,
     })
 
     vi.mocked(purgeTrash).mockRejectedValue(new Error('boom'))
@@ -143,6 +150,7 @@ describe('cron cleanup route', () => {
     vi.mocked(purgeWorkerTrash).mockRejectedValue(new Error('boom'))
     vi.mocked(purgeVehicleTrash).mockRejectedValue(new Error('boom'))
     vi.mocked(purgeEquipmentTrash).mockRejectedValue(new Error('boom'))
+    vi.mocked(purgeLeadTrash).mockRejectedValue(new Error('boom'))
     const total = await GET(request({ authorization: 'Bearer test-secret' }))
     expect(total.status).toBe(500)
   })
@@ -228,6 +236,27 @@ describe('cron cleanup route', () => {
       ok: false,
       vehicleTrash: VEHICLE_TRASH,
       equipmentTrash: null,
+    })
+  })
+
+  it('still reports the equipment purge when the lead purge throws', async () => {
+    vi.mocked(gcSnapshots).mockResolvedValue({
+      deleted: 0,
+      ceiling: 0,
+      daily: 0,
+      weekly: 0,
+      investorExpired: 0,
+    })
+    vi.mocked(purgeTrash).mockResolvedValue(TRASH)
+    vi.mocked(purgeLeadTrash).mockRejectedValue(new Error('boom'))
+
+    const res = await GET(request({ authorization: 'Bearer test-secret' }))
+
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toMatchObject({
+      ok: false,
+      equipmentTrash: EQUIPMENT_TRASH,
+      leadTrash: null,
     })
   })
 })

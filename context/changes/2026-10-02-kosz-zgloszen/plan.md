@@ -512,12 +512,12 @@ Run once, after the final phase:
 
 #### Automated
 
-- [ ] 2.1 `lead-trash.db.test.ts` — trash / restore / forever / refusals
-- [ ] 2.2 `lead-trash.db.test.ts` — investment files survive erasing its lead
-- [ ] 2.3 `store-lead.db.test.ts` — erased Facebook lead not re-created, not notified
-- [ ] 2.4 `purge-trash.db.test.ts` — 30-day window, erased rows not reselected
-- [ ] 2.5 Cleanup route test reports `leadTrash`
-- [ ] 2.6 capture-lead unit spec passes (if present)
+- [x] 2.1 `lead-trash.db.test.ts` — trash / restore / forever / refusals
+- [x] 2.2 `lead-trash.db.test.ts` — investment files survive erasing its lead
+- [x] 2.3 `store-lead.db.test.ts` — erased Facebook lead not re-created, not notified
+- [x] 2.4 `purge-trash.db.test.ts` — 30-day window, erased rows not reselected
+- [x] 2.5 Cleanup route test reports `leadTrash`
+- [x] 2.6 capture-lead unit spec passes (if present) (none present — covered by store-lead.db.test.ts)
 
 ### Phase 3: `/zgloszenia` — selection, bulk trash, „Bez plików"
 
