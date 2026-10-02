@@ -3328,3 +3328,20 @@ Na staging najpierw `pnpm db:migrate:preview` (nowa tabela z listą tłumaczeń 
 - [ ] W edytorze otwórz menu sekcji klawiaturą i wybierz „Tłumaczenie sekcji…" Enterem; w polu
       Українська użyj strzałek i Tab: kursor porusza się w polu i między polami okna, a aktywna
       komórka rozpiski pod oknem się nie przesuwa.
+
+## 2026-10-02 — investments-listing-no-kosztorys-figures — inwestycja bez kosztorysu pokazuje prawdziwe kwoty v2
+
+- [ ] `/inwestycje`: inwestycja w trybie netto ma w „Bilans brutto v2" napis „rozliczenie netto",
+      inwestycja w trybie brutto (np. „11 Listopada 40") ma w „Bilans netto v2" „rozliczenie brutto",
+      w trybie mieszanym „rozliczenie mieszane". Żadna komórka nie mówi „nie dotyczy".
+- [ ] `/inwestycje` jako OWNER, inwestycja bez kosztorysu rozliczana samymi materiałami (np. „Kijowska
+      17 dwa mieszkania materiały"): „Bilans netto v2" = minus „Wydatki inwestycyjne", „Robocizna v2"
+      0,00 zł, „Marża v2" to kwota, a „Pozostało do wypłaty" mówi „brak kosztorysu".
+- [ ] Inwestycja bez kosztorysu z robocizną zaksięgowaną transferami (np. Altowa 12): „Robocizna v2"
+      0,00 zł z ikoną niezgodności, której dymek podaje różnicę.
+- [ ] Sortowanie „Bilans netto v2" w obie strony: inwestycje bez kosztorysu stoją między innymi według
+      kwoty, nie na końcu. Sortowanie „Pozostało do wypłaty" w obie strony: „brak kosztorysu" i „ustaw
+      etapy" zostają na końcu.
+- [ ] Żadna komórka listy nie mówi „brak danych".
+- [ ] Dymki nagłówków „Bilans netto v2", „Robocizna v2", „Marża v2" i „Pozostało do wypłaty" zgadzają
+      się z komórkami; żaden nie wspomina „brak danych".

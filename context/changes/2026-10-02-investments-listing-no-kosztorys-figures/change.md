@@ -1,7 +1,7 @@
 ---
 change_id: investments-listing-no-kosztorys-figures
 title: Investments listing shows real v2 figures without a kosztorys
-status: implementing
+status: implemented
 created: 2026-10-02
 updated: 2026-10-02
 archived_at: null

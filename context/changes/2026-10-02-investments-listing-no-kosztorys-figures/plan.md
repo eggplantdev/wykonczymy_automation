@@ -329,5 +329,5 @@ The full suite is not run unasked (owner preference). The pre-push hook runs it 
 
 #### Automated
 
-- [x] 2.1 No „brak danych" / „nie dotyczy" left in the listing's sources
-- [x] 2.2 shape-investments spec still passes
+- [x] 2.1 No „brak danych" / „nie dotyczy" left in the listing's sources — 99419432
+- [x] 2.2 shape-investments spec still passes — 99419432
