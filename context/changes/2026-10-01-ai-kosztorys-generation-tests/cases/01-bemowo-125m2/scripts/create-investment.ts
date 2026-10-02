@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { getPayload } from 'payload'
-import config from '/Users/konradantonik/workspace/yolo/wykonczymy/src/payload.config'
-import { createInvestment } from '/Users/konradantonik/workspace/yolo/wykonczymy/src/lib/investments/create-investment'
+import config from '@/payload.config'
+import { createInvestment } from '@/lib/investments/create-investment'
 
 const DIR = '/Users/konradantonik/Downloads/Pliki dla wyceny wykończenia mieszkania 2'
 const FILES: { name: string; kind: 'projekt' | 'inne' }[] = [
