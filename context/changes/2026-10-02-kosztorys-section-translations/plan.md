@@ -480,4 +480,4 @@ Run **once**, after the final phase.
 
 #### Automated
 
-- [x] 3.1 translate-tree spec passes with section-name cases
+- [x] 3.1 translate-tree spec passes with section-name cases — f48a006d

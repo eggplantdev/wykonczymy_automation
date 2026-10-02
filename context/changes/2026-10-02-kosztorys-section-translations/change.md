@@ -1,7 +1,7 @@
 ---
 change_id: kosztorys-section-translations
 title: Translate kosztorys section names (UA/RU) on the worker report link
-status: implementing
+status: implemented
 created: 2026-10-02
 updated: 2026-10-02
 archived_at: null
