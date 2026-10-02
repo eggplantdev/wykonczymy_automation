@@ -505,8 +505,8 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 1.1 Migration applies to the local DB
-- [x] 1.2 `leads.db.test.ts` — trashed lead hidden from rows, newCount and countUnreadLeads
+- [x] 1.1 Migration applies to the local DB — 0ebd8937
+- [x] 1.2 `leads.db.test.ts` — trashed lead hidden from rows, newCount and countUnreadLeads — 0ebd8937
 
 ### Phase 2: Trash, restore, erase, purge
 
