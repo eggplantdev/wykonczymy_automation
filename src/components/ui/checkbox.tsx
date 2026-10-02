@@ -29,4 +29,8 @@ function Checkbox({ className, ...props }: React.ComponentProps<typeof CheckboxP
   )
 }
 
-export { Checkbox }
+// Radix's own three-way value, so a group box says „część" instead of claiming the whole group.
+const checkedState = (selected: number, total: number): boolean | 'indeterminate' =>
+  selected === 0 ? false : selected === total ? true : 'indeterminate'
+
+export { Checkbox, checkedState }

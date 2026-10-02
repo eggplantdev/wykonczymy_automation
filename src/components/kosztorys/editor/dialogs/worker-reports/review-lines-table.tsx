@@ -3,7 +3,7 @@
 import { createContext, use, useState } from 'react'
 import { createColumnHelper } from '@tanstack/react-table'
 import { SearchIcon } from 'lucide-react'
-import { Checkbox } from '@/components/ui/checkbox'
+import { Checkbox, checkedState } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { SearchSelect, type SearchSelectItemT } from '@/components/ui/search-select'
@@ -78,7 +78,7 @@ function TickHeader() {
   return (
     <Checkbox
       aria-label="Zaznacz wszystkie"
-      checked={tickedCount === 0 ? false : tickedCount === rows.length || 'indeterminate'}
+      checked={checkedState(tickedCount, rows.length)}
       onCheckedChange={(checked) =>
         rows.forEach((row) => onChange(row.id, { isTicked: checked === true }))
       }

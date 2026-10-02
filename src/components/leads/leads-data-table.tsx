@@ -7,12 +7,14 @@ import { DataTableToolbar } from '@/components/tables/data-table/data-table-tool
 import { ActiveFilterButton } from '@/components/filters/active-filter-button'
 import { ColumnToggle } from '@/components/filters/column-toggle'
 import { PaginationFooter } from '@/components/ui/pagination-footer'
-import { getLeadColumns, SelectedLeadIdsContext } from '@/components/tables/leads'
+import { getLeadColumns } from '@/components/tables/leads'
+import { SelectedIdsContext } from '@/components/tables/data-table/select-column'
 import { TrashLeadsButton } from '@/components/leads/trash-leads-button'
 import type { InvestmentOptionT } from '@/components/leads/lead-assets-dialog'
 import type { LeadRowT } from '@/types/leads'
 import type { PaginationMetaT } from '@/lib/utils/pagination'
 import { useOptimisticToggle } from '@/hooks/use-optimistic-toggle'
+import { useToggleSearchParam } from '@/hooks/use-toggle-search-param'
 import { useUrlFilterParams } from '@/hooks/use-url-filter-params'
 import { sortParamToSortingState, sortingStateToParam } from '@/lib/table/sort-param'
 import { validLeadSort } from '@/lib/queries/lead-sort'
@@ -41,18 +43,24 @@ export function LeadsDataTable({ data, paginationMeta, investments }: LeadsDataT
 
   const searchParams = useSearchParams()
   const { updateParam } = useUrlFilterParams(LEADS_BASE_URL)
+  const noFiles = useToggleSearchParam(LEADS_BASE_URL, 'noFiles')
   // The same whitelist the page used, so a hand-edited `?sort=` it refused cannot leave the header
   // arrow claiming an order the rows were never fetched in.
   const sorting = sortParamToSortingState(validLeadSort(searchParams.get('sort') ?? undefined))
 
-  // Keyed to the `data` it was made on, so a new page, search, filter or a trash's refresh drops it
-  // without an effect: a selection must never reach rows the user did not see when ticking.
+  // Pruned to the rows on screen whenever `data` changes, without an effect: a new page, search,
+  // filter or a trash's refresh drops what left, so a selection never reaches rows the user did not
+  // see when ticking — while a refresh that keeps the rows („Skontaktowano") keeps the ticks.
   const [selection, setSelection] = useState({ data, ids: NO_SELECTION })
-  const selectedIds = selection.data === data ? selection.ids : NO_SELECTION
+  if (selection.data !== data) {
+    const onPage = new Set(data.map((lead) => lead.id))
+    setSelection({ data, ids: new Set([...selection.ids].filter((id) => onPage.has(id))) })
+  }
+  const selectedIds = selection.ids
   // Updaters rather than reads of `selectedIds`, so the column callbacks — and the columns — stay
   // the same object across clicks.
   const updateSelection = (update: (ids: ReadonlySet<number>) => ReadonlySet<number>) =>
-    setSelection((prev) => ({ data, ids: update(prev.data === data ? prev.ids : NO_SELECTION) }))
+    setSelection((prev) => ({ ...prev, ids: update(prev.ids) }))
 
   const toggleSelect = (id: number) =>
     updateSelection((ids) => {
@@ -72,7 +80,7 @@ export function LeadsDataTable({ data, paginationMeta, investments }: LeadsDataT
   })
 
   return (
-    <SelectedLeadIdsContext value={selectedIds}>
+    <SelectedIdsContext value={selectedIds}>
       <DataTable
         data={optimisticData}
         columns={columns}
@@ -89,24 +97,19 @@ export function LeadsDataTable({ data, paginationMeta, investments }: LeadsDataT
             }}
             filters={
               <ActiveFilterButton
-                isActive={searchParams.get('noFiles') === '1'}
-                onChange={(on) => updateParam('noFiles', on ? '1' : '')}
+                isActive={noFiles.isActive}
+                onChange={noFiles.setActive}
                 activeLabel="Bez plików"
               />
             }
             columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
             actions={
-              selectedIds.size > 0 && (
-                <TrashLeadsButton
-                  leadIds={[...selectedIds]}
-                  onTrashed={() => updateSelection(() => NO_SELECTION)}
-                />
-              )
+              selectedIds.size > 0 && <TrashLeadsButton leadIds={[...selectedIds]} />
             }
           />
         )}
       />
       <PaginationFooter paginationMeta={paginationMeta} baseUrl={LEADS_BASE_URL} />
-    </SelectedLeadIdsContext>
+    </SelectedIdsContext>
   )
 }

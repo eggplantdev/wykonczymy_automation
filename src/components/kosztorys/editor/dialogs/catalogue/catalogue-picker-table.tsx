@@ -1,9 +1,8 @@
 'use client'
 
-import { createContext, use } from 'react'
 import { createColumnHelper } from '@tanstack/react-table'
-import { Checkbox } from '@/components/ui/checkbox'
 import { DataTable } from '@/components/tables/data-table/data-table'
+import { SelectedIdsContext, SelectRowCell } from '@/components/tables/data-table/select-column'
 import { WORK_CATALOGUE_PICKER_COLUMNS } from '@/components/tables/work-catalogue'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
@@ -27,33 +26,19 @@ const INITIAL_SORTING = [
 // while scrolling.
 const ROW_ESTIMATE = 52
 
-const SelectedIdsContext = createContext<ReadonlySet<number>>(new Set())
-
-// `flexRender` mounts a `cell` function as a component, so columns rebuilt per tick would remount every cell in the list.
-function SelectCell({
-  item,
-  onToggle,
-}: {
-  item: WorkCatalogueItemT
-  onToggle: (id: number) => void
-}) {
-  const selected = use(SelectedIdsContext)
-  return (
-    <Checkbox
-      checked={selected.has(item.id)}
-      onCheckedChange={() => onToggle(item.id)}
-      aria-label={item.description}
-    />
-  )
-}
-
 export function CataloguePickerTable({ items, selectedIds, onToggle }: PropsT) {
   const columns = [
     col.display({
       id: 'select',
       header: '',
       size: 40,
-      cell: (info) => <SelectCell item={info.row.original} onToggle={onToggle} />,
+      cell: (info) => (
+        <SelectRowCell
+          id={info.row.original.id}
+          label={info.row.original.description}
+          onToggle={onToggle}
+        />
+      ),
     }),
     ...WORK_CATALOGUE_PICKER_COLUMNS,
   ]

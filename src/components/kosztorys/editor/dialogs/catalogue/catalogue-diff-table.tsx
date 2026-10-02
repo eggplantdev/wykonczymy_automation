@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { CheckCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
+import { Checkbox, checkedState } from '@/components/ui/checkbox'
 import { clientShareCeilingLabel, isOverCeiling } from '@/lib/kosztorys/subcontractor-price-guard'
 import { formatRate } from '@/lib/kosztorys/format'
 import { formatPLN } from '@/lib/utils/format-currency'
@@ -138,10 +138,6 @@ export function CatalogueDiffTable({
     </div>
   )
 }
-
-// Radix's own three-way value, so the praca box says „część" instead of claiming the whole praca.
-const checkedState = (selected: number, total: number): boolean | 'indeterminate' =>
-  selected === 0 ? false : selected === total ? true : 'indeterminate'
 
 function DiffGroup({
   diff,

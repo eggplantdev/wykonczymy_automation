@@ -14,7 +14,7 @@ vi.mock('next/navigation', () => ({
 }))
 vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 vi.mock('@/lib/actions/lead-trash', () => ({
-  trashLeadsAction: vi.fn(async () => ({ success: true })),
+  trashLeadsAction: vi.fn(async () => ({ success: true, data: { trashed: 2 } })),
 }))
 
 const leadRow = (id: number, name: string): LeadRowT => ({
@@ -82,16 +82,27 @@ describe('/zgloszenia — zaznaczanie i „Do kosza"', () => {
     expect(trashLeadsAction).toHaveBeenCalledWith([1, 3])
   })
 
-  it('drops the selection when new rows arrive', async () => {
+  it('drops the ticks of rows that left the page', async () => {
     const user = userEvent.setup()
     const { rerender } = renderTable()
 
     await user.click(screen.getByRole('checkbox', { name: 'Zaznacz Jan Nowak' }))
     expect(screen.getByRole('button', { name: /Do kosza \(1\)/ })).toBeInTheDocument()
 
-    rerender(<LeadsDataTable data={[...PAGE]} paginationMeta={PAGINATION} investments={[]} />)
+    const nextPage = [leadRow(4, 'Piotr Zieliński'), leadRow(5, 'Ola Lis')]
+    rerender(<LeadsDataTable data={nextPage} paginationMeta={PAGINATION} investments={[]} />)
 
     expect(screen.queryByRole('button', { name: /Do kosza/ })).not.toBeInTheDocument()
-    expect(screen.getByRole('checkbox', { name: 'Zaznacz Jan Nowak' })).not.toBeChecked()
+  })
+
+  it('keeps the ticks when a refresh brings the same rows back', async () => {
+    const user = userEvent.setup()
+    const { rerender } = renderTable()
+
+    await user.click(screen.getByRole('checkbox', { name: 'Zaznacz Jan Nowak' }))
+    rerender(<LeadsDataTable data={[...PAGE]} paginationMeta={PAGINATION} investments={[]} />)
+
+    expect(screen.getByRole('checkbox', { name: 'Zaznacz Jan Nowak' })).toBeChecked()
+    expect(screen.getByRole('button', { name: /Do kosza \(1\)/ })).toBeInTheDocument()
   })
 })

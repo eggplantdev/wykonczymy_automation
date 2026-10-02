@@ -120,7 +120,10 @@ export function DataTable<TData>({
     persistRanks({})
   }
 
-  const declaredColumnIds = leafColumnIds(columns)
+  // A column that cannot be hidden (the row's select box) is also left off the reorder list, so it is
+  // pinned in front instead of ranked — otherwise a dragged column could rank past it.
+  const pinnedColumnIds = leafColumnIds(columns.filter((column) => column.enableHiding === false))
+  const rankedColumnIds = leafColumnIds(columns.filter((column) => column.enableHiding !== false))
 
   const table = useReactTable({
     data: data as TData[],
@@ -131,7 +134,7 @@ export function DataTable<TData>({
       // A new array every render, and that is load-bearing: TableHeader's sort arrow and
       // VirtualizedTableBody's virtual items are compiled children holding TanStack's mutable objects,
       // re-read only because this renews `headerGroups` and every row's cells. Memoized, both freeze.
-      columnOrder: orderColumnKeys(declaredColumnIds, ranks),
+      columnOrder: [...pinnedColumnIds, ...orderColumnKeys(rankedColumnIds, ranks)],
     },
     onSortingChange: (updater) => {
       const next = typeof updater === 'function' ? updater(sorting) : updater
@@ -192,7 +195,7 @@ export function DataTable<TData>({
         table,
         columnVisibility,
         ranks,
-        baseRanks: baseRanksFromKeys(declaredColumnIds),
+        baseRanks: baseRanksFromKeys(rankedColumnIds),
         setRank,
         resetOrder,
       })}
