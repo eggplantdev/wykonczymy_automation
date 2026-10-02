@@ -21,11 +21,12 @@ export function translateTree(
     ...tree,
     sections: tree.sections.map((section) => ({
       ...section,
-      name: renderSectionName(
-        section.name,
-        sectionTranslations[sectionNameKey(section.name)],
-        locale,
-      ),
+      name:
+        renderSectionName(
+          section.name,
+          sectionTranslations[sectionNameKey(section.name)],
+          locale,
+        ) ?? section.name,
       items: section.items.map((item) => {
         const text = translationText(item.descriptionTranslations, locale)
         return text.trim() === '' ? item : { ...item, description: text }

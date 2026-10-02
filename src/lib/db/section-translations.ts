@@ -1,10 +1,7 @@
 import 'server-only'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { TRANSLATION_LANGUAGES } from '@/lib/i18n/languages'
-import type {
-  SectionTranslationMapT,
-  SectionTranslationsT,
-} from '@/lib/i18n/section-translations'
+import type { SectionTranslationMapT, SectionTranslationsT } from '@/lib/i18n/section-translations'
 import type { DbExecutorT } from './get-db'
 
 function toTranslations(value: unknown): SectionTranslationsT {

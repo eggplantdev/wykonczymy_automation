@@ -2,10 +2,7 @@
 
 import { z } from 'zod'
 import { getDb } from '@/lib/db/get-db'
-import {
-  deleteSectionTranslations,
-  upsertSectionTranslations,
-} from '@/lib/db/section-translations'
+import { deleteSectionTranslations, upsertSectionTranslations } from '@/lib/db/section-translations'
 import {
   LANGUAGE_SHORT,
   TRANSLATION_LANGUAGES,
@@ -21,12 +18,7 @@ import { protectedAction, validateAction } from './run-action'
 
 const inputSchema = z.object({
   sectionName: z.string().trim().min(1, 'Sekcja nie ma nazwy'),
-  typed: z.object(
-    Object.fromEntries(TRANSLATION_LANGUAGES.map((language) => [language, z.string()])) as Record<
-      TranslationLanguageT,
-      z.ZodString
-    >,
-  ),
+  typed: z.record(z.enum(TRANSLATION_LANGUAGES), z.string()),
 })
 
 function refusal(
@@ -35,7 +27,10 @@ function refusal(
 ): string {
   const label = `Tłumaczenie (${LANGUAGE_SHORT[language]})`
   const numbers = expected.length ? `: ${expected.join(', ')}` : ''
-  if (reason === 'hash') return `${label} nie może zawierać znaku „#" — wpisz liczby z nazwy sekcji${numbers}.`
+  if (reason === 'hash') {
+    const hint = expected.length ? ` — wpisz liczby z nazwy sekcji${numbers}` : ''
+    return `${label} nie może zawierać znaku „#"${hint}.`
+  }
   if (!expected.length) return `${label} nie może zawierać liczb — nazwa sekcji ich nie ma.`
   return `${label} musi zawierać te same liczby co nazwa sekcji${numbers}.`
 }

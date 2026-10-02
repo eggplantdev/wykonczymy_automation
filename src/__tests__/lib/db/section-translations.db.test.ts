@@ -16,7 +16,8 @@ const KEY = 'ex-965 sekcja testowa #'
 describe.skipIf(!ENV_READY)('section translations round trip (DB)', () => {
   let db: Awaited<ReturnType<typeof getDb>>
 
-  const purge = () => db.execute(sql`DELETE FROM kosztorys_section_translations WHERE name_key = ${KEY}`)
+  const purge = () =>
+    db.execute(sql`DELETE FROM kosztorys_section_translations WHERE name_key = ${KEY}`)
 
   beforeAll(async () => {
     const { getPayload } = await import('payload')

@@ -25,7 +25,6 @@ export type WorkerReportPageT = ReportLocaleT &
         // What he sent and nobody has decided yet, per pozycja — so a repeat report shows before he sends it.
         pendingQtyByItem: Record<number, number>
         sentReports: WorkerReportRowT[]
-        // The whole list, every language: the switcher changes language on the device.
         sectionTranslations: SectionTranslationMapT
       }
   )

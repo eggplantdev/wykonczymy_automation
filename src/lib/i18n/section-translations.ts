@@ -1,4 +1,4 @@
-import type { LanguageT, TranslationLanguageT } from './languages'
+import type { TranslationLanguageT } from './languages'
 
 // Stored templates: a standalone number of the Polish name is a `#`, so „Łazienka 1" and „Łazienka 2"
 // share one entry and each section gets its own number back on render.
@@ -12,7 +12,7 @@ export type SectionTemplateResultT =
   | { ok: false; reason: 'numbers' | 'hash'; expected: string[] }
 
 const PLACEHOLDER = '#'
-// A token, not a substring: „230V" and „c.o." are text, only a number standing alone is the room's.
+// „230V" and „c.o." are text, only a number standing alone is the room's.
 const isStandaloneNumber = (token: string) => /^\d+$/.test(token)
 
 const tokensOf = (text: string) => text.trim().split(/\s+/).filter(Boolean)
@@ -24,7 +24,11 @@ const toTemplate = (tokens: string[]) =>
 
 // No diacritic folding: „łazienka" and „lazienka" are two spellings a manager can see and fix, not one.
 export function sectionNameKey(name: string): string {
-  return toTemplate(tokensOf(name.toLowerCase()))
+  // Escaped, or a literal `#` in „Łazienka # wanna" would key like „Łazienka 7 wanna".
+  const tokens = tokensOf(name.toLowerCase()).map((token) =>
+    token === PLACEHOLDER ? '\\#' : token,
+  )
+  return toTemplate(tokens)
 }
 
 /**
@@ -46,19 +50,18 @@ export function toSectionTemplate(name: string, typed: string): SectionTemplateR
   return { ok: true, template: toTemplate(tokens) }
 }
 
-/** Polish whenever the template can't be trusted to say the same thing — a miss, or a `#` count off. */
+// `null` = nothing usable for this name: no translation, or its `#`s don't match the name's numbers.
 export function renderSectionName(
   name: string,
   translations: SectionTranslationsT | undefined,
-  locale: LanguageT,
-): string {
-  if (locale === 'pl') return name
-  const template = translations?.[locale]?.trim()
-  if (!template) return name
+  language: TranslationLanguageT,
+): string | null {
+  const template = translations?.[language]?.trim()
+  if (!template) return null
 
   const numbers = numbersOf(name)
   const tokens = tokensOf(template)
-  if (tokens.filter((token) => token === PLACEHOLDER).length !== numbers.length) return name
+  if (tokens.filter((token) => token === PLACEHOLDER).length !== numbers.length) return null
 
   let next = 0
   return tokens.map((token) => (token === PLACEHOLDER ? numbers[next++] : token)).join(' ')

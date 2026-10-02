@@ -21,6 +21,7 @@ vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalida
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 // Names no section will ever carry, so no seeded entry is touched.
 const ROOM_KEY = 'ex965 łazienka # wanna'
+const HASH_KEY = 'ex965 łazienka \\# wanna'
 const KITCHEN_KEY = 'ex965 kuchnia'
 
 describe.skipIf(!ENV_READY)('saveSectionTranslationsAction (DB)', () => {
@@ -36,7 +37,7 @@ describe.skipIf(!ENV_READY)('saveSectionTranslationsAction (DB)', () => {
 
   const purge = () =>
     db.execute(
-      sql`DELETE FROM kosztorys_section_translations WHERE name_key IN (${ROOM_KEY}, ${KITCHEN_KEY})`,
+      sql`DELETE FROM kosztorys_section_translations WHERE name_key IN (${ROOM_KEY}, ${HASH_KEY}, ${KITCHEN_KEY})`,
     )
 
   beforeAll(async () => {
@@ -62,6 +63,18 @@ describe.skipIf(!ENV_READY)('saveSectionTranslationsAction (DB)', () => {
 
     await save('EX965 Łazienka 7 wanna', { uk: ' ', ru: '' })
     expect(await stored(ROOM_KEY)).toBeUndefined()
+  })
+
+  // Keyed like a number, a literal „#" would clear or overwrite the numbered rooms' entry.
+  it('keeps a name with a standalone „#" apart from the numbered rooms', async () => {
+    await save('EX965 Łazienka 7 wanna', { uk: 'Ванна кімната 7', ru: '' })
+
+    await save('EX965 Łazienka # wanna', { uk: 'Ванна', ru: '' })
+    expect(await stored(HASH_KEY)).toEqual({ uk: 'Ванна' })
+    await save('EX965 Łazienka # wanna', { uk: '', ru: '' })
+
+    expect(await stored(HASH_KEY)).toBeUndefined()
+    expect(await stored(ROOM_KEY)).toEqual({ uk: 'Ванна кімната #' })
   })
 
   it('treats differently spaced and cased names as one entry', async () => {

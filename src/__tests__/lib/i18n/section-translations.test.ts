@@ -4,7 +4,7 @@ import {
   sectionNameKey,
   toSectionTemplate,
 } from '@/lib/i18n/section-translations'
-import { SECTION_TRANSLATION_SEED } from '@/migrations/20261002_1_section_translations'
+import { SECTION_TRANSLATION_SEED } from '@/migrations/20261002_2_section_translations'
 
 describe('sectionNameKey', () => {
   it('ignores case and stray spaces', () => {
@@ -29,8 +29,15 @@ describe('sectionNameKey', () => {
     expect(sectionNameKey('Łazienka')).not.toBe(sectionNameKey('Lazienka'))
   })
 
+  it('keys a literal „#" apart from a number', () => {
+    expect(sectionNameKey('Łazienka # wanna')).not.toBe(sectionNameKey('Łazienka 7 wanna'))
+  })
+
   it('reaches every seeded entry — a key the normaliser never produces is a silent miss', () => {
-    for (const { key } of SECTION_TRANSLATION_SEED) expect(sectionNameKey(key)).toBe(key)
+    for (const { key } of SECTION_TRANSLATION_SEED) {
+      const name = key.replace(/(^| )#(?= |$)/g, '$17')
+      expect(sectionNameKey(name)).toBe(key)
+    }
   })
 
   it('seeds every entry in both languages, with the key’s own placeholder count', () => {
@@ -85,22 +92,16 @@ describe('toSectionTemplate', () => {
 describe('renderSectionName', () => {
   it('fills the section’s own numbers back in order', () => {
     expect(renderSectionName('Pokój 1 i 2', { uk: 'Кімната # і #' }, 'uk')).toBe('Кімната 1 і 2')
-    expect(renderSectionName('Łazienka 3', { uk: 'Ванна кімната #' }, 'uk')).toBe(
-      'Ванна кімната 3',
-    )
+    expect(renderSectionName('Łazienka 3', { uk: 'Ванна кімната #' }, 'uk')).toBe('Ванна кімната 3')
   })
 
-  it('stays Polish for a Polish worker', () => {
-    expect(renderSectionName('Kuchnia', { uk: 'Кухня' }, 'pl')).toBe('Kuchnia')
+  it('has nothing where nobody translated the name or this language', () => {
+    expect(renderSectionName('Garderoba', undefined, 'uk')).toBeNull()
+    expect(renderSectionName('Kuchnia', { ru: 'Кухня' }, 'uk')).toBeNull()
+    expect(renderSectionName('Kuchnia', { uk: '  ' }, 'uk')).toBeNull()
   })
 
-  it('stays Polish where nobody translated the name or this language', () => {
-    expect(renderSectionName('Garderoba', undefined, 'uk')).toBe('Garderoba')
-    expect(renderSectionName('Kuchnia', { ru: 'Кухня' }, 'uk')).toBe('Kuchnia')
-    expect(renderSectionName('Kuchnia', { uk: '  ' }, 'uk')).toBe('Kuchnia')
-  })
-
-  it('stays Polish when the template’s placeholders don’t match the name’s numbers', () => {
-    expect(renderSectionName('Łazienka 2', { uk: 'Ванна кімната' }, 'uk')).toBe('Łazienka 2')
+  it('has nothing when the template’s placeholders don’t match the name’s numbers', () => {
+    expect(renderSectionName('Łazienka 2', { uk: 'Ванна кімната' }, 'uk')).toBeNull()
   })
 })
