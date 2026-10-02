@@ -466,15 +466,15 @@ Run **once**, after the final phase.
 
 #### Automated
 
-- [x] 1.1 Pure spec passes (key, seed-key guard, template refusals, render)
-- [x] 1.2 Migration applies to the test DB
-- [x] 1.3 DB round-trip spec passes
+- [x] 1.1 Pure spec passes (key, seed-key guard, template refusals, render) — f3eee12f
+- [x] 1.2 Migration applies to the test DB — f3eee12f
+- [x] 1.3 DB round-trip spec passes — f3eee12f
 
 ### Phase 2: „Tłumaczenie sekcji…" in the section menu
 
 #### Automated
 
-- [ ] 2.1 Action DB spec passes (persisted rows: placeholder key, refusal, removal, key unification)
+- [x] 2.1 Action DB spec passes (persisted rows: placeholder key, refusal, removal, key unification)
 
 ### Phase 3: Swap on the report link + docs
 
