@@ -3,11 +3,13 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { FieldGroup } from '@/components/ui/field'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
 import { DateField, DescriptionField, SourceRegisterField } from '@/components/forms/form-fields'
 import { useRegisterBalance } from '@/components/forms/hooks/use-register-balance'
 import { SignedMoneyDisplay } from '@/components/ui/signed-money-display'
+import { bookOverpaymentBonusAction } from '@/lib/actions/book-overpayment-bonus'
 import { settlePayoutsAction } from '@/lib/actions/settle-payouts'
 import type { SettleRowT } from '@/lib/kosztorys/worker-payout-pairs'
 import { warsawToday } from '@/lib/utils/days'
@@ -39,6 +41,15 @@ function prefill(rows: SettleRowT[]): RowValueT[] {
   )
 }
 
+const pairKey = (row: SettleRowT) => `${row.investmentId}:${row.workerId}`
+
+// After a premia the other pairs keep what was typed into them — only the pair it settled moved.
+function carryOver(fresh: SettleRowT[], previous: SettleRowT[], values: RowValueT[]): RowValueT[] {
+  const kept = new Map(previous.map((row, index) => [pairKey(row), values[index]]))
+  const prefilled = prefill(fresh)
+  return fresh.map((row, index) => kept.get(pairKey(row)) ?? prefilled[index])
+}
+
 type SettlePayoutsFormPropsT = {
   initialRows: SettleRowT[]
   /** Re-reads the rows after the action refused a batch built on figures that have since moved. */
@@ -50,6 +61,8 @@ type SettlePayoutsFormPropsT = {
   labelHeader: string
   /** Where a row's label leads, when the other side of the pair has a page worth checking. */
   labelHref?: (row: SettleRowT) => string
+  /** Both names of a row's pair — one side is the dialog's target, the other the row's label. */
+  pairNames: (row: SettleRowT) => { worker: string; investment: string }
   onSubmitSuccess: () => void
 }
 
@@ -65,10 +78,13 @@ export function SettlePayoutsForm({
   defaultRegisterBalance,
   labelHeader,
   labelHref,
+  pairNames,
   onSubmitSuccess,
 }: SettlePayoutsFormPropsT) {
   const router = useRouter()
   const [rows, setRows] = useState(initialRows)
+  const [bonusRow, setBonusRow] = useState<SettleRowT>()
+  const [isBooking, setIsBooking] = useState(false)
   const { registerBalance, isRegisterBalanceLoading, fetchRegisterBalance } =
     useRegisterBalance(defaultRegisterBalance)
 
@@ -118,26 +134,58 @@ export function SettlePayoutsForm({
       }
       if ('stale' in result && result.stale) {
         toastMessage(result.error, 'warning', 5000)
-        let fresh
-        try {
-          fresh = await reloadRows()
-        } catch (err) {
-          logError('[SETTLE_PAYOUTS_RELOAD]', err)
-          toastMessage(
-            'Nie udało się wczytać nowych kwot — zamknij okno i otwórz je ponownie.',
-            'error',
-            6000,
-          )
-          return
-        }
-        setRows(fresh)
-        form.setFieldValue('rows', prefill(fresh))
-        fetchRegisterBalance(form.getFieldValue('sourceRegister'))
+        await reload(prefill)
         return
       }
       toastMessage(result.error, 'error', 6000)
     },
   })
+
+  async function reload(valuesFor: (fresh: SettleRowT[]) => RowValueT[]) {
+    let fresh
+    try {
+      fresh = await reloadRows()
+    } catch (err) {
+      logError('[SETTLE_PAYOUTS_RELOAD]', err)
+      toastMessage(
+        'Nie udało się wczytać nowych kwot — zamknij okno i otwórz je ponownie.',
+        'error',
+        6000,
+      )
+      return
+    }
+    setRows(fresh)
+    form.setFieldValue('rows', valuesFor(fresh))
+    fetchRegisterBalance(form.getFieldValue('sourceRegister'))
+  }
+
+  // The dialog stays open: the premia settles one pair, and the rest are still to be paid.
+  async function bookBonus(row: SettleRowT) {
+    const { workerId } = row
+    if (workerId === null) return
+    setIsBooking(true)
+    const result = await settleAction(() =>
+      bookOverpaymentBonusAction({
+        investmentId: row.investmentId,
+        workerId,
+        expectedRemaining: row.remaining,
+      }),
+    )
+    if (result.success) {
+      toastMessage('Premia zapisana', 'success')
+      router.refresh()
+    } else if ('stale' in result && result.stale) {
+      toastMessage(result.error, 'warning', 5000)
+    } else {
+      toastMessage(result.error, 'error', 6000)
+      setIsBooking(false)
+      return
+    }
+    const previousRows = rows
+    const previousValues = form.getFieldValue('rows')
+    await reload((fresh) => carryOver(fresh, previousRows, previousValues))
+    setIsBooking(false)
+  }
 
   const rowValues = useStore(form.store, (state) => state.values.rows)
   const isSubmitting = useStore(form.store, (state) => state.isSubmitting)
@@ -200,8 +248,23 @@ export function SettlePayoutsForm({
             labelHref={labelHref}
             onTick={(index, ticked) => form.setFieldValue(`rows[${index}].ticked`, ticked)}
             onAmount={(index, amount) => form.setFieldValue(`rows[${index}].amount`, amount)}
+            onBonus={(index) => setBonusRow(rows[index])}
+            isBooking={isBooking}
           />
         )}
+
+        <ConfirmDialog
+          open={bonusRow !== undefined}
+          variant="neutral"
+          title={
+            bonusRow &&
+            `Zaksięgować premię ${formatPLN(-bonusRow.remaining)} dla ${pairNames(bonusRow).worker} na ${pairNames(bonusRow).investment}?`
+          }
+          description="Wyrówna nadpłatę; inwestor jej nie widzi."
+          confirmLabel="Zaksięguj premię"
+          onConfirm={() => bonusRow && bookBonus(bonusRow)}
+          onCancel={() => setBonusRow(undefined)}
+        />
 
         <footer className="mt-6 flex items-center gap-4">
           <Button type="submit" disabled={!canSubmit || isSubmitting}>

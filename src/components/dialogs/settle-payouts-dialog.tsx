@@ -91,6 +91,11 @@ function SettleDialogBody({
           ? (row) => `/inwestycje/${row.investmentId}/kosztorys_v2`
           : undefined
       }
+      pairNames={(row) =>
+        target.kind === 'worker'
+          ? { worker: target.name, investment: row.label }
+          : { worker: row.label, investment: target.name }
+      }
       onSubmitSuccess={onClose}
     />
   )

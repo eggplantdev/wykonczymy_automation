@@ -16,6 +16,8 @@ import type { PayoutTransactionRowT } from '@/types/transfers'
 
 type PropsT = {
   investmentId: number
+  // Titles the „Rozlicz wypłaty" dialog the worker table opens.
+  investmentName: string
   // View-independent settlement: each etap valued at its OWN plane's price. `combined` is „Suma
   // wykonanej pracy"; `wTools`/`ownTools` feed the split rows; `hasUnconfirmedPlane` flips the badge.
   subcontractorDue: SubcontractorDueByPlaneT
@@ -40,6 +42,7 @@ type PropsT = {
 // client Podsumowanie.
 export function SubcontractorSummary({
   investmentId,
+  investmentName,
   subcontractorDue,
   payoutTransactions,
   stages,
@@ -66,7 +69,11 @@ export function SubcontractorSummary({
       {showGlobalSettings && <EditorGlobalSettings />}
       <div className="flex flex-wrap items-start gap-x-6 gap-y-4">
         {showTransactions && summary.rows.length > 0 && (
-          <SubcontractorWorkerTotals investmentId={investmentId} rows={summary.rows} />
+          <SubcontractorWorkerTotals
+            investmentId={investmentId}
+            investmentName={investmentName}
+            rows={summary.rows}
+          />
         )}
         <SubcontractorHeadlineSummary
           summary={summary}

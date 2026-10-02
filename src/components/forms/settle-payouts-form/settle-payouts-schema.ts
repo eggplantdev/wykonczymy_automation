@@ -35,3 +35,12 @@ export const settlePayoutsSchema = z
 
 export type SettlePayoutsT = z.infer<typeof settlePayoutsSchema>
 export type SettlePayoutRowT = SettlePayoutsT['rows'][number]
+
+export const bookOverpaymentBonusSchema = z.object({
+  investmentId: z.number().int().positive(),
+  workerId: z.number().int().positive(),
+  /** The nadpłata the dialog showed, as its negative „Pozostało" — refused when it no longer holds. */
+  expectedRemaining: z.number().negative(),
+})
+
+export type BookOverpaymentBonusT = z.infer<typeof bookOverpaymentBonusSchema>

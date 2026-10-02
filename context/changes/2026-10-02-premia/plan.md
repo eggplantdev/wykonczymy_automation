@@ -507,16 +507,16 @@ Run once, after the final phase.
 
 #### Automated
 
-- [x] 3.1 worker-view/summary spec
-- [x] 3.2 Worker PDF spec
+- [x] 3.1 worker-view/summary spec — 522f9914
+- [x] 3.2 Worker PDF spec — 522f9914
 
 ### Phase 4: „Wyrównaj premią" in the settle dialog
 
 #### Automated
 
-- [ ] 4.1 Action spec
-- [ ] 4.2 settle-payouts-form DOM spec
-- [ ] 4.3 DOM spec for the Podwykonawcy header button
+- [x] 4.1 Action spec
+- [x] 4.2 settle-payouts-form DOM spec
+- [x] 4.3 DOM spec for the Podwykonawcy header button
 
 ### Phase 5: Living docs
 

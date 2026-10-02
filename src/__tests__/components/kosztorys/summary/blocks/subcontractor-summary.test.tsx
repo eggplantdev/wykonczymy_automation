@@ -62,12 +62,17 @@ const PAYOUTS: PayoutTransactionRowT[] = [
   { type: 'PAYOUT', workerId: CELINA, date: '2026-09-03', amount: 2_500, description: null },
 ]
 
-function renderBlock(showTransactions = true, due: SubcontractorDueByPlaneT = DUE) {
+function renderBlock(
+  showTransactions = true,
+  due: SubcontractorDueByPlaneT = DUE,
+  payouts: PayoutTransactionRowT[] = PAYOUTS,
+) {
   render(
     <SubcontractorSummary
       investmentId={INVESTMENT_ID}
+      investmentName="Akacjowa"
       subcontractorDue={due}
-      payoutTransactions={PAYOUTS}
+      payoutTransactions={payouts}
       stages={STAGES}
       workers={WORKERS}
       showGlobalSettings={false}
@@ -191,5 +196,25 @@ describe('Podsumowanie podwykonawców — niepotwierdzone rozliczenie etapu', ()
     renderBlock()
 
     expect(screen.queryByLabelText('Rozliczenie etapu niepotwierdzone')).toBeNull()
+  })
+})
+
+// Ten sam dialog co na liście inwestycji — zakładka, która krzyczy „nadpłacone", prowadzi tam, gdzie
+// da się to wyrównać.
+describe('Podsumowanie pracowników — Rozlicz wypłaty', () => {
+  const settleButton = () => screen.queryByRole('button', { name: 'Rozlicz wypłaty' })
+
+  it('otwiera rozliczenie, gdy komuś zostało coś do wypłaty albo ma nadpłatę', () => {
+    renderBlock()
+    expect(settleButton()).toBeInTheDocument()
+  })
+
+  it('nie pokazuje przycisku, gdy każdy pracownik jest rozliczony do zera', () => {
+    renderBlock(true, DUE, [
+      { type: 'PAYOUT', workerId: ANNA, date: '2026-09-01', amount: 6_000, description: null },
+      { type: 'PAYOUT', workerId: CELINA, date: '2026-09-03', amount: 1_000, description: null },
+    ])
+    expect(screen.getByText('Podsumowanie pracowników')).toBeInTheDocument()
+    expect(settleButton()).toBeNull()
   })
 })
