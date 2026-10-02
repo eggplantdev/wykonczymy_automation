@@ -3273,6 +3273,9 @@ Na staging najpierw `pnpm db:migrate:preview` (nowe kolumny `trashed_at` / `eras
       wcześniej (wspólny komponent zaznaczania).
 - [ ] Rozpiska → przegląd zgłoszenia prac pracownika: checkbox w nagłówku ma stan częściowy przy części
       zaznaczonych linii, jak wcześniej.
+- [ ] `/zgloszenia` → ikona kosza w kolumnie „Akcje" jednego wiersza → potwierdź: tylko to zgłoszenie
+      znika z listy, toast „Zgłoszenie przeniesione do kosza.", a w `/kosz` pojawia się w sekcji
+      „Zgłoszenia".
 
 ### Findings — 2026-10-02
 

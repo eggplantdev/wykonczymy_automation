@@ -9,6 +9,9 @@ import { LeadAnswersDialog } from '@/components/leads/lead-answers-dialog'
 import { LeadAssetsDialog, type InvestmentOptionT } from '@/components/leads/lead-assets-dialog'
 import { PromoteLeadDialog } from '@/components/leads/promote-lead-dialog'
 import { BADGE_BASE } from '@/components/ui/badge'
+import { TrashRowButton } from '@/components/trash/trash-row-button'
+import { trashLeadsAction } from '@/lib/actions/lead-trash'
+import { ENTITY_TRASH_RETENTION_DAYS } from '@/lib/constants/trash'
 import { cn } from '@/lib/utils/cn'
 import { leadDisplayName } from '@/lib/leads/lead-display-name'
 import { LEAD_SOURCE_LABELS } from '@/lib/leads/lead-source-labels'
@@ -133,6 +136,21 @@ export function getLeadColumns({
       header: 'Inwestycja',
       meta: { minWidth: 'min-w-56' },
       cell: (info) => <PromoteLeadDialog lead={info.row.original} />,
+    }),
+    col.display({
+      id: 'actions',
+      header: 'Akcje',
+      meta: { align: 'right' },
+      cell: (info) => (
+        <div className="flex items-center justify-end gap-1">
+          <TrashRowButton
+            label="Usuń zgłoszenie"
+            description={`Przenieść „${leadDisplayName(info.row.original)}" do kosza? Po ${ENTITY_TRASH_RETENTION_DAYS} dniach zostanie usunięte na zawsze. Inwestycja utworzona z tego zgłoszenia i jej pliki zostają nietknięte.`}
+            trash={() => trashLeadsAction([info.row.original.id])}
+            trashed="Zgłoszenie przeniesione do kosza."
+          />
+        </div>
+      ),
     }),
   ]
 }
