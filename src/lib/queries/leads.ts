@@ -24,6 +24,9 @@ export type LeadsPageT = {
   newCount: number
 }
 
+// An erased lead keeps its `trashedAt`, so this one condition hides tombstones as well.
+const LIVE_LEAD: Where = { trashedAt: { exists: false } }
+
 const asString = (value: unknown): string => (typeof value === 'string' ? value : '')
 
 // One search box over the four columns a caller is identified by. `like` reaches Postgres as ILIKE,
@@ -119,12 +122,13 @@ const getLeadsPage = unstable_cache(
   async (page: number, limit: number, sort: string, search: string): Promise<LeadsPageT> => {
     const elapsed = perfStart()
     const payload = await getPayload({ config })
-    const where = buildLeadSearch(search)
+    const searchWhere = buildLeadSearch(search)
+    const where: Where = searchWhere ? { and: [LIVE_LEAD, searchWhere] } : LIVE_LEAD
 
     const [result, newResult] = await Promise.all([
       payload.find({
         collection: 'leads',
-        ...(where ? { where } : {}),
+        where,
         sort,
         page,
         limit,
@@ -133,7 +137,7 @@ const getLeadsPage = unstable_cache(
       }),
       payload.count({
         collection: 'leads',
-        where: { contactStatus: { equals: 'new' } },
+        where: { and: [LIVE_LEAD, { contactStatus: { equals: 'new' } }] },
         overrideAccess: true,
       }),
     ])
@@ -182,7 +186,7 @@ const getLeadsPage = unstable_cache(
       newCount: newResult.totalDocs,
     }
   },
-  ['leads-page-v2'],
+  ['leads-page-v3'],
   // `investments` because the row now carries the promoted inwestycja's name and its media ids:
   // removing a photo on the inwestycja's own page would otherwise leave the zgłoszenie believing
   // the file is still there, which hides it from the transfer with no way to send it again.

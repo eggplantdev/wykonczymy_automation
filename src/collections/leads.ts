@@ -188,5 +188,21 @@ export const Leads: CollectionConfig = {
       options: [...DELIVERY_STATUS_OPTIONS],
       admin: { readOnly: true },
     },
+    // Closed to access-checked writes: the trash actions (overrideAccess) stamp both server-side, so
+    // no client-supplied date can bring the 30-day purge forward or fake a tombstone.
+    {
+      name: 'trashedAt',
+      type: 'date',
+      access: { create: () => false, update: () => false },
+      admin: { hidden: true },
+      label: { en: 'Trashed at', pl: 'W koszu od' },
+    },
+    {
+      name: 'erasedAt',
+      type: 'date',
+      access: { create: () => false, update: () => false },
+      admin: { hidden: true },
+      label: { en: 'Erased at', pl: 'Usunięte na zawsze' },
+    },
   ],
 }
