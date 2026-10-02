@@ -6,6 +6,7 @@ import { FormShell } from '@/components/forms/form-components/form-shell'
 import FormFooter from '@/components/forms/form-components/form-footer'
 import { requestReviewAction } from '@/lib/actions/review-request'
 import { useRequestReviewFormStore } from '@/stores/form-stores'
+import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import { requestReviewSchema, type RequestReviewValuesT } from './request-review-schema'
 
 type RequestReviewFormPropsT = {
@@ -21,7 +22,8 @@ export function RequestReviewForm({
   email,
   onSubmitSuccess,
 }: RequestReviewFormPropsT) {
-  const { form, reset } = useManagedForm<RequestReviewValuesT, RequestReviewValuesT>({
+  const closeDialog = useOptimisticFormStore((s) => s.closeDialog)
+  const { form } = useManagedForm<RequestReviewValuesT, RequestReviewValuesT>({
     formId,
     useFormStore: useRequestReviewFormStore,
     schema: requestReviewSchema,
@@ -35,7 +37,7 @@ export function RequestReviewForm({
   })
 
   return (
-    <FormShell form={form} onReset={reset}>
+    <FormShell form={form}>
       <FieldGroup>
         <form.AppField name="email">
           {(field) => (
@@ -44,7 +46,12 @@ export function RequestReviewForm({
         </form.AppField>
       </FieldGroup>
 
-      <FormFooter label="Wyślij" submittingLabel="Wysyłanie…" className="mt-6" />
+      <FormFooter
+        label="Wyślij"
+        submittingLabel="Wysyłanie…"
+        className="mt-6"
+        onCancel={closeDialog}
+      />
     </FormShell>
   )
 }

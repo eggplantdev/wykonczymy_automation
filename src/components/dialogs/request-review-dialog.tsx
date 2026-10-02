@@ -15,15 +15,13 @@ export function RequestReviewDialog({
   trigger,
   formId = `request-review-${investment.id}`,
 }: RequestReviewDialogPropsT) {
-  const sentNote = investment.reviewRequested ? ' Prośba została już wysłana.' : ''
-
   return (
     <FormDialog
       formId={formId}
       showKeepOpen={false}
       trigger={trigger}
       title="Poproś o opinię"
-      description={`${investment.name} — klient dostanie wiadomość z linkiem do opinii w Google. Adres zostanie zapisany na inwestycji.${sentNote}`}
+      description={`${investment.name} — klient dostanie wiadomość z linkiem do opinii w Google.`}
     >
       {(onSubmitSuccess) => (
         <RequestReviewForm

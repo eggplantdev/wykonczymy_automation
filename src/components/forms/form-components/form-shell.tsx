@@ -10,7 +10,7 @@ type ShellFormT = {
 
 type FormShellPropsT = {
   form: ShellFormT
-  onReset: () => void
+  onReset?: () => void
   children: ReactNode
 }
 
@@ -22,7 +22,7 @@ type FormShellPropsT = {
 export function FormShell({ form, onReset, children }: FormShellPropsT) {
   return (
     <form.AppForm>
-      <FormClearButton onReset={onReset} />
+      {onReset && <FormClearButton onReset={onReset} />}
       <form
         onSubmit={(e) => {
           e.preventDefault()

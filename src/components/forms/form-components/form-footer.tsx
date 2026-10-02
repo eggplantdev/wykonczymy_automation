@@ -15,6 +15,7 @@ type FormFooterPropsT = {
   // The form counts as submitting while its question is open, and the full-screen loader would cover
   // the question.
   awaitingAnswer?: boolean
+  onCancel?: () => void
 }
 
 export default function FormFooter({
@@ -23,6 +24,7 @@ export default function FormFooter({
   className,
   disabled = false,
   awaitingAnswer = false,
+  onCancel,
 }: FormFooterPropsT) {
   const form = useFormContext()
   const keepOpen = useOptimisticFormStore((s) => s.keepOpen)
@@ -35,6 +37,11 @@ export default function FormFooter({
     <>
       <footer className={className}>
         <div className="flex items-center gap-4">
+          {onCancel && (
+            <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
+              Anuluj
+            </Button>
+          )}
           <Button disabled={isSubmitting || disabled} type="submit">
             {isSubmitting && submittingLabel ? submittingLabel : label}
           </Button>
