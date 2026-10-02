@@ -3287,35 +3287,6 @@ Na staging najpierw `pnpm db:migrate:preview` (nowe kolumny `trashed_at` / `eras
 
 Na staging najpierw `pnpm db:migrate:preview` (nowa kolumna `review_requested` w inwestycjach).
 
-- [x] Edycja inwestycji: zamiast pola „Opinia" jest checkbox „Prośba o opinię wysłana"; zaznaczenie
-      i zapis zostaje po odświeżeniu.
-- [x] Inwestycja, która miała w „Opinii" wpisane „tak", ma checkbox zaznaczony, a kolumna „Opinia"
-      na liście inwestycji pokazuje „Wysłano".
-- [x] Lista inwestycji: zakończona inwestycja ma w „Akcjach" gwiazdkę „Poproś o opinię"; aktywna jej
-      nie ma, a kolumna „Opinia" pokazuje „—".
-- [x] Strona inwestycji: przycisk „Poproś o opinię" jest tylko przy zakończonej inwestycji spoza kosza;
-      po wysłaniu znika (z „Akcji" na liście też), a na karcie inwestycji pojawia się „Opinia: Wysłano".
-      Sprawdzone 2026-10-02 na `35425fd7`: zakończona niewysłana (180) — przycisk jest; po zaznaczeniu „Prośba o opinię wysłana" przycisk znika, a karta pokazuje „Opinia: Wysłano" (też inwestycja 8, wysłana w danych: brak przycisku). Gwiazdka na liście to ten sam `RequestReviewButton` (`return null` dla wysłanej). Samej wysyłki staging nie przeprowadza. Wcześniejsza rozbieżność („Wyślij ponownie…") dotyczyła starszego deployu `f1cd32a5`.
-- [ ] Inwestycja bez emaila klienta: wpisanie adresu w dialogu i „Wyślij" zapisuje go na inwestycji
-      (widać na karcie).
-- [x] Nieprawidłowy adres email: dialog pokazuje błąd pola, nic nie wychodzi.
-- [x] Edycja aktywnej inwestycji → status „Zakończona" → „Zakończ": po zapisie otwiera się dialog
-      „Poproś o opinię". Dla inwestycji z już wysłaną prośbą to samo przejście nie otwiera dialogu.
-- [x] Z domyślnym `EMAIL_HOST=disabled.invalid` wysłanie kończy się komunikatem błędu, a kolumna
-      „Opinia" nadal pokazuje „—".
-- [ ] Z prawdziwym `EMAIL_HOST` w `.env`: wysyłka na własny adres dochodzi z logo, treścią i działającym
-      przyciskiem „Wystaw opinię" (nie w spamie); kolumna „Opinia" pokazuje „Wysłano".
-- [x] Dialog „Poproś o opinię": obok „Wyślij" jest „Anuluj", który zamyka dialog bez wysyłki; nie ma
-      „Wyczyść formularz", a opis nie mówi o zapisie adresu.
-      Sprawdzone 2026-10-02 na `35425fd7` (inwestycja 180): przyciski „Anuluj" + „Wyślij", brak „Wyczyść formularz", opis „…klient dostanie wiadomość z linkiem do opinii w Google."; „Anuluj" zamyka dialog, `email` / `review_requested` bez zmian.
-- [ ] Mail z prośbą: bez nagłówka; cztery akapity z odstępami — „Dzień dobry,", „dziękujemy za
-      współpracę…", „Będziemy wdzięczni…", „Pozdrawiamy serdecznie, / Zespół Wykończymy" — pod nimi
-      przycisk „Wystaw opinię".
-- [x] Zakończona inwestycja z wysłaną prośbą → „Edytuj" → odznacz „Prośba o opinię wysłana" → zapisz:
-      przycisk „Poproś o opinię" wraca, a wiersz „Opinia" znika z karty.
-      Sprawdzone 2026-10-02 na `35425fd7` (inwestycja 180, po przeładowaniu: przycisk jest, wiersza „Opinia" brak; `review_requested = f`). Inwestycja 180 wróciła do kosza.
-
-
 ### Findings — 2026-10-02
 
 - [x] dropped — a duplicate of the two still-open send boxes, which carry it · 🔵 OBSERVATION · wysyłka prośby (boks „Inwestycja bez emaila klienta…" i boks z prawdziwym `EMAIL_HOST`) niezweryfikowana: staging nie wysyła poczty (komunikat „Nie udało się wysłać wiadomości. Spróbuj ponownie."; `email` i `review_requested` pozostają bez zmian — zgodnie z projektem „send first"). Walidacja i dialog sprawdzone na inwestycji testowej 180 (adres `@test.local`), potem inwestycja w koszu.
@@ -3329,3 +3300,4 @@ Na staging najpierw `pnpm db:migrate:preview` (nowa kolumna `review_requested` w
 - [ ] Pracownik, którego żaden etap nie jest wspólny → tabela „Wykonane" ma tylko kolumnę Kwota netto.
 - [ ] Link na telefonie (390px) → tabele mieszczą się bez poziomego przewijania strony.
 - [ ] Edytor → zakładka Podwykonawcy na inwestycji z etapem dzielonym między pracowników → tabela „Podział etapów": wiersz na każdy etap z wykonaną pracą, kolumna na każdego pracownika (kwota i procent pod nią, „—" gdy nie ma udziału), a „Razem" pracownika równa się jego „Sumie wykonanej pracy" w „Podsumowaniu pracowników".
+- [ ] PDF pracownika z długą listą wypłat (kilkadziesiąt) → tabela, która nie mieści się na stronie, przechodzi na następną sama, a tabele nad nią zostają na poprzedniej (bez pustej połowy strony). PDF oferty dla klienta → podsumowanie w stopce nadal stoi przy prawej krawędzi.

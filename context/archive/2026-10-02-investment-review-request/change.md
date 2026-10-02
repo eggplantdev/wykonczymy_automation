@@ -1,10 +1,10 @@
 ---
 change_id: investment-review-request
 title: Google review request email for a completed investment
-status: implemented
+status: archived
 created: 2026-10-02
 updated: 2026-10-02
-archived_at: null
+archived_at: 2026-10-02T08:17:34Z
 branch: investment-review-request
 worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/investment-review-request
 ---
@@ -39,3 +39,6 @@ Deviations from the plan (accepted at the review gate):
 - The listing trigger sits in „Akcje", not in the „Opinia" column, which shows „Wysłano" / „—".
 - The action refuses a trashed investment, with the shared trashed message.
 - The old `review` column is dropped in EX-974, after this deploy.
+- Owner, after the local send test: one request per client. Once sent, the „Poproś o opinię"
+  button is gone from the listing and the page; unticking „Prośba o opinię wysłana" in the edit
+  form is the only way to send again. No server-side block — hiding the button is the whole rule.
