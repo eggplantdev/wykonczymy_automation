@@ -210,7 +210,7 @@ describe('buildWorkerPrintHtml', () => {
 
     expect(out).toContain(payoutRow)
     expect(out).toContain(
-      `<td class="label" colspan="2">Razem</td><td class="value">${formatPLN(50)}</td>`,
+      `<td class="label">Razem</td><td class="label"></td><td class="value">${formatPLN(50)}</td>`,
     )
     expect(out.indexOf('</table>', out.indexOf('Wypłacone'))).toBeLessThan(out.indexOf(payoutRow))
   })

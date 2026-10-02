@@ -23,8 +23,8 @@ export function WorkerSummary({ summary }: { summary: WorkerSummaryT }) {
       <SummaryTable
         cols={
           hasSharedStage
-            ? `auto ${SUMMARY_VALUE_COL} auto ${SUMMARY_VALUE_COL}`
-            : `auto ${SUMMARY_VALUE_COL}`
+            ? `${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL} auto ${SUMMARY_VALUE_COL}`
+            : `${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL}`
         }
         className="h-fit w-fit"
       >

@@ -24,10 +24,7 @@ const row = (labels: string[], values: string[], rowClass = '') =>
   values.map((value) => `<td class="value">${escapeHtml(value)}</td>`).join('') +
   '</tr>'
 
-// The breakdowns under the balance rather than inside it, so an etap or a payout is never read as one
-// of the balance's own figures.
 const WORKER_PRINT_STYLES = `
-.totals { flex-direction: column; align-items: flex-end; gap: 6mm; }
 .totals tr.head td { font-size: 6pt; color: #a1a1aa; border-bottom: 1px solid #e4e4e7; }
 `
 
@@ -70,7 +67,7 @@ function workerFooterHtml(summary: WorkerSummaryT): string {
     ...summary.payouts.map((payout) =>
       row([formatPLDate(payout.date), payout.description ?? ''], [formatPLN(payout.amount)]),
     ),
-    `<tr><td class="label" colspan="2">Razem</td><td class="value">${formatPLN(summary.paidNet)}</td></tr>`,
+    row(['Razem', ''], [formatPLN(summary.paidNet)]),
   ]
   const table = (rows: string[]) => `<table><tbody>\n${rows.join('\n')}\n</tbody></table>`
   return `
@@ -81,8 +78,7 @@ function workerFooterHtml(summary: WorkerSummaryT): string {
  * The worker's PDF, built off the same projection his link renders — never the editor's rows, which
  * carry every etap and the client price. The totals are the projection's own: the grand total is the
  * summary's figure for the money column, so the paper cannot add up to one the footer contradicts.
- * On a shared etap the rows are the whole etap's, so the executed grand total is too — his share is
- * a footer line of its own.
+ * On a shared etap the rows are the whole etap's, so the executed grand total is too.
  */
 export function buildWorkerPrintHtml({ data, logoUrl, fillByColorKey }: WorkerPrintArgsT): string {
   const { tree, worker, investmentName } = data

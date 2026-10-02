@@ -26,7 +26,7 @@ export type WorkerSummaryT = {
   isOverpaid: boolean
 }
 
-export type WorkerPayoutT = { date: string; amount: number; description: string | null }
+export type WorkerPayoutT = Omit<PayoutTransactionRowT, 'workerId'>
 
 // His share of a shared etap. `amount` is what he is credited — after any pro-rata shrink — and
 // `percent` is that amount's part of the whole etap; null where an amount split has no pool yet.

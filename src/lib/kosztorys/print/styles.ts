@@ -97,8 +97,10 @@ tr.band-total td.num { color: #18181b; }
    mitre with the rail and cut a grey wedge out of the colour. */
 tr.band-total td.rail { border-top: none; background-position: 0 0; }
 
-.totals { margin-top: 32px; break-inside: avoid; display: flex; justify-content: flex-end; }
-.totals table { width: auto; min-width: 62mm; }
+/* Kept together per table, not as one block: a footer of stacked tables with a payouts list of any
+   length would jump to the next page whole and leave a gap behind it. */
+.totals { margin-top: 32px; display: flex; flex-direction: column; align-items: flex-end; gap: 6mm; }
+.totals table { width: auto; min-width: 62mm; break-inside: avoid; }
 .totals td { border: none; padding: 6px 0 6px 28px; }
 .totals .label { text-align: left; color: #71717a; }
 .totals .value { text-align: right; white-space: nowrap; font-weight: 500; }
@@ -131,6 +133,5 @@ col.c-value { width: 15mm; } col.c-stage-qty { width: 8mm; }
 .band-name { font-size: 6.5pt; } .band-chip { width: 7px; height: 7px; }
 tr.band-total td { font-size: 6pt; }
 .totals td { font-size: 7pt; }
-.totals tr.sub td { padding-top: 0; font-size: 6pt; color: #a1a1aa; }
 .totals tr.grand td { font-size: 9pt; }
 `
