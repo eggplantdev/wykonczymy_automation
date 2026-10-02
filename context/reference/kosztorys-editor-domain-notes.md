@@ -499,6 +499,11 @@ w kolejnych częściach EX-946, na tym samym rusztowaniu.
   i „Łazienka 2" dzielą jeden wpis, a każda sekcja dostaje z powrotem swoją liczbę. Kierownik wpisuje
   prawdziwe liczby, a zapis odrzuca tłumaczenie z innymi liczbami niż w nazwie (albo w innej
   kolejności) — inaczej dwa pokoje mogłyby się zamienić. „230V" czy „c.o." to zwykły tekst.
+  Pole na wierszu sekcji (jak przy opisach) odrzucono: id sekcji nie przeżywa przywrócenia,
+  szablonu ani importu, więc tłumaczenie musiałoby jechać przez ~9 ścieżek kopiowania, a nazw jest
+  tylko ~22. Dwie pisownie z przeredagowanego szablonu („…i oświetlenie" / „…i oświetleniowa") to
+  po prostu dwa wpisy. Sekcja nazwana dosłownie „#" ma własny wpis, nie wspólny z numerowanymi
+  pokojami.
 - **Edycja: „Tłumaczenie sekcji…" w menu sekcji.** Pokazuje to, co zobaczy pracownik dla tej
   sekcji; puste pola zapisane razem usuwają wpis. Lista startowa (nazwy z szablonów) przyszła
   z migracją; każdą nową nazwę uzupełnia się w tym oknie, bez wdrożenia.
