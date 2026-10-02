@@ -4,6 +4,8 @@ import { EditButton } from '@/components/ui/row-actions/edit-button'
 import { FormDialog } from '@/components/ui/form-dialog'
 import { InvestmentForm } from '@/components/forms/investment-form/investment-form'
 import { updateInvestmentAction } from '@/lib/actions/investments'
+import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
+import { requestReviewFormId } from '@/components/dialogs/request-review-dialog'
 import type { InvestmentRefT } from '@/types/reference-data'
 
 type EditInvestmentDialogPropsT = {
@@ -13,6 +15,7 @@ type EditInvestmentDialogPropsT = {
 
 export function EditInvestmentDialog({ investment, showLabel }: EditInvestmentDialogPropsT) {
   const formId = `edit-investment-${investment.id}`
+  const openDialog = useOptimisticFormStore((s) => s.openDialog)
 
   return (
     <FormDialog
@@ -44,6 +47,9 @@ export function EditInvestmentDialog({ investment, showLabel }: EditInvestmentDi
           keepOpen={keepOpen}
           persistDraft={false}
           assetsInvestmentId={investment.id}
+          // Opens the instance the listing row / investment page mounts once the refresh shows the
+          // investment as „Zakończona" — the store keeps the id until that dialog renders.
+          onEnteredCompleted={() => openDialog(requestReviewFormId(investment.id), false)}
         />
       )}
     </FormDialog>

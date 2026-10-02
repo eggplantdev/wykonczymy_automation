@@ -39,7 +39,7 @@ async function run() {
     email: '[e-mail]',
     contactPerson: '[klientka]',
     notes,
-    review: '',
+    reviewRequested: false,
     status: 'planowana',
     presetId: String(PRESET_ID),
     assets: assetIds,

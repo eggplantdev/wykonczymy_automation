@@ -3231,3 +3231,23 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
 - [ ] „Porównaj z katalogiem" → „Brak w katalogu": kliknięcie podpowiedzi „może chodzi o…", która
       ma tłumaczenie w katalogu, zmienia nazwę pozycji i wpisuje to tłumaczenie w „Opis prac (UA)".
 - [ ] Katalog prac: wpis z tłumaczeniem → zmiana samej ceny i zapis: tłumaczenie zostaje.
+
+## EX-973 — investment-review-request — prośba o opinię Google dla zakończonej inwestycji (2026-10-02)
+
+- [ ] Edycja inwestycji: zamiast pola „Opinia" jest checkbox „Prośba o opinię wysłana"; zaznaczenie
+      i zapis zostaje po odświeżeniu.
+- [ ] Inwestycja, która miała w „Opinii" wpisane „tak", ma checkbox zaznaczony, a kolumna „Opinia"
+      na liście inwestycji pokazuje „Wysłano".
+- [ ] Lista inwestycji: zakończona inwestycja ma w „Akcjach" gwiazdkę „Poproś o opinię"; aktywna jej
+      nie ma, a kolumna „Opinia" pokazuje „—".
+- [ ] Strona inwestycji: przycisk „Poproś o opinię" jest tylko przy zakończonej inwestycji spoza kosza;
+      po wysłaniu zmienia się na „Wyślij ponownie prośbę o opinię".
+- [ ] Inwestycja bez emaila klienta: wpisanie adresu w dialogu i „Wyślij" zapisuje go na inwestycji
+      (widać na karcie).
+- [ ] Nieprawidłowy adres email: dialog pokazuje błąd pola, nic nie wychodzi.
+- [ ] Edycja aktywnej inwestycji → status „Zakończona" → „Zakończ": po zapisie otwiera się dialog
+      „Poproś o opinię". Dla inwestycji z już wysłaną prośbą to samo przejście nie otwiera dialogu.
+- [ ] Z domyślnym `EMAIL_HOST=disabled.invalid` wysłanie kończy się komunikatem błędu, a kolumna
+      „Opinia" nadal pokazuje „—".
+- [ ] Z prawdziwym `EMAIL_HOST` w `.env`: wysyłka na własny adres dochodzi z logo, treścią i działającym
+      przyciskiem „Wystaw opinię" (nie w spamie); kolumna „Opinia" pokazuje „Wysłano".

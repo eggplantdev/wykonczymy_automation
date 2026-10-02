@@ -1,5 +1,6 @@
 'use client'
 
+import { useRef } from 'react'
 import { SelectItem } from '@/components/ui/select'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { FieldGroup } from '@/components/ui/field'
@@ -39,6 +40,8 @@ type InvestmentFormPropsT = {
   collectAssets?: boolean
   /** Mutually exclusive with `collectAssets`. */
   assetsInvestmentId?: number
+  /** Fires after a save that moved the status INTO „Zakończona" while no review request was sent. */
+  onEnteredCompleted?: () => void
 }
 
 export function InvestmentForm({
@@ -54,7 +57,11 @@ export function InvestmentForm({
   presetOptions,
   collectAssets,
   assetsInvestmentId,
+  onEnteredCompleted,
 }: InvestmentFormPropsT) {
+  // Raised by the action, consumed after `onSubmitSuccess`: the prompt opens through the shared
+  // dialog store, so opening it before this dialog's own close would be undone by that close.
+  const enteredCompletedRef = useRef(false)
   const { files, isIngesting, inputKey, fileInputProps, reset: resetFiles } = useFilePickIngest()
 
   const { form, reset, submitConfirm } = useManagedForm<InvestmentFormValuesT, InvestmentFormDataT>(
@@ -65,13 +72,26 @@ export function InvestmentForm({
       defaultValues,
       keepOpen,
       successMessage,
-      onSubmitSuccess,
+      onSubmitSuccess: () => {
+        onSubmitSuccess()
+        if (!enteredCompletedRef.current) return
+        enteredCompletedRef.current = false
+        onEnteredCompleted?.()
+      },
       persistDraft,
       onReset: resetFiles,
       // Upload first, then create — the investment must never reference a media id that failed to
       // land.
       action: async (data) => {
-        if (!collectAssets) return action(data)
+        if (!collectAssets) {
+          const result = await action(data)
+          enteredCompletedRef.current =
+            result.success &&
+            data.status === 'completed' &&
+            defaultValues.status !== 'completed' &&
+            !data.reviewRequested
+          return result
+        }
 
         // Backstop to the disabled submit button, which Enter bypasses: a file still ingesting is
         // not in `files` yet, so the inwestycja would save without its zdjęcia.

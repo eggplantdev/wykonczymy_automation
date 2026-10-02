@@ -351,17 +351,17 @@ already `completed` → `completed` → not called; checkbox ticked in the same 
 - [x] 1.1 Migration applies on the local dev DB — 51e089ab
 - [x] 1.2 Backfill count matches `tak` count — 51e089ab
 - [x] 1.3 `pnpm generate:types` succeeds — 51e089ab
-- [ ] 1.4 info-fields + sql-drift specs pass
+- [ ] 1.4 info-fields + sql-drift specs pass — skipped: no tests this run (user)
 
 ### Phase 2: Email and send action
 
 #### Automated
 
-- [ ] 2.1 template, email, action and notify specs pass
-- [x] 2.2 no `leads/email-template` import remains
+- [ ] 2.1 template, email, action and notify specs pass — skipped: no tests this run (user)
+- [x] 2.2 no `leads/email-template` import remains — 2b44f30f
 
 ### Phase 3: UI — dialog and three entry points
 
 #### Automated
 
-- [ ] 3.1 review-prompt DOM spec passes
+- [ ] 3.1 review-prompt DOM spec passes — skipped: no tests this run (user)
