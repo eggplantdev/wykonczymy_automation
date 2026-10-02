@@ -33,6 +33,7 @@ const WORKER_PRINT_STYLES = `
 function workerFooterHtml(summary: WorkerSummaryT): string {
   const balance = [
     row(['Wykonane razem'], [formatPLN(summary.executedNet)]),
+    ...(summary.bonusNet !== 0 ? [row(['Premia'], [formatPLN(summary.bonusNet)])] : []),
     row(['Wypłacone'], [formatPLN(summary.paidNet)]),
     row(
       [summary.isOverpaid ? 'Nadpłata' : 'Pozostało do wypłaty'],

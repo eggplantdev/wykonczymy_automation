@@ -220,6 +220,21 @@ describe('buildWorkerPrintHtml', () => {
     expect(html(projection({}, []))).not.toContain('>Wypłaty<')
   })
 
+  // EX-979: the premia sits between the work and the wypłaty, the order the sum reads in.
+  it('prints „Premia” between „Wykonane razem” and „Wypłacone”, only when there is one', () => {
+    const data = projection({}, [50])
+    const withBonus = {
+      ...data,
+      worker: { ...data.worker, summary: { ...data.worker.summary, bonusNet: 14 } },
+    }
+    const out = html(withBonus)
+
+    expect(out).toContain(footerLine('Premia', 14))
+    expect(out.indexOf('Wykonane razem')).toBeLessThan(out.indexOf('>Premia<'))
+    expect(out.indexOf('>Premia<')).toBeLessThan(out.indexOf('Wypłacone'))
+    expect(html(data)).not.toContain('>Premia<')
+  })
+
   it('names an overpayment „Nadpłata” with a positive amount', () => {
     const data = projection({}, [50])
     const out = html(data)

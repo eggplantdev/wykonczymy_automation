@@ -497,18 +497,18 @@ Run once, after the final phase.
 
 #### Automated
 
-- [x] 2.1 worker-payout-pairs fold/classify unit spec
-- [x] 2.2 DB parity spec with a BONUS row
-- [x] 2.3 get-payout-transactions spec
-- [x] 2.4 subcontractor-summary spec
-- [x] 2.5 settle-payouts spec
+- [x] 2.1 worker-payout-pairs fold/classify unit spec — 91e5e3d7
+- [x] 2.2 DB parity spec with a BONUS row — 91e5e3d7
+- [x] 2.3 get-payout-transactions spec — 91e5e3d7
+- [x] 2.4 subcontractor-summary spec — 91e5e3d7
+- [x] 2.5 settle-payouts spec — 91e5e3d7
 
 ### Phase 3: The worker's link and PDF
 
 #### Automated
 
-- [ ] 3.1 worker-view/summary spec
-- [ ] 3.2 Worker PDF spec
+- [x] 3.1 worker-view/summary spec
+- [x] 3.2 Worker PDF spec
 
 ### Phase 4: „Wyrównaj premią" in the settle dialog
 

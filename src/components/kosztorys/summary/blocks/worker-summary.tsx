@@ -68,6 +68,13 @@ export function WorkerSummary({ summary }: { summary: WorkerSummaryT }) {
         <SummaryLabelCell weight="medium">Wykonane razem</SummaryLabelCell>
         <SummaryValueCell weight="medium">{formatNet(summary.executedNet)}</SummaryValueCell>
 
+        {summary.bonusNet !== 0 && (
+          <>
+            <SummaryLabelCell weight="medium">Premia</SummaryLabelCell>
+            <SummaryValueCell weight="medium">{formatNet(summary.bonusNet)}</SummaryValueCell>
+          </>
+        )}
+
         <SummaryLabelCell weight="medium">Wypłacone</SummaryLabelCell>
         <SummaryValueCell tone="success" weight="medium">
           {formatNet(summary.paidNet)}
