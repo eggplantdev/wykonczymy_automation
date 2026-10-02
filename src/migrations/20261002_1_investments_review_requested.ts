@@ -1,6 +1,5 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-vercel-postgres'
 
-// Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
 // The „Opinia" textarea was used by hand as exactly this flag: `tak` meant „we asked for a review".
 // Every other value (`nie`, typos, a date, empty) carries no request, so it maps to false.
 //

@@ -28,6 +28,7 @@ type UseManagedFormArgsT<TValues, TData> = {
   /** Map the string-typed form values to the action's domain payload. */
   toData: (values: TValues) => TData
   action: (data: TData) => Promise<ActionResultT>
+  onSaved?: (data: TData) => void
   /** Extra cleanup run alongside clearing the persisted form data (e.g. reset registerBalance). */
   onReset?: () => void
   /**
@@ -76,6 +77,7 @@ export function useManagedForm<TValues, TData>({
   onSubmitSuccess,
   toData,
   action,
+  onSaved,
   onReset,
   mergeStored,
   confirmBeforeSubmit,
@@ -137,10 +139,12 @@ export function useManagedForm<TValues, TData>({
       }
       if (beforeSubmit && !(await beforeSubmit(value as TValues))) return false
 
+      const data = toData(value as TValues)
       await submit(!!keepOpen, {
-        action: () => action(toData(value as TValues)),
+        action: () => action(data),
         successMessage,
         onSubmitSuccess,
+        onSaved: onSaved && (() => onSaved(data)),
         onReset: reset,
         awaitBeforeClose: !persistDraft,
       })

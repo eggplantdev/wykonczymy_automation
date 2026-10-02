@@ -1,9 +1,10 @@
 import type { Payload } from 'payload'
 import type { Lead } from '@/payload-types'
 import { serverEnv } from '@/lib/env/server'
-import { FRONTEND_URL } from '@/lib/env'
 import { requireRecipients } from '@/lib/email/recipients'
+import { FRONTEND_URL } from '@/lib/env'
 import { renderBrandedEmail } from '@/lib/email/branded-template'
+import { BRAND_LOGO_URL } from '@/lib/email/brand-logo'
 import { buildLeadAnswers } from './lead-answers'
 import { leadRawDataSchema, leadFormQuestionsSchema } from './lead-schema'
 import { escapeHtml } from '@/lib/utils/escape-html'
@@ -11,7 +12,6 @@ import { uploadFieldIds } from '@/lib/media/upload-field'
 import type { RecoveredLeadT } from './reconcile-sweep'
 
 // Absolute URL — email clients can't resolve relative paths. Served from public/.
-const LOGO_URL = `${FRONTEND_URL}/wykonczymy-app-icon.png`
 
 const row = (label: string, value?: string | null): string =>
   value ? `<tr><td><strong>${label}:</strong></td><td>${escapeHtml(value)}</td></tr>` : ''
@@ -243,7 +243,7 @@ export async function sendAutoReply(payload: Payload, lead: Lead): Promise<void>
   if (!lead.email) throw new Error('sendAutoReply called for a lead with no email')
 
   const html = renderBrandedEmail({
-    logoUrl: LOGO_URL,
+    logoUrl: BRAND_LOGO_URL,
     heading: 'Dziękujemy za kontakt',
     paragraphs: [
       'Dzień dobry,',

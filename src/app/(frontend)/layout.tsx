@@ -19,6 +19,7 @@ import { fetchUnreadCounts } from '@/lib/queries/unread-counts'
 import { Loader } from '@/components/ui/loader/loader'
 import { EnvBadge } from '@/components/ui/env-badge'
 import { PendingSubmitIndicator } from '@/components/ui/pending-submit-indicator'
+import { ReviewPromptHost } from '@/components/investments/review-prompt-host'
 
 type FrontendLayoutPropsT = {
   children: React.ReactNode
@@ -83,6 +84,7 @@ async function AuthenticatedShell({ children, investmentCrumb }: FrontendLayoutP
             </main>
           </div>
         </div>
+        <ReviewPromptHost />
       </UnreadCountsProvider>
     </CurrentUserProvider>
   )

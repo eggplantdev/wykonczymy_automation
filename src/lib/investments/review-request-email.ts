@@ -1,19 +1,17 @@
 import type { Payload } from 'payload'
 import { serverEnv } from '@/lib/env/server'
-import { FRONTEND_URL } from '@/lib/env'
 import { renderBrandedEmail } from '@/lib/email/branded-template'
+import { BRAND_LOGO_URL } from '@/lib/email/brand-logo'
 
 // Google place „Wykończymy.com.pl" (Terespolska 2, Warszawa). Logged out, Google sends the client
 // through its login first — a review needs an account.
 const GOOGLE_REVIEW_URL =
   'https://search.google.com/local/writereview?placeid=ChIJdwKTEzbNHkcRZA6UBMGUMdc'
 
-const LOGO_URL = `${FRONTEND_URL}/wykonczymy-app-icon.png`
-
-/** Sent TO the client FROM `LEADS_REPLY_FROM`, like the lead auto-reply. Throws on failure. */
+/** Throws on failure. */
 export async function sendReviewRequestEmail(payload: Payload, to: string): Promise<void> {
   const html = renderBrandedEmail({
-    logoUrl: LOGO_URL,
+    logoUrl: BRAND_LOGO_URL,
     heading: 'Dziękujemy za wspólną realizację',
     paragraphs: [
       'Dzień dobry,',

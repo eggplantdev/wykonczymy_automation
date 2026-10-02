@@ -321,7 +321,6 @@ export function getInvestmentColumns({ userRole, onSettle }: InvestmentColumnOpt
       meta: { align: 'right' },
       cell: (info) => (
         <div className="flex items-center justify-end gap-1">
-          {/* Also mounted for the edit dialog's post-save prompt, which opens it by id. */}
           {isLockedStatus(info.row.original.status) && (
             <RequestReviewButton investment={info.row.original} />
           )}

@@ -3,10 +3,10 @@
 import { Star } from 'lucide-react'
 import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
 import { RequestReviewDialog } from '@/components/dialogs/request-review-dialog'
-import type { InvestmentRefT } from '@/types/reference-data'
+import type { ReviewRequestInvestmentT } from '@/types/reference-data'
 
 type RequestReviewButtonPropsT = {
-  investment: Pick<InvestmentRefT, 'id' | 'name' | 'email' | 'reviewRequested'>
+  investment: ReviewRequestInvestmentT
   showLabel?: boolean
 }
 

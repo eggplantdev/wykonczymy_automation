@@ -70,3 +70,5 @@ export type ReferenceDataT = ReferenceDataBaseT & {
   currentUserId: number
   currentUserRole: RoleT
 }
+
+export type ReviewRequestInvestmentT = Pick<InvestmentRefT, 'id' | 'name' | 'email' | 'reviewRequested'>

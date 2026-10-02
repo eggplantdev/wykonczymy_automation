@@ -4,6 +4,7 @@ import { requestReviewSchema } from '@/components/forms/request-review-form/requ
 import { sendReviewRequestEmail } from '@/lib/investments/review-request-email'
 import { validateAction, protectedAction } from './run-action'
 import { logError } from '@/lib/utils/log-error'
+import { INVESTMENT_TRASHED_MESSAGE, investmentLockOf } from '@/lib/constants/investment-lock'
 
 // Not `investmentAction`: it refuses every write on a zakończona inwestycja, and this is the one
 // action that exists only for those.
@@ -22,10 +23,12 @@ export async function requestReviewAction(investmentId: number, email: string) {
       })
       // Checked before the send, not left to `guardTrashedInvestment`: that guard refuses the
       // write, by which point the mail is already out.
-      if (investment.trashedAt) {
-        return { success: false, error: 'Inwestycja jest w koszu.' }
-      }
-      if (investment.status !== 'completed') {
+      const lock = investmentLockOf({
+        status: investment.status,
+        trashed: Boolean(investment.trashedAt),
+      })
+      if (lock === 'trashed') return { success: false, error: INVESTMENT_TRASHED_MESSAGE }
+      if (lock !== 'completed') {
         return {
           success: false,
           error: 'Prośbę o opinię można wysłać tylko dla zakończonej inwestycji.',
@@ -41,12 +44,23 @@ export async function requestReviewAction(investmentId: number, email: string) {
         return { success: false, error: 'Nie udało się wysłać wiadomości. Spróbuj ponownie.' }
       }
 
-      await payload.update({
-        collection: 'investments',
-        id: investmentId,
-        data: { email: parsed.data.email, reviewRequested: true },
-        user,
-      })
+      // The mail is out, so a failed write must not read as a failed send — a retry would mail the
+      // client twice.
+      try {
+        await payload.update({
+          collection: 'investments',
+          id: investmentId,
+          data: { email: parsed.data.email, reviewRequested: true },
+          user,
+        })
+      } catch (error) {
+        // TODO(EX-449) SENTRY-REQUIRED: a sent review request the flag doesn't record.
+        logError('[requestReviewAction] flag write failed', error)
+        return {
+          success: true,
+          warning: 'Wiadomość wysłana, ale nie udało się zapisać znacznika — zaznacz go ręcznie.',
+        }
+      }
 
       return { success: true }
     },

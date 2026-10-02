@@ -24,7 +24,7 @@ import { InfoList } from '@/components/ui/info-list'
 import { FinancialStats } from '@/components/investments/financial-stats'
 import { buildInvestmentInfoFields } from '@/components/investments/investment-info-fields'
 import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
-import { isLockedStatus } from '@/lib/constants/investment-lock'
+import { investmentLockOf } from '@/lib/constants/investment-lock'
 import { RequestReviewButton } from '@/components/investments/request-review-button'
 import { SheetButton } from '@/components/dialogs/sheet-button'
 import { OpenKosztorysV2Button } from '@/components/kosztorys/open-kosztorys-v2-button'
@@ -84,7 +84,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
       )}
       <div className="flex flex-wrap items-center gap-2">
         {!trashed && <EditInvestmentDialog investment={investment} showLabel />}
-        {!trashed && isLockedStatus(investment.status) && (
+        {investmentLockOf({ status: investment.status, trashed }) === 'completed' && (
           <RequestReviewButton investment={investment} showLabel />
         )}
         {/* Without a sheet this is the setup dialog — a write. */}
