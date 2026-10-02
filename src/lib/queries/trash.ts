@@ -18,6 +18,10 @@ import {
 import { fetchTrashedWorkers, type TrashedWorkerRowT } from '@/lib/db/worker-trash'
 import { fetchTrashedVehicles, type TrashedVehicleRowT } from '@/lib/db/vehicle-trash'
 import { fetchTrashedEquipment, type TrashedEquipmentRowT } from '@/lib/db/equipment-trash'
+import { fetchTrashedLeads, type TrashedLeadRowT } from '@/lib/db/lead-trash'
+import { leadDisplayName } from '@/lib/leads/lead-display-name'
+import { LEAD_SOURCE_LABELS } from '@/lib/leads/lead-source-labels'
+import { formatPLDate } from '@/lib/utils/format-date'
 import { makeModel } from '@/lib/utils/make-model'
 import type { TrashRowT } from '@/types/trash'
 
@@ -29,10 +33,11 @@ type TrashListsT = {
   workers: TrashedWorkerRowT[]
   vehicles: TrashedVehicleRowT[]
   equipment: TrashedEquipmentRowT[]
+  leads: TrashedLeadRowT[]
 }
 
 export function shapeTrashRows(
-  { investments, cashRegisters, workers, vehicles, equipment }: TrashListsT,
+  { investments, cashRegisters, workers, vehicles, equipment, leads }: TrashListsT,
   { viewerRole, now }: { viewerRole: RoleT; now: number },
 ): TrashRowT[] {
   const daysLeft = (trashedAt: Date) =>
@@ -85,6 +90,14 @@ export function shapeTrashRows(
           .filter(Boolean)
           .join(' · ') || undefined,
     })),
+    ...leads.map((row) => ({
+      ...base(row),
+      kind: 'lead' as const,
+      name: leadDisplayName(row),
+      detail: [LEAD_SOURCE_LABELS[row.source], row.submittedAt && formatPLDate(row.submittedAt)]
+        .filter(Boolean)
+        .join(' · '),
+    })),
   ]
 }
 
@@ -95,16 +108,17 @@ export async function getTrashContents(): Promise<TrashRowT[]> {
 
   const payload = await getPayload({ config })
   const db = await getDb(payload)
-  const [investments, cashRegisters, workers, vehicles, equipment] = await Promise.all([
+  const [investments, cashRegisters, workers, vehicles, equipment, leads] = await Promise.all([
     fetchTrashedInvestments(db),
     fetchTrashedCashRegisters(db),
     fetchTrashedWorkers(db),
     fetchTrashedVehicles(db),
     fetchTrashedEquipment(db),
+    fetchTrashedLeads(db),
   ])
 
   return shapeTrashRows(
-    { investments, cashRegisters, workers, vehicles, equipment },
+    { investments, cashRegisters, workers, vehicles, equipment, leads },
     { viewerRole: session.user.role, now: Date.now() },
   )
 }

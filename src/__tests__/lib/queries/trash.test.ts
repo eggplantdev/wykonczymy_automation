@@ -9,6 +9,7 @@ import type { TrashedCashRegisterRowT } from '@/lib/db/cash-register-trash'
 import type { TrashedWorkerRowT } from '@/lib/db/worker-trash'
 import type { TrashedVehicleRowT } from '@/lib/db/vehicle-trash'
 import type { TrashedEquipmentRowT } from '@/lib/db/equipment-trash'
+import type { TrashedLeadRowT } from '@/lib/db/lead-trash'
 import type { RoleT } from '@/lib/auth/roles'
 
 const NOW = new Date('2026-09-30T12:00:00Z').getTime()
@@ -40,7 +41,14 @@ const worker = (id: number, role: RoleT, registerNames: string[] = []): TrashedW
   registerNames,
 })
 
-const NO_ROWS = { investments: [], cashRegisters: [], workers: [], vehicles: [], equipment: [] }
+const NO_ROWS = {
+  investments: [],
+  cashRegisters: [],
+  workers: [],
+  vehicles: [],
+  equipment: [],
+  leads: [],
+}
 
 const vehicle = (id: number, flags: Partial<TrashedVehicleRowT> = {}): TrashedVehicleRowT => ({
   id,
@@ -57,6 +65,17 @@ const item = (id: number, flags: Partial<TrashedEquipmentRowT> = {}): TrashedEqu
   make: 'Makita',
   model: 'GA5030',
   serialNumber: 'SN-1',
+  trashedAt: TRASHED_AT,
+  ...flags,
+})
+
+const lead = (id: number, flags: Partial<TrashedLeadRowT> = {}): TrashedLeadRowT => ({
+  id,
+  name: 'Jan Kowalski',
+  email: 'jan@example.com',
+  phone: '500600700',
+  source: 'facebook_lead_ads',
+  submittedAt: new Date('2026-09-01T10:00:00Z'),
   trashedAt: TRASHED_AT,
   ...flags,
 })
@@ -186,6 +205,28 @@ describe('shapeTrashRows', () => {
       { kind: 'equipment', name: 'Szlifierka', detail: 'Makita GA5030 · nr ser. SN-1' },
       { kind: 'equipment', name: 'Szlifierka', detail: 'GA5030' },
       { kind: 'equipment', name: 'Szlifierka', detail: undefined },
+    ])
+  })
+  // A Facebook lead can arrive without a name, and the typed-name confirm needs something to type.
+  it('names a lead by whatever identifies the caller, and tells two apart by source and date', () => {
+    const rows = shapeTrashRows(
+      {
+        ...NO_ROWS,
+        leads: [
+          lead(50),
+          lead(51, { name: ' ', source: 'landing_form' }),
+          lead(52, { name: null, email: null, phone: null, submittedAt: null }),
+        ],
+      },
+      { viewerRole: 'MANAGER', now: NOW },
+    )
+
+    expect(
+      rows.map(({ kind, name, detail, daysLeft }) => ({ kind, name, detail, daysLeft })),
+    ).toEqual([
+      { kind: 'lead', name: 'Jan Kowalski', detail: 'Facebook · 01.09.2026', daysLeft: 20 },
+      { kind: 'lead', name: 'jan@example.com', detail: 'Landing · 01.09.2026', daysLeft: 20 },
+      { kind: 'lead', name: 'Zgłoszenie #52', detail: 'Facebook', daysLeft: 20 },
     ])
   })
 })

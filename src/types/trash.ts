@@ -5,6 +5,7 @@ export type TrashKindT =
   | 'worker'
   | 'vehicle'
   | 'equipment'
+  | 'lead'
 
 export type TrashRowT = {
   kind: TrashKindT

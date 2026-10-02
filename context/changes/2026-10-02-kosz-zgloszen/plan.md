@@ -523,12 +523,12 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 3.1 `leads-data-table.test.tsx` — page select, bulk button, cleared on new data (d4a2af7a)
-- [x] 3.2 `leads.db.test.ts` — `noFiles` filter (d4a2af7a)
+- [x] 3.1 `leads-data-table.test.tsx` — page select, bulk button, cleared on new data — d4a2af7a
+- [x] 3.2 `leads.db.test.ts` — `noFiles` filter — d4a2af7a
 
 ### Phase 4: `/kosz` section and docs
 
 #### Automated
 
-- [ ] 4.1 `trash.test.ts` — lead kind + display-name fallback
-- [ ] 4.2 Existing trash component specs pass
+- [x] 4.1 `trash.test.ts` — lead kind + display-name fallback
+- [x] 4.2 Existing trash component specs pass

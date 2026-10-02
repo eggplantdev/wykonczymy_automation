@@ -134,6 +134,11 @@ server-side. The `next` pagination URL **embeds the page token in plaintext** �
 - **No cursor or watermark.** `storeLead` dedupes on `(source, externalId)`, so re-sweeping the same
   recent leads every night is a no-op by construction. The run is bounded by a per-form limit, not
   by history.
+- **A deleted lead is erased in place, never `DELETE`d (EX-970).** „Usuń na zawsze" in `/kosz` and
+  the 30-day purge null the contact data, answers and files but keep the row with its
+  `(source, externalId)` and an `erasedAt`. A real `DELETE` would let tonight's sweep find no match
+  and re-create the lead the owner removed. So `findStoredLead` deliberately ignores `trashedAt` /
+  `erasedAt`, and `captureLead` skips the notification for an erased row.
 
 A recovery is therefore _itself_ the alarm: if the cron ever inserts a lead, the webhook is not
 delivering and the ops mail says so.
