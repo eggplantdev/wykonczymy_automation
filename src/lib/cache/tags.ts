@@ -14,6 +14,7 @@ export const CACHE_TAGS = {
   leads: 'collection:leads',
   presets: 'collection:kosztorys-presets',
   kosztorysSnapshots: 'table:kosztorys-snapshots',
+  sectionTranslations: 'table:kosztorys-section-translations',
   vehicles: 'collection:vehicles',
   vehicleInspections: 'collection:vehicle-inspections',
   workCatalogue: 'collection:work-catalogue-items',

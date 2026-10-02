@@ -112,6 +112,7 @@ import * as migration_20261001_0_description_translations from './20261001_0_des
 import * as migration_20261001_1_users_trashed_at from './20261001_1_users_trashed_at'
 import * as migration_20261001_2_vehicles_equipment_trashed_at from './20261001_2_vehicles_equipment_trashed_at'
 import * as migration_20261002_0_leads_trashed_erased_at from './20261002_0_leads_trashed_erased_at'
+import * as migration_20261002_1_section_translations from './20261002_1_section_translations'
 
 export const migrations = [
   {
@@ -683,5 +684,10 @@ export const migrations = [
     up: migration_20261002_0_leads_trashed_erased_at.up,
     down: migration_20261002_0_leads_trashed_erased_at.down,
     name: '20261002_0_leads_trashed_erased_at',
+  },
+  {
+    up: migration_20261002_1_section_translations.up,
+    down: migration_20261002_1_section_translations.down,
+    name: '20261002_1_section_translations',
   },
 ]

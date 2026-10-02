@@ -466,9 +466,9 @@ Run **once**, after the final phase.
 
 #### Automated
 
-- [ ] 1.1 Pure spec passes (key, seed-key guard, template refusals, render)
-- [ ] 1.2 Migration applies to the test DB
-- [ ] 1.3 DB round-trip spec passes
+- [x] 1.1 Pure spec passes (key, seed-key guard, template refusals, render)
+- [x] 1.2 Migration applies to the test DB
+- [x] 1.3 DB round-trip spec passes
 
 ### Phase 2: „Tłumaczenie sekcji…" in the section menu
 
