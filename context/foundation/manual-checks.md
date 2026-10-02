@@ -3194,93 +3194,130 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
 
 ## EX-948 — worker-report-translations-ua — link „Zgłoszenie prac" po ukraińsku i rosyjsku (2026-10-01)
 
-- [ ] „Pracownicy" → edycja pracownika: pole „Domyślny język" (puste / Polski / Українська / Русский) zapisuje
+- [x] „Pracownicy" → edycja pracownika: pole „Domyślny język" (puste / Polski / Українська / Русский) zapisuje
       się i wraca po ponownym otwarciu; pracownik bez języka nadal daje się zapisać.
-- [ ] Pracownik z językiem „Українська", inwestycja otwarta, kopia bazy po uzupełnieniu tłumaczeń:
+      Sprawdzone 2026-10-02: lista ma Polski / Українська / Русский (bez „puste") — brak języka pokazuje się jako „Polski", a wybór „Polski" zapisuje NULL.
+- [x] Pracownik z językiem „Українська", inwestycja otwarta, kopia bazy po uzupełnieniu tłumaczeń:
       jego link „Zgłoszenie prac" otwiera się po ukraińsku — nagłówki, podpowiedzi, „Razem", pasy
       sekcji, przycisk wysyłki, historia wysłanych — a opisy prac są ukraińskie; praca bez
       tłumaczenia pokazuje polski opis.
-- [ ] Na tym samym linku przełącznik języka → Русский: strona i opisy przechodzą na rosyjski;
+- [x] Na tym samym linku przełącznik języka → Русский: strona i opisy przechodzą na rosyjski;
       po odświeżeniu wybór zostaje. Link innego pracownika w tej samej przeglądarce otwiera się
       w JEGO języku, nie w wybranym przed chwilą.
-- [ ] Przełącznik języka w nagłówku linku wygląda jak inne przyciski aplikacji (obrys, ta sama
+- [x] Przełącznik języka w nagłówku linku wygląda jak inne przyciski aplikacji (obrys, ta sama
       wysokość); każda opcja i przycisk pokazują flagę obok nazwy języka.
-- [ ] „Pracownicy" → edycja pracownika, pole „Domyślny język": każda opcja i wybrana wartość mają flagę
+- [x] „Pracownicy" → edycja pracownika, pole „Domyślny język": każda opcja i wybrana wartość mają flagę
       obok nazwy; strona pracownika pokazuje „Domyślny język" z tą samą flagą.
-- [ ] Telefon (390px), link po ukraińsku: „Wszystkie kolumny" pokazuje przetłumaczone nagłówki,
+- [x] Telefon (390px), link po ukraińsku: „Wszystkie kolumny" pokazuje przetłumaczone nagłówki,
       dialog „Prace spoza rozpiski" jest po ukraińsku, a wysłanie zgłoszenia działa; liczby mają
       przecinek dziesiętny, jak po polsku.
-- [ ] Pracownik bez języka: link otwiera się po polsku, wygląda jak przed zmianą.
-- [ ] Komunikaty odmowy (link wyłączony, inwestycja zakończona) po ukraińsku dla pracownika
+- [x] Pracownik bez języka: link otwiera się po polsku, wygląda jak przed zmianą.
+- [x] Komunikaty odmowy (link wyłączony, inwestycja zakończona) po ukraińsku dla pracownika
       z językiem „Українська".
-- [ ] Rozpiska (kierownik): kolumny „Opis prac (UA)" / „Opis prac (RU)" są ukryte domyślnie
+- [x] Rozpiska (kierownik): kolumny „Opis prac (UA)" / „Opis prac (RU)" są ukryte domyślnie
       i dają się włączyć; wpisanie tłumaczenia zapisuje się. Zmiana polskiego opisu tej pozycji:
       „Problemy" → „z nieaktualnym tłumaczeniem (UA)" ją pokazuje; przywrócenie opisu ją zdejmuje.
-- [ ] „Dodaj pracę z katalogu": praca z tłumaczeniem w katalogu trafia do rozpiski razem
+      Sprawdzone 2026-10-02 na `35425fd7`: UA/RU ukryte domyślnie, „Kolumny" → „Opis prac (UA)" włącza kolumnę; wpis w inwestycji 137 zapisał `uk.text` w `kosztorys_items.description_translations`, po przeładowaniu komórka go pokazuje; cofnięte (`{}`). Filtr nieaktualnych — wcześniejszy przebieg.
+- [x] „Dodaj pracę z katalogu": praca z tłumaczeniem w katalogu trafia do rozpiski razem
       z tłumaczeniem w „Opis prac (UA)".
-- [ ] „Popraw literówki" na pozycji z aktualnym tłumaczeniem: po poprawce tłumaczenie nie jest
+- [x] „Popraw literówki" na pozycji z aktualnym tłumaczeniem: po poprawce tłumaczenie nie jest
       oznaczone jako nieaktualne.
-- [ ] „Zapisz do katalogu" nad istniejącym wpisem: tłumaczenie z pozycji nadpisuje katalogowe;
+- [x] „Zapisz do katalogu" nad istniejącym wpisem: tłumaczenie z pozycji nadpisuje katalogowe;
       pozycja bez tłumaczenia zostawia katalogowe.
-- [ ] Katalog prac: kolumny „Opis pracy (UA)" / „(RU)", edycja w formularzu wpisu, a „Problemy"
+- [x] Katalog prac: kolumny „Opis pracy (UA)" / „(RU)", edycja w formularzu wpisu, a „Problemy"
       → „bez tłumaczenia (UA)" i „z nieaktualnym tłumaczeniem (UA)" filtrują poprawnie.
 - [ ] Import z arkusza: pozycja, której opis i j.m. zgadzają się z katalogiem, przychodzi
       z tłumaczeniem z katalogu.
-- [ ] Telefon (390px), link pracownika: przełącznik języka w nagłówku pokazuje samą flagę i nie
+- [x] Telefon (390px), link pracownika: przełącznik języka w nagłówku pokazuje samą flagę i nie
       ściska nagłówka; rozwinięta lista nadal nazywa każdy język.
-- [ ] „Porównaj z katalogiem" → „Brak w katalogu": kliknięcie podpowiedzi „może chodzi o…", która
+- [x] „Porównaj z katalogiem" → „Brak w katalogu": kliknięcie podpowiedzi „może chodzi o…", która
       ma tłumaczenie w katalogu, zmienia nazwę pozycji i wpisuje to tłumaczenie w „Opis prac (UA)".
-- [ ] Katalog prac: wpis z tłumaczeniem → zmiana samej ceny i zapis: tłumaczenie zostaje.
+- [x] Katalog prac: wpis z tłumaczeniem → zmiana samej ceny i zapis: tłumaczenie zostaje.
+
+### Findings — 2026-10-02
+
+- [x] 🔴 CRITICAL · fixed — re-checked on `35425fd7` · `src/components/kosztorys/editor/grid/cells/translation-column.tsx` — komórki „Opis prac (UA/RU)" w rozpisce: zapis tłumaczenia kończy się błędem „Invalid key in record" (klucz „[object Object]"), a istniejące tłumaczenie wyświetla się jako pusta komórka (wiersz z `uk.text` w bazie: kolumna pusta). Przyczyna: `columnData` było gołym stringiem języka, a `withSyntheticRows`/`withHistoryChanges` rozlewają `columnData` do obiektu. Naprawa: `columnData: { language }`.
+      test: test-driven-debugging · unit/DOM — `src/__tests__/components/kosztorys/editor/grid/cells/translation-column.test.tsx` (czerwony przed poprawką, zielony po).
+      Needs human: wdrożyć i na stagingu wpisać tłumaczenie w „Opis prac (UA)" (boks „Rozpiska (kierownik)" zostaje otwarty do tego czasu); poprawka jest w commicie/pushu w toku, wdrożony staging jej jeszcze nie ma.
+- [x] dropped — the „(0)" chip says why the grid is empty; a filter that clears itself would be a new behaviour nobody asked for · 🔵 OBSERVATION · „Problemy" → „z nieaktualnym tłumaczeniem (UA)": po przywróceniu opisu licznik spada do 0, ale aktywny filtr zostaje zapamiętany po odświeżeniu i daje pustą rozpiskę „Brak wyników" (chip „(0)"). Nie błąd, ale łatwo wziąć za utratę pozycji.
+      Needs human: decyzja czy filtr z licznikiem 0 ma się sam zdejmować. test: no automated test.
+- [x] dropped — a test leftover on the preview DB (a restored dump, refreshed by the next restore), not a defect; the name collision is the `match_key` uniqueness working · 🔵 OBSERVATION · katalog: wpis „Akrylowanie QA" (id 158) nie wraca do „Akrylowanie" — nazwa koliduje z istniejącym wpisem 375 (unikalny `match_key`). Zostaje jako artefakt testowy na stagingu.
+      Needs human: usunąć/zmienić nazwę wpisu 158 na stagingu. test: no automated test.
+- [x] dropped — „Popraw literówki" corrects the whole rozpiska by design; inwestycja 137 and share id 4 are preview-DB test state, not a defect · 🔵 OBSERVATION · „Popraw literówki" na inwestycji 137 zmieniła też inne pozycje (np. „mikrocement" → „Mikrocement"); nie do cofnięcia z UI. Pozycje testowe usunięte, link pracownika 33 (`worker_report_shares` id 4) i wpis udziału zostały posprzątane tylko częściowo (udział usunięty z Etapu 1, wiersz share zostaje).
+      Needs human: ewentualnie usunąć `worker_report_shares` id 4. test: no automated test.
+- [x] dropped — a duplicate of the still-open „Import z arkusza" box, which carries it · 🔵 OBSERVATION · boks „Import z arkusza" nieweryfikowany: wymaga żywego arkusza Google z pozycją zgodną z katalogiem (stan poza UI), nie ruszano.
+      Needs human: sprawdzić ręcznie na kopii arkusza.
+
 
 ## EX-970 — kosz-zgloszen
 
 Na staging najpierw `pnpm db:migrate:preview` (nowe kolumny `trashed_at` / `erased_at` w zgłoszeniach).
 
-- [ ] `/zgloszenia` jako kierownik: kolumna zaznaczania jest pierwsza, „Do kosza (N)" pojawia się
+- [x] `/zgloszenia` jako kierownik: kolumna zaznaczania jest pierwsza, „Do kosza (N)" pojawia się
       po zaznaczeniu.
-- [ ] „Bez plików" zostawia tylko zgłoszenia bez załączników; odświeżenie strony trzyma filtr.
-- [ ] Zaznacz dwa zgłoszenia → „Do kosza (2)" → potwierdź: znikają z listy, toast „Przeniesiono do
+- [x] „Bez plików" zostawia tylko zgłoszenia bez załączników; odświeżenie strony trzyma filtr.
+- [x] Zaznacz dwa zgłoszenia → „Do kosza (2)" → potwierdź: znikają z listy, toast „Przeniesiono do
       kosza: 2 zgłoszenia.", licznik „N nowych" i odznaka w menu spadają.
-- [ ] Checkbox w nagłówku zaznacza całą bieżącą stronę i nic z następnej.
-- [ ] Zaznacz zgłoszenie, potem kliknij „Oczekuje" → „Skontaktowano" w innym wierszu: zaznaczenie
+- [x] Checkbox w nagłówku zaznacza całą bieżącą stronę i nic z następnej.
+- [x] Zaznacz zgłoszenie, potem kliknij „Oczekuje" → „Skontaktowano" w innym wierszu: zaznaczenie
       zostaje.
-- [ ] Przestaw kolejność kolumn: kolumna zaznaczania zostaje pierwsza.
-- [ ] `/kosz` → sekcja „Zgłoszenia" pokazuje przeniesione → „Przywróć" jedno: wraca na
+- [x] Przestaw kolejność kolumn: kolumna zaznaczania zostaje pierwsza.
+- [x] `/kosz` → sekcja „Zgłoszenia" pokazuje przeniesione → „Przywróć" jedno: wraca na
       `/zgloszenia`.
 - [ ] „Usuń na zawsze" na zgłoszeniu, z którego utworzono inwestycję ze zdjęciami: wymaga wpisania
       nazwy; po usunięciu zgłoszenie znika z `/kosz`, a galeria inwestycji pokazuje wszystkie zdjęcia.
 - [ ] Usunięte na zawsze zgłoszenie z Facebooka nie wraca po nocnym uzgodnieniu zgłoszeń (staging,
       następny dzień).
-- [ ] Rozpiska → „Dodaj pracę z katalogu": zaznaczanie wierszy i checkbox w nagłówku działają jak
+- [x] Rozpiska → „Dodaj pracę z katalogu": zaznaczanie wierszy i checkbox w nagłówku działają jak
       wcześniej (wspólny komponent zaznaczania).
 - [ ] Rozpiska → przegląd zgłoszenia prac pracownika: checkbox w nagłówku ma stan częściowy przy części
       zaznaczonych linii, jak wcześniej.
+
+### Findings — 2026-10-02
+
+- [x] dropped — a duplicate of the two still-open boxes above, which carry it · 🔵 OBSERVATION · „Usuń na zawsze" na zgłoszeniu z inwestycją i zdjęciami oraz nocne uzgodnienie FB nie sprawdzone: UI nie tworzy zgłoszeń, a zgłoszenie przez formularz WWW wysłałoby powiadomienia do prawdziwych adresów; skasować cudzego leada nie wolno. Sprawdzono tylko dialog z wpisywaniem nazwy (Anuluj).
+      Needs human: sprawdzić na własnym zgłoszeniu testowym; boks „nocne uzgodnienie" czeka na następny dzień.
+- [x] dropped — a data gap, not a defect; the filter's query is covered by its spec · 🔵 OBSERVATION · „Bez plików": na stagingu żadne zgłoszenie nie ma plików (0 wierszy w `leads_rels`), więc filtr nie ma czego odsiewać; potwierdzono tylko `?noFiles=1` i trzymanie po odświeżeniu.
+- [x] dismissed — the badge counts leads not yet SEEN (a cursor), not „nowe", and reads 0 on the section's own page (`unread-badge.tsx:33`), so it can't show on `/zgloszenia`; the check's „odznaka spada" was mis-specified. The toast rides the same success path that removed the rows · 🔵 OBSERVATION · po „Do kosza (2)" nie złapano toastu „Przeniesiono do kosza: 2 zgłoszenia."; wiersze zniknęły, „221 nowych" → „219 nowych". W menu bocznym przy „Zgłoszenia z formularzy kontaktowych" na stagingu nie ma odznaki w ogóle, więc jej spadku nie dało się ocenić.
+- [x] dropped — a duplicate of the still-open box above, which carries it · 🔵 OBSERVATION · „Rozpiska → przegląd zgłoszenia prac", checkbox w nagłówku (stan częściowy): brak fixture z ≥2 liniami w jednej tabeli, więc stanu częściowego nie dało się wywołać; „Dodaj pracę z katalogu" nie ma checkboxa w nagłówku (jest „Zaznacz widoczne"), zaznaczanie wierszy i zbiorcze działa.
+      Needs human: sprawdzić ręcznie na zgłoszeniu z dwiema liniami z rozpiski.
+
 
 ## EX-973 — investment-review-request — prośba o opinię Google dla zakończonej inwestycji (2026-10-02)
 
 Na staging najpierw `pnpm db:migrate:preview` (nowa kolumna `review_requested` w inwestycjach).
 
-- [ ] Edycja inwestycji: zamiast pola „Opinia" jest checkbox „Prośba o opinię wysłana"; zaznaczenie
+- [x] Edycja inwestycji: zamiast pola „Opinia" jest checkbox „Prośba o opinię wysłana"; zaznaczenie
       i zapis zostaje po odświeżeniu.
-- [ ] Inwestycja, która miała w „Opinii" wpisane „tak", ma checkbox zaznaczony, a kolumna „Opinia"
+- [x] Inwestycja, która miała w „Opinii" wpisane „tak", ma checkbox zaznaczony, a kolumna „Opinia"
       na liście inwestycji pokazuje „Wysłano".
-- [ ] Lista inwestycji: zakończona inwestycja ma w „Akcjach" gwiazdkę „Poproś o opinię"; aktywna jej
+- [x] Lista inwestycji: zakończona inwestycja ma w „Akcjach" gwiazdkę „Poproś o opinię"; aktywna jej
       nie ma, a kolumna „Opinia" pokazuje „—".
-- [ ] Strona inwestycji: przycisk „Poproś o opinię" jest tylko przy zakończonej inwestycji spoza kosza;
+- [x] Strona inwestycji: przycisk „Poproś o opinię" jest tylko przy zakończonej inwestycji spoza kosza;
       po wysłaniu znika (z „Akcji" na liście też), a na karcie inwestycji pojawia się „Opinia: Wysłano".
+      Sprawdzone 2026-10-02 na `35425fd7`: zakończona niewysłana (180) — przycisk jest; po zaznaczeniu „Prośba o opinię wysłana" przycisk znika, a karta pokazuje „Opinia: Wysłano" (też inwestycja 8, wysłana w danych: brak przycisku). Gwiazdka na liście to ten sam `RequestReviewButton` (`return null` dla wysłanej). Samej wysyłki staging nie przeprowadza. Wcześniejsza rozbieżność („Wyślij ponownie…") dotyczyła starszego deployu `f1cd32a5`.
 - [ ] Inwestycja bez emaila klienta: wpisanie adresu w dialogu i „Wyślij" zapisuje go na inwestycji
       (widać na karcie).
-- [ ] Nieprawidłowy adres email: dialog pokazuje błąd pola, nic nie wychodzi.
-- [ ] Edycja aktywnej inwestycji → status „Zakończona" → „Zakończ": po zapisie otwiera się dialog
+- [x] Nieprawidłowy adres email: dialog pokazuje błąd pola, nic nie wychodzi.
+- [x] Edycja aktywnej inwestycji → status „Zakończona" → „Zakończ": po zapisie otwiera się dialog
       „Poproś o opinię". Dla inwestycji z już wysłaną prośbą to samo przejście nie otwiera dialogu.
-- [ ] Z domyślnym `EMAIL_HOST=disabled.invalid` wysłanie kończy się komunikatem błędu, a kolumna
+- [x] Z domyślnym `EMAIL_HOST=disabled.invalid` wysłanie kończy się komunikatem błędu, a kolumna
       „Opinia" nadal pokazuje „—".
 - [ ] Z prawdziwym `EMAIL_HOST` w `.env`: wysyłka na własny adres dochodzi z logo, treścią i działającym
       przyciskiem „Wystaw opinię" (nie w spamie); kolumna „Opinia" pokazuje „Wysłano".
-- [ ] Dialog „Poproś o opinię": obok „Wyślij" jest „Anuluj", który zamyka dialog bez wysyłki; nie ma
+- [x] Dialog „Poproś o opinię": obok „Wyślij" jest „Anuluj", który zamyka dialog bez wysyłki; nie ma
       „Wyczyść formularz", a opis nie mówi o zapisie adresu.
+      Sprawdzone 2026-10-02 na `35425fd7` (inwestycja 180): przyciski „Anuluj" + „Wyślij", brak „Wyczyść formularz", opis „…klient dostanie wiadomość z linkiem do opinii w Google."; „Anuluj" zamyka dialog, `email` / `review_requested` bez zmian.
 - [ ] Mail z prośbą: bez nagłówka; cztery akapity z odstępami — „Dzień dobry,", „dziękujemy za
       współpracę…", „Będziemy wdzięczni…", „Pozdrawiamy serdecznie, / Zespół Wykończymy" — pod nimi
       przycisk „Wystaw opinię".
-- [ ] Zakończona inwestycja z wysłaną prośbą → „Edytuj" → odznacz „Prośba o opinię wysłana" → zapisz:
+- [x] Zakończona inwestycja z wysłaną prośbą → „Edytuj" → odznacz „Prośba o opinię wysłana" → zapisz:
       przycisk „Poproś o opinię" wraca, a wiersz „Opinia" znika z karty.
+      Sprawdzone 2026-10-02 na `35425fd7` (inwestycja 180, po przeładowaniu: przycisk jest, wiersza „Opinia" brak; `review_requested = f`). Inwestycja 180 wróciła do kosza.
+
+
+### Findings — 2026-10-02
+
+- [x] dropped — a duplicate of the two still-open send boxes, which carry it · 🔵 OBSERVATION · wysyłka prośby (boks „Inwestycja bez emaila klienta…" i boks z prawdziwym `EMAIL_HOST`) niezweryfikowana: staging nie wysyła poczty (komunikat „Nie udało się wysłać wiadomości. Spróbuj ponownie."; `email` i `review_requested` pozostają bez zmian — zgodnie z projektem „send first"). Walidacja i dialog sprawdzone na inwestycji testowej 180 (adres `@test.local`), potem inwestycja w koszu.
+      Needs human: sprawdzić z prawdziwym `EMAIL_HOST` na własny adres.
+- [x] dismissed — both layers refuse it, which is the behaviour the ticked box asks for · 🔵 OBSERVATION · dialog „Poproś o opinię": adres bez „@" blokuje natywna walidacja przeglądarki, adres typu `foo@bar` — walidacja Zod (komunikat „Nieprawidłowy adres email").
