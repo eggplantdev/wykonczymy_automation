@@ -1,10 +1,10 @@
 ---
 change_id: kosz-zgloszen
 title: Kosz — bulk-trash leads, restore, and erase instead of delete
-status: implemented
+status: archived
 created: 2026-10-02
 updated: 2026-10-02
-archived_at: null
+archived_at: 2026-10-02T06:30:36Z
 branch: kosz-zgloszen
 worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/kosz-zgloszen
 ---
