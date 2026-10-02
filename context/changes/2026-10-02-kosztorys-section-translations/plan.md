@@ -474,10 +474,10 @@ Run **once**, after the final phase.
 
 #### Automated
 
-- [x] 2.1 Action DB spec passes (persisted rows: placeholder key, refusal, removal, key unification)
+- [x] 2.1 Action DB spec passes (persisted rows: placeholder key, refusal, removal, key unification) — 12491604
 
 ### Phase 3: Swap on the report link + docs
 
 #### Automated
 
-- [ ] 3.1 translate-tree spec passes with section-name cases
+- [x] 3.1 translate-tree spec passes with section-name cases

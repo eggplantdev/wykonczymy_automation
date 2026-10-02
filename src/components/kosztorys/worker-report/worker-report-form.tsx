@@ -12,6 +12,7 @@ import {
   useReportDraft,
 } from '@/components/kosztorys/worker-report/use-report-draft'
 import type { WorkerReportRowT } from '@/lib/db/worker-reports'
+import type { SectionTranslationMapT } from '@/lib/i18n/section-translations'
 import { useTranslation } from '@/hooks/use-translation'
 import { toWorkerReportFormData } from '@/lib/kosztorys/worker-report/to-form-data'
 import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
@@ -21,9 +22,16 @@ type PropsT = {
   document: Extract<WorkerKosztorysT, { kind: 'ready' }>
   pendingQtyByItem: Record<number, number>
   sentReports: WorkerReportRowT[]
+  sectionTranslations: SectionTranslationMapT
 }
 
-export function WorkerReportForm({ token, document, pendingQtyByItem, sentReports }: PropsT) {
+export function WorkerReportForm({
+  token,
+  document,
+  pendingQtyByItem,
+  sentReports,
+  sectionTranslations,
+}: PropsT) {
   const data = toWorkerReportFormData(document)
   const router = useRouter()
   const { t, tp } = useTranslation('report')
@@ -58,6 +66,7 @@ export function WorkerReportForm({ token, document, pendingQtyByItem, sentReport
       draft={draft}
       pendingQtyByItem={pendingQtyByItem}
       sentReports={sentReports}
+      sectionTranslations={sectionTranslations}
       onSent={(next) => {
         setSent(next)
         // Re-reads his sent list and „Czeka” for the confirmation screen and the next report.

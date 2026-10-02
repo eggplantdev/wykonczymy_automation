@@ -5,11 +5,13 @@ import { getDb } from '@/lib/db/get-db'
 import { listWorkerReports, pendingQtyByItem, type WorkerReportRowT } from '@/lib/db/worker-reports'
 import { readReportShare } from '@/lib/db/worker-report-share'
 import { DEFAULT_LANGUAGE, type LanguageT } from '@/lib/i18n/languages'
+import type { SectionTranslationMapT } from '@/lib/i18n/section-translations'
 import type { ReportNoticeKeyT } from '@/lib/kosztorys/worker-report/refusals'
 import { reportShareRefusal } from '@/lib/kosztorys/worker-report/share-refusal'
 import { WORKER_SCOPE_BLOCK_NOTICE_KEYS } from '@/lib/kosztorys/worker-view/labels'
 import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
 import { getWorkerKosztorysByReportShare } from '@/lib/queries/worker-kosztorys'
+import { getSectionTranslations } from '@/lib/queries/section-translations'
 
 // The page's opening language, before the worker's own switcher choice is read on the device.
 type ReportLocaleT = { language: LanguageT; workerId: number }
@@ -23,6 +25,8 @@ export type WorkerReportPageT = ReportLocaleT &
         // What he sent and nobody has decided yet, per pozycja — so a repeat report shows before he sends it.
         pendingQtyByItem: Record<number, number>
         sentReports: WorkerReportRowT[]
+        // The whole list, every language: the switcher changes language on the device.
+        sectionTranslations: SectionTranslationMapT
       }
   )
 
@@ -51,12 +55,20 @@ export async function getWorkerReportPage(token: string): Promise<WorkerReportPa
   const refusal = await reportShareRefusal(db, share)
   if (refusal) return notice(refusal)
 
-  const [document, pending, sentReports] = await Promise.all([
+  const [document, pending, sentReports, sectionTranslations] = await Promise.all([
     getWorkerKosztorysByReportShare(share),
     pendingQtyByItem(db, share.investmentId, share.workerId),
     listWorkerReports(db, share.investmentId, share.workerId),
+    getSectionTranslations(),
   ])
   if (!document) return null
   if (document.kind === 'blocked') return notice(WORKER_SCOPE_BLOCK_NOTICE_KEYS[document.reason])
-  return { ...locale, kind: 'ready', document, pendingQtyByItem: pending, sentReports }
+  return {
+    ...locale,
+    kind: 'ready',
+    document,
+    pendingQtyByItem: pending,
+    sentReports,
+    sectionTranslations,
+  }
 }

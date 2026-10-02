@@ -491,6 +491,19 @@ w kolejnych częściach EX-946, na tym samym rusztowaniu.
   i pozycje otwartych inwestycji (z szablonami). Bez `--apply` niczego nie zapisuje; na produkcji
   uruchamia go człowiek. Zapisuje z pominięciem cache — katalog i rozpiski pokazują nowe teksty po
   pierwszej edycji katalogu albo komórki rozpiski.
+- **Nazwy sekcji to jedna wspólna lista, nie pole na wierszu** (EX-965, 2026-10-02). „Kuchnia"
+  w każdej rozpisce to ta sama kuchnia, więc tłumaczenie wpisuje się raz — klucz to nazwa po
+  ujednoliceniu (wielkość liter, spacje). **Samodzielna liczba w nazwie jest zmienną**: „Łazienka 1"
+  i „Łazienka 2" dzielą jeden wpis, a każda sekcja dostaje z powrotem swoją liczbę. Kierownik wpisuje
+  prawdziwe liczby, a zapis odrzuca tłumaczenie z innymi liczbami niż w nazwie (albo w innej
+  kolejności) — inaczej dwa pokoje mogłyby się zamienić. „230V" czy „c.o." to zwykły tekst.
+- **Edycja: „Tłumaczenie sekcji…" w menu sekcji.** Pokazuje to, co zobaczy pracownik dla tej
+  sekcji; puste pola zapisane razem usuwają wpis. Lista startowa (nazwy z szablonów) przyszła
+  z migracją; każdą nową nazwę uzupełnia się w tym oknie, bez wdrożenia.
+- **Brak tłumaczenia nazwy = polska nazwa, bez wpisu w „Problemach"** — nazw jest kilkadziesiąt
+  i powtarzają się, więc brak widać od razu na linku, a ostrzeżenie w każdej rozpisce byłoby szumem.
+  Zakres na razie to link „Zgłoszenie prac"; `/p`, „Podgląd pracownika" i PDF (EX-966) użyją tej
+  samej funkcji renderującej (`renderSectionName`).
 
 ## Protokół odbioru prac — druk z menu „Inwestor" (2026-09-28)
 
