@@ -89,7 +89,7 @@ describe.skipIf(!ENV_READY)('createInvestmentAction — non-fatal preset seed (D
     email: '',
     contactPerson: '',
     notes: '',
-    review: '',
+    reviewRequested: false,
     status: 'active' as const,
     assets: [],
   })

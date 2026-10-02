@@ -25,7 +25,7 @@ const INVESTMENT = {
   email: '',
   contactPerson: '',
   notes: '',
-  review: '',
+  reviewRequested: false,
   hasSheet: false,
   materialsNetRate: null,
   settlementMode: 'NET' as const,

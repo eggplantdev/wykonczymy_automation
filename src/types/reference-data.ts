@@ -25,7 +25,7 @@ export type InvestmentRefT = ReferenceItemT & {
   email: string
   contactPerson: string
   notes: string
-  review: string
+  reviewRequested: boolean
   hasSheet: boolean
   // The materiały concession is gated on the settlement mode, so a reader that has one without the
   // other cannot compute it (null rate = no concession); VAT rides the prace alone and turns

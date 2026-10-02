@@ -101,7 +101,7 @@ export function InvestmentForm({
         email: value.email,
         contactPerson: value.contactPerson,
         notes: value.notes,
-        review: value.review,
+        reviewRequested: value.reviewRequested,
         status: value.status,
         presetId: value.presetId,
       }),
@@ -142,10 +142,8 @@ export function InvestmentForm({
             )}
           </form.AppField>
 
-          <form.AppField name="review">
-            {(field) => (
-              <field.Textarea label="Opinia" placeholder="Opinia..." rows={3} showError />
-            )}
+          <form.AppField name="reviewRequested">
+            {(field) => <field.Checkbox label="Prośba o opinię wysłana" />}
           </form.AppField>
 
           {/* Container query, not a breakpoint: the two columns follow the dialog's width, and the

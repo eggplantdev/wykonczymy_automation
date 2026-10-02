@@ -32,7 +32,7 @@ export function EditInvestmentDialog({ investment, showLabel }: EditInvestmentDi
             email: investment.email,
             contactPerson: investment.contactPerson,
             notes: investment.notes,
-            review: investment.review,
+            reviewRequested: investment.reviewRequested,
             status: investment.status,
             presetId: '',
           }}

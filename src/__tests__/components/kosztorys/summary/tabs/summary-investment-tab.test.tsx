@@ -31,7 +31,7 @@ const INVESTMENT: InvestmentRefT = {
   email: 'kontakt@przyklad.test',
   contactPerson: 'Anna Kowalska',
   notes: 'Zakres prac: kuchnia, łazienka, salon — bez elewacji.',
-  review: '',
+  reviewRequested: false,
   hasSheet: false,
   materialsNetRate: null,
   settlementMode: 'NET',

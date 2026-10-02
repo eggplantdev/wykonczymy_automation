@@ -301,11 +301,10 @@ export function getInvestmentColumns({ userRole, onSettle }: InvestmentColumnOpt
       header: 'Osoba kontaktowa',
       cell: (info) => info.getValue() || '—',
     }),
-    col.accessor('review', {
-      id: 'review',
+    col.accessor('reviewRequested', {
+      id: 'reviewRequested',
       header: 'Opinia',
-      meta: { minWidth: 'min-w-56' },
-      cell: (info) => info.getValue() || '—',
+      cell: (info) => (info.getValue() ? 'Wysłano' : '—'),
     }),
     col.accessor('status', {
       id: 'status',

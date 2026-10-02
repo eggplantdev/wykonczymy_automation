@@ -111,6 +111,7 @@ import * as migration_20260930_3_cash_register_trashed_at from './20260930_3_cas
 import * as migration_20261001_0_description_translations from './20261001_0_description_translations'
 import * as migration_20261001_1_users_trashed_at from './20261001_1_users_trashed_at'
 import * as migration_20261001_2_vehicles_equipment_trashed_at from './20261001_2_vehicles_equipment_trashed_at'
+import * as migration_20261002_1_investments_review_requested from './20261002_1_investments_review_requested'
 
 export const migrations = [
   {
@@ -677,5 +678,10 @@ export const migrations = [
     up: migration_20261001_2_vehicles_equipment_trashed_at.up,
     down: migration_20261001_2_vehicles_equipment_trashed_at.down,
     name: '20261001_2_vehicles_equipment_trashed_at',
+  },
+  {
+    up: migration_20261002_1_investments_review_requested.up,
+    down: migration_20261002_1_investments_review_requested.down,
+    name: '20261002_1_investments_review_requested',
   },
 ]

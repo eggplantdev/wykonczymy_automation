@@ -80,9 +80,10 @@ export const Investments: CollectionConfig = {
       label: { en: 'Notes', pl: 'Notatki' },
     },
     {
-      name: 'review',
-      type: 'textarea',
-      label: { en: 'Review', pl: 'Opinia' },
+      name: 'reviewRequested',
+      type: 'checkbox',
+      defaultValue: false,
+      label: { en: 'Review requested', pl: 'Prośba o opinię wysłana' },
     },
     // Photos and documents of the site itself — the same `media` rows a promoted lead arrived with,
     // which is why promotion re-points them instead of re-uploading.
