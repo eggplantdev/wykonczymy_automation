@@ -6,7 +6,7 @@ import { formatPLN } from '@/lib/utils/format-currency'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 import { isAdminOrOwnerRole, type RoleT } from '@/lib/auth/roles'
 import { axisShows } from '@/lib/kosztorys/money-axis'
-import { settlementModeToMoneyAxis } from '@/lib/kosztorys/settlement-mode'
+import { settlementModeLabel, settlementModeToMoneyAxis } from '@/lib/kosztorys/settlement-mode'
 import { SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/labels'
 import type { InvestmentRowT } from '@/types/table-rows'
 import { INVESTMENT_HEADER_TIPS } from '@/components/tables/investments-header-tips'
@@ -38,21 +38,16 @@ export const V2_COLUMN_IDS = [
   'subcontractorRemaining',
 ] as const
 
-// An investment whose kosztorys is empty reads zero robocizna, and every other v2 figure is built on
-// that zero: the bilans then says the client owes nothing for work that was done, and the marża that
-// the crews cost nothing. All of them say „brak danych" instead — the kosztorys is the source, so
-// „nothing entered" is the honest reading, and the number returns the moment it is.
+// Every other v2 figure reads a missing kosztorys as a real zero — an investment settled on materials
+// alone is legitimate (owner, 2026-10-02). „Pozostało do wypłaty" alone withholds: with nothing owed
+// it would only reprint the wypłaty with a minus, and sort every legacy investment in among the real
+// overpayments.
 //
 // Off `hasKosztorys` rather than `totalLaborCosts !== 0`, which cannot tell the two apart: „pomiar z
-// natury" is the etap sum, so a rozpiska entered in full but not yet started sums to zero and would
-// be withheld as „nothing entered" — over real data, and with the v1/v2 rozjazd icon suppressed
-// exactly where a fresh kosztorys most needs it flagged.
-function hasKosztorysReading(row: InvestmentRowT): boolean {
-  return row.hasKosztorys
-}
-
-function NoKosztorysData() {
-  return <span className="text-muted-foreground text-xs">brak danych</span>
+// natury" is the etap sum, so a rozpiska entered in full but not yet started sums to zero, and its
+// −wypłaty is a genuine zaliczka paid ahead of the work.
+function NoKosztorys() {
+  return <span className="text-muted-foreground text-xs">brak kosztorysu</span>
 }
 
 // A row with an unsettled etap has no amount at all — zero would read as a real figure: a crew
@@ -63,7 +58,6 @@ function UnsettledStages() {
 
 function withheldFigureCell(info: CellContext<InvestmentRowT, number | undefined>) {
   const value = info.getValue()
-  if (!hasKosztorysReading(info.row.original)) return <NoKosztorysData />
   return value === undefined ? <UnsettledStages /> : <BalanceCell value={value} />
 }
 
@@ -71,22 +65,25 @@ function withheldFigureCell(info: CellContext<InvestmentRowT, number | undefined
 // The other one isn't merely uninteresting, it is unbuilt: since nothing is derived at VAT, a bilans
 // brutto on an investment settled netto deducts only the przelewy and silently drops every wpłata
 // gotówka. The same projection the Podsumowanie panel reads, so the listing can never print a kwota
-// the panel refuses to show.
-function NotApplicable() {
-  return <span className="text-muted-foreground text-xs">nie dotyczy</span>
+// the panel refuses to show. The cell names the tryb rather than saying „nie dotyczy", so the reader
+// sees why without opening the investment.
+function OtherSettlementMode({ row }: { row: InvestmentRowT }) {
+  return (
+    <span className="text-muted-foreground text-xs">
+      rozliczenie {settlementModeLabel(row.settlementMode).toLowerCase()}
+    </span>
+  )
 }
 
 function settlesOn(row: InvestmentRowT, plane: 'net' | 'gross'): boolean {
   return axisShows(settlementModeToMoneyAxis(row.settlementMode))[plane]
 }
 
-// Withheld cells sort last instead of by the figure behind them. The balance is computed for every
-// row whether or not the tryb builds it, so a „nie dotyczy" would otherwise sort on a number the
+// The other tryb's cell sorts last instead of by the figure behind it. The balance is computed for
+// every row whether or not the tryb builds it, so that cell would otherwise sort on a number the
 // column refuses to print — same reason `marginV2` carries `sortUndefined` below.
 const balanceOrUndefined = (plane: 'net' | 'gross') => (row: InvestmentRowT) =>
-  settlesOn(row, plane) && hasKosztorysReading(row)
-    ? row[plane === 'net' ? 'balance' : 'balanceGross']
-    : undefined
+  settlesOn(row, plane) ? row[plane === 'net' ? 'balance' : 'balanceGross'] : undefined
 
 type InvestmentColumnOptionsT = {
   userRole: RoleT
@@ -132,8 +129,8 @@ export function getInvestmentColumns({ userRole, onSettle }: InvestmentColumnOpt
       header: 'Bilans netto v2',
       meta: { align: 'right', tooltip: INVESTMENT_HEADER_TIPS.balance },
       cell: (info) => {
-        if (!settlesOn(info.row.original, 'net')) return <NotApplicable />
-        if (!hasKosztorysReading(info.row.original)) return <NoKosztorysData />
+        if (!settlesOn(info.row.original, 'net'))
+          return <OtherSettlementMode row={info.row.original} />
         return <BalanceCell value={info.row.original.balance} />
       },
     }),
@@ -145,8 +142,7 @@ export function getInvestmentColumns({ userRole, onSettle }: InvestmentColumnOpt
       meta: { align: 'right', tooltip: INVESTMENT_HEADER_TIPS.balanceGross },
       cell: (info) => {
         const row = info.row.original
-        if (!settlesOn(row, 'gross')) return <NotApplicable />
-        if (!hasKosztorysReading(row)) return <NoKosztorysData />
+        if (!settlesOn(row, 'gross')) return <OtherSettlementMode row={row} />
         return (
           <HintedValue
             /* Whatever this figure drops, said out loud — the Podsumowanie panel says the same
@@ -201,7 +197,6 @@ export function getInvestmentColumns({ userRole, onSettle }: InvestmentColumnOpt
       // number under a header nobody could decode, and it is only ever read against the v2 amount
       // standing next to it.
       cell: (info) => {
-        if (!hasKosztorysReading(info.row.original)) return <NoKosztorysData />
         // Rounded: both sides are independent float folds, so a fully migrated investment lands a
         // sub-grosz residue apart rather than exactly equal, and the icon would never disappear.
         const gap = roundToCents(
@@ -258,9 +253,8 @@ export function getInvestmentColumns({ userRole, onSettle }: InvestmentColumnOpt
       meta: { align: 'right', tooltip: INVESTMENT_HEADER_TIPS.subcontractorRemaining },
       cell: (info) => {
         const value = info.getValue()
-        if (value === undefined || !hasKosztorysReading(info.row.original)) {
-          return withheldFigureCell(info)
-        }
+        if (!info.row.original.hasKosztorys) return <NoKosztorys />
+        if (value === undefined) return <UnsettledStages />
         const owedWorkers = info.row.original.subcontractorsOwed ?? 0
         return (
           <Button
