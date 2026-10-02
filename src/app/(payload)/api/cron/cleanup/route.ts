@@ -10,6 +10,7 @@ import { purgeCashRegisterTrash } from '@/lib/cash-registers/purge-trash'
 import { purgeEquipmentTrash } from '@/lib/equipment/purge-trash'
 import { purgeVehicleTrash } from '@/lib/fleet/purge-trash'
 import { purgeTrash } from '@/lib/investments/purge-trash'
+import { purgeLeadTrash } from '@/lib/leads/purge-trash'
 import { purgeWorkerTrash } from '@/lib/workers/purge-trash'
 
 export const maxDuration = 300
@@ -34,7 +35,16 @@ export async function GET(request: NextRequest) {
   const workerTrash = await runStep('workerTrash', () => purgeWorkerTrash(payload, db))
   const vehicleTrash = await runStep('vehicleTrash', () => purgeVehicleTrash(payload, db))
   const equipmentTrash = await runStep('equipmentTrash', () => purgeEquipmentTrash(payload, db))
-  const results = { snapshots, trash, cashRegisterTrash, workerTrash, vehicleTrash, equipmentTrash }
+  const leadTrash = await runStep('leadTrash', () => purgeLeadTrash(payload, db))
+  const results = {
+    snapshots,
+    trash,
+    cashRegisterTrash,
+    workerTrash,
+    vehicleTrash,
+    equipmentTrash,
+    leadTrash,
+  }
   const steps = Object.values(results)
   const threw = steps.filter((step) => step === null).length
 

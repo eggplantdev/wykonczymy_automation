@@ -9,6 +9,7 @@ import {
 import { deleteWorkerForeverAction, restoreWorkerAction } from '@/lib/actions/worker-trash'
 import { deleteVehicleForeverAction, restoreVehicleAction } from '@/lib/actions/vehicle-trash'
 import { deleteEquipmentForeverAction, restoreEquipmentAction } from '@/lib/actions/equipment-trash'
+import { deleteLeadForeverAction, restoreLeadAction } from '@/lib/actions/lead-trash'
 import { KOSZTORYS_IN_USE_WARNING } from '@/lib/constants/trash'
 import type { ActionResultT } from '@/types/action'
 import type { TrashKindT, TrashRowT } from '@/types/trash'
@@ -81,6 +82,16 @@ export const TRASH_KINDS: Record<TrashKindT, TrashKindConfigT> = {
     lost: 'historia przekazań',
     nameLabel: 'Nazwa sprzętu',
     deleted: 'Sprzęt usunięty na zawsze.',
+  },
+  lead: {
+    sectionTitle: 'Zgłoszenia',
+    restore: restoreLeadAction,
+    restored: 'Zgłoszenie przywrócone.',
+    deleteForever: deleteLeadForeverAction,
+    lost: 'dane kontaktowe, odpowiedzi z formularza i pliki, których nie ma w żadnej inwestycji',
+    note: () => 'Inwestycja założona z tego zgłoszenia i jej pliki zostają bez zmian.',
+    nameLabel: 'Nazwa zgłoszenia',
+    deleted: 'Zgłoszenie usunięte na zawsze.',
   },
 }
 

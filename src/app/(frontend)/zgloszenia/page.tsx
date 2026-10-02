@@ -24,6 +24,7 @@ export default async function LeadsPage({ searchParams }: PagePropsT) {
   const { page, limit } = parsePagination(sp, LEADS_DEFAULT_LIMIT)
   const sort = parseLeadSort(sp)
   const search = typeof sp.search === 'string' ? sp.search : ''
+  const noFiles = sp.noFiles === '1'
 
   // Viewing the list clears this user's unread badge — advance their read cursor.
   // Independent of the leads fetch, so overlap them rather than paying the write
@@ -31,7 +32,7 @@ export default async function LeadsPage({ searchParams }: PagePropsT) {
   const payload = await getPayload({ config })
   const [, leads, recipients, refData] = await Promise.all([
     markSeen(payload, session.user.id, STREAMS.leads),
-    fetchLeadsPage(page, limit, sort, search),
+    fetchLeadsPage(page, limit, sort, search, noFiles),
     fetchRecipientLists(),
     fetchReferenceData(),
   ])

@@ -126,6 +126,10 @@ export const EQUIPMENT_DELETE_TAGS = [
   'equipmentEvents',
 ] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
 
+// Erasing keeps the row, and the files it drops are the ones nothing else shows — so trash, restore
+// and „Usuń na zawsze" all move only the leads readers.
+export const LEAD_TRASH_TAGS = ['leads'] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
+
 /**
  * The second argument every `revalidateTag` call outside a Server Action must pass.
  *

@@ -30,11 +30,12 @@ export const countUnreadLeads = async (payload: Payload, userId: number): Promis
   const result = await db.execute(sql`
     SELECT COUNT(*) AS count
     FROM leads
-    WHERE created_at > COALESCE(
-      (SELECT seen_at FROM notification_reads
-       WHERE user_id = ${userId} AND stream = ${STREAMS.leads}),
-      ${EPOCHS.leads}::timestamptz
-    )
+    WHERE trashed_at IS NULL
+      AND created_at > COALESCE(
+        (SELECT seen_at FROM notification_reads
+         WHERE user_id = ${userId} AND stream = ${STREAMS.leads}),
+        ${EPOCHS.leads}::timestamptz
+      )
   `)
 
   return Number(result.rows[0].count)

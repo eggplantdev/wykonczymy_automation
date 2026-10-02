@@ -3231,3 +3231,27 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
 - [ ] „Porównaj z katalogiem" → „Brak w katalogu": kliknięcie podpowiedzi „może chodzi o…", która
       ma tłumaczenie w katalogu, zmienia nazwę pozycji i wpisuje to tłumaczenie w „Opis prac (UA)".
 - [ ] Katalog prac: wpis z tłumaczeniem → zmiana samej ceny i zapis: tłumaczenie zostaje.
+
+## EX-970 — kosz-zgloszen
+
+Na staging najpierw `pnpm db:migrate:preview` (nowe kolumny `trashed_at` / `erased_at` w zgłoszeniach).
+
+- [ ] `/zgloszenia` jako kierownik: kolumna zaznaczania jest pierwsza, „Do kosza (N)" pojawia się
+      po zaznaczeniu.
+- [ ] „Bez plików" zostawia tylko zgłoszenia bez załączników; odświeżenie strony trzyma filtr.
+- [ ] Zaznacz dwa zgłoszenia → „Do kosza (2)" → potwierdź: znikają z listy, toast „Przeniesiono do
+      kosza: 2 zgłoszenia.", licznik „N nowych" i odznaka w menu spadają.
+- [ ] Checkbox w nagłówku zaznacza całą bieżącą stronę i nic z następnej.
+- [ ] Zaznacz zgłoszenie, potem kliknij „Oczekuje" → „Skontaktowano" w innym wierszu: zaznaczenie
+      zostaje.
+- [ ] Przestaw kolejność kolumn: kolumna zaznaczania zostaje pierwsza.
+- [ ] `/kosz` → sekcja „Zgłoszenia" pokazuje przeniesione → „Przywróć" jedno: wraca na
+      `/zgloszenia`.
+- [ ] „Usuń na zawsze" na zgłoszeniu, z którego utworzono inwestycję ze zdjęciami: wymaga wpisania
+      nazwy; po usunięciu zgłoszenie znika z `/kosz`, a galeria inwestycji pokazuje wszystkie zdjęcia.
+- [ ] Usunięte na zawsze zgłoszenie z Facebooka nie wraca po nocnym uzgodnieniu zgłoszeń (staging,
+      następny dzień).
+- [ ] Rozpiska → „Dodaj pracę z katalogu": zaznaczanie wierszy i checkbox w nagłówku działają jak
+      wcześniej (wspólny komponent zaznaczania).
+- [ ] Rozpiska → przegląd zgłoszenia prac pracownika: checkbox w nagłówku ma stan częściowy przy części
+      zaznaczonych linii, jak wcześniej.

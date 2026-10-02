@@ -166,6 +166,20 @@ describe('POST /api/webhooks/landing', () => {
     expect(fetchLandingAsset).toHaveBeenCalledTimes(2)
   })
 
+  // An erased lead (EX-970) carries no files because the owner dropped them, not because a crash
+  // lost them — so the retry case above must not fire, and the landing may let its copies go.
+  it('downloads nothing for an erased lead, and releases the landing copies', async () => {
+    /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+    vi.mocked(captureLead).mockResolvedValue({
+      lead: { id: 1, assets: [], erasedAt: '2026-10-02T00:00:00.000Z' } as any,
+      created: false,
+    })
+
+    expect((await POST(makeRequest(body()))).status).toBe(200)
+    expect(fetchLandingAsset).not.toHaveBeenCalled()
+    expect(releaseLandingAssets).toHaveBeenCalledWith(LANDING_SUBMISSION.submissionId)
+  })
+
   it('releases the landing copies once the whole set is attached', async () => {
     await POST(makeRequest(body()))
 

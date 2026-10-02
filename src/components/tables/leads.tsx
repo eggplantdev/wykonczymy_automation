@@ -1,6 +1,7 @@
 'use client'
 
 import { createColumnHelper } from '@tanstack/react-table'
+import { SelectPageHeader, SelectRowCell } from '@/components/tables/data-table/select-column'
 import { formatPLDateTime } from '@/lib/utils/format-date'
 import { ContactLink } from '@/components/ui/contact-link'
 import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
@@ -9,21 +10,14 @@ import { LeadAssetsDialog, type InvestmentOptionT } from '@/components/leads/lea
 import { PromoteLeadDialog } from '@/components/leads/promote-lead-dialog'
 import { BADGE_BASE } from '@/components/ui/badge'
 import { cn } from '@/lib/utils/cn'
+import { leadDisplayName } from '@/lib/leads/lead-display-name'
+import { LEAD_SOURCE_LABELS } from '@/lib/leads/lead-source-labels'
 import type { LeadRowT, LeadSourceT } from '@/types/leads'
 
-const SOURCE_BADGE: Record<LeadSourceT, { label: string; className: string }> = {
-  facebook_lead_ads: {
-    label: 'Facebook',
-    className: 'bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200',
-  },
-  website_form: {
-    label: 'Strona WWW',
-    className: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200',
-  },
-  landing_form: {
-    label: 'Landing',
-    className: 'bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200',
-  },
+const SOURCE_BADGE_CLASS: Record<LeadSourceT, string> = {
+  facebook_lead_ads: 'bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200',
+  website_form: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200',
+  landing_form: 'bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200',
 }
 
 const col = createColumnHelper<LeadRowT>()
@@ -31,10 +25,35 @@ const col = createColumnHelper<LeadRowT>()
 type LeadColumnOptionsT = {
   onToggle: (id: number, contacted: boolean) => void
   investments: InvestmentOptionT[]
+  onToggleSelect: (id: number) => void
+  onTogglePage: (ids: number[]) => void
 }
 
-export function getLeadColumns({ onToggle, investments }: LeadColumnOptionsT) {
+export function getLeadColumns({
+  onToggle,
+  investments,
+  onToggleSelect,
+  onTogglePage,
+}: LeadColumnOptionsT) {
   return [
+    col.display({
+      id: 'select',
+      size: 40,
+      enableHiding: false,
+      header: ({ table }) => (
+        <SelectPageHeader
+          pageIds={table.getRowModel().rows.map((row) => row.original.id)}
+          onTogglePage={onTogglePage}
+        />
+      ),
+      cell: (info) => (
+        <SelectRowCell
+          id={info.row.original.id}
+          label={`Zaznacz ${leadDisplayName(info.row.original)}`}
+          onToggle={onToggleSelect}
+        />
+      ),
+    }),
     col.accessor('name', {
       id: 'name',
       header: 'Imię i nazwisko',
@@ -44,10 +63,11 @@ export function getLeadColumns({ onToggle, investments }: LeadColumnOptionsT) {
       id: 'source',
       header: 'Źródło',
       enableSorting: true,
-      cell: (info) => {
-        const badge = SOURCE_BADGE[info.getValue()]
-        return <span className={cn(BADGE_BASE, badge.className)}>{badge.label}</span>
-      },
+      cell: (info) => (
+        <span className={cn(BADGE_BASE, SOURCE_BADGE_CLASS[info.getValue()])}>
+          {LEAD_SOURCE_LABELS[info.getValue()]}
+        </span>
+      ),
     }),
     col.accessor('email', {
       id: 'email',

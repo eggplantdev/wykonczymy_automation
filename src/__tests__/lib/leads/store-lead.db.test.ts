@@ -69,6 +69,39 @@ describe.skipIf(!ENV_READY)('storeLead + captureLead (DB)', () => {
     expect(rows.totalDocs).toBe(1)
   })
 
+  // EX-970 — „Usuń na zawsze" keeps the row as a tombstone precisely so the reconcile cron's next
+  // re-fetch of Meta's recent leads finds it: no second row, and no mail to sales about an empty lead.
+  it('neither re-creates nor re-notifies an erased lead on redelivery', async () => {
+    const externalId = `${runTag}-erased`
+    const input = makeInput(externalId)
+    const { lead } = await storeLead(payload, input)
+    createdIds.push(lead.id)
+    const db = await getDb(payload)
+    await db.execute(sql`
+      UPDATE leads SET name = NULL, email = NULL, phone = NULL, trashed_at = now(), erased_at = now()
+      WHERE id = ${lead.id}
+    `)
+
+    let sent = 0
+    const original = payload.sendEmail
+    payload.sendEmail = async () => {
+      sent += 1
+    }
+    try {
+      const again = await captureLead(payload, input)
+      expect(again).toMatchObject({ created: false, lead: { id: lead.id } })
+    } finally {
+      payload.sendEmail = original
+    }
+
+    expect(sent).toBe(0)
+    const { rows } = await db.execute(sql`
+      SELECT name, notify_status FROM leads
+      WHERE source = 'facebook_lead_ads' AND external_id = ${externalId}
+    `)
+    expect(rows).toEqual([{ name: null, notify_status: 'pending' }])
+  })
+
   // Risk 5 — a mail failure must never lose the lead; it only flips notifyStatus to 'failed'.
   it('persists the lead with notifyStatus=failed when the email send throws', async () => {
     const externalId = `${runTag}-mailfail`
