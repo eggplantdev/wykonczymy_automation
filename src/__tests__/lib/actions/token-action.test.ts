@@ -146,7 +146,7 @@ describe.skipIf(!ENV_READY)('tokenAction gates (DB)', () => {
   it('refuses a worker in the kosz, even one still marked active', async () => {
     const token = await mintToken(readyWorkerId)
     await db.execute(sql`UPDATE users SET trashed_at = now() WHERE id = ${readyWorkerId}`)
-    expect(await run(token)).toEqual({ success: false, error: REPORT_REFUSALS.inactiveWorker })
+    expect(await run(token)).toEqual(refused('inactiveWorker'))
     expect(handler).not.toHaveBeenCalled()
   })
 

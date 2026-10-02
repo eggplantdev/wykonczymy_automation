@@ -69,6 +69,13 @@ describe.skipIf(!ENV_READY)('investment trash queries (DB)', () => {
       sections: [{ name: 'S', items: [{ plannedQty: 0, clientPrice: 90 }] }],
     })
 
+    // An active investment never purges, so the fixtures are closed once their kosztorys is built.
+    await db.execute(
+      sql`UPDATE investments SET status = 'completed' WHERE id IN (${sql.join(
+        [planned, measured, priceOnly, empty, fresh].map((id) => sql`${id}`),
+        sql.raw(', '),
+      )})`,
+    )
     for (const id of [planned, measured, priceOnly, empty, template])
       await trashDaysAgo(db, id, PAST_RETENTION_DAYS)
     await trashDaysAgo(db, fresh, WITHIN_RETENTION_DAYS)
