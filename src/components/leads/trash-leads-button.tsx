@@ -12,12 +12,11 @@ import { toastMessage } from '@/lib/utils/toast'
 
 type PropsT = {
   leadIds: number[]
-  onTrashed: () => void
 }
 
 const leadsWord = (count: number) => pluralize(count, ['zgłoszenie', 'zgłoszenia', 'zgłoszeń'])
 
-export function TrashLeadsButton({ leadIds, onTrashed }: PropsT) {
+export function TrashLeadsButton({ leadIds }: PropsT) {
   const [confirming, setConfirming] = useState(false)
   const count = leadIds.length
 
@@ -26,8 +25,8 @@ export function TrashLeadsButton({ leadIds, onTrashed }: PropsT) {
       const res = await settleAction(() => trashLeadsAction(leadIds))
       setConfirming(false)
       if (!res.success) return toastMessage(res.error, 'error')
-      onTrashed()
-      toastMessage(`Przeniesiono do kosza: ${count} ${leadsWord(count)}.`, 'success')
+      const { trashed } = res.data
+      toastMessage(`Przeniesiono do kosza: ${trashed} ${leadsWord(trashed)}.`, 'success')
     })
   }
 

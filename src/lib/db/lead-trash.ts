@@ -1,6 +1,8 @@
 import 'server-only'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
+import { textOrNull } from '@/lib/db/row-coerce'
+import { sqlList } from '@/lib/db/sql-list'
 import type { Lead } from '@/payload-types'
 
 export type TrashedLeadRowT = {
@@ -13,8 +15,6 @@ export type TrashedLeadRowT = {
   trashedAt: Date
 }
 
-const asNullableString = (value: unknown) => (typeof value === 'string' ? value : null)
-
 // An erased lead is a tombstone kept only for the reconcile dedupe — it is no longer in the trash.
 export async function fetchTrashedLeads(db: DbExecutorT): Promise<TrashedLeadRowT[]> {
   const { rows } = await db.execute(sql`
@@ -25,9 +25,9 @@ export async function fetchTrashedLeads(db: DbExecutorT): Promise<TrashedLeadRow
   `)
   return rows.map((row) => ({
     id: Number(row.id),
-    name: asNullableString(row.name),
-    email: asNullableString(row.email),
-    phone: asNullableString(row.phone),
+    name: textOrNull(row.name),
+    email: textOrNull(row.email),
+    phone: textOrNull(row.phone),
     source: row.source as Lead['source'],
     submittedAt: row.submitted_at ? new Date(row.submitted_at as string) : null,
     trashedAt: new Date(row.trashed_at as string),
@@ -45,4 +45,18 @@ export async function selectPurgeableLeadIds(
     ORDER BY id
   `)
   return rows.map((row) => Number(row.id))
+}
+
+/**
+ * One statement for the whole selection rather than a Payload write per lead: the collection's only
+ * hook is revalidation, which the action does once anyway. Already-trashed ids are skipped, so the
+ * count is what actually moved.
+ */
+export async function trashLeads(db: DbExecutorT, ids: readonly number[]): Promise<number> {
+  const { rows } = await db.execute(sql`
+    UPDATE leads SET trashed_at = now(), updated_at = now()
+    WHERE id IN (${sqlList(ids)}) AND trashed_at IS NULL
+    RETURNING id
+  `)
+  return rows.length
 }

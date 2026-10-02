@@ -3,12 +3,12 @@
 import type { Payload } from 'payload'
 import { protectedAction } from '@/lib/actions/run-action'
 import { LEAD_TRASH_TAGS } from '@/lib/cache/tags'
+import { getDb } from '@/lib/db/get-db'
+import { trashLeads } from '@/lib/db/lead-trash'
 import { isNameConfirmed, NAME_MISMATCH_MESSAGE } from '@/lib/constants/trash'
-import { eraseTrashedLead } from '@/lib/leads/erase-lead'
+import { eraseTrashedLead, LEAD_MISSING_MESSAGE } from '@/lib/leads/erase-lead'
 import { leadDisplayName } from '@/lib/leads/lead-display-name'
 import type { ActionResultT } from '@/types/action'
-
-const MISSING_MESSAGE = 'Zgłoszenie nie istnieje.'
 
 // The wrapper expires the tags once; the hooks' own revalidation would fire per write.
 const SKIP_HOOK_REVALIDATION = { skipRevalidation: true }
@@ -23,29 +23,19 @@ const findLead = (payload: Payload, id: number) =>
   })
 
 /**
- * Bulk, from a /zgloszenia page selection. An id that is gone or already in the trash is skipped
- * rather than failing the batch — a second tab may have moved it first. Serial: concurrent Payload
- * writes on Neon silently commit only one.
+ * An id that is gone or already in the trash is skipped rather than failing the batch — a second
+ * tab may have moved it first — so `trashed` is what the toast reports, not the selection size.
  */
-export async function trashLeadsAction(leadIds: number[]): Promise<ActionResultT> {
-  return protectedAction(
+export async function trashLeadsAction(
+  leadIds: number[],
+): Promise<ActionResultT<{ trashed: number }>> {
+  return protectedAction<{ trashed: number }>(
     'trashLeadsAction',
     async ({ payload }) => {
       if (leadIds.length === 0) return { success: false, error: 'Nie zaznaczono zgłoszeń.' }
 
-      const trashedAt = new Date().toISOString()
-      for (const id of leadIds) {
-        const lead = await findLead(payload, id)
-        if (!lead || lead.trashedAt) continue
-        await payload.update({
-          collection: 'leads',
-          id,
-          data: { trashedAt },
-          overrideAccess: true,
-          context: SKIP_HOOK_REVALIDATION,
-        })
-      }
-      return { success: true }
+      const trashed = await trashLeads(await getDb(payload), leadIds)
+      return { success: true, data: { trashed } }
     },
     [...LEAD_TRASH_TAGS],
   )
@@ -56,7 +46,7 @@ export async function restoreLeadAction(leadId: number): Promise<ActionResultT> 
     'restoreLeadAction',
     async ({ payload }) => {
       const lead = await findLead(payload, leadId)
-      if (!lead || lead.erasedAt) return { success: false, error: MISSING_MESSAGE }
+      if (!lead || lead.erasedAt) return { success: false, error: LEAD_MISSING_MESSAGE }
 
       await payload.update({
         collection: 'leads',
@@ -79,7 +69,7 @@ export async function deleteLeadForeverAction(
     'deleteLeadForeverAction',
     async ({ payload }) => {
       const lead = await findLead(payload, leadId)
-      if (!lead || lead.erasedAt) return { success: false, error: MISSING_MESSAGE }
+      if (!lead || lead.erasedAt) return { success: false, error: LEAD_MISSING_MESSAGE }
       if (!isNameConfirmed(confirmName, leadDisplayName(lead))) {
         return { success: false, error: NAME_MISMATCH_MESSAGE }
       }

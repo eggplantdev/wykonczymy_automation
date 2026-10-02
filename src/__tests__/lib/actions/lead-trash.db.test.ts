@@ -117,7 +117,10 @@ describe.skipIf(!ENV_READY)('lead trash actions (DB)', () => {
     await actions.trashLeadsAction([lead.id])
     const firstDate = (await readLead(lead.id)).trashed_at
 
-    expect((await actions.trashLeadsAction([lead.id, -1])).success).toBe(true)
+    expect(await actions.trashLeadsAction([lead.id, -1])).toEqual({
+      success: true,
+      data: { trashed: 0 },
+    })
     expect((await readLead(lead.id)).trashed_at).toEqual(firstDate)
   })
 

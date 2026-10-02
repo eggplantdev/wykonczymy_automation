@@ -6,12 +6,28 @@ import type { DeleteForeverResultT } from '@/types/trash'
 import { logError } from '@/lib/utils/log-error'
 
 const LEAD_NOT_TRASHED_MESSAGE = 'Najpierw przenieś zgłoszenie do kosza.'
+export const LEAD_MISSING_MESSAGE = 'Zgłoszenie nie istnieje.'
+
+// Every field that can identify a person or carries what they wrote. A field added to `Leads` has to
+// land here or in the spec's kept list, so a new personal field cannot outlive „Usuń na zawsze".
+export const ERASED_LEAD_FIELDS = {
+  name: null,
+  email: null,
+  phone: null,
+  address: null,
+  scope: null,
+  area: null,
+  rawData: null,
+  formQuestions: null,
+  assets: [],
+}
 
 /**
  * „Usuń na zawsze" for a lead empties the row instead of deleting it. The leads-reconcile cron
  * re-fetches Meta's recent leads and dedupes on (source, externalId); a deleted row would come back
- * the next night as a fresh lead and mail sales again. So the tombstone keeps exactly those two
- * columns and loses everything that identifies a person.
+ * the next night as a fresh lead and mail sales again. So the tombstone keeps those two columns and
+ * the bookkeeping around them (form, dates, statuses, the inwestycja link) and loses everything that
+ * identifies a person.
  *
  * The files go only where nothing else holds them: a lead promoted to an inwestycja shares its media
  * rows with it, and the reference scan is what keeps the inwestycja's gallery intact. Awaited, not
@@ -30,7 +46,7 @@ export async function eraseTrashedLead(
       overrideAccess: true,
       disableErrors: true,
     })
-    if (!lead) return { ok: false, reason: 'error', message: 'Zgłoszenie nie istnieje.' }
+    if (!lead) return { ok: false, reason: 'error', message: LEAD_MISSING_MESSAGE }
     if (lead.erasedAt) return { ok: true }
     if (!lead.trashedAt) {
       return { ok: false, reason: 'not-trashed', message: LEAD_NOT_TRASHED_MESSAGE }
@@ -40,18 +56,7 @@ export async function eraseTrashedLead(
     await payload.update({
       collection: 'leads',
       id: leadId,
-      data: {
-        name: null,
-        email: null,
-        phone: null,
-        address: null,
-        scope: null,
-        area: null,
-        rawData: null,
-        formQuestions: null,
-        assets: [],
-        erasedAt: new Date().toISOString(),
-      },
+      data: { ...ERASED_LEAD_FIELDS, erasedAt: new Date().toISOString() },
       overrideAccess: true,
       context: { skipRevalidation: true },
     })
