@@ -8,6 +8,7 @@ const FULL = {
   contactPerson: 'Jan Testowy',
   notes: 'Notatka',
   status: 'active' as const,
+  reviewRequested: true,
 }
 
 describe('buildInvestmentInfoFields', () => {
@@ -20,6 +21,7 @@ describe('buildInvestmentInfoFields', () => {
       'Osoba kontaktowa',
       'Notatki',
       'Status',
+      'Opinia',
     ])
   })
 
@@ -27,7 +29,12 @@ describe('buildInvestmentInfoFields', () => {
   // truthy — filtering on the rendered node instead of the raw field silently kept an empty phone
   // or email in the list.
   it('odfiltrowuje puste Telefon i Email, zostawia resztę', () => {
-    const fields = buildInvestmentInfoFields({ ...FULL, phone: '', email: '' })
+    const fields = buildInvestmentInfoFields({
+      ...FULL,
+      phone: '',
+      email: '',
+      reviewRequested: false,
+    })
     expect(fields.map((field) => field.label)).toEqual([
       'Adres',
       'Osoba kontaktowa',
@@ -44,6 +51,7 @@ describe('buildInvestmentInfoFields', () => {
       contactPerson: '',
       notes: '',
       status: 'planowana',
+      reviewRequested: false,
     })
     expect(fields.map((field) => field.label)).toEqual(['Status'])
   })

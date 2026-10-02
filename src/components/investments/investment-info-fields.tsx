@@ -7,7 +7,7 @@ import type { InvestmentRefT } from '@/types/reference-data'
 export function buildInvestmentInfoFields(
   investment: Pick<
     InvestmentRefT,
-    'address' | 'phone' | 'email' | 'contactPerson' | 'notes' | 'status'
+    'address' | 'phone' | 'email' | 'contactPerson' | 'notes' | 'status' | 'reviewRequested'
   >,
 ) {
   return [
@@ -29,5 +29,6 @@ export function buildInvestmentInfoFields(
       value: investment.notes && <span className="whitespace-pre-line">{investment.notes}</span>,
     },
     { label: 'Status', value: INVESTMENT_STATUS_LABELS[investment.status].pl },
+    { label: 'Opinia', value: investment.reviewRequested && 'Wysłano' },
   ].filter((field) => field.value)
 }

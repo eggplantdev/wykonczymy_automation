@@ -18,7 +18,7 @@ const BRAND = {
 
 type BrandedEmailT = {
   logoUrl: string
-  heading: string
+  heading?: string
   /** Plain-text paragraphs; escaped and rendered in order. */
   paragraphs: string[]
   /** Rendered after the paragraphs as a button — a styled `<a>`, since clients drop `<button>`. */
@@ -47,6 +47,10 @@ export function renderBrandedEmail({
        </p>`
     : ''
 
+  const headingHtml = heading
+    ? `<h1 style="color:${BRAND.navy};font-size:22px;font-weight:600;margin:0 0 20px 0;">${escapeHtml(heading)}</h1>`
+    : ''
+
   const footerHtml = footer
     ? `<hr style="border:none;border-top:1px solid ${BRAND.border};margin:24px 0 16px 0;" />
        <p style="color:${BRAND.muted};font-size:12px;line-height:1.6;text-align:center;margin:0;">${escapeHtml(footer)}</p>`
@@ -61,7 +65,7 @@ export function renderBrandedEmail({
   <body style="background-color:${BRAND.pageBg};margin:0;padding:32px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
     <div style="max-width:560px;margin:0 auto;background-color:${BRAND.cardBg};border:1px solid ${BRAND.border};border-radius:12px;overflow:hidden;">
       <div style="padding:32px;">
-        <h1 style="color:${BRAND.navy};font-size:22px;font-weight:600;margin:0 0 20px 0;">${escapeHtml(heading)}</h1>
+        ${headingHtml}
         ${body}
         ${ctaHtml}
         ${footerHtml}

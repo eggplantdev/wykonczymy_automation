@@ -12,12 +12,11 @@ const GOOGLE_REVIEW_URL =
 export async function sendReviewRequestEmail(payload: Payload, to: string): Promise<void> {
   const html = renderBrandedEmail({
     logoUrl: BRAND_LOGO_URL,
-    heading: 'Dziękujemy za wspólną realizację',
     paragraphs: [
       'Dzień dobry,',
-      'dziękujemy, że powierzyli nam Państwo wykończenie wnętrza. Mamy nadzieję, że efekt spełnia Państwa oczekiwania.',
-      'Będziemy bardzo wdzięczni za krótką opinię w Google — zajmie mniej niż minutę, a kolejnym klientom pomoże nas znaleźć.',
-      'Pozdrawiamy,\nZespół Wykończymy',
+      'dziękujemy za współpracę i okazane zaufanie. Mamy nadzieję, że efekt spełnia Państwa oczekiwania.',
+      'Będziemy wdzięczni, jeśli znajdą Państwo chwilę, by podzielić się opinią o naszej pracy. Każda recenzja pomaga nam się rozwijać, a innym klientom znaleźć wykonawcę.',
+      'Pozdrawiamy serdecznie,\nZespół Wykończymy',
     ],
     cta: { label: 'Wystaw opinię', href: GOOGLE_REVIEW_URL },
   })

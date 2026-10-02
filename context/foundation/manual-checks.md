@@ -3267,7 +3267,7 @@ Na staging najpierw `pnpm db:migrate:preview` (nowa kolumna `review_requested` w
 - [ ] Lista inwestycji: zakończona inwestycja ma w „Akcjach" gwiazdkę „Poproś o opinię"; aktywna jej
       nie ma, a kolumna „Opinia" pokazuje „—".
 - [ ] Strona inwestycji: przycisk „Poproś o opinię" jest tylko przy zakończonej inwestycji spoza kosza;
-      po wysłaniu zmienia się na „Wyślij ponownie prośbę o opinię".
+      po wysłaniu znika (z „Akcji" na liście też), a na karcie inwestycji pojawia się „Opinia: Wysłano".
 - [ ] Inwestycja bez emaila klienta: wpisanie adresu w dialogu i „Wyślij" zapisuje go na inwestycji
       (widać na karcie).
 - [ ] Nieprawidłowy adres email: dialog pokazuje błąd pola, nic nie wychodzi.
@@ -3277,3 +3277,10 @@ Na staging najpierw `pnpm db:migrate:preview` (nowa kolumna `review_requested` w
       „Opinia" nadal pokazuje „—".
 - [ ] Z prawdziwym `EMAIL_HOST` w `.env`: wysyłka na własny adres dochodzi z logo, treścią i działającym
       przyciskiem „Wystaw opinię" (nie w spamie); kolumna „Opinia" pokazuje „Wysłano".
+- [ ] Dialog „Poproś o opinię": obok „Wyślij" jest „Anuluj", który zamyka dialog bez wysyłki; nie ma
+      „Wyczyść formularz", a opis nie mówi o zapisie adresu.
+- [ ] Mail z prośbą: bez nagłówka; cztery akapity z odstępami — „Dzień dobry,", „dziękujemy za
+      współpracę…", „Będziemy wdzięczni…", „Pozdrawiamy serdecznie, / Zespół Wykończymy" — pod nimi
+      przycisk „Wystaw opinię".
+- [ ] Zakończona inwestycja z wysłaną prośbą → „Edytuj" → odznacz „Prośba o opinię wysłana" → zapisz:
+      przycisk „Poproś o opinię" wraca, a wiersz „Opinia" znika z karty.
