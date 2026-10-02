@@ -1,7 +1,7 @@
 ---
 change_id: premia
 title: Premia — wyrównanie nadpłaty pracownika, niewidoczne dla inwestora
-status: implementing
+status: implemented
 created: 2026-10-02
 updated: 2026-10-02
 archived_at: null
