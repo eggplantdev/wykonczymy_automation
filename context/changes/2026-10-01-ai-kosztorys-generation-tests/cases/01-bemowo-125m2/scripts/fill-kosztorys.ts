@@ -9,7 +9,7 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { getPayload } from 'payload'
-import config from '../payload.config'
+import config from '@/payload.config'
 
 const INVESTMENT_ID = 167
 const CASE = path.join(
@@ -100,6 +100,7 @@ async function run() {
         description: catalogue?.description ?? work.description,
         unit: catalogue?.unit ?? work.unit,
         clientPrice: catalogue?.clientPrice ?? work.clientPrice ?? 0,
+        discountValue: 0,
         wToolsOverrideValue: catalogue?.wToolsRate ?? null,
         ownToolsOverrideValue: catalogue?.ownToolsRate ?? null,
         wToolsOverrideCoeff: catalogue?.wToolsRateCoeff ?? null,
