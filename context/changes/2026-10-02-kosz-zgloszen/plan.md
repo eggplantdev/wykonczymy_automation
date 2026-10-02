@@ -530,5 +530,5 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 4.1 `trash.test.ts` — lead kind + display-name fallback
-- [x] 4.2 Existing trash component specs pass
+- [x] 4.1 `trash.test.ts` — lead kind + display-name fallback — c3f25081
+- [x] 4.2 Existing trash component specs pass — c3f25081
