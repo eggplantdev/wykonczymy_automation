@@ -86,7 +86,7 @@ export function shapeInvestments(
       balanceFromTransactions: calculateBalance(transactionFinancials),
       // Only meaningful where the investment settles brutto: there every wpłata carries a brutto
       // kwota, so the deduction is complete. Elsewhere a wpłata gotówka has no brutto kwota at all
-      // and this figure deducts less than was paid, which is why the listing prints „nie dotyczy"
+      // and this figure deducts less than was paid, which is why the listing prints the tryb's name
       // outside tryb brutto rather than this number (owner, 2026-08-23). Still computed for every
       // row: the tryb is a fact the reader can flip, and the column returns with it.
       balanceGross: -amountDue.gross,

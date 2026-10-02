@@ -174,9 +174,9 @@ withholds more readily than the panel does, on purpose:
 - **Unconfirmed plane → „ustaw etapy".** The panel prints the short należne beside a hint; a list
   scanned for debt cannot, because a short należne understates what is owed — the dangerous
   direction for this figure.
-- **No kosztorys → „brak danych", not `−wypłaty`.** Unlike marża v2, where no kosztorys is a real
-  zero, here it would paint every legacy investment as overpaid and sort them in among the real
-  overpayments. A kosztorys with items but no executed work does read `−wypłaty`: the crews were
+- **No kosztorys → „brak kosztorysu", not `−wypłaty`.** Unlike the other v2 columns (bilans,
+  robocizna, marża), which print the real figure with robocizna at zero (owner, 2026-10-02), here
+  it would paint every legacy investment as overpaid and sort them in among the real overpayments. A kosztorys with items but no executed work does read `−wypłaty`: the crews were
   genuinely paid ahead.
 - **Ungated.** Every management role sees it, although it lets a MANAGER derive Σ wypłat, which the
   „Wypłaty" column hides from them — the owner's call (2026-09-29). The investment page's panel still

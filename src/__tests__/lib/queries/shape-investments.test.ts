@@ -420,9 +420,9 @@ describe('shapeInvestments robocizna source', () => {
   })
 
   // A kosztorys fully entered but with no etap progress yet sums to exactly zero, because „pomiar z
-  // natury" IS the etap sum (EX-494). Read presence off that zero and the listing prints „brak
-  // danych" over a complete rozpiska and suppresses the v1/v2 rozjazd icon precisely where a fresh
-  // kosztorys most needs flagging — so presence travels as its own fact.
+  // natury" IS the etap sum (EX-494). Read presence off that zero and the listing's „Pozostało do
+  // wypłaty" prints „brak kosztorysu" over a complete rozpiska whose crews were paid ahead — so
+  // presence travels as its own fact.
   it('tells an absent kosztorys from one that sums to zero', () => {
     const [zeroProgress] = shapeInvestments(
       [baseInv],

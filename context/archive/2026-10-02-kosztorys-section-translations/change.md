@@ -1,10 +1,10 @@
 ---
 change_id: kosztorys-section-translations
 title: Translate kosztorys section names (UA/RU) on the worker report link
-status: implemented
+status: archived
 created: 2026-10-02
 updated: 2026-10-02
-archived_at: null
+archived_at: 2026-10-02T08:58:59Z
 branch: kosztorys-section-translations
 worktree: ../wykonczymy-worktrees/kosztorys-section-translations
 ---

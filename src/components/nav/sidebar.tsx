@@ -35,7 +35,7 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
         // z-40: the handle overhangs into the page, and the kosztorys v2 grid paints its frozen
         // columns at z-30 — without a stacking context above that, the pill disappears under them.
         'border-border bg-background sticky top-0 z-40 hidden h-screen shrink-0 flex-col border-r pb-3 sm:flex',
-        collapsed ? 'w-14 px-2' : 'w-52 px-3',
+        collapsed ? 'w-14 px-2' : 'w-54 px-3',
       )}
     >
       <SimpleTooltip content={collapsed ? 'Rozwiń menu' : 'Zwiń menu'}>
