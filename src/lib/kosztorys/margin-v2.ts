@@ -16,6 +16,10 @@ import { roundToCents } from '@/lib/utils/round-to-cents'
  *
  * `totalSettled` and `totalLoss` remain transaction-sourced: the kosztorys cannot know either.
  *
+ * `totalBonus` is charged here and NOT in `calculateMargin`: a premia settles an overpayment, and on
+ * v1 that money already left as the PAYOUT it covers. v2 reads `due` instead of wypłaty, so without
+ * this term the overpayment would never reach it.
+ *
  * **Returns `null`, not a number, when the crew side is incomplete.** An etap holding executed work
  * with no settlement plane contributes nothing to `due` while its robocizna still counts, so the
  * figure would read high by an unknown amount. Zero would assert the work was free and a default
@@ -35,6 +39,7 @@ export function marginV2(
       financials.totalDiscount -
       subcontractor.due -
       financials.totalSettled -
-      financials.totalLoss,
+      financials.totalLoss -
+      financials.totalBonus,
   )
 }

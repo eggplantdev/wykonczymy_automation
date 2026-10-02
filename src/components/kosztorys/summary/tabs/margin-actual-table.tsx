@@ -18,7 +18,7 @@ import type { InvestmentFinancialsT } from '@/types/investment-financials'
 
 const DESCRIPTION =
   'Robocizna minus rabat minus suma wykonanej pracy, minus ' +
-  'materiał wliczony w robociznę i stratę. Koszt podwykonawców liczony z kosztorysu, a nie z wypłat — ile zrobiono, nie ile do tej pory wypłacono.'
+  'materiał wliczony w robociznę, stratę i premie. Koszt podwykonawców liczony z kosztorysu, a nie z wypłat — ile zrobiono, nie ile do tej pory wypłacono.'
 
 // The crew block stands next to the margin, not in it: the margin costs the work the kosztorys
 // credits, wypłaty are cash timing. Without this the two numbers look like a contradiction.
@@ -35,7 +35,8 @@ type PropsT = {
 }
 
 export function MarginActualTable({ financials, subcontractor }: PropsT) {
-  const { totalLaborCosts, totalDiscount, totalLoss, totalSettled, totalPayouts } = financials
+  const { totalLaborCosts, totalDiscount, totalLoss, totalBonus, totalSettled, totalPayouts } =
+    financials
   const margin = marginV2(financials, subcontractor)
 
   // Rounded before the sign is read: `due` is a sum through fractional plane coefficients and
@@ -74,6 +75,9 @@ export function MarginActualTable({ financials, subcontractor }: PropsT) {
         )}
         {totalLoss !== 0 && (
           <SummaryRow label="Strata" line={faceValue(-totalLoss)} axis="net" discount />
+        )}
+        {totalBonus !== 0 && (
+          <SummaryRow label="Premia" line={faceValue(-totalBonus)} axis="net" discount />
         )}
         {margin === null ? (
           // No amount at all — a zero-cost crew is a false statement, not a missing one.

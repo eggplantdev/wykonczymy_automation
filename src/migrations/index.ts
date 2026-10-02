@@ -114,6 +114,7 @@ import * as migration_20261001_2_vehicles_equipment_trashed_at from './20261001_
 import * as migration_20261002_0_leads_trashed_erased_at from './20261002_0_leads_trashed_erased_at'
 import * as migration_20261002_1_investments_review_requested from './20261002_1_investments_review_requested'
 import * as migration_20261002_2_section_translations from './20261002_2_section_translations'
+import * as migration_20261002_3_add_bonus_transfer_type from './20261002_3_add_bonus_transfer_type'
 
 export const migrations = [
   {
@@ -695,5 +696,10 @@ export const migrations = [
     up: migration_20261002_2_section_translations.up,
     down: migration_20261002_2_section_translations.down,
     name: '20261002_2_section_translations',
+  },
+  {
+    up: migration_20261002_3_add_bonus_transfer_type.up,
+    down: migration_20261002_3_add_bonus_transfer_type.down,
+    name: '20261002_3_add_bonus_transfer_type',
   },
 ]

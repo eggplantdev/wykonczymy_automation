@@ -18,6 +18,9 @@ export type InvestmentFinancialsT = {
   totalPayouts: number
   totalDiscount: number
   totalLoss: number
+  /** Σ premii (BONUS): an entitlement granted to a worker on top of their executed work. Read by
+   *  marża v2 and the owner's „Pozostało do wypłaty" only — never by an investor figure. */
+  totalBonus: number
   totalSettled: number
   /** What the company gives away by billing materiały netto instead of at the brutto receipt:
    *  `materialsGrossBase − materialsGrossBase / (1 + rate)`, or 0 where no rate is set or the
@@ -44,6 +47,7 @@ export const ZERO_FINANCIALS: InvestmentFinancialsT = {
   totalPayouts: 0,
   totalDiscount: 0,
   totalLoss: 0,
+  totalBonus: 0,
   totalSettled: 0,
   materialsNetDiscount: 0,
   settledCategoryCosts: [],

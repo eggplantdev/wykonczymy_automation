@@ -30,6 +30,12 @@ describe('marginV2', () => {
     expect(marginV2(paidNothing, settled)).toBe(marginV2(financials, settled))
   })
 
+  // EX-979: `due` carries no premia, so without this term an overpaid crew would never reach v2.
+  it('odejmuje premię', () => {
+    const withBonus = { ...financials, totalBonus: 205.01 }
+    expect(marginV2(withBonus, settled)).toBe(14.99) // 220 − 205,01
+  })
+
   // The listing's należne is a Postgres numeric SUM, the investment page's a JS fold of qty × stawka:
   // 2.5 × 1125.89 is 2814.725 in one and 2814.7250000000004 in the other, which put the two surfaces
   // a grosz apart on a half-grosz marża.

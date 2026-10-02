@@ -83,6 +83,7 @@ const HELPERS: Record<string, { fn: HelperFn; trueFor: string[] }> = {
       'PAYOUT',
       'RABAT',
       'LOSS',
+      'BONUS',
     ],
   },
   requiresInvestment: {
@@ -94,6 +95,7 @@ const HELPERS: Record<string, { fn: HelperFn; trueFor: string[] }> = {
       'LABOR_COST',
       'RABAT',
       'LOSS',
+      'BONUS',
     ],
   },
   needsTargetRegister: {
@@ -102,7 +104,7 @@ const HELPERS: Record<string, { fn: HelperFn; trueFor: string[] }> = {
   },
   needsWorker: {
     fn: needsWorker,
-    trueFor: ['PAYOUT'],
+    trueFor: ['PAYOUT', 'BONUS'],
   },
   needsOtherCategory: {
     fn: needsOtherCategory,
@@ -250,6 +252,7 @@ describe('membership arrays — exact contents and order', () => {
       'OTHER',
       'CORRECTION',
       'LABOR_COST',
+      'BONUS',
       'RABAT',
       'LOSS',
       'REGISTER_TRANSFER',
@@ -277,6 +280,7 @@ describe('membership arrays — exact contents and order', () => {
       'OTHER',
       'CORRECTION',
       'LABOR_COST',
+      'BONUS',
       'RABAT',
       'LOSS',
       'INVESTMENT_EXPENSE',
@@ -350,6 +354,7 @@ describe('TRANSFER_TYPE_LABELS / TRANSFER_TYPE_COLORS', () => {
     ['OTHER', 'Inny wydatek', 'chart-red'],
     ['CORRECTION', 'Korekta', 'chart-orange'],
     ['LABOR_COST', 'Koszty robocizny', 'chart-orange'],
+    ['BONUS', 'Premia', 'chart-yellow'],
     ['RABAT', 'Rabat', 'chart-green'],
     ['LOSS', 'Strata', 'chart-purple'],
     ['REGISTER_TRANSFER', 'Transfer między kasami', 'chart-turquoise'],

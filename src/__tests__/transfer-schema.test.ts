@@ -64,6 +64,7 @@ const VALID_SERVER_PAYLOADS: Record<string, Record<string, unknown>> = {
   },
   LABOR_COST: { ...base, type: 'LABOR_COST', investment: 1 },
   LOSS: { ...base, type: 'LOSS', investment: 1 },
+  BONUS: { ...base, type: 'BONUS', investment: 1, worker: 1 },
   REGISTER_TRANSFER: {
     ...base,
     type: 'REGISTER_TRANSFER',
@@ -138,6 +139,26 @@ describe('createTransferSchema — missing required fields', () => {
     const result = createTransferSchema.safeParse(rest)
     expect(result.success).toBe(false)
     expect(errorPaths(result)).toContain('investment')
+  })
+
+  it('BONUS without investment → error on investment', () => {
+    const { investment, ...rest } = VALID_SERVER_PAYLOADS.BONUS
+    void investment
+    const result = createTransferSchema.safeParse(rest)
+    expect(result.success).toBe(false)
+    expect(errorPaths(result)).toContain('investment')
+  })
+
+  it('BONUS without worker → error on worker', () => {
+    const { worker, ...rest } = VALID_SERVER_PAYLOADS.BONUS
+    void worker
+    const result = createTransferSchema.safeParse(rest)
+    expect(result.success).toBe(false)
+    expect(errorPaths(result)).toContain('worker')
+  })
+
+  it('BONUS needs no kasa', () => {
+    expect(createTransferSchema.safeParse(VALID_SERVER_PAYLOADS.BONUS).success).toBe(true)
   })
 
   it('INVESTOR_DEPOSIT without sourceRegister → error on sourceRegister', () => {

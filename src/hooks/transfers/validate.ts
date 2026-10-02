@@ -169,7 +169,7 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
   }
 
   if (needsWorker(type) && !worker) {
-    errors.push('Worker is required for payout transfers.')
+    errors.push('Worker is required for this transfer type.')
   }
 
   if (!needsWorker(type)) {

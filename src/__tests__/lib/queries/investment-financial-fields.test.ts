@@ -17,6 +17,7 @@ const base: InvestmentFinancialsT = {
   totalPayouts: 0,
   totalDiscount: 0,
   totalLoss: 0,
+  totalBonus: 0,
   totalSettled: 0,
   materialsNetDiscount: 0,
   settledCategoryCosts: [],

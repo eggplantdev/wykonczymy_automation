@@ -83,6 +83,7 @@ describe('sumAllInvestmentFinancials', () => {
           { investment_id: '1', type: 'PAYOUT', settled: false, total: '150' },
           { investment_id: '1', type: 'RABAT', settled: false, total: '50' },
           { investment_id: '1', type: 'LOSS', settled: false, total: '120' },
+          { investment_id: '1', type: 'BONUS', settled: false, total: '70' },
           { investment_id: '2', type: 'INVESTMENT_EXPENSE', settled: false, total: '500' },
         ],
       })
@@ -102,6 +103,7 @@ describe('sumAllInvestmentFinancials', () => {
       totalPayouts: 150,
       totalDiscount: 50,
       totalLoss: 120,
+      totalBonus: 70,
       totalSettled: 0,
       materialsNetDiscount: 0,
       settledCategoryCosts: [],
@@ -228,6 +230,7 @@ describe('deriveFinancials', () => {
       { type: 'PAYOUT', settled: false, total: 300 },
       { type: 'RABAT', settled: false, total: 200 },
       { type: 'LOSS', settled: false, total: 150 },
+      { type: 'BONUS', settled: false, total: 90 },
     ]
     expect(deriveFinancials(rows)).toEqual({
       categoryCosts: [],
@@ -239,6 +242,7 @@ describe('deriveFinancials', () => {
       totalPayouts: 300,
       totalDiscount: 200,
       totalLoss: 150,
+      totalBonus: 90,
       totalSettled: 0,
       materialsNetDiscount: 0,
       settledCategoryCosts: [],
@@ -257,6 +261,7 @@ describe('deriveFinancials', () => {
       totalPayouts: 0,
       totalDiscount: 0,
       totalLoss: 0,
+      totalBonus: 0,
       totalSettled: 0,
       materialsNetDiscount: 0,
       settledCategoryCosts: [],
