@@ -1,6 +1,8 @@
 'use client'
 
+import { createContext, use } from 'react'
 import { createColumnHelper } from '@tanstack/react-table'
+import { Checkbox } from '@/components/ui/checkbox'
 import { formatPLDateTime } from '@/lib/utils/format-date'
 import { ContactLink } from '@/components/ui/contact-link'
 import { ActiveToggleBadge } from '@/components/ui/active-toggle-badge'
@@ -28,13 +30,68 @@ const SOURCE_BADGE: Record<LeadSourceT, { label: string; className: string }> = 
 
 const col = createColumnHelper<LeadRowT>()
 
+export const SelectedLeadIdsContext = createContext<ReadonlySet<number>>(new Set())
+
+// Read from context rather than baked into the columns: `flexRender` mounts a `cell` function as a
+// component, so columns rebuilt per click would remount every cell on the page.
+function SelectLeadCell({ lead, onToggle }: { lead: LeadRowT; onToggle: (id: number) => void }) {
+  const selected = use(SelectedLeadIdsContext)
+  return (
+    <Checkbox
+      checked={selected.has(lead.id)}
+      onCheckedChange={() => onToggle(lead.id)}
+      aria-label={`Zaznacz ${lead.name || `zgłoszenie #${lead.id}`}`}
+    />
+  )
+}
+
+function SelectPageHeader({
+  pageIds,
+  onTogglePage,
+}: {
+  pageIds: number[]
+  onTogglePage: (ids: number[]) => void
+}) {
+  const selected = use(SelectedLeadIdsContext)
+  const selectedOnPage = pageIds.filter((id) => selected.has(id)).length
+  const checked =
+    selectedOnPage === 0 ? false : selectedOnPage === pageIds.length ? true : 'indeterminate'
+  return (
+    <Checkbox
+      checked={checked}
+      onCheckedChange={() => onTogglePage(pageIds)}
+      aria-label="Zaznacz wszystkie na stronie"
+    />
+  )
+}
+
 type LeadColumnOptionsT = {
   onToggle: (id: number, contacted: boolean) => void
   investments: InvestmentOptionT[]
+  onToggleSelect: (id: number) => void
+  /** Selects the page, or clears it when every row on it is already selected. */
+  onTogglePage: (ids: number[]) => void
 }
 
-export function getLeadColumns({ onToggle, investments }: LeadColumnOptionsT) {
+export function getLeadColumns({
+  onToggle,
+  investments,
+  onToggleSelect,
+  onTogglePage,
+}: LeadColumnOptionsT) {
   return [
+    col.display({
+      id: 'select',
+      size: 40,
+      enableHiding: false,
+      header: ({ table }) => (
+        <SelectPageHeader
+          pageIds={table.getRowModel().rows.map((row) => row.original.id)}
+          onTogglePage={onTogglePage}
+        />
+      ),
+      cell: (info) => <SelectLeadCell lead={info.row.original} onToggle={onToggleSelect} />,
+    }),
     col.accessor('name', {
       id: 'name',
       header: 'Imię i nazwisko',

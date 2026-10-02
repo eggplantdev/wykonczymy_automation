@@ -523,8 +523,8 @@ Run once, after the final phase:
 
 #### Automated
 
-- [ ] 3.1 `leads-data-table.test.tsx` — page select, bulk button, cleared on new data
-- [ ] 3.2 `leads.db.test.ts` — `noFiles` filter
+- [x] 3.1 `leads-data-table.test.tsx` — page select, bulk button, cleared on new data
+- [x] 3.2 `leads.db.test.ts` — `noFiles` filter
 
 ### Phase 4: `/kosz` section and docs
 
