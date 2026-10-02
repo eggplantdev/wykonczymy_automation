@@ -87,7 +87,7 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
         email: String(d.email ?? ''),
         contactPerson: String(d.contactPerson ?? ''),
         notes: String(d.notes ?? ''),
-        review: String(d.review ?? ''),
+        reviewRequested: d.reviewRequested === true,
         hasSheet: false,
         materialsNetRate: d.materialsNetRate ?? null,
         settlementMode: (d.settlementMode as SettlementModeT) ?? SETTLEMENT_MODE_DEFAULT,

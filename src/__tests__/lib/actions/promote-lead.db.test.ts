@@ -34,7 +34,7 @@ const FORM_DATA = {
   email: 'test@example.com',
   contactPerson: 'Anna Testowa',
   notes: 'Zakres prac: łazienka',
-  review: '',
+  reviewRequested: false,
   status: 'active' as const,
   presetId: '',
   assets: [],

@@ -108,7 +108,7 @@ export function shapeInvestments(
       phone: inv.phone,
       email: inv.email,
       contactPerson: inv.contactPerson,
-      review: inv.review,
+      reviewRequested: inv.reviewRequested,
       notes: inv.notes,
       hasSheet: inv.hasSheet,
       hasKosztorys: clientTotals !== undefined,

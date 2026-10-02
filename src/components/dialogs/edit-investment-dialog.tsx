@@ -4,6 +4,7 @@ import { EditButton } from '@/components/ui/row-actions/edit-button'
 import { FormDialog } from '@/components/ui/form-dialog'
 import { InvestmentForm } from '@/components/forms/investment-form/investment-form'
 import { updateInvestmentAction } from '@/lib/actions/investments'
+import { useReviewPromptStore } from '@/stores/review-prompt-store'
 import type { InvestmentRefT } from '@/types/reference-data'
 
 type EditInvestmentDialogPropsT = {
@@ -13,6 +14,7 @@ type EditInvestmentDialogPropsT = {
 
 export function EditInvestmentDialog({ investment, showLabel }: EditInvestmentDialogPropsT) {
   const formId = `edit-investment-${investment.id}`
+  const openReviewPrompt = useReviewPromptStore((s) => s.openReviewPrompt)
 
   return (
     <FormDialog
@@ -32,7 +34,7 @@ export function EditInvestmentDialog({ investment, showLabel }: EditInvestmentDi
             email: investment.email,
             contactPerson: investment.contactPerson,
             notes: investment.notes,
-            review: investment.review,
+            reviewRequested: investment.reviewRequested,
             status: investment.status,
             presetId: '',
           }}
@@ -44,6 +46,14 @@ export function EditInvestmentDialog({ investment, showLabel }: EditInvestmentDi
           keepOpen={keepOpen}
           persistDraft={false}
           assetsInvestmentId={investment.id}
+          onEnteredCompleted={(data) =>
+            openReviewPrompt({
+              id: investment.id,
+              name: data.name,
+              email: data.email ?? '',
+              reviewRequested: false,
+            })
+          }
         />
       )}
     </FormDialog>

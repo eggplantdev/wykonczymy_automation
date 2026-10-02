@@ -50,7 +50,7 @@ const INVESTMENT: InvestmentRefT = {
   email: 'kontakt@przyklad.test',
   contactPerson: 'Anna Kowalska',
   notes: 'Zakres prac: kuchnia i łazienka.',
-  review: '',
+  reviewRequested: false,
   hasSheet: false,
   materialsNetRate: null,
   settlementMode: 'NET',

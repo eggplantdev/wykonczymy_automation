@@ -39,6 +39,8 @@ type InvestmentFormPropsT = {
   collectAssets?: boolean
   /** Mutually exclusive with `collectAssets`. */
   assetsInvestmentId?: number
+  /** Fires after a save that moved the status INTO „Zakończona" while no review request was sent. */
+  onEnteredCompleted?: (data: InvestmentFormDataT) => void
 }
 
 export function InvestmentForm({
@@ -54,7 +56,12 @@ export function InvestmentForm({
   presetOptions,
   collectAssets,
   assetsInvestmentId,
+  onEnteredCompleted,
 }: InvestmentFormPropsT) {
+  // Set by the action, consumed after `onSubmitSuccess`: the prompt opens through the shared dialog
+  // store, so opening it before this dialog's own close would be undone by that close.
+  const entersCompleted = (status: string) =>
+    isLockedStatus(status) && !isLockedStatus(defaultValues.status)
   const { files, isIngesting, inputKey, fileInputProps, reset: resetFiles } = useFilePickIngest()
 
   const { form, reset, submitConfirm } = useManagedForm<InvestmentFormValuesT, InvestmentFormDataT>(
@@ -66,6 +73,9 @@ export function InvestmentForm({
       keepOpen,
       successMessage,
       onSubmitSuccess,
+      onSaved: (data) => {
+        if (entersCompleted(data.status) && !data.reviewRequested) onEnteredCompleted?.(data)
+      },
       persistDraft,
       onReset: resetFiles,
       // Upload first, then create — the investment must never reference a media id that failed to
@@ -85,7 +95,7 @@ export function InvestmentForm({
       // but właściciel/admin, so the person closing the investment is told what they are giving up
       // before the write, not by a refusal afterwards.
       confirmBeforeSubmit: (value) =>
-        isLockedStatus(value.status) && !isLockedStatus(defaultValues.status)
+        entersCompleted(value.status)
           ? {
               title: 'Zakończyć inwestycję?',
               description:
@@ -101,7 +111,7 @@ export function InvestmentForm({
         email: value.email,
         contactPerson: value.contactPerson,
         notes: value.notes,
-        review: value.review,
+        reviewRequested: value.reviewRequested,
         status: value.status,
         presetId: value.presetId,
       }),
@@ -142,10 +152,8 @@ export function InvestmentForm({
             )}
           </form.AppField>
 
-          <form.AppField name="review">
-            {(field) => (
-              <field.Textarea label="Opinia" placeholder="Opinia..." rows={3} showError />
-            )}
+          <form.AppField name="reviewRequested">
+            {(field) => <field.Checkbox label="Prośba o opinię wysłana" />}
           </form.AppField>
 
           {/* Container query, not a breakpoint: the two columns follow the dialog's width, and the

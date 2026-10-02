@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { renderBrandedEmail } from '@/lib/leads/email-template'
+import { renderBrandedEmail } from '@/lib/email/branded-template'
 
 // Synthetic inputs only — this pins the template MECHANICS (logo, HTML escaping,
 // newline handling), so it never breaks when the actual email copy changes.

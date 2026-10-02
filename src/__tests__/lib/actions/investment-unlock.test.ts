@@ -35,7 +35,7 @@ const formData = (name: string, status: InvestmentFormDataT['status']): Investme
   email: '',
   contactPerson: '',
   notes: '',
-  review: '',
+  reviewRequested: false,
   status,
   presetId: '',
   assets: [],

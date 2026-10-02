@@ -13,6 +13,7 @@ import type {
   EquipmentFormValuesT,
 } from '@/components/forms/equipment-form/equipment-schema'
 import type { EquipmentTransferFormValuesT } from '@/components/forms/equipment-transfer-form/equipment-transfer-schema'
+import type { RequestReviewValuesT } from '@/components/forms/request-review-form/request-review-schema'
 
 type DepositFormValuesT = {
   description: string
@@ -55,3 +56,5 @@ export const useAddEquipmentFormStore =
   createFormStore<AddEquipmentFormValuesT>('add-equipment-form')
 export const useEquipmentTransferFormStore =
   createFormStore<EquipmentTransferFormValuesT>('equipment-transfer-form')
+export const useRequestReviewFormStore =
+  createFormStore<RequestReviewValuesT>('request-review-form')

@@ -10,7 +10,7 @@ export function investment(overrides: Partial<InvestmentRefT> = {}): InvestmentR
     email: 'jan@example.test',
     contactPerson: '',
     notes: 'klucze u sąsiada',
-    review: 'ok',
+    reviewRequested: false,
     hasSheet: false,
     materialsNetRate: null,
     settlementMode: 'NET',

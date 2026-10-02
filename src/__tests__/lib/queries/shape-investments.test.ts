@@ -38,7 +38,7 @@ const baseInv: InvestmentRefT = {
   email: 'g@x.pl',
   contactPerson: 'Pan G',
   notes: '',
-  review: '',
+  reviewRequested: false,
   hasSheet: false,
   materialsNetRate: null,
   settlementMode: 'NET',

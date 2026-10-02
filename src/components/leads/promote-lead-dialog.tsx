@@ -79,7 +79,7 @@ export function PromoteLeadDialog({ lead }: { lead: LeadRowT }) {
     email: lead.email,
     contactPerson: lead.name,
     notes: buildNotes(lead),
-    review: '',
+    reviewRequested: false,
     // Nobody has agreed to do this work yet — a zgłoszenie is an enquiry, and „aktywna" would put
     // it among the jobs actually running.
     status: 'quote',

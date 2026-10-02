@@ -19,6 +19,8 @@ import { HintedValue } from '@/components/tables/hinted-value'
 import { offPlaneDepositSentence } from '@/lib/kosztorys/off-plane-deposit-copy'
 import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
 import { TrashInvestmentButton } from '@/components/investments/trash-investment-button'
+import { RequestReviewButton } from '@/components/investments/request-review-button'
+import { isLockedStatus } from '@/lib/constants/investment-lock'
 import { SheetButton } from '@/components/dialogs/sheet-button'
 import { OpenKosztorysV2Button } from '@/components/kosztorys/open-kosztorys-v2-button'
 
@@ -301,11 +303,10 @@ export function getInvestmentColumns({ userRole, onSettle }: InvestmentColumnOpt
       header: 'Osoba kontaktowa',
       cell: (info) => info.getValue() || '—',
     }),
-    col.accessor('review', {
-      id: 'review',
+    col.accessor('reviewRequested', {
+      id: 'reviewRequested',
       header: 'Opinia',
-      meta: { minWidth: 'min-w-56' },
-      cell: (info) => info.getValue() || '—',
+      cell: (info) => (info.getValue() ? 'Wysłano' : '—'),
     }),
     col.accessor('status', {
       id: 'status',
@@ -320,6 +321,9 @@ export function getInvestmentColumns({ userRole, onSettle }: InvestmentColumnOpt
       meta: { align: 'right' },
       cell: (info) => (
         <div className="flex items-center justify-end gap-1">
+          {isLockedStatus(info.row.original.status) && (
+            <RequestReviewButton investment={info.row.original} />
+          )}
           <EditInvestmentDialog investment={info.row.original} />
           <TrashInvestmentButton investment={info.row.original} />
         </div>
