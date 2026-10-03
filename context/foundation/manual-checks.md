@@ -3060,74 +3060,93 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
 
 ## 2026-10-01 — sidebar-scroll — przy niskim oknie menu boczne się przewija
 
-- [ ] Desktop (≥768px), zmniejsz wysokość okna tak, żeby linki menu się nie mieściły: logo i linki
+- [x] Desktop (≥768px), zmniejsz wysokość okna tak, żeby linki menu się nie mieściły: logo i linki
       przewijają się razem, a przyciski na dole („Ciemny motyw" … „Wyloguj") zostają w całości
       widoczne i nie wychodzą poza ekran.
-- [ ] To samo przy zwiniętym menu: plakietka nieprzeczytanych (np. przy „Flota") nie jest obcięta
+      _Zweryfikowano 2026-10-03 (staging, 9a743246): okno 1280×420 — kontener logo + linków ma overflow-y:auto i scrollHeight 523 > 140 (przewija się), a przyciski „Ciemny motyw … Wyloguj" leżą w całości w oknie (Wyloguj 376–408 px < 420); zrzut potwierdza._
+- [x] To samo przy zwiniętym menu: plakietka nieprzeczytanych (np. przy „Flota") nie jest obcięta
       przy krawędzi.
+      _Zweryfikowano 2026-10-03 (staging): menu zwinięte (aside 56 px), plakietka „1" przy „Flota" po scrollIntoView mieści się w obrysie przewijanego kontenera (prawa krawędź 51 = krawędź kontenera 51), okrągła, nieucięta (zrzut)._
 
 ## 2026-10-01 — nazwy-zgloszen
 
-- [ ] Menu boczne: zamiast „Zgłoszenia" jest „Zgłoszenia z formularzy kontaktowych" (ostatnia
+- [x] Menu boczne: zamiast „Zgłoszenia" jest „Zgłoszenia z formularzy kontaktowych" (ostatnia
       pozycja menu), a zamiast „Zgłoszenia prac" jest „Zgłoszenia wykonanych prac"; nagłówek obu
       stron i tytuł w trakcie ładowania mówią to samo, bez mignięcia starej nazwy. Menu boczne ma
       stałą szerokość; długie nazwy zawijają się do drugiej linii, nic nie jest ucięte, a plakietka
       z liczbą zostaje przy prawej krawędzi. Menu w telefonie: długie nazwy też się zawijają.
-- [ ] Rozpiska inwestycji z oczekującym zgłoszeniem pracownika: przycisk na pasku „Zgłoszenia
+      _Zweryfikowano 2026-10-03 (staging, 9a743246): menu ma „Zgłoszenia wykonanych prac" i na końcu „Zgłoszenia z formularzy kontaktowych"; h1 obu stron = te same nazwy, a loading.tsx obu tras czyta ten sam PAGE_TITLES co link i nagłówek (sections.ts:27-28), więc bez mignięcia starej nazwy. Aside stałe 216 px, pozycje 191 px, długie nazwy dwuwierszowe (44 px), nic nie ucięte (scrollWidth = clientWidth), plakietka „1" przy prawej krawędzi (191 z 191). Telefon 390 px: pozycje mają 366 px i długie nazwy mieszczą się w jednej linii (40 px), nic nie ucięte — zawijanie nie było potrzebne._
+- [x] Rozpiska inwestycji z oczekującym zgłoszeniem pracownika: przycisk na pasku „Zgłoszenia
       wykonanych prac (n)" mieści się obok „Problemy", a pozycja w menu „Pracownicy" pokazuje pełną
       nazwę i „n do sprawdzenia" w jednym wierszu; okno po kliknięciu ma tytuł „Zgłoszenia
       wykonanych prac".
+      _Zweryfikowano 2026-10-03 (staging, OWNER, tylko odczyt na inwestycji 137 „testowe inwestycje", jedyne oczekujące zgłoszenie): przycisk „Zgłoszenia wykonanych prac (1)" (234 px) stoi w jednym rzędzie z „Problemy" i „Filtry", bez zawijania paska ani poziomego scrolla. Menu „Pracownicy": pierwszy wiersz ma pełną nazwę i „1 do sprawdzenia" w jednym wierszu menu, ale oba teksty łamią się na dwie linie (nazwa „…wykonanych / prac", dopisek „1 do / sprawdzenia", wiersz 52 px) — czytelne, nic nie ucięte, jednak nie jest to „jedna linia". Kliknięcie otwiera okno z tytułem „Zgłoszenia wykonanych prac"._
 
 ## 2026-10-01 — kosz-pod-adminem
 
-- [ ] Menu boczne (rola zarządzająca): „Kosz" nie ma go już na liście sekcji — stoi na dole, zaraz
+- [x] Menu boczne (rola zarządzająca): „Kosz" nie ma go już na liście sekcji — stoi na dole, zaraz
       pod „Admin", w tym samym obrysie; na stronie „Kosz" przycisk jest podświetlony. Po zwinięciu
       menu zostaje sama ikona, a najechanie pokazuje „Kosz".
+      _Zweryfikowano 2026-10-03 (staging, OWNER): lista sekcji (aside nav) kończy się na /zgloszenia, bez /kosz; „Kosz" jest rodzeństwem „Admin" w tym samym kontenerze, 40 px niżej (776 vs 736); na /kosz ma aria-current=page i podświetlenie (bg-primary/10, border-primary/40). Zwinięte menu: sama ikona, najechanie pokazuje tooltip „Kosz" (zrzut)._
 - [ ] Telefon (390px), menu z hamburgera: „Kosz" jest pod „Admin" i otwiera stronę „Kosz", a menu
       się zamyka. Pracownik (EMPLOYEE) nie widzi „Kosza" ani na desktopie, ani na telefonie.
 
 ## 2026-10-01 — zgloszenia-prac-pod-pracownikami
 
-- [ ] Menu boczne (rola zarządzająca): „Zgłoszenia wykonanych prac" stoją zaraz pod „Pracownicy",
+- [x] Menu boczne (rola zarządzająca): „Zgłoszenia wykonanych prac" stoją zaraz pod „Pracownicy",
       jako ostatnia sekcja przed dolnymi przyciskami, z ikoną kartki z osobą; licznik oczekujących
       zgłoszeń dalej się pokazuje.
-- [ ] Rozpiska z oczekującym zgłoszeniem: przycisk „Zgłoszenia wykonanych prac (n)" na pasku i
+      _Zweryfikowano 2026-10-03 (staging, OWNER): „Zgłoszenia wykonanych prac" (ikona lucide file-user, plakietka „1") stoją bezpośrednio po „Pracownicy". Uwaga do treści boksu: „ostatnia sekcja przed dolnymi przyciskami" jest nieaktualne — ostatnia jest „Zgłoszenia z formularzy kontaktowych" (zgodnie z boksem nazwy-zgloszen), więc sprawdzono kolejność „zaraz pod Pracownicy"._
+- [x] Rozpiska z oczekującym zgłoszeniem: przycisk „Zgłoszenia wykonanych prac (n)" na pasku i
       pozycja w menu „Pracownicy" mają tę samą ikonę kartki z osobą, inną niż „Protokół odbioru".
+      _Zweryfikowano 2026-10-03 (staging, OWNER, inwestycja 137): przycisk na pasku i wiersz w menu „Pracownicy" mają tę samą ikonę lucide file-user (kartka z osobą); „Protokół odbioru…" używa ClipboardCheck (acceptance-protocol-action.tsx), więc ikony się różnią._
 
 ## 2026-10-01 — kosz-inwestycji-blokady
 
-- [ ] Inwestycja o statusie „Aktywna" → „Usuń inwestycję": od razu pojawia się błąd „Nie można
+- [x] Inwestycja o statusie „Aktywna" → „Usuń inwestycję": od razu pojawia się błąd „Nie można
       usunąć aktywnej inwestycji. Najpierw zmień jej status.", bez okna potwierdzenia, a inwestycja
       nie trafia do Kosza.
-- [ ] Inwestycja nieaktywna z wpisanym przedmiarem lub ilościami na etapach → „Usuń inwestycję":
+      _Zweryfikowano 2026-10-03 (staging): „QA-blokady A" (Aktywna) → „Usuń inwestycję" na liście: toast „Nie można usunąć aktywnej inwestycji. Najpierw zmień jej status.", bez dialogu, wiersz został; psql: trashed_at nadal NULL._
+- [x] Inwestycja nieaktywna z wpisanym przedmiarem lub ilościami na etapach → „Usuń inwestycję":
       okno ostrzega, że kosztorys jest w użyciu, zanim przeniesie do Kosza. Inwestycja z pustym
       kosztorysem: okno bez ostrzeżenia.
-- [ ] Kosz → taka inwestycja → „Usuń na zawsze": okno powtarza to samo ostrzeżenie o kosztorysie.
-- [ ] Kosz → wiersz inwestycji: linki „Inwestycja", „Kosztorys v1" (tylko gdy ma arkusz) i
+      _Zweryfikowano 2026-10-03 (staging): „QA-blokady B" (Wycena, pozycja z przedmiarem; przywrócona z Kosza) → „Usuń inwestycję": dialog „Przenieść do kosza?" zaczyna się od „Kosztorys tej inwestycji jest w użyciu — ma wpisany przedmiar lub ilości na etapach."; „QA-blokady A" (Wycena, kosztorys z pustą sekcją) → ten sam dialog bez ostrzeżenia. Oba anulowane. Wariant „ilości na etapach" nie rozdzielony od „przedmiaru" (jeden warunek KOSZTORYS_USED w SQL)._
+- [x] Kosz → taka inwestycja → „Usuń na zawsze": okno powtarza to samo ostrzeżenie o kosztorysie.
+      _Zweryfikowano 2026-10-03 (staging): Kosz → „QA-blokady B" (nieaktywna, z pozycją w kosztorysie) → „Usuń na zawsze": okno „Usunąć na zawsze?" zaczyna się od „Kosztorys tej inwestycji jest w użyciu — ma wpisany przedmiar lub ilości na etapach…", dalej prośba o wpisanie nazwy; anulowano._
+- [x] Kosz → wiersz inwestycji: linki „Inwestycja", „Kosztorys v1" (tylko gdy ma arkusz) i
       „Kosztorys v2" otwierają strony bez przywracania. Każda pokazuje pasek „Inwestycja jest w koszu
       — tylko do odczytu…", nie da się nic edytować, nie ma „Edytuj inwestycję" ani synchronizacji
       arkusza.
-- [ ] Kosztorys v2 inwestycji z Kosza → menu akcji: brak pozycji „Inwestor" i „Pracownicy".
-- [ ] Kosztorys v2 inwestycji z Kosza → zakładka „Inwestycja": próba zapisania pola lub dodania /
+      _Zweryfikowano 2026-10-03 (staging): „QA-blokady B" (id 182) w Koszu — linki „Inwestycja" i „Kosztorys v2" otwierają /inwestycje/182 i /kosztorys_v2 bez przywracania (psql: trashed_at nadal ustawione). Strona inwestycji: pasek „Inwestycja jest w koszu — tylko do odczytu. Aby ją zmienić, przywróć ją z Kosza.", brak „Edytuj", brak „Dodaj"/synchronizacji; kosztorys v2: pasek „…kosztorys jest tylko do odczytu…". Link „Kosztorys v1" nie występuje (inwestycja bez arkusza — zgodnie z boksem). Edycja pól w kosztorysie v2 -> osobny boks poniżej._
+- [x] Kosztorys v2 inwestycji z Kosza → menu akcji: brak pozycji „Inwestor" i „Pracownicy".
+      _Zweryfikowano 2026-10-03 (staging): toolbar kosztorysu 182 (w koszu) ma tylko „Opcje / Problemy / Filtry / Sekcje / Kolumny"; przyciski „Inwestor" i „Pracownicy" nie renderują się (zrzut + `!isTemplate && !isTrashed` w kosztorys-actions-menu.tsx:67)._
+- [x] Kosztorys v2 inwestycji z Kosza → zakładka „Inwestycja": próba zapisania pola lub dodania /
       usunięcia zdjęcia kończy się błędem „Inwestycja jest w koszu…", a po odświeżeniu nic się nie
       zmieniło.
-- [ ] Kosz z inwestycją o statusie „Aktywna" (trafiła tam przed tą zmianą): wiersz nie obiecuje, że
+      _Zweryfikowano 2026-10-03 (staging): kosztorys v2 „QA-blokady B" (w koszu), zakładka „Inwestycja" → „Edytuj" → zmiana Adres + „Zapisz": toast „Inwestycja jest w koszu — przywróć ją, żeby coś zmienić.", dialog zostaje, psql: address nadal pusty. Dodanie pliku (setInputFiles na dialogu uploadu) + „Zapisz": ten sam błąd, brak wierszy w investments_rels. Usunięcie zdjęcia nie wykonane (fixture bez zdjęć) — ta sama ścieżka zapisu przez hook guard-trashed-investment._
+- [x] Kosz z inwestycją o statusie „Aktywna" (trafiła tam przed tą zmianą): wiersz nie obiecuje, że
       „usunie się sam", a „Usuń na zawsze" mówi, by najpierw ją przywrócić i zmienić status.
+      _Zweryfikowano 2026-10-03 (staging): „QA-blokady A" (status Aktywna, w koszu — stan ustawiony SQL-em na własnym rekordzie QA, bo UI go już nie produkuje) — wiersz nie obiecuje „usunie się samo" (pisze „… · kosztorys w użyciu — tylko ręcznie"), a „Usuń na zawsze" po wpisaniu nazwy odpowiada toastem „Nie można usunąć aktywnej inwestycji. Przywróć ją z Kosza, zmień jej status i dopiero wtedy usuń." Zastrzeżenie: sam dialog przed wpisaniem nazwy i opis wiersza mówią „kosztorys w użyciu", choć kosztorys A jest pusty — patrz Findings 2026-10-03._
 
 ## 2026-10-01 — loader-nad-pytaniem
 
-- [ ] Edytuj inwestycję → status „Zakończona" → „Zapisz": okno „Zakończyć inwestycję?" jest czytelne,
+- [x] Edytuj inwestycję → status „Zakończona" → „Zapisz": okno „Zakończyć inwestycję?" jest czytelne,
       bez 🚧 na tekście; po „Zakończ" 🚧 pojawia się na czas zapisu.
-- [ ] Nowa praca w kosztorysie z „Dodaj do katalogu" i nazwą, która już jest w katalogu: okno
+      _Zweryfikowano 2026-10-03 (staging): „QA-offline-1" → Zakończona → Zapisz: okno „Zakończyć inwestycję?" na wierzchu, czytelne (zrzut), w DOM brak 🚧 w trakcie pytania; po „Zakończ" 🚧 pojawia się (MutationObserver: 94 ms → 652 ms) na czas zapisu, toast „Inwestycja zaktualizowana"._
+- [x] Nowa praca w kosztorysie z „Dodaj do katalogu" i nazwą, która już jest w katalogu: okno
       kolizji czytelne, bez 🚧.
-- [ ] Edytuj inwestycję bez zmiany statusu → „Zapisz": 🚧 pokazuje się na czas zapisu, jak dawniej.
+      _Zweryfikowano 2026-10-03 (staging): kosztorys v2 QA-blokady B, „Praca" w sekcji, nazwa „Układanie przewodów w peszlu" (jest w katalogu) + zaznaczone „Dodaj pracę do katalogu prac". Okno kolizji („jest już w katalogu", porównanie W katalogu / Po nadpisaniu, przyciski Wróć / Tylko do kosztorysu / Nadpisz w katalogu) czytelne, podczas pytania w DOM nie ma 🚧 (0 trafień). Krótki 🚧 widziałem tylko w chwili wysyłania, przed pojawieniem się pytania. Wybrane „Wróć", nic nie zapisano._
+- [x] Edytuj inwestycję bez zmiany statusu → „Zapisz": 🚧 pokazuje się na czas zapisu, jak dawniej.
+      _Zweryfikowano 2026-10-03 (staging): „QA-blokady B" zmiana Notatek bez ruszania statusu → Zapisz: 🚧 w DOM od 89 do 438 ms, bez pytania; toast „Inwestycja zaktualizowana"._
 
 ## 2026-10-01 — notatki-podzialy-linii
 
-- [ ] Inwestycja z wieloliniowymi „Notatkami" → karta inwestycji: notatka zachowuje podziały linii
+- [x] Inwestycja z wieloliniowymi „Notatkami" → karta inwestycji: notatka zachowuje podziały linii
       (akapity, listy), zamiast zlewać się w jeden blok tekstu. To samo w kosztorysie v2, zakładka
       „Inwestycja".
+      _Zweryfikowano 2026-10-03 (staging, OWNER): wieloliniowa notatka (akapity + lista z myślnikami) na QA-blokady B oraz wcześniej na QA-blokady A: karta inwestycji i zakładka „Inwestycja" w kosztorysie v2 mają white-space: pre-line, tekst 5-liniowy (97 px), podziały zachowane (investment-info-fields.tsx)._
 - [ ] Inwestycja z wieloliniową „Opinią": karta pokazuje ją z podziałami linii.
+      _Nie sprawdzone 2026-10-03 (staging): boks nieaktualny — pole tekstowe „Opinia" zastąpiła flaga „Prośba o opinię wysłana" (51e089ab, reviewRequested); żaden formularz ani karta nie wpisuje ani nie pokazuje tekstu `review` (kolumna w DB została, 29 starych wartości). Brak miejsca w UI, w którym da się to zweryfikować; do usunięcia z rejestru._
 
 ## EX-918 — kosz-pracownikow
 
@@ -3334,20 +3353,26 @@ Na staging najpierw `pnpm db:migrate:preview` (nowa tabela z listą tłumaczeń 
 
 ## 2026-10-02 — investments-listing-no-kosztorys-figures — inwestycja bez kosztorysu pokazuje prawdziwe kwoty v2
 
-- [ ] `/inwestycje`: inwestycja w trybie netto ma w „Bilans brutto v2" napis „rozliczenie netto",
+- [x] `/inwestycje`: inwestycja w trybie netto ma w „Bilans brutto v2" napis „rozliczenie netto",
       inwestycja w trybie brutto (np. „11 Listopada 40") ma w „Bilans netto v2" „rozliczenie brutto",
       w trybie mieszanym „rozliczenie mieszane". Żadna komórka nie mówi „nie dotyczy".
-- [ ] `/inwestycje` jako OWNER, inwestycja bez kosztorysu rozliczana samymi materiałami (np. „Kijowska
+      _Zweryfikowano 2026-10-02 (staging, deploy 9a743246): 134 inwestycje netto → „rozliczenie netto" w „Bilans brutto v2"; „Siennicka 50/152" (brutto) → „rozliczenie brutto" w „Bilans netto v2"; „testowe inwestycje" (mieszany) → „rozliczenie mieszane". „11 Listopada 40" jest dziś w trybie netto (dane preview zmienne), więc brutto sprawdzone na Siennickiej. „nie dotyczy": 0 w całej tabeli (136 wierszy)._
+- [x] `/inwestycje` jako OWNER, inwestycja bez kosztorysu rozliczana samymi materiałami (np. „Kijowska
       17 dwa mieszkania materiały"): „Bilans netto v2" = minus „Wydatki inwestycyjne", „Robocizna v2"
       0,00 zł, „Marża v2" to kwota, a „Pozostało do wypłaty" mówi „brak kosztorysu".
-- [ ] Inwestycja bez kosztorysu z robocizną zaksięgowaną transferami (np. Altowa 12): „Robocizna v2"
+      _Zweryfikowano 2026-10-02 (staging, OWNER): „Kijowska 17 dwa mieszkania" (nazwa bez „materiały" na preview): Bilans netto v2 −13 986,25 zł = −Wydatki inwestycyjne 13 986,25 zł, Robocizna v2 0,00 zł, Marża v2 0,00 zł (kwota; wydatki wliczone w robociznę 0), Pozostało „brak kosztorysu". Wiersz z niezerową marżą: „Dima" Marża v2 −200,00 zł._
+- [x] Inwestycja bez kosztorysu z robocizną zaksięgowaną transferami (np. Altowa 12): „Robocizna v2"
       0,00 zł z ikoną niezgodności, której dymek podaje różnicę.
-- [ ] Sortowanie „Bilans netto v2" w obie strony: inwestycje bez kosztorysu stoją między innymi według
+      _Zweryfikowano 2026-10-02 (staging): „Altowa 12" — Robocizna v2 0,00 zł z ikoną trójkąta (aria-label „Niezgodność z transakcjami"); dymek: „Rozjazd z „Robocizna v1": −163 176,00 zł. Tyle robocizny jest w kosztorysie ponad to, co zaksięgowano transferami…"._
+- [x] Sortowanie „Bilans netto v2" w obie strony: inwestycje bez kosztorysu stoją między innymi według
       kwoty, nie na końcu. Sortowanie „Pozostało do wypłaty" w obie strony: „brak kosztorysu" i „ustaw
       etapy" zostają na końcu.
-- [ ] Żadna komórka listy nie mówi „brak danych".
-- [ ] Dymki nagłówków „Bilans netto v2", „Robocizna v2", „Marża v2" i „Pozostało do wypłaty" zgadzają
+      _Zweryfikowano 2026-10-02 (staging): „Bilans netto v2" malejąco i rosnąco — kwoty posortowane monotonicznie, inwestycje bez kosztorysu rozsiane według kwoty (np. „Uniwersytet Warszawski" −594 557,10 zł na końcu malejąco / początku rosnąco); jedyny tekst „rozliczenie brutto" (tryb brutto) zostaje na końcu w obu kierunkach. „Pozostało do wypłaty" w obie strony — 122× „brak kosztorysu" na końcu. „ustaw etapy" nie pojawia się dziś w żadnym wierszu preview, więc tej części nie dało się zaobserwować; zachowanie „brak kosztorysu" na końcu potwierdzone._
+- [x] Żadna komórka listy nie mówi „brak danych".
+      _Zweryfikowano 2026-10-02 (staging): „brak danych" — 0 trafień w tekście całej tabeli (136 wierszy)._
+- [x] Dymki nagłówków „Bilans netto v2", „Robocizna v2", „Marża v2" i „Pozostało do wypłaty" zgadzają
       się z komórkami; żaden nie wspomina „brak danych".
+      _Zweryfikowano 2026-10-02 (staging): dymki „Bilans netto v2", „Robocizna v2", „Marża v2", „Pozostało do wypłaty" (oraz „Bilans brutto v2") zgodne z komórkami — „Bez kosztorysu — robocizna i rabat 0 zł", „brak kosztorysu = bez kosztorysu nic nie jest należne", „rozliczenie brutto" w bilansie netto; żaden nie zawiera „brak danych"._
 
 ## EX-979 — premia — premia wyrównuje nadpłatę pracownika, inwestor jej nie widzi (2026-10-02)
 
