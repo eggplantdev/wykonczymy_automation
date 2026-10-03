@@ -9,7 +9,7 @@ tags: [research, codebase, kosztorys, stages, workers, subcontractor-due, worker
 status: complete
 last_updated: 2026-09-30
 last_updated_by: Claude
-last_updated_note: "Owner answered the seven open questions"
+last_updated_note: 'Owner answered the seven open questions'
 ---
 
 # Research: several workers per etap + split of the executed-work pool (EX-943)
@@ -130,11 +130,11 @@ half-grosz coin flip of lesson ~2076.
 
 **Storage options**
 
-| Option | Verdict |
-|---|---|
+| Option                                                                                                                                                                                                                   | Verdict                                                                                                                                                                                                                                                                                                                                                                                          |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | (a) child table `kosztorys_stage_workers(stage_id FK CASCADE, worker_id FK, value numeric NULL, takes_rest bool)` + `UNIQUE(stage_id, worker_id)` + partial unique `(stage_id) WHERE takes_rest` (raw SQL — lesson ~876) | **Recommended as a raw table.** Writes already funnel through `investmentAction`; tree read + restore are raw SQL; admin panel unused. Cost: raw user-delete probe (or FK `ON DELETE RESTRICT`), one more level in restore INSERT. A Payload collection instead costs lesson ~1732's nine migration items + a `'stage'` hop in `access/investment-lock.ts:13-20` and buys only the delete probe. |
-| (b) Payload `hasMany` + separate values | Reject — value can't live on `_rels`; lesson ~1041 silent `typeof === 'number'` failures. |
-| (c) jsonb on the stage | Reject — no FK to users; SQL fold needs `jsonb_array_elements` (JIT trap, lesson ~1525). |
+| (b) Payload `hasMany` + separate values                                                                                                                                                                                  | Reject — value can't live on `_rels`; lesson ~1041 silent `typeof === 'number'` failures.                                                                                                                                                                                                                                                                                                        |
+| (c) jsonb on the stage                                                                                                                                                                                                   | Reject — no FK to users; SQL fold needs `jsonb_array_elements` (JIT trap, lesson ~1525).                                                                                                                                                                                                                                                                                                         |
 
 Mode: enum column on `kosztorys_stages` (`percent` | `amount`), same pattern as `plane` (`20260724_2`).
 Percent stored as integer basis points or `numeric(5,2)`; amount as `numeric(12,2)`.
@@ -206,7 +206,7 @@ deploy, lesson ~1558); the golden master hash and restore's legacy read must sto
 - **One split function, pricing stays in SQL.** Keep SQL for what needs scale (pool per etap across
   all investments, ~49 MB at 1000 investments if done in TS), have it return etap-level rows
   (`investment_id, stage_id, plane, pool, unconfirmed`) — driven from `kosztorys_stages LEFT JOIN
-  lines` so an etap with no progress still yields a row — plus the share rows; fold them in TS with
+lines` so an etap with no progress still yields a row — plus the share rows; fold them in TS with
   the same `splitStagePool` the editor uses. The split rule then exists once (lesson ~1362 in spirit),
   and the bridge test only pins the pool (lesson ~40). The settle action can run it inside its
   transaction after `lockInvestmentGates`.

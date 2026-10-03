@@ -116,6 +116,7 @@ correct). Both paths run the same function, so no SQL↔TS rounding bridge is ne
 
 **Atomic write.** Mode and members are one concept and are saved together. The action takes the
 whole split and runs inside one transaction:
+
 - update the etap's mode;
 - delete its members;
 - insert the new members;
@@ -125,6 +126,7 @@ Never patch mode and members separately (lesson ~1774).
 
 **Reszta holder integrity.** `ON DELETE CASCADE` from `users` would silently remove a member,
 possibly the reszta holder. So:
+
 - the user-delete guard blocks deleting anyone who is a member;
 - the fold normalises a split that has no reszta holder (first remaining member by insertion
   order takes the rest), so a bypass degrades instead of breaking;
@@ -151,15 +153,16 @@ it.
 ```ts
 export type StageSplitModeT = 'percent' | 'amount'
 export type StageMemberT = { workerId: number; value: number; takesRest: boolean } // value: percent points (25 = 25%) or zł; ignored on the rest holder
-export type StageSplitT = { mode: StageSplitModeT; members: StageMemberT[] }   // null on the etap = nobody assigned
+export type StageSplitT = { mode: StageSplitModeT; members: StageMemberT[] } // null on the etap = nobody assigned
 
 export type StageSharesT = { shares: Map<number, number>; scaledDown: boolean }
 export function splitStagePool(pool: number, split: StageSplitT): StageSharesT
-export function normalizeStageSplit(split: StageSplitT | null): StageSplitT | null  // exactly one takesRest; empty → null
+export function normalizeStageSplit(split: StageSplitT | null): StageSplitT | null // exactly one takesRest; empty → null
 export function validateStageSplit(split: StageSplitT, pool: number): string | null // Polish sentence or null
 ```
 
 Rules:
+
 - `pool <= 0` → every member 0 and `scaledDown: false` („nie dzielimy pieniędzy, których nie ma").
 - **Percent mode**: each non-rest member gets `pool × value / 100`; the rest holder gets
   `max(0, pool − Σ)`.
@@ -170,6 +173,7 @@ Rules:
 - Σ shares === pool within float precision.
 
 `validateStageSplit` refuses, with a Polish message:
+
 - no members, or not exactly one rest holder;
 - a duplicate worker;
 - a negative value;
@@ -221,6 +225,7 @@ by writing a one-person split.
 code during the deploy gap.
 
 **Contract**:
+
 - `kosztorys_stages.split_mode`: an enum created with Payload's naming convention (follow
   `20260724_2`'s `plane` enum), NOT NULL, DEFAULT `'percent'`.
 - The new table `kosztorys_stage_workers` has:
@@ -234,27 +239,30 @@ code during the deploy gap.
   - an index on `worker_id`.
   - It is raw, not a Payload collection (research, storage options).
 - Backfill: `INSERT … SELECT id, worker_id, 0, true FROM kosztorys_stages WHERE worker_id IS NOT
-  NULL ON CONFLICT DO NOTHING`.
+NULL ON CONFLICT DO NOTHING`.
 - `down` drops the table and the column.
 
 #### 2. Collection + types
 
 **Files**:
+
 - `src/collections/kosztorys-stages.ts`;
 - `src/lib/kosztorys/types.ts`;
 - `context/domain/02-glossary.md`.
 
 **Intent**:
+
 - Declare `splitMode` on the collection so Payload's own stage writes never clobber it.
 - Replace `KosztorysStageT.workerId` with `split: StageSplitT | null`.
 - `StagePatchT` loses `workerId`; the split is written only through its own action.
 - Add the terms (split, member, share, takes the rest) to the glossary.
 
 **Contract**:
+
 - `KosztorysStageT = { id; ordinal; label; plane; split: StageSplitT | null }`.
 - Fixtures building `workerId` (~46 specs) move to `split`. Keep it mechanical: a `oneWorker(id)`
   helper in the test fixtures produces `{ mode: 'percent', members: [{ workerId: id, value: 0,
-  takesRest: true }] }`.
+takesRest: true }] }`.
 
 #### 3. Tree read
 
@@ -271,6 +279,7 @@ map them through `normalizeStageSplit`.
 statements)
 
 **Intent**:
+
 - A new `updateStageSplitAction(stageId, split | null)` runs through `investmentAction` (lock,
   auth, `['kosztorysStages']` tags). In one transaction it:
   - normalises the split;
@@ -283,9 +292,10 @@ statements)
 - `updateStageAction` loses `workerId`.
 
 **Contract**:
+
 - `updateStageSplitAction(stageId: number, split: StageSplitT | null): Promise<ActionResultT>`.
 - `addStageAction(investmentId: number, plane: ToolPlaneT, split: StageSplitT | null =
-  null)`.
+null)`.
 - A plane-less etap refuses a non-null split, preserving the EX-613 rule „etap bez rozliczenia
   nie przyjmuje pracownika".
 - A refused cap returns the Polish sentence from `validateStageSplit`.
@@ -293,12 +303,14 @@ statements)
 #### 5. Editor client path
 
 **Files**:
+
 - `src/components/kosztorys/editor/hooks/use-kosztorys-stage-ops.ts`;
 - `toolbar/menus/kosztorys-add-menu.tsx`;
 - `grid/stage-header.tsx`;
 - `grid/stage-worker-section.tsx`.
 
 **Intent**:
+
 - `handleSetStageWorker` becomes `handleSetStageSplit`: an optimistic replace of the whole
   `split`, a call to the new action, and a revert on error. It is not undoable, as today.
 - The add menu copies the last etap's whole split, as the owner decided.
@@ -311,6 +323,7 @@ compares nothing and always writes.
 #### 6. Reference fold + its consumers
 
 **Files**:
+
 - `src/lib/kosztorys/subcontractor-due.ts`;
 - `subcontractor-summary.ts`;
 - `worker-view/scope.ts`;
@@ -318,6 +331,7 @@ compares nothing and always writes.
 - `stage-conditions.ts`.
 
 **Intent**:
+
 - `byWorker` is built from `splitStagePool(planeTotal, split)`. A `null` split credits the `null`
   bucket, as today.
 - A plane-less etap with qty adds **every** member, or `null`, to `unconfirmedWorkers`.
@@ -330,6 +344,7 @@ compares nothing and always writes.
   „Podział obniżony — popraw podział".
 
 **Contract**:
+
 - `SubcontractorDueByPlaneT` gains `byStageWorker: Map<number, Map<number, number>>` and
   `scaledDownStageIds: Set<number>`.
 - Σ `byWorker` === `combined`.
@@ -337,12 +352,14 @@ compares nothing and always writes.
 #### 7. Restore, snapshots, history preview
 
 **Files**:
+
 - `src/lib/kosztorys/serialize-tree.ts`;
 - `snapshot-format.ts`;
 - `insert-kosztorys-tree.ts`;
 - `history/snapshot-to-tree.ts`.
 
 **Intent**:
+
 - The stored stage type becomes tolerant: `split?` plus legacy `workerId?`. A legacy value is read
   as a one-person split.
 - Restore:
@@ -353,12 +370,14 @@ compares nothing and always writes.
 - The history preview normalises legacy stages the same way.
 
 **Contract**:
+
 - `SNAPSHOT_SCHEMA_VERSION` stays 1.
 - `STAGE_INSERT_COLUMNS` gains `split_mode` and loses `worker_id`.
 
 #### 8. Sheet import
 
 **Files**:
+
 - `src/lib/kosztorys/sheet-import/build-import-plan.ts`;
 - `src/lib/actions/kosztorys-import.ts`.
 
@@ -368,6 +387,7 @@ plane. The dialog is unchanged.
 #### 9. User delete guard
 
 **Files**:
+
 - `src/lib/db/delete-blocker.ts`;
 - `src/collections/users.ts`.
 
@@ -380,12 +400,14 @@ executed on the caller's transaction.
 #### 10. Cache keys + golden master
 
 **Files**:
+
 - `queries/worker-kosztorys.ts`;
 - `preview-kosztorys.ts`;
 - `preview-kosztorys-history.ts`;
 - `src/__tests__/financial-golden-master-db.test.ts` plus its fixture.
 
 **Intent**:
+
 - Bump the three stage-carrying cache keys.
 - Replace `ks.worker_id` in the investment signature with the members (worker, value,
   takes_rest) and `split_mode`.
@@ -440,11 +462,13 @@ pairs, which still group by `worker_id`. Make SQL return the pool per etap and a
 #### 1. Stage-level SQL + TS fold
 
 **Files**:
+
 - `src/lib/db/kosztorys-subcontractor-due.ts`;
 - `src/lib/db/worker-payout-pairs.ts`;
 - `src/lib/kosztorys/worker-payout-pairs.ts`.
 
 **Intent**:
+
 - `subcontractorLinesCte` stops selecting `ks.worker_id` and carries `stage_id` instead.
 - `selectWorkerPayoutPairs` runs, keeping today's filters (not a szablon, not trashed, has
   pozycje, optional `investmentIds`):
@@ -499,11 +523,13 @@ and flag a shrunk split.
 #### 1. Split dialog
 
 **Files**:
+
 - `src/components/kosztorys/editor/dialogs/stage-split/stage-split-dialog.tsx` (new);
 - its local draft logic in `src/lib/kosztorys/stage-split-draft.ts` (new, React-free, per the
   EX-521 cheapest-layer rule).
 
 **Intent**: A dialog opened from the etap header menu, built from:
+
 - `form-dialog-shell`;
 - a `ui/toggle-group` (% / kwota);
 - per-row `ui/decimal-field`;
@@ -512,6 +538,7 @@ and flag a shrunk split.
 - the computed złoty per person, from `splitStagePool` over the etap's live `byStage` value.
 
 Behaviour (owner):
+
 - A person added to the etap enters with 0, and the current rest holder is unchanged.
 - The first person added to an empty etap takes the rest.
 - Switching mode zeroes every entered value.
@@ -526,10 +553,12 @@ Behaviour (owner):
 #### 2. Header + removal of the old picker
 
 **Files**:
+
 - `grid/stage-header.tsx`;
 - `grid/stage-header-copy.ts`.
 
 **Intent**:
+
 - The header menu item „Pracownicy etapu…" replaces `StageWorkerSection`. It keeps today's
   plane-less gate: disabled, with the `workerNeedsPlane` copy.
 - The second line shows the rest holder's name, then `+N` for the other members.
@@ -584,10 +613,12 @@ named.
 #### 1. Worker summary
 
 **Files**:
+
 - `src/lib/kosztorys/worker-view/summary.ts`;
 - `src/components/kosztorys/editor/summary/blocks/worker-summary.tsx`.
 
 **Intent**:
+
 - `executedByStage[].net` becomes his share, from `byStageWorker`, not `byStage`.
 - A shared etap (more than one member) also carries the whole-etap value and „Twój udział: 25% /
   1 000 zł". The zł is the effective amount after any pro-rata shrink.
@@ -595,8 +626,9 @@ named.
 - `executedNet` already follows `byWorker`.
 
 **Contract**:
+
 - `executedByStage` entries gain `wholeNet: number` and `share: { mode; value; amount } |
-  null`. The share is null on a one-person etap.
+null`. The share is null on a one-person etap.
 - Nothing about other members leaves this function.
 
 #### 2. Print document
@@ -604,6 +636,7 @@ named.
 **File**: `src/lib/kosztorys/print/worker.ts`
 
 **Intent**:
+
 - Section and column totals stay whole-etap.
 - The footer shows „Wykonane (cały etap)" and „Twój udział" as separate lines, so the rows and
   the footer no longer have to add up.
