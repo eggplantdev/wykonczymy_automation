@@ -247,6 +247,53 @@ amend it.
     - sprzątanie;
     - limewash, which was priced under the „farba strukturalna" position.
 
+## Improvement loop (proposed 2026-10-01, not started)
+
+The agent is not trained. What gets iterated is the procedure: the prompt, the measuring tools and
+the house rules. The owner's kosztorysy are the answer key.
+
+- **Dataset:** pairs of inputs (email + files) and the owner's kosztorys. Sources: prod investments
+  that have `projekt` files and a filled Przedmiar, plus the legacy sheet dumps where the inputs can
+  be found. Split them into 3–5 dev cases to iterate on and 2–3 holdout cases nobody looks at. A
+  finished investment adds a second truth, Pomiar z natury (what was actually executed).
+- **Scoring (a deterministic script):**
+  - position recall and precision;
+  - quantity error in zł (ΔPrzedmiar × Cena j.m.), which ranks what to fix;
+  - error per quantity class;
+  - total Δ.
+
+  Prices are excluded, because the agent never invents one.
+
+- **One iteration:**
+  1. A blind run.
+  2. Score it.
+  3. Classify the top 5–10 errors in zł as one of: an agent mistake (→ procedure or tool), an
+     owner's convention (→ house rules, from 15 minutes with the owner per case), an ambiguous
+     input (→ a question for the client), or a rozpiska quirk.
+  4. Make one change, then re-run all dev cases. Keep it only if the total improves and no case
+     regresses.
+- **Prompt optimization:** split the procedure into stages, each with its own prompt and its own
+  scoring:
+  - input classification;
+  - scope → rozpiska positions;
+  - measuring (tools, not prompt);
+  - quantities → Przedmiar.
+
+  Cache the expensive outputs (PDF vectors, room measurements), so a prompt change re-runs one cheap
+  stage in seconds. On those stages an optimizer agent (GEPA-style reflection) proposes one change at
+  a time from the traces and the top errors. Guards:
+  - general rules only, with no names, numbers or addresses from a case;
+  - periodic rule ablation;
+  - house rules in a separate file the optimizer reads but never edits;
+  - the prompt versioned with a log of which change fixed which error.
+
+  Below ~10 cases, iterate by hand: an automatic optimizer would overfit the noise.
+
+- **Done when,** on the holdout cases:
+  - the agent hits ≥ 90% of the positions carrying 80% of the value;
+  - the total is within ±10%;
+  - every large discrepancy is in the notes as a question.
+
 ## Next
 
 - [ ] Get the owner's offer for case 1 and compare v1 and v2 against it, position by position:
