@@ -1,10 +1,10 @@
 ---
 change_id: kosz-floty-i-sprzetu
 title: Kosz — trash a vehicle (Flota) and an equipment item (Sprzęt), warnings instead of a blocker
-status: implemented
+status: archived
 created: 2026-10-01
-updated: 2026-10-01
-archived_at: null
+updated: 2026-10-03
+archived_at: 2026-10-03T05:46:13Z
 branch: staging
 worktree: null
 ---
@@ -12,8 +12,8 @@ worktree: null
 ## Notes
 
 Kosz: flota (EX-915) + sprzęt (EX-916), one change — same rulings, same low risk, nothing outside the
-two modules points at a vehicle or an item. Umbrella: context/changes/2026-09-29-kosz-pozostalych-encji/research.md §4.
-Reference implementations: context/archive/2026-09-30-kosz-kas, context/changes/2026-10-01-kosz-pracownikow.
+two modules points at a vehicle or an item. Umbrella: context/archive/2026-09-29-kosz-pozostalych-encji/ (research §4 in git history, c9902277^).
+Reference implementations: context/archive/2026-09-30-kosz-kas, context/archive/2026-10-01-kosz-pracownikow.
 
 ## Decisions (owner, 2026-10-01)
 
