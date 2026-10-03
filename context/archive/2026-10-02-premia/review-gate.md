@@ -6,16 +6,8 @@ Step 0.5 (browser verification) skipped: the Playwright pass is driven only on r
 
 ## Findings
 
-- [x] 🟡 WARNING · fixed · code-review · `src/components/forms/settle-payouts-form/settle-payouts-form.tsx:49` · `carryOver` keeps a typed amount after a premia while `expectedRemaining` becomes the fresh figure — the settle stale check no longer catches a pair that moved, and the excess books as a silent zaliczka — a row is carried over only while its „Pozostało" is unchanged, else re-prefilled
-      test: test-driven-debugging · unit (DOM) — `settle-payouts-form.test.tsx` „re-prefills a row whose figure moved…": red before the fix, green after
-- [x] ⚠️ WARNING · fixed · impl-review F2 + code-review + structure-scatter · `src/lib/actions/book-overpayment-bonus.ts:31`, `settle-payouts-form.tsx:87` · premia rule spelled `isAdminOrOwnerRole` there, `canBookTransferType` elsewhere — AGENTS.md claims one predicate — both now call `canBookTransferType(role, 'BONUS')`
-      test: no automated test — the MANAGER refusal specs already pin both paths; this is a respelling
-- [x] ⚠️ WARNING · fixed · impl-review F1 · `src/components/tables/investments-header-tips.ts:19,30`, `src/types/table-rows.ts:47` · listing tooltips for „Marża v2" / „Pozostało do wypłaty" omit the premia — „minus premie" / „plus premie" added to the tips and the `subcontractorRemaining` doc
-      test: no automated test — tooltip copy
 - [x] ⚠️ WARNING · dismissed · impl-review F3 · `subcontractor-worker-totals.tsx:76` · „Rozlicz wypłaty" shows on a locked/withheld investment, unlike plan 4.3 — the listing's existing button (`tables/investments.tsx`) uses the same ungated rule and the dialog greys blocked rows; consistent, accepted deviation
       test: no automated test — no defect
-- [x] 🔵 OBSERVATION · fixed · code-review · `settle-payouts-form.tsx:276` · „Wypłać" not disabled while a premia books — the two reloads race over the form rows — `isBooking` added to `disabled`
-      test: no automated test — one-token guard; a timing race is not worth a spec
 - [x] 🔵 OBSERVATION · dropped · code-review + impl-review · `src/components/forms/expense-form/draft-type.ts:14` · a restored BONUS draft ignores the role — needs an OWNER and a MANAGER in one browser tab; unreachable in practice and the server refuses it anyway
       test: no automated test — unreachable
 - [x] 🔵 OBSERVATION · dismissed · impl-review F4 · `subcontractor-payouts-table.tsx:93` · „Lista wpłat" drill-down links PAYOUT only — the table lists cash wypłaty only (`cashPayouts`), so its drill-down matches what it shows; the totals link carries BONUS
