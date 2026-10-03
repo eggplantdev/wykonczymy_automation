@@ -7,26 +7,12 @@ Checks run: `/code-review`, `tailwind-v4-audit`, `feature-first-structure` + `mo
 
 ## Findings
 
-- [x] 🟡 WARNING · fixed · code-review · `src/lib/db/investment-trash.ts` · the auto-purge cron would hard-delete a trashed **active** investment — purge SELECT now filters `status <> 'active'`
-      test: no automated test — tests deferred by user · integration (purge vs. trashed active row)
-- [x] 🟡 WARNING · fixed · code-review · `src/hooks/investments/guard-trashed-investment.ts` · trashed kosztorys v2 summary tab still saved the investment through `updateInvestmentAction` / `updateInvestmentClientFieldsAction` — new `beforeChange` guard refuses every update except the restore
-      test: no automated test — tests deferred by user · integration (update on a trashed investment → 403)
-- [x] 🟡 WARNING · fixed · code-review · `src/hooks/investments/guard-trashed-investment.ts` · gallery add/remove on a trashed investment went through — covered by the same guard (both end in an investments update)
-      test: no automated test — tests deferred by user · integration (same guard spec)
 - [x] 🟡 WARNING · skipped · code-review · `src/lib/actions/media-kind.ts` · „Oznacz jako rzut" still flips `media.kind` on a trashed investment's asset — harmless metadata on the media row, not the investment; another guard is not worth it
       test: no automated test — not fixed
-- [x] 🟡 WARNING · fixed · code-review · `src/components/kosztorys/editor/toolbar/menus/kosztorys-actions-menu.tsx` · Inwestor/Pracownicy menus on a trashed kosztorys v2 handed out links that 404 — menus hidden via `isTrashed`
-      test: no automated test — tests deferred by user · unit/dom (menu absent when trashed)
 - [x] 🟡 WARNING · skipped · code-review · share-link actions · server still mints a share token for a trashed investment — the write is a harmless token and the share pages 404 on a trashed id
       test: no automated test — not fixed
-- [x] 🔵 OBSERVATION · fixed · code-review · `src/lib/queries/trash.ts` · `/kosz` row of a trashed active investment promised „usunie się samo” and a delete hint it could not honour — `isUndeletable` row flag + `TRASHED_ACTIVE_INVESTMENT_DELETE_MESSAGE` (restore → change status → delete)
-      test: no automated test — tests deferred by user · unit (trash row shaping)
-- [x] 🔵 OBSERVATION · fixed · code-review · `src/components/investments/trash-investment-button.tsx` · an active investment paid a kosztorys round-trip and a dialog before the server refused — early toast from `isUndeletableStatus`, no dialog
-      test: no automated test — tests deferred by user · dom (click on active → toast, no dialog)
 - [x] 🔵 OBSERVATION · dismissed · code-review · `src/lib/actions/investment-trash.ts` · READ COMMITTED race between the status check and the trash write — the purge filter and the update guard both re-check at write time
       test: no automated test — dismissed
-- [x] 🔵 OBSERVATION · fixed · code-review · `src/components/forms/hooks/use-managed-form.ts` · `awaitingAnswer` was set on every submit, so the loader also hid while a question-free submit ran — derived from the open question (`submitConfirm.open` / `collision !== null`) instead of a try/finally flag
-      test: no automated test — tests deferred by user · dom (loader hidden only while the question is open)
 - [x] dropped · code-review · `src/components/forms/form-components/form-footer.tsx` · `awaitingAnswer` threaded into FormFooter by hand — three consumers, a context would be heavier than the prop
 - [x] dropped · code-review · trashed banners/wordings + duplicate v1 link · three surfaces with different copy; the v1 link variants differ in size, label and variant, so a shared component's params would equal the code
 - [x] dismissed · code-review · `src/lib/queries/reference-data.ts` · `trashedInvestments` shipped in client props — same precedent as `trashedCashRegisters`, a bounded list
@@ -63,6 +49,6 @@ Ran /simplify (reuse, simplification, efficiency and altitude agents): 7 applied
 
 ## Tests & suite
 
-Deferred by user: no tests run or authored in this gate.
+Deferred by user: no tests run or authored in this gate. The fixed findings (trimmed at archive, 2026-10-03) left these paths with no regression test — the purge's `status <> 'active'` filter, the `guard-trashed-investment.ts` update guard, the share/kosztorys menus hidden on a trashed investment, and the early „aktywna” toast. E2E backlog: EX-874.
 Fixture/mock shapes were updated only where types forced it (`trash.test.ts`, `trash-investment-button.test.tsx`, `investment-trash.db.test.ts`).
 `tsc` is clean on `src`; the only errors are in another session's untracked `context/changes/2026-10-01-ai-kosztorys-generation-tests/`. `eslint` is clean on the touched files.
