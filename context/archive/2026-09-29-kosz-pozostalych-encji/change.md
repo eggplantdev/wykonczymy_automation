@@ -1,10 +1,10 @@
 ---
 change_id: kosz-pozostalych-encji
 title: Trash for the remaining entities — fleet, equipment, workers, registers, hard-deleted kosztorys records
-status: preparing
+status: archived
 created: 2026-09-29
-updated: 2026-09-29
-archived_at: null
+updated: 2026-10-03
+archived_at: 2026-10-03T05:44:44Z
 branch: null
 worktree: null
 ---
