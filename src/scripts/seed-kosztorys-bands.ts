@@ -34,7 +34,7 @@ async function main() {
   })
   const stage = await payload.create({
     collection: 'kosztorys-stages',
-    data: { investment: investment.id, ordinal: 1, label: 'Etap 1' },
+    data: { splitMode: 'percent', investment: investment.id, ordinal: 1, label: 'Etap 1' },
     ...ctx,
   })
 

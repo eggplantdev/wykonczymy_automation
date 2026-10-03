@@ -59,6 +59,7 @@ keeps it cleared.
 | labor charge           | Robocizna             | „robocizna" | `laborCosts` (`LABOR_COST`)      | B   | — (resolved 2026-07-20)      | `calculate-margin.ts:14`; `transfer-rules.ts:52`         |
 | discount               | Rabat                 | „rabat %"   | `discount` (`RABAT`)             | B   | — (resolved EX-548)          | `calculate-margin.ts:14`; `kosztorys-editor-body.tsx:73` |
 | loss                   | Strata                | —           | `loss` (`LOSS`)                  | B   | — (resolved EX-548)          | `calculate-margin.ts:5`                                  |
+| bonus                  | Premia                | —           | `bonus` (`BONUS`)                | B   | — (new, EX-979)              | `transfer-rules.ts` (`financialBucket: 'bonus'`)         |
 | correction             | Korekta               | —           | `correction` (`CORRECTION`)      | B   | —                            | `validation.ts:7`                                        |
 | materials              | Materiały             | „materiały" | `materials`                      | B   | (`materiały` in labels only) | `investment-financials.ts:41`                            |
 | settled flag           | Wliczone w robociznę  | —           | `settled`                        | B   | —                            | `transfers.ts:228`                                       |

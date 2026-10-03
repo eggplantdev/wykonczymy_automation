@@ -13,6 +13,8 @@ export function transferRow(overrides: Partial<TransferRowT> = {}): TransferRowT
     sourceRegisterName: '—',
     targetRegisterId: null,
     targetRegisterName: '—',
+    sourceRegisterTrashed: false,
+    targetRegisterTrashed: false,
     investmentId: null,
     investmentName: '—',
     expenseCategoryId: null,

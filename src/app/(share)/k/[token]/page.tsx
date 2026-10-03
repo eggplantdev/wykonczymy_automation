@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation'
 import { getPreviewKosztorysByToken } from '@/lib/queries/preview-kosztorys'
 import { getPreviewHistoryByToken } from '@/lib/queries/preview-kosztorys-history'
-import { parseVersionParam, VERSION_PARAM } from '@/lib/kosztorys/history/version-param'
+import { VERSION_PARAM } from '@/lib/kosztorys/history/version-param'
+import { parseIdParam } from '@/lib/utils/parse-id-param'
 import { KosztorysEditorBody } from '@/components/kosztorys/editor/kosztorys-editor-body'
 import type { ResolvedSearchParamsT } from '@/types/page'
 
@@ -18,7 +19,7 @@ export default async function SharedKosztorysPage({
   const data = await getPreviewKosztorysByToken(token)
   if (!data) notFound()
 
-  const versionId = parseVersionParam((await searchParams)[VERSION_PARAM])
+  const versionId = parseIdParam((await searchParams)[VERSION_PARAM])
   const history = await getPreviewHistoryByToken(token, data.tree, versionId)
 
   // Keyed on the version: the grid seeds its rows once, at mount.

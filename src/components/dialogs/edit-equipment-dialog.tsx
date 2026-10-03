@@ -4,7 +4,7 @@ import { EditButton } from '@/components/ui/row-actions/edit-button'
 import { FormDialog } from '@/components/ui/form-dialog'
 import { EquipmentForm } from '@/components/forms/equipment-form/equipment-form'
 import { updateEquipmentAction } from '@/lib/actions/equipment'
-import { makeModel } from '@/lib/equipment/rows'
+import { makeModel } from '@/lib/utils/make-model'
 import type { EquipmentRowT } from '@/lib/equipment/types'
 
 export function EditEquipmentDialog({

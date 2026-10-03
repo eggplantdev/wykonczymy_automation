@@ -1,5 +1,6 @@
 import type { KosztorysItemT, KosztorysSectionT, PriceSourceT } from '@/lib/kosztorys/types'
 import type { CatalogueRateT } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
+import type { DescriptionTranslationsT } from '@/lib/i18n/description-translations'
 
 // The catalogue row as every reader sees it. A stawka is one of THREE things per plane, and the pair
 // of columns behind it says which: a frozen ZŁOTÓWKA that travels into every rozpiska verbatim, a
@@ -12,6 +13,7 @@ import type { CatalogueRateT } from '@/lib/kosztorys/work-catalogue/catalogue-ra
 export type WorkCatalogueItemT = {
   id: number
   description: string
+  descriptionTranslations: DescriptionTranslationsT
   category: string | null
   unit: string
   clientPrice: number
@@ -22,7 +24,17 @@ export type WorkCatalogueItemT = {
   matchKey: string
 }
 
-export type CatalogueSeedItemT = Omit<WorkCatalogueItemT, 'id'>
+// Translations stay out of the seed: every katalog writer builds one, and a seed that required the
+// map would overwrite a stored translation with `{}`. The writers that own translations pass them
+// explicitly (`applyCatalogueWrite`).
+export type CatalogueSeedItemT = Omit<WorkCatalogueItemT, 'id' | 'descriptionTranslations'>
+
+export type CatalogueCandidateT = CatalogueSeedItemT &
+  Pick<WorkCatalogueItemT, 'descriptionTranslations'>
+
+// What a praca takes over when it accepts a katalog name. The translations come along with the opis:
+// the praca's own were made from the name it is giving up.
+export type CatalogueNameT = Pick<WorkCatalogueItemT, 'description' | 'unit' | 'descriptionTranslations'>
 
 // One occurrence of a klucz inside the szablon, kept only so a rozbieżność can be shown with the
 // sekcja it came from — the owner recognises „Łazienka 1 mówi 300 zł" and nothing else.
@@ -52,6 +64,7 @@ export type SeedConflictT = {
 // decisions this wiersz made and the cennik keeps each as the źródło it was.
 export type CatalogueSourceItemT = {
   description: string
+  descriptionTranslations: DescriptionTranslationsT
   unit: string
   sectionName: string
   clientPrice: number
@@ -64,7 +77,7 @@ export type CatalogueSourceItemT = {
 // What the „Zapisz do katalogu…" dialog renders: the row that WOULD be written, and the cennik row
 // already holding its klucz — the presence of the second is the whole nowa/nadpisz question.
 export type CatalogueSavePreviewT = {
-  candidate: CatalogueSeedItemT
+  candidate: CatalogueCandidateT
   existing: WorkCatalogueItemT | null
 }
 
@@ -107,13 +120,10 @@ export type CataloguePriceDiffT = {
 // A „może chodzi o…" candidate. It carries the cennik row whole rather than its opis, because the
 // three closest names are routinely the SAME name — 168 prace in the local dataset differ from their
 // candidate only by j.m. — so the j.m. and the cena are what actually tell two candidates apart.
-export type CatalogueHintT = {
-  id: number
-  description: string
-  unit: string
-  clientPrice: number
-  score: number
-}
+export type CatalogueHintT = Pick<
+  WorkCatalogueItemT,
+  'id' | 'description' | 'descriptionTranslations' | 'unit' | 'clientPrice'
+> & { score: number }
 
 export type CatalogueMissingT = {
   itemId: number

@@ -2,11 +2,10 @@ import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
-import { selectWorkerPayoutPairs } from '@/lib/db/worker-payout-pairs'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
-import { classifyPair } from '@/lib/kosztorys/worker-payout-pairs'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
+import { pairRemaining } from '@/__tests__/helpers/pair-remaining'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
 // Every case asserts the PERSISTED rows, never only the return value: a refusal that still wrote
@@ -40,8 +39,8 @@ describe.skipIf(!ENV_READY)('settlePayoutsAction (DB)', () => {
   const worker = { a: 0, b: 0 }
   let registerId = 0
   // a, b: worker a alone on a settled etap. withheld: worker b on a plane-less etap. locked: worker a,
-  // then set to zakończona. unassigned: an etap with nobody on it.
-  const created = { a: 0, b: 0, withheld: 0, locked: 0, unassigned: 0 }
+  // then set to zakończona. unassigned: an etap with nobody on it. split: one etap shared by a and b.
+  const created = { a: 0, b: 0, withheld: 0, locked: 0, unassigned: 0, split: 0 }
 
   const tree = (plane: 'w_tools' | null, stageWorker: number | null) => ({
     sections: [{ name: 'Sekcja', items: ITEMS }],
@@ -49,12 +48,8 @@ describe.skipIf(!ENV_READY)('settlePayoutsAction (DB)', () => {
     progress: [{ item: 0, stage: 0, qtyDone: 4 }],
   })
 
-  async function remainingOf(investmentId: number, workerId: number | null) {
-    const pairs = await selectWorkerPayoutPairs(db, { investmentIds: [investmentId] })
-    const pair = pairs.find((row) => row.workerId === workerId)
-    if (!pair) throw new Error(`no pair ${investmentId}:${workerId}`)
-    return roundToCents(classifyPair(pair).remaining)
-  }
+  const remainingOf = (investmentId: number, workerId: number | null) =>
+    pairRemaining(db, investmentId, workerId)
 
   async function booked(description = marker) {
     const res = await db.execute(sql`
@@ -111,6 +106,22 @@ describe.skipIf(!ENV_READY)('settlePayoutsAction (DB)', () => {
     await createKosztorysTree(payload, created.withheld, tree(null, worker.b))
     await createKosztorysTree(payload, created.locked, tree('w_tools', worker.a))
     await createKosztorysTree(payload, created.unassigned, tree('w_tools', null))
+    await createKosztorysTree(payload, created.split, {
+      ...tree('w_tools', null),
+      stages: [
+        {
+          label: 'Etap 1',
+          plane: 'w_tools',
+          split: {
+            mode: 'percent',
+            members: [
+              { workerId: worker.a, value: 25, takesRest: false },
+              { workerId: worker.b, value: 0, takesRest: true },
+            ],
+          },
+        },
+      ],
+    })
     await db.execute(
       sql`UPDATE investments SET status = ${LOCKED_INVESTMENT_STATUS} WHERE id = ${created.locked}`,
     )
@@ -167,6 +178,40 @@ describe.skipIf(!ENV_READY)('settlePayoutsAction (DB)', () => {
     expect(ahead.description).toMatch(new RegExp(`^${marker}\\nw tym zaliczka 150,00`))
   })
 
+  it('settles both workers of a shared etap, each at their own share', async () => {
+    const [remainingA, remainingB] = await Promise.all([
+      remainingOf(created.split, worker.a),
+      remainingOf(created.split, worker.b),
+    ])
+    expect(remainingA).toBeGreaterThan(0)
+    expect(remainingB).toBeCloseTo(remainingA * 3, 1)
+
+    const result = await submit(marker, [
+      {
+        investmentId: created.split,
+        workerId: worker.a,
+        amount: remainingA,
+        expectedRemaining: remainingA,
+      },
+      {
+        investmentId: created.split,
+        workerId: worker.b,
+        amount: remainingB,
+        expectedRemaining: remainingB,
+      },
+    ])
+    expect(result).toMatchObject({ success: true })
+
+    expect((await booked()).map((row) => [row.worker_id, row.amount])).toEqual(
+      expect.arrayContaining([
+        [worker.a, remainingA],
+        [worker.b, remainingB],
+      ]),
+    )
+    expect(await remainingOf(created.split, worker.a)).toBe(0)
+    expect(await remainingOf(created.split, worker.b)).toBe(0)
+  })
+
   it('refuses the whole batch when a figure moved since the dialog opened', async () => {
     const remainingA = await remainingOf(created.a, worker.a)
     const remainingB = await remainingOf(created.b, worker.a)
@@ -179,6 +224,23 @@ describe.skipIf(!ENV_READY)('settlePayoutsAction (DB)', () => {
         amount: 10,
         expectedRemaining: remainingB + 1,
       },
+    ])
+    expect(result).toMatchObject({ success: false, stale: true })
+    expect(await booked()).toHaveLength(0)
+  })
+
+  // EX-979: a premia moves the pair like a wypłata does, so a dialog opened before it is stale.
+  it('reads a premia into the pair and refuses a submit that predates it', async () => {
+    const before = await remainingOf(created.a, worker.a)
+    await db.execute(sql`
+      INSERT INTO transactions (description, amount, date, type, payment_method, investment_id, worker_id)
+      VALUES (${`${marker}-premia`}, 50, now(), 'BONUS'::enum_transactions_type, 'TRANSFER',
+        ${created.a}, ${worker.a})
+    `)
+    expect(await remainingOf(created.a, worker.a)).toBe(roundToCents(before + 50))
+
+    const result = await submit(marker, [
+      { investmentId: created.a, workerId: worker.a, amount: 10, expectedRemaining: before },
     ])
     expect(result).toMatchObject({ success: false, stale: true })
     expect(await booked()).toHaveLength(0)

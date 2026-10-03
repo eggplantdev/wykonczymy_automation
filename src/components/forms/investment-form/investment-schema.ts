@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { INVESTMENT_STATUSES } from '@/lib/constants/investment-status'
 
-// Form-input layer: every field is a string, as the HTML controls produce them.
+// Form-input layer: every field is what its control produces — a string, or a boolean for a checkbox.
 export const investmentFormSchema = z.object({
   name: z.string().min(1, 'Nazwa jest wymagana'),
   address: z.string(),
@@ -9,7 +9,7 @@ export const investmentFormSchema = z.object({
   email: z.string(),
   contactPerson: z.string(),
   notes: z.string(),
-  review: z.string(),
+  reviewRequested: z.boolean(),
   // Accepted so an edit that round-trips a szablon's status validates; no <SelectItem> offers it,
   // and guardTemplateStatus refuses setting or dropping it.
   status: z.enum(INVESTMENT_STATUSES),
@@ -31,7 +31,7 @@ export const investmentSchema = investmentFormSchema.extend({
     .default(''),
   contactPerson: z.string().optional().default(''),
   notes: z.string().optional().default(''),
-  review: z.string().optional().default(''),
+  reviewRequested: z.boolean().optional().default(false),
   // Not a form value — no control collects it. The files are uploaded before submit and the ids
   // ride in on the action call (`submitWithUploads`), so only the domain layer knows the field.
   assets: z.array(z.number()).optional().default([]),

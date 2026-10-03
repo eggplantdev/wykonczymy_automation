@@ -30,6 +30,7 @@ export function makeTree(
 export const baseItem: Omit<KosztorysItemT, 'id' | 'description' | 'plannedQty' | 'clientPrice'> = {
   sectionId: 10,
   displayOrder: 0,
+  descriptionTranslations: {},
   unit: 'm2',
   sheetMeasuredQty: null,
   discountType: null,

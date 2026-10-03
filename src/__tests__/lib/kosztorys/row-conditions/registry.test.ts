@@ -364,9 +364,9 @@ describe('the rate-source trio', () => {
 
 describe('„ze stawką wykonawcy od ceny z materiałem" — the overpaid-crew guard', () => {
   const STAGES_BOTH_PLANES: KosztorysStageT[] = [
-    { id: 1, ordinal: 1, label: null, plane: 'w_tools', workerId: null },
-    { id: 2, ordinal: 2, label: null, plane: 'own_tools', workerId: null },
-    { id: 3, ordinal: 3, label: null, plane: null, workerId: null },
+    { id: 1, ordinal: 1, label: null, plane: 'w_tools', split: null },
+    { id: 2, ordinal: 2, label: null, plane: 'own_tools', split: null },
+    { id: 3, ordinal: 3, label: null, plane: null, split: null },
   ]
   const settled = {
     stages: STAGES_BOTH_PLANES,
@@ -444,6 +444,33 @@ describe('„ze stawką wykonawcy od ceny z materiałem" — the overpaid-crew g
     expect(engagedPlane(['material-percent-rate-own-tools'])).toBe('own_tools')
     expect(columnsRevealedBy(['material-percent-rate-w-tools'])).toEqual(
       new Set(priceCells('w_tools')),
+    )
+  })
+})
+
+describe('„z nieaktualnym tłumaczeniem" — per language', () => {
+  const OPIS = 'Gruntowanie ścian'
+  const current = { text: 'Ґрунтування стін', source: OPIS }
+
+  // Missing is not stale: a pozycja nobody translated into ru must not light up the ru diagnostic.
+  it('fires once the opis moved on, only for the language that carries the translation', () => {
+    const moved = row({ description: `${OPIS} i sufitów`, descriptionTranslations: { uk: current } })
+    expect(matches('stale-translation-uk', moved)).toBe(true)
+    expect(matches('stale-translation-ru', moved)).toBe(false)
+  })
+
+  it('stays quiet on a current translation and on none at all', () => {
+    expect(
+      matches('stale-translation-uk', row({ description: OPIS, descriptionTranslations: { uk: current } })),
+    ).toBe(false)
+    expect(
+      matches('stale-translation-uk', row({ description: OPIS, descriptionTranslations: {} })),
+    ).toBe(false)
+  })
+
+  it('reveals the column of its own language', () => {
+    expect(columnsRevealedBy(['stale-translation-ru'])).toEqual(
+      new Set(['descriptionTranslation__ru']),
     )
   })
 })

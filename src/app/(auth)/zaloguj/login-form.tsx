@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { AuthLink } from '@/components/ui/auth-link'
 import { useAppForm } from '@/components/forms/hooks/form-hooks'
 import { loginAction } from '@/lib/actions/auth'
+import { settleAction } from '@/lib/utils/settle-action'
 import { Loader } from '@/components/ui/loader/loader'
 import { AuthSubmitButton } from '@/components/ui/auth-submit-button'
 
@@ -22,8 +23,7 @@ export function LoginForm() {
     },
     onSubmit: async ({ value }) => {
       setError(undefined)
-      const response = await loginAction(value)
-      console.log('response', response)
+      const response = await settleAction(() => loginAction(value))
 
       if (response.success) {
         setButtonState('success')

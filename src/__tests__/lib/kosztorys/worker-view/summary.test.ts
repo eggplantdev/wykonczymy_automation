@@ -5,6 +5,7 @@ import { computeWorkerSummary } from '@/lib/kosztorys/worker-view/summary'
 import type { KosztorysStageT, KosztorysTreeT } from '@/lib/kosztorys/types'
 import type { PayoutTransactionRowT } from '@/types/transfers'
 import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
+import { oneWorkerSplit, restHolderId } from '@/lib/kosztorys/stage-split'
 
 const WORKER = 5
 const OTHER = 9
@@ -12,9 +13,9 @@ const OTHER = 9
 // Worker 5 holds etapy 100 and 102 (z narzędziami, stawka 12); worker 9 holds etap 101 on the same
 // plane. Row 2 carries a client rabat, which must never reach the crew's figures.
 const stages: KosztorysStageT[] = [
-  { id: 100, ordinal: 1, label: 'Tynki', plane: 'w_tools', workerId: WORKER },
-  { id: 101, ordinal: 2, label: null, plane: 'w_tools', workerId: OTHER },
-  { id: 102, ordinal: 3, label: null, plane: 'w_tools', workerId: WORKER },
+  { id: 100, ordinal: 1, label: 'Tynki', plane: 'w_tools', split: oneWorkerSplit(WORKER) },
+  { id: 101, ordinal: 2, label: null, plane: 'w_tools', split: oneWorkerSplit(OTHER) },
+  { id: 102, ordinal: 3, label: null, plane: 'w_tools', split: oneWorkerSplit(WORKER) },
 ]
 const tree: KosztorysTreeT = makeTree({
   sections: [
@@ -46,13 +47,18 @@ const tree: KosztorysTreeT = makeTree({
   vatRate: 0.08,
 })
 const rows = treeToRows(tree)
-const hisStages = stages.filter((stage) => stage.workerId === WORKER)
+const hisStages = stages.filter((stage) => restHolderId(stage.split) === WORKER)
 
-const payout = (workerId: number | null, amount: number, date = '2026-09-01') => ({
+const payout = (
+  workerId: number | null,
+  amount: number,
+  date = '2026-09-01',
+): PayoutTransactionRowT => ({
+  type: 'PAYOUT',
   workerId,
   amount,
   date,
-  description: 'notatka wewnętrzna',
+  description: 'ZUS lipiec',
 })
 
 function summarize(payoutRows: PayoutTransactionRowT[]) {
@@ -77,8 +83,8 @@ describe('computeWorkerSummary', () => {
     expect(summary.executedNet).toBe(byWorker)
     expect(summary.executedNet).toBe((2 + 1) * 12)
     expect(summary.executedByStage).toEqual([
-      { stageId: 100, label: 'Tynki', net: 24 },
-      { stageId: 102, label: 'Etap 3', net: 12 },
+      { stageId: 100, label: 'Tynki', net: 24, wholeNet: 24, share: null },
+      { stageId: 102, label: 'Etap 3', net: 12, wholeNet: 12, share: null },
     ])
   })
 
@@ -90,10 +96,24 @@ describe('computeWorkerSummary', () => {
     expect(summary.isOverpaid).toBe(false)
   })
 
-  it('lists his payouts by date and amount, never their description', () => {
+  it('lists his payouts with their description', () => {
     const summary = summarize([payout(WORKER, 10, '2026-09-02'), payout(OTHER, 1)])
 
-    expect(summary.payouts).toEqual([{ date: '2026-09-02', amount: 10 }])
+    expect(summary.payouts).toEqual([{ date: '2026-09-02', amount: 10, description: 'ZUS lipiec' }])
+  })
+
+  it('adds the worker’s premia to what is owed, apart from the wypłaty', () => {
+    const summary = summarize([
+      payout(WORKER, 50),
+      { ...payout(WORKER, 14), type: 'BONUS' },
+      { ...payout(OTHER, 999), type: 'BONUS' },
+    ])
+
+    expect(summary.bonusNet).toBe(14)
+    expect(summary.paidNet).toBe(50)
+    expect(summary.payouts).toHaveLength(1)
+    expect(summary.owed).toBe(0)
+    expect(summary.isOverpaid).toBe(false)
   })
 
   it('flags an overpayment instead of reading it as a debt', () => {
@@ -109,5 +129,61 @@ describe('computeWorkerSummary', () => {
 
     expect(Object.is(summary.owed, 0)).toBe(true)
     expect(summary.isOverpaid).toBe(false)
+  })
+})
+
+// Etap 101 (3 × 12 = 36 zł of work) shared: worker 5 on 25%, worker 9 on the rest.
+describe('computeWorkerSummary — a shared etap', () => {
+  const shared: KosztorysStageT = {
+    ...stages[1],
+    split: {
+      mode: 'percent',
+      members: [
+        { workerId: WORKER, value: 25, takesRest: false },
+        { workerId: OTHER, value: 0, takesRest: true },
+      ],
+    },
+  }
+  const summarizeShared = (workerId: number, stage = shared) =>
+    computeWorkerSummary({
+      rows,
+      stages: [stage],
+      plane: 'w_tools',
+      workerId,
+      payoutRows: [],
+    })
+
+  it('credits his share and shows the whole etap beside it', () => {
+    const summary = summarizeShared(WORKER)
+
+    expect(summary.executedNet).toBe(9)
+    expect(summary.executedByStage).toEqual([
+      { stageId: 101, label: 'Etap 2', net: 9, wholeNet: 36, share: { percent: 25, amount: 9 } },
+    ])
+  })
+
+  it('gives the rest holder the effective remainder', () => {
+    expect(summarizeShared(OTHER).executedByStage[0].share).toEqual({ percent: 75, amount: 27 })
+  })
+
+  it('still says the percentage before any work, with nothing to credit', () => {
+    const idle = computeWorkerSummary({
+      rows: treeToRows({ ...tree, progress: [] }),
+      stages: [shared],
+      plane: 'w_tools',
+      workerId: OTHER,
+      payoutRows: [],
+    })
+
+    expect(idle.executedByStage[0].share).toEqual({ percent: 75, amount: 0 })
+  })
+
+  it('names no co-worker anywhere in what it returns', () => {
+    const out = JSON.stringify(summarizeShared(WORKER))
+
+    // Worker 9's id equals worker 5's 9 zł, so the guard is on shape: no member list, no worker id,
+    // and not the co-worker's 27 zł.
+    expect(out).not.toMatch(/workerId|members|takesRest/)
+    expect(out).not.toContain('27')
   })
 })

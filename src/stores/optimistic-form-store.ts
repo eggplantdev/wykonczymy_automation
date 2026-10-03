@@ -50,9 +50,12 @@ export const useOptimisticFormStore = create<OptimisticFormStoreT>()((set) => ({
   // Closing the dialog must not abort in-flight work: the optimistic submit path closes the
   // dialog *while* the save runs, so a 'pending' submission has to survive (the global indicator
   // reads it). Only a settled/failed submission clears on dismiss.
+  // `showKeepOpen` resets too: a dialog that never calls `openDialog` would otherwise inherit the
+  // previous one's checkbox, which it has no way to honour.
   closeDialog: () =>
     set((state) => ({
       openFormId: null,
+      showKeepOpen: false,
       submission: state.submission?.status === 'pending' ? state.submission : null,
     })),
   setKeepOpen: (keepOpen) => set({ keepOpen }),

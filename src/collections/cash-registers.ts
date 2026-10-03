@@ -1,32 +1,16 @@
-import type { CollectionConfig, CollectionBeforeValidateHook, Where } from 'payload'
+import type { CollectionConfig, CollectionBeforeValidateHook } from 'payload'
 import { isAdminOrOwner, isAdminOrOwnerField, isAdminOrOwnerOrManager, isManager } from '@/access'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
-import { makePreventDelete } from '@/hooks/prevent-delete'
-import { excludingCancelled } from '@/lib/db/delete-blocker'
+import { refuseDeleteWhen } from '@/hooks/prevent-delete'
+import { guardCashRegisterUpdate } from '@/hooks/cash-registers/guard-update'
+import { cashRegisterDeleteBlocker } from '@/lib/cash-registers/delete-blocker'
 
 /** Managers can only create AUXILIARY registers — force the type. */
 const enforceAuxiliaryForManager: CollectionBeforeValidateHook = ({ data, req }) => {
   if (isManager({ req })) return { ...data, type: 'AUXILIARY' }
   return data
 }
-
-// Cancelled rows are exempt — see `excludingCancelled`. Kasa balances are computed, never stored
-// (`lib/db/sum-transfers.ts`), and every one of those sums already skips cancelled rows.
-const preventDeleteWithTransactions = makePreventDelete({
-  probes: [
-    {
-      collection: 'transactions',
-      where: (id): Where =>
-        excludingCancelled({
-          or: [{ sourceRegister: { equals: id } }, { targetRegister: { equals: id } }],
-        }),
-      label: 'transakcje',
-    },
-  ],
-  message: (blockers) =>
-    `Nie można usunąć kasy — istnieją powiązane dane (${blockers.join(', ')}). Najpierw usuń lub przenieś transakcje.`,
-})
 
 export const CashRegisters: CollectionConfig = {
   slug: 'cash-registers',
@@ -41,7 +25,8 @@ export const CashRegisters: CollectionConfig = {
   },
   hooks: {
     beforeValidate: [enforceAuxiliaryForManager],
-    beforeDelete: [preventDeleteWithTransactions],
+    beforeChange: [guardCashRegisterUpdate],
+    beforeDelete: [refuseDeleteWhen(cashRegisterDeleteBlocker)],
     afterChange: [makeRevalidateAfterChange('cashRegisters')],
     afterDelete: [makeRevalidateAfterDelete('cashRegisters')],
   },
@@ -91,6 +76,15 @@ export const CashRegisters: CollectionConfig = {
         create: isAdminOrOwnerField,
         update: isAdminOrOwnerField,
       },
+    },
+    // Closed to access-checked writes: a REST PATCH would skip the use check, the default clearing and
+    // the MAIN hiding that the trash actions (overrideAccess) run.
+    {
+      name: 'trashedAt',
+      type: 'date',
+      access: { create: () => false, update: () => false },
+      admin: { hidden: true },
+      label: { en: 'Trashed at', pl: 'W koszu od' },
     },
   ],
 }

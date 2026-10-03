@@ -12,6 +12,9 @@ import { HintedValue } from '@/components/tables/hinted-value'
 import { SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/labels'
 import type { WorkerColumnFiguresT } from '@/lib/kosztorys/worker-payout-pairs'
 import { cn } from '@/lib/utils/cn'
+import { TrashRowButton } from '@/components/trash/trash-row-button'
+import { trashWorkerAction } from '@/lib/actions/worker-trash'
+import { describeWorkerTrash } from '@/lib/workers/describe-trash'
 
 const col = createColumnHelper<UserRowT>()
 
@@ -135,6 +138,25 @@ export function getUserColumns({ onToggle, onSettle }: UserColumnOptionsT) {
       id: 'defaultCashRegister',
       header: 'Domyślna kasa',
       cell: (info) => info.getValue() ?? '—',
+    }),
+    col.display({
+      id: 'actions',
+      header: 'Akcje',
+      meta: { align: 'right' },
+      cell: (info) =>
+        info.row.original.canTrash && (
+          <div className="flex items-center justify-end gap-1">
+            <TrashRowButton
+              label="Usuń pracownika"
+              description={describeWorkerTrash(
+                info.row.original.name,
+                info.row.original.registerNames,
+              )}
+              trash={() => trashWorkerAction(info.row.original.id)}
+              trashed="Pracownik przeniesiony do kosza."
+            />
+          </div>
+        ),
     }),
   ]
 }

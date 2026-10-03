@@ -29,6 +29,8 @@ export type FleetRowT = VehicleRecordT & {
    * window holds inspections but none of them a price, so „nieznane" cannot render as „0 zł".
    */
   totalCosts: number | null
+  /** Every inspection the car has, of any type — what a delete forever takes with it. */
+  inspectionCount: number
 }
 
 export type VehicleDetailT = {

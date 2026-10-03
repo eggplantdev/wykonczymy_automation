@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { Description } from '@/components/ui/description'
 import { WorkCatalogueItemForm } from '@/components/forms/work-catalogue-item/work-catalogue-item-form'
 import { createCatalogueItemAction, updateCatalogueItemAction } from '@/lib/actions/work-catalogue'
+import { translationTexts } from '@/lib/i18n/description-translations'
 import { PLANE_LABELS } from '@/lib/kosztorys/labels'
 import { catalogueCategorySuggestions } from '@/lib/kosztorys/work-catalogue/category-options'
 import type {
@@ -18,10 +19,11 @@ import { catalogueRateText } from '@/lib/kosztorys/work-catalogue/catalogue-rate
 import { formatPLN } from '@/lib/utils/format-currency'
 import { useCatalogueSavePreview } from './use-catalogue-save-preview'
 
-function defaultsFrom({
-  candidate,
-  existing,
-}: CatalogueSavePreviewT): WorkCatalogueItemFormValuesT {
+const translationBaselineOf = ({ candidate, existing }: CatalogueSavePreviewT) =>
+  existing?.descriptionTranslations ?? candidate.descriptionTranslations
+
+function defaultsFrom(preview: CatalogueSavePreviewT): WorkCatalogueItemFormValuesT {
+  const { candidate, existing } = preview
   return {
     description: candidate.description,
     // The kategoria is the one field the KATALOG owns rather than the rozpiska: a sekcja is „Podłogi
@@ -30,6 +32,7 @@ function defaultsFrom({
     unit: candidate.unit,
     clientPrice: String(candidate.clientPrice),
     ...rateFormValues(candidate),
+    translations: translationTexts(translationBaselineOf(preview)),
   }
 }
 
@@ -88,6 +91,7 @@ export function CatalogueItemFromKosztorysDialog({
             <WorkCatalogueItemForm
               formId={`catalogue-item-from-kosztorys-${itemId}`}
               defaultValues={defaultsFrom(preview)}
+              translationBaseline={translationBaselineOf(preview)}
               categorySuggestions={categorySuggestions}
               action={(data) =>
                 existing

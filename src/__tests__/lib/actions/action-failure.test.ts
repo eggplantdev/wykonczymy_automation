@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { NotFound } from 'payload'
 import { toActionFailure } from '@/lib/actions/action-failure'
+import { uk } from '@/lib/i18n/dictionaries/uk'
+import { failureMessage } from '@/lib/i18n/failure-message'
 
 // The regression this guards: a kosztorys autosave against a row that no longer exists (the tree was
 // replaced elsewhere — a sheet import or a version restore, both wipe-and-reinsert) surfaced as
@@ -32,6 +34,13 @@ describe('toActionFailure', () => {
 
     expect(toActionFailure(queryError).error).not.toMatch(/Failed query|INSERT|foreign key/)
     expect(toActionFailure(driverError).error).not.toMatch(/foreign key/)
+  })
+
+  it('words a database failure in the worker’s language by its code, not its Polish sentence', () => {
+    const failure = toActionFailure(Object.assign(new Error('boom'), { query: 'SELECT 1' }))
+
+    expect(failure.code).toBe('DATABASE_ERROR')
+    expect(failureMessage('uk', failure)).toBe(uk.common.databaseError)
   })
 
   it('leaves any other error untagged, with its own message', () => {

@@ -10,6 +10,7 @@ import { useUndoRedo } from '@/components/kosztorys/editor/hooks/use-undo-redo'
 import type { OnTreeReplacedT } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { refreshDataAction } from '@/lib/actions/refresh'
 import type { KosztorysEditorDataT } from '@/lib/kosztorys/types'
+import { whenOnline } from '@/lib/utils/when-online'
 
 type PropsT = KosztorysEditorDataT
 
@@ -53,7 +54,7 @@ export function KosztorysEditorV2(props: PropsT) {
   // the action.
   const handleTreeReplaced: OnTreeReplacedT = ({ refetch } = {}) => {
     reseed(treeToken)
-    if (refetch) router.refresh()
+    if (refetch) whenOnline(() => router.refresh())
   }
 
   // Recovery from the other direction: the tree was replaced somewhere ELSE (another tab, another

@@ -23,7 +23,7 @@ const tree = makeTree({
       ],
     },
   ],
-  stages: [{ id: 100, ordinal: 1, label: null, plane: 'w_tools', workerId: null }],
+  stages: [{ id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null }],
   progress: [
     { itemId: OVERRUN, stageId: 100, qtyDone: 1 },
     { itemId: OWED, stageId: 100, qtyDone: 1 },
@@ -36,27 +36,17 @@ const row = (id: number) => rows.find((candidate) => candidate.id === id) as Kos
 type ToneDataT = { tone: (r: KosztorysV2RowT) => string }
 
 const ownerColumns = buildV2Columns({ view: 'client', stages: tree.stages })
-const workerColumns = buildV2Columns({
-  view: 'w_tools',
-  stages: tree.stages,
-  workerSurface: {
-    plane: 'w_tools',
-    hiddenColumns: [],
-    columnRanks: {},
-    executedQtyByItem: { [OVERRUN]: 1, [OWED]: 1, [FLOAT_NOISE]: 1.0003 },
-  },
-})
 
 const toneOf = (columns: typeof ownerColumns, columnId: string) => {
   const column = columns.find((candidate) => candidate.id === columnId)
   return (column?.columnData as ToneDataT).tone
 }
 
+// The worker's „Pozostało" never goes red — his document carries no alarms (document-alarms.test.tsx).
 describe('„Pozostało" overrun tone', () => {
   it.each([
     ['remaining', ownerColumns],
     ['remainingGross', ownerColumns],
-    ['remainingForPlane', workerColumns],
   ] as const)('%s is red only past the przedmiar', (columnId, columns) => {
     const tone = toneOf(columns, columnId)
 

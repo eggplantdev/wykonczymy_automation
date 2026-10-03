@@ -9,7 +9,7 @@ import { workerPrintColumns } from '@/lib/kosztorys/print/worker-columns'
 import { groupBySection } from '@/lib/kosztorys/row-ops'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import { workerDataHiddenColumns } from '@/lib/kosztorys/worker-view/columns'
-import type { WorkerSummaryT } from '@/lib/kosztorys/worker-view/summary'
+import { stageShareLabel, type WorkerSummaryT } from '@/lib/kosztorys/worker-view/summary'
 import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
 
 export type WorkerPrintArgsT = {
@@ -18,35 +18,68 @@ export type WorkerPrintArgsT = {
   fillByColorKey: ReadonlyMap<string, string>
 }
 
-const footerRow = (label: string, amount: number, rowClass = '') =>
-  `<tr${rowClass ? ` class="${rowClass}"` : ''}><td class="label">${escapeHtml(label)}</td>` +
-  `<td class="value">${formatPLN(amount)}</td></tr>`
+const row = (labels: string[], values: string[], rowClass = '') =>
+  `<tr${rowClass ? ` class="${rowClass}"` : ''}>` +
+  labels.map((label) => `<td class="label">${escapeHtml(label)}</td>`).join('') +
+  values.map((value) => `<td class="value">${escapeHtml(value)}</td>`).join('') +
+  '</tr>'
 
-// The web page's `WorkerSummary`, on paper: the same figures in the same order, so the two documents
+const WORKER_PRINT_STYLES = `
+.totals tr.head td { font-size: 6pt; color: #a1a1aa; border-bottom: 1px solid #e4e4e7; }
+`
+
+// The web page's `WorkerSummary`, on paper: the same tables in the same order, so the two documents
 // a worker may hold side by side read alike.
 function workerFooterHtml(summary: WorkerSummaryT): string {
-  const rows = [
-    footerRow('Wartość przedmiaru (Twoja stawka)', summary.plannedNet),
-    ...summary.executedByStage.map((stage) => footerRow(stage.label, stage.net, 'sub')),
-    footerRow('Wykonane razem', summary.executedNet),
-    ...summary.payouts.map((payout) => footerRow(formatPLDate(payout.date), payout.amount, 'sub')),
-    footerRow('Wypłacone', summary.paidNet),
-    footerRow(
-      summary.isOverpaid ? 'Nadpłata' : 'Pozostało do wypłaty',
-      Math.abs(summary.owed),
+  const balance = [
+    row(['Wykonane razem'], [formatPLN(summary.executedNet)]),
+    ...(summary.bonusNet !== 0 ? [row(['Premia'], [formatPLN(summary.bonusNet)])] : []),
+    row(['Wypłacone'], [formatPLN(summary.paidNet)]),
+    row(
+      [summary.isOverpaid ? 'Nadpłata' : 'Pozostało do wypłaty'],
+      [formatPLN(Math.abs(summary.owed))],
       'grand',
     ),
   ]
+  const hasSharedStage = summary.executedByStage.some((stage) => stage.share)
+  const executed = [
+    row(
+      ['Wykonane'],
+      hasSharedStage ? ['Wartość etapu', 'Twój udział', 'Kwota netto'] : ['Kwota netto'],
+      'head',
+    ),
+    ...summary.executedByStage.map((stage) =>
+      row(
+        [stage.label],
+        hasSharedStage
+          ? [formatPLN(stage.wholeNet), stageShareLabel(stage), formatPLN(stage.net)]
+          : [formatPLN(stage.net)],
+      ),
+    ),
+    row(
+      ['Razem'],
+      hasSharedStage
+        ? [formatPLN(summary.stagesWholeNet), '', formatPLN(summary.executedNet)]
+        : [formatPLN(summary.executedNet)],
+    ),
+  ]
+  const payouts = [
+    row(['Wypłaty', 'Opis'], ['Kwota netto'], 'head'),
+    ...summary.payouts.map((payout) =>
+      row([formatPLDate(payout.date), payout.description ?? ''], [formatPLN(payout.amount)]),
+    ),
+    row(['Razem', ''], [formatPLN(summary.paidNet)]),
+  ]
+  const table = (rows: string[]) => `<table><tbody>\n${rows.join('\n')}\n</tbody></table>`
   return `
-<div class="totals"><table><tbody>
-${rows.join('\n')}
-</tbody></table></div>`
+<div class="totals">${table(executed)}${table(balance)}${summary.payouts.length ? table(payouts) : ''}</div>`
 }
 
 /**
  * The worker's PDF, built off the same projection his link renders — never the editor's rows, which
  * carry every etap and the client price. The totals are the projection's own: the grand total is the
  * summary's figure for the money column, so the paper cannot add up to one the footer contradicts.
+ * On a shared etap the rows are the whole etap's, so the executed grand total is too.
  */
 export function buildWorkerPrintHtml({ data, logoUrl, fillByColorKey }: WorkerPrintArgsT): string {
   const { tree, worker, investmentName } = data
@@ -81,9 +114,9 @@ export function buildWorkerPrintHtml({ data, logoUrl, fillByColorKey }: WorkerPr
     fillByColorKey,
     moneyKey,
     money: formatPLN,
-    totalNet: moneyKey === 'net' ? worker.summary.executedNet : worker.summary.plannedNet,
+    totalNet: moneyKey === 'net' ? worker.summary.stagesWholeNet : worker.summary.plannedNet,
     sectionNetById,
-    extraStyles: WIDE_PRINT_STYLES,
+    extraStyles: WIDE_PRINT_STYLES + WORKER_PRINT_STYLES,
     footerHtml: workerFooterHtml(worker.summary),
   })
 }

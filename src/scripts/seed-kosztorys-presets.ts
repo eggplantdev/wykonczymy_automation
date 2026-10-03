@@ -36,7 +36,13 @@ async function seedInvestment(
   // Explicit plane — a plane-less etap locks its quantity column, and this one must hold a figure.
   const stage = await payload.create({
     collection: 'kosztorys-stages',
-    data: { investment: investment.id, ordinal: 1, label: 'Etap 1', plane: 'w_tools' },
+    data: {
+      splitMode: 'percent',
+      investment: investment.id,
+      ordinal: 1,
+      label: 'Etap 1',
+      plane: 'w_tools',
+    },
     ...ctx,
   })
 

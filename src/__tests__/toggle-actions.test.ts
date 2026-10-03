@@ -26,6 +26,12 @@ vi.mock('payload', async (importOriginal) => {
 
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
 
+// The session drop on deactivation is asserted against real rows in `toggle-active.db.test.ts`.
+vi.mock('@/lib/db/get-db', () => ({ getDb: vi.fn() }))
+vi.mock('@/lib/db/user-sessions', () => ({ deleteUserSessions: vi.fn() }))
+// Who may deactivate whom is asserted against real rows in `toggle-active.db.test.ts`.
+vi.mock('@/lib/db/account-removal', () => ({ fetchRemovalSubject: vi.fn() }))
+
 // ── Import actions under test ────────────────────────────────────────────
 
 const { toggleUserActive, toggleCashRegisterActive } = await import('@/lib/actions/toggle-active')

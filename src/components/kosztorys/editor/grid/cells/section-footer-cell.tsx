@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslation } from '@/hooks/use-translation'
 import { IDENTITY_COLUMN_ID } from '@/lib/kosztorys/constants'
 import { formatNet } from '@/lib/kosztorys/format'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
@@ -32,13 +33,14 @@ export function SectionFooterCell({
   columnId: string | undefined
   context: SectionFooterContextT
 }) {
+  const { t } = useTranslation('grid')
   if (columnId != null && columnId === context.labelColumnId)
     // No spill out of the cell (unlike the opening band's label): „Opis prac" is wide enough to hold
     // the name, and the footer's own vertical rules are what line its figures up with the columns
     // above — letting the label cross one would break that alignment for a name it rarely needs.
     return (
       <div className="text-foreground flex size-full items-center gap-1 overflow-hidden px-2 text-sm font-bold whitespace-nowrap">
-        <span>Razem</span>
+        <span>{t('total')}</span>
         <span>{rowData.sectionName ?? ''}</span>
       </div>
     )

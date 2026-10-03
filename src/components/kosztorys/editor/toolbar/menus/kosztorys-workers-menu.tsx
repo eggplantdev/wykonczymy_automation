@@ -1,11 +1,12 @@
 'use client'
 
 import { Fragment } from 'react'
-import { Users } from 'lucide-react'
+import { FileUser, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -24,11 +25,16 @@ import { WORKER_SCOPE_BLOCK_MESSAGES } from '@/lib/kosztorys/worker-view/labels'
 // Mounted inside KosztorysActionsProvider (see KosztorysActionsMenu), which its items and dialogs read from.
 export function KosztorysWorkersMenu() {
   const { stages, workers } = useKosztorysEditorContext()
-  const { worker } = useKosztorysActions()
+  const { worker, workerReports } = useKosztorysActions()
   const assigned = assignedWorkers(stages, workers, worker.linkHolders)
 
   return (
-    <DropdownMenu onOpenChange={(open) => open && worker.requestLinkHolders()}>
+    <DropdownMenu
+      onOpenChange={(open) => {
+        if (!open) return
+        worker.requestLinkHolders()
+      }}
+    >
       <DropdownMenuTrigger asChild>
         <Button size="sm" variant="outline">
           <Users />
@@ -36,6 +42,20 @@ export function KosztorysWorkersMenu() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
+        {workerReports && (
+          <>
+            <DropdownMenuItem onSelect={() => workerReports.openReport()}>
+              <FileUser />
+              Zgłoszenia wykonanych prac
+              {workerReports.pendingCount > 0 && (
+                <span className="text-muted-foreground ml-auto text-xs">
+                  {workerReports.pendingCount} do sprawdzenia
+                </span>
+              )}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        )}
         {assigned.length === 0 && (
           <>
             <p className="text-muted-foreground px-2 py-1.5 text-xs">
@@ -53,10 +73,13 @@ export function KosztorysWorkersMenu() {
               <DropdownMenuLabel>{name}</DropdownMenuLabel>
               {blockReason && <p className="text-destructive px-2 pb-1 text-xs">{blockReason}</p>}
               <WorkerPreviewMenuItem target={{ id, name }} />
-              <WorkerShareMenuItem
-                target={{ id, name, blockReason }}
-                disabled={blockReason !== undefined && !worker.linkHolders.has(id)}
-              />
+              {(['rozpiska', 'report'] as const).map((kind) => (
+                <WorkerShareMenuItem
+                  key={kind}
+                  target={{ id, name, kind, blockReason }}
+                  disabled={blockReason !== undefined && !worker.holdsLink(id, kind)}
+                />
+              ))}
               <WorkerPrintMenuItem workerId={id} disabled={blockReason !== undefined} />
               <DropdownMenuSeparator />
             </Fragment>

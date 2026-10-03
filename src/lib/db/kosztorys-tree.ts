@@ -8,10 +8,13 @@ import type {
   KosztorysSectionT,
   KosztorysStageT,
   StageProgressT,
+  StageSplitT,
   ToolPlaneT,
 } from '@/lib/kosztorys/types'
+import { normalizeStageSplit } from '@/lib/kosztorys/stage-split'
+import { toDescriptionTranslations } from '@/lib/i18n/description-translations'
 import type { DbExecutorT } from './get-db'
-import { numOrNull } from './row-coerce'
+import { numOrNull, textOrNull } from './row-coerce'
 
 // Everything behind the editor tree in ONE round trip.
 //
@@ -26,7 +29,6 @@ import { numOrNull } from './row-coerce'
 // because a null column must read as 0, not NaN.
 
 const num = (v: unknown): number => Number(v ?? 0)
-const str = (v: unknown): string | null => (v == null ? null : String(v))
 
 export type KosztorysTreeDataT = {
   sections: KosztorysSectionT[]
@@ -65,7 +67,7 @@ export async function selectKosztorysTreeData(
       (
         SELECT coalesce(json_agg(i ORDER BY i.display_order, i.id), '[]'::json)
         FROM (
-          SELECT id, section_id, display_order, description, unit, planned_qty,
+          SELECT id, section_id, display_order, description, description_translations, unit, planned_qty,
                  sheet_measured_qty,
                  discount_type, discount_value, client_price,
                  w_tools_override_value, own_tools_override_value,
@@ -77,10 +79,21 @@ export async function selectKosztorysTreeData(
       (
         SELECT coalesce(json_agg(st ORDER BY st.ordinal, st.id), '[]'::json)
         FROM (
-          SELECT id, ordinal, label, plane, worker_id
+          SELECT id, ordinal, label, plane, split_mode
           FROM kosztorys_stages WHERE investment_id = ${investmentId}
         ) st
       ) AS stages,
+      -- Flat beside the etapy rather than nested in them, so each subselect stays one plain SELECT
+      -- the SQL-drift spec can read.
+      (
+        SELECT coalesce(json_agg(m ORDER BY m.stage_id, m.id), '[]'::json)
+        FROM (
+          SELECT ksw.id, ksw.stage_id, ksw.worker_id, ksw.value, ksw.takes_rest
+          FROM kosztorys_stage_workers ksw
+          JOIN kosztorys_stages ks ON ks.id = ksw.stage_id
+          WHERE ks.investment_id = ${investmentId}
+        ) m
+      ) AS stage_members,
       -- stage_progress carries no investment column, so it reaches the investment through its item.
       (
         SELECT coalesce(json_agg(p ORDER BY p.item_id, p.stage_id), '[]'::json)
@@ -100,10 +113,16 @@ export async function selectKosztorysTreeData(
   const row = res.rows[0]
   if (!row) return null
 
+  const membersByStage = Map.groupBy(row.stage_members as RowT[], (member) =>
+    Number(member.stage_id),
+  )
+
   return {
     sections: (row.sections as RowT[]).map(mapSection),
     items: (row.items as RowT[]).map(mapItem),
-    stages: (row.stages as RowT[]).map(mapStage),
+    stages: (row.stages as RowT[]).map((stage) =>
+      mapStage(stage, membersByStage.get(Number(stage.id)) ?? []),
+    ),
     progress: (row.progress as RowT[]).map(mapProgress),
     investment: {
       wToolsCoeff: numOrNull(row.w_tools_coeff),
@@ -111,7 +130,7 @@ export async function selectKosztorysTreeData(
       vatRate: numOrNull(row.vat_rate),
       settlementMode: String(row.settlement_mode) as SettlementModeT,
       materialsNetRate: numOrNull(row.materials_net_rate),
-      globalDiscountType: str(row.global_discount_type),
+      globalDiscountType: textOrNull(row.global_discount_type),
       globalDiscountValue: num(row.global_discount_value),
       // Payload handed callers an ISO string; the driver hands back a Date. The revision token is
       // compared by value in the editor shell, so the format has to stay stable.
@@ -133,13 +152,14 @@ const mapItem = (row: RowT): KosztorysItemT & { sectionId: number } => ({
   id: Number(row.id),
   sectionId: Number(row.section_id),
   displayOrder: num(row.display_order),
-  description: str(row.description),
-  unit: str(row.unit),
+  description: textOrNull(row.description),
+  descriptionTranslations: toDescriptionTranslations(row.description_translations),
+  unit: textOrNull(row.unit),
   plannedQty: num(row.planned_qty),
   // `numOrNull`, not `num`: NULL means „the sheet made no claim" and must not collapse to a claim
   // of zero, which would flag every unmeasured row as diverged.
   sheetMeasuredQty: numOrNull(row.sheet_measured_qty),
-  discountType: str(row.discount_type) as DiscountTypeT | null,
+  discountType: textOrNull(row.discount_type) as DiscountTypeT | null,
   discountValue: num(row.discount_value),
   clientPrice: num(row.client_price),
   // `numOrNull`, not `num`: NULL is „auto", and folding it to 0 would price the praca at zero
@@ -150,16 +170,29 @@ const mapItem = (row: RowT): KosztorysItemT & { sectionId: number } => ({
   // someone chose — a stawka of zero złotych (EX-865).
   wToolsOverrideCoeff: numOrNull(row.w_tools_override_coeff),
   ownToolsOverrideCoeff: numOrNull(row.own_tools_override_coeff),
-  note: str(row.note),
+  note: textOrNull(row.note),
 })
 
-const mapStage = (row: RowT): KosztorysStageT => ({
+const mapStage = (row: RowT, members: RowT[]): KosztorysStageT => ({
   id: Number(row.id),
   ordinal: num(row.ordinal),
-  label: str(row.label),
-  plane: str(row.plane) as ToolPlaneT | null,
-  workerId: numOrNull(row.worker_id),
+  label: textOrNull(row.label),
+  plane: textOrNull(row.plane) as ToolPlaneT | null,
+  split: mapStageSplit(row.split_mode, members),
 })
+
+// Shared by every raw read of an etap's members, so the tree, the pairs path and the worker view
+// agree on what a stored split means.
+export function mapStageSplit(mode: unknown, members: RowT[]): StageSplitT | null {
+  return normalizeStageSplit({
+    mode: mode === 'amount' ? 'amount' : 'percent',
+    members: members.map((member) => ({
+      workerId: Number(member.worker_id),
+      value: num(member.value),
+      takesRest: member.takes_rest === true,
+    })),
+  })
+}
 
 const mapProgress = (row: RowT): StageProgressT => ({
   itemId: Number(row.item_id),

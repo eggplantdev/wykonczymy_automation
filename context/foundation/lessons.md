@@ -255,6 +255,7 @@
 - **Context**: Snapshot restore (S-06) reverts a kosztorys by deleting the whole tree and re-inserting from a `jsonb` payload, minting fresh primary keys rather than preserving them.
 - **Problem**: That is only safe if no other table references those ids as a business FK — otherwise restore silently orphans the referrers. Verified at design time: transfers, expenses and the sheet sync all key on transfer id + category, never on a kosztorys row id; the only external references are Payload's internal `payload_locked_documents_rels`, which cascade harmlessly.
 - **Rule**: The invariant is load-bearing, not incidental — the day something starts keying on a kosztorys item id (a per-item photo, a per-item transfer link), restore-by-reinsert stops being correct and must preserve ids or remap the referrer. Check this before adding an FK **to** `kosztorys_items` / `kosztorys_sections` / `kosztorys_stages`.
+- **First outside referrer (EX-947, 2026-09-30)**: `worker_report_lines.item_id` / `created_item_id` and `worker_reports` → etap. Restore stays correct without stable ids because those FKs are `ON DELETE SET NULL` (and indexed, so a 1000-item wipe does not scan the lines table per item), each line carries a copy of its opis / j.m. / sekcja, and a line that lost its pozycja reaches the kierownik as „do przypisania ręcznie”. The report tables stay out of every tree writer (restore wipe, `insertKosztorysTree`, snapshot format, szablon apply) — they outlive a restore. The next referrer copies that shape or makes restore preserve ids.
 - **Applies to**: plan, implement, code-review
 
 ## A destructive replace's undo is a `manual` snapshot taken on the TRANSACTION handle, before the wipe
@@ -673,7 +674,7 @@
   render**, so a client `router.refresh()` after it is a second full render of warm data with
   nothing new — sixteen sites did it, one of them (the catalogue-compare save) three layers deep for
   three renders. A client refetch belongs only after a write that produced no render: a route
-  handler, an upload API, an `after()`-expired action, or an action that **threw** (the editor's
+  handler, an upload API, or an action that **threw** (the editor's
   clear / reload / import pass `refetch` only from their `catch`).
   Timing, from the EX-908 after-run: code after `await action()` usually runs before that action's
   render commits (`resolve(actionResult)` precedes it), but not always — in 3 of 24 runs the tree had
@@ -682,13 +683,18 @@
   The render is applied even when a store fired the action after its dialog unmounted (`callServer`
   runs its own transition on a module-level queue), so an unmounted caller is no reason to refresh
   either — `use-form-submit`'s refresh had been re-added (`097eb8c8`) on a diagnosis nobody reproduced.
-- **Second exit (EX-876)**: a tag expired inside `after()` lands in `pendingRevalidatedTags` only
-  after the response headers are written, and is flushed by `withExecuteRevalidates` from there — so
-  `x-action-revalidated` never counts it, the action stays render-free, and the next read still
-  misses (`expireCollectionsAfterResponse`). That covers a cache the **calling page doesn't
-  render**. For the one it does, the action returns the state it produced and the client renders
-  from the result: „Otwórz szablon" used to push + `router.refresh()` + revalidate, three renders to
-  show a tree the transaction already had in hand.
+- **No second exit via `after()` (EX-876 → EX-909)**: a tag expired inside `after()` lands after
+  the response headers, so `x-action-revalidated` never counts it and the action renders nothing —
+  but it also leaves the **client router cache** holding the pre-write payload. The szablony
+  library ran on it for a release: the server cache was fresh, yet a browser Back to `/szablony`
+  after „Nowy szablon” restored the list without the new row (0/4 runs), and every reader of the
+  tag had to be written to bypass the cache to stay correct. An `after()` expiry is defensible only
+  when the write must stay render-free **and** nothing else in the same action already renders — the
+  szablon tail failed the second test, since the tree write re-renders the route anyway. Otherwise
+  expire inline and pay the render. When
+  the calling page renders the result itself, the action returns the state it produced and the
+  client renders from that: „Otwórz szablon" used to push + `router.refresh()` + revalidate, three
+  renders to show a tree the transaction already had in hand.
 - **Applies to**: any "this write shouldn't re-render that" instinct on a server action; `updateTag`
   vs `revalidateTag` reasoning about render cost; any `router.refresh()` written after an `await`ed
   action.
@@ -2415,3 +2421,100 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
 - **Problem**: A projection loses nothing only while every group is non-empty. So „every section has ≥1 pozycja" was enforced from three sides: a seeded blank first item, a last-item delete that cascaded to the section, and a band builder that skipped an itemless section. It read like a business rule. In fact it was a rendering workaround (`6b44f8fd`) that a review gate and EX-578 later hardened. The DB, loader, snapshots, szablony and sheet import already carried itemless sections, and the editor dropped them in `treeToRows`.
 - **Rule**: When a child list can be empty, make the parent first-class state beside it (`sections` next to `rows`, joined by `sectionId`), the shape the server already has. Never fake the parent with a placeholder child in `rows`: that list feeds the diff, the totals and `prevById`, and the fake row leaks into all three. Route each consumer by its question. „Which sections exist, in what order" reads `sections`. „Is there any content" stays on the item-derived `subtotals`: toolbar, preview header and totals panel gate on `subtotals.length > 0`, so seeding zero-item entries there flips every one of those gates. Before you defend an „always ≥1" invariant as domain, check in git who asked for it.
 - **Applies to**: plan, plan-review, implement, impl-review
+
+## A list that doubles as a name map is split into live + trashed, not filtered
+
+- **Context**: The kasa trash (EX-917). `fetchReferenceData().cashRegisters` fed both the pickers and the transfers list's id → name map.
+- **Problem**: Filtering trashed kasy out of that one list hides them from the pickers, which is right. But a cancelled transaction that still points at the kasa then renders its register as blank, because the name map reads the same list. Leaving them in has the opposite failure: every picker, filter and dashboard tile has to remember to skip them by hand, and one missed reader fails open.
+- **Rule**: Split at the source into two arrays, the live one under the old name and a `trashed…` twin. Every existing reader keeps reading the live one, so it is safe by default. Only a reader that resolves a stored id to a name reads the union. Pair it with a write gate in the collection hook for a stale form or a REST call that still names the trashed row. Split upstream of `activeOrSelected` (EX-643), never inside it: "keep what is already selected" is right for an inactive row and wrong for a trashed one, which has no valid reason to stay selected.
+- **Applies to**: plan, implement, impl-review — any new trashed kind (kasa, worker, equipment)
+
+## A refusal returned from `withPayloadTransaction` still commits — decide every refusal before the first write
+
+- **Context**: Any action whose `work` inside `withPayloadTransaction` (`lib/db/with-payload-transaction.ts`) can end in a business refusal. Surfaced by the „Nowa praca" action (EX-951): one transaction inserts the praca and optionally writes the katalog.
+- **Problem**: The helper commits when `work` **returns**, including `{ success: false }`, and rolls back only on a **throw**. The natural order is "insert the praca, then try the katalog, and refuse on a duplicate `matchKey`". With that order the refusal commits the praca the user was told was not saved.
+- **Rule**: Decide every refusal (duplicate, lock, negative stawka) **before** the first write, and return it while nothing has been written. A failure discovered after a write must **throw** so the rollback runs. The client-side collision check against the page's `workCatalogue` is a UX shortcut only: that list can be stale, so the server re-checks inside the transaction, again before any write. A DB spec asserts the refusal leaves **no row**, not just `success: false`.
+- **Applies to**: plan, implement, impl-review
+
+## A server action whose request never arrived rejects — fold it with `settleAction`, and branch on `REQUEST_FAILED` where a retry would lie
+
+- **Context**: Any client call of a `'use server'` action (EX-940, `src/lib/utils/settle-action.ts`). `protectedAction` turns a handler throw into `{ success: false }`, but a request that never reaches the server (offline, a deploy that invalidated the action id) makes the call itself **reject** on the client.
+- **Problem**: Unwrapped, that rejection left pending flags stuck forever, escaped `startTransition`, and put the browser's English „Failed to fetch" into the grid autosave toast. Three traps in the fix: (1) a naive `catch` also swallows Next's redirect, so logout logged a failed request and never navigated; (2) the grid lanes reseeding on failure rode the same dead connection, reset undo and armed the remount latch; (3) a tree-replacing dialog that treats every `!success` alike drops the refetch, although the write may already have committed server-side.
+- **Rule**: Call actions as `settleAction(() => xAction(…))`; it calls `unstable_rethrow` first so redirects pass. On `code: 'REQUEST_FAILED'`, a lane **reverts** its optimistic edit and never reseeds, while a tree-replacing dialog **refetches** via `settleTreeReplace` (`src/lib/kosztorys/settle-tree-replace.ts`). Don't wrap a call whose rejection is itself the signal: `handleStaleTree`'s `refreshDataAction()` must reject, because `use-stale-tree-recovery` turns that into its own message. The ESLint `UNSETTLED_ACTION` selectors in `eslint.config.mjs` enforce the wrap by name. A server export not ending in `Action` slips past, and so does a call nested in a callback under any `try`/`catch`. Both gaps are accepted.
+- **Applies to**: plan, implement, impl-review
+
+## A server write into cells the grid also autosaves: drain those lanes first, write in one transaction, patch absolute figures back
+
+- **Context**: Any server action that writes kosztorys cells the open editor also autosaves. The first one was accepting a worker report (EX-947, `lib/actions/accept-worker-report.ts` + `editor/hooks/use-worker-report-acceptance.ts`): it adds the accepted ilości into an etap's stage cells.
+- **Problem**: Four traps, each of which loses or double-counts a quantity.
+  1. `useDebouncedSave.runNow` **cancels** a pending debounced save for its key instead of flushing it. So a typed-but-unsaved cell the acceptance also touches is silently dropped.
+  2. `INSERT … ON CONFLICT DO UPDATE` that touches one row twice in one statement is Postgres error 21000. Two report lines on one pozycja do exactly that.
+  3. Re-applying the addition on the client double-counts it against whatever the server already summed.
+  4. JS arithmetic leaks float noise into a `numeric` column: 0,3 − 0,2 = 0,09999999999999998.
+- **Rule**:
+  - **Drain before the write.** The client awaits `drain(keys)` on the lanes of every (pozycja, etap) the write touches before calling the action.
+  - **Write in one `withPayloadTransaction`, in this order:**
+    1. `lockInvestmentGates`, which also serialises two concurrent accepts;
+    2. read the state;
+    3. validate and run the stale check;
+    4. `captureAutoSnapshot(tx, …)`, before any tree write;
+    5. create a new etap (`MAX+1`) if there is one;
+    6. write the extras;
+    7. the additive upsert, **summed per pozycja first**, `RETURNING` the absolute ilość;
+    8. bump `investments.updated_at`.
+  - **Patch back, don't re-add.** The accepting window sets the cells to those absolute figures and never re-adds on the client.
+  - **Round JS math.** Every JS-computed difference or sum goes through `round6` before it is bound.
+  - **Detect external writes by revision.** A plain cell edit does not bump `updated_at`, so a changed `tree.revision` is a precise "structural or external write" signal. Another open window reloads on focus/visibility when it sees one.
+- **Applies to**: plan, implement, impl-review
+
+## The SMTP host is the name on the mail server's certificate — and a failed send is silent until something alerts on it
+
+- **Context**: Anything that sets or reads `EMAIL_HOST` (Vercel env, `.env`, `src/payload.config.ts`'s `nodemailerAdapter`), and every outgoing mail: lead notify + auto-reply (`lib/leads/capture-lead.ts`), fleet and equipment reminders, the password reset.
+- **Problem**: Incident 2026-09-29 → 2026-10-01. Production's `EMAIL_HOST` was `wykonczymy.com.pl` from its creation (2026-08-27) and was never edited. The bare domain and `mail.wykonczymy.com.pl` resolve to the same seohost server, which picks its certificate by SNI. For `mail.wykonczymy.com.pl` it presents `*.wykonczymy.com.pl`, whose SAN also covers the bare domain — and for a month the bare domain got that certificate too. Between 2026-09-29 14:50 and 20:30 (local) the server began answering the bare domain with its default `*.seohost.pl` certificate; nothing changed on our side (no env edit, no mailer change in the two deploys in that window). From then on every send failed TLS verification (`Host: wykonczymy.com.pl. is not in the cert's altnames: DNS:*.seohost.pl`). Two real Facebook leads (#241 on 29.09, #242 on 01.10) were stored but neither the sales notify nor the client auto-reply went out — the only trace was `notifyStatus: failed` on the row and a `[capture-lead] … failed` line in Vercel logs, which nobody reads and which keep only a few days. It surfaced only because the owner tested a form by hand. Fix: `EMAIL_HOST=mail.wykonczymy.com.pl` in Vercel Production + a redeploy (an env edit does not reach a running deployment); the next two leads (#246, #247) went out.
+- **Rule**:
+  - The SMTP host is the exact name the mail server's certificate is issued for — the MX name (`dig MX`), not the domain. Verify a candidate with `openssl s_client -connect <host>:465 -servername <host>` and read the subject/SAN; a hostname that "works" may be riding a provider default that can change without notice.
+  - A Vercel env change needs `vercel redeploy <prod-url> --target production` before it takes effect.
+  - Mail failure is the one error no user reports: the client just never hears back. Every failed send must raise an alert that does **not** travel over the same SMTP (EX-958) — until then, `leads.notifyStatus = failed` is the dated record of an outage, and the first place to look.
+- **Applies to**: plan, implement, impl-review, any env or hosting change touching mail
+
+## Close a disabled account at the door, not per request — the gap that stays open fails safe
+
+- **Context**: Trashing or deactivating a user (EX-918). The app's `getCurrentUserJwt` verifies the JWT and never reads the DB — a choice made for latency in the M21 perf push (`56591165`), not measured since. Payload's own strategy (`/admin`, REST) does read the user and checks the JWT's `sid` against `users_sessions`.
+- **Problem**: Until EX-918 nothing in auth read `active`, so a deactivated account of any role could log in and act. Four ways to close it were costed: refuse at login; delete the stored sessions; a `trashed_at`/`active` read in `getCurrentUserJwt` (one indexed read, ~20 ms warm on Neon, or an entity-tagged cache); or accept the window. Only the per-request read closes an app session that is already open, and it puts a DB read back into every request the M21 push took it out of.
+- **Rule**: Refuse at the door (`beforeLogin`) and delete the account's `users_sessions` rows on trash and on deactivation — that closes new logins everywhere and `/admin` / REST at once, at zero per-request cost. The open app session (≤ 7 days, the JWT lifetime) is accepted because it fails safe: anything it writes stamps the user's id, which makes the account **used**, and the `beforeDelete` re-count then refuses delete-forever and the purge logs `blocked` — no data is lost. Reach for the per-request check only if that window ever has to close for a reason beyond the trash.
+- **Applies to**: plan, implement — any new way an account stops being allowed in
+
+## A row that an external sweep dedupes against is erased in place, not deleted
+
+- **Context**: The lead trash (EX-970). The Facebook `leads-reconcile` cron and the landing webhook decide "already stored?" by looking up `(source, externalId)` in `leads`.
+- **Problem**: A `DELETE` of a lead the owner removed for good makes the next sweep find no match, so it re-creates the lead and mails the team about it again. Filtering trashed rows out of that lookup has the same effect, one step earlier.
+- **Rule**: When an outside system re-delivers by key, "delete forever" means erase the content (PII, answers, files) and keep a tombstone with the key and an `erasedAt`. The dedupe lookup reads tombstones on purpose, and every intake path short-circuits on one before any side effect. Files go through `deleteUnreferencedMedia`, never a direct delete: a lead promoted to an inwestycja shares its media rows with it.
+- **Applies to**: plan, implement, impl-review — any trashable kind fed by a webhook or a sync
+
+## The trash is for rows that should not exist — retiring something with history is a status, and the trash refuses on the hard delete's own predicate
+
+- **Context**: Extending `/kosz` from investments to szablony, kasy, pracownicy, flota, sprzęt and zgłoszenia (owner rulings 2026-09-29, umbrella `context/archive/2026-09-29-kosz-pozostalych-encji/`). Every kind already had a way to retire a row: `active` on workers and kasy, `RETIRED` / `SOLD` / `LOST` / `STOLEN` on vehicles and equipment.
+- **Problem**: Two exits for one row blur unless each has a job. Used as end-of-life, the trash purges history after 30 days that a status would have kept. And a row the trash accepts but the hard delete refuses sits in `/kosz` forever: the purge logs `blocked` every night and „Usuń na zawsze" always fails.
+- **Rule**: (1) The trash means "mistaken, duplicate, never used". A row with history is retired with its status or `active`, which hide nothing and keep the log. (2) The trash refuses on **exactly** what the hard delete refuses on. Reuse the collection's `beforeDelete` probe through `makeDeleteBlocker`, and don't write a second "unused" query. (3) A kind whose history the owner doesn't value may drop the gate and warn instead. Flota and sprzęt do this (EX-915/916), because every vehicle has inspections. That is a per-kind ruling, not the default. The history then goes with the row.
+- **Applies to**: plan, implement — any new kind in `/kosz`
+
+## A trash with no gate makes every status filter blind — each raw-SQL reader needs its own `trashed_at`
+
+- **Context**: The fleet and equipment trash (EX-915/916), the first `/kosz` kinds with no blocker. An `ACTIVE` car or an `IN_USE` item can go to the trash as it stands.
+- **Problem**: Kasy and pracownicy refuse a row with history, so a trashed row there tends to be one a status filter already skips. Without a gate, `status` says nothing about the trash. A raw-SQL reader that filters only on status keeps counting a trashed row: the „Flota" and warranty badges would keep lighting up for a car or an item that is in `/kosz`. Two smaller traps sit beside it. The equipment `CURRENT_STATE` CTE reads every event, so the filter belongs on the joined `equipment q` and not inside the CTE. And a unique key (`registration`, `serialNumber`) freed on trash only moves the collision to „Przywróć".
+- **Rule**: (1) Make a list of the kind's readers and give each one its own `trashed_at IS NULL` / `trashedAt: { exists: false }`. A shared chokepoint (`loadFleetDataset`) covers only the readers behind it, and badges are usually raw SQL beside it. (2) Filter the parent row the query is joined from, never the history CTE. (3) Keep a unique key taken while the row is trashed. Refuse a duplicate in the create/update action with a sentence that names `/kosz` when the holder is trashed (`createWarehouseAction` precedent), so restore is a plain `trashedAt: null` that can never collide. (4) Trashing an item does not free the worker who held it. Its events keep pinning that worker through the `RESTRICT` FK until the purge, so the worker's own trash gate stays as it is.
+- **Applies to**: plan, implement, impl-review — any trash kind without a `beforeDelete` gate
+
+## A worker's overpayment is closed with a new non-cash transfer type — not a kosztorys pozycja, not a flagged PAYOUT
+
+- **Context**: Premia (EX-979). A worker was paid 10 295,81 zł against 10 090,80 zł of executed work: „Pozostało do wypłaty" −205,01, „nadpłacone". The owner wanted the surplus booked as a premia the investor never sees. Three mechanisms were costed: (A) a kosztorys pozycja „Premia" at Cena j.m. 0 with a kwota stała, (B) a new non-cash type `BONUS`, (C) a `PAYOUT` carrying a „premia" flag.
+- **Problem**: The two that look cheaper fail. **A fails open**: a pozycja with executed quantity is not „empty", so `client-empty` does not hide it. It shows on the share grid, the offer PDF and the protokół odbioru the investor signs, and it survives in the share link's version history after deletion. It also cannot exist without an investment, `splitStagePool` spreads it across every worker on a shared etap, and it trips three permanent diagnostics. **C double-drains the kasa**: the 205,01 already left it as wypłaty, so a flagged `PAYOUT` either drains it again or works only by splitting an existing PAYOUT row, which edits the audit trail.
+- **Rule**: (1) A figure the investor must never see is a new transfer type with its own financial bucket. Investor surfaces enumerate the buckets they render, so a new type is invisible until someone wires it in, which makes it fail-closed by construction. The inverse trap is mapping it onto `loss` or `discount`, which raises bilans and prints on the protokół. Note that `financialBucketOf` falls back to `'none'`, so an unmapped bucket silently drops out of every total. (2) Keep entitlement and cash separate: `due` is what is owed, `PAYOUT` is cash, and a premia is a second entitlement that never touches a register. (3) A new type is not finished at the enum. It must reach every independent computation of the figure it changes. For „Pozostało do wypłaty" that is five homes: the listing, the Podwykonawcy tab, „Rozliczenie z ekipą", the worker × investment pairs, and the worker's own link/PDF.
+- **Applies to**: plan, implement, impl-review — any new way to adjust what a worker is owed, or any figure that must stay off investor surfaces
+
+## A value stamped on a field's own save must come from the client — per-field save lanes run unordered
+
+- **Context**: Translations of a pozycja's opis (EX-948). Each translation stores the Polish opis it was made from (`source`), and the „nieaktualne tłumaczenie" problem compares that `source` with the current opis. The rozpiska saves each field on its own lane (`save-lanes.ts`, `itemFieldLane`), so an opis save and a translation save from the same editor are unordered.
+- **Problem**: Stamping `source` server-side means reading the opis back from the DB inside the translation save. If the opis save has not landed yet, the translation is stamped against the old text and reads as current when it is stale, or the reverse. The same holds for any marker derived from a field that is saved on a different lane.
+- **Rule**: Stamp such a marker on the **client**, from the row the user is looking at, and send it with the write. Never read the sibling field back from the DB in the action. Stamp only a language whose text actually changed (`translationsFromTexts`), so saving an unrelated field cannot mark a stale translation current. A bulk path that writes raw SQL, such as the fill script, writes the whole stale map and skips cache tags, so its header should name which edits are safe to run beside it.
+- **Applies to**: plan, implement — any field whose meaning is relative to another field saved on its own lane

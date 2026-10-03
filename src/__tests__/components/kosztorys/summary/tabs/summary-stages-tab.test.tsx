@@ -11,8 +11,8 @@ vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
 }))
 
 const STAGES: KosztorysStageT[] = [
-  { id: 1, ordinal: 1, label: 'Tynki', plane: null, workerId: null },
-  { id: 2, ordinal: 2, label: 'Malowanie', plane: null, workerId: null },
+  { id: 1, ordinal: 1, label: 'Tynki', plane: null, split: null },
+  { id: 2, ordinal: 2, label: 'Malowanie', plane: null, split: null },
 ]
 
 function renderTab(rows: KosztorysV2RowT[], preview: boolean) {

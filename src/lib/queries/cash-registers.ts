@@ -30,7 +30,11 @@ export async function fetchVisibleRegisters(): Promise<{
   const isAdminOrOwner = isAdminOrOwnerRole(user.role)
 
   const [refData, balances] = await Promise.all([fetchReferenceData(), fetchRegisterBalances()])
-  const registers = shapeCashRegisters(refData.cashRegisters, refData.workers, balances)
+  const registers = shapeCashRegisters(
+    refData.cashRegisters,
+    [...refData.workers, ...refData.trashedWorkers],
+    balances,
+  )
   // admin/owner see all; manager hides MAIN registers (matches prior dashboard behavior)
   const visible = isAdminOrOwner ? registers : registers.filter((cr) => cr.type !== 'MAIN')
   return { registers: visible, isAdminOrOwner }

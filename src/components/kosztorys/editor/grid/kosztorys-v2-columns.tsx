@@ -29,6 +29,9 @@ import {
 } from '@/components/kosztorys/editor/grid/cells/discount-columns'
 import { unitColumn } from '@/components/kosztorys/editor/grid/cells/unit-column'
 import { sectionNameColumn } from '@/components/kosztorys/editor/grid/cells/section-name-cell'
+import { translationColumn } from '@/components/kosztorys/editor/grid/cells/translation-column'
+import { TRANSLATION_LANGUAGES } from '@/lib/i18n/languages'
+import { translationColumnKey } from '@/lib/kosztorys/translation-column-keys'
 import { wrapColumnClass } from '@/lib/kosztorys/row-content-lines'
 import { longTextColumn } from '@/components/ui/datasheet-grid/long-text-cell'
 import { type ColumnToggleItemT } from '@/components/ui/column-toggle-menu'
@@ -82,6 +85,8 @@ const PLANE_UNCONFIRMED_CELL = {
 // the grid renders what's visible — no second registry of „which columns are in this view" to drift.
 function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[] {
   const { stages, view } = opts
+  // Red is the owner's alarm: the investor and the worker can act on none of it (owner, 2026-09-30).
+  const isDocument = opts.previewVisible === true || opts.workerSurface != null
   // Both planes' rates in EVERY view, so the owner compares them without switching tabs. Not a copy:
   // the same factories with the other plane, and the cells read their own `columnData.view`.
   //
@@ -90,7 +95,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   // PREVIEW_VISIBLE_COLUMNS having neither, so a later allowlist edit cannot leak them on its own.
   // The worker surface refuses them for the same reason: a crew seeing its own mnożnik can read the
   // client price straight back off its stawka.
-  const withMode = !opts.previewVisible && !opts.workerSurface
+  const withMode = !isDocument
   const subcontractorPriceCols: Column<KosztorysV2RowT>[] = TOOL_PLANES.flatMap((plane) => [
     ...(withMode
       ? [
@@ -98,7 +103,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
           subcontractorCoeffColumn(plane, columnTitle(planePriceKey('priceCoeff', plane), opts)),
         ]
       : []),
-    subcontractorPriceColumn(plane, columnTitle(planePriceKey('price', plane), opts)),
+    subcontractorPriceColumn(plane, columnTitle(planePriceKey('price', plane), opts), isDocument),
   ])
   // All three prices in EVERY view (owner, 2026-09-22): the offer price is what both stawki derive
   // from and what the ceiling guard judges them against, so a crew view owes the owner the
@@ -128,6 +133,9 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       headerClassName: wrapColumnClass('description'),
       cellClassName: wrapColumnClass('description'),
     }),
+    ...TRANSLATION_LANGUAGES.map((language) =>
+      translationColumn(language, columnTitle(translationColumnKey(language), opts)),
+    ),
   ]
 
   // A subcontractor view is one crew's bill, so only that plane's etapy get columns. Nothing becomes
@@ -137,7 +145,10 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   // Narrowed HERE and nowhere else, so the three stage axes below cannot drift apart — and
   // deliberately NOT fed to the resolver, whose denominator is Σ etapów of the whole view: hiding
   // columns would otherwise reprice the ones left standing.
-  const shownStages = stagesMatchingEngaged(viewStages, opts.engagedStageConditionIds ?? [])
+  const scaledDownStageIds = opts.scaledDownStageIds ?? new Set<number>()
+  const shownStages = stagesMatchingEngaged(viewStages, opts.engagedStageConditionIds ?? [], {
+    scaledDownStageIds,
+  })
 
   const valueOf = computedColumnValues({
     stages,
@@ -148,7 +159,14 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     id: string,
     style?: ComputedColumnStyleT,
     format?: (value: number | null) => string,
-  ) => computedColumn(id, columnTitle(id, opts), valueOf(id), style, format)
+  ) =>
+    computedColumn(
+      id,
+      columnTitle(id, opts),
+      valueOf(id),
+      isDocument ? { emphasize: style?.emphasize } : style,
+      format,
+    )
 
   // Przedmiar (sheet N) leads the stage columns so the offered quantity reads before the per-etap
   // execution it is measured against.
@@ -215,11 +233,12 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
         onRemove={opts.onRemoveStage}
         onSetPlane={opts.onSetStagePlane}
         workers={opts.workers}
-        onSetWorker={opts.onSetStageWorker}
+        onSetSplit={opts.onSetStageSplit}
         sort={activeSortPick(opts.sort, qtyField)}
         onSort={opts.onSetSort && ((pick) => opts.onSetSort?.(qtyField, pick))}
         onPersistOrder={opts.onPersistKosztorysOrder}
         executedValue={opts.executedValueByStage?.get(st.id) ?? 0}
+        scaledDown={scaledDownStageIds.has(st.id)}
       />
     )
     // Locked until the rozliczenie is picked: qty typed here would be work nobody gets billed for.
@@ -228,7 +247,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     //
     // A COMPUTED cell rather than a `disabled` editable one, because dsg's disabled cell is silent:
     // you type and nothing happens. Same copy as the header badge, hung where the lock is discovered.
-    if (st.plane == null) {
+    if (st.plane == null && !isDocument) {
       return {
         ...computedColumn(
           qtyField,
@@ -258,7 +277,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     const field = stageValueNetKey(st.id)
     return computedColumn(
       field,
-      stageValueHeader(st, 'netto', STAGE_VALUE_NET_COLUMN_GROUP, field, opts),
+      stageValueHeader(st, 'net', STAGE_VALUE_NET_COLUMN_GROUP, field, opts),
       valueOf(field),
     )
   })
@@ -267,7 +286,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     const field = stageValueGrossKey(st.id)
     return computedColumn(
       field,
-      stageValueHeader(st, 'brutto', STAGE_VALUE_GROSS_COLUMN_GROUP, field, opts),
+      stageValueHeader(st, 'gross', STAGE_VALUE_GROSS_COLUMN_GROUP, field, opts),
       valueOf(field),
     )
   })

@@ -11,6 +11,7 @@ type NameMapT = Map<number, string>
 
 export type TransferLookupsT = {
   cashRegisters: NameMapT
+  trashedCashRegisterIds: Set<number>
   investments: NameMapT
   users: NameMapT
   expenseCategories: NameMapT
@@ -29,9 +30,10 @@ export function buildTransferLookups(
     new Map(items.map((i) => [i.id, i.name]))
 
   return {
-    cashRegisters: toNameMap(refData.cashRegisters),
+    cashRegisters: toNameMap([...refData.cashRegisters, ...refData.trashedCashRegisters]),
+    trashedCashRegisterIds: new Set(refData.trashedCashRegisters.map((register) => register.id)),
     investments: toNameMap(refData.investments),
-    users: toNameMap(refData.workers),
+    users: toNameMap([...refData.workers, ...refData.trashedWorkers]),
     expenseCategories: toNameMap(refData.expenseCategories),
     otherCategories: toNameMap(refData.otherCategories),
     media: mediaMap,
@@ -92,6 +94,8 @@ export function mapTransferRow(doc: TransferDocT, lookups: TransferLookupsT): Tr
     originalType: doc.originalType ?? null,
     sourceRegisterName: lookupName(lookups.cashRegisters, doc.sourceRegister),
     targetRegisterName: lookupName(lookups.cashRegisters, doc.targetRegister),
+    sourceRegisterTrashed: isTrashed(lookups.trashedCashRegisterIds, doc.sourceRegister),
+    targetRegisterTrashed: isTrashed(lookups.trashedCashRegisterIds, doc.targetRegister),
     investmentName: lookupName(lookups.investments, doc.investment),
     expenseCategoryName: lookupName(lookups.expenseCategories, doc.expenseCategory),
     otherCategoryName: lookupName(lookups.otherCategories, doc.otherCategory),
@@ -104,6 +108,11 @@ export function mapTransferRow(doc: TransferDocT, lookups: TransferLookupsT): Tr
 // `TransferRowT` spells "no relation" as null, `resolveId` as undefined.
 function toNullableId(field: unknown): number | null {
   return resolveId(field) ?? null
+}
+
+function isTrashed(ids: Set<number>, field: unknown): boolean {
+  const id = resolveId(field)
+  return id !== undefined && ids.has(id)
 }
 
 function lookupName(map: NameMapT, field: unknown): string {

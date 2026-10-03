@@ -11,9 +11,8 @@ import { strandedFromPlaneSums } from '@/lib/kosztorys/off-plane-deposits'
 import { effectiveMaterialsNetRate } from '@/lib/kosztorys/settlement-mode'
 import { financialsOnReading, readingFromKosztorys } from '@/lib/kosztorys/summary-reading'
 import { billedMaterials, computeAmountDue } from '@/lib/kosztorys/summary-economics'
-import { marginV2 } from '@/lib/kosztorys/margin-v2'
+import { marginV2, subcontractorRemaining } from '@/lib/kosztorys/margin-v2'
 import { NOTHING_DUE } from '@/lib/kosztorys/subcontractor-due'
-import { roundToCents } from '@/lib/utils/round-to-cents'
 import { ZERO_FINANCIALS } from '@/types/investment-financials'
 import type { InvestmentRefT } from '@/types/reference-data'
 import type { InvestmentRowT } from '@/types/table-rows'
@@ -86,7 +85,7 @@ export function shapeInvestments(
       balanceFromTransactions: calculateBalance(transactionFinancials),
       // Only meaningful where the investment settles brutto: there every wpłata carries a brutto
       // kwota, so the deduction is complete. Elsewhere a wpłata gotówka has no brutto kwota at all
-      // and this figure deducts less than was paid, which is why the listing prints „nie dotyczy"
+      // and this figure deducts less than was paid, which is why the listing prints the tryb's name
       // outside tryb brutto rather than this number (owner, 2026-08-23). Still computed for every
       // row: the tryb is a fact the reader can flip, and the column returns with it.
       balanceGross: -amountDue.gross,
@@ -103,12 +102,12 @@ export function shapeInvestments(
       subcontractorRemaining:
         clientTotals === undefined || settlement.hasUnconfirmedPlane
           ? undefined
-          : roundToCents(settlement.due - financials.totalPayouts),
+          : subcontractorRemaining(financials, settlement),
       address: inv.address,
       phone: inv.phone,
       email: inv.email,
       contactPerson: inv.contactPerson,
-      review: inv.review,
+      reviewRequested: inv.reviewRequested,
       notes: inv.notes,
       hasSheet: inv.hasSheet,
       hasKosztorys: clientTotals !== undefined,

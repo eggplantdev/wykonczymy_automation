@@ -16,6 +16,7 @@ vi.mock('@/lib/queries/catalogue-usage', () => ({ countCatalogueUsage: vi.fn() }
 const praca = (id: number, description: string): WorkCatalogueItemT => ({
   id,
   description,
+  descriptionTranslations: {},
   category: null,
   unit: 'szt',
   clientPrice: 100,

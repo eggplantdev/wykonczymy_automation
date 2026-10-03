@@ -1,3 +1,8 @@
+import {
+  mergeTranslations,
+  type DescriptionTranslationsT,
+} from '@/lib/i18n/description-translations'
+import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { SNAPSHOT_SCHEMA_VERSION, type SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 import type {
   KosztorysItemT,
@@ -12,6 +17,7 @@ import { sheetCoeffs, type SheetCoeffsT } from './sheet-coeffs'
 import { compareFooterTotals, type FooterComparisonT } from './footer-totals'
 import { keyItems } from './item-key'
 import { groupInOrder } from '@/lib/utils/group-in-order'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 import { parseLaborTab } from './parse-labor-tab'
 import { type ImportGridsT } from './read-sheet'
 import {
@@ -67,7 +73,7 @@ export type ImportReportT = {
   warnings: string[]
 }
 
-export type StageDefaultsT = Pick<KosztorysStageT, 'plane' | 'workerId'>
+export type StageDefaultsT = Pick<KosztorysStageT, 'plane'> & { workerId: number | null }
 
 export type ImportFailureT = { ok: false; problems: string[] } & UnresolvedColumnsT
 
@@ -88,6 +94,9 @@ export function buildImportPlan(
   // sheet has no column for either, so this is the owner's answer, given once in the import window —
   // picking them per etap afterwards is ten menus over etapy the grid keeps locked until they are set.
   stageDefaults: StageDefaultsT = { plane: null, workerId: null },
+  // By katalog match key. The sheet has no column for translations, so a praca new to the rozpiska
+  // takes the katalog's, as picking it from the katalog would.
+  catalogueTranslations: ReadonlyMap<string, DescriptionTranslationsT> = new Map(),
 ): ImportPlanT {
   const resolvedLaborColumns = resolveLaborColumns(grids.laborGrid, mapping)
   const { missingFields, candidates, pointedFields } = resolvedLaborColumns
@@ -223,6 +232,13 @@ export function buildImportPlan(
         // is the sheet's own claim and the app never edits it: whatever the sheet says today is the
         // answer, including „nothing typed here any more".
         note: current?.note ?? null,
+        // The app's own translation wins per language, unless the sheet renamed the opis under it
+        // and the katalog holds one made from the new name; the katalog fills the languages it lacks.
+        descriptionTranslations: mergeTranslations(
+          catalogueTranslations.get(catalogueKey(sheetItem.description ?? '', sheetItem.unit)),
+          current?.descriptionTranslations,
+          sheetItem.description ?? '',
+        ),
       })
 
       for (const entry of parsedProgressByItem.get(sheetItem.id) ?? []) {
@@ -235,7 +251,10 @@ export function buildImportPlan(
     ...stage,
     plane: stageDefaults.plane,
     // A wykonawca on an etap with no rozliczenie would be named against a silent 0 zł należne.
-    workerId: stageDefaults.plane ? stageDefaults.workerId : null,
+    split:
+      stageDefaults.plane && stageDefaults.workerId != null
+        ? oneWorkerSplit(stageDefaults.workerId)
+        : null,
   }))
 
   // „Zastąp" means the sheet decides what the rozpiska contains: a praca it doesn't have stops

@@ -28,6 +28,7 @@ type UseManagedFormArgsT<TValues, TData> = {
   /** Map the string-typed form values to the action's domain payload. */
   toData: (values: TValues) => TData
   action: (data: TData) => Promise<ActionResultT>
+  onSaved?: (data: TData) => void
   /** Extra cleanup run alongside clearing the persisted form data (e.g. reset registerBalance). */
   onReset?: () => void
   /**
@@ -44,6 +45,11 @@ type UseManagedFormArgsT<TValues, TData> = {
    * method to get past the door.
    */
   confirmBeforeSubmit?: (values: TValues) => SubmitConfirmCopyT | null
+  /**
+   * A gate whose question the caller renders with its own UI: resolving `false` returns to the form
+   * with nothing sent. Runs after `confirmBeforeSubmit`.
+   */
+  beforeSubmit?: (values: TValues) => Promise<boolean>
   /**
    * Whether typed values outlive the dialog. Only sound on a CREATE form, where the draft is the
    * only copy of what was typed and the record it describes does not exist yet.
@@ -71,9 +77,11 @@ export function useManagedForm<TValues, TData>({
   onSubmitSuccess,
   toData,
   action,
+  onSaved,
   onReset,
   mergeStored,
   confirmBeforeSubmit,
+  beforeSubmit,
   persistDraft = true,
 }: UseManagedFormArgsT<TValues, TData>) {
   const { submit } = useFormSubmit(formId)
@@ -129,12 +137,16 @@ export function useManagedForm<TValues, TData>({
         setAsked(null)
         if (!confirmed) return false
       }
+      if (beforeSubmit && !(await beforeSubmit(value as TValues))) return false
 
+      const data = toData(value as TValues)
       await submit(!!keepOpen, {
-        action: () => action(toData(value as TValues)),
+        action: () => action(data),
         successMessage,
         onSubmitSuccess,
+        onSaved: onSaved && (() => onSaved(data)),
         onReset: reset,
+        awaitBeforeClose: !persistDraft,
       })
 
       return false

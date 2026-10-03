@@ -13,7 +13,11 @@ import type { EquipmentWarrantyRowT } from '@/lib/equipment/types'
 export async function loadWarrantyRows(payload: Payload): Promise<EquipmentWarrantyRowT[]> {
   const page = await payload.find({
     collection: 'equipment',
-    where: { status: { equals: 'IN_USE' }, warrantyUntil: { exists: true } },
+    where: {
+      status: { equals: 'IN_USE' },
+      warrantyUntil: { exists: true },
+      trashedAt: { exists: false },
+    },
     sort: 'name',
     limit: 2000,
     depth: 0,

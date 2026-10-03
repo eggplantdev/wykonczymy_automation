@@ -37,6 +37,8 @@ const SUBCONTRACTOR_DUE: SubcontractorDueByPlaneT = {
   byStage: new Map(),
   byWorker: new Map(),
   unconfirmedWorkers: new Set(),
+  byStageWorker: new Map(),
+  scaledDownStageIds: new Set(),
 }
 
 const INVESTMENT: InvestmentRefT = {
@@ -48,7 +50,7 @@ const INVESTMENT: InvestmentRefT = {
   email: 'kontakt@przyklad.test',
   contactPerson: 'Anna Kowalska',
   notes: 'Zakres prac: kuchnia i łazienka.',
-  review: '',
+  reviewRequested: false,
   hasSheet: false,
   materialsNetRate: null,
   settlementMode: 'NET',

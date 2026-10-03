@@ -7,7 +7,9 @@ import { NavLinkItem } from '@/components/nav/nav-link-item'
 import { LogoutButton } from '@/components/nav/logout-button'
 import { RefreshDataButton } from '@/components/nav/refresh-data-button'
 import { AdminButton } from '@/components/nav/admin-button'
+import { TrashButton } from '@/components/nav/trash-button'
 import { cn } from '@/lib/utils/cn'
+import { PAGE_TITLES, TRASH_HREF } from '@/lib/constants/sections'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { useNavLinks } from '@/hooks/use-nav-links'
 import { useSidebarCollapsed } from '@/hooks/use-sidebar-collapsed'
@@ -33,7 +35,7 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
         // z-40: the handle overhangs into the page, and the kosztorys v2 grid paints its frozen
         // columns at z-30 — without a stacking context above that, the pill disappears under them.
         'border-border bg-background sticky top-0 z-40 hidden h-screen shrink-0 flex-col border-r pb-3 sm:flex',
-        collapsed ? 'w-14 px-2' : 'w-fit min-w-48 px-3',
+        collapsed ? 'w-14 px-2' : 'w-54 px-3',
       )}
     >
       <SimpleTooltip content={collapsed ? 'Rozwiń menu' : 'Zwiń menu'}>
@@ -51,17 +53,19 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
           </span>
         </button>
       </SimpleTooltip>
-      <Link href="/" className="mx-auto flex items-center py-3">
-        <BrandLogo height={collapsed ? 36 : 54} priority />
-      </Link>
-      {/* Navigation */}
-      <nav className="flex flex-col gap-1">
-        {links.map((link) => (
-          <CollapsibleTooltip key={link.href} collapsed={collapsed} label={link.label}>
-            <NavLinkItem link={link} active={isActive(link.href)} collapsed={collapsed} />
-          </CollapsibleTooltip>
-        ))}
-      </nav>
+      {/* `-m-1 p-1`: the scroll container clips, and the collapsed unread badge overhangs its row by 4px. */}
+      <div className="-m-1 flex min-h-0 flex-col overflow-y-auto p-1">
+        <Link href="/" className="mx-auto flex items-center py-3">
+          <BrandLogo height={collapsed ? 36 : 54} priority />
+        </Link>
+        <nav className="flex flex-col gap-1">
+          {links.map((link) => (
+            <CollapsibleTooltip key={link.href} collapsed={collapsed} label={link.label}>
+              <NavLinkItem link={link} active={isActive(link.href)} collapsed={collapsed} />
+            </CollapsibleTooltip>
+          ))}
+        </nav>
+      </div>
       {/* User info + actions */}
       <div className="mt-auto flex flex-col gap-2 pt-4">
         {!collapsed && <div className="text-foreground text-sm font-medium">{user.name}</div>}
@@ -74,6 +78,9 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
           </CollapsibleTooltip>
           <CollapsibleTooltip collapsed={collapsed} label="Admin">
             <AdminButton collapsed={collapsed} />
+          </CollapsibleTooltip>
+          <CollapsibleTooltip collapsed={collapsed} label={PAGE_TITLES.trash}>
+            <TrashButton collapsed={collapsed} active={isActive(TRASH_HREF)} />
           </CollapsibleTooltip>
           {/* <Button variant="outline" size="sm" asChild aria-label="Poczta (Roundcube)">
             <Link href={roundcubeUrl} target="_blank" rel="noopener noreferrer">

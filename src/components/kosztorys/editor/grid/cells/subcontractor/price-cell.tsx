@@ -26,7 +26,7 @@ export function SubcontractorPriceCell({
   focus,
   stopEditing,
 }: CellProps<KosztorysV2RowT, SubcontractorCellDataT>) {
-  const { view } = columnData
+  const { view, isDocument } = columnData
   const edit = useCellDraft(
     rowData,
     setRowData,
@@ -37,7 +37,9 @@ export function SubcontractorPriceCell({
   const source = priceSourceOf(rowData, view)
   // A live rejection outranks the standing verdict: it describes the value on screen, which the row
   // has not accepted.
-  const message = edit.blockReason ?? checkSubcontractorPrice(rowData, view)?.message ?? null
+  const message = isDocument
+    ? null
+    : (edit.blockReason ?? checkSubcontractorPrice(rowData, view)?.message ?? null)
 
   // At „własny mnożnik" the stawka is an OUTPUT — the mnożnik cell authors it. Leaving this one
   // editable would give one figure two authors, and a keystroke here writes a kwota, which silently

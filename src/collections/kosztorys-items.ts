@@ -39,6 +39,9 @@ export const KosztorysItems: CollectionConfig = {
     { name: 'section', type: 'relationship', relationTo: 'kosztorys-sections', required: true },
     { name: 'displayOrder', type: 'number', required: true, defaultValue: 0 },
     { name: 'description', type: 'text', label: { en: 'Description', pl: 'Opis' } },
+    // { [language]: { text, source } } — `source` is the opis the translation was made from, so a
+    // translation whose source no longer matches the opis reads as out of date.
+    { name: 'descriptionTranslations', type: 'json', defaultValue: {} },
     { name: 'unit', type: 'text', label: { en: 'Unit', pl: 'Jednostka' } },
     { name: 'plannedQty', type: 'number', required: true, defaultValue: 0 },
     { name: 'sheetMeasuredQty', type: 'number', admin: { readOnly: true } },

@@ -5,15 +5,23 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import { investmentAction } from '@/lib/actions/investment-action'
 import { validateAction } from '@/lib/actions/run-action'
 import { KOSZTORYS_TREE_TAGS } from '@/lib/cache/tags'
-import { getDb } from '@/lib/db/get-db'
-import { investmentGateForRow } from '@/lib/db/investment-gate'
+import { getDb, type DbExecutorT } from '@/lib/db/get-db'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { cleanItemTexts } from '@/lib/kosztorys/clean-item-texts'
 import { itemPatchSchema } from '@/lib/kosztorys/item-patch-schema'
 import { getItemTexts, setItemTexts } from '@/lib/db/kosztorys-item-texts'
 import { createSection, type CreatedSectionT } from '@/lib/kosztorys/create-section'
-import { createBlankItem, sectionOwnerAndNextItemOrder } from '@/lib/kosztorys/create-item'
+import { sectionOwnerAndNextItemOrder } from '@/lib/kosztorys/create-item'
+import { insertItems } from '@/lib/kosztorys/insert-rows'
+import { itemFromFields } from '@/lib/kosztorys/item-from-fields'
+import { ceilingWarnings } from '@/lib/kosztorys/subcontractor-price-guard'
+import {
+  applyCatalogueWrite,
+  catalogueRow,
+  resolveCatalogueWrite,
+} from '@/lib/kosztorys/work-catalogue/write-catalogue-entry'
+import { workCatalogueItemSchema } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
 import {
   insertDirectionSchema,
   moveOrderSchema,
@@ -33,7 +41,21 @@ import { SETTLEMENT_MODES, type SettlementModeT } from '@/lib/kosztorys/settleme
 import { emptySnapshotPayload } from '@/lib/kosztorys/snapshot-format'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import type { ActionResultT } from '@/types/action'
-import type { ItemPatchT, StagePatchT, ToolPlaneT } from '@/lib/kosztorys/types'
+import type {
+  ItemPatchT,
+  KosztorysItemT,
+  NewItemPlacementT,
+  StagePatchT,
+  StageSplitT,
+  ToolPlaneT,
+} from '@/lib/kosztorys/types'
+import {
+  normalizeStageSplit,
+  STAGE_SPLIT_NEEDS_PLANE,
+  validateStageSplit,
+} from '@/lib/kosztorys/stage-split'
+import { insertStageMembers, replaceStageSplit, selectStagePool } from '@/lib/db/stage-split'
+import { trashedWorkerMessage } from '@/lib/db/worker-gate'
 
 // Derived from TOOL_PLANES so a plane added to the pickers can't be silently rejected here.
 const stagePlaneSchema = z.enum(TOOL_PLANES)
@@ -345,7 +367,7 @@ const insertSectionSchema = z.object({
   dir: insertDirectionSchema,
 })
 
-// Section-level twin of insertItemAction. The caller names an anchor and a direction, not a
+// Section-level twin of addItemAction's next-to placement. The caller names an anchor and a direction, not a
 // display_order: resolving the slot inside the transaction is what makes it correct under a
 // concurrent insert, and it drops the investment id from the wire (it is the anchor's).
 export async function insertSectionAction(
@@ -417,71 +439,113 @@ export async function swapSectionOrderAction(
   )
 }
 
-export async function addItemAction(
-  sectionId: number,
-): Promise<ActionResultT<{ id: number; displayOrder: number }>> {
-  return investmentAction(
-    'addItemAction',
-    { kind: 'section', id: sectionId },
-    async ({ payload }) => {
-      const db = await getDb(payload)
-      const owner = await sectionOwnerAndNextItemOrder(db, sectionId)
-      if (!owner) return { success: false, error: SECTION_MISSING }
-      const created = await createBlankItem(payload, {
-        investmentId: owner.investmentId,
-        sectionId,
-        displayOrder: owner.nextDisplayOrder,
-      })
-      return { success: true, data: created }
-    },
-    ['kosztorysItems'],
-  )
-}
+const newItemPlacementSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('end'), sectionId: z.number().int() }),
+  z.object({
+    kind: z.literal('next-to'),
+    anchorItemId: z.number().int(),
+    dir: insertDirectionSchema,
+  }),
+])
 
-const insertItemSchema = z.object({
-  anchorItemId: z.number(),
-  dir: insertDirectionSchema,
+const addItemSchema = z.object({
+  placement: newItemPlacementSchema,
+  // The katalog's own domain schema, not a copy: the dialog's praca and a katalog entry are the same
+  // fields, and `insertItems` bypasses Payload's field rules, so this is the only backstop against a
+  // negative cena or both columns of one płaszczyzna set.
+  data: workCatalogueItemSchema,
+  catalogue: z
+    .object({ mode: z.enum(['new', 'overwrite']), keepCatalogueCategory: z.boolean() })
+    .nullable(),
 })
 
-export async function insertItemAction(
-  anchorItemId: number,
-  dir: InsertDirectionT,
-): Promise<ActionResultT<{ id: number; displayOrder: number }>> {
+export type AddItemInputT = z.infer<typeof addItemSchema>
+
+const EMPTY_ITEM_TEXT_ERROR = 'Praca musi mieć opis i jednostkę miary.'
+
+// One slot per placement, both under the transaction: an append takes MAX+1, an insert-at locks the
+// anchor's position and moves the tail down by one.
+async function resolveNewItemSlot(
+  db: DbExecutorT,
+  placement: NewItemPlacementT,
+): Promise<{ sectionId: number; displayOrder: number } | { error: string }> {
+  if (placement.kind === 'end') {
+    const owner = await sectionOwnerAndNextItemOrder(db, placement.sectionId)
+    if (!owner) return { error: SECTION_MISSING }
+    return { sectionId: placement.sectionId, displayOrder: owner.nextDisplayOrder }
+  }
+  const slot = await resolveInsertSlot(db, 'kosztorys-items', placement.anchorItemId, placement.dir)
+  if (!slot) return { error: ITEM_MISSING }
+  await shiftDisplayOrderFrom(db, 'kosztorys-items', slot.ownerId, slot.at)
+  return { sectionId: slot.ownerId, displayOrder: slot.at }
+}
+
+/**
+ * The katalog entry rides the praca's transaction, so a failed katalog write takes the praca down
+ * with it rather than leaving half of what was asked for.
+ *
+ * `'workCatalogue'` is revalidated unconditionally: the collection's own hook is silenced by
+ * `skipRevalidation`, and a static list cannot say „only when written" — one extra tag expiry on a
+ * praca added without the katalog costs less than a branch.
+ */
+export async function addItemAction(
+  input: AddItemInputT,
+): Promise<ActionResultT<{ item: KosztorysItemT }>> {
+  const target =
+    input.placement.kind === 'end'
+      ? { kind: 'section' as const, id: input.placement.sectionId }
+      : { kind: 'item' as const, id: input.placement.anchorItemId }
+
   return investmentAction(
-    'insertItemAction',
-    { kind: 'item', id: anchorItemId },
-    async ({ payload }) => {
-      const parsed = validateAction(insertItemSchema, { anchorItemId, dir })
+    'addItemAction',
+    target,
+    async ({ payload, investmentId }) => {
+      const parsed = validateAction(addItemSchema, input)
       if (!parsed.success) return parsed
+      const { placement, data, catalogue } = parsed.data
+
+      const row = { ...catalogueRow(data), descriptionTranslations: {} }
+      if (!row.description || !row.unit) {
+        return { success: false, error: EMPTY_ITEM_TEXT_ERROR }
+      }
+
       return withPayloadTransaction(
         payload,
-        async (req): Promise<ActionResultT<{ id: number; displayOrder: number }>> => {
+        async (req): Promise<ActionResultT<{ item: KosztorysItemT }>> => {
           const txDb = await getDb(payload, req)
-          const slot = await resolveInsertSlot(
-            txDb,
-            'kosztorys-items',
-            parsed.data.anchorItemId,
-            parsed.data.dir,
-          )
-          if (!slot) return { success: false, error: ITEM_MISSING }
-          // Only the investment is needed here — the slot is already resolved, so the append-position
-          // aggregate `sectionOwnerAndNextItemOrder` would compute is dead weight held under the
-          // section-wide lock.
-          const owner = (await investmentGateForRow(txDb, 'section', slot.ownerId))?.investmentId
-          if (owner == null) return { success: false, error: SECTION_MISSING }
-          await shiftDisplayOrderFrom(txDb, 'kosztorys-items', slot.ownerId, slot.at)
-          const created = await createBlankItem(payload, {
-            investmentId: owner,
-            sectionId: slot.ownerId,
-            displayOrder: slot.at,
-            req,
-          })
-          return { success: true, data: created }
+
+          // Before the first write: a returned failure still commits, so a refusal found after the
+          // insert would leave the praca in without the katalog entry the owner asked for.
+          let catalogueWrite: Parameters<typeof applyCatalogueWrite>[2] | null = null
+          if (catalogue) {
+            const resolved = await resolveCatalogueWrite(txDb, row.matchKey, catalogue.mode)
+            if ('error' in resolved) return { success: false, error: resolved.error }
+            catalogueWrite = {
+              candidate: row,
+              existing: resolved.existing,
+              keepCatalogueCategory: catalogue.keepCatalogueCategory,
+            }
+          }
+
+          const slot = await resolveNewItemSlot(txDb, placement)
+          if ('error' in slot) return { success: false, error: slot.error }
+
+          const item = itemFromFields(row, slot.sectionId, slot.displayOrder)
+          const [id] = await insertItems(txDb, investmentId, [{ sectionId: slot.sectionId, item }])
+
+          if (catalogueWrite) await applyCatalogueWrite(payload, req, catalogueWrite)
+
+          const warnings = ceilingWarnings([item])
+          return {
+            success: true,
+            data: { item: { ...item, id } },
+            ...(warnings.length > 0 && { warning: warnings.join(' ') }),
+          }
         },
         { skipRevalidation: true },
       )
     },
-    ['kosztorysItems'],
+    ['kosztorysItems', 'workCatalogue'],
   )
 }
 
@@ -594,27 +658,57 @@ export async function renumberKosztorysOrderAction(
 export async function addStageAction(
   investmentId: number,
   plane: ToolPlaneT,
-  workerId: number | null = null,
+  split: StageSplitT | null = null,
 ): Promise<ActionResultT<{ id: number; ordinal: number }>> {
   return investmentAction(
     'addStageAction',
     { investmentId },
     async ({ payload }) => {
-      const parsed = validateAction(stagePatchSchema, { plane, workerId })
+      const parsed = validateAction(stagePatchSchema, { plane })
       if (!parsed.success) return parsed
-      const existing = await payload.find({
-        collection: 'kosztorys-stages',
-        where: { investment: { equals: investmentId } },
-        sort: '-ordinal',
-        limit: 1,
-        depth: 0,
-      })
-      const nextOrdinal = (existing.docs[0]?.ordinal ?? 0) + 1
-      const created = await payload.create({
-        collection: 'kosztorys-stages',
-        data: { investment: investmentId, ordinal: nextOrdinal, plane, worker: workerId },
-      })
-      return { success: true, data: { id: created.id, ordinal: nextOrdinal } }
+      const parsedSplit = validateAction(stageSplitSchema, split)
+      if (!parsedSplit.success) return parsedSplit
+      const normalized = normalizeStageSplit(parsedSplit.data)
+      // A new etap has no executed work, so only a 0 zł amount could pass the cap; the copied
+      // percentages are what carries over.
+      const refusal = parsedSplit.data && normalized && validateStageSplit(parsedSplit.data, 0)
+      if (refusal) return { success: false, error: refusal }
+      return withPayloadTransaction(
+        payload,
+        async (req) => {
+          const trashedWorker = await trashedWorkerMessage(
+            await getDb(payload, req),
+            normalized?.members.map((member) => member.workerId) ?? [],
+          )
+          if (trashedWorker) return { success: false as const, error: trashedWorker }
+          const existing = await payload.find({
+            collection: 'kosztorys-stages',
+            where: { investment: { equals: investmentId } },
+            sort: '-ordinal',
+            limit: 1,
+            depth: 0,
+            req,
+          })
+          const nextOrdinal = (existing.docs[0]?.ordinal ?? 0) + 1
+          const created = await payload.create({
+            collection: 'kosztorys-stages',
+            data: {
+              investment: investmentId,
+              ordinal: nextOrdinal,
+              plane,
+              splitMode: normalized?.mode ?? 'percent',
+            },
+            req,
+          })
+          if (normalized) {
+            await insertStageMembers(await getDb(payload, req), [
+              { stageId: created.id, split: normalized },
+            ])
+          }
+          return { success: true as const, data: { id: created.id, ordinal: nextOrdinal } }
+        },
+        { skipRevalidation: true },
+      )
     },
     ['kosztorysStages'],
   )
@@ -625,9 +719,21 @@ const stagePatchSchema = z
   .object({
     label: z.string().nullable(),
     plane: stagePlaneSchema,
-    workerId: z.number().int().positive().nullable(),
   })
   .partial()
+
+const stageSplitSchema = z
+  .object({
+    mode: z.enum(['percent', 'amount']),
+    members: z.array(
+      z.object({
+        workerId: z.number().int().positive(),
+        value: z.number(),
+        takesRest: z.boolean(),
+      }),
+    ),
+  })
+  .nullable()
 
 // A plane patch only ever writes a concrete value — an explicit pick confirms the plane and clears
 // the unconfirmed (null) warning; there is no "un-confirm" path.
@@ -641,12 +747,56 @@ export async function updateStageAction(
     async ({ payload }) => {
       const parsed = validateAction(stagePatchSchema, patch)
       if (!parsed.success) return parsed
-      // The patch key is workerId (the tree carries flat *_id values); the collection field is the
-      // `worker` relationship — translate at this boundary, nowhere else.
-      const { workerId, ...rest } = parsed.data
-      const data = 'workerId' in parsed.data ? { ...rest, worker: workerId } : rest
-      await payload.update({ collection: 'kosztorys-stages', id: stageId, data })
+      await payload.update({ collection: 'kosztorys-stages', id: stageId, data: parsed.data })
       return { success: true }
+    },
+    ['kosztorysStages'],
+  )
+}
+
+const STAGE_MISSING = 'Etap nie istnieje.'
+
+// The whole split in one call: mode and members are one concept, and two patches would have states
+// no single save produces (lessons.md). The cap is checked against the pool priced here, inside the
+// transaction, never against the figure the dialog last saw.
+export async function updateStageSplitAction(
+  stageId: number,
+  split: StageSplitT | null,
+): Promise<ActionResultT> {
+  return investmentAction(
+    'updateStageSplitAction',
+    { kind: 'stage', id: stageId },
+    async ({ payload }) => {
+      const parsed = validateAction(stageSplitSchema, split)
+      if (!parsed.success) return parsed
+      // Validated as sent, written normalized: normalizing repairs a missing rest holder by zeroing
+      // the first member's amount, which would move money instead of refusing the save.
+      const normalized = normalizeStageSplit(parsed.data)
+      return withPayloadTransaction(
+        payload,
+        async (req): Promise<ActionResultT> => {
+          const txDb = await getDb(payload, req)
+          const res = await txDb.execute(sql`
+            SELECT plane FROM kosztorys_stages WHERE id = ${stageId} FOR UPDATE
+          `)
+          const stage = res.rows[0]
+          // Deleted between the gate and the lock: the code makes the editor reseed its tree.
+          if (!stage) return { success: false, error: STAGE_MISSING, code: 'NOT_FOUND' }
+          if (parsed.data && normalized) {
+            if (stage.plane == null) return { success: false, error: STAGE_SPLIT_NEEDS_PLANE }
+            const refusal = validateStageSplit(parsed.data, await selectStagePool(txDb, stageId))
+            if (refusal) return { success: false, error: refusal }
+          }
+          const trashedWorker = await trashedWorkerMessage(
+            txDb,
+            normalized?.members.map((member) => member.workerId) ?? [],
+          )
+          if (trashedWorker) return { success: false, error: trashedWorker }
+          await replaceStageSplit(txDb, stageId, normalized)
+          return { success: true }
+        },
+        { skipRevalidation: true },
+      )
     },
     ['kosztorysStages'],
   )

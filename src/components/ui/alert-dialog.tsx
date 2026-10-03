@@ -31,11 +31,16 @@ function AlertDialogOverlay({
 
 function AlertDialogContent({
   className,
+  onOverlayClick,
   ...props
-}: React.ComponentProps<typeof AlertDialogPrimitive.Content>) {
+}: React.ComponentProps<typeof AlertDialogPrimitive.Content> & {
+  // Radix hard-wires an outside click to do nothing on an alert dialog, so a caller for which the
+  // overlay means „back" has to hear the click on the overlay itself.
+  onOverlayClick?: () => void
+}) {
   return (
     <AlertDialogPortal>
-      <AlertDialogOverlay />
+      <AlertDialogOverlay onClick={onOverlayClick} />
       {/* Width before max-width: `max-w-sm` alone let the box run edge to edge on a narrow phone,
           because 24rem is wider than a 375px viewport. The 2rem is a 1rem gutter on each side. */}
       <AlertDialogPrimitive.Content

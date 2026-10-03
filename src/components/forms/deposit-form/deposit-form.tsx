@@ -252,7 +252,7 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
           />
         </FieldGroup>
 
-        <FormFooter className="mt-6" />
+        <FormFooter className="mt-6" awaitingAnswer={submitConfirm.open} />
       </FormShell>
 
       <ConfirmDialog {...submitConfirm} />

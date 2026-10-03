@@ -6,7 +6,7 @@ import {
   createBulkExpenseSchema,
   type CreateBulkExpenseFormT,
 } from '@/components/forms/expense-form/bulk-expense-schema'
-import { canMutateTransfer } from '@/lib/auth/roles'
+import { BONUS_FORBIDDEN_MESSAGE, canBookTransferType, canMutateTransfer } from '@/lib/auth/roles'
 import { canBeSettled } from '@/lib/constants/transfers'
 import { perfStart } from '@/lib/perf'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
@@ -43,6 +43,9 @@ export async function createTransferAction(data: CreateTransferFormT, invoiceMed
       const parsed = validateAction(createTransferSchema, data)
       if (!parsed.success) return parsed
       console.log(`[PERF]   validateAction ${step()}ms`)
+      if (!canBookTransferType(user.role, parsed.data.type)) {
+        return { success: false, error: BONUS_FORBIDDEN_MESSAGE }
+      }
 
       if (needsSourceRegister(parsed.data.type)) {
         // For deposits, sourceRegister is actually the target (the register receiving money)
@@ -92,6 +95,9 @@ export async function createBulkTransferAction(
       const parsed = validateAction(createBulkExpenseSchema, data)
       if (!parsed.success) return parsed
       console.log(`[PERF]   validateAction ${step()}ms`)
+      if (!canBookTransferType(user.role, parsed.data.type)) {
+        return { success: false, error: BONUS_FORBIDDEN_MESSAGE }
+      }
 
       if (needsSourceRegister(parsed.data.type)) {
         // For deposits, sourceRegister is actually the target (the register receiving money)

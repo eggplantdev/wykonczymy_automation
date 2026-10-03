@@ -26,6 +26,7 @@ const tree: KosztorysTreeT = makeTree({
           sectionId: 10,
           displayOrder: 0,
           description: 'A',
+          descriptionTranslations: {},
           unit: 'm2',
           plannedQty: 10,
           sheetMeasuredQty: null,
@@ -43,6 +44,7 @@ const tree: KosztorysTreeT = makeTree({
           sectionId: 10,
           displayOrder: 1,
           description: 'B',
+          descriptionTranslations: {},
           unit: 'm2',
           plannedQty: 2,
           sheetMeasuredQty: null,
@@ -58,7 +60,7 @@ const tree: KosztorysTreeT = makeTree({
       ],
     },
   ],
-  stages: [{ id: 100, ordinal: 1, label: null, plane: null, workerId: null }],
+  stages: [{ id: 100, ordinal: 1, label: null, plane: null, split: null }],
   progress: [
     { itemId: 1, stageId: 100, qtyDone: 1 },
     { itemId: 2, stageId: 100, qtyDone: 8 },
@@ -161,8 +163,8 @@ const planeTree: KosztorysTreeT = makeTree({
     },
   ],
   stages: [
-    { id: 100, ordinal: 1, label: null, plane: 'w_tools', workerId: null },
-    { id: 200, ordinal: 2, label: null, plane: 'own_tools', workerId: null },
+    { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null },
+    { id: 200, ordinal: 2, label: null, plane: 'own_tools', split: null },
   ],
   progress: [
     { itemId: 1, stageId: 100, qtyDone: 1 },

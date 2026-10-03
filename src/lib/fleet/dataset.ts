@@ -28,6 +28,7 @@ export async function loadFleetDataset(payload: Payload): Promise<FleetDatasetT>
   const [vehicles, inspections] = await Promise.all([
     payload.find({
       collection: 'vehicles',
+      where: { trashedAt: { exists: false } },
       sort: 'registration',
       limit: 500,
       depth: 0,

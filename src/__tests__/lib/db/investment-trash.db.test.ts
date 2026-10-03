@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
-import { TRASH_RETENTION_DAYS } from '@/lib/constants/investment-lock'
+import { ENTITY_TRASH_RETENTION_DAYS } from '@/lib/constants/trash'
 import { getDb } from '@/lib/db/get-db'
 import {
   createTestInvestment,
@@ -69,6 +69,13 @@ describe.skipIf(!ENV_READY)('investment trash queries (DB)', () => {
       sections: [{ name: 'S', items: [{ plannedQty: 0, clientPrice: 90 }] }],
     })
 
+    // An active investment never purges, so the fixtures are closed once their kosztorys is built.
+    await db.execute(
+      sql`UPDATE investments SET status = 'completed' WHERE id IN (${sql.join(
+        [planned, measured, priceOnly, empty, fresh].map((id) => sql`${id}`),
+        sql.raw(', '),
+      )})`,
+    )
     for (const id of [planned, measured, priceOnly, empty, template])
       await trashDaysAgo(db, id, PAST_RETENTION_DAYS)
     await trashDaysAgo(db, fresh, WITHIN_RETENTION_DAYS)
@@ -92,7 +99,7 @@ describe.skipIf(!ENV_READY)('investment trash queries (DB)', () => {
   it('purges only unused investments past retention, and counts the used ones it skipped', async () => {
     const { purgeable, skippedKosztorys } = await trash.selectPurgeableInvestmentIds(
       db,
-      TRASH_RETENTION_DAYS,
+      ENTITY_TRASH_RETENTION_DAYS,
     )
     const ours = new Set([planned, measured, priceOnly, empty, fresh, template])
 

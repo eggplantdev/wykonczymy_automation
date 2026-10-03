@@ -6,7 +6,7 @@ import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { MenuItemBody } from '@/components/kosztorys/editor/actions/menu-item-body'
 import { cleanItemTextsAction } from '@/lib/actions/kosztorys'
-import { logError } from '@/lib/utils/log-error'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 
 // The one action with no dialog, so its state stays inside the item instead of being lifted.
@@ -18,19 +18,18 @@ export function CleanItemTextsMenuItem() {
   // signal the sheet compare uses after it writes.
   function handleCleanItemTexts() {
     setCleaning(true)
-    void cleanItemTextsAction(investmentId)
+    void settleAction(() => cleanItemTextsAction(investmentId))
       .then((res) => {
+        if (!res.success && res.code === 'REQUEST_FAILED') {
+          // A request that never completed may still have committed the rewrite; refetch so the
+          // grid doesn't autosave the old text back over it.
+          toastMessage('Nie udało się poprawić pozycji — odświeżam kosztorys', 'error')
+          return onTreeReplaced?.({ refetch: true })
+        }
         if (!res.success) return toastMessage(res.error, 'error')
         if (res.data === 0) return toastMessage('Nie znaleziono nic do poprawienia', 'info')
         toastMessage(`Poprawiono pozycje: ${res.data}`, 'success')
         onTreeReplaced?.()
-      })
-      .catch((err) => {
-        logError('[CLEAN_ITEM_TEXTS]', err)
-        // A transport-level rejection can arrive after the rewrite committed; refetch so the grid
-        // doesn't autosave the old text back over it.
-        toastMessage('Nie udało się poprawić pozycji — odświeżam kosztorys', 'error')
-        onTreeReplaced?.({ refetch: true })
       })
       .finally(() => setCleaning(false))
   }

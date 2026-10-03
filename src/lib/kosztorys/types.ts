@@ -2,11 +2,14 @@
 // values — the query fetches with depth 0.
 // VAT is a single rate per investment (KosztorysTreeT.vatRate), not per section/item.
 
+import type { InvestmentLockT } from '@/lib/constants/investment-lock'
+import type { InsertDirectionT } from '@/lib/kosztorys/display-order'
 import type { STAGE_QTY_PREFIX } from '@/lib/kosztorys/stage-keys'
 import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 import type { InvestmentFinancialsT, MaterialsBreakdownRowT } from '@/types/investment-financials'
 import type { MediaFileT } from '@/types/media'
+import type { DescriptionTranslationsT } from '@/lib/i18n/description-translations'
 import type { InvestmentRefT, WorkerRefT } from '@/types/reference-data'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 import type {
@@ -34,6 +37,8 @@ export type KosztorysItemT = {
   sectionId: number
   displayOrder: number
   description: string | null
+  // Copied with the opis wherever the opis is copied; never re-read from the katalog afterwards.
+  descriptionTranslations: DescriptionTranslationsT
   unit: string | null
   plannedQty: number
   // „Pomiar z natury" as the imported sheet typed it — a reconciliation reference, never an input to
@@ -61,12 +66,17 @@ export type KosztorysItemT = {
 // on it (siatka, sufit, filtry, katalog) — they used to encode it as booleans and drifted.
 export type PriceSourceT = 'auto' | 'coeff' | 'amount'
 
+export type NewItemPlacementT =
+  | { kind: 'end'; sectionId: number }
+  | { kind: 'next-to'; anchorItemId: number; dir: InsertDirectionT }
+
 // Single source of truth for the autosave patch: imported by the pure core (v2-rows diffRow) and by
 // updateItemFieldAction, whose zod validation is derived from this shape.
 export type ItemPatchT = Partial<
   Pick<
     KosztorysItemT,
     | 'description'
+    | 'descriptionTranslations'
     | 'unit'
     | 'plannedQty'
     | 'discountType'
@@ -97,21 +107,37 @@ export type ViewPricingT = KosztorysItemT & {
 // plane: such an etap belongs to no subcontractor bill and counts toward neither settlement figure.
 export type ToolPlaneT = 'w_tools' | 'own_tools'
 
+// EX-943: an etap's executed-work value is split between its workers. Every member but one carries an
+// entered value; the member with `takesRest` gets whatever the others leave. `value` is percent points
+// (25 = 25%) in 'percent' mode and zł in 'amount' mode, and is meaningless on the rest holder.
+export type StageSplitModeT = 'percent' | 'amount'
+
+export type StageMemberT = {
+  workerId: number
+  value: number
+  takesRest: boolean
+}
+
+export type StageSplitT = {
+  mode: StageSplitModeT
+  members: StageMemberT[]
+}
+
 export type KosztorysStageT = {
   id: number
   ordinal: number
   label: string | null
   plane: ToolPlaneT | null
-  workerId: number | null
+  // null = nobody assigned. Never a split without members — the reader normalises that to null.
+  split: StageSplitT | null
 }
 
 // Mirrors ItemPatchT; the action's zod validation is derived from this shape. plane is never patched
-// to null — an explicit pick only ever confirms a concrete plane.
+// to null — an explicit pick only ever confirms a concrete plane. The split is not a patch field: its
+// mode and members are one concept and are written whole by `updateStageSplitAction`.
 export type StagePatchT = Partial<{
   label: string | null
   plane: ToolPlaneT
-  // Nullable unlike plane: „Bez przypisania" is a legal edit, so the patch must be able to clear it.
-  workerId: number | null
 }>
 
 export type StageProgressT = {
@@ -160,7 +186,7 @@ export type KosztorysEditorDataT = {
   discountNetFromTransactions: number
   // Σ LOSS — the cost the company absorbed, which the settlement deducts at face value.
   investmentLoss: number
-  // Realized PAYOUT rows: the block's sortable wypłaty list AND its per-worker Σ. Optional (default
+  // Realized PAYOUT and BONUS rows: the block's sortable wypłaty list AND its per-worker Σ. Optional (default
   // []) because the two client-view share entry points never render that block.
   payoutTransactions?: PayoutTransactionRowT[]
   // Required: the wpłaty TOTAL is summed from these rows, so a host that omits them isn't showing an
@@ -174,9 +200,9 @@ export type KosztorysEditorDataT = {
   // Gates the toolbar's „Arkusz Google" entries, which would otherwise offer an import that can only
   // answer „Inwestycja nie ma kosztorysu.". Optional: the client share renders no toolbar.
   hasSheet?: boolean
-  // „Zakończona": every money-moving write is refused server-side. The editor still renders in FULL
-  // — this is about interaction, not disclosure, which is what `preview` is about.
-  locked?: boolean
+  // „Zakończona" or in the trash: every write is refused server-side. The editor still renders in
+  // FULL — this is about interaction, not disclosure, which is what `preview` is about.
+  lock?: InvestmentLockT
   // Set ONLY by the szablon page. Never derived from the pathname.
   isTemplate?: boolean
   // Optional on cost, not on visibility: the client share renders no stage menu (EX-613).
@@ -191,6 +217,14 @@ export type KosztorysEditorDataT = {
   // `assets` above: `undefined` means this surface has no investment at all (the szablon workbench,
   // both shares).
   investment?: InvestmentRefT
+  // Only the investment page reads the reports; every other surface has none to show.
+  workerReports?: WorkerReportsSeedT
+}
+
+export type WorkerReportsSeedT = {
+  pendingCount: number
+  // From a „Zgłoszenia wykonanych prac" row: the report the dialog opens on.
+  openReportId: number | undefined
 }
 
 // --- v2 variant (react-datasheet-grid): a flat row with stages flattened

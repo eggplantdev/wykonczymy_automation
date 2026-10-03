@@ -6,13 +6,21 @@ import {
   stagesMatchingEngaged,
 } from '@/lib/kosztorys/stage-conditions'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 
 function stage(overrides: Partial<KosztorysStageT> = {}): KosztorysStageT {
-  return { id: 1, ordinal: 1, label: null, plane: 'w_tools', workerId: 5, ...overrides }
+  return {
+    id: 1,
+    ordinal: 1,
+    label: null,
+    plane: 'w_tools',
+    split: oneWorkerSplit(5),
+    ...overrides,
+  }
 }
 
-const BARE = stage({ id: 1, plane: null, workerId: null })
-const NO_WORKER = stage({ id: 2, plane: 'own_tools', workerId: null })
+const BARE = stage({ id: 1, plane: null, split: null })
+const NO_WORKER = stage({ id: 2, plane: 'own_tools', split: null })
 const FINE = stage({ id: 3 })
 
 describe('the stage conditions, each on its boundary', () => {
@@ -22,6 +30,12 @@ describe('the stage conditions, each on its boundary', () => {
 
   it('„bez przypisanego wykonawcy" catches a plane-less etap too — the deliberate double count', () => {
     expect(countMatchingStages([BARE, NO_WORKER, FINE], 'stage-no-worker')).toBe(2)
+  })
+
+  it('„z podziałem do poprawienia" reads only the scaled-down set it is handed', () => {
+    const context = { scaledDownStageIds: new Set([FINE.id]) }
+    expect(countMatchingStages([BARE, NO_WORKER, FINE], 'stage-split-scaled', context)).toBe(1)
+    expect(countMatchingStages([BARE, NO_WORKER, FINE], 'stage-split-scaled')).toBe(0)
   })
 
   it('reads an unknown id as zero', () => {

@@ -47,7 +47,7 @@ async function buildHistoryList(investmentId: number, today: DayT): Promise<Hist
 // yesterday's `auto` rows stop being „today's". The live tree is both the baseline and what fills a
 // stored row's gaps (settlement mode, older settings keys), hence the tree's tags beside the
 // snapshot one — not the preview's, whose wpłaty and categories this list never reads.
-const cachedHistoryList = unstable_cache(buildHistoryList, ['preview-kosztorys-history-v1'], {
+const cachedHistoryList = unstable_cache(buildHistoryList, ['preview-kosztorys-history-v2'], {
   tags: [...KOSZTORYS_TREE_TAGS.map((tag) => CACHE_TAGS[tag]), CACHE_TAGS.kosztorysSnapshots],
 })
 

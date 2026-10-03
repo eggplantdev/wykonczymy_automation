@@ -1,5 +1,8 @@
 'use client'
 
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { SettlePayoutsDialog } from '@/components/dialogs/settle-payouts-dialog'
 import {
   SUMMARY_LABEL_COL,
   SUMMARY_VALUE_COL,
@@ -56,20 +59,32 @@ function RemainingCell({ amount, weight }: { amount: number; weight?: 'medium' |
 // The unassigned bucket is a residual with nothing to filter on, so it renders as plain text.
 export function SubcontractorWorkerTotals({
   investmentId,
+  investmentName,
   rows,
 }: {
   investmentId: number
+  investmentName: string
   rows: SubcontractorWorkerRowT[]
 }) {
+  const [isSettleOpen, setIsSettleOpen] = useState(false)
   const totals = subcontractorRowTotals(rows)
+  // Something to pay out or a nadpłata to even out with a premia — the dialog has a row to act on.
+  const hasOpenPair = rows.some((row) => row.workerId !== null && row.remaining !== 0)
+  const showBonus = rows.some((row) => row.bonus !== 0)
+  const valueCols = Array.from({ length: showBonus ? 4 : 3 }, () => SUMMARY_VALUE_COL).join(' ')
 
   return (
-    <SummaryTable
-      cols={`${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL} ${SUMMARY_VALUE_COL} ${SUMMARY_VALUE_COL}`}
-      className="h-fit w-fit"
-    >
-      <SummaryHeaderCell variant="label">Podsumowanie pracowników</SummaryHeaderCell>
+    <SummaryTable cols={`${SUMMARY_LABEL_COL} ${valueCols}`} className="h-fit w-fit">
+      <SummaryHeaderCell variant="label" className="flex items-center justify-between gap-2">
+        <span>Podsumowanie pracowników</span>
+        {hasOpenPair && (
+          <Button type="button" variant="outline" size="sm" onClick={() => setIsSettleOpen(true)}>
+            Rozlicz wypłaty
+          </Button>
+        )}
+      </SummaryHeaderCell>
       <SummaryHeaderCell>{SUBCONTRACTOR_FIGURE_LABELS.due}</SummaryHeaderCell>
+      {showBonus && <SummaryHeaderCell>{SUBCONTRACTOR_FIGURE_LABELS.bonus}</SummaryHeaderCell>}
       <SummaryHeaderCell>{SUBCONTRACTOR_FIGURE_LABELS.payouts}</SummaryHeaderCell>
       <SummaryHeaderCell>{SUBCONTRACTOR_FIGURE_LABELS.remaining}</SummaryHeaderCell>
 
@@ -83,7 +98,7 @@ export function SubcontractorWorkerTotals({
                   row.workerId === null
                     ? undefined
                     : investmentTransfersHref(investmentId, {
-                        types: ['PAYOUT'],
+                        types: ['PAYOUT', 'BONUS'],
                         worker: row.workerId,
                       })
                 }
@@ -92,6 +107,7 @@ export function SubcontractorWorkerTotals({
               </OptionalLink>
             </SummaryLabelCell>
             <SummaryValueCell>{formatNet(row.due)}</SummaryValueCell>
+            {showBonus && <SummaryValueCell>{formatNet(row.bonus)}</SummaryValueCell>}
             <SummaryValueCell tone="success" weight="medium">
               {formatNet(row.paid)}
             </SummaryValueCell>
@@ -104,10 +120,17 @@ export function SubcontractorWorkerTotals({
           nobody is assigned to reads as part of one balance rather than a fourth unrelated row. */}
       <SummaryLabelCell weight="bold">Razem</SummaryLabelCell>
       <SummaryValueCell weight="bold">{formatNet(totals.due)}</SummaryValueCell>
+      {showBonus && <SummaryValueCell weight="bold">{formatNet(totals.bonus)}</SummaryValueCell>}
       <SummaryValueCell tone="success" weight="bold">
         {formatNet(totals.paid)}
       </SummaryValueCell>
       <RemainingCell amount={totals.remaining} weight="bold" />
+      <SettlePayoutsDialog
+        target={
+          isSettleOpen ? { kind: 'investment', id: investmentId, name: investmentName } : null
+        }
+        onClose={() => setIsSettleOpen(false)}
+      />
     </SummaryTable>
   )
 }

@@ -18,7 +18,9 @@ export function assignedWorkers(
   const names = new Map(roster.map((worker) => [worker.id, worker.name]))
   const seen = new Set<number>()
   const assigned: AssignedWorkerT[] = []
-  const stageWorkerIds = stages.flatMap(({ workerId }) => (workerId == null ? [] : [workerId]))
+  const stageWorkerIds = stages.flatMap(
+    ({ split }) => split?.members.map((member) => member.workerId) ?? [],
+  )
   for (const workerId of [...stageWorkerIds, ...linkHolders]) {
     if (seen.has(workerId)) continue
     seen.add(workerId)

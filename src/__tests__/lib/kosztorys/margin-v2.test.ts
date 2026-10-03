@@ -30,6 +30,23 @@ describe('marginV2', () => {
     expect(marginV2(paidNothing, settled)).toBe(marginV2(financials, settled))
   })
 
+  // EX-979: `due` carries no premia, so without this term an overpaid crew would never reach v2.
+  it('odejmuje premię', () => {
+    const withBonus = { ...financials, totalBonus: 205.01 }
+    expect(marginV2(withBonus, settled)).toBe(14.99) // 220 − 205,01
+  })
+
+  // The listing's należne is a Postgres numeric SUM, the investment page's a JS fold of qty × stawka:
+  // 2.5 × 1125.89 is 2814.725 in one and 2814.7250000000004 in the other, which put the two surfaces
+  // a grosz apart on a half-grosz marża.
+  it('ta sama należność daje jedną marżę, czy zsumował ją Postgres, czy JS', () => {
+    const revenue = { ...ZERO_FINANCIALS, totalLaborCosts: 5000 }
+    const fromSql = marginV2(revenue, { due: 2814.725, hasUnconfirmedPlane: false })
+    const fromFold = marginV2(revenue, { due: 2.5 * 1125.89, hasUnconfirmedPlane: false })
+    expect(fromSql).toBe(2185.28)
+    expect(fromFold).toBe(2185.28)
+  })
+
   it('to inna figura niż stara marża, na tych samych danych', () => {
     expect(calculateMargin(financials)).toBe(100) // 1000 − 700 − 100 − 50 − 30 − 20
     expect(marginV2(financials, settled)).not.toBe(calculateMargin(financials))

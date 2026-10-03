@@ -16,6 +16,8 @@ import {
 import { getAmountError, getNetAmountError } from '@/lib/utils/validation'
 import { getDb } from '@/lib/db/get-db'
 import { investmentLockMessage } from '@/lib/db/investment-gate'
+import { trashedRegisterMessage } from '@/lib/db/cash-register-gate'
+import { trashedWorkerMessage } from '@/lib/db/worker-gate'
 import { resolveId } from '@/lib/utils/resolve-id'
 import { isInvoiceOnlyPatch } from '@/hooks/transfers/invoice-only-patch'
 
@@ -97,6 +99,22 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
     return d
   }
 
+  // Below both early returns, unlike the investment lock: a cancelled row is the only kind that can
+  // still name a trashed kasa, and it must stay cancellable and invoice-attachable. Only a kasa this
+  // write NEWLY names is checked, so an edit of an older row is not refused over its unchanged kasa.
+  // The worker follows the same rule.
+  const newlyNamed = (next: unknown, stored: unknown): number[] => {
+    const id = resolveId(next)
+    return id !== undefined && (operation === 'create' || id !== resolveId(stored)) ? [id] : []
+  }
+  const db = await getDb(req.payload, req)
+  const trashedMessage =
+    (await trashedRegisterMessage(db, [
+      ...newlyNamed(sourceRegister, original?.sourceRegister),
+      ...newlyNamed(targetRegister, original?.targetRegister),
+    ])) ?? (await trashedWorkerMessage(db, newlyNamed(worker, original?.worker)))
+  if (trashedMessage) throw new APIError(trashedMessage, 403)
+
   const errors: string[] = []
 
   // Write-once: moving a booked plane or netto rewrites a bilans the client has already seen, and
@@ -151,7 +169,7 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
   }
 
   if (needsWorker(type) && !worker) {
-    errors.push('Worker is required for payout transfers.')
+    errors.push('Worker is required for this transfer type.')
   }
 
   if (!needsWorker(type)) {

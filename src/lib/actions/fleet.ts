@@ -1,5 +1,6 @@
 'use server'
 
+import type { Payload } from 'payload'
 import { z } from 'zod'
 import {
   vehicleSchema,
@@ -21,12 +22,37 @@ import { validateAction, protectedAction } from './run-action'
 
 const flagsSchema = z.array(z.enum(PERFORMED_INSPECTION_TYPES))
 
+// A trashed car still holds its plate, so the refusal has to say where to find it — otherwise the
+// owner is told the plate is taken by a car no listing shows.
+async function registrationClash(payload: Payload, plate: string, ownId?: number) {
+  const { docs } = await payload.find({
+    collection: 'vehicles',
+    where: {
+      and: [
+        { registration: { equals: plate } },
+        ...(ownId === undefined ? [] : [{ id: { not_equals: ownId } }]),
+      ],
+    },
+    limit: 1,
+    depth: 0,
+    overrideAccess: true,
+  })
+  const holder = docs[0]
+  if (!holder) return undefined
+  return holder.trashedAt
+    ? `Pojazd o rejestracji ${plate} jest w Koszu — przywróć go stamtąd.`
+    : `Pojazd o rejestracji ${plate} już istnieje.`
+}
+
 export async function createVehicleAction(data: VehicleFormDataT) {
   return protectedAction(
     'createVehicleAction',
     async ({ payload }) => {
       const parsed = validateAction(vehicleSchema, data)
       if (!parsed.success) return parsed
+
+      const clash = await registrationClash(payload, parsed.data.registration)
+      if (clash) return { success: false, error: clash }
 
       await payload.create({ collection: 'vehicles', data: parsed.data })
 
@@ -42,6 +68,9 @@ export async function updateVehicleAction(id: number, data: VehicleFormDataT) {
     async ({ payload }) => {
       const parsed = validateAction(vehicleSchema, data)
       if (!parsed.success) return parsed
+
+      const clash = await registrationClash(payload, parsed.data.registration, id)
+      if (clash) return { success: false, error: clash }
 
       await payload.update({ collection: 'vehicles', id, data: parsed.data })
 

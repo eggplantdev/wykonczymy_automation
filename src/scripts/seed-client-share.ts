@@ -47,13 +47,13 @@ async function main() {
   const emptyStage = 'Etap 2'
   const stage = await payload.create({
     collection: 'kosztorys-stages',
-    data: { investment: investment.id, ordinal: 1, label: filledStage },
+    data: { splitMode: 'percent', investment: investment.id, ordinal: 1, label: filledStage },
     ...ctx,
   })
   // No stage-progress anywhere: the investor's document leaves it off until the spec types an entry.
   await payload.create({
     collection: 'kosztorys-stages',
-    data: { investment: investment.id, ordinal: 2, label: emptyStage },
+    data: { splitMode: 'percent', investment: investment.id, ordinal: 2, label: emptyStage },
     ...ctx,
   })
   const section = await payload.create({

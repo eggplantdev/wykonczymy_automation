@@ -6,8 +6,14 @@ import type { CrewAxisT } from '@/lib/kosztorys/crew-axis'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
 import type { MoveEdgesT } from '@/lib/kosztorys/move-edges'
 import type { SortPickT, SortStateT } from '@/lib/kosztorys/row-view'
-import type { KosztorysStageT, KosztorysV2RowT, ToolPlaneT } from '@/lib/kosztorys/types'
+import type {
+  KosztorysStageT,
+  KosztorysV2RowT,
+  StageSplitT,
+  ToolPlaneT,
+} from '@/lib/kosztorys/types'
 import type { WorkerRefT } from '@/types/reference-data'
+import type { TranslatorT } from '@/lib/i18n/translations'
 
 export type BuildV2ColumnsOptsT = {
   view: PriceViewT
@@ -16,9 +22,9 @@ export type BuildV2ColumnsOptsT = {
   onRenameStage?: (stageId: number, label: string) => void
   onSetStagePlane?: (stageId: number, plane: ToolPlaneT) => void
   workers?: WorkerRefT[]
-  onSetStageWorker?: (stageId: number, workerId: number | null) => void
-  // Only so the reassignment confirm can quote the amount being moved.
+  onSetStageSplit?: (stageId: number, split: StageSplitT | null) => void
   executedValueByStage?: Map<number, number>
+  scaledDownStageIds?: ReadonlySet<number>
   sort?: SortStateT
   onSetSort?: (field: string, pick: SortPickT | null) => void
   // Column picker: true = this column is off — by the user's stored choice OR by
@@ -122,4 +128,7 @@ export type BuildV2ColumnsOptsT = {
   }
   // Which crew's rate columns are on screen — see crew-axis.ts. Absent = CREW_AXIS_DEFAULT.
   crewAxis?: CrewAxisT
+  // The worker's language for the headers and tips; read only with `workerSurface`, so every other
+  // surface stays Polish whatever the caller passes.
+  dictionary?: TranslatorT<'grid'>
 }

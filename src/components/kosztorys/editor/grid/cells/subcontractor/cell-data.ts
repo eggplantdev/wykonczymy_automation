@@ -8,6 +8,12 @@ import type { ToolPlaneT } from '@/lib/kosztorys/types'
 // must be a STABLE reference").
 export type SubcontractorCellDataT = {
   view: ToolPlaneT
+  // The investor's or the worker's document: the ceiling verdict is the owner's, and its sentence
+  // names the client price.
+  isDocument?: boolean
 }
 
-export const cellData = (view: ToolPlaneT): SubcontractorCellDataT => ({ view })
+export const cellData = (view: ToolPlaneT, isDocument = false): SubcontractorCellDataT => ({
+  view,
+  isDocument,
+})

@@ -31,6 +31,7 @@ describe('Sidebar — collapsed', () => {
     ['Przełącz motyw', () => screen.getByRole('button', { name: 'Przełącz motyw' })],
     ['Odśwież dane', () => screen.getByRole('button', { name: 'Odśwież dane' })],
     ['Admin', () => screen.getByRole('link', { name: 'Panel administracyjny' })],
+    ['Kosz', () => document.querySelector<HTMLElement>('a[href="/kosz"]')!],
     ['Wyloguj', () => screen.getByRole('button', { name: 'Wyloguj' })],
   ])('names „%s" on hover', async (label, control) => {
     render(<Sidebar />)

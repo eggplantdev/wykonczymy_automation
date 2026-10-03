@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useAppForm } from '@/components/forms/hooks/form-hooks'
 import { resetPasswordAction } from '@/lib/actions/auth'
+import { settleAction } from '@/lib/utils/settle-action'
 import { AuthSubmitButton } from '@/components/ui/auth-submit-button'
 import { AuthSuccessCard } from '@/components/ui/auth-success-card'
 
@@ -33,10 +34,9 @@ export function ResetPasswordForm() {
         return
       }
 
-      const response = await resetPasswordAction({
-        token: token ?? '',
-        password: value.password,
-      })
+      const response = await settleAction(() =>
+        resetPasswordAction({ token: token ?? '', password: value.password }),
+      )
 
       if (response.success) {
         setFormState('success')

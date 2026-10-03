@@ -4,7 +4,8 @@ import { sectionSubtotalsForView } from '@/lib/kosztorys/settlement-aggregates'
 import { sumSectionSubtotalsNet } from '@/lib/kosztorys/settlement-client-totals'
 import { hasStagesOverPlanned, rowTotalQtyDone } from '@/lib/kosztorys/settlement-rows'
 import { subcontractorDueByPlane } from '@/lib/kosztorys/subcontractor-due'
-import type { KosztorysStageT, KosztorysTreeT } from '@/lib/kosztorys/types'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
+import type { KosztorysStageT, KosztorysTreeT, StageSplitT } from '@/lib/kosztorys/types'
 import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 
 // Row 1 executes 2 (stage 100) + 3 (stage 101) of planned 5, client price 20.
@@ -46,16 +47,16 @@ const makePlaneTree = (
   })
 
 const allWTools: KosztorysStageT[] = [
-  { id: 100, ordinal: 1, label: null, plane: 'w_tools', workerId: null },
-  { id: 101, ordinal: 2, label: null, plane: 'w_tools', workerId: null },
+  { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null },
+  { id: 101, ordinal: 2, label: null, plane: 'w_tools', split: null },
 ]
 const mixed: KosztorysStageT[] = [
-  { id: 100, ordinal: 1, label: null, plane: 'w_tools', workerId: null },
-  { id: 101, ordinal: 2, label: null, plane: 'own_tools', workerId: null },
+  { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null },
+  { id: 101, ordinal: 2, label: null, plane: 'own_tools', split: null },
 ]
 const allNull: KosztorysStageT[] = [
-  { id: 100, ordinal: 1, label: null, plane: null, workerId: null },
-  { id: 101, ordinal: 2, label: null, plane: null, workerId: null },
+  { id: 100, ordinal: 1, label: null, plane: null, split: null },
+  { id: 101, ordinal: 2, label: null, plane: null, split: null },
 ]
 
 describe('subcontractorDueByPlane', () => {
@@ -95,8 +96,8 @@ describe('subcontractorDueByPlane', () => {
 
   it('flags unconfirmed when any single stage is null', () => {
     const tree = makePlaneTree([
-      { id: 100, ordinal: 1, label: null, plane: 'w_tools', workerId: null },
-      { id: 101, ordinal: 2, label: null, plane: null, workerId: null },
+      { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null },
+      { id: 101, ordinal: 2, label: null, plane: null, split: null },
     ])
     const due = subcontractorDueByPlane(treeToRows(tree), tree.stages)
     expect(due.hasUnconfirmedPlane).toBe(true)
@@ -138,6 +139,8 @@ describe('subcontractorDueByPlane', () => {
       hasUnconfirmedPlane: false,
       byStage: new Map(),
       byWorker: new Map(),
+      byStageWorker: new Map(),
+      scaledDownStageIds: new Set(),
       unconfirmedWorkers: new Set(),
     })
   })
@@ -148,7 +151,10 @@ describe('subcontractorDueByPlane', () => {
 // rounding difference sprinkled over the named workers.
 describe('subcontractorDueByPlane — byWorker', () => {
   const assigned = (stages: KosztorysStageT[], workerIds: (number | null)[]): KosztorysStageT[] =>
-    stages.map((stage, index) => ({ ...stage, workerId: workerIds[index] }))
+    stages.map((stage, index) => {
+      const workerId = workerIds[index]
+      return { ...stage, split: workerId == null ? null : oneWorkerSplit(workerId) }
+    })
 
   const sumOf = (byWorker: Map<number | null, number>) =>
     [...byWorker.values()].reduce((sum, value) => sum + value, 0)
@@ -192,8 +198,8 @@ describe('subcontractorDueByPlane — byWorker', () => {
     const tree = makePlaneTree(
       assigned(
         [
-          { id: 100, ordinal: 1, label: null, plane: 'w_tools', workerId: null },
-          { id: 101, ordinal: 2, label: null, plane: null, workerId: null },
+          { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null },
+          { id: 101, ordinal: 2, label: null, plane: null, split: null },
         ],
         [7, 8],
       ),
@@ -201,6 +207,103 @@ describe('subcontractorDueByPlane — byWorker', () => {
     const due = subcontractorDueByPlane(treeToRows(tree), tree.stages)
     expect(due.byWorker.has(8)).toBe(false)
     expect(sumOf(due.byWorker)).toBeCloseTo(due.combined)
+  })
+})
+
+// EX-943: an etap's pool is split among its workers by the one arithmetic in `splitStagePool`.
+describe('subcontractorDueByPlane — shared etapy', () => {
+  const withSplits = (splits: (StageSplitT | null)[]): KosztorysStageT[] =>
+    mixed.map((stage, index) => ({ ...stage, split: splits[index] }))
+
+  const sumOf = (byWorker: Map<number | null, number>) =>
+    [...byWorker.values()].reduce((sum, value) => sum + value, 0)
+
+  it('splits one etap by percent and keeps Σ byWorker equal to combined', () => {
+    const split: StageSplitT = {
+      mode: 'percent',
+      members: [
+        { workerId: 7, value: 25, takesRest: false },
+        { workerId: 8, value: 0, takesRest: true },
+      ],
+    }
+    const tree = makePlaneTree(withSplits([split, oneWorkerSplit(8)]))
+    const due = subcontractorDueByPlane(treeToRows(tree), tree.stages)
+    // Stage 100 = 72 → 18 / 54; stage 101 = 30 → all worker 8.
+    expect(due.byWorker.get(7)).toBeCloseTo(18)
+    expect(due.byWorker.get(8)).toBeCloseTo(84)
+    expect(due.byStageWorker.get(100)?.get(8)).toBeCloseTo(54)
+    expect(sumOf(due.byWorker)).toBeCloseTo(due.combined)
+    expect(due.scaledDownStageIds.size).toBe(0)
+  })
+
+  it('shrinks fixed amounts above the pool and marks the etap', () => {
+    const split: StageSplitT = {
+      mode: 'amount',
+      members: [
+        { workerId: 7, value: 60, takesRest: false },
+        { workerId: 9, value: 60, takesRest: false },
+        { workerId: 8, value: 0, takesRest: true },
+      ],
+    }
+    const tree = makePlaneTree(withSplits([split, null]))
+    const due = subcontractorDueByPlane(treeToRows(tree), tree.stages)
+    expect(due.byWorker.get(7)).toBeCloseTo(36)
+    expect(due.byWorker.get(9)).toBeCloseTo(36)
+    expect(due.byWorker.get(8)).toBe(0)
+    expect(due.scaledDownStageIds.has(100)).toBe(true)
+    expect(sumOf(due.byWorker)).toBeCloseTo(due.combined)
+  })
+
+  it('flags every member of a plane-less etap that holds work', () => {
+    const split: StageSplitT = {
+      mode: 'percent',
+      members: [
+        { workerId: 7, value: 50, takesRest: false },
+        { workerId: 8, value: 0, takesRest: true },
+      ],
+    }
+    const tree = makePlaneTree([{ id: 100, ordinal: 1, label: null, plane: null, split }])
+    const due = subcontractorDueByPlane(treeToRows(tree), tree.stages)
+    expect([...due.unconfirmedWorkers]).toEqual([7, 8])
+    expect(due.byWorker.size).toBe(0)
+  })
+
+  // 32593.76 × (33.33% + 12.5% + rest) re-sums to pool + 3.6e-12 — enough to surface an empty
+  // „Nieprzypisane" row in the summary when the residue is read as unassigned money.
+  it('credits nobody unassigned on the float residue of a full split', () => {
+    const split: StageSplitT = {
+      mode: 'percent',
+      members: [
+        { workerId: 7, value: 33.33, takesRest: false },
+        { workerId: 9, value: 12.5, takesRest: false },
+        { workerId: 8, value: 0, takesRest: true },
+      ],
+    }
+    const tree = makeTree({
+      sections: [
+        {
+          id: 10,
+          name: 'Sekcja A',
+          displayOrder: 0,
+          color: null,
+          items: [
+            {
+              ...baseItem,
+              id: 1,
+              description: 'A',
+              plannedQty: 1,
+              clientPrice: 0,
+              wToolsOverrideValue: 32593.76,
+            },
+          ],
+        },
+      ],
+      stages: [{ id: 100, ordinal: 1, label: null, plane: 'w_tools', split }],
+      progress: [{ itemId: 1, stageId: 100, qtyDone: 1 }],
+    })
+    const due = subcontractorDueByPlane(treeToRows(tree), tree.stages)
+    expect(due.byStage.get(100)).toBe(32593.76)
+    expect(due.byWorker.has(null)).toBe(false)
   })
 })
 
@@ -243,8 +346,8 @@ describe('pomiar liczony po planie etapu', () => {
   // is the only thing that says so. Pinned so nobody "fixes" the shortfall by defaulting a plane.
   it('nieprzypisany etap wypada z obu rachunków — suma jest krótsza, flaga podniesiona', () => {
     const tree = makePlaneTree([
-      { id: 100, ordinal: 1, label: null, plane: 'w_tools', workerId: null },
-      { id: 101, ordinal: 2, label: null, plane: null, workerId: null },
+      { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null },
+      { id: 101, ordinal: 2, label: null, plane: null, split: null },
     ])
     const rows = treeToRows(tree)
     const due = subcontractorDueByPlane(rows, tree.stages)

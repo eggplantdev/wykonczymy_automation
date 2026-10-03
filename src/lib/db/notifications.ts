@@ -30,11 +30,12 @@ export const countUnreadLeads = async (payload: Payload, userId: number): Promis
   const result = await db.execute(sql`
     SELECT COUNT(*) AS count
     FROM leads
-    WHERE created_at > COALESCE(
-      (SELECT seen_at FROM notification_reads
-       WHERE user_id = ${userId} AND stream = ${STREAMS.leads}),
-      ${EPOCHS.leads}::timestamptz
-    )
+    WHERE trashed_at IS NULL
+      AND created_at > COALESCE(
+        (SELECT seen_at FROM notification_reads
+         WHERE user_id = ${userId} AND stream = ${STREAMS.leads}),
+        ${EPOCHS.leads}::timestamptz
+      )
   `)
 
   return Number(result.rows[0].count)
@@ -74,7 +75,7 @@ export const countUnreadFleetDeadlines = async (
     current_deadlines AS (
       SELECT DISTINCT ON (i.vehicle_id, i.type) i.next_due_at, i.created_at
       FROM vehicle_inspections i
-      JOIN vehicles v ON v.id = i.vehicle_id AND v.status = 'ACTIVE'
+      JOIN vehicles v ON v.id = i.vehicle_id AND v.status = 'ACTIVE' AND v.trashed_at IS NULL
       ORDER BY i.vehicle_id, i.type, i.performed_at DESC
     )
     SELECT COUNT(*) AS count
@@ -122,6 +123,7 @@ export const countUnreadWarranties = async (
     SELECT COUNT(*) AS count
     FROM equipment e, read_cursor
     WHERE e.status = 'IN_USE'
+      AND e.trashed_at IS NULL
       AND e.warranty_until IS NOT NULL
       AND e.warranty_until >= ${today}::date
       AND e.warranty_until <= ${today}::date + interval '30 days'

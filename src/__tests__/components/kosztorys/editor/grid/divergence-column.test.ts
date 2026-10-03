@@ -5,6 +5,7 @@ import {
 } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
+import { ALL_TRANSLATION_COLUMN_KEYS } from '@/lib/kosztorys/translation-column-keys'
 import type { MeasureDiscrepancyT } from '@/lib/kosztorys/settlement-rows'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
@@ -14,8 +15,8 @@ import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 // alone decides, no stored tick can override it, and it is unreachable from a client's document.
 
 const STAGES: KosztorysStageT[] = [
-  { id: 7, ordinal: 1, label: 'Etap 1', plane: null, workerId: null },
-  { id: 9, ordinal: 2, label: 'Etap 2', plane: null, workerId: null },
+  { id: 7, ordinal: 1, label: 'Etap 1', plane: null, split: null },
+  { id: 9, ordinal: 2, label: 'Etap 2', plane: null, split: null },
 ]
 
 const DIVERGED = {
@@ -62,11 +63,9 @@ describe('the „Rozjazd między arkuszem Google a apką" column', () => {
   // Right behind „Opis prac" — „ile jeszcze zostało" is not an answer you should have to scroll to,
   // but it is not what identifies the row either.
   it('follows the identity block once the diagnostic is engaged', () => {
-    expect(ids({ divergenceFilterEngaged: true }).slice(0, 3)).toEqual([
-      'sectionName',
-      'description',
-      'divergence',
-    ])
+    expect(
+      ids({ divergenceFilterEngaged: true }).slice(0, 3 + ALL_TRANSLATION_COLUMN_KEYS.length),
+    ).toEqual(['sectionName', 'description', ...ALL_TRANSLATION_COLUMN_KEYS, 'divergence'])
   })
 
   // The row-actions column is chrome, not a reading of the kosztorys, so it opens the grid by default.

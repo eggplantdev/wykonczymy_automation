@@ -22,6 +22,9 @@ export type TransferRowT = {
   sourceRegisterName: string
   targetRegisterId: number | null
   targetRegisterName: string
+  // A trashed kasa keeps its name here but has no page to link to.
+  sourceRegisterTrashed: boolean
+  targetRegisterTrashed: boolean
   investmentId: number | null
   investmentName: string
   expenseCategoryId: number | null
@@ -49,6 +52,8 @@ export type TransferRowT = {
 export type PayoutByWorkerT = {
   workerId: number | null
   total: number
+  /** Σ BONUS — kept out of `total`, which is cash paid; a premia is owed, not paid. */
+  bonus: number
 }
 
 // The subcontractor summary block's row: `derivePayoutsByWorker` resolves the name off the roster,
@@ -57,9 +62,10 @@ export type SubcontractorPayoutRowT = PayoutByWorkerT & {
   name: string
 }
 
-// One realized PAYOUT transaction, for the subcontractor block's sortable wypłaty list. Worker name
+// One realized PAYOUT or BONUS transaction, for the subcontractor block's sortable wypłaty list. Worker name
 // resolves at render from the SubcontractorPayoutRowT set.
 export type PayoutTransactionRowT = {
+  type: 'PAYOUT' | 'BONUS'
   workerId: number | null
   date: string
   amount: number

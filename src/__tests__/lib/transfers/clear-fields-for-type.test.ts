@@ -93,6 +93,11 @@ describe('staleFieldsForType', () => {
     expect(patch('PAYOUT')).not.toHaveProperty('worker')
   })
 
+  it('keeps the worker and drops the kasa on a premia', () => {
+    expect(patch('BONUS')).not.toHaveProperty('worker')
+    expect(patch('BONUS')).toHaveProperty('sourceRegister', '')
+  })
+
   // Retention is the intended reading, not a side effect of the EX-709 fix (owner, 2026-08-24): the
   // patch names only what the NEW type cannot carry, so a field both types carry keeps the pick and
   // the user does not re-enter what he just chose. The old handler cleared all four unconditionally,

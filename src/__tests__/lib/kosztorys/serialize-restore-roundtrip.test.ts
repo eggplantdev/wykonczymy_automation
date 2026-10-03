@@ -8,6 +8,7 @@ import { restoreKosztorys } from '@/lib/kosztorys/restore-kosztorys'
 import type { SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
+import { oneWorkerSplit, restHolderId } from '@/lib/kosztorys/stage-split'
 
 // The serialize→restore pair is the dangerous wipe-and-reinsert core, so we exercise it against the
 // REAL DB and assert PERSISTED state: restore is only correct if a re-serialize of the live tree
@@ -143,6 +144,15 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
             },
             {
               description: 'Ścianka działowa — GK 12,5 „podwójna"\ndruga linia opisu',
+              // Two languages, one of them out of date: `source` must survive verbatim, or a restore
+              // silently clears every „nieaktualne tłumaczenie" warning.
+              descriptionTranslations: {
+                uk: { text: 'Перегородка — ГК 12,5 „подвійна"', source: 'Ścianka działowa — GK 12,5' },
+                ru: {
+                  text: 'Перегородка — ГК 12,5 „двойная"',
+                  source: 'Ścianka działowa — GK 12,5 „podwójna"\ndruga linia opisu',
+                },
+              },
               unit: 'mb',
               plannedQty: 12.5,
               // Fractional and different from the przedmiar: a field dropped from the VALUES tuple or
@@ -254,16 +264,20 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
     expect(Number(live.rows[0].global_discount_value)).toBe(300)
   })
 
-  // Snapshots taken before EX-613 carry stages with no `workerId` key at all. Restoring one must
-  // land `null` rather than throw or write garbage — the reason the column needed no schema-version
-  // bump. Runs last: it leaves the tree without assignments, and the identity test above is the one
-  // that depends on the fixture's.
-  it('restores a pre-EX-613 snapshot (stages with no workerId) as unassigned', async () => {
+  // Snapshots taken before EX-943 carry one `workerId` per etap instead of a split. Restoring one
+  // must land that person as the etap's whole split — the reason the new field needed no
+  // schema-version bump.
+  it('restores a pre-EX-943 snapshot (one workerId per etap) as a one-person split', async () => {
     const current = await serializeKosztorys(investmentId)
+    const assigned = current.stages.find((stage) => stage.split)!
+    const workerId = restHolderId(assigned.split)!
     const legacy = {
       ...current,
-      stages: current.stages.map(({ workerId: _dropped, ...rest }) => rest),
-    } as SnapshotPayloadT
+      stages: current.stages.map(({ split: _dropped, ...rest }) => ({
+        ...rest,
+        workerId: rest.id === assigned.id ? workerId : null,
+      })),
+    } as unknown as SnapshotPayloadT
 
     await withPayloadTransaction(
       payload,
@@ -272,6 +286,28 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
     )
 
     const after = await serializeKosztorys(investmentId)
-    expect(after.stages.map((stage) => stage.workerId)).toEqual(after.stages.map(() => null))
+    expect(after.stages.find((stage) => stage.ordinal === assigned.ordinal)?.split).toEqual(
+      oneWorkerSplit(workerId),
+    )
+  })
+
+  // Snapshots taken before EX-613 carry stages with no worker key at all. Restoring one must land
+  // unassigned rather than throw or write garbage. Runs last: it leaves the tree without
+  // assignments, and the identity test above is the one that depends on the fixture's.
+  it('restores a pre-EX-613 snapshot (stages with no worker at all) as unassigned', async () => {
+    const current = await serializeKosztorys(investmentId)
+    const legacy = {
+      ...current,
+      stages: current.stages.map(({ split: _dropped, ...rest }) => rest),
+    } as unknown as SnapshotPayloadT
+
+    await withPayloadTransaction(
+      payload,
+      (req) => restoreKosztorys(payload, req, investmentId, legacy),
+      { skipRevalidation: true },
+    )
+
+    const after = await serializeKosztorys(investmentId)
+    expect(after.stages.map((stage) => stage.split)).toEqual(after.stages.map(() => null))
   })
 })

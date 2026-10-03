@@ -2,32 +2,123 @@ import 'server-only'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
+import {
+  canManageAccount,
+  isAdminOrOwnerRole,
+  MANAGEMENT_ROLES,
+  type RoleT,
+} from '@/lib/auth/roles'
 import { getDb } from '@/lib/db/get-db'
-import { TRASH_RETENTION_DAYS } from '@/lib/constants/investment-lock'
+import { ENTITY_TRASH_RETENTION_DAYS } from '@/lib/constants/trash'
 import { fetchTrashedInvestments, type TrashedInvestmentRowT } from '@/lib/db/investment-trash'
+import {
+  fetchTrashedCashRegisters,
+  type TrashedCashRegisterRowT,
+} from '@/lib/db/cash-register-trash'
+import { fetchTrashedWorkers, type TrashedWorkerRowT } from '@/lib/db/worker-trash'
+import { fetchTrashedVehicles, type TrashedVehicleRowT } from '@/lib/db/vehicle-trash'
+import { fetchTrashedEquipment, type TrashedEquipmentRowT } from '@/lib/db/equipment-trash'
+import { fetchTrashedLeads, type TrashedLeadRowT } from '@/lib/db/lead-trash'
+import { leadDisplayName } from '@/lib/leads/lead-display-name'
+import { LEAD_SOURCE_LABELS } from '@/lib/leads/lead-source-labels'
+import { formatPLDate } from '@/lib/utils/format-date'
+import { makeModel } from '@/lib/utils/make-model'
+import type { TrashRowT } from '@/types/trash'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
-export type TrashedInvestmentT = TrashedInvestmentRowT & {
-  /** Whole days until the cron purges it — unless a used kosztorys keeps it for a manual delete. */
-  daysLeft: number
+type TrashListsT = {
+  investments: TrashedInvestmentRowT[]
+  cashRegisters: TrashedCashRegisterRowT[]
+  workers: TrashedWorkerRowT[]
+  vehicles: TrashedVehicleRowT[]
+  equipment: TrashedEquipmentRowT[]
+  leads: TrashedLeadRowT[]
+}
+
+export function shapeTrashRows(
+  { investments, cashRegisters, workers, vehicles, equipment, leads }: TrashListsT,
+  { viewerRole, now }: { viewerRole: RoleT; now: number },
+): TrashRowT[] {
+  const daysLeft = (trashedAt: Date) =>
+    Math.max(
+      0,
+      Math.ceil((trashedAt.getTime() + ENTITY_TRASH_RETENTION_DAYS * DAY_MS - now) / DAY_MS),
+    )
+
+  // The live default for a kind with no exception; investments and workers override their part.
+  const base = (row: { id: number; trashedAt: Date }) => ({
+    id: row.id,
+    trashedAt: row.trashedAt,
+    daysLeft: daysLeft(row.trashedAt),
+    autoPurges: true,
+    hasSheet: false,
+    pairedRegisters: [] as string[],
+  })
+
+  return [
+    ...investments.map((row) => ({
+      ...base(row),
+      kind: row.isTemplate ? ('template' as const) : ('investment' as const),
+      name: row.name,
+      autoPurges: !row.isKosztorysUsed && !row.isUndeletable,
+      hasSheet: row.hasSheet,
+    })),
+    ...cashRegisters
+      .filter((row) => isAdminOrOwnerRole(viewerRole) || row.type !== 'MAIN')
+      .map((row) => ({ ...base(row), kind: 'cash-register' as const, name: row.name })),
+    ...workers
+      .filter((row) => canManageAccount(viewerRole, row.role))
+      .map((row) => ({
+        ...base(row),
+        kind: 'worker' as const,
+        name: row.name,
+        pairedRegisters: row.registerNames,
+      })),
+    ...vehicles.map((row) => ({
+      ...base(row),
+      kind: 'vehicle' as const,
+      name: row.registration,
+      detail: makeModel(row) || undefined,
+    })),
+    ...equipment.map((row) => ({
+      ...base(row),
+      kind: 'equipment' as const,
+      name: row.name,
+      detail:
+        [makeModel(row), row.serialNumber && `nr ser. ${row.serialNumber}`]
+          .filter(Boolean)
+          .join(' · ') || undefined,
+    })),
+    ...leads.map((row) => ({
+      ...base(row),
+      kind: 'lead' as const,
+      name: leadDisplayName(row),
+      detail: [LEAD_SOURCE_LABELS[row.source], row.submittedAt && formatPLDate(row.submittedAt)]
+        .filter(Boolean)
+        .join(' · '),
+    })),
+  ]
 }
 
 // Uncached: the page is rare, and its „used" flag reads kosztorys tables no trash tag covers.
-export async function getTrashedInvestments(): Promise<TrashedInvestmentT[]> {
+export async function getTrashContents(): Promise<TrashRowT[]> {
   const session = await requireAuth(MANAGEMENT_ROLES)
   if (!session.success) throw new Error(session.error)
 
   const payload = await getPayload({ config })
-  const rows = await fetchTrashedInvestments(await getDb(payload))
-  const now = Date.now()
+  const db = await getDb(payload)
+  const [investments, cashRegisters, workers, vehicles, equipment, leads] = await Promise.all([
+    fetchTrashedInvestments(db),
+    fetchTrashedCashRegisters(db),
+    fetchTrashedWorkers(db),
+    fetchTrashedVehicles(db),
+    fetchTrashedEquipment(db),
+    fetchTrashedLeads(db),
+  ])
 
-  return rows.map((row) => ({
-    ...row,
-    daysLeft: Math.max(
-      0,
-      Math.ceil((row.trashedAt.getTime() + TRASH_RETENTION_DAYS * DAY_MS - now) / DAY_MS),
-    ),
-  }))
+  return shapeTrashRows(
+    { investments, cashRegisters, workers, vehicles, equipment, leads },
+    { viewerRole: session.user.role, now: Date.now() },
+  )
 }

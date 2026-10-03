@@ -14,6 +14,7 @@ export const CACHE_TAGS = {
   leads: 'collection:leads',
   presets: 'collection:kosztorys-presets',
   kosztorysSnapshots: 'table:kosztorys-snapshots',
+  sectionTranslations: 'table:kosztorys-section-translations',
   vehicles: 'collection:vehicles',
   vehicleInspections: 'collection:vehicle-inspections',
   workCatalogue: 'collection:work-catalogue-items',
@@ -78,6 +79,57 @@ export const INVESTMENT_DELETE_TAGS = [
   'transfers',
   'equipmentEvents',
 ] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
+
+// A kasa's trash also clears every user default pointing at it, in raw SQL — no users hook fires.
+export const CASH_REGISTER_TRASH_TAGS = [
+  'cashRegisters',
+  'users',
+] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
+
+// The FK strips the deleted kasa from its cancelled transactions, again without a hook.
+export const CASH_REGISTER_DELETE_TAGS = [
+  ...CASH_REGISTER_TRASH_TAGS,
+  'transfers',
+] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
+
+// A worker goes to the trash with his kasy, so his tags are theirs.
+export const WORKER_TRASH_TAGS = [
+  'users',
+  'cashRegisters',
+] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
+
+// The FKs strip him from cancelled transactions and equipment events, again without a hook.
+export const WORKER_DELETE_TAGS = [
+  ...WORKER_TRASH_TAGS,
+  'transfers',
+  'equipmentEvents',
+] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
+
+// Nothing outside the fleet names a vehicle, so its trash moves only the fleet readers.
+export const VEHICLE_TRASH_TAGS = [
+  'vehicles',
+] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
+
+// The DB cascade removes its inspections without a hook.
+export const VEHICLE_DELETE_TAGS = [
+  ...VEHICLE_TRASH_TAGS,
+  'vehicleInspections',
+] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
+
+// Nothing outside the register names an item, so its trash moves only the equipment readers.
+export const EQUIPMENT_TRASH_TAGS = [
+  'equipment',
+] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
+
+// The DB cascade removes its handovers without a hook.
+export const EQUIPMENT_DELETE_TAGS = [
+  ...EQUIPMENT_TRASH_TAGS,
+  'equipmentEvents',
+] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
+
+// Erasing keeps the row, and the files it drops are the ones nothing else shows — so trash, restore
+// and „Usuń na zawsze" all move only the leads readers.
+export const LEAD_TRASH_TAGS = ['leads'] as const satisfies readonly (keyof typeof CACHE_TAGS)[]
 
 /**
  * The second argument every `revalidateTag` call outside a Server Action must pass.

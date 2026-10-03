@@ -181,6 +181,23 @@ describe.skipIf(!ENV_READY)('current equipment location (DB)', () => {
     expect(second.serialNumber ?? null).toBeNull()
   })
 
+  // A trashed item must read as gone everywhere but /kosz — including the worker card, where the
+  // last person to hold it would otherwise still be told to hand it back.
+  it('hides a trashed item from the listing, its own page and the holder card', async () => {
+    await db.execute(sql`UPDATE equipment SET trashed_at = now() WHERE id = ${equipmentId}`)
+    try {
+      const listed = await ourRow()
+      const byId = await loadEquipmentById(payload, equipmentId)
+      const held = await loadEquipmentAtLocation(payload, { kind: 'holder', id: holderId })
+
+      expect(listed).toBeUndefined()
+      expect(byId).toBeNull()
+      expect(held.map((row) => row.id)).not.toContain(equipmentId)
+    } finally {
+      await db.execute(sql`UPDATE equipment SET trashed_at = NULL WHERE id = ${equipmentId}`)
+    }
+  })
+
   it('returns an item that has never moved with no location at all', async () => {
     const fresh = await payload.create({
       collection: 'equipment',

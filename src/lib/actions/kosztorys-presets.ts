@@ -5,7 +5,6 @@ import { z } from 'zod'
 import { investmentAction } from '@/lib/actions/investment-action'
 import { ownerOnlyAction } from '@/lib/actions/owner-only-action'
 import { protectedAction, validateAction } from '@/lib/actions/run-action'
-import { expireCollectionsAfterResponse } from '@/lib/cache/revalidate'
 import { KOSZTORYS_TREE_TAGS } from '@/lib/cache/tags'
 import { getDb } from '@/lib/db/get-db'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
@@ -120,21 +119,24 @@ export async function savePresetAction(
 export async function createEmptyPresetAction(
   name: string,
 ): Promise<ActionResultT<{ id: number }>> {
-  return protectedAction('createEmptyPresetAction', async ({ payload }) => {
-    const parsed = validateAction(z.object({ name: nameSchema }), { name })
-    if (!parsed.success) return parsed
+  // Inline, though the dialog navigates away at once: the POST's /szablony render is what replaces
+  // the router's cached list, which a browser Back would otherwise restore without the new szablon.
+  return protectedAction(
+    'createEmptyPresetAction',
+    async ({ payload }) => {
+      const parsed = validateAction(z.object({ name: nameSchema }), { name })
+      if (!parsed.success) return parsed
 
-    const created = await withPayloadTransaction(
-      payload,
-      (req) => createTemplate(payload, req, { name: parsed.data.name }),
-      SKIP_HOOK_REVALIDATION,
-    )
-    if (typeof created === 'string') return nameHeldError(created)
-    // After the response: the dialog navigates away at once, and an inline expiry would first
-    // re-render /szablony inside this POST for a list nobody is looking at (lessons.md, EX-597).
-    expireCollectionsAfterResponse(['presets'])
-    return { success: true, data: created }
-  })
+      const created = await withPayloadTransaction(
+        payload,
+        (req) => createTemplate(payload, req, { name: parsed.data.name }),
+        SKIP_HOOK_REVALIDATION,
+      )
+      if (typeof created === 'string') return nameHeldError(created)
+      return { success: true, data: created }
+    },
+    ['presets'],
+  )
 }
 
 // Removing a szablon is not owner-only: it goes through the trash (investment-trash.ts), open to

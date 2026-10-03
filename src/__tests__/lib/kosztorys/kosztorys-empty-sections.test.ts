@@ -11,6 +11,7 @@ function item(id: number, sectionId: number, overrides: Partial<KosztorysItemT> 
     sectionId,
     displayOrder: 0,
     description: `Pozycja ${id}`,
+    descriptionTranslations: {},
     unit: 'm2',
     plannedQty: 10,
     sheetMeasuredQty: null,
@@ -26,7 +27,7 @@ function item(id: number, sectionId: number, overrides: Partial<KosztorysItemT> 
   } satisfies KosztorysItemT
 }
 
-const STAGES = [{ id: 100, ordinal: 1, label: null, plane: 'w_tools' as const, workerId: null }]
+const STAGES = [{ id: 100, ordinal: 1, label: null, plane: 'w_tools' as const, split: null }]
 
 // A: worked and priced. B: nothing executed. C: fully executed but never priced — its subtotal is
 // zero for a reason that is a defect, not a state, which is what the cases below separate.

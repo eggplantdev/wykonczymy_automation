@@ -10,7 +10,8 @@ export const INVESTMENT_TRASHED_MESSAGE = 'Inwestycja jest w koszu — przywró�
 
 export const TEMPLATE_TRASHED_MESSAGE = 'Szablon jest w koszu — przywróć go, żeby coś zmienić.'
 
-export const TRASH_RETENTION_DAYS = 30
+export const trashedMessageFor = (status: string | null | undefined): string =>
+  status === TEMPLATE_INVESTMENT_STATUS ? TEMPLATE_TRASHED_MESSAGE : INVESTMENT_TRASHED_MESSAGE
 
 /**
  * „Zakończona" IS the status lock — the one comparison, spelled once; the trash is the gate's other,
@@ -21,6 +22,17 @@ export const LOCKED_INVESTMENT_STATUS = 'completed' satisfies InvestmentStatusT
 
 export const isLockedStatus = (status: string | null | undefined): boolean =>
   status === LOCKED_INVESTMENT_STATUS
+
+export type InvestmentLockT = 'completed' | 'trashed'
+
+export const investmentLockOf = (investment: {
+  status: string
+  trashed: boolean
+}): InvestmentLockT | undefined => {
+  if (investment.trashed) return 'trashed'
+  if (isLockedStatus(investment.status)) return 'completed'
+  return undefined
+}
 
 /**
  * A szablon is an investment with this status, its kosztorys being the szablon's content. It is NOT

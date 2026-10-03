@@ -25,7 +25,7 @@ const INVESTMENT = {
   email: '',
   contactPerson: '',
   notes: '',
-  review: '',
+  reviewRequested: false,
   hasSheet: false,
   materialsNetRate: null,
   settlementMode: 'NET' as const,
@@ -34,6 +34,9 @@ const INVESTMENT = {
 
 const REFERENCE_DATA = {
   cashRegisters: [{ id: 1, name: 'Kasa główna', type: 'MAIN' as const }],
+  trashedCashRegisters: [],
+  trashedInvestments: [],
+  trashedWorkers: [],
   investments: [INVESTMENT],
   workers: [],
   otherCategories: [],

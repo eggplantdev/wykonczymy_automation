@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { ADMIN_OR_OWNER_MANAGER_ROLES } from '@/lib/auth/roles'
+import { ADMIN_OR_OWNER_MANAGER_ROLES, canTrashAccount } from '@/lib/auth/roles'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { fetchWorkerPayoutPairs } from '@/lib/queries/balances'
 import { workerColumnFigures } from '@/lib/kosztorys/worker-payout-pairs'
@@ -28,6 +28,10 @@ export default async function UsersListPage() {
       ? registerMap.get(worker.defaultCashRegisterId)
       : undefined,
     payoutRemaining: figuresByWorker.get(worker.id),
+    registerNames: refData.cashRegisters
+      .filter((register) => register.ownerId === worker.id)
+      .map((register) => register.name),
+    canTrash: canTrashAccount(session.user, worker),
   }))
 
   return (

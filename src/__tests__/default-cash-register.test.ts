@@ -11,6 +11,9 @@ const baseRefData: ReferenceDataT = {
   currentUserId: 10,
   currentUserRole: 'ADMIN',
   cashRegisters: [],
+  trashedCashRegisters: [],
+  trashedInvestments: [],
+  trashedWorkers: [],
   investments: [],
   workers: [],
   otherCategories: [],
@@ -29,8 +32,9 @@ describe('getUserDefaultCashRegisterId', () => {
     const data = makeRefData({
       currentUserId: 10,
       workers: [
-        { id: 10, name: 'Jan', role: 'EMPLOYEE', email: 'j@x.com', defaultCashRegisterId: 5 },
+        { id: 10, name: 'Jan', role: 'EMPLOYEE', email: 'j@x.com', language: null, defaultCashRegisterId: 5 },
       ],
+      cashRegisters: [{ id: 5, name: 'Kasa Jana', type: 'WORKER' }],
     })
     expect(getUserDefaultCashRegisterId(data)).toBe(5)
   })
@@ -38,7 +42,7 @@ describe('getUserDefaultCashRegisterId', () => {
   it('returns undefined when worker not found', () => {
     const data = makeRefData({
       currentUserId: 10,
-      workers: [{ id: 99, name: 'Other', role: 'EMPLOYEE', email: 'o@x.com' }],
+      workers: [{ id: 99, name: 'Other', role: 'EMPLOYEE', email: 'o@x.com', language: null }],
     })
     expect(getUserDefaultCashRegisterId(data)).toBeUndefined()
   })
@@ -46,7 +50,7 @@ describe('getUserDefaultCashRegisterId', () => {
   it('returns undefined when worker has no defaultCashRegisterId', () => {
     const data = makeRefData({
       currentUserId: 10,
-      workers: [{ id: 10, name: 'Jan', role: 'EMPLOYEE', email: 'j@x.com' }],
+      workers: [{ id: 10, name: 'Jan', role: 'EMPLOYEE', email: 'j@x.com', language: null }],
     })
     expect(getUserDefaultCashRegisterId(data)).toBeUndefined()
   })
@@ -59,16 +63,31 @@ describe('getDefaultCashRegister', () => {
     const data = makeRefData({
       currentUserId: 10,
       workers: [
-        { id: 10, name: 'Admin', role: 'ADMIN', email: 'a@x.com', defaultCashRegisterId: 2 },
+        { id: 10, name: 'Admin', role: 'ADMIN', email: 'a@x.com', language: null, defaultCashRegisterId: 2 },
       ],
+      cashRegisters: [{ id: 2, name: 'Kasa główna', type: 'MAIN' }],
     })
     expect(getDefaultCashRegister(data)).toBe('2')
+  })
+
+  it('returns empty string when the default kasa is no longer offered (trashed under an open form)', () => {
+    const data = makeRefData({
+      currentUserId: 10,
+      workers: [
+        { id: 10, name: 'Admin', role: 'ADMIN', email: 'a@x.com', language: null, defaultCashRegisterId: 2 },
+      ],
+      cashRegisters: [{ id: 3, name: 'Kasa pomocnicza', type: 'AUXILIARY' }],
+      trashedCashRegisters: [{ id: 2, name: 'Kasa główna', type: 'MAIN' }],
+      trashedInvestments: [],
+      trashedWorkers: [],
+    })
+    expect(getDefaultCashRegister(data)).toBe('')
   })
 
   it('returns empty string when no default register', () => {
     const data = makeRefData({
       currentUserId: 10,
-      workers: [{ id: 10, name: 'Jan', role: 'EMPLOYEE', email: 'j@x.com' }],
+      workers: [{ id: 10, name: 'Jan', role: 'EMPLOYEE', email: 'j@x.com', language: null }],
     })
     expect(getDefaultCashRegister(data)).toBe('')
   })

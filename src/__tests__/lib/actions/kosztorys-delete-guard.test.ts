@@ -111,7 +111,11 @@ describe.skipIf(!ENV_READY)('kosztorys delete guards — persisted state (DB)', 
   async function createStage(): Promise<number> {
     const stage = await payload.create({
       collection: 'kosztorys-stages',
-      data: { investment: investmentId, ordinal: 9000 + createdStages.length },
+      data: {
+        splitMode: 'percent',
+        investment: investmentId,
+        ordinal: 9000 + createdStages.length,
+      },
       overrideAccess: true,
       ...ctx,
     })

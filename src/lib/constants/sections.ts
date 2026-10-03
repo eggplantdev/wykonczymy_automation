@@ -3,10 +3,10 @@ import {
   Building,
   Car,
   FileSpreadsheet,
+  FileUser,
   Inbox,
   LayoutTemplate,
   ListChecks,
-  Trash2,
   Users,
   Wallet,
   Wrench,
@@ -24,7 +24,8 @@ export const PAGE_TITLES = {
   transactions: 'Transakcje',
   registers: 'Kasy',
   investments: 'Inwestycje',
-  leads: 'Zgłoszenia',
+  leads: 'Zgłoszenia z formularzy kontaktowych',
+  workerReports: 'Zgłoszenia wykonanych prac',
   sheets: 'Kosztorysy v1',
   workCatalog: 'Katalog prac',
   templates: 'Szablony kosztorysów',
@@ -34,6 +35,9 @@ export const PAGE_TITLES = {
   trash: 'Kosz',
   reports: 'Raporty',
 } as const
+
+// Not in MANAGEMENT_LINKS: „Kosz" sits with the bottom actions, under „Admin".
+export const TRASH_HREF = '/kosz'
 
 export type NavLinkT = {
   href: string
@@ -50,12 +54,17 @@ export const SECTION_LINKS: NavLinkT[] = [
 export const MANAGEMENT_LINKS: NavLinkT[] = [
   { href: '/kasy', label: PAGE_TITLES.registers, icon: Wallet },
   { href: '/inwestycje', label: PAGE_TITLES.investments, icon: Building },
-  { href: '/zgloszenia', label: PAGE_TITLES.leads, icon: Inbox, unreadStream: 'leads' },
   { href: '/kosztorysy', label: PAGE_TITLES.sheets, icon: FileSpreadsheet },
   { href: '/katalog-prac', label: PAGE_TITLES.workCatalog, icon: ListChecks },
   { href: '/szablony', label: PAGE_TITLES.templates, icon: LayoutTemplate },
   { href: '/flota', label: PAGE_TITLES.fleet, icon: Car, unreadStream: 'fleet' },
   { href: '/sprzet', label: PAGE_TITLES.equipment, icon: Wrench, unreadStream: 'equipment' },
   { href: '/pracownicy', label: PAGE_TITLES.employees, icon: Users },
-  { href: '/kosz', label: PAGE_TITLES.trash, icon: Trash2 },
+  {
+    href: '/zgloszenia-prac',
+    label: PAGE_TITLES.workerReports,
+    icon: FileUser,
+    unreadStream: 'workerReports',
+  },
+  { href: '/zgloszenia', label: PAGE_TITLES.leads, icon: Inbox, unreadStream: 'leads' },
 ]

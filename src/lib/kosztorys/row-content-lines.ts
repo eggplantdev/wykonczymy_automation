@@ -1,12 +1,28 @@
 import { countWrappedLines, type MeasureTextWidthT } from '@/lib/utils/text-wrap'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
+import { translationText } from '@/lib/i18n/description-translations'
+import {
+  ALL_TRANSLATION_COLUMN_KEYS,
+  translationColumnLanguage,
+} from '@/lib/kosztorys/translation-column-keys'
 
 // The columns whose value is free text, so the only ones that can need more than one line. Every
 // other column wraps too, but a kwota or a jednostka has never yet been wide enough to.
 // „Sekcja" repeats one name down every row of its section, so a long name lifts that whole section.
-export const WRAPPING_COLUMN_IDS = ['sectionName', 'description', 'note'] as const
+export const WRAPPING_COLUMN_IDS = [
+  'sectionName',
+  'description',
+  ...ALL_TRANSLATION_COLUMN_KEYS,
+  'note',
+] as const
 
 export type WrappingColumnIdT = (typeof WRAPPING_COLUMN_IDS)[number]
+
+function wrappingColumnText(row: KosztorysV2RowT, id: WrappingColumnIdT): string | null {
+  const language = translationColumnLanguage(id)
+  if (language !== null) return translationText(row.descriptionTranslations, language)
+  return row[id as 'sectionName' | 'description' | 'note']
+}
 
 // dsg hands the rendered width back to nobody, so this class is the only handle the measurement and
 // the clip cue have on a column's box. A class rather than a position because the grid virtualizes
@@ -31,7 +47,7 @@ export function columnContentLines(
   measure: MeasureTextWidthT,
 ): number {
   const width = widths[id]
-  const text = row[id]
+  const text = wrappingColumnText(row, id)
   if (!width || !text) return 1
   return countWrappedLines(text, width, measure)
 }

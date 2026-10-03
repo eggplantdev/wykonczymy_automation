@@ -71,8 +71,8 @@ function brokenPresetPayload(): SnapshotPayloadT {
     sections: [{ id: 1, name: 'Z szablonu', displayOrder: 0, color: null }],
     items: [],
     stages: [
-      { id: 1, ordinal: 1, label: 'Etap 1', plane: null, workerId: null },
-      { id: 2, ordinal: 1, label: 'Etap 1 znowu', plane: null, workerId: null },
+      { id: 1, ordinal: 1, label: 'Etap 1', plane: null, split: null },
+      { id: 2, ordinal: 1, label: 'Etap 1 znowu', plane: null, split: null },
     ],
     progress: [],
     settings: TEMPLATE_SETTINGS,
@@ -199,7 +199,7 @@ describe.skipIf(!ENV_READY)('reloadFromPresetAction — persisted state (DB)', (
     })
     const stage = await payload.create({
       collection: 'kosztorys-stages',
-      data: { investment: investmentId, ordinal: 1, label: 'Etap 1' },
+      data: { splitMode: 'percent', investment: investmentId, ordinal: 1, label: 'Etap 1' },
       context: { skipRevalidation: true },
       overrideAccess: true,
     })

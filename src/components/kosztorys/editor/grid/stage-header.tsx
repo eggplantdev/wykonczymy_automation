@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, Pencil, Trash2 } from 'lucide-react'
+import { ChevronDown, Pencil, Trash2, Users } from 'lucide-react'
 
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Description } from '@/components/ui/description'
@@ -17,16 +17,18 @@ import { EditableCellInput } from '@/components/ui/datasheet-grid/editable-cell-
 import { LabelHintIcon } from '@/components/ui/label-hint-icon'
 import { planeIcon } from '@/components/kosztorys/editor/plane-icons'
 import { useInlineRename } from '@/components/kosztorys/editor/hooks/use-inline-rename'
-import { StageWorkerSection } from './stage-worker-section'
-import { ReassignWorkerConfirmDialog } from './reassign-worker-confirm-dialog'
+import { StageSplitDialog } from '@/components/kosztorys/editor/dialogs/stage-split/stage-split-dialog'
 import { PLANE_LABELS } from '@/lib/kosztorys/labels'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
+import { useTranslation } from '@/hooks/use-translation'
 import { STAGE_HEADER_COPY as COPY } from './stage-header-copy'
 import { SortIcon, SortMenuItems } from './sort-menu-items'
 import { cn } from '@/lib/utils/cn'
 import type { SortPickT } from '@/lib/kosztorys/row-view'
-import type { KosztorysStageT, ToolPlaneT } from '@/lib/kosztorys/types'
+import { resolveWorkerName } from '@/lib/kosztorys/payouts-by-worker'
+import { restHolderId } from '@/lib/kosztorys/stage-split'
+import type { KosztorysStageT, StageSplitT, ToolPlaneT } from '@/lib/kosztorys/types'
 import type { WorkerRefT } from '@/types/reference-data'
 
 type PropsT = {
@@ -35,14 +37,15 @@ type PropsT = {
   onRemove?: (stageId: number) => void
   onSetPlane?: (stageId: number, plane: ToolPlaneT) => void
   workers?: WorkerRefT[]
-  onSetWorker?: (stageId: number, workerId: number | null) => void
+  onSetSplit?: (stageId: number, split: StageSplitT | null) => void
   // Sorting by this etap's quantity — its header is the only place that offers it.
   sort?: SortPickT | null
   onSort?: (pick: SortPickT | null) => void
   onPersistOrder?: () => void
-  // The etap's executed value at its own plane — quoted in the reassignment confirm so the dialog and
-  // the panel can't cite different amounts. 0 (or absent) means nothing has been executed here yet.
+  // The etap's executed value at its own plane — the pool the split dialog divides, the same figure
+  // the panel credits. 0 (or absent) means nothing has been executed here yet.
   executedValue?: number
+  scaledDown?: boolean
 }
 
 export function StageHeader({
@@ -51,43 +54,33 @@ export function StageHeader({
   onRemove,
   onSetPlane,
   workers,
-  onSetWorker,
+  onSetSplit,
   sort = null,
   onSort,
   onPersistOrder,
   executedValue = 0,
+  scaledDown = false,
 }: PropsT) {
-  const label = stageLabel(stage)
+  const gridDictionary = useTranslation('grid')
+  const label = stageLabel(stage, gridDictionary)
   const { editing, start, inputProps } = useInlineRename((name) =>
     onRename?.(stage.id, name.trim()),
   )
   const [confirmOpen, setConfirmOpen] = useState(false)
-  // The worker a pending reassignment would move the etap to. `undefined` means no dialog is open —
-  // `null` can't carry that, it is the legitimate „Bez przypisania" target.
-  const [pendingWorkerId, setPendingWorkerId] = useState<number | null | undefined>(undefined)
+  const [splitOpen, setSplitOpen] = useState(false)
 
-  // The reference query is unfiltered; the roster section below is what narrows it to active workers,
-  // and it says so on screen with a toggle rather than silently dropping names.
   const allWorkers = workers ?? []
-  const assignedWorker = allWorkers.find((worker) => worker.id === stage.workerId)
-
-  // Moving executed work off someone is the one destructive-feeling edit here: it drops their
-  // „pozostało" by the amount and raises the new person's. Confirm only in that case — assigning an
-  // empty etap, or filling in a blank assignment, needs no ceremony. Returns whether the confirm
-  // opened, because the menu has to close for it.
-  function pickWorker(workerId: number | null) {
-    if (workerId === stage.workerId) return false
-    if (executedValue > 0 && stage.workerId != null) {
-      setPendingWorkerId(workerId)
-      return true
-    }
-    onSetWorker?.(stage.id, workerId)
-    return false
-  }
+  const nameById = new Map(allWorkers.map((worker) => [worker.id, worker.name]))
+  const restHolder = restHolderId(stage.split)
+  const others = (stage.split?.members.length ?? 1) - 1
+  const workerLine =
+    restHolder == null
+      ? null
+      : resolveWorkerName(restHolder, nameById) + (others > 0 ? ` +${others}` : '')
 
   // No handlers = a read-only mount (preview): render the bare label, no menu/rename/delete AND no
   // plane icon or warning — the rozliczenie is internal subcontractor information, never client-facing.
-  if (!onRename && !onRemove && !onSetPlane && !onSetWorker) {
+  if (!onRename && !onRemove && !onSetPlane && !onSetSplit) {
     return (
       <HeaderLabel className={cn('px-1', !stage.label && 'text-muted-foreground')}>
         {label}
@@ -134,12 +127,13 @@ export function StageHeader({
                   size="lg"
                 />
               )}
+              {scaledDown && <LabelHintIcon variant="splitScaled" size="lg" />}
               {/* The etap menu holds the sort, so its trigger has to carry the sort's state too —
                   otherwise the one column ordering the grid is the only one that never says so. */}
               {sort ? <SortIcon active={sort} /> : <ChevronDown className="opacity-50" />}
             </span>
-            {assignedWorker && (
-              <span className="text-muted-foreground text-2xs truncate">{assignedWorker.name}</span>
+            {workerLine && (
+              <span className="text-muted-foreground text-2xs truncate">{workerLine}</span>
             )}
           </span>
         }
@@ -170,8 +164,6 @@ export function StageHeader({
             <DropdownMenuSeparator />
           </>
         )}
-        {/* Both actions sit ABOVE the roster: the roster is the one section that can run long, so
-            anything under it would be a scroll away. */}
         <DropdownMenuItem onSelect={() => start(stage.label ?? '')}>
           <Pencil />
           {COPY.renameAction}
@@ -182,25 +174,19 @@ export function StageHeader({
             {COPY.removeAction}
           </DropdownMenuItem>
         )}
-        {onSetWorker && (
+        {onSetSplit && (
           <>
             <DropdownMenuSeparator />
-            {stage.plane == null ? (
-              // Disabled until a rozliczenie exists: the settlement pass skips a plane-less etap
-              // before it computes any value, so an assignment made here would show a name against a
-              // silent 0 zł należne.
-              <>
-                <DropdownMenuLabel>{COPY.workerSectionLabel}</DropdownMenuLabel>
-                <Description size="xs" className="px-2 py-1.5">
-                  {COPY.workerNeedsPlane}
-                </Description>
-              </>
-            ) : (
-              <StageWorkerSection
-                workers={allWorkers}
-                selectedId={stage.workerId}
-                onPick={pickWorker}
-              />
+            {/* Disabled until a rozliczenie exists: the settlement pass skips a plane-less etap
+                before it computes any value, so a split made here would divide a silent 0 zł. */}
+            <DropdownMenuItem disabled={stage.plane == null} onSelect={() => setSplitOpen(true)}>
+              <Users />
+              {COPY.splitAction}
+            </DropdownMenuItem>
+            {stage.plane == null && (
+              <Description size="xs" className="px-2 py-1.5">
+                {COPY.workerNeedsPlane}
+              </Description>
             )}
           </>
         )}
@@ -218,18 +204,16 @@ export function StageHeader({
         onCancel={() => setConfirmOpen(false)}
       />
 
-      <ReassignWorkerConfirmDialog
-        targetWorkerId={pendingWorkerId}
-        stageLabel={label}
-        executedValue={executedValue}
-        currentWorkerName={assignedWorker?.name}
-        workers={allWorkers}
-        onConfirm={(workerId) => {
-          onSetWorker?.(stage.id, workerId)
-          setPendingWorkerId(undefined)
-        }}
-        onCancel={() => setPendingWorkerId(undefined)}
-      />
+      {splitOpen && onSetSplit && (
+        <StageSplitDialog
+          stageLabel={label}
+          split={stage.split}
+          pool={executedValue}
+          workers={allWorkers}
+          onSave={(split) => onSetSplit(stage.id, split)}
+          onClose={() => setSplitOpen(false)}
+        />
+      )}
     </>
   )
 }

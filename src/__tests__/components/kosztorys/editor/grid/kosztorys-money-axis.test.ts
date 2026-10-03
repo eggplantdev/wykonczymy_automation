@@ -13,8 +13,8 @@ import type { KosztorysStageT } from '@/lib/kosztorys/types'
 // and going through buildV2Columns is what proves the predicate reaches the stage namespace at all.
 
 const STAGES: KosztorysStageT[] = [
-  { id: 7, ordinal: 1, label: 'Etap 1', plane: null, workerId: null },
-  { id: 9, ordinal: 2, label: 'Etap 2', plane: null, workerId: null },
+  { id: 7, ordinal: 1, label: 'Etap 1', plane: null, split: null },
+  { id: 9, ordinal: 2, label: 'Etap 2', plane: null, split: null },
 ]
 
 function ids(axis: MoneyAxisT, isHidden?: (id: string) => boolean): string[] {

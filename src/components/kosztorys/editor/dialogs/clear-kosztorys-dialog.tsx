@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { DialogActions } from '@/components/ui/dialog-actions'
 import { clearKosztorysAction } from '@/lib/actions/kosztorys'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
+import { settleTreeReplace } from '@/lib/kosztorys/settle-tree-replace'
 import { toastMessage } from '@/lib/utils/toast'
 import { itemNoun, sectionNoun } from '@/lib/kosztorys/counted-nouns'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
@@ -21,22 +22,14 @@ export function ClearKosztorysDialog() {
 
   function handleConfirm() {
     startTransition(async () => {
-      let refetch = false
-      try {
-        const result = await clearKosztorysAction(investmentId)
-        if (!result.success) {
-          toastMessage(result.error, 'error', 6000)
-          return
-        }
-        toastMessage(`${noun.Nominative} wyczyszczony`, 'success')
-      } catch {
-        // A transport-level rejection can arrive AFTER the transaction committed, so the grid may
-        // already be rendering rows that no longer exist. Refreshing regardless is the safe read.
-        toastMessage(`Czyszczenie przerwane — odświeżam ${noun.nominative}`, 'error', 6000)
-        refetch = true
-      }
+      const replaced = await settleTreeReplace(
+        () => clearKosztorysAction(investmentId),
+        `Czyszczenie przerwane — odświeżam ${noun.nominative}`,
+        () => toastMessage(`${noun.Nominative} wyczyszczony`, 'success'),
+      )
+      if (!replaced) return
       onOpenChange(false)
-      onTreeReplaced?.({ refetch })
+      onTreeReplaced?.(replaced)
     })
   }
 

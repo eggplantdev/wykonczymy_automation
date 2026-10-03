@@ -90,5 +90,14 @@ export const Vehicles: CollectionConfig = {
         value,
       })),
     },
+    // Closed to access-checked writes: the trash actions (overrideAccess) stamp it server-side, so no
+    // client-supplied date can bring the 30-day purge forward.
+    {
+      name: 'trashedAt',
+      type: 'date',
+      access: { create: () => false, update: () => false },
+      admin: { hidden: true },
+      label: { en: 'Trashed at', pl: 'W koszu od' },
+    },
   ],
 }

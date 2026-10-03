@@ -101,10 +101,12 @@ export function withSyntheticRows(
   column: Column<KosztorysV2RowT>,
   {
     totals,
+    totalLabel,
     sectionHeader,
     sectionFooter,
   }: {
     totals: Map<string, number>
+    totalLabel: string
     sectionHeader: SectionHeaderContextT
     sectionFooter: SectionFooterContextT
   },
@@ -114,7 +116,7 @@ export function withSyntheticRows(
   // „Razem" rides the same column as the band's label — both are the row's own name, and neither has
   // a fixed home now that every column is rankable. A total wins the cell when the label column has
   // one of its own: a missing word beats a missing figure.
-  const content = total != null ? formatNet(total) : slot === 'label' ? 'Razem' : ''
+  const content = total != null ? formatNet(total) : slot === 'label' ? totalLabel : ''
   return {
     ...column,
     component: SyntheticAwareCell as Column<KosztorysV2RowT>['component'],

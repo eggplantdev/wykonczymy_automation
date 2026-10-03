@@ -25,6 +25,13 @@ const VARIANT = {
     className: 'text-destructive',
     ariaLabel: 'Wpłaty poza trybem rozliczenia',
   },
+  splitScaled: {
+    Icon: TriangleAlert,
+    className: 'text-destructive',
+    ariaLabel: 'Podział etapu do poprawienia',
+    content:
+      'Wykonana praca spadła poniżej wpisanych kwot, więc zostały proporcjonalnie zmniejszone, a główny dostaje 0 zł. Popraw podział w „Pracownicy etapu…".',
+  },
   noStages: {
     Icon: TriangleAlert,
     className: 'text-destructive',
@@ -40,6 +47,7 @@ export type LabelHintT =
   | { variant: 'planeUnconfirmed'; content: string }
   | { variant: 'strandedDeposits'; content: string }
   | { variant: 'noStages' }
+  | { variant: 'splitScaled' }
 
 // Sized by how loud the alarm has to be for its surroundings, not by which alarm it is: `lg` sits in
 // an etap header among controls, `sm` beside a table figure.
@@ -52,7 +60,7 @@ type LabelHintIconPropsT = LabelHintT & { size?: keyof typeof SIZE }
 // HintTooltip+icon block inline and re-deciding icon, colour and aria-label each time.
 export function LabelHintIcon({ size = 'sm', ...hint }: LabelHintIconPropsT) {
   const spec = VARIANT[hint.variant]
-  const content = hint.variant === 'noStages' ? VARIANT.noStages.content : hint.content
+  const content = 'content' in hint ? hint.content : VARIANT[hint.variant].content
   const { Icon } = spec
 
   return (

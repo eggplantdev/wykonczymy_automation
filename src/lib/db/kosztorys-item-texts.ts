@@ -2,21 +2,33 @@
 // under tsx, where that import throws.
 import { sql } from '@payloadcms/db-vercel-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
+import { textOrNull } from '@/lib/db/row-coerce'
+import {
+  toDescriptionTranslations,
+  type DescriptionTranslationsT,
+} from '@/lib/i18n/description-translations'
 
 // The two hand-typed text columns travel together: one button cleans both, and a praca with a blank
-// opis can still carry a j.m. worth tidying.
-export type ItemTextRowT = { id: number; description: string | null; unit: string | null }
+// opis can still carry a j.m. worth tidying. The translations ride along because their `source` has
+// to follow a cleaned opis.
+export type ItemTextRowT = {
+  id: number
+  description: string | null
+  unit: string | null
+  descriptionTranslations: DescriptionTranslationsT
+}
 
 export async function getItemTexts(db: DbExecutorT, investmentId: number): Promise<ItemTextRowT[]> {
   const res = await db.execute(sql`
-    SELECT id, description, unit
+    SELECT id, description, unit, description_translations
     FROM kosztorys_items
     WHERE investment_id = ${investmentId}
   `)
   return res.rows.map((row) => ({
     id: Number(row.id),
-    description: row.description == null ? null : String(row.description),
-    unit: row.unit == null ? null : String(row.unit),
+    description: textOrNull(row.description),
+    unit: textOrNull(row.unit),
+    descriptionTranslations: toDescriptionTranslations(row.description_translations),
   }))
 }
 
@@ -28,12 +40,14 @@ export async function setItemTexts(
 ): Promise<number> {
   if (rows.length === 0) return 0
   const values = rows.map(
-    ({ id, description, unit }) => sql`(${id}::int, ${description}::text, ${unit}::text)`,
+    ({ id, description, unit, descriptionTranslations }) =>
+      sql`(${id}::int, ${description}::text, ${unit}::text, ${JSON.stringify(descriptionTranslations)}::jsonb)`,
   )
   const res = await db.execute(sql`
     UPDATE kosztorys_items AS i
-    SET description = v.description, unit = v.unit, updated_at = now()
-    FROM (VALUES ${sql.join(values, sql.raw(', '))}) AS v(id, description, unit)
+    SET description = v.description, unit = v.unit,
+        description_translations = v.description_translations, updated_at = now()
+    FROM (VALUES ${sql.join(values, sql.raw(', '))}) AS v(id, description, unit, description_translations)
     WHERE i.id = v.id AND i.investment_id = ${investmentId}
     RETURNING i.id
   `)

@@ -4,6 +4,8 @@ import { fold } from '@/lib/kosztorys/sheet-import/columns'
 import type { ImportGridsT } from '@/lib/kosztorys/sheet-import/read-sheet'
 import { SNAPSHOT_SCHEMA_VERSION, type SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 import { BIALOSTOCKA_ROWS, ratesTab } from '@/__tests__/fixtures/kosztorys-sheet/rows'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
+import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 
 const RATES = [
   { description: 'zakup, transport i wniesienie towaru budowlanego', wTools: 975, ownTools: 750 },
@@ -30,6 +32,7 @@ function currentTree(overrides: Partial<SnapshotPayloadT> = {}): SnapshotPayload
         sectionId: 7,
         displayOrder: 0,
         description: 'montaż jednostki wewnętrznej',
+        descriptionTranslations: {},
         unit: 'szt.',
         plannedQty: 9,
         sheetMeasuredQty: 99,
@@ -48,7 +51,7 @@ function currentTree(overrides: Partial<SnapshotPayloadT> = {}): SnapshotPayload
       ordinal: index + 1,
       label: null,
       plane: null,
-      workerId: null,
+      split: null,
     })),
     progress: [],
     settings: { wToolsCoeff: 0.71, ownToolsCoeff: 0.42, vatRate: 8 },
@@ -78,8 +81,8 @@ describe('buildImportPlan', () => {
     })
     if (!built.ok) expect.fail(built.problems.join(' | '))
 
-    expect(built.tree.stages.map(({ plane, workerId }) => ({ plane, workerId }))).toEqual(
-      Array(3).fill({ plane: 'own_tools', workerId: 5 }),
+    expect(built.tree.stages.map(({ plane, split }) => ({ plane, split }))).toEqual(
+      Array(3).fill({ plane: 'own_tools', split: oneWorkerSplit(5) }),
     )
   })
 
@@ -90,7 +93,7 @@ describe('buildImportPlan', () => {
     })
     if (!built.ok) expect.fail(built.problems.join(' | '))
 
-    expect(built.tree.stages.every((stage) => stage.workerId === null)).toBe(true)
+    expect(built.tree.stages.every((stage) => stage.split === null)).toBe(true)
   })
 
   it('takes the global multipliers from the cennik’s own formulas, leaving VAT alone', () => {
@@ -309,6 +312,65 @@ describe('buildImportPlan', () => {
     expect(item.note).toBe('ustalone z klientem')
     // Everything the sheet DOES carry still comes from the sheet.
     expect(item).toMatchObject({ plannedQty: 2, clientPrice: 120 })
+  })
+
+  describe('translations', () => {
+    const ukrainian = (text: string, source: string) => ({ uk: { text, source } })
+    const NEW_PRACA = 'montaż płyt akustycznych dodatek'
+    const MATCHED_PRACA = 'montaż jednostki wewnętrznej'
+
+    function planWithCatalogue(current: SnapshotPayloadT = currentTree()) {
+      const sheetItems = plan(source(), current).tree.items
+      const catalogue = new Map(
+        sheetItems.map((item) => [
+          catalogueKey(item.description ?? '', item.unit),
+          ukrainian(`katalog: ${item.description}`, item.description ?? ''),
+        ]),
+      )
+      const built = buildImportPlan(source(), current, undefined, undefined, catalogue)
+      if (!built.ok) expect.fail(built.problems.join(' | '))
+      return built.tree.items
+    }
+
+    it('keeps a matched praca’s own translation over the katalog’s', () => {
+      const current = currentTree()
+      current.items[0].descriptionTranslations = ukrainian('власний', MATCHED_PRACA)
+
+      const item = planWithCatalogue(current).find((row) => row.description === MATCHED_PRACA)!
+
+      expect(item.descriptionTranslations).toEqual(ukrainian('власний', MATCHED_PRACA))
+    })
+
+    it('takes the katalog’s translation over the praca’s own made from an older opis', () => {
+      const current = currentTree()
+      current.items[0].descriptionTranslations = ukrainian('старий', 'montaż jednostki')
+
+      const item = planWithCatalogue(current).find((row) => row.description === MATCHED_PRACA)!
+
+      expect(item.descriptionTranslations).toEqual(
+        ukrainian(`katalog: ${MATCHED_PRACA}`, MATCHED_PRACA),
+      )
+    })
+
+    it('gives a matched praca without a translation the katalog’s, per language', () => {
+      const item = planWithCatalogue().find((row) => row.description === MATCHED_PRACA)!
+
+      expect(item.descriptionTranslations).toEqual(
+        ukrainian(`katalog: ${MATCHED_PRACA}`, MATCHED_PRACA),
+      )
+    })
+
+    it('gives a praca new to the rozpiska the katalog’s translation', () => {
+      const item = planWithCatalogue().find((row) => row.description === NEW_PRACA)!
+
+      expect(item.descriptionTranslations).toEqual(ukrainian(`katalog: ${NEW_PRACA}`, NEW_PRACA))
+    })
+
+    it('leaves a new praca the katalog doesn’t know without a translation', () => {
+      const item = plan().tree.items.find((row) => row.description === NEW_PRACA)!
+
+      expect(item.descriptionTranslations).toEqual({})
+    })
   })
 
   it('overwrites a matched praca’s reference figure with what the sheet now says', () => {

@@ -8,6 +8,7 @@ import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import type { WorkerRefT } from '@/types/reference-data'
 import type { PayoutTransactionRowT } from '@/types/transfers'
 import { bare } from '@/__tests__/helpers/money'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 
 const INVESTMENT_ID = 4
 
@@ -20,6 +21,7 @@ const worker = (id: number, name: string): WorkerRefT => ({
   name,
   role: 'EMPLOYEE',
   email: `${name.toLowerCase()}@t.test`,
+  language: null,
 })
 
 const WORKERS = [worker(ANNA, 'Anna'), worker(BARTEK, 'Bartek'), worker(CELINA, 'Celina')]
@@ -29,7 +31,7 @@ const stage = (id: number, workerId: number | null): KosztorysStageT => ({
   ordinal: id,
   label: null,
   plane: 'w_tools',
-  workerId,
+  split: workerId == null ? null : oneWorkerSplit(workerId),
 })
 
 // Bartek ma przypisany etap, na którym nic jeszcze nie wykonano — to jego zaliczka, nie nadpłata.
@@ -50,20 +52,27 @@ const DUE: SubcontractorDueByPlaneT = {
     [null, 2_000],
   ]),
   unconfirmedWorkers: new Set(),
+  byStageWorker: new Map(),
+  scaledDownStageIds: new Set(),
 }
 
 const PAYOUTS: PayoutTransactionRowT[] = [
-  { workerId: ANNA, date: '2026-09-01', amount: 2_000, description: null },
-  { workerId: BARTEK, date: '2026-09-02', amount: 500, description: null },
-  { workerId: CELINA, date: '2026-09-03', amount: 2_500, description: null },
+  { type: 'PAYOUT', workerId: ANNA, date: '2026-09-01', amount: 2_000, description: null },
+  { type: 'PAYOUT', workerId: BARTEK, date: '2026-09-02', amount: 500, description: null },
+  { type: 'PAYOUT', workerId: CELINA, date: '2026-09-03', amount: 2_500, description: null },
 ]
 
-function renderBlock(showTransactions = true, due: SubcontractorDueByPlaneT = DUE) {
+function renderBlock(
+  showTransactions = true,
+  due: SubcontractorDueByPlaneT = DUE,
+  payouts: PayoutTransactionRowT[] = PAYOUTS,
+) {
   render(
     <SubcontractorSummary
       investmentId={INVESTMENT_ID}
+      investmentName="Akacjowa"
       subcontractorDue={due}
-      payoutTransactions={PAYOUTS}
+      payoutTransactions={payouts}
       stages={STAGES}
       workers={WORKERS}
       showGlobalSettings={false}
@@ -97,12 +106,12 @@ function amountsAfter(scope: HTMLElement, label: string): string[] {
 // Pomylona atrybucja mówi o cudzych pieniądzach, a ujemne „pozostało" znaczy coś odwrotnego niż
 // obiecuje nagłówek kolumny.
 describe('Podsumowanie pracowników — czyj to dług', () => {
-  it('prowadzi z wiersza na wypłaty tej jednej osoby', () => {
+  it('prowadzi z wiersza na wypłaty i premie tej jednej osoby', () => {
     renderBlock()
 
     expect(within(workerRow('Anna')).getByRole('link', { name: 'Anna' })).toHaveAttribute(
       'href',
-      investmentTransfersHref(INVESTMENT_ID, { types: ['PAYOUT'], worker: ANNA }),
+      investmentTransfersHref(INVESTMENT_ID, { types: ['PAYOUT', 'BONUS'], worker: ANNA }),
     )
   })
 
@@ -187,5 +196,25 @@ describe('Podsumowanie podwykonawców — niepotwierdzone rozliczenie etapu', ()
     renderBlock()
 
     expect(screen.queryByLabelText('Rozliczenie etapu niepotwierdzone')).toBeNull()
+  })
+})
+
+// The same dialog as on the investments listing — the tab that flags „nadpłacone" leads to where it
+// can be evened out.
+describe('Podsumowanie pracowników — Rozlicz wypłaty', () => {
+  const settleButton = () => screen.queryByRole('button', { name: 'Rozlicz wypłaty' })
+
+  it('otwiera rozliczenie, gdy komuś zostało coś do wypłaty albo ma nadpłatę', () => {
+    renderBlock()
+    expect(settleButton()).toBeInTheDocument()
+  })
+
+  it('nie pokazuje przycisku, gdy każdy pracownik jest rozliczony do zera', () => {
+    renderBlock(true, DUE, [
+      { type: 'PAYOUT', workerId: ANNA, date: '2026-09-01', amount: 6_000, description: null },
+      { type: 'PAYOUT', workerId: CELINA, date: '2026-09-03', amount: 1_000, description: null },
+    ])
+    expect(screen.getByText('Podsumowanie pracowników')).toBeInTheDocument()
+    expect(settleButton()).toBeNull()
   })
 })

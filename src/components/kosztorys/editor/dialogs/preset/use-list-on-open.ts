@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import type { ActionResultT } from '@/types/action'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 
 // Fetch-on-open for the dialogs opened programmatically (from the „Opcje" / „Dodaj" menus, bypassing
@@ -32,15 +33,11 @@ export function useListOnOpen<T>(
       setItems([])
       toastMessage(message, 'error', 4000)
     }
-    void load()
-      .then((res) => {
-        if (stale) return
-        if (res.success) setItems(res.data)
-        else fail(res.error ?? failMessage)
-      })
-      // A transport-level RPC rejection never resolves to {success:false}; without this the loading
-      // line hangs forever on a dropped request.
-      .catch(() => fail(failMessage))
+    void settleAction(load).then((res) => {
+      if (stale) return
+      if (res.success) setItems(res.data)
+      else fail(res.error ?? failMessage)
+    })
     return () => {
       stale = true
     }

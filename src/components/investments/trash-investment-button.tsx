@@ -1,39 +1,60 @@
 'use client'
 
-import { useState, startTransition } from 'react'
+import { useState, startTransition, useTransition } from 'react'
 import { DeleteButton } from '@/components/ui/row-actions/delete-button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { trashInvestmentAction } from '@/lib/actions/investment-trash'
+import {
+  ACTIVE_INVESTMENT_DELETE_MESSAGE,
+  isUndeletableStatus,
+  KOSZTORYS_IN_USE_WARNING,
+} from '@/lib/constants/trash'
+import { getInvestmentKosztorysUsed } from '@/lib/queries/investment-kosztorys-used'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 
 export function TrashInvestmentButton({
   investment,
 }: {
-  investment: { id: number; name: string }
+  investment: { id: number; name: string; status: string; hasKosztorys: boolean }
 }) {
-  const [confirming, setConfirming] = useState(false)
+  const [asking, setAsking] = useState<{ kosztorysUsed: boolean } | null>(null)
+  const [checking, startChecking] = useTransition()
+
+  const onClick = () => {
+    if (isUndeletableStatus(investment.status)) {
+      return toastMessage(ACTIVE_INVESTMENT_DELETE_MESSAGE, 'error')
+    }
+    if (!investment.hasKosztorys) return setAsking({ kosztorysUsed: false })
+    startChecking(async () => {
+      const res = await settleAction(() => getInvestmentKosztorysUsed(investment.id))
+      if (!res.success) return toastMessage(res.error, 'error')
+      setAsking({ kosztorysUsed: res.data })
+    })
+  }
 
   const onConfirm = () => {
     startTransition(async () => {
       const res = await settleAction(() => trashInvestmentAction(investment.id))
-      setConfirming(false)
-      if (!res.success) return toastMessage(res.error ?? 'Nie udało się usunąć inwestycji', 'error')
+      setAsking(null)
+      if (!res.success) return toastMessage(res.error, 'error')
       toastMessage('Inwestycja przeniesiona do kosza.', 'success')
     })
   }
 
+  const question = `Przenieść „${investment.name}" do kosza? Możesz ją przywrócić z Kosza.`
+
   return (
     <>
-      <DeleteButton label="Usuń inwestycję" onClick={() => setConfirming(true)} />
+      <DeleteButton label="Usuń inwestycję" disabled={checking} onClick={onClick} />
       <ConfirmDialog
-        open={confirming}
+        open={asking !== null}
         title="Przenieść do kosza?"
-        description={`Przenieść „${investment.name}" do kosza? Możesz ją przywrócić z Kosza.`}
+        description={asking?.kosztorysUsed ? `${KOSZTORYS_IN_USE_WARNING} ${question}` : question}
         confirmLabel="Przenieś do kosza"
-        variant="neutral"
+        variant={asking?.kosztorysUsed ? 'alert' : 'neutral'}
         onConfirm={onConfirm}
-        onCancel={() => setConfirming(false)}
+        onCancel={() => setAsking(null)}
       />
     </>
   )

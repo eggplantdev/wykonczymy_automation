@@ -58,12 +58,19 @@ export function SubcontractorHeadlineSummary({
       </SummaryLabelCell>
       <SummaryValueCell weight="bold">{formatNet(due.combined)}</SummaryValueCell>
 
+      {summary.bonusTotal !== 0 && (
+        <div className="contents">
+          <SummaryLabelCell weight="medium">{SUBCONTRACTOR_FIGURE_LABELS.bonus}</SummaryLabelCell>
+          <SummaryValueCell weight="medium">{formatNet(summary.bonusTotal)}</SummaryValueCell>
+        </div>
+      )}
+
       <SummaryLabelCell weight="medium">{SUBCONTRACTOR_FIGURE_LABELS.payouts}</SummaryLabelCell>
       <SummaryValueCell tone="success" weight="medium">
         {formatNet(summary.payoutsTotal)}
       </SummaryValueCell>
 
-      {/* Pozostało do wypłaty = należne − zaliczki. Negative = the crew has been overpaid — an
+      {/* Pozostało do wypłaty = należne + premia − zaliczki. Negative = the crew has been overpaid — an
           anomaly, so it reads red; a normal positive „still owed" stays neutral bold. */}
       <SummaryLabelCell weight="bold">{SUBCONTRACTOR_FIGURE_LABELS.remaining}</SummaryLabelCell>
       <SummaryValueCell tone={summary.remaining < 0 ? 'error' : 'default'} weight="bold">

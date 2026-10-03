@@ -1,14 +1,12 @@
-import { formatPLN } from '@/lib/utils/format-currency'
+import { STAGE_SPLIT_NEEDS_PLANE } from '@/lib/kosztorys/stage-split'
 
 export const STAGE_HEADER_COPY = {
   planeSectionLabel: 'Rozliczenie',
-  workerSectionLabel: 'Pracownik / ekipa',
+  splitAction: 'Pracownicy etapu…',
   workerUnassigned: 'Bez przypisania',
-  workerUnknown: 'nieznana osoba',
   searchPlaceholder: 'Szukaj pracownika...',
   searchEmpty: 'Nie znaleziono pracownika.',
-  workerNeedsPlane:
-    'Najpierw wybierz rozliczenie etapu — bez niego etap nie ma ceny, więc nikomu nic nie nalicza.',
+  workerNeedsPlane: STAGE_SPLIT_NEEDS_PLANE,
   planeUnconfirmed:
     'Wybierz jak rozliczać etap — do tego czasu ilości w tej kolumnie są zablokowane, bo nie weszłyby do rachunku żadnej ekipy.',
   renameAction: 'Zmień nazwę',
@@ -17,13 +15,5 @@ export const STAGE_HEADER_COPY = {
     title: (label: string) => `Usunąć „${label}"?`,
     description: 'Kolumna etapu i wszystkie wpisane w niej ilości zostaną usunięte.',
     confirmLabel: 'Usuń',
-  },
-  reassignConfirm: {
-    title: (label: string) => `Przepisać „${label}" na inną osobę?`,
-    description: (label: string, executedValue: number, from: string, to: string) =>
-      `Etap „${label}" ma wykonane prace na ${formatPLN(executedValue)} przypisane do: ${from}. ` +
-      `Przepisać na: ${to}? Kwota przejdzie do rozliczenia nowej osoby, a poprzedniej ` +
-      `„pozostało do wypłaty" spadnie poniżej zera.`,
-    confirmLabel: 'Przepisz',
   },
 } as const

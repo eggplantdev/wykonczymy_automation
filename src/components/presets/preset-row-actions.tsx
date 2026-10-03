@@ -3,9 +3,8 @@
 import { useState, useTransition } from 'react'
 import { Input } from '@/components/ui/input'
 import { EditButton } from '@/components/ui/row-actions/edit-button'
-import { DeleteButton } from '@/components/ui/row-actions/delete-button'
-import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { FormDialogShell } from '@/components/ui/form-dialog-shell'
+import { TrashRowButton } from '@/components/trash/trash-row-button'
 import { trashInvestmentAction } from '@/lib/actions/investment-trash'
 import { renamePresetAction } from '@/lib/actions/kosztorys-presets'
 import { settleAction } from '@/lib/utils/settle-action'
@@ -13,20 +12,9 @@ import { toastMessage } from '@/lib/utils/toast'
 import type { PresetRowT } from '@/lib/queries/presets'
 
 export function PresetRowActions({ preset }: { preset: PresetRowT }) {
-  const [confirmingTrash, setConfirmingTrash] = useState(false)
   const [renaming, setRenaming] = useState(false)
   const [draftName, setDraftName] = useState(preset.name)
   const [pending, startTransition] = useTransition()
-
-  const onTrash = () => {
-    startTransition(async () => {
-      const res = await settleAction(() => trashInvestmentAction(preset.id))
-      setConfirmingTrash(false)
-      if (!res.success)
-        return toastMessage(res.error ?? 'Nie udało się przenieść szablonu do kosza', 'error')
-      toastMessage('Szablon przeniesiony do kosza.', 'success')
-    })
-  }
 
   const onRename = () => {
     startTransition(async () => {
@@ -47,7 +35,13 @@ export function PresetRowActions({ preset }: { preset: PresetRowT }) {
         }}
       />
 
-      <DeleteButton label="Przenieś szablon do kosza" onClick={() => setConfirmingTrash(true)} />
+      <TrashRowButton
+        label="Przenieś szablon do kosza"
+        title="Przenieść szablon do kosza?"
+        description={`„${preset.name}" zniknie z listy szablonów i z wyboru szablonu. Możesz go przywrócić z Kosza. Kosztorysy założone z tego szablonu zostają bez zmian — mają własną kopię.`}
+        trash={() => trashInvestmentAction(preset.id)}
+        trashed="Szablon przeniesiony do kosza."
+      />
 
       <FormDialogShell
         open={renaming}
@@ -68,16 +62,6 @@ export function PresetRowActions({ preset }: { preset: PresetRowT }) {
           autoFocus
         />
       </FormDialogShell>
-
-      <ConfirmDialog
-        open={confirmingTrash}
-        title="Przenieść szablon do kosza?"
-        description={`„${preset.name}" zniknie z listy szablonów i z wyboru szablonu. Możesz go przywrócić z Kosza. Kosztorysy założone z tego szablonu zostają bez zmian — mają własną kopię.`}
-        confirmLabel="Przenieś do kosza"
-        variant="neutral"
-        onConfirm={onTrash}
-        onCancel={() => setConfirmingTrash(false)}
-      />
     </div>
   )
 }

@@ -14,6 +14,7 @@ let nextId = 1
 const entry = (fields: Partial<WorkCatalogueItemT> = {}): WorkCatalogueItemT => ({
   id: nextId++,
   description: 'Malowanie',
+  descriptionTranslations: {},
   category: null,
   unit: 'm2',
   clientPrice: 100,
@@ -35,6 +36,24 @@ const matches = (id: string, fields: Partial<WorkCatalogueItemT>) =>
   condition(id).matches(entry(fields))
 
 describe('catalogue condition predicates', () => {
+  it('„bez tłumaczenia" and „z nieaktualnym" never claim the same wpis', () => {
+    const current = { uk: { text: 'Фарбування', source: 'Malowanie' } }
+    expect(matches('catalogue-no-translation-uk', {})).toBe(true)
+    expect(matches('catalogue-stale-translation-uk', {})).toBe(false)
+    expect(matches('catalogue-no-translation-uk', { descriptionTranslations: current })).toBe(false)
+    expect(matches('catalogue-stale-translation-uk', { descriptionTranslations: current })).toBe(
+      false,
+    )
+    expect(
+      matches('catalogue-stale-translation-uk', {
+        description: 'Malowanie ścian',
+        descriptionTranslations: current,
+      }),
+    ).toBe(true)
+    // One language translated says nothing about the other.
+    expect(matches('catalogue-no-translation-ru', { descriptionTranslations: current })).toBe(true)
+  })
+
   it('„bez ceny" matches a zero or missing cena j.m.', () => {
     expect(matches('catalogue-no-price', { clientPrice: 0 })).toBe(true)
     expect(matches('catalogue-no-price', { clientPrice: 1 })).toBe(false)
@@ -137,6 +156,10 @@ describe('registry', () => {
       'catalogue-no-price',
       'catalogue-zero-rate-w_tools',
       'catalogue-zero-rate-own_tools',
+      'catalogue-no-translation-uk',
+      'catalogue-stale-translation-uk',
+      'catalogue-no-translation-ru',
+      'catalogue-stale-translation-ru',
       'catalogue-near-duplicate',
     ])
   })

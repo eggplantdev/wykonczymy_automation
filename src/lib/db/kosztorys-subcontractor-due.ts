@@ -27,8 +27,8 @@ export const subcontractorLinesCte = sql`
   lines AS (
     SELECT
       ks.investment_id,
+      ks.id AS stage_id,
       ks.plane,
-      ks.worker_id,
       sp.qty_done,
       -- subcontractorPrice / priceSourceOf (calc.ts): a praca's own mnożnik wins, then its kwota,
       -- then „auto" — client × the investment's coefficient for that plane. The branch order IS the

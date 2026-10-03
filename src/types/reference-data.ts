@@ -1,4 +1,5 @@
 import type { RoleT } from '@/lib/auth/roles'
+import type { LanguageT } from '@/lib/i18n/languages'
 import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 import type { InvestmentStatusT } from '@/lib/constants/investment-status'
 
@@ -24,7 +25,7 @@ export type InvestmentRefT = ReferenceItemT & {
   email: string
   contactPerson: string
   notes: string
-  review: string
+  reviewRequested: boolean
   hasSheet: boolean
   // The materiały concession is gated on the settlement mode, so a reader that has one without the
   // other cannot compute it (null rate = no concession); VAT rides the prace alone and turns
@@ -38,6 +39,7 @@ export type InvestmentRefT = ReferenceItemT & {
 export type WorkerRefT = Omit<ReferenceItemT, 'type'> & {
   role: RoleT
   email: string
+  language: LanguageT | null
 }
 
 export type OtherCategoryRefT = {
@@ -52,8 +54,14 @@ export type ExpenseCategoryRefT = {
 
 export type ReferenceDataBaseT = {
   cashRegisters: CashRegisterRefT[]
+  /** For naming a trashed kasa on its old transaction rows only — never a picker or listing. */
+  trashedCashRegisters: CashRegisterRefT[]
   investments: InvestmentRefT[]
+  /** Only for opening a trashed investment read-only from /kosz — never a picker or listing. */
+  trashedInvestments: InvestmentRefT[]
   workers: WorkerRefT[]
+  /** For naming a trashed worker on old rows only — never a picker or listing. */
+  trashedWorkers: WorkerRefT[]
   otherCategories: OtherCategoryRefT[]
   expenseCategories: ExpenseCategoryRefT[]
 }
@@ -62,3 +70,8 @@ export type ReferenceDataT = ReferenceDataBaseT & {
   currentUserId: number
   currentUserRole: RoleT
 }
+
+export type ReviewRequestInvestmentT = Pick<
+  InvestmentRefT,
+  'id' | 'name' | 'email' | 'reviewRequested'
+>

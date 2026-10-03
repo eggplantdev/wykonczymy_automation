@@ -1,12 +1,13 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { SheetImportDialog } from '@/components/kosztorys/editor/dialogs/sheet/sheet-import-dialog'
 import type { ImportPreviewT } from '@/lib/actions/kosztorys-import'
 import type { FooterComparisonT } from '@/lib/kosztorys/sheet-import/footer-totals'
 import type { WorkerRefT } from '@/types/reference-data'
+import { toastMessage } from '@/lib/utils/toast'
 
 const applyKosztorysImport = vi.fn(async (..._args: unknown[]) => ({
   success: true as const,
@@ -17,6 +18,8 @@ vi.mock('@/lib/actions/kosztorys-import', () => ({
   applyKosztorysImport: (...args: unknown[]) => applyKosztorysImport(...args),
 }))
 vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
+
+const onImported = vi.fn()
 
 const INVESTMENT_ID = 7
 
@@ -48,8 +51,8 @@ const PREVIEW: ImportPreviewT = {
 }
 
 const WORKERS: WorkerRefT[] = [
-  { id: 5, name: 'Ekipa Nowak', active: true, role: 'EMPLOYEE', email: 'nowak@example.test' },
-  { id: 6, name: 'Jan Kowalski', active: false, role: 'EMPLOYEE', email: 'jan@example.test' },
+  { id: 5, name: 'Ekipa Nowak', active: true, role: 'EMPLOYEE', email: 'nowak@example.test', language: null },
+  { id: 6, name: 'Jan Kowalski', active: false, role: 'EMPLOYEE', email: 'jan@example.test', language: null },
 ]
 
 const NO_PLANE_LABEL = 'Nie ustawiaj — wybiorę w kosztorysie'
@@ -70,7 +73,7 @@ function DialogHost() {
         preview={PREVIEW}
         error={null}
         loaded
-        onImported={vi.fn()}
+        onImported={onImported}
         onMappingSaved={vi.fn()}
       />
     </>
@@ -192,5 +195,28 @@ describe('SheetImportDialog — one wykonawca for every imported etap', () => {
 
     expect(await screen.findByRole('option', { name: 'Ekipa Nowak' })).toBeInTheDocument()
     expect(screen.queryByRole('option', { name: 'Jan Kowalski' })).not.toBeInTheDocument()
+  })
+})
+
+describe('SheetImportDialog — a request that never completed (EX-940)', () => {
+  beforeEach(() => vi.spyOn(console, 'error').mockImplementation(() => {}))
+  afterEach(() => vi.restoreAllMocks())
+
+  // The replacement may have committed server-side, so the editor refetches instead of keeping —
+  // and autosaving back — rows that no longer exist.
+  it('closes, says so and hands the editor a refetch', async () => {
+    applyKosztorysImport.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+    const { user, openDialog } = renderDialog()
+
+    await openDialog()
+    await user.click(screen.getByRole('button', { name: 'Pobierz i zastąp' }))
+
+    await vi.waitFor(() => expect(onImported).toHaveBeenCalledWith({ refetch: true }))
+    expect(screen.queryByRole('button', { name: 'Pobierz i zastąp' })).not.toBeInTheDocument()
+    expect(toastMessage).toHaveBeenCalledWith(
+      'Pobieranie przerwane — odświeżam kosztorys',
+      'error',
+      6000,
+    )
   })
 })

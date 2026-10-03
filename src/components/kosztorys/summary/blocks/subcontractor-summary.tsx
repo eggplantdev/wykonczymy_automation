@@ -2,11 +2,13 @@
 
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { SubcontractorHeadlineSummary } from '@/components/kosztorys/summary/blocks/subcontractor-headline-summary'
+import { SubcontractorStageBreakdown } from '@/components/kosztorys/summary/blocks/subcontractor-stage-breakdown'
 import { SubcontractorWorkerTotals } from '@/components/kosztorys/summary/blocks/subcontractor-worker-totals'
 import { SubcontractorPayoutsTable } from '@/components/kosztorys/summary/tables/subcontractor-payouts-table'
 import { EditorGlobalSettings } from '@/components/kosztorys/editor/toolbar/editor-global-settings'
 import { computeSubcontractorSummary } from '@/lib/kosztorys/subcontractor-summary'
 import { derivePayoutsByWorker } from '@/lib/kosztorys/payouts-by-worker'
+import { subcontractorStageBreakdown } from '@/lib/kosztorys/subcontractor-stage-breakdown'
 import type { SubcontractorDueByPlaneT } from '@/lib/kosztorys/subcontractor-due'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import type { WorkerRefT } from '@/types/reference-data'
@@ -14,13 +16,15 @@ import type { PayoutTransactionRowT } from '@/types/transfers'
 
 type PropsT = {
   investmentId: number
+  // Titles the „Rozlicz wypłaty" dialog the worker table opens.
+  investmentName: string
   // View-independent settlement: each etap valued at its OWN plane's price. `combined` is „Suma
   // wykonanej pracy"; `wTools`/`ownTools` feed the split rows; `hasUnconfirmedPlane` flips the badge.
   subcontractorDue: SubcontractorDueByPlaneT
   // The PAYOUT rows, already date-desc from the query. Both the sortable list and the per-worker Σ
   // come off these — a host cannot hand in a total that disagrees with the rows beneath it.
   payoutTransactions: PayoutTransactionRowT[]
-  // The etap list and the roster, both only for the per-worker table: stages say who is ASSIGNED
+  // The etap list and the roster: stages say who is ASSIGNED
   // (even where nothing is owed yet), workers supply names the payout rows don't carry.
   stages?: KosztorysStageT[]
   workers?: WorkerRefT[]
@@ -29,7 +33,8 @@ type PropsT = {
   showGlobalSettings?: boolean
   // Off on a host that already lists every transaction next to the panel (the investment page's
   // transfers table). One signal, not two: the host that drops the lists is the compact host, so the
-  // per-plane split rows and the per-worker table go with them, leaving the three totals that matter.
+  // per-plane split rows and the per-worker and per-etap tables go with them, leaving the three totals
+  // that matter.
   showTransactions?: boolean
 }
 
@@ -37,6 +42,7 @@ type PropsT = {
 // client Podsumowanie.
 export function SubcontractorSummary({
   investmentId,
+  investmentName,
   subcontractorDue,
   payoutTransactions,
   stages,
@@ -50,6 +56,9 @@ export function SubcontractorSummary({
     stages,
     workers,
   })
+  const breakdown = subcontractorStageBreakdown(subcontractorDue, stages ?? [], summary.rows)
+  // A premia is an entitlement, not cash out — it reads in the totals above, never as a wypłata.
+  const cashPayouts = payoutTransactions.filter((tx) => tx.type === 'PAYOUT')
 
   return (
     <div className="text-foreground flex w-full flex-col gap-y-4 px-4 pt-4 pb-4 text-sm">
@@ -60,7 +69,11 @@ export function SubcontractorSummary({
       {showGlobalSettings && <EditorGlobalSettings />}
       <div className="flex flex-wrap items-start gap-x-6 gap-y-4">
         {showTransactions && summary.rows.length > 0 && (
-          <SubcontractorWorkerTotals investmentId={investmentId} rows={summary.rows} />
+          <SubcontractorWorkerTotals
+            investmentId={investmentId}
+            investmentName={investmentName}
+            rows={summary.rows}
+          />
         )}
         <SubcontractorHeadlineSummary
           summary={summary}
@@ -69,12 +82,16 @@ export function SubcontractorSummary({
         />
       </div>
 
-      {showTransactions && payoutTransactions.length > 0 && (
+      {showTransactions && breakdown.rows.length > 0 && (
+        <SubcontractorStageBreakdown breakdown={breakdown} />
+      )}
+
+      {showTransactions && cashPayouts.length > 0 && (
         <CollapsibleSection title="Lista wpłat" size="sm" defaultOpen={false}>
           <SubcontractorPayoutsTable
             investmentId={investmentId}
             payouts={payouts}
-            payoutTransactions={payoutTransactions}
+            payoutTransactions={cashPayouts}
           />
         </CollapsibleSection>
       )}

@@ -27,7 +27,7 @@ type StaleTreeRecoveryT = {
  * optimistic edits that never landed are lost by design — they were written against a tree that no
  * longer exists.
  */
-export function useStaleTreeRecovery(onStaleTree?: () => Promise<void>): StaleTreeRecoveryT {
+export function useStaleTreeRecovery(onStaleTree?: () => Promise<unknown>): StaleTreeRecoveryT {
   const recovering = useRef(false)
 
   function recoverStaleTree() {

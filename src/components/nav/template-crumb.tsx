@@ -1,7 +1,8 @@
 import Link from 'next/link'
 
 import { HistoryBackButton } from '@/components/ui/history-back-button'
-import { getPresetNameForCrumb } from '@/lib/queries/presets'
+import { isInvestmentId } from '@/lib/queries/investment-id'
+import { getTemplateName } from '@/lib/queries/presets'
 
 type TemplateCrumbPropsT = {
   params: Promise<{ id: string }>
@@ -9,8 +10,9 @@ type TemplateCrumbPropsT = {
 
 export async function TemplateCrumb({ params }: TemplateCrumbPropsT) {
   const { id } = await params
+  if (!isInvestmentId(id)) return null
 
-  const name = await getPresetNameForCrumb(id)
+  const name = await getTemplateName(Number(id))
   if (!name) return null
 
   return (

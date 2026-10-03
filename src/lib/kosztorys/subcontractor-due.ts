@@ -1,5 +1,6 @@
 import { viewPrice } from '@/lib/kosztorys/calc'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
+import { splitStagePool } from '@/lib/kosztorys/stage-split'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 /** The crew side of the margin, as `subcontractorDueByPlane` reports it — the amount and the reason
@@ -25,14 +26,19 @@ export type SubcontractorDueByPlaneT = {
   // Emitted so the header's reassignment confirm quotes the same figure the panel does instead of
   // recomputing it inline. A plane-less etap has no entry: it contributes to no bill.
   byStage: Map<number, number>
-  // The same money partitioned by WHO is to do it (EX-613), `null` = etapy with nobody assigned.
-  // Σ values === `combined` by construction — the residual is its own entry, never spread over the
-  // assigned workers. Two consequences worth knowing before reading a figure off this:
+  // The same money partitioned by WHO is to do it (EX-613), each etap divided by its split
+  // (`splitStagePool`, EX-943); `null` = etapy with nobody assigned. Σ values === `combined` by
+  // construction — the residual is its own entry, never spread over the assigned workers. Two
+  // consequences:
   // - a worker spanning both planes is NOT derivable from `wTools`/`ownTools`; only this map knows.
   // - a plane-less etap credits nobody, assigned or not — it is skipped before this map is touched,
   //   so a worker can hold etapy and still owe 0 (`hasUnconfirmedPlane` is what says why).
   byWorker: Map<number | null, number>
-  // Who holds a plane-less etap WITH executed qty (`null` = unassigned) — the per-worker half of
+  // `byWorker` one level finer, per priced etap, with the same `null` remainder — so Σ over etapy is
+  // `byWorker` and no reader has to split an etap a second time.
+  byStageWorker: Map<number, Map<number | null, number>>
+  scaledDownStageIds: Set<number>
+  // Every member of a plane-less etap WITH executed qty (`null` = unassigned) — the per-worker half of
   // `hasUnconfirmedPlane`, which is exactly `unconfirmedWorkers.size > 0`. No app surface reads it:
   // it is the reference the SQL per-worker flag (`lib/db/worker-payout-pairs.ts`) is pinned to.
   unconfirmedWorkers: Set<number | null>
@@ -63,6 +69,10 @@ export function subcontractorDueByPlane(
   const unconfirmedWorkers = new Set<number | null>()
   const byStage = new Map<number, number>()
   const byWorker = new Map<number | null, number>()
+  const byStageWorker = new Map<number, Map<number | null, number>>()
+  const scaledDownStageIds = new Set<number>()
+  const credit = (workerId: number | null, amount: number) =>
+    byWorker.set(workerId, (byWorker.get(workerId) ?? 0) + amount)
   for (const st of stages) {
     const plane = st.plane
     const key = stageKey(st.id)
@@ -70,7 +80,10 @@ export function subcontractorDueByPlane(
       // Gated on the etap actually holding qty: the badge this drives claims the sum is SHORT, and a
       // freshly added empty etap makes that claim false — it would scream about missing money that
       // does not exist yet.
-      if (rows.some((row) => row[key])) unconfirmedWorkers.add(st.workerId)
+      if (rows.some((row) => row[key])) {
+        if (st.split) for (const member of st.split.members) unconfirmedWorkers.add(member.workerId)
+        else unconfirmedWorkers.add(null)
+      }
       continue
     }
     let planeTotal = 0
@@ -81,7 +94,12 @@ export function subcontractorDueByPlane(
     if (plane === 'w_tools') wTools += planeTotal
     else ownTools += planeTotal
     byStage.set(st.id, planeTotal)
-    byWorker.set(st.workerId, (byWorker.get(st.workerId) ?? 0) + planeTotal)
+    const { shares, unattributed, scaledDown } = splitStagePool(planeTotal, st.split)
+    const stageShares = new Map<number | null, number>(shares)
+    if (!st.split || unattributed) stageShares.set(null, unattributed)
+    for (const [workerId, share] of stageShares) credit(workerId, share)
+    byStageWorker.set(st.id, stageShares)
+    if (scaledDown) scaledDownStageIds.add(st.id)
   }
   return {
     wTools,
@@ -90,6 +108,8 @@ export function subcontractorDueByPlane(
     hasUnconfirmedPlane: unconfirmedWorkers.size > 0,
     byStage,
     byWorker,
+    byStageWorker,
+    scaledDownStageIds,
     unconfirmedWorkers,
   }
 }

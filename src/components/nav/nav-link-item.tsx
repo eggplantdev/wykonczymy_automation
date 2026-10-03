@@ -32,8 +32,10 @@ export function NavLinkItem({
         'relative',
         // Safe to hang drawer sizing off `max-sm:` rather than a prop: the sidebar is `hidden
         // sm:flex`, so below 768 only the mobile drawer renders this row.
-        'max-sm:h-10 max-sm:gap-3 max-sm:px-4 max-sm:text-base',
-        collapsed && 'px-0',
+        'max-sm:min-h-10 max-sm:gap-3 max-sm:px-4 max-sm:text-base',
+        // The sidebar has a fixed width, so a long label wraps onto a second line instead of
+        // widening it.
+        collapsed ? 'px-0' : 'h-auto min-h-8 py-1.5 whitespace-normal',
         // Not `bg-accent` — ghost's own hover paints that, so the active row would look like whatever
         // the cursor is over.
         active && 'bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary font-semibold',
@@ -44,7 +46,7 @@ export function NavLinkItem({
         {/* Sized here, not via `max-sm:[&_svg]:size-6`: Button's base rule is guarded by
             `:not([class*='size-'])`, which outranks a bare descendant override. */}
         <link.icon className="size-4 max-sm:size-6" />
-        {!collapsed && link.label}
+        {!collapsed && <span className="min-w-0 text-left">{link.label}</span>}
         {link.unreadStream && (
           <BadgeSlot collapsed={collapsed}>
             <UnreadBadge stream={link.unreadStream} path={link.href} />

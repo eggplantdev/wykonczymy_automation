@@ -3,14 +3,17 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import { sqlList } from '@/lib/db/sql-list'
 import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import { subcontractorDueColumns, subcontractorLinesCte } from './kosztorys-subcontractor-due'
+import { foldWorkerPayoutPairs } from '@/lib/kosztorys/worker-payout-pairs-fold'
 import type { WorkerPayoutPairRowT } from '@/lib/kosztorys/worker-payout-pairs'
+import { mapStageSplit } from './kosztorys-tree'
 import type { DbExecutorT } from './get-db'
 
 // The priced `lines` and the due/flag aggregate are the fragments `kosztorys-subcontractor-due.ts`
-// reads, grouped one level finer. `subcontractor-due.ts` (`byWorker` / `unconfirmedWorkers`) stays
-// the reference, and the DB parity spec (__tests__/lib/db/worker-payout-pairs.test.ts) pins this copy
-// to it — and pins Σ pairs to the listing's per-investment „Pozostało do wypłaty", which is the
-// invariant the dialog's rows rely on.
+// reads, grouped per etap. SQL stops at the etap's pool: dividing it between the etap's workers is
+// `splitStagePool`, applied in `foldWorkerPayoutPairs`, so the pairs and the reference fold in
+// `subcontractor-due.ts` run ONE split rule rather than a TS one and its SQL copy. The DB parity spec
+// (__tests__/lib/db/worker-payout-pairs.test.ts) pins the result to the reference — and Σ pairs to the
+// listing's per-investment „Pozostało do wypłaty", which is the invariant the dialog's rows rely on.
 //
 // Only investments the listing gives a figure to: at least one kosztorys pozycja, not a szablon, not
 // in the kosz. A PAYOUT with no investment is not on any pair — salary, loans and fuel never were
@@ -23,50 +26,71 @@ export async function selectWorkerPayoutPairs(
   const { investmentIds } = opts
   if (investmentIds?.length === 0) return []
 
-  const narrowTo = investmentIds ? sql`AND inv.id IN (${sqlList(investmentIds)})` : sql``
+  const listed = sql`
+    inv.status <> ${TEMPLATE_INVESTMENT_STATUS}
+    AND inv.trashed_at IS NULL
+    AND EXISTS (SELECT 1 FROM kosztorys_items ki WHERE ki.investment_id = inv.id)
+    ${investmentIds ? sql`AND inv.id IN (${sqlList(investmentIds)})` : sql``}
+  `
 
-  // UNION ALL + GROUP BY rather than a FULL JOIN on the pair: `worker_id` is nullable, and GROUP BY
-  // is the one place SQL treats two NULLs as the same key.
-  const res = await db.execute(sql`
-    WITH ${subcontractorLinesCte},
-    due AS (
-      SELECT investment_id, worker_id, ${subcontractorDueColumns}
-      FROM lines
-      GROUP BY investment_id, worker_id
-    ),
-    paid AS (
-      SELECT investment_id, worker_id, sum(amount) AS paid
-      FROM transactions
-      WHERE type = 'PAYOUT' AND cancelled IS NOT TRUE AND investment_id IS NOT NULL
-      GROUP BY investment_id, worker_id
-    ),
-    pairs AS (
-      SELECT investment_id, worker_id, due, 0 AS paid, has_unconfirmed_plane FROM due
-      UNION ALL
-      SELECT investment_id, worker_id, 0, paid, false FROM paid
-    )
-    SELECT
-      p.investment_id,
-      p.worker_id,
-      sum(p.due) AS due,
-      sum(p.paid) AS paid,
-      bool_or(p.has_unconfirmed_plane) AS has_unconfirmed_plane,
-      inv.status::text AS investment_status
-    FROM pairs p
-    JOIN investments inv ON inv.id = p.investment_id
-    WHERE inv.status <> ${TEMPLATE_INVESTMENT_STATUS}
-      AND inv.trashed_at IS NULL
-      AND EXISTS (SELECT 1 FROM kosztorys_items ki WHERE ki.investment_id = inv.id)
-      ${narrowTo}
-    GROUP BY p.investment_id, p.worker_id, inv.status
+  // Sequential, not Promise.all: inside a transaction all three share one connection.
+  const stageRows = await db.execute(sql`
+    WITH ${subcontractorLinesCte}
+    SELECT l.investment_id, l.stage_id, inv.status::text AS investment_status,
+      ${subcontractorDueColumns}
+    FROM lines l
+    JOIN investments inv ON inv.id = l.investment_id
+    WHERE ${listed}
+    GROUP BY l.investment_id, l.stage_id, inv.status
   `)
+  const paidRows = await db.execute(sql`
+    SELECT t.investment_id, t.worker_id, inv.status::text AS investment_status,
+      coalesce(sum(t.amount) FILTER (WHERE t.type = 'PAYOUT'), 0) AS paid,
+      coalesce(sum(t.amount) FILTER (WHERE t.type = 'BONUS'), 0) AS bonus
+    FROM transactions t
+    JOIN investments inv ON inv.id = t.investment_id
+    WHERE t.type IN ('PAYOUT', 'BONUS') AND t.cancelled IS NOT TRUE AND ${listed}
+    GROUP BY t.investment_id, t.worker_id, inv.status
+  `)
+  const stageIds = stageRows.rows.map((row) => Number(row.stage_id))
+  const memberRows =
+    stageIds.length === 0
+      ? []
+      : (
+          await db.execute(sql`
+            SELECT ksw.stage_id, ks.split_mode, ksw.worker_id, ksw.value, ksw.takes_rest
+            FROM kosztorys_stage_workers ksw
+            JOIN kosztorys_stages ks ON ks.id = ksw.stage_id
+            WHERE ksw.stage_id IN (${sqlList(stageIds)})
+            ORDER BY ksw.stage_id, ksw.id
+          `)
+        ).rows
 
-  return res.rows.map((row) => ({
-    investmentId: Number(row.investment_id),
-    workerId: row.worker_id == null ? null : Number(row.worker_id),
-    due: Number(row.due ?? 0),
-    paid: Number(row.paid ?? 0),
-    hasUnconfirmedPlane: Boolean(row.has_unconfirmed_plane),
-    investmentStatus: String(row.investment_status),
-  }))
+  const statuses = new Map<number, string>()
+  for (const row of [...stageRows.rows, ...paidRows.rows]) {
+    statuses.set(Number(row.investment_id), String(row.investment_status))
+  }
+  const splits = new Map(
+    [...Map.groupBy(memberRows, (row) => Number(row.stage_id))].map(([stageId, members]) => [
+      stageId,
+      mapStageSplit(members[0]!.split_mode, members),
+    ]),
+  )
+
+  return foldWorkerPayoutPairs(
+    stageRows.rows.map((row) => ({
+      investmentId: Number(row.investment_id),
+      stageId: Number(row.stage_id),
+      due: Number(row.due ?? 0),
+      hasUnconfirmedPlane: Boolean(row.has_unconfirmed_plane),
+    })),
+    splits,
+    paidRows.rows.map((row) => ({
+      investmentId: Number(row.investment_id),
+      workerId: row.worker_id == null ? null : Number(row.worker_id),
+      paid: Number(row.paid ?? 0),
+      bonus: Number(row.bonus ?? 0),
+    })),
+    statuses,
+  )
 }

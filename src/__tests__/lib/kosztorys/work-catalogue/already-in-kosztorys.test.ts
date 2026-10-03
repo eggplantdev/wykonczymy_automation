@@ -12,6 +12,7 @@ let nextId = 1
 const entry = (description: string, unit: string, matchKey: string): WorkCatalogueItemT => ({
   id: nextId++,
   description,
+  descriptionTranslations: {},
   category: null,
   unit,
   clientPrice: 100,

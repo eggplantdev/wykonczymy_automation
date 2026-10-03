@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, type RefObject } from 'react'
 import { snapshotAction } from '@/lib/actions/kosztorys-snapshots'
+import { settleAction } from '@/lib/utils/settle-action'
 
 // S-06 durable net: while the editor is open, take an auto snapshot on a plain interval, gated on the
 // undo-stack revision (S-07) so an idle editor stops writing identical snapshots. The daily GC thins
@@ -36,7 +37,7 @@ export function useAutoSnapshot(
     const id = setInterval(() => {
       if (revisionRef.current === lastSnapshotRevision.current) return
       lastSnapshotRevision.current = revisionRef.current
-      void snapshotAction(investmentId)
+      void settleAction(() => snapshotAction(investmentId))
     }, AUTO_SNAPSHOT_INTERVAL_MS)
     return () => clearInterval(id)
   }, [investmentId, revisionRef])

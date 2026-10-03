@@ -18,6 +18,7 @@ import { planeIcon } from '@/components/kosztorys/editor/plane-icons'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { PLANE_LABELS } from '@/lib/kosztorys/labels'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
+import { copyStageSplit } from '@/lib/kosztorys/stage-split'
 
 export function KosztorysAddMenu() {
   const {
@@ -86,13 +87,13 @@ export function KosztorysAddMenu() {
           </DropdownMenuItem>
           {/* A szablon carries no etapy, so the workbench has nothing to open one on. */}
           {/* Etapy are opened one after another for the same crew on the same terms, so a new one
-              copies the last one's rozliczenie and wykonawca — both stay editable in its header.
+              copies the last one's rozliczenie and pracownicy — both stay editable in its header.
               With nothing to copy the rozliczenie is picked here, never defaulted: it decides which
               crew's stawka prices every quantity booked into the etap. */}
           {!isTemplate &&
             (lastPlane ? (
               <DropdownMenuItem
-                onSelect={() => handleAddStage(lastPlane, lastStage?.workerId ?? null)}
+                onSelect={() => handleAddStage(lastPlane, copyStageSplit(lastStage?.split ?? null))}
               >
                 {planeIcon(lastPlane)}
                 Etap

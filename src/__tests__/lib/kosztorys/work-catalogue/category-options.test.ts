@@ -8,6 +8,7 @@ import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 const item = (category: string | null): WorkCatalogueItemT => ({
   id: 1,
   description: 'Malowanie',
+  descriptionTranslations: {},
   category,
   unit: 'm2',
   clientPrice: 100,

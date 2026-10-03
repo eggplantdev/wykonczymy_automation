@@ -5,6 +5,7 @@ import { refuseDeleteWhen } from '@/hooks/prevent-delete'
 import { investmentDeleteBlocker } from '@/lib/investments/delete-blocker'
 import { guardInvestmentStatusUnlock } from '@/hooks/investments/guard-status-unlock'
 import { guardTemplateStatus } from '@/hooks/investments/guard-template-status'
+import { guardTrashedInvestment } from '@/hooks/investments/guard-trashed-investment'
 import { stampCompletedAt } from '@/hooks/investments/stamp-completed-at'
 import { INVESTMENT_STATUSES, INVESTMENT_STATUS_LABELS } from '@/lib/constants/investment-status'
 import { DEFAULT_COEFFS, DEFAULT_VAT } from '@/lib/kosztorys/constants'
@@ -30,7 +31,12 @@ export const Investments: CollectionConfig = {
     group: { en: 'Finance', pl: 'Finanse' },
   },
   hooks: {
-    beforeChange: [guardInvestmentStatusUnlock, guardTemplateStatus, stampCompletedAt],
+    beforeChange: [
+      guardTrashedInvestment,
+      guardInvestmentStatusUnlock,
+      guardTemplateStatus,
+      stampCompletedAt,
+    ],
     beforeDelete: [refuseDeleteWhen(investmentDeleteBlocker)],
     afterChange: [makeRevalidateAfterChange('investments')],
     afterDelete: [makeRevalidateAfterDelete('investments')],
@@ -74,9 +80,10 @@ export const Investments: CollectionConfig = {
       label: { en: 'Notes', pl: 'Notatki' },
     },
     {
-      name: 'review',
-      type: 'textarea',
-      label: { en: 'Review', pl: 'Opinia' },
+      name: 'reviewRequested',
+      type: 'checkbox',
+      defaultValue: false,
+      label: { en: 'Review requested', pl: 'Prośba o opinię wysłana' },
     },
     // Photos and documents of the site itself — the same `media` rows a promoted lead arrived with,
     // which is why promotion re-points them instead of re-uploading.
@@ -156,11 +163,13 @@ export const Investments: CollectionConfig = {
       defaultValue: 0,
       label: { en: 'Global discount value', pl: 'Rabat globalny — wartość' },
     },
-    // Set by the trash actions only (src/lib/actions/investment-trash.ts). Deliberately not
-    // `deletedAt`: that name is Payload's own `trash: true` column, which fails reads closed.
+    // Written only by the trash actions (overrideAccess) — closed to REST, which would skip their
+    // checks. Deliberately not `deletedAt`: that name is Payload's own `trash: true` column, which
+    // fails reads closed.
     {
       name: 'trashedAt',
       type: 'date',
+      access: { create: () => false, update: () => false },
       admin: { hidden: true },
       label: { en: 'Trashed at', pl: 'W koszu od' },
     },

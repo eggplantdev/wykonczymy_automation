@@ -1,6 +1,9 @@
 'use client'
 
 import { createColumnHelper } from '@tanstack/react-table'
+import { translationText } from '@/lib/i18n/description-translations'
+import { LANGUAGE_SHORT, TRANSLATION_LANGUAGES } from '@/lib/i18n/languages'
+import { ALL_TRANSLATION_COLUMN_KEYS, translationColumnKey } from '@/lib/kosztorys/translation-column-keys'
 import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPercentPrecise, formatRate } from '@/lib/kosztorys/format'
@@ -140,6 +143,21 @@ const descriptionColumn = descriptionColumnWith({
   nearDuplicates: new Map(),
 })
 
+const translationColumns = TRANSLATION_LANGUAGES.map((language) =>
+  col.accessor((row) => translationText(row.descriptionTranslations, language), {
+    id: translationColumnKey(language),
+    header: `Opis pracy (${LANGUAGE_SHORT[language]})`,
+    size: 320,
+    meta: { minWidth: 'min-w-112' },
+    cell: (info) => <span className="block">{info.getValue()}</span>,
+  }),
+)
+
+// Translations are worked on, not read while pricing, so the cennik opens without them.
+export const WORK_CATALOGUE_DEFAULT_VISIBILITY = Object.fromEntries(
+  ALL_TRANSLATION_COLUMN_KEYS.map((id) => [id, false]),
+)
+
 const categoryColumn = col.accessor((row) => row.category ?? '', {
   id: 'category',
   header: 'Kategoria',
@@ -262,6 +280,7 @@ export function getWorkCatalogueColumns({
   return [
     lpColumn(ordinals),
     descriptionColumnWith({ otherUnitIds: new Set(usage?.otherUnitIds), nearDuplicates }),
+    ...translationColumns,
     categoryColumn,
     unitColumn,
     clientPriceColumn,

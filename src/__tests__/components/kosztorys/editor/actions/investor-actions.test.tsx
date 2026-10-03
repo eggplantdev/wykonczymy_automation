@@ -111,4 +111,18 @@ describe('useInvestorActions — „Udostępnij"', () => {
     expect(toastMessage).not.toHaveBeenCalledWith('Nie udało się skopiować.', 'error')
     expect(writeText).not.toHaveBeenCalled()
   })
+
+  it('says the connection dropped when the mint request never arrived (EX-940)', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    ensureShareLinkAction.mockRejectedValue(new TypeError('Failed to fetch'))
+
+    const result = await share()
+
+    expect(result.current.shareToken).toBeNull()
+    expect(toastMessage).toHaveBeenCalledWith(
+      expect.stringMatching(/Brak połączenia z serwerem/),
+      'error',
+    )
+    expect(writeText).not.toHaveBeenCalled()
+  })
 })

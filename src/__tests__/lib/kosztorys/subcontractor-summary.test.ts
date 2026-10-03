@@ -6,10 +6,12 @@ import {
 import type { WorkerRefT } from '@/types/reference-data'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import type { SubcontractorPayoutRowT } from '@/types/transfers'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 
 const payout = (workerId: number | null, total: number, name = 'x'): SubcontractorPayoutRowT => ({
   workerId,
   total,
+  bonus: 0,
   name,
 })
 
@@ -18,7 +20,7 @@ const stage = (id: number, workerId: number | null): KosztorysStageT => ({
   ordinal: id,
   label: null,
   plane: 'w_tools',
-  workerId,
+  split: workerId == null ? null : oneWorkerSplit(workerId),
 })
 
 const worker = (id: number, name: string): WorkerRefT => ({
@@ -26,6 +28,7 @@ const worker = (id: number, name: string): WorkerRefT => ({
   name,
   role: 'EMPLOYEE',
   email: `${name.toLowerCase()}@t.com`,
+  language: null,
 })
 
 describe('computeSubcontractorSummary', () => {
@@ -139,7 +142,9 @@ describe('computeSubcontractorSummary — per-worker attribution', () => {
     it('no_executed_work — etapy assigned, nothing earned on them yet', () => {
       expect(stateFor(0, 150, [stage(10, 1)])).toBe('no_executed_work')
       expect(
-        stateFor(0, 150, [{ id: 10, ordinal: 1, label: null, plane: null, workerId: 1 }]),
+        stateFor(0, 150, [
+          { id: 10, ordinal: 1, label: null, plane: null, split: oneWorkerSplit(1) },
+        ]),
       ).toBe('no_executed_work')
     })
 
@@ -253,5 +258,47 @@ describe('subcontractorRowTotals — „Razem" cannot drift from the headline', 
     })
     expect(subcontractorRowTotals(summary.rows).remaining).toBe(400)
     expect(summary.remaining).toBe(1000)
+  })
+})
+
+describe('computeSubcontractorSummary — premia', () => {
+  const withBonus = (workerId: number | null, paid: number, bonus: number) => ({
+    ...payout(workerId, paid, 'Anna'),
+    bonus,
+  })
+
+  it('closes the nadpłata it was booked for, on the row and the headline alike', () => {
+    const summary = computeSubcontractorSummary(1000, [withBonus(1, 1205.01, 205.01)], {
+      byWorker: new Map([[1, 1000]]),
+      stages: [stage(10, 1)],
+    })
+
+    expect(summary.dueNet).toBe(1000)
+    expect(summary.bonusTotal).toBe(205.01)
+    expect(summary.remaining).toBe(0)
+    expect(summary.rows[0]).toMatchObject({ bonus: 205.01, remaining: 0, state: 'settled' })
+  })
+
+  it('reads a worker holding only a premia as overpaid, not as having no etapy', () => {
+    const summary = computeSubcontractorSummary(0, [withBonus(1, 300, 100)], {
+      byWorker: new Map(),
+      stages: [],
+    })
+
+    expect(summary.rows[0]).toMatchObject({ remaining: -200, state: 'overpaid' })
+  })
+
+  it('carries the premia into „Razem"', () => {
+    const summary = computeSubcontractorSummary(1000, [withBonus(1, 1300, 300)], {
+      byWorker: new Map([[1, 1000]]),
+      stages: [stage(10, 1)],
+    })
+
+    expect(subcontractorRowTotals(summary.rows)).toEqual({
+      due: 1000,
+      bonus: 300,
+      paid: 1300,
+      remaining: 0,
+    })
   })
 })

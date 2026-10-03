@@ -67,6 +67,8 @@ export async function captureLead(
 ): Promise<{ lead: Lead; created: boolean }> {
   const { autoReply = 'send', skipRevalidation = false, expectedAssets } = options
   const { lead, created } = await storeLead(payload, input, { skipRevalidation })
+  // A tombstone's statuses were never reset, so a `pending` one would mail sales an empty lead.
+  if (!created && lead.erasedAt) return { lead, created }
 
   const runNotify = created || lead.notifyStatus === 'pending'
   const runAutoReply = created || lead.autoReplyStatus === 'pending'

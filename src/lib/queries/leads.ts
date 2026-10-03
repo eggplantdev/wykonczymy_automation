@@ -20,9 +20,14 @@ export type LeadsPageT = {
   rows: LeadRowT[]
   paginationMeta: PaginationMetaT
   /** Across every lead, not this page — it drives the „N nowych" heading and the nav badge, which
-   * describe the whole queue and must not shrink because the reader paged or searched. */
+   * describe the whole queue and must not shrink because the reader paged, searched or filtered. */
   newCount: number
 }
+
+// An erased lead keeps its `trashedAt`, so this one condition hides tombstones as well.
+const LIVE_LEAD: Where = { trashedAt: { exists: false } }
+
+const NO_FILES: Where = { assets: { exists: false } }
 
 const asString = (value: unknown): string => (typeof value === 'string' ? value : '')
 
@@ -116,15 +121,24 @@ async function resolvePromotedInvestments(
 }
 
 const getLeadsPage = unstable_cache(
-  async (page: number, limit: number, sort: string, search: string): Promise<LeadsPageT> => {
+  async (
+    page: number,
+    limit: number,
+    sort: string,
+    search: string,
+    noFiles: boolean,
+  ): Promise<LeadsPageT> => {
     const elapsed = perfStart()
     const payload = await getPayload({ config })
-    const where = buildLeadSearch(search)
+    const searchWhere = buildLeadSearch(search)
+    const where: Where = {
+      and: [LIVE_LEAD, ...(searchWhere ? [searchWhere] : []), ...(noFiles ? [NO_FILES] : [])],
+    }
 
     const [result, newResult] = await Promise.all([
       payload.find({
         collection: 'leads',
-        ...(where ? { where } : {}),
+        where,
         sort,
         page,
         limit,
@@ -133,7 +147,7 @@ const getLeadsPage = unstable_cache(
       }),
       payload.count({
         collection: 'leads',
-        where: { contactStatus: { equals: 'new' } },
+        where: { and: [LIVE_LEAD, { contactStatus: { equals: 'new' } }] },
         overrideAccess: true,
       }),
     ])
@@ -182,7 +196,7 @@ const getLeadsPage = unstable_cache(
       newCount: newResult.totalDocs,
     }
   },
-  ['leads-page-v2'],
+  ['leads-page-v3'],
   // `investments` because the row now carries the promoted inwestycja's name and its media ids:
   // removing a photo on the inwestycja's own page would otherwise leave the zgłoszenie believing
   // the file is still there, which hides it from the transfer with no way to send it again.
@@ -194,8 +208,9 @@ export async function fetchLeadsPage(
   limit: number,
   sort: string,
   search: string,
+  noFiles: boolean,
 ): Promise<LeadsPageT> {
   const session = await requireAuth(MANAGEMENT_ROLES)
   if (!session.success) throw new Error('Nie jesteś zalogowany')
-  return getLeadsPage(page, limit, sort, search)
+  return getLeadsPage(page, limit, sort, search, noFiles)
 }

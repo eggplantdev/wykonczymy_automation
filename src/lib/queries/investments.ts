@@ -13,7 +13,7 @@ import {
 import { owedWorkersByInvestment } from '@/lib/kosztorys/worker-payout-pairs'
 import { shapeInvestments } from '@/lib/queries/shape-investments'
 import { perfStart } from '@/lib/perf'
-import { fetchReferenceData } from '@/lib/queries/reference-data'
+import { fetchReferenceData, findInvestmentRef } from '@/lib/queries/reference-data'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { requireManagementPage } from '@/lib/auth/require-management-page'
@@ -66,8 +66,7 @@ export async function getInvestmentName(id: string): Promise<string | null> {
   const { success } = await requireAuth(MANAGEMENT_ROLES)
   if (!success) return null
 
-  const { investments } = await fetchReferenceData()
-  return investments.find((investment) => String(investment.id) === id)?.name ?? null
+  return findInvestmentRef(await fetchReferenceData(), Number(id))?.investment.name ?? null
 }
 
 export async function getInvestment(id: string) {

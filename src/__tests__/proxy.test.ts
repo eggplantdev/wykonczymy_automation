@@ -16,6 +16,21 @@ describe('proxy — a visitor without a session', () => {
     expect(redirectsToLogin('/p/Nikolajewicz/abc-DEF_123')).toBe(false)
   })
 
+  // A redirect here would also bounce the form's Server Action POST, so a send would silently fail.
+  it('reaches the worker’s report link, and its send', () => {
+    expect(redirectsToLogin('/zgloszenie-prac/Nikolajewicz/abc-DEF_123')).toBe(false)
+    const send = proxy(
+      new NextRequest('http://localhost:3000/zgloszenie-prac/Nikolajewicz/abc-DEF_123', {
+        method: 'POST',
+      }),
+    )
+    expect(send.headers.get('location')).toBeNull()
+  })
+
+  it('is sent to log in for the kierownik’s report queue', () => {
+    expect(redirectsToLogin('/zgloszenia-prac')).toBe(true)
+  })
+
   it('is sent to log in for the owner’s worker podgląd', () => {
     expect(redirectsToLogin('/podglad-pracownika/Nikolajewicz-59/124')).toBe(true)
   })

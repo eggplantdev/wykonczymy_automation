@@ -105,6 +105,16 @@ import * as migration_20260929_2_drop_kosztorys_presets from './20260929_2_drop_
 import * as migration_20260929_3_add_quote_investment_status from './20260929_3_add_quote_investment_status'
 import * as migration_20260929_4_quote_is_the_default_status from './20260929_4_quote_is_the_default_status'
 import * as migration_20260929_5_worker_view_hide_planned from './20260929_5_worker_view_hide_planned'
+import * as migration_20260930_1_add_kosztorys_stage_workers from './20260930_1_add_kosztorys_stage_workers'
+import * as migration_20260930_2_add_worker_reports from './20260930_2_add_worker_reports'
+import * as migration_20260930_3_cash_register_trashed_at from './20260930_3_cash_register_trashed_at'
+import * as migration_20261001_0_description_translations from './20261001_0_description_translations'
+import * as migration_20261001_1_users_trashed_at from './20261001_1_users_trashed_at'
+import * as migration_20261001_2_vehicles_equipment_trashed_at from './20261001_2_vehicles_equipment_trashed_at'
+import * as migration_20261002_0_leads_trashed_erased_at from './20261002_0_leads_trashed_erased_at'
+import * as migration_20261002_1_investments_review_requested from './20261002_1_investments_review_requested'
+import * as migration_20261002_2_section_translations from './20261002_2_section_translations'
+import * as migration_20261002_3_add_bonus_transfer_type from './20261002_3_add_bonus_transfer_type'
 
 export const migrations = [
   {
@@ -641,5 +651,55 @@ export const migrations = [
     up: migration_20260929_5_worker_view_hide_planned.up,
     down: migration_20260929_5_worker_view_hide_planned.down,
     name: '20260929_5_worker_view_hide_planned',
+  },
+  {
+    up: migration_20260930_1_add_kosztorys_stage_workers.up,
+    down: migration_20260930_1_add_kosztorys_stage_workers.down,
+    name: '20260930_1_add_kosztorys_stage_workers',
+  },
+  {
+    up: migration_20260930_2_add_worker_reports.up,
+    down: migration_20260930_2_add_worker_reports.down,
+    name: '20260930_2_add_worker_reports',
+  },
+  {
+    up: migration_20260930_3_cash_register_trashed_at.up,
+    down: migration_20260930_3_cash_register_trashed_at.down,
+    name: '20260930_3_cash_register_trashed_at',
+  },
+  {
+    up: migration_20261001_0_description_translations.up,
+    down: migration_20261001_0_description_translations.down,
+    name: '20261001_0_description_translations',
+  },
+  {
+    up: migration_20261001_1_users_trashed_at.up,
+    down: migration_20261001_1_users_trashed_at.down,
+    name: '20261001_1_users_trashed_at',
+  },
+  {
+    up: migration_20261001_2_vehicles_equipment_trashed_at.up,
+    down: migration_20261001_2_vehicles_equipment_trashed_at.down,
+    name: '20261001_2_vehicles_equipment_trashed_at',
+  },
+  {
+    up: migration_20261002_0_leads_trashed_erased_at.up,
+    down: migration_20261002_0_leads_trashed_erased_at.down,
+    name: '20261002_0_leads_trashed_erased_at',
+  },
+  {
+    up: migration_20261002_1_investments_review_requested.up,
+    down: migration_20261002_1_investments_review_requested.down,
+    name: '20261002_1_investments_review_requested',
+  },
+  {
+    up: migration_20261002_2_section_translations.up,
+    down: migration_20261002_2_section_translations.down,
+    name: '20261002_2_section_translations',
+  },
+  {
+    up: migration_20261002_3_add_bonus_transfer_type.up,
+    down: migration_20261002_3_add_bonus_transfer_type.down,
+    name: '20261002_3_add_bonus_transfer_type',
   },
 ]

@@ -1,11 +1,12 @@
 import { Suspense } from 'react'
+import { Lock } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import { isAdminOrOwnerRole } from '@/lib/auth/roles'
 import { requireManagementPage } from '@/lib/auth/require-management-page'
 import { parseInvestmentId } from '@/lib/queries/investment-id'
 import { parsePagination } from '@/lib/utils/pagination'
 import { parseTransferSort } from '@/lib/queries/transfer-sort'
-import { fetchReferenceData } from '@/lib/queries/reference-data'
+import { fetchReferenceData, findInvestmentRef } from '@/lib/queries/reference-data'
 import { fetchFilteredByType, fetchCategoryBreakdowns } from '@/lib/queries/transfer-totals'
 import { deriveFinancials } from '@/lib/db/investment-financials'
 import { calculateMargin } from '@/lib/db/calculate-margin'
@@ -23,6 +24,8 @@ import { InfoList } from '@/components/ui/info-list'
 import { FinancialStats } from '@/components/investments/financial-stats'
 import { buildInvestmentInfoFields } from '@/components/investments/investment-info-fields'
 import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
+import { investmentLockOf } from '@/lib/constants/investment-lock'
+import { RequestReviewButton } from '@/components/investments/request-review-button'
 import { SheetButton } from '@/components/dialogs/sheet-button'
 import { OpenKosztorysV2Button } from '@/components/kosztorys/open-kosztorys-v2-button'
 import type { DynamicPagePropsT } from '@/types/page'
@@ -52,8 +55,9 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
   ])
   console.log(`[PERF] inwestycje/${id} data fetch ${step()}ms`)
 
-  const investment = refData.investments.find((inv) => inv.id === investmentId)
-  if (!investment) notFound()
+  const found = findInvestmentRef(refData, investmentId)
+  if (!found) notFound()
+  const { investment, trashed } = found
 
   const financials = deriveFinancials(
     typeDistribution,
@@ -72,9 +76,21 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
 
   return (
     <PageWrapper title={investment.name}>
+      {trashed && (
+        <p role="status" className="text-muted-foreground flex items-center gap-2 text-sm">
+          <Lock className="size-4 shrink-0" aria-hidden />
+          Inwestycja jest w koszu — tylko do odczytu. Aby ją zmienić, przywróć ją z Kosza.
+        </p>
+      )}
       <div className="flex flex-wrap items-center gap-2">
-        <EditInvestmentDialog investment={investment} showLabel />
-        <SheetButton investmentId={investmentId} hasSheet={investment.hasSheet} />
+        {!trashed && <EditInvestmentDialog investment={investment} showLabel />}
+        {investmentLockOf({ status: investment.status, trashed }) === 'completed' && (
+          <RequestReviewButton investment={investment} showLabel />
+        )}
+        {/* Without a sheet this is the setup dialog — a write. */}
+        {(!trashed || investment.hasSheet) && (
+          <SheetButton investmentId={investmentId} hasSheet={investment.hasSheet} />
+        )}
         <OpenKosztorysV2Button investmentId={investmentId} />
       </div>
       <InfoList items={buildInvestmentInfoFields(investment)} />

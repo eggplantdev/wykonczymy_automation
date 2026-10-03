@@ -376,11 +376,15 @@ or signed URLs, a separate decision.
 Pracownik / podwykonawca dostaje od ownera **imienny** widok kosztorysu inwestycji: link `/p/⟨nazwisko⟩/[token]`
 albo PDF, oba z menu „Pracownicy" w edytorze. Link i PDF generuje ADMIN / OWNER / MANAGER (jak u
 inwestora); ustawienia widoku pracownika są **jedne na firmę** i zapisuje je tylko ADMIN / OWNER.
+Kliknięcie „Link" / „Link do zgłoszeń" działa jak „Udostępnij" inwestora: oddaje żywy link albo
+wydaje nowy i kopiuje go do schowka — u pracownika zablokowanego tylko pokazuje link do wyłączenia.
 Część 2 (pracownik wpisuje ilości w swoich etapach) to osobna zmiana — link identyfikuje pracownika
 właśnie po to, żeby jej nie przepisywać.
 
 - **Zakres = przypisanie etapu.** Pracownik widzi wszystkie pozycje (Przedmiar nie dzieli się na
-  etapy), ale tylko kolumny swoich etapów. Etap bez rozliczenia albo etapy na dwóch rozliczeniach →
+  etapy), ale tylko kolumny swoich etapów — także etapu, który dzieli z innymi (EX-943). Na takim
+  etapie ilości i kwoty w wierszach są **całego etapu**; jego część stoi w podsumowaniu w kolumnie
+  „Twój udział", a współpracowników dokument nie wymienia z imienia ani kwoty. Etap bez rozliczenia albo etapy na dwóch rozliczeniach →
   menu blokuje link i PDF („Ustaw rozliczenie etapu" / „Etapy pracownika mają różne rozliczenia");
   pracownik bez etapów → link działa i mówi „Brak przypisanych etapów". Odwołanie tylko świadomie,
   także po dezaktywacji pracownika — i zawsze osiągalne: blokada wyłącza generowanie linku, nie jego
@@ -410,14 +414,103 @@ właśnie po to, żeby jej nie przepisywać.
   wpisy" (domyślnie zaznaczony): po pierwszym wpisie „Przedmiar" i „Wartość przedmiaru netto"
   schodzą z dokumentu, a sumy sekcji w PDF liczą wtedy wartość wykonaną. „Pozostało" i podsumowanie
   nie podlegają checkboxowi. Jedna funkcja (`workerDataHiddenColumns`) karmi link, Podgląd i PDF.
-- **Podsumowanie**: wartość przedmiaru po jego stawce → wykonane per etap + razem → wypłacone (lista:
-  data i kwota, **bez opisu** — opis bywa wewnętrzną notatką) → pozostało do wypłaty; nadwyżka
-  wypłat to „Nadpłata" z dodatnią kwotą, nigdy liczba ujemna.
+- **Podsumowanie** (bez wartości przedmiaru — pracownik rozliczany jest z pracy wykonanej): trzy
+  tabele jedna pod drugą, w linku i w PDF w tej samej kolejności. (1) „Wykonane": etap | Wartość
+  etapu | Twój udział | Kwota netto + „Razem" pod obiema kwotami; dwie środkowe kolumny są tylko,
+  gdy któryś jego etap jest wspólny, a jego kwota to udział po ewentualnym proporcjonalnym
+  zmniejszeniu, więc „Razem" sumuje udziały. (2) „Twoje rozliczenie": wykonane razem → wypłacone →
+  pozostało do wypłaty; nadwyżka wypłat to „Nadpłata" z dodatnią kwotą, nigdy liczba ujemna.
+  (3) „Wypłaty": data | opis (pisany dla pracownika) | kwota + „Razem".
 - **PDF** to ten sam generator co oferta, z projekcji pracownika (nigdy z wierszy edytora, które
   niosą cenę klienta): A4 poziomo, bo każdy etap dokłada dwie kolumny; kwoty z groszami, bo stawka
   7,50 zł zaokrąglona do „8 zł" to inna stawka. Na papier idą te same kolumny, w tej samej
   kolejności, co w podglądzie pracownika — po tej samej regule wpisów, więc „Σ etapów" i „Wartość
   wykonana" pojawiają się dopiero po pierwszym wpisie.
+
+### Zgłoszenia wykonanych prac — pracownik zgłasza ilości, kierownik przyjmuje (EX-947, 2026-09-30)
+
+- **Dwa osobne linki.** Rozpiska pracownika (`/p/…`) to podsumowanie i rozliczenie; link „Zgłoszenie
+  prac" (`/zgloszenie-prac/…`) tylko zbiera ilości. Oba z menu „Pracownicy", pod tą samą blokadą:
+  kto nie może mieć rozpiski (brak etapu, etap bez rozliczenia, mieszane rozliczenia), ten nie
+  zgłasza. Działa na telefonie — jedyny wyjątek od wąskiego zakresu telefonu.
+- **Pracownik wpisuje ilość w j.m. pozycji** w kolumnie „Zgłaszam" na swojej rozpisce, plus prace
+  spoza rozpiski (opis, j.m., ilość). Szkic żyje w przeglądarce; do bazy trafia dopiero wysłane
+  zgłoszenie. Wysłane jest ostateczne — poprawka to nowe zgłoszenie, a złe kierownik odrzuca. Na
+  zakończonej inwestycji wysyłka jest zablokowana.
+- **Kierownik** widzi zgłoszenia w nawigacji („Zgłoszenia wykonanych prac", z licznikiem oczekujących we
+  wszystkich inwestycjach) i w przycisku na pasku rozpiski. Przyjęcie dzieje się w rozpisce: wybiera
+  etap zgłaszającego albo „Nowy etap" (następny numer, zgłaszający na 100%), może poprawić ilości,
+  a pracom spoza rozpiski daje sekcję i Cenę j.m. Nigdy do etapu innej ekipy.
+- **Przyjęcie DODAJE** do ilości etapu — pracownik zgłasza do tego samego etapu wiele razy. Przed
+  przyjęciem zapisuje się automatyczna wersja, więc da się je cofnąć z „Wczytaj".
+- **Decyzję da się zmienić.** Przyjęta praca zostaje zaznaczona i edytowalna: zmiana ilości
+  przesuwa etap o różnicę, odznaczenie zdejmuje ją z etapu. Odrzucone zgłoszenie — i odznaczona
+  praca — można przyjąć później. Póki coś w zgłoszeniu jest przyjęte, resztę dodaje się do tego
+  samego etapu; jeśli ten etap usunięto albo pracownika w nim już nie ma, najpierw trzeba odznaczyć
+  przyjęte prace. Zmiana zrobiona w innym oknie odmawia zapisu z prośbą o odświeżenie.
+- **„Przyjęte" nie wraca po przywróceniu wersji.** Przywrócenie wersji sprzed przyjęcia zdejmuje
+  dodane ilości, a zgłoszenie dalej czyta „Przyjęte" — świadomie przyjęta rozbieżność.
+- **Zgłoszenie przeżywa podmianę rozpiski** (przywrócenie wersji, import, „Wczytaj szablon",
+  „Wyczyść kosztorys"): linia, której pozycja zniknęła, przychodzi jako „do przypisania ręcznie".
+  Szkic takie linie po prostu gubi, z komunikatem.
+- **Przyjęta praca spoza rozpiski** staje się pozycją bez przedmiaru z wykonaną pracą, więc pojawia
+  się w „Problemach" jako „wykonane bez przedmiaru" — to sygnał, że ofertę trzeba uzupełnić.
+
+### Tłumaczenia dla pracownika — ukraiński i rosyjski (EX-948, 2026-10-01)
+
+~90% ekipy to Ukraińcy, więc polski jest wyjątkiem, nie domyślnym przypadkiem. Ta zmiana tłumaczy
+**link „Zgłoszenie prac"** w całości: obie siatki, „Prace spoza rozpiski", wysyłkę, historię
+wysłanych i strony z komunikatami. Rozpiska `/p`, PDF pracownika i „Podgląd pracownika" przyjdą
+w kolejnych częściach EX-946, na tym samym rusztowaniu.
+
+- **Język pracownika jest opcjonalny** (Polski / Українська / Русский); pusty = polski, kierownik
+  nie musi go wypełniać. Na stronie jest przełącznik języka — wybór pamięta przeglądarka, osobno dla
+  każdego pracownika, i ma pierwszeństwo przed językiem zapisanym. Nowy język to wpis na liście
+  i słownik, bez migracji.
+- **Tłumaczenie opisu prac żyje na wierszu**, jedno na język — osobno na pozycji i na wpisie
+  katalogu. Rozpiska ma kolumny „Opis prac (UA)" / „Opis prac (RU)" (ukryte domyślnie), katalog —
+  „Opis pracy (UA)" / „Opis pracy (RU)". Bez tłumaczenia pracownik widzi polski opis. Polskiego oryginału pod tłumaczeniem nie
+  ma — do tego służy przełącznik.
+- **Kopiuje się jak opis**: wybór pracy z katalogu i import z arkusza (dla opisów zgodnych
+  z katalogiem) przenoszą tłumaczenie katalogu do wiersza. Potem to zwykły tekst na wierszu —
+  poprawka w katalogu nie rusza istniejących pozycji, tak jak z opisem.
+- **Zmiana polskiego opisu NIE kasuje tłumaczenia.** Tłumaczenie pamięta opis, z którego powstało;
+  gdy opis się zmieni, rozpiska pokazuje je w „Problemach" jako „z nieaktualnym tłumaczeniem",
+  a powrót do starego opisu sam gasi ostrzeżenie. Ostrzega się tylko kierownika — pracownik widzi
+  nieaktualne tłumaczenie takie, jakie jest. Katalog ma w „Problemach" „bez tłumaczenia" i „z
+  nieaktualnym tłumaczeniem", osobno dla każdego języka. Przycisk „przetłumacz ponownie" (AI)
+  przyjdzie z osobną zmianą — ta nie woła AI.
+- **„Popraw literówki" utrzymuje aktualne tłumaczenie aktualnym** — literówka nie zmienia sensu.
+  Tłumaczenie, które już było nieaktualne, zostaje nieaktualne.
+- **„Zapisz do katalogu" nad istniejącym wpisem**: dla każdego języka osobno wygrywa tłumaczenie
+  pozycji, jeśli je ma; inaczej katalog zachowuje swoje.
+- **Prace spoza rozpiski wpisane po ukraińsku zostają jak wpisane** — kierownik przegląda je
+  w oryginale.
+- **Uzupełnianie hurtem to skrypt do powtarzania, nie jednorazowa migracja**
+  (`src/scripts/fill-description-translations.ts`, opis uruchomienia w nagłówku). Liczy braki sam,
+  z aktualnych danych, dopasowuje po polskim tekście opisu, wypełnia **tylko puste** tłumaczenia
+  i nigdy nie nadpisuje wpisanego ręcznie — drugie uruchomienie wypełnia 0. Zakres: katalog
+  i pozycje otwartych inwestycji (z szablonami). Bez `--apply` niczego nie zapisuje; na produkcji
+  uruchamia go człowiek. Zapisuje z pominięciem cache — katalog i rozpiski pokazują nowe teksty po
+  pierwszej edycji katalogu albo komórki rozpiski.
+- **Nazwy sekcji to jedna wspólna lista, nie pole na wierszu** (EX-965, 2026-10-02). „Kuchnia"
+  w każdej rozpisce to ta sama kuchnia, więc tłumaczenie wpisuje się raz — klucz to nazwa po
+  ujednoliceniu (wielkość liter, spacje). **Samodzielna liczba w nazwie jest zmienną**: „Łazienka 1"
+  i „Łazienka 2" dzielą jeden wpis, a każda sekcja dostaje z powrotem swoją liczbę. Kierownik wpisuje
+  prawdziwe liczby, a zapis odrzuca tłumaczenie z innymi liczbami niż w nazwie (albo w innej
+  kolejności) — inaczej dwa pokoje mogłyby się zamienić. „230V" czy „c.o." to zwykły tekst.
+  Pole na wierszu sekcji (jak przy opisach) odrzucono: id sekcji nie przeżywa przywrócenia,
+  szablonu ani importu, więc tłumaczenie musiałoby jechać przez ~9 ścieżek kopiowania, a nazw jest
+  tylko ~22. Dwie pisownie z przeredagowanego szablonu („…i oświetlenie" / „…i oświetleniowa") to
+  po prostu dwa wpisy. Sekcja nazwana dosłownie „#" ma własny wpis, nie wspólny z numerowanymi
+  pokojami.
+- **Edycja: „Tłumaczenie sekcji…" w menu sekcji.** Pokazuje to, co zobaczy pracownik dla tej
+  sekcji; puste pola zapisane razem usuwają wpis. Lista startowa (nazwy z szablonów) przyszła
+  z migracją; każdą nową nazwę uzupełnia się w tym oknie, bez wdrożenia.
+- **Brak tłumaczenia nazwy = polska nazwa, bez wpisu w „Problemach"** — nazw jest kilkadziesiąt
+  i powtarzają się, więc brak widać od razu na linku, a ostrzeżenie w każdej rozpisce byłoby szumem.
+  Zakres na razie to link „Zgłoszenie prac"; `/p`, „Podgląd pracownika" i PDF (EX-966) użyją tej
+  samej funkcji renderującej (`renderSectionName`).
 
 ## Protokół odbioru prac — druk z menu „Inwestor" (2026-09-28)
 
@@ -596,7 +689,7 @@ j.m.` wśród wierszy policzonych** (wpisane z palca są wykluczone: to decyzje 
   pod tabelką, a per wiersz byłoby tym samym zdaniem powtórzonym w kółko.
 - **Import zastępuje w całości i NIC nie przenosi ze starego drzewa — także tego, czego arkusz nie
   ma** (właściciel, 2026-08-24; zamyka EX-717 jako „nie robimy"). Dla pracy, którą import rozpoznał
-  jako tę samą, przepada etykieta etapu, plan „z narzędziami / bez narzędzi", przypisany pracownik
+  jako tę samą, przepada etykieta etapu, plan „z narzędziami / bez narzędzi", podział etapu na pracowników
   i wpisane w aplikacji wykonanie — arkusz żadnego z nich nie zna, więc nie są zastępowane, tylko
   znikają. To **nie jest** przeoczenie do naprawienia: „zastąp" znaczy zastąp, a przenoszenie
   metadanych dla części prac zrobiłoby z jednego przycisku dwa różne zachowania zależne od tego, czy
@@ -921,6 +1014,33 @@ padły wprost od właściciela, nie są domysłem implementacji:
   nie ma; dopasowanie jest **case-insensitive**, czyli nazwy różniące się wielkością liter to dla
   właściciela jedna sekcja.
 
+### „Nowa praca" — formularz zamiast pustego wiersza (EX-951, 2026-09-30)
+
+Każde wejście, które dodaje pracę ręcznie — „Wstaw powyżej/poniżej" w menu wiersza, „Dodaj pracę" na
+pasku sekcji i w jej menu, „Dodaj → Praca → [sekcja]" w pasku narzędzi — otwiera formularz: opis,
+j.m., „Cena j.m." i obie stawki podwykonawcy (źródło „auto" / kwota / mnożnik, jak w katalogu).
+Praca powstaje dopiero przy zapisie, **od razu wypełniona** — pusty wiersz „Nowa praca" do
+dopisywania w siatce zniknął ze wszystkich ścieżek. Rozstrzygnięcia właściciela:
+
+- **Miejsce:** „Wstaw powyżej/poniżej" kładzie pracę przy wierszu, z którego go wywołano; pozostałe
+  wejścia — na koniec sekcji. Bez żadnej sekcji „Dodaj → Praca" najpierw zakłada sekcję.
+- **Bez pola „Przedmiar"** — przedmiar wpisuje się w siatce, jak dotąd. „auto" przy stawce znaczy
+  „bez nadpisania", nie zero.
+- **„Nie zamykaj po zapisaniu"** czyści formularz; następna praca ląduje **pod właśnie zapisaną**,
+  a „na koniec sekcji" zostaje na końcu. Zwinięta sekcja rozwija się po zapisie. Stawka powyżej
+  65% ceny daje ostrzeżenie toastem (ten sam sufit, co wyżej). Dodanie nie wchodzi na stos
+  „Cofnij".
+- **„Dodaj pracę do katalogu prac"** — ptaszek, zawsze odznaczony na starcie. Dopiero z nim pojawia
+  się „Kategoria", podpowiedziana nazwą sekcji bez numeru porządkowego. Wpis w katalogu zapisuje się
+  w **tej samej transakcji** co praca — albo oba, albo nic.
+- **Kolizja w katalogu** (ten sam opis + j.m., reguła `matchKey`) nie jest błędem, tylko pytaniem
+  z trzema odpowiedziami, z cenami „stare → nowe": **„Nadpisz w katalogu"**, **„Tylko do
+  kosztorysu"** i **„Wróć"** (Escape i klik obok to też „Wróć"). „Tylko do kosztorysu" istnieje,
+  bo odmowa nadpisania katalogu nie jest odmową pracy: właściciel chce wtedy pracę w kosztorysie,
+  a katalog nietknięty — tak/nie tego nie wyrazi. Escape nigdy niczego nie zapisuje. Przy
+  nadpisaniu kategoria z katalogu **zostaje** domyślnie (przełącznik „Zostaw kategorię
+  z katalogu").
+
 ## Domyślne
 
 PLN • netto+brutto z `vat_rate` per pozycja • hard-delete • reorder strzałkami
@@ -978,6 +1098,26 @@ to dalsza, opcjonalna warstwa — nie mieszać jej do tej zmiany.
 `plane`), nie na transakcji — bo most transakcja→etap raz już istniał i został wyrwany (EX-536,
 migracja `20260721_0`), a domknięcie go kosztowało dwie poprawki na spójność tagów, gdy wiersz
 nadrzędny się przesuwał. Przypisanie na etapie tego problemu nie ma.
+
+**Kilku pracowników na etap (EX-943).** Etap ma **podział**: listę osób (`kosztorys_stage_workers`)
+i tryb — procentowo albo kwotowo — jeden na etap. Każda osoba poza jedną ma wpisaną wartość, a jedna
+bierze **resztę**. Dzielona pula to wykonana praca etapu na jego rozliczeniu, przed rabatem
+(pomiar × stawka podwykonawcy) — ta sama liczba, która wcześniej szła w całości do jednej osoby.
+Reguły właściciela (2026-09-30):
+
+- **Nie dzielimy pieniędzy, których nie ma.** Pula 0 → każdy ma 0; stała kwota nie może przy zapisie
+  przekroczyć bieżącej puli, suma procentów nie może przekroczyć 100, żaden udział nie jest ujemny.
+- **Pula spadła po zapisie** (pomiar poprawiony w dół, tańsze rozliczenie) — tej edycji nikt nie
+  blokuje, więc stałe kwoty kurczą się proporcjonalnie, reszta dostaje 0, a etap dostaje znacznik
+  „popraw podział" w nagłówku i w filtrze problemów („z podziałem do poprawienia").
+- **Etap bez rozliczenia nikomu nic nie liczy** i flaguje każdego członka podziału.
+- **„Dodaj etap" kopiuje podział ostatniego**: procenty przechodzą, kwoty się zerują (nowy etap nie
+  ma puli, a limit odrzuciłby każdą kwotę).
+- Jedna reguła arytmetyczna (`splitStagePool`) dla obu ścieżek pieniędzy — panelu edytora i
+  „Rozlicz wypłaty" — żeby ekran nie mógł przypisać komuś innej kwoty niż wypłaty.
+
+Istniejące przypisania przeszły migracją jako podział jednoosobowy (ta osoba bierze resztę), więc
+żadna liczba się nie ruszyła. `kosztorys_stages.worker_id` zostaje do osobnej, destrukcyjnej migracji.
 
 Dwie konsekwencje, które łatwo przeoczyć:
 
@@ -1386,7 +1526,7 @@ czerwony tekst zostaje na stałe. Mieszany nazywa fakt o inwestycji — „tu ob
 nie inną arytmetykę.
 
 **Lista inwestycji pokazuje jeden bilans na tryb.** Widoczna jest kolumna tego trybu, w którym
-inwestycja jest rozliczana; druga mówi „nie dotyczy". Mieszane idzie na **netto**, dokładnie jak
+inwestycja jest rozliczana; druga nazywa tryb („rozliczenie brutto / netto / mieszane"). Mieszane idzie na **netto**, dokładnie jak
 panel: bilans brutto odliczyłby wyłącznie przelewy i po cichu zgubił każdą gotówkę (na jednej
 inwestycji testowej to różnica między +1 162,22 a −53 500). W trybie brutto ta różnica jest uczciwa —
 te wpłaty są tam już zaznaczone na czerwono. W mieszanym gotówka jest legalna, więc ta sama liczba

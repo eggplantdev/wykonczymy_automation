@@ -23,7 +23,7 @@ niżej) to `context/archive/2026-08-26-sheet-write-env-guard/change.md`.
 ## Poczta
 
 Jedno firmowe konto SMTP obsługiwało wszystkie środowiska. Aplikacja jest **klientem** SMTP —
-loguje się do `wykonczymy.com.pl` i to ten serwer wysyła, więc IP laptopa nigdy nie jest nadawcą.
+loguje się do `mail.wykonczymy.com.pl` i to ten serwer wysyła, więc IP laptopa nigdy nie jest nadawcą.
 SPF (`redirect=_spf-h50.microhost.pl`) i DMARC (`p=quarantine; adkim=s`) przechodzą, bo mail
 naprawdę wychodzi z autoryzowanej infrastruktury. **Mail z localhosta był nie do odróżnienia od
 produkcyjnego** — trafiał do skrzynki odbiorczej, nie do spamu.
@@ -43,7 +43,10 @@ są **martwe** — nie ma ich ani w `serverSchema`, ani w żadnym pliku `src/`.
 
 ### Co dokąd wysyła
 
-Do **klienta** wychodzi jedna ścieżka: `sendAutoReply` („Dziękujemy za kontakt") na `lead.email`,
+Do **klienta** wychodzą dwie ścieżki. Pierwsza to prośba o opinię Google (`requestReviewAction` →
+`sendReviewRequestEmail`, EX-973): wysyła ją ręcznie kierownik z zakończonej inwestycji, więc
+jedyną bramką jest `EMAIL_HOST` — na localhoście i preview pada na DNS jak każda inna poczta.
+Druga to `sendAutoReply` („Dziękujemy za kontakt") na `lead.email`,
 wołana z `captureLead` z domyślnym `autoReply: 'send'`. Jedyni wołający z tym domyślnym to dwa
 webhooki — `/api/webhooks/facebook-leads` i `/api/webhooks/wpforms`. To ruch **przychodzący**,
 trafia tam, gdzie wskazuje `callback_url` u Mety i w WPForms, czyli na produkcję.

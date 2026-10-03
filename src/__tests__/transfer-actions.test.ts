@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { Payload } from 'payload'
+import { warsawToday } from '@/lib/utils/days'
+import { BONUS_FORBIDDEN_MESSAGE } from '@/lib/auth/roles'
 
 // ── Mocks ────────────────────────────────────────────────────────────────
 
@@ -558,6 +560,33 @@ describe('createBulkTransferAction', () => {
   })
 })
 
+// Owner ruling (EX-979): the dialog hides „Premia" from a MANAGER, but the action is what the RPC
+// reaches, so the refusal has to live here.
+describe('BONUS — only ADMIN / OWNER grant a premia', () => {
+  const bonus = { type: 'BONUS' as const, sourceRegister: undefined, worker: 1 }
+
+  it('refuses a MANAGER on the single and the bulk path, writing nothing', async () => {
+    mockRequireAuth.mockResolvedValue({ success: true, user: managerUser })
+
+    const single = await createTransferAction(makeSingleTransferData(bonus))
+    const bulk = await createBulkTransferAction(makeBulkTransferData(1, bonus))
+
+    for (const result of [single, bulk]) {
+      expect(result).toEqual({ success: false, error: BONUS_FORBIDDEN_MESSAGE })
+    }
+    expect(mockCreate).not.toHaveBeenCalled()
+  })
+
+  it.each([ownerUser, adminUser])('lets $role book one', async (user) => {
+    mockRequireAuth.mockResolvedValue({ success: true, user })
+
+    const result = await createTransferAction(makeSingleTransferData(bonus))
+
+    expect(result.success).toBe(true)
+    expect(mockCreate).toHaveBeenCalledOnce()
+  })
+})
+
 // ═════════════════════════════════════════════════════════════════════════
 // cancelTransferAction
 // ═════════════════════════════════════════════════════════════════════════
@@ -663,7 +692,8 @@ describe('cancelTransferAction', () => {
 
     await cancelTransferAction(10, { reason: VALID_CANCEL_REASON })
 
-    const today = new Date().toISOString().split('T')[0]
+    // Warsaw's day, not UTC's: the two differ between 00:00 and 02:00 local time.
+    const today = warsawToday()
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         collection: 'transactions',

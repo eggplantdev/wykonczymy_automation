@@ -5,6 +5,9 @@ import { pluralize } from '@/lib/utils/polish-plural'
 
 export const itemNoun = (count: number) => pluralize(count, ['praca', 'prace', 'prac'])
 
+// Accusative — „Przyjmij 1 pracę".
+export const itemNounAccusative = (count: number) => pluralize(count, ['pracę', 'prace', 'prac'])
+
 export const sectionNoun = (count: number) => pluralize(count, ['sekcja', 'sekcje', 'sekcji'])
 
 export const itemHasPhrase = (count: number) =>

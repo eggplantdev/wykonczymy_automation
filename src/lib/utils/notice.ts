@@ -1,3 +1,5 @@
+import { POLISH_GRID, type TranslatorT } from '@/lib/i18n/translations'
+
 // The WORDING and the timing of a notice, kept apart from `toast.ts`, which is the side effect that
 // shows one. 22 specs mock that module to keep react-toastify out of jsdom, each factory naming only
 // `toastMessage` — so a constant living there came back `undefined` in every one of them. Nothing has
@@ -13,7 +15,8 @@ export const NOTICE_MS = 5000
 export const rejectedEntryMessage = (
   restored: string | null,
   kind: 'invalid' | 'blocked' = 'invalid',
+  dictionary: TranslatorT<'grid'> = POLISH_GRID,
 ) =>
-  `${kind === 'blocked' ? 'Wartość odrzucona' : 'Nieprawidłowa wartość'}${
-    restored == null ? '' : ` — przywrócono ${restored}`
+  `${dictionary.t(kind === 'blocked' ? 'rejectedBlocked' : 'rejectedInvalid')}${
+    restored == null ? '' : ` — ${dictionary.t('rejectedRestored', { value: restored })}`
   }.`

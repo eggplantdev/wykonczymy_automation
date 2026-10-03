@@ -4,7 +4,11 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { entityTag } from '@/lib/cache/tags'
 import { getPresetName } from '@/lib/db/presets'
-import { createTestInvestment } from '@/__tests__/helpers/investment'
+import { createTestInvestment, trashDaysAgo } from '@/__tests__/helpers/investment'
+import {
+  ACTIVE_INVESTMENT_DELETE_MESSAGE,
+  TRASHED_ACTIVE_INVESTMENT_DELETE_MESSAGE,
+} from '@/lib/constants/trash'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { createTestTemplate } from '@/__tests__/helpers/template'
 import { revalidateCollections, revalidateEntities } from '@/__tests__/stubs/cache-revalidate'
@@ -36,6 +40,10 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
     `)
     await db.execute(sql`DELETE FROM investments WHERE name LIKE ${`${PREFIX}%`}`)
   }
+
+  // Not the helper's `active` default: an active investment is exactly what the trash refuses.
+  const createInvestment = (name: string) =>
+    createTestInvestment(payload, name, { status: 'quote' })
 
   const trashedAt = async (id: number) => {
     const { rows } = await db.execute(sql`SELECT trashed_at FROM investments WHERE id = ${id}`)
@@ -81,7 +89,7 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
   afterAll(purge)
 
   it('lets a MANAGER trash, restore and delete forever', async () => {
-    const id = await createTestInvestment(payload, `${PREFIX} manager`)
+    const id = await createInvestment(`${PREFIX} manager`)
     session.role = 'MANAGER'
 
     expect((await actions.trashInvestmentAction(id)).success).toBe(true)
@@ -91,20 +99,24 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
     expect(await trashedAt(id)).toBeNull()
 
     expect((await actions.trashInvestmentAction(id)).success).toBe(true)
-    expect((await actions.deleteInvestmentForeverAction(id)).success).toBe(true)
+    expect((await actions.deleteInvestmentForeverAction(id, `${PREFIX} manager`)).success).toBe(
+      true,
+    )
     const { rows } = await db.execute(sql`SELECT 1 FROM investments WHERE id = ${id}`)
     expect(rows).toHaveLength(0)
   })
 
   it('refuses an EMPLOYEE every trash action', async () => {
-    const live = await createTestInvestment(payload, `${PREFIX} employee-live`)
-    const trashed = await createTestInvestment(payload, `${PREFIX} employee-trashed`)
+    const live = await createInvestment(`${PREFIX} employee-live`)
+    const trashed = await createInvestment(`${PREFIX} employee-trashed`)
     await actions.trashInvestmentAction(trashed)
     session.role = 'EMPLOYEE'
 
     expect((await actions.trashInvestmentAction(live)).success).toBe(false)
     expect((await actions.restoreInvestmentAction(trashed)).success).toBe(false)
-    expect((await actions.deleteInvestmentForeverAction(trashed)).success).toBe(false)
+    expect(
+      (await actions.deleteInvestmentForeverAction(trashed, `${PREFIX} employee-trashed`)).success,
+    ).toBe(false)
 
     expect(await trashedAt(live)).toBeNull()
     expect(await trashedAt(trashed)).not.toBeNull()
@@ -127,7 +139,7 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
     const name = (await getPresetName(db, template))!
     await actions.trashInvestmentAction(template)
 
-    for (const typed of [undefined, 'zła nazwa']) {
+    for (const typed of ['', 'zła nazwa']) {
       expect(await actions.deleteInvestmentForeverAction(template, typed)).toEqual({
         success: false,
         error: 'Wpisana nazwa się nie zgadza.',
@@ -141,9 +153,9 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
   })
 
   it('refuses while a live transaction points at the investment, not a cancelled one', async () => {
-    const live = await createTestInvestment(payload, `${PREFIX} live-transaction`)
+    const live = await createInvestment(`${PREFIX} live-transaction`)
     await insertTransaction(live, false)
-    const cancelled = await createTestInvestment(payload, `${PREFIX} cancelled-transaction`)
+    const cancelled = await createInvestment(`${PREFIX} cancelled-transaction`)
     await insertTransaction(cancelled, true)
 
     const refused = await actions.trashInvestmentAction(live)
@@ -156,8 +168,30 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
     expect(await trashedAt(cancelled)).not.toBeNull()
   })
 
+  it('refuses to trash an active investment', async () => {
+    const id = await createTestInvestment(payload, `${PREFIX} active`, { status: 'active' })
+
+    const result = await actions.trashInvestmentAction(id)
+
+    expect(result).toEqual({ success: false, error: ACTIVE_INVESTMENT_DELETE_MESSAGE })
+    expect(await trashedAt(id)).toBeNull()
+  })
+
+  it('refuses to delete forever an active investment that reached the trash before the rule', async () => {
+    const id = await createTestInvestment(payload, `${PREFIX} active-trashed`, {
+      status: 'active',
+    })
+    await trashDaysAgo(db, id, 1)
+
+    const result = await actions.deleteInvestmentForeverAction(id, `${PREFIX} active-trashed`)
+
+    expect(result).toEqual({ success: false, error: TRASHED_ACTIVE_INVESTMENT_DELETE_MESSAGE })
+    const { rows } = await db.execute(sql`SELECT 1 FROM investments WHERE id = ${id}`)
+    expect(rows).toHaveLength(1)
+  })
+
   it('round-trips trash and restore without touching the kosztorys', async () => {
-    const id = await createTestInvestment(payload, `${PREFIX} round-trip`)
+    const id = await createInvestment(`${PREFIX} round-trip`)
     await createKosztorysTree(payload, id, {
       sections: [{ name: 'S', items: [{ plannedQty: 2 }, { plannedQty: 5 }] }],
     })
@@ -175,9 +209,9 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
   })
 
   it('refuses to delete forever an investment that is not in the trash', async () => {
-    const id = await createTestInvestment(payload, `${PREFIX} not-trashed`)
+    const id = await createInvestment(`${PREFIX} not-trashed`)
 
-    const result = await actions.deleteInvestmentForeverAction(id)
+    const result = await actions.deleteInvestmentForeverAction(id, `${PREFIX} not-trashed`)
 
     expect(result).toEqual({ success: false, error: 'Najpierw przenieś inwestycję do kosza.' })
     expect(await countRows('kosztorys_items', id)).toBe(0)
@@ -187,7 +221,7 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
 
   it('demands the name for a used kosztorys, then deletes it with everything under it', async () => {
     const name = `${PREFIX} used`
-    const id = await createTestInvestment(payload, name)
+    const id = await createInvestment(name)
     const { itemIds } = await createKosztorysTree(payload, id, {
       sections: [{ name: 'S', items: [{ plannedQty: 4 }] }],
       stages: [{}],
@@ -201,7 +235,7 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
     })
     await actions.trashInvestmentAction(id)
 
-    const withoutName = await actions.deleteInvestmentForeverAction(id)
+    const withoutName = await actions.deleteInvestmentForeverAction(id, '')
     const wrongName = await actions.deleteInvestmentForeverAction(id, 'inna nazwa')
 
     expect(withoutName.success).toBe(false)
@@ -218,16 +252,21 @@ describe.skipIf(!ENV_READY)('investment trash actions (DB)', () => {
     expect(await countProgress(itemIds[0])).toBe(0)
   })
 
-  it('deletes an unused kosztorys without asking for the name', async () => {
-    const id = await createTestInvestment(payload, `${PREFIX} unused`)
+  it('demands the name for an unused kosztorys too', async () => {
+    const name = `${PREFIX} unused`
+    const id = await createInvestment(name)
     await createKosztorysTree(payload, id, {
       sections: [{ name: 'S', items: [{ plannedQty: 0, clientPrice: 80 }] }],
     })
     await actions.trashInvestmentAction(id)
 
-    const result = await actions.deleteInvestmentForeverAction(id)
+    expect(await actions.deleteInvestmentForeverAction(id, '')).toEqual({
+      success: false,
+      error: 'Wpisana nazwa się nie zgadza.',
+    })
+    expect(await countRows('kosztorys_items', id)).toBe(1)
 
-    expect(result.success).toBe(true)
+    expect((await actions.deleteInvestmentForeverAction(id, name)).success).toBe(true)
     expect(await countRows('kosztorys_items', id)).toBe(0)
   })
 })

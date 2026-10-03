@@ -81,6 +81,12 @@ const BUCKET_MEMBERSHIP: Record<BucketNameT, [string, boolean][]> = {
     ['LOSS', false],
     ['LOSS', true],
   ],
+  // Its own bucket and nothing else: a premia lands in `totalPayouts`, `totalLoss` or
+  // `totalDiscount` and it reaches the investor's bilans.
+  totalBonus: [
+    ['BONUS', false],
+    ['BONUS', true],
+  ],
   totalSettled: [
     ['INVESTMENT_EXPENSE', true],
     ['CORRECTION', true],
@@ -111,7 +117,7 @@ describe('deriveFinancials — bucketing matrix (transactions plane)', () => {
   })
 
   it('covers every (type × settled) pair', () => {
-    expect(ALL_PAIRS).toHaveLength(26)
+    expect(ALL_PAIRS).toHaveLength(28)
   })
 
   for (const pair of ALL_PAIRS) {

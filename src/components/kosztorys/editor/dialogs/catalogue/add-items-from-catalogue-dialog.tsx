@@ -1,18 +1,15 @@
 'use client'
 
-import { createContext, use, useState } from 'react'
-import { createColumnHelper } from '@tanstack/react-table'
+import { useState } from 'react'
 import { Checkbox } from '@/components/ui/checkbox'
-import { DataTable } from '@/components/tables/data-table/data-table'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { DialogActions } from '@/components/ui/dialog-actions'
 import { Button } from '@/components/ui/button'
 import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
 import { SearchFilterInput } from '@/components/filters/search-filter-input'
 import { Combobox } from '@/components/ui/combobox'
-import { WORK_CATALOGUE_PICKER_COLUMNS } from '@/components/tables/work-catalogue'
-import { useClientMultiFilter } from '@/hooks/use-client-multi-filter'
-import { useSearchFilter } from '@/hooks/use-search-filter'
+import { CataloguePickerTable } from '@/components/kosztorys/editor/dialogs/catalogue/catalogue-picker-table'
+import { useCatalogueFilters } from '@/components/kosztorys/editor/hooks/use-catalogue-filters'
 import {
   createSectionWithCatalogueItemsAction,
   insertCatalogueItemsAction,
@@ -22,7 +19,6 @@ import {
   partitionAlreadyInKosztorys,
   type KosztorysItemRefT,
 } from '@/lib/kosztorys/work-catalogue/already-in-kosztorys'
-import { catalogueCategoryOptions } from '@/lib/kosztorys/work-catalogue/category-options'
 import {
   resolveSectionTarget,
   sectionNameOptions,
@@ -50,46 +46,7 @@ type PropsT = {
   onInserted: (slice: AppendedCatalogueSliceT['section'], createdSection: boolean) => void
 }
 
-const col = createColumnHelper<WorkCatalogueItemT>()
-
-// Kategoria first so prace of one trade arrive together, then the opis inside it — the browsing
-// order, where /katalog-prac defaults to the opis because it is used to find one known row.
-const INITIAL_SORTING = [
-  { id: 'category', desc: false },
-  { id: 'description', desc: false },
-]
-
-// Rows are measured once drawn; this is only the guess for the ones not yet drawn. It is the
-// cennik's measured average (a one-line row 37 px, a two-line one 57), so the scrollbar barely moves
-// while scrolling.
-const ROW_ESTIMATE = 52
-
 const MAX_WARNING_TOASTS = 3
-
-const searchText = (item: WorkCatalogueItemT) => `${item.description} ${item.category ?? ''}`
-
-const itemCategory = (item: WorkCatalogueItemT) => item.category ?? ''
-
-const SelectedIdsContext = createContext<ReadonlySet<number>>(new Set())
-
-// A context consumer, not a `checked` prop through the columns: `flexRender` mounts a `cell` function
-// as a component, so columns rebuilt per tick would remount every cell in the list.
-function SelectCell({
-  item,
-  onToggle,
-}: {
-  item: WorkCatalogueItemT
-  onToggle: (id: number) => void
-}) {
-  const selected = use(SelectedIdsContext)
-  return (
-    <Checkbox
-      checked={selected.has(item.id)}
-      onCheckedChange={() => onToggle(item.id)}
-      aria-label={item.description}
-    />
-  )
-}
 
 // Selection is ordered, not a Set: the prace land in the rozpiska in the order they were ticked,
 // which sorting the table does not touch.
@@ -114,16 +71,8 @@ export function AddItemsFromCatalogueDialog({
   const [hideAlreadyAdded, setHideAlreadyAdded] = useState(true)
   const [pending, setPending] = useState(false)
 
-  const {
-    filteredData: filtered,
-    searchTerm,
-    setSearchTerm,
-  } = useSearchFilter(catalogue, searchText)
-  const {
-    filteredData: inScope,
-    values: categories,
-    setValues: setCategories,
-  } = useClientMultiFilter(filtered, itemCategory)
+  const { inScope, searchTerm, setSearchTerm, categories, setCategories, categoryOptions } =
+    useCatalogueFilters(catalogue)
 
   // Cached on the rozpiska alone, so a keystroke in the szukajka costs Set lookups and not a re-fold
   // of the whole kosztorys.
@@ -137,8 +86,6 @@ export function AddItemsFromCatalogueDialog({
   const keptSelected = alreadyAdded.filter((item) => selectedIds.has(item.id))
   const visible = hideAlreadyAdded ? [...fresh, ...keptSelected] : inScope
   const hiddenCount = alreadyAdded.length - keptSelected.length
-
-  const categoryOptions = catalogueCategoryOptions(catalogue)
 
   const sectionOptions = sectionNameOptions(sections)
   const target = resolveSectionTarget(sectionName, sections, initialSectionId ?? undefined)
@@ -155,16 +102,6 @@ export function AddItemsFromCatalogueDialog({
       return [...prev, ...items.map((item) => item.id).filter((id) => !taken.has(id))]
     })
   }
-
-  const columns = [
-    col.display({
-      id: 'select',
-      header: '',
-      size: 40,
-      cell: (info) => <SelectCell item={info.row.original} onToggle={toggle} />,
-    }),
-    ...WORK_CATALOGUE_PICKER_COLUMNS,
-  ]
 
   async function handleConfirm() {
     if (!target || selected.length === 0) return
@@ -236,7 +173,7 @@ export function AddItemsFromCatalogueDialog({
             options={categoryOptions}
             label="Kategorie"
             searchable
-            contentClassName="z-[10001]"
+            contentClassName="z-10001"
           />
           <Button
             variant="outline"
@@ -268,16 +205,7 @@ export function AddItemsFromCatalogueDialog({
           <p className="text-muted-foreground px-4 py-6 text-sm">Katalog prac jest pusty.</p>
         ) : (
           <div className="min-h-0 px-4 pb-3">
-            <SelectedIdsContext value={selectedIds}>
-              <DataTable
-                data={visible}
-                columns={columns}
-                initialSorting={INITIAL_SORTING}
-                enableVirtualization
-                virtualRowHeight={ROW_ESTIMATE}
-                virtualContainerClassName="max-h-dialog-scroll"
-              />
-            </SelectedIdsContext>
+            <CataloguePickerTable items={visible} selectedIds={selectedIds} onToggle={toggle} />
           </div>
         )}
         <div className="flex items-center justify-between gap-3 px-4 pt-3 pb-4">

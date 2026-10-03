@@ -57,6 +57,8 @@ type EntityComboboxFieldPropsT<TVariant extends keyof typeof VARIANT_CONFIG> = {
   items: EntityItemT[]
   // Forwarded to the inner AppField; only onChange is used at call sites (reset a dependent field).
   listeners?: { onChange?: () => void }
+  /** Renders the field disabled, with this sentence as the hint under the label. */
+  lockedReason?: string
 }
 
 export function EntityComboboxField<TVariant extends keyof typeof VARIANT_CONFIG>({
@@ -64,6 +66,7 @@ export function EntityComboboxField<TVariant extends keyof typeof VARIANT_CONFIG
   variant,
   items,
   listeners,
+  lockedReason,
 }: EntityComboboxFieldPropsT<TVariant>) {
   const [activeOnly, setActiveOnly] = useState(true)
   const config = VARIANT_CONFIG[variant]
@@ -89,6 +92,8 @@ export function EntityComboboxField<TVariant extends keyof typeof VARIANT_CONFIG
             searchPlaceholder={config.searchPlaceholder}
             emptyMessage={config.emptySearchMessage}
             items={filtered}
+            disabled={lockedReason !== undefined}
+            description={lockedReason}
             showError
           />
         ) : (

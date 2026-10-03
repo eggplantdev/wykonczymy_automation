@@ -3,18 +3,26 @@
 import { useState } from 'react'
 import { useAppForm } from '@/components/forms/hooks/form-hooks'
 import { forgotPasswordAction } from '@/lib/actions/auth'
+import { settleAction } from '@/lib/utils/settle-action'
 import { AuthSubmitButton } from '@/components/ui/auth-submit-button'
 import { AuthSuccessCard } from '@/components/ui/auth-success-card'
 
 type FormStateT = 'idle' | 'pending' | 'success'
 
 export function ForgotPasswordForm() {
+  const [error, setError] = useState<string>()
   const [formState, setFormState] = useState<FormStateT>('idle')
 
   const form = useAppForm({
     defaultValues: { email: '' },
     onSubmit: async ({ value }) => {
-      await forgotPasswordAction(value)
+      setError(undefined)
+      const response = await settleAction(() => forgotPasswordAction(value))
+      if (!response.success) {
+        setFormState('idle')
+        setError(response.error)
+        return
+      }
       setFormState('success')
     },
   })
@@ -48,6 +56,8 @@ export function ForgotPasswordForm() {
           />
         )}
       </form.AppField>
+
+      {error && <p className="text-destructive text-sm">{error}</p>}
 
       <AuthSubmitButton isPending={isPending} idleText="Wyślij link" pendingText="Wysyłanie..." />
     </form>

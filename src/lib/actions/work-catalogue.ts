@@ -1,30 +1,23 @@
 'use server'
 
 import { z } from 'zod'
+import { getDb } from '@/lib/db/get-db'
+import { findCatalogueItemByKey, listCatalogueItemsByIds } from '@/lib/db/work-catalogue'
+import { translationsFromTexts } from '@/lib/i18n/description-translations'
 import { catalogueSaveState } from '@/lib/queries/work-catalogue'
-import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import type { CatalogueSeedItemT } from '@/lib/kosztorys/work-catalogue/types'
+import {
+  applyCatalogueWrite,
+  catalogueRow,
+  DUPLICATE_ERROR,
+  duplicateRefusal,
+  resolveCatalogueWrite,
+} from '@/lib/kosztorys/work-catalogue/write-catalogue-entry'
 import {
   workCatalogueItemSchema,
   type WorkCatalogueItemDataT,
 } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
 import { protectedAction, validateAction } from './run-action'
-
-const DUPLICATE_ERROR = 'Praca o tej nazwie i jednostce już jest w katalogu.'
-
-// `matchKey` is computed here and nowhere else — the UNIQUE index only means something if the value
-// it guards comes from the same folding every reader uses.
-const toRow = (data: WorkCatalogueItemDataT) => ({
-  description: data.description.trim(),
-  category: data.category.trim() || null,
-  unit: data.unit.trim(),
-  clientPrice: data.clientPrice,
-  wToolsRate: data.wToolsRate,
-  wToolsRateCoeff: data.wToolsRateCoeff,
-  ownToolsRate: data.ownToolsRate,
-  ownToolsRateCoeff: data.ownToolsRateCoeff,
-  matchKey: catalogueKey(data.description, data.unit),
-})
 
 export async function createCatalogueItemAction(data: WorkCatalogueItemDataT) {
   return protectedAction(
@@ -33,20 +26,22 @@ export async function createCatalogueItemAction(data: WorkCatalogueItemDataT) {
       const parsed = validateAction(workCatalogueItemSchema, data)
       if (!parsed.success) return parsed
 
-      const row = toRow(parsed.data)
+      const row = catalogueRow(parsed.data)
+      const resolved = await resolveCatalogueWrite(await getDb(payload), row.matchKey, 'new')
+      if ('error' in resolved) return { success: false, error: resolved.error }
 
-      // The unique index would refuse it anyway, but a Polish sentence beats a driver error — and
-      // this is the ordinary path: the katalog exists to be typed into twice.
-      const existing = await payload.find({
-        collection: 'work-catalogue-items',
-        where: { matchKey: { equals: row.matchKey } },
-        depth: 0,
-        limit: 1,
-        overrideAccess: true,
+      await applyCatalogueWrite(payload, undefined, {
+        candidate: {
+          ...row,
+          descriptionTranslations: translationsFromTexts(
+            parsed.data.translationSeed,
+            parsed.data.translationEdits,
+            row.description,
+          ),
+        },
+        existing: null,
+        keepCatalogueCategory: true,
       })
-      if (existing.docs.length > 0) return { success: false, error: DUPLICATE_ERROR }
-
-      await payload.create({ collection: 'work-catalogue-items', data: row })
 
       return { success: true }
     },
@@ -61,20 +56,28 @@ export async function updateCatalogueItemAction(id: number, data: WorkCatalogueI
       const parsed = validateAction(workCatalogueItemSchema, data)
       if (!parsed.success) return parsed
 
-      const row = toRow(parsed.data)
+      const row = catalogueRow(parsed.data)
 
       // Editing the opis or j.m. re-derives the key, so an edit can collide exactly like a create.
       // The row being edited is excluded — otherwise saving it unchanged would collide with itself.
-      const existing = await payload.find({
-        collection: 'work-catalogue-items',
-        where: { and: [{ matchKey: { equals: row.matchKey } }, { id: { not_equals: id } }] },
-        depth: 0,
-        limit: 1,
-        overrideAccess: true,
-      })
-      if (existing.docs.length > 0) return { success: false, error: DUPLICATE_ERROR }
+      const db = await getDb(payload)
+      const holder = await findCatalogueItemByKey(db, row.matchKey)
+      if (holder && holder.id !== id) return { success: false, error: DUPLICATE_ERROR }
 
-      await payload.update({ collection: 'work-catalogue-items', id, data: row })
+      // An edit that keeps the opis and j.m. finds its own row as the holder — the common price-only save.
+      const stored = holder ?? (await listCatalogueItemsByIds(db, [id]))[0]
+      await payload.update({
+        collection: 'work-catalogue-items',
+        id,
+        data: {
+          ...row,
+          descriptionTranslations: translationsFromTexts(
+            stored?.descriptionTranslations,
+            parsed.data.translationEdits,
+            row.description,
+          ),
+        },
+      })
 
       return { success: true }
     },
@@ -116,11 +119,6 @@ const saveItemToCatalogueSchema = z.object({
   keepCatalogueCategory: z.boolean(),
 })
 
-// `'overwrite'` updates the row holding the klucz in place — same id, same `created_at` — because
-// the katalog entry is the same praca, re-priced.
-//
-// `keepCatalogueCategory` defaults to protecting the cennik: the candidate's kategoria comes from
-// THIS kosztorys' sekcja, one investment's local context, while the katalog owns its own.
 export async function saveItemToCatalogueAction(
   itemId: number,
   mode: 'new' | 'overwrite',
@@ -143,26 +141,14 @@ export async function saveItemToCatalogueAction(
       const incomplete = incompleteCandidateError(candidate)
       if (incomplete) return { success: false, error: incomplete }
 
-      if (parsed.data.mode === 'overwrite') {
-        // Deleted between opening the dialog and confirming: the overwrite IS a create, and refusing
-        // it would be pedantry about a race nobody caused.
-        if (!existing) {
-          await payload.create({ collection: 'work-catalogue-items', data: candidate })
-          return { success: true }
-        }
-        await payload.update({
-          collection: 'work-catalogue-items',
-          id: existing.id,
-          data: parsed.data.keepCatalogueCategory
-            ? { ...candidate, category: existing.category }
-            : candidate,
-        })
-        return { success: true }
-      }
+      const refusal = duplicateRefusal(existing, parsed.data.mode)
+      if (refusal) return { success: false, error: refusal }
 
-      if (existing) return { success: false, error: DUPLICATE_ERROR }
-
-      await payload.create({ collection: 'work-catalogue-items', data: candidate })
+      await applyCatalogueWrite(payload, undefined, {
+        candidate,
+        existing,
+        keepCatalogueCategory: parsed.data.keepCatalogueCategory,
+      })
 
       return { success: true }
     },

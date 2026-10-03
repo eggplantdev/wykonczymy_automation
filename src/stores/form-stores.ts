@@ -7,11 +7,13 @@ import type { VehicleFormValuesT } from '@/components/forms/vehicle-form/vehicle
 import type { InspectionFormValuesT } from '@/components/forms/inspection-form/inspection-schema'
 import type { RecipientListFormValuesT } from '@/components/forms/recipient-list-form/recipient-list-schema'
 import type { WorkCatalogueItemFormValuesT } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
+import type { NewItemFormValuesT } from '@/components/kosztorys/editor/dialogs/new-item/new-item-form-schema'
 import type {
   AddEquipmentFormValuesT,
   EquipmentFormValuesT,
 } from '@/components/forms/equipment-form/equipment-schema'
 import type { EquipmentTransferFormValuesT } from '@/components/forms/equipment-transfer-form/equipment-transfer-schema'
+import type { RequestReviewValuesT } from '@/components/forms/request-review-form/request-review-schema'
 
 type DepositFormValuesT = {
   description: string
@@ -45,6 +47,7 @@ export const useVehicleFormStore = createFormStore<VehicleFormValuesT>('vehicle-
 export const useWorkCatalogueItemFormStore = createFormStore<WorkCatalogueItemFormValuesT>(
   'work-catalogue-item-form',
 )
+export const useNewItemFormStore = createFormStore<NewItemFormValuesT>('new-item-form')
 export const useInspectionFormStore = createFormStore<InspectionFormValuesT>('inspection-form')
 export const useRecipientListFormStore =
   createFormStore<RecipientListFormValuesT>('recipient-list-form')
@@ -53,3 +56,5 @@ export const useAddEquipmentFormStore =
   createFormStore<AddEquipmentFormValuesT>('add-equipment-form')
 export const useEquipmentTransferFormStore =
   createFormStore<EquipmentTransferFormValuesT>('equipment-transfer-form')
+export const useRequestReviewFormStore =
+  createFormStore<RequestReviewValuesT>('request-review-form')

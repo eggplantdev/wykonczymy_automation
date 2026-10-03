@@ -5,6 +5,7 @@ export const TRANSFER_TYPES = [
   'OTHER', // Inny wydatek
   'CORRECTION', // Korekta
   'LABOR_COST', // Koszty robocizny
+  'BONUS', // Premia
   'RABAT', // Rabat
   'LOSS', // Strata
   'REGISTER_TRANSFER', // Transfer między kasami
@@ -61,6 +62,9 @@ type TransferSpecT = {
    * already netto, so the global kosztorys „wszystko netto" toggle must never reach them.
    * Keeping it out of the number the toggle multiplies makes the double cut structurally
    * impossible, instead of an `if` someone has to remember.
+   *
+   * `'bonus'` is its own bucket, never `'loss'` or `'discount'`: those two lower the
+   * investor's bilans and print on the protokół, and a premia must reach neither.
    */
   financialBucket:
     | 'materials'
@@ -70,6 +74,7 @@ type TransferSpecT = {
     | 'payouts'
     | 'discount'
     | 'loss'
+    | 'bonus'
     | 'none'
   /**
    * Which stored column bills the investor. Every type but the netto expense bills at
@@ -141,6 +146,19 @@ export const TRANSFER_TYPE_SPECS = {
     settleable: false,
     financialBucket: 'laborCosts',
     billedAmount: 'amount',
+    sourceRegister: 'never',
+  },
+  BONUS: {
+    label: 'Premia',
+    color: 'chart-yellow',
+    deposit: false,
+    expensesSheetTab: false,
+    transfersSheetTab: false,
+    settleable: false,
+    financialBucket: 'bonus',
+    billedAmount: 'amount',
+    // An entitlement on an investment × worker pair, not cash — the money itself leaves as a
+    // PAYOUT, which already debits its kasa.
     sourceRegister: 'never',
   },
   RABAT: {
@@ -298,6 +316,7 @@ export const TRANSACTION_TRANSFER_TYPES: TransferTypeT[] = [
   'OTHER', // Inny wydatek
   'CORRECTION', // Korekta
   'LABOR_COST', // Koszty robocizny
+  'BONUS', // Premia
   'RABAT', // Rabat
   'LOSS', // Strata
   'INVESTMENT_EXPENSE', // Wydatek inwestycyjny
@@ -512,6 +531,7 @@ const INVESTMENT_TYPES: TransferTypeT[] = [
   'LOSS',
   'CORRECTION',
   'PAYOUT',
+  'BONUS',
 ]
 
 // Subset of INVESTMENT_TYPES where the investment is mandatory (not just shown).
@@ -524,6 +544,9 @@ const REQUIRES_INVESTMENT_TYPES: TransferTypeT[] = [
   // Mandatory since EX-675, when a strata started lowering the investor's bilans: an unlinked one
   // would be a concession credited to nobody.
   'LOSS',
+  // A premia settles one investment × worker pair; one without an investment is a PAYOUT (owner,
+  // EX-979).
+  'BONUS',
 ]
 
 export const showsInvestment = (type: string) =>
@@ -535,7 +558,8 @@ export const requiresInvestment = (type: string) =>
 export const needsTargetRegister = (type: string) =>
   isTransferType(type) && type === 'REGISTER_TRANSFER'
 
-export const needsWorker = (type: string) => isTransferType(type) && type === 'PAYOUT'
+export const needsWorker = (type: string) =>
+  isTransferType(type) && (type === 'PAYOUT' || type === 'BONUS')
 
 export const needsOtherCategory = (type: string) => isTransferType(type) && type === 'OTHER'
 

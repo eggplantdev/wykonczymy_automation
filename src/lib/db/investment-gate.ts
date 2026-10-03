@@ -3,10 +3,9 @@ import type { DbExecutorT } from '@/lib/db/get-db'
 import { sqlList } from '@/lib/db/sql-list'
 import {
   INVESTMENT_LOCKED_MESSAGE,
-  INVESTMENT_TRASHED_MESSAGE,
   TEMPLATE_INVESTMENT_STATUS,
-  TEMPLATE_TRASHED_MESSAGE,
   isLockedStatus,
+  trashedMessageFor,
 } from '@/lib/constants/investment-lock'
 import { resolveId } from '@/lib/utils/resolve-id'
 
@@ -31,11 +30,7 @@ export type InvestmentGateT = { lockMessage: string | undefined; isTemplate: boo
 // Trashed wins over completed: a restore brings back whatever status the investment had, so „set it
 // to Aktywna" would send the user to a control they cannot reach while it sits in the trash.
 function lockMessageOf(row: Record<string, unknown> | undefined): string | undefined {
-  if (row?.trashed_at != null) {
-    return row.status === TEMPLATE_INVESTMENT_STATUS
-      ? TEMPLATE_TRASHED_MESSAGE
-      : INVESTMENT_TRASHED_MESSAGE
-  }
+  if (row?.trashed_at != null) return trashedMessageFor(row.status as string | undefined)
   if (isLockedStatus(row?.status as string | undefined)) return INVESTMENT_LOCKED_MESSAGE
   return undefined
 }

@@ -66,7 +66,7 @@ async function run() {
   for (let ord = 1; ord <= STAGE_COUNT; ord++) {
     const s = await payload.create({
       collection: 'kosztorys-stages',
-      data: { investment: INVESTMENT_ID, ordinal: ord },
+      data: { splitMode: 'percent', investment: INVESTMENT_ID, ordinal: ord },
       ...ctx,
     })
     stageIds.push(s.id)

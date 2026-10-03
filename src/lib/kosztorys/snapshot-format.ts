@@ -4,7 +4,10 @@ import type {
   KosztorysSectionT,
   KosztorysStageT,
   StageProgressT,
+  StageSplitT,
 } from '@/lib/kosztorys/types'
+import { normalizeStageSplit, oneWorkerSplit } from '@/lib/kosztorys/stage-split'
+import { toDescriptionTranslations } from '@/lib/i18n/description-translations'
 
 export type SnapshotKindT = 'manual' | 'auto' | 'named' | 'daily'
 
@@ -117,12 +120,26 @@ export type StoredSnapshotPayloadT = {
     | 'ownToolsOverrideValue'
     | 'wToolsOverrideCoeff'
     | 'ownToolsOverrideCoeff'
+    | 'descriptionTranslations'
   >[]
-  stages: KosztorysStageT[]
+  stages: StoredStageT[]
   progress: TolerantT<StageProgressT, 'qtyDone'>[]
   settings?: Partial<SnapshotSettingsT>
   // Absent on every row written before the investor history shipped: an UNKNOWN rabat, not 0 zł.
   globalDiscount?: GlobalDiscountT
+}
+
+// A row captured before EX-943 holds one `workerId` and no `split`; the schema version was not
+// bumped for it (lessons.md), so the stage type says both shapes can arrive.
+export type StoredStageT = Omit<KosztorysStageT, 'split'> & {
+  split?: StageSplitT | null
+  workerId?: number | null
+}
+
+/** A stored etap's split, reading a pre-EX-943 `workerId` as that one person taking the whole etap. */
+export function storedStageSplit(stage: StoredStageT): StageSplitT | null {
+  if (stage.split !== undefined) return normalizeStageSplit(stage.split)
+  return stage.workerId == null ? null : oneWorkerSplit(stage.workerId)
 }
 
 // An absent key is NOT the same as a stored null: the `sql` tag emits NOTHING for `undefined`, so the
@@ -134,7 +151,7 @@ export type StoredSnapshotPayloadT = {
 //
 // It lives at the payload readers (insertKosztorysTree, appendPresetSections) and
 // not at the bind in insert-rows.ts, because those primitives are also called by appendCatalogueItems,
-// which builds its rows in code (`asItem`) where a missing value is a caller bug to surface, not absorb.
+// which builds its rows in code (`itemFromFields`) where a missing value is a caller bug to surface, not absorb.
 //
 // `displayOrder` takes the row's INDEX rather than 0: it is the natural key remapNewIds joins
 // RETURNING on, so a constant would tie it batch-wide, drop the remap to positional, and restore the
@@ -156,5 +173,7 @@ export function itemWithColumnDefaults(
     // it was written when no mnożnik existed. `?? 0` would invent a stawka of zero złotych.
     wToolsOverrideCoeff: item.wToolsOverrideCoeff ?? null,
     ownToolsOverrideCoeff: item.ownToolsOverrideCoeff ?? null,
+    // NOT NULL DEFAULT '{}': a snapshot older than the translations reads as „no translation".
+    descriptionTranslations: toDescriptionTranslations(item.descriptionTranslations),
   }
 }

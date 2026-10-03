@@ -3,6 +3,7 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
+import { appendAt } from '@/__tests__/helpers/new-item-input'
 
 // A structure-create invariant of the kosztorys actions, driven against the REAL DB and asserting
 // PERSISTED display_order rows, not the action's return value: append (addItemAction) must pick a
@@ -89,17 +90,17 @@ describe.skipIf(!ENV_READY)('kosztorys create-order integrity (DB)', () => {
     const sectionId = await createSection()
 
     // Add 3 blank items → display_order 0,1,2.
-    await addItemAction(sectionId)
-    const middle = await addItemAction(sectionId)
-    await addItemAction(sectionId)
+    await addItemAction(appendAt(sectionId))
+    const middle = await addItemAction(appendAt(sectionId))
+    await addItemAction(appendAt(sectionId))
     expect(middle.success).toBe(true)
 
     // Delete the middle one (blank → passes the delete guard) → leaves {0,2}, a gap.
-    const del = await removeItemAction(middle.success ? middle.data.id : 0)
+    const del = await removeItemAction(middle.success ? middle.data.item.id : 0)
     expect(del.success).toBe(true)
 
     // Append again. Count-based order would reuse 2 and collide with the surviving order-2 row.
-    const appended = await addItemAction(sectionId)
+    const appended = await addItemAction(appendAt(sectionId))
     expect(appended.success).toBe(true)
 
     const orders = await sectionItemOrders(sectionId)
@@ -107,6 +108,6 @@ describe.skipIf(!ENV_READY)('kosztorys create-order integrity (DB)', () => {
     // The regression: every surviving row has a distinct display_order.
     expect(new Set(orders).size).toBe(orders.length)
     // And the new row appended past the tail (max+1), not into the gap.
-    if (appended.success) expect(appended.data.displayOrder).toBe(Math.max(...orders))
+    if (appended.success) expect(appended.data.item.displayOrder).toBe(Math.max(...orders))
   })
 })

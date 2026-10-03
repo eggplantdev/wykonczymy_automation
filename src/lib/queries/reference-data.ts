@@ -7,6 +7,7 @@ import { CACHE_TAGS } from '@/lib/cache/tags'
 import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import type { RoleT } from '@/lib/auth/roles'
 import { getDb } from '@/lib/db/get-db'
+import { toLanguage } from '@/lib/i18n/languages'
 import { DEFAULT_VAT } from '@/lib/kosztorys/constants'
 import { SETTLEMENT_MODE_DEFAULT, type SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 import { perfStart } from '@/lib/perf'
@@ -38,6 +39,13 @@ export const fetchExpenseCategories = unstable_cache(
   { tags: [CACHE_TAGS.expenseCategories] },
 )
 
+function splitTrashed<T>(rows: { isTrashed: boolean; ref: T }[]): [live: T[], trashed: T[]] {
+  const live: T[] = []
+  const trashed: T[] = []
+  for (const row of rows) (row.isTrashed ? trashed : live).push(row.ref)
+  return [live, trashed]
+}
+
 // Both caches, because they dedupe on different axes: `unstable_cache` spans requests but re-runs on
 // tag invalidation, while `cache()` collapses calls *within* one render — the page, the transfers
 // table and the nav each call this, so it ran 3× per render (EX-597). Safe only because nothing reads
@@ -51,7 +59,8 @@ export const fetchReferenceData = cache(
 
       const [crResult, invResult, usersResult, catResult, expCatResult] = await Promise.all([
         db.execute(sql`
-        SELECT id, name, type::text, active::boolean, owner_id::integer
+        SELECT id, name, type::text, active::boolean, owner_id::integer,
+               (trashed_at IS NOT NULL) AS trashed
         FROM cash_registers
         ORDER BY name
       `),
@@ -60,21 +69,21 @@ export const fetchReferenceData = cache(
         //
         // The szablon workbench is excluded HERE, once, rather than by every consumer: it is not an
         // investment, and filtering it per-surface had already leaked into the transfers filter
-        // dropdowns and the investments listing. A trashed investment is excluded for the same reason
-        // — this predicate hides it from the listing, the pickers, the dashboard and the crumb, and
-        // 404s its detail page; the kosztorys pages and the share link filter it again on their own.
+        // dropdowns and the investments listing. A trashed investment is split off below rather than
+        // dropped: /kosz still opens it read-only, while every listing and picker reads the live half.
         db.execute(sql`
-        SELECT i.id, i.name, i.status::text,
-               i.address, i.phone, i.email, i.contact_person, i.notes, i.review,
+        SELECT i.id, i.name, i.status::text, (i.trashed_at IS NOT NULL) AS trashed,
+               i.address, i.phone, i.email, i.contact_person, i.notes, i.review_requested,
                i.materials_net_rate::float8, i.settlement_mode::text, i.vat_rate::float8,
                (k.google_sheet_id IS NOT NULL) AS has_sheet
         FROM investments i
         LEFT JOIN kosztoryses k ON k.investment_id = i.id
-        WHERE i.status <> ${TEMPLATE_INVESTMENT_STATUS} AND i.trashed_at IS NULL
+        WHERE i.status <> ${TEMPLATE_INVESTMENT_STATUS}
         ORDER BY i.name
       `),
         db.execute(sql`
-        SELECT id, name, role::text, active::boolean, email, default_cash_register_id::integer
+        SELECT id, name, role::text, active::boolean, email, default_cash_register_id::integer,
+               language, (trashed_at IS NOT NULL) AS trashed
         FROM users
         ORDER BY name
       `),
@@ -96,41 +105,57 @@ export const fetchReferenceData = cache(
         expCatResult.rows.length
       console.log(`[PERF] query.fetchReferenceData ${elapsed()}ms (5 SQL, ${totalRows} rows)`)
 
-      const cashRegisters: CashRegisterRefT[] = crResult.rows.map((row) => ({
-        id: Number(row.id),
-        name: row.name as string,
-        type: (row.type as CashRegisterTypeT) ?? 'AUXILIARY',
-        active: row.active as boolean,
-        ownerId: row.owner_id ? Number(row.owner_id) : undefined,
+      const cashRegisterRows = crResult.rows.map((row) => ({
+        isTrashed: Boolean(row.trashed),
+        ref: {
+          id: Number(row.id),
+          name: row.name as string,
+          type: (row.type as CashRegisterTypeT) ?? 'AUXILIARY',
+          active: row.active as boolean,
+          ownerId: row.owner_id ? Number(row.owner_id) : undefined,
+        } satisfies CashRegisterRefT,
       }))
+      // Split, not filtered: the list doubles as the name map for transaction rows, and a cancelled
+      // row on a trashed kasa must keep saying which kasa it was. Every picker and listing reads the
+      // live half, so a new consumer cannot forget to hide the trash.
+      const [cashRegisters, trashedCashRegisters] = splitTrashed(cashRegisterRows)
 
-      const investments: InvestmentRefT[] = invResult.rows.map((row) => ({
-        id: Number(row.id),
-        name: row.name as string,
-        status: (row.status as InvestmentStatusT) ?? 'active',
-        active: row.status === 'active',
-        address: (row.address as string) ?? '',
-        phone: (row.phone as string) ?? '',
-        email: (row.email as string) ?? '',
-        contactPerson: (row.contact_person as string) ?? '',
-        notes: (row.notes as string) ?? '',
-        review: (row.review as string) ?? '',
-        materialsNetRate: row.materials_net_rate == null ? null : Number(row.materials_net_rate),
-        settlementMode: (row.settlement_mode as SettlementModeT) ?? SETTLEMENT_MODE_DEFAULT,
-        vatRate: row.vat_rate == null ? DEFAULT_VAT : Number(row.vat_rate),
-        hasSheet: Boolean(row.has_sheet),
+      const investmentRows = invResult.rows.map((row) => ({
+        isTrashed: Boolean(row.trashed),
+        ref: {
+          id: Number(row.id),
+          name: row.name as string,
+          status: (row.status as InvestmentStatusT) ?? 'active',
+          active: row.status === 'active',
+          address: (row.address as string) ?? '',
+          phone: (row.phone as string) ?? '',
+          email: (row.email as string) ?? '',
+          contactPerson: (row.contact_person as string) ?? '',
+          notes: (row.notes as string) ?? '',
+          reviewRequested: row.review_requested === true,
+          materialsNetRate: row.materials_net_rate == null ? null : Number(row.materials_net_rate),
+          settlementMode: (row.settlement_mode as SettlementModeT) ?? SETTLEMENT_MODE_DEFAULT,
+          vatRate: row.vat_rate == null ? DEFAULT_VAT : Number(row.vat_rate),
+          hasSheet: Boolean(row.has_sheet),
+        } satisfies InvestmentRefT,
       }))
+      const [investments, trashedInvestments] = splitTrashed(investmentRows)
 
-      const workers: WorkerRefT[] = usersResult.rows.map((row) => ({
-        id: Number(row.id),
-        name: row.name as string,
-        role: (row.role as RoleT) ?? 'EMPLOYEE',
-        active: row.active as boolean,
-        email: (row.email as string) ?? '',
-        defaultCashRegisterId: row.default_cash_register_id
-          ? Number(row.default_cash_register_id)
-          : undefined,
+      const workerRows = usersResult.rows.map((row) => ({
+        isTrashed: Boolean(row.trashed),
+        ref: {
+          id: Number(row.id),
+          name: row.name as string,
+          role: (row.role as RoleT) ?? 'EMPLOYEE',
+          active: row.active as boolean,
+          email: (row.email as string) ?? '',
+          defaultCashRegisterId: row.default_cash_register_id
+            ? Number(row.default_cash_register_id)
+            : undefined,
+          language: toLanguage(row.language),
+        } satisfies WorkerRefT,
       }))
+      const [workers, trashedWorkers] = splitTrashed(workerRows)
 
       const otherCategories: OtherCategoryRefT[] = catResult.rows.map((row) => ({
         id: Number(row.id),
@@ -144,8 +169,11 @@ export const fetchReferenceData = cache(
 
       return {
         cashRegisters,
+        trashedCashRegisters,
         investments,
+        trashedInvestments,
         workers,
+        trashedWorkers,
         otherCategories,
         expenseCategories,
       }
@@ -153,7 +181,7 @@ export const fetchReferenceData = cache(
     // Bumped whenever the returned SHAPE changes. A tag only marks an entry stale — it still SERVES
     // the old payload once, and one missing a field the reader now dereferences crashes the page or
     // renders NaN. The bump makes it unreachable instead.
-    ['reference-data-v2'],
+    ['reference-data-v6'],
     {
       tags: [
         CACHE_TAGS.cashRegisters,
@@ -168,3 +196,13 @@ export const fetchReferenceData = cache(
     },
   ),
 )
+
+export function findInvestmentRef(
+  refData: Pick<ReferenceDataBaseT, 'investments' | 'trashedInvestments'>,
+  investmentId: number,
+): { investment: InvestmentRefT; trashed: boolean } | undefined {
+  const live = refData.investments.find((i) => i.id === investmentId)
+  if (live) return { investment: live, trashed: false }
+  const trashed = refData.trashedInvestments.find((i) => i.id === investmentId)
+  return trashed && { investment: trashed, trashed: true }
+}

@@ -78,7 +78,7 @@ const HOST_LAYOUT: Record<SummaryHostT, HostLayoutT> = {
 
 type PropsT = {
   investmentId: number
-  // Only reaches the wydatki list, which names its invoice archive after the investment.
+  // Names the wydatki list's invoice archive and the Podwykonawcy tab's „Rozlicz wypłaty" dialog.
   investmentName: string
   // Individual deposit rows — the wpłaty list, the VAT-plane buckets every view's settlement reads,
   // AND the wpłaty total, which is summed from them rather than supplied beside them (EX-680).
@@ -273,6 +273,7 @@ export function SummaryPanelContent({
         {view === 'subcontractors' && subcontractorDue ? (
           <SubcontractorSummary
             investmentId={investmentId}
+            investmentName={investmentName}
             subcontractorDue={subcontractorDue}
             payoutTransactions={payoutTransactions ?? []}
             stages={stages}

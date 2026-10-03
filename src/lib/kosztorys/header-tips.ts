@@ -1,3 +1,5 @@
+import { pl } from '@/lib/i18n/dictionaries/pl'
+import { POLISH_GRID, type MessageKeyT, type TranslatorT } from '@/lib/i18n/translations'
 import { basePriceKey } from '@/lib/kosztorys/plane-price-keys'
 import {
   STAGE_VALUE_GROSS_COLUMN_GROUP,
@@ -15,9 +17,9 @@ const REMAINING = `Wartość przedmiaru minus wartość pomiaru.\nIle z oferty n
 const PLANNED = `Przedmiar razy cena minus rabat.\n\n${CLIENT_BASE}`
 
 const HEADER_TIPS: Record<string, string> = {
-  plannedQty: 'Przedmiar — ilość planowana (prognoza zakresu z oferty).',
+  plannedQty: pl.grid.tipPlannedQty,
   note: 'Naciśnij enter lub kliknij dwukrotnie aby otworzyć.\n\nShift+Enter — nowa linia\nEnter — zapisz i przejdź niżej\nEscape — cofnij zmiany\nTab — zakończ edycję',
-  stageQtySum: 'Pomiar — ilość faktycznie wykonana.\nSuma ilości prac w widocznych etapach.',
+  stageQtySum: pl.grid.tipStageQtySum,
   divergence:
     'Różnica między danymi zaciągiętymi z arkusza google a pracą rozpisaną na etapy \n Oznacza, że praca jest wpisana w arkuszu google jako pomiar z natury ale nie jest wpisana do etapów.',
   priceMode: 'Auto = domyślny mnożnik dla danej inwestycji.',
@@ -30,8 +32,7 @@ const HEADER_TIPS: Record<string, string> = {
   gross: `Pomiar razy cena minus rabat.\n\n${DISCOUNT_IS_CLIENT_ONLY}`,
   remaining: REMAINING,
   remainingGross: REMAINING,
-  remainingForPlane:
-    'Wartość przedmiaru minus wartość tego, co już wykonano — we wszystkich etapach, także innych ekip.\nObie liczone po Twojej stawce.\nNa minusie (na czerwono) = przekroczono przedmiar; suma w stopce pomija takie wiersze.',
+  remainingForPlane: pl.grid.tipRemainingForPlane,
   donePercent: `Procent wykonania względem przedmiaru.\nIle procent oferty jest zrobione.\nPowyżej 100% oznacza przekroczenie prognozy\n\n${CLIENT_BASE}`,
   [STAGE_VALUE_NET_COLUMN_GROUP]: `Ilość wykonana w tym etapie razy cena jednostki miary minus udział etapu w rabacie.\nUdział jest proporcjonalny do ilości (rabat zł jest rabatem od całego wiersza, więc etap niesie tylko swoją część).\nZależy od aktywnego widoku cen.\n\n${DISCOUNT_IS_CLIENT_ONLY}`,
   [STAGE_VALUE_GROSS_COLUMN_GROUP]: 'Etap — kwota brutto = Etap — kwota netto razy (1 + VAT).',
@@ -39,10 +40,14 @@ const HEADER_TIPS: Record<string, string> = {
 
 // The worker's document is read by the crew, whose figures are pomiar × their own stawka: the
 // client's rabat and the editor's price view are not in them, so the tips above would misexplain it.
-const WORKER_HEADER_TIPS: Record<string, string> = {
-  plannedNetForPlane: 'Przedmiar razy Twoja stawka.\nIle zarobisz, jeśli wykonasz cały przedmiar.',
-  net: 'Pomiar razy Twoja stawka.',
-  [STAGE_VALUE_NET_COLUMN_GROUP]: 'Ilość wykonana w tym etapie razy Twoja stawka.',
+// Every tip his link shows is listed, because it is read in his language.
+const WORKER_TIP_KEYS: Partial<Record<string, MessageKeyT<'grid'>>> = {
+  plannedQty: 'tipPlannedQty',
+  stageQtySum: 'tipStageQtySum',
+  plannedNetForPlane: 'tipPlannedNetForPlane',
+  net: 'tipNet',
+  [STAGE_VALUE_NET_COLUMN_GROUP]: 'tipStageValueNet',
+  remainingForPlane: 'tipRemainingForPlane',
 }
 
 /**
@@ -53,8 +58,12 @@ const WORKER_HEADER_TIPS: Record<string, string> = {
  */
 export function headerTipFor(
   columnId: string,
-  { workerSurface = false }: { workerSurface?: boolean } = {},
+  {
+    workerSurface = false,
+    dictionary = POLISH_GRID,
+  }: { workerSurface?: boolean; dictionary?: TranslatorT<'grid'> } = {},
 ): string | undefined {
   const key = basePriceKey(columnId)
-  return (workerSurface ? WORKER_HEADER_TIPS[key] : undefined) ?? HEADER_TIPS[key]
+  const workerKey = workerSurface ? WORKER_TIP_KEYS[key] : undefined
+  return workerKey ? dictionary.t(workerKey) : HEADER_TIPS[key]
 }

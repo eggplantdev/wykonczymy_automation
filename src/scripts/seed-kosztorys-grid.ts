@@ -41,7 +41,13 @@ async function seedInvestment(
     stages.push(
       await payload.create({
         collection: 'kosztorys-stages',
-        data: { investment: investment.id, ordinal, label: `Etap ${ordinal}`, plane: 'w_tools' },
+        data: {
+          splitMode: 'percent',
+          investment: investment.id,
+          ordinal,
+          label: `Etap ${ordinal}`,
+          plane: 'w_tools',
+        },
         ...ctx,
       }),
     )

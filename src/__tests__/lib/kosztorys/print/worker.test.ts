@@ -10,6 +10,7 @@ import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
+import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 
 const WORKER = 5
 const CLIENT_PRICES = [37, 23]
@@ -19,8 +20,8 @@ const RATE = 12.5
 // The projection as the server hands it over: the worker's two etapy only. Another crew's etap on item 1
 // (qty 3) survives solely in `executedQtyByItem`, which is what „Pozostało" reads.
 const stages: KosztorysStageT[] = [
-  { id: 100, ordinal: 1, label: 'Tynki', plane: 'w_tools', workerId: WORKER },
-  { id: 102, ordinal: 3, label: null, plane: 'w_tools', workerId: WORKER },
+  { id: 100, ordinal: 1, label: 'Tynki', plane: 'w_tools', split: oneWorkerSplit(WORKER) },
+  { id: 102, ordinal: 3, label: null, plane: 'w_tools', split: oneWorkerSplit(WORKER) },
 ]
 const rates = { wToolsOverrideValue: RATE, ownToolsOverrideValue: OWN_RATE }
 const treeWith = (progress: { itemId: number; stageId: number; qtyDone: number }[]) =>
@@ -66,10 +67,11 @@ function projection(
         plane: 'w_tools',
         workerId: WORKER,
         payoutRows: paid.map((amount, index) => ({
+          type: 'PAYOUT' as const,
           workerId: WORKER,
           amount,
           date: `2026-09-0${index + 1}`,
-          description: 'notatka wewnętrzna',
+          description: 'ZUS lipiec',
         })),
       }),
       settings: {
@@ -112,15 +114,59 @@ describe('buildWorkerPrintHtml', () => {
     expect(out).not.toContain('Cena j.m.')
   })
 
-  it('totals the przedmiar and the executed work to the summary’s own figures', () => {
+  it('totals the table to the przedmiar, the footer to the executed work alone', () => {
     const data = projection({ hidePlannedOnceExecuted: false })
     const out = html(data)
     const { summary } = data.worker
 
     expect(summary.plannedNet).toBe((5 + 4) * RATE)
-    expect(out).toContain(footerLine('Wartość przedmiaru (Twoja stawka)', summary.plannedNet))
+    expect(out).not.toContain('Twoja stawka)')
     expect(out).toContain(footerLine('Wykonane razem', summary.executedNet))
     expect(out).toContain(sectionTotal(summary.plannedNet))
+  })
+
+  // Sharing etap 100 (2 × 12,5 = 25 zł) 40/60 with worker 9: the rows stay the whole etap's, so the
+  // section and grand totals do too, and the footer's etap table carries his share beside the whole.
+  it('totals a shared etap whole and prints his share beside it in the etap table', () => {
+    const sharedStages: KosztorysStageT[] = [
+      {
+        ...stages[0],
+        split: {
+          mode: 'percent',
+          members: [
+            { workerId: WORKER, value: 40, takesRest: false },
+            { workerId: 9, value: 0, takesRest: true },
+          ],
+        },
+      },
+      stages[1],
+    ]
+    const sharedTree = { ...tree, stages: sharedStages }
+    const data = projection({}, [], sharedTree)
+    data.worker.summary = computeWorkerSummary({
+      rows: treeToRows(sharedTree),
+      stages: sharedStages,
+      plane: 'w_tools',
+      workerId: WORKER,
+      payoutRows: [],
+    })
+    const out = html(data)
+    const whole = 2 * RATE + 1 * RATE
+
+    expect(out).toContain(sectionTotal(whole))
+    const { summary } = data.worker
+    const values = (...cells: string[]) =>
+      cells.map((cell) => `<td class="value">${cell}</td>`).join('')
+
+    expect(out).toContain(
+      `<td class="label">Tynki</td>${values(formatPLN(2 * RATE), '40,0%', formatPLN(0.4 * 2 * RATE))}`,
+    )
+    expect(out).toContain(
+      `<td class="label">Razem</td>${values(formatPLN(whole), '', formatPLN(summary.executedNet))}`,
+    )
+    expect(out).toContain(footerLine('Wykonane razem', summary.executedNet))
+    expect(summary.executedNet).toBe(0.4 * 2 * RATE + RATE)
+    expect(out.indexOf('>Wykonane<')).toBeLessThan(out.indexOf('Wykonane razem'))
   })
 
   it('prints in the owner’s stored order, the stawka under its plane-agnostic key', () => {
@@ -159,6 +205,36 @@ describe('buildWorkerPrintHtml', () => {
     expect(totalsOf(hidden)).toBe(totalsOf(shown))
   })
 
+  it('prints the payouts in a table of their own, after the balance', () => {
+    const out = html(projection({}, [50]))
+    const payoutRow = `<td class="label">01.09.2026</td><td class="label">ZUS lipiec</td><td class="value">${formatPLN(50)}</td>`
+
+    expect(out).toContain(payoutRow)
+    expect(out).toContain(
+      `<td class="label">Razem</td><td class="label"></td><td class="value">${formatPLN(50)}</td>`,
+    )
+    expect(out.indexOf('</table>', out.indexOf('Wypłacone'))).toBeLessThan(out.indexOf(payoutRow))
+  })
+
+  it('prints no payouts table when nothing was paid', () => {
+    expect(html(projection({}, []))).not.toContain('>Wypłaty<')
+  })
+
+  // EX-979: the premia sits between the work and the wypłaty, the order the sum reads in.
+  it('prints „Premia” between „Wykonane razem” and „Wypłacone”, only when there is one', () => {
+    const data = projection({}, [50])
+    const withBonus = {
+      ...data,
+      worker: { ...data.worker, summary: { ...data.worker.summary, bonusNet: 14 } },
+    }
+    const out = html(withBonus)
+
+    expect(out).toContain(footerLine('Premia', 14))
+    expect(out.indexOf('Wykonane razem')).toBeLessThan(out.indexOf('>Premia<'))
+    expect(out.indexOf('>Premia<')).toBeLessThan(out.indexOf('Wypłacone'))
+    expect(html(data)).not.toContain('>Premia<')
+  })
+
   it('names an overpayment „Nadpłata” with a positive amount', () => {
     const data = projection({}, [50])
     const out = html(data)
@@ -177,14 +253,14 @@ describe('buildWorkerPrintHtml', () => {
   })
 
   it('drops a column the worker settings hide', () => {
-    const out = html(projection({ hiddenColumns: ['rate'] }))
+    const out = html(projection({ hiddenColumns: ['rate'], hidePlannedOnceExecuted: false }))
 
     expect(out).not.toContain('Stawka j.m.')
     expect(out).toContain('Wartość przedmiaru')
   })
 
   describe('columns the data takes off — the same rule the link renders by', () => {
-    const [tynki, second] = stages.map(stageLabel)
+    const [tynki, second] = stages.map((each) => stageLabel(each))
 
     it('prints the offer shape before any entry in his etapy, whatever the checkbox says', () => {
       for (const hidePlannedOnceExecuted of [true, false]) {

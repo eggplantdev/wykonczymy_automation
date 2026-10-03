@@ -10,6 +10,7 @@ const item = (id: number, description: string): KosztorysItemT => ({
   sectionId: 1,
   displayOrder: 0,
   description,
+  descriptionTranslations: {},
   unit: null,
   plannedQty: 0,
   sheetMeasuredQty: null,

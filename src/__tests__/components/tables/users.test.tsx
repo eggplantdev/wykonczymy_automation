@@ -25,6 +25,8 @@ const worker = (
   email: `w${id}@example.com`,
   active: true,
   payoutRemaining,
+  registerNames: [],
+  canTrash: true,
 })
 
 const bucket = (overrides: Partial<PayoutBucketT> = {}): PayoutBucketT => ({
@@ -168,5 +170,32 @@ describe('„Pozostało do wypłaty" on the employee list', () => {
       />,
     )
     expect(cellText('Jan')).toBe(bare(formatPLN(0)))
+  })
+})
+
+describe('„Do kosza" on the employee list', () => {
+  it('offers the button only on a row the viewer may trash', () => {
+    render(
+      <UserDataTable
+        data={[worker(1, 'Jan'), { ...worker(2, 'Piotr'), canTrash: false }]}
+        cashRegisters={[]}
+      />,
+    )
+    expect(within(rowOf('Jan')).getByRole('button', { name: 'Usuń pracownika' })).toBeVisible()
+    expect(
+      within(rowOf('Piotr')).queryByRole('button', { name: 'Usuń pracownika' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('names the kasy that go to the trash with the worker', async () => {
+    const user = userEvent.setup()
+    render(
+      <UserDataTable
+        data={[{ ...worker(1, 'Jan'), registerNames: ['Kasa Jana'] }]}
+        cashRegisters={[]}
+      />,
+    )
+    await user.click(within(rowOf('Jan')).getByRole('button', { name: 'Usuń pracownika' }))
+    expect(screen.getByText(/Razem z nim kasa: Kasa Jana\./)).toBeVisible()
   })
 })

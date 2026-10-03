@@ -24,6 +24,7 @@ async function findStoredLead(
   input: Pick<StoreLeadInputT, 'source' | 'externalId'>,
 ): Promise<Lead | undefined> {
   if (!input.externalId) return undefined
+  // Unfiltered on purpose: a trashed or erased lead must still match, or a redelivery recreates it.
   const existing = await payload.find({
     collection: 'leads',
     where: {

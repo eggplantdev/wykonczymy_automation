@@ -28,7 +28,7 @@ const CURRENT_STATE = sql`
 `
 
 // One join set, written once: the listing, the location filter and the employee card all render the
-// same row and must never disagree about what „u kogo" means.
+// same row and must never disagree about what „u kogo" means — nor about a trashed item being gone.
 const OVERVIEW_COLUMNS = sql`
   q.id, q.name, q.serial_number, q.make, q.model, q.status,
   q.purchase_date, q.warranty_until, q.purchase_price, q.note,
@@ -37,7 +37,7 @@ const OVERVIEW_COLUMNS = sql`
 `
 
 const OVERVIEW_JOINS = sql`
-  FROM equipment q
+  FROM (SELECT * FROM equipment WHERE trashed_at IS NULL) q
   LEFT JOIN current_state c ON c.equipment_id = q.id
   LEFT JOIN users u ON u.id = c.holder_id
   LEFT JOIN warehouses w ON w.id = c.warehouse_id

@@ -40,8 +40,8 @@ const tree: KosztorysTreeT = makeTree({
     },
   ],
   stages: [
-    { id: 100, ordinal: 1, label: null, plane: null, workerId: null },
-    { id: 101, ordinal: 2, label: null, plane: null, workerId: null },
+    { id: 100, ordinal: 1, label: null, plane: null, split: null },
+    { id: 101, ordinal: 2, label: null, plane: null, split: null },
   ],
   progress: [{ itemId: 1, stageId: 100, qtyDone: 2 }],
   vatRate: 0.08,
@@ -201,7 +201,7 @@ describe('rowTotalQtyDone', () => {
     const [row] = treeToRows(tree)
     const withGhost = [
       ...tree.stages,
-      { id: 999, ordinal: 3, label: null, plane: null, workerId: null },
+      { id: 999, ordinal: 3, label: null, plane: null, split: null },
     ]
     expect(rowTotalQtyDone(row, withGhost, 'client')).toBe(2)
   })
@@ -214,8 +214,8 @@ describe('wartość wiersza idzie za etapami', () => {
   // the plane filter must not also be moving quantities underneath them. Plane scoping has its own
   // fixture in subcontractor-due-by-plane.test.ts.
   const stages: KosztorysStageT[] = [
-    { id: 100, ordinal: 1, label: null, plane: 'w_tools', workerId: null },
-    { id: 101, ordinal: 2, label: null, plane: 'w_tools', workerId: null },
+    { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null },
+    { id: 101, ordinal: 2, label: null, plane: 'w_tools', split: null },
   ]
   const row = (over: Partial<KosztorysV2RowT>) =>
     ({

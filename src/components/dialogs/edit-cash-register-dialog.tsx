@@ -9,9 +9,14 @@ import type { CashRegisterRefT, WorkerRefT } from '@/types/reference-data'
 type EditCashRegisterDialogPropsT = {
   register: CashRegisterRefT
   workers: WorkerRefT[]
+  isOwnerLocked: boolean
 }
 
-export function EditCashRegisterDialog({ register, workers }: EditCashRegisterDialogPropsT) {
+export function EditCashRegisterDialog({
+  register,
+  workers,
+  isOwnerLocked,
+}: EditCashRegisterDialogPropsT) {
   const formId = `edit-cash-register-${register.id}`
 
   return (
@@ -39,6 +44,7 @@ export function EditCashRegisterDialog({ register, workers }: EditCashRegisterDi
           keepOpen={keepOpen}
           persistDraft={false}
           workers={workers}
+          isOwnerLocked={isOwnerLocked}
         />
       )}
     </FormDialog>

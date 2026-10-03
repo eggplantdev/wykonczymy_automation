@@ -13,9 +13,11 @@ import { LogoutButton } from '@/components/nav/logout-button'
 import { NavLinkItem } from '@/components/nav/nav-link-item'
 import { RefreshDataButton } from '@/components/nav/refresh-data-button'
 import { AdminButton } from '@/components/nav/admin-button'
+import { TrashButton } from '@/components/nav/trash-button'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { useNavLinks } from '@/hooks/use-nav-links'
 import { ROLE_LABELS } from '@/lib/auth/roles'
+import { TRASH_HREF } from '@/lib/constants/sections'
 import { cn } from '@/lib/utils/cn'
 
 // Two scrollers, not one. `<main>` is the app's own, and inline style beats a utility class there
@@ -126,6 +128,7 @@ export function MobileNav() {
           <ThemeToggle collapsed={false} />
           <RefreshDataButton />
           <AdminButton />
+          <TrashButton active={isActive(TRASH_HREF)} onClick={() => closeIfSameRoute(TRASH_HREF)} />
           <LogoutButton beforeLogout={() => setScrollLocked(false)} />
         </div>
       </nav>

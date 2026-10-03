@@ -53,6 +53,7 @@ type InvestmentSnapshotT = {
   totalPayouts: number
   totalDiscount: number
   totalLoss: number
+  totalBonus: number
   totalSettled: number
   balance: number
   margin: number
@@ -98,6 +99,7 @@ const ZERO_FINANCIALS: InvestmentFinancialsT = {
   totalPayouts: 0,
   totalDiscount: 0,
   totalLoss: 0,
+  totalBonus: 0,
   totalSettled: 0,
   materialsNetDiscount: 0,
   settledCategoryCosts: [],
@@ -190,7 +192,22 @@ async function readInputHashes(payload: Payload) {
       (
         SELECT md5(
           string_agg(
-            coalesce(ks.plane::text, '') || ':' || coalesce(ks.worker_id::text, ''),
+            coalesce(ks.plane::text, '') || ':' || coalesce(
+              -- A one-person split renders as the bare worker id, exactly as the single
+              -- \`worker_id\` column did, so every etap migrated from it keeps its hash.
+              (
+                SELECT CASE
+                  WHEN count(*) = 1 AND bool_and(ksw.takes_rest) THEN min(ksw.worker_id)::text
+                  ELSE ks.split_mode::text || '=' || string_agg(
+                    ROW(ksw.worker_id, ksw.value, ksw.takes_rest)::text, ';' ORDER BY ksw.worker_id
+                  )
+                END
+                FROM kosztorys_stage_workers ksw
+                WHERE ksw.stage_id = ks.id
+                HAVING count(*) > 0
+              ),
+              ''
+            ),
             ',' ORDER BY ks.id
           )
         )
@@ -296,6 +313,7 @@ async function buildSnapshot(payload: Payload): Promise<{
       totalPayouts: round2(financials.totalPayouts),
       totalDiscount: round2(financials.totalDiscount),
       totalLoss: round2(financials.totalLoss),
+      totalBonus: round2(financials.totalBonus),
       totalSettled: round2(financials.totalSettled),
       balance: round2(calculateBalance(financials)),
       margin: round2(calculateMargin(financials)),

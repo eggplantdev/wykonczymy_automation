@@ -18,14 +18,18 @@ import { KosztorysViewMenu } from '@/components/kosztorys/editor/toolbar/kosztor
 import { KosztorysFiltersMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-filters-menu'
 import { KosztorysSectionsMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-sections-menu'
 import { KosztorysProblemsMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-problems-menu'
+import { WorkerReportsButton } from '@/components/kosztorys/editor/toolbar/worker-reports-button'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { cn } from '@/lib/utils/cn'
 import type { AcceptanceProtocolSourceT } from '@/components/kosztorys/editor/dialogs/acceptance-protocol-dialog'
+import type { WorkerReportsSeedT } from '@/lib/kosztorys/types'
 
 export function KosztorysEditorToolbar({
   protocolSource,
+  workerReports,
 }: {
   protocolSource?: AcceptanceProtocolSourceT
+  workerReports?: WorkerReportsSeedT
 }) {
   const { search, setSearch, view, setView, subtotals, readOnly, isTemplate } =
     useKosztorysEditorContext()
@@ -95,11 +99,12 @@ export function KosztorysEditorToolbar({
             {/* Spans both menus, not just „Opcje": „Porównaj z katalogiem" is now read from
                 „Problemy" while its window is still mounted beside the other „Opcje" dialogs, so the
                 trigger and the dialog only reach the same state under one shared provider. */}
-            <KosztorysActionsProvider>
+            <KosztorysActionsProvider workerReports={isTemplate ? undefined : workerReports}>
               <KosztorysActionsMenu protocolSource={protocolSource} />
               {/* Absent when nothing is wrong, so it sits where the eye lands, not between two
                   permanent controls. */}
               <KosztorysProblemsMenu />
+              <WorkerReportsButton />
             </KosztorysActionsProvider>
             <KosztorysFiltersMenu />
             <KosztorysSectionsMenu />

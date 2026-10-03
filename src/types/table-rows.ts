@@ -44,8 +44,8 @@ export type InvestmentRowT = {
    *  `null` because TanStack's `sortUndefined` is the only thing that keeps those rows out of the
    *  numeric comparator, which would read them as 0. */
   marginV2?: number
-  /** The kosztorys Podwykonawcy headline „Pozostało do wypłaty": należne for executed work minus
-   *  the wypłaty booked. Negative when the crews were paid ahead of the work. Absent both without a
+  /** The kosztorys Podwykonawcy headline „Pozostało do wypłaty": należne for executed work plus
+   *  the premie, minus the wypłaty booked. Negative when the crews were paid ahead of the work. Absent both without a
    *  kosztorys (it would read −wypłaty and sort among real overpayments) and where an etap holds
    *  work with no rozliczenie (the należne is short) — `undefined` for the same `sortUndefined`
    *  reason as `marginV2`; the cell tells the two apart by `hasKosztorys`. */
@@ -56,13 +56,14 @@ export type InvestmentRowT = {
   phone: string
   email: string
   contactPerson: string
-  review: string
+  reviewRequested: boolean
   notes: string
   hasSheet: boolean
   /** Whether the investment HAS a kosztorys, which none of the figures above can answer: „pomiar z
    *  natury" is the etap sum (EX-494), so a fully entered rozpiska with no etap progress reads zero
-   *  robocizny — identical to no kosztorys at all. The v2 columns withhold on this, not on the
-   *  figure, or they print „brak danych" over real data. */
+   *  robocizny — identical to no kosztorys at all. „Pozostało do wypłaty" withholds on this, not on
+   *  the figure, or a zero-progress kosztorys would hide its real −wypłaty; the trash button reads
+   *  it too. */
   hasKosztorys: boolean
   // No column renders these — the whole row is handed to EditInvestmentDialog, whose form needs
   // them. `vatRate` is the exception that also prices `balanceGross`.
@@ -111,4 +112,7 @@ export type UserRowT = {
   defaultCashRegisterName?: string
   /** Absent when the worker holds no pair on any investment with a kosztorys. */
   payoutRemaining?: WorkerColumnFiguresT
+  /** Names of the kasy he owns — they go to the trash with him. */
+  registerNames: string[]
+  canTrash: boolean
 }
