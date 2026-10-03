@@ -2,10 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import {
-  SettlePayoutsDialog,
-  type SettleDialogTargetT,
-} from '@/components/dialogs/settle-payouts-dialog'
+import { SettlePayoutsDialog } from '@/components/dialogs/settle-payouts-dialog'
 import {
   SUMMARY_LABEL_COL,
   SUMMARY_VALUE_COL,
@@ -20,7 +17,6 @@ import { SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/labels'
 import { investmentTransfersHref } from '@/lib/utils/investment-transfers-href'
 import { workerKey } from '@/lib/kosztorys/worker-key'
 import { subcontractorRowTotals } from '@/lib/kosztorys/subcontractor-summary'
-import { roundToCents } from '@/lib/utils/round-to-cents'
 import type {
   SubcontractorWorkerRowT,
   WorkerSettlementStateT,
@@ -70,12 +66,11 @@ export function SubcontractorWorkerTotals({
   investmentName: string
   rows: SubcontractorWorkerRowT[]
 }) {
-  const [settleTarget, setSettleTarget] = useState<SettleDialogTargetT | null>(null)
+  const [isSettleOpen, setIsSettleOpen] = useState(false)
   const totals = subcontractorRowTotals(rows)
   // Something to pay out or a nadpłata to even out with a premia — the dialog has a row to act on.
-  const hasOpenPair = rows.some((row) => row.workerId !== null && roundToCents(row.remaining) !== 0)
-  // Only once a premia exists, so a crew without one keeps its three-column table.
-  const showBonus = totals.bonus !== 0 || rows.some((row) => row.bonus !== 0)
+  const hasOpenPair = rows.some((row) => row.workerId !== null && row.remaining !== 0)
+  const showBonus = rows.some((row) => row.bonus !== 0)
   const valueCols = Array.from({ length: showBonus ? 4 : 3 }, () => SUMMARY_VALUE_COL).join(' ')
 
   return (
@@ -83,14 +78,7 @@ export function SubcontractorWorkerTotals({
       <SummaryHeaderCell variant="label" className="flex items-center justify-between gap-2">
         <span>Podsumowanie pracowników</span>
         {hasOpenPair && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() =>
-              setSettleTarget({ kind: 'investment', id: investmentId, name: investmentName })
-            }
-          >
+          <Button type="button" variant="outline" size="sm" onClick={() => setIsSettleOpen(true)}>
             Rozlicz wypłaty
           </Button>
         )}
@@ -137,7 +125,12 @@ export function SubcontractorWorkerTotals({
         {formatNet(totals.paid)}
       </SummaryValueCell>
       <RemainingCell amount={totals.remaining} weight="bold" />
-      <SettlePayoutsDialog target={settleTarget} onClose={() => setSettleTarget(null)} />
+      <SettlePayoutsDialog
+        target={
+          isSettleOpen ? { kind: 'investment', id: investmentId, name: investmentName } : null
+        }
+        onClose={() => setIsSettleOpen(false)}
+      />
     </SummaryTable>
   )
 }

@@ -14,6 +14,7 @@ import {
   BLOCKED_PAIR_REASON,
   classifyPair,
   isBlocked,
+  pairKey,
   paidAheadOf,
   STALE_PAIR_MESSAGE,
 } from '@/lib/kosztorys/worker-payout-pairs'
@@ -68,12 +69,10 @@ export async function settlePayoutsAction(data: SettlePayoutsT): Promise<SettleP
           }
 
           const pairs = await selectWorkerPayoutPairs(db, { investmentIds })
-          const pairOf = new Map(
-            pairs.map((pair) => [`${pair.investmentId}:${pair.workerId}`, pair]),
-          )
+          const pairOf = new Map(pairs.map((pair) => [pairKey(pair), pair]))
           const bookings: (SettlePayoutRowT & { workerId: number; description: string })[] = []
           for (const row of rows) {
-            const pair = pairOf.get(`${row.investmentId}:${row.workerId}`)
+            const pair = pairOf.get(pairKey(row))
             if (!pair) return { success: false, stale: true, error: STALE_PAIR_MESSAGE }
             const { remaining, state } = classifyPair(pair)
             if (isBlocked(state)) return refuse(row.investmentId, BLOCKED_PAIR_REASON[state])

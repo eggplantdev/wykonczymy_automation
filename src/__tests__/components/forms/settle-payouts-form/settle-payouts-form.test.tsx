@@ -18,6 +18,10 @@ vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 vi.mock('@/lib/actions/settle-payouts', () => ({ settlePayoutsAction: vi.fn() }))
 vi.mock('@/lib/actions/book-overpayment-bonus', () => ({ bookOverpaymentBonusAction: vi.fn() }))
 vi.mock('@/lib/queries/register-balance', () => ({ getRegisterBalance: vi.fn() }))
+const viewer = vi.hoisted(() => ({ role: 'OWNER' }))
+vi.mock('@/hooks/use-current-user', () => ({
+  useCurrentUser: () => ({ id: 1, email: 'o@example.test', name: 'Testowy', role: viewer.role }),
+}))
 
 const row = (overrides: Partial<SettleRowT>): SettleRowT => ({
   investmentId: 1,
@@ -91,6 +95,7 @@ const staleRefusal = () =>
   })
 
 beforeEach(() => {
+  viewer.role = 'OWNER'
   vi.mocked(settlePayoutsAction).mockReset()
   vi.mocked(bookOverpaymentBonusAction).mockReset()
   // Pending by default: a saldo re-read resolving after a test ends lands outside act().
@@ -275,6 +280,12 @@ describe('SettlePayoutsForm', () => {
       expect(bonusButton('Brzozowa')).not.toBeInTheDocument()
     })
 
+    it('is not offered to a MANAGER, who may not grant a premia', () => {
+      viewer.role = 'MANAGER'
+      renderForm()
+      expect(bonusButton('Brzozowa')).not.toBeInTheDocument()
+    })
+
     it('books the shown nadpłata after a confirm, reloads, keeps typed amounts and stays open', async () => {
       const user = userEvent.setup()
       vi.mocked(bookOverpaymentBonusAction).mockResolvedValue({ success: true })
@@ -311,6 +322,32 @@ describe('SettlePayoutsForm', () => {
       expect(reloadRows).toHaveBeenCalledOnce()
       expect(amount('Akacjowa')).toHaveValue('300')
       expect(onSubmitSuccess).not.toHaveBeenCalled()
+    })
+
+    // A typed amount kept against a moved figure would pass the settle action's stale check — it
+    // compares against the fresh figure — and book the difference as a silent zaliczka.
+    it('re-prefills a row whose figure moved while the premia booked, instead of keeping its typed amount', async () => {
+      const user = userEvent.setup()
+      vi.mocked(bookOverpaymentBonusAction).mockResolvedValue({ success: true })
+      const fresh = [
+        row({ paid: 400, remaining: 600 }),
+        row({ investmentId: 2, label: 'Brzozowa', bonus: 200, remaining: 0, state: 'settled' }),
+      ]
+      renderForm(
+        ROWS,
+        vi.fn(async () => fresh),
+      )
+      await retype(user, 'Akacjowa', '750')
+
+      await user.click(bonusButton('Brzozowa')!)
+      await user.click(
+        within(await screen.findByRole('alertdialog')).getByRole('button', {
+          name: 'Zaksięguj premię',
+        }),
+      )
+
+      await waitFor(() => expect(bonusButton('Brzozowa')).not.toBeInTheDocument())
+      expect(amount('Akacjowa')).toHaveValue('600')
     })
 
     it('reloads the rows when the premia was refused as stale', async () => {

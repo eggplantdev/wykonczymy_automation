@@ -43,3 +43,16 @@ export function marginV2(
       financials.totalBonus,
   )
 }
+
+/**
+ * „Pozostało do wypłaty" for the whole crew of one investment: owed for the work plus the premie,
+ * minus the wypłaty. Rounded before any caller reads its sign: `due` is a sum through fractional
+ * plane coefficients and `totalPayouts` a raw SUM, so paying out exactly the displayed amount leaves
+ * ~1e-13 behind and would paint a settled crew red as „Nadpłata 0,00".
+ */
+export function subcontractorRemaining(
+  financials: InvestmentFinancialsT,
+  subcontractor: SubcontractorSettlementT,
+): number {
+  return roundToCents(subcontractor.due + financials.totalBonus - financials.totalPayouts)
+}

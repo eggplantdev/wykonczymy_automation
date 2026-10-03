@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { pairKey } from '@/lib/kosztorys/worker-payout-pairs'
 import { requiredDay } from '@/lib/utils/validation'
 
 const settleRowSchema = z.object({
@@ -21,7 +22,7 @@ export const settlePayoutsSchema = z
   .superRefine((data, ctx) => {
     const seen = new Set<string>()
     data.rows.forEach((row, index) => {
-      const key = `${row.investmentId}:${row.workerId}`
+      const key = pairKey(row)
       if (seen.has(key)) {
         ctx.addIssue({
           code: 'custom',
@@ -35,12 +36,3 @@ export const settlePayoutsSchema = z
 
 export type SettlePayoutsT = z.infer<typeof settlePayoutsSchema>
 export type SettlePayoutRowT = SettlePayoutsT['rows'][number]
-
-export const bookOverpaymentBonusSchema = z.object({
-  investmentId: z.number().int().positive(),
-  workerId: z.number().int().positive(),
-  /** The nadpłata the dialog showed, as its negative „Pozostało" — refused when it no longer holds. */
-  expectedRemaining: z.number().negative(),
-})
-
-export type BookOverpaymentBonusT = z.infer<typeof bookOverpaymentBonusSchema>

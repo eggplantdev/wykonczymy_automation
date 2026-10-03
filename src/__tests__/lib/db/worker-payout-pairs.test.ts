@@ -149,7 +149,7 @@ describe.skipIf(!ENV_READY)('selectWorkerPayoutPairs (DB)', () => {
     // Each excluded by its own predicate; 999 so a leak shows in the amounts.
     await payout(created.clean, worker.a, 999, true)
     await payout(null, worker.a, 999)
-    // EX-979: owed on top of the work, never a wypłata; the cancelled one must not count either.
+    // EX-979: the cancelled one must not count either.
     await bonus(created.clean, worker.c, 75)
     await bonus(created.clean, worker.c, 999, true)
 

@@ -11,9 +11,8 @@ import { strandedFromPlaneSums } from '@/lib/kosztorys/off-plane-deposits'
 import { effectiveMaterialsNetRate } from '@/lib/kosztorys/settlement-mode'
 import { financialsOnReading, readingFromKosztorys } from '@/lib/kosztorys/summary-reading'
 import { billedMaterials, computeAmountDue } from '@/lib/kosztorys/summary-economics'
-import { marginV2 } from '@/lib/kosztorys/margin-v2'
+import { marginV2, subcontractorRemaining } from '@/lib/kosztorys/margin-v2'
 import { NOTHING_DUE } from '@/lib/kosztorys/subcontractor-due'
-import { roundToCents } from '@/lib/utils/round-to-cents'
 import { ZERO_FINANCIALS } from '@/types/investment-financials'
 import type { InvestmentRefT } from '@/types/reference-data'
 import type { InvestmentRowT } from '@/types/table-rows'
@@ -103,7 +102,7 @@ export function shapeInvestments(
       subcontractorRemaining:
         clientTotals === undefined || settlement.hasUnconfirmedPlane
           ? undefined
-          : roundToCents(settlement.due + financials.totalBonus - financials.totalPayouts),
+          : subcontractorRemaining(financials, settlement),
       address: inv.address,
       phone: inv.phone,
       email: inv.email,

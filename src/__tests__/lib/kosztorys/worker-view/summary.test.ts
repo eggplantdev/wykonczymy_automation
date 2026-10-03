@@ -102,7 +102,6 @@ describe('computeWorkerSummary', () => {
     expect(summary.payouts).toEqual([{ date: '2026-09-02', amount: 10, description: 'ZUS lipiec' }])
   })
 
-  // EX-979: one „Premia" line, owed on top of the work — never listed as a wypłata.
   it('adds the worker’s premia to what is owed, apart from the wypłaty', () => {
     const summary = summarize([
       payout(WORKER, 50),

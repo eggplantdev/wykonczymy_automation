@@ -28,7 +28,6 @@ describe('derivePayoutsByWorker', () => {
     expect(rowFor(1, rows)).toEqual({ workerId: 1, total: 1250.5, bonus: 0, name: 'Jan Kowalski' })
   })
 
-  // EX-979: a premia is owed, not paid — summed beside the wypłaty, never into them.
   it('sums premie apart from wypłaty', () => {
     const rows = derivePayoutsByWorker(
       [payout(1, 1000), { ...payout(1, 205.01), type: 'BONUS' }],

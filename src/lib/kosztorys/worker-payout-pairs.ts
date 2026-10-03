@@ -35,6 +35,9 @@ export type BlockedStateT = keyof typeof BLOCKED_PAIR_REASON
 /** Both pair actions refuse with it — a wypłata or premia sized against a moved „Pozostało". */
 export const STALE_PAIR_MESSAGE = 'Kwoty zmieniły się od otwarcia okna — wczytuję je ponownie.'
 
+export const pairKey = (pair: { investmentId: number; workerId: number | null }) =>
+  `${pair.investmentId}:${pair.workerId}`
+
 export const isBlocked = (state: PairStateT): state is BlockedStateT => state in BLOCKED_PAIR_REASON
 
 /**

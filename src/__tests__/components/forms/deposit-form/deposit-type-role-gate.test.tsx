@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { DepositForm } from '@/components/forms/deposit-form/deposit-form'
 import { useDepositFormStore } from '@/stores/form-stores'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
-import type { ReferenceDataT } from '@/types/reference-data'
+import { referenceDataFor } from '@/__tests__/helpers/reference-data'
 import type { RoleT } from '@/lib/auth/roles'
 
 vi.mock('next/navigation', () => ({
@@ -15,20 +15,6 @@ vi.mock('@/lib/actions/transfers', () => ({
   createTransferAction: vi.fn(async () => ({ success: true })),
 }))
 vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
-
-const referenceDataFor = (currentUserRole: RoleT) =>
-  ({
-    cashRegisters: [{ id: 1, name: 'Kasa główna', type: 'MAIN' as const }],
-    trashedCashRegisters: [],
-    trashedInvestments: [],
-    trashedWorkers: [],
-    investments: [],
-    workers: [],
-    otherCategories: [],
-    expenseCategories: [],
-    currentUserId: 1,
-    currentUserRole,
-  }) satisfies ReferenceDataT
 
 async function openTypeMenu(currentUserRole: RoleT) {
   render(

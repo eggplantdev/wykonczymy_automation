@@ -62,7 +62,7 @@ export type SubcontractorPayoutRowT = PayoutByWorkerT & {
   name: string
 }
 
-// One realized PAYOUT transaction, for the subcontractor block's sortable wypłaty list. Worker name
+// One realized PAYOUT or BONUS transaction, for the subcontractor block's sortable wypłaty list. Worker name
 // resolves at render from the SubcontractorPayoutRowT set.
 export type PayoutTransactionRowT = {
   type: 'PAYOUT' | 'BONUS'

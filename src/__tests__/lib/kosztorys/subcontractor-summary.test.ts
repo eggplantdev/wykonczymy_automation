@@ -261,7 +261,6 @@ describe('subcontractorRowTotals — „Razem" cannot drift from the headline', 
   })
 })
 
-// EX-979: a premia is owed on top of executed work, never folded into the należne itself.
 describe('computeSubcontractorSummary — premia', () => {
   const withBonus = (workerId: number | null, paid: number, bonus: number) => ({
     ...payout(workerId, paid, 'Anna'),

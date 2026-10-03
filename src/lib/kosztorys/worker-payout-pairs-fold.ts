@@ -1,6 +1,6 @@
 import { splitStagePool } from '@/lib/kosztorys/stage-split'
 import type { StageSplitT } from '@/lib/kosztorys/types'
-import type { WorkerPayoutPairRowT } from '@/lib/kosztorys/worker-payout-pairs'
+import { pairKey, type WorkerPayoutPairRowT } from '@/lib/kosztorys/worker-payout-pairs'
 
 export type StageDueRowT = {
   investmentId: number
@@ -31,7 +31,7 @@ export function foldWorkerPayoutPairs(
 ): WorkerPayoutPairRowT[] {
   const pairs = new Map<string, WorkerPayoutPairRowT>()
   const pairOf = (investmentId: number, workerId: number | null) => {
-    const key = `${investmentId}:${workerId}`
+    const key = pairKey({ investmentId, workerId })
     let pair = pairs.get(key)
     if (!pair) {
       pair = {

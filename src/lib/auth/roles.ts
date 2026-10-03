@@ -21,6 +21,12 @@ export const isManagementRole = (role: RoleT): boolean =>
 export const isAdminOrOwnerRole = (role: RoleT): boolean =>
   (ADMIN_OR_OWNER_ROLES as readonly string[]).includes(role)
 
+// Owner ruling (EX-979): only ADMIN / OWNER grant a premia; a MANAGER books every other type.
+export const canBookTransferType = (role: RoleT, type: string): boolean =>
+  type !== 'BONUS' || isAdminOrOwnerRole(role)
+
+export const BONUS_FORBIDDEN_MESSAGE = 'Premię może przyznać tylko właściciel lub administrator.'
+
 /** A MANAGER manages EMPLOYEE accounts only; anyone above answers to him as missing (EX-918). */
 export const canManageAccount = (actorRole: RoleT, targetRole: RoleT): boolean =>
   actorRole !== 'MANAGER' || targetRole === 'EMPLOYEE'

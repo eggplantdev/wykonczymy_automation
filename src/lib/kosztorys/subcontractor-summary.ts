@@ -49,7 +49,6 @@ export type SubcontractorSummaryInputT = {
 export type SubcontractorSummaryT = {
   // „Suma wykonanej pracy" (należne) — executed value at the active view's subcontractor price, pre-rabat.
   dueNet: number
-  // Σ premii on this investment.
   bonusTotal: number
   // Σ realized PAYOUTs on this investment (all workers incl. the null bucket).
   payoutsTotal: number

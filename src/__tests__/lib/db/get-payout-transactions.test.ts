@@ -75,7 +75,6 @@ describe.skipIf(!ENV_READY)('getPayoutTransactionsForInvestment (DB)', () => {
     expect(rows.map((row) => row.amount)).not.toContain(999)
   })
 
-  // A premia rides the same read as the wypłaty, so its type is what keeps it out of „Wypłacone".
   it('tags each row with its type, so a premia never sums as a wypłata', async () => {
     const rows = await getPayoutTransactionsForInvestment(payload, investmentId)
 

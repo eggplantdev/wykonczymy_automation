@@ -34,7 +34,6 @@ describe('classifyPair', () => {
     expect(classifyPair(row).state).toBe(state)
   })
 
-  // EX-979: the premia is owed on top of the work, so it closes exactly the nadpłata it was booked for.
   it('a premia equal to the nadpłata settles the pair', () => {
     const overpaid = pair({ due: 1000, paid: 1205.01 })
     expect(classifyPair(overpaid)).toMatchObject({ state: 'overpaid' })

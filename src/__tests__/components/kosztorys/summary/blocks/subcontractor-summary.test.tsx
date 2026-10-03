@@ -199,8 +199,8 @@ describe('Podsumowanie podwykonawców — niepotwierdzone rozliczenie etapu', ()
   })
 })
 
-// Ten sam dialog co na liście inwestycji — zakładka, która krzyczy „nadpłacone", prowadzi tam, gdzie
-// da się to wyrównać.
+// The same dialog as on the investments listing — the tab that flags „nadpłacone" leads to where it
+// can be evened out.
 describe('Podsumowanie pracowników — Rozlicz wypłaty', () => {
   const settleButton = () => screen.queryByRole('button', { name: 'Rozlicz wypłaty' })
 

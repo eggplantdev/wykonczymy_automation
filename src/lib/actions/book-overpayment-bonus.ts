@@ -1,9 +1,7 @@
 'use server'
 
-import {
-  bookOverpaymentBonusSchema,
-  type BookOverpaymentBonusT,
-} from '@/components/forms/settle-payouts-form/settle-payouts-schema'
+import { z } from 'zod'
+import { BONUS_FORBIDDEN_MESSAGE, canBookTransferType } from '@/lib/auth/roles'
 import { getDb } from '@/lib/db/get-db'
 import { lockInvestmentGates } from '@/lib/db/investment-gate'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
@@ -16,6 +14,15 @@ import { protectedAction, validateAction } from './run-action'
 
 const BONUS_DESCRIPTION = 'Wyrównanie nadpłaty'
 
+const bookOverpaymentBonusSchema = z.object({
+  investmentId: z.number().int().positive(),
+  workerId: z.number().int().positive(),
+  /** The nadpłata the dialog showed, as its negative „Pozostało" — refused when it no longer holds. */
+  expectedRemaining: z.number().negative(),
+})
+
+export type BookOverpaymentBonusT = z.infer<typeof bookOverpaymentBonusSchema>
+
 /**
  * „Wyrównaj premią": one BONUS for exactly the pair's nadpłata. The amount is never sent — it is
  * re-read under the investment lock, and the click is refused when the figure the owner confirmed
@@ -27,6 +34,8 @@ export async function bookOverpaymentBonusAction(
   return protectedAction(
     `bookOverpaymentBonusAction inv=${data.investmentId} worker=${data.workerId}`,
     async ({ payload, user }): Promise<SettlePayoutsResultT> => {
+      if (!canBookTransferType(user.role, 'BONUS'))
+        return { success: false, error: BONUS_FORBIDDEN_MESSAGE }
       const parsed = validateAction(bookOverpaymentBonusSchema, data)
       if (!parsed.success) return parsed
       const { investmentId, workerId, expectedRemaining } = parsed.data
@@ -46,9 +55,10 @@ export async function bookOverpaymentBonusAction(
           const pair = (await selectWorkerPayoutPairs(db, { investmentIds: [investmentId] })).find(
             (row) => row.workerId === workerId,
           )
-          const classified = pair && classifyPair(pair)
-          const remaining = classified ? roundToCents(classified.remaining) : undefined
-          if (classified?.state !== 'overpaid' || remaining !== roundToCents(expectedRemaining)) {
+          if (!pair) return { success: false, stale: true, error: STALE_PAIR_MESSAGE }
+          const classified = classifyPair(pair)
+          const remaining = roundToCents(classified.remaining)
+          if (classified.state !== 'overpaid' || remaining !== roundToCents(expectedRemaining)) {
             return { success: false, stale: true, error: STALE_PAIR_MESSAGE }
           }
 

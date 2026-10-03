@@ -28,8 +28,9 @@ type SettleTableContextT = {
   values: RowValueT[]
   onTick: (index: number, ticked: boolean) => void
   onAmount: (index: number, amount: string) => void
-  /** „Wyrównaj premią" on an unticked nadpłata row — books exactly the overpayment. */
-  onBonus: (index: number) => void
+  /** „Wyrównaj premią" on an unticked nadpłata row — books exactly the overpayment. Absent for a
+   * MANAGER, who may not grant a premia. */
+  onBonus?: (index: number) => void
   isBooking: boolean
   labelHeader: string
   labelHref?: (row: SettleRowT) => string
@@ -128,7 +129,7 @@ function AfterPayoutCell({ row, index }: { row: SettleRowT; index: number }) {
   const { onBonus, isBooking } = useSettleTable()
   const value = useRowValue(index)
   if (isBlocked(row.state)) return null
-  if (row.state === 'overpaid' && !value.ticked) {
+  if (onBonus && row.state === 'overpaid' && !value.ticked) {
     return (
       <Button
         type="button"

@@ -1,7 +1,6 @@
 'use client'
 
 import { faceValue } from '@/lib/kosztorys/summary-economics'
-import { roundToCents } from '@/lib/utils/round-to-cents'
 import {
   SummaryHeaderCell,
   SummaryLabelCell,
@@ -12,7 +11,7 @@ import { SummaryRow } from '@/components/kosztorys/summary/grid/summary-row'
 import { MARGIN_TABLE_COLS } from '@/components/kosztorys/summary/tabs/margin-table-cols'
 import { Description } from '@/components/ui/description'
 import { SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/labels'
-import { marginV2 } from '@/lib/kosztorys/margin-v2'
+import { marginV2, subcontractorRemaining } from '@/lib/kosztorys/margin-v2'
 import type { SubcontractorSettlementT } from '@/lib/kosztorys/subcontractor-due'
 import type { InvestmentFinancialsT } from '@/types/investment-financials'
 
@@ -38,11 +37,7 @@ export function MarginActualTable({ financials, subcontractor }: PropsT) {
   const { totalLaborCosts, totalDiscount, totalLoss, totalBonus, totalSettled, totalPayouts } =
     financials
   const margin = marginV2(financials, subcontractor)
-
-  // Rounded before the sign is read: `due` is a sum through fractional plane coefficients and
-  // `totalPayouts` a raw SUM, so paying out exactly the displayed amount — the commonest case —
-  // leaves ~1e-13 behind and would paint a settled crew red as „Nadpłata 0,00".
-  const remaining = roundToCents(subcontractor.due + totalBonus - totalPayouts)
+  const remaining = subcontractorRemaining(financials, subcontractor)
 
   return (
     <>
