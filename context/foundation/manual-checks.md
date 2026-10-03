@@ -3372,6 +3372,8 @@ Przed sprawdzeniem: migracja typu „Premia" na bazie, na której klikasz (`pnpm
       podaje kwotę, pracownika i inwestycję → po zatwierdzeniu wiersz ma 0,00, przycisk znika, okno
       zostaje otwarte, a kwoty wpisane w inne wiersze zostają.
 - [ ] Zaznaczenie wiersza z nadpłatą (zaliczka) chowa „Wyrównaj premią".
+- [ ] Zalogowany jako kierownik (MANAGER): „Nowa transakcja" nie oferuje „Premia", a w oknie
+      „Rozlicz wypłaty" przy wierszu z nadpłatą nie ma „Wyrównaj premią". Właściciel widzi oba.
 - [ ] Zakładka Podwykonawcy → „Rozlicz wypłaty" w nagłówku „Podsumowania pracowników" otwiera to samo
       okno dla tej inwestycji, z tym samym przyciskiem; przy ekipie rozliczonej do zera przycisku nie ma.
 - [ ] Okno „Rozlicz wypłaty" otwarte w dwóch kartach: w jednej wypłata na parę z nadpłatą, w drugiej
