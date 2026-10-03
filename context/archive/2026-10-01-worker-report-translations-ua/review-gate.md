@@ -9,24 +9,8 @@ structure-scatter-audit (diff-scoped), comment-noise-audit (flag-only).
 
 ## Findings
 
-- [x] 🟡 WARNING · fixed · impl-review · `src/lib/actions/work-catalogue.ts:58` · a katalog edit wrote the whole translation map built from the dialog's cached baseline — after the fill script (raw SQL, no tag expiry) a price-only edit sent `{}` and wiped the stored translations — the form now sends only `translationEdits`; the update applies them to the STORED row (`translationsFromTexts`)
-      test: test-driven-debugging · integration — `work-catalogue` action spec: the stored map survives a price-only update sent from a `{}` baseline (5435, green)
-- [x] 🟡 WARNING · fixed · impl-review · `src/components/kosztorys/worker-report/branded-header.tsx` · the language switcher crowded the header at 390px — the trigger's label is `sr-only` under `sm`, the flag stays; the menu still names every language
-      test: no automated test · — layout; manual check at 390px in the registry
-- [x] 🟡 WARNING · fixed · impl-review · `src/lib/actions/worker-report.ts:72` · „Nieznana j.m." reached a UK/RU worker as the generic error — dictionary key `unknownUnit` + `reportRefusal`
-      test: TDD · integration — the refusal carries `messageKey: 'unknownUnit'` (worker-report spec, 5435, green)
 - [x] 🟡 WARNING · dismissed · impl-review · `src/lib/actions/worker-report.ts:18,19,35` · empty report / >2000 lines / duplicate pozycja have no messageKey — unreachable from the UI: send is disabled at 0 lines, the grid keys by pozycja, 2000 is a DoS cap
-- [x] 🔵 OBSERVATION · fixed · code-review · `src/lib/i18n/description-translations.ts:102` · `mergeTranslations` let a stale incoming translation beat a current existing one — it now takes the opis the merged map sits under; per language the incoming wins unless it is stale and the existing one is current
-      test: TDD · unit — description-translations spec
 - [x] 🔵 OBSERVATION · dismissed · impl-review · `catalogue-item-from-kosztorys-dialog.tsx:24` · the dialog prefills `existing ?? candidate` (katalog whole-map) while the blind save merges per language — deliberate: the dialog is the owner looking at what the katalog already says and editing it; the blind save has no one to look
-- [x] 🔵 OBSERVATION · fixed · code-review · `src/lib/kosztorys/work-catalogue/item-to-catalogue.ts:45` · the opis was trimmed but the translation's `source` was not, so a praca with a trailing space landed in the katalog already „nieaktualne" — `restampTranslations` onto the trimmed opis
-      test: TDD · unit — item-to-catalogue spec
-- [x] 🔵 OBSERVATION · fixed · code-review · `src/lib/kosztorys/sheet-import/build-import-plan.ts:238` · a matched praca's `{}` beat the katalog whole, so a re-import never picked up katalog translations added later — per-language `mergeTranslations` (also lets a current katalog translation replace one made from the old opis)
-      test: TDD · unit — build-import-plan spec (fill per language + stale own vs current katalog)
-- [x] 🔵 OBSERVATION · fixed · code-review · `src/components/tables/data-table/data-table.tsx:146` · the visibility updater read render-time state, so two updates in one tick lost the first — functional setState
-      test: no automated test · — latent, no caller batches visibility updates today
-- [x] 🔵 OBSERVATION · fixed · suite · `src/components/kosztorys/editor/use-kosztorys-editor.ts:1222` · accepting a „może chodzi o…" name in „Porównaj z katalogiem" kept the praca's translations, made from the name it gave up — the hint carries the katalog's `descriptionTranslations`, accept-name merges them in (`CatalogueNameT`)
-      test: test-driven-debugging · unit (dom) — catalogue-missing-list spec: the candidate's translations travel with its name
 - [x] fixed · code-review · `src/lib/i18n/failure-message.ts:9` · matched `pl.common.databaseError` by string, duplicating `DATABASE_ERROR` — a `DATABASE_ERROR` failure code
 - [x] fixed · code-review · `src/lib/kosztorys/translation-column-keys.ts:33` · `baseTranslationColumnKey` dead export — deleted
 - [x] fixed · impl-review · `src/app/(frontend)/pracownicy/[id]/page.tsx` · `worker.language ?? 'pl'` — `DEFAULT_LANGUAGE` (and the other literal `'pl'` defaults)

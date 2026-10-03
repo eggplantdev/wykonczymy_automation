@@ -1,10 +1,10 @@
 ---
 change_id: worker-report-translations-ua
 title: Ukrainian translations for the worker report surface
-status: implemented
+status: archived
 created: 2026-10-01
-updated: 2026-10-01
-archived_at: null
+updated: 2026-10-03
+archived_at: 2026-10-03T05:53:00Z
 branch: ex-948-worker-report-translations-ua
 worktree: .claude/worktrees/ex-948-translations
 ---
