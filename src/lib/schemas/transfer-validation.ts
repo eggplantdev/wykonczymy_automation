@@ -59,7 +59,7 @@ const transferFieldRules: FieldRuleT[] = [
   },
   {
     invalid: (d) => needsWorker(d.type) && !d.worker,
-    message: 'Pracownik jest wymagany dla wypłaty',
+    message: 'Pracownik jest wymagany dla tego typu',
     path: 'worker',
   },
   {

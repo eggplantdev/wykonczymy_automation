@@ -19,6 +19,7 @@ const summary = (overrides: Partial<WorkerSummaryT> = {}): WorkerSummaryT => ({
   ],
   stagesWholeNet: 9_000,
   executedNet: 4_500,
+  bonusNet: 0,
   payouts: [
     { date: '2026-09-01', amount: 2_000, description: 'ZUS lipiec' },
     { date: '2026-09-15', amount: 1_000, description: null },
@@ -142,6 +143,17 @@ describe('WorkerSummary', () => {
     expect(screen.queryByText('Pozostało do wypłaty')).toBeNull()
     expect(valueBeside('Nadpłata')).toMatch(/^500,00/)
     expect(valueBeside('Nadpłata')).not.toContain('-')
+  })
+
+  it('shows the premia as its own line, and no such line without one', () => {
+    const { unmount } = render(
+      <WorkerSummary summary={summary({ bonusNet: 205.01, owed: 1_705.01 })} />,
+    )
+    expect(valueBeside('Premia')).toMatch(/^205,01/)
+    unmount()
+
+    render(<WorkerSummary summary={summary()} />)
+    expect(screen.queryByText('Premia')).toBeNull()
   })
 
   it('reads zero once everything is paid', () => {

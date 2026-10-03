@@ -46,8 +46,9 @@ export const fetchInvestmentFinancials = unstable_cache(
   },
   // Versioned key — see the note on `reference-data-v2`. Bumped when `InvestmentFinancialsT` gained
   // `netCategoryCosts`: an entry written before that lacks the array, and a reader dereferencing it
-  // throws rather than merely showing an old number.
-  ['investment-financials-v2'],
+  // throws rather than merely showing an old number. v3: `totalBonus`, which marża v2 subtracts —
+  // read as `undefined` it turns the figure into NaN.
+  ['investment-financials-v3'],
   // Two tags, not one: the figures are summed from transfers, but the materiały concession and the
   // settlement mode that gates it are columns on `investments`. Tagged on transfers alone, saving a
   // rate left the listing serving the pre-change marża until an unrelated transfer happened to
@@ -140,6 +141,6 @@ export const fetchWorkerPayoutPairs = unstable_cache(
     console.log(`[PERF] query.fetchWorkerPayoutPairs ${elapsed()}ms (${rows.length} pairs)`)
     return rows
   },
-  ['worker-payout-pairs-v2'],
+  ['worker-payout-pairs-v3'],
   { tags: [...KOSZTORYS_CLIENT_TOTALS_TAGS, CACHE_TAGS.transfers] },
 )

@@ -7,6 +7,7 @@ import {
   needsOtherCategory,
   needsSourceRegister,
   needsTargetRegister,
+  needsWorker,
   showsInvestment,
   type TransferTypeT,
 } from '@/lib/constants/transfers'
@@ -28,6 +29,7 @@ const TRANSFER_TYPES = [
   { label: { en: 'Labor Cost', pl: 'Koszty robocizny' }, value: 'LABOR_COST' },
   { label: { en: 'Rebate', pl: 'Rabat' }, value: 'RABAT' },
   { label: { en: 'Loss', pl: 'Strata' }, value: 'LOSS' },
+  { label: { en: 'Bonus', pl: 'Premia' }, value: 'BONUS' },
   {
     label: { en: 'Register Transfer', pl: 'Transfer między kasami' },
     value: 'REGISTER_TRANSFER',
@@ -208,7 +210,7 @@ export const Transfers: CollectionConfig = {
       label: { en: 'Worker', pl: 'Pracownik' },
       access: { update: () => false },
       admin: {
-        condition: (data) => data?.type === 'PAYOUT',
+        condition: (data) => needsWorker(typeOf(data)),
       },
     },
     {

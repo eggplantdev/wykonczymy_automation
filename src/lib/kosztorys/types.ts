@@ -186,7 +186,7 @@ export type KosztorysEditorDataT = {
   discountNetFromTransactions: number
   // Σ LOSS — the cost the company absorbed, which the settlement deducts at face value.
   investmentLoss: number
-  // Realized PAYOUT rows: the block's sortable wypłaty list AND its per-worker Σ. Optional (default
+  // Realized PAYOUT and BONUS rows: the block's sortable wypłaty list AND its per-worker Σ. Optional (default
   // []) because the two client-view share entry points never render that block.
   payoutTransactions?: PayoutTransactionRowT[]
   // Required: the wpłaty TOTAL is summed from these rows, so a host that omits them isn't showing an

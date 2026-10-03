@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { SettlePayoutsForm } from '@/components/forms/settle-payouts-form/settle-payouts-form'
+import { bookOverpaymentBonusAction } from '@/lib/actions/book-overpayment-bonus'
 import { settlePayoutsAction } from '@/lib/actions/settle-payouts'
 import { getRegisterBalance } from '@/lib/queries/register-balance'
 import { toastMessage } from '@/lib/utils/toast'
@@ -15,13 +16,19 @@ vi.mock('next/navigation', () => ({
 }))
 vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 vi.mock('@/lib/actions/settle-payouts', () => ({ settlePayoutsAction: vi.fn() }))
+vi.mock('@/lib/actions/book-overpayment-bonus', () => ({ bookOverpaymentBonusAction: vi.fn() }))
 vi.mock('@/lib/queries/register-balance', () => ({ getRegisterBalance: vi.fn() }))
+const viewer = vi.hoisted(() => ({ role: 'OWNER' }))
+vi.mock('@/hooks/use-current-user', () => ({
+  useCurrentUser: () => ({ id: 1, email: 'o@example.test', name: 'Testowy', role: viewer.role }),
+}))
 
 const row = (overrides: Partial<SettleRowT>): SettleRowT => ({
   investmentId: 1,
   workerId: 10,
   label: 'Akacjowa',
   due: 1000,
+  bonus: 0,
   paid: 200,
   remaining: 800,
   state: 'payable',
@@ -58,6 +65,7 @@ function renderForm(
       defaultRegisterBalance={defaultRegisterBalance}
       labelHeader="Inwestycja"
       labelHref={labelHref}
+      pairNames={(r) => ({ worker: 'Roman', investment: r.label })}
       onSubmitSuccess={onSubmitSuccess}
     />,
   )
@@ -87,7 +95,9 @@ const staleRefusal = () =>
   })
 
 beforeEach(() => {
+  viewer.role = 'OWNER'
   vi.mocked(settlePayoutsAction).mockReset()
+  vi.mocked(bookOverpaymentBonusAction).mockReset()
   // Pending by default: a saldo re-read resolving after a test ends lands outside act().
   vi.mocked(getRegisterBalance)
     .mockReset()
@@ -251,6 +261,114 @@ describe('SettlePayoutsForm', () => {
       expect(toastMessage).toHaveBeenCalledWith(expect.stringMatching(/zamknij/i), 'error', 6000),
     )
     expect(submit()).toBeEnabled()
+  })
+
+  describe('Wyrównaj premią', () => {
+    const bonusButton = (label: string) =>
+      rowOf(label).queryByRole('button', { name: 'Wyrównaj premią' })
+
+    it('offers the premia only on an unticked nadpłata row', async () => {
+      const user = userEvent.setup()
+      renderForm()
+      expect(bonusButton('Brzozowa')).toBeInTheDocument()
+      for (const label of ['Akacjowa', 'Cisowa', 'Dębowa']) {
+        expect(bonusButton(label)).not.toBeInTheDocument()
+      }
+
+      // Ticked, the row is a zaliczka being typed — the premia would contradict it.
+      await user.click(tick('Brzozowa'))
+      expect(bonusButton('Brzozowa')).not.toBeInTheDocument()
+    })
+
+    it('is not offered to a MANAGER, who may not grant a premia', () => {
+      viewer.role = 'MANAGER'
+      renderForm()
+      expect(bonusButton('Brzozowa')).not.toBeInTheDocument()
+    })
+
+    it('books the shown nadpłata after a confirm, reloads, keeps typed amounts and stays open', async () => {
+      const user = userEvent.setup()
+      vi.mocked(bookOverpaymentBonusAction).mockResolvedValue({ success: true })
+      const fresh = [
+        ROWS[0],
+        row({
+          investmentId: 2,
+          label: 'Brzozowa',
+          due: 500,
+          bonus: 200,
+          paid: 700,
+          remaining: 0,
+          state: 'settled',
+        }),
+      ]
+      const { onSubmitSuccess, reloadRows } = renderForm(
+        ROWS,
+        vi.fn(async () => fresh),
+      )
+      await retype(user, 'Akacjowa', '300')
+
+      await user.click(bonusButton('Brzozowa')!)
+      const confirm = await screen.findByRole('alertdialog')
+      expect(bare(confirm.textContent ?? '')).toContain(bare(formatPLN(200)))
+      expect(confirm).toHaveTextContent('Roman')
+      await user.click(within(confirm).getByRole('button', { name: 'Zaksięguj premię' }))
+
+      await waitFor(() => expect(bonusButton('Brzozowa')).not.toBeInTheDocument())
+      expect(bookOverpaymentBonusAction).toHaveBeenCalledWith({
+        investmentId: 2,
+        workerId: 10,
+        expectedRemaining: -200,
+      })
+      expect(reloadRows).toHaveBeenCalledOnce()
+      expect(amount('Akacjowa')).toHaveValue('300')
+      expect(onSubmitSuccess).not.toHaveBeenCalled()
+    })
+
+    // A typed amount kept against a moved figure would pass the settle action's stale check — it
+    // compares against the fresh figure — and book the difference as a silent zaliczka.
+    it('re-prefills a row whose figure moved while the premia booked, instead of keeping its typed amount', async () => {
+      const user = userEvent.setup()
+      vi.mocked(bookOverpaymentBonusAction).mockResolvedValue({ success: true })
+      const fresh = [
+        row({ paid: 400, remaining: 600 }),
+        row({ investmentId: 2, label: 'Brzozowa', bonus: 200, remaining: 0, state: 'settled' }),
+      ]
+      renderForm(
+        ROWS,
+        vi.fn(async () => fresh),
+      )
+      await retype(user, 'Akacjowa', '750')
+
+      await user.click(bonusButton('Brzozowa')!)
+      await user.click(
+        within(await screen.findByRole('alertdialog')).getByRole('button', {
+          name: 'Zaksięguj premię',
+        }),
+      )
+
+      await waitFor(() => expect(bonusButton('Brzozowa')).not.toBeInTheDocument())
+      expect(amount('Akacjowa')).toHaveValue('600')
+    })
+
+    it('reloads the rows when the premia was refused as stale', async () => {
+      const user = userEvent.setup()
+      vi.mocked(bookOverpaymentBonusAction).mockResolvedValue({
+        success: false,
+        stale: true,
+        error: 'Kwoty zmieniły się',
+      })
+      const { reloadRows } = renderForm()
+
+      await user.click(bonusButton('Brzozowa')!)
+      await user.click(
+        within(await screen.findByRole('alertdialog')).getByRole('button', {
+          name: 'Zaksięguj premię',
+        }),
+      )
+
+      await waitFor(() => expect(reloadRows).toHaveBeenCalledOnce())
+      expect(toastMessage).toHaveBeenCalledWith('Kwoty zmieniły się', 'warning', 5000)
+    })
   })
 
   describe('Do rozdysponowania', () => {

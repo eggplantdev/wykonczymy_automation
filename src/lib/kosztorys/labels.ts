@@ -33,6 +33,7 @@ export const PRICE_SOURCE_LABELS: Record<PriceSourceT, string> = {
 // have to work out that „Należne" and „Suma wykonanej pracy" were the same thing.
 export const SUBCONTRACTOR_FIGURE_LABELS = {
   due: 'Suma wykonanej pracy',
+  bonus: 'Premia',
   payouts: 'Zaliczki (wypłaty)',
   remaining: 'Pozostało do wypłaty',
 } as const

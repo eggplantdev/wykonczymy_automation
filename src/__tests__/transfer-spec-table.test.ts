@@ -53,6 +53,7 @@ describe('spec table — structural integrity', () => {
       'payouts',
       'discount',
       'loss',
+      'bonus',
       'none',
     ]
     for (const type of TRANSFER_TYPES) {

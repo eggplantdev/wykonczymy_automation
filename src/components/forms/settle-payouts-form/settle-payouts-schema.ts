@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { pairKey } from '@/lib/kosztorys/worker-payout-pairs'
 import { requiredDay } from '@/lib/utils/validation'
 
 const settleRowSchema = z.object({
@@ -21,7 +22,7 @@ export const settlePayoutsSchema = z
   .superRefine((data, ctx) => {
     const seen = new Set<string>()
     data.rows.forEach((row, index) => {
-      const key = `${row.investmentId}:${row.workerId}`
+      const key = pairKey(row)
       if (seen.has(key)) {
         ctx.addIssue({
           code: 'custom',

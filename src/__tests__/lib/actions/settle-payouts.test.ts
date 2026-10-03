@@ -2,11 +2,10 @@ import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
-import { selectWorkerPayoutPairs } from '@/lib/db/worker-payout-pairs'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
-import { classifyPair } from '@/lib/kosztorys/worker-payout-pairs'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
+import { pairRemaining } from '@/__tests__/helpers/pair-remaining'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
 // Every case asserts the PERSISTED rows, never only the return value: a refusal that still wrote
@@ -49,12 +48,8 @@ describe.skipIf(!ENV_READY)('settlePayoutsAction (DB)', () => {
     progress: [{ item: 0, stage: 0, qtyDone: 4 }],
   })
 
-  async function remainingOf(investmentId: number, workerId: number | null) {
-    const pairs = await selectWorkerPayoutPairs(db, { investmentIds: [investmentId] })
-    const pair = pairs.find((row) => row.workerId === workerId)
-    if (!pair) throw new Error(`no pair ${investmentId}:${workerId}`)
-    return roundToCents(classifyPair(pair).remaining)
-  }
+  const remainingOf = (investmentId: number, workerId: number | null) =>
+    pairRemaining(db, investmentId, workerId)
 
   async function booked(description = marker) {
     const res = await db.execute(sql`
@@ -229,6 +224,23 @@ describe.skipIf(!ENV_READY)('settlePayoutsAction (DB)', () => {
         amount: 10,
         expectedRemaining: remainingB + 1,
       },
+    ])
+    expect(result).toMatchObject({ success: false, stale: true })
+    expect(await booked()).toHaveLength(0)
+  })
+
+  // EX-979: a premia moves the pair like a wypłata does, so a dialog opened before it is stale.
+  it('reads a premia into the pair and refuses a submit that predates it', async () => {
+    const before = await remainingOf(created.a, worker.a)
+    await db.execute(sql`
+      INSERT INTO transactions (description, amount, date, type, payment_method, investment_id, worker_id)
+      VALUES (${`${marker}-premia`}, 50, now(), 'BONUS'::enum_transactions_type, 'TRANSFER',
+        ${created.a}, ${worker.a})
+    `)
+    expect(await remainingOf(created.a, worker.a)).toBe(roundToCents(before + 50))
+
+    const result = await submit(marker, [
+      { investmentId: created.a, workerId: worker.a, amount: 10, expectedRemaining: before },
     ])
     expect(result).toMatchObject({ success: false, stale: true })
     expect(await booked()).toHaveLength(0)

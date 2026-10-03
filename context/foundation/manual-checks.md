@@ -3273,6 +3273,9 @@ Na staging najpierw `pnpm db:migrate:preview` (nowe kolumny `trashed_at` / `eras
       wcześniej (wspólny komponent zaznaczania).
 - [ ] Rozpiska → przegląd zgłoszenia prac pracownika: checkbox w nagłówku ma stan częściowy przy części
       zaznaczonych linii, jak wcześniej.
+- [ ] `/zgloszenia` → ikona kosza w kolumnie „Akcje" jednego wiersza → potwierdź: tylko to zgłoszenie
+      znika z listy, toast „Zgłoszenie przeniesione do kosza.", a w `/kosz` pojawia się w sekcji
+      „Zgłoszenia".
 
 ### Findings — 2026-10-02
 
@@ -3345,3 +3348,33 @@ Na staging najpierw `pnpm db:migrate:preview` (nowa tabela z listą tłumaczeń 
 - [ ] Żadna komórka listy nie mówi „brak danych".
 - [ ] Dymki nagłówków „Bilans netto v2", „Robocizna v2", „Marża v2" i „Pozostało do wypłaty" zgadzają
       się z komórkami; żaden nie wspomina „brak danych".
+
+## EX-979 — premia — premia wyrównuje nadpłatę pracownika, inwestor jej nie widzi (2026-10-02)
+
+Przed sprawdzeniem: migracja typu „Premia" na bazie, na której klikasz (`pnpm db:migrate:preview` dla stagingu).
+
+- [ ] „Nowa transakcja" → „Premia": są pola pracownik i inwestycja, nie ma kasy; zapis bez pracownika
+      albo bez inwestycji zostaje odrzucony z czytelnym komunikatem.
+- [ ] Zaksięgowana premia nie zmienia salda żadnej kasy.
+- [ ] Para inwestycja × pracownik z nadpłatą (zakładka Podwykonawcy, „nadpłacone"): po zaksięgowaniu
+      premii na kwotę nadpłaty ta para pokazuje 0,00 w „Podsumowaniu pracowników", w nagłówku
+      podwykonawców, w „Rozliczeniu z ekipą", w kolumnie „Pozostało do wypłaty" na `/inwestycje`,
+      na `/pracownicy` i w oknie „Rozlicz wypłaty". Tam, gdzie jest premia, pojawia się kolumna/wiersz
+      „Premia"; u ekipy bez premii go nie ma.
+- [ ] „Marża v2" tej inwestycji spada o kwotę premii; „Marża v1", bilans, link dla inwestora, PDF
+      oferty i protokół się nie zmieniają.
+- [ ] „Lista wpłat" na zakładce Podwykonawcy nie pokazuje premii; link z imienia pracownika otwiera
+      listę transakcji, w której premia jest.
+- [ ] Link „Zgłoszenie prac" i PDF tego pracownika: linia „Premia" między „Wykonane razem" a
+      „Wypłacone", a „Pozostało do wypłaty" = wykonane + premia − wypłacone. Pracownik bez premii nie
+      widzi linii „Premia".
+- [ ] `/pracownicy` → „Rozlicz wypłaty" → przy wierszu z nadpłatą „Wyrównaj premią" → potwierdzenie
+      podaje kwotę, pracownika i inwestycję → po zatwierdzeniu wiersz ma 0,00, przycisk znika, okno
+      zostaje otwarte, a kwoty wpisane w inne wiersze zostają.
+- [ ] Zaznaczenie wiersza z nadpłatą (zaliczka) chowa „Wyrównaj premią".
+- [ ] Zalogowany jako kierownik (MANAGER): „Nowa transakcja" nie oferuje „Premia", a w oknie
+      „Rozlicz wypłaty" przy wierszu z nadpłatą nie ma „Wyrównaj premią". Właściciel widzi oba.
+- [ ] Zakładka Podwykonawcy → „Rozlicz wypłaty" w nagłówku „Podsumowania pracowników" otwiera to samo
+      okno dla tej inwestycji, z tym samym przyciskiem; przy ekipie rozliczonej do zera przycisku nie ma.
+- [ ] Okno „Rozlicz wypłaty" otwarte w dwóch kartach: w jednej wypłata na parę z nadpłatą, w drugiej
+      „Wyrównaj premią" na tę parę → odmowa „Kwoty zmieniły się…" i świeże kwoty w oknie.

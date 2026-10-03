@@ -19,14 +19,16 @@ export type WorkerSummaryT = {
   // Σ of his etapy whole, co-workers included — the „Wartość etapu" column's total.
   stagesWholeNet: number
   executedNet: number
+  // Σ his premii — one line, not itemised: a premia is owed on top of the work, not paid.
+  bonusNet: number
   payouts: WorkerPayoutT[]
   paidNet: number
-  // executed − paid; negative is an overpayment, rendered as „Nadpłata" rather than a minus.
+  // executed + premia − paid; negative is an overpayment, rendered as „Nadpłata" rather than a minus.
   owed: number
   isOverpaid: boolean
 }
 
-export type WorkerPayoutT = Omit<PayoutTransactionRowT, 'workerId'>
+export type WorkerPayoutT = Omit<PayoutTransactionRowT, 'workerId' | 'type'>
 
 // His share of a shared etap. `amount` is what he is credited — after any pro-rata shrink — and
 // `percent` is that amount's part of the whole etap; null where an amount split has no pool yet.
@@ -68,11 +70,15 @@ export function computeWorkerSummary({
 }: WorkerSummaryInputT): WorkerSummaryT {
   const due = subcontractorDueByPlane(rows, stages)
   const executedNet = due.byWorker.get(workerId) ?? 0
-  const payouts = payoutRows
-    .filter((row) => row.workerId === workerId)
+  const workerRows = payoutRows.filter((row) => row.workerId === workerId)
+  const payouts = workerRows
+    .filter((row) => row.type === 'PAYOUT')
     .map(({ date, amount, description }) => ({ date, amount, description }))
   const paidNet = roundToCents(payouts.reduce((sum, row) => sum + row.amount, 0))
-  const owed = roundToCents(executedNet - paidNet)
+  const bonusNet = roundToCents(
+    workerRows.reduce((sum, row) => (row.type === 'BONUS' ? sum + row.amount : sum), 0),
+  )
+  const owed = roundToCents(executedNet + bonusNet - paidNet)
   const executedByStage = stages.map((stage) => {
     const wholeNet = due.byStage.get(stage.id) ?? 0
     const net = due.byStageWorker.get(stage.id)?.get(workerId) ?? 0
@@ -89,6 +95,7 @@ export function computeWorkerSummary({
     executedByStage,
     stagesWholeNet: roundToCents(executedByStage.reduce((sum, stage) => sum + stage.wholeNet, 0)),
     executedNet,
+    bonusNet,
     payouts,
     paidNet,
     owed,

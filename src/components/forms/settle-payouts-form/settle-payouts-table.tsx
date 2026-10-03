@@ -2,6 +2,7 @@
 
 import { createContext, use } from 'react'
 import { createColumnHelper } from '@tanstack/react-table'
+import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { BADGE_BASE, BADGE_TONE } from '@/components/ui/badge'
@@ -27,6 +28,10 @@ type SettleTableContextT = {
   values: RowValueT[]
   onTick: (index: number, ticked: boolean) => void
   onAmount: (index: number, amount: string) => void
+  /** „Wyrównaj premią" on an unticked nadpłata row — books exactly the overpayment. Absent for a
+   * MANAGER, who may not grant a premia. */
+  onBonus?: (index: number) => void
+  isBooking: boolean
   labelHeader: string
   labelHref?: (row: SettleRowT) => string
 }
@@ -121,8 +126,22 @@ function AmountCell({ row, index }: { row: SettleRowT; index: number }) {
 }
 
 function AfterPayoutCell({ row, index }: { row: SettleRowT; index: number }) {
+  const { onBonus, isBooking } = useSettleTable()
   const value = useRowValue(index)
   if (isBlocked(row.state)) return null
+  if (onBonus && row.state === 'overpaid' && !value.ticked) {
+    return (
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        disabled={isBooking}
+        onClick={() => onBonus(index)}
+      >
+        Wyrównaj premią
+      </Button>
+    )
+  }
   if (!value.ticked || !isValidAmount(value))
     return <span className="text-muted-foreground">—</span>
 
@@ -147,6 +166,7 @@ function RemainderAmount({ value }: { value: number }) {
 
 const col = createColumnHelper<SettleRowT>()
 const AMOUNT_COLUMN_ID = 'amount'
+const BONUS_COLUMN_ID = 'bonus'
 
 const money = (value: number) => <span className="whitespace-nowrap">{formatPLN(value)}</span>
 
@@ -162,6 +182,12 @@ const COLUMNS = [
   }),
   col.accessor('due', {
     header: 'Wykonane',
+    meta: { align: 'right' },
+    cell: (info) => money(info.getValue()),
+  }),
+  col.accessor('bonus', {
+    id: BONUS_COLUMN_ID,
+    header: 'Premia',
     meta: { align: 'right' },
     cell: (info) => money(info.getValue()),
   }),
@@ -213,6 +239,8 @@ export function SettlePayoutsTable({
         className={className}
         data={rows}
         columns={COLUMNS}
+        // Shown only once a premia exists, so „Pozostało" still tallies across the visible columns.
+        defaultColumnVisibility={{ [BONUS_COLUMN_ID]: rows.some((row) => row.bonus !== 0) }}
         getRowClassName={(row) => (isBlocked(row.state) ? 'opacity-60' : '')}
         footer={(visibleColumnIds) => (
           <>

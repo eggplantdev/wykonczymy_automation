@@ -49,7 +49,12 @@ const tree: KosztorysTreeT = makeTree({
 const rows = treeToRows(tree)
 const hisStages = stages.filter((stage) => restHolderId(stage.split) === WORKER)
 
-const payout = (workerId: number | null, amount: number, date = '2026-09-01') => ({
+const payout = (
+  workerId: number | null,
+  amount: number,
+  date = '2026-09-01',
+): PayoutTransactionRowT => ({
+  type: 'PAYOUT',
   workerId,
   amount,
   date,
@@ -95,6 +100,20 @@ describe('computeWorkerSummary', () => {
     const summary = summarize([payout(WORKER, 10, '2026-09-02'), payout(OTHER, 1)])
 
     expect(summary.payouts).toEqual([{ date: '2026-09-02', amount: 10, description: 'ZUS lipiec' }])
+  })
+
+  it('adds the worker’s premia to what is owed, apart from the wypłaty', () => {
+    const summary = summarize([
+      payout(WORKER, 50),
+      { ...payout(WORKER, 14), type: 'BONUS' },
+      { ...payout(OTHER, 999), type: 'BONUS' },
+    ])
+
+    expect(summary.bonusNet).toBe(14)
+    expect(summary.paidNet).toBe(50)
+    expect(summary.payouts).toHaveLength(1)
+    expect(summary.owed).toBe(0)
+    expect(summary.isOverpaid).toBe(false)
   })
 
   it('flags an overpayment instead of reading it as a debt', () => {

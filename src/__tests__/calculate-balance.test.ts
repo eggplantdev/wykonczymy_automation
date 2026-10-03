@@ -12,6 +12,7 @@ const base: InvestmentFinancialsT = {
   totalPayouts: 0,
   totalDiscount: 0,
   totalLoss: 0,
+  totalBonus: 0,
   totalSettled: 0,
   materialsNetDiscount: 0,
   settledCategoryCosts: [],
@@ -54,6 +55,12 @@ describe('calculateBalance', () => {
         totalLoss: 1500,
       }),
     ).toBe(6500)
+  })
+
+  // EX-979: a premia is between the company and its worker; the investor must not owe a grosz less.
+  it('ignores the premia', () => {
+    const owed = { ...base, totalIncome: 10000, totalMaterialCosts: 3000, totalLaborCosts: 2000 }
+    expect(calculateBalance({ ...owed, totalBonus: 205.01 })).toBe(calculateBalance(owed))
   })
 
   // The reference defect: an expense the owner covered with a strata of the same amount must

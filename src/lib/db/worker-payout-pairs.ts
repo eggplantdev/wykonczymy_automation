@@ -45,10 +45,11 @@ export async function selectWorkerPayoutPairs(
   `)
   const paidRows = await db.execute(sql`
     SELECT t.investment_id, t.worker_id, inv.status::text AS investment_status,
-      sum(t.amount) AS paid
+      coalesce(sum(t.amount) FILTER (WHERE t.type = 'PAYOUT'), 0) AS paid,
+      coalesce(sum(t.amount) FILTER (WHERE t.type = 'BONUS'), 0) AS bonus
     FROM transactions t
     JOIN investments inv ON inv.id = t.investment_id
-    WHERE t.type = 'PAYOUT' AND t.cancelled IS NOT TRUE AND ${listed}
+    WHERE t.type IN ('PAYOUT', 'BONUS') AND t.cancelled IS NOT TRUE AND ${listed}
     GROUP BY t.investment_id, t.worker_id, inv.status
   `)
   const stageIds = stageRows.rows.map((row) => Number(row.stage_id))
@@ -88,6 +89,7 @@ export async function selectWorkerPayoutPairs(
       investmentId: Number(row.investment_id),
       workerId: row.worker_id == null ? null : Number(row.worker_id),
       paid: Number(row.paid ?? 0),
+      bonus: Number(row.bonus ?? 0),
     })),
     statuses,
   )

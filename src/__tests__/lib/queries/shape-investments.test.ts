@@ -59,6 +59,7 @@ describe('shapeInvestments', () => {
         totalPayouts: 1000,
         totalDiscount: 0,
         totalLoss: 0,
+        totalBonus: 0,
         totalSettled: 0,
         materialsNetDiscount: 0,
         settledCategoryCosts: [],
@@ -116,6 +117,7 @@ describe('shapeInvestments', () => {
         totalPayouts: 0,
         totalDiscount: 0,
         totalLoss: 0,
+        totalBonus: 0,
         totalSettled: 0,
         materialsNetDiscount: 0,
         settledCategoryCosts: [],
@@ -140,6 +142,7 @@ describe('shapeInvestments', () => {
         totalPayouts: 0,
         totalDiscount: 0,
         totalLoss: 0,
+        totalBonus: 0,
         totalSettled: 0,
         materialsNetDiscount: 230,
         settledCategoryCosts: [],
@@ -169,6 +172,7 @@ describe('shapeInvestments', () => {
         totalPayouts: 0,
         totalDiscount: 0,
         totalLoss: 0,
+        totalBonus: 0,
         totalSettled: 0,
         materialsNetDiscount: 0,
         settledCategoryCosts: [],
@@ -197,6 +201,7 @@ describe('shapeInvestments', () => {
         totalPayouts: 0,
         totalDiscount: 0,
         totalLoss: 0,
+        totalBonus: 0,
         totalSettled: 250,
         materialsNetDiscount: 0,
         settledCategoryCosts: [],
@@ -237,6 +242,7 @@ describe('shapeInvestments', () => {
           totalPayouts: 0,
           totalDiscount: 0,
           totalLoss: 0,
+          totalBonus: 0,
           totalSettled: 0,
           materialsNetDiscount: 0,
           settledCategoryCosts: [],
@@ -273,6 +279,7 @@ describe('shapeInvestments', () => {
           totalPayouts: 0,
           totalDiscount: 0,
           totalLoss: 0,
+          totalBonus: 0,
           totalSettled: 0,
           materialsNetDiscount: 0,
           settledCategoryCosts: [],
@@ -308,6 +315,7 @@ describe('shapeInvestments', () => {
         totalPayouts: 0,
         totalDiscount: 0,
         totalLoss: 0,
+        totalBonus: 0,
         totalSettled: 0,
         materialsNetDiscount: 378,
         settledCategoryCosts: [],
@@ -342,6 +350,7 @@ describe('shapeInvestments robocizna source', () => {
       totalPayouts: 1000,
       totalDiscount: 0,
       totalLoss: 0,
+      totalBonus: 0,
       totalSettled: 0,
       materialsNetDiscount: 0,
       settledCategoryCosts: [],
@@ -483,6 +492,7 @@ describe('shapeInvestments marża v2', () => {
       totalPayouts: 1000,
       totalDiscount: 0,
       totalLoss: 200,
+      totalBonus: 0,
       totalSettled: 300,
       materialsNetDiscount: 400,
       settledCategoryCosts: [],
@@ -585,6 +595,14 @@ describe('shapeInvestments pozostało do wypłaty', () => {
     )
 
     expect(row.subcontractorRemaining).toBe(-1000)
+  })
+
+  it('counts a premia as owed on top of the executed work', () => {
+    const withBonus: InvestmentFinancialsMapT = {
+      '5': { ...ZERO_FINANCIALS, totalPayouts: 1000, totalBonus: 200 },
+    }
+
+    expect(remainingFor(800, { financials: withBonus })).toBe(0)
   })
 
   it('rounds float residue to exactly zero grosz', () => {

@@ -19,7 +19,7 @@ a cash movement, it's a billing/markup figure (what the company charges the inve
 labour). It never moves a złoty between registers; it only feeds the P&L.
 
 The base model: **`marża` starts from robocizna alone, `bilans` from wpłaty minus costs.**
-Four modifier types (`korekta`, `rabat`, `strata`, `settled` material) bend those two
+Five modifier types (`korekta`, `rabat`, `strata`, `premia`, `settled` material) bend those two
 formulas — see the table below.
 
 ## Where robocizna and rabat come from (EX-555)
@@ -141,7 +141,7 @@ and a crew paid ahead as a loss.
   material's revenue and none of its cost, so the prognoza stands structurally above the marża
   rzeczywista and the two never converge; the gap is the material.
 - **Marża rzeczywista** (`margin-v2.ts`):
-  `robocizna − rabat − należne podwykonawcom − materiał wliczony w robociznę − strata`.
+  `robocizna − rabat − należne podwykonawcom − premia − materiał wliczony w robociznę − strata`.
   Two deliberate departures from the v1 formula:
   - `wypłaty` out, **należne podwykonawcom** in — executed etapy valued at the plane each etap
     carries. What is owed moves with the work; cash moves on its own rhythm.
@@ -226,14 +226,15 @@ the dialog reads fresh on open and refuses a figure that moved.
 
 ---
 
-## The four modifiers — how each bends the two formulas
+## The five modifiers — how each bends the two formulas
 
-| Type / flag               | source_register | marża | bilans | Notes                                                                                                                                                                                                                     |
-| ------------------------- | --------------- | ----- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `CORRECTION` (korekta)    | optional        | —     | ↓/↑    | Folds into materiały; may be negative. Moves only the balance.                                                                                                                                                            |
-| `RABAT` (rabat)           | **none**        | ↓     | ↑      | Labour discount: company earns less, client owes less. Positive amount. Requires investment.                                                                                                                              |
-| `LOSS` (strata)           | **none**        | ↓     | ↑      | Company-absorbed cost the client stops owing (EX-675). Positive amount, investment **required**. Deducts at **face value** on netto and brutto alike — unlike the rabat, a concession on the price, which grosses by VAT. |
-| `settled` flag on expense | required        | ↓     | —      | "Wliczone w robociznę": R+M material the company buys but already priced into robocizna. Leaves a register, lowers marża, off the client bill. Valid on `INVESTMENT_EXPENSE` and `CORRECTION` (`transfers.ts:227-239`).   |
+| Type / flag               | source_register | marża | bilans | Notes                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| ------------------------- | --------------- | ----- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CORRECTION` (korekta)    | optional        | —     | ↓/↑    | Folds into materiały; may be negative. Moves only the balance.                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `RABAT` (rabat)           | **none**        | ↓     | ↑      | Labour discount: company earns less, client owes less. Positive amount. Requires investment.                                                                                                                                                                                                                                                                                                                                                                                |
+| `LOSS` (strata)           | **none**        | ↓     | ↑      | Company-absorbed cost the client stops owing (EX-675). Positive amount, investment **required**. Deducts at **face value** on netto and brutto alike — unlike the rabat, a concession on the price, which grosses by VAT.                                                                                                                                                                                                                                                   |
+| `BONUS` (premia)          | **none**        | ↓ v2  | —      | Non-cash entitlement on one investment × worker pair (EX-979): raises that pair's „Pozostało do wypłaty" (`due + premia − wypłaty`), lowers **marża v2 only**. v1 leaves it out — there the cash wypłata that pays it already lowers the marża, so subtracting the premia too would count it twice. Investment and worker **required**; a premia with no investment is booked as a wypłata. Never reaches the investor (bilans, share link, protokół) or the owner's sheet. |
+| `settled` flag on expense | required        | ↓     | —      | "Wliczone w robociznę": R+M material the company buys but already priced into robocizna. Leaves a register, lowers marża, off the client bill. Valid on `INVESTMENT_EXPENSE` and `CORRECTION` (`transfers.ts:227-239`).                                                                                                                                                                                                                                                     |
 
 `RABAT` and `LOSS` are positive-amount types with **no source register** (billing figures,
 not cash movements). `settled` is a boolean on an otherwise normal material expense, so it

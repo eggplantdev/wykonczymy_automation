@@ -140,6 +140,7 @@ describe('investor history view', () => {
         executedByStage: [],
         stagesWholeNet: 0,
         executedNet: 0,
+        bonusNet: 0,
         payouts: [],
         paidNet: 0,
         owed: 0,

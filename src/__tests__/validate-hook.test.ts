@@ -56,6 +56,7 @@ const VALID_DATA: Record<string, Record<string, unknown>> = {
   },
   LABOR_COST: { ...base, type: 'LABOR_COST', investment: 1 },
   LOSS: { ...base, type: 'LOSS', investment: 1 },
+  BONUS: { ...base, type: 'BONUS', investment: 1, worker: 1 },
   REGISTER_TRANSFER: { ...base, type: 'REGISTER_TRANSFER', sourceRegister: 1, targetRegister: 2 },
   OTHER: { ...base, type: 'OTHER', sourceRegister: 1, otherCategory: 1 },
 }
@@ -119,6 +120,19 @@ describe('validateTransfer — missing required fields', () => {
     await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Ii]nvestment/)
   })
 
+  // A premia settles one investment × worker pair — without either it corrects nothing.
+  it('BONUS without investment → throws', async () => {
+    const { investment, ...data } = VALID_DATA.BONUS
+    void investment
+    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Ii]nvestment/)
+  })
+
+  it('BONUS without worker → throws', async () => {
+    const { worker, ...data } = VALID_DATA.BONUS
+    void worker
+    await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Ww]orker is required/)
+  })
+
   it('REGISTER_TRANSFER without sourceRegister → throws', async () => {
     const { sourceRegister, ...data } = VALID_DATA.REGISTER_TRANSFER
     await expect(validateTransfer(hookArgs(data))).rejects.toThrow(/[Cc]ash register/)
@@ -149,6 +163,15 @@ describe('validateTransfer — auto-clear behavior', () => {
     const data = { ...VALID_DATA.LABOR_COST, sourceRegister: 5 }
     const result = await validateTransfer(hookArgs(data))
     expect(result.sourceRegister).toBeNull()
+  })
+
+  // The kasa balance sums by `source_register_id`, so a nulled register is what keeps a premia
+  // from draining one — the cash itself left as the PAYOUT it covers.
+  it('BONUS → sourceRegister set to null, worker kept', async () => {
+    const data = { ...VALID_DATA.BONUS, sourceRegister: 5 }
+    const result = await validateTransfer(hookArgs(data))
+    expect(result.sourceRegister).toBeNull()
+    expect(result.worker).toBe(1)
   })
 
   // An investment-linked OTHER reaches no deriveFinancials bucket, yet still leaves the

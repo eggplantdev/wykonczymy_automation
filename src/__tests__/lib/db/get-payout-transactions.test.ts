@@ -53,6 +53,8 @@ describe.skipIf(!ENV_READY)('getPayoutTransactionsForInvestment (DB)', () => {
     await insertTx({ date: DATES[0], investmentId, cancelled: true, amount: 999 })
     await insertTx({ date: DATES[0], investmentId, type: 'INVESTMENT_EXPENSE', amount: 999 })
     await insertTx({ date: DATES[0], investmentId: otherInvestmentId, amount: 999 })
+    await insertTx({ date: DATES[1], investmentId, type: 'BONUS', amount: 250 })
+    await insertTx({ date: DATES[1], investmentId, type: 'BONUS', cancelled: true, amount: 999 })
   })
 
   afterAll(async () => {
@@ -66,15 +68,24 @@ describe.skipIf(!ENV_READY)('getPayoutTransactionsForInvestment (DB)', () => {
 
   // This WHERE feeds BOTH the wypłaty list and, summed off the same rows, „Pozostało do wypłaty" —
   // so a dropped predicate moves money on two surfaces at once, and nothing else asserts it.
-  it('excludes cancelled rows, non-PAYOUT types and other investments’ payouts', async () => {
+  it('excludes cancelled rows, other types and other investments’ payouts', async () => {
     const rows = await getPayoutTransactionsForInvestment(payload, investmentId)
 
-    expect(rows).toHaveLength(3)
+    expect(rows).toHaveLength(4)
     expect(rows.map((row) => row.amount)).not.toContain(999)
   })
 
-  it('emits year-first date strings that sort lexically in chronological order', async () => {
+  it('tags each row with its type, so a premia never sums as a wypłata', async () => {
     const rows = await getPayoutTransactionsForInvestment(payload, investmentId)
+
+    expect(rows.filter((row) => row.type === 'PAYOUT')).toHaveLength(3)
+    expect(rows.filter((row) => row.type === 'BONUS').map((row) => row.amount)).toEqual([250])
+  })
+
+  it('emits year-first date strings that sort lexically in chronological order', async () => {
+    const rows = (await getPayoutTransactionsForInvestment(payload, investmentId)).filter(
+      (row) => row.type === 'PAYOUT',
+    )
     expect(rows).toHaveLength(3)
 
     // Year-first prefix ("2026-07-18…") — the property that makes a plain string lexical sort chronological.

@@ -64,6 +64,7 @@ import { FormShell } from '../form-components/form-shell'
 import { RegisterBalanceSummary } from '../form-components/register-balance-summary'
 import { useExpenseFormStore } from '@/stores/form-stores'
 import { isBookableInvestment } from '@/lib/constants/investment-lock'
+import { canBookTransferType } from '@/lib/auth/roles'
 
 type TransferFormPropsT = {
   referenceData: ReferenceDataT
@@ -280,7 +281,9 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
             >
               {(field) => (
                 <field.Select label="Typ wydatku" showError fieldClassName="min-w-0 flex-1">
-                  {TRANSACTION_TRANSFER_TYPES.map((t) => (
+                  {TRANSACTION_TRANSFER_TYPES.filter((t) =>
+                    canBookTransferType(referenceData.currentUserRole, t),
+                  ).map((t) => (
                     <SelectItem key={t} value={t}>
                       {TRANSFER_TYPE_LABELS[t]}
                     </SelectItem>

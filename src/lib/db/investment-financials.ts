@@ -110,6 +110,7 @@ export function deriveFinancials(
     totalPayouts: sumBucket(rows, 'payouts'),
     totalDiscount: sumBucket(rows, 'discount'),
     totalLoss: sumBucket(rows, 'loss'),
+    totalBonus: sumBucket(rows, 'bonus'),
     totalSettled: sumRows(rows, (r) => isGrossMaterial(r) && r.settled),
     materialsNetDiscount,
     settledCategoryCosts,

@@ -26,6 +26,8 @@ export type SubcontractorWorkerRowT = {
   name: string
   // Executed value of this worker's etapy, pre-rabat at each etap's own plane.
   due: number
+  // Σ premii (BONUS) — owed on top of `due`.
+  bonus: number
   // Σ realized PAYOUTs to this worker on this investment.
   paid: number
   remaining: number
@@ -47,16 +49,17 @@ export type SubcontractorSummaryInputT = {
 export type SubcontractorSummaryT = {
   // „Suma wykonanej pracy" (należne) — executed value at the active view's subcontractor price, pre-rabat.
   dueNet: number
+  bonusTotal: number
   // Σ realized PAYOUTs on this investment (all workers incl. the null bucket).
   payoutsTotal: number
-  // „Pozostało do wypłaty" = dueNet − payoutsTotal. Negative = the crew has been overpaid.
+  // „Pozostało do wypłaty" = dueNet + bonusTotal − payoutsTotal. Negative = the crew has been overpaid.
   remaining: number
   rows: SubcontractorWorkerRowT[]
 }
 
 function settlementState(
   workerId: number | null,
-  due: number,
+  owed: number,
   remaining: number,
   hasStages: boolean,
 ): WorkerSettlementStateT {
@@ -64,7 +67,7 @@ function settlementState(
   // nonsense against it — „nikt nie przypisał mu etapów" IS the definition of the bucket.
   if (workerId === null) return 'unattributed'
   if (remaining >= 0) return 'settled'
-  if (due > 0) return 'overpaid'
+  if (owed > 0) return 'overpaid'
   return hasStages ? 'no_executed_work' : 'no_stages'
 }
 
@@ -87,6 +90,7 @@ export function computeSubcontractorSummary(
   { byWorker = new Map(), stages = [], workers = [] }: SubcontractorSummaryInputT = {},
 ): SubcontractorSummaryT {
   const payoutsTotal = payouts.reduce((sum, row) => sum + row.total, 0)
+  const bonusTotal = payouts.reduce((sum, row) => sum + row.bonus, 0)
   const payoutByWorker = new Map(payouts.map((row) => [row.workerId, row]))
   // Payout rows already carry a resolved name; a worker who appears only through an assignment does
   // not, so the roster is the fallback lookup.
@@ -109,23 +113,26 @@ export function computeSubcontractorSummary(
       const payout = payoutByWorker.get(workerId)
       const due = byWorker.get(workerId) ?? 0
       const paid = payout?.total ?? 0
+      const bonus = payout?.bonus ?? 0
       // `due` is Σ qty × viewPrice through fractional plane coefficients while `paid` is a raw
       // Postgres SUM, so paying out exactly the displayed należne — the commonest case there is —
       // leaves the two differing by ~1e-13. Unrounded that is enough to send the row down the
       // `< 0` branch and paint a square worker destructive-red as „nadpłata / pozostało -0,00".
-      const remaining = roundToCents(due - paid)
+      const remaining = roundToCents(due + bonus - paid)
       return {
         workerId,
         name: resolveWorkerName(workerId, nameById, payout?.name),
         due,
+        bonus,
         paid,
         remaining,
-        state: settlementState(workerId, due, remaining, assignedWorkerIds.has(workerId)),
+        // A premia is owed like work: a worker holding only a premia is overpaid, not unassigned.
+        state: settlementState(workerId, due + bonus, remaining, assignedWorkerIds.has(workerId)),
       }
     })
     // A named worker with 0/0 still earns a row — „przypisany, nic nie zrobione" is information. The
     // null bucket doesn't: „nobody is owed nothing" is not a fact worth a line.
-    .filter((row) => row.workerId !== null || row.due !== 0 || row.paid !== 0)
+    .filter((row) => row.workerId !== null || row.due !== 0 || row.bonus !== 0 || row.paid !== 0)
 
   rows.sort((a, b) => {
     // Null bucket last, no matter its amount — an unattributed lump never leads the list.
@@ -134,10 +141,21 @@ export function computeSubcontractorSummary(
     return b.remaining - a.remaining
   })
 
-  return { dueNet, payoutsTotal, remaining: roundToCents(dueNet - payoutsTotal), rows }
+  return {
+    dueNet,
+    bonusTotal,
+    payoutsTotal,
+    remaining: roundToCents(dueNet + bonusTotal - payoutsTotal),
+    rows,
+  }
 }
 
-export type SubcontractorRowTotalsT = { due: number; paid: number; remaining: number }
+export type SubcontractorRowTotalsT = {
+  due: number
+  bonus: number
+  paid: number
+  remaining: number
+}
 
 /**
  * „Razem" under the per-worker table. Σ of the columns rather than a second reading of the headline:
@@ -151,6 +169,12 @@ export type SubcontractorRowTotalsT = { due: number; paid: number; remaining: nu
  */
 export function subcontractorRowTotals(rows: SubcontractorWorkerRowT[]): SubcontractorRowTotalsT {
   const due = rows.reduce((sum, row) => sum + row.due, 0)
+  const bonus = rows.reduce((sum, row) => sum + row.bonus, 0)
   const paid = rows.reduce((sum, row) => sum + row.paid, 0)
-  return { due: roundToCents(due), paid: roundToCents(paid), remaining: roundToCents(due - paid) }
+  return {
+    due: roundToCents(due),
+    bonus: roundToCents(bonus),
+    paid: roundToCents(paid),
+    remaining: roundToCents(due + bonus - paid),
+  }
 }

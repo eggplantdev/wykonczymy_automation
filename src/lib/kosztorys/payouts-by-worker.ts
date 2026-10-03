@@ -31,14 +31,18 @@ export function derivePayoutsByWorker(
   workers: WorkerRefT[],
 ): SubcontractorPayoutRowT[] {
   const nameById = new Map(workers.map((worker) => [worker.id, worker.name]))
-  const totalByWorker = new Map<number | null, number>()
+  const sumsByWorker = new Map<number | null, { total: number; bonus: number }>()
   for (const row of rows) {
-    totalByWorker.set(row.workerId, (totalByWorker.get(row.workerId) ?? 0) + row.amount)
+    const sums = sumsByWorker.get(row.workerId) ?? { total: 0, bonus: 0 }
+    if (row.type === 'BONUS') sums.bonus += row.amount
+    else sums.total += row.amount
+    sumsByWorker.set(row.workerId, sums)
   }
 
-  return [...totalByWorker].map(([workerId, total]) => ({
+  return [...sumsByWorker].map(([workerId, { total, bonus }]) => ({
     workerId,
     total: roundToCents(total),
+    bonus: roundToCents(bonus),
     name: resolveWorkerName(workerId, nameById),
   }))
 }

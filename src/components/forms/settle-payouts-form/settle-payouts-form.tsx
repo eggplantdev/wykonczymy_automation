@@ -1,15 +1,18 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { FieldGroup } from '@/components/ui/field'
 import { useAppForm, useStore } from '@/components/forms/hooks/form-hooks'
 import { DateField, DescriptionField, SourceRegisterField } from '@/components/forms/form-fields'
 import { useRegisterBalance } from '@/components/forms/hooks/use-register-balance'
 import { SignedMoneyDisplay } from '@/components/ui/signed-money-display'
+import { useCurrentUser } from '@/hooks/use-current-user'
+import { bookOverpaymentBonusAction } from '@/lib/actions/book-overpayment-bonus'
+import { canBookTransferType } from '@/lib/auth/roles'
 import { settlePayoutsAction } from '@/lib/actions/settle-payouts'
-import type { SettleRowT } from '@/lib/kosztorys/worker-payout-pairs'
+import { pairKey, type SettleRowT } from '@/lib/kosztorys/worker-payout-pairs'
 import { warsawToday } from '@/lib/utils/days'
 import { logError } from '@/lib/utils/log-error'
 import { settleAction } from '@/lib/utils/settle-action'
@@ -39,6 +42,20 @@ function prefill(rows: SettleRowT[]): RowValueT[] {
   )
 }
 
+// After a premia the other pairs keep what was typed into them — unless their own figure moved
+// meanwhile: the action checks against the fresh figure, so an amount typed against the old one
+// would pass and book the difference as a zaliczka.
+function carryOver(fresh: SettleRowT[], previous: SettleRowT[], values: RowValueT[]): RowValueT[] {
+  const before = new Map(
+    previous.map((row, index) => [pairKey(row), { row, value: values[index] }]),
+  )
+  const prefilled = prefill(fresh)
+  return fresh.map((row, index) => {
+    const kept = before.get(pairKey(row))
+    return kept && kept.row.remaining === row.remaining ? kept.value : prefilled[index]
+  })
+}
+
 type SettlePayoutsFormPropsT = {
   initialRows: SettleRowT[]
   /** Re-reads the rows after the action refused a batch built on figures that have since moved. */
@@ -50,6 +67,8 @@ type SettlePayoutsFormPropsT = {
   labelHeader: string
   /** Where a row's label leads, when the other side of the pair has a page worth checking. */
   labelHref?: (row: SettleRowT) => string
+  /** Both names of a row's pair — one side is the dialog's target, the other the row's label. */
+  pairNames: (row: SettleRowT) => { worker: string; investment: string }
   onSubmitSuccess: () => void
 }
 
@@ -65,10 +84,13 @@ export function SettlePayoutsForm({
   defaultRegisterBalance,
   labelHeader,
   labelHref,
+  pairNames,
   onSubmitSuccess,
 }: SettlePayoutsFormPropsT) {
-  const router = useRouter()
+  const canGrantBonus = canBookTransferType(useCurrentUser().role, 'BONUS')
   const [rows, setRows] = useState(initialRows)
+  const [bonusRow, setBonusRow] = useState<SettleRowT>()
+  const [isBooking, setIsBooking] = useState(false)
   const { registerBalance, isRegisterBalanceLoading, fetchRegisterBalance } =
     useRegisterBalance(defaultRegisterBalance)
 
@@ -112,32 +134,59 @@ export function SettlePayoutsForm({
           ticked.length === 1 ? 'Wypłata zapisana' : `Zapisano ${ticked.length} wypłaty`,
           'success',
         )
-        router.refresh()
         onSubmitSuccess()
         return
       }
       if ('stale' in result && result.stale) {
         toastMessage(result.error, 'warning', 5000)
-        let fresh
-        try {
-          fresh = await reloadRows()
-        } catch (err) {
-          logError('[SETTLE_PAYOUTS_RELOAD]', err)
-          toastMessage(
-            'Nie udało się wczytać nowych kwot — zamknij okno i otwórz je ponownie.',
-            'error',
-            6000,
-          )
-          return
-        }
-        setRows(fresh)
-        form.setFieldValue('rows', prefill(fresh))
+        await reload(prefill)
+        // Other payouts moved the figures, so they likely moved the kasa too.
         fetchRegisterBalance(form.getFieldValue('sourceRegister'))
         return
       }
       toastMessage(result.error, 'error', 6000)
     },
   })
+
+  async function reload(valuesFor: (fresh: SettleRowT[]) => RowValueT[]) {
+    let fresh
+    try {
+      fresh = await reloadRows()
+    } catch (err) {
+      logError('[SETTLE_PAYOUTS_RELOAD]', err)
+      toastMessage(
+        'Nie udało się wczytać nowych kwot — zamknij okno i otwórz je ponownie.',
+        'error',
+        6000,
+      )
+      return
+    }
+    setRows(fresh)
+    form.setFieldValue('rows', valuesFor(fresh))
+  }
+
+  // The dialog stays open: the premia settles one pair, and the rest are still to be paid.
+  async function bookBonus(row: SettleRowT) {
+    const { workerId } = row
+    if (workerId === null) return
+    setIsBooking(true)
+    const result = await settleAction(() =>
+      bookOverpaymentBonusAction({
+        investmentId: row.investmentId,
+        workerId,
+        expectedRemaining: row.remaining,
+      }),
+    )
+    const isStale = !result.success && 'stale' in result && result.stale
+    if (result.success) toastMessage('Premia zapisana', 'success')
+    else toastMessage(result.error, isStale ? 'warning' : 'error', isStale ? 5000 : 6000)
+    if (result.success || isStale) {
+      const previousRows = rows
+      const previousValues = form.getFieldValue('rows')
+      await reload((fresh) => carryOver(fresh, previousRows, previousValues))
+    }
+    setIsBooking(false)
+  }
 
   const rowValues = useStore(form.store, (state) => state.values.rows)
   const isSubmitting = useStore(form.store, (state) => state.isSubmitting)
@@ -149,6 +198,7 @@ export function SettlePayoutsForm({
   const poolLeft = pool.kind === 'value' ? roundToCents(pool.value - total) : null
   const overPool = poolLeft !== null && poolLeft < 0
   const canSubmit = tickedValues.length > 0 && tickedValues.every(isValidAmount) && !overPool
+  const bonusNames = bonusRow && pairNames(bonusRow)
 
   return (
     <form.AppForm>
@@ -200,11 +250,27 @@ export function SettlePayoutsForm({
             labelHref={labelHref}
             onTick={(index, ticked) => form.setFieldValue(`rows[${index}].ticked`, ticked)}
             onAmount={(index, amount) => form.setFieldValue(`rows[${index}].amount`, amount)}
+            onBonus={canGrantBonus ? (index) => setBonusRow(rows[index]) : undefined}
+            isBooking={isBooking}
           />
         )}
 
+        <ConfirmDialog
+          open={bonusRow !== undefined}
+          variant="neutral"
+          title={
+            bonusRow &&
+            bonusNames &&
+            `Zaksięgować premię ${formatPLN(-bonusRow.remaining)} dla ${bonusNames.worker} na ${bonusNames.investment}?`
+          }
+          description="Wyrówna nadpłatę; inwestor jej nie widzi."
+          confirmLabel="Zaksięguj premię"
+          onConfirm={() => bonusRow && bookBonus(bonusRow)}
+          onCancel={() => setBonusRow(undefined)}
+        />
+
         <footer className="mt-6 flex items-center gap-4">
-          <Button type="submit" disabled={!canSubmit || isSubmitting}>
+          <Button type="submit" disabled={!canSubmit || isSubmitting || isBooking}>
             {isSubmitting ? 'Zapisuję…' : 'Wypłać'}
           </Button>
           {overPool && (

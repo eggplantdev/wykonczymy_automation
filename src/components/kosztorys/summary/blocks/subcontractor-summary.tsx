@@ -16,6 +16,8 @@ import type { PayoutTransactionRowT } from '@/types/transfers'
 
 type PropsT = {
   investmentId: number
+  // Titles the „Rozlicz wypłaty" dialog the worker table opens.
+  investmentName: string
   // View-independent settlement: each etap valued at its OWN plane's price. `combined` is „Suma
   // wykonanej pracy"; `wTools`/`ownTools` feed the split rows; `hasUnconfirmedPlane` flips the badge.
   subcontractorDue: SubcontractorDueByPlaneT
@@ -40,6 +42,7 @@ type PropsT = {
 // client Podsumowanie.
 export function SubcontractorSummary({
   investmentId,
+  investmentName,
   subcontractorDue,
   payoutTransactions,
   stages,
@@ -54,6 +57,8 @@ export function SubcontractorSummary({
     workers,
   })
   const breakdown = subcontractorStageBreakdown(subcontractorDue, stages ?? [], summary.rows)
+  // A premia is an entitlement, not cash out — it reads in the totals above, never as a wypłata.
+  const cashPayouts = payoutTransactions.filter((tx) => tx.type === 'PAYOUT')
 
   return (
     <div className="text-foreground flex w-full flex-col gap-y-4 px-4 pt-4 pb-4 text-sm">
@@ -64,7 +69,11 @@ export function SubcontractorSummary({
       {showGlobalSettings && <EditorGlobalSettings />}
       <div className="flex flex-wrap items-start gap-x-6 gap-y-4">
         {showTransactions && summary.rows.length > 0 && (
-          <SubcontractorWorkerTotals investmentId={investmentId} rows={summary.rows} />
+          <SubcontractorWorkerTotals
+            investmentId={investmentId}
+            investmentName={investmentName}
+            rows={summary.rows}
+          />
         )}
         <SubcontractorHeadlineSummary
           summary={summary}
@@ -77,12 +86,12 @@ export function SubcontractorSummary({
         <SubcontractorStageBreakdown breakdown={breakdown} />
       )}
 
-      {showTransactions && payoutTransactions.length > 0 && (
+      {showTransactions && cashPayouts.length > 0 && (
         <CollapsibleSection title="Lista wpłat" size="sm" defaultOpen={false}>
           <SubcontractorPayoutsTable
             investmentId={investmentId}
             payouts={payouts}
-            payoutTransactions={payoutTransactions}
+            payoutTransactions={cashPayouts}
           />
         </CollapsibleSection>
       )}

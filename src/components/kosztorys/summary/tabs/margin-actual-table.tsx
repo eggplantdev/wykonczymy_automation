@@ -1,7 +1,6 @@
 'use client'
 
 import { faceValue } from '@/lib/kosztorys/summary-economics'
-import { roundToCents } from '@/lib/utils/round-to-cents'
 import {
   SummaryHeaderCell,
   SummaryLabelCell,
@@ -12,13 +11,13 @@ import { SummaryRow } from '@/components/kosztorys/summary/grid/summary-row'
 import { MARGIN_TABLE_COLS } from '@/components/kosztorys/summary/tabs/margin-table-cols'
 import { Description } from '@/components/ui/description'
 import { SUBCONTRACTOR_FIGURE_LABELS } from '@/lib/kosztorys/labels'
-import { marginV2 } from '@/lib/kosztorys/margin-v2'
+import { marginV2, subcontractorRemaining } from '@/lib/kosztorys/margin-v2'
 import type { SubcontractorSettlementT } from '@/lib/kosztorys/subcontractor-due'
 import type { InvestmentFinancialsT } from '@/types/investment-financials'
 
 const DESCRIPTION =
   'Robocizna minus rabat minus suma wykonanej pracy, minus ' +
-  'materiał wliczony w robociznę i stratę. Koszt podwykonawców liczony z kosztorysu, a nie z wypłat — ile zrobiono, nie ile do tej pory wypłacono.'
+  'materiał wliczony w robociznę, stratę i premie. Koszt podwykonawców liczony z kosztorysu, a nie z wypłat — ile zrobiono, nie ile do tej pory wypłacono.'
 
 // The crew block stands next to the margin, not in it: the margin costs the work the kosztorys
 // credits, wypłaty are cash timing. Without this the two numbers look like a contradiction.
@@ -35,13 +34,10 @@ type PropsT = {
 }
 
 export function MarginActualTable({ financials, subcontractor }: PropsT) {
-  const { totalLaborCosts, totalDiscount, totalLoss, totalSettled, totalPayouts } = financials
+  const { totalLaborCosts, totalDiscount, totalLoss, totalBonus, totalSettled, totalPayouts } =
+    financials
   const margin = marginV2(financials, subcontractor)
-
-  // Rounded before the sign is read: `due` is a sum through fractional plane coefficients and
-  // `totalPayouts` a raw SUM, so paying out exactly the displayed amount — the commonest case —
-  // leaves ~1e-13 behind and would paint a settled crew red as „Nadpłata 0,00".
-  const remaining = roundToCents(subcontractor.due - totalPayouts)
+  const remaining = subcontractorRemaining(financials, subcontractor)
 
   return (
     <>
@@ -75,6 +71,9 @@ export function MarginActualTable({ financials, subcontractor }: PropsT) {
         {totalLoss !== 0 && (
           <SummaryRow label="Strata" line={faceValue(-totalLoss)} axis="net" discount />
         )}
+        {totalBonus !== 0 && (
+          <SummaryRow label="Premia" line={faceValue(-totalBonus)} axis="net" discount />
+        )}
         {margin === null ? (
           // No amount at all — a zero-cost crew is a false statement, not a missing one.
           <>
@@ -90,41 +89,49 @@ export function MarginActualTable({ financials, subcontractor }: PropsT) {
       {/* Withheld on the same condition as the margin above: with an etap holding executed work
           and no rozliczenie, `due` is short by an unknown amount, and „Nadpłata" derived from it
           would name an overpayment that does not exist. */}
-      {!subcontractor.hasUnconfirmedPlane && (subcontractor.due !== 0 || totalPayouts !== 0) && (
-        <>
-          <Description className="max-w-xl" size="xs">
-            {PAYOUT_GAP_DESCRIPTION}
-          </Description>
-          <SummaryTable cols={MARGIN_TABLE_COLS} className="w-fit">
-            <SummaryHeaderCell variant="label">Rozliczenie z ekipą</SummaryHeaderCell>
-            <SummaryHeaderCell>Kwota</SummaryHeaderCell>
+      {!subcontractor.hasUnconfirmedPlane &&
+        (subcontractor.due !== 0 || totalPayouts !== 0 || totalBonus !== 0) && (
+          <>
+            <Description className="max-w-xl" size="xs">
+              {PAYOUT_GAP_DESCRIPTION}
+            </Description>
+            <SummaryTable cols={MARGIN_TABLE_COLS} className="w-fit">
+              <SummaryHeaderCell variant="label">Rozliczenie z ekipą</SummaryHeaderCell>
+              <SummaryHeaderCell>Kwota</SummaryHeaderCell>
 
-            <SummaryRow
-              label={SUBCONTRACTOR_FIGURE_LABELS.due}
-              line={faceValue(subcontractor.due)}
-              axis="net"
-            />
-            <SummaryRow
-              label={SUBCONTRACTOR_FIGURE_LABELS.payouts}
-              line={faceValue(-totalPayouts)}
-              axis="net"
-              discount
-            />
-            <SummaryRow
-              label={remaining < 0 ? 'Nadpłata' : SUBCONTRACTOR_FIGURE_LABELS.remaining}
-              hint={
-                remaining < 0
-                  ? 'Ekipa dostała więcej, niż jest warta wykonana praca — zaliczka przed robotą albo nieodhaczone etapy.'
-                  : undefined
-              }
-              line={faceValue(remaining < 0 ? -remaining : remaining)}
-              axis="net"
-              bold
-              danger={remaining < 0}
-            />
-          </SummaryTable>
-        </>
-      )}
+              <SummaryRow
+                label={SUBCONTRACTOR_FIGURE_LABELS.due}
+                line={faceValue(subcontractor.due)}
+                axis="net"
+              />
+              {totalBonus !== 0 && (
+                <SummaryRow
+                  label={SUBCONTRACTOR_FIGURE_LABELS.bonus}
+                  line={faceValue(totalBonus)}
+                  axis="net"
+                />
+              )}
+              <SummaryRow
+                label={SUBCONTRACTOR_FIGURE_LABELS.payouts}
+                line={faceValue(-totalPayouts)}
+                axis="net"
+                discount
+              />
+              <SummaryRow
+                label={remaining < 0 ? 'Nadpłata' : SUBCONTRACTOR_FIGURE_LABELS.remaining}
+                hint={
+                  remaining < 0
+                    ? 'Ekipa dostała więcej, niż jest warta wykonana praca — zaliczka przed robotą albo nieodhaczone etapy.'
+                    : undefined
+                }
+                line={faceValue(remaining < 0 ? -remaining : remaining)}
+                axis="net"
+                bold
+                danger={remaining < 0}
+              />
+            </SummaryTable>
+          </>
+        )}
     </>
   )
 }
