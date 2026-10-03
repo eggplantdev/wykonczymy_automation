@@ -19,7 +19,7 @@ Podwykonawcy). Nadwyżkę wyrównujemy jako premię — niewidoczną dla inwesto
 
 - Inwestor nie widzi arkusza właściciela (zakładka „transfery").
 - Premia nie zawsze jest związana z inwestycją.
-- Premię może przyznać także MANAGER.
+- Premię przyznaje tylko OWNER / ADMIN (odwrócone tego samego dnia; pierwotnie także MANAGER).
 - Premia bez inwestycji zostaje jak dziś: wypłata bez inwestycji (kasa, poza „Pozostało do wypłaty").
   Nowy typ „Premia" służy wyłącznie do wyrównania na parze inwestycja × pracownik — bez kasy,
   pracownik i inwestycja wymagane.
