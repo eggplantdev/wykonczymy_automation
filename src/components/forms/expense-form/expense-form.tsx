@@ -207,7 +207,13 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
         successMessage: 'Transakcje dodane',
         files,
         onSubmitSuccess,
-        onReset: handleReset,
+        onReset: () => {
+          handleReset()
+          // „Nie zamykaj" books a batch of receipts, which nearly always share one day. Set apart
+          // from the reset for the same reason as the line items there.
+          if (keepOpen)
+            form.setFieldValue('date', value.date, { dontUpdateMeta: true, dontRunListeners: true })
+        },
       })
 
       return false

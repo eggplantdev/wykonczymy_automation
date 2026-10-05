@@ -71,3 +71,46 @@ describe('useManagedForm — beforeSubmit', () => {
     expect(result.current.form.state.values.name).toBe('Wpisana')
   })
 })
+
+describe('useManagedForm — keepAfterSave', () => {
+  type DatedT = { name: string; date: string }
+
+  function renderDated(keepOpen: boolean) {
+    return renderHook(() =>
+      useManagedForm<DatedT, DatedT>({
+        formId: 'keep-after-save-test',
+        useFormStore: createFormStore<DatedT>('keep-after-save-test'),
+        schema: z.object({ name: z.string(), date: z.string() }),
+        defaultValues: { name: '', date: '2026-10-05' },
+        keepOpen,
+        keepAfterSave: ['date'],
+        successMessage: 'Zapisano',
+        onSubmitSuccess: vi.fn(),
+        toData: (values) => values,
+        action: async () => ({ success: true as const }),
+      }),
+    )
+  }
+
+  async function saveDated(result: ReturnType<typeof renderDated>['result']) {
+    act(() => {
+      result.current.form.setFieldValue('name', 'Wpisana')
+      result.current.form.setFieldValue('date', '2026-09-30')
+    })
+    await act(() => result.current.form.handleSubmit())
+  }
+
+  it('carries the date into the next entry on a „Nie zamykaj" save', async () => {
+    const { result } = renderDated(true)
+    await saveDated(result)
+
+    expect(result.current.form.state.values).toEqual({ name: '', date: '2026-09-30' })
+  })
+
+  it('clears it like any other field when the dialog closes', async () => {
+    const { result } = renderDated(false)
+    await saveDated(result)
+
+    expect(result.current.form.state.values).toEqual({ name: '', date: '2026-10-05' })
+  })
+})

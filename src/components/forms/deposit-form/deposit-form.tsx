@@ -106,6 +106,7 @@ export function DepositForm({ referenceData, onSubmitSuccess, keepOpen }: Deposi
       return { ...stored, ...restored, investment, vatPlane }
     },
     keepOpen,
+    keepAfterSave: ['date'],
     successMessage: 'Wpłata dodana',
     onSubmitSuccess,
     action: createTransferAction,

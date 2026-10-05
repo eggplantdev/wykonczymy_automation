@@ -3631,3 +3631,11 @@ Refaktor bez zmiany zachowania: nocny cron czyści Kosz tak samo jak wcześniej.
 - [ ] Odśwież stronę: kolory zostają. Otwórz inny kosztorys: kolumna „Przedmiar” ma ten sam kolor.
 - [ ] Pokoloruj kolumnę etapu, usuń etap, dodaj nowy: nowy etap jest bez koloru.
 - [ ] „Podgląd inwestora” tej samej inwestycji: żadna kolumna nie jest pokolorowana.
+
+## 2026-10-05 — keep-date-on-keep-open — data zostaje po zapisie z „Nie zamykaj”
+
+- [ ] „Wydatek” → zaznacz „Nie zamykaj”, ustaw datę inną niż dzisiejsza, zapisz: formularz się czyści,
+      data zostaje ta sama.
+- [ ] „Wpłata” → to samo: po zapisie z „Nie zamykaj” data zostaje.
+- [ ] Bez „Nie zamykaj” (oba okna): po zapisie i ponownym otwarciu data jest dzisiejsza. „Wyczyść”
+      zawsze wraca do dzisiejszej daty.
