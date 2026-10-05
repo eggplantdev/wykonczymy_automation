@@ -25,3 +25,6 @@ export const DISABLED_ACCOUNT_ERROR = 'DisabledAccount'
 
 export const DISABLED_ACCOUNT_MESSAGE =
   'To konto jest wyłączone. Skontaktuj się z właścicielem firmy.'
+
+export const LOCKED_ACCOUNT_MESSAGE =
+  'Konto zostało tymczasowo zablokowane po zbyt wielu nieudanych próbach. Spróbuj ponownie za kilka minut.'

@@ -365,16 +365,16 @@ Run **once**, after the final phase.
 
 #### Automated
 
-- [x] 1.1 Access spec passes: `pnpm exec vitest run src/__tests__/access-control.test.ts`
+- [x] 1.1 Access spec passes: `pnpm exec vitest run src/__tests__/access-control.test.ts` — e7a816ca
 
 ### Phase 2: The self-credentials action
 
 #### Automated
 
-- [ ] 2.1 Schema spec passes
-- [ ] 2.2 Action DB spec passes against `db-test` (5435)
-- [ ] 2.3 `emailClash` regression spec still passes
-- [ ] 2.4 Login action spec still passes
+- [x] 2.1 Schema spec passes
+- [x] 2.2 Action DB spec passes against `db-test` (5435)
+- [x] 2.3 `emailClash` regression spec still passes
+- [x] 2.4 Login action spec still passes
 
 ### Phase 3: Dialog on the worker page, reset form, docs
 
