@@ -7,7 +7,8 @@ import { useTranslation } from '@/hooks/use-translation'
 import type { MessageKeyT } from '@/lib/i18n/translations'
 import { numericFieldPolicy } from '@/lib/kosztorys/cell-edit'
 import { formatQty } from '@/lib/kosztorys/format'
-import { STAGE_QTY_PREFIX, stageKey } from '@/lib/kosztorys/stage-keys'
+import { STAGE_QTY_PREFIX } from '@/lib/kosztorys/stage-keys'
+import { REPORT_FIELD, REPORT_STAGE_ID } from '@/lib/kosztorys/worker-report/report-field'
 import type { KosztorysV2RowT, StageKeyT } from '@/lib/kosztorys/types'
 import type { PreviewSeamsT } from '@/components/kosztorys/editor/use-kosztorys-editor'
 
@@ -23,20 +24,17 @@ export type ReportModeT = {
   onReportQty: (itemId: number, qty: number) => void
 }
 
-// A stage id no etap can hold (serial ids start at 1), so the report rides the stage-qty field
-// plumbing — the diff reports it like an etap edit — while every Σ etapów, which iterates the real
-// etapy, never counts it into Pomiar.
-const REPORT_STAGE_ID = 0
-const REPORT_FIELD = stageKey(REPORT_STAGE_ID)
-
 // globals.css frames the column, so the one place he may type stands out of a read-only sheet.
 const REPORT_COLUMN_CLASS = 'kosztorys-report-column'
 // globals.css greys these: every figure he reads but may not type, so „Zgłaszam” is the one dark number.
 const READONLY_FIGURE_CLASS = 'kosztorys-report-readonly-figure'
 const TEXT_COLUMN_IDS: ReadonlySet<string> = new Set(['description', 'note', 'sectionName', 'unit'])
-const REPORT_WIDTH = 140
+const REPORT_WIDTH = 170
 // On a phone the description needs every pixel; the header hint wraps to four lines and still fits.
-const COMPACT_REPORT_WIDTH = 110
+const PHONE_REPORT_WIDTH = 110
+// A phone's narrower columns wrap the headers — „Zgłaszam”'s hint most of all — past the sheet's
+// resting header height.
+export const PHONE_REPORT_HEADER_HEIGHT = 100
 const COMPACT_UNIT_WIDTH = 80
 const COMPACT_DESCRIPTION_MIN_WIDTH = 240
 
@@ -137,8 +135,8 @@ function withReportColumn(
       minWidth: COMPACT_DESCRIPTION_MIN_WIDTH,
       maxWidth: undefined,
     }
-    const narrowed = { ...reportColumn, ...pinnedWidth(COMPACT_REPORT_WIDTH) }
-    return [stretched, narrowed, unit].filter((column) => column !== undefined)
+    const report = isWide ? reportColumn : { ...reportColumn, ...pinnedWidth(PHONE_REPORT_WIDTH) }
+    return [stretched, report, unit].filter((column) => column !== undefined)
   }
   const lastStage = columns.findLastIndex((column) => column.id?.startsWith(STAGE_QTY_PREFIX))
   const anchor =

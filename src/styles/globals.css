@@ -429,8 +429,12 @@
    already the containing block its `::after` anchors to. */
 .kosztorys-grid .dsg-row.kosztorys-clipped-sectionName .dsg-cell.kosztorys-wrap-sectionName::after,
 .kosztorys-grid .dsg-row.kosztorys-clipped-description .dsg-cell.kosztorys-wrap-description::after,
-.kosztorys-grid .dsg-row.kosztorys-clipped-descriptionTranslation__uk .dsg-cell.kosztorys-wrap-descriptionTranslation__uk::after,
-.kosztorys-grid .dsg-row.kosztorys-clipped-descriptionTranslation__ru .dsg-cell.kosztorys-wrap-descriptionTranslation__ru::after,
+.kosztorys-grid
+  .dsg-row.kosztorys-clipped-descriptionTranslation__uk
+  .dsg-cell.kosztorys-wrap-descriptionTranslation__uk::after,
+.kosztorys-grid
+  .dsg-row.kosztorys-clipped-descriptionTranslation__ru
+  .dsg-cell.kosztorys-wrap-descriptionTranslation__ru::after,
 .kosztorys-grid .dsg-row.kosztorys-clipped-note .dsg-cell.kosztorys-wrap-note::after {
   content: '…';
   position: absolute;
@@ -612,7 +616,7 @@
 /* After the stripe rule, which has the same specificity and would otherwise win. dsg's own
    1px grid lines ride the same box-shadow, so they are restated. */
 .kosztorys-grid.kosztorys-grid-preview .dsg-cell.kosztorys-report-column {
-  background: color-mix(in oklab, var(--color-report-accent) 14%, var(--color-background));
+  background: color-mix(in oklab, var(--color-lime-300) 40%, var(--color-background));
   box-shadow:
     inset 2px 0 var(--color-report-accent),
     inset -2px 0 var(--color-report-accent),
@@ -620,7 +624,7 @@
 }
 
 .kosztorys-grid.kosztorys-grid-preview .dsg-cell-header.kosztorys-report-column {
-  background: color-mix(in oklab, var(--color-report-accent) 14%, var(--color-background));
+  background: color-mix(in oklab, var(--color-lime-300) 40%, var(--color-background));
   box-shadow:
     inset 2px 0 var(--color-report-accent),
     inset -2px 0 var(--color-report-accent),

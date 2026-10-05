@@ -230,6 +230,8 @@ export function offeredFilterConditions(
 // recompute on every render.
 export const CLIENT_EMPTY_CONDITION_ID = 'client-empty'
 const CLIENT_EMPTY_CONDITION_IDS: ReadonlySet<string> = new Set([CLIENT_EMPTY_CONDITION_ID])
+export const REPORT_UNREPORTED_CONDITION_ID = 'report-unreported'
+const REPORTED_ONLY_CONDITION_IDS: ReadonlySet<string> = new Set([REPORT_UNREPORTED_CONDITION_ID])
 const NO_CONDITION_IDS: ReadonlySet<string> = new Set()
 
 /**
@@ -241,7 +243,14 @@ const NO_CONDITION_IDS: ReadonlySet<string> = new Set()
  * Lives here rather than inside the editor hook that reads it, because the mapping is the domain fact
  * „which conditions may reach a client" — invisible to anyone refactoring the hook, and it has been
  * silently dropped by exactly that kind of refactor once already.
+ *
+ * `reportedOnly` is the worker's „Tylko zgłoszone” on his report link. It replaces the empty-row hide
+ * rather than adding to it: a pozycja with no przedmiar and no work is still one he may report.
  */
-export function clientConditionIds(hideEmptyRows: boolean | undefined): ReadonlySet<string> {
+export function clientConditionIds(
+  hideEmptyRows: boolean | undefined,
+  reportedOnly = false,
+): ReadonlySet<string> {
+  if (reportedOnly) return REPORTED_ONLY_CONDITION_IDS
   return hideEmptyRows ? CLIENT_EMPTY_CONDITION_IDS : NO_CONDITION_IDS
 }

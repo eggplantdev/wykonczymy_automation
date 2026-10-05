@@ -33,6 +33,7 @@ export const pl = {
     searchPlaceholder: 'Szukaj pracy…',
     allWorks: 'Wszystkie prace',
     allColumns: 'Wszystkie kolumny',
+    reportedOnly: 'Tylko zgłoszone',
     items: { one: 'praca', few: 'prace', many: 'prac', other: 'pracy' },
     draftDropped: {
       one: '{{count}} praca ze szkicu zniknęła z rozpiski.',
@@ -100,6 +101,8 @@ export const pl = {
     emptyKosztorys: 'Kosztorys jest pusty',
     emptyDocumentTitle: 'Brak pozycji do pokazania',
     emptyDocumentDescription: 'Żadna pozycja nie ma jeszcze przedmiaru ani wykonanej pracy.',
+    emptyReportTitle: 'Nic jeszcze nie zgłoszono',
+    emptyReportDescription: 'Wpisz ilość w kolumnie „Zgłaszam” albo wyłącz „Tylko zgłoszone”.',
     rejectedInvalid: 'Nieprawidłowa wartość',
     rejectedBlocked: 'Wartość odrzucona',
     rejectedRestored: 'przywrócono {{value}}',

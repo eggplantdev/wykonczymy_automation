@@ -22,7 +22,8 @@ export const uk: TranslationsT = {
     qtyPositive: 'Кількість має бути більшою за нуль',
     extraDescription: 'Опишіть додану роботу',
     extraUnit: 'Виберіть од. виміру доданої роботи',
-    unknownUnit: 'Цієї од. виміру вже немає в списку. Оновіть сторінку і виберіть од. виміру ще раз.',
+    unknownUnit:
+      'Цієї од. виміру вже немає в списку. Оновіть сторінку і виберіть од. виміру ще раз.',
   },
   report: {
     pageTitle: 'Звіт про роботи',
@@ -32,6 +33,7 @@ export const uk: TranslationsT = {
     searchPlaceholder: 'Шукати роботу…',
     allWorks: 'Усі роботи',
     allColumns: 'Усі колонки',
+    reportedOnly: 'Лише заявлені',
     items: { one: 'робота', few: 'роботи', many: 'робіт', other: 'роботи' },
     draftDropped: {
       one: '{{count}} робота з чернетки зникла з кошторису.',
@@ -98,6 +100,8 @@ export const uk: TranslationsT = {
     emptyKosztorys: 'Кошторис порожній',
     emptyDocumentTitle: 'Немає позицій для показу',
     emptyDocumentDescription: 'Жодна позиція ще не має планового обсягу чи виконаної роботи.',
+    emptyReportTitle: 'Ще нічого не заявлено',
+    emptyReportDescription: 'Введіть кількість у колонці «Звітую» або вимкніть «Лише заявлені».',
     rejectedInvalid: 'Неправильне значення',
     rejectedBlocked: 'Значення відхилено',
     rejectedRestored: 'відновлено {{value}}',

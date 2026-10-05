@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
 import { useKosztorysEditor } from '@/components/kosztorys/editor/use-kosztorys-editor'
 import {
+  PHONE_REPORT_HEADER_HEIGHT,
   reportEditorSeams,
   type ReportModeT,
 } from '@/components/kosztorys/editor/grid/report-column'
@@ -122,6 +123,8 @@ export type ReportGridControlsT = {
   onSearch: (value: string) => void
   showAllRows: boolean
   onShowAllRows: (value: boolean) => void
+  reportedOnly: boolean
+  onReportedOnly: (value: boolean) => void
 }
 
 // Seeds the grid from `tree` at mount, so remounting it with a fresh `key` is how a restore re-seeds
@@ -222,6 +225,8 @@ export function KosztorysEditorBody({
     engagedConditionIds,
     showAllRows,
     setShowAllRows,
+    reportedOnly,
+    setReportedOnly,
     clientEmptyRowIds,
     resetFilters,
     ordinalByRowId,
@@ -489,6 +494,8 @@ export function KosztorysEditorBody({
                   onSearch: setSearch,
                   showAllRows,
                   onShowAllRows: setShowAllRows,
+                  reportedOnly,
+                  onReportedOnly: setReportedOnly,
                 })
               ) : preview ? (
                 <header className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b px-4 py-3 sm:px-5 sm:py-5">
@@ -580,9 +587,13 @@ export function KosztorysEditorBody({
                     // Tall enough that verbose column labels („Pozostało netto (względem przedmiaru)" etc.)
                     // wrap onto two rows instead of truncating — and draggable from the same handle as a
                     // row, since which labels wrap depends on how wide the owner made their columns.
-                    headerRowHeight={resolveHeaderRowHeight(
-                      preview ? undefined : rowHeights[HEADER_HEIGHT_KEY],
-                    )}
+                    headerRowHeight={
+                      report && !isWide
+                        ? PHONE_REPORT_HEADER_HEIGHT
+                        : resolveHeaderRowHeight(
+                            preview ? undefined : rowHeights[HEADER_HEIGHT_KEY],
+                          )
+                    }
                     lockRows
                     rowKey={({ rowData }) => String(rowData.id)}
                     rowClassName={({ rowData }) =>

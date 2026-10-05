@@ -13,6 +13,7 @@ import type { KosztorysV2RowT, ToolPlaneT } from '@/lib/kosztorys/types'
 import { isTranslationStale } from '@/lib/i18n/description-translations'
 import { LANGUAGE_SHORT, TRANSLATION_LANGUAGES } from '@/lib/i18n/languages'
 import { translationColumnKey } from '@/lib/kosztorys/translation-column-keys'
+import { REPORT_FIELD } from '@/lib/kosztorys/worker-report/report-field'
 
 // The pomiar, from the host's precomputed map when there is one and the long way when there is not.
 // Six entries below ask this question, so reading it through one accessor is also what keeps them
@@ -367,6 +368,15 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     // while the executed total still counts it. A row empty on BOTH axes adds zero to both totals, so
     // hiding it moves no figure and needs no warning.
     matches: isEmptyOnBothAxes,
+  },
+  {
+    id: 'report-unreported',
+    label: 'bez zgłoszonej ilości',
+    // The worker's „Tylko zgłoszone” on his report link — his own reading gesture, but on a document
+    // with no „Filtry” menu, so it rides the client kind the preview already engages.
+    kind: 'client',
+    // `!x` rather than `!(x > 0)`: a negative is a typo the send bar refuses, so it must stay in view.
+    matches: (row) => !row[REPORT_FIELD],
   },
   // A missing cena j.m. is two different problems, so it is two entries, split on whether any work has
   // been executed — and split rather than added beside a broad one, so the counts stay disjoint and no

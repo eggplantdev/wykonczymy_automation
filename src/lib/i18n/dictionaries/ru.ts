@@ -32,6 +32,7 @@ export const ru: TranslationsT = {
     searchPlaceholder: 'Искать работу…',
     allWorks: 'Все работы',
     allColumns: 'Все колонки',
+    reportedOnly: 'Только заявленные',
     items: { one: 'работа', few: 'работы', many: 'работ', other: 'работы' },
     draftDropped: {
       one: '{{count}} работа из черновика исчезла из сметы.',
@@ -98,6 +99,9 @@ export const ru: TranslationsT = {
     emptyKosztorys: 'Смета пуста',
     emptyDocumentTitle: 'Нет позиций для показа',
     emptyDocumentDescription: 'Ни у одной позиции ещё нет планового объёма или выполненной работы.',
+    emptyReportTitle: 'Пока ничего не заявлено',
+    emptyReportDescription:
+      'Введите количество в колонке «Сообщаю» или выключите «Только заявленные».',
     rejectedInvalid: 'Неверное значение',
     rejectedBlocked: 'Значение отклонено',
     rejectedRestored: 'восстановлено {{value}}',

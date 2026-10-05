@@ -219,6 +219,8 @@ export function useKosztorysEditor({
     engagedConditionIds,
     showAllRows,
     setShowAllRows,
+    reportedOnly,
+    setReportedOnly,
     toggleCondition,
     setConditions,
     toggleConditionExclusive,
@@ -1222,10 +1224,7 @@ export function useKosztorysEditor({
    * untouched: this settles what the praca is CALLED, and what it costs is the next, separate
    * decision — the one the „Inne liczby" block it now lands in is for.
    */
-  async function handleAcceptCatalogueName(
-    itemId: number,
-    name: CatalogueNameT,
-  ): Promise<boolean> {
+  async function handleAcceptCatalogueName(itemId: number, name: CatalogueNameT): Promise<boolean> {
     const before = rowsRef.current.find((r) => r.id === itemId)
     const patch = {
       ...name,
@@ -1411,6 +1410,8 @@ export function useKosztorysEditor({
     engagedStageConditionIds,
     showAllRows,
     setShowAllRows,
+    reportedOnly,
+    setReportedOnly,
     clientEmptyRowIds,
     toggleCondition,
     setConditions,

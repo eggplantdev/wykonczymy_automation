@@ -49,8 +49,10 @@ export function useKosztorysViewState({
   // „Pokaż wszystkie pozycje" — the investor's one-visit override of the owner's hide. Not persisted:
   // every visit opens on the document the owner curated.
   const [showAllRows, setShowAllRows] = useState(false)
+  // The worker's „Tylko zgłoszone” — a check of his draft before he sends it. Not persisted either.
+  const [reportedOnly, setReportedOnly] = useState(false)
   const engagedConditionIds = preview
-    ? clientConditionIds(clientView?.hideEmptyRows && !showAllRows)
+    ? clientConditionIds(clientView?.hideEmptyRows && !showAllRows, reportedOnly)
     : persistedConditionIds
   // Rides the engaged problem on top of the stored plane, never written to it. Derived, not
   // remembered: the problem persists and a plane wouldn't, so a reload would restore the narrowing
@@ -152,6 +154,8 @@ export function useKosztorysViewState({
     engagedConditionIds,
     showAllRows,
     setShowAllRows,
+    reportedOnly,
+    setReportedOnly,
     toggleCondition,
     setConditions,
     toggleConditionExclusive: pickProblem,

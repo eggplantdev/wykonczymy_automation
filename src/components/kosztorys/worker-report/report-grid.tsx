@@ -117,6 +117,13 @@ export function ReportGrid({
                     <Switch checked={isAllColumns} onCheckedChange={setIsAllColumns} />
                     {t('allColumns')}
                   </Label>
+                  <Label className="gap-2 text-xs font-normal">
+                    <Switch
+                      checked={controls.reportedOnly}
+                      onCheckedChange={controls.onReportedOnly}
+                    />
+                    {t('reportedOnly')}
+                  </Label>
                 </>
               }
             />

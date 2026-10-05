@@ -3447,3 +3447,17 @@ Refaktor bez zmiany zachowania: nocny cron czyści Kosz tak samo jak wcześniej.
       albo został cofnięty…" (PL/UA/RU), bez ekranu błędu; w narzędziach sieci odpowiedź to 404, nie 200.
 - [ ] Otwórz cofnięty link inwestora `/k/<stary token>`: zwykła strona „nie znaleziono", bez błędu
       „Missing <html> and <body>".
+
+## 2026-10-05 — worker-report-reported-only — „Tylko zgłoszone” i szersza kolumna „Zgłaszam”
+
+- [ ] Link „Zgłoszenie prac" na desktopie: kolumna „Zgłaszam” ma limonkowe tło (nie zielone) i jest
+      wyraźnie szersza niż wcześniej — w widoku domyślnym i po włączeniu „Wszystkie kolumny”.
+- [ ] Ten sam link na telefonie (390px): „Zgłaszam” mieści się obok opisu bez przewijania w bok,
+      a wiersz nagłówków kolumn jest nieco wyższy niż na desktopie — podpowiedź pod „Zgłaszam”
+      nie jest ucięta. Na desktopie wysokość nagłówka bez zmian.
+- [ ] Włącz „Tylko zgłoszone” bez wpisanych ilości: zamiast rozpiski komunikat „Nic jeszcze nie
+      zgłoszono" (PL/UA/RU). Wyłącz — wraca cała rozpiska.
+- [ ] Wpisz ilość w dwóch pracach, włącz „Tylko zgłoszone”: widać tylko te dwie. Wyczyść jedną z nich
+      w trakcie — wiersz nie znika spod kursora; znika dopiero przy ponownym przełączeniu.
+- [ ] Wpisz ujemną ilość i włącz „Tylko zgłoszone”: ten wiersz zostaje widoczny (wysyłka go odrzuci,
+      więc musi dać się go poprawić).

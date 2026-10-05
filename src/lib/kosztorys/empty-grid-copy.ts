@@ -1,6 +1,6 @@
 import { POLISH_GRID, type TranslatorT } from '@/lib/i18n/translations'
 import { activeFilterHidesPhrase } from '@/lib/kosztorys/counted-nouns'
-import { listLabels } from '@/lib/kosztorys/row-conditions/queries'
+import { listLabels, REPORT_UNREPORTED_CONDITION_ID } from '@/lib/kosztorys/row-conditions/queries'
 import type { RowConditionT } from '@/lib/kosztorys/row-conditions/types'
 
 export type EmptyGridCopyT = { title: string; description?: string }
@@ -46,6 +46,13 @@ export function emptyGridCopy({
   dictionary = POLISH_GRID,
 }: ArgsT): EmptyGridCopyT {
   if (preview) {
+    // „Tylko zgłoszone” before he has typed anything — the document is not empty, his report is.
+    if (hiders.some((condition) => condition.id === REPORT_UNREPORTED_CONDITION_ID)) {
+      return {
+        title: dictionary.t('emptyReportTitle'),
+        description: dictionary.t('emptyReportDescription'),
+      }
+    }
     return {
       title: dictionary.t('emptyDocumentTitle'),
       description: dictionary.t('emptyDocumentDescription'),
