@@ -539,5 +539,5 @@ Run **once**, after the final phase.
 
 #### Automated
 
-- [x] 5.1 mobile-nav language DOM spec passes
-- [x] 5.2 existing media/upload/nav specs pass unchanged
+- [x] 5.1 mobile-nav language DOM spec passes — d7f0daec
+- [x] 5.2 existing media/upload/nav specs pass unchanged — d7f0daec
