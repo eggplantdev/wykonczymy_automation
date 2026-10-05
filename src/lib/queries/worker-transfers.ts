@@ -1,6 +1,7 @@
 import type { Where } from 'payload'
+import { buildTransferFilters } from '@/lib/queries/transfer-filters'
+import type { ResolvedSearchParamsT } from '@/types/page'
 
-/** Transfers touching a worker: his wypłaty / premie, and everything through his kasy. */
 export function workerTransferScope(workerId: number, registerIds: number[]): Where {
   // `in: []` renders `IN ()`, a Postgres syntax error — a worker without kasy has no kasa branches.
   const registerBranches: Where[] =
@@ -18,4 +19,17 @@ export function workerTransferScope(workerId: number, registerIds: number[]): Wh
  */
 export function buildWorkerTransferWhere(urlFilters: Where, scope: Where): Where {
   return { ...urlFilters, and: [scope] }
+}
+
+/** The worker page's access boundary — the screen and its Faktury / Drukuj channel must read one. */
+export function workerPageTransferWhere(
+  searchParams: ResolvedSearchParamsT,
+  viewerId: number,
+  workerId: number,
+  registerIds: number[],
+): Where {
+  return buildWorkerTransferWhere(
+    buildTransferFilters(searchParams, { id: viewerId }),
+    workerTransferScope(workerId, registerIds),
+  )
 }

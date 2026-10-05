@@ -9,13 +9,12 @@ import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { fetchRegisterBalances } from '@/lib/queries/balances'
 import { fetchEquipmentAtLocation } from '@/lib/queries/equipment'
 import { fetchWorkerStageInvestments } from '@/lib/queries/worker-stage-investments'
-import { buildTransferFilters } from '@/lib/queries/transfer-filters'
-import { buildWorkerTransferWhere, workerTransferScope } from '@/lib/queries/worker-transfers'
+import { workerPageTransferWhere } from '@/lib/queries/worker-transfers'
 import { buildFilterConfig } from '@/lib/utils/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { HeldEquipmentSection } from '@/components/equipment/held-equipment-section'
 import { OwnedRegistersSection } from '@/components/users/owned-registers-section'
-import { WorkerKosztorysySection } from '@/components/users/worker-kosztorysy-section'
+import { WorkerInvestmentsSection } from '@/components/users/worker-investments-section'
 import { visibleWorkerRegisters } from '@/lib/workers/owned-registers'
 import { EditWorkerDialog } from '@/components/dialogs/edit-worker-dialog'
 import { PageWrapper } from '@/components/ui/page-wrapper'
@@ -51,12 +50,11 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
     : undefined
 
   const registers = visibleWorkerRegisters(refData.cashRegisters, userId, currentUser.role)
-  const transferWhere = buildWorkerTransferWhere(
-    buildTransferFilters(sp, { id: currentUser.id }),
-    workerTransferScope(
-      userId,
-      registers.map((register) => register.id),
-    ),
+  const transferWhere = workerPageTransferWhere(
+    sp,
+    currentUser.id,
+    userId,
+    registers.map((register) => register.id),
   )
 
   const infoFields = [
@@ -76,7 +74,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
       <InfoList items={infoFields} />
       <OwnedRegistersSection registers={registers} balances={balances} linkable={isManager} />
       <HeldEquipmentSection equipment={heldEquipment} linkable={isManager} />
-      <WorkerKosztorysySection investments={stageInvestments} workerName={worker.name} />
+      <WorkerInvestmentsSection investments={stageInvestments} workerName={worker.name} />
       <TransfersSection
         title="Transfery"
         config={{

@@ -6,6 +6,7 @@ import {
   isManagementRole,
   isAdminOrOwnerRole,
   canTrashAccount,
+  canViewWorkerPage,
 } from '@/lib/auth/roles'
 import type { RoleT } from '@/lib/auth/roles'
 
@@ -55,5 +56,16 @@ describe('canTrashAccount', () => {
 
   it('lets an OWNER trash any other account', () => {
     expect(canTrashAccount({ id: 1, role: 'OWNER' }, { id: 2, role: 'OWNER' })).toBe(true)
+  })
+})
+
+describe('canViewWorkerPage', () => {
+  it.each(['ADMIN', 'OWNER', 'MANAGER'] as RoleT[])('lets %s open any worker page', (role) => {
+    expect(canViewWorkerPage({ id: 1, role }, 25)).toBe(true)
+  })
+
+  it('lets an EMPLOYEE open only his own page', () => {
+    expect(canViewWorkerPage({ id: 25, role: 'EMPLOYEE' }, 25)).toBe(true)
+    expect(canViewWorkerPage({ id: 25, role: 'EMPLOYEE' }, 26)).toBe(false)
   })
 })

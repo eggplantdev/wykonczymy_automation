@@ -13,7 +13,7 @@ import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 
 const COLS = `${SUMMARY_LABEL_COL} auto`
 
-export function WorkerKosztorysySection({
+export function WorkerInvestmentsSection({
   investments,
   workerName,
 }: {
@@ -24,7 +24,7 @@ export function WorkerKosztorysySection({
     <div>
       <h2 className="mb-2 text-sm font-semibold">Moje inwestycje</h2>
       {investments.length === 0 ? (
-        <Description>Nie jest przypisany do żadnej aktywnej inwestycji.</Description>
+        <Description>Brak aktywnych inwestycji.</Description>
       ) : (
         <SummaryTable cols={COLS} className="w-fit">
           <SummaryHeaderCell variant="label">Inwestycja</SummaryHeaderCell>

@@ -5,9 +5,8 @@ import { requireAuth } from '@/lib/auth/require-auth'
 import { canViewWorkerPage, MANAGEMENT_ROLES, ROLES } from '@/lib/auth/roles'
 import { fetchAllTransferRows } from '@/lib/queries/fetch-transfer-rows'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
-import { buildTransferFilters } from '@/lib/queries/transfer-filters'
 import { validTransferSort } from '@/lib/queries/transfer-sort'
-import { buildWorkerTransferWhere, workerTransferScope } from '@/lib/queries/worker-transfers'
+import { workerPageTransferWhere } from '@/lib/queries/worker-transfers'
 import { visibleWorkerRegisters } from '@/lib/workers/owned-registers'
 import type { TransferRowT } from '@/types/transfers'
 import type { ActionResultT } from '@/types/action'
@@ -50,12 +49,11 @@ export async function fetchWorkerTransfers(
 
   const refData = await fetchReferenceData()
   const registers = visibleWorkerRegisters(refData.cashRegisters, workerId, user.role)
-  const where = buildWorkerTransferWhere(
-    buildTransferFilters(params, { id: user.id }),
-    workerTransferScope(
-      workerId,
-      registers.map((register) => register.id),
-    ),
+  const where = workerPageTransferWhere(
+    params,
+    user.id,
+    workerId,
+    registers.map((register) => register.id),
   )
 
   return fetchLiveTransferRows('fetchWorkerTransfers', where, opts)

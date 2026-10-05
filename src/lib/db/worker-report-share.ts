@@ -2,6 +2,7 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import type { DbExecutorT } from './get-db'
 import { text } from './row-coerce'
 import { toLanguage, type LanguageT } from '@/lib/i18n/languages'
+import { newShareToken } from '@/lib/kosztorys/share-token'
 
 export type ReportShareT = {
   investmentId: number
@@ -41,4 +42,22 @@ export async function readReportShare(
     isWorkerLive: row.worker_live === true,
     language: toLanguage(row.worker_language),
   }
+}
+
+/** One link per investment × worker of these etap members; a link he already holds is kept. */
+export async function insertMissingWorkerReportShares(
+  db: DbExecutorT,
+  members: { stageId: number; workerId: number }[],
+): Promise<void> {
+  if (members.length === 0) return
+  const shares = members.map(
+    (member) => sql`(${member.stageId}::integer, ${member.workerId}::integer, ${newShareToken()})`,
+  )
+  await db.execute(sql`
+    INSERT INTO worker_report_shares (investment_id, worker_id, token)
+    SELECT DISTINCT ON (ks.investment_id, v.worker_id) ks.investment_id, v.worker_id, v.token
+    FROM (VALUES ${sql.join(shares, sql.raw(', '))}) AS v(stage_id, worker_id, token)
+    JOIN kosztorys_stages ks ON ks.id = v.stage_id
+    ON CONFLICT (investment_id, worker_id) DO NOTHING
+  `)
 }

@@ -1,10 +1,10 @@
 import 'server-only'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
-import { newShareToken } from '@/lib/kosztorys/share-token'
 import type { KosztorysStageT, StageSplitT, ToolPlaneT } from '@/lib/kosztorys/types'
 import { subcontractorDueColumns, subcontractorLinesCte } from './kosztorys-subcontractor-due'
 import type { DbExecutorT } from './get-db'
+import { insertMissingWorkerReportShares } from './worker-report-share'
 
 /** One etap's executed-work value at its own plane — the pool its split divides. */
 export async function selectStagePool(db: DbExecutorT, stageId: number): Promise<number> {
@@ -52,16 +52,7 @@ export async function insertStageMembers(
     INSERT INTO kosztorys_stage_workers (${sql.raw(STAGE_MEMBER_INSERT_COLUMNS.join(', '))})
     VALUES ${sql.join(rows, sql.raw(', '))}
   `)
-  const shares = members.map(
-    (member) => sql`(${member.stageId}::integer, ${member.workerId}::integer, ${newShareToken()})`,
-  )
-  await db.execute(sql`
-    INSERT INTO worker_report_shares (investment_id, worker_id, token)
-    SELECT DISTINCT ON (ks.investment_id, v.worker_id) ks.investment_id, v.worker_id, v.token
-    FROM (VALUES ${sql.join(shares, sql.raw(', '))}) AS v(stage_id, worker_id, token)
-    JOIN kosztorys_stages ks ON ks.id = v.stage_id
-    ON CONFLICT (investment_id, worker_id) DO NOTHING
-  `)
+  await insertMissingWorkerReportShares(db, members)
 }
 
 /** „Nowy etap" for an accepted report: the next number, the worker's plane, and him at 100%. */

@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildTransferFilters } from '@/lib/queries/transfer-filters'
-import { buildWorkerTransferWhere, workerTransferScope } from '@/lib/queries/worker-transfers'
+import { workerPageTransferWhere, workerTransferScope } from '@/lib/queries/worker-transfers'
 import { isNoResultsSentinel } from '@/lib/db/where-to-sql'
 
 // Risk #22: the scope is the worker page's whole access boundary — a URL filter may narrow it,
@@ -9,7 +8,7 @@ import { isNoResultsSentinel } from '@/lib/db/where-to-sql'
 const SCOPE = workerTransferScope(25, [37, 41])
 
 const whereFor = (searchParams: Record<string, string>) =>
-  buildWorkerTransferWhere(buildTransferFilters(searchParams, { id: 1 }), SCOPE)
+  workerPageTransferWhere(searchParams, 1, 25, [37, 41])
 
 describe('workerTransferScope', () => {
   it('matches his wypłaty and both sides of his kasy', () => {
@@ -27,7 +26,7 @@ describe('workerTransferScope', () => {
   })
 })
 
-describe('buildWorkerTransferWhere — URL filters only narrow', () => {
+describe('workerPageTransferWhere — URL filters only narrow', () => {
   it('keeps the scope under and with no filter at all', () => {
     expect(whereFor({}).and).toEqual([SCOPE])
   })
@@ -53,7 +52,6 @@ describe('buildWorkerTransferWhere — URL filters only narrow', () => {
     expect(where.investment).toEqual({ in: [31] })
   })
 
-  // The readers of a transfer Where look only at the top level.
   it('leaves the URL filters at the top level', () => {
     expect(whereFor({}).cancelled).toEqual({ not_equals: true })
     expect(isNoResultsSentinel(whereFor({ investment: 'abc' }))).toBe(true)
