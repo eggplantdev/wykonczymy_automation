@@ -3793,3 +3793,23 @@ do której ten pracownik ma link do raportu.
 - [ ] Manager na „Polski”: tabele transferów na `/kasa/[id]` i `/inwestycje/[id]`, pasek boczny,
       menu na telefonie i okna wgrywania plików wyglądają dokładnie jak przedtem.
 - [ ] „Podgląd pracownika” (manager) pozostaje po polsku niezależnie od języka pracownika.
+
+## 2026-10-05 — worker-report-figures — „Wykonano” i „Pozostało” w raporcie pracownika, przełączniki w „Opcje”
+
+Potrzebny stan: link do raportu pracownika na inwestycji, gdzie jego etapy mają już wpisane ilości
+przy kilku pracach, a co najmniej jedna praca ma przedmiar.
+
+- [ ] „Zgłaszam pracę” na telefonie (390px): obok wyszukiwarki sama ikona zębatki; na desktopie
+      zębatka z napisem „Opcje”. W menu: „Wszystkie prace (+N)”, „Tylko zgłaszane przeze mnie (N)”,
+      „Pokaż sumę do tej pory wykonanej pracy”, „Pokaż, ile pracy pozostało”; menu nie zamyka się po
+      kliknięciu przełącznika.
+- [ ] Włącz „Pokaż sumę…” → przed „Zgłaszam” kolumna „Wykonano” z sumą jego etapów dla pracy.
+- [ ] Włącz „Pokaż, ile pracy pozostało” → za „Zgłaszam” kolumna „Pozostało” w formacie
+      `wykonane / przedmiar`; wpisanie ilości w „Zgłaszam” od razu zwiększa liczbę po lewej, a
+      przekroczenie przedmiaru zabarwia komórkę na czerwono.
+- [ ] Na zakładce „Inwestycja” w menu jest tylko „Wszystkie prace”.
+- [ ] „Jednostka miary” w „Zgłaszam pracę” widoczna od 1024px szerokości, poniżej ukryta.
+- [ ] 390px z włączoną którąkolwiek z dwóch kolumn: tabela przewija się w bok, nagłówek i stopka
+      zostają na szerokość ekranu; z obiema wyłączonymi — bez przewijania w bok, jak dotąd.
+- [ ] Nagłówki „Wykonano”, „Zgłaszam” i „Pozostało” zaczynają się na tej samej wysokości (do góry).
+- [ ] Ten sam link po ukraińsku i po rosyjsku: „Opcje”, oba przełączniki i obie kolumny przetłumaczone.

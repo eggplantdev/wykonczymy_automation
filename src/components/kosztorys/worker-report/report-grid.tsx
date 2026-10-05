@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { KosztorysEditorBody } from '@/components/kosztorys/editor/kosztorys-editor-body'
+import { reportScrollsSideways } from '@/components/kosztorys/editor/grid/report-column'
 import { WorkerSummary } from '@/components/kosztorys/worker-report/worker-summary'
 import { BrandedHeader } from '@/components/kosztorys/worker-report/branded-header'
 import { DraftExtraWorks } from '@/components/kosztorys/worker-report/draft-extra-works'
@@ -14,8 +15,7 @@ import {
 import { SendBar, type SentT } from '@/components/kosztorys/worker-report/send-bar'
 import { SentReports } from '@/components/kosztorys/worker-report/sent-reports'
 import type { useReportDraft } from '@/components/kosztorys/worker-report/use-report-draft'
-import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
+import { DropdownMenuCheckboxRow } from '@/components/ui/dropdown-menu'
 import { translateTree } from '@/lib/kosztorys/worker-view/translate-tree'
 import type { SectionTranslationMapT } from '@/lib/i18n/section-translations'
 import { useTranslation } from '@/hooks/use-translation'
@@ -48,6 +48,11 @@ function draftQtyByItem(qtyByItem: Record<number, string>): Record<number, numbe
   )
 }
 
+// Several switches in one menu: closing it after each would make him reopen it for the next.
+function keepMenuOpen(event: Event) {
+  event.preventDefault()
+}
+
 // Mount it only once the draft has loaded — the grid
 // seeds from it once.
 export function ReportGrid({
@@ -60,7 +65,10 @@ export function ReportGrid({
   onSent,
 }: PropsT) {
   const [mode, setMode] = useState<ReportViewModeT>('report')
+  const [showDoneSum, setShowDoneSum] = useState(false)
+  const [showProgress, setShowProgress] = useState(false)
   const isReport = mode === 'report'
+  const scrollsSideways = reportScrollsSideways({ isSummary: !isReport, showDoneSum, showProgress })
   const hasRows = data.sections.some((section) => section.items.length > 0)
   const { locale, t, tp } = useTranslation('report')
   const qtyByItem = draftQtyByItem(draft.draft.qtyByItem)
@@ -89,10 +97,12 @@ export function ReportGrid({
         report={{
           initialQtyByItem: qtyByItem,
           isSummary: !isReport,
+          showDoneSum,
+          showProgress,
           // A negative stays in the draft as typed, so the send bar can refuse it.
           onReportQty: (itemId, qty) => draft.setQty(itemId, qty === 0 ? '' : decimalText(qty)),
           header: (controls) => (
-            <div className={cn('sticky left-0', !isReport && 'w-screen')}>
+            <div className={cn('sticky left-0', scrollsSideways && 'w-screen')}>
               <BrandedHeader data={data} />
               {draft.droppedCount > 0 && (
                 <p className="border-border border-b px-4 py-2 text-sm text-amber-700 dark:text-amber-400">
@@ -102,25 +112,40 @@ export function ReportGrid({
               <ReportBar
                 search={controls.search}
                 onSearch={controls.onSearch}
-                className="border-border flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:gap-6"
-                chips={
+                className="border-border flex items-center gap-3 border-b px-4 py-3"
+                options={
                   <>
-                    <Label className="gap-2 text-xs font-normal">
-                      <Switch
-                        checked={controls.showAllRows}
-                        onCheckedChange={controls.onShowAllRows}
-                      />
-                      {t('allWorks')}
-                      {controls.hiddenRowCount > 0 && ` (+${controls.hiddenRowCount})`}
-                    </Label>
+                    <DropdownMenuCheckboxRow
+                      checked={controls.showAllRows}
+                      onCheckedChange={controls.onShowAllRows}
+                      onSelect={keepMenuOpen}
+                      label={
+                        controls.hiddenRowCount > 0
+                          ? `${t('allWorks')} (+${controls.hiddenRowCount})`
+                          : t('allWorks')
+                      }
+                    />
                     {isReport && (
-                      <Label className="gap-2 text-xs font-normal">
-                        <Switch
+                      <>
+                        <DropdownMenuCheckboxRow
                           checked={controls.reportedOnly}
                           onCheckedChange={controls.onReportedOnly}
+                          onSelect={keepMenuOpen}
+                          label={`${t('reportedOnly')} (${Object.keys(qtyByItem).length})`}
                         />
-                        {t('reportedOnly')} ({Object.keys(qtyByItem).length})
-                      </Label>
+                        <DropdownMenuCheckboxRow
+                          checked={showDoneSum}
+                          onCheckedChange={setShowDoneSum}
+                          onSelect={keepMenuOpen}
+                          label={t('showDoneSum')}
+                        />
+                        <DropdownMenuCheckboxRow
+                          checked={showProgress}
+                          onCheckedChange={setShowProgress}
+                          onSelect={keepMenuOpen}
+                          label={t('showProgress')}
+                        />
+                      </>
                     )}
                   </>
                 }
@@ -130,7 +155,7 @@ export function ReportGrid({
           footer: (
             // The full sheet is wider than the screen; screen-wide, its contents stay in view. The
             // bottom padding keeps the fixed mode footer off the last line.
-            <div className={cn('sticky left-0', hasRows && 'pb-20', !isReport && 'w-screen')}>
+            <div className={cn('sticky left-0', hasRows && 'pb-20', scrollsSideways && 'w-screen')}>
               {isReport ? (
                 <>
                   <DraftExtraWorks extras={draft.draft.extras} />

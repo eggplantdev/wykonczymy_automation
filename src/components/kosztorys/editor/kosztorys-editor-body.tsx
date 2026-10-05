@@ -16,10 +16,11 @@ import { useKosztorysEditor } from '@/components/kosztorys/editor/use-kosztorys-
 import {
   PHONE_REPORT_HEADER_HEIGHT,
   reportEditorSeams,
+  reportScrollsSideways,
   type ReportModeT,
 } from '@/components/kosztorys/editor/grid/report-column'
 import { useMediaQuery } from '@/hooks/use-media-query'
-import { DESKTOP_MEDIA_QUERY } from '@/lib/constants/breakpoints'
+import { DESKTOP_MEDIA_QUERY, TABLET_LARGE_MEDIA_QUERY } from '@/lib/constants/breakpoints'
 import {
   KosztorysEditorProvider,
   type OnTreeReplacedT,
@@ -175,8 +176,9 @@ export function KosztorysEditorBody({
     () => new Set(pastVersion?.diff.removed.map(({ id }) => id)),
     [pastVersion],
   )
-  // The compact report keeps Lp and j.m. where a desktop has the room.
+  // The compact report keeps Lp from a desktop up, and j.m. one step wider.
   const isWide = useMediaQuery(DESKTOP_MEDIA_QUERY)
+  const showsUnit = useMediaQuery(TABLET_LARGE_MEDIA_QUERY)
   const editor = useKosztorysEditor({
     investmentId,
     tree: gridTree,
@@ -191,7 +193,10 @@ export function KosztorysEditorBody({
     onStaleTree,
     isTemplate,
     filledStageIds,
-    seams: report && reportEditorSeams(report, isWide),
+    seams:
+      report &&
+      worker &&
+      reportEditorSeams(report, { stages: tree.stages, worker }, { isWide, showsUnit }),
   })
   const {
     gridRef,
@@ -428,12 +433,15 @@ export function KosztorysEditorBody({
     () => ordinalGutterColumn({ ordinals: ordinalByRowId, resize: rowResize }),
     [ordinalByRowId, rowResize],
   )
-  // The full report is wider than a phone and the page scrolls sideways, but dsg renders only the
-  // columns inside its own box — so the box gets the columns' width up front. Not `max-content`: dsg
-  // answers a box that fits with `width: 100%`, which collapses it again, and the two loop.
-  const reportMinWidth = report?.isSummary
-    ? gridMinWidth(gridColumns, gutterColumn.basis ?? 40)
-    : undefined
+  // A phone's compact report is Opis + „Zgłaszam” first; Lp would take width he needs.
+  const hidesGutter = isReportCompact && !isWide
+  // A sideways-scrolling report is wider than a phone, but dsg renders only the columns inside its own
+  // box — so the box gets the columns' width up front. Not `max-content`: dsg answers a box that fits
+  // with `width: 100%`, which collapses it again, and the two loop.
+  const reportMinWidth =
+    report && reportScrollsSideways(report)
+      ? gridMinWidth(gridColumns, hidesGutter ? 0 : (gutterColumn.basis ?? 40))
+      : undefined
 
   // Kosztorys client-view nets against the investment's transaction sums — net to net, since the
   // ledger carries no VAT. Through the same lib fn the investment page calls, so the two can't
@@ -570,8 +578,7 @@ export function KosztorysEditorBody({
                     // Strip the appended spacer + „Razem" rows before the editor's diff sees them — display-only.
                     onChange={(rows) => onChange(rows.filter((row) => !isSyntheticRow(row.id)))}
                     columns={gridColumns}
-                    // A phone's compact report is Opis + „Zgłaszam” only; Lp would take width he needs.
-                    gutterColumn={isReportCompact && !isWide ? false : gutterColumn}
+                    gutterColumn={hidesGutter ? false : gutterColumn}
                     height={gridHeight}
                     rowHeight={({ rowData }) =>
                       resolveRowHeight({

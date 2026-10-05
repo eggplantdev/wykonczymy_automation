@@ -84,6 +84,8 @@ function ReportBody() {
         initialQtyByItem: {},
         isSummary: true,
         onReportQty: vi.fn(),
+        showDoneSum: false,
+        showProgress: false,
         header: (controls) => (
           <input
             aria-label="search"
