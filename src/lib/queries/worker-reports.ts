@@ -1,16 +1,9 @@
 'use server'
 
-import { getPayload } from 'payload'
-import config from '@payload-config'
-import { requireAuth } from '@/lib/auth/require-auth'
-import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
-import { getDb } from '@/lib/db/get-db'
+import { managementDb } from '@/lib/queries/worker-reports-list'
 import {
-  countPendingForInvestment,
-  listDecidableReports,
   listWorkerReports,
   readWorkerReport,
-  type ReportListRowT,
   type WorkerReportLineRowT,
   type WorkerReportRowT,
 } from '@/lib/db/worker-reports'
@@ -19,13 +12,6 @@ import type {
   WorkerReportSummaryT,
   WorkerReportT,
 } from '@/lib/kosztorys/worker-report/types'
-
-// Uncached: the dialog opens on a report someone may have decided a second ago in another window.
-async function managementDb() {
-  const session = await requireAuth(MANAGEMENT_ROLES)
-  if (!session.success) throw new Error(session.error)
-  return getDb(await getPayload({ config }))
-}
 
 export async function listInvestmentReports(investmentId: number): Promise<WorkerReportSummaryT[]> {
   const db = await managementDb()
@@ -40,14 +26,6 @@ export async function readInvestmentReport(
   const found = await readWorkerReport(db, investmentId, reportId)
   if (!found) return undefined
   return { ...toSummary(found.report), lines: found.lines.map(toLine) }
-}
-
-export async function listAllReports(): Promise<ReportListRowT[]> {
-  return listDecidableReports(await managementDb())
-}
-
-export async function countInvestmentPendingReports(investmentId: number): Promise<number> {
-  return countPendingForInvestment(await managementDb(), investmentId)
 }
 
 function toSummary(row: WorkerReportRowT): WorkerReportSummaryT {

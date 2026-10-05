@@ -3,6 +3,7 @@ import type { StageProgressCellT } from '@/lib/db/stage-progress'
 import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import type { acceptSchema, sendLineSchema } from '@/lib/kosztorys/worker-report/schemas'
 import type { KosztorysItemT, KosztorysSectionT, KosztorysStageT } from '@/lib/kosztorys/types'
+import type { ReportStatusT } from '@/lib/kosztorys/worker-report/report-status'
 
 export type ReportFormItemT = {
   id: number
@@ -30,8 +31,6 @@ export type WorkerReportFormDataT = {
 export type SendReportLineT = z.input<typeof sendLineSchema>
 
 export type ReportLineKindT = 'rozpiska' | 'extra'
-
-export type ReportStatusT = 'pending' | 'accepted' | 'rejected'
 
 // Opis + j.m. are copied onto the line when it is sent, so a later rename or delete of the pozycja
 // does not rewrite what the worker reported.
