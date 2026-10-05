@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import { login, logout } from '@payloadcms/next/auth'
 import config from '@payload-config'
-import { DISABLED_ACCOUNT_ERROR, DISABLED_ACCOUNT_MESSAGE } from '@/lib/constants/worker-lock'
+import { loginRefusalMessage } from '@/lib/constants/worker-lock'
 
 type LoginResultT = {
   success: boolean
@@ -26,19 +26,8 @@ export async function loginAction(data: {
 
     return { success: true }
   } catch (error) {
-    // Payload locks the account after maxLoginAttempts (default 5, lockTime 10 min) and throws
-    // LockedAuth — same 401 as a wrong password, so the name is the only reliable discriminator.
-    if (error instanceof Error && error.name === 'LockedAuth') {
-      return {
-        success: false,
-        error:
-          'Konto zostało tymczasowo zablokowane po zbyt wielu nieudanych próbach. Spróbuj ponownie za kilka minut.',
-      }
-    }
-    if (error instanceof Error && error.name === DISABLED_ACCOUNT_ERROR) {
-      return { success: false, error: DISABLED_ACCOUNT_MESSAGE }
-    }
-    return { success: false, error: 'Nieprawidłowy email lub hasło' }
+    // Payload locks the account after maxLoginAttempts (default 5, lockTime 10 min).
+    return { success: false, error: loginRefusalMessage(error) ?? 'Nieprawidłowy email lub hasło' }
   }
 }
 

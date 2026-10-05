@@ -3735,3 +3735,24 @@ przypisane do etapów w kilku inwestycjach — w tym co najmniej jednej zakończ
 
 - [ ] Dowolna lista z paginacją (np. Transakcje) → „Pokaż” → wybierz 100: w polu widać całe „100”,
       bez ucięcia; przy 20 i 50 pole ma tę samą szerokość.
+
+## EX-989 — worker-self-credentials — pracownik zmienia swój e-mail i hasło (2026-10-05)
+
+Potrzebny stan: dwa konta pracowników (rola Pracownik) ze znanymi hasłami oraz konto managera.
+
+- [ ] Jako pracownik, w DevTools: `PATCH /api/users/<własne id>` z nowym `password` (ciasteczko
+      z przeglądarki) → 403, a stare hasło nadal loguje.
+- [ ] Jako pracownik, w DevTools: `POST /api/users/unlock` z własnym e-mailem → 403 (blokady po
+      5 błędnych hasłach nie da się zdjąć samemu).
+- [ ] Jako pracownik na telefonie (390px): `/pracownicy/<własne id>` pokazuje „Zmień e-mail lub
+      hasło"; okno mieści się na ekranie i da się je wypełnić.
+- [ ] Błędne „Obecne hasło" → „Nieprawidłowe obecne hasło.", nic się nie zmienia.
+- [ ] Zmiana samego e-maila → strona pokazuje nowy e-mail; po wylogowaniu loguje nowy e-mail ze starym
+      hasłem.
+- [ ] Zmiana samego hasła → sesja, z której zmieniono, działa do wylogowania; potem loguje nowe hasło,
+      stare nie.
+- [ ] E-mail innego pracownika → „Ten adres e-mail jest już zajęty.".
+- [ ] Jako manager na stronie innego pracownika → brak „Zmień e-mail lub hasło"; na własnej stronie →
+      jest i działa.
+- [ ] Strona „Reset hasła": niezgodne hasła i hasło 5-znakowe pokazują te same komunikaty co dotąd.
+- [ ] Zamknij i otwórz okno ponownie (także po odświeżeniu strony) → żadne hasło nie jest wpisane.

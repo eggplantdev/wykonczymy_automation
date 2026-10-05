@@ -2,25 +2,14 @@
 
 import type { Payload } from 'payload'
 import { workerSchema, type WorkerFormDataT } from '@/components/forms/worker-form/worker-schema'
+import { findEmailHolder } from '@/lib/workers/find-email-holder'
 import { validateAction, protectedAction } from './run-action'
 
 // A trashed worker still holds his e-mail, so the refusal has to say where to find him — otherwise
 // the owner is told the e-mail is taken by a worker no listing shows.
 async function emailClash(payload: Payload, email: string, ownId?: number) {
   if (!email) return undefined
-  const { docs } = await payload.find({
-    collection: 'users',
-    where: {
-      and: [
-        { email: { equals: email } },
-        ...(ownId === undefined ? [] : [{ id: { not_equals: ownId } }]),
-      ],
-    },
-    limit: 1,
-    depth: 0,
-    overrideAccess: true,
-  })
-  const holder = docs[0]
+  const holder = await findEmailHolder(payload, email, ownId)
   if (!holder) return undefined
   return holder.trashedAt
     ? `Pracownik z adresem ${email} jest w Koszu — przywróć go stamtąd.`

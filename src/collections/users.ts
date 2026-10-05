@@ -53,6 +53,9 @@ export const Users: CollectionConfig = {
     update: canUpdateUser,
     delete: isAdminOrOwner,
     admin: isAdminOrOwnerOrManagerBoolean,
+    // Payload's default is any session, which would let a held phone reset the lockout that makes
+    // `changeOwnCredentialsAction`'s password check worth anything.
+    unlock: isAdminOrOwnerOrManagerBoolean,
   },
   fields: [
     {
