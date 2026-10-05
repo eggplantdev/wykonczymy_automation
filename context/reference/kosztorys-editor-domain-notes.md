@@ -432,9 +432,10 @@ tylko pokazuje link do wyłączenia. „Podgląd" otwiera ten sam widok bez wysy
   widokiem pracownika. Oba człony nazwy to ozdoba — rozwiązuje sam token, a pusta nazwa daje `-`.
   Osobna rozpiska `/p/…` z EX-875 została usunięta bez przekierowania, a linki
   `/zgloszenie-prac/…` przestały działać 2026-10-05 (właściciel: bez przekierowania, wysyła linki
-  ponownie z menu „Pracownicy" — token się nie zmienia). Stare linki dają 404. Kto nie może
-  mieć rozpiski (brak etapu, etap bez rozliczenia, mieszane rozliczenia), ten nie zgłasza. Działa
-  na telefonie — jedyny wyjątek od wąskiego zakresu telefonu.
+  ponownie z menu „Pracownicy" — token się nie zmienia). Oba stare adresy dają tę samą stronę
+  „link nieaktywny" co nieznany token, nie logowanie — pracownik nie ma konta. Kto nie może mieć
+  rozpiski (brak etapu, etap bez rozliczenia, mieszane rozliczenia), ten nie zgłasza. Działa na
+  telefonie — jedyny wyjątek od wąskiego zakresu telefonu.
 - **Dwa tryby w stopce** (przypięta do dołu ekranu, przyciski równej szerokości): „Zgłaszam pracę"
   — opis prac, kolumna „Zgłaszam", „Nowa praca" i „Wyślij"; „Inwestycja" — cała rozpiska bez
   „Zgłaszam" i bez wysyłki, a pod nią rozliczenie w układzie stopki PDF. Wpisane ilości przeżywają

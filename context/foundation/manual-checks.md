@@ -1509,7 +1509,7 @@ addytywna — na produkcję **przed** pushem; DROP starych kolumn to EX-886, po 
       miejscach). Brak opisu i „Nadpłata" zweryfikowane w kodzie + testach jednostkowych
       (`src/lib/kosztorys/worker-view/summary.ts` `WorkerSummaryT.payouts` niesie tylko
       `{date, amount}` — nigdy opis; `isOverpaid` renderuje „Nadpłata" zamiast liczby ujemnej,
-      `src/components/kosztorys/summary/blocks/worker-summary.tsx:47`) — nie udało się w rozsądnym
+      `src/components/kosztorys/worker-report/worker-summary.tsx:93`) — nie udało się w rozsądnym
       czasie znaleźć na stronie inwestycji przycisku dodającego transakcję PAYOUT (guzik „Dodaj" przy
       nagłówku inwestycji otwiera dialog linkowania arkusza Google, nie dodawania transakcji; brak
       widocznego „Dodaj" na globalnej liście Transakcje), więc fixture z nadpłatą nie powstał na żywo.
@@ -3442,7 +3442,7 @@ Refaktor bez zmiany zachowania: nocny cron czyści Kosz tak samo jak wcześniej.
       (wklej go gdziekolwiek), toast „Link skopiowany do schowka. Poprzedni (jeśli był) przestał działać."
       Stary adres pokazuje teraz stronę „nie znaleziono", nie czerwony błąd.
 - [ ] Kosztorys → „Pracownicy" → link do zgłoszeń pracownika → „Wygeneruj nowy": w schowku jest nowy
-      adres `/zgloszenie-prac/…`, ten sam toast.
+      adres `/z/…`, ten sam toast.
 - [ ] Otwórz cofnięty link do zgłoszeń (na telefonie, 390px): strona pokazuje komunikat „Ten link wygasł
       albo został cofnięty…" (PL/UA/RU), bez ekranu błędu; w narzędziach sieci odpowiedź to 404, nie 200.
 - [ ] Otwórz cofnięty link inwestora `/k/<stary token>`: zwykła strona „nie znaleziono", bez błędu
@@ -3462,7 +3462,7 @@ Refaktor bez zmiany zachowania: nocny cron czyści Kosz tak samo jak wcześniej.
 - [ ] Wpisz ujemną ilość i włącz „Tylko zgłaszane przeze mnie”: ten wiersz zostaje widoczny (wysyłka go odrzuci,
       więc musi dać się go poprawić).
 
-## EX-966 — worker-single-view — jeden widok pracownika: „Zgłoszenie prac" z „Podsumowaniem"
+## EX-966 — worker-single-view — jeden widok pracownika: „Zgłoszenie prac" z trybem „Inwestycja"
 
 - [ ] Link „Zgłoszenie prac" na telefonie (390px): „Inwestycja" w stopce pokazuje całą rozpiskę z
       rozliczeniem pracownika pod nią, „Zgłaszam pracę" wraca do kolumny „Zgłaszam" i „Wyślij".
@@ -3511,3 +3511,9 @@ Refaktor bez zmiany zachowania: nocny cron czyści Kosz tak samo jak wcześniej.
       w oknie podziału.
 - [ ] Podział kwotowo, w którym wpisane kwoty przekraczają wartość etapu (etap zmniejszony po
       zapisie): części po proporcjonalnym zmniejszeniu sumują się do wartości etapu, główny ma 0 zł.
+- [ ] Stary adres rozpiski `/p/<pracownik>/<token>` w oknie prywatnym (bez logowania): strona „link
+      nieaktywny", nie strona logowania.
+- [ ] Wpisz ujemną ilość w „Zgłaszam", przełącz na „Inwestycja" i z powrotem: ujemna ilość nadal
+      stoi w kolumnie, „Tylko zgłaszane przeze mnie (N)" ją liczy, a „Wyślij" pokazuje „Popraw błędy".
+- [ ] Link pracownika po ukraińsku albo rosyjsku, tryb „Inwestycja": nagłówki i wiersze rozliczenia
+      pod tabelą są w jego języku, nie po polsku.
