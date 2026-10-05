@@ -32,7 +32,9 @@ import type { TransferRowT } from '@/types/transfers'
 
 const col = createColumnHelper<TransferRowT>()
 
-const REGISTER_COLUMNS = new Set(['sourceRegister', 'targetRegister'])
+// Their cells link into `/kasa/[id]` and `/inwestycje/[id]`, both management-only — a worker would
+// follow the link into a 404.
+const MANAGEMENT_LINK_COLUMNS = new Set(['sourceRegister', 'targetRegister', 'investment'])
 
 const allColumns = [
   col.accessor('id', {
@@ -288,9 +290,10 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
         ? (column as ColumnDef<TransferRowT, unknown>)
         : { ...(column as ColumnDef<TransferRowT, unknown>), enableSorting: false },
     )
-    // `/kasa/[id]` is management-only — a worker would follow the link into a 404.
     .map((column) =>
-      currentUserRole && !isManagementRole(currentUserRole) && REGISTER_COLUMNS.has(column.id!)
+      currentUserRole &&
+      !isManagementRole(currentUserRole) &&
+      MANAGEMENT_LINK_COLUMNS.has(column.id!)
         ? { ...column, cell: (info) => info.getValue() as string }
         : column,
     )
