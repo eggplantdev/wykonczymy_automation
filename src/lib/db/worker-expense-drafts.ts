@@ -60,19 +60,18 @@ function toDraftRow(row: Record<string, unknown>): ExpenseDraftRowT {
   }
 }
 
-/**
- * The worker's live default kasa, or `null` — a trashed or inactive one is no kasa to book into.
- */
-export async function readWorkerDefaultRegisterId(
+/** A trashed or inactive kasa is no kasa to book into, even the worker's own. */
+export async function isWorkerLiveRegister(
   db: DbExecutorT,
   workerId: number,
-): Promise<number | null> {
+  cashRegisterId: number,
+): Promise<boolean> {
   const res = await db.execute(sql`
-    SELECT cr.id FROM users u
-    JOIN cash_registers cr ON cr.id = u.default_cash_register_id
-    WHERE u.id = ${workerId} AND cr.trashed_at IS NULL AND cr.active IS NOT FALSE
+    SELECT 1 FROM cash_registers
+    WHERE id = ${cashRegisterId} AND owner_id = ${workerId}
+      AND trashed_at IS NULL AND active IS NOT FALSE
   `)
-  return numOrNull(res.rows[0]?.id)
+  return res.rows.length > 0
 }
 
 /**
@@ -160,6 +159,29 @@ export async function decideExpenseDraft(
     RETURNING id
   `)
   return res.rows.length > 0
+}
+
+/**
+ * A decided draft is the record behind an expense or a refusal, so only a pending one goes — and
+ * only by its sender. Returns the pages it held (the CTE reads them before the cascade drops the
+ * links), or `null` when nothing was deleted.
+ */
+export async function deletePendingExpenseDraft(
+  db: DbExecutorT,
+  draft: { draftId: number; workerId: number },
+): Promise<number[] | null> {
+  const res = await db.execute(sql`
+    WITH pages AS (
+      SELECT media_id FROM worker_expense_draft_media WHERE draft_id = ${draft.draftId}
+    ), deleted AS (
+      DELETE FROM worker_expense_drafts
+      WHERE id = ${draft.draftId} AND worker_id = ${draft.workerId} AND status = 'pending'
+      RETURNING id
+    )
+    SELECT deleted.id, pages.media_id FROM deleted LEFT JOIN pages ON true
+  `)
+  if (res.rows.length === 0) return null
+  return res.rows.flatMap((row) => (row.media_id == null ? [] : [Number(row.media_id)]))
 }
 
 /** The expenses booked from accepted drafts — all of them, or only those among `transferIds`. */

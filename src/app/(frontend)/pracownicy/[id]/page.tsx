@@ -82,7 +82,8 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
         drafts={expenseDrafts}
         investments={stageInvestments}
         canSend={currentUser.id === userId}
-        hasDefaultRegister={registerName !== undefined}
+        registers={registers}
+        defaultRegisterId={worker.defaultCashRegisterId}
       />
       <TransfersSection
         title="Transfery"

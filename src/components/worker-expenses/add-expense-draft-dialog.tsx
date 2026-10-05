@@ -20,20 +20,36 @@ import { sendExpenseDraftAction } from '@/lib/actions/worker-expense-drafts'
 import { submitWithUploads } from '@/lib/media/submit-with-uploads'
 import { toastMessage } from '@/lib/utils/toast'
 import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
+import type { CashRegisterRefT } from '@/types/reference-data'
 
-type PropsT = { investments: WorkerStageInvestmentT[] }
+type PropsT = {
+  investments: WorkerStageInvestmentT[]
+  registers: CashRegisterRefT[]
+  defaultRegisterId?: number
+}
 
-export function AddExpenseDraftDialog({ investments }: PropsT) {
+function initialRegisterId(registers: CashRegisterRefT[], defaultRegisterId?: number) {
+  if (registers.length === 1) return String(registers[0]?.id)
+  return registers.some((register) => register.id === defaultRegisterId)
+    ? String(defaultRegisterId)
+    : ''
+}
+
+export function AddExpenseDraftDialog({ investments, registers, defaultRegisterId }: PropsT) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [investmentId, setInvestmentId] = useState(
     investments.length === 1 ? String(investments[0]?.investmentId) : '',
   )
+  const [cashRegisterId, setCashRegisterId] = useState(() =>
+    initialRegisterId(registers, defaultRegisterId),
+  )
   const [note, setNote] = useState('')
   const [isSending, setIsSending] = useState(false)
   const { files, isIngesting, inputKey, reset, fileInputProps } = useFilePickIngest()
 
-  const canSend = investmentId !== '' && files.length > 0 && !isIngesting && !isSending
+  const canSend =
+    investmentId !== '' && cashRegisterId !== '' && files.length > 0 && !isIngesting && !isSending
 
   function close() {
     setOpen(false)
@@ -54,7 +70,12 @@ export function AddExpenseDraftDialog({ investments }: PropsT) {
       const result = await submitWithUploads(
         files,
         (mediaIds) =>
-          sendExpenseDraftAction({ investmentId: Number(investmentId), note, mediaIds }),
+          sendExpenseDraftAction({
+            investmentId: Number(investmentId),
+            cashRegisterId: Number(cashRegisterId),
+            note,
+            mediaIds,
+          }),
         'faktura',
       )
       if (!result.success) {
@@ -72,7 +93,7 @@ export function AddExpenseDraftDialog({ investments }: PropsT) {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button size="sm">
+        <Button>
           <Plus />
           Dodaj wydatek
         </Button>
@@ -95,6 +116,23 @@ export function AddExpenseDraftDialog({ investments }: PropsT) {
               </SelectContent>
             </Select>
           </div>
+          {registers.length > 1 && (
+            <div className="flex flex-col gap-2">
+              <Label>Kasa</Label>
+              <Select value={cashRegisterId} onValueChange={setCashRegisterId}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Wybierz kasę" />
+                </SelectTrigger>
+                <SelectContent>
+                  {registers.map((register) => (
+                    <SelectItem key={register.id} value={String(register.id)}>
+                      {register.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <FileInput
             key={inputKey}
             label="Zdjęcie paragonu lub faktury"

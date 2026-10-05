@@ -3708,7 +3708,12 @@ przypisane do etapów w kilku inwestycjach — w tym co najmniej jednej zakończ
 ## EX-971 — worker-expenses — pracownik zgłasza wydatek z paragonem, kierownik przyjmuje go w Transakcjach (2026-10-05)
 
 - [ ] Pracownik na swojej stronie → „Dodaj wydatek" → inwestycja + 2 zdjęcia + notatka → wyślij: na liście „Moje wydatki" pozycja „czeka", zdjęć: 2. Sprawdź też przy szerokości 390px.
-- [ ] Pracownik bez domyślnej kasy: zamiast przycisku „Dodaj wydatek" widzi komunikat „Nie masz domyślnej kasy…".
+- [ ] Pracownik z jedną kasą (bez ustawionej domyślnej): „Dodaj wydatek" jest widoczny, dialog nie pyta o kasę, a przyjmowane zgłoszenie ma jego kasę.
+- [ ] Pracownik z kilkoma kasami: dialog pokazuje „Kasa", ustawioną na domyślną, jeśli ją ma; bez wyboru kasy „Wyślij" jest nieaktywne.
+- [ ] Pracownik bez żadnej kasy: zamiast przycisku „Dodaj wydatek" widzi „Nie masz kasy — poproś kierownika o jej założenie.".
+- [ ] „Moje wydatki" → przy zgłoszeniu „czeka" przycisk „Usuń" → potwierdzenie: pozycja znika z listy i z czekających zgłoszeń w Transakcjach. Przy „przyjęty"/„odrzucony" przycisku nie ma.
+- [ ] Kierownik na stronie pracownika: na liście „Moje wydatki" nie ma przycisku „Usuń".
+- [ ] „Moje inwestycje": długa nazwa inwestycji mieści się w jednej linii na desktopie; przy 390px tabela się nie rozjeżdża.
 - [ ] Transakcje → nad tabelą czekające zgłoszenie → „Przyjmij": dialog „Nowy wydatek" ma inwestycję, kasę pracownika, zdjęcia i notatkę; kwota jest pusta.
 - [ ] W tym dialogu „Generuj" wypełnia kwotę i opis z paragonu; „Zapisz" → zgłoszenie znika z listy, wydatek jest w tabeli, u pracownika status „przyjęty".
 - [ ] To samo zgłoszenie w dwóch kartach: druga „Zapisz" pokazuje „To zgłoszenie zostało już rozpatrzone.", a w tabeli jest jeden wydatek.

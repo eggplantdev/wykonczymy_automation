@@ -1,8 +1,10 @@
 import { Description } from '@/components/ui/description'
 import { AddExpenseDraftDialog } from '@/components/worker-expenses/add-expense-draft-dialog'
+import { DeleteExpenseDraftButton } from '@/components/worker-expenses/delete-expense-draft-button'
 import { DraftStatusBadge } from '@/components/worker-expenses/draft-status-badge'
 import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
+import type { CashRegisterRefT } from '@/types/reference-data'
 import { formatPLDateTime } from '@/lib/utils/format-date'
 
 type PropsT = {
@@ -10,25 +12,31 @@ type PropsT = {
   investments: WorkerStageInvestmentT[]
   /** Only the worker himself sends; a manager on his page sees the list. */
   canSend: boolean
-  hasDefaultRegister: boolean
+  registers: CashRegisterRefT[]
+  defaultRegisterId?: number
 }
 
 export function WorkerExpenseDraftsSection({
   drafts,
   investments,
   canSend,
-  hasDefaultRegister,
+  registers,
+  defaultRegisterId,
 }: PropsT) {
   return (
-    <div>
+    <div className="max-w-2xl">
       <div className="mb-2 flex items-center justify-between gap-2">
         <h2 className="text-sm font-semibold">Moje wydatki</h2>
-        {canSend && hasDefaultRegister && investments.length > 0 && (
-          <AddExpenseDraftDialog investments={investments} />
+        {canSend && registers.length > 0 && investments.length > 0 && (
+          <AddExpenseDraftDialog
+            investments={investments}
+            registers={registers}
+            defaultRegisterId={defaultRegisterId}
+          />
         )}
       </div>
-      {canSend && !hasDefaultRegister && (
-        <Description>Nie masz domyślnej kasy — poproś kierownika o jej ustawienie.</Description>
+      {canSend && registers.length === 0 && (
+        <Description>Nie masz kasy — poproś kierownika o jej założenie.</Description>
       )}
       {drafts.length === 0 ? (
         <Description>Brak zgłoszonych wydatków.</Description>
@@ -43,7 +51,15 @@ export function WorkerExpenseDraftsSection({
                 </div>
                 {draft.note && <div className="mt-1 break-words">{draft.note}</div>}
               </div>
-              <DraftStatusBadge status={draft.status} />
+              <div className="flex shrink-0 items-center gap-2">
+                <DraftStatusBadge status={draft.status} />
+                {canSend && draft.status === 'pending' && (
+                  <DeleteExpenseDraftButton
+                    draftId={draft.id}
+                    investmentName={draft.investmentName}
+                  />
+                )}
+              </div>
             </li>
           ))}
         </ul>

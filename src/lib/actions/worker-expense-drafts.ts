@@ -9,15 +9,18 @@ import { getDb } from '@/lib/db/get-db'
 import { listWorkerStageInvestments } from '@/lib/db/stage-memberships'
 import {
   decideExpenseDraft,
+  deletePendingExpenseDraft,
   insertWorkerExpenseDraft,
-  readWorkerDefaultRegisterId,
+  isWorkerLiveRegister,
 } from '@/lib/db/worker-expense-drafts'
+import { reclaimUnreferencedMedia } from '@/lib/media/delete-unreferenced-media'
 import type { ActionResultT } from '@/types/action'
 
 const MAX_PAGES = 20
 
 const sendDraftSchema = z.object({
   investmentId: z.number().int().positive('Wybierz inwestycję'),
+  cashRegisterId: z.number().int().positive('Wybierz kasę'),
   note: z.string().trim().max(2000, 'Notatka jest za długa'),
   mediaIds: z
     .array(z.number().int().positive())
@@ -29,7 +32,7 @@ export type SendExpenseDraftInputT = z.infer<typeof sendDraftSchema>
 
 /**
  * The one write an EMPLOYEE makes, so it is not a `protectedAction` (management only). Everything
- * it books is read off the session: the worker is the caller, the kasa is his default one, and the
+ * it books is read off the session: the worker is the caller, the kasa must be one he owns, and the
  * investment must be one he works on. Nothing here moves a balance — the draft becomes an expense
  * only when a manager accepts it.
  */
@@ -51,12 +54,9 @@ export async function sendExpenseDraftAction(
       return { success: false, error: 'Nie pracujesz na tej inwestycji' }
     }
 
-    const cashRegisterId = await readWorkerDefaultRegisterId(db, workerId)
-    if (cashRegisterId === null) {
-      return {
-        success: false,
-        error: 'Nie masz domyślnej kasy — poproś kierownika o jej ustawienie',
-      }
+    const { cashRegisterId } = parsed.data
+    if (!(await isWorkerLiveRegister(db, workerId, cashRegisterId))) {
+      return { success: false, error: 'To nie jest Twoja kasa' }
     }
 
     const mediaIds = [...new Set(parsed.data.mediaIds)]
@@ -81,5 +81,19 @@ export async function rejectExpenseDraftAction(draftId: number): Promise<ActionR
       transferId: null,
     })
     return isDecided ? { success: true } : { success: false, error: DRAFT_ALREADY_DECIDED }
+  })
+}
+
+/** The sender's own undo, so like the send it is read off the session, not a `protectedAction`. */
+export async function deleteExpenseDraftAction(draftId: number): Promise<ActionResultT> {
+  const session = await requireAuth(ROLES)
+  if (!session.success) return { success: false, error: session.error }
+  const workerId = session.user.id
+
+  return runAuthorizedHandler(`deleteExpenseDraftAction draft=${draftId}`, async (payload) => {
+    const mediaIds = await deletePendingExpenseDraft(await getDb(payload), { draftId, workerId })
+    if (mediaIds === null) return { success: false, error: DRAFT_ALREADY_DECIDED }
+    await reclaimUnreferencedMedia(payload, mediaIds)
+    return { success: true }
   })
 }
