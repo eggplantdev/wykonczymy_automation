@@ -12,8 +12,8 @@ import {
 } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
-// The worker's own page lists the sites he can report on — a zakończona, trashed or szablon
-// inwestycja must not offer him a link the send would refuse.
+// The worker's own page lists only his aktywne inwestycje — a wycena, a planned, a zakończona, a
+// trashed or a szablon one must not offer him a link.
 vi.mock('server-only', () => ({}))
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
@@ -68,12 +68,10 @@ describe.skipIf(!ENV_READY)('listWorkerStageInvestments (DB)', () => {
     await purgeFixtureUsers(db)
   })
 
-  it('lists only the sites he can still report on, one row each, with his link', async () => {
+  it('lists only his aktywne inwestycje, one row each, with his link', async () => {
     const rows = await listWorkerStageInvestments(db, workerId)
 
-    expect(rows.map((row) => row.investmentId).sort()).toEqual(
-      [investmentIds.active, investmentIds.planowana, investmentIds.quote].sort(),
-    )
+    expect(rows.map((row) => row.investmentId)).toEqual([investmentIds.active])
     for (const row of rows) expect(row.token).toEqual(expect.any(String))
   })
 })

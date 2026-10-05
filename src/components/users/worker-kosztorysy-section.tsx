@@ -5,13 +5,13 @@ import {
   SummaryLabelCell,
   SummaryTable,
 } from '@/components/ui/summary-grid'
+import { Button } from '@/components/ui/button'
 import { Description } from '@/components/ui/description'
-import { INVESTMENT_STATUS_LABELS } from '@/lib/constants/investment-status'
 import { FRONTEND_URL } from '@/lib/env'
 import { workerReportShareUrl } from '@/lib/kosztorys/worker-view/worker-links'
 import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 
-const COLS = `${SUMMARY_LABEL_COL} auto auto`
+const COLS = `${SUMMARY_LABEL_COL} auto`
 
 export function WorkerKosztorysySection({
   investments,
@@ -22,31 +22,30 @@ export function WorkerKosztorysySection({
 }) {
   return (
     <div>
-      <h2 className="mb-2 text-sm font-semibold">Kosztorysy</h2>
+      <h2 className="mb-2 text-sm font-semibold">Moje inwestycje</h2>
       {investments.length === 0 ? (
-        <Description>Nie jest przypisany do żadnego etapu.</Description>
+        <Description>Nie jest przypisany do żadnej aktywnej inwestycji.</Description>
       ) : (
         <SummaryTable cols={COLS} className="w-fit">
           <SummaryHeaderCell variant="label">Inwestycja</SummaryHeaderCell>
-          <SummaryHeaderCell variant="label">Status</SummaryHeaderCell>
           <SummaryHeaderCell variant="label">Zgłoszenia</SummaryHeaderCell>
           {investments.map((investment) => (
             <Fragment key={investment.investmentId}>
               <SummaryLabelCell>{investment.name}</SummaryLabelCell>
-              <SummaryLabelCell>{INVESTMENT_STATUS_LABELS[investment.status].pl}</SummaryLabelCell>
-              <SummaryLabelCell>
+              <SummaryLabelCell className="flex items-center">
                 {investment.token ? (
-                  <a
-                    href={workerReportShareUrl(
-                      FRONTEND_URL,
-                      investment.name,
-                      workerName,
-                      investment.token,
-                    )}
-                    className="text-primary hover:underline"
-                  >
-                    Zgłoś prace
-                  </a>
+                  <Button asChild size="xs">
+                    <a
+                      href={workerReportShareUrl(
+                        FRONTEND_URL,
+                        investment.name,
+                        workerName,
+                        investment.token,
+                      )}
+                    >
+                      Zgłoś prace
+                    </a>
+                  </Button>
                 ) : (
                   <span className="text-muted-foreground">brak linku</span>
                 )}

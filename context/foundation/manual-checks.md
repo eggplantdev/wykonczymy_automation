@@ -3498,10 +3498,10 @@ Przed sprawdzeniem: migracja typu „Premia" na bazie, na której klikasz (`pnpm
 
 ### Phase 2: sekcja „Przypisane kasy” na stronie pracownika
 
-- [ ] Strona pracownika z kasami → sekcja „Przypisane kasy” wymienia wszystkie jego kasy, każda nazwa otwiera stronę tej kasy.
+- [ ] Strona pracownika z kasami → sekcja „Moje kasy” wymienia wszystkie jego kasy, każda nazwa otwiera stronę tej kasy.
 - [ ] Ta sama sekcja → „Saldo” każdej kasy zgadza się z saldem tej kasy na `/kasy`; „Razem” to ich suma; ujemne saldo jest na czerwono.
 - [ ] Pracownik z kasą ustawioną jako nieaktywna → ta kasa jest na liście z dopiskiem „nieaktywna” pod nazwą, a jej saldo wchodzi do „Razem”.
-- [ ] Pracownik bez kas → sekcja „Przypisane kasy” mówi „Nie ma żadnej kasy.”
+- [ ] Pracownik bez kas → sekcja „Moje kasy” mówi „Nie ma żadnej kasy.”
 - [ ] Pracownik, którego kasa sama leży w Koszu → tej kasy nie ma w sekcji ani w liczbie na liście.
 - [ ] Zalogowany jako MANAGER → strona właściciela (OWNER) nie pokazuje kasy głównej w „Przypisanych kasach”; jako OWNER/ADMIN kasa główna jest i jej link działa.
 - [ ] Strona pracownika → nie ma już linijki „Wypłaty: … zł” nad sekcjami.
@@ -3633,8 +3633,10 @@ przypisane do etapów w kilku inwestycjach — w tym co najmniej jednej zakończ
 - [ ] Jako manager: strona tego pracownika pokazuje oprócz wypłat także zaliczki na jego kasę i wydatki
       z niej; kafelek sumy zgadza się z listą bez filtra i z filtrem kasy, a filtr kasy proponuje tylko
       jego kasy.
-- [ ] Sekcja „Kosztorysy" (pracownik i manager): tylko otwarte inwestycje (wycena / planowana / aktywna),
-      każda raz, bez zakończonych; „Zgłoś prace" otwiera jego stronę `/z/`.
+- [ ] Sekcja „Moje inwestycje" (pracownik i manager): tylko aktywne inwestycje, każda raz, bez kolumny
+      statusu; przycisk „Zgłoś prace" wyśrodkowany w wierszu otwiera jego stronę `/z/`.
+- [ ] Pracownik bez sprzętu: sekcji „Na stanie" nie ma wcale; z sprzętem — jest, z listą. Kasy są pod
+      nagłówkiem „Moje kasy".
 - [ ] Strona pracownika na telefonie (390px): kasy, sprzęt, kosztorysy i transfery czytelne, bez
       rozjechanego układu.
 - [ ] Edytor → dodaj pracownika do etapu → „Pracownicy" → „Link do zgłoszeń": link jest od razu,

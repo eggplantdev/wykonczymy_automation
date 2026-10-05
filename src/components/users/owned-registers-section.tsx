@@ -34,7 +34,7 @@ export function OwnedRegistersSection({
 
   return (
     <div>
-      <h2 className="mb-2 text-sm font-semibold">Przypisane kasy</h2>
+      <h2 className="mb-2 text-sm font-semibold">Moje kasy</h2>
       {rows.length === 0 ? (
         <Description>Nie ma żadnej kasy.</Description>
       ) : (

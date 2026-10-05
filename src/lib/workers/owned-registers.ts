@@ -7,7 +7,7 @@ export function ownedRegisters(cashRegisters: CashRegisterRefT[], workerId: numb
 }
 
 /**
- * The worker page's one kasa set: „Przypisane kasy", the transfer scope and the kasa filter all
+ * The worker page's one kasa set: „Moje kasy", the transfer scope and the kasa filter all
  * read it, so a kasa the viewer may not see can't leak back in through any of the three.
  */
 export function visibleWorkerRegisters(

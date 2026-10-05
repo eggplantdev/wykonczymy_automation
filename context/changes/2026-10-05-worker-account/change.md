@@ -111,8 +111,8 @@ Po researchu (właściciel, 2026-10-05) — szczegóły w `research.md`:
 - Zakres transferów: `{ ...urlFilters, and: [{ or: [...] }] }` + gałąź `and` w `where-to-sql`
   (forma `and: [zakres, urlFilters]` wywala kafel sumy); bez kas → bez gałęzi kasowych (`IN ()`).
 - Faktury / Drukuj dostępne pracownikowi, z zakresem budowanym na serwerze z jego id.
-- Lista kosztorysów: aktywne, planowane i wyceny (`active` / `planowana` / `quote`); bez zakończonych,
-  skasowanych i szablonów.
+- Lista kosztorysów: tylko aktywne (`active`), bez skasowanych — zawężone po teście właściciela
+  2026-10-05 (pierwotnie także planowane i wyceny); bez kolumny statusu.
 - Mint linku bezwarunkowy (szablon nie ma etapów, więc nie dotyczy); backfill migracją SQL.
 - `/kasa/[id]` dla EMPLOYEE → 404.
 - Pracownicy z linkiem bez etapu zostają w menu (rotacja).
