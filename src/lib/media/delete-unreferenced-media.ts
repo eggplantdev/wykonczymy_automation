@@ -1,5 +1,7 @@
 import { after } from 'next/server'
 import type { Payload } from 'payload'
+import { getDb } from '@/lib/db/get-db'
+import { findDraftHeldMedia } from '@/lib/db/worker-expense-drafts'
 import { MEDIA_RELATIONS, mediaReferenceWhere } from '@/lib/media/relating-collections'
 import { uploadFieldIds, type UploadFieldT } from '@/lib/media/upload-field'
 import { logError } from '@/lib/utils/log-error'
@@ -14,7 +16,7 @@ import { logError } from '@/lib/utils/log-error'
  * attach one file twice, and a client-side cleanup can fire while the write it thought failed
  * actually committed. The collections checked are `MEDIA_RELATIONS` — the same list the delete
  * guard probes, because this used to be a hand-maintained copy and lost `equipment-events` to the
- * drift.
+ * drift — plus the raw table of worker expense-draft pages, which no Payload collection covers.
  *
  * **One id at a time, never `Promise.all`.** On the deployed database (Neon through
  * `@payloadcms/db-vercel-postgres`) concurrent Payload writes share a session: every `delete`
@@ -97,6 +99,8 @@ async function findReferencedMedia(payload: Payload, mediaIds: number[]): Promis
       }
     }
   }
+
+  for (const id of await findDraftHeldMedia(await getDb(payload), mediaIds)) referenced.add(id)
 
   return referenced
 }
