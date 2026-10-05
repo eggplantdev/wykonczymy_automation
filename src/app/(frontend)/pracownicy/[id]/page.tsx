@@ -1,6 +1,6 @@
 import { redirect, notFound } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { ADMIN_OR_OWNER_MANAGER_ROLES, ROLE_LABELS, canViewRegister } from '@/lib/auth/roles'
+import { ADMIN_OR_OWNER_MANAGER_ROLES, ROLE_LABELS } from '@/lib/auth/roles'
 import { LanguageLabel } from '@/components/ui/language-label'
 import { DEFAULT_LANGUAGE } from '@/lib/i18n/languages'
 import { parsePagination } from '@/lib/utils/pagination'
@@ -9,11 +9,12 @@ import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { fetchRegisterBalances } from '@/lib/queries/balances'
 import { fetchEquipmentAtLocation } from '@/lib/queries/equipment'
 import { buildTransferFilters } from '@/lib/queries/transfer-filters'
+import { buildWorkerTransferWhere, workerTransferScope } from '@/lib/queries/worker-transfers'
 import { buildFilterConfig } from '@/lib/utils/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { HeldEquipmentSection } from '@/components/equipment/held-equipment-section'
 import { OwnedRegistersSection } from '@/components/users/owned-registers-section'
-import { ownedRegisters } from '@/lib/workers/owned-registers'
+import { visibleWorkerRegisters } from '@/lib/workers/owned-registers'
 import { EditWorkerDialog } from '@/components/dialogs/edit-worker-dialog'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
@@ -30,9 +31,6 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
   const sort = parseTransferSort(sp)
 
   const userId = Number(id)
-  const urlFilters = buildTransferFilters(sp, { id: currentUser.id })
-  const transferWhere = { ...urlFilters, worker: { equals: userId } }
-
   const [refData, balances, heldEquipment] = await Promise.all([
     fetchReferenceData(),
     fetchRegisterBalances(),
@@ -47,8 +45,13 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
     ? refData.cashRegisters.find((cr) => cr.id === worker.defaultCashRegisterId)?.name
     : undefined
 
-  const registers = ownedRegisters(refData.cashRegisters, userId).filter((register) =>
-    canViewRegister(currentUser.role, register.type),
+  const registers = visibleWorkerRegisters(refData.cashRegisters, userId, currentUser.role)
+  const transferWhere = buildWorkerTransferWhere(
+    buildTransferFilters(sp, { id: currentUser.id }),
+    workerTransferScope(
+      userId,
+      registers.map((register) => register.id),
+    ),
   )
 
   const infoFields = [
@@ -74,7 +77,10 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
           query: { where: transferWhere, page, limit, sort },
           baseUrl: `/pracownicy/${id}`,
           excludeColumns: ['worker'],
-          filters: buildFilterConfig(refData, ['users', 'workers', 'expenseCategories', 'type']),
+          filters: {
+            ...buildFilterConfig(refData, ['users', 'workers', 'expenseCategories', 'type']),
+            cashRegisters: registers.map(({ id, name }) => ({ id, name })),
+          },
           invoiceDownload: true,
           print: true,
           cancelledTransactionAudit: sp.cancelledTransactionAudit === '1',
