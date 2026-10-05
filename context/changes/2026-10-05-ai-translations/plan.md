@@ -522,15 +522,15 @@ Run **once**, after the final phase.
 
 #### Automated
 
-- [x] 4.1 touched action specs pass (addItem, createCatalogueItem, section rename/create)
+- [x] 4.1 touched action specs pass (addItem, createCatalogueItem, section rename/create) — e420514c
 
 ### Phase 5: Prace spoza rozpiski → Polish
 
 #### Automated
 
-- [ ] 5.1 migration applies to the local DB
-- [ ] 5.2 worker-report-translation.test.ts passes
-- [ ] 5.3 worker-report.test.ts passes
-- [ ] 5.4 accept-worker-report.test.ts passes
-- [ ] 5.5 review-lines-table DOM spec passes
-- [ ] 5.6 worker-reports DB spec passes against 5435
+- [x] 5.1 migration applies to the local DB
+- [x] 5.2 worker-report-translation.test.ts passes
+- [x] 5.3 worker-report.test.ts passes
+- [x] 5.4 accept-worker-report.test.ts passes
+- [x] 5.5 review-lines-table DOM spec passes
+- [x] 5.6 worker-reports DB spec passes against 5435

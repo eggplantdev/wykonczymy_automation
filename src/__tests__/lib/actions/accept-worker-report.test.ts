@@ -3,7 +3,7 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { selectKosztorysTreeData } from '@/lib/db/kosztorys-tree'
-import { insertWorkerReport, readWorkerReport } from '@/lib/db/worker-reports'
+import { insertWorkerReport, readWorkerReport, setLineTranslations } from '@/lib/db/worker-reports'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 import type { AcceptReportInputT } from '@/lib/kosztorys/worker-report/types'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
@@ -218,6 +218,31 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
     expect(await qtyDone(created?.id ?? 0, ownStageId)).toBe(3)
     const stored = await readWorkerReport(db, investmentId, reportId)
     expect(stored?.lines[0].createdItemId).toBe(created?.id)
+  })
+
+  it('accepts a translated extra in Polish, with the worker\'s words as its current translation', async () => {
+    const { reportId, lineIds } = await sendReport([{ itemId: null, qty: 2, opis: 'Занесення плит' }])
+    await setLineTranslations(
+      db,
+      [{ id: lineIds[0], polishDescription: 'Wniesienie płyt', descriptionLanguage: 'uk' }],
+      { onlyUntranslated: false },
+    )
+
+    const res = await accept({
+      reportId,
+      target: { kind: 'stage', stageId: ownStageId },
+      lines: [],
+      extras: [{ lineId: lineIds[0], acceptedQty: 2, sectionId, clientPrice: 25 }],
+    })
+
+    expect(res.success).toBe(true)
+    const tree = await selectKosztorysTreeData(db, investmentId)
+    const stored = await readWorkerReport(db, investmentId, reportId)
+    const item = tree?.items.find((row) => row.id === stored?.lines[0].createdItemId)
+    expect(item?.description).toBe('Wniesienie płyt')
+    expect(item?.descriptionTranslations).toEqual({
+      uk: { text: 'Занесення плит', source: 'Wniesienie płyt' },
+    })
   })
 
   it('refuses the same decision sent again instead of adding it twice', async () => {

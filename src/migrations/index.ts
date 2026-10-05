@@ -118,6 +118,7 @@ import * as migration_20261002_3_add_bonus_transfer_type from './20261002_3_add_
 import * as migration_20261005_0_drop_investments_review from './20261005_0_drop_investments_review'
 import * as migration_20261005_1_drop_kosztorys_stages_worker_id from './20261005_1_drop_kosztorys_stages_worker_id'
 import * as migration_20261005_2_backfill_worker_report_shares from './20261005_2_backfill_worker_report_shares'
+import * as migration_20261005_4_add_worker_report_line_translations from './20261005_4_add_worker_report_line_translations'
 
 export const migrations = [
   {
@@ -719,5 +720,10 @@ export const migrations = [
     up: migration_20261005_2_backfill_worker_report_shares.up,
     down: migration_20261005_2_backfill_worker_report_shares.down,
     name: '20261005_2_backfill_worker_report_shares',
+  },
+  {
+    up: migration_20261005_4_add_worker_report_line_translations.up,
+    down: migration_20261005_4_add_worker_report_line_translations.down,
+    name: '20261005_4_add_worker_report_line_translations',
   },
 ]

@@ -1,6 +1,8 @@
 'use server'
 
+import { after } from 'next/server'
 import { z } from 'zod'
+import { translateReportExtras } from '@/lib/ai/translate-report-lines'
 import { validateAction } from '@/lib/actions/run-action'
 import { tokenAction } from '@/lib/actions/token-action'
 import { insertWorkerReport, type WorkerReportLineInputT } from '@/lib/db/worker-reports'
@@ -81,6 +83,9 @@ export async function sendWorkerReportAction(
 
       // One CTE statement, so it is atomic without a transaction of its own.
       const reportId = await insertWorkerReport(db, { investmentId, workerId, lines: stored })
+      if (stored.some((line) => line.kind === 'extra')) {
+        after(() => translateReportExtras(db, reportId))
+      }
       return { success: true, data: { reportId } }
     },
   )

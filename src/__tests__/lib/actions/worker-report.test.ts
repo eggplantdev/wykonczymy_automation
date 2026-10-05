@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
@@ -10,6 +10,19 @@ import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
+
+// Collected, not dropped: the extras' translation IS the after() callback.
+const scheduled = vi.hoisted(() => [] as (() => Promise<unknown> | unknown)[])
+vi.mock('next/server', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('next/server')>()
+  return { ...actual, after: (task: () => unknown) => void scheduled.push(task) }
+})
+const flushAfter = async () => {
+  for (const task of scheduled.splice(0)) await task()
+}
+
+const { translateToPolish } = vi.hoisted(() => ({ translateToPolish: vi.fn() }))
+vi.mock('@/lib/ai/translate', () => ({ translateToPolish }))
 
 const { sendWorkerReportAction } = await import('@/lib/actions/worker-report')
 
@@ -63,9 +76,52 @@ describe.skipIf(!ENV_READY)('sendWorkerReportAction (DB)', () => {
     })
   })
 
+  beforeEach(() => {
+    scheduled.length = 0
+    translateToPolish.mockReset().mockResolvedValue(new Map())
+  })
+
   afterAll(async () => {
     if (investmentId) await deleteTestInvestment(payload, investmentId)
     await purgeFixtureUsers(db)
+  })
+
+  it('stores the Polish of an extra after the send, leaving the rozpiska line alone', async () => {
+    translateToPolish.mockResolvedValue(
+      new Map([['Занесення плит', { language: 'uk', polish: 'Wniesienie płyt' }]]),
+    )
+    const res = await sendWorkerReportAction(token, [
+      { kind: 'rozpiska', itemId, qty: 1 },
+      { kind: 'extra', description: 'Занесення плит', unit: 'm2', qty: 3 },
+    ])
+    expect(res.success).toBe(true)
+    if (!res.success) return
+    expect(translateToPolish).not.toHaveBeenCalled()
+
+    await flushAfter()
+
+    expect(translateToPolish).toHaveBeenCalledWith(['Занесення плит'], { model: undefined })
+    const report = await readWorkerReport(db, investmentId, res.data.reportId)
+    expect(report?.lines.map((line) => [line.polishDescription, line.descriptionLanguage])).toEqual(
+      [
+        [null, null],
+        ['Wniesienie płyt', 'uk'],
+      ],
+    )
+  })
+
+  it('still sends, leaving the extra untranslated, when the AI throws', async () => {
+    translateToPolish.mockRejectedValue(new Error('provider down'))
+    const res = await sendWorkerReportAction(token, [
+      { kind: 'extra', description: 'Монтаж дверей', unit: 'szt', qty: 1 },
+    ])
+    expect(res.success).toBe(true)
+    if (!res.success) return
+
+    await flushAfter()
+
+    const report = await readWorkerReport(db, investmentId, res.data.reportId)
+    expect(report?.lines[0]).toMatchObject({ polishDescription: null, descriptionLanguage: null })
   })
 
   it('stores opis, j.m. and sekcja copied from the live pozycja, not from the client', async () => {
