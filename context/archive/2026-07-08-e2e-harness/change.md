@@ -1,10 +1,10 @@
 ---
 change_id: e2e-harness
 title: E2e harness
-status: implementing
+status: archived
 created: 2026-07-08
-updated: 2026-09-20
-archived_at: null
+updated: 2026-10-05
+archived_at: 2026-10-05T06:03:18Z
 ---
 
 ## Notes

@@ -101,13 +101,13 @@ Each row is a discrete rollout phase that will open its own change folder
 via `/10x-new`. Status moves left-to-right through the values below; the
 orchestrator updates Status as artifacts appear on disk.
 
-| #   | Phase name                          | Goal (one line)                                                                                  | Risks covered | Test types                   | Status        | Change folder                |
-| --- | ----------------------------------- | ------------------------------------------------------------------------------------------------ | ------------- | ---------------------------- | ------------- | ---------------------------- |
-| 1   | Finish E2E harness                  | Authed browser flows run deterministically against the isolated `wykonczymy-test` DB + fixture   | enables #2    | e2e harness, auth fixture    | change opened | context/changes/e2e-harness/ |
-| 2   | Lock the financial core             | Ledger correctness + cross-surface parity (listing = view = kosztorys) with independent oracles  | #1, #3        | unit + integration           | not started   | —                            |
-| 3   | Kosztorys calc-core + editor safety | Computed-not-stored correctness + autosave-revert + undo + server-side authz gate                | #1, #4, #6    | unit + integration           | not started   | —                            |
-| 4   | Editor E2E coverage                 | User-facing editor paths (section/item, live totals, autosave, undo, view toggle) run in-browser | #2, #4        | e2e                          | not started   | —                            |
-| 5   | Migration parity + scale gate       | Kosztorys figures match the sheet on a golden investment; transactions table holds at scale      | #5, #7        | contract/golden + perf smoke | not started   | —                            |
+| #   | Phase name                          | Goal (one line)                                                                                  | Risks covered | Test types                   | Status      | Change folder                           |
+| --- | ----------------------------------- | ------------------------------------------------------------------------------------------------ | ------------- | ---------------------------- | ----------- | --------------------------------------- |
+| 1   | Finish E2E harness                  | Authed browser flows run deterministically against the isolated `wykonczymy-test` DB + fixture   | enables #2    | e2e harness, auth fixture    | done        | context/archive/2026-07-08-e2e-harness/ |
+| 2   | Lock the financial core             | Ledger correctness + cross-surface parity (listing = view = kosztorys) with independent oracles  | #1, #3        | unit + integration           | not started | —                                       |
+| 3   | Kosztorys calc-core + editor safety | Computed-not-stored correctness + autosave-revert + undo + server-side authz gate                | #1, #4, #6    | unit + integration           | not started | —                                       |
+| 4   | Editor E2E coverage                 | User-facing editor paths (section/item, live totals, autosave, undo, view toggle) run in-browser | #2, #4        | e2e                          | not started | —                                       |
+| 5   | Migration parity + scale gate       | Kosztorys figures match the sheet on a golden investment; transactions table holds at scale      | #5, #7        | contract/golden + perf smoke | not started | —                                       |
 
 **Status vocabulary** (fixed): `not started` → `change opened` → `researched` → `planned` → `implementing` → `complete`.
 
