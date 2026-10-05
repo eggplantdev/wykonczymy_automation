@@ -1014,6 +1014,34 @@ padły wprost od właściciela, nie są domysłem implementacji:
   nie ma; dopasowanie jest **case-insensitive**, czyli nazwy różniące się wielkością liter to dla
   właściciela jedna sekcja.
 
+### Pozycja ↔ katalog: tożsamość zostaje tekstowa, bez linku po id (2026-10-01)
+
+Link `kosztorys_items` → `work_catalogue_items` (nullable FK) był proponowany **dwa razy** i dwa razy
+odpadł: `katalog-prac-identity` (2026-09-17, „katalog doradczy", powód tylko w `3baa7e09`) oraz
+`kosztorys-item-catalogue-link` (2026-10-01, decyzja przy EX-948). Pomiar na kopii prod (dump
+2026-09-30) mówi, że link naprawiłby niewiele:
+
+- **Parowanie psuje tekst legacy, a id go nie naprawi.** 514 z 529 niesparowanych używanych pozycji
+  siedzi w 20 kosztorysach z importu arkusza — żadna nie powstała z katalogu. Kosztorysy z szablonu
+  „Kosztorys 2026" parują się w ~94,5% (używane) / ~98% (wszystkie) bez żadnego linku. Backfill
+  wymagałby właśnie tego fuzzy-dopasowania, którego link miał unikać (93 ze 195 „zawierających się"
+  kandydatów ma więcej niż jeden wpis).
+- **Tekst myli się bezpiecznie, link niebezpiecznie.** Przez 17 dni snapshotów tylko **10** pozycji
+  przeszło z „sparowana" na „niesparowana" — i część to prawdziwa zmiana zakresu („Montaż WC
+  podwieszanego" → „Montaż WC", „przed gładziami" → „przed tynkami"). Tekst daje „brak w katalogu";
+  zachowany link dałby pewny rozjazd ceny względem złej pracy, a „Aktualizuj kosztorys" wpisałby
+  ceny starej pracy w przemianowany wiersz (dziś `STALE_CATALOGUE_ERROR` to blokuje).
+- **Link to druga reguła na stałe** („link, inaczej tekst"), bo import arkusza odtwarza drzewo bez id.
+  Do tego: snapshot z usuniętym wpisem katalogu nie dałby się przywrócić (FK 23503, jak EX-641 —
+  potrzebny bliźniak `liveWorkerIds`), a `ON DELETE SET NULL` pisałby w zamknięte inwestycje.
+- **Jedyny przypadek, który link wygrywa:** przemianowanie wpisu przez „Edytuj" w katalogu rozparowuje
+  jego pozycje wszędzie naraz. Jeśli zacznie gryźć — poprawka tekstowa, bez drugiej reguły: przy
+  zmianie opisu/j.m. w katalogu zaproponować przepisanie ich na pozycje sparowane starym kluczem.
+- **Kiedy wrócić do tematu:** dopiero po EX-780 i zamknięciu inwestycji z arkusza — wtedy większość
+  wierszy rodzi się z katalogu/szablonu i fallback tekstowy się kurczy.
+
+Tłumaczenia (EX-948) kluczują po polskim tekście i linku nie potrzebują.
+
 ### „Nowa praca" — formularz zamiast pustego wiersza (EX-951, 2026-09-30)
 
 Każde wejście, które dodaje pracę ręcznie — „Wstaw powyżej/poniżej" w menu wiersza, „Dodaj pracę" na
