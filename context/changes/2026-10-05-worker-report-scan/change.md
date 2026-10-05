@@ -68,11 +68,12 @@ translations, in progress); **EX-988** (PDF in the worker's language) is done.
 7. **Only our printout.** A notebook page or a worker's own list is out of scope — the scan relies on
    the printed numbers. Works from outside the rozpiska are handwritten on the same paper (the
    PDF needs blank rows for them) and become „prace spoza rozpiski", as from the link.
-8. **Several photos per zgłoszenie.** A long rozpiska prints on 2–3 sheets. Each row carries its own
-   id, so pages are independent and their order is irrelevant. A pozycja appears once per print, so
-   the same id read on two pages means a page photographed twice or two different prints — flag it
-   for the kierownik, never sum it. The receipt reader's per-call page cap (`MAX_RECEIPT_PAGES` = 8)
-   bounds how many photos one scan takes.
+8. **Several photos per zgłoszenie — one AI request per photo.** A 150-pozycja rozpiska prints on
+   ~5–6 sheets plus one of blank rows. Each photo is read separately (one body under Vercel's 4.5 MB
+   cap; a failed page retries alone) and the rows are joined into one zgłoszenie. Each row carries
+   its own number, so page order is irrelevant. A pozycja appears once per print, so the same number
+   read on two pages means a page photographed twice or two different prints — flag it for the
+   kierownik, never sum it. Cap: 12 photos per scan.
 9. **A scanned zgłoszenie stays off the worker's link.** His history on `/z/…` lists only what he
    sent himself; one filed by a kierownik from paper does not appear there. Today that history lists
    every report for the worker × investment pair (`listWorkerReports`), so a report has to record
@@ -88,6 +89,9 @@ translations, in progress); **EX-988** (PDF in the worker's language) is done.
 13. **A separate „Drukuj do wypełnienia" item** in the Pracownicy menu prints the form: id, opis,
     j.m., an empty „Wykonano" column and blank rows for prace spoza rozpiski — no money, no etapy.
     The existing „Drukuj PDF" stays as it is.
+14. **Every page prints „Strona X/Y"** and the AI reads it with the rows. A page that was never
+    photographed would otherwise be invisible — its pozycje simply arrive unreported — so
+    verification warns „brak strony 4 z 6" (owner, 2026-10-05).
 
 ### Reuse
 
