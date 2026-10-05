@@ -98,7 +98,7 @@ export const pl = {
     remainingForPlane: 'Pozostało netto (względem przedmiaru)',
     planeWithTools: 'Z narzędziami (podwykonawca)',
     planeOwnTools: 'Bez narzędzi (pracownik)',
-    netForPlane: 'Suma etapy {{plane}} netto',
+    netForPlane: 'Suma etapów {{plane}} netto',
     stageQtySumForPlane: 'Pomiar — suma etapów {{plane}}',
     stageFallback: 'Etap {{ordinal}}',
     stageValueNetHeader: '{{stage}} netto',

@@ -99,7 +99,7 @@ export function columnLabelForView(
     // Brutto never reaches the worker's link, so only netto has a translation.
     return id === 'net'
       ? dictionary.t('netForPlane', { plane: planeOf(view) })
-      : `Suma etapy ${PLANE_LABELS[view].toLowerCase()} brutto`
+      : `Suma etapów ${PLANE_LABELS[view].toLowerCase()} brutto`
   }
   if (id === 'stageQtySum' && view !== 'client')
     return dictionary.t('stageQtySumForPlane', { plane: planeOf(view) })

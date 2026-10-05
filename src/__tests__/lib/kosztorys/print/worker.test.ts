@@ -21,7 +21,7 @@ const RATE = 12.5
 const RATE_HEADER = 'Cena j.m. netto — z narzędziami (podwykonawca)'
 const PLANNED_NET_HEADER = 'Wartość przedmiaru netto — z narzędziami (podwykonawca)'
 const STAGE_QTY_SUM_HEADER = 'Pomiar — suma etapów z narzędziami (podwykonawca)'
-const NET_HEADER = 'Suma etapy z narzędziami (podwykonawca) netto'
+const NET_HEADER = 'Suma etapów z narzędziami (podwykonawca) netto'
 
 // The projection as the server hands it over: the worker's two etapy only. Another crew's etap on item 1
 // (qty 3) survives solely in `executedQtyByItem`, which is what „Pozostało" reads.
