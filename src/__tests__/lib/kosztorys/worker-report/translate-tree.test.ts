@@ -4,11 +4,20 @@ import type { DescriptionTranslationsT } from '@/lib/i18n/description-translatio
 import type { KosztorysTreeT } from '@/lib/kosztorys/types'
 
 function treeOf(
-  items: { id: number; description: string; descriptionTranslations?: DescriptionTranslationsT }[],
+  items: {
+    id: number
+    description: string
+    descriptionTranslations?: DescriptionTranslationsT
+    unit?: string | null
+  }[],
   name = 'Łazienka',
 ): KosztorysTreeT {
-  return { sections: [{ id: 1, name, items }] } as unknown as KosztorysTreeT
+  const withUnits = items.map((item) => ({ unit: null, ...item }))
+  return { sections: [{ id: 1, name, items: withUnits }] } as unknown as KosztorysTreeT
 }
+
+const units = (tree: KosztorysTreeT) =>
+  tree.sections.flatMap((section) => section.items.map((item) => item.unit))
 
 const descriptions = (tree: KosztorysTreeT) =>
   tree.sections.flatMap((section) => section.items.map((item) => item.description))
@@ -65,6 +74,17 @@ describe('translateTree', () => {
     ])
 
     expect(translateTree(tree, 'uk', {}).sections[0].items[0].id).toBe(7)
+  })
+
+  it('shows each j.m. in the worker’s language and keeps one off the list as typed', () => {
+    const tree = treeOf([
+      { id: 1, description: 'Malowanie ścian', unit: 'm2' },
+      { id: 2, description: 'Listwy', unit: 'mb' },
+      { id: 3, description: 'Wywóz gruzu', unit: 'big bag' },
+      { id: 4, description: 'Uwagi', unit: null },
+    ])
+
+    expect(units(translateTree(tree, 'uk', {}))).toEqual(['м²', 'пог. м', 'big bag', null])
   })
 
   it('hands a Polish worker the tree untouched', () => {

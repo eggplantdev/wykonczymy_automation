@@ -1,4 +1,6 @@
-import { pl } from '@/lib/i18n/dictionaries/pl'
+import type { LanguageT } from '@/lib/i18n/languages'
+import type { SectionTranslationMapT } from '@/lib/i18n/section-translations'
+import { createTranslator, getTranslations, type TranslatorT } from '@/lib/i18n/translations'
 import { escapeHtml } from '@/lib/utils/escape-html'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDate } from '@/lib/utils/format-date'
@@ -11,6 +13,7 @@ import { groupBySection } from '@/lib/kosztorys/row-ops'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import { workerDataHiddenColumns } from '@/lib/kosztorys/worker-view/columns'
+import { translateTree } from '@/lib/kosztorys/worker-report/translate-tree'
 import { stageShareLabel, type WorkerSummaryT } from '@/lib/kosztorys/worker-view/summary'
 import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
 
@@ -18,6 +21,9 @@ export type WorkerPrintArgsT = {
   data: Extract<WorkerKosztorysT, { kind: 'ready' }>
   logoUrl: string
   fillByColorKey: ReadonlyMap<string, string>
+  // The worker's stored language: the paper reads like the link, amounts and dates stay pl-PL.
+  locale: LanguageT
+  sectionTranslations: SectionTranslationMapT
 }
 
 const row = (labels: string[], values: string[], rowClass = '') =>
@@ -30,10 +36,14 @@ const WORKER_PRINT_STYLES = `
 .totals tr.head td { font-size: 6pt; color: #a1a1aa; border-bottom: 1px solid #e4e4e7; }
 `
 
-// The web page's `WorkerSummary`, on paper: the same tables in the same order and the same Polish
-// labels, so the two documents a worker may hold side by side read alike.
-function workerFooterHtml(summary: WorkerSummaryT): string {
-  const labels = pl.report
+// The web page's `WorkerSummary`, on paper: the same tables in the same order and the same labels,
+// so the two documents a worker may hold side by side read alike.
+function workerFooterHtml(
+  summary: WorkerSummaryT,
+  locale: LanguageT,
+  grid: TranslatorT<'grid'>,
+): string {
+  const labels = getTranslations(locale).report
   const balance = [
     row([labels.summaryExecutedTotal], [formatPLN(summary.executedNet)]),
     ...(summary.bonusNet !== 0 ? [row([labels.summaryBonus], [formatPLN(summary.bonusNet)])] : []),
@@ -55,7 +65,7 @@ function workerFooterHtml(summary: WorkerSummaryT): string {
     ),
     ...summary.executedByStage.map((stage) =>
       row(
-        [stageLabel(stage)],
+        [stageLabel(stage, grid)],
         hasSharedStage
           ? [formatPLN(stage.wholeNet), stageShareLabel(stage), formatPLN(stage.net)]
           : [formatPLN(stage.net)],
@@ -86,8 +96,16 @@ function workerFooterHtml(summary: WorkerSummaryT): string {
  * summary's figure for the money column, so the paper cannot add up to one the footer contradicts.
  * On a shared etap the rows are the whole etap's, so the executed grand total is too.
  */
-export function buildWorkerPrintHtml({ data, logoUrl, fillByColorKey }: WorkerPrintArgsT): string {
-  const { tree, worker, investmentName } = data
+export function buildWorkerPrintHtml({
+  data,
+  logoUrl,
+  fillByColorKey,
+  locale,
+  sectionTranslations,
+}: WorkerPrintArgsT): string {
+  const { worker, investmentName } = data
+  const grid = createTranslator(locale, 'grid')
+  const tree = translateTree(data.tree, locale, sectionTranslations)
   const rows = treeToRows(tree)
   const { stages } = tree
   const dataHidden = workerDataHiddenColumns(rows, stages, worker.settings.hidePlannedOnceExecuted)
@@ -111,8 +129,9 @@ export function buildWorkerPrintHtml({ data, logoUrl, fillByColorKey }: WorkerPr
       hiddenColumns: worker.settings.hiddenColumns,
       columnRanks: worker.settings.columnRanks,
       executedQtyByItem: worker.executedQtyByItem,
+      dictionary: grid,
     }).filter((column) => !dataHidden.has(column.key)),
-    documentKind: `Kosztorys — ${worker.name}`,
+    documentKind: createTranslator(locale, 'report').t('documentKind', { name: worker.name }),
     title: investmentName,
     pageTitle: `${investmentName} — ${worker.name}`,
     logoUrl,
@@ -122,6 +141,8 @@ export function buildWorkerPrintHtml({ data, logoUrl, fillByColorKey }: WorkerPr
     totalNet: moneyKey === 'net' ? worker.summary.stagesWholeNet : worker.summary.plannedNet,
     sectionNetById,
     extraStyles: WIDE_PRINT_STYLES + WORKER_PRINT_STYLES,
-    footerHtml: workerFooterHtml(worker.summary),
+    footerHtml: workerFooterHtml(worker.summary, locale, grid),
+    lang: locale,
+    totalLabel: grid.t('total'),
   })
 }

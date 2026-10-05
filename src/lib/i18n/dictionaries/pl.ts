@@ -85,6 +85,7 @@ export const pl = {
     summaryOwed: 'Pozostało do wypłaty',
     summaryPayouts: 'Wypłaty',
     summaryPayoutDescription: 'Opis',
+    documentKind: 'Kosztorys — {{name}}',
   },
   // The kosztorys grid as the worker's link renders it. Only what that surface reaches: the owner's
   // editor reads the same Polish through `COLUMN_LABELS` and the tips, which take it from here.

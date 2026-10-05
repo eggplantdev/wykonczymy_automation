@@ -322,14 +322,14 @@ Run **once**, after the final phase.
 
 #### Automated
 
-- [ ] 1.1 translate-unit spec passes
-- [ ] 1.2 translate-tree spec passes with a unit case
-- [ ] 1.3 Extra-works spec covers translated label + Polish value
+- [x] 1.1 translate-unit spec passes — f9e64d88
+- [x] 1.2 translate-tree spec passes with a unit case — f9e64d88
+- [x] 1.3 Extra-works spec covers translated label + Polish value — f9e64d88
 
 ### Phase 2: Worker PDF in the worker's language
 
 #### Automated
 
-- [ ] 2.1 Worker PDF spec passes (Polish link wording + uk case)
-- [ ] 2.2 Offer PDF spec passes unchanged
-- [ ] 2.3 Dictionary parity spec passes
+- [x] 2.1 Worker PDF spec passes (Polish link wording + uk case) — e8872496
+- [x] 2.2 Offer PDF spec passes unchanged — e8872496
+- [x] 2.3 Dictionary parity spec passes — e8872496
