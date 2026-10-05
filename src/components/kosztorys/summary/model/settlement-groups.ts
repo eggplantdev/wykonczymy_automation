@@ -6,7 +6,12 @@ import type { SettlementRowT } from '@/components/kosztorys/summary/tables/summa
 // The settlement steps as one table. `axis` is the panel's — the tryb decides which money columns
 // exist, and these steps stand in the same ones as the breakdown above so the reader adds down a
 // column.
-export type SettlementGroupT = { caption?: string; axis: MoneyAxisT; rows: SettlementRowT[] }
+export type SettlementGroupT = {
+  caption?: string
+  axis: MoneyAxisT
+  rows: SettlementRowT[]
+  footnote?: string
+}
 
 type ArgsT = {
   // The wpłaty summed on each plane from the kwoty they carry (`sumDeposits`) — a wpłata brutto
@@ -44,8 +49,11 @@ export function buildSettlementGroups({
   if (lossAmount !== 0) {
     rows.push({ label: 'Strata', line: faceValue(-lossAmount), discount: true })
   }
+  // A nadpłata keeps the debt's label and its minus, explained by a footnote (owner, 2026-10-05):
+  // „Nadpłata -24 407,39" read as a negative overpayment, i.e. a debt.
+  const isNegative = showsNegative(amountDue, axis)
   rows.push({
-    label: isOverpaid(amountDue, axis) ? 'Nadpłata' : 'Pozostało do zapłaty',
+    label: isNegative ? 'Pozostało do zapłaty*' : 'Pozostało do zapłaty',
     line: amountDue,
     bold: true,
     // Per cell: netto and brutto cross zero independently, so a slightly overpaid netto can sit
@@ -54,16 +62,15 @@ export function buildSettlementGroups({
     danger: { net: roundToCents(amountDue.net) > 0, gross: roundToCents(amountDue.gross) > 0 },
   })
 
-  return [{ axis, rows }]
+  return [{ axis, rows, footnote: isNegative ? '*Minusowa kwota oznacza nadpłatę' : undefined }]
 }
 
-// The debt has flipped: every plane the tryb renders is settled and then some, so the row names what
-// the figure actually is. Requires ALL shown planes — under axis 'both' a negative netto can sit
-// beside a real outstanding brutto, and that is still a debt.
-function isOverpaid(amountDue: MoneyPairT, axis: MoneyAxisT): boolean {
+// ANY rendered plane — under axis 'both' a negative netto beside an outstanding brutto still prints a
+// minus the reader needs explained.
+function showsNegative(amountDue: MoneyPairT, axis: MoneyAxisT): boolean {
   const shows = axisShows(axis)
-  const planes: number[] = []
-  if (shows.net) planes.push(amountDue.net)
-  if (shows.gross) planes.push(amountDue.gross)
-  return planes.length > 0 && planes.every((value) => roundToCents(value) < 0)
+  return (
+    (shows.net && roundToCents(amountDue.net) < 0) ||
+    (shows.gross && roundToCents(amountDue.gross) < 0)
+  )
 }

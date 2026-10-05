@@ -143,10 +143,10 @@ test('an investment with no strata prints no strata step', async ({ page }) => {
   const figures = await readSummaryFigures(page)
 
   // A 0 zł step is worse than no step: it invites the reader to look for a strata that isn't there.
-  // The last line is „Pozostało do zapłaty" or „Nadpłata" depending on which side of zero the deal
-  // sits on — this fixture is overpaid, and either label proves the settlement rendered.
+  // An overpaid deal (this fixture) stars the last line for its footnote — either label proves the
+  // settlement rendered.
   expect(
-    figures['Pozostało do zapłaty'] ?? figures['Nadpłata'],
+    figures['Pozostało do zapłaty'] ?? figures['Pozostało do zapłaty*'],
     'the panel rendered no settlement at all',
   ).toBeTruthy()
   expect(figures['Strata']).toBeUndefined()

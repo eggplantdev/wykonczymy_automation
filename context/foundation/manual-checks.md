@@ -3610,3 +3610,11 @@ Refaktor bez zmiany zachowania: nocny cron czyści Kosz tak samo jak wcześniej.
       „Odrzucone” — nie alfabetycznie. Trzeci klik zdejmuje sortowanie i wraca kolejka.
 - [ ] Wpisz w adres `?page=1.5`, `?worker=99999999999`, `?from=2026-02-30`, `?sort=abc`: zwykła strona,
       żadnego błędu; kalendarz zakresu dat nie pokazuje „NaN”.
+
+## 2026-10-05 — settlement-negative-footnote — ujemne „Pozostało do zapłaty” zamiast „Nadpłata”
+
+- [ ] Podgląd inwestora inwestycji z nadpłatą (wpłaty większe niż „Łącznie”) → zakładka
+      „Podsumowanie”: ostatni wiersz to „Pozostało do zapłaty*” z kwotą z minusem, pod tabelą
+      „*Minusowa kwota oznacza nadpłatę”. Nigdzie nie ma „Nadpłata”.
+- [ ] Ta sama inwestycja na stronie inwestycji (widok właściciela): ten sam wiersz i ten sam przypis.
+- [ ] Inwestycja z dodatnim saldem: „Pozostało do zapłaty” bez gwiazdki, bez przypisu, kwota na czerwono.
