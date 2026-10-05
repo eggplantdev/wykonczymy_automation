@@ -671,15 +671,15 @@ with a readable message.
 
 #### Automated
 
-- [x] 4.1 Schema factory unit spec
-- [x] 4.2 Route spec (role gate, stubbed read)
+- [x] 4.1 Schema factory unit spec — 1c5376bf
+- [x] 4.2 Route spec (role gate, stubbed read) — 1c5376bf
 
 ### Phase 5: Scan dialog + entry points
 
 #### Automated
 
-- [ ] 5.1 scan-report-dialog DOM spec
-- [ ] 5.2 listWorkersWithActiveStages DB spec
+- [x] 5.1 scan-report-dialog DOM spec
+- [x] 5.2 listWorkersWithActiveStages DB spec
 
 ### Phase 6: Verification
 

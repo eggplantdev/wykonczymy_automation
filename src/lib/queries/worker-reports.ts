@@ -7,6 +7,12 @@ import {
   type WorkerReportLineRowT,
   type WorkerReportRowT,
 } from '@/lib/db/worker-reports'
+import {
+  listWorkersWithActiveStages,
+  listWorkerStageInvestments,
+  type ScanWorkerT,
+  type WorkerStageInvestmentT,
+} from '@/lib/db/stage-memberships'
 import type {
   ReportLineT,
   WorkerReportSummaryT,
@@ -26,6 +32,16 @@ export async function readInvestmentReport(
   const found = await readWorkerReport(db, investmentId, reportId)
   if (!found) return undefined
   return { ...toSummary(found.report), lines: found.lines.map(toLine) }
+}
+
+export async function readScanWorkers(): Promise<ScanWorkerT[]> {
+  return listWorkersWithActiveStages(await managementDb())
+}
+
+export async function readScanWorkerInvestments(
+  workerId: number,
+): Promise<WorkerStageInvestmentT[]> {
+  return listWorkerStageInvestments(await managementDb(), workerId)
 }
 
 function toSummary(row: WorkerReportRowT): WorkerReportSummaryT {

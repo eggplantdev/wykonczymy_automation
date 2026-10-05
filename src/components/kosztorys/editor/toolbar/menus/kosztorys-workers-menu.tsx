@@ -17,6 +17,7 @@ import {
   WorkerShareMenuItem,
   WorkerViewSettingsMenuItem,
 } from '@/components/kosztorys/editor/actions/worker-actions'
+import { ScanReportMenuItem } from '@/components/kosztorys/editor/actions/scan-report-action'
 import { WorkerPrintMenuItem } from '@/components/kosztorys/editor/actions/worker-print-action'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { assignedWorkers } from '@/lib/kosztorys/worker-view/assigned-workers'
@@ -84,6 +85,9 @@ export function KosztorysWorkersMenu() {
                 disabled={blockReason !== undefined}
                 variant="form"
               />
+              {workerReports && (
+                <ScanReportMenuItem target={{ id, name }} disabled={blockReason !== undefined} />
+              )}
               <DropdownMenuSeparator />
             </Fragment>
           )

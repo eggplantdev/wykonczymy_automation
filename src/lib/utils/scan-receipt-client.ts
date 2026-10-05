@@ -5,8 +5,8 @@ import type { ReceiptFillResultT } from '@/lib/ai/scan-receipt'
 // does: `/api/extract-receipt` is a Route Handler, so the platform's 4.5 MB request-body cap kills
 // an oversize POST before the handler runs — an uncatchable 413. Guarding the summed pages here
 // turns that into a readable refusal; the margin covers the multipart boundaries and the other
-// form field. This is the ONLY remaining consumer of ingest output that has a body limit.
-const MAX_SCAN_BYTES = 4 * 1024 * 1024
+// form field. Only this and the worker-report read post ingest output under a body limit.
+export const MAX_SCAN_BYTES = 4 * 1024 * 1024
 
 export async function scanReceiptClient(
   files: File[],

@@ -1,36 +1,14 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useRef } from 'react'
 import { FileInput } from '@/components/ui/file-input'
+import { useObjectUrls } from '@/hooks/use-object-urls'
 import { FieldLabel } from '@/components/ui/field'
 import { MediaPreviewButton } from '@/components/dialogs/media-preview-button'
 import { INVOICE_PREVIEW_LABELS } from '@/lib/media/wording'
 import { cn } from '@/lib/utils/cn'
 
 const NO_FILES: File[] = []
-
-// Picked files have no URL yet — mint one blob URL per page and revoke them when the page list
-// changes/unmounts. Create AND revoke in the same effect so StrictMode's mount→cleanup→remount
-// can't leave us holding URLs it already revoked (splitting create into useMemo does).
-function useObjectUrls(files: File[]): string[] {
-  const [urls, setUrls] = useState<string[]>([])
-  useEffect(() => {
-    if (files.length === 0) {
-      // Drop the previous run's URLs — the cleanup already revoked them, and leaving them in state
-      // would let the pairing guard below match new files against dead handles.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setUrls((previous) => (previous.length === 0 ? previous : []))
-      return
-    }
-    const objectUrls = files.map((file) => URL.createObjectURL(file))
-    // Surfacing the external blob handles into state is the sanctioned effect use — creation
-    // must live in the effect so their revoke and these URLs share one lifecycle (StrictMode-safe).
-
-    setUrls(objectUrls)
-    return () => objectUrls.forEach((objectUrl) => URL.revokeObjectURL(objectUrl))
-  }, [files])
-  return urls
-}
 
 type LineItemInvoiceFieldPropsT = {
   id: string
