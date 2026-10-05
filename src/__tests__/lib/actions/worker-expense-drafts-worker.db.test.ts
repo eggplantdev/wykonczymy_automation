@@ -183,14 +183,15 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
     })
 
     it.each([
-      ['another worker’s kasa', () => otherRegisterId, 'To nie jest Twoja kasa'],
-      ['his own inactive kasa', () => inactiveRegisterId, 'To nie jest Twoja kasa'],
-    ])('refuses %s and stores nothing', async (_label, kasa, error) => {
+      ['another worker’s kasa', 'send-foreign-kasa', () => otherRegisterId],
+      ['his own inactive kasa', 'send-inactive-kasa', () => inactiveRegisterId],
+    ])('refuses %s and stores nothing', async (_label, photo, kasa) => {
       const before = await draftCount()
 
-      expect(await send('send-kasa', { investmentId, cashRegisterId: kasa() })).toEqual({
+      expect(await send(photo, { investmentId, cashRegisterId: kasa() })).toEqual({
         success: false,
-        error,
+        error: 'To nie jest Twoja kasa',
+        messageKey: 'notYourRegister',
       })
       expect(await draftCount()).toBe(before)
     })
@@ -203,7 +204,11 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
           investmentId: strangerInvestmentId,
           cashRegisterId: registerId,
         }),
-      ).toEqual({ success: false, error: 'Nie pracujesz na tej inwestycji' })
+      ).toEqual({
+        success: false,
+        error: 'Nie pracujesz na tej inwestycji',
+        messageKey: 'notOnInvestment',
+      })
       expect(await draftCount()).toBe(before)
     })
 
@@ -218,7 +223,11 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
           cashRegisterId: otherRegisterId,
           note: 'po',
         }),
-      ).toEqual({ success: false, error: 'To nie jest Twoja kasa' })
+      ).toEqual({
+        success: false,
+        error: 'To nie jest Twoja kasa',
+        messageKey: 'notYourRegister',
+      })
       expect(await readDraft(draftId)).toEqual(before)
     })
   })
@@ -264,16 +273,25 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
           cashRegisterId: registerId,
           note: 'po',
         }),
-      ).toEqual({ success: false, error: DRAFT_ALREADY_DECIDED })
+      ).toEqual({
+        success: false,
+        error: DRAFT_ALREADY_DECIDED,
+        messageKey: 'draftAlreadyDecided',
+      })
       expect(
         await addExpenseDraftPagesAction(draftId, [await insertMedia('decided-add', workerId)]),
-      ).toEqual({ success: false, error: DRAFT_ALREADY_DECIDED })
+      ).toEqual({
+        success: false,
+        error: DRAFT_ALREADY_DECIDED,
+        messageKey: 'draftAlreadyDecided',
+      })
       expect(await removeExpenseDraftPageAction(draftId, mediaIds[0])).toMatchObject({
         success: false,
       })
       expect(await deleteExpenseDraftAction(draftId)).toEqual({
         success: false,
         error: DRAFT_ALREADY_DECIDED,
+        messageKey: 'draftAlreadyDecided',
       })
 
       expect(await readDraft(draftId)).toEqual(before)
@@ -289,6 +307,7 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
       expect(await addExpenseDraftPagesAction(draftId, [foreign])).toEqual({
         success: false,
         error: DRAFT_PAGES_NOT_ATTACHED,
+        messageKey: 'attachFailed',
       })
       expect(await readPages(draftId)).toEqual(mediaIds)
     })

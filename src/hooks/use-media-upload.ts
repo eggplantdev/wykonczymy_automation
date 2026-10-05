@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useI18nContext, useTranslation } from '@/hooks/use-translation'
+import { failureMessage } from '@/lib/i18n/failure-message'
 import { reportBlockedFiles } from '@/lib/media/blocked-files-message'
 import { ingestPickedFiles } from '@/lib/media/ingest-picked-files'
 import { submitWithUploads } from '@/lib/media/submit-with-uploads'
@@ -29,6 +31,8 @@ type MediaUploadOptionsT = {
  * WITHOUT a revalidating action owes its own refresh rather than a reinstatement here.
  */
 export function useMediaUpload({ attach, successMessage }: MediaUploadOptionsT) {
+  const { locale } = useI18nContext()
+  const translator = useTranslation('media')
   const [isUploading, setIsUploading] = useState(false)
 
   // The two effects of the marker travel together on purpose: a rysunek needs the bigger profile to
@@ -36,14 +40,14 @@ export function useMediaUpload({ attach, successMessage }: MediaUploadOptionsT) 
   // labelled a projekt while compressed as a faktura.
   async function ingestAndAttach(picked: File[], asPlan: boolean) {
     const { files: ready, blocked } = await ingestPickedFiles(picked, asPlan ? 'PLAN' : 'INVOICE')
-    reportBlockedFiles(blocked)
+    reportBlockedFiles(blocked, translator)
 
     if (ready.length === 0) return
 
     const kind: MediaKindT | undefined = asPlan ? 'projekt' : undefined
     const result = await submitWithUploads(ready, attach, kind)
     if (!result.success) {
-      toastMessage(result.error, 'error')
+      toastMessage(failureMessage(locale, result), 'error')
       return
     }
 
@@ -63,7 +67,7 @@ export function useMediaUpload({ attach, successMessage }: MediaUploadOptionsT) 
     } catch {
       // TODO(EX-449) SENTRY-REQUIRED: unexpected ingest/upload failure — capture once Sentry is
       // wired; for now the user gets a generic retry toast.
-      toastMessage('Nie udało się przesłać pliku — spróbuj ponownie.', 'error', 6000)
+      toastMessage(translator.t('uploadFailedRetry'), 'error', 6000)
     } finally {
       setIsUploading(false)
     }

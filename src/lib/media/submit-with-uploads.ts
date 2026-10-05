@@ -22,12 +22,17 @@ async function withOrphanCleanup<TIds>(
   try {
     ids = await resolve()
   } catch (err) {
-    if (err instanceof MediaUploadError) discardOrphanedUploads(err.uploadedIds)
+    // Only the upload error phrases itself for this UI; anything else is transport or a
+    // chunk-load failure, whose message is not something to put in front of the user.
+    if (!(err instanceof MediaUploadError)) {
+      return { success: false, error: UPLOAD_FAILED, messageKey: 'uploadFailed' }
+    }
+    discardOrphanedUploads(err.uploadedIds)
     return {
       success: false,
-      // Only the upload error phrases itself for this UI; anything else is transport or a
-      // chunk-load failure, whose message is not something to put in front of the user.
-      error: err instanceof MediaUploadError ? err.message : UPLOAD_FAILED,
+      error: err.message,
+      messageKey: err.refusal.messageKey,
+      messageParams: err.refusal.messageParams,
     }
   }
 

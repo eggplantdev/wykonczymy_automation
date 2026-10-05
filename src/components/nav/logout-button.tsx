@@ -4,6 +4,8 @@ import { LogOut } from 'lucide-react'
 import { useTransition } from 'react'
 
 import { Button } from '@/components/ui/button'
+import { useI18nContext, useTranslation } from '@/hooks/use-translation'
+import { failureMessage } from '@/lib/i18n/failure-message'
 import { logoutAction } from '@/lib/actions/auth'
 import { cn } from '@/lib/utils/cn'
 import { settleAction } from '@/lib/utils/settle-action'
@@ -17,6 +19,8 @@ type LogoutButtonPropsT = React.ComponentProps<typeof Button> & {
 
 export function LogoutButton({ collapsed = false, beforeLogout, ...props }: LogoutButtonPropsT) {
   const [isPending, startTransition] = useTransition()
+  const { locale } = useI18nContext()
+  const { t } = useTranslation('shell')
 
   return (
     <Button
@@ -29,14 +33,14 @@ export function LogoutButton({ collapsed = false, beforeLogout, ...props }: Logo
         startTransition(async () => {
           // Only a failed request ever returns — a logout that lands redirects.
           const res = await settleAction(logoutAction)
-          toastMessage(res.error, 'error')
+          if (!res.success) toastMessage(failureMessage(locale, res), 'error')
         })
       }}
       disabled={isPending}
-      aria-label="Wyloguj"
+      aria-label={t('logout')}
     >
       <LogOut />
-      {!collapsed && 'Wyloguj'}
+      {!collapsed && t('logout')}
     </Button>
   )
 }

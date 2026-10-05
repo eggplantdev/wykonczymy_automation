@@ -16,10 +16,10 @@ import { canMutateTransfer, isManagementRole, type RoleT } from '@/lib/auth/role
 import {
   TRANSFER_TYPE_COLORS,
   isCancellationType,
-  EXPENSE_CATEGORY_LABEL,
   SETTLED_TYPE,
   billsNetAmount,
 } from '@/lib/constants/transfers'
+import { POLISH_TRANSFERS, type TranslatorT } from '@/lib/i18n/translations'
 import { INVESTMENT_LOCKED_MESSAGE, isBookableInvestment } from '@/lib/constants/investment-lock'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 import {
@@ -32,200 +32,208 @@ import type { TransferRowT } from '@/types/transfers'
 
 const col = createColumnHelper<TransferRowT>()
 
-const REGISTER_COLUMNS = new Set(['sourceRegister', 'targetRegister'])
+// Their cells link into `/kasa/[id]` and `/inwestycje/[id]`, both management-only — a worker would
+// follow the link into a 404.
+const MANAGEMENT_LINK_COLUMNS = new Set(['sourceRegister', 'targetRegister', 'investment'])
 
-const allColumns = [
-  col.accessor('id', {
-    id: 'id',
-    header: 'ID',
-    meta: { printValue: (row) => `#${row.id}` },
-    cell: (info) => (info.row.original.rejectedDraftId ? '—' : `#${info.getValue()}`),
-  }),
-  col.accessor('date', {
-    id: 'date',
-    header: 'Data',
-    meta: { printValue: (row) => formatPLDate(row.date) },
-    cell: (info) => formatPLDate(info.getValue()),
-  }),
-  col.accessor('amount', {
-    id: 'amount',
-    header: 'Kwota',
-    meta: { printValue: transferAmountText },
-    cell: (info) => {
-      const { type, cancelled, settled, netAmount, rejectedDraftId } = info.row.original
-      if (rejectedDraftId) return '—'
-      const isMuted = cancelled || type === 'CANCELLATION'
-      const color = settled ? SETTLED_TYPE.color : TRANSFER_TYPE_COLORS[type]
-      // Brutto stays the primary figure: this column is summed against the kasa balance, and only
-      // the amount that left the register reconciles there.
-      const showsNet = billsNetAmount(type) && netAmount !== null
-      return (
-        <span
-          className="flex flex-col font-medium"
-          style={isMuted ? undefined : { color: `var(--color-${color})` }}
-        >
-          {formatPLN(info.getValue())}
-          {showsNet && (
-            <span className="text-muted-foreground text-xs">netto {formatPLN(netAmount)}</span>
+const buildColumns = (translator: TranslatorT<'transfers'>) => {
+  const { t } = translator
+  return [
+    col.accessor('id', {
+      id: 'id',
+      header: t('colId'),
+      meta: { printValue: (row) => `#${row.id}` },
+      cell: (info) => (info.row.original.rejectedDraftId ? '—' : `#${info.getValue()}`),
+    }),
+    col.accessor('date', {
+      id: 'date',
+      header: t('colDate'),
+      meta: { printValue: (row) => formatPLDate(row.date) },
+      cell: (info) => formatPLDate(info.getValue()),
+    }),
+    col.accessor('amount', {
+      id: 'amount',
+      header: t('colAmount'),
+      meta: { printValue: (row) => transferAmountText(row, translator) },
+      cell: (info) => {
+        const { type, cancelled, settled, netAmount, rejectedDraftId } = info.row.original
+        if (rejectedDraftId) return '—'
+        const isMuted = cancelled || type === 'CANCELLATION'
+        const color = settled ? SETTLED_TYPE.color : TRANSFER_TYPE_COLORS[type]
+        // Brutto stays the primary figure: this column is summed against the kasa balance, and only
+        // the amount that left the register reconciles there.
+        const showsNet = billsNetAmount(type) && netAmount !== null
+        return (
+          <span
+            className="flex flex-col font-medium"
+            style={isMuted ? undefined : { color: `var(--color-${color})` }}
+          >
+            {formatPLN(info.getValue())}
+            {showsNet && (
+              <span className="text-muted-foreground text-xs">
+                {t('netAmount', { amount: formatPLN(netAmount) })}
+              </span>
+            )}
+          </span>
+        )
+      },
+    }),
+    col.accessor('vatPlane', {
+      id: 'vatPlane',
+      // The tag names the FORM the wpłata arrived in, not the plane the bill is settled in — same
+      // dictionary as the deposit list in the panel, because „netto"/„brutto" for both on one screen
+      // left the reader guessing which a cell meant (owner, 2026-08-23).
+      header: t('colVatPlane'),
+      meta: { printValue: (row) => transferVatPlaneText(row, translator) },
+      cell: (info) => transferVatPlaneText(info.row.original, translator),
+    }),
+    col.accessor('investmentName', {
+      id: 'investment',
+      header: t('colInvestment'),
+      meta: { minWidth: 'min-w-56', printValue: (row) => row.investmentName },
+      cell: (info) => {
+        const id = info.row.original.investmentId
+        const name = info.getValue()
+        return (
+          <OptionalLink href={name !== '—' && id ? `/inwestycje/${id}` : undefined}>
+            {name}
+          </OptionalLink>
+        )
+      },
+    }),
+    col.accessor('type', {
+      id: 'type',
+      header: t('colType'),
+      meta: { minWidth: 'min-w-40', printValue: (row) => transferTypeText(row, translator) },
+      cell: (info) => (
+        <span className="flex flex-wrap items-center gap-1">
+          {transferTypeText(info.row.original, translator)}
+          {info.row.original.fromWorkerDraft && (
+            <span className={cn(BADGE_BASE, BADGE_TONE.muted)}>{t('fromWorker')}</span>
+          )}
+          {info.row.original.rejectedDraftId && (
+            <span className={cn(BADGE_BASE, BADGE_TONE.muted)}>{t('rejectedDraft')}</span>
           )}
         </span>
-      )
-    },
-  }),
-  col.accessor('vatPlane', {
-    id: 'vatPlane',
-    // The tag names the FORM the wpłata arrived in, not the plane the bill is settled in — same
-    // dictionary as the deposit list in the panel, because „netto"/„brutto" for both on one screen
-    // left the reader guessing which a cell meant (owner, 2026-08-23).
-    header: 'Forma wpłaty',
-    meta: { printValue: transferVatPlaneText },
-    cell: (info) => transferVatPlaneText(info.row.original),
-  }),
-  col.accessor('investmentName', {
-    id: 'investment',
-    header: 'Inwestycja',
-    meta: { minWidth: 'min-w-56', printValue: (row) => row.investmentName },
-    cell: (info) => {
-      const id = info.row.original.investmentId
-      const name = info.getValue()
-      return (
-        <OptionalLink href={name !== '—' && id ? `/inwestycje/${id}` : undefined}>
-          {name}
-        </OptionalLink>
-      )
-    },
-  }),
-  col.accessor('type', {
-    id: 'type',
-    header: 'Typ',
-    meta: { minWidth: 'min-w-40', printValue: transferTypeText },
-    cell: (info) => (
-      <span className="flex flex-wrap items-center gap-1">
-        {transferTypeText(info.row.original)}
-        {info.row.original.fromWorkerDraft && (
-          <span className={cn(BADGE_BASE, BADGE_TONE.muted)}>od pracownika</span>
-        )}
-        {info.row.original.rejectedDraftId && (
-          <span className={cn(BADGE_BASE, BADGE_TONE.muted)}>odrzucone zgłoszenie</span>
-        )}
-      </span>
-    ),
-  }),
-  col.accessor('expenseCategoryName', {
-    id: 'expenseCategory',
-    header: EXPENSE_CATEGORY_LABEL,
-    meta: { printValue: (row) => row.expenseCategoryName },
-    cell: (info) => info.getValue(),
-  }),
-  // TODO: click-to-expand for long descriptions. A `<DescriptionCell>` with `useState` +
-  // `line-clamp-3` rendered once and never responded to clicks; cause unclear (React Compiler,
-  // TanStack re-creating the cell node, or `block` vs `line-clamp-3`). Revisit if overflow bites.
-  col.accessor('description', {
-    id: 'description',
-    header: 'Opis',
-    meta: { minWidth: 'min-w-64', printValue: (row) => row.description },
-    cell: (info) => <span className="whitespace-pre-line">{info.getValue()}</span>,
-  }),
-  col.accessor('otherCategoryName', {
-    id: 'otherCategory',
-    header: 'Kategoria (inne wydatki)',
-    meta: { printValue: (row) => row.otherCategoryName },
-    cell: (info) => info.getValue(),
-  }),
-
-  col.accessor('invoices', {
-    id: 'invoice',
-    header: 'Faktura',
-    meta: { align: 'center' },
-    cell: (info) =>
-      info.row.original.rejectedDraftId ? (
-        <MediaPreviewButton
-          labels={INVOICE_PREVIEW_LABELS}
-          files={info.getValue()}
-          variant="compact"
-        />
-      ) : (
-        <InvoiceCell transactionId={info.row.original.id} invoices={info.getValue()} />
       ),
-  }),
-  col.accessor('invoiceNote', {
-    id: 'invoiceNote',
-    header: 'Notatka',
-    meta: { align: 'center' },
-    cell: (info) => <NotePopover note={info.getValue()} />,
-  }),
+    }),
+    col.accessor('expenseCategoryName', {
+      id: 'expenseCategory',
+      header: t('colExpenseCategory'),
+      meta: { printValue: (row) => row.expenseCategoryName },
+      cell: (info) => info.getValue(),
+    }),
+    // TODO: click-to-expand for long descriptions. A `<DescriptionCell>` with `useState` +
+    // `line-clamp-3` rendered once and never responded to clicks; cause unclear (React Compiler,
+    // TanStack re-creating the cell node, or `block` vs `line-clamp-3`). Revisit if overflow bites.
+    col.accessor('description', {
+      id: 'description',
+      header: t('colDescription'),
+      meta: { minWidth: 'min-w-64', printValue: (row) => row.description },
+      cell: (info) => <span className="whitespace-pre-line">{info.getValue()}</span>,
+    }),
+    col.accessor('otherCategoryName', {
+      id: 'otherCategory',
+      header: t('colOtherCategory'),
+      meta: { printValue: (row) => row.otherCategoryName },
+      cell: (info) => info.getValue(),
+    }),
 
-  col.accessor('sourceRegisterName', {
-    id: 'sourceRegister',
-    header: 'Kasa źródłowa',
-    meta: { minWidth: 'min-w-40', printValue: (row) => row.sourceRegisterName },
-    cell: (info) => {
-      const { sourceRegisterId: id, sourceRegisterTrashed: isTrashed } = info.row.original
-      const name = info.getValue()
-      return (
-        <OptionalLink href={name !== '—' && id && !isTrashed ? `/kasa/${id}` : undefined}>
-          {name}
-        </OptionalLink>
-      )
-    },
-  }),
-  col.accessor('targetRegisterName', {
-    id: 'targetRegister',
-    header: 'Kasa docelowa',
-    meta: { printValue: (row) => row.targetRegisterName },
-    cell: (info) => {
-      const { targetRegisterId: id, targetRegisterTrashed: isTrashed } = info.row.original
-      const name = info.getValue()
-      return (
-        <OptionalLink href={name !== '—' && id && !isTrashed ? `/kasa/${id}` : undefined}>
-          {name}
-        </OptionalLink>
-      )
-    },
-  }),
+    col.accessor('invoices', {
+      id: 'invoice',
+      header: t('colInvoice'),
+      meta: { align: 'center' },
+      cell: (info) =>
+        info.row.original.rejectedDraftId ? (
+          <MediaPreviewButton
+            labels={INVOICE_PREVIEW_LABELS}
+            files={info.getValue()}
+            variant="compact"
+          />
+        ) : (
+          <InvoiceCell transactionId={info.row.original.id} invoices={info.getValue()} />
+        ),
+    }),
+    col.accessor('invoiceNote', {
+      id: 'invoiceNote',
+      header: t('colInvoiceNote'),
+      meta: { align: 'center' },
+      cell: (info) => <NotePopover note={info.getValue()} />,
+    }),
 
-  col.accessor('paymentMethod', {
-    id: 'paymentMethod',
-    header: 'Metoda',
-    meta: { printValue: transferPaymentMethodText },
-    cell: (info) => transferPaymentMethodText(info.row.original),
-  }),
-  col.accessor('workerName', {
-    id: 'worker',
-    header: 'Pracownik',
-    meta: { printValue: (row) => row.workerName },
-    cell: (info) => {
-      const id = info.row.original.workerId
-      const name = info.getValue()
-      return (
-        <OptionalLink href={name !== '—' && id ? `/pracownicy/${id}` : undefined}>
-          {name}
-        </OptionalLink>
-      )
-    },
-  }),
-  col.accessor('createdByName', {
-    id: 'createdBy',
-    header: 'Dodane przez',
-    meta: { minWidth: 'min-w-40', printValue: (row) => row.createdByName },
-    cell: (info) => info.getValue(),
-  }),
-  col.accessor('createdAt', {
-    id: 'createdAt',
-    header: 'Czas dodania',
-    meta: { minWidth: 'min-w-40', printValue: (row) => formatPLDateTime(row.createdAt) },
-    cell: (info) => formatPLDateTime(info.getValue()),
-  }),
-]
+    col.accessor('sourceRegisterName', {
+      id: 'sourceRegister',
+      header: t('colSourceRegister'),
+      meta: { minWidth: 'min-w-40', printValue: (row) => row.sourceRegisterName },
+      cell: (info) => {
+        const { sourceRegisterId: id, sourceRegisterTrashed: isTrashed } = info.row.original
+        const name = info.getValue()
+        return (
+          <OptionalLink href={name !== '—' && id && !isTrashed ? `/kasa/${id}` : undefined}>
+            {name}
+          </OptionalLink>
+        )
+      },
+    }),
+    col.accessor('targetRegisterName', {
+      id: 'targetRegister',
+      header: t('colTargetRegister'),
+      meta: { printValue: (row) => row.targetRegisterName },
+      cell: (info) => {
+        const { targetRegisterId: id, targetRegisterTrashed: isTrashed } = info.row.original
+        const name = info.getValue()
+        return (
+          <OptionalLink href={name !== '—' && id && !isTrashed ? `/kasa/${id}` : undefined}>
+            {name}
+          </OptionalLink>
+        )
+      },
+    }),
+
+    col.accessor('paymentMethod', {
+      id: 'paymentMethod',
+      header: t('colPaymentMethod'),
+      meta: { printValue: (row) => transferPaymentMethodText(row, translator) },
+      cell: (info) => transferPaymentMethodText(info.row.original, translator),
+    }),
+    col.accessor('workerName', {
+      id: 'worker',
+      header: t('colWorker'),
+      meta: { printValue: (row) => row.workerName },
+      cell: (info) => {
+        const id = info.row.original.workerId
+        const name = info.getValue()
+        return (
+          <OptionalLink href={name !== '—' && id ? `/pracownicy/${id}` : undefined}>
+            {name}
+          </OptionalLink>
+        )
+      },
+    }),
+    col.accessor('createdByName', {
+      id: 'createdBy',
+      header: t('colCreatedBy'),
+      meta: { minWidth: 'min-w-40', printValue: (row) => row.createdByName },
+      cell: (info) => info.getValue(),
+    }),
+    col.accessor('createdAt', {
+      id: 'createdAt',
+      header: t('colCreatedAt'),
+      meta: { minWidth: 'min-w-40', printValue: (row) => formatPLDateTime(row.createdAt) },
+      cell: (info) => formatPLDateTime(info.getValue()),
+    }),
+  ]
+}
 
 type ColumnOptionsT = {
   referenceData?: ReferenceDataBaseT
   currentUserId?: number
   currentUserRole?: RoleT
+  translator?: TranslatorT<'transfers'>
 }
 
 export function getTransferColumns(exclude: string[] = [], options: ColumnOptionsT = {}) {
-  const { referenceData, currentUserId, currentUserRole } = options
+  const { referenceData, currentUserId, currentUserRole, translator = POLISH_TRANSFERS } = options
 
   // Built once per column set, not per rendered row: the cell only knows its investment's id, so
   // without this every row would rescan the whole reference list on every sort and filter pass.
@@ -235,7 +243,7 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
 
   const actionsColumn = col.display({
     id: 'actions',
-    header: 'Akcje',
+    header: translator.t('colActions'),
     meta: { align: 'right' },
     cell: (info) => {
       const row = info.row.original
@@ -282,15 +290,16 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
   // carries only the id in the row, and the name is joined in after the page is fetched — so the
   // database has nothing to order by and the click would silently sort one page. Those columns narrow
   // by filter instead (EX-777); deriving keeps the whitelist the single source of truth.
-  const columns: ColumnDef<TransferRowT, unknown>[] = [...allColumns, actionsColumn]
+  const columns: ColumnDef<TransferRowT, unknown>[] = [...buildColumns(translator), actionsColumn]
     .map((column) =>
       isServerSortableColumn(column.id!)
         ? (column as ColumnDef<TransferRowT, unknown>)
         : { ...(column as ColumnDef<TransferRowT, unknown>), enableSorting: false },
     )
-    // `/kasa/[id]` is management-only — a worker would follow the link into a 404.
     .map((column) =>
-      currentUserRole && !isManagementRole(currentUserRole) && REGISTER_COLUMNS.has(column.id!)
+      currentUserRole &&
+      !isManagementRole(currentUserRole) &&
+      MANAGEMENT_LINK_COLUMNS.has(column.id!)
         ? { ...column, cell: (info) => info.getValue() as string }
         : column,
     )

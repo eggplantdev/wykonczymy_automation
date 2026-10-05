@@ -1,3 +1,5 @@
+import { useI18nContext } from '@/hooks/use-translation'
+import { failureMessage } from '@/lib/i18n/failure-message'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
@@ -23,15 +25,23 @@ export function useFormSubmit(formId: string) {
   const submission = useOptimisticFormStore((s) => s.submission)
   const submitOptimistically = useOptimisticFormStore((s) => s.submitOptimistically)
   const clearSubmission = useOptimisticFormStore((s) => s.clearSubmission)
+  const { locale } = useI18nContext()
 
   const isRecovering = submission?.formId === formId && submission.status === 'failed'
   const recoveredFiles = isRecovering ? submission.invoiceFiles : undefined
 
+  // Settled here rather than in the store, so a lost request is worded in the reader's language too.
+  const settleInLocale = (action: () => Promise<ActionResultT>) => async () => {
+    const result = await settleAction(action)
+    return result.success ? result : { ...result, error: failureMessage(locale, result) }
+  }
+
   async function submit(keepOpen: boolean, opts: SubmitOptionsT) {
     if (isRecovering) clearSubmission()
+    const action = settleInLocale(opts.action)
 
     if (keepOpen || opts.awaitBeforeClose) {
-      const result = await settleAction(opts.action)
+      const result = await action()
       if (result.success) {
         toastMessage(opts.successMessage, 'success')
         if (result.warning) toastMessage(result.warning, 'warning', 6000)
@@ -42,16 +52,10 @@ export function useFormSubmit(formId: string) {
         toastMessage(result.error, 'error')
       }
     } else {
-      submitOptimistically(
-        formId,
-        opts.files ?? new Map(),
-        opts.action,
-        opts.successMessage,
-        () => {
-          opts.onReset()
-          opts.onSaved?.()
-        },
-      )
+      submitOptimistically(formId, opts.files ?? new Map(), action, opts.successMessage, () => {
+        opts.onReset()
+        opts.onSaved?.()
+      })
       opts.onSubmitSuccess()
     }
   }

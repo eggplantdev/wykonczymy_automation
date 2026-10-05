@@ -6,6 +6,7 @@ import { FileText, ImageOff, Search, Trash2 } from 'lucide-react'
 import { MediaPreviewDialog } from '@/components/dialogs/media-preview-dialog'
 import { Checkbox } from '@/components/ui/checkbox'
 import { SimpleTooltip } from '@/components/ui/tooltip'
+import { usePreviewLabels } from '@/hooks/use-preview-labels'
 import { isImageMime } from '@/lib/media/mime'
 import { cn } from '@/lib/utils/cn'
 import type { MediaFileT, PreviewLabelsT } from '@/types/media'
@@ -46,13 +47,14 @@ const OVERLAY_BUTTON =
 /** Thumbnails that open the shared preview dialog, and — with `pick` — carry their own checkbox. */
 export function MediaStrip({
   files,
-  labels,
+  labels: callerLabels,
   sizes,
   gridClassName = 'grid-cols-3 sm:grid-cols-4 md:grid-cols-6',
   pick,
   onRemove,
 }: MediaStripPropsT) {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
+  const labels = usePreviewLabels(callerLabels)
   const closePreview = () => setOpenIndex(null)
 
   return (

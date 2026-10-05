@@ -6,11 +6,12 @@ import { DateFilterButton } from '@/components/filters/date-filter-button'
 import { ControlGrid } from '@/components/ui/control-grid'
 import { FilterSelect } from '@/components/filters/filter-select'
 import { Loader } from '@/components/ui/loader/loader'
-import { MONTHS } from '@/lib/constants/months'
+import { useTranslation } from '@/hooks/use-translation'
 import { getMonthDateRange } from '@/lib/utils/date'
 import { ALL_TIME, type DateRangeT } from '@/lib/utils/date-range'
 
 const YEARS_OFFERED = 5
+const MONTH_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const
 
 type DateRangePickerPropsT = {
   value: DateRangeT
@@ -25,6 +26,7 @@ type DateRangePickerPropsT = {
  * else's business binds it to local state. One picker, two bindings.
  */
 export function DateRangePicker({ value, onChange, isPending = false }: DateRangePickerPropsT) {
+  const { t } = useTranslation('filters')
   const now = new Date()
 
   // Rok/Miesiąc are a shortcut for writing `from`/`to`, not a third piece of state — they read back
@@ -56,31 +58,34 @@ export function DateRangePicker({ value, onChange, isPending = false }: DateRang
         value={pickerYear}
         onValueChange={handleYearChange}
         options={years.map((year) => ({ value: String(year), label: String(year) }))}
-        placeholder="Rok"
+        placeholder={t('year')}
         icon={Calendar}
       />
 
       <FilterSelect
         value={pickerMonth}
         onValueChange={handleMonthChange}
-        options={MONTHS.map((label, index) => ({ value: String(index + 1), label }))}
-        placeholder="Miesiąc"
+        options={MONTH_NUMBERS.map((month) => ({
+          value: String(month),
+          label: t(`month_${month}`),
+        }))}
+        placeholder={t('month')}
         icon={Calendar}
       />
 
       <DateFilterButton
-        label="Od"
+        label={t('from')}
         value={value.from ?? ''}
         onChange={(from) => onChange({ ...value, from: from || undefined })}
       />
       <DateFilterButton
-        label="Do"
+        label={t('to')}
         value={value.to ?? ''}
         onChange={(to) => onChange({ ...value, to: to || undefined })}
       />
 
       <ClearButton onClick={() => onChange(ALL_TIME)} disabled={!value.from && !value.to}>
-        Wyczyść daty
+        {t('clearDates')}
       </ClearButton>
     </ControlGrid>
   )

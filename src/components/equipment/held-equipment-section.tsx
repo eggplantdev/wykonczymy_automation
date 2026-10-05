@@ -8,6 +8,8 @@ import {
 } from '@/components/ui/summary-grid'
 import { formatPLDate } from '@/lib/utils/format-date'
 import type { EquipmentRowT } from '@/lib/equipment/types'
+import { createTranslator } from '@/lib/i18n/translations'
+import type { LanguageT } from '@/lib/i18n/languages'
 
 const COLS = `${SUMMARY_LABEL_COL} 1fr ${SUMMARY_VALUE_COL}`
 
@@ -19,21 +21,24 @@ const COLS = `${SUMMARY_LABEL_COL} 1fr ${SUMMARY_VALUE_COL}`
 export function HeldEquipmentSection({
   equipment,
   linkable,
+  locale,
 }: {
   equipment: EquipmentRowT[]
   // `/sprzet/[id]` is management-only, so the worker's own view lists the names as text.
   linkable: boolean
+  locale: LanguageT
 }) {
   if (equipment.length === 0) return null
+  const { t } = createTranslator(locale, 'workerPage')
 
   return (
     <div>
-      <h2 className="mb-2 text-sm font-semibold">Na stanie</h2>
+      <h2 className="mb-2 text-sm font-semibold">{t('heldEquipment')}</h2>
 
       <SummaryTable cols={COLS}>
-        <SummaryHeaderCell variant="label">Sprzęt</SummaryHeaderCell>
-        <SummaryHeaderCell variant="label">Nr seryjny</SummaryHeaderCell>
-        <SummaryHeaderCell variant="label">Od</SummaryHeaderCell>
+        <SummaryHeaderCell variant="label">{t('equipment')}</SummaryHeaderCell>
+        <SummaryHeaderCell variant="label">{t('serialNumber')}</SummaryHeaderCell>
+        <SummaryHeaderCell variant="label">{t('since')}</SummaryHeaderCell>
 
         {equipment.map((item) => (
           <div key={item.id} className="contents">

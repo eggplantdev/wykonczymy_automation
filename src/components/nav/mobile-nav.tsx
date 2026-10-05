@@ -16,7 +16,8 @@ import { AdminButton } from '@/components/nav/admin-button'
 import { TrashButton } from '@/components/nav/trash-button'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { useNavLinks } from '@/hooks/use-nav-links'
-import { ROLE_LABELS } from '@/lib/auth/roles'
+import { useTranslation } from '@/hooks/use-translation'
+import { ROLE_KEYS } from '@/lib/i18n/role-keys'
 import { TRASH_HREF } from '@/lib/constants/sections'
 import { cn } from '@/lib/utils/cn'
 
@@ -37,6 +38,9 @@ function setScrollLocked(locked: boolean) {
 export function MobileNav() {
   const user = useCurrentUser()
   const { links, isActive } = useNavLinks()
+  const { t } = useTranslation('shell')
+  const { t: tCommon } = useTranslation('common')
+  const { t: tPage } = useTranslation('workerPage')
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const [openedOn, setOpenedOn] = useState<string | null>(null)
@@ -70,7 +74,7 @@ export function MobileNav() {
         variant="ghost"
         size="icon"
         className="size-11 sm:hidden"
-        aria-label="Menu"
+        aria-label={t('menu')}
         aria-expanded={open}
         aria-controls="mobile-nav"
         onClick={openDrawer}
@@ -98,7 +102,7 @@ export function MobileNav() {
               variant="ghost"
               size="icon"
               className="size-11"
-              aria-label="Zamknij"
+              aria-label={tCommon('close')}
               onClick={() => setOpen(false)}
             >
               <X className="size-7" />
@@ -123,7 +127,7 @@ export function MobileNav() {
         <div className="mt-auto flex flex-col gap-2 px-3 pt-12 pb-4">
           <div className="flex items-center gap-2">
             <span className="text-foreground text-sm font-medium">{user.name}</span>
-            <RoleBadge role={user.role}>{ROLE_LABELS[user.role].pl}</RoleBadge>
+            <RoleBadge role={user.role}>{tPage(ROLE_KEYS[user.role])}</RoleBadge>
           </div>
           <ThemeToggle collapsed={false} />
           <RefreshDataButton />

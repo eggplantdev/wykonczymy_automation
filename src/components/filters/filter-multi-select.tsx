@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/command'
 import { FilterTriggerButton } from '@/components/filters/filter-trigger-button'
 import { cn } from '@/lib/utils/cn'
+import { useTranslation } from '@/hooks/use-translation'
 
 type OptionT = { value: string; label: string }
 
@@ -107,9 +108,10 @@ function BulkSelectRow({
   labels?: { select: string; deselect: string }
   onSelect: () => void
 }) {
+  const { t } = useTranslation('filters')
   const text = allSelected
-    ? (labels?.deselect ?? 'Odznacz wszystkie')
-    : (labels?.select ?? 'Zaznacz wszystkie')
+    ? (labels?.deselect ?? t('deselectAll'))
+    : (labels?.select ?? t('selectAll'))
   return (
     <CommandItem value={id} keywords={[text]} onSelect={onSelect}>
       <CheckCheck />
@@ -139,6 +141,7 @@ export function FilterMultiSelect({
   triggerCount,
   contentClassName,
 }: FilterMultiSelectPropsT) {
+  const { t } = useTranslation('filters')
   const [open, setOpen] = useState(false)
   const [localSelected, setLocalSelected] = useState<string[] | null>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -324,7 +327,7 @@ export function FilterMultiSelect({
           </div>
         )}
         <Command className="min-h-0 flex-1">
-          {searchable && <CommandInput placeholder="Szukaj..." />}
+          {searchable && <CommandInput placeholder={t('search')} />}
           <CommandList className="max-h-none">
             {toggles && toggles.length > 0 && (
               <>
@@ -393,7 +396,7 @@ export function FilterMultiSelect({
                 ))}
               </CommandGroup>
             )}
-            <CommandEmpty>Brak wyników</CommandEmpty>
+            <CommandEmpty>{t('noResults')}</CommandEmpty>
           </CommandList>
         </Command>
       </PopoverContent>

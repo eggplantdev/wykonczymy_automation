@@ -1,4 +1,4 @@
-import { pluralize } from '@/lib/utils/polish-plural'
+import { POLISH_MEDIA, type TranslatorT } from '@/lib/i18n/translations'
 import { splitExtension } from '@/lib/utils/append-short-id'
 import type { ArchiveCopyT, PreviewFileT } from '@/types/media'
 
@@ -87,23 +87,29 @@ type ArchiveTallyT = {
  */
 export function buildArchiveMessage(
   { rows, rowsWithFile, expectedFiles, downloadedFiles }: ArchiveTallyT,
-  copy: ArchiveCopyT,
+  { kind }: ArchiveCopyT,
+  { t, tp }: TranslatorT<'media'> = POLISH_MEDIA,
 ): string {
-  if (rowsWithFile === 0) return copy.empty
-  if (downloadedFiles === 0) return copy.failed
+  const isInvoice = kind === 'invoice'
+  if (rowsWithFile === 0) return t(isInvoice ? 'noInvoicesToDownload' : 'noFilesToDownload')
+  if (downloadedFiles === 0) return t(isInvoice ? 'noInvoiceDownloaded' : 'noFileDownloaded')
 
   const missingRows = rows - rowsWithFile
   const failedFiles = expectedFiles - downloadedFiles
   if (missingRows === 0 && failedFiles === 0) {
-    return `Pobrano ${downloadedFiles} ${pluralize(downloadedFiles, copy.noun)}`
+    return tp(isInvoice ? 'invoicesDownloaded' : 'filesDownloaded', downloadedFiles)
   }
 
   const reasons: string[] = []
   if (missingRows > 0)
-    reasons.push(`${missingRows} ${pluralizeRow(missingRows)} ${copy.rowWithoutFile}`)
-  if (failedFiles > 0) reasons.push(`${failedFiles} nie do pobrania`)
+    reasons.push(tp(isInvoice ? 'rowsWithoutInvoice' : 'rowsWithoutFile', missingRows))
+  if (failedFiles > 0) reasons.push(t('filesFailed', { count: failedFiles }))
 
-  return `Pobrano ${downloadedFiles} z ${expectedFiles} — ${reasons.join(', ')}`
+  return t('partialDownload', {
+    downloaded: downloadedFiles,
+    expected: expectedFiles,
+    reasons: reasons.join(', '),
+  })
 }
 
 /**
@@ -116,9 +122,4 @@ export function buildArchiveMessage(
 export function buildArchiveName(parts: string[], date: string, prefix: string): string {
   const safeParts = parts.map(sanitizeForFilename).filter(Boolean)
   return [prefix, ...safeParts, date].join('-') + '.zip'
-}
-
-// „pozycja" = a row of the list, as distinct from the pages it carries.
-function pluralizeRow(count: number): string {
-  return pluralize(count, ['pozycja', 'pozycje', 'pozycji'])
 }

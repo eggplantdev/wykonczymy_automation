@@ -7,6 +7,8 @@ import { DeleteButton } from '@/components/ui/row-actions/delete-button'
 import { deleteExpenseDraftAction } from '@/lib/actions/worker-expense-drafts'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
+import { useTranslation } from '@/hooks/use-translation'
+import { failureMessage } from '@/lib/i18n/failure-message'
 
 type PropsT = {
   draftId: number
@@ -15,15 +17,16 @@ type PropsT = {
 
 export function DeleteExpenseDraftButton({ draftId, investmentName }: PropsT) {
   const router = useRouter()
+  const { locale, t } = useTranslation('expenseDrafts')
   const [isConfirming, setIsConfirming] = useState(false)
 
   async function handleDelete() {
     const result = await settleAction(() => deleteExpenseDraftAction(draftId))
     if (!result.success) {
-      toastMessage(result.error, 'error')
+      toastMessage(failureMessage(locale, result), 'error')
       return
     }
-    toastMessage('Wydatek usunięty')
+    toastMessage(t('deletedToast'))
     router.refresh()
   }
 
@@ -32,9 +35,9 @@ export function DeleteExpenseDraftButton({ draftId, investmentName }: PropsT) {
       <DeleteButton onClick={() => setIsConfirming(true)} />
       <ConfirmDialog
         open={isConfirming}
-        title="Usunąć wydatek?"
+        title={t('deleteTitle')}
         description={investmentName}
-        confirmLabel="Usuń"
+        confirmLabel={t('delete')}
         onConfirm={handleDelete}
         onCancel={() => setIsConfirming(false)}
       />

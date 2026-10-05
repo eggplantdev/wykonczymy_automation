@@ -7,8 +7,9 @@ import FormFooter from '@/components/forms/form-components/form-footer'
 import { changeOwnCredentialsAction } from '@/lib/actions/account-credentials'
 import { useAccountCredentialsFormStore } from '@/stores/form-stores'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
+import { useTranslation } from '@/hooks/use-translation'
 import {
-  accountCredentialsFormSchema,
+  buildAccountCredentialsFormSchema,
   type AccountCredentialsFormValuesT,
   type AccountCredentialsInputT,
 } from './account-credentials-schema'
@@ -25,12 +26,15 @@ export function AccountCredentialsForm({
   onSubmitSuccess,
 }: AccountCredentialsFormPropsT) {
   const closeDialog = useOptimisticFormStore((s) => s.closeDialog)
+  const translator = useTranslation('account')
+  const { t } = translator
+  const common = useTranslation('common')
   const { form } = useManagedForm<AccountCredentialsFormValuesT, AccountCredentialsInputT>({
     formId,
     useFormStore: useAccountCredentialsFormStore,
-    schema: accountCredentialsFormSchema,
+    schema: buildAccountCredentialsFormSchema(translator),
     defaultValues: { email, newPassword: '', confirmPassword: '', currentPassword: '' },
-    successMessage: 'Dane logowania zmienione',
+    successMessage: t('saved'),
     onSubmitSuccess,
     // A draft lives in sessionStorage — passwords must never land there.
     persistDraft: false,
@@ -42,15 +46,17 @@ export function AccountCredentialsForm({
     <FormShell form={form}>
       <FieldGroup>
         <form.AppField name="email">
-          {(field) => <field.Input label="E-mail" type="email" autoComplete="email" showError />}
+          {(field) => (
+            <field.Input label={t('email')} type="email" autoComplete="email" showError />
+          )}
         </form.AppField>
         <form.AppField name="newPassword">
           {(field) => (
             <field.Input
-              label="Nowe hasło"
+              label={t('newPassword')}
               type="password"
               autoComplete="new-password"
-              placeholder="Zostaw puste, aby nie zmieniać hasła"
+              placeholder={t('newPasswordPlaceholder')}
               showError
             />
           )}
@@ -58,7 +64,7 @@ export function AccountCredentialsForm({
         <form.AppField name="confirmPassword">
           {(field) => (
             <field.Input
-              label="Powtórz nowe hasło"
+              label={t('confirmPassword')}
               type="password"
               autoComplete="new-password"
               showError
@@ -68,7 +74,7 @@ export function AccountCredentialsForm({
         <form.AppField name="currentPassword">
           {(field) => (
             <field.Input
-              label="Obecne hasło"
+              label={t('currentPassword')}
               type="password"
               autoComplete="current-password"
               showError
@@ -78,8 +84,8 @@ export function AccountCredentialsForm({
       </FieldGroup>
 
       <FormFooter
-        label="Zapisz"
-        submittingLabel="Zapisywanie…"
+        label={common.t('save')}
+        submittingLabel={common.t('saving')}
         className="mt-6"
         onCancel={closeDialog}
       />

@@ -17,6 +17,8 @@ import { NavOpenRouterBalance } from '@/components/nav/nav-openrouter-balance'
 import { CurrentUserProvider } from '@/hooks/use-current-user'
 import { UnreadCountsProvider } from '@/hooks/use-unread-counts'
 import { fetchUnreadCounts } from '@/lib/queries/unread-counts'
+import { fetchUserLanguage } from '@/lib/queries/user-language'
+import { AppLanguageProvider } from '@/components/i18n/app-language-provider'
 import { Loader } from '@/components/ui/loader/loader'
 import { EnvBadge } from '@/components/ui/env-badge'
 import { PendingSubmitIndicator } from '@/components/ui/pending-submit-indicator'
@@ -60,35 +62,38 @@ async function AuthenticatedShell({ children, investmentCrumb }: FrontendLayoutP
   // inside the same segment serves it from the router cache, so a bubble holds its number until a
   // full load or a revalidation. That staleness is the contract, not a defect.
   const unreadCounts = fetchUnreadCounts()
+  const locale = await fetchUserLanguage(user.id)
 
   return (
-    <CurrentUserProvider user={user}>
-      <UnreadCountsProvider counts={unreadCounts}>
-        <div className="flex h-screen">
-          <Sidebar
-            openRouterBalance={
-              isManagementRole(user.role) && (
-                <Suspense fallback={null}>
-                  <NavOpenRouterBalance />
-                </Suspense>
-              )
-            }
-          />
-          {/* min-w-0: a flex item's default `min-width: auto` refuses to shrink below its content's
+    <AppLanguageProvider locale={locale}>
+      <CurrentUserProvider user={user}>
+        <UnreadCountsProvider counts={unreadCounts}>
+          <div className="flex h-screen">
+            <Sidebar
+              openRouterBalance={
+                isManagementRole(user.role) && (
+                  <Suspense fallback={null}>
+                    <NavOpenRouterBalance />
+                  </Suspense>
+                )
+              }
+            />
+            {/* min-w-0: a flex item's default `min-width: auto` refuses to shrink below its content's
             min-content width, so one wide child (the kosztorys grid) widened this whole column past
             the viewport and took the sticky top bar with it — the page body scrolled sideways. */}
-          <div className="flex min-w-0 flex-1 flex-col">
-            <Navigation user={user} investmentCrumb={investmentCrumb} />
-            {/* transform-gpu forces a compositing layer: Safari otherwise fails to
+            <div className="flex min-w-0 flex-1 flex-col">
+              <Navigation user={user} investmentCrumb={investmentCrumb} />
+              {/* transform-gpu forces a compositing layer: Safari otherwise fails to
               repaint content streamed into this overflow scroll container after
               the initial paint (blank until you scroll / move the cursor). */}
-            <main className="flex min-h-0 flex-1 transform-gpu flex-col overflow-y-auto">
-              {children}
-            </main>
+              <main className="flex min-h-0 flex-1 transform-gpu flex-col overflow-y-auto">
+                {children}
+              </main>
+            </div>
           </div>
-        </div>
-        <ReviewPromptHost />
-      </UnreadCountsProvider>
-    </CurrentUserProvider>
+          <ReviewPromptHost />
+        </UnreadCountsProvider>
+      </CurrentUserProvider>
+    </AppLanguageProvider>
   )
 }

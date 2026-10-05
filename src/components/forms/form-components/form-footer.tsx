@@ -4,6 +4,7 @@ import { useFormContext } from '../hooks/form-hooks'
 import { useFormStatus } from '../hooks/use-form-status'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import { Loader } from '@/components/ui/loader/loader'
+import { useTranslation } from '@/hooks/use-translation'
 
 type FormFooterPropsT = {
   label?: string
@@ -20,7 +21,7 @@ type FormFooterPropsT = {
 }
 
 export default function FormFooter({
-  label = 'Dodaj',
+  label,
   submittingLabel,
   className,
   disabled = false,
@@ -29,6 +30,7 @@ export default function FormFooter({
   secondaryAction,
 }: FormFooterPropsT) {
   const form = useFormContext()
+  const { t } = useTranslation('common')
   const keepOpen = useOptimisticFormStore((s) => s.keepOpen)
   const showKeepOpen = useOptimisticFormStore((s) => s.showKeepOpen)
   const setKeepOpen = useOptimisticFormStore((s) => s.setKeepOpen)
@@ -41,11 +43,11 @@ export default function FormFooter({
         <div className="flex items-center gap-4">
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
-              Anuluj
+              {t('cancel')}
             </Button>
           )}
           <Button disabled={isSubmitting || disabled} type="submit">
-            {isSubmitting && submittingLabel ? submittingLabel : label}
+            {isSubmitting && submittingLabel ? submittingLabel : (label ?? t('add'))}
           </Button>
           {secondaryAction}
           {showKeepOpen && (
@@ -54,12 +56,12 @@ export default function FormFooter({
                 checked={keepOpen}
                 onCheckedChange={(checked) => setKeepOpen(checked === true)}
               />
-              Nie zamykaj po zapisaniu
+              {t('keepOpen')}
             </label>
           )}
         </div>
         {isInvalid && (
-          <p className="text-destructive mt-2 text-sm font-medium">Formularz zawiera błędy</p>
+          <p className="text-destructive mt-2 text-sm font-medium">{t('formHasErrors')}</p>
         )}
       </footer>
       <Loader loading={isSubmitting && !awaitingAnswer} portal />

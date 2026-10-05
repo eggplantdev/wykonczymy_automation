@@ -6,6 +6,8 @@ import { Upload } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { Description } from '@/components/ui/description'
 import { FieldLabel } from '@/components/ui/field'
+import { useTranslation } from '@/hooks/use-translation'
+import type { MessageKeyT, TranslatorT } from '@/lib/i18n/translations'
 import {
   FILE_DRAG_ARMED_CLASS,
   FILE_DRAG_OVER_CLASS,
@@ -24,7 +26,7 @@ type FileInputPropsT = React.ComponentProps<'input'> & {
 function FileInput({
   className,
   label,
-  placeholder = 'Przeciągnij lub kliknij',
+  placeholder,
   fieldClassName,
   onChange,
   accept = 'image/*,application/pdf',
@@ -34,6 +36,7 @@ function FileInput({
   ref,
   ...props
 }: FileInputPropsT) {
+  const translator = useTranslation('media')
   const isFileDragActive = useWindowFileDrag()
   const [isDragOver, setIsDragOver] = useState(false)
   const [fileName, setFileName] = useState<string | undefined>(initialFileName)
@@ -80,7 +83,7 @@ function FileInput({
     if (dropped.length === 0) return
 
     if (accept && dropped.some((file) => !matchesAccept(file, accept))) {
-      setError(`Nieobsługiwany format pliku. Dozwolone: ${humanizeAccept(accept)}`)
+      setError(translator.t('unsupportedFormat', { allowed: humanizeAccept(accept, translator) }))
       return
     }
     setError(undefined)
@@ -128,7 +131,9 @@ function FileInput({
         )}
       >
         <Upload />
-        <span className="line-clamp-1 min-w-0 text-sm break-all">{fileName ?? placeholder}</span>
+        <span className="line-clamp-1 min-w-0 text-sm break-all">
+          {fileName ?? placeholder ?? translator.t('dropOrClick')}
+        </span>
 
         <input
           ref={setRefs}
@@ -154,19 +159,22 @@ function joinFileNames(files: File[]): string {
   return files.map((file) => file.name).join(', ')
 }
 
-const MIME_LABELS: Record<string, string> = {
-  'image/*': 'obrazy',
-  'application/pdf': 'PDF',
-  'video/*': 'wideo',
-  'audio/*': 'audio',
-  'text/*': 'tekst',
+const MIME_LABELS: Record<string, MessageKeyT<'media'>> = {
+  'image/*': 'mimeImages',
+  'video/*': 'mimeVideo',
+  'audio/*': 'mimeAudio',
+  'text/*': 'mimeText',
 }
 
-function humanizeAccept(accept: string): string {
+function humanizeAccept(accept: string, { t }: TranslatorT<'media'>): string {
   return accept
     .split(',')
     .map((s) => s.trim())
-    .map((pattern) => MIME_LABELS[pattern] ?? pattern)
+    .map((pattern) => {
+      if (pattern === 'application/pdf') return 'PDF'
+      const key = MIME_LABELS[pattern]
+      return key ? t(key) : pattern
+    })
     .join(', ')
 }
 

@@ -3762,3 +3762,34 @@ Potrzebny stan: dwa konta pracowników (rola Pracownik) ze znanymi hasłami oraz
       jest i działa.
 - [ ] Strona „Reset hasła": niezgodne hasła i hasło 5-znakowe pokazują te same komunikaty co dotąd.
 - [ ] Zamknij i otwórz okno ponownie (także po odświeżeniu strony) → żadne hasło nie jest wpisane.
+
+## EX-996 — worker-page-language — pracownik ustawia „Domyślny język”, aplikacja i raport idą za nim (2026-10-05)
+
+Potrzebny stan: konto pracownika (rola Pracownik) ze znanym hasłem, konto managera i inwestycja,
+do której ten pracownik ma link do raportu.
+
+- [ ] Pracownik ustawiony przez kierownictwo na „Українська”: w DevTools `<html lang="uk">` na jego
+      stronie; konto z „Polski” → `lang="pl"`.
+- [ ] Jako pracownik na telefonie (390px), na własnej stronie zmień „Domyślny język” na Українська →
+      strona i menu przechodzą na ukraiński bez przeładowania; po odświeżeniu wartość nadal pokazuje
+      ukraińską flagę.
+- [ ] Na tym samym telefonie otwórz link do raportu tego pracownika, wcześniej przełączony tam na
+      polski → otwiera się po ukraińsku.
+- [ ] Jako manager na stronie innego pracownika: „Domyślny język” to zwykły tekst; na własnej stronie
+      managera — lista do wyboru.
+- [ ] Jako pracownik w „Transfery”: nazwa inwestycji to zwykły tekst, nie link.
+- [ ] Pracownik na Українська: wiersze informacji, wszystkie cztery sekcje, okno „Zmień dane
+      logowania” (etykiety, błędy walidacji, złe obecne hasło) i okno zgłaszania wydatku są po
+      ukraińsku; kwoty w formacie `1 234,56 zł`.
+- [ ] Ten sam pracownik na Русский: te same ekrany po rosyjsku.
+- [ ] Pracownik na Українська, 390px: nagłówki tabeli transferów, filtry (Kasa, Inwestycja,
+      Kategoria, wybór daty z nazwami miesięcy), paginacja, okno kolejności kolumn, „Drukuj”
+      (tytuł wydruku) i komunikat archiwum faktur — po ukraińsku.
+- [ ] Pracownik na Українська, w menu na telefonie: „Wyloguj”, motyw, „Odśwież dane” i plakietka
+      roli po ukraińsku.
+- [ ] Pracownik na Українська, wgrywanie strony faktury do wydatku: podpowiedź pola pliku,
+      komunikat o odrzuconym pliku i etykiety podglądu po ukraińsku.
+- [ ] Pracownik na Українська, nieistniejący adres → strona „nie znaleziono” po ukraińsku.
+- [ ] Manager na „Polski”: tabele transferów na `/kasa/[id]` i `/inwestycje/[id]`, pasek boczny,
+      menu na telefonie i okna wgrywania plików wyglądają dokładnie jak przedtem.
+- [ ] „Podgląd pracownika” (manager) pozostaje po polsku niezależnie od języka pracownika.
