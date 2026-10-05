@@ -516,13 +516,13 @@ Run **once**, after the final phase.
 
 #### Automated
 
-- [x] 3.1 work-catalogue-translations action spec passes
+- [x] 3.1 work-catalogue-translations action spec passes — 95de69a6
 
 ### Phase 4: Translate at creation
 
 #### Automated
 
-- [ ] 4.1 touched action specs pass (addItem, createCatalogueItem, section rename/create)
+- [x] 4.1 touched action specs pass (addItem, createCatalogueItem, section rename/create)
 
 ### Phase 5: Prace spoza rozpiski → Polish
 

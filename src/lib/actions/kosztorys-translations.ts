@@ -11,7 +11,7 @@ import {
   mergeRowWrites,
   planAiFill,
   sectionLanguagesToFill,
-  sectionTemplatesFromAi,
+  sectionTemplateFill,
 } from '@/lib/i18n/ai-translation-fill'
 import { sectionNameKey } from '@/lib/i18n/section-translations'
 import type { ActionResultT } from '@/types/action'
@@ -66,12 +66,8 @@ export async function fillKosztorysTranslationsAction(
       let sectionsWritten = 0
       let failedSections = 0
       for (const [key, name] of sections) {
-        const languages = sectionLanguagesToFill(sectionTranslations[key])
-        const templates = sectionTemplatesFromAi(name, ai.get(name))
-        const filled = Object.fromEntries(
-          languages.filter((language) => templates[language]).map((l) => [l, templates[l]]),
-        )
-        failedSections += languages.length - Object.keys(filled).length
+        const { filled, failed } = sectionTemplateFill(name, sectionTranslations[key], ai.get(name))
+        failedSections += failed
         if (Object.keys(filled).length === 0) continue
         await fillSectionTranslations(db, key, filled)
         sectionsWritten++

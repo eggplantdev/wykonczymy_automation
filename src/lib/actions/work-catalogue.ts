@@ -2,6 +2,7 @@
 
 import { z } from 'zod'
 import { translateTexts } from '@/lib/ai/translate'
+import { SAVED_UNTRANSLATED_WARNING, translateNewRow } from '@/lib/ai/translate-new-row'
 import { fillDescriptionTranslations } from '@/lib/db/fill-description-translations'
 import { getDb } from '@/lib/db/get-db'
 import {
@@ -26,7 +27,7 @@ import {
 } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
 import { protectedAction, validateAction } from './run-action'
 
-export async function createCatalogueItemAction(data: WorkCatalogueItemDataT) {
+export async function createCatalogueItemAction(data: WorkCatalogueItemDataT, translate = false) {
   return protectedAction(
     'createCatalogueItemAction',
     async ({ payload }) => {
@@ -37,20 +38,24 @@ export async function createCatalogueItemAction(data: WorkCatalogueItemDataT) {
       const resolved = await resolveCatalogueWrite(await getDb(payload), row.matchKey, 'new')
       if ('error' in resolved) return { success: false, error: resolved.error }
 
+      const typed = translationsFromTexts(
+        parsed.data.translationSeed,
+        parsed.data.translationEdits,
+        row.description,
+      )
+      const translated = translate
+        ? await translateNewRow({ description: row.description, unit: row.unit, translations: typed })
+        : { translations: typed, failed: false }
+
       await applyCatalogueWrite(payload, undefined, {
-        candidate: {
-          ...row,
-          descriptionTranslations: translationsFromTexts(
-            parsed.data.translationSeed,
-            parsed.data.translationEdits,
-            row.description,
-          ),
-        },
+        candidate: { ...row, descriptionTranslations: translated.translations },
         existing: null,
         keepCatalogueCategory: true,
       })
 
-      return { success: true }
+      return translated.failed
+        ? { success: true, warning: SAVED_UNTRANSLATED_WARNING }
+        : { success: true }
     },
     ['workCatalogue'],
   )

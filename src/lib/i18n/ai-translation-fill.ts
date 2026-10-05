@@ -130,6 +130,21 @@ export function sectionTemplatesFromAi(
   return out
 }
 
+/** What an AI answer adds to one section name's templates; `failed` counts the languages it could not. */
+export function sectionTemplateFill(
+  name: string,
+  stored: SectionTranslationsT | undefined,
+  texts: TranslationTextsT | undefined,
+): { filled: SectionTranslationsT; failed: number } {
+  const languages = sectionLanguagesToFill(stored)
+  const templates = sectionTemplatesFromAi(name, texts)
+  const filled: SectionTranslationsT = {}
+  for (const language of languages) {
+    if (templates[language]) filled[language] = templates[language]
+  }
+  return { filled, failed: languages.length - Object.keys(filled).length }
+}
+
 // One write per row: an UPDATE … FROM VALUES matching a row twice applies only one of the two, so a
 // row taking uk from the katalog and ru from the AI would lose one of them.
 export function mergeRowWrites(writes: readonly RowWriteT[]): RowWriteT[] {
