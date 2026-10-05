@@ -1,4 +1,4 @@
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { WorkerReportForm } from '@/components/kosztorys/worker-report/worker-report-form'
@@ -61,12 +61,12 @@ const DOCUMENT: Extract<WorkerKosztorysT, { kind: 'ready' }> = {
   },
 }
 
-function renderForm(token?: string) {
+function renderForm(token?: string, document = DOCUMENT) {
   return render(
     <TranslationsProvider initialLocale="pl" workerId={WORKER_ID}>
       <WorkerReportForm
         token={token}
-        document={DOCUMENT}
+        document={document}
         pendingQtyByItem={{}}
         sentReports={[]}
         sectionTranslations={{}}
@@ -75,23 +75,30 @@ function renderForm(token?: string) {
   )
 }
 
-const panelState = () =>
-  screen.getByText('Twoje rozliczenie').closest('[data-state]')?.getAttribute('data-state')
+const headerTexts = () =>
+  [...window.document.querySelectorAll('.dsg-cell-header')].map((cell) => cell.textContent ?? '')
 
-describe('the worker’s report link carries his „Podsumowanie”', () => {
-  it('opens and closes his own balance from the report bar', async () => {
+const hasReportColumn = () => headerTexts().some((header) => header.startsWith('Zgłaszam'))
+
+describe('the footer switches „Zgłaszam pracę” and „Inwestycja”', () => {
+  it('„Inwestycja” trades the „Zgłaszam” column and „Wyślij” for his rozliczenie, and back', async () => {
     renderForm('token')
+    expect(await screen.findByRole('button', { name: 'Wyślij' })).toBeInTheDocument()
+    expect(hasReportColumn()).toBe(true)
+    expect(screen.queryByText('Twoje rozliczenie')).not.toBeInTheDocument()
 
-    expect(await screen.findByText('Twoje rozliczenie')).toBeInTheDocument()
-    expect(panelState()).toBe('open')
+    await userEvent.click(screen.getByRole('radio', { name: 'Inwestycja' }))
 
-    // Open, the panel covers the screen, so it carries its own way back out.
-    const panel = screen.getByText('Twoje rozliczenie').closest('[data-state]') as HTMLElement
-    await userEvent.click(within(panel).getByRole('button', { name: 'Podsumowanie' }))
-    expect(panelState()).toBe('closed')
+    expect(screen.getByText('Twoje rozliczenie')).toBeInTheDocument()
+    expect(hasReportColumn()).toBe(false)
+    expect(screen.queryByRole('button', { name: /^Wyślij/ })).not.toBeInTheDocument()
+    expect(screen.queryByText(/Tylko zgłaszane przeze mnie/)).not.toBeInTheDocument()
 
-    await userEvent.click(screen.getAllByRole('button', { name: 'Podsumowanie' })[0])
-    expect(panelState()).toBe('open')
+    await userEvent.click(screen.getByRole('radio', { name: 'Zgłaszam pracę' }))
+
+    expect(screen.getByRole('button', { name: 'Wyślij' })).toBeInTheDocument()
+    expect(hasReportColumn()).toBe(true)
+    expect(screen.queryByText('Twoje rozliczenie')).not.toBeInTheDocument()
   })
 })
 
@@ -106,11 +113,34 @@ describe('the owner’s „Podgląd pracownika” is the worker’s view, read-o
     expect(draftKeys()).toHaveLength(1)
   })
 
-  it('the preview has no „Wyślij” and leaves the worker’s szkic alone', async () => {
+  it('the preview has no „Wyślij” in either mode and leaves the worker’s szkic alone', async () => {
     renderForm()
 
-    expect(await screen.findByText('Twoje rozliczenie')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Wyślij' })).not.toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Nowa praca' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Wyślij/ })).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('radio', { name: 'Inwestycja' }))
+
+    expect(screen.getByText('Twoje rozliczenie')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Wyślij/ })).not.toBeInTheDocument()
     expect(draftKeys()).toHaveLength(0)
+  })
+})
+
+describe('„Wszystkie prace” counts what the owner’s hide takes away', () => {
+  it('names the hidden rows, and carries no counter when nothing is hidden', async () => {
+    const withEmptyRow = {
+      ...DOCUMENT,
+      tree: tree([item(1, 'Płytki', 12, 100), item(2, 'Fugi', 0, 50)], STAGES, [
+        { itemId: 1, stageId: 7, qtyDone: 5 },
+      ]),
+    }
+    const { unmount } = renderForm('token', withEmptyRow)
+    expect(await screen.findByText('Wszystkie prace (+1)')).toBeInTheDocument()
+    unmount()
+
+    renderForm('token')
+    expect(await screen.findByText('Wszystkie prace')).toBeInTheDocument()
+    expect(screen.queryByText(/Wszystkie prace \(/)).not.toBeInTheDocument()
   })
 })

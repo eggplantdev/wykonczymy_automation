@@ -327,15 +327,15 @@ the owner resends links.
 
 #### Automated
 
-- [x] 1.1 Phase specs pass (proxy, name-slug, workers-menu)
-- [x] 1.2 No source reference to `zgloszenie-prac/` left in src/e2e
+- [x] 1.1 Phase specs pass (proxy, name-slug, workers-menu) — 247f6e48
+- [x] 1.2 No source reference to `zgloszenie-prac/` left in src/e2e — 247f6e48
 
 ### Phase 2: DOM specs for the dogfooding UI
 
 #### Automated
 
-- [ ] 2.1 Phase specs pass (summary, worker-report)
-- [ ] 2.2 No skipped or `.only` tests in touched files
+- [x] 2.1 Phase specs pass (summary, worker-report)
+- [x] 2.2 No skipped or `.only` tests in touched files
 
 ### Phase 3: Docs and manual checks
 

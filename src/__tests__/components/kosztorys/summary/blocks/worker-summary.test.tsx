@@ -30,30 +30,17 @@ const summary = (overrides: Partial<WorkerSummaryT> = {}): WorkerSummaryT => ({
   ...overrides,
 })
 
-// The value cell sits right after its label cell among the grid's children (or a `contents` row's).
+const cellOf = (label: string) => screen.getByText(label).closest('td') as HTMLElement
+
 function valueBeside(label: string): string {
-  let cell: HTMLElement = screen.getByText(label)
-  while (cell.parentElement && !cell.parentElement.matches('div.grid, div.contents')) {
-    cell = cell.parentElement
-  }
-  return bare(cell.nextElementSibling?.textContent ?? '')
+  return bare(cellOf(label).nextElementSibling?.textContent ?? '')
 }
 
 const text = (cell: Element) => (cell.textContent ?? '').replace(/\s+/g, ' ').trim()
 
-// One row of a table: an etap or payout row is a `contents` wrapper; a „Razem" row is the label cell
-// and the cells after it, up to the grid's width.
-function rowCells(label: HTMLElement, width: number): string[] {
-  const wrapper = label.closest('div.contents')
-  if (wrapper) return [...wrapper.children].map(text)
-  let cell = label
-  while (cell.parentElement && !cell.parentElement.matches('div.grid')) cell = cell.parentElement
-  const siblings = [...(cell.parentElement?.children ?? [])]
-  const at = siblings.indexOf(cell)
-  return siblings.slice(at, at + width).map(text)
-}
+const rowCells = (label: HTMLElement) => [...(label.closest('tr')?.children ?? [])].map(text)
 
-const tableOf = (header: string) => screen.getByText(header).closest('div.grid') as HTMLElement
+const tableOf = (header: string) => screen.getByText(header).closest('table') as HTMLElement
 
 describe('WorkerSummary', () => {
   it('reads the balance: per-etap executed, payouts and what is left — never the przedmiar', () => {
@@ -70,19 +57,19 @@ describe('WorkerSummary', () => {
     render(<WorkerSummary summary={summary()} />)
     const executed = tableOf('Wykonane')
 
-    expect(rowCells(within(executed).getByText('Etap 1'), 4)).toEqual([
+    expect(rowCells(within(executed).getByText('Etap 1'))).toEqual([
       'Etap 1',
       '3000,00',
       '100,0%',
       '3000,00',
     ])
-    expect(rowCells(within(executed).getByText('Etap 2'), 4)).toEqual([
+    expect(rowCells(within(executed).getByText('Etap 2'))).toEqual([
       'Etap 2',
       '6000,00',
       '25,0%',
       '1500,00',
     ])
-    expect(rowCells(within(executed).getByText('Razem'), 4)).toEqual([
+    expect(rowCells(within(executed).getByText('Razem'))).toEqual([
       'Razem',
       '9000,00',
       '',
@@ -101,7 +88,7 @@ describe('WorkerSummary', () => {
 
     expect(within(executed).queryByText('Wartość etapu')).toBeNull()
     expect(within(executed).queryByText('Twój udział')).toBeNull()
-    expect(rowCells(within(executed).getByText('Razem'), 2)).toEqual(['Razem', '3000,00'])
+    expect(rowCells(within(executed).getByText('Razem'))).toEqual(['Razem', '3000,00'])
   })
 
   it('reads the etapy first, then the balance, then the payouts', () => {
@@ -117,17 +104,13 @@ describe('WorkerSummary', () => {
 
     const payouts = tableOf('Wypłaty')
 
-    expect(rowCells(within(payouts).getByText('ZUS lipiec'), 3)).toEqual([
+    expect(rowCells(within(payouts).getByText('ZUS lipiec'))).toEqual([
       '01.09.2026',
       'ZUS lipiec',
       '2000,00',
     ])
-    expect(rowCells(within(payouts).getByText('15.09.2026'), 3)).toEqual([
-      '15.09.2026',
-      '',
-      '1000,00',
-    ])
-    expect(rowCells(within(payouts).getByText('Razem'), 2)).toEqual(['Razem', '3000,00'])
+    expect(rowCells(within(payouts).getByText('15.09.2026'))).toEqual(['15.09.2026', '', '1000,00'])
+    expect(rowCells(within(payouts).getByText('Razem'))).toEqual(['Razem', '3000,00'])
     expect(payouts).not.toBe(tableOf('Twoje rozliczenie'))
   })
 
