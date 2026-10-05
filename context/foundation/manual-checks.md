@@ -3481,3 +3481,12 @@ Refaktor bez zmiany zachowania: nocny cron czyści Kosz tak samo jak wcześniej.
 - [ ] Stary adres `/p/<imię>/<token>` pokazuje stronę „nie znaleziono".
 - [ ] „Link do zgłoszeń" → „Wygeneruj nowy" i „Wyłącz link" działają: nowy adres jest w schowku,
       wyłączony pokazuje komunikat „Ten link wygasł albo został cofnięty…".
+
+## EX-956 — stage-split-rounding — części podziału etapu sumują się do „Razem" co do grosza (2026-10-05)
+
+- [ ] Edytor → etap z rozliczeniem i wykonaną pracą (np. 3437,40 zł) → „Podział" procentowo
+      33,33% / 12,5% / główny: wyświetlone części sumują się dokładnie do „Razem" (bez +0,01 zł).
+- [ ] Ten sam etap w „Rozlicz wypłaty": kwoty pracowników z tego etapu zgadzają się z częściami
+      w oknie podziału.
+- [ ] Podział kwotowo, w którym wpisane kwoty przekraczają wartość etapu (etap zmniejszony po
+      zapisie): części po proporcjonalnym zmniejszeniu sumują się do wartości etapu, główny ma 0 zł.
