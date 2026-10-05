@@ -2,7 +2,11 @@ import { parsePagination } from '@/lib/utils/pagination'
 import { parseTransferSort } from '@/lib/queries/transfer-sort'
 import { buildTransferFilters } from '@/lib/queries/transfer-filters'
 import { fetchManagerDashboardData } from '@/lib/queries/dashboard'
+import { fetchReferenceData } from '@/lib/queries/reference-data'
+import { fetchPendingExpenseDrafts } from '@/lib/queries/worker-expense-drafts'
+import type { RoleT } from '@/lib/auth/roles'
 import { UserRegisterStats } from '@/components/dashboard/user-register-stats'
+import { PendingExpenseDrafts } from '@/components/worker-expenses/pending-expense-drafts'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { PAGE_TITLES, SECTION_IDS } from '@/lib/constants/sections'
@@ -10,26 +14,44 @@ import { perfStart } from '@/lib/perf'
 
 type ManagerDashboardPropsT = {
   searchParams: Record<string, string | string[] | undefined>
+  user: { id: number; role: RoleT }
 }
 
-export async function ManagerDashboard({ searchParams }: ManagerDashboardPropsT) {
+export async function ManagerDashboard({ searchParams, user }: ManagerDashboardPropsT) {
   const step = perfStart()
   const { page, limit } = parsePagination(searchParams)
   const sort = parseTransferSort(searchParams)
 
-  const {
-    visibleRegisters,
-    activeInvestments,
-    managementUsers,
-    otherCategories,
-    expenseCategories,
-    isAdminOrOwner,
-  } = await fetchManagerDashboardData()
+  const [
+    {
+      visibleRegisters,
+      activeInvestments,
+      managementUsers,
+      otherCategories,
+      expenseCategories,
+      isAdminOrOwner,
+    },
+    pendingDrafts,
+    referenceDataBase,
+  ] = await Promise.all([
+    fetchManagerDashboardData(),
+    fetchPendingExpenseDrafts(),
+    fetchReferenceData(),
+  ])
   console.log(`[PERF] ManagerDashboard fetchManagerDashboardData ${step()}ms`)
 
   return (
     <PageWrapper title={PAGE_TITLES.transactions}>
       <UserRegisterStats cashRegisters={visibleRegisters} showAllRegisters={isAdminOrOwner} />
+
+      <PendingExpenseDrafts
+        drafts={pendingDrafts}
+        referenceData={{
+          ...referenceDataBase,
+          currentUserId: user.id,
+          currentUserRole: user.role,
+        }}
+      />
 
       {/* Recent transactions */}
       <TransfersSection

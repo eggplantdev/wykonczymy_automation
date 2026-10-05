@@ -341,16 +341,16 @@ Migracja addytywna — na prod **przed** pushem kodu, przez człowieka (`pnpm db
 
 #### Automated
 
-- [x] 2.1 Spec DB: przyjęcie tworzy wydatek i oznacza zgłoszenie
-- [x] 2.2 Spec DB: drugie przyjęcie nie zostawia drugiego wydatku
-- [x] 2.3 Spec DB: odrzucenie i odrzucenie przyjętego
+- [x] 2.1 Spec DB: przyjęcie tworzy wydatek i oznacza zgłoszenie — f219720d
+- [x] 2.2 Spec DB: drugie przyjęcie nie zostawia drugiego wydatku — f219720d
+- [x] 2.3 Spec DB: odrzucenie i odrzucenie przyjętego — f219720d
 
 ### Phase 3: Dialog managera
 
 #### Automated
 
-- [ ] 3.1 Spec DOM: prefill pokazuje dane i nie dotyka szkicu 'expense'
-- [ ] 3.2 Spec DOM: bez prefill szkic 'expense' odtwarzany
+- [x] 3.1 Spec DOM: prefill pokazuje dane i nie dotyka szkicu 'expense'
+- [x] 3.2 Spec DOM: bez prefill szkic 'expense' odtwarzany
 
 ### Phase 4: Filtr i badge
 

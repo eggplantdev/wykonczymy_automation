@@ -9,7 +9,8 @@ export default async function DashboardPage({ searchParams }: PagePropsT) {
   if (!session.success) redirect('/zaloguj')
   const { user } = session
 
-  if (isManagementRole(user.role)) return <ManagerDashboard searchParams={await searchParams} />
+  if (isManagementRole(user.role))
+    return <ManagerDashboard searchParams={await searchParams} user={user} />
 
   redirect(`/pracownicy/${user.id}`)
 }

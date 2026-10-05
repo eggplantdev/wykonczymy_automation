@@ -66,26 +66,41 @@ import { useExpenseFormStore } from '@/stores/form-stores'
 import { isBookableInvestment } from '@/lib/constants/investment-lock'
 import { canBookTransferType } from '@/lib/auth/roles'
 
-type TransferFormPropsT = {
-  referenceData: ReferenceDataT
-  onSubmitSuccess: () => void
-  keepOpen?: boolean
-}
-
 // Form state uses strings since HTML inputs/selects work with strings.
 // Numeric conversion happens in the server action.
 type FormValuesT = BulkExpenseFormValuesT
 
+// A worker's expense draft being accepted: the form starts from it instead of the stored draft.
+export type ExpenseFormPrefillT = {
+  values: FormValuesT
+  files: Map<number, File[]>
+  expenseDraftId: number
+}
+
+type TransferFormPropsT = {
+  referenceData: ReferenceDataT
+  onSubmitSuccess: () => void
+  keepOpen?: boolean
+  formId?: string
+  prefill?: ExpenseFormPrefillT
+}
+
 const FORM_ID = 'expense'
 
-export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: TransferFormPropsT) {
-  const { recoveredFiles, submit } = useFormSubmit(FORM_ID)
+export function ExpenseForm({
+  referenceData,
+  onSubmitSuccess,
+  keepOpen,
+  formId = FORM_ID,
+  prefill,
+}: TransferFormPropsT) {
+  const { recoveredFiles, submit } = useFormSubmit(formId)
 
   // Scoped by formId like every other draft consumer: `'expense'` is the only writer today, but the
   // day an „Edytuj wydatek" dialog shares this slot its draft would otherwise seed the create form.
   const storedFormId = useExpenseFormStore((s) => s.formId)
   const draft = useExpenseFormStore((s) => s.formData)
-  const storedValues = storedFormId === FORM_ID ? draft : null
+  const storedValues = storedFormId === formId ? draft : null
   const updateFormData = useExpenseFormStore((s) => s.updateFormData)
   const resetFormData = useExpenseFormStore((s) => s.resetFormData)
 
@@ -105,7 +120,11 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
     getFiles,
     renameFile,
     reset: resetInvoiceFiles,
-  } = useInvoiceIngest({ recoveredFiles, storedLineItems: storedValues?.lineItems })
+  } = useInvoiceIngest(
+    prefill
+      ? { recoveredFiles: prefill.files, storedLineItems: prefill.values.lineItems }
+      : { recoveredFiles, storedLineItems: storedValues?.lineItems },
+  )
 
   const defaultExpenseCategory = resolveExpenseCategoryId(
     DEFAULT_EXPENSE_CATEGORY_NAME,
@@ -125,7 +144,7 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
       dontUpdateMeta: true,
       dontRunListeners: true,
     })
-    resetFormData()
+    if (!prefill) resetFormData()
     resetRegisterBalance()
     resetInvoiceFiles()
     resetGeneration()
@@ -150,17 +169,19 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
     lineItems: [makeLineItem({ expenseCategory: defaultExpenseCategory })],
   }))
 
-  const initialValues = storedValues
-    ? {
-        ...storedValues,
-        investment: storedValues.investment || investmentFromUrl,
-        // A draft saved before a type left the dialog would restore a value the Select cannot render:
-        // it shows empty while the form still submits the removed type, which the server accepts.
-        // Coerced rather than dropping the whole draft — one stale field is not worth discarding
-        // everything the user typed.
-        type: restorableType(storedValues.type),
-      }
-    : blankValues
+  const initialValues = prefill
+    ? prefill.values
+    : storedValues
+      ? {
+          ...storedValues,
+          investment: storedValues.investment || investmentFromUrl,
+          // A draft saved before a type left the dialog would restore a value the Select cannot render:
+          // it shows empty while the form still submits the removed type, which the server accepts.
+          // Coerced rather than dropping the whole draft — one stale field is not worth discarding
+          // everything the user typed.
+          type: restorableType(storedValues.type),
+        }
+      : blankValues
 
   const form = useAppForm({
     defaultValues: initialValues,
@@ -168,7 +189,11 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
       onSubmit: bulkExpenseFormSchema,
     },
     listeners: {
-      onChange: ({ formApi }) => updateFormData(FORM_ID, formApi.state.values as FormValuesT),
+      // The store holds ONE draft: a prefilled form writing it would wipe the half-typed
+      // „Nowy wydatek" waiting there.
+      onChange: ({ formApi }) => {
+        if (!prefill) updateFormData(formId, formApi.state.values as FormValuesT)
+      },
       onChangeDebounceMs: 500,
     },
     onSubmit: async ({ value }) => {
@@ -202,8 +227,14 @@ export function ExpenseForm({ referenceData, onSubmitSuccess, keepOpen }: Transf
         // every attached file is uploaded once here.
         action: () =>
           submitWithUploadRows(value.lineItems.length, files, (invoicePageRows) =>
-            createBulkTransferAction(data, invoicePageRows),
+            createBulkTransferAction(
+              data,
+              invoicePageRows,
+              prefill && { expenseDraftId: prefill.expenseDraftId },
+            ),
           ),
+        // No stored draft backs this form, so an optimistic close would lose it on a failed save.
+        awaitBeforeClose: !!prefill,
         successMessage: 'Transakcje dodane',
         files,
         onSubmitSuccess,

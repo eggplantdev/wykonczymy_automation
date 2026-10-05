@@ -2,9 +2,13 @@ import 'server-only'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { canViewWorkerPage, ROLES } from '@/lib/auth/roles'
+import { canViewWorkerPage, MANAGEMENT_ROLES, ROLES } from '@/lib/auth/roles'
 import { getDb } from '@/lib/db/get-db'
-import { listWorkerExpenseDrafts, type ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
+import {
+  listPendingExpenseDrafts,
+  listWorkerExpenseDrafts,
+  type ExpenseDraftRowT,
+} from '@/lib/db/worker-expense-drafts'
 
 // Uncached: a manager's decision must reach the worker's status list on his next load.
 export async function fetchWorkerExpenseDrafts(workerId: number): Promise<ExpenseDraftRowT[]> {
@@ -13,4 +17,12 @@ export async function fetchWorkerExpenseDrafts(workerId: number): Promise<Expens
   if (!canViewWorkerPage(session.user, workerId)) throw new Error('Brak uprawnień')
 
   return listWorkerExpenseDrafts(await getDb(await getPayload({ config })), workerId)
+}
+
+// Uncached: a worker's new draft must show up on the manager's next load.
+export async function fetchPendingExpenseDrafts(): Promise<ExpenseDraftRowT[]> {
+  const session = await requireAuth(MANAGEMENT_ROLES)
+  if (!session.success) throw new Error('Brak uprawnień')
+
+  return listPendingExpenseDrafts(await getDb(await getPayload({ config })))
 }
