@@ -3435,3 +3435,15 @@ Refaktor bez zmiany zachowania: nocny cron czyści Kosz tak samo jak wcześniej.
 
 - [ ] Inwestycja, kasa, pracownik, pojazd, sprzęt i zgłoszenie w `/kosz` dłużej niż okres przechowywania → po przebiegu crona `cleanup` znikają z `/kosz`, a listy (Inwestycje, Kasy, Pracownicy, Flota, Sprzęt, Zgłoszenia) pokazują stan po usunięciu bez ręcznego odświeżania pamięci podręcznej.
 - [ ] Odpowiedź crona `cleanup` zawiera dla każdego rodzaju `purged` / `blocked` / `failed` (pojazdy, sprzęt i zgłoszenia mają teraz też `blocked: 0`), a inwestycje dodatkowo `skippedKosztorys`.
+
+## 2026-10-05 — share-links-copy-and-404 — nowy link od razu w schowku, cofnięty link mówi „wygasł"
+
+- [ ] Kosztorys → „Inwestor" → „Udostępnij" → „Wygeneruj nowy": nowy adres `/k/…` jest w schowku
+      (wklej go gdziekolwiek), toast „Link skopiowany do schowka. Poprzedni (jeśli był) przestał działać."
+      Stary adres pokazuje teraz stronę „nie znaleziono", nie czerwony błąd.
+- [ ] Kosztorys → „Pracownicy" → link do zgłoszeń pracownika → „Wygeneruj nowy": w schowku jest nowy
+      adres `/zgloszenie-prac/…`, ten sam toast. To samo dla linku do rozpiski pracownika.
+- [ ] Otwórz cofnięty link do zgłoszeń (na telefonie, 390px): strona pokazuje komunikat „Ten link wygasł
+      albo został cofnięty…" (PL/UA/RU), bez ekranu błędu; w narzędziach sieci odpowiedź to 404, nie 200.
+- [ ] Otwórz cofnięty link inwestora `/k/<stary token>`: zwykła strona „nie znaleziono", bez błędu
+      „Missing <html> and <body>".
