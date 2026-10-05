@@ -371,13 +371,13 @@ Run **once**, after the final phase.
 
 #### Automated
 
-- [x] 2.1 Schema spec passes
-- [x] 2.2 Action DB spec passes against `db-test` (5435)
-- [x] 2.3 `emailClash` regression spec still passes
-- [x] 2.4 Login action spec still passes
+- [x] 2.1 Schema spec passes — 743e6f6e
+- [x] 2.2 Action DB spec passes against `db-test` (5435) — 743e6f6e
+- [x] 2.3 `emailClash` regression spec still passes — 743e6f6e
+- [x] 2.4 Login action spec still passes — 743e6f6e
 
 ### Phase 3: Dialog on the worker page, reset form, docs
 
 #### Automated
 
-- [ ] 3.1 No phase-scoped automated check (UI + prose); covered by the Whole-tree Gate
+- [x] 3.1 No phase-scoped automated check (UI + prose); covered by the Whole-tree Gate

@@ -7,6 +7,7 @@ import { resetPasswordAction } from '@/lib/actions/auth'
 import { settleAction } from '@/lib/utils/settle-action'
 import { AuthSubmitButton } from '@/components/ui/auth-submit-button'
 import { AuthSuccessCard } from '@/components/ui/auth-success-card'
+import { passwordSchema, PASSWORD_MISMATCH_MESSAGE } from '@/lib/schemas/password'
 
 type FormStateT = 'idle' | 'pending' | 'success'
 
@@ -24,13 +25,14 @@ export function ResetPasswordForm() {
 
       if (value.password !== value.confirmPassword) {
         setFormState('idle')
-        setError('Hasła nie są takie same.')
+        setError(PASSWORD_MISMATCH_MESSAGE)
         return
       }
 
-      if (value.password.length < 6) {
+      const password = passwordSchema.safeParse(value.password)
+      if (!password.success) {
         setFormState('idle')
-        setError('Hasło musi mieć co najmniej 6 znaków.')
+        setError(password.error.issues[0]?.message)
         return
       }
 

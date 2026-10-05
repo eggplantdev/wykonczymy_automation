@@ -48,7 +48,7 @@ export async function changeOwnCredentialsAction(
   if (!session.success) return { success: false, error: session.error }
   const userId = session.user.id
 
-  return runAuthorizedHandler(
+  return runAuthorizedHandler<undefined>(
     'changeOwnCredentialsAction',
     async (payload) => {
       const { email, newPassword, currentPassword } = parsed.data

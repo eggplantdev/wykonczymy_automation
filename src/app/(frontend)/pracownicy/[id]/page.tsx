@@ -19,6 +19,7 @@ import { WorkerInvestmentsSection } from '@/components/users/worker-investments-
 import { WorkerExpenseDraftsSection } from '@/components/worker-expenses/worker-expense-drafts-section'
 import { visibleWorkerRegisters } from '@/lib/workers/owned-registers'
 import { EditWorkerDialog } from '@/components/dialogs/edit-worker-dialog'
+import { AccountCredentialsDialog } from '@/components/dialogs/account-credentials-dialog'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
 import type { DynamicPagePropsT } from '@/types/page'
@@ -36,6 +37,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
   const sort = parseTransferSort(sp)
 
   const userId = Number(id)
+  const isOwnPage = currentUser.id === userId
   const [refData, balances, heldEquipment, stageInvestments, expenseDrafts] = await Promise.all([
     fetchReferenceData(),
     fetchRegisterBalances(),
@@ -73,7 +75,12 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
 
   return (
     <PageWrapper title={worker.name}>
-      {isManager && <EditWorkerDialog worker={worker} cashRegisters={refData.cashRegisters} />}
+      {(isManager || isOwnPage) && (
+        <div className="flex flex-wrap gap-2">
+          {isManager && <EditWorkerDialog worker={worker} cashRegisters={refData.cashRegisters} />}
+          {isOwnPage && <AccountCredentialsDialog email={worker.email} />}
+        </div>
+      )}
       <InfoList items={infoFields} />
       <OwnedRegistersSection registers={registers} balances={balances} linkable={isManager} />
       <HeldEquipmentSection equipment={heldEquipment} linkable={isManager} />
@@ -81,7 +88,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
       <WorkerExpenseDraftsSection
         drafts={expenseDrafts}
         investments={stageInvestments}
-        canSend={currentUser.id === userId}
+        canSend={isOwnPage}
         hasDefaultRegister={registerName !== undefined}
       />
       <TransfersSection
