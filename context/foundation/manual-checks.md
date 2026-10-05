@@ -3704,6 +3704,8 @@ przypisane do etapów w kilku inwestycjach — w tym co najmniej jednej zakończ
 - [ ] „Przetłumacz ponownie" na przetłumaczonej linii podmienia polski opis.
 - [ ] Przyjęcie przetłumaczonej pracy spoza rozpiski: nowa pozycja w kosztorysie ma polski opis, a jej kolumna UA zawiera słowa pracownika (nie oznaczona jako nieaktualna).
 - [ ] Zgłoszenie już rozpatrzone (przyjęte/odrzucone): przegląd nie pokazuje przycisku „Przetłumacz".
+- [ ] Katalog prac i kosztorys „Opcje": „Uzupełnij tłumaczenia (AI)" ma styl AI (gradientowa ramka, ikona różdżki) i licznik prac bez aktualnego tłumaczenia; gdy wszystko jest przetłumaczone, przycisk / pozycja menu znika.
+- [ ] „Nowa praca w katalogu" i „Dodaj pracę" w kosztorysie: pole „Tłumacz automatycznie przy pomocy AI" stoi zaraz pod „Opis pracy", ma gradientowy checkbox i ikonę różdżki, a podświetlenie obejmuje tylko sam wiersz, nie całą szerokość.
 
 ## EX-971 — worker-expenses — pracownik zgłasza wydatek z paragonem, kierownik przyjmuje go w Transakcjach (2026-10-05)
 

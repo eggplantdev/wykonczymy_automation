@@ -58,6 +58,19 @@ export const needsTranslation = (
   (translationText(translations, language) === '' ||
     isTranslationStale(translations, language, description))
 
+// Pozycje, not pozycja × language pairs — what the „Uzupełnij tłumaczenia (AI)" counter promises.
+export const countNeedingTranslation = (
+  rows: readonly {
+    description?: string | null
+    descriptionTranslations?: DescriptionTranslationsT
+  }[],
+): number =>
+  rows.filter((row) =>
+    TRANSLATION_LANGUAGES.some((language) =>
+      needsTranslation(row.descriptionTranslations, language, row.description),
+    ),
+  ).length
+
 // An empty text removes the language, so „bez tłumaczenia" and an emptied cell read the same.
 export function withTranslation(
   translations: DescriptionTranslationsT | undefined,

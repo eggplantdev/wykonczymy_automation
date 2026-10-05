@@ -1,5 +1,6 @@
 'use client'
 
+import { WandSparkles } from 'lucide-react'
 import { CheckboxRow } from '@/components/ui/checkbox-row'
 
 export function AiTranslateCheckbox({
@@ -10,7 +11,8 @@ export function AiTranslateCheckbox({
   onCheckedChange: (checked: boolean) => void
 }) {
   return (
-    <CheckboxRow checked={checked} onCheckedChange={onCheckedChange}>
+    <CheckboxRow variant="ai" className="w-fit" checked={checked} onCheckedChange={onCheckedChange}>
+      <WandSparkles className="text-neon-cyan size-4" />
       Tłumacz automatycznie przy pomocy AI
     </CheckboxRow>
   )

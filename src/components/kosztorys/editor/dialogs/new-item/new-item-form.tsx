@@ -122,6 +122,7 @@ export function NewItemForm({
               <field.Textarea label="Opis pracy" rows={2} placeholder="Malowanie ścian" showError />
             )}
           </form.AppField>
+          <AiTranslateCheckbox checked={translate} onCheckedChange={setTranslate} />
 
           <form.AppField name="unit">
             {() => (
@@ -137,8 +138,6 @@ export function NewItemForm({
 
           <RateField form={form} plane="wTools" sourceLabels={SOURCE_OPTION_LABELS} />
           <RateField form={form} plane="ownTools" sourceLabels={SOURCE_OPTION_LABELS} />
-
-          <AiTranslateCheckbox checked={translate} onCheckedChange={setTranslate} />
 
           <form.AppField name="addToCatalogue">
             {(field) => <field.Checkbox label="Dodaj pracę do katalogu prac" />}

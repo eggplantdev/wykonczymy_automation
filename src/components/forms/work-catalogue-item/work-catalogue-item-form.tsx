@@ -39,7 +39,7 @@ type WorkCatalogueItemFormPropsT = {
   persistDraft?: boolean
   /** The map the translation fields were filled from; a new entry has none. */
   translationBaseline?: DescriptionTranslationsT
-  /** Rendered after the fields — the add dialog's AI checkbox, which the edit dialog has no use for. */
+  /** Rendered under the Polish opis — the add dialog's AI checkbox, which the edit dialog has no use for. */
   children?: ReactNode
 }
 
@@ -92,10 +92,13 @@ export function WorkCatalogueItemForm({
             <field.Textarea label="Opis pracy" rows={2} placeholder="Malowanie ścian" showError />
           )}
         </form.AppField>
+        {children}
 
         {TRANSLATION_LANGUAGES.map((language) => (
           <form.AppField key={language} name={`translations.${language}`}>
-            {(field) => <field.Textarea label={`Opis pracy (${LANGUAGE_SHORT[language]})`} rows={2} />}
+            {(field) => (
+              <field.Textarea label={`Opis pracy (${LANGUAGE_SHORT[language]})`} rows={2} />
+            )}
           </form.AppField>
         ))}
 
@@ -115,7 +118,6 @@ export function WorkCatalogueItemForm({
 
         <RateField form={form} plane="wTools" sourceLabels={SOURCE_OPTION_LABELS} />
         <RateField form={form} plane="ownTools" sourceLabels={SOURCE_OPTION_LABELS} />
-        {children}
       </FieldGroup>
 
       <FormFooter label={submitLabel} submittingLabel={submittingLabel} className="mt-6" />
