@@ -3645,3 +3645,8 @@ Refaktor bez zmiany zachowania: nocny cron czyści Kosz tak samo jak wcześniej.
 - [ ] Link pracownika ustawionego na ukraiński → „Zgłaszam pracę": kolumna j.m. pokazuje „шт.", „м²", „пог. м"; jednostka spoza listy (np. „big bag") zostaje jak wpisana.
 - [ ] Ten sam link → „Prace dodatkowe" → lista j.m. jest po ukraińsku; po wysłaniu zgłoszenie w aplikacji pokazuje polską jednostkę.
 - [ ] Link pracownika polskiego: jednostki wyglądają jak dotąd (także „m2" wpisane bez indeksu górnego).
+- [ ] Kosztorys inwestycji → „Drukuj PDF" dla pracownika ustawionego na ukraiński: nagłówki, opisy z tłumaczeniem, nazwy sekcji, j.m., „Разом — …", „Кошторис — {imię}" i rozliczenie są po ukraińsku; opis bez tłumaczenia zostaje po polsku; kwoty w „zł".
+- [ ] To samo dla pracownika ustawionego na rosyjski.
+- [ ] „Drukuj PDF" dla pracownika polskiego: nagłówki brzmią jak na jego linku („Cena j.m. netto — z narzędziami (podwykonawca)" itd.) i nadal mieszczą się na A4 poziomo, bez nachodzenia na siebie.
+- [ ] „Drukuj PDF" oferty dla klienta: bez zmian względem wcześniejszego wydruku.
+- [ ] „Zapisz jako PDF" w przeglądarce proponuje nazwę pliku „{inwestycja} — {imię}" jak dotąd.

@@ -1,4 +1,5 @@
 import { escapeHtml } from '@/lib/utils/escape-html'
+import { POLISH_GRID, type TranslatorT } from '@/lib/i18n/translations'
 import type { ColumnValueT, ColumnValuesT } from '@/lib/kosztorys/columns/column-values'
 import { formatQty } from '@/lib/kosztorys/format'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
@@ -91,10 +92,13 @@ const perStage = (
   column: (stage: KosztorysStageT, qtyKey: StageKeyT) => PrintColumnT,
 ) => stages.map((stage) => column(stage, stageKey(stage.id)))
 
-export const stageQtyColumns = (stages: KosztorysStageT[]): PrintColumnT[] =>
+export const stageQtyColumns = (
+  stages: KosztorysStageT[],
+  dictionary: TranslatorT<'grid'> = POLISH_GRID,
+): PrintColumnT[] =>
   perStage(stages, (stage, qtyKey) => ({
     key: qtyKey,
-    label: stageLabel(stage),
+    label: stageLabel(stage, dictionary),
     colClass: 'c-stage-qty',
     cellClass: 'num',
     headerClass: 'num',
@@ -105,9 +109,11 @@ export const stageNetColumns = (
   stages: KosztorysStageT[],
   valueOf: ColumnValuesT,
   money: (amount: number) => string,
+  dictionary: TranslatorT<'grid'> = POLISH_GRID,
 ): PrintColumnT[] =>
   perStage(stages, (stage, qtyKey) => {
     const key = stageValueNetKey(stage.id)
     const value = formattedValue(valueOf(key), money)
-    return moneyColumn(key, `${stageLabel(stage)} netto`, (row) => (row[qtyKey] ? value(row) : ''))
+    const label = dictionary.t('stageValueNetHeader', { stage: stageLabel(stage, dictionary) })
+    return moneyColumn(key, label, (row) => (row[qtyKey] ? value(row) : ''))
   })

@@ -1,4 +1,5 @@
 import { escapeHtml } from '@/lib/utils/escape-html'
+import type { LanguageT } from '@/lib/i18n/languages'
 import type { PrintColumnT } from '@/lib/kosztorys/print/columns'
 import { PRINT_STYLES } from '@/lib/kosztorys/print/styles'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
@@ -25,6 +26,9 @@ type KosztorysPrintArgsT = {
   // Replaces the „Razem netto" block — printed whether or not the money column survived, because it is
   // the audience's own balance, not a sum of the table.
   footerHtml?: string
+  // Set by the worker's document, printed in the worker's language; the offer keeps the Polish defaults.
+  lang?: LanguageT
+  totalLabel?: string
 }
 
 // The on-screen preview's column stripes, carried onto paper so the two read alike.
@@ -44,6 +48,8 @@ export function buildKosztorysPrintHtml({
   sectionNetById,
   extraStyles = '',
   footerHtml,
+  lang = 'pl',
+  totalLabel = 'Razem',
 }: KosztorysPrintArgsT): string {
   // Every sum in the document is a sum of the money column. With it hidden the owner has decided the
   // reader sees no money, so the totals go with it rather than reappearing in a footer.
@@ -69,7 +75,7 @@ export function buildKosztorysPrintHtml({
     body.push(
       `<tr class="band-total">` +
         `<td class="rail" colspan="${labelSpan}" style="border-left-color:${escapeHtml(sectionFill)}">` +
-        `Razem — ${escapeHtml(sectionName)}</td>` +
+        `${escapeHtml(totalLabel)} — ${escapeHtml(sectionName)}</td>` +
         `<td class="num">${money(sectionNet)}</td>` +
         `<td></td>`.repeat(Math.max(0, columns.length - labelSpan - 1)) +
         `</tr>`,
@@ -132,7 +138,7 @@ export function buildKosztorysPrintHtml({
     .join('')}</colgroup>`
 
   return `<!DOCTYPE html>
-<html lang="pl">
+<html lang="${lang}">
 <head>
 <meta charset="utf-8">
 <title>${escapeHtml(pageTitle)}</title>

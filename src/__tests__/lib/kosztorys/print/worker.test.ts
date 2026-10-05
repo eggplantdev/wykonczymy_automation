@@ -11,11 +11,18 @@ import { stageLabel } from '@/lib/kosztorys/stage-label'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
+import { POLISH_GRID } from '@/lib/i18n/translations'
 
 const WORKER = 5
 const CLIENT_PRICES = [37, 23]
 const OWN_RATE = 9.75
 const RATE = 12.5
+
+// The link's headers for a „z narzędziami" worker — the paper reads like the screen.
+const RATE_HEADER = 'Cena j.m. netto — z narzędziami (podwykonawca)'
+const PLANNED_NET_HEADER = 'Wartość przedmiaru netto — z narzędziami (podwykonawca)'
+const STAGE_QTY_SUM_HEADER = 'Pomiar — suma etapów z narzędziami (podwykonawca)'
+const NET_HEADER = 'Suma etapy z narzędziami (podwykonawca) netto'
 
 // The projection as the server hands it over: the worker's two etapy only. Another crew's etap on item 1
 // (qty 3) survives solely in `executedQtyByItem`, which is what „Pozostało" reads.
@@ -87,7 +94,13 @@ function projection(
 }
 
 const html = (data = projection()) =>
-  buildWorkerPrintHtml({ data, logoUrl: '/logo.png', fillByColorKey: new Map() })
+  buildWorkerPrintHtml({
+    data,
+    logoUrl: '/logo.png',
+    fillByColorKey: new Map(),
+    locale: 'pl',
+    sectionTranslations: {},
+  })
 
 const headersOf = (out: string) =>
   [...out.matchAll(/<th(?:\s[^>]*)?><span>(.*?)<\/span><\/th>/g)].map((m) => m[1])
@@ -111,7 +124,8 @@ describe('buildWorkerPrintHtml', () => {
     expect(out).toContain(formatPLN(RATE))
     for (const price of CLIENT_PRICES) expect(out).not.toContain(formatPLN(price))
     expect(out).not.toContain(formatPLN(OWN_RATE))
-    expect(out).not.toContain('Cena j.m.')
+    expect(headersOf(out)).toContain(RATE_HEADER)
+    expect(headersOf(out)).not.toContain('Cena j.m. netto')
   })
 
   it('totals the table to the przedmiar, the footer to the executed work alone', () => {
@@ -179,8 +193,8 @@ describe('buildWorkerPrintHtml', () => {
     const headers = headersOf(out)
 
     expect(headers[0]).toBe('Opis prac')
-    expect(headers[1]).toBe('Wartość przedmiaru')
-    expect(headers[2]).toBe('Stawka j.m.')
+    expect(headers[1]).toBe(PLANNED_NET_HEADER)
+    expect(headers[2]).toBe(RATE_HEADER)
   })
 
   it('places the section total under the money column after a reorder', () => {
@@ -255,8 +269,8 @@ describe('buildWorkerPrintHtml', () => {
   it('drops a column the worker settings hide', () => {
     const out = html(projection({ hiddenColumns: ['rate'], hidePlannedOnceExecuted: false }))
 
-    expect(out).not.toContain('Stawka j.m.')
-    expect(out).toContain('Wartość przedmiaru')
+    expect(headersOf(out)).not.toContain(RATE_HEADER)
+    expect(headersOf(out)).toContain(PLANNED_NET_HEADER)
   })
 
   describe('columns the data takes off — the same rule the link renders by', () => {
@@ -267,8 +281,8 @@ describe('buildWorkerPrintHtml', () => {
         const headers = headersOf(html(projection({ hidePlannedOnceExecuted }, [], treeWith([]))))
 
         expect(headers).toContain('Przedmiar')
-        expect(headers).toContain('Wartość przedmiaru')
-        for (const gone of ['Pomiar (razem etapy)', 'Wartość wykonana netto', tynki, second]) {
+        expect(headers).toContain(PLANNED_NET_HEADER)
+        for (const gone of [STAGE_QTY_SUM_HEADER, NET_HEADER, tynki, second]) {
           expect(headers, gone).not.toContain(gone)
         }
       }
@@ -280,10 +294,10 @@ describe('buildWorkerPrintHtml', () => {
       const headers = headersOf(out)
 
       expect(headers).not.toContain('Przedmiar')
-      expect(headers).not.toContain('Wartość przedmiaru')
+      expect(headers).not.toContain(PLANNED_NET_HEADER)
       expect(headers).toContain(tynki)
-      expect(headers).toContain('Pomiar (razem etapy)')
-      expect(headers).toContain('Wartość wykonana netto')
+      expect(headers).toContain(STAGE_QTY_SUM_HEADER)
+      expect(headers).toContain(NET_HEADER)
       expect(headers).not.toContain(second)
       expect(headers).not.toContain(`${second} netto`)
       expect(out).toContain(sectionTotal(data.worker.summary.executedNet))
@@ -293,9 +307,74 @@ describe('buildWorkerPrintHtml', () => {
       const headers = headersOf(html(projection({ hidePlannedOnceExecuted: false })))
 
       expect(headers).toContain('Przedmiar')
-      expect(headers).toContain('Wartość przedmiaru')
-      expect(headers).toContain('Wartość wykonana netto')
+      expect(headers).toContain(PLANNED_NET_HEADER)
+      expect(headers).toContain(NET_HEADER)
     })
+  })
+})
+
+describe('buildWorkerPrintHtml in the worker’s language', () => {
+  const translatedTree = makeTree({
+    ...tree,
+    sections: tree.sections.map((section) => ({
+      ...section,
+      items: section.items.map((item) =>
+        item.id === 1
+          ? { ...item, descriptionTranslations: { uk: { text: 'Штукатурка', source: 'Tynk' } } }
+          : item,
+      ),
+    })),
+  })
+  const out = buildWorkerPrintHtml({
+    data: projection({ hidePlannedOnceExecuted: false }, [50], translatedTree),
+    logoUrl: '/logo.png',
+    fillByColorKey: new Map(),
+    locale: 'uk',
+    sectionTranslations: { łazienka: { uk: 'Ванна кімната', ru: 'Ванная' } },
+  })
+
+  it('prints the link’s headers in Ukrainian', () => {
+    const headers = headersOf(out)
+
+    expect(headers).toEqual(
+      expect.arrayContaining([
+        'Опис робіт',
+        'Плановий обсяг',
+        'Одиниця виміру',
+        'Ціна за од. нетто — з інструментами (субпідрядник)',
+        'Вартість планового обсягу нетто — з інструментами (субпідрядник)',
+        'Tynki',
+        'Етап 3',
+        'Виконано — сума етапів з інструментами (субпідрядник)',
+        'Tynki нетто',
+        'Етап 3 нетто',
+        'Сума етапів з інструментами (субпідрядник) нетто',
+        'Залишилось нетто (від планового обсягу)',
+      ]),
+    )
+  })
+
+  it('translates opisy, section names and units, keeping an untranslated opis Polish', () => {
+    expect(out).toContain('Штукатурка')
+    expect(out).not.toContain('>Tynk<')
+    expect(out).toContain('Gładź')
+    expect(out).toContain('Разом — Ванна кімната</td>')
+    expect(out).toContain('м²')
+    expect(out).not.toContain('>m2<')
+  })
+
+  it('names the document and the rozliczenie in Ukrainian, amounts still in zł', () => {
+    expect(out).toContain('<html lang="uk">')
+    expect(out).toContain('Кошторис — Anna Nowak')
+    expect(out).toContain('<title>Mieszkanie na Kazimierzu — Anna Nowak</title>')
+    for (const label of ['Виконано разом', 'Виплачено', 'Виплати']) {
+      expect(out).toContain(`<td class="label">${label}</td>`)
+    }
+    expect(out).toContain('<td class="value">Сума нетто</td>')
+    expect(out).toContain('<td class="label">Етап 3</td>')
+    expect(out).toContain(formatPLN(RATE))
+    expect(out).toMatch(/zł/)
+    expect(out).not.toContain('Wykonane razem')
   })
 })
 
@@ -307,6 +386,7 @@ it.each(WORKER_DOCUMENT_COLUMNS)('„%s" ma kolumnę na wydruku pracownika', (ke
     hiddenColumns: WORKER_DOCUMENT_COLUMNS.filter((other) => other !== key),
     columnRanks: {},
     executedQtyByItem: {},
+    dictionary: POLISH_GRID,
   })
   expect(columns.length).toBeGreaterThan(0)
 })

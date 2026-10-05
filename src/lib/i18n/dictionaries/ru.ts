@@ -85,6 +85,7 @@ export const ru: TranslationsT = {
     summaryOwed: 'Осталось к выплате',
     summaryPayouts: 'Выплаты',
     summaryPayoutDescription: 'Описание',
+    documentKind: 'Смета — {{name}}',
   },
   grid: {
     description: 'Описание работ',
