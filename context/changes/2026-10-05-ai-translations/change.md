@@ -65,3 +65,10 @@ reads the scan and reuses this change's translation function for prace written i
   „Przetłumacz ponownie"). This also works when the automatic translation failed and the line has
   no Polish at all, so a Polish manager can always get a reading. The button and any translation
   state are **manager-only**; the worker's page shows his own text and nothing else.
+
+### Drift from the plan (review gate)
+
+- The plan's `translationFailed?: boolean` is the existing `warning` / `warnings` channel
+  (`SAVED_UNTRANSLATED_WARNING`); the orchestration sits in `lib/actions/translate-*.ts` and
+  `lib/ai/translate-new-row.ts`, beside one shared compare-and-set writer, rather than in the modules
+  the plan named.
