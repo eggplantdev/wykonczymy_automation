@@ -4,10 +4,10 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { UrlPagination } from './url-pagination'
 import { buildUrlWithParams } from '@/lib/utils/build-url-with-params'
 import { SimpleSelect } from './simple-select'
-import type { PaginationMetaT } from '@/lib/utils/pagination'
+import { ALLOWED_LIMITS, type PaginationMetaT } from '@/lib/utils/pagination'
 import { cn } from '@/lib/utils/cn'
 
-const LIMIT_OPTIONS = [20, 50, 100].map((n) => ({ value: String(n), label: n }))
+const LIMIT_OPTIONS = ALLOWED_LIMITS.map((n) => ({ value: String(n), label: n }))
 
 type PaginationFooterPropsT = {
   paginationMeta: PaginationMetaT

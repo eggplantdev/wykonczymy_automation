@@ -1,6 +1,15 @@
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
-import type { ReportLineKindT, ReportStatusT } from '@/lib/kosztorys/worker-report/types'
+import { REPORT_STATUSES, type ReportStatusT } from '@/lib/kosztorys/worker-report/report-status'
+import {
+  isServerSortableReportColumn,
+  type ServerSortableReportColumnT,
+} from '@/lib/kosztorys/worker-report/sortable-columns'
+import type { ReportLineKindT } from '@/lib/kosztorys/worker-report/types'
+import { sortParamColumnId } from '@/lib/table/sort-param'
+import type { DateRangeT } from '@/lib/utils/date-range'
+import type { PaginationParamsT } from '@/lib/utils/pagination'
+import type { ReferenceItemT } from '@/types/reference-data'
 import type { DbExecutorT } from './get-db'
 import { sqlList } from './sql-list'
 import { isoOrNull, numOrNull, text, textOrNull } from './row-coerce'
@@ -173,19 +182,86 @@ export async function readWorkerReport(
   return { report: toReportRow(row), lines: linesRes.rows.map(toLineRow) }
 }
 
+/** `null` leaves a dimension unfiltered; an empty list matches nothing (the URL named no valid value). */
+export type WorkerReportFiltersT = {
+  statuses: ReportStatusT[] | null
+  investmentIds: number[] | null
+  workerIds: number[] | null
+  sentRange: DateRangeT
+}
+
+type SqlT = ReturnType<typeof sql>
+
+const inList = (column: SqlT, values: readonly (string | number)[] | null): SqlT | undefined => {
+  if (values === null) return undefined
+  return values.length > 0 ? sql`${column} IN (${sqlList(values)})` : sql`false`
+}
+
+// The Warsaw calendar day, so a report sent at 00:30 belongs to that day rather than UTC's. Kept as
+// `YYYY-MM-DD` text and compared lexically, like `isWithinRange`, so no bound can fail a `::date` cast.
+const SENT_DAY = sql`to_char(r.sent_at AT TIME ZONE 'Europe/Warsaw', 'YYYY-MM-DD')`
+
+function decidableReportsWhere(filters: WorkerReportFiltersT): SqlT {
+  const { from, to } = filters.sentRange
+  const conditions = [
+    DECIDABLE_INVESTMENT,
+    inList(sql`r.status`, filters.statuses),
+    inList(sql`r.investment_id`, filters.investmentIds),
+    inList(sql`r.worker_id`, filters.workerIds),
+    from === undefined ? undefined : sql`${SENT_DAY} >= ${from}`,
+    to === undefined ? undefined : sql`${SENT_DAY} <= ${to}`,
+  ].filter((condition) => condition !== undefined)
+  return sql.join(conditions, sql.raw(' AND '))
+}
+
+const QUEUE_ORDER = sql`r.status <> 'pending', r.sent_at DESC, r.id DESC`
+
+const SORT_EXPRESSIONS: Record<ServerSortableReportColumnT, SqlT> = {
+  investmentName: sql`i.name`,
+  workerName: sql`w.name`,
+  sentAt: sql`r.sent_at`,
+  lineCount: sql`line_count`,
+  // Queue order rather than alphabetical, which would put „Przyjęte" ahead of „Do sprawdzenia".
+  status: sql`array_position(ARRAY[${sqlList(REPORT_STATUSES)}]::text[], r.status)`,
+}
+
+// The column picks a SQL fragment rather than a bound value, so an unknown one falls back to the queue
+// here too. Ties stay newest first whichever way the column runs.
+function reportsOrderBy(sort: string | undefined): SqlT {
+  if (!sort) return QUEUE_ORDER
+  const column = sortParamColumnId(sort)
+  if (!isServerSortableReportColumn(column)) return QUEUE_ORDER
+  const direction = sql.raw(sort.startsWith('-') ? 'DESC' : 'ASC')
+  return sql`${SORT_EXPRESSIONS[column]} ${direction}, r.sent_at DESC, r.id DESC`
+}
+
 /**
  * Every report the kierownik can still act on — a decided one too, since its open lines stay
- * acceptable. The pending queue first, then the rest newest first.
+ * acceptable. Without a `sort`, the pending queue first, then the rest newest first.
  */
-export async function listDecidableReports(db: DbExecutorT): Promise<ReportListRowT[]> {
-  const res = await db.execute(sql`
-    SELECT ${REPORT_COLUMNS}, i.name AS investment_name
-    FROM worker_reports r ${REPORT_JOINS}
-    JOIN investments i ON i.id = r.investment_id
-    WHERE ${DECIDABLE_INVESTMENT}
-    ORDER BY r.status <> 'pending', r.sent_at DESC, r.id DESC
-  `)
-  return res.rows.map((row) => {
+export async function listDecidableReports(
+  db: DbExecutorT,
+  filters: WorkerReportFiltersT,
+  { page, limit }: PaginationParamsT,
+  sort?: string,
+): Promise<{ rows: ReportListRowT[]; totalDocs: number }> {
+  const where = decidableReportsWhere(filters)
+  const [res, countRes] = await Promise.all([
+    db.execute(sql`
+      SELECT ${REPORT_COLUMNS}, i.name AS investment_name
+      FROM worker_reports r ${REPORT_JOINS}
+      JOIN investments i ON i.id = r.investment_id
+      WHERE ${where}
+      ORDER BY ${reportsOrderBy(sort)}
+      LIMIT ${limit} OFFSET ${(page - 1) * limit}
+    `),
+    db.execute(sql`
+      SELECT count(*)::int AS total
+      FROM worker_reports r JOIN investments i ON i.id = r.investment_id
+      WHERE ${where}
+    `),
+  ])
+  const rows = res.rows.map((row) => {
     const report = toReportRow(row)
     return {
       id: report.id,
@@ -198,6 +274,33 @@ export async function listDecidableReports(db: DbExecutorT): Promise<ReportListR
       acceptedLineCount: report.acceptedLineCount,
     }
   })
+  return { rows, totalDocs: Number(countRes.rows[0]?.total ?? 0) }
+}
+
+/**
+ * Only investments and workers that have a report on this list — an option outside it could only
+ * ever filter down to nothing, which is the case for every zakończona inwestycja.
+ */
+export async function listReportFilterOptions(
+  db: DbExecutorT,
+): Promise<{ investments: ReferenceItemT[]; workers: ReferenceItemT[] }> {
+  const [investmentsRes, workersRes] = await Promise.all([
+    db.execute(sql`
+      SELECT DISTINCT i.id, i.name
+      FROM worker_reports r JOIN investments i ON i.id = r.investment_id
+      WHERE ${DECIDABLE_INVESTMENT}
+      ORDER BY i.name
+    `),
+    db.execute(sql`
+      SELECT DISTINCT w.id, w.name
+      FROM worker_reports r JOIN investments i ON i.id = r.investment_id
+      JOIN users w ON w.id = r.worker_id
+      WHERE ${DECIDABLE_INVESTMENT}
+      ORDER BY w.name
+    `),
+  ])
+  const toItem = (row: Record<string, unknown>) => ({ id: Number(row.id), name: text(row.name) })
+  return { investments: investmentsRes.rows.map(toItem), workers: workersRes.rows.map(toItem) }
 }
 
 export async function countPendingReports(db: DbExecutorT): Promise<number> {

@@ -23,6 +23,7 @@ export function useUrlFilterParams(baseUrl: string) {
   }
 
   return {
+    getMultiParam: (key: string) => (searchParams.get(key) ?? '').split(',').filter(Boolean),
     updateParam: (key: string, value: string) => updateMultipleParams({ [key]: value }),
     updateMultipleParams,
     isPending,

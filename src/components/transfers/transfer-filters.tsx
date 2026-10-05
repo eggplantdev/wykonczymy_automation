@@ -86,9 +86,8 @@ export function TransferFilters({
 }: TransferFiltersPropsT) {
   const searchParams = useSearchParams()
   // Debounce in FilterMultiSelect batches rapid clicks to reduce how often we hit the server.
-  const { updateParam, updateMultipleParams, isPending } = useUrlFilterParams(baseUrl)
-
-  const getMultiParam = (key: string) => (searchParams.get(key) ?? '').split(',').filter(Boolean)
+  const { getMultiParam, updateParam, updateMultipleParams, isPending } =
+    useUrlFilterParams(baseUrl)
 
   const currentAmount = searchParams.get('amount') ?? ''
   const currentId = searchParams.get('id') ?? ''

@@ -1,4 +1,11 @@
 {
-  "primitiveHomes": ["src/components/ui", "src/hooks", "src/lib/**", "src/types"],
+  "primitiveHomes": [
+    "src/components/ui",
+    "src/components/filters",
+    "src/components/tables",
+    "src/hooks",
+    "src/lib/**",
+    "src/types"
+  ],
   "note": "Where reusable primitives live — read by primitive-reuse-scan. Add a home if a new shared dir appears; this is a map of dirs, NOT a symbol catalogue (that's rebuilt each run)."
 }

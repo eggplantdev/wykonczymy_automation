@@ -3595,3 +3595,18 @@ Refaktor bez zmiany zachowania: nocny cron czyści Kosz tak samo jak wcześniej.
       w oknie podziału.
 - [ ] Podział kwotowo, w którym wpisane kwoty przekraczają wartość etapu (etap zmniejszony po
       zapisie): części po proporcjonalnym zmniejszeniu sumują się do wartości etapu, główny ma 0 zł.
+
+## EX-955 — worker-reports-pagination — strony, filtry i sortowanie na liście „Zgłoszenia prac” (2026-10-05)
+
+- [ ] `/zgloszenia-prac` bez parametrów: na górze „Do sprawdzenia”, niżej rozpatrzone, w obu grupach
+      najnowsze pierwsze; pod tabelą stopka z liczbą wyników i „Pokaż” ustawionym na 100.
+- [ ] „Pokaż” 20: przejdź na stronę 2 — lista ciągnie kolejność strony 1, bez powtórzeń.
+- [ ] Filtry „Status”, „Inwestycja”, „Pracownik” i zakres dat: każdy zawęża listę i wraca na stronę 1;
+      w „Inwestycja” tylko otwarte inwestycje. Zgłoszenie wysłane tuż po północy liczy się do tego dnia.
+      „Wyczyść filtry” przywraca całą listę.
+- [ ] Odznacz wszystko w „Status”: pusta tabela, nie cała lista.
+- [ ] Klik w nagłówek „Wysłano”, „Inwestycja”, „Pracownik”, „Prace”, „Status”: sortuje całą listę (strona
+      2 ciągnie kolejność), adres dostaje `?sort=`. „Status” rosnąco: „Do sprawdzenia”, „Przyjęte”,
+      „Odrzucone” — nie alfabetycznie. Trzeci klik zdejmuje sortowanie i wraca kolejka.
+- [ ] Wpisz w adres `?page=1.5`, `?worker=99999999999`, `?from=2026-02-30`, `?sort=abc`: zwykła strona,
+      żadnego błędu; kalendarz zakresu dat nie pokazuje „NaN”.
