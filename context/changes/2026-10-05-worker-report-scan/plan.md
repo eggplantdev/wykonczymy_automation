@@ -662,17 +662,17 @@ with a readable message.
 
 #### Automated
 
-- [x] 3.1 Migration applies and rolls back locally
-- [x] 3.2 resolve-scan unit spec
-- [x] 3.3 worker-report-scan action DB spec (create, gates, /z/ filter)
-- [x] 3.4 Media guards DB spec
+- [x] 3.1 Migration applies and rolls back locally — ed244944
+- [x] 3.2 resolve-scan unit spec — ed244944
+- [x] 3.3 worker-report-scan action DB spec (create, gates, /z/ filter) — ed244944
+- [x] 3.4 Media guards DB spec — ed244944
 
 ### Phase 4: AI read
 
 #### Automated
 
-- [ ] 4.1 Schema factory unit spec
-- [ ] 4.2 Route spec (role gate, stubbed read)
+- [x] 4.1 Schema factory unit spec
+- [x] 4.2 Route spec (role gate, stubbed read)
 
 ### Phase 5: Scan dialog + entry points
 
