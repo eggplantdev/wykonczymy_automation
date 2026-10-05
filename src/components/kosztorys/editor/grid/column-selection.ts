@@ -1,6 +1,7 @@
 import { Column } from 'react-datasheet-grid'
 import { type BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import { appendTrailingGap, withResize } from '@/components/kosztorys/editor/grid/column-sizing'
+import { withColumnColor } from '@/components/kosztorys/editor/grid/column-color'
 import { type ColumnToggleItemT } from '@/components/ui/column-toggle-menu'
 import { stageGroupOfKey } from '@/lib/kosztorys/stage-keys'
 import {
@@ -137,7 +138,9 @@ export function selectV2Columns(
       (revealed || crewAxisAllows(key, crew))
     )
   }
-  const base = assembled.filter((c) => keep(c.id ?? '')).map((c) => withResize(c, opts))
+  const base = assembled
+    .filter((c) => keep(c.id ?? ''))
+    .map((c) => withColumnColor(withResize(c, opts), opts))
   return appendTrailingGap(base, opts)
 }
 

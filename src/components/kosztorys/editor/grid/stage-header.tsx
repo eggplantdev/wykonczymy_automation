@@ -17,6 +17,8 @@ import { EditableCellInput } from '@/components/ui/datasheet-grid/editable-cell-
 import { LabelHintIcon } from '@/components/ui/label-hint-icon'
 import { planeIcon } from '@/components/kosztorys/editor/plane-icons'
 import { useInlineRename } from '@/components/kosztorys/editor/hooks/use-inline-rename'
+import { SectionColorPicker } from '@/components/kosztorys/editor/grid/menus/section-color-picker'
+import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import { StageSplitDialog } from '@/components/kosztorys/editor/dialogs/stage-split/stage-split-dialog'
 import { PLANE_LABELS } from '@/lib/kosztorys/labels'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
@@ -46,6 +48,8 @@ type PropsT = {
   // the panel credits. 0 (or absent) means nothing has been executed here yet.
   executedValue?: number
   scaledDown?: boolean
+  color?: SectionColorKeyT | null
+  onSetColor?: (color: SectionColorKeyT | null) => void
 }
 
 export function StageHeader({
@@ -60,6 +64,8 @@ export function StageHeader({
   onPersistOrder,
   executedValue = 0,
   scaledDown = false,
+  color = null,
+  onSetColor,
 }: PropsT) {
   const gridDictionary = useTranslation('grid')
   const label = stageLabel(stage, gridDictionary)
@@ -161,6 +167,12 @@ export function StageHeader({
         {onSort && (
           <>
             <SortMenuItems active={sort} onSort={onSort} onPersistOrder={onPersistOrder} />
+            <DropdownMenuSeparator />
+          </>
+        )}
+        {onSetColor && (
+          <>
+            <SectionColorPicker value={color} onChange={onSetColor} />
             <DropdownMenuSeparator />
           </>
         )}

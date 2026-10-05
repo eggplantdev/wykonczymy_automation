@@ -699,6 +699,17 @@
     1px 0 var(--dsg-border-color);
 }
 
+/* A column the owner tinted (use-column-colors.ts). A background-IMAGE, not a colour: it lays the hue
+   over whatever fill the cell already has — white, the disabled grey, a red warning — instead of
+   replacing it. The section band's `background` shorthand outranks this and resets the image, so the
+   band still reads as one unbroken bar across a tinted column. */
+.kosztorys-grid .dsg-cell.kosztorys-column-tint {
+  background-image: linear-gradient(
+    color-mix(in oklab, var(--column-tint) 20%, transparent),
+    color-mix(in oklab, var(--column-tint) 20%, transparent)
+  );
+}
+
 /* The band closing a section: same construction and wash as the opening one, so the pair reads as one
    bracket. It sits at item height, not band height — it is a row of figures under their own columns,
    not a strip of chrome. */

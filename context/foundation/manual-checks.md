@@ -3618,3 +3618,16 @@ Refaktor bez zmiany zachowania: nocny cron czyści Kosz tak samo jak wcześniej.
       „*Minusowa kwota oznacza nadpłatę”. Nigdzie nie ma „Nadpłata”.
 - [ ] Ta sama inwestycja na stronie inwestycji (widok właściciela): ten sam wiersz i ten sam przypis.
 - [ ] Inwestycja z dodatnim saldem: „Pozostało do zapłaty” bez gwiazdki, bez przypisu, kwota na czerwono.
+
+## 2026-10-05 — column-colors — kolor kolumny w edytorze kosztorysu (zapis w przeglądarce)
+
+- [ ] Edytor kosztorysu → kliknij nagłówek „Przedmiar” → w menu pod sortowaniem siatka 27 kolorów;
+      wybierz kolor: cała kolumna i jej nagłówek dostają delikatny odcień, szare pola i czerwone
+      ostrzeżenia w kolumnie nadal widać pod spodem.
+- [ ] Ta sama kolumna przecina nagłówek sekcji: belka sekcji zostaje jednolita w kolorze sekcji,
+      bez wstawki koloru kolumny.
+- [ ] Nagłówek etapu → menu etapu: ta sama siatka kolorów; po wyborze koloruje się kolumna ilości etapu.
+- [ ] „Bez koloru” w menu kolumny usuwa odcień.
+- [ ] Odśwież stronę: kolory zostają. Otwórz inny kosztorys: kolumna „Przedmiar” ma ten sam kolor.
+- [ ] Pokoloruj kolumnę etapu, usuń etap, dodaj nowy: nowy etap jest bez koloru.
+- [ ] „Podgląd inwestora” tej samej inwestycji: żadna kolumna nie jest pokolorowana.

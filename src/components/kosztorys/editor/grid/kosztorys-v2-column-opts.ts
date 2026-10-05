@@ -45,6 +45,9 @@ export type BuildV2ColumnsOptsT = {
   columnRanks?: ColumnRanksT
   onGuide?: (x: number | null) => void
   onCommitColumn?: (id: string, width: number) => void
+  // Column tint: id→palette key, one browser's choice (useColumnColors). Absent on the documents.
+  columnColors?: Record<string, SectionColorKeyT>
+  onSetColumnColor?: (id: string, color: SectionColorKeyT | null) => void
   onRemoveItem?: (row: KosztorysV2RowT) => void
   // Reordering items within a section (Przesuń w górę/dół). Greyed out while a column sort is
   // active — "up/down" has no meaning against a price-sorted list.
