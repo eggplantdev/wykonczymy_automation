@@ -1,7 +1,7 @@
 ---
 change_id: worker-report-scan
 title: A photo of a worker's filled-in paper becomes a zgłoszenie prac via AI (EX-949)
-status: preparing
+status: planned
 created: 2026-10-05
 updated: 2026-10-05
 archived_at: null
@@ -88,10 +88,9 @@ translations, in progress); **EX-988** (PDF in the worker's language) is done.
     (which brings its j.m.) or rejects the line.
 13. **A separate „Drukuj do wypełnienia" item** in the Pracownicy menu prints the form: id, opis,
     j.m., an empty „Wykonano" column and blank rows for prace spoza rozpiski — no money, no etapy.
-    The existing „Drukuj PDF" stays as it is.
-14. **Every page prints „Strona X/Y"** and the AI reads it with the rows. A page that was never
-    photographed would otherwise be invisible — its pozycje simply arrive unreported — so
-    verification warns „brak strony 4 z 6" (owner, 2026-10-05).
+    The existing „Drukuj PDF" stays as it is. The form prints exactly like the other prints — the
+    same builder and page handling, no page numbering or other new print mechanics (owner,
+    2026-10-05).
 
 ### Reuse
 

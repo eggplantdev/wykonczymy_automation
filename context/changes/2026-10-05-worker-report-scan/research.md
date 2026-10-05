@@ -10,7 +10,7 @@ tags:
 status: complete
 last_updated: 2026-10-05
 last_updated_by: Claude (Opus 5.5)
-last_updated_note: 'Owner narrowed scope to management-only (listing + editor menu); worker-path findings (§2 draft prefill, §5 token upload, OQ 2/5) no longer apply'
+last_updated_note: 'Added follow-up research for the stable-number + check-digit design, the fill-in form, the per-photo AI read, the scan action and verification (2026-10-05T18:07)'
 ---
 
 # Research: EX-949 — paper → AI → zgłoszenie prac
@@ -289,3 +289,186 @@ comparison at all (change.md #4). The check-digit question below is therefore se
    (read failed, dialog closed) need a home or a sweep; create the report and its media links in one
    action to keep the window small.
 4. **Investment purge leaks Blob bytes (pre-existing)** — fix alongside, or file separately.
+
+## Follow-up Research 2026-10-05T18:07:26+0200
+
+**Git Commit**: dfb01854. Covers the design after the owner's amendments (change.md #4, #8, #13, #14): a
+stable per-pozycja number plus a check digit, a separate fill-in form, management-only scanning, and
+no text comparison. This section supersedes Open Questions 1–3 above.
+
+### A. Stable number (`ref`) lifecycle
+
+- **One INSERT.** `insertItems` (`src/lib/kosztorys/insert-rows.ts:118-139`, columns :21-38) is the
+  only live item insert. Seeds use `payload.create`, and `20260929_1_szablon_as_investment.ts:73`
+  has already run.
+- **Keep vs mint, per caller:**
+  - **Keep.** Restore „Przywróć wersję" (`kosztorys-snapshots.ts:92` → `restoreKosztorys`) and a
+    sheet-import _match_ (`kosztorys-import.ts:319` → `replaceTreeWithSnapshot`).
+  - **Mint.** `addItemAction` (`actions/kosztorys.ts:555`), `placeCatalogueItems`
+    (`place-catalogue-items.ts:39`), accepted extras (`accept-worker-report.ts:262`),
+    `appendPresetSections` (`append-preset-sections.ts:58`), Wczytaj szablon
+    (`reload-from-preset.ts:28`), overwrite / seed / create szablon (`kosztorys-presets.ts:103`,
+    `seed-from-preset.ts:35`, `create-template.ts:28`).
+  - **No insert at all.** Wyczyść leaves an empty tree. Undo/redo only re-applies values
+    (`use-undo-redo.ts:9-17`); deleting a pozycja snapshots first (`actions/kosztorys.ts:582-586`),
+    so it comes back only by restore. Paste only writes cells (`lockRows`,
+    `kosztorys-editor-body.tsx:599`). There is no duplicate-row or move-between-sections feature.
+- **Mechanism.**
+  - Add an optional `ref` on the item payload; `insertItems` writes `ref ?? DEFAULT` and returns
+    `ref`. Never bind an explicit NULL: it does not fire the DEFAULT (`snapshot-format.ts:145-147`).
+  - Strip `ref` in `serializeKosztorysAsPreset` (`serialize-preset.ts:25-31`). That one point covers
+    all five szablon paths.
+- **Snapshots.**
+  - `serializeTree` spreads every item field (`serialize-tree.ts:6-22`). Adding `ref` to
+    `KosztorysItemT`, the tree query (`db/kosztorys-tree.ts:71-77`) and `mapItem` (:151) makes every
+    new snapshot carry it.
+  - Old snapshots: add `'ref'` to `TolerantT` (`snapshot-format.ts:113-124`) and
+    `itemWithColumnDefaults` (:160-179). A missing `ref` mints a new number; no schema-version bump.
+  - **Never fall back to `ref ?? id`.** The import plan uses synthetic ids 1..n
+    (`build-import-plan.ts:164,217`).
+- **Sheet import.**
+  - Carry the number beside the note (`build-import-plan.ts:234`) and the translations (:237-241),
+    keyed by `itemKey`.
+  - The match is one-to-one. `#occurrence` is positional, so two identical opisy that the sheet
+    reorders swap numbers. A renamed opis or section mints a new number.
+- **Schema.**
+  - `kosztorys_items` is a Payload collection, but every insert and read is raw SQL, and `push: false`
+    (`payload.config.ts:69-74`). A hand-written column causes no drift. Leave `ref` out of the
+    collection so a Payload create fires the DEFAULT.
+  - Migration: add the column, backfill `ref = id`, `setval` a new sequence to `max(ref)` computed
+    inside the migration, then DEFAULT `nextval`, `NOT NULL`, `UNIQUE`.
+- **Global sequence, not per-investment.** A number is never reused, a number from another
+  investment fails loudly, and the DEFAULT covers every mint path with no code. Restore is safe
+  under UNIQUE: the DELETE and re-INSERT run in one transaction behind
+  `lock-investment-for-replace.ts:20`. Local DB: max id 49332 over 17,039 rows, so five digits.
+- **Other places keyed by item id (not in scope):** `worker_report_lines.item_id` (SET NULL on
+  restore), the `/z/` draft's `qtyByItem` (`use-report-draft.ts:32-34`), and the history diff's id
+  match (`history/diff-versions.ts:36-54`). Each could move to `ref` later.
+
+### B. Check digit
+
+- **Damm.** One 10×10 table, about 5 lines of code. It catches every single-digit error and every
+  adjacent transposition, which Luhn misses (09↔90). Its result is always 0–9, and zero-padding is
+  harmless. Nothing similar exists in the repo.
+- **Format `35812-7`.** A dot would read as a decimal, a slash as „1", and a space merges the two
+  parts.
+- **Print weight.** The grey used today (`#a1a1aa` at 5.5pt) is too faint for a phone photo. Use
+  ≥ 7pt and ≥ `#52525b`.
+
+### C. The fill-in form
+
+- **Rows.** The same set the worker link shows by default: `documentRows(…, hideEmptyRows)`
+  (`print/document-rows.ts:13`) minus empty opisy (`to-form-data.ts:15-16`). The worker's scope does
+  not narrow pozycje, only etapy (`worker-kosztorys.ts:83-88`). Filter on the untranslated tree,
+  because `translateTree` falls back to Polish (`translate-tree.ts:34`).
+- **Data and window.** `getWorkerKosztorysPrintData` (`worker-kosztorys-print-endpoint.ts:18-29`)
+  already returns the tree, language and section translations. Mirror `worker-print-action.tsx`: open
+  the window synchronously, then `writeAndPrint`.
+- **Roles.** Management only (`worker-kosztorys.ts:144`). A blocked worker gets a disabled item
+  (`kosztorys-workers-menu.tsx:69-77`).
+- **Layout.**
+  - The repeating `thead` and unsplittable rows exist (`styles.ts:34-35`). The worker and investment
+    names are on page one only today (`worker.ts:130-131`).
+- **Builder — a variant of the worker print, nothing new (owner, 2026-10-05).** The form is
+  `buildWorkerPrintHtml` (`print/worker.ts:95-144`) with another column set and footer: same
+  `getWorkerKosztorysPrintData`, same `translateTree` + `documentRows`, same `buildKosztorysPrintHtml`,
+  same `WIDE_PRINT_STYLES`, same page handling. Custom `cell`s give Nr / opis / j.m. / Wykonano
+  (`columns.ts:12-19`); a `moneyKey` no column has turns section totals off (`build-html.ts:58-59`);
+  `footerHtml` carries the blank „Prace spoza rozpiski" rows (:113-114). The menu item is
+  `WorkerPrintMenuItem` (`worker-print-action.tsx`) parameterised by which builder it calls.
+- **i18n.** Labels live in `src/lib/i18n/dictionaries/pl.ts`. `uk`/`ru` are typed off it, so a
+  missing key fails the typecheck (`translations.ts:5`).
+  - Reuse `report.extrasTitle`, `grid.description`, `report.unitPlaceholder` and
+    `report.qtyPlaceholder`.
+  - Add `formNumber`, `formExecuted`, `formDocumentKind`.
+
+### D. AI read
+
+- **One photo per request.**
+  - Several photos in one POST hit the 4 MB client guard (`scan-receipt-client.ts:9`).
+  - Per photo, a failed page retries alone, the timeout stays fixed, and duplicate detection runs in
+    our code.
+  - The INVOICE profile is enough: 1920 px across A4 is about 165 DPI.
+- **Reuse.** `openrouter`, `timeoutSignal`, `withModelFallback` (`openrouter-client.ts:10,23,25,39`),
+  `postFormData`, `compressImage`. Move `receiptErrorDetail` (`openrouter.ts:144`) to a shared file.
+- **New code.** `src/lib/ai/worker-report-scan.ts`: a schema factory (the unit enum is per call) and a
+  prompt. Model: the receipt reader's own `RECEIPT_MODEL` + `withModelFallback`, unchanged (owner: use
+  what is built); a model change is a follow-up only if real photos misread.
+- **Units.** `unitOptions(tree units)` (`worker-report.ts:49-54`), one line per unit as
+  `m2 — м²` (`translateUnit`, `translate-unit.ts:20`). The model returns the Polish value or null; the
+  server re-checks against a `Set`.
+- **Route.** A route, not an action. The server-action body cap is already `4.5mb`
+  (`next.config.ts:20`), so the cap is no longer the reason. The route gives `maxDuration`, a
+  readable error instead of a 413, and the `requireAuth(MANAGEMENT_ROLES)` gate
+  (`extract-receipt/route.ts:20,30`). It persists nothing.
+
+### E. Create action and data model
+
+- **`createScannedReportAction` on `investmentAction`.**
+  - Refuse a szablon in the handler: `investmentAction` does not, and calls `markPresetEdited`.
+  - Gate through a token-less `readReportTarget` plus `reportShareRefusal` as-is
+    (`share-refusal.ts:7-16`, the SELECT at `worker-report-share.ts:25-33`).
+  - Refuse a blocked `resolveWorkerScope` (`token-action.ts:51-53`). No share or token is needed:
+    `getWorkerReportPreview` already reads none (`worker-report-page.ts:61-65`).
+  - Extract the rozpiska line build from `worker-report.ts:56-82` into a shared helper, but not the
+    duplicate refusal (:35-38).
+  - Refuse an empty read before inserting: empty `VALUES` is a SQL error.
+  - Revalidate with `investmentEntityOpts` (`tags.ts:43`), then `after(translateReportExtras)`.
+- **Report columns.**
+  - `worker_reports.source` `'link' | 'scan'`, and `created_by` → users `ON DELETE SET NULL`.
+  - Filter `/z/` on `source`, not on `created_by IS NULL`: deleting the kierownik's account would
+    otherwise move his scans onto the worker's page.
+  - Pass the filter only from `worker-report-page.ts:85`. The editor dialog
+    (`queries/worker-reports.ts:18`), `listDecidableReports` and `countPendingReports` stay
+    unfiltered.
+- **Line columns.**
+  - `is_uncertain boolean`, and `scanned_ref` for an unresolved number. That line is stored as
+    `rozpiska` with `item_id NULL`, which the existing re-point / „Przenieś do prac spoza rozpiski"
+    UI already handles; its label „Pozycja usunięta z rozpiski" (`review-lines-table.tsx:131-134`)
+    needs a scan variant.
+  - "No j.m.", "duplicate" and "unassigned" are derived at read time.
+- **No-j.m. extras.** `unit = ''` satisfies NOT NULL. `extraAsItem` (`accept-worker-report.ts:387`)
+  would mint a pozycja with an empty j.m., so refuse that unless a katalog praca is set: on the
+  server at :221-232 and in `isLineReady` (`line-draft.ts:114-115`).
+- **`worker_report_media`.**
+  - Model it on `20261005_3:32-40`, with both FKs CASCADE, `position`, and an index on `media_id`.
+  - Register it in `prevent-referenced-delete.ts:22` and next to `delete-unreferenced-media.ts:107`.
+    Without that, the orphan discard in `submitWithUploads` could delete a committed report's photos.
+  - Media kind `'inne'`: `'zdjecie'` is for site photos.
+- **Duplicates.** Nothing breaks: no unique constraint, and acceptance sums per pozycja by design
+  (`accept-worker-report.ts:274-286`). The real risk is „Zaznacz wszystkie"
+  (`review-lines-table.tsx:84`) ticking both lines, which #8 forbids.
+
+### F. UI
+
+- **Listing entry.** `DataTable` `toolbar` → `<DataTableToolbar actions={…}>`, as in
+  `cash-registers-table.tsx:116`.
+  - Pickers use `SearchSelect` (`ui/search-select.tsx:41`). Investments come from
+    `listWorkerStageInvestments` (`stage-memberships.ts:25-46`; already active, untrashed, non-szablon).
+  - A new `listWorkersWithActiveStages` is needed (stage workers × active investments × live users),
+    with a `'use server'` read in `queries/worker-reports.ts`.
+  - Add `reportHref()` beside `REPORT_PARAM` (`report-param.ts`), replacing the inline href at
+    `worker-reports-data-table.tsx:44-45`.
+- **Editor entry.** A `scan` slot in `KosztorysActionsProvider` (`kosztorys-actions-context.tsx:52-89`),
+  shaped like `requestShare` (`worker-actions.tsx:78`). After creation call
+  `workerReports.openReport(id)` (`worker-reports-action.ts:32`). The pending count self-corrects on
+  body mount (`worker-reports-dialog.tsx:51-57`).
+- **Scan dialog.** In `src/components/worker-reports/`, the feature home the editor already imports
+  from. Base it on EX-971's `ExpenseDraftDialog` (`useFilePickIngest`, `submitWithUploads`).
+  - Promote `useObjectUrls` (`line-item-invoice-field.tsx:15`) to `src/hooks/`.
+  - Progress: the `usePendingStore` pill plus a disabled „Odczytywanie…" button, blocking close while
+    sending.
+- **Review.**
+  - A photo pane via `sm:grid-cols-[1fr_minmax(0,22rem)]` around the lines scroll
+    (`worker-report-review.tsx:222,271`), with `MediaStrip` tiles opening `MediaPreviewDialog`.
+  - Flags on `ReviewRowT` (`review-lines-table.tsx:35-48`), computed in the `reviewRows` map
+    (`worker-report-review.tsx:105-123`) and shown in `RozpiskaDescriptionCell` /
+    `ManualDescriptionCell`.
+  - The header line goes at `worker-report-review.tsx:224-230`.
+  - Types: `ReportLineT` / `WorkerReportT` (`worker-report/types.ts:37,65-79`), mapped by
+    `toSummary` / `toLine` (`queries/worker-reports.ts:31-69`).
+
+### Remaining open questions
+
+- **Investment purge leaks Blob bytes** (`investmentDeleteBlocker` has no report probe): pre-existing,
+  and widened by `worker_report_media`.
