@@ -1,6 +1,8 @@
 import { createColumnHelper, type ColumnDef } from '@tanstack/react-table'
 import { isServerSortableColumn } from '@/lib/transfers/sortable-columns'
 import { OptionalLink } from '@/components/ui/optional-link'
+import { BADGE_BASE, BADGE_TONE } from '@/components/ui/badge'
+import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDate, formatPLDateTime } from '@/lib/utils/format-date'
 import { InvoiceCell } from '@/components/transfers/invoice-cell'
@@ -93,7 +95,14 @@ const allColumns = [
     id: 'type',
     header: 'Typ',
     meta: { minWidth: 'min-w-40', printValue: transferTypeText },
-    cell: (info) => transferTypeText(info.row.original),
+    cell: (info) => (
+      <span className="flex flex-wrap items-center gap-1">
+        {transferTypeText(info.row.original)}
+        {info.row.original.fromWorkerDraft && (
+          <span className={cn(BADGE_BASE, BADGE_TONE.muted)}>od pracownika</span>
+        )}
+      </span>
+    ),
   }),
   col.accessor('expenseCategoryName', {
     id: 'expenseCategory',

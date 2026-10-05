@@ -52,6 +52,7 @@ const ENTITY_FILTER_KEYS = [
   'cancelledTransactionAudit',
   // Revealing anulowane IS a departure from the default view, so it counts and clears as a filter.
   'showCancelled',
+  'workerDrafts',
 ] as const
 
 type TransferFiltersPropsT = {
@@ -63,6 +64,7 @@ type TransferFiltersPropsT = {
   expenseCategories?: ReferenceItemT[]
   showTypeFilter?: boolean
   showPaymentMethodFilter?: boolean
+  showWorkerDraftsFilter?: boolean
   baseUrl: string
   className?: string
   totalFilteredAmount?: number
@@ -79,6 +81,7 @@ export function TransferFilters({
   expenseCategories,
   showTypeFilter = true,
   showPaymentMethodFilter = false,
+  showWorkerDraftsFilter = false,
   baseUrl,
   className,
   totalFilteredAmount,
@@ -99,6 +102,10 @@ export function TransferFilters({
   const { isActive: showCancelled, setActive: setShowCancelled } = useToggleSearchParam(
     baseUrl,
     'showCancelled',
+  )
+  const { isActive: onlyWorkerDrafts, setActive: setOnlyWorkerDrafts } = useToggleSearchParam(
+    baseUrl,
+    'workerDrafts',
   )
   // Named as what the user turns ON, not the default they start in — hiding anulowane is the resting
   // state, so „Ukryj anulowane" would read ticked before any filter was set. Always on in audit mode.
@@ -272,6 +279,21 @@ export function TransferFilters({
         />
 
         <FilterMultiSelect label="Anulowane" icon={Ban} toggles={cancelledToggles} />
+
+        {showWorkerDraftsFilter && (
+          <FilterMultiSelect
+            label="Zgłoszenia"
+            icon={HardHat}
+            toggles={[
+              {
+                id: 'workerDrafts',
+                label: 'Zgłoszenia pracowników',
+                active: onlyWorkerDrafts,
+                onToggle: () => setOnlyWorkerDrafts(!onlyWorkerDrafts),
+              },
+            ]}
+          />
+        )}
 
         <ClearButton onClick={clearEntityFilters} disabled={!hasEntityFilters}>
           Wyczyść filtry

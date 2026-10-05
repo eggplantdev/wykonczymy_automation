@@ -349,12 +349,12 @@ Migracja addytywna — na prod **przed** pushem kodu, przez człowieka (`pnpm db
 
 #### Automated
 
-- [x] 3.1 Spec DOM: prefill pokazuje dane i nie dotyka szkicu 'expense'
-- [x] 3.2 Spec DOM: bez prefill szkic 'expense' odtwarzany
+- [x] 3.1 Spec DOM: prefill pokazuje dane i nie dotyka szkicu 'expense' — 4899fda5
+- [x] 3.2 Spec DOM: bez prefill szkic 'expense' odtwarzany — 4899fda5
 
 ### Phase 4: Filtr i badge
 
 #### Automated
 
-- [ ] 4.1 Spec unit: workerDrafts ∩ istniejący filtr id, pusta lista = zero wyników
-- [ ] 4.2 Spec DB: transfer_id tylko przyjętych zgłoszeń
+- [x] 4.1 Spec unit: workerDrafts ∩ istniejący filtr id, pusta lista = zero wyników
+- [x] 4.2 Spec DB: transfer_id tylko przyjętych zgłoszeń

@@ -5,6 +5,7 @@ import { requireAuth } from '@/lib/auth/require-auth'
 import { canViewWorkerPage, MANAGEMENT_ROLES, ROLES } from '@/lib/auth/roles'
 import { getDb } from '@/lib/db/get-db'
 import {
+  listDraftTransferIds,
   listPendingExpenseDrafts,
   listWorkerExpenseDrafts,
   type ExpenseDraftRowT,
@@ -25,4 +26,11 @@ export async function fetchPendingExpenseDrafts(): Promise<ExpenseDraftRowT[]> {
   if (!session.success) throw new Error('Brak uprawnień')
 
   return listPendingExpenseDrafts(await getDb(await getPayload({ config })))
+}
+
+export async function fetchDraftTransferIds(transferIds?: number[]): Promise<number[]> {
+  const session = await requireAuth(ROLES)
+  if (!session.success) throw new Error('Brak uprawnień')
+
+  return listDraftTransferIds(await getDb(await getPayload({ config })), transferIds)
 }

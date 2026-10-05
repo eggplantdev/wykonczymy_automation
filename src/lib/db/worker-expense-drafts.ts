@@ -162,6 +162,25 @@ export async function decideExpenseDraft(
   return res.rows.length > 0
 }
 
+/** The expenses booked from accepted drafts — all of them, or only those among `transferIds`. */
+export async function listDraftTransferIds(
+  db: DbExecutorT,
+  transferIds?: number[],
+): Promise<number[]> {
+  if (transferIds?.length === 0) return []
+  const among = transferIds
+    ? sql`AND transfer_id IN (${sql.join(
+        transferIds.map((id) => sql`${id}`),
+        sql.raw(', '),
+      )})`
+    : sql``
+  const res = await db.execute(sql`
+    SELECT transfer_id FROM worker_expense_drafts
+    WHERE status = 'accepted' AND transfer_id IS NOT NULL ${among}
+  `)
+  return res.rows.map((row) => Number(row.transfer_id))
+}
+
 /**
  * Which of `mediaIds` a draft holds. The draft's pages live in a raw table, so the Payload-relation
  * scan of the media reclaim cannot see them and would take a waiting receipt for an orphan.

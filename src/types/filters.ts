@@ -7,4 +7,5 @@ export type FilterConfigT = {
   expenseCategories?: { id: number; name: string }[]
   showTypeFilter?: boolean
   showPaymentMethodFilter?: boolean
+  showWorkerDraftsFilter?: boolean
 }

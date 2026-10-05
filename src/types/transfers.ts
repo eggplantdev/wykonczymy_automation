@@ -45,6 +45,8 @@ export type TransferRowT = {
   vatPlane: VatPlaneT | null
   // For a CANCELLATION row: the type of the original transfer it reverses (display-only). null otherwise.
   originalType: TransferTypeT | null
+  // Booked by accepting a worker's expense draft.
+  fromWorkerDraft?: boolean
 }
 
 // PAYOUT-per-worker total for one investment. `workerId` null is the „Bez przypisanego pracownika"

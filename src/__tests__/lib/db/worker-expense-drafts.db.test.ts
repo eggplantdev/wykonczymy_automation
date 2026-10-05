@@ -2,7 +2,11 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
-import { insertWorkerExpenseDraft } from '@/lib/db/worker-expense-drafts'
+import {
+  decideExpenseDraft,
+  insertWorkerExpenseDraft,
+  listDraftTransferIds,
+} from '@/lib/db/worker-expense-drafts'
 import { deleteUnreferencedMedia } from '@/lib/media/delete-unreferenced-media'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
@@ -119,5 +123,27 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
 
     expect(await draftOf([own, foreign])).toBeNull()
     expect(await draftCount()).toBe(before)
+  })
+
+  // The badge and the filter read only accepted drafts: a rejected or pending one has no expense.
+  it('lists the expense of an accepted draft only', async () => {
+    const accepted = await draftOf([await insertMedia('listed-accepted', workerId)])
+    const rejected = await draftOf([await insertMedia('listed-rejected', workerId)])
+    if (accepted === null || rejected === null) throw new Error('draft fixture refused')
+    const { rows } = await db.execute(sql`SELECT id FROM transactions ORDER BY id LIMIT 1`)
+    const transferId = Number(rows[0].id)
+
+    const decidedBy = workerId
+    await decideExpenseDraft(db, { draftId: accepted, decidedBy, status: 'accepted', transferId })
+    await decideExpenseDraft(db, {
+      draftId: rejected,
+      decidedBy,
+      status: 'rejected',
+      transferId: null,
+    })
+
+    expect(await listDraftTransferIds(db, [transferId])).toEqual([transferId])
+    expect(await listDraftTransferIds(db)).toContain(transferId)
+    expect(await listDraftTransferIds(db, [])).toEqual([])
   })
 })

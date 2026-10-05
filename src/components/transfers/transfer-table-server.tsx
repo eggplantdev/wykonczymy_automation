@@ -11,6 +11,7 @@ import {
 import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { fetchFilteredByType } from '@/lib/queries/transfer-totals'
 import { buildTransferRows } from '@/lib/queries/fetch-transfer-rows'
+import { fetchDraftTransferIds } from '@/lib/queries/worker-expense-drafts'
 import { TransferDataTable } from '@/components/transfers/transfer-data-table'
 import { perfStart } from '@/lib/perf'
 import type { TransferTableConfigT } from '@/components/transfers/transfer-table-config'
@@ -59,7 +60,14 @@ export async function TransferTableServer({ config }: TransferTableServerPropsT)
     pageDocs = await enrichCancellationOriginals(pageDocs)
   }
 
-  const rows = await buildTransferRows(pageDocs, refData, { skipMedia })
+  const [builtRows, draftTransferIds] = await Promise.all([
+    buildTransferRows(pageDocs, refData, { skipMedia }),
+    fetchDraftTransferIds(pageDocs.map((doc) => Number(doc.id))),
+  ])
+  const fromDrafts = new Set(draftTransferIds)
+  const rows = builtRows.map((row) =>
+    fromDrafts.has(row.id) ? { ...row, fromWorkerDraft: true } : row,
+  )
   console.log(`[PERF] TransferTableServer buildTransferRows ${step()}ms`)
 
   // Server-derived sum overrides any caller-provided value. Single source of truth.

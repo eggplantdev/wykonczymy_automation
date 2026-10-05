@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import type { Where } from 'payload'
 import {
   buildTransferFilters,
+  narrowToTransferIds,
   scopeAuditThroughOriginal,
   scopeNarrowsByOriginalOnlyField,
   stripCancelledFilters,
@@ -251,5 +252,21 @@ describe('scopeNarrowsByOriginalOnlyField', () => {
         createdBy: { in: [3] },
       }),
     ).toBe(false)
+  })
+})
+
+// „Zgłoszenia pracowników" narrows by transfer id; it must AND with the URL's own filters, not
+// replace them, and an empty id list must read as no rows rather than as no filter.
+describe('narrowToTransferIds', () => {
+  it('keeps the URL filters and adds the id list', () => {
+    const where = narrowToTransferIds(buildTransferFilters({ investment: '31' }, { id: 0 }), [4, 9])
+    const sql = buildSqlConditions(where)
+
+    expect(sql).toContain('investment_id IN (31)')
+    expect(sql).toContain('(id IN (4, 9))')
+  })
+
+  it('an empty list matches nothing', () => {
+    expect(buildSqlConditions(narrowToTransferIds({}, []))).toContain('(id = -1)')
   })
 })

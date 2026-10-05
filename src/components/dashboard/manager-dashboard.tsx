@@ -1,9 +1,12 @@
 import { parsePagination } from '@/lib/utils/pagination'
 import { parseTransferSort } from '@/lib/queries/transfer-sort'
-import { buildTransferFilters } from '@/lib/queries/transfer-filters'
+import { buildTransferFilters, narrowToTransferIds } from '@/lib/queries/transfer-filters'
 import { fetchManagerDashboardData } from '@/lib/queries/dashboard'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
-import { fetchPendingExpenseDrafts } from '@/lib/queries/worker-expense-drafts'
+import {
+  fetchDraftTransferIds,
+  fetchPendingExpenseDrafts,
+} from '@/lib/queries/worker-expense-drafts'
 import type { RoleT } from '@/lib/auth/roles'
 import { UserRegisterStats } from '@/components/dashboard/user-register-stats'
 import { PendingExpenseDrafts } from '@/components/worker-expenses/pending-expense-drafts'
@@ -33,11 +36,14 @@ export async function ManagerDashboard({ searchParams, user }: ManagerDashboardP
     },
     pendingDrafts,
     referenceDataBase,
+    draftTransferIds,
   ] = await Promise.all([
     fetchManagerDashboardData(),
     fetchPendingExpenseDrafts(),
     fetchReferenceData(),
+    searchParams.workerDrafts === '1' ? fetchDraftTransferIds() : undefined,
   ])
+  const where = buildTransferFilters(searchParams, { id: 0 })
   console.log(`[PERF] ManagerDashboard fetchManagerDashboardData ${step()}ms`)
 
   return (
@@ -58,7 +64,7 @@ export async function ManagerDashboard({ searchParams, user }: ManagerDashboardP
         id={SECTION_IDS.transactions}
         config={{
           query: {
-            where: buildTransferFilters(searchParams, { id: 0 }),
+            where: draftTransferIds ? narrowToTransferIds(where, draftTransferIds) : where,
             page,
             limit,
             sort,
@@ -77,6 +83,7 @@ export async function ManagerDashboard({ searchParams, user }: ManagerDashboardP
             otherCategories,
             expenseCategories,
             showPaymentMethodFilter: false,
+            showWorkerDraftsFilter: true,
           },
         }}
       />

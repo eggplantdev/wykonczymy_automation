@@ -162,6 +162,15 @@ export function buildTransferFilters(
   return where
 }
 
+/**
+ * Keep only `transferIds`, on top of whatever `where` already narrows. Under `and` because `id` may
+ * already hold the search by id or a NO_RESULTS short-circuit.
+ */
+export function narrowToTransferIds(where: Where, transferIds: number[]): Where {
+  const ids = transferIds.length > 0 ? { in: transferIds } : { equals: -1 }
+  return { ...where, and: [...(where.and ?? []), { id: ids }] }
+}
+
 // The fields a CANCELLATION row does not carry: cancelTransferAction copies only amount, date,
 // description and the back-reference, since a persisted sourceRegister would be subtracted a second
 // time by the balance query (see enrichCancellationOriginals). Narrowing by one of them cuts the
