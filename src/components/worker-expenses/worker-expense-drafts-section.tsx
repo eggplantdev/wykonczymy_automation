@@ -1,11 +1,21 @@
+import { Fragment } from 'react'
 import { Description } from '@/components/ui/description'
-import { AddExpenseDraftDialog } from '@/components/worker-expenses/add-expense-draft-dialog'
+import {
+  SUMMARY_LABEL_COL,
+  SummaryHeaderCell,
+  SummaryLabelCell,
+  SummaryTable,
+} from '@/components/ui/summary-grid'
+import { ExpenseDraftDialog } from '@/components/worker-expenses/expense-draft-dialog'
 import { DeleteExpenseDraftButton } from '@/components/worker-expenses/delete-expense-draft-button'
+import { ExpenseDraftPagesCell } from '@/components/worker-expenses/expense-draft-pages-cell'
 import { DraftStatusBadge } from '@/components/worker-expenses/draft-status-badge'
 import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 import type { CashRegisterRefT } from '@/types/reference-data'
 import { formatPLDateTime } from '@/lib/utils/format-date'
+
+const COLS = `${SUMMARY_LABEL_COL} auto auto minmax(min(16rem, 40vw), 1fr) auto`
 
 type PropsT = {
   drafts: ExpenseDraftRowT[]
@@ -23,12 +33,15 @@ export function WorkerExpenseDraftsSection({
   registers,
   defaultRegisterId,
 }: PropsT) {
+  // Only a pending draft can be edited or deleted, so with none waiting the column would stand empty.
+  const showActions = canSend && drafts.some((draft) => draft.status === 'pending')
+
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-4xl">
       <div className="mb-2 flex items-center justify-between gap-2">
         <h2 className="text-sm font-semibold">Moje wydatki</h2>
         {canSend && registers.length > 0 && investments.length > 0 && (
-          <AddExpenseDraftDialog
+          <ExpenseDraftDialog
             investments={investments}
             registers={registers}
             defaultRegisterId={defaultRegisterId}
@@ -41,28 +54,54 @@ export function WorkerExpenseDraftsSection({
       {drafts.length === 0 ? (
         <Description>Brak zgłoszonych wydatków.</Description>
       ) : (
-        <ul className="flex flex-col divide-y rounded-md border text-sm">
+        <SummaryTable cols={showActions ? `${COLS} auto` : COLS}>
+          <SummaryHeaderCell variant="label">Inwestycja</SummaryHeaderCell>
+          <SummaryHeaderCell variant="label">Wysłano</SummaryHeaderCell>
+          <SummaryHeaderCell variant="label">Załączniki</SummaryHeaderCell>
+          <SummaryHeaderCell variant="label">Notatka</SummaryHeaderCell>
+          <SummaryHeaderCell variant="label">Status</SummaryHeaderCell>
+          {showActions && <SummaryHeaderCell variant="label">{null}</SummaryHeaderCell>}
           {drafts.map((draft) => (
-            <li key={draft.id} className="flex items-start justify-between gap-3 px-3 py-2">
-              <div className="min-w-0">
-                <div className="font-medium">{draft.investmentName}</div>
-                <div className="text-muted-foreground text-xs">
-                  {formatPLDateTime(draft.sentAt)} · zdjęć: {draft.media.length}
-                </div>
-                {draft.note && <div className="mt-1 break-words">{draft.note}</div>}
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
+            <Fragment key={draft.id}>
+              <SummaryLabelCell className="flex items-center">
+                {draft.investmentName}
+              </SummaryLabelCell>
+              <SummaryLabelCell className="flex items-center">
+                {formatPLDateTime(draft.sentAt)}
+              </SummaryLabelCell>
+              <SummaryLabelCell className="flex items-center justify-center">
+                <ExpenseDraftPagesCell
+                  draftId={draft.id}
+                  media={draft.media}
+                  isEditable={canSend && draft.status === 'pending'}
+                />
+              </SummaryLabelCell>
+              <SummaryLabelCell className="flex items-center break-words">
+                {draft.note ?? '—'}
+              </SummaryLabelCell>
+              <SummaryLabelCell className="flex items-center">
                 <DraftStatusBadge status={draft.status} />
-                {canSend && draft.status === 'pending' && (
-                  <DeleteExpenseDraftButton
-                    draftId={draft.id}
-                    investmentName={draft.investmentName}
-                  />
-                )}
-              </div>
-            </li>
+              </SummaryLabelCell>
+              {showActions && (
+                <SummaryLabelCell className="flex items-center gap-1">
+                  {draft.status === 'pending' && (
+                    <>
+                      <ExpenseDraftDialog
+                        investments={investments}
+                        registers={registers}
+                        draft={draft}
+                      />
+                      <DeleteExpenseDraftButton
+                        draftId={draft.id}
+                        investmentName={draft.investmentName}
+                      />
+                    </>
+                  )}
+                </SummaryLabelCell>
+              )}
+            </Fragment>
           ))}
-        </ul>
+        </SummaryTable>
       )}
     </div>
   )
