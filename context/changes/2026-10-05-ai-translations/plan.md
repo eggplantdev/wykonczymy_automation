@@ -508,15 +508,15 @@ Run **once**, after the final phase.
 
 #### Automated
 
-- [x] 2.1 kosztorys-translations action spec passes
-- [x] 2.2 kosztorys-item-translations DB spec passes against 5435
-- [x] 2.3 row-condition spec passes
+- [x] 2.1 kosztorys-translations action spec passes — 0ed47a1f
+- [x] 2.2 kosztorys-item-translations DB spec passes against 5435 — 0ed47a1f
+- [x] 2.3 row-condition spec passes — 0ed47a1f
 
 ### Phase 3: Katalog prac bulk action
 
 #### Automated
 
-- [ ] 3.1 work-catalogue-translations action spec passes
+- [x] 3.1 work-catalogue-translations action spec passes
 
 ### Phase 4: Translate at creation
 
