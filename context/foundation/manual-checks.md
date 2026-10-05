@@ -3707,19 +3707,26 @@ przypisane do etapów w kilku inwestycjach — w tym co najmniej jednej zakończ
 
 ## EX-971 — worker-expenses — pracownik zgłasza wydatek z paragonem, kierownik przyjmuje go w Transakcjach (2026-10-05)
 
-- [ ] Pracownik na swojej stronie → „Dodaj wydatek" → inwestycja + 2 zdjęcia + notatka → wyślij: na liście „Moje wydatki" pozycja „czeka", zdjęć: 2. Sprawdź też przy szerokości 390px.
+- [ ] Pracownik na swojej stronie → „Dodaj wydatek" → inwestycja + 2 zdjęcia + notatka → wyślij: na liście „Moje wydatki" pozycja „czeka", w kolumnie „Załączniki" ikona otwiera oba zdjęcia. Sprawdź też przy szerokości 390px.
 - [ ] Pracownik z jedną kasą (bez ustawionej domyślnej): „Dodaj wydatek" jest widoczny, dialog nie pyta o kasę, a przyjmowane zgłoszenie ma jego kasę.
 - [ ] Pracownik z kilkoma kasami: dialog pokazuje „Kasa", ustawioną na domyślną, jeśli ją ma; bez wyboru kasy „Wyślij" jest nieaktywne.
 - [ ] Pracownik bez żadnej kasy: zamiast przycisku „Dodaj wydatek" widzi „Nie masz kasy — poproś kierownika o jej założenie.".
 - [ ] „Moje wydatki" → przy zgłoszeniu „czeka" przycisk „Usuń" → potwierdzenie: pozycja znika z listy i z czekających zgłoszeń w Transakcjach. Przy „przyjęty"/„odrzucony" przycisku nie ma.
 - [ ] Kierownik na stronie pracownika: na liście „Moje wydatki" nie ma przycisku „Usuń".
 - [ ] „Moje inwestycje": długa nazwa inwestycji mieści się w jednej linii na desktopie; przy 390px tabela się nie rozjeżdża.
-- [ ] Transakcje → nad tabelą czekające zgłoszenie → „Przyjmij": dialog „Nowy wydatek" ma inwestycję, kasę pracownika, zdjęcia i notatkę; kwota jest pusta.
+- [ ] Transakcje → nad tabelą czekające zgłoszenie ma jeden przycisk „Zobacz" → dialog „Nowy wydatek" ma inwestycję, kasę pracownika, zdjęcia i notatkę; kwota jest pusta.
 - [ ] W tym dialogu „Generuj" wypełnia kwotę i opis z paragonu; „Zapisz" → zgłoszenie znika z listy, wydatek jest w tabeli, u pracownika status „przyjęty".
 - [ ] To samo zgłoszenie w dwóch kartach: druga „Zapisz" pokazuje „To zgłoszenie zostało już rozpatrzone.", a w tabeli jest jeden wydatek.
-- [ ] „Odrzuć" → potwierdzenie → zgłoszenie znika z listy; u pracownika status „odrzucony".
+- [ ] W dialogu „Nowy wydatek" ze zgłoszenia → „Odrzuć" → potwierdzenie: dialog się zamyka, zgłoszenie znika z listy; u pracownika status „odrzucony". „Anuluj" w potwierdzeniu wraca do dialogu z danymi.
+- [ ] Filtry → „Zgłoszone wydatki" włącza się i wyłącza jednym kliknięciem (bez rozwijanej listy).
+- [ ] Z włączonym „Zgłoszone wydatki" odrzucone zgłoszenia są w tabeli transakcji na pierwszej stronie, wyszarzone i przekreślone jak anulowane: bez ID i kwoty, z plakietką „odrzucone zgłoszenie", zdjęciami w kolumnie „Faktura" i przyciskiem „Przywróć" (nieprzekreślonym). Bez filtra ich nie ma.
+- [ ] Pracownik → „Moje wydatki" → ołówek przy wydatku „czeka": „Edytuj wydatek" z jego inwestycją, kasą, zdjęciami i notatką; zmiana notatki i inwestycji + „Zapisz" → lista pokazuje nowe wartości, kierownik widzi je w „Wydatki zgłoszone przez pracowników". Zamknięcie bez zapisu i ponowne otwarcie pokazuje zapisane wartości, nie porzuconą edycję. Przy „przyjęty" / „odrzucony" ołówka nie ma.
+- [ ] Pracownik → „Moje wydatki" → ikona w „Załącznikach" przy wydatku „czeka": podgląd pozwala dodać zdjęcia i usunąć jedno z nich; ostatniego zdjęcia usunąć się nie da (kosz znika przy jednym). Po zmianie kierownik w „Wydatki zgłoszone przez pracowników" widzi te same zdjęcia.
+- [ ] Pracownik → „Moje wydatki" → wydatek „przyjęty" / „odrzucony": ikona tylko pokazuje zdjęcia — bez dodawania i usuwania.
+- [ ] Pulpit → „Wydatki zgłoszone przez pracowników": osobna kolumna „Załączniki" z samą ikoną podglądu (bez licznika) (klik otwiera zdjęcia), „Notatka" najszersza — dłuższa notatka nie łamie się co dwa słowa.
+- [ ] „Przywróć" przy odrzuconym zgłoszeniu → wiersz znika z tabeli, zgłoszenie wraca do „Wydatki zgłoszone przez pracowników" z tymi samymi zdjęciami; u pracownika status „czeka".
 - [ ] Zwykły „Nowy wydatek" z paska nadal odtwarza swój niedokończony szkic, także po przyjęciu zgłoszenia.
-- [ ] Transakcje → filtr „Zgłoszenia" → „Zgłoszenia pracowników": tylko wydatki przyjęte ze zgłoszeń, każdy z plakietką „od pracownika"; „Wyczyść filtry" wyłącza przełącznik.
+- [ ] Transakcje → filtr „Zgłoszone wydatki": tylko wydatki przyjęte ze zgłoszeń, każdy z plakietką „od pracownika"; „Wyczyść filtry" wyłącza przełącznik.
 - [ ] Filtr „Zgłoszenia pracowników" razem z wyszukiwaniem po kwocie zwraca część wspólną obu.
 
 ## 2026-10-05 — pagination-limit-width — „100” mieści się w selekcie „Pokaż”
