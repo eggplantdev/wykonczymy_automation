@@ -26,5 +26,16 @@ export const DISABLED_ACCOUNT_ERROR = 'DisabledAccount'
 export const DISABLED_ACCOUNT_MESSAGE =
   'To konto jest wyłączone. Skontaktuj się z właścicielem firmy.'
 
-export const LOCKED_ACCOUNT_MESSAGE =
+const LOCKED_ACCOUNT_MESSAGE =
   'Konto zostało tymczasowo zablokowane po zbyt wielu nieudanych próbach. Spróbuj ponownie za kilka minut.'
+
+/**
+ * The refusal a failed `payload.login` owes the user when the password is not the reason. Payload
+ * throws `LockedAuth` with the same 401 as a wrong password, so the name is the only discriminator.
+ */
+export function loginRefusalMessage(error: unknown): string | undefined {
+  if (!(error instanceof Error)) return undefined
+  if (error.name === 'LockedAuth') return LOCKED_ACCOUNT_MESSAGE
+  if (error.name === DISABLED_ACCOUNT_ERROR) return DISABLED_ACCOUNT_MESSAGE
+  return undefined
+}

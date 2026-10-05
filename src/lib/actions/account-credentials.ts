@@ -5,11 +5,7 @@ import { requireAuth } from '@/lib/auth/require-auth'
 import { ROLES } from '@/lib/auth/roles'
 import { runAuthorizedHandler, validateAction } from '@/lib/actions/run-action'
 import { findEmailHolder } from '@/lib/workers/find-email-holder'
-import {
-  DISABLED_ACCOUNT_ERROR,
-  DISABLED_ACCOUNT_MESSAGE,
-  LOCKED_ACCOUNT_MESSAGE,
-} from '@/lib/constants/worker-lock'
+import { loginRefusalMessage } from '@/lib/constants/worker-lock'
 import {
   accountCredentialsSchema,
   type AccountCredentialsInputT,
@@ -18,18 +14,21 @@ import type { ActionResultT } from '@/types/action'
 
 /**
  * Checked through Payload's own login so a guessed password counts toward the account lockout. The
- * session row it leaves behind is never handed out and expires with the cookie lifetime.
+ * session row it leaves behind is never handed out and expires with the cookie lifetime. Anything
+ * but a refusal is rethrown: a database blip reported as a wrong password would burn lockout
+ * attempts on a correct one and never reach the log.
  */
 async function verifyCurrentPassword(payload: Payload, email: string, password: string) {
   try {
     await payload.login({ collection: 'users', data: { email, password } })
     return undefined
   } catch (error) {
-    if (error instanceof Error && error.name === 'LockedAuth') return LOCKED_ACCOUNT_MESSAGE
-    if (error instanceof Error && error.name === DISABLED_ACCOUNT_ERROR) {
-      return DISABLED_ACCOUNT_MESSAGE
+    const refusal = loginRefusalMessage(error)
+    if (refusal) return refusal
+    if (error instanceof Error && error.name === 'AuthenticationError') {
+      return 'Nieprawidłowe obecne hasło.'
     }
-    return 'Nieprawidłowe obecne hasło.'
+    throw error
   }
 }
 

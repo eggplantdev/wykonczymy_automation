@@ -14,9 +14,7 @@ export function AccountCredentialsDialog({ email }: { email: string }) {
     <FormDialog
       formId={formId}
       showKeepOpen={false}
-      trigger={
-        <RowActionButton icon={KeyRound} label={TITLE} text={TITLE} showLabel className="w-fit" />
-      }
+      trigger={<RowActionButton icon={KeyRound} label={TITLE} showLabel className="w-fit" />}
       title={TITLE}
       description="Podaj obecne hasło, żeby potwierdzić zmianę."
     >

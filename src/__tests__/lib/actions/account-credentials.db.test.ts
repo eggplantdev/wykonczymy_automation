@@ -2,9 +2,10 @@ import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vites
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
+import { DISABLED_ACCOUNT_MESSAGE } from '@/lib/constants/worker-lock'
 
 // Account takeover via a held phone (EX-989): a credential change must cost the current password,
-// and must only ever reach the caller's own row. Asserted on what is stored and what logs in.
+// and must only ever reach the caller's own row.
 
 vi.mock('server-only', () => ({}))
 const session = vi.hoisted(() => ({ userId: 0 }))
@@ -127,6 +128,47 @@ describe.skipIf(!ENV_READY)('changeOwnCredentialsAction (DB)', () => {
     expect(
       await actions.changeOwnCredentialsAction({ email: SELF, currentPassword: PASSWORD }),
     ).toEqual({ success: false, error: 'Nie wprowadzono żadnej zmiany.' })
+  })
+
+  it('refuses a deactivated account with the disabled message and writes nothing', async () => {
+    await db.execute(sql`UPDATE users SET active = false WHERE id = ${session.userId}`)
+
+    const result = await actions.changeOwnCredentialsAction({
+      email: NEW_EMAIL,
+      currentPassword: PASSWORD,
+    })
+
+    expect(result).toEqual({ success: false, error: DISABLED_ACCOUNT_MESSAGE })
+    expect(await storedEmail(session.userId)).toBe(SELF)
+  })
+
+  // A database blip must not read as a wrong password: the user would burn lockout attempts
+  // retyping a correct one, and the error would never reach the log.
+  it('does not report an infrastructure failure as a wrong password', async () => {
+    vi.spyOn(payload, 'login').mockRejectedValueOnce(new Error('connection terminated'))
+
+    const result = await actions.changeOwnCredentialsAction({
+      email: NEW_EMAIL,
+      currentPassword: PASSWORD,
+    })
+
+    expect(result).toEqual({ success: false, error: 'connection terminated' })
+    expect(await storedEmail(session.userId)).toBe(SELF)
+  })
+
+  // Payload's default `unlock` access is any session, so the holder of a phone could reset the
+  // lockout the guesses above count toward and keep guessing.
+  it('an employee cannot lift the account lockout', async () => {
+    const employee = await payload.findByID({ collection: 'users', id: session.userId })
+
+    await expect(
+      payload.unlock({
+        collection: 'users',
+        data: { email: SELF, password: PASSWORD },
+        overrideAccess: false,
+        req: { user: { ...employee, collection: 'users' } },
+      }),
+    ).rejects.toThrow()
   })
 
   it('never touches another account', async () => {

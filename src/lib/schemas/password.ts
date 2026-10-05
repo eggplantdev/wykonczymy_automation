@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const PASSWORD_MIN_LENGTH = 6
+const PASSWORD_MIN_LENGTH = 6
 
 export const passwordSchema = z
   .string()

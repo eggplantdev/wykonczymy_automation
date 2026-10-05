@@ -34,11 +34,7 @@ export function AccountCredentialsForm({
     onSubmitSuccess,
     // A draft lives in sessionStorage — passwords must never land there.
     persistDraft: false,
-    toData: (value) => ({
-      email: value.email,
-      newPassword: value.newPassword || undefined,
-      currentPassword: value.currentPassword,
-    }),
+    toData: (value) => value,
     action: changeOwnCredentialsAction,
   })
 
@@ -46,9 +42,7 @@ export function AccountCredentialsForm({
     <FormShell form={form}>
       <FieldGroup>
         <form.AppField name="email">
-          {(field) => (
-            <field.Input label="E-mail" type="email" autoComplete="email" showError />
-          )}
+          {(field) => <field.Input label="E-mail" type="email" autoComplete="email" showError />}
         </form.AppField>
         <form.AppField name="newPassword">
           {(field) => (

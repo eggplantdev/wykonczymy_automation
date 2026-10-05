@@ -3686,6 +3686,8 @@ Potrzebny stan: dwa konta pracowników (rola Pracownik) ze znanymi hasłami oraz
 
 - [ ] Jako pracownik, w DevTools: `PATCH /api/users/<własne id>` z nowym `password` (ciasteczko
       z przeglądarki) → 403, a stare hasło nadal loguje.
+- [ ] Jako pracownik, w DevTools: `POST /api/users/unlock` z własnym e-mailem → 403 (blokady po
+      5 błędnych hasłach nie da się zdjąć samemu).
 - [ ] Jako pracownik na telefonie (390px): `/pracownicy/<własne id>` pokazuje „Zmień e-mail lub
       hasło"; okno mieści się na ekranie i da się je wypełnić.
 - [ ] Błędne „Obecne hasło" → „Nieprawidłowe obecne hasło.", nic się nie zmienia.
