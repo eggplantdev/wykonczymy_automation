@@ -3639,3 +3639,9 @@ Refaktor bez zmiany zachowania: nocny cron czyści Kosz tak samo jak wcześniej.
 - [ ] „Wpłata” → to samo: po zapisie z „Nie zamykaj” data zostaje.
 - [ ] Bez „Nie zamykaj” (oba okna): po zapisie i ponownym otwarciu data jest dzisiejsza. „Wyczyść”
       zawsze wraca do dzisiejszej daty.
+
+## EX-988 — worker-pdf-translations — j.m. i PDF pracownika w jego języku (2026-10-05)
+
+- [ ] Link pracownika ustawionego na ukraiński → „Zgłaszam pracę": kolumna j.m. pokazuje „шт.", „м²", „пог. м"; jednostka spoza listy (np. „big bag") zostaje jak wpisana.
+- [ ] Ten sam link → „Prace dodatkowe" → lista j.m. jest po ukraińsku; po wysłaniu zgłoszenie w aplikacji pokazuje polską jednostkę.
+- [ ] Link pracownika polskiego: jednostki wyglądają jak dotąd (także „m2" wpisane bez indeksu górnego).

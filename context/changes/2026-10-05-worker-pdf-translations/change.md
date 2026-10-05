@@ -1,12 +1,12 @@
 ---
 change_id: worker-pdf-translations
 title: PDF pracownika w jego języku (uk/ru)
-status: planned
+status: implementing
 created: 2026-10-05
 updated: 2026-10-05
 archived_at: null
-branch: null
-worktree: null
+branch: worker-pdf-translations
+worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/worker-pdf-translations
 ---
 
 ## Notes

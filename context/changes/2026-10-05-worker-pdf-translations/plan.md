@@ -322,9 +322,9 @@ Run **once**, after the final phase.
 
 #### Automated
 
-- [ ] 1.1 translate-unit spec passes
-- [ ] 1.2 translate-tree spec passes with a unit case
-- [ ] 1.3 Extra-works spec covers translated label + Polish value
+- [x] 1.1 translate-unit spec passes
+- [x] 1.2 translate-tree spec passes with a unit case
+- [x] 1.3 Extra-works spec covers translated label + Polish value
 
 ### Phase 2: Worker PDF in the worker's language
 

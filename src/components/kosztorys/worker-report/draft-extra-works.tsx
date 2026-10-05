@@ -1,9 +1,10 @@
 import type { ExtraWorkT } from '@/components/kosztorys/worker-report/types'
 import { useTranslation } from '@/hooks/use-translation'
+import { translateUnit } from '@/lib/kosztorys/worker-report/translate-unit'
 
 // The blank row the dialog opens on is not a work yet.
 export function DraftExtraWorks({ extras }: { extras: ExtraWorkT[] }) {
-  const { t } = useTranslation('report')
+  const { t, locale } = useTranslation('report')
   const listed = extras.filter((extra) => extra.description.trim() !== '')
   if (listed.length === 0) return null
   return (
@@ -14,7 +15,7 @@ export function DraftExtraWorks({ extras }: { extras: ExtraWorkT[] }) {
           <li key={extra.key} className="flex items-center justify-between gap-4 py-2">
             <span className="min-w-0 break-words">{extra.description}</span>
             <span className="whitespace-nowrap tabular-nums">
-              {extra.qty} {extra.unit}
+              {extra.qty} {translateUnit(extra.unit, locale)}
             </span>
           </li>
         ))}
