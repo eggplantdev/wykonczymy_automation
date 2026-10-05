@@ -2,18 +2,20 @@
 
 import { Info } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { useTranslation } from '@/hooks/use-translation'
 
 type NotePopoverPropsT = {
   note: string | null
 }
 
 export function NotePopover({ note }: NotePopoverPropsT) {
+  const { t } = useTranslation('transfers')
   if (!note) return null
 
   return (
     <Popover>
       <PopoverTrigger
-        aria-label="Pokaż notatkę"
+        aria-label={t('showNote')}
         // Match InvoiceCell's ghost icon-button footprint so the adjacent Faktura/Notatka icons align.
         className="text-muted-foreground hover:bg-accent hover:text-foreground inline-flex size-9 cursor-pointer items-center justify-center rounded-md transition-colors outline-none"
       >

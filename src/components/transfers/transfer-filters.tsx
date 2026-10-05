@@ -23,12 +23,8 @@ import { ClearButton } from '@/components/filters/clear-button'
 import { DateFilters } from '@/components/filters/date-filters'
 import { StatButton } from '@/components/ui/stat-button'
 import { formatPLN } from '@/lib/utils/format-currency'
-import {
-  TRANSFER_TYPES,
-  TRANSFER_TYPE_LABELS,
-  PAYMENT_METHODS,
-  PAYMENT_METHOD_LABELS,
-} from '@/lib/constants/transfers'
+import { TRANSFER_TYPES, PAYMENT_METHODS } from '@/lib/constants/transfers'
+import { useTranslation } from '@/hooks/use-translation'
 import { useUrlFilterParams } from '@/hooks/use-url-filter-params'
 import { useToggleSearchParam } from '@/hooks/use-toggle-search-param'
 import { cn } from '@/lib/utils/cn'
@@ -89,6 +85,7 @@ export function TransferFilters({
   listsCancelled,
 }: TransferFiltersPropsT) {
   const searchParams = useSearchParams()
+  const { t } = useTranslation('transfers')
   // Debounce in FilterMultiSelect batches rapid clicks to reduce how often we hit the server.
   const { getMultiParam, updateParam, updateMultipleParams, isPending } =
     useUrlFilterParams(baseUrl)
@@ -115,13 +112,13 @@ export function TransferFilters({
   const cancelledToggles = [
     {
       id: 'cancelledTransactionAudit',
-      label: 'Tylko anulowane transakcje',
+      label: t('onlyCancelled'),
       active: auditMode,
       onToggle: () => setAuditMode(!auditMode),
     },
     {
       id: 'showCancelled',
-      label: 'Pokaż anulowane',
+      label: t('showCancelled'),
       active: revealingCancelled,
       // Audit mode already pins anulowane on (`lib/queries/transfer-filters.ts`); disabled rather than
       // dropped, since a row that vanishes takes the reason with it.
@@ -164,14 +161,14 @@ export function TransferFilters({
             <FilterMultiSelect
               values={currentTypes}
               onValuesChange={(types) => updateParam('type', types.join(','))}
-              options={TRANSFER_TYPES.map((t) => ({
-                value: t,
-                label: TRANSFER_TYPE_LABELS[t],
+              options={TRANSFER_TYPES.map((type) => ({
+                value: type,
+                label: t(`type_${type}`),
               }))}
               // In „Tryb anulowań" every row is an anulowanie (`lib/queries/transfer-filters.ts`), so
               // „Anulowanie" is locked on rather than offered as a choice that would do nothing.
               lockedValues={auditMode ? ['CANCELLATION'] : undefined}
-              label="Typ"
+              label={t('filterType')}
               icon={Tags}
               searchable
             />
@@ -182,7 +179,7 @@ export function TransferFilters({
               values={currentSourceRegisters}
               onValuesChange={(v) => updateParam('sourceRegister', v.join(','))}
               options={cashRegisters.map((cr) => ({ value: String(cr.id), label: cr.name }))}
-              label="Kasa"
+              label={t('filterRegister')}
               icon={Banknote}
               searchable
             />
@@ -193,7 +190,7 @@ export function TransferFilters({
               values={currentInvestments}
               onValuesChange={(v) => updateParam('investment', v.join(','))}
               options={investments.map((i) => ({ value: String(i.id), label: i.name }))}
-              label="Inwestycja"
+              label={t('filterInvestment')}
               icon={Landmark}
               searchable
             />
@@ -204,7 +201,7 @@ export function TransferFilters({
               values={currentCreatedBys}
               onValuesChange={(v) => updateParam('createdBy', v.join(','))}
               options={users.map((u) => ({ value: String(u.id), label: u.name }))}
-              label="Dodane przez"
+              label={t('filterCreatedBy')}
               icon={User}
               searchable
             />
@@ -215,7 +212,7 @@ export function TransferFilters({
               values={currentWorkers}
               onValuesChange={(v) => updateParam('worker', v.join(','))}
               options={workers.map((w) => ({ value: String(w.id), label: w.name }))}
-              label="Pracownik"
+              label={t('filterWorker')}
               icon={HardHat}
               searchable
             />
@@ -227,9 +224,9 @@ export function TransferFilters({
               onValuesChange={(v) => updateParam('paymentMethod', v.join(','))}
               options={PAYMENT_METHODS.map((m) => ({
                 value: m,
-                label: PAYMENT_METHOD_LABELS[m],
+                label: t(`payment_${m}`),
               }))}
-              label="Metoda płatności"
+              label={t('filterPaymentMethod')}
               icon={CreditCard}
             />
           )}
@@ -239,7 +236,7 @@ export function TransferFilters({
               values={currentOtherCategories}
               onValuesChange={(v) => updateParam('otherCategory', v.join(','))}
               options={otherCategories.map((c) => ({ value: String(c.id), label: c.name }))}
-              label="Kategoria"
+              label={t('filterCategory')}
               icon={FolderOpen}
               searchable
             />
@@ -250,7 +247,7 @@ export function TransferFilters({
               values={currentExpenseCategories}
               onValuesChange={(v) => updateParam('expenseCategory', v.join(','))}
               options={expenseCategories.map((c) => ({ value: String(c.id), label: c.name }))}
-              label="Typ wydatku inwestycyjnego"
+              label={t('filterExpenseCategory')}
               icon={Receipt}
               searchable
             />
@@ -260,7 +257,7 @@ export function TransferFilters({
             <ActiveFilterButton
               isActive={onlyWorkerDrafts}
               onChange={setOnlyWorkerDrafts}
-              activeLabel="Zgłoszone wydatki"
+              activeLabel={t('filterWorkerDrafts')}
             />
           )}
         </ControlGrid>
@@ -273,7 +270,7 @@ export function TransferFilters({
         <SearchFilterInput
           value={currentAmount}
           onChange={(v) => updateParam('amount', v)}
-          placeholder="Szukaj po kwocie"
+          placeholder={t('searchAmount')}
           inputMode="decimal"
           className={SEARCH_FILTER_TOOLBAR_WIDTH}
           debounceMs={DEBOUNCE_MS}
@@ -282,30 +279,26 @@ export function TransferFilters({
         <SearchFilterInput
           value={currentId}
           onChange={(v) => updateParam('id', stripNonDigits(v))}
-          placeholder="Szukaj po id"
+          placeholder={t('searchId')}
           inputMode="numeric"
           className={SEARCH_FILTER_TOOLBAR_WIDTH}
           debounceMs={DEBOUNCE_MS}
         />
 
-        <FilterMultiSelect label="Anulowane" icon={Ban} toggles={cancelledToggles} />
+        <FilterMultiSelect label={t('filterCancelled')} icon={Ban} toggles={cancelledToggles} />
 
         <ClearButton onClick={clearEntityFilters} disabled={!hasEntityFilters}>
-          Wyczyść filtry
+          {t('clearFilters')}
         </ClearButton>
       </ControlGrid>
       <DateFilters baseUrl={baseUrl} />
 
       {totalFilteredAmount !== undefined && hasAnyFilter && (
         <StatButton
-          label="Suma wybranych transakcji"
+          label={t('filteredSum')}
           value={formatPLN(totalFilteredAmount)}
           className="border-chart-blue"
-          tooltip={
-            listsCancelled
-              ? 'Suma pomija transakcje anulowane, ale liczy anulowania, które je cofają — dlatego nie zgadza się z listą poniżej.'
-              : undefined
-          }
+          tooltip={listsCancelled ? t('filteredSumTip') : undefined}
         />
       )}
     </div>

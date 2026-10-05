@@ -12,6 +12,7 @@ import { useInvoiceUpload } from '@/hooks/use-invoice-upload'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { isManagementRole } from '@/lib/auth/roles'
 import type { PreviewFileT } from '@/types/media'
+import { useTranslation } from '@/hooks/use-translation'
 
 type InvoiceCellPropsT = {
   transactionId: number
@@ -19,6 +20,7 @@ type InvoiceCellPropsT = {
 }
 
 export function InvoiceCell({ transactionId, invoices }: InvoiceCellPropsT) {
+  const { t } = useTranslation('transfers')
   const { role } = useCurrentUser()
   const [uploadOpen, setUploadOpen] = useState(false)
   const { isUploading, uploadFiles } = useInvoiceUpload(transactionId)
@@ -42,7 +44,7 @@ export function InvoiceCell({ transactionId, invoices }: InvoiceCellPropsT) {
           size="icon"
           disabled
           className="text-muted-foreground"
-          aria-label="Przesyłanie faktury"
+          aria-label={t('invoiceUploading')}
         >
           <Loader2 className="animate-spin" />
         </Button>
@@ -65,7 +67,7 @@ export function InvoiceCell({ transactionId, invoices }: InvoiceCellPropsT) {
           size="icon"
           onClick={() => setUploadOpen(true)}
           className="text-muted-foreground"
-          aria-label="Dodaj fakturę"
+          aria-label={t('invoiceAdd')}
         >
           <Plus />
         </Button>

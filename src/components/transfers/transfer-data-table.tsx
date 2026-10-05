@@ -25,6 +25,7 @@ import type { ReferenceDataBaseT } from '@/types/reference-data'
 import { sortParamToSortingState, sortingStateToParam } from '@/lib/table/sort-param'
 import { validTransferSort } from '@/lib/queries/transfer-sort'
 import { useUrlFilterParams } from '@/hooks/use-url-filter-params'
+import { useTranslation } from '@/hooks/use-translation'
 
 type TransferDataTablePropsT = {
   data: TransferRowT[]
@@ -41,6 +42,7 @@ export function TransferDataTable({
 }: TransferDataTablePropsT) {
   const { id: currentUserId, role: currentUserRole } = useCurrentUser()
   const searchParams = useSearchParams()
+  const translator = useTranslation('transfers')
   const {
     title,
     baseUrl,
@@ -67,6 +69,7 @@ export function TransferDataTable({
     referenceData,
     currentUserId,
     currentUserRole,
+    translator,
   })
 
   return (
@@ -74,7 +77,7 @@ export function TransferDataTable({
       {filters && (
         <CollapsibleSection
           className="w-fit"
-          title="Filtry"
+          title={translator.t('filtersTitle')}
           size="sm"
           defaultOpen={false}
           storageKey="transfers:filters"
@@ -109,7 +112,11 @@ export function TransferDataTable({
               <>
                 {invoiceDownload && <InvoiceDownloadButton fetchRows={fetchRows} />}
                 {print && (
-                  <PrintTransfersButton fetchRows={fetchRows} table={table} title="Transakcje" />
+                  <PrintTransfersButton
+                    fetchRows={fetchRows}
+                    table={table}
+                    title={translator.t('title')}
+                  />
                 )}
               </>
             }

@@ -1,5 +1,6 @@
 import { escapeHtml } from '@/lib/utils/escape-html'
 import type { TransferRowT } from '@/types/transfers'
+import { DEFAULT_LANGUAGE, type LanguageT } from '@/lib/i18n/languages'
 
 export type PrintColumnT = {
   id: string
@@ -23,6 +24,7 @@ export function buildTransfersPrintHtml(
   rows: TransferRowT[],
   columns: PrintColumnT[],
   title: string,
+  lang: LanguageT = DEFAULT_LANGUAGE,
 ): string {
   const head = columns.map((column) => `<th>${escapeHtml(column.label)}</th>`).join('')
   const body = rows
@@ -33,7 +35,7 @@ export function buildTransfersPrintHtml(
     .join('')
 
   return `<!DOCTYPE html>
-<html lang="pl">
+<html lang="${lang}">
 <head>
 <meta charset="utf-8">
 <title>${escapeHtml(title)}</title>

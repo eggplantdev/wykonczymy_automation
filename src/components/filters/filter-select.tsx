@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/command'
 import { FilterTriggerButton } from '@/components/filters/filter-trigger-button'
 import { cn } from '@/lib/utils/cn'
+import { useTranslation } from '@/hooks/use-translation'
 
 type FilterOptionT = { value: string; label: string }
 
@@ -33,6 +34,7 @@ export function FilterSelect({
   icon: Icon,
   searchable = false,
 }: FilterSelectPropsT) {
+  const { t } = useTranslation('filters')
   const [open, setOpen] = useState(false)
   const selectedLabel = options.find((o) => o.value === value)?.label
 
@@ -50,7 +52,7 @@ export function FilterSelect({
       </PopoverTrigger>
       <PopoverContent className="w-56 p-0" align="start">
         <Command>
-          {searchable && <CommandInput placeholder="Szukaj..." />}
+          {searchable && <CommandInput placeholder={t('search')} />}
           <CommandList>
             <CommandGroup>
               {options.map((opt) => (
@@ -64,7 +66,7 @@ export function FilterSelect({
                 </CommandItem>
               ))}
             </CommandGroup>
-            {searchable && <CommandEmpty>Brak wyników</CommandEmpty>}
+            {searchable && <CommandEmpty>{t('noResults')}</CommandEmpty>}
           </CommandList>
         </Command>
       </PopoverContent>

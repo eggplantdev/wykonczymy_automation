@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils/cn'
+import { useTranslation } from '@/hooks/use-translation'
 
 /** The width every toolbar search field shares — a layout value, so the caller passes it in.
  * Full width below `sm`: a fixed basis shrinks to a few characters in a crowded toolbar. Wide
@@ -22,11 +23,12 @@ type SearchFilterInputPropsT = {
 export function SearchFilterInput({
   value,
   onChange,
-  placeholder = 'Szukaj...',
+  placeholder,
   className,
   inputMode,
   debounceMs,
 }: SearchFilterInputPropsT) {
+  const { t } = useTranslation('filters')
   const [localValue, setLocalValue] = useState(value)
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null)
 
@@ -75,7 +77,7 @@ export function SearchFilterInput({
       <Input
         value={displayValue}
         onChange={(e) => handleChange(e.target.value)}
-        placeholder={placeholder}
+        placeholder={placeholder ?? t('search')}
         inputMode={inputMode}
         className="h-8 pl-8"
       />

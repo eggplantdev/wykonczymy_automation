@@ -14,6 +14,7 @@ import type { ColumnToggleItemT } from '@/components/ui/column-toggle-menu'
 import { rankForMove, sameKeys, type ColumnRanksT } from '@/lib/table/column-order'
 import { useDraft } from '@/hooks/use-draft'
 import { cn } from '@/lib/utils/cn'
+import { useTranslation } from '@/hooks/use-translation'
 
 type PropsT = {
   open: boolean
@@ -49,6 +50,8 @@ export function ColumnOrderDialog({
   resetDisabled = Object.keys(ranks).length === 0,
   description,
 }: PropsT) {
+  const { t } = useTranslation('filters')
+  const { t: tCommon } = useTranslation('common')
   const keys = items.map((item) => item.id)
   const labels = new Map(items.map((item) => [item.id, item]))
 
@@ -68,7 +71,7 @@ export function ColumnOrderDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-dialog-sm">
-        <DialogHeader title="Ustaw kolejność kolumn" description={description} />
+        <DialogHeader title={t('orderColumnsTitle')} description={description} />
 
         {/* layoutScroll + min-h-0: without the first, framer measures drags against a stale scroll
             offset once the list is scrolled; without the second the inner box never shrinks in the
@@ -104,10 +107,10 @@ export function ColumnOrderDialog({
 
         <DialogFooter>
           <Button variant="outline" size="sm" disabled={resetDisabled} onClick={onReset}>
-            Przywróć domyślną kolejność
+            {t('resetOrder')}
           </Button>
           <DialogClose asChild>
-            <Button size="sm">Zamknij</Button>
+            <Button size="sm">{tCommon('close')}</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>

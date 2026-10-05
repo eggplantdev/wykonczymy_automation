@@ -525,15 +525,15 @@ Run **once**, after the final phase.
 
 #### Automated
 
-- [x] 3.1 expense-draft dialog language DOM spec passes — PHASE3SHA
-- [x] 3.2 existing credentials / worker-expense specs pass unchanged (failure assertions gain `messageKey`) — PHASE3SHA
+- [x] 3.1 expense-draft dialog language DOM spec passes — 39cd2546
+- [x] 3.2 existing credentials / worker-expense specs pass unchanged (failure assertions gain `messageKey`) — 39cd2546
 
 ### Phase 4: Translate the shared transfers stack
 
 #### Automated
 
-- [ ] 4.1 transfer-data-table language DOM spec passes
-- [ ] 4.2 existing Polish-asserting transfers/filters specs pass unchanged
+- [x] 4.1 transfer-data-table language DOM spec passes
+- [x] 4.2 existing Polish-asserting transfers/filters specs pass unchanged
 
 ### Phase 5: Translate media/upload and the shell
 
