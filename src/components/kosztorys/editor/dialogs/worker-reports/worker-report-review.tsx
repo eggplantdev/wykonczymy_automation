@@ -40,6 +40,7 @@ import { isStageMember, resolveWorkerScope } from '@/lib/kosztorys/worker-view/s
 import { formatPLDateTime } from '@/lib/utils/format-date'
 import { itemNounAccusative } from '@/lib/kosztorys/counted-nouns'
 import { settleAction } from '@/lib/utils/settle-action'
+import { NOTICE_MS, retranslationNotice } from '@/lib/utils/notice'
 import { toastMessage } from '@/lib/utils/toast'
 
 type PropsT = {
@@ -182,6 +183,9 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
       toastMessage(result.error, 'error')
       return
     }
+    const before = reportLines.find((line) => line.id === lineId)?.polishDescription
+    const { message, kind } = retranslationNotice(before, result.data.polishDescription)
+    toastMessage(message, kind, NOTICE_MS)
     setRetranslated((current) => ({
       ...current,
       [lineId]: {

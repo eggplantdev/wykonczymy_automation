@@ -36,3 +36,15 @@ export function translationFillNotice(result: {
   if (failed === 0) return { message, kind: 'success' }
   return { message: `${message} — nie udało się: ${failed}. Spróbuj ponownie.`, kind: 'warning' }
 }
+
+// The manager's „Przetłumacz" on a praca spoza rozpiski. A Polish line or an unchanged answer leaves
+// the row looking the same, so without a word the click seems to have done nothing.
+export function retranslationNotice(
+  before: string | undefined,
+  after: string | null,
+): { message: string; kind: 'success' | 'info' } {
+  if (after === null)
+    return { message: 'Pracownik napisał po polsku — nie ma czego tłumaczyć', kind: 'info' }
+  if (after === before) return { message: 'Tłumaczenie bez zmian', kind: 'info' }
+  return { message: 'Przetłumaczono', kind: 'success' }
+}
