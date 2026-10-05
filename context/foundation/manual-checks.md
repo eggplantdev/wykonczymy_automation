@@ -3688,3 +3688,19 @@ przypisane do etapów w kilku inwestycjach — w tym co najmniej jednej zakończ
 - [x] **„Suma etapy …" zamiast „Suma etapów …" w nagłówku PL** — `src/lib/i18n/dictionaries/pl.ts` (`netForPlane`) i `src/lib/kosztorys/columns/column-config.ts` (wariant brutto); widoczne w siatce, na linku i w PDF pracownika polskiego. Sprzed EX-988, nie z arkusza właściciela (brak w dumpach arkuszy).
       **Naprawione:** „Suma etapów …" w obu miejscach + stała w `worker.test.ts`.
       **Test disposition:** no automated test · — literówka; spec wydruku trzyma etykietę asercją.
+
+## EX-992 — ai-translations — AI uzupełnia tłumaczenia UA/RU i tłumaczy prace spoza rozpiski na polski (2026-10-05)
+
+- [ ] Kosztorys z opisami bez tłumaczenia i z nieaktualnym tłumaczeniem → „Opcje → Uzupełnij tłumaczenia (AI)": kolumny UA/RU się wypełniają bez przeładowania strony, a „Problemy" pustoszeją; komunikat podaje, ile uzupełniono.
+- [ ] Tłumaczenie UA wpisane ręcznie przed uruchomieniem (aktualne względem opisu) zostaje nietknięte.
+- [ ] Sekcja, której nazwa nie miała tłumaczenia, po „Uzupełnij tłumaczenia (AI)" pokazuje się przetłumaczona na linku `/p` pracownika ustawionego na ukraiński (numer pokoju zachowany).
+- [ ] Katalog prac → „Uzupełnij tłumaczenia (AI)": filtry „bez tłumaczenia" i „z nieaktualnym tłumaczeniem" pustoszeją.
+- [ ] „Nowa praca" z zaznaczonym „Tłumacz automatycznie przy pomocy AI": nowa pozycja ma wypełnione kolumny UA/RU. Odznaczenie pola zostaje zapamiętane po przeładowaniu.
+- [ ] Dodanie pracy do katalogu z zaznaczonym „Tłumacz automatycznie przy pomocy AI": wpis pokazuje tłumaczenia w tabeli katalogu.
+- [ ] Zmiana nazwy sekcji na nową → po chwili link `/p` pracownika ukraińskiego pokazuje nową nazwę przetłumaczoną.
+- [ ] Link zgłoszenia pracownika ukraińskiego → praca spoza rozpiski wpisana po ukraińsku → wysłanie: w przeglądzie zgłoszenia kierownik widzi opis po polsku, a pod nim „Zgłoszono (UA): „…”" z oryginałem.
+- [ ] Praca spoza rozpiski wpisana po polsku: przegląd pokazuje ją jak dotąd, bez dopisku „Zgłoszono (…)".
+- [ ] Gdy AI było niedostępne w chwili wysyłki: przegląd pokazuje „Brak tłumaczenia" i „Przetłumacz"; po kliknięciu (z działającym AI) polski opis pojawia się bez zamykania okna. Pracownik na swoim linku nie widzi żadnego przycisku tłumaczenia.
+- [ ] „Przetłumacz ponownie" na przetłumaczonej linii podmienia polski opis.
+- [ ] Przyjęcie przetłumaczonej pracy spoza rozpiski: nowa pozycja w kosztorysie ma polski opis, a jej kolumna UA zawiera słowa pracownika (nie oznaczona jako nieaktualna).
+- [ ] Zgłoszenie już rozpatrzone (przyjęte/odrzucone): przegląd nie pokazuje przycisku „Przetłumacz".

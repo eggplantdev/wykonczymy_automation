@@ -48,6 +48,10 @@ export type ReportLineT = {
   acceptedQty: number | undefined
   createdItemId: number | undefined
   catalogueItemId: number | undefined
+  // Extras only, filled after the send. Both undefined = not translated (yet); a `pl` language with
+  // no Polish = the worker wrote Polish.
+  polishDescription: string | undefined
+  descriptionLanguage: string | undefined
 }
 
 // Ordinal and label are copied, so a later rename or delete of the etap does not rewrite where the

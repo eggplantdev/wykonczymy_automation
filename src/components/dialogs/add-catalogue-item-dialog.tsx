@@ -1,6 +1,8 @@
 'use client'
 
 import { Plus } from 'lucide-react'
+import { AiTranslateCheckbox } from '@/components/forms/form-components/ai-translate-checkbox'
+import { useAiTranslate } from '@/components/forms/hooks/use-ai-translate'
 import { Button } from '@/components/ui/button'
 import { FormDialog } from '@/components/ui/form-dialog'
 import { WorkCatalogueItemForm } from '@/components/forms/work-catalogue-item/work-catalogue-item-form'
@@ -12,6 +14,7 @@ export function AddCatalogueItemDialog({
 }: {
   categorySuggestions: readonly string[]
 }) {
+  const [translate, setTranslate] = useAiTranslate()
   return (
     <FormDialog
       formId="add-catalogue-item"
@@ -28,13 +31,15 @@ export function AddCatalogueItemDialog({
           formId="add-catalogue-item"
           defaultValues={EMPTY_CATALOGUE_ITEM_VALUES}
           categorySuggestions={categorySuggestions}
-          action={createCatalogueItemAction}
+          action={(data) => createCatalogueItemAction(data, translate)}
           successMessage="Praca dodana do katalogu"
           submitLabel="Dodaj"
           submittingLabel="Dodawanie..."
           onSubmitSuccess={onSubmitSuccess}
           keepOpen={keepOpen}
-        />
+        >
+          <AiTranslateCheckbox checked={translate} onCheckedChange={setTranslate} />
+        </WorkCatalogueItemForm>
       )}
     </FormDialog>
   )

@@ -1,6 +1,5 @@
-import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { generateObject } from 'ai'
-import { serverEnv } from '@/lib/env/server'
+import { openrouter, timeoutSignal } from './openrouter-client'
 import {
   receiptExtractionSchema,
   UNREADABLE_RECEIPT,
@@ -9,9 +8,7 @@ import {
 import { receiptPdfPlugins } from './receipt-pdf-plugins'
 import { logError } from '@/lib/utils/log-error'
 
-// Importing `serverEnv` (which is `import 'server-only'`) makes this module server-only too:
-// never pull it into the Payload CLI graph (payload.config.ts / collections), or
-// `payload generate:types` throws.
+// Server-only through `./openrouter-client`: never pull it into the Payload CLI graph.
 
 // Reads Polish receipts (images) AND PDFs natively — the latter matters because our real
 // invoices are Stimulsoft/Quartz PDFs with no text layer, which the free pdf-text parser
@@ -27,7 +24,7 @@ export const FALLBACK_MODEL = 'google/gemini-2.5-flash'
 // Per-attempt ceiling on the vision call. Without it a hung upstream request never settles, so
 // the batch fill's Promise.all wedges and isFilling never clears (spinner stuck forever). On
 // timeout the attempt aborts and throws, so the row degrades into failedIndices like any other
-// failure. Built from AbortController + setTimeout (not AbortSignal.timeout) so it's fakeable.
+// failure.
 export const RECEIPT_TIMEOUT_MS = 30_000
 
 // Each extra page is more bytes to upload and more document for the model to read, so a longer
@@ -43,27 +40,6 @@ export const RECEIPT_TIMEOUT_PER_PAGE_MS = 15_000
 export const MAX_RECEIPT_PAGES = 8
 
 export type ReceiptPageT = { bytes: Uint8Array; mediaType: string; filename: string }
-
-function timeoutSignal(ms: number): AbortSignal {
-  const controller = new AbortController()
-  const timer = setTimeout(
-    () => controller.abort(new Error(`receipt extraction timed out after ${ms}ms`)),
-    ms,
-  )
-  timer.unref?.() // don't keep the process alive on the timer alone
-  return controller.signal
-}
-
-const openrouter = createOpenRouter({
-  apiKey: serverEnv.OPENROUTER_API_KEY,
-  // Attribution headers OpenRouter surfaces on its dashboard; omitted when unset.
-  headers: {
-    ...(serverEnv.OPENROUTER_HTTP_REFERER
-      ? { 'HTTP-Referer': serverEnv.OPENROUTER_HTTP_REFERER }
-      : {}),
-    ...(serverEnv.OPENROUTER_APP_NAME ? { 'X-Title': serverEnv.OPENROUTER_APP_NAME } : {}),
-  },
-})
 
 // Send the image BYTES, not a URL: media.url can be relative (local Payload route) or a
 // private/non-passthrough blob URL the provider can't fetch — the AI SDK then mis-encodes
@@ -119,6 +95,7 @@ export async function extractReceipt(
       }),
       abortSignal: timeoutSignal(
         RECEIPT_TIMEOUT_MS + RECEIPT_TIMEOUT_PER_PAGE_MS * (pages.length - 1),
+        'receipt extraction',
       ),
       schema: receiptExtractionSchema,
       messages: [

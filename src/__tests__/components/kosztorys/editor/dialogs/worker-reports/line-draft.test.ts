@@ -74,6 +74,8 @@ const line = (patch: Partial<ReportLineT>): ReportLineT => ({
   acceptedQty: undefined,
   createdItemId: undefined,
   catalogueItemId: undefined,
+  polishDescription: undefined,
+  descriptionLanguage: undefined,
   ...patch,
 })
 

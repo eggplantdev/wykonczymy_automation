@@ -8,6 +8,7 @@ import {
   listDecidableReports,
   listReportFilterOptions,
   readWorkerReport,
+  setLineTranslations,
   type WorkerReportFiltersT,
 } from '@/lib/db/worker-reports'
 import { ALL_TIME } from '@/lib/utils/date-range'
@@ -295,5 +296,39 @@ describe.skipIf(!ENV_READY)('worker report data access (DB)', () => {
     expect(await onPage(1, 'id; DROP TABLE users')).toEqual([middle])
     expect(await onPage(2)).toEqual([oldest])
     expect(await onPage(3)).toEqual([newest])
+  })
+
+  it('never lets the send-time translation overwrite a line a retry already translated', async () => {
+    const extra = (description: string) => ({
+      kind: 'extra' as const,
+      itemId: null,
+      description,
+      unit: 'm2',
+      sectionName: null,
+      reportedQty: 1,
+    })
+    const reportId = await insertWorkerReport(db, {
+      investmentId,
+      workerId,
+      lines: [extra('Занесення плит'), extra('Монтаж дверей')],
+    })
+    const [retried, untouched] = (await readWorkerReport(db, investmentId, reportId))!.lines
+    await setLineTranslations(
+      db,
+      [{ id: retried.id, polishDescription: 'Wniesienie płyt', descriptionLanguage: 'uk' }],
+      { onlyUntranslated: false },
+    )
+
+    await setLineTranslations(
+      db,
+      [
+        { id: retried.id, polishDescription: 'Gorsze', descriptionLanguage: 'uk' },
+        { id: untouched.id, polishDescription: 'Montaż drzwi', descriptionLanguage: 'uk' },
+      ],
+      { onlyUntranslated: true },
+    )
+
+    const lines = (await readWorkerReport(db, investmentId, reportId))!.lines
+    expect(lines.map((line) => line.polishDescription)).toEqual(['Wniesienie płyt', 'Montaż drzwi'])
   })
 })

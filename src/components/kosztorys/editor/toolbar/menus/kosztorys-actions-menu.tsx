@@ -14,6 +14,7 @@ import {
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { MenuItemBody } from '@/components/kosztorys/editor/actions/menu-item-body'
 import { CleanItemTextsMenuItem } from '@/components/kosztorys/editor/actions/clean-item-texts-action'
+import { FillTranslationsMenuItem } from '@/components/kosztorys/editor/actions/fill-translations-action'
 import { SaveVersionMenuItem } from '@/components/kosztorys/editor/actions/save-version-action'
 import { ClearKosztorysMenuItem } from '@/components/kosztorys/editor/actions/clear-kosztorys-action'
 import { SavePresetMenuItem } from '@/components/kosztorys/editor/actions/save-preset-action'
@@ -95,6 +96,7 @@ export function KosztorysActionsMenu({
                 <MenuItemBody label="Ponów" description="Cmd/Ctrl+Shift+Z" />
               </DropdownMenuItem>
               <CleanItemTextsMenuItem />
+              <FillTranslationsMenuItem />
             </>
           )}
           {/* Above the lock: it changes nothing in the kosztorys, so a zakończona inwestycja reads

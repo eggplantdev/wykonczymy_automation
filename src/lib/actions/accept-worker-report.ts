@@ -31,6 +31,7 @@ import type {
   KosztorysStageT,
   ToolPlaneT,
 } from '@/lib/kosztorys/types'
+import { isTranslationLanguage } from '@/lib/i18n/languages'
 import { itemFromFields } from '@/lib/kosztorys/item-from-fields'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 import { ACCEPT_REFUSALS } from '@/lib/kosztorys/worker-report/refusals'
@@ -357,7 +358,8 @@ function resolveTarget(
 }
 
 // A katalog wpis comes over as the picker copies it; the worker's own opis gets only the cena j.m.
-// the kierownik typed — its stawki stay „auto".
+// the kierownik typed — its stawki stay „auto". A translated opis lands in Polish, and the worker's
+// own words become its current translation, so his crew reads what he wrote.
 function extraAsItem(
   extra: z.infer<typeof acceptSchema>['extras'][number],
   line: WorkerReportLineRowT,
@@ -368,12 +370,17 @@ function extraAsItem(
   const entry =
     extra.catalogueItemId === undefined ? undefined : catalogue.get(extra.catalogueItemId)
   if (entry) return itemFromFields(entry, section.id, displayOrder)
+  const language = line.descriptionLanguage
+  const polish = line.polishDescription
+  const translated = polish !== null && isTranslationLanguage(language)
   return {
     id: 0,
     sectionId: section.id,
     displayOrder,
-    description: line.description,
-    descriptionTranslations: {},
+    description: translated ? polish : line.description,
+    descriptionTranslations: translated
+      ? { [language]: { text: line.description, source: polish } }
+      : {},
     unit: line.unit,
     plannedQty: 0,
     sheetMeasuredQty: null,

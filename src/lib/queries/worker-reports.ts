@@ -63,5 +63,7 @@ function toLine(row: WorkerReportLineRowT): ReportLineT {
     acceptedQty: row.acceptedQty ?? undefined,
     createdItemId: row.createdItemId ?? undefined,
     catalogueItemId: row.catalogueItemId ?? undefined,
+    polishDescription: row.polishDescription ?? undefined,
+    descriptionLanguage: row.descriptionLanguage ?? undefined,
   }
 }

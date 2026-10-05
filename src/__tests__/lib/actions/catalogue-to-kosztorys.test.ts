@@ -22,6 +22,12 @@ vi.mock('@/lib/auth/require-auth', () => ({
   })),
 }))
 vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
+// after() throws outside a request scope; the section-name translation it schedules is covered by
+// translate-at-creation.test.ts.
+vi.mock('next/server', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('next/server')>()
+  return { ...actual, after: () => {} }
+})
 // Pass-through unless a test arms it. The only way to reach „the sekcja was created, then the write
 // failed" — the one state the shared transaction exists to make impossible — without racing a DELETE
 // against the action's own catalogue read.

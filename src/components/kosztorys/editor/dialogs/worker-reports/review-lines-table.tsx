@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, use, useState } from 'react'
+import { createContext, use, useState, useTransition } from 'react'
 import { createColumnHelper } from '@tanstack/react-table'
 import { SearchIcon } from 'lucide-react'
 import { Checkbox, checkedState } from '@/components/ui/checkbox'
@@ -15,11 +15,13 @@ import {
   acceptedQtyNote,
   isLineReady,
   previewQtyChange,
+  reviewedDescription,
   UNDO_CATALOGUE_SWAP,
   type ItemFiguresT,
   type LineDraftT,
   type LineGroupT,
 } from '@/components/kosztorys/editor/dialogs/worker-reports/line-draft'
+import { isLanguage, LANGUAGE_SHORT } from '@/lib/i18n/languages'
 import { formatQty, formatQtyWithUnit } from '@/lib/kosztorys/format'
 import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
 import { sectionColorRail, type SectionColorKeyT } from '@/lib/kosztorys/section-colors'
@@ -56,6 +58,8 @@ type ReviewTablePropsT = {
   onCatalogueSwap: (lineId: number, entry: WorkCatalogueItemT) => void
   hintsByLine: Record<number, CatalogueHintT[]>
   stageTitle: string
+  // Undefined once the report is decided: only a pending report's extras can be retranslated.
+  onRetranslate: ((lineId: number) => Promise<void>) | undefined
 }
 
 type ReviewTableContextT = ReviewTablePropsT & {
@@ -203,7 +207,9 @@ function SwapNote({ row, unit }: { row: ReviewRowT; unit: string | undefined }) 
   return (
     <>
       <span className="text-muted-foreground block text-xs">
-        {isSwapped ? 'Z katalogu · zgłoszono' : 'Zgłoszono'} „{row.description}”
+        {isSwapped ? 'Z katalogu · zgłoszono' : 'Zgłoszono'} „{reviewedDescription(row)}”
+        {row.polishDescription !== undefined &&
+          ` (${languageShort(row.descriptionLanguage)}: „${row.description}”)`}
       </span>
       {unit !== undefined && unit !== row.unit && (
         <span className="block text-xs text-amber-600 dark:text-amber-400">
@@ -252,11 +258,52 @@ function MatchedDescription({ row }: { row: ReviewRowT }) {
   )
 }
 
+const languageShort = (language: string | undefined) =>
+  isLanguage(language) ? LANGUAGE_SHORT[language] : 'inny język'
+
+// The worker writes in his own language; the kierownik reads the Polish, with the original kept in
+// view. A missing or poor translation can be asked for again — that is the only way to fix it.
+function TranslationNote({ row }: { row: ReviewRowT }) {
+  const { onRetranslate } = useReviewTable()
+  const [isTranslating, startTranslating] = useTransition()
+  const isTranslated = row.polishDescription !== undefined
+  return (
+    <>
+      {isTranslated && (
+        <span className="text-muted-foreground block text-xs">
+          Zgłoszono ({languageShort(row.descriptionLanguage)}): „{row.description}”
+        </span>
+      )}
+      {row.descriptionLanguage === undefined && (
+        <span className="text-muted-foreground block text-xs">Brak tłumaczenia</span>
+      )}
+      {onRetranslate && !row.isAccepted && (
+        <Button
+          variant="link"
+          size="xs"
+          className="h-auto p-0"
+          disabled={isTranslating}
+          onClick={() => startTranslating(() => onRetranslate(row.id))}
+        >
+          {isTranslating ? 'Tłumaczę…' : isTranslated ? 'Przetłumacz ponownie' : 'Przetłumacz'}
+        </Button>
+      )}
+    </>
+  )
+}
+
 function ManualDescriptionCell({ row }: { row: ReviewRowT }) {
   const { drafts, catalogueById } = useReviewTable()
   const { catalogueId } = drafts[row.id]
   const swapped = catalogueId === undefined ? undefined : catalogueById.get(catalogueId)
-  if (!swapped) return <span className="block leading-snug">{row.description}</span>
+  if (!swapped) {
+    return (
+      <>
+        <span className="block leading-snug">{reviewedDescription(row)}</span>
+        <TranslationNote row={row} />
+      </>
+    )
+  }
   return (
     <>
       <span className="block leading-snug">{swapped.description}</span>
@@ -297,7 +344,7 @@ function CatalogueCell({ row }: { row: ReviewRowT }) {
         <CatalogueSwapDialog
           catalogue={catalogue}
           kosztorysItems={kosztorysItems}
-          reported={row}
+          reported={{ description: reviewedDescription(row), unit: row.unit }}
           onPick={(entry) => onCatalogueSwap(row.id, entry)}
           onClose={() => setIsPickerOpen(false)}
         />

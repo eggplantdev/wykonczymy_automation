@@ -14,6 +14,7 @@ import {
   isLineReady,
   lineGroup,
   partitionLines,
+  reviewedDescription,
   type ItemFiguresT,
   type LineDraftT,
   type LineGroupT,
@@ -22,6 +23,7 @@ import {
   ReviewLinesTable,
   type ReviewRowT,
 } from '@/components/kosztorys/editor/dialogs/worker-reports/review-lines-table'
+import { retranslateReportLineAction } from '@/lib/actions/worker-report-translation'
 import { PLANE_LABELS } from '@/lib/kosztorys/labels'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
@@ -37,6 +39,7 @@ import { ACCEPT_REFUSALS } from '@/lib/kosztorys/worker-report/refusals'
 import { isStageMember, resolveWorkerScope } from '@/lib/kosztorys/worker-view/scope'
 import { formatPLDateTime } from '@/lib/utils/format-date'
 import { itemNounAccusative } from '@/lib/kosztorys/counted-nouns'
+import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 
 type PropsT = {
@@ -78,6 +81,11 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
   const [plane, setPlane] = useState<ToolPlaneT | undefined>()
   const [isSaving, setIsSaving] = useState(false)
   const [isRejectOpen, setIsRejectOpen] = useState(false)
+  // A retry's answer, laid over the report this dialog was opened with — no refetch of the whole report.
+  const [retranslated, setRetranslated] = useState<
+    Record<number, Pick<ReportLineT, 'polishDescription' | 'descriptionLanguage'>>
+  >({})
+  const reportLines = report.lines.map((line) => ({ ...line, ...retranslated[line.id] }))
   const targetStageId = target === NEW_STAGE ? undefined : Number(target)
   const targetStage = ownStages.find((stage) => stage.id === targetStageId)
   const stageTitle = targetStage ? stageLabel(targetStage) : 'Nowy etap'
@@ -93,7 +101,7 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
     }
   }
   const sectionOrder = new Map(sections.map((section, index) => [section.sectionName, index]))
-  const reviewRows: ReviewRowT[] = report.lines
+  const reviewRows: ReviewRowT[] = reportLines
     .map((line) => {
       const isRozpiska = lineGroup(line, drafts[line.id]) === 'rozpiska'
       const itemId = isRozpiska ? itemIdOf(line) : line.createdItemId
@@ -117,9 +125,9 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
   // expensive part of „Porównaj z katalogiem" too.
   const candidates = hintCandidates(catalogue)
   const hintsByLine = Object.fromEntries(
-    report.lines
+    reportLines
       .filter((line) => lineGroup(line, drafts[line.id]) === 'extra')
-      .map((line) => [line.id, closestEntries(line.description, candidates)]),
+      .map((line) => [line.id, closestEntries(reviewedDescription(line), candidates)]),
   )
   const itemOptions = rows.map((row) => ({
     value: String(row.id),
@@ -165,6 +173,23 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
 
   const updateDraft = (lineId: number, patch: Partial<LineDraftT>) =>
     setDrafts((current) => ({ ...current, [lineId]: { ...current[lineId], ...patch } }))
+
+  const retranslate = async (lineId: number) => {
+    const result = await settleAction(() =>
+      retranslateReportLineAction(report.investmentId, lineId),
+    )
+    if (!result.success) {
+      toastMessage(result.error, 'error')
+      return
+    }
+    setRetranslated((current) => ({
+      ...current,
+      [lineId]: {
+        polishDescription: result.data.polishDescription ?? undefined,
+        descriptionLanguage: result.data.descriptionLanguage,
+      },
+    }))
+  }
 
   const decide = async (run: () => Promise<boolean>, doneMessage: string) => {
     setIsSaving(true)
@@ -261,6 +286,7 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
                 onCatalogueSwap={(lineId, entry) => updateDraft(lineId, catalogueSwap(entry, rows))}
                 hintsByLine={hintsByLine}
                 stageTitle={stageTitle}
+                onRetranslate={isPending ? retranslate : undefined}
               />
             </section>
           )

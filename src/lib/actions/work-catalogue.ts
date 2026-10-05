@@ -1,8 +1,16 @@
 'use server'
 
 import { z } from 'zod'
+import { translateTexts } from '@/lib/ai/translate'
+import { SAVED_UNTRANSLATED_WARNING, translateNewRow } from '@/lib/ai/translate-new-row'
+import { fillDescriptionTranslations } from '@/lib/db/fill-description-translations'
 import { getDb } from '@/lib/db/get-db'
-import { findCatalogueItemByKey, listCatalogueItemsByIds } from '@/lib/db/work-catalogue'
+import {
+  findCatalogueItemByKey,
+  listCatalogueItems,
+  listCatalogueItemsByIds,
+} from '@/lib/db/work-catalogue'
+import { aiFillWrites, planAiFill } from '@/lib/i18n/ai-translation-fill'
 import { translationsFromTexts } from '@/lib/i18n/description-translations'
 import { catalogueSaveState } from '@/lib/queries/work-catalogue'
 import type { CatalogueSeedItemT } from '@/lib/kosztorys/work-catalogue/types'
@@ -19,7 +27,7 @@ import {
 } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
 import { protectedAction, validateAction } from './run-action'
 
-export async function createCatalogueItemAction(data: WorkCatalogueItemDataT) {
+export async function createCatalogueItemAction(data: WorkCatalogueItemDataT, translate = false) {
   return protectedAction(
     'createCatalogueItemAction',
     async ({ payload }) => {
@@ -30,20 +38,24 @@ export async function createCatalogueItemAction(data: WorkCatalogueItemDataT) {
       const resolved = await resolveCatalogueWrite(await getDb(payload), row.matchKey, 'new')
       if ('error' in resolved) return { success: false, error: resolved.error }
 
+      const typed = translationsFromTexts(
+        parsed.data.translationSeed,
+        parsed.data.translationEdits,
+        row.description,
+      )
+      const translated = translate
+        ? await translateNewRow({ description: row.description, unit: row.unit, translations: typed })
+        : { translations: typed, failed: false }
+
       await applyCatalogueWrite(payload, undefined, {
-        candidate: {
-          ...row,
-          descriptionTranslations: translationsFromTexts(
-            parsed.data.translationSeed,
-            parsed.data.translationEdits,
-            row.description,
-          ),
-        },
+        candidate: { ...row, descriptionTranslations: translated.translations },
         existing: null,
         keepCatalogueCategory: true,
       })
 
-      return { success: true }
+      return translated.failed
+        ? { success: true, warning: SAVED_UNTRANSLATED_WARNING }
+        : { success: true }
     },
     ['workCatalogue'],
   )
@@ -151,6 +163,29 @@ export async function saveItemToCatalogueAction(
       })
 
       return { success: true }
+    },
+    ['workCatalogue'],
+  )
+}
+
+/**
+ * „Uzupełnij tłumaczenia (AI)" over the whole katalog. The kosztorys fill's katalog-first step is
+ * skipped — this IS the katalog — so every write comes from the AI and none needs merging.
+ */
+export async function fillCatalogueTranslationsAction() {
+  return protectedAction<{ items: number; failed: number }>(
+    'fillCatalogueTranslationsAction',
+    async ({ payload }) => {
+      const db = await getDb(payload)
+      const items = await listCatalogueItems(db)
+      const plan = planAiFill(
+        items.map((item) => ({ ...item, translations: item.descriptionTranslations })),
+        new Map(),
+      )
+      const ai = await translateTexts(plan.toTranslate.map(({ text }) => text))
+      const { writes, failed } = aiFillWrites(plan.toTranslate, ai)
+      const written = await fillDescriptionTranslations(db, 'work_catalogue_items', writes)
+      return { success: true, data: { items: written.length, failed } }
     },
     ['workCatalogue'],
   )
