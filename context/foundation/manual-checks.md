@@ -3428,3 +3428,10 @@ Przed sprawdzeniem: migracja typu „Premia" na bazie, na której klikasz (`pnpm
 - [ ] Zalogowany jako MANAGER → strona właściciela (OWNER) nie pokazuje kasy głównej w „Przypisanych kasach”; jako OWNER/ADMIN kasa główna jest i jej link działa.
 - [ ] Strona pracownika → nie ma już linijki „Wypłaty: … zł” nad sekcjami.
 - [ ] Jako MANAGER kasa główna dalej jest niewidoczna wszędzie: nie ma jej na `/kasy` ani w `/kosz`, a jej adres `/kasa/<id>` pokazuje „nie znaleziono” (wspólna reguła widoczności — to samo zachowanie co wcześniej).
+
+## EX-975 — purge-runner — nocne czyszczenie Kosza po scaleniu sześciu kopii (2026-10-05)
+
+Refaktor bez zmiany zachowania: nocny cron czyści Kosz tak samo jak wcześniej.
+
+- [ ] Inwestycja, kasa, pracownik, pojazd, sprzęt i zgłoszenie w `/kosz` dłużej niż okres przechowywania → po przebiegu crona `cleanup` znikają z `/kosz`, a listy (Inwestycje, Kasy, Pracownicy, Flota, Sprzęt, Zgłoszenia) pokazują stan po usunięciu bez ręcznego odświeżania pamięci podręcznej.
+- [ ] Odpowiedź crona `cleanup` zawiera dla każdego rodzaju `purged` / `blocked` / `failed` (pojazdy, sprzęt i zgłoszenia mają teraz też `blocked: 0`), a inwestycje dodatkowo `skippedKosztorys`.
