@@ -1,7 +1,7 @@
 ---
 change_id: worker-pdf-translations
 title: PDF pracownika w jego języku (uk/ru)
-status: implementing
+status: implemented
 created: 2026-10-05
 updated: 2026-10-05
 archived_at: null

@@ -330,6 +330,6 @@ Run **once**, after the final phase.
 
 #### Automated
 
-- [x] 2.1 Worker PDF spec passes (Polish link wording + uk case)
-- [x] 2.2 Offer PDF spec passes unchanged
-- [x] 2.3 Dictionary parity spec passes
+- [x] 2.1 Worker PDF spec passes (Polish link wording + uk case) — e8872496
+- [x] 2.2 Offer PDF spec passes unchanged — e8872496
+- [x] 2.3 Dictionary parity spec passes — e8872496
