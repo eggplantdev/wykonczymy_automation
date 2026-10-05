@@ -1,10 +1,11 @@
 import { redirect, notFound } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { canViewWorkerPage, isManagementRole, ROLES, type RoleT } from '@/lib/auth/roles'
+import { canViewWorkerPage, isManagementRole, ROLES } from '@/lib/auth/roles'
 import { LanguageLabel } from '@/components/ui/language-label'
 import { AccountLanguageSelect } from '@/components/users/account-language-select'
 import { DEFAULT_LANGUAGE } from '@/lib/i18n/languages'
-import { createTranslator, type MessageKeyT } from '@/lib/i18n/translations'
+import { createTranslator } from '@/lib/i18n/translations'
+import { ROLE_KEYS } from '@/lib/i18n/role-keys'
 import { fetchUserLanguage } from '@/lib/queries/user-language'
 import { parsePagination } from '@/lib/utils/pagination'
 import { parseTransferSort } from '@/lib/queries/transfer-sort'
@@ -26,13 +27,6 @@ import { AccountCredentialsDialog } from '@/components/dialogs/account-credentia
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
 import type { DynamicPagePropsT } from '@/types/page'
-
-const ROLE_KEYS: Record<RoleT, MessageKeyT<'workerPage'>> = {
-  ADMIN: 'roleAdmin',
-  OWNER: 'roleOwner',
-  MANAGER: 'roleManager',
-  EMPLOYEE: 'roleEmployee',
-}
 
 export default async function UserDetailPage({ params, searchParams }: DynamicPagePropsT) {
   const session = await requireAuth(ROLES)

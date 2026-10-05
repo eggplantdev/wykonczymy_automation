@@ -532,12 +532,12 @@ Run **once**, after the final phase.
 
 #### Automated
 
-- [x] 4.1 transfer-data-table language DOM spec passes
-- [x] 4.2 existing Polish-asserting transfers/filters specs pass unchanged
+- [x] 4.1 transfer-data-table language DOM spec passes — 058b75e8
+- [x] 4.2 existing Polish-asserting transfers/filters specs pass unchanged — 058b75e8
 
 ### Phase 5: Translate media/upload and the shell
 
 #### Automated
 
-- [ ] 5.1 mobile-nav language DOM spec passes
-- [ ] 5.2 existing media/upload/nav specs pass unchanged
+- [x] 5.1 mobile-nav language DOM spec passes
+- [x] 5.2 existing media/upload/nav specs pass unchanged

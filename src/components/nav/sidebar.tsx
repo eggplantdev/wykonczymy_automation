@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils/cn'
 import { PAGE_TITLES, TRASH_HREF } from '@/lib/constants/sections'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { useNavLinks } from '@/hooks/use-nav-links'
+import { useTranslation } from '@/hooks/use-translation'
 import { useSidebarCollapsed } from '@/hooks/use-sidebar-collapsed'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
@@ -24,6 +25,8 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
   const user = useCurrentUser()
   const { links, isActive } = useNavLinks()
   const [collapsed, setCollapsed] = useSidebarCollapsed()
+  const { t } = useTranslation('shell')
+  const toggleLabel = collapsed ? t('expandMenu') : t('collapseMenu')
 
   // Roundcube can't auto-login via URL; _user only prefills the username field on its
   // login page (no-op when a Roundcube session is already active).
@@ -38,11 +41,11 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
         collapsed ? 'w-14 px-2' : 'w-54 px-3',
       )}
     >
-      <SimpleTooltip content={collapsed ? 'Rozwiń menu' : 'Zwiń menu'}>
+      <SimpleTooltip content={toggleLabel}>
         <button
           type="button"
           onClick={() => setCollapsed(!collapsed)}
-          aria-label={collapsed ? 'Rozwiń menu' : 'Zwiń menu'}
+          aria-label={toggleLabel}
           aria-expanded={!collapsed}
           // Sits astride the divider itself, so the handle reads as "this edge moves" rather than as
           // one more item in the nav list. The hit area is wider than the visible pill.
@@ -70,10 +73,10 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
       <div className="mt-auto flex flex-col gap-2 pt-4">
         {!collapsed && <div className="text-foreground text-sm font-medium">{user.name}</div>}
         <div className="flex flex-col gap-2">
-          <CollapsibleTooltip collapsed={collapsed} label="Przełącz motyw">
+          <CollapsibleTooltip collapsed={collapsed} label={t('toggleTheme')}>
             <ThemeToggle collapsed={collapsed} />
           </CollapsibleTooltip>
-          <CollapsibleTooltip collapsed={collapsed} label="Odśwież dane">
+          <CollapsibleTooltip collapsed={collapsed} label={t('refreshData')}>
             <RefreshDataButton collapsed={collapsed} />
           </CollapsibleTooltip>
           <CollapsibleTooltip collapsed={collapsed} label="Admin">
@@ -89,7 +92,7 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
             </Link>
           </Button> */}
           {!collapsed && openRouterBalance}
-          <CollapsibleTooltip collapsed={collapsed} label="Wyloguj">
+          <CollapsibleTooltip collapsed={collapsed} label={t('logout')}>
             <LogoutButton collapsed={collapsed} />
           </CollapsibleTooltip>
         </div>

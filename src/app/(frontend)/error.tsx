@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
+import { useTranslation } from '@/hooks/use-translation'
 import { logError } from '@/lib/utils/log-error'
 
 export default function Error({
@@ -12,14 +13,16 @@ export default function Error({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  const { t } = useTranslation('shell')
+
   useEffect(() => {
     logError('[ROUTE_ERROR]', error)
   }, [error])
 
   return (
-    <EmptyState title="Coś poszło nie tak">
+    <EmptyState title={t('errorTitle')}>
       <Button variant="outline" onClick={() => reset()}>
-        Spróbuj ponownie
+        {t('retry')}
       </Button>
     </EmptyState>
   )

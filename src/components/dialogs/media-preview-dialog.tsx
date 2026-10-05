@@ -6,6 +6,8 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader } from '@/components/
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/loader/spinner'
 import { useFileArchive } from '@/hooks/use-file-archive'
+import { usePreviewLabels } from '@/hooks/use-preview-labels'
+import { useTranslation } from '@/hooks/use-translation'
 import { dedupeFilename } from '@/lib/media/file-archive'
 import { isImageMime, isPdfMime, isPreviewableMime } from '@/lib/media/mime'
 import { splitExtension } from '@/lib/utils/append-short-id'
@@ -56,7 +58,7 @@ export type MediaPreviewDialogPropsT = {
 export function MediaPreviewDialog({
   files,
   initialIndex = 0,
-  labels,
+  labels: callerLabels,
   open,
   onOpenChange,
   onAdd,
@@ -69,6 +71,8 @@ export function MediaPreviewDialog({
   const [pageIndex, setPageIndex] = useState(initialIndex)
   const [isMediaLoading, setIsMediaLoading] = useState(true)
   const { downloadFiles } = useFileArchive()
+  const labels = usePreviewLabels(callerLabels)
+  const { t } = useTranslation('media')
 
   const activeIndex = Math.min(pageIndex, Math.max(files.length - 1, 0))
   const active = files[activeIndex]
@@ -183,9 +187,7 @@ export function MediaPreviewDialog({
             />
           )}
           {active && !isImage && !isPdf && (
-            <p className="text-muted-foreground text-sm">
-              Podgląd niedostępny dla tego typu pliku.
-            </p>
+            <p className="text-muted-foreground text-sm">{t('previewUnavailable')}</p>
           )}
           {!active && <p className="text-muted-foreground text-sm">{labels.empty}</p>}
         </div>
@@ -197,7 +199,7 @@ export function MediaPreviewDialog({
               size="icon"
               disabled={activeIndex === 0}
               onClick={() => goToPage(activeIndex - 1)}
-              aria-label="Poprzednia strona"
+              aria-label={t('previousPage')}
             >
               <ChevronLeft />
             </Button>
@@ -209,7 +211,7 @@ export function MediaPreviewDialog({
               size="icon"
               disabled={activeIndex === files.length - 1}
               onClick={() => goToPage(activeIndex + 1)}
-              aria-label="Następna strona"
+              aria-label={t('nextPage')}
             >
               <ChevronRight />
             </Button>
@@ -251,12 +253,12 @@ export function MediaPreviewDialog({
             <>
               <Button variant="outline" onClick={handlePrint}>
                 <Printer />
-                Drukuj
+                {t('print')}
               </Button>
               {isMultiPage ? (
                 <Button variant="outline" onClick={handleDownloadAll}>
                   <Download />
-                  Pobierz wszystkie
+                  {t('downloadAll')}
                 </Button>
               ) : (
                 active && (
@@ -268,7 +270,7 @@ export function MediaPreviewDialog({
                       rel="noopener noreferrer"
                     >
                       <Download />
-                      Pobierz
+                      {t('download')}
                     </a>
                   </Button>
                 )

@@ -1,6 +1,7 @@
 import { logError } from '@/lib/utils/log-error'
 import { uniqueFileName } from '@/lib/utils/unique-file-name'
-import { validateUploadFile } from '@/lib/utils/validate-upload-file'
+import { uploadFileProblem } from '@/lib/utils/validate-upload-file'
+import { translate, type MessageKeyT, type TranslationParamsT } from '@/lib/i18n/translations'
 import type { MediaKindT } from '@/types/media'
 
 // Registered by `vercelBlobStorage({ clientUploads })` as a Payload endpoint; it mints a
@@ -8,10 +9,24 @@ import type { MediaKindT } from '@/types/media'
 const TOKEN_ROUTE = '/api/vercel-blob-client-upload-route'
 const MEDIA_ROUTE = '/api/media'
 
-/** An upload refused for a reason worded for the user — the only failure whose message reaches a toast. */
+/**
+ * An upload refused for a reason worded for the user — the only failure whose message reaches a
+ * toast. `message` is Polish; the key lets a worker's screen word it in their language.
+ */
 export class UploadRefusedError extends Error {
   name = 'UploadRefusedError'
+
+  constructor(
+    message: string,
+    readonly messageKey?: MessageKeyT<'notices'>,
+    readonly messageParams?: TranslationParamsT,
+  ) {
+    super(message)
+  }
 }
+
+const refused = (key: MessageKeyT<'notices'>, params?: TranslationParamsT) =>
+  new UploadRefusedError(translate('pl', 'notices', key, params), key, params)
 
 /**
  * Upload a picked file to the media collection from the browser. Two hops, because the bytes must
@@ -28,8 +43,8 @@ export async function uploadMediaFromClient(
   file: File,
   data: { kind?: MediaKindT } = {},
 ): Promise<number> {
-  const error = validateUploadFile(file)
-  if (error) throw new UploadRefusedError(error)
+  const problem = uploadFileProblem(file)
+  if (problem) throw refused(problem)
 
   const filename = uniqueFileName(file.name)
 
@@ -89,16 +104,13 @@ async function postMediaRow(
   // (a PDF with no xref table, measured on staging).
   if (!response.ok) {
     logError(`[client-upload] POST ${MEDIA_ROUTE} ${response.status}`, body?.errors)
-    throw new UploadRefusedError(
-      response.status === 400
-        ? `Plik „${file.name}" został odrzucony — może być uszkodzony.`
-        : `Nie udało się zapisać pliku „${file.name}" (${response.status}) — spróbuj ponownie.`,
-    )
+    throw response.status === 400
+      ? refused('uploadRejected', { name: file.name })
+      : refused('uploadSaveFailed', { name: file.name, status: response.status })
   }
   // An `ok` response with an unparseable body (an edge interstitial) would otherwise surface as a
   // bare TypeError — and the caller puts `err.message` straight into a user-facing toast.
   const id = body?.doc?.id
-  if (typeof id !== 'number')
-    throw new UploadRefusedError('Upload nie powiódł się — serwer nie zwrócił pliku')
+  if (typeof id !== 'number') throw refused('uploadNoFileReturned')
   return id
 }

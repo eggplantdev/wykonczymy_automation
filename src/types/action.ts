@@ -19,6 +19,7 @@ export type FailureT = {
   error: string
   code?: ActionErrorCodeT
   messageKey?: string
+  messageParams?: Record<string, string | number>
 }
 
 /**
