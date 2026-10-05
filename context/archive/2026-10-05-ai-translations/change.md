@@ -1,10 +1,10 @@
 ---
 change_id: ai-translations
 title: AI fills missing and stale uk/ru translations
-status: implemented
+status: archived
 created: 2026-10-05
 updated: 2026-10-05
-archived_at: null
+archived_at: 2026-10-05T14:49:05Z
 branch: ai-translations
 worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/ai-translations
 ---

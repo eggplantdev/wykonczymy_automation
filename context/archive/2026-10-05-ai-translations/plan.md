@@ -135,6 +135,7 @@ units verbatim. The primary model is used with one retry on `FALLBACK_MODEL`; `l
 primary failure.
 
 **Contract**:
+
 - `TRANSLATION_MODEL` constant; `translateTexts(texts: {id, text}[]): Promise<Map<id, TranslationTextsT>>`.
 - `translateToPolish(texts: {id, text}[], opts?: { model?: string }): Promise<Map<id, { language: 'pl'|'uk'|'ru'|'other'; polish: string | null }>>`.
 - An id the model didn't return, an id it invented, or an empty string is dropped (blank, never
@@ -418,6 +419,7 @@ swap still wins, as today. A line without Polish is accepted as typed.
 **File**: `src/__tests__/lib/actions/worker-report.test.ts`, `src/__tests__/lib/actions/worker-report-translation.test.ts` (new), `src/__tests__/lib/actions/accept-worker-report.test.ts`, `src/__tests__/lib/db/worker-reports.test.ts`, `src/__tests__/components/kosztorys/editor/dialogs/worker-reports/review-lines-table.test.tsx` (new, dom)
 
 **Intent**:
+
 - Send, with the collect-and-flush `after` stub: uk extra → Polish stored; AI throws → line untranslated and send still succeeds.
 - DB: an after() write never overwrites a line a retry already translated.
 - Retry: refuses rozpiska/accepted/foreign lines; stores the new pair.

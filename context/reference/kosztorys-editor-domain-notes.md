@@ -487,14 +487,14 @@ w kolejnych częściach EX-946, na tym samym rusztowaniu.
   gdy opis się zmieni, rozpiska pokazuje je w „Problemach" jako „z nieaktualnym tłumaczeniem",
   a powrót do starego opisu sam gasi ostrzeżenie. Ostrzega się tylko kierownika — pracownik widzi
   nieaktualne tłumaczenie takie, jakie jest. Katalog ma w „Problemach" „bez tłumaczenia" i „z
-  nieaktualnym tłumaczeniem", osobno dla każdego języka. Przycisk „przetłumacz ponownie" (AI)
-  przyjdzie z osobną zmianą — ta nie woła AI.
+  nieaktualnym tłumaczeniem", osobno dla każdego języka. Uzupełnianie przez AI doszło z EX-992
+  (niżej).
 - **„Popraw literówki" utrzymuje aktualne tłumaczenie aktualnym** — literówka nie zmienia sensu.
   Tłumaczenie, które już było nieaktualne, zostaje nieaktualne.
 - **„Zapisz do katalogu" nad istniejącym wpisem**: dla każdego języka osobno wygrywa tłumaczenie
   pozycji, jeśli je ma; inaczej katalog zachowuje swoje.
-- **Prace spoza rozpiski wpisane po ukraińsku zostają jak wpisane** — kierownik przegląda je
-  w oryginale.
+- **Prace spoza rozpiski wpisane po ukraińsku** — od EX-992 kierownik widzi je po polsku,
+  z oryginałem obok (niżej).
 - **Uzupełnianie hurtem to skrypt do powtarzania, nie jednorazowa migracja**
   (`src/scripts/fill-description-translations.ts`, opis uruchomienia w nagłówku). Liczy braki sam,
   z aktualnych danych, dopasowuje po polskim tekście opisu, wypełnia **tylko puste** tłumaczenia
@@ -520,6 +520,50 @@ w kolejnych częściach EX-946, na tym samym rusztowaniu.
   i powtarzają się, więc brak widać od razu na linku, a ostrzeżenie w każdej rozpisce byłoby szumem.
   Zakres na razie to link „Zgłoszenie prac"; `/p`, „Podgląd pracownika" i PDF (EX-966) użyją tej
   samej funkcji renderującej (`renderSectionName`).
+
+### Tłumaczenia AI — uzupełnianie UA/RU i prace spoza rozpiski po polsku (EX-992, 2026-10-05)
+
+Odwraca „aplikacja nie woła AI" z EX-948. Tłumaczy aplikacja, przez istniejący OpenRouter
+(`src/lib/ai/translate.ts`). **Bez kroku zatwierdzania** — tłumaczenie AI jest ostateczne, błędy
+właściciel poprawia ręcznie.
+
+- **Hurtem: „Uzupełnij tłumaczenia (AI)"** w „Opcjach" kosztorysu (opisy + nazwy sekcji tej
+  rozpiski) i w Katalogu prac. Wypełnia **tylko brakujące i nieaktualne** — aktualnego, także ręcznie
+  poprawionego, nigdy nie nadpisuje. Licznik przy przycisku liczy prace (nie pary praca × język);
+  przy zerze przycisk znika. „Problemy → Tłumaczenia" w rozpisce pokazuje teraz też „bez
+  tłumaczenia", nie tylko nieaktualne.
+- **Najpierw katalog, potem AI**: aktualne tłumaczenie katalogu dla tego samego opisu (po
+  ujednoliceniu) jest brane za darmo; AI dostaje resztę, każdy odrębny tekst raz.
+- **Przy dodawaniu pracy** („Dodaj pracę" w rozpisce, „Nowa praca w katalogu") — pole „Tłumacz
+  automatycznie przy pomocy AI", domyślnie włączone i zapamiętywane. **Późniejsza edycja opisu nie
+  woła AI**: siatka zapisuje każdą komórkę osobno, więc odpowiedź AI przychodząca po kilku sekundach
+  ścigałaby się z następną edycją, a opis poprawiany po kawałku kosztowałby wywołanie na każdy krok.
+  Tłumaczenie robi się nieaktualne, trafia do „Problemów" i naprawia je przycisk hurtowy.
+- **Nieudane AI nigdy nie blokuje zapisu ani wysyłki** — wiersz zapisuje się bez tłumaczenia i wychodzi
+  jako brakujący. AI działa przed otwarciem transakcji zapisu; żadna transakcja nie czeka na model.
+- **Spóźniona odpowiedź przegrywa.** Zapis tłumaczenia jest warunkowy: trafia tylko wtedy, gdy wiersz
+  ma wciąż ten opis, który AI tłumaczyło, a dany język jest wciąż pusty lub nieaktualny. Edycja
+  w siatce albo ręczne tłumaczenie wpisane w trakcie czekania na AI wygrywa. Dlatego hurt nie używa
+  zwykłego zapisu tekstów pozycji — ten nadpisałby opis.
+- **Nazwy sekcji**: przy utworzeniu / zmianie nazwy tłumaczone w `after()` (autozapis zmiany nazwy
+  ma zostać bez renderu, a czytelnikami są strony pracownika i PDF — inne trasy). Odpowiedź AI musi
+  przejść tę samą kontrolę liczb co okno ręczne; „Łazienka 2" → „Ванна 1" jest odrzucana i nazwa
+  zostaje bez tłumaczenia. Istniejące języki szablonu wygrywają z AI.
+- **Prace spoza rozpiski** wpisane przez pracownika po ukraińsku/rosyjsku są tłumaczone na polski
+  w `after()` wysyłki (wysyłka pracownika ma zostać szybka). Język rozpoznaje AI, nie ustawienie
+  pracownika — przełącznik na stronie może się różnić od zapisanego języka. Kierownik w przeglądzie
+  widzi polski opis i „Zgłoszono (UA): …" z oryginałem; „Przetłumacz" / „Przetłumacz ponownie" idzie
+  od razu do mocniejszego modelu (ponowienie następuje po złej odpowiedzi, a tani model ją powtarza)
+  i działa też, gdy automatyczne tłumaczenie padło. Zapis z `after()` trafia tylko na linię jeszcze
+  nieprzetłumaczoną, więc nie nadpisze ponowienia kierownika, które skończyło się wcześniej. **Strona
+  pracownika nie pokazuje żadnego stanu tłumaczenia ani przycisku** — widzi swój tekst.
+- **Przyjęcie** takiej pracy: polski staje się opisem pozycji, a słowa pracownika — jej aktualnym
+  tłumaczeniem UA/RU (ekipa czyta słowa kolegi).
+- **Poza zakresem świadomie**: nazwy etapów, notatki, jednostki, napisy UI; globalna akcja dla
+  wszystkich nazw sekcji; „Problemy" dla nazw sekcji; limit wywołań na publicznej wysyłce (link
+  z tokenem, grosze).
+- **Skala**: odrębne teksty w paczkach po 40, 4 naraz, 30 s na wywołanie + jeden model zapasowy —
+  rozpiska na 1000 wierszy mieści się w limicie 300 s jednej akcji (szacunek, nie pomiar).
 
 ## Protokół odbioru prac — druk z menu „Inwestor" (2026-09-28)
 
