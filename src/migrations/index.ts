@@ -115,6 +115,8 @@ import * as migration_20261002_0_leads_trashed_erased_at from './20261002_0_lead
 import * as migration_20261002_1_investments_review_requested from './20261002_1_investments_review_requested'
 import * as migration_20261002_2_section_translations from './20261002_2_section_translations'
 import * as migration_20261002_3_add_bonus_transfer_type from './20261002_3_add_bonus_transfer_type'
+import * as migration_20261005_0_drop_investments_review from './20261005_0_drop_investments_review'
+import * as migration_20261005_1_drop_kosztorys_stages_worker_id from './20261005_1_drop_kosztorys_stages_worker_id'
 
 export const migrations = [
   {
@@ -701,5 +703,15 @@ export const migrations = [
     up: migration_20261002_3_add_bonus_transfer_type.up,
     down: migration_20261002_3_add_bonus_transfer_type.down,
     name: '20261002_3_add_bonus_transfer_type',
+  },
+  {
+    up: migration_20261005_0_drop_investments_review.up,
+    down: migration_20261005_0_drop_investments_review.down,
+    name: '20261005_0_drop_investments_review',
+  },
+  {
+    up: migration_20261005_1_drop_kosztorys_stages_worker_id.up,
+    down: migration_20261005_1_drop_kosztorys_stages_worker_id.down,
+    name: '20261005_1_drop_kosztorys_stages_worker_id',
   },
 ]
