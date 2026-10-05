@@ -3403,3 +3403,9 @@ Przed sprawdzeniem: migracja typu „Premia" na bazie, na której klikasz (`pnpm
       okno dla tej inwestycji, z tym samym przyciskiem; przy ekipie rozliczonej do zera przycisku nie ma.
 - [ ] Okno „Rozlicz wypłaty" otwarte w dwóch kartach: w jednej wypłata na parę z nadpłatą, w drugiej
       „Wyrównaj premią" na tę parę → odmowa „Kwoty zmieniły się…" i świeże kwoty w oknie.
+
+## EX-968 — worker-email-clash — pracownik z e-mailem zajętym przez pracownika z Kosza (2026-10-05)
+
+- [ ] Pracownicy → „Do kosza” na pracowniku z e-mailem → „Dodaj pracownika” z tym samym e-mailem: formularz odmawia komunikatem „Pracownik z adresem … jest w Koszu — przywróć go stamtąd.”, nowy pracownik nie powstaje.
+- [ ] „Dodaj pracownika” z e-mailem aktywnego pracownika (wpisanym WIELKIMI literami, ze spacją na końcu): komunikat „Pracownik z adresem … już istnieje.”
+- [ ] Edycja pracownika → zmiana e-maila na adres innego pracownika: ta sama odmowa; zapis z własnym, niezmienionym e-mailem przechodzi.
