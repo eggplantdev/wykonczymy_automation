@@ -1,6 +1,6 @@
 import { redirect, notFound } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { ADMIN_OR_OWNER_MANAGER_ROLES, ROLE_LABELS } from '@/lib/auth/roles'
+import { canViewWorkerPage, isManagementRole, ROLE_LABELS, ROLES } from '@/lib/auth/roles'
 import { LanguageLabel } from '@/components/ui/language-label'
 import { DEFAULT_LANGUAGE } from '@/lib/i18n/languages'
 import { parsePagination } from '@/lib/utils/pagination'
@@ -21,11 +21,13 @@ import { InfoList } from '@/components/ui/info-list'
 import type { DynamicPagePropsT } from '@/types/page'
 
 export default async function UserDetailPage({ params, searchParams }: DynamicPagePropsT) {
-  const session = await requireAuth(ADMIN_OR_OWNER_MANAGER_ROLES)
-  if (!session.success) redirect('/')
+  const session = await requireAuth(ROLES)
+  if (!session.success) redirect('/zaloguj')
   const { user: currentUser } = session
+  const isManager = isManagementRole(currentUser.role)
 
   const { id } = await params
+  if (!canViewWorkerPage(currentUser, Number(id))) notFound()
   const sp = await searchParams
   const { page, limit } = parsePagination(sp)
   const sort = parseTransferSort(sp)
@@ -67,22 +69,23 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
 
   return (
     <PageWrapper title={worker.name}>
-      <EditWorkerDialog worker={worker} cashRegisters={refData.cashRegisters} />
+      {isManager && <EditWorkerDialog worker={worker} cashRegisters={refData.cashRegisters} />}
       <InfoList items={infoFields} />
-      <OwnedRegistersSection registers={registers} balances={balances} />
-      <HeldEquipmentSection equipment={heldEquipment} />
+      <OwnedRegistersSection registers={registers} balances={balances} linkable={isManager} />
+      <HeldEquipmentSection equipment={heldEquipment} linkable={isManager} />
       <TransfersSection
         title="Transfery"
         config={{
           query: { where: transferWhere, page, limit, sort },
           baseUrl: `/pracownicy/${id}`,
-          excludeColumns: ['worker'],
+          excludeColumns: isManager ? ['worker'] : ['worker', 'actions'],
           filters: {
             ...buildFilterConfig(refData, ['users', 'workers', 'expenseCategories', 'type']),
             cashRegisters: registers.map(({ id, name }) => ({ id, name })),
           },
           invoiceDownload: true,
           print: true,
+          workerScope: userId,
           cancelledTransactionAudit: sp.cancelledTransactionAudit === '1',
         }}
       />

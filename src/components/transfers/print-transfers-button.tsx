@@ -2,13 +2,12 @@
 
 import { useTransition } from 'react'
 import { openPrintWindow, printThenClose } from '@/lib/utils/print-window'
-import type { Where } from 'payload'
 import type { Table } from '@tanstack/react-table'
 import { Loader2, Printer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
-import { fetchFilteredTransfers } from '@/lib/queries/fetch-transfers-for-invoices'
+import type { TransferRowsFetchT } from '@/components/transfers/transfer-table-config'
 import { columnLabel } from '@/lib/table/column-label'
 import {
   buildTransfersPrintHtml,
@@ -18,12 +17,12 @@ import { sortingStateToParam } from '@/lib/table/sort-param'
 import type { TransferRowT } from '@/types/transfers'
 
 type PrintTransfersButtonPropsT = {
-  where: Where
+  fetchRows: TransferRowsFetchT
   table: Table<TransferRowT>
   title: string
 }
 
-export function PrintTransfersButton({ where, table, title }: PrintTransfersButtonPropsT) {
+export function PrintTransfersButton({ fetchRows, table, title }: PrintTransfersButtonPropsT) {
   const [isPending, startTransition] = useTransition()
 
   function handlePrint() {
@@ -50,7 +49,7 @@ export function PrintTransfersButton({ where, table, title }: PrintTransfersButt
       // Refetches instead of reusing the table's rows: the table is paginated, the printout isn't.
       // The screen's sort key travels along, so both sets order the same way.
       const result = await settleAction(() =>
-        fetchFilteredTransfers(where, {
+        fetchRows({
           skipMedia: true,
           sort: sortingStateToParam(table.getState().sorting) || undefined,
         }),

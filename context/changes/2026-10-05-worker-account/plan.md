@@ -458,18 +458,18 @@ needs `pnpm db:migrate:preview` after merge to staging.
 
 #### Automated
 
-- [x] 1.1 `where-to-sql.test.ts` covers `and`
-- [x] 1.2 `worker-transfers.test.ts` covers scope shape and monotonicity
-- [x] 1.3 `transfer-filters.test.ts` bridge covers the worker `Where`
-- [x] 1.4 test-plan.md risk #22 added
+- [x] 1.1 `where-to-sql.test.ts` covers `and` — b571e7f0
+- [x] 1.2 `worker-transfers.test.ts` covers scope shape and monotonicity — b571e7f0
+- [x] 1.3 `transfer-filters.test.ts` bridge covers the worker `Where` — b571e7f0
+- [x] 1.4 test-plan.md risk #22 added — b571e7f0
 
 ### Phase 2: Employee access and read-only page
 
 #### Automated
 
-- [ ] 2.1 `fetchWorkerTransfers` gate + scope spec
-- [ ] 2.2 `fetchEquipmentAtLocation` gate spec
-- [ ] 2.3 Read-only invoice cell DOM spec
+- [x] 2.1 `fetchWorkerTransfers` gate + scope spec
+- [x] 2.2 `fetchEquipmentAtLocation` gate spec
+- [x] 2.3 Read-only invoice cell DOM spec
 
 ### Phase 3: Automatic report link
 

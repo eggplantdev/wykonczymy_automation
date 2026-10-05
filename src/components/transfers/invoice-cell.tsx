@@ -9,6 +9,8 @@ import { INVOICE_PREVIEW_LABELS } from '@/lib/media/wording'
 import { MediaUploadDialog } from '@/components/dialogs/media-upload-dialog'
 import { useInvoiceRemoval } from '@/hooks/use-invoice-removal'
 import { useInvoiceUpload } from '@/hooks/use-invoice-upload'
+import { useCurrentUser } from '@/hooks/use-current-user'
+import { isManagementRole } from '@/lib/auth/roles'
 import type { PreviewFileT } from '@/types/media'
 
 type InvoiceCellPropsT = {
@@ -17,12 +19,20 @@ type InvoiceCellPropsT = {
 }
 
 export function InvoiceCell({ transactionId, invoices }: InvoiceCellPropsT) {
+  const { role } = useCurrentUser()
   const [uploadOpen, setUploadOpen] = useState(false)
   const { isUploading, uploadFiles } = useInvoiceUpload(transactionId)
   const { visibleInvoices, handleRemove, handleRemoveAll, removalConfirm } = useInvoiceRemoval(
     transactionId,
     invoices,
   )
+
+  // The worker sees his own transfers' faktury, but the upload and removal actions refuse him.
+  if (!isManagementRole(role)) {
+    return invoices.length > 0 ? (
+      <MediaPreviewButton labels={INVOICE_PREVIEW_LABELS} files={invoices} variant="compact" />
+    ) : null
+  }
 
   return (
     <>

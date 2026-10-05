@@ -3,6 +3,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { InvoiceCell } from '@/components/transfers/invoice-cell'
 import type { PreviewFileT } from '@/types/media'
+import type { RoleT } from '@/lib/auth/roles'
 
 const removeTransferInvoiceAction = vi.fn()
 vi.mock('@/lib/actions/transfers', () => ({
@@ -12,6 +13,11 @@ vi.mock('@/lib/actions/transfers', () => ({
 
 vi.mock('@/hooks/use-invoice-upload', () => ({
   useInvoiceUpload: () => ({ isUploading: false, uploadFiles: vi.fn() }),
+}))
+
+const currentUser = vi.hoisted(() => ({ role: 'OWNER' as RoleT }))
+vi.mock('@/hooks/use-current-user', () => ({
+  useCurrentUser: () => ({ id: 1, role: currentUser.role }),
 }))
 
 const PAGE_ONE: PreviewFileT = {
@@ -32,6 +38,21 @@ const PAGE_TWO: PreviewFileT = {
 describe('InvoiceCell', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    currentUser.role = 'OWNER'
+  })
+
+  // Risk #22: the worker reads his own transfers' faktury, but the upload/removal actions refuse him.
+  it('shows an EMPLOYEE the preview without any way to add or remove a faktura', async () => {
+    const user = userEvent.setup()
+    currentUser.role = 'EMPLOYEE'
+    render(<InvoiceCell transactionId={3} invoices={[PAGE_ONE]} />)
+
+    expect(screen.queryByRole('button', { name: /Dodaj fakturę/ })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /^Podgląd/ }))
+    const dialog = screen.getByRole('dialog')
+
+    expect(within(dialog).queryByRole('button', { name: 'Usuń stronę' })).not.toBeInTheDocument()
+    expect(within(dialog).queryByRole('button', { name: 'Dodaj stronę' })).not.toBeInTheDocument()
   })
 
   it('keeps the faktura wording in the preview', async () => {

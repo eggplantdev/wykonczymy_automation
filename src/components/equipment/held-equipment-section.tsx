@@ -17,7 +17,14 @@ const COLS = `${SUMMARY_LABEL_COL} 1fr ${SUMMARY_VALUE_COL}`
  * when somebody leaves. No actions on purpose: handing an item on happens on the item's own page, so
  * that one operation keeps one entry point and one validation path.
  */
-export function HeldEquipmentSection({ equipment }: { equipment: EquipmentRowT[] }) {
+export function HeldEquipmentSection({
+  equipment,
+  linkable,
+}: {
+  equipment: EquipmentRowT[]
+  // `/sprzet/[id]` is management-only, so the worker's own view lists the names as text.
+  linkable: boolean
+}) {
   return (
     <div>
       <h2 className="mb-2 text-sm font-semibold">Na stanie</h2>
@@ -33,9 +40,13 @@ export function HeldEquipmentSection({ equipment }: { equipment: EquipmentRowT[]
           {equipment.map((item) => (
             <div key={item.id} className="contents">
               <SummaryLabelCell>
-                <Link href={`/sprzet/${item.id}`} className="hover:underline">
-                  {item.name}
-                </Link>
+                {linkable ? (
+                  <Link href={`/sprzet/${item.id}`} className="hover:underline">
+                    {item.name}
+                  </Link>
+                ) : (
+                  item.name
+                )}
               </SummaryLabelCell>
               <SummaryLabelCell>{item.serialNumber || '—'}</SummaryLabelCell>
               <SummaryLabelCell>

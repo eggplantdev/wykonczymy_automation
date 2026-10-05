@@ -19,9 +19,12 @@ const COLS = `${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL}`
 export function OwnedRegistersSection({
   registers,
   balances,
+  linkable,
 }: {
   registers: CashRegisterRefT[]
   balances: RegisterBalanceMapT
+  // `/kasa/[id]` is management-only, so the worker's own view lists the names as text.
+  linkable: boolean
 }) {
   const rows = registers.map((register) => ({
     ...register,
@@ -41,9 +44,13 @@ export function OwnedRegistersSection({
           {rows.map((row) => (
             <Fragment key={row.id}>
               <SummaryLabelCell note={row.active ? null : { text: 'nieaktywna' }}>
-                <Link href={`/kasa/${row.id}`} className="hover:underline">
-                  {row.name}
-                </Link>
+                {linkable ? (
+                  <Link href={`/kasa/${row.id}`} className="hover:underline">
+                    {row.name}
+                  </Link>
+                ) : (
+                  row.name
+                )}
               </SummaryLabelCell>
               <SummaryValueCell tone={row.balance < 0 ? 'error' : 'default'}>
                 {formatPLN(row.balance)}
