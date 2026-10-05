@@ -2,11 +2,8 @@ import type { ResolvedSearchParamsT } from '@/types/page'
 import type { WorkerReportFiltersT } from '@/lib/db/worker-reports'
 import { isReportStatus } from '@/lib/kosztorys/worker-report/report-status'
 import { dayBound } from '@/lib/utils/date-range'
+import { listParam } from '@/lib/utils/list-param'
 import { parseNumericIds } from '@/lib/utils/parse-numeric-ids'
-
-function listParam<T>(value: unknown, parse: (param: string) => T[]): T[] | null {
-  return typeof value === 'string' && value !== '' ? parse(value) : null
-}
 
 export function parseWorkerReportFilters(
   searchParams: ResolvedSearchParamsT,

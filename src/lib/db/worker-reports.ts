@@ -11,7 +11,8 @@ import type { DateRangeT } from '@/lib/utils/date-range'
 import type { PaginationParamsT } from '@/lib/utils/pagination'
 import type { ReferenceItemT } from '@/types/reference-data'
 import type { DbExecutorT } from './get-db'
-import { sqlList } from './sql-list'
+import { inList, sqlList, type SqlT } from './sql-list'
+import { warsawDayWithin } from './sql-warsaw-day'
 import { isoOrNull, numOrNull, text, textOrNull } from './row-coerce'
 
 // Not `server-only`: the users collection's delete guard imports `countReportsByWorker`, and that
@@ -194,26 +195,13 @@ export type WorkerReportFiltersT = {
   sentRange: DateRangeT
 }
 
-type SqlT = ReturnType<typeof sql>
-
-const inList = (column: SqlT, values: readonly (string | number)[] | null): SqlT | undefined => {
-  if (values === null) return undefined
-  return values.length > 0 ? sql`${column} IN (${sqlList(values)})` : sql`false`
-}
-
-// The Warsaw calendar day, so a report sent at 00:30 belongs to that day rather than UTC's. Kept as
-// `YYYY-MM-DD` text and compared lexically, like `isWithinRange`, so no bound can fail a `::date` cast.
-const SENT_DAY = sql`to_char(r.sent_at AT TIME ZONE 'Europe/Warsaw', 'YYYY-MM-DD')`
-
 function decidableReportsWhere(filters: WorkerReportFiltersT): SqlT {
-  const { from, to } = filters.sentRange
   const conditions = [
     DECIDABLE_INVESTMENT,
     inList(sql`r.status`, filters.statuses),
     inList(sql`r.investment_id`, filters.investmentIds),
     inList(sql`r.worker_id`, filters.workerIds),
-    from === undefined ? undefined : sql`${SENT_DAY} >= ${from}`,
-    to === undefined ? undefined : sql`${SENT_DAY} <= ${to}`,
+    ...warsawDayWithin(sql`r.sent_at`, filters.sentRange),
   ].filter((condition) => condition !== undefined)
   return sql.join(conditions, sql.raw(' AND '))
 }
