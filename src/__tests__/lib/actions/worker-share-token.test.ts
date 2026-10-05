@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { getDb } from '@/lib/db/get-db'
-import { WORKER_SCOPE_BLOCK_MESSAGES } from '@/lib/kosztorys/worker-view/labels'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
@@ -22,8 +21,7 @@ vi.mock('@/lib/auth/require-auth', () => ({
   ),
 }))
 
-const { generateWorkerLinkAction, revokeWorkerLinkAction } =
-  await import('@/lib/actions/kosztorys-worker-share')
+const { generateWorkerLinkAction } = await import('@/lib/actions/kosztorys-worker-share')
 const { getWorkerReportPage } = await import('@/lib/queries/worker-report-page')
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
@@ -140,30 +138,15 @@ describe.skipIf(!ENV_READY)('kosztorys worker share token lifecycle (DB)', () =>
     expect(await persistedTokens(readyWorkerId)).toHaveLength(1)
   })
 
-  it('refuses to mint for a worker whose etapy mix rozliczenia', async () => {
-    const res = await generateWorkerLinkAction({ investmentId, workerId: mixedWorkerId })
-    expect(res).toMatchObject({
-      success: false,
-      error: WORKER_SCOPE_BLOCK_MESSAGES['mixed-planes'],
-    })
-    expect(await persistedTokens(mixedWorkerId)).toEqual([])
-  })
+  // The link is also the worker's way into his own page, so a block no longer withholds it — `/z/`
+  // shows the notice and `tokenAction` refuses the send instead (token-action.test.ts).
+  it.each([
+    ['mix rozliczenia', () => mixedWorkerId],
+    ['has no rozliczenie', () => unconfirmedWorkerId],
+  ])('mints for a worker whose etapy %s', async (_case, workerId) => {
+    const res = await generateWorkerLinkAction({ investmentId, workerId: workerId() })
 
-  it('refuses to mint for a worker whose etap has no rozliczenie', async () => {
-    const res = await generateWorkerLinkAction({ investmentId, workerId: unconfirmedWorkerId })
-    expect(res).toMatchObject({
-      success: false,
-      error: WORKER_SCOPE_BLOCK_MESSAGES['unconfirmed-plane'],
-    })
-    expect(await persistedTokens(unconfirmedWorkerId)).toEqual([])
-  })
-
-  it('revoking deletes the row and the token stops resolving', async () => {
-    const [token] = await persistedTokens(readyWorkerId)
-
-    const res = await revokeWorkerLinkAction({ investmentId, workerId: readyWorkerId })
     expect(res.success).toBe(true)
-    expect(await persistedTokens(readyWorkerId)).toEqual([])
-    expect(await getWorkerReportPage(token)).toBeNull()
+    expect(await persistedTokens(workerId())).toEqual([res.success ? res.data : ''])
   })
 })

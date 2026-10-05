@@ -53,9 +53,11 @@ describe.skipIf(!ENV_READY)('sendWorkerReportAction (DB)', () => {
       stages: [{ worker: workerId, plane: 'w_tools' }],
     }))
     token = `test-send-report-${process.pid}-${Date.now()}`
-    await payload.create({
+    // The etap already minted his link; pin it to a token the spec can name.
+    await payload.update({
       collection: 'worker-report-shares',
-      data: { investment: investmentId, worker: workerId, token },
+      where: { investment: { equals: investmentId }, worker: { equals: workerId } },
+      data: { token },
       overrideAccess: true,
       context: { skipRevalidation: true },
     })

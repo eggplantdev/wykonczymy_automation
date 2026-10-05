@@ -7,6 +7,8 @@ import type { ActionResultT } from '@/types/action'
 // has to be unguessable at the scale of the whole internet, not just of this company's users.
 const TOKEN_BYTES = 24
 
+export const newShareToken = () => randomBytes(TOKEN_BYTES).toString('base64url')
+
 export type ShareRowT =
   | { collection: 'kosztorys-shares'; owner: { investment: number } }
   | { collection: 'worker-report-shares'; owner: { investment: number; worker: number } }
@@ -43,7 +45,7 @@ export async function writeShareToken(
 ): Promise<ActionResultT<string>> {
   const share = await findShare(payload, row)
   if (share && !rotate) return { success: true, data: share.token }
-  const token = randomBytes(TOKEN_BYTES).toString('base64url')
+  const token = newShareToken()
   if (share) {
     await payload.update({ collection: row.collection, id: share.id, data: { token } })
     return { success: true, data: token }

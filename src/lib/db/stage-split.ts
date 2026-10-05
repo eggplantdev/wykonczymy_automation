@@ -1,6 +1,7 @@
 import 'server-only'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
+import { newShareToken } from '@/lib/kosztorys/share-token'
 import type { KosztorysStageT, StageSplitT, ToolPlaneT } from '@/lib/kosztorys/types'
 import { subcontractorDueColumns, subcontractorLinesCte } from './kosztorys-subcontractor-due'
 import type { DbExecutorT } from './get-db'
@@ -31,20 +32,35 @@ export async function replaceStageSplit(
 
 export const STAGE_MEMBER_INSERT_COLUMNS = ['stage_id', 'worker_id', 'value', 'takes_rest'] as const
 
-/** Members of freshly inserted etapy; the caller owns `split_mode` on the etap row. */
+/**
+ * Members of freshly inserted etapy; the caller owns `split_mode` on the etap row. Every path that
+ * puts a worker on an etap lands here, so this is also where his report link is minted — in the
+ * caller's transaction, and never over a link he already holds.
+ */
 export async function insertStageMembers(
   db: DbExecutorT,
   stages: { stageId: number; split: StageSplitT }[],
 ): Promise<void> {
-  const rows = stages.flatMap(({ stageId, split }) =>
-    split.members.map(
-      (member) => sql`(${stageId}, ${member.workerId}, ${member.value}, ${member.takesRest})`,
-    ),
+  const members = stages.flatMap(({ stageId, split }) =>
+    split.members.map((member) => ({ stageId, ...member })),
   )
-  if (rows.length === 0) return
+  if (members.length === 0) return
+  const rows = members.map(
+    (member) => sql`(${member.stageId}, ${member.workerId}, ${member.value}, ${member.takesRest})`,
+  )
   await db.execute(sql`
     INSERT INTO kosztorys_stage_workers (${sql.raw(STAGE_MEMBER_INSERT_COLUMNS.join(', '))})
     VALUES ${sql.join(rows, sql.raw(', '))}
+  `)
+  const shares = members.map(
+    (member) => sql`(${member.stageId}::integer, ${member.workerId}::integer, ${newShareToken()})`,
+  )
+  await db.execute(sql`
+    INSERT INTO worker_report_shares (investment_id, worker_id, token)
+    SELECT DISTINCT ON (ks.investment_id, v.worker_id) ks.investment_id, v.worker_id, v.token
+    FROM (VALUES ${sql.join(shares, sql.raw(', '))}) AS v(stage_id, worker_id, token)
+    JOIN kosztorys_stages ks ON ks.id = v.stage_id
+    ON CONFLICT (investment_id, worker_id) DO NOTHING
   `)
 }
 

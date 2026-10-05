@@ -467,19 +467,19 @@ needs `pnpm db:migrate:preview` after merge to staging.
 
 #### Automated
 
-- [x] 2.1 `fetchWorkerTransfers` gate + scope spec
-- [x] 2.2 `fetchEquipmentAtLocation` gate spec
-- [x] 2.3 Read-only invoice cell DOM spec
+- [x] 2.1 `fetchWorkerTransfers` gate + scope spec — 25178e81
+- [x] 2.2 `fetchEquipmentAtLocation` gate spec — 25178e81
+- [x] 2.3 Read-only invoice cell DOM spec — 25178e81
 
 ### Phase 3: Automatic report link
 
 #### Automated
 
-- [ ] 3.1 Mint DB spec across `insertStageMembers` paths
-- [ ] 3.2 `worker-share-token.test.ts` updated (blocked mints, revoke removed)
-- [ ] 3.3 `kosztorys-workers-menu.test.tsx` updated
-- [ ] 3.4 Migration applied locally, 0 pairs without a share
-- [ ] 3.5 test-plan.md risk #19 revised
+- [x] 3.1 Mint DB spec across `insertStageMembers` paths
+- [x] 3.2 `worker-share-token.test.ts` updated (blocked mints, revoke removed)
+- [x] 3.3 `kosztorys-workers-menu.test.tsx` updated
+- [x] 3.4 Migration applied locally, 0 pairs without a share
+- [x] 3.5 test-plan.md risk #19 revised
 
 ### Phase 4: Worker's kosztorys list
 

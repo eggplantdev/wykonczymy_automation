@@ -10,10 +10,7 @@ import { useKosztorysActions } from '@/components/kosztorys/editor/actions/koszt
 import { useLatestRequest } from '@/hooks/use-latest-request'
 import { ensureWorkerLinkAction } from '@/lib/actions/kosztorys-worker-share'
 import { FRONTEND_URL } from '@/lib/env'
-import {
-  readWorkerShareHolders,
-  readWorkerShareToken,
-} from '@/lib/queries/worker-share-link-endpoint'
+import { readWorkerShareHolders } from '@/lib/queries/worker-share-link-endpoint'
 import { readWorkerViewSettings } from '@/lib/queries/worker-view-settings-endpoint'
 import type { WorkerViewSettingsT } from '@/lib/kosztorys/worker-view/settings'
 import { copyToClipboardAsync } from '@/lib/utils/copy-to-clipboard'
@@ -48,7 +45,6 @@ export type WorkerActionsT = {
   requestShare: (target: WorkerShareTargetT) => void
   linkHolders: ReadonlySet<number>
   requestLinkHolders: () => void
-  dropLinkHolder: (workerId: number) => void
 }
 
 // Fetched on the click, not by the dialogs, for the Radix reason `useInvestorActions` gives.
@@ -106,9 +102,6 @@ export function useWorkerActions(): WorkerActionsT {
         })
     }
 
-    // A blocked worker's link opens only to be switched off, so it is read, never minted or copied.
-    if (target.blockReason !== undefined) return show(readWorkerShareToken(key))
-
     const token = settleAction(() => ensureWorkerLinkAction(key)).then((result) => {
       if (!result.success) throw new ShareLinkError(result.error)
       return result.data
@@ -131,16 +124,6 @@ export function useWorkerActions(): WorkerActionsT {
       })
   }
 
-  function dropLinkHolder(workerId: number) {
-    // A read already in flight answers from before the revoke and would put the worker back.
-    holdersRequest.start()
-    setLinkHolders((holders) => {
-      const next = new Set(holders)
-      next.delete(workerId)
-      return next
-    })
-  }
-
   return {
     settings,
     setSettings,
@@ -156,7 +139,6 @@ export function useWorkerActions(): WorkerActionsT {
     requestShare,
     linkHolders,
     requestLinkHolders,
-    dropLinkHolder,
   }
 }
 
@@ -179,16 +161,10 @@ export function WorkerPreviewMenuItem({
   )
 }
 
-export function WorkerShareMenuItem({
-  target,
-  disabled,
-}: {
-  target: WorkerShareTargetT
-  disabled: boolean
-}) {
+export function WorkerShareMenuItem({ target }: { target: WorkerShareTargetT }) {
   const { worker } = useKosztorysActions()
   return (
-    <DropdownMenuItem disabled={disabled} onSelect={() => worker.requestShare(target)}>
+    <DropdownMenuItem onSelect={() => worker.requestShare(target)}>
       <ClipboardPen />
       Link do zgłoszeń
     </DropdownMenuItem>

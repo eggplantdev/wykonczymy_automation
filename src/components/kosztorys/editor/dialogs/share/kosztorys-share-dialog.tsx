@@ -39,10 +39,13 @@ export function KosztorysShareDialog() {
           token={token}
           urlFor={investorShareUrl}
           generate={() => generateShareLinkAction(investmentId)}
-          revoke={() => revokeShareLinkAction(investmentId)}
           onTokenChange={onTokenChange}
-          revokeTitle="Wyłączyć link dla inwestora?"
-          revokeDescription="Inwestor natychmiast straci dostęp do kosztorysu. Tej akcji nie da się cofnąć — aby przywrócić dostęp, musisz wygenerować nowy link (stary adres już nie zadziała)."
+          revoke={{
+            action: () => revokeShareLinkAction(investmentId),
+            title: 'Wyłączyć link dla inwestora?',
+            description:
+              'Inwestor natychmiast straci dostęp do kosztorysu. Tej akcji nie da się cofnąć — aby przywrócić dostęp, musisz wygenerować nowy link (stary adres już nie zadziała).',
+          }}
         >
           <Button variant="ghost" size="sm" className="self-start" onClick={openSettings}>
             <Settings2 />
