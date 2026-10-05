@@ -656,16 +656,16 @@ with a readable message.
 
 #### Automated
 
-- [x] 2.1 worker-form print unit spec
+- [x] 2.1 worker-form print unit spec — 4ae2da12
 
 ### Phase 3: Data model + create action
 
 #### Automated
 
-- [ ] 3.1 Migration applies and rolls back locally
-- [ ] 3.2 resolve-scan unit spec
-- [ ] 3.3 worker-report-scan action DB spec (create, gates, /z/ filter)
-- [ ] 3.4 Media guards DB spec
+- [x] 3.1 Migration applies and rolls back locally
+- [x] 3.2 resolve-scan unit spec
+- [x] 3.3 worker-report-scan action DB spec (create, gates, /z/ filter)
+- [x] 3.4 Media guards DB spec
 
 ### Phase 4: AI read
 

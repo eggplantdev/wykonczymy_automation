@@ -2,6 +2,7 @@ import { after } from 'next/server'
 import type { Payload } from 'payload'
 import { getDb } from '@/lib/db/get-db'
 import { findDraftHeldMedia } from '@/lib/db/worker-expense-drafts'
+import { findReportHeldMedia } from '@/lib/db/worker-reports'
 import { MEDIA_RELATIONS, mediaReferenceWhere } from '@/lib/media/relating-collections'
 import { uploadFieldIds, type UploadFieldT } from '@/lib/media/upload-field'
 import { logError } from '@/lib/utils/log-error'
@@ -100,7 +101,9 @@ async function findReferencedMedia(payload: Payload, mediaIds: number[]): Promis
     }
   }
 
-  for (const id of await findDraftHeldMedia(await getDb(payload), mediaIds)) referenced.add(id)
+  const db = await getDb(payload)
+  for (const id of await findDraftHeldMedia(db, mediaIds)) referenced.add(id)
+  for (const id of await findReportHeldMedia(db, mediaIds)) referenced.add(id)
 
   return referenced
 }

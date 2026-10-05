@@ -1,5 +1,6 @@
 import { makePreventDelete } from '@/hooks/prevent-delete'
 import { countDraftsHoldingMedia } from '@/lib/db/worker-expense-drafts'
+import { countReportsHoldingMedia } from '@/lib/db/worker-reports'
 import { MEDIA_RELATIONS, mediaReferenceWhere } from '@/lib/media/relating-collections'
 
 /**
@@ -20,6 +21,7 @@ export const preventReferencedMediaDelete = makePreventDelete({
       label,
     })),
     { label: 'zgłoszenia wydatków', count: (db, id) => countDraftsHoldingMedia(db, Number(id)) },
+    { label: 'zgłoszenia prac', count: (db, id) => countReportsHoldingMedia(db, Number(id)) },
   ],
   message: (blockers) =>
     `Nie można usunąć pliku — jest używany w innych miejscach (${blockers.join(', ')}). Najpierw odepnij go tam.`,

@@ -1,7 +1,12 @@
 import type { z } from 'zod'
 import type { StageProgressCellT } from '@/lib/db/stage-progress'
 import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
-import type { acceptSchema, sendLineSchema } from '@/lib/kosztorys/worker-report/schemas'
+import type {
+  acceptSchema,
+  createScannedReportSchema,
+  scanPageSchema,
+  sendLineSchema,
+} from '@/lib/kosztorys/worker-report/schemas'
 import type { KosztorysItemT, KosztorysSectionT, KosztorysStageT } from '@/lib/kosztorys/types'
 import type { ReportStatusT } from '@/lib/kosztorys/worker-report/report-status'
 
@@ -29,6 +34,10 @@ export type WorkerReportFormDataT = {
 }
 
 export type SendReportLineT = z.input<typeof sendLineSchema>
+
+export type ScanPageT = z.infer<typeof scanPageSchema>
+
+export type CreateScannedReportInputT = z.input<typeof createScannedReportSchema>
 
 export type ReportLineKindT = 'rozpiska' | 'extra'
 

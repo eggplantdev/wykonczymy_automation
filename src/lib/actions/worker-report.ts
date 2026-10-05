@@ -8,9 +8,9 @@ import { tokenAction } from '@/lib/actions/token-action'
 import { insertWorkerReport, type WorkerReportLineInputT } from '@/lib/db/worker-reports'
 import { cleanUnit } from '@/lib/kosztorys/clean-unit'
 import { noticeFailure, noticeKeyOf } from '@/lib/i18n/notice-failure'
+import { reportUnits, rozpiskaLine, treeItems } from '@/lib/kosztorys/worker-report/report-lines'
 import { sendLineSchema } from '@/lib/kosztorys/worker-report/schemas'
 import type { SendReportLineT } from '@/lib/kosztorys/worker-report/types'
-import { unitOptions } from '@/lib/kosztorys/unit-options'
 import type { ActionResultT } from '@/types/action'
 
 const MAX_LINES = 2000
@@ -20,11 +20,7 @@ const linesSchema = z
   .min(1, 'Zgłoszenie nie ma żadnej pracy')
   .max(MAX_LINES, 'Za dużo prac w jednym zgłoszeniu')
 
-/**
- * A rozpiska line carries only its pozycja and ilość: opis, j.m. and sekcja are copied here from the
- * live pozycja, so what the kierownik reviews is what the rozpiska said at send time — never text
- * the client made up. No cache tags: every report read is uncached.
- */
+/** A rozpiska line carries only its pozycja and ilość. No cache tags: every report read is uncached. */
 export async function sendWorkerReportAction(
   token: string,
   lines: SendReportLineT[],
@@ -41,32 +37,16 @@ export async function sendWorkerReportAction(
     'sendWorkerReportAction',
     { token, itemIds },
     async ({ db, investmentId, workerId, tree }) => {
-      const itemById = new Map(
-        tree.sections.flatMap((section) =>
-          section.items.map((item) => [item.id, { item, sectionName: section.name }] as const),
-        ),
-      )
-      const allowedUnits = new Set(
-        unitOptions(
-          [...itemById.values()].map(({ item }) => item.unit ?? ''),
-          '',
-        ),
-      )
+      const items = treeItems(tree)
+      const itemById = new Map(items.map((found) => [found.item.id, found]))
+      const allowedUnits = reportUnits(items)
 
       const stored: WorkerReportLineInputT[] = []
       for (const line of parsed.data) {
         if (line.kind === 'rozpiska') {
           const found = itemById.get(line.itemId)
           if (!found) continue // unreachable: tokenAction refuses an itemId outside this rozpiska
-          const { item, sectionName } = found
-          stored.push({
-            kind: 'rozpiska',
-            itemId: item.id,
-            description: item.description ?? '',
-            unit: item.unit ?? '',
-            sectionName,
-            reportedQty: line.qty,
-          })
+          stored.push(rozpiskaLine(found, line.qty))
           continue
         }
         const unit = cleanUnit(line.unit)

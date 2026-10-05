@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { pl } from '@/lib/i18n/dictionaries/pl'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
+import { MAX_SCAN_PHOTOS } from '@/lib/kosztorys/worker-report/constants'
 
 // Beside the types, not in the actions: a `'use server'` module can export only async functions.
 
@@ -62,3 +63,37 @@ export const acceptSchema = z
   .refine((input) => input.lines.length + input.extras.length + input.undone.length > 0, {
     message: 'Nic się nie zmieniło',
   })
+
+const scanQtySchema = z.number().finite().nullable()
+
+// What one photo reads as. The ref stays the printed text — check digit included — so the resolver,
+// not the AI, decides whether it names a pozycja.
+export const scanPageSchema = z.object({
+  rows: z.array(
+    z.object({
+      ref: z.string().trim().min(1).max(40),
+      qty: scanQtySchema,
+      isUncertain: z.boolean(),
+      description: z.string().max(1000).optional(),
+    }),
+  ),
+  extras: z.array(
+    z.object({
+      description: z.string().max(1000),
+      unit: z.string().max(40).nullable(),
+      qty: scanQtySchema,
+      isUncertain: z.boolean(),
+    }),
+  ),
+})
+
+export const createScannedReportSchema = z.object({
+  investmentId: idSchema,
+  workerId: idSchema,
+  pages: z.array(scanPageSchema).min(1).max(MAX_SCAN_PHOTOS),
+  mediaIds: z
+    .array(idSchema)
+    .min(1)
+    .max(MAX_SCAN_PHOTOS)
+    .refine((ids) => new Set(ids).size === ids.length, 'Zdjęcie powtarza się w zgłoszeniu'),
+})

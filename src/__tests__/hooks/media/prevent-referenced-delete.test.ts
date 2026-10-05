@@ -1,8 +1,18 @@
 import { APIError } from 'payload'
 import type { CollectionBeforeDeleteHook, CollectionSlug } from 'payload'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { preventReferencedMediaDelete } from '@/hooks/media/prevent-referenced-delete'
 import { MEDIA_RELATIONS } from '@/lib/media/relating-collections'
+
+// The raw-table probes, held by tables Payload has no collection for.
+const rawHolders = vi.hoisted(() => ({ drafts: 0, reports: 0 }))
+vi.mock('@/lib/db/get-db', () => ({ getDb: async () => ({}) }))
+vi.mock('@/lib/db/worker-expense-drafts', () => ({
+  countDraftsHoldingMedia: async () => rawHolders.drafts,
+}))
+vi.mock('@/lib/db/worker-reports', () => ({
+  countReportsHoldingMedia: async () => rawHolders.reports,
+}))
 
 function runHook(referencedBy: Partial<Record<CollectionSlug, number>>) {
   const args = {
@@ -37,5 +47,19 @@ describe('preventReferencedMediaDelete', () => {
     await expect(runHook({ [collection]: 1 })).rejects.toMatchObject({
       message: expect.stringContaining(`${label}: 1`),
     })
+  })
+
+  it.each([
+    ['drafts', 'zgłoszenia wydatków'],
+    ['reports', 'zgłoszenia prac'],
+  ] as const)('probes the raw %s table', async (holder, label) => {
+    rawHolders[holder] = 1
+    try {
+      await expect(runHook({})).rejects.toMatchObject({
+        message: expect.stringContaining(`${label}: 1`),
+      })
+    } finally {
+      rawHolders[holder] = 0
+    }
   })
 })
