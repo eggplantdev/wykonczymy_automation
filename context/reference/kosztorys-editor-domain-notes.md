@@ -374,7 +374,7 @@ or signed URLs, a separate decision.
 ## Widok pracownika — link imienny i PDF, tylko odczyt (EX-875, 2026-09-28)
 
 Pracownik / podwykonawca dostaje od ownera **imienny** widok kosztorysu inwestycji: link
-`/zgloszenie-prac/⟨nazwisko⟩/[token]` albo PDF, oba z menu „Pracownicy" w edytorze. Link i PDF
+`/z/⟨inwestycja⟩/⟨nazwisko⟩/[token]` albo PDF, oba z menu „Pracownicy" w edytorze. Link i PDF
 generuje ADMIN / OWNER / MANAGER (jak u inwestora); ustawienia widoku pracownika są **jedne na
 firmę** i zapisuje je tylko ADMIN / OWNER. Kliknięcie „Link do zgłoszeń" działa jak „Udostępnij"
 inwestora: oddaje żywy link albo wydaje nowy i kopiuje go do schowka — u pracownika zablokowanego
@@ -428,11 +428,19 @@ tylko pokazuje link do wyłączenia. „Podgląd" otwiera ten sam widok bez wysy
 
 ### Zgłoszenia wykonanych prac — pracownik zgłasza ilości, kierownik przyjmuje (EX-947, 2026-09-30)
 
-- **Jeden link (EX-966).** „Zgłoszenie prac" (`/zgloszenie-prac/…`) jest jedynym widokiem
-  pracownika: rozpiska z przyciskiem „Podsumowanie" (rozliczenie) i kolumną „Zgłaszam". Osobna
-  rozpiska `/p/…` z EX-875 została usunięta bez przekierowania — stare linki dają 404. Kto nie może
+- **Jeden link (EX-966).** „Zgłoszenie prac" (`/z/⟨inwestycja⟩/⟨nazwisko⟩/[token]`) jest jedynym
+  widokiem pracownika. Oba człony nazwy to ozdoba — rozwiązuje sam token, a pusta nazwa daje `-`.
+  Osobna rozpiska `/p/…` z EX-875 została usunięta bez przekierowania, a linki
+  `/zgloszenie-prac/…` przestały działać 2026-10-05 (właściciel: bez przekierowania, wysyła linki
+  ponownie z menu „Pracownicy" — token się nie zmienia). Stare linki dają 404. Kto nie może
   mieć rozpiski (brak etapu, etap bez rozliczenia, mieszane rozliczenia), ten nie zgłasza. Działa
   na telefonie — jedyny wyjątek od wąskiego zakresu telefonu.
+- **Dwa tryby w stopce** (przypięta do dołu ekranu, przyciski równej szerokości): „Zgłaszam pracę"
+  — opis prac, kolumna „Zgłaszam", „Nowa praca" i „Wyślij"; „Inwestycja" — cała rozpiska bez
+  „Zgłaszam" i bez wysyłki, a pod nią rozliczenie w układzie stopki PDF. Wpisane ilości przeżywają
+  przełączenie trybu. Liczniki: „Tylko zgłaszane przeze mnie (N)" liczy pozycje z wpisaną ilością,
+  „Wyślij (N)" — wszystkie linie wysyłki, także kompletne „Nowe prace", a „Wszystkie prace (+N)" —
+  wiersze, które ukrywa reguła pustych pozycji (przy 0 bez licznika). W nagłówku nie ma tytułu.
 - **Pracownik wpisuje ilość w j.m. pozycji** w kolumnie „Zgłaszam" na swojej rozpisce, plus prace
   spoza rozpiski (opis, j.m., ilość). Szkic żyje w przeglądarce; do bazy trafia dopiero wysłane
   zgłoszenie. Wysłane jest ostateczne — poprawka to nowe zgłoszenie, a złe kierownik odrzuca. Na

@@ -334,11 +334,11 @@ the owner resends links.
 
 #### Automated
 
-- [x] 2.1 Phase specs pass (summary, worker-report)
-- [x] 2.2 No skipped or `.only` tests in touched files
+- [x] 2.1 Phase specs pass (summary, worker-report) — a9fafa0d
+- [x] 2.2 No skipped or `.only` tests in touched files — a9fafa0d
 
 ### Phase 3: Docs and manual checks
 
 #### Automated
 
-- [ ] 3.1 Domain notes mention `zgloszenie-prac/` only as the retired path
+- [x] 3.1 Domain notes mention `zgloszenie-prac/` only as the retired path

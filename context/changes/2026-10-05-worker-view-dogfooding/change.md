@@ -1,7 +1,7 @@
 ---
 change_id: worker-view-dogfooding
 title: Worker view dogfooding — fixes found using the merged „Zgłoszenie prac" view
-status: implementing
+status: implemented
 created: 2026-10-05
 updated: 2026-10-05
 archived_at: null

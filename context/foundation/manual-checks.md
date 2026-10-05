@@ -3451,28 +3451,27 @@ Refaktor bez zmiany zachowania: nocny cron czyści Kosz tak samo jak wcześniej.
 ## 2026-10-05 — worker-report-reported-only — „Tylko zgłoszone” i szersza kolumna „Zgłaszam”
 
 - [ ] Link „Zgłoszenie prac" na desktopie: kolumna „Zgłaszam” ma limonkowe tło (nie zielone) i jest
-      wyraźnie szersza niż wcześniej — w widoku domyślnym i po włączeniu „Wszystkie kolumny”.
+      wyraźnie szersza niż wcześniej (tryb „Zgłaszam pracę” w stopce).
 - [ ] Ten sam link na telefonie (390px): „Zgłaszam” mieści się obok opisu bez przewijania w bok,
       a wiersz nagłówków kolumn jest nieco wyższy niż na desktopie — podpowiedź pod „Zgłaszam”
       nie jest ucięta. Na desktopie wysokość nagłówka bez zmian.
-- [ ] Włącz „Tylko zgłoszone” bez wpisanych ilości: zamiast rozpiski komunikat „Nic jeszcze nie
+- [ ] Włącz „Tylko zgłaszane przeze mnie” bez wpisanych ilości: zamiast rozpiski komunikat „Nic jeszcze nie
       zgłoszono" (PL/UA/RU). Wyłącz — wraca cała rozpiska.
-- [ ] Wpisz ilość w dwóch pracach, włącz „Tylko zgłoszone”: widać tylko te dwie. Wyczyść jedną z nich
+- [ ] Wpisz ilość w dwóch pracach, włącz „Tylko zgłaszane przeze mnie”: widać tylko te dwie. Wyczyść jedną z nich
       w trakcie — wiersz nie znika spod kursora; znika dopiero przy ponownym przełączeniu.
-- [ ] Wpisz ujemną ilość i włącz „Tylko zgłoszone”: ten wiersz zostaje widoczny (wysyłka go odrzuci,
+- [ ] Wpisz ujemną ilość i włącz „Tylko zgłaszane przeze mnie”: ten wiersz zostaje widoczny (wysyłka go odrzuci,
       więc musi dać się go poprawić).
 
 ## EX-966 — worker-single-view — jeden widok pracownika: „Zgłoszenie prac" z „Podsumowaniem"
 
-- [ ] Link „Zgłoszenie prac" na telefonie (390px): „Podsumowanie" otwiera i zamyka rozliczenie
-      pracownika nad rozpiską, przycisk zamykania jest osiągalny przy otwartym panelu, a strona nie
-      przewija się w bok.
-- [ ] Ten sam link na desktopie, z „Wszystkie kolumny" włączonym i wyłączonym: panel zakrywa ekran
-      (nie całą długość strony), a po jego zamknięciu pasek „Wyślij" jest osiągalny.
-- [ ] Kwoty w „Podsumowaniu" zgadzają się z rozliczeniem tego pracownika w PDF z menu „Pracownicy"
+- [ ] Link „Zgłoszenie prac" na telefonie (390px): „Inwestycja" w stopce pokazuje całą rozpiskę z
+      rozliczeniem pracownika pod nią, „Zgłaszam pracę" wraca do kolumny „Zgłaszam" i „Wyślij".
+- [ ] Ten sam link na desktopie: w „Zgłaszam pracę" przycisk „Wyślij" jest osiągalny, a w obu
+      trybach stopka nie zasłania ostatniego wiersza ani przycisków.
+- [ ] Kwoty rozliczenia w trybie „Inwestycja" zgadzają się z rozliczeniem tego pracownika w PDF z menu „Pracownicy"
       dla tej samej inwestycji.
 - [ ] Kosztorys → „Pracownicy" → „Podgląd": otwiera się ten sam widok co link pracownika — nagłówek,
-      rozpiska, „Podsumowanie", wysłane zgłoszenia — bez przycisku „Wyślij".
+      rozpiska, stopka „Zgłaszam pracę" / „Inwestycja", wysłane zgłoszenia — bez przycisku „Wyślij".
 - [ ] Wpisz ilość w „Podglądzie", potem otwórz prawdziwy link tego pracownika w tej samej
       przeglądarce: link nie pokazuje wpisanej ilości.
 - [ ] „Podgląd" działa dla pracownika, któremu nigdy nie wygenerowano linku.
@@ -3481,6 +3480,28 @@ Refaktor bez zmiany zachowania: nocny cron czyści Kosz tak samo jak wcześniej.
 - [ ] Stary adres `/p/<imię>/<token>` pokazuje stronę „nie znaleziono".
 - [ ] „Link do zgłoszeń" → „Wygeneruj nowy" i „Wyłącz link" działają: nowy adres jest w schowku,
       wyłączony pokazuje komunikat „Ten link wygasł albo został cofnięty…".
+
+## 2026-10-05 — worker-view-dogfooding — link `/z/…`, tryby w stopce, liczniki
+
+- [ ] Kosztorys → „Pracownicy" → „Link do zgłoszeń": w schowku adres
+      `/z/<inwestycja>/<pracownik>/<token>` z nazwą inwestycji i nazwiskiem bez polskich znaków.
+- [ ] Ten adres w oknie prywatnym (bez logowania): strona się otwiera, wpisana ilość wysyła się
+      przez „Wyślij" i pojawia się w zgłoszeniach kierownika.
+- [ ] Stary adres `/zgloszenie-prac/<pracownik>/<token>` (ten sam token): strona „link nieaktywny",
+      bez przekierowania na nowy adres.
+- [ ] Inwestycja albo pracownik z nazwą z samych znaków specjalnych: w adresie stoi `-` w miejscu
+      nazwy, a link działa.
+- [ ] Telefon (390px): stopka „Zgłaszam pracę" / „Inwestycja" zostaje przy dole ekranu przy
+      przewijaniu, oba przyciski są tej samej szerokości.
+- [ ] Telefon (390px), tryb „Inwestycja": strona się nie oddala (bez zoom-out), a przy przewijaniu
+      tabeli w bok nagłówek i stopka zostają na miejscu.
+- [ ] Wpisz ilość w „Zgłaszam", przełącz na „Inwestycja" i z powrotem: ilość jest nadal w kolumnie.
+- [ ] Rozliczenie pod tabelą w „Inwestycja" wygląda jak stopka PDF: bez siatki, wyrównane do prawej,
+      „Pozostało do wypłaty" pogrubione.
+- [ ] Liczniki: „Tylko zgłaszane przeze mnie (N)" i „Wyślij (N)" rosną i maleją przy wpisywaniu i
+      czyszczeniu ilości; kompletna „Nowa praca" podbija tylko „Wyślij (N)"; „Wszystkie prace (+N)"
+      pokazuje liczbę ukrytych pustych pozycji, a przy 0 jest bez licznika.
+- [ ] W nagłówku linku nie ma tytułu „Zgłoszenie wykonanych prac".
 
 ## EX-956 — stage-split-rounding — części podziału etapu sumują się do „Razem" co do grosza (2026-10-05)
 
