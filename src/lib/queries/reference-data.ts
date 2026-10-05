@@ -206,3 +206,13 @@ export function findInvestmentRef(
   const trashed = refData.trashedInvestments.find((i) => i.id === investmentId)
   return trashed && { investment: trashed, trashed: true }
 }
+
+export function findWorkerRef(
+  refData: Pick<ReferenceDataBaseT, 'workers' | 'trashedWorkers'>,
+  workerId: number,
+): WorkerRefT | undefined {
+  return (
+    refData.workers.find((w) => w.id === workerId) ??
+    refData.trashedWorkers.find((w) => w.id === workerId)
+  )
+}

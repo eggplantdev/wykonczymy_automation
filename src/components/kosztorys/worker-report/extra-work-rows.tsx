@@ -8,7 +8,7 @@ import { blankExtra, extraState } from '@/components/kosztorys/worker-report/ext
 import type { ExtraWorkT } from '@/components/kosztorys/worker-report/types'
 import { parseReportQty } from '@/lib/kosztorys/worker-report/parse-report-qty'
 import { unitOptions } from '@/lib/kosztorys/unit-options'
-import { translateUnit } from '@/lib/kosztorys/worker-report/translate-unit'
+import { translateUnit } from '@/lib/kosztorys/worker-view/translate-unit'
 import { useTranslation } from '@/hooks/use-translation'
 
 type PropsT = {

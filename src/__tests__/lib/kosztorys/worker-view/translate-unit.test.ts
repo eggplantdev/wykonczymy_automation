@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { translateUnit } from '@/lib/kosztorys/worker-report/translate-unit'
+import { translateUnit } from '@/lib/kosztorys/worker-view/translate-unit'
 
 describe('translateUnit', () => {
   it.each([

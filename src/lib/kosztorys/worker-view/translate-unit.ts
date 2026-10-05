@@ -1,6 +1,6 @@
+import { foldUnit } from '@/lib/kosztorys/fold'
 import type { LanguageT, TranslationLanguageT } from '@/lib/i18n/languages'
 import { cleanUnit } from '@/lib/kosztorys/clean-unit'
-import { foldUnit } from '@/lib/kosztorys/sheet-import/columns'
 
 // Keyed by fold, so `m2` / `m²` / `M2`, `klp` / `kpl` and `szt` / `szt.` land on one entry.
 const UNIT_TRANSLATIONS: Readonly<Record<string, Record<TranslationLanguageT, string>>> = {
@@ -17,7 +17,6 @@ const UNIT_TRANSLATIONS: Readonly<Record<string, Record<TranslationLanguageT, st
 }
 
 // Polish stays exactly as the owner typed it — the link and the paper show what is in the rozpiska.
-// A unit off the list (`big bag`) is left as typed in every language rather than guessed at.
 export function translateUnit(unit: string, locale: LanguageT): string {
   if (locale === 'pl') return unit
   return UNIT_TRANSLATIONS[foldUnit(cleanUnit(unit))]?.[locale] ?? unit

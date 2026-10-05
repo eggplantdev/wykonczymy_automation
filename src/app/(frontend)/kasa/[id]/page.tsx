@@ -5,7 +5,7 @@ import { requireAuth } from '@/lib/auth/require-auth'
 import { canViewRegister, isManagementRole, ROLES } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/utils/pagination'
 import { parseTransferSort } from '@/lib/queries/transfer-sort'
-import { fetchReferenceData } from '@/lib/queries/reference-data'
+import { fetchReferenceData, findWorkerRef } from '@/lib/queries/reference-data'
 import { fetchRegisterBalances } from '@/lib/queries/balances'
 import { buildTransferFilters } from '@/lib/queries/transfer-filters'
 import { cashRegisterDeleteBlocker } from '@/lib/cash-registers/delete-blocker'
@@ -55,10 +55,7 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
 
   if (!canViewRegister(user.role, register.type)) notFound()
 
-  const ownerName = register.ownerId
-    ? ([...refData.workers, ...refData.trashedWorkers].find((w) => w.id === register.ownerId)
-        ?.name ?? '—')
-    : '—'
+  const ownerName = register.ownerId ? (findWorkerRef(refData, register.ownerId)?.name ?? '—') : '—'
 
   const isOwnerLocked =
     (await cashRegisterDeleteBlocker(await getPayload({ config }), registerId)) !== undefined

@@ -13,7 +13,7 @@ import { groupBySection } from '@/lib/kosztorys/row-ops'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import { workerDataHiddenColumns } from '@/lib/kosztorys/worker-view/columns'
-import { translateTree } from '@/lib/kosztorys/worker-report/translate-tree'
+import { translateTree } from '@/lib/kosztorys/worker-view/translate-tree'
 import { stageShareLabel, type WorkerSummaryT } from '@/lib/kosztorys/worker-view/summary'
 import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
 
@@ -38,12 +38,8 @@ const WORKER_PRINT_STYLES = `
 
 // The web page's `WorkerSummary`, on paper: the same tables in the same order and the same labels,
 // so the two documents a worker may hold side by side read alike.
-function workerFooterHtml(
-  summary: WorkerSummaryT,
-  locale: LanguageT,
-  grid: TranslatorT<'grid'>,
-): string {
-  const labels = getTranslations(locale).report
+function workerFooterHtml(summary: WorkerSummaryT, grid: TranslatorT<'grid'>): string {
+  const labels = getTranslations(grid.locale).report
   const balance = [
     row([labels.summaryExecutedTotal], [formatPLN(summary.executedNet)]),
     ...(summary.bonusNet !== 0 ? [row([labels.summaryBonus], [formatPLN(summary.bonusNet)])] : []),
@@ -141,7 +137,7 @@ export function buildWorkerPrintHtml({
     totalNet: moneyKey === 'net' ? worker.summary.stagesWholeNet : worker.summary.plannedNet,
     sectionNetById,
     extraStyles: WIDE_PRINT_STYLES + WORKER_PRINT_STYLES,
-    footerHtml: workerFooterHtml(worker.summary, locale, grid),
+    footerHtml: workerFooterHtml(worker.summary, grid),
     lang: locale,
     totalLabel: grid.t('total'),
   })

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { buildWorkerPrintHtml } from '@/lib/kosztorys/print/worker'
 import { workerPrintColumns } from '@/lib/kosztorys/print/worker-columns'
 import { WORKER_DOCUMENT_COLUMNS } from '@/lib/kosztorys/worker-view/columns'
@@ -18,7 +18,6 @@ const CLIENT_PRICES = [37, 23]
 const OWN_RATE = 9.75
 const RATE = 12.5
 
-// The link's headers for a „z narzędziami" worker — the paper reads like the screen.
 const RATE_HEADER = 'Cena j.m. netto — z narzędziami (podwykonawca)'
 const PLANNED_NET_HEADER = 'Wartość przedmiaru netto — z narzędziami (podwykonawca)'
 const STAGE_QTY_SUM_HEADER = 'Pomiar — suma etapów z narzędziami (podwykonawca)'
@@ -325,12 +324,15 @@ describe('buildWorkerPrintHtml in the worker’s language', () => {
       ),
     })),
   })
-  const out = buildWorkerPrintHtml({
-    data: projection({ hidePlannedOnceExecuted: false }, [50], translatedTree),
-    logoUrl: '/logo.png',
-    fillByColorKey: new Map(),
-    locale: 'uk',
-    sectionTranslations: { łazienka: { uk: 'Ванна кімната', ru: 'Ванная' } },
+  let out: string
+  beforeAll(() => {
+    out = buildWorkerPrintHtml({
+      data: projection({ hidePlannedOnceExecuted: false }, [50], translatedTree),
+      logoUrl: '/logo.png',
+      fillByColorKey: new Map(),
+      locale: 'uk',
+      sectionTranslations: { łazienka: { uk: 'Ванна кімната', ru: 'Ванная' } },
+    })
   })
 
   it('prints the link’s headers in Ukrainian', () => {
