@@ -2,7 +2,7 @@
 
 import type { Payload, PayloadRequest } from 'payload'
 import { protectedAction } from '@/lib/actions/run-action'
-import { isAdminOrOwnerRole } from '@/lib/auth/roles'
+import { canViewRegister } from '@/lib/auth/roles'
 import { CASH_REGISTER_DELETE_TAGS, CASH_REGISTER_TRASH_TAGS } from '@/lib/cache/tags'
 import { isNameConfirmed, NAME_MISMATCH_MESSAGE } from '@/lib/constants/trash'
 import { deleteTrashedCashRegister } from '@/lib/cash-registers/delete-cash-register-forever'
@@ -38,7 +38,7 @@ async function findVisibleRegister(
     req,
   })
   if (!register) return undefined
-  if (register.type === 'MAIN' && !isAdminOrOwnerRole(user.role)) return undefined
+  if (!canViewRegister(user.role, register.type)) return undefined
   return register
 }
 

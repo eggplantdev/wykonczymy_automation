@@ -2,7 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { isAdminOrOwnerRole, isManagementRole, ROLES } from '@/lib/auth/roles'
+import { canViewRegister, isManagementRole, ROLES } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/utils/pagination'
 import { parseTransferSort } from '@/lib/queries/transfer-sort'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
@@ -53,8 +53,7 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
 
   const registerBalance = balanceRecord[String(registerId)] ?? 0
 
-  // only admin or owner can view MAIN registers
-  if (!isAdminOrOwnerRole(user.role) && register.type === 'MAIN') notFound()
+  if (!canViewRegister(user.role, register.type)) notFound()
 
   // employees can only view their own registers
   if (!isManager && register.ownerId !== user.id) notFound()

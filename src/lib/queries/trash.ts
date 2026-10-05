@@ -2,12 +2,7 @@ import 'server-only'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { requireAuth } from '@/lib/auth/require-auth'
-import {
-  canManageAccount,
-  isAdminOrOwnerRole,
-  MANAGEMENT_ROLES,
-  type RoleT,
-} from '@/lib/auth/roles'
+import { canManageAccount, canViewRegister, MANAGEMENT_ROLES, type RoleT } from '@/lib/auth/roles'
 import { getDb } from '@/lib/db/get-db'
 import { ENTITY_TRASH_RETENTION_DAYS } from '@/lib/constants/trash'
 import { fetchTrashedInvestments, type TrashedInvestmentRowT } from '@/lib/db/investment-trash'
@@ -65,7 +60,7 @@ export function shapeTrashRows(
       hasSheet: row.hasSheet,
     })),
     ...cashRegisters
-      .filter((row) => isAdminOrOwnerRole(viewerRole) || row.type !== 'MAIN')
+      .filter((row) => canViewRegister(viewerRole, row.type))
       .map((row) => ({ ...base(row), kind: 'cash-register' as const, name: row.name })),
     ...workers
       .filter((row) => canManageAccount(viewerRole, row.role))
