@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { KosztorysEditorBody } from '@/components/kosztorys/editor/kosztorys-editor-body'
+import { KosztorysTotalsPanelToggle } from '@/components/kosztorys/summary/kosztorys-totals-panel-toggle'
 import { BrandedHeader } from '@/components/kosztorys/worker-report/branded-header'
 import { DraftExtraWorks } from '@/components/kosztorys/worker-report/draft-extra-works'
 import { ExtraWorksDialogButton } from '@/components/kosztorys/worker-report/extra-works-dialog-button'
@@ -54,6 +55,8 @@ export function ReportGrid({
   onSent,
 }: PropsT) {
   const [isAllColumns, setIsAllColumns] = useState(false)
+  // The body mounts the panel only over rows; a live toggle beside no panel would be a dead button.
+  const hasRows = data.sections.some((section) => section.items.length > 0)
   const { locale, t, tp } = useTranslation('report')
   // The body seeds its rows once, so a language switch remounts it — reseeded from the draft as it
   // is now, or what he typed since the first mount would vanish from the column.
@@ -97,6 +100,7 @@ export function ReportGrid({
               </p>
             )}
             <ReportBar
+              actions={<KosztorysTotalsPanelToggle hasRows={hasRows} disabled={!hasRows} />}
               search={controls.search}
               onSearch={controls.onSearch}
               className="border-border flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:gap-6"

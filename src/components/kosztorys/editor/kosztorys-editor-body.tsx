@@ -9,6 +9,7 @@ import { SheetIcon } from 'lucide-react'
 import { DynamicDataSheetGrid, type DataSheetGridRef } from 'react-datasheet-grid'
 import { KosztorysTotalsPanel } from '@/components/kosztorys/summary/kosztorys-totals-panel'
 import { TotalsPanelOverlay } from '@/components/kosztorys/summary/totals-panel-overlay'
+import { KosztorysTotalsPanelToggle } from '@/components/kosztorys/summary/kosztorys-totals-panel-toggle'
 import { WorkerSummary } from '@/components/kosztorys/summary/blocks/worker-summary'
 import { SummaryScrollRegion } from '@/components/ui/summary-grid'
 import { KosztorysEditorToolbar } from '@/components/kosztorys/editor/toolbar/kosztorys-editor-toolbar'
@@ -682,8 +683,14 @@ export function KosztorysEditorBody({
               full-height sheet of zeros nobody could fold away. */}
                 {/* The worker's document swaps the whole panel for his own balance: every tab of the
               investor's reads the client's money, none of which is his to see. */}
-                {worker && !report && subtotals.length > 0 && (
-                  <TotalsPanelOverlay hasRows>
+                {worker && subtotals.length > 0 && (
+                  <TotalsPanelOverlay hasRows fixed={pageScroll}>
+                    {/* Covering the whole screen, it also covers the toggle that opened it. */}
+                    {pageScroll && (
+                      <div className="border-border flex justify-end border-b px-4 py-3">
+                        <KosztorysTotalsPanelToggle size="lg" hasRows />
+                      </div>
+                    )}
                     <SummaryScrollRegion className="px-4 py-4">
                       <WorkerSummary summary={worker.summary} />
                     </SummaryScrollRegion>
