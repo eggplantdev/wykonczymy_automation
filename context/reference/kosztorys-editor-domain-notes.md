@@ -373,13 +373,12 @@ or signed URLs, a separate decision.
 
 ## Widok pracownika — link imienny i PDF, tylko odczyt (EX-875, 2026-09-28)
 
-Pracownik / podwykonawca dostaje od ownera **imienny** widok kosztorysu inwestycji: link `/p/⟨nazwisko⟩/[token]`
-albo PDF, oba z menu „Pracownicy" w edytorze. Link i PDF generuje ADMIN / OWNER / MANAGER (jak u
-inwestora); ustawienia widoku pracownika są **jedne na firmę** i zapisuje je tylko ADMIN / OWNER.
-Kliknięcie „Link" / „Link do zgłoszeń" działa jak „Udostępnij" inwestora: oddaje żywy link albo
-wydaje nowy i kopiuje go do schowka — u pracownika zablokowanego tylko pokazuje link do wyłączenia.
-Część 2 (pracownik wpisuje ilości w swoich etapach) to osobna zmiana — link identyfikuje pracownika
-właśnie po to, żeby jej nie przepisywać.
+Pracownik / podwykonawca dostaje od ownera **imienny** widok kosztorysu inwestycji: link
+`/zgloszenie-prac/⟨nazwisko⟩/[token]` albo PDF, oba z menu „Pracownicy" w edytorze. Link i PDF
+generuje ADMIN / OWNER / MANAGER (jak u inwestora); ustawienia widoku pracownika są **jedne na
+firmę** i zapisuje je tylko ADMIN / OWNER. Kliknięcie „Link do zgłoszeń" działa jak „Udostępnij"
+inwestora: oddaje żywy link albo wydaje nowy i kopiuje go do schowka — u pracownika zablokowanego
+tylko pokazuje link do wyłączenia. „Podgląd" otwiera ten sam widok bez wysyłki zgłoszeń.
 
 - **Zakres = przypisanie etapu.** Pracownik widzi wszystkie pozycje (Przedmiar nie dzieli się na
   etapy), ale tylko kolumny swoich etapów — także etapu, który dzieli z innymi (EX-943). Na takim
@@ -429,10 +428,11 @@ właśnie po to, żeby jej nie przepisywać.
 
 ### Zgłoszenia wykonanych prac — pracownik zgłasza ilości, kierownik przyjmuje (EX-947, 2026-09-30)
 
-- **Dwa osobne linki.** Rozpiska pracownika (`/p/…`) to podsumowanie i rozliczenie; link „Zgłoszenie
-  prac" (`/zgloszenie-prac/…`) tylko zbiera ilości. Oba z menu „Pracownicy", pod tą samą blokadą:
-  kto nie może mieć rozpiski (brak etapu, etap bez rozliczenia, mieszane rozliczenia), ten nie
-  zgłasza. Działa na telefonie — jedyny wyjątek od wąskiego zakresu telefonu.
+- **Jeden link (EX-966).** „Zgłoszenie prac" (`/zgloszenie-prac/…`) jest jedynym widokiem
+  pracownika: rozpiska z przyciskiem „Podsumowanie" (rozliczenie) i kolumną „Zgłaszam". Osobna
+  rozpiska `/p/…` z EX-875 została usunięta bez przekierowania — stare linki dają 404. Kto nie może
+  mieć rozpiski (brak etapu, etap bez rozliczenia, mieszane rozliczenia), ten nie zgłasza. Działa
+  na telefonie — jedyny wyjątek od wąskiego zakresu telefonu.
 - **Pracownik wpisuje ilość w j.m. pozycji** w kolumnie „Zgłaszam" na swojej rozpisce, plus prace
   spoza rozpiski (opis, j.m., ilość). Szkic żyje w przeglądarce; do bazy trafia dopiero wysłane
   zgłoszenie. Wysłane jest ostateczne — poprawka to nowe zgłoszenie, a złe kierownik odrzuca. Na

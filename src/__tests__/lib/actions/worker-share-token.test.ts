@@ -24,7 +24,7 @@ vi.mock('@/lib/auth/require-auth', () => ({
 
 const { generateWorkerLinkAction, revokeWorkerLinkAction } =
   await import('@/lib/actions/kosztorys-worker-share')
-const { getWorkerKosztorysByToken } = await import('@/lib/queries/worker-kosztorys')
+const { getWorkerReportPage } = await import('@/lib/queries/worker-report-page')
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
 
@@ -47,7 +47,7 @@ describe.skipIf(!ENV_READY)('kosztorys worker share token lifecycle (DB)', () =>
 
   const persistedTokens = async (workerId: number) => {
     const shares = await payload.find({
-      collection: 'kosztorys-worker-shares',
+      collection: 'worker-report-shares',
       where: { investment: { equals: investmentId }, worker: { equals: workerId } },
       depth: 0,
       overrideAccess: true,
@@ -62,7 +62,7 @@ describe.skipIf(!ENV_READY)('kosztorys worker share token lifecycle (DB)', () =>
     db = await getDb(payload)
     await purgeFixtureUsers(db)
 
-    investmentId = await createTestInvestment(payload, 'EX-875 worker share lifecycle spec')
+    investmentId = await createTestInvestment(payload, 'EX-966 worker share lifecycle spec')
     readyWorkerId = await createWorker('Jan Gotowy', 'worker-share-ready@test.local')
     mixedWorkerId = await createWorker('Jan Mieszany', 'worker-share-mixed@test.local')
     unconfirmedWorkerId = await createWorker('Jan Niepotwierdzony', 'worker-share-null@test.local')
@@ -84,53 +84,41 @@ describe.skipIf(!ENV_READY)('kosztorys worker share token lifecycle (DB)', () =>
   })
 
   it('generates a token and persists exactly one row for the pair', async () => {
-    const res = await generateWorkerLinkAction(
-      { investmentId, workerId: readyWorkerId },
-      'rozpiska',
-    )
+    const res = await generateWorkerLinkAction({ investmentId, workerId: readyWorkerId })
     expect(res.success).toBe(true)
 
     const tokens = await persistedTokens(readyWorkerId)
     expect(tokens).toEqual([res.success ? res.data : ''])
-    expect(await getWorkerKosztorysByToken(tokens[0])).not.toBeNull()
+    expect(await getWorkerReportPage(tokens[0])).not.toBeNull()
   })
 
   it('rotating replaces the token in place — the old one stops resolving', async () => {
     const [oldToken] = await persistedTokens(readyWorkerId)
 
-    const rotated = await generateWorkerLinkAction(
-      { investmentId, workerId: readyWorkerId },
-      'rozpiska',
-    )
+    const rotated = await generateWorkerLinkAction({ investmentId, workerId: readyWorkerId })
     const newToken = rotated.success ? rotated.data : ''
     expect(newToken).not.toBe(oldToken)
     expect(await persistedTokens(readyWorkerId)).toEqual([newToken])
-    expect(await getWorkerKosztorysByToken(oldToken)).toBeNull()
-    expect(await getWorkerKosztorysByToken(newToken)).not.toBeNull()
+    expect(await getWorkerReportPage(oldToken)).toBeNull()
+    expect(await getWorkerReportPage(newToken)).not.toBeNull()
   })
 
   it('lets a MANAGER rotate the link, like the investor link', async () => {
     const [before] = await persistedTokens(readyWorkerId)
     authState.role = 'MANAGER'
-    const res = await generateWorkerLinkAction(
-      { investmentId, workerId: readyWorkerId },
-      'rozpiska',
-    )
+    const res = await generateWorkerLinkAction({ investmentId, workerId: readyWorkerId })
     authState.role = 'OWNER'
 
     expect(res.success).toBe(true)
     const [after] = await persistedTokens(readyWorkerId)
     expect(after).not.toBe(before)
-    expect(await getWorkerKosztorysByToken(after)).not.toBeNull()
+    expect(await getWorkerReportPage(after)).not.toBeNull()
   })
 
   it('rejects an EMPLOYEE without touching the row', async () => {
     const before = await persistedTokens(readyWorkerId)
     authState.role = 'EMPLOYEE'
-    const res = await generateWorkerLinkAction(
-      { investmentId, workerId: readyWorkerId },
-      'rozpiska',
-    )
+    const res = await generateWorkerLinkAction({ investmentId, workerId: readyWorkerId })
     authState.role = 'OWNER'
 
     expect(res.success).toBe(false)
@@ -140,7 +128,7 @@ describe.skipIf(!ENV_READY)('kosztorys worker share token lifecycle (DB)', () =>
   it('refuses a second row for the same investment and worker at the DB', async () => {
     await expect(
       payload.create({
-        collection: 'kosztorys-worker-shares',
+        collection: 'worker-report-shares',
         data: {
           investment: investmentId,
           worker: readyWorkerId,
@@ -153,10 +141,7 @@ describe.skipIf(!ENV_READY)('kosztorys worker share token lifecycle (DB)', () =>
   })
 
   it('refuses to mint for a worker whose etapy mix rozliczenia', async () => {
-    const res = await generateWorkerLinkAction(
-      { investmentId, workerId: mixedWorkerId },
-      'rozpiska',
-    )
+    const res = await generateWorkerLinkAction({ investmentId, workerId: mixedWorkerId })
     expect(res).toMatchObject({
       success: false,
       error: WORKER_SCOPE_BLOCK_MESSAGES['mixed-planes'],
@@ -165,10 +150,7 @@ describe.skipIf(!ENV_READY)('kosztorys worker share token lifecycle (DB)', () =>
   })
 
   it('refuses to mint for a worker whose etap has no rozliczenie', async () => {
-    const res = await generateWorkerLinkAction(
-      { investmentId, workerId: unconfirmedWorkerId },
-      'rozpiska',
-    )
+    const res = await generateWorkerLinkAction({ investmentId, workerId: unconfirmedWorkerId })
     expect(res).toMatchObject({
       success: false,
       error: WORKER_SCOPE_BLOCK_MESSAGES['unconfirmed-plane'],
@@ -179,9 +161,9 @@ describe.skipIf(!ENV_READY)('kosztorys worker share token lifecycle (DB)', () =>
   it('revoking deletes the row and the token stops resolving', async () => {
     const [token] = await persistedTokens(readyWorkerId)
 
-    const res = await revokeWorkerLinkAction({ investmentId, workerId: readyWorkerId }, 'rozpiska')
+    const res = await revokeWorkerLinkAction({ investmentId, workerId: readyWorkerId })
     expect(res.success).toBe(true)
     expect(await persistedTokens(readyWorkerId)).toEqual([])
-    expect(await getWorkerKosztorysByToken(token)).toBeNull()
+    expect(await getWorkerReportPage(token)).toBeNull()
   })
 })

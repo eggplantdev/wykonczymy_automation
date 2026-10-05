@@ -26,14 +26,6 @@ export function workerIdFromSegment(segment: string): number | undefined {
   return Number.isSafeInteger(workerId) && workerId > 0 ? workerId : undefined
 }
 
-function tokenUrl(origin: string, route: string, name: string, token: string): string {
-  return `${origin}/${route}/${workerNameSlug(name) || '-'}/${token}`
-}
-
-export function workerShareUrl(origin: string, name: string, token: string): string {
-  return tokenUrl(origin, 'p', name, token)
-}
-
 export function workerReportShareUrl(origin: string, name: string, token: string): string {
-  return tokenUrl(origin, 'zgloszenie-prac', name, token)
+  return `${origin}/zgloszenie-prac/${workerNameSlug(name) || '-'}/${token}`
 }

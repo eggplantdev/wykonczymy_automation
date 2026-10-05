@@ -5,7 +5,7 @@ import { LanguageSwitcher } from '@/components/kosztorys/worker-report/language-
 import type { WorkerReportFormDataT } from '@/lib/kosztorys/worker-report/types'
 import { useTranslation } from '@/hooks/use-translation'
 
-// The same mark as the investor and worker links, so a worker opening this from a text message
+// The same mark as the investor link, so a worker opening this from a text message
 // knows whose page it is. The switcher lives here so a notice offers it too.
 export function BrandedHeader({
   data,

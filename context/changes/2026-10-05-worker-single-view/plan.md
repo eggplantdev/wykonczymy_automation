@@ -401,13 +401,13 @@ At implementation, park the DROP in a Linear issue under „Wykonczymy":
 
 #### Automated
 
-- [x] 2.1 Preview-mode form spec: no send button, no draft persistence
-- [x] 2.2 use-report-draft spec covers the null key
+- [x] 2.1 Preview-mode form spec: no send button, no draft persistence — a1bc56a6
+- [x] 2.2 use-report-draft spec covers the null key — a1bc56a6
 
 ### Phase 3: Remove /p and the rozpiska link kind
 
 #### Automated
 
-- [ ] 3.1 No reference to the removed symbols outside migrations
-- [ ] 3.2 Updated action, menu and proxy specs pass
-- [ ] 3.3 Ported privacy cases pass on the report-share read
+- [x] 3.1 No reference to the removed symbols outside migrations
+- [x] 3.2 Updated action, menu and proxy specs pass
+- [x] 3.3 Ported privacy cases pass on the report-share read
