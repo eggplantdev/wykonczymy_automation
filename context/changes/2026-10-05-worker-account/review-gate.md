@@ -38,4 +38,4 @@ Ran as the main-thread mutating pass over the triaged fixes (dedup of the scope 
 - `roles`, `worker-transfers`, `use-nav-links` specs — 29 passed.
 - DB specs vs 5435 (`worker-share-token`, `worker-report-page`, `stage-memberships`) — 15 passed.
 - `tsc --noEmit` — clean.
-- Full suite — not run (awaiting user go).
+- Full suite — skipped by user (pre-push runs it).

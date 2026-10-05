@@ -28,4 +28,4 @@ Ran as the main-thread mutating pass over the triaged fixes (`fold` promotion, t
 
 - Touched pure specs (sheet-import, clean-unit, catalogue-name-fixes, worker-view incl. moved translate-\*, print/worker) — 13 files, 177 passed.
 - `tsc --noEmit` — clean.
-- Full suite — not run (awaiting user go).
+- Full suite — skipped by user (pre-push runs it).
