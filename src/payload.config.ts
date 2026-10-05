@@ -12,7 +12,7 @@ import sharp from 'sharp'
 import { fileURLToPath } from 'url'
 
 import { blobTokenRefusal } from '@/lib/env/schema'
-import { isAdminOrOwnerOrManagerBoolean } from '@/access'
+import { isAuthenticatedBoolean } from '@/access'
 
 import { AmountEdits } from '@/collections/amount-edits'
 import { CashRegisters } from '@/collections/cash-registers'
@@ -122,10 +122,10 @@ export default buildConfig({
       // Cross-env key uniqueness is already handled by appendShortId at the upload boundary
       // (uniqueFileName).
       //
-      // The plugin's default token access is `!!req.user` — any logged-in account, EMPLOYEE
-      // included — so it is replaced here with the same roles the media row itself requires;
-      // otherwise the token gate would be looser than `media.access.create`.
-      clientUploads: { access: isAdminOrOwnerOrManagerBoolean },
+      // Kept in step with `media.access.create`: a token looser than the row gate buys blob writes
+      // with no row to show for them. EMPLOYEE is in since his expense drafts carry receipt photos
+      // (EX-971).
+      clientUploads: { access: isAuthenticatedBoolean },
     }),
   ],
 

@@ -1,0 +1,186 @@
+import { sql } from '@payloadcms/db-vercel-postgres'
+import type { DbExecutorT } from './get-db'
+import { isoOrNull, numOrNull, text, textOrNull } from './row-coerce'
+
+export const EXPENSE_DRAFT_STATUSES = ['pending', 'accepted', 'rejected'] as const
+export type ExpenseDraftStatusT = (typeof EXPENSE_DRAFT_STATUSES)[number]
+
+export type ExpenseDraftMediaT = { id: number; url: string; filename: string; mimeType: string }
+
+export type ExpenseDraftRowT = {
+  id: number
+  workerId: number
+  workerName: string
+  investmentId: number
+  investmentName: string
+  cashRegisterId: number
+  note: string | null
+  status: ExpenseDraftStatusT
+  sentAt: string
+  decidedAt: string | null
+  transferId: number | null
+  media: ExpenseDraftMediaT[]
+}
+
+const DRAFT_SELECT = sql`
+  SELECT d.id, d.worker_id, w.name AS worker_name, d.investment_id, i.name AS investment_name,
+    d.cash_register_id, d.note, d.status, d.sent_at, d.decided_at, d.transfer_id,
+    COALESCE((
+      SELECT json_agg(json_build_object(
+        'id', m.id, 'url', m.url, 'filename', m.filename, 'mimeType', m.mime_type
+      ) ORDER BY dm.position)
+      FROM worker_expense_draft_media dm JOIN media m ON m.id = dm.media_id
+      WHERE dm.draft_id = d.id
+    ), '[]'::json) AS media
+  FROM worker_expense_drafts d
+  JOIN users w ON w.id = d.worker_id
+  JOIN investments i ON i.id = d.investment_id
+`
+
+function toDraftRow(row: Record<string, unknown>): ExpenseDraftRowT {
+  const media = (row.media ?? []) as Record<string, unknown>[]
+  return {
+    id: Number(row.id),
+    workerId: Number(row.worker_id),
+    workerName: text(row.worker_name),
+    investmentId: Number(row.investment_id),
+    investmentName: text(row.investment_name),
+    cashRegisterId: Number(row.cash_register_id),
+    note: textOrNull(row.note),
+    status: row.status as ExpenseDraftStatusT,
+    sentAt: isoOrNull(row.sent_at) ?? '',
+    decidedAt: isoOrNull(row.decided_at),
+    transferId: numOrNull(row.transfer_id),
+    media: media.map((m) => ({
+      id: Number(m.id),
+      url: text(m.url),
+      filename: text(m.filename),
+      mimeType: text(m.mimeType),
+    })),
+  }
+}
+
+/**
+ * The worker's live default kasa, or `null` — a trashed or inactive one is no kasa to book into.
+ */
+export async function readWorkerDefaultRegisterId(
+  db: DbExecutorT,
+  workerId: number,
+): Promise<number | null> {
+  const res = await db.execute(sql`
+    SELECT cr.id FROM users u
+    JOIN cash_registers cr ON cr.id = u.default_cash_register_id
+    WHERE u.id = ${workerId} AND cr.trashed_at IS NULL AND cr.active IS NOT FALSE
+  `)
+  return numOrNull(res.rows[0]?.id)
+}
+
+/**
+ * Draft and pages in one statement, stored only when EVERY page is media the worker uploaded
+ * himself — a guessed media id cannot pull someone else's invoice into his draft. `null` = refused.
+ */
+export async function insertWorkerExpenseDraft(
+  db: DbExecutorT,
+  draft: {
+    workerId: number
+    investmentId: number
+    cashRegisterId: number
+    note: string | null
+    mediaIds: number[]
+  },
+): Promise<number | null> {
+  const values = draft.mediaIds.map((mediaId, position) => sql`(${mediaId}::int, ${position}::int)`)
+  const res = await db.execute(sql`
+    WITH pages_in AS (
+      SELECT v.media_id, v.position
+      FROM (VALUES ${sql.join(values, sql.raw(', '))}) AS v(media_id, position)
+      JOIN media m ON m.id = v.media_id AND m.created_by_id = ${draft.workerId}
+    ), draft AS (
+      INSERT INTO worker_expense_drafts (worker_id, investment_id, cash_register_id, note)
+      SELECT ${draft.workerId}, ${draft.investmentId}, ${draft.cashRegisterId}, ${draft.note}
+      WHERE (SELECT count(*) FROM pages_in) = ${draft.mediaIds.length}
+      RETURNING id
+    ), pages AS (
+      INSERT INTO worker_expense_draft_media (draft_id, media_id, position)
+      SELECT draft.id, pages_in.media_id, pages_in.position FROM draft, pages_in
+    )
+    SELECT id FROM draft
+  `)
+  return numOrNull(res.rows[0]?.id)
+}
+
+export async function listWorkerExpenseDrafts(
+  db: DbExecutorT,
+  workerId: number,
+): Promise<ExpenseDraftRowT[]> {
+  const res = await db.execute(sql`
+    ${DRAFT_SELECT}
+    WHERE d.worker_id = ${workerId}
+    ORDER BY d.sent_at DESC, d.id DESC
+  `)
+  return res.rows.map(toDraftRow)
+}
+
+export async function listPendingExpenseDrafts(db: DbExecutorT): Promise<ExpenseDraftRowT[]> {
+  const res = await db.execute(sql`
+    ${DRAFT_SELECT}
+    WHERE d.status = 'pending' AND i.trashed_at IS NULL
+    ORDER BY d.sent_at, d.id
+  `)
+  return res.rows.map(toDraftRow)
+}
+
+export async function readExpenseDraft(
+  db: DbExecutorT,
+  draftId: number,
+): Promise<ExpenseDraftRowT | null> {
+  const res = await db.execute(sql`${DRAFT_SELECT} WHERE d.id = ${draftId}`)
+  const row = res.rows[0]
+  return row ? toDraftRow(row) : null
+}
+
+/**
+ * Only a pending draft moves, so two managers deciding at once cannot both win — the loser's
+ * update matches no row and the caller reports it.
+ */
+export async function decideExpenseDraft(
+  db: DbExecutorT,
+  decision: {
+    draftId: number
+    decidedBy: number
+    status: Exclude<ExpenseDraftStatusT, 'pending'>
+    transferId: number | null
+  },
+): Promise<boolean> {
+  const res = await db.execute(sql`
+    UPDATE worker_expense_drafts
+    SET status = ${decision.status}, decided_at = now(), decided_by = ${decision.decidedBy},
+      transfer_id = ${decision.transferId}
+    WHERE id = ${decision.draftId} AND status = 'pending'
+    RETURNING id
+  `)
+  return res.rows.length > 0
+}
+
+/**
+ * Which of `mediaIds` a draft holds. The draft's pages live in a raw table, so the Payload-relation
+ * scan of the media reclaim cannot see them and would take a waiting receipt for an orphan.
+ */
+export async function findDraftHeldMedia(db: DbExecutorT, mediaIds: number[]): Promise<number[]> {
+  if (mediaIds.length === 0) return []
+  const res = await db.execute(sql`
+    SELECT DISTINCT media_id FROM worker_expense_draft_media
+    WHERE media_id IN (${sql.join(
+      mediaIds.map((id) => sql`${id}`),
+      sql.raw(', '),
+    )})
+  `)
+  return res.rows.map((row) => Number(row.media_id))
+}
+
+export async function countDraftsHoldingMedia(db: DbExecutorT, mediaId: number): Promise<number> {
+  const res = await db.execute(sql`
+    SELECT count(*)::int AS total FROM worker_expense_draft_media WHERE media_id = ${mediaId}
+  `)
+  return Number(res.rows[0]?.total ?? 0)
+}

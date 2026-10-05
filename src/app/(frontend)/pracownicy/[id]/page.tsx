@@ -9,12 +9,14 @@ import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { fetchRegisterBalances } from '@/lib/queries/balances'
 import { fetchEquipmentAtLocation } from '@/lib/queries/equipment'
 import { fetchWorkerStageInvestments } from '@/lib/queries/worker-stage-investments'
+import { fetchWorkerExpenseDrafts } from '@/lib/queries/worker-expense-drafts'
 import { workerPageTransferWhere } from '@/lib/queries/worker-transfers'
 import { buildFilterConfig } from '@/lib/utils/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { HeldEquipmentSection } from '@/components/equipment/held-equipment-section'
 import { OwnedRegistersSection } from '@/components/users/owned-registers-section'
 import { WorkerInvestmentsSection } from '@/components/users/worker-investments-section'
+import { WorkerExpenseDraftsSection } from '@/components/worker-expenses/worker-expense-drafts-section'
 import { visibleWorkerRegisters } from '@/lib/workers/owned-registers'
 import { EditWorkerDialog } from '@/components/dialogs/edit-worker-dialog'
 import { PageWrapper } from '@/components/ui/page-wrapper'
@@ -34,11 +36,12 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
   const sort = parseTransferSort(sp)
 
   const userId = Number(id)
-  const [refData, balances, heldEquipment, stageInvestments] = await Promise.all([
+  const [refData, balances, heldEquipment, stageInvestments, expenseDrafts] = await Promise.all([
     fetchReferenceData(),
     fetchRegisterBalances(),
     fetchEquipmentAtLocation({ kind: 'holder', id: userId }),
     fetchWorkerStageInvestments(userId),
+    fetchWorkerExpenseDrafts(userId),
   ])
 
   const worker = refData.workers.find((w) => w.id === userId)
@@ -75,6 +78,12 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
       <OwnedRegistersSection registers={registers} balances={balances} linkable={isManager} />
       <HeldEquipmentSection equipment={heldEquipment} linkable={isManager} />
       <WorkerInvestmentsSection investments={stageInvestments} workerName={worker.name} />
+      <WorkerExpenseDraftsSection
+        drafts={expenseDrafts}
+        investments={stageInvestments}
+        canSend={currentUser.id === userId}
+        hasDefaultRegister={registerName !== undefined}
+      />
       <TransfersSection
         title="Transfery"
         config={{
