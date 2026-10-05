@@ -1162,6 +1162,7 @@ wydruku i zgodność liczb z podglądem klienta, kosztorys po kosztorysie.
 
 - [ ] `pnpm test:e2e e2e/client-share.spec.ts` na świeżo zaseedowanym db-test przechodzi.
       _Zweryfikowano 2026-09-29 (staging): pominięto — E2E uruchamia wyłącznie człowiek._
+      _Nie sprawdzone 2026-10-04 (staging): spec E2E uruchamia człowiek (nie uruchamiam `pnpm test:e2e`)._
 
 ## Kosztorys — manager udostępnia inwestorowi + wydruk oferty bez nagłówków (cdd32061, 8a6552c5) — staging 2026-09-24
 
@@ -1482,6 +1483,7 @@ addytywna — na produkcję **przed** pushem; DROP starych kolumn to EX-886, po 
       Playwright MCP w tej sesji steruje Chromium, nie Safari/WebKit; brak dostępu do realnego Safari
       na stagingu. Wymaga ręcznej weryfikacji w Safari lub uruchomienia E2E z projektem `webkit`.
       _Zweryfikowano 2026-09-29 (staging): pominięto — Chromium nie jest Safari._
+      _Nie sprawdzone 2026-10-04 (staging): Safari niedostępne w tym narzędziu._
 - [x] „Ustawienia podglądu…" w oknie udostępniania otwiera okno ustawień. Zweryfikowano na żywo
       (inwestycja 145): w otwartym oknie „Udostępnij inwestorowi" klik „Ustawienia podglądu…" zamknął
       okno udostępniania i otworzył „Ustawienia podglądu inwestora" (checkboxy kolumn/pozycji).
@@ -1490,6 +1492,7 @@ addytywna — na produkcję **przed** pushem; DROP starych kolumn to EX-886, po 
 
 - [ ] `pnpm test:e2e e2e/client-share.spec.ts` przechodzi — uruchamia człowiek
       _Zweryfikowano 2026-09-29 (staging): pominięto — E2E uruchamia wyłącznie człowiek._
+      _Nie sprawdzone 2026-10-04 (staging): spec E2E uruchamia człowiek (nie uruchamiam `pnpm test:e2e`)._
 
 ## kosztorys-worker-view — widok i PDF pracownika z menu „Pracownicy" (EX-875, 2026-09-28)
 
@@ -2678,6 +2681,7 @@ Każdy boks: po kliknięciu zmiana widoczna **bez przeładowania**, a w Network 
       formularzu wydatku, okno zdjęć leada) otwierają się na szerokość swojego pola i nic w nich
       _Częściowo 2026-09-30 (staging, fae76527): sprawdzone formularz wydatku i okno importu — OK; okno zdjęć leada nie do sprawdzenia: na stagingu żaden lead nie ma załączników (leads_rels puste, kolumna „Załączniki” = „—”), a z UI nie da się dopiąć pliku do zgłoszenia (pliki wchodzą tylko przez webhook landingu, EX-938). Brakuje leada z plikiem._
       _Staging 2026-10-01 (ponowna próba): bez zmian — `leads_rels` nadal bez załączników (0 wierszy z media_id), z UI nie da się dopiąć pliku do leada; brak leada z plikiem. Boks zostaje otwarty._
+      _Nie sprawdzone 2026-10-04 (staging): bez zmian — `leads_rels` nadal bez załączników (0 wierszy z media_id), z UI nie da się dopiąć pliku do leada._
 
 ## 2026-09-30 — „Rozlicz wypłaty": kwota do rozdysponowania i saldo kasy
 
@@ -2716,6 +2720,7 @@ Stan: dowolny rekord do edycji; „nieudany zapis" = DevTools → Network → Of
 - [ ] To samo w szablonie z ~1000 pozycji: zapis komórki bez widocznego opóźnienia względem małego
       szablonu.
       _Staging 2026-10-01: nie sprawdzono — na preview DB nie ma szablonu z ~1000 pozycji (są 3: 0–202 pozycji; największa inwestycja ma 379 pozycji), seedów nie wolno. Boks zostaje otwarty._
+      _Nie sprawdzone 2026-10-04 (staging): bez zmian — na preview nadal brak szablonu z ~1000 pozycji (największy: 202 pozycje), seedów nie wolno._
 - [x] Otwórz szablon z listy → w górnym pasku nazwa szablonu i „Wróć"; zmień nazwę szablonu na
       liście → po wejściu w niego pasek i tytuł pokazują nową nazwę.
       _Staging 2026-10-01: szablon 178 zmieniony na liście na „QA909 szablon B2” → po wejściu górny pasek: „Wróć” + „QA909 szablon B2”. Aplikacja nie ustawia `<title>` na żadnej trasie, więc „tytuł” = pasek._
@@ -2764,10 +2769,11 @@ Stan: dowolny rekord do edycji; „nieudany zapis" = DevTools → Network → Of
       „Wartość przedmiaru" to cały przedmiar, a osobno widać „Twój udział: 25,0%" z kwotą; nigdzie nie
       ma imion pozostałych osób z etapu.
       _Staging 2026-10-01 (widok): Etap 1 podzielony 75/25 (Adam główny, Arek 25%); `/podglad-pracownika/Arek-Zwierski-52/137` — wiersze i „Razem” 3437,40 (cały etap), „Wartość przedmiaru (Twoja stawka)” 3462,50, osobno „Etap 1 (cały etap) 3437,40” → „Twój udział: 25,0%” 859,35, „Pozostało do wypłaty” 859,35; w widoku brak imion pozostałych. NIE sprawdzono PDF („Drukuj PDF” = okno wydruku, wymaga człowieka) ani prawdziwego linku `/p/…` Arka (ten sam renderer co Podgląd, ale token nie był generowany). Boks zostaje otwarty. Split cofnięty do samego Adama._
-- [ ] Link pracownika, który jest sam na swoich etapach: widok i PDF wyglądają jak przed zmianą (bez
+- [x] Link pracownika, który jest sam na swoich etapach: widok i PDF wyglądają jak przed zmianą (bez
       wiersza „Twój udział").
       _Staging 2026-10-01 (widok): `/p/Adam-Orlowski/<token>` przy Adamie samym na Etapie 1 — „Twoje rozliczenie”: Wartość przedmiaru, „Etap 1 3437,40”, Wykonane razem, Wypłacone, Pozostało — bez wiersza „Twój udział”. NIE sprawdzono PDF (człowiek) ani porównania „jak przed zmianą” (brak zrzutu sprzed). Boks zostaje otwarty._
       _Staging 2026-10-01 (batch 5): prawdziwy link `/p/Qatest-Dwa/<token>` (inw. 137, Etap 1 75% Adam / 25% Qatest Dwa): wiersz „Etap 1 (cały etap) 3437,40”, „Twój udział: 25,0%” 859,35, Wykonane razem 859,35, Pozostało 859,35, „Wartość przedmiaru (Twoja stawka)” 3462,50, brak innych imion. PDF przechwycony przez stub `window.open`/print (bez prawdziwego druku): te same wiersze całego etapu i „Twój udział: 25,0%”, bez imion. Boks zamknięty._
+      _Zweryfikowano 2026-10-04 (staging, inw. 182, QA-Premia A sam na Etapie 1): widok `/p/…` oraz „Drukuj PDF” (stub `popup.print`, print wywołany 1×, bez prawdziwego druku) pokazują te same wiersze: Etap 1, Wykonane razem, Wypłacone, Pozostało do wypłaty — bez wiersza „Twój udział”. Zgodność „jak przed zmianą” oparta na opisie, bez zrzutu sprzed._
 - [x] Etap sprzed zmiany z jednym przypisanym pracownikiem: po wdrożeniu nagłówek pokazuje tę samą
       osobę bez „+N", a jej należne i wypłaty się nie zmieniły.
       _Staging 2026-10-01: nie sprawdzono w pełni — Etap 1 inw. 137 (jeden pracownik, Adam Orłowski) pokazywał nagłówek bez „+N” przed moimi zmianami, ale „po wdrożeniu” to porównanie ze stanem sprzed zmiany, którego nie mam. Boks zostaje otwarty._
@@ -2931,8 +2937,9 @@ Na stagingu link wskazuje na staging (wartość Preview `NEXT_PUBLIC_FRONTEND_UR
 
 **Bez zmian w innych widokach**
 
-- [ ] Edytor kierownika, Podgląd, link inwestora i link pracownika wyglądają i działają jak
+- [x] Edytor kierownika, Podgląd, link inwestora i link pracownika wyglądają i działają jak
       wcześniej.
+      _Zweryfikowano 2026-10-04 (staging, inw. 182 QA): edytor kierownika, Podgląd inwestora (`/podglad-inwestora/182`), link inwestora (`/k/<token>`), Podgląd pracownika i link pracownika (`/p/…`) ładują się (200), pokazują te same kolumny i sumy, brak czerwonych komórek poza edytorem, żadnej strony błędu. „Jak wcześniej” oceniono względem opisów z wcześniejszych przebiegów — brak zrzutu sprzed zmiany._
 - [x] Podgląd i link pracownika: żadnej czerwonej komórki, także w wierszu ponad przedmiar i przy
       stawce ponad pułap. W edytorze kierownika oba dalej są czerwone.
       _Staging 2026-10-01, inw. 137: „montaż płyt osb” (cena 100) ustawiony UI-em na stawkę 80 (80% > 65%), „mikrocement” 13 przy przedmiarze 10 (Pozostało −390,00). Podgląd (`/podglad-pracownika/Adam-Orlowski-36/137`) i link (`/p/Adam-Orlowski/<token>`) — brak czerwonych komórek na zrzutach (80 i 13 czarne); w edytorze stawka 80 czerwona. Stawka potem przywrócona do „auto” (override w DB znów NULL)._
@@ -2992,6 +2999,7 @@ Na stagingu link wskazuje na staging (wartość Preview `NEXT_PUBLIC_FRONTEND_UR
 - [ ] Dwie karty z tym samym kosztorysem: w pierwszej „Wstaw poniżej” na wierszu, w drugiej usuń
       ten wiersz, w pierwszej zapisz: okno się zamyka, siatka się odświeża, nic się nie zawiesza.
       _Staging 2026-10-01: okno się zamknęło, nic się nie zawiesiło, toasty po polsku. Otwarte: siatka NIE odświeżyła się po toaście „Kosztorys zmienił się w innym miejscu — odświeżam dane” — skasowany wiersz wisiał ≥12 s, także po „Odśwież dane”; zniknął dopiero po przeładowaniu (Findings)._
+      _Nie sprawdzone ponownie 2026-10-04 (staging): defekt (siatka nie odświeża się po toaście) jest zgłoszony jako EX-957 i w repo nie ma poprawki — powtórka dałaby ten sam wynik. Boks zostaje otwarty do czasu poprawki._
 - [x] Katalog prac → „Dodaj pozycję” i edycja pozycji: pola „Kategoria” i „j.m.” działają jak
       dotąd (wybór z listy i wpisanie nowej wartości).
       _Staging 2026-10-01: nowa wartość wpisana i wybrana z listy — j.m. i Kategoria działają przy dodawaniu i edycji._
@@ -3018,10 +3026,12 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
       _Staging 2026-10-01 (inw. 137, ⋯ wiersza → „Wstaw poniżej” → „Nowa praca” z opisem, j.m. i ceną, `setOffline(true)` tuż przed „Dodaj”): toast „Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.”, okno zostaje otwarte z wpisanym opisem, liczba wierszy siatki bez zmian (18 → 18), w DB 0 pozycji „QA-offline…”._
 - [x] Kosztorys offline → „Dodaj sekcję": polski toast, nic nie przybywa, brak strony błędu.
       _Staging 2026-10-01 (inw. 137, Dodaj → Sekcja, `setOffline(true)` tuż przed kliknięciem): toast „Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.”, brak strony błędu, strona zostaje na kosztorysie; w DB nie przybyła żadna sekcja (ostatnia 584 pochodzi z mojego przypadkowego kliknięcia online — usuwam przez UI)._
-- [ ] „Wyczyść kosztorys" → potwierdź offline: „Czyszczenie przerwane — odświeżam…", okno się zamyka; po powrocie sieci siatka pokazuje prawdziwy stan.
+- [x] „Wyczyść kosztorys" → potwierdź offline: „Czyszczenie przerwane — odświeżam…", okno się zamyka; po powrocie sieci siatka pokazuje prawdziwy stan.
       _2026-10-01 inv. 137: offline Wyczyść -> dialog closed, page hard-navigated to chrome-error (offline refresh), toast not observable; after back online kosztorys intact (378 items / 14 sections / 1 stage via SQL). Partial: no data loss confirmed, toast text unverified._
-- [ ] „Wersje" → przywróć wersję offline: „Przywracanie przerwane — odświeżam kosztorys", okno się zamyka, brak strony błędu.
+      _Zweryfikowano 2026-10-04 (staging, inw. 182): Wyczyść offline -> toast „Czyszczenie przerwane — odświeżam kosztorys”, okno zamknięte, brak chrome-error; po powrocie sieci stan prawdziwy (DB 3 sekcje / 2 pozycje, nic nie wyczyszczone)._
+- [x] „Wersje" → przywróć wersję offline: „Przywracanie przerwane — odświeżam kosztorys", okno się zamyka, brak strony błędu.
       _2026-10-01 inv. 137: offline Przywróć -> dialog closed, no chrome-error page, URL unchanged, data intact (378/14). Toast text NOT caught by 10 s page-text poll (likely transient); unverified._
+      _Zweryfikowano 2026-10-04 (staging, inw. 182, wersja „QA-wersja”): Przywróć offline -> toast „Przywracanie przerwane — odświeżam kosztorys”, okno zamknięte, brak strony błędu, dane bez zmian._
 - [x] Transakcje → „Anuluj transakcję" offline: polski toast, przyciski i pole powodu znów aktywne.
       _2026-10-01 tx #5251 offline: toast „Brak połączenia z serwerem — sprawdź internet albo odśwież stronę."; Nie / Tak anuluj and reason field enabled again. Closed with Nie, nothing cancelled._
 - [x] /zaloguj offline → „Zaloguj": komunikat pod formularzem, przycisk wraca do „Zaloguj".
@@ -3034,14 +3044,16 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
       _2026-10-01 inv. 137 / Adam Orłowski link: confirm dialog -> Wyślij offline -> toast „Brak połączenia z serwerem — sprawdź internet albo odśwież stronę."; draft qty (1) kept, send button back to „Wyślij". Nothing submitted._
 - [x] Kosztorys → menu inwestora → „Udostępnij" offline (pierwszy raz dla tej inwestycji): toast „Brak połączenia z serwerem…", nic nie trafia do schowka, brak strony błędu.
       _2026-10-01 inv. 31 (0 kosztorys_shares rows): offline -> toast „Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.", clipboard stub empty, no error page, still 0 share rows after._
-- [ ] „Wczytaj szablon…" i „Pobierz z arkusza Google…" → potwierdź offline: „…przerwane — odświeżam kosztorys", okno się zamyka; po powrocie sieci siatka pokazuje prawdziwy stan.
+- [x] „Wczytaj szablon…" i „Pobierz z arkusza Google…" → potwierdź offline: „…przerwane — odświeżam kosztorys", okno się zamyka; po powrocie sieci siatka pokazuje prawdziwy stan.
       _2026-10-01 offline: inv. 137 (szablon „QA test szablon B") and inv. 31 (sheet, preview read online, import offline): after „Wczytaj i zastąp" / „Pobierz i zastąp" the dialog closed and the tab fell to chrome-error://chromewebdata (the „…przerwane — odświeżam" toast never caught; router.refresh() offline = hard navigation). DB unchanged both times (137: 378/14, 31: 3/1); back online grid is the real state. NOT ticked — see Findings (EX-940)._
+      _Zweryfikowano 2026-10-04 (staging, inw. 182): „Wczytaj szablon…” offline -> „Wczytywanie przerwane — odświeżam kosztorys”, okno zamknięte, brak chrome-error, DB bez zmian. „Pobierz z arkusza Google…” nie uruchamiane (brak QA inwestycji z arkuszem; ta sama ścieżka `settleTreeReplace`)._
 
 ### Findings — 2026-10-01 (EX-940)
 
-- [ ] 🟡 WARNING · open — fix in the tree, staging recheck owed · offline „Wyczyść kosztorys", „Wczytaj szablon…", „Pobierz z arkusza Google…" (inv. 137 / 137 / 31): po błędzie sieci `settleTreeReplace` zwraca `refetch: true`, a `handleTreeReplaced` (`kosztorys-editor-v2.tsx:56`) woła `router.refresh()` — offline Next robi twardą nawigację i karta ląduje na `chrome-error://chromewebdata` (strona błędu przeglądarki), więc box „brak strony błędu" nie przechodzi, a toast „…przerwane — odświeżam…" znika razem ze stroną. Dane nietknięte. Przywracanie wersji (ta sama ścieżka) tego nie zrobiło w moim przebiegu (okno się zamknęło, strona została) — niespójność do wyjaśnienia.
+- [x] 🟡 WARNING · open — fix in the tree, staging recheck owed · offline „Wyczyść kosztorys", „Wczytaj szablon…", „Pobierz z arkusza Google…" (inv. 137 / 137 / 31): po błędzie sieci `settleTreeReplace` zwraca `refetch: true`, a `handleTreeReplaced` (`kosztorys-editor-v2.tsx:56`) woła `router.refresh()` — offline Next robi twardą nawigację i karta ląduje na `chrome-error://chromewebdata` (strona błędu przeglądarki), więc box „brak strony błędu" nie przechodzi, a toast „…przerwane — odświeżam…" znika razem ze stroną. Dane nietknięte. Przywracanie wersji (ta sama ścieżka) tego nie zrobiło w moim przebiegu (okno się zamknęło, strona została) — niespójność do wyjaśnienia.
       test: no automated test · e2e — zachowanie przeglądarki offline; ewentualnie dom spec na to, że `refetch` nie woła `router.refresh()` przy braku sieci.
       **Naprawione 2026-10-01 (w drzewie, przed deployem):** `whenOnline` (`src/lib/utils/when-online.ts`) — odświeżenie po przerwanym zapisie czeka na powrót sieci zamiast twardej nawigacji offline; spec `when-online.test.tsx` (dom). Do ponownego obejrzenia na stagingu po deployu — wtedy też trzy otwarte boxy wyżej.
+      _Zweryfikowano 2026-10-04 (staging, inw. 182 QA, `setOffline`): „Wyczyść”, „Wczytaj szablon” i „Wersje → Przywróć” offline — karta zostaje na kosztorysie (brak chrome-error), toast „…przerwane — odświeżam kosztorys” widoczny, okno zamknięte, po powrocie sieci stan w DB bez zmian (3 sekcje / 2 pozycje). Poprawka `whenOnline` działa na stagingu._
 
 ## 2026-10-01 — marza-v2-half-grosz — lista i strona inwestycji pokazują tę samą marżę v2
 
@@ -3088,8 +3100,9 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
       pod „Admin", w tym samym obrysie; na stronie „Kosz" przycisk jest podświetlony. Po zwinięciu
       menu zostaje sama ikona, a najechanie pokazuje „Kosz".
       _Zweryfikowano 2026-10-03 (staging, OWNER): lista sekcji (aside nav) kończy się na /zgloszenia, bez /kosz; „Kosz" jest rodzeństwem „Admin" w tym samym kontenerze, 40 px niżej (776 vs 736); na /kosz ma aria-current=page i podświetlenie (bg-primary/10, border-primary/40). Zwinięte menu: sama ikona, najechanie pokazuje tooltip „Kosz" (zrzut)._
-- [ ] Telefon (390px), menu z hamburgera: „Kosz" jest pod „Admin" i otwiera stronę „Kosz", a menu
+- [x] Telefon (390px), menu z hamburgera: „Kosz" jest pod „Admin" i otwiera stronę „Kosz", a menu
       się zamyka. Pracownik (EMPLOYEE) nie widzi „Kosza" ani na desktopie, ani na telefonie.
+      _Zweryfikowano 2026-10-03 (staging, 390 px): OWNER — w menu z hamburgera „Kosz" stoi pod „Admin", klik otwiera /kosz (h1 „Kosz") i menu się zamyka. EMPLOYEE: konto „QA-Pracownik Login" ma nieznane hasło (401), więc rolę sprawdziłem tymczasowo na własnym koncie qa-staging (SQL: OWNER→EMPLOYEE→OWNER, ponowne logowanie po każdej zmianie): na 390 px i 1280 px brak linków /kosz i /admin, a wejście na /kosz przekierowuje na /. Rola qa-staging przywrócona do OWNER (potwierdzone loginem)._
 
 ## 2026-10-01 — zgloszenia-prac-pod-pracownikami
 
@@ -3128,6 +3141,11 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
       „usunie się sam", a „Usuń na zawsze" mówi, by najpierw ją przywrócić i zmienić status.
       _Zweryfikowano 2026-10-03 (staging): „QA-blokady A" (status Aktywna, w koszu — stan ustawiony SQL-em na własnym rekordzie QA, bo UI go już nie produkuje) — wiersz nie obiecuje „usunie się samo" (pisze „… · kosztorys w użyciu — tylko ręcznie"), a „Usuń na zawsze" po wpisaniu nazwy odpowiada toastem „Nie można usunąć aktywnej inwestycji. Przywróć ją z Kosza, zmień jej status i dopiero wtedy usuń." Zastrzeżenie: sam dialog przed wpisaniem nazwy i opis wiersza mówią „kosztorys w użyciu", choć kosztorys A jest pusty — patrz Findings 2026-10-03._
 
+### Findings — 2026-10-03
+
+- [x] **Kosz: nieusuwalna inwestycja „Aktywna" z PUSTYM kosztorysem jest opisana jako „kosztorys w użyciu"** — `shapeTrashRows` (`src/lib/queries/trash.ts:64`) liczy `autoPurges: !isKosztorysUsed && !isUndeletable`, a `trash-kinds.ts:37` i `fateOf` w `trash-section.tsx` czytają `!autoPurges` jako „kosztorys w użyciu" (`KOSZTORYS_IN_USE_WARNING`). Aktywna inwestycja w koszu (stan sprzed zmiany) z pustym kosztorysem dostaje więc fałszywy powód: wiersz „… · kosztorys w użyciu — tylko ręcznie" i takie samo ostrzeżenie w oknie „Usuń na zawsze" przed wpisaniem nazwy; prawdziwy powód (status „Aktywna") pojawia się dopiero w toaście po wpisaniu nazwy. **Needs human:** czy rozdzielić powód (osobne pole zamiast jednego `autoPurges`), czy zostawić — stan osiągalny tylko dla rekordów, które trafiły do kosza przed 2026-10-01. **Test disposition:** TDD · unit — `shapeTrashRows` z `isUndeletable: true, isKosztorysUsed: false` powinno nie nazywać kosztorysu „w użyciu".
+      _Odrzucone 2026-10-03: stan nieosiągalny — preview (zrzut prod) nie ma ani jednej aktywnej inwestycji w koszu poza zbudowaną SQL-em QA-blokady A (181), a od 2026-10-01 UI nie wpuszcza takiej do kosza. Nie ma użytkownika, który by to zobaczył._
+
 ## 2026-10-01 — loader-nad-pytaniem
 
 - [x] Edytuj inwestycję → status „Zakończona" → „Zapisz": okno „Zakończyć inwestycję?" jest czytelne,
@@ -3145,72 +3163,103 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
       (akapity, listy), zamiast zlewać się w jeden blok tekstu. To samo w kosztorysie v2, zakładka
       „Inwestycja".
       _Zweryfikowano 2026-10-03 (staging, OWNER): wieloliniowa notatka (akapity + lista z myślnikami) na QA-blokady B oraz wcześniej na QA-blokady A: karta inwestycji i zakładka „Inwestycja" w kosztorysie v2 mają white-space: pre-line, tekst 5-liniowy (97 px), podziały zachowane (investment-info-fields.tsx)._
-- [ ] Inwestycja z wieloliniową „Opinią": karta pokazuje ją z podziałami linii.
-      _Nie sprawdzone 2026-10-03 (staging): boks nieaktualny — pole tekstowe „Opinia" zastąpiła flaga „Prośba o opinię wysłana" (51e089ab, reviewRequested); żaden formularz ani karta nie wpisuje ani nie pokazuje tekstu `review` (kolumna w DB została, 29 starych wartości). Brak miejsca w UI, w którym da się to zweryfikować; do usunięcia z rejestru._
+- [x] Inwestycja z wieloliniową „Opinią": karta pokazuje ją z podziałami linii.
+      _Odrzucone 2026-10-03 — boks nieaktualny — pole tekstowe „Opinia" zastąpiła flaga „Prośba o opinię wysłana" (51e089ab, reviewRequested); żaden formularz ani karta nie wpisuje ani nie pokazuje tekstu `review` (kolumna w DB została, 29 starych wartości). Brak miejsca w UI, w którym da się to zweryfikować; do usunięcia z rejestru._
 
 ## EX-918 — kosz-pracownikow
 
-- [ ] `/pracownicy` → odznacz „Aktywny" u pracownika, potem zaloguj się na jego konto: komunikat
+- [x] `/pracownicy` → odznacz „Aktywny" u pracownika, potem zaloguj się na jego konto: komunikat
       „To konto jest wyłączone. Skontaktuj się z właścicielem firmy.", nie „Nieprawidłowy email
       lub hasło".
-- [ ] To samo konto ze złym hasłem: dalej „Nieprawidłowy email lub hasło".
-- [ ] Pracownik zalogowany w `/admin` w drugiej przeglądarce → odznacz mu „Aktywny": po odświeżeniu
+      _Zweryfikowano 2026-10-03 (staging): „QA-Kosz-Pracownik A" (świeżo dodany w UI, hasło ustawione SQL-em przez skopiowanie hash/salt z konta qa-staging) → przełącznik „Aktywny" wyłączony w /pracownicy → logowanie poprawnym hasłem (POST /api/users/login z strony) zwraca 403 „To konto jest wyłączone. Skontaktuj się z właścicielem firmy."; formularz (loginAction) mapuje ten błąd na ten sam komunikat (auth.ts:38)._
+- [x] To samo konto ze złym hasłem: dalej „Nieprawidłowy email lub hasło".
+      _Zweryfikowano 2026-10-03 (staging): to samo nieaktywne konto, złe hasło → 401 „Podany adres e-mail lub hasło jest nieprawidłowe." (Payload); loginAction (auth.ts:41) zamienia to na „Nieprawidłowy email lub hasło", nie na komunikat o wyłączeniu._
+- [x] Pracownik zalogowany w `/admin` w drugiej przeglądarce → odznacz mu „Aktywny": po odświeżeniu
       `/admin` jest wylogowany.
-- [ ] `/admin` → Użytkownicy → spróbuj usunąć własne konto: odmowa „Nie można wyłączyć, przenieść do
+      _Zweryfikowano 2026-10-03 (staging): druga przeglądarka (osobny kontekst Playwright) zalogowana jako „QA-Kosz-Pracownik A" (EMPLOYEE): przed wyłączeniem /admin → /admin/unauthorized (zalogowany, bez uprawnień), po odznaczeniu „Aktywny" w pierwszej przeglądarce świeże wejście na /admin → /admin/login, czyli wylogowany; wiersz w users_sessions znika (1 → 0). Uwaga: sama aplikacja (/) dalej wpuszcza do wygaśnięcia JWT — zgodnie z AGENTS.md (auth bez odczytu bazy), nie defekt._
+- [x] `/admin` → Użytkownicy → spróbuj usunąć własne konto: odmowa „Nie można wyłączyć, przenieść do
       kosza ani usunąć własnego konta."
-- [ ] `/pracownicy` → odznacz „Aktywny" przy własnym wierszu: odmowa „Nie można wyłączyć, przenieść
+      _Zweryfikowano 2026-10-03 (staging): jako OWNER qa-staging, /admin/collections/users/68 → Usuń → Potwierdź: toast „Nie można wyłączyć, przenieść do kosza ani usunąć własnego konta."; wiersz nietknięty (active=t, trashed_at NULL w bazie)._
+- [x] `/pracownicy` → odznacz „Aktywny" przy własnym wierszu: odmowa „Nie można wyłączyć, przenieść
       do kosza ani usunąć własnego konta.", przełącznik wraca na zaznaczony.
-- [ ] Jako kierownik → odznacz „Aktywny" u właściciela: odmowa „Kierownik może zmieniać tylko konta
+      _Zweryfikowano 2026-10-03 (staging): OWNER qa-staging, /pracownicy, własny wiersz → „Aktywny": toast „Nie można wyłączyć, przenieść do kosza ani usunąć własnego konta.", przełącznik zostaje „Aktywny", w bazie active=t._
+- [x] Jako kierownik → odznacz „Aktywny" u właściciela: odmowa „Kierownik może zmieniać tylko konta
       pracowników.", właściciel dalej się loguje.
-- [ ] Z pracownikiem w koszu: ani dialog nowej transakcji na `/transakcje`, ani podział etapu
+      _Zweryfikowano 2026-10-03 (staging): MANAGER qa-staging-manager (osobna sesja), /pracownicy → „Aktywny" przy właścicielu „QA Staging": toast „Kierownik może zmieniać tylko konta pracowników."; właściciel dalej aktywny, a jego logowanie przechodzi (POST /api/users/login → 200 OWNER w tym samym przebiegu)._
+- [x] Z pracownikiem w koszu: ani dialog nowej transakcji na `/transakcje`, ani podział etapu
       w kosztorysie, ani wydanie sprzętu na `/sprzet` nie proponują go na liście.
-- [ ] Anulowana wypłata dla pracownika, który jest teraz w koszu: na `/transakcje` dalej widać jego
+      _Zweryfikowano 2026-10-03 (staging, OWNER): „QA-Kosz-Pracownik A" (nieaktywny, w koszu) nie występuje na liście pracowników w: Wydatek→Wypłata (inni nieaktywni są — lista nie jest po prostu przefiltrowana po „Aktywne"), wydaniu sprzętu w „Nowy sprzęt" → Pracownik (48 pozycji, tylko QA Staging i Staging QA Manager z QA) oraz „Pracownicy etapu…" na etapie kosztorysu 182 (48 pozycji, bez A)._
+- [x] Anulowana wypłata dla pracownika, który jest teraz w koszu: na `/transakcje` dalej widać jego
       imię i nazwisko, nie „—".
-- [ ] Pracownik w koszu otwiera swój link do zgłoszenia prac: „Twoje konto jest nieaktywne.
+      _Zweryfikowano 2026-10-03 (staging): wypłata #5290 (10 zł, zaksięgowana w UI na „QA-Kosz-Pracownik A", potem anulowana z powodem w UI); pracownik przeniesiony do kosza (trashed_at ustawione). /transakcje z filtrem „Pokaż anulowane" i id=5290: kolumna Pracownik = „QA-Kosz-Pracownik A" (kasa źródłowa też z nazwą „QA-Kosz-Kasa A"), nie „—". Przy okazji potwierdzone, że anulowane wiersze nie blokują „Usuń pracownika" (kosz przeszedł po anulowaniu)._
+- [x] Pracownik w koszu otwiera swój link do zgłoszenia prac: „Twoje konto jest nieaktywne.
       Skontaktuj się z kierownikiem.", bez formularza.
+      _Zweryfikowano 2026-10-03 (staging): link do zgłoszeń prac (utworzony z menu „Pracownicy" w kosztorysie, gdy był aktywny i przypisany do etapu; przed testem usunięty z etapu). Kontrola: link dla żywego pracownika pokazuje formularz. Po przeniesieniu go do kosza (konto aktywne=true, tylko trashed_at) otwarcie tego samego linku w osobnej karcie pokazuje „Twoje konto jest nieaktywne. Skontaktuj się z kierownikiem." i zero pól formularza._
 - [ ] `/kosz` → przywróć kasę pracownika, który dalej jest w koszu: odmowa „Przywróć pracownika —
       kasa wraca razem z nim."
-- [ ] `/pracownicy` → „Usuń pracownika" u nieużywanego pracownika z kasą: pytanie wymienia jego
+      _Nie sprawdzone 2026-10-03 (staging): boks nieosiągalny z /kosz — kasa właściciela, który jest w koszu, nie ma tam osobnego wiersza (cash-register-trash.ts:13: listowana i przywracana razem z nim), więc nie ma przycisku „Przywróć" przy samej kasie. Stan zbudowałem w UI (kasa „QA-Kosz-Kasa A" do kosza z /kasy, potem pracownik do kosza: trashed_at kasy 06:31:19 < pracownika 06:31:33) i /kosz pokazuje ją tylko jako „razem z kasą: …". Jedyna droga to bezpośrednie PATCH /api/cash-registers/48 {trashedAt:null} — dostałem 403 „Kasa jest w koszu — przywróć ją, żeby coś zmienić." (ogólny strażnik, nie komunikat z boksu), więc komunikatu „Przywróć pracownika — kasa wraca razem z nim." nie udało się wywołać._
+- [x] `/pracownicy` → „Usuń pracownika" u nieużywanego pracownika z kasą: pytanie wymienia jego
       kasę; po potwierdzeniu znika z `/pracownicy`, a jego kasa z `/kasy`.
-- [ ] `/kosz` → sekcja „Pracownicy" pokazuje go z dopiskiem „razem z kasą: …"; tej kasy nie ma
+      _Zweryfikowano 2026-10-03 (staging): „QA-Kosz-Pracownik A" z kasą „QA-Kosz-Kasa A" (typ Pracownicze, utworzone w UI): okno „Przenieść do kosza?" mówi „Razem z nim kasa: QA-Kosz-Kasa A."; po potwierdzeniu wiersza nie ma na /pracownicy ani kasy na /kasy; baza: users.trashed_at i cash_registers.trashed_at ten sam znacznik czasu._
+- [x] `/kosz` → sekcja „Pracownicy" pokazuje go z dopiskiem „razem z kasą: …"; tej kasy nie ma
       osobno w sekcji „Kasy".
-- [ ] `/kosz` → „Przywróć" u pracownika: wraca na `/pracownicy` i jego kasa wraca na `/kasy`.
+      _Zweryfikowano 2026-10-03 (staging): /kosz → sekcja „Pracownicy": „QA-Kosz-Pracownik A", „W koszu od 03.10.2026 · usunie się samo za 30 dni", „razem z kasą: QA-Kosz-Kasa A"; strona nie ma osobnej sekcji „Kasy" (kasa nie występuje osobno)._
+- [x] `/kosz` → „Przywróć" u pracownika: wraca na `/pracownicy` i jego kasa wraca na `/kasy`.
+      _Zweryfikowano 2026-10-03 (staging): OWNER, /kosz → „Przywróć" przy „QA-Kosz-Pracownik A": toast „Pracownik przywrócony razem ze swoimi kasami."; wiersz znika z Kosza, wraca na /pracownicy, a „QA-Kosz-Kasa A" na /kasy; psql: users.trashed_at i cash_registers.trashed_at NULL (active pozostaje false — przywrócenie nie włącza konta)._
 - [ ] Ponownie do kosza, potem „Usuń na zawsze": przycisk aktywny dopiero po wpisaniu dokładnego
       imienia i nazwiska; po usunięciu znika z `/kosz` razem z kasą.
-- [ ] Pracownik z transakcją lub wypłatą: „Usuń pracownika" odmawia z powodem, nic nie trafia do
+      _Nie sprawdzone 2026-10-03 (staging): przycisk aktywny dopiero po wpisaniu nazwy (zweryfikowane), ale samo usunięcie odrzucone na stagingu (EMPLOYEE, własny pracownik QA, kasa w koszu razem z nim, 2 próby): „Nie można usunąć pracownika — jest powiązany z danymi (kasy: 1)…". Stan osiągalny przez UI (SQL: user i kasa nadal istnieją). Lokalnie worker-trash.db.test.ts (8 testów, baza 5435) przechodzi, więc rozjazd stagingu — pooler Neon/transakcja; DEFEKT do zgłoszenia, nie ukończono_
+      _Przyczyna 2026-10-03, odtworzona na bazie preview: na Neonie transakcje Payloada nie mają własnego połączenia (`VercelPool` nie jest `pg.Pool`, więc drizzle puszcza je przez pulę), a `makeDeleteBlocker` liczy próbki przez `Promise.all`, więc próbka „kasy” trafia poza transakcję. **Linear: EX-855** (dowód w komentarzu). Boks czeka na tę poprawkę._
+- [x] Pracownik z transakcją lub wypłatą: „Usuń pracownika" odmawia z powodem, nic nie trafia do
       kosza.
-- [ ] Jako kierownik: „Usuń pracownika" jest tylko przy kontach pracowników — nie przy właścicielu,
+      _Zweryfikowano 2026-10-03 (staging): OWNER: „QA-Kosz-Pracownik A" z jedną wypłatą (10 zł, zaksięgowaną przez UI) → „Usuń pracownika" → okno „Przenieść do kosza?" → toast „Nie można usunąć pracownika — jest powiązany z danymi (transakcje: 1). Zamiast usuwać, odznacz „Aktywny"."; wiersz zostaje, psql: users.trashed_at i cash_registers.trashed_at NULL. Wariant z samym zgłoszeniem prac nie sprawdzany._
+- [x] Jako kierownik: „Usuń pracownika" jest tylko przy kontach pracowników — nie przy właścicielu,
       adminie, innym kierowniku ani przy własnym wierszu; w `/kosz` widzi tylko pracowników.
+      _Zweryfikowano 2026-10-03 (staging): MANAGER „Staging QA Manager" (osobna sesja, logowanie przez POST /api/users/login): /pracownicy, 48 wierszy — „Usuń pracownika" ma 39 z 39 kont „Pracownik" i żadne z 9 kont Manager/Właściciel/Admin, w tym własny wiersz. /kosz kierownika pokazuje pracownika w koszu („QA-Kosz-Pracownik A", razem z kasą). Zastrzeżenia: (1) „w /kosz widzi tylko pracowników" jest nieaktualne — /kosz ma też sekcje Inwestycje i Szablony (4681c323, b84fd8c1) i kierownik je widzi; (2) filtrowanie sekcji Pracownicy po canManageAccount (trash.ts:71) potwierdzone tylko w kodzie — na stagingu nie ma w koszu konta Właściciel/Admin/Manager, a nie trashuję prawdziwych kont. Pracownik w koszu był nieaktywny (QA-Kosz-Pracownik A, trashed_at ustawione)._
 - [ ] Jedyny aktywny admin (lub właściciel) do kosza z konta innego właściciela/admina: odmowa
       „Nie można wyłączyć ani usunąć ostatniego aktywnego konta z rolą …"; to samo przy odznaczeniu mu
       „Aktywny".
-- [ ] `/kosz` → „Usuń na zawsze" u kasy i u inwestycji bez wpisanego kosztorysu: oba pytają o nazwę,
+      _Nie sprawdzone 2026-10-03 (staging): na preview DB są 4 aktywne konta ADMIN/OWNER (1 ADMIN + 3 OWNER, w tym `qa-staging`), więc odmowa „ostatniego konta" nie wystąpi, dopóki ktoś nie wyłączy trzech prawdziwych kont — a prawdziwych kont nie ruszam. Logika pokryta lokalnie `src/__tests__/lib/workers/account-removal.test.ts`; sprawdzić na bazie z jednym aktywnym adminem/właścicielem._
+- [x] `/kosz` → „Usuń na zawsze" u kasy i u inwestycji bez wpisanego kosztorysu: oba pytają o nazwę,
       przycisk nieaktywny do jej wpisania.
+      _Zweryfikowano 2026-10-03 (staging): OWNER. Kasa — własna „QA-Kosz-Kasa C" (Pomocnicza, utworzona w UI, do kosza z /kasy): okno „Usunąć na zawsze?" ma pole nazwy, przycisk nieaktywny dla pustego pola i „QA-Kosz", aktywny dopiero po „QA-Kosz-Kasa C"; po potwierdzeniu wiersza nie ma w cash_registers. Inwestycja bez kosztorysu — cudza „QA-973 test inwestycja" (id 180, 0 sekcji, w koszu; okno anulowane, nic nie usunięte): to samo — pole nazwy, przycisk nieaktywny dla pustego i „QA-973", aktywny dopiero po pełnej nazwie._
 
 ## EX-915/916 — kosz-floty-i-sprzetu
 
-- [ ] `/flota` → „Usuń pojazd" przy aktywnym aucie z przeglądami: pytanie mówi, że przypomnienia
+- [x] `/flota` → „Usuń pojazd" przy aktywnym aucie z przeglądami: pytanie mówi, że przypomnienia
       o przeglądach przestaną przychodzić i że po 30 dniach zniknie razem z historią przeglądów (z
       ich liczbą).
-- [ ] Po potwierdzeniu: auta nie ma na `/flota`, jego strona `/flota/[id]` daje 404, a licznik przy
+      _Zweryfikowano 2026-10-03 (staging): OWNER, własny pojazd „QA 123" (QA-Marka QA-Model, status „W użyciu", jeden przegląd dodany przez UI): okno „Przenieść do kosza?" — „Przypomnienia o przeglądach przestaną przychodzić. Po 30 dniach zniknie razem z historią przeglądów (1)."_
+- [x] Po potwierdzeniu: auta nie ma na `/flota`, jego strona `/flota/[id]` daje 404, a licznik przy
       „Flota" w menu go nie liczy.
-- [ ] `/kosz` → sekcja „Flota" pokazuje auto po rejestracji, z marką i modelem pod spodem.
-- [ ] `/kosz` → „Przywróć": auto wraca na `/flota` z tym samym statusem i przeglądami.
-- [ ] Ponownie do kosza, potem „Usuń na zawsze": przycisk aktywny dopiero po wpisaniu dokładnej
+      _Zweryfikowano 2026-10-03 (staging): po potwierdzeniu wiersza „QA 123" nie ma na /flota, /flota/11 pokazuje „Nie znaleziono"; licznik przy „Flota" liczy tylko aktywne, nieskasowane auta (db/notifications.ts: `v.trashed_at IS NULL`) — potwierdzone w kodzie, nie na liczniku (termin tego auta jest za rok, więc i tak nie wchodził do licznika). Uwaga: żądanie HTTP /flota/11 zwraca status 200 przy treści 404 (streaming), nie badano._
+- [x] `/kosz` → sekcja „Flota" pokazuje auto po rejestracji, z marką i modelem pod spodem.
+      _Zweryfikowano 2026-10-03 (staging): /kosz → sekcja „Flota": „QA 123", pod spodem „QA-Marka QA-Model", „W koszu od 03.10.2026 · usunie się samo za 30 dni"._
+- [x] `/kosz` → „Przywróć": auto wraca na `/flota` z tym samym statusem i przeglądami.
+      _Zweryfikowano 2026-10-03 (staging): „Przywróć" przy „QA 123": znika z Kosza, wraca na /flota ze statusem „W użyciu"; psql: status ACTIVE, trashed_at NULL, 1 przegląd w vehicle_inspections._
+- [x] Ponownie do kosza, potem „Usuń na zawsze": przycisk aktywny dopiero po wpisaniu dokładnej
       rejestracji; po usunięciu auta nie ma nigdzie.
-- [ ] `/sprzet` → „Usuń" przy sprzęcie, który ma pracownik: pytanie wymienia tego pracownika. Po
+      _Zweryfikowano 2026-10-03 (staging): ponownie do kosza → „Usuń na zawsze" przy „QA 123": okno wymienia „historia przeglądów i ich załączniki", przycisk nieaktywny dla pustego pola, „QA 12" i „qa 123" (wielkość liter ma znaczenie), aktywny dopiero dla „QA 123"; po potwierdzeniu psql: brak wiersza w vehicles i 0 przeglądów tego auta._
+- [x] `/sprzet` → „Usuń" przy sprzęcie, który ma pracownik: pytanie wymienia tego pracownika. Po
       potwierdzeniu sprzętu nie ma na `/sprzet` ani na karcie pracownika.
-- [ ] `/kosz` → sekcja „Sprzęt": nazwa, pod nią marka, model i numer seryjny. Przywróć, potem znowu
+      _Zweryfikowano 2026-10-03 (staging): własny sprzęt „QA-Szlifierka" (utworzony w UI, przekazany pracownikowi „QA Staging"): okno „Teraz ma go QA Staging. Po 30 dniach zniknie razem z historią przekazań."; po potwierdzeniu wiersza nie ma na /sprzet, a karta /pracownicy/68 pokazuje „Nie ma nic na stanie."_
+- [x] `/kosz` → sekcja „Sprzęt": nazwa, pod nią marka, model i numer seryjny. Przywróć, potem znowu
       do kosza i „Usuń na zawsze" po wpisaniu nazwy.
-- [ ] Dodaj auto z rejestracją auta leżącego w koszu: komunikat odsyła do Kosza („…jest w Koszu —
+      _Zweryfikowano 2026-10-03 (staging): sekcja „Sprzęt": „QA-Szlifierka", pod nią „QA-Makita QA-GA1 · nr ser. QA-SN-001"; „Przywróć" → wraca na /sprzet (u „QA Staging", status „W użyciu"); znowu do kosza → „Usuń na zawsze": okno wymienia „historia przekazań", przycisk nieaktywny dla pustego pola i „QA-Szlif", aktywny dla „QA-Szlifierka"; psql: brak wiersza w equipment i brak zdarzeń._
+- [x] Dodaj auto z rejestracją auta leżącego w koszu: komunikat odsyła do Kosza („…jest w Koszu —
       przywróć go stamtąd."). To samo dla numeru seryjnego sprzętu w koszu.
-- [ ] Jako kierownik: obie sekcje w `/kosz` widoczne, „Usuń", „Przywróć" i „Usuń na zawsze" działają.
-- [ ] `/kasy` i `/pracownicy` → „Usuń" dalej działa jak wcześniej: to samo pytanie, ten sam
+      _Zweryfikowano 2026-10-03 (staging): auto — „QA 123" w koszu, dodanie auta o tej rejestracji → „Pojazd o rejestracji QA 123 jest w Koszu — przywróć go stamtąd."; sprzęt — „QA-SN-001" w koszu, dodanie sprzętu o tym numerze → „Sprzęt o numerze seryjnym QA-SN-001 jest w Koszu — przywróć go stamtąd."; w obu przypadkach nic nie zostało dodane (psql)._
+- [x] Jako kierownik: obie sekcje w `/kosz` widoczne, „Usuń", „Przywróć" i „Usuń na zawsze" działają.
+      _Zweryfikowano 2026-10-03 (staging): MANAGER „Staging QA Manager" (logowanie przez POST /api/users/login, rola MANAGER): własne „QA 200" (auto) i „QA-Młotek" (sprzęt, przekazany kierownikowi) utworzone w UI i przeniesione do kosza przez „Usuń"; w /kosz obie sekcje „Flota" i „Sprzęt" widoczne z wpisami; „Przywróć" oba wracają; ponownie do kosza → „Usuń na zawsze" po wpisaniu nazwy (przycisk nieaktywny do tego czasu) — psql: oba wiersze usunięte._
+- [x] `/kasy` i `/pracownicy` → „Usuń" dalej działa jak wcześniej: to samo pytanie, ten sam
       komunikat po przeniesieniu do kosza.
-- [ ] `/szablony` → „Przenieś szablon do kosza": to samo pytanie co wcześniej, po potwierdzeniu
+      _Zweryfikowano 2026-10-03 (staging): OWNER. /kasy → „QA-Kosz-Kasa D": pytanie „Przenieść „…" do kosza? Możesz ją przywrócić z Kosza.", po potwierdzeniu toast „Kasa przeniesiona do kosza." i wiersz znika. /pracownicy → „QA-Kosz-Pracownik B": pytanie „Przenieść „…" do kosza? Nie zaloguje się, dopóki go nie przywrócisz. Razem z nim kasa: QA-Kosz-Kasa B.", toast „Pracownik przeniesiony do kosza." i wiersz znika (tekst z kodu sprzed zmiany — git show 9b15c2d7 — taki sam)._
+- [x] `/szablony` → „Przenieś szablon do kosza": to samo pytanie co wcześniej, po potwierdzeniu
       komunikat „Szablon przeniesiony do kosza." i szablon jest w `/kosz`.
-- [ ] Dodaj auto z rejestracją wpisaną małymi literami i ze spacjami (np. „ ab 123 " → istniejące
+      _Zweryfikowano 2026-10-03 (staging): własny „QA-Szablon Kosz" (utworzony w UI): pytanie „Przenieść szablon do kosza? … zniknie z listy szablonów i z wyboru szablonu. Możesz go przywrócić z Kosza. Kosztorysy założone z tego szablonu zostają bez zmian — mają własną kopię.", po potwierdzeniu toast „Szablon przeniesiony do kosza.", wiersza nie ma na /szablony, jest w /kosz._
+- [x] Dodaj auto z rejestracją wpisaną małymi literami i ze spacjami (np. „ ab 123 " → istniejące
       „AB 123" w koszu): komunikat i tak odsyła do Kosza; nowe auto zapisuje się wielkimi literami.
+      _Zweryfikowano 2026-10-03 (staging): „ qa 123 " przy „QA 123" w koszu → „Pojazd o rejestracji QA 123 jest w Koszu — przywróć go stamtąd." (nic nie dodane); „ qa 124 " bez kolizji zapisuje się jako „QA 124" (psql, bez spacji, wielkie litery)._
 
 ## EX-948 — worker-report-translations-ua — link „Zgłoszenie prac" po ukraińsku i rosyjsku (2026-10-01)
 
@@ -3248,6 +3297,7 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
       → „bez tłumaczenia (UA)" i „z nieaktualnym tłumaczeniem (UA)" filtrują poprawnie.
 - [ ] Import z arkusza: pozycja, której opis i j.m. zgadzają się z katalogiem, przychodzi
       z tłumaczeniem z katalogu.
+      _Nie sprawdzone 2026-10-04 (staging): katalog prac na preview ma 0 z 569 pozycji z tłumaczeniem (description_translations puste), więc nie ma czego przenieść; wpisanie tłumaczenia do prawdziwego katalogu to zmiana nie-QA danych._
 - [x] Telefon (390px), link pracownika: przełącznik języka w nagłówku pokazuje samą flagę i nie
       ściska nagłówka; rozwinięta lista nadal nazywa każdy język.
 - [x] „Porównaj z katalogiem" → „Brak w katalogu": kliknięcie podpowiedzi „może chodzi o…", która
@@ -3286,8 +3336,10 @@ Na staging najpierw `pnpm db:migrate:preview` (nowe kolumny `trashed_at` / `eras
       `/zgloszenia`.
 - [ ] „Usuń na zawsze" na zgłoszeniu, z którego utworzono inwestycję ze zdjęciami: wymaga wpisania
       nazwy; po usunięciu zgłoszenie znika z `/kosz`, a galeria inwestycji pokazuje wszystkie zdjęcia.
+      _Nie sprawdzone 2026-10-03 (staging): UI nie tworzy zgłoszeń, a formularz WWW wysłałby powiadomienia na prawdziwe adresy; kasować cudzego zgłoszenia nie wolno — bloker izolacji EX-937/EX-938._
 - [ ] Usunięte na zawsze zgłoszenie z Facebooka nie wraca po nocnym uzgodnieniu zgłoszeń (staging,
       następny dzień).
+      _Nie sprawdzone 2026-10-03 (staging): wymaga sprawdzenia następnego dnia po przebiegu crona Facebooka — bloker izolacji EX-937/EX-938_
 - [x] Rozpiska → „Dodaj pracę z katalogu": zaznaczanie wierszy i checkbox w nagłówku działają jak
       wcześniej (wspólny komponent zaznaczania).
 - [ ] Rozpiska → przegląd zgłoszenia prac pracownika: checkbox w nagłówku ma stan częściowy przy części
@@ -3318,38 +3370,53 @@ Na staging najpierw `pnpm db:migrate:preview` (nowa kolumna `review_requested` w
 
 ## 2026-10-02 — podsumowanie-pracownika-tabele
 
-- [ ] Link pracownika (`/p/…`) dla pracownika ze wspólnym etapem → podsumowanie to trzy tabele jedna pod drugą: „Wykonane" (etap | Wartość etapu | Twój udział | Kwota netto, „Razem" pod Wartością etapu i pod Kwotą netto), potem „Twoje rozliczenie", potem „Wypłaty" (data | opis | kwota + „Razem"). Brak wiersza „Wartość przedmiaru".
-- [ ] Ten sam pracownik w Podglądzie właściciela i w PDF → te same tabele w tej samej kolejności i z tymi samymi kwotami co w linku.
-- [ ] Pracownik, którego żaden etap nie jest wspólny → tabela „Wykonane" ma tylko kolumnę Kwota netto.
-- [ ] Link na telefonie (390px) → tabele mieszczą się bez poziomego przewijania strony.
-- [ ] Edytor → zakładka Podwykonawcy na inwestycji z etapem dzielonym między pracowników → tabela „Podział etapów": wiersz na każdy etap z wykonaną pracą, kolumna na każdego pracownika (kwota i procent pod nią, „—" gdy nie ma udziału), a „Razem" pracownika równa się jego „Sumie wykonanej pracy" w „Podsumowaniu pracowników".
+- [x] Link pracownika (`/p/…`) dla pracownika ze wspólnym etapem → podsumowanie to trzy tabele jedna pod drugą: „Wykonane" (etap | Wartość etapu | Twój udział | Kwota netto, „Razem" pod Wartością etapu i pod Kwotą netto), potem „Twoje rozliczenie", potem „Wypłaty" (data | opis | kwota + „Razem"). Brak wiersza „Wartość przedmiaru".
+      _Zweryfikowano 2026-10-03 (staging, QA-blokady B, QA-Premia A): `/p/QA-Premia-A/<token>` — „Wykonane" (Etap 1 | 276,25 | 60,0% | 165,75, Razem 276,25 / 165,75), „Twoje rozliczenie", „Wypłaty" (data | opis | kwota, Razem 250,00); kolejność jak w opisie, tekst strony nie zawiera „Wartość przedmiaru"._
+- [x] Ten sam pracownik w Podglądzie właściciela i w PDF → te same tabele w tej samej kolejności i z tymi samymi kwotami co w linku.
+      _Zweryfikowano 2026-10-03 (staging): Podgląd właściciela (`/podglad-pracownika/…/182`) i popup „Drukuj PDF" (print zastubowany) — te same trzy tabele w tej samej kolejności i z tymi samymi kwotami co w linku (165,75 / 84,25 premii / 250,00 / 0,00)._
+- [x] Pracownik, którego żaden etap nie jest wspólny → tabela „Wykonane" ma tylko kolumnę Kwota netto.
+      _Zweryfikowano 2026-10-03 (staging, QA-blokady B): QA-Premia A jako jedyny na Etapie 1 → w Podglądzie właściciela „Wykonane" ma tylko kolumnę „Kwota netto" (Etap 1 | 276,25, Razem 276,25), bez „Wartość etapu" i „Twój udział"._
+- [x] Link na telefonie (390px) → tabele mieszczą się bez poziomego przewijania strony.
+      _Zweryfikowano 2026-10-03 (staging): `/p/…` przy viewport 390 px — `scrollWidth` = `clientWidth` = 390 (brak poziomego przewijania strony)._
+- [x] Edytor → zakładka Podwykonawcy na inwestycji z etapem dzielonym między pracowników → tabela „Podział etapów": wiersz na każdy etap z wykonaną pracą, kolumna na każdego pracownika (kwota i procent pod nią, „—" gdy nie ma udziału), a „Razem" pracownika równa się jego „Sumie wykonanej pracy" w „Podsumowaniu pracowników".
+      _Zweryfikowano 2026-10-03 (staging, QA-blokady B): przy etapie dzielonym A 60% / B 40% — Etap 1: 276,25 | B 110,50 (40,0%) | A 165,75 (60,0%), Razem 276,25 = 110,50 + 165,75 = „Suma wykonanej pracy" w „Podsumowaniu pracowników". Po rozdzieleniu na dwa etapy (A sam na Etapie 1, B sam na Etapie 2): wiersze Etap 1 / Etap 2 z „—" w kolumnie pracownika bez udziału, Razem A 165,75 / B 110,50 = ich „Suma wykonanej pracy"._
 - [ ] PDF pracownika z długą listą wypłat (kilkadziesiąt) → tabela, która nie mieści się na stronie, przechodzi na następną sama, a tabele nad nią zostają na poprzedniej (bez pustej połowy strony). PDF oferty dla klienta → podsumowanie w stopce nadal stoi przy prawej krawędzi.
+      _Nie sprawdzone w całości 2026-10-03 (staging): zaksięgowano 32 wypłaty po 1 zł dla QA-Premia A i otwarto „Drukuj PDF" (print zastubowany) — tabela „Wypłaty" ma 33 wiersze, 826 px wysokości, zaczyna się na 459 px (nie mieści się na jednej stronie); styl wydruku ma tylko `tr { break-inside: avoid }`, bez `break-inside` na samych tabelach. NIE da się ocenić faktycznego podziału stron — `page.pdf()` w tym Chromium zwraca „Printing failed", a prawdziwego druku nie wolno uruchamiać. PDF oferty: tabela „Razem netto" ma prawą krawędź równą prawej krawędzi tabeli głównej (1244 px) — stoi przy prawej krawędzi w układzie ekranowym, a nie w druku._
 
 ## EX-965 — kosztorys-section-translations — nazwy sekcji po ukraińsku i rosyjsku na linku „Zgłoszenie prac"
 
 Na staging najpierw `pnpm db:migrate:preview` (nowa tabela z listą tłumaczeń nazw sekcji, z listą startową).
 
-- [ ] Rozpiska inwestycji z sekcją „Łazienka 2" → menu sekcji → „Tłumaczenie sekcji…": pole
+- [x] Rozpiska inwestycji z sekcją „Łazienka 2" → menu sekcji → „Tłumaczenie sekcji…": pole
       Українська pokazuje ukraińską nazwę z „2" na miejscu, Русский — rosyjską.
-- [ ] W tym oknie wpisz po ukraińsku „3" zamiast „2" → „Zapisz": komunikat podaje oczekiwaną liczbę
+      _Zweryfikowano 2026-10-04 (staging): inw. 182 „Łazienka 2” → pola: Українська „Ванна кімната 2”, Русский „Ванная комната 2”._
+- [x] W tym oknie wpisz po ukraińsku „3" zamiast „2" → „Zapisz": komunikat podaje oczekiwaną liczbę
       „2", a okno zostaje otwarte.
-- [ ] Sekcja o jednorazowej nazwie (np. „Pralnia"): wpisz oba tłumaczenia, zapisz, potem wyczyść oba
+      _Zweryfikowano 2026-10-04 (staging): inw. 182, „Ванна кімната 3” → „Zapisz”: pod polem „Tłumaczenie (UA) musi zawierać te same liczby co nazwa sekcji: 2.”, okno otwarte, nic nie zapisane._
+- [x] Sekcja o jednorazowej nazwie (np. „Pralnia"): wpisz oba tłumaczenia, zapisz, potem wyczyść oba
       pola i zapisz — po ponownym otwarciu oba pola są puste.
-- [ ] „Tłumaczenie sekcji…" jest w menu sekcji także w edytorze szablonu; na zablokowanej inwestycji
+      _Zweryfikowano 2026-10-04 (staging): inw. 182, sekcja „QA-Spiżarnia” (poza listą startową): wpisane oba tłumaczenia zapisane (wiersz w tabeli), po wyczyszczeniu obu i zapisie wiersz usunięty z DB, po ponownym otwarciu oba pola puste. („Pralnia” jest na liście startowej, dlatego użyta nazwa QA.)_
+- [x] „Tłumaczenie sekcji…" jest w menu sekcji także w edytorze szablonu; na zablokowanej inwestycji
       menu sekcji nie ma wcale.
-- [ ] Link „Zgłoszenie prac" pracownika z językiem „Українська", inwestycja z nazwami sekcji
+      _Zweryfikowano 2026-10-04 (staging): edytor szablonu /szablony/160 ma „Tłumaczenie sekcji…” w menu sekcji; zakończona inw. 9 (baner „tylko do odczytu”) — 0 przycisków „Akcje sekcji”._
+- [x] Link „Zgłoszenie prac" pracownika z językiem „Українська", inwestycja z nazwami sekcji
       z szablonu: każdy pas sekcji i każde „Razem …" (w „Wszystkie kolumny") jest po ukraińsku,
       „Łazienka 2" zachowuje swoje 2. Przełącznik → Русский: po rosyjsku; → Polski: po polsku.
-- [ ] Na tym linku po ukraińsku wyszukaj ukraińskie słowo z nazwy sekcji: znajdują się prace tej
+      _Zweryfikowano 2026-10-04 (staging): link QA-Premia A (UA), inw. 182: pas sekcji „Ванна кімната 2” i „Razem” → „Разом Ванна кімната 2” (w „Усі колонки”); → Русский: „Ванная комната 2” / „Итого”; → Polski: „Łazienka 2” / „Razem”. Liczba 2 zachowana._
+- [x] Na tym linku po ukraińsku wyszukaj ukraińskie słowo z nazwy sekcji: znajdują się prace tej
       sekcji.
-- [ ] Zmień nazwę sekcji w rozpisce na nową (np. „Garderoba"): na linku jest po polsku. Dodaj jej
+      _Zweryfikowano 2026-10-04 (staging): link UA, wyszukiwanie „Ванна” i „кімната” znajduje pracę z sekcji „Ванна кімната 2”; polskie „Łazienka” i obce słowo — nie._
+- [x] Zmień nazwę sekcji w rozpisce na nową (np. „Garderoba"): na linku jest po polsku. Dodaj jej
       tłumaczenie UA w „Tłumaczenie sekcji…" i odśwież link: jest po ukraińsku, bez wdrożenia
       i bez czekania.
-- [ ] Wyślij zgłoszenie z linku po ukraińsku i otwórz je w przeglądzie zgłoszeń w rozpisce: nazwy
+      _Zweryfikowano 2026-10-04 (staging): sekcja przemianowana na „QA-Garderoba” — link UA pokazuje ją po polsku; po dodaniu tłumaczenia „Гардероб QA” w oknie i odświeżeniu linku pas jest po ukraińsku, bez wdrożenia._
+- [x] Wyślij zgłoszenie z linku po ukraińsku i otwórz je w przeglądzie zgłoszeń w rozpisce: nazwy
       sekcji są po polsku.
-- [ ] W edytorze otwórz menu sekcji klawiaturą i wybierz „Tłumaczenie sekcji…" Enterem; w polu
+      _Zweryfikowano 2026-10-04 (staging): inw. 182, link QA-Premia A (UA): wysłane zgłoszenie 8 (2 prace); w przeglądzie zgłoszeń w rozpisce sekcje „QA-Garderoba” i „Łazienka 2” po polsku (mimo tłumaczenia UA). Zgłoszenie potem odrzucone._
+- [x] W edytorze otwórz menu sekcji klawiaturą i wybierz „Tłumaczenie sekcji…" Enterem; w polu
       Українська użyj strzałek i Tab: kursor porusza się w polu i między polami okna, a aktywna
       komórka rozpiski pod oknem się nie przesuwa.
+      _Zweryfikowano 2026-10-04 (staging): inw. 182 (QA): menu sekcji otwarte Enterem (strzałki w dół do „Tłumaczenie sekcji…”, Enter) — okno się otwiera; w polu Українська kursor porusza się strzałkami (12→11→10), Tab przechodzi do pola Русский, aktywna komórka rozpiski przed i po w tym samym miejscu (448,333)._
 
 ## 2026-10-02 — investments-listing-no-kosztorys-figures — inwestycja bez kosztorysu pokazuje prawdziwe kwoty v2
 
@@ -3378,31 +3445,42 @@ Na staging najpierw `pnpm db:migrate:preview` (nowa tabela z listą tłumaczeń 
 
 Przed sprawdzeniem: migracja typu „Premia" na bazie, na której klikasz (`pnpm db:migrate:preview` dla stagingu).
 
-- [ ] „Nowa transakcja" → „Premia": są pola pracownik i inwestycja, nie ma kasy; zapis bez pracownika
+- [x] „Nowa transakcja" → „Premia": są pola pracownik i inwestycja, nie ma kasy; zapis bez pracownika
       albo bez inwestycji zostaje odrzucony z czytelnym komunikatem.
-- [ ] Zaksięgowana premia nie zmienia salda żadnej kasy.
-- [ ] Para inwestycja × pracownik z nadpłatą (zakładka Podwykonawcy, „nadpłacone"): po zaksięgowaniu
+      _Zweryfikowano 2026-10-03 (staging, OWNER): „Wydatek" → Typ „Premia" na `/pracownicy` (nic nie wstępnie wybrane) → pola Inwestycja i Pracownik, brak pola Kasa; „Zapisz" na pustym formularzu → „Inwestycja jest wymagana dla tego typu transferu", „Pracownik jest wymagany dla tego typu", „Kwota musi być większa niż 0", „Formularz zawiera błędy"; nic nie zapisane._
+- [x] Zaksięgowana premia nie zmienia salda żadnej kasy.
+      _Zweryfikowano 2026-10-03 (staging): premie #5293 (34,25 zł) i #5295 (50 zł) mają `source_register_id` puste w bazie; „Kasa - test" (saldo 0 przed testem) zmieniają tylko wypłaty #5292 i #5294._
+- [x] Para inwestycja × pracownik z nadpłatą (zakładka Podwykonawcy, „nadpłacone"): po zaksięgowaniu
       premii na kwotę nadpłaty ta para pokazuje 0,00 w „Podsumowaniu pracowników", w nagłówku
       podwykonawców, w „Rozliczeniu z ekipą", w kolumnie „Pozostało do wypłaty" na `/inwestycje`,
       na `/pracownicy` i w oknie „Rozlicz wypłaty". Tam, gdzie jest premia, pojawia się kolumna/wiersz
       „Premia"; u ekipy bez premii go nie ma.
-- [ ] „Marża v2" tej inwestycji spada o kwotę premii; „Marża v1", bilans, link dla inwestora, PDF
+      _Zweryfikowano 2026-10-03 (staging, QA-blokady B × QA-Premia A, nadpłata 34,25 wyrównana premią): 0,00 w „Podsumowaniu pracowników" (kolumna Premia 84,25), w „Rozliczeniu z ekipą" (wiersz Premia 84,25; Pozostało 110,50 = tylko B), w oknie „Rozlicz wypłaty" (Premia 84,25 → Pozostało 0,00), na `/pracownicy` (0,00 zł) i w `/inwestycje` (Pozostało −25,50 zł = A 0,00 + B −25,50). Po anulowaniu obu premii na tej samej ekipie znikły kolumna „Premia" w „Podsumowaniu pracowników" i wiersz „Premia" w „Marży" / „Rozliczeniu z ekipą"._
+- [x] „Marża v2" tej inwestycji spada o kwotę premii; „Marża v1", bilans, link dla inwestora, PDF
       oferty i protokół się nie zmieniają.
-- [ ] „Lista wpłat" na zakładce Podwykonawcy nie pokazuje premii; link z imienia pracownika otwiera
+      _Zweryfikowano 2026-10-03 (staging, QA-blokady B): zakładka Marża: Robocizna 500,00 − Suma wykonanej pracy 276,25 − Premia 84,25 = 139,50; `/inwestycje` Marża v2 139,50 zł; Marża v1 (−386,00 zł = same wypłaty) i Bilans netto v1 (0,00 zł) bez premii; podgląd inwestora (`/podglad-inwestora/182`), PDF oferty i protokół odbioru (Robocizna 500,00, Pozostało 500,00) bez słowa „premia" i z kwotami sprzed premii._
+- [x] „Lista wpłat" na zakładce Podwykonawcy nie pokazuje premii; link z imienia pracownika otwiera
       listę transakcji, w której premia jest.
-- [ ] Link „Zgłoszenie prac" i PDF tego pracownika: linia „Premia" między „Wykonane razem" a
+      _Zweryfikowano 2026-10-03 (staging): „Lista wpłat" w edytorze 182 nie ma żadnej pozycji (premie #5293/#5295 nie trafiają na listę); linki z imion w „Podsumowaniu pracowników" prowadzą do `/inwestycje/182?type=PAYOUT,BONUS&worker=80|81`, a lista transakcji inwestycji pokazuje premie #5293 i #5295 obok wypłat._
+- [x] Link „Zgłoszenie prac" i PDF tego pracownika: linia „Premia" między „Wykonane razem" a
       „Wypłacone", a „Pozostało do wypłaty" = wykonane + premia − wypłacone. Pracownik bez premii nie
       widzi linii „Premia".
+      _Zweryfikowano 2026-10-03 (staging): QA-Premia A (wykonane 165,75, premia 84,25, wypłacone 250,00) — link `/p/…` i PDF mają „Premia 84,25" między „Wykonane razem" a „Wypłacone", „Pozostało do wypłaty" 0,00 = 165,75 + 84,25 − 250,00. QA-Premia B (bez premii) w podglądzie właściciela — brak linii „Premia" (PDF B nie otwierany)._
 - [ ] `/pracownicy` → „Rozlicz wypłaty" → przy wierszu z nadpłatą „Wyrównaj premią" → potwierdzenie
       podaje kwotę, pracownika i inwestycję → po zatwierdzeniu wiersz ma 0,00, przycisk znika, okno
       zostaje otwarte, a kwoty wpisane w inne wiersze zostają.
-- [ ] Zaznaczenie wiersza z nadpłatą (zaliczka) chowa „Wyrównaj premią".
-- [ ] Zalogowany jako kierownik (MANAGER): „Nowa transakcja" nie oferuje „Premia", a w oknie
+      _Nie sprawdzone w całości 2026-10-03 (staging): działa potwierdzenie „Zaksięgować premię 50,00 zł dla QA-Premia A na QA-blokady B?", po zatwierdzeniu wiersz ma Pozostało 0,00 zł (Premia 34,25 → 84,25 zł), przycisku nie ma, okno zostaje otwarte, w bazie premia #5295 = 50 zł. NIE sprawdzone: zachowanie kwot wpisanych w inne wiersze — pracownik QA ma tylko jeden wiersz (jedna inwestycja)._
+- [x] Zaznaczenie wiersza z nadpłatą (zaliczka) chowa „Wyrównaj premią".
+      _Zweryfikowano 2026-10-03 (staging): `/pracownicy` → „Rozlicz wypłaty" QA-Premia A, wiersz z nadpłatą −50,00 zł: po zaznaczeniu przycisk znika (w komórce „—"), po odznaczeniu wraca._
+- [x] Zalogowany jako kierownik (MANAGER): „Nowa transakcja" nie oferuje „Premia", a w oknie
       „Rozlicz wypłaty" przy wierszu z nadpłatą nie ma „Wyrównaj premią". Właściciel widzi oba.
-- [ ] Zakładka Podwykonawcy → „Rozlicz wypłaty" w nagłówku „Podsumowania pracowników" otwiera to samo
+      _Zweryfikowano 2026-10-03 (staging): MANAGER `qa-staging-manager@…` — „Typ wydatku" oferuje: Inny wydatek, Korekta, Koszty robocizny, Rabat, Strata, Wydatek inwestycyjny (+netto), Wypłata — bez „Premia"; w „Rozlicz wypłaty" wiersz QA-Premia B z nadpłatą −25,50 zł ma „—" zamiast „Wyrównaj premią". OWNER widzi „Premia" w typach i przycisk w oknie._
+- [x] Zakładka Podwykonawcy → „Rozlicz wypłaty" w nagłówku „Podsumowania pracowników" otwiera to samo
       okno dla tej inwestycji, z tym samym przyciskiem; przy ekipie rozliczonej do zera przycisku nie ma.
-- [ ] Okno „Rozlicz wypłaty" otwarte w dwóch kartach: w jednej wypłata na parę z nadpłatą, w drugiej
+      _Zweryfikowano 2026-10-03 (staging, QA-blokady B): nagłówek „Podsumowania pracowników" → „Rozlicz wypłaty" otwiera okno dla tej inwestycji; przy QA-Premia B z nadpłatą (−19,50 zł) jest „Wyrównaj premią", przy QA-Premia A rozliczonej do 0,00 zł przycisku nie ma._
+- [x] Okno „Rozlicz wypłaty" otwarte w dwóch kartach: w jednej wypłata na parę z nadpłatą, w drugiej
       „Wyrównaj premią" na tę parę → odmowa „Kwoty zmieniły się…" i świeże kwoty w oknie.
+      _Zweryfikowano 2026-10-03 (staging): karta 1 z oknem (potwierdzenie „Zaksięgować premię 19,50 zł…"), w karcie 2 wypłata 5 zł na QA-Premia B (#5297) → w karcie 1 „Zaksięguj premię" nic nie księguje (brak nowej premii w bazie) i okno pokazuje świeże kwoty (Wypłacone 135,00, Pozostało −24,50 zł). Powtórzone z wypłatą 1 zł (#5298): to samo. NIE zaobserwowano treści komunikatu „Kwoty zmieniły się…" — toast nie złapany w DOM ani w MutationObserver; zachowanie (odmowa + świeże kwoty) potwierdzone._
 
 ## EX-968 — worker-email-clash — pracownik z e-mailem zajętym przez pracownika z Kosza (2026-10-05)
 
@@ -3489,6 +3567,8 @@ Refaktor bez zmiany zachowania: nocny cron czyści Kosz tak samo jak wcześniej.
       przez „Wyślij" i pojawia się w zgłoszeniach kierownika.
 - [ ] Stary adres `/zgloszenie-prac/<pracownik>/<token>` (ten sam token): strona „link nieaktywny",
       bez przekierowania na nowy adres.
+- [ ] Stary adres rozpiski `/p/<pracownik>/<token>` w oknie prywatnym (bez logowania): strona „link
+      nieaktywny", nie strona logowania.
 - [ ] Inwestycja albo pracownik z nazwą z samych znaków specjalnych: w adresie stoi `-` w miejscu
       nazwy, a link działa.
 - [ ] Telefon (390px): stopka „Zgłaszam pracę" / „Inwestycja" zostaje przy dole ekranu przy
@@ -3502,6 +3582,10 @@ Refaktor bez zmiany zachowania: nocny cron czyści Kosz tak samo jak wcześniej.
       czyszczeniu ilości; kompletna „Nowa praca" podbija tylko „Wyślij (N)"; „Wszystkie prace (+N)"
       pokazuje liczbę ukrytych pustych pozycji, a przy 0 jest bez licznika.
 - [ ] W nagłówku linku nie ma tytułu „Zgłoszenie wykonanych prac".
+- [ ] Wpisz ujemną ilość w „Zgłaszam", przełącz na „Inwestycja" i z powrotem: ujemna ilość nadal
+      stoi w kolumnie, „Tylko zgłaszane przeze mnie (N)" ją liczy, a „Wyślij" pokazuje „Popraw błędy".
+- [ ] Link pracownika po ukraińsku albo rosyjsku, tryb „Inwestycja": nagłówki i wiersze rozliczenia
+      pod tabelą są w jego języku, nie po polsku.
 
 ## EX-956 — stage-split-rounding — części podziału etapu sumują się do „Razem" co do grosza (2026-10-05)
 
@@ -3511,9 +3595,3 @@ Refaktor bez zmiany zachowania: nocny cron czyści Kosz tak samo jak wcześniej.
       w oknie podziału.
 - [ ] Podział kwotowo, w którym wpisane kwoty przekraczają wartość etapu (etap zmniejszony po
       zapisie): części po proporcjonalnym zmniejszeniu sumują się do wartości etapu, główny ma 0 zł.
-- [ ] Stary adres rozpiski `/p/<pracownik>/<token>` w oknie prywatnym (bez logowania): strona „link
-      nieaktywny", nie strona logowania.
-- [ ] Wpisz ujemną ilość w „Zgłaszam", przełącz na „Inwestycja" i z powrotem: ujemna ilość nadal
-      stoi w kolumnie, „Tylko zgłaszane przeze mnie (N)" ją liczy, a „Wyślij" pokazuje „Popraw błędy".
-- [ ] Link pracownika po ukraińsku albo rosyjsku, tryb „Inwestycja": nagłówki i wiersze rozliczenia
-      pod tabelą są w jego języku, nie po polsku.
