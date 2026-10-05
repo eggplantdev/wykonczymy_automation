@@ -36,7 +36,7 @@ export const PAGE_TITLES = {
   reports: 'Raporty',
 } as const
 
-// Not in MANAGEMENT_LINKS: „Kosz" sits with the bottom actions, under „Admin".
+// Not in NAV_LINKS: „Kosz" sits with the bottom actions, under „Admin".
 export const TRASH_HREF = '/kosz'
 
 export type NavLinkT = {
@@ -46,12 +46,9 @@ export type NavLinkT = {
   unreadStream?: UnreadStreamT
 }
 
-// The one route EMPLOYEE may open; every MANAGEMENT_LINKS route redirects that role back here.
-export const SECTION_LINKS: NavLinkT[] = [
+// Management only — an EMPLOYEE's one page is his own `/pracownicy/[id]`, which `/` lands him on.
+export const NAV_LINKS: NavLinkT[] = [
   { href: '/', label: PAGE_TITLES.transactions, icon: ArrowLeftRight },
-]
-
-export const MANAGEMENT_LINKS: NavLinkT[] = [
   { href: '/kasy', label: PAGE_TITLES.registers, icon: Wallet },
   { href: '/inwestycje', label: PAGE_TITLES.investments, icon: Building },
   { href: '/kosztorysy', label: PAGE_TITLES.sheets, icon: FileSpreadsheet },

@@ -3656,6 +3656,9 @@ przypisane do etapów w kilku inwestycjach — w tym co najmniej jednej zakończ
       jego kasy.
 - [ ] Sekcja „Moje inwestycje" (pracownik i manager): tylko aktywne inwestycje, każda raz, bez kolumny
       statusu; przycisk „Zgłoś prace" wyśrodkowany w wierszu otwiera jego stronę `/z/`.
+- [ ] Jako pracownik: w menu bocznym i w menu na telefonie nie ma żadnych linków (ani „Transakcje")
+      ani przycisku „Saldo"; zostają imię, „Ciemny motyw", „Odśwież dane", „Wyloguj". Manager
+      nadal widzi wszystkie linki i „Saldo".
 - [ ] Pracownik bez sprzętu: sekcji „Na stanie" nie ma wcale; z sprzętem — jest, z listą. Kasy są pod
       nagłówkiem „Moje kasy".
 - [ ] Strona pracownika na telefonie (390px): kasy, sprzęt, kosztorysy i transfery czytelne, bez

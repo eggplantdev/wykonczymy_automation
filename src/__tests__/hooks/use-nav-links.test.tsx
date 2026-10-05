@@ -25,7 +25,7 @@ describe('useNavLinks', () => {
     },
   )
 
-  it('offers EMPLOYEE only „Transakcje" — every other route redirects the role back to „/"', () => {
-    expect(hrefsFor('EMPLOYEE')).toEqual(['/'])
+  it('offers EMPLOYEE no links — his own page is the only one he may open', () => {
+    expect(hrefsFor('EMPLOYEE')).toEqual([])
   })
 })

@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils/cn'
 import { ToastContainer } from 'react-toastify'
 import { ThemeProvider } from 'next-themes'
 import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
+import { isManagementRole } from '@/lib/auth/roles'
 import { Navigation } from '@/components/nav/navigation'
 import { Sidebar } from '@/components/nav/sidebar'
 import { NavOpenRouterBalance } from '@/components/nav/nav-openrouter-balance'
@@ -66,9 +67,11 @@ async function AuthenticatedShell({ children, investmentCrumb }: FrontendLayoutP
         <div className="flex h-screen">
           <Sidebar
             openRouterBalance={
-              <Suspense fallback={null}>
-                <NavOpenRouterBalance />
-              </Suspense>
+              isManagementRole(user.role) && (
+                <Suspense fallback={null}>
+                  <NavOpenRouterBalance />
+                </Suspense>
+              )
             }
           />
           {/* min-w-0: a flex item's default `min-width: auto` refuses to shrink below its content's
