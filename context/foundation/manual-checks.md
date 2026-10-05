@@ -3671,11 +3671,20 @@ przypisane do etapów w kilku inwestycjach — w tym co najmniej jednej zakończ
 
 ## EX-988 — worker-pdf-translations — j.m. i PDF pracownika w jego języku (2026-10-05)
 
-- [ ] Link pracownika ustawionego na ukraiński → „Zgłaszam pracę": kolumna j.m. pokazuje „шт.", „м²", „пог. м"; jednostka spoza listy (np. „big bag") zostaje jak wpisana.
-- [ ] Ten sam link → „Prace dodatkowe" → lista j.m. jest po ukraińsku; po wysłaniu zgłoszenie w aplikacji pokazuje polską jednostkę.
-- [ ] Link pracownika polskiego: jednostki wyglądają jak dotąd (także „m2" wpisane bez indeksu górnego).
-- [ ] Kosztorys inwestycji → „Drukuj PDF" dla pracownika ustawionego na ukraiński: nagłówki, opisy z tłumaczeniem, nazwy sekcji, j.m., „Разом — …", „Кошторис — {imię}" i rozliczenie są po ukraińsku; opis bez tłumaczenia zostaje po polsku; kwoty w „zł". Najdłuższy nagłówek („Виконано — сума етапів…") mieści się w swojej wąskiej kolumnie i nie nachodzi na sąsiednie.
-- [ ] To samo dla pracownika ustawionego na rosyjski, także bez nachodzenia nagłówków.
-- [ ] „Drukuj PDF" dla pracownika polskiego: nagłówki brzmią jak na jego linku („Cena j.m. netto — z narzędziami (podwykonawca)" itd.) i nadal mieszczą się na A4 poziomo, bez nachodzenia na siebie.
-- [ ] „Drukuj PDF" oferty dla klienta: bez zmian względem wcześniejszego wydruku.
-- [ ] „Zapisz jako PDF" w przeglądarce proponuje nazwę pliku „{inwestycja} — {imię}" jak dotąd.
+- [x] Link pracownika ustawionego na ukraiński → „Zgłaszam pracę": kolumna j.m. pokazuje „шт.", „м²", „пог. м"; jednostka spoza listy (np. „big bag") zostaje jak wpisana. _(staging, 2026-10-05: link QA-Premia A (inw. 182, uk): „шт.", „м²", „пог. м" w kolumnie j.m.; „big bag" bez zmian)_
+- [x] Ten sam link → „Prace dodatkowe" → lista j.m. jest po ukraińsku; po wysłaniu zgłoszenie w aplikacji pokazuje polską jednostkę. _(staging, 2026-10-05: picker: м² / шт. / пог. м / компл. / точ.; po wysłaniu zgłoszenie w oknie „Zgłoszenia wykonanych prac" pokazuje „3 mb", w bazie `mb`; zgłoszenie odrzucone przy sprzątaniu)_
+- [x] Link pracownika polskiego: jednostki wyglądają jak dotąd (także „m2" wpisane bez indeksu górnego). _(staging, 2026-10-05: Adam Orłowski (inw. 137) po wyczyszczeniu localStorage: m², mb, szt jak w rozpisce; wejście „m2" → bez zmian wynika z `translate-unit.ts` (`pl` zwraca wejście) i `translate-unit.test.ts:36`, nie z klikania — brak pozycji z „m2" na tym linku)_
+- [ ] Kosztorys inwestycji → „Drukuj PDF" dla pracownika ustawionego na ukraiński: nagłówki, opisy z tłumaczeniem, nazwy sekcji, j.m., „Разом — …", „Кошторис — {imię}" i rozliczenie są po ukraińsku; opis bez tłumaczenia zostaje po polsku; kwoty w „zł". Najdłuższy nagłówek („Виконано — сума етапів…") mieści się w swojej wąskiej kolumnie i nie nachodzi na sąsiednie. _(staging, 2026-10-05: treść OK — nagłówki, sekcje „Гардероб QA"/„Ванна кімната 2", opis uk „Шафа QA опис", opis bez tłumaczenia po polsku, j.m. „м²", „Разом — …", „Кошторис — QA-Premia A", rozliczenie, kwoty w „zł"; NIE zaznaczone: najdłuższy nagłówek nachodzi na sąsiednią kolumnę, patrz Findings))_
+- [ ] To samo dla pracownika ustawionego na rosyjski, także bez nachodzenia nagłówków. _(staging, 2026-10-05: treść OK — „Смета — QA-Premia B", „Итого — …", opis ru „Шкаф QA описание", rozliczenie; NIE zaznaczone: ten sam spill nagłówka „Выполнено — …", patrz Findings))_
+- [ ] „Drukuj PDF" dla pracownika polskiego: nagłówki brzmią jak na jego linku („Cena j.m. netto — z narzędziami (podwykonawca)" itd.) i nadal mieszczą się na A4 poziomo, bez nachodzenia na siebie. _(staging, 2026-10-05: nagłówki jak na linku, szerokość dokumentu 1123 px = A4 poziomo; NIE zaznaczone: „Pomiar — suma etapów …" wystaje 10 px, patrz Findings))_
+- [x] „Drukuj PDF" oferty dla klienta: bez zmian względem wcześniejszego wydruku. _(staging, 2026-10-05: tytuł „QA-blokady B", wszystko po polsku, „Razem — …"; `build-html.ts` bez zmiany domyślnych `lang`/`totalLabel`)_
+- [x] „Zapisz jako PDF" w przeglądarce proponuje nazwę pliku „{inwestycja} — {imię}" jak dotąd. _(staging, 2026-10-05: `<title>` popupu = „QA-blokady B — QA-Premia A" (uk), „… — QA-Premia B" (pl i ru))_
+
+### Findings — 2026-10-05
+
+- [x] **Najdłuższy nagłówek worker PDF wystaje z kolumny (uk, ru i pl)** — „Виконано — сума етапів …" / „Выполнено — сумма этапов …" / „Pomiar — suma etapów …" w kolumnie ilości 9 mm łamał się na 5 linii obróconego nagłówka i wychodził ~10 px na sąsiednią kolumnę etapu. Skutek wyrównania nagłówków do linku (e8872496).
+      **Naprawione:** `src/lib/kosztorys/print/styles.ts` (`WIDE_PRINT_STYLES`) — nagłówek 14 → 22 mm, `col.c-qty` 9 → 10 mm (opis traci ~2 mm przy sześciu etapach). Zmierzone w headless Chromium (media print, 1123 px) na wydruku pl/uk/ru, oba rozliczenia (z narzędziami / bez narzędzi): każdy nagłówek mieści się w swojej komórce, dokument nadal 1123 px. Boxy 4–6 czekają na ponowne sprawdzenie na stagingu po wdrożeniu.
+      **Test disposition:** no automated test · — jsdom nie ma layoutu; geometria wydruku sprawdzana ręcznie (boxy 4–6).
+- [x] **„Suma etapy …" zamiast „Suma etapów …" w nagłówku PL** — `src/lib/i18n/dictionaries/pl.ts` (`netForPlane`) i `src/lib/kosztorys/columns/column-config.ts` (wariant brutto); widoczne w siatce, na linku i w PDF pracownika polskiego. Sprzed EX-988, nie z arkusza właściciela (brak w dumpach arkuszy).
+      **Naprawione:** „Suma etapów …" w obu miejscach + stała w `worker.test.ts`.
+      **Test disposition:** no automated test · — literówka; spec wydruku trzyma etykietę asercją.
