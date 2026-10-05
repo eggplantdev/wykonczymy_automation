@@ -25,7 +25,7 @@ export function parsePagination(
   defaultLimit: number = DEFAULT_LIMIT,
 ): PaginationParamsT {
   const pageParam = typeof searchParams.page === 'string' ? Number(searchParams.page) : 1
-  const page = pageParam > 0 ? pageParam : 1
+  const page = Number.isSafeInteger(pageParam) && pageParam > 0 ? pageParam : 1
 
   const limitParam =
     typeof searchParams.limit === 'string' ? Number(searchParams.limit) : defaultLimit

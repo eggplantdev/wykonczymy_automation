@@ -1,6 +1,7 @@
 import type { Where } from 'payload'
 import type { ResolvedSearchParamsT } from '@/types/page'
-import { TRANSFER_TYPES, PAYMENT_METHODS } from '@/lib/constants/transfers'
+import { isTransferType, PAYMENT_METHODS } from '@/lib/constants/transfers'
+import { parseNumericIds } from '@/lib/utils/parse-numeric-ids'
 
 type UserContextT = {
   id: number
@@ -9,19 +10,6 @@ type UserContextT = {
 
 function getStringParam(value: string | string[] | undefined): string | undefined {
   return typeof value === 'string' ? value : undefined
-}
-
-/**
- * Ids reach raw SQL by interpolation (`where-to-sql.ts`), so anything `Number` accepts but Postgres
- * does not has to die here. `Number.isInteger` rather than a truthiness check: `?worker=1e999`
- * parses to `Infinity`, which is truthy and lands in the statement as a bare `infinity` identifier.
- */
-function parseNumericIds(param: string | undefined): number[] {
-  if (!param) return []
-  return param
-    .split(',')
-    .map(Number)
-    .filter((id) => Number.isInteger(id) && id !== 0)
 }
 
 type AmountSearchT = { mode: 'prefix'; text: string } | { mode: 'range'; low: number; high: number }
@@ -75,9 +63,7 @@ export function buildTransferFilters(
   // `null` = the param is absent, `[]` = it named nothing valid — including the multi-select's
   // „nothing selected" sentinel, which must empty the list rather than fall through to „all".
   const typeParam = getStringParam(searchParams.type)
-  const requestedTypes = typeParam
-    ? typeParam.split(',').filter((t) => (TRANSFER_TYPES as readonly string[]).includes(t))
-    : null
+  const requestedTypes = typeParam ? typeParam.split(',').filter(isTransferType) : null
 
   if (cancelledTransactionAudit) {
     where.type = { in: ['CANCELLATION'] }
