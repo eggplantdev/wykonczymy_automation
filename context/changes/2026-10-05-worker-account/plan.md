@@ -475,17 +475,17 @@ needs `pnpm db:migrate:preview` after merge to staging.
 
 #### Automated
 
-- [x] 3.1 Mint DB spec across `insertStageMembers` paths
-- [x] 3.2 `worker-share-token.test.ts` updated (blocked mints, revoke removed)
-- [x] 3.3 `kosztorys-workers-menu.test.tsx` updated
-- [x] 3.4 Migration applied locally, 0 pairs without a share
-- [x] 3.5 test-plan.md risk #19 revised
+- [x] 3.1 Mint DB spec across `insertStageMembers` paths — b7e58325
+- [x] 3.2 `worker-share-token.test.ts` updated (blocked mints, revoke removed) — b7e58325
+- [x] 3.3 `kosztorys-workers-menu.test.tsx` updated — b7e58325
+- [x] 3.4 Migration applied locally, 0 pairs without a share — b7e58325
+- [x] 3.5 test-plan.md risk #19 revised — b7e58325
 
 ### Phase 4: Worker's kosztorys list
 
 #### Automated
 
-- [ ] 4.1 Kosztorys-list query DB spec
+- [x] 4.1 Kosztorys-list query DB spec
 
 ### Phase 5: Docs
 
