@@ -4,7 +4,7 @@ import {
   workerIdFromSegment,
   workerPreviewSegment,
   workerReportShareUrl,
-} from '@/lib/kosztorys/worker-view/name-slug'
+} from '@/lib/kosztorys/worker-view/worker-links'
 
 describe('nameSlug', () => {
   it('spells a Polish name in plain URL letters, keeping its capitals', () => {
@@ -19,8 +19,8 @@ describe('nameSlug', () => {
 describe('worker report link', () => {
   it('names the investment, then the worker, then carries the token', () => {
     expect(
-      workerReportShareUrl('https://app.test', 'Mieszkanie Mokotów', 'Jan Kowalski', 'tok-1'),
-    ).toBe('https://app.test/z/Mieszkanie-Mokotow/Jan-Kowalski/tok-1')
+      workerReportShareUrl('https://app.test', 'Mieszkanie Białołęka', 'Jan Kowalski', 'tok-1'),
+    ).toBe('https://app.test/z/Mieszkanie-Bialoleka/Jan-Kowalski/tok-1')
   })
 
   it('never leaves a segment empty when a name has nothing URL-safe in it', () => {

@@ -18,7 +18,10 @@ import { readWorkerViewSettings } from '@/lib/queries/worker-view-settings-endpo
 import type { WorkerViewSettingsT } from '@/lib/kosztorys/worker-view/settings'
 import { copyToClipboardAsync } from '@/lib/utils/copy-to-clipboard'
 import { toastMessage } from '@/lib/utils/toast'
-import { workerPreviewSegment, workerReportShareUrl } from '@/lib/kosztorys/worker-view/name-slug'
+import {
+  workerPreviewSegment,
+  workerReportShareUrl,
+} from '@/lib/kosztorys/worker-view/worker-links'
 import { settleAction } from '@/lib/utils/settle-action'
 
 // Carries an action's own error text past the promise chain, so the toast names what failed.

@@ -31,7 +31,6 @@ beforeAll(() => {
     configurable: true,
     get: () => 800,
   })
-  window.scrollTo = vi.fn()
 })
 
 afterEach(cleanup)
@@ -67,8 +66,8 @@ const DOCUMENT: Extract<WorkerKosztorysT, { kind: 'ready' }> = {
   },
 }
 
-// What typing does: the column's edit lands in the draft (`onReportQty` → `setQty`), and the page
-// re-renders the grid with it. dsg's own keystroke handling is not this spec's subject.
+// dsg never activates a cell in jsdom, so a spec cannot type into „Zgłaszam”: it hands the grid the
+// draft that typing would have left (`onReportQty` → `setQty`) and re-renders.
 function draftOf(draft: Partial<ReportDraftT> = {}): ReturnType<typeof useReportDraft> {
   return {
     isLoaded: true,
@@ -89,7 +88,6 @@ function grid(draft: ReturnType<typeof useReportDraft>) {
         data={toWorkerReportFormData(DOCUMENT)}
         document={DOCUMENT}
         draft={draft}
-        pendingQtyByItem={{}}
         sentReports={[]}
         sectionTranslations={{}}
         onSent={vi.fn()}
@@ -116,6 +114,15 @@ describe('a typed „Zgłaszam” survives the footer’s mode switch', () => {
     await switchTo('Zgłaszam pracę')
 
     expect(reportQtys()).toContain('3')
+  })
+
+  it('keeps a negative in the column, where the send bar’s „Popraw błędy” points', async () => {
+    render(grid(draftOf({ qtyByItem: { 1: '-3' } })))
+    await switchTo('Inwestycja')
+    await switchTo('Zgłaszam pracę')
+
+    expect(reportQtys()).toContain('-3')
+    expect(screen.getByText('Tylko zgłaszane przeze mnie (1)')).toBeInTheDocument()
   })
 })
 

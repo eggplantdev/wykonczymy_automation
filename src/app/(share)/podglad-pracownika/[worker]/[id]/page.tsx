@@ -3,7 +3,7 @@ import { requireInvestmentOr404 } from '@/lib/queries/investments'
 import { getWorkerReportPreview } from '@/lib/queries/worker-report-page'
 import { WorkerReportView } from '@/components/kosztorys/worker-report/worker-report-view'
 import { REPORT_VIEWPORT } from '@/components/kosztorys/worker-report/report-viewport'
-import { workerIdFromSegment } from '@/lib/kosztorys/worker-view/name-slug'
+import { workerIdFromSegment } from '@/lib/kosztorys/worker-view/worker-links'
 
 export const viewport = REPORT_VIEWPORT
 

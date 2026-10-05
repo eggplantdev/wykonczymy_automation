@@ -21,7 +21,6 @@ export function WorkerReportView({ page, token }: PropsT) {
         <WorkerReportForm
           token={token}
           document={page.document}
-          pendingQtyByItem={page.pendingQtyByItem}
           sentReports={page.sentReports}
           sectionTranslations={page.sectionTranslations}
         />

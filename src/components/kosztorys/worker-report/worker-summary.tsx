@@ -1,8 +1,10 @@
 'use client'
 
+import { useTranslation } from '@/hooks/use-translation'
 import { cn } from '@/lib/utils/cn'
 import { formatNet } from '@/lib/kosztorys/format'
 import { formatPLDate } from '@/lib/utils/format-date'
+import { stageLabel } from '@/lib/kosztorys/stage-label'
 import { stageShareLabel, type WorkerSummaryT } from '@/lib/kosztorys/worker-view/summary'
 
 // Drawn like the printed PDF's footer (`print/worker.ts`), not like the grid: ruled tables under a
@@ -20,24 +22,26 @@ const GRAND =
 export function WorkerSummary({ summary }: { summary: WorkerSummaryT }) {
   // Nobody shares his etapy: the whole etap and 100% would only repeat his own amount.
   const hasSharedStage = summary.executedByStage.some((stage) => stage.share)
+  const { t } = useTranslation('report')
+  const gridDictionary = useTranslation('grid')
 
   return (
     <div className="flex flex-col items-end gap-6">
       <table className={TABLE}>
         <tbody>
           <tr className={HEAD}>
-            <td className={LABEL}>Wykonane</td>
+            <td className={LABEL}>{t('summaryExecuted')}</td>
             {hasSharedStage && (
               <>
-                <td className={VALUE}>Wartość etapu</td>
-                <td className={VALUE}>Twój udział</td>
+                <td className={VALUE}>{t('summaryStageValue')}</td>
+                <td className={VALUE}>{t('summaryShare')}</td>
               </>
             )}
-            <td className={VALUE}>Kwota netto</td>
+            <td className={VALUE}>{t('summaryNet')}</td>
           </tr>
           {summary.executedByStage.map((stage) => (
             <tr key={stage.stageId}>
-              <td className={LABEL}>{stage.label}</td>
+              <td className={LABEL}>{stageLabel(stage, gridDictionary)}</td>
               {hasSharedStage && (
                 <>
                   <td className={cn(VALUE, 'text-muted-foreground')}>
@@ -50,7 +54,7 @@ export function WorkerSummary({ summary }: { summary: WorkerSummaryT }) {
             </tr>
           ))}
           <tr>
-            <td className={LABEL}>Razem</td>
+            <td className={LABEL}>{t('summaryTotal')}</td>
             {hasSharedStage && (
               <>
                 <td className={cn(VALUE, 'text-muted-foreground')}>
@@ -67,26 +71,26 @@ export function WorkerSummary({ summary }: { summary: WorkerSummaryT }) {
       <table className={TABLE}>
         <tbody>
           <tr className={HEAD}>
-            <td className={LABEL}>Twoje rozliczenie</td>
-            <td className={VALUE}>Kwota netto</td>
+            <td className={LABEL}>{t('summaryBalance')}</td>
+            <td className={VALUE}>{t('summaryNet')}</td>
           </tr>
           <tr>
-            <td className={LABEL}>Wykonane razem</td>
+            <td className={LABEL}>{t('summaryExecutedTotal')}</td>
             <td className={VALUE}>{formatNet(summary.executedNet)}</td>
           </tr>
           {summary.bonusNet !== 0 && (
             <tr>
-              <td className={LABEL}>Premia</td>
+              <td className={LABEL}>{t('summaryBonus')}</td>
               <td className={VALUE}>{formatNet(summary.bonusNet)}</td>
             </tr>
           )}
           <tr>
-            <td className={LABEL}>Wypłacone</td>
+            <td className={LABEL}>{t('summaryPaid')}</td>
             <td className={cn(VALUE, 'text-chart-green')}>{formatNet(summary.paidNet)}</td>
           </tr>
           <tr className={GRAND}>
             <td className={cn(CELL, 'text-left')}>
-              {summary.isOverpaid ? 'Nadpłata' : 'Pozostało do wypłaty'}
+              {summary.isOverpaid ? t('summaryOverpaid') : t('summaryOwed')}
             </td>
             <td className={cn(VALUE, summary.isOverpaid && 'text-destructive')}>
               {formatNet(Math.abs(summary.owed))}
@@ -99,9 +103,9 @@ export function WorkerSummary({ summary }: { summary: WorkerSummaryT }) {
         <table className={TABLE}>
           <tbody>
             <tr className={HEAD}>
-              <td className={LABEL}>Wypłaty</td>
-              <td className={LABEL}>Opis</td>
-              <td className={VALUE}>Kwota netto</td>
+              <td className={LABEL}>{t('summaryPayouts')}</td>
+              <td className={LABEL}>{t('summaryPayoutDescription')}</td>
+              <td className={VALUE}>{t('summaryNet')}</td>
             </tr>
             {summary.payouts.map((payout, index) => (
               <tr key={`${payout.date}-${index}`}>
@@ -112,7 +116,7 @@ export function WorkerSummary({ summary }: { summary: WorkerSummaryT }) {
             ))}
             <tr>
               <td className={LABEL} colSpan={2}>
-                Razem
+                {t('summaryTotal')}
               </td>
               <td className={VALUE}>{formatNet(summary.paidNet)}</td>
             </tr>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { KosztorysEditorBody } from '@/components/kosztorys/editor/kosztorys-editor-body'
-import { WorkerSummary } from '@/components/kosztorys/summary/blocks/worker-summary'
+import { WorkerSummary } from '@/components/kosztorys/worker-report/worker-summary'
 import { BrandedHeader } from '@/components/kosztorys/worker-report/branded-header'
 import { DraftExtraWorks } from '@/components/kosztorys/worker-report/draft-extra-works'
 import { ExtraWorksDialogButton } from '@/components/kosztorys/worker-report/extra-works-dialog-button'
@@ -21,7 +21,7 @@ import type { SectionTranslationMapT } from '@/lib/i18n/section-translations'
 import { useTranslation } from '@/hooks/use-translation'
 import { cn } from '@/lib/utils/cn'
 import { decimalText } from '@/lib/utils/decimal-text'
-import { parseReportQty } from '@/lib/kosztorys/worker-report/parse-report-qty'
+import { parseDecimalInput } from '@/lib/utils/parse-decimal-input'
 import type { WorkerReportRowT } from '@/lib/db/worker-reports'
 import type { WorkerReportFormDataT } from '@/lib/kosztorys/worker-report/types'
 import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
@@ -32,17 +32,18 @@ type PropsT = {
   data: WorkerReportFormDataT
   document: Extract<WorkerKosztorysT, { kind: 'ready' }>
   draft: ReturnType<typeof useReportDraft>
-  pendingQtyByItem: Record<number, number>
   sentReports: WorkerReportRowT[]
   sectionTranslations: SectionTranslationMapT
   onSent: (sent: SentT) => void
 }
 
+// Not `parseReportQty`: a negative it refuses must still show in the column, or „Popraw błędy”
+// blocks the send with nothing on screen to correct.
 function draftQtyByItem(qtyByItem: Record<number, string>): Record<number, number> {
   return Object.fromEntries(
     Object.entries(qtyByItem).flatMap(([itemId, raw]) => {
-      const parsed = parseReportQty(raw)
-      return parsed.kind === 'value' ? [[itemId, parsed.value]] : []
+      const parsed = parseDecimalInput(raw)
+      return parsed.kind === 'value' && parsed.value !== 0 ? [[itemId, parsed.value]] : []
     }),
   )
 }
@@ -54,7 +55,6 @@ export function ReportGrid({
   data,
   document,
   draft,
-  pendingQtyByItem,
   sentReports,
   sectionTranslations,
   onSent,
@@ -63,23 +63,15 @@ export function ReportGrid({
   const isReport = mode === 'report'
   const hasRows = data.sections.some((section) => section.items.length > 0)
   const { locale, t, tp } = useTranslation('report')
-  // The body seeds its rows once, so a language or mode switch remounts it — reseeded from the
-  // draft as it is now, or what he typed since the first mount would vanish from the column. The
-  // remount also drops a search or „Tylko zgłaszane przeze mnie” left over from the other mode.
-  const [seed, setSeed] = useState(() => ({
-    locale,
-    mode,
-    initialQtyByItem: draftQtyByItem(draft.draft.qtyByItem),
-  }))
-  const reportedCount = Object.keys(draftQtyByItem(draft.draft.qtyByItem)).length
-  if (seed.locale !== locale || seed.mode !== mode) {
-    setSeed({ locale, mode, initialQtyByItem: draftQtyByItem(draft.draft.qtyByItem) })
-  }
+  const qtyByItem = draftQtyByItem(draft.draft.qtyByItem)
 
   return (
     <>
+      {/* The body seeds its rows once, so a language or mode switch remounts it — reseeded from the
+          draft as it is now, or what he typed since the first mount would vanish from the column. The
+          remount also drops a search or „Tylko zgłaszane przeze mnie” left over from the other mode. */}
       <KosztorysEditorBody
-        key={`${seed.locale}-${seed.mode}`}
+        key={`${locale}-${mode}`}
         preview
         worker={document.worker}
         investmentId={document.investmentId}
@@ -95,14 +87,11 @@ export function ReportGrid({
         depositTransactions={[]}
         materialTransactions={[]}
         report={{
-          initialQtyByItem: seed.initialQtyByItem,
-          pendingQtyByItem,
-          isCompact: isReport,
+          initialQtyByItem: qtyByItem,
           isSummary: !isReport,
           // A negative stays in the draft as typed, so the send bar can refuse it.
           onReportQty: (itemId, qty) => draft.setQty(itemId, qty === 0 ? '' : decimalText(qty)),
           header: (controls) => (
-            // Pinned to the left edge like the footer: the full sheet scrolls the page sideways.
             <div className={cn('sticky left-0', !isReport && 'w-screen')}>
               <BrandedHeader data={data} />
               {draft.droppedCount > 0 && (
@@ -130,7 +119,7 @@ export function ReportGrid({
                           checked={controls.reportedOnly}
                           onCheckedChange={controls.onReportedOnly}
                         />
-                        {t('reportedOnly')} ({reportedCount})
+                        {t('reportedOnly')} ({Object.keys(qtyByItem).length})
                       </Label>
                     )}
                   </>

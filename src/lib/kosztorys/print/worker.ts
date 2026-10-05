@@ -1,3 +1,4 @@
+import { pl } from '@/lib/i18n/dictionaries/pl'
 import { escapeHtml } from '@/lib/utils/escape-html'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDate } from '@/lib/utils/format-date'
@@ -7,6 +8,7 @@ import { documentRows } from '@/lib/kosztorys/print/document-rows'
 import { WIDE_PRINT_STYLES } from '@/lib/kosztorys/print/styles'
 import { workerPrintColumns } from '@/lib/kosztorys/print/worker-columns'
 import { groupBySection } from '@/lib/kosztorys/row-ops'
+import { stageLabel } from '@/lib/kosztorys/stage-label'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import { workerDataHiddenColumns } from '@/lib/kosztorys/worker-view/columns'
 import { stageShareLabel, type WorkerSummaryT } from '@/lib/kosztorys/worker-view/summary'
@@ -28,15 +30,16 @@ const WORKER_PRINT_STYLES = `
 .totals tr.head td { font-size: 6pt; color: #a1a1aa; border-bottom: 1px solid #e4e4e7; }
 `
 
-// The web page's `WorkerSummary`, on paper: the same tables in the same order, so the two documents
-// a worker may hold side by side read alike.
+// The web page's `WorkerSummary`, on paper: the same tables in the same order and the same Polish
+// labels, so the two documents a worker may hold side by side read alike.
 function workerFooterHtml(summary: WorkerSummaryT): string {
+  const labels = pl.report
   const balance = [
-    row(['Wykonane razem'], [formatPLN(summary.executedNet)]),
-    ...(summary.bonusNet !== 0 ? [row(['Premia'], [formatPLN(summary.bonusNet)])] : []),
-    row(['Wypłacone'], [formatPLN(summary.paidNet)]),
+    row([labels.summaryExecutedTotal], [formatPLN(summary.executedNet)]),
+    ...(summary.bonusNet !== 0 ? [row([labels.summaryBonus], [formatPLN(summary.bonusNet)])] : []),
+    row([labels.summaryPaid], [formatPLN(summary.paidNet)]),
     row(
-      [summary.isOverpaid ? 'Nadpłata' : 'Pozostało do wypłaty'],
+      [summary.isOverpaid ? labels.summaryOverpaid : labels.summaryOwed],
       [formatPLN(Math.abs(summary.owed))],
       'grand',
     ),
@@ -44,31 +47,33 @@ function workerFooterHtml(summary: WorkerSummaryT): string {
   const hasSharedStage = summary.executedByStage.some((stage) => stage.share)
   const executed = [
     row(
-      ['Wykonane'],
-      hasSharedStage ? ['Wartość etapu', 'Twój udział', 'Kwota netto'] : ['Kwota netto'],
+      [labels.summaryExecuted],
+      hasSharedStage
+        ? [labels.summaryStageValue, labels.summaryShare, labels.summaryNet]
+        : [labels.summaryNet],
       'head',
     ),
     ...summary.executedByStage.map((stage) =>
       row(
-        [stage.label],
+        [stageLabel(stage)],
         hasSharedStage
           ? [formatPLN(stage.wholeNet), stageShareLabel(stage), formatPLN(stage.net)]
           : [formatPLN(stage.net)],
       ),
     ),
     row(
-      ['Razem'],
+      [labels.summaryTotal],
       hasSharedStage
         ? [formatPLN(summary.stagesWholeNet), '', formatPLN(summary.executedNet)]
         : [formatPLN(summary.executedNet)],
     ),
   ]
   const payouts = [
-    row(['Wypłaty', 'Opis'], ['Kwota netto'], 'head'),
+    row([labels.summaryPayouts, labels.summaryPayoutDescription], [labels.summaryNet], 'head'),
     ...summary.payouts.map((payout) =>
       row([formatPLDate(payout.date), payout.description ?? ''], [formatPLN(payout.amount)]),
     ),
-    row(['Razem', ''], [formatPLN(summary.paidNet)]),
+    row([labels.summaryTotal, ''], [formatPLN(summary.paidNet)]),
   ]
   const table = (rows: string[]) => `<table><tbody>\n${rows.join('\n')}\n</tbody></table>`
   return `

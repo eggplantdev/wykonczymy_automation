@@ -2,9 +2,9 @@
 const UNDECOMPOSED: Record<string, string> = { ł: 'l', Ł: 'L' }
 
 /**
- * A name as it reads in a URL — the owner wants to tell links apart by whom and which investment
- * they are for. Decoration only: the id or token beside it is what resolves, so a renamed worker's
- * or investment's old link keeps working.
+ * The owner wants to tell links apart by whom and which investment they are for. Decoration only:
+ * the id or token beside it is what resolves, so a renamed worker's or investment's old link keeps
+ * working.
  */
 export function nameSlug(name: string): string {
   return name

@@ -2,7 +2,7 @@ import 'server-only'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { getDb, type DbExecutorT } from '@/lib/db/get-db'
-import { listWorkerReports, pendingQtyByItem, type WorkerReportRowT } from '@/lib/db/worker-reports'
+import { listWorkerReports, type WorkerReportRowT } from '@/lib/db/worker-reports'
 import { readReportShare } from '@/lib/db/worker-report-share'
 import { DEFAULT_LANGUAGE, type LanguageT } from '@/lib/i18n/languages'
 import type { SectionTranslationMapT } from '@/lib/i18n/section-translations'
@@ -25,8 +25,6 @@ export type WorkerReportPageT = ReportLocaleT &
     | {
         kind: 'ready'
         document: Extract<WorkerKosztorysT, { kind: 'ready' }>
-        // What he sent and nobody has decided yet, per pozycja — so a repeat report shows before he sends it.
-        pendingQtyByItem: Record<number, number>
         sentReports: WorkerReportRowT[]
         sectionTranslations: SectionTranslationMapT
       }
@@ -82,9 +80,8 @@ async function assembleReportPage(
   investmentId: number,
   documentRead: Promise<WorkerKosztorysT | null> | WorkerKosztorysT | null,
 ): Promise<WorkerReportPageT | null> {
-  const [document, pending, sentReports, sectionTranslations] = await Promise.all([
+  const [document, sentReports, sectionTranslations] = await Promise.all([
     documentRead,
-    pendingQtyByItem(db, investmentId, locale.workerId),
     listWorkerReports(db, investmentId, locale.workerId),
     getSectionTranslations(),
   ])
@@ -102,7 +99,6 @@ async function assembleReportPage(
     ...locale,
     kind: 'ready',
     document,
-    pendingQtyByItem: pending,
     sentReports,
     sectionTranslations,
   }

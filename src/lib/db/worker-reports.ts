@@ -220,23 +220,6 @@ export async function countPendingForInvestment(
   return Number(res.rows[0]?.total ?? 0)
 }
 
-/** What this worker already reported and nobody has decided yet, per pozycja — the form's „Zgłoszono". */
-export async function pendingQtyByItem(
-  db: DbExecutorT,
-  investmentId: number,
-  workerId: number,
-): Promise<Record<number, number>> {
-  const res = await db.execute(sql`
-    SELECT l.item_id, sum(l.reported_qty) AS qty
-    FROM worker_report_lines l
-    JOIN worker_reports r ON r.id = l.report_id
-    WHERE r.investment_id = ${investmentId} AND r.worker_id = ${workerId}
-      AND r.status = 'pending' AND l.item_id IS NOT NULL
-    GROUP BY l.item_id
-  `)
-  return Object.fromEntries(res.rows.map((row) => [Number(row.item_id), Number(row.qty)]))
-}
-
 /**
  * The decision's single write: only a still-pending report moves, so a second click — or a second
  * kierownik — gets `null` and changes nothing. Returns the reporting worker.

@@ -82,9 +82,7 @@ function ReportBody() {
       {...DATA}
       report={{
         initialQtyByItem: {},
-        pendingQtyByItem: {},
-        isCompact: false,
-        isSummary: false,
+        isSummary: true,
         onReportQty: vi.fn(),
         header: (controls) => (
           <input

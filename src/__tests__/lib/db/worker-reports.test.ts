@@ -6,7 +6,6 @@ import {
   claimPendingReport,
   insertWorkerReport,
   listDecidableReports,
-  pendingQtyByItem,
   readWorkerReport,
 } from '@/lib/db/worker-reports'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
@@ -196,26 +195,5 @@ describe.skipIf(!ENV_READY)('worker report data access (DB)', () => {
     expect(ours.findLastIndex((row) => row.status === 'pending')).toBeLessThan(
       ours.findIndex((row) => row.status !== 'pending'),
     )
-  })
-
-  it('sums only this worker’s pending lines per pozycja', async () => {
-    const [probe] = itemIds.slice(1)
-    await insertWorkerReport(db, { investmentId, workerId, lines: [rozpiskaLine(probe, 2)] })
-    await insertWorkerReport(db, { investmentId, workerId, lines: [rozpiskaLine(probe, 0.5)] })
-    const decided = await insertWorkerReport(db, {
-      investmentId,
-      workerId,
-      lines: [rozpiskaLine(probe, 100)],
-    })
-    await claimPendingReport(db, investmentId, decided, 'accepted', otherWorkerId)
-    await insertWorkerReport(db, {
-      investmentId,
-      workerId: otherWorkerId,
-      lines: [rozpiskaLine(probe, 40)],
-    })
-
-    const pending = await pendingQtyByItem(db, investmentId, workerId)
-
-    expect(pending[probe]).toBe(2.5)
   })
 })

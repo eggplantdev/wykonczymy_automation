@@ -1,17 +1,20 @@
 import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import { WorkerSummary } from '@/components/kosztorys/summary/blocks/worker-summary'
+import { TranslationsProvider } from '@/components/kosztorys/worker-report/translations-provider'
+import { WorkerSummary } from '@/components/kosztorys/worker-report/worker-summary'
+import { uk } from '@/lib/i18n/dictionaries/uk'
 import type { WorkerSummaryT } from '@/lib/kosztorys/worker-view/summary'
 import { bare } from '@/__tests__/helpers/money'
 
 const summary = (overrides: Partial<WorkerSummaryT> = {}): WorkerSummaryT => ({
   plannedNet: 12_000,
   executedByStage: [
-    { stageId: 1, label: 'Etap 1', net: 3_000, wholeNet: 3_000, share: null },
+    { stageId: 1, label: 'Etap 1', ordinal: 1, net: 3_000, wholeNet: 3_000, share: null },
     {
       stageId: 2,
-      label: 'Etap 2',
+      label: null,
+      ordinal: 2,
       net: 1_500,
       wholeNet: 6_000,
       share: { percent: 25, amount: 1_500 },
@@ -143,5 +146,18 @@ describe('WorkerSummary', () => {
     render(<WorkerSummary summary={summary({ paidNet: 4_500, owed: 0 })} />)
 
     expect(valueBeside('Pozostało do wypłaty')).toMatch(/^0,00/)
+  })
+
+  it('speaks the worker’s language', () => {
+    render(
+      <TranslationsProvider initialLocale="uk" workerId={1}>
+        <WorkerSummary summary={summary()} />
+      </TranslationsProvider>,
+    )
+
+    expect(screen.getByText(uk.report.summaryBalance)).toBeInTheDocument()
+    expect(screen.getByText('Етап 2')).toBeInTheDocument()
+    expect(valueBeside(uk.report.summaryOwed)).toContain('1500,00')
+    expect(screen.queryByText('Twoje rozliczenie')).toBeNull()
   })
 })

@@ -67,7 +67,6 @@ function renderForm(token?: string, document = DOCUMENT) {
       <WorkerReportForm
         token={token}
         document={document}
-        pendingQtyByItem={{}}
         sentReports={[]}
         sectionTranslations={{}}
       />

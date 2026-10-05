@@ -119,7 +119,6 @@ export type ReportGridControlsT = {
   onSearch: (value: string) => void
   showAllRows: boolean
   onShowAllRows: (value: boolean) => void
-  // What „Wszystkie prace” would reveal.
   hiddenRowCount: number
   reportedOnly: boolean
   onReportedOnly: (value: boolean) => void
@@ -249,7 +248,7 @@ export function KosztorysEditorBody({
 
   // Off `subtotals`, which counts the whole document rather than the visible rows, so a search
   // narrows the screen without changing what a section says it holds or what it is worth.
-  const isReportCompact = report?.isCompact ?? false
+  const isReportCompact = report !== undefined && !report.isSummary
   // The worker's report scrolls as a page: his header scrolls away and the table header sticks,
   // instead of the grid scrolling under a pinned top.
   const pageScroll = report !== undefined
@@ -432,8 +431,9 @@ export function KosztorysEditorBody({
   // The full report is wider than a phone and the page scrolls sideways, but dsg renders only the
   // columns inside its own box — so the box gets the columns' width up front. Not `max-content`: dsg
   // answers a box that fits with `width: 100%`, which collapses it again, and the two loop.
-  const reportMinWidth =
-    report && !report.isCompact ? gridMinWidth(gridColumns, gutterColumn.basis ?? 40) : undefined
+  const reportMinWidth = report?.isSummary
+    ? gridMinWidth(gridColumns, gutterColumn.basis ?? 40)
+    : undefined
 
   // Kosztorys client-view nets against the investment's transaction sums — net to net, since the
   // ledger carries no VAT. Through the same lib fn the investment page calls, so the two can't

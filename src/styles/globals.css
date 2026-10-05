@@ -632,12 +632,6 @@
     inset 0 -1px var(--header-rule-color, var(--dsg-border-color));
 }
 
-/* The `[data-muted]` half outranks the preview's rule above, which darkens a muted figure again. */
-.kosztorys-grid.kosztorys-grid-report .dsg-cell.kosztorys-report-readonly-figure,
-.kosztorys-grid.kosztorys-grid-report .dsg-cell.kosztorys-report-readonly-figure [data-muted] {
-  color: var(--color-muted-foreground);
-}
-
 /* Section identity is carried by two quiet cues instead of a background wash: a colour rail down the
    sticky gutter column, and a heavy rule above a section's first row. `--section-rail` is set per row
    by the palette's `rail` class (src/lib/kosztorys/section-colors.ts); an unpinned section leaves it

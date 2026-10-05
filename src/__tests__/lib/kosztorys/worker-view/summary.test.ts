@@ -83,8 +83,8 @@ describe('computeWorkerSummary', () => {
     expect(summary.executedNet).toBe(byWorker)
     expect(summary.executedNet).toBe((2 + 1) * 12)
     expect(summary.executedByStage).toEqual([
-      { stageId: 100, label: 'Tynki', net: 24, wholeNet: 24, share: null },
-      { stageId: 102, label: 'Etap 3', net: 12, wholeNet: 12, share: null },
+      { stageId: 100, label: 'Tynki', ordinal: 1, net: 24, wholeNet: 24, share: null },
+      { stageId: 102, label: null, ordinal: 3, net: 12, wholeNet: 12, share: null },
     ])
   })
 
@@ -158,7 +158,14 @@ describe('computeWorkerSummary — a shared etap', () => {
 
     expect(summary.executedNet).toBe(9)
     expect(summary.executedByStage).toEqual([
-      { stageId: 101, label: 'Etap 2', net: 9, wholeNet: 36, share: { percent: 25, amount: 9 } },
+      {
+        stageId: 101,
+        label: null,
+        ordinal: 2,
+        net: 9,
+        wholeNet: 36,
+        share: { percent: 25, amount: 9 },
+      },
     ])
   })
 

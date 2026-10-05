@@ -55,6 +55,10 @@ export const MEASURE_DIVERGED_CONDITION_ID = 'measure-diverged'
 export const CATALOGUE_DIVERGENCE_CONDITION_ID = 'catalogue-price-divergence'
 export const CATALOGUE_MISSING_CONDITION_ID = 'catalogue-missing'
 
+// Named because the client view and the worker's „Tylko zgłaszane przeze mnie” engage them by id.
+export const CLIENT_EMPTY_CONDITION_ID = 'client-empty'
+export const REPORT_UNREPORTED_CONDITION_ID = 'report-unreported'
+
 /**
  * The overpaid-crew guard (EX-708): on this plane, is the pozycja's executed work being settled at a
  * stawka that is a PERCENTAGE of the cena j.m.?
@@ -356,7 +360,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     matches: (row) => !row.globalDiscountActive && !hasItemDiscount(row),
   },
   {
-    id: 'client-empty',
+    id: CLIENT_EMPTY_CONDITION_ID,
     label: 'bez przedmiaru i bez wykonanej pracy',
     // Never lifts to sekcje: „Zwiń puste sekcje" is a reading gesture in a menu the client view does
     // not render, so a label here would only buy a per-render pass over the whole dataset for a set
@@ -370,7 +374,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     matches: isEmptyOnBothAxes,
   },
   {
-    id: 'report-unreported',
+    id: REPORT_UNREPORTED_CONDITION_ID,
     label: 'bez zgłoszonej ilości',
     // The worker's „Tylko zgłaszane przeze mnie” on his report link — his own reading gesture, but
     // on a document with no „Filtry” menu, so it rides the client kind the preview already engages.

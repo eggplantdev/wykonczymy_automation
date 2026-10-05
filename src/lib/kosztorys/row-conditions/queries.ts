@@ -1,5 +1,9 @@
 import { crewAxisShows, type CrewAxisT } from '@/lib/kosztorys/crew-axis'
-import { ROW_CONDITIONS } from '@/lib/kosztorys/row-conditions/registry'
+import {
+  CLIENT_EMPTY_CONDITION_ID,
+  REPORT_UNREPORTED_CONDITION_ID,
+  ROW_CONDITIONS,
+} from '@/lib/kosztorys/row-conditions/registry'
 import type {
   FilterConditionT,
   RowConditionCtxT,
@@ -228,9 +232,7 @@ export function offeredFilterConditions(
 
 // Module-level instances, so the sets below are referentially stable and the editor's memos don't
 // recompute on every render.
-export const CLIENT_EMPTY_CONDITION_ID = 'client-empty'
 const CLIENT_EMPTY_CONDITION_IDS: ReadonlySet<string> = new Set([CLIENT_EMPTY_CONDITION_ID])
-export const REPORT_UNREPORTED_CONDITION_ID = 'report-unreported'
 const REPORTED_ONLY_CONDITION_IDS: ReadonlySet<string> = new Set([REPORT_UNREPORTED_CONDITION_ID])
 const NO_CONDITION_IDS: ReadonlySet<string> = new Set()
 

@@ -1,6 +1,5 @@
 import { rowPlannedNetForView } from '@/lib/kosztorys/calc'
 import { formatPercentPrecise } from '@/lib/kosztorys/format'
-import { stageLabel } from '@/lib/kosztorys/stage-label'
 import { splitStagePool } from '@/lib/kosztorys/stage-split'
 import { subcontractorDueByPlane } from '@/lib/kosztorys/subcontractor-due'
 import type {
@@ -34,9 +33,9 @@ export type WorkerPayoutT = Omit<PayoutTransactionRowT, 'workerId' | 'type'>
 // `percent` is that amount's part of the whole etap; null where an amount split has no pool yet.
 export type WorkerStageShareT = { percent: number | null; amount: number }
 
-export type WorkerStageLineT = {
+// `label` stays raw: each surface names an unnamed etap in its own language (`stageLabel`).
+export type WorkerStageLineT = Pick<KosztorysStageT, 'label' | 'ordinal'> & {
   stageId: number
-  label: string
   // His share — the figure his „Wykonane razem" sums.
   net: number
   // The whole etap, every co-worker included. Equal to `net` on a one-person etap.
@@ -84,7 +83,8 @@ export function computeWorkerSummary({
     const net = due.byStageWorker.get(stage.id)?.get(workerId) ?? 0
     return {
       stageId: stage.id,
-      label: stageLabel(stage),
+      label: stage.label,
+      ordinal: stage.ordinal,
       net,
       wholeNet,
       share: shareOf(stage.split, workerId, wholeNet, net),

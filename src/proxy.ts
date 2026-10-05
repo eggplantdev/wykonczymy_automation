@@ -12,7 +12,13 @@ export function proxy(request: NextRequest) {
   // is the whole credential, so a session check here would make the feature unreachable for the only
   // audience it exists for. Authorization happens in the token lookup, which 404s on a revoked or
   // unknown token. The report form's Server Action POSTs to its own path, so it passes here too.
-  const isSharePage = pathname.startsWith('/k/') || pathname.startsWith('/z/')
+  // `/zgloszenie-prac/` and `/p/` are the worker links' retired homes, kept reachable for their
+  // „link nieaktywny”.
+  const isSharePage =
+    pathname.startsWith('/k/') ||
+    pathname.startsWith('/z/') ||
+    pathname.startsWith('/zgloszenie-prac/') ||
+    pathname.startsWith('/p/')
 
   // Not logged in → redirect to login
   if (!hasToken && !isAuthPage && !isPublicPage && !isSharePage) {

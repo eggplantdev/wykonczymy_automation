@@ -1,6 +1,7 @@
 import { POLISH_GRID, type TranslatorT } from '@/lib/i18n/translations'
 import { activeFilterHidesPhrase } from '@/lib/kosztorys/counted-nouns'
-import { listLabels, REPORT_UNREPORTED_CONDITION_ID } from '@/lib/kosztorys/row-conditions/queries'
+import { listLabels } from '@/lib/kosztorys/row-conditions/queries'
+import { REPORT_UNREPORTED_CONDITION_ID } from '@/lib/kosztorys/row-conditions/registry'
 import type { RowConditionT } from '@/lib/kosztorys/row-conditions/types'
 
 export type EmptyGridCopyT = { title: string; description?: string }

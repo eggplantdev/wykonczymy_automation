@@ -7,7 +7,7 @@ import {
   revokeWorkerLinkAction,
 } from '@/lib/actions/kosztorys-worker-share'
 import { FRONTEND_URL } from '@/lib/env'
-import { workerReportShareUrl } from '@/lib/kosztorys/worker-view/name-slug'
+import { workerReportShareUrl } from '@/lib/kosztorys/worker-view/worker-links'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 

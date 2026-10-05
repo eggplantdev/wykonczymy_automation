@@ -23,9 +23,10 @@ describe('proxy — a visitor without a session', () => {
     expect(send.headers.get('location')).toBeNull()
   })
 
-  // The prefix went with the route (owner, 2026-10-05): a link handed out before the move is dead.
-  it('is sent to log in for a report link from before the move to /z/', () => {
-    expect(redirectsToLogin('/zgloszenie-prac/Nikolajewicz/abc-DEF_123')).toBe(true)
+  // A link handed out before the move to /z/ is dead, but he has no account: its route says so.
+  it('reaches a worker link from before the move to /z/', () => {
+    expect(redirectsToLogin('/zgloszenie-prac/Nikolajewicz/abc-DEF_123')).toBe(false)
+    expect(redirectsToLogin('/p/Nikolajewicz/abc-DEF_123')).toBe(false)
   })
 
   it('is sent to log in for the kierownik’s report queue', () => {

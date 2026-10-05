@@ -17,7 +17,6 @@ type PropsT<T extends string> = {
   // Kept visible where a toggle applies only in some contexts (e.g. the summary view toggle on the
   // subcontractor plane).
   disabled?: boolean
-  // Every option as wide as the widest, instead of each sized to its own label.
   isEqualWidth?: boolean
   'aria-label'?: string
   className?: string
@@ -45,7 +44,7 @@ export function ToggleGroup<T extends string>({
 }: PropsT<T>) {
   const rootRef = useRef<HTMLDivElement>(null)
   const indicatorRef = useRef<HTMLSpanElement>(null)
-  // Columns are content-sized (auto-cols-max), so the indicator can't be derived from an index —
+  // Columns may be content-sized, so the indicator can't be derived from an index —
   // measure the active item and position the pill by direct style writes (state would cascade renders).
   useLayoutEffect(() => {
     const active = rootRef.current?.querySelector<HTMLElement>('[data-state="on"]')
