@@ -23,7 +23,8 @@ import type { WorkerReportFormDataT } from '@/lib/kosztorys/worker-report/types'
 import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
 
 type PropsT = {
-  token: string
+  // Absent on the owner's Podgląd: he sees the worker's whole surface but sends nothing as him.
+  token?: string
   data: WorkerReportFormDataT
   document: Extract<WorkerKosztorysT, { kind: 'ready' }>
   draft: ReturnType<typeof useReportDraft>
@@ -140,7 +141,7 @@ export function ReportGrid({
                 onSave={draft.saveExtra}
                 onRemove={draft.removeExtra}
               />
-              <SendBar token={token} data={data} draft={draft} onSent={onSent} />
+              {token && <SendBar token={token} data={data} draft={draft} onSent={onSent} />}
             </div>
             <SentReports reports={sentReports} />
           </div>

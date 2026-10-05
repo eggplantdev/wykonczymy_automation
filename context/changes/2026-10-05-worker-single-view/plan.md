@@ -394,15 +394,15 @@ At implementation, park the DROP in a Linear issue under „Wykonczymy":
 
 #### Automated
 
-- [x] 1.1 Report-mode body spec: Podsumowanie toggle opens WorkerSummary
-- [x] 1.2 Existing panel/summary specs still pass
+- [x] 1.1 Report-mode body spec: Podsumowanie toggle opens WorkerSummary — e9558f15
+- [x] 1.2 Existing panel/summary specs still pass — e9558f15
 
 ### Phase 2: „Podgląd pracownika" renders the report view
 
 #### Automated
 
-- [ ] 2.1 Preview-mode form spec: no send button, no draft persistence
-- [ ] 2.2 use-report-draft spec covers the null key
+- [x] 2.1 Preview-mode form spec: no send button, no draft persistence
+- [x] 2.2 use-report-draft spec covers the null key
 
 ### Phase 3: Remove /p and the rozpiska link kind
 

@@ -18,7 +18,7 @@ import { toWorkerReportFormData } from '@/lib/kosztorys/worker-report/to-form-da
 import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
 
 type PropsT = {
-  token: string
+  token?: string
   document: Extract<WorkerKosztorysT, { kind: 'ready' }>
   pendingQtyByItem: Record<number, number>
   sentReports: WorkerReportRowT[]
@@ -39,7 +39,11 @@ export function WorkerReportForm({
   const [liveItemIds] = useState(
     () => new Set(data.sections.flatMap((section) => section.items.map((item) => item.id))),
   )
-  const draft = useReportDraft(reportDraftKey(data.investmentId, data.workerId), liveItemIds)
+  // The owner's Podgląd keeps its szkic in memory, or what he typed would greet the worker on a shared device.
+  const draft = useReportDraft(
+    token ? reportDraftKey(data.investmentId, data.workerId) : undefined,
+    liveItemIds,
+  )
 
   if (sent) {
     return (

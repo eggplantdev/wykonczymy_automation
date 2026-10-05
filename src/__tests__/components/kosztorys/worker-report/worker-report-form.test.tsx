@@ -1,6 +1,6 @@
-import { render, screen, within } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { WorkerReportForm } from '@/components/kosztorys/worker-report/worker-report-form'
 import { TranslationsProvider } from '@/components/kosztorys/worker-report/translations-provider'
 import { WORKER_VIEW_DEFAULT_SETTINGS } from '@/lib/kosztorys/worker-view/settings'
@@ -31,6 +31,7 @@ beforeAll(() => {
 })
 
 beforeEach(() => localStorage.clear())
+afterEach(cleanup)
 
 const WORKER_ID = 1
 const STAGES = [stage(7, 1, 'Płytki')]
@@ -60,11 +61,11 @@ const DOCUMENT: Extract<WorkerKosztorysT, { kind: 'ready' }> = {
   },
 }
 
-function renderForm() {
+function renderForm(token?: string) {
   return render(
     <TranslationsProvider initialLocale="pl" workerId={WORKER_ID}>
       <WorkerReportForm
-        token="token"
+        token={token}
         document={DOCUMENT}
         pendingQtyByItem={{}}
         sentReports={[]}
@@ -79,7 +80,7 @@ const panelState = () =>
 
 describe('the worker’s report link carries his „Podsumowanie”', () => {
   it('opens and closes his own balance from the report bar', async () => {
-    renderForm()
+    renderForm('token')
 
     expect(await screen.findByText('Twoje rozliczenie')).toBeInTheDocument()
     expect(panelState()).toBe('open')
@@ -91,5 +92,25 @@ describe('the worker’s report link carries his „Podsumowanie”', () => {
 
     await userEvent.click(screen.getAllByRole('button', { name: 'Podsumowanie' })[0])
     expect(panelState()).toBe('open')
+  })
+})
+
+describe('the owner’s „Podgląd pracownika” is the worker’s view, read-only', () => {
+  const draftKeys = () =>
+    Object.keys(localStorage).filter((key) => key.startsWith('worker-report-draft:'))
+
+  it('the live link can send and keeps its szkic on the device', async () => {
+    renderForm('token')
+
+    expect(await screen.findByRole('button', { name: 'Wyślij' })).toBeInTheDocument()
+    expect(draftKeys()).toHaveLength(1)
+  })
+
+  it('the preview has no „Wyślij” and leaves the worker’s szkic alone', async () => {
+    renderForm()
+
+    expect(await screen.findByText('Twoje rozliczenie')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Wyślij' })).not.toBeInTheDocument()
+    expect(draftKeys()).toHaveLength(0)
   })
 })
