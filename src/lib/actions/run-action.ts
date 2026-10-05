@@ -3,7 +3,7 @@ import type { Payload } from 'payload'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
+import { MANAGEMENT_ROLES, ROLES, type RoleT } from '@/lib/auth/roles'
 import { revalidateCollections, revalidateEntities } from '@/lib/cache/revalidate'
 import type { CACHE_TAGS } from '@/lib/cache/tags'
 import { perfStart } from '@/lib/perf'
@@ -78,10 +78,33 @@ export async function protectedAction<TData = undefined>(
   revalidate?: RevalidateT,
   opts?: RevalidateOptsT,
 ): Promise<ActionResultT<TData>> {
+  return authorizedAction(MANAGEMENT_ROLES, label, handler, revalidate, opts)
+}
+
+/**
+ * `protectedAction` open to every role — so the handler must scope the work to `ctx.user` itself and
+ * never take whose data it is as an argument.
+ */
+export async function sessionAction<TData = undefined>(
+  label: string,
+  handler: (ctx: ActionCtxT) => Promise<ActionResultT<TData>>,
+  revalidate?: RevalidateT,
+  opts?: RevalidateOptsT,
+): Promise<ActionResultT<TData>> {
+  return authorizedAction(ROLES, label, handler, revalidate, opts)
+}
+
+async function authorizedAction<TData>(
+  roles: readonly RoleT[],
+  label: string,
+  handler: (ctx: ActionCtxT) => Promise<ActionResultT<TData>>,
+  revalidate?: RevalidateT,
+  opts?: RevalidateOptsT,
+): Promise<ActionResultT<TData>> {
   const elapsed = perfStart()
   const started = performance.now()
 
-  const session = await requireAuth(MANAGEMENT_ROLES)
+  const session = await requireAuth(roles)
   if (!session.success) return { success: false, error: session.error } as ActionResultT<TData>
   console.log(`[PERF]   requireAuth ${elapsed()}ms`)
 

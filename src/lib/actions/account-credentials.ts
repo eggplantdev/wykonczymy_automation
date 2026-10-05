@@ -1,9 +1,7 @@
 'use server'
 
 import type { Payload } from 'payload'
-import { requireAuth } from '@/lib/auth/require-auth'
-import { ROLES } from '@/lib/auth/roles'
-import { runAuthorizedHandler, validateAction } from '@/lib/actions/run-action'
+import { sessionAction, validateAction } from '@/lib/actions/run-action'
 import { findEmailHolder } from '@/lib/workers/find-email-holder'
 import { loginRefusalMessage } from '@/lib/constants/worker-lock'
 import {
@@ -43,13 +41,9 @@ export async function changeOwnCredentialsAction(
   const parsed = validateAction(accountCredentialsSchema, input)
   if (!parsed.success) return parsed
 
-  const session = await requireAuth(ROLES)
-  if (!session.success) return { success: false, error: session.error }
-  const userId = session.user.id
-
-  return runAuthorizedHandler<undefined>(
+  return sessionAction(
     'changeOwnCredentialsAction',
-    async (payload) => {
+    async ({ payload, user: { id: userId } }) => {
       const { email, newPassword, currentPassword } = parsed.data
       // The token's e-mail goes stale after a change; the login is the stored one.
       const stored = await payload.findByID({ collection: 'users', id: userId, depth: 0 })

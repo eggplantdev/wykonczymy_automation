@@ -1,8 +1,7 @@
 'use server'
 
-import { requireAuth } from '@/lib/auth/require-auth'
-import { isManagementRole, ROLES } from '@/lib/auth/roles'
-import { runAuthorizedHandler } from '@/lib/actions/run-action'
+import { isManagementRole } from '@/lib/auth/roles'
+import { sessionAction } from '@/lib/actions/run-action'
 import { getDb } from '@/lib/db/get-db'
 import { filterMediaUploadedBy } from '@/lib/db/media-ownership'
 import { reclaimUnreferencedMedia } from '@/lib/media/delete-unreferenced-media'
@@ -21,13 +20,9 @@ import { reclaimUnreferencedMedia } from '@/lib/media/delete-unreferenced-media'
  * form is about to save.
  */
 export async function deleteOrphanedMediaAction(mediaIds: number[]) {
-  const session = await requireAuth(ROLES)
-  if (!session.success) return { success: false, error: session.error }
-  const { user } = session
-
-  return runAuthorizedHandler<undefined>(
+  return sessionAction(
     `deleteOrphanedMediaAction count=${mediaIds.length}`,
-    async (payload) => {
+    async ({ payload, user }) => {
       const ids = isManagementRole(user.role)
         ? mediaIds
         : await filterMediaUploadedBy(await getDb(payload), mediaIds, user.id)
