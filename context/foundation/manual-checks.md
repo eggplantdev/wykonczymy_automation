@@ -3556,8 +3556,8 @@ Refaktor bez zmiany zachowania: nocny cron czyści Kosz tak samo jak wcześniej.
 - [ ] Menu „Pracownicy" pokazuje przy każdym pracowniku tylko „Podgląd", „Link do zgłoszeń" i
       „Drukuj PDF" — bez osobnego „Link".
 - [ ] Stary adres `/p/<imię>/<token>` pokazuje stronę „nie znaleziono".
-- [ ] „Link do zgłoszeń" → „Wygeneruj nowy" i „Wyłącz link" działają: nowy adres jest w schowku,
-      wyłączony pokazuje komunikat „Ten link wygasł albo został cofnięty…".
+- [ ] „Link do zgłoszeń" → „Wygeneruj nowy" działa: nowy adres jest w schowku, stary pokazuje
+      komunikat „Ten link wygasł albo został cofnięty…" („Wyłącz link" zdjęty w EX-985).
 
 ## 2026-10-05 — worker-view-dogfooding — link `/z/…`, tryby w stopce, liczniki
 
@@ -3674,8 +3674,8 @@ przypisane do etapów w kilku inwestycjach — w tym co najmniej jednej zakończ
 - [ ] Link pracownika ustawionego na ukraiński → „Zgłaszam pracę": kolumna j.m. pokazuje „шт.", „м²", „пог. м"; jednostka spoza listy (np. „big bag") zostaje jak wpisana.
 - [ ] Ten sam link → „Prace dodatkowe" → lista j.m. jest po ukraińsku; po wysłaniu zgłoszenie w aplikacji pokazuje polską jednostkę.
 - [ ] Link pracownika polskiego: jednostki wyglądają jak dotąd (także „m2" wpisane bez indeksu górnego).
-- [ ] Kosztorys inwestycji → „Drukuj PDF" dla pracownika ustawionego na ukraiński: nagłówki, opisy z tłumaczeniem, nazwy sekcji, j.m., „Разом — …", „Кошторис — {imię}" i rozliczenie są po ukraińsku; opis bez tłumaczenia zostaje po polsku; kwoty w „zł".
-- [ ] To samo dla pracownika ustawionego na rosyjski.
+- [ ] Kosztorys inwestycji → „Drukuj PDF" dla pracownika ustawionego na ukraiński: nagłówki, opisy z tłumaczeniem, nazwy sekcji, j.m., „Разом — …", „Кошторис — {imię}" i rozliczenie są po ukraińsku; opis bez tłumaczenia zostaje po polsku; kwoty w „zł". Najdłuższy nagłówek („Виконано — сума етапів…") mieści się w swojej wąskiej kolumnie i nie nachodzi na sąsiednie.
+- [ ] To samo dla pracownika ustawionego na rosyjski, także bez nachodzenia nagłówków.
 - [ ] „Drukuj PDF" dla pracownika polskiego: nagłówki brzmią jak na jego linku („Cena j.m. netto — z narzędziami (podwykonawca)" itd.) i nadal mieszczą się na A4 poziomo, bez nachodzenia na siebie.
 - [ ] „Drukuj PDF" oferty dla klienta: bez zmian względem wcześniejszego wydruku.
 - [ ] „Zapisz jako PDF" w przeglądarce proponuje nazwę pliku „{inwestycja} — {imię}" jak dotąd.

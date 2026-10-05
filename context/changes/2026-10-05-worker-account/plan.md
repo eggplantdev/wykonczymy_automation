@@ -41,7 +41,7 @@ kasa ∈ his kasy`, URL filters can only narrow it, and the sum tile agrees with
 - Assigning a worker to an etap by any route (dodaj etap, zmiana składu, akceptacja zgłoszenia, import,
   przywrócenie wersji) leaves exactly one `worker_report_shares` row for that inwestycja × pracownik.
   After the migration, every existing pair has one.
-- The page lists his inwestycje in status `active` / `planowana` / `quote` (not trashed), each with a
+- The page lists his inwestycje in status `active` (not trashed; narrowed from `planowana` / `quote` by the owner — change.md), each with a
   working `/z/` link. The page works at 390px.
 - In the manager's „Link do zgłoszeń" the only option is rotation („Wygeneruj nowy"). „Wyłącz link"
   is gone, and a blocked scope shows its reason next to the link instead of hiding the link.
