@@ -29,7 +29,7 @@ export const CACHE_TAGS = {
  * `investments:6` and a consumer expiring `investment:6` compile fine and leave a permanently stale
  * read (EX-849).
  */
-type EntityNameT = 'investment' | 'cash-register'
+export type EntityNameT = 'investment' | 'cash-register'
 
 export const entityTag = (entity: EntityNameT, id: number | string) => `${entity}:${id}` as const
 
