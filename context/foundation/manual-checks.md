@@ -3746,10 +3746,12 @@ przypisane do etapów w kilku inwestycjach — w tym co najmniej jednej zakończ
 
 Potrzebny stan: dwa konta pracowników (rola Pracownik) ze znanymi hasłami oraz konto managera.
 
-- [ ] Jako pracownik, w DevTools: `PATCH /api/users/<własne id>` z nowym `password` (ciasteczko
+- [x] Jako pracownik, w DevTools: `PATCH /api/users/<własne id>` z nowym `password` (ciasteczko
       z przeglądarki) → 403, a stare hasło nadal loguje.
-- [ ] Jako pracownik, w DevTools: `POST /api/users/unlock` z własnym e-mailem → 403 (blokady po
+      _Staging 2026-10-05:_ PATCH password/name na własnym id → 403; stare hasło loguje (200), „nowe” 401.
+- [x] Jako pracownik, w DevTools: `POST /api/users/unlock` z własnym e-mailem → 403 (blokady po
       5 błędnych hasłach nie da się zdjąć samemu).
+      _Staging 2026-10-05:_ unlock → 403.
 - [ ] Jako pracownik na telefonie (390px): `/pracownicy/<własne id>` pokazuje „Zmień e-mail lub
       hasło"; okno mieści się na ekranie i da się je wypełnić.
 - [ ] Błędne „Obecne hasło" → „Nieprawidłowe obecne hasło.", nic się nie zmienia.
@@ -3816,28 +3818,83 @@ przy kilku pracach, a co najmniej jedna praca ma przedmiar.
 
 ## EX-949 — worker-report-scan — zgłoszenie prac wczytane z papierowej kartki
 
-Potrzebny stan: inwestycja w toku z rozpiską, pracownik przypisany do jej etapu, kartka
-„Drukuj do wypełnienia” tego pracownika wydrukowana i wypełniona ręcznie (kilka ilości, jedna praca
-spoza rozpiski), sfotografowana w dwóch ujęciach.
+Potrzebny stan: inwestycja w toku z rozpiską (kilka sekcji, kilkanaście prac), pracownik przypisany
+do jej etapu, drugi pracownik ustawiony na Українська. Odczyty AI idą naprawdę — nie oszczędzaj
+zdjęć, każdy wariant poniżej to osobny skan.
 
-- [ ] Kosztorys → „Pracownicy” → pracownik → „Drukuj do wypełnienia”: przy każdej pracy numer
-      z cyfrą kontrolną i pusta kolumna na ilość; wygląda i drukuje się jak pozostałe wydruki.
-- [ ] „Zgłoszenia prac” → „Wczytaj z kartki”: wybór pracownika (tylko aktywni, z etapem na trwającej
-      inwestycji), potem inwestycji (sama się wybiera, gdy jest jedna), dwa zdjęcia → „Wczytaj”
-      otwiera przegląd nowego zgłoszenia.
-- [ ] To samo z menu „Pracownicy” w edytorze kosztorysu — pracownik i inwestycja już wybrane.
-- [ ] Przegląd: nagłówek „Wczytane z kartki przez {kto} {data}”, zdjęcia obok wierszy, kliknięcie
-      otwiera powiększenie; wiersze zgadzają się ze zdjęciami.
-- [ ] Nieczytelna ilość → wiersz z „Niepewny odczyt — sprawdź na zdjęciu”.
-- [ ] Ten sam numer na obu zdjęciach → dwa wiersze z „Ta pozycja jest w zgłoszeniu więcej niż raz”,
-      a „Zaznacz wszystkie” nie zaznacza żadnego z nich.
-- [ ] Numer z błędną cyfrą kontrolną → „Nr … nie pasuje do rozpiski — do przypisania ręcznie”,
-      i da się go przypisać do pozycji z listy.
-- [ ] Praca spoza rozpiski w jednostce, której nie ma w kosztorysie → „Brak j.m. w kosztorysie —
-      wybierz pracę z katalogu”; „Zatwierdź” nie przechodzi, dopóki nie wybierzesz pracy z katalogu.
-- [ ] Zatwierdź → ilości etapu w edytorze zgadzają się z przyjętymi; nowa pozycja ma j.m. z katalogu.
-- [ ] Zgłoszenie z kartki nie pojawia się w historii na linku pracownika (`/z/…`).
-- [ ] Kartka wydrukowana przed „Przywróć wersję”, wczytana po nim: wiersze nadal trafiają we właściwe
-      pozycje.
-- [ ] Jedno zdjęcie, którego odczyt się nie uda → na miniaturze „Ponów”; ponowienie czyta tylko to
-      zdjęcie, a zgłoszenie powstaje dopiero, gdy wszystkie są odczytane.
+### Wydruk „Drukuj do wypełnienia”
+
+- [ ] Kosztorys → „Pracownicy” → pracownik → „Drukuj do wypełnienia”: przy każdej pracy szary numer
+      z cyfrą kontrolną („35812-7”), opis, j.m., pusta kolumna „Wykonano” i puste wiersze na prace
+      spoza rozpiski. Żadnych kwot ani etapów. Okno wydruku jak przy pozostałych wydrukach.
+- [ ] Pracownik na Українська: kartka po ukraińsku, z tymi samymi pracami co jego „Drukuj PDF”.
+- [ ] „Drukuj PDF” wygląda dokładnie jak przedtem.
+- [ ] Zablokowany pracownik: „Drukuj do wypełnienia” wyszarzone, jak „Drukuj PDF”.
+- [ ] Wydrukuj kartkę dwa razy → te same numery. Dodaj nową pracę i przesuń inną do innej sekcji →
+      nowa praca ma nowy numer, pozostałe numery bez zmian.
+- [ ] Skopiuj pracę → kopia ma nowy numer, oryginał zachowuje swój.
+- [ ] „Przywróć wersję” do wcześniejszej wersji → numery prac takie jak przed przywróceniem.
+
+### Kto i skąd wczytuje
+
+- [ ] „Zgłoszenia prac” → „Wczytaj z kartki” i menu „Pracownicy” w edytorze — oba widoczne dla
+      kierownika i właściciela.
+- [ ] Pracownik na swojej stronie i na swoim linku `/z/…` nie ma „Wczytaj z kartki”; lista
+      „Pracownicy” też go nie ma.
+- [ ] Lista pracowników w oknie: tylko aktywni, z etapem na trwającej inwestycji. Pracownik
+      nieaktywny albo tylko z etapem na szablonie / zakończonej inwestycji — nie ma go.
+- [ ] Pracownik z jedną inwestycją → wybiera się sama; z dwiema → trzeba wybrać, „Wczytaj”
+      wyszarzone do czasu wyboru.
+- [ ] Zmiana pracownika czyści wybraną inwestycję.
+- [ ] 13 zdjęć → komunikat „Maksymalnie 12 zdjęć…”, „Wczytaj” wyszarzone; 12 przechodzi.
+- [ ] W trakcie odczytu okna nie da się zamknąć, a przycisk pokazuje „Odczytywanie kartki…”.
+
+### Jakość odczytu (prawdziwe zdjęcia)
+
+- [ ] Czysta kartka, dobre światło, zdjęcie z góry → wszystkie ilości i numery zgodne.
+- [ ] Zdjęcie pod kątem / w słabym świetle / lekko pognieciona kartka → ilości dalej się zgadzają,
+      a te nieczytelne mają „Niepewny odczyt — sprawdź na zdjęciu”.
+- [ ] Ilość z przecinkiem („2,5”) → 2,5, nie 25 ani 2.
+- [ ] Wiersz bez wpisanej ilości → nie ma go w zgłoszeniu.
+- [ ] Ilość przekreślona i wpisana obok → przyjęta poprawiona albo oznaczona jako niepewna — nigdy
+      po cichu przekreślona.
+- [ ] Celowo źle przepisana cyfra numeru (np. „35812-7” jako „35842-7”) → wiersz
+      „Nr … nie pasuje do rozpiski — do przypisania ręcznie”, nie trafia na inną pracę.
+- [ ] Kartka z innej inwestycji → wszystkie wiersze „do przypisania ręcznie”, zgłoszenie i tak
+      powstaje.
+- [ ] Zdjęcie czegoś innego (paragon, pusta kartka) → komunikat „Na zdjęciach nie odczytano żadnej
+      wpisanej ilości.”, żadne zgłoszenie nie powstaje.
+- [ ] Kartka 3-stronicowa, zdjęcia wgrane w losowej kolejności → jedno zgłoszenie ze wszystkimi
+      wierszami.
+- [ ] Ta sama strona sfotografowana dwa razy → zdublowane prace z „Ta pozycja jest w zgłoszeniu
+      więcej niż raz”, ilości nie zsumowane.
+- [ ] Praca spoza rozpiski dopisana ręcznie po ukraińsku, j.m. z listy kosztorysu (np. „m2”) →
+      trafia do „spoza rozpiski” z tą j.m., po chwili z polskim tłumaczeniem i oryginałem obok.
+- [ ] Praca spoza rozpiski z j.m. spoza kosztorysu (np. „worek”) → „Brak j.m. w kosztorysie —
+      wybierz pracę z katalogu”.
+- [ ] Jedno zdjęcie z nieudanym odczytem (np. wyłącz sieć na chwilę) → „Ponów” na tej miniaturze;
+      ponowienie czyta tylko to zdjęcie, zgłoszenie powstaje dopiero, gdy wszystkie są odczytane.
+
+### Przegląd i zatwierdzenie
+
+- [ ] Po „Wczytaj” z „Zgłoszenia prac” otwiera się edytor na przeglądzie tego zgłoszenia; z menu
+      w edytorze — przegląd otwiera się na miejscu, a licznik oczekujących zgłoszeń rośnie o 1.
+- [ ] Nagłówek: „Wczytane z kartki przez {kto} {data}”; zgłoszenie z linku dalej ma „Wysłano {data}”.
+- [ ] Zdjęcia obok wierszy, kliknięcie otwiera powiększenie, da się przejść między zdjęciami.
+- [ ] „Zaznacz wszystkie” nie zaznacza zdublowanych prac; zaznaczona ręcznie jedna z nich przechodzi.
+- [ ] Wiersz „do przypisania” → wybór pracy z rozpiski → zatwierdzenie dopisuje ilość tej pracy.
+- [ ] Wiersz bez j.m.: z samą ceną „Zatwierdź” nie przechodzi; po wyborze pracy z katalogu
+      przechodzi, a nowa pozycja w kosztorysie ma j.m. i cenę z katalogu.
+- [ ] Poprawiona ręcznie ilość przy niepewnym odczycie → do etapu trafia poprawiona.
+- [ ] Odznaczony wiersz → nie trafia do etapu; reszta tak.
+- [ ] Po zatwierdzeniu ilości etapu w edytorze zgadzają się z przyjętymi; zdjęcia nadal widać po
+      ponownym otwarciu zgłoszenia.
+- [ ] Ponowne otwarcie zatwierdzonego zgłoszenia i odznaczenie wiersza cofa jego ilość — jak przy
+      zgłoszeniu z linku.
+
+### Strona pracownika
+
+- [ ] Zgłoszenie z kartki nie pojawia się w historii na linku pracownika (`/z/…`), jego własne
+      zgłoszenia są tam jak dotąd.
+- [ ] Zgłoszenie wysłane z linku działa jak przedtem: przegląd, zatwierdzenie, historia.
+- [ ] Kartka wydrukowana przed „Przywróć wersję”, wczytana po nim: wiersze trafiają we właściwe prace.
