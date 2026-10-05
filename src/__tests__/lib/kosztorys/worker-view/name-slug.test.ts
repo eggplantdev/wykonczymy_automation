@@ -1,17 +1,32 @@
 import { describe, expect, it } from 'vitest'
 import {
+  nameSlug,
   workerIdFromSegment,
-  workerNameSlug,
   workerPreviewSegment,
+  workerReportShareUrl,
 } from '@/lib/kosztorys/worker-view/name-slug'
 
-describe('workerNameSlug', () => {
+describe('nameSlug', () => {
   it('spells a Polish name in plain URL letters, keeping its capitals', () => {
-    expect(workerNameSlug('Łukasz Żółtowski-Kęś')).toBe('Lukasz-Zoltowski-Kes')
+    expect(nameSlug('Łukasz Żółtowski-Kęś')).toBe('Lukasz-Zoltowski-Kes')
   })
 
   it('collapses anything that is not a letter or digit into one dash', () => {
-    expect(workerNameSlug('  Jan   Kowalski (ekipa 2) ')).toBe('Jan-Kowalski-ekipa-2')
+    expect(nameSlug('  Jan   Kowalski (ekipa 2) ')).toBe('Jan-Kowalski-ekipa-2')
+  })
+})
+
+describe('worker report link', () => {
+  it('names the investment, then the worker, then carries the token', () => {
+    expect(
+      workerReportShareUrl('https://app.test', 'Mieszkanie Mokotów', 'Jan Kowalski', 'tok-1'),
+    ).toBe('https://app.test/z/Mieszkanie-Mokotow/Jan-Kowalski/tok-1')
+  })
+
+  it('never leaves a segment empty when a name has nothing URL-safe in it', () => {
+    expect(workerReportShareUrl('https://app.test', ' — ', '(?)', 'tok-1')).toBe(
+      'https://app.test/z/-/-/tok-1',
+    )
   })
 })
 

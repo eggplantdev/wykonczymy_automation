@@ -50,7 +50,7 @@ export type WorkerActionsT = {
 
 // Fetched on the click, not by the dialogs, for the Radix reason `useInvestorActions` gives.
 export function useWorkerActions(): WorkerActionsT {
-  const { investmentId } = useKosztorysEditorContext()
+  const { investmentId, investmentName } = useKosztorysEditorContext()
   const [settings, setSettings] = useState<WorkerViewSettingsT | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [shareTarget, setShareTarget] = useState<WorkerShareTargetT | null>(null)
@@ -112,7 +112,7 @@ export function useWorkerActions(): WorkerActionsT {
     })
     show(token)
     copyToClipboardAsync(
-      token.then((next) => workerReportShareUrl(FRONTEND_URL, target.name, next)),
+      token.then((next) => workerReportShareUrl(FRONTEND_URL, investmentName, target.name, next)),
       'Link skopiowany do schowka.',
     )
   }

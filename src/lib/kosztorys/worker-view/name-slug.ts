@@ -2,11 +2,11 @@
 const UNDECOMPOSED: Record<string, string> = { ł: 'l', Ł: 'L' }
 
 /**
- * The worker's name as it reads in a URL — the owner wants to tell links apart by who they are
- * for. Decoration only: the id or token beside it is what resolves, so a renamed worker's old
- * link keeps working.
+ * A name as it reads in a URL — the owner wants to tell links apart by whom and which investment
+ * they are for. Decoration only: the id or token beside it is what resolves, so a renamed worker's
+ * or investment's old link keeps working.
  */
-export function workerNameSlug(name: string): string {
+export function nameSlug(name: string): string {
   return name
     .normalize('NFD')
     .replace(/\p{M}/gu, '')
@@ -16,7 +16,7 @@ export function workerNameSlug(name: string): string {
 }
 
 export function workerPreviewSegment(name: string, workerId: number): string {
-  const slug = workerNameSlug(name)
+  const slug = nameSlug(name)
   return slug ? `${slug}-${workerId}` : String(workerId)
 }
 
@@ -26,6 +26,11 @@ export function workerIdFromSegment(segment: string): number | undefined {
   return Number.isSafeInteger(workerId) && workerId > 0 ? workerId : undefined
 }
 
-export function workerReportShareUrl(origin: string, name: string, token: string): string {
-  return `${origin}/zgloszenie-prac/${workerNameSlug(name) || '-'}/${token}`
+export function workerReportShareUrl(
+  origin: string,
+  investmentName: string,
+  workerName: string,
+  token: string,
+): string {
+  return `${origin}/z/${nameSlug(investmentName) || '-'}/${nameSlug(workerName) || '-'}/${token}`
 }

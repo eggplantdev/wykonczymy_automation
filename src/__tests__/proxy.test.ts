@@ -14,13 +14,18 @@ describe('proxy — a visitor without a session', () => {
   // The token is the worker's whole credential; he has no account to log in with.
   // A redirect here would also bounce the form's Server Action POST, so a send would silently fail.
   it('reaches the worker’s report link, and its send', () => {
-    expect(redirectsToLogin('/zgloszenie-prac/Nikolajewicz/abc-DEF_123')).toBe(false)
+    expect(redirectsToLogin('/z/Mieszkanie-Mokotow/Nikolajewicz/abc-DEF_123')).toBe(false)
     const send = proxy(
-      new NextRequest('http://localhost:3000/zgloszenie-prac/Nikolajewicz/abc-DEF_123', {
+      new NextRequest('http://localhost:3000/z/Mieszkanie-Mokotow/Nikolajewicz/abc-DEF_123', {
         method: 'POST',
       }),
     )
     expect(send.headers.get('location')).toBeNull()
+  })
+
+  // The prefix went with the route (owner, 2026-10-05): a link handed out before the move is dead.
+  it('is sent to log in for a report link from before the move to /z/', () => {
+    expect(redirectsToLogin('/zgloszenie-prac/Nikolajewicz/abc-DEF_123')).toBe(true)
   })
 
   it('is sent to log in for the kierownik’s report queue', () => {

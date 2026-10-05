@@ -30,6 +30,7 @@ const ROSTER = [
 vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
   useKosztorysEditorContext: () => ({
     investmentId: INVESTMENT_ID,
+    investmentName: 'Mieszkanie Mokotów',
     stages: STAGES,
     workers: ROSTER,
   }),
@@ -232,7 +233,7 @@ describe('KosztorysWorkersMenu', () => {
 
     const dialog = await screen.findByRole('dialog', { name: /Anna Nowak/ })
     expect(
-      await within(dialog).findByDisplayValue(/\/zgloszenie-prac\/Anna-Nowak\/tok-anna$/),
+      await within(dialog).findByDisplayValue(/\/z\/Mieszkanie-Mokotow\/Anna-Nowak\/tok-anna$/),
     ).toBeInTheDocument()
     expect(ensureWorkerLinkAction).toHaveBeenCalledWith({
       investmentId: INVESTMENT_ID,
@@ -248,7 +249,7 @@ describe('KosztorysWorkersMenu', () => {
 
     await waitFor(() =>
       expect(writeText).toHaveBeenCalledWith(
-        expect.stringMatching(/\/zgloszenie-prac\/Anna-Nowak\/tok-anna$/),
+        expect.stringMatching(/\/z\/Mieszkanie-Mokotow\/Anna-Nowak\/tok-anna$/),
       ),
     )
   })

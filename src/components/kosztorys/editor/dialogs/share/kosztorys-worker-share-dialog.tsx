@@ -13,7 +13,7 @@ import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kos
 
 // The worker set is firm-wide, so reviewing it here would suggest a per-link choice that does not exist. „Ustawienia widoku…" owns it.
 export function KosztorysWorkerShareDialog() {
-  const { investmentId } = useKosztorysEditorContext()
+  const { investmentId, investmentName } = useKosztorysEditorContext()
   const {
     shareTarget: target,
     shareOpen: open,
@@ -35,7 +35,7 @@ export function KosztorysWorkerShareDialog() {
           <ShareLinkPanel
             loaded={loaded}
             token={token}
-            urlFor={(next) => workerReportShareUrl(FRONTEND_URL, target.name, next)}
+            urlFor={(next) => workerReportShareUrl(FRONTEND_URL, investmentName, target.name, next)}
             generate={() => generateWorkerLinkAction({ investmentId, workerId: target.id })}
             revoke={() => revokeWorkerLinkAction({ investmentId, workerId: target.id })}
             onTokenChange={(next) => {
