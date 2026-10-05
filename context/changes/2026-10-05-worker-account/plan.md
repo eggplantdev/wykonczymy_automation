@@ -485,10 +485,10 @@ needs `pnpm db:migrate:preview` after merge to staging.
 
 #### Automated
 
-- [x] 4.1 Kosztorys-list query DB spec
+- [x] 4.1 Kosztorys-list query DB spec — 7c2cdd0d
 
 ### Phase 5: Docs
 
 #### Automated
 
-- [ ] 5.1 None (prose-only)
+- [x] 5.1 None (prose-only) — e67a92f9

@@ -3618,3 +3618,27 @@ Refaktor bez zmiany zachowania: nocny cron czyści Kosz tak samo jak wcześniej.
       „*Minusowa kwota oznacza nadpłatę”. Nigdzie nie ma „Nadpłata”.
 - [ ] Ta sama inwestycja na stronie inwestycji (widok właściciela): ten sam wiersz i ten sam przypis.
 - [ ] Inwestycja z dodatnim saldem: „Pozostało do zapłaty” bez gwiazdki, bez przypisu, kwota na czerwono.
+
+## EX-985 — worker-account — pracownik loguje się na własną stronę: kasy, sprzęt, transfery, kosztorysy (2026-10-05)
+
+Potrzebny stan: konto pracownika (rola Pracownik) z własną kasą, z wypłatami i zaliczkami na tę kasę,
+przypisane do etapów w kilku inwestycjach — w tym co najmniej jednej zakończonej.
+
+- [ ] Zaloguj się jako pracownik → `/` przenosi na jego stronę `/pracownicy/<id>`.
+- [ ] Jako pracownik: `/pracownicy/<id innego pracownika>` i `/kasa/<id jego kasy>` dają 404.
+- [ ] Jako pracownik: na stronie nie ma edycji, anulowania ani wgrywania faktur; nazwy kas i sprzętu
+      to zwykły tekst, nie linki. Klik w inwestycję w tabeli i „wstecz" wraca na jego stronę.
+- [ ] Jako pracownik: „Faktury" pobiera tylko faktury z jego transferów, „Drukuj" drukuje tylko jego
+      wiersze.
+- [ ] Jako manager: strona tego pracownika pokazuje oprócz wypłat także zaliczki na jego kasę i wydatki
+      z niej; kafelek sumy zgadza się z listą bez filtra i z filtrem kasy, a filtr kasy proponuje tylko
+      jego kasy.
+- [ ] Sekcja „Kosztorysy" (pracownik i manager): tylko otwarte inwestycje (wycena / planowana / aktywna),
+      każda raz, bez zakończonych; „Zgłoś prace" otwiera jego stronę `/z/`.
+- [ ] Strona pracownika na telefonie (390px): kasy, sprzęt, kosztorysy i transfery czytelne, bez
+      rozjechanego układu.
+- [ ] Edytor → dodaj pracownika do etapu → „Pracownicy" → „Link do zgłoszeń": link jest od razu,
+      bez generowania. Pracownik z zablokowanym zakresem: okno pokazuje powód i link, a link otwiera
+      `/z/` z komunikatem zamiast formularza.
+- [ ] „Link do zgłoszeń" pracownika ma tylko „Wygeneruj nowy link", bez „Wyłącz link"; „Udostępnij"
+      inwestorowi nadal ma „Wyłącz link".

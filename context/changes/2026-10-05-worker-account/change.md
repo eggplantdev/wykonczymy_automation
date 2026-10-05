@@ -1,7 +1,7 @@
 ---
 change_id: worker-account
 title: Konto pracownika — logowanie na własną stronę, jego kasy i linki do kosztorysów (EX-985)
-status: implementing
+status: implemented
 created: 2026-10-05
 updated: 2026-10-05
 archived_at: null
