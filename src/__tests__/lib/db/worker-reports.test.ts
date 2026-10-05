@@ -8,9 +8,9 @@ import {
   listDecidableReports,
   listReportFilterOptions,
   readWorkerReport,
-  setLineTranslations,
   type WorkerReportFiltersT,
 } from '@/lib/db/worker-reports'
+import { setLineTranslations } from '@/lib/db/worker-report-line-translations'
 import { ALL_TIME } from '@/lib/utils/date-range'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
@@ -298,15 +298,16 @@ describe.skipIf(!ENV_READY)('worker report data access (DB)', () => {
     expect(await onPage(3)).toEqual([newest])
   })
 
+  const extra = (description: string) => ({
+    kind: 'extra' as const,
+    itemId: null,
+    description,
+    unit: 'm2',
+    sectionName: null,
+    reportedQty: 1,
+  })
+
   it('never lets the send-time translation overwrite a line a retry already translated', async () => {
-    const extra = (description: string) => ({
-      kind: 'extra' as const,
-      itemId: null,
-      description,
-      unit: 'm2',
-      sectionName: null,
-      reportedQty: 1,
-    })
     const reportId = await insertWorkerReport(db, {
       investmentId,
       workerId,
@@ -330,5 +331,26 @@ describe.skipIf(!ENV_READY)('worker report data access (DB)', () => {
 
     const lines = (await readWorkerReport(db, investmentId, reportId))!.lines
     expect(lines.map((line) => line.polishDescription)).toEqual(['Wniesienie płyt', 'Montaż drzwi'])
+  })
+
+  it('writes no translation onto a line whose report was decided during the model call', async () => {
+    const reportId = await insertWorkerReport(db, {
+      investmentId,
+      workerId,
+      lines: [extra('Занесення плит')],
+    })
+    const [line] = (await readWorkerReport(db, investmentId, reportId))!.lines
+    await db.execute(
+      sql`UPDATE worker_reports SET status = 'rejected', decided_at = now() WHERE id = ${reportId}`,
+    )
+
+    await setLineTranslations(
+      db,
+      [{ id: line.id, polishDescription: 'Wniesienie płyt', descriptionLanguage: 'uk' }],
+      { onlyUntranslated: false },
+    )
+
+    const [stored] = (await readWorkerReport(db, investmentId, reportId))!.lines
+    expect(stored).toMatchObject({ polishDescription: null, descriptionLanguage: null })
   })
 })

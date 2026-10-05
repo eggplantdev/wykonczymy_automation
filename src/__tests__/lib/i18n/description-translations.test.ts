@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   isTranslationStale,
   mergeTranslations,
+  needsTranslation,
   restampTranslations,
   toDescriptionTranslations,
   translationsFromTexts,
@@ -120,5 +121,19 @@ describe('translationsFromTexts — the katalog form back onto its map', () => {
     expect(
       translationsFromTexts({ uk: stale }, { uk: '', ru: 'Покраска стен' }, 'Malowanie ścian'),
     ).toEqual({ ru: { text: 'Покраска стен', source: 'Malowanie ścian' } })
+  })
+})
+
+describe('needsTranslation', () => {
+  it('is true for a missing or stale translation and false for a current one', () => {
+    const translations = { uk: { text: 'Фарбування', source: 'Malowanie' } }
+    expect(needsTranslation(translations, 'ru', 'Malowanie')).toBe(true)
+    expect(needsTranslation(translations, 'uk', 'Malowanie ścian')).toBe(true)
+    expect(needsTranslation(translations, 'uk', 'Malowanie')).toBe(false)
+  })
+
+  it('is false for an empty opis — there is nothing to translate', () => {
+    expect(needsTranslation({}, 'uk', '  ')).toBe(false)
+    expect(needsTranslation({}, 'uk', null)).toBe(false)
   })
 })

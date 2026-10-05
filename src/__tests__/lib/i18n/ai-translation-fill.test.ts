@@ -2,10 +2,9 @@ import { describe, it, expect } from 'vitest'
 import {
   aiFillWrites,
   mergeRowWrites,
-  needsTranslation,
   planAiFill,
   sectionLanguagesToFill,
-  sectionTemplatesFromAi,
+  sectionTemplateFill,
   type FillRowT,
 } from '@/lib/i18n/ai-translation-fill'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
@@ -13,34 +12,20 @@ import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 const row = (overrides: Partial<FillRowT> & { id: number }): FillRowT => ({
   description: 'Malowanie ścian',
   unit: 'm2',
-  translations: {},
+  descriptionTranslations: {},
   ...overrides,
-})
-
-describe('needsTranslation', () => {
-  it('is true for a missing or stale translation and false for a current one', () => {
-    const translations = { uk: { text: 'Фарбування', source: 'Malowanie' } }
-    expect(needsTranslation(translations, 'ru', 'Malowanie')).toBe(true)
-    expect(needsTranslation(translations, 'uk', 'Malowanie ścian')).toBe(true)
-    expect(needsTranslation(translations, 'uk', 'Malowanie')).toBe(false)
-  })
-
-  it('is false for an empty opis — there is nothing to translate', () => {
-    expect(needsTranslation({}, 'uk', '  ')).toBe(false)
-    expect(needsTranslation({}, 'uk', null)).toBe(false)
-  })
 })
 
 describe('planAiFill', () => {
   it('sends each distinct trimmed opis once, with only the languages each row lacks', () => {
-    const plan = planAiFill(
-      [
-        row({ id: 1 }),
-        row({ id: 2, description: 'Malowanie ścian ' }),
-        row({ id: 3, translations: { uk: { text: 'Фарбування стін', source: 'Malowanie ścian' } } }),
-      ],
-      new Map(),
-    )
+    const plan = planAiFill([
+      row({ id: 1 }),
+      row({ id: 2, description: 'Malowanie ścian ' }),
+      row({
+        id: 3,
+        descriptionTranslations: { uk: { text: 'Фарбування стін', source: 'Malowanie ścian' } },
+      }),
+    ])
 
     expect(plan.fromCatalogue).toEqual([])
     expect(plan.toTranslate).toEqual([
@@ -81,18 +66,15 @@ describe('planAiFill', () => {
   })
 
   it('skips a row whose translations are all current', () => {
-    const plan = planAiFill(
-      [
-        row({
-          id: 1,
-          translations: {
-            uk: { text: 'a', source: 'Malowanie ścian' },
-            ru: { text: 'b', source: 'Malowanie ścian' },
-          },
-        }),
-      ],
-      new Map(),
-    )
+    const plan = planAiFill([
+      row({
+        id: 1,
+        descriptionTranslations: {
+          uk: { text: 'a', source: 'Malowanie ścian' },
+          ru: { text: 'b', source: 'Malowanie ścian' },
+        },
+      }),
+    ])
     expect(plan).toEqual({ fromCatalogue: [], toTranslate: [] })
   })
 })
@@ -114,8 +96,16 @@ describe('aiFillWrites', () => {
     )
 
     expect(writes).toEqual([
-      { id: 1, description: 'Malowanie ścian', translations: { uk: { text: 'Фарбування стін', source: 'Malowanie ścian' } } },
-      { id: 2, description: 'Malowanie ścian ', translations: { uk: { text: 'Фарбування стін', source: 'Malowanie ścian ' } } },
+      {
+        id: 1,
+        description: 'Malowanie ścian',
+        translations: { uk: { text: 'Фарбування стін', source: 'Malowanie ścian' } },
+      },
+      {
+        id: 2,
+        description: 'Malowanie ścian ',
+        translations: { uk: { text: 'Фарбування стін', source: 'Malowanie ścian ' } },
+      },
     ])
     expect(failed).toBe(2)
   })
@@ -128,8 +118,8 @@ describe('section templates', () => {
 
   it('keeps an AI answer with the name’s numbers and drops one that renumbered the room', () => {
     expect(
-      sectionTemplatesFromAi('Łazienka 2', { uk: 'Ванна кімната 2', ru: 'Ванная 1' }),
-    ).toEqual({ uk: 'Ванна кімната #' })
+      sectionTemplateFill('Łazienka 2', undefined, { uk: 'Ванна кімната 2', ru: 'Ванная 1' }),
+    ).toEqual({ filled: { uk: 'Ванна кімната #' }, failed: 1 })
   })
 })
 

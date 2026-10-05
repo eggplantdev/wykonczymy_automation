@@ -47,6 +47,17 @@ export const isTranslationStale = (
   return entry != null && entry.source !== (description ?? '')
 }
 
+// Missing or out of date — the two Problemy conditions, and what the AI fill fills. A hand-typed
+// translation that is current is never touched.
+export const needsTranslation = (
+  translations: DescriptionTranslationsT | undefined,
+  language: TranslationLanguageT,
+  description: string | null | undefined,
+): boolean =>
+  !!description?.trim() &&
+  (translationText(translations, language) === '' ||
+    isTranslationStale(translations, language, description))
+
 // An empty text removes the language, so „bez tłumaczenia" and an emptied cell read the same.
 export function withTranslation(
   translations: DescriptionTranslationsT | undefined,

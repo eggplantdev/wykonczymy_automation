@@ -15,12 +15,12 @@ import {
   acceptedQtyNote,
   isLineReady,
   previewQtyChange,
-  reviewedDescription,
   UNDO_CATALOGUE_SWAP,
   type ItemFiguresT,
   type LineDraftT,
   type LineGroupT,
 } from '@/components/kosztorys/editor/dialogs/worker-reports/line-draft'
+import { reviewedDescription } from '@/lib/kosztorys/worker-report/reviewed-description'
 import { isLanguage, LANGUAGE_SHORT } from '@/lib/i18n/languages'
 import { formatQty, formatQtyWithUnit } from '@/lib/kosztorys/format'
 import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
@@ -261,8 +261,6 @@ function MatchedDescription({ row }: { row: ReviewRowT }) {
 const languageShort = (language: string | undefined) =>
   isLanguage(language) ? LANGUAGE_SHORT[language] : 'inny język'
 
-// The worker writes in his own language; the kierownik reads the Polish, with the original kept in
-// view. A missing or poor translation can be asked for again — that is the only way to fix it.
 function TranslationNote({ row }: { row: ReviewRowT }) {
   const { onRetranslate } = useReviewTable()
   const [isTranslating, startTranslating] = useTransition()

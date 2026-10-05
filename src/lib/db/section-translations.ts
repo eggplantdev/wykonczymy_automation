@@ -3,6 +3,7 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import { TRANSLATION_LANGUAGES } from '@/lib/i18n/languages'
 import type { SectionTranslationMapT, SectionTranslationsT } from '@/lib/i18n/section-translations'
 import type { DbExecutorT } from './get-db'
+import { sqlList } from './sql-list'
 
 function toTranslations(value: unknown): SectionTranslationsT {
   const stored = (value ?? {}) as Record<string, unknown>
@@ -17,6 +18,20 @@ function toTranslations(value: unknown): SectionTranslationsT {
 export async function listSectionTranslations(db: DbExecutorT): Promise<SectionTranslationMapT> {
   const res = await db.execute(sql`
     SELECT name_key, translations FROM kosztorys_section_translations
+  `)
+  return Object.fromEntries(
+    res.rows.map((row) => [String(row.name_key), toTranslations(row.translations)]),
+  )
+}
+
+export async function getSectionTranslations(
+  db: DbExecutorT,
+  keys: readonly string[],
+): Promise<SectionTranslationMapT> {
+  if (keys.length === 0) return {}
+  const res = await db.execute(sql`
+    SELECT name_key, translations FROM kosztorys_section_translations
+    WHERE name_key IN (${sqlList(keys)})
   `)
   return Object.fromEntries(
     res.rows.map((row) => [String(row.name_key), toTranslations(row.translations)]),

@@ -14,11 +14,11 @@ import {
   isLineReady,
   lineGroup,
   partitionLines,
-  reviewedDescription,
   type ItemFiguresT,
   type LineDraftT,
   type LineGroupT,
 } from '@/components/kosztorys/editor/dialogs/worker-reports/line-draft'
+import { reviewedDescription } from '@/lib/kosztorys/worker-report/reviewed-description'
 import {
   ReviewLinesTable,
   type ReviewRowT,

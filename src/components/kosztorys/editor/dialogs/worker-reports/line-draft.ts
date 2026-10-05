@@ -115,10 +115,6 @@ export function isLineReady(
   return draft.catalogueId !== undefined || parseDecimalInput(draft.unitPrice).kind === 'value'
 }
 
-// What the kierownik reviews, and what the katalog is matched against: the Polish once translated.
-export const reviewedDescription = (line: Pick<ReportLineT, 'description' | 'polishDescription'>) =>
-  line.polishDescription ?? line.description
-
 // A pozycja deleted and re-added by hand (or by a restore) comes back under a new id; the same opis
 // and j.m. is the one match safe enough to preselect.
 export function exactItemMatch(

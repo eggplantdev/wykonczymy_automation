@@ -2,7 +2,7 @@
 // and both import this.
 import { sql } from '@payloadcms/db-vercel-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
-import type { RowWriteT } from '@/lib/i18n/ai-translation-fill'
+import { mergeRowWrites, type RowWriteT } from '@/lib/i18n/ai-translation-fill'
 
 // A language lands only while the stored one is still missing, blank or made from another opis.
 const STILL_UNTRANSLATED = sql`(
@@ -14,16 +14,16 @@ const STILL_UNTRANSLATED = sql`(
 /**
  * Compare-and-set over an AI wait: a row is written only while it still carries the opis that was
  * translated, and per language only while that language still needs one. A grid edit or a
- * hand-typed translation made during the wait therefore wins. Returns the ids actually written.
+ * hand-typed translation made during the wait therefore wins. Returns how many rows were written.
  */
 export async function fillDescriptionTranslations(
   db: DbExecutorT,
   table: 'kosztorys_items' | 'work_catalogue_items',
   rows: readonly RowWriteT[],
   investmentId?: number,
-): Promise<number[]> {
-  if (rows.length === 0) return []
-  const values = rows.map(
+): Promise<number> {
+  if (rows.length === 0) return 0
+  const values = mergeRowWrites(rows).map(
     ({ id, description, translations }) =>
       sql`(${id}::int, ${description}::text, ${JSON.stringify(translations)}::jsonb)`,
   )
@@ -42,5 +42,5 @@ export async function fillDescriptionTranslations(
       ${investmentId === undefined ? sql`` : sql`AND t.investment_id = ${investmentId}`}
     RETURNING t.id
   `)
-  return res.rows.map((row) => Number(row.id))
+  return res.rows.length
 }

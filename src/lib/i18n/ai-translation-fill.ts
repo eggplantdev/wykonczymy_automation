@@ -1,6 +1,10 @@
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { foldDescription } from '@/lib/kosztorys/sheet-import/item-key'
-import type { DescriptionTranslationsT, TranslationTextsT } from './description-translations'
+import {
+  needsTranslation,
+  type DescriptionTranslationsT,
+  type TranslationTextsT,
+} from './description-translations'
 import { TRANSLATION_LANGUAGES, type TranslationLanguageT } from './languages'
 import { toSectionTemplate, type SectionTranslationsT } from './section-translations'
 
@@ -8,7 +12,7 @@ export type FillRowT = {
   id: number
   description: string | null
   unit: string | null
-  translations: DescriptionTranslationsT
+  descriptionTranslations: DescriptionTranslationsT
 }
 
 // `description` is the opis the plan was made against: the writer only lands a language while the
@@ -20,18 +24,6 @@ type PendingRowT = { id: number; description: string; languages: TranslationLang
 export type AiFillPlanT = {
   fromCatalogue: RowWriteT[]
   toTranslate: { text: string; rows: PendingRowT[] }[]
-}
-
-// A hand-typed translation that is current is never touched; a stale one — hand-typed or not — is
-// what the warning asks to replace.
-export function needsTranslation(
-  translations: DescriptionTranslationsT | undefined,
-  language: TranslationLanguageT,
-  description: string | null | undefined,
-): boolean {
-  if (!description || description.trim() === '') return false
-  const entry = translations?.[language]
-  return !entry || entry.source !== description
 }
 
 const stamp = (texts: TranslationTextsT, description: string): DescriptionTranslationsT =>
@@ -46,7 +38,7 @@ const stamp = (texts: TranslationTextsT, description: string): DescriptionTransl
  */
 export function planAiFill(
   rows: readonly FillRowT[],
-  catalogueByKey: ReadonlyMap<string, DescriptionTranslationsT>,
+  catalogueByKey: ReadonlyMap<string, DescriptionTranslationsT> = new Map(),
 ): AiFillPlanT {
   const fromCatalogue: RowWriteT[] = []
   const byText = new Map<string, PendingRowT[]>()
@@ -55,7 +47,7 @@ export function planAiFill(
     const description = row.description
     if (!description) continue
     const missing = TRANSLATION_LANGUAGES.filter((language) =>
-      needsTranslation(row.translations, language, description),
+      needsTranslation(row.descriptionTranslations, language, description),
     )
     if (missing.length === 0) continue
 
@@ -101,7 +93,11 @@ export function aiFillWrites(
         else failed++
       }
       if (Object.keys(texts).length > 0) {
-        writes.push({ id: row.id, description: row.description, translations: stamp(texts, row.description) })
+        writes.push({
+          id: row.id,
+          description: row.description,
+          translations: stamp(texts, row.description),
+        })
       }
     }
   }
@@ -114,33 +110,23 @@ export const sectionLanguagesToFill = (
 ): TranslationLanguageT[] =>
   TRANSLATION_LANGUAGES.filter((language) => !translations?.[language]?.trim())
 
-// An AI answer that renumbered the room („Łazienka 2" → „Ванна 1") would render the wrong section, so
-// it is dropped exactly as the manager's own typing would be refused.
-export function sectionTemplatesFromAi(
-  name: string,
-  texts: TranslationTextsT | undefined,
-): SectionTranslationsT {
-  const out: SectionTranslationsT = {}
-  for (const language of TRANSLATION_LANGUAGES) {
-    const text = texts?.[language]
-    if (!text) continue
-    const result = toSectionTemplate(name, text)
-    if (result.ok && result.template !== '') out[language] = result.template
-  }
-  return out
-}
-
-/** What an AI answer adds to one section name's templates; `failed` counts the languages it could not. */
+/**
+ * What an AI answer adds to one section name's templates; `failed` counts the languages it could not.
+ * An answer that renumbered the room („Łazienka 2" → „Ванна 1") would render the wrong section, so it
+ * is dropped exactly as the manager's own typing would be refused.
+ */
 export function sectionTemplateFill(
   name: string,
   stored: SectionTranslationsT | undefined,
   texts: TranslationTextsT | undefined,
 ): { filled: SectionTranslationsT; failed: number } {
   const languages = sectionLanguagesToFill(stored)
-  const templates = sectionTemplatesFromAi(name, texts)
   const filled: SectionTranslationsT = {}
   for (const language of languages) {
-    if (templates[language]) filled[language] = templates[language]
+    const text = texts?.[language]
+    if (!text) continue
+    const result = toSectionTemplate(name, text)
+    if (result.ok && result.template !== '') filled[language] = result.template
   }
   return { filled, failed: languages.length - Object.keys(filled).length }
 }

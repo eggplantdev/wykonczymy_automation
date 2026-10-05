@@ -67,9 +67,9 @@ export async function setItemTranslations(
   rows: readonly RowWriteT[],
 ): Promise<number> {
   const written = await fillDescriptionTranslations(db, 'kosztorys_items', rows, investmentId)
-  if (written.length > 0)
+  if (written > 0)
     await db.execute(sql`UPDATE investments SET updated_at = now() WHERE id = ${investmentId}`)
-  return written.length
+  return written
 }
 
 export async function getSectionNames(db: DbExecutorT, investmentId: number): Promise<string[]> {

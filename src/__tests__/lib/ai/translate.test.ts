@@ -14,7 +14,7 @@ import {
   TRANSLATION_MODEL,
   TRANSLATION_BATCH_SIZE,
 } from '@/lib/ai/translate'
-import { FALLBACK_MODEL } from '@/lib/ai/openrouter'
+import { FALLBACK_MODEL } from '@/lib/ai/openrouter-client'
 
 type CallT = { model: { __model: string }; prompt: string }
 
@@ -27,7 +27,9 @@ beforeEach(() => vi.clearAllMocks())
 describe('translateTexts', () => {
   it('maps each answer back to its Polish text by batch id', async () => {
     generateObject.mockImplementation(async (call: CallT) => ({
-      object: { items: inputOf(call).map(({ id, text }) => ({ id, uk: `uk:${text}`, ru: `ru:${text}` })) },
+      object: {
+        items: inputOf(call).map(({ id, text }) => ({ id, uk: `uk:${text}`, ru: `ru:${text}` })),
+      },
     }))
 
     const result = await translateTexts(['Malowanie ścian', ' Malowanie ścian ', 'Gruntowanie'])

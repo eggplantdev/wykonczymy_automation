@@ -1,41 +1,29 @@
 'use client'
 
-import { useState } from 'react'
 import { SpellCheck } from 'lucide-react'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
-import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { MenuItemBody } from '@/components/kosztorys/editor/actions/menu-item-body'
+import { useTreeRewriteAction } from '@/components/kosztorys/editor/actions/use-tree-rewrite-action'
 import { cleanItemTextsAction } from '@/lib/actions/kosztorys'
-import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 
 // The one action with no dialog, so its state stays inside the item instead of being lifted.
 export function CleanItemTextsMenuItem() {
-  const { investmentId, onTreeReplaced } = useKosztorysEditorContext()
-  const [cleaning, setCleaning] = useState(false)
-
-  // Rewrites every opis and j.m. in place, so the grid reseeds off the revision token — the same
-  // signal the sheet compare uses after it writes.
-  function handleCleanItemTexts() {
-    setCleaning(true)
-    void settleAction(() => cleanItemTextsAction(investmentId))
-      .then((res) => {
-        if (!res.success && res.code === 'REQUEST_FAILED') {
-          // A request that never completed may still have committed the rewrite; refetch so the
-          // grid doesn't autosave the old text back over it.
-          toastMessage('Nie udało się poprawić pozycji — odświeżam kosztorys', 'error')
-          return onTreeReplaced?.({ refetch: true })
-        }
-        if (!res.success) return toastMessage(res.error, 'error')
-        if (res.data === 0) return toastMessage('Nie znaleziono nic do poprawienia', 'info')
-        toastMessage(`Poprawiono pozycje: ${res.data}`, 'success')
-        onTreeReplaced?.()
-      })
-      .finally(() => setCleaning(false))
-  }
+  const { pending, start } = useTreeRewriteAction(
+    cleanItemTextsAction,
+    'Nie udało się poprawić pozycji',
+    (fixed) => {
+      if (fixed === 0) {
+        toastMessage('Nie znaleziono nic do poprawienia', 'info')
+        return false
+      }
+      toastMessage(`Poprawiono pozycje: ${fixed}`, 'success')
+      return true
+    },
+  )
 
   return (
-    <DropdownMenuItem onSelect={handleCleanItemTexts} disabled={cleaning}>
+    <DropdownMenuItem onSelect={start} disabled={pending}>
       <SpellCheck />
       <MenuItemBody
         label="Popraw literówki w opisie prac i j.m."

@@ -31,10 +31,12 @@ import type {
   KosztorysStageT,
   ToolPlaneT,
 } from '@/lib/kosztorys/types'
+import { withTranslation } from '@/lib/i18n/description-translations'
 import { isTranslationLanguage } from '@/lib/i18n/languages'
 import { itemFromFields } from '@/lib/kosztorys/item-from-fields'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 import { ACCEPT_REFUSALS } from '@/lib/kosztorys/worker-report/refusals'
+import { reviewedDescription } from '@/lib/kosztorys/worker-report/reviewed-description'
 import { acceptSchema, reportIdSchema } from '@/lib/kosztorys/worker-report/schemas'
 import type { AcceptReportInputT, AcceptReportResultT } from '@/lib/kosztorys/worker-report/types'
 import { isStageMember, resolveWorkerScope } from '@/lib/kosztorys/worker-view/scope'
@@ -359,7 +361,8 @@ function resolveTarget(
 
 // A katalog wpis comes over as the picker copies it; the worker's own opis gets only the cena j.m.
 // the kierownik typed — its stawki stay „auto". A translated opis lands in Polish, and the worker's
-// own words become its current translation, so his crew reads what he wrote.
+// own words become its current translation, so his crew reads what he wrote — only in a language
+// the editor carries; any other still lands in Polish, with no translation to show.
 function extraAsItem(
   extra: z.infer<typeof acceptSchema>['extras'][number],
   line: WorkerReportLineRowT,
@@ -372,15 +375,15 @@ function extraAsItem(
   if (entry) return itemFromFields(entry, section.id, displayOrder)
   const language = line.descriptionLanguage
   const polish = line.polishDescription
-  const translated = polish !== null && isTranslationLanguage(language)
   return {
     id: 0,
     sectionId: section.id,
     displayOrder,
-    description: translated ? polish : line.description,
-    descriptionTranslations: translated
-      ? { [language]: { text: line.description, source: polish } }
-      : {},
+    description: reviewedDescription(line),
+    descriptionTranslations:
+      polish !== null && isTranslationLanguage(language)
+        ? withTranslation({}, language, line.description, polish)
+        : {},
     unit: line.unit,
     plannedQty: 0,
     sheetMeasuredQty: null,

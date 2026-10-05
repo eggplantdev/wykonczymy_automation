@@ -58,8 +58,9 @@ import {
 import { insertStageMembers, replaceStageSplit, selectStagePool } from '@/lib/db/stage-split'
 import { trashedWorkerMessage } from '@/lib/db/worker-gate'
 import { findCatalogueItemByKey } from '@/lib/db/work-catalogue'
-import { SAVED_UNTRANSLATED_WARNING, translateNewRow } from '@/lib/ai/translate-new-row'
-import { translateSectionName } from '@/lib/ai/translate-section-name'
+import { translateNewRow } from '@/lib/ai/translate-new-row'
+import { SAVED_UNTRANSLATED_WARNING } from '@/lib/utils/notice'
+import { translateSectionName } from '@/lib/actions/translate-section-name'
 
 // Derived from TOOL_PLANES so a plane added to the pickers can't be silently rejected here.
 const stagePlaneSchema = z.enum(TOOL_PLANES)
@@ -469,7 +470,6 @@ const addItemSchema = z.object({
 
 export type AddItemInputT = z.infer<typeof addItemSchema>
 
-// A praca matching a katalog entry takes that entry's translations rather than a fresh AI answer.
 async function catalogueTranslationsFor(db: DbExecutorT, matchKey: string) {
   const entry = await findCatalogueItemByKey(db, matchKey)
   return new Map(entry ? [[matchKey, entry.descriptionTranslations]] : [])
@@ -524,7 +524,7 @@ export async function addItemAction(
       }
       const translated = translate
         ? await translateNewRow(
-            { description: fields.description, unit: fields.unit, translations: {} },
+            { description: fields.description, unit: fields.unit, descriptionTranslations: {} },
             await catalogueTranslationsFor(await getDb(payload), fields.matchKey),
           )
         : { translations: {}, failed: false }

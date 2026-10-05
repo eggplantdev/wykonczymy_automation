@@ -2,8 +2,12 @@ import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vites
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
-import { FALLBACK_MODEL } from '@/lib/ai/openrouter'
-import { insertWorkerReport, readWorkerReport, type WorkerReportLineInputT } from '@/lib/db/worker-reports'
+import { FALLBACK_MODEL } from '@/lib/ai/openrouter-client'
+import {
+  insertWorkerReport,
+  readWorkerReport,
+  type WorkerReportLineInputT,
+} from '@/lib/db/worker-reports'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
@@ -111,6 +115,26 @@ describe.skipIf(!ENV_READY)('retranslateReportLineAction (DB)', () => {
     })
   })
 
+  it('keeps a Polish translation the retry calls Polish — the model misread the language, not the line', async () => {
+    translateToPolish.mockResolvedValue(new Map([[ORIGINAL, { language: 'pl', polish: null }]]))
+    const { reportId, lineIds } = await sendReport([extra])
+    await db.execute(sql`
+      UPDATE worker_report_lines SET polish_description = 'Wniesienie płyt', description_language = 'uk'
+      WHERE id = ${lineIds[0]}`)
+
+    const res = await retranslateReportLineAction(investmentId, lineIds[0])
+
+    expect(res).toEqual({
+      success: true,
+      data: { polishDescription: 'Wniesienie płyt', descriptionLanguage: 'uk' },
+    })
+    const stored = await readWorkerReport(db, investmentId, reportId)
+    expect(stored?.lines[0]).toMatchObject({
+      polishDescription: 'Wniesienie płyt',
+      descriptionLanguage: 'uk',
+    })
+  })
+
   it('fails without touching the line when the model gives no answer', async () => {
     translateToPolish.mockResolvedValue(new Map())
     const { reportId, lineIds } = await sendReport([extra])
@@ -124,7 +148,14 @@ describe.skipIf(!ENV_READY)('retranslateReportLineAction (DB)', () => {
 
   it('refuses a rozpiska line', async () => {
     const { lineIds } = await sendReport([
-      { kind: 'rozpiska', itemId, description: 'Malowanie ścian', unit: 'm²', sectionName: 'Salon', reportedQty: 1 },
+      {
+        kind: 'rozpiska',
+        itemId,
+        description: 'Malowanie ścian',
+        unit: 'm²',
+        sectionName: 'Salon',
+        reportedQty: 1,
+      },
     ])
     expect((await retranslateReportLineAction(investmentId, lineIds[0])).success).toBe(false)
     expect(translateToPolish).not.toHaveBeenCalled()
@@ -132,7 +163,9 @@ describe.skipIf(!ENV_READY)('retranslateReportLineAction (DB)', () => {
 
   it('refuses a line of a report already decided', async () => {
     const { reportId, lineIds } = await sendReport([extra])
-    await db.execute(sql`UPDATE worker_reports SET status = 'rejected', decided_at = now() WHERE id = ${reportId}`)
+    await db.execute(
+      sql`UPDATE worker_reports SET status = 'rejected', decided_at = now() WHERE id = ${reportId}`,
+    )
     expect((await retranslateReportLineAction(investmentId, lineIds[0])).success).toBe(false)
     expect(translateToPolish).not.toHaveBeenCalled()
   })

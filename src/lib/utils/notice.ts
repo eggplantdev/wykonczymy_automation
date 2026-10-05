@@ -21,8 +21,10 @@ export const rejectedEntryMessage = (
     restored == null ? '' : ` — ${dictionary.t('rejectedRestored', { value: restored })}`
   }.`
 
-// „Uzupełnij tłumaczenia (AI)" on the rozpiska and on the katalog. `sections` is absent on the katalog,
-// which has none. Counts sit after a colon, so no Polish plural form is needed.
+export const SAVED_UNTRANSLATED_WARNING = 'Zapisano bez tłumaczenia.'
+
+// `sections` is absent on the katalog, which has none. Counts sit after a colon, so no Polish plural
+// form is needed.
 export function translationFillNotice(result: {
   items: number
   sections?: number
@@ -37,8 +39,8 @@ export function translationFillNotice(result: {
   return { message: `${message} — nie udało się: ${failed}. Spróbuj ponownie.`, kind: 'warning' }
 }
 
-// The manager's „Przetłumacz" on a praca spoza rozpiski. A Polish line or an unchanged answer leaves
-// the row looking the same, so without a word the click seems to have done nothing.
+// A Polish line or an unchanged answer leaves the row looking the same, so without a word the click
+// seems to have done nothing.
 export function retranslationNotice(
   before: string | undefined,
   after: string | null,

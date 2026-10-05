@@ -2,7 +2,7 @@
 
 import { after } from 'next/server'
 import { z } from 'zod'
-import { translateReportExtras } from '@/lib/ai/translate-report-lines'
+import { translateReportExtras } from '@/lib/actions/translate-report-lines'
 import { validateAction } from '@/lib/actions/run-action'
 import { tokenAction } from '@/lib/actions/token-action'
 import { insertWorkerReport, type WorkerReportLineInputT } from '@/lib/db/worker-reports'

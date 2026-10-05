@@ -1,5 +1,5 @@
 import { generateObject } from 'ai'
-import { openrouter, timeoutSignal } from './openrouter-client'
+import { openrouter, timeoutSignal, withModelFallback } from './openrouter-client'
 import {
   receiptExtractionSchema,
   UNREADABLE_RECEIPT,
@@ -15,11 +15,6 @@ import { logError } from '@/lib/utils/log-error'
 // can't read; a PDF-native model handles them without the paid mistral-ocr engine. Isolated
 // to one constant so swapping cost/quality is a one-line change. On-trial cheaper tier.
 export const RECEIPT_MODEL = 'google/gemini-3.1-flash-lite'
-
-// Known-good fallback: extractReceipt retries once with this when the (cheaper, on-trial)
-// primary throws, so a wrong/unavailable RECEIPT_MODEL id degrades to slower-but-working
-// instead of failing every scan. Confirmed reads the Stimulsoft/Quartz PDFs + images.
-export const FALLBACK_MODEL = 'google/gemini-2.5-flash'
 
 // Per-attempt ceiling on the vision call. Without it a hung upstream request never settles, so
 // the batch fill's Promise.all wedges and isFilling never clears (spinner stuck forever). On
@@ -120,16 +115,7 @@ export async function extractReceipt(
   }
 
   try {
-    let object: ReceiptExtractionT
-    try {
-      object = await callModel(RECEIPT_MODEL)
-    } catch (primaryError) {
-      // TODO(EX-449) SENTRY-REQUIRED: the primary (on-trial) model failed — retry once with the
-      // known-good FALLBACK_MODEL so a bad/unavailable primary id doesn't kill every scan. Log
-      // the primary failure since a silent fallback hides that the trial tier is broken.
-      logError(`[receipt] primary model ${RECEIPT_MODEL} failed — falling back`, primaryError)
-      object = await callModel(FALLBACK_MODEL)
-    }
+    const object = await withModelFallback('receipt', RECEIPT_MODEL, callModel)
 
     // TODO(EX-449) SENTRY-REQUIRED: an unreadable result is a silent AI failure — generateObject
     // succeeded, so nothing throws and the user just sees the sentinel in the Opis. It must be

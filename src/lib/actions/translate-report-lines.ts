@@ -1,8 +1,12 @@
 import 'server-only'
 import type { DbExecutorT } from '@/lib/db/get-db'
-import { listReportExtras, setLineTranslations, type LineTranslationT } from '@/lib/db/worker-reports'
+import {
+  listReportExtras,
+  setLineTranslations,
+  type LineTranslationT,
+} from '@/lib/db/worker-report-line-translations'
 import { logError } from '@/lib/utils/log-error'
-import { translateToPolish } from './translate'
+import { translateToPolish } from '@/lib/ai/translate'
 
 /** A line the model skipped is left out — it stays „Brak tłumaczenia" for the manager to retry. */
 export async function translateLines(
@@ -24,7 +28,6 @@ export async function translateLines(
 export async function translateReportExtras(db: DbExecutorT, reportId: number): Promise<void> {
   try {
     const extras = await listReportExtras(db, reportId)
-    if (extras.length === 0) return
     await setLineTranslations(db, await translateLines(extras), { onlyUntranslated: true })
   } catch (error) {
     logError('translateReportExtras', error)

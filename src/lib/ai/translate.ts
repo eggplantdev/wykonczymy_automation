@@ -1,11 +1,10 @@
 import { generateObject } from 'ai'
 import { z } from 'zod'
 import type { TranslationTextsT } from '@/lib/i18n/description-translations'
-import { TRANSLATION_LANGUAGES, type TranslationLanguageT } from '@/lib/i18n/languages'
+import { LANGUAGES, TRANSLATION_LANGUAGES, type TranslationLanguageT } from '@/lib/i18n/languages'
 import { logError } from '@/lib/utils/log-error'
 import { mapWithConcurrency } from '@/lib/utils/map-with-concurrency'
-import { FALLBACK_MODEL } from './openrouter'
-import { openrouter, timeoutSignal } from './openrouter-client'
+import { openrouter, timeoutSignal, withModelFallback } from './openrouter-client'
 
 export const TRANSLATION_MODEL = 'google/gemini-3.1-flash-lite'
 export const TRANSLATION_TIMEOUT_MS = 30_000
@@ -22,11 +21,10 @@ const LANGUAGE_NAMES: Record<TranslationLanguageT, string> = {
   ru: 'Russian',
 }
 
-export const DETECTED_LANGUAGES = ['pl', 'uk', 'ru', 'other'] as const
-export type DetectedLanguageT = (typeof DETECTED_LANGUAGES)[number]
+const DETECTED_LANGUAGES = [...LANGUAGES, 'other'] as const
 
 // `polish` is null when the text already was Polish — there is nothing to show beside it.
-export type ToPolishT = { language: DetectedLanguageT; polish: string | null }
+type ToPolishT = { language: (typeof DETECTED_LANGUAGES)[number]; polish: string | null }
 
 const translationsShape = Object.fromEntries(
   TRANSLATION_LANGUAGES.map((language) => [language, z.string()]),
@@ -48,19 +46,23 @@ const KEEP_VERBATIM =
 const asInput = (texts: readonly string[]) =>
   JSON.stringify(texts.map((text, id) => ({ id, text })))
 
-async function withFallback<T>(
+// `model` skips the primary → fallback chain.
+async function generate<SchemaT extends z.ZodType>(
   label: string,
   model: string | undefined,
-  call: (model: string) => Promise<T>,
-): Promise<T> {
-  if (model) return call(model)
-  try {
-    return await call(TRANSLATION_MODEL)
-  } catch (primaryError) {
-    // TODO(EX-449) SENTRY-REQUIRED: a silent fallback hides that the primary model is broken.
-    logError(`[translate] ${label}: primary model ${TRANSLATION_MODEL} failed — falling back`, primaryError)
-    return call(FALLBACK_MODEL)
+  schema: SchemaT,
+  prompt: string,
+) {
+  const call = async (candidate: string) => {
+    const result = await generateObject({
+      model: openrouter(candidate),
+      abortSignal: timeoutSignal(TRANSLATION_TIMEOUT_MS, 'translation'),
+      schema,
+      prompt,
+    })
+    return result.object
   }
+  return model ? call(model) : withModelFallback(`translate ${label}`, TRANSLATION_MODEL, call)
 }
 
 // A failed batch is logged and leaves its texts out of the result — callers read a missing text as
@@ -92,7 +94,9 @@ async function inBatches<T>(
 export async function translateTexts(
   texts: readonly string[],
 ): Promise<Map<string, TranslationTextsT>> {
-  const languages = TRANSLATION_LANGUAGES.map((language) => `"${language}" (${LANGUAGE_NAMES[language]})`)
+  const languages = TRANSLATION_LANGUAGES.map(
+    (language) => `"${language}" (${LANGUAGE_NAMES[language]})`,
+  )
   return inBatches('pl → ' + TRANSLATION_LANGUAGES.join('/'), texts, async (batch) => {
     const prompt = [
       'Translate each Polish renovation / construction work description below.',
@@ -101,15 +105,7 @@ export async function translateTexts(
       '',
       asInput(batch),
     ].join('\n')
-    const { items } = await withFallback('pl → translations', undefined, async (model) => {
-      const result = await generateObject({
-        model: openrouter(model),
-        abortSignal: timeoutSignal(TRANSLATION_TIMEOUT_MS, 'translation'),
-        schema: fromPolishSchema,
-        prompt,
-      })
-      return result.object
-    })
+    const { items } = await generate('pl → translations', undefined, fromPolishSchema, prompt)
 
     const out = new Map<string, TranslationTextsT>()
     for (const item of items) {
@@ -143,15 +139,7 @@ export async function translateToPolish(
       '',
       asInput(batch),
     ].join('\n')
-    const { items } = await withFallback('→ pl', opts.model, async (model) => {
-      const result = await generateObject({
-        model: openrouter(model),
-        abortSignal: timeoutSignal(TRANSLATION_TIMEOUT_MS, 'translation'),
-        schema: toPolishSchema,
-        prompt,
-      })
-      return result.object
-    })
+    const { items } = await generate('→ pl', opts.model, toPolishSchema, prompt)
 
     const out = new Map<string, ToPolishT>()
     for (const item of items) {

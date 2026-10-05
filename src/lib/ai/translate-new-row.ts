@@ -1,37 +1,44 @@
 import type { DescriptionTranslationsT } from '@/lib/i18n/description-translations'
 import {
   aiFillWrites,
-  mergeRowWrites,
   planAiFill,
   type FillRowT,
+  type RowWriteT,
 } from '@/lib/i18n/ai-translation-fill'
 import { logError } from '@/lib/utils/log-error'
 import { translateTexts } from './translate'
 
-export const SAVED_UNTRANSLATED_WARNING = 'Zapisano bez tłumaczenia.'
+// Katalog first, then one AI call for what is still missing. Never rejects: a failed batch comes back
+// as `failed` pairs, not as a throw.
+export async function translateRows(
+  rows: readonly FillRowT[],
+  catalogueByKey: ReadonlyMap<string, DescriptionTranslationsT> = new Map(),
+): Promise<{ writes: RowWriteT[]; failed: number }> {
+  const plan = planAiFill(rows, catalogueByKey)
+  const ai = await translateTexts(plan.toTranslate.map(({ text }) => text))
+  const { writes, failed } = aiFillWrites(plan.toTranslate, ai)
+  return { writes: [...plan.fromCatalogue, ...writes], failed }
+}
 
-/**
- * The languages a row being created still lacks: from the katalog first, then the AI. Runs before
- * the insert transaction opens, and a failure leaves those languages empty rather than failing the
- * save — the row then shows up under Problemy like any other untranslated one.
- */
+// Runs before the insert transaction opens. A failure leaves those languages empty rather than
+// failing the save — the row then shows up under Problemy like any other untranslated one. The catch
+// keeps that promise without leaning on `translateTexts` swallowing every failure itself.
 export async function translateNewRow(
   row: Omit<FillRowT, 'id'>,
-  catalogueByKey: ReadonlyMap<string, DescriptionTranslationsT> = new Map(),
+  catalogueByKey?: ReadonlyMap<string, DescriptionTranslationsT>,
 ): Promise<{ translations: DescriptionTranslationsT; failed: boolean }> {
-  const plan = planAiFill([{ ...row, id: 0 }], catalogueByKey)
-  let ai: Awaited<ReturnType<typeof translateTexts>> = new Map()
-  if (plan.toTranslate.length > 0) {
-    try {
-      ai = await translateTexts(plan.toTranslate.map(({ text }) => text))
-    } catch (error) {
+  const { writes, failed } = await translateRows([{ ...row, id: 0 }], catalogueByKey).catch(
+    (error: unknown) => {
       logError('translateNewRow', error)
-    }
-  }
-  const { writes, failed } = aiFillWrites(plan.toTranslate, ai)
-  const [filled] = mergeRowWrites([...plan.fromCatalogue, ...writes])
+      return { writes: [], failed: 1 }
+    },
+  )
   return {
-    translations: { ...row.translations, ...filled?.translations },
+    translations: Object.assign(
+      {},
+      row.descriptionTranslations,
+      ...writes.map((write) => write.translations),
+    ),
     failed: failed > 0,
   }
 }

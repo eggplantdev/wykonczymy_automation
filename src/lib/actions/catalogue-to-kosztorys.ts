@@ -3,7 +3,7 @@
 import { after } from 'next/server'
 import type { Payload } from 'payload'
 import { z } from 'zod'
-import { translateSectionName } from '@/lib/ai/translate-section-name'
+import { translateSectionName } from '@/lib/actions/translate-section-name'
 import { investmentAction } from '@/lib/actions/investment-action'
 import { getDb } from '@/lib/db/get-db'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'

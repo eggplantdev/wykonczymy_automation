@@ -1,40 +1,32 @@
 'use client'
 
-import { useState } from 'react'
 import { Languages } from 'lucide-react'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
-import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { MenuItemBody } from '@/components/kosztorys/editor/actions/menu-item-body'
+import { useTreeRewriteAction } from '@/components/kosztorys/editor/actions/use-tree-rewrite-action'
 import { fillKosztorysTranslationsAction } from '@/lib/actions/kosztorys-translations'
 import { NOTICE_MS, translationFillNotice } from '@/lib/utils/notice'
-import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 
 export function FillTranslationsMenuItem() {
-  const { investmentId, onTreeReplaced } = useKosztorysEditorContext()
-  const [filling, setFilling] = useState(false)
+  const { pending, start } = useTreeRewriteAction(
+    fillKosztorysTranslationsAction,
+    'Nie udało się uzupełnić tłumaczeń',
+    (data) => {
+      const { message, kind } = translationFillNotice(data)
+      toastMessage(message, kind, NOTICE_MS)
+      return data.items > 0
+    },
+  )
 
-  // The grid reseeds off the revision token the writer bumps, as after „Popraw literówki".
   function handleFill() {
-    setFilling(true)
     // The menu closes on select, so the wait — up to a minute on a long kosztorys — needs its own word.
     toastMessage('Tłumaczę opisy i nazwy sekcji…', 'info', NOTICE_MS)
-    void settleAction(() => fillKosztorysTranslationsAction(investmentId))
-      .then((res) => {
-        if (!res.success && res.code === 'REQUEST_FAILED') {
-          toastMessage('Nie udało się uzupełnić tłumaczeń — odświeżam kosztorys', 'error')
-          return onTreeReplaced?.({ refetch: true })
-        }
-        if (!res.success) return toastMessage(res.error, 'error')
-        const { message, kind } = translationFillNotice(res.data)
-        toastMessage(message, kind, NOTICE_MS)
-        if (res.data.items > 0) onTreeReplaced?.()
-      })
-      .finally(() => setFilling(false))
+    start()
   }
 
   return (
-    <DropdownMenuItem onSelect={handleFill} disabled={filling}>
+    <DropdownMenuItem onSelect={handleFill} disabled={pending}>
       <Languages />
       <MenuItemBody
         label="Uzupełnij tłumaczenia (AI)"

@@ -186,62 +186,6 @@ export async function readWorkerReport(
   return { report: toReportRow(row), lines: linesRes.rows.map(toLineRow) }
 }
 
-export async function listReportExtras(
-  db: DbExecutorT,
-  reportId: number,
-): Promise<{ id: number; description: string }[]> {
-  const res = await db.execute(sql`
-    SELECT id, description FROM worker_report_lines
-    WHERE report_id = ${reportId} AND kind = 'extra'
-    ORDER BY position
-  `)
-  return res.rows.map((row) => ({ id: Number(row.id), description: text(row.description) }))
-}
-
-/** A praca spoza rozpiski of a still-pending report in this investment — the only line a retry may touch. */
-export async function readPendingExtra(
-  db: DbExecutorT,
-  investmentId: number,
-  lineId: number,
-): Promise<{ id: number; description: string } | null> {
-  const res = await db.execute(sql`
-    SELECT l.id, l.description FROM worker_report_lines l
-    JOIN worker_reports r ON r.id = l.report_id
-    WHERE l.id = ${lineId} AND r.investment_id = ${investmentId} AND r.status = 'pending'
-      AND l.kind = 'extra' AND l.accepted_qty IS NULL
-  `)
-  const row = res.rows[0]
-  return row ? { id: Number(row.id), description: text(row.description) } : null
-}
-
-export type LineTranslationT = {
-  id: number
-  polishDescription: string | null
-  descriptionLanguage: string
-}
-
-/**
- * `onlyUntranslated` is the after()-on-send write: it must never clobber a line a manager's retry
- * already translated while the first call was still running.
- */
-export async function setLineTranslations(
-  db: DbExecutorT,
-  rows: LineTranslationT[],
-  { onlyUntranslated }: { onlyUntranslated: boolean },
-): Promise<void> {
-  if (rows.length === 0) return
-  const values = rows.map(
-    (row) => sql`(${row.id}::int, ${row.polishDescription}::text, ${row.descriptionLanguage}::text)`,
-  )
-  await db.execute(sql`
-    UPDATE worker_report_lines l
-    SET polish_description = v.polish, description_language = v.language
-    FROM (VALUES ${sql.join(values, sql.raw(', '))}) AS v(line_id, polish, language)
-    WHERE l.id = v.line_id
-      ${onlyUntranslated ? sql`AND l.description_language IS NULL` : sql``}
-  `)
-}
-
 /** `null` leaves a dimension unfiltered; an empty list matches nothing (the URL named no valid value). */
 export type WorkerReportFiltersT = {
   statuses: ReportStatusT[] | null

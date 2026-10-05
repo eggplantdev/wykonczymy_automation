@@ -1,8 +1,8 @@
 'use server'
 
 import { z } from 'zod'
-import { translateTexts } from '@/lib/ai/translate'
-import { SAVED_UNTRANSLATED_WARNING, translateNewRow } from '@/lib/ai/translate-new-row'
+import { translateNewRow, translateRows } from '@/lib/ai/translate-new-row'
+import { SAVED_UNTRANSLATED_WARNING } from '@/lib/utils/notice'
 import { fillDescriptionTranslations } from '@/lib/db/fill-description-translations'
 import { getDb } from '@/lib/db/get-db'
 import {
@@ -10,7 +10,6 @@ import {
   listCatalogueItems,
   listCatalogueItemsByIds,
 } from '@/lib/db/work-catalogue'
-import { aiFillWrites, planAiFill } from '@/lib/i18n/ai-translation-fill'
 import { translationsFromTexts } from '@/lib/i18n/description-translations'
 import { catalogueSaveState } from '@/lib/queries/work-catalogue'
 import type { CatalogueSeedItemT } from '@/lib/kosztorys/work-catalogue/types'
@@ -44,7 +43,11 @@ export async function createCatalogueItemAction(data: WorkCatalogueItemDataT, tr
         row.description,
       )
       const translated = translate
-        ? await translateNewRow({ description: row.description, unit: row.unit, translations: typed })
+        ? await translateNewRow({
+            description: row.description,
+            unit: row.unit,
+            descriptionTranslations: typed,
+          })
         : { translations: typed, failed: false }
 
       await applyCatalogueWrite(payload, undefined, {
@@ -168,24 +171,14 @@ export async function saveItemToCatalogueAction(
   )
 }
 
-/**
- * „Uzupełnij tłumaczenia (AI)" over the whole katalog. The kosztorys fill's katalog-first step is
- * skipped — this IS the katalog — so every write comes from the AI and none needs merging.
- */
 export async function fillCatalogueTranslationsAction() {
   return protectedAction<{ items: number; failed: number }>(
     'fillCatalogueTranslationsAction',
     async ({ payload }) => {
       const db = await getDb(payload)
-      const items = await listCatalogueItems(db)
-      const plan = planAiFill(
-        items.map((item) => ({ ...item, translations: item.descriptionTranslations })),
-        new Map(),
-      )
-      const ai = await translateTexts(plan.toTranslate.map(({ text }) => text))
-      const { writes, failed } = aiFillWrites(plan.toTranslate, ai)
+      const { writes, failed } = await translateRows(await listCatalogueItems(db))
       const written = await fillDescriptionTranslations(db, 'work_catalogue_items', writes)
-      return { success: true, data: { items: written.length, failed } }
+      return { success: true, data: { items: written, failed } }
     },
     ['workCatalogue'],
   )
