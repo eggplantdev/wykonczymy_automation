@@ -3,10 +3,12 @@
 import { z } from 'zod'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { ROLES } from '@/lib/auth/roles'
-import { runAuthorizedHandler, validateAction } from '@/lib/actions/run-action'
+import { protectedAction, runAuthorizedHandler, validateAction } from '@/lib/actions/run-action'
+import { DRAFT_ALREADY_DECIDED } from '@/lib/constants/expense-drafts'
 import { getDb } from '@/lib/db/get-db'
 import { listWorkerStageInvestments } from '@/lib/db/stage-memberships'
 import {
+  decideExpenseDraft,
   insertWorkerExpenseDraft,
   readWorkerDefaultRegisterId,
 } from '@/lib/db/worker-expense-drafts'
@@ -67,5 +69,17 @@ export async function sendExpenseDraftAction(
     })
     if (draftId === null) return { success: false, error: 'Nie udało się dołączyć zdjęć' }
     return { success: true, data: { draftId } }
+  })
+}
+
+export async function rejectExpenseDraftAction(draftId: number): Promise<ActionResultT> {
+  return protectedAction(`rejectExpenseDraftAction draft=${draftId}`, async ({ payload, user }) => {
+    const isDecided = await decideExpenseDraft(await getDb(payload), {
+      draftId,
+      decidedBy: user.id,
+      status: 'rejected',
+      transferId: null,
+    })
+    return isDecided ? { success: true } : { success: false, error: DRAFT_ALREADY_DECIDED }
   })
 }

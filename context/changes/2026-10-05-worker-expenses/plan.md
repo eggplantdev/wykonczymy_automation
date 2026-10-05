@@ -331,19 +331,19 @@ Migracja addytywna — na prod **przed** pushem kodu, przez człowieka (`pnpm db
 
 #### Automated
 
-- [x] 1.1 Spec DB: findReferencedMedia widzi zdjęcia zgłoszeń, reclaim ich nie kasuje
-- [x] 1.2 Spec DB: insertWorkerExpenseDraft odmawia cudzych mediów
-- [x] 1.3 Spec: orphan cleanup jako EMPLOYEE kasuje tylko własne media
-- [x] 1.4 media-access.test.ts przechodzi
-- [x] 1.5 Migracja stosuje się lokalnie
+- [x] 1.1 Spec DB: findReferencedMedia widzi zdjęcia zgłoszeń, reclaim ich nie kasuje — de6b71b9
+- [x] 1.2 Spec DB: insertWorkerExpenseDraft odmawia cudzych mediów — de6b71b9
+- [x] 1.3 Spec: orphan cleanup jako EMPLOYEE kasuje tylko własne media — de6b71b9
+- [x] 1.4 media-access.test.ts przechodzi — 79800e11
+- [x] 1.5 Migracja stosuje się lokalnie — 79800e11
 
 ### Phase 2: Przyjęcie i odrzucenie — serwer
 
 #### Automated
 
-- [ ] 2.1 Spec DB: przyjęcie tworzy wydatek i oznacza zgłoszenie
-- [ ] 2.2 Spec DB: drugie przyjęcie nie zostawia drugiego wydatku
-- [ ] 2.3 Spec DB: odrzucenie i odrzucenie przyjętego
+- [x] 2.1 Spec DB: przyjęcie tworzy wydatek i oznacza zgłoszenie
+- [x] 2.2 Spec DB: drugie przyjęcie nie zostawia drugiego wydatku
+- [x] 2.3 Spec DB: odrzucenie i odrzucenie przyjętego
 
 ### Phase 3: Dialog managera
 
