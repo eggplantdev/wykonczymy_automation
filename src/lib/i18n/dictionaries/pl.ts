@@ -190,6 +190,12 @@ export const pl = {
     statusAccepted: 'przyjęte ({{accepted}} z {{total}})',
     reportColumn: 'Zgłaszam',
     reportColumnHint: 'wpisz, ile wykonano od ostatniego zgłoszenia.',
+    showDoneSum: 'Pokaż sumę do tej pory wykonanej pracy',
+    showProgress: 'Pokaż, ile pracy pozostało',
+    doneSumColumn: 'Wykonano',
+    doneSumColumnHint: 'suma etapów do tej pory.',
+    progressColumn: 'Postęp',
+    progressColumnHint: 'etapy + zgłaszam / przedmiar.',
     summaryExecuted: 'Wykonane',
     summaryStageValue: 'Wartość etapu',
     summaryShare: 'Twój udział',
@@ -204,6 +210,9 @@ export const pl = {
     summaryPayouts: 'Wypłaty',
     summaryPayoutDescription: 'Opis',
     documentKind: 'Kosztorys — {{name}}',
+    formNumber: 'Nr',
+    formExecuted: 'Wykonano',
+    formDocumentKind: 'Do wypełnienia — {{name}}',
   },
   // The kosztorys grid as the worker's link renders it. Only what that surface reaches: the owner's
   // editor reads the same Polish through `COLUMN_LABELS` and the tips, which take it from here.

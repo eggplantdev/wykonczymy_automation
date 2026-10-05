@@ -5,6 +5,7 @@ import { escapeHtml } from '@/lib/utils/escape-html'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDate } from '@/lib/utils/format-date'
 import { columnTotalsForRows } from '@/lib/kosztorys/columns/column-totals'
+import { workerFormColumns } from '@/lib/kosztorys/print/worker-form-columns'
 import { buildKosztorysPrintHtml } from '@/lib/kosztorys/print/build-html'
 import { documentRows } from '@/lib/kosztorys/print/document-rows'
 import { WIDE_PRINT_STYLES } from '@/lib/kosztorys/print/styles'
@@ -140,5 +141,68 @@ export function buildWorkerPrintHtml({
     footerHtml: workerFooterHtml(worker.summary, grid),
     lang: locale,
     totalLabel: grid.t('total'),
+  })
+}
+
+const FORM_EXTRA_ROWS = 10
+
+// `.ref` beats WIDE_PRINT_STYLES' 5.5pt cells: the number is what the scan reads back, so it stays
+// legible. The written-in column must stay white for a pen, whatever stripe its index gets.
+const WORKER_FORM_STYLES = `
+td.ref { font-size: 7pt; color: #52525b; white-space: nowrap; }
+td.write, th.write { background-color: transparent; }
+col.c-write { width: 40mm; }
+.extras { margin-top: 24px; break-inside: avoid; }
+.extras h2 { font-size: 7pt; font-weight: 600; margin: 0 0 4px; }
+.extras td { height: 7mm; border-bottom: 1px solid #a1a1aa; }
+`
+
+function workerFormFooterHtml(locale: LanguageT): string {
+  const labels = getTranslations(locale).report
+  const head = [labels.descriptionPlaceholder, labels.unitPlaceholder, labels.qtyPlaceholder]
+    .map((label) => `<th><span>${escapeHtml(label)}</span></th>`)
+    .join('')
+  const blank = '<tr><td></td><td></td><td></td></tr>'.repeat(FORM_EXTRA_ROWS)
+  return `
+<div class="extras"><h2>${escapeHtml(labels.extrasTitle)}</h2>
+<table><colgroup><col><col class="c-unit"><col class="c-write"></colgroup>
+<thead><tr>${head}</tr></thead><tbody>${blank}</tbody></table></div>`
+}
+
+/**
+ * The paper a worker fills in by hand: his PDF's rows with the pozycja's number in place of the money.
+ * The number is the only thing the scan resolves a line by, so a pozycja without an opis — nothing a
+ * worker could recognise — is left off rather than numbered.
+ */
+export function buildWorkerFormHtml({
+  data,
+  logoUrl,
+  fillByColorKey,
+  locale,
+  sectionTranslations,
+}: WorkerPrintArgsT): string {
+  const { worker, investmentName } = data
+  const tree = translateTree(data.tree, locale, sectionTranslations)
+  const rows = documentRows(treeToRows(tree), tree.stages, worker.settings.hideEmptyRows).filter(
+    (row) => (row.description ?? '').trim() !== '',
+  )
+  const report = createTranslator(locale, 'report')
+
+  return buildKosztorysPrintHtml({
+    rows,
+    columns: workerFormColumns(locale),
+    documentKind: report.t('formDocumentKind', { name: worker.name }),
+    title: investmentName,
+    pageTitle: `${investmentName} — ${worker.name}`,
+    logoUrl,
+    fillByColorKey,
+    // No column carries money, so no section totals.
+    moneyKey: 'net',
+    money: formatPLN,
+    totalNet: 0,
+    sectionNetById: new Map(),
+    extraStyles: WIDE_PRINT_STYLES + WORKER_FORM_STYLES,
+    footerHtml: workerFormFooterHtml(locale),
+    lang: locale,
   })
 }
