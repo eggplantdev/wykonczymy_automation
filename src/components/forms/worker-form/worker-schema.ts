@@ -19,7 +19,13 @@ export type WorkerFormValuesT = z.infer<typeof workerFormSchema>
 // Domain layer the action validates: derived from the form schema so the field
 // list can't drift; the register id is a number and email defaults to ''.
 export const workerSchema = workerFormSchema.extend({
-  email: z.union([z.literal(''), z.email('Nieprawidłowy adres email')]).default(''),
+  // Normalised here because the action's clash check and the write must read the same value.
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .pipe(z.union([z.literal(''), z.email('Nieprawidłowy adres email')]))
+    .default(''),
   defaultCashRegister: z.number().optional(),
   // Polish is the absence of a language: storing 'pl' would make two values mean the same thing.
   language: languageSchema

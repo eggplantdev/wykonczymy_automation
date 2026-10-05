@@ -1,7 +1,31 @@
 'use server'
 
+import type { Payload } from 'payload'
 import { workerSchema, type WorkerFormDataT } from '@/components/forms/worker-form/worker-schema'
 import { validateAction, protectedAction } from './run-action'
+
+// A trashed worker still holds his e-mail, so the refusal has to say where to find him — otherwise
+// the owner is told the e-mail is taken by a worker no listing shows.
+async function emailClash(payload: Payload, email: string, ownId?: number) {
+  if (!email) return undefined
+  const { docs } = await payload.find({
+    collection: 'users',
+    where: {
+      and: [
+        { email: { equals: email } },
+        ...(ownId === undefined ? [] : [{ id: { not_equals: ownId } }]),
+      ],
+    },
+    limit: 1,
+    depth: 0,
+    overrideAccess: true,
+  })
+  const holder = docs[0]
+  if (!holder) return undefined
+  return holder.trashedAt
+    ? `Pracownik z adresem ${email} jest w Koszu — przywróć go stamtąd.`
+    : `Pracownik z adresem ${email} już istnieje.`
+}
 
 export async function createWorkerAction(data: WorkerFormDataT) {
   return protectedAction(
@@ -9,6 +33,9 @@ export async function createWorkerAction(data: WorkerFormDataT) {
     async ({ payload }) => {
       const parsed = validateAction(workerSchema, data)
       if (!parsed.success) return parsed
+
+      const clash = await emailClash(payload, parsed.data.email)
+      if (clash) return { success: false, error: clash }
 
       await payload.create({
         collection: 'users',
@@ -30,6 +57,9 @@ export async function updateWorkerAction(id: number, data: WorkerFormDataT) {
     async ({ payload }) => {
       const parsed = validateAction(workerSchema, data)
       if (!parsed.success) return parsed
+
+      const clash = await emailClash(payload, parsed.data.email, id)
+      if (clash) return { success: false, error: clash }
 
       await payload.update({
         collection: 'users',
