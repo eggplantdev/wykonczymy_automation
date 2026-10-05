@@ -1,10 +1,10 @@
 ---
 change_id: worker-account
 title: Konto pracownika — logowanie na własną stronę, jego kasy i linki do kosztorysów (EX-985)
-status: implemented
+status: archived
 created: 2026-10-05
 updated: 2026-10-05
-archived_at: null
+archived_at: 2026-10-05T11:34:22Z
 branch: konradantonik/ex-985-konto-pracownika-logowanie-na-wlasna-strone-jego-kasy-i
 worktree: .claude/worktrees/ex-985-worker-account
 ---
