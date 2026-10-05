@@ -1,9 +1,9 @@
 'use client'
 
-import { FileText } from 'lucide-react'
+import { ClipboardPen, FileText } from 'lucide-react'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
-import { buildWorkerPrintHtml } from '@/lib/kosztorys/print/worker'
+import { buildWorkerFormHtml, buildWorkerPrintHtml } from '@/lib/kosztorys/print/worker'
 import { resolveSectionFills } from '@/lib/kosztorys/print/section-fills'
 import { WORKER_SCOPE_BLOCK_MESSAGES } from '@/lib/kosztorys/worker-view/labels'
 import {
@@ -13,13 +13,21 @@ import {
 import { openPrintWindow, writeAndPrint } from '@/lib/utils/print-window'
 import { toastMessage } from '@/lib/utils/toast'
 
+const VARIANTS = {
+  pdf: { build: buildWorkerPrintHtml, label: 'Drukuj PDF', Icon: FileText },
+  form: { build: buildWorkerFormHtml, label: 'Drukuj do wypełnienia', Icon: ClipboardPen },
+}
+
 export function WorkerPrintMenuItem({
   workerId,
   disabled,
+  variant,
 }: {
   workerId: number
   disabled: boolean
+  variant: keyof typeof VARIANTS
 }) {
+  const { build, label, Icon } = VARIANTS[variant]
   const { investmentId, investmentName } = useKosztorysEditorContext()
 
   function handlePrint() {
@@ -44,7 +52,7 @@ export function WorkerPrintMenuItem({
       try {
         writeAndPrint(
           target,
-          buildWorkerPrintHtml({
+          build({
             data,
             logoUrl: `${window.location.origin}/logo-wykonczymy.png`,
             fillByColorKey,
@@ -64,8 +72,8 @@ export function WorkerPrintMenuItem({
 
   return (
     <DropdownMenuItem disabled={disabled} onSelect={handlePrint}>
-      <FileText />
-      Drukuj PDF
+      <Icon />
+      {label}
     </DropdownMenuItem>
   )
 }

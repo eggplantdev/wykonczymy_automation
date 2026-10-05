@@ -623,6 +623,12 @@
     0 1px var(--dsg-border-color);
 }
 
+/* Hints of uneven length would centre each title at a different height. */
+.kosztorys-grid .dsg-cell-header.kosztorys-report-header {
+  align-items: flex-start;
+  padding-top: 0.75rem;
+}
+
 .kosztorys-grid.kosztorys-grid-preview .dsg-cell-header.kosztorys-report-column {
   background: color-mix(in oklab, var(--color-lime-300) 40%, var(--color-background));
   box-shadow:

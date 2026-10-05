@@ -647,44 +647,44 @@ with a readable message.
 
 #### Automated
 
-- [ ] 1.1 Migration applies and rolls back locally
-- [ ] 1.2 check-digit unit spec
-- [ ] 1.3 Snapshot tolerance + import carry unit specs
-- [ ] 1.4 item-ref DB spec (restore keeps, szablon/add mint, unique)
+- [x] 1.1 Migration applies and rolls back locally — 434a1e76
+- [x] 1.2 check-digit unit spec — 434a1e76
+- [x] 1.3 Snapshot tolerance + import carry unit specs — 434a1e76
+- [x] 1.4 item-ref DB spec (restore keeps, szablon/add mint, unique) — 434a1e76
 
 ### Phase 2: „Drukuj do wypełnienia"
 
 #### Automated
 
-- [ ] 2.1 worker-form print unit spec
+- [x] 2.1 worker-form print unit spec — 4ae2da12
 
 ### Phase 3: Data model + create action
 
 #### Automated
 
-- [ ] 3.1 Migration applies and rolls back locally
-- [ ] 3.2 resolve-scan unit spec
-- [ ] 3.3 worker-report-scan action DB spec (create, gates, /z/ filter)
-- [ ] 3.4 Media guards DB spec
+- [x] 3.1 Migration applies and rolls back locally — ed244944
+- [x] 3.2 resolve-scan unit spec — ed244944
+- [x] 3.3 worker-report-scan action DB spec (create, gates, /z/ filter) — ed244944
+- [x] 3.4 Media guards DB spec — ed244944
 
 ### Phase 4: AI read
 
 #### Automated
 
-- [ ] 4.1 Schema factory unit spec
-- [ ] 4.2 Route spec (role gate, stubbed read)
+- [x] 4.1 Schema factory unit spec — 1c5376bf
+- [x] 4.2 Route spec (role gate, stubbed read) — 1c5376bf
 
 ### Phase 5: Scan dialog + entry points
 
 #### Automated
 
-- [ ] 5.1 scan-report-dialog DOM spec
-- [ ] 5.2 listWorkersWithActiveStages DB spec
+- [x] 5.1 scan-report-dialog DOM spec — 1b431de0
+- [x] 5.2 listWorkersWithActiveStages DB spec — 1b431de0
 
 ### Phase 6: Verification
 
 #### Automated
 
-- [ ] 6.1 Accept rule DB spec
-- [ ] 6.2 isLineReady unit spec
-- [ ] 6.3 Review flags DOM spec
+- [x] 6.1 Accept rule DB spec — 714f54a9
+- [x] 6.2 isLineReady unit spec — 714f54a9
+- [x] 6.3 Review flags DOM spec — 714f54a9

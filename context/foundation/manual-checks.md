@@ -3793,3 +3793,51 @@ do której ten pracownik ma link do raportu.
 - [ ] Manager na „Polski”: tabele transferów na `/kasa/[id]` i `/inwestycje/[id]`, pasek boczny,
       menu na telefonie i okna wgrywania plików wyglądają dokładnie jak przedtem.
 - [ ] „Podgląd pracownika” (manager) pozostaje po polsku niezależnie od języka pracownika.
+
+## 2026-10-05 — worker-report-figures — „Wykonano” i „Pozostało” w raporcie pracownika, przełączniki w „Opcje”
+
+Potrzebny stan: link do raportu pracownika na inwestycji, gdzie jego etapy mają już wpisane ilości
+przy kilku pracach, a co najmniej jedna praca ma przedmiar.
+
+- [ ] „Zgłaszam pracę” na telefonie (390px): obok wyszukiwarki sama ikona zębatki; na desktopie
+      zębatka z napisem „Opcje”. W menu: „Wszystkie prace (+N)”, „Tylko zgłaszane przeze mnie (N)”,
+      „Pokaż sumę do tej pory wykonanej pracy”, „Pokaż, ile pracy pozostało”; menu nie zamyka się po
+      kliknięciu przełącznika.
+- [ ] Włącz „Pokaż sumę…” → przed „Zgłaszam” kolumna „Wykonano” z sumą jego etapów dla pracy.
+- [ ] Włącz „Pokaż, ile pracy pozostało” → za „Zgłaszam” kolumna „Pozostało” w formacie
+      `wykonane / przedmiar`; wpisanie ilości w „Zgłaszam” od razu zwiększa liczbę po lewej, a
+      przekroczenie przedmiaru zabarwia komórkę na czerwono.
+- [ ] Na zakładce „Inwestycja” w menu jest tylko „Wszystkie prace”.
+- [ ] „Jednostka miary” w „Zgłaszam pracę” widoczna od 1024px szerokości, poniżej ukryta.
+- [ ] 390px z włączoną którąkolwiek z dwóch kolumn: tabela przewija się w bok, nagłówek i stopka
+      zostają na szerokość ekranu; z obiema wyłączonymi — bez przewijania w bok, jak dotąd.
+- [ ] Nagłówki „Wykonano”, „Zgłaszam” i „Pozostało” zaczynają się na tej samej wysokości (do góry).
+- [ ] Ten sam link po ukraińsku i po rosyjsku: „Opcje”, oba przełączniki i obie kolumny przetłumaczone.
+
+## EX-949 — worker-report-scan — zgłoszenie prac wczytane z papierowej kartki
+
+Potrzebny stan: inwestycja w toku z rozpiską, pracownik przypisany do jej etapu, kartka
+„Drukuj do wypełnienia” tego pracownika wydrukowana i wypełniona ręcznie (kilka ilości, jedna praca
+spoza rozpiski), sfotografowana w dwóch ujęciach.
+
+- [ ] Kosztorys → „Pracownicy” → pracownik → „Drukuj do wypełnienia”: przy każdej pracy numer
+      z cyfrą kontrolną i pusta kolumna na ilość; wygląda i drukuje się jak pozostałe wydruki.
+- [ ] „Zgłoszenia prac” → „Wczytaj z kartki”: wybór pracownika (tylko aktywni, z etapem na trwającej
+      inwestycji), potem inwestycji (sama się wybiera, gdy jest jedna), dwa zdjęcia → „Wczytaj”
+      otwiera przegląd nowego zgłoszenia.
+- [ ] To samo z menu „Pracownicy” w edytorze kosztorysu — pracownik i inwestycja już wybrane.
+- [ ] Przegląd: nagłówek „Wczytane z kartki przez {kto} {data}”, zdjęcia obok wierszy, kliknięcie
+      otwiera powiększenie; wiersze zgadzają się ze zdjęciami.
+- [ ] Nieczytelna ilość → wiersz z „Niepewny odczyt — sprawdź na zdjęciu”.
+- [ ] Ten sam numer na obu zdjęciach → dwa wiersze z „Ta pozycja jest w zgłoszeniu więcej niż raz”,
+      a „Zaznacz wszystkie” nie zaznacza żadnego z nich.
+- [ ] Numer z błędną cyfrą kontrolną → „Nr … nie pasuje do rozpiski — do przypisania ręcznie”,
+      i da się go przypisać do pozycji z listy.
+- [ ] Praca spoza rozpiski w jednostce, której nie ma w kosztorysie → „Brak j.m. w kosztorysie —
+      wybierz pracę z katalogu”; „Zatwierdź” nie przechodzi, dopóki nie wybierzesz pracy z katalogu.
+- [ ] Zatwierdź → ilości etapu w edytorze zgadzają się z przyjętymi; nowa pozycja ma j.m. z katalogu.
+- [ ] Zgłoszenie z kartki nie pojawia się w historii na linku pracownika (`/z/…`).
+- [ ] Kartka wydrukowana przed „Przywróć wersję”, wczytana po nim: wiersze nadal trafiają we właściwe
+      pozycje.
+- [ ] Jedno zdjęcie, którego odczyt się nie uda → na miniaturze „Ponów”; ponowienie czyta tylko to
+      zdjęcie, a zgłoszenie powstaje dopiero, gdy wszystkie są odczytane.

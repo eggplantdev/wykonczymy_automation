@@ -25,6 +25,12 @@ import {
   useWorkerReportsAction,
   type WorkerReportsActionT,
 } from '@/components/kosztorys/editor/actions/worker-reports-action'
+import {
+  useScanReportAction,
+  type ScanReportActionT,
+} from '@/components/kosztorys/editor/actions/scan-report-action'
+import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
+import { ScanReportDialog } from '@/components/worker-reports/scan-report-dialog'
 import { WorkerReportsDialog } from '@/components/kosztorys/editor/dialogs/worker-reports/worker-reports-dialog'
 import type { WorkerReportsSeedT } from '@/lib/kosztorys/types'
 
@@ -40,6 +46,7 @@ type KosztorysActionsT = {
   acceptanceProtocol: DialogToggleT
   // Undefined where the investment has no reports to show (the szablon workbench).
   workerReports: WorkerReportsActionT | undefined
+  scan: ScanReportActionT
 }
 
 const KosztorysActionsContext = createContext<KosztorysActionsT | null>(null)
@@ -66,6 +73,8 @@ export function KosztorysActionsProvider({
   const worker = useWorkerActions()
   const acceptanceProtocol = useDialogToggle()
   const workerReports = useWorkerReportsAction(workerReportsSeed)
+  const scan = useScanReportAction()
+  const { investmentId } = useKosztorysEditorContext()
   const value: KosztorysActionsT = {
     version,
     clear,
@@ -77,6 +86,7 @@ export function KosztorysActionsProvider({
     worker,
     acceptanceProtocol,
     workerReports: workerReportsSeed ? workerReports : undefined,
+    scan,
   }
 
   return (
@@ -84,6 +94,19 @@ export function KosztorysActionsProvider({
       {children}
       {/* One instance for the toolbar button, „Pracownicy" and the deep link. */}
       {workerReportsSeed && <WorkerReportsDialog action={workerReports} />}
+      {workerReportsSeed && scan.target && (
+        <ScanReportDialog
+          key={scan.target.id}
+          open={scan.open}
+          onOpenChange={scan.setOpen}
+          investmentId={investmentId}
+          worker={scan.target}
+          onCreated={(reportId) => {
+            workerReports.setPendingCount(workerReports.pendingCount + 1)
+            workerReports.openReport(reportId)
+          }}
+        />
+      )}
     </KosztorysActionsContext>
   )
 }

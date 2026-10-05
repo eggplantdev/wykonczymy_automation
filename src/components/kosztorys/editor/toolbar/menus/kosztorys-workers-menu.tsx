@@ -17,6 +17,7 @@ import {
   WorkerShareMenuItem,
   WorkerViewSettingsMenuItem,
 } from '@/components/kosztorys/editor/actions/worker-actions'
+import { ScanReportMenuItem } from '@/components/kosztorys/editor/actions/scan-report-action'
 import { WorkerPrintMenuItem } from '@/components/kosztorys/editor/actions/worker-print-action'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { assignedWorkers } from '@/lib/kosztorys/worker-view/assigned-workers'
@@ -74,7 +75,19 @@ export function KosztorysWorkersMenu() {
               {blockReason && <p className="text-destructive px-2 pb-1 text-xs">{blockReason}</p>}
               <WorkerPreviewMenuItem target={{ id, name }} />
               <WorkerShareMenuItem target={{ id, name, blockReason }} />
-              <WorkerPrintMenuItem workerId={id} disabled={blockReason !== undefined} />
+              <WorkerPrintMenuItem
+                workerId={id}
+                disabled={blockReason !== undefined}
+                variant="pdf"
+              />
+              <WorkerPrintMenuItem
+                workerId={id}
+                disabled={blockReason !== undefined}
+                variant="form"
+              />
+              {workerReports && (
+                <ScanReportMenuItem target={{ id, name }} disabled={blockReason !== undefined} />
+              )}
               <DropdownMenuSeparator />
             </Fragment>
           )

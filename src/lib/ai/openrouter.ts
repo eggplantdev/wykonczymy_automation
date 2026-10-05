@@ -1,5 +1,6 @@
 import { generateObject } from 'ai'
 import { openrouter, timeoutSignal, withModelFallback } from './openrouter-client'
+import { providerErrorDetail } from './provider-error-detail'
 import {
   receiptExtractionSchema,
   UNREADABLE_RECEIPT,
@@ -133,33 +134,6 @@ export async function extractReceipt(
   } catch (error) {
     // TODO(EX-449) SENTRY-REQUIRED: receipt extraction failures must be captured once Sentry is
     // wired — they are silent AI/provider errors users can't self-report.
-    throw new Error(receiptErrorDetail(error))
+    throw new Error(providerErrorDetail(error, 'Błąd odczytu paragonu'))
   }
-}
-
-// TEMPORARY (TODO(EX-449)): with no Sentry yet, this flattens the provider's real failure reason
-// into the toast string so it survives protectedAction (which returns only `err.message`) and
-// reaches the client. Once Sentry is wired the raw fields (statusCode/responseBody/text) move into
-// the capture and the toast shrinks to a clean Polish message.
-function receiptErrorDetail(error: unknown): string {
-  const err = error as {
-    message?: string
-    text?: string
-    statusCode?: number
-    responseBody?: string
-    response?: { body?: unknown }
-  }
-  const providerBody = err.responseBody ?? err.response?.body
-  return [
-    err.message ?? 'Błąd odczytu paragonu',
-    err.statusCode ? `HTTP ${err.statusCode}` : undefined,
-    providerBody
-      ? typeof providerBody === 'string'
-        ? providerBody
-        : JSON.stringify(providerBody)
-      : undefined,
-    err.text ? `model: ${err.text}` : undefined,
-  ]
-    .filter(Boolean)
-    .join(' · ')
 }
