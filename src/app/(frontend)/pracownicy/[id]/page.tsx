@@ -1,6 +1,6 @@
 import { redirect, notFound } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { ADMIN_OR_OWNER_MANAGER_ROLES, ROLE_LABELS, canViewRegister } from '@/lib/auth/roles'
+import { canViewWorkerPage, isManagementRole, ROLE_LABELS, ROLES } from '@/lib/auth/roles'
 import { LanguageLabel } from '@/components/ui/language-label'
 import { DEFAULT_LANGUAGE } from '@/lib/i18n/languages'
 import { parsePagination } from '@/lib/utils/pagination'
@@ -8,35 +8,38 @@ import { parseTransferSort } from '@/lib/queries/transfer-sort'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { fetchRegisterBalances } from '@/lib/queries/balances'
 import { fetchEquipmentAtLocation } from '@/lib/queries/equipment'
+import { fetchWorkerStageInvestments } from '@/lib/queries/worker-stage-investments'
 import { buildTransferFilters } from '@/lib/queries/transfer-filters'
+import { buildWorkerTransferWhere, workerTransferScope } from '@/lib/queries/worker-transfers'
 import { buildFilterConfig } from '@/lib/utils/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { HeldEquipmentSection } from '@/components/equipment/held-equipment-section'
 import { OwnedRegistersSection } from '@/components/users/owned-registers-section'
-import { ownedRegisters } from '@/lib/workers/owned-registers'
+import { WorkerKosztorysySection } from '@/components/users/worker-kosztorysy-section'
+import { visibleWorkerRegisters } from '@/lib/workers/owned-registers'
 import { EditWorkerDialog } from '@/components/dialogs/edit-worker-dialog'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
 import type { DynamicPagePropsT } from '@/types/page'
 
 export default async function UserDetailPage({ params, searchParams }: DynamicPagePropsT) {
-  const session = await requireAuth(ADMIN_OR_OWNER_MANAGER_ROLES)
-  if (!session.success) redirect('/')
+  const session = await requireAuth(ROLES)
+  if (!session.success) redirect('/zaloguj')
   const { user: currentUser } = session
+  const isManager = isManagementRole(currentUser.role)
 
   const { id } = await params
+  if (!canViewWorkerPage(currentUser, Number(id))) notFound()
   const sp = await searchParams
   const { page, limit } = parsePagination(sp)
   const sort = parseTransferSort(sp)
 
   const userId = Number(id)
-  const urlFilters = buildTransferFilters(sp, { id: currentUser.id })
-  const transferWhere = { ...urlFilters, worker: { equals: userId } }
-
-  const [refData, balances, heldEquipment] = await Promise.all([
+  const [refData, balances, heldEquipment, stageInvestments] = await Promise.all([
     fetchReferenceData(),
     fetchRegisterBalances(),
     fetchEquipmentAtLocation({ kind: 'holder', id: userId }),
+    fetchWorkerStageInvestments(userId),
   ])
 
   const worker = refData.workers.find((w) => w.id === userId)
@@ -47,8 +50,13 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
     ? refData.cashRegisters.find((cr) => cr.id === worker.defaultCashRegisterId)?.name
     : undefined
 
-  const registers = ownedRegisters(refData.cashRegisters, userId).filter((register) =>
-    canViewRegister(currentUser.role, register.type),
+  const registers = visibleWorkerRegisters(refData.cashRegisters, userId, currentUser.role)
+  const transferWhere = buildWorkerTransferWhere(
+    buildTransferFilters(sp, { id: currentUser.id }),
+    workerTransferScope(
+      userId,
+      registers.map((register) => register.id),
+    ),
   )
 
   const infoFields = [
@@ -64,19 +72,24 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
 
   return (
     <PageWrapper title={worker.name}>
-      <EditWorkerDialog worker={worker} cashRegisters={refData.cashRegisters} />
+      {isManager && <EditWorkerDialog worker={worker} cashRegisters={refData.cashRegisters} />}
       <InfoList items={infoFields} />
-      <OwnedRegistersSection registers={registers} balances={balances} />
-      <HeldEquipmentSection equipment={heldEquipment} />
+      <OwnedRegistersSection registers={registers} balances={balances} linkable={isManager} />
+      <HeldEquipmentSection equipment={heldEquipment} linkable={isManager} />
+      <WorkerKosztorysySection investments={stageInvestments} workerName={worker.name} />
       <TransfersSection
         title="Transfery"
         config={{
           query: { where: transferWhere, page, limit, sort },
           baseUrl: `/pracownicy/${id}`,
-          excludeColumns: ['worker'],
-          filters: buildFilterConfig(refData, ['users', 'workers', 'expenseCategories', 'type']),
+          excludeColumns: isManager ? ['worker'] : ['worker', 'actions'],
+          filters: {
+            ...buildFilterConfig(refData, ['users', 'workers', 'expenseCategories', 'type']),
+            cashRegisters: registers.map(({ id, name }) => ({ id, name })),
+          },
           invoiceDownload: true,
           print: true,
+          workerScope: userId,
           cancelledTransactionAudit: sp.cancelledTransactionAudit === '1',
         }}
       />

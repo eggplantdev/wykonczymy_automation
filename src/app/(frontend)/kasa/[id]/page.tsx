@@ -24,7 +24,7 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
   const session = await requireAuth(ROLES)
   if (!session.success) redirect('/zaloguj')
   const { user } = session
-  const isManager = isManagementRole(user.role)
+  if (!isManagementRole(user.role)) notFound()
 
   const { id } = await params
   const sp = await searchParams
@@ -55,27 +55,21 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
 
   if (!canViewRegister(user.role, register.type)) notFound()
 
-  // employees can only view their own registers
-  if (!isManager && register.ownerId !== user.id) notFound()
-
   const ownerName = register.ownerId
     ? ([...refData.workers, ...refData.trashedWorkers].find((w) => w.id === register.ownerId)
         ?.name ?? '—')
     : '—'
 
   const isOwnerLocked =
-    isManager &&
     (await cashRegisterDeleteBlocker(await getPayload({ config }), registerId)) !== undefined
 
   return (
     <PageWrapper title={register.name}>
-      {isManager && (
-        <EditCashRegisterDialog
-          register={register}
-          workers={refData.workers}
-          isOwnerLocked={isOwnerLocked}
-        />
-      )}
+      <EditCashRegisterDialog
+        register={register}
+        workers={refData.workers}
+        isOwnerLocked={isOwnerLocked}
+      />
       <InfoList items={[{ label: 'Właściciel', value: ownerName }]} />
       <SignedMoneyDisplay amount={registerBalance} />
 

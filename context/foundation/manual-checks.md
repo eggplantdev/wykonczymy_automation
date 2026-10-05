@@ -3498,10 +3498,10 @@ Przed sprawdzeniem: migracja typu „Premia" na bazie, na której klikasz (`pnpm
 
 ### Phase 2: sekcja „Przypisane kasy” na stronie pracownika
 
-- [ ] Strona pracownika z kasami → sekcja „Przypisane kasy” wymienia wszystkie jego kasy, każda nazwa otwiera stronę tej kasy.
+- [ ] Strona pracownika z kasami → sekcja „Moje kasy” wymienia wszystkie jego kasy, każda nazwa otwiera stronę tej kasy.
 - [ ] Ta sama sekcja → „Saldo” każdej kasy zgadza się z saldem tej kasy na `/kasy`; „Razem” to ich suma; ujemne saldo jest na czerwono.
 - [ ] Pracownik z kasą ustawioną jako nieaktywna → ta kasa jest na liście z dopiskiem „nieaktywna” pod nazwą, a jej saldo wchodzi do „Razem”.
-- [ ] Pracownik bez kas → sekcja „Przypisane kasy” mówi „Nie ma żadnej kasy.”
+- [ ] Pracownik bez kas → sekcja „Moje kasy” mówi „Nie ma żadnej kasy.”
 - [ ] Pracownik, którego kasa sama leży w Koszu → tej kasy nie ma w sekcji ani w liczbie na liście.
 - [ ] Zalogowany jako MANAGER → strona właściciela (OWNER) nie pokazuje kasy głównej w „Przypisanych kasach”; jako OWNER/ADMIN kasa główna jest i jej link działa.
 - [ ] Strona pracownika → nie ma już linijki „Wypłaty: … zł” nad sekcjami.
@@ -3639,3 +3639,29 @@ Refaktor bez zmiany zachowania: nocny cron czyści Kosz tak samo jak wcześniej.
 - [ ] „Wpłata” → to samo: po zapisie z „Nie zamykaj” data zostaje.
 - [ ] Bez „Nie zamykaj” (oba okna): po zapisie i ponownym otwarciu data jest dzisiejsza. „Wyczyść”
       zawsze wraca do dzisiejszej daty.
+
+## EX-985 — worker-account — pracownik loguje się na własną stronę: kasy, sprzęt, transfery, kosztorysy (2026-10-05)
+
+Potrzebny stan: konto pracownika (rola Pracownik) z własną kasą, z wypłatami i zaliczkami na tę kasę,
+przypisane do etapów w kilku inwestycjach — w tym co najmniej jednej zakończonej.
+
+- [ ] Zaloguj się jako pracownik → `/` przenosi na jego stronę `/pracownicy/<id>`.
+- [ ] Jako pracownik: `/pracownicy/<id innego pracownika>` i `/kasa/<id jego kasy>` dają 404.
+- [ ] Jako pracownik: na stronie nie ma edycji, anulowania ani wgrywania faktur; nazwy kas i sprzętu
+      to zwykły tekst, nie linki. Klik w inwestycję w tabeli i „wstecz" wraca na jego stronę.
+- [ ] Jako pracownik: „Faktury" pobiera tylko faktury z jego transferów, „Drukuj" drukuje tylko jego
+      wiersze.
+- [ ] Jako manager: strona tego pracownika pokazuje oprócz wypłat także zaliczki na jego kasę i wydatki
+      z niej; kafelek sumy zgadza się z listą bez filtra i z filtrem kasy, a filtr kasy proponuje tylko
+      jego kasy.
+- [ ] Sekcja „Moje inwestycje" (pracownik i manager): tylko aktywne inwestycje, każda raz, bez kolumny
+      statusu; przycisk „Zgłoś prace" wyśrodkowany w wierszu otwiera jego stronę `/z/`.
+- [ ] Pracownik bez sprzętu: sekcji „Na stanie" nie ma wcale; z sprzętem — jest, z listą. Kasy są pod
+      nagłówkiem „Moje kasy".
+- [ ] Strona pracownika na telefonie (390px): kasy, sprzęt, kosztorysy i transfery czytelne, bez
+      rozjechanego układu.
+- [ ] Edytor → dodaj pracownika do etapu → „Pracownicy" → „Link do zgłoszeń": link jest od razu,
+      bez generowania. Pracownik z zablokowanym zakresem: okno pokazuje powód i link, a link otwiera
+      `/z/` z komunikatem zamiast formularza.
+- [ ] „Link do zgłoszeń" pracownika ma tylko „Wygeneruj nowy link", bez „Wyłącz link"; „Udostępnij"
+      inwestorowi nadal ma „Wyłącz link".

@@ -9,6 +9,7 @@ import {
 } from '@/lib/queries/transfer-filters'
 import { sumFilteredByType } from '@/lib/db/sum-transfers'
 import { buildSqlConditions } from '@/lib/db/where-to-sql'
+import { buildWorkerTransferWhere, workerTransferScope } from '@/lib/queries/worker-transfers'
 import { fakePayload, lastSql, resetFakePayload } from '@/__tests__/helpers/fake-payload-sql'
 
 /**
@@ -79,6 +80,32 @@ describe('transfer filters → stats SQL', () => {
     expect(await sqlForSearchParams({ sourceRegister: '3,5' })).toContain(
       '(source_register_id IN (3, 5) OR target_register_id IN (3, 5))',
     )
+  })
+})
+
+// Risk #22: the worker page's sum tile goes through the same chain, with the scope under `and`.
+describe('worker transfer scope → stats SQL', () => {
+  async function workerSql(searchParams: Record<string, string>): Promise<string> {
+    const where = buildWorkerTransferWhere(
+      buildTransferFilters(searchParams, { id: 1 }),
+      workerTransferScope(25, [37]),
+    )
+    await sumFilteredByType(fakePayload, stripCancelledFilters(where))
+    return lastSql()
+  }
+
+  const SCOPE_SQL = '((worker_id = 25 OR source_register_id IN (37) OR target_register_id IN (37)))'
+
+  it('applies the scope with no URL filter', async () => {
+    const sql = await workerSql({})
+    expect(sql).toContain(SCOPE_SQL)
+    expect(sql).toContain("type NOT IN ('CANCELLATION')")
+  })
+
+  it('ANDs a foreign kasa filter with the scope instead of replacing it', async () => {
+    const sql = await workerSql({ sourceRegister: '99' })
+    expect(sql).toContain('AND (source_register_id IN (99) OR target_register_id IN (99))')
+    expect(sql).toContain(`AND ${SCOPE_SQL}`)
   })
 })
 

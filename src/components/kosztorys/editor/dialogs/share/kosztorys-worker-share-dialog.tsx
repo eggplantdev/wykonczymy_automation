@@ -2,10 +2,7 @@
 
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { ShareLinkPanel } from '@/components/kosztorys/editor/dialogs/share/share-link-panel'
-import {
-  generateWorkerLinkAction,
-  revokeWorkerLinkAction,
-} from '@/lib/actions/kosztorys-worker-share'
+import { generateWorkerLinkAction } from '@/lib/actions/kosztorys-worker-share'
 import { FRONTEND_URL } from '@/lib/env'
 import { workerReportShareUrl } from '@/lib/kosztorys/worker-view/worker-links'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
@@ -21,7 +18,6 @@ export function KosztorysWorkerShareDialog() {
     shareToken: token,
     shareLoaded: loaded,
     setShareToken,
-    dropLinkHolder,
   } = useKosztorysActions().worker
 
   return (
@@ -37,14 +33,8 @@ export function KosztorysWorkerShareDialog() {
             token={token}
             urlFor={(next) => workerReportShareUrl(FRONTEND_URL, investmentName, target.name, next)}
             generate={() => generateWorkerLinkAction({ investmentId, workerId: target.id })}
-            revoke={() => revokeWorkerLinkAction({ investmentId, workerId: target.id })}
-            onTokenChange={(next) => {
-              setShareToken(next)
-              if (next === null) dropLinkHolder(target.id)
-            }}
+            onTokenChange={setShareToken}
             blockReason={target.blockReason}
-            revokeTitle={`Wyłączyć link dla: ${target.name}?`}
-            revokeDescription="Pracownik natychmiast straci dostęp do kosztorysu i możliwość wysyłania zgłoszeń. Wysłane zgłoszenia zostają. Aby przywrócić dostęp, musisz wygenerować nowy link (stary adres już nie zadziała)."
           />
         )}
       </DialogContent>

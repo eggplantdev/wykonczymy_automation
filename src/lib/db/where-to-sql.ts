@@ -55,16 +55,12 @@ const OPERATORS: Record<string, (column: string, value: unknown) => string> = {
 
 /** One field's operators, rendered as a single self-contained condition (no `AND` prefix). */
 function renderField(field: string, condition: unknown): string {
-  if (field === 'or') {
+  if (field === 'or' || field === 'and') {
     if (!Array.isArray(condition) || condition.length === 0) {
-      throw new Error('where-to-sql: "or" expects a non-empty array')
+      throw new Error(`where-to-sql: "${field}" expects a non-empty array`)
     }
-    const branches = (condition as Where[]).map((sub) =>
-      Object.entries(sub)
-        .map(([subField, subCondition]) => renderField(subField, subCondition))
-        .join(' AND '),
-    )
-    return `(${branches.join(' OR ')})`
+    const branches = (condition as Where[]).map(renderConjunction)
+    return `(${branches.join(field === 'or' ? ' OR ' : ' AND ')})`
   }
 
   const column = FIELD_TO_COLUMN[field]
@@ -86,6 +82,14 @@ function renderField(field: string, condition: unknown): string {
   // Parenthesised so a multi-operator field (an amount range) keeps its meaning when spliced
   // into an OR list, rather than relying on AND binding tighter.
   return parts.length === 1 ? parts[0] : `(${parts.join(' AND ')})`
+}
+
+/** One `or` / `and` branch: its fields ANDed, like a top-level Where. */
+function renderConjunction(where: Where): string {
+  const parts = Object.entries(where).map(([field, condition]) => renderField(field, condition))
+  // An empty branch would render `()`, a syntax error at best — and inside an `or`, `( OR x)`.
+  if (parts.length === 0) throw new Error('where-to-sql: an "or" / "and" branch carries no field')
+  return parts.join(' AND ')
 }
 
 function renderList(operator: string, value: unknown): string {

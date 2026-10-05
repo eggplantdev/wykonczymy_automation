@@ -1,0 +1,59 @@
+import { Fragment } from 'react'
+import {
+  SUMMARY_LABEL_COL,
+  SummaryHeaderCell,
+  SummaryLabelCell,
+  SummaryTable,
+} from '@/components/ui/summary-grid'
+import { Button } from '@/components/ui/button'
+import { Description } from '@/components/ui/description'
+import { FRONTEND_URL } from '@/lib/env'
+import { workerReportShareUrl } from '@/lib/kosztorys/worker-view/worker-links'
+import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
+
+const COLS = `${SUMMARY_LABEL_COL} auto`
+
+export function WorkerKosztorysySection({
+  investments,
+  workerName,
+}: {
+  investments: WorkerStageInvestmentT[]
+  workerName: string
+}) {
+  return (
+    <div>
+      <h2 className="mb-2 text-sm font-semibold">Moje inwestycje</h2>
+      {investments.length === 0 ? (
+        <Description>Nie jest przypisany do żadnej aktywnej inwestycji.</Description>
+      ) : (
+        <SummaryTable cols={COLS} className="w-fit">
+          <SummaryHeaderCell variant="label">Inwestycja</SummaryHeaderCell>
+          <SummaryHeaderCell variant="label">Zgłoszenia</SummaryHeaderCell>
+          {investments.map((investment) => (
+            <Fragment key={investment.investmentId}>
+              <SummaryLabelCell>{investment.name}</SummaryLabelCell>
+              <SummaryLabelCell className="flex items-center">
+                {investment.token ? (
+                  <Button asChild size="xs">
+                    <a
+                      href={workerReportShareUrl(
+                        FRONTEND_URL,
+                        investment.name,
+                        workerName,
+                        investment.token,
+                      )}
+                    >
+                      Zgłoś prace
+                    </a>
+                  </Button>
+                ) : (
+                  <span className="text-muted-foreground">brak linku</span>
+                )}
+              </SummaryLabelCell>
+            </Fragment>
+          ))}
+        </SummaryTable>
+      )}
+    </div>
+  )
+}

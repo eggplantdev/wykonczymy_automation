@@ -2,9 +2,13 @@
 
 import type { Where } from 'payload'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
+import { canViewWorkerPage, MANAGEMENT_ROLES, ROLES } from '@/lib/auth/roles'
 import { fetchAllTransferRows } from '@/lib/queries/fetch-transfer-rows'
+import { fetchReferenceData } from '@/lib/queries/reference-data'
+import { buildTransferFilters } from '@/lib/queries/transfer-filters'
 import { validTransferSort } from '@/lib/queries/transfer-sort'
+import { buildWorkerTransferWhere, workerTransferScope } from '@/lib/queries/worker-transfers'
+import { visibleWorkerRegisters } from '@/lib/workers/owned-registers'
 import type { TransferRowT } from '@/types/transfers'
 import type { ActionResultT } from '@/types/action'
 import { toActionFailure } from '@/lib/actions/action-failure'
@@ -21,13 +25,48 @@ type FetchFilteredTransfersOptsT = {
 
 export async function fetchFilteredTransfers(
   where: Where,
-  { skipMedia = false, sort }: FetchFilteredTransfersOptsT = {},
+  opts: FetchFilteredTransfersOptsT = {},
 ): Promise<ActionResultT<TransferRowT[]>> {
-  const elapsed = perfStart()
-
   const session = await requireAuth(MANAGEMENT_ROLES)
   if (!session.success) return session
 
+  return fetchLiveTransferRows('fetchFilteredTransfers', where, opts)
+}
+
+/**
+ * The worker page's channel. It takes the URL params, never a `Where`: the scope is rebuilt here
+ * from the session, because this one is open to an EMPLOYEE (lessons: never accept a client `Where`
+ * in an action for a wider audience).
+ */
+export async function fetchWorkerTransfers(
+  workerId: number,
+  params: Record<string, string>,
+  opts: FetchFilteredTransfersOptsT = {},
+): Promise<ActionResultT<TransferRowT[]>> {
+  const session = await requireAuth(ROLES)
+  if (!session.success) return session
+  const { user } = session
+  if (!canViewWorkerPage(user, workerId)) return { success: false, error: 'Brak uprawnień' }
+
+  const refData = await fetchReferenceData()
+  const registers = visibleWorkerRegisters(refData.cashRegisters, workerId, user.role)
+  const where = buildWorkerTransferWhere(
+    buildTransferFilters(params, { id: user.id }),
+    workerTransferScope(
+      workerId,
+      registers.map((register) => register.id),
+    ),
+  )
+
+  return fetchLiveTransferRows('fetchWorkerTransfers', where, opts)
+}
+
+async function fetchLiveTransferRows(
+  label: string,
+  where: Where,
+  { skipMedia = false, sort }: FetchFilteredTransfersOptsT,
+): Promise<ActionResultT<TransferRowT[]>> {
+  const elapsed = perfStart()
   try {
     // Cancelled rows and CANCELLATION records never leave this action (owner's ruling): they carry no
     // faktura for the ZIP, and the printout shows only live transactions even when the screen doesn't.
@@ -39,7 +78,7 @@ export async function fetchFilteredTransfers(
       sort: validTransferSort(sort),
     })
 
-    console.log(`[PERF] fetchFilteredTransfers ${elapsed()}ms (${rows.length} rows)`)
+    console.log(`[PERF] ${label} ${elapsed()}ms (${rows.length} rows)`)
     return { success: true, data: rows }
   } catch (err) {
     logError('[FETCH_TRANSFERS_FOR_INVOICES]', err)

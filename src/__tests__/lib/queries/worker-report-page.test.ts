@@ -76,9 +76,11 @@ describe.skipIf(!ENV_READY)('getWorkerReportPage (DB)', () => {
       ],
     }))
 
-    await payload.create({
+    // The etap already minted his link; pin it to a token the spec can name.
+    await payload.update({
       collection: 'worker-report-shares',
-      data: { investment: investmentId, worker: workerId, token: workerToken },
+      where: { investment: { equals: investmentId }, worker: { equals: workerId } },
+      data: { token: workerToken },
       overrideAccess: true,
       context: { skipRevalidation: true },
     })

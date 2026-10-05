@@ -4,7 +4,7 @@ import config from '@payload-config'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 import { perfStart } from '@/lib/perf'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
+import { canViewWorkerPage, isManagementRole, MANAGEMENT_ROLES, ROLES } from '@/lib/auth/roles'
 import {
   loadEquipmentAtLocation,
   loadEquipmentById,
@@ -12,11 +12,7 @@ import {
   loadEquipmentOverview,
 } from '@/lib/db/equipment'
 import { assertCompletePage } from '@/lib/queries/assert-complete-page'
-import type {
-  EquipmentDetailT,
-  EquipmentRowT,
-  WarehouseOptionT,
-} from '@/lib/equipment/types'
+import type { EquipmentDetailT, EquipmentRowT, WarehouseOptionT } from '@/lib/equipment/types'
 
 export type EquipmentDatasetT = {
   equipment: EquipmentRowT[]
@@ -94,8 +90,13 @@ export async function fetchEquipmentAtLocation(target: {
   kind: 'holder' | 'warehouse'
   id: number
 }): Promise<EquipmentRowT[]> {
-  const session = await requireAuth(MANAGEMENT_ROLES)
+  const session = await requireAuth(ROLES)
   if (!session.success) throw new Error('Nie jesteś zalogowany')
+  const isAllowed =
+    target.kind === 'holder'
+      ? canViewWorkerPage(session.user, target.id)
+      : isManagementRole(session.user.role)
+  if (!isAllowed) throw new Error('Brak uprawnień')
 
   return loadEquipmentAtLocation(await getPayload({ config }), target)
 }

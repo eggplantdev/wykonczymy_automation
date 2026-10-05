@@ -6,7 +6,6 @@ import {
   SummaryLabelCell,
   SummaryTable,
 } from '@/components/ui/summary-grid'
-import { Description } from '@/components/ui/description'
 import { formatPLDate } from '@/lib/utils/format-date'
 import type { EquipmentRowT } from '@/lib/equipment/types'
 
@@ -17,34 +16,43 @@ const COLS = `${SUMMARY_LABEL_COL} 1fr ${SUMMARY_VALUE_COL}`
  * when somebody leaves. No actions on purpose: handing an item on happens on the item's own page, so
  * that one operation keeps one entry point and one validation path.
  */
-export function HeldEquipmentSection({ equipment }: { equipment: EquipmentRowT[] }) {
+export function HeldEquipmentSection({
+  equipment,
+  linkable,
+}: {
+  equipment: EquipmentRowT[]
+  // `/sprzet/[id]` is management-only, so the worker's own view lists the names as text.
+  linkable: boolean
+}) {
+  if (equipment.length === 0) return null
+
   return (
     <div>
       <h2 className="mb-2 text-sm font-semibold">Na stanie</h2>
 
-      {equipment.length === 0 ? (
-        <Description>Nie ma nic na stanie.</Description>
-      ) : (
-        <SummaryTable cols={COLS}>
-          <SummaryHeaderCell variant="label">Sprzęt</SummaryHeaderCell>
-          <SummaryHeaderCell variant="label">Nr seryjny</SummaryHeaderCell>
-          <SummaryHeaderCell variant="label">Od</SummaryHeaderCell>
+      <SummaryTable cols={COLS}>
+        <SummaryHeaderCell variant="label">Sprzęt</SummaryHeaderCell>
+        <SummaryHeaderCell variant="label">Nr seryjny</SummaryHeaderCell>
+        <SummaryHeaderCell variant="label">Od</SummaryHeaderCell>
 
-          {equipment.map((item) => (
-            <div key={item.id} className="contents">
-              <SummaryLabelCell>
+        {equipment.map((item) => (
+          <div key={item.id} className="contents">
+            <SummaryLabelCell>
+              {linkable ? (
                 <Link href={`/sprzet/${item.id}`} className="hover:underline">
                   {item.name}
                 </Link>
-              </SummaryLabelCell>
-              <SummaryLabelCell>{item.serialNumber || '—'}</SummaryLabelCell>
-              <SummaryLabelCell>
-                {item.locatedAt ? formatPLDate(item.locatedAt) : '—'}
-              </SummaryLabelCell>
-            </div>
-          ))}
-        </SummaryTable>
-      )}
+              ) : (
+                item.name
+              )}
+            </SummaryLabelCell>
+            <SummaryLabelCell>{item.serialNumber || '—'}</SummaryLabelCell>
+            <SummaryLabelCell>
+              {item.locatedAt ? formatPLDate(item.locatedAt) : '—'}
+            </SummaryLabelCell>
+          </div>
+        ))}
+      </SummaryTable>
     </div>
   )
 }

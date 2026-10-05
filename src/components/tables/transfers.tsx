@@ -7,7 +7,7 @@ import { InvoiceCell } from '@/components/transfers/invoice-cell'
 import { NotePopover } from '@/components/transfers/note-popover'
 import { CancelTransferButton } from '@/components/transfers/cancel-transfer-button'
 import { EditTransferDialog } from '@/components/dialogs/edit-transfer-dialog'
-import { canMutateTransfer, type RoleT } from '@/lib/auth/roles'
+import { canMutateTransfer, isManagementRole, type RoleT } from '@/lib/auth/roles'
 import {
   TRANSFER_TYPE_COLORS,
   isCancellationType,
@@ -26,6 +26,8 @@ import {
 import type { TransferRowT } from '@/types/transfers'
 
 const col = createColumnHelper<TransferRowT>()
+
+const REGISTER_COLUMNS = new Set(['sourceRegister', 'targetRegister'])
 
 const allColumns = [
   col.accessor('id', {
@@ -248,12 +250,18 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
   // carries only the id in the row, and the name is joined in after the page is fetched — so the
   // database has nothing to order by and the click would silently sort one page. Those columns narrow
   // by filter instead (EX-777); deriving keeps the whitelist the single source of truth.
-  const columns: ColumnDef<TransferRowT, unknown>[] = [...allColumns, actionsColumn].map(
-    (column) =>
+  const columns: ColumnDef<TransferRowT, unknown>[] = [...allColumns, actionsColumn]
+    .map((column) =>
       isServerSortableColumn(column.id!)
         ? (column as ColumnDef<TransferRowT, unknown>)
         : { ...(column as ColumnDef<TransferRowT, unknown>), enableSorting: false },
-  )
+    )
+    // `/kasa/[id]` is management-only — a worker would follow the link into a 404.
+    .map((column) =>
+      currentUserRole && !isManagementRole(currentUserRole) && REGISTER_COLUMNS.has(column.id!)
+        ? { ...column, cell: (info) => info.getValue() as string }
+        : column,
+    )
 
   if (exclude.length === 0) return columns
   const excludeSet = new Set(exclude)
