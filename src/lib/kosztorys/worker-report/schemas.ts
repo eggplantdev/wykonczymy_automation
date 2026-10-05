@@ -64,7 +64,7 @@ export const acceptSchema = z
     message: 'Nic się nie zmieniło',
   })
 
-const scanQtySchema = z.number().finite().nullable()
+const scanQtySchema = z.number().nullable()
 
 // What one photo reads as. The ref stays the printed text — check digit included — so the resolver,
 // not the AI, decides whether it names a pozycja.

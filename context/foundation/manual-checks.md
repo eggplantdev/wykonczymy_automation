@@ -3813,3 +3813,31 @@ przy kilku pracach, a co najmniej jedna praca ma przedmiar.
       zostają na szerokość ekranu; z obiema wyłączonymi — bez przewijania w bok, jak dotąd.
 - [ ] Nagłówki „Wykonano”, „Zgłaszam” i „Pozostało” zaczynają się na tej samej wysokości (do góry).
 - [ ] Ten sam link po ukraińsku i po rosyjsku: „Opcje”, oba przełączniki i obie kolumny przetłumaczone.
+
+## EX-949 — worker-report-scan — zgłoszenie prac wczytane z papierowej kartki
+
+Potrzebny stan: inwestycja w toku z rozpiską, pracownik przypisany do jej etapu, kartka
+„Drukuj do wypełnienia” tego pracownika wydrukowana i wypełniona ręcznie (kilka ilości, jedna praca
+spoza rozpiski), sfotografowana w dwóch ujęciach.
+
+- [ ] Kosztorys → „Pracownicy” → pracownik → „Drukuj do wypełnienia”: przy każdej pracy numer
+      z cyfrą kontrolną i pusta kolumna na ilość; wygląda i drukuje się jak pozostałe wydruki.
+- [ ] „Zgłoszenia prac” → „Wczytaj z kartki”: wybór pracownika (tylko aktywni, z etapem na trwającej
+      inwestycji), potem inwestycji (sama się wybiera, gdy jest jedna), dwa zdjęcia → „Wczytaj”
+      otwiera przegląd nowego zgłoszenia.
+- [ ] To samo z menu „Pracownicy” w edytorze kosztorysu — pracownik i inwestycja już wybrane.
+- [ ] Przegląd: nagłówek „Wczytane z kartki przez {kto} {data}”, zdjęcia obok wierszy, kliknięcie
+      otwiera powiększenie; wiersze zgadzają się ze zdjęciami.
+- [ ] Nieczytelna ilość → wiersz z „Niepewny odczyt — sprawdź na zdjęciu”.
+- [ ] Ten sam numer na obu zdjęciach → dwa wiersze z „Ta pozycja jest w zgłoszeniu więcej niż raz”,
+      a „Zaznacz wszystkie” nie zaznacza żadnego z nich.
+- [ ] Numer z błędną cyfrą kontrolną → „Nr … nie pasuje do rozpiski — do przypisania ręcznie”,
+      i da się go przypisać do pozycji z listy.
+- [ ] Praca spoza rozpiski w jednostce, której nie ma w kosztorysie → „Brak j.m. w kosztorysie —
+      wybierz pracę z katalogu”; „Zatwierdź” nie przechodzi, dopóki nie wybierzesz pracy z katalogu.
+- [ ] Zatwierdź → ilości etapu w edytorze zgadzają się z przyjętymi; nowa pozycja ma j.m. z katalogu.
+- [ ] Zgłoszenie z kartki nie pojawia się w historii na linku pracownika (`/z/…`).
+- [ ] Kartka wydrukowana przed „Przywróć wersję”, wczytana po nim: wiersze nadal trafiają we właściwe
+      pozycje.
+- [ ] Jedno zdjęcie, którego odczyt się nie uda → na miniaturze „Ponów”; ponowienie czyta tylko to
+      zdjęcie, a zgłoszenie powstaje dopiero, gdy wszystkie są odczytane.

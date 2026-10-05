@@ -685,6 +685,6 @@ with a readable message.
 
 #### Automated
 
-- [x] 6.1 Accept rule DB spec
-- [x] 6.2 isLineReady unit spec
-- [x] 6.3 Review flags DOM spec
+- [x] 6.1 Accept rule DB spec — 714f54a9
+- [x] 6.2 isLineReady unit spec — 714f54a9
+- [x] 6.3 Review flags DOM spec — 714f54a9
