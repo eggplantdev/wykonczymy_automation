@@ -3,10 +3,12 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { canViewWorkerPage, MANAGEMENT_ROLES, ROLES } from '@/lib/auth/roles'
+import { REJECTED_DRAFTS_LIMIT } from '@/lib/constants/expense-drafts'
 import { getDb } from '@/lib/db/get-db'
 import {
   listDraftTransferIds,
   listPendingExpenseDrafts,
+  listRejectedExpenseDrafts,
   listWorkerExpenseDrafts,
   type ExpenseDraftRowT,
 } from '@/lib/db/worker-expense-drafts'
@@ -26,6 +28,13 @@ export async function fetchPendingExpenseDrafts(): Promise<ExpenseDraftRowT[]> {
   if (!session.success) throw new Error('Brak uprawnień')
 
   return listPendingExpenseDrafts(await getDb(await getPayload({ config })))
+}
+
+export async function fetchRejectedExpenseDrafts(): Promise<ExpenseDraftRowT[]> {
+  const session = await requireAuth(MANAGEMENT_ROLES)
+  if (!session.success) throw new Error('Brak uprawnień')
+
+  return listRejectedExpenseDrafts(await getDb(await getPayload({ config })), REJECTED_DRAFTS_LIMIT)
 }
 
 export async function fetchDraftTransferIds(transferIds?: number[]): Promise<number[]> {

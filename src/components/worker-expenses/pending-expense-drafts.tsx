@@ -1,15 +1,23 @@
 'use client'
 
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { FormDialog } from '@/components/ui/form-dialog'
+import {
+  SUMMARY_LABEL_COL,
+  SummaryHeaderCell,
+  SummaryLabelCell,
+  SummaryTable,
+} from '@/components/ui/summary-grid'
+import { MediaPreviewButton } from '@/components/dialogs/media-preview-button'
 import { ExpenseForm, type ExpenseFormPrefillT } from '@/components/forms/expense-form/expense-form'
 import { makeLineItem } from '@/components/forms/expense-form/bulk-expense-form'
 import { resolveExpenseCategoryId } from '@/components/forms/expense-form/resolve-expense-category-id'
 import { rejectExpenseDraftAction } from '@/lib/actions/worker-expense-drafts'
+import { INVOICE_PREVIEW_LABELS } from '@/lib/media/wording'
 import { DEFAULT_EXPENSE_CATEGORY_NAME } from '@/lib/constants/transfers'
 import type { ExpenseDraftMediaT, ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 import { formatPLDateTime } from '@/lib/utils/format-date'
@@ -23,6 +31,8 @@ type PropsT = {
   drafts: ExpenseDraftRowT[]
   referenceData: ReferenceDataT
 }
+
+const COLS = `auto ${SUMMARY_LABEL_COL} auto auto minmax(min(16rem, 40vw), 1fr) auto`
 
 type AcceptingT = { draft: ExpenseDraftRowT; prefill: ExpenseFormPrefillT }
 
@@ -41,6 +51,7 @@ async function downloadPages(media: ExpenseDraftMediaT[]): Promise<File[]> {
 export function PendingExpenseDrafts({ drafts, referenceData }: PropsT) {
   const router = useRouter()
   const openDialog = useOptimisticFormStore((s) => s.openDialog)
+  const closeDialog = useOptimisticFormStore((s) => s.closeDialog)
   const [loadingId, setLoadingId] = useState<number | undefined>()
   const [accepting, setAccepting] = useState<AcceptingT | undefined>()
   const [rejecting, setRejecting] = useState<ExpenseDraftRowT | undefined>()
@@ -49,7 +60,7 @@ export function PendingExpenseDrafts({ drafts, referenceData }: PropsT) {
 
   // The pages are re-uploaded on save rather than reused by id: „Generuj" renames the files, and the
   // regular upload path is what files a page under its row.
-  async function handleAccept(draft: ExpenseDraftRowT) {
+  async function handleOpen(draft: ExpenseDraftRowT) {
     setLoadingId(draft.id)
     try {
       const files = await downloadPages(draft.media)
@@ -90,43 +101,53 @@ export function PendingExpenseDrafts({ drafts, referenceData }: PropsT) {
       return
     }
     toastMessage('Zgłoszenie odrzucone')
+    closeDialog()
+    setAccepting(undefined)
     router.refresh()
   }
 
   return (
-    <section className="flex flex-col gap-2">
+    <section className="flex max-w-4xl flex-col gap-2">
       <h2 className="text-sm font-semibold">Wydatki zgłoszone przez pracowników</h2>
-      <ul className="flex flex-col divide-y rounded-md border text-sm">
+      <SummaryTable cols={COLS}>
+        <SummaryHeaderCell variant="label">Pracownik</SummaryHeaderCell>
+        <SummaryHeaderCell variant="label">Inwestycja</SummaryHeaderCell>
+        <SummaryHeaderCell variant="label">Wysłano</SummaryHeaderCell>
+        <SummaryHeaderCell variant="label">Załączniki</SummaryHeaderCell>
+        <SummaryHeaderCell variant="label">Notatka</SummaryHeaderCell>
+        <SummaryHeaderCell variant="label">{null}</SummaryHeaderCell>
         {drafts.map((draft) => (
-          <li
-            key={draft.id}
-            className="flex flex-col gap-2 px-3 py-2 sm:flex-row sm:items-start sm:justify-between"
-          >
-            <div className="min-w-0">
-              <div className="font-medium">
-                {draft.workerName} · {draft.investmentName}
-              </div>
-              <div className="text-muted-foreground text-xs">
-                {formatPLDateTime(draft.sentAt)} · zdjęć: {draft.media.length}
-              </div>
-              {draft.note && <div className="mt-1 break-words">{draft.note}</div>}
-            </div>
-            <div className="flex shrink-0 gap-2">
+          <Fragment key={draft.id}>
+            <SummaryLabelCell className="flex items-center">{draft.workerName}</SummaryLabelCell>
+            <SummaryLabelCell className="flex items-center">
+              {draft.investmentName}
+            </SummaryLabelCell>
+            <SummaryLabelCell className="flex items-center">
+              {formatPLDateTime(draft.sentAt)}
+            </SummaryLabelCell>
+            <SummaryLabelCell className="flex items-center justify-center">
+              <MediaPreviewButton
+                labels={INVOICE_PREVIEW_LABELS}
+                files={draft.media}
+                variant="compact"
+              />
+            </SummaryLabelCell>
+            <SummaryLabelCell className="flex items-center break-words">
+              {draft.note ?? '—'}
+            </SummaryLabelCell>
+            <SummaryLabelCell className="flex items-center">
               <Button
                 size="sm"
                 disabled={loadingId !== undefined}
-                onClick={() => handleAccept(draft)}
+                onClick={() => handleOpen(draft)}
               >
                 {loadingId === draft.id && <Loader2 className="animate-spin" />}
-                Przyjmij
+                Zobacz
               </Button>
-              <Button size="sm" variant="outline" onClick={() => setRejecting(draft)}>
-                Odrzuć
-              </Button>
-            </div>
-          </li>
+            </SummaryLabelCell>
+          </Fragment>
         ))}
-      </ul>
+      </SummaryTable>
 
       {accepting && (
         <FormDialog
@@ -144,6 +165,16 @@ export function PendingExpenseDrafts({ drafts, referenceData }: PropsT) {
               onSubmitSuccess={onSubmitSuccess}
               formId={formIdOf(accepting.draft.id)}
               prefill={accepting.prefill}
+              secondaryAction={
+                <Button
+                  type="button"
+                  variant="destructive"
+                  className="ml-auto"
+                  onClick={() => setRejecting(accepting.draft)}
+                >
+                  Odrzuć
+                </Button>
+              }
             />
           )}
         </FormDialog>

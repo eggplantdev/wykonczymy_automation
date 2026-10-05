@@ -18,6 +18,7 @@ import {
   SEARCH_FILTER_TOOLBAR_WIDTH,
 } from '@/components/filters/search-filter-input'
 import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
+import { ActiveFilterButton } from '@/components/filters/active-filter-button'
 import { ClearButton } from '@/components/filters/clear-button'
 import { DateFilters } from '@/components/filters/date-filters'
 import { StatButton } from '@/components/ui/stat-button'
@@ -156,7 +157,8 @@ export function TransferFilters({
         (workers && workers.length > 0) ||
         showPaymentMethodFilter ||
         (otherCategories && otherCategories.length > 0) ||
-        (expenseCategories && expenseCategories.length > 0)) && (
+        (expenseCategories && expenseCategories.length > 0) ||
+        showWorkerDraftsFilter) && (
         <ControlGrid>
           {showTypeFilter && (
             <FilterMultiSelect
@@ -253,6 +255,14 @@ export function TransferFilters({
               searchable
             />
           )}
+
+          {showWorkerDraftsFilter && (
+            <ActiveFilterButton
+              isActive={onlyWorkerDrafts}
+              onChange={setOnlyWorkerDrafts}
+              activeLabel="Zgłoszone wydatki"
+            />
+          )}
         </ControlGrid>
       )}
 
@@ -279,21 +289,6 @@ export function TransferFilters({
         />
 
         <FilterMultiSelect label="Anulowane" icon={Ban} toggles={cancelledToggles} />
-
-        {showWorkerDraftsFilter && (
-          <FilterMultiSelect
-            label="Zgłoszenia"
-            icon={HardHat}
-            toggles={[
-              {
-                id: 'workerDrafts',
-                label: 'Zgłoszenia pracowników',
-                active: onlyWorkerDrafts,
-                onToggle: () => setOnlyWorkerDrafts(!onlyWorkerDrafts),
-              },
-            ]}
-          />
-        )}
 
         <ClearButton onClick={clearEntityFilters} disabled={!hasEntityFilters}>
           Wyczyść filtry

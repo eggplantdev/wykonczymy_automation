@@ -8,6 +8,9 @@ import { formatPLDate, formatPLDateTime } from '@/lib/utils/format-date'
 import { InvoiceCell } from '@/components/transfers/invoice-cell'
 import { NotePopover } from '@/components/transfers/note-popover'
 import { CancelTransferButton } from '@/components/transfers/cancel-transfer-button'
+import { MediaPreviewButton } from '@/components/dialogs/media-preview-button'
+import { RestoreExpenseDraftButton } from '@/components/worker-expenses/restore-expense-draft-button'
+import { INVOICE_PREVIEW_LABELS } from '@/lib/media/wording'
 import { EditTransferDialog } from '@/components/dialogs/edit-transfer-dialog'
 import { canMutateTransfer, isManagementRole, type RoleT } from '@/lib/auth/roles'
 import {
@@ -36,7 +39,7 @@ const allColumns = [
     id: 'id',
     header: 'ID',
     meta: { printValue: (row) => `#${row.id}` },
-    cell: (info) => `#${info.getValue()}`,
+    cell: (info) => (info.row.original.rejectedDraftId ? '—' : `#${info.getValue()}`),
   }),
   col.accessor('date', {
     id: 'date',
@@ -49,7 +52,8 @@ const allColumns = [
     header: 'Kwota',
     meta: { printValue: transferAmountText },
     cell: (info) => {
-      const { type, cancelled, settled, netAmount } = info.row.original
+      const { type, cancelled, settled, netAmount, rejectedDraftId } = info.row.original
+      if (rejectedDraftId) return '—'
       const isMuted = cancelled || type === 'CANCELLATION'
       const color = settled ? SETTLED_TYPE.color : TRANSFER_TYPE_COLORS[type]
       // Brutto stays the primary figure: this column is summed against the kasa balance, and only
@@ -101,6 +105,9 @@ const allColumns = [
         {info.row.original.fromWorkerDraft && (
           <span className={cn(BADGE_BASE, BADGE_TONE.muted)}>od pracownika</span>
         )}
+        {info.row.original.rejectedDraftId && (
+          <span className={cn(BADGE_BASE, BADGE_TONE.muted)}>odrzucone zgłoszenie</span>
+        )}
       </span>
     ),
   }),
@@ -130,7 +137,16 @@ const allColumns = [
     id: 'invoice',
     header: 'Faktura',
     meta: { align: 'center' },
-    cell: (info) => <InvoiceCell transactionId={info.row.original.id} invoices={info.getValue()} />,
+    cell: (info) =>
+      info.row.original.rejectedDraftId ? (
+        <MediaPreviewButton
+          labels={INVOICE_PREVIEW_LABELS}
+          files={info.getValue()}
+          variant="compact"
+        />
+      ) : (
+        <InvoiceCell transactionId={info.row.original.id} invoices={info.getValue()} />
+      ),
   }),
   col.accessor('invoiceNote', {
     id: 'invoiceNote',
@@ -223,6 +239,13 @@ export function getTransferColumns(exclude: string[] = [], options: ColumnOption
     meta: { align: 'right' },
     cell: (info) => {
       const row = info.row.original
+      if (row.rejectedDraftId) {
+        return (
+          <div className="flex justify-end">
+            <RestoreExpenseDraftButton draftId={row.rejectedDraftId} />
+          </div>
+        )
+      }
       if (row.cancelled || isCancellationType(row.type)) return null
 
       // Courtesy, not a gate — the collection hook refuses either write regardless. Read off

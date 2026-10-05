@@ -129,6 +129,19 @@ export async function listPendingExpenseDrafts(db: DbExecutorT): Promise<Expense
   return res.rows.map(toDraftRow)
 }
 
+export async function listRejectedExpenseDrafts(
+  db: DbExecutorT,
+  limit: number,
+): Promise<ExpenseDraftRowT[]> {
+  const res = await db.execute(sql`
+    ${DRAFT_SELECT}
+    WHERE d.status = 'rejected' AND i.trashed_at IS NULL
+    ORDER BY d.decided_at DESC, d.id DESC
+    LIMIT ${limit}
+  `)
+  return res.rows.map(toDraftRow)
+}
+
 export async function readExpenseDraft(
   db: DbExecutorT,
   draftId: number,
@@ -157,6 +170,86 @@ export async function decideExpenseDraft(
       transfer_id = ${decision.transferId}
     WHERE id = ${decision.draftId} AND status = 'pending'
     RETURNING id
+  `)
+  return res.rows.length > 0
+}
+
+/** Only a refusal is undone — an accepted draft already stands behind a booked expense. */
+export async function restoreRejectedExpenseDraft(
+  db: DbExecutorT,
+  draftId: number,
+): Promise<boolean> {
+  const res = await db.execute(sql`
+    UPDATE worker_expense_drafts
+    SET status = 'pending', decided_at = NULL, decided_by = NULL, transfer_id = NULL
+    WHERE id = ${draftId} AND status = 'rejected'
+    RETURNING id
+  `)
+  return res.rows.length > 0
+}
+
+/** Only the sender, and only while the draft waits — a decided one is a record. */
+export async function updatePendingExpenseDraft(
+  db: DbExecutorT,
+  draft: {
+    draftId: number
+    workerId: number
+    investmentId: number
+    cashRegisterId: number
+    note: string | null
+  },
+): Promise<boolean> {
+  const res = await db.execute(sql`
+    UPDATE worker_expense_drafts
+    SET investment_id = ${draft.investmentId}, cash_register_id = ${draft.cashRegisterId},
+      note = ${draft.note}
+    WHERE id = ${draft.draftId} AND worker_id = ${draft.workerId} AND status = 'pending'
+    RETURNING id
+  `)
+  return res.rows.length > 0
+}
+
+/**
+ * Appended after the draft's last page, and like the send only when every page is media the worker
+ * uploaded himself. `false` = refused (not his, no longer pending, or a foreign page).
+ */
+export async function appendExpenseDraftPages(
+  db: DbExecutorT,
+  pages: { draftId: number; workerId: number; mediaIds: number[] },
+): Promise<boolean> {
+  const values = pages.mediaIds.map((mediaId, position) => sql`(${mediaId}::int, ${position}::int)`)
+  const res = await db.execute(sql`
+    WITH draft AS (
+      SELECT id FROM worker_expense_drafts
+      WHERE id = ${pages.draftId} AND worker_id = ${pages.workerId} AND status = 'pending'
+    ), pages_in AS (
+      SELECT v.media_id, v.position
+      FROM (VALUES ${sql.join(values, sql.raw(', '))}) AS v(media_id, position)
+      JOIN media m ON m.id = v.media_id AND m.created_by_id = ${pages.workerId}
+    ), next AS (
+      SELECT COALESCE(MAX(position) + 1, 0) AS start
+      FROM worker_expense_draft_media WHERE draft_id = ${pages.draftId}
+    )
+    INSERT INTO worker_expense_draft_media (draft_id, media_id, position)
+    SELECT draft.id, pages_in.media_id, next.start + pages_in.position FROM draft, pages_in, next
+    WHERE (SELECT count(*) FROM pages_in) = ${pages.mediaIds.length}
+    RETURNING media_id
+  `)
+  return res.rows.length === pages.mediaIds.length
+}
+
+/** A draft keeps at least one page — the whole wydatek is what goes once the last photo would. */
+export async function removeExpenseDraftPage(
+  db: DbExecutorT,
+  page: { draftId: number; workerId: number; mediaId: number },
+): Promise<boolean> {
+  const res = await db.execute(sql`
+    DELETE FROM worker_expense_draft_media dm
+    USING worker_expense_drafts d
+    WHERE dm.draft_id = d.id AND d.id = ${page.draftId} AND d.worker_id = ${page.workerId}
+      AND d.status = 'pending' AND dm.media_id = ${page.mediaId}
+      AND (SELECT count(*) FROM worker_expense_draft_media WHERE draft_id = ${page.draftId}) > 1
+    RETURNING dm.media_id
   `)
   return res.rows.length > 0
 }

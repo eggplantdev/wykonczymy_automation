@@ -83,6 +83,7 @@ type TransferFormPropsT = {
   keepOpen?: boolean
   formId?: string
   prefill?: ExpenseFormPrefillT
+  secondaryAction?: React.ReactNode
 }
 
 const FORM_ID = 'expense'
@@ -93,6 +94,7 @@ export function ExpenseForm({
   keepOpen,
   formId = FORM_ID,
   prefill,
+  secondaryAction,
 }: TransferFormPropsT) {
   const { recoveredFiles, submit } = useFormSubmit(formId)
 
@@ -409,7 +411,12 @@ export function ExpenseForm({
         <RegisterBalanceSummary registerBalance={registerBalance} total={total} />
       )}
 
-      <FormFooter className="mt-6" label="Zapisz" disabled={isIngesting} />
+      <FormFooter
+        className="mt-6"
+        label="Zapisz"
+        disabled={isIngesting}
+        secondaryAction={secondaryAction}
+      />
     </FormShell>
   )
 }

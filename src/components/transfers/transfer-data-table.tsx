@@ -95,7 +95,8 @@ export function TransferDataTable({
         sorting={sorting}
         onSortingChange={(next) => updateParam('sort', sortingStateToParam(next))}
         getRowClassName={(row) => {
-          if (row.cancelled) return '[&_td]:line-through [&_td]:text-muted-foreground'
+          if (row.cancelled || row.rejectedDraftId)
+            return '[&_td]:line-through [&_td]:text-muted-foreground'
           if (row.type === 'CANCELLATION') return '[&_td]:text-muted-foreground'
           return ''
         }}

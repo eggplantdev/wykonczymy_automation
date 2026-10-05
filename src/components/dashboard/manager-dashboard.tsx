@@ -6,6 +6,7 @@ import { fetchReferenceData } from '@/lib/queries/reference-data'
 import {
   fetchDraftTransferIds,
   fetchPendingExpenseDrafts,
+  fetchRejectedExpenseDrafts,
 } from '@/lib/queries/worker-expense-drafts'
 import type { RoleT } from '@/lib/auth/roles'
 import { UserRegisterStats } from '@/components/dashboard/user-register-stats'
@@ -24,6 +25,7 @@ export async function ManagerDashboard({ searchParams, user }: ManagerDashboardP
   const step = perfStart()
   const { page, limit } = parsePagination(searchParams)
   const sort = parseTransferSort(searchParams)
+  const showWorkerDrafts = searchParams.workerDrafts === '1'
 
   const [
     {
@@ -37,11 +39,13 @@ export async function ManagerDashboard({ searchParams, user }: ManagerDashboardP
     pendingDrafts,
     referenceDataBase,
     draftTransferIds,
+    rejectedDrafts,
   ] = await Promise.all([
     fetchManagerDashboardData(),
     fetchPendingExpenseDrafts(),
     fetchReferenceData(),
-    searchParams.workerDrafts === '1' ? fetchDraftTransferIds() : undefined,
+    showWorkerDrafts ? fetchDraftTransferIds() : undefined,
+    showWorkerDrafts ? fetchRejectedExpenseDrafts() : undefined,
   ])
   const where = buildTransferFilters(searchParams, { id: 0 })
   console.log(`[PERF] ManagerDashboard fetchManagerDashboardData ${step()}ms`)
@@ -70,6 +74,7 @@ export async function ManagerDashboard({ searchParams, user }: ManagerDashboardP
             sort,
           },
           baseUrl: '/',
+          rejectedDrafts,
           cancelledTransactionAudit: searchParams.cancelledTransactionAudit === '1',
           // TODO: Consider restricting manager's transaction table to only transactions
           // from/to registers they own (currently managers see all transactions).

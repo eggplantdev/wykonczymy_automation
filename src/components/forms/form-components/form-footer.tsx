@@ -16,6 +16,7 @@ type FormFooterPropsT = {
   // the question.
   awaitingAnswer?: boolean
   onCancel?: () => void
+  secondaryAction?: React.ReactNode
 }
 
 export default function FormFooter({
@@ -25,6 +26,7 @@ export default function FormFooter({
   disabled = false,
   awaitingAnswer = false,
   onCancel,
+  secondaryAction,
 }: FormFooterPropsT) {
   const form = useFormContext()
   const keepOpen = useOptimisticFormStore((s) => s.keepOpen)
@@ -45,6 +47,7 @@ export default function FormFooter({
           <Button disabled={isSubmitting || disabled} type="submit">
             {isSubmitting && submittingLabel ? submittingLabel : label}
           </Button>
+          {secondaryAction}
           {showKeepOpen && (
             <label className="ml-auto flex cursor-pointer items-center gap-2 text-sm select-none">
               <Checkbox
