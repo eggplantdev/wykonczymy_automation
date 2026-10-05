@@ -1,10 +1,10 @@
 ---
 change_id: worker-self-credentials
 title: A worker changes their own e-mail and password from their page
-status: implemented
+status: archived
 created: 2026-10-05
 updated: 2026-10-05
-archived_at: null
+archived_at: 2026-10-05T16:23:54Z
 branch: worker-self-credentials
 worktree: ../wykonczymy-worktrees/worker-self-credentials
 ---
