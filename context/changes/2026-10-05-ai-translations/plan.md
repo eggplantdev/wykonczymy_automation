@@ -500,17 +500,17 @@ Run **once**, after the final phase.
 
 #### Automated
 
-- [x] 1.1 translate.test.ts passes
-- [x] 1.2 ai-translation-fill.test.ts passes
-- [x] 1.3 openrouter-fallback.test.ts still passes after the client move
+- [x] 1.1 translate.test.ts passes — 399ed2f2
+- [x] 1.2 ai-translation-fill.test.ts passes — 399ed2f2
+- [x] 1.3 openrouter-fallback.test.ts still passes after the client move — 399ed2f2
 
 ### Phase 2: Kosztorys — „Opcje" bulk action + Problemy
 
 #### Automated
 
-- [ ] 2.1 kosztorys-translations action spec passes
-- [ ] 2.2 kosztorys-item-translations DB spec passes against 5435
-- [ ] 2.3 row-condition spec passes
+- [x] 2.1 kosztorys-translations action spec passes
+- [x] 2.2 kosztorys-item-translations DB spec passes against 5435
+- [x] 2.3 row-condition spec passes
 
 ### Phase 3: Katalog prac bulk action
 

@@ -10,7 +10,7 @@ import {
   clientShareCeilingLabel,
 } from '@/lib/kosztorys/subcontractor-price-guard'
 import type { KosztorysV2RowT, ToolPlaneT } from '@/lib/kosztorys/types'
-import { isTranslationStale } from '@/lib/i18n/description-translations'
+import { isTranslationStale, translationText } from '@/lib/i18n/description-translations'
 import { LANGUAGE_SHORT, TRANSLATION_LANGUAGES } from '@/lib/i18n/languages'
 import { translationColumnKey } from '@/lib/kosztorys/translation-column-keys'
 import { REPORT_FIELD } from '@/lib/kosztorys/worker-report/report-field'
@@ -572,17 +572,26 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     problemLabel: (count) => percentRateProblemLabel('own_tools', count),
     matches: (row, ctx) => settledAtPercentRate(row, ctx, 'own_tools'),
   },
-  // The opis moved on and its translation did not, so the crew reads the old scope. A missing
-  // translation is not listed: most rozpiski never reach a crew that needs one, and the katalog is
-  // where „bez tłumaczenia" is worked through.
-  ...TRANSLATION_LANGUAGES.map(
-    (language): RowConditionT => ({
+  // A pozycja with no translation reads Polish to the crew; one whose opis moved on reads the old
+  // scope. Both are what „Uzupełnij tłumaczenia (AI)" fills, so both are listed.
+  ...TRANSLATION_LANGUAGES.flatMap((language): RowConditionT[] => [
+    {
+      id: `missing-translation-${language}`,
+      label: `bez tłumaczenia (${LANGUAGE_SHORT[language]})`,
+      kind: 'diagnostic',
+      problemGroup: 'translations',
+      revealsColumns: [translationColumnKey(language)],
+      matches: (row) =>
+        (row.description ?? '').trim() !== '' &&
+        translationText(row.descriptionTranslations, language) === '',
+    },
+    {
       id: `stale-translation-${language}`,
       label: `z nieaktualnym tłumaczeniem (${LANGUAGE_SHORT[language]})`,
       kind: 'diagnostic',
       problemGroup: 'translations',
       revealsColumns: [translationColumnKey(language)],
       matches: (row) => isTranslationStale(row.descriptionTranslations, language, row.description),
-    }),
-  ),
+    },
+  ]),
 ]

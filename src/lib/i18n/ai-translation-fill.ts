@@ -129,3 +129,17 @@ export function sectionTemplatesFromAi(
   }
   return out
 }
+
+// One write per row: an UPDATE … FROM VALUES matching a row twice applies only one of the two, so a
+// row taking uk from the katalog and ru from the AI would lose one of them.
+export function mergeRowWrites(writes: readonly RowWriteT[]): RowWriteT[] {
+  const byId = new Map<number, RowWriteT>()
+  for (const write of writes) {
+    const prior = byId.get(write.id)
+    byId.set(
+      write.id,
+      prior ? { ...prior, translations: { ...prior.translations, ...write.translations } } : write,
+    )
+  }
+  return [...byId.values()]
+}

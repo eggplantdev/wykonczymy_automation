@@ -3,6 +3,8 @@
 import { sql } from '@payloadcms/db-vercel-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import { textOrNull } from '@/lib/db/row-coerce'
+import { fillDescriptionTranslations } from '@/lib/db/fill-description-translations'
+import type { RowWriteT } from '@/lib/i18n/ai-translation-fill'
 import {
   toDescriptionTranslations,
   type DescriptionTranslationsT,
@@ -56,4 +58,24 @@ export async function setItemTexts(
   if (res.rows.length > 0)
     await db.execute(sql`UPDATE investments SET updated_at = now() WHERE id = ${investmentId}`)
   return res.rows.length
+}
+
+/** The AI fill's writer — translations only, never the opis or j.m. a manager may be editing. */
+export async function setItemTranslations(
+  db: DbExecutorT,
+  investmentId: number,
+  rows: readonly RowWriteT[],
+): Promise<number> {
+  const written = await fillDescriptionTranslations(db, 'kosztorys_items', rows, investmentId)
+  if (written.length > 0)
+    await db.execute(sql`UPDATE investments SET updated_at = now() WHERE id = ${investmentId}`)
+  return written.length
+}
+
+export async function getSectionNames(db: DbExecutorT, investmentId: number): Promise<string[]> {
+  const res = await db.execute(sql`
+    SELECT DISTINCT name FROM kosztorys_sections
+    WHERE investment_id = ${investmentId} AND trim(coalesce(name, '')) <> ''
+  `)
+  return res.rows.map((row) => String(row.name))
 }

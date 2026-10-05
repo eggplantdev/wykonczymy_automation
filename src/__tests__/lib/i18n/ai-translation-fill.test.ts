@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   aiFillWrites,
+  mergeRowWrites,
   needsTranslation,
   planAiFill,
   sectionLanguagesToFill,
@@ -129,5 +130,22 @@ describe('section templates', () => {
     expect(
       sectionTemplatesFromAi('Łazienka 2', { uk: 'Ванна кімната 2', ru: 'Ванная 1' }),
     ).toEqual({ uk: 'Ванна кімната #' })
+  })
+})
+
+describe('mergeRowWrites', () => {
+  it('folds a katalog write and an AI write for the same row into one', () => {
+    const uk = { text: 'Фарбування', source: 'Malowanie' }
+    const ru = { text: 'Покраска', source: 'Malowanie' }
+    expect(
+      mergeRowWrites([
+        { id: 1, description: 'Malowanie', translations: { uk } },
+        { id: 2, description: 'Gruntowanie', translations: { uk } },
+        { id: 1, description: 'Malowanie', translations: { ru } },
+      ]),
+    ).toEqual([
+      { id: 1, description: 'Malowanie', translations: { uk, ru } },
+      { id: 2, description: 'Gruntowanie', translations: { uk } },
+    ])
   })
 })

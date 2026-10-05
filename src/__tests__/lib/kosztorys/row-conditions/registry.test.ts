@@ -468,6 +468,17 @@ describe('„z nieaktualnym tłumaczeniem" — per language', () => {
     ).toBe(false)
   })
 
+  it('lists a pozycja with an opis and no translation as missing, never as stale', () => {
+    const untranslated = row({ description: OPIS, descriptionTranslations: { uk: current } })
+    expect(matches('missing-translation-ru', untranslated)).toBe(true)
+    expect(matches('missing-translation-uk', untranslated)).toBe(false)
+    expect(matches('stale-translation-ru', untranslated)).toBe(false)
+  })
+
+  it('does not list a pozycja with no opis as missing a translation', () => {
+    expect(matches('missing-translation-uk', row({ description: '  ', descriptionTranslations: {} }))).toBe(false)
+  })
+
   it('reveals the column of its own language', () => {
     expect(columnsRevealedBy(['stale-translation-ru'])).toEqual(
       new Set(['descriptionTranslation__ru']),
