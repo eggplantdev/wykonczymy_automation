@@ -1,7 +1,7 @@
 ---
 change_id: ai-translations
 title: AI fills missing and stale uk/ru translations
-status: implementing
+status: implemented
 created: 2026-10-05
 updated: 2026-10-05
 archived_at: null
