@@ -25,7 +25,7 @@ export async function deleteOrphanedMediaAction(mediaIds: number[]) {
   if (!session.success) return { success: false, error: session.error }
   const { user } = session
 
-  return runAuthorizedHandler(
+  return runAuthorizedHandler<undefined>(
     `deleteOrphanedMediaAction count=${mediaIds.length}`,
     async (payload) => {
       const ids = isManagementRole(user.role)
