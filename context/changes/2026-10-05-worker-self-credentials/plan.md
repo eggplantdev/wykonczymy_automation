@@ -380,4 +380,4 @@ Run **once**, after the final phase.
 
 #### Automated
 
-- [x] 3.1 No phase-scoped automated check (UI + prose); covered by the Whole-tree Gate
+- [x] 3.1 No phase-scoped automated check (UI + prose); covered by the Whole-tree Gate — 1bdff43c

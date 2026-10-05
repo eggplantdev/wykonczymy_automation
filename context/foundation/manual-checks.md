@@ -3679,3 +3679,22 @@ przypisane do etapów w kilku inwestycjach — w tym co najmniej jednej zakończ
 - [ ] „Drukuj PDF" dla pracownika polskiego: nagłówki brzmią jak na jego linku („Cena j.m. netto — z narzędziami (podwykonawca)" itd.) i nadal mieszczą się na A4 poziomo, bez nachodzenia na siebie.
 - [ ] „Drukuj PDF" oferty dla klienta: bez zmian względem wcześniejszego wydruku.
 - [ ] „Zapisz jako PDF" w przeglądarce proponuje nazwę pliku „{inwestycja} — {imię}" jak dotąd.
+
+## EX-989 — worker-self-credentials — pracownik zmienia swój e-mail i hasło (2026-10-05)
+
+Potrzebny stan: dwa konta pracowników (rola Pracownik) ze znanymi hasłami oraz konto managera.
+
+- [ ] Jako pracownik, w DevTools: `PATCH /api/users/<własne id>` z nowym `password` (ciasteczko
+      z przeglądarki) → 403, a stare hasło nadal loguje.
+- [ ] Jako pracownik na telefonie (390px): `/pracownicy/<własne id>` pokazuje „Zmień e-mail lub
+      hasło"; okno mieści się na ekranie i da się je wypełnić.
+- [ ] Błędne „Obecne hasło" → „Nieprawidłowe obecne hasło.", nic się nie zmienia.
+- [ ] Zmiana samego e-maila → strona pokazuje nowy e-mail; po wylogowaniu loguje nowy e-mail ze starym
+      hasłem.
+- [ ] Zmiana samego hasła → sesja, z której zmieniono, działa do wylogowania; potem loguje nowe hasło,
+      stare nie.
+- [ ] E-mail innego pracownika → „Ten adres e-mail jest już zajęty.".
+- [ ] Jako manager na stronie innego pracownika → brak „Zmień e-mail lub hasło"; na własnej stronie →
+      jest i działa.
+- [ ] Strona „Reset hasła": niezgodne hasła i hasło 5-znakowe pokazują te same komunikaty co dotąd.
+- [ ] Zamknij i otwórz okno ponownie (także po odświeżeniu strony) → żadne hasło nie jest wpisane.
