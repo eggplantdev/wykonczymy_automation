@@ -7,11 +7,10 @@ type PropsT = {
   search: string
   onSearch: (value: string) => void
   chips: ReactNode
-  actions?: ReactNode
   className?: string
 }
 
-export function ReportBar({ search, onSearch, chips, actions, className }: PropsT) {
+export function ReportBar({ search, onSearch, chips, className }: PropsT) {
   const { t } = useTranslation('report')
   return (
     <div className={className}>
@@ -25,7 +24,6 @@ export function ReportBar({ search, onSearch, chips, actions, className }: Props
         />
       </div>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">{chips}</div>
-      {actions && <div className="sm:ml-auto">{actions}</div>}
     </div>
   )
 }

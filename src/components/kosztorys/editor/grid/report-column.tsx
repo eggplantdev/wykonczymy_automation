@@ -21,6 +21,8 @@ export type ReportModeT = {
   pendingQtyByItem: Record<number, number>
   // Only Opis prac and „Zgłaszam” — the rest of the sheet is context he can switch back to.
   isCompact: boolean
+  // „Podsumowanie”: his sheet as it stands — every column, no „Zgłaszam”, nothing to type.
+  isSummary: boolean
   onReportQty: (itemId: number, qty: number) => void
 }
 
@@ -117,9 +119,14 @@ export function reportEditorSeams(report: ReportModeT, isWide: boolean): Preview
 // list says the same thing below the grid.
 function withReportColumn(
   columns: Column<KosztorysV2RowT>[],
-  { isCompact, pendingQtyByItem }: Pick<ReportModeT, 'isCompact' | 'pendingQtyByItem'>,
+  {
+    isCompact,
+    isSummary,
+    pendingQtyByItem,
+  }: Pick<ReportModeT, 'isCompact' | 'isSummary' | 'pendingQtyByItem'>,
   isWide: boolean,
 ): Column<KosztorysV2RowT>[] {
+  if (isSummary) return columns
   if (isCompact) {
     const description = columns.find((column) => column.id === 'description')
     // By id, like Opis prac: the owner's worker view may have hidden it. A phone has no room for it.

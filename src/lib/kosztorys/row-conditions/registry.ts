@@ -372,8 +372,8 @@ export const ROW_CONDITIONS: RowConditionT[] = [
   {
     id: 'report-unreported',
     label: 'bez zgłoszonej ilości',
-    // The worker's „Tylko zgłoszone” on his report link — his own reading gesture, but on a document
-    // with no „Filtry” menu, so it rides the client kind the preview already engages.
+    // The worker's „Tylko zgłaszane przeze mnie” on his report link — his own reading gesture, but
+    // on a document with no „Filtry” menu, so it rides the client kind the preview already engages.
     kind: 'client',
     // `!x` rather than `!(x > 0)`: a negative is a typo the send bar refuses, so it must stay in view.
     matches: (row) => !row[REPORT_FIELD],

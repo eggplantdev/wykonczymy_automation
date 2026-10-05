@@ -49,7 +49,8 @@ export function useKosztorysViewState({
   // „Pokaż wszystkie pozycje" — the investor's one-visit override of the owner's hide. Not persisted:
   // every visit opens on the document the owner curated.
   const [showAllRows, setShowAllRows] = useState(false)
-  // The worker's „Tylko zgłoszone” — a check of his draft before he sends it. Not persisted either.
+  // The worker's „Tylko zgłaszane przeze mnie” — a check of his draft before he sends it. Not
+  // persisted either.
   const [reportedOnly, setReportedOnly] = useState(false)
   const engagedConditionIds = preview
     ? clientConditionIds(clientView?.hideEmptyRows && !showAllRows, reportedOnly)

@@ -8,10 +8,6 @@ import { SheetIcon } from 'lucide-react'
 // StaticDataSheetGrid, which snapshots `columns` via useState at mount (EX-422).
 import { DynamicDataSheetGrid, type DataSheetGridRef } from 'react-datasheet-grid'
 import { KosztorysTotalsPanel } from '@/components/kosztorys/summary/kosztorys-totals-panel'
-import { TotalsPanelOverlay } from '@/components/kosztorys/summary/totals-panel-overlay'
-import { KosztorysTotalsPanelToggle } from '@/components/kosztorys/summary/kosztorys-totals-panel-toggle'
-import { WorkerSummary } from '@/components/kosztorys/summary/blocks/worker-summary'
-import { SummaryScrollRegion } from '@/components/ui/summary-grid'
 import { KosztorysEditorToolbar } from '@/components/kosztorys/editor/toolbar/kosztorys-editor-toolbar'
 import { BrandLogo } from '@/components/ui/brand-logo'
 import { Button } from '@/components/ui/button'
@@ -123,6 +119,8 @@ export type ReportGridControlsT = {
   onSearch: (value: string) => void
   showAllRows: boolean
   onShowAllRows: (value: boolean) => void
+  // What „Wszystkie prace” would reveal.
+  hiddenRowCount: number
   reportedOnly: boolean
   onReportedOnly: (value: boolean) => void
 }
@@ -481,12 +479,15 @@ export function KosztorysEditorBody({
           <NewItemHost>
             {/* The client view mounts under the bare (share) layout, which has no TopNav — subtracting
               its height there would leave a dead band, so the preview takes the whole viewport. */}
+            {/* As wide as the full sheet, so the report's header has room to stay pinned left while
+              the page scrolls sideways — a sticky box never leaves its parent. */}
             <div
               className={cn(
                 'flex w-full flex-col',
                 pageScroll ? 'min-h-dvh' : 'overflow-hidden',
                 !pageScroll && (preview ? 'h-dvh' : 'h-below-top-nav'),
               )}
+              style={reportMinWidth ? { minWidth: reportMinWidth } : undefined}
             >
               {report ? (
                 report.header({
@@ -494,6 +495,7 @@ export function KosztorysEditorBody({
                   onSearch: setSearch,
                   showAllRows,
                   onShowAllRows: setShowAllRows,
+                  hiddenRowCount: clientEmptyRowIds.size,
                   reportedOnly,
                   onReportedOnly: setReportedOnly,
                 })
@@ -692,21 +694,6 @@ export function KosztorysEditorBody({
               has something to say on an empty kosztorys. The client document keeps the row gate: it
               has no such tab, and its toggle is `disabled` there, so a panel left open would be a
               full-height sheet of zeros nobody could fold away. */}
-                {/* The worker's document swaps the whole panel for his own balance: every tab of the
-              investor's reads the client's money, none of which is his to see. */}
-                {worker && subtotals.length > 0 && (
-                  <TotalsPanelOverlay hasRows fixed={pageScroll}>
-                    {/* Covering the whole screen, it also covers the toggle that opened it. */}
-                    {pageScroll && (
-                      <div className="border-border flex justify-end border-b px-4 py-3">
-                        <KosztorysTotalsPanelToggle size="lg" hasRows />
-                      </div>
-                    )}
-                    <SummaryScrollRegion className="px-4 py-4">
-                      <WorkerSummary summary={worker.summary} />
-                    </SummaryScrollRegion>
-                  </TotalsPanelOverlay>
-                )}
                 {!worker && !pastVersion && (!preview || subtotals.length > 0) && (
                   <KosztorysTotalsPanel
                     hasRows={subtotals.length > 0}

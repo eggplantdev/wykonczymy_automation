@@ -46,7 +46,8 @@ export function emptyGridCopy({
   dictionary = POLISH_GRID,
 }: ArgsT): EmptyGridCopyT {
   if (preview) {
-    // „Tylko zgłoszone” before he has typed anything — the document is not empty, his report is.
+    // „Tylko zgłaszane przeze mnie” before he has typed anything — the document is not empty, his
+    // report is.
     if (hiders.some((condition) => condition.id === REPORT_UNREPORTED_CONDITION_ID)) {
       return {
         title: dictionary.t('emptyReportTitle'),

@@ -27,13 +27,13 @@ export const uk: TranslationsT = {
   },
   report: {
     pageTitle: 'Звіт про роботи',
-    title: 'Звіт про виконані роботи',
     investment: "Об'єкт:",
     worker: 'Працівник:',
     searchPlaceholder: 'Шукати роботу…',
     allWorks: 'Усі роботи',
-    allColumns: 'Усі колонки',
     reportedOnly: 'Лише заявлені',
+    reportTab: 'Заявляю роботу',
+    investmentTab: "Об'єкт",
     items: { one: 'робота', few: 'роботи', many: 'робіт', other: 'роботи' },
     draftDropped: {
       one: '{{count}} робота з чернетки зникла з кошторису.',

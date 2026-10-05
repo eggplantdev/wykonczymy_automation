@@ -2,11 +2,15 @@
 
 import { useState } from 'react'
 import { KosztorysEditorBody } from '@/components/kosztorys/editor/kosztorys-editor-body'
-import { KosztorysTotalsPanelToggle } from '@/components/kosztorys/summary/kosztorys-totals-panel-toggle'
+import { WorkerSummary } from '@/components/kosztorys/summary/blocks/worker-summary'
 import { BrandedHeader } from '@/components/kosztorys/worker-report/branded-header'
 import { DraftExtraWorks } from '@/components/kosztorys/worker-report/draft-extra-works'
 import { ExtraWorksDialogButton } from '@/components/kosztorys/worker-report/extra-works-dialog-button'
 import { ReportBar } from '@/components/kosztorys/worker-report/report-bar'
+import {
+  ReportModeFooter,
+  type ReportViewModeT,
+} from '@/components/kosztorys/worker-report/report-mode-footer'
 import { SendBar, type SentT } from '@/components/kosztorys/worker-report/send-bar'
 import { SentReports } from '@/components/kosztorys/worker-report/sent-reports'
 import type { useReportDraft } from '@/components/kosztorys/worker-report/use-report-draft'
@@ -55,98 +59,124 @@ export function ReportGrid({
   sectionTranslations,
   onSent,
 }: PropsT) {
-  const [isAllColumns, setIsAllColumns] = useState(false)
-  // The body mounts the panel only over rows; a live toggle beside no panel would be a dead button.
+  const [mode, setMode] = useState<ReportViewModeT>('report')
+  const isReport = mode === 'report'
   const hasRows = data.sections.some((section) => section.items.length > 0)
   const { locale, t, tp } = useTranslation('report')
-  // The body seeds its rows once, so a language switch remounts it — reseeded from the draft as it
-  // is now, or what he typed since the first mount would vanish from the column.
+  // The body seeds its rows once, so a language or mode switch remounts it — reseeded from the
+  // draft as it is now, or what he typed since the first mount would vanish from the column. The
+  // remount also drops a search or „Tylko zgłaszane przeze mnie” left over from the other mode.
   const [seed, setSeed] = useState(() => ({
     locale,
+    mode,
     initialQtyByItem: draftQtyByItem(draft.draft.qtyByItem),
   }))
-  if (seed.locale !== locale) {
-    setSeed({ locale, initialQtyByItem: draftQtyByItem(draft.draft.qtyByItem) })
+  const reportedCount = Object.keys(draftQtyByItem(draft.draft.qtyByItem)).length
+  if (seed.locale !== locale || seed.mode !== mode) {
+    setSeed({ locale, mode, initialQtyByItem: draftQtyByItem(draft.draft.qtyByItem) })
   }
 
   return (
-    <KosztorysEditorBody
-      key={seed.locale}
-      preview
-      worker={document.worker}
-      investmentId={document.investmentId}
-      investmentName={document.investmentName}
-      tree={translateTree(document.tree, locale, sectionTranslations)}
-      materialsGrossBase={0}
-      materialsNetBilled={0}
-      materialsBreakdown={[]}
-      settledBreakdown={[]}
-      laborCostsNetFromTransactions={0}
-      discountNetFromTransactions={0}
-      investmentLoss={0}
-      depositTransactions={[]}
-      materialTransactions={[]}
-      report={{
-        initialQtyByItem: seed.initialQtyByItem,
-        pendingQtyByItem,
-        isCompact: !isAllColumns,
-        // A negative stays in the draft as typed, so the send bar can refuse it.
-        onReportQty: (itemId, qty) => draft.setQty(itemId, qty === 0 ? '' : decimalText(qty)),
-        header: (controls) => (
-          <>
-            <BrandedHeader data={data} />
-            {draft.droppedCount > 0 && (
-              <p className="border-border border-b px-4 py-2 text-sm text-amber-700 dark:text-amber-400">
-                {tp('draftDropped', draft.droppedCount)}
-              </p>
-            )}
-            <ReportBar
-              actions={<KosztorysTotalsPanelToggle hasRows={hasRows} disabled={!hasRows} />}
-              search={controls.search}
-              onSearch={controls.onSearch}
-              className="border-border flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:gap-6"
-              chips={
-                <>
-                  <Label className="gap-2 text-xs font-normal">
-                    <Switch
-                      checked={controls.showAllRows}
-                      onCheckedChange={controls.onShowAllRows}
-                    />
-                    {t('allWorks')}
-                  </Label>
-                  <Label className="gap-2 text-xs font-normal">
-                    <Switch checked={isAllColumns} onCheckedChange={setIsAllColumns} />
-                    {t('allColumns')}
-                  </Label>
-                  <Label className="gap-2 text-xs font-normal">
-                    <Switch
-                      checked={controls.reportedOnly}
-                      onCheckedChange={controls.onReportedOnly}
-                    />
-                    {t('reportedOnly')}
-                  </Label>
-                </>
-              }
-            />
-          </>
-        ),
-        footer: (
-          // All columns are wider than the screen; screen-wide, the buttons stay in view.
-          <div className={cn('sticky left-0', isAllColumns && 'w-screen')}>
-            <DraftExtraWorks extras={draft.draft.extras} />
-            <div className="flex items-center justify-end gap-2 px-4 py-4">
-              <ExtraWorksDialogButton
-                extras={draft.draft.extras}
-                commonUnits={data.commonUnits}
-                onSave={draft.saveExtra}
-                onRemove={draft.removeExtra}
+    <>
+      <KosztorysEditorBody
+        key={`${seed.locale}-${seed.mode}`}
+        preview
+        worker={document.worker}
+        investmentId={document.investmentId}
+        investmentName={document.investmentName}
+        tree={translateTree(document.tree, locale, sectionTranslations)}
+        materialsGrossBase={0}
+        materialsNetBilled={0}
+        materialsBreakdown={[]}
+        settledBreakdown={[]}
+        laborCostsNetFromTransactions={0}
+        discountNetFromTransactions={0}
+        investmentLoss={0}
+        depositTransactions={[]}
+        materialTransactions={[]}
+        report={{
+          initialQtyByItem: seed.initialQtyByItem,
+          pendingQtyByItem,
+          isCompact: isReport,
+          isSummary: !isReport,
+          // A negative stays in the draft as typed, so the send bar can refuse it.
+          onReportQty: (itemId, qty) => draft.setQty(itemId, qty === 0 ? '' : decimalText(qty)),
+          header: (controls) => (
+            // Pinned to the left edge like the footer: the full sheet scrolls the page sideways.
+            <div className={cn('sticky left-0', !isReport && 'w-screen')}>
+              <BrandedHeader data={data} />
+              {draft.droppedCount > 0 && (
+                <p className="border-border border-b px-4 py-2 text-sm text-amber-700 dark:text-amber-400">
+                  {tp('draftDropped', draft.droppedCount)}
+                </p>
+              )}
+              <ReportBar
+                search={controls.search}
+                onSearch={controls.onSearch}
+                className="border-border flex flex-col gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:gap-6"
+                chips={
+                  <>
+                    <Label className="gap-2 text-xs font-normal">
+                      <Switch
+                        checked={controls.showAllRows}
+                        onCheckedChange={controls.onShowAllRows}
+                      />
+                      {t('allWorks')}
+                      {controls.hiddenRowCount > 0 && ` (+${controls.hiddenRowCount})`}
+                    </Label>
+                    {isReport && (
+                      <Label className="gap-2 text-xs font-normal">
+                        <Switch
+                          checked={controls.reportedOnly}
+                          onCheckedChange={controls.onReportedOnly}
+                        />
+                        {t('reportedOnly')} ({reportedCount})
+                      </Label>
+                    )}
+                  </>
+                }
               />
-              {token && <SendBar token={token} data={data} draft={draft} onSent={onSent} />}
             </div>
-            <SentReports reports={sentReports} />
-          </div>
-        ),
-      }}
-    />
+          ),
+          footer: (
+            // The full sheet is wider than the screen; screen-wide, its contents stay in view. The
+            // bottom padding keeps the fixed mode footer off the last line.
+            <div className={cn('sticky left-0', hasRows && 'pb-20', !isReport && 'w-screen')}>
+              {isReport ? (
+                <>
+                  <DraftExtraWorks extras={draft.draft.extras} />
+                  <div className="flex items-center justify-end gap-2 px-4 py-4">
+                    <ExtraWorksDialogButton
+                      extras={draft.draft.extras}
+                      commonUnits={data.commonUnits}
+                      onSave={draft.saveExtra}
+                      onRemove={draft.removeExtra}
+                    />
+                    {token && <SendBar token={token} data={data} draft={draft} onSent={onSent} />}
+                  </div>
+                  <SentReports reports={sentReports} />
+                </>
+              ) : (
+                hasRows && (
+                  <div className="px-4 py-10">
+                    <WorkerSummary summary={document.worker.summary} />
+                  </div>
+                )
+              )}
+            </div>
+          ),
+        }}
+      />
+      {/* Outside the body: the body remounts on every mode switch, and the switch must not. */}
+      {hasRows && (
+        <ReportModeFooter
+          mode={mode}
+          onModeChange={(next) => {
+            setMode(next)
+            window.scrollTo({ top: 0 })
+          }}
+        />
+      )}
+    </>
   )
 }

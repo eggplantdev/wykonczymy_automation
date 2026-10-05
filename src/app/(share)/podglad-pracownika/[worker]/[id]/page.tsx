@@ -2,7 +2,10 @@ import { notFound } from 'next/navigation'
 import { requireInvestmentOr404 } from '@/lib/queries/investments'
 import { getWorkerReportPreview } from '@/lib/queries/worker-report-page'
 import { WorkerReportView } from '@/components/kosztorys/worker-report/worker-report-view'
+import { REPORT_VIEWPORT } from '@/components/kosztorys/worker-report/report-viewport'
 import { workerIdFromSegment } from '@/lib/kosztorys/worker-view/name-slug'
+
+export const viewport = REPORT_VIEWPORT
 
 // „Podgląd" for one worker, under the bare (share) layout so it is the link's exact twin. That layout
 // reads no session, so the guard lives here, as on /podglad-inwestora.

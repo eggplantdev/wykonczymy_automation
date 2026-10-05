@@ -244,8 +244,9 @@ const NO_CONDITION_IDS: ReadonlySet<string> = new Set()
  * „which conditions may reach a client" — invisible to anyone refactoring the hook, and it has been
  * silently dropped by exactly that kind of refactor once already.
  *
- * `reportedOnly` is the worker's „Tylko zgłoszone” on his report link. It replaces the empty-row hide
- * rather than adding to it: a pozycja with no przedmiar and no work is still one he may report.
+ * `reportedOnly` is the worker's „Tylko zgłaszane przeze mnie” on his report link. It replaces the
+ * empty-row hide rather than adding to it: a pozycja with no przedmiar and no work is still one he
+ * may report.
  */
 export function clientConditionIds(
   hideEmptyRows: boolean | undefined,

@@ -27,13 +27,13 @@ export const pl = {
   },
   report: {
     pageTitle: 'Zgłoszenie prac',
-    title: 'Zgłoszenie wykonanych prac',
     investment: 'Inwestycja:',
     worker: 'Pracownik:',
     searchPlaceholder: 'Szukaj pracy…',
     allWorks: 'Wszystkie prace',
-    allColumns: 'Wszystkie kolumny',
-    reportedOnly: 'Tylko zgłoszone',
+    reportedOnly: 'Tylko zgłaszane przeze mnie',
+    reportTab: 'Zgłaszam pracę',
+    investmentTab: 'Inwestycja',
     items: { one: 'praca', few: 'prace', many: 'prac', other: 'pracy' },
     draftDropped: {
       one: '{{count}} praca ze szkicu zniknęła z rozpiski.',
@@ -102,7 +102,8 @@ export const pl = {
     emptyDocumentTitle: 'Brak pozycji do pokazania',
     emptyDocumentDescription: 'Żadna pozycja nie ma jeszcze przedmiaru ani wykonanej pracy.',
     emptyReportTitle: 'Nic jeszcze nie zgłoszono',
-    emptyReportDescription: 'Wpisz ilość w kolumnie „Zgłaszam” albo wyłącz „Tylko zgłoszone”.',
+    emptyReportDescription:
+      'Wpisz ilość w kolumnie „Zgłaszam” albo wyłącz „Tylko zgłaszane przeze mnie”.',
     rejectedInvalid: 'Nieprawidłowa wartość',
     rejectedBlocked: 'Wartość odrzucona',
     rejectedRestored: 'przywrócono {{value}}',

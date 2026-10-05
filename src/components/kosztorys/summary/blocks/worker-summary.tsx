@@ -1,16 +1,19 @@
 'use client'
 
-import {
-  SUMMARY_LABEL_COL,
-  SUMMARY_VALUE_COL,
-  SummaryHeaderCell,
-  SummaryLabelCell,
-  SummaryTable,
-  SummaryValueCell,
-} from '@/components/ui/summary-grid'
+import { cn } from '@/lib/utils/cn'
 import { formatNet } from '@/lib/kosztorys/format'
 import { formatPLDate } from '@/lib/utils/format-date'
 import { stageShareLabel, type WorkerSummaryT } from '@/lib/kosztorys/worker-view/summary'
+
+// Drawn like the printed PDF's footer (`print/worker.ts`), not like the grid: ruled tables under a
+// gridded sheet read as more of the sheet, and the worker holding both documents should see one.
+const TABLE = 'w-auto min-w-64 max-sm:text-xs'
+const CELL = 'py-1.5 pl-7 first:pl-0'
+const LABEL = cn(CELL, 'text-muted-foreground text-left')
+const VALUE = cn(CELL, 'text-right font-medium whitespace-nowrap tabular-nums')
+const HEAD = 'border-border text-muted-foreground border-b text-xs [&>td]:font-normal'
+const GRAND =
+  'border-foreground border-t text-base max-sm:text-sm [&>td]:pt-2.5 [&>td]:font-semibold'
 
 // An overpayment is named rather than printed as a minus — „Pozostało do wypłaty −300" reads as a
 // debt the firm owes, which is the opposite of what it is.
@@ -19,93 +22,102 @@ export function WorkerSummary({ summary }: { summary: WorkerSummaryT }) {
   const hasSharedStage = summary.executedByStage.some((stage) => stage.share)
 
   return (
-    <div className="flex flex-col items-start gap-4">
-      <SummaryTable
-        cols={
-          hasSharedStage
-            ? `${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL} auto ${SUMMARY_VALUE_COL}`
-            : `${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL}`
-        }
-        className="h-fit w-fit"
-      >
-        <SummaryHeaderCell variant="label">Wykonane</SummaryHeaderCell>
-        {hasSharedStage && (
-          <>
-            <SummaryHeaderCell>Wartość etapu</SummaryHeaderCell>
-            <SummaryHeaderCell>Twój udział</SummaryHeaderCell>
-          </>
-        )}
-        <SummaryHeaderCell>Kwota netto</SummaryHeaderCell>
-
-        {summary.executedByStage.map((stage) => (
-          <div key={stage.stageId} className="contents">
-            <SummaryLabelCell>{stage.label}</SummaryLabelCell>
+    <div className="flex flex-col items-end gap-6">
+      <table className={TABLE}>
+        <tbody>
+          <tr className={HEAD}>
+            <td className={LABEL}>Wykonane</td>
             {hasSharedStage && (
               <>
-                <SummaryValueCell muted>{formatNet(stage.wholeNet)}</SummaryValueCell>
-                <SummaryValueCell muted>{stageShareLabel(stage)}</SummaryValueCell>
+                <td className={VALUE}>Wartość etapu</td>
+                <td className={VALUE}>Twój udział</td>
               </>
             )}
-            <SummaryValueCell>{formatNet(stage.net)}</SummaryValueCell>
-          </div>
-        ))}
-        <SummaryLabelCell weight="medium">Razem</SummaryLabelCell>
-        {hasSharedStage && (
-          <>
-            <SummaryValueCell muted weight="medium">
-              {formatNet(summary.stagesWholeNet)}
-            </SummaryValueCell>
-            <SummaryValueCell>{null}</SummaryValueCell>
-          </>
-        )}
-        <SummaryValueCell weight="medium">{formatNet(summary.executedNet)}</SummaryValueCell>
-      </SummaryTable>
+            <td className={VALUE}>Kwota netto</td>
+          </tr>
+          {summary.executedByStage.map((stage) => (
+            <tr key={stage.stageId}>
+              <td className={LABEL}>{stage.label}</td>
+              {hasSharedStage && (
+                <>
+                  <td className={cn(VALUE, 'text-muted-foreground')}>
+                    {formatNet(stage.wholeNet)}
+                  </td>
+                  <td className={cn(VALUE, 'text-muted-foreground')}>{stageShareLabel(stage)}</td>
+                </>
+              )}
+              <td className={VALUE}>{formatNet(stage.net)}</td>
+            </tr>
+          ))}
+          <tr>
+            <td className={LABEL}>Razem</td>
+            {hasSharedStage && (
+              <>
+                <td className={cn(VALUE, 'text-muted-foreground')}>
+                  {formatNet(summary.stagesWholeNet)}
+                </td>
+                <td className={VALUE} />
+              </>
+            )}
+            <td className={VALUE}>{formatNet(summary.executedNet)}</td>
+          </tr>
+        </tbody>
+      </table>
 
-      <SummaryTable cols={`${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL}`} className="h-fit w-fit">
-        <SummaryHeaderCell variant="label">Twoje rozliczenie</SummaryHeaderCell>
-        <SummaryHeaderCell>Kwota netto</SummaryHeaderCell>
-
-        <SummaryLabelCell weight="medium">Wykonane razem</SummaryLabelCell>
-        <SummaryValueCell weight="medium">{formatNet(summary.executedNet)}</SummaryValueCell>
-
-        {summary.bonusNet !== 0 && (
-          <>
-            <SummaryLabelCell weight="medium">Premia</SummaryLabelCell>
-            <SummaryValueCell weight="medium">{formatNet(summary.bonusNet)}</SummaryValueCell>
-          </>
-        )}
-
-        <SummaryLabelCell weight="medium">Wypłacone</SummaryLabelCell>
-        <SummaryValueCell tone="success" weight="medium">
-          {formatNet(summary.paidNet)}
-        </SummaryValueCell>
-
-        <SummaryLabelCell weight="bold">
-          {summary.isOverpaid ? 'Nadpłata' : 'Pozostało do wypłaty'}
-        </SummaryLabelCell>
-        <SummaryValueCell weight="bold" tone={summary.isOverpaid ? 'error' : 'default'}>
-          {formatNet(Math.abs(summary.owed))}
-        </SummaryValueCell>
-      </SummaryTable>
+      <table className={TABLE}>
+        <tbody>
+          <tr className={HEAD}>
+            <td className={LABEL}>Twoje rozliczenie</td>
+            <td className={VALUE}>Kwota netto</td>
+          </tr>
+          <tr>
+            <td className={LABEL}>Wykonane razem</td>
+            <td className={VALUE}>{formatNet(summary.executedNet)}</td>
+          </tr>
+          {summary.bonusNet !== 0 && (
+            <tr>
+              <td className={LABEL}>Premia</td>
+              <td className={VALUE}>{formatNet(summary.bonusNet)}</td>
+            </tr>
+          )}
+          <tr>
+            <td className={LABEL}>Wypłacone</td>
+            <td className={cn(VALUE, 'text-chart-green')}>{formatNet(summary.paidNet)}</td>
+          </tr>
+          <tr className={GRAND}>
+            <td className={cn(CELL, 'text-left')}>
+              {summary.isOverpaid ? 'Nadpłata' : 'Pozostało do wypłaty'}
+            </td>
+            <td className={cn(VALUE, summary.isOverpaid && 'text-destructive')}>
+              {formatNet(Math.abs(summary.owed))}
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
       {summary.payouts.length > 0 && (
-        <SummaryTable cols={`auto minmax(0, 20rem) ${SUMMARY_VALUE_COL}`} className="h-fit w-fit">
-          <SummaryHeaderCell variant="label">Wypłaty</SummaryHeaderCell>
-          <SummaryHeaderCell variant="label">Opis</SummaryHeaderCell>
-          <SummaryHeaderCell>Kwota netto</SummaryHeaderCell>
-
-          {summary.payouts.map((payout, index) => (
-            <div key={`${payout.date}-${index}`} className="contents">
-              <SummaryLabelCell>{formatPLDate(payout.date)}</SummaryLabelCell>
-              <SummaryLabelCell muted>{payout.description}</SummaryLabelCell>
-              <SummaryValueCell>{formatNet(payout.amount)}</SummaryValueCell>
-            </div>
-          ))}
-          <SummaryLabelCell weight="medium" className="col-span-2">
-            Razem
-          </SummaryLabelCell>
-          <SummaryValueCell weight="medium">{formatNet(summary.paidNet)}</SummaryValueCell>
-        </SummaryTable>
+        <table className={TABLE}>
+          <tbody>
+            <tr className={HEAD}>
+              <td className={LABEL}>Wypłaty</td>
+              <td className={LABEL}>Opis</td>
+              <td className={VALUE}>Kwota netto</td>
+            </tr>
+            {summary.payouts.map((payout, index) => (
+              <tr key={`${payout.date}-${index}`}>
+                <td className={cn(LABEL, 'whitespace-nowrap')}>{formatPLDate(payout.date)}</td>
+                <td className={cn(LABEL, 'max-w-80')}>{payout.description}</td>
+                <td className={VALUE}>{formatNet(payout.amount)}</td>
+              </tr>
+            ))}
+            <tr>
+              <td className={LABEL} colSpan={2}>
+                Razem
+              </td>
+              <td className={VALUE}>{formatNet(summary.paidNet)}</td>
+            </tr>
+          </tbody>
+        </table>
       )}
     </div>
   )

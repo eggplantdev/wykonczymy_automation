@@ -17,6 +17,8 @@ type PropsT<T extends string> = {
   // Kept visible where a toggle applies only in some contexts (e.g. the summary view toggle on the
   // subcontractor plane).
   disabled?: boolean
+  // Every option as wide as the widest, instead of each sized to its own label.
+  isEqualWidth?: boolean
   'aria-label'?: string
   className?: string
 }
@@ -37,6 +39,7 @@ export function ToggleGroup<T extends string>({
   onChange,
   size = 'default',
   disabled = false,
+  isEqualWidth = false,
   'aria-label': ariaLabel,
   className,
 }: PropsT<T>) {
@@ -66,7 +69,8 @@ export function ToggleGroup<T extends string>({
         disabled={disabled}
         aria-label={ariaLabel}
         className={cn(
-          'border-input bg-background relative inline-grid w-max auto-cols-max grid-flow-col items-center rounded-md border p-0.5',
+          'border-input bg-background relative inline-grid w-max grid-flow-col items-center rounded-md border p-0.5',
+          isEqualWidth ? 'auto-cols-fr' : 'auto-cols-max',
           ROOT_SIZE[size],
           disabled && 'pointer-events-none opacity-50',
         )}

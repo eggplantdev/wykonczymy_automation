@@ -75,12 +75,15 @@ export function SendBar({ token, data, draft, onSent }: PropsT) {
   return (
     <>
       <div className="flex items-center gap-3">
-        {hasInvalid && <p className="text-destructive text-sm whitespace-nowrap">{t('fixErrors')}</p>}
+        {hasInvalid && (
+          <p className="text-destructive text-sm whitespace-nowrap">{t('fixErrors')}</p>
+        )}
         <Button
           disabled={lineCount === 0 || hasInvalid || isSending}
           onClick={() => setIsConfirmOpen(true)}
         >
           {isSending ? t('sending') : t('send')}
+          {lineCount > 0 && ` (${lineCount})`}
         </Button>
       </div>
 

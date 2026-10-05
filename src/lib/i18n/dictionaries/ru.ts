@@ -26,13 +26,13 @@ export const ru: TranslationsT = {
   },
   report: {
     pageTitle: 'Отчёт о работах',
-    title: 'Отчёт о выполненных работах',
     investment: 'Объект:',
     worker: 'Работник:',
     searchPlaceholder: 'Искать работу…',
     allWorks: 'Все работы',
-    allColumns: 'Все колонки',
     reportedOnly: 'Только заявленные',
+    reportTab: 'Заявляю работу',
+    investmentTab: 'Объект',
     items: { one: 'работа', few: 'работы', many: 'работ', other: 'работы' },
     draftDropped: {
       one: '{{count}} работа из черновика исчезла из сметы.',
