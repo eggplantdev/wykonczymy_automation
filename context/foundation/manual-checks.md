@@ -3409,3 +3409,22 @@ Przed sprawdzeniem: migracja typu „Premia" na bazie, na której klikasz (`pnpm
 - [ ] Pracownicy → „Do kosza” na pracowniku z e-mailem → „Dodaj pracownika” z tym samym e-mailem: formularz odmawia komunikatem „Pracownik z adresem … jest w Koszu — przywróć go stamtąd.”, nowy pracownik nie powstaje.
 - [ ] „Dodaj pracownika” z e-mailem aktywnego pracownika (wpisanym WIELKIMI literami, ze spacją na końcu): komunikat „Pracownik z adresem … już istnieje.”
 - [ ] Edycja pracownika → zmiana e-maila na adres innego pracownika: ta sama odmowa; zapis z własnym, niezmienionym e-mailem przechodzi.
+
+## EX-960 — worker-kasy-visibility — kasy pracownika na liście i na jego stronie (2026-10-05)
+
+### Phase 1: „Kasy” na `/pracownicy`
+
+- [ ] `/pracownicy` → kolumna „Kasy” pokazuje liczbę kas pracownika, „—” u pracownika bez kas; najechanie na liczbę pokazuje nazwy kas.
+- [ ] `/pracownicy` → u pracownika z kasami „Usuń pracownika”: okno wymienia dokładnie tyle kas, ile pokazuje kolumna „Kasy”.
+- [ ] `/pracownicy` → sortowanie po „Kasy” układa pracowników według liczby; kolumnę „Kasy” da się ukryć i pokazać w przełączniku kolumn.
+
+### Phase 2: sekcja „Przypisane kasy” na stronie pracownika
+
+- [ ] Strona pracownika z kasami → sekcja „Przypisane kasy” wymienia wszystkie jego kasy, każda nazwa otwiera stronę tej kasy.
+- [ ] Ta sama sekcja → „Saldo” każdej kasy zgadza się z saldem tej kasy na `/kasy`; „Razem” to ich suma; ujemne saldo jest na czerwono.
+- [ ] Pracownik z kasą ustawioną jako nieaktywna → ta kasa jest na liście z dopiskiem „nieaktywna” pod nazwą, a jej saldo wchodzi do „Razem”.
+- [ ] Pracownik bez kas → sekcja „Przypisane kasy” mówi „Nie ma żadnej kasy.”
+- [ ] Pracownik, którego kasa sama leży w Koszu → tej kasy nie ma w sekcji ani w liczbie na liście.
+- [ ] Zalogowany jako MANAGER → strona właściciela (OWNER) nie pokazuje kasy głównej w „Przypisanych kasach”; jako OWNER/ADMIN kasa główna jest i jej link działa.
+- [ ] Strona pracownika → nie ma już linijki „Wypłaty: … zł” nad sekcjami.
+- [ ] Jako MANAGER kasa główna dalej jest niewidoczna wszędzie: nie ma jej na `/kasy` ani w `/kosz`, a jej adres `/kasa/<id>` pokazuje „nie znaleziono” (wspólna reguła widoczności — to samo zachowanie co wcześniej).

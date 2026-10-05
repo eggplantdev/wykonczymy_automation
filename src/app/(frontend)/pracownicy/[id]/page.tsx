@@ -1,21 +1,22 @@
 import { redirect, notFound } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { ADMIN_OR_OWNER_MANAGER_ROLES, ROLE_LABELS } from '@/lib/auth/roles'
+import { ADMIN_OR_OWNER_MANAGER_ROLES, ROLE_LABELS, canViewRegister } from '@/lib/auth/roles'
 import { LanguageLabel } from '@/components/ui/language-label'
 import { DEFAULT_LANGUAGE } from '@/lib/i18n/languages'
 import { parsePagination } from '@/lib/utils/pagination'
 import { parseTransferSort } from '@/lib/queries/transfer-sort'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
-import { fetchFilteredByType } from '@/lib/queries/transfer-totals'
+import { fetchRegisterBalances } from '@/lib/queries/balances'
 import { fetchEquipmentAtLocation } from '@/lib/queries/equipment'
-import { buildTransferFilters, statsWhereFrom } from '@/lib/queries/transfer-filters'
+import { buildTransferFilters } from '@/lib/queries/transfer-filters'
 import { buildFilterConfig } from '@/lib/utils/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { HeldEquipmentSection } from '@/components/equipment/held-equipment-section'
+import { OwnedRegistersSection } from '@/components/users/owned-registers-section'
+import { ownedRegisters } from '@/lib/workers/owned-registers'
 import { EditWorkerDialog } from '@/components/dialogs/edit-worker-dialog'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
-import { SignedMoneyDisplay } from '@/components/ui/signed-money-display'
 import type { DynamicPagePropsT } from '@/types/page'
 
 export default async function UserDetailPage({ params, searchParams }: DynamicPagePropsT) {
@@ -32,11 +33,9 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
   const urlFilters = buildTransferFilters(sp, { id: currentUser.id })
   const transferWhere = { ...urlFilters, worker: { equals: userId } }
 
-  const statsWhere = statsWhereFrom(transferWhere)
-
-  const [refData, typeDistribution, heldEquipment] = await Promise.all([
+  const [refData, balances, heldEquipment] = await Promise.all([
     fetchReferenceData(),
-    fetchFilteredByType(statsWhere),
+    fetchRegisterBalances(),
     fetchEquipmentAtLocation({ kind: 'holder', id: userId }),
   ])
 
@@ -48,21 +47,26 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
     ? refData.cashRegisters.find((cr) => cr.id === worker.defaultCashRegisterId)?.name
     : undefined
 
+  const registers = ownedRegisters(refData.cashRegisters, userId).filter((register) =>
+    canViewRegister(currentUser.role, register.type),
+  )
+
   const infoFields = [
     { label: 'Rola', value: ROLE_LABELS[role].pl },
     { label: 'Email', value: worker.email },
     { label: 'Status', value: worker.active ? 'Aktywny' : 'Nieaktywny' },
-    { label: 'Domyślny język', value: <LanguageLabel language={worker.language ?? DEFAULT_LANGUAGE} /> },
+    {
+      label: 'Domyślny język',
+      value: <LanguageLabel language={worker.language ?? DEFAULT_LANGUAGE} />,
+    },
     ...(registerName ? [{ label: 'Domyślna kasa', value: registerName }] : []),
   ]
-
-  const payoutsTotal = typeDistribution.find((row) => row.type === 'PAYOUT')?.total ?? 0
 
   return (
     <PageWrapper title={worker.name}>
       <EditWorkerDialog worker={worker} cashRegisters={refData.cashRegisters} />
       <InfoList items={infoFields} />
-      <SignedMoneyDisplay amount={payoutsTotal} label="Wypłaty" />
+      <OwnedRegistersSection registers={registers} balances={balances} />
       <HeldEquipmentSection equipment={heldEquipment} />
       <TransfersSection
         title="Transfery"
