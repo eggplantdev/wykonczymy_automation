@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import type { Where } from 'payload'
 import {
+  buildRejectedDraftScope,
   buildTransferFilters,
   narrowToTransferIds,
   scopeAuditThroughOriginal,
@@ -268,5 +269,49 @@ describe('narrowToTransferIds', () => {
 
   it('an empty list matches nothing', () => {
     expect(buildSqlConditions(narrowToTransferIds({}, []))).toContain('(id = -1)')
+  })
+})
+
+// A filter on a field a refused draft lacks must hide it — ignoring the filter would list it as a match.
+describe('buildRejectedDraftScope', () => {
+  it('reads inwestycja, kasa and the dates', () => {
+    expect(
+      buildRejectedDraftScope({
+        investment: '3,7',
+        sourceRegister: '2',
+        from: '2026-03-01',
+        to: '2026-03-31',
+      }),
+    ).toEqual({
+      investmentIds: [3, 7],
+      registerIds: [2],
+      sentRange: { from: '2026-03-01', to: '2026-03-31' },
+    })
+  })
+
+  it('leaves an absent filter open and a junk one matching nothing', () => {
+    expect(buildRejectedDraftScope({ investment: 'abc' })).toEqual({
+      investmentIds: [],
+      registerIds: null,
+      sentRange: { from: undefined, to: undefined },
+    })
+  })
+
+  it.each([
+    { worker: '4' },
+    { createdBy: '1' },
+    { expenseCategory: '2' },
+    { otherCategory: '2' },
+    { paymentMethod: 'CASH' },
+    { amount: '18' },
+    { id: '9' },
+    { cancelledTransactionAudit: '1' },
+    { type: 'PAYOUT,DEPOSIT' },
+  ])('hides them under a filter on a field a draft lacks: %o', (searchParams) => {
+    expect(buildRejectedDraftScope(searchParams)).toBeUndefined()
+  })
+
+  it('keeps them under a Typ filter that picks the wydatek inwestycyjny', () => {
+    expect(buildRejectedDraftScope({ type: 'PAYOUT,INVESTMENT_EXPENSE' })).toBeDefined()
   })
 })

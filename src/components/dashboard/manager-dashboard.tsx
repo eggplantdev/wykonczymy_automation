@@ -1,6 +1,10 @@
 import { parsePagination } from '@/lib/utils/pagination'
 import { parseTransferSort } from '@/lib/queries/transfer-sort'
-import { buildTransferFilters, narrowToTransferIds } from '@/lib/queries/transfer-filters'
+import {
+  buildRejectedDraftScope,
+  buildTransferFilters,
+  narrowToTransferIds,
+} from '@/lib/queries/transfer-filters'
 import { fetchManagerDashboardData } from '@/lib/queries/dashboard'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
 import {
@@ -26,6 +30,7 @@ export async function ManagerDashboard({ searchParams, user }: ManagerDashboardP
   const { page, limit } = parsePagination(searchParams)
   const sort = parseTransferSort(searchParams)
   const showWorkerDrafts = searchParams.workerDrafts === '1'
+  const rejectedDraftScope = showWorkerDrafts ? buildRejectedDraftScope(searchParams) : undefined
 
   const [
     {
@@ -45,7 +50,7 @@ export async function ManagerDashboard({ searchParams, user }: ManagerDashboardP
     fetchPendingExpenseDrafts(),
     fetchReferenceData(),
     showWorkerDrafts ? fetchDraftTransferIds() : undefined,
-    showWorkerDrafts ? fetchRejectedExpenseDrafts() : undefined,
+    rejectedDraftScope ? fetchRejectedExpenseDrafts(rejectedDraftScope) : undefined,
   ])
   const where = buildTransferFilters(searchParams, { id: 0 })
   console.log(`[PERF] ManagerDashboard fetchManagerDashboardData ${step()}ms`)

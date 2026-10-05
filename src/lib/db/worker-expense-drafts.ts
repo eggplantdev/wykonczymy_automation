@@ -1,9 +1,11 @@
 import { sql } from '@payloadcms/db-vercel-postgres'
+import type { ExpenseDraftStatusT } from '@/lib/constants/worker-expense-drafts'
+import type { DateRangeT } from '@/lib/utils/date-range'
+import type { DeleteProbeT } from './delete-blocker'
 import type { DbExecutorT } from './get-db'
 import { isoOrNull, numOrNull, text, textOrNull } from './row-coerce'
-
-export const EXPENSE_DRAFT_STATUSES = ['pending', 'accepted', 'rejected'] as const
-export type ExpenseDraftStatusT = (typeof EXPENSE_DRAFT_STATUSES)[number]
+import { inList, sqlList } from './sql-list'
+import { warsawDayWithin } from './sql-warsaw-day'
 
 export type ExpenseDraftMediaT = { id: number; url: string; filename: string; mimeType: string }
 
@@ -129,26 +131,40 @@ export async function listPendingExpenseDrafts(db: DbExecutorT): Promise<Expense
   return res.rows.map(toDraftRow)
 }
 
+export type RejectedDraftScopeT = {
+  investmentIds: number[] | null
+  registerIds: number[] | null
+  sentRange: DateRangeT
+}
+
+// A pending draft holds back the trash of its pracownik, inwestycja and kasa, but a rejected one does
+// not — so a refusal may outlive any of them in the trash, where re-opening it would hold back their
+// purge and prefill „Przyjmij" with a kasa nobody can book into.
+const PARTIES_NOT_TRASHED = sql`
+  EXISTS (SELECT 1 FROM users u WHERE u.id = d.worker_id AND u.trashed_at IS NULL)
+  AND EXISTS (SELECT 1 FROM investments iv WHERE iv.id = d.investment_id AND iv.trashed_at IS NULL)
+  AND EXISTS (SELECT 1 FROM cash_registers c WHERE c.id = d.cash_register_id AND c.trashed_at IS NULL)
+`
+
 export async function listRejectedExpenseDrafts(
   db: DbExecutorT,
   limit: number,
+  scope: RejectedDraftScopeT,
 ): Promise<ExpenseDraftRowT[]> {
+  const conditions = [
+    sql`d.status = 'rejected'`,
+    PARTIES_NOT_TRASHED,
+    inList(sql`d.investment_id`, scope.investmentIds),
+    inList(sql`d.cash_register_id`, scope.registerIds),
+    ...warsawDayWithin(sql`d.sent_at`, scope.sentRange),
+  ].filter((condition) => condition !== undefined)
   const res = await db.execute(sql`
     ${DRAFT_SELECT}
-    WHERE d.status = 'rejected' AND i.trashed_at IS NULL
+    WHERE ${sql.join(conditions, sql.raw(' AND '))}
     ORDER BY d.decided_at DESC, d.id DESC
     LIMIT ${limit}
   `)
   return res.rows.map(toDraftRow)
-}
-
-export async function readExpenseDraft(
-  db: DbExecutorT,
-  draftId: number,
-): Promise<ExpenseDraftRowT | null> {
-  const res = await db.execute(sql`${DRAFT_SELECT} WHERE d.id = ${draftId}`)
-  const row = res.rows[0]
-  return row ? toDraftRow(row) : null
 }
 
 /**
@@ -180,10 +196,10 @@ export async function restoreRejectedExpenseDraft(
   draftId: number,
 ): Promise<boolean> {
   const res = await db.execute(sql`
-    UPDATE worker_expense_drafts
+    UPDATE worker_expense_drafts d
     SET status = 'pending', decided_at = NULL, decided_by = NULL, transfer_id = NULL
-    WHERE id = ${draftId} AND status = 'rejected'
-    RETURNING id
+    WHERE d.id = ${draftId} AND d.status = 'rejected' AND ${PARTIES_NOT_TRASHED}
+    RETURNING d.id
   `)
   return res.rows.length > 0
 }
@@ -277,18 +293,12 @@ export async function deletePendingExpenseDraft(
   return res.rows.flatMap((row) => (row.media_id == null ? [] : [Number(row.media_id)]))
 }
 
-/** The expenses booked from accepted drafts — all of them, or only those among `transferIds`. */
 export async function listDraftTransferIds(
   db: DbExecutorT,
   transferIds?: number[],
 ): Promise<number[]> {
   if (transferIds?.length === 0) return []
-  const among = transferIds
-    ? sql`AND transfer_id IN (${sql.join(
-        transferIds.map((id) => sql`${id}`),
-        sql.raw(', '),
-      )})`
-    : sql``
+  const among = transferIds ? sql`AND transfer_id IN (${sqlList(transferIds)})` : sql``
   const res = await db.execute(sql`
     SELECT transfer_id FROM worker_expense_drafts
     WHERE status = 'accepted' AND transfer_id IS NOT NULL ${among}
@@ -304,12 +314,53 @@ export async function findDraftHeldMedia(db: DbExecutorT, mediaIds: number[]): P
   if (mediaIds.length === 0) return []
   const res = await db.execute(sql`
     SELECT DISTINCT media_id FROM worker_expense_draft_media
-    WHERE media_id IN (${sql.join(
-      mediaIds.map((id) => sql`${id}`),
-      sql.raw(', '),
-    )})
+    WHERE media_id IN (${sqlList(mediaIds)})
   `)
   return res.rows.map((row) => Number(row.media_id))
+}
+
+/** `null` when the draft is not the worker's own pending one. */
+export async function countPendingDraftPages(
+  db: DbExecutorT,
+  draft: { draftId: number; workerId: number },
+): Promise<number | null> {
+  const res = await db.execute(sql`
+    SELECT count(dm.media_id)::int AS total
+    FROM worker_expense_drafts d
+    LEFT JOIN worker_expense_draft_media dm ON dm.draft_id = d.id
+    WHERE d.id = ${draft.draftId} AND d.worker_id = ${draft.workerId} AND d.status = 'pending'
+    GROUP BY d.id
+  `)
+  return numOrNull(res.rows[0]?.total)
+}
+
+const DRAFT_TARGET_COLUMNS = {
+  worker: sql`worker_id`,
+  investment: sql`investment_id`,
+  cashRegister: sql`cash_register_id`,
+} as const
+
+const PENDING_DRAFTS_LABEL = 'zgłoszenia wydatków do rozpatrzenia'
+
+// A waiting receipt is money its worker is owed back; the CASCADE would drop it before anyone decided it.
+export function pendingDraftsProbe(target: keyof typeof DRAFT_TARGET_COLUMNS): DeleteProbeT {
+  return {
+    count: async (db, id) => {
+      const res = await db.execute(sql`
+        SELECT count(*)::int AS total FROM worker_expense_drafts
+        WHERE ${DRAFT_TARGET_COLUMNS[target]} = ${Number(id)} AND status = 'pending'
+      `)
+      return Number(res.rows[0]?.total ?? 0)
+    },
+    label: PENDING_DRAFTS_LABEL,
+  }
+}
+
+/** The way out of a refusal the probe caused — moving transakcje does not clear it. */
+export function pendingDraftsHint(blockers: string[]): string {
+  return blockers.some((blocker) => blocker.startsWith(PENDING_DRAFTS_LABEL))
+    ? ' Zgłoszenia wydatków najpierw przyjmij lub odrzuć.'
+    : ''
 }
 
 export async function countDraftsHoldingMedia(db: DbExecutorT, mediaId: number): Promise<number> {

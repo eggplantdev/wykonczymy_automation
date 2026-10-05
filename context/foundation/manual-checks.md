@@ -3722,6 +3722,11 @@ przypisane do etapów w kilku inwestycjach — w tym co najmniej jednej zakończ
 - [ ] W dialogu „Nowy wydatek" ze zgłoszenia → „Odrzuć" → potwierdzenie: dialog się zamyka, zgłoszenie znika z listy; u pracownika status „odrzucony". „Anuluj" w potwierdzeniu wraca do dialogu z danymi.
 - [ ] Filtry → „Zgłoszone wydatki" włącza się i wyłącza jednym kliknięciem (bez rozwijanej listy).
 - [ ] Z włączonym „Zgłoszone wydatki" odrzucone zgłoszenia są w tabeli transakcji na pierwszej stronie, wyszarzone i przekreślone jak anulowane: bez ID i kwoty, z plakietką „odrzucone zgłoszenie", zdjęciami w kolumnie „Faktura" i przyciskiem „Przywróć" (nieprzekreślonym). Bez filtra ich nie ma.
+- [ ] „Zgłoszone wydatki" + inwestycja / kasa / zakres dat: odrzucone zgłoszenia zostają tylko z tej inwestycji, z tej kasy i wysłane w tym zakresie. Z filtrem pracownika, kategorii, kwoty, ID, „Tylko anulowane transakcje" albo typem bez „Wydatek inwestycyjny" odrzuconych nie ma wcale.
+- [ ] Pracownik ze zgłoszeniem „czeka": „Usuń na zawsze" (i przeniesienie do kosza) pracownika, inwestycji tego zgłoszenia i jego kasy odmawia z „zgłoszenia wydatków do rozpatrzenia: 1". Po przyjęciu albo odrzuceniu zgłoszenia ta pozycja znika z odmowy.
+- [ ] Ta sama odmowa kończy się zdaniem „Zgłoszenia wydatków najpierw przyjmij lub odrzuć."; kasa bez transakcji, zablokowana tylko zgłoszeniem, nie każe „przenieść transakcji".
+- [ ] Kasa bez transakcji, ale z czekającym zgłoszeniem → „Edytuj kasę": pole właściciela zablokowane z opisem „…ma transakcje lub zgłoszenia wydatków do rozpatrzenia."
+- [ ] Odrzucone zgłoszenie, którego pracownik, inwestycja albo kasa trafiły do kosza → przy filtrze „Zgłoszone wydatki" nie ma go w tabeli; po przywróceniu tej rzeczy z kosza wraca i „Przywróć" działa.
 - [ ] Pracownik → „Moje wydatki" → ołówek przy wydatku „czeka": „Edytuj wydatek" z jego inwestycją, kasą, zdjęciami i notatką; zmiana notatki i inwestycji + „Zapisz" → lista pokazuje nowe wartości, kierownik widzi je w „Wydatki zgłoszone przez pracowników". Zamknięcie bez zapisu i ponowne otwarcie pokazuje zapisane wartości, nie porzuconą edycję. Przy „przyjęty" / „odrzucony" ołówka nie ma.
 - [ ] Pracownik → „Moje wydatki" → ikona w „Załącznikach" przy wydatku „czeka": podgląd pozwala dodać zdjęcia i usunąć jedno z nich; ostatniego zdjęcia usunąć się nie da (kosz znika przy jednym). Po zmianie kierownik w „Wydatki zgłoszone przez pracowników" widzi te same zdjęcia.
 - [ ] Pracownik → „Moje wydatki" → wydatek „przyjęty" / „odrzucony": ikona tylko pokazuje zdjęcia — bez dodawania i usuwania.
@@ -3729,7 +3734,8 @@ przypisane do etapów w kilku inwestycjach — w tym co najmniej jednej zakończ
 - [ ] „Przywróć" przy odrzuconym zgłoszeniu → wiersz znika z tabeli, zgłoszenie wraca do „Wydatki zgłoszone przez pracowników" z tymi samymi zdjęciami; u pracownika status „czeka".
 - [ ] Zwykły „Nowy wydatek" z paska nadal odtwarza swój niedokończony szkic, także po przyjęciu zgłoszenia.
 - [ ] Transakcje → filtr „Zgłoszone wydatki": tylko wydatki przyjęte ze zgłoszeń, każdy z plakietką „od pracownika"; „Wyczyść filtry" wyłącza przełącznik.
-- [ ] Filtr „Zgłoszenia pracowników" razem z wyszukiwaniem po kwocie zwraca część wspólną obu.
+- [ ] Filtr „Zgłoszone wydatki" razem z wyszukiwaniem po kwocie zwraca część wspólną obu.
+- [ ] Jako pracownik: wysłanie zgłoszenia, „Zmień e-mail lub hasło" i porzucenie formularza wydatku z wgranym zdjęciem działają jak dotąd; wylogowany — każda z tych akcji odmawia (wspólne sprawdzanie sesji, bez zmiany zachowania).
 
 ## 2026-10-05 — pagination-limit-width — „100” mieści się w selekcie „Pokaż”
 

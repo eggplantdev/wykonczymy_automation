@@ -3,7 +3,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { canViewWorkerPage, MANAGEMENT_ROLES, ROLES } from '@/lib/auth/roles'
-import { REJECTED_DRAFTS_LIMIT } from '@/lib/constants/expense-drafts'
+import { REJECTED_DRAFTS_LIMIT } from '@/lib/constants/worker-expense-drafts'
 import { getDb } from '@/lib/db/get-db'
 import {
   listDraftTransferIds,
@@ -11,6 +11,7 @@ import {
   listRejectedExpenseDrafts,
   listWorkerExpenseDrafts,
   type ExpenseDraftRowT,
+  type RejectedDraftScopeT,
 } from '@/lib/db/worker-expense-drafts'
 
 // Uncached: a manager's decision must reach the worker's status list on his next load.
@@ -30,11 +31,17 @@ export async function fetchPendingExpenseDrafts(): Promise<ExpenseDraftRowT[]> {
   return listPendingExpenseDrafts(await getDb(await getPayload({ config })))
 }
 
-export async function fetchRejectedExpenseDrafts(): Promise<ExpenseDraftRowT[]> {
+export async function fetchRejectedExpenseDrafts(
+  scope: RejectedDraftScopeT,
+): Promise<ExpenseDraftRowT[]> {
   const session = await requireAuth(MANAGEMENT_ROLES)
   if (!session.success) throw new Error('Brak uprawnień')
 
-  return listRejectedExpenseDrafts(await getDb(await getPayload({ config })), REJECTED_DRAFTS_LIMIT)
+  return listRejectedExpenseDrafts(
+    await getDb(await getPayload({ config })),
+    REJECTED_DRAFTS_LIMIT,
+    scope,
+  )
 }
 
 export async function fetchDraftTransferIds(transferIds?: number[]): Promise<number[]> {

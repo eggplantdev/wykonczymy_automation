@@ -11,7 +11,7 @@ import { canBeSettled } from '@/lib/constants/transfers'
 import { perfStart } from '@/lib/perf'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { decideExpenseDraft } from '@/lib/db/worker-expense-drafts'
-import { DRAFT_ALREADY_DECIDED } from '@/lib/constants/expense-drafts'
+import { DRAFT_ALREADY_DECIDED } from '@/lib/constants/worker-expense-drafts'
 import {
   cancelTransferSchema,
   createTransferSchema,

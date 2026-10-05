@@ -20,7 +20,6 @@ import type { ActionResultT } from '@/types/action'
 type PropsT = {
   draftId: number
   media: ExpenseDraftMediaT[]
-  /** Only the sender, and only while the draft waits — a decided one is a record. */
   isEditable: boolean
   variant?: 'field' | 'compact'
 }

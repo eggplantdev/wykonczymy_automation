@@ -1,11 +1,8 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-vercel-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// EX-971: a worker sends a photo of a receipt as a DRAFT; a manager turns it into the expense.
 // Raw tables, not a status on `transactions`: every balance / materiały / marża query reads that table,
 // and a draft must move none of them until it is accepted.
-//
-// The kasa is copied at send time — his default kasa may change before a manager gets to it.
 export async function up({ db }: MigrateUpArgs): Promise<void> {
   await db.execute(sql`
     CREATE TABLE IF NOT EXISTS "worker_expense_drafts" (

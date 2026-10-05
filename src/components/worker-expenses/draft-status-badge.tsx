@@ -1,19 +1,20 @@
 import { BADGE_BASE, BADGE_TONE } from '@/components/ui/badge'
-import type { ExpenseDraftStatusT } from '@/lib/db/worker-expense-drafts'
+import {
+  EXPENSE_DRAFT_STATUS_LABELS,
+  type ExpenseDraftStatusT,
+} from '@/lib/constants/worker-expense-drafts'
 import { cn } from '@/lib/utils/cn'
 
-const STATUS_LABELS: Record<ExpenseDraftStatusT, string> = {
-  pending: 'czeka',
-  accepted: 'przyjęty',
-  rejected: 'odrzucony',
-}
-
 const STATUS_TONES: Record<ExpenseDraftStatusT, string> = {
-  pending: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
+  pending: BADGE_TONE.pending,
   accepted: BADGE_TONE.positive,
   rejected: BADGE_TONE.muted,
 }
 
 export function DraftStatusBadge({ status }: { status: ExpenseDraftStatusT }) {
-  return <span className={cn(BADGE_BASE, STATUS_TONES[status])}>{STATUS_LABELS[status]}</span>
+  return (
+    <span className={cn(BADGE_BASE, STATUS_TONES[status])}>
+      {EXPENSE_DRAFT_STATUS_LABELS[status]}
+    </span>
+  )
 }

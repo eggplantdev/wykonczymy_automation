@@ -14,6 +14,7 @@ import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 import type { CashRegisterRefT } from '@/types/reference-data'
 import { formatPLDateTime } from '@/lib/utils/format-date'
+import { isActiveRef } from '@/lib/utils/is-active-ref'
 
 const COLS = `${SUMMARY_LABEL_COL} auto auto minmax(min(16rem, 40vw), 1fr) auto`
 
@@ -35,20 +36,22 @@ export function WorkerExpenseDraftsSection({
 }: PropsT) {
   // Only a pending draft can be edited or deleted, so with none waiting the column would stand empty.
   const showActions = canSend && drafts.some((draft) => draft.status === 'pending')
+  // The server refuses an inactive kasa, so offering one only leads to a refusal.
+  const sendableRegisters = registers.filter(isActiveRef)
 
   return (
     <div className="max-w-4xl">
       <div className="mb-2 flex items-center justify-between gap-2">
         <h2 className="text-sm font-semibold">Moje wydatki</h2>
-        {canSend && registers.length > 0 && investments.length > 0 && (
+        {canSend && sendableRegisters.length > 0 && investments.length > 0 && (
           <ExpenseDraftDialog
             investments={investments}
-            registers={registers}
+            registers={sendableRegisters}
             defaultRegisterId={defaultRegisterId}
           />
         )}
       </div>
-      {canSend && registers.length === 0 && (
+      {canSend && sendableRegisters.length === 0 && (
         <Description>Nie masz kasy — poproś kierownika o jej założenie.</Description>
       )}
       {drafts.length === 0 ? (
@@ -88,7 +91,7 @@ export function WorkerExpenseDraftsSection({
                     <>
                       <ExpenseDraftDialog
                         investments={investments}
-                        registers={registers}
+                        registers={sendableRegisters}
                         draft={draft}
                       />
                       <DeleteExpenseDraftButton

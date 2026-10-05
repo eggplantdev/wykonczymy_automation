@@ -59,10 +59,11 @@ Brakuje całej strony managera i dwóch zabezpieczeń mediów (`research.md` §5
   (`use-invoice-files.ts:107`), więc mapa „plik → stare media id" by się rozjeżdżała na głównej
   ścieżce. Koszt: kopia kilku zdjęć w Blob na zgłoszenie.
 - Odczytu AI przy kliknięciu — tylko „Generuj" (decyzja właściciela).
-- Osobnej podstrony, licznika w nawigacji, ponownego rozpatrzenia zgłoszenia, edycji/usuwania
-  zgłoszenia przez pracownika.
+- Osobnej podstrony, licznika w nawigacji. ~~Ponownego rozpatrzenia zgłoszenia, edycji/usuwania
+  zgłoszenia przez pracownika~~ — odwrócone po fazach („Przywróć", edycja), patrz Post-implementation.
 - Wierszy zgłoszeń wewnątrz tabeli transakcji (nie są transakcjami — lista nad tabelą).
-- Blokady usunięcia pracownika przez zgłoszenia (FK `CASCADE` sprząta szkice).
+- ~~Blokady usunięcia pracownika przez zgłoszenia (FK `CASCADE` sprząta szkice).~~ Odwrócone dla
+  „czeka" na review gate, patrz Post-implementation.
 
 ## Implementation Approach
 
@@ -316,6 +317,35 @@ Migracja addytywna — na prod **przed** pushem kodu, przez człowieka (`pnpm db
 - `pnpm typecheck`
 - `pnpm lint`
 - `pnpm test` (tylko na wyraźne polecenie)
+
+## Post-implementation changes (owner, 2026-10-05)
+
+Zmiany po zamknięciu faz, na prośbę właściciela — poza fazami powyżej:
+
+- **Kasa wybierana, nie kopiowana** (`a4a575f2`): pracownik wybiera jedną ze swoich aktywnych kas
+  (domyślna podpowiedziana), serwer odrzuca cudzą i nieaktywną; może też usunąć zgłoszenie „czeka".
+- **Jeden dialog „Zobacz"** (`d0eca1da`): kierownik otwiera zgłoszenie od razu w „Nowy wydatek"
+  z „Odrzuć" obok zapisu, zamiast osobnych „Przyjmij" / „Odrzuć" w wierszu.
+- **Odrzucone w Transakcjach** (`d0eca1da`): przy filtrze „Zgłoszone wydatki" pierwsza strona
+  pokazuje też odrzucone zgłoszenia (najnowsze 20) z „Przywróć", które cofa je do „czeka".
+- **Edycja przez pracownika** (`65ead076`): zgłoszenie „czeka" można edytować — inwestycja, kasa,
+  notatka, dodanie i usunięcie zdjęcia (ostatnie zostaje).
+- **Review gate (owner):** odrzucone w „Zgłoszone wydatki" słuchają filtrów inwestycji / kasy / dat
+  (data = dzień wysłania, czas warszawski), a filtr na polu, którego zgłoszenie nie ma (pracownik,
+  kategoria, kwota, ID, „Tylko anulowane", typ bez wydatku inwestycyjnego), chowa je w całości.
+  Sortowanie ich nie obejmuje — to blok nad transakcjami na pierwszej stronie.
+- **Czekające zgłoszenie blokuje usunięcie** pracownika, inwestycji i kasy (kosz i „Usuń na
+  zawsze") — odwraca „What We're NOT Doing" dla „czeka": kierownik najpierw przyjmuje albo odrzuca.
+  Rozpatrzone nadal idzie z `CASCADE`: przyjęte blokuje inwestycję i kasę przez swój wydatek
+  (pracownika — przez kasę), dopóki wydatek nie zostanie anulowany; odrzucone przepada.
+- **Blokada właściciela kasy liczy też czekające zgłoszenia** — ta sama reguła co kosz kasy;
+  komunikaty kosza i blokady właściciela mówią to wprost („Zgłoszenia wydatków najpierw przyjmij lub
+  odrzuć").
+- **Odrzucone, których pracownik, inwestycja lub kasa są w koszu, znikają z „Zgłoszone wydatki"**,
+  a „Przywróć" ich odmawia — inaczej przywrócone zgłoszenie wstrzymałoby czyszczenie kosza
+  i podpowiadało kasę, na którą nie da się zaksięgować.
+- **Edycja zgłoszenia sprawdza inwestycję i kasę zawsze**, także bez ich zmiany — pracownik zdjęty
+  z inwestycji nie poprawi już notatki; świadomie zostawione.
 
 ## References
 

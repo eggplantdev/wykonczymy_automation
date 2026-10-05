@@ -45,7 +45,6 @@ export type TransferRowT = {
   vatPlane: VatPlaneT | null
   // For a CANCELLATION row: the type of the original transfer it reverses (display-only). null otherwise.
   originalType: TransferTypeT | null
-  // Booked by accepting a worker's expense draft.
   fromWorkerDraft?: boolean
   // Not a transfer at all: a worker's rejected expense draft listed beside them so it can be restored.
   // Every transfer-only cell (id, kwota, edit, cancel) must check this before trusting the row.

@@ -32,7 +32,6 @@ type PropsT = {
   investments: WorkerStageInvestmentT[]
   registers: CashRegisterRefT[]
   defaultRegisterId?: number
-  /** A pending draft to edit; without it the dialog sends a new one. */
   draft?: ExpenseDraftRowT
 }
 
@@ -60,7 +59,6 @@ export function ExpenseDraftDialog({ investments, registers, defaultRegisterId, 
   const [isSending, setIsSending] = useState(false)
   const { files, isIngesting, inputKey, reset, fileInputProps } = useFilePickIngest()
 
-  // An edited draft already holds its photos — they are managed in place, not re-picked.
   const hasPhotos = draft !== undefined || files.length > 0
   const canSend =
     investmentId !== '' && cashRegisterId !== '' && hasPhotos && !isIngesting && !isSending

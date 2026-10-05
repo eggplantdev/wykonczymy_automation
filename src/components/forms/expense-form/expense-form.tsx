@@ -70,7 +70,6 @@ import { canBookTransferType } from '@/lib/auth/roles'
 // Numeric conversion happens in the server action.
 type FormValuesT = BulkExpenseFormValuesT
 
-// A worker's expense draft being accepted: the form starts from it instead of the stored draft.
 export type ExpenseFormPrefillT = {
   values: FormValuesT
   files: Map<number, File[]>
