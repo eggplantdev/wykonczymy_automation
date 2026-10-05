@@ -1,3 +1,4 @@
+import { fold } from '@/lib/kosztorys/fold'
 import {
   FIELD_LABELS,
   FIELD_MATCHERS,
@@ -7,7 +8,6 @@ import {
   RATE_GROUP_MATCHERS,
   RATE_UNIT_PRICE_MATCHER,
   STAGE_MARKER,
-  fold,
   type ColumnFieldT,
   type RateGroupT,
 } from './columns'

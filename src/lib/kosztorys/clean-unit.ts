@@ -1,5 +1,5 @@
+import { foldUnit } from '@/lib/kosztorys/fold'
 import { UNIT_SUGGESTIONS } from '@/lib/kosztorys/constants'
-import { foldUnit } from '@/lib/kosztorys/sheet-import/columns'
 
 // Text cleanup for „j.m.", sibling of `cleanDescription`: every rule is idempotent, so the owner
 // can press the button as often as they like.

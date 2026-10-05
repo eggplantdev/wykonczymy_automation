@@ -1,6 +1,6 @@
+import { fold } from '@/lib/kosztorys/fold'
 import { describe, it, expect } from 'vitest'
 import { CATALOGUE_NAME_FIXES } from '@/lib/kosztorys/catalogue-name-fixes'
-import { fold } from '@/lib/kosztorys/sheet-import/columns'
 import { foldDescription } from '@/lib/kosztorys/sheet-import/item-key'
 
 // The table was pasted in from a deleted TSV, so nothing about its shape can be argued from reading

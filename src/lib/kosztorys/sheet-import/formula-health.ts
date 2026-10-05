@@ -1,5 +1,6 @@
+import { fold } from '@/lib/kosztorys/fold'
 import { columnLetter } from '@/lib/google/sheet-configs'
-import { fold, HEADER_BLOCK_ROWS } from './columns'
+import { HEADER_BLOCK_ROWS } from './columns'
 import { NON_ITEM_MARKER } from './parse-labor-tab'
 import type { ResolvedLaborColumnsT } from './resolve-columns'
 

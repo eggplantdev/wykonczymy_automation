@@ -1,6 +1,7 @@
+import { fold } from '@/lib/kosztorys/fold'
 import { MONEY_TOLERANCE, netForQtyForView, rowPlannedNetForView } from '@/lib/kosztorys/calc'
 import type { ViewPricingT } from '@/lib/kosztorys/types'
-import { FOOTER_ROWS, fold, type FooterRowKeyT } from './columns'
+import { FOOTER_ROWS, type FooterRowKeyT } from './columns'
 import type { ParsedItemT, ParsedLaborTabT } from './parse-labor-tab'
 import type { ResolvedLaborColumnsT } from './resolve-columns'
 

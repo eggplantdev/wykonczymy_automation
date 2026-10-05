@@ -1,4 +1,4 @@
-import { foldUnit } from '@/lib/kosztorys/sheet-import/columns'
+import { foldUnit } from '@/lib/kosztorys/fold'
 import { foldDescription } from '@/lib/kosztorys/sheet-import/item-key'
 
 // A praca with no j.m. still needs a key member: Postgres compares NULLs as distinct, so an empty

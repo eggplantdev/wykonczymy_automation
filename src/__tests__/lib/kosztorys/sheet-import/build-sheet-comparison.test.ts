@@ -1,6 +1,6 @@
+import { fold } from '@/lib/kosztorys/fold'
 import { describe, expect, it } from 'vitest'
 import { buildSheetComparison } from '@/lib/kosztorys/sheet-import/build-sheet-comparison'
-import { fold } from '@/lib/kosztorys/sheet-import/columns'
 import type { ImportGridsT } from '@/lib/kosztorys/sheet-import/read-sheet'
 import { SNAPSHOT_SCHEMA_VERSION, type SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 import type { GlobalDiscountT, KosztorysItemT } from '@/lib/kosztorys/types'

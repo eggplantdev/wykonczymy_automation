@@ -1,6 +1,6 @@
+import { foldUnit } from '@/lib/kosztorys/fold'
 import { describe, it, expect } from 'vitest'
 import { cleanUnit } from '@/lib/kosztorys/clean-unit'
-import { foldUnit } from '@/lib/kosztorys/sheet-import/columns'
 
 describe('cleanUnit', () => {
   it('snaps a j.m. onto the spelling the combobox offers', () => {

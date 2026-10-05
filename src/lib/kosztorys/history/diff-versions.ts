@@ -1,5 +1,5 @@
+import { foldUnit } from '@/lib/kosztorys/fold'
 import { MONEY_TOLERANCE, rowPlannedNetForView } from '@/lib/kosztorys/calc'
-import { foldUnit } from '@/lib/kosztorys/sheet-import/columns'
 import { keyItems } from '@/lib/kosztorys/sheet-import/item-key'
 import { QTY_TOLERANCE, rowValueForView } from '@/lib/kosztorys/settlement-rows'
 import { stageKey } from '@/lib/kosztorys/stage-keys'

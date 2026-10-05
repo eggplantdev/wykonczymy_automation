@@ -1,7 +1,7 @@
+import { fold } from '@/lib/kosztorys/fold'
 import { describe, expect, it } from 'vitest'
 import { parseLaborTab } from '@/lib/kosztorys/sheet-import/parse-labor-tab'
 import { resolveLaborColumns } from '@/lib/kosztorys/sheet-import/resolve-columns'
-import { fold } from '@/lib/kosztorys/sheet-import/columns'
 import { BIALOSTOCKA_ROWS, PRZEDPOLE_ROWS } from '@/__tests__/fixtures/kosztorys-sheet/rows'
 import { BIALOSTOCKA_LABOR_HEADER } from '@/__tests__/fixtures/kosztorys-sheet/header-blocks'
 import { col, row } from '@/__tests__/fixtures/kosztorys-sheet/grid'

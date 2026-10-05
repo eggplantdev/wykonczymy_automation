@@ -1,6 +1,6 @@
+import { fold } from '@/lib/kosztorys/fold'
 import { CATALOGUE_NAME_FIXES } from '@/lib/kosztorys/catalogue-name-fixes'
 import { TYPO_FIXES } from '@/lib/kosztorys/clean-description'
-import { fold } from './columns'
 
 // The subset of a praca `keyItems` reads. Widened from `KosztorysItemT` so callers holding a
 // half-built praca (the parsed sheet rows, which have no override fields yet) need no cast.
