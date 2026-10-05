@@ -720,23 +720,25 @@
 - **Applies to**: any DB/latency measurement taken against a preview or prod deployment; deciding
   whether an index, a denormalized column, or a query rewrite is justified.
 
-## A hand-written `Where` → SQL translator fails OPEN — an operator it doesn't know silently widens the result set
+## A hand-written `Where` → SQL translator must fail CLOSED — an operator it doesn't know once silently widened the result set
 
 - **Context**: `buildTransferFilters` emits a half-open amount range
-  (`{ greater_than_equal: low, less_than: high }`), but `where-to-sql.ts`'s `buildFieldCondition` is a
-  flat chain of `if ('op' in cond)` and had no `less_than` branch.
-- **Problem**: an unmatched operator is not an error — it falls through. The ceiling vanished and the
-  stats query ran `amount >= low` unbounded, so searching „500,00" listed 20 rows totalling 10 000 zł
-  under a tile reading 22 560 189,17 zł. Nothing typed, logged or threw; the list plane (Payload
-  `find`) and the stats plane (raw SQL) simply disagreed. The same file's other trap is upstream:
+  (`{ greater_than_equal: low, less_than: high }`), but `where-to-sql.ts`'s `buildFieldCondition` was
+  a flat chain of `if ('op' in cond)` with no `less_than` branch.
+- **Problem**: an unmatched operator fell through. The ceiling vanished and the stats query ran
+  `amount >= low` unbounded, so searching „500,00" listed 20 rows totalling 10 000 zł under a tile
+  reading 22 560 189,17 zł. Nothing typed, logged or threw; the list plane (Payload `find`) and the
+  stats plane (raw SQL) simply disagreed. The same file's other trap is upstream:
   `stripCancelledFilters` discarded the default `type not_in ['CANCELLATION']` while the SQL re-added
-  only `cancelled IS NOT TRUE` — a comment saying "SQL already excludes cancelled" is exactly what hid
-  the gap, because `cancelled = true` and `type = 'CANCELLATION'` are two different concepts.
-- **Rule**: any operator the filter builder can emit needs a branch in the translator, and the
-  translator should be exhaustive (or throw on an unknown operator) rather than fall through — widening
-  is the dangerous direction. Test the **bridge**: run the real builder through the real strip into the
-  real translator and assert the **emitted SQL**, not the intermediate `Where` object. Asserting the
-  `Where` still holds `not_in` stays green even if the translator drops the operator entirely.
+  only `cancelled IS NOT TRUE` — `cancelled = true` and `type = 'CANCELLATION'` are two different
+  concepts.
+- **Today**: the translator throws on any field, operator or value type it hasn't been taught, and
+  understands both `or` and `and` (EX-985 needs `and`: the worker page's access scope rides as
+  `{ ...urlFilters, and: [scope] }`, so a dropped `and` would show every transfer to an EMPLOYEE).
+- **Rule**: keep it exhaustive — teach a new operator a branch, never a fall-through, because widening
+  is the dangerous direction and on a scoped page it is a data leak. Test the **bridge**: run the real
+  builder through the real strip into the real translator and assert the **emitted SQL**, not the
+  intermediate `Where` object.
 - **Applies to**: `src/lib/db/where-to-sql.ts` and every `src/lib/queries/*-filters.ts` that feeds it;
   any two-plane visibility rule enforced once in the ORM and once in hand-written SQL.
 
