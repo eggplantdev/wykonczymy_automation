@@ -81,8 +81,9 @@ describe.skipIf(!ENV_READY)('PAYOUT to a worker with no assigned etapy (DB)', ()
 
   it('persists the transaction even though the worker holds no etapy on the investment', async () => {
     const assigned = await db.execute(sql`
-      SELECT COUNT(*)::int AS count FROM kosztorys_stages
-      WHERE investment_id = ${investmentId} AND worker_id = ${workerId}
+      SELECT COUNT(*)::int AS count FROM kosztorys_stage_workers sw
+      JOIN kosztorys_stages s ON s.id = sw.stage_id
+      WHERE s.investment_id = ${investmentId} AND sw.worker_id = ${workerId}
     `)
     expect(assigned.rows[0].count).toBe(0)
 
