@@ -341,4 +341,4 @@ the owner resends links.
 
 #### Automated
 
-- [x] 3.1 Domain notes mention `zgloszenie-prac/` only as the retired path
+- [x] 3.1 Domain notes mention `zgloszenie-prac/` only as the retired path — f51b3ea8
