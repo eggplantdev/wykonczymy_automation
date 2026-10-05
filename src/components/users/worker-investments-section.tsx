@@ -26,7 +26,7 @@ export function WorkerInvestmentsSection({
           <SummaryHeaderCell variant="label">Zgłoszenia</SummaryHeaderCell>
           {investments.map((investment) => (
             <Fragment key={investment.investmentId}>
-              <SummaryLabelCell>{investment.name}</SummaryLabelCell>
+              <SummaryLabelCell className="flex items-center">{investment.name}</SummaryLabelCell>
               <SummaryLabelCell className="flex items-center">
                 {investment.token ? (
                   <Button asChild>
