@@ -72,7 +72,7 @@ export async function selectKosztorysTreeData(
                  discount_type, discount_value, client_price,
                  w_tools_override_value, own_tools_override_value,
                  w_tools_override_coeff, own_tools_override_coeff,
-                 note
+                 note, ref
           FROM kosztorys_items WHERE investment_id = ${investmentId}
         ) i
       ) AS items,
@@ -150,6 +150,7 @@ const mapSection = (row: RowT): KosztorysSectionT => ({
 
 const mapItem = (row: RowT): KosztorysItemT & { sectionId: number } => ({
   id: Number(row.id),
+  ref: Number(row.ref),
   sectionId: Number(row.section_id),
   displayOrder: num(row.display_order),
   description: textOrNull(row.description),

@@ -34,6 +34,9 @@ export type KosztorysSectionT = {
 
 export type KosztorysItemT = {
   id: number
+  // The pozycja's stable number (EX-949), printed on the fill-in form. Every row read from the DB
+  // has one; it is absent only on a row built in code and not inserted yet, which draws a fresh one.
+  ref?: number
   sectionId: number
   displayOrder: number
   description: string | null

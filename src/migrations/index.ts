@@ -120,6 +120,7 @@ import * as migration_20261005_1_drop_kosztorys_stages_worker_id from './2026100
 import * as migration_20261005_2_backfill_worker_report_shares from './20261005_2_backfill_worker_report_shares'
 import * as migration_20261005_3_add_worker_expense_drafts from './20261005_3_add_worker_expense_drafts'
 import * as migration_20261005_4_add_worker_report_line_translations from './20261005_4_add_worker_report_line_translations'
+import * as migration_20261005_5_add_kosztorys_item_ref from './20261005_5_add_kosztorys_item_ref'
 
 export const migrations = [
   {
@@ -731,5 +732,10 @@ export const migrations = [
     up: migration_20261005_4_add_worker_report_line_translations.up,
     down: migration_20261005_4_add_worker_report_line_translations.down,
     name: '20261005_4_add_worker_report_line_translations',
+  },
+  {
+    up: migration_20261005_5_add_kosztorys_item_ref.up,
+    down: migration_20261005_5_add_kosztorys_item_ref.down,
+    name: '20261005_5_add_kosztorys_item_ref',
   },
 ]

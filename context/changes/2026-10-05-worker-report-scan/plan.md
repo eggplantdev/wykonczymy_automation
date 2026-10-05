@@ -647,10 +647,10 @@ with a readable message.
 
 #### Automated
 
-- [ ] 1.1 Migration applies and rolls back locally
-- [ ] 1.2 check-digit unit spec
-- [ ] 1.3 Snapshot tolerance + import carry unit specs
-- [ ] 1.4 item-ref DB spec (restore keeps, szablon/add mint, unique)
+- [x] 1.1 Migration applies and rolls back locally
+- [x] 1.2 check-digit unit spec
+- [x] 1.3 Snapshot tolerance + import carry unit specs
+- [x] 1.4 item-ref DB spec (restore keeps, szablon/add mint, unique)
 
 ### Phase 2: „Drukuj do wypełnienia"
 
