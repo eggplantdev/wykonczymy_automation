@@ -3716,3 +3716,8 @@ przypisane do etapów w kilku inwestycjach — w tym co najmniej jednej zakończ
 - [ ] Zwykły „Nowy wydatek" z paska nadal odtwarza swój niedokończony szkic, także po przyjęciu zgłoszenia.
 - [ ] Transakcje → filtr „Zgłoszenia" → „Zgłoszenia pracowników": tylko wydatki przyjęte ze zgłoszeń, każdy z plakietką „od pracownika"; „Wyczyść filtry" wyłącza przełącznik.
 - [ ] Filtr „Zgłoszenia pracowników" razem z wyszukiwaniem po kwocie zwraca część wspólną obu.
+
+## 2026-10-05 — pagination-limit-width — „100” mieści się w selekcie „Pokaż”
+
+- [ ] Dowolna lista z paginacją (np. Transakcje) → „Pokaż” → wybierz 100: w polu widać całe „100”,
+      bez ucięcia; przy 20 i 50 pole ma tę samą szerokość.

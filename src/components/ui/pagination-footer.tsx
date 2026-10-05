@@ -35,7 +35,7 @@ export function PaginationFooter({ paginationMeta, baseUrl, className }: Paginat
             value={String(paginationMeta.limit)}
             onValueChange={handleLimitChange}
             options={LIMIT_OPTIONS}
-            className="h-7 w-18"
+            className="h-7 w-20"
           />
         </div>
       </div>
