@@ -3442,7 +3442,7 @@ Refaktor bez zmiany zachowania: nocny cron czyści Kosz tak samo jak wcześniej.
       (wklej go gdziekolwiek), toast „Link skopiowany do schowka. Poprzedni (jeśli był) przestał działać."
       Stary adres pokazuje teraz stronę „nie znaleziono", nie czerwony błąd.
 - [ ] Kosztorys → „Pracownicy" → link do zgłoszeń pracownika → „Wygeneruj nowy": w schowku jest nowy
-      adres `/zgloszenie-prac/…`, ten sam toast. To samo dla linku do rozpiski pracownika.
+      adres `/zgloszenie-prac/…`, ten sam toast.
 - [ ] Otwórz cofnięty link do zgłoszeń (na telefonie, 390px): strona pokazuje komunikat „Ten link wygasł
       albo został cofnięty…" (PL/UA/RU), bez ekranu błędu; w narzędziach sieci odpowiedź to 404, nie 200.
 - [ ] Otwórz cofnięty link inwestora `/k/<stary token>`: zwykła strona „nie znaleziono", bez błędu
@@ -3461,3 +3461,23 @@ Refaktor bez zmiany zachowania: nocny cron czyści Kosz tak samo jak wcześniej.
       w trakcie — wiersz nie znika spod kursora; znika dopiero przy ponownym przełączeniu.
 - [ ] Wpisz ujemną ilość i włącz „Tylko zgłoszone”: ten wiersz zostaje widoczny (wysyłka go odrzuci,
       więc musi dać się go poprawić).
+
+## EX-966 — worker-single-view — jeden widok pracownika: „Zgłoszenie prac" z „Podsumowaniem"
+
+- [ ] Link „Zgłoszenie prac" na telefonie (390px): „Podsumowanie" otwiera i zamyka rozliczenie
+      pracownika nad rozpiską, przycisk zamykania jest osiągalny przy otwartym panelu, a strona nie
+      przewija się w bok.
+- [ ] Ten sam link na desktopie, z „Wszystkie kolumny" włączonym i wyłączonym: panel zakrywa ekran
+      (nie całą długość strony), a po jego zamknięciu pasek „Wyślij" jest osiągalny.
+- [ ] Kwoty w „Podsumowaniu" zgadzają się z rozliczeniem tego pracownika w PDF z menu „Pracownicy"
+      dla tej samej inwestycji.
+- [ ] Kosztorys → „Pracownicy" → „Podgląd": otwiera się ten sam widok co link pracownika — nagłówek,
+      rozpiska, „Podsumowanie", wysłane zgłoszenia — bez przycisku „Wyślij".
+- [ ] Wpisz ilość w „Podglądzie", potem otwórz prawdziwy link tego pracownika w tej samej
+      przeglądarce: link nie pokazuje wpisanej ilości.
+- [ ] „Podgląd" działa dla pracownika, któremu nigdy nie wygenerowano linku.
+- [ ] Menu „Pracownicy" pokazuje przy każdym pracowniku tylko „Podgląd", „Link do zgłoszeń" i
+      „Drukuj PDF" — bez osobnego „Link".
+- [ ] Stary adres `/p/<imię>/<token>` pokazuje stronę „nie znaleziono".
+- [ ] „Link do zgłoszeń" → „Wygeneruj nowy" i „Wyłącz link" działają: nowy adres jest w schowku,
+      wyłączony pokazuje komunikat „Ten link wygasł albo został cofnięty…".

@@ -1,7 +1,7 @@
 ---
 change_id: worker-single-view
 title: One worker view — „Zgłoszenie prac" absorbs the /p link and its Podsumowanie
-status: implementing
+status: implemented
 created: 2026-10-05
 updated: 2026-10-05
 archived_at: null

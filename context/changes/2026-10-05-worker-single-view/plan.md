@@ -408,6 +408,6 @@ At implementation, park the DROP in a Linear issue under „Wykonczymy":
 
 #### Automated
 
-- [x] 3.1 No reference to the removed symbols outside migrations
-- [x] 3.2 Updated action, menu and proxy specs pass
-- [x] 3.3 Ported privacy cases pass on the report-share read
+- [x] 3.1 No reference to the removed symbols outside migrations — ab573bda
+- [x] 3.2 Updated action, menu and proxy specs pass — ab573bda
+- [x] 3.3 Ported privacy cases pass on the report-share read — ab573bda
