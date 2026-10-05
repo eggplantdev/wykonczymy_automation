@@ -36,7 +36,7 @@ export const PAGE_TITLES = {
   reports: 'Raporty',
 } as const
 
-// Not in NAV_LINKS: „Kosz" sits with the bottom actions, under „Admin".
+// „Kosz" sits with the bottom actions, under „Admin".
 export const TRASH_HREF = '/kosz'
 
 export type NavLinkT = {

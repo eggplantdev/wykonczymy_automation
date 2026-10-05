@@ -29,7 +29,6 @@ export const canBookTransferType = (role: RoleT, type: string): boolean =>
 export const canViewRegister = (role: RoleT, registerType: string | null | undefined): boolean =>
   registerType !== 'MAIN' || isAdminOrOwnerRole(role)
 
-// An EMPLOYEE sees one worker page — his own (EX-985).
 export const canViewWorkerPage = (viewer: { id: number; role: RoleT }, workerId: number): boolean =>
   isManagementRole(viewer.role) || (viewer.role === 'EMPLOYEE' && viewer.id === workerId)
 

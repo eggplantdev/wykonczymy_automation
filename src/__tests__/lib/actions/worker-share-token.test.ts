@@ -138,8 +138,8 @@ describe.skipIf(!ENV_READY)('kosztorys worker share token lifecycle (DB)', () =>
     expect(await persistedTokens(readyWorkerId)).toHaveLength(1)
   })
 
-  // The link is also the worker's way into his own page, so a block no longer withholds it — `/z/`
-  // shows the notice and `tokenAction` refuses the send instead (token-action.test.ts).
+  // The link is listed on the worker's own page, so a block does not withhold it — `/z/` shows the
+  // notice and `tokenAction` refuses the send (token-action.test.ts).
   it.each([
     ['mix rozliczenia', () => mixedWorkerId],
     ['has no rozliczenie', () => unconfirmedWorkerId],

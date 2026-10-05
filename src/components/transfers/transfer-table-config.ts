@@ -35,12 +35,11 @@ export type TransferTableConfigT = {
   print?: boolean
   /**
    * The worker page's id. Faktury/Drukuj then fetch through `fetchWorkerTransfers`, which rebuilds
-   * the scope on the server from this id and the URL, instead of sending `query.where` back.
+   * the scope on the server from this id and the URL.
    */
   workerScope?: number
 }
 
-/** What Faktury/Drukuj call for the unpaginated rows behind the table. */
 export type TransferRowsFetchT = (opts?: {
   skipMedia?: boolean
   sort?: string

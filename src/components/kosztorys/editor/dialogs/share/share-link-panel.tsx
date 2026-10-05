@@ -17,7 +17,7 @@ type PropsT = {
   urlFor: (token: string) => string
   generate: () => Promise<ActionResultT<string>>
   onTokenChange: (token: string | null) => void
-  // Absent for a worker: his link is also the door to his own page, so it is only ever rotated.
+  // Absent for a worker: his link is listed on his own page, so revoking would leave him without one.
   revoke?: { action: () => Promise<ActionResultT>; title: string; description: string }
   // Set when the audience's view cannot be priced; the link still works, its page shows the notice.
   blockReason?: string

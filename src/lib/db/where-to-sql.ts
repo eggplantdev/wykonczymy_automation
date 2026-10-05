@@ -84,7 +84,6 @@ function renderField(field: string, condition: unknown): string {
   return parts.length === 1 ? parts[0] : `(${parts.join(' AND ')})`
 }
 
-/** One `or` / `and` branch: its fields ANDed, like a top-level Where. */
 function renderConjunction(where: Where): string {
   const parts = Object.entries(where).map(([field, condition]) => renderField(field, condition))
   // An empty branch would render `()`, a syntax error at best — and inside an `or`, `( OR x)`.

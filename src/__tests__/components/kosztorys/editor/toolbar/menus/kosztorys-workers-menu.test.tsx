@@ -120,7 +120,6 @@ describe('KosztorysWorkersMenu', () => {
     )
   })
 
-  // The link is also the worker's door to his own page, so it is only ever rotated, never switched off.
   it('hands a blocked worker his link with the reason above it, and no „Wyłącz link"', async () => {
     ensureWorkerLinkAction.mockResolvedValue({ success: true, data: 'tok-bogdan' })
     renderMenu()

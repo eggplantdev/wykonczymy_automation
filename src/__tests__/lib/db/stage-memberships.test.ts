@@ -12,8 +12,6 @@ import {
 } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
-// The worker's own page lists only his aktywne inwestycje — a wycena, a planned, a zakończona, a
-// trashed or a szablon one must not offer him a link.
 vi.mock('server-only', () => ({}))
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
