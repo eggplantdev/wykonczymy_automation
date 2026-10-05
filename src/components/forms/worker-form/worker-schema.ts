@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { ROLES } from '@/lib/auth/roles'
-import { languageSchema } from '@/lib/i18n/languages'
+import { languageSchema, storedLanguageSchema } from '@/lib/i18n/languages'
 
 // Form-input layer: every field is a string/boolean as the HTML controls produce
 // them (the cash-register <select> yields a string id).
@@ -27,10 +27,7 @@ export const workerSchema = workerFormSchema.extend({
     .pipe(z.union([z.literal(''), z.email('Nieprawidłowy adres email')]))
     .default(''),
   defaultCashRegister: z.number().optional(),
-  // Polish is the absence of a language: storing 'pl' would make two values mean the same thing.
-  language: languageSchema
-    .nullable()
-    .transform((language) => (language === 'pl' ? null : language)),
+  language: storedLanguageSchema,
 })
 
 export type WorkerFormDataT = z.infer<typeof workerSchema>

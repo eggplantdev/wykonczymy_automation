@@ -27,6 +27,11 @@ export const LANGUAGE_SHORT: Record<LanguageT, string> = {
 
 export const languageSchema = z.enum(LANGUAGES)
 
+// Polish is the absence of a language on an account: storing 'pl' would make two values mean the same thing.
+export const storedLanguageSchema = languageSchema
+  .nullable()
+  .transform((language) => (language === DEFAULT_LANGUAGE ? null : language))
+
 export const isLanguage = (value: unknown): value is LanguageT =>
   typeof value === 'string' && (LANGUAGES as readonly string[]).includes(value)
 
