@@ -1,10 +1,10 @@
 ---
 change_id: worker-expenses
 title: Pracownik wpisuje wydatki inwestycyjne opłacone z własnej kasy (EX-971)
-status: implemented
+status: archived
 created: 2026-10-05
 updated: 2026-10-05
-archived_at: null
+archived_at: 2026-10-05T16:20:13Z
 branch: staging # shared working tree
 worktree: null
 ---
