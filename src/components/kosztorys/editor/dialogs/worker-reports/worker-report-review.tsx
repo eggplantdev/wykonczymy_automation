@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { DialogFooter } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
+import { MediaStrip } from '@/components/media/media-strip'
 import { SimpleSelect } from '@/components/ui/simple-select'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import {
@@ -37,6 +38,8 @@ import {
 import type { AcceptTargetT, ReportLineT, WorkerReportT } from '@/lib/kosztorys/worker-report/types'
 import { ACCEPT_REFUSALS } from '@/lib/kosztorys/worker-report/refusals'
 import { isStageMember, resolveWorkerScope } from '@/lib/kosztorys/worker-view/scope'
+import { ASSET_PREVIEW_LABELS } from '@/lib/media/wording'
+import { cn } from '@/lib/utils/cn'
 import { formatPLDateTime } from '@/lib/utils/format-date'
 import { itemNounAccusative } from '@/lib/kosztorys/counted-nouns'
 import { settleAction } from '@/lib/utils/settle-action'
@@ -102,6 +105,10 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
     }
   }
   const sectionOrder = new Map(sections.map((section, index) => [section.sectionName, index]))
+  const linesPerItem = Map.groupBy(
+    report.lines.filter((line) => line.kind === 'rozpiska' && line.itemId !== undefined),
+    (line) => line.itemId,
+  )
   const reviewRows: ReviewRowT[] = reportLines
     .map((line) => {
       const isRozpiska = lineGroup(line, drafts[line.id]) === 'rozpiska'
@@ -119,6 +126,8 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
           line.kind === 'rozpiska' && (line.itemId === undefined || !rowById.has(line.itemId)),
         isAccepted: line.acceptedQty !== undefined,
         isFigureLive: hasRecordedFigures && rowById.has(line.createdItemId ?? line.itemId ?? -1),
+        isDuplicateItem: (linesPerItem.get(line.itemId)?.length ?? 0) > 1,
+        isUnitMissing: line.kind === 'extra' && line.unit.trim() === '',
       }
     })
     .toSorted((first, second) => first.sectionOrder - second.sectionOrder)
@@ -224,7 +233,9 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
         <div>
           <h3 className="text-base font-semibold">{report.workerName}</h3>
           <p className="text-muted-foreground text-xs">
-            Wysłano {formatPLDateTime(report.sentAt)}
+            {report.source === 'scan'
+              ? `Wczytane z kartki${report.createdByName ? ` przez ${report.createdByName}` : ''} ${formatPLDateTime(report.sentAt)}`
+              : `Wysłano ${formatPLDateTime(report.sentAt)}`}
             {report.decidedAt &&
               ` · sprawdzono ${formatPLDateTime(report.decidedAt)}${report.decidedBy ? ` (${report.decidedBy})` : ''}`}
           </p>
@@ -268,33 +279,52 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
         <p className="text-destructive text-sm">{targetProblem}</p>
       )}
 
-      <div className="max-h-dialog-scroll flex min-h-0 flex-col gap-6 overflow-y-auto pr-1">
-        {GROUPS.map(({ group, title, hint }) => {
-          const lines = reviewRows.filter((row) => lineGroup(row, drafts[row.id]) === group)
-          if (lines.length === 0) return null
-          return (
-            <section key={group}>
-              <h4 className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
-                {title} ({lines.length})
-              </h4>
-              <p className="text-muted-foreground mb-2 text-xs">{hint}</p>
-              <ReviewLinesTable
-                group={group}
-                rows={lines}
-                drafts={drafts}
-                onChange={updateDraft}
-                sectionOptions={sectionOptions}
-                itemOptions={itemOptions}
-                catalogue={catalogue}
-                kosztorysItems={rows}
-                onCatalogueSwap={(lineId, entry) => updateDraft(lineId, catalogueSwap(entry, rows))}
-                hintsByLine={hintsByLine}
-                stageTitle={stageTitle}
-                onRetranslate={isPending ? retranslate : undefined}
-              />
-            </section>
-          )
-        })}
+      <div
+        className={cn(
+          'grid min-h-0 gap-4',
+          report.photos.length > 0 && 'sm:grid-cols-[1fr_minmax(0,22rem)]',
+        )}
+      >
+        <div className="max-h-dialog-scroll flex min-h-0 flex-col gap-6 overflow-y-auto pr-1">
+          {GROUPS.map(({ group, title, hint }) => {
+            const lines = reviewRows.filter((row) => lineGroup(row, drafts[row.id]) === group)
+            if (lines.length === 0) return null
+            return (
+              <section key={group}>
+                <h4 className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+                  {title} ({lines.length})
+                </h4>
+                <p className="text-muted-foreground mb-2 text-xs">{hint}</p>
+                <ReviewLinesTable
+                  group={group}
+                  rows={lines}
+                  drafts={drafts}
+                  onChange={updateDraft}
+                  sectionOptions={sectionOptions}
+                  itemOptions={itemOptions}
+                  catalogue={catalogue}
+                  kosztorysItems={rows}
+                  onCatalogueSwap={(lineId, entry) =>
+                    updateDraft(lineId, catalogueSwap(entry, rows))
+                  }
+                  hintsByLine={hintsByLine}
+                  stageTitle={stageTitle}
+                  onRetranslate={isPending ? retranslate : undefined}
+                />
+              </section>
+            )
+          })}
+        </div>
+        {report.photos.length > 0 && (
+          <aside className="max-h-dialog-scroll overflow-y-auto">
+            <MediaStrip
+              files={report.photos}
+              labels={ASSET_PREVIEW_LABELS}
+              gridClassName="grid-cols-2"
+              sizes="(max-width: 767.98px) 50vw, 172px"
+            />
+          </aside>
+        )}
       </div>
 
       <DialogFooter>

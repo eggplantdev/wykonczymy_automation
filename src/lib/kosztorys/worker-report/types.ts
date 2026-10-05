@@ -9,6 +9,7 @@ import type {
 } from '@/lib/kosztorys/worker-report/schemas'
 import type { KosztorysItemT, KosztorysSectionT, KosztorysStageT } from '@/lib/kosztorys/types'
 import type { ReportStatusT } from '@/lib/kosztorys/worker-report/report-status'
+import type { MediaFileT } from '@/types/media'
 
 export type ReportFormItemT = {
   id: number
@@ -41,6 +42,8 @@ export type CreateScannedReportInputT = z.input<typeof createScannedReportSchema
 
 export type ReportLineKindT = 'rozpiska' | 'extra'
 
+export type ReportSourceT = 'link' | 'scan'
+
 // Opis + j.m. are copied onto the line when it is sent, so a later rename or delete of the pozycja
 // does not rewrite what the worker reported.
 export type ReportLineT = {
@@ -61,6 +64,9 @@ export type ReportLineT = {
   // no Polish = the worker wrote Polish.
   polishDescription: string | undefined
   descriptionLanguage: string | undefined
+  // Scans only: the AI was unsure of the ilość, or the number on the paper matched no pozycja.
+  isUncertain: boolean
+  scannedRef: string | undefined
 }
 
 // Ordinal and label are copied, so a later rename or delete of the etap does not rewrite where the
@@ -76,6 +82,9 @@ export type WorkerReportSummaryT = {
   investmentId: number
   workerId: number
   workerName: string
+  source: ReportSourceT
+  // The kierownik who filed a scan; undefined on a report the worker sent himself.
+  createdByName: string | undefined
   sentAt: string
   status: ReportStatusT
   decidedAt: string | undefined
@@ -85,7 +94,7 @@ export type WorkerReportSummaryT = {
   acceptedLineCount: number
 }
 
-export type WorkerReportT = WorkerReportSummaryT & { lines: ReportLineT[] }
+export type WorkerReportT = WorkerReportSummaryT & { lines: ReportLineT[]; photos: MediaFileT[] }
 
 export type AcceptReportInputT = z.input<typeof acceptSchema>
 

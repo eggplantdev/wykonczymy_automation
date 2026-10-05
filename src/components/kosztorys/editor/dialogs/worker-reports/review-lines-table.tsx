@@ -45,6 +45,11 @@ export type ReviewRowT = Omit<ReportLineT, 'sectionName'> & {
   isAccepted: boolean
   // The etap and the pozycja it went to both still exist, so an untick has a figure to take back.
   isFigureLive: boolean
+  // Scans: the same pozycja read twice — two photos of one page, most likely — so neither is ticked
+  // in bulk.
+  isDuplicateItem: boolean
+  // Scans: a praca spoza rozpiski in a j.m. the kosztorys has not got.
+  isUnitMissing: boolean
 }
 
 type ReviewTablePropsT = {
@@ -78,13 +83,14 @@ function useReviewTable() {
 
 function TickHeader() {
   const { rows, drafts, onChange } = useReviewTable()
-  const tickedCount = rows.filter((row) => drafts[row.id].isTicked).length
+  const bulkRows = rows.filter((row) => !row.isDuplicateItem)
+  const tickedCount = bulkRows.filter((row) => drafts[row.id].isTicked).length
   return (
     <Checkbox
       aria-label="Zaznacz wszystkie"
-      checked={checkedState(tickedCount, rows.length)}
+      checked={checkedState(tickedCount, bulkRows.length)}
       onCheckedChange={(checked) =>
-        rows.forEach((row) => onChange(row.id, { isTicked: checked === true }))
+        bulkRows.forEach((row) => onChange(row.id, { isTicked: checked === true }))
       }
     />
   )
@@ -123,16 +129,47 @@ function AcceptedQtyCell({ row }: { row: ReviewRowT }) {
   )
 }
 
+const WARNING_NOTE = 'block text-xs text-amber-600 dark:text-amber-400'
+
+function ScanFlags({ row }: { row: ReviewRowT }) {
+  const { drafts } = useReviewTable()
+  return (
+    <>
+      {row.isUncertain && (
+        <span className={WARNING_NOTE}>Niepewny odczyt — sprawdź na zdjęciu</span>
+      )}
+      {row.isDuplicateItem && (
+        <span className={WARNING_NOTE}>Ta pozycja jest w zgłoszeniu więcej niż raz</span>
+      )}
+      {row.isUnitMissing && drafts[row.id].catalogueId === undefined && (
+        <span className="text-destructive block text-xs">
+          Brak j.m. w kosztorysie — wybierz pracę z katalogu
+        </span>
+      )}
+    </>
+  )
+}
+
 function RozpiskaDescriptionCell({ row }: { row: ReviewRowT }) {
   const { drafts, onChange, itemOptions } = useReviewTable()
   const draft = drafts[row.id]
-  if (draft.matchedItemIds.length > 0) return <MatchedDescription row={row} />
+  if (draft.matchedItemIds.length > 0) {
+    return (
+      <>
+        <MatchedDescription row={row} />
+        <ScanFlags row={row} />
+      </>
+    )
+  }
   return (
     <>
       <span className="block leading-snug">{row.description}</span>
+      <ScanFlags row={row} />
       {row.isUnassigned && (
         <span className="text-destructive block text-xs">
-          Pozycja usunięta z rozpiski — do przypisania ręcznie
+          {row.scannedRef === undefined
+            ? 'Pozycja usunięta z rozpiski — do przypisania ręcznie'
+            : `Nr ${row.scannedRef} nie pasuje do rozpiski — do przypisania ręcznie`}
         </span>
       )}
       {row.isUnassigned && !row.isAccepted && (
@@ -190,11 +227,7 @@ function MeasuredCell({ row }: { row: ReviewRowT }) {
       <span className={cn(isOverPlanned && 'text-amber-600 dark:text-amber-400')}>
         <GrowingQty before={measuredQty} added={added} />
       </span>
-      {isOverPlanned && (
-        <span className="block text-xs text-amber-600 dark:text-amber-400">
-          Przekroczono przedmiar
-        </span>
-      )}
+      {isOverPlanned && <span className={WARNING_NOTE}>Przekroczono przedmiar</span>}
     </span>
   )
 }
@@ -212,7 +245,7 @@ function SwapNote({ row, unit }: { row: ReviewRowT; unit: string | undefined }) 
           ` (${languageShort(row.descriptionLanguage)}: „${row.description}”)`}
       </span>
       {unit !== undefined && unit !== row.unit && (
-        <span className="block text-xs text-amber-600 dark:text-amber-400">
+        <span className={WARNING_NOTE}>
           j.m. katalogu: {unit}, zgłoszono w {row.unit}
         </span>
       )}
@@ -299,6 +332,7 @@ function ManualDescriptionCell({ row }: { row: ReviewRowT }) {
       <>
         <span className="block leading-snug">{reviewedDescription(row)}</span>
         <TranslationNote row={row} />
+        <ScanFlags row={row} />
       </>
     )
   }
@@ -306,6 +340,7 @@ function ManualDescriptionCell({ row }: { row: ReviewRowT }) {
     <>
       <span className="block leading-snug">{swapped.description}</span>
       <SwapNote row={row} unit={swapped.unit} />
+      <ScanFlags row={row} />
     </>
   )
 }

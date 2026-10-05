@@ -678,13 +678,13 @@ with a readable message.
 
 #### Automated
 
-- [x] 5.1 scan-report-dialog DOM spec
-- [x] 5.2 listWorkersWithActiveStages DB spec
+- [x] 5.1 scan-report-dialog DOM spec — 1b431de0
+- [x] 5.2 listWorkersWithActiveStages DB spec — 1b431de0
 
 ### Phase 6: Verification
 
 #### Automated
 
-- [ ] 6.1 Accept rule DB spec
-- [ ] 6.2 isLineReady unit spec
-- [ ] 6.3 Review flags DOM spec
+- [x] 6.1 Accept rule DB spec
+- [x] 6.2 isLineReady unit spec
+- [x] 6.3 Review flags DOM spec

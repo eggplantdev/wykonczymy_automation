@@ -34,6 +34,10 @@ const extra = (patch: Partial<ReviewRowT> = {}): ReviewRowT => ({
   isUnassigned: false,
   isAccepted: false,
   isFigureLive: false,
+  isUncertain: false,
+  scannedRef: undefined,
+  isDuplicateItem: false,
+  isUnitMissing: false,
   ...patch,
 })
 
@@ -101,5 +105,63 @@ describe('praca spoza rozpiski — tłumaczenie dla kierownika', () => {
 
     renderTable(extra({ isAccepted: true }), vi.fn())
     expect(screen.queryByRole('button', { name: /Przetłumacz/ })).not.toBeInTheDocument()
+  })
+})
+
+const rozpiska = (patch: Partial<ReviewRowT>): ReviewRowT =>
+  extra({ kind: 'rozpiska', itemId: 10, description: 'Malowanie ścian', unit: 'm2', ...patch })
+
+function renderRozpiska(rows: ReviewRowT[], onChange = vi.fn()) {
+  render(
+    <ReviewLinesTable
+      group="rozpiska"
+      rows={rows}
+      drafts={Object.fromEntries(rows.map((row) => [row.id, draft]))}
+      onChange={onChange}
+      sectionOptions={[]}
+      itemOptions={[]}
+      catalogue={[]}
+      kosztorysItems={[]}
+      onCatalogueSwap={vi.fn()}
+      hintsByLine={{}}
+      stageTitle="Etap 1"
+      onRetranslate={undefined}
+    />,
+  )
+  return onChange
+}
+
+describe('zgłoszenie z kartki — ostrzeżenia', () => {
+  it('flags an uncertain read, a doubled pozycja and a number not in the rozpiska', () => {
+    renderRozpiska([
+      rozpiska({ id: 1, isUncertain: true }),
+      rozpiska({ id: 2, isDuplicateItem: true }),
+      rozpiska({ id: 3, itemId: undefined, isUnassigned: true, scannedRef: '35812' }),
+    ])
+
+    expect(screen.getByText('Niepewny odczyt — sprawdź na zdjęciu')).toBeInTheDocument()
+    expect(screen.getByText('Ta pozycja jest w zgłoszeniu więcej niż raz')).toBeInTheDocument()
+    expect(
+      screen.getByText('Nr 35812 nie pasuje do rozpiski — do przypisania ręcznie'),
+    ).toBeInTheDocument()
+  })
+
+  it('„Zaznacz wszystkie” leaves a doubled pozycja for the kierownik to pick', async () => {
+    const onChange = renderRozpiska([
+      rozpiska({ id: 1 }),
+      rozpiska({ id: 2, isDuplicateItem: true }),
+    ])
+
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Zaznacz wszystkie' }))
+
+    expect(onChange).toHaveBeenCalledWith(1, { isTicked: true })
+    expect(onChange).not.toHaveBeenCalledWith(2, expect.anything())
+  })
+
+  it('asks for a katalog praca when the scanned j.m. is missing', () => {
+    renderTable(extra({ unit: '', isUnitMissing: true }), undefined)
+    expect(
+      screen.getByText('Brak j.m. w kosztorysie — wybierz pracę z katalogu'),
+    ).toBeInTheDocument()
   })
 })

@@ -102,7 +102,7 @@ export function acceptedQtyNote(
 }
 
 export function isLineReady(
-  line: Pick<ReportLineT, 'kind' | 'acceptedQty'>,
+  line: Pick<ReportLineT, 'kind' | 'acceptedQty' | 'unit'>,
   draft: LineDraftT,
   itemId: number | undefined,
 ): boolean {
@@ -112,6 +112,8 @@ export function isLineReady(
   if (line.acceptedQty !== undefined) return true
   if (lineGroup(line, draft) === 'rozpiska') return itemId !== undefined
   if (draft.sectionId === '') return false
+  // A scanned praca whose j.m. was in no list: the new pozycja takes the katalog's.
+  if (line.unit.trim() === '') return draft.catalogueId !== undefined
   return draft.catalogueId !== undefined || parseDecimalInput(draft.unitPrice).kind === 'value'
 }
 

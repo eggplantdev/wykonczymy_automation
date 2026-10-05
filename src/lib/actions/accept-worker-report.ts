@@ -229,6 +229,10 @@ async function acceptInTransaction(
         `„${line.description}” — podaj cenę j.m. albo wybierz pracę z katalogu.`,
       )
     }
+    // A scan reads no j.m. it cannot match to the kosztorys's; only a katalog praca can supply one.
+    if (extra.catalogueItemId === undefined && line.unit.trim() === '') {
+      throw new AcceptRefusal(`„${line.description}” — brak j.m., wybierz pracę z katalogu.`)
+    }
   }
 
   const target = isAdding ? resolveTarget(tree.stages, request.target, workerId) : undefined

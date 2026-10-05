@@ -31,7 +31,7 @@ export async function readInvestmentReport(
   const db = await managementDb()
   const found = await readWorkerReport(db, investmentId, reportId)
   if (!found) return undefined
-  return { ...toSummary(found.report), lines: found.lines.map(toLine) }
+  return { ...toSummary(found.report), lines: found.lines.map(toLine), photos: found.media }
 }
 
 export async function readScanWorkers(): Promise<ScanWorkerT[]> {
@@ -50,6 +50,8 @@ function toSummary(row: WorkerReportRowT): WorkerReportSummaryT {
     investmentId: row.investmentId,
     workerId: row.workerId,
     workerName: row.workerName,
+    source: row.source,
+    createdByName: row.createdByName ?? undefined,
     sentAt: row.sentAt,
     status: row.status,
     decidedAt: row.decidedAt ?? undefined,
@@ -81,5 +83,7 @@ function toLine(row: WorkerReportLineRowT): ReportLineT {
     catalogueItemId: row.catalogueItemId ?? undefined,
     polishDescription: row.polishDescription ?? undefined,
     descriptionLanguage: row.descriptionLanguage ?? undefined,
+    isUncertain: row.isUncertain,
+    scannedRef: row.scannedRef ?? undefined,
   }
 }

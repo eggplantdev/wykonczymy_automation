@@ -5,10 +5,11 @@ import {
   isServerSortableReportColumn,
   type ServerSortableReportColumnT,
 } from '@/lib/kosztorys/worker-report/sortable-columns'
-import type { ReportLineKindT } from '@/lib/kosztorys/worker-report/types'
+import type { ReportLineKindT, ReportSourceT } from '@/lib/kosztorys/worker-report/types'
 import { sortParamColumnId } from '@/lib/table/sort-param'
 import type { DateRangeT } from '@/lib/utils/date-range'
 import type { PaginationParamsT } from '@/lib/utils/pagination'
+import type { MediaFileT } from '@/types/media'
 import type { ReferenceItemT } from '@/types/reference-data'
 import type { DbExecutorT } from './get-db'
 import { inList, sqlList, type SqlT } from './sql-list'
@@ -30,10 +31,6 @@ export type WorkerReportLineInputT = {
   // A scanned rozpiska line whose number resolved to no pozycja keeps what the paper said.
   scannedRef?: string
 }
-
-export type ReportSourceT = 'link' | 'scan'
-
-export type WorkerReportMediaT = { id: number; url: string; filename: string; mimeType: string }
 
 export type WorkerReportRowT = {
   id: number
@@ -239,7 +236,7 @@ export async function readWorkerReport(
 ): Promise<{
   report: WorkerReportRowT
   lines: WorkerReportLineRowT[]
-  media: WorkerReportMediaT[]
+  media: MediaFileT[]
 } | null> {
   const reportRes = await db.execute(sql`
     SELECT ${REPORT_COLUMNS} FROM worker_reports r ${REPORT_JOINS}
@@ -257,7 +254,7 @@ export async function readWorkerReport(
       ORDER BY position
     `),
     db.execute(sql`
-      SELECT m.id, m.url, m.filename, m.mime_type
+      SELECT m.id, m.url, m.filename, m.mime_type, m.sizes_thumbnail_url, m.kind
       FROM worker_report_media rm JOIN media m ON m.id = rm.media_id
       WHERE rm.report_id = ${reportId}
       ORDER BY rm.position
@@ -271,6 +268,8 @@ export async function readWorkerReport(
       url: text(m.url),
       filename: text(m.filename),
       mimeType: text(m.mime_type),
+      thumbnailUrl: textOrNull(m.sizes_thumbnail_url),
+      kind: textOrNull(m.kind) as MediaFileT['kind'],
     })),
   }
 }
