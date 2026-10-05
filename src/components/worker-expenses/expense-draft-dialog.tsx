@@ -24,6 +24,8 @@ import {
 } from '@/lib/actions/worker-expense-drafts'
 import { submitWithUploads } from '@/lib/media/submit-with-uploads'
 import { toastMessage } from '@/lib/utils/toast'
+import { useTranslation } from '@/hooks/use-translation'
+import { failureMessage } from '@/lib/i18n/failure-message'
 import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 import type { CashRegisterRefT } from '@/types/reference-data'
@@ -49,6 +51,7 @@ function initialInvestmentId(investments: WorkerStageInvestmentT[]) {
 
 export function ExpenseDraftDialog({ investments, registers, defaultRegisterId, draft }: PropsT) {
   const router = useRouter()
+  const { locale, t } = useTranslation('expenseDrafts')
   const [open, setOpen] = useState(false)
   const [investmentId, setInvestmentId] = useState(() =>
     draft ? String(draft.investmentId) : initialInvestmentId(investments),
@@ -103,10 +106,10 @@ export function ExpenseDraftDialog({ investments, registers, defaultRegisterId, 
     try {
       const result = await submit()
       if (!result.success) {
-        toastMessage(result.error, 'error')
+        toastMessage(failureMessage(locale, result), 'error')
         return
       }
-      toastMessage(draft ? 'Wydatek zapisany' : 'Wydatek wysłany do kierownika', 'success')
+      toastMessage(t(draft ? 'savedToast' : 'sentToast'), 'success')
       close()
       router.refresh()
     } finally {
@@ -118,23 +121,23 @@ export function ExpenseDraftDialog({ investments, registers, defaultRegisterId, 
     <Dialog open={open} onOpenChange={handleOpenChange}>
       {/* Opened by hand: the row button wraps itself in a tooltip, which `asChild` would trigger. */}
       {draft ? (
-        <EditButton label="Edytuj wydatek" onClick={() => handleOpenChange(true)} />
+        <EditButton label={t('edit')} onClick={() => handleOpenChange(true)} />
       ) : (
         <DialogTrigger asChild>
           <Button>
             <Plus />
-            Dodaj wydatek
+            {t('add')}
           </Button>
         </DialogTrigger>
       )}
       <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
-        <DialogHeader title={draft ? 'Edytuj wydatek' : 'Nowy wydatek'} />
+        <DialogHeader title={t(draft ? 'edit' : 'newTitle')} />
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label>Inwestycja</Label>
+            <Label>{t('investment')}</Label>
             <Select value={investmentId} onValueChange={setInvestmentId}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Wybierz inwestycję" />
+                <SelectValue placeholder={t('chooseInvestment')} />
               </SelectTrigger>
               <SelectContent>
                 {investments.map((investment) => (
@@ -147,10 +150,10 @@ export function ExpenseDraftDialog({ investments, registers, defaultRegisterId, 
           </div>
           {registers.length > 1 && (
             <div className="flex flex-col gap-2">
-              <Label>Kasa</Label>
+              <Label>{t('register')}</Label>
               <Select value={cashRegisterId} onValueChange={setCashRegisterId}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Wybierz kasę" />
+                  <SelectValue placeholder={t('chooseRegister')} />
                 </SelectTrigger>
                 <SelectContent>
                   {registers.map((register) => (
@@ -164,7 +167,7 @@ export function ExpenseDraftDialog({ investments, registers, defaultRegisterId, 
           )}
           {draft ? (
             <div className="flex flex-col gap-2">
-              <Label>Zdjęcia</Label>
+              <Label>{t('photos')}</Label>
               <ExpenseDraftPagesCell
                 draftId={draft.id}
                 media={draft.media}
@@ -175,14 +178,14 @@ export function ExpenseDraftDialog({ investments, registers, defaultRegisterId, 
           ) : (
             <FileInput
               key={inputKey}
-              label="Zdjęcie paragonu lub faktury"
+              label={t('photoInput')}
               multiple
               className="h-28 flex-col"
               {...fileInputProps}
             />
           )}
           <div className="flex flex-col gap-2">
-            <Label htmlFor="expense-draft-note">Notatka (opcjonalnie)</Label>
+            <Label htmlFor="expense-draft-note">{t('noteOptional')}</Label>
             <Textarea
               id="expense-draft-note"
               rows={2}
@@ -191,7 +194,7 @@ export function ExpenseDraftDialog({ investments, registers, defaultRegisterId, 
             />
           </div>
           <Button onClick={handleSend} disabled={!canSend}>
-            {isSending ? (draft ? 'Zapisywanie...' : 'Wysyłanie...') : draft ? 'Zapisz' : 'Wyślij'}
+            {t(isSending ? (draft ? 'saving' : 'sending') : draft ? 'save' : 'send')}
           </Button>
         </div>
       </DialogContent>

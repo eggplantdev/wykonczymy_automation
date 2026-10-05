@@ -1,4 +1,5 @@
 import { ROLE_LABELS, type RoleT } from '@/lib/auth/roles'
+import { pl } from '@/lib/i18n/dictionaries/pl'
 
 // Its own module because collection hooks read it, and `server-only` throws in the Payload CLI graph.
 
@@ -23,19 +24,20 @@ export const GUARDED_ROLES: readonly RoleT[] = ['OWNER', 'ADMIN']
  */
 export const DISABLED_ACCOUNT_ERROR = 'DisabledAccount'
 
-export const DISABLED_ACCOUNT_MESSAGE =
-  'To konto jest wyłączone. Skontaktuj się z właścicielem firmy.'
-
-const LOCKED_ACCOUNT_MESSAGE =
-  'Konto zostało tymczasowo zablokowane po zbyt wielu nieudanych próbach. Spróbuj ponownie za kilka minut.'
+export const DISABLED_ACCOUNT_MESSAGE = pl.notices.accountDisabled
 
 /**
  * The refusal a failed `payload.login` owes the user when the password is not the reason. Payload
  * throws `LockedAuth` with the same 401 as a wrong password, so the name is the only discriminator.
  */
-export function loginRefusalMessage(error: unknown): string | undefined {
+export function loginRefusalKey(error: unknown): 'accountLocked' | 'accountDisabled' | undefined {
   if (!(error instanceof Error)) return undefined
-  if (error.name === 'LockedAuth') return LOCKED_ACCOUNT_MESSAGE
-  if (error.name === DISABLED_ACCOUNT_ERROR) return DISABLED_ACCOUNT_MESSAGE
+  if (error.name === 'LockedAuth') return 'accountLocked'
+  if (error.name === DISABLED_ACCOUNT_ERROR) return 'accountDisabled'
   return undefined
+}
+
+export function loginRefusalMessage(error: unknown): string | undefined {
+  const key = loginRefusalKey(error)
+  return key && pl.notices[key]
 }

@@ -84,7 +84,7 @@ describe.skipIf(!ENV_READY)('changeOwnCredentialsAction (DB)', () => {
       currentPassword: 'zgadywane',
     })
 
-    expect(result).toEqual({ success: false, error: 'Nieprawidłowe obecne hasło.' })
+    expect(result).toEqual({ success: false, error: 'Nieprawidłowe obecne hasło.', messageKey: 'wrongCurrentPassword' })
     expect(await storedEmail(session.userId)).toBe(SELF)
     expect(await logsIn(SELF, PASSWORD)).toBe(true)
   })
@@ -119,7 +119,7 @@ describe.skipIf(!ENV_READY)('changeOwnCredentialsAction (DB)', () => {
       currentPassword: PASSWORD,
     })
 
-    expect(result).toEqual({ success: false, error: 'Ten adres e-mail jest już zajęty.' })
+    expect(result).toEqual({ success: false, error: 'Ten adres e-mail jest już zajęty.', messageKey: 'emailTaken' })
     expect(await storedEmail(session.userId)).toBe(SELF)
     expect(await logsIn(SELF, PASSWORD)).toBe(true)
   })
@@ -127,7 +127,7 @@ describe.skipIf(!ENV_READY)('changeOwnCredentialsAction (DB)', () => {
   it('refuses a submit that changes nothing', async () => {
     expect(
       await actions.changeOwnCredentialsAction({ email: SELF, currentPassword: PASSWORD }),
-    ).toEqual({ success: false, error: 'Nie wprowadzono żadnej zmiany.' })
+    ).toEqual({ success: false, error: 'Nie wprowadzono żadnej zmiany.', messageKey: 'noChange' })
   })
 
   it('refuses a deactivated account with the disabled message and writes nothing', async () => {
@@ -138,7 +138,7 @@ describe.skipIf(!ENV_READY)('changeOwnCredentialsAction (DB)', () => {
       currentPassword: PASSWORD,
     })
 
-    expect(result).toEqual({ success: false, error: DISABLED_ACCOUNT_MESSAGE })
+    expect(result).toEqual({ success: false, error: DISABLED_ACCOUNT_MESSAGE, messageKey: 'accountDisabled' })
     expect(await storedEmail(session.userId)).toBe(SELF)
   })
 

@@ -97,3 +97,5 @@ export function createTranslator<NS extends NamespaceT>(
 
 // The default every grid-copy builder falls back to: the manager surfaces never pass a translator.
 export const POLISH_GRID = createTranslator(DEFAULT_LANGUAGE, 'grid')
+// The server validates the account form with the same schema the worker's dialog builds in their language.
+export const POLISH_ACCOUNT = createTranslator(DEFAULT_LANGUAGE, 'account')

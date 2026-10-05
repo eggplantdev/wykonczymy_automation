@@ -3,7 +3,7 @@ import type { Payload } from 'payload'
 import { runAuthorizedHandler } from '@/lib/actions/run-action'
 import { getDb, type DbExecutorT } from '@/lib/db/get-db'
 import { readReportShare } from '@/lib/db/worker-report-share'
-import { reportRefusal, type ReportNoticeKeyT } from '@/lib/kosztorys/worker-report/refusals'
+import { noticeFailure, type NoticeKeyT } from '@/lib/i18n/notice-failure'
 import { reportShareRefusal } from '@/lib/kosztorys/worker-report/share-refusal'
 import { WORKER_SCOPE_BLOCK_NOTICE_KEYS } from '@/lib/kosztorys/worker-view/labels'
 import { resolveWorkerScope } from '@/lib/kosztorys/worker-view/scope'
@@ -39,7 +39,7 @@ export async function tokenAction<TData = undefined>(
   return runAuthorizedHandler<TData>(
     label,
     async (payload) => {
-      const refuse = (key: ReportNoticeKeyT) => reportRefusal(key) as ActionResultT<TData>
+      const refuse = (key: NoticeKeyT) => noticeFailure(key) as ActionResultT<TData>
       const db = await getDb(payload)
 
       const share = await readReportShare(db, token)

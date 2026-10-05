@@ -162,6 +162,7 @@ describe.skipIf(!ENV_READY)('expense draft accept / reject (DB)', () => {
     expect(await rejectExpenseDraftAction(accepted)).toEqual({
       success: false,
       error: DRAFT_ALREADY_DECIDED,
+      messageKey: 'draftAlreadyDecided',
     })
     expect(await readDraft(accepted)).toEqual(before)
   })

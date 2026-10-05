@@ -16,6 +16,7 @@ import {
 import type { ExpenseDraftMediaT } from '@/lib/db/worker-expense-drafts'
 import { INVOICE_PREVIEW_LABELS } from '@/lib/media/wording'
 import type { ActionResultT } from '@/types/action'
+import { useTranslation } from '@/hooks/use-translation'
 
 type PropsT = {
   draftId: number
@@ -25,15 +26,9 @@ type PropsT = {
   variant?: 'field' | 'compact'
 }
 
-const PAGE_REMOVAL_LABELS = {
-  confirmOne: 'Czy na pewno chcesz usunąć to zdjęcie?',
-  confirmLast: 'Czy na pewno chcesz usunąć to zdjęcie?',
-  description: 'Operacji nie da się cofnąć — plik znika bezpowrotnie.',
-  error: 'Nie udało się usunąć zdjęcia',
-}
-
 export function ExpenseDraftPagesCell({ draftId, media, isEditable, variant = 'compact' }: PropsT) {
   const router = useRouter()
+  const { t } = useTranslation('expenseDrafts')
   const [uploadOpen, setUploadOpen] = useState(false)
 
   // The draft actions revalidate no cache tag (the list is read uncached), so the refresh is ours.
@@ -45,12 +40,17 @@ export function ExpenseDraftPagesCell({ draftId, media, isEditable, variant = 'c
 
   const { isUploading, uploadFiles } = useMediaUpload({
     attach: (mediaIds) => refreshOnSuccess(() => addExpenseDraftPagesAction(draftId, mediaIds)),
-    successMessage: 'Zdjęcia dodane',
+    successMessage: t('photosAdded'),
   })
   const { visibleFiles, handleRemove, removalConfirm } = useMediaRemoval({
     files: media,
     removeOne: (mediaId) => refreshOnSuccess(() => removeExpenseDraftPageAction(draftId, mediaId)),
-    labels: PAGE_REMOVAL_LABELS,
+    labels: {
+      confirmOne: t('removePhotoConfirm'),
+      confirmLast: t('removePhotoConfirm'),
+      description: t('removePhotoDescription'),
+      error: t('removePhotoError'),
+    },
   })
 
   if (!isEditable) {
@@ -64,7 +64,7 @@ export function ExpenseDraftPagesCell({ draftId, media, isEditable, variant = 'c
         size="icon"
         disabled
         className="text-muted-foreground"
-        aria-label="Przesyłanie zdjęć"
+        aria-label={t('uploadingPhotos')}
       >
         <Loader2 className="animate-spin" />
       </Button>
@@ -86,7 +86,7 @@ export function ExpenseDraftPagesCell({ draftId, media, isEditable, variant = 'c
         onRemove={visibleFiles.length > 1 ? handleRemove : undefined}
       />
       <MediaUploadDialog
-        title="Dodaj zdjęcia"
+        title={t('addPhotos')}
         open={uploadOpen}
         onOpenChange={setUploadOpen}
         onFiles={(picked) => void uploadFiles(picked)}

@@ -14,6 +14,8 @@ import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 import type { CashRegisterRefT } from '@/types/reference-data'
 import { formatPLDateTime } from '@/lib/utils/format-date'
+import { createTranslator } from '@/lib/i18n/translations'
+import type { LanguageT } from '@/lib/i18n/languages'
 
 const COLS = `${SUMMARY_LABEL_COL} auto auto minmax(min(16rem, 40vw), 1fr) auto`
 
@@ -24,6 +26,7 @@ type PropsT = {
   canSend: boolean
   registers: CashRegisterRefT[]
   defaultRegisterId?: number
+  locale: LanguageT
 }
 
 export function WorkerExpenseDraftsSection({
@@ -32,14 +35,16 @@ export function WorkerExpenseDraftsSection({
   canSend,
   registers,
   defaultRegisterId,
+  locale,
 }: PropsT) {
+  const { t } = createTranslator(locale, 'expenseDrafts')
   // Only a pending draft can be edited or deleted, so with none waiting the column would stand empty.
   const showActions = canSend && drafts.some((draft) => draft.status === 'pending')
 
   return (
     <div className="max-w-4xl">
       <div className="mb-2 flex items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold">Moje wydatki</h2>
+        <h2 className="text-sm font-semibold">{t('title')}</h2>
         {canSend && registers.length > 0 && investments.length > 0 && (
           <ExpenseDraftDialog
             investments={investments}
@@ -48,18 +53,16 @@ export function WorkerExpenseDraftsSection({
           />
         )}
       </div>
-      {canSend && registers.length === 0 && (
-        <Description>Nie masz kasy — poproś kierownika o jej założenie.</Description>
-      )}
+      {canSend && registers.length === 0 && <Description>{t('noRegister')}</Description>}
       {drafts.length === 0 ? (
-        <Description>Brak zgłoszonych wydatków.</Description>
+        <Description>{t('empty')}</Description>
       ) : (
         <SummaryTable cols={showActions ? `${COLS} auto` : COLS}>
-          <SummaryHeaderCell variant="label">Inwestycja</SummaryHeaderCell>
-          <SummaryHeaderCell variant="label">Wysłano</SummaryHeaderCell>
-          <SummaryHeaderCell variant="label">Załączniki</SummaryHeaderCell>
-          <SummaryHeaderCell variant="label">Notatka</SummaryHeaderCell>
-          <SummaryHeaderCell variant="label">Status</SummaryHeaderCell>
+          <SummaryHeaderCell variant="label">{t('investment')}</SummaryHeaderCell>
+          <SummaryHeaderCell variant="label">{t('sentAt')}</SummaryHeaderCell>
+          <SummaryHeaderCell variant="label">{t('attachments')}</SummaryHeaderCell>
+          <SummaryHeaderCell variant="label">{t('note')}</SummaryHeaderCell>
+          <SummaryHeaderCell variant="label">{t('status')}</SummaryHeaderCell>
           {showActions && <SummaryHeaderCell variant="label">{null}</SummaryHeaderCell>}
           {drafts.map((draft) => (
             <Fragment key={draft.id}>

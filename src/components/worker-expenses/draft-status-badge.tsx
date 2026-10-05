@@ -1,11 +1,15 @@
+'use client'
+
 import { BADGE_BASE, BADGE_TONE } from '@/components/ui/badge'
 import type { ExpenseDraftStatusT } from '@/lib/db/worker-expense-drafts'
 import { cn } from '@/lib/utils/cn'
+import { useTranslation } from '@/hooks/use-translation'
+import type { MessageKeyT } from '@/lib/i18n/translations'
 
-const STATUS_LABELS: Record<ExpenseDraftStatusT, string> = {
-  pending: 'czeka',
-  accepted: 'przyjęty',
-  rejected: 'odrzucony',
+const STATUS_LABELS: Record<ExpenseDraftStatusT, MessageKeyT<'expenseDrafts'>> = {
+  pending: 'statusPending',
+  accepted: 'statusAccepted',
+  rejected: 'statusRejected',
 }
 
 const STATUS_TONES: Record<ExpenseDraftStatusT, string> = {
@@ -15,5 +19,6 @@ const STATUS_TONES: Record<ExpenseDraftStatusT, string> = {
 }
 
 export function DraftStatusBadge({ status }: { status: ExpenseDraftStatusT }) {
-  return <span className={cn(BADGE_BASE, STATUS_TONES[status])}>{STATUS_LABELS[status]}</span>
+  const { t } = useTranslation('expenseDrafts')
+  return <span className={cn(BADGE_BASE, STATUS_TONES[status])}>{t(STATUS_LABELS[status])}</span>
 }

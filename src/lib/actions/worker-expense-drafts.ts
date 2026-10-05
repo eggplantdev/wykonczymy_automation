@@ -4,7 +4,6 @@ import { z } from 'zod'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { ROLES } from '@/lib/auth/roles'
 import { protectedAction, runAuthorizedHandler, validateAction } from '@/lib/actions/run-action'
-import { DRAFT_ALREADY_DECIDED } from '@/lib/constants/expense-drafts'
 import { getDb, type DbExecutorT } from '@/lib/db/get-db'
 import { listWorkerStageInvestments } from '@/lib/db/stage-memberships'
 import {
@@ -19,18 +18,20 @@ import {
   updatePendingExpenseDraft,
 } from '@/lib/db/worker-expense-drafts'
 import { reclaimUnreferencedMedia } from '@/lib/media/delete-unreferenced-media'
+import { pl } from '@/lib/i18n/dictionaries/pl'
+import { noticeFailure, noticeKeyOf, type NoticeKeyT } from '@/lib/i18n/notice-failure'
 import type { ActionResultT } from '@/types/action'
 
 const MAX_PAGES = 20
 
 const sendDraftSchema = z.object({
-  investmentId: z.number().int().positive('Wybierz inwestycję'),
-  cashRegisterId: z.number().int().positive('Wybierz kasę'),
-  note: z.string().trim().max(2000, 'Notatka jest za długa'),
+  investmentId: z.number().int().positive(pl.notices.chooseInvestment),
+  cashRegisterId: z.number().int().positive(pl.notices.chooseRegister),
+  note: z.string().trim().max(2000, pl.notices.noteTooLong),
   mediaIds: z
     .array(z.number().int().positive())
-    .min(1, 'Dodaj zdjęcie paragonu lub faktury')
-    .max(MAX_PAGES, 'Za dużo zdjęć w jednym zgłoszeniu'),
+    .min(1, pl.notices.photoRequired)
+    .max(MAX_PAGES, pl.notices.tooManyPhotos),
 })
 
 export type SendExpenseDraftInputT = z.infer<typeof sendDraftSchema>
@@ -45,13 +46,13 @@ export type UpdateExpenseDraftInputT = z.infer<typeof updateDraftSchema>
 async function findDraftTargetError(
   db: DbExecutorT,
   target: { workerId: number; investmentId: number; cashRegisterId: number },
-): Promise<string | undefined> {
+): Promise<NoticeKeyT | undefined> {
   const investments = await listWorkerStageInvestments(db, target.workerId)
   if (!investments.some((investment) => investment.investmentId === target.investmentId)) {
-    return 'Nie pracujesz na tej inwestycji'
+    return 'notOnInvestment'
   }
   if (!(await isWorkerLiveRegister(db, target.workerId, target.cashRegisterId))) {
-    return 'To nie jest Twoja kasa'
+    return 'notYourRegister'
   }
   return undefined
 }
@@ -66,7 +67,7 @@ export async function sendExpenseDraftAction(
   input: SendExpenseDraftInputT,
 ): Promise<ActionResultT<{ draftId: number }>> {
   const parsed = validateAction(sendDraftSchema, input)
-  if (!parsed.success) return parsed
+  if (!parsed.success) return { ...parsed, messageKey: noticeKeyOf(parsed.error) }
 
   const session = await requireAuth(ROLES)
   if (!session.success) return { success: false, error: session.error }
@@ -76,7 +77,7 @@ export async function sendExpenseDraftAction(
     const db = await getDb(payload)
     const { investmentId, cashRegisterId } = parsed.data
     const targetError = await findDraftTargetError(db, { workerId, investmentId, cashRegisterId })
-    if (targetError) return { success: false, error: targetError }
+    if (targetError) return noticeFailure(targetError)
 
     const mediaIds = [...new Set(parsed.data.mediaIds)]
     const draftId = await insertWorkerExpenseDraft(db, {
@@ -86,7 +87,7 @@ export async function sendExpenseDraftAction(
       note: parsed.data.note || null,
       mediaIds,
     })
-    if (draftId === null) return { success: false, error: 'Nie udało się dołączyć zdjęć' }
+    if (draftId === null) return noticeFailure('attachFailed')
     return { success: true, data: { draftId } }
   })
 }
@@ -99,7 +100,7 @@ export async function rejectExpenseDraftAction(draftId: number): Promise<ActionR
       status: 'rejected',
       transferId: null,
     })
-    return isDecided ? { success: true } : { success: false, error: DRAFT_ALREADY_DECIDED }
+    return isDecided ? { success: true } : noticeFailure('draftAlreadyDecided')
   })
 }
 
@@ -118,12 +119,15 @@ export async function deleteExpenseDraftAction(draftId: number): Promise<ActionR
   if (!session.success) return { success: false, error: session.error }
   const workerId = session.user.id
 
-  return runAuthorizedHandler(`deleteExpenseDraftAction draft=${draftId}`, async (payload) => {
-    const mediaIds = await deletePendingExpenseDraft(await getDb(payload), { draftId, workerId })
-    if (mediaIds === null) return { success: false, error: DRAFT_ALREADY_DECIDED }
-    await reclaimUnreferencedMedia(payload, mediaIds)
-    return { success: true }
-  })
+  return runAuthorizedHandler<undefined>(
+    `deleteExpenseDraftAction draft=${draftId}`,
+    async (payload) => {
+      const mediaIds = await deletePendingExpenseDraft(await getDb(payload), { draftId, workerId })
+      if (mediaIds === null) return noticeFailure('draftAlreadyDecided')
+      await reclaimUnreferencedMedia(payload, mediaIds)
+      return { success: true }
+    },
+  )
 }
 
 const addPagesSchema = z.object({
@@ -137,25 +141,28 @@ export async function addExpenseDraftPagesAction(
   mediaIds: number[],
 ): Promise<ActionResultT> {
   const parsed = validateAction(addPagesSchema, { draftId, mediaIds })
-  if (!parsed.success) return parsed
+  if (!parsed.success) return { ...parsed, messageKey: noticeKeyOf(parsed.error) }
 
   const session = await requireAuth(ROLES)
   if (!session.success) return { success: false, error: session.error }
   const workerId = session.user.id
 
-  return runAuthorizedHandler(`addExpenseDraftPagesAction draft=${draftId}`, async (payload) => {
-    const db = await getDb(payload)
-    const draft = await readExpenseDraft(db, draftId)
-    if (!draft || draft.workerId !== workerId || draft.status !== 'pending') {
-      return { success: false, error: DRAFT_ALREADY_DECIDED }
-    }
-    const newIds = [...new Set(parsed.data.mediaIds)]
-    if (draft.media.length + newIds.length > MAX_PAGES) {
-      return { success: false, error: 'Za dużo zdjęć w jednym zgłoszeniu' }
-    }
-    const isAdded = await appendExpenseDraftPages(db, { draftId, workerId, mediaIds: newIds })
-    return isAdded ? { success: true } : { success: false, error: 'Nie udało się dołączyć zdjęć' }
-  })
+  return runAuthorizedHandler<undefined>(
+    `addExpenseDraftPagesAction draft=${draftId}`,
+    async (payload) => {
+      const db = await getDb(payload)
+      const draft = await readExpenseDraft(db, draftId)
+      if (!draft || draft.workerId !== workerId || draft.status !== 'pending') {
+        return noticeFailure('draftAlreadyDecided')
+      }
+      const newIds = [...new Set(parsed.data.mediaIds)]
+      if (draft.media.length + newIds.length > MAX_PAGES) {
+        return noticeFailure('tooManyPhotos')
+      }
+      const isAdded = await appendExpenseDraftPages(db, { draftId, workerId, mediaIds: newIds })
+      return isAdded ? { success: true } : noticeFailure('attachFailed')
+    },
+  )
 }
 
 export async function removeExpenseDraftPageAction(
@@ -166,46 +173,47 @@ export async function removeExpenseDraftPageAction(
   if (!session.success) return { success: false, error: session.error }
   const workerId = session.user.id
 
-  return runAuthorizedHandler(`removeExpenseDraftPageAction draft=${draftId}`, async (payload) => {
-    const isRemoved = await removeExpenseDraftPage(await getDb(payload), {
-      draftId,
-      workerId,
-      mediaId,
-    })
-    if (!isRemoved) {
-      return {
-        success: false,
-        error: 'Nie można usunąć tego zdjęcia — zgłoszenie musi mieć co najmniej jedno.',
-      }
-    }
-    await reclaimUnreferencedMedia(payload, [mediaId])
-    return { success: true }
-  })
+  return runAuthorizedHandler<undefined>(
+    `removeExpenseDraftPageAction draft=${draftId}`,
+    async (payload) => {
+      const isRemoved = await removeExpenseDraftPage(await getDb(payload), {
+        draftId,
+        workerId,
+        mediaId,
+      })
+      if (!isRemoved) return noticeFailure('lastPhoto')
+      await reclaimUnreferencedMedia(payload, [mediaId])
+      return { success: true }
+    },
+  )
 }
 
 export async function updateExpenseDraftAction(
   input: UpdateExpenseDraftInputT,
 ): Promise<ActionResultT> {
   const parsed = validateAction(updateDraftSchema, input)
-  if (!parsed.success) return parsed
+  if (!parsed.success) return { ...parsed, messageKey: noticeKeyOf(parsed.error) }
 
   const session = await requireAuth(ROLES)
   if (!session.success) return { success: false, error: session.error }
   const workerId = session.user.id
   const { draftId, investmentId, cashRegisterId, note } = parsed.data
 
-  return runAuthorizedHandler(`updateExpenseDraftAction draft=${draftId}`, async (payload) => {
-    const db = await getDb(payload)
-    const targetError = await findDraftTargetError(db, { workerId, investmentId, cashRegisterId })
-    if (targetError) return { success: false, error: targetError }
+  return runAuthorizedHandler<undefined>(
+    `updateExpenseDraftAction draft=${draftId}`,
+    async (payload) => {
+      const db = await getDb(payload)
+      const targetError = await findDraftTargetError(db, { workerId, investmentId, cashRegisterId })
+      if (targetError) return noticeFailure(targetError)
 
-    const isUpdated = await updatePendingExpenseDraft(db, {
-      draftId,
-      workerId,
-      investmentId,
-      cashRegisterId,
-      note: note || null,
-    })
-    return isUpdated ? { success: true } : { success: false, error: DRAFT_ALREADY_DECIDED }
-  })
+      const isUpdated = await updatePendingExpenseDraft(db, {
+        draftId,
+        workerId,
+        investmentId,
+        cashRegisterId,
+        note: note || null,
+      })
+      return isUpdated ? { success: true } : noticeFailure('draftAlreadyDecided')
+    },
+  )
 }

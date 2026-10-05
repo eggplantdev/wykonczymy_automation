@@ -1,9 +1,11 @@
 import { redirect, notFound } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { canViewWorkerPage, isManagementRole, ROLE_LABELS, ROLES } from '@/lib/auth/roles'
+import { canViewWorkerPage, isManagementRole, ROLES, type RoleT } from '@/lib/auth/roles'
 import { LanguageLabel } from '@/components/ui/language-label'
 import { AccountLanguageSelect } from '@/components/users/account-language-select'
 import { DEFAULT_LANGUAGE } from '@/lib/i18n/languages'
+import { createTranslator, type MessageKeyT } from '@/lib/i18n/translations'
+import { fetchUserLanguage } from '@/lib/queries/user-language'
 import { parsePagination } from '@/lib/utils/pagination'
 import { parseTransferSort } from '@/lib/queries/transfer-sort'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
@@ -25,6 +27,13 @@ import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
 import type { DynamicPagePropsT } from '@/types/page'
 
+const ROLE_KEYS: Record<RoleT, MessageKeyT<'workerPage'>> = {
+  ADMIN: 'roleAdmin',
+  OWNER: 'roleOwner',
+  MANAGER: 'roleManager',
+  EMPLOYEE: 'roleEmployee',
+}
+
 export default async function UserDetailPage({ params, searchParams }: DynamicPagePropsT) {
   const session = await requireAuth(ROLES)
   if (!session.success) redirect('/zaloguj')
@@ -39,13 +48,15 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
 
   const userId = Number(id)
   const isOwnPage = currentUser.id === userId
-  const [refData, balances, heldEquipment, stageInvestments, expenseDrafts] = await Promise.all([
-    fetchReferenceData(),
-    fetchRegisterBalances(),
-    fetchEquipmentAtLocation({ kind: 'holder', id: userId }),
-    fetchWorkerStageInvestments(userId),
-    fetchWorkerExpenseDrafts(userId),
-  ])
+  const [locale, refData, balances, heldEquipment, stageInvestments, expenseDrafts] =
+    await Promise.all([
+      fetchUserLanguage(currentUser.id),
+      fetchReferenceData(),
+      fetchRegisterBalances(),
+      fetchEquipmentAtLocation({ kind: 'holder', id: userId }),
+      fetchWorkerStageInvestments(userId),
+      fetchWorkerExpenseDrafts(userId),
+    ])
 
   const worker = refData.workers.find((w) => w.id === userId)
   if (!worker) notFound()
@@ -63,19 +74,20 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
     registers.map((register) => register.id),
   )
 
+  const { t } = createTranslator(locale, 'workerPage')
   const infoFields = [
-    { label: 'Rola', value: ROLE_LABELS[role].pl },
-    { label: 'Email', value: worker.email },
-    { label: 'Status', value: worker.active ? 'Aktywny' : 'Nieaktywny' },
+    { label: t('role'), value: t(ROLE_KEYS[role]) },
+    { label: t('email'), value: worker.email },
+    { label: t('status'), value: t(worker.active ? 'active' : 'inactive') },
     {
-      label: 'Domyślny język',
+      label: t('defaultLanguage'),
       value: isOwnPage ? (
         <AccountLanguageSelect userId={userId} language={worker.language ?? DEFAULT_LANGUAGE} />
       ) : (
         <LanguageLabel language={worker.language ?? DEFAULT_LANGUAGE} />
       ),
     },
-    ...(registerName ? [{ label: 'Domyślna kasa', value: registerName }] : []),
+    ...(registerName ? [{ label: t('defaultRegister'), value: registerName }] : []),
   ]
 
   return (
@@ -87,18 +99,28 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
         </div>
       )}
       <InfoList items={infoFields} />
-      <OwnedRegistersSection registers={registers} balances={balances} linkable={isManager} />
-      <HeldEquipmentSection equipment={heldEquipment} linkable={isManager} />
-      <WorkerInvestmentsSection investments={stageInvestments} workerName={worker.name} />
+      <OwnedRegistersSection
+        registers={registers}
+        balances={balances}
+        linkable={isManager}
+        locale={locale}
+      />
+      <HeldEquipmentSection equipment={heldEquipment} linkable={isManager} locale={locale} />
+      <WorkerInvestmentsSection
+        investments={stageInvestments}
+        workerName={worker.name}
+        locale={locale}
+      />
       <WorkerExpenseDraftsSection
         drafts={expenseDrafts}
         investments={stageInvestments}
         canSend={isOwnPage}
         registers={registers}
         defaultRegisterId={worker.defaultCashRegisterId}
+        locale={locale}
       />
       <TransfersSection
-        title="Transfery"
+        title={t('transfers')}
         config={{
           query: { where: transferWhere, page, limit, sort },
           baseUrl: `/pracownicy/${id}`,

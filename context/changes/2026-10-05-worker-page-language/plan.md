@@ -510,23 +510,23 @@ Run **once**, after the final phase.
 
 #### Automated
 
-- [x] 1.1 account-language DB spec passes
-- [x] 1.2 worker-schema spec passes with the storedLanguageSchema case
+- [x] 1.1 account-language DB spec passes — 772b7e5b
+- [x] 1.2 worker-schema spec passes with the storedLanguageSchema case — 772b7e5b
 
 ### Phase 2: The switch, the report key, the investment link
 
 #### Automated
 
-- [ ] 2.1 account-language-select DOM spec passes
-- [ ] 2.2 moved translations-provider spec passes
-- [ ] 2.3 transfer-table spec covers the plain-text „Inwestycja” for EMPLOYEE
+- [x] 2.1 account-language-select DOM spec passes — edf8e76a
+- [x] 2.2 moved translations-provider spec passes — edf8e76a
+- [x] 2.3 transfer-table spec covers the plain-text „Inwestycja” for EMPLOYEE — 320df14b
 
 ### Phase 3: Translate the worker page's own components
 
 #### Automated
 
-- [ ] 3.1 expense-draft dialog language DOM spec passes
-- [ ] 3.2 existing credentials / worker-expense specs pass unchanged
+- [x] 3.1 expense-draft dialog language DOM spec passes — PHASE3SHA
+- [x] 3.2 existing credentials / worker-expense specs pass unchanged (failure assertions gain `messageKey`) — PHASE3SHA
 
 ### Phase 4: Translate the shared transfers stack
 
