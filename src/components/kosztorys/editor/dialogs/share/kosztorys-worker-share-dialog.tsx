@@ -45,7 +45,6 @@ export function KosztorysWorkerShareDialog() {
   } = useKosztorysActions().worker
 
   const kind = LINK_KINDS[target?.kind ?? 'rozpiska']
-  const url = token && target ? kind.url(FRONTEND_URL, target.name, token) : ''
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -58,7 +57,7 @@ export function KosztorysWorkerShareDialog() {
           <ShareLinkPanel
             loaded={loaded}
             token={token}
-            url={url}
+            urlFor={(next) => kind.url(FRONTEND_URL, target.name, next)}
             generate={() =>
               generateWorkerLinkAction({ investmentId, workerId: target.id }, target.kind)
             }

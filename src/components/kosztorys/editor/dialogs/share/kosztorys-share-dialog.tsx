@@ -37,7 +37,7 @@ export function KosztorysShareDialog() {
         <ShareLinkPanel
           loaded={loaded}
           token={token}
-          url={token ? investorShareUrl(token) : ''}
+          urlFor={investorShareUrl}
           generate={() => generateShareLinkAction(investmentId)}
           revoke={() => revokeShareLinkAction(investmentId)}
           onTokenChange={onTokenChange}

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Description } from '@/components/ui/description'
-import { copyToClipboard } from '@/lib/utils/copy-to-clipboard'
+import { copyToClipboard, copyToClipboardAsync } from '@/lib/utils/copy-to-clipboard'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import type { ActionResultT } from '@/types/action'
@@ -14,7 +14,7 @@ import type { ActionResultT } from '@/types/action'
 type PropsT = {
   loaded: boolean
   token: string | null
-  url: string
+  urlFor: (token: string) => string
   generate: () => Promise<ActionResultT<string>>
   revoke: () => Promise<ActionResultT>
   onTokenChange: (token: string | null) => void
@@ -29,7 +29,7 @@ type PropsT = {
 export function ShareLinkPanel({
   loaded,
   token,
-  url,
+  urlFor,
   generate,
   revoke,
   onTokenChange,
@@ -41,13 +41,21 @@ export function ShareLinkPanel({
   const [confirmingRevoke, setConfirmingRevoke] = useState(false)
   const [pending, startTransition] = useTransition()
 
-  const runGenerate = () =>
+  const runGenerate = () => {
+    const generated = settleAction(generate)
+    copyToClipboardAsync(
+      generated.then((res) => {
+        if (!res.success) throw new Error(res.error)
+        return urlFor(res.data)
+      }),
+      'Link skopiowany do schowka. Poprzedni (jeśli był) przestał działać.',
+    )
     startTransition(async () => {
-      const res = await settleAction(generate)
+      const res = await generated
       if (!res.success) return toastMessage(res.error, 'error')
       onTokenChange(res.data)
-      toastMessage('Link gotowy. Poprzedni (jeśli był) przestał działać.', 'success')
     })
+  }
 
   const runRevoke = () =>
     startTransition(async () => {
@@ -59,6 +67,8 @@ export function ShareLinkPanel({
     })
 
   if (!loaded) return <p className="text-muted-foreground text-sm">Sprawdzanie…</p>
+
+  const url = token ? urlFor(token) : ''
 
   const revokeButton = (
     <Button
