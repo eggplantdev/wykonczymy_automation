@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { canViewWorkerPage, isManagementRole, ROLE_LABELS, ROLES } from '@/lib/auth/roles'
 import { LanguageLabel } from '@/components/ui/language-label'
+import { AccountLanguageSelect } from '@/components/users/account-language-select'
 import { DEFAULT_LANGUAGE } from '@/lib/i18n/languages'
 import { parsePagination } from '@/lib/utils/pagination'
 import { parseTransferSort } from '@/lib/queries/transfer-sort'
@@ -68,7 +69,11 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
     { label: 'Status', value: worker.active ? 'Aktywny' : 'Nieaktywny' },
     {
       label: 'Domyślny język',
-      value: <LanguageLabel language={worker.language ?? DEFAULT_LANGUAGE} />,
+      value: isOwnPage ? (
+        <AccountLanguageSelect userId={userId} language={worker.language ?? DEFAULT_LANGUAGE} />
+      ) : (
+        <LanguageLabel language={worker.language ?? DEFAULT_LANGUAGE} />
+      ),
     },
     ...(registerName ? [{ label: 'Domyślna kasa', value: registerName }] : []),
   ]

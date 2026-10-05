@@ -39,3 +39,7 @@ export const isTranslationLanguage = (value: unknown): value is TranslationLangu
   isLanguage(value) && value !== 'pl'
 
 export const toLanguage = (value: unknown): LanguageT | null => (isLanguage(value) ? value : null)
+
+// Per worker, not per device: a phone passed between two of the crew must not carry one's choice
+// into the other's link.
+export const reportLanguageStorageKey = (workerId: number) => `worker-report-lang:${workerId}`
