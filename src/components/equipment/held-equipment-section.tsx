@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { OptionalLink } from '@/components/ui/optional-link'
 import {
   SUMMARY_LABEL_COL,
   SUMMARY_VALUE_COL,
@@ -38,13 +38,9 @@ export function HeldEquipmentSection({
         {equipment.map((item) => (
           <div key={item.id} className="contents">
             <SummaryLabelCell>
-              {linkable ? (
-                <Link href={`/sprzet/${item.id}`} className="hover:underline">
-                  {item.name}
-                </Link>
-              ) : (
-                item.name
-              )}
+              <OptionalLink href={linkable ? `/sprzet/${item.id}` : undefined}>
+                {item.name}
+              </OptionalLink>
             </SummaryLabelCell>
             <SummaryLabelCell>{item.serialNumber || '—'}</SummaryLabelCell>
             <SummaryLabelCell>

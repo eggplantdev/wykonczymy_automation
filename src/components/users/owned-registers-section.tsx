@@ -1,5 +1,5 @@
 import { Fragment } from 'react'
-import Link from 'next/link'
+import { OptionalLink } from '@/components/ui/optional-link'
 import {
   SUMMARY_LABEL_COL,
   SUMMARY_VALUE_COL,
@@ -44,13 +44,9 @@ export function OwnedRegistersSection({
           {rows.map((row) => (
             <Fragment key={row.id}>
               <SummaryLabelCell note={row.active ? null : { text: 'nieaktywna' }}>
-                {linkable ? (
-                  <Link href={`/kasa/${row.id}`} className="hover:underline">
-                    {row.name}
-                  </Link>
-                ) : (
-                  row.name
-                )}
+                <OptionalLink href={linkable ? `/kasa/${row.id}` : undefined}>
+                  {row.name}
+                </OptionalLink>
               </SummaryLabelCell>
               <SummaryValueCell tone={row.balance < 0 ? 'error' : 'default'}>
                 {formatPLN(row.balance)}

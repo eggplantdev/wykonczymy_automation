@@ -84,29 +84,25 @@ export function useWorkerActions(): WorkerActionsT {
     setShareLoaded(false)
     const key = { investmentId, workerId: target.id }
 
-    function show(token: Promise<string | null>) {
-      void token
-        .then((next) => {
-          if (isCurrent()) setShareToken(next)
-        })
-        .catch((error: unknown) => {
-          if (!isCurrent()) return
-          toastMessage(
-            error instanceof ShareLinkError ? error.message : 'Nie udało się przygotować linku',
-            'error',
-          )
-          setShareOpen(false)
-        })
-        .finally(() => {
-          if (isCurrent()) setShareLoaded(true)
-        })
-    }
-
     const token = settleAction(() => ensureWorkerLinkAction(key)).then((result) => {
       if (!result.success) throw new ShareLinkError(result.error)
       return result.data
     })
-    show(token)
+    void token
+      .then((next) => {
+        if (isCurrent()) setShareToken(next)
+      })
+      .catch((error: unknown) => {
+        if (!isCurrent()) return
+        toastMessage(
+          error instanceof ShareLinkError ? error.message : 'Nie udało się przygotować linku',
+          'error',
+        )
+        setShareOpen(false)
+      })
+      .finally(() => {
+        if (isCurrent()) setShareLoaded(true)
+      })
     copyToClipboardAsync(
       token.then((next) => workerReportShareUrl(FRONTEND_URL, investmentName, target.name, next)),
       'Link skopiowany do schowka.',
