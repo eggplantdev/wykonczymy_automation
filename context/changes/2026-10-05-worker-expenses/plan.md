@@ -356,5 +356,5 @@ Migracja addytywna — na prod **przed** pushem kodu, przez człowieka (`pnpm db
 
 #### Automated
 
-- [x] 4.1 Spec unit: workerDrafts ∩ istniejący filtr id, pusta lista = zero wyników
-- [x] 4.2 Spec DB: transfer_id tylko przyjętych zgłoszeń
+- [x] 4.1 Spec unit: workerDrafts ∩ istniejący filtr id, pusta lista = zero wyników — 6d210dba
+- [x] 4.2 Spec DB: transfer_id tylko przyjętych zgłoszeń — 6d210dba

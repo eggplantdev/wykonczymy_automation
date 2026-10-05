@@ -3704,3 +3704,15 @@ przypisane do etapów w kilku inwestycjach — w tym co najmniej jednej zakończ
 - [ ] „Przetłumacz ponownie" na przetłumaczonej linii podmienia polski opis.
 - [ ] Przyjęcie przetłumaczonej pracy spoza rozpiski: nowa pozycja w kosztorysie ma polski opis, a jej kolumna UA zawiera słowa pracownika (nie oznaczona jako nieaktualna).
 - [ ] Zgłoszenie już rozpatrzone (przyjęte/odrzucone): przegląd nie pokazuje przycisku „Przetłumacz".
+
+## EX-971 — worker-expenses — pracownik zgłasza wydatek z paragonem, kierownik przyjmuje go w Transakcjach (2026-10-05)
+
+- [ ] Pracownik na swojej stronie → „Dodaj wydatek" → inwestycja + 2 zdjęcia + notatka → wyślij: na liście „Moje wydatki" pozycja „czeka", zdjęć: 2. Sprawdź też przy szerokości 390px.
+- [ ] Pracownik bez domyślnej kasy: zamiast przycisku „Dodaj wydatek" widzi komunikat „Nie masz domyślnej kasy…".
+- [ ] Transakcje → nad tabelą czekające zgłoszenie → „Przyjmij": dialog „Nowy wydatek" ma inwestycję, kasę pracownika, zdjęcia i notatkę; kwota jest pusta.
+- [ ] W tym dialogu „Generuj" wypełnia kwotę i opis z paragonu; „Zapisz" → zgłoszenie znika z listy, wydatek jest w tabeli, u pracownika status „przyjęty".
+- [ ] To samo zgłoszenie w dwóch kartach: druga „Zapisz" pokazuje „To zgłoszenie zostało już rozpatrzone.", a w tabeli jest jeden wydatek.
+- [ ] „Odrzuć" → potwierdzenie → zgłoszenie znika z listy; u pracownika status „odrzucony".
+- [ ] Zwykły „Nowy wydatek" z paska nadal odtwarza swój niedokończony szkic, także po przyjęciu zgłoszenia.
+- [ ] Transakcje → filtr „Zgłoszenia" → „Zgłoszenia pracowników": tylko wydatki przyjęte ze zgłoszeń, każdy z plakietką „od pracownika"; „Wyczyść filtry" wyłącza przełącznik.
+- [ ] Filtr „Zgłoszenia pracowników" razem z wyszukiwaniem po kwocie zwraca część wspólną obu.
