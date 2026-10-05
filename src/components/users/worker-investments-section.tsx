@@ -1,17 +1,12 @@
 import { Fragment } from 'react'
-import {
-  SUMMARY_LABEL_COL,
-  SummaryHeaderCell,
-  SummaryLabelCell,
-  SummaryTable,
-} from '@/components/ui/summary-grid'
+import { SummaryHeaderCell, SummaryLabelCell, SummaryTable } from '@/components/ui/summary-grid'
 import { Button } from '@/components/ui/button'
 import { Description } from '@/components/ui/description'
 import { FRONTEND_URL } from '@/lib/env'
 import { workerReportShareUrl } from '@/lib/kosztorys/worker-view/worker-links'
 import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 
-const COLS = `${SUMMARY_LABEL_COL} auto`
+const COLS = 'minmax(min(7rem, 24vw), 28rem) auto'
 
 export function WorkerInvestmentsSection({
   investments,
@@ -34,7 +29,7 @@ export function WorkerInvestmentsSection({
               <SummaryLabelCell>{investment.name}</SummaryLabelCell>
               <SummaryLabelCell className="flex items-center">
                 {investment.token ? (
-                  <Button asChild size="xs">
+                  <Button asChild>
                     <a
                       href={workerReportShareUrl(
                         FRONTEND_URL,
