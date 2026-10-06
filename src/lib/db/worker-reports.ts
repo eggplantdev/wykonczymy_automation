@@ -1,6 +1,11 @@
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
+import {
+  toDescriptionTranslations,
+  type DescriptionTranslationsT,
+} from '@/lib/i18n/description-translations'
 import { toLanguage, type LanguageT } from '@/lib/i18n/languages'
+import { isSectionColorKey, type SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import { REPORT_STATUSES, type ReportStatusT } from '@/lib/kosztorys/worker-report/report-status'
 import {
   isServerSortableReportColumn,
@@ -76,9 +81,27 @@ export type ReportListRowT = {
   investmentName: string
   workerName: string
   status: ReportStatusT
+  source: ReportSourceT
   sentAt: string
+  decidedAt: string | null
+  decidedByName: string | null
   lineCount: number
   acceptedLineCount: number
+}
+
+// The live pozycja the line went to, `null` once it was deleted: the line's snapshot speaks then.
+export type ReportPreviewLineRowT = WorkerReportLineRowT & {
+  ref: number | null
+  itemDescription: string | null
+  descriptionTranslations: DescriptionTranslationsT
+  sectionColor: SectionColorKeyT | null
+  sectionOrder: number | null
+}
+
+export type ReportPreviewReadT = {
+  report: WorkerReportRowT & { investmentName: string }
+  lines: ReportPreviewLineRowT[]
+  media: MediaFileT[]
 }
 
 // A report on a zakończona or trashed investment can be neither accepted nor rejected — the gate
@@ -117,6 +140,23 @@ function toReportRow(row: Record<string, unknown>): WorkerReportRowT {
     targetStageLabel: textOrNull(row.target_stage_label),
     lineCount: Number(row.line_count ?? 0),
     acceptedLineCount: Number(row.accepted_line_count ?? 0),
+  }
+}
+
+function toReportListRow(row: Record<string, unknown>): ReportListRowT {
+  const report = toReportRow(row)
+  return {
+    id: report.id,
+    investmentId: report.investmentId,
+    investmentName: text(row.investment_name),
+    workerName: report.workerName,
+    status: report.status,
+    source: report.source,
+    sentAt: report.sentAt,
+    decidedAt: report.decidedAt,
+    decidedByName: report.decidedByName,
+    lineCount: report.lineCount,
+    acceptedLineCount: report.acceptedLineCount,
   }
 }
 
@@ -232,6 +272,22 @@ export async function listWorkerReports(
   return res.rows.map(toReportRow)
 }
 
+const reportMediaSql = (reportId: number) => sql`
+  SELECT m.id, m.url, m.filename, m.mime_type, m.sizes_thumbnail_url, m.kind
+  FROM worker_report_media rm JOIN media m ON m.id = rm.media_id
+  WHERE rm.report_id = ${reportId}
+  ORDER BY rm.position
+`
+
+const toMediaFile = (row: Record<string, unknown>): MediaFileT => ({
+  id: Number(row.id),
+  url: text(row.url),
+  filename: text(row.filename),
+  mimeType: text(row.mime_type),
+  thumbnailUrl: textOrNull(row.sizes_thumbnail_url),
+  kind: textOrNull(row.kind) as MediaFileT['kind'],
+})
+
 /** Scoped by the investment as well as the id: a report id alone would let one editor read another's. */
 export async function readWorkerReport(
   db: DbExecutorT,
@@ -257,25 +313,79 @@ export async function readWorkerReport(
       FROM worker_report_lines WHERE report_id = ${reportId}
       ORDER BY position
     `),
-    db.execute(sql`
-      SELECT m.id, m.url, m.filename, m.mime_type, m.sizes_thumbnail_url, m.kind
-      FROM worker_report_media rm JOIN media m ON m.id = rm.media_id
-      WHERE rm.report_id = ${reportId}
-      ORDER BY rm.position
-    `),
+    db.execute(reportMediaSql(reportId)),
   ])
   return {
     report: toReportRow(row),
     lines: linesRes.rows.map(toLineRow),
-    media: mediaRes.rows.map((m) => ({
-      id: Number(m.id),
-      url: text(m.url),
-      filename: text(m.filename),
-      mimeType: text(m.mime_type),
-      thumbnailUrl: textOrNull(m.sizes_thumbnail_url),
-      kind: textOrNull(m.kind) as MediaFileT['kind'],
-    })),
+    media: mediaRes.rows.map(toMediaFile),
   }
+}
+
+/**
+ * One report for its Podgląd, from any investment. The access check is part of the statement: the
+ * id comes from the client, so a foreign report and a missing one both come back `null`.
+ */
+export async function readReportPreview(
+  db: DbExecutorT,
+  reportId: number,
+  viewer: { id: number; isManagement: boolean },
+): Promise<ReportPreviewReadT | null> {
+  const reportRes = await db.execute(sql`
+    SELECT ${REPORT_COLUMNS}, i.name AS investment_name
+    FROM worker_reports r ${REPORT_JOINS}
+    JOIN investments i ON i.id = r.investment_id
+    WHERE r.id = ${reportId} AND (${viewer.isManagement} OR r.worker_id = ${viewer.id})
+  `)
+  const row = reportRes.rows[0]
+  if (!row) return null
+
+  const [linesRes, mediaRes] = await Promise.all([
+    db.execute(sql`
+      SELECT l.id, l.position, l.kind, l.item_id, l.description, l.unit, l.section_name,
+        l.reported_qty, l.accepted_qty, l.created_item_id, l.catalogue_item_id, l.polish_description,
+        l.description_language, l.is_uncertain, l.scanned_ref,
+        k.ref, k.description AS item_description, k.description_translations,
+        s.name AS live_section_name, s.color AS section_color, s.display_order AS section_order
+      FROM worker_report_lines l
+      LEFT JOIN kosztorys_items k ON k.id = COALESCE(l.created_item_id, l.item_id)
+      LEFT JOIN kosztorys_sections s ON s.id = k.section_id
+      WHERE l.report_id = ${reportId}
+      ORDER BY l.position
+    `),
+    db.execute(reportMediaSql(reportId)),
+  ])
+  return {
+    report: { ...toReportRow(row), investmentName: text(row.investment_name) },
+    lines: linesRes.rows.map((line) => ({
+      ...toLineRow(line),
+      sectionName: textOrNull(line.live_section_name) ?? textOrNull(line.section_name),
+      ref: numOrNull(line.ref),
+      itemDescription: textOrNull(line.item_description),
+      descriptionTranslations: toDescriptionTranslations(line.description_translations),
+      sectionColor: isSectionColorKey(line.section_color) ? line.section_color : null,
+      sectionOrder: numOrNull(line.section_order),
+    })),
+    media: mediaRes.rows.map(toMediaFile),
+  }
+}
+
+/**
+ * His history on his worker page: link and scan alike, on every investment. No trash or
+ * zakończona filter, by choice — a report stays his history after the investment closes.
+ */
+export async function listReportsByWorker(
+  db: DbExecutorT,
+  workerId: number,
+): Promise<ReportListRowT[]> {
+  const res = await db.execute(sql`
+    SELECT ${REPORT_COLUMNS}, i.name AS investment_name
+    FROM worker_reports r ${REPORT_JOINS}
+    JOIN investments i ON i.id = r.investment_id
+    WHERE r.worker_id = ${workerId}
+    ORDER BY r.sent_at DESC, r.id DESC
+  `)
+  return res.rows.map(toReportListRow)
 }
 
 export type WorkerReportFiltersT = QueueFiltersT<ReportStatusT>
@@ -327,20 +437,10 @@ export async function listDecidableReports(
       WHERE ${where}
     `),
   ])
-  const rows = res.rows.map((row) => {
-    const report = toReportRow(row)
-    return {
-      id: report.id,
-      investmentId: report.investmentId,
-      investmentName: text(row.investment_name),
-      workerName: report.workerName,
-      status: report.status,
-      sentAt: report.sentAt,
-      lineCount: report.lineCount,
-      acceptedLineCount: report.acceptedLineCount,
-    }
-  })
-  return { rows, totalDocs: Number(countRes.rows[0]?.total ?? 0) }
+  return {
+    rows: res.rows.map(toReportListRow),
+    totalDocs: Number(countRes.rows[0]?.total ?? 0),
+  }
 }
 
 /**

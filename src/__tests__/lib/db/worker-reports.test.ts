@@ -4,9 +4,12 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import {
   claimPendingReport,
+  insertScannedReport,
   insertWorkerReport,
   listDecidableReports,
   listReportFilterOptions,
+  listReportsByWorker,
+  readReportPreview,
   readWorkerReport,
   type WorkerReportFiltersT,
 } from '@/lib/db/worker-reports'
@@ -17,6 +20,7 @@ import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
+const FILENAME_PREFIX = 'worker-reports-db-test-'
 
 const NO_REPORT_FILTERS: WorkerReportFiltersT = {
   statuses: null,
@@ -74,6 +78,7 @@ describe.skipIf(!ENV_READY)('worker report data access (DB)', () => {
     for (const id of [investmentId, otherInvestmentId]) {
       if (id) await deleteTestInvestment(payload, id).catch(() => {})
     }
+    await db.execute(sql`DELETE FROM media WHERE filename LIKE ${`${FILENAME_PREFIX}%`}`)
     await purgeFixtureUsers(db)
   })
 
@@ -352,5 +357,158 @@ describe.skipIf(!ENV_READY)('worker report data access (DB)', () => {
 
     const [stored] = (await readWorkerReport(db, investmentId, reportId))!.lines
     expect(stored).toMatchObject({ polishDescription: null, descriptionLanguage: null })
+  })
+
+  describe('Podgląd and the worker history', () => {
+    const MANAGER = { id: -1, isManagement: true }
+    const workerViewer = () => ({ id: workerId, isManagement: false })
+
+    // Raw INSERT: an upload through Payload would push bytes at the Blob store for a fixture nothing opens.
+    async function insertMedia(name: string, uploadedBy: number): Promise<number> {
+      const { rows } = await db.execute(sql`
+        INSERT INTO media (filename, mime_type, filesize, created_by_id)
+        VALUES (${`${FILENAME_PREFIX}${name}.jpg`}, 'image/jpeg', 1024, ${uploadedBy})
+        RETURNING id
+      `)
+      return Number(rows[0].id)
+    }
+
+    it('returns null for another worker and for a missing id, the same answer for both', async () => {
+      const othersReport = await insertWorkerReport(db, {
+        investmentId,
+        workerId: otherWorkerId,
+        lines: [rozpiskaLine(itemIds[0], 1)],
+      })
+
+      expect(await readReportPreview(db, othersReport, workerViewer())).toBeNull()
+      expect(await readReportPreview(db, 2_000_000_000, workerViewer())).toBeNull()
+      expect((await readReportPreview(db, othersReport, MANAGER))?.report).toMatchObject({
+        id: othersReport,
+        workerId: otherWorkerId,
+        investmentName: 'worker-reports-db-test',
+      })
+    })
+
+    it('gives the worker his own scan with its lines and photos', async () => {
+      const photo = await insertMedia('scan-page', otherWorkerId)
+      const reportId = await insertScannedReport(db, {
+        investmentId,
+        workerId,
+        createdById: otherWorkerId,
+        mediaIds: [photo],
+        lines: [rozpiskaLine(itemIds[0], 2), extra('Listwy')],
+      })
+
+      const preview = await readReportPreview(db, Number(reportId), workerViewer())
+
+      expect(preview?.report).toMatchObject({ source: 'scan', lineCount: 2 })
+      expect(preview?.media.map((file) => file.id)).toEqual([photo])
+      expect(preview?.lines[0]).toMatchObject({
+        kind: 'rozpiska',
+        itemDescription: 'Malowanie',
+        sectionName: 'Salon',
+        reportedQty: 2,
+      })
+      expect(preview?.lines[0].ref).toEqual(expect.any(Number))
+      expect(preview?.lines[1]).toMatchObject({ kind: 'extra', ref: null, itemDescription: null })
+    })
+
+    it('carries the pozycja an accepted extra became, and the snapshot of a deleted one', async () => {
+      const { itemIds: doomed } = await createKosztorysTree(payload, otherInvestmentId, {
+        sections: [{ name: 'Kuchnia', items: [{ description: 'Do usunięcia' }] }],
+      })
+      const reportId = await insertWorkerReport(db, {
+        investmentId,
+        workerId,
+        lines: [
+          { ...rozpiskaLine(doomed[0], 1), description: 'Stary opis', sectionName: 'Kuchnia' },
+          extra('Skucie płytek'),
+        ],
+      })
+      await claimPendingReport(db, investmentId, reportId, 'accepted', otherWorkerId)
+      await db.execute(sql`
+        UPDATE worker_report_lines SET accepted_qty = 1, created_item_id = ${itemIds[1]}
+        WHERE report_id = ${reportId} AND kind = 'extra'
+      `)
+      await db.execute(sql`DELETE FROM kosztorys_items WHERE id = ${doomed[0]}`)
+
+      const preview = await readReportPreview(db, reportId, workerViewer())
+      const [deleted, accepted] = preview!.lines
+
+      expect(deleted).toMatchObject({
+        itemId: null,
+        ref: null,
+        itemDescription: null,
+        description: 'Stary opis',
+        sectionName: 'Kuchnia',
+        acceptedQty: null,
+      })
+      expect(accepted).toMatchObject({
+        acceptedQty: 1,
+        createdItemId: itemIds[1],
+        itemDescription: 'Gładź',
+        sectionName: 'Salon',
+      })
+      expect(accepted.ref).toEqual(expect.any(Number))
+      expect(preview?.report).toMatchObject({
+        status: 'accepted',
+        decidedByName: 'worker-reports-b@test.local',
+      })
+    })
+
+    it('lists his scans and his reports on a trashed investment, and nobody else’s', async () => {
+      const trashed = await createTestInvestment(payload, 'worker-reports-db-test-trashed')
+      try {
+        const onTrashed = await insertWorkerReport(db, {
+          investmentId: trashed,
+          workerId,
+          lines: [extra('Na usuniętej')],
+        })
+        await db.execute(sql`UPDATE investments SET trashed_at = now() WHERE id = ${trashed}`)
+        const scan = await insertScannedReport(db, {
+          investmentId,
+          workerId,
+          createdById: otherWorkerId,
+          mediaIds: [await insertMedia('history-scan', otherWorkerId)],
+          lines: [extra('Ze skanu')],
+        })
+        const others = await insertWorkerReport(db, {
+          investmentId,
+          workerId: otherWorkerId,
+          lines: [extra('Cudze')],
+        })
+
+        const ids = (await listReportsByWorker(db, workerId)).map((row) => row.id)
+
+        expect(ids).toEqual(expect.arrayContaining([onTrashed, Number(scan)]))
+        expect(ids).not.toContain(others)
+        expect(
+          (await listReportsByWorker(db, workerId)).find((row) => row.id === onTrashed),
+        ).toMatchObject({ investmentName: 'worker-reports-db-test-trashed', source: 'link' })
+      } finally {
+        await deleteTestInvestment(payload, trashed).catch(() => {})
+      }
+    })
+
+    it('gives the manager list its source and decision', async () => {
+      const reportId = await insertWorkerReport(db, {
+        investmentId,
+        workerId,
+        lines: [rozpiskaLine(itemIds[0], 1)],
+      })
+      await claimPendingReport(db, investmentId, reportId, 'rejected', otherWorkerId)
+
+      const { rows } = await listDecidableReports(
+        db,
+        { ...NO_REPORT_FILTERS, investmentIds: [investmentId] },
+        { page: 1, limit: 100 },
+      )
+
+      expect(rows.find((row) => row.id === reportId)).toMatchObject({
+        source: 'link',
+        decidedAt: expect.any(String),
+        decidedByName: 'worker-reports-b@test.local',
+      })
+    })
   })
 })

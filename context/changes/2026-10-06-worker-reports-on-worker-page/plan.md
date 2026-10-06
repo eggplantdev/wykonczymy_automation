@@ -568,8 +568,8 @@ Run once, after Phase 4:
 
 #### Automated
 
-- [ ] 1.1 DB spec passes against the test DB
-- [ ] 1.2 The existing scan spec stays green
+- [x] 1.1 DB spec passes against the test DB
+- [x] 1.2 The existing scan spec stays green
 
 ### Phase 2: Preview view model and translations
 
