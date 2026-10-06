@@ -126,7 +126,13 @@ export function MobileNav() {
 
         <div className="mt-auto flex flex-col gap-2 px-3 pt-12 pb-4">
           <div className="flex items-center gap-2">
-            <span className="text-foreground text-sm font-medium">{user.name}</span>
+            <Link
+              href={`/pracownicy/${user.id}`}
+              className="text-foreground text-sm font-medium hover:underline"
+              onClick={() => closeIfSameRoute(`/pracownicy/${user.id}`)}
+            >
+              {user.name}
+            </Link>
             <RoleBadge role={user.role}>{tPage(ROLE_KEYS[user.role])}</RoleBadge>
           </div>
           <ThemeToggle collapsed={false} />

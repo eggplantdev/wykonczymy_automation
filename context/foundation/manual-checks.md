@@ -4234,3 +4234,8 @@ Potrzebna paczka PDF-ów Telmaka za jeden miesiąc (WV / KWV / WZ / FP) i kasa T
 ## 2026-10-06 — worker-form-headers
 
 - [ ] Kosztorys → menu „Pracownicy” → wydruk „Do wypełnienia” dla pracownika: nagłówki kolumn to „Wykonano do tej pory (razem etapy)” i „Postęp (wykonano / przedmiar)”; dla pracownika z językiem Українська/Русский — po ukraińsku/rosyjsku. Tabela na jego linku do zgłoszenia prac ma dalej krótkie nagłówki.
+
+## 2026-10-06 — nav-user-name-link
+
+- [ ] Menu boczne (rozwinięte) → klik w swoje imię na dole: otwiera się Twoja strona pracownika. Na telefonie to samo z menu; będąc już na tej stronie, klik zamyka menu.
+- [ ] Jako pracownik: klik w imię otwiera jego własną stronę, bez „brak dostępu”.
