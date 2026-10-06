@@ -15,8 +15,11 @@ export async function readWorkerReportPage(
   const promptText = [
     'This is a photo of a printed work-report form that a construction worker filled in by hand.',
     'The printed table lists work items. Each row starts with a small grey number such as',
-    '"35812-7", then a description and a unit; the worker writes the quantity done in the last',
-    'column. Below the table there are blank rows where he may handwrite extra work.',
+    '"35812-7". The columns are: number, description, "done so far" (printed), "reporting"',
+    '(printed blank — headed "Zgłaszam", "Звітую" or "Сообщаю"), progress (printed, like "2 / 5"),',
+    'unit. The worker writes the quantity done ONLY in the blank "reporting" column; the printed',
+    'figures either side of it are never his quantity. Below the table there are blank rows where',
+    'he may handwrite extra work.',
     '',
     'rows: ONLY printed rows that have a handwritten quantity. Skip rows left empty.',
     '- ref: the grey number exactly as printed, including the part after the dash.',

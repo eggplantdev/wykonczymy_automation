@@ -34,7 +34,8 @@ const row = (labels: string[], values: string[], rowClass = '') =>
   '</tr>'
 
 const WORKER_PRINT_STYLES = `
-.totals tr.head td { font-size: 6pt; color: #a1a1aa; border-bottom: 1px solid #e4e4e7; }
+.totals tr.head td { font-size: 6pt; color: var(--print-muted);
+                     border-bottom: 1px solid var(--print-rule-strong); }
 `
 
 // The web page's `WorkerSummary`, on paper: the same tables in the same order and the same labels,
@@ -146,16 +147,16 @@ export function buildWorkerPrintHtml({
 
 const FORM_EXTRA_ROWS = 10
 
-// `.ref` beats WIDE_PRINT_STYLES' 5.5pt cells: the number is what the scan reads back, so it stays
-// legible. The written-in column must stay white for a pen, whatever stripe its index gets.
+// `.ref` and `.figure` beat WIDE_PRINT_STYLES' 5.5pt cells: the number is what the scan reads back,
+// and the figures are what the worker reads before he writes.
 const WORKER_FORM_STYLES = `
-td.ref { font-size: 7pt; color: #52525b; white-space: nowrap; }
-td.write, th.write { background-color: transparent; }
+td.ref, td.figure { font-size: 7pt; white-space: nowrap; }
 col.c-ref { width: 16mm; }
+col.c-figure { width: 22mm; }
 col.c-write { width: 40mm; }
 .extras { margin-top: 24px; break-inside: avoid; }
 .extras h2 { font-size: 7pt; font-weight: 600; margin: 0 0 4px; }
-.extras td { height: 7mm; border-bottom: 1px solid #a1a1aa; }
+.extras td { height: 7mm; border-bottom: 1px solid var(--print-rule-strong); }
 `
 
 function workerFormFooterHtml(locale: LanguageT): string {
@@ -191,7 +192,12 @@ export function buildWorkerFormHtml({
 
   return buildKosztorysPrintHtml({
     rows,
-    columns: workerFormColumns(locale),
+    columns: workerFormColumns({
+      locale,
+      plane: worker.plane,
+      stages: tree.stages,
+      executedQtyByItem: worker.executedQtyByItem,
+    }),
     documentKind: report.t('formDocumentKind', { name: worker.name }),
     title: investmentName,
     pageTitle: `${investmentName} — ${worker.name}`,
@@ -205,5 +211,6 @@ export function buildWorkerFormHtml({
     extraStyles: WIDE_PRINT_STYLES + WORKER_FORM_STYLES,
     footerHtml: workerFormFooterHtml(locale),
     lang: locale,
+    stripeParity: 0,
   })
 }
