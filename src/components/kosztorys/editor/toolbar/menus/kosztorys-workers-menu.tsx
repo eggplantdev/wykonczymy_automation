@@ -28,9 +28,7 @@ export function KosztorysWorkersMenu() {
   const { stages, workers } = useKosztorysEditorContext()
   const { worker, workerReports } = useKosztorysActions()
   const assigned = assignedWorkers(stages, workers, worker.linkHolders)
-  const scannable = assigned
-    .filter(({ scope }) => scope.kind !== 'blocked')
-    .map(({ id, name }) => ({ id, name }))
+  const scannable = assigned.filter(({ scope }) => scope.kind !== 'blocked')
 
   return (
     <DropdownMenu
