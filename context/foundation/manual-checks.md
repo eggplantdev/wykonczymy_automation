@@ -4177,3 +4177,12 @@ inwestycji, z transakcjami i zgłoszonymi wydatkami; konto kierownika.
 - [ ] Po komunikacie „Przetłumaczono opisy: N…” kolumny „Opis prac (UA)” / „(RU)” wypełniają się od razu, bez odświeżania strony.
 - [ ] To samo dla „Popraw literówki w opisie prac i j.m.”: w trakcie poprawiania pozycja w ponownie otwartym menu jest wyszarzona.
 - [ ] W trakcie tłumaczenia „Popraw literówki” też jest wyszarzona — i odwrotnie, w trakcie poprawiania wyszarzone jest „Uzupełnij tłumaczenia (AI)”.
+
+## 2026-10-06 — worker-report-review-table — wyszukiwarka, menu kolumn i opis w języku pracownika w oknie akceptacji zgłoszeń
+
+- [ ] Edytor kosztorysu → „Zgłoszenia wykonanych prac” → otwórz zgłoszenie: okno jest szersze niż wcześniej — na monitorze ~1440px zajmuje prawie całą szerokość, na bardzo szerokim kończy się na ~1400px.
+- [ ] Wpisz w wyszukiwarkę nad tabelą fragment opisu, nazwy sekcji albo numer „Nr”: zostają tylko pasujące prace, nagłówki tabel pokazują „(dopasowane z wszystkich)”; „Zaznacz wszystkie” zaznacza tylko widoczne. Wyszukiwanie bez polskich znaków („sciany”) też trafia.
+- [ ] Zgłoszenie ze zdjęciem: nad tabelą jest przycisk „Zgłoszone prace” z ikoną pliku, otwiera podgląd zdjęć; tabela nie ma już kolumny ze zdjęciem. Zgłoszenie bez zdjęć — przycisku nie ma.
+- [ ] Przycisk „Kolumny” nad każdą tabelą otwiera menu nad oknem: ukrycie kolumny i „Ustaw kolejność” działają, a po zamknięciu i ponownym otwarciu okna ustawienie zostaje. Domyślna kolejność „Z rozpiski”: zaznaczenie · Nr · Sekcja · Opis prac · Opis w języku pracownika · reszta jak wcześniej.
+- [ ] Pracownik z językiem konta UA/RU, praca z rozpiski z przetłumaczonym opisem: kolumna „Opis w języku pracownika” pokazuje tłumaczenie z oznaczeniem UA/RU. Pracownik na polskim — komórka pusta.
+- [ ] Praca spoza rozpiski wpisana po ukraińsku: „Opis prac” pokazuje polskie tłumaczenie, „Opis w języku pracownika” — tekst wpisany przez pracownika; nie ma już dopisku „Zgłoszono (UA): „…””.

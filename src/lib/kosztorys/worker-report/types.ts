@@ -1,5 +1,6 @@
 import type { z } from 'zod'
 import type { StageProgressCellT } from '@/lib/db/stage-progress'
+import type { LanguageT } from '@/lib/i18n/languages'
 import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import type {
   acceptSchema,
@@ -82,6 +83,8 @@ export type WorkerReportSummaryT = {
   investmentId: number
   workerId: number
   workerName: string
+  // His account language: the one his link opens in and his printed form is in.
+  workerLanguage: LanguageT | undefined
   source: ReportSourceT
   // The kierownik who filed a scan; undefined on a report the worker sent himself.
   createdByName: string | undefined

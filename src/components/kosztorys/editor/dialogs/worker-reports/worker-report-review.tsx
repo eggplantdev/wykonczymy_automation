@@ -5,7 +5,9 @@ import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { DialogFooter } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
-import { MediaStrip } from '@/components/media/media-strip'
+import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
+import { useSearchFilter } from '@/hooks/use-search-filter'
+import { MediaPreviewButton } from '@/components/dialogs/media-preview-button'
 import { SimpleSelect } from '@/components/ui/simple-select'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import {
@@ -37,9 +39,11 @@ import {
 } from '@/lib/kosztorys/work-catalogue/build-catalogue-comparison'
 import type { AcceptTargetT, ReportLineT, WorkerReportT } from '@/lib/kosztorys/worker-report/types'
 import { ACCEPT_REFUSALS } from '@/lib/kosztorys/worker-report/refusals'
+import { formatFormRef } from '@/lib/kosztorys/worker-report/check-digit'
+import { translationText } from '@/lib/i18n/description-translations'
+import { isTranslationLanguage } from '@/lib/i18n/languages'
 import { isStageMember, resolveWorkerScope } from '@/lib/kosztorys/worker-view/scope'
 import { ASSET_PREVIEW_LABELS } from '@/lib/media/wording'
-import { cn } from '@/lib/utils/cn'
 import { formatPLDateTime } from '@/lib/utils/format-date'
 import { itemNounAccusative } from '@/lib/kosztorys/counted-nouns'
 import { settleAction } from '@/lib/utils/settle-action'
@@ -63,6 +67,19 @@ const GROUPS: { group: LineGroupT; title: string; hint: string }[] = [
     hint: 'Pracownik podał tylko opis, j.m. i ilość. Po przyjęciu trafią do rozpiski jako nowe pozycje bez przedmiaru — uzupełnij sekcję i cenę albo podmień na pracę z katalogu.',
   },
 ]
+
+// The worker's own words, the Polish translation and the pozycja's opis: the kierownik searches by
+// whichever of them he has in front of him — the printed form, the photo or the rozpiska.
+const searchableText = (row: ReviewRowT) =>
+  [
+    row.ref === undefined ? '' : formatFormRef(row.ref),
+    row.scannedRef ?? '',
+    row.sectionName,
+    row.description,
+    row.polishDescription ?? '',
+    row.itemDescription ?? '',
+    row.workerDescription ?? '',
+  ].join(' ')
 
 export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
   const { rows, stages, sections, workCatalogue, acceptReport, rejectReport } =
@@ -105,6 +122,24 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
       plannedQty: row.plannedQty,
     }
   }
+  const workerLanguage = report.workerLanguage
+  const workerDescriptionOf = (
+    line: ReportLineT,
+    row: KosztorysV2RowT | undefined,
+  ): Pick<ReviewRowT, 'workerDescription' | 'workerDescriptionLanguage'> => {
+    if (line.polishDescription !== undefined) {
+      return {
+        workerDescription: line.description,
+        workerDescriptionLanguage: line.descriptionLanguage,
+      }
+    }
+    const translated = isTranslationLanguage(workerLanguage)
+      ? translationText(row?.descriptionTranslations, workerLanguage)
+      : ''
+    return translated === ''
+      ? { workerDescription: undefined, workerDescriptionLanguage: undefined }
+      : { workerDescription: translated, workerDescriptionLanguage: workerLanguage }
+  }
   const sectionOrder = new Map(sections.map((section, index) => [section.sectionName, index]))
   const linesPerItem = Map.groupBy(
     report.lines.filter((line) => line.kind === 'rozpiska' && line.itemId !== undefined),
@@ -124,6 +159,7 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
         ref: row?.ref,
         figures: isRozpiska ? figuresOf(row) : undefined,
         itemDescription: row?.description ?? undefined,
+        ...workerDescriptionOf(line, isRozpiska ? row : undefined),
         isUnassigned:
           line.kind === 'rozpiska' && (line.itemId === undefined || !rowById.has(line.itemId)),
         isAccepted: line.acceptedQty !== undefined,
@@ -133,6 +169,12 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
       }
     })
     .toSorted((first, second) => first.sectionOrder - second.sectionOrder)
+  const {
+    filteredData: visibleRows,
+    searchTerm,
+    setSearchTerm,
+  } = useSearchFilter(reviewRows, searchableText)
+  const isSearching = searchTerm.trim() !== ''
   // Scored once per dopisana praca, not per render of a cell: dice over the whole cennik is the
   // expensive part of „Porównaj z katalogiem" too.
   const candidates = hintCandidates(catalogue)
@@ -281,52 +323,58 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
         <p className="text-destructive text-sm">{targetProblem}</p>
       )}
 
-      <div
-        className={cn(
-          'grid min-h-0 gap-4',
-          report.photos.length > 0 && 'sm:grid-cols-[1fr_minmax(0,22rem)]',
-        )}
-      >
-        <div className="max-h-dialog-scroll flex min-h-0 flex-col gap-6 overflow-y-auto pr-1">
-          {GROUPS.map(({ group, title, hint }) => {
-            const lines = reviewRows.filter((row) => lineGroup(row, drafts[row.id]) === group)
-            if (lines.length === 0) return null
-            return (
-              <section key={group}>
-                <h4 className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
-                  {title} ({lines.length})
-                </h4>
-                <p className="text-muted-foreground mb-2 text-xs">{hint}</p>
-                <ReviewLinesTable
-                  group={group}
-                  rows={lines}
-                  drafts={drafts}
-                  onChange={updateDraft}
-                  sectionOptions={sectionOptions}
-                  itemOptions={itemOptions}
-                  catalogue={catalogue}
-                  kosztorysItems={rows}
-                  onCatalogueSwap={(lineId, entry) =>
-                    updateDraft(lineId, catalogueSwap(entry, rows))
-                  }
-                  hintsByLine={hintsByLine}
-                  stageTitle={stageTitle}
-                  onRetranslate={isPending ? retranslate : undefined}
-                />
-              </section>
-            )
-          })}
-        </div>
-        {report.photos.length > 0 && (
-          <aside className="max-h-dialog-scroll overflow-y-auto">
-            <MediaStrip
+      <DataTableToolbar
+        search={{
+          value: searchTerm,
+          onChange: setSearchTerm,
+          placeholder: 'Szukaj po nr, sekcji lub opisie…',
+        }}
+        actions={
+          report.photos.length > 0 && (
+            <MediaPreviewButton
               files={report.photos}
               labels={ASSET_PREVIEW_LABELS}
-              gridClassName="grid-cols-2"
-              sizes="(max-width: 767.98px) 50vw, 172px"
+              label="Zgłoszone prace"
+              className="w-fit"
             />
-          </aside>
+          )
+        }
+      />
+
+      <div className="max-h-dialog-scroll flex min-h-0 flex-col gap-6 overflow-y-auto pr-1">
+        {isSearching && visibleRows.length === 0 && (
+          <p className="text-muted-foreground py-8 text-center text-sm">
+            Brak prac pasujących do wyszukiwania.
+          </p>
         )}
+        {GROUPS.map(({ group, title, hint }) => {
+          const isInGroup = (row: ReviewRowT) => lineGroup(row, drafts[row.id]) === group
+          const lines = visibleRows.filter(isInGroup)
+          if (lines.length === 0) return null
+          return (
+            <section key={group}>
+              <h4 className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+                {title} ({lines.length}
+                {isSearching && ` z ${reviewRows.filter(isInGroup).length}`})
+              </h4>
+              <p className="text-muted-foreground mb-2 text-xs">{hint}</p>
+              <ReviewLinesTable
+                group={group}
+                rows={lines}
+                drafts={drafts}
+                onChange={updateDraft}
+                sectionOptions={sectionOptions}
+                itemOptions={itemOptions}
+                catalogue={catalogue}
+                kosztorysItems={rows}
+                onCatalogueSwap={(lineId, entry) => updateDraft(lineId, catalogueSwap(entry, rows))}
+                hintsByLine={hintsByLine}
+                stageTitle={stageTitle}
+                onRetranslate={isPending ? retranslate : undefined}
+              />
+            </section>
+          )
+        })}
       </div>
 
       <DialogFooter>

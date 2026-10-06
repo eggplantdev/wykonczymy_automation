@@ -50,6 +50,7 @@ function toSummary(row: WorkerReportRowT): WorkerReportSummaryT {
     investmentId: row.investmentId,
     workerId: row.workerId,
     workerName: row.workerName,
+    workerLanguage: row.workerLanguage ?? undefined,
     source: row.source,
     createdByName: row.createdByName ?? undefined,
     sentAt: row.sentAt,

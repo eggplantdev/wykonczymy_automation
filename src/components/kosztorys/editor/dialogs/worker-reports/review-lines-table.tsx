@@ -10,7 +10,9 @@ import { SearchSelect, type SearchSelectItemT } from '@/components/ui/search-sel
 import { SimpleSelect, type SelectOptionT } from '@/components/ui/simple-select'
 import { CandidateRow } from '@/components/kosztorys/editor/dialogs/catalogue/catalogue-candidate-row'
 import { CatalogueSwapDialog } from '@/components/kosztorys/editor/dialogs/worker-reports/catalogue-swap-dialog'
+import { ColumnToggle } from '@/components/filters/column-toggle'
 import { DataTable } from '@/components/tables/data-table/data-table'
+import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import {
   acceptedQtyNote,
   isLineReady,
@@ -43,6 +45,10 @@ export type ReviewRowT = Omit<ReportLineT, 'sectionName'> & {
   // Figures of the pozycja the line adds to — its own, or the one it was re-pointed to.
   figures: ItemFiguresT | undefined
   itemDescription: string | undefined
+  // The opis as the worker reads it: the pozycja's translation into his language, or — for a praca
+  // spoza rozpiski — what he wrote before it was translated. Undefined when it is the Polish itself.
+  workerDescription: string | undefined
+  workerDescriptionLanguage: string | undefined
   // Its own pozycja is gone from the rozpiska, so the kierownik points it at one by hand.
   isUnassigned: boolean
   // Already in an etap: its pozycja is settled, its ilość stays editable and unticking takes it out.
@@ -200,6 +206,18 @@ function RozpiskaDescriptionCell({ row }: { row: ReviewRowT }) {
   )
 }
 
+function WorkerDescriptionCell({ row }: { row: ReviewRowT }) {
+  if (row.workerDescription === undefined) return null
+  return (
+    <span className="block leading-snug">
+      <span className="text-muted-foreground text-xs">
+        {languageShort(row.workerDescriptionLanguage)}
+      </span>{' '}
+      {row.workerDescription}
+    </span>
+  )
+}
+
 function StageHeader() {
   return useReviewTable().stageTitle
 }
@@ -245,8 +263,6 @@ function SwapNote({ row, unit }: { row: ReviewRowT; unit: string | undefined }) 
     <>
       <span className="text-muted-foreground block text-xs">
         {isSwapped ? 'Z katalogu · zgłoszono' : 'Zgłoszono'} „{reviewedDescription(row)}”
-        {row.polishDescription !== undefined &&
-          ` (${languageShort(row.descriptionLanguage)}: „${row.description}”)`}
       </span>
       {unit !== undefined && unit !== row.unit && (
         <span className={WARNING_NOTE}>
@@ -304,11 +320,6 @@ function TranslationNote({ row }: { row: ReviewRowT }) {
   const isTranslated = row.polishDescription !== undefined
   return (
     <>
-      {isTranslated && (
-        <span className="text-muted-foreground block text-xs">
-          Zgłoszono ({languageShort(row.descriptionLanguage)}): „{row.description}”
-        </span>
-      )}
       {row.descriptionLanguage === undefined && (
         <span className="text-muted-foreground block text-xs">Brak tłumaczenia</span>
       )}
@@ -442,6 +453,7 @@ const DESCRIPTION_MIN_WIDTH = 'min-w-96'
 
 const tickColumn = col.display({
   id: 'tick',
+  enableHiding: false,
   header: () => <TickHeader />,
   cell: ({ row }) => <TickCell row={row.original} />,
 })
@@ -466,6 +478,11 @@ const reviewDescriptionColumn = col.accessor('description', {
   meta: { fill: true, minWidth: DESCRIPTION_MIN_WIDTH },
   cell: ({ row }) => <RozpiskaDescriptionCell row={row.original} />,
 })
+const workerDescriptionColumn = col.accessor('workerDescription', {
+  header: 'Opis w języku pracownika',
+  meta: { minWidth: 'min-w-64' },
+  cell: ({ row }) => <WorkerDescriptionCell row={row.original} />,
+})
 const reportedColumn = col.accessor('reportedQty', {
   header: 'Zgłoszono',
   cell: ({ row }) => (
@@ -482,6 +499,7 @@ const acceptedColumn = col.display({
 const stageColumn = col.accessor((row) => row.figures?.stageQty ?? 0, {
   id: 'stage',
   header: () => <StageHeader />,
+  meta: { label: 'Etap' },
   cell: ({ row }) => <StageCell row={row.original} />,
 })
 const plannedColumn = col.accessor((row) => row.figures?.plannedQty ?? 0, {
@@ -531,6 +549,7 @@ const COLUMNS_BY_GROUP = {
     refColumn,
     sectionColumn,
     reviewDescriptionColumn,
+    workerDescriptionColumn,
     reportedColumn,
     acceptedColumn,
     stageColumn,
@@ -540,6 +559,7 @@ const COLUMNS_BY_GROUP = {
   extra: [
     tickColumn,
     manualDescriptionColumn,
+    workerDescriptionColumn,
     catalogueColumn,
     reportedColumn,
     acceptedColumn,
@@ -557,6 +577,19 @@ export function ReviewLinesTable({ group, ...props }: PropsT) {
       <DataTable
         data={props.rows}
         columns={COLUMNS_BY_GROUP[group]}
+        storageKey={`worker-report-${group}`}
+        toolbar={({ table, columnVisibility, ...order }) => (
+          <DataTableToolbar
+            columns={
+              <ColumnToggle
+                table={table}
+                columnVisibility={columnVisibility}
+                {...order}
+                contentClassName="z-10001 w-72"
+              />
+            }
+          />
+        )}
         getRowClassName={(row) =>
           cn(
             'worker-report-rail',

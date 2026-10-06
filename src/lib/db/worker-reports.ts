@@ -1,5 +1,6 @@
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { LOCKED_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
+import { toLanguage, type LanguageT } from '@/lib/i18n/languages'
 import { REPORT_STATUSES, type ReportStatusT } from '@/lib/kosztorys/worker-report/report-status'
 import {
   isServerSortableReportColumn,
@@ -37,6 +38,7 @@ export type WorkerReportRowT = {
   investmentId: number
   workerId: number
   workerName: string
+  workerLanguage: LanguageT | null
   status: ReportStatusT
   source: ReportSourceT
   createdByName: string | null
@@ -84,7 +86,7 @@ export type ReportListRowT = {
 const DECIDABLE_INVESTMENT = sql`i.trashed_at IS NULL AND i.status <> ${LOCKED_INVESTMENT_STATUS}`
 
 const REPORT_COLUMNS = sql`
-  r.id, r.investment_id, r.worker_id, w.name AS worker_name, r.status, r.source,
+  r.id, r.investment_id, r.worker_id, w.name AS worker_name, w.language AS worker_language, r.status, r.source,
   c.name AS created_by_name, r.sent_at, r.decided_at, d.name AS decided_by_name, r.target_stage_id, r.target_stage_ordinal, r.target_stage_label,
   (SELECT count(*)::int FROM worker_report_lines l WHERE l.report_id = r.id) AS line_count,
   (SELECT count(*)::int FROM worker_report_lines l
@@ -103,6 +105,7 @@ function toReportRow(row: Record<string, unknown>): WorkerReportRowT {
     investmentId: Number(row.investment_id),
     workerId: Number(row.worker_id),
     workerName: text(row.worker_name),
+    workerLanguage: toLanguage(row.worker_language),
     status: row.status as ReportStatusT,
     source: row.source as ReportSourceT,
     createdByName: textOrNull(row.created_by_name),
