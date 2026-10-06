@@ -179,3 +179,58 @@ describe('drain', () => {
     }
   })
 })
+
+describe('drainAll', () => {
+  it('fires every pending debounced save and waits for every lane', async () => {
+    vi.useFakeTimers()
+    try {
+      const lanes = createSaveLanes()
+      const stored: string[] = []
+      const saves = createDebouncedSaves(500, (key, run) => lanes.enqueue(key, run), lanes)
+      saves.save('item:1:name', async () => {
+        stored.push('a')
+        return ok()
+      })
+      saves.save('item:2:unit', async () => {
+        stored.push('b')
+        return ok()
+      })
+
+      await saves.drainAll()
+      expect(stored.sort()).toEqual(['a', 'b'])
+
+      await vi.advanceTimersByTimeAsync(1000)
+      expect(stored).toHaveLength(2)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('waits for an in-flight write on a lane it was never told about', async () => {
+    const lanes = createSaveLanes()
+    const gate = deferred<void>()
+    let isStored = false
+    void lanes.enqueue('item:7:name', async () => {
+      await gate.promise
+      isStored = true
+      return ok()
+    })
+
+    let isDrained = false
+    const drained = lanes.drainAll().then(() => {
+      isDrained = true
+    })
+    await Promise.resolve()
+    expect(isDrained).toBe(false)
+
+    gate.resolve()
+    await drained
+    expect(isStored).toBe(true)
+  })
+
+  it('resolves at once with nothing pending', async () => {
+    const lanes = createSaveLanes()
+    const saves = createDebouncedSaves(500, (key, run) => lanes.enqueue(key, run), lanes)
+    await expect(saves.drainAll()).resolves.toBeUndefined()
+  })
+})

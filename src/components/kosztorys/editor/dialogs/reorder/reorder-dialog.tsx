@@ -36,7 +36,8 @@ export function ReorderDialog() {
 }
 
 function ReorderDialogBody({ onClose }: { onClose: () => void }) {
-  const { rows, sections, investmentId, onTreeReplaced, noun } = useKosztorysEditorContext()
+  const { rows, sections, investmentId, onTreeReplaced, noun, flushPendingSaves } =
+    useKosztorysEditorContext()
   const [initial] = useState<KosztorysLayoutT>(() =>
     sections.map((section) => ({
       sectionId: section.sectionId,
@@ -168,6 +169,7 @@ function ReorderDialogBody({ onClose }: { onClose: () => void }) {
 
   function handleSave() {
     startTransition(async () => {
+      await flushPendingSaves()
       const replaced = await settleTreeReplace(
         () => writeKosztorysLayoutAction(investmentId, layout),
         `Zapis kolejności przerwany — odświeżam ${noun.nominative}`,

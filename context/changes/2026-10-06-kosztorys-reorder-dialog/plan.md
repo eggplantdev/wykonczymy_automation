@@ -231,14 +231,14 @@ At 400 items the write is two UPDATE statements: one VALUES row per section and 
 
 #### Automated
 
-- [x] 1.1 reorder-layout unit spec
-- [x] 1.2 kosztorys-layout DB spec (cross-section move, stale refusal, snapshot only on success)
+- [x] 1.1 reorder-layout unit spec — 0814181d
+- [x] 1.2 kosztorys-layout DB spec (cross-section move, stale refusal, snapshot only on success) — 0814181d
 
 ### Phase 2: Flush every pending cell save before the write
 
 #### Automated
 
-- [ ] 2.1 save-lanes drainAll unit cases
+- [x] 2.1 save-lanes drainAll unit cases
 
 ### Phase 3: Dialog polish and verification
 

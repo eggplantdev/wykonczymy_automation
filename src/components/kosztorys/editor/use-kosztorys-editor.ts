@@ -197,7 +197,7 @@ export function useKosztorysEditor({
   // anything may be written.
   const readOnly = preview || lock !== undefined
   const { recoverStaleTree, reportFailure } = useStaleTreeRecovery(onStaleTree)
-  const { save, runNow, drain } = useDebouncedSave(500, recoverStaleTree)
+  const { save, runNow, drain, drainAll } = useDebouncedSave(500, recoverStaleTree)
   // Owned by the shell (KosztorysEditorV2). Capture pushes here; toolbar + keyboard call undo/redo.
   const { push, undo, redo, canUndo, canRedo, pruneByIds, amendTop } = undoRedo
   const [gridRef, gridHeight, gridNode] = useElementHeight()
@@ -1334,7 +1334,14 @@ export function useKosztorysEditor({
     }
   }
 
+  // Before a write that reseeds the grid from the server: what the grid shows must be stored first.
+  async function flushPendingSaves() {
+    flushUndoBuffer()
+    await drainAll()
+  }
+
   return {
+    flushPendingSaves,
     // „Wybierz pozycję z katalogu prac" reads this to tell which cennik prace are already in; viewRows
     // would answer for the active filter instead.
     rows,
