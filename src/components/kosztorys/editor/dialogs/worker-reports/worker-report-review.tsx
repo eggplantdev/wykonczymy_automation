@@ -121,6 +121,7 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
         sectionName,
         sectionColor: row?.sectionColor ?? null,
         sectionOrder: sectionOrder.get(sectionName) ?? sections.length,
+        ref: row?.ref,
         figures: isRozpiska ? figuresOf(row) : undefined,
         itemDescription: row?.description ?? undefined,
         isUnassigned:

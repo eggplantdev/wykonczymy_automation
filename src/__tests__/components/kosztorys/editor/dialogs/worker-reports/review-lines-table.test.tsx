@@ -23,6 +23,7 @@ const extra = (patch: Partial<ReviewRowT> = {}): ReviewRowT => ({
   sectionName: '',
   sectionColor: null,
   sectionOrder: 0,
+  ref: undefined,
   reportedQty: 12,
   acceptedQty: undefined,
   createdItemId: undefined,

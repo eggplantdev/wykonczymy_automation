@@ -28,6 +28,7 @@ import { sectionColorRail, type SectionColorKeyT } from '@/lib/kosztorys/section
 import { compareDescriptions } from '@/lib/kosztorys/work-catalogue/compare-descriptions'
 import type { KosztorysItemRefT } from '@/lib/kosztorys/work-catalogue/already-in-kosztorys'
 import type { CatalogueHintT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
+import { formatFormRef } from '@/lib/kosztorys/worker-report/check-digit'
 import { parseReportQty } from '@/lib/kosztorys/worker-report/parse-report-qty'
 import type { ReportLineT } from '@/lib/kosztorys/worker-report/types'
 import { cn } from '@/lib/utils/cn'
@@ -36,6 +37,9 @@ export type ReviewRowT = Omit<ReportLineT, 'sectionName'> & {
   sectionName: string
   sectionColor: SectionColorKeyT | null
   sectionOrder: number
+  // The pozycja's number from the printed form — the one link between a worker's own-language page
+  // and the Polish rozpiska.
+  ref: number | undefined
   // Figures of the pozycja the line adds to — its own, or the one it was re-pointed to.
   figures: ItemFiguresT | undefined
   itemDescription: string | undefined
@@ -441,6 +445,14 @@ const tickColumn = col.display({
   header: () => <TickHeader />,
   cell: ({ row }) => <TickCell row={row.original} />,
 })
+const refColumn = col.accessor((row) => row.ref ?? 0, {
+  id: 'ref',
+  header: 'Nr',
+  cell: ({ row }) =>
+    row.original.ref !== undefined && (
+      <span className="whitespace-nowrap tabular-nums">{formatFormRef(row.original.ref)}</span>
+    ),
+})
 // Sorted by the rozpiska's own section order, not alphabetically — that is the order both people know.
 const sectionColumn = col.accessor((row) => row.sectionOrder, {
   id: 'section',
@@ -516,6 +528,7 @@ const unitPriceColumn = col.display({
 const COLUMNS_BY_GROUP = {
   rozpiska: [
     tickColumn,
+    refColumn,
     sectionColumn,
     reviewDescriptionColumn,
     reportedColumn,
