@@ -1,7 +1,7 @@
 ---
 change_id: worker-expense-ai-prefill
 title: AI reads a worker's expense photos on send; manager gets a prefilled wydatek + a re-read button (EX-1001)
-status: implementing
+status: implemented
 created: 2026-10-06
 updated: 2026-10-06
 archived_at: null
