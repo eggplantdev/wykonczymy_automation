@@ -4219,6 +4219,10 @@ Potrzebna paczka PDF-ów Telmaka za jeden miesiąc (WV / KWV / WZ / FP) i kasa T
 - [ ] Zmień zakres dat → porównanie liczy się od nowa; „Pokaż wszystkie” dokłada wiersze „Zgodne”, a „Pokaż tylko rozjazdy” je chowa.
 - [ ] Pod spodem „Transakcje do weryfikacji” pokazuje transakcje z rozjazdów w kolumnach jak na liście transakcji; anulowane są przekreślone.
 - [ ] „Podgląd” przy fakturze otwiera PDF z paczki.
-- [ ] Transakcja bez PDF-a, której faktura jest w paczce → „Dołącz do #id”: plik trafia do tej transakcji, a w „Transakcjach do weryfikacji” pojawia się ikona faktury. Zamknięcie okna niczego więcej nie wysyła.
+- [ ] Transakcja bez PDF-a, której faktura jest w paczce → „Dołącz do #id”: plik trafia do tej transakcji, porównanie liczy się od nowa i wiersz znika z rozjazdów (przycisku nie da się kliknąć drugi raz). Zamknięcie okna niczego więcej nie wysyła.
+- [ ] Bez zamykania okna wrzuć paczkę z innego miesiąca → zakres dat ustawia się od nowa z dat nowej paczki. Zakres wybrany ręcznie zostaje.
+- [ ] Prawdziwa korekta KWV z paczki → odczytana (nie „Nieznany format”), a jeśli w aplikacji jest jej ujemna korekta — „Zgodne”.
 - [ ] Dorzuć do paczki obcy PDF (nie od Telmaka) → toast o nieznanym formacie, a plik jest w tabeli jako „Nieznany format”.
 - [ ] Na buildzie produkcyjnym (staging) paczka się czyta, a w konsoli przeglądarki nie ma błędu workera pdfjs.
+- [ ] Paczka ~50+ faktur czyta się w kilka sekund, a nie dziesiątki (jeden worker pdfjs na całą paczkę).
+- [ ] Lista transakcji (np. „Transakcje”) → anulowana transakcja nadal przekreślona i wyszarzona, wiersz „Anulowanie” wyszarzony (wspólna klasa wiersza — zachowanie bez zmian).
