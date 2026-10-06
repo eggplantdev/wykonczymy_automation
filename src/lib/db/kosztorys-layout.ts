@@ -1,33 +1,32 @@
 import 'server-only'
-import { z } from 'zod'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
-
-// The whole sheet's order in one value: sections top to bottom, each with its items top to bottom.
-// An item's section is wherever it is listed, so a move across sections is the same write as one
-// within a section.
-export const kosztorysLayoutSchema = z
-  .array(z.object({ sectionId: z.number().int(), itemIds: z.array(z.number().int()) }))
-  .min(1)
-
-export type KosztorysLayoutT = z.infer<typeof kosztorysLayoutSchema>
-
-export const LAYOUT_STALE = 'Układ się zmienił w międzyczasie — odśwież i spróbuj ponownie.'
+import { bumpInvestmentRevision } from '@/lib/db/investment-revision'
+import type { KosztorysLayoutT } from '@/lib/kosztorys/reorder-layout'
 
 // Refuses anything but a permutation of the sheet as it stands under the lock: a row added or
 // deleted in another tab would otherwise be silently dropped from, or smuggled into, the order.
-// Ascending id like every other acquisition in display-order.ts (EX-632). Split from the write so
-// the caller can take its auto snapshot in between — a refused layout must leave no version.
+// Split from the write so the caller can take its auto snapshot in between — a refused layout must
+// leave no version.
+//
+// Lock order, against the writers it can meet: the investment first, in KEY SHARE, queues this
+// behind a tree replacement or a report acceptance (both take it FOR UPDATE before any row) and
+// still lets a cell save bump the revision. Rows in NO KEY UPDATE, ascending id like display-order.ts
+// (EX-632): FOR UPDATE would also block the KEY SHARE an „Dodaj pracę” insert takes on its section
+// while holding the items, and the two would deadlock.
 export async function lockAndCheckLayout(
   db: DbExecutorT,
   investmentId: number,
   layout: KosztorysLayoutT,
 ): Promise<boolean> {
+  await db.execute(sql`SELECT id FROM investments WHERE id = ${investmentId} FOR KEY SHARE`)
   const sectionRes = await db.execute(sql`
-    SELECT id FROM kosztorys_sections WHERE investment_id = ${investmentId} ORDER BY id FOR UPDATE
+    SELECT id FROM kosztorys_sections WHERE investment_id = ${investmentId}
+    ORDER BY id FOR NO KEY UPDATE
   `)
   const itemRes = await db.execute(sql`
-    SELECT id FROM kosztorys_items WHERE investment_id = ${investmentId} ORDER BY id FOR UPDATE
+    SELECT id FROM kosztorys_items WHERE investment_id = ${investmentId}
+    ORDER BY id FOR NO KEY UPDATE
   `)
   const sectionIds = new Set(sectionRes.rows.map((row) => Number(row.id)))
   const itemIds = new Set(itemRes.rows.map((row) => Number(row.id)))
@@ -73,6 +72,5 @@ export async function applyLayout(
     `)
   }
 
-  // The editor reseeds its grid off the investment's revision token (see setItemTexts).
-  await db.execute(sql`UPDATE investments SET updated_at = now() WHERE id = ${investmentId}`)
+  await bumpInvestmentRevision(db, investmentId)
 }

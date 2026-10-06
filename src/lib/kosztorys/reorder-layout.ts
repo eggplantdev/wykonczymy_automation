@@ -1,7 +1,26 @@
-import type { KosztorysLayoutT } from '@/lib/db/kosztorys-layout'
+import { z } from 'zod'
+
+// An item's section is wherever it is listed, so a move across sections is the same write as one
+// within a section.
+export const kosztorysLayoutSchema = z
+  .array(z.object({ sectionId: z.number().int(), itemIds: z.array(z.number().int()) }))
+  .min(1)
+
+export type KosztorysLayoutT = z.infer<typeof kosztorysLayoutSchema>
+
+export const LAYOUT_STALE = 'Układ się zmienił w międzyczasie — odśwież i spróbuj ponownie.'
 
 // Where a dragged block lands: before `beforeItemId` in that section, or at its end when undefined.
 export type ItemDropTargetT = { sectionId: number; beforeItemId: number | undefined }
+
+export type ReorderDragT = { kind: 'items' } | { kind: 'section'; sectionId: number }
+export type ReorderDropT =
+  | ({ kind: 'items' } & ItemDropTargetT)
+  | { kind: 'section'; beforeSectionId: number | undefined }
+
+// Under the pointer: a row, or a section header when `itemId` is undefined — for a section drag, the
+// whole section block, so the line moves once per section rather than once per half-row.
+export type ReorderHoverT = { sectionId: number; itemId: number | undefined; upperHalf: boolean }
 
 // Moves the block, keeping its rows in their current top-to-bottom order whichever sections they
 // came from — the Excel „wytnij wiersze, wstaw wycięte" gesture. A target inside the block itself
@@ -28,6 +47,30 @@ export function moveItems(
     const at = anchor === undefined ? kept.length : kept.indexOf(anchor)
     return { ...section, itemIds: [...kept.slice(0, at), ...block, ...kept.slice(at)] }
   })
+}
+
+export function resolveDropTarget(
+  layout: KosztorysLayoutT,
+  drag: ReorderDragT,
+  hover: ReorderHoverT,
+  collapsed: ReadonlySet<number>,
+): ReorderDropT | undefined {
+  const sectionIndex = layout.findIndex((section) => section.sectionId === hover.sectionId)
+  const section = layout[sectionIndex]
+  if (!section) return undefined
+  if (drag.kind === 'section') {
+    const beforeSectionId = hover.upperHalf ? hover.sectionId : layout[sectionIndex + 1]?.sectionId
+    return { kind: 'section', beforeSectionId }
+  }
+  if (hover.itemId === undefined) {
+    // A header drops at the top of its section — or at the end of a folded one, whose rows can't
+    // show where the line went.
+    const beforeItemId = collapsed.has(hover.sectionId) ? undefined : section.itemIds[0]
+    return { kind: 'items', sectionId: hover.sectionId, beforeItemId }
+  }
+  const at = section.itemIds.indexOf(hover.itemId)
+  const beforeItemId = hover.upperHalf ? hover.itemId : section.itemIds[at + 1]
+  return { kind: 'items', sectionId: hover.sectionId, beforeItemId }
 }
 
 // `beforeSectionId` undefined → last.

@@ -206,13 +206,19 @@ describe('drainAll', () => {
     }
   })
 
-  it('waits for an in-flight write on a lane it was never told about', async () => {
+  it('waits for every in-flight write, on lanes it was never told about', async () => {
     const lanes = createSaveLanes()
-    const gate = deferred<void>()
-    let isStored = false
+    const name = deferred<void>()
+    const unit = deferred<void>()
+    const stored: string[] = []
     void lanes.enqueue('item:7:name', async () => {
-      await gate.promise
-      isStored = true
+      await name.promise
+      stored.push('name')
+      return ok()
+    })
+    void lanes.enqueue('item:8:unit', async () => {
+      await unit.promise
+      stored.push('unit')
       return ok()
     })
 
@@ -220,12 +226,13 @@ describe('drainAll', () => {
     const drained = lanes.drainAll().then(() => {
       isDrained = true
     })
-    await Promise.resolve()
+    name.resolve()
+    await vi.waitFor(() => expect(stored).toEqual(['name']))
     expect(isDrained).toBe(false)
 
-    gate.resolve()
+    unit.resolve()
     await drained
-    expect(isStored).toBe(true)
+    expect(stored).toEqual(['name', 'unit'])
   })
 
   it('resolves at once with nothing pending', async () => {

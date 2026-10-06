@@ -12,17 +12,16 @@ import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { cleanItemTexts } from '@/lib/kosztorys/clean-item-texts'
 import { itemPatchSchema } from '@/lib/kosztorys/item-patch-schema'
 import { getItemTexts, setItemTexts } from '@/lib/db/kosztorys-item-texts'
-import {
-  applyLayout,
-  kosztorysLayoutSchema,
-  LAYOUT_STALE,
-  lockAndCheckLayout,
-  type KosztorysLayoutT,
-} from '@/lib/db/kosztorys-layout'
+import { applyLayout, lockAndCheckLayout } from '@/lib/db/kosztorys-layout'
 import { createSection, type CreatedSectionT } from '@/lib/kosztorys/create-section'
 import { sectionOwnerAndNextItemOrder } from '@/lib/kosztorys/create-item'
 import { insertItems } from '@/lib/kosztorys/insert-rows'
 import { itemFromFields } from '@/lib/kosztorys/item-from-fields'
+import {
+  kosztorysLayoutSchema,
+  LAYOUT_STALE,
+  type KosztorysLayoutT,
+} from '@/lib/kosztorys/reorder-layout'
 import { ceilingWarnings } from '@/lib/kosztorys/subcontractor-price-guard'
 import {
   applyCatalogueWrite,
@@ -700,9 +699,9 @@ export async function writeKosztorysLayoutAction(
         async (req): Promise<ActionResultT> => {
           const tx = await getDb(payload, req)
           if (!(await lockAndCheckLayout(tx, investmentId, parsed.data))) {
-            return { success: false, error: LAYOUT_STALE }
+            return { success: false, error: LAYOUT_STALE, code: 'NOT_FOUND' }
           }
-          await captureAutoSnapshot(tx, investmentId, user.id)
+          await captureAutoSnapshot(tx, investmentId, user.id, req)
           await applyLayout(tx, investmentId, parsed.data)
           return { success: true }
         },

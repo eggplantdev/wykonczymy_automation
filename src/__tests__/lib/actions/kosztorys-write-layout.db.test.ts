@@ -2,7 +2,8 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
-import { LAYOUT_STALE } from '@/lib/db/kosztorys-layout'
+import { readInvestmentRevision } from '@/lib/db/investment-revision'
+import { LAYOUT_STALE } from '@/lib/kosztorys/reorder-layout'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 
@@ -85,11 +86,7 @@ describe.skipIf(!ENV_READY)('writeKosztorysLayoutAction — persisted layout (DB
       ).rows[0]?.n,
     )
 
-  const revision = async () =>
-    String(
-      (await db.execute(sql`SELECT updated_at FROM investments WHERE id = ${investmentId}`)).rows[0]
-        ?.updated_at,
-    )
+  const revision = () => readInvestmentRevision(db, investmentId)
 
   it('moves a row across sections, reorders sections, and takes exactly one version', async () => {
     const [salon, kuchnia] = sectionIds as [number, number]
@@ -119,7 +116,7 @@ describe.skipIf(!ENV_READY)('writeKosztorysLayoutAction — persisted layout (DB
   it.each([
     ['missing a row', (ids: number[]) => ids.slice(1)],
     ['carrying an unknown id', (ids: number[]) => [...ids, 2_000_000_000]],
-    ['carrying another investment’s row', (ids: number[]) => [...ids, foreignItemId]],
+    ['carrying another investment’s row', (ids: number[]) => [...ids.slice(1), foreignItemId]],
   ])('refuses a layout %s, writes nothing and takes no version', async (_, mutate) => {
     const before = await persisted()
     const snapshotsBefore = await autoCount()
@@ -131,7 +128,7 @@ describe.skipIf(!ENV_READY)('writeKosztorysLayoutAction — persisted layout (DB
       { sectionId: first, itemIds: [] },
     ])
 
-    expect(res).toEqual({ success: false, error: LAYOUT_STALE })
+    expect(res).toEqual({ success: false, error: LAYOUT_STALE, code: 'NOT_FOUND' })
     expect(await persisted()).toEqual(before)
     expect(await autoCount()).toBe(snapshotsBefore)
   })
