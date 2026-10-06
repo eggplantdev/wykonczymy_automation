@@ -4193,14 +4193,17 @@ inwestycji, z transakcjami i zgłoszonymi wydatkami; konto kierownika.
 - [ ] Menu boczne i mobilne: „Zgłoszenia wydatków” stoi zaraz po „Zgłoszenia wykonanych prac”; licznik przy niej = liczba czekających zgłoszeń i zostaje, gdy strona jest otwarta.
 - [ ] „Zgłoszenia wydatków” bez sortowania: czekające na górze, reszta od najnowszych. Sortowanie po „Status”, potem po „Pracownik” przestawia wiersze na wszystkich stronach.
 - [ ] Każdy filtr (status, pracownik, inwestycja, data wysłania od/do) zawęża listę; „Wyczyść” wraca do pełnej.
-- [ ] Czekające zgłoszenie → „Zobacz”: otwiera się wypełniony „Nowy wydatek”. „Zapisz” → wiersz „Przyjęte”, w „Decyzja” teraz · ja, w „Wydatek” kwota. Drugie zgłoszenie → „Odrzuć” → wiersz „Odrzucone”.
+- [ ] Czekające zgłoszenie → „Zobacz”: otwiera się wypełniony „Nowy wydatek”. „Zapisz” → wiersz „Przyjęte”, w „Decyzja” teraz · ja, w „Transakcje” kwota. Drugie zgłoszenie → „Odrzuć” → wiersz „Odrzucone”.
 - [ ] Odrzucone zgłoszenie → „Przywróć”: wraca jako „Czeka” na górę listy, licznik w menu rośnie o 1.
 - [ ] Kwota przyjętego zgłoszenia otwiera transakcje inwestycji z tylko tą jedną transakcją i wypełnionym polem ID — także gdy inwestycję zmieniono w dialogu przyjęcia (link prowadzi do inwestycji z transakcji).
+- [ ] Czekające zgłoszenie z 3 paragonami („jedno zdjęcie = jeden paragon”) → „Zobacz”: wszystkie trzy w jednym formularzu. Jeden wiersz wyrzuć koszem, zapisz → na liście „Zgłoszenia wydatków” to zgłoszenie ma 3 wiersze: dwa „przyjęty”, każdy z kwotą swojej transakcji i tylko swoim zdjęciem, i jeden „odrzucony” bez transakcji, ze zdjęciem pominiętego paragonu i bez „Przywróć”. Kwota przyjętego wiersza otwiera transakcje inwestycji z tą jedną transakcją.
+- [ ] Pracownik na swojej stronie: te same 3 wiersze; filtr „Status” startuje na „czeka”, zaznaczenie „przyjęty”/„odrzucony” pokazuje rozpatrzone.
+- [ ] Pulpit → „Wydatki zgłoszone przez pracowników”: tabela jak pozostałe listy, „Zobacz” w pierwszej kolumnie, bez kolumn „Status”, „Decyzja”, „Transakcje”; „Zobacz” otwiera wypełniony „Nowy wydatek”.
 - [ ] Odrzucone zgłoszenie pracownika, który jest w koszu, nie jest na liście; przyjęte zgłoszenie inwestycji z kosza jest.
 - [ ] Pracownik na swojej stronie przy 390px: „Zgłoszone wydatki” pokazuje 10 wierszy i przełącznik stron, tabela przewija się w poziomie wewnątrz ramki; zmiana strony zgłoszeń nie zmienia adresu i nie przesuwa sekcji transakcji.
-- [ ] U pracownika widać kolumny „Decyzja” i „Wydatek”, kwota nie jest linkiem; nie ma kolumny „Pracownik”.
+- [ ] U pracownika widać kolumny „Decyzja” i „Transakcje”, kwota nie jest linkiem; nie ma kolumny „Pracownik”.
 - [ ] Przy czekającym zgłoszeniu działają edycja, usunięcie i zmiana zdjęć; rozpatrzone zgłoszenie nie ma tych akcji. Kierownik na stronie pracownika widzi tę samą tabelę bez edycji i usuwania.
-- [ ] Pracownik z językiem Українська: nagłówki nowej tabeli są po ukraińsku.
+- [ ] Pracownik z językiem Українська: nagłówki nowej tabeli są po ukraińsku (kolumna kwoty: „Транзакції”).
 - [ ] Transakcje na stronie pracownika pokazują domyślnie 10 wierszy; „50” na dole przełącza na 50. Na każdej liście z „Pokaż” jest teraz opcja „10”.
 - [ ] Pracownik na swojej stronie → „Moje inwestycje” → klik w nazwę inwestycji: otwiera się jego strona zgłoszenia prac od razu na „Inwestycja” (jego rozliczenie); „Zgłoś prace” dalej otwiera „Zgłaszam pracę”. Kierownik na stronie pracownika widzi nazwę bez linku.
 - [ ] „Zgłoszone wydatki” u pracownika: filtry „Status” i „Inwestycja” (tylko inwestycje z jego zgłoszeń) zawężają tabelę i licznik wyników, „Pokaż” zmienia liczbę wierszy (domyślnie 10); każda z tych zmian wraca na stronę 1 i nie zmienia adresu. Przy 390px oba filtry stoją obok siebie.

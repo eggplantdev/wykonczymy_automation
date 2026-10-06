@@ -8,7 +8,8 @@ the manual pass lives in `context/foundation/manual-checks.md` § EX-1005.
 
 ## Findings
 
-- [ ] 🟡 WARNING · proposed · code-review + impl-review F5 · `src/components/tables/expense-drafts.tsx:25` · „Wydatek” shows the FIRST transaction's amount when a draft was booked as several (`transferId: ids[0]`, `lib/actions/transfers.ts:159`) — a wrong figure, not just a partial link — owner's call: keep + record as a known limitation / show no amount (only a link) / persist every transfer id (migration)
+- [x] 🟡 WARNING · fixed · code-review + impl-review F5 · `src/components/tables/expense-drafts.tsx:24` · „Wydatek” showed the FIRST transaction's amount when a draft was booked as several — owner: persist every transfer id. New table `worker_expense_draft_transfers` (migration `20261006_2`, backfilled from `transfer_id`), `decideExpenseDraft` links all ids, column renamed „Transakcje”: sum of the live ones + count, struck-out sum only when all are cancelled, link `?id=a,b,c` (ID filter now takes a list) with cancelled shown; „od pracownika” badge on every one
+      test: test-driven-debugging · integration — `actions/worker-expense-drafts.db.test.ts` accepts a 2-line draft and asserts both ids in the join table; unit/DOM: multi-id filter SQL, href, cell sum/count/link
       test: TDD · unit (DOM) — follows whichever option is chosen
 - [x] 🟡 WARNING · fixed · impl-review F1 + code-review #2 · `src/lib/db/worker-expense-drafts.ts:53` · a cancelled transaction still reads as a live expense and its link opens an empty list — select `t.cancelled`, strike the amount, link with `showCancelled=1`
       test: TDD · unit (DOM) — `expense-drafts.test.tsx`: a cancelled one renders struck through and links with showCancelled; `worker-expense-drafts.db.test.ts` asserts `transferCancelled` from the row
