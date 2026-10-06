@@ -138,6 +138,11 @@ export const ru: TranslationsT = {
     removePhotoConfirm: 'Вы уверены, что хотите удалить это фото?',
     removePhotoDescription: 'Это действие нельзя отменить — файл исчезнет навсегда.',
     removePhotoError: 'Не удалось удалить фото',
+    scanModeOneInvoice: 'Один расход',
+    scanModeOnePerPhoto: 'Несколько расходов',
+    scanModeOneInvoiceHint:
+      'Все фото — это один счёт: будет одна позиция с несколькими страницами.',
+    scanModeOnePerPhotoHint: 'Каждое фото — отдельный чек: из него будет отдельная позиция.',
   },
   report: {
     pageTitle: 'Отчёт о работах',

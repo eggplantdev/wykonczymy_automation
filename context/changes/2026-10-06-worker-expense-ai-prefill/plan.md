@@ -500,17 +500,17 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 1.1 Migration applies to the local DB and to `db-test`
-- [x] 1.2 Read spec passes
-- [x] 1.3 Worker action spec passes
-- [x] 1.4 Blob URL + scan-receipt specs pass
+- [x] 1.1 Migration applies to the local DB and to `db-test` — 9e70c1e9
+- [x] 1.2 Read spec passes — 9e70c1e9
+- [x] 1.3 Worker action spec passes — 9e70c1e9
+- [x] 1.4 Blob URL + scan-receipt specs pass — 9e70c1e9
 
 ### Phase 2: Worker chooses the mode
 
 #### Automated
 
-- [ ] 2.1 Dialog spec passes
-- [ ] 2.2 The existing language spec still passes
+- [x] 2.1 Dialog spec passes
+- [x] 2.2 The existing language spec still passes
 
 ### Phase 3: Manager prefill and the re-read button
 

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Description } from '@/components/ui/description'
 import { EditButton } from '@/components/ui/row-actions/edit-button'
 import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '@/components/ui/dialog'
 import { FileInput } from '@/components/ui/file-input'
@@ -16,6 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { ToggleGroup } from '@/components/ui/toggle-group'
 import { useFilePickIngest } from '@/components/forms/hooks/use-file-pick-ingest'
 import { ExpenseDraftPagesCell } from '@/components/worker-expenses/expense-draft-pages-cell'
 import {
@@ -26,6 +28,7 @@ import { submitWithUploads } from '@/lib/media/submit-with-uploads'
 import { toastMessage } from '@/lib/utils/toast'
 import { useTranslation } from '@/hooks/use-translation'
 import { failureMessage } from '@/lib/i18n/failure-message'
+import type { ScanModeT } from '@/lib/constants/receipt-scan'
 import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 import type { CashRegisterRefT } from '@/types/reference-data'
@@ -59,16 +62,20 @@ export function ExpenseDraftDialog({ investments, registers, defaultRegisterId, 
     draft ? String(draft.cashRegisterId) : initialRegisterId(registers, defaultRegisterId),
   )
   const [note, setNote] = useState(draft?.note ?? '')
+  const [scanMode, setScanMode] = useState<ScanModeT>(draft?.scanMode ?? 'one-invoice')
   const [isSending, setIsSending] = useState(false)
   const { files, isIngesting, inputKey, reset, fileInputProps } = useFilePickIngest()
 
   const hasPhotos = draft !== undefined || files.length > 0
+  const photoCount = draft ? draft.media.length : files.length
+  const isScanModeShown = photoCount >= 2
   const canSend =
     investmentId !== '' && cashRegisterId !== '' && hasPhotos && !isIngesting && !isSending
 
   function close() {
     setOpen(false)
     setNote('')
+    setScanMode(draft?.scanMode ?? 'one-invoice')
     reset()
   }
 
@@ -80,6 +87,7 @@ export function ExpenseDraftDialog({ investments, registers, defaultRegisterId, 
       setInvestmentId(String(draft.investmentId))
       setCashRegisterId(String(draft.cashRegisterId))
       setNote(draft.note ?? '')
+      setScanMode(draft.scanMode)
     }
     setOpen(true)
   }
@@ -89,7 +97,9 @@ export function ExpenseDraftDialog({ investments, registers, defaultRegisterId, 
       investmentId: Number(investmentId),
       cashRegisterId: Number(cashRegisterId),
       note,
-      scanMode: draft?.scanMode ?? 'one-invoice',
+      // Hidden under 2 photos, where both modes read the same; an edit keeps the draft's own so a
+      // note change doesn't count as a mode change and re-read.
+      scanMode: isScanModeShown ? scanMode : (draft?.scanMode ?? 'one-invoice'),
     }
     if (draft) return updateExpenseDraftAction({ draftId: draft.id, ...fields })
     return submitWithUploads(
@@ -182,6 +192,24 @@ export function ExpenseDraftDialog({ investments, registers, defaultRegisterId, 
               className="h-28 flex-col"
               {...fileInputProps}
             />
+          )}
+          {isScanModeShown && (
+            <div className="flex flex-col gap-2">
+              <ToggleGroup
+                options={[
+                  { value: 'one-invoice', label: t('scanModeOneInvoice') },
+                  { value: 'one-per-photo', label: t('scanModeOnePerPhoto') },
+                ]}
+                value={scanMode}
+                onChange={setScanMode}
+                isEqualWidth
+              />
+              <Description size="xs">
+                {t(
+                  scanMode === 'one-invoice' ? 'scanModeOneInvoiceHint' : 'scanModeOnePerPhotoHint',
+                )}
+              </Description>
+            </div>
           )}
           <div className="flex flex-col gap-2">
             <Label htmlFor="expense-draft-note">{t('noteOptional')}</Label>

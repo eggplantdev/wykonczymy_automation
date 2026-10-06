@@ -139,6 +139,10 @@ export const uk: TranslationsT = {
     removePhotoConfirm: 'Ви впевнені, що хочете видалити це фото?',
     removePhotoDescription: 'Цю дію не можна скасувати — файл зникне назавжди.',
     removePhotoError: 'Не вдалося видалити фото',
+    scanModeOneInvoice: 'Одна витрата',
+    scanModeOnePerPhoto: 'Кілька витрат',
+    scanModeOneInvoiceHint: 'Усі фото — це один рахунок: буде одна позиція з кількома сторінками.',
+    scanModeOnePerPhotoHint: 'Кожне фото — окремий чек: з нього буде окрема позиція.',
   },
   report: {
     pageTitle: 'Звіт про роботи',
