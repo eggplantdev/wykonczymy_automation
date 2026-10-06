@@ -11,6 +11,7 @@ import type { AppendedSliceT } from '@/lib/kosztorys/append-preset-sections'
 import { cn } from '@/lib/utils/cn'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
+import { toggleInSet } from '@/lib/utils/toggle-in-set'
 import { getPresetName, groupPresetSections, isGroupFullySelected } from './preset-picker-groups'
 import { sectionNoun } from '@/lib/kosztorys/counted-nouns'
 import { usePresetSections } from './use-preset-sections'
@@ -64,12 +65,7 @@ export function AddSectionsFromPresetDialog({
   }
 
   function toggle(key: number) {
-    setSelected((prev) => {
-      const next = new Set(prev)
-      if (next.has(key)) next.delete(key)
-      else next.add(key)
-      return next
-    })
+    setSelected((prev) => toggleInSet(prev, key))
   }
 
   // Loading a whole szablon into an empty kosztorys is the common case, so it stays one click.
