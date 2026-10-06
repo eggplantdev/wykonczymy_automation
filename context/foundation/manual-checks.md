@@ -4187,3 +4187,19 @@ inwestycji, z transakcjami i zgłoszonymi wydatkami; konto kierownika.
 - [ ] Pracownik z językiem konta UA/RU, praca z rozpiski z przetłumaczonym opisem: kolumna „Opis w języku pracownika” pokazuje tłumaczenie z oznaczeniem UA/RU. Pracownik na polskim — komórka pusta.
 - [ ] Praca spoza rozpiski wpisana po ukraińsku: „Opis prac” pokazuje polskie tłumaczenie, „Opis w języku pracownika” — tekst wpisany przez pracownika; nie ma już dopisku „Zgłoszono (UA): „…””.
 - [ ] Rozwijane listy i podpowiedzi nad oknami (warstwa przeniesiona do wspólnych komponentów): „Kategorie” w „Dodaj z katalogu” i w zamianie pozycji na katalogową, wybór daty w formularzu w oknie, ikonka „i” w „Rozlicz wypłaty” — wszystkie otwierają się nad oknem, nie pod nim. Na zwykłej stronie menu „Kolumny” i filtry działają jak wcześniej.
+
+## EX-1005 — worker-expense-drafts-history — strona „Zgłoszenia wydatków” i tabela zgłoszeń u pracownika (2026-10-06)
+
+- [ ] Menu boczne i mobilne: „Zgłoszenia wydatków” stoi zaraz po „Zgłoszenia wykonanych prac”; licznik przy niej = liczba czekających zgłoszeń i zostaje, gdy strona jest otwarta.
+- [ ] „Zgłoszenia wydatków” bez sortowania: czekające na górze, reszta od najnowszych. Sortowanie po „Status”, potem po „Pracownik” przestawia wiersze na wszystkich stronach.
+- [ ] Każdy filtr (status, pracownik, inwestycja, data wysłania od/do) zawęża listę; „Wyczyść” wraca do pełnej.
+- [ ] Czekające zgłoszenie → „Zobacz”: otwiera się wypełniony „Nowy wydatek”. „Zapisz” → wiersz „Przyjęte”, w „Decyzja” teraz · ja, w „Wydatek” kwota. Drugie zgłoszenie → „Odrzuć” → wiersz „Odrzucone”.
+- [ ] Odrzucone zgłoszenie → „Przywróć”: wraca jako „Czeka” na górę listy, licznik w menu rośnie o 1.
+- [ ] Kwota przyjętego zgłoszenia otwiera transakcje inwestycji z tylko tą jedną transakcją i wypełnionym polem ID — także gdy inwestycję zmieniono w dialogu przyjęcia (link prowadzi do inwestycji z transakcji).
+- [ ] Odrzucone zgłoszenie pracownika, który jest w koszu, nie jest na liście; przyjęte zgłoszenie inwestycji z kosza jest.
+- [ ] Pracownik na swojej stronie przy 390px: „Zgłoszone wydatki” pokazuje 10 wierszy i przełącznik stron, tabela przewija się w poziomie wewnątrz ramki; zmiana strony zgłoszeń nie zmienia adresu i nie przesuwa sekcji transakcji.
+- [ ] U pracownika widać kolumny „Decyzja” i „Wydatek”, kwota nie jest linkiem; nie ma kolumny „Pracownik”.
+- [ ] Przy czekającym zgłoszeniu działają edycja, usunięcie i zmiana zdjęć; rozpatrzone zgłoszenie nie ma tych akcji. Kierownik na stronie pracownika widzi tę samą tabelę bez edycji i usuwania.
+- [ ] Pracownik z językiem Українська: nagłówki nowej tabeli są po ukraińsku.
+- [ ] Transakcje na stronie pracownika pokazują domyślnie 20 wierszy; „50” na dole przełącza na 50.
+- [ ] Transakcje (kierownik): czekające zgłoszenia dalej przypięte na górze z „Zobacz”, przyjęty wydatek ma plakietkę „od pracownika”; w tabeli nie ma odrzuconych zgłoszeń, w filtrach nie ma przełącznika „Zgłoszone wydatki”, a stary adres `/?workerDrafts=1` pokazuje zwykłą listę.

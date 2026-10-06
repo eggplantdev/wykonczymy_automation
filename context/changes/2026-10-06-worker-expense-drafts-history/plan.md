@@ -587,6 +587,6 @@ Run **once**, after the final phase:
 
 #### Automated
 
-- [x] 4.1 Transfer filters spec passes
-- [x] 4.2 DB spec passes against 5435
-- [x] 4.3 No leftover references
+- [x] 4.1 Transfer filters spec passes — 3e4c4696
+- [x] 4.2 DB spec passes against 5435 — 3e4c4696
+- [x] 4.3 No leftover references — 3e4c4696
