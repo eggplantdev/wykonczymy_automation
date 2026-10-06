@@ -10,18 +10,17 @@ import { ScanReportButton } from '@/components/worker-reports/scan-report-button
 import { useUrlFilterParams } from '@/hooks/use-url-filter-params'
 import type { ReportListRowT } from '@/lib/db/worker-reports'
 import { reportHref } from '@/lib/kosztorys/worker-report/report-param'
-import { REPORT_STATUSES, REPORT_STATUS_LABELS } from '@/lib/kosztorys/worker-report/report-status'
+import { useTranslation } from '@/hooks/use-translation'
+import {
+  REPORT_STATUSES,
+  REPORT_STATUS_LABEL_KEYS,
+} from '@/lib/kosztorys/worker-report/report-status'
 import { validWorkerReportSort } from '@/lib/queries/worker-report-sort'
 import { sortParamToSortingState, sortingStateToParam } from '@/lib/table/sort-param'
 import type { PaginationMetaT } from '@/lib/utils/pagination'
 import type { ReferenceItemT } from '@/types/reference-data'
 
 const WORKER_REPORTS_BASE_URL = '/zgloszenia-prac'
-
-const STATUS_OPTIONS = REPORT_STATUSES.map((status) => ({
-  value: status,
-  label: REPORT_STATUS_LABELS[status],
-}))
 
 type PropsT = {
   data: ReportListRowT[]
@@ -33,12 +32,17 @@ type PropsT = {
 export function WorkerReportsDataTable({ data, paginationMeta, investments, workers }: PropsT) {
   const searchParams = useSearchParams()
   const { updateParam } = useUrlFilterParams(WORKER_REPORTS_BASE_URL)
+  const { t } = useTranslation('workerReports')
+  const statusOptions = REPORT_STATUSES.map((status) => ({
+    value: status,
+    label: t(REPORT_STATUS_LABEL_KEYS[status]),
+  }))
 
   return (
     <>
       <QueueFilters
         baseUrl={WORKER_REPORTS_BASE_URL}
-        statusOptions={STATUS_OPTIONS}
+        statusOptions={statusOptions}
         investments={investments}
         workers={workers}
       />

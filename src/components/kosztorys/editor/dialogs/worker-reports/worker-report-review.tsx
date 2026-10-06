@@ -40,8 +40,7 @@ import {
 import type { AcceptTargetT, ReportLineT, WorkerReportT } from '@/lib/kosztorys/worker-report/types'
 import { ACCEPT_REFUSALS } from '@/lib/kosztorys/worker-report/refusals'
 import { formatFormRef } from '@/lib/kosztorys/worker-report/check-digit'
-import { translationText } from '@/lib/i18n/description-translations'
-import { isTranslationLanguage } from '@/lib/i18n/languages'
+import { workerDescriptionOf } from '@/lib/kosztorys/worker-report/report-preview'
 import { isStageMember, resolveWorkerScope } from '@/lib/kosztorys/worker-view/scope'
 import { ASSET_PREVIEW_LABELS } from '@/lib/media/wording'
 import { formatPLDateTime } from '@/lib/utils/format-date'
@@ -120,25 +119,6 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
       plannedQty: row.plannedQty,
     }
   }
-  const workerLanguage = report.workerLanguage
-  const workerDescriptionOf = (
-    line: ReportLineT,
-    row: KosztorysV2RowT | undefined,
-  ): Pick<ReviewRowT, 'workerDescription' | 'workerDescriptionLanguage'> => {
-    if (line.polishDescription !== undefined) {
-      return {
-        workerDescription: line.description,
-        workerDescriptionLanguage: line.descriptionLanguage,
-      }
-    }
-    const translated = isTranslationLanguage(workerLanguage)
-      ? translationText(row?.descriptionTranslations, workerLanguage)
-      : ''
-    return {
-      workerDescription: translated || undefined,
-      workerDescriptionLanguage: translated ? workerLanguage : undefined,
-    }
-  }
   const sectionOrder = new Map(sections.map((section, index) => [section.sectionName, index]))
   const linesPerItem = Map.groupBy(
     report.lines.filter((line) => line.kind === 'rozpiska' && line.itemId !== undefined),
@@ -158,7 +138,11 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
         ref: row?.ref,
         figures: isRozpiska ? figuresOf(row) : undefined,
         itemDescription: row?.description ?? undefined,
-        ...workerDescriptionOf(line, isRozpiska ? row : undefined),
+        ...workerDescriptionOf(
+          line,
+          isRozpiska ? row?.descriptionTranslations : undefined,
+          report.workerLanguage,
+        ),
         isUnassigned:
           line.kind === 'rozpiska' && (line.itemId === undefined || !rowById.has(line.itemId)),
         isAccepted: line.acceptedQty !== undefined,

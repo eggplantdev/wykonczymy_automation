@@ -568,16 +568,16 @@ Run once, after Phase 4:
 
 #### Automated
 
-- [x] 1.1 DB spec passes against the test DB
-- [x] 1.2 The existing scan spec stays green
+- [x] 1.1 DB spec passes against the test DB — 25d7da8d
+- [x] 1.2 The existing scan spec stays green — 25d7da8d
 
 ### Phase 2: Preview view model and translations
 
 #### Automated
 
-- [ ] 2.1 Builder spec passes
-- [ ] 2.2 Dictionary parity holds
-- [ ] 2.3 Editor review table unaffected by the extracted rule
+- [x] 2.1 Builder spec passes
+- [x] 2.2 Dictionary parity holds
+- [x] 2.3 Editor review table unaffected by the extracted rule
 
 ### Phase 3: Preview dialog and the /zgloszenia-prac actions
 
