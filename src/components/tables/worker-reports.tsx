@@ -55,7 +55,7 @@ export function useWorkerReportColumns({ isManagerView, actions }: OptionsT) {
       cell: (info) => <WorkerReportStatusBadge {...info.row.original} />,
     }),
     col.accessor('decidedAt', {
-      header: t('decision'),
+      header: t('verifiedBy'),
       enableSorting: false,
       cell: ({ row: { original: report } }) =>
         report.decidedAt
@@ -68,7 +68,7 @@ export function useWorkerReportColumns({ isManagerView, actions }: OptionsT) {
       ? [
           col.display({
             id: 'actions',
-            header: '',
+            header: t('preview'),
             meta: { label: tDrafts('actions') },
             cell: ({ row: { original: report } }) => (
               <div className="flex items-center gap-1">{actions(report)}</div>

@@ -164,7 +164,7 @@ export const uk: TranslationsT = {
     source: 'Джерело',
     sourceLink: 'з посилання',
     sourceScan: 'скан',
-    decision: 'Рішення',
+    verifiedBy: 'Перевіряв',
     preview: 'Перегляд',
     openInKosztorys: 'Відкрити в кошторисі',
     previewTitle: 'Звіт про виконані роботи',

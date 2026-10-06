@@ -164,7 +164,7 @@ export const ru: TranslationsT = {
     source: 'Источник',
     sourceLink: 'по ссылке',
     sourceScan: 'скан',
-    decision: 'Решение',
+    verifiedBy: 'Проверял',
     preview: 'Просмотр',
     openInKosztorys: 'Открыть в смете',
     previewTitle: 'Отчёт о выполненных работах',

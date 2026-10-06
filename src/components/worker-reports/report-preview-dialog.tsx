@@ -55,7 +55,7 @@ function ReportPreviewBody({ preview }: { preview: ReportPreviewT }) {
         )}
         {decision && (
           <span className="text-muted-foreground">
-            {t('decision')}: {decision}
+            {t('verifiedBy')}: {decision}
           </span>
         )}
       </div>

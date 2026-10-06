@@ -173,7 +173,7 @@ export const pl = {
     source: 'Źródło',
     sourceLink: 'z linku',
     sourceScan: 'skan',
-    decision: 'Decyzja',
+    verifiedBy: 'Weryfikował',
     preview: 'Podgląd',
     openInKosztorys: 'Otwórz w kosztorysie',
     previewTitle: 'Zgłoszenie wykonanych prac',
