@@ -68,8 +68,6 @@ const GROUPS: { group: LineGroupT; title: string; hint: string }[] = [
   },
 ]
 
-// The worker's own words, the Polish translation and the pozycja's opis: the kierownik searches by
-// whichever of them he has in front of him — the printed form, the photo or the rozpiska.
 const searchableText = (row: ReviewRowT) =>
   [
     row.ref === undefined ? '' : formatFormRef(row.ref),
@@ -136,9 +134,10 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
     const translated = isTranslationLanguage(workerLanguage)
       ? translationText(row?.descriptionTranslations, workerLanguage)
       : ''
-    return translated === ''
-      ? { workerDescription: undefined, workerDescriptionLanguage: undefined }
-      : { workerDescription: translated, workerDescriptionLanguage: workerLanguage }
+    return {
+      workerDescription: translated || undefined,
+      workerDescriptionLanguage: translated ? workerLanguage : undefined,
+    }
   }
   const sectionOrder = new Map(sections.map((section, index) => [section.sectionName, index]))
   const linesPerItem = Map.groupBy(
@@ -174,7 +173,6 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
     searchTerm,
     setSearchTerm,
   } = useSearchFilter(reviewRows, searchableText)
-  const isSearching = searchTerm.trim() !== ''
   // Scored once per dopisana praca, not per render of a cell: dice over the whole cennik is the
   // expensive part of „Porównaj z katalogiem" too.
   const candidates = hintCandidates(catalogue)
@@ -342,7 +340,7 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
       />
 
       <div className="max-h-dialog-scroll flex min-h-0 flex-col gap-6 overflow-y-auto pr-1">
-        {isSearching && visibleRows.length === 0 && (
+        {reviewRows.length > 0 && visibleRows.length === 0 && (
           <p className="text-muted-foreground py-8 text-center text-sm">
             Brak prac pasujących do wyszukiwania.
           </p>
@@ -350,12 +348,13 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
         {GROUPS.map(({ group, title, hint }) => {
           const isInGroup = (row: ReviewRowT) => lineGroup(row, drafts[row.id]) === group
           const lines = visibleRows.filter(isInGroup)
+          const total = reviewRows.filter(isInGroup).length
           if (lines.length === 0) return null
           return (
             <section key={group}>
               <h4 className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
                 {title} ({lines.length}
-                {isSearching && ` z ${reviewRows.filter(isInGroup).length}`})
+                {lines.length < total && ` z ${total}`})
               </h4>
               <p className="text-muted-foreground mb-2 text-xs">{hint}</p>
               <ReviewLinesTable

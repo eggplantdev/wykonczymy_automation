@@ -66,8 +66,8 @@
   --container-dialog-lg: min(90vw, 56.25rem);
   /* For a window whose content is a TABLE — the report dialogs and the katalog picker. Anything
      narrower wraps a long opis over three lines and pulls the figures off the row they describe.
-     Wider than the others by 80vw rather than 90vw, and capped at 1200px: past that the opis and the
-     figures it belongs to sit at opposite ends of a wide monitor. */
+     80vw rather than 90vw, and capped at 1200px: past that the opis and the figures it belongs to
+     sit at opposite ends of a wide monitor. */
   --container-dialog-xl: min(80vw, 75rem);
   /* A table whose rows carry their own inputs (ilość, etap, pomiar side by side) — at xl the last
      columns scroll out of view. */
