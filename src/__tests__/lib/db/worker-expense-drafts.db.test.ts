@@ -99,6 +99,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
       investmentId: onInvestment,
       cashRegisterId: registerId,
       note: null,
+      scanMode: 'one-invoice',
       mediaIds,
     })
 

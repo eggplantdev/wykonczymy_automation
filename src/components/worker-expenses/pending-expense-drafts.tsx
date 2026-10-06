@@ -13,8 +13,8 @@ import {
   SummaryTable,
 } from '@/components/ui/summary-grid'
 import { MediaPreviewButton } from '@/components/dialogs/media-preview-button'
+import { buildDraftPrefill } from '@/components/worker-expenses/draft-prefill'
 import { ExpenseForm, type ExpenseFormPrefillT } from '@/components/forms/expense-form/expense-form'
-import { makeLineItem } from '@/components/forms/expense-form/bulk-expense-form'
 import { resolveExpenseCategoryId } from '@/components/forms/expense-form/resolve-expense-category-id'
 import { rejectExpenseDraftAction } from '@/lib/actions/worker-expense-drafts'
 import { INVOICE_PREVIEW_LABELS } from '@/lib/media/wording'
@@ -68,11 +68,12 @@ export function PendingExpenseDrafts({ drafts, referenceData }: PropsT) {
         DEFAULT_EXPENSE_CATEGORY_NAME,
         referenceData.expenseCategories,
       )
+      const { lineItems, files: rowFiles } = buildDraftPrefill(draft, files, expenseCategory)
       setAccepting({
         draft,
         prefill: {
           expenseDraftId: draft.id,
-          files: new Map([[0, files]]),
+          files: rowFiles,
           values: {
             date: warsawToday(),
             type: 'INVESTMENT_EXPENSE',
@@ -82,7 +83,7 @@ export function PendingExpenseDrafts({ drafts, referenceData }: PropsT) {
             investment: String(draft.investmentId),
             worker: '',
             settled: false,
-            lineItems: [makeLineItem({ expenseCategory })],
+            lineItems,
           },
         },
       })

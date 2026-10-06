@@ -28,13 +28,6 @@ export const RECEIPT_TIMEOUT_MS = 30_000
 // reason. A timeout still fails the whole row, which is correct: half a document yields a wrong total.
 export const RECEIPT_TIMEOUT_PER_PAGE_MS = 15_000
 
-// The product deliberately puts no cap on how many pages an invoice HAS; this caps how many go into
-// one scan, and exists purely so the budget above stays inside the function's wall-clock limit:
-// (30s + 15s × 7) × 2 attempts = 270s, under the 300s ceiling the route declares. Without it a
-// caller could hand over 200 files and the platform would kill the invocation mid-flight, which
-// reaches the user as an unparseable HTML 504 instead of the per-row failure path.
-export const MAX_RECEIPT_PAGES = 8
-
 export type ReceiptPageT = { bytes: Uint8Array; mediaType: string; filename: string }
 
 // Send the image BYTES, not a URL: media.url can be relative (local Payload route) or a

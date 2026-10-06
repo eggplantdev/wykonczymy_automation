@@ -147,6 +147,12 @@ export const pl = {
     removePhotoConfirm: 'Czy na pewno chcesz usunąć to zdjęcie?',
     removePhotoDescription: 'Operacji nie da się cofnąć — plik znika bezpowrotnie.',
     removePhotoError: 'Nie udało się usunąć zdjęcia',
+    scanModeOneInvoice: 'Jeden wydatek',
+    scanModeOnePerPhoto: 'Kilka wydatków',
+    scanModeOneInvoiceHint:
+      'Wszystkie zdjęcia to jedna faktura — powstanie jedna pozycja z kilkoma stronami.',
+    scanModeOnePerPhotoHint: 'Każde zdjęcie to osobny paragon — powstanie z niego własna pozycja.',
+    tooManyPhotos: 'Najwyżej {{max}} zdjęć w jednym wydatku — wyślij resztę osobno.',
   },
   report: {
     pageTitle: 'Zgłoszenie prac',

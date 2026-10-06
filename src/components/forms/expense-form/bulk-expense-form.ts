@@ -40,6 +40,10 @@ export function makeLineItem(overrides?: Partial<BulkLineItemT>): BulkLineItemT 
   }
 }
 
+export function isBlankRow(row: Pick<BulkLineItemT, 'description' | 'amount'>): boolean {
+  return !row.description && !row.amount
+}
+
 export const bulkExpenseFormOptions = formOptions({
   defaultValues: {
     date: '',

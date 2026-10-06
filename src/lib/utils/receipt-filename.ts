@@ -14,3 +14,17 @@ export function buildReceiptFileName(description: string, originalName: string):
       .replace(/^-+|-+$/g, '') || 'paragon'
   return `${base}${ext.toLowerCase()}`
 }
+
+function pageFilename(name: string, index: number): string {
+  if (index === 0) return name
+  const { base, ext } = splitExtension(name)
+  return `${base}-${index + 1}${ext}`
+}
+
+// Same-bytes clones: only page 1 carries the bare name, since one invoice's pages would otherwise
+// all upload under one filename.
+export function renamePages(pages: File[], name: string): File[] {
+  return pages.map(
+    (file, index) => new File([file], pageFilename(name, index), { type: file.type }),
+  )
+}

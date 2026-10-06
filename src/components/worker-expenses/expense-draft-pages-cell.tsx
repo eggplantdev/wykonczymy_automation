@@ -14,6 +14,8 @@ import {
   removeExpenseDraftPageAction,
 } from '@/lib/actions/worker-expense-drafts'
 import type { ExpenseDraftMediaT } from '@/lib/db/worker-expense-drafts'
+import { MAX_DRAFT_PAGES } from '@/lib/constants/worker-expense-drafts'
+import { toastMessage } from '@/lib/utils/toast'
 import { INVOICE_PREVIEW_LABELS } from '@/lib/media/wording'
 import type { ActionResultT } from '@/types/action'
 import { useTranslation } from '@/hooks/use-translation'
@@ -88,7 +90,13 @@ export function ExpenseDraftPagesCell({ draftId, media, isEditable, variant = 'c
         title={t('addPhotos')}
         open={uploadOpen}
         onOpenChange={setUploadOpen}
-        onFiles={(picked) => void uploadFiles(picked)}
+        onFiles={(picked) => {
+          // The server refuses the same count, but only after every photo went up.
+          if (media.length + picked.length > MAX_DRAFT_PAGES) {
+            return toastMessage(t('tooManyPhotos', { max: MAX_DRAFT_PAGES }), 'error')
+          }
+          void uploadFiles(picked)
+        }}
       />
       <ConfirmDialog {...removalConfirm} />
     </>

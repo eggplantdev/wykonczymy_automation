@@ -1,10 +1,12 @@
 import { sql } from '@payloadcms/db-vercel-postgres'
+import type { ScanModeT } from '@/lib/constants/receipt-scan'
 import type { ExpenseDraftStatusT } from '@/lib/constants/worker-expense-drafts'
 import type { DateRangeT } from '@/lib/utils/date-range'
 import type { DeleteProbeT } from './delete-blocker'
+import { expenseDraftReadSchema, type ExpenseDraftReadT } from './expense-draft-read'
 import type { DbExecutorT } from './get-db'
 import { isoOrNull, numOrNull, text, textOrNull } from './row-coerce'
-import { inList, sqlList } from './sql-list'
+import { inList, sqlList, type SqlT } from './sql-list'
 import { warsawDayWithin } from './sql-warsaw-day'
 
 export type ExpenseDraftMediaT = { id: number; url: string; filename: string; mimeType: string }
@@ -22,25 +24,45 @@ export type ExpenseDraftRowT = {
   decidedAt: string | null
   transferId: number | null
   media: ExpenseDraftMediaT[]
+  scanMode: ScanModeT
+  aiRead: ExpenseDraftReadT | undefined
 }
+
+const DRAFT_MEDIA = sql`
+  COALESCE((
+    SELECT json_agg(json_build_object(
+      'id', m.id, 'url', m.url, 'filename', m.filename, 'mimeType', m.mime_type
+    ) ORDER BY dm.position)
+    FROM worker_expense_draft_media dm JOIN media m ON m.id = dm.media_id
+    WHERE dm.draft_id = d.id
+  ), '[]'::json)
+`
 
 const DRAFT_SELECT = sql`
   SELECT d.id, d.worker_id, w.name AS worker_name, d.investment_id, i.name AS investment_name,
-    d.cash_register_id, d.note, d.status, d.sent_at, d.decided_at, d.transfer_id,
-    COALESCE((
-      SELECT json_agg(json_build_object(
-        'id', m.id, 'url', m.url, 'filename', m.filename, 'mimeType', m.mime_type
-      ) ORDER BY dm.position)
-      FROM worker_expense_draft_media dm JOIN media m ON m.id = dm.media_id
-      WHERE dm.draft_id = d.id
-    ), '[]'::json) AS media
+    d.cash_register_id, d.note, d.status, d.sent_at, d.decided_at, d.transfer_id, d.scan_mode,
+    d.ai_read, ${DRAFT_MEDIA} AS media
   FROM worker_expense_drafts d
   JOIN users w ON w.id = d.worker_id
   JOIN investments i ON i.id = d.investment_id
 `
 
+function toDraftMedia(value: unknown): ExpenseDraftMediaT[] {
+  return ((value ?? []) as Record<string, unknown>[]).map((m) => ({
+    id: Number(m.id),
+    url: text(m.url),
+    filename: text(m.filename),
+    mimeType: text(m.mimeType),
+  }))
+}
+
+// A stored read that no longer parses is only a lost prefill, never a page that fails to render.
+function toDraftRead(value: unknown): ExpenseDraftReadT | undefined {
+  const parsed = expenseDraftReadSchema.safeParse(value)
+  return parsed.success ? parsed.data : undefined
+}
+
 function toDraftRow(row: Record<string, unknown>): ExpenseDraftRowT {
-  const media = (row.media ?? []) as Record<string, unknown>[]
   return {
     id: Number(row.id),
     workerId: Number(row.worker_id),
@@ -53,12 +75,9 @@ function toDraftRow(row: Record<string, unknown>): ExpenseDraftRowT {
     sentAt: isoOrNull(row.sent_at) ?? '',
     decidedAt: isoOrNull(row.decided_at),
     transferId: numOrNull(row.transfer_id),
-    media: media.map((m) => ({
-      id: Number(m.id),
-      url: text(m.url),
-      filename: text(m.filename),
-      mimeType: text(m.mimeType),
-    })),
+    media: toDraftMedia(row.media),
+    scanMode: row.scan_mode as ScanModeT,
+    aiRead: toDraftRead(row.ai_read),
   }
 }
 
@@ -87,6 +106,7 @@ export async function insertWorkerExpenseDraft(
     investmentId: number
     cashRegisterId: number
     note: string | null
+    scanMode: ScanModeT
     mediaIds: number[]
   },
 ): Promise<number | null> {
@@ -97,8 +117,9 @@ export async function insertWorkerExpenseDraft(
       FROM (VALUES ${sql.join(values, sql.raw(', '))}) AS v(media_id, position)
       JOIN media m ON m.id = v.media_id AND m.created_by_id = ${draft.workerId}
     ), draft AS (
-      INSERT INTO worker_expense_drafts (worker_id, investment_id, cash_register_id, note)
-      SELECT ${draft.workerId}, ${draft.investmentId}, ${draft.cashRegisterId}, ${draft.note}
+      INSERT INTO worker_expense_drafts (worker_id, investment_id, cash_register_id, note, scan_mode)
+      SELECT ${draft.workerId}, ${draft.investmentId}, ${draft.cashRegisterId}, ${draft.note},
+        ${draft.scanMode}
       WHERE (SELECT count(*) FROM pages_in) = ${draft.mediaIds.length}
       RETURNING id
     ), pages AS (
@@ -204,7 +225,11 @@ export async function restoreRejectedExpenseDraft(
   return res.rows.length > 0
 }
 
-/** Only the sender, and only while the draft waits — a decided one is a record. */
+/**
+ * Only the sender, and only while the draft waits — a decided one is a record. A changed mode drops
+ * the read, which answered the other question; the old mode comes from a CTE because `RETURNING`
+ * sees only the new row.
+ */
 export async function updatePendingExpenseDraft(
   db: DbExecutorT,
   draft: {
@@ -213,17 +238,32 @@ export async function updatePendingExpenseDraft(
     investmentId: number
     cashRegisterId: number
     note: string | null
+    scanMode: ScanModeT
   },
-): Promise<boolean> {
+): Promise<{ isUpdated: boolean; isScanModeChanged: boolean }> {
   const res = await db.execute(sql`
-    UPDATE worker_expense_drafts
+    WITH before AS (
+      SELECT id, scan_mode FROM worker_expense_drafts
+      WHERE id = ${draft.draftId} AND worker_id = ${draft.workerId} AND status = 'pending'
+      FOR UPDATE
+    )
+    UPDATE worker_expense_drafts d
     SET investment_id = ${draft.investmentId}, cash_register_id = ${draft.cashRegisterId},
-      note = ${draft.note}
-    WHERE id = ${draft.draftId} AND worker_id = ${draft.workerId} AND status = 'pending'
-    RETURNING id
+      note = ${draft.note}, scan_mode = ${draft.scanMode},
+      ai_read = CASE WHEN before.scan_mode = ${draft.scanMode} THEN d.ai_read END
+    FROM before
+    WHERE d.id = before.id
+    RETURNING before.scan_mode <> d.scan_mode AS is_scan_mode_changed
   `)
-  return res.rows.length > 0
+  const row = res.rows[0]
+  return { isUpdated: row !== undefined, isScanModeChanged: row?.is_scan_mode_changed === true }
 }
+
+// The read answered for the old pages; the statement that changes them drops it.
+const clearRead = (draftId: number, changed: SqlT) => sql`
+  UPDATE worker_expense_drafts SET ai_read = NULL
+  WHERE id = ${draftId} AND EXISTS (SELECT 1 FROM ${changed})
+`
 
 /**
  * Appended after the draft's last page, and like the send only when every page is media the worker
@@ -245,11 +285,13 @@ export async function appendExpenseDraftPages(
     ), next AS (
       SELECT COALESCE(MAX(position) + 1, 0) AS start
       FROM worker_expense_draft_media WHERE draft_id = ${pages.draftId}
-    )
-    INSERT INTO worker_expense_draft_media (draft_id, media_id, position)
-    SELECT draft.id, pages_in.media_id, next.start + pages_in.position FROM draft, pages_in, next
-    WHERE (SELECT count(*) FROM pages_in) = ${pages.mediaIds.length}
-    RETURNING media_id
+    ), added AS (
+      INSERT INTO worker_expense_draft_media (draft_id, media_id, position)
+      SELECT draft.id, pages_in.media_id, next.start + pages_in.position FROM draft, pages_in, next
+      WHERE (SELECT count(*) FROM pages_in) = ${pages.mediaIds.length}
+      RETURNING media_id
+    ), cleared AS (${clearRead(pages.draftId, sql`added`)})
+    SELECT media_id FROM added
   `)
   return res.rows.length === pages.mediaIds.length
 }
@@ -260,14 +302,48 @@ export async function removeExpenseDraftPage(
   page: { draftId: number; workerId: number; mediaId: number },
 ): Promise<boolean> {
   const res = await db.execute(sql`
-    DELETE FROM worker_expense_draft_media dm
-    USING worker_expense_drafts d
-    WHERE dm.draft_id = d.id AND d.id = ${page.draftId} AND d.worker_id = ${page.workerId}
-      AND d.status = 'pending' AND dm.media_id = ${page.mediaId}
-      AND (SELECT count(*) FROM worker_expense_draft_media WHERE draft_id = ${page.draftId}) > 1
-    RETURNING dm.media_id
+    WITH removed AS (
+      DELETE FROM worker_expense_draft_media dm
+      USING worker_expense_drafts d
+      WHERE dm.draft_id = d.id AND d.id = ${page.draftId} AND d.worker_id = ${page.workerId}
+        AND d.status = 'pending' AND dm.media_id = ${page.mediaId}
+        AND (SELECT count(*) FROM worker_expense_draft_media WHERE draft_id = ${page.draftId}) > 1
+      RETURNING dm.media_id
+    ), cleared AS (${clearRead(page.draftId, sql`removed`)})
+    SELECT media_id FROM removed
   `)
   return res.rows.length > 0
+}
+
+export async function loadExpenseDraftForRead(
+  db: DbExecutorT,
+  draftId: number,
+): Promise<{ scanMode: ScanModeT; pages: ExpenseDraftMediaT[] } | undefined> {
+  const res = await db.execute(sql`
+    SELECT d.scan_mode, ${DRAFT_MEDIA} AS media
+    FROM worker_expense_drafts d
+    WHERE d.id = ${draftId} AND d.status = 'pending'
+  `)
+  const row = res.rows[0]
+  if (!row) return undefined
+  return { scanMode: row.scan_mode as ScanModeT, pages: toDraftMedia(row.media) }
+}
+
+/**
+ * Stored only while the draft still holds exactly the pages and the mode it was read for — a read
+ * that finished after the worker changed either would prefill an answer to a question nobody asks.
+ */
+export async function saveExpenseDraftRead(
+  db: DbExecutorT,
+  read: { draftId: number; scanMode: ScanModeT; mediaIds: number[]; read: ExpenseDraftReadT },
+): Promise<void> {
+  await db.execute(sql`
+    UPDATE worker_expense_drafts d SET ai_read = ${JSON.stringify(read.read)}::jsonb
+    WHERE d.id = ${read.draftId} AND d.status = 'pending' AND d.scan_mode = ${read.scanMode}
+      AND (SELECT array_agg(dm.media_id ORDER BY dm.position)
+           FROM worker_expense_draft_media dm WHERE dm.draft_id = d.id)
+          = ARRAY[${sqlList(read.mediaIds)}]::int[]
+  `)
 }
 
 /**
