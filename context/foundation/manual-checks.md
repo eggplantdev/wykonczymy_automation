@@ -3814,7 +3814,7 @@ przypisane do etapów w kilku inwestycjach — w tym co najmniej jednej zakończ
 
 ## EX-971 — worker-expenses — pracownik zgłasza wydatek z paragonem, kierownik przyjmuje go w Transakcjach (2026-10-05)
 
-- [x] Pracownik na swojej stronie → „Dodaj wydatek" → inwestycja + 2 zdjęcia + notatka → wyślij: na liście „Moje wydatki" pozycja „czeka", w kolumnie „Załączniki" ikona otwiera oba zdjęcia. Sprawdź też przy szerokości 390px.
+- [x] Pracownik na swojej stronie → „Dodaj wydatek" → inwestycja + 2 zdjęcia + notatka → wyślij: na liście „Moje wydatki" pozycja „czeka", w kolumnie „Załączniki" ikona otwiera oba zdjęcia. Sprawdź też przy szerokości 390px. _(Teraz: tabela „Zgłoszone wydatki” na stronie pracownika, EX-1005.)_
       _Staging 2026-10-05:_ Pracownik 78: 2 zdjęcia + notatka → „czeka”, ikona w Załącznikach otwiera podgląd 1/2 (zdjęcia); 390px: tabela przewija się w poziomie, strona nie.
 - [x] Pracownik z jedną kasą (bez ustawionej domyślnej): „Dodaj wydatek" jest widoczny, dialog nie pyta o kasę, a przyjmowane zgłoszenie ma jego kasę.
       _Staging 2026-10-05:_ 78 (kasa 48, brak domyślnej): dialog bez pola Kasa; draft.cash_register_id=48.
@@ -3822,9 +3822,9 @@ przypisane do etapów w kilku inwestycjach — w tym co najmniej jednej zakończ
       _Staging 2026-10-05:_ Pracownik 80 z 2 kasami (QA-971 Kasa 1/2): bez domyślnej — pole „Каса” = „Виберіть касу”, „Надіслати” nieaktywne mimo zdjęcia, po wyborze aktywne; po ustawieniu domyślnej (Edytuj pracownika) dialog ma kasę domyślną preselected.
 - [x] Pracownik bez żadnej kasy: zamiast przycisku „Dodaj wydatek" widzi „Nie masz kasy — poproś kierownika o jej założenie.".
       _Staging 2026-10-05:_ Pracownik 80 (uk): brak przycisku, tekst „У вас немає каси — попросіть керівника її створити.”.
-- [x] „Moje wydatki" → przy zgłoszeniu „czeka" przycisk „Usuń" → potwierdzenie: pozycja znika z listy i z czekających zgłoszeń w Transakcjach. Przy „przyjęty"/„odrzucony" przycisku nie ma.
+- [x] „Moje wydatki" → przy zgłoszeniu „czeka" przycisk „Usuń" → potwierdzenie: pozycja znika z listy i z czekających zgłoszeń w Transakcjach. Przy „przyjęty"/„odrzucony" przycisku nie ma. _(Teraz: tabela „Zgłoszone wydatki” na stronie pracownika, EX-1005.)_
       _Staging 2026-10-05:_ Usuń → potwierdzenie „Usunąć wydatek?” → wiersz znika, draft usunięty z DB; przy „przyjęty” brak przycisku. („odrzucony” — sprawdzone niżej, jeśli ✓.)
-- [x] Kierownik na stronie pracownika: na liście „Moje wydatki" nie ma przycisku „Usuń".
+- [x] Kierownik na stronie pracownika: na liście „Moje wydatki" nie ma przycisku „Usuń". _(Teraz: tabela „Zgłoszone wydatki” na stronie pracownika, EX-1005.)_
       _Staging 2026-10-05:_ Manager na /pracownicy/78 (wiersz „czeka”): brak „Usuń” i „Edytuj wydatek”.
 - [x] „Moje inwestycje": długa nazwa inwestycji mieści się w jednej linii na desktopie; przy 390px tabela się nie rozjeżdża.
       _Staging 2026-10-05:_ Pracownik 80, 1440px: nazwa 51 znaków → 1 linia; 65 i 85 znaków zawija się do 2 linii (kolumna ograniczona do 28rem w worker-investments-section.tsx — zamierzony limit, nie błąd). 390px: scrollWidth=390, brak rozjazdu (komórka 143px, zawija).
@@ -3850,11 +3850,11 @@ przypisane do etapów w kilku inwestycjach — w tym co najmniej jednej zakończ
       _Staging 2026-10-05:_ Kasa 53 → Edytuj kasę: pole Właściciel zablokowane, opis „Nie można zmienić właściciela kasy, która ma transakcje lub zgłoszenia wydatków do rozpatrzenia.”
 - [x] Odrzucone zgłoszenie, którego pracownik, inwestycja albo kasa trafiły do kosza → przy filtrze „Zgłoszone wydatki" nie ma go w tabeli; po przywróceniu tej rzeczy z kosza wraca i „Przywróć" działa. _(Zastąpione przez EX-1005 — odrzucone zgłoszenia i „Przywróć” są teraz na „Zgłoszenia wydatków”, nie w Transakcjach.)_
       _Staging 2026-10-05:_ Kasa 53 do kosza → odrzucone zgłoszenie znika z ?workerDrafts=1; po „Przywróć” kasy z Kosza wraca (1). „Przywróć” przy zgłoszeniu działa (osobny boks wyżej), przycisk nie jest przekreślony (computed text-decoration none, komórki td mają line-through). Pracownik/inwestycja w koszu nie testowane (kasa pokrywa ten sam warunek PARTIES_NOT_TRASHED).
-- [x] Pracownik → „Moje wydatki" → ołówek przy wydatku „czeka": „Edytuj wydatek" z jego inwestycją, kasą, zdjęciami i notatką; zmiana notatki i inwestycji + „Zapisz" → lista pokazuje nowe wartości, kierownik widzi je w „Wydatki zgłoszone przez pracowników". Zamknięcie bez zapisu i ponowne otwarcie pokazuje zapisane wartości, nie porzuconą edycję. Przy „przyjęty" / „odrzucony" ołówka nie ma.
+- [x] Pracownik → „Moje wydatki" → ołówek przy wydatku „czeka": „Edytuj wydatek" z jego inwestycją, kasą, zdjęciami i notatką; zmiana notatki i inwestycji + „Zapisz" → lista pokazuje nowe wartości, kierownik widzi je w „Wydatki zgłoszone przez pracowników". Zamknięcie bez zapisu i ponowne otwarcie pokazuje zapisane wartości, nie porzuconą edycję. Przy „przyjęty" / „odrzucony" ołówka nie ma. _(Teraz: tabela „Zgłoszone wydatki” na stronie pracownika, EX-1005.)_
       _Staging 2026-10-05:_ Pracownik 80: ołówek → dialog z inwestycją/zdjęciem/notatką; Esc po wpisaniu „PORZUCONA” i ponowne otwarcie → zapisana „…notatka A”; zmiana na „…notatka B” + Zapisz → lista i baner kierownika (Pulpit) pokazują B. Przy „прийнято” brak ołówka i Usuń. NIE sprawdzono zmiany inwestycji (pracownik ma tylko 1 aktywną inwestycję) ani „odrzucony”.
-- [x] Pracownik → „Moje wydatki" → ikona w „Załącznikach" przy wydatku „czeka": podgląd pozwala dodać zdjęcia i usunąć jedno z nich; ostatniego zdjęcia usunąć się nie da (kosz znika przy jednym). Po zmianie kierownik w „Wydatki zgłoszone przez pracowników" widzi te same zdjęcia.
+- [x] Pracownik → „Moje wydatki" → ikona w „Załącznikach" przy wydatku „czeka": podgląd pozwala dodać zdjęcia i usunąć jedno z nich; ostatniego zdjęcia usunąć się nie da (kosz znika przy jednym). Po zmianie kierownik w „Wydatki zgłoszone przez pracowników" widzi te same zdjęcia. _(Teraz: tabela „Zgłoszone wydatki” na stronie pracownika, EX-1005.)_
       _Staging 2026-10-05:_ Pracownik 78: jedna strona — brak kosza; „Dodaj stronę” dodaje (2 strony), „Usuń stronę” → potwierdzenie → usunięta (DB: 1 media); przy jednej znów brak „Usuń stronę”. Widok kierownika nie oglądany (te same media w DB).
-- [x] Pracownik → „Moje wydatki" → wydatek „przyjęty" / „odrzucony": ikona tylko pokazuje zdjęcia — bez dodawania i usuwania.
+- [x] Pracownik → „Moje wydatki" → wydatek „przyjęty" / „odrzucony": ikona tylko pokazuje zdjęcia — bez dodawania i usuwania. _(Teraz: tabela „Zgłoszone wydatki” na stronie pracownika, EX-1005.)_
       _Staging 2026-10-05:_ Dla „przyjęty”: viewer bez Dodaj/Usuń stronę. Dla „odrzucony” nie sprawdzano osobno.
 - [x] Pulpit → „Wydatki zgłoszone przez pracowników": osobna kolumna „Załączniki" z samą ikoną podglądu (bez licznika) (klik otwiera zdjęcia), „Notatka" najszersza — dłuższa notatka nie łamie się co dwa słowa.
       _Staging 2026-10-05:_ Baner na Pulpicie (OWNER): kolumna „Załączniki” z samą ikoną (bez licznika), klik otwiera podgląd zdjęcia; „Notatka” najszersza kolumna (1fr, ~245px vs 75–190px) w zrzucie; dłuższej notatki nie testowano.
@@ -4103,7 +4103,7 @@ Odczyt AI kosztuje — na stagingu wysyłaj po kilka zdjęć.
       _Staging 2026-10-06 (konto Pracownik 85):_ staging 7f105dac: pole FV + r3 przy pustym Opisie -> pojawił się „Odczytaj dodane zdjęcia", kliknięcie wypełniło Opis „Obi 03.10.2026" i kwotę 78,95 (nie zapisano)
 - [x] Pracownik → „Dodaj wydatek" → 9 zdjęć: pod polem zdjęć „Najwyżej 8 zdjęć w jednym wydatku — wyślij resztę osobno.", „Wyślij" nieaktywny; po usunięciu jednego „Wyślij" działa.
       _Staging 2026-10-06 (konto Pracownik 85):_ staging 7f105dac: 9 zdjęć -> komunikat + Wyślij nieaktywny; 8 -> Wyślij aktywny (nie wysłano)
-- [x] Pracownik → „Moje wydatki" → zgłoszenie „czeka" z 7 zdjęciami → podgląd → dodaj 2: komunikat o limicie 8, nic się nie wgrywa (zgłoszenie ma dalej 7 zdjęć).
+- [x] Pracownik → „Moje wydatki" → zgłoszenie „czeka" z 7 zdjęciami → podgląd → dodaj 2: komunikat o limicie 8, nic się nie wgrywa (zgłoszenie ma dalej 7 zdjęć). _(Teraz: tabela „Zgłoszone wydatki” na stronie pracownika, EX-1005.)_
       _Staging 2026-10-06 (konto Pracownik 85):_ staging 7f105dac: dodanie 2 do 7 -> toast „Najwyżej 8 zdjęć…", w bazie dalej 7 zdjęć (szkic 9)
 - [x] Kierownik → „Zobacz" przy zgłoszeniu ze zdjęciami, pozycja pusta → „Wygeneruj z paragonów" z nowym paragonem: powstaje nowa pozycja; zdjęcia pracownika zostają w swojej, bez doklejonego paragonu.
       _Staging 2026-10-06:_ NIE sprawdzone: wymaga sesji konta Pracownik (wysyłka zdjęć z jego strony; brak hasła do kont pracowników) i prawdziwych paragonów (odczyt AI kosztuje); na preview brak oczekującego zgłoszenia ze zdjęciami (ostatnie: #6 odrzucone, 1 zdjęcie).

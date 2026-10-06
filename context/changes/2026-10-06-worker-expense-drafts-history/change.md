@@ -68,3 +68,9 @@ na stronie pracownika listuje wszystkie zgłoszenia bez filtrów ani stronicowan
   pobrana w całości, więc filtr w pamięci nic nie kosztuje.
 - **„10” trafia na wspólną listę „Pokaż”** (`ALLOWED_LIMITS`), więc jest we wszystkich tabelach.
 - **Transakcje na stronie pracownika: domyślnie 10**, nie 20.
+- **Nazwa inwestycji w „Moje inwestycje” otwiera jego rozliczenie** — stronę zgłaszania na widoku
+  „Inwestycja”, nie listę `/inwestycje` (to jego własne rozliczenie, także gdy patrzy kierownik).
+- **Bez opisu pod tytułem na „Zgłoszenia wydatków”** i **bez ograniczenia szerokości** sekcji zgłoszeń
+  na stronie pracownika — tabela ma tę samą szerokość co pozostałe sekcje.
+- **Anulowana transakcja w „Wydatek”** — kwota przekreślona, link otwiera listę z pokazanymi
+  anulowanymi (bez tego lista byłaby pusta).
