@@ -6,9 +6,9 @@ import { diffVersions } from '@/lib/kosztorys/history/diff-versions'
 import { liveVersion } from '@/lib/kosztorys/history/snapshot-to-tree'
 import type { HistoryVersionT, InvestorHistoryT } from '@/lib/kosztorys/history/types'
 import type { KosztorysEditorDataT, KosztorysTreeT } from '@/lib/kosztorys/types'
-import { WORKER_VIEW_DEFAULT_SETTINGS } from '@/lib/kosztorys/worker-view/settings'
 import type { WorkerAudienceT } from '@/lib/kosztorys/worker-view/types'
 import { item, stage, tree, version } from '@/__tests__/helpers/kosztorys-history'
+import { workerAudience } from '@/__tests__/helpers/worker-audience'
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -129,25 +129,7 @@ describe('investor history view', () => {
   })
 
   it('never hands the history to a crew, even when a caller passes both', () => {
-    const worker: WorkerAudienceT = {
-      workerId: 1,
-      name: 'Jan',
-      plane: 'w_tools',
-      settings: WORKER_VIEW_DEFAULT_SETTINGS,
-      executedQtyByItem: {},
-      summary: {
-        plannedNet: 0,
-        executedByStage: [],
-        stagesWholeNet: 0,
-        executedNet: 0,
-        bonusNet: 0,
-        payouts: [],
-        paidNet: 0,
-        owed: 0,
-        isOverpaid: false,
-      },
-    }
-    renderPreview(CURRENT, { history: history(PAST, CURRENT), worker })
+    renderPreview(CURRENT, { history: history(PAST, CURRENT), worker: workerAudience() })
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
     expect(screen.queryByText(/→/)).not.toBeInTheDocument()
     expect(screen.queryByText('Fugi')).not.toBeInTheDocument()

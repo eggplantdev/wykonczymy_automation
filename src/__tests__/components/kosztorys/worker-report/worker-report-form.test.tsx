@@ -3,9 +3,9 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { WorkerReportForm } from '@/components/kosztorys/worker-report/worker-report-form'
 import { TranslationsProvider } from '@/components/kosztorys/worker-report/translations-provider'
-import { WORKER_VIEW_DEFAULT_SETTINGS } from '@/lib/kosztorys/worker-view/settings'
 import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
 import { item, stage, tree } from '@/__tests__/helpers/kosztorys-history'
+import { workerAudience } from '@/__tests__/helpers/worker-audience'
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
@@ -33,7 +33,6 @@ beforeAll(() => {
 beforeEach(() => localStorage.clear())
 afterEach(cleanup)
 
-const WORKER_ID = 1
 const STAGES = [stage(7, 1, 'Płytki')]
 
 const DOCUMENT: Extract<WorkerKosztorysT, { kind: 'ready' }> = {
@@ -41,29 +40,12 @@ const DOCUMENT: Extract<WorkerKosztorysT, { kind: 'ready' }> = {
   investmentId: 1,
   investmentName: 'Mieszkanie',
   tree: tree([item(1, 'Płytki', 12, 100)], STAGES, [{ itemId: 1, stageId: 7, qtyDone: 5 }]),
-  worker: {
-    workerId: WORKER_ID,
-    name: 'Jan',
-    plane: 'w_tools',
-    settings: WORKER_VIEW_DEFAULT_SETTINGS,
-    executedQtyByItem: {},
-    summary: {
-      plannedNet: 1200,
-      executedByStage: [],
-      stagesWholeNet: 0,
-      executedNet: 500,
-      bonusNet: 0,
-      payouts: [],
-      paidNet: 200,
-      owed: 300,
-      isOverpaid: false,
-    },
-  },
+  worker: workerAudience({ plannedNet: 1200, executedNet: 500, paidNet: 200, owed: 300 }),
 }
 
 function renderForm(token?: string, document = DOCUMENT) {
   return render(
-    <TranslationsProvider initialLocale="pl" workerId={WORKER_ID}>
+    <TranslationsProvider initialLocale="pl" workerId={DOCUMENT.worker.workerId}>
       <WorkerReportForm
         token={token}
         document={document}
@@ -91,7 +73,9 @@ describe('the footer switches „Zgłaszam pracę” and „Inwestycja”', () =
     expect(screen.getByText('Twoje rozliczenie')).toBeInTheDocument()
     expect(hasReportColumn()).toBe(false)
     expect(screen.queryByRole('button', { name: /^Wyślij/ })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Opcje' }))
     expect(screen.queryByText(/Tylko zgłaszane przeze mnie/)).not.toBeInTheDocument()
+    await userEvent.keyboard('{Escape}')
 
     await userEvent.click(screen.getByRole('radio', { name: 'Zgłaszam pracę' }))
 
@@ -134,12 +118,17 @@ describe('„Wszystkie prace” counts what the owner’s hide takes away', () =
         { itemId: 1, stageId: 7, qtyDone: 5 },
       ]),
     }
+    const openOptions = async () =>
+      userEvent.click(await screen.findByRole('button', { name: 'Opcje' }))
+
     const { unmount } = renderForm('token', withEmptyRow)
-    expect(await screen.findByText('Wszystkie prace (+1)')).toBeInTheDocument()
+    await openOptions()
+    expect(screen.getByText('Wszystkie prace (+1)')).toBeInTheDocument()
     unmount()
 
     renderForm('token')
-    expect(await screen.findByText('Wszystkie prace')).toBeInTheDocument()
+    await openOptions()
+    expect(screen.getByText('Wszystkie prace')).toBeInTheDocument()
     expect(screen.queryByText(/Wszystkie prace \(/)).not.toBeInTheDocument()
   })
 })

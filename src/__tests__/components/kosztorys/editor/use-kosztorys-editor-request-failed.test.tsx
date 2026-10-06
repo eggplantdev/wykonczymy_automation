@@ -2,12 +2,9 @@ import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useKosztorysEditor } from '@/components/kosztorys/editor/use-kosztorys-editor'
-import {
-  createUndoRedoStack,
-  type UndoRedoApiT,
-} from '@/components/kosztorys/editor/hooks/use-undo-redo'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
+import { stackUndoRedo } from '@/__tests__/helpers/kosztorys-undo-redo'
 import { removeItemAction, swapItemOrderAction } from '@/lib/actions/kosztorys'
 import { toastMessage } from '@/lib/utils/toast'
 
@@ -70,19 +67,8 @@ const TREE = makeTree({
 })
 
 function renderEditor() {
-  const stack = createUndoRedoStack()
-  const undoRedo: UndoRedoApiT = {
-    push: (command) => stack.push(command),
-    undo: () => void stack.undo()?.undo(),
-    redo: () => void stack.redo()?.redo(),
-    canUndo: false,
-    canRedo: false,
-    revision: 0,
-    reset: () => stack.reset(),
-    pruneByIds: (ids) => stack.pruneByIds(ids),
-    amendTop: (expected, replacement) => stack.amendTop(expected, replacement),
-  }
-  const hook = renderHook(() => useKosztorysEditor({ investmentId: 1, tree: TREE, undoRedo }))
+  const { stack, api } = stackUndoRedo()
+  const hook = renderHook(() => useKosztorysEditor({ investmentId: 1, tree: TREE, undoRedo: api }))
   return { ...hook, stack }
 }
 
