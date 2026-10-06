@@ -3912,3 +3912,8 @@ zgłoszenie oczekujące, jedno przyjęte i jedno odrzucone.
 - [ ] Przełącz język linku na UA / RU → nagłówek sekcji jest przetłumaczony.
 - [ ] Edytor kosztorysu → „Zgłoszenia pracowników” dalej pokazuje wszystkie zgłoszenia, także
       przyjęte i odrzucone.
+
+## 2026-10-06 — transfers-type-column-width — szersza kolumna „Typ” w tabeli transakcji
+
+- [ ] Transakcje → kolumna „Typ”: „Wydatek inwestycyjny” mieści się w jednej linii; plakietka
+      „od pracownika” może zejść pod spód.

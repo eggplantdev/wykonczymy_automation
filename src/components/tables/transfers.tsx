@@ -104,7 +104,7 @@ const buildColumns = (translator: TranslatorT<'transfers'>) => {
     col.accessor('type', {
       id: 'type',
       header: t('colType'),
-      meta: { minWidth: 'min-w-40', printValue: (row) => transferTypeText(row, translator) },
+      meta: { minWidth: 'min-w-56', printValue: (row) => transferTypeText(row, translator) },
       cell: (info) => (
         <span className="flex flex-wrap items-center gap-1">
           {transferTypeText(info.row.original, translator)}
