@@ -12,6 +12,7 @@ import type {
   CatalogueNameT,
   WorkCatalogueItemT,
 } from '@/lib/kosztorys/work-catalogue/types'
+import { unitLabel } from '@/lib/kosztorys/format'
 
 const SEARCH_RESULT_LIMIT = 8
 
@@ -65,7 +66,7 @@ export function CatalogueMissingList({
             <span>
               <span className="text-muted-foreground">{row.section} · </span>
               <span className="font-medium">{row.description}</span>
-              <span className="text-muted-foreground"> ({row.unit || 'bez j.m.'})</span>
+              <span className="text-muted-foreground"> ({unitLabel(row.unit)})</span>
             </span>
             {!readOnly && (
               <Button
@@ -128,7 +129,7 @@ const catalogueNameOf = ({
   descriptionTranslations,
 }: CatalogueNameT): CatalogueNameT => ({ description, unit, descriptionTranslations })
 
-const searchText =(entry: WorkCatalogueItemT) => `${entry.description} ${entry.unit}`
+const searchText = (entry: WorkCatalogueItemT) => `${entry.description} ${entry.unit}`
 
 // No `readOnly` here: the only way to open this is the toggle that a read-only viewer never gets.
 function CatalogueSearch({

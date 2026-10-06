@@ -45,6 +45,7 @@ import { itemNounAccusative } from '@/lib/kosztorys/counted-nouns'
 import { settleAction } from '@/lib/utils/settle-action'
 import { NOTICE_MS, retranslationNotice } from '@/lib/utils/notice'
 import { toastMessage } from '@/lib/utils/toast'
+import { unitLabel } from '@/lib/kosztorys/format'
 
 type PropsT = {
   report: WorkerReportT
@@ -141,7 +142,7 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
   )
   const itemOptions = rows.map((row) => ({
     value: String(row.id),
-    label: `${row.description ?? ''} (${row.unit ?? ''}) · ${row.sectionName}`,
+    label: `${row.description ?? ''} (${unitLabel(row.unit)}) · ${row.sectionName}`,
   }))
   const targetOptions = [
     ...ownStages.map((stage, index) => ({

@@ -4,6 +4,7 @@ import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { CandidateRow } from '@/components/kosztorys/editor/dialogs/catalogue/catalogue-candidate-row'
 import { hintLead } from '@/lib/kosztorys/work-catalogue/hint-lead'
 import type { UncataloguedUsageT } from '@/lib/kosztorys/work-catalogue/types'
+import { unitLabel } from '@/lib/kosztorys/format'
 
 /**
  * „Używane, a brak w katalogu" — what the kosztorysy price that the cennik has never heard of. Read
@@ -20,7 +21,7 @@ export function UncataloguedUsageList({ groups }: { groups: readonly Uncatalogue
             <div className="flex items-start justify-between gap-3">
               <span>
                 <span className="font-medium">{group.description}</span>
-                <span className="text-muted-foreground"> ({group.unit || 'bez j.m.'})</span>
+                <span className="text-muted-foreground"> ({unitLabel(group.unit)})</span>
               </span>
               <span className="text-muted-foreground shrink-0 tabular-nums">
                 kosztorysy: {group.kosztorysCount}

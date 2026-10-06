@@ -1,4 +1,5 @@
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
+import { unitLabel } from '@/lib/kosztorys/format'
 
 // A praca with no kategoria gets its own option under the empty string: without one, picking any
 // kategoria would hide it with no way left to bring it back.
@@ -20,5 +21,5 @@ export function catalogueCategorySuggestions(items: readonly WorkCatalogueItemT[
 export function catalogueUnitOptions(items: readonly WorkCatalogueItemT[]) {
   return [...new Set(items.map((item) => item.unit))]
     .sort((a, b) => a.localeCompare(b, 'pl'))
-    .map((unit) => ({ value: unit, label: unit || 'bez j.m.' }))
+    .map((unit) => ({ value: unit, label: unitLabel(unit) }))
 }
