@@ -1,7 +1,7 @@
 ---
 change_id: telmak-invoice-check
 title: Sprawdzanie paczki faktur Telmak z transakcjami kasy Telmak
-status: implementing
+status: implemented
 created: 2026-10-06
 updated: 2026-10-06
 archived_at: null

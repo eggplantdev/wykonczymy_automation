@@ -307,4 +307,4 @@ dev; acceptable for a monthly task — no parallel worker pool.
 
 #### Automated
 
-- [x] 3.1 `pnpm build` succeeds in the worktree and the output contains the `pdf.worker` asset
+- [x] 3.1 `pnpm build` succeeds in the worktree and the output contains the `pdf.worker` asset — 5877b3ca
