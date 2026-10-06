@@ -4109,3 +4109,11 @@ inwestycji, z transakcjami i zgłoszonymi wydatkami; konto kierownika.
 - [ ] Kliknij ją: okno ma pole „Pracownik” z pracownikami przypisanymi do etapów (bez zablokowanych), inwestycja jest ta z kosztorysu; po wczytaniu kartki otwiera się nowe zgłoszenie do sprawdzenia.
 - [ ] Kosztorys bez przypisanego pracownika: pozycja jest wyszarzona.
 - [ ] Lista „Zgłoszenia prac”: przycisk ma tę samą etykietę i styl AI (gradientowa ramka, różdżka); okno pozwala wybrać pracownika i inwestycję jak dotąd.
+
+## 2026-10-06 — worker-form-mirrors-link — kartka do wypełnienia jak „Zgłaszam pracę”, czytelny wydruk
+
+- [ ] Link pracownika → „Zgłaszam pracę” → menu: przełącznik „Pokaż postęp” włącza kolumnę „Postęp” (np. `2 / 5`), a nie „Pozostało”. Na języku pracownika UA/RU: „Прогрес” / „Прогресс”.
+- [ ] Edytor kosztorysu → „Pracownicy” → „Drukuj do wypełnienia”: kolumny w kolejności Nr · Opis prac · Wykonano · Zgłaszam · Postęp · Jednostka miary; „Zgłaszam” jest pusta, „Wykonano” = suma jego etapów, „Postęp” = wykonane przez wszystkie ekipy / przedmiar.
+- [ ] Ta sama kartka wydrukowana na papierze: linie tabeli, nagłówki kolumn i jednostki są wyraźnie widoczne; szare tło mają tylko Nr, Wykonano i Postęp — Opis prac i Zgłaszam są białe.
+- [ ] Wydrukuj kosztorys dla klienta i PDF pracownika: linie i szare podpisy też są widoczne na papierze, kolumny dalej w paski jak wcześniej.
+- [ ] Wypełnij kartkę ręcznie (kilka ilości w „Zgłaszam”), wczytaj ją przez „Wczytaj zgłoszenie z kartki (AI)”: w zgłoszeniu są dokładnie wpisane ilości, a nie liczby z kolumn „Wykonano” / „Postęp”.
