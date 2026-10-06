@@ -4109,6 +4109,8 @@ inwestycji, z transakcjami i zgłoszonymi wydatkami; konto kierownika.
 - [ ] Kliknij ją: okno ma pole „Pracownik” z pracownikami przypisanymi do etapów (bez zablokowanych), inwestycja jest ta z kosztorysu; po wczytaniu kartki otwiera się nowe zgłoszenie do sprawdzenia.
 - [ ] Kosztorys bez przypisanego pracownika: pozycja jest wyszarzona.
 - [ ] Lista „Zgłoszenia prac”: przycisk ma tę samą etykietę i styl AI (gradientowa ramka, różdżka); okno pozwala wybrać pracownika i inwestycję jak dotąd.
+- [ ] „Pracownicy” → kliknij nazwisko pracownika (ze strzałką po prawej): otwiera się jego strona pracownika.
+- [ ] Pozycje pracownika w menu brzmią „Podgląd linku pracownika”, „Link do zgłoszeń”, „Drukuj kosztorys pracownika (PDF)”, „Drukuj kartkę do zgłoszenia prac”; obie pozycje druku drukują to samo co wcześniej.
 
 ## 2026-10-06 — worker-form-mirrors-link — kartka do wypełnienia jak „Zgłaszam pracę”, czytelny wydruk
 
