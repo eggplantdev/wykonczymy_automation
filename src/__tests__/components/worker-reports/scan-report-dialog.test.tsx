@@ -54,6 +54,11 @@ beforeEach(() => {
 
 const send = () => screen.getByRole('button', { name: 'Wczytaj' })
 
+async function pickWorker() {
+  await userEvent.click(screen.getByRole('combobox', { name: 'Pracownik' }))
+  await userEvent.click(await screen.findByRole('option', { name: 'Jan Kowalski' }))
+}
+
 describe('ScanReportDialog', () => {
   it('keeps „Wczytaj" disabled until a worker, an investment and a photo are set', async () => {
     const onCreated = vi.fn()
@@ -67,8 +72,7 @@ describe('ScanReportDialog', () => {
     )
     expect(send()).toBeDisabled()
 
-    await userEvent.click(screen.getByRole('combobox', { name: 'Pracownik' }))
-    await userEvent.click(await screen.findByRole('option', { name: 'Jan Kowalski' }))
+    await pickWorker()
     // The worker's only investment is picked for him.
     await waitFor(() =>
       expect(screen.getByRole('combobox', { name: 'Inwestycja' })).toHaveTextContent('Mokotów'),
@@ -96,11 +100,12 @@ describe('ScanReportDialog', () => {
         open
         onOpenChange={vi.fn()}
         investmentId={6}
-        worker={{ id: 9, name: 'Jan Kowalski' }}
+        workers={[{ id: 9, name: 'Jan Kowalski' }]}
         onCreated={vi.fn()}
       />,
     )
 
+    await pickWorker()
     await userEvent.click(send())
 
     expect(await screen.findByRole('button', { name: 'Ponów' })).toBeInTheDocument()
@@ -122,11 +127,12 @@ describe('ScanReportDialog', () => {
         open
         onOpenChange={vi.fn()}
         investmentId={6}
-        worker={{ id: 9, name: 'Jan Kowalski' }}
+        workers={[{ id: 9, name: 'Jan Kowalski' }]}
         onCreated={onCreated}
       />,
     )
 
+    await pickWorker()
     await userEvent.click(send())
 
     await waitFor(() => expect(onCreated).toHaveBeenCalledWith(77, 6))

@@ -28,6 +28,9 @@ export function KosztorysWorkersMenu() {
   const { stages, workers } = useKosztorysEditorContext()
   const { worker, workerReports } = useKosztorysActions()
   const assigned = assignedWorkers(stages, workers, worker.linkHolders)
+  const scannable = assigned
+    .filter(({ scope }) => scope.kind !== 'blocked')
+    .map(({ id, name }) => ({ id, name }))
 
   return (
     <DropdownMenu
@@ -45,6 +48,7 @@ export function KosztorysWorkersMenu() {
       <DropdownMenuContent align="end" className="w-80">
         {workerReports && (
           <>
+            <ScanReportMenuItem workers={scannable} />
             <DropdownMenuItem onSelect={() => workerReports.openReport()}>
               <FileUser />
               Zgłoszenia wykonanych prac
@@ -85,9 +89,6 @@ export function KosztorysWorkersMenu() {
                 disabled={blockReason !== undefined}
                 variant="form"
               />
-              {workerReports && (
-                <ScanReportMenuItem target={{ id, name }} disabled={blockReason !== undefined} />
-              )}
               <DropdownMenuSeparator />
             </Fragment>
           )

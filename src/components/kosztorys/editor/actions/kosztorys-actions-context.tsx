@@ -94,13 +94,12 @@ export function KosztorysActionsProvider({
       {children}
       {/* One instance for the toolbar button, „Pracownicy" and the deep link. */}
       {workerReportsSeed && <WorkerReportsDialog action={workerReports} />}
-      {workerReportsSeed && scan.target && (
+      {workerReportsSeed && (
         <ScanReportDialog
-          key={scan.target.id}
           open={scan.open}
           onOpenChange={scan.setOpen}
           investmentId={investmentId}
-          worker={scan.target}
+          workers={scan.workers}
           onCreated={(reportId) => {
             workerReports.setPendingCount(workerReports.pendingCount + 1)
             workerReports.openReport(reportId)
