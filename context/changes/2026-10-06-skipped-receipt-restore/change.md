@@ -1,7 +1,7 @@
 ---
 change_id: skipped-receipt-restore
 title: Pominięty paragon — „Przywróć” i filtr statusu na „Zgłoszenia wydatków”
-status: preparing
+status: planned
 created: 2026-10-06
 updated: 2026-10-06
 archived_at: null
@@ -24,4 +24,6 @@ paragonów, a „przyjęty” pokazuje wiersze z plakietką „odrzucony”.
 
 - Pominięty paragon musi dać się przywrócić.
 - Filtr statusu musi łapać pominięte paragony.
-- Jak dokładnie — do researchu.
+- Przywrócony paragon = nowe zgłoszenie „czeka” z pierwotną datą wysłania.
+- W historii pierwotnego zgłoszenia nie zostaje nic (wiersz pominiętego paragonu znika).
+- Lista „Zgłoszenia wydatków”: jeden wiersz na paragon po stronie bazy (wariant B z research.md).

@@ -178,10 +178,8 @@ The regression guard belongs in:
   party;
 - the `split-by-receipt` unit spec, for the `<= 1` case.
 
-## Open Questions (owner)
+## Owner Decisions (2026-10-06)
 
-1. A restored paragon: does it come back as a new zgłoszenie „czeka” on top of the queue (`now()`),
-   or at its original send date?
-2. What stays in the original zgłoszenie's history once a paragon is restored — nothing, or a
-   „przywrócony” marker?
-3. Filter: A (cheap, page counts stay per zgłoszenie) or B (one row per paragon everywhere)?
+1. A restored paragon becomes a new „czeka” zgłoszenie that keeps the parent's original `sent_at`.
+2. The parent's history keeps nothing: the skipped row is deleted, no „przywrócony” marker.
+3. Filter: **Option B**, one SQL row per paragon on the manager list. The `<= 1` shortcut bug goes with it.
