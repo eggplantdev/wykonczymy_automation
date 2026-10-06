@@ -12,6 +12,13 @@ import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { cleanItemTexts } from '@/lib/kosztorys/clean-item-texts'
 import { itemPatchSchema } from '@/lib/kosztorys/item-patch-schema'
 import { getItemTexts, setItemTexts } from '@/lib/db/kosztorys-item-texts'
+import {
+  applyLayout,
+  kosztorysLayoutSchema,
+  LAYOUT_STALE,
+  lockAndCheckLayout,
+  type KosztorysLayoutT,
+} from '@/lib/db/kosztorys-layout'
 import { createSection, type CreatedSectionT } from '@/lib/kosztorys/create-section'
 import { sectionOwnerAndNextItemOrder } from '@/lib/kosztorys/create-item'
 import { insertItems } from '@/lib/kosztorys/insert-rows'
@@ -673,6 +680,36 @@ export async function renumberKosztorysOrderAction(
       )
     },
     ['kosztorysItems'],
+  )
+}
+
+// „Ustaw kolejność". Moves rows across sections as well as within them, which no ▲▼ or bake can, so
+// it snapshots first: a regrouped 400-row szablon is not something to rebuild by hand.
+export async function writeKosztorysLayoutAction(
+  investmentId: number,
+  layout: KosztorysLayoutT,
+): Promise<ActionResultT> {
+  return investmentAction(
+    'writeKosztorysLayoutAction',
+    { investmentId },
+    async ({ payload, user }) => {
+      const parsed = validateAction(kosztorysLayoutSchema, layout)
+      if (!parsed.success) return parsed
+      return withPayloadTransaction(
+        payload,
+        async (req): Promise<ActionResultT> => {
+          const tx = await getDb(payload, req)
+          if (!(await lockAndCheckLayout(tx, investmentId, parsed.data))) {
+            return { success: false, error: LAYOUT_STALE }
+          }
+          await captureAutoSnapshot(tx, investmentId, user.id)
+          await applyLayout(tx, investmentId, parsed.data)
+          return { success: true }
+        },
+        { skipRevalidation: true },
+      )
+    },
+    ['kosztorysSections', 'kosztorysItems'],
   )
 }
 

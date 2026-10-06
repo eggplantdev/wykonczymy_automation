@@ -4172,3 +4172,17 @@ zgłoszenie oczekujące, jedno przyjęte i jedno odrzucone.
       formularzu inwestycji nadal mają „Anuluj”; kosze w tabelach nadal „Usuń”.
 - [ ] Edytor → „Problemy” → wybierz problem i popraw jeden wiersz: wiersz zostaje widoczny do
       „Odśwież — ukryj poprawione” (bez zmian względem dotychczasowego zachowania).
+
+## EX-999 — kosztorys-reorder-dialog — „Ustaw kolejność” (prace i sekcje)
+
+Szablon z kilkuset pracami w kilku sekcjach (np. szablon 165).
+
+- [ ] „Opcje” → „Ustaw kolejność…”: zaznacz pracę w jednej sekcji, Shift-klik w innej — zaznacza
+      cały zakres; przeciągnij blok do trzeciej sekcji — ląduje w miejscu linii, w swojej kolejności.
+- [ ] Przeciągnij sekcję na górę listy; „Zwiń sekcje” i upuść blok na zwinięty nagłówek — trafia na
+      koniec tej sekcji. „Przenieś tutaj” na nagłówku robi to samo bez przeciągania.
+- [ ] Przeciąganie przy dolnej krawędzi listy przewija ją.
+- [ ] Wpisz wartość w komórce siatki i od razu otwórz „Ustaw kolejność…” → zmień kolejność → „Zapisz
+      kolejność”: siatka pokazuje nowy układ, a wpisana wartość została.
+- [ ] Po zapisie „Wczytaj” ma jedną nową automatyczną wersję; jej przywrócenie wraca do starej
+      kolejności. Każda sekcja na liście ma swój kolor jak w siatce.
