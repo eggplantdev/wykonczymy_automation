@@ -25,7 +25,9 @@ import {
 } from '@/lib/constants/transfers'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 import type { ScanModeT } from '@/lib/constants/receipt-scan'
+import { pl } from '@/lib/i18n/dictionaries/pl'
 import {
+  isBlankRow,
   makeLineItem,
   type BulkExpenseFormApiT,
   type BulkExpenseFormValuesT,
@@ -51,13 +53,13 @@ const isReceiptFile = (file: File) =>
   file.type.startsWith('image/') || file.type === 'application/pdf'
 
 const SCAN_MODE_OPTIONS: OptionT<ScanModeT>[] = [
-  { value: 'one-per-photo', label: 'Kilka wydatków' },
-  { value: 'one-invoice', label: 'Jeden wydatek' },
+  { value: 'one-per-photo', label: pl.expenseDrafts.scanModeOnePerPhoto },
+  { value: 'one-invoice', label: pl.expenseDrafts.scanModeOneInvoice },
 ]
 
 const SCAN_MODE_HINT: Record<ScanModeT, string> = {
-  'one-per-photo': 'Każde zdjęcie to osobny paragon — powstanie z niego własna pozycja.',
-  'one-invoice': 'Wszystkie zdjęcia to jedna faktura — powstanie jedna pozycja z kilkoma stronami.',
+  'one-per-photo': pl.expenseDrafts.scanModeOnePerPhotoHint,
+  'one-invoice': pl.expenseDrafts.scanModeOneInvoiceHint,
 }
 
 type LineItemsFieldPropsT = {
@@ -188,7 +190,7 @@ export function LineItemsField({
     // The rows are minted up front because pushValue is async in the form's state, and their ids
     // are what pairs each picked file to its row — `ids[i]` holds `picked[i]`.
     const rows = lineItemsField.state.value
-    const reuseFirstRow = rows.length === 1 && !rows[0].description && !rows[0].amount
+    const reuseFirstRow = rows.length === 1 && isBlankRow(rows[0]) && !getRowFiles(rows[0].id)
     const rowCount = mode === 'one-invoice' ? 1 : picked.length
     const newRows = Array.from({ length: reuseFirstRow ? rowCount - 1 : rowCount }, () => newItem())
     for (const row of newRows) lineItemsField.pushValue(row)
@@ -412,9 +414,7 @@ export function LineItemsField({
                 </Button>
                 {/* Photos already on a row — a worker's draft whose read failed or hasn't landed, or
                   an FV attached by hand — are what the scan button can't reach: it only takes new ones. */}
-                {lineItemsField.state.value.some(
-                  (row) => getRowFiles(row.id) && !row.description && !row.amount,
-                ) && (
+                {lineItemsField.state.value.some((row) => getRowFiles(row.id) && isBlankRow(row)) && (
                   <Button
                     type="button"
                     variant="ai"

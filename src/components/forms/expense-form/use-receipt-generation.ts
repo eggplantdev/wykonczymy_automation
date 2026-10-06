@@ -8,7 +8,10 @@ import { logError } from '@/lib/utils/log-error'
 import { UNREADABLE_RECEIPT } from '@/lib/ai/receipt-extraction-schema'
 import { applyReceiptToRow } from '@/components/forms/expense-form/apply-receipt-to-row'
 import type { OtherCategoryRefT } from '@/types/reference-data'
-import type { BulkExpenseFormApiT } from '@/components/forms/expense-form/bulk-expense-form'
+import {
+  isBlankRow,
+  type BulkExpenseFormApiT,
+} from '@/components/forms/expense-form/bulk-expense-form'
 import { usePendingStore } from '@/stores/pending-store'
 
 const GENERATION_CONCURRENCY = 4
@@ -45,7 +48,7 @@ export function useReceiptGeneration({
     // current index (the field-path used to write results back).
     const eligible = rows
       .map((row, index) => ({ row, index }))
-      .filter(({ row }) => files.has(row.id) && !row.description && !row.amount)
+      .filter(({ row }) => files.has(row.id) && isBlankRow(row))
 
     if (eligible.length === 0) return
 
