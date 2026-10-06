@@ -633,85 +633,85 @@ export function KosztorysEditorBody({
                   {report && <span hidden ref={setReportFooterAnchor} />}
                   {report && reportFooterHost && createPortal(report.footer, reportFooterHost)}
                 </div>
-                {isEmpty && (
-                  <EmptyState
-                    className="pointer-events-none absolute inset-0"
-                    title={
-                      isTemplate ? `${noun.Nominative} jest pusty` : gridCopy.t('emptyKosztorys')
-                    }
-                    // The client view renders no toolbar, so it has no „Dodaj" menu to point at.
-                    description={
-                      preview ? undefined : 'Dodaj sekcję lub etap z menu „Dodaj" powyżej.'
-                    }
-                  >
-                    {/* Typing a rozpiska by hand is the rarer of the two starts — the sheet already holds
-                  it. Buried in „Opcje" it is the one moment nobody finds it. */}
-                    {!editor.readOnly && hasSheet && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="pointer-events-auto"
-                        onClick={openImport}
-                      >
-                        <SheetIcon />
-                        Pobierz z arkusza Google…
-                      </Button>
-                    )}
-                  </EmptyState>
-                )}
-                {/* The sibling state: rows exist, the search matched none of them. Gated on the search term
-              rather than on `viewRows` alone so the „Wyczyść" advice can never be offered to someone
-              who never typed anything. Unreachable in the client view, which renders no search field. */}
-                {!isEmpty && viewRows.length === 0 && search.trim() !== '' && (
-                  <EmptyState
-                    className="pointer-events-none absolute inset-0"
-                    title={gridCopy.t('noResults')}
-                    description={gridCopy.t('noResultsDescription', { query: search.trim() })}
-                  >
-                    {/* The overlay is click-through so the grid stays usable; the button opts back in. */}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="pointer-events-auto"
-                      onClick={() => setSearch('')}
-                    >
-                      {gridCopy.t('clearSearch')}
-                    </Button>
-                  </EmptyState>
-                )}
-                {/* A filter emptying itself is the goal state, not a dead end — nothing is left in the
-              state it was looking for, so say that rather than leave a blank grid. Search takes
-              precedence above: with both on, „nie pasuje do…" is the more specific explanation. */}
-                {/* Gated on the RECOGNISED conditions, not on the raw persisted set: an id left over from a
-              condition a later release removed is a no-op for the grid, and counting it here would
-              title the overlay „Brak pozycji " with nothing after it. */}
-                {!isEmpty &&
-                  viewRows.length === 0 &&
-                  search.trim() === '' &&
-                  (emptyByFilter || engagedDiagnostics.length > 0) && (
+                {/* Sized to the grid beside the panel, so a split panel can't cover the message and
+              its button. */}
+                <div
+                  className="pointer-events-none absolute inset-0 flex"
+                  style={{ height: hasTotalsPanel ? gridHeightBesideTotals : undefined }}
+                >
+                  {isEmpty && (
                     <EmptyState
-                      className="pointer-events-none absolute inset-0"
-                      title={emptyCopy.title}
-                      description={emptyCopy.description}
+                      title={
+                        isTemplate ? `${noun.Nominative} jest pusty` : gridCopy.t('emptyKosztorys')
+                      }
+                      // The client view renders no toolbar, so it has no „Dodaj" menu to point at.
+                      description={
+                        preview ? undefined : 'Dodaj sekcję lub etap z menu „Dodaj" powyżej.'
+                      }
                     >
-                      {/* The client has no „Filtry" menu, so nothing there is theirs to reset. */}
-                      {!preview && (
+                      {/* Typing a rozpiska by hand is the rarer of the two starts — the sheet already holds
+                  it. Buried in „Opcje" it is the one moment nobody finds it. */}
+                      {!editor.readOnly && hasSheet && (
                         <Button
                           variant="outline"
                           size="sm"
                           className="pointer-events-auto"
-                          onClick={resetFilters}
+                          onClick={openImport}
                         >
-                          Zresetuj filtry
+                          <SheetIcon />
+                          Pobierz z arkusza Google…
                         </Button>
                       )}
                     </EmptyState>
                   )}
-                {/* Absolutely positioned, not a flex track: the grid's height is a measured px figure,
-              never its container's, so the split is the grid passing `gridHeightBesideTotals`. At full
-              height the panel covers the grid, which keeps its whole height and scroll underneath. For
-              the owner it mounts whatever the row count, because „Inwestycja" has something to say on
-              an empty kosztorys. */}
+                  {/* The sibling state: rows exist, the search matched none of them. Gated on the search term
+              rather than on `viewRows` alone so the „Wyczyść" advice can never be offered to someone
+              who never typed anything. Unreachable in the client view, which renders no search field. */}
+                  {!isEmpty && viewRows.length === 0 && search.trim() !== '' && (
+                    <EmptyState
+                      title={gridCopy.t('noResults')}
+                      description={gridCopy.t('noResultsDescription', { query: search.trim() })}
+                    >
+                      {/* The overlay is click-through so the grid stays usable; the button opts back in. */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="pointer-events-auto"
+                        onClick={() => setSearch('')}
+                      >
+                        {gridCopy.t('clearSearch')}
+                      </Button>
+                    </EmptyState>
+                  )}
+                  {/* A filter emptying itself is the goal state, not a dead end — nothing is left in the
+              state it was looking for, so say that rather than leave a blank grid. Search takes
+              precedence above: with both on, „nie pasuje do…" is the more specific explanation. */}
+                  {/* Gated on the RECOGNISED conditions, not on the raw persisted set: an id left over from a
+              condition a later release removed is a no-op for the grid, and counting it here would
+              title the overlay „Brak pozycji " with nothing after it. */}
+                  {!isEmpty &&
+                    viewRows.length === 0 &&
+                    search.trim() === '' &&
+                    (emptyByFilter || engagedDiagnostics.length > 0) && (
+                      <EmptyState title={emptyCopy.title} description={emptyCopy.description}>
+                        {/* The client has no „Filtry" menu, so nothing there is theirs to reset. */}
+                        {!preview && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="pointer-events-auto"
+                            onClick={resetFilters}
+                          >
+                            Zresetuj filtry
+                          </Button>
+                        )}
+                      </EmptyState>
+                    )}
+                </div>
+                {/* Absolutely positioned: the grid's height is a measured px figure, never its
+              container's, so the split is the grid passing `gridHeightBesideTotals`. For the owner it
+              mounts whatever the row count, because „Inwestycja" has something to say on an empty
+              kosztorys. */}
                 {hasTotalsPanel && (
                   <KosztorysTotalsPanel
                     hasRows={subtotals.length > 0}

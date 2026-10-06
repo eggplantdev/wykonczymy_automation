@@ -1,9 +1,7 @@
 import { type ReactNode } from 'react'
 import { cn } from '@/lib/utils/cn'
 
-// The visible pill of a handle that sits astride a divider, so it reads as "this edge moves" rather
-// than as one more control. The hover state keys off a `group` the caller puts on its own, wider hit
-// area; `orientation` names the edge: a vertical pill rides a vertical divider.
+// The hover state keys off a `group` the caller puts on its own, wider hit area.
 export function EdgeHandlePill({
   orientation,
   children,

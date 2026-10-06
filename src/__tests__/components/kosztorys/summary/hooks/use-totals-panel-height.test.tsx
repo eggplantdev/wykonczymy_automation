@@ -26,7 +26,6 @@ describe('useTotalsPanelHeight', () => {
     expect(renderHook(() => useTotalsPanelHeight()).result.current[0]).toBe(1)
   })
 
-  // The overlay writes on release and the editor body reads it to size the grid — two hooks.
   it('re-renders another reader in the same tab when one writes', () => {
     const writer = renderHook(() => useTotalsPanelHeight())
     const reader = renderHook(() => useTotalsPanelHeight())

@@ -3,7 +3,7 @@ import {
   FULL_PANEL_FRACTION,
   gridHeightBesidePanel,
   isStoredPanelFraction,
-  panelTopPx,
+  panelTop,
   snapPanelFraction,
 } from '@/lib/kosztorys/totals-panel-height'
 
@@ -29,13 +29,19 @@ describe('gridHeightBesidePanel', () => {
     expect(gridHeightBesidePanel(800, { open: true, fraction: 0.25 })).toBe(600)
   })
 
-  // The grid's height and the panel's top edge are one figure, so a rounded split can't leave a
-  // 1px seam or overlap between them.
   it('puts the panel top exactly where the grid ends, rounding included', () => {
     const split = { open: true, fraction: 1 / 3 }
 
-    expect(gridHeightBesidePanel(701, split)).toBe(panelTopPx(split.fraction, 701))
-    expect(Number.isInteger(panelTopPx(split.fraction, 701))).toBe(true)
+    expect(gridHeightBesidePanel(701, split)).toBe(panelTop(split.fraction, 701))
+    expect(Number.isInteger(panelTop(split.fraction, 701))).toBe(true)
+  })
+})
+
+describe('panelTop', () => {
+  it('parks a folded panel below the grid area and pins a full one to its top', () => {
+    expect(panelTop(0, 800)).toBe('100%')
+    expect(panelTop(FULL_PANEL_FRACTION, 800)).toBe(0)
+    expect(panelTop(0.25, 800)).toBe(600)
   })
 })
 

@@ -58,7 +58,7 @@ does not redesign it.
 
 ## What We're NOT Doing
 
-- No live grid resize during the drag (re-virtualizing 1000+ rows per pointermove).
+- No live grid resize during the drag (re-virtualizing 1000+ rows per pointermove). Accepted cost: a blank band between grid and panel while dragging the panel down, and for the 200ms an open slides in.
 - No per-kosztorys or per-audience height; no DB storage — it is a screen preference, layout only.
 - No keyboard resizing of the separator.
 - No change to the investment page's summary (it mounts `SummaryPanelContent` without the overlay).
@@ -107,7 +107,7 @@ disagree by a rounding.
 - `clampFraction(fraction)` → `[0, 1]`.
 - `gridHeightBesidePanel(gridHeight, { open, fraction })` — `gridHeight` when closed or at full;
   otherwise `gridHeight − round(fraction × gridHeight)`.
-- `isStoredPanelFraction(value)` — true only for a finite number in `(0.15, 1]`; the hook uses it to
+- `isStoredPanelFraction(value)` — true only for a finite number in `[0.15, 1]`; the hook uses it to
   reject anything snapping could never have written.
 - Replace the spike's `panelHeightPx` with whatever the overlay's `top` needs; no export without a
   reader.

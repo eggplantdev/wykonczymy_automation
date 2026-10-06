@@ -1,10 +1,10 @@
 'use client'
 
-import { usePersistedNumber } from '@/hooks/use-persisted-enum'
+import { usePersistedNumber } from '@/hooks/use-persisted-value'
 import { FULL_PANEL_FRACTION, isStoredPanelFraction } from '@/lib/kosztorys/totals-panel-height'
 
 // Same `table-columns:` family as the open flag: a reading preference of the person, not of one
-// kosztorys. Defaults to full height so nobody's screen changes until they drag the edge.
+// kosztorys.
 const STORAGE_KEY = 'table-columns:kosztorys-totals-height'
 
 export function useTotalsPanelHeight(): [number, (fraction: number) => void] {

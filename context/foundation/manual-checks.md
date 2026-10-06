@@ -4208,3 +4208,15 @@ Konto właściciela, kosztorys z liczbą pozycji wystarczającą do przewijania.
 - [ ] Na ok. 20% wysokości pasek przełącznika widoku mieści się, a zawartość panelu się przewija.
 - [ ] Link klienta (podgląd tego samego kosztorysu) → ta sama pigułka i ten sam podział.
 - [ ] Zmiana rozmiaru okna przy podzielonym ekranie → kosztorys i panel dalej się stykają.
+
+### Review gate fixes
+
+- [ ] Panel na pełnej wysokości → cała pigułka widoczna tuż pod paskiem narzędzi (nie ucięta w pół).
+- [ ] Podzielony ekran → kliknięcie komórki w ostatnim widocznym wierszu tuż nad panelem (z dala od
+      pigułki) zaznacza komórkę, panel się nie zwija; poziomy pasek przewijania kosztorysu działa.
+- [ ] Kliknięcie pigułki z lekkim drgnięciem myszy dalej zwija panel.
+- [ ] Podzielony ekran → przeładuj stronę: panel od razu stoi na swojej wysokości, bez zjeżdżania.
+- [ ] Podzielony ekran ok. 60% → wyszukaj frazę bez trafień: „Brak wyników” i „Wyczyść” widoczne nad
+      panelem; to samo dla pustego kosztorysu („Pobierz z arkusza Google…”) i filtra, który wszystko
+      ukrył („Zresetuj filtry”).
+- [ ] Telefon (390px), panel otwarty → „Pokaż narzędzia” otwiera menu nad panelem.
