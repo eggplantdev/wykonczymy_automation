@@ -173,7 +173,6 @@ export function AddItemsFromCatalogueDialog({
             options={categoryOptions}
             label="Kategorie"
             searchable
-            contentClassName="z-10001"
           />
           <Button
             variant="outline"

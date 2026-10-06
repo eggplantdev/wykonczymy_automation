@@ -58,7 +58,6 @@ export function CatalogueSwapDialog({
             options={categoryOptions}
             label="Kategorie"
             searchable
-            contentClassName="z-10001"
           />
         </div>
         {catalogue.length === 0 ? (

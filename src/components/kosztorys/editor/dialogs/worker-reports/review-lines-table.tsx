@@ -580,14 +580,7 @@ export function ReviewLinesTable({ group, ...props }: PropsT) {
         storageKey={`worker-report-${group}`}
         toolbar={({ table, columnVisibility, ...order }) => (
           <DataTableToolbar
-            columns={
-              <ColumnToggle
-                table={table}
-                columnVisibility={columnVisibility}
-                {...order}
-                contentClassName="z-10001 w-72"
-              />
-            }
+            columns={<ColumnToggle table={table} columnVisibility={columnVisibility} {...order} />}
           />
         )}
         getRowClassName={(row) =>

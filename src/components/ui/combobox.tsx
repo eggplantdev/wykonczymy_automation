@@ -121,7 +121,7 @@ export function Combobox({
           {!hideChevron && <ChevronDown className="opacity-50" />}
         </button>
       </PopoverTrigger>
-      <PopoverContent align="start" className={cn('z-10001 w-40 p-1', contentClassName)}>
+      <PopoverContent align="start" className={cn('w-40 p-1', contentClassName)}>
         <Input
           autoFocus
           value={draft}
