@@ -1,4 +1,4 @@
-// Idempotent find-or-upsert of the permanent staging OWNER + MANAGER used to log in to the Vercel
+// Idempotent find-or-upsert of the permanent staging OWNER + MANAGER + EMPLOYEE used to log in to the Vercel
 // preview app for manual verification passes (see context/reference/manual-verification.md).
 // Unlike seed-e2e-user.ts this deliberately targets a REMOTE db (the preview Neon branch), so the
 // guard is the inverse of a localhost check: it refuses anything but the preview URL, and prod even
@@ -11,9 +11,10 @@ import config from '@payload-config'
 
 const STAGING_QA_EMAIL = process.env.STAGING_QA_EMAIL
 const STAGING_QA_MANAGER_EMAIL = process.env.STAGING_QA_MANAGER_EMAIL
+const STAGING_QA_WORKER_EMAIL = process.env.STAGING_QA_WORKER_EMAIL
 const STAGING_QA_PASSWORD = process.env.STAGING_QA_PASSWORD
 
-type QaUserT = { email: string; name: string; role: 'OWNER' | 'MANAGER' }
+type QaUserT = { email: string; name: string; role: 'OWNER' | 'MANAGER' | 'EMPLOYEE' }
 
 function assertPreviewDb(): void {
   const target = process.env.DB_POSTGRES_URL
@@ -59,9 +60,14 @@ async function upsertQaUser(payload: Payload, user: QaUserT, password: string): 
 export async function ensureStagingQaUser(): Promise<void> {
   assertPreviewDb()
 
-  if (!STAGING_QA_EMAIL || !STAGING_QA_MANAGER_EMAIL || !STAGING_QA_PASSWORD) {
+  if (
+    !STAGING_QA_EMAIL ||
+    !STAGING_QA_MANAGER_EMAIL ||
+    !STAGING_QA_WORKER_EMAIL ||
+    !STAGING_QA_PASSWORD
+  ) {
     throw new Error(
-      '[ensure-staging-qa-user] STAGING_QA_EMAIL / STAGING_QA_MANAGER_EMAIL / STAGING_QA_PASSWORD must be set in .env',
+      '[ensure-staging-qa-user] STAGING_QA_EMAIL / STAGING_QA_MANAGER_EMAIL / STAGING_QA_WORKER_EMAIL / STAGING_QA_PASSWORD must be set in .env',
     )
   }
 
@@ -75,6 +81,11 @@ export async function ensureStagingQaUser(): Promise<void> {
   await upsertQaUser(
     payload,
     { email: STAGING_QA_MANAGER_EMAIL, name: 'Staging QA Manager', role: 'MANAGER' },
+    STAGING_QA_PASSWORD,
+  )
+  await upsertQaUser(
+    payload,
+    { email: STAGING_QA_WORKER_EMAIL, name: 'Staging QA Pracownik', role: 'EMPLOYEE' },
     STAGING_QA_PASSWORD,
   )
 }
