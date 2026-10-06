@@ -175,8 +175,7 @@ export function LineItemsField({
 
   // Rows are added FIRST so they persist even if extraction fails and can be filled in by hand.
   // Ingest is async (HEIC-convert / compress / guard), so it is awaited before generation, which
-  // would otherwise read an empty files map. An empty pick means the picker was cancelled — re-run
-  // generation on the existing rows, add nothing.
+  // would otherwise read an empty files map.
   //
   // `mode` is the user's intent, taken from WHICH entry point they used: one expense per photo, or
   // one expense whose pages are all the photos. Nothing about the files themselves tells them apart.
@@ -185,20 +184,16 @@ export function LineItemsField({
     lineItemsField: LineItemsArrayFieldT,
     mode: ScanModeT,
   ) {
-    if (picked.length > 0) {
-      // Reuse the lone blank row so the first receipt lands on row 0 rather than after an empty one.
-      // The rows are minted up front because pushValue is async in the form's state, and their ids
-      // are what pairs each picked file to its row — `ids[i]` holds `picked[i]`.
-      const rows = lineItemsField.state.value
-      const reuseFirstRow = rows.length === 1 && !rows[0].description && !rows[0].amount
-      const rowCount = mode === 'one-invoice' ? 1 : picked.length
-      const newRows = Array.from({ length: reuseFirstRow ? rowCount - 1 : rowCount }, () =>
-        newItem(),
-      )
-      for (const row of newRows) lineItemsField.pushValue(row)
-      const ids = (reuseFirstRow ? [rows[0], ...newRows] : newRows).map((row) => row.id)
-      await onRegisterFiles(ids, picked, mode === 'one-invoice' ? 'single-row' : 'per-row')
-    }
+    // Reuse the lone blank row so the first receipt lands on row 0 rather than after an empty one.
+    // The rows are minted up front because pushValue is async in the form's state, and their ids
+    // are what pairs each picked file to its row — `ids[i]` holds `picked[i]`.
+    const rows = lineItemsField.state.value
+    const reuseFirstRow = rows.length === 1 && !rows[0].description && !rows[0].amount
+    const rowCount = mode === 'one-invoice' ? 1 : picked.length
+    const newRows = Array.from({ length: reuseFirstRow ? rowCount - 1 : rowCount }, () => newItem())
+    for (const row of newRows) lineItemsField.pushValue(row)
+    const ids = (reuseFirstRow ? [rows[0], ...newRows] : newRows).map((row) => row.id)
+    await onRegisterFiles(ids, picked, mode === 'one-invoice' ? 'single-row' : 'per-row')
     onGenerate?.()
   }
 
@@ -209,11 +204,11 @@ export function LineItemsField({
   ) {
     const picked = Array.from(e.target.files ?? [])
     e.target.value = '' // allow re-picking the same files after a reset
+    if (picked.length === 0) return
     return scanReceipts(picked, lineItemsField, mode)
   }
 
-  // A drop carries no `accept` filter, so filter here and bail on an empty result — unlike the
-  // picker, an unmatched drop must NOT re-run generation on existing rows.
+  // A drop carries no `accept` filter, so filter here and bail on an empty result.
   function handleDropReceipts(
     e: React.DragEvent,
     lineItemsField: LineItemsArrayFieldT,
@@ -415,6 +410,22 @@ export function LineItemsField({
                   )}
                   <span className="text-neon-cyan font-semibold">Wygeneruj z paragonów</span>
                 </Button>
+                {/* Photos already on a row — a worker's draft whose read failed or hasn't landed, or
+                  an FV attached by hand — are what the scan button can't reach: it only takes new ones. */}
+                {lineItemsField.state.value.some(
+                  (row) => getRowFiles(row.id) && !row.description && !row.amount,
+                ) && (
+                  <Button
+                    type="button"
+                    variant="ai"
+                    size="sm"
+                    onClick={onGenerate}
+                    disabled={isGenerating || isIngesting}
+                  >
+                    <WandSparkles className="text-neon-cyan" />
+                    <span className="text-neon-cyan font-semibold">Odczytaj dodane zdjęcia</span>
+                  </Button>
+                )}
               </>
             )}
             {generationProgress && (

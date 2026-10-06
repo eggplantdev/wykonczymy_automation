@@ -75,6 +75,10 @@ z produkcji. A bez klucza w środowisku deweloperskim nie da się rozwijać skan
 (`POST /api/extract-receipt`). Odwrotnie niż przy arkuszach, gdzie szkoda była nieodwracalna,
 nielimitowana i niewidoczna.
 
+Od EX-1001 płatny odczyt leci też **bez kliknięcia**: wysłanie wydatku przez pracownika, dodanie
+lub usunięcie zdjęcia i zmiana trybu odpalają w `after()` odczyt zdjęć zgłoszenia — z każdego
+środowiska, w którym ktoś wyśle zgłoszenie. Świadomie bez bramki, z tego samego powodu.
+
 **Nie zakładać tu bramki** i nie zgłaszać tego ponownie jako dziury.
 
 ## Meta Graph — bramka niepotrzebna

@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 
 import { ingestFiles } from '@/lib/media/ingest-files'
 import type { BlockedFileError } from '@/lib/utils/process-upload-file'
-import { splitExtension } from '@/lib/utils/append-short-id'
+import { pageFilename } from '@/lib/utils/receipt-filename'
 
 // Files that couldn't enter the map (unconvertible HEIC / oversize) — surfaced to the caller so
 // it can show a per-item Polish message. A blocked file leaves its row without a File.
@@ -129,10 +129,4 @@ export function useInvoiceFiles(initialFiles?: Map<string, File[]>) {
     renameFile,
     reset,
   }
-}
-
-function pageFilename(name: string, index: number): string {
-  if (index === 0) return name
-  const { base, ext } = splitExtension(name)
-  return `${base}-${index + 1}${ext}`
 }

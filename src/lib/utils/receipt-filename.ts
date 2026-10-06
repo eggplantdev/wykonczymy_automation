@@ -14,3 +14,10 @@ export function buildReceiptFileName(description: string, originalName: string):
       .replace(/^-+|-+$/g, '') || 'paragon'
   return `${base}${ext.toLowerCase()}`
 }
+
+// One invoice's pages share its name; page 2 on gets a `-2` suffix.
+export function pageFilename(name: string, index: number): string {
+  if (index === 0) return name
+  const { base, ext } = splitExtension(name)
+  return `${base}-${index + 1}${ext}`
+}

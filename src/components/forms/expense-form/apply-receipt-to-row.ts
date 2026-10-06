@@ -5,6 +5,23 @@ import type { BulkExpenseFormApiT } from '@/components/forms/expense-form/bulk-e
 // testable function instead of something reachable only through a rendered hook.
 type SetFieldValueT = BulkExpenseFormApiT['setFieldValue']
 
+// The fields a client scan and a draft's stored read share; the stored read omits what it didn't read.
+type ReceiptValuesT = {
+  description?: string
+  amount?: number | null
+  netAmount?: number | null
+  invoiceNote?: string
+}
+
+export function receiptToLineItemValues(read: ReceiptValuesT) {
+  return {
+    description: read.description ?? '',
+    amount: read.amount == null ? '' : String(read.amount),
+    netAmount: read.netAmount == null ? '' : String(read.netAmount),
+    invoiceNote: read.invoiceNote ?? '',
+  }
+}
+
 // Category is left blank for the user to pick — the model's category inference wasn't reliable
 // enough (frequent mismatches).
 //
@@ -18,11 +35,9 @@ export function applyReceiptToRow(
   index: number,
   data: ReceiptFillResultT,
 ) {
-  setFieldValue(`lineItems[${index}].description`, data.description)
-  setFieldValue(`lineItems[${index}].amount`, data.amount === null ? '' : String(data.amount))
-  setFieldValue(
-    `lineItems[${index}].netAmount`,
-    data.netAmount === null ? '' : String(data.netAmount),
-  )
-  setFieldValue(`lineItems[${index}].invoiceNote`, data.invoiceNote)
+  const values = receiptToLineItemValues(data)
+  setFieldValue(`lineItems[${index}].description`, values.description)
+  setFieldValue(`lineItems[${index}].amount`, values.amount)
+  setFieldValue(`lineItems[${index}].netAmount`, values.netAmount)
+  setFieldValue(`lineItems[${index}].invoiceNote`, values.invoiceNote)
 }

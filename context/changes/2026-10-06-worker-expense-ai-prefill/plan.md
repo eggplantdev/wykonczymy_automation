@@ -509,13 +509,13 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 2.1 Dialog spec passes
-- [x] 2.2 The existing language spec still passes
+- [x] 2.1 Dialog spec passes — c65209db
+- [x] 2.2 The existing language spec still passes — c65209db
 
 ### Phase 3: Manager prefill and the re-read button
 
 #### Automated
 
-- [ ] 3.1 Prefill builder spec passes
-- [ ] 3.2 Form spec passes
-- [ ] 3.3 Line-items specs still pass
+- [x] 3.1 Prefill builder spec passes
+- [x] 3.2 Form spec passes
+- [x] 3.3 Line-items specs still pass

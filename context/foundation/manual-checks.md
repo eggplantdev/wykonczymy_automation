@@ -3850,9 +3850,9 @@ przypisane do etapów w kilku inwestycjach — w tym co najmniej jednej zakończ
       _Staging 2026-10-05:_ Manager na /pracownicy/78 (wiersz „czeka”): brak „Usuń” i „Edytuj wydatek”.
 - [x] „Moje inwestycje": długa nazwa inwestycji mieści się w jednej linii na desktopie; przy 390px tabela się nie rozjeżdża.
       _Staging 2026-10-05:_ Pracownik 80, 1440px: nazwa 51 znaków → 1 linia; 65 i 85 znaków zawija się do 2 linii (kolumna ograniczona do 28rem w worker-investments-section.tsx — zamierzony limit, nie błąd). 390px: scrollWidth=390, brak rozjazdu (komórka 143px, zawija).
-- [x] Transakcje → nad tabelą czekające zgłoszenie ma jeden przycisk „Zobacz" → dialog „Nowy wydatek" ma inwestycję, kasę pracownika, zdjęcia i notatkę; kwota jest pusta.
+- [x] Transakcje → nad tabelą czekające zgłoszenie ma jeden przycisk „Zobacz" → dialog „Nowy wydatek" ma inwestycję, kasę pracownika, zdjęcia i notatkę; kwota jest pusta. _(Zastąpione przez EX-1001 — zgłoszenie otwiera się wypełnione.)_
       _Staging 2026-10-05:_ Jeden „Zobacz”; dialog: inwestycja, kasa QA-Kosz-Kasa A, zdjęcie (FV), notatka; kwota pusta.
-- [x] W tym dialogu „Generuj" wypełnia kwotę i opis z paragonu; „Zapisz" → zgłoszenie znika z listy, wydatek jest w tabeli, u pracownika status „przyjęty".
+- [x] W tym dialogu „Generuj" wypełnia kwotę i opis z paragonu; „Zapisz" → zgłoszenie znika z listy, wydatek jest w tabeli, u pracownika status „przyjęty". _(Zastąpione przez EX-1001 — zgłoszenie otwiera się wypełnione.)_
       _Staging 2026-10-05:_ „Wygeneruj z paragonów” (wgranie zdjęcia): kwota 110 i opis „Castorama” (AI przeczytał syntetyczny paragon 97,50 jako 110 — drobna czcionka). Zapisz → #5370 „od pracownika”, zgłoszenie znika, u pracownika (DB) status accepted.
 - [x] To samo zgłoszenie w dwóch kartach: druga „Zapisz" pokazuje „To zgłoszenie zostało już rozpatrzone.", a w tabeli jest jeden wydatek.
       _Staging 2026-10-05:_ Karta 2 „Zapisz” po przyjęciu w karcie 1: komunikat „…już rozpatrzone” pojawił się (obserwator DOM), w DB jeden wydatek (#5373).
@@ -4186,3 +4186,16 @@ Szablon z kilkuset pracami w kilku sekcjach (np. szablon 165).
       kolejność”: siatka pokazuje nowy układ, a wpisana wartość została.
 - [ ] Po zapisie „Wczytaj” ma jedną nową automatyczną wersję; jej przywrócenie wraca do starej
       kolejności. Każda sekcja na liście ma swój kolor jak w siatce.
+
+## EX-1001 — worker-expense-ai-prefill — zgłoszenie pracownika otwiera się z odczytanym paragonem (2026-10-06)
+
+Odczyt AI kosztuje — na stagingu wysyłaj po kilka zdjęć.
+
+- [ ] Pracownik → „Dodaj wydatek" → 1 zdjęcie: brak przełącznika „Jeden wydatek / Kilka wydatków"; 3 zdjęcia: przełącznik z podpowiedzią, domyślnie „Jeden wydatek". Przy 390px mieści się bez poziomego przewijania; pracownik z językiem ukraińskim widzi ukraińskie etykiety.
+- [ ] Pracownik → „Edytuj wydatek" przy zgłoszeniu z 2+ zdjęciami: przełącznik startuje z trybu, w jakim zgłoszenie wysłano.
+- [ ] Pracownik wysyła 2 zdjęcia jednego paragonu („Jeden wydatek"); po minucie kierownik → „Zobacz": jedna pozycja z wypełnionym Opisem, kwotą i netto, plik nazwany od Opisu (druga strona z `-2`), bez paska „Odczytywanie paragonów…" przy otwarciu.
+- [ ] Pracownik wysyła 3 osobne paragony („Kilka wydatków") → „Zobacz": trzy pozycje, każda z własnym zdjęciem i kwotami.
+- [ ] Kierownik klika „Zobacz" kilka sekund po wysłaniu: pozycje są puste, z przyciskiem „Odczytaj dodane zdjęcia"; kliknięcie je wypełnia, a przycisk znika.
+- [ ] Paragon, którego AI nie przeczyta: jego pozycja otwiera się pusta, „Odczytaj dodane zdjęcia" odczytuje go na żądanie.
+- [ ] Pracownik usuwa zdjęcie po odczycie: dialog kierownika pokazuje kwoty pozostałego zdjęcia, nie usuniętego.
+- [ ] Zwykły „Nowy wydatek": zdjęcie dodane do pozycji przez jej pole FV przy pustym Opisie → pojawia się „Odczytaj dodane zdjęcia" i odczytuje je.
