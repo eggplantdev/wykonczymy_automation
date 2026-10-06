@@ -28,7 +28,6 @@ export async function scanReceipt(
   return scanReceiptPages(pages, otherCategoryNames)
 }
 
-/** The read itself, for a caller that already holds the bytes — the server read of a worker's draft. */
 export async function scanReceiptPages(
   pages: ReceiptPageT[],
   otherCategoryNames: string[],

@@ -136,8 +136,6 @@ describe('scanReceipt', () => {
   })
 })
 
-// The server read of a worker's draft already holds the bytes, and must shape the answer exactly
-// as the form's scan does — same Opis-based name, same netto drop.
 describe('scanReceiptPages', () => {
   it('shapes pages it is handed the way scanReceipt shapes picked files', async () => {
     extractReceiptSpy.mockResolvedValue({

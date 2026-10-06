@@ -5,7 +5,7 @@ import type { BulkExpenseFormApiT } from '@/components/forms/expense-form/bulk-e
 // testable function instead of something reachable only through a rendered hook.
 type SetFieldValueT = BulkExpenseFormApiT['setFieldValue']
 
-// The fields a client scan and a draft's stored read share; the stored read omits what it didn't read.
+// The stored read omits what it didn't read.
 type ReceiptValuesT = {
   description?: string
   amount?: number | null

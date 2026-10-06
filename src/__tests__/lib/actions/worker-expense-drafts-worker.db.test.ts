@@ -351,8 +351,6 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
     })
   })
 
-  // The read answers for the pages and the mode it saw, so every change to either drops it at once
-  // and asks again — and nothing else does.
   describe('the AI read of his draft', () => {
     const READ = { rows: [{ mediaIds: [0], description: 'Cement' }] }
     const seedRead = (draftId: number) =>
