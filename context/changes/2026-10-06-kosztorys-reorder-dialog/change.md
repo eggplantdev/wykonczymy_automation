@@ -1,7 +1,7 @@
 ---
 change_id: kosztorys-reorder-dialog
 title: „Ustaw kolejność” — układanie prac i sekcji w kosztorysie/szablonie
-status: implementing
+status: implemented
 created: 2026-10-06
 updated: 2026-10-06
 archived_at: null
@@ -29,3 +29,5 @@ Luki spike'a do domknięcia:
 - zapis czyści Cofnij/Ponów (jak „Popraw literówki”), powrót = auto-wersja w „Wczytaj”;
 - brak koloru sekcji na liście, brak własnego auto-scrollu przy przeciąganiu;
 - brak testów (`moveItems` / `moveSection` — czysta logika, node; `writeKosztorysLayout` — DB spec).
+
+E2E przeciągania odroczone do backlogu: EX-1000 (`e2e-backlog`).

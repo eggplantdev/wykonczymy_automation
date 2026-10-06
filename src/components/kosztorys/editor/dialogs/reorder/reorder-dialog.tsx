@@ -16,9 +16,13 @@ import {
   sameLayout,
   type ItemDropTargetT,
 } from '@/lib/kosztorys/reorder-layout'
+import { sectionColorRail } from '@/lib/kosztorys/section-colors'
 import { settleTreeReplace } from '@/lib/kosztorys/settle-tree-replace'
 import { cn } from '@/lib/utils/cn'
 import { toastMessage } from '@/lib/utils/toast'
+
+// Each row paints the section's hue itself: a rail on the wrapper would sit under the rows' fills.
+const RAIL = 'shadow-[inset_3px_0_0_var(--section-rail,transparent)]'
 
 type DragT = { kind: 'items' } | { kind: 'section'; sectionId: number }
 type DropT =
@@ -47,7 +51,7 @@ function ReorderDialogBody({ onClose }: { onClose: () => void }) {
   const [labels] = useState(
     () => new Map(rows.map((row) => [row.id, { description: row.description, unit: row.unit }])),
   )
-  const sectionNames = new Map(sections.map((section) => [section.sectionId, section.sectionName]))
+  const sectionMeta = new Map(sections.map((section) => [section.sectionId, section]))
 
   const [layout, setLayout] = useState(initial)
   const [selected, setSelected] = useState<ReadonlySet<number>>(new Set())
@@ -228,7 +232,10 @@ function ReorderDialogBody({ onClose }: { onClose: () => void }) {
           const itemDropHere = drop?.kind === 'items' && drop.sectionId === section.sectionId
           const firstNumber = firstNumbers[sectionIndex]
           return (
-            <div key={section.sectionId}>
+            <div
+              key={section.sectionId}
+              className={sectionColorRail(sectionMeta.get(section.sectionId)?.sectionColor)}
+            >
               {drop?.kind === 'section' && drop.beforeSectionId === section.sectionId && dropLine}
               <div
                 draggable
@@ -236,6 +243,7 @@ function ReorderDialogBody({ onClose }: { onClose: () => void }) {
                 data-section-id={section.sectionId}
                 className={cn(
                   'bg-muted sticky top-0 z-1 flex cursor-grab items-center gap-2 border-b px-2 py-1.5 text-sm font-medium',
+                  RAIL,
                   itemDropHere &&
                     (isCollapsed || section.itemIds.length === 0) &&
                     'ring-primary ring-2 ring-inset',
@@ -257,7 +265,9 @@ function ReorderDialogBody({ onClose }: { onClose: () => void }) {
                   ) : (
                     <ChevronDown className="size-4 shrink-0" />
                   )}
-                  <span className="truncate">{sectionNames.get(section.sectionId)}</span>
+                  <span className="truncate">
+                    {sectionMeta.get(section.sectionId)?.sectionName}
+                  </span>
                 </button>
                 {selected.size > 0 && (
                   <Button
@@ -291,6 +301,7 @@ function ReorderDialogBody({ onClose }: { onClose: () => void }) {
                         data-item-id={id}
                         className={cn(
                           'flex cursor-grab items-center gap-2 border-b px-2 py-1 text-sm last:border-b-0',
+                          RAIL,
                           isSelected ? 'bg-primary/10' : 'hover:bg-muted/50',
                         )}
                       >

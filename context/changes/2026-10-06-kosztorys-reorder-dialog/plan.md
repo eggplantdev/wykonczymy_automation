@@ -238,11 +238,11 @@ At 400 items the write is two UPDATE statements: one VALUES row per section and 
 
 #### Automated
 
-- [x] 2.1 save-lanes drainAll unit cases
+- [x] 2.1 save-lanes drainAll unit cases — 936f4c11
 
 ### Phase 3: Dialog polish and verification
 
 #### Automated
 
-- [ ] 3.1 reorder-dialog DOM spec
-- [ ] 3.2 e2e-backlog issue filed and recorded in change.md
+- [x] 3.1 reorder-dialog DOM spec
+- [x] 3.2 e2e-backlog issue filed and recorded in change.md (EX-1000)
