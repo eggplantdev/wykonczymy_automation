@@ -4,7 +4,8 @@ import {
   type BulkExpenseFormValuesT,
 } from '@/components/forms/expense-form/bulk-expense-form'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
-import { pageFilename } from '@/lib/utils/receipt-filename'
+import { renamePages } from '@/lib/utils/receipt-filename'
+import { sameItems } from '@/lib/utils/same-items'
 
 type DraftPrefillT = {
   lineItems: BulkExpenseFormValuesT['lineItems']
@@ -12,11 +13,8 @@ type DraftPrefillT = {
   files: Map<number, File[]>
 }
 
-const sameIds = (a: number[], b: number[]) =>
-  a.length === b.length && a.every((id, i) => id === b[i])
-
 /**
- * The rows follow the worker's mode, not the read: a read that failed or hasn't landed yet still
+ * The rows follow the worker's mode: a read that failed or hasn't landed yet still
  * opens the right rows, blank, for „Odczytaj dodane zdjęcia" to fill. `files` are the downloaded
  * pages in `draft.media` order.
  */
@@ -34,12 +32,11 @@ export function buildDraftPrefill(
   const rowFiles = new Map<number, File[]>()
   const lineItems = groups.map((group, row) => {
     const mediaIds = group.map((index) => draft.media[index].id)
-    const read = draft.aiRead?.rows.find((candidate) => sameIds(candidate.mediaIds, mediaIds))
-    const pages = group.map((index, page) =>
-      read?.filename
-        ? new File([files[index]], pageFilename(read.filename, page), { type: files[index].type })
-        : files[index],
-    )
+    // The write's compare-and-set can lose a race to a page change under READ COMMITTED, so a read
+    // row fills only the row whose pages it was read from.
+    const read = draft.aiRead?.rows.find((candidate) => sameItems(candidate.mediaIds, mediaIds))
+    const downloaded = group.map((index) => files[index])
+    const pages = read?.filename ? renamePages(downloaded, read.filename) : downloaded
     if (pages.length > 0) rowFiles.set(row, pages)
     return makeLineItem({ expenseCategory, ...(read && receiptToLineItemValues(read)) })
   })

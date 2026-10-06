@@ -1,5 +1,3 @@
-import type { ReceiptPageT } from '@/lib/ai/openrouter'
-
 const FETCH_TIMEOUT_MS = 30_000
 
 /** A Blob token names its store verbatim: `vercel_blob_rw_<storeId>_…`. */
@@ -16,7 +14,7 @@ export function blobPublicUrl(storeId: string, filename: string): string {
 export async function fetchMediaBytes(
   storeId: string,
   media: { filename: string; mimeType: string },
-): Promise<ReceiptPageT> {
+): Promise<{ bytes: Uint8Array; mediaType: string; filename: string }> {
   const response = await fetch(blobPublicUrl(storeId, media.filename), {
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
   })

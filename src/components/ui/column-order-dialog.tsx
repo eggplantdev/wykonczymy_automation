@@ -11,7 +11,8 @@ import {
   DialogHeader,
 } from '@/components/ui/dialog'
 import type { ColumnToggleItemT } from '@/components/ui/column-toggle-menu'
-import { rankForMove, sameKeys, type ColumnRanksT } from '@/lib/table/column-order'
+import { rankForMove, type ColumnRanksT } from '@/lib/table/column-order'
+import { sameItems } from '@/lib/utils/same-items'
 import { useDraft } from '@/hooks/use-draft'
 import { cn } from '@/lib/utils/cn'
 import { useTranslation } from '@/hooks/use-translation'
@@ -58,13 +59,13 @@ export function ColumnOrderDialog({
   // The list is driven locally while a drag is in flight and only committed on drop. Writing the
   // rank on every crossing instead would push a store update through the editor context mid-drag,
   // rebuilding the whole grid between frames — that is what made dragging crawl.
-  const [order, setOrder] = useDraft(keys, sameKeys)
+  const [order, setOrder] = useDraft(keys, sameItems)
 
   // Writes ONE key: the dragged group's new rank. Persisting the whole list would freeze today's
   // default order in every browser (see use-column-order). The key comes from the row that was
   // dragged, so nothing has to be inferred from the two orders.
   function commitOrder(key: string) {
-    if (sameKeys(keys, order)) return
+    if (sameItems(keys, order)) return
     onSetRank(key, rankForMove(keys, key, order.indexOf(key), ranks, baseRanks))
   }
 

@@ -23,10 +23,6 @@ export function orderColumnKeys(keys: readonly string[], ranks: ColumnRanksT): s
     .map(({ key }) => key)
 }
 
-export function sameKeys(a: readonly string[], b: readonly string[]): boolean {
-  return a.length === b.length && a.every((key, index) => key === b[index])
-}
-
 // Ranks are arithmetic (midpoints, comparisons) and every store that holds them is client-writable,
 // so a hand-edited `{"amount":"x"}` would put NaN in the comparator and scramble the order with no
 // error. Returns the input untouched when nothing is dropped — the kosztorys store runs this on

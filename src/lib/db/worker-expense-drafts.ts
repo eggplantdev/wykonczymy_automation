@@ -315,7 +315,6 @@ export async function removeExpenseDraftPage(
   return res.rows.length > 0
 }
 
-/** What the read needs: the pages in order and the question asked of them. `undefined` once decided. */
 export async function loadExpenseDraftForRead(
   db: DbExecutorT,
   draftId: number,
@@ -337,17 +336,14 @@ export async function loadExpenseDraftForRead(
 export async function saveExpenseDraftRead(
   db: DbExecutorT,
   read: { draftId: number; scanMode: ScanModeT; mediaIds: number[]; read: ExpenseDraftReadT },
-): Promise<boolean> {
-  if (read.mediaIds.length === 0) return false
-  const res = await db.execute(sql`
+): Promise<void> {
+  await db.execute(sql`
     UPDATE worker_expense_drafts d SET ai_read = ${JSON.stringify(read.read)}::jsonb
     WHERE d.id = ${read.draftId} AND d.status = 'pending' AND d.scan_mode = ${read.scanMode}
       AND (SELECT array_agg(dm.media_id ORDER BY dm.position)
            FROM worker_expense_draft_media dm WHERE dm.draft_id = d.id)
           = ARRAY[${sqlList(read.mediaIds)}]::int[]
-    RETURNING d.id
   `)
-  return res.rows.length > 0
 }
 
 /**
