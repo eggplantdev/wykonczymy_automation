@@ -3318,7 +3318,6 @@ Stan: dowolny kosztorys z kilkoma pozycjami w jednej sekcji; „offline" = DevTo
 - [x] dropped — a duplicate of the still-open „Import z arkusza" box, which carries it · 🔵 OBSERVATION · boks „Import z arkusza" nieweryfikowany: wymaga żywego arkusza Google z pozycją zgodną z katalogiem (stan poza UI), nie ruszano.
       Needs human: sprawdzić ręcznie na kopii arkusza.
 
-
 ## EX-970 — kosz-zgloszen
 
 Na staging najpierw `pnpm db:migrate:preview` (nowe kolumny `trashed_at` / `erased_at` w zgłoszeniach).
@@ -3358,7 +3357,6 @@ Na staging najpierw `pnpm db:migrate:preview` (nowe kolumny `trashed_at` / `eras
 - [x] dismissed — the badge counts leads not yet SEEN (a cursor), not „nowe", and reads 0 on the section's own page (`unread-badge.tsx:33`), so it can't show on `/zgloszenia`; the check's „odznaka spada" was mis-specified. The toast rides the same success path that removed the rows · 🔵 OBSERVATION · po „Do kosza (2)" nie złapano toastu „Przeniesiono do kosza: 2 zgłoszenia."; wiersze zniknęły, „221 nowych" → „219 nowych". W menu bocznym przy „Zgłoszenia z formularzy kontaktowych" na stagingu nie ma odznaki w ogóle, więc jej spadku nie dało się ocenić.
 - [x] dropped — a duplicate of the still-open box above, which carries it · 🔵 OBSERVATION · „Rozpiska → przegląd zgłoszenia prac", checkbox w nagłówku (stan częściowy): brak fixture z ≥2 liniami w jednej tabeli, więc stanu częściowego nie dało się wywołać; „Dodaj pracę z katalogu" nie ma checkboxa w nagłówku (jest „Zaznacz widoczne"), zaznaczanie wierszy i zbiorcze działa.
       Needs human: sprawdzić ręcznie na zgłoszeniu z dwiema liniami z rozpiski.
-
 
 ## EX-973 — investment-review-request — prośba o opinię Google dla zakończonej inwestycji (2026-10-02)
 
@@ -3569,32 +3567,6 @@ Refaktor bez zmiany zachowania: nocny cron czyści Kosz tak samo jak wcześniej.
       Regresja: `use-kosztorys-editor-reported-only.test.tsx`. **Otwarte do ponownego sprawdzenia po deployu.**
 
 ## EX-966 — worker-single-view — jeden widok pracownika: „Zgłoszenie prac" z trybem „Inwestycja"
-
-- [x] Link „Zgłoszenie prac" na telefonie (390px): „Inwestycja" w stopce pokazuje całą rozpiskę z
-      rozliczeniem pracownika pod nią, „Zgłaszam pracę" wraca do kolumny „Zgłaszam" i „Wyślij".
-      _Staging 2026-10-05:_ 390px, QA-Premia A (uk): „Об'єкт" (Inwestycja) → cała rozpiska + „Ваш розрахунок" pod nią (Wykonano razem / Wypłacono / Zostało do wypłaty), brak „Wyślij"; „Zgłaszam" → kolumna „Zgłaszam" i „Wyślij" (dół 555px, stopka od 731px). Uwaga: w trybie „Inwestycja" strona ma poziomy scroll (scrollWidth 1330 przy 390) — szeroka tabela przewija całą stronę, nie własny kontener; wygląda zamierzenie, patrz finding.
-- [x] Ten sam link na desktopie: w „Zgłaszam pracę" przycisk „Wyślij" jest osiągalny, a w obu
-      trybach stopka nie zasłania ostatniego wiersza ani przycisków.
-      _Staging 2026-10-05:_ 1440x900: „Wyślij" po przewinięciu na 619–655px, ostatni wiersz wysłanych zgłoszeń kończy się na 788px, stopka od 831px; w „Inwestycja" ostatni element 780px < 831px. Nic nie zasłonięte.
-- [x] Kwoty rozliczenia w trybie „Inwestycja" zgadzają się z rozliczeniem tego pracownika w PDF z menu „Pracownicy"
-      dla tej samej inwestycji.
-      _Staging 2026-10-05:_ inwestycja 137, QA-Premia A: widok i PDF (popup z podstawionym print) dają to samo — Wartość etapu 3437,40, udział 30,0%, Wykonano razem 1031,22, Wypłacono 0,00, Zostało do wypłaty 1031,22 zł.
-- [x] Kosztorys → „Pracownicy" → „Podgląd": otwiera się ten sam widok co link pracownika — nagłówek,
-      rozpiska, stopka „Zgłaszam pracę" / „Inwestycja", wysłane zgłoszenia — bez przycisku „Wyślij".
-      _Staging 2026-10-05:_ „Podgląd" otwiera `/podglad-pracownika/QA-Premia-A-80/137` w nowej karcie: nagłówek, rozpiska, stopka „Zgłaszam pracę" / „Inwestycja", lista wysłanych zgłoszeń (odrzucone, przyjęte 1 z 1), bez „Wyślij".
-- [x] Wpisz ilość w „Podglądzie", potem otwórz prawdziwy link tego pracownika w tej samej
-      przeglądarce: link nie pokazuje wpisanej ilości.
-      _Staging 2026-10-05:_ wpisane 7 w „Podglądzie" nie trafia do `worker-report-draft:137:80` (puste `qtyByItem`); prawdziwy link w tej samej przeglądarce: wszystkie 8 pól „0".
-- [x] „Podgląd" działa dla pracownika, któremu nigdy nie wygenerowano linku.
-      _Staging 2026-10-05:_ QA Staging (id 68, 0 wierszy w `worker_report_shares`): „Podgląd" otwiera pełny widok; po nim nadal 0 wierszy — podgląd nie zakłada linku.
-- [x] Menu „Pracownicy" pokazuje przy każdym pracowniku tylko „Podgląd", „Link do zgłoszeń" i
-      „Drukuj PDF" — bez osobnego „Link".
-      _Staging 2026-10-05:_ każdy pracownik ma „Podgląd", „Link do zgłoszeń", „Drukuj PDF", bez osobnego „Link". Dochodzą też „Drukuj do wypełnienia" i „Wczytaj z kartki" (EX-949, późniejsze) — słowo „tylko" w checku jest nieaktualne, nie defekt.
-- [x] Stary adres `/p/<imię>/<token>` pokazuje stronę „nie znaleziono".
-      _Staging 2026-10-05:_ `/p/QA-Premia-A/<token>` → HTTP 404 ze stroną „Ten link wygasł albo został cofnięty…" (PL/UK/RU), nie z „nie znaleziono" — to ten sam ekran co cofnięty `/z/…` (EX-985 / share-links-copy-and-404).
-- [x] „Link do zgłoszeń" → „Wygeneruj nowy" działa: nowy adres jest w schowku, stary pokazuje
-      komunikat „Ten link wygasł albo został cofnięty…" („Wyłącz link" zdjęty w EX-985).
-      _Staging 2026-10-05:_ „Wygeneruj nowy" (QA-Premia A, inw. 137): schowek = `/z/testowe-inwestycje/QA-Premia-A/HeoVBikpP_…`, równy tokenowi w DB; stary adres → 404 „Ten link wygasł albo został cofnięty…". Token QA-Premia A zmieniony (stary 4xL3u037… nie żyje).
 
 ### Findings — 2026-10-05 (pass 9)
 
@@ -3891,7 +3863,6 @@ przypisane do etapów w kilku inwestycjach — w tym co najmniej jednej zakończ
 - [x] Jako pracownik: wysłanie zgłoszenia, „Zmień e-mail lub hasło" i porzucenie formularza wydatku z wgranym zdjęciem działają jak dotąd; wylogowany — każda z tych akcji odmawia (wspólne sprawdzanie sesji, bez zmiany zachowania).
       _Staging 2026-10-05:_ Pracownik 80, zalogowany: wysłanie zgłoszenia OK; „Змінити e-mail або пароль” — zły obecny hasło → „Неправильний поточний пароль.”, poprawne → „Дані для входу змінено”; Esc po wgraniu zdjęcia nie zostawia media (count/max id bez zmian). Wylogowany (fetch /api/users/logout w otwartym dialogu): wysyłka → toast „Не вдалося надіслати файли”, brak draftu; zmiana hasła → odmowa (toast „Немає з’єднання z serwerem…”, brak zmiany). Porzucenia wylogowanego nie wywoływano osobno.
 
-
 ### Findings — 2026-10-05 (pass 5, pracownik 80)
 
 - [x] **Przycisk „Usuń” w „Moje wydatki” nie jest przetłumaczony** — _fixed:_ `DeleteButton label={t('delete')}` (etykieta to też podpowiedź po najechaniu, więc widoczna); wymaga ponownego sprawdzenia po wdrożeniu. — przy pracowniku z językiem uk ikona kosza przy zgłoszeniu ma aria-label po polsku („Usuń”) — `delete-expense-draft-button.tsx:35` renderuje wspólny `DeleteButton` (`components/ui/row-actions/delete-button`) bez tłumaczonej etykiety, a dialog potwierdzenia jest już po ukraińsku (/pracownicy/80).
@@ -3943,42 +3914,8 @@ Potrzebny stan: dwa konta pracowników (rola Pracownik) ze znanymi hasłami oraz
 Potrzebny stan: konto pracownika (rola Pracownik) ze znanym hasłem, konto managera i inwestycja,
 do której ten pracownik ma link do raportu.
 
-- [x] Pracownik ustawiony przez kierownictwo na „Українська”: w DevTools `<html lang="uk">` na jego
-      stronie; konto z „Polski” → `lang="pl"`.
-      _Staging 2026-10-05:_ `<html lang>` = `uk` dla pracownika 80 (uk), `pl` dla 78 (pl).
-- [x] Jako pracownik na telefonie (390px), na własnej stronie zmień „Domyślny język” na Українська →
-      strona i menu przechodzą na ukraiński bez przeładowania; po odświeżeniu wartość nadal pokazuje
-      ukraińską flagę.
-      _Staging 2026-10-05:_ 390px: zmiana na Українська przełączyła stronę i menu mobilne (Темна тема / Оновити дані / Вийти), wartość przetrwała odświeżenie.
-- [x] Na tym samym telefonie otwórz link do raportu tego pracownika, wcześniej przełączony tam na
-      polski → otwiera się po ukraińsku.
-      _Staging 2026-10-05:_ 390px, pracownik 80 (uk): na raporcie (/z/…, udział 13) klucz `worker-report-lang:80` ustawiony na pl → raport po polsku; zmiana „Domyślny język” na stronie Polski → Українська nadpisała klucz na `uk`, raport otwarty ponownie: `lang=uk`, tytuł „Звіт про роботи”, treść ukraińska.
-- [x] Jako manager na stronie innego pracownika: „Domyślny język” to zwykły tekst; na własnej stronie
-      managera — lista do wyboru.
-      _Staging 2026-10-05:_ /pracownicy/78: zwykły tekst „Polski”, brak combobox; /pracownicy/69: combobox.
-- [x] Jako pracownik w „Transfery”: nazwa inwestycji to zwykły tekst, nie link.
-      _Staging 2026-10-05:_ 80 (uk), `/pracownicy/80?showCancelled=1`: 36 wierszy, 0 `<a>` w tbody, „testowe inwestycje” jako zwykły tekst.
-- [x] Pracownik na Українська: wiersze informacji, wszystkie cztery sekcje, okno „Zmień dane
-      logowania” (etykiety, błędy walidacji, złe obecne hasło) i okno zgłaszania wydatku są po
-      ukraińsku; kwoty w formacie `1 234,56 zł`.
-      _Staging 2026-10-05:_ uk: wiersze, 4 sekcje, okno danych logowania (etykiety, „Пароль має містити…”, „Паролі не збігаються.”, „Неправильний поточний пароль.”), okno „Нова витрата”. Kwoty „0,00 zł” — format z separatorem tysięcy nieweryfikowany (brak dużych sald).
-- [x] Ten sam pracownik na Русский: te same ekrany po rosyjsku.
-      _Staging 2026-10-05:_ ru: wiersze, sekcje, okno „Новый расход”, tabela i filtry po rosyjsku, `lang=ru`.
-- [x] Pracownik na Українська, 390px: nagłówki tabeli transferów, filtry (Kasa, Inwestycja,
-      Kategoria, wybór daty z nazwami miesięcy), paginacja, okno kolejności kolumn, „Drukuj”
-      (tytuł wydruku) i komunikat archiwum faktur — po ukraińsku.
-      _Staging 2026-10-05:_ 390px uk (scrollWidth 390): 16 nagłówków po ukraińsku; filtry „Об'єkt/Категорія” z „Зняти всі” i „Пошук...”; Rok/Місяць (Січень…Грудень), kalendarz „жовтень 2026 пн вт…”; paginacja przy `limit=20` („Навігація сторінками”, „Перейти на сторінку 2”, „36 результатів / Показати”); okno „Порядок колонок…”; wydruk (popup z podmienionym `print`) tytuł „Транзакції”; „Рахунки” → toast „Завантаження рахунків...” → „Немає рахунків для завантаження”. Filtr „Каса” pojawia się dopiero gdy pracownik ma kasę (nie miał jej przy pierwszym wejściu).
-- [x] Pracownik na Українська, w menu na telefonie: „Wyloguj”, motyw, „Odśwież dane” i plakietka
-      roli po ukraińsku.
-      _Staging 2026-10-05:_ Меню: Темна тема / Оновити дані / Вийти / plakietka „Працівник” po ukraińsku.
 - [ ] Pracownik na Українська, wgrywanie strony faktury do wydatku: podpowiedź pola pliku,
       komunikat o odrzuconym pliku i etykiety podglądu po ukraińsku.
-- [x] Pracownik na Українська, nieistniejący adres → strona „nie znaleziono” po ukraińsku.
-      _Staging 2026-10-05:_ /nie-ma-takiej-strony: „Не знайдено / Повернутися на головну”.
-- [x] Manager na „Polski”: tabele transferów na `/kasa/[id]` i `/inwestycje/[id]`, pasek boczny,
-      menu na telefonie i okna wgrywania plików wyglądają dokładnie jak przedtem.
-      _Staging 2026-10-05:_ manager QA, 390px: `/kasa/53` i `/inwestycje/137` — `lang=pl`, nagłówki tabel, filtry i przyciski po polsku; menu na telefonie („Ciemny motyw”, „Odśwież dane”, „Wyloguj”) i sidebar po polsku; okno „Dodaj fakturę” („Przeciągnij lub kliknij”) po polsku. Porównanie piksel w piksel z „przedtem” niewykonane (brak punktu odniesienia) — sprawdzony język i brak regresji układu (scrollWidth 390).
-- [x] „Podgląd pracownika” (manager) pozostaje po polsku niezależnie od języka pracownika.
 
 ### Findings — 2026-10-05 (pass 6)
 
@@ -4024,123 +3961,11 @@ Potrzebny stan: inwestycja w toku z rozpiską (kilka sekcji, kilkanaście prac),
 do jej etapu, drugi pracownik ustawiony na Українська. Odczyty AI idą naprawdę — nie oszczędzaj
 zdjęć, każdy wariant poniżej to osobny skan.
 
-### Wydruk „Drukuj do wypełnienia”
-
-- [x] Kosztorys → „Pracownicy” → pracownik → „Drukuj do wypełnienia”: przy każdej pracy szary numer
-      z cyfrą kontrolną („35812-7”), opis, j.m., pusta kolumna „Wykonano” i puste wiersze na prace
-      spoza rozpiski. Żadnych kwot ani etapów. Okno wydruku jak przy pozostałych wydrukach.
-      _Staging 2026-10-05:_ popup (print() zastubowane) i render w print-media: numery z cyfrą kontrolną, opis, j.m., pusta kolumna Wykonano, 10 pustych wierszy spoza rozpiski, bez kwot/etapów. Obs.: numer styka się z opisem bez odstępu (kosmetyka)
-- [x] Pracownik na Українська: kartka po ukraińsku, z tymi samymi pracami co jego „Drukuj PDF”.
-      _Staging 2026-10-05 (pass 2):_ QA-Premia A (uk): „ДЛЯ ЗАПОВНЕННЯ", kolumny uk, 8 prac w 3 sekcjach identycznych z jego „Drukuj PDF" (Mikrocement, Montaż płyt osb, QA extra B, 5x bruzdowanie/demontaż); druga kartka daje identyczne numery (12244-9 … 12262-0).
-- [x] „Drukuj PDF” wygląda dokładnie jak przedtem.
-      _Staging 2026-10-05:_ render print-media bez regresji (kolumny, sumy, stopka)
-- [x] Zablokowany pracownik: „Drukuj do wypełnienia” wyszarzone, jak „Drukuj PDF”.
-      _Staging 2026-10-05:_ inw. 137, menu „Pracownicy”: trzech pracowników z linkiem bez etapu („Brak przypisanych etapów”) ma „Drukuj PDF” i „Drukuj do wypełnienia” oba aria-disabled; pracownik z etapem — oba aktywne. (Stan „bez etapu”, nie „plane null”/„mixed” — te same blockReason w kodzie.)
-- [x] Wydrukuj kartkę dwa razy → te same numery. Dodaj nową pracę i przesuń inną do innej sekcji →
-      nowa praca ma nowy numer, pozostałe numery bez zmian.
-      _Staging 2026-10-05:_ inw. 137, Adam Orłowski: dwa wydruki — te same 8 numerów (12244-9 … 12262-0). Nowa praca przez „Dodaj → Praca” dostała ref 12639 (numer 12639-3, nowy), a po przesunięciu „Montaż płyt osb” w dół (Przesuń w dół) i ilości 1 przy nowej pracy: pozostałe 8 numerów bez zmian, nowa na liście. Przesunięcia między sekcjami w UI nie ma (menu wiersza: tylko w górę/w dół w obrębie sekcji, siatka ma lockRows) — sprawdzone tylko w obrębie sekcji.
-- [x] Skopiuj pracę → kopia ma nowy numer, oryginał zachowuje swój.
-      _Staging 2026-10-05:_ w UI nie ma „skopiuj wiersz” (siatka lockRows, brak Ctrl+D) — jedyną kopią pracy jest „Dodaj → Sekcja z szablonu…”: praca „QA marker B praca” z szablonu (ref 9226) → kopia w inw. 137 ma ref 12640 (nowy), oryginał nadal 9226; psql.
-- [x] „Przywróć wersję” do wcześniejszej wersji → numery prac takie jak przed przywróceniem.
-      _Staging 2026-10-05:_ inw. 137: stan przed vs po przywróceniu auto-punktu z 20:35 — wszystkie 378 wspólnych pozycji mają te same ref (id się zmieniły, ref nie), pozycja dodana po punkcie (12639) znikła; psql.
-
-### Kto i skąd wczytuje
-
-- [x] „Zgłoszenia prac” → „Wczytaj z kartki” i menu „Pracownicy” w edytorze — oba widoczne dla
-      kierownika i właściciela.
-      _Staging 2026-10-05:_ OWNER i MANAGER (qa-staging-manager): /zgloszenia-prac ma przycisk „Wczytaj z kartki”; w edytorze inw. 137 menu „Pracownicy” ma „Wczytaj z kartki” przy każdym pracowniku z etapem.
-- [x] Pracownik na swojej stronie i na swoim linku `/z/…` nie ma „Wczytaj z kartki”; lista
-      „Pracownicy” też go nie ma.
-      _Staging 2026-10-05:_ Employee 80 (QA-Premia A): /pracownicy/80 and the /z/... link have no „Wczytaj z kartki" (no kartk text/buttons); /pracownicy and /zgloszenia-prac redirect him away.
-- [x] Lista pracowników w oknie: tylko aktywni, z etapem na trwającej inwestycji. Pracownik
-      nieaktywny albo tylko z etapem na szablonie / zakończonej inwestycji — nie ma go.
-      _Staging 2026-10-05 (pass 2):_ okno: Adam Orłowski, Adrian Furmańczyk, QA-Kosz-Pracownik A, QA-Premia A = dokładnie aktywni z etapem na inwestycji „w toku” (SQL); QA-Premia B (nieaktywny + etap na wycenie) i etap na wycenie nieobecne.
-- [x] Pracownik z jedną inwestycją → wybiera się sama; z dwiema → trzeba wybrać, „Wczytaj”
-      wyszarzone do czasu wyboru.
-      _Staging 2026-10-05 (pass 2):_ stan przez UI: QA-Premia A dodany do etapu inwestycji 138 (druga w toku obok 137). Dwie: „Wczytaj” wyszarzone do wyboru, lista asDasdaSD/testowe inwestycje; jedna (Adrian Furmańczyk): inwestycja wybrana sama.
-- [x] Zmiana pracownika czyści wybraną inwestycję.
-      _Staging 2026-10-05 (pass 2):_ Adrian (138 sam) → QA-Premia A: pole inwestycji wróciło do „Wybierz inwestycję”.
-- [x] 13 zdjęć → komunikat „Maksymalnie 12 zdjęć…”, „Wczytaj” wyszarzone; 12 przechodzi.
-      _Staging 2026-10-05:_ 13 plików: komunikat „Maksymalnie 12 zdjęć na jedno zgłoszenie." + Wczytaj wyszarzone (po załadowaniu podglądów); 12 plików: Wczytaj aktywne.
-- [x] W trakcie odczytu okna nie da się zamknąć, a przycisk pokazuje „Odczytywanie kartki…”.
-      _Staging 2026-10-05:_ Escape nie zamyka, przycisk „Odczytywanie kartki…”
-
 ### Jakość odczytu (prawdziwe zdjęcia)
 
-- [x] Czysta kartka, dobre światło, zdjęcie z góry → wszystkie ilości i numery zgodne.
-      _Staging 2026-10-05:_ wygenerowana skan-kartka (ręczne cyfry): wszystkie 7 ilości zgodne
 - [ ] Zdjęcie pod kątem / w słabym świetle / lekko pognieciona kartka → ilości dalej się zgadzają,
       a te nieczytelne mają „Niepewny odczyt — sprawdź na zdjęciu”.
       _Staging 2026-10-05:_ skan syntetyczny (obrót 3-4°, przyciemnienie, rozmycie): przy ostrzejszym wariancie 6/2/5 przesunięte o jeden wiersz (6 trafiło na żelbet zamiast kable miękkie), brak flagi „Niepewny odczyt”; ostry wariant: 2,5→3 i pominięty wiersz. Potrzebne prawdziwe zdjęcie z telefonu — decyzja człowieka
-- [x] Ilość z przecinkiem („2,5”) → 2,5, nie 25 ani 2.
-      _Staging 2026-10-05:_ „2,5” → 2,5 m²
-- [x] Wiersz bez wpisanej ilości → nie ma go w zgłoszeniu.
-      _Staging 2026-10-05:_ wiersz bez ilości (Bruzdowanie żelbet) nie wszedł do zgłoszenia (7 z 8)
-- [x] Ilość przekreślona i wpisana obok → przyjęta poprawiona albo oznaczona jako niepewna — nigdy
-      po cichu przekreślona.
-      _Staging 2026-10-05:_ „2” przekreślone + „3” obok → przyjęte 3
-- [x] Celowo źle przepisana cyfra numeru (np. „35812-7” jako „35842-7”) → wiersz
-      „Nr … nie pasuje do rozpiski — do przypisania ręcznie”, nie trafia na inną pracę.
-      _Staging 2026-10-05:_ „12297-1” → „Nr 12297-1 nie pasuje do rozpiski — do przypisania ręcznie”
-- [x] Kartka z innej inwestycji → wszystkie wiersze „do przypisania ręcznie”, zgłoszenie i tak
-      powstaje.
-      _Staging 2026-10-05:_ numery z poprawną cyfrą kontrolną, spoza inwestycji → oba wiersze „do przypisania”, zgłoszenie powstało
-- [x] Zdjęcie czegoś innego (paragon, pusta kartka) → komunikat „Na zdjęciach nie odczytano żadnej
-      wpisanej ilości.”, żadne zgłoszenie nie powstaje.
-      _Staging 2026-10-05:_ paragon → „Na zdjęciach nie odczytano żadnej wpisanej ilości.”, brak zgłoszenia w worker_reports
-- [x] Kartka 3-stronicowa, zdjęcia wgrane w losowej kolejności → jedno zgłoszenie ze wszystkimi
-      wierszami.
-      _Staging 2026-10-05:_ p3,p1,p2 → jedno zgłoszenie, 7 wierszy
-- [x] Ta sama strona sfotografowana dwa razy → zdublowane prace z „Ta pozycja jest w zgłoszeniu
-      więcej niż raz”, ilości nie zsumowane.
-      _Staging 2026-10-05:_ oba komplety wierszy z „Ta pozycja jest w zgłoszeniu więcej niż raz”, nie zsumowane
-- [x] Praca spoza rozpiski dopisana ręcznie po ukraińsku, j.m. z listy kosztorysu (np. „m2”) →
-      trafia do „spoza rozpiski” z tą j.m., po chwili z polskim tłumaczeniem i oryginałem obok.
-      _Staging 2026-10-05:_ m2 → m²; polskie tłumaczenie dopisuje się w tle, widoczne po ponownym otwarciu przeglądu (okno otwarte nie odświeża się samo)
-- [x] Praca spoza rozpiski z j.m. spoza kosztorysu (np. „worek”) → „Brak j.m. w kosztorysie —
-      wybierz pracę z katalogu”.
-      _Staging 2026-10-05:_ „Brak j.m. w kosztorysie — wybierz pracę z katalogu”
-- [x] Jedno zdjęcie z nieudanym odczytem (np. wyłącz sieć na chwilę) → „Ponów” na tej miniaturze;
-      ponowienie czyta tylko to zdjęcie, zgłoszenie powstaje dopiero, gdy wszystkie są odczytane.
-      _Staging 2026-10-05 (pass 2):_ okno z menu „Pracownicy → Wczytaj z kartki”: odczyt (POST /api/read-worker-report) wymuszony na 500 → miniatura z „Ponów”, w DB brak zgłoszenia (max id bez zmian); Ponów = jedno dodatkowe wywołanie odczytu (n=2) i dopiero wtedy powstało zgłoszenie 21. (Nie sieć offline, a 500 — patrz profil.)
-
-### Przegląd i zatwierdzenie
-
-- [x] Po „Wczytaj” z „Zgłoszenia prac” otwiera się edytor na przeglądzie tego zgłoszenia; z menu
-      w edytorze — przegląd otwiera się na miejscu, a licznik oczekujących zgłoszeń rośnie o 1.
-      _Staging 2026-10-05 (pass 2):_ z /zgloszenia-prac po Wczytaj: URL …/inwestycje/137/kosztorys_v2?zgloszenie=20, przegląd otwarty; z menu edytora: przegląd na miejscu (URL bez parametru), licznik „do sprawdzenia” 12→13 (SQL: 13 pending).
-- [x] Nagłówek: „Wczytane z kartki przez {kto} {data}”; zgłoszenie z linku dalej ma „Wysłano {data}”.
-      _Staging 2026-10-05 (pass 2):_ scan: „Wczytane z kartki przez QA Staging 05.10.2026, 20:37”; zgłoszenie z linku (#5): „Wysłano 01.10.2026, 01:42”.
-- [x] Zdjęcia obok wierszy, kliknięcie otwiera powiększenie, da się przejść między zdjęciami.
-      _Staging 2026-10-05:_ miniatura obok tabeli, podgląd z „Następna strona” 1/3→2/3
-- [x] „Zaznacz wszystkie” nie zaznacza zdublowanych prac; zaznaczona ręcznie jedna z nich przechodzi.
-      _Staging 2026-10-05:_ zaznacz wszystkie → 0 prac; ręcznie jedna → 1 praca
-- [x] Wiersz „do przypisania” → wybór pracy z rozpiski → zatwierdzenie dopisuje ilość tej pracy.
-      _Staging 2026-10-05:_ przypisane do Demontażu: 5→7 w DB; cofnięte
-- [x] Wiersz bez j.m.: z samą ceną „Zatwierdź” nie przechodzi; po wyborze pracy z katalogu
-      przechodzi, a nowa pozycja w kosztorysie ma j.m. i cenę z katalogu.
-      _Staging 2026-10-05:_ Zatwierdź zablokowane bez wyboru z katalogu; po wyborze z katalogu przechodzi, ale praca trafiła na istniejącą pozycję rozpiski (ta sama praca już w kosztorysie), więc „nowa pozycja z j.m. i ceną” niesprawdzona; kosmetyka: nagłówek okna „Zgłoszono: „Worek cementu” ()” z pustym nawiasem
-      _Staging 2026-10-05 (pass 2):_ retry: zgłoszenie 19, „Worek cementu” → katalog „Wykucie nadproża i powiększenie otworu drzwiowego” (nie było w kosztorysie 137), sekcja Wyburzenia i demontaże, cena 450 wstawiona z katalogu; psql: nowy kosztorys_items 12638 unit=kpl, client_price=450, planned_qty=0, stage_progress 732 qty 3 (catalogue_item_id 926). Cofnięte w teardownie.
-- [x] Poprawiona ręcznie ilość przy niepewnym odczycie → do etapu trafia poprawiona.
-      _Staging 2026-10-05:_ ręcznie poprawione 1→1,5 przy QA extra B: do etapu 2+1,5=3,5 (bez nieczytelnego odczytu, sam mechanizm poprawki)
-- [x] Odznaczony wiersz → nie trafia do etapu; reszta tak.
-      _Staging 2026-10-05:_ odznaczony Mikrocement został 13, pozostałe 6 weszły (DB stage_progress)
-- [x] Po zatwierdzeniu ilości etapu w edytorze zgadzają się z przyjętymi; zdjęcia nadal widać po
-      ponownym otwarciu zgłoszenia.
-      _Staging 2026-10-05:_ stage_progress zgodne z przyjętymi; zdjęcie nadal w ponownie otwartym zgłoszeniu
-- [x] Ponowne otwarcie zatwierdzonego zgłoszenia i odznaczenie wiersza cofa jego ilość — jak przy
-      zgłoszeniu z linku.
-      _Staging 2026-10-05:_ odznaczenie Demontażu + Zapisz zmiany: 10→5 w DB
-
-### Strona pracownika
-
-- [x] Zgłoszenie z kartki nie pojawia się w historii na linku pracownika (`/z/…`), jego własne
-      zgłoszenia są tam jak dotąd.
-      _Staging 2026-10-05 (pass 2):_ Link `/z/137/adam-orlowski/…`: brak „Wczytaj z kartki", 6 wpisów historii, wszystkie z linku; zgłoszeń scan (#10–21) tam nie ma.
-- [x] Zgłoszenie wysłane z linku działa jak przedtem: przegląd, zatwierdzenie, historia.
-      _Staging 2026-10-05:_ Raport #23 wysłany z /z linku QA-Premia A (uk, 1 praca): w dialogu „Do sprawdzenia" -> przyjęty (Mikrocement +1 do Etapu 1, status accepted) -> w historii „QA-Premia A · do: Etap 1 / Przyjęte". Ilość cofnięta ręcznie do 13.
-- [x] Kartka wydrukowana przed „Przywróć wersję”, wczytana po nim: wiersze trafiają we właściwe prace.
-      _Staging 2026-10-05:_ kartka (scan-clean.jpg, numery z wydruku sprzed przywrócenia) wczytana PO przywróceniu wersji: 7 wierszy trafiło na właściwe prace (2,5→Mikrocement, 3→Montaż płyt osb, 1→QA extra B, 4/6/2/5→bruzdowania i Demontaż grzejników). Zgłoszenie #22 odrzucone.
 
 ## 2026-10-06 — worker-report-pending-only — link pracownika pokazuje tylko zgłoszenia „do sprawdzenia”
 
@@ -4196,7 +4021,6 @@ Szablon z kilkuset pracami w kilku sekcjach (np. szablon 165).
       każdym wierszu.
 - [ ] Otwórz „Ustaw kolejność…” w dwóch kartach; w jednej dodaj pracę, w drugiej zapisz kolejność —
       komunikat „Układ się zmienił…”, dialog się zamyka, a siatka wczytuje się na nowo z dodaną pracą.
-
 
 ## kosztorys-summary-resizable
 

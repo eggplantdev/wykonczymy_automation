@@ -1,10 +1,10 @@
 ---
 change_id: worker-report-scan
 title: A photo of a worker's filled-in paper becomes a zgłoszenie prac via AI (EX-949)
-status: implemented
+status: archived
 created: 2026-10-05
-updated: 2026-10-05
-archived_at: null
+updated: 2026-10-06
+archived_at: 2026-10-06T09:04:20Z
 branch: worker-report-scan
 worktree: null
 ---

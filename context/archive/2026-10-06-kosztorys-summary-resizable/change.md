@@ -1,10 +1,10 @@
 ---
 change_id: kosztorys-summary-resizable
 title: Draggable height for the kosztorys Podsumowanie panel (grid / summary split)
-status: implemented
+status: archived
 created: 2026-10-06
 updated: 2026-10-06
-archived_at: null
+archived_at: 2026-10-06T09:04:20Z
 branch: kosztorys-summary-resizable
 worktree: .claude/worktrees/kosztorys-summary-resizable
 ---

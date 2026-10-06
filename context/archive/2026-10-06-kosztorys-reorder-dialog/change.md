@@ -1,10 +1,10 @@
 ---
 change_id: kosztorys-reorder-dialog
 title: „Ustaw kolejność” — układanie prac i sekcji w kosztorysie/szablonie
-status: implemented
+status: archived
 created: 2026-10-06
 updated: 2026-10-06
-archived_at: null
+archived_at: 2026-10-06T09:04:20Z
 branch: staging
 worktree: null
 linear: EX-999
