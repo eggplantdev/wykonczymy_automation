@@ -47,6 +47,8 @@ export async function readExpenseDraftReceipts(
   try {
     const draft = await loadExpenseDraftForRead(db, draftId)
     if (!draft || draft.pages.length === 0) return
+    // Every page or mode change clears the read, so a stored one still answers these pages.
+    if (draft.aiRead) return draft.aiRead
     // A draft from before the 8-photo cap can still be pending; the manager reads it by eye.
     if (draft.scanMode === 'one-invoice' && draft.pages.length > MAX_RECEIPT_PAGES) return
     const storeId = blobStoreIdOf(serverEnv.BLOB_READ_WRITE_TOKEN)

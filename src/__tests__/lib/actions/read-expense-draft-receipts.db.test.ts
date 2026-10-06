@@ -186,6 +186,16 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
     })
   })
 
+  // A list loaded before the send-time read landed still offers the read.
+  it('returns a stored read without asking the AI again', async () => {
+    const { draftId } = await createDraft('already-read', 1, 'one-invoice')
+    const stored = await readExpenseDraftReceipts(db, draftId)
+    extractReceipt.mockClear()
+
+    expect(await readExpenseDraftReceipts(db, draftId)).toEqual(stored)
+    expect(extractReceipt).not.toHaveBeenCalled()
+  })
+
   it('writes nothing when no photo reached the AI', async () => {
     const { draftId } = await createDraft('all-unfetched', 2, 'one-per-photo')
     fetchMediaBytes.mockRejectedValue(new Error('Blob 404'))

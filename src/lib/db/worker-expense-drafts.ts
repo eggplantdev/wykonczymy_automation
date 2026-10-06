@@ -318,15 +318,22 @@ export async function removeExpenseDraftPage(
 export async function loadExpenseDraftForRead(
   db: DbExecutorT,
   draftId: number,
-): Promise<{ scanMode: ScanModeT; pages: ExpenseDraftMediaT[] } | undefined> {
+): Promise<
+  | { scanMode: ScanModeT; pages: ExpenseDraftMediaT[]; aiRead: ExpenseDraftReadT | undefined }
+  | undefined
+> {
   const res = await db.execute(sql`
-    SELECT d.scan_mode, ${DRAFT_MEDIA} AS media
+    SELECT d.scan_mode, d.ai_read, ${DRAFT_MEDIA} AS media
     FROM worker_expense_drafts d
     WHERE d.id = ${draftId} AND d.status = 'pending'
   `)
   const row = res.rows[0]
   if (!row) return undefined
-  return { scanMode: row.scan_mode as ScanModeT, pages: toDraftMedia(row.media) }
+  return {
+    scanMode: row.scan_mode as ScanModeT,
+    pages: toDraftMedia(row.media),
+    aiRead: toDraftRead(row.ai_read),
+  }
 }
 
 /**

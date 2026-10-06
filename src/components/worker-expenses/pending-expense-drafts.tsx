@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment, useState } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -61,6 +61,8 @@ export function PendingExpenseDrafts({ drafts, referenceData }: PropsT) {
   const [loadingId, setLoadingId] = useState<number | undefined>()
   const [accepting, setAccepting] = useState<AcceptingT | undefined>()
   const [rejecting, setRejecting] = useState<ExpenseDraftRowT | undefined>()
+  // A reopen mid-read waits for the read already paid for; its landing finds the dialog by draft id.
+  const readsInFlight = useRef(new Set<number>())
 
   if (drafts.length === 0) return null
 
@@ -104,18 +106,19 @@ export function PendingExpenseDrafts({ drafts, referenceData }: PropsT) {
     const isReading = !draft.aiRead && draft.media.length > 0
     setAccepting({ draft, prefill: prefillFor(draft, files), isReading })
     openDialog(formIdOf(draft.id), false)
-    if (isReading) await readOnOpen(draft, files)
+    if (isReading && !readsInFlight.current.has(draft.id)) await readOnOpen(draft, files)
   }
 
-  // The send-time read is still running, failed, or predates the draft. Reading here instead of on
-  // the form's mount keeps the spend on the click; the dialog is already open, its rows locked
-  // until the read lands, so nothing the manager types is overwritten by the refill.
+  // Reading here keeps the spend on the click.
   async function readOnOpen(draft: ExpenseDraftRowT, files: File[]) {
-    usePendingStore.getState().start(DRAFT_READ_PENDING_KEY, 'Odczytywanie paragonów…')
+    const pendingKey = `${DRAFT_READ_PENDING_KEY}-${draft.id}`
+    readsInFlight.current.add(draft.id)
+    usePendingStore.getState().start(pendingKey, 'Odczytywanie paragonów…')
     try {
       const result = await settleAction(() => readExpenseDraftAction(draft.id))
       const aiRead = result.success ? result.data.aiRead : undefined
-      if (!aiRead) toastMessage('Nie odczytano zdjęć zgłoszenia', 'warning')
+      if (!result.success) toastMessage(result.error, 'warning')
+      else if (!aiRead) toastMessage('Nie odczytano zdjęć zgłoszenia', 'warning')
       setAccepting((prev) =>
         prev?.draft.id === draft.id
           ? {
@@ -128,7 +131,8 @@ export function PendingExpenseDrafts({ drafts, referenceData }: PropsT) {
       // The list's copy of the draft still has no read; without the refresh a reopen pays again.
       if (aiRead) router.refresh()
     } finally {
-      usePendingStore.getState().stop(DRAFT_READ_PENDING_KEY)
+      readsInFlight.current.delete(draft.id)
+      usePendingStore.getState().stop(pendingKey)
     }
   }
 

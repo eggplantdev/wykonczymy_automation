@@ -225,7 +225,8 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
     expect(vi.mocked(scanReceiptClient).mock.calls).toEqual([[[receipt], expect.any(Array)]])
   })
 
-  it('póki zgłoszenie się odczytuje, pozycje i „Zapisz" są zablokowane', async () => {
+  // The landed read remounts the whole form, so anything left editable here would be lost.
+  it('póki zgłoszenie się odczytuje, cały formularz i „Zapisz" są zablokowane', async () => {
     render(
       <ExpenseForm
         referenceData={referenceData}
@@ -241,6 +242,7 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
     )
 
     expect(await screen.findByRole('textbox', { name: 'Opis' })).toBeDisabled()
+    expect(screen.getByRole('combobox', { name: 'Typ wydatku' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Odczytaj dodane zdjęcia' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Zapisz' })).toBeDisabled()
   })

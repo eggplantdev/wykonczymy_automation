@@ -82,7 +82,7 @@ type TransferFormPropsT = {
   keepOpen?: boolean
   formId?: string
   prefill?: ExpenseFormPrefillT
-  // The prefill's read is still in flight; the rows lock so the refill can't overwrite typing.
+  // The prefill's read is still in flight; the form locks so the refill can't overwrite typing.
   isPrefillReading?: boolean
   secondaryAction?: React.ReactNode
 }
@@ -311,84 +311,84 @@ export function ExpenseForm({
 
   return (
     <FormShell form={form} onReset={handleReset}>
-      <FieldGroup>
-        {/* The netto hint sits UNDER the row, not on the Select as a `description` — FormBase
+      <fieldset disabled={isPrefillReading} className="min-w-0">
+        <FieldGroup>
+          {/* The netto hint sits UNDER the row, not on the Select as a `description` — FormBase
           renders a description between the label and the control, which would push the type
           Select down while „Data" beside it stayed put, breaking the row's alignment. */}
-        <div className="space-y-1.5">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-            <form.AppField
-              name="type"
-              listeners={{ onChange: ({ value }) => resetConditionalFields(value) }}
-            >
+          <div className="space-y-1.5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+              <form.AppField
+                name="type"
+                listeners={{ onChange: ({ value }) => resetConditionalFields(value) }}
+              >
+                {(field) => (
+                  <field.Select label="Typ wydatku" showError fieldClassName="min-w-0 flex-1">
+                    {TRANSACTION_TRANSFER_TYPES.filter((t) =>
+                      canBookTransferType(referenceData.currentUserRole, t),
+                    ).map((t) => (
+                      <SelectItem key={t} value={t}>
+                        {TRANSFER_TYPE_LABELS[t]}
+                      </SelectItem>
+                    ))}
+                  </field.Select>
+                )}
+              </form.AppField>
+              <DateField form={form} fieldClassName="w-full sm:w-40" />
+            </div>
+            {billsNetAmount(currentType) && (
+              <FieldDescription>
+                Z kasy schodzi kwota brutto, a inwestora obciąża kwota netto — dlatego przy każdej
+                pozycji podajesz obie.
+              </FieldDescription>
+            )}
+          </div>
+
+          {showsInvestment(currentType) && (
+            <EntityComboboxField
+              form={form}
+              variant="investment"
+              items={referenceData.investments.filter(isBookableInvestment)}
+            />
+          )}
+
+          {canBeSettled(currentType) && (
+            <form.AppField name="settled">
               {(field) => (
-                <field.Select label="Typ wydatku" showError fieldClassName="min-w-0 flex-1">
-                  {TRANSACTION_TRANSFER_TYPES.filter((t) =>
-                    canBookTransferType(referenceData.currentUserRole, t),
-                  ).map((t) => (
-                    <SelectItem key={t} value={t}>
-                      {TRANSFER_TYPE_LABELS[t]}
-                    </SelectItem>
-                  ))}
-                </field.Select>
+                <field.Checkbox label="Wliczone w robociznę (materiał w cenie robocizny — nie obciąża inwestora)" />
               )}
             </form.AppField>
-            <DateField form={form} fieldClassName="w-full sm:w-40" />
-          </div>
-          {billsNetAmount(currentType) && (
-            <FieldDescription>
-              Z kasy schodzi kwota brutto, a inwestora obciąża kwota netto — dlatego przy każdej
-              pozycji podajesz obie.
-            </FieldDescription>
           )}
-        </div>
 
-        {showsInvestment(currentType) && (
-          <EntityComboboxField
-            form={form}
-            variant="investment"
-            items={referenceData.investments.filter(isBookableInvestment)}
-          />
-        )}
+          {needsSourceRegister(currentType) && (
+            <SourceRegisterField
+              form={form}
+              cashRegisters={referenceData.cashRegisters}
+              registerBalance={registerBalance}
+              isRegisterBalanceLoading={isRegisterBalanceLoading}
+              fetchRegisterBalance={fetchRegisterBalance}
+              showSaveAsDefault
+              defaultCashRegisterId={getUserDefaultCashRegisterId(referenceData)}
+            />
+          )}
 
-        {canBeSettled(currentType) && (
-          <form.AppField name="settled">
-            {(field) => (
-              <field.Checkbox label="Wliczone w robociznę (materiał w cenie robocizny — nie obciąża inwestora)" />
-            )}
-          </form.AppField>
-        )}
+          {needsTargetRegister(currentType) && (
+            <CashRegisterField
+              form={form}
+              name="targetRegister"
+              label="Kasa docelowa"
+              placeholder="Wybierz kasę docelową"
+              cashRegisters={referenceData.cashRegisters}
+            />
+          )}
 
-        {needsSourceRegister(currentType) && (
-          <SourceRegisterField
-            form={form}
-            cashRegisters={referenceData.cashRegisters}
-            registerBalance={registerBalance}
-            isRegisterBalanceLoading={isRegisterBalanceLoading}
-            fetchRegisterBalance={fetchRegisterBalance}
-            showSaveAsDefault
-            defaultCashRegisterId={getUserDefaultCashRegisterId(referenceData)}
-          />
-        )}
+          {carriesPaymentMethod(currentType) && <PaymentMethodField form={form} />}
 
-        {needsTargetRegister(currentType) && (
-          <CashRegisterField
-            form={form}
-            name="targetRegister"
-            label="Kasa docelowa"
-            placeholder="Wybierz kasę docelową"
-            cashRegisters={referenceData.cashRegisters}
-          />
-        )}
+          {needsWorker(currentType) && (
+            <EntityComboboxField form={form} variant="worker" items={referenceData.workers} />
+          )}
 
-        {carriesPaymentMethod(currentType) && <PaymentMethodField form={form} />}
-
-        {needsWorker(currentType) && (
-          <EntityComboboxField form={form} variant="worker" items={referenceData.workers} />
-        )}
-
-        {!isDepositType(currentType) && (
-          <fieldset disabled={isPrefillReading} className="min-w-0">
+          {!isDepositType(currentType) && (
             <LineItemsField
               form={form}
               total={total}
@@ -409,9 +409,9 @@ export function ExpenseForm({
               referenceData={referenceData}
               defaultExpenseCategory={defaultExpenseCategory}
             />
-          </fieldset>
-        )}
-      </FieldGroup>
+          )}
+        </FieldGroup>
+      </fieldset>
 
       {registerBalance !== null && (
         <RegisterBalanceSummary registerBalance={registerBalance} total={total} />
