@@ -218,6 +218,12 @@ type ColumnOptionsT = {
   translator?: TranslatorT<'transfers'>
 }
 
+export function transferRowClassName(row: TransferRowT) {
+  if (row.cancelled) return '[&_td]:line-through [&_td]:text-muted-foreground'
+  if (row.type === 'CANCELLATION') return '[&_td]:text-muted-foreground'
+  return ''
+}
+
 export function getTransferColumns(exclude: string[] = [], options: ColumnOptionsT = {}) {
   const { referenceData, currentUserId, currentUserRole, translator = POLISH_TRANSFERS } = options
 
