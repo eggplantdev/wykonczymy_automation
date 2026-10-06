@@ -244,5 +244,5 @@ At 400 items the write is two UPDATE statements: one VALUES row per section and 
 
 #### Automated
 
-- [x] 3.1 reorder-dialog DOM spec
+- [x] 3.1 reorder-dialog DOM spec — d350fe04
 - [x] 3.2 e2e-backlog issue filed and recorded in change.md (EX-1000)
