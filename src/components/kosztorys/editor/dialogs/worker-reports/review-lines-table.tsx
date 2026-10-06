@@ -13,6 +13,8 @@ import { CatalogueSwapDialog } from '@/components/kosztorys/editor/dialogs/worke
 import { ColumnToggle } from '@/components/filters/column-toggle'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
+import { SectionPill } from '@/components/worker-reports/section-pill'
+import { WorkerDescription } from '@/components/worker-reports/worker-description'
 import {
   acceptedQtyNote,
   isLineReady,
@@ -23,7 +25,6 @@ import {
   type LineGroupT,
 } from '@/components/kosztorys/editor/dialogs/worker-reports/line-draft'
 import { reviewedDescription } from '@/lib/kosztorys/worker-report/reviewed-description'
-import { isLanguage, LANGUAGE_SHORT } from '@/lib/i18n/languages'
 import { formatQty, formatQtyWithUnit } from '@/lib/kosztorys/format'
 import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
 import { sectionColorRail, type SectionColorKeyT } from '@/lib/kosztorys/section-colors'
@@ -206,18 +207,6 @@ function RozpiskaDescriptionCell({ row }: { row: ReviewRowT }) {
   )
 }
 
-function WorkerDescriptionCell({ row }: { row: ReviewRowT }) {
-  if (row.workerDescription === undefined) return null
-  return (
-    <span className="block leading-snug">
-      <span className="text-muted-foreground text-xs">
-        {languageShort(row.workerDescriptionLanguage)}
-      </span>{' '}
-      {row.workerDescription}
-    </span>
-  )
-}
-
 function StageHeader() {
   return useReviewTable().stageTitle
 }
@@ -311,9 +300,6 @@ function MatchedDescription({ row }: { row: ReviewRowT }) {
   )
 }
 
-const languageShort = (language: string | undefined) =>
-  isLanguage(language) ? LANGUAGE_SHORT[language] : 'inny język'
-
 function TranslationNote({ row }: { row: ReviewRowT }) {
   const { onRetranslate } = useReviewTable()
   const [isTranslating, startTranslating] = useTransition()
@@ -401,15 +387,6 @@ function CatalogueCell({ row }: { row: ReviewRowT }) {
   )
 }
 
-// Reads `--section-rail` from the row, so the pill takes the same colour as the rail beside it.
-function SectionPill({ name }: { name: string }) {
-  return (
-    <span className="worker-report-section inline-block max-w-40 truncate rounded px-1.5 py-0.5 text-xs font-medium max-sm:max-w-24">
-      {name}
-    </span>
-  )
-}
-
 function TargetSectionCell({ row }: { row: ReviewRowT }) {
   const { drafts, onChange, sectionOptions } = useReviewTable()
   const draft = drafts[row.id]
@@ -481,7 +458,12 @@ const reviewDescriptionColumn = col.accessor('description', {
 const workerDescriptionColumn = col.accessor('workerDescription', {
   header: 'Opis w języku pracownika',
   meta: { minWidth: 'min-w-64' },
-  cell: ({ row }) => <WorkerDescriptionCell row={row.original} />,
+  cell: ({ row }) => (
+    <WorkerDescription
+      description={row.original.workerDescription}
+      language={row.original.workerDescriptionLanguage}
+    />
+  ),
 })
 const reportedColumn = col.accessor('reportedQty', {
   header: 'Zgłoszono',

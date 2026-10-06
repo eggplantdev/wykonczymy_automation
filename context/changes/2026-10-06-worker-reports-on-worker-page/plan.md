@@ -575,16 +575,16 @@ Run once, after Phase 4:
 
 #### Automated
 
-- [x] 2.1 Builder spec passes
-- [x] 2.2 Dictionary parity holds
-- [x] 2.3 Editor review table unaffected by the extracted rule
+- [x] 2.1 Builder spec passes — c36fa146
+- [x] 2.2 Dictionary parity holds — c36fa146
+- [x] 2.3 Editor review table unaffected by the extracted rule — c36fa146
 
 ### Phase 3: Preview dialog and the /zgloszenia-prac actions
 
 #### Automated
 
-- [ ] 3.1 Preview table spec passes
-- [ ] 3.2 Review table still renders with the promoted `SectionPill`
+- [x] 3.1 Preview table spec passes
+- [x] 3.2 Review table still renders with the promoted `SectionPill`
 
 ### Phase 4: Worker-page section
 
