@@ -4196,7 +4196,7 @@ inwestycji, z transakcjami i zgłoszonymi wydatkami; konto kierownika.
 - [ ] Czekające zgłoszenie → „Zweryfikuj”: otwiera się wypełniony „Nowy wydatek”. „Zapisz” → wiersz „Przyjęte”, w „Decyzja” teraz · ja, w „Transakcje” kwota. Drugie zgłoszenie → „Odrzuć” → wiersz „Odrzucone”.
 - [ ] Odrzucone zgłoszenie → „Przywróć”: wraca jako „Czeka” na górę listy, licznik w menu rośnie o 1.
 - [ ] Kwota przyjętego zgłoszenia otwiera transakcje inwestycji z tylko tą jedną transakcją i wypełnionym polem ID — także gdy inwestycję zmieniono w dialogu przyjęcia (link prowadzi do inwestycji z transakcji).
-- [ ] Czekające zgłoszenie z 3 paragonami („jedno zdjęcie = jeden paragon”) → „Zweryfikuj”: wszystkie trzy w jednym formularzu. Jeden wiersz wyrzuć koszem, zapisz → na liście „Zgłoszenia wydatków” to zgłoszenie ma 3 wiersze: dwa „przyjęty”, każdy z kwotą swojej transakcji i tylko swoim zdjęciem, i jeden „odrzucony” bez transakcji, ze zdjęciem pominiętego paragonu i bez „Przywróć”. Kwota przyjętego wiersza otwiera transakcje inwestycji z tą jedną transakcją.
+- [ ] Czekające zgłoszenie z 3 paragonami („jedno zdjęcie = jeden paragon”) → „Zweryfikuj”: wszystkie trzy w jednym formularzu. Jeden wiersz wyrzuć koszem, zapisz → na liście „Zgłoszenia wydatków” to zgłoszenie ma 3 wiersze: dwa „przyjęty”, każdy z kwotą swojej transakcji i tylko swoim zdjęciem, i jeden „odrzucony” bez transakcji, ze zdjęciem pominiętego paragonu i z „Przywróć” (EX-1009). Kwota przyjętego wiersza otwiera transakcje inwestycji z tą jedną transakcją.
 - [ ] Pracownik na swojej stronie: te same 3 wiersze; filtr „Status” startuje na „czeka”, zaznaczenie „przyjęty”/„odrzucony” pokazuje rozpatrzone.
 - [ ] Pulpit → „Wydatki zgłoszone przez pracowników”: tabela jak pozostałe listy, „Zweryfikuj” w pierwszej kolumnie „Podgląd”, bez kolumn „Status”, „Decyzja”, „Transakcje”; „Zweryfikuj” otwiera wypełniony „Nowy wydatek”.
 - [ ] Odrzucone zgłoszenie pracownika, który jest w koszu, nie jest na liście; przyjęte zgłoszenie inwestycji z kosza jest.
@@ -4248,3 +4248,7 @@ Potrzebne przyjęte zgłoszenie „Kilka wydatków”, z którego przy przyjmowa
 - [ ] „Pokaż 10” przy zgłoszeniu z kilkoma paragonami: na stronie dokładnie 10 wierszy, a „N wyników” to liczba wszystkich wierszy na wszystkich stronach.
 - [ ] Sortowanie po „Status”: wszystkie wiersze „odrzucony” (z pominiętymi paragonami) stoją w jednym bloku.
 - [ ] Strona pracownika → „Zgłoszone wydatki”: to zgłoszenie rozbite na te same wiersze co na „Zgłoszenia wydatków”; filtr statusu działa tak samo.
+- [ ] Pominięty paragon → „Przywróć”: wiersz znika, w bloku „Czeka” pojawia się nowe zgłoszenie z tym jednym zdjęciem i datą wysłania pierwotnego zgłoszenia; licznik w menu rośnie o 1. Przyjęte zgłoszenie dalej ma swoje transakcje i zdjęcia.
+- [ ] „Zweryfikuj” na przywróconym: formularz od razu wypełniony odczytem tego paragonu (opis, kwota), bez czekania na odczyt.
+- [ ] U pracownika przywrócone zgłoszenie stoi jako „Czeka” i da się je edytować i usunąć. Po usunięciu przyjęte zgłoszenie dalej pokazuje to zdjęcie.
+- [ ] Pominięty paragon, którego kasa (albo pracownik, inwestycja) jest w koszu: wiersz bez „Przywróć”. Po przywróceniu kasy z kosza „Przywróć” wraca.

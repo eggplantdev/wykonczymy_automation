@@ -43,7 +43,7 @@ export type ExpenseDraftRowT = {
   decidedByName: string | null
   transfers: ExpenseDraftTransferT[]
   // Set on a history row standing for one paragon the manager skipped while accepting the rest.
-  skippedReceipt?: { id: number }
+  skippedReceipt?: { id: number; isRestorable: boolean }
   media: ExpenseDraftMediaT[]
   scanMode: ScanModeT
   aiRead: ExpenseDraftReadT | undefined
@@ -122,7 +122,9 @@ function toDraftRow(row: Record<string, unknown>): ExpenseDraftRowT {
     decidedAt: isoOrNull(row.decided_at),
     decidedByName: textOrNull(row.decided_by_name),
     transfers: toDraftTransfers(row.transfers),
-    ...(row.receipt_id != null && { skippedReceipt: { id: Number(row.receipt_id) } }),
+    ...(row.receipt_id != null && {
+      skippedReceipt: { id: Number(row.receipt_id), isRestorable: row.is_restorable === true },
+    }),
     media: toDraftMedia(row.media),
     scanMode: row.scan_mode as ScanModeT,
     aiRead: toDraftRead(row.ai_read),
@@ -205,6 +207,7 @@ const PARAGON_SELECT = sql`
   SELECT d.id, d.worker_id, w.name AS worker_name, d.investment_id, i.name AS investment_name,
     d.cash_register_id, d.note, pr.row_status AS status, d.sent_at, d.decided_at, d.scan_mode,
     CASE WHEN d.status = 'pending' THEN d.ai_read END AS ai_read, pr.receipt_id,
+    (pr.receipt_id IS NOT NULL AND ${PARTIES_NOT_TRASHED}) AS is_restorable,
     COALESCE((
       SELECT json_agg(json_build_object(
         'id', m.id, 'url', m.url, 'filename', m.filename, 'mimeType', m.mime_type
@@ -382,6 +385,49 @@ export async function restoreRejectedExpenseDraft(
     RETURNING d.id
   `)
   return res.rows.length > 0
+}
+
+/**
+ * A skipped paragon comes back as a new pending zgłoszenie sharing the accepted parent's pages, at
+ * the parent's send date — re-opening the parent would rebook what it already booked. It carries
+ * the parent's read of that paragon (its pages are exactly one read row, fixed by the mode), so
+ * `hasRead: false` is the caller's cue to read it afresh. The delete is the gate: a trashed party or
+ * a second restore deletes nothing and inserts nothing. `null` = refused.
+ */
+export async function restoreSkippedReceipt(
+  db: DbExecutorT,
+  receiptId: number,
+): Promise<{ draftId: number; hasRead: boolean } | null> {
+  const res = await db.execute(sql`
+    WITH restored AS (
+      DELETE FROM worker_expense_draft_skipped_receipts sr
+      USING worker_expense_drafts d
+      WHERE sr.id = ${receiptId} AND sr.draft_id = d.id AND d.status = 'accepted'
+        AND cardinality(sr.media_ids) > 0 AND ${PARTIES_NOT_TRASHED}
+      RETURNING d.id AS parent_id, d.worker_id, d.investment_id, d.cash_register_id, d.note,
+        d.scan_mode, d.sent_at, d.ai_read, sr.media_ids
+    ), draft AS (
+      INSERT INTO worker_expense_drafts
+        (worker_id, investment_id, cash_register_id, note, scan_mode, sent_at, ai_read)
+      SELECT worker_id, investment_id, cash_register_id, note, scan_mode, sent_at, (
+        SELECT jsonb_build_object('rows', jsonb_build_array(read_row))
+        FROM jsonb_array_elements(restored.ai_read -> 'rows') AS read_row
+        WHERE ARRAY(SELECT jsonb_array_elements_text(read_row -> 'mediaIds')::int ORDER BY 1)
+          = ARRAY(SELECT unnest(restored.media_ids) ORDER BY 1)
+        LIMIT 1
+      )
+      FROM restored
+      RETURNING id, ai_read IS NOT NULL AS has_read
+    ), pages AS (
+      INSERT INTO worker_expense_draft_media (draft_id, media_id, position)
+      SELECT draft.id, dm.media_id, dm.position
+      FROM draft, restored JOIN worker_expense_draft_media dm ON dm.draft_id = restored.parent_id
+      WHERE dm.media_id = ANY(restored.media_ids)
+    )
+    SELECT id, has_read FROM draft
+  `)
+  const row = res.rows[0]
+  return row ? { draftId: Number(row.id), hasRead: row.has_read === true } : null
 }
 
 /**

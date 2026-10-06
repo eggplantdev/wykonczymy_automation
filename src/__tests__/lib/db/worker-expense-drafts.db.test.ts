@@ -6,6 +6,8 @@ import { sqlList } from '@/lib/db/sql-list'
 import {
   countPendingExpenseDrafts,
   decideExpenseDraft,
+  deletePendingExpenseDraft,
+  findDraftHeldMedia,
   insertWorkerExpenseDraft,
   listDraftTransferIds,
   listExpenseDraftFilterOptions,
@@ -13,6 +15,7 @@ import {
   listPendingExpenseDrafts,
   listWorkerExpenseDrafts,
   restoreRejectedExpenseDraft,
+  restoreSkippedReceipt,
   type ExpenseDraftFiltersT,
   type ExpenseDraftRowT,
 } from '@/lib/db/worker-expense-drafts'
@@ -536,6 +539,168 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
 
     it('the badge counts exactly the drafts the pending block lists', async () => {
       expect(await countPendingExpenseDrafts(db)).toBe((await listPendingExpenseDrafts(db)).length)
+    })
+  })
+
+  describe('restoring a skipped paragon', () => {
+    let restoreInvestmentId: number
+    let parentId: number
+    let pages: number[]
+    let transferId: number
+    const SENT_AT = '2026-02-01 10:00+01'
+
+    const skippedOf = async (draftId: number) =>
+      (
+        await db.execute(sql`
+          SELECT id, media_ids FROM worker_expense_draft_skipped_receipts
+          WHERE draft_id = ${draftId} ORDER BY id
+        `)
+      ).rows.map((row) => ({
+        id: Number(row.id),
+        mediaIds: (row.media_ids as number[]).map(Number),
+      }))
+
+    const draftRow = async (draftId: number) =>
+      (
+        await db.execute(sql`
+          SELECT worker_id, investment_id, cash_register_id, note, scan_mode, status,
+            sent_at = ${SENT_AT}::timestamptz AS has_parent_sent_at, ai_read,
+            ARRAY(SELECT media_id FROM worker_expense_draft_media
+              WHERE draft_id = d.id ORDER BY position) AS pages,
+            ARRAY(SELECT transfer_id FROM worker_expense_draft_transfers
+              WHERE draft_id = d.id) AS transfers
+          FROM worker_expense_drafts d WHERE id = ${draftId}
+        `)
+      ).rows[0]
+
+    const setTrashedRegister = (isTrashed: boolean) =>
+      db.execute(sql`
+        UPDATE cash_registers SET trashed_at = ${isTrashed ? sql`now()` : sql`NULL`}
+        WHERE id = ${registerId}
+      `)
+
+    // Booked from page 0; page 1 skipped alone; pages 3 and 2 skipped as one paragon. Only page 1
+    // and the pair have a read row — the pair's written in another order than the skip.
+    beforeAll(async () => {
+      restoreInvestmentId = await createTestInvestment(payload, 'worker-expense-drafts-db-restore')
+      pages = []
+      for (let i = 0; i < 5; i++) pages.push(await insertMedia(`restore-${i}`, workerId))
+      const draftId = await insertWorkerExpenseDraft(db, {
+        workerId,
+        investmentId: restoreInvestmentId,
+        cashRegisterId: registerId,
+        note: 'z budowy',
+        scanMode: 'one-per-photo',
+        mediaIds: pages,
+      })
+      if (draftId === null) throw new Error('draft fixture refused')
+      parentId = draftId
+      const aiRead = {
+        rows: [
+          { mediaIds: [pages[0]], amount: 10 },
+          { mediaIds: [pages[1]], amount: 20, description: 'farba' },
+          { mediaIds: [pages[2], pages[3]], amount: 30 },
+        ],
+      }
+      await db.execute(sql`
+        UPDATE worker_expense_drafts
+        SET sent_at = ${SENT_AT}::timestamptz, ai_read = ${JSON.stringify(aiRead)}::jsonb
+        WHERE id = ${parentId}
+      `)
+      ;[transferId] = await unlinkedTransferIds(1)
+      await decideExpenseDraft(db, {
+        draftId: parentId,
+        decidedBy: otherWorkerId,
+        status: 'accepted',
+        transferIds: [transferId],
+        transferMediaIds: [[pages[0]]],
+        skippedReceipts: [[pages[1]], [pages[3], pages[2]], [pages[4]]],
+      })
+    })
+
+    afterAll(async () => {
+      await db.execute(
+        sql`DELETE FROM worker_expense_drafts WHERE investment_id = ${restoreInvestmentId}`,
+      )
+      if (restoreInvestmentId)
+        await deleteTestInvestment(payload, restoreInvestmentId).catch(() => {})
+    })
+
+    it('becomes a pending zgłoszenie of its own, carrying its read, and leaves the parent as booked', async () => {
+      const [single] = await skippedOf(parentId)
+      const restored = await restoreSkippedReceipt(db, single.id)
+      if (!restored) throw new Error('restore refused')
+
+      expect(restored.hasRead).toBe(true)
+      expect(await draftRow(restored.draftId)).toEqual({
+        worker_id: workerId,
+        investment_id: restoreInvestmentId,
+        cash_register_id: registerId,
+        note: 'z budowy',
+        scan_mode: 'one-per-photo',
+        status: 'pending',
+        has_parent_sent_at: true,
+        ai_read: { rows: [{ mediaIds: [pages[1]], amount: 20, description: 'farba' }] },
+        pages: [pages[1]],
+        transfers: [],
+      })
+      expect((await skippedOf(parentId)).map((receipt) => receipt.id)).not.toContain(single.id)
+      expect(await draftRow(parentId)).toMatchObject({
+        status: 'accepted',
+        pages,
+        transfers: [transferId],
+      })
+
+      expect(await restoreSkippedReceipt(db, single.id)).toBeNull()
+    })
+
+    it('matches its read row as a set and keeps the parent’s page order', async () => {
+      const pair = (await skippedOf(parentId)).find((receipt) => receipt.mediaIds.length === 2)
+      if (!pair) throw new Error('pair fixture missing')
+      const restored = await restoreSkippedReceipt(db, pair.id)
+      if (!restored) throw new Error('restore refused')
+
+      expect(restored.hasRead).toBe(true)
+      expect(await draftRow(restored.draftId)).toMatchObject({
+        ai_read: { rows: [{ mediaIds: [pages[2], pages[3]], amount: 30 }] },
+        pages: [pages[2], pages[3]],
+      })
+    })
+
+    // Deleting the restored zgłoszenie drops its links only; the accepted parent still holds the photo.
+    it('a paragon with no read row comes back unread, and its pages outlive its delete', async () => {
+      const unread = (await skippedOf(parentId)).find((receipt) => receipt.mediaIds[0] === pages[4])
+      if (!unread) throw new Error('unread fixture missing')
+
+      await setTrashedRegister(true)
+      try {
+        expect(await restoreSkippedReceipt(db, unread.id)).toBeNull()
+        const listed = await listExpenseDraftHistory(
+          db,
+          {
+            statuses: ['rejected'],
+            investmentIds: [restoreInvestmentId],
+            workerIds: null,
+            sentRange: {},
+          },
+          { page: 1, limit: 50 },
+        )
+        expect(listed.rows.map((row) => row.skippedReceipt)).toEqual([
+          { id: unread.id, isRestorable: false },
+        ])
+      } finally {
+        await setTrashedRegister(false)
+      }
+
+      const restored = await restoreSkippedReceipt(db, unread.id)
+      if (!restored) throw new Error('restore refused')
+      expect(restored.hasRead).toBe(false)
+      expect((await draftRow(restored.draftId)).ai_read).toBeNull()
+
+      expect(await deletePendingExpenseDraft(db, { draftId: restored.draftId, workerId })).toEqual([
+        pages[4],
+      ])
+      expect(await findDraftHeldMedia(db, [pages[4]])).toEqual([pages[4]])
     })
   })
 })

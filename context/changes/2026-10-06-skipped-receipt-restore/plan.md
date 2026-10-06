@@ -402,13 +402,13 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 1.1 History + worker-list DB spec passes
-- [x] 1.2 Worker table DOM spec still passes
-- [x] 1.3 Columns DOM spec still passes
+- [x] 1.1 History + worker-list DB spec passes — 64dd808f
+- [x] 1.2 Worker table DOM spec still passes — 64dd808f
+- [x] 1.3 Columns DOM spec still passes — 64dd808f
 
 ### Phase 2: Restore a skipped paragon
 
 #### Automated
 
-- [ ] 2.1 Restore DB spec passes
-- [ ] 2.2 Data-table DOM spec passes
+- [x] 2.1 Restore DB spec passes
+- [x] 2.2 Data-table DOM spec passes

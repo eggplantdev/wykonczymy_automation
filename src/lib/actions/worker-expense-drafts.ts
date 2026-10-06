@@ -17,6 +17,7 @@ import {
   insertWorkerExpenseDraft,
   removeExpenseDraftPage,
   restoreRejectedExpenseDraft,
+  restoreSkippedReceipt,
   updatePendingExpenseDraft,
 } from '@/lib/db/worker-expense-drafts'
 import type { ExpenseDraftReadT } from '@/lib/db/expense-draft-read'
@@ -122,6 +123,25 @@ export async function restoreExpenseDraftAction(draftId: number): Promise<Action
             'Nie można przywrócić — zgłoszenie nie jest już odrzucone albo jego pracownik, inwestycja lub kasa są w koszu.',
         }
   })
+}
+
+export async function restoreSkippedReceiptAction(receiptId: number): Promise<ActionResultT> {
+  return protectedAction(
+    `restoreSkippedReceiptAction receipt=${receiptId}`,
+    async ({ payload }) => {
+      const db = await getDb(payload)
+      const restored = await restoreSkippedReceipt(db, receiptId)
+      if (!restored) {
+        return {
+          success: false,
+          error:
+            'Nie można przywrócić — paragon został już przywrócony albo pracownik, inwestycja lub kasa są w koszu.',
+        }
+      }
+      if (!restored.hasRead) after(() => readExpenseDraftReceipts(db, restored.draftId))
+      return { success: true }
+    },
+  )
 }
 
 export async function deleteExpenseDraftAction(draftId: number): Promise<ActionResultT> {

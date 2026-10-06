@@ -10,6 +10,10 @@ import { useExpenseDraftAcceptance } from '@/components/worker-expenses/use-expe
 import { useTranslation } from '@/hooks/use-translation'
 import { useUrlFilterParams } from '@/hooks/use-url-filter-params'
 import {
+  restoreExpenseDraftAction,
+  restoreSkippedReceiptAction,
+} from '@/lib/actions/worker-expense-drafts'
+import {
   DRAFT_STATUS_LABEL_KEYS,
   EXPENSE_DRAFT_STATUSES,
 } from '@/lib/constants/worker-expense-drafts'
@@ -43,8 +47,25 @@ export function ExpenseDraftsDataTable({
   const columns = useExpenseDraftColumns({
     isManagerView: true,
     actions: (draft) => {
-      if (draft.skippedReceipt) return null
-      if (draft.status === 'rejected') return <RestoreExpenseDraftButton draftId={draft.id} />
+      const { skippedReceipt } = draft
+      if (skippedReceipt) {
+        return (
+          skippedReceipt.isRestorable && (
+            <RestoreExpenseDraftButton
+              restore={() => restoreSkippedReceiptAction(skippedReceipt.id)}
+              successMessage="Paragon przywrócony"
+            />
+          )
+        )
+      }
+      if (draft.status === 'rejected') {
+        return (
+          <RestoreExpenseDraftButton
+            restore={() => restoreExpenseDraftAction(draft.id)}
+            successMessage="Zgłoszenie przywrócone"
+          />
+        )
+      }
       if (draft.status !== 'pending') return null
       return openButton(draft)
     },
