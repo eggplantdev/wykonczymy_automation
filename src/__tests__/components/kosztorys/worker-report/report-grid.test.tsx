@@ -6,9 +6,9 @@ import { TranslationsProvider } from '@/components/kosztorys/worker-report/trans
 import type { ReportDraftT } from '@/components/kosztorys/worker-report/types'
 import type { useReportDraft } from '@/components/kosztorys/worker-report/use-report-draft'
 import { toWorkerReportFormData } from '@/lib/kosztorys/worker-report/to-form-data'
-import { WORKER_VIEW_DEFAULT_SETTINGS } from '@/lib/kosztorys/worker-view/settings'
 import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
 import { item, stage, tree } from '@/__tests__/helpers/kosztorys-history'
+import { workerAudience } from '@/__tests__/helpers/worker-audience'
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
@@ -35,7 +35,6 @@ beforeAll(() => {
 
 afterEach(cleanup)
 
-const WORKER_ID = 1
 const STAGES = [stage(7, 1, 'Etap 1')]
 
 const DOCUMENT: Extract<WorkerKosztorysT, { kind: 'ready' }> = {
@@ -46,24 +45,7 @@ const DOCUMENT: Extract<WorkerKosztorysT, { kind: 'ready' }> = {
     { itemId: 1, stageId: 7, qtyDone: 5 },
     { itemId: 2, stageId: 7, qtyDone: 2 },
   ]),
-  worker: {
-    workerId: WORKER_ID,
-    name: 'Jan',
-    plane: 'w_tools',
-    settings: WORKER_VIEW_DEFAULT_SETTINGS,
-    executedQtyByItem: {},
-    summary: {
-      plannedNet: 1600,
-      executedByStage: [],
-      stagesWholeNet: 0,
-      executedNet: 600,
-      bonusNet: 0,
-      payouts: [],
-      paidNet: 0,
-      owed: 600,
-      isOverpaid: false,
-    },
-  },
+  worker: workerAudience({ plannedNet: 1600, executedNet: 600, owed: 600 }),
 }
 
 // dsg never activates a cell in jsdom, so a spec cannot type into „Zgłaszam”: it hands the grid the
@@ -82,7 +64,7 @@ function draftOf(draft: Partial<ReportDraftT> = {}): ReturnType<typeof useReport
 
 function grid(draft: ReturnType<typeof useReportDraft>) {
   return (
-    <TranslationsProvider initialLocale="pl" workerId={WORKER_ID}>
+    <TranslationsProvider initialLocale="pl" workerId={DOCUMENT.worker.workerId}>
       <ReportGrid
         token="token"
         data={toWorkerReportFormData(DOCUMENT)}
@@ -100,6 +82,15 @@ const reportQtys = () =>
   [...document.querySelectorAll<HTMLInputElement>('.dsg-row .kosztorys-report-column input')].map(
     (input) => input.value,
   )
+
+const openOptions = () => userEvent.click(screen.getByRole('button', { name: 'Opcje' }))
+
+// The open menu hides the rest of the page from the accessibility tree, so it closes again.
+async function expectReportedOnlyCount(count: number) {
+  await openOptions()
+  expect(screen.getByText(`Tylko zgłaszane przeze mnie (${count})`)).toBeInTheDocument()
+  await userEvent.keyboard('{Escape}')
+}
 
 const switchTo = (mode: 'Inwestycja' | 'Zgłaszam pracę') =>
   userEvent.click(screen.getByRole('radio', { name: mode }))
@@ -122,37 +113,48 @@ describe('a typed „Zgłaszam” survives the footer’s mode switch', () => {
     await switchTo('Zgłaszam pracę')
 
     expect(reportQtys()).toContain('-3')
-    expect(screen.getByText('Tylko zgłaszane przeze mnie (1)')).toBeInTheDocument()
+    await expectReportedOnlyCount(1)
   })
 })
 
 describe('the counters follow the szkic', () => {
   const extra = { key: 'e1', description: 'Silikon', unit: 'mb', qty: '4' }
 
-  it('counts reported pozycje in „Tylko zgłaszane przeze mnie” and every line in „Wyślij”', () => {
+  it('counts reported pozycje in „Tylko zgłaszane przeze mnie” and every line in „Wyślij”', async () => {
     const { rerender } = render(grid(draftOf()))
-    expect(screen.getByText('Tylko zgłaszane przeze mnie (0)')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Wyślij' })).toBeDisabled()
+    await expectReportedOnlyCount(0)
 
     rerender(grid(draftOf({ qtyByItem: { 1: '3', 2: '1,5' } })))
-    expect(screen.getByText('Tylko zgłaszane przeze mnie (2)')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Wyślij (2)' })).toBeEnabled()
+    await expectReportedOnlyCount(2)
 
     rerender(grid(draftOf({ qtyByItem: { 1: '3', 2: '' } })))
-    expect(screen.getByText('Tylko zgłaszane przeze mnie (1)')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Wyślij (1)' })).toBeInTheDocument()
+    await expectReportedOnlyCount(1)
   })
 
-  it('a complete „Nowa praca” counts in „Wyślij” only', () => {
+  it('a complete „Nowa praca” counts in „Wyślij” only', async () => {
     render(grid(draftOf({ qtyByItem: { 1: '3' }, extras: [extra] })))
 
-    expect(screen.getByText('Tylko zgłaszane przeze mnie (1)')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Wyślij (2)' })).toBeInTheDocument()
+    await expectReportedOnlyCount(1)
   })
 
   it('a half-filled „Nowa praca” adds nothing to „Wyślij”', () => {
     render(grid(draftOf({ qtyByItem: { 1: '3' }, extras: [{ ...extra, unit: '' }] })))
 
     expect(screen.getByRole('button', { name: 'Wyślij (1)' })).toBeDisabled()
+  })
+})
+
+describe('„Tylko zgłaszane przeze mnie” before anything is reported', () => {
+  it('says nothing is reported yet rather than that the kosztorys is empty', async () => {
+    render(grid(draftOf()))
+    await openOptions()
+    await userEvent.click(screen.getByText('Tylko zgłaszane przeze mnie (0)'))
+
+    expect(await screen.findByText('Nic jeszcze nie zgłoszono')).toBeInTheDocument()
+    expect(screen.queryByText('Kosztorys jest pusty')).not.toBeInTheDocument()
   })
 })

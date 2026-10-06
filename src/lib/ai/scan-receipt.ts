@@ -25,7 +25,13 @@ export async function scanReceipt(
       filename: file.name || `receipt.${file.type.split('/')[1] ?? 'pdf'}`,
     })),
   )
+  return scanReceiptPages(pages, otherCategoryNames)
+}
 
+export async function scanReceiptPages(
+  pages: ReceiptPageT[],
+  otherCategoryNames: string[],
+): Promise<ReceiptFillResultT> {
   const data = await extractReceipt(pages, otherCategoryNames)
 
   // Derive the Opis-based name for the client to apply before upload; skip on the unreadable

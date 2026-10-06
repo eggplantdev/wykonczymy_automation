@@ -52,7 +52,11 @@ export function createSaveLanes() {
     await Promise.all([...new Set(keys)].map((key) => tails.get(key) ?? Promise.resolve()))
   }
 
-  return { enqueue, drain }
+  function drainAll(): Promise<void> {
+    return drain(tails.keys())
+  }
+
+  return { enqueue, drain, drainAll }
 }
 
 type DispatchT = (key: string, run: LaneRunT, onError?: () => void) => Promise<void>
@@ -66,7 +70,7 @@ type DispatchT = (key: string, run: LaneRunT, onError?: () => void) => Promise<v
 export function createDebouncedSaves(
   delay: number,
   dispatch: DispatchT,
-  lanes: Pick<ReturnType<typeof createSaveLanes>, 'drain'>,
+  lanes: Pick<ReturnType<typeof createSaveLanes>, 'drain' | 'drainAll'>,
 ) {
   const pending = new Map<string, { timer: ReturnType<typeof setTimeout>; fire: () => void }>()
 
@@ -102,10 +106,19 @@ export function createDebouncedSaves(
     await lanes.drain(unique)
   }
 
+  // For a write that replaces the whole tree under the grid: every typed cell must be stored first.
+  async function drainAll(): Promise<void> {
+    for (const entry of [...pending.values()]) {
+      clearTimeout(entry.timer)
+      entry.fire()
+    }
+    await lanes.drainAll()
+  }
+
   function dispose() {
     for (const { timer } of pending.values()) clearTimeout(timer)
     pending.clear()
   }
 
-  return { save, cancel, runNow, drain, dispose }
+  return { save, cancel, runNow, drain, drainAll, dispose }
 }

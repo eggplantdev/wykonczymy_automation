@@ -24,6 +24,7 @@ import { KosztorysInvestorMenu } from '@/components/kosztorys/editor/toolbar/men
 import { KosztorysWorkersMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-workers-menu'
 import { SaveVersionDialog } from '@/components/kosztorys/editor/dialogs/save-version-dialog'
 import { ClearKosztorysDialog } from '@/components/kosztorys/editor/dialogs/clear-kosztorys-dialog'
+import { ReorderMenuItem } from '@/components/kosztorys/editor/actions/reorder-action'
 import { SavePresetDialog } from '@/components/kosztorys/editor/dialogs/preset/save-preset-dialog'
 import { ReloadFromPresetDialog } from '@/components/kosztorys/editor/dialogs/preset/reload-from-preset-dialog'
 import { SheetCompareDialog } from '@/components/kosztorys/editor/dialogs/sheet/sheet-compare-dialog'
@@ -95,6 +96,7 @@ export function KosztorysActionsMenu({
                 <Redo2 />
                 <MenuItemBody label="Ponów" description="Cmd/Ctrl+Shift+Z" />
               </DropdownMenuItem>
+              <ReorderMenuItem />
               <CleanItemTextsMenuItem />
               <FillTranslationsMenuItem />
             </>

@@ -6,6 +6,7 @@ import { Minus, Plus, Scan } from 'lucide-react'
 import { TransformComponent, TransformWrapper } from 'react-zoom-pan-pinch'
 import { RowActionButton } from '@/components/ui/row-actions/row-action-button'
 import { Spinner } from '@/components/ui/loader/spinner'
+import { useTranslation } from '@/hooks/use-translation'
 
 type ZoomablePreviewImagePropsT = {
   src: string
@@ -32,6 +33,7 @@ export function ZoomablePreviewImage({
   onLoad,
   onError,
 }: ZoomablePreviewImagePropsT) {
+  const { t } = useTranslation('media')
   // At scale 1 the optimized rendition is the right trade; past it, magnifying a rendition only
   // magnifies its artefacts, so the first zoom swaps in the full-size original. One-way for the
   // lifetime of this page — flipping back on every return to 1× would re-download both layers.
@@ -107,18 +109,18 @@ export function ZoomablePreviewImage({
           {/* Overlaid rather than placed by the pager, which only exists on a multi-page set. */}
           <div className="bg-background/85 absolute right-2 bottom-2 z-10 flex gap-1 rounded-md border p-1 shadow-sm">
             {[
-              { icon: Minus, label: 'Oddal', onClick: () => zoomOut() },
+              { icon: Minus, label: t('zoomOut'), onClick: () => zoomOut() },
               // Says it on its own click too: a transform callback can only report a scale the
               // layout was able to compute.
               {
                 icon: Plus,
-                label: 'Przybliż',
+                label: t('zoomIn'),
                 onClick: () => {
                   startZoom()
                   zoomIn()
                 },
               },
-              { icon: Scan, label: 'Dopasuj do okna', onClick: () => resetTransform() },
+              { icon: Scan, label: t('fitToWindow'), onClick: () => resetTransform() },
             ].map(({ icon, label, onClick }) => (
               // Wider than a row action: this one is a touch target floating over an image.
               <RowActionButton

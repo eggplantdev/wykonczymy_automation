@@ -1,6 +1,6 @@
 'use client'
 
-import { usePersistedEnum } from '@/hooks/use-persisted-enum'
+import { usePersistedEnum } from '@/hooks/use-persisted-value'
 import { CREW_AXIS_DEFAULT, type CrewAxisT } from '@/lib/kosztorys/crew-axis'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 

@@ -18,7 +18,7 @@ vi.mock('@/lib/ai/openrouter', () => ({
   extractReceipt: extractReceiptSpy,
 }))
 
-import { scanReceipt } from '@/lib/ai/scan-receipt'
+import { scanReceipt, scanReceiptPages } from '@/lib/ai/scan-receipt'
 
 const PNG_BYTES = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a])
 
@@ -133,5 +133,23 @@ describe('scanReceipt', () => {
     it('leaves a null netto null', async () => {
       expect(await scanWith({ amount: 12.5, netAmount: null })).toBeNull()
     })
+  })
+})
+
+describe('scanReceiptPages', () => {
+  it('shapes pages it is handed the way scanReceipt shapes picked files', async () => {
+    extractReceiptSpy.mockResolvedValue({
+      description: 'Castorama',
+      amount: 12.5,
+      netAmount: 20,
+      invoiceNote: '',
+      otherCategoryName: '',
+    })
+    const pages = [{ bytes: PNG_BYTES, mediaType: 'image/png', filename: 'photo-1.png' }]
+
+    const result = await scanReceiptPages(pages, [])
+
+    expect(extractReceiptSpy).toHaveBeenCalledWith(pages, [])
+    expect(result).toMatchObject({ filename: 'castorama.png', netAmount: null })
   })
 })

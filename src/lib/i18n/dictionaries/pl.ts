@@ -13,6 +13,7 @@ export const pl = {
   common: {
     close: 'Zamknij',
     cancel: 'Anuluj',
+    delete: 'Usuń',
     language: 'Język',
     requestFailed: 'Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.',
     databaseError: 'Nie udało się wykonać operacji — odśwież stronę i spróbuj ponownie.',
@@ -87,6 +88,8 @@ export const pl = {
     since: 'Od',
     myInvestments: 'Moje inwestycje',
     noInvestments: 'Brak aktywnych inwestycji.',
+    noInvestmentToReport:
+      'Żeby zgłosić pracę, musisz być przypisany do któregoś z etapów aktywnej inwestycji.',
     investment: 'Inwestycja',
     reports: 'Zgłoszenia',
     reportWork: 'Zgłoś prace',
@@ -109,6 +112,8 @@ export const pl = {
   expenseDrafts: {
     title: 'Moje wydatki',
     noRegister: 'Nie masz kasy — poproś kierownika o jej założenie.',
+    noInvestment:
+      'Żeby dodać wydatek, musisz być przypisany do któregoś z etapów aktywnej inwestycji.',
     empty: 'Brak zgłoszonych wydatków.',
     investment: 'Inwestycja',
     sentAt: 'Wysłano',
@@ -142,6 +147,12 @@ export const pl = {
     removePhotoConfirm: 'Czy na pewno chcesz usunąć to zdjęcie?',
     removePhotoDescription: 'Operacji nie da się cofnąć — plik znika bezpowrotnie.',
     removePhotoError: 'Nie udało się usunąć zdjęcia',
+    scanModeOneInvoice: 'Jeden wydatek',
+    scanModeOnePerPhoto: 'Kilka wydatków',
+    scanModeOneInvoiceHint:
+      'Wszystkie zdjęcia to jedna faktura — powstanie jedna pozycja z kilkoma stronami.',
+    scanModeOnePerPhotoHint: 'Każde zdjęcie to osobny paragon — powstanie z niego własna pozycja.',
+    tooManyPhotos: 'Najwyżej {{max}} zdjęć w jednym wydatku — wyślij resztę osobno.',
   },
   report: {
     pageTitle: 'Zgłoszenie prac',
@@ -185,10 +196,7 @@ export const pl = {
       other: '{{count}} pracy. Kierownik sprawdzi zgłoszenie i przeniesie je do etapu w rozpisce.',
     },
     newReport: 'Nowe zgłoszenie',
-    sentReports: 'Wysłane zgłoszenia',
-    statusPending: 'czeka',
-    statusRejected: 'odrzucone',
-    statusAccepted: 'przyjęte ({{accepted}} z {{total}})',
+    sentReports: 'Czekają na sprawdzenie',
     reportColumn: 'Zgłaszam',
     reportColumnHint: 'wpisz, ile wykonano od ostatniego zgłoszenia.',
     showDoneSum: 'Pokaż sumę do tej pory wykonanej pracy',
@@ -455,6 +463,9 @@ export const pl = {
     uploadFailedRetry: 'Nie udało się przesłać pliku — spróbuj ponownie.',
     ingestFailed: 'Nie udało się przetworzyć pliku — spróbuj ponownie.',
     convertFailed: 'Nie udało się przekonwertować „{{name}}” — zapisz jako JPG i spróbuj ponownie.',
+    zoomOut: 'Oddal',
+    zoomIn: 'Przybliż',
+    fitToWindow: 'Dopasuj do okna',
   },
   shell: {
     menu: 'Menu',

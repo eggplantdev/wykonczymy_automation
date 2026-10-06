@@ -10,6 +10,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { buttonVariants } from '@/components/ui/button'
+import { useTranslation } from '@/hooks/use-translation'
 
 type PropsT = {
   open: boolean
@@ -32,11 +33,12 @@ export function ConfirmDialog({
   title,
   description,
   confirmLabel = 'Potwierdź',
-  cancelLabel = 'Anuluj',
+  cancelLabel,
   variant = 'alert',
   onConfirm,
   onCancel,
 }: PropsT) {
+  const { t } = useTranslation('common')
   return (
     <AlertDialog open={open} onOpenChange={(next) => !next && onCancel()}>
       <AlertDialogContent>
@@ -45,7 +47,7 @@ export function ConfirmDialog({
           {description != null && <AlertDialogDescription>{description}</AlertDialogDescription>}
         </div>
         <div className="mt-4 flex justify-end gap-2">
-          <AlertDialogCancel>{cancelLabel}</AlertDialogCancel>
+          <AlertDialogCancel>{cancelLabel ?? t('cancel')}</AlertDialogCancel>
           <AlertDialogAction
             className={variant === 'alert' ? buttonVariants({ variant: 'destructive' }) : undefined}
             onClick={onConfirm}

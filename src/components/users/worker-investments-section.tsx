@@ -8,15 +8,18 @@ import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 import { createTranslator } from '@/lib/i18n/translations'
 import type { LanguageT } from '@/lib/i18n/languages'
 
-const COLS = 'minmax(min(7rem, 24vw), 28rem) auto'
+const INVESTMENT_COL = 'minmax(min(7rem, 24vw), 28rem)'
 
 export function WorkerInvestmentsSection({
   investments,
   workerName,
+  canReport,
   locale,
 }: {
   investments: WorkerStageInvestmentT[]
   workerName: string
+  /** The link reports as the worker, whoever opens it — so only he is offered it. */
+  canReport: boolean
   locale: LanguageT
 }) {
   const { t } = createTranslator(locale, 'workerPage')
@@ -24,36 +27,57 @@ export function WorkerInvestmentsSection({
     <div>
       <h2 className="mb-2 text-sm font-semibold">{t('myInvestments')}</h2>
       {investments.length === 0 ? (
-        <Description>{t('noInvestments')}</Description>
+        <Description>{t(canReport ? 'noInvestmentToReport' : 'noInvestments')}</Description>
       ) : (
-        <SummaryTable cols={COLS} className="w-fit">
+        <SummaryTable
+          cols={canReport ? `${INVESTMENT_COL} auto` : INVESTMENT_COL}
+          className="w-fit"
+        >
           <SummaryHeaderCell variant="label">{t('investment')}</SummaryHeaderCell>
-          <SummaryHeaderCell variant="label">{t('reports')}</SummaryHeaderCell>
+          {canReport && <SummaryHeaderCell variant="label">{t('reports')}</SummaryHeaderCell>}
           {investments.map((investment) => (
             <Fragment key={investment.investmentId}>
               <SummaryLabelCell className="flex items-center">{investment.name}</SummaryLabelCell>
-              <SummaryLabelCell className="flex items-center">
-                {investment.token ? (
-                  <Button asChild>
-                    <a
-                      href={workerReportShareUrl(
-                        FRONTEND_URL,
-                        investment.name,
-                        workerName,
-                        investment.token,
-                      )}
-                    >
-                      {t('reportWork')}
-                    </a>
-                  </Button>
-                ) : (
-                  <span className="text-muted-foreground">{t('noLink')}</span>
-                )}
-              </SummaryLabelCell>
+              {canReport && (
+                <ReportLinkCell
+                  investment={investment}
+                  workerName={workerName}
+                  reportWork={t('reportWork')}
+                  noLink={t('noLink')}
+                />
+              )}
             </Fragment>
           ))}
         </SummaryTable>
       )}
     </div>
+  )
+}
+
+function ReportLinkCell({
+  investment,
+  workerName,
+  reportWork,
+  noLink,
+}: {
+  investment: WorkerStageInvestmentT
+  workerName: string
+  reportWork: string
+  noLink: string
+}) {
+  return (
+    <SummaryLabelCell className="flex items-center">
+      {investment.token ? (
+        <Button asChild>
+          <a
+            href={workerReportShareUrl(FRONTEND_URL, investment.name, workerName, investment.token)}
+          >
+            {reportWork}
+          </a>
+        </Button>
+      ) : (
+        <span className="text-muted-foreground">{noLink}</span>
+      )}
+    </SummaryLabelCell>
   )
 }

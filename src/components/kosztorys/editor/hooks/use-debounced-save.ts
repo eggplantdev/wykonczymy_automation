@@ -40,5 +40,11 @@ export function useDebouncedSave(delay = 500, onStale?: () => void) {
 
   useEffect(() => () => saves.dispose(), [saves])
 
-  return { save: saves.save, cancel: saves.cancel, runNow: saves.runNow, drain: saves.drain }
+  return {
+    save: saves.save,
+    cancel: saves.cancel,
+    runNow: saves.runNow,
+    drain: saves.drain,
+    drainAll: saves.drainAll,
+  }
 }

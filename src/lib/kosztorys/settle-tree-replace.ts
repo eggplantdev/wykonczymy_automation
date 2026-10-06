@@ -7,7 +7,8 @@ type SucceededT<R> = Extract<R, { success: true }>
 /**
  * Settle a write that wipes and reinserts the whole tree. `null` means refused and already toasted —
  * the dialog stays open. Otherwise the caller closes and reseeds, refetching when the request never
- * completed: it may still have committed, so the grid may be rendering rows that no longer exist.
+ * completed (it may still have committed, so the grid may be rendering rows that no longer exist) or
+ * when the refusal is `NOT_FOUND`: the editor's copy is stale, and a retry would resend it.
  */
 export async function settleTreeReplace<R extends { success: true } | FailureT>(
   call: () => Promise<R>,
@@ -24,5 +25,5 @@ export async function settleTreeReplace<R extends { success: true } | FailureT>(
     return { refetch: true }
   }
   toastMessage(result.error, 'error', 6000)
-  return null
+  return result.code === 'NOT_FOUND' ? { refetch: true } : null
 }

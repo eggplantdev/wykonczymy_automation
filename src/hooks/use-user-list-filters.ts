@@ -1,7 +1,7 @@
 'use client'
 
 import type { FilterTogglesBulkT } from '@/components/filters/filter-multi-select'
-import { usePersistedFlag } from '@/hooks/use-persisted-enum'
+import { usePersistedFlag } from '@/hooks/use-persisted-value'
 import type { UserRowT } from '@/types/table-rows'
 
 const SHOWN = ['shown', 'hidden'] as const

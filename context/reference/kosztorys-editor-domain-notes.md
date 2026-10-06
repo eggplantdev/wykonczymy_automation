@@ -436,6 +436,10 @@ tylko pokazuje link do wyłączenia. „Podgląd" otwiera ten sam widok bez wysy
   „link nieaktywny" co nieznany token, nie logowanie — pracownik nie ma konta. Kto nie może mieć
   rozpiski (brak etapu, etap bez rozliczenia, mieszane rozliczenia), ten nie zgłasza. Działa na
   telefonie — jedyny wyjątek od wąskiego zakresu telefonu.
+- **Granica prywatności jest w jednym miejscu.** „Tylko jego etapy" egzekwuje `withWorkerSettings`
+  (`lib/queries/worker-kosztorys.ts`) — jedyny builder pod linkiem „Zgłoszenie prac" i pod
+  „Podglądem pracownika". Nowy widok pracownika ma przejść przez niego, nie składać własnego
+  odczytu; testy prywatności stoją na `getWorkerKosztorysByReportShare`.
 - **Dwa tryby w stopce** (przypięta do dołu ekranu, przyciski równej szerokości): „Zgłaszam pracę"
   — opis prac, kolumna „Zgłaszam", „Nowa praca" i „Wyślij"; „Inwestycja" — cała rozpiska bez
   „Zgłaszam" i bez wysyłki, a pod nią rozliczenie w układzie stopki PDF. Wpisane ilości przeżywają

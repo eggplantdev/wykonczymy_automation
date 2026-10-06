@@ -82,7 +82,7 @@ async function assembleReportPage(
 ): Promise<WorkerReportPageT | null> {
   const [document, sentReports, sectionTranslations] = await Promise.all([
     documentRead,
-    listWorkerReports(db, investmentId, locale.workerId, { linkOnly: true }),
+    listWorkerReports(db, investmentId, locale.workerId, { linkOnly: true, pendingOnly: true }),
     getSectionTranslations(),
   ])
   if (!document) return null

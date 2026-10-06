@@ -1,10 +1,10 @@
 ---
 change_id: worker-page-language
 title: The worker's own page in Ukrainian / Russian — a current-language switch and a self-set default language
-status: implemented
+status: archived
 created: 2026-10-05
-updated: 2026-10-05
-archived_at: null
+updated: 2026-10-06
+archived_at: 2026-10-06T09:04:20Z
 branch: worker-page-language
 worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/worker-page-language
 ---

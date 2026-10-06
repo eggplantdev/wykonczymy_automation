@@ -25,7 +25,7 @@ import { useColumnWidths } from '@/components/kosztorys/editor/hooks/use-column-
 import { useColumnColors } from '@/components/kosztorys/editor/hooks/use-column-colors'
 import { useRowHeights } from '@/components/kosztorys/editor/hooks/use-row-heights'
 import { useConditionRowLatch } from '@/components/kosztorys/editor/hooks/use-condition-row-latch'
-import { engagedProblemIds, engagedStageProblemIds } from '@/lib/kosztorys/problem-conditions'
+import { engagedLatchingIds, engagedStageProblemIds } from '@/lib/kosztorys/problem-conditions'
 import { useKosztorysSettings } from '@/components/kosztorys/editor/hooks/use-kosztorys-settings'
 import { useKosztorysStageOps } from '@/components/kosztorys/editor/hooks/use-kosztorys-stage-ops'
 import { useKosztorysViewState } from '@/components/kosztorys/editor/hooks/use-kosztorys-view-state'
@@ -197,7 +197,7 @@ export function useKosztorysEditor({
   // anything may be written.
   const readOnly = preview || lock !== undefined
   const { recoverStaleTree, reportFailure } = useStaleTreeRecovery(onStaleTree)
-  const { save, runNow, drain } = useDebouncedSave(500, recoverStaleTree)
+  const { save, runNow, drain, drainAll } = useDebouncedSave(500, recoverStaleTree)
   // Owned by the shell (KosztorysEditorV2). Capture pushes here; toolbar + keyboard call undo/redo.
   const { push, undo, redo, canUndo, canRedo, pruneByIds, amendTop } = undoRedo
   const [gridRef, gridHeight, gridNode] = useElementHeight()
@@ -667,16 +667,13 @@ export function useKosztorysEditor({
     )
   }, [preview, rows, conditionCtx])
 
-  // Problems only: the latch's other half („Odśwież — ukryj poprawione") renders only while a problem is
-  // engaged, so latching under a „Prace" filter would hold rows with no way to release them. Out under
-  // preview for a different reason — nothing is being fixed in a client's document.
-  const engagedProblems = useMemo(
-    () => (preview ? new Set<string>() : engagedProblemIds(engagedConditionIds)),
-    [preview, engagedConditionIds],
+  const latchedConditions = useMemo(
+    () => engagedLatchingIds(engagedConditionIds),
+    [engagedConditionIds],
   )
   const { latch, refresh: refreshProblemRows } = useConditionRowLatch(
-    engagedProblems,
-    engagedProblems.size > 0,
+    latchedConditions,
+    latchedConditions.size > 0,
   )
   const viewRows = useMemo(() => {
     const next = buildViewRows({
@@ -1337,7 +1334,14 @@ export function useKosztorysEditor({
     }
   }
 
+  // Before a write that reseeds the grid from the server: what the grid shows must be stored first.
+  async function flushPendingSaves() {
+    flushUndoBuffer()
+    await drainAll()
+  }
+
   return {
+    flushPendingSaves,
     // „Wybierz pozycję z katalogu prac" reads this to tell which cennik prace are already in; viewRows
     // would answer for the active filter instead.
     rows,

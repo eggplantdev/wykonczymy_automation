@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 
 import { ingestFiles } from '@/lib/media/ingest-files'
 import type { BlockedFileError } from '@/lib/utils/process-upload-file'
-import { splitExtension } from '@/lib/utils/append-short-id'
+import { renamePages } from '@/lib/utils/receipt-filename'
 
 // Files that couldn't enter the map (unconvertible HEIC / oversize) — surfaced to the caller so
 // it can show a per-item Polish message. A blocked file leaves its row without a File.
@@ -101,17 +101,12 @@ export function useInvoiceFiles(initialFiles?: Map<string, File[]>) {
     return new Map(filesRef.current)
   }
 
-  // Swap a row's pages for same-bytes clones under the Opis-based receipt name so the FV label can
-  // mirror it. Page order is preserved and only page 1 carries the bare name — later pages get a
-  // „-2", „-3" suffix, since one invoice's pages would otherwise all upload under one filename.
+  // The Opis-based receipt name, so the FV label can mirror it.
   function renameFile(id: string, newName: string) {
     commit((prev) => {
       const existing = prev.get(id)
       if (!existing) return prev
-      const renamed = existing.map(
-        (file, index) => new File([file], pageFilename(newName, index), { type: file.type }),
-      )
-      return new Map(prev).set(id, renamed)
+      return new Map(prev).set(id, renamePages(existing, newName))
     })
   }
 
@@ -129,10 +124,4 @@ export function useInvoiceFiles(initialFiles?: Map<string, File[]>) {
     renameFile,
     reset,
   }
-}
-
-function pageFilename(name: string, index: number): string {
-  if (index === 0) return name
-  const { base, ext } = splitExtension(name)
-  return `${base}-${index + 1}${ext}`
 }

@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { KosztorysEditorToolbar } from '@/components/kosztorys/editor/toolbar/kosztorys-editor-toolbar'
 import { CataloguePickerHost } from '@/components/kosztorys/editor/actions/catalogue-picker-host'
+import { ReorderHost } from '@/components/kosztorys/editor/actions/reorder-host'
 import { KosztorysEditorProvider } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { CurrentUserProvider } from '@/hooks/use-current-user'
 
@@ -82,9 +83,10 @@ const renderToolbar = (overrides: Partial<Record<string, unknown>> = {}) =>
   render(
     <CurrentUserProvider user={sessionUser}>
       <KosztorysEditorProvider editor={{ ...editorContext, ...overrides } as EditorContextT}>
-        {/* „Dodaj" reaches for the catalogue picker, which the editor body hosts above the toolbar. */}
         <CataloguePickerHost>
-          <KosztorysEditorToolbar />
+          <ReorderHost>
+            <KosztorysEditorToolbar />
+          </ReorderHost>
         </CataloguePickerHost>
       </KosztorysEditorProvider>
     </CurrentUserProvider>,

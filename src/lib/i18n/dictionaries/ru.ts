@@ -4,6 +4,7 @@ export const ru: TranslationsT = {
   common: {
     close: 'Закрыть',
     cancel: 'Отмена',
+    delete: 'Удалить',
     language: 'Язык',
     requestFailed: 'Нет соединения с сервером — проверьте интернет или обновите страницу.',
     databaseError: 'Не удалось выполнить операцию — обновите страницу и попробуйте ещё раз.',
@@ -78,6 +79,8 @@ export const ru: TranslationsT = {
     since: 'С',
     myInvestments: 'Мои объекты',
     noInvestments: 'Нет активных объектов.',
+    noInvestmentToReport:
+      'Чтобы отчитаться о работах, вы должны быть назначены на один из этапов активного объекта.',
     investment: 'Объект',
     reports: 'Отчёты',
     reportWork: 'Отчитаться о работах',
@@ -100,6 +103,8 @@ export const ru: TranslationsT = {
   expenseDrafts: {
     title: 'Мои расходы',
     noRegister: 'У вас нет кассы — попросите руководителя её создать.',
+    noInvestment:
+      'Чтобы добавить расход, вы должны быть назначены на один из этапов активного объекта.',
     empty: 'Нет поданных расходов.',
     investment: 'Объект',
     sentAt: 'Отправлено',
@@ -133,6 +138,12 @@ export const ru: TranslationsT = {
     removePhotoConfirm: 'Вы уверены, что хотите удалить это фото?',
     removePhotoDescription: 'Это действие нельзя отменить — файл исчезнет навсегда.',
     removePhotoError: 'Не удалось удалить фото',
+    scanModeOneInvoice: 'Один расход',
+    scanModeOnePerPhoto: 'Несколько расходов',
+    scanModeOneInvoiceHint:
+      'Все фото — это один счёт: будет одна позиция с несколькими страницами.',
+    scanModeOnePerPhotoHint: 'Каждое фото — отдельный чек: из него будет отдельная позиция.',
+    tooManyPhotos: 'Не больше {{max}} фото в одном расходе — остальные отправьте отдельно.',
   },
   report: {
     pageTitle: 'Отчёт о работах',
@@ -177,10 +188,7 @@ export const ru: TranslationsT = {
       other: '{{count}} работы. Руководитель проверит отчёт и перенесёт его в этап сметы.',
     },
     newReport: 'Новый отчёт',
-    sentReports: 'Отправленные отчёты',
-    statusPending: 'ожидает',
-    statusRejected: 'отклонено',
-    statusAccepted: 'принято ({{accepted}} из {{total}})',
+    sentReports: 'Ожидают проверки',
     reportColumn: 'Сообщаю',
     reportColumnHint: 'впишите, сколько выполнено с последнего отчёта.',
     showDoneSum: 'Показать сумму выполненной работы',
@@ -441,6 +449,9 @@ export const ru: TranslationsT = {
     uploadFailedRetry: 'Не удалось отправить файл — попробуйте ещё раз.',
     ingestFailed: 'Не удалось обработать файл — попробуйте ещё раз.',
     convertFailed: 'Не удалось конвертировать «{{name}}» — сохраните как JPG и попробуйте ещё раз.',
+    zoomOut: 'Уменьшить',
+    zoomIn: 'Увеличить',
+    fitToWindow: 'Вписать в окно',
   },
   shell: {
     menu: 'Меню',

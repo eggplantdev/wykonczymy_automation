@@ -4,6 +4,7 @@ import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatPLN } from '@/lib/utils/format-currency'
 import type { CatalogueHintT } from '@/lib/kosztorys/work-catalogue/types'
+import { unitLabel } from '@/lib/kosztorys/format'
 
 type CandidateEntryT = Pick<CatalogueHintT, 'description' | 'unit' | 'clientPrice'>
 
@@ -23,7 +24,7 @@ export function CandidateRow({
     <>
       <span className="min-w-0 flex-1 text-left">{entry.description}</span>
       <span className="text-muted-foreground w-16 shrink-0 text-right">
-        {entry.unit || 'bez j.m.'}
+        {unitLabel(entry.unit)}
       </span>
       <span className="w-20 shrink-0 text-right tabular-nums">{formatPLN(entry.clientPrice)}</span>
     </>

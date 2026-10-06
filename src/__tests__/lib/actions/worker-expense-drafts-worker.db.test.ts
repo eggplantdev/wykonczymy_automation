@@ -23,6 +23,13 @@ vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalida
 const { reclaimUnreferencedMedia } = vi.hoisted(() => ({ reclaimUnreferencedMedia: vi.fn() }))
 vi.mock('@/lib/media/delete-unreferenced-media', () => ({ reclaimUnreferencedMedia }))
 
+// Collected and never run: the read has its own spec, here only its scheduling is the contract.
+const scheduled = vi.hoisted(() => [] as unknown[])
+vi.mock('next/server', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('next/server')>()
+  return { ...actual, after: (task: unknown) => void scheduled.push(task) }
+})
+
 const {
   addExpenseDraftPagesAction,
   deleteExpenseDraftAction,
@@ -73,6 +80,7 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
       investmentId,
       cashRegisterId: owner.registerId,
       note: 'przed',
+      scanMode: 'one-invoice',
       mediaIds,
     })
     if (draftId === null) throw new Error('draft fixture refused')
@@ -85,7 +93,7 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
   const readDraft = async (draftId: number) =>
     (
       await db.execute(sql`
-        SELECT status, note, investment_id, cash_register_id FROM worker_expense_drafts
+        SELECT status, note, investment_id, cash_register_id, scan_mode FROM worker_expense_drafts
         WHERE id = ${draftId}
       `)
     ).rows[0]
@@ -156,6 +164,7 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
     authState.userId = workerId
     authState.role = 'EMPLOYEE'
     reclaimUnreferencedMedia.mockReset().mockResolvedValue(undefined)
+    scheduled.length = 0
   })
 
   afterAll(async () => {
@@ -172,7 +181,12 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
 
   describe('the target a draft is sent to', () => {
     const send = async (name: string, target: { investmentId: number; cashRegisterId: number }) =>
-      sendExpenseDraftAction({ ...target, note: '', mediaIds: [await insertMedia(name, workerId)] })
+      sendExpenseDraftAction({
+        ...target,
+        note: '',
+        scanMode: 'one-invoice',
+        mediaIds: [await insertMedia(name, workerId)],
+      })
 
     it('sends to his own live kasa on an investment he works on', async () => {
       const result = await send('send-ok', { investmentId, cashRegisterId: registerId })
@@ -222,6 +236,7 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
           investmentId,
           cashRegisterId: otherRegisterId,
           note: 'po',
+          scanMode: 'one-invoice',
         }),
       ).toEqual({
         success: false,
@@ -247,6 +262,7 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
           investmentId,
           cashRegisterId: registerId,
           note: 'po',
+          scanMode: 'one-invoice',
         }),
         await addExpenseDraftPagesAction(draftId, [await insertMedia('foreign-add', workerId)]),
         await removeExpenseDraftPageAction(draftId, mediaIds[0]),
@@ -272,6 +288,7 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
           investmentId,
           cashRegisterId: registerId,
           note: 'po',
+          scanMode: 'one-invoice',
         }),
       ).toEqual({
         success: false,
@@ -331,6 +348,89 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
         expect.anything(),
         expect.arrayContaining(mediaIds),
       )
+    })
+  })
+
+  describe('the AI read of his draft', () => {
+    const READ = { rows: [{ mediaIds: [0], description: 'Cement' }] }
+    const seedRead = (draftId: number) =>
+      db.execute(sql`UPDATE worker_expense_drafts SET ai_read = ${JSON.stringify(READ)}::jsonb
+        WHERE id = ${draftId}`)
+    const readOf = async (draftId: number) =>
+      (await db.execute(sql`SELECT ai_read FROM worker_expense_drafts WHERE id = ${draftId}`))
+        .rows[0].ai_read
+    const edit = (draftId: number, scanMode: 'one-invoice' | 'one-per-photo', note = 'przed') =>
+      updateExpenseDraftAction({
+        draftId,
+        investmentId,
+        cashRegisterId: registerId,
+        note,
+        scanMode,
+      })
+
+    it('is asked for once a draft is sent, in the mode the worker chose', async () => {
+      const result = await sendExpenseDraftAction({
+        investmentId,
+        cashRegisterId: registerId,
+        note: '',
+        scanMode: 'one-per-photo',
+        mediaIds: [await insertMedia('read-send', workerId)],
+      })
+
+      expect(result).toMatchObject({ success: true })
+      if (!result.success) return
+      expect(await readDraft(result.data.draftId)).toMatchObject({ scan_mode: 'one-per-photo' })
+      expect(scheduled).toHaveLength(1)
+    })
+
+    it('an added photo drops the read and asks again', async () => {
+      const { draftId } = await ownDraft('read-add')
+      await seedRead(draftId)
+
+      expect(
+        await addExpenseDraftPagesAction(draftId, [await insertMedia('read-add-page', workerId)]),
+      ).toEqual({ success: true })
+      expect(await readOf(draftId)).toBeNull()
+      expect(scheduled).toHaveLength(1)
+    })
+
+    it('a removed photo drops the read and asks again', async () => {
+      const { draftId, mediaIds } = await ownDraft('read-remove', 2)
+      await seedRead(draftId)
+
+      expect(await removeExpenseDraftPageAction(draftId, mediaIds[0])).toEqual({ success: true })
+      expect(await readOf(draftId)).toBeNull()
+      expect(scheduled).toHaveLength(1)
+    })
+
+    it('a changed mode drops the read and asks again', async () => {
+      const { draftId } = await ownDraft('read-mode', 2)
+      await seedRead(draftId)
+
+      expect(await edit(draftId, 'one-per-photo')).toEqual({ success: true })
+      expect(await readDraft(draftId)).toMatchObject({ scan_mode: 'one-per-photo' })
+      expect(await readOf(draftId)).toBeNull()
+      expect(scheduled).toHaveLength(1)
+    })
+
+    it('an edit that keeps the mode keeps the read and asks nothing', async () => {
+      const { draftId } = await ownDraft('read-note', 2)
+      await seedRead(draftId)
+
+      expect(await edit(draftId, 'one-invoice', 'po')).toEqual({ success: true })
+      expect(await readOf(draftId)).toEqual(READ)
+      expect(scheduled).toHaveLength(0)
+    })
+
+    it('a refused change keeps the read and asks nothing', async () => {
+      const { draftId, mediaIds } = await ownDraft('read-refused')
+      await seedRead(draftId)
+
+      expect(await removeExpenseDraftPageAction(draftId, mediaIds[0])).toMatchObject({
+        success: false,
+      })
+      expect(await readOf(draftId)).toEqual(READ)
+      expect(scheduled).toHaveLength(0)
     })
   })
 

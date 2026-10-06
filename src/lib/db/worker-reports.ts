@@ -216,13 +216,14 @@ export async function listWorkerReports(
   investmentId: number,
   workerId?: number,
   // The worker's history on his link lists only what he sent himself, not a kierownik's scan.
-  { linkOnly = false }: { linkOnly?: boolean } = {},
+  { linkOnly = false, pendingOnly = false }: { linkOnly?: boolean; pendingOnly?: boolean } = {},
 ): Promise<WorkerReportRowT[]> {
   const res = await db.execute(sql`
     SELECT ${REPORT_COLUMNS} FROM worker_reports r ${REPORT_JOINS}
     WHERE r.investment_id = ${investmentId}
       ${workerId === undefined ? sql`` : sql`AND r.worker_id = ${workerId}`}
       ${linkOnly ? sql`AND r.source = 'link'` : sql``}
+      ${pendingOnly ? sql`AND r.status = 'pending'` : sql``}
     ORDER BY r.sent_at DESC, r.id DESC
   `)
   return res.rows.map(toReportRow)

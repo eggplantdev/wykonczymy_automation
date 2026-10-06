@@ -20,7 +20,6 @@ export function ExtraWorksDialogButton({ extras, commonUnits, onSave, onRemove }
   const [isOpen, setIsOpen] = useState(false)
   const [isCloseRefused, setIsCloseRefused] = useState(false)
   const { t } = useTranslation('report')
-  const { t: tCommon } = useTranslation('common')
   const hasInvalid = extras.some((extra) => extraState(extra) === 'invalid')
 
   const open = () => {
@@ -44,7 +43,7 @@ export function ExtraWorksDialogButton({ extras, commonUnits, onSave, onRemove }
         {extras.length > 0 && ` (${extras.length})`}
       </Button>
       <Dialog open={isOpen} onOpenChange={(next) => (next ? setIsOpen(true) : close())}>
-        <DialogContent className="sm:max-w-dialog-lg" closeLabel={tCommon('close')}>
+        <DialogContent className="sm:max-w-dialog-lg">
           <div className="flex flex-col gap-1">
             <DialogTitle>{t('extrasTitle')}</DialogTitle>
             <DialogDescription>{t('extrasDescription')}</DialogDescription>

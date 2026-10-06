@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { CellMenuTrigger } from '@/components/ui/datasheet-grid/cell-menu-trigger'
 import { useCataloguePicker } from '@/components/kosztorys/editor/actions/catalogue-picker-host'
+import { ReorderMenuItem } from '@/components/kosztorys/editor/actions/reorder-action'
 import { SectionTranslationDialog } from '@/components/kosztorys/editor/dialogs/section-translation/section-translation-dialog'
 import { SectionColorPicker } from '@/components/kosztorys/editor/grid/menus/section-color-picker'
 import { REMOVAL_CONFIRM_DESCRIPTION } from '@/components/kosztorys/editor/grid/menus/removal-confirm'
@@ -104,6 +105,7 @@ export function KosztorysSectionActionsMenu({
             <ArrowDown />
             Przesuń sekcję w dół
           </DropdownMenuItem>
+          <ReorderMenuItem compact />
           <SectionColorPicker
             value={color}
             onChange={(next) => actions.onSetColor(sectionId, next)}

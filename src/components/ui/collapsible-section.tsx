@@ -5,7 +5,7 @@ import * as Collapsible from '@radix-ui/react-collapsible'
 import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { Separator } from '@/components/ui/separator'
-import { usePersistedFlag } from '@/hooks/use-persisted-enum'
+import { usePersistedFlag } from '@/hooks/use-persisted-value'
 
 type CollapsibleSectionSizeT = 'lg' | 'sm'
 

@@ -3,7 +3,7 @@ change_id: ai-kosztorys-generation-tests
 title: AI kosztorys generation tests
 status: new
 created: 2026-10-01
-updated: 2026-10-01
+updated: 2026-10-05
 archived_at: null
 branch: null
 worktree: null
@@ -87,9 +87,9 @@ This is an experiment, not a feature. Nothing here ships. Each test case gets it
 
 ## Cases
 
-| #   | Folder                  | Input                                                                  | Investment (local) | Result                                                                                                                                                                                                      | Evaluated                                                             |
-| --- | ----------------------- | ---------------------------------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| 1   | `cases/01-bemowo-125m2` | 125,6 m² flat, stan deweloperski, 2 bathrooms, 5 PDFs (vector projekt) | #167, szablon #165 | v1 blind: 217 456 zł; v2 measured: 203 400 zł. **Written into the app: 203 764 zł** (v2 + 6 new positions: 1 from the katalog, 5 at 0 zł awaiting the owner's price) — locally #167, on **production #168** | v1 vs v2 only (`measurement.md`). The owner's offer is not ready yet. |
+| #   | Folder                  | Input                                                                  | Investment (local) | Result                                                                                                                                                                                                      | Evaluated                                                                                                                    |
+| --- | ----------------------- | ---------------------------------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `cases/01-bemowo-125m2` | 125,6 m² flat, stan deweloperski, 2 bathrooms, 5 PDFs (vector projekt) | #167, szablon #165 | v1 blind: 217 456 zł; v2 measured: 203 400 zł. **Written into the app: 203 764 zł** (v2 + 6 new positions: 1 from the katalog, 5 at 0 zł awaiting the owner's price) — locally #167, on **production #168** | **Yes, vs the owner's #175** (`owner-comparison.md`): 212 667 zł, −4,2%, but 35,8 tys. zł absolute error on shared positions |
 
 ## Research log
 
@@ -165,17 +165,35 @@ What did not work:
   Blob SDK's `upload()` refuses to run outside a browser, so the token request and `put` are spelled
   out.
 
-## Reliability by quantity class (case 1, after measuring; still no ground truth)
+### 2026-10-05 — case 1, round 4: against the owner's kosztorys
 
-| Class                          | Example                                | Best source                                           | Observed spread v1 → v2                                                        |
-| ------------------------------ | -------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------ |
-| Counts read from the documents | armatura, gniazda, otwory, grzejniki   | read directly                                         | unchanged; errors come from the client's own contradictions (5 vs 6 grzejniki) |
-| Ceiling / floor areas          | sufity, podłogi                        | printed room m², read                                 | ~0% (115 estimated = 114,7 read)                                               |
-| Wall areas per finish          | gładzie, limewash, kolor, tapety       | colour plan bands × Hpom                              | −39%…+38% per position; **driven by the legend, not the geometry**             |
-| Tile surfaces                  | płytki ścienne                         | colour plan bands × height; **not** the shopping list | shopping list overstates by 15–70%                                             |
-| Lengths with their own layer   | listwy, karnisze, maskownice           | vector colour layer                                   | −17%…−70% vs guesses                                                           |
-| Lengths with no layer          | bruzdy, kable, LED, Ethernet           | per point assumption                                  | not re-measured; still ±50%                                                    |
-| Position choice                | which of several overlapping positions | judgment                                              | unknown until compared with the owner                                          |
+The owner priced the same client in #175 („Wycena bez wizyty”, same documents). Full analysis:
+`cases/01-bemowo-125m2/owner-comparison.md`; snapshot and script under `owner/` and
+`scripts/compare-owner.py`.
+
+- **Total −4,2% is luck.** Shared positions carry 35,8 tys. zł of absolute error; 57 AI-only and 41
+  owner-only positions nearly cancel. Of the positions carrying 80% of the owner's value the AI has
+  the same position in 64%, and the same work under another position in ≈ 88%.
+- **Geometry held.** Wall finish layer 256,5 vs 253 m², ceilings 115 vs 112, wallpaper 50,6 vs 50,
+  karnisze 5,8 = 5,8. The v2 measurement moved 16 of 19 comparable positions toward the owner.
+- **The money is in trade knowledge and position choice:** szlifowanie mleczka (a szablon position
+  the agent skipped), tynk na listwach, masonry vs G-K partitions, tile detailing from the raster
+  elevations (shelves, glify, 45° edges), whole-bathroom waterproofing; one primer not two; rozdzielnia
+  as kpl; no AGD / osprzęt / doors.
+- **Counts are not safe either:** the owner counts more points everywhere (c.o. 8 → 16, wod-kan
+  14 → 20, electrical 83 → 98). What a „punkt” is, is a house convention.
+
+## Reliability by quantity class (case 1, after measuring; checked against the owner 2026-10-05)
+
+| Class                          | Example                                | Best source                                           | Observed spread v1 → v2                                                            |
+| ------------------------------ | -------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Counts read from the documents | armatura, gniazda, otwory, grzejniki   | read directly                                         | armatura exact; **installation points 15–100% under the owner** (house convention) |
+| Ceiling / floor areas          | sufity, podłogi                        | printed room m², read                                 | ~0% (115 estimated = 114,7 read)                                                   |
+| Wall areas per finish          | gładzie, limewash, kolor, tapety       | colour plan bands × Hpom                              | −39%…+38% per position; **driven by the legend, not the geometry**                 |
+| Tile surfaces                  | płytki ścienne                         | colour plan bands × height; **not** the shopping list | shopping list overstates by 15–70%                                                 |
+| Lengths with their own layer   | listwy, karnisze, maskownice           | vector colour layer                                   | −17%…−70% vs guesses                                                               |
+| Lengths with no layer          | bruzdy, kable, LED, Ethernet           | per point assumption                                  | not re-measured; still ±50%                                                        |
+| Position choice                | which of several overlapping positions | judgment                                              | **the largest error class** vs the owner — needs house rules                       |
 
 ## Agent procedure v0 (what the prompt has to enforce)
 
@@ -296,8 +314,9 @@ the house rules. The owner's kosztorysy are the answer key.
 
 ## Next
 
-- [ ] Get the owner's offer for case 1 and compare v1 and v2 against it, position by position:
-      Przedmiar delta, plus positions missed or added. This is the first real ground truth.
+- [x] Get the owner's offer for case 1 and compare v1 and v2 against it, position by position
+      (2026-10-05, `cases/01-bemowo-125m2/owner-comparison.md`).
+- [ ] Confirm the house-rule candidates from `owner-comparison.md` with the owner (15 min).
 - [ ] Ask the client the "do weryfikacji" questions from `measurement.md`: walls behind built-ins,
       karnisz behind maskownice, window heights.
 - [ ] **Later, not now (owner, 2026-10-01).** Turn "Agent procedure v0" into an actual prompt and re-run case 1 blind with it. Does a

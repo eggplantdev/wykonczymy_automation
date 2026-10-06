@@ -12,6 +12,7 @@ import {
   type KosztorysItemRefT,
 } from '@/lib/kosztorys/work-catalogue/already-in-kosztorys'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
+import { unitLabel } from '@/lib/kosztorys/format'
 
 type PropsT = {
   catalogue: WorkCatalogueItemT[]
@@ -42,7 +43,7 @@ export function CatalogueSwapDialog({
       <DialogContent className="sm:max-w-dialog-xl gap-0 overflow-hidden p-0 sm:p-0">
         <DialogHeader className="px-4 pt-4" title="Podmień na pracę z katalogu" />
         <p className="text-muted-foreground px-4 pt-1 text-sm">
-          Zgłoszono: „{reported.description}” ({reported.unit})
+          Zgłoszono: „{reported.description}” ({unitLabel(reported.unit)})
         </p>
         <div className="flex flex-wrap items-center gap-2 px-4 py-3">
           <SearchFilterInput

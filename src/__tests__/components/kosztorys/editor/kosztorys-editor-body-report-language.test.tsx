@@ -9,9 +9,8 @@ import { uk } from '@/lib/i18n/dictionaries/uk'
 import type { LanguageT } from '@/lib/i18n/languages'
 import { TranslationsProvider } from '@/components/kosztorys/worker-report/translations-provider'
 import type { KosztorysEditorDataT } from '@/lib/kosztorys/types'
-import { WORKER_VIEW_DEFAULT_SETTINGS } from '@/lib/kosztorys/worker-view/settings'
-import type { WorkerAudienceT } from '@/lib/kosztorys/worker-view/types'
 import { item, stage, tree } from '@/__tests__/helpers/kosztorys-history'
+import { workerAudience } from '@/__tests__/helpers/worker-audience'
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -36,28 +35,10 @@ beforeAll(() => {
   })
 })
 
-const WORKER_ID = 1
 const STAGES = [stage(7, 1, 'Płytki')]
 const CURRENT = tree([item(1, 'Płytki', 12, 100)], STAGES, [{ itemId: 1, stageId: 7, qtyDone: 5 }])
 
-const WORKER: WorkerAudienceT = {
-  workerId: WORKER_ID,
-  name: 'Jan',
-  plane: 'w_tools',
-  settings: WORKER_VIEW_DEFAULT_SETTINGS,
-  executedQtyByItem: {},
-  summary: {
-    plannedNet: 0,
-    executedByStage: [],
-    stagesWholeNet: 0,
-    executedNet: 0,
-    bonusNet: 0,
-    payouts: [],
-    paidNet: 0,
-    owed: 0,
-    isOverpaid: false,
-  },
-}
+const WORKER = workerAudience()
 
 const DATA = {
   investmentId: 1,
@@ -102,7 +83,7 @@ function ReportBody() {
 function renderReport(locale?: LanguageT) {
   const wrap = (children: ReactNode) =>
     locale ? (
-      <TranslationsProvider initialLocale={locale} workerId={WORKER_ID}>
+      <TranslationsProvider initialLocale={locale} workerId={WORKER.workerId}>
         {children}
       </TranslationsProvider>
     ) : (

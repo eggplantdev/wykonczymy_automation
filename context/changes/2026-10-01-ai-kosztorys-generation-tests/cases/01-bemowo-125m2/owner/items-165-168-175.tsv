@@ -1,0 +1,1026 @@
+investment_id	sec	so	io	id	d	unit	planned_qty	client_price	note	created_at
+165	Prace dodatkowe	0	1	38613	Zakup, transport i wniesienie towaru budowlanego (cały okres remontu) - w zależności od piętra	kpl	0	1500		2026-09-29
+165	Prace dodatkowe	0	2	38614	Dodatek za wniesienie dużej ilości materiałów 1 zł/kg + 0,3 zł za każde piętro bez windy	kg	0	1		2026-09-29
+165	Prace dodatkowe	0	3	38615	Transport i wniesienie materiałów wykończeniowych - stawki do ustalenia w zależności od rodzaju i ilości	kpl	0	2000		2026-09-29
+165	Prace dodatkowe	0	4	38616	Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych big bag	big bag	0	600		2026-09-29
+165	Prace dodatkowe	0	5	38617	Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych etc.	kontener	0	1500		2026-09-29
+165	Prace dodatkowe	0	7	38618	Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych etc. - 2 piętro i sporo gruzu	kontener	0	1800		2026-09-29
+165	Klimatyzacja	1	2	38619	Bruzdowanie pod rury materiał miękki	mb	0	80		2026-09-29
+165	Klimatyzacja	1	3	38620	Bruzdowanie pod rury żelbet	mb	0	200		2026-09-29
+165	Klimatyzacja	1	4	38621	Jednostka cena indywidualna w zależności od modelu	kpl	0	0		2026-09-29
+165	Klimatyzacja	1	5	38622	Montaż klimatyzacji + uruchomienie	kpl	0	600		2026-09-29
+165	Klimatyzacja	1	6	38623	Montaż syfonu klimatyzacji natynkowo	kpl	0	150		2026-09-29
+165	Klimatyzacja	1	7	38624	Montaż syfonu podtynkowego z wkuciem w ścianę	kpl	0	300		2026-09-29
+165	Klimatyzacja	1	8	38625	Naprawy ścian i sufitów po kuciu, bruzdowaniu, tynkowanie bruzd	mb	0	50		2026-09-29
+165	Klimatyzacja	1	9	38626	Przebicie się na zewnątrz	kpl	0	350		2026-09-29
+165	Klimatyzacja	1	10	38627	Przebicie się na zewnątrz - ściana żelbetowa	kpl	0	600		2026-09-29
+165	Klimatyzacja	1	11	38628	Rury miedziane + skropliny + ułożenie	mb	0	120		2026-09-29
+165	Klimatyzacja	1	12	38629	Wsporniki	kpl	0	100		2026-09-29
+165	Klimatyzacja	1	13	38630	Wykonanie gładzi po bruzdach	mb	0	40		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	1	38631	Bruzdowanie pod instalacje wod-kan w materiałach miękkich	mb	0	80		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	2	38632	Bruzdowanie pod instalacje wod-kan w żelbecie	mb	0	150		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	3	38633	Bruzdowanie pod kable elektryczne w materiałach miękkich	mb	0	25		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	4	38634	Bruzdowanie pod kable elektryczne w żelbecie	mb	0	45		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	5	38635	Demontaż armatury łazienkowej, wc, miska, bidet, umwalka, umywalka z szafką, wanna lub prysznic z kabina, lustro, stelaż podtynkowy	kpl	0	1000		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	6	38636	Demontaż grzejników	szt	0	100		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	7	38637	Demontaż listew przypodłogowych	mb	0	10		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	8	38638	Demontaż paneli klejonych	m²	0	45		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	9	38639	Demontaż parapetów	mb	0	60		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	10	38640	Demontaż sufitów podwieszanych	m²	0	70		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	11	38641	Demontaż ścianek z GK	m²	0	50		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	12	38642	Demontaże drzwi zewnętrznych - drzwi z ościeżnicą	kpl	0	400		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	13	38643	Demontaże: wszelkie niezbędne demontaże szaf, zabudowy etc. - finalnie dopiero po obejrzeniu zastanego stanu będzie można to ocenić	kpl	0	2000		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	14	38644	Skucie posadzki/lastryko 10 cm - beton zbrojony	m²	0	150		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	15	38645	Skucie wylewki do 6cm	m²	0	60		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	16	38646	Skucie zwietrzałych tynków cementowo-wapiennych i cementowych	m²	0	50		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	17	38647	Skuwanie glazury z klejem i płytami GK - ściany i podłogi	m²	0	85		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	18	38648	Skuwanie glazury z klejem ściany i podłogi	m²	0	70		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	19	38649	Skuwanie tynku ze ścian i sufitów	m²	0	60		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	20	38650	Szlifowanie posadzki lub ścian do 1 cm	m²	0	60		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	21	38651	Szlifowanie ścian po kleju, przygotowanie do dalszych prac	m²	0	12		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	22	38652	Szlifowanie/usuwanie subitu	m²	0	75		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	23	38653	Usunięcie drewnianych ościeżnic	kpl	0	100		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	24	38654	Usunięcie metalowych futryn	kpl	0	200		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	25	38655	Usuwanie podłogi drewnianej klejonej - trudny demontaż, mocny klej, małe kawałki	m²	0	75		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	26	38656	Usuwanie podłogi drewnianej na klej - prosty demontaż	m²	0	40		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	27	38657	Usuwanie podłogi pływającej panele etc.	m²	0	20		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	28	38658	Wybicie otworu drzwiowego w ścianie działowej z montażem nadproża	szt	0	850		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	29	38659	Wyburzanie ścian 12-20 cm grubości - materiał miękki	m²	0	130		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	30	38660	Wyburzanie ścian do 12 -20 cm - żelbeton	m²	0	450		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	31	38661	Wyburzanie ścian do 12 cm grubości - materiał miękki	m²	0	110		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	32	38662	Wyburzanie ścian do 12 cm grubości - żelbeton	m²	0	300		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	33	38663	Wyburzanie ścian powyżej 20 cm grubości - materiał miękki	m²	0	150		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	34	38664	Wykucie nadproża i powiększenie otworu drzwiowego	kpl	0	450		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	35	38665	Zabezpieczenia mebli, podłóg, okien, drzwi i elementów niezbędnych do prac. Demontaż gniazd, włączników, lamp, karniszy etc. Zabezpieczenie sprzętów i wszelkich niezbędnych elementów. Oklejanie do malowania etc. Zabezpieczanie elementów już wykonanych, glazura zabudowy etc.	kpl	0	25		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	36	38666	Zabezpieczenia mebli, podłóg, okien, drzwi i elementów niezbędnych do prac. Zabezpieczanie elementów już wykonanych, glazura zabudowy etc. - mieszkanie zamieszkane	m²	0	45		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	37	38667	Zdzieranie starej farby z tynkiem	m²	0	40		2026-09-29
+165	Wyburzenia, demontaże, zabezpieczenia	2	38	38668	Zdzieranie tapet i usuwanie kleju	m²	0	50		2026-09-29
+165	Podłogi	3	1	38669	Akrylowanie listew przypodłogowych	mb	0	16		2026-09-29
+165	Podłogi	3	2	38670	Cokół docinany z płytek	mb	0	100		2026-09-29
+165	Podłogi	3	3	38671	Cyklinowanie - cena już z materiałem. Ewentualnie dodatkowe koszty mogą się pojawić jeżeli trzeba będzie coś naprawiać itp.	m²	0	150		2026-09-29
+165	Podłogi	3	4	38672	Docięcie i montaż progu w drzwiach wejściowych	szt	0	250		2026-09-29
+165	Podłogi	3	5	38673	Fugowanie	m²	0	30		2026-09-29
+165	Podłogi	3	6	38674	Gruntowanie podłóg	m²	0	10		2026-09-29
+165	Podłogi	3	7	38675	Klejenie maty kompensacyjnej	m²	0	40		2026-09-29
+165	Podłogi	3	8	38676	Klejenie paneli winylowych jodełka	m²	0	95		2026-09-29
+165	Podłogi	3	9	38677	Klejenie paneli winylowych mijanka	m²	0	60		2026-09-29
+165	Podłogi	3	10	38678	Klejenie paneli winylowych układ prosty,	m²	0	60		2026-09-29
+165	Podłogi	3	11	38679	Malowanie listew przypodłogowych	mb	0	25		2026-09-29
+165	Podłogi	3	12	38680	Montaż listew przypodłogowych metalowych	mb	0	200		2026-09-29
+165	Podłogi	3	13	38681	Montaż listew przypodłogowych poliuretan lub MDF	mb	0	45		2026-09-29
+165	Podłogi	3	14	38682	Montaż listwy łączeniowej w przejściach - łączenie różnych rodzajów podłóg	mb	0	100		2026-09-29
+165	Podłogi	3	15	38683	Ogrzewanie podłogowe elektryczne, montaż maty	m²	0	90		2026-09-29
+165	Podłogi	3	16	38684	Ogrzewanie podłogowe elektryczne, ułożenie maty + wylewka samopoziomująca	m²	0	130		2026-09-29
+165	Podłogi	3	17	38685	Położenie gresu na podłodze (karo) 30x30	m²	0	250		2026-09-29
+165	Podłogi	3	18	38686	Położenie gresu na podłodze format 120x120	m²	0	300		2026-09-29
+165	Podłogi	3	19	38687	Położenie gresu na podłodze format mały 20x20	m²	0	250		2026-09-29
+165	Podłogi	3	20	38688	Położenie gresu na podłodze format mały cegiełki i inne np 10x10, 6x15 itp.	m²	0	380		2026-09-29
+165	Podłogi	3	21	38689	Położenie gresu na podłodze format standard od 30x30 do 60x120	m²	0	180		2026-09-29
+165	Podłogi	3	22	38690	Położenie gresu na podłodze wielki format 120x270 itp.	m²	0	550		2026-09-29
+165	Podłogi	3	23	38691	Położenie płytek na podłodze 20x20	m²	0	250		2026-09-29
+165	Podłogi	3	24	38692	Położenie płytek na podłodze 120x120	m²	0	300		2026-09-29
+165	Podłogi	3	25	38693	Położenie trawertynu na podłodze	m²	0	300		2026-09-29
+165	Podłogi	3	26	38694	Równe cięcia podłóg do łączeń bez listew	mb	0	100		2026-09-29
+165	Podłogi	3	27	38695	Szycie dylatacji z dyblami	mb	0	100		2026-09-29
+165	Podłogi	3	28	38696	Układanie paneli laminowanych jodełka - wysoki stopień skomplikowania prac	m²	0	85		2026-09-29
+165	Podłogi	3	29	38697	Układanie paneli laminowanych niski stopień skomplikowania prac	m²	0	60		2026-09-29
+165	Podłogi	3	30	38698	Układanie paneli winylowych pływających jodełka wysoki stopień skomplikowania prac	m²	0	90		2026-09-29
+165	Podłogi	3	31	38699	Układanie paneli winylowych pływających niski stopień skomplikowania prac	m²	0	60		2026-09-29
+165	Podłogi	3	32	38700	Układanie parkietu jodełka - wysoki stopień skomplikowania prac	m²	0	110		2026-09-29
+165	Podłogi	3	33	38701	Układanie parkietu z gruntowaniem mijanka	m²	0	75		2026-09-29
+165	Podłogi	3	34	38702	Uzupełnianie posadzki po wyburzeniach	mb	0	60		2026-09-29
+165	Podłogi	3	35	38703	Wklejanie korka drewnianego między parkiet	mb	0	30		2026-09-29
+165	Podłogi	3	36	38704	Wylewka betonowa ok. 3-5 cm	m²	0	80		2026-09-29
+165	Podłogi	3	37	38705	Wylewka samopoziomująca w całym mieszkaniu do 5 mm	m²	0	55		2026-09-29
+165	Ściany i sufity bez łazienek 	4	1	38706	Akrylowanie łączeń ścian i sufitów / akrylowanie dylatacji - polecam, bo zdecydowanie poprawia estetykę w narożnikach oraz przykrywa potencjalne pęknięcia	mb	0	14		2026-09-29
+165	Ściany i sufity bez łazienek 	4	2	38707	Dodatek za wklejanie siatki tynkarskiej	m²	0	13		2026-09-29
+165	Ściany i sufity bez łazienek 	4	3	38708	Gładzie klatka schodowa dodatek do m2 jeżeli dostęp utrudniony	m²	0	35		2026-09-29
+165	Ściany i sufity bez łazienek 	4	4	38709	Gładzie na sufitach "finish" stan deweloperski (2 warstwy) - standard wykończenia Q3	m²	0	59		2026-09-29
+165	Ściany i sufity bez łazienek 	4	5	38710	Gładzie na sufitach "finish" stan deweloperski (2-3 warstwy) - premium - standard wykończenia Q4	m²	0	80		2026-09-29
+165	Ściany i sufity bez łazienek 	4	6	38711	Gładzie na ścianach "finish" stan deweloperski (2 warstwy) - standard wykończenia Q3	m²	0	57		2026-09-29
+165	Ściany i sufity bez łazienek 	4	7	38712	Gładzie na ścianach "finish" stan deweloperski (2-3 warstwy) - premium - standard wykończenia Q4	m²	0	75		2026-09-29
+165	Ściany i sufity bez łazienek 	4	8	38713	Gładzie na ścianach i sufitach rynek wtórny (3-4 warstwy) + podkład z tynku jeżeli będzie potrzebny, jak nie to cena nieco niższa	m²	0	85		2026-09-29
+165	Ściany i sufity bez łazienek 	4	9	38714	Gruntowanie farbą podkładową - bardzo zalecane na świeże gładzie. Dzięki temu zmniejszamy chłonność powierzchni oraz unikamy na ścianach pasów i wrażenia nierównego malowania. Również przy malowaniu tynków bez gładzi warto zrobić taką warstwę podkładową.	m²	0	12		2026-09-29
+165	Ściany i sufity bez łazienek 	4	10	38715	Gruntowanie powierzchni betonkontaktem	mb	0	15		2026-09-29
+165	Ściany i sufity bez łazienek 	4	11	38716	Gruntowanie powierzchni ścian i sufitów przed gładziami i po gładziach	m²	0	12		2026-09-29
+165	Ściany i sufity bez łazienek 	4	12	38717	Gruntowanie ścian jednokrotne	m²	0	8		2026-09-29
+165	Ściany i sufity bez łazienek 	4	13	38718	Gruntowanie ścian jednokrotne + drobne poprawki	m²	0	15		2026-09-29
+165	Ściany i sufity bez łazienek 	4	14	38719	Malowanie sufitów farbą silikonową lub akrylową na biało	m²	0	23		2026-09-29
+165	Ściany i sufity bez łazienek 	4	15	38720	Malowanie sufitu w kolorze	m²	0	27		2026-09-29
+165	Ściany i sufity bez łazienek 	4	16	38721	Malowanie sztukaterii	mb	0	40		2026-09-29
+165	Ściany i sufity bez łazienek 	4	17	38722	Malowanie ścian emulsją z gruntem (przykrycie koloru, żeby malować na biało) - 1 warstwa	m²	0	10		2026-09-29
+165	Ściany i sufity bez łazienek 	4	18	38723	Malowanie ścian farbą strukturalną efekt beton - do ustalenia dokładnie produkt i czy to ma być beton, tynk dekoracyjny czy farba, bo cena może się różnić. Od 40 do 150 zł	m²	0	100		2026-09-29
+165	Ściany i sufity bez łazienek 	4	19	38724	Malowanie ścian i sufitów farbą silikonową lub akrylową na biało	m²	0	22		2026-09-29
+165	Ściany i sufity bez łazienek 	4	20	38725	Malowanie ścian w kolorze	m²	0	26		2026-09-29
+165	Ściany i sufity bez łazienek 	4	21	38726	Montaż karniszy	mb	0	80		2026-09-29
+165	Ściany i sufity bez łazienek 	4	22	38727	Montaż listew sztukateryjnych na ścianach przygotowanych do malowania (docinanie, montaż, szpachlowanie połączeń, akrylowanie, szlifowanie)	mb	0	80		2026-09-29
+165	Ściany i sufity bez łazienek 	4	23	38728	Montaż listew sztukateryjnych sufitowych (osłona karnisza) przygotowanych do malowania (docinanie, montaż, szpachlowanie połączeń, akrylowanie, szlifowanie)	mb	0	110		2026-09-29
+165	Ściany i sufity bez łazienek 	4	24	38729	Montaż nadproży w nowo murowanej ścianie	szt	0	150		2026-09-29
+165	Ściany i sufity bez łazienek 	4	25	38730	Montaż płyt GK na klej na ścianach	m²	0	80		2026-09-29
+165	Ściany i sufity bez łazienek 	4	26	38731	Montaż płyty OSB na ścianie	mb	0	80		2026-09-29
+165	Ściany i sufity bez łazienek 	4	27	38732	Montaż profili wzmocnionych pod ościeżnice	kpl	0	250		2026-09-29
+165	Ściany i sufity bez łazienek 	4	28	38733	Montaż ścian GK z wełną mineralną - podwójna płyta obustronnie - niski stopień skomplikowania prac	m²	0	150		2026-09-29
+165	Ściany i sufity bez łazienek 	4	29	38734	Montaż ścian GK z wełną mineralną - podwójna płyta obustronnie - wysoki stopień skomplikowania prac	m²	0	180		2026-09-29
+165	Ściany i sufity bez łazienek 	4	30	38735	Montaż wzmocnień w ścianach działowych pod szafki wiszące	m²	0	80		2026-09-29
+165	Ściany i sufity bez łazienek 	4	31	38736	Murowanie ścian z bloczków komórkowych 10 cm	m²	0	110		2026-09-29
+165	Ściany i sufity bez łazienek 	4	32	38737	Murowanie ścian z bloczków komórkowych 5 cm	m²	0	110		2026-09-29
+165	Ściany i sufity bez łazienek 	4	33	38738	Murowanie ścian z bloczków komórkowych 7,5 cm	m²	0	110		2026-09-29
+165	Ściany i sufity bez łazienek 	4	34	38739	Murowanie ścian z bloczków komórkowych 7,5 cm (skomplikowany montaż)	m²	0	150		2026-09-29
+165	Ściany i sufity bez łazienek 	4	35	38740	Naprawy ścian i sufitów po kuciu, bruzdowaniu, tynkowanie bruzd (liczone w metrach bieżących)	mb	0	25		2026-09-29
+165	Ściany i sufity bez łazienek 	4	36	38741	Odcinanie kolorów, lamperie itp.	mb	0	12		2026-09-29
+165	Ściany i sufity bez łazienek 	4	37	38742	Poprawki malarskie po stolarzach	kpl	0	500		2026-09-29
+165	Ściany i sufity bez łazienek 	4	38	38743	Przesunięcie otworu drzwiowego z montażem nadproża + murowanie	szt	0	1500		2026-09-29
+165	Ściany i sufity bez łazienek 	4	39	38744	Sufit podwieszany montaż stelaża z płytami - niski stopień skomplikowania prac	m²	0	160		2026-09-29
+165	Ściany i sufity bez łazienek 	4	40	38745	Szlifowanie mleczka z tynków deweloperskich	m²	0	7		2026-09-29
+165	Ściany i sufity bez łazienek 	4	41	38746	Szpachlowanie glifów / dekoracyjnych narożników / wykończenie obwodu drzwi z ukrytą opaską	mb	0	55		2026-09-29
+165	Ściany i sufity bez łazienek 	4	42	38747	Szpachlowanie połączeń ścian z GK i wklejanie taśmy wzmacniającej (łączenia pęknięć płyt, łączenia płyt GK etc.)	mb	0	35		2026-09-29
+165	Ściany i sufity bez łazienek 	4	43	38748	Tapetowanie	m²	0	100		2026-09-29
+165	Ściany i sufity bez łazienek 	4	44	38749	Tynk dekoracyjny efekt betonu	m²	0	160		2026-09-29
+165	Ściany i sufity bez łazienek 	4	45	38750	Tynkowanie glifów lub powierzchni o szerokości do 30 cm / poprawka miejsc po demontażu ścian	mb	0	40		2026-09-29
+165	Ściany i sufity bez łazienek 	4	46	38751	Tynkowanie ręczne ścian lub sufitów do 1 cm	m²	0	60		2026-09-29
+165	Ściany i sufity bez łazienek 	4	47	38752	Tynkowanie/wyrównywanie ścian lub sufitów na listwach tynkarskich do kilku cm grubości.	m²	0	100		2026-09-29
+165	Ściany i sufity bez łazienek 	4	48	38753	Wklejanie narożników aluminiowych i wklejanie siatki + szpachlowanie narożniki, glify okienne etc. wszędzie tam gdzie to wymaga	mb	0	35		2026-09-29
+165	Ściany i sufity bez łazienek 	4	49	38754	Wklejanie taśmy w łączenie sufit-ściana oraz dylatacje - poprawia estetykę oraz chroni przed pęknięciami	mb	0	35		2026-09-29
+165	Ściany i sufity bez łazienek 	4	50	38755	Gładzie po bruzdach, wykonanie gładzi po usuwaniu sztukaterii etc.	mb	0	45		2026-09-29
+165	Ściany i sufity bez łazienek 	4	51	38756	Zabudowy rur z GK (piony wodne, rury gazowe etc.) - po obejrzeniu	mb	0	350		2026-09-29
+165	Łazienka	5	1	38757	Akrylowanie	mb	0	14		2026-09-29
+165	Łazienka	5	2	38758	Biały montaż baterii podtynkowej bidetka	kpl	0	100		2026-09-29
+165	Łazienka	5	3	38759	Biały montaż baterii podtynkowej do umywalki	kpl	0	100		2026-09-29
+165	Łazienka	5	4	38760	Biały montaż baterii podtynkowej do wanny/prysznica razem ze słuchawką i deszczownicą	kpl	0	200		2026-09-29
+165	Łazienka	5	5	38761	Dodatek za schodek pod prysznicem - murowanie i wykonanie spadki na podwyższeniu	kpl	0	1000		2026-09-29
+165	Łazienka	5	6	38762	Dwukrotne gruntowanie ścian, sufitów i podłóg	m²	0	10		2026-09-29
+165	Łazienka	5	7	38763	Fugowanie fugą epoksydową format płytek standard	m²	0	80		2026-09-29
+165	Łazienka	5	8	38764	Fugowanie ścian i podłóg fuga cementowa płytka mały format	m²	0	50		2026-09-29
+165	Łazienka	5	9	38765	Fugowanie ścian i podłóg fugą epoksydową płytka mały format	m²	0	120		2026-09-29
+165	Łazienka	5	10	38766	Fugowanie ścian i podłóg płytka format standard	m²	0	30		2026-09-29
+165	Łazienka	5	11	38767	Instalacja wod-kan nowe punkty, przeniesienie lub przedłużenie - każdy punkt	pkt	0	250		2026-09-29
+165	Łazienka	5	12	38768	Klejenie płyt GK	m²	0	80		2026-09-29
+165	Łazienka	5	13	38769	Licowanie ścian płytami GK + wklejanie taśm i przygotowanie pod malowanie/tapetę	m²	0	120		2026-09-29
+165	Łazienka	5	14	38770	Malowanie sufitów i ścian bez glazury + gładź na suficie	m²	0	100		2026-09-29
+165	Łazienka	5	15	38771	Montaż akcesoriów łazienkowych	szt	0	50		2026-09-29
+165	Łazienka	5	16	38772	Montaż baterii do umywalki	szt	0	150		2026-09-29
+165	Łazienka	5	17	38773	Montaż baterii prysznicowej/wannowej podtynkowej razem z podłączeniem zasilania wody	szt	0	900		2026-09-29
+165	Łazienka	5	18	38774	Montaż baterii prysznicowo-wannowej natynkowej	szt	0	250		2026-09-29
+165	Łazienka	5	19	38775	Montaż baterii umywalkowej podtynkowej razem z podłączeniem zasilania wody	szt	0	550		2026-09-29
+165	Łazienka	5	20	38776	Montaż baterii wannowej wolnostojącej	szt	0	550		2026-09-29
+165	Łazienka	5	21	38777	Montaż bidetu podtynkowego	szt	0	550		2026-09-29
+165	Łazienka	5	22	38778	Montaż brodzika z kabiną prysznicową	kpl	0	1500		2026-09-29
+165	Łazienka	5	23	38779	Montaż deski wc elektrycznej	szt	0	550		2026-09-29
+165	Łazienka	5	24	38780	Montaż geberitu	szt	0	450		2026-09-29
+165	Łazienka	5	25	38781	Montaż gniazdek i włączników standard	szt	0	39		2026-09-29
+165	Łazienka	5	26	38782	Montaż grzejnika elektrycznego	szt	0	200		2026-09-29
+165	Łazienka	5	27	38783	Montaż grzejnika z zaworami	szt	0	250		2026-09-29
+165	Łazienka	5	28	38784	Montaż i podłączenie listw led + taśm	mb	0	150		2026-09-29
+165	Łazienka	5	29	38785	Montaż i podłączenie transformatora	mb	0	100		2026-09-29
+165	Łazienka	5	30	38786	Montaż kratki wentylacyjnej	kpl	0	100		2026-09-29
+165	Łazienka	5	31	38787	Montaż lamp	szt	0	100		2026-09-29
+165	Łazienka	5	32	38788	Montaż lustra	szt	0	120		2026-09-29
+165	Łazienka	5	33	38789	Montaż lustra z LED	szt	0	150		2026-09-29
+165	Łazienka	5	34	38790	Montaż odpływu liniowego z wypoziomowaniem spadku - koperta	kpl	0	1900		2026-09-29
+165	Łazienka	5	35	38791	Montaż odpływu liniowego z wypoziomowaniem spadku - odpływ jednospadkowy	kpl	0	1600		2026-09-29
+165	Łazienka	5	36	38792	Montaż ościeżnicy z drzwiami i klamkami	szt	0	380		2026-09-29
+165	Łazienka	5	37	38793	Montaż parawanu nawannowego	szt	0	550		2026-09-29
+165	Łazienka	5	38	38794	Montaż profili i płyt GK w zabudowie geberitu	kpl	0	450		2026-09-29
+165	Łazienka	5	39	38795	Montaż rewizji z glazury	kpl	0	350		2026-09-29
+165	Łazienka	5	40	38796	Montaż syfonów	szt	0	80		2026-09-29
+165	Łazienka	5	41	38797	Montaż szyby stałej do odpływu liniowego	kpl	0	550		2026-09-29
+165	Łazienka	5	42	38798	Montaż umywalki nablatowej lub na szafke	szt	0	130		2026-09-29
+165	Łazienka	5	43	38799	Montaż umywalki wiszącej	szt	0	250		2026-09-29
+165	Łazienka	5	44	38800	Montaż wanny wolnostojącej z syfonem	kpl	0	600		2026-09-29
+165	Łazienka	5	45	38801	Montaż wanny z zabudową z bloczków i rewizją	kpl	0	1800		2026-09-29
+165	Łazienka	5	46	38802	Montaż wanny z zabudową z bloczków i rewizją oraz LED	kpl	0	2000		2026-09-29
+165	Łazienka	5	47	38803	Montaż WC podwieszanego	szt	0	350		2026-09-29
+165	Łazienka	5	48	38804	Montaż zaworów czerpalnych do umywalek i zlewów	szt	0	60		2026-09-29
+165	Łazienka	5	49	38805	Podłączenie pralki	szt	0	100		2026-09-29
+165	Łazienka	5	50	38806	Podłączenie suszarki	szt	0	100		2026-09-29
+165	Łazienka	5	51	38807	Położenie folii w płynie (izolacji)	m²	0	30		2026-09-29
+165	Łazienka	5	52	38808	Przyklejenie maty kompensacyjnej pod płytki wielkoformatowe	m²	0	45		2026-09-29
+165	Łazienka	5	53	38809	Silikonowanie	mb	0	25		2026-09-29
+165	Łazienka	5	54	38810	Sufit podwieszany z LED wg. projektu	kpl	0	1800		2026-09-29
+165	Łazienka	5	55	38811	Szlifowanie krawędzi płytek na 45 stopni	mb	0	80		2026-09-29
+165	Łazienka	5	56	38812	Szlifowanie krawędzi płytek czyste cięcie	mb	0	50		2026-09-29
+165	Łazienka	5	57	38813	Tynkowanie/wyrównanie ścian pod układanie glazury	m²	0	80		2026-09-29
+165	Łazienka	5	58	38814	Układanie glazury mały format 6,5 x 20	m²	0	380		2026-09-29
+165	Łazienka	5	59	38815	Układanie glazury na glify i małe ściany - mały format	mb	0	345		2026-09-29
+165	Łazienka	5	60	38816	Układanie glazury na podłodze duży format 120x120	m²	0	300		2026-09-29
+165	Łazienka	5	61	38817	Układanie glazury na podłodze format 20x20	m²	0	200		2026-09-29
+165	Łazienka	5	62	38818	Układanie glazury na podłodze format standard od 30x30 do 120x60	m²	0	180		2026-09-29
+165	Łazienka	5	63	38819	Układanie glazury na podłodze format standard od 30x30 do 120x60 (karo)	m²	0	250		2026-09-29
+165	Łazienka	5	64	38820	Układanie glazury na podłodze lub ścianie mozaika	m²	0	400		2026-09-29
+165	Łazienka	5	65	38821	Układanie glazury na podłodze wielki format np. 120x270	m²	0	550		2026-09-29
+165	Łazienka	5	66	38822	Układanie glazury na ścianie mały format np. 6,5 x 15	m²	0	380		2026-09-29
+165	Łazienka	5	67	38823	Układanie glazury na ścianie format duży 120x120	m²	0	300		2026-09-29
+165	Łazienka	5	68	38824	Układanie glazury na ścianie format standard od 30x30 do 120x60	m²	0	180		2026-09-29
+165	Łazienka	5	69	38825	Układanie glazury na ścianie wielki format 120x270	m²	0	550		2026-09-29
+165	Łazienka	5	70	38826	Układanie płytek w glifach, półeczkach itp. do 20 cm - format standard	mb	0	130		2026-09-29
+165	Łazienka	5	71	38827	Układanie płytek w glifach, półeczkach itp. do 20 cm wielki format	mb	0	350		2026-09-29
+165	Łazienka	5	72	38828	Wiercenie otworów w płytkach	szt	0	60		2026-09-29
+165	Łazienka	5	73	38829	Wklejanie maty hydroizolacyjnej	m²	0	65		2026-09-29
+165	Łazienka	5	74	38830	Wklejanie taśmy hydroizolacyjnej	mb	0	30		2026-09-29
+165	Łazienka	5	75	38831	Wkucie w ścianę działową instalacji wod-kan każdy punkt/zespół punktów. Kompleksowo razem z zaszpachlowaniem	pkt	0	250		2026-09-29
+165	Łazienka	5	76	38832	Wkucie w ścianę nośną/żelbet instalacji wod-kan każdy punkt/zespół punktów. Kompleksowo razem z zaszpachlowaniem	kpl	0	500		2026-09-29
+165	Łazienka	5	77	38833	Wykonanie przedścianki pod prysznicem z 1 półką	szt	0	1200		2026-09-29
+165	Łazienka	5	78	38834	Wykonanie przedścianki pod prysznicem z 2 półkami	kpl	0	1500		2026-09-29
+165	Łazienka	5	79	38835	Wykonanie przedścianki pod prysznicem z 3 półkami	szt	0	1800		2026-09-29
+165	Łazienka	5	80	38836	Wykonanie przycisku WC z glazury	szt	0	650		2026-09-29
+165	Łazienka	5	81	38837	Wykonanie punktów oświetleniowych	szt	0	100		2026-09-29
+165	Łazienka	5	82	38838	Wykonanie punktów elektrycznych pod włącznik, gniazdko	szt	0	120		2026-09-29
+165	Łazienka	5	83	38839	Wykonanie zabudowy rur z gk	mb	0	250		2026-09-29
+165	Łazienka	5	84	38840	Złożenie i montaż szafki nad geberitem	szt	0	250		2026-09-29
+165	Łazienka	5	85	38841	Złożenie i montaż szafki podumywalkowej	szt	0	250		2026-09-29
+165	Łazienka	5	86	38842	Zmiana kanalizacji z wanny na odpływ liniowy - skucie posadzki, obniżenie rur w pionie, wykonanie odpowiedniego spadku	kpl	0	800		2026-09-29
+165	Kuchnia	6	1	38843	Montaż AGD: lodówka, zmywarka, płyta, piekarnik	szt	0	250		2026-09-29
+165	Kuchnia	6	2	38844	Montaż baterii zlewozmywakowej	szt	0	250		2026-09-29
+165	Kuchnia	6	3	38845	Montaż LED	mb	0	90		2026-09-29
+165	Kuchnia	6	4	38846	Montaż oświetlenia LED	szt	0	100		2026-09-29
+165	Kuchnia	6	5	38847	Montaż syfonu	szt	0	80		2026-09-29
+165	Kuchnia	6	6	38848	Montaż zlewu	szt	0	250		2026-09-29
+165	Kuchnia	6	7	38849	Montaż zlewu z wywierceniem otworu	szt	0	350		2026-09-29
+165	Kuchnia	6	8	38850	Podłączenie indukcji	szt	0	150		2026-09-29
+165	Kuchnia	6	9	38851	Podłączenie piekarnika	szt	0	150		2026-09-29
+165	Kuchnia	6	10	38852	Podłączenie zmywarki	szt	0	250		2026-09-29
+165	Kuchnia	6	11	38853	Położenie płytek między szafkami - mozaika	m²	0	450		2026-09-29
+165	Kuchnia	6	12	38854	Położenie płytek między szafkami format standard od 30x30 do 60x120	m²	0	220		2026-09-29
+165	Kuchnia	6	13	38855	Położenie płytek między szafkami mały format cegiełki itp.	m²	0	380		2026-09-29
+165	Kuchnia	6	14	38856	Układanie glazury na ścianie format standard	m²	0	180		2026-09-29
+165	Kuchnia	6	15	38857	Układanie gresu 120x120	m²	0	300		2026-09-29
+165	Kuchnia	6	16	38858	Układanie gresu na podłodze format standard od 30x30 do 60x120	m²	0	180		2026-09-29
+165	Kuchnia	6	17	38859	Wklejanie narożników i wklejanie siatki + szpachlowanie narożniki, glify okienne etc. wszędzie tam gdzie to wymaga	mb	0	35		2026-09-29
+165	Kuchnia	6	18	38860	Wkucie płytek w ścianę, zlicowanie + obróbka	m²	0	400		2026-09-29
+165	Kuchnia	6	19	38861	Wzmocnienie płytą OSB pod szafki kuchenne min. m2	m²	0	120		2026-09-29
+165	Montaż stolarki i ślusarski	8	0	38862	Nowa praca	szt	0	0		2026-09-29
+165	Montaż stolarki i ślusarski	8	1	38863	Montaż drzwi do systemu kasetowego	kpl	0	600		2026-09-29
+165	Montaż stolarki i ślusarski	8	2	38864	Montaż kasety pod drzwi przesuwne	szt	0	1400		2026-09-29
+165	Montaż stolarki i ślusarski	8	3	38865	Montaż drzwi, ościeżnic stałych, klamek, zamków	szt	0	450		2026-09-29
+165	Montaż stolarki i ślusarski	8	4	38866	Montaż drzwi, ościeżnic regulowanych, klamek, zamków	szt	0	380		2026-09-29
+165	Montaż stolarki i ślusarski	8	5	38867	Montaż drzwi ukrytych z wykończeniem i przygotowaniem do malowania/tapety	szt	0	1000		2026-09-29
+165	Montaż stolarki i ślusarski	8	6	38868	Montaż klamek okiennych	szt	0	20		2026-09-29
+165	Montaż stolarki i ślusarski	8	7	38869	Montaż parapetów	mb	0	200		2026-09-29
+165	Montaż stolarki i ślusarski	8	8	38870	Montaż progu drzwi wejściowych	szt	0	150		2026-09-29
+165	Montaż stolarki i ślusarski	8	9	38871	Obróbka drzwi ukrytych bez montażu ościeży	szt	0	800		2026-09-29
+165	Montaż stolarki i ślusarski	8	10	38872	Regulacja okien	szt	0	40		2026-09-29
+165	Montaż stolarki i ślusarski	8	11	38873	Silikonowanie parapetu	mb	0	30		2026-09-29
+165	Montaż stolarki i ślusarski	8	12	38874	Wklejanie opasek drzwi + docinanie listew	kpl	0	200		2026-09-29
+165	Montaż stolarki i ślusarski	8	13	38875	Dopasowanie otworów pod montaż drzwi - zmniejszenie otworu	szt	0	200		2026-09-29
+165	Montaż stolarki i ślusarski	8	14	38876	Poszerzenie otworów drzwi	szt	0	350		2026-09-29
+165	Wiatrołap	9	0	38877	Nowa praca	szt	0	0		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	0	38878	Nowa praca	szt	0	0		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	1	38879	Doprowadzenie kabla do rolet zewnętrznych + przebicie	kpl	0	350		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	2	38880	Doprowadzenie przewodu 3-fazowego	kpl	0	300		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	3	38881	Doprowadzenie przewodu 3-fazowego do rozdzielni, wniosek do E.ON, wymiana bezpiecznika przedlicznikowego i przygotowanie instalacji	kpl	0	1500		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	4	38882	Doprowadzenie przewodu 3-fazowego z montażem gniazda	kpl	0	500		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	5	38883	Lutowanie taśm LED	pkt	0	30		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	6	38884	Montaż czujnika termostatycznego ze sterownikiem do ogrzewania podłogowego	szt	0	250		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	7	38885	Montaż gniazda TV i internet	szt	0	200		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	8	38886	Montaż gniazdek i włączników	szt	0	39		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	9	38887	Montaż gniazdek i włączników smart home - cena +/- w zależności od osprzętu	szt	0	100		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	10	38888	Montaż kanału TV - wykucie i osadzenie + tynk - ściana działowa miękka	szt	0	700		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	11	38889	Montaż kanału TV - wykucie i osadzenie + tynk - ściana żelbetowa	szt	0	1000		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	12	38890	Montaż kinkietów	szt	0	100		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	13	38891	Montaż lamp ze składaniem (trudne)	szt	0	150		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	14	38892	Montaż listew LED + taśm LED	kpl	0	150		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	15	38893	Montaż master switch; stycznik + master switch	kpl	0	450		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	16	38894	Montaż okapu i podłączenie do wentylacji	kpl	0	350		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	17	38895	Montaż profili LED podtynkowych w suficie	mb	0	160		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	18	38896	Montaż prostych lamp (bez składania)	szt	0	100		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	19	38897	Montaż puszek elektrycznych	pkt	0	35		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	20	38898	Montaż rozdzielni CCTV - wycena indywidualna	kpl	0	1500		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	21	38899	Montaż szynoprzewodów natynkowych	mb	0	120		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	22	38900	Montaż taśm LED	mb	0	60		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	23	38901	Montaż transformatorów	szt	0	120		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	24	38902	Montaż uchwytu TV	kpl	0	250		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	25	38903	Montaż wentylatora łazienkowego	kpl	0	120		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	26	38904	Montaż włączników schodowych/krzyżowych	szt	0	70		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	27	38905	Montaż/Przebudowa rozdzielni elektrycznej wraz z bezpiecznikami - do 12 modułów	kpl	0	1200		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	28	38906	Montaż/Przebudowa rozdzielni elektrycznej wraz z bezpiecznikami - do 18 modułów	kpl	0	1500		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	29	38907	Montaż/przebudowa rozdzielni elektrycznej wraz z bezpiecznikami - do 24 modułów	kpl	0	2100		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	30	38908	Montaż/Przebudowa rozdzielni elektrycznej, dołożenie 1 bezpiecznika	szt	0	200		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	31	38909	Punkty elektryczne żelbet dodatek	szt	0	50		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	32	38910	Układanie przewodów w peszlu	mb	0	40		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	33	38911	Wykonanie gniazda zewnętrznego na balkonie z przebiciem się przez ściane	szt	0	220		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	34	38912	Wykonanie punktów oświetleniowych, czujki, rolety	szt	0	100		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	35	38913	Wykonanie punktu lan, kamery, internet	m²	0	250		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	36	38914	Wykonanie/przesunięcie punktów elektrycznych, gniazdka i włączniki, wiercenie otworu pod puszkę, montaż puszki, doprowadzenie kabla	szt	0	130		2026-09-29
+165	Instalacja elektryczna i oświetleniowa	10	37	38915	Wymiana bezpiecznika 3-fazowego	szt	0	250		2026-09-29
+165	Instalacja wodno-kanalizacyjna + c.o.	11	0	38916	Montaż grzejnika z zaworami	szt	0	250		2026-09-29
+165	Instalacja wodno-kanalizacyjna + c.o.	11	1	38917	Likwidacja punktów wod-kan	pkt	0	120		2026-09-29
+165	Instalacja wodno-kanalizacyjna + c.o.	11	2	38918	Montaż filtra wody	szt	0	500		2026-09-29
+165	Instalacja wodno-kanalizacyjna + c.o.	11	3	38919	Montaż grzejników dekoracyjnych z zaworami	szt	0	450		2026-09-29
+165	Instalacja wodno-kanalizacyjna + c.o.	11	4	38920	Przebudowa punktów centralnego ogrzewania	pkt	0	250		2026-09-29
+165	Instalacja wodno-kanalizacyjna + c.o.	11	5	38921	Przebudowa/doprowadzenie/wymiana instalacji wod-kan w kuchni	pkt	0	250		2026-09-29
+165	Instalacja wodno-kanalizacyjna + c.o.	11	6	38922	Rozkucie i zatynkowanie podejść grzejnikowych	kpl	0	300		2026-09-29
+168	Prace dodatkowe	0	1	46693	Zakup, transport i wniesienie towaru budowlanego (cały okres remontu) - w zależności od piętra	kpl	1	1500	cały okres remontu	2026-10-01
+168	Prace dodatkowe	0	2	46694	Dodatek za wniesienie dużej ilości materiałów 1 zł/kg + 0,3 zł za każde piętro bez windy	kg	0	1		2026-10-01
+168	Prace dodatkowe	0	3	46695	Transport i wniesienie materiałów wykończeniowych - stawki do ustalenia w zależności od rodzaju i ilości	kpl	1	2000	płytki wielkoformatowe, armatura, tapety, listwy	2026-10-01
+168	Prace dodatkowe	0	4	46696	Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych big bag	big bag	2	600	odpady z etapu wykończeniowego	2026-10-01
+168	Prace dodatkowe	0	5	46697	Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych etc.	kontener	1	1500	gruz: ściana w drugim korytarzu, otwór pod kasetę Eclisse, przesunięcia otworów (str. 3)	2026-10-01
+168	Prace dodatkowe	0	7	46698	Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych etc. - 2 piętro i sporo gruzu	kontener	0	1800		2026-10-01
+168	Prace dodatkowe	0	8	47007	Koordynacja i nadzór prac	kpl	1	0	pkt 17 maila. Brak w katalogu — do wyceny.	2026-10-01
+168	Prace dodatkowe	0	9	47008	Sprzątanie końcowe	kpl	1	0	pkt 18 maila. Brak w katalogu — do wyceny.	2026-10-01
+168	Klimatyzacja	1	2	46699	Bruzdowanie pod rury materiał miękki	mb	0	80		2026-10-01
+168	Klimatyzacja	1	3	46700	Bruzdowanie pod rury żelbet	mb	0	200		2026-10-01
+168	Klimatyzacja	1	4	46701	Jednostka cena indywidualna w zależności od modelu	kpl	0	0		2026-10-01
+168	Klimatyzacja	1	5	46702	Montaż klimatyzacji + uruchomienie	kpl	0	600		2026-10-01
+168	Klimatyzacja	1	6	46703	Montaż syfonu klimatyzacji natynkowo	kpl	0	150		2026-10-01
+168	Klimatyzacja	1	7	46704	Montaż syfonu podtynkowego z wkuciem w ścianę	kpl	0	300		2026-10-01
+168	Klimatyzacja	1	8	46705	Naprawy ścian i sufitów po kuciu, bruzdowaniu, tynkowanie bruzd	mb	0	50		2026-10-01
+168	Klimatyzacja	1	9	46706	Przebicie się na zewnątrz	kpl	0	350		2026-10-01
+168	Klimatyzacja	1	10	46707	Przebicie się na zewnątrz - ściana żelbetowa	kpl	0	600		2026-10-01
+168	Klimatyzacja	1	11	46708	Rury miedziane + skropliny + ułożenie	mb	0	120		2026-10-01
+168	Klimatyzacja	1	12	46709	Wsporniki	kpl	0	100		2026-10-01
+168	Klimatyzacja	1	13	46710	Wykonanie gładzi po bruzdach	mb	0	40		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	1	46711	Bruzdowanie pod instalacje wod-kan w materiałach miękkich	mb	15	80	łaz. duża: umywalka + grzejnik na inne ściany; łaz. mała: grzejnik + prysznic; zlew przesunięty do 100 cm	2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	2	46712	Bruzdowanie pod instalacje wod-kan w żelbecie	mb	0	150		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	3	46713	Bruzdowanie pod kable elektryczne w materiałach miękkich	mb	140	25	bilans gniazd: 80 nowych (13 do 25 cm, 47 25–100 cm, 18 ponad 100 cm, 2 od skrzynki) + ~30 nowych przewodów oświetleniowych + 4 łączniki + Ethernet	2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	4	46714	Bruzdowanie pod kable elektryczne w żelbecie	mb	40	45	założenie: ~20% tras w ścianach/stropie żelbetowym	2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	5	46715	Demontaż armatury łazienkowej, wc, miska, bidet, umwalka, umywalka z szafką, wanna lub prysznic z kabina, lustro, stelaż podtynkowy	kpl	0	1000		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	6	46716	Demontaż grzejników	szt	8	100	wg listy zakupowej: 6 pokojowych + 2 łazienkowe (mail mówi o 5 + 2)	2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	7	46717	Demontaż listew przypodłogowych	mb	0	10		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	8	46718	Demontaż paneli klejonych	m²	0	45		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	9	46719	Demontaż parapetów	mb	0	60		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	10	46720	Demontaż sufitów podwieszanych	m²	0	70		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	11	46721	Demontaż ścianek z GK	m²	0	50		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	12	46722	Demontaże drzwi zewnętrznych - drzwi z ościeżnicą	kpl	0	400		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	13	46723	Demontaże: wszelkie niezbędne demontaże szaf, zabudowy etc. - finalnie dopiero po obejrzeniu zastanego stanu będzie można to ocenić	kpl	0	2000		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	14	46724	Skucie posadzki/lastryko 10 cm - beton zbrojony	m²	0	150		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	15	46725	Skucie wylewki do 6cm	m²	0	60		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	16	46726	Skucie zwietrzałych tynków cementowo-wapiennych i cementowych	m²	0	50		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	17	46727	Skuwanie glazury z klejem i płytami GK - ściany i podłogi	m²	0	85		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	18	46728	Skuwanie glazury z klejem ściany i podłogi	m²	0	70		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	19	46729	Skuwanie tynku ze ścian i sufitów	m²	0	60		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	20	46730	Szlifowanie posadzki lub ścian do 1 cm	m²	0	60		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	21	46731	Szlifowanie ścian po kleju, przygotowanie do dalszych prac	m²	0	12		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	22	46732	Szlifowanie/usuwanie subitu	m²	0	75		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	23	46733	Usunięcie drewnianych ościeżnic	kpl	0	100		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	24	46734	Usunięcie metalowych futryn	kpl	0	200		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	25	46735	Usuwanie podłogi drewnianej klejonej - trudny demontaż, mocny klej, małe kawałki	m²	0	75		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	26	46736	Usuwanie podłogi drewnianej na klej - prosty demontaż	m²	0	40		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	27	46737	Usuwanie podłogi pływającej panele etc.	m²	0	20		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	28	46738	Wybicie otworu drzwiowego w ścianie działowej z montażem nadproża	szt	1	850	nowy otwór pod drzwi ukryte 81×208 (str. 3)	2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	29	46739	Wyburzanie ścian 12-20 cm grubości - materiał miękki	m²	0	130		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	30	46740	Wyburzanie ścian do 12 -20 cm - żelbeton	m²	0	450		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	31	46741	Wyburzanie ścian do 12 cm grubości - materiał miękki	m²	15	110	ściana w drugim korytarzu ≈ 8 m² + otwór pod kasetę Eclisse 263×260 ≈ 6,8 m²	2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	32	46742	Wyburzanie ścian do 12 cm grubości - żelbeton	m²	0	300		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	33	46743	Wyburzanie ścian powyżej 20 cm grubości - materiał miękki	m²	0	150		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	34	46744	Wykucie nadproża i powiększenie otworu drzwiowego	kpl	0	450		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	35	46745	Zabezpieczenia mebli, podłóg, okien, drzwi i elementów niezbędnych do prac. Demontaż gniazd, włączników, lamp, karniszy etc. Zabezpieczenie sprzętów i wszelkich niezbędnych elementów. Oklejanie do malowania etc. Zabezpieczanie elementów już wykonanych, glazura zabudowy etc.	kpl	125.6	25	j.m. w rozpisce to kpl, ale cena 25 zł to stawka za m² mieszkania	2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	36	46746	Zabezpieczenia mebli, podłóg, okien, drzwi i elementów niezbędnych do prac. Zabezpieczanie elementów już wykonanych, glazura zabudowy etc. - mieszkanie zamieszkane	m²	0	45		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	37	46747	Zdzieranie starej farby z tynkiem	m²	0	40		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	38	46748	Zdzieranie tapet i usuwanie kleju	m²	0	50		2026-10-01
+168	Wyburzenia, demontaże, zabezpieczenia	2	39	47006	Skucie glifu przy oknie	mb	5.2	70	podkucie ościeży okna w salonie pod płytę meblową (str. 3). Założono okno 145×186: boki + góra.	2026-10-01
+168	Podłogi	3	1	46749	Akrylowanie listew przypodłogowych	mb	66.4	16	listwy MD236 zmierzone na rys. 10 (warstwa pomarańczowa, minus otwory)	2026-10-01
+168	Podłogi	3	2	46750	Cokół docinany z płytek	mb	0	100		2026-10-01
+168	Podłogi	3	3	46751	Cyklinowanie - cena już z materiałem. Ewentualnie dodatkowe koszty mogą się pojawić jeżeli trzeba będzie coś naprawiać itp.	m²	0	150		2026-10-01
+168	Podłogi	3	4	46752	Docięcie i montaż progu w drzwiach wejściowych	szt	1	250	płytki w holu dochodzą do drzwi wejściowych	2026-10-01
+168	Podłogi	3	5	46753	Fugowanie	m²	18	30	hol 6,1 + podłoga kuchni 8,7 + ściany kuchni 3,3	2026-10-01
+168	Podłogi	3	6	46754	Gruntowanie podłóg	m²	15	10	hol + kuchnia (deska Bauwerk — firma zewnętrzna)	2026-10-01
+168	Podłogi	3	7	46755	Klejenie maty kompensacyjnej	m²	0	40		2026-10-01
+168	Podłogi	3	8	46756	Klejenie paneli winylowych jodełka	m²	0	95		2026-10-01
+168	Podłogi	3	9	46757	Klejenie paneli winylowych mijanka	m²	0	60		2026-10-01
+168	Podłogi	3	10	46758	Klejenie paneli winylowych układ prosty,	m²	0	60		2026-10-01
+168	Podłogi	3	11	46759	Malowanie listew przypodłogowych	mb	0	25		2026-10-01
+168	Podłogi	3	12	46760	Montaż listew przypodłogowych metalowych	mb	0	200		2026-10-01
+168	Podłogi	3	13	46761	Montaż listew przypodłogowych poliuretan lub MDF	mb	66.4	45	listwy MD236 zmierzone na rys. 10 (warstwa pomarańczowa, minus otwory)	2026-10-01
+168	Podłogi	3	14	46762	Montaż listwy łączeniowej w przejściach - łączenie różnych rodzajów podłóg	mb	0	100		2026-10-01
+168	Podłogi	3	15	46763	Ogrzewanie podłogowe elektryczne, montaż maty	m²	0	90		2026-10-01
+168	Podłogi	3	16	46764	Ogrzewanie podłogowe elektryczne, ułożenie maty + wylewka samopoziomująca	m²	0	130		2026-10-01
+168	Podłogi	3	17	46765	Położenie gresu na podłodze (karo) 30x30	m²	0	250		2026-10-01
+168	Podłogi	3	18	46766	Położenie gresu na podłodze format 120x120	m²	0	300		2026-10-01
+168	Podłogi	3	19	46767	Położenie gresu na podłodze format mały 20x20	m²	0	250		2026-10-01
+168	Podłogi	3	20	46768	Położenie gresu na podłodze format mały cegiełki i inne np 10x10, 6x15 itp.	m²	6.1	380	hol: mozaika Paradyż Modernizm na siatce 30,9×30,9, 64 arkusze netto	2026-10-01
+168	Podłogi	3	21	46769	Położenie gresu na podłodze format standard od 30x30 do 60x120	m²	0	180		2026-10-01
+168	Podłogi	3	22	46770	Położenie gresu na podłodze wielki format 120x270 itp.	m²	0	550		2026-10-01
+168	Podłogi	3	23	46771	Położenie płytek na podłodze 20x20	m²	0	250		2026-10-01
+168	Podłogi	3	24	46772	Położenie płytek na podłodze 120x120	m²	0	300		2026-10-01
+168	Podłogi	3	25	46773	Położenie trawertynu na podłodze	m²	0	300		2026-10-01
+168	Podłogi	3	26	46774	Równe cięcia podłóg do łączeń bez listew	mb	6	100	przejścia płytki ↔ deska bez listew: hol/pokoje, kuchnia/salon	2026-10-01
+168	Podłogi	3	27	46775	Szycie dylatacji z dyblami	mb	0	100		2026-10-01
+168	Podłogi	3	28	46776	Układanie paneli laminowanych jodełka - wysoki stopień skomplikowania prac	m²	0	85		2026-10-01
+168	Podłogi	3	29	46777	Układanie paneli laminowanych niski stopień skomplikowania prac	m²	0	60		2026-10-01
+168	Podłogi	3	30	46778	Układanie paneli winylowych pływających jodełka wysoki stopień skomplikowania prac	m²	0	90		2026-10-01
+168	Podłogi	3	31	46779	Układanie paneli winylowych pływających niski stopień skomplikowania prac	m²	0	60		2026-10-01
+168	Podłogi	3	32	46780	Układanie parkietu jodełka - wysoki stopień skomplikowania prac	m²	0	110		2026-10-01
+168	Podłogi	3	33	46781	Układanie parkietu z gruntowaniem mijanka	m²	0	75		2026-10-01
+168	Podłogi	3	34	46782	Uzupełnianie posadzki po wyburzeniach	mb	6	60	ślad po wyburzonej ścianie + otwór Eclisse	2026-10-01
+168	Podłogi	3	35	46783	Wklejanie korka drewnianego między parkiet	mb	0	30		2026-10-01
+168	Podłogi	3	36	46784	Wylewka betonowa ok. 3-5 cm	m²	0	80		2026-10-01
+168	Podłogi	3	37	46785	Wylewka samopoziomująca w całym mieszkaniu do 5 mm	m²	0	55		2026-10-01
+168	Ściany i sufity bez łazienek 	4	1	46786	Akrylowanie łączeń ścian i sufitów / akrylowanie dylatacji - polecam, bo zdecydowanie poprawia estetykę w narożnikach oraz przykrywa potencjalne pęknięcia	mb	121.4	14	pasy wykończeń z rys. 11 (107.9 mb) + nadproża drzwi	2026-10-01
+168	Ściany i sufity bez łazienek 	4	2	46787	Dodatek za wklejanie siatki tynkarskiej	m²	0	13		2026-10-01
+168	Ściany i sufity bez łazienek 	4	3	46788	Gładzie klatka schodowa dodatek do m2 jeżeli dostęp utrudniony	m²	0	35		2026-10-01
+168	Ściany i sufity bez łazienek 	4	4	46789	Gładzie na sufitach "finish" stan deweloperski (2 warstwy) - standard wykończenia Q3	m²	115	59	sufity pomieszczeń suchych: 125,6 − 6,74 − 4,11	2026-10-01
+168	Ściany i sufity bez łazienek 	4	5	46790	Gładzie na sufitach "finish" stan deweloperski (2-3 warstwy) - premium - standard wykończenia Q4	m²	0	80		2026-10-01
+168	Ściany i sufity bez łazienek 	4	6	46791	Gładzie na ścianach "finish" stan deweloperski (2 warstwy) - standard wykończenia Q3	m²	250	57	pasy wykończeń z rys. 11 × wysokość z rys. 3 − okna + nadproża; malowane 198.9 + tapety 44.1 + nadproża 7.0; bez paneli tapicerowanych i akustycznych	2026-10-01
+168	Ściany i sufity bez łazienek 	4	7	46792	Gładzie na ścianach "finish" stan deweloperski (2-3 warstwy) - premium - standard wykończenia Q4	m²	0	75		2026-10-01
+168	Ściany i sufity bez łazienek 	4	8	46793	Gładzie na ścianach i sufitach rynek wtórny (3-4 warstwy) + podkład z tynku jeżeli będzie potrzebny, jak nie to cena nieco niższa	m²	0	85		2026-10-01
+168	Ściany i sufity bez łazienek 	4	9	46794	Gruntowanie farbą podkładową - bardzo zalecane na świeże gładzie. Dzięki temu zmniejszamy chłonność powierzchni oraz unikamy na ścianach pasów i wrażenia nierównego malowania. Również przy malowaniu tynków bez gładzi warto zrobić taką warstwę podkładową.	m²	320.6	12	sufity 114,7 + ściany malowane 205.9	2026-10-01
+168	Ściany i sufity bez łazienek 	4	10	46795	Gruntowanie powierzchni betonkontaktem	mb	0	15		2026-10-01
+168	Ściany i sufity bez łazienek 	4	11	46796	Gruntowanie powierzchni ścian i sufitów przed gładziami i po gładziach	m²	364.7	12	gładzie: ściany 250.0 + sufity 114,7	2026-10-01
+168	Ściany i sufity bez łazienek 	4	12	46797	Gruntowanie ścian jednokrotne	m²	0	8		2026-10-01
+168	Ściany i sufity bez łazienek 	4	13	46798	Gruntowanie ścian jednokrotne + drobne poprawki	m²	0	15		2026-10-01
+168	Ściany i sufity bez łazienek 	4	14	46799	Malowanie sufitów farbą silikonową lub akrylową na biało	m²	115	23	sufity pomieszczeń suchych	2026-10-01
+168	Ściany i sufity bez łazienek 	4	15	46800	Malowanie sufitu w kolorze	m²	0	27		2026-10-01
+168	Ściany i sufity bez łazienek 	4	16	46801	Malowanie sztukaterii	mb	0	40		2026-10-01
+168	Ściany i sufity bez łazienek 	4	17	46802	Malowanie ścian emulsją z gruntem (przykrycie koloru, żeby malować na biało) - 1 warstwa	m²	0	10		2026-10-01
+168	Ściany i sufity bez łazienek 	4	18	46803	Malowanie ścian farbą strukturalną efekt beton - do ustalenia dokładnie produkt i czy to ma być beton, tynk dekoracyjny czy farba, bo cena może się różnić. Od 40 do 150 zł	m²	81.7	100	limewash z rys. 11: korytarz, część salonu, sypialnia − okno sypialni	2026-10-01
+168	Ściany i sufity bez łazienek 	4	19	46804	Malowanie ścian i sufitów farbą silikonową lub akrylową na biało	m²	0	22		2026-10-01
+168	Ściany i sufity bez łazienek 	4	20	46805	Malowanie ścian w kolorze	m²	124.2	26	Flugger NCS S 1002-Y20R 83.7 + dzieci 0–120 16.3 + bawialnia 0–120 17.2 + nadproża	2026-10-01
+168	Ściany i sufity bez łazienek 	4	21	46806	Montaż karniszy	mb	5.8	80	karnisze narysowane na rys. 10 (warstwa fioletowa)	2026-10-01
+168	Ściany i sufity bez łazienek 	4	22	46807	Montaż listew sztukateryjnych na ścianach przygotowanych do malowania (docinanie, montaż, szpachlowanie połączeń, akrylowanie, szlifowanie)	mb	26	80	sypialnia: Decor System DSS03, 12 szt. × 2,4 m	2026-10-01
+168	Ściany i sufity bez łazienek 	4	23	46808	Montaż listew sztukateryjnych sufitowych (osłona karnisza) przygotowanych do malowania (docinanie, montaż, szpachlowanie połączeń, akrylowanie, szlifowanie)	mb	15.2	110	maskownice LK-01 zmierzone na rys. 10	2026-10-01
+168	Ściany i sufity bez łazienek 	4	24	46809	Montaż nadproży w nowo murowanej ścianie	szt	0	150		2026-10-01
+168	Ściany i sufity bez łazienek 	4	25	46810	Montaż płyt GK na klej na ścianach	m²	0	80		2026-10-01
+168	Ściany i sufity bez łazienek 	4	26	46811	Montaż płyty OSB na ścianie	mb	0	80		2026-10-01
+168	Ściany i sufity bez łazienek 	4	27	46812	Montaż profili wzmocnionych pod ościeżnice	kpl	0	250		2026-10-01
+168	Ściany i sufity bez łazienek 	4	28	46813	Montaż ścian GK z wełną mineralną - podwójna płyta obustronnie - niski stopień skomplikowania prac	m²	23	150	kaseta Eclisse 263 cm z pogrubieniem do 13 cm ≈ 6,9 + dobudowy ścianek ≈ 4 + 2× zasklepienie otworu 90 cm ≈ 3,8 + wygłuszenie ściany łaz. małej od pokoju dzieci ≈ 8	2026-10-01
+168	Ściany i sufity bez łazienek 	4	29	46814	Montaż ścian GK z wełną mineralną - podwójna płyta obustronnie - wysoki stopień skomplikowania prac	m²	0	180		2026-10-01
+168	Ściany i sufity bez łazienek 	4	30	46815	Montaż wzmocnień w ścianach działowych pod szafki wiszące	m²	0	80		2026-10-01
+168	Ściany i sufity bez łazienek 	4	31	46816	Murowanie ścian z bloczków komórkowych 10 cm	m²	2	110	jedno zamurowanie otworu (str. 3)	2026-10-01
+168	Ściany i sufity bez łazienek 	4	32	46817	Murowanie ścian z bloczków komórkowych 5 cm	m²	0	110		2026-10-01
+168	Ściany i sufity bez łazienek 	4	33	46818	Murowanie ścian z bloczków komórkowych 7,5 cm	m²	0	110		2026-10-01
+168	Ściany i sufity bez łazienek 	4	34	46819	Murowanie ścian z bloczków komórkowych 7,5 cm (skomplikowany montaż)	m²	0	150		2026-10-01
+168	Ściany i sufity bez łazienek 	4	35	46820	Naprawy ścian i sufitów po kuciu, bruzdowaniu, tynkowanie bruzd (liczone w metrach bieżących)	mb	195	25	tynkowanie bruzd elektrycznych i wod-kan	2026-10-01
+168	Ściany i sufity bez łazienek 	4	36	46821	Odcinanie kolorów, lamperie itp.	mb	35.3	12	linia 120 cm: dzieci + bawialnia (pasy z rys. 11); styki pionowe kolorów nieliczone	2026-10-01
+168	Ściany i sufity bez łazienek 	4	37	46822	Poprawki malarskie po stolarzach	kpl	1	500	po stolarzu (panele tapicerowane, akustyczne, zabudowy)	2026-10-01
+168	Ściany i sufity bez łazienek 	4	38	46823	Przesunięcie otworu drzwiowego z montażem nadproża + murowanie	szt	2	1500	dwa przesunięcia otworu (str. 3)	2026-10-01
+168	Ściany i sufity bez łazienek 	4	39	46824	Sufit podwieszany montaż stelaża z płytami - niski stopień skomplikowania prac	m²	0	160		2026-10-01
+168	Ściany i sufity bez łazienek 	4	40	46825	Szlifowanie mleczka z tynków deweloperskich	m²	0	7		2026-10-01
+168	Ściany i sufity bez łazienek 	4	41	46826	Szpachlowanie glifów / dekoracyjnych narożników / wykończenie obwodu drzwi z ukrytą opaską	mb	45.4	55	glify: 8 okien × (2 × wysokość + szerokość)	2026-10-01
+168	Ściany i sufity bez łazienek 	4	42	46827	Szpachlowanie połączeń ścian z GK i wklejanie taśmy wzmacniającej (łączenia pęknięć płyt, łączenia płyt GK etc.)	mb	30	35	łączenia płyt na nowych zabudowach GK	2026-10-01
+168	Ściany i sufity bez łazienek 	4	43	46828	Tapetowanie	m²	50.6	100	tapety > 120 cm z rys. 11: dzieci 19.7 + bawialnia 24.4; + sypialnia MILO 6,5 z listy zakupowej	2026-10-01
+168	Ściany i sufity bez łazienek 	4	44	46829	Tynk dekoracyjny efekt betonu	m²	0	160		2026-10-01
+168	Ściany i sufity bez łazienek 	4	45	46830	Tynkowanie glifów lub powierzchni o szerokości do 30 cm / poprawka miejsc po demontażu ścian	mb	40	40	krawędzie po wyburzeniach, przesunięciach, nowym otworze i zmniejszeniach otworów	2026-10-01
+168	Ściany i sufity bez łazienek 	4	46	46831	Tynkowanie ręczne ścian lub sufitów do 1 cm	m²	4	60	zamurowanie — obie strony	2026-10-01
+168	Ściany i sufity bez łazienek 	4	47	46832	Tynkowanie/wyrównywanie ścian lub sufitów na listwach tynkarskich do kilku cm grubości.	m²	0	100		2026-10-01
+168	Ściany i sufity bez łazienek 	4	48	46833	Wklejanie narożników aluminiowych i wklejanie siatki + szpachlowanie narożniki, glify okienne etc. wszędzie tam gdzie to wymaga	mb	30	35	narożniki zabudów GK, siedzisk, kasety Eclisse, zaoblenie R5	2026-10-01
+168	Ściany i sufity bez łazienek 	4	49	46834	Wklejanie taśmy w łączenie sufit-ściana oraz dylatacje - poprawia estetykę oraz chroni przed pęknięciami	mb	0	35		2026-10-01
+168	Ściany i sufity bez łazienek 	4	50	46835	Gładzie po bruzdach, wykonanie gładzi po usuwaniu sztukaterii etc.	mb	0	45		2026-10-01
+168	Ściany i sufity bez łazienek 	4	51	46836	Zabudowy rur z GK (piony wodne, rury gazowe etc.) - po obejrzeniu	mb	0	350		2026-10-01
+168	Ściany i sufity bez łazienek 	4	52	47004	Siedzisko z G-K pod oknem z wnęką na grzejnik i kratką	szt	2	0	salon 145 cm h=62, bawialnia 152–169 cm gł. 30. Brak w katalogu — do wyceny. Najbliżej „Zabudowa ścian z GK na stelażu + przedścianki” 250 zł/m².	2026-10-01
+168	Ściany i sufity bez łazienek 	4	53	47005	Klejenie dużego lustra na ścianę	szt	3	0	korytarz, salon (Optiwhite) + trzecie z maila. Brak w katalogu — do wyceny. Najbliżej „Montaż lustra - zwykłe wiszące” 120 zł.	2026-10-01
+168	Łazienka	5	1	46837	Akrylowanie	mb	19	14	styk płytki/ściana malowana/sufit w obu łazienkach	2026-10-01
+168	Łazienka	5	2	46838	Biały montaż baterii podtynkowej bidetka	kpl	2	100	bidetki w obu łazienkach	2026-10-01
+168	Łazienka	5	3	46839	Biały montaż baterii podtynkowej do umywalki	kpl	2	100	baterie umywalkowe podtynkowe w obu łazienkach	2026-10-01
+168	Łazienka	5	4	46840	Biały montaż baterii podtynkowej do wanny/prysznica razem ze słuchawką i deszczownicą	kpl	2	200	zestaw wannowy (wylewka, słuchawka, FixFit) + zestaw prysznicowy (deszczownica 36 cm, słuchawka, FixFit)	2026-10-01
+168	Łazienka	5	5	46841	Dodatek za schodek pod prysznicem - murowanie i wykonanie spadki na podwyższeniu	kpl	0	1000		2026-10-01
+168	Łazienka	5	6	46842	Dwukrotne gruntowanie ścian, sufitów i podłóg	m²	75.1	10	podłogi + ściany z rys. 11 + sufity łazienek	2026-10-01
+168	Łazienka	5	7	46843	Fugowanie fugą epoksydową format płytek standard	m²	0	80		2026-10-01
+168	Łazienka	5	8	46844	Fugowanie ścian i podłóg fuga cementowa płytka mały format	m²	6.7	50	jak płytki małoformatowe	2026-10-01
+168	Łazienka	5	9	46845	Fugowanie ścian i podłóg fugą epoksydową płytka mały format	m²	0	120		2026-10-01
+168	Łazienka	5	10	46846	Fugowanie ścian i podłóg płytka format standard	m²	38.9	30	podłogi + ściany wielkoformatowe z rys. 11	2026-10-01
+168	Łazienka	5	11	46847	Instalacja wod-kan nowe punkty, przeniesienie lub przedłużenie - każdy punkt	pkt	14	250	łaz. duża: umywalka 3, wanna z iBox 3, odpływ suszarki 1, bidetka 2; łaz. mała: iBox prysznica 2, odpływ liniowy 1, bidetka 2	2026-10-01
+168	Łazienka	5	12	46848	Klejenie płyt GK	m²	0	80		2026-10-01
+168	Łazienka	5	13	46849	Licowanie ścian płytami GK + wklejanie taśm i przygotowanie pod malowanie/tapetę	m²	0	120		2026-10-01
+168	Łazienka	5	14	46850	Malowanie sufitów i ścian bez glazury + gładź na suficie	m²	29.5	100	sufity łazienek 10,85 + limewash Aqua Ceramic łaz. duża 14.4 + farba wodoodporna nad Fossil 4.3	2026-10-01
+168	Łazienka	5	15	46851	Montaż akcesoriów łazienkowych	szt	16	50	haczyki, uchwyty na papier, szczotki WC, mydelniczki, drabinka, siedzisko składane, 2 dozowniki w kuchni	2026-10-01
+168	Łazienka	5	16	46852	Montaż baterii do umywalki	szt	0	150		2026-10-01
+168	Łazienka	5	17	46853	Montaż baterii prysznicowej/wannowej podtynkowej razem z podłączeniem zasilania wody	szt	3	900	łaz. duża: termostat wannowy iBox; łaz. mała: ShowerSelect + zawór przestawny (2× iBox)	2026-10-01
+168	Łazienka	5	18	46854	Montaż baterii prysznicowo-wannowej natynkowej	szt	0	250		2026-10-01
+168	Łazienka	5	19	46855	Montaż baterii umywalkowej podtynkowej razem z podłączeniem zasilania wody	szt	2	550	obie umywalki	2026-10-01
+168	Łazienka	5	20	46856	Montaż baterii wannowej wolnostojącej	szt	0	550		2026-10-01
+168	Łazienka	5	21	46857	Montaż bidetu podtynkowego	szt	2	550	bidetki podtynkowe (element + bateria)	2026-10-01
+168	Łazienka	5	22	46858	Montaż brodzika z kabiną prysznicową	kpl	0	1500		2026-10-01
+168	Łazienka	5	23	46859	Montaż deski wc elektrycznej	szt	0	550		2026-10-01
+168	Łazienka	5	24	46860	Montaż geberitu	szt	2	450	Geberit Duofix w obu łazienkach	2026-10-01
+168	Łazienka	5	25	46861	Montaż gniazdek i włączników standard	szt	0	39		2026-10-01
+168	Łazienka	5	26	46862	Montaż grzejnika elektrycznego	szt	1	200	grzałka grzejnika wodno-elektrycznego Luxrad (łaz. mała)	2026-10-01
+168	Łazienka	5	27	46863	Montaż grzejnika z zaworami	szt	0	250		2026-10-01
+168	Łazienka	5	28	46864	Montaż i podłączenie listw led + taśm	mb	0	150		2026-10-01
+168	Łazienka	5	29	46865	Montaż i podłączenie transformatora	mb	0	100		2026-10-01
+168	Łazienka	5	30	46866	Montaż kratki wentylacyjnej	kpl	2	100	po jednej na łazienkę	2026-10-01
+168	Łazienka	5	31	46867	Montaż lamp	szt	0	100		2026-10-01
+168	Łazienka	5	32	46868	Montaż lustra	szt	2	120	lustra łazienkowe	2026-10-01
+168	Łazienka	5	33	46869	Montaż lustra z LED	szt	0	150		2026-10-01
+168	Łazienka	5	34	46870	Montaż odpływu liniowego z wypoziomowaniem spadku - koperta	kpl	0	1900		2026-10-01
+168	Łazienka	5	35	46871	Montaż odpływu liniowego z wypoziomowaniem spadku - odpływ jednospadkowy	kpl	1	1600	RainDrain 90 cm z uBox; przy 120×120 na podłodze — jednospadkowy	2026-10-01
+168	Łazienka	5	36	46872	Montaż ościeżnicy z drzwiami i klamkami	szt	0	380		2026-10-01
+168	Łazienka	5	37	46873	Montaż parawanu nawannowego	szt	0	550		2026-10-01
+168	Łazienka	5	38	46874	Montaż profili i płyt GK w zabudowie geberitu	kpl	4	450	łaz. duża: 2 zabudowy h=120; łaz. mała: przedścianka h=120 z wnęką 25×15 + przedścianka h=120 (−10 cm) (str. 4)	2026-10-01
+168	Łazienka	5	39	46875	Montaż rewizji z glazury	kpl	0	350		2026-10-01
+168	Łazienka	5	40	46876	Montaż syfonów	szt	2	80	umywalki	2026-10-01
+168	Łazienka	5	41	46877	Montaż szyby stałej do odpływu liniowego	kpl	0	550		2026-10-01
+168	Łazienka	5	42	46878	Montaż umywalki nablatowej lub na szafke	szt	2	130	łaz. duża podblatowa (blat — firma zewnętrzna), łaz. mała	2026-10-01
+168	Łazienka	5	43	46879	Montaż umywalki wiszącej	szt	0	250		2026-10-01
+168	Łazienka	5	44	46880	Montaż wanny wolnostojącej z syfonem	kpl	0	600		2026-10-01
+168	Łazienka	5	45	46881	Montaż wanny z zabudową z bloczków i rewizją	kpl	1	1800	Villeroy & Boch Oberon 170×75 na nóżkach, front z Bars Swan	2026-10-01
+168	Łazienka	5	46	46882	Montaż wanny z zabudową z bloczków i rewizją oraz LED	kpl	0	2000		2026-10-01
+168	Łazienka	5	47	46883	Montaż WC podwieszanego	szt	2	350	miski w obu łazienkach	2026-10-01
+168	Łazienka	5	48	46884	Montaż zaworów czerpalnych do umywalek i zlewów	szt	2	60	zawory pod zlew w kuchni	2026-10-01
+168	Łazienka	5	49	46885	Podłączenie pralki	szt	1	100	łaz. duża	2026-10-01
+168	Łazienka	5	50	46886	Podłączenie suszarki	szt	1	100	łaz. duża — odpływ suszarki	2026-10-01
+168	Łazienka	5	51	46887	Położenie folii w płynie (izolacji)	m²	22	30	podłogi 10,85 + strefy mokre ścian ≈ 11	2026-10-01
+168	Łazienka	5	52	46888	Przyklejenie maty kompensacyjnej pod płytki wielkoformatowe	m²	10.85	45	pod 120×120 na obu podłogach	2026-10-01
+168	Łazienka	5	53	46889	Silikonowanie	mb	30	25	wanna, prysznic, umywalki, narożniki wewnętrzne	2026-10-01
+168	Łazienka	5	54	46890	Sufit podwieszany z LED wg. projektu	kpl	0	1800		2026-10-01
+168	Łazienka	5	55	46891	Szlifowanie krawędzi płytek na 45 stopni	mb	15	80	krawędzie zabudów geberitów, przedścianki wanny, wnęk, frontu wanny	2026-10-01
+168	Łazienka	5	56	46892	Szlifowanie krawędzi płytek czyste cięcie	mb	0	50		2026-10-01
+168	Łazienka	5	57	46893	Tynkowanie/wyrównanie ścian pod układanie glazury	m²	0	80		2026-10-01
+168	Łazienka	5	58	46894	Układanie glazury mały format 6,5 x 20	m²	0	380		2026-10-01
+168	Łazienka	5	59	46895	Układanie glazury na glify i małe ściany - mały format	mb	0	345		2026-10-01
+168	Łazienka	5	60	46896	Układanie glazury na podłodze duży format 120x120	m²	10.85	300	Caesar Bloomstone 6,74 (łaz. duża) + Norr Melk 4,11 (łaz. mała)	2026-10-01
+168	Łazienka	5	61	46897	Układanie glazury na podłodze format 20x20	m²	0	200		2026-10-01
+168	Łazienka	5	62	46898	Układanie glazury na podłodze format standard od 30x30 do 120x60	m²	0	180		2026-10-01
+168	Łazienka	5	63	46899	Układanie glazury na podłodze format standard od 30x30 do 120x60 (karo)	m²	0	250		2026-10-01
+168	Łazienka	5	64	46900	Układanie glazury na podłodze lub ścianie mozaika	m²	0	400		2026-10-01
+168	Łazienka	5	65	46901	Układanie glazury na podłodze wielki format np. 120x270	m²	0	550		2026-10-01
+168	Łazienka	5	66	46902	Układanie glazury na ścianie mały format np. 6,5 x 15	m²	6.7	380	Swan 5×25 > 120 cm 2.5 + Bars na froncie wanny 0,56 + Fossil 0–120 3.6	2026-10-01
+168	Łazienka	5	67	46903	Układanie glazury na ścianie format duży 120x120	m²	24.2	300	Caesar 0–120 2.1 + Elysian 120×120 9.5 + Norr Melk 12.6	2026-10-01
+168	Łazienka	5	68	46904	Układanie glazury na ścianie format standard od 30x30 do 120x60	m²	0	180		2026-10-01
+168	Łazienka	5	69	46905	Układanie glazury na ścianie wielki format 120x270	m²	3.9	550	Elysian Line 120×278 — pas na rys. 11 × wysokość	2026-10-01
+168	Łazienka	5	70	46906	Układanie płytek w glifach, półeczkach itp. do 20 cm - format standard	mb	0	130		2026-10-01
+168	Łazienka	5	71	46907	Układanie płytek w glifach, półeczkach itp. do 20 cm wielki format	mb	10	350	półki wnęki na kosmetyki (4× 40 cm), wnęka 25×15, blaty zabudów, przedścianka wanny	2026-10-01
+168	Łazienka	5	72	46908	Wiercenie otworów w płytkach	szt	20	60	wyjścia baterii podtynkowych, deszczownicy, FixFit, bidetek, gniazd	2026-10-01
+168	Łazienka	5	73	46909	Wklejanie maty hydroizolacyjnej	m²	0	65		2026-10-01
+168	Łazienka	5	74	46910	Wklejanie taśmy hydroizolacyjnej	mb	27	30	obwody podłóg + narożniki strefy prysznica i wanny	2026-10-01
+168	Łazienka	5	75	46911	Wkucie w ścianę działową instalacji wod-kan każdy punkt/zespół punktów. Kompleksowo razem z zaszpachlowaniem	pkt	3	250	3 zaślepione przyłącza wody po drugim mieszkaniu	2026-10-01
+168	Łazienka	5	76	46912	Wkucie w ścianę nośną/żelbet instalacji wod-kan każdy punkt/zespół punktów. Kompleksowo razem z zaszpachlowaniem	kpl	0	500		2026-10-01
+168	Łazienka	5	77	46913	Wykonanie przedścianki pod prysznicem z 1 półką	szt	1	1200	łaz. mała — wnęka 25×15 w przedściance	2026-10-01
+168	Łazienka	5	78	46914	Wykonanie przedścianki pod prysznicem z 2 półkami	kpl	0	1500		2026-10-01
+168	Łazienka	5	79	46915	Wykonanie przedścianki pod prysznicem z 3 półkami	szt	1	1800	łaz. duża — wnęka na kosmetyki z półkami	2026-10-01
+168	Łazienka	5	80	46916	Wykonanie przycisku WC z glazury	szt	0	650		2026-10-01
+168	Łazienka	5	81	46917	Wykonanie punktów oświetleniowych	szt	0	100		2026-10-01
+168	Łazienka	5	82	46918	Wykonanie punktów elektrycznych pod włącznik, gniazdko	szt	0	120		2026-10-01
+168	Łazienka	5	83	46919	Wykonanie zabudowy rur z gk	mb	1.7	250	przedścianka za wanną h=90, gł. ~8 cm, pod baterię podtynkową	2026-10-01
+168	Łazienka	5	84	46920	Złożenie i montaż szafki nad geberitem	szt	0	250		2026-10-01
+168	Łazienka	5	85	46921	Złożenie i montaż szafki podumywalkowej	szt	0	250		2026-10-01
+168	Łazienka	5	86	46922	Zmiana kanalizacji z wanny na odpływ liniowy - skucie posadzki, obniżenie rur w pionie, wykonanie odpowiedniego spadku	kpl	0	800		2026-10-01
+168	Łazienka	5	87	47003	Ścianka z luksferów ze zbrojeniem, fugowaniem i obróbką	kpl	1	0	łazienka mała, ściana prysznica: 1919/8 Alpha 3×13 szt. ≈ 1,4 m². Brak w katalogu — do wyceny.	2026-10-01
+168	Kuchnia	6	1	46923	Montaż AGD: lodówka, zmywarka, płyta, piekarnik	szt	4	250	lodówka, zmywarka, płyta, piekarnik	2026-10-01
+168	Kuchnia	6	2	46924	Montaż baterii zlewozmywakowej	szt	1	250	Fontas z filtrem	2026-10-01
+168	Kuchnia	6	3	46925	Montaż LED	mb	3	90	LED pod szafkami wiszącymi	2026-10-01
+168	Kuchnia	6	4	46926	Montaż oświetlenia LED	szt	0	100		2026-10-01
+168	Kuchnia	6	5	46927	Montaż syfonu	szt	1	80		2026-10-01
+168	Kuchnia	6	6	46928	Montaż zlewu	szt	1	250	Blanco Subline podwieszany	2026-10-01
+168	Kuchnia	6	7	46929	Montaż zlewu z wywierceniem otworu	szt	0	350		2026-10-01
+168	Kuchnia	6	8	46930	Podłączenie indukcji	szt	1	150		2026-10-01
+168	Kuchnia	6	9	46931	Podłączenie piekarnika	szt	1	150		2026-10-01
+168	Kuchnia	6	10	46932	Podłączenie zmywarki	szt	1	250		2026-10-01
+168	Kuchnia	6	11	46933	Położenie płytek między szafkami - mozaika	m²	0	450		2026-10-01
+168	Kuchnia	6	12	46934	Położenie płytek między szafkami format standard od 30x30 do 60x120	m²	0	220		2026-10-01
+168	Kuchnia	6	13	46935	Położenie płytek między szafkami mały format cegiełki itp.	m²	2	380	fartuch Mallorca Cream 6,5×20 (153 szt.)	2026-10-01
+168	Kuchnia	6	14	46936	Układanie glazury na ścianie format standard	m²	1.3	180	Soft Harmony 120×55 przy oknie	2026-10-01
+168	Kuchnia	6	15	46937	Układanie gresu 120x120	m²	8.7	300	Soft Harmony 119,8×119,8 na podłodze	2026-10-01
+168	Kuchnia	6	16	46938	Układanie gresu na podłodze format standard od 30x30 do 60x120	m²	0	180		2026-10-01
+168	Kuchnia	6	17	46939	Wklejanie narożników i wklejanie siatki + szpachlowanie narożniki, glify okienne etc. wszędzie tam gdzie to wymaga	mb	0	35		2026-10-01
+168	Kuchnia	6	18	46940	Wkucie płytek w ścianę, zlicowanie + obróbka	m²	0	400		2026-10-01
+168	Kuchnia	6	19	46941	Wzmocnienie płytą OSB pod szafki kuchenne min. m2	m²	0	120		2026-10-01
+168	Montaż stolarki i ślusarski	8	0	46942	Nowa praca	szt	0	0		2026-10-01
+168	Montaż stolarki i ślusarski	8	1	46943	Montaż drzwi do systemu kasetowego	kpl	0	600		2026-10-01
+168	Montaż stolarki i ślusarski	8	2	46944	Montaż kasety pod drzwi przesuwne	szt	0	1400		2026-10-01
+168	Montaż stolarki i ślusarski	8	3	46945	Montaż drzwi, ościeżnic stałych, klamek, zamków	szt	0	450		2026-10-01
+168	Montaż stolarki i ślusarski	8	4	46946	Montaż drzwi, ościeżnic regulowanych, klamek, zamków	szt	0	380		2026-10-01
+168	Montaż stolarki i ślusarski	8	5	46947	Montaż drzwi ukrytych z wykończeniem i przygotowaniem do malowania/tapety	szt	0	1000		2026-10-01
+168	Montaż stolarki i ślusarski	8	6	46948	Montaż klamek okiennych	szt	0	20		2026-10-01
+168	Montaż stolarki i ślusarski	8	7	46949	Montaż parapetów	mb	0	200		2026-10-01
+168	Montaż stolarki i ślusarski	8	8	46950	Montaż progu drzwi wejściowych	szt	0	150		2026-10-01
+168	Montaż stolarki i ślusarski	8	9	46951	Obróbka drzwi ukrytych bez montażu ościeży	szt	1	800	drzwi ukryte montuje firma zewnętrzna — po naszej stronie obróbka	2026-10-01
+168	Montaż stolarki i ślusarski	8	10	46952	Regulacja okien	szt	0	40		2026-10-01
+168	Montaż stolarki i ślusarski	8	11	46953	Silikonowanie parapetu	mb	0	30		2026-10-01
+168	Montaż stolarki i ślusarski	8	12	46954	Wklejanie opasek drzwi + docinanie listew	kpl	0	200		2026-10-01
+168	Montaż stolarki i ślusarski	8	13	46955	Dopasowanie otworów pod montaż drzwi - zmniejszenie otworu	szt	2	200	dwa zmniejszenia otworu (str. 3)	2026-10-01
+168	Montaż stolarki i ślusarski	8	14	46956	Poszerzenie otworów drzwi	szt	0	350		2026-10-01
+168	Wiatrołap	9	0	46957	Nowa praca	szt	0	0		2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	0	46958	Nowa praca	szt	0	0		2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	1	46959	Doprowadzenie kabla do rolet zewnętrznych + przebicie	kpl	0	350		2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	2	46960	Doprowadzenie przewodu 3-fazowego	kpl	0	300		2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	3	46961	Doprowadzenie przewodu 3-fazowego do rozdzielni, wniosek do E.ON, wymiana bezpiecznika przedlicznikowego i przygotowanie instalacji	kpl	0	1500		2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	4	46962	Doprowadzenie przewodu 3-fazowego z montażem gniazda	kpl	1	500	nowe gniazdo 400 V	2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	5	46963	Lutowanie taśm LED	pkt	20	30	łączenia na ~10 odcinkach LED	2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	6	46964	Montaż czujnika termostatycznego ze sterownikiem do ogrzewania podłogowego	szt	0	250		2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	7	46965	Montaż gniazda TV i internet	szt	5	200	Ethernet: gniazda RJ45 na końcach 3 kabli ST45↔ST44 + drugi kabel do salonu	2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	8	46966	Montaż gniazdek i włączników	szt	127	39	wymiana całego osprzętu na Karlik Mini: 75 gniazd 230 V + 12 szczelnych + 2× 400 V + 4 TV + 6 RJ45 + ~28 łączników	2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	9	46967	Montaż gniazdek i włączników smart home - cena +/- w zależności od osprzętu	szt	0	100		2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	10	46968	Montaż kanału TV - wykucie i osadzenie + tynk - ściana działowa miękka	szt	0	700		2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	11	46969	Montaż kanału TV - wykucie i osadzenie + tynk - ściana żelbetowa	szt	0	1000		2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	12	46970	Montaż kinkietów	szt	6	100	wszystkie kinkiety z projektu	2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	13	46971	Montaż lamp ze składaniem (trudne)	szt	6	150	lampy wiszące: salon (Beryl), dzieci, sypialnia, bawialnia ×2, korytarz	2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	14	46972	Montaż listew LED + taśm LED	kpl	0	150		2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	15	46973	Montaż master switch; stycznik + master switch	kpl	0	450		2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	16	46974	Montaż okapu i podłączenie do wentylacji	kpl	1	350		2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	17	46975	Montaż profili LED podtynkowych w suficie	mb	6.5	160	bruzda LED w suficie: salon ≈ 4 + łaz. duża ≈ 2,5	2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	18	46976	Montaż prostych lamp (bez składania)	szt	26	100	pozostałe oprawy sufitowe z 32 w projekcie	2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	19	46977	Montaż puszek elektrycznych	pkt	0	35		2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	20	46978	Montaż rozdzielni CCTV - wycena indywidualna	kpl	0	1500		2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	21	46979	Montaż szynoprzewodów natynkowych	mb	4	120	szynoprzewód w korytarzu	2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	22	46980	Montaż taśm LED	mb	15.2	60	LED za maskownicami — jak maskownice	2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	23	46981	Montaż transformatorów	szt	10	120	osobno włączane grupy LED	2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	24	46982	Montaż uchwytu TV	kpl	0	250		2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	25	46983	Montaż wentylatora łazienkowego	kpl	0	120		2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	26	46984	Montaż włączników schodowych/krzyżowych	szt	4	70	korytarze	2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	27	46985	Montaż/Przebudowa rozdzielni elektrycznej wraz z bezpiecznikami - do 12 modułów	kpl	0	1200		2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	28	46986	Montaż/Przebudowa rozdzielni elektrycznej wraz z bezpiecznikami - do 18 modułów	kpl	0	1500		2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	29	46987	Montaż/przebudowa rozdzielni elektrycznej wraz z bezpiecznikami - do 24 modułów	kpl	0	2100		2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	30	46988	Montaż/Przebudowa rozdzielni elektrycznej, dołożenie 1 bezpiecznika	szt	14	200	14 nowych obwodów (34 w projekcie, 20 z przewodów dewelopera)	2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	31	46989	Punkty elektryczne żelbet dodatek	szt	15	50	założenie: część punktów w żelbecie	2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	32	46990	Układanie przewodów w peszlu	mb	34	40	Ethernet: 3× kat. 5E ST45↔ST44 w nowym peszlu + drugi kabel ST45 → salon	2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	33	46991	Wykonanie gniazda zewnętrznego na balkonie z przebiciem się przez ściane	szt	0	220		2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	34	46992	Wykonanie punktów oświetleniowych, czujki, rolety	szt	46	100	nowe wypusty: 24 oprawy + 5 kinkietów + 17 zasilań LED / 230 V	2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	35	46993	Wykonanie punktu lan, kamery, internet	m²	4	250	bilans: 1 TV + 3 RJ45 nowe	2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	36	46994	Wykonanie/przesunięcie punktów elektrycznych, gniazdka i włączniki, wiercenie otworu pod puszkę, montaż puszki, doprowadzenie kabla	szt	83	130	bilans: 54 gniazda 230 V + 11 szczelnych + 8 podłączeń urządzeń + 2 kable pod zabudowę + 8 nowych miejsc łączników	2026-10-01
+168	Instalacja elektryczna i oświetleniowa	10	37	46995	Wymiana bezpiecznika 3-fazowego	szt	0	250		2026-10-01
+168	Instalacja wodno-kanalizacyjna + c.o.	11	0	46996	Montaż grzejnika z zaworami	szt	4	250	Jaga: sypialnia (Strada), kuchnia, 2× do zabudowy pod siedziskami	2026-10-01
+168	Instalacja wodno-kanalizacyjna + c.o.	11	1	46997	Likwidacja punktów wod-kan	pkt	0	120		2026-10-01
+168	Instalacja wodno-kanalizacyjna + c.o.	11	2	46998	Montaż filtra wody	szt	1	500	system filtrujący pod zlewem	2026-10-01
+168	Instalacja wodno-kanalizacyjna + c.o.	11	3	46999	Montaż grzejników dekoracyjnych z zaworami	szt	4	450	Vertex Plan 2200×300 (bawialnia, dzieci) + Luxrad Ovaltic + Luxrad wodno-elektryczny	2026-10-01
+168	Instalacja wodno-kanalizacyjna + c.o.	11	4	47000	Przebudowa punktów centralnego ogrzewania	pkt	8	250	grzejniki łazienkowe przeniesione (2× 2 pkt) + wysunięcie 2 grzejników na przedściankę (2× 2 pkt)	2026-10-01
+168	Instalacja wodno-kanalizacyjna + c.o.	11	5	47001	Przebudowa/doprowadzenie/wymiana instalacji wod-kan w kuchni	pkt	3	250	zlew: woda ciepła, zimna, odpływ — przesunięcie do 100 cm	2026-10-01
+168	Instalacja wodno-kanalizacyjna + c.o.	11	6	47002	Rozkucie i zatynkowanie podejść grzejnikowych	kpl	4	300	podejścia przenoszonych/wysuwanych grzejników	2026-10-01
+175	Prace dodatkowe	2	1	51432	Zakup, transport i wniesienie towaru budowlanego (cały okres remontu) - w zależności od piętra	kpl	1	2500		2026-10-05
+175	Prace dodatkowe	2	2	51433	Dodatek za wniesienie dużej ilości materiałów 1 zł/kg + 0,3 zł za każde piętro bez windy	kg	0	1		2026-10-05
+175	Prace dodatkowe	2	3	51434	Transport i wniesienie materiałów wykończeniowych - stawki do ustalenia w zależności od rodzaju i ilości	kpl	0	2000		2026-10-05
+175	Prace dodatkowe	2	4	51435	Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych big bag	big bag	0	450		2026-10-05
+175	Prace dodatkowe	2	5	51436	Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych etc.	kontener	1	1500		2026-10-05
+175	Prace dodatkowe	2	7	51437	Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych etc. - 2 piętro i sporo gruzu	kontener	0	1800		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	1	51450	Bruzdowanie pod instalacje wod-kan w materiałach miękkich	mb	25	80		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	2	51451	Bruzdowanie pod instalacje wod-kan w żelbecie	mb	0	150		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	3	51452	Bruzdowanie pod kable elektryczne w materiałach miękkich	mb	200	25		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	4	51453	Bruzdowanie pod kable elektryczne w żelbecie	mb	0	45		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	5	51454	Demontaż armatury łazienkowej, wc, miska, bidet, umwalka, umywalka z szafką, wanna lub prysznic z kabina, lustro, stelaż podtynkowy	kpl	0	1000		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	6	51455	Demontaż grzejników	szt	8	100		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	7	51456	Demontaż listew przypodłogowych	mb	0	10		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	8	51457	Demontaż paneli klejonych	m²	0	45		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	9	51458	Demontaż parapetów	mb	0	60		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	10	51459	Demontaż sufitów podwieszanych	m²	0	70		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	11	51460	Demontaż ścianek z GK	m²	0	50		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	12	51461	Demontaże drzwi zewnętrznych - drzwi z ościeżnicą	kpl	0	400		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	13	51462	Demontaże: wszelkie niezbędne demontaże szaf, zabudowy etc. - finalnie dopiero po obejrzeniu zastanego stanu będzie można to ocenić	kpl	0	2000		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	14	51463	Skucie posadzki/lastryko 10 cm - beton zbrojony	m²	0	150		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	15	51464	Skucie wylewki do 6cm	m²	0	60		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	16	51465	Skucie zwietrzałych tynków cementowo-wapiennych i cementowych	m²	0	50		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	17	51466	Skuwanie glazury z klejem i płytami GK - ściany i podłogi	m²	0	85		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	18	51467	Skuwanie glazury z klejem ściany i podłogi	m²	0	70		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	19	51468	Skuwanie tynku z glifów okna	mb	5.17	60		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	20	51469	Szlifowanie posadzki lub ścian do 1 cm	m²	0	60		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	21	51470	Szlifowanie ścian po kleju, przygotowanie do dalszych prac	m²	0	12		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	22	51471	Szlifowanie/usuwanie subitu	m²	0	75		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	23	51472	Usunięcie drewnianych ościeżnic	kpl	0	100		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	24	51473	Usunięcie metalowych futryn	kpl	0	200		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	25	51474	Usuwanie podłogi drewnianej klejonej - trudny demontaż, mocny klej, małe kawałki	m²	0	75		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	26	51475	Usuwanie podłogi drewnianej na klej - prosty demontaż	m²	0	40		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	27	51476	Usuwanie podłogi pływającej panele etc.	m²	0	20		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	28	51477	Wybicie otworu drzwiowego w ścianie działowej z montażem nadproża	szt	0	850		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	29	51478	Wyburzanie ścian 12-20 cm grubości - materiał miękki	m²	13	130		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	30	51479	Wyburzanie ścian do 12 -20 cm - żelbeton	m²	0	450		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	31	51480	Wyburzanie ścian do 12 cm grubości - materiał miękki	m²	0	110		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	32	51481	Wyburzanie ścian do 12 cm grubości - żelbeton	m²	0	300		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	33	51482	Wyburzanie ścian powyżej 20 cm grubości - materiał miękki	m²	0	150		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	34	51483	Wykucie nadproża i powiększenie otworu drzwiowego przesuwanie otworu.	kpl	4	450		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	35	51484	Zabezpieczenia mebli, podłóg, okien, drzwi i elementów niezbędnych do prac. Demontaż gniazd, włączników, lamp, karniszy etc. Zabezpieczenie sprzętów i wszelkich niezbędnych elementów. Oklejanie do malowania etc. Zabezpieczanie elementów już wykonanych, glazura zabudowy etc.	m²	125.6	25		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	36	51485	Zabezpieczenia mebli, podłóg, okien, drzwi i elementów niezbędnych do prac. Zabezpieczanie elementów już wykonanych, glazura zabudowy etc. - mieszkanie zamieszkane	m²	0	45		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	37	51486	Zdzieranie starej farby z tynkiem	m²	0	40		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	38	51487	Zdzieranie tapet i usuwanie kleju	m²	0	50		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	39	51742	wycinanie ścian do 20 cm szerokości	mb	10.8	100		2026-10-05
+175	Wyburzenia, demontaże, zabezpieczenia	4	40	51743	Wykonanie przebicia przez ścianę nośną - podparcie stropu, montaż ceowników stalowych skręcanych wg wyliczeń konstruktora, wycinanie otworu, wykonanie wykończenia. Szacunkowa wycena przy założeniu, że nie jest to konstrukcja żelbetowa z prętami	kpl	1	0	cena do ustalenia po potwierdzeniu zakresu prac	2026-10-05
+175	Podłogi	5	1	51488	Akrylowanie listew przypodłogowych	mb	68	16		2026-10-05
+175	Podłogi	5	2	51489	Cokół docinany z płytek licowany z tynkiem	mb	4	150		2026-10-05
+175	Podłogi	5	3	51490	Cyklinowanie - cena już z materiałem. Ewentualnie dodatkowe koszty mogą się pojawić jeżeli trzeba będzie coś naprawiać itp.	m²	0	150		2026-10-05
+175	Podłogi	5	4	51491	Docięcie i montaż progu w drzwiach wejściowych	szt	0	250		2026-10-05
+175	Podłogi	5	5	51492	Fugowanie	m²	14.4	30		2026-10-05
+175	Podłogi	5	6	51493	Gruntowanie podłóg	m²	29	10		2026-10-05
+175	Podłogi	5	7	51494	Klejenie maty kompensacyjnej	m²	0	40		2026-10-05
+175	Podłogi	5	8	51495	Klejenie paneli winylowych jodełka	m²	0	95		2026-10-05
+175	Podłogi	5	9	51496	Klejenie paneli winylowych mijanka	m²	0	60		2026-10-05
+175	Podłogi	5	10	51497	Klejenie paneli winylowych układ prosty,	m²	0	60		2026-10-05
+175	Podłogi	5	11	51498	Malowanie listew przypodłogowych	mb	0	25		2026-10-05
+175	Podłogi	5	12	51499	Montaż listew przypodłogowych metalowych	mb	0	200		2026-10-05
+175	Podłogi	5	13	51500	Montaż listew przypodłogowych poliuretan lub MDF	mb	68	45		2026-10-05
+175	Podłogi	5	14	51501	Montaż listwy łączeniowej w przejściach - łączenie różnych rodzajów podłóg	mb	0	100		2026-10-05
+175	Podłogi	5	15	51502	Ogrzewanie podłogowe elektryczne, montaż maty	m²	0	90		2026-10-05
+175	Podłogi	5	16	51503	Ogrzewanie podłogowe elektryczne, ułożenie maty + wylewka samopoziomująca	m²	0	130		2026-10-05
+175	Podłogi	5	17	51504	Położenie gresu na podłodze (karo) 30x30	m²	0	250		2026-10-05
+175	Podłogi	5	18	51505	Położenie gresu na podłodze format 120x120 (kuchnia)	m²	8.64	300		2026-10-05
+175	Podłogi	5	19	51506	Położenie gresu na podłodze format mały 20x20	m²	0	250		2026-10-05
+175	Podłogi	5	20	51507	Położenie gresu na podłodze format mały mozaika	m²	5.5	380		2026-10-05
+175	Podłogi	5	21	51508	Położenie gresu na podłodze format standard od 30x30 do 60x120(przy wejściu)	m²	0	180		2026-10-05
+175	Podłogi	5	22	51509	Położenie gresu na podłodze wielki format 120x270 itp.	m²	0	550		2026-10-05
+175	Podłogi	5	23	51510	Położenie płytek na podłodze 20x20	m²	0	250		2026-10-05
+175	Podłogi	5	24	51511	Położenie płytek na podłodze 120x120	m²	0	300		2026-10-05
+175	Podłogi	5	25	51512	Położenie trawertynu na podłodze	m²	0	300		2026-10-05
+175	Podłogi	5	26	51513	Równe cięcia podłóg do łączeń bez listew	mb	0	100		2026-10-05
+175	Podłogi	5	27	51514	Szycie dylatacji z dyblami	mb	0	100		2026-10-05
+175	Podłogi	5	28	51515	Układanie paneli laminowanych jodełka - wysoki stopień skomplikowania prac	m²	0	85		2026-10-05
+175	Podłogi	5	29	51516	Układanie paneli laminowanych niski stopień skomplikowania prac	m²	0	60		2026-10-05
+175	Podłogi	5	30	51517	Układanie paneli winylowych pływających jodełka wysoki stopień skomplikowania prac	m²	0	90		2026-10-05
+175	Podłogi	5	31	51518	Układanie paneli winylowych pływających niski stopień skomplikowania prac	m²	0	60		2026-10-05
+175	Podłogi	5	32	51519	Układanie parkietu jodełka - wysoki stopień skomplikowania prac	m²	0	110		2026-10-05
+175	Podłogi	5	33	51520	Układanie parkietu z gruntowaniem mijanka	m²	0	75		2026-10-05
+175	Podłogi	5	34	51521	Uzupełnianie posadzki po wyburzeniach	mb	0	60		2026-10-05
+175	Podłogi	5	35	51522	Wklejanie korka drewnianego między parkiet	mb	0	30		2026-10-05
+175	Podłogi	5	36	51523	Wylewka betonowa ok. 3-5 cm	m²	0	80		2026-10-05
+175	Podłogi	5	37	51524	Wylewka samopoziomująca w całym mieszkaniu do 5 mm	m²	14.4	55		2026-10-05
+175	Podłogi	5	38	52058	Fugowanie ścian i podłóg płytka format standard	m²	0	30		2026-10-05
+175	Podłogi	5	39	52152	Czyste cięcie płytki	mb	7	80		2026-10-05
+175	Ściany i sufity bez łazienek 	6	1	51525	Akrylowanie łączeń ścian i sufitów / akrylowanie dylatacji - polecam, bo zdecydowanie poprawia estetykę w narożnikach oraz przykrywa potencjalne pęknięcia	mb	180	14		2026-10-05
+175	Ściany i sufity bez łazienek 	6	2	51526	Dodatek za wklejanie siatki tynkarskiej	m²	0	13		2026-10-05
+175	Ściany i sufity bez łazienek 	6	3	51527	Gładzie klatka schodowa dodatek do m2 jeżeli dostęp utrudniony	m²	0	35		2026-10-05
+175	Ściany i sufity bez łazienek 	6	4	51528	Gładzie na sufitach "finish" stan deweloperski (2 warstwy) - standard wykończenia Q3	m²	112	59		2026-10-05
+175	Ściany i sufity bez łazienek 	6	5	51529	Gładzie na sufitach "finish" stan deweloperski (2-3 warstwy) - premium - standard wykończenia Q4	m²	0	80		2026-10-05
+175	Ściany i sufity bez łazienek 	6	6	51530	Gładzie na ścianach "finish" stan deweloperski (2 warstwy) - standard wykończenia Q3	m²	183	57		2026-10-05
+175	Ściany i sufity bez łazienek 	6	7	51531	Gładzie na ścianach "finish" stan deweloperski (2-3 warstwy) - premium - standard wykończenia Q4	m²	0	75		2026-10-05
+175	Ściany i sufity bez łazienek 	6	8	51532	Gładzie na ścianach i sufitach rynek wtórny (3-4 warstwy) + podkład z tynku jeżeli będzie potrzebny, jak nie to cena nieco niższa	m²	0	85		2026-10-05
+175	Ściany i sufity bez łazienek 	6	9	51533	Gruntowanie farbą podkładową - bardzo zalecane na świeże gładzie. Dzięki temu zmniejszamy chłonność powierzchni oraz unikamy na ścianach pasów i wrażenia nierównego malowania. Również przy malowaniu tynków bez gładzi warto zrobić taką warstwę podkładową.	m²	0	12		2026-10-05
+175	Ściany i sufity bez łazienek 	6	10	51534	Gruntowanie powierzchni betonkontaktem	mb	0	15		2026-10-05
+175	Ściany i sufity bez łazienek 	6	11	51535	Gruntowanie powierzchni ścian i sufitów przed gładziami i po gładziach	m²	354	12		2026-10-05
+175	Ściany i sufity bez łazienek 	6	12	51536	Gruntowanie ścian jednokrotne	m²	60	8		2026-10-05
+175	Ściany i sufity bez łazienek 	6	13	51537	Gruntowanie ścian jednokrotne + drobne poprawki	m²	0	15		2026-10-05
+175	Ściany i sufity bez łazienek 	6	14	51538	Malowanie sufitów farbą silikonową lub akrylową na biało	m²	112	23		2026-10-05
+175	Ściany i sufity bez łazienek 	6	15	51539	Malowanie sufitu w kolorze	m²	0	27		2026-10-05
+175	Ściany i sufity bez łazienek 	6	16	51540	Malowanie sztukaterii	mb	15.76	40		2026-10-05
+175	Ściany i sufity bez łazienek 	6	17	51541	Malowanie ścian emulsją z gruntem (przykrycie koloru, żeby malować na biało) - 1 warstwa	m²	0	10		2026-10-05
+175	Ściany i sufity bez łazienek 	6	18	51542	Malowanie ścian farbą strukturalną limewash z lakierem- do ustalenia dokładnie produkt i czy to ma być beton, tynk dekoracyjny czy farba, bo cena może się różnić. Od 40 do 150 zł	m²	90	100	?	2026-10-05
+175	Ściany i sufity bez łazienek 	6	19	51543	Malowanie ścian i sufitów farbą silikonową lub akrylową na biało	m²	0	22		2026-10-05
+175	Ściany i sufity bez łazienek 	6	20	51544	Malowanie ścian w kolorze	m²	113	26		2026-10-05
+175	Ściany i sufity bez łazienek 	6	21	51545	Montaż karniszy	mb	5.83	80		2026-10-05
+175	Ściany i sufity bez łazienek 	6	22	51546	Montaż listew sztukateryjnych na ścianach przygotowanych do malowania (docinanie, montaż, szpachlowanie połączeń, akrylowanie, szlifowanie)	mb	26	80		2026-10-05
+175	Ściany i sufity bez łazienek 	6	23	51547	Montaż listew sztukateryjnych sufitowych (osłona karnisza) przygotowanych do malowania (docinanie, montaż, szpachlowanie połączeń, akrylowanie, szlifowanie)	mb	15.76	110		2026-10-05
+175	Ściany i sufity bez łazienek 	6	24	51548	Montaż nadproży w nowo murowanej ścianie	szt	6	150		2026-10-05
+175	Ściany i sufity bez łazienek 	6	25	51549	Montaż płyt GK na klej na ścianach	m²	0	80		2026-10-05
+175	Ściany i sufity bez łazienek 	6	26	51550	Montaż płyty OSB na ścianie	mb	0	80		2026-10-05
+175	Ściany i sufity bez łazienek 	6	27	51551	Montaż profili wzmocnionych pod ościeżnice	kpl	0	250		2026-10-05
+175	Ściany i sufity bez łazienek 	6	28	51552	Montaż ścian GK z wełną mineralną - podwójna płyta obustronnie - niski stopień skomplikowania prac	m²	0	150		2026-10-05
+175	Ściany i sufity bez łazienek 	6	29	51553	Montaż ścian GK z wełną mineralną - podwójna płyta obustronnie - wysoki stopień skomplikowania prac	m²	0	180		2026-10-05
+175	Ściany i sufity bez łazienek 	6	30	51554	Montaż wzmocnień w ścianach działowych pod szafki wiszące	m²	0	80		2026-10-05
+175	Ściany i sufity bez łazienek 	6	31	51555	Murowanie ścian z bloczków komórkowych 10 cm	m²	0	110		2026-10-05
+175	Ściany i sufity bez łazienek 	6	32	51556	Murowanie ścian z bloczków komórkowych 5 cm	m²	0	110		2026-10-05
+175	Ściany i sufity bez łazienek 	6	33	51557	Murowanie ścian z bloczków komórkowych 7,5 cm skomplikowane	m²	0	110		2026-10-05
+175	Ściany i sufity bez łazienek 	6	34	51558	Murowanie ścian z bloczków komórkowych 7,5 cm (skomplikowany montaż)	m²	29.8	150		2026-10-05
+175	Ściany i sufity bez łazienek 	6	35	51559	Naprawy ścian i sufitów po kuciu, bruzdowaniu, tynkowanie bruzd (liczone w metrach bieżących)	mb	200	25		2026-10-05
+175	Ściany i sufity bez łazienek 	6	36	51560	Odcinanie kolorów, lamperie itp.	mb	90	12		2026-10-05
+175	Ściany i sufity bez łazienek 	6	37	51561	Poprawki malarskie po stolarzach	kpl	0	500		2026-10-05
+175	Ściany i sufity bez łazienek 	6	38	51562	Przesunięcie otworu drzwiowego z montażem nadproża + murowanie	szt	0	1500		2026-10-05
+175	Ściany i sufity bez łazienek 	6	39	51563	Sufit podwieszany montaż stelaża z płytami - niski stopień skomplikowania prac	m²	0	160		2026-10-05
+175	Ściany i sufity bez łazienek 	6	40	51564	Szlifowanie mleczka z tynków deweloperskich	m²	295	7		2026-10-05
+175	Ściany i sufity bez łazienek 	6	41	51565	Szpachlowanie glifów / dekoracyjnych narożników / wykończenie obwodu drzwi z ukrytą opaską	mb	55	55		2026-10-05
+175	Ściany i sufity bez łazienek 	6	42	51566	Szpachlowanie połączeń ścian z GK i wklejanie taśmy wzmacniającej (łączenia pęknięć płyt, łączenia płyt GK etc.)	mb	25	35		2026-10-05
+175	Ściany i sufity bez łazienek 	6	43	51567	Tapetowanie	m²	50	100		2026-10-05
+175	Ściany i sufity bez łazienek 	6	44	51568	Tynk dekoracyjny efekt betonu	m²	0	160		2026-10-05
+175	Ściany i sufity bez łazienek 	6	45	51569	Tynkowanie glifów lub powierzchni o szerokości do 30 cm / poprawka miejsc po demontażu ścian	mb	5	40		2026-10-05
+175	Ściany i sufity bez łazienek 	6	46	51570	Tynkowanie ręczne ścian lub sufitów do 1 cm	m²	0	60		2026-10-05
+175	Ściany i sufity bez łazienek 	6	47	51571	Tynkowanie/wyrównywanie ścian lub sufitów na listwach tynkarskich do kilku cm grubości.	m²	60	100		2026-10-05
+175	Ściany i sufity bez łazienek 	6	48	51572	Wklejanie narożników aluminiowych i wklejanie siatki + szpachlowanie narożniki, glify okienne etc. wszędzie tam gdzie to wymaga	mb	25	35		2026-10-05
+175	Ściany i sufity bez łazienek 	6	49	51573	Wklejanie taśmy w łączenie sufit-ściana oraz dylatacje - poprawia estetykę oraz chroni przed pęknięciami	mb	0	35		2026-10-05
+175	Ściany i sufity bez łazienek 	6	50	51574	Gładzie po bruzdach, wykonanie gładzi po usuwaniu sztukaterii etc.	mb	0	45		2026-10-05
+175	Ściany i sufity bez łazienek 	6	51	51575	Zabudowy rur z GK (piony wodne, rury gazowe etc.) - po obejrzeniu	mb	0	350		2026-10-05
+175	Ściany i sufity bez łazienek 	6	52	51744	Zabudowa gk pod montaż siedziska	kpl	1	2100		2026-10-05
+175	Ściany i sufity bez łazienek 	6	53	51745	przygotowanie miejsca pod kasetę i obudowa kartongaipsem	kpl	1	1500		2026-10-05
+175	Ściany i sufity bez łazienek 	6	54	51746	Zasliepienie  otworu drzwi żeby później można było demontowac.	kpl	1	500		2026-10-05
+175	Ściany i sufity bez łazienek 	6	55	51747	Zabudowa gk pod montaż siedziska w oknie (bawialnia)	kpl	0	600		2026-10-05
+175	Ściany i sufity bez łazienek 	6	56	52153	malowanie sztukaterii Limę wach	mb	26	80		2026-10-05
+175	Ściany i sufity bez łazienek 	6	57	52155	klejenie linę up	mb	33.5	40		2026-10-05
+175	Łazienka	7	1	51576	Instalacja wod-kan nowe punkty, przeniesienie lub przedłużenie - każdy punkt	pkt	11	250		2026-10-05
+175	Łazienka	7	2	51577	Akrylowanie	mb	13	14		2026-10-05
+175	Łazienka	7	3	51578	Biały montaż baterii podtynkowej bidetka	kpl	1	100		2026-10-05
+175	Łazienka	7	4	51579	Biały montaż baterii podtynkowej do umywalki	kpl	1	100		2026-10-05
+175	Łazienka	7	5	51580	Biały montaż baterii podtynkowej do wanny/prysznica razem ze słuchawką i deszczownicą	kpl	1	200		2026-10-05
+175	Łazienka	7	6	51581	Dodatek za schodek pod prysznicem - murowanie i wykonanie spadki na podwyższeniu	kpl	0	1000		2026-10-05
+175	Łazienka	7	7	51582	Dwukrotne gruntowanie ścian, sufitów i podłóg	m²	48.8	10		2026-10-05
+175	Łazienka	7	8	51583	Fugowanie fugą epoksydową format płytek standard	m²	0	80		2026-10-05
+175	Łazienka	7	9	51584	Fugowanie ścian i podłóg fuga cementowa płytka mały format	m²	22.23	50		2026-10-05
+175	Łazienka	7	10	51585	Fugowanie ścian i podłóg fugą epoksydową płytka mały format	m²	0	120		2026-10-05
+175	Łazienka	7	11	51586	Fugowanie ścian i podłóg płytka format standard	m²	1	30		2026-10-05
+175	Łazienka	7	12	51587	Klejenie płyt GK	m²	0	80		2026-10-05
+175	Łazienka	7	13	51588	Licowanie ścian płytami GK + wklejanie taśm i przygotowanie pod malowanie/tapetę	m²	5	120		2026-10-05
+175	Łazienka	7	14	51589	Malowanie sufitów i ścian bez glazury + gładź na suficie	m²	6.54	100		2026-10-05
+175	Łazienka	7	15	51590	Montaż akcesoriów łazienkowych	szt	0	50		2026-10-05
+175	Łazienka	7	16	51591	Montaż baterii do umywalki	szt	0	150		2026-10-05
+175	Łazienka	7	17	51592	Montaż baterii prysznicowej/wannowej podtynkowej razem z podłączeniem zasilania wody	szt	1	900		2026-10-05
+175	Łazienka	7	18	51593	Montaż baterii prysznicowo-wannowej natynkowej	szt	0	250		2026-10-05
+175	Łazienka	7	19	51594	Montaż baterii umywalkowej podtynkowej razem z podłączeniem zasilania wody	szt	1	550		2026-10-05
+175	Łazienka	7	20	51595	Montaż baterii wannowej wolnostojącej	szt	0	550		2026-10-05
+175	Łazienka	7	21	51596	Montaż bidetu podtynkowego	szt	1	550		2026-10-05
+175	Łazienka	7	22	51597	Montaż brodzika z kabiną prysznicową	kpl	0	1500		2026-10-05
+175	Łazienka	7	23	51598	Montaż deski wc elektrycznej	szt	0	550		2026-10-05
+175	Łazienka	7	24	51599	Montaż geberitu	szt	1	450		2026-10-05
+175	Łazienka	7	25	51600	Montaż gniazdek i włączników standard	szt	0	39		2026-10-05
+175	Łazienka	7	26	51601	Montaż grzejnika elektrycznego	szt	0	200		2026-10-05
+175	Łazienka	7	27	51602	Montaż grzejnika z zaworami	szt	1	250		2026-10-05
+175	Łazienka	7	28	51603	Montaż i podłączenie listw led + taśm	mb	3.5	150		2026-10-05
+175	Łazienka	7	29	51604	Montaż i podłączenie transformatora	mb	1	100		2026-10-05
+175	Łazienka	7	30	51605	Montaż kratki wentylacyjnej	kpl	1	100		2026-10-05
+175	Łazienka	7	31	51606	Montaż lamp	szt	0	100		2026-10-05
+175	Łazienka	7	32	51607	Montaż lustra	szt	0	120		2026-10-05
+175	Łazienka	7	33	51608	Montaż lustra z LED	szt	1	150		2026-10-05
+175	Łazienka	7	34	51609	Montaż odpływu liniowego z wypoziomowaniem spadku - koperta	kpl	0	1900		2026-10-05
+175	Łazienka	7	35	51610	Montaż odpływu liniowego z wypoziomowaniem spadku - odpływ jednospadkowy	kpl	0	1600		2026-10-05
+175	Łazienka	7	36	51611	Montaż ościeżnicy z drzwiami i klamkami	szt	0	380		2026-10-05
+175	Łazienka	7	37	51612	Montaż parawanu nawannowego	szt	0	550		2026-10-05
+175	Łazienka	7	38	51613	Montaż profili i płyt GK w zabudowie geberitu	kpl	1	450		2026-10-05
+175	Łazienka	7	39	51614	Montaż rewizji z glazury	kpl	0	350		2026-10-05
+175	Łazienka	7	40	51615	Montaż syfonów	szt	2	80		2026-10-05
+175	Łazienka	7	41	51616	Montaż szyby stałej do odpływu liniowego	kpl	0	550		2026-10-05
+175	Łazienka	7	42	51617	Montaż umywalki nablatowej lub na szafke	szt	1	130		2026-10-05
+175	Łazienka	7	43	51618	Montaż umywalki wiszącej	szt	0	250		2026-10-05
+175	Łazienka	7	44	51619	Montaż wanny wolnostojącej z syfonem	kpl	0	600		2026-10-05
+175	Łazienka	7	45	51620	Montaż wanny z zabudową z bloczków i rewizją	kpl	1	1800		2026-10-05
+175	Łazienka	7	46	51621	Montaż wanny z zabudową z bloczków i rewizją oraz LED	kpl	0	2000		2026-10-05
+175	Łazienka	7	47	51622	Montaż WC podwieszanego	szt	1	350		2026-10-05
+175	Łazienka	7	48	51623	Montaż zaworów czerpalnych do umywalek i zlewów	szt	1	60		2026-10-05
+175	Łazienka	7	49	51624	Podłączenie pralki	szt	0	100		2026-10-05
+175	Łazienka	7	50	51625	Podłączenie suszarki	szt	0	100		2026-10-05
+175	Łazienka	7	51	51626	Położenie folii w płynie (izolacji)	m²	23	30		2026-10-05
+175	Łazienka	7	52	51627	Przyklejenie maty kompensacyjnej pod płytki wielkoformatowe	m²	0	45		2026-10-05
+175	Łazienka	7	53	51628	Silikonowanie	mb	30	25		2026-10-05
+175	Łazienka	7	54	51629	Sufit podwieszany z LED wg. projektu	kpl	0	1800		2026-10-05
+175	Łazienka	7	55	51630	Szlifowanie krawędzi płytek na 45 stopni	mb	28	80		2026-10-05
+175	Łazienka	7	56	51631	Szlifowanie krawędzi płytek czyste cięcie	mb	0	50		2026-10-05
+175	Łazienka	7	57	51632	Tynkowanie/wyrównanie ścian pod układanie glazury	m²	0	80		2026-10-05
+175	Łazienka	7	58	51633	Układanie glazury mały format 6,5 x 20	m²	4.5	380		2026-10-05
+175	Łazienka	7	59	51634	Układanie glazury na glify i małe ściany - mały format	mb	0	345		2026-10-05
+175	Łazienka	7	60	51635	Układanie glazury na podłodze duży format 120x120	m²	6.54	300		2026-10-05
+175	Łazienka	7	61	51636	Układanie glazury na podłodze format 20x20	m²	0	200		2026-10-05
+175	Łazienka	7	62	51637	Układanie glazury na podłodze format standard od 30x30 do 120x60	m²	0	180		2026-10-05
+175	Łazienka	7	63	51638	Układanie glazury na podłodze format standard od 30x30 do 120x60 (karo)	m²	0	250		2026-10-05
+175	Łazienka	7	64	51639	Układanie glazury na podłodze lub ścianie mozaika	m²	0	400		2026-10-05
+175	Łazienka	7	65	51640	Układanie glazury na podłodze wielki format np. 120x270	m²	0	550		2026-10-05
+175	Łazienka	7	66	51641	Układanie glazury na ścianie mały format np. 6,5 x 15	m²	0	380		2026-10-05
+175	Łazienka	7	67	51642	Układanie glazury na ścianie format duży 120x120	m²	8.56	300		2026-10-05
+175	Łazienka	7	68	51643	Układanie glazury na ścianie format standard od 30x30 do 120x60	m²	0	180		2026-10-05
+175	Łazienka	7	69	51644	Układanie glazury na ścianie wielki format 120x270	m²	2.63	550		2026-10-05
+175	Łazienka	7	70	51645	Układanie płytek w glifach, półeczkach itp. do 20 cm - format 120x120	mb	12.2	180		2026-10-05
+175	Łazienka	7	71	51646	Układanie płytek w glifach, półeczkach itp. do 20 cm wielki format	mb	2	350		2026-10-05
+175	Łazienka	7	72	51647	Wiercenie otworów w płytkach	szt	8	60		2026-10-05
+175	Łazienka	7	73	51648	Wklejanie maty hydroizolacyjnej	m²	0	65		2026-10-05
+175	Łazienka	7	74	51649	Wklejanie taśmy hydroizolacyjnej	mb	25	30		2026-10-05
+175	Łazienka	7	75	51650	Wkucie w ścianę działową instalacji wod-kan każdy punkt/zespół punktów. Kompleksowo razem z zaszpachlowaniem	pkt	0	250		2026-10-05
+175	Łazienka	7	76	51651	Wkucie w ścianę nośną/żelbet instalacji wod-kan każdy punkt/zespół punktów. Kompleksowo razem z zaszpachlowaniem	kpl	0	500		2026-10-05
+175	Łazienka	7	77	51652	Wykonanie przedścianki pod wanna wysokość 90+ zabudowa wnęki	szt	0	1200		2026-10-05
+175	Łazienka	7	78	51653	Wykonanie przedścianki pod prysznicem z 2 półkami	kpl	0	1500		2026-10-05
+175	Łazienka	7	79	51654	Wykonanie przedścianki pod prysznicem z 3 półkami	szt	0	1800		2026-10-05
+175	Łazienka	7	80	51655	Wykonanie przycisku WC z glazury	szt	0	650		2026-10-05
+175	Łazienka	7	81	51656	Wykonanie punktów oświetleniowych	szt	0	100		2026-10-05
+175	Łazienka	7	82	51657	Wykonanie punktów elektrycznych pod włącznik, gniazdko	szt	0	120		2026-10-05
+175	Łazienka	7	83	51658	Wykonanie zabudowy rur z gk	mb	0	250		2026-10-05
+175	Łazienka	7	84	51659	Złożenie i montaż szafki nad geberitem	szt	0	250		2026-10-05
+175	Łazienka	7	85	51660	Złożenie i montaż szafki podumywalkowej	szt	0	250		2026-10-05
+175	Łazienka	7	86	51661	Zmiana kanalizacji z wanny na odpływ liniowy - skucie posadzki, obniżenie rur w pionie, wykonanie odpowiedniego spadku	kpl	0	800		2026-10-05
+175	Łazienka	7	87	52062	murowanie glifu z zaokrągleniem + tynkowanie	mb	2.63	400		2026-10-05
+175	Łazienka	7	88	52063	Wykonanie półki z glazury	kpl	4	400		2026-10-05
+175	Łazienka prysznic	8	1	52064	Instalacja wod-kan nowe punkty, przeniesienie lub przedłużenie - każdy punkt	pkt	9	250		2026-10-05
+175	Łazienka prysznic	8	2	52065	Akrylowanie	mb	8.74	14		2026-10-05
+175	Łazienka prysznic	8	3	52066	Biały montaż baterii podtynkowej bidetka	kpl	1	100		2026-10-05
+175	Łazienka prysznic	8	4	52067	Biały montaż baterii podtynkowej do umywalki	kpl	0	100		2026-10-05
+175	Łazienka prysznic	8	5	52068	Biały montaż baterii podtynkowej do wanny/prysznica razem ze słuchawką i deszczownicą	kpl	1	200		2026-10-05
+175	Łazienka prysznic	8	6	52069	Dodatek za schodek pod prysznicem - murowanie i wykonanie spadki na podwyższeniu	kpl	0	1000		2026-10-05
+175	Łazienka prysznic	8	7	52070	Dwukrotne gruntowanie ścian, sufitów i podłóg	m²	31	10		2026-10-05
+175	Łazienka prysznic	8	8	52071	Fugowanie fugą epoksydową format płytek standard	m²	0	80		2026-10-05
+175	Łazienka prysznic	8	9	52072	Fugowanie ścian i podłóg fuga cementowa płytka mały format	m²	4	50		2026-10-05
+175	Łazienka prysznic	8	10	52073	Fugowanie ścian i podłóg fugą epoksydową płytka mały format	m²	0	120		2026-10-05
+175	Łazienka prysznic	8	11	52074	Fugowanie ścian i podłóg płytka format standard	m²	17.39	30		2026-10-05
+175	Łazienka prysznic	8	12	52075	Klejenie płyt GK	m²	0	80		2026-10-05
+175	Łazienka prysznic	8	13	52076	Licowanie ścian płytami GK + wklejanie taśm i przygotowanie pod malowanie/tapetę	m²	2.7	120		2026-10-05
+175	Łazienka prysznic	8	14	52077	Malowanie sufitów i ścian bez glazury + gładź na suficie	m²	8.2	120		2026-10-05
+175	Łazienka prysznic	8	15	52078	Montaż akcesoriów łazienkowych	szt	0	50		2026-10-05
+175	Łazienka prysznic	8	16	52079	Montaż baterii do umywalki	szt	0	150		2026-10-05
+175	Łazienka prysznic	8	17	52080	Montaż baterii prysznicowej/wannowej podtynkowej razem z podłączeniem zasilania wody	szt	1	900		2026-10-05
+175	Łazienka prysznic	8	18	52081	Montaż baterii prysznicowo-wannowej natynkowej	szt	0	250		2026-10-05
+175	Łazienka prysznic	8	19	52082	Montaż baterii umywalkowej podtynkowej razem z podłączeniem zasilania wody	szt	1	550		2026-10-05
+175	Łazienka prysznic	8	20	52083	Montaż baterii wannowej wolnostojącej	szt	0	550		2026-10-05
+175	Łazienka prysznic	8	21	52084	Montaż bidetu podtynkowego	szt	1	550		2026-10-05
+175	Łazienka prysznic	8	22	52085	Montaż brodzika z kabiną prysznicową	kpl	0	1500		2026-10-05
+175	Łazienka prysznic	8	23	52086	Montaż deski wc elektrycznej	szt	0	550		2026-10-05
+175	Łazienka prysznic	8	24	52087	Montaż geberitu	szt	1	450		2026-10-05
+175	Łazienka prysznic	8	25	52088	Montaż gniazdek i włączników standard	szt	0	39		2026-10-05
+175	Łazienka prysznic	8	26	52089	Montaż grzejnika elektrycznego	szt	0	200		2026-10-05
+175	Łazienka prysznic	8	27	52090	Montaż grzejnika z zaworami	szt	1	250		2026-10-05
+175	Łazienka prysznic	8	28	52091	Montaż i podłączenie listw led + taśm	mb	3	150		2026-10-05
+175	Łazienka prysznic	8	29	52092	Montaż i podłączenie transformatora	mb	1	100		2026-10-05
+175	Łazienka prysznic	8	30	52093	Montaż kratki wentylacyjnej	kpl	1	100		2026-10-05
+175	Łazienka prysznic	8	31	52094	Montaż lamp	szt	0	100		2026-10-05
+175	Łazienka prysznic	8	32	52095	Montaż lustra	szt	1	120		2026-10-05
+175	Łazienka prysznic	8	33	52096	Montaż lustra z LED	szt	0	150		2026-10-05
+175	Łazienka prysznic	8	34	52097	Montaż odpływu liniowego z wypoziomowaniem spadku - koperta	kpl	0	1900		2026-10-05
+175	Łazienka prysznic	8	35	52098	Montaż odpływu liniowego z wypoziomowaniem spadku - odpływ jednospadkowy	kpl	1	1600		2026-10-05
+175	Łazienka prysznic	8	36	52099	Montaż ościeżnicy z drzwiami i klamkami	szt	0	380		2026-10-05
+175	Łazienka prysznic	8	37	52100	Montaż parawanu nawannowego	szt	0	550		2026-10-05
+175	Łazienka prysznic	8	38	52101	Montaż profili i płyt GK w zabudowie geberitu	kpl	1	450		2026-10-05
+175	Łazienka prysznic	8	39	52102	Montaż rewizji z glazury	kpl	0	350		2026-10-05
+175	Łazienka prysznic	8	40	52103	Montaż syfonów	szt	1	80		2026-10-05
+175	Łazienka prysznic	8	41	52104	Montaż szyby stałej do odpływu liniowego	kpl	0	550		2026-10-05
+175	Łazienka prysznic	8	42	52105	Montaż umywalki nablatowej lub na szafke	szt	1	130		2026-10-05
+175	Łazienka prysznic	8	43	52106	Montaż umywalki wiszącej	szt	0	250		2026-10-05
+175	Łazienka prysznic	8	44	52107	Montaż wanny wolnostojącej z syfonem	kpl	0	600		2026-10-05
+175	Łazienka prysznic	8	45	52108	Montaż wanny z zabudową z bloczków i rewizją	kpl	0	1800		2026-10-05
+175	Łazienka prysznic	8	46	52109	Montaż wanny z zabudową z bloczków i rewizją oraz LED	kpl	0	2000		2026-10-05
+175	Łazienka prysznic	8	47	52110	Montaż WC podwieszanego	szt	1	350		2026-10-05
+175	Łazienka prysznic	8	48	52111	Montaż zaworów czerpalnych do umywalek i zlewów	szt	0	60		2026-10-05
+175	Łazienka prysznic	8	49	52112	Podłączenie pralki	szt	0	100		2026-10-05
+175	Łazienka prysznic	8	50	52113	Podłączenie suszarki	szt	0	100		2026-10-05
+175	Łazienka prysznic	8	51	52114	Położenie folii w płynie (izolacji)	m²	25	30		2026-10-05
+175	Łazienka prysznic	8	52	52115	Przyklejenie maty kompensacyjnej pod płytki wielkoformatowe	m²	0	45		2026-10-05
+175	Łazienka prysznic	8	53	52116	Silikonowanie	mb	35	25		2026-10-05
+175	Łazienka prysznic	8	54	52117	Sufit podwieszany z LED wg. projektu	kpl	1	1800		2026-10-05
+175	Łazienka prysznic	8	55	52118	Szlifowanie krawędzi płytek na 45 stopni	mb	16	80		2026-10-05
+175	Łazienka prysznic	8	56	52119	Szlifowanie krawędzi płytek czyste cięcie	mb	0	50		2026-10-05
+175	Łazienka prysznic	8	57	52120	Tynkowanie/wyrównanie ścian pod układanie glazury	m²	0	80		2026-10-05
+175	Łazienka prysznic	8	58	52121	Układanie glazury mały format 6,5 x 20	m²	0	380		2026-10-05
+175	Łazienka prysznic	8	59	52122	Układanie glazury na glify i małe ściany - mały format	mb	0	345		2026-10-05
+175	Łazienka prysznic	8	60	52123	Układanie glazury na podłodze duży format 120x120	m²	4.11	300		2026-10-05
+175	Łazienka prysznic	8	61	52124	Układanie glazury na podłodze format 20x20	m²	0	200		2026-10-05
+175	Łazienka prysznic	8	62	52125	Układanie glazury na podłodze format standard od 30x30 do 120x60	m²	0	180		2026-10-05
+175	Łazienka prysznic	8	63	52126	Układanie glazury na podłodze format standard od 30x30 do 120x60 (karo)	m²	0	250		2026-10-05
+175	Łazienka prysznic	8	64	52127	Układanie glazury na podłodze lub ścianie mozaika	m²	0	400		2026-10-05
+175	Łazienka prysznic	8	65	52128	Układanie glazury na podłodze wielki format np. 120x270	m²	0	550		2026-10-05
+175	Łazienka prysznic	8	66	52129	Układanie glazury na ścianie mały format np. 6,5 x 15	m²	4	380		2026-10-05
+175	Łazienka prysznic	8	67	52130	Układanie glazury na ścianie format duży 120x120	m²	13.28	300		2026-10-05
+175	Łazienka prysznic	8	68	52131	Układanie glazury na ścianie format standard od 30x30 do 120x60	m²	0	180		2026-10-05
+175	Łazienka prysznic	8	69	52132	Układanie glazury na ścianie wielki format 120x270	m²	0	550		2026-10-05
+175	Łazienka prysznic	8	70	52133	Układanie płytek w glifach, półeczkach itp. do 20 cm - format 120x120	mb	5.26	180		2026-10-05
+175	Łazienka prysznic	8	71	52134	Układanie płytek w glifach, półeczkach itp. do 20 cm wielki format	mb	0	350		2026-10-05
+175	Łazienka prysznic	8	72	52135	Wiercenie otworów w płytkach	szt	9	60		2026-10-05
+175	Łazienka prysznic	8	73	52136	Wklejanie maty hydroizolacyjnej	m²	0	65		2026-10-05
+175	Łazienka prysznic	8	74	52137	Wklejanie taśmy hydroizolacyjnej	mb	25	30		2026-10-05
+175	Łazienka prysznic	8	75	52138	Wkucie w ścianę działową instalacji wod-kan każdy punkt/zespół punktów. Kompleksowo razem z zaszpachlowaniem	pkt	0	250		2026-10-05
+175	Łazienka prysznic	8	76	52139	Wkucie w ścianę nośną/żelbet instalacji wod-kan każdy punkt/zespół punktów. Kompleksowo razem z zaszpachlowaniem	kpl	0	500		2026-10-05
+175	Łazienka prysznic	8	77	52140	Wykonanie przedścianki pod prysznicem z  półką	szt	1	1200		2026-10-05
+175	Łazienka prysznic	8	78	52141	Wykonanie przedścianki pod unmywalka	kpl	1	600		2026-10-05
+175	Łazienka prysznic	8	79	52142	Wykonanie przedścianki pod prysznicem z 3 półkami	szt	0	1800		2026-10-05
+175	Łazienka prysznic	8	80	52143	Wykonanie przycisku WC z glazury	szt	0	650		2026-10-05
+175	Łazienka prysznic	8	81	52144	Wykonanie punktów oświetleniowych	szt	0	100		2026-10-05
+175	Łazienka prysznic	8	82	52145	Wykonanie punktów elektrycznych pod włącznik, gniazdko	szt	0	120		2026-10-05
+175	Łazienka prysznic	8	83	52146	Wykonanie zabudowy rur z gk	mb	0	250		2026-10-05
+175	Łazienka prysznic	8	84	52147	Złożenie i montaż szafki nad geberitem	szt	0	250		2026-10-05
+175	Łazienka prysznic	8	85	52148	Złożenie i montaż szafki podumywalkowej	szt	1	250		2026-10-05
+175	Łazienka prysznic	8	86	52149	Zmiana kanalizacji z wanny na odpływ liniowy - skucie posadzki, obniżenie rur w pionie, wykonanie odpowiedniego spadku	kpl	0	800		2026-10-05
+175	Łazienka prysznic	8	87	52150	montaż luksferów	kpl	1	1500		2026-10-05
+175	Łazienka prysznic	8	88	52151	Wykonanie półki z glazury	kpl	3	400		2026-10-05
+175	Kuchnia	10	1	51662	Montaż AGD: lodówka, zmywarka, płyta, piekarnik	szt	0	250		2026-10-05
+175	Kuchnia	10	2	51663	Montaż baterii zlewozmywakowej	szt	1	250		2026-10-05
+175	Kuchnia	10	3	51664	Montaż LED	mb	0	90		2026-10-05
+175	Kuchnia	10	4	51665	Montaż oświetlenia LED	szt	0	100		2026-10-05
+175	Kuchnia	10	5	51666	Montaż syfonu	szt	0	80		2026-10-05
+175	Kuchnia	10	6	51667	Montaż zlewu	szt	0	250		2026-10-05
+175	Kuchnia	10	7	51668	Montaż zlewu z wywierceniem otworu	szt	0	350		2026-10-05
+175	Kuchnia	10	8	51669	Podłączenie indukcji	szt	0	150		2026-10-05
+175	Kuchnia	10	9	51670	Podłączenie piekarnika	szt	0	150		2026-10-05
+175	Kuchnia	10	10	51671	Podłączenie zmywarki	szt	1	250		2026-10-05
+175	Kuchnia	10	11	51672	Położenie płytek między szafkami - mozaika	m²	0	450		2026-10-05
+175	Kuchnia	10	12	51673	Położenie płytek między szafkami format standard od 30x30 do 60x120	m²	0	220		2026-10-05
+175	Kuchnia	10	13	51674	Położenie płytek między szafkami mały format cegiełki itp.	m²	0	380		2026-10-05
+175	Kuchnia	10	14	51675	Układanie glazury na ścianie malu format	mb	9	180		2026-10-05
+175	Kuchnia	10	15	51676	Układanie gresu 120x120	m²	0	300		2026-10-05
+175	Kuchnia	10	16	51677	Układanie gresu na podłodze format standard od 30x30 do 60x120	m²	0	180		2026-10-05
+175	Kuchnia	10	17	51678	Wklejanie narożników i wklejanie siatki + szpachlowanie narożniki, glify okienne etc. wszędzie tam gdzie to wymaga	mb	0	35		2026-10-05
+175	Kuchnia	10	18	51679	Wkucie płytek w ścianę, zlicowanie + obróbka	m²	0	400		2026-10-05
+175	Kuchnia	10	19	51680	Wzmocnienie płytą OSB pod szafki kuchenne min. m2	m²	0	120		2026-10-05
+175	Kuchnia	10	20	52154	Fugowanie ścian i podłóg fuga cementowa płytka mały format	m²	9	50		2026-10-05
+175	Montaż stolarki i ślusarski	11	0	51681	Nowa praca	szt	0	0		2026-10-05
+175	Montaż stolarki i ślusarski	11	1	51682	Montaż drzwi do systemu kasetowego	kpl	0	600		2026-10-05
+175	Montaż stolarki i ślusarski	11	2	51683	Montaż kasety pod drzwi przesuwne	szt	0	1400		2026-10-05
+175	Montaż stolarki i ślusarski	11	3	51684	Montaż drzwi, ościeżnic stałych, klamek, zamków	szt	0	450		2026-10-05
+175	Montaż stolarki i ślusarski	11	4	51685	Montaż drzwi, ościeżnic regulowanych, klamek, zamków	szt	0	380		2026-10-05
+175	Montaż stolarki i ślusarski	11	5	51686	Montaż drzwi ukrytych z wykończeniem i przygotowaniem do malowania/tapety	szt	0	1000		2026-10-05
+175	Montaż stolarki i ślusarski	11	6	51687	Montaż klamek okiennych	szt	0	20		2026-10-05
+175	Montaż stolarki i ślusarski	11	7	51688	Montaż parapetów	mb	0	200		2026-10-05
+175	Montaż stolarki i ślusarski	11	8	51689	Montaż progu drzwi wejściowych	szt	0	150		2026-10-05
+175	Montaż stolarki i ślusarski	11	9	51690	Obróbka drzwi ukrytych bez montażu ościeży	szt	0	800		2026-10-05
+175	Montaż stolarki i ślusarski	11	10	51691	Regulacja okien	szt	0	40		2026-10-05
+175	Montaż stolarki i ślusarski	11	11	51692	Silikonowanie parapetu	mb	0	30		2026-10-05
+175	Montaż stolarki i ślusarski	11	12	51693	Wklejanie opasek drzwi + docinanie listew	kpl	0	200		2026-10-05
+175	Montaż stolarki i ślusarski	11	13	51694	Dopasowanie otworów pod montaż drzwi - zmniejszenie otworu	szt	0	200		2026-10-05
+175	Montaż stolarki i ślusarski	11	14	51695	Poszerzenie otworów drzwi	szt	0	350		2026-10-05
+175	Wiatrołap	12	0	51696	Nowa praca	szt	0	0		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	0	51697	Nowa praca	szt	0	0		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	1	51698	Doprowadzenie kabla do rolet zewnętrznych + przebicie	kpl	0	350		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	2	51699	Doprowadzenie przewodu 3-fazowego	kpl	0	300		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	3	51700	Doprowadzenie przewodu 3-fazowego do rozdzielni, wniosek do E.ON, wymiana bezpiecznika przedlicznikowego i przygotowanie instalacji	kpl	0	1500		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	4	51701	Doprowadzenie przewodu 3-fazowego z montażem gniazda	kpl	1	500		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	5	51702	Lutowanie taśm LED	pkt	0	30		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	6	51703	Montaż czujnika termostatycznego ze sterownikiem do ogrzewania podłogowego	szt	0	250		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	7	51704	Montaż gniazda TV i internet	szt	4	200		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	8	51705	Montaż gniazdek i włączników	szt	0	39		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	9	51706	Montaż gniazdek i włączników smart home - cena +/- w zależności od osprzętu	szt	0	100		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	10	51707	Montaż kanału TV - wykucie i osadzenie + tynk - ściana działowa miękka	szt	0	700		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	11	51708	Montaż kanału TV - wykucie i osadzenie + tynk - ściana żelbetowa	szt	0	1000		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	12	51709	Montaż kinkietów	szt	0	100		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	13	51710	Montaż lamp ze składaniem (trudne)	szt	0	150		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	14	51711	Montaż listew LED + taśm LED	kpl	15	150		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	15	51712	Montaż master switch; stycznik + master switch	kpl	0	450		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	16	51713	Montaż okapu i podłączenie do wentylacji	kpl	0	350		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	17	51714	Montaż profili LED podtynkowych w suficie	mb	0	160		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	18	51715	Montaż prostych lamp (bez składania)	szt	38	100		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	19	51716	Montaż puszek elektrycznych	pkt	0	35		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	20	51717	Montaż rozdzielni CCTV - wycena indywidualna	kpl	0	1500		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	21	51718	Montaż szynoprzewodów natynkowych	mb	6.71	120		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	22	51719	Montaż taśm LED	mb	0	60		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	23	51720	Montaż transformatorów	szt	0	120		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	24	51721	Montaż uchwytu TV	kpl	0	250		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	25	51722	Montaż wentylatora łazienkowego	kpl	0	120		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	26	51723	Montaż włączników schodowych/krzyżowych	szt	0	70		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	27	51724	Montaż/Przebudowa rozdzielni elektrycznej wraz z bezpiecznikami - do 12 modułów	kpl	0	1200		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	28	51725	Montaż/Przebudowa rozdzielni elektrycznej wraz z bezpiecznikami - do 18 modułów	kpl	0	1500		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	29	51726	Montaż/przebudowa rozdzielni elektrycznej wraz z bezpiecznikami - do 24 modułów	kpl	1	2100		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	30	51727	Montaż/Przebudowa rozdzielni elektrycznej, dołożenie 1 bezpiecznika	szt	0	200		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	31	51728	Punkty elektryczne żelbet dodatek	szt	0	50		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	32	51729	Układanie przewodów w peszlu	mb	0	40		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	33	51730	Wykonanie gniazda zewnętrznego na balkonie z przebiciem się przez ściane	szt	0	220		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	34	51731	Wykonanie punktów oświetleniowych, czujki, rolety	szt	51	100		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	35	51732	Wykonanie punktu lan, kamery, internet	m²	0	250		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	36	51733	Wykonanie/przesunięcie punktów elektrycznych, gniazdka i włączniki, wiercenie otworu pod puszkę, montaż puszki, doprowadzenie kabla	szt	98	130		2026-10-05
+175	Instalacja elektryczna i oświetleniowa	13	37	51734	Wymiana bezpiecznika 3-fazowego	szt	0	250		2026-10-05
+175	Instalacja wodno-kanalizacyjna + c.o.	14	0	51735	Montaż grzejnika z zaworami	szt	0	250		2026-10-05
+175	Instalacja wodno-kanalizacyjna + c.o.	14	1	51736	Likwidacja punktów wod-kan	pkt	0	120		2026-10-05
+175	Instalacja wodno-kanalizacyjna + c.o.	14	2	51737	Montaż filtra wody	szt	1	500		2026-10-05
+175	Instalacja wodno-kanalizacyjna + c.o.	14	3	51738	Montaż grzejników dekoracyjnych z zaworami	szt	5	450		2026-10-05
+175	Instalacja wodno-kanalizacyjna + c.o.	14	4	51739	Przebudowa punktów centralnego ogrzewania	pkt	16	250		2026-10-05
+175	Instalacja wodno-kanalizacyjna + c.o.	14	5	51740	Przebudowa/doprowadzenie/wymiana instalacji wod-kan w kuchni	pkt	4	250		2026-10-05
+175	Instalacja wodno-kanalizacyjna + c.o.	14	6	51741	Rozkucie i zatynkowanie podejść grzejnikowych i wód can	kpl	6	300		2026-10-05

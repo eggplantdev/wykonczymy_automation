@@ -20,6 +20,13 @@
   }
 }
 
+/* Inline so `--section-rail-width` resolves on the row that wears the class, not on :root where the
+   scope below doesn't reach. Colour first: Tailwind takes the first var() of a shadow for its colour
+   slot. A theme shadow composes with `ring-*` instead of replacing it. */
+@theme inline {
+  --shadow-section-rail: inset var(--section-rail, transparent) var(--section-rail-width) 0 0;
+}
+
 @theme {
   --font-mono: var(--font-space-mono), monospace;
 
@@ -514,9 +521,11 @@
   --dsg-scroll-shadow-color: color-mix(in oklab, var(--color-foreground) 20%, transparent);
 }
 
-/* Shared with the report review table, so a section's band reads the same as in the grid. */
+/* Shared with the report review table and the reorder list, so a section's band reads the same as
+   in the grid. */
 .kosztorys-grid,
-.worker-report {
+.worker-report,
+.reorder-list {
   --section-rail-width: 3px;
   --section-divider-width: 2px;
   /* Thinner than the opening rule: the heavy divider is what marks where a section STARTS. */

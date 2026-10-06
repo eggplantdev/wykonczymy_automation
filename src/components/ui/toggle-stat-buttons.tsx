@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { cn } from '@/lib/utils/cn'
+import { toggleInSet } from '@/lib/utils/toggle-in-set'
 import { Button } from '@/components/ui/button'
 import { ControlGrid } from '@/components/ui/control-grid'
 import { Description } from '@/components/ui/description'
@@ -51,12 +52,7 @@ export function ToggleStatButtons({
   const [hidden, setHidden] = useState<Set<string>>(() => new Set())
 
   function toggle(label: string) {
-    setHidden((prev) => {
-      const next = new Set(prev)
-      if (next.has(label)) next.delete(label)
-      else next.add(label)
-      return next
-    })
+    setHidden((prev) => toggleInSet(prev, label))
   }
 
   if (allEntries.length === 0) return null

@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { DialogFooter } from '@/components/ui/dialog'
+import { useTranslation } from '@/hooks/use-translation'
 
 type PropsT = {
   confirmLabel: string
@@ -24,16 +25,17 @@ export function DialogActions({
   onConfirm,
   onCancel,
   confirmDisabled = false,
-  cancelLabel = 'Anuluj',
+  cancelLabel,
   confirmVariant,
   pending = false,
   pendingLabel,
   className,
 }: PropsT) {
+  const { t } = useTranslation('common')
   return (
     <DialogFooter className={className}>
       <Button variant="outline" onClick={onCancel} disabled={pending}>
-        {cancelLabel}
+        {cancelLabel ?? t('cancel')}
       </Button>
       <Button variant={confirmVariant} onClick={onConfirm} disabled={confirmDisabled || pending}>
         {pending && pendingLabel ? pendingLabel : confirmLabel}

@@ -1,3 +1,4 @@
+import { sameItems } from '@/lib/utils/same-items'
 import type { TranslationLanguageT } from './languages'
 
 // Stored templates: a standalone number of the Polish name is a `#`, so „Łazienka 1" and „Łazienka 2"
@@ -43,9 +44,7 @@ export function toSectionTemplate(name: string, typed: string): SectionTemplateR
   if (typed.includes(PLACEHOLDER)) return { ok: false, reason: 'hash', expected }
 
   const actual = tokens.filter(isStandaloneNumber)
-  const same =
-    actual.length === expected.length && actual.every((number, i) => number === expected[i])
-  if (!same) return { ok: false, reason: 'numbers', expected }
+  if (!sameItems(actual, expected)) return { ok: false, reason: 'numbers', expected }
 
   return { ok: true, template: toTemplate(tokens) }
 }

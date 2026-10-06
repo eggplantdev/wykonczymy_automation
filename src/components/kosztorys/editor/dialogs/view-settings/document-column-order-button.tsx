@@ -9,7 +9,8 @@ import {
   documentBaseRanks,
   orderDocumentKeys,
 } from '@/lib/kosztorys/columns/document-column-order'
-import { sameKeys, type ColumnRanksT } from '@/lib/table/column-order'
+import type { ColumnRanksT } from '@/lib/table/column-order'
+import { sameItems } from '@/lib/utils/same-items'
 
 type ValueT = { hiddenColumns: string[]; columnRanks: ColumnRanksT }
 
@@ -64,7 +65,7 @@ export function DocumentColumnOrderButton<T extends ValueT>({
         }
         onReset={() => onChange({ ...value, columnRanks: resetRanks })}
         // Two different rank maps can give one order, so the order is what is compared.
-        resetDisabled={sameKeys(ordered, orderDocumentKeys(keys, resetRanks))}
+        resetDisabled={sameItems(ordered, orderDocumentKeys(keys, resetRanks))}
         description="„Opis prac” zawsze jest pierwszy. Kolejność zapisuje się razem z ustawieniami — przyciskiem „Zapisz”."
       />
     </>

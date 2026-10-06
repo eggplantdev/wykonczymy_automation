@@ -5,7 +5,7 @@ import { CheckCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox, checkedState } from '@/components/ui/checkbox'
 import { clientShareCeilingLabel, isOverCeiling } from '@/lib/kosztorys/subcontractor-price-guard'
-import { formatRate } from '@/lib/kosztorys/format'
+import { formatRate, unitLabel } from '@/lib/kosztorys/format'
 import { formatPLN } from '@/lib/utils/format-currency'
 import type { PriceSourceT, ToolPlaneT } from '@/lib/kosztorys/types'
 import type {
@@ -174,7 +174,7 @@ function DiffGroup({
         </td>
         <td className="py-1 font-medium" colSpan={4}>
           {diff.description}
-          <span className="text-muted-foreground"> ({diff.unit || 'bez j.m.'})</span>
+          <span className="text-muted-foreground"> ({unitLabel(diff.unit)})</span>
         </td>
         <td className="py-1 pl-3 text-right whitespace-nowrap">
           {!readOnly && (

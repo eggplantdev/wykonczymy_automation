@@ -15,6 +15,7 @@ import { useNavLinks } from '@/hooks/use-nav-links'
 import { useTranslation } from '@/hooks/use-translation'
 import { useSidebarCollapsed } from '@/hooks/use-sidebar-collapsed'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { EdgeHandlePill } from '@/components/ui/edge-handle-pill'
 import Link from 'next/link'
 
 type SidebarPropsT = {
@@ -51,9 +52,9 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
           // one more item in the nav list. The hit area is wider than the visible pill.
           className="group absolute inset-y-0 -right-3 z-20 flex w-6 cursor-pointer items-center justify-center"
         >
-          <span className="border-border bg-muted text-muted-foreground group-hover:border-primary group-hover:bg-primary group-hover:text-primary-foreground flex h-16 w-4 items-center justify-center rounded-full border transition-all group-hover:h-24">
+          <EdgeHandlePill orientation="vertical">
             {collapsed ? <ChevronRight className="size-3" /> : <ChevronLeft className="size-3" />}
-          </span>
+          </EdgeHandlePill>
         </button>
       </SimpleTooltip>
       {/* `-m-1 p-1`: the scroll container clips, and the collapsed unread badge overhangs its row by 4px. */}

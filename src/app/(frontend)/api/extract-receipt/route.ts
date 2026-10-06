@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { scanReceipt } from '@/lib/ai/scan-receipt'
-import { MAX_RECEIPT_PAGES } from '@/lib/ai/openrouter'
+import { MAX_RECEIPT_PAGES } from '@/lib/constants/receipt-scan'
 import { logError } from '@/lib/utils/log-error'
 
 /**

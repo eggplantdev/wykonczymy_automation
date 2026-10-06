@@ -12,10 +12,16 @@ import { captureAutoSnapshot } from '@/lib/kosztorys/capture-auto-snapshot'
 import { cleanItemTexts } from '@/lib/kosztorys/clean-item-texts'
 import { itemPatchSchema } from '@/lib/kosztorys/item-patch-schema'
 import { getItemTexts, setItemTexts } from '@/lib/db/kosztorys-item-texts'
+import { applyLayout, lockAndCheckLayout } from '@/lib/db/kosztorys-layout'
 import { createSection, type CreatedSectionT } from '@/lib/kosztorys/create-section'
 import { sectionOwnerAndNextItemOrder } from '@/lib/kosztorys/create-item'
 import { insertItems } from '@/lib/kosztorys/insert-rows'
 import { itemFromFields } from '@/lib/kosztorys/item-from-fields'
+import {
+  kosztorysLayoutSchema,
+  LAYOUT_STALE,
+  type KosztorysLayoutT,
+} from '@/lib/kosztorys/reorder-layout'
 import { ceilingWarnings } from '@/lib/kosztorys/subcontractor-price-guard'
 import {
   applyCatalogueWrite,
@@ -673,6 +679,36 @@ export async function renumberKosztorysOrderAction(
       )
     },
     ['kosztorysItems'],
+  )
+}
+
+// „Ustaw kolejność". Moves rows across sections as well as within them, which no ▲▼ or bake can, so
+// it snapshots first: a regrouped 400-row szablon is not something to rebuild by hand.
+export async function writeKosztorysLayoutAction(
+  investmentId: number,
+  layout: KosztorysLayoutT,
+): Promise<ActionResultT> {
+  return investmentAction(
+    'writeKosztorysLayoutAction',
+    { investmentId },
+    async ({ payload, user }) => {
+      const parsed = validateAction(kosztorysLayoutSchema, layout)
+      if (!parsed.success) return parsed
+      return withPayloadTransaction(
+        payload,
+        async (req): Promise<ActionResultT> => {
+          const tx = await getDb(payload, req)
+          if (!(await lockAndCheckLayout(tx, investmentId, parsed.data))) {
+            return { success: false, error: LAYOUT_STALE, code: 'NOT_FOUND' }
+          }
+          await captureAutoSnapshot(tx, investmentId, user.id, req)
+          await applyLayout(tx, investmentId, parsed.data)
+          return { success: true }
+        },
+        { skipRevalidation: true },
+      )
+    },
+    ['kosztorysSections', 'kosztorysItems'],
   )
 }
 

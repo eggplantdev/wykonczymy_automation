@@ -13,6 +13,7 @@ import {
   isFoldSuppressed,
 } from '@/lib/kosztorys/row-conditions/queries'
 import type { SortPickT, SortStateT } from '@/lib/kosztorys/row-view'
+import { toggleInSet } from '@/lib/utils/toggle-in-set'
 
 type ArgsT = {
   investmentId: number
@@ -138,11 +139,7 @@ export function useKosztorysViewState({
   }
 
   function toggleSectionCollapsed(sectionId: number) {
-    setCollapsedSectionIds((prev) => {
-      const next = new Set(prev)
-      if (!next.delete(sectionId)) next.add(sectionId)
-      return next
-    })
+    setCollapsedSectionIds((prev) => toggleInSet(prev, sectionId))
   }
 
   return {

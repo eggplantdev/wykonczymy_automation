@@ -1,7 +1,10 @@
 'use server'
 
+import { after } from 'next/server'
 import { z } from 'zod'
+import { readExpenseDraftReceipts } from '@/lib/actions/read-expense-draft-receipts'
 import { protectedAction, sessionAction, validateAction } from '@/lib/actions/run-action'
+import { RECEIPT_SCAN_MODES } from '@/lib/constants/receipt-scan'
 import { MAX_DRAFT_PAGES } from '@/lib/constants/worker-expense-drafts'
 import { getDb, type DbExecutorT } from '@/lib/db/get-db'
 import { listWorkerStageInvestments } from '@/lib/db/stage-memberships'
@@ -16,6 +19,7 @@ import {
   restoreRejectedExpenseDraft,
   updatePendingExpenseDraft,
 } from '@/lib/db/worker-expense-drafts'
+import type { ExpenseDraftReadT } from '@/lib/db/expense-draft-read'
 import { reclaimUnreferencedMedia } from '@/lib/media/delete-unreferenced-media'
 import { pl } from '@/lib/i18n/dictionaries/pl'
 import { noticeFailure, noticeKeyOf, type NoticeKeyT } from '@/lib/i18n/notice-failure'
@@ -25,6 +29,7 @@ const sendDraftSchema = z.object({
   investmentId: z.number().int().positive(pl.notices.chooseInvestment),
   cashRegisterId: z.number().int().positive(pl.notices.chooseRegister),
   note: z.string().trim().max(2000, pl.notices.noteTooLong),
+  scanMode: z.enum(RECEIPT_SCAN_MODES),
   mediaIds: z
     .array(z.number().int().positive())
     .min(1, pl.notices.photoRequired)
@@ -75,9 +80,11 @@ export async function sendExpenseDraftAction(
       investmentId,
       cashRegisterId,
       note: parsed.data.note || null,
+      scanMode: parsed.data.scanMode,
       mediaIds: [...new Set(parsed.data.mediaIds)],
     })
     if (draftId === null) return noticeFailure('attachFailed')
+    after(() => readExpenseDraftReceipts(db, draftId))
     return { success: true, data: { draftId } }
   })
 }
@@ -92,6 +99,16 @@ export async function rejectExpenseDraftAction(draftId: number): Promise<ActionR
     })
     return isDecided ? { success: true } : noticeFailure('draftAlreadyDecided')
   })
+}
+
+// The read is saved on the draft, so the next open costs nothing.
+export async function readExpenseDraftAction(
+  draftId: number,
+): Promise<ActionResultT<{ aiRead?: ExpenseDraftReadT }>> {
+  return protectedAction(`readExpenseDraftAction draft=${draftId}`, async ({ payload }) => ({
+    success: true,
+    data: { aiRead: await readExpenseDraftReceipts(await getDb(payload), draftId) },
+  }))
 }
 
 export async function restoreExpenseDraftAction(draftId: number): Promise<ActionResultT> {
@@ -137,7 +154,9 @@ export async function addExpenseDraftPagesAction(
         return noticeFailure('tooManyPhotos')
       }
       const isAdded = await appendExpenseDraftPages(db, { draftId, workerId, mediaIds: newIds })
-      return isAdded ? { success: true } : noticeFailure('attachFailed')
+      if (!isAdded) return noticeFailure('attachFailed')
+      after(() => readExpenseDraftReceipts(db, draftId))
+      return { success: true }
     },
   )
 }
@@ -149,12 +168,10 @@ export async function removeExpenseDraftPageAction(
   return sessionAction(
     `removeExpenseDraftPageAction draft=${draftId}`,
     async ({ payload, user: { id: workerId } }) => {
-      const isRemoved = await removeExpenseDraftPage(await getDb(payload), {
-        draftId,
-        workerId,
-        mediaId,
-      })
+      const db = await getDb(payload)
+      const isRemoved = await removeExpenseDraftPage(db, { draftId, workerId, mediaId })
       if (!isRemoved) return noticeFailure('lastPhoto')
+      after(() => readExpenseDraftReceipts(db, draftId))
       await reclaimUnreferencedMedia(payload, [mediaId])
       return { success: true }
     },
@@ -166,7 +183,7 @@ export async function updateExpenseDraftAction(
 ): Promise<ActionResultT> {
   const parsed = validateAction(updateDraftSchema, input)
   if (!parsed.success) return { ...parsed, messageKey: noticeKeyOf(parsed.error) }
-  const { draftId, investmentId, cashRegisterId, note } = parsed.data
+  const { draftId, investmentId, cashRegisterId, note, scanMode } = parsed.data
 
   return sessionAction(
     `updateExpenseDraftAction draft=${draftId}`,
@@ -175,14 +192,17 @@ export async function updateExpenseDraftAction(
       const targetError = await findDraftTargetError(db, { workerId, investmentId, cashRegisterId })
       if (targetError) return noticeFailure(targetError)
 
-      const isUpdated = await updatePendingExpenseDraft(db, {
+      const { isUpdated, isScanModeChanged } = await updatePendingExpenseDraft(db, {
         draftId,
         workerId,
         investmentId,
         cashRegisterId,
         note: note || null,
+        scanMode,
       })
-      return isUpdated ? { success: true } : noticeFailure('draftAlreadyDecided')
+      if (!isUpdated) return noticeFailure('draftAlreadyDecided')
+      if (isScanModeChanged) after(() => readExpenseDraftReceipts(db, draftId))
+      return { success: true }
     },
   )
 }
