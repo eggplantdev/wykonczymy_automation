@@ -10,11 +10,9 @@ import {
   listExpenseDraftFilterOptions,
   listExpenseDraftHistory,
   listPendingExpenseDrafts,
-  listRejectedExpenseDrafts,
   listWorkerExpenseDrafts,
   restoreRejectedExpenseDraft,
   type ExpenseDraftFiltersT,
-  type RejectedDraftScopeT,
 } from '@/lib/db/worker-expense-drafts'
 import { cashRegisterDeleteBlocker } from '@/lib/cash-registers/delete-blocker'
 import { investmentDeleteBlocker } from '@/lib/investments/delete-blocker'
@@ -37,7 +35,6 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
   let workerId: number
   let registerId: number
   let otherWorkerId: number
-  let otherRegisterId: number
 
   const ctx = { context: { skipRevalidation: true } }
 
@@ -81,7 +78,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
       { name: 'Drafts A', email: 'worker-expense-drafts-a@test.local', registerName: 'Kasa A' },
       ctx,
     ))
-    ;({ ownerId: otherWorkerId, registerId: otherRegisterId } = await createRegisterOwner(
+    ;({ ownerId: otherWorkerId } = await createRegisterOwner(
       payload,
       { name: 'Drafts B', email: 'worker-expense-drafts-b@test.local', registerName: 'Kasa B' },
       ctx,
@@ -173,58 +170,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     await reject(rejected)
 
     expect(await listDraftTransferIds(db, [transferId])).toEqual([transferId])
-    expect(await listDraftTransferIds(db)).toContain(transferId)
     expect(await listDraftTransferIds(db, [])).toEqual([])
-  })
-
-  // „Zgłoszone wydatki" lists the refused drafts above the transfers, so the URL's inwestycja / kasa
-  // / dates must narrow them too — a manager filtering one investment must not see another's refusal.
-  describe('refused drafts under the transfers filters', () => {
-    let onInvestment: number
-    let onOtherInvestment: number
-
-    beforeAll(async () => {
-      onInvestment = await rejectedDraftOf('scope-a')
-      onOtherInvestment = await rejectedDraftOf('scope-b', otherInvestmentId)
-      // 23:30 UTC is already the next day in Warsaw — the day the worker saw when he sent it.
-      await db.execute(sql`
-        UPDATE worker_expense_drafts SET sent_at = '2026-03-09 23:30:00+00' WHERE id = ${onInvestment}
-      `)
-    })
-
-    const listedIds = async (scope: Partial<RejectedDraftScopeT>) =>
-      (
-        await listRejectedExpenseDrafts(db, 10_000, {
-          investmentIds: null,
-          registerIds: null,
-          sentRange: {},
-          ...scope,
-        })
-      )
-        .map((draft) => draft.id)
-        .filter((id) => id === onInvestment || id === onOtherInvestment)
-
-    it('an empty scope lists both', async () => {
-      expect(await listedIds({})).toEqual(expect.arrayContaining([onInvestment, onOtherInvestment]))
-    })
-
-    it('narrows by inwestycja', async () => {
-      expect(await listedIds({ investmentIds: [investmentId] })).toEqual([onInvestment])
-    })
-
-    it('narrows by kasa', async () => {
-      expect(await listedIds({ registerIds: [otherRegisterId] })).toEqual([])
-      expect(await listedIds({ registerIds: [registerId] })).toHaveLength(2)
-    })
-
-    it('a filter that named nothing valid lists none', async () => {
-      expect(await listedIds({ investmentIds: [] })).toEqual([])
-    })
-
-    it('narrows by the Warsaw day it was sent', async () => {
-      const day = { from: '2026-03-10', to: '2026-03-10' }
-      expect(await listedIds({ sentRange: day })).toEqual([onInvestment])
-    })
   })
 
   // A pending draft is a receipt the worker is owed money for; deleting its worker, investment or
@@ -271,11 +217,11 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
 
       await setTrashed(true)
       try {
-        const listed = await listRejectedExpenseDrafts(db, 10_000, {
-          investmentIds: null,
-          registerIds: null,
-          sentRange: {},
-        })
+        const { rows: listed } = await listExpenseDraftHistory(
+          db,
+          { statuses: ['rejected'], investmentIds: null, workerIds: [workerId], sentRange: {} },
+          { page: 1, limit: 10_000 },
+        )
         expect(listed.map((draft) => draft.id)).not.toContain(draftId)
         expect(await restoreRejectedExpenseDraft(db, draftId)).toBe(false)
         expect(await statusOf()).toBe('rejected')

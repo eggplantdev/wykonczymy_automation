@@ -3,7 +3,6 @@ import type { FilterConfigT } from '@/types/filters'
 import type { PaginationParamsT } from '@/lib/utils/pagination'
 import type { ActionResultT } from '@/types/action'
 import type { TransferRowT } from '@/types/transfers'
-import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 
 // `sort` travels with page/limit, not in the table: EX-777's whole point is the DATABASE orders
 // rows, so ordering is part of the query the host parses.
@@ -34,8 +33,6 @@ export type TransferTableConfigT = {
    * SILENT: a page that forgets to set it compiles clean with no button, so verify each host.
    */
   print?: boolean
-  /** Listed above the first page's transfers, outside its count — they are not transfers. */
-  rejectedDrafts?: ExpenseDraftRowT[]
 }
 
 export type TransferRowsFetchT = (opts?: {

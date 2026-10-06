@@ -1,17 +1,9 @@
 import { parsePagination } from '@/lib/utils/pagination'
 import { parseTransferSort } from '@/lib/queries/transfer-sort'
-import {
-  buildRejectedDraftScope,
-  buildTransferFilters,
-  narrowToTransferIds,
-} from '@/lib/queries/transfer-filters'
+import { buildTransferFilters } from '@/lib/queries/transfer-filters'
 import { fetchManagerDashboardData } from '@/lib/queries/dashboard'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
-import {
-  fetchDraftTransferIds,
-  fetchPendingExpenseDrafts,
-  fetchRejectedExpenseDrafts,
-} from '@/lib/queries/worker-expense-drafts'
+import { fetchPendingExpenseDrafts } from '@/lib/queries/worker-expense-drafts'
 import type { RoleT } from '@/lib/auth/roles'
 import { UserRegisterStats } from '@/components/dashboard/user-register-stats'
 import { PendingExpenseDrafts } from '@/components/worker-expenses/pending-expense-drafts'
@@ -30,8 +22,6 @@ export async function ManagerDashboard({ searchParams, user }: ManagerDashboardP
   const step = perfStart()
   const { page, limit } = parsePagination(searchParams)
   const sort = parseTransferSort(searchParams)
-  const showWorkerDrafts = searchParams.workerDrafts === '1'
-  const rejectedDraftScope = showWorkerDrafts ? buildRejectedDraftScope(searchParams) : undefined
 
   const [
     {
@@ -44,14 +34,10 @@ export async function ManagerDashboard({ searchParams, user }: ManagerDashboardP
     },
     pendingDrafts,
     referenceDataBase,
-    draftTransferIds,
-    rejectedDrafts,
   ] = await Promise.all([
     fetchManagerDashboardData(),
     fetchPendingExpenseDrafts(),
     fetchReferenceData(),
-    showWorkerDrafts ? fetchDraftTransferIds() : undefined,
-    rejectedDraftScope ? fetchRejectedExpenseDrafts(rejectedDraftScope) : undefined,
   ])
   const where = buildTransferFilters(searchParams, { id: 0 })
   console.log(`[PERF] ManagerDashboard fetchManagerDashboardData ${step()}ms`)
@@ -74,13 +60,12 @@ export async function ManagerDashboard({ searchParams, user }: ManagerDashboardP
         id={SECTION_IDS.transactions}
         config={{
           query: {
-            where: draftTransferIds ? narrowToTransferIds(where, draftTransferIds) : where,
+            where,
             page,
             limit,
             sort,
           },
           baseUrl: '/',
-          rejectedDrafts,
           cancelledTransactionAudit: searchParams.cancelledTransactionAudit === '1',
           // TODO: Consider restricting manager's transaction table to only transactions
           // from/to registers they own (currently managers see all transactions).
@@ -95,7 +80,6 @@ export async function ManagerDashboard({ searchParams, user }: ManagerDashboardP
             expenseCategories,
             transferTypes: TRANSFER_TYPES,
             showPaymentMethodFilter: false,
-            showWorkerDraftsFilter: true,
           },
         }}
       />

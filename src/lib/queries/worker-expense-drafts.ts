@@ -3,18 +3,15 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { canViewWorkerPage, MANAGEMENT_ROLES, ROLES } from '@/lib/auth/roles'
-import { REJECTED_DRAFTS_LIMIT } from '@/lib/constants/worker-expense-drafts'
 import { getDb } from '@/lib/db/get-db'
 import {
   listDraftTransferIds,
   listExpenseDraftFilterOptions,
   listExpenseDraftHistory,
   listPendingExpenseDrafts,
-  listRejectedExpenseDrafts,
   listWorkerExpenseDrafts,
   type ExpenseDraftFiltersT,
   type ExpenseDraftRowT,
-  type RejectedDraftScopeT,
 } from '@/lib/db/worker-expense-drafts'
 import type { PaginationMetaT, PaginationParamsT } from '@/lib/utils/pagination'
 import type { ReferenceItemT } from '@/types/reference-data'
@@ -37,20 +34,7 @@ export async function fetchPendingExpenseDrafts(): Promise<ExpenseDraftRowT[]> {
   return listPendingExpenseDrafts(await getDb(await getPayload({ config })))
 }
 
-export async function fetchRejectedExpenseDrafts(
-  scope: RejectedDraftScopeT,
-): Promise<ExpenseDraftRowT[]> {
-  const session = await requireAuth(MANAGEMENT_ROLES)
-  if (!session.success) throw new Error('Brak uprawnień')
-
-  return listRejectedExpenseDrafts(
-    await getDb(await getPayload({ config })),
-    REJECTED_DRAFTS_LIMIT,
-    scope,
-  )
-}
-
-export async function fetchDraftTransferIds(transferIds?: number[]): Promise<number[]> {
+export async function fetchDraftTransferIds(transferIds: number[]): Promise<number[]> {
   const session = await requireAuth(ROLES)
   if (!session.success) throw new Error('Brak uprawnień')
 

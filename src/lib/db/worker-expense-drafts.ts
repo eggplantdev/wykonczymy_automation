@@ -275,33 +275,6 @@ export async function listExpenseDraftFilterOptions(
   return { investments: investmentsRes.rows.map(toItem), workers: workersRes.rows.map(toItem) }
 }
 
-export type RejectedDraftScopeT = {
-  investmentIds: number[] | null
-  registerIds: number[] | null
-  sentRange: DateRangeT
-}
-
-export async function listRejectedExpenseDrafts(
-  db: DbExecutorT,
-  limit: number,
-  scope: RejectedDraftScopeT,
-): Promise<ExpenseDraftRowT[]> {
-  const conditions = [
-    sql`d.status = 'rejected'`,
-    PARTIES_NOT_TRASHED,
-    inList(sql`d.investment_id`, scope.investmentIds),
-    inList(sql`d.cash_register_id`, scope.registerIds),
-    ...warsawDayWithin(sql`d.sent_at`, scope.sentRange),
-  ].filter((condition) => condition !== undefined)
-  const res = await db.execute(sql`
-    ${DRAFT_SELECT}
-    WHERE ${sql.join(conditions, sql.raw(' AND '))}
-    ORDER BY d.decided_at DESC, d.id DESC
-    LIMIT ${limit}
-  `)
-  return res.rows.map(toDraftRow)
-}
-
 /**
  * Only a pending draft moves, so two managers deciding at once cannot both win — the loser's
  * update matches no row and the caller reports it.
@@ -492,13 +465,12 @@ export async function deletePendingExpenseDraft(
 
 export async function listDraftTransferIds(
   db: DbExecutorT,
-  transferIds?: number[],
+  transferIds: number[],
 ): Promise<number[]> {
-  if (transferIds?.length === 0) return []
-  const among = transferIds ? sql`AND transfer_id IN (${sqlList(transferIds)})` : sql``
+  if (transferIds.length === 0) return []
   const res = await db.execute(sql`
     SELECT transfer_id FROM worker_expense_drafts
-    WHERE status = 'accepted' AND transfer_id IS NOT NULL ${among}
+    WHERE status = 'accepted' AND transfer_id IN (${sqlList(transferIds)})
   `)
   return res.rows.map((row) => Number(row.transfer_id))
 }

@@ -11,5 +11,4 @@ export type FilterConfigT = {
   showPaymentMethodFilter?: boolean
   showCancelledFilter?: boolean
   showSearchFilters?: boolean
-  showWorkerDraftsFilter?: boolean
 }

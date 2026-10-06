@@ -580,13 +580,13 @@ Run **once**, after the final phase:
 
 #### Automated
 
-- [x] 3.1 Client paging DOM spec passes
-- [x] 3.2 Existing pagination and language specs still pass
+- [x] 3.1 Client paging DOM spec passes — a1037d0f
+- [x] 3.2 Existing pagination and language specs still pass — a1037d0f
 
 ### Phase 4: Clean Transakcje
 
 #### Automated
 
-- [ ] 4.1 Transfer filters spec passes
-- [ ] 4.2 DB spec passes against 5435
-- [ ] 4.3 No leftover references
+- [x] 4.1 Transfer filters spec passes
+- [x] 4.2 DB spec passes against 5435
+- [x] 4.3 No leftover references
