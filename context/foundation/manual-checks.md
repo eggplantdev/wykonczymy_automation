@@ -4241,3 +4241,17 @@ Potrzebna paczka PDF-ów Telmaka za jeden miesiąc (WV / KWV / WZ / FP) i kasa T
 
 - [ ] Menu boczne (rozwinięte) → klik w swoje imię na dole: otwiera się Twoja strona pracownika. Na telefonie to samo z menu; będąc już na tej stronie, klik zamyka menu.
 - [ ] Jako pracownik: klik w imię otwiera jego własną stronę, bez „brak dostępu”.
+
+## 2026-10-06 — worker-reports-on-worker-page — zgłoszenia wykonanych prac na stronie pracownika, z podglądem
+
+- [ ] „Zgłoszenia wykonanych prac” (lista kierownika): klik w wiersz nic nie robi. „Podgląd” otwiera okno nad listą, adres się nie zmienia. „Otwórz w kosztorysie” otwiera rozpiskę z tym zgłoszeniem (adres ma `?zgloszenie=`).
+- [ ] Ta sama lista ma kolumny „Źródło” („z linku” / „skan”) i „Decyzja” (data · kto) przy rozpatrzonych, „—” przy czekających; czekające mają plakietkę „Do sprawdzenia”.
+- [ ] Podgląd zgłoszenia przyjętego częściowo: przyjęte prace mają w „Przyjęto” ilość, pozostałe „odrzucona”; przyjęta praca spoza rozpiski ma „Nr” pozycji, którą się stała. Podgląd czekającego zgłoszenia: „czeka” przy każdej pracy.
+- [ ] Podgląd skanu pokazuje „Wprowadził: …” i przycisk „Zdjęcia”, który otwiera zdjęcia kartki.
+- [ ] Jako kierownik, zgłoszenie pracownika z językiem Українська: obok polskiego „Opis prac” jest „Opis w języku pracownika”.
+- [ ] Jako pracownik na swojej stronie, telefon 390px: sekcja „Zgłoszenia wykonanych prac” wymienia jego zgłoszenia — z linku i skany. Stronicowanie, „Status”, „Inwestycja” i „Pokaż” nie zmieniają adresu.
+- [ ] Tamże „Podgląd”: okno na pełną wysokość, tabela przewija się w bok wewnątrz okna, strona nie przewija się w poziomie. Pracownik ma tylko „Podgląd”, bez „Otwórz w kosztorysie”.
+- [ ] Pracownik z Українська na koncie: tytuł sekcji, kolumny, statusy, źródło, sekcje i opisy prac po ukraińsku; praca bez ukraińskiego tłumaczenia po polsku.
+- [ ] Jako kierownik na stronie tego pracownika: w każdym wierszu „Podgląd” i „Otwórz w kosztorysie”; w podglądzie polski opis plus „Opis w języku pracownika”.
+- [ ] Zgłoszenie na zakończonej inwestycji jest na liście pracownika i otwiera się w podglądzie.
+- [ ] „Wysłane zgłoszenia” na stronie z linkiem do zgłaszania prac bez zmian: tylko czekające, bez skanów, nieklikalne.

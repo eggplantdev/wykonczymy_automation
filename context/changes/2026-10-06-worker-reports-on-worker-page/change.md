@@ -1,7 +1,7 @@
 ---
 change_id: worker-reports-on-worker-page
 title: Zgłoszenia wykonanych prac na stronie pracownika, z podglądem zgłoszenia
-status: implementing
+status: implemented
 created: 2026-10-06
 updated: 2026-10-06
 archived_at: null

@@ -590,5 +590,5 @@ Run once, after Phase 4:
 
 #### Automated
 
-- [x] 4.1 History table spec passes
-- [x] 4.2 Template table still green
+- [x] 4.1 History table spec passes — 243ab761
+- [x] 4.2 Template table still green — 243ab761
