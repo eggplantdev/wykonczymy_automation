@@ -1,6 +1,6 @@
 'use client'
 
-import { usePersistedFlag } from '@/hooks/use-persisted-enum'
+import { usePersistedFlag } from '@/hooks/use-persisted-value'
 
 // Whether the bottom totals panel is expanded, persisted globally in localStorage: a reading
 // preference of the person, not of one kosztorys — same `table-columns:` family as the money-axis /
