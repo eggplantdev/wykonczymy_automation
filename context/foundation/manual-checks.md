@@ -4266,7 +4266,7 @@ Potrzebne przyjęte zgłoszenie „Kilka wydatków”, z którego przy przyjmowa
 ## 2026-10-06 — worker-reports-on-worker-page — zgłoszenia wykonanych prac na stronie pracownika, z podglądem
 
 - [ ] „Zgłoszenia wykonanych prac” (lista kierownika): klik w wiersz nic nie robi. „Podgląd” otwiera okno nad listą, adres się nie zmienia. „Otwórz w kosztorysie” otwiera rozpiskę z tym zgłoszeniem (adres ma `?zgloszenie=`).
-- [ ] Ta sama lista ma kolumny „Źródło” („z linku” / „skan”) i „Decyzja” (data · kto) przy rozpatrzonych, „—” przy czekających; czekające mają plakietkę „Do sprawdzenia”.
+- [ ] Ta sama lista ma kolumny „Źródło” („z linku” / „skan”) i „Weryfikował” (data · kto) przy rozpatrzonych, „—” przy czekających; czekające mają plakietkę „Do sprawdzenia”. Kolumna z przyciskami ma nagłówek „Podgląd”, a w oknie podglądu jest ten sam napis „Weryfikował: data · kto”.
 - [ ] Podgląd zgłoszenia przyjętego częściowo: przyjęte prace mają w „Przyjęto” ilość, pozostałe „odrzucona”; przyjęta praca spoza rozpiski ma „Nr” pozycji, którą się stała. Podgląd czekającego zgłoszenia: „czeka” przy każdej pracy.
 - [ ] Podgląd skanu pokazuje „Wprowadził: …” i przycisk „Zdjęcia”, który otwiera zdjęcia kartki.
 - [ ] Jako kierownik, zgłoszenie pracownika z językiem Українська: obok polskiego „Opis prac” jest „Opis w języku pracownika”.
