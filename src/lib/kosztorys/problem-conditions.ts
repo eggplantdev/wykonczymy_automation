@@ -1,6 +1,9 @@
 import { planeViewSuffix } from '@/lib/kosztorys/format'
 import { PROBLEM_GROUPS } from '@/lib/kosztorys/problem-groups'
-import { ROW_CONDITIONS } from '@/lib/kosztorys/row-conditions/registry'
+import {
+  REPORT_UNREPORTED_CONDITION_ID,
+  ROW_CONDITIONS,
+} from '@/lib/kosztorys/row-conditions/registry'
 import { STAGE_CONDITIONS } from '@/lib/kosztorys/stage-conditions'
 
 /**
@@ -69,9 +72,16 @@ export const PROBLEM_IDS = PROBLEM_CONDITIONS.map((problem) => problem.id)
 
 const STAGE_PROBLEM_IDS = STAGE_CONDITIONS.map((condition) => condition.id)
 
-/** The problems currently engaged — the row latch holds rows for these and for nothing else. */
-export function engagedProblemIds(engaged: ReadonlySet<string>): Set<string> {
-  return new Set(PROBLEM_IDS.filter((id) => engaged.has(id)))
+/**
+ * The row latch holds rows only for these: its release („Odśwież — ukryj poprawione") renders only
+ * while a problem is engaged, so latching under a „Prace" filter would hold rows nothing can release.
+ * The worker's „Tylko zgłoszone” is the one non-problem in the list — he edits inside it, and toggling
+ * it is his release.
+ */
+const LATCHING_IDS = [...PROBLEM_IDS, REPORT_UNREPORTED_CONDITION_ID]
+
+export function engagedLatchingIds(engaged: ReadonlySet<string>): Set<string> {
+  return new Set(LATCHING_IDS.filter((id) => engaged.has(id)))
 }
 
 /** The etap half of the same set, which is what narrows the stage columns. */

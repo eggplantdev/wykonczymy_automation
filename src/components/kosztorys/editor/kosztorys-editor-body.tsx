@@ -335,8 +335,9 @@ export function KosztorysEditorBody({
   const emptyByFilter = engagedHiderList.length > 0
   // Full-dataset rather than the rendered rows: `gridRows` always carries the spacer + „Razem" rows, and
   // a no-hit search empties `viewRows` over a kosztorys that is not in fact empty. The owner's
-  // sekcja bez pozycji is content; the client's document never shows one.
-  const isEmpty = preview ? subtotals.length === 0 : sections.length === 0
+  // sekcja bez pozycji is content; the client's document never shows one. Under „Tylko zgłoszone” the
+  // subtotals count only his reported rows, so an empty count is his report, not the document.
+  const isEmpty = preview ? subtotals.length === 0 && !reportedOnly : sections.length === 0
   const bodyRows = useMemo(() => {
     const banded = buildSectionBandRows(viewRows, {
       enabled: sectionBandsVisible(sort),

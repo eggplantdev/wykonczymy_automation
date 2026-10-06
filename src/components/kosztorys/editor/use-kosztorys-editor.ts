@@ -25,7 +25,7 @@ import { useColumnWidths } from '@/components/kosztorys/editor/hooks/use-column-
 import { useColumnColors } from '@/components/kosztorys/editor/hooks/use-column-colors'
 import { useRowHeights } from '@/components/kosztorys/editor/hooks/use-row-heights'
 import { useConditionRowLatch } from '@/components/kosztorys/editor/hooks/use-condition-row-latch'
-import { engagedProblemIds, engagedStageProblemIds } from '@/lib/kosztorys/problem-conditions'
+import { engagedLatchingIds, engagedStageProblemIds } from '@/lib/kosztorys/problem-conditions'
 import { useKosztorysSettings } from '@/components/kosztorys/editor/hooks/use-kosztorys-settings'
 import { useKosztorysStageOps } from '@/components/kosztorys/editor/hooks/use-kosztorys-stage-ops'
 import { useKosztorysViewState } from '@/components/kosztorys/editor/hooks/use-kosztorys-view-state'
@@ -667,16 +667,13 @@ export function useKosztorysEditor({
     )
   }, [preview, rows, conditionCtx])
 
-  // Problems only: the latch's other half („Odśwież — ukryj poprawione") renders only while a problem is
-  // engaged, so latching under a „Prace" filter would hold rows with no way to release them. Out under
-  // preview for a different reason — nothing is being fixed in a client's document.
-  const engagedProblems = useMemo(
-    () => (preview ? new Set<string>() : engagedProblemIds(engagedConditionIds)),
-    [preview, engagedConditionIds],
+  const latchedConditions = useMemo(
+    () => engagedLatchingIds(engagedConditionIds),
+    [engagedConditionIds],
   )
   const { latch, refresh: refreshProblemRows } = useConditionRowLatch(
-    engagedProblems,
-    engagedProblems.size > 0,
+    latchedConditions,
+    latchedConditions.size > 0,
   )
   const viewRows = useMemo(() => {
     const next = buildViewRows({
