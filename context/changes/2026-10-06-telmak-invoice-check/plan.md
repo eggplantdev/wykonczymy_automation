@@ -294,14 +294,14 @@ dev; acceptable for a monthly task — no parallel worker pool.
 
 #### Automated
 
-- [x] 1.1 `pnpm exec vitest run src/__tests__/lib/telmak/parse-telmak.test.ts` passes
-- [x] 1.2 `pnpm exec vitest run src/__tests__/lib/telmak/compare-telmak.test.ts` passes
+- [x] 1.1 `pnpm exec vitest run src/__tests__/lib/telmak/parse-telmak.test.ts` passes — 7b77e1a5
+- [x] 1.2 `pnpm exec vitest run src/__tests__/lib/telmak/compare-telmak.test.ts` passes — 7b77e1a5
 
 ### Phase 2: SQL into `lib/db`, under a DB spec
 
 #### Automated
 
-- [ ] 2.1 `pnpm exec vitest run src/__tests__/lib/db/telmak-check.db.test.ts` passes against `db-test` (5435)
+- [x] 2.1 `pnpm exec vitest run src/__tests__/lib/db/telmak-check.db.test.ts` passes against `db-test` (5435)
 
 ### Phase 3: UI placement, gate, build
 
