@@ -572,16 +572,16 @@ Run **once**, after the final phase:
 
 #### Automated
 
-- [x] 2.1 Pinned block unchanged after extraction
-- [x] 2.2 Columns DOM spec passes
-- [x] 2.3 Badge spec passes with the prefix case
+- [x] 2.1 Pinned block unchanged after extraction — 62d59df9
+- [x] 2.2 Columns DOM spec passes — 62d59df9
+- [x] 2.3 Badge spec passes with the prefix case — 62d59df9
 
 ### Phase 3: Worker page
 
 #### Automated
 
-- [ ] 3.1 Client paging DOM spec passes
-- [ ] 3.2 Existing pagination and language specs still pass
+- [x] 3.1 Client paging DOM spec passes
+- [x] 3.2 Existing pagination and language specs still pass
 
 ### Phase 4: Clean Transakcje
 
