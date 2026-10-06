@@ -565,16 +565,16 @@ Run **once**, after the final phase:
 
 #### Automated
 
-- [x] 1.1 Parser unit specs pass
-- [x] 1.2 DB spec passes against the 5435 test DB
+- [x] 1.1 Parser unit specs pass — 5aa77fa7
+- [x] 1.2 DB spec passes against the 5435 test DB — 5aa77fa7
 
 ### Phase 2: Manager page „Zgłoszenia wydatków”
 
 #### Automated
 
-- [ ] 2.1 Pinned block unchanged after extraction
-- [ ] 2.2 Columns DOM spec passes
-- [ ] 2.3 Badge spec passes with the prefix case
+- [x] 2.1 Pinned block unchanged after extraction
+- [x] 2.2 Columns DOM spec passes
+- [x] 2.3 Badge spec passes with the prefix case
 
 ### Phase 3: Worker page
 

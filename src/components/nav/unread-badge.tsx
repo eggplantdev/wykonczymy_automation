@@ -13,7 +13,7 @@ import type { UnreadStreamT } from '@/types/notifications'
  * that page's render advances the seen cursor after the shell already counted. A queue stream has no
  * cursor: opening its page decides nothing, so its count stays.
  */
-const QUEUE_STREAMS: ReadonlySet<UnreadStreamT> = new Set(['workerReports'])
+const QUEUE_STREAMS: ReadonlySet<UnreadStreamT> = new Set(['workerReports', 'expenseDrafts'])
 
 export function UnreadBadge({ stream, path }: { stream: UnreadStreamT; path: string }) {
   // Nothing to fall back to: a bubble is absent at 0 anyway, so the nav item renders without one

@@ -7,6 +7,7 @@ import {
   Inbox,
   LayoutTemplate,
   ListChecks,
+  ReceiptText,
   Users,
   Wallet,
   Wrench,
@@ -26,6 +27,7 @@ export const PAGE_TITLES = {
   investments: 'Inwestycje',
   leads: 'Zgłoszenia z formularzy kontaktowych',
   workerReports: 'Zgłoszenia wykonanych prac',
+  expenseDrafts: 'Zgłoszenia wydatków',
   sheets: 'Kosztorysy v1',
   workCatalog: 'Katalog prac',
   templates: 'Szablony kosztorysów',
@@ -62,6 +64,12 @@ export const NAV_LINKS: NavLinkT[] = [
     label: PAGE_TITLES.workerReports,
     icon: FileUser,
     unreadStream: 'workerReports',
+  },
+  {
+    href: '/zgloszenia-wydatkow',
+    label: PAGE_TITLES.expenseDrafts,
+    icon: ReceiptText,
+    unreadStream: 'expenseDrafts',
   },
   { href: '/zgloszenia', label: PAGE_TITLES.leads, icon: Inbox, unreadStream: 'leads' },
 ]
