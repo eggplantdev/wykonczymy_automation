@@ -50,9 +50,8 @@ the reviewed diff. Checks: code-review, tailwind-v4-audit, comment-noise-audit, 
 ## Simplify pass
 
 Ran /simplify (reuse, simplification, efficiency, altitude) + primitive-reuse-scan (report-only, folded
-into the reuse agent) — 13 applied, 1 skipped, 1 dropped, 1 dismissed; each finding folded into
-
-## Findings (tagged `simplify` / `reuse-scan`). No separate report.
+into the reuse agent) — 13 applied, 1 skipped, 1 dropped, 1 dismissed; each finding folded into the
+Findings list above (tagged `simplify` / `reuse-scan`). No separate report.
 
 ## Tests & suite
 
