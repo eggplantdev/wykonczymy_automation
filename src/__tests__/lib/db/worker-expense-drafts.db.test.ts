@@ -3,11 +3,17 @@ import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import {
+  countPendingExpenseDrafts,
   decideExpenseDraft,
   insertWorkerExpenseDraft,
   listDraftTransferIds,
+  listExpenseDraftFilterOptions,
+  listExpenseDraftHistory,
+  listPendingExpenseDrafts,
   listRejectedExpenseDrafts,
+  listWorkerExpenseDrafts,
   restoreRejectedExpenseDraft,
+  type ExpenseDraftFiltersT,
   type RejectedDraftScopeT,
 } from '@/lib/db/worker-expense-drafts'
 import { cashRegisterDeleteBlocker } from '@/lib/cash-registers/delete-blocker'
@@ -281,4 +287,186 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
       expect(await statusOf()).toBe('pending')
     },
   )
+
+  describe('the draft history', () => {
+    let historyInvestmentId: number
+    let refusedOnlyInvestmentId: number
+    let rejectedId: number
+    let acceptedId: number
+    let olderPendingId: number
+    let newerPendingId: number
+    let refusedOnlyId: number
+    let transfer: { id: number; amount: number; investmentId: number }
+
+    const sentOn = (draftId: number, day: string) =>
+      db.execute(
+        sql`UPDATE worker_expense_drafts SET sent_at = ${day}::timestamptz WHERE id = ${draftId}`,
+      )
+
+    async function pendingDraftOn(name: string, onInvestment: number): Promise<number> {
+      const draftId = await draftOf([await insertMedia(name, workerId)], onInvestment)
+      if (draftId === null) throw new Error('draft fixture refused')
+      return draftId
+    }
+
+    const NO_FILTERS: ExpenseDraftFiltersT = {
+      statuses: null,
+      investmentIds: null,
+      workerIds: null,
+      sentRange: {},
+    }
+
+    const history = (
+      filters: Partial<ExpenseDraftFiltersT> = {},
+      page = 1,
+      limit = 50,
+      sort?: string,
+    ) =>
+      listExpenseDraftHistory(
+        db,
+        { ...NO_FILTERS, investmentIds: [historyInvestmentId], ...filters },
+        { page, limit },
+        sort,
+      )
+
+    const historyIds = async (...args: Parameters<typeof history>) =>
+      (await history(...args)).rows.map((draft) => draft.id)
+
+    const setTrashed = (table: string, id: number, isTrashed: boolean) =>
+      db.execute(sql`
+        UPDATE ${sql.identifier(table)} SET trashed_at = ${isTrashed ? sql`now()` : sql`NULL`}
+        WHERE id = ${id}
+      `)
+
+    beforeAll(async () => {
+      historyInvestmentId = await createTestInvestment(payload, 'worker-expense-drafts-db-history')
+      refusedOnlyInvestmentId = await createTestInvestment(
+        payload,
+        'worker-expense-drafts-db-refused-only',
+      )
+      const { rows } = await db.execute(sql`
+        SELECT id, amount, investment_id FROM transactions WHERE investment_id IS NOT NULL
+        ORDER BY id LIMIT 1
+      `)
+      transfer = {
+        id: Number(rows[0].id),
+        amount: Number(rows[0].amount),
+        investmentId: Number(rows[0].investment_id),
+      }
+
+      rejectedId = await pendingDraftOn('history-rejected', historyInvestmentId)
+      acceptedId = await pendingDraftOn('history-accepted', historyInvestmentId)
+      olderPendingId = await pendingDraftOn('history-pending-old', historyInvestmentId)
+      newerPendingId = await pendingDraftOn('history-pending-new', historyInvestmentId)
+      refusedOnlyId = await pendingDraftOn('history-refused-only', refusedOnlyInvestmentId)
+      await sentOn(rejectedId, '2026-01-01 10:00+01')
+      await sentOn(olderPendingId, '2026-01-02 10:00+01')
+      await sentOn(acceptedId, '2026-01-03 10:00+01')
+      await sentOn(newerPendingId, '2026-01-04 10:00+01')
+      await reject(rejectedId)
+      await reject(refusedOnlyId)
+      // The transaction belongs to another investment: the manager rebooked it while accepting.
+      await decideExpenseDraft(db, {
+        draftId: acceptedId,
+        decidedBy: otherWorkerId,
+        status: 'accepted',
+        transferId: transfer.id,
+      })
+    })
+
+    afterAll(async () => {
+      await db.execute(sql`
+        DELETE FROM worker_expense_drafts
+        WHERE investment_id IN (${historyInvestmentId}, ${refusedOnlyInvestmentId})
+      `)
+      if (historyInvestmentId)
+        await deleteTestInvestment(payload, historyInvestmentId).catch(() => {})
+      if (refusedOnlyInvestmentId)
+        await deleteTestInvestment(payload, refusedOnlyInvestmentId).catch(() => {})
+    })
+
+    it('lists the pending queue first, then the rest newest first', async () => {
+      expect(await historyIds()).toEqual([newerPendingId, olderPendingId, acceptedId, rejectedId])
+    })
+
+    it('an unknown sort keeps the queue order', async () => {
+      expect(await historyIds({}, 1, 50, '-transferAmount')).toEqual(await historyIds())
+    })
+
+    it('a column sort overrides the queue', async () => {
+      expect(await historyIds({}, 1, 50, '-sentAt')).toEqual([
+        newerPendingId,
+        acceptedId,
+        olderPendingId,
+        rejectedId,
+      ])
+    })
+
+    it('filters and pages, counting every matching row', async () => {
+      expect(await history({ statuses: ['pending'] })).toMatchObject({ totalDocs: 2 })
+      expect(await historyIds({ statuses: ['pending'] })).toEqual([newerPendingId, olderPendingId])
+
+      const secondPage = await history({}, 2, 2)
+      expect(secondPage.totalDocs).toBe(4)
+      expect(secondPage.rows.map((draft) => draft.id)).toEqual([acceptedId, rejectedId])
+
+      expect(await history({ workerIds: [otherWorkerId] })).toEqual({ rows: [], totalDocs: 0 })
+      expect(await historyIds({ sentRange: { from: '2026-01-03', to: '2026-01-03' } })).toEqual([
+        acceptedId,
+      ])
+    })
+
+    it('offers every party with a listed draft, whatever the URL filters', async () => {
+      const options = await listExpenseDraftFilterOptions(db)
+      expect(options.investments.map((item) => item.id)).toContain(historyInvestmentId)
+      expect(options.workers).toContainEqual({ id: workerId, name: 'Drafts A' })
+    })
+
+    // Linking by the draft's investment would open a list the booked transaction is not on.
+    it('reads the decider and the booked expense off the transaction', async () => {
+      const accepted = (await history({ statuses: ['accepted'] })).rows[0]
+      expect(accepted).toMatchObject({
+        decidedByName: 'Drafts B',
+        transferId: transfer.id,
+        transferAmount: transfer.amount,
+        transferInvestmentId: transfer.investmentId,
+      })
+      expect(transfer.investmentId).not.toBe(historyInvestmentId)
+    })
+
+    it('hides a refusal whose kasa is in the trash from the history, the facets and the worker', async () => {
+      await setTrashed('cash_registers', registerId, true)
+      try {
+        const scoped = await listExpenseDraftHistory(
+          db,
+          { ...NO_FILTERS, investmentIds: [refusedOnlyInvestmentId] },
+          { page: 1, limit: 50 },
+        )
+        expect(scoped).toEqual({ rows: [], totalDocs: 0 })
+        const options = await listExpenseDraftFilterOptions(db)
+        expect(options.investments.map((item) => item.id)).not.toContain(refusedOnlyInvestmentId)
+        const workerIds = (await listWorkerExpenseDrafts(db, workerId)).map((draft) => draft.id)
+        expect(workerIds).not.toContain(refusedOnlyId)
+        expect(workerIds).toContain(acceptedId)
+      } finally {
+        await setTrashed('cash_registers', registerId, false)
+      }
+    })
+
+    it('keeps an accepted draft listed after its investment went to the trash', async () => {
+      await setTrashed('investments', historyInvestmentId, true)
+      try {
+        expect(await historyIds({ statuses: ['accepted'] })).toEqual([acceptedId])
+        expect((await listWorkerExpenseDrafts(db, workerId)).map((draft) => draft.id)).toContain(
+          acceptedId,
+        )
+      } finally {
+        await setTrashed('investments', historyInvestmentId, false)
+      }
+    })
+
+    it('the badge counts exactly the drafts the pending block lists', async () => {
+      expect(await countPendingExpenseDrafts(db)).toBe((await listPendingExpenseDrafts(db)).length)
+    })
+  })
 })
