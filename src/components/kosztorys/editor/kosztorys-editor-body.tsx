@@ -8,6 +8,9 @@ import { SheetIcon } from 'lucide-react'
 // StaticDataSheetGrid, which snapshots `columns` via useState at mount (EX-422).
 import { DynamicDataSheetGrid, type DataSheetGridRef } from 'react-datasheet-grid'
 import { KosztorysTotalsPanel } from '@/components/kosztorys/summary/kosztorys-totals-panel'
+import { useTotalsPanelOpen } from '@/components/kosztorys/summary/hooks/use-totals-panel-open'
+import { useTotalsPanelHeight } from '@/components/kosztorys/summary/hooks/use-totals-panel-height'
+import { gridHeightBesidePanel } from '@/lib/kosztorys/totals-panel-height'
 import { KosztorysEditorToolbar } from '@/components/kosztorys/editor/toolbar/kosztorys-editor-toolbar'
 import { BrandLogo } from '@/components/ui/brand-logo'
 import { Button } from '@/components/ui/button'
@@ -257,6 +260,14 @@ export function KosztorysEditorBody({
   // The worker's report scrolls as a page: his header scrolls away and the table header sticks,
   // instead of the grid scrolling under a pinned top.
   const pageScroll = report !== undefined
+  // The client document keeps the row gate: it has no „Inwestycja" tab, and its toggle is `disabled`
+  // on an empty kosztorys, so a panel left open would be a sheet of zeros nobody could fold away.
+  const hasTotalsPanel = !worker && !pastVersion && (!preview || subtotals.length > 0)
+  const [totalsOpen] = useTotalsPanelOpen(subtotals.length > 0)
+  const [totalsFraction] = useTotalsPanelHeight()
+  const gridHeightBesideTotals = hasTotalsPanel
+    ? gridHeightBesidePanel(gridHeight, { open: totalsOpen, fraction: totalsFraction })
+    : gridHeight
   const sectionHeader = useMemo(
     () => ({
       figures: new Map(
@@ -580,7 +591,7 @@ export function KosztorysEditorBody({
                     onChange={(rows) => onChange(rows.filter((row) => !isSyntheticRow(row.id)))}
                     columns={gridColumns}
                     gutterColumn={hidesGutter ? false : gutterColumn}
-                    height={gridHeight}
+                    height={gridHeightBesideTotals}
                     rowHeight={({ rowData }) =>
                       resolveRowHeight({
                         isSectionBand: isSectionHeaderRow(rowData.id),
@@ -696,15 +707,15 @@ export function KosztorysEditorBody({
                       )}
                     </EmptyState>
                   )}
-                {/* An opaque overlay over the WHOLE grid area, not a flex track: open, the summary takes the
-              editor's screen and the grid keeps its full height underneath rather than being squeezed
-              into what is left. For the owner it mounts whatever the row count, because „Inwestycja"
-              has something to say on an empty kosztorys. The client document keeps the row gate: it
-              has no such tab, and its toggle is `disabled` there, so a panel left open would be a
-              full-height sheet of zeros nobody could fold away. */}
-                {!worker && !pastVersion && (!preview || subtotals.length > 0) && (
+                {/* Absolutely positioned, not a flex track: the grid's height is a measured px figure,
+              never its container's, so the split is the grid passing `gridHeightBesideTotals`. At full
+              height the panel covers the grid, which keeps its whole height and scroll underneath. For
+              the owner it mounts whatever the row count, because „Inwestycja" has something to say on
+              an empty kosztorys. */}
+                {hasTotalsPanel && (
                   <KosztorysTotalsPanel
                     hasRows={subtotals.length > 0}
+                    availableHeight={gridHeight}
                     {...panelData}
                     investmentId={investmentId}
                     investmentName={investmentName}

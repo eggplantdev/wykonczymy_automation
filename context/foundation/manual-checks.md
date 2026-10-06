@@ -4186,3 +4186,25 @@ Szablon z kilkuset pracami w kilku sekcjach (np. szablon 165).
       kolejność”: siatka pokazuje nowy układ, a wpisana wartość została.
 - [ ] Po zapisie „Wczytaj” ma jedną nową automatyczną wersję; jej przywrócenie wraca do starej
       kolejności. Każda sekcja na liście ma swój kolor jak w siatce.
+
+## kosztorys-summary-resizable
+
+### Phase 2: Pill handle and split layout
+
+Konto właściciela, kosztorys z liczbą pozycji wystarczającą do przewijania.
+
+- [ ] Pigułka w sidebarze wygląda i działa jak dotąd (zwijanie/rozwijanie, powiększenie na hover).
+- [ ] Otwórz „Podsumowanie” → pigułka siedzi na górnej krawędzi panelu, widoczna nad zamrożonymi
+      kolumnami.
+- [ ] Przeciągnij pigułkę do ok. połowy: panel idzie za kursorem; po puszczeniu kosztorys się skraca,
+      kosztorys i panel stykają się bez przerwy i bez nakładania, a ostatnią pozycję da się
+      przewinąć nad panel.
+- [ ] Puść poniżej ok. 15% → panel się zwija; przycisk „Podsumowanie” otwiera go na poprzedniej
+      wysokości.
+- [ ] Puść powyżej ok. 90% → panel wskakuje na pełną wysokość; po zwinięciu kosztorys jest
+      przewinięty tam, gdzie był.
+- [ ] Kliknięcie pigułki bez przeciągania zwija panel.
+- [ ] Przeładuj stronę → wysokość wraca; inny kosztorys otwiera się na tej samej wysokości.
+- [ ] Na ok. 20% wysokości pasek przełącznika widoku mieści się, a zawartość panelu się przewija.
+- [ ] Link klienta (podgląd tego samego kosztorysu) → ta sama pigułka i ten sam podział.
+- [ ] Zmiana rozmiaru okna przy podzielonym ekranie → kosztorys i panel dalej się stykają.

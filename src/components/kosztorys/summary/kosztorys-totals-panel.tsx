@@ -8,10 +8,14 @@ import { TotalsPanelOverlay } from '@/components/kosztorys/summary/totals-panel-
 // can mount the same content without inheriting the editor's bottom-anchored collapsible.
 export function KosztorysTotalsPanel({
   hasRows,
+  availableHeight,
   ...props
-}: Omit<ComponentProps<typeof SummaryPanelContent>, 'host'> & { hasRows: boolean }) {
+}: Omit<ComponentProps<typeof SummaryPanelContent>, 'host'> & {
+  hasRows: boolean
+  availableHeight: number
+}) {
   return (
-    <TotalsPanelOverlay hasRows={hasRows}>
+    <TotalsPanelOverlay hasRows={hasRows} availableHeight={availableHeight}>
       <SummaryPanelContent {...props} host="editor" />
     </TotalsPanelOverlay>
   )
