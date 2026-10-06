@@ -14,7 +14,7 @@ import { buildKosztorysTree } from '@/lib/queries/kosztorys'
 import { logError } from '@/lib/utils/log-error'
 
 /**
- * Reads ONE photo of a filled „Drukuj do wypełnienia" form. Persists nothing — the dialog sends every
+ * Reads ONE photo of a filled „Drukuj kartkę do zgłoszenia prac" form. Persists nothing — the dialog sends every
  * page's result to `createScannedReportAction` together with the uploaded photos.
  *
  * An API route for the same reason as `extract-receipt`: a phone photo blows past the server-action

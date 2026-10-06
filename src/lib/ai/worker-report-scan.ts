@@ -7,7 +7,7 @@ import type { ScanPageT } from '@/lib/kosztorys/worker-report/types'
 
 // Server-only through `./openrouter-client`: never pull it into the Payload CLI graph.
 
-/** One photo of the „Drukuj do wypełnienia" form → the rows and extras written on it. */
+/** One photo of the „Drukuj kartkę do zgłoszenia prac" form → the rows and extras written on it. */
 export async function readWorkerReportPage(
   page: ReceiptPageT,
   { units }: { units: readonly ScanUnitT[] },
