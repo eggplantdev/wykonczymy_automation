@@ -1,12 +1,12 @@
 ---
 change_id: telmak-invoice-check
 title: Sprawdzanie paczki faktur Telmak z transakcjami kasy Telmak
-status: implemented
+status: archived
 created: 2026-10-06
 updated: 2026-10-06
-archived_at: null
+archived_at: 2026-10-06T17:07:43Z
 branch: spike/telmak-invoice-check
-worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/telmak-invoice-check
+worktree: null
 ---
 
 ## Notes
