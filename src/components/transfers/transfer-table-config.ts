@@ -13,6 +13,11 @@ export type TransferTableConfigT = {
   query: TransferQueryT
   /** Heading rendered under the filters, above the table. */
   title?: string
+  /**
+   * Turn `title` into one collapsible heading over the filters and the table together — for a page
+   * of several sections, where a bare „Filtry” above the heading reads as a section of its own.
+   */
+  collapsible?: boolean
   baseUrl: string
   excludeColumns?: string[]
   filters?: FilterConfigT
@@ -34,11 +39,6 @@ export type TransferTableConfigT = {
    * SILENT: a page that forgets to set it compiles clean with no button, so verify each host.
    */
   print?: boolean
-  /**
-   * The worker page's id. Faktury/Drukuj then fetch through `fetchWorkerTransfers`, which rebuilds
-   * the scope on the server from this id and the URL.
-   */
-  workerScope?: number
   /** Listed above the first page's transfers, outside its count — they are not transfers. */
   rejectedDrafts?: ExpenseDraftRowT[]
 }

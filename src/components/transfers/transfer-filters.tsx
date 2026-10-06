@@ -30,6 +30,7 @@ import { useToggleSearchParam } from '@/hooks/use-toggle-search-param'
 import { cn } from '@/lib/utils/cn'
 import { Loader } from '@/components/ui/loader/loader'
 import type { ReferenceItemT } from '@/types/reference-data'
+import type { TransferTypeT } from '@/lib/constants/transfers'
 
 const DEBOUNCE_MS = 600
 
@@ -60,7 +61,10 @@ type TransferFiltersPropsT = {
   otherCategories?: ReferenceItemT[]
   expenseCategories?: ReferenceItemT[]
   showTypeFilter?: boolean
+  transferTypes?: readonly TransferTypeT[]
   showPaymentMethodFilter?: boolean
+  showCancelledFilter?: boolean
+  showSearchFilters?: boolean
   showWorkerDraftsFilter?: boolean
   baseUrl: string
   className?: string
@@ -77,7 +81,10 @@ export function TransferFilters({
   otherCategories,
   expenseCategories,
   showTypeFilter = true,
+  transferTypes = TRANSFER_TYPES,
   showPaymentMethodFilter = false,
+  showCancelledFilter = true,
+  showSearchFilters = true,
   showWorkerDraftsFilter = false,
   baseUrl,
   className,
@@ -161,7 +168,7 @@ export function TransferFilters({
             <FilterMultiSelect
               values={currentTypes}
               onValuesChange={(types) => updateParam('type', types.join(','))}
-              options={TRANSFER_TYPES.map((type) => ({
+              options={transferTypes.map((type) => ({
                 value: type,
                 label: t(`type_${type}`),
               }))}
@@ -267,25 +274,31 @@ export function TransferFilters({
           happened to stop on a narrow screen. Outside the guard above too — search works with no
           entity filters present. */}
       <ControlGrid>
-        <SearchFilterInput
-          value={currentAmount}
-          onChange={(v) => updateParam('amount', v)}
-          placeholder={t('searchAmount')}
-          inputMode="decimal"
-          className={SEARCH_FILTER_TOOLBAR_WIDTH}
-          debounceMs={DEBOUNCE_MS}
-        />
+        {showSearchFilters && (
+          <>
+            <SearchFilterInput
+              value={currentAmount}
+              onChange={(v) => updateParam('amount', v)}
+              placeholder={t('searchAmount')}
+              inputMode="decimal"
+              className={SEARCH_FILTER_TOOLBAR_WIDTH}
+              debounceMs={DEBOUNCE_MS}
+            />
 
-        <SearchFilterInput
-          value={currentId}
-          onChange={(v) => updateParam('id', stripNonDigits(v))}
-          placeholder={t('searchId')}
-          inputMode="numeric"
-          className={SEARCH_FILTER_TOOLBAR_WIDTH}
-          debounceMs={DEBOUNCE_MS}
-        />
+            <SearchFilterInput
+              value={currentId}
+              onChange={(v) => updateParam('id', stripNonDigits(v))}
+              placeholder={t('searchId')}
+              inputMode="numeric"
+              className={SEARCH_FILTER_TOOLBAR_WIDTH}
+              debounceMs={DEBOUNCE_MS}
+            />
+          </>
+        )}
 
-        <FilterMultiSelect label={t('filterCancelled')} icon={Ban} toggles={cancelledToggles} />
+        {showCancelledFilter && (
+          <FilterMultiSelect label={t('filterCancelled')} icon={Ban} toggles={cancelledToggles} />
+        )}
 
         <ClearButton onClick={clearEntityFilters} disabled={!hasEntityFilters}>
           {t('clearFilters')}

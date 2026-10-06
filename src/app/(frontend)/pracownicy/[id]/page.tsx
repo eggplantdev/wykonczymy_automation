@@ -14,7 +14,9 @@ import { fetchRegisterBalances } from '@/lib/queries/balances'
 import { fetchEquipmentAtLocation } from '@/lib/queries/equipment'
 import { fetchWorkerStageInvestments } from '@/lib/queries/worker-stage-investments'
 import { fetchWorkerExpenseDrafts } from '@/lib/queries/worker-expense-drafts'
-import { workerPageTransferWhere } from '@/lib/queries/worker-transfers'
+import { workerPageTransferWhere, workerTransferScope } from '@/lib/queries/worker-transfers'
+import { fetchTransferFacets } from '@/lib/queries/transfer-totals'
+import { TRANSFER_TYPES } from '@/lib/constants/transfers'
 import { buildFilterConfig } from '@/lib/utils/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { HeldEquipmentSection } from '@/components/equipment/held-equipment-section'
@@ -61,12 +63,14 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
     : undefined
 
   const registers = visibleWorkerRegisters(refData.cashRegisters, userId, currentUser.role)
-  const transferWhere = workerPageTransferWhere(
-    sp,
-    currentUser.id,
-    userId,
-    registers.map((register) => register.id),
+  const registerIds = registers.map((register) => register.id)
+  const transferWhere = workerPageTransferWhere(sp, currentUser.id, userId, registerIds)
+  // The scope alone, not the URL filters: picking one option must not shrink its own list.
+  const facets = await fetchTransferFacets(workerTransferScope(userId, registerIds))
+  const transferInvestments = refData.investments.filter(({ id }) =>
+    facets.investmentIds.includes(id),
   )
+  const transferTypes = TRANSFER_TYPES.filter((type) => facets.types.includes(type))
 
   const { t } = createTranslator(locale, 'workerPage')
   const infoFields = [
@@ -85,7 +89,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
   ]
 
   return (
-    <PageWrapper title={worker.name}>
+    <PageWrapper title={worker.name} className="pb-20 sm:pb-20 lg:pb-20">
       {(isManager || isOwnPage) && (
         <div className="flex flex-wrap gap-2">
           {isManager && <EditWorkerDialog worker={worker} cashRegisters={refData.cashRegisters} />}
@@ -117,16 +121,28 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
       <TransfersSection
         title={t('transfers')}
         config={{
+          collapsible: true,
           query: { where: transferWhere, page, limit, sort },
           baseUrl: `/pracownicy/${id}`,
-          excludeColumns: isManager ? ['worker'] : ['worker', 'actions'],
+          excludeColumns: isManager
+            ? ['worker']
+            : ['worker', 'actions', 'vatPlane', 'paymentMethod', 'createdAt'],
           filters: {
-            ...buildFilterConfig(refData, ['users', 'workers', 'expenseCategories', 'type']),
-            cashRegisters: registers.map(({ id, name }) => ({ id, name })),
+            ...buildFilterConfig(refData, ['users', 'workers', 'expenseCategories']),
+            // A one-option filter narrows nothing.
+            cashRegisters:
+              registers.length > 1 ? registers.map(({ id, name }) => ({ id, name })) : undefined,
+            investments:
+              transferInvestments.length > 1
+                ? transferInvestments.map(({ id, name }) => ({ id, name }))
+                : undefined,
+            showTypeFilter: transferTypes.length > 1,
+            transferTypes,
+            showCancelledFilter: false,
+            showSearchFilters: false,
           },
-          invoiceDownload: true,
-          print: true,
-          workerScope: userId,
+          invoiceDownload: isManager,
+          print: isManager,
           cancelledTransactionAudit: sp.cancelledTransactionAudit === '1',
         }}
       />
