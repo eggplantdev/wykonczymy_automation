@@ -4067,7 +4067,8 @@ Odczyt AI kosztuje — na stagingu wysyłaj po kilka zdjęć.
 - [ ] Kierownik klika „Zobacz" kilka sekund po wysłaniu: dialog otwiera się od razu z pustymi, zablokowanymi pozycjami i „Zapisz", widać pasek „Odczytywanie paragonów…"; po odczycie pozycje się wypełniają i odblokowują.
 - [ ] To samo zgłoszenie: zamknij dialog i znów „Zobacz" → pozycje od razu wypełnione, bez paska „Odczytywanie paragonów…".
 - [ ] W dialogu zgłoszenia przy pozycji ze zdjęciem „Odczytaj ponownie" → tylko ta pozycja odczytuje się na nowo i nadpisuje wpisany ręcznie Opis i kwotę; pozostałe pozycje bez zmian.
-- [ ] Pod pozycjami: w pierwszym rzędzie „Dodaj pozycję" i przełącznik „Kilka / Jeden", w drugim „Wygeneruj z paragonów" (i „Odczytaj dodane zdjęcia", gdy jest pusta pozycja ze zdjęciem).
+- [ ] Pod pozycjami: w pierwszym rzędzie przełącznik „Kilka / Jeden" z lewej i „Dodaj pozycję" przy prawej krawędzi, tuż pod nimi podpowiedź trybu, niżej „Wygeneruj z paragonów" (i „Odczytaj dodane zdjęcia", gdy jest pusta pozycja ze zdjęciem).
+- [ ] Dialog wydatku z 2+ pozycjami: każda ma z lewej mały numer „1.", „2.", … na wysokości Kwoty; pola się nie zawijają. Przy jednej pozycji numeru nie ma.
 - [ ] Paragon, którego AI nie przeczyta (np. zdjęcie niebędące paragonem): jego pozycja otwiera się z Opisem „NIE UDAŁO SIĘ ODCZYTAĆ !!! :(", tak jak po „Wygeneruj z paragonów", i „Zapisz" jej nie przepuszcza, dopóki Opis się nie zmieni; zamknięcie i ponowne „Zobacz" nie odczytuje go drugi raz (bez paska „Odczytywanie paragonów…"); „Odczytaj ponownie" przy tej pozycji odczytuje ją na żądanie.
 - [ ] Pracownik usuwa zdjęcie po odczycie: dialog kierownika pokazuje kwoty pozostałego zdjęcia, nie usuniętego.
 - [ ] Zwykły „Nowy wydatek": zdjęcie dodane do pozycji przez jej pole FV przy pustym Opisie → pojawia się „Odczytaj dodane zdjęcia" i odczytuje je.
