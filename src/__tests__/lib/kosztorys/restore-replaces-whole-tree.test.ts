@@ -72,6 +72,11 @@ describe.skipIf(!ENV_READY)('restore replaces the whole tree (DB)', () => {
 
   it('leaves only the incoming tree, including where an etap ordinal collides', async () => {
     const incoming = await serializeKosztorys(sourceId)
+    // A restore writes each pozycja's `ref` back, and `ref` is unique across investments: the real
+    // path restores a snapshot whose rows no longer exist. Leaving the source alive would collide on
+    // its own refs, so it goes before the restore, as the snapshot's original does.
+    await deleteTestInvestment(payload, sourceId)
+    sourceId = 0
 
     await withPayloadTransaction(
       payload,

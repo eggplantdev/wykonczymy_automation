@@ -13,7 +13,14 @@ const mockFind = vi.fn()
 function runHook(invoice: unknown) {
   const args = {
     doc: { id: 7, invoice },
-    req: { payload: { delete: mockDelete, find: mockFind } },
+    req: {
+      payload: {
+        delete: mockDelete,
+        find: mockFind,
+        // The draft- and report-page probes are raw SQL; no fixture here holds a page in either.
+        db: { drizzle: { execute: async () => ({ rows: [] }) } },
+      },
+    },
   } as unknown as Parameters<CollectionAfterDeleteHook>[0]
   return deleteInvoiceMediaAfterDelete(args)
 }
