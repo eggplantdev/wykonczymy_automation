@@ -4076,3 +4076,24 @@ Odczyt AI kosztuje — na stagingu wysyłaj po kilka zdjęć.
 - [ ] Pracownik → „Dodaj wydatek" → 9 zdjęć: pod polem zdjęć „Najwyżej 8 zdjęć w jednym wydatku — wyślij resztę osobno.", „Wyślij" nieaktywny; po usunięciu jednego „Wyślij" działa.
 - [ ] Pracownik → „Moje wydatki" → zgłoszenie „czeka" z 7 zdjęciami → podgląd → dodaj 2: komunikat o limicie 8, nic się nie wgrywa (zgłoszenie ma dalej 7 zdjęć).
 - [ ] Kierownik → „Zobacz" przy zgłoszeniu ze zdjęciami, pozycja pusta → „Wygeneruj z paragonów" z nowym paragonem: powstaje nowa pozycja; zdjęcia pracownika zostają w swojej, bez doklejonego paragonu.
+
+## 2026-10-06 — worker-page-cleanup — strona pracownika: zwijane sekcje, „Moje transfery”, mniej kontrolek
+
+Potrzebny stan: konto roli Pracownik z co najmniej jedną kasą, przypisane do etapu aktywnej
+inwestycji, z transakcjami i zgłoszonymi wydatkami; konto kierownika.
+
+- [ ] Pracownik na swojej stronie: „Moje kasy”, „Moje inwestycje” i „Zgłoszone wydatki” mają ten sam
+      nagłówek ze strzałką i są domyślnie otwarte; zwinięcie jednej przetrwa przeładowanie strony.
+- [ ] Pod „Moje inwestycje” i pod „Zgłoszone wydatki” jest podpowiedź tuż pod tytułem, a odstęp do
+      tabeli jest taki sam jak w sekcjach bez podpowiedzi; „Dodaj wydatek” stoi w wierszu tytułu.
+- [ ] Tabele kas, sprzętu, inwestycji i wydatków mają pierwszą kolumnę tej samej szerokości i ten sam
+      rozmiar czcionki co tabela transakcji; na telefonie (390px) strona nie przewija się w bok.
+- [ ] „Moje transfery” to jedna zwijana sekcja, domyślnie zamknięta; po otwarciu w środku są „Filtry”
+      (osobno zwijane) i tabela, bez kreski pod nagłówkiem. Pod stroną jest zapas miejsca po ostatniej sekcji.
+- [ ] Pracownik: w filtrach nie ma pól „Szukaj po kwocie” / „Szukaj po id” ani „Anulowane”; filtr kasy,
+      inwestycji i typu pojawia się tylko gdy jest z czego wybierać i proponuje wyłącznie to, co jest
+      w jego transakcjach.
+- [ ] Pracownik: w tabeli nie ma kolumn „Forma wpłaty”, „Czas dodania”, „Metoda” ani akcji; „ID” jest.
+      Nie ma przycisków „Faktury” ani „Drukuj”.
+- [ ] Kierownik na stronie tego pracownika: „Faktury” i „Drukuj” są i działają — ZIP / wydruk zawiera
+      tylko transakcje tego pracownika z bieżącymi filtrami.
