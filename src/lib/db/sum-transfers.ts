@@ -283,3 +283,32 @@ export const sumFilteredByType = async (
     netTotal: Number(row.net_total ?? 0),
   }))
 }
+
+export type TransferFacetsT = { investmentIds: number[]; types: string[] }
+
+/** Which investments and types a filtered set actually holds — a filter offering more matches nothing. */
+export const listTransferFacets = async (
+  payload: Payload,
+  where: Where,
+): Promise<TransferFacetsT> => {
+  if (isNoResultsSentinel(where)) return { investmentIds: [], types: [] }
+
+  const db = await getDb(payload)
+  const result = await db.execute(
+    sql.raw(`
+      SELECT
+        COALESCE(ARRAY_AGG(DISTINCT investment_id) FILTER (WHERE investment_id IS NOT NULL), '{}')
+          AS investment_ids,
+        COALESCE(ARRAY_AGG(DISTINCT type::text), '{}') AS types
+      FROM transactions
+      WHERE cancelled IS NOT TRUE
+        ${buildSqlConditions(where)}
+    `),
+  )
+
+  const row = result.rows[0]
+  return {
+    investmentIds: (row.investment_ids as unknown[]).map(Number),
+    types: row.types as string[],
+  }
+}
