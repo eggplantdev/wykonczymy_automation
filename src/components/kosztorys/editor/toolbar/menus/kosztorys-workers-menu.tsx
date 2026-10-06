@@ -1,13 +1,13 @@
 'use client'
 
 import { Fragment } from 'react'
-import { FileUser, Users } from 'lucide-react'
+import Link from 'next/link'
+import { ChevronRight, FileUser, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
@@ -73,7 +73,12 @@ export function KosztorysWorkersMenu() {
             scope.kind === 'blocked' ? WORKER_SCOPE_BLOCK_MESSAGES[scope.reason] : undefined
           return (
             <Fragment key={id}>
-              <DropdownMenuLabel>{name}</DropdownMenuLabel>
+              <DropdownMenuItem asChild className="font-medium">
+                <Link href={`/pracownicy/${id}`}>
+                  {name}
+                  <ChevronRight className="ml-auto" />
+                </Link>
+              </DropdownMenuItem>
               {blockReason && <p className="text-destructive px-2 pb-1 text-xs">{blockReason}</p>}
               <WorkerPreviewMenuItem target={{ id, name }} />
               <WorkerShareMenuItem target={{ id, name, blockReason }} />
