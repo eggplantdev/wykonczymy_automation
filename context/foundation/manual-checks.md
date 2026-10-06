@@ -4218,18 +4218,26 @@ inwestycji, z transakcjami i zgłoszonymi wydatkami; konto kierownika.
 
 Potrzebna paczka PDF-ów Telmaka za jeden miesiąc (WV / KWV / WZ / FP) i kasa Telmak z wydatkami z tego miesiąca.
 
-- [ ] Kasa Telmak (`/kasa/11`) → przycisk „Sprawdź faktury” jest; na każdej innej kasie go nie ma.
-- [ ] „Sprawdź faktury” → bez wybranego zakresu wrzuć paczkę: zakres dat ustawia się sam z dat wystawienia w paczce, a „Faktury do weryfikacji” pokazuje tylko rozjazdy z właściwym statusem („Brak w aplikacji”, „Inna kwota”, „Brak PDF w aplikacji”…). Liczniki nad tabelą zgadzają się z liczbą faktur w paczce.
-- [ ] Zmień zakres dat → porównanie liczy się od nowa; „Pokaż wszystkie” dokłada wiersze „Zgodne”, a „Pokaż tylko rozjazdy” je chowa.
-- [ ] Pod spodem „Transakcje do weryfikacji” pokazuje transakcje z rozjazdów w kolumnach jak na liście transakcji; anulowane są przekreślone.
-- [ ] „Podgląd” przy fakturze otwiera PDF z paczki.
-- [ ] Transakcja bez PDF-a, której faktura jest w paczce → „Dołącz do #id”: plik trafia do tej transakcji, porównanie liczy się od nowa i wiersz znika z rozjazdów (przycisku nie da się kliknąć drugi raz). Zamknięcie okna niczego więcej nie wysyła.
-- [ ] Bez zamykania okna wrzuć paczkę z innego miesiąca → zakres dat ustawia się od nowa z dat nowej paczki. Zakres wybrany ręcznie zostaje.
-- [ ] Prawdziwa korekta KWV z paczki → odczytana (nie „Nieznany format”), a jeśli w aplikacji jest jej ujemna korekta — „Zgodne”.
-- [ ] Dorzuć do paczki obcy PDF (nie od Telmaka) → toast o nieznanym formacie, a plik jest w tabeli jako „Nieznany format”.
-- [ ] Na buildzie produkcyjnym (staging) paczka się czyta, a w konsoli przeglądarki nie ma błędu workera pdfjs.
-- [ ] Paczka ~50+ faktur czyta się w kilka sekund, a nie dziesiątki (jeden worker pdfjs na całą paczkę).
-- [ ] Lista transakcji (np. „Transakcje”) → anulowana transakcja nadal przekreślona i wyszarzona, wiersz „Anulowanie” wyszarzony (wspólna klasa wiersza — zachowanie bez zmian).
+- [x] Kasa Telmak (`/kasa/11`) → przycisk „Sprawdź faktury” jest; na każdej innej kasie go nie ma.
+- [x] „Sprawdź faktury” → bez wybranego zakresu wrzuć paczkę: zakres dat ustawia się sam z dat wystawienia w paczce, a „Faktury do weryfikacji” pokazuje tylko rozjazdy z właściwym statusem („Brak w aplikacji”, „Inna kwota”, „Brak PDF w aplikacji”…). Liczniki nad tabelą zgadzają się z liczbą faktur w paczce.
+- [x] Zmień zakres dat → porównanie liczy się od nowa; „Pokaż wszystkie” dokłada wiersze „Zgodne”, a „Pokaż tylko rozjazdy” je chowa.
+- [x] Pod spodem „Transakcje do weryfikacji” pokazuje transakcje z rozjazdów w kolumnach jak na liście transakcji; anulowane są przekreślone.
+- [x] „Podgląd” przy fakturze otwiera PDF z paczki.
+- [x] Transakcja bez PDF-a, której faktura jest w paczce → „Dołącz do #id”: plik trafia do tej transakcji, porównanie liczy się od nowa i wiersz znika z rozjazdów (przycisku nie da się kliknąć drugi raz). Zamknięcie okna niczego więcej nie wysyła.
+- [x] Bez zamykania okna wrzuć paczkę z innego miesiąca → zakres dat ustawia się od nowa z dat nowej paczki. Zakres wybrany ręcznie zostaje.
+- [x] Prawdziwa korekta KWV z paczki → odczytana (nie „Nieznany format”), a jeśli w aplikacji jest jej ujemna korekta — „Zgodne”.
+- [x] Dorzuć do paczki obcy PDF (nie od Telmaka) → toast o nieznanym formacie, a plik jest w tabeli jako „Nieznany format”.
+- [x] Na buildzie produkcyjnym (staging) paczka się czyta, a w konsoli przeglądarki nie ma błędu workera pdfjs.
+- [x] Paczka ~50+ faktur czyta się w kilka sekund, a nie dziesiątki (jeden worker pdfjs na całą paczkę).
+- [x] Lista transakcji (np. „Transakcje”) → anulowana transakcja nadal przekreślona i wyszarzona, wiersz „Anulowanie” wyszarzony (wspólna klasa wiersza — zachowanie bez zmian).
+
+### Findings — 2026-10-06
+
+- [x] Preview DB lagged two unrelated migrations (`worker_expense_draft_transfers`, `worker_expense_draft_receipts`), so /kasa/11 crashed on staging; applied with `pnpm db:migrate:preview`.
+- [x] Test artifacts left on the preview DB: expense #5395 (invented WV note 4-99001, kasa 11), its CANCELLATION #5396 and media #1910 (attached via „Dołącz do #5395", stays on the cancelled row). Cancelled through the UI.
+- [x] Observation: the edit form cannot remove an existing invoice, so the „bez PDF” repro (box 6) needs a freshly booked expense plus an invented PDF. **Dropped** — test-setup note, not an EX-982 defect; faktury are tax-retained, removing one is no path of this feature.
+- [x] Observation: „Zgodne” counts documents out of range while „w zakresie” counts only in-range rows. **Dismissed** — by design (`compare-telmak.ts`): every package document is matched against the app regardless of range; the range only scopes which app expenses must appear in the package, and the counter labels say so.
+- [x] Observation: real file of #4678 fails the filename-vs-number cross-check (parser works as designed). **Dismissed** — rejecting rather than guessing is the intended behaviour.
 
 ## 2026-10-06 — worker-form-headers
 
