@@ -10,7 +10,7 @@ import type {
 } from '@/types/investment-financials'
 import { buildSqlConditions, isNoResultsSentinel } from '@/lib/db/where-to-sql'
 import { getDb } from '@/lib/db/get-db'
-import { DEPOSIT_TYPES } from '@/lib/constants/transfers'
+import { DEPOSIT_TYPES, type TransferTypeT } from '@/lib/constants/transfers'
 import { SETTLEMENT_MODE_DEFAULT, type SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 
 // Parameterized `(type, …)` IN-list derived from the single DEPOSIT_TYPES source, so the
@@ -284,9 +284,8 @@ export const sumFilteredByType = async (
   }))
 }
 
-export type TransferFacetsT = { investmentIds: number[]; types: string[] }
+export type TransferFacetsT = { investmentIds: number[]; types: TransferTypeT[] }
 
-/** Which investments and types a filtered set actually holds — a filter offering more matches nothing. */
 export const listTransferFacets = async (
   payload: Payload,
   where: Where,
@@ -302,6 +301,7 @@ export const listTransferFacets = async (
         COALESCE(ARRAY_AGG(DISTINCT type::text), '{}') AS types
       FROM transactions
       WHERE cancelled IS NOT TRUE
+        AND type <> 'CANCELLATION'
         ${buildSqlConditions(where)}
     `),
   )
@@ -309,6 +309,6 @@ export const listTransferFacets = async (
   const row = result.rows[0]
   return {
     investmentIds: (row.investment_ids as unknown[]).map(Number),
-    types: row.types as string[],
+    types: row.types as TransferTypeT[],
   }
 }

@@ -4,6 +4,7 @@ import {
   sumAllRegisterBalances,
   sumAllInvestmentFinancials,
   sumFilteredByType,
+  listTransferFacets,
 } from '@/lib/db/sum-transfers'
 import { deriveFinancials, deriveCategoryBreakdowns } from '@/lib/db/investment-financials'
 import {
@@ -216,6 +217,38 @@ describe('sumFilteredByType — Where handling', () => {
     // The base SELECT now contains an unrelated `AND` inside the settled re-bucket CASE.
     const conditionsSlot = queryStr.split('cancelled IS NOT TRUE')[1].split('GROUP BY')[0]
     expect(conditionsSlot.trim()).toBe('')
+  })
+})
+
+// ── listTransferFacets — the worker page's filter options ───────────────
+// Risk #22: these options are read through the worker's scope, so the scope must reach the SQL.
+
+describe('listTransferFacets', () => {
+  it('skips SQL and offers nothing on the NO_RESULTS sentinel', async () => {
+    const result = await listTransferFacets(fakePayload, { id: { equals: -1 } })
+    expect(result).toEqual({ investmentIds: [], types: [] })
+    expect(mockExecute).not.toHaveBeenCalled()
+  })
+
+  it("reads only the worker's scope", async () => {
+    mockExecute.mockResolvedValue({ rows: [{ investment_ids: [], types: [] }] })
+    await listTransferFacets(fakePayload, {
+      and: [{ or: [{ worker: { equals: 25 } }, { sourceRegister: { in: [37] } }] }],
+    })
+    expect(lastSql()).toContain('worker_id = 25')
+    expect(lastSql()).toContain('source_register_id IN (37)')
+  })
+
+  it('never offers „Anulowanie” — the list hides those rows', async () => {
+    mockExecute.mockResolvedValue({ rows: [{ investment_ids: [], types: [] }] })
+    await listTransferFacets(fakePayload, {})
+    expect(lastSql()).toMatch(/type\s*<>\s*'CANCELLATION'/)
+  })
+
+  it('maps the aggregated arrays', async () => {
+    mockExecute.mockResolvedValue({ rows: [{ investment_ids: ['3', '7'], types: ['PAYOUT'] }] })
+    const result = await listTransferFacets(fakePayload, {})
+    expect(result).toEqual({ investmentIds: [3, 7], types: ['PAYOUT'] })
   })
 })
 
