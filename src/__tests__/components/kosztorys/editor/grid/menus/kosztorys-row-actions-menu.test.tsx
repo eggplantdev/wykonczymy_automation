@@ -2,8 +2,13 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { ReorderHost } from '@/components/kosztorys/editor/actions/reorder-host'
 import { KosztorysRowActionsMenu } from '@/components/kosztorys/editor/grid/menus/kosztorys-row-actions-menu'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
+
+vi.mock('@/components/kosztorys/editor/dialogs/reorder/reorder-dialog', () => ({
+  ReorderDialog: () => <div role="dialog">kolejność</div>,
+}))
 
 const ROW = { id: 41, sectionId: 3 } as KosztorysV2RowT
 const ITEM = {
@@ -17,7 +22,15 @@ const ITEM = {
 async function openRowMenu(sortActive: boolean) {
   const user = userEvent.setup()
   render(
-    <KosztorysRowActionsMenu row={ROW} sortActive={sortActive} canMoveUp canMoveDown item={ITEM} />,
+    <ReorderHost>
+      <KosztorysRowActionsMenu
+        row={ROW}
+        sortActive={sortActive}
+        canMoveUp
+        canMoveDown
+        item={ITEM}
+      />
+    </ReorderHost>,
   )
   await user.click(screen.getByRole('button', { name: 'Akcje wiersza' }))
   return user
@@ -46,5 +59,15 @@ describe('menu wiersza — komendy pozycyjne przy aktywnym sortowaniu', () => {
     }
     await user.click(screen.getByRole('menuitem', { name: 'Przesuń w górę' }))
     expect(ITEM.onMoveUp).toHaveBeenCalled()
+  })
+})
+
+describe('menu wiersza — „Ustaw kolejność…”', () => {
+  it('otwiera dialog kolejności także przy aktywnym sortowaniu', async () => {
+    const user = await openRowMenu(true)
+
+    await user.click(screen.getByRole('menuitem', { name: 'Ustaw kolejność…' }))
+
+    expect(screen.getByRole('dialog')).toHaveTextContent('kolejność')
   })
 })

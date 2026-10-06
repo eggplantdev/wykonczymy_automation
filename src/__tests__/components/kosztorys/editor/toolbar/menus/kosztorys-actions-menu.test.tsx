@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { ReorderHost } from '@/components/kosztorys/editor/actions/reorder-host'
 import { KosztorysActionsProvider } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { KosztorysActionsMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-actions-menu'
 import { editorNoun } from '@/lib/kosztorys/editor-noun'
@@ -47,9 +48,11 @@ function renderToolbar(isTemplate: boolean) {
   editorState.isTemplate = isTemplate
   render(
     <CurrentUserProvider user={{ id: 1, email: 'm@t.com', name: 'Manager', role: 'MANAGER' }}>
-      <KosztorysActionsProvider>
-        <KosztorysActionsMenu />
-      </KosztorysActionsProvider>
+      <ReorderHost>
+        <KosztorysActionsProvider>
+          <KosztorysActionsMenu />
+        </KosztorysActionsProvider>
+      </ReorderHost>
     </CurrentUserProvider>,
   )
 }

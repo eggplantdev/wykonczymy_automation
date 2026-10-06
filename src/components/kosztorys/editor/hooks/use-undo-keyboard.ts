@@ -2,7 +2,18 @@
 
 import { useEffect } from 'react'
 
-// Global Cmd/Ctrl+Z → undo, Cmd/Ctrl+Shift+Z (and Ctrl+Y) → redo for the kosztorys editor.
+type UndoKeyEventT = Pick<KeyboardEvent, 'metaKey' | 'ctrlKey' | 'shiftKey' | 'key'>
+
+// Cmd/Ctrl+Z → undo, Cmd/Ctrl+Shift+Z (and Ctrl+Y) → redo.
+export function undoRedoIntent(event: UndoKeyEventT): 'undo' | 'redo' | undefined {
+  if (!event.metaKey && !event.ctrlKey) return undefined
+  const key = event.key.toLowerCase()
+  if (key === 'z') return event.shiftKey ? 'redo' : 'undo'
+  if (key === 'y') return 'redo'
+  return undefined
+}
+
+// Global undo/redo shortcut for the kosztorys editor.
 //
 // The shortcut drives OUR stack only when no editable field is focused. While a grid cell / rename /
 // snapshot-label input is in active text-edit, the key falls through to react-datasheet-grid's
@@ -14,11 +25,13 @@ import { useEffect } from 'react'
 export function useUndoKeyboard(undo: () => void, redo: () => void) {
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      if (!event.metaKey && !event.ctrlKey) return
-      const key = event.key.toLowerCase()
-      const isUndo = key === 'z' && !event.shiftKey
-      const isRedo = (key === 'z' && event.shiftKey) || key === 'y'
-      if (!isUndo && !isRedo) return
+      const intent = undoRedoIntent(event)
+      if (!intent) return
+      // An open dialog owns the keyboard even once focus has fallen to <body> (a focused button that
+      // disabled itself, a backdrop click): undoing the grid behind it would write to the server
+      // under a modal the owner is still working in. Dialog content only — a popover also wears
+      // role="dialog", and an open one must not cost the grid its shortcut.
+      if (document.querySelector('[data-slot="dialog-content"][data-state="open"]')) return
       const active = document.activeElement as HTMLElement | null
       if (
         active &&
@@ -27,7 +40,7 @@ export function useUndoKeyboard(undo: () => void, redo: () => void) {
         return // an editable field is focused → native undo wins
       }
       event.preventDefault()
-      if (isUndo) undo()
+      if (intent === 'undo') undo()
       else redo()
     }
     window.addEventListener('keydown', onKeyDown)

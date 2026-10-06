@@ -4186,3 +4186,13 @@ Szablon z kilkuset pracami w kilku sekcjach (np. szablon 165).
       kolejność”: siatka pokazuje nowy układ, a wpisana wartość została.
 - [ ] Po zapisie „Wczytaj” ma jedną nową automatyczną wersję; jej przywrócenie wraca do starej
       kolejności. Każda sekcja na liście ma swój kolor jak w siatce.
+- [ ] W „Ustaw kolejność…” przeciągnij dwa razy, potem „Cofnij” (albo Ctrl/Cmd+Z) dwa razy — lista
+      wraca do stanu z otwarcia, a siatka za dialogiem się nie zmienia; „Ponów” przywraca ruch.
+- [ ] Kolumna „Akcje” → „…” przy pracy i „…” przy sekcji: oba mają „Ustaw kolejność…” i otwierają
+      ten sam dialog — także przy włączonym sortowaniu, gdy „Przesuń w górę/w dół” są wyszarzone.
+- [ ] W „Ustaw kolejność…” zrób ruch, kliknij „Cofnij” aż się wyszarzy (albo kliknij obok dialogu),
+      potem Ctrl/Cmd+Z — siatka za dialogiem się nie zmienia.
+- [ ] Przeciągnij sekcję nad długą sekcją: linia przeskakuje dopiero w połowie całej sekcji, nie przy
+      każdym wierszu.
+- [ ] Otwórz „Ustaw kolejność…” w dwóch kartach; w jednej dodaj pracę, w drugiej zapisz kolejność —
+      komunikat „Układ się zmienił…”, dialog się zamyka, a siatka wczytuje się na nowo z dodaną pracą.

@@ -24,7 +24,6 @@ import { KosztorysInvestorMenu } from '@/components/kosztorys/editor/toolbar/men
 import { KosztorysWorkersMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-workers-menu'
 import { SaveVersionDialog } from '@/components/kosztorys/editor/dialogs/save-version-dialog'
 import { ClearKosztorysDialog } from '@/components/kosztorys/editor/dialogs/clear-kosztorys-dialog'
-import { ReorderDialog } from '@/components/kosztorys/editor/dialogs/reorder/reorder-dialog'
 import { ReorderMenuItem } from '@/components/kosztorys/editor/actions/reorder-action'
 import { SavePresetDialog } from '@/components/kosztorys/editor/dialogs/preset/save-preset-dialog'
 import { ReloadFromPresetDialog } from '@/components/kosztorys/editor/dialogs/preset/reload-from-preset-dialog'
@@ -157,7 +156,6 @@ export function KosztorysActionsMenu({
       <CatalogueCompareDialog />
       <ReloadFromPresetDialog />
       <ClearKosztorysDialog />
-      <ReorderDialog />
       <KosztorysClientViewDialog />
       <KosztorysShareDialog />
       <KosztorysWorkerShareDialog />

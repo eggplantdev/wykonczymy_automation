@@ -31,3 +31,9 @@ Luki spike'a do domknięcia:
 - brak testów (`moveItems` / `moveSection` — czysta logika, node; `writeKosztorysLayout` — DB spec).
 
 E2E przeciągania odroczone do backlogu: EX-1000 (`e2e-backlog`).
+
+Po wdrożeniu (właściciel): brak cofania w trakcie układania był „fatalny” — dialog dostał własne
+Cofnij/Ponów (też Ctrl/Cmd+Z) dla ruchów przed zapisem; skrót nie dochodzi do Cofnij siatki. Usunięty
+przycisk „Odznacz” — dubluje checkbox sekcji. „Ustaw kolejność…” jest też w „…” pracy i sekcji
+w kolumnie „Akcje” — dialog wyniesiony z „Opcji” do `ReorderHost` nad całym edytorem, bo siatka leży
+poza `KosztorysActionsProvider`.

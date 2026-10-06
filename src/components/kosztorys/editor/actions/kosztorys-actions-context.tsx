@@ -37,7 +37,6 @@ import type { WorkerReportsSeedT } from '@/lib/kosztorys/types'
 type KosztorysActionsT = {
   version: DialogToggleT
   clear: DialogToggleT
-  reorder: DialogToggleT
   reloadPreset: DialogToggleT
   savePreset: SavePresetActionT
   sheetCompare: SheetCompareActionT
@@ -66,7 +65,6 @@ export function KosztorysActionsProvider({
 }) {
   const version = useDialogToggle()
   const clear = useDialogToggle()
-  const reorder = useDialogToggle()
   const reloadPreset = useDialogToggle()
   const savePreset = useSavePresetAction()
   const sheetCompare = useSheetCompareAction()
@@ -80,7 +78,6 @@ export function KosztorysActionsProvider({
   const value: KosztorysActionsT = {
     version,
     clear,
-    reorder,
     reloadPreset,
     savePreset,
     sheetCompare,

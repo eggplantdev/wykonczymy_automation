@@ -3,18 +3,22 @@
 import { ArrowDownUp } from 'lucide-react'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { MenuItemBody } from '@/components/kosztorys/editor/actions/menu-item-body'
-import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
+import { useOpenReorder } from '@/components/kosztorys/editor/actions/reorder-host'
 
-export function ReorderMenuItem() {
-  const { reorder } = useKosztorysActions()
+export function ReorderMenuItem({ compact = false }: { compact?: boolean }) {
+  const openReorder = useOpenReorder()
 
   return (
-    <DropdownMenuItem onSelect={() => reorder.setOpen(true)}>
+    <DropdownMenuItem onSelect={openReorder}>
       <ArrowDownUp />
-      <MenuItemBody
-        label="Ustaw kolejność…"
-        description="Przeciągaj prace i sekcje na liście — wiele naraz, także między sekcjami."
-      />
+      {compact ? (
+        'Ustaw kolejność…'
+      ) : (
+        <MenuItemBody
+          label="Ustaw kolejność…"
+          description="Przeciągaj prace i sekcje na liście — wiele naraz, także między sekcjami."
+        />
+      )}
     </DropdownMenuItem>
   )
 }

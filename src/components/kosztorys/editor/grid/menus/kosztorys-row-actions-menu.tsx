@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { CellMenuTrigger } from '@/components/ui/datasheet-grid/cell-menu-trigger'
 import { REMOVAL_CONFIRM_DESCRIPTION } from '@/components/kosztorys/editor/grid/menus/removal-confirm'
+import { ReorderMenuItem } from '@/components/kosztorys/editor/actions/reorder-action'
 import { RowHeightMenuItems } from '@/components/kosztorys/editor/grid/menus/row-height-menu-items'
 import { SaveItemToCatalogueDialog } from '@/components/kosztorys/editor/dialogs/catalogue/save-item-to-catalogue-dialog'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
@@ -72,6 +73,8 @@ export function KosztorysRowActionsMenu({ row, sortActive, canMoveUp, canMoveDow
             <ArrowDown />
             Przesuń w dół
           </DropdownMenuItem>
+          {/* Not gated by the sort: the dialog lays out the stored order, not the sorted view. */}
+          <ReorderMenuItem compact />
           {item.savableItemId !== undefined && (
             <DropdownMenuItem onSelect={() => setCatalogueSaveOpen(true)}>
               <BookmarkPlus />
