@@ -13,11 +13,6 @@ export type TransferTableConfigT = {
   query: TransferQueryT
   /** Heading rendered under the filters, above the table. */
   title?: string
-  /**
-   * Turn `title` into one collapsible heading over the filters and the table together — for a page
-   * of several sections, where a bare „Filtry” above the heading reads as a section of its own.
-   */
-  collapsible?: boolean
   baseUrl: string
   excludeColumns?: string[]
   filters?: FilterConfigT

@@ -34,32 +34,30 @@ export function WorkerInvestmentsSection({
       storageKey="worker:investments"
       withSeparator={false}
     >
-      <div className="pt-2">
-        {investments.length === 0 ? (
-          <Description>{t(canReport ? 'noInvestmentToReport' : 'noInvestments')}</Description>
-        ) : (
-          <SummaryTable
-            cols={canReport ? `${SUMMARY_NAME_COL} auto` : SUMMARY_NAME_COL}
-            className="w-fit text-sm"
-          >
-            <SummaryHeaderCell variant="label">{t('investment')}</SummaryHeaderCell>
-            {canReport && <SummaryHeaderCell variant="label">{t('reports')}</SummaryHeaderCell>}
-            {investments.map((investment) => (
-              <Fragment key={investment.investmentId}>
-                <SummaryLabelCell className="flex items-center">{investment.name}</SummaryLabelCell>
-                {canReport && (
-                  <ReportLinkCell
-                    investment={investment}
-                    workerName={workerName}
-                    reportWork={t('reportWork')}
-                    noLink={t('noLink')}
-                  />
-                )}
-              </Fragment>
-            ))}
-          </SummaryTable>
-        )}
-      </div>
+      {investments.length === 0 ? (
+        <Description>{t(canReport ? 'noInvestmentToReport' : 'noInvestments')}</Description>
+      ) : (
+        <SummaryTable
+          cols={canReport ? `${SUMMARY_NAME_COL} auto` : SUMMARY_NAME_COL}
+          className="w-fit text-sm"
+        >
+          <SummaryHeaderCell variant="label">{t('investment')}</SummaryHeaderCell>
+          {canReport && <SummaryHeaderCell variant="label">{t('reports')}</SummaryHeaderCell>}
+          {investments.map((investment) => (
+            <Fragment key={investment.investmentId}>
+              <SummaryLabelCell className="flex items-center">{investment.name}</SummaryLabelCell>
+              {canReport && (
+                <ReportLinkCell
+                  investment={investment}
+                  workerName={workerName}
+                  reportWork={t('reportWork')}
+                  noLink={t('noLink')}
+                />
+              )}
+            </Fragment>
+          ))}
+        </SummaryTable>
+      )}
     </CollapsibleSection>
   )
 }

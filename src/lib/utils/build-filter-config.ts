@@ -1,5 +1,6 @@
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 import type { FilterConfigT } from '@/types/filters'
+import { TRANSFER_TYPES } from '@/lib/constants/transfers'
 
 type FilterKeyT =
   | 'cashRegisters'
@@ -25,11 +26,11 @@ export function buildFilterConfig(
     workers: has('workers') ? toOptions(refData.workers) : undefined,
     otherCategories: has('otherCategories') ? toOptions(refData.otherCategories) : undefined,
     expenseCategories: has('expenseCategories') ? toOptions(refData.expenseCategories) : undefined,
-    showTypeFilter: has('type'),
+    transferTypes: has('type') ? TRANSFER_TYPES : undefined,
     // Hidden for now - we only use cash for now
     showPaymentMethodFilter: false,
   }
 }
 
-const toOptions = (items: { id: number; name: string }[]) =>
+export const toOptions = (items: { id: number; name: string }[]) =>
   items.map(({ id, name }) => ({ id, name }))

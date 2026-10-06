@@ -1,22 +1,10 @@
 import type { ReactNode } from 'react'
-import { Description } from '@/components/ui/description'
 
-type SectionHeaderPropsT = {
-  title: ReactNode
-  hint?: ReactNode
-  action?: ReactNode
-}
+// Kept here, not in collapsible-section: that module is 'use client', and a server component importing
+// a plain string from it receives a client reference instead of the string.
+export const SECTION_TITLE_CLASS = 'text-lg font-semibold'
 
-// py-2 on the text block, not a min-height on the row: it matches a large CollapsibleSection trigger
-// and keeps the gap under the LAST line the same whether that line is the title or a hint.
-export function SectionHeader({ title, hint, action }: SectionHeaderPropsT) {
-  return (
-    <div className="mb-2 flex items-center justify-between gap-2">
-      <div className="py-2">
-        <h2 className="text-foreground text-lg font-semibold">{title}</h2>
-        {hint && <Description size="xs">{hint}</Description>}
-      </div>
-      {action}
-    </div>
-  )
+// py-2 matches a large CollapsibleSection's trigger, so a static heading lines up with its neighbours.
+export function SectionHeader({ title }: { title: ReactNode }) {
+  return <h2 className={`text-foreground mb-2 py-2 ${SECTION_TITLE_CLASS}`}>{title}</h2>
 }

@@ -23,14 +23,13 @@ import { ClearButton } from '@/components/filters/clear-button'
 import { DateFilters } from '@/components/filters/date-filters'
 import { StatButton } from '@/components/ui/stat-button'
 import { formatPLN } from '@/lib/utils/format-currency'
-import { TRANSFER_TYPES, PAYMENT_METHODS } from '@/lib/constants/transfers'
+import { PAYMENT_METHODS } from '@/lib/constants/transfers'
 import { useTranslation } from '@/hooks/use-translation'
 import { useUrlFilterParams } from '@/hooks/use-url-filter-params'
 import { useToggleSearchParam } from '@/hooks/use-toggle-search-param'
 import { cn } from '@/lib/utils/cn'
 import { Loader } from '@/components/ui/loader/loader'
-import type { ReferenceItemT } from '@/types/reference-data'
-import type { TransferTypeT } from '@/lib/constants/transfers'
+import type { FilterConfigT } from '@/types/filters'
 
 const DEBOUNCE_MS = 600
 
@@ -53,19 +52,7 @@ const ENTITY_FILTER_KEYS = [
   'workerDrafts',
 ] as const
 
-type TransferFiltersPropsT = {
-  cashRegisters?: ReferenceItemT[]
-  investments?: ReferenceItemT[]
-  users?: ReferenceItemT[]
-  workers?: ReferenceItemT[]
-  otherCategories?: ReferenceItemT[]
-  expenseCategories?: ReferenceItemT[]
-  showTypeFilter?: boolean
-  transferTypes?: readonly TransferTypeT[]
-  showPaymentMethodFilter?: boolean
-  showCancelledFilter?: boolean
-  showSearchFilters?: boolean
-  showWorkerDraftsFilter?: boolean
+type TransferFiltersPropsT = FilterConfigT & {
   baseUrl: string
   className?: string
   totalFilteredAmount?: number
@@ -80,8 +67,7 @@ export function TransferFilters({
   workers,
   otherCategories,
   expenseCategories,
-  showTypeFilter = true,
-  transferTypes = TRANSFER_TYPES,
+  transferTypes,
   showPaymentMethodFilter = false,
   showCancelledFilter = true,
   showSearchFilters = true,
@@ -154,7 +140,7 @@ export function TransferFilters({
   return (
     <div className={cn('flex flex-col gap-3', className)}>
       <Loader loading={isPending} portal />
-      {(showTypeFilter ||
+      {((transferTypes && transferTypes.length > 0) ||
         (cashRegisters && cashRegisters.length > 0) ||
         (investments && investments.length > 0) ||
         (users && users.length > 0) ||
@@ -164,7 +150,7 @@ export function TransferFilters({
         (expenseCategories && expenseCategories.length > 0) ||
         showWorkerDraftsFilter) && (
         <ControlGrid>
-          {showTypeFilter && (
+          {transferTypes && transferTypes.length > 0 && (
             <FilterMultiSelect
               values={currentTypes}
               onValuesChange={(types) => updateParam('type', types.join(','))}

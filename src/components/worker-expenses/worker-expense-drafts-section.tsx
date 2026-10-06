@@ -64,62 +64,60 @@ export function WorkerExpenseDraftsSection({
         )
       }
     >
-      <div className="pt-2">
-        {canSend && sendableRegisters.length === 0 && <Description>{t('noRegister')}</Description>}
-        {canSend && investments.length === 0 && <Description>{t('noInvestment')}</Description>}
-        {drafts.length === 0 ? (
-          <Description>{t('empty')}</Description>
-        ) : (
-          <SummaryTable cols={showActions ? `${COLS} auto` : COLS} className="text-sm">
-            <SummaryHeaderCell variant="label">{t('investment')}</SummaryHeaderCell>
-            <SummaryHeaderCell variant="label">{t('sentAt')}</SummaryHeaderCell>
-            <SummaryHeaderCell variant="label">{t('attachments')}</SummaryHeaderCell>
-            <SummaryHeaderCell variant="label">{t('note')}</SummaryHeaderCell>
-            <SummaryHeaderCell variant="label">{t('status')}</SummaryHeaderCell>
-            {showActions && <SummaryHeaderCell variant="label">{null}</SummaryHeaderCell>}
-            {drafts.map((draft) => (
-              <Fragment key={draft.id}>
-                <SummaryLabelCell className="flex items-center">
-                  {draft.investmentName}
+      {canSend && sendableRegisters.length === 0 && <Description>{t('noRegister')}</Description>}
+      {canSend && investments.length === 0 && <Description>{t('noInvestment')}</Description>}
+      {drafts.length === 0 ? (
+        <Description>{t('empty')}</Description>
+      ) : (
+        <SummaryTable cols={showActions ? `${COLS} auto` : COLS} className="text-sm">
+          <SummaryHeaderCell variant="label">{t('investment')}</SummaryHeaderCell>
+          <SummaryHeaderCell variant="label">{t('sentAt')}</SummaryHeaderCell>
+          <SummaryHeaderCell variant="label">{t('attachments')}</SummaryHeaderCell>
+          <SummaryHeaderCell variant="label">{t('note')}</SummaryHeaderCell>
+          <SummaryHeaderCell variant="label">{t('status')}</SummaryHeaderCell>
+          {showActions && <SummaryHeaderCell variant="label">{null}</SummaryHeaderCell>}
+          {drafts.map((draft) => (
+            <Fragment key={draft.id}>
+              <SummaryLabelCell className="flex items-center">
+                {draft.investmentName}
+              </SummaryLabelCell>
+              <SummaryLabelCell className="flex items-center">
+                {formatPLDateTime(draft.sentAt)}
+              </SummaryLabelCell>
+              <SummaryLabelCell className="flex items-center justify-center">
+                <ExpenseDraftPagesCell
+                  draftId={draft.id}
+                  media={draft.media}
+                  isEditable={canSend && draft.status === 'pending'}
+                />
+              </SummaryLabelCell>
+              <SummaryLabelCell className="flex items-center break-words">
+                {draft.note ?? '—'}
+              </SummaryLabelCell>
+              <SummaryLabelCell className="flex items-center">
+                <DraftStatusBadge status={draft.status} />
+              </SummaryLabelCell>
+              {showActions && (
+                <SummaryLabelCell className="flex items-center gap-1">
+                  {draft.status === 'pending' && (
+                    <>
+                      <ExpenseDraftDialog
+                        investments={investments}
+                        registers={sendableRegisters}
+                        draft={draft}
+                      />
+                      <DeleteExpenseDraftButton
+                        draftId={draft.id}
+                        investmentName={draft.investmentName}
+                      />
+                    </>
+                  )}
                 </SummaryLabelCell>
-                <SummaryLabelCell className="flex items-center">
-                  {formatPLDateTime(draft.sentAt)}
-                </SummaryLabelCell>
-                <SummaryLabelCell className="flex items-center justify-center">
-                  <ExpenseDraftPagesCell
-                    draftId={draft.id}
-                    media={draft.media}
-                    isEditable={canSend && draft.status === 'pending'}
-                  />
-                </SummaryLabelCell>
-                <SummaryLabelCell className="flex items-center break-words">
-                  {draft.note ?? '—'}
-                </SummaryLabelCell>
-                <SummaryLabelCell className="flex items-center">
-                  <DraftStatusBadge status={draft.status} />
-                </SummaryLabelCell>
-                {showActions && (
-                  <SummaryLabelCell className="flex items-center gap-1">
-                    {draft.status === 'pending' && (
-                      <>
-                        <ExpenseDraftDialog
-                          investments={investments}
-                          registers={sendableRegisters}
-                          draft={draft}
-                        />
-                        <DeleteExpenseDraftButton
-                          draftId={draft.id}
-                          investmentName={draft.investmentName}
-                        />
-                      </>
-                    )}
-                  </SummaryLabelCell>
-                )}
-              </Fragment>
-            ))}
-          </SummaryTable>
-        )}
-      </div>
+              )}
+            </Fragment>
+          ))}
+        </SummaryTable>
+      )}
     </CollapsibleSection>
   )
 }

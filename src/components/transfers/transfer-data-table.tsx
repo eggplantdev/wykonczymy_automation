@@ -42,7 +42,6 @@ export function TransferDataTable({
   const translator = useTranslation('transfers')
   const {
     title,
-    collapsible,
     baseUrl,
     excludeColumns = [],
     filters,
@@ -66,8 +65,8 @@ export function TransferDataTable({
     translator,
   })
 
-  const body = (
-    <>
+  return (
+    <div>
       {filters && (
         <CollapsibleSection
           className="w-fit"
@@ -99,8 +98,8 @@ export function TransferDataTable({
         }}
         toolbar={({ table, columnVisibility: cv, ...order }) => (
           <DataTableToolbar
-            className={collapsible ? 'mt-4' : 'mt-8'}
-            title={collapsible ? undefined : title}
+            className="mt-8"
+            title={title}
             columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
             actions={
               <>
@@ -118,19 +117,6 @@ export function TransferDataTable({
         )}
       />
       <PaginationFooter paginationMeta={paginationMeta} baseUrl={baseUrl} />
-    </>
-  )
-
-  return collapsible && title ? (
-    <CollapsibleSection
-      title={title}
-      storageKey="transfers:section"
-      defaultOpen={false}
-      withSeparator={false}
-    >
-      {body}
-    </CollapsibleSection>
-  ) : (
-    <div>{body}</div>
+    </div>
   )
 }

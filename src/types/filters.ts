@@ -7,7 +7,6 @@ export type FilterConfigT = {
   workers?: { id: number; name: string }[]
   otherCategories?: { id: number; name: string }[]
   expenseCategories?: { id: number; name: string }[]
-  showTypeFilter?: boolean
   transferTypes?: readonly TransferTypeT[]
   showPaymentMethodFilter?: boolean
   showCancelledFilter?: boolean

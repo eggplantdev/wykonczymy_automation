@@ -44,32 +44,30 @@ export function OwnedRegistersSection({
       storageKey="worker:registers"
       withSeparator={false}
     >
-      <div className="pt-2">
-        {rows.length === 0 ? (
-          <Description>{t('noRegisters')}</Description>
-        ) : (
-          <SummaryTable cols={COLS} className="w-fit text-sm">
-            <SummaryHeaderCell variant="label">{t('register')}</SummaryHeaderCell>
-            <SummaryHeaderCell>{t('balance')}</SummaryHeaderCell>
-            {rows.map((row) => (
-              <Fragment key={row.id}>
-                <SummaryLabelCell note={row.active ? null : { text: t('registerInactive') }}>
-                  <OptionalLink href={linkable ? `/kasa/${row.id}` : undefined}>
-                    {row.name}
-                  </OptionalLink>
-                </SummaryLabelCell>
-                <SummaryValueCell tone={row.balance < 0 ? 'error' : 'default'}>
-                  {formatPLN(row.balance)}
-                </SummaryValueCell>
-              </Fragment>
-            ))}
-            <SummaryLabelCell weight="bold">{t('total')}</SummaryLabelCell>
-            <SummaryValueCell weight="bold" tone={total < 0 ? 'error' : 'default'}>
-              {formatPLN(total)}
-            </SummaryValueCell>
-          </SummaryTable>
-        )}
-      </div>
+      {rows.length === 0 ? (
+        <Description>{t('noRegisters')}</Description>
+      ) : (
+        <SummaryTable cols={COLS} className="w-fit text-sm">
+          <SummaryHeaderCell variant="label">{t('register')}</SummaryHeaderCell>
+          <SummaryHeaderCell>{t('balance')}</SummaryHeaderCell>
+          {rows.map((row) => (
+            <Fragment key={row.id}>
+              <SummaryLabelCell note={row.active ? null : { text: t('registerInactive') }}>
+                <OptionalLink href={linkable ? `/kasa/${row.id}` : undefined}>
+                  {row.name}
+                </OptionalLink>
+              </SummaryLabelCell>
+              <SummaryValueCell tone={row.balance < 0 ? 'error' : 'default'}>
+                {formatPLN(row.balance)}
+              </SummaryValueCell>
+            </Fragment>
+          ))}
+          <SummaryLabelCell weight="bold">{t('total')}</SummaryLabelCell>
+          <SummaryValueCell weight="bold" tone={total < 0 ? 'error' : 'default'}>
+            {formatPLN(total)}
+          </SummaryValueCell>
+        </SummaryTable>
+      )}
     </CollapsibleSection>
   )
 }

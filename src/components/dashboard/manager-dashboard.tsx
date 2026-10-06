@@ -18,6 +18,7 @@ import { PendingExpenseDrafts } from '@/components/worker-expenses/pending-expen
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { PAGE_TITLES, SECTION_IDS } from '@/lib/constants/sections'
+import { TRANSFER_TYPES } from '@/lib/constants/transfers'
 import { perfStart } from '@/lib/perf'
 
 type ManagerDashboardPropsT = {
@@ -92,6 +93,7 @@ export async function ManagerDashboard({ searchParams, user }: ManagerDashboardP
             users: managementUsers,
             otherCategories,
             expenseCategories,
+            transferTypes: TRANSFER_TYPES,
             showPaymentMethodFilter: false,
             showWorkerDraftsFilter: true,
           },

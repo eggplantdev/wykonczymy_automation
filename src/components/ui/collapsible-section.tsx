@@ -6,6 +6,7 @@ import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { Separator } from '@/components/ui/separator'
 import { Description } from '@/components/ui/description'
+import { SECTION_TITLE_CLASS } from '@/components/ui/section-header'
 import { usePersistedFlag } from '@/hooks/use-persisted-value'
 
 type CollapsibleSectionSizeT = 'lg' | 'sm'
@@ -22,14 +23,14 @@ type CollapsibleSectionPropsT = {
   size?: CollapsibleSectionSizeT
   withSeparator?: boolean
   hint?: React.ReactNode
-  // Beside the trigger, not inside it: a button nested in the trigger button is invalid markup.
+  // Rendered beside the trigger: a button nested in the trigger button is invalid markup.
   action?: React.ReactNode
   className?: string
   children: React.ReactNode
 }
 
 const SIZE: Record<CollapsibleSectionSizeT, { title: string; chevron: string }> = {
-  lg: { title: 'text-lg font-semibold', chevron: 'size-5' },
+  lg: { title: SECTION_TITLE_CLASS, chevron: 'size-5' },
   sm: { title: 'text-sm font-medium', chevron: 'size-4' },
 }
 
@@ -77,7 +78,6 @@ export function CollapsibleSection({
         </Collapsible.Trigger>
         {action}
       </div>
-      {/* -mt-2 tucks the hint under the title, past the trigger's bottom padding. */}
       {hint && (
         <Description size="xs" className="-mt-2 pb-2">
           {hint}
@@ -85,7 +85,8 @@ export function CollapsibleSection({
       )}
       {isOpen && withSeparator && <Separator orientation="horizontal" />}
       <Collapsible.Content className="data-[state=closed]:animate-collapse-up data-[state=open]:animate-collapse-down overflow-hidden">
-        {children}
+        {/* Padding on Content itself would survive the collapse animation's height: 0. */}
+        {withSeparator ? children : <div className="pt-2">{children}</div>}
       </Collapsible.Content>
     </Collapsible.Root>
   )
