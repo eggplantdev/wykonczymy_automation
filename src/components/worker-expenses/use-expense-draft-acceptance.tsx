@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { FormDialog } from '@/components/ui/form-dialog'
 import { buildDraftPrefill } from '@/components/worker-expenses/draft-prefill'
+import { OpenExpenseDraftButton } from '@/components/worker-expenses/open-expense-draft-button'
 import { ExpenseForm, type ExpenseFormPrefillT } from '@/components/forms/expense-form/expense-form'
 import { resolveExpenseCategoryId } from '@/components/forms/expense-form/resolve-expense-category-id'
 import {
@@ -52,11 +53,11 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
       DEFAULT_EXPENSE_CATEGORY_NAME,
       referenceData.expenseCategories,
     )
-    const { lineItems, files: rowFiles, receiptMediaIds } = buildDraftPrefill(
-      draft,
-      files,
-      expenseCategory,
-    )
+    const {
+      lineItems,
+      files: rowFiles,
+      receiptMediaIds,
+    } = buildDraftPrefill(draft, files, expenseCategory)
     return {
       expenseDraftId: draft.id,
       receiptMediaIds,
@@ -181,5 +182,13 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
     </>
   )
 
-  return { open, loadingId, dialogs }
+  const openButton = (draft: ExpenseDraftRowT) => (
+    <OpenExpenseDraftButton
+      isLoading={loadingId === draft.id}
+      disabled={loadingId !== undefined}
+      onClick={() => open(draft)}
+    />
+  )
+
+  return { openButton, dialogs }
 }

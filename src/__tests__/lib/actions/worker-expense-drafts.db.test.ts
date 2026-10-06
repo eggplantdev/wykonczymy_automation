@@ -93,7 +93,7 @@ describe.skipIf(!ENV_READY)('expense draft accept / reject (DB)', () => {
         })),
       },
       undefined,
-      { expenseDraftId: draftId },
+      { expenseDraftId: draftId, receiptMediaIds: [], skippedReceipts: [] },
     )
 
   beforeAll(async () => {
@@ -136,7 +136,6 @@ describe.skipIf(!ENV_READY)('expense draft accept / reject (DB)', () => {
     await purgeFixtureUsers(db)
   })
 
-  // One zgłoszenie booked as several transakcje links every one of them, not just the first.
   it('accepting books the expenses and marks the draft accepted with all of them', async () => {
     const draftId = await createDraft('accept')
     const description = `EX-971 accept ${draftId}`

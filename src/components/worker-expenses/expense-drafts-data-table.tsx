@@ -1,11 +1,9 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import { Loader2 } from 'lucide-react'
 import { QueueFilters } from '@/components/filters/queue-filters'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { useExpenseDraftColumns } from '@/components/tables/expense-drafts'
-import { Button } from '@/components/ui/button'
 import { PaginationFooter } from '@/components/ui/pagination/pagination-footer'
 import { RestoreExpenseDraftButton } from '@/components/worker-expenses/restore-expense-draft-button'
 import { useExpenseDraftAcceptance } from '@/components/worker-expenses/use-expense-draft-acceptance'
@@ -42,19 +40,14 @@ export function ExpenseDraftsDataTable({
   const searchParams = useSearchParams()
   const { updateParam } = useUrlFilterParams(EXPENSE_DRAFTS_BASE_URL)
   const { t } = useTranslation('expenseDrafts')
-  const { open, loadingId, dialogs } = useExpenseDraftAcceptance(referenceData)
+  const { openButton, dialogs } = useExpenseDraftAcceptance(referenceData)
   const columns = useExpenseDraftColumns({
     isManagerView: true,
     actions: (draft) => {
       if (draft.isSkippedReceipt) return null
       if (draft.status === 'rejected') return <RestoreExpenseDraftButton draftId={draft.id} />
       if (draft.status !== 'pending') return null
-      return (
-        <Button size="sm" disabled={loadingId !== undefined} onClick={() => open(draft)}>
-          {loadingId === draft.id && <Loader2 className="animate-spin" />}
-          Zobacz
-        </Button>
-      )
+      return openButton(draft)
     },
   })
 

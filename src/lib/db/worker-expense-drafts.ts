@@ -43,7 +43,6 @@ export type ExpenseDraftRowT = {
   sentAt: string
   decidedAt: string | null
   decidedByName: string | null
-  // One zgłoszenie may be accepted as several transakcje.
   transfers: ExpenseDraftTransferT[]
   // Pages of each paragon the manager skipped while accepting the rest.
   skippedReceipts?: number[][]
@@ -317,29 +316,21 @@ export async function decideExpenseDraft(
     SELECT unnest(r.media_ids) INTERSECT
     SELECT dm.media_id FROM worker_expense_draft_media dm WHERE dm.draft_id = decided.id
   )`
-  const linked =
-    transfers.length > 0
-      ? sql`, linked AS (
-          INSERT INTO worker_expense_draft_transfers (transfer_id, draft_id, media_ids)
-          SELECT r.id, decided.id, ${ownPages}
-          FROM decided, jsonb_to_recordset(${JSON.stringify(transfers)}::jsonb) AS r(id int, media_ids int[])
-        )`
-      : sql``
-  const skippedInsert =
-    skipped.length > 0
-      ? sql`, skipped AS (
-          INSERT INTO worker_expense_draft_skipped_receipts (draft_id, media_ids)
-          SELECT decided.id, ${ownPages}
-          FROM decided, jsonb_to_recordset(${JSON.stringify(skipped)}::jsonb) AS r(media_ids int[])
-        )`
-      : sql``
   const res = await db.execute(sql`
     WITH decided AS (
       UPDATE worker_expense_drafts
       SET status = ${decision.status}, decided_at = now(), decided_by = ${decision.decidedBy}
       WHERE id = ${decision.draftId} AND status = 'pending'
       RETURNING id
-    )${linked}${skippedInsert}
+    ), linked AS (
+      INSERT INTO worker_expense_draft_transfers (transfer_id, draft_id, media_ids)
+      SELECT r.id, decided.id, ${ownPages}
+      FROM decided, jsonb_to_recordset(${JSON.stringify(transfers)}::jsonb) AS r(id int, media_ids int[])
+    ), skipped AS (
+      INSERT INTO worker_expense_draft_skipped_receipts (draft_id, media_ids)
+      SELECT decided.id, ${ownPages}
+      FROM decided, jsonb_to_recordset(${JSON.stringify(skipped)}::jsonb) AS r(media_ids int[])
+    )
     SELECT id FROM decided
   `)
   return res.rows.length > 0

@@ -89,26 +89,12 @@ describe('useExpenseDraftColumns', () => {
     expect(cell(8, 'transfers')).toHaveTextContent('—')
   })
 
-  // One zgłoszenie booked as several transakcje: the cell lists each one, totals the live ones, and
-  // the link opens exactly those rows — the cancelled one too, so the list matches the cell.
-  it('lists each transaction of a multi-line acceptance, totals the live ones and links to all', () => {
-    const transfers = [
-      { id: 41, amount: 100, investmentId: 9, cancelled: false },
-      { id: 42, amount: 20.5, investmentId: 9, cancelled: true },
-      { id: 43, amount: 3, investmentId: 9, cancelled: false },
-    ]
-    render(<Table rows={[{ ...accepted, transfers }]} isManagerView />)
-
-    const link = screen.getByRole('link')
-    expect(bare(link.textContent ?? '')).toBe(bare([100, 20.5, 3, 103].map(formatPLN).join('')))
-    expect(link.children[1]).toHaveClass('line-through')
-    expect(link.lastElementChild?.firstElementChild).not.toHaveClass('line-through')
-    expect(link).toHaveAttribute('href', '/inwestycje/9?id=41,42,43&showCancelled=1')
-  })
-
   it('strikes out a cancelled transaction and links to it with the cancelled ones shown', () => {
     render(
-      <Table rows={[{ ...accepted, transfers: [{ ...accepted.transfers[0], cancelled: true }] }]} isManagerView />,
+      <Table
+        rows={[{ ...accepted, transfers: [{ ...accepted.transfers[0], cancelled: true }] }]}
+        isManagerView
+      />,
     )
 
     const link = screen.getByRole('link', { name: formatPLN(123.45) })
@@ -117,14 +103,7 @@ describe('useExpenseDraftColumns', () => {
   })
 
   it('shows a dash for an accepted draft whose transaction was deleted', () => {
-    render(
-      <Table
-        rows={[
-          { ...accepted, transfers: [] },
-        ]}
-        isManagerView
-      />,
-    )
+    render(<Table rows={[{ ...accepted, transfers: [] }]} isManagerView />)
 
     expect(cell(7, 'transfers')).toHaveTextContent('—')
     expect(screen.queryByRole('link')).not.toBeInTheDocument()

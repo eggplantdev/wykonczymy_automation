@@ -257,7 +257,7 @@ export function TransferFilters({
 
             <SearchFilterInput
               value={currentId}
-              onChange={(v) => updateParam('id', toIdList(v))}
+              onChange={(v) => updateParam('id', stripNonDigits(v))}
               placeholder={t('searchId')}
               inputMode="numeric"
               className={SEARCH_FILTER_TOOLBAR_WIDTH}
@@ -288,7 +288,8 @@ export function TransferFilters({
   )
 }
 
-// Keeps digits and commas, so a pasted „#12, 13" or a link's `12,13,14` stays a usable id list.
-function toIdList(value: string): string {
-  return value.replace(/[^\d,]/g, '')
+// Drops any character that isn't 0–9 (e.g. user paste with spaces, commas, "#" prefix).
+// Keeps the ID input safe to pass as a numeric URL param without further validation.
+function stripNonDigits(value: string): string {
+  return value.replace(/\D/g, '')
 }

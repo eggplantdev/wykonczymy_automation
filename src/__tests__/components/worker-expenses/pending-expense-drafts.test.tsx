@@ -56,17 +56,17 @@ beforeEach(() => {
 })
 afterEach(() => vi.unstubAllGlobals())
 
-describe('„Zobacz" na zgłoszeniu bez odczytu', () => {
+describe('„Zweryfikuj" na zgłoszeniu bez odczytu', () => {
   it('ponowne otwarcie w trakcie odczytu nie zleca drugiego', async () => {
     let land: (value: unknown) => void = () => {}
     readExpenseDraftAction.mockReturnValue(new Promise((resolve) => (land = resolve)))
     render(<PendingExpenseDrafts drafts={[draft]} referenceData={referenceData} />)
     const user = userEvent.setup()
 
-    await user.click(screen.getByRole('button', { name: 'Zobacz' }))
+    await user.click(screen.getByRole('button', { name: 'Zweryfikuj' }))
     expect(await screen.findByRole('textbox', { name: 'Opis' })).toBeDisabled()
     act(() => useOptimisticFormStore.getState().closeDialog())
-    await user.click(screen.getByRole('button', { name: 'Zobacz' }))
+    await user.click(screen.getByRole('button', { name: 'Zweryfikuj' }))
     await screen.findByRole('textbox', { name: 'Opis' })
     await act(async () => land({ success: true, data: { aiRead: read } }))
 
@@ -78,7 +78,7 @@ describe('„Zobacz" na zgłoszeniu bez odczytu', () => {
     readExpenseDraftAction.mockResolvedValue({ success: false, error: 'Brak uprawnień' })
     render(<PendingExpenseDrafts drafts={[draft]} referenceData={referenceData} />)
 
-    await userEvent.setup().click(screen.getByRole('button', { name: 'Zobacz' }))
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Zweryfikuj' }))
 
     expect(await screen.findByRole('textbox', { name: 'Opis' })).toBeEnabled()
     expect(toastMessage).toHaveBeenCalledWith('Brak uprawnień', 'warning')

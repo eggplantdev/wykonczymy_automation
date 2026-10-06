@@ -127,6 +127,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
         drafts={expenseDrafts}
         investments={stageInvestments}
         canSend={isOwnPage}
+        canOpenTransfers={isManager}
         registers={registers}
         defaultRegisterId={worker.defaultCashRegisterId}
         locale={locale}

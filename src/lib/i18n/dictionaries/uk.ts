@@ -118,6 +118,7 @@ export const uk: TranslationsT = {
     decision: 'Рішення',
     transfers: 'Транзакції',
     actions: 'Дії',
+    preview: 'Перегляд',
     statusPending: 'очікує',
     statusAccepted: 'прийнято',
     statusRejected: 'відхилено',

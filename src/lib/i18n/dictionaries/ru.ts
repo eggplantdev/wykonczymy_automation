@@ -117,6 +117,7 @@ export const ru: TranslationsT = {
     decision: 'Решение',
     transfers: 'Транзакции',
     actions: 'Действия',
+    preview: 'Просмотр',
     statusPending: 'ожидает',
     statusAccepted: 'принят',
     statusRejected: 'отклонён',

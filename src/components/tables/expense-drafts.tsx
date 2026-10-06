@@ -20,30 +20,28 @@ type OptionsT = {
   // The dashboard queue: nothing in it is decided yet, and opening one is the whole point of the row.
   isPendingQueue?: boolean
   canEditPages?: boolean
+  // Management reads the worker's own table too, and only management may open the transfers list.
+  canOpenTransfers?: boolean
   actions?: (draft: ExpenseDraftRowT) => ReactNode
 }
 
-// One zgłoszenie is one row: its transakcje are split out behind the link. A cancelled one stays
-// behind the link but not in the total — unless all of them are cancelled, then the struck-out total
-// says what was booked.
-function TransfersCell({ draft, isLinked }: { draft: ExpenseDraftRowT; isLinked: boolean }) {
-  const { transfers } = draft
-  if (transfers.length === 0) return '—'
-  const live = transfers.filter((transfer) => !transfer.cancelled)
-  const isAllCancelled = live.length === 0
-  const total = (isAllCancelled ? transfers : live).reduce((sum, transfer) => sum + transfer.amount, 0)
-  const investmentId = transfers[0].investmentId
+// `splitByReceipt` leaves a row at most one transakcja.
+function TransferCell({ draft, isLinked }: { draft: ExpenseDraftRowT; isLinked: boolean }) {
+  const [transfer] = draft.transfers
+  if (!transfer) return '—'
   const href =
-    isLinked && investmentId !== null
-      ? investmentTransfersHref(investmentId, {
-          id: transfers.map((transfer) => transfer.id),
-          showCancelled: live.length < transfers.length,
+    isLinked && transfer.investmentId !== null
+      ? investmentTransfersHref(transfer.investmentId, {
+          id: transfer.id,
+          showCancelled: transfer.cancelled,
         })
       : undefined
   return (
     <OptionalLink href={href}>
-      <span className={cn('tabular-nums', isAllCancelled && 'text-muted-foreground line-through')}>
-        {formatPLN(total)}
+      <span
+        className={cn('tabular-nums', transfer.cancelled && 'text-muted-foreground line-through')}
+      >
+        {formatPLN(transfer.amount)}
       </span>
     </OptionalLink>
   )
@@ -53,15 +51,17 @@ export function useExpenseDraftColumns({
   isManagerView,
   isPendingQueue = false,
   canEditPages = false,
+  canOpenTransfers = isManagerView,
   actions,
 }: OptionsT) {
   const { t } = useTranslation('expenseDrafts')
-  const sortable = (id: string) => isManagerView && !isPendingQueue && isServerSortableDraftColumn(id)
+  const sortable = (id: string) =>
+    isManagerView && !isPendingQueue && isServerSortableDraftColumn(id)
   const actionsColumn = actions
     ? [
         col.display({
           id: 'actions',
-          header: '',
+          header: isPendingQueue ? t('preview') : '',
           meta: { label: t('actions') },
           cell: ({ row: { original: draft } }) => (
             <div className="flex items-center gap-1">{actions(draft)}</div>
@@ -124,7 +124,7 @@ export function useExpenseDraftColumns({
             enableSorting: false,
             meta: { align: 'right' },
             cell: ({ row: { original: draft } }) => (
-              <TransfersCell draft={draft} isLinked={isManagerView} />
+              <TransferCell draft={draft} isLinked={canOpenTransfers} />
             ),
           }),
           ...actionsColumn,

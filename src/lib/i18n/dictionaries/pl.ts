@@ -126,6 +126,7 @@ export const pl = {
     decision: 'Decyzja',
     transfers: 'Transakcje',
     actions: 'Akcje',
+    preview: 'Podgląd',
     statusPending: 'czeka',
     statusAccepted: 'przyjęty',
     statusRejected: 'odrzucony',

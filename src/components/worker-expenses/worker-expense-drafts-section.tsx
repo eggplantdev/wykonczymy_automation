@@ -14,6 +14,7 @@ type PropsT = {
   investments: WorkerStageInvestmentT[]
   /** Only the worker himself sends; a manager on his page sees the list. */
   canSend: boolean
+  canOpenTransfers: boolean
   registers: CashRegisterRefT[]
   defaultRegisterId?: number
   locale: LanguageT
@@ -23,6 +24,7 @@ export function WorkerExpenseDraftsSection({
   drafts,
   investments,
   canSend,
+  canOpenTransfers,
   registers,
   defaultRegisterId,
   locale,
@@ -57,6 +59,7 @@ export function WorkerExpenseDraftsSection({
         <WorkerExpenseDraftsTable
           drafts={drafts}
           canSend={canSend}
+          canOpenTransfers={canOpenTransfers}
           investments={investments}
           registers={sendableRegisters}
         />

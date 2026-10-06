@@ -29,11 +29,6 @@ describe('investmentTransfersHref', () => {
     expect(investmentTransfersHref(7, { types: [] })).toBe('/inwestycje/7')
   })
 
-  // One zgłoszenie booked as several transakcje links to all of them at once.
-  it('joins a list of ids with a literal comma', () => {
-    expect(investmentTransfersHref(7, { id: [12, 13, 14] })).toBe('/inwestycje/7?id=12,13,14')
-  })
-
   it('keeps a zero id and a zero worker', () => {
     expect(investmentTransfersHref(7, { id: 0, worker: 0 })).toBe('/inwestycje/7?worker=0&id=0')
   })

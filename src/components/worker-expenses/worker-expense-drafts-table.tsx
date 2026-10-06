@@ -33,11 +33,18 @@ const getInvestment = (draft: ExpenseDraftRowT) => String(draft.investmentId)
 type PropsT = {
   drafts: ExpenseDraftRowT[]
   canSend: boolean
+  canOpenTransfers: boolean
   investments: WorkerStageInvestmentT[]
   registers: CashRegisterRefT[]
 }
 
-export function WorkerExpenseDraftsTable({ drafts, canSend, investments, registers }: PropsT) {
+export function WorkerExpenseDraftsTable({
+  drafts,
+  canSend,
+  canOpenTransfers,
+  investments,
+  registers,
+}: PropsT) {
   const { t } = useTranslation('expenseDrafts')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
@@ -64,6 +71,7 @@ export function WorkerExpenseDraftsTable({ drafts, canSend, investments, registe
   const columns = useExpenseDraftColumns({
     isManagerView: false,
     canEditPages: canSend,
+    canOpenTransfers,
     actions: hasActions
       ? (draft) =>
           draft.status === 'pending' && (

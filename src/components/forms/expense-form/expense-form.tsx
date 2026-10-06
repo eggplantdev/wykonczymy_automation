@@ -65,6 +65,7 @@ import { RegisterBalanceSummary } from '../form-components/register-balance-summ
 import { useExpenseFormStore } from '@/stores/form-stores'
 import { isBookableInvestment } from '@/lib/constants/investment-lock'
 import { canBookTransferType } from '@/lib/auth/roles'
+import { receiptDecision } from '@/lib/worker-expenses/receipt-decision'
 
 // Form state uses strings since HTML inputs/selects work with strings.
 // Numeric conversion happens in the server action.
@@ -100,8 +101,6 @@ export function ExpenseForm({
   secondaryAction,
 }: TransferFormPropsT) {
   const { recoveredFiles, submit } = useFormSubmit(formId)
-  // A worker's paragon removed from an acceptance is skipped, not lost: it stays in his history.
-  const [skippedReceipts, setSkippedReceipts] = useState<number[][]>([])
 
   // Scoped by formId like every other draft consumer: `'expense'` is the only writer today, but the
   // day an „Edytuj wydatek" dialog shares this slot its draft would otherwise seed the create form.
@@ -239,10 +238,7 @@ export function ExpenseForm({
               invoicePageRows,
               prefill && {
                 expenseDraftId: prefill.expenseDraftId,
-                receiptMediaIds: value.lineItems.map(
-                  (item) => prefill.receiptMediaIds.get(item.id) ?? [],
-                ),
-                skippedReceipts,
+                ...receiptDecision(prefill.receiptMediaIds, value.lineItems),
               },
             ),
           ),
@@ -402,11 +398,7 @@ export function ExpenseForm({
               form={form}
               total={total}
               hasInvestment={!!currentInvestment}
-              onRemoveItem={(id, index, removeValue) => {
-                const receipt = prefill?.receiptMediaIds.get(id)
-                if (receipt?.length) setSkippedReceipts((prev) => [...prev, receipt])
-                handleRemoveLineItem(id, index, removeValue)
-              }}
+              onRemoveItem={handleRemoveLineItem}
               onFileChange={attachFile}
               onRemoveFile={removeFileAt}
               onRegisterFiles={registerFiles}
