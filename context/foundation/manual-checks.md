@@ -4196,3 +4196,38 @@ Szablon z kilkuset pracami w kilku sekcjach (np. szablon 165).
       każdym wierszu.
 - [ ] Otwórz „Ustaw kolejność…” w dwóch kartach; w jednej dodaj pracę, w drugiej zapisz kolejność —
       komunikat „Układ się zmienił…”, dialog się zamyka, a siatka wczytuje się na nowo z dodaną pracą.
+
+
+## kosztorys-summary-resizable
+
+### Phase 2: Pill handle and split layout
+
+Konto właściciela, kosztorys z liczbą pozycji wystarczającą do przewijania.
+
+- [ ] Pigułka w sidebarze wygląda i działa jak dotąd (zwijanie/rozwijanie, powiększenie na hover).
+- [ ] Otwórz „Podsumowanie” → pigułka siedzi na górnej krawędzi panelu, widoczna nad zamrożonymi
+      kolumnami.
+- [ ] Przeciągnij pigułkę do ok. połowy: panel idzie za kursorem; po puszczeniu kosztorys się skraca,
+      kosztorys i panel stykają się bez przerwy i bez nakładania, a ostatnią pozycję da się
+      przewinąć nad panel.
+- [ ] Puść poniżej ok. 15% → panel się zwija; przycisk „Podsumowanie” otwiera go na poprzedniej
+      wysokości.
+- [ ] Puść powyżej ok. 90% → panel wskakuje na pełną wysokość; po zwinięciu kosztorys jest
+      przewinięty tam, gdzie był.
+- [ ] Kliknięcie pigułki bez przeciągania zwija panel.
+- [ ] Przeładuj stronę → wysokość wraca; inny kosztorys otwiera się na tej samej wysokości.
+- [ ] Na ok. 20% wysokości pasek przełącznika widoku mieści się, a zawartość panelu się przewija.
+- [ ] Link klienta (podgląd tego samego kosztorysu) → ta sama pigułka i ten sam podział.
+- [ ] Zmiana rozmiaru okna przy podzielonym ekranie → kosztorys i panel dalej się stykają.
+
+### Review gate fixes
+
+- [ ] Panel na pełnej wysokości → cała pigułka widoczna tuż pod paskiem narzędzi (nie ucięta w pół).
+- [ ] Podzielony ekran → kliknięcie komórki w ostatnim widocznym wierszu tuż nad panelem (z dala od
+      pigułki) zaznacza komórkę, panel się nie zwija; poziomy pasek przewijania kosztorysu działa.
+- [ ] Kliknięcie pigułki z lekkim drgnięciem myszy dalej zwija panel.
+- [ ] Podzielony ekran → przeładuj stronę: panel od razu stoi na swojej wysokości, bez zjeżdżania.
+- [ ] Podzielony ekran ok. 60% → wyszukaj frazę bez trafień: „Brak wyników” i „Wyczyść” widoczne nad
+      panelem; to samo dla pustego kosztorysu („Pobierz z arkusza Google…”) i filtra, który wszystko
+      ukrył („Zresetuj filtry”).
+- [ ] Telefon (390px), panel otwarty → „Pokaż narzędzia” otwiera menu nad panelem.

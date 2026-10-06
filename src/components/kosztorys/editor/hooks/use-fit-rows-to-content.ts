@@ -1,6 +1,6 @@
 'use client'
 
-import { usePersistedEnum } from '@/hooks/use-persisted-enum'
+import { usePersistedEnum } from '@/hooks/use-persisted-value'
 
 // Whether every row sizes to its text instead of resting at 32px — a per-person preference, so the
 // key carries no investment id, and distinct from the dragged heights in `kosztorys-v2-row-heights`.

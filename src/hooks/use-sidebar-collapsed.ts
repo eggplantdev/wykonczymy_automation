@@ -1,6 +1,6 @@
 'use client'
 
-import { usePersistedFlag } from '@/hooks/use-persisted-enum'
+import { usePersistedFlag } from '@/hooks/use-persisted-value'
 
 // Whether the desktop sidebar is collapsed to icons, persisted in localStorage so the choice
 // survives navigation and reloads. The stable server snapshot is 'expanded', so the first client

@@ -1,6 +1,6 @@
 'use client'
 
-import { usePersistedEnum } from '@/hooks/use-persisted-enum'
+import { usePersistedEnum } from '@/hooks/use-persisted-value'
 import { LAYER_DEFAULT, type LayerT } from '@/lib/kosztorys/layer'
 
 // Active layer axis, persisted globally in localStorage — it's a reading preference of the person, not

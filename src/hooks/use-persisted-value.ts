@@ -2,11 +2,9 @@
 
 import { useCallback, useSyncExternalStore } from 'react'
 
-// Shared localStorage-backed enum store for the kosztorys column-preference hooks (layer, money axis,
-// price view). Each was a hand-rolled copy of the same useSyncExternalStore + Set of listeners; this
-// is the one primitive they now delegate to.
+// Shared localStorage-backed store for scalar UI preferences — an enum, a flag or a number per key.
 //
-// One module-level listener set fans a write out to every mounted usePersistedEnum. A write notifies
+// One module-level listener set fans a write out to every mounted hook over it. A write notifies
 // all subscribers regardless of key, but useSyncExternalStore drops the re-render for any hook whose
 // own snapshot string is unchanged — so a cross-key notification is a no-op, not a behavior change.
 // Own subscription (not a `storage` event) because that event doesn't fire in the same tab. The
@@ -33,7 +31,7 @@ function readEnum<T extends string>(storageKey: string, validValues: readonly T[
   }
 }
 
-function writeEnum(storageKey: string, value: string) {
+function writeStored(storageKey: string, value: string) {
   try {
     window.localStorage.setItem(storageKey, value)
   } catch {
@@ -54,7 +52,40 @@ export function usePersistedEnum<T extends string>(
     [storageKey, validValues, fallback],
   )
   const value = useSyncExternalStore(subscribe, getSnapshot, () => fallback)
-  const setValue = useCallback((next: T) => writeEnum(storageKey, next), [storageKey])
+  const setValue = useCallback((next: T) => writeStored(storageKey, next), [storageKey])
+  return [value, setValue]
+}
+
+function readNumber(
+  storageKey: string,
+  fallback: number,
+  isValid: (value: number) => boolean,
+): number {
+  try {
+    const stored = window.localStorage.getItem(storageKey)
+    // `Number('')` is 0, so an empty entry must be refused before it is converted.
+    if (!stored) return fallback
+    const value = Number(stored)
+    return isValid(value) ? value : fallback
+  } catch {
+    return fallback
+  }
+}
+
+export function usePersistedNumber(
+  storageKey: string,
+  fallback: number,
+  isValid: (value: number) => boolean,
+): [number, (next: number) => void] {
+  const getSnapshot = useCallback(
+    () => readNumber(storageKey, fallback, isValid),
+    [storageKey, fallback, isValid],
+  )
+  const value = useSyncExternalStore(subscribe, getSnapshot, () => fallback)
+  const setValue = useCallback(
+    (next: number) => writeStored(storageKey, String(next)),
+    [storageKey],
+  )
   return [value, setValue]
 }
 

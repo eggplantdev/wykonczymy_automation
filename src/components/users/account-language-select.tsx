@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { LanguageSelect } from '@/components/ui/language-select'
-import { usePersistedEnum } from '@/hooks/use-persisted-enum'
+import { usePersistedEnum } from '@/hooks/use-persisted-value'
 import { useI18nContext } from '@/hooks/use-translation'
 import { changeOwnLanguageAction } from '@/lib/actions/account-language'
 import { failureMessage } from '@/lib/i18n/failure-message'

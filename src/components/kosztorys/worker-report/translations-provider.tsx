@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from 'react'
 import { I18nContext } from '@/hooks/use-translation'
-import { usePersistedEnum } from '@/hooks/use-persisted-enum'
+import { usePersistedEnum } from '@/hooks/use-persisted-value'
 import { LANGUAGES, reportLanguageStorageKey, type LanguageT } from '@/lib/i18n/languages'
 
 type PropsT = {

@@ -1,6 +1,6 @@
 'use client'
 
-import { usePersistedEnum } from '@/hooks/use-persisted-enum'
+import { usePersistedEnum } from '@/hooks/use-persisted-value'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import type { OptionT } from '@/components/ui/toggle-group'
 import type { ToolPlaneT } from '@/lib/kosztorys/types'

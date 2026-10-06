@@ -1,6 +1,6 @@
 'use client'
 
-import { usePersistedFlag } from '@/hooks/use-persisted-enum'
+import { usePersistedFlag } from '@/hooks/use-persisted-value'
 
 // One key for both create dialogs: whoever turns it off for „Nowa praca" means it for the katalog too.
 const STORAGE_KEY = 'forms:ai-translate'
