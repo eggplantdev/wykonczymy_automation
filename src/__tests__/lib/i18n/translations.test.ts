@@ -48,11 +48,11 @@ describe('plurals', () => {
 
 describe('translate', () => {
   it('interpolates named params and leaves an unknown one visible', () => {
-    expect(translate('pl', 'report', 'statusAccepted', { accepted: 2, total: 5 })).toBe(
-      'przyjęte (2 z 5)',
+    expect(translate('pl', 'media', 'convertFailed', { name: 'skan.heic' })).toBe(
+      'Nie udało się przekonwertować „skan.heic” — zapisz jako JPG i spróbuj ponownie.',
     )
-    expect(translate('pl', 'report', 'statusAccepted', { accepted: 2 })).toBe(
-      'przyjęte (2 z {{total}})',
+    expect(translate('pl', 'media', 'convertFailed')).toBe(
+      'Nie udało się przekonwertować „{{name}}” — zapisz jako JPG i spróbuj ponownie.',
     )
   })
 

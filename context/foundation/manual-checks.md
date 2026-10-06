@@ -3898,3 +3898,17 @@ zdjęć, każdy wariant poniżej to osobny skan.
       zgłoszenia są tam jak dotąd.
 - [ ] Zgłoszenie wysłane z linku działa jak przedtem: przegląd, zatwierdzenie, historia.
 - [ ] Kartka wydrukowana przed „Przywróć wersję”, wczytana po nim: wiersze trafiają we właściwe prace.
+
+## 2026-10-06 — worker-report-pending-only — link pracownika pokazuje tylko zgłoszenia „do sprawdzenia”
+
+Potrzebny stan: pracownik z linkiem do zgłoszeń, który ma w tej inwestycji co najmniej jedno
+zgłoszenie oczekujące, jedno przyjęte i jedno odrzucone.
+
+- [ ] Link pracownika `/z/…` → pod tabelą sekcja „Czekają na sprawdzenie” z samymi zgłoszeniami
+      oczekującymi (data · liczba prac), bez kolumny statusu; przyjętych i odrzuconych na liście nie ma.
+- [ ] Pracownik bez żadnego oczekującego zgłoszenia → sekcji „Czekają na sprawdzenie” w ogóle nie ma.
+- [ ] Wyślij nowe zgłoszenie z linku → ekran „Wysłano do weryfikacji” pokazuje je na liście
+      „Czekają na sprawdzenie”; po przyjęciu go przez kierownika i odświeżeniu linku znika z listy.
+- [ ] Przełącz język linku na UA / RU → nagłówek sekcji jest przetłumaczony.
+- [ ] Edytor kosztorysu → „Zgłoszenia pracowników” dalej pokazuje wszystkie zgłoszenia, także
+      przyjęte i odrzucone.
