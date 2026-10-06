@@ -111,3 +111,43 @@ export type AcceptReportResultT = {
   cells: StageProgressCellT[]
   revision: string
 }
+
+// „Przyjęto" of one line: on a decided report a line nobody took counts as refused.
+export type ReportLineOutcomeT =
+  | { kind: 'accepted'; qty: number }
+  | { kind: 'pending' }
+  | { kind: 'rejected' }
+
+// One line as the Podgląd shows it to one viewer — texts already in the language they read.
+export type ReportPreviewLineT = {
+  id: number
+  kind: ReportLineKindT
+  ref: number | undefined
+  scannedRef: string | undefined
+  sectionName: string
+  sectionColor: SectionColorKeyT | null
+  description: string
+  // Management only: what the worker read or wrote, beside the Polish.
+  workerDescription: string | undefined
+  workerDescriptionLanguage: string | undefined
+  unit: string
+  reportedQty: number
+  outcome: ReportLineOutcomeT
+}
+
+export type ReportPreviewT = {
+  id: number
+  investmentId: number
+  investmentName: string
+  workerName: string
+  status: ReportStatusT
+  source: ReportSourceT
+  createdByName: string | undefined
+  sentAt: string
+  decidedAt: string | undefined
+  decidedByName: string | undefined
+  lineCount: number
+  acceptedLineCount: number
+  photos: MediaFileT[]
+  lines: ReportPreviewLineT[]
+}

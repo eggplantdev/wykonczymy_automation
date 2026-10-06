@@ -2918,6 +2918,7 @@ Na stagingu link wskazuje na staging (wartość Preview `NEXT_PUBLIC_FRONTEND_UR
       a wiersz otwiera rozpiskę z tym zgłoszeniem. Odświeżenie po zamknięciu okna go nie otwiera
       ponownie.
       _Staging 2026-10-01: badge „1” przy „Zgłoszenia prac” w menu, strona wymienia zgłoszenie (Wysłano / Prace / Status „Do sprawdzenia”), klik w wiersz otwiera rozpiskę z oknem zgłoszenia; po zamknięciu i przeładowaniu okno się nie otwiera._
+      _Zastąpione przez `worker-reports-on-worker-page` (2026-10-06): wiersz nie jest już klikalny, rozpiskę otwiera akcja „Otwórz w kosztorysie” — patrz § 2026-10-06 — worker-reports-on-worker-page._
 - [x] „Zgłoszenia prac” wymienia też zgłoszenia przyjęte i odrzucone, każde ze statusem; licznik w
       menu liczy tylko oczekujące. Po odrzuceniu w rozpisce licznik w menu spada od razu.
       _Staging 01.10: lista ze statusami (Do sprawdzenia / Przyjęte n z m / Odrzucone); przy 2 oczekujących i 2 przyjętych menu pokazywało 2; po odrzuceniu jednego w rozpisce menu spadło do 1 bez przeładowania._
@@ -2930,6 +2931,7 @@ Na stagingu link wskazuje na staging (wartość Preview `NEXT_PUBLIC_FRONTEND_UR
       zgłoszeniem — wczytuje się, nie wisi na „Wczytywanie…”. Adres ma `?zgloszenie=` do zamknięcia
       okna; po zamknięciu i przeładowaniu okno się nie otwiera.
       _Staging 2026-10-01: klik w wiersz → /inwestycje/137/kosztorys_v2?zgloszenie=1, okno wczytało się w <6 s z treścią zgłoszenia; Esc zdejmuje ?zgloszenie=, po przeładowaniu okno się nie otwiera._
+      _Zastąpione przez `worker-reports-on-worker-page` (2026-10-06): wiersz nie jest już klikalny, rozpiskę otwiera akcja „Otwórz w kosztorysie” — patrz § 2026-10-06 — worker-reports-on-worker-page._
 - [x] Przegląd zgłoszenia, prace z rozpiski: kolumna etapu nosi nazwę etapu wybranego w „Dodaj do”
       („Nowy etap” dla nowego) i zmienia się razem z wyborem; dalej osobno „Przedmiar” i „Pomiar
       (razem etapy)”. Zaznaczona ilość przesuwa etap i pomiar („12 → 15”), przedmiar stoi.
@@ -4260,3 +4262,17 @@ Potrzebne przyjęte zgłoszenie „Kilka wydatków”, z którego przy przyjmowa
 - [ ] „Zweryfikuj” na przywróconym: formularz od razu wypełniony odczytem tego paragonu (opis, kwota), bez czekania na odczyt.
 - [ ] U pracownika przywrócone zgłoszenie stoi jako „Czeka” i da się je edytować i usunąć. Po usunięciu przyjęte zgłoszenie dalej pokazuje to zdjęcie.
 - [ ] Pominięty paragon, którego kasa (albo pracownik, inwestycja) jest w koszu: wiersz bez „Przywróć”. Po przywróceniu kasy z kosza „Przywróć” wraca.
+
+## 2026-10-06 — worker-reports-on-worker-page — zgłoszenia wykonanych prac na stronie pracownika, z podglądem
+
+- [ ] „Zgłoszenia wykonanych prac” (lista kierownika): klik w wiersz nic nie robi. „Podgląd” otwiera okno nad listą, adres się nie zmienia. „Otwórz w kosztorysie” otwiera rozpiskę z tym zgłoszeniem (adres ma `?zgloszenie=`).
+- [ ] Ta sama lista ma kolumny „Źródło” („z linku” / „skan”) i „Decyzja” (data · kto) przy rozpatrzonych, „—” przy czekających; czekające mają plakietkę „Do sprawdzenia”.
+- [ ] Podgląd zgłoszenia przyjętego częściowo: przyjęte prace mają w „Przyjęto” ilość, pozostałe „odrzucona”; przyjęta praca spoza rozpiski ma „Nr” pozycji, którą się stała. Podgląd czekającego zgłoszenia: „czeka” przy każdej pracy.
+- [ ] Podgląd skanu pokazuje „Wprowadził: …” i przycisk „Zdjęcia”, który otwiera zdjęcia kartki.
+- [ ] Jako kierownik, zgłoszenie pracownika z językiem Українська: obok polskiego „Opis prac” jest „Opis w języku pracownika”.
+- [ ] Jako pracownik na swojej stronie, telefon 390px: sekcja „Zgłoszenia wykonanych prac” wymienia jego zgłoszenia — z linku i skany. Stronicowanie, „Status”, „Inwestycja” i „Pokaż” nie zmieniają adresu.
+- [ ] Tamże „Podgląd”: okno na pełną wysokość, tabela przewija się w bok wewnątrz okna, strona nie przewija się w poziomie. Pracownik ma tylko „Podgląd”, bez „Otwórz w kosztorysie”.
+- [ ] Pracownik z Українська na koncie: tytuł sekcji, kolumny, statusy, źródło, sekcje i opisy prac po ukraińsku; praca bez ukraińskiego tłumaczenia po polsku.
+- [ ] Jako kierownik na stronie tego pracownika: w każdym wierszu „Podgląd” i „Otwórz w kosztorysie”; w podglądzie polski opis plus „Opis w języku pracownika”.
+- [ ] Zgłoszenie na zakończonej inwestycji jest na liście pracownika i otwiera się w podglądzie.
+- [ ] „Wysłane zgłoszenia” na stronie z linkiem do zgłaszania prac bez zmian: tylko czekające, bez skanów, nieklikalne.

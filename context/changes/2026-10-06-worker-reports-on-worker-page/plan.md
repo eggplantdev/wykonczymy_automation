@@ -568,27 +568,27 @@ Run once, after Phase 4:
 
 #### Automated
 
-- [ ] 1.1 DB spec passes against the test DB
-- [ ] 1.2 The existing scan spec stays green
+- [x] 1.1 DB spec passes against the test DB — 25d7da8d
+- [x] 1.2 The existing scan spec stays green — 25d7da8d
 
 ### Phase 2: Preview view model and translations
 
 #### Automated
 
-- [ ] 2.1 Builder spec passes
-- [ ] 2.2 Dictionary parity holds
-- [ ] 2.3 Editor review table unaffected by the extracted rule
+- [x] 2.1 Builder spec passes — c36fa146
+- [x] 2.2 Dictionary parity holds — c36fa146
+- [x] 2.3 Editor review table unaffected by the extracted rule — c36fa146
 
 ### Phase 3: Preview dialog and the /zgloszenia-prac actions
 
 #### Automated
 
-- [ ] 3.1 Preview table spec passes
-- [ ] 3.2 Review table still renders with the promoted `SectionPill`
+- [x] 3.1 Preview table spec passes — b1428ca7
+- [x] 3.2 Review table still renders with the promoted `SectionPill` — b1428ca7
 
 ### Phase 4: Worker-page section
 
 #### Automated
 
-- [ ] 4.1 History table spec passes
-- [ ] 4.2 Template table still green
+- [x] 4.1 History table spec passes — 243ab761
+- [x] 4.2 Template table still green — 243ab761

@@ -23,8 +23,8 @@ export default async function WorkerReportsPage({ searchParams }: PagePropsT) {
     <PageWrapper title={PAGE_TITLES.workerReports}>
       <Description>
         Bez sortowania na górze zgłoszenia czekające na decyzję, niżej rozpatrzone — w nich też
-        można jeszcze przyjąć odrzucone pozycje. Wiersz otwiera rozpiskę inwestycji z tym
-        zgłoszeniem.
+        można jeszcze przyjąć odrzucone pozycje. „Podgląd” pokazuje zgłoszenie na miejscu, a „Otwórz
+        w kosztorysie” otwiera rozpiskę inwestycji z tym zgłoszeniem.
       </Description>
       <WorkerReportsDataTable
         data={reports.rows}
