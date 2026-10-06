@@ -58,6 +58,37 @@ export function usePersistedEnum<T extends string>(
   return [value, setValue]
 }
 
+function readNumber(
+  storageKey: string,
+  fallback: number,
+  isValid: (value: number) => boolean,
+): number {
+  try {
+    const stored = window.localStorage.getItem(storageKey)
+    // `Number('')` is 0, so an empty entry must be refused before it is converted.
+    if (!stored) return fallback
+    const value = Number(stored)
+    return isValid(value) ? value : fallback
+  } catch {
+    return fallback
+  }
+}
+
+/** A number over the same store. `isValid` must be a module-level function — it keys the snapshot. */
+export function usePersistedNumber(
+  storageKey: string,
+  fallback: number,
+  isValid: (value: number) => boolean,
+): [number, (next: number) => void] {
+  const getSnapshot = useCallback(
+    () => readNumber(storageKey, fallback, isValid),
+    [storageKey, fallback, isValid],
+  )
+  const value = useSyncExternalStore(subscribe, getSnapshot, () => fallback)
+  const setValue = useCallback((next: number) => writeEnum(storageKey, String(next)), [storageKey])
+  return [value, setValue]
+}
+
 /** A boolean over the same store, saved as the caller's own `[whenTrue, whenFalse]` words so a
  *  preference stored under them keeps reading back. `words` must be a module-level constant. */
 export function usePersistedFlag(
