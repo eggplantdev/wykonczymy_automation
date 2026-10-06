@@ -1,6 +1,7 @@
 import 'server-only'
 import { UNREADABLE_RECEIPT } from '@/lib/ai/receipt-extraction-schema'
 import { scanReceiptPages, type ReceiptFillResultT } from '@/lib/ai/scan-receipt'
+import { MAX_RECEIPT_PAGES } from '@/lib/constants/receipt-scan'
 import type { ExpenseDraftReadRowT } from '@/lib/db/expense-draft-read'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import {
@@ -40,6 +41,8 @@ export async function readExpenseDraftReceipts(db: DbExecutorT, draftId: number)
   try {
     const draft = await loadExpenseDraftForRead(db, draftId)
     if (!draft || draft.pages.length === 0) return
+    // A draft from before the 8-photo cap can still be pending; the manager reads it by eye.
+    if (draft.scanMode === 'one-invoice' && draft.pages.length > MAX_RECEIPT_PAGES) return
     const storeId = blobStoreIdOf(serverEnv.BLOB_READ_WRITE_TOKEN)
     if (!storeId) throw new Error('BLOB_READ_WRITE_TOKEN names no Blob store')
 

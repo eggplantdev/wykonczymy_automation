@@ -152,6 +152,7 @@ export const pl = {
     scanModeOneInvoiceHint:
       'Wszystkie zdjęcia to jedna faktura — powstanie jedna pozycja z kilkoma stronami.',
     scanModeOnePerPhotoHint: 'Każde zdjęcie to osobny paragon — powstanie z niego własna pozycja.',
+    tooManyPhotos: 'Najwyżej {{max}} zdjęć w jednym wydatku — wyślij resztę osobno.',
   },
   report: {
     pageTitle: 'Zgłoszenie prac',

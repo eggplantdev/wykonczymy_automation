@@ -152,6 +152,16 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
     })
   })
 
+  // A draft sent under the old 20-photo cap can still be pending; the model takes 8 pages a call.
+  it('leaves a „Jeden wydatek” over 8 photos unread', async () => {
+    const { draftId } = await createDraft('over-cap', 9, 'one-invoice')
+
+    await readExpenseDraftReceipts(db, draftId)
+
+    expect(extractReceipt).not.toHaveBeenCalled()
+    expect(await readOf(draftId)).toBeNull()
+  })
+
   it('writes nothing when no photo could be read', async () => {
     const { draftId } = await createDraft('all-failed', 2, 'one-per-photo')
     extractReceipt.mockResolvedValue(

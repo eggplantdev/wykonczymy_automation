@@ -474,8 +474,9 @@ simplicity.
 
 The migration is additive, so `pnpm db:migrate:prod` runs BEFORE the push (human). Existing drafts
 get `scan_mode = 'one-invoice'` and `ai_read = NULL`: they open as today, blank, now with the
-re-read button. Re-count prod drafts above 8 pages before shipping the cap; any found stay readable
-only through the button, reading at most 8 pages.
+re-read button. Re-count prod drafts above 8 pages before shipping the cap. A „Jeden wydatek” one
+found is readable by neither path — the server read skips it and the button's 9+ pages get a 400
+from `/api/extract-receipt` — so the manager fills it by eye (review gate, CR3).
 
 ## Whole-tree Gate
 

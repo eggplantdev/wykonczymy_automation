@@ -5,9 +5,6 @@ import { ExpenseDraftDialog } from '@/components/worker-expenses/expense-draft-d
 import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 
-// The mode decides what the AI reads at send: one invoice over every photo, or one per photo
-// (EX-1001). With a single photo both read the same, so the choice isn't offered.
-
 vi.mock('next/navigation', async (importOriginal) => ({
   ...(await importOriginal<typeof import('next/navigation')>()),
   useRouter: () => ({ refresh: vi.fn() }),
@@ -137,6 +134,13 @@ describe('ExpenseDraftDialog scan mode', () => {
         expect.objectContaining({ draftId: 7, scanMode: 'one-per-photo' }),
       ),
     )
+  })
+
+  it('nine photos block „Wyślij” before anything goes up', async () => {
+    await openNewAndPick(9)
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Najwyżej 8 zdjęć w jednym wydatku')
+    expect(screen.getByRole('button', { name: 'Wyślij' })).toBeDisabled()
   })
 
   // A changed mode clears the read and reads again — a note edit must not count as one.

@@ -4199,3 +4199,6 @@ Odczyt AI kosztuje — na stagingu wysyłaj po kilka zdjęć.
 - [ ] Paragon, którego AI nie przeczyta: jego pozycja otwiera się pusta, „Odczytaj dodane zdjęcia" odczytuje go na żądanie.
 - [ ] Pracownik usuwa zdjęcie po odczycie: dialog kierownika pokazuje kwoty pozostałego zdjęcia, nie usuniętego.
 - [ ] Zwykły „Nowy wydatek": zdjęcie dodane do pozycji przez jej pole FV przy pustym Opisie → pojawia się „Odczytaj dodane zdjęcia" i odczytuje je.
+- [ ] Pracownik → „Dodaj wydatek" → 9 zdjęć: pod polem zdjęć „Najwyżej 8 zdjęć w jednym wydatku — wyślij resztę osobno.", „Wyślij" nieaktywny; po usunięciu jednego „Wyślij" działa.
+- [ ] Pracownik → „Moje wydatki" → zgłoszenie „czeka" z 7 zdjęciami → podgląd → dodaj 2: komunikat o limicie 8, nic się nie wgrywa (zgłoszenie ma dalej 7 zdjęć).
+- [ ] Kierownik → „Zobacz" przy zgłoszeniu ze zdjęciami, pozycja pusta → „Wygeneruj z paragonów" z nowym paragonem: powstaje nowa pozycja; zdjęcia pracownika zostają w swojej, bez doklejonego paragonu.
