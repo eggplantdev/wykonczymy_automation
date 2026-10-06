@@ -6,13 +6,15 @@ import { QueueFilters } from '@/components/filters/queue-filters'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { useExpenseDraftColumns } from '@/components/tables/expense-drafts'
 import { Button } from '@/components/ui/button'
-import { PaginationFooter } from '@/components/ui/pagination-footer'
-import { DRAFT_STATUS_LABEL_KEYS } from '@/components/worker-expenses/draft-status-badge'
+import { PaginationFooter } from '@/components/ui/pagination/pagination-footer'
 import { RestoreExpenseDraftButton } from '@/components/worker-expenses/restore-expense-draft-button'
 import { useExpenseDraftAcceptance } from '@/components/worker-expenses/use-expense-draft-acceptance'
 import { useTranslation } from '@/hooks/use-translation'
 import { useUrlFilterParams } from '@/hooks/use-url-filter-params'
-import { EXPENSE_DRAFT_STATUSES } from '@/lib/constants/worker-expense-drafts'
+import {
+  DRAFT_STATUS_LABEL_KEYS,
+  EXPENSE_DRAFT_STATUSES,
+} from '@/lib/constants/worker-expense-drafts'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 import { validExpenseDraftSort } from '@/lib/queries/expense-draft-sort'
 import { sortParamToSortingState, sortingStateToParam } from '@/lib/table/sort-param'

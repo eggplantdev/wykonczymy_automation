@@ -1,5 +1,6 @@
 import { MAX_RECEIPT_PAGES } from '@/lib/constants/receipt-scan'
 import { pl } from '@/lib/i18n/dictionaries/pl'
+import type { MessageKeyT } from '@/lib/i18n/translations'
 
 export const EXPENSE_DRAFT_STATUSES = ['pending', 'accepted', 'rejected'] as const
 export type ExpenseDraftStatusT = (typeof EXPENSE_DRAFT_STATUSES)[number]
@@ -7,20 +8,10 @@ export type ExpenseDraftStatusT = (typeof EXPENSE_DRAFT_STATUSES)[number]
 export const isExpenseDraftStatus = (value: string): value is ExpenseDraftStatusT =>
   (EXPENSE_DRAFT_STATUSES as readonly string[]).includes(value)
 
-export const SERVER_SORTABLE_DRAFT_COLUMNS = [
-  'workerName',
-  'investmentName',
-  'sentAt',
-  'status',
-  'decidedAt',
-] as const
-
-export type ServerSortableDraftColumnT = (typeof SERVER_SORTABLE_DRAFT_COLUMNS)[number]
-
-export function isServerSortableDraftColumn(
-  columnId: string,
-): columnId is ServerSortableDraftColumnT {
-  return (SERVER_SORTABLE_DRAFT_COLUMNS as readonly string[]).includes(columnId)
+export const DRAFT_STATUS_LABEL_KEYS: Record<ExpenseDraftStatusT, MessageKeyT<'expenseDrafts'>> = {
+  pending: 'statusPending',
+  accepted: 'statusAccepted',
+  rejected: 'statusRejected',
 }
 
 // The AI reads a draft in one call at send, so a draft never holds more pages than one call takes.

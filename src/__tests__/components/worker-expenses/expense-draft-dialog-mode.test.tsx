@@ -61,6 +61,7 @@ const draftWith = (overrides: Partial<ExpenseDraftRowT>): ExpenseDraftRowT => ({
   transferId: null,
   transferAmount: null,
   transferInvestmentId: null,
+  transferCancelled: null,
   media: [],
   scanMode: 'one-invoice',
   aiRead: undefined,

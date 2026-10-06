@@ -1,16 +1,12 @@
 'use client'
 
 import { BADGE_BASE, BADGE_TONE } from '@/components/ui/badge'
-import type { ExpenseDraftStatusT } from '@/lib/constants/worker-expense-drafts'
+import {
+  DRAFT_STATUS_LABEL_KEYS,
+  type ExpenseDraftStatusT,
+} from '@/lib/constants/worker-expense-drafts'
 import { cn } from '@/lib/utils/cn'
 import { useTranslation } from '@/hooks/use-translation'
-import type { MessageKeyT } from '@/lib/i18n/translations'
-
-export const DRAFT_STATUS_LABEL_KEYS: Record<ExpenseDraftStatusT, MessageKeyT<'expenseDrafts'>> = {
-  pending: 'statusPending',
-  accepted: 'statusAccepted',
-  rejected: 'statusRejected',
-}
 
 const STATUS_TONES: Record<ExpenseDraftStatusT, string> = {
   pending: BADGE_TONE.pending,

@@ -36,6 +36,7 @@ const draft: ExpenseDraftRowT = {
   transferId: null,
   transferAmount: null,
   transferInvestmentId: null,
+  transferCancelled: null,
   media: [{ id: 11, url: '/m/11.jpg', filename: 'leroy.jpg', mimeType: 'image/jpeg' }],
   scanMode: 'one-invoice',
   aiRead: undefined,

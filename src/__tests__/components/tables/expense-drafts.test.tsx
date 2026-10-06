@@ -28,6 +28,7 @@ const accepted: ExpenseDraftRowT = {
   transferAmount: 123.45,
   // The manager moved it to another investment while accepting — the link follows the transaction.
   transferInvestmentId: 9,
+  transferCancelled: false,
   media: [],
   scanMode: 'one-invoice',
   aiRead: undefined,
@@ -42,6 +43,7 @@ const pending: ExpenseDraftRowT = {
   transferId: null,
   transferAmount: null,
   transferInvestmentId: null,
+  transferCancelled: null,
 }
 
 function Table({ rows, isManagerView }: { rows: ExpenseDraftRowT[]; isManagerView: boolean }) {
@@ -93,10 +95,26 @@ describe('useExpenseDraftColumns', () => {
     expect(cell(8, 'transferAmount')).toHaveTextContent('—')
   })
 
+  it('strikes out a cancelled transaction and links to it with the cancelled ones shown', () => {
+    render(<Table rows={[{ ...accepted, transferCancelled: true }]} isManagerView />)
+
+    const link = screen.getByRole('link', { name: formatPLN(123.45) })
+    expect(link).toHaveAttribute('href', '/inwestycje/9?id=41&showCancelled=1')
+    expect(link.firstElementChild).toHaveClass('line-through')
+  })
+
   it('shows a dash for an accepted draft whose transaction was deleted', () => {
     render(
       <Table
-        rows={[{ ...accepted, transferId: null, transferAmount: null, transferInvestmentId: null }]}
+        rows={[
+          {
+            ...accepted,
+            transferId: null,
+            transferAmount: null,
+            transferInvestmentId: null,
+            transferCancelled: null,
+          },
+        ]}
         isManagerView
       />,
     )

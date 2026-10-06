@@ -21,7 +21,6 @@ type PropsT = {
   workers: ReferenceItemT[]
 }
 
-/** The status / inwestycja / pracownik / date filters of a page that decides workers' submissions. */
 export function QueueFilters({ baseUrl, statusOptions, investments, workers }: PropsT) {
   const { getMultiParam, updateParam, updateMultipleParams, isPending } =
     useUrlFilterParams(baseUrl)

@@ -6,6 +6,7 @@ import { readExpenseDraftReceipts } from '@/lib/actions/read-expense-draft-recei
 import { protectedAction, sessionAction, validateAction } from '@/lib/actions/run-action'
 import { RECEIPT_SCAN_MODES } from '@/lib/constants/receipt-scan'
 import { MAX_DRAFT_PAGES } from '@/lib/constants/worker-expense-drafts'
+import { isWorkerLiveRegister } from '@/lib/db/cash-register-gate'
 import { getDb, type DbExecutorT } from '@/lib/db/get-db'
 import { listWorkerStageInvestments } from '@/lib/db/stage-memberships'
 import {
@@ -14,7 +15,6 @@ import {
   decideExpenseDraft,
   deletePendingExpenseDraft,
   insertWorkerExpenseDraft,
-  isWorkerLiveRegister,
   removeExpenseDraftPage,
   restoreRejectedExpenseDraft,
   updatePendingExpenseDraft,

@@ -8,11 +8,14 @@ import { useExpenseDraftColumns } from '@/components/tables/expense-drafts'
 import { ControlGrid } from '@/components/ui/control-grid'
 import { PageNav } from '@/components/ui/pagination/page-nav'
 import { PaginationBar } from '@/components/ui/pagination/pagination-bar'
-import { DRAFT_STATUS_LABEL_KEYS } from '@/components/worker-expenses/draft-status-badge'
 import { DeleteExpenseDraftButton } from '@/components/worker-expenses/delete-expense-draft-button'
 import { ExpenseDraftDialog } from '@/components/worker-expenses/expense-draft-dialog'
+import { useClientMultiFilter } from '@/hooks/use-client-multi-filter'
 import { useTranslation } from '@/hooks/use-translation'
-import { EXPENSE_DRAFT_STATUSES } from '@/lib/constants/worker-expense-drafts'
+import {
+  DRAFT_STATUS_LABEL_KEYS,
+  EXPENSE_DRAFT_STATUSES,
+} from '@/lib/constants/worker-expense-drafts'
 import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 import type { CashRegisterRefT } from '@/types/reference-data'
@@ -21,9 +24,8 @@ import type { CashRegisterRefT } from '@/types/reference-data'
 // filters in state — two URL-driven tables on one page would fight over `page` / `limit` / `investment`.
 const DEFAULT_PAGE_SIZE = 10
 
-// FilterMultiSelect's encoding: [] = no filter, [FILTER_NONE] = nothing ticked — which matches no row.
-const matchesFilter = (values: string[], value: string | number) =>
-  values.length === 0 || values.includes(String(value))
+const getStatus = (draft: ExpenseDraftRowT) => draft.status
+const getInvestment = (draft: ExpenseDraftRowT) => String(draft.investmentId)
 
 type PropsT = {
   drafts: ExpenseDraftRowT[]
@@ -36,10 +38,26 @@ export function WorkerExpenseDraftsTable({ drafts, canSend, investments, registe
   const { t } = useTranslation('expenseDrafts')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
-  const [statusFilter, setStatusFilter] = useState<string[]>([])
-  const [investmentFilter, setInvestmentFilter] = useState<string[]>([])
-  // Only a pending draft can be edited or deleted, so with none waiting the column would stand empty.
-  const hasActions = canSend && drafts.some((draft) => draft.status === 'pending')
+  const newestDraftId = Math.max(0, ...drafts.map((draft) => draft.id))
+  const [seenNewestDraftId, setSeenNewestDraftId] = useState(newestDraftId)
+  // A draft he just sent is listed on page 1 — left on page 3 he would not see it land.
+  if (newestDraftId > seenNewestDraftId) {
+    setSeenNewestDraftId(newestDraftId)
+    setPage(1)
+  }
+
+  const {
+    filteredData: byStatus,
+    values: statusFilter,
+    setValues: setStatusFilter,
+  } = useClientMultiFilter(drafts, getStatus)
+  const {
+    filteredData: filtered,
+    values: investmentFilter,
+    setValues: setInvestmentFilter,
+  } = useClientMultiFilter(byStatus, getInvestment)
+  // Only a pending draft can be edited or deleted, so with none listed the column would stand empty.
+  const hasActions = canSend && filtered.some((draft) => draft.status === 'pending')
   const columns = useExpenseDraftColumns({
     isManagerView: false,
     canEditPages: canSend,
@@ -62,16 +80,10 @@ export function WorkerExpenseDraftsTable({ drafts, canSend, investments, registe
     .map(([id, name]) => ({ value: String(id), label: name }))
     .sort((a, b) => a.label.localeCompare(b.label, 'pl'))
 
-  const filtered = drafts.filter(
-    (draft) =>
-      matchesFilter(statusFilter, draft.status) &&
-      matchesFilter(investmentFilter, draft.investmentId),
-  )
   const totalPages = Math.ceil(filtered.length / pageSize)
   // A delete can shrink the list under the page the worker is on.
   const currentPage = Math.min(page, Math.max(1, totalPages))
 
-  // Any change to what is listed starts over from page 1, as the URL-driven tables do.
   function narrow(apply: () => void) {
     apply()
     setPage(1)
@@ -102,6 +114,7 @@ export function WorkerExpenseDraftsTable({ drafts, canSend, investments, registe
       <DataTable
         data={filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)}
         columns={columns}
+        storageKey="worker-expense-drafts"
       />
       <PaginationBar
         totalDocs={filtered.length}

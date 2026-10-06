@@ -1,6 +1,7 @@
 import { requireManagementPage } from '@/lib/auth/require-management-page'
 import { fetchExpenseDraftsPage } from '@/lib/queries/worker-expense-drafts'
-import { parseExpenseDraftFilters } from '@/lib/queries/expense-draft-filters'
+import { parseQueueFilters } from '@/lib/queries/queue-filters'
+import { isExpenseDraftStatus } from '@/lib/constants/worker-expense-drafts'
 import { parseExpenseDraftSort } from '@/lib/queries/expense-draft-sort'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { parsePagination } from '@/lib/utils/pagination'
@@ -14,7 +15,7 @@ export default async function ExpenseDraftsPage({ searchParams }: PagePropsT) {
   const sp = await searchParams
   const [drafts, referenceDataBase] = await Promise.all([
     fetchExpenseDraftsPage(
-      parseExpenseDraftFilters(sp),
+      parseQueueFilters(sp, isExpenseDraftStatus),
       parsePagination(sp),
       parseExpenseDraftSort(sp),
     ),

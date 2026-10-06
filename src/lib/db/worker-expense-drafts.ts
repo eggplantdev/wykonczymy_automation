@@ -2,20 +2,22 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import type { ScanModeT } from '@/lib/constants/receipt-scan'
 import {
   EXPENSE_DRAFT_STATUSES,
-  isServerSortableDraftColumn,
   type ExpenseDraftStatusT,
-  type ServerSortableDraftColumnT,
 } from '@/lib/constants/worker-expense-drafts'
 import { sortParamColumnId } from '@/lib/table/sort-param'
-import type { DateRangeT } from '@/lib/utils/date-range'
+import type { QueueFiltersT } from '@/types/filters'
 import type { PaginationParamsT } from '@/lib/utils/pagination'
+import {
+  isServerSortableDraftColumn,
+  type ServerSortableDraftColumnT,
+} from '@/lib/worker-expenses/sortable-columns'
 import type { ReferenceItemT } from '@/types/reference-data'
 import type { DeleteProbeT } from './delete-blocker'
 import { expenseDraftReadSchema, type ExpenseDraftReadT } from './expense-draft-read'
 import type { DbExecutorT } from './get-db'
 import { isoOrNull, numOrNull, text, textOrNull } from './row-coerce'
-import { inList, sqlList, type SqlT } from './sql-list'
-import { warsawDayWithin } from './sql-warsaw-day'
+import { queueFiltersWhere } from './queue-filters-where'
+import { sqlList, type SqlT } from './sql-list'
 
 export type ExpenseDraftMediaT = { id: number; url: string; filename: string; mimeType: string }
 
@@ -35,6 +37,7 @@ export type ExpenseDraftRowT = {
   // Read off the transaction, not the draft: the manager may book it to another investment.
   transferAmount: number | null
   transferInvestmentId: number | null
+  transferCancelled: boolean | null
   media: ExpenseDraftMediaT[]
   scanMode: ScanModeT
   aiRead: ExpenseDraftReadT | undefined
@@ -50,11 +53,13 @@ const DRAFT_MEDIA = sql`
   ), '[]'::json)
 `
 
+// The AI read only prefills an acceptance, so a decided draft — most of a history page — leaves it
+// behind instead of shipping it to the browser.
 const DRAFT_SELECT = sql`
   SELECT d.id, d.worker_id, w.name AS worker_name, d.investment_id, i.name AS investment_name,
     d.cash_register_id, d.note, d.status, d.sent_at, d.decided_at, d.transfer_id, d.scan_mode,
-    d.ai_read, ${DRAFT_MEDIA} AS media, decider.name AS decided_by_name, t.amount AS transfer_amount,
-    t.investment_id AS transfer_investment_id
+    CASE WHEN d.status = 'pending' THEN d.ai_read END AS ai_read, ${DRAFT_MEDIA} AS media, decider.name AS decided_by_name, t.amount AS transfer_amount,
+    t.investment_id AS transfer_investment_id, t.cancelled AS transfer_cancelled
   FROM worker_expense_drafts d
   JOIN users w ON w.id = d.worker_id
   JOIN investments i ON i.id = d.investment_id
@@ -93,24 +98,11 @@ function toDraftRow(row: Record<string, unknown>): ExpenseDraftRowT {
     transferId: numOrNull(row.transfer_id),
     transferAmount: numOrNull(row.transfer_amount),
     transferInvestmentId: numOrNull(row.transfer_investment_id),
+    transferCancelled: row.transfer_cancelled == null ? null : row.transfer_cancelled === true,
     media: toDraftMedia(row.media),
     scanMode: row.scan_mode as ScanModeT,
     aiRead: toDraftRead(row.ai_read),
   }
-}
-
-/** A trashed or inactive kasa is no kasa to book into, even the worker's own. */
-export async function isWorkerLiveRegister(
-  db: DbExecutorT,
-  workerId: number,
-  cashRegisterId: number,
-): Promise<boolean> {
-  const res = await db.execute(sql`
-    SELECT 1 FROM cash_registers
-    WHERE id = ${cashRegisterId} AND owner_id = ${workerId}
-      AND trashed_at IS NULL AND active IS NOT FALSE
-  `)
-  return res.rows.length > 0
 }
 
 /**
@@ -193,24 +185,7 @@ export async function countPendingExpenseDrafts(db: DbExecutorT): Promise<number
   return Number(res.rows[0]?.total ?? 0)
 }
 
-/** `null` leaves a dimension unfiltered; an empty list matches nothing (the URL named no valid value). */
-export type ExpenseDraftFiltersT = {
-  statuses: ExpenseDraftStatusT[] | null
-  investmentIds: number[] | null
-  workerIds: number[] | null
-  sentRange: DateRangeT
-}
-
-function draftHistoryWhere(filters: ExpenseDraftFiltersT): SqlT {
-  const conditions = [
-    LISTED_DRAFT,
-    inList(sql`d.status`, filters.statuses),
-    inList(sql`d.investment_id`, filters.investmentIds),
-    inList(sql`d.worker_id`, filters.workerIds),
-    ...warsawDayWithin(sql`d.sent_at`, filters.sentRange),
-  ].filter((condition) => condition !== undefined)
-  return sql.join(conditions, sql.raw(' AND '))
-}
+export type ExpenseDraftFiltersT = QueueFiltersT<ExpenseDraftStatusT>
 
 const QUEUE_ORDER = sql`d.status <> 'pending', d.sent_at DESC, d.id DESC`
 
@@ -233,14 +208,13 @@ function draftHistoryOrderBy(sort: string | undefined): SqlT {
   return sql`${SORT_EXPRESSIONS[column]} ${direction} NULLS LAST, d.sent_at DESC, d.id DESC`
 }
 
-/** Without a `sort`, the pending queue first, then the rest newest first. */
 export async function listExpenseDraftHistory(
   db: DbExecutorT,
   filters: ExpenseDraftFiltersT,
   { page, limit }: PaginationParamsT,
   sort?: string,
 ): Promise<{ rows: ExpenseDraftRowT[]; totalDocs: number }> {
-  const where = draftHistoryWhere(filters)
+  const where = queueFiltersWhere('d', LISTED_DRAFT, filters)
   const [res, countRes] = await Promise.all([
     db.execute(sql`
       ${DRAFT_SELECT}

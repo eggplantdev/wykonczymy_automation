@@ -34,6 +34,18 @@ export function parsePagination(
   return { page, limit }
 }
 
+export function paginationMetaFromCount(
+  totalDocs: number,
+  pagination: PaginationParamsT,
+): PaginationMetaT {
+  return {
+    currentPage: pagination.page,
+    totalPages: Math.max(1, Math.ceil(totalDocs / pagination.limit)),
+    totalDocs,
+    limit: pagination.limit,
+  }
+}
+
 export function buildPaginationMeta(
   result: { page?: number; totalPages: number; totalDocs: number },
   limit: number,

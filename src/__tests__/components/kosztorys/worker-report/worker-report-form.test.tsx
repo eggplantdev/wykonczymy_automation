@@ -97,6 +97,17 @@ describe('the footer switches „Zgłaszam pracę” and „Inwestycja”', () =
       search.current = ''
     }
   })
+
+  it('a link to „Inwestycja” on a kosztorys with no works still opens where he can send', async () => {
+    search.current = 'view=summary'
+    try {
+      renderForm('token', { ...DOCUMENT, tree: tree([], STAGES, []) })
+
+      expect(await screen.findByRole('button', { name: 'Wyślij' })).toBeInTheDocument()
+    } finally {
+      search.current = ''
+    }
+  })
 })
 
 describe('the owner’s „Podgląd pracownika” is the worker’s view, read-only', () => {

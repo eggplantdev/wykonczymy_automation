@@ -242,7 +242,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     let olderPendingId: number
     let newerPendingId: number
     let refusedOnlyId: number
-    let transfer: { id: number; amount: number; investmentId: number }
+    let transfer: { id: number; amount: number; investmentId: number; cancelled: boolean }
 
     const sentOn = (draftId: number, day: string) =>
       db.execute(
@@ -291,13 +291,14 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
         'worker-expense-drafts-db-refused-only',
       )
       const { rows } = await db.execute(sql`
-        SELECT id, amount, investment_id FROM transactions WHERE investment_id IS NOT NULL
+        SELECT id, amount, investment_id, cancelled FROM transactions WHERE investment_id IS NOT NULL
         ORDER BY id LIMIT 1
       `)
       transfer = {
         id: Number(rows[0].id),
         amount: Number(rows[0].amount),
         investmentId: Number(rows[0].investment_id),
+        cancelled: rows[0].cancelled === true,
       }
 
       rejectedId = await pendingDraftOn('history-rejected', historyInvestmentId)
@@ -311,7 +312,6 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
       await sentOn(newerPendingId, '2026-01-04 10:00+01')
       await reject(rejectedId)
       await reject(refusedOnlyId)
-      // The transaction belongs to another investment: the manager rebooked it while accepting.
       await decideExpenseDraft(db, {
         draftId: acceptedId,
         decidedBy: otherWorkerId,
@@ -376,6 +376,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
         transferId: transfer.id,
         transferAmount: transfer.amount,
         transferInvestmentId: transfer.investmentId,
+        transferCancelled: transfer.cancelled,
       })
       expect(transfer.investmentId).not.toBe(historyInvestmentId)
     })

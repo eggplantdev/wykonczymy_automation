@@ -8,13 +8,13 @@ import {
 } from '@/lib/kosztorys/worker-report/sortable-columns'
 import type { ReportLineKindT, ReportSourceT } from '@/lib/kosztorys/worker-report/types'
 import { sortParamColumnId } from '@/lib/table/sort-param'
-import type { DateRangeT } from '@/lib/utils/date-range'
+import type { QueueFiltersT } from '@/types/filters'
 import type { PaginationParamsT } from '@/lib/utils/pagination'
 import type { MediaFileT } from '@/types/media'
 import type { ReferenceItemT } from '@/types/reference-data'
 import type { DbExecutorT } from './get-db'
-import { inList, sqlList, type SqlT } from './sql-list'
-import { warsawDayWithin } from './sql-warsaw-day'
+import { queueFiltersWhere } from './queue-filters-where'
+import { sqlList, type SqlT } from './sql-list'
 import { isoOrNull, numOrNull, text, textOrNull } from './row-coerce'
 
 // Not `server-only`: the users collection's delete guard imports `countReportsByWorker`, and that
@@ -278,24 +278,7 @@ export async function readWorkerReport(
   }
 }
 
-/** `null` leaves a dimension unfiltered; an empty list matches nothing (the URL named no valid value). */
-export type WorkerReportFiltersT = {
-  statuses: ReportStatusT[] | null
-  investmentIds: number[] | null
-  workerIds: number[] | null
-  sentRange: DateRangeT
-}
-
-function decidableReportsWhere(filters: WorkerReportFiltersT): SqlT {
-  const conditions = [
-    DECIDABLE_INVESTMENT,
-    inList(sql`r.status`, filters.statuses),
-    inList(sql`r.investment_id`, filters.investmentIds),
-    inList(sql`r.worker_id`, filters.workerIds),
-    ...warsawDayWithin(sql`r.sent_at`, filters.sentRange),
-  ].filter((condition) => condition !== undefined)
-  return sql.join(conditions, sql.raw(' AND '))
-}
+export type WorkerReportFiltersT = QueueFiltersT<ReportStatusT>
 
 const QUEUE_ORDER = sql`r.status <> 'pending', r.sent_at DESC, r.id DESC`
 
@@ -328,7 +311,7 @@ export async function listDecidableReports(
   { page, limit }: PaginationParamsT,
   sort?: string,
 ): Promise<{ rows: ReportListRowT[]; totalDocs: number }> {
-  const where = decidableReportsWhere(filters)
+  const where = queueFiltersWhere('r', DECIDABLE_INVESTMENT, filters)
   const [res, countRes] = await Promise.all([
     db.execute(sql`
       SELECT ${REPORT_COLUMNS}, i.name AS investment_name

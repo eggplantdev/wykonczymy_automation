@@ -1,5 +1,5 @@
 import type { ResolvedSearchParamsT } from '@/types/page'
-import { isServerSortableDraftColumn } from '@/lib/constants/worker-expense-drafts'
+import { isServerSortableDraftColumn } from '@/lib/worker-expenses/sortable-columns'
 import { sortParamColumnId } from '@/lib/table/sort-param'
 
 /**

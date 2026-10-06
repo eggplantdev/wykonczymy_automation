@@ -1,39 +1,46 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import Link from 'next/link'
 import { createColumnHelper } from '@tanstack/react-table'
+import { OptionalLink } from '@/components/ui/optional-link'
 import { DraftStatusBadge } from '@/components/worker-expenses/draft-status-badge'
 import { ExpenseDraftPagesCell } from '@/components/worker-expenses/expense-draft-pages-cell'
 import { useTranslation } from '@/hooks/use-translation'
-import { isServerSortableDraftColumn } from '@/lib/constants/worker-expense-drafts'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
+import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDateTime } from '@/lib/utils/format-date'
 import { investmentTransfersHref } from '@/lib/utils/investment-transfers-href'
+import { isServerSortableDraftColumn } from '@/lib/worker-expenses/sortable-columns'
 
 const col = createColumnHelper<ExpenseDraftRowT>()
 
 type OptionsT = {
-  /** Management sees every worker's drafts, sorts them and opens the booked transaction. */
   isManagerView: boolean
-  /** The worker adds and removes photos on his own pending drafts. */
   canEditPages?: boolean
   actions?: (draft: ExpenseDraftRowT) => ReactNode
 }
 
 function ExpenseCell({ draft, isLinked }: { draft: ExpenseDraftRowT; isLinked: boolean }) {
   if (draft.transferAmount === null) return '—'
-  const amount = <span className="tabular-nums">{formatPLN(draft.transferAmount)}</span>
-  if (!isLinked || draft.transferId === null || draft.transferInvestmentId === null) return amount
-  return (
-    <Link
-      href={investmentTransfersHref(draft.transferInvestmentId, { id: draft.transferId })}
-      className="hover:underline"
+  const amount = (
+    <span
+      className={cn(
+        'tabular-nums',
+        draft.transferCancelled && 'text-muted-foreground line-through',
+      )}
     >
-      {amount}
-    </Link>
+      {formatPLN(draft.transferAmount)}
+    </span>
   )
+  const href =
+    isLinked && draft.transferId !== null && draft.transferInvestmentId !== null
+      ? investmentTransfersHref(draft.transferInvestmentId, {
+          id: draft.transferId,
+          showCancelled: draft.transferCancelled === true,
+        })
+      : undefined
+  return <OptionalLink href={href}>{amount}</OptionalLink>
 }
 
 export function useExpenseDraftColumns({ isManagerView, canEditPages = false, actions }: OptionsT) {

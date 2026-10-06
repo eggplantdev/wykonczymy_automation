@@ -1,6 +1,6 @@
 'use server'
 
-import { managementDb } from '@/lib/queries/worker-reports-list'
+import { managementDb } from '@/lib/queries/management-db'
 import {
   listWorkerReports,
   readWorkerReport,

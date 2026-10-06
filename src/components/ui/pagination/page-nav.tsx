@@ -12,22 +12,16 @@ import {
 import { getWindowedPages } from './get-windowed-pages'
 import { useTranslation } from '@/hooks/use-translation'
 
+const JUMP_SIZE = 5
+
 type PageNavPropsT = {
   currentPage: number
   totalPages: number
-  /** Wraps one control — a link for URL paging, a button for local state. `isInert` = it would go nowhere. */
+  /** Wraps one control. `isInert` = it would go nowhere. */
   renderPage: (page: number, isInert: boolean, children: ReactNode) => ReactNode
-  className?: string
-  jumpSize?: number
 }
 
-export function PageNav({
-  currentPage,
-  totalPages,
-  renderPage,
-  className,
-  jumpSize = 5,
-}: PageNavPropsT) {
+export function PageNav({ currentPage, totalPages, renderPage }: PageNavPropsT) {
   const { t } = useTranslation('filters')
 
   if (totalPages <= 1) return null
@@ -37,7 +31,7 @@ export function PageNav({
   const isLastPage = currentPage >= totalPages
 
   return (
-    <Pagination className={className} aria-label={t('pagination')}>
+    <Pagination aria-label={t('pagination')}>
       <PaginationContent>
         {!visiblePages.includes(1) && (
           <PaginationItem>
@@ -47,11 +41,11 @@ export function PageNav({
 
         <PaginationItem>
           {renderPage(
-            Math.max(1, currentPage - jumpSize),
+            Math.max(1, currentPage - JUMP_SIZE),
             isFirstPage,
             <PaginationPrevious
               isDisabled={isFirstPage}
-              label={t('jumpBack', { count: jumpSize })}
+              label={t('jumpBack', { count: JUMP_SIZE })}
             />,
           )}
         </PaginationItem>
@@ -70,11 +64,11 @@ export function PageNav({
 
         <PaginationItem>
           {renderPage(
-            Math.min(totalPages, currentPage + jumpSize),
+            Math.min(totalPages, currentPage + JUMP_SIZE),
             isLastPage,
             <PaginationNext
               isDisabled={isLastPage}
-              label={t('jumpForward', { count: jumpSize })}
+              label={t('jumpForward', { count: JUMP_SIZE })}
             />,
           )}
         </PaginationItem>

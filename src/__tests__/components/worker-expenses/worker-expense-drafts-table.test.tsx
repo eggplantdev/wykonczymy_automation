@@ -33,6 +33,7 @@ const draft = (id: number, overrides: Partial<ExpenseDraftRowT> = {}): ExpenseDr
   transferId: 100 + id,
   transferAmount: 50,
   transferInvestmentId: 3,
+  transferCancelled: false,
   media: [],
   scanMode: 'one-invoice',
   aiRead: undefined,
@@ -120,6 +121,37 @@ describe('WorkerExpenseDraftsTable', () => {
 
     expect(shownIds()).toEqual(drafts.slice(0, 20).map((row) => row.id))
     expect(push).not.toHaveBeenCalled()
+  })
+
+  it('opens page 1 when a newly sent draft arrives, where it is listed', async () => {
+    const user = userEvent.setup()
+    const { rerender } = renderTable(drafts)
+    await user.click(screen.getByRole('button', { name: /3$/ }))
+
+    const sent = draft(30, { status: 'pending', decidedAt: null, transferId: null })
+    rerender(
+      <WorkerExpenseDraftsTable
+        drafts={[sent, ...drafts]}
+        canSend
+        investments={[]}
+        registers={[]}
+      />,
+    )
+
+    expect(shownIds()[0]).toBe(30)
+  })
+
+  it('drops the actions column once the filter leaves no pending draft', async () => {
+    const user = userEvent.setup()
+    renderTable([draft(1, { status: 'pending', decidedAt: null, transferId: null }), draft(2)])
+    const columnsWithPending = screen.getAllByRole('columnheader').length
+
+    await user.click(screen.getByRole('button', { name: /^Status/ }))
+    await user.click(screen.getByRole('option', { name: 'Odznacz wszystkie' }))
+    await user.click(screen.getByRole('option', { name: 'przyjęty' }))
+    await user.keyboard('{Escape}')
+
+    expect(screen.getAllByRole('columnheader')).toHaveLength(columnsWithPending - 1)
   })
 
   it('shows the amount without a link to the transaction', () => {
