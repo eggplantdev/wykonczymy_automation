@@ -89,6 +89,7 @@ export function ExpenseDraftDialog({ investments, registers, defaultRegisterId, 
       investmentId: Number(investmentId),
       cashRegisterId: Number(cashRegisterId),
       note,
+      scanMode: draft?.scanMode ?? 'one-invoice',
     }
     if (draft) return updateExpenseDraftAction({ draftId: draft.id, ...fields })
     return submitWithUploads(

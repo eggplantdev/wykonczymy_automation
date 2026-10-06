@@ -31,6 +31,7 @@ import type { Where } from 'payload'
 import config from '../payload.config'
 import { PREVIEW_BLOB_STORE_ID, PROD_BLOB_STORE_ID } from '../lib/env/schema'
 import { MEDIA_RELATIONS, mediaReferenceWhere } from '@/lib/media/relating-collections'
+import { blobPublicUrl, blobStoreIdOf } from '@/lib/media/blob-public-url'
 
 const run = promisify(execFile)
 
@@ -127,7 +128,7 @@ const HEIC_WHERE: Where = {
  */
 function resolveTarget() {
   const token = process.env.BLOB_READ_WRITE_TOKEN
-  const store = token ? /^vercel_blob_rw_([A-Za-z0-9]+)_/.exec(token)?.[1] : undefined
+  const store = token ? blobStoreIdOf(token) : undefined
   if (!store) fail('BLOB_READ_WRITE_TOKEN missing or unrecognised — cannot locate the store')
 
   // The DB is an independent axis from the store, and both are hand-typed on the command line. One
@@ -175,11 +176,8 @@ function resolveTarget() {
   if (isProdStore)
     console.log(`\n⚠️  --allow-prod: rewriting PRODUCTION media (${PROD_BLOB_STORE_ID})`)
 
-  return { base: `https://${store}.public.blob.vercel-storage.com` }
+  return { store }
 }
-
-/** Filenames predate `sanitizeFileName`, so they may hold characters that would build a wrong URL. */
-const blobUrl = (base: string, filename: string) => `${base}/${encodeURIComponent(filename)}`
 
 async function fetchBlob(url: string, init?: RequestInit) {
   return fetch(url, { ...init, signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) })
@@ -235,11 +233,11 @@ async function convert(source: string, target: string) {
 }
 
 async function main() {
-  const { base } = resolveTarget()
+  const { store } = resolveTarget()
   const payload = await getPayload({ config })
 
   if (has('--verify')) {
-    await verify(payload, base)
+    await verify(payload, store)
     return
   }
 
@@ -288,7 +286,7 @@ async function main() {
   // --- Phase A: snapshot everything, or abort before a single write. ---
   for (const row of rows) {
     const filename = row.filename as string
-    const response = await fetchBlob(blobUrl(base, filename))
+    const response = await fetchBlob(blobPublicUrl(store, filename))
     if (!response.ok) {
       fail(
         `ABORT before any write: ${filename} (id=${row.id}) is not in the store (${response.status}). ` +
@@ -387,7 +385,7 @@ async function main() {
   )
 }
 
-async function verify(payload: PayloadT, base: string) {
+async function verify(payload: PayloadT, store: string) {
   const raw = await readFile(MANIFEST, 'utf8').catch(() => null)
   if (raw === null) {
     fail(`No manifest at ${MANIFEST} — the run never got as far as writing one. Nothing to verify.`)
@@ -412,7 +410,7 @@ async function verify(payload: PayloadT, base: string) {
       // A green row with a 404 behind it is the failure mode this exists to catch: Payload's
       // afterChange deletes first and uploads second, so a half-failed update leaves exactly that.
       // Three bytes settle it, so ask for three.
-      const response = await fetchBlob(blobUrl(base, doc.filename as string), {
+      const response = await fetchBlob(blobPublicUrl(store, doc.filename as string), {
         headers: { Range: 'bytes=0-2' },
       })
       if (!response.ok) {

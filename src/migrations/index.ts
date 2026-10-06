@@ -122,6 +122,7 @@ import * as migration_20261005_3_add_worker_expense_drafts from './20261005_3_ad
 import * as migration_20261005_4_add_worker_report_line_translations from './20261005_4_add_worker_report_line_translations'
 import * as migration_20261005_5_add_kosztorys_item_ref from './20261005_5_add_kosztorys_item_ref'
 import * as migration_20261005_6_add_worker_report_scan from './20261005_6_add_worker_report_scan'
+import * as migration_20261006_1_add_worker_expense_draft_read from './20261006_1_add_worker_expense_draft_read'
 
 export const migrations = [
   {
@@ -743,5 +744,10 @@ export const migrations = [
     up: migration_20261005_6_add_worker_report_scan.up,
     down: migration_20261005_6_add_worker_report_scan.down,
     name: '20261005_6_add_worker_report_scan',
+  },
+  {
+    up: migration_20261006_1_add_worker_expense_draft_read.up,
+    down: migration_20261006_1_add_worker_expense_draft_read.down,
+    name: '20261006_1_add_worker_expense_draft_read',
   },
 ]

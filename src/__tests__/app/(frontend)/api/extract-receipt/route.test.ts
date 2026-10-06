@@ -13,7 +13,7 @@ vi.mock('@/lib/ai/scan-receipt', () => ({
 }))
 
 const { POST } = await import('@/app/(frontend)/api/extract-receipt/route')
-const { MAX_RECEIPT_PAGES } = await import('@/lib/ai/openrouter')
+const { MAX_RECEIPT_PAGES } = await import('@/lib/constants/receipt-scan')
 
 function page(name = 'p.jpg', type = 'image/jpeg', bytes = 'x') {
   return new File([bytes], name, { type })

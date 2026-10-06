@@ -24,6 +24,7 @@ import {
   showsOtherCategory,
 } from '@/lib/constants/transfers'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
+import type { ScanModeT } from '@/lib/constants/receipt-scan'
 import {
   makeLineItem,
   type BulkExpenseFormApiT,
@@ -48,9 +49,6 @@ type CategoryFieldConfigT = {
 // Mirrors the receipt picker's accept="image/*,application/pdf" for dropped files, which carry no filter.
 const isReceiptFile = (file: File) =>
   file.type.startsWith('image/') || file.type === 'application/pdf'
-
-// What the picked photos mean: N separate expenses, or N pages of one expense's invoice.
-type ScanModeT = 'one-per-photo' | 'one-invoice'
 
 const SCAN_MODE_OPTIONS: OptionT<ScanModeT>[] = [
   { value: 'one-per-photo', label: 'Kilka wydatków' },
