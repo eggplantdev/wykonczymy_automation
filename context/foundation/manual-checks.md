@@ -3983,7 +3983,7 @@ zgłoszenie oczekujące, jedno przyjęte i jedno odrzucone.
 
 ## 2026-10-06 — transfers-type-column-width — szersza kolumna „Typ” w tabeli transakcji
 
-- [ ] Transakcje → kolumna „Typ”: „Wydatek inwestycyjny” mieści się w jednej linii; plakietka
+- [x] Transakcje → kolumna „Typ”: „Wydatek inwestycyjny” mieści się w jednej linii; plakietka
       „od pracownika” może zejść pod spód.
 
 ## 2026-10-06 — qa-pass-fixes — poprawki z przeglądu (j.m., przyciski w języku konta, przytrzymanie wierszy)
@@ -4028,30 +4028,30 @@ Szablon z kilkuset pracami w kilku sekcjach (np. szablon 165).
 
 Konto właściciela, kosztorys z liczbą pozycji wystarczającą do przewijania.
 
-- [ ] Pigułka w sidebarze wygląda i działa jak dotąd (zwijanie/rozwijanie, powiększenie na hover).
-- [ ] Otwórz „Podsumowanie” → pigułka siedzi na górnej krawędzi panelu, widoczna nad zamrożonymi
+- [x] Pigułka w sidebarze wygląda i działa jak dotąd (zwijanie/rozwijanie, powiększenie na hover).
+- [x] Otwórz „Podsumowanie” → pigułka siedzi na górnej krawędzi panelu, widoczna nad zamrożonymi
       kolumnami.
-- [ ] Przeciągnij pigułkę do ok. połowy: panel idzie za kursorem; po puszczeniu kosztorys się skraca,
+- [x] Przeciągnij pigułkę do ok. połowy: panel idzie za kursorem; po puszczeniu kosztorys się skraca,
       kosztorys i panel stykają się bez przerwy i bez nakładania, a ostatnią pozycję da się
       przewinąć nad panel.
-- [ ] Puść poniżej ok. 15% → panel się zwija; przycisk „Podsumowanie” otwiera go na poprzedniej
+- [x] Puść poniżej ok. 15% → panel się zwija; przycisk „Podsumowanie” otwiera go na poprzedniej
       wysokości.
-- [ ] Puść powyżej ok. 90% → panel wskakuje na pełną wysokość; po zwinięciu kosztorys jest
+- [x] Puść powyżej ok. 90% → panel wskakuje na pełną wysokość; po zwinięciu kosztorys jest
       przewinięty tam, gdzie był.
-- [ ] Kliknięcie pigułki bez przeciągania zwija panel.
-- [ ] Przeładuj stronę → wysokość wraca; inny kosztorys otwiera się na tej samej wysokości.
-- [ ] Na ok. 20% wysokości pasek przełącznika widoku mieści się, a zawartość panelu się przewija.
+- [x] Kliknięcie pigułki bez przeciągania zwija panel.
+- [x] Przeładuj stronę → wysokość wraca; inny kosztorys otwiera się na tej samej wysokości.
+- [x] Na ok. 20% wysokości pasek przełącznika widoku mieści się, a zawartość panelu się przewija.
 - [ ] Link klienta (podgląd tego samego kosztorysu) → ta sama pigułka i ten sam podział.
-- [ ] Zmiana rozmiaru okna przy podzielonym ekranie → kosztorys i panel dalej się stykają.
+- [x] Zmiana rozmiaru okna przy podzielonym ekranie → kosztorys i panel dalej się stykają.
 
 ### Review gate fixes
 
-- [ ] Panel na pełnej wysokości → cała pigułka widoczna tuż pod paskiem narzędzi (nie ucięta w pół).
-- [ ] Podzielony ekran → kliknięcie komórki w ostatnim widocznym wierszu tuż nad panelem (z dala od
+- [x] Panel na pełnej wysokości → cała pigułka widoczna tuż pod paskiem narzędzi (nie ucięta w pół).
+- [x] Podzielony ekran → kliknięcie komórki w ostatnim widocznym wierszu tuż nad panelem (z dala od
       pigułki) zaznacza komórkę, panel się nie zwija; poziomy pasek przewijania kosztorysu działa.
-- [ ] Kliknięcie pigułki z lekkim drgnięciem myszy dalej zwija panel.
-- [ ] Podzielony ekran → przeładuj stronę: panel od razu stoi na swojej wysokości, bez zjeżdżania.
-- [ ] Podzielony ekran ok. 60% → wyszukaj frazę bez trafień: „Brak wyników” i „Wyczyść” widoczne nad
+- [x] Kliknięcie pigułki z lekkim drgnięciem myszy dalej zwija panel.
+- [x] Podzielony ekran → przeładuj stronę: panel od razu stoi na swojej wysokości, bez zjeżdżania.
+- [x] Podzielony ekran ok. 60% → wyszukaj frazę bez trafień: „Brak wyników” i „Wyczyść” widoczne nad
       panelem; to samo dla pustego kosztorysu („Pobierz z arkusza Google…”) i filtra, który wszystko
       ukrył („Zresetuj filtry”).
 - [ ] Telefon (390px), panel otwarty → „Pokaż narzędzia” otwiera menu nad panelem.
@@ -4064,8 +4064,11 @@ Odczyt AI kosztuje — na stagingu wysyłaj po kilka zdjęć.
 - [ ] Pracownik → „Edytuj wydatek" przy zgłoszeniu z 2+ zdjęciami: przełącznik startuje z trybu, w jakim zgłoszenie wysłano.
 - [ ] Pracownik wysyła 2 zdjęcia jednego paragonu („Jeden wydatek"); po minucie kierownik → „Zobacz": jedna pozycja z wypełnionym Opisem, kwotą i netto, plik nazwany od Opisu (druga strona z `-2`), bez paska „Odczytywanie paragonów…" przy otwarciu.
 - [ ] Pracownik wysyła 3 osobne paragony („Kilka wydatków") → „Zobacz": trzy pozycje, każda z własnym zdjęciem i kwotami.
-- [ ] Kierownik klika „Zobacz" kilka sekund po wysłaniu: pozycje są puste, z przyciskiem „Odczytaj dodane zdjęcia"; kliknięcie je wypełnia, a przycisk znika.
-- [ ] Paragon, którego AI nie przeczyta: jego pozycja otwiera się pusta, „Odczytaj dodane zdjęcia" odczytuje go na żądanie.
+- [ ] Kierownik klika „Zobacz" kilka sekund po wysłaniu: dialog otwiera się od razu z pustymi, zablokowanymi pozycjami i „Zapisz", widać pasek „Odczytywanie paragonów…"; po odczycie pozycje się wypełniają i odblokowują.
+- [ ] To samo zgłoszenie: zamknij dialog i znów „Zobacz" → pozycje od razu wypełnione, bez paska „Odczytywanie paragonów…".
+- [ ] W dialogu zgłoszenia przy pozycji ze zdjęciem „Odczytaj ponownie" → tylko ta pozycja odczytuje się na nowo i nadpisuje wpisany ręcznie Opis i kwotę; pozostałe pozycje bez zmian.
+- [ ] Pod pozycjami: w pierwszym rzędzie „Dodaj pozycję" i przełącznik „Kilka / Jeden", w drugim „Wygeneruj z paragonów" (i „Odczytaj dodane zdjęcia", gdy jest pusta pozycja ze zdjęciem).
+- [ ] Paragon, którego AI nie przeczyta (np. zdjęcie niebędące paragonem): jego pozycja otwiera się z Opisem „NIE UDAŁO SIĘ ODCZYTAĆ !!! :(", tak jak po „Wygeneruj z paragonów", i „Zapisz" jej nie przepuszcza, dopóki Opis się nie zmieni; zamknięcie i ponowne „Zobacz" nie odczytuje go drugi raz (bez paska „Odczytywanie paragonów…"); „Odczytaj ponownie" przy tej pozycji odczytuje ją na żądanie.
 - [ ] Pracownik usuwa zdjęcie po odczycie: dialog kierownika pokazuje kwoty pozostałego zdjęcia, nie usuniętego.
 - [ ] Zwykły „Nowy wydatek": zdjęcie dodane do pozycji przez jej pole FV przy pustym Opisie → pojawia się „Odczytaj dodane zdjęcia" i odczytuje je.
 - [ ] Pracownik → „Dodaj wydatek" → 9 zdjęć: pod polem zdjęć „Najwyżej 8 zdjęć w jednym wydatku — wyślij resztę osobno.", „Wyślij" nieaktywny; po usunięciu jednego „Wyślij" działa.
