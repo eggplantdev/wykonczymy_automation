@@ -4239,3 +4239,12 @@ Potrzebna paczka PDF-ów Telmaka za jeden miesiąc (WV / KWV / WZ / FP) i kasa T
 
 - [ ] Menu boczne (rozwinięte) → klik w swoje imię na dole: otwiera się Twoja strona pracownika. Na telefonie to samo z menu; będąc już na tej stronie, klik zamyka menu.
 - [ ] Jako pracownik: klik w imię otwiera jego własną stronę, bez „brak dostępu”.
+
+## EX-1009 — skipped-receipt-restore — pominięty paragon: filtr statusu i „Przywróć” (2026-10-06)
+
+Potrzebne przyjęte zgłoszenie „Kilka wydatków”, z którego przy przyjmowaniu wyrzucono jeden paragon.
+
+- [ ] „Zgłoszenia wydatków” → „Status” tylko „odrzucony”: obok całych odrzuconych zgłoszeń są pominięte paragony przyjętych zgłoszeń, każdy ze swoim zdjęciem. Tylko „przyjęty”: żadnego wiersza z plakietką „odrzucony”.
+- [ ] „Pokaż 10” przy zgłoszeniu z kilkoma paragonami: na stronie dokładnie 10 wierszy, a „N wyników” to liczba wszystkich wierszy na wszystkich stronach.
+- [ ] Sortowanie po „Status”: wszystkie wiersze „odrzucony” (z pominiętymi paragonami) stoją w jednym bloku.
+- [ ] Strona pracownika → „Zgłoszone wydatki”: to zgłoszenie rozbite na te same wiersze co na „Zgłoszenia wydatków”; filtr statusu działa tak samo.

@@ -25,7 +25,7 @@ type OptionsT = {
   actions?: (draft: ExpenseDraftRowT) => ReactNode
 }
 
-// `splitByReceipt` leaves a row at most one transakcja.
+// A history row stands for one paragon, so it carries at most one transakcja.
 function TransferCell({ draft, isLinked }: { draft: ExpenseDraftRowT; isLinked: boolean }) {
   const [transfer] = draft.transfers
   if (!transfer) return '—'

@@ -14,6 +14,7 @@ import {
   listWorkerExpenseDrafts,
   restoreRejectedExpenseDraft,
   type ExpenseDraftFiltersT,
+  type ExpenseDraftRowT,
 } from '@/lib/db/worker-expense-drafts'
 import { cashRegisterDeleteBlocker } from '@/lib/cash-registers/delete-blocker'
 import { investmentDeleteBlocker } from '@/lib/investments/delete-blocker'
@@ -251,6 +252,11 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     let refusedOnlyInvestmentId: number
     let rejectedId: number
     let acceptedId: number
+    let acceptedPages: number[]
+    let oneTransferId: number
+    let oneTransferPages: number[]
+    let unbookedId: number
+    let unbookedPages: number[]
     let olderPendingId: number
     let newerPendingId: number
     let refusedOnlyId: number
@@ -265,6 +271,14 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
       const draftId = await draftOf([await insertMedia(name, workerId)], onInvestment)
       if (draftId === null) throw new Error('draft fixture refused')
       return draftId
+    }
+
+    async function multiPageDraft(name: string, pageCount: number) {
+      const pages: number[] = []
+      for (let i = 0; i < pageCount; i++) pages.push(await insertMedia(`${name}-${i}`, workerId))
+      const draftId = await draftOf(pages, historyInvestmentId)
+      if (draftId === null) throw new Error('draft fixture refused')
+      return { draftId, pages }
     }
 
     const NO_FILTERS: ExpenseDraftFiltersT = {
@@ -304,7 +318,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
       )
       const { rows } = await db.execute(sql`
         SELECT id, amount, investment_id, cancelled FROM transactions
-        WHERE id IN (${sqlList(await unlinkedTransferIds(2))})
+        WHERE id IN (${sqlList(await unlinkedTransferIds(3))})
         ORDER BY id
       `)
       transfers = rows.map((row) => ({
@@ -315,7 +329,12 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
       }))
 
       rejectedId = await pendingDraftOn('history-rejected', historyInvestmentId)
-      acceptedId = await pendingDraftOn('history-accepted', historyInvestmentId)
+      ;({ draftId: acceptedId, pages: acceptedPages } = await multiPageDraft('history-accepted', 3))
+      ;({ draftId: oneTransferId, pages: oneTransferPages } = await multiPageDraft(
+        'history-one-transfer',
+        2,
+      ))
+      ;({ draftId: unbookedId, pages: unbookedPages } = await multiPageDraft('history-unbooked', 2))
       olderPendingId = await pendingDraftOn('history-pending-old', historyInvestmentId)
       newerPendingId = await pendingDraftOn('history-pending-new', historyInvestmentId)
       refusedOnlyId = await pendingDraftOn('history-refused-only', refusedOnlyInvestmentId)
@@ -323,15 +342,37 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
       await sentOn(olderPendingId, '2026-01-02 10:00+01')
       await sentOn(acceptedId, '2026-01-03 10:00+01')
       await sentOn(newerPendingId, '2026-01-04 10:00+01')
+      await sentOn(oneTransferId, '2026-01-05 10:00+01')
+      await sentOn(unbookedId, '2026-01-06 10:00+01')
       await reject(rejectedId)
       await reject(refusedOnlyId)
       await decideExpenseDraft(db, {
         draftId: acceptedId,
         decidedBy: otherWorkerId,
         status: 'accepted',
-        transferIds: transfers.map((booked) => booked.id),
+        transferIds: [transfers[0].id, transfers[1].id],
+        transferMediaIds: [[acceptedPages[0]], [acceptedPages[1]]],
+        skippedReceipts: [[acceptedPages[2]]],
+      })
+      // Booked from its first page only, but as the zgłoszenie's one row it shows both.
+      await decideExpenseDraft(db, {
+        draftId: oneTransferId,
+        decidedBy: otherWorkerId,
+        status: 'accepted',
+        transferIds: [transfers[2].id],
+        transferMediaIds: [[oneTransferPages[0]]],
+      })
+      // Its transakcja since deleted: the link cascaded away, the skipped paragon stays.
+      await decideExpenseDraft(db, {
+        draftId: unbookedId,
+        decidedBy: otherWorkerId,
+        status: 'accepted',
+        transferIds: [],
+        skippedReceipts: [[unbookedPages[1]]],
       })
     })
+
+    const pageIds = (row: ExpenseDraftRowT) => row.media.map((page) => page.id)
 
     afterAll(async () => {
       await db.execute(sql`
@@ -345,7 +386,17 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     })
 
     it('lists the pending queue first, then the rest newest first', async () => {
-      expect(await historyIds()).toEqual([newerPendingId, olderPendingId, acceptedId, rejectedId])
+      expect(await historyIds()).toEqual([
+        newerPendingId,
+        olderPendingId,
+        unbookedId,
+        unbookedId,
+        oneTransferId,
+        acceptedId,
+        acceptedId,
+        acceptedId,
+        rejectedId,
+      ])
     })
 
     it('an unknown sort keeps the queue order', async () => {
@@ -354,7 +405,12 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
 
     it('a column sort overrides the queue', async () => {
       expect(await historyIds({}, 1, 50, '-sentAt')).toEqual([
+        unbookedId,
+        unbookedId,
+        oneTransferId,
         newerPendingId,
+        acceptedId,
+        acceptedId,
         acceptedId,
         olderPendingId,
         rejectedId,
@@ -365,12 +421,15 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
       expect(await history({ statuses: ['pending'] })).toMatchObject({ totalDocs: 2 })
       expect(await historyIds({ statuses: ['pending'] })).toEqual([newerPendingId, olderPendingId])
 
-      const secondPage = await history({}, 2, 2)
-      expect(secondPage.totalDocs).toBe(4)
-      expect(secondPage.rows.map((draft) => draft.id)).toEqual([acceptedId, rejectedId])
+      // Counted and paged per paragon row, not per zgłoszenie.
+      const thirdPage = await history({}, 3, 2)
+      expect(thirdPage.totalDocs).toBe(9)
+      expect(thirdPage.rows.map((draft) => draft.id)).toEqual([oneTransferId, acceptedId])
 
       expect(await history({ workerIds: [otherWorkerId] })).toEqual({ rows: [], totalDocs: 0 })
       expect(await historyIds({ sentRange: { from: '2026-01-03', to: '2026-01-03' } })).toEqual([
+        acceptedId,
+        acceptedId,
         acceptedId,
       ])
     })
@@ -383,9 +442,11 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
 
     // Linking by the draft's investment would open a list the booked transaction is not on.
     it('reads the decider and every booked transaction off the transactions', async () => {
-      const accepted = (await history({ statuses: ['accepted'] })).rows[0]
-      expect(accepted).toMatchObject({ decidedByName: 'Drafts B', transfers })
-      expect(transfers).toHaveLength(2)
+      const accepted = (await history({ statuses: ['accepted'] })).rows.filter(
+        (row) => row.id === acceptedId,
+      )
+      expect(accepted.map((row) => row.decidedByName)).toEqual(['Drafts B', 'Drafts B'])
+      expect(accepted.flatMap((row) => row.transfers)).toEqual(transfers.slice(0, 2))
       expect(transfers[0].investmentId).not.toBe(historyInvestmentId)
     })
 
@@ -411,13 +472,66 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     it('keeps an accepted draft listed after its investment went to the trash', async () => {
       await setTrashed('investments', historyInvestmentId, true)
       try {
-        expect(await historyIds({ statuses: ['accepted'] })).toEqual([acceptedId])
+        expect(new Set(await historyIds({ statuses: ['accepted'] }))).toEqual(
+          new Set([unbookedId, oneTransferId, acceptedId]),
+        )
         expect((await listWorkerExpenseDrafts(db, workerId)).map((draft) => draft.id)).toContain(
           acceptedId,
         )
       } finally {
         await setTrashed('investments', historyInvestmentId, false)
       }
+    })
+
+    // The status filter reads each paragon's own badge, so „odrzucony” catches a skipped one.
+    it('filters by the paragon row, each with only its own pages', async () => {
+      const rejected = await history({ statuses: ['rejected'] })
+      expect(rejected.totalDocs).toBe(3)
+      expect(
+        rejected.rows.map((row) => [row.id, row.skippedReceipt !== undefined, pageIds(row)]),
+      ).toEqual([
+        [unbookedId, true, [unbookedPages[1]]],
+        [acceptedId, true, [acceptedPages[2]]],
+        [rejectedId, false, expect.any(Array)],
+      ])
+
+      const accepted = await history({ statuses: ['accepted'] })
+      expect(accepted.totalDocs).toBe(4)
+      expect(accepted.rows.some((row) => row.skippedReceipt)).toBe(false)
+      expect(accepted.rows.filter((row) => row.id === acceptedId).map(pageIds)).toEqual([
+        [acceptedPages[0]],
+        [acceptedPages[1]],
+      ])
+    })
+
+    it('a zgłoszenie that lists as one row shows all its pages', async () => {
+      const rows = (await history()).rows
+      expect(rows.filter((row) => row.id === oneTransferId).map(pageIds)).toEqual([
+        oneTransferPages,
+      ])
+      expect(
+        rows.filter((row) => row.id === unbookedId).map((row) => [row.status, pageIds(row)]),
+      ).toEqual([
+        ['accepted', unbookedPages],
+        ['rejected', [unbookedPages[1]]],
+      ])
+    })
+
+    it('a status sort puts skipped paragony in the „odrzucony” block', async () => {
+      expect((await history({}, 1, 50, 'status')).rows.map((row) => row.status)).toEqual([
+        ...Array(2).fill('pending'),
+        ...Array(4).fill('accepted'),
+        ...Array(3).fill('rejected'),
+      ])
+    })
+
+    it('the worker list carries the same paragon rows', async () => {
+      const listed = new Set([acceptedId, oneTransferId, unbookedId, rejectedId])
+      const workerRows = (await listWorkerExpenseDrafts(db, workerId)).filter((row) =>
+        listed.has(row.id),
+      )
+      const historyRows = (await history()).rows.filter((row) => listed.has(row.id))
+      expect(workerRows).toEqual(historyRows)
     })
 
     it('the badge counts exactly the drafts the pending block lists', async () => {

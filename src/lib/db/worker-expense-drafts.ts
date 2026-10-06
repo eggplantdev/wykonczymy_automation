@@ -17,7 +17,7 @@ import { expenseDraftReadSchema, type ExpenseDraftReadT } from './expense-draft-
 import type { DbExecutorT } from './get-db'
 import { isoOrNull, numOrNull, text, textOrNull } from './row-coerce'
 import { queueFiltersWhere } from './queue-filters-where'
-import { sqlList, type SqlT } from './sql-list'
+import { inList, sqlList, type SqlT } from './sql-list'
 
 export type ExpenseDraftMediaT = { id: number; url: string; filename: string; mimeType: string }
 
@@ -27,8 +27,6 @@ export type ExpenseDraftTransferT = {
   amount: number
   investmentId: number | null
   cancelled: boolean
-  // The draft's pages this transakcja was booked from; empty for one accepted before paragons were kept.
-  mediaIds?: number[]
 }
 
 export type ExpenseDraftRowT = {
@@ -44,10 +42,8 @@ export type ExpenseDraftRowT = {
   decidedAt: string | null
   decidedByName: string | null
   transfers: ExpenseDraftTransferT[]
-  // Pages of each paragon the manager skipped while accepting the rest.
-  skippedReceipts?: number[][]
-  // A row standing for one skipped paragon of an accepted zgłoszenie, not for the zgłoszenie.
-  isSkippedReceipt?: boolean
+  // Set on a history row standing for one paragon the manager skipped while accepting the rest.
+  skippedReceipt?: { id: number }
   media: ExpenseDraftMediaT[]
   scanMode: ScanModeT
   aiRead: ExpenseDraftReadT | undefined
@@ -63,22 +59,15 @@ const DRAFT_MEDIA = sql`
   ), '[]'::json)
 `
 
+const TRANSFER_JSON = sql`json_build_object(
+  'id', t.id, 'amount', t.amount, 'investmentId', t.investment_id, 'cancelled', t.cancelled
+)`
+
 const DRAFT_TRANSFERS = sql`
   COALESCE((
-    SELECT json_agg(json_build_object(
-      'id', t.id, 'amount', t.amount, 'investmentId', t.investment_id, 'cancelled', t.cancelled,
-      'mediaIds', dt.media_ids
-    ) ORDER BY t.id)
+    SELECT json_agg(${TRANSFER_JSON} ORDER BY t.id)
     FROM worker_expense_draft_transfers dt JOIN transactions t ON t.id = dt.transfer_id
     WHERE dt.draft_id = d.id
-  ), '[]'::json)
-`
-
-const DRAFT_SKIPPED_RECEIPTS = sql`
-  COALESCE((
-    SELECT json_agg(sr.media_ids ORDER BY sr.id)
-    FROM worker_expense_draft_skipped_receipts sr
-    WHERE sr.draft_id = d.id
   ), '[]'::json)
 `
 
@@ -88,8 +77,7 @@ const DRAFT_SELECT = sql`
   SELECT d.id, d.worker_id, w.name AS worker_name, d.investment_id, i.name AS investment_name,
     d.cash_register_id, d.note, d.status, d.sent_at, d.decided_at, d.scan_mode,
     CASE WHEN d.status = 'pending' THEN d.ai_read END AS ai_read, ${DRAFT_MEDIA} AS media,
-    ${DRAFT_TRANSFERS} AS transfers, ${DRAFT_SKIPPED_RECEIPTS} AS skipped_receipts,
-    decider.name AS decided_by_name
+    ${DRAFT_TRANSFERS} AS transfers, decider.name AS decided_by_name
   FROM worker_expense_drafts d
   JOIN users w ON w.id = d.worker_id
   JOIN investments i ON i.id = d.investment_id
@@ -105,17 +93,12 @@ function toDraftMedia(value: unknown): ExpenseDraftMediaT[] {
   }))
 }
 
-function toMediaIds(value: unknown): number[] {
-  return ((value ?? []) as unknown[]).map(Number)
-}
-
 function toDraftTransfers(value: unknown): ExpenseDraftTransferT[] {
   return ((value ?? []) as Record<string, unknown>[]).map((t) => ({
     id: Number(t.id),
     amount: Number(t.amount),
     investmentId: numOrNull(t.investmentId),
     cancelled: t.cancelled === true,
-    mediaIds: toMediaIds(t.mediaIds),
   }))
 }
 
@@ -139,7 +122,7 @@ function toDraftRow(row: Record<string, unknown>): ExpenseDraftRowT {
     decidedAt: isoOrNull(row.decided_at),
     decidedByName: textOrNull(row.decided_by_name),
     transfers: toDraftTransfers(row.transfers),
-    skippedReceipts: ((row.skipped_receipts ?? []) as unknown[]).map(toMediaIds),
+    ...(row.receipt_id != null && { skippedReceipt: { id: Number(row.receipt_id) } }),
     media: toDraftMedia(row.media),
     scanMode: row.scan_mode as ScanModeT,
     aiRead: toDraftRead(row.ai_read),
@@ -194,14 +177,63 @@ const PARTIES_NOT_TRASHED = sql`
 // An accepted draft stands behind a booked expense, so it stays listed whatever went to the trash.
 const LISTED_DRAFT = sql`(d.status <> 'rejected' OR (${PARTIES_NOT_TRASHED}))`
 
+// A decided zgłoszenie lists one row per paragon: each booked transakcja, each skipped paragon as
+// „odrzucony”, and a draft-level row when no transakcja is linked (pending, rejected, or its
+// transakcja deleted). The count runs before any filter, so filtering by status never changes which
+// pages a row shows: a lone row shows them all, as does a transakcja booked before paragony kept pages.
+const PARAGON_ROWS = sql`
+  WITH paragons AS (
+    SELECT dt.draft_id, d.status AS row_status, dt.transfer_id, NULL::int AS receipt_id,
+      dt.media_ids, 0 AS kind, dt.transfer_id AS part
+    FROM worker_expense_draft_transfers dt JOIN worker_expense_drafts d ON d.id = dt.draft_id
+    UNION ALL
+    SELECT sr.draft_id, 'rejected', NULL, sr.id, sr.media_ids, 1, sr.id
+    FROM worker_expense_draft_skipped_receipts sr
+    UNION ALL
+    SELECT d.id, d.status, NULL, NULL, '{}'::int[], 0, 0
+    FROM worker_expense_drafts d
+    WHERE NOT EXISTS (SELECT 1 FROM worker_expense_draft_transfers dt WHERE dt.draft_id = d.id)
+  ), pr AS (
+    SELECT p.*, count(*) OVER (PARTITION BY p.draft_id) AS row_count FROM paragons p
+  )
+`
+
+const PARAGON_FROM = sql`FROM pr JOIN worker_expense_drafts d ON d.id = pr.draft_id`
+
+const PARAGON_SELECT = sql`
+  ${PARAGON_ROWS}
+  SELECT d.id, d.worker_id, w.name AS worker_name, d.investment_id, i.name AS investment_name,
+    d.cash_register_id, d.note, pr.row_status AS status, d.sent_at, d.decided_at, d.scan_mode,
+    CASE WHEN d.status = 'pending' THEN d.ai_read END AS ai_read, pr.receipt_id,
+    COALESCE((
+      SELECT json_agg(json_build_object(
+        'id', m.id, 'url', m.url, 'filename', m.filename, 'mimeType', m.mime_type
+      ) ORDER BY dm.position)
+      FROM worker_expense_draft_media dm JOIN media m ON m.id = dm.media_id
+      WHERE dm.draft_id = d.id
+        AND (pr.row_count = 1 OR cardinality(pr.media_ids) = 0 OR dm.media_id = ANY(pr.media_ids))
+    ), '[]'::json) AS media,
+    COALESCE((
+      SELECT json_agg(${TRANSFER_JSON}) FROM transactions t WHERE t.id = pr.transfer_id
+    ), '[]'::json) AS transfers,
+    decider.name AS decided_by_name
+  ${PARAGON_FROM}
+  JOIN users w ON w.id = d.worker_id
+  JOIN investments i ON i.id = d.investment_id
+  LEFT JOIN users decider ON decider.id = d.decided_by
+`
+
+// Keeps a zgłoszenie's rows together, transakcje before skipped paragony.
+const PARAGON_ORDER = sql`d.id DESC, pr.kind, pr.part`
+
 export async function listWorkerExpenseDrafts(
   db: DbExecutorT,
   workerId: number,
 ): Promise<ExpenseDraftRowT[]> {
   const res = await db.execute(sql`
-    ${DRAFT_SELECT}
+    ${PARAGON_SELECT}
     WHERE d.worker_id = ${workerId} AND ${LISTED_DRAFT}
-    ORDER BY d.sent_at DESC, d.id DESC
+    ORDER BY d.sent_at DESC, ${PARAGON_ORDER}
   `)
   return res.rows.map(toDraftRow)
 }
@@ -228,7 +260,7 @@ export async function countPendingExpenseDrafts(db: DbExecutorT): Promise<number
 
 export type ExpenseDraftFiltersT = QueueFiltersT<ExpenseDraftStatusT>
 
-const QUEUE_ORDER = sql`d.status <> 'pending', d.sent_at DESC, d.id DESC`
+const QUEUE_ORDER = sql`d.status <> 'pending', d.sent_at DESC, ${PARAGON_ORDER}`
 
 const SORT_EXPRESSIONS: Record<ServerSortableDraftColumnT, SqlT> = {
   workerName: sql`w.name`,
@@ -236,7 +268,7 @@ const SORT_EXPRESSIONS: Record<ServerSortableDraftColumnT, SqlT> = {
   sentAt: sql`d.sent_at`,
   decidedAt: sql`d.decided_at`,
   // Queue order rather than alphabetical, which would put „Przyjęte" ahead of „Czeka".
-  status: sql`array_position(ARRAY[${sqlList(EXPENSE_DRAFT_STATUSES)}]::text[], d.status)`,
+  status: sql`array_position(ARRAY[${sqlList(EXPENSE_DRAFT_STATUSES)}]::text[], pr.row_status)`,
 }
 
 // An unknown column falls back to the queue, since the column picks a SQL fragment, not a bound
@@ -246,7 +278,7 @@ function draftHistoryOrderBy(sort: string | undefined): SqlT {
   const column = sortParamColumnId(sort)
   if (!isServerSortableDraftColumn(column)) return QUEUE_ORDER
   const direction = sql.raw(sort.startsWith('-') ? 'DESC' : 'ASC')
-  return sql`${SORT_EXPRESSIONS[column]} ${direction} NULLS LAST, d.sent_at DESC, d.id DESC`
+  return sql`${SORT_EXPRESSIONS[column]} ${direction} NULLS LAST, d.sent_at DESC, ${PARAGON_ORDER}`
 }
 
 export async function listExpenseDraftHistory(
@@ -255,15 +287,17 @@ export async function listExpenseDraftHistory(
   { page, limit }: PaginationParamsT,
   sort?: string,
 ): Promise<{ rows: ExpenseDraftRowT[]; totalDocs: number }> {
-  const where = queueFiltersWhere('d', LISTED_DRAFT, filters)
+  // The status filter reads the paragon's own badge; `LISTED_DRAFT` still reads the zgłoszenie's.
+  const where = sql`${queueFiltersWhere('d', LISTED_DRAFT, { ...filters, statuses: null })}
+    AND ${inList(sql`pr.row_status`, filters.statuses) ?? sql`true`}`
   const [res, countRes] = await Promise.all([
     db.execute(sql`
-      ${DRAFT_SELECT}
+      ${PARAGON_SELECT}
       WHERE ${where}
       ORDER BY ${draftHistoryOrderBy(sort)}
       LIMIT ${limit} OFFSET ${(page - 1) * limit}
     `),
-    db.execute(sql`SELECT count(*)::int AS total FROM worker_expense_drafts d WHERE ${where}`),
+    db.execute(sql`${PARAGON_ROWS} SELECT count(*)::int AS total ${PARAGON_FROM} WHERE ${where}`),
   ])
   return { rows: res.rows.map(toDraftRow), totalDocs: Number(countRes.rows[0]?.total ?? 0) }
 }

@@ -18,7 +18,6 @@ import {
 } from '@/lib/constants/worker-expense-drafts'
 import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
-import { splitByReceipt } from '@/lib/worker-expenses/split-by-receipt'
 import type { CashRegisterRefT } from '@/types/reference-data'
 
 // The page also pages and filters transfers through the URL, so this table keeps its page, limit and
@@ -60,7 +59,7 @@ export function WorkerExpenseDraftsTable({
     filteredData: byStatus,
     values: statusFilter,
     setValues: setStatusFilter,
-  } = useClientMultiFilter(splitByReceipt(drafts), getStatus, DEFAULT_STATUS_FILTER)
+  } = useClientMultiFilter(drafts, getStatus, DEFAULT_STATUS_FILTER)
   const {
     filteredData: filtered,
     values: investmentFilter,
