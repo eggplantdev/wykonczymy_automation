@@ -4205,3 +4205,7 @@ inwestycji, z transakcjami i zgłoszonymi wydatkami; konto kierownika.
 - [ ] Pracownik na swojej stronie → „Moje inwestycje” → klik w nazwę inwestycji: otwiera się jego strona zgłoszenia prac od razu na „Inwestycja” (jego rozliczenie); „Zgłoś prace” dalej otwiera „Zgłaszam pracę”. Kierownik na stronie pracownika widzi nazwę bez linku.
 - [ ] „Zgłoszone wydatki” u pracownika: filtry „Status” i „Inwestycja” (tylko inwestycje z jego zgłoszeń) zawężają tabelę i licznik wyników, „Pokaż” zmienia liczbę wierszy (domyślnie 10); każda z tych zmian wraca na stronę 1 i nie zmienia adresu. Przy 390px oba filtry stoją obok siebie.
 - [ ] Transakcje (kierownik): czekające zgłoszenia dalej przypięte na górze z „Zobacz”, przyjęty wydatek ma plakietkę „od pracownika”; w tabeli nie ma odrzuconych zgłoszeń, w filtrach nie ma przełącznika „Zgłoszone wydatki”, a stary adres `/?workerDrafts=1` pokazuje zwykłą listę.
+
+## 2026-10-06 — cash-register-edit-button
+
+- [ ] Kasa → strona kasy: przycisk „Edytuj” ma szerokość swojej treści, tak jak na stronie pracownika i sprzętu, i dalej otwiera „Edytuj kasę”.

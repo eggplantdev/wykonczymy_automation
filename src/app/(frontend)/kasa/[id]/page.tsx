@@ -62,11 +62,13 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
 
   return (
     <PageWrapper title={register.name}>
-      <EditCashRegisterDialog
-        register={register}
-        workers={refData.workers}
-        isOwnerLocked={isOwnerLocked}
-      />
+      <div className="flex flex-wrap gap-2">
+        <EditCashRegisterDialog
+          register={register}
+          workers={refData.workers}
+          isOwnerLocked={isOwnerLocked}
+        />
+      </div>
       <InfoList items={[{ label: 'Właściciel', value: ownerName }]} />
       <SignedMoneyDisplay amount={registerBalance} />
 
