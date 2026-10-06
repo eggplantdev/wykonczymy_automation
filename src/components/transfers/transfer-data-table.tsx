@@ -17,10 +17,7 @@ import type {
   TransferRowsFetchT,
   TransferTableConfigT,
 } from '@/components/transfers/transfer-table-config'
-import {
-  fetchFilteredTransfers,
-  fetchWorkerTransfers,
-} from '@/lib/queries/fetch-transfers-for-invoices'
+import { fetchFilteredTransfers } from '@/lib/queries/fetch-transfers-for-invoices'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 import { sortParamToSortingState, sortingStateToParam } from '@/lib/table/sort-param'
 import { validTransferSort } from '@/lib/queries/transfer-sort'
@@ -52,13 +49,9 @@ export function TransferDataTable({
     listsCancelled,
     invoiceDownload,
     print,
-    workerScope,
   } = config
 
-  const fetchRows: TransferRowsFetchT = (opts) =>
-    workerScope === undefined
-      ? fetchFilteredTransfers(config.query.where, opts)
-      : fetchWorkerTransfers(workerScope, Object.fromEntries(searchParams), opts)
+  const fetchRows: TransferRowsFetchT = (opts) => fetchFilteredTransfers(config.query.where, opts)
 
   // The same whitelist the server used, so a hand-edited `?sort=` the page refused cannot leave the
   // header arrow — or the printout, which reads this state — pointing somewhere else.

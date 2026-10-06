@@ -12,6 +12,8 @@ import { LabelHintIcon, type LabelHintT } from '@/components/ui/label-hint-icon'
 export const SUMMARY_LABEL_COL = 'minmax(min(7rem, 24vw), 16rem)'
 // Every trailing column (netto / brutto / udział) shares one width so they read as an even set.
 export const SUMMARY_VALUE_COL = 'minmax(min(5.5rem, 22vw), 9rem)'
+// Wider than the label track because an entity name (an investment's) runs long.
+export const SUMMARY_NAME_COL = 'minmax(min(9rem, 36vw), 20rem)'
 
 // Separators are real cell borders, not a `bg-border` container bleeding through `gap-px`: a gap is
 // layout space, so backgrounds round over it at fractional row offsets and separators vanish.

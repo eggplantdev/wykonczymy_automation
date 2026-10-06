@@ -75,7 +75,7 @@ export const pl = {
     inactive: 'Nieaktywny',
     defaultLanguage: 'Domyślny język',
     defaultRegister: 'Domyślna kasa',
-    transfers: 'Transfery',
+    transfers: 'Moje transfery',
     myRegisters: 'Moje kasy',
     noRegisters: 'Nie ma żadnej kasy.',
     register: 'Kasa',
@@ -87,6 +87,7 @@ export const pl = {
     serialNumber: 'Nr seryjny',
     since: 'Od',
     myInvestments: 'Moje inwestycje',
+    myInvestmentsHint: 'Aktywne inwestycje, w których jestem przypisany do któregoś etapu.',
     noInvestments: 'Brak aktywnych inwestycji.',
     noInvestmentToReport:
       'Żeby zgłosić pracę, musisz być przypisany do któregoś z etapów aktywnej inwestycji.',
@@ -110,7 +111,8 @@ export const pl = {
     passwordMismatch: 'Hasła nie są takie same.',
   },
   expenseDrafts: {
-    title: 'Moje wydatki',
+    title: 'Zgłoszone wydatki',
+    hint: 'Wydatki, które wysłałem kierownikowi do zatwierdzenia.',
     noRegister: 'Nie masz kasy — poproś kierownika o jej założenie.',
     noInvestment:
       'Żeby dodać wydatek, musisz być przypisany do któregoś z etapów aktywnej inwestycji.',

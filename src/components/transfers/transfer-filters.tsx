@@ -23,13 +23,13 @@ import { ClearButton } from '@/components/filters/clear-button'
 import { DateFilters } from '@/components/filters/date-filters'
 import { StatButton } from '@/components/ui/stat-button'
 import { formatPLN } from '@/lib/utils/format-currency'
-import { TRANSFER_TYPES, PAYMENT_METHODS } from '@/lib/constants/transfers'
+import { PAYMENT_METHODS } from '@/lib/constants/transfers'
 import { useTranslation } from '@/hooks/use-translation'
 import { useUrlFilterParams } from '@/hooks/use-url-filter-params'
 import { useToggleSearchParam } from '@/hooks/use-toggle-search-param'
 import { cn } from '@/lib/utils/cn'
 import { Loader } from '@/components/ui/loader/loader'
-import type { ReferenceItemT } from '@/types/reference-data'
+import type { FilterConfigT } from '@/types/filters'
 
 const DEBOUNCE_MS = 600
 
@@ -52,16 +52,7 @@ const ENTITY_FILTER_KEYS = [
   'workerDrafts',
 ] as const
 
-type TransferFiltersPropsT = {
-  cashRegisters?: ReferenceItemT[]
-  investments?: ReferenceItemT[]
-  users?: ReferenceItemT[]
-  workers?: ReferenceItemT[]
-  otherCategories?: ReferenceItemT[]
-  expenseCategories?: ReferenceItemT[]
-  showTypeFilter?: boolean
-  showPaymentMethodFilter?: boolean
-  showWorkerDraftsFilter?: boolean
+type TransferFiltersPropsT = FilterConfigT & {
   baseUrl: string
   className?: string
   totalFilteredAmount?: number
@@ -76,8 +67,10 @@ export function TransferFilters({
   workers,
   otherCategories,
   expenseCategories,
-  showTypeFilter = true,
+  transferTypes,
   showPaymentMethodFilter = false,
+  showCancelledFilter = true,
+  showSearchFilters = true,
   showWorkerDraftsFilter = false,
   baseUrl,
   className,
@@ -147,7 +140,7 @@ export function TransferFilters({
   return (
     <div className={cn('flex flex-col gap-3', className)}>
       <Loader loading={isPending} portal />
-      {(showTypeFilter ||
+      {((transferTypes && transferTypes.length > 0) ||
         (cashRegisters && cashRegisters.length > 0) ||
         (investments && investments.length > 0) ||
         (users && users.length > 0) ||
@@ -157,11 +150,11 @@ export function TransferFilters({
         (expenseCategories && expenseCategories.length > 0) ||
         showWorkerDraftsFilter) && (
         <ControlGrid>
-          {showTypeFilter && (
+          {transferTypes && transferTypes.length > 0 && (
             <FilterMultiSelect
               values={currentTypes}
               onValuesChange={(types) => updateParam('type', types.join(','))}
-              options={TRANSFER_TYPES.map((type) => ({
+              options={transferTypes.map((type) => ({
                 value: type,
                 label: t(`type_${type}`),
               }))}
@@ -267,25 +260,31 @@ export function TransferFilters({
           happened to stop on a narrow screen. Outside the guard above too — search works with no
           entity filters present. */}
       <ControlGrid>
-        <SearchFilterInput
-          value={currentAmount}
-          onChange={(v) => updateParam('amount', v)}
-          placeholder={t('searchAmount')}
-          inputMode="decimal"
-          className={SEARCH_FILTER_TOOLBAR_WIDTH}
-          debounceMs={DEBOUNCE_MS}
-        />
+        {showSearchFilters && (
+          <>
+            <SearchFilterInput
+              value={currentAmount}
+              onChange={(v) => updateParam('amount', v)}
+              placeholder={t('searchAmount')}
+              inputMode="decimal"
+              className={SEARCH_FILTER_TOOLBAR_WIDTH}
+              debounceMs={DEBOUNCE_MS}
+            />
 
-        <SearchFilterInput
-          value={currentId}
-          onChange={(v) => updateParam('id', stripNonDigits(v))}
-          placeholder={t('searchId')}
-          inputMode="numeric"
-          className={SEARCH_FILTER_TOOLBAR_WIDTH}
-          debounceMs={DEBOUNCE_MS}
-        />
+            <SearchFilterInput
+              value={currentId}
+              onChange={(v) => updateParam('id', stripNonDigits(v))}
+              placeholder={t('searchId')}
+              inputMode="numeric"
+              className={SEARCH_FILTER_TOOLBAR_WIDTH}
+              debounceMs={DEBOUNCE_MS}
+            />
+          </>
+        )}
 
-        <FilterMultiSelect label={t('filterCancelled')} icon={Ban} toggles={cancelledToggles} />
+        {showCancelledFilter && (
+          <FilterMultiSelect label={t('filterCancelled')} icon={Ban} toggles={cancelledToggles} />
+        )}
 
         <ClearButton onClick={clearEntityFilters} disabled={!hasEntityFilters}>
           {t('clearFilters')}

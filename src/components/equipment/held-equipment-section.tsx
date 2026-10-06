@@ -1,6 +1,7 @@
 import { OptionalLink } from '@/components/ui/optional-link'
+import { SectionHeader } from '@/components/ui/section-header'
 import {
-  SUMMARY_LABEL_COL,
+  SUMMARY_NAME_COL,
   SUMMARY_VALUE_COL,
   SummaryHeaderCell,
   SummaryLabelCell,
@@ -11,7 +12,7 @@ import type { EquipmentRowT } from '@/lib/equipment/types'
 import { createTranslator } from '@/lib/i18n/translations'
 import type { LanguageT } from '@/lib/i18n/languages'
 
-const COLS = `${SUMMARY_LABEL_COL} 1fr ${SUMMARY_VALUE_COL}`
+const COLS = `${SUMMARY_NAME_COL} auto ${SUMMARY_VALUE_COL}`
 
 /**
  * What one person (or one warehouse) is holding — the question that gets asked at a rozliczenie or
@@ -33,9 +34,8 @@ export function HeldEquipmentSection({
 
   return (
     <div>
-      <h2 className="mb-2 text-sm font-semibold">{t('heldEquipment')}</h2>
-
-      <SummaryTable cols={COLS}>
+      <SectionHeader title={t('heldEquipment')} />
+      <SummaryTable cols={COLS} className="w-fit text-sm">
         <SummaryHeaderCell variant="label">{t('equipment')}</SummaryHeaderCell>
         <SummaryHeaderCell variant="label">{t('serialNumber')}</SummaryHeaderCell>
         <SummaryHeaderCell variant="label">{t('since')}</SummaryHeaderCell>

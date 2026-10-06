@@ -86,6 +86,21 @@ Design agreed 2026-10-06 — still brainstorming; a spike validates it before `/
 - „Przegląd AI" = „Oferta" + AI przedmiar, Status, Powód zmiany, Notatka do pracy, Komentarz (the
   agent's source for the quantity).
 
+**Spike (2026-10-06) — built, not yet tried in the browser**
+
+- Branch `spike/kosztorys-ai-knowledge-loop`, worktree `../wykonczymy-worktrees/kosztorys-ai-knowledge-loop`.
+  Not pushed, not merged; throwaway — the real change goes through `/10x-plan`.
+- Its migration (`ai_planned_qty`, `change_reason`, `review_status` on items, `work_note` on katalog) is
+  applied to the local 5433 DB. Investment 171 („test”) holds the case-1 AI draft; reload it with
+  `INV=171 node --env-file=.env --conditions=react-server --import tsx src/scripts/spike-ai-draft.ts`
+  (resets status and reason).
+- Cut on purpose: snapshots / sheet import / szablon strip ignore the new fields, no `hasAiDraft` gate,
+  Powód zmiany doesn't wrap, the /katalog-prac note is read-only, no tests.
+- Questions the spike must answer: does auto-status on a typed Przedmiar feel right; is the note dialog
+  the right edit surface; does „Przegląd AI” as a fixed view work. „Oferta” waits on
+  `offer-hides-remaining`. Manual checks: `manual-checks.md` § „2026-10-06 — kosztorys-ai-review (spike)”
+  on the spike branch.
+
 Out of scope: rules that belong to no single praca („one section per bathroom"), per-author attribution
 and note history, an agent-facing API (the experiment's scripts write AI przedmiar through the existing
 item save action, which accepts the field; no grid cell sends it), storing a position's katalog origin (the opis-rewrite limit).

@@ -34,11 +34,6 @@ export type TransferTableConfigT = {
    * SILENT: a page that forgets to set it compiles clean with no button, so verify each host.
    */
   print?: boolean
-  /**
-   * The worker page's id. Faktury/Drukuj then fetch through `fetchWorkerTransfers`, which rebuilds
-   * the scope on the server from this id and the URL.
-   */
-  workerScope?: number
   /** Listed above the first page's transfers, outside its count — they are not transfers. */
   rejectedDrafts?: ExpenseDraftRowT[]
 }

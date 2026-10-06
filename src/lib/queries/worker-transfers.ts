@@ -21,7 +21,7 @@ export function buildWorkerTransferWhere(urlFilters: Where, scope: Where): Where
   return { ...urlFilters, and: [scope] }
 }
 
-/** The worker page's access boundary — the screen and its Faktury / Drukuj channel must read one. */
+/** The worker page's access boundary. */
 export function workerPageTransferWhere(
   searchParams: ResolvedSearchParamsT,
   viewerId: number,

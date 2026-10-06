@@ -10,7 +10,7 @@ import type {
 } from '@/types/investment-financials'
 import { buildSqlConditions, isNoResultsSentinel } from '@/lib/db/where-to-sql'
 import { getDb } from '@/lib/db/get-db'
-import { DEPOSIT_TYPES } from '@/lib/constants/transfers'
+import { DEPOSIT_TYPES, type TransferTypeT } from '@/lib/constants/transfers'
 import { SETTLEMENT_MODE_DEFAULT, type SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 
 // Parameterized `(type, …)` IN-list derived from the single DEPOSIT_TYPES source, so the
@@ -282,4 +282,33 @@ export const sumFilteredByType = async (
     total: Number(row.total),
     netTotal: Number(row.net_total ?? 0),
   }))
+}
+
+export type TransferFacetsT = { investmentIds: number[]; types: TransferTypeT[] }
+
+export const listTransferFacets = async (
+  payload: Payload,
+  where: Where,
+): Promise<TransferFacetsT> => {
+  if (isNoResultsSentinel(where)) return { investmentIds: [], types: [] }
+
+  const db = await getDb(payload)
+  const result = await db.execute(
+    sql.raw(`
+      SELECT
+        COALESCE(ARRAY_AGG(DISTINCT investment_id) FILTER (WHERE investment_id IS NOT NULL), '{}')
+          AS investment_ids,
+        COALESCE(ARRAY_AGG(DISTINCT type::text), '{}') AS types
+      FROM transactions
+      WHERE cancelled IS NOT TRUE
+        AND type <> 'CANCELLATION'
+        ${buildSqlConditions(where)}
+    `),
+  )
+
+  const row = result.rows[0]
+  return {
+    investmentIds: (row.investment_ids as unknown[]).map(Number),
+    types: row.types as TransferTypeT[],
+  }
 }

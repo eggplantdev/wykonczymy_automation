@@ -1,7 +1,8 @@
 import { Fragment } from 'react'
 import { Description } from '@/components/ui/description'
+import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import {
-  SUMMARY_LABEL_COL,
+  SUMMARY_NAME_COL,
   SummaryHeaderCell,
   SummaryLabelCell,
   SummaryTable,
@@ -18,7 +19,7 @@ import { isActiveRef } from '@/lib/utils/is-active-ref'
 import { createTranslator } from '@/lib/i18n/translations'
 import type { LanguageT } from '@/lib/i18n/languages'
 
-const COLS = `${SUMMARY_LABEL_COL} auto auto minmax(min(16rem, 40vw), 1fr) auto`
+const COLS = `${SUMMARY_NAME_COL} auto auto minmax(min(16rem, 40vw), 1fr) auto`
 
 type PropsT = {
   drafts: ExpenseDraftRowT[]
@@ -45,23 +46,30 @@ export function WorkerExpenseDraftsSection({
   const sendableRegisters = registers.filter(isActiveRef)
 
   return (
-    <div className="max-w-4xl">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold">{t('title')}</h2>
-        {canSend && sendableRegisters.length > 0 && investments.length > 0 && (
+    <CollapsibleSection
+      className="max-w-4xl"
+      title={t('title')}
+      hint={t('hint')}
+      storageKey="worker:expenseDrafts"
+      withSeparator={false}
+      action={
+        canSend &&
+        sendableRegisters.length > 0 &&
+        investments.length > 0 && (
           <ExpenseDraftDialog
             investments={investments}
             registers={sendableRegisters}
             defaultRegisterId={defaultRegisterId}
           />
-        )}
-      </div>
+        )
+      }
+    >
       {canSend && sendableRegisters.length === 0 && <Description>{t('noRegister')}</Description>}
       {canSend && investments.length === 0 && <Description>{t('noInvestment')}</Description>}
       {drafts.length === 0 ? (
         <Description>{t('empty')}</Description>
       ) : (
-        <SummaryTable cols={showActions ? `${COLS} auto` : COLS}>
+        <SummaryTable cols={showActions ? `${COLS} auto` : COLS} className="text-sm">
           <SummaryHeaderCell variant="label">{t('investment')}</SummaryHeaderCell>
           <SummaryHeaderCell variant="label">{t('sentAt')}</SummaryHeaderCell>
           <SummaryHeaderCell variant="label">{t('attachments')}</SummaryHeaderCell>
@@ -110,6 +118,6 @@ export function WorkerExpenseDraftsSection({
           ))}
         </SummaryTable>
       )}
-    </div>
+    </CollapsibleSection>
   )
 }

@@ -14,9 +14,12 @@ import { fetchRegisterBalances } from '@/lib/queries/balances'
 import { fetchEquipmentAtLocation } from '@/lib/queries/equipment'
 import { fetchWorkerStageInvestments } from '@/lib/queries/worker-stage-investments'
 import { fetchWorkerExpenseDrafts } from '@/lib/queries/worker-expense-drafts'
-import { workerPageTransferWhere } from '@/lib/queries/worker-transfers'
-import { buildFilterConfig } from '@/lib/utils/build-filter-config'
+import { workerPageTransferWhere, workerTransferScope } from '@/lib/queries/worker-transfers'
+import { fetchTransferFacets } from '@/lib/queries/transfer-totals'
+import { TRANSFER_TYPES } from '@/lib/constants/transfers'
+import { toOptions } from '@/lib/utils/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
+import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { HeldEquipmentSection } from '@/components/equipment/held-equipment-section'
 import { OwnedRegistersSection } from '@/components/users/owned-registers-section'
 import { WorkerInvestmentsSection } from '@/components/users/worker-investments-section'
@@ -27,6 +30,9 @@ import { AccountCredentialsDialog } from '@/components/dialogs/account-credentia
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
 import type { DynamicPagePropsT } from '@/types/page'
+
+// Hidden at one option: the few rows it would set apart don't earn a control.
+const offeredIfChoice = <T,>(options: T[]) => (options.length > 1 ? options : undefined)
 
 export default async function UserDetailPage({ params, searchParams }: DynamicPagePropsT) {
   const session = await requireAuth(ROLES)
@@ -42,10 +48,21 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
 
   const userId = Number(id)
   const isOwnPage = currentUser.id === userId
-  const [locale, refData, balances, heldEquipment, stageInvestments, expenseDrafts] =
+  const refDataPromise = fetchReferenceData()
+  // The scope alone, not the URL filters: picking one option must not shrink its own list.
+  const facetsPromise = refDataPromise.then(({ cashRegisters }) =>
+    fetchTransferFacets(
+      workerTransferScope(
+        userId,
+        visibleWorkerRegisters(cashRegisters, userId, currentUser.role).map(({ id }) => id),
+      ),
+    ),
+  )
+  const [locale, refData, facets, balances, heldEquipment, stageInvestments, expenseDrafts] =
     await Promise.all([
       fetchUserLanguage(currentUser.id),
-      fetchReferenceData(),
+      refDataPromise,
+      facetsPromise,
       fetchRegisterBalances(),
       fetchEquipmentAtLocation({ kind: 'holder', id: userId }),
       fetchWorkerStageInvestments(userId),
@@ -61,12 +78,12 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
     : undefined
 
   const registers = visibleWorkerRegisters(refData.cashRegisters, userId, currentUser.role)
-  const transferWhere = workerPageTransferWhere(
-    sp,
-    currentUser.id,
-    userId,
-    registers.map((register) => register.id),
+  const registerIds = registers.map((register) => register.id)
+  const transferWhere = workerPageTransferWhere(sp, currentUser.id, userId, registerIds)
+  const transferInvestments = refData.investments.filter(({ id }) =>
+    facets.investmentIds.includes(id),
   )
+  const transferTypes = TRANSFER_TYPES.filter((type) => facets.types.includes(type))
 
   const { t } = createTranslator(locale, 'workerPage')
   const infoFields = [
@@ -85,7 +102,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
   ]
 
   return (
-    <PageWrapper title={worker.name}>
+    <PageWrapper title={worker.name} className="pb-20 sm:pb-20 lg:pb-20">
       {(isManager || isOwnPage) && (
         <div className="flex flex-wrap gap-2">
           {isManager && <EditWorkerDialog worker={worker} cashRegisters={refData.cashRegisters} />}
@@ -114,22 +131,33 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
         defaultRegisterId={worker.defaultCashRegisterId}
         locale={locale}
       />
-      <TransfersSection
+      <CollapsibleSection
         title={t('transfers')}
-        config={{
-          query: { where: transferWhere, page, limit, sort },
-          baseUrl: `/pracownicy/${id}`,
-          excludeColumns: isManager ? ['worker'] : ['worker', 'actions'],
-          filters: {
-            ...buildFilterConfig(refData, ['users', 'workers', 'expenseCategories', 'type']),
-            cashRegisters: registers.map(({ id, name }) => ({ id, name })),
-          },
-          invoiceDownload: true,
-          print: true,
-          workerScope: userId,
-          cancelledTransactionAudit: sp.cancelledTransactionAudit === '1',
-        }}
-      />
+        storageKey="worker:transfers"
+        defaultOpen={false}
+        withSeparator={false}
+      >
+        <TransfersSection
+          config={{
+            query: { where: transferWhere, page, limit, sort },
+            baseUrl: `/pracownicy/${id}`,
+            excludeColumns: isManager
+              ? ['worker']
+              : ['worker', 'actions', 'vatPlane', 'paymentMethod', 'createdAt'],
+            filters: {
+              cashRegisters: offeredIfChoice(toOptions(registers)),
+              investments: offeredIfChoice(toOptions(transferInvestments)),
+              transferTypes: offeredIfChoice(transferTypes),
+              otherCategories: toOptions(refData.otherCategories),
+              showCancelledFilter: false,
+              showSearchFilters: false,
+            },
+            invoiceDownload: isManager,
+            print: isManager,
+            cancelledTransactionAudit: sp.cancelledTransactionAudit === '1',
+          }}
+        />
+      </CollapsibleSection>
     </PageWrapper>
   )
 }

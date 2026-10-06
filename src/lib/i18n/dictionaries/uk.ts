@@ -67,7 +67,7 @@ export const uk: TranslationsT = {
     inactive: 'Неактивний',
     defaultLanguage: 'Мова за замовчуванням',
     defaultRegister: 'Каса за замовчуванням',
-    transfers: 'Операції',
+    transfers: 'Мої операції',
     myRegisters: 'Мої каси',
     noRegisters: 'Немає жодної каси.',
     register: 'Каса',
@@ -79,6 +79,7 @@ export const uk: TranslationsT = {
     serialNumber: 'Серійний №',
     since: 'Від',
     myInvestments: "Мої об'єкти",
+    myInvestmentsHint: "Активні об'єкти, де я призначений на якийсь етап.",
     noInvestments: "Немає активних об'єктів.",
     noInvestmentToReport:
       "Щоб звітувати про роботи, ви маєте бути призначені на один з етапів активного об'єкта.",
@@ -102,7 +103,8 @@ export const uk: TranslationsT = {
     passwordMismatch: 'Паролі не збігаються.',
   },
   expenseDrafts: {
-    title: 'Мої витрати',
+    title: 'Подані витрати',
+    hint: 'Витрати, які я надіслав керівнику на затвердження.',
     noRegister: 'У вас немає каси — попросіть керівника її створити.',
     noInvestment:
       "Щоб додати витрату, ви маєте бути призначені на один з етапів активного об'єкта.",

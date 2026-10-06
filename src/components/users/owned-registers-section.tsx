@@ -1,7 +1,7 @@
 import { Fragment } from 'react'
 import { OptionalLink } from '@/components/ui/optional-link'
 import {
-  SUMMARY_LABEL_COL,
+  SUMMARY_NAME_COL,
   SUMMARY_VALUE_COL,
   SummaryHeaderCell,
   SummaryLabelCell,
@@ -9,13 +9,14 @@ import {
   SummaryValueCell,
 } from '@/components/ui/summary-grid'
 import { Description } from '@/components/ui/description'
+import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { formatPLN } from '@/lib/utils/format-currency'
 import type { RegisterBalanceMapT } from '@/lib/queries/balances'
 import type { CashRegisterRefT } from '@/types/reference-data'
 import { createTranslator } from '@/lib/i18n/translations'
 import type { LanguageT } from '@/lib/i18n/languages'
 
-const COLS = `${SUMMARY_LABEL_COL} ${SUMMARY_VALUE_COL}`
+const COLS = `${SUMMARY_NAME_COL} ${SUMMARY_VALUE_COL}`
 
 // An inactive kasa is still listed: it goes to the Kosz with its owner like any other.
 export function OwnedRegistersSection({
@@ -38,12 +39,15 @@ export function OwnedRegistersSection({
   const total = rows.reduce((sum, row) => sum + row.balance, 0)
 
   return (
-    <div>
-      <h2 className="mb-2 text-sm font-semibold">{t('myRegisters')}</h2>
+    <CollapsibleSection
+      title={t('myRegisters')}
+      storageKey="worker:registers"
+      withSeparator={false}
+    >
       {rows.length === 0 ? (
         <Description>{t('noRegisters')}</Description>
       ) : (
-        <SummaryTable cols={COLS} className="w-fit">
+        <SummaryTable cols={COLS} className="w-fit text-sm">
           <SummaryHeaderCell variant="label">{t('register')}</SummaryHeaderCell>
           <SummaryHeaderCell>{t('balance')}</SummaryHeaderCell>
           {rows.map((row) => (
@@ -64,6 +68,6 @@ export function OwnedRegistersSection({
           </SummaryValueCell>
         </SummaryTable>
       )}
-    </div>
+    </CollapsibleSection>
   )
 }

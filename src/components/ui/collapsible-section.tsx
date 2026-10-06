@@ -5,6 +5,8 @@ import * as Collapsible from '@radix-ui/react-collapsible'
 import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { Separator } from '@/components/ui/separator'
+import { Description } from '@/components/ui/description'
+import { SECTION_TITLE_CLASS } from '@/components/ui/section-header'
 import { usePersistedFlag } from '@/hooks/use-persisted-value'
 
 type CollapsibleSectionSizeT = 'lg' | 'sm'
@@ -19,12 +21,16 @@ type CollapsibleSectionPropsT = {
   // 'sm' for a control block inside a denser surface (the summary panel's top bar), where a page-level
   // heading would outshout the content it hides.
   size?: CollapsibleSectionSizeT
+  withSeparator?: boolean
+  hint?: React.ReactNode
+  // Rendered beside the trigger: a button nested in the trigger button is invalid markup.
+  action?: React.ReactNode
   className?: string
   children: React.ReactNode
 }
 
 const SIZE: Record<CollapsibleSectionSizeT, { title: string; chevron: string }> = {
-  lg: { title: 'text-lg font-semibold', chevron: 'size-5' },
+  lg: { title: SECTION_TITLE_CLASS, chevron: 'size-5' },
   sm: { title: 'text-sm font-medium', chevron: 'size-4' },
 }
 
@@ -49,6 +55,9 @@ export function CollapsibleSection({
   defaultOpen = true,
   storageKey,
   size = 'lg',
+  withSeparator = true,
+  hint,
+  action,
   className,
   children,
 }: CollapsibleSectionPropsT) {
@@ -56,19 +65,28 @@ export function CollapsibleSection({
 
   return (
     <Collapsible.Root id={id} open={isOpen} onOpenChange={setIsOpen} className={cn(className)}>
-      <Collapsible.Trigger className="flex w-full cursor-pointer items-center gap-2 py-2 text-left">
-        <h2 className={cn('text-foreground', SIZE[size].title)}>{title}</h2>
-        <ChevronDown
-          className={cn(
-            'text-muted-foreground transition-transform duration-200',
-            SIZE[size].chevron,
-            isOpen && 'rotate-180',
-          )}
-        />
-      </Collapsible.Trigger>
-      {isOpen && <Separator orientation="horizontal" />}
+      <div className="flex items-center justify-between gap-2">
+        <Collapsible.Trigger className="flex w-full cursor-pointer items-center gap-2 py-2 text-left">
+          <h2 className={cn('text-foreground', SIZE[size].title)}>{title}</h2>
+          <ChevronDown
+            className={cn(
+              'text-muted-foreground transition-transform duration-200',
+              SIZE[size].chevron,
+              isOpen && 'rotate-180',
+            )}
+          />
+        </Collapsible.Trigger>
+        {action}
+      </div>
+      {hint && (
+        <Description size="xs" className="-mt-2 pb-2">
+          {hint}
+        </Description>
+      )}
+      {isOpen && withSeparator && <Separator orientation="horizontal" />}
       <Collapsible.Content className="data-[state=closed]:animate-collapse-up data-[state=open]:animate-collapse-down overflow-hidden">
-        {children}
+        {/* Padding on Content itself would survive the collapse animation's height: 0. */}
+        {withSeparator ? children : <div className="pt-2">{children}</div>}
       </Collapsible.Content>
     </Collapsible.Root>
   )

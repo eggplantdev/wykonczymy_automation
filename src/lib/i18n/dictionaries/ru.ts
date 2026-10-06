@@ -66,7 +66,7 @@ export const ru: TranslationsT = {
     inactive: 'Неактивен',
     defaultLanguage: 'Язык по умолчанию',
     defaultRegister: 'Касса по умолчанию',
-    transfers: 'Операции',
+    transfers: 'Мои операции',
     myRegisters: 'Мои кассы',
     noRegisters: 'Нет ни одной кассы.',
     register: 'Касса',
@@ -78,6 +78,7 @@ export const ru: TranslationsT = {
     serialNumber: 'Серийный №',
     since: 'С',
     myInvestments: 'Мои объекты',
+    myInvestmentsHint: 'Активные объекты, где я назначен на какой-либо этап.',
     noInvestments: 'Нет активных объектов.',
     noInvestmentToReport:
       'Чтобы отчитаться о работах, вы должны быть назначены на один из этапов активного объекта.',
@@ -101,7 +102,8 @@ export const ru: TranslationsT = {
     passwordMismatch: 'Пароли не совпадают.',
   },
   expenseDrafts: {
-    title: 'Мои расходы',
+    title: 'Поданные расходы',
+    hint: 'Расходы, которые я отправил руководителю на утверждение.',
     noRegister: 'У вас нет кассы — попросите руководителя её создать.',
     noInvestment:
       'Чтобы добавить расход, вы должны быть назначены на один из этапов активного объекта.',
