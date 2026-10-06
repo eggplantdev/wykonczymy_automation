@@ -72,9 +72,76 @@ Ran /simplify (4 agents: reuse, simplification, efficiency, altitude) — 5 appl
 
 ## Tests & suite
 
+- typecheck (`tsc --noEmit`) — pass
+- touched unit + DOM specs (tables, worker-expenses, expense-form, lib/worker-expenses, transfer-filters, investment-transfers-href, transfer-actions) — 24 files / 220 tests pass
+- DB specs vs 5435 (`db/worker-expense-drafts`, `actions/worker-expense-drafts`, `-worker`, `read-expense-draft-receipts`) — 46 pass, after `db:migrate:test` applied `20261006_3`
+- full suite — not run (awaiting the user's go)
+
 - `pnpm exec tsc --noEmit -p .` — clean
 - DOM/unit specs touched by the slice + gate fixes — 66 files, 468 tests pass
 - `worker-expense-drafts.db.test.ts` vs 5435 — 17 pass; `lib/actions/worker-expense-drafts*.db.test.ts` — 38 pass
 - after /simplify: `tsc` clean, eslint clean on touched files; `queue-filters`, `worker-expense-drafts-table`, `expense-drafts`, `pending-expense-drafts`, `leads-data-table`, `transfer-data-table-language` — 6 files / 27 tests pass
 - after reuse-scan: `tsc` + eslint clean; `worker-expense-drafts.db.test.ts` + `worker-reports.test.ts` vs 5435 — 27 pass; `worker-investments-section.test.tsx` — 3 pass
 - full suite — not run yet (awaiting your go)
+
+---
+
+# Round 2 — per-paragon rows · commit 6be6a64a (diff 90182380...6be6a64a) · 2026-10-06
+
+Scope: only the per-paragon spike (one row per paragon, skipped paragony kept, dashboard queue on `DataTable`, default status „czeka"). Round 1 above is closed and not re-reviewed. Fan-out: code-review, tailwind-v4-audit, feature-first-structure, module-cohesion-audit, structure-scatter-audit (diff-scoped), comment-noise-audit (flag-only). Skipped: 10x-impl-review (`plan.md` predates the spike — it has no plan to diff against), Step 0.5 browser pass (by request).
+
+## Findings
+
+- [x] 🟡 WARNING · filed · code-review · `src/migrations/20261006_2_add_worker_expense_draft_transfers.ts:5` · the old deploy keeps writing `worker_expense_drafts.transfer_id` between the prod migrate and the push, and the migration that copies those rows and drops the column does not exist yet — filed EX-1007 (deploy-time follow-up, destructive order: push first)
+      test: no automated test · — one-off migration; the issue records the before/after row-count check
+- [x] 🟡 WARNING · dismissed · code-review · `src/lib/actions/transfers.ts:92` · the server takes `receiptMediaIds` / `skippedReceipts` unchecked — `ownPages` (INTERSECT with the draft's own pages, `db/worker-expense-drafts.ts:315`) drops any page of another draft, the action is management-only, and both lists are now derived from one prefill map at submit
+      test: no automated test · — the server path is unchanged; the client derivation has its guard (next line)
+- [x] 🔵 OBSERVATION · fixed · code-review · `src/components/forms/expense-form/expense-form.tsx:245` · skipped paragony were an append-only `useState` beside the line items, so a removed-then-re-added row could go out as both booked and skipped — now derived from the line items at submit
+      test: TDD · unit (dom) — `expense-form-prefill.test.tsx` „paragon usunięty z przyjęcia idzie jako pominięty…" asserts the action's `receiptMediaIds` / `skippedReceipts`
+- [x] 🔵 OBSERVATION · fixed · code-review · `src/__tests__/components/tables/expense-drafts.test.tsx` · the multi-line acceptance test asserted the old first-transfer link — deleted: after `splitByReceipt` no row carries more than one transakcja, so the case it pinned is unreachable (see simplify A2)
+      test: no automated test · — the test was the finding
+- [x] 🔵 OBSERVATION · dismissed · code-review · `src/lib/worker-expenses/split-by-receipt.ts:11` · a transfer with empty `mediaIds` shows every page of the zgłoszenie — the honest fallback for a pre-EX-1005 acceptance and a hand-added row
+      test: TDD · unit — `split-by-receipt.test.ts` pins the legacy fallback
+- [x] 🔵 OBSERVATION · dismissed · code-review · `src/lib/db/worker-expense-drafts.ts:316` · INTERSECT does not keep page order — the pages cell orders by the draft's own media order, not this array
+      test: no automated test · — no observable effect
+- [x] 🔵 OBSERVATION · dismissed · code-review · `src/migrations/20261006_3_add_worker_expense_draft_receipts.ts:24` · destructive `down` — down is local-only and drops only what its own `up` created
+      test: no automated test · — local-only path
+- [x] 🔵 OBSERVATION · skipped · code-review · `src/lib/db/worker-expense-drafts.ts:264` · the manager list paginates by zgłoszenia while the table shows one row per paragon, so a page can hold more than `limit` rows — owner (2026-10-06): fine, the list already defaults to 100 per page
+      test: no automated test · — accepted as is
+- [x] 🔵 OBSERVATION · filed · code-review · `src/components/worker-expenses/expense-drafts-data-table.tsx:48` · a skipped paragon reads „odrzucony" under an accepted zgłoszenie and has no „Przywróć"; the server's status filter reads the zgłoszenie's status, so „odrzucone" never lists a skipped paragon and „zaakceptowane" lists rows badged „odrzucony" — owner (2026-10-06): must be restorable and the filter must catch it; the restore semantics need research, filed EX-1009
+      test: no automated test · — product decision pending
+- [x] dismissed · code-review · `src/components/worker-expenses/worker-expense-drafts-table.tsx:56` · `splitByReceipt` runs every render — React Compiler memoises it, and the list is one worker's history
+- [x] dropped · code-review · `src/lib/db/worker-expense-drafts.ts:48` · make `mediaIds` / `skippedReceipts` required on the row type — fixture churn across specs for no runtime gain
+- [x] dismissed · code-review · `src/components/transfers/transfer-filters.tsx:292` · `toIdList` keeps stray commas — moot: the id-list filter was reverted (simplify A2)
+- [x] fixed · comment-noise-audit · `src/components/tables/expense-drafts.tsx:26` · stale TransfersCell comment (described the first-transfer link) — replaced with the one-transakcja invariant `TransferCell` rests on
+- [x] dismissed · comment-noise-audit · `src/lib/queries/transfer-filters.ts:148` · moot — the file is back to its 90182380 state (simplify A2)
+- [x] fixed · comment-noise-audit · `src/lib/db/worker-expense-drafts.ts:46` · deleted — restated the array type
+- [x] fixed · comment-noise-audit · `src/__tests__/lib/actions/worker-expense-drafts.db.test.ts:139` · deleted — vanished state („not just the first"), the test name says the rest
+- [x] dismissed · comment-noise-audit · `src/components/tables/expense-drafts.tsx:20`, `src/lib/db/worker-expense-drafts.ts:48`, `split-by-receipt.ts` header, migrations' „Hand-written" lines, `db/worker-expense-drafts.db.test.ts:168`, `investment-transfers-href.test.ts:32` · each carries a why the code does not say
+- [x] fixed · user request · `src/components/worker-expenses/open-expense-draft-button.tsx` · the action column jumped when the loader appeared — the spinner now replaces the icon; the button is deduped into `OpenExpenseDraftButton` for the dashboard queue and `/zgloszenia-wydatkow`
+- [x] fixed · user request · `open-expense-draft-button.tsx` · „Zobacz" → „Zweryfikuj"
+- [x] fixed · user request · `src/components/tables/expense-drafts.tsx:63` · the dashboard queue's first column gets the header „Podgląd" (`expenseDrafts.preview`, pl/uk/ru)
+- [x] fixed · user request · `src/components/tables/expense-drafts.tsx:24` · owner (2026-10-06): management on a worker's page gets the transaction link — `canOpenTransfers` from `pracownicy/[id]` (`isManager`), the worker himself still gets plain text
+      test: TDD · unit (dom) — `worker-expense-drafts-table.test.tsx` „links a manager on the worker page…"
+- [x] dropped · module-cohesion-audit · `src/lib/db/worker-expense-drafts.ts:298` · module grows (fragments + mappers + CTE builder + probes, ~590 lines) — still one domain; a split now is churn without a second consumer
+- [x] dismissed · structure-scatter-audit · `src/lib/worker-expenses/split-by-receipt.ts:1` · type-only cycle with `lib/db/worker-expense-drafts` — benign, no runtime import
+- [x] dismissed · tailwind-v4-audit · — · no findings
+- [x] dismissed · feature-first-structure · — · no findings (`lib/worker-expenses/` is an established home)
+- [x] fixed · simplify · `src/lib/db/worker-expense-drafts.ts:315` · the `linked` / `skipped` CTEs were spliced in only when non-empty — now unconditional; `jsonb_to_recordset('[]')` yields no rows (DB specs green)
+- [x] fixed · simplify · `src/components/worker-expenses/use-expense-draft-acceptance.tsx:185` · both callers rebuilt the same `OpenExpenseDraftButton` from `open` + `loadingId` — the hook returns `openButton(draft)` instead
+- [x] fixed · simplify · `src/components/forms/expense-form/expense-form.tsx:238` · the receipts / skipped derivation sat inline in the shared form — moved to React-free `lib/worker-expenses/receipt-decision.ts` (Set lookup instead of `some` per entry)
+- [x] fixed · simplify · `src/lib/actions/transfers.ts:92` · `opts` fields were each optional though the one caller always sends all three — required now; the guard is `if (opts)`
+- [x] fixed · simplify · `src/components/tables/expense-drafts.tsx:27` · (A2) the multi-transakcja cell and the `?id=a,b,c` filter served a row `splitByReceipt` never produces — reverted `transfer-filters.ts`, `transfer-filters.tsx`, `investment-transfers-href.ts` + their specs to 90182380; the cell is single-transakcja `TransferCell`
+- [x] skipped · simplify · `src/components/worker-expenses/expense-drafts-data-table.tsx` · (A1) one paragon table with the split done server-side would also fix pagination and the status filter — a review-worthy refactor tied to the two pending owner decisions above
+- [x] dropped · simplify · `src/components/tables/expense-drafts.tsx:21` · (A3) column groups in place of the `isPendingQueue` flag — churn with two consumers
+- [x] dropped · simplify · `open-expense-draft-button.tsx` · reuse against `RestoreExpenseDraftButton` / a shared loading button — different shapes (server action vs local download), no common contract
+- [x] dismissed · simplify · — · efficiency: no findings
+- [x] dropped · reuse-scan · `src/components/worker-expenses/open-expense-draft-button.tsx:17` · the `isX ? <Loader2/> : <Icon/>` swap repeats in `ui/upload-button.tsx:34`, `print-transfers-button.tsx:87`, `invoice-download-button.tsx:50` — a primitive would take the icon and the flag as params, i.e. the same one expression; no drift risk to remove
+- [x] dropped · reuse-scan · `expense-drafts-data-table.tsx:58` / `worker-expense-drafts-table.tsx:101` · the status-options map is written twice — both copies derive from the shared `EXPENSE_DRAFT_STATUSES` + `DRAFT_STATUS_LABEL_KEYS`, so a wrapper adds a file without removing a second source of truth
+- [x] dismissed · reuse-scan · `TransferCell`, `receipt-decision.ts`, `split-by-receipt.ts` `pagesOf` · no existing primitive (near-miss `lib/utils/group-in-order.ts:16` `regroupByKeys` flattens and drops leftovers)
+
+## Simplify pass
+
+Ran /simplify — 5 applied, 0 proposed, 4 dismissed/dropped/skipped; each folded into ## Findings (tagged simplify).
+
+## Tests & suite
