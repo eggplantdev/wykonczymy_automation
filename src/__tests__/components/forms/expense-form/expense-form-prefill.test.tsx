@@ -69,6 +69,7 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
         formId="expense-draft-42"
         prefill={{
           expenseDraftId: 42,
+          receiptMediaIds: new Map(),
           files: new Map([[0, [receipt]]]),
           values: valuesWith({ investment: '3', sourceRegister: '7' }),
         }}
@@ -99,6 +100,7 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
         formId="expense-draft-42"
         prefill={{
           expenseDraftId: 42,
+          receiptMediaIds: new Map(),
           files: new Map([[0, [receipt]]]),
           values: valuesWith({
             investment: '3',
@@ -134,6 +136,7 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
         formId="expense-draft-42"
         prefill={{
           expenseDraftId: 42,
+          receiptMediaIds: new Map(),
           files: new Map([[0, pages]]),
           values: valuesWith({ investment: '3', sourceRegister: '7' }),
         }}
@@ -167,6 +170,7 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
         formId="expense-draft-42"
         prefill={{
           expenseDraftId: 42,
+          receiptMediaIds: new Map(),
           files: new Map([[0, [new File(['jpg'], 'od-pracownika.jpg', { type: 'image/jpeg' })]]]),
           values: valuesWith({ investment: '3', sourceRegister: '7' }),
         }}
@@ -207,6 +211,7 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
         formId="expense-draft-42"
         prefill={{
           expenseDraftId: 42,
+          receiptMediaIds: new Map(),
           files: new Map([[0, [receipt]]]),
           values: valuesWith({
             investment: '3',
@@ -235,6 +240,7 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
         isPrefillReading
         prefill={{
           expenseDraftId: 42,
+          receiptMediaIds: new Map(),
           files: new Map([[0, [new File(['jpg'], 'leroy.jpg', { type: 'image/jpeg' })]]]),
           values: valuesWith({ investment: '3', sourceRegister: '7' }),
         }}

@@ -116,7 +116,7 @@ export const uk: TranslationsT = {
     status: 'Статус',
     worker: 'Працівник',
     decision: 'Рішення',
-    expense: 'Витрата',
+    transfers: 'Транзакції',
     actions: 'Дії',
     statusPending: 'очікує',
     statusAccepted: 'прийнято',

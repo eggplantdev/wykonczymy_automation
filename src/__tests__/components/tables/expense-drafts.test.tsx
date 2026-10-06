@@ -24,11 +24,8 @@ const accepted: ExpenseDraftRowT = {
   sentAt: '2026-10-06T10:00:00Z',
   decidedAt: '2026-10-06T12:00:00Z',
   decidedByName: 'Szef',
-  transferId: 41,
-  transferAmount: 123.45,
   // The manager moved it to another investment while accepting — the link follows the transaction.
-  transferInvestmentId: 9,
-  transferCancelled: false,
+  transfers: [{ id: 41, amount: 123.45, investmentId: 9, cancelled: false }],
   media: [],
   scanMode: 'one-invoice',
   aiRead: undefined,
@@ -40,10 +37,7 @@ const pending: ExpenseDraftRowT = {
   status: 'pending',
   decidedAt: null,
   decidedByName: null,
-  transferId: null,
-  transferAmount: null,
-  transferInvestmentId: null,
-  transferCancelled: null,
+  transfers: [],
 }
 
 function Table({ rows, isManagerView }: { rows: ExpenseDraftRowT[]; isManagerView: boolean }) {
@@ -83,7 +77,7 @@ describe('useExpenseDraftColumns', () => {
     render(<Table rows={[accepted]} isManagerView={false} />)
 
     expect(screen.queryByRole('link')).not.toBeInTheDocument()
-    expect(bare(cell(7, 'transferAmount')?.textContent ?? '')).toBe(bare(formatPLN(123.45)))
+    expect(bare(cell(7, 'transfers')?.textContent ?? '')).toBe(bare(formatPLN(123.45)))
     expect(cell(7, 'workerName')).toBeNull()
   })
 
@@ -92,11 +86,30 @@ describe('useExpenseDraftColumns', () => {
 
     expect(cell(7, 'decidedAt')).toHaveTextContent(/· Szef$/)
     expect(cell(8, 'decidedAt')).toHaveTextContent('—')
-    expect(cell(8, 'transferAmount')).toHaveTextContent('—')
+    expect(cell(8, 'transfers')).toHaveTextContent('—')
+  })
+
+  // One zgłoszenie booked as several transakcje: the cell lists each one, totals the live ones, and
+  // the link opens exactly those rows — the cancelled one too, so the list matches the cell.
+  it('lists each transaction of a multi-line acceptance, totals the live ones and links to all', () => {
+    const transfers = [
+      { id: 41, amount: 100, investmentId: 9, cancelled: false },
+      { id: 42, amount: 20.5, investmentId: 9, cancelled: true },
+      { id: 43, amount: 3, investmentId: 9, cancelled: false },
+    ]
+    render(<Table rows={[{ ...accepted, transfers }]} isManagerView />)
+
+    const link = screen.getByRole('link')
+    expect(bare(link.textContent ?? '')).toBe(bare([100, 20.5, 3, 103].map(formatPLN).join('')))
+    expect(link.children[1]).toHaveClass('line-through')
+    expect(link.lastElementChild?.firstElementChild).not.toHaveClass('line-through')
+    expect(link).toHaveAttribute('href', '/inwestycje/9?id=41,42,43&showCancelled=1')
   })
 
   it('strikes out a cancelled transaction and links to it with the cancelled ones shown', () => {
-    render(<Table rows={[{ ...accepted, transferCancelled: true }]} isManagerView />)
+    render(
+      <Table rows={[{ ...accepted, transfers: [{ ...accepted.transfers[0], cancelled: true }] }]} isManagerView />,
+    )
 
     const link = screen.getByRole('link', { name: formatPLN(123.45) })
     expect(link).toHaveAttribute('href', '/inwestycje/9?id=41&showCancelled=1')
@@ -107,19 +120,13 @@ describe('useExpenseDraftColumns', () => {
     render(
       <Table
         rows={[
-          {
-            ...accepted,
-            transferId: null,
-            transferAmount: null,
-            transferInvestmentId: null,
-            transferCancelled: null,
-          },
+          { ...accepted, transfers: [] },
         ]}
         isManagerView
       />,
     )
 
-    expect(cell(7, 'transferAmount')).toHaveTextContent('—')
+    expect(cell(7, 'transfers')).toHaveTextContent('—')
     expect(screen.queryByRole('link')).not.toBeInTheDocument()
   })
 })

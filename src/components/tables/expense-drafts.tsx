@@ -17,37 +17,61 @@ const col = createColumnHelper<ExpenseDraftRowT>()
 
 type OptionsT = {
   isManagerView: boolean
+  // The dashboard queue: nothing in it is decided yet, and opening one is the whole point of the row.
+  isPendingQueue?: boolean
   canEditPages?: boolean
   actions?: (draft: ExpenseDraftRowT) => ReactNode
 }
 
-function ExpenseCell({ draft, isLinked }: { draft: ExpenseDraftRowT; isLinked: boolean }) {
-  if (draft.transferAmount === null) return '—'
-  const amount = (
-    <span
-      className={cn(
-        'tabular-nums',
-        draft.transferCancelled && 'text-muted-foreground line-through',
-      )}
-    >
-      {formatPLN(draft.transferAmount)}
-    </span>
-  )
+// One zgłoszenie is one row: its transakcje are split out behind the link. A cancelled one stays
+// behind the link but not in the total — unless all of them are cancelled, then the struck-out total
+// says what was booked.
+function TransfersCell({ draft, isLinked }: { draft: ExpenseDraftRowT; isLinked: boolean }) {
+  const { transfers } = draft
+  if (transfers.length === 0) return '—'
+  const live = transfers.filter((transfer) => !transfer.cancelled)
+  const isAllCancelled = live.length === 0
+  const total = (isAllCancelled ? transfers : live).reduce((sum, transfer) => sum + transfer.amount, 0)
+  const investmentId = transfers[0].investmentId
   const href =
-    isLinked && draft.transferId !== null && draft.transferInvestmentId !== null
-      ? investmentTransfersHref(draft.transferInvestmentId, {
-          id: draft.transferId,
-          showCancelled: draft.transferCancelled === true,
+    isLinked && investmentId !== null
+      ? investmentTransfersHref(investmentId, {
+          id: transfers.map((transfer) => transfer.id),
+          showCancelled: live.length < transfers.length,
         })
       : undefined
-  return <OptionalLink href={href}>{amount}</OptionalLink>
+  return (
+    <OptionalLink href={href}>
+      <span className={cn('tabular-nums', isAllCancelled && 'text-muted-foreground line-through')}>
+        {formatPLN(total)}
+      </span>
+    </OptionalLink>
+  )
 }
 
-export function useExpenseDraftColumns({ isManagerView, canEditPages = false, actions }: OptionsT) {
+export function useExpenseDraftColumns({
+  isManagerView,
+  isPendingQueue = false,
+  canEditPages = false,
+  actions,
+}: OptionsT) {
   const { t } = useTranslation('expenseDrafts')
-  const sortable = (id: string) => isManagerView && isServerSortableDraftColumn(id)
+  const sortable = (id: string) => isManagerView && !isPendingQueue && isServerSortableDraftColumn(id)
+  const actionsColumn = actions
+    ? [
+        col.display({
+          id: 'actions',
+          header: '',
+          meta: { label: t('actions') },
+          cell: ({ row: { original: draft } }) => (
+            <div className="flex items-center gap-1">{actions(draft)}</div>
+          ),
+        }),
+      ]
+    : []
 
   return [
+    ...(isPendingQueue ? actionsColumn : []),
     ...(isManagerView
       ? [col.accessor('workerName', { header: t('worker'), enableSorting: sortable('workerName') })]
       : []),
@@ -77,38 +101,33 @@ export function useExpenseDraftColumns({ isManagerView, canEditPages = false, ac
       enableSorting: false,
       cell: (info) => <span className="break-words">{info.getValue() ?? '—'}</span>,
     }),
-    col.accessor('status', {
-      header: t('status'),
-      enableSorting: sortable('status'),
-      cell: (info) => <DraftStatusBadge status={info.getValue()} />,
-    }),
-    col.accessor('decidedAt', {
-      header: t('decision'),
-      enableSorting: sortable('decidedAt'),
-      cell: ({ row: { original: draft } }) =>
-        draft.decidedAt
-          ? [formatPLDateTime(draft.decidedAt), draft.decidedByName].filter(Boolean).join(' · ')
-          : '—',
-    }),
-    col.accessor('transferAmount', {
-      header: t('expense'),
-      enableSorting: false,
-      meta: { align: 'right' },
-      cell: ({ row: { original: draft } }) => (
-        <ExpenseCell draft={draft} isLinked={isManagerView} />
-      ),
-    }),
-    ...(actions
-      ? [
-          col.display({
-            id: 'actions',
-            header: '',
-            meta: { label: t('actions') },
+    ...(isPendingQueue
+      ? []
+      : [
+          col.accessor('status', {
+            header: t('status'),
+            enableSorting: sortable('status'),
+            cell: (info) => <DraftStatusBadge status={info.getValue()} />,
+          }),
+          col.accessor('decidedAt', {
+            header: t('decision'),
+            enableSorting: sortable('decidedAt'),
+            cell: ({ row: { original: draft } }) =>
+              draft.decidedAt
+                ? [formatPLDateTime(draft.decidedAt), draft.decidedByName]
+                    .filter(Boolean)
+                    .join(' · ')
+                : '—',
+          }),
+          col.accessor('transfers', {
+            header: t('transfers'),
+            enableSorting: false,
+            meta: { align: 'right' },
             cell: ({ row: { original: draft } }) => (
-              <div className="flex items-center gap-1">{actions(draft)}</div>
+              <TransfersCell draft={draft} isLinked={isManagerView} />
             ),
           }),
-        ]
-      : []),
+          ...actionsColumn,
+        ]),
   ]
 }

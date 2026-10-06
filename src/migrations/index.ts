@@ -123,6 +123,8 @@ import * as migration_20261005_4_add_worker_report_line_translations from './202
 import * as migration_20261005_5_add_kosztorys_item_ref from './20261005_5_add_kosztorys_item_ref'
 import * as migration_20261005_6_add_worker_report_scan from './20261005_6_add_worker_report_scan'
 import * as migration_20261006_1_add_worker_expense_draft_read from './20261006_1_add_worker_expense_draft_read'
+import * as migration_20261006_2_add_worker_expense_draft_transfers from './20261006_2_add_worker_expense_draft_transfers'
+import * as migration_20261006_3_add_worker_expense_draft_receipts from './20261006_3_add_worker_expense_draft_receipts'
 
 export const migrations = [
   {
@@ -749,5 +751,15 @@ export const migrations = [
     up: migration_20261006_1_add_worker_expense_draft_read.up,
     down: migration_20261006_1_add_worker_expense_draft_read.down,
     name: '20261006_1_add_worker_expense_draft_read',
+  },
+  {
+    up: migration_20261006_2_add_worker_expense_draft_transfers.up,
+    down: migration_20261006_2_add_worker_expense_draft_transfers.down,
+    name: '20261006_2_add_worker_expense_draft_transfers',
+  },
+  {
+    up: migration_20261006_3_add_worker_expense_draft_receipts.up,
+    down: migration_20261006_3_add_worker_expense_draft_receipts.down,
+    name: '20261006_3_add_worker_expense_draft_receipts',
   },
 ]

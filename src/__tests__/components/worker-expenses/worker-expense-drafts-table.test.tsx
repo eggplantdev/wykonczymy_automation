@@ -30,10 +30,7 @@ const draft = (id: number, overrides: Partial<ExpenseDraftRowT> = {}): ExpenseDr
   sentAt: '2026-10-06T10:00:00Z',
   decidedAt: '2026-10-06T12:00:00Z',
   decidedByName: 'Szef',
-  transferId: 100 + id,
-  transferAmount: 50,
-  transferInvestmentId: 3,
-  transferCancelled: false,
+  transfers: [{ id: 100 + id, amount: 50, investmentId: 3, cancelled: false }],
   media: [],
   scanMode: 'one-invoice',
   aiRead: undefined,
@@ -72,7 +69,7 @@ describe('WorkerExpenseDraftsTable', () => {
   })
 
   it('offers Edytuj and Usuń only on the pending drafts of the own page', () => {
-    renderTable([draft(1, { status: 'pending', decidedAt: null, transferId: null }), draft(2)])
+    renderTable([draft(1, { status: 'pending', decidedAt: null, transfers: [] }), draft(2)])
 
     const pendingRow = screen.getByText('Inwestycja 1').closest('tr')!
     const acceptedRow = screen.getByText('Inwestycja 2').closest('tr')!
@@ -82,7 +79,7 @@ describe('WorkerExpenseDraftsTable', () => {
   })
 
   it('gives a manager on the worker page no actions', () => {
-    renderTable([draft(1, { status: 'pending', decidedAt: null, transferId: null })], false)
+    renderTable([draft(1, { status: 'pending', decidedAt: null, transfers: [] })], false)
 
     expect(screen.queryByText(/Edytuj|Usuń/)).not.toBeInTheDocument()
   })
@@ -128,7 +125,7 @@ describe('WorkerExpenseDraftsTable', () => {
     const { rerender } = renderTable(drafts)
     await user.click(screen.getByRole('button', { name: /3$/ }))
 
-    const sent = draft(30, { status: 'pending', decidedAt: null, transferId: null })
+    const sent = draft(30, { status: 'pending', decidedAt: null, transfers: [] })
     rerender(
       <WorkerExpenseDraftsTable
         drafts={[sent, ...drafts]}
@@ -143,7 +140,7 @@ describe('WorkerExpenseDraftsTable', () => {
 
   it('drops the actions column once the filter leaves no pending draft', async () => {
     const user = userEvent.setup()
-    renderTable([draft(1, { status: 'pending', decidedAt: null, transferId: null }), draft(2)])
+    renderTable([draft(1, { status: 'pending', decidedAt: null, transfers: [] }), draft(2)])
     const columnsWithPending = screen.getAllByRole('columnheader').length
 
     await user.click(screen.getByRole('button', { name: /^Status/ }))

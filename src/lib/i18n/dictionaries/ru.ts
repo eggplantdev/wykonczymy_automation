@@ -115,7 +115,7 @@ export const ru: TranslationsT = {
     status: 'Статус',
     worker: 'Работник',
     decision: 'Решение',
-    expense: 'Расход',
+    transfers: 'Транзакции',
     actions: 'Действия',
     statusPending: 'ожидает',
     statusAccepted: 'принят',

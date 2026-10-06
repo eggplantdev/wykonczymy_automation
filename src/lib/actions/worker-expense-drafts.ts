@@ -95,7 +95,7 @@ export async function rejectExpenseDraftAction(draftId: number): Promise<ActionR
       draftId,
       decidedBy: user.id,
       status: 'rejected',
-      transferId: null,
+      transferIds: [],
     })
     return isDecided ? { success: true } : noticeFailure('draftAlreadyDecided')
   })

@@ -74,6 +74,7 @@ export type ExpenseFormPrefillT = {
   values: FormValuesT
   files: Map<number, File[]>
   expenseDraftId: number
+  receiptMediaIds: Map<string, number[]>
 }
 
 type TransferFormPropsT = {
@@ -99,6 +100,8 @@ export function ExpenseForm({
   secondaryAction,
 }: TransferFormPropsT) {
   const { recoveredFiles, submit } = useFormSubmit(formId)
+  // A worker's paragon removed from an acceptance is skipped, not lost: it stays in his history.
+  const [skippedReceipts, setSkippedReceipts] = useState<number[][]>([])
 
   // Scoped by formId like every other draft consumer: `'expense'` is the only writer today, but the
   // day an „Edytuj wydatek" dialog shares this slot its draft would otherwise seed the create form.
@@ -234,7 +237,13 @@ export function ExpenseForm({
             createBulkTransferAction(
               data,
               invoicePageRows,
-              prefill && { expenseDraftId: prefill.expenseDraftId },
+              prefill && {
+                expenseDraftId: prefill.expenseDraftId,
+                receiptMediaIds: value.lineItems.map(
+                  (item) => prefill.receiptMediaIds.get(item.id) ?? [],
+                ),
+                skippedReceipts,
+              },
             ),
           ),
         // No stored draft backs this form, so an optimistic close would lose it on a failed save.
@@ -393,7 +402,11 @@ export function ExpenseForm({
               form={form}
               total={total}
               hasInvestment={!!currentInvestment}
-              onRemoveItem={handleRemoveLineItem}
+              onRemoveItem={(id, index, removeValue) => {
+                const receipt = prefill?.receiptMediaIds.get(id)
+                if (receipt?.length) setSkippedReceipts((prev) => [...prev, receipt])
+                handleRemoveLineItem(id, index, removeValue)
+              }}
               onFileChange={attachFile}
               onRemoveFile={removeFileAt}
               onRegisterFiles={registerFiles}

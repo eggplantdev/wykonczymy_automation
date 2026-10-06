@@ -19,6 +19,7 @@ import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 import { validExpenseDraftSort } from '@/lib/queries/expense-draft-sort'
 import { sortParamToSortingState, sortingStateToParam } from '@/lib/table/sort-param'
 import type { PaginationMetaT } from '@/lib/utils/pagination'
+import { splitByReceipt } from '@/lib/worker-expenses/split-by-receipt'
 import type { ReferenceDataT, ReferenceItemT } from '@/types/reference-data'
 
 const EXPENSE_DRAFTS_BASE_URL = '/zgloszenia-wydatkow'
@@ -45,6 +46,7 @@ export function ExpenseDraftsDataTable({
   const columns = useExpenseDraftColumns({
     isManagerView: true,
     actions: (draft) => {
+      if (draft.isSkippedReceipt) return null
       if (draft.status === 'rejected') return <RestoreExpenseDraftButton draftId={draft.id} />
       if (draft.status !== 'pending') return null
       return (
@@ -68,7 +70,7 @@ export function ExpenseDraftsDataTable({
         workers={workers}
       />
       <DataTable
-        data={data}
+        data={splitByReceipt(data)}
         columns={columns}
         storageKey="expense-drafts"
         sorting={sortParamToSortingState(

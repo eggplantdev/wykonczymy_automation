@@ -59,7 +59,11 @@ describe('transfer filters → stats SQL', () => {
   })
 
   it('applies an id search', async () => {
-    expect(await sqlForSearchParams({ id: '42' })).toContain('id = 42')
+    expect(await sqlForSearchParams({ id: '42' })).toContain('id IN (42)')
+  })
+
+  it('applies a multi-id search', async () => {
+    expect(await sqlForSearchParams({ id: '12,13' })).toContain('id IN (12, 13)')
   })
 
   it('applies both ends of a date range', async () => {

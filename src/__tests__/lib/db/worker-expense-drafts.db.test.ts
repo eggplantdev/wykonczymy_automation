@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
+import { sqlList } from '@/lib/db/sql-list'
 import {
   countPendingExpenseDrafts,
   decideExpenseDraft,
@@ -107,7 +108,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     })
 
   const reject = (draftId: number) =>
-    decideExpenseDraft(db, { draftId, decidedBy: workerId, status: 'rejected', transferId: null })
+    decideExpenseDraft(db, { draftId, decidedBy: workerId, status: 'rejected', transferIds: [] })
 
   async function rejectedDraftOf(name: string, onInvestment = investmentId): Promise<number> {
     const draftId = await draftOf([await insertMedia(name, workerId)], onInvestment)
@@ -153,23 +154,34 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     expect(await draftCount()).toBe(before)
   })
 
-  // The badge and the filter read only accepted drafts: a rejected or pending one has no expense.
-  it('lists the expense of an accepted draft only', async () => {
+  // A transaction belongs to at most one zgłoszenie, so a fixture takes ones no earlier run linked.
+  async function unlinkedTransferIds(count: number): Promise<number[]> {
+    const { rows } = await db.execute(sql`
+      SELECT id FROM transactions
+      WHERE investment_id IS NOT NULL
+        AND id NOT IN (SELECT transfer_id FROM worker_expense_draft_transfers)
+      ORDER BY id LIMIT ${count}
+    `)
+    return rows.map((row) => Number(row.id))
+  }
+
+  // One zgłoszenie accepted as several transakcje: the badge marks every one of them, and only
+  // those — a rejected draft has none.
+  it('marks every transaction an accepted draft was booked as', async () => {
     const accepted = await draftOf([await insertMedia('listed-accepted', workerId)])
     const rejected = await draftOf([await insertMedia('listed-rejected', workerId)])
     if (accepted === null || rejected === null) throw new Error('draft fixture refused')
-    const { rows } = await db.execute(sql`SELECT id FROM transactions ORDER BY id LIMIT 1`)
-    const transferId = Number(rows[0].id)
+    const [first, second, unrelated] = await unlinkedTransferIds(3)
 
     await decideExpenseDraft(db, {
       draftId: accepted,
       decidedBy: workerId,
       status: 'accepted',
-      transferId,
+      transferIds: [first, second],
     })
     await reject(rejected)
 
-    expect(await listDraftTransferIds(db, [transferId])).toEqual([transferId])
+    expect(await listDraftTransferIds(db, [first, second, unrelated])).toEqual([first, second])
     expect(await listDraftTransferIds(db, [])).toEqual([])
   })
 
@@ -242,7 +254,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     let olderPendingId: number
     let newerPendingId: number
     let refusedOnlyId: number
-    let transfer: { id: number; amount: number; investmentId: number; cancelled: boolean }
+    let transfers: { id: number; amount: number; investmentId: number; cancelled: boolean }[]
 
     const sentOn = (draftId: number, day: string) =>
       db.execute(
@@ -291,15 +303,16 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
         'worker-expense-drafts-db-refused-only',
       )
       const { rows } = await db.execute(sql`
-        SELECT id, amount, investment_id, cancelled FROM transactions WHERE investment_id IS NOT NULL
-        ORDER BY id LIMIT 1
+        SELECT id, amount, investment_id, cancelled FROM transactions
+        WHERE id IN (${sqlList(await unlinkedTransferIds(2))})
+        ORDER BY id
       `)
-      transfer = {
-        id: Number(rows[0].id),
-        amount: Number(rows[0].amount),
-        investmentId: Number(rows[0].investment_id),
-        cancelled: rows[0].cancelled === true,
-      }
+      transfers = rows.map((row) => ({
+        id: Number(row.id),
+        amount: Number(row.amount),
+        investmentId: Number(row.investment_id),
+        cancelled: row.cancelled === true,
+      }))
 
       rejectedId = await pendingDraftOn('history-rejected', historyInvestmentId)
       acceptedId = await pendingDraftOn('history-accepted', historyInvestmentId)
@@ -316,7 +329,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
         draftId: acceptedId,
         decidedBy: otherWorkerId,
         status: 'accepted',
-        transferId: transfer.id,
+        transferIds: transfers.map((booked) => booked.id),
       })
     })
 
@@ -369,16 +382,11 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
     })
 
     // Linking by the draft's investment would open a list the booked transaction is not on.
-    it('reads the decider and the booked expense off the transaction', async () => {
+    it('reads the decider and every booked transaction off the transactions', async () => {
       const accepted = (await history({ statuses: ['accepted'] })).rows[0]
-      expect(accepted).toMatchObject({
-        decidedByName: 'Drafts B',
-        transferId: transfer.id,
-        transferAmount: transfer.amount,
-        transferInvestmentId: transfer.investmentId,
-        transferCancelled: transfer.cancelled,
-      })
-      expect(transfer.investmentId).not.toBe(historyInvestmentId)
+      expect(accepted).toMatchObject({ decidedByName: 'Drafts B', transfers })
+      expect(transfers).toHaveLength(2)
+      expect(transfers[0].investmentId).not.toBe(historyInvestmentId)
     })
 
     it('hides a refusal whose kasa is in the trash from the history, the facets and the worker', async () => {

@@ -52,9 +52,14 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
       DEFAULT_EXPENSE_CATEGORY_NAME,
       referenceData.expenseCategories,
     )
-    const { lineItems, files: rowFiles } = buildDraftPrefill(draft, files, expenseCategory)
+    const { lineItems, files: rowFiles, receiptMediaIds } = buildDraftPrefill(
+      draft,
+      files,
+      expenseCategory,
+    )
     return {
       expenseDraftId: draft.id,
+      receiptMediaIds,
       files: rowFiles,
       values: {
         date: warsawToday(),

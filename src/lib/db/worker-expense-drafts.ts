@@ -21,6 +21,16 @@ import { sqlList, type SqlT } from './sql-list'
 
 export type ExpenseDraftMediaT = { id: number; url: string; filename: string; mimeType: string }
 
+// Read off the transaction, not the draft: the manager may book it to another investment.
+export type ExpenseDraftTransferT = {
+  id: number
+  amount: number
+  investmentId: number | null
+  cancelled: boolean
+  // The draft's pages this transakcja was booked from; empty for one accepted before paragons were kept.
+  mediaIds?: number[]
+}
+
 export type ExpenseDraftRowT = {
   id: number
   workerId: number
@@ -33,11 +43,12 @@ export type ExpenseDraftRowT = {
   sentAt: string
   decidedAt: string | null
   decidedByName: string | null
-  transferId: number | null
-  // Read off the transaction, not the draft: the manager may book it to another investment.
-  transferAmount: number | null
-  transferInvestmentId: number | null
-  transferCancelled: boolean | null
+  // One zgłoszenie may be accepted as several transakcje.
+  transfers: ExpenseDraftTransferT[]
+  // Pages of each paragon the manager skipped while accepting the rest.
+  skippedReceipts?: number[][]
+  // A row standing for one skipped paragon of an accepted zgłoszenie, not for the zgłoszenie.
+  isSkippedReceipt?: boolean
   media: ExpenseDraftMediaT[]
   scanMode: ScanModeT
   aiRead: ExpenseDraftReadT | undefined
@@ -53,18 +64,37 @@ const DRAFT_MEDIA = sql`
   ), '[]'::json)
 `
 
+const DRAFT_TRANSFERS = sql`
+  COALESCE((
+    SELECT json_agg(json_build_object(
+      'id', t.id, 'amount', t.amount, 'investmentId', t.investment_id, 'cancelled', t.cancelled,
+      'mediaIds', dt.media_ids
+    ) ORDER BY t.id)
+    FROM worker_expense_draft_transfers dt JOIN transactions t ON t.id = dt.transfer_id
+    WHERE dt.draft_id = d.id
+  ), '[]'::json)
+`
+
+const DRAFT_SKIPPED_RECEIPTS = sql`
+  COALESCE((
+    SELECT json_agg(sr.media_ids ORDER BY sr.id)
+    FROM worker_expense_draft_skipped_receipts sr
+    WHERE sr.draft_id = d.id
+  ), '[]'::json)
+`
+
 // The AI read only prefills an acceptance, so a decided draft — most of a history page — leaves it
 // behind instead of shipping it to the browser.
 const DRAFT_SELECT = sql`
   SELECT d.id, d.worker_id, w.name AS worker_name, d.investment_id, i.name AS investment_name,
-    d.cash_register_id, d.note, d.status, d.sent_at, d.decided_at, d.transfer_id, d.scan_mode,
-    CASE WHEN d.status = 'pending' THEN d.ai_read END AS ai_read, ${DRAFT_MEDIA} AS media, decider.name AS decided_by_name, t.amount AS transfer_amount,
-    t.investment_id AS transfer_investment_id, t.cancelled AS transfer_cancelled
+    d.cash_register_id, d.note, d.status, d.sent_at, d.decided_at, d.scan_mode,
+    CASE WHEN d.status = 'pending' THEN d.ai_read END AS ai_read, ${DRAFT_MEDIA} AS media,
+    ${DRAFT_TRANSFERS} AS transfers, ${DRAFT_SKIPPED_RECEIPTS} AS skipped_receipts,
+    decider.name AS decided_by_name
   FROM worker_expense_drafts d
   JOIN users w ON w.id = d.worker_id
   JOIN investments i ON i.id = d.investment_id
   LEFT JOIN users decider ON decider.id = d.decided_by
-  LEFT JOIN transactions t ON t.id = d.transfer_id
 `
 
 function toDraftMedia(value: unknown): ExpenseDraftMediaT[] {
@@ -73,6 +103,20 @@ function toDraftMedia(value: unknown): ExpenseDraftMediaT[] {
     url: text(m.url),
     filename: text(m.filename),
     mimeType: text(m.mimeType),
+  }))
+}
+
+function toMediaIds(value: unknown): number[] {
+  return ((value ?? []) as unknown[]).map(Number)
+}
+
+function toDraftTransfers(value: unknown): ExpenseDraftTransferT[] {
+  return ((value ?? []) as Record<string, unknown>[]).map((t) => ({
+    id: Number(t.id),
+    amount: Number(t.amount),
+    investmentId: numOrNull(t.investmentId),
+    cancelled: t.cancelled === true,
+    mediaIds: toMediaIds(t.mediaIds),
   }))
 }
 
@@ -95,10 +139,8 @@ function toDraftRow(row: Record<string, unknown>): ExpenseDraftRowT {
     sentAt: isoOrNull(row.sent_at) ?? '',
     decidedAt: isoOrNull(row.decided_at),
     decidedByName: textOrNull(row.decided_by_name),
-    transferId: numOrNull(row.transfer_id),
-    transferAmount: numOrNull(row.transfer_amount),
-    transferInvestmentId: numOrNull(row.transfer_investment_id),
-    transferCancelled: row.transfer_cancelled == null ? null : row.transfer_cancelled === true,
+    transfers: toDraftTransfers(row.transfers),
+    skippedReceipts: ((row.skipped_receipts ?? []) as unknown[]).map(toMediaIds),
     media: toDraftMedia(row.media),
     scanMode: row.scan_mode as ScanModeT,
     aiRead: toDraftRead(row.ai_read),
@@ -259,15 +301,46 @@ export async function decideExpenseDraft(
     draftId: number
     decidedBy: number
     status: Exclude<ExpenseDraftStatusT, 'pending'>
-    transferId: number | null
+    transferIds: number[]
+    // Positional to `transferIds`: the draft's pages each transakcja was booked from.
+    transferMediaIds?: number[][]
+    skippedReceipts?: number[][]
   },
 ): Promise<boolean> {
+  const transfers = decision.transferIds.map((id, i) => ({
+    id,
+    media_ids: decision.transferMediaIds?.[i] ?? [],
+  }))
+  const skipped = (decision.skippedReceipts ?? []).map((mediaIds) => ({ media_ids: mediaIds }))
+  // A page id the client sends lands only if it is one of this draft's pages.
+  const ownPages = sql`ARRAY(
+    SELECT unnest(r.media_ids) INTERSECT
+    SELECT dm.media_id FROM worker_expense_draft_media dm WHERE dm.draft_id = decided.id
+  )`
+  const linked =
+    transfers.length > 0
+      ? sql`, linked AS (
+          INSERT INTO worker_expense_draft_transfers (transfer_id, draft_id, media_ids)
+          SELECT r.id, decided.id, ${ownPages}
+          FROM decided, jsonb_to_recordset(${JSON.stringify(transfers)}::jsonb) AS r(id int, media_ids int[])
+        )`
+      : sql``
+  const skippedInsert =
+    skipped.length > 0
+      ? sql`, skipped AS (
+          INSERT INTO worker_expense_draft_skipped_receipts (draft_id, media_ids)
+          SELECT decided.id, ${ownPages}
+          FROM decided, jsonb_to_recordset(${JSON.stringify(skipped)}::jsonb) AS r(media_ids int[])
+        )`
+      : sql``
   const res = await db.execute(sql`
-    UPDATE worker_expense_drafts
-    SET status = ${decision.status}, decided_at = now(), decided_by = ${decision.decidedBy},
-      transfer_id = ${decision.transferId}
-    WHERE id = ${decision.draftId} AND status = 'pending'
-    RETURNING id
+    WITH decided AS (
+      UPDATE worker_expense_drafts
+      SET status = ${decision.status}, decided_at = now(), decided_by = ${decision.decidedBy}
+      WHERE id = ${decision.draftId} AND status = 'pending'
+      RETURNING id
+    )${linked}${skippedInsert}
+    SELECT id FROM decided
   `)
   return res.rows.length > 0
 }
@@ -279,7 +352,7 @@ export async function restoreRejectedExpenseDraft(
 ): Promise<boolean> {
   const res = await db.execute(sql`
     UPDATE worker_expense_drafts d
-    SET status = 'pending', decided_at = NULL, decided_by = NULL, transfer_id = NULL
+    SET status = 'pending', decided_at = NULL, decided_by = NULL
     WHERE d.id = ${draftId} AND d.status = 'rejected' AND ${PARTIES_NOT_TRASHED}
     RETURNING d.id
   `)
@@ -443,8 +516,8 @@ export async function listDraftTransferIds(
 ): Promise<number[]> {
   if (transferIds.length === 0) return []
   const res = await db.execute(sql`
-    SELECT transfer_id FROM worker_expense_drafts
-    WHERE status = 'accepted' AND transfer_id IN (${sqlList(transferIds)})
+    SELECT transfer_id FROM worker_expense_draft_transfers
+    WHERE transfer_id IN (${sqlList(transferIds)})
   `)
   return res.rows.map((row) => Number(row.transfer_id))
 }

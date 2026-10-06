@@ -124,7 +124,7 @@ export const pl = {
     status: 'Status',
     worker: 'Pracownik',
     decision: 'Decyzja',
-    expense: 'Wydatek',
+    transfers: 'Transakcje',
     actions: 'Akcje',
     statusPending: 'czeka',
     statusAccepted: 'przyjęty',

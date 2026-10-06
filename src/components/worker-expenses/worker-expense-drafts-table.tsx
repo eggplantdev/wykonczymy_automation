@@ -18,6 +18,7 @@ import {
 } from '@/lib/constants/worker-expense-drafts'
 import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
+import { splitByReceipt } from '@/lib/worker-expenses/split-by-receipt'
 import type { CashRegisterRefT } from '@/types/reference-data'
 
 // The page also pages and filters transfers through the URL, so this table keeps its page, limit and
@@ -25,6 +26,8 @@ import type { CashRegisterRefT } from '@/types/reference-data'
 const DEFAULT_PAGE_SIZE = 10
 
 const getStatus = (draft: ExpenseDraftRowT) => draft.status
+// What still waits on the manager is what he opens the page for; the decided ones are a filter away.
+const DEFAULT_STATUS_FILTER = ['pending']
 const getInvestment = (draft: ExpenseDraftRowT) => String(draft.investmentId)
 
 type PropsT = {
@@ -50,7 +53,7 @@ export function WorkerExpenseDraftsTable({ drafts, canSend, investments, registe
     filteredData: byStatus,
     values: statusFilter,
     setValues: setStatusFilter,
-  } = useClientMultiFilter(drafts, getStatus)
+  } = useClientMultiFilter(splitByReceipt(drafts), getStatus, DEFAULT_STATUS_FILTER)
   const {
     filteredData: filtered,
     values: investmentFilter,

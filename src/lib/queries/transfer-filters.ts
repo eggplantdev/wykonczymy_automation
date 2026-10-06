@@ -145,11 +145,11 @@ export function buildTransferFilters(
         : { greater_than_equal: amountSearch.low, less_than: amountSearch.high }
   }
 
-  // Defers to NO_RESULTS if another filter already short-circuited.
-  const idParam = getStringParam(searchParams.id)
-  if (idParam && /^\d+$/.test(idParam) && !where.id) {
-    where.id = { equals: Number(idParam) }
-  }
+  // A list, so one zgłoszenie booked as several transakcje links to all of them. Unparseable ids are
+  // ignored rather than emptying the list. Defers to NO_RESULTS if another filter already
+  // short-circuited.
+  const ids = parseNumericIds(getStringParam(searchParams.id))
+  if (ids.length > 0 && !where.id) where.id = { in: ids }
 
   const fromParam = getStringParam(searchParams.from)
   const toParam = getStringParam(searchParams.to)

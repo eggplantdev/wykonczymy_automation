@@ -1,8 +1,12 @@
 import { useMemo, useState } from 'react'
 import { FILTER_NONE } from '@/components/filters/filter-multi-select'
 
-export function useClientMultiFilter<TItem>(data: TItem[], accessor: (item: TItem) => string) {
-  const [values, setValues] = useState<string[]>([])
+export function useClientMultiFilter<TItem>(
+  data: TItem[],
+  accessor: (item: TItem) => string,
+  initialValues: string[] = [],
+) {
+  const [values, setValues] = useState<string[]>(initialValues)
 
   const filteredData = useMemo(() => {
     const hasNone = values.length === 1 && values[0] === FILTER_NONE
