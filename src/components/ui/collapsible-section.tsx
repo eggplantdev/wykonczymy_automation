@@ -65,24 +65,28 @@ export function CollapsibleSection({
 
   return (
     <Collapsible.Root id={id} open={isOpen} onOpenChange={setIsOpen} className={cn(className)}>
-      <div className="flex items-center justify-between gap-2">
-        <Collapsible.Trigger className="flex w-full cursor-pointer items-center gap-2 py-2 text-left">
-          <h2 className={cn('text-foreground', SIZE[size].title)}>{title}</h2>
-          <ChevronDown
-            className={cn(
-              'text-muted-foreground transition-transform duration-200',
-              SIZE[size].chevron,
-              isOpen && 'rotate-180',
-            )}
-          />
-        </Collapsible.Trigger>
-        {action}
+      {/* The hint shares the trigger's column so it wraps beside the action, never under it; below
+          `sm` the action drops to its own line, where a heading and a button can't share 390px. */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-2">
+        <div className="min-w-0 flex-1">
+          <Collapsible.Trigger className="flex w-full cursor-pointer items-center gap-2 py-2 text-left">
+            <h2 className={cn('text-foreground', SIZE[size].title)}>{title}</h2>
+            <ChevronDown
+              className={cn(
+                'text-muted-foreground transition-transform duration-200',
+                SIZE[size].chevron,
+                isOpen && 'rotate-180',
+              )}
+            />
+          </Collapsible.Trigger>
+          {hint && (
+            <Description size="xs" className="-mt-2 pb-2">
+              {hint}
+            </Description>
+          )}
+        </div>
+        {action && <div className="shrink-0 pb-2 sm:pb-0">{action}</div>}
       </div>
-      {hint && (
-        <Description size="xs" className="-mt-2 pb-2">
-          {hint}
-        </Description>
-      )}
       {isOpen && withSeparator && <Separator orientation="horizontal" />}
       <Collapsible.Content className="data-[state=closed]:animate-collapse-up data-[state=open]:animate-collapse-down overflow-hidden">
         {/* Padding on Content itself would survive the collapse animation's height: 0. */}

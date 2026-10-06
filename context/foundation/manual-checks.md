@@ -4086,6 +4086,8 @@ inwestycji, z transakcjami i zgłoszonymi wydatkami; konto kierownika.
       nagłówek ze strzałką i są domyślnie otwarte; zwinięcie jednej przetrwa przeładowanie strony.
 - [ ] Pod „Moje inwestycje” i pod „Zgłoszone wydatki” jest podpowiedź tuż pod tytułem, a odstęp do
       tabeli jest taki sam jak w sekcjach bez podpowiedzi; „Dodaj wydatek” stoi w wierszu tytułu.
+- [ ] Na telefonie (390px) „Dodaj wydatek” stoi w osobnej linii pod podpowiedzią „Zgłoszone wydatki”
+      i nie nachodzi na jej tekst; na desktopie zostaje obok tytułu, a podpowiedź zawija się przed nim.
 - [ ] Tabele kas, sprzętu, inwestycji i wydatków mają pierwszą kolumnę tej samej szerokości i ten sam
       rozmiar czcionki co tabela transakcji; na telefonie (390px) strona nie przewija się w bok.
 - [ ] „Moje transfery” to jedna zwijana sekcja, domyślnie zamknięta; po otwarciu w środku są „Filtry”
