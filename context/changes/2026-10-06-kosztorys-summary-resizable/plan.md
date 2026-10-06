@@ -282,12 +282,12 @@ symlinked node_modules…").
 
 #### Automated
 
-- [x] 1.1 Helper spec passes: `totals-panel-height.test.ts`
-- [x] 1.2 Hook spec passes: `use-totals-panel-height.test.tsx`
+- [x] 1.1 Helper spec passes: `totals-panel-height.test.ts` — f8141bc6
+- [x] 1.2 Hook spec passes: `use-totals-panel-height.test.tsx` — f8141bc6
 
 ### Phase 2: Pill handle and split layout
 
 #### Automated
 
-- [x] 2.1 Existing open-flag spec still passes: `use-totals-panel-open.test.tsx`
-- [x] 2.2 Existing sidebar spec still passes: `sidebar.test.tsx`
+- [x] 2.1 Existing open-flag spec still passes: `use-totals-panel-open.test.tsx` — ea766d70
+- [x] 2.2 Existing sidebar spec still passes: `sidebar.test.tsx` — ea766d70
