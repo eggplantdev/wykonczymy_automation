@@ -24,7 +24,6 @@ export async function fetchTelmakCheckRows(
   return loadTelmakCheckRows(await getDb(payload), { registerId, from, to, numbers })
 }
 
-/** The flagged transactions in the exact shape the transfers list renders them. */
 export async function fetchTelmakTransferRows(ids: number[]): Promise<TransferRowT[]> {
   const session = await requireAuth(MANAGEMENT_ROLES)
   if (!session.success) throw new Error(session.error)

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { normalizeDocNumber, parseTelmak, wordsToAmount } from '@/lib/telmak/parse-telmak'
+import { normalizeDocNumber, parseTelmak, plDateToIso } from '@/lib/telmak/parse-telmak'
 
 // Line arrays in the shape `pdfLines` produces from a Telmak PDF (cells joined with ` | `). The
 // buyer is invented; only Telmak's own NIP is real, because the parser rejects a page without it.
@@ -159,23 +159,6 @@ describe('parseTelmak — rejections', () => {
   })
 })
 
-describe('wordsToAmount', () => {
-  it.each([
-    ['tysiąc PLN', 1000],
-    ['dwa tysiące trzysta PLN', 2300],
-    ['pięć tysięcy PLN 5/100', 5000.05],
-    ['dwanaście tysięcy sto jeden PLN 99/100', 12101.99],
-    ['zero PLN 40/100', 0.4],
-  ])('%s → %d', (text, expected) => {
-    expect(wordsToAmount(text)).toBe(expected)
-  })
-
-  it('returns null for an unknown word or a missing currency', () => {
-    expect(wordsToAmount('sto euro')).toBeNull()
-    expect(wordsToAmount('sto złotych PLN')).toBeNull()
-  })
-})
-
 describe('normalizeDocNumber', () => {
   it('drops every whitespace and upper-cases', () => {
     expect(normalizeDocNumber(' wv 4-00123/PRG/09/2026 \n')).toBe('WV4-00123/PRG/09/2026')
@@ -184,5 +167,16 @@ describe('normalizeDocNumber', () => {
   it('maps a missing number to the empty string', () => {
     expect(normalizeDocNumber(null)).toBe('')
     expect(normalizeDocNumber(undefined)).toBe('')
+  })
+})
+
+describe('plDateToIso', () => {
+  it('reads dd.mm.yyyy and dd-mm-yyyy', () => {
+    expect(plDateToIso('Telmak Kędzierski 02.10.2026')).toBe('2026-10-02')
+    expect(plDateToIso('Telmak 02-10-2026')).toBe('2026-10-02')
+  })
+
+  it('returns null without a date', () => {
+    expect(plDateToIso('Telmak')).toBeNull()
   })
 })

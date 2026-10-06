@@ -3,10 +3,8 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { loadTelmakCheckRows } from '@/lib/db/telmak-check'
 
-// The SQL must pick the same rows the browser comparison expects: a note's first line normalised
-// like `normalizeDocNumber`, the register's bookings within a month of the issue-date range, other
-// registers only by number, never a CANCELLATION row. Rows go in by raw SQL — the transfer hooks
-// (sheet sync, revalidation) have nothing to do with what this statement reads.
+// Rows go in by raw SQL — the transfer hooks (sheet sync, revalidation) have nothing to do with what
+// this statement reads.
 
 vi.mock('server-only', () => ({}))
 vi.mock('next/server', async (importOriginal) => {
@@ -66,7 +64,7 @@ describe.skipIf(!ENV_READY)('Telmak check rows (DB)', () => {
     await insertRow('spaced', {
       register: registerId,
       date: '2026-09-05T12:00:00Z',
-      note: '\n  wv 9-99001/tst/09/2026 \nFarba biała',
+      note: '\t\n  wv 9-99001/tst/09/2026 \nFarba biała',
     })
     await insertRow('monthBefore', { register: registerId, date: '2026-08-05T12:00:00Z', note: '' })
     await insertRow('tooEarly', { register: registerId, date: '2026-07-20T12:00:00Z', note: '' })

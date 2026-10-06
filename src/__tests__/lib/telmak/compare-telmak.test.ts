@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { compareTelmak, issueDateOf, type TelmakAppRowT } from '@/lib/telmak/compare-telmak'
+import { compareTelmak, type TelmakAppRowT } from '@/lib/telmak/compare-telmak'
 import type { TelmakDocT } from '@/lib/telmak/parse-telmak'
 
 const REGISTER = 11
@@ -27,7 +27,6 @@ const doc = (over: Partial<TelmakDocT> = {}): TelmakDocT => ({
 
 const row = (over: Partial<TelmakAppRowT> = {}): TelmakAppRowT => ({
   id: nextId++,
-  type: 'INVESTMENT_EXPENSE',
   amount: 100,
   description: 'Telmak Kędzierski 02.09.2026',
   invoiceNote: 'WV 4-00123/PRG/09/2026\nFarba biała 10 l',
@@ -67,6 +66,12 @@ describe('compareTelmak — one status per case', () => {
     })
   })
 
+  it('unreadable: a read number still claims its bookings, so they are not also app-only', () => {
+    const r = row()
+    const result = only([doc({ amount: null, problems: ['nie odczytano kwoty słownie'] })], [r])
+    expect(result).toMatchObject({ status: 'unreadable', rows: [r] })
+  })
+
   it('missing-in-app: no row carries the number', () => {
     expect(only([doc()], []).status).toBe('missing-in-app')
   })
@@ -78,7 +83,7 @@ describe('compareTelmak — one status per case', () => {
   it('amount: booked total differs', () => {
     const result = only([doc({ amount: 2094 })], [row({ amount: 2034 })])
     expect(result.status).toBe('amount')
-    expect(result.issues[0]).toMatch(/^kwota: faktura 2\s?094,00 zł, aplikacja 2\s?034,00 zł$/)
+    expect(result.issues[0]).toMatch(/^kwota: faktura 2\s?094,00\szł, aplikacja 2\s?034,00\szł$/)
   })
 
   it('date: the description carries another issue date', () => {
@@ -133,8 +138,12 @@ describe('compareTelmak — matching rules', () => {
 
   it('matches a KWV against a negative CORRECTION', () => {
     const kwv = doc({ kind: 'KWV', number: 'KWV161/PRG/2026', amount: -50 })
-    const correction = row({ type: 'CORRECTION', amount: -50, invoiceNote: 'KWV161/PRG/2026' })
+    const correction = row({ amount: -50, invoiceNote: 'KWV161/PRG/2026' })
     expect(only([kwv], [correction]).status).toBe('ok')
+  })
+
+  it('flags a document booked with the opposite sign', () => {
+    expect(only([doc()], [row({ amount: -100 })]).status).toBe('amount')
   })
 
   it('reports the first failing check as the status and keeps every issue', () => {
@@ -166,16 +175,5 @@ describe('compareTelmak — order and counts', () => {
     )
     expect(results.map((r) => r.status)).toEqual(['unreadable', 'missing-in-app', 'app-only', 'ok'])
     expect(counts).toEqual({ documents: 3, appRows: 2, ok: 1, problems: 3 })
-  })
-})
-
-describe('issueDateOf', () => {
-  it('reads dd.mm.yyyy and dd-mm-yyyy from the description', () => {
-    expect(issueDateOf('Telmak Kędzierski 02.10.2026')).toBe('2026-10-02')
-    expect(issueDateOf('Telmak 02-10-2026')).toBe('2026-10-02')
-  })
-
-  it('returns null without a date', () => {
-    expect(issueDateOf('Telmak')).toBeNull()
   })
 })

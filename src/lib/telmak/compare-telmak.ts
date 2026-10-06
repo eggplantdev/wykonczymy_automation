@@ -1,10 +1,12 @@
 import { firstNoteLine } from '@/lib/utils/invoice-note'
-import { normalizeDocNumber, type TelmakDocT } from '@/lib/telmak/parse-telmak'
+import { formatPLN } from '@/lib/utils/format-currency'
+import { roundToCents } from '@/lib/utils/round-to-cents'
+import { isWithinRange } from '@/lib/utils/date-range'
+import { normalizeDocNumber, plDateToIso, type TelmakDocT } from '@/lib/telmak/parse-telmak'
 import type { PreviewFileT } from '@/types/media'
 
 export type TelmakAppRowT = {
   id: number
-  type: string
   amount: number
   description: string
   invoiceNote: string
@@ -15,22 +17,28 @@ export type TelmakAppRowT = {
   invoices: PreviewFileT[]
 }
 
-export type TelmakStatusT =
-  | 'unreadable'
-  | 'missing-in-app'
-  | 'amount'
-  | 'date'
-  | 'cancelled'
-  | 'other-register'
-  | 'no-file'
-  | 'app-only'
-  | 'ok'
+// Ordered by severity: the table sorts by it, and a document with several issues shows the worst.
+const TELMAK_STATUSES = [
+  'unreadable',
+  'missing-in-app',
+  'app-only',
+  'amount',
+  'date',
+  'cancelled',
+  'other-register',
+  'no-file',
+  'ok',
+] as const
+
+export type TelmakStatusT = (typeof TELMAK_STATUSES)[number]
 
 export type TelmakResultRowT = {
   status: TelmakStatusT
   issues: string[]
   doc: TelmakDocT | null
   rows: TelmakAppRowT[]
+  appAmount: number | null
+  needsFile: TelmakAppRowT[]
 }
 
 export type TelmakCompareT = {
@@ -40,14 +48,28 @@ export type TelmakCompareT = {
 
 // The receipt scan writes „Telmak Kędzierski 02.10.2026" — the issue date, unlike `date`, which is
 // the booking day.
-export function issueDateOf(description: string): string | null {
-  const m = description.match(/(\d{2})[.-](\d{2})[.-](\d{4})/)
-  return m ? `${m[3]}-${m[2]}-${m[1]}` : null
-}
+const issueDateOf = (row: TelmakAppRowT) => plDateToIso(row.description)
 
-const sameMoney = (a: number, b: number) => Math.abs(a - b) < 0.005
-const pln = (n: number) =>
-  n.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' zł'
+const rank = (status: TelmakStatusT) => TELMAK_STATUSES.indexOf(status)
+const rowDocNumber = (row: TelmakAppRowT) => normalizeDocNumber(firstNoteLine(row.invoiceNote))
+const ids = (rows: TelmakAppRowT[]) => rows.map((r) => `#${r.id}`).join(', ')
+
+function resultRow(
+  status: TelmakStatusT,
+  issues: string[],
+  doc: TelmakDocT | null,
+  rows: TelmakAppRowT[],
+): TelmakResultRowT {
+  const live = rows.filter((r) => !r.cancelled)
+  return {
+    status,
+    issues,
+    doc,
+    rows,
+    appAmount: live.length > 0 ? live.reduce((sum, r) => sum + r.amount, 0) : null,
+    needsFile: live.filter((r) => r.invoices.length === 0),
+  }
+}
 
 export function compareTelmak(
   docs: TelmakDocT[],
@@ -58,7 +80,7 @@ export function compareTelmak(
 ): TelmakCompareT {
   const byNumber = new Map<string, TelmakAppRowT[]>()
   for (const row of appRows) {
-    const key = normalizeDocNumber(firstNoteLine(row.invoiceNote))
+    const key = rowDocNumber(row)
     if (!key) continue
     byNumber.set(key, [...(byNumber.get(key) ?? []), row])
   }
@@ -67,97 +89,73 @@ export function compareTelmak(
   const docKeys = new Set<string>()
 
   for (const doc of docs) {
-    if (doc.problems.length > 0 || !doc.number || doc.amount == null) {
-      results.push({ status: 'unreadable', issues: doc.problems, doc, rows: [] })
-      continue
-    }
     const key = normalizeDocNumber(doc.number)
-    docKeys.add(key)
+    if (key) docKeys.add(key)
     const rows = byNumber.get(key) ?? []
-    const live = rows.filter((r) => !r.cancelled)
-
-    if (rows.length === 0) {
-      results.push({ status: 'missing-in-app', issues: ['brak w aplikacji'], doc, rows })
+    if (doc.problems.length > 0 || !key || doc.amount == null) {
+      results.push(resultRow('unreadable', doc.problems, doc, rows))
       continue
     }
-    if (live.length === 0) {
-      results.push({ status: 'cancelled', issues: ['tylko anulowana transakcja'], doc, rows })
+    if (rows.length === 0) {
+      results.push(resultRow('missing-in-app', ['brak w aplikacji'], doc, rows))
+      continue
+    }
+
+    const row = resultRow('ok', [], doc, rows)
+    const live = rows.filter((r) => !r.cancelled)
+    if (row.appAmount == null) {
+      results.push({ ...row, status: 'cancelled', issues: ['tylko anulowana transakcja'] })
       continue
     }
 
     const issues: { status: TelmakStatusT; text: string }[] = []
-    const total = live.reduce((sum, r) => sum + r.amount, 0)
     // A correction is booked as a negative CORRECTION, so its sign already matches the document.
-    if (!sameMoney(Math.abs(total), Math.abs(doc.amount)))
+    if (roundToCents(row.appAmount) !== roundToCents(doc.amount))
       issues.push({
         status: 'amount',
-        text: `kwota: faktura ${pln(doc.amount)}, aplikacja ${pln(total)}`,
+        text: `kwota: faktura ${formatPLN(doc.amount)}, aplikacja ${formatPLN(row.appAmount)}`,
       })
-    const wrongDate = live.filter((r) => issueDateOf(r.description) !== doc.date)
+    const wrongDate = live.filter((r) => issueDateOf(r) !== doc.date)
     if (wrongDate.length > 0)
-      issues.push({
-        status: 'date',
-        text: `data w opisie ≠ ${doc.date} (${wrongDate.map((r) => `#${r.id}`).join(', ')})`,
-      })
+      issues.push({ status: 'date', text: `data w opisie ≠ ${doc.date} (${ids(wrongDate)})` })
     const elsewhere = live.filter((r) => r.registerId !== registerId)
     if (elsewhere.length > 0)
       issues.push({
         status: 'other-register',
         text: `w innej kasie: ${elsewhere.map((r) => `#${r.id} ${r.registerName ?? '—'}`).join(', ')}`,
       })
-    const noFile = live.filter((r) => r.invoices.length === 0)
-    if (noFile.length > 0)
-      issues.push({
-        status: 'no-file',
-        text: `bez PDF: ${noFile.map((r) => `#${r.id}`).join(', ')}`,
-      })
+    if (row.needsFile.length > 0)
+      issues.push({ status: 'no-file', text: `bez PDF: ${ids(row.needsFile)}` })
 
-    results.push({
-      status: issues[0]?.status ?? 'ok',
-      issues: issues.map((i) => i.text),
-      doc,
-      rows,
-    })
+    const worst = issues.map((i) => i.status).sort((a, b) => rank(a) - rank(b))[0]
+    results.push({ ...row, status: worst ?? 'ok', issues: issues.map((i) => i.text) })
   }
 
   const inRange = appRows.filter((r) => {
-    const issued = issueDateOf(r.description)
+    const issued = issueDateOf(r)
     return (
       r.registerId === registerId &&
       !r.cancelled &&
       issued != null &&
-      issued >= from &&
-      issued <= to
+      isWithinRange(issued, { from, to })
     )
   })
   for (const row of inRange) {
-    const key = normalizeDocNumber(firstNoteLine(row.invoiceNote))
+    const key = rowDocNumber(row)
     if (key && docKeys.has(key)) continue
-    results.push({
-      status: 'app-only',
-      issues: [key ? 'brak dokumentu w paczce' : 'brak numeru dokumentu w notatce'],
-      doc: null,
-      rows: [row],
-    })
+    results.push(
+      resultRow(
+        'app-only',
+        [key ? 'brak dokumentu w paczce' : 'brak numeru dokumentu w notatce'],
+        null,
+        [row],
+      ),
+    )
   }
 
   const ok = results.filter((r) => r.status === 'ok').length
   return {
-    results: results.sort(
-      (a, b) => STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status),
-    ),
+    results: results.sort((a, b) => rank(a.status) - rank(b.status)),
     counts: { documents: docs.length, appRows: inRange.length, ok, problems: results.length - ok },
   }
 }
-
-const STATUS_ORDER: TelmakStatusT[] = [
-  'unreadable',
-  'missing-in-app',
-  'app-only',
-  'amount',
-  'date',
-  'cancelled',
-  'other-register',
-  'no-file',
-  'ok',
-]

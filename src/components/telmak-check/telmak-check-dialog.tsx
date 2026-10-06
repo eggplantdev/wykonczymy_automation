@@ -1,24 +1,22 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { FileSearch, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { FileInput } from '@/components/ui/file-input'
 import { DateRangePicker } from '@/components/filters/date-range-picker'
 import { DataTable } from '@/components/tables/data-table/data-table'
-import { getTransferColumns } from '@/components/tables/transfers'
-import {
-  getTelmakCheckColumns,
-  toTelmakCheckRow,
-  type TelmakPackageFileT,
-} from '@/components/tables/telmak-check'
+import { getTransferColumns, transferRowClassName } from '@/components/tables/transfers'
+import { getTelmakCheckColumns } from '@/components/tables/telmak-check'
 import { useCurrentUser } from '@/hooks/use-current-user'
+import { useLatestRequest } from '@/hooks/use-latest-request'
 import { toastMessage } from '@/lib/utils/toast'
 import { cn } from '@/lib/utils/cn'
 import { ALL_TIME, type DateRangeT } from '@/lib/utils/date-range'
-import { normalizeDocNumber, parseTelmak, type TelmakDocT } from '@/lib/telmak/parse-telmak'
+import { normalizeDocNumber } from '@/lib/telmak/parse-telmak'
 import { compareTelmak, type TelmakCompareT } from '@/lib/telmak/compare-telmak'
+import { problemRowIds, toTelmakCheckRow, type TelmakPackageFileT } from '@/lib/telmak/check-row'
 import { fetchTelmakCheckRows, fetchTelmakTransferRows } from '@/lib/queries/telmak-check'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 import type { TransferRowT } from '@/types/transfers'
@@ -33,51 +31,43 @@ export function TelmakCheckDialog({ registerId, referenceData }: TelmakCheckDial
   const [open, setOpen] = useState(false)
   const [parsed, setParsed] = useState<TelmakPackageFileT[]>([])
   const [range, setRange] = useState<DateRangeT>(ALL_TIME)
+  const [rangePicked, setRangePicked] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
-  const [result, setResult] = useState<TelmakCompareT | null>(null)
-  const [transfers, setTransfers] = useState<Map<number, TransferRowT>>(new Map())
+  const [check, setCheck] = useState<{ result: TelmakCompareT; flagged: TransferRowT[] } | null>(
+    null,
+  )
   const [showOk, setShowOk] = useState(false)
+  const request = useLatestRequest()
 
   const columns = getTransferColumns([], { referenceData, currentUserId, currentUserRole })
+
+  useEffect(
+    () => () => {
+      for (const p of parsed) URL.revokeObjectURL(p.preview.url)
+    },
+    [parsed],
+  )
 
   // The package lives only in this tab's memory: closing the dialog drops it, nothing is uploaded
   // unless one file is explicitly attached to a transaction.
   function dropPackage() {
-    for (const p of parsed) URL.revokeObjectURL(p.preview.url)
+    request.disown()
     setParsed([])
-    setResult(null)
-    setTransfers(new Map())
+    setCheck(null)
   }
 
   async function handlePicked(files: File[]) {
     const pdfs = files.filter((f) => f.name.toLowerCase().endsWith('.pdf'))
     if (pdfs.length === 0) return
     dropPackage()
+    const isLatest = request.start()
     setBusy(`Czytam ${pdfs.length} plików…`)
     try {
-      const { pdfLines } = await import('@/lib/telmak/pdf-lines')
-      const out: TelmakPackageFileT[] = []
-      for (const file of pdfs) {
-        const preview = {
-          url: URL.createObjectURL(file),
-          filename: file.name,
-          mimeType: 'application/pdf',
-        }
-        let doc: TelmakDocT
-        try {
-          doc = parseTelmak(await pdfLines(file), file.name)
-        } catch {
-          doc = {
-            fileName: file.name,
-            kind: null,
-            number: null,
-            date: null,
-            amount: null,
-            remark: null,
-            problems: ['nie da się otworzyć PDF-a'],
-          }
-        }
-        out.push({ doc, file, preview })
+      const { readTelmakPackage } = await import('@/lib/telmak/read-package')
+      const out = await readTelmakPackage(pdfs)
+      if (!isLatest()) {
+        for (const p of out) URL.revokeObjectURL(p.preview.url)
+        return
       }
       setParsed(out)
       const rejected = out.filter((p) => p.doc.problems.length > 0)
@@ -90,65 +80,50 @@ export function TelmakCheckDialog({ registerId, referenceData }: TelmakCheckDial
           10000,
         )
       }
-      const dates = out
-        .map((p) => p.doc.date)
-        .filter((d): d is string => d != null)
-        .sort()
-      const chosen =
-        range.from && range.to
-          ? range
-          : dates.length > 0
-            ? { from: dates[0], to: dates.at(-1) }
-            : null
-      if (!chosen) return
-      setRange(chosen)
+      let chosen = range
+      if (!rangePicked) {
+        const dates = out
+          .map((p) => p.doc.date)
+          .filter((d): d is string => d != null)
+          .sort()
+        if (dates.length === 0) return
+        chosen = { from: dates[0], to: dates.at(-1) }
+        setRange(chosen)
+      }
       await compare(out, chosen)
     } finally {
-      setBusy(null)
+      if (isLatest()) setBusy(null)
     }
-  }
-
-  async function loadTransfers(ids: number[]) {
-    const rows = await fetchTelmakTransferRows(ids)
-    setTransfers((prev) => new Map([...prev, ...rows.map((r) => [r.id, r] as const)]))
   }
 
   async function compare(pkg: TelmakPackageFileT[], { from, to }: DateRangeT) {
     if (pkg.length === 0 || !from || !to) return
+    const isLatest = request.start()
     setBusy('Porównuję z aplikacją…')
     try {
       const docs = pkg.map((p) => p.doc)
       const numbers = [...new Set(docs.map((d) => normalizeDocNumber(d.number)).filter(Boolean))]
       const rows = await fetchTelmakCheckRows(registerId, from, to, numbers)
-      const compared = compareTelmak(docs, rows, registerId, from, to)
-      setResult(compared)
-      setTransfers(new Map())
-      await loadTransfers(
-        compared.results
-          .filter((r) => r.status !== 'ok')
-          .flatMap((r) => r.rows.map((row) => row.id)),
-      )
+      const result = compareTelmak(docs, rows, registerId, from, to)
+      const ids = problemRowIds(result.results)
+      const flagged = ids.length > 0 ? await fetchTelmakTransferRows(ids) : []
+      if (!isLatest()) return
+      flagged.sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id))
+      setCheck({ result, flagged })
     } catch (e) {
+      if (!isLatest()) return
       toastMessage(e instanceof Error ? e.message : 'Nie udało się porównać', 'error', 6000)
     } finally {
-      setBusy(null)
+      if (isLatest()) setBusy(null)
     }
   }
 
-  const checkColumns = getTelmakCheckColumns((id) => void loadTransfers([id]))
+  const result = check?.result
+  const checkColumns = getTelmakCheckColumns(() => void compare(parsed, range))
   const checkRows = (result?.results ?? [])
     .filter((r) => showOk || r.status !== 'ok')
     .map((r) => toTelmakCheckRow(r, parsed))
-  const problemIds = [
-    ...new Set(
-      (result?.results ?? [])
-        .filter((r) => r.status !== 'ok')
-        .flatMap((r) => r.rows.map((row) => row.id)),
-    ),
-  ]
-  const problemTransfers = problemIds
-    .map((id) => transfers.get(id))
-    .filter((t): t is TransferRowT => t != null)
+  const problemTransfers = check?.flagged ?? []
 
   return (
     <>
@@ -162,6 +137,8 @@ export function TelmakCheckDialog({ registerId, referenceData }: TelmakCheckDial
           if (!next) {
             dropPackage()
             setRange(ALL_TIME)
+            setRangePicked(false)
+            setBusy(null)
           }
           setOpen(next)
         }}
@@ -184,6 +161,7 @@ export function TelmakCheckDialog({ registerId, referenceData }: TelmakCheckDial
               value={range}
               onChange={(next) => {
                 setRange(next)
+                setRangePicked(Boolean(next.from && next.to))
                 void compare(parsed, next)
               }}
             />
@@ -243,9 +221,7 @@ export function TelmakCheckDialog({ registerId, referenceData }: TelmakCheckDial
                     data={problemTransfers}
                     columns={columns}
                     storageKey="transfers"
-                    getRowClassName={(row) =>
-                      row.cancelled ? '[&_td]:line-through [&_td]:text-muted-foreground' : ''
-                    }
+                    getRowClassName={transferRowClassName}
                   />
                 </section>
               )}
