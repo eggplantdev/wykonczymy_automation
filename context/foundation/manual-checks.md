@@ -4213,3 +4213,20 @@ inwestycji, z transakcjami i zgłoszonymi wydatkami; konto kierownika.
 ## 2026-10-06 — cash-register-edit-button
 
 - [ ] Kasa → strona kasy: przycisk „Edytuj” ma szerokość swojej treści, tak jak na stronie pracownika i sprzętu, i dalej otwiera „Edytuj kasę”.
+
+## EX-982 — telmak-invoice-check — sprawdzanie paczki faktur Telmak na stronie kasy Telmak (2026-10-06)
+
+Potrzebna paczka PDF-ów Telmaka za jeden miesiąc (WV / KWV / WZ / FP) i kasa Telmak z wydatkami z tego miesiąca.
+
+- [ ] Kasa Telmak (`/kasa/11`) → przycisk „Sprawdź faktury” jest; na każdej innej kasie go nie ma.
+- [ ] „Sprawdź faktury” → bez wybranego zakresu wrzuć paczkę: zakres dat ustawia się sam z dat wystawienia w paczce, a „Faktury do weryfikacji” pokazuje tylko rozjazdy z właściwym statusem („Brak w aplikacji”, „Inna kwota”, „Brak PDF w aplikacji”…). Liczniki nad tabelą zgadzają się z liczbą faktur w paczce.
+- [ ] Zmień zakres dat → porównanie liczy się od nowa; „Pokaż wszystkie” dokłada wiersze „Zgodne”, a „Pokaż tylko rozjazdy” je chowa.
+- [ ] Pod spodem „Transakcje do weryfikacji” pokazuje transakcje z rozjazdów w kolumnach jak na liście transakcji; anulowane są przekreślone.
+- [ ] „Podgląd” przy fakturze otwiera PDF z paczki.
+- [ ] Transakcja bez PDF-a, której faktura jest w paczce → „Dołącz do #id”: plik trafia do tej transakcji, porównanie liczy się od nowa i wiersz znika z rozjazdów (przycisku nie da się kliknąć drugi raz). Zamknięcie okna niczego więcej nie wysyła.
+- [ ] Bez zamykania okna wrzuć paczkę z innego miesiąca → zakres dat ustawia się od nowa z dat nowej paczki. Zakres wybrany ręcznie zostaje.
+- [ ] Prawdziwa korekta KWV z paczki → odczytana (nie „Nieznany format”), a jeśli w aplikacji jest jej ujemna korekta — „Zgodne”.
+- [ ] Dorzuć do paczki obcy PDF (nie od Telmaka) → toast o nieznanym formacie, a plik jest w tabeli jako „Nieznany format”.
+- [ ] Na buildzie produkcyjnym (staging) paczka się czyta, a w konsoli przeglądarki nie ma błędu workera pdfjs.
+- [ ] Paczka ~50+ faktur czyta się w kilka sekund, a nie dziesiątki (jeden worker pdfjs na całą paczkę).
+- [ ] Lista transakcji (np. „Transakcje”) → anulowana transakcja nadal przekreślona i wyszarzona, wiersz „Anulowanie” wyszarzony (wspólna klasa wiersza — zachowanie bez zmian).
