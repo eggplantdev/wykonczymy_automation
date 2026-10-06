@@ -583,12 +583,12 @@ Run once, after Phase 4:
 
 #### Automated
 
-- [x] 3.1 Preview table spec passes
-- [x] 3.2 Review table still renders with the promoted `SectionPill`
+- [x] 3.1 Preview table spec passes — b1428ca7
+- [x] 3.2 Review table still renders with the promoted `SectionPill` — b1428ca7
 
 ### Phase 4: Worker-page section
 
 #### Automated
 
-- [ ] 4.1 History table spec passes
-- [ ] 4.2 Template table still green
+- [x] 4.1 History table spec passes
+- [x] 4.2 Template table still green

@@ -14,6 +14,7 @@ import { fetchRegisterBalances } from '@/lib/queries/balances'
 import { fetchEquipmentAtLocation } from '@/lib/queries/equipment'
 import { fetchWorkerStageInvestments } from '@/lib/queries/worker-stage-investments'
 import { fetchWorkerExpenseDrafts } from '@/lib/queries/worker-expense-drafts'
+import { fetchWorkerReportHistory } from '@/lib/queries/worker-report-history'
 import { workerPageTransferWhere, workerTransferScope } from '@/lib/queries/worker-transfers'
 import { fetchTransferFacets } from '@/lib/queries/transfer-totals'
 import { TRANSFER_TYPES } from '@/lib/constants/transfers'
@@ -24,6 +25,7 @@ import { HeldEquipmentSection } from '@/components/equipment/held-equipment-sect
 import { OwnedRegistersSection } from '@/components/users/owned-registers-section'
 import { WorkerInvestmentsSection } from '@/components/users/worker-investments-section'
 import { WorkerExpenseDraftsSection } from '@/components/worker-expenses/worker-expense-drafts-section'
+import { WorkerReportsSection } from '@/components/worker-reports/worker-reports-section'
 import { visibleWorkerRegisters } from '@/lib/workers/owned-registers'
 import { EditWorkerDialog } from '@/components/dialogs/edit-worker-dialog'
 import { AccountCredentialsDialog } from '@/components/dialogs/account-credentials-dialog'
@@ -58,16 +60,25 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
       ),
     ),
   )
-  const [locale, refData, facets, balances, heldEquipment, stageInvestments, expenseDrafts] =
-    await Promise.all([
-      fetchUserLanguage(currentUser.id),
-      refDataPromise,
-      facetsPromise,
-      fetchRegisterBalances(),
-      fetchEquipmentAtLocation({ kind: 'holder', id: userId }),
-      fetchWorkerStageInvestments(userId),
-      fetchWorkerExpenseDrafts(userId),
-    ])
+  const [
+    locale,
+    refData,
+    facets,
+    balances,
+    heldEquipment,
+    stageInvestments,
+    expenseDrafts,
+    workReports,
+  ] = await Promise.all([
+    fetchUserLanguage(currentUser.id),
+    refDataPromise,
+    facetsPromise,
+    fetchRegisterBalances(),
+    fetchEquipmentAtLocation({ kind: 'holder', id: userId }),
+    fetchWorkerStageInvestments(userId),
+    fetchWorkerExpenseDrafts(userId),
+    fetchWorkerReportHistory(userId),
+  ])
 
   const worker = refData.workers.find((w) => w.id === userId)
   if (!worker) notFound()
@@ -132,6 +143,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
         defaultRegisterId={worker.defaultCashRegisterId}
         locale={locale}
       />
+      <WorkerReportsSection reports={workReports} canOpenInKosztorys={isManager} locale={locale} />
       <CollapsibleSection
         title={t('transfers')}
         storageKey="worker:transfers"

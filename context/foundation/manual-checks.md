@@ -2918,6 +2918,7 @@ Na stagingu link wskazuje na staging (wartość Preview `NEXT_PUBLIC_FRONTEND_UR
       a wiersz otwiera rozpiskę z tym zgłoszeniem. Odświeżenie po zamknięciu okna go nie otwiera
       ponownie.
       _Staging 2026-10-01: badge „1” przy „Zgłoszenia prac” w menu, strona wymienia zgłoszenie (Wysłano / Prace / Status „Do sprawdzenia”), klik w wiersz otwiera rozpiskę z oknem zgłoszenia; po zamknięciu i przeładowaniu okno się nie otwiera._
+      _Zastąpione przez `worker-reports-on-worker-page` (2026-10-06): wiersz nie jest już klikalny, rozpiskę otwiera akcja „Otwórz w kosztorysie” — patrz § 2026-10-06 — worker-reports-on-worker-page._
 - [x] „Zgłoszenia prac” wymienia też zgłoszenia przyjęte i odrzucone, każde ze statusem; licznik w
       menu liczy tylko oczekujące. Po odrzuceniu w rozpisce licznik w menu spada od razu.
       _Staging 01.10: lista ze statusami (Do sprawdzenia / Przyjęte n z m / Odrzucone); przy 2 oczekujących i 2 przyjętych menu pokazywało 2; po odrzuceniu jednego w rozpisce menu spadło do 1 bez przeładowania._
@@ -2930,6 +2931,7 @@ Na stagingu link wskazuje na staging (wartość Preview `NEXT_PUBLIC_FRONTEND_UR
       zgłoszeniem — wczytuje się, nie wisi na „Wczytywanie…”. Adres ma `?zgloszenie=` do zamknięcia
       okna; po zamknięciu i przeładowaniu okno się nie otwiera.
       _Staging 2026-10-01: klik w wiersz → /inwestycje/137/kosztorys_v2?zgloszenie=1, okno wczytało się w <6 s z treścią zgłoszenia; Esc zdejmuje ?zgloszenie=, po przeładowaniu okno się nie otwiera._
+      _Zastąpione przez `worker-reports-on-worker-page` (2026-10-06): wiersz nie jest już klikalny, rozpiskę otwiera akcja „Otwórz w kosztorysie” — patrz § 2026-10-06 — worker-reports-on-worker-page._
 - [x] Przegląd zgłoszenia, prace z rozpiski: kolumna etapu nosi nazwę etapu wybranego w „Dodaj do”
       („Nowy etap” dla nowego) i zmienia się razem z wyborem; dalej osobno „Przedmiar” i „Pomiar
       (razem etapy)”. Zaznaczona ilość przesuwa etap i pomiar („12 → 15”), przedmiar stoi.
