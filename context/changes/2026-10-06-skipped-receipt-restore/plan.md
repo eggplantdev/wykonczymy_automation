@@ -410,5 +410,5 @@ Run once, after the final phase:
 
 #### Automated
 
-- [x] 2.1 Restore DB spec passes
-- [x] 2.2 Data-table DOM spec passes
+- [x] 2.1 Restore DB spec passes — f0736461
+- [x] 2.2 Data-table DOM spec passes — f0736461
