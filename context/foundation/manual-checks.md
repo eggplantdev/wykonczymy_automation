@@ -4276,3 +4276,62 @@ Potrzebne przyjęte zgłoszenie „Kilka wydatków”, z którego przy przyjmowa
 - [ ] Jako kierownik na stronie tego pracownika: w każdym wierszu „Podgląd” i „Otwórz w kosztorysie”; w podglądzie polski opis plus „Opis w języku pracownika”.
 - [ ] Zgłoszenie na zakończonej inwestycji jest na liście pracownika i otwiera się w podglądzie.
 - [ ] „Wysłane zgłoszenia” na stronie z linkiem do zgłaszania prac bez zmian: tylko czekające, bez skanów, nieklikalne.
+
+## 2026-10-06 — employee-access-audit — zalogowany pracownik nie widzi i nie zrobi niczego poza swoją stroną
+
+Potrzebne: konto z rolą „Pracownik” z co najmniej jedną własną kasą, przypisaną inwestycją z
+etapami i kilkoma transferami, oraz drugi pracownik ze swoją kasą i transferami (do prób „cudzego”).
+Adresy wpisuj ręcznie w pasku przeglądarki.
+
+**Logowanie i nawigacja**
+
+- [ ] Zaloguj się jako pracownik: ląduje na swojej stronie `/pracownicy/{jego id}`, nie na „Transakcjach”.
+- [ ] Wejdź na `/zaloguj` zalogowanym pracownikiem: wraca na swoją stronę, bez formularza logowania.
+- [ ] Menu boczne i menu mobilne (390px): brak linków do sekcji, brak przycisków „Admin” i „Kosz”,
+      brak salda OpenRouter, brak liczników nieprzeczytanych. Są tylko: logo, własne imię (link do
+      swojej strony), przełącznik motywu, „Odśwież dane” i wylogowanie.
+- [ ] Górny pasek: brak przycisków „Wpłata”, „Transfer wewnętrzny”, „Wydatek”.
+
+**Cudze i zarządcze strony (każda kończy na własnej stronie pracownika albo 404)**
+
+- [ ] `/pracownicy/{id innego pracownika}` → 404, żadnych danych tamtego pracownika.
+- [ ] `/pracownicy`, `/kasy`, `/inwestycje`, `/kosztorysy`, `/katalog-prac`, `/flota`, `/sprzet`,
+      `/zgloszenia` → przekierowanie na własną stronę.
+- [ ] `/inwestycje/{id}`, `/kosztorys…` dowolnej inwestycji, `/szablony`, `/zgloszenia-prac`,
+      `/zgloszenia-wydatkow`, `/kosz`, `/raporty` → kończy na własnej stronie (chwilowy przeskok przez
+      `/zaloguj` w adresie jest dopuszczalny), nic z tych stron nie mignie na ekranie.
+- [ ] `/kasa/{id}` — także **własnej** kasy pracownika → 404.
+- [ ] `/podglad-inwestora/{id}` i `/podglad-pracownika/…` → kończy na własnej stronie.
+- [ ] `/admin` → panel Payloada nie wpuszcza pracownika.
+
+**Własna strona — tylko odczyt tam, gdzie powinien**
+
+- [ ] Brak przycisku „Edytuj pracownika”; rola, e-mail, status i domyślna kasa są tylko do odczytu,
+      zmienić da się wyłącznie język.
+- [ ] „Moje kasy”: widać tylko kasy pracownika z saldami, wiersze nie są linkami; kasa główna firmy
+      nie występuje.
+- [ ] Sprzęt: tylko sprzęt, który pracownik ma u siebie, bez linków.
+- [ ] Transfery: tylko te z jego nazwiskiem albo z jego kas — brak transferów drugiego pracownika.
+      Brak anulowania, edycji, pobierania faktur, drukowania i kolumn „Płatność” / „VAT” / „Pracownik”.
+- [ ] Transfery: dopisz do adresu filtr kasy drugiego pracownika (`?sourceRegister={jego kasa}`) —
+      lista pusta albo dalej tylko własne transfery, nigdy cudze.
+- [ ] Zgłoszenia prac: „Podgląd” otwiera tylko własne zgłoszenie; brak „Otwórz w kosztorysie”.
+- [ ] Zgłoszenia wydatków: edytować, usuwać i dodawać/usuwać zdjęcia da się tylko w zgłoszeniach
+      „czeka”; zgłoszenie przyjęte lub odrzucone jest tylko do podglądu i nie linkuje do transferu.
+- [ ] Nowe zgłoszenie wydatku: na liście kas są tylko jego aktywne kasy, na liście inwestycji tylko
+      inwestycje, na których ma etapy.
+
+**Konto**
+
+- [ ] „Dane logowania”: zmiana hasła bez podania obecnego hasła się nie udaje; z poprawnym obecnym
+      hasłem się udaje i można się zalogować nowym.
+- [ ] Kilka błędnych „obecnych haseł” z rzędu blokuje konto tak samo jak błędne logowanie.
+- [ ] Zmiana e-maila w „Dane logowania” zmienia login tylko temu pracownikowi.
+- [ ] Menedżer dezaktywuje albo przenosi pracownika do kosza → kolejna próba logowania tego
+      pracownika jest odrzucona.
+
+**Link „Zgłoś pracę”**
+
+- [ ] „Zgłoś pracę” przy inwestycji otwiera formularz z imieniem pracownika i tą inwestycją; pozycje
+      do wyboru są tylko z rozpiski tej inwestycji.
+- [ ] Link do zamkniętej inwestycji albo po dezaktywacji pracownika → formularz odmawia wysłania.
