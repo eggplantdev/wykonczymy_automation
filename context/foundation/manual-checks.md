@@ -4102,3 +4102,10 @@ inwestycji, z transakcjami i zgłoszonymi wydatkami; konto kierownika.
 
 - [ ] Edytor kosztorysu → „Zgłoszenia wykonanych prac” → otwórz zgłoszenie wczytane z kartki: w tabeli „Z rozpiski” zaraz za checkboxem jest kolumna „Nr”, a numer w wierszu jest taki sam jak przy tej pozycji na zdjęciu kartki (np. `35812-7`).
 - [ ] W tym samym oknie kliknij nagłówek „Nr”: wiersze sortują się po numerze; pozycja przypisana ręcznie (po „do przypisania ręcznie”) pokazuje numer wybranej pozycji, a tabela „Spoza rozpiski” nie ma kolumny „Nr”.
+
+## 2026-10-06 — scan-report-ai-entry — „Wczytaj zgłoszenie z kartki (AI)”
+
+- [ ] Edytor kosztorysu → „Pracownicy”: pierwsza pozycja menu to „Wczytaj zgłoszenie z kartki (AI)” z ikoną różdżki w stylu AI; pod nazwiskami pracowników nie ma już osobnego „Wczytaj z kartki”.
+- [ ] Kliknij ją: okno ma pole „Pracownik” z pracownikami przypisanymi do etapów (bez zablokowanych), inwestycja jest ta z kosztorysu; po wczytaniu kartki otwiera się nowe zgłoszenie do sprawdzenia.
+- [ ] Kosztorys bez przypisanego pracownika: pozycja jest wyszarzona.
+- [ ] Lista „Zgłoszenia prac”: przycisk ma tę samą etykietę i styl AI (gradientowa ramka, różdżka); okno pozwala wybrać pracownika i inwestycję jak dotąd.
