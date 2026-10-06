@@ -4201,5 +4201,7 @@ inwestycji, z transakcjami i zgłoszonymi wydatkami; konto kierownika.
 - [ ] U pracownika widać kolumny „Decyzja” i „Wydatek”, kwota nie jest linkiem; nie ma kolumny „Pracownik”.
 - [ ] Przy czekającym zgłoszeniu działają edycja, usunięcie i zmiana zdjęć; rozpatrzone zgłoszenie nie ma tych akcji. Kierownik na stronie pracownika widzi tę samą tabelę bez edycji i usuwania.
 - [ ] Pracownik z językiem Українська: nagłówki nowej tabeli są po ukraińsku.
-- [ ] Transakcje na stronie pracownika pokazują domyślnie 20 wierszy; „50” na dole przełącza na 50.
+- [ ] Transakcje na stronie pracownika pokazują domyślnie 10 wierszy; „50” na dole przełącza na 50. Na każdej liście z „Pokaż” jest teraz opcja „10”.
+- [ ] Pracownik na swojej stronie → „Moje inwestycje” → klik w nazwę inwestycji: otwiera się jego strona zgłoszenia prac od razu na „Inwestycja” (jego rozliczenie); „Zgłoś prace” dalej otwiera „Zgłaszam pracę”. Kierownik na stronie pracownika widzi nazwę bez linku.
+- [ ] „Zgłoszone wydatki” u pracownika: filtry „Status” i „Inwestycja” (tylko inwestycje z jego zgłoszeń) zawężają tabelę i licznik wyników, „Pokaż” zmienia liczbę wierszy (domyślnie 10); każda z tych zmian wraca na stronę 1 i nie zmienia adresu. Przy 390px oba filtry stoją obok siebie.
 - [ ] Transakcje (kierownik): czekające zgłoszenia dalej przypięte na górze z „Zobacz”, przyjęty wydatek ma plakietkę „od pracownika”; w tabeli nie ma odrzuconych zgłoszeń, w filtrach nie ma przełącznika „Zgłoszone wydatki”, a stary adres `/?workerDrafts=1` pokazuje zwykłą listę.

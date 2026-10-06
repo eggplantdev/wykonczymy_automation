@@ -60,3 +60,11 @@ na stronie pracownika listuje wszystkie zgłoszenia bez filtrów ani stronicowan
 - **Przyjęte zgłoszenia widoczne zawsze** (także z inwestycją w koszu / zablokowaną); **odrzucone
   z pracownikiem / inwestycją / kasą w koszu ukryte** — „Przywróć” i tak by je odrzucił
   (`PARTIES_NOT_TRASHED`).
+
+### Decyzje po wdrożeniu (właściciel, 2026-10-06)
+
+- **Tabela zgłoszeń u pracownika dostaje filtry „Status” i „Inwestycja” oraz „Pokaż”** — w stanie
+  komponentu, nie w URL. Kolizja z §„po researchu” wykluczała tylko filtry po URL; historia jest i tak
+  pobrana w całości, więc filtr w pamięci nic nie kosztuje.
+- **„10” trafia na wspólną listę „Pokaż”** (`ALLOWED_LIMITS`), więc jest we wszystkich tabelach.
+- **Transakcje na stronie pracownika: domyślnie 10**, nie 20.

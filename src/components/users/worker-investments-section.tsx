@@ -8,8 +8,9 @@ import {
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { Button } from '@/components/ui/button'
 import { Description } from '@/components/ui/description'
+import { OptionalLink } from '@/components/ui/optional-link'
 import { FRONTEND_URL } from '@/lib/env'
-import { workerReportShareUrl } from '@/lib/kosztorys/worker-view/worker-links'
+import { REPORT_VIEW_PARAM, workerReportShareUrl } from '@/lib/kosztorys/worker-view/worker-links'
 import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 import { createTranslator } from '@/lib/i18n/translations'
 import type { LanguageT } from '@/lib/i18n/languages'
@@ -45,7 +46,17 @@ export function WorkerInvestmentsSection({
           {canReport && <SummaryHeaderCell variant="label">{t('reports')}</SummaryHeaderCell>}
           {investments.map((investment) => (
             <Fragment key={investment.investmentId}>
-              <SummaryLabelCell className="flex items-center">{investment.name}</SummaryLabelCell>
+              <SummaryLabelCell className="flex items-center">
+                <OptionalLink
+                  href={
+                    canReport && investment.token
+                      ? `${workerReportShareUrl(FRONTEND_URL, investment.name, workerName, investment.token)}?${REPORT_VIEW_PARAM}=summary`
+                      : undefined
+                  }
+                >
+                  {investment.name}
+                </OptionalLink>
+              </SummaryLabelCell>
               {canReport && (
                 <ReportLinkCell
                   investment={investment}

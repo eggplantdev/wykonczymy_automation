@@ -21,10 +21,20 @@ describe('WorkerInvestmentsSection report link', () => {
     expect(screen.getByRole('link', { name: 'Zgłoś prace' })).toBeInTheDocument()
   })
 
+  it('opens the same page on „Inwestycja” from the investment name', () => {
+    render(section(true))
+
+    const report = screen.getByRole('link', { name: 'Zgłoś prace' }).getAttribute('href')
+    expect(screen.getByRole('link', { name: 'Mokotów' })).toHaveAttribute(
+      'href',
+      `${report}?view=summary`,
+    )
+  })
+
   it('is withheld from anyone else viewing his page', () => {
     render(section(false))
 
     expect(screen.getByText('Mokotów')).toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'Zgłoś prace' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link')).not.toBeInTheDocument()
   })
 })

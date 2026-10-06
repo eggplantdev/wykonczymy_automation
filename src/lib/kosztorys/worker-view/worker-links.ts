@@ -26,6 +26,9 @@ export function workerIdFromSegment(segment: string): number | undefined {
   return Number.isSafeInteger(workerId) && workerId > 0 ? workerId : undefined
 }
 
+// Opens the report page on „Inwestycja” rather than „Zgłaszam pracę”.
+export const REPORT_VIEW_PARAM = 'view'
+
 export function workerReportShareUrl(
   origin: string,
   investmentName: string,
