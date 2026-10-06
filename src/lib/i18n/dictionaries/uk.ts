@@ -219,6 +219,8 @@ export const uk: TranslationsT = {
     summaryPayoutDescription: 'Опис',
     documentKind: 'Кошторис — {{name}}',
     formNumber: '№',
+    formDoneSum: 'Виконано на сьогодні (разом етапи)',
+    formProgress: 'Прогрес (виконано / плановий обсяг)',
     formDocumentKind: 'Для заповнення — {{name}}',
   },
   grid: {

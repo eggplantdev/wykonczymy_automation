@@ -129,9 +129,9 @@ describe('buildWorkerFormHtml', () => {
     expect(headers.slice(0, 6)).toEqual([
       'Nr',
       'Opis prac',
-      'Wykonano',
+      'Wykonano do tej pory (razem etapy)',
       'Zgłaszam',
-      'Postęp',
+      'Postęp (wykonano / przedmiar)',
       'Jednostka miary',
     ])
     expect(out).toMatch(/Tynk[\s\S]*?>2<\/td>[\s\S]*?>2 \/ 5<\/td>/)

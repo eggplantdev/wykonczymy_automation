@@ -219,6 +219,8 @@ export const ru: TranslationsT = {
     summaryPayoutDescription: 'Описание',
     documentKind: 'Смета — {{name}}',
     formNumber: '№',
+    formDoneSum: 'Выполнено на сегодня (всего этапы)',
+    formProgress: 'Прогресс (выполнено / плановый объём)',
     formDocumentKind: 'Для заполнения — {{name}}',
   },
   grid: {

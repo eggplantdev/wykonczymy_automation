@@ -227,6 +227,8 @@ export const pl = {
     summaryPayoutDescription: 'Opis',
     documentKind: 'Kosztorys — {{name}}',
     formNumber: 'Nr',
+    formDoneSum: 'Wykonano do tej pory (razem etapy)',
+    formProgress: 'Postęp (wykonano / przedmiar)',
     formDocumentKind: 'Do wypełnienia — {{name}}',
   },
   // The kosztorys grid as the worker's link renders it. Only what that surface reaches: the owner's

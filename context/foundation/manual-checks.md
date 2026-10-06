@@ -4230,3 +4230,7 @@ Potrzebna paczka PDF-ów Telmaka za jeden miesiąc (WV / KWV / WZ / FP) i kasa T
 - [ ] Na buildzie produkcyjnym (staging) paczka się czyta, a w konsoli przeglądarki nie ma błędu workera pdfjs.
 - [ ] Paczka ~50+ faktur czyta się w kilka sekund, a nie dziesiątki (jeden worker pdfjs na całą paczkę).
 - [ ] Lista transakcji (np. „Transakcje”) → anulowana transakcja nadal przekreślona i wyszarzona, wiersz „Anulowanie” wyszarzony (wspólna klasa wiersza — zachowanie bez zmian).
+
+## 2026-10-06 — worker-form-headers
+
+- [ ] Kosztorys → menu „Pracownicy” → wydruk „Do wypełnienia” dla pracownika: nagłówki kolumn to „Wykonano do tej pory (razem etapy)” i „Postęp (wykonano / przedmiar)”; dla pracownika z językiem Українська/Русский — po ukraińsku/rosyjsku. Tabela na jego linku do zgłoszenia prac ma dalej krótkie nagłówki.

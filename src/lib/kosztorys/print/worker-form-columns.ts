@@ -43,7 +43,7 @@ export function workerFormColumns({
       cell: (row) => (row.ref === undefined ? '' : escapeHtml(formatFormRef(row.ref))),
     },
     { ...DESCRIPTION_COLUMN, label: grid.description },
-    figureColumn('doneSum', report.doneSumColumn, (row) =>
+    figureColumn('doneSum', report.formDoneSum, (row) =>
       escapeHtml(formatQty(rowTotalQtyDone(row, stages, plane))),
     ),
     {
@@ -54,7 +54,7 @@ export function workerFormColumns({
       headerClass: '',
       cell: () => '',
     },
-    figureColumn('progress', report.progressColumn, (row) =>
+    figureColumn('progress', report.formProgress, (row) =>
       escapeHtml(`${formatQty(executedQtyByItem[row.id] ?? 0)} / ${formatQty(row.plannedQty)}`),
     ),
     { ...UNIT_COLUMN, label: grid.unit },
