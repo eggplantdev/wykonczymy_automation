@@ -301,10 +301,10 @@ dev; acceptable for a monthly task — no parallel worker pool.
 
 #### Automated
 
-- [x] 2.1 `pnpm exec vitest run src/__tests__/lib/db/telmak-check.db.test.ts` passes against `db-test` (5435)
+- [x] 2.1 `pnpm exec vitest run src/__tests__/lib/db/telmak-check.db.test.ts` passes against `db-test` (5435) — c099b737
 
 ### Phase 3: UI placement, gate, build
 
 #### Automated
 
-- [ ] 3.1 `pnpm build` succeeds in the worktree and the output contains the `pdf.worker` asset
+- [x] 3.1 `pnpm build` succeeds in the worktree and the output contains the `pdf.worker` asset
