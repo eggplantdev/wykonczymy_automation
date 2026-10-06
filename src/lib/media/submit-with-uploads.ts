@@ -5,7 +5,7 @@ import {
   resolveUploadIdRows,
   resolveUploadIds,
 } from '@/lib/media/upload-ids'
-import type { ActionResultT } from '@/types/action'
+import type { ActionResultT, FailureT } from '@/types/action'
 import type { MediaKindT } from '@/types/media'
 
 /**
@@ -13,25 +13,30 @@ import type { MediaKindT } from '@/types/media'
  * does not attach them must hand them back — Blob has no undelete. A throw from the mutation is
  * re-thrown rather than folded into a failure result, so the caller still sees it as a throw.
  */
-async function withOrphanCleanup<TIds>(
+async function withOrphanCleanup<TIds, TResult extends ActionResultT<unknown> | ActionResultT>(
   resolve: () => Promise<TIds>,
   flatten: (ids: TIds) => number[],
-  submit: (ids: TIds) => Promise<ActionResultT>,
-): Promise<ActionResultT> {
+  submit: (ids: TIds) => Promise<TResult>,
+): Promise<TResult | FailureT> {
   let ids: TIds
   try {
     ids = await resolve()
   } catch (err) {
-    if (err instanceof MediaUploadError) discardOrphanedUploads(err.uploadedIds)
+    // Only the upload error phrases itself for this UI; anything else is transport or a
+    // chunk-load failure, whose message is not something to put in front of the user.
+    if (!(err instanceof MediaUploadError)) {
+      return { success: false, error: UPLOAD_FAILED, messageKey: 'uploadFailed' }
+    }
+    discardOrphanedUploads(err.uploadedIds)
     return {
       success: false,
-      // Only the upload error phrases itself for this UI; anything else is transport or a
-      // chunk-load failure, whose message is not something to put in front of the user.
-      error: err instanceof MediaUploadError ? err.message : UPLOAD_FAILED,
+      error: err.message,
+      messageKey: err.refusal.messageKey,
+      messageParams: err.refusal.messageParams,
     }
   }
 
-  let result: ActionResultT
+  let result: TResult
   try {
     result = await submit(ids)
   } catch (err) {
@@ -42,11 +47,11 @@ async function withOrphanCleanup<TIds>(
   return result
 }
 
-export function submitWithUploads(
+export function submitWithUploads<TResult extends ActionResultT<unknown> | ActionResultT>(
   files: File[],
-  submit: (uploadedIds: number[]) => Promise<ActionResultT>,
+  submit: (uploadedIds: number[]) => Promise<TResult>,
   kind?: MediaKindT,
-): Promise<ActionResultT> {
+): Promise<TResult | FailureT> {
   if (files.length === 0) return submit([])
   return withOrphanCleanup(
     () => resolveUploadIds(files, kind),

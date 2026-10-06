@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ExtraWorksDialogButton } from '@/components/kosztorys/worker-report/extra-works-dialog-button'
@@ -8,19 +8,20 @@ import { ru } from '@/lib/i18n/dictionaries/ru'
 import { uk } from '@/lib/i18n/dictionaries/uk'
 import { TranslationsProvider } from '@/components/kosztorys/worker-report/translations-provider'
 
-function Harness() {
+function Harness({ onSaved }: { onSaved?: (extra: ExtraWorkT) => void }) {
   const [extras, setExtras] = useState<ExtraWorkT[]>([])
   return (
     <ExtraWorksDialogButton
       extras={extras}
       commonUnits={['m2']}
-      onSave={(extra) =>
+      onSave={(extra) => {
+        onSaved?.(extra)
         setExtras((current) =>
           current.some((each) => each.key === extra.key)
             ? current.map((each) => (each.key === extra.key ? extra : each))
             : [...current, extra],
         )
-      }
+      }}
       onRemove={(key) => setExtras((current) => current.filter((each) => each.key !== key))}
     />
   )
@@ -81,5 +82,22 @@ describe('ExtraWorksDialogButton', () => {
       'true',
     )
     expect(within(dialog).queryByText(/Popraw błędy/)).not.toBeInTheDocument()
+  })
+
+  it('lists j.m. in the worker’s language but saves the Polish unit', async () => {
+    const onSaved = vi.fn()
+    render(
+      <TranslationsProvider initialLocale="uk" workerId={1}>
+        <Harness onSaved={onSaved} />
+      </TranslationsProvider>,
+    )
+    await userEvent.click(screen.getByRole('button', { name: new RegExp(uk.report.newWork) }))
+    const dialog = screen.getByRole('dialog')
+
+    await userEvent.click(within(dialog).getByRole('combobox'))
+    expect(screen.getByRole('option', { name: 'м²' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('option', { name: 'пог. м' }))
+
+    expect(onSaved).toHaveBeenLastCalledWith(expect.objectContaining({ unit: 'mb' }))
   })
 })

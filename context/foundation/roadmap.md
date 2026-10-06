@@ -3,7 +3,7 @@ project: 'Wykonczymy — off-sheets phase 1'
 version: 1
 status: active
 created: 2026-06-12
-updated: 2026-09-29
+updated: 2026-10-05
 prd_version: 1
 main_goal: quality
 top_blocker: none
@@ -760,7 +760,7 @@ Lifted from PRD `## Non-Goals` — explicitly out of scope for this arc.
 > **Backfilled 2026-07-20** — the five entries below were `done` in the table but never appended here
 > (archive step didn't write back). Recorded from Linear + the change/archive folders.
 
-- **F-01: E2E test harness** — Shipped; harness lives in `e2e/` (not archived, `change.md` still `implementing`). `global-setup.ts` + auth fixture + five specs against the isolated 5435 `db-test` container. Unblocks band 4. Lesson: —.
+- **F-01: E2E test harness** — Shipped; harness lives in `e2e/`. Archived 2026-10-05 → `context/archive/2026-07-08-e2e-harness/`. `global-setup.ts` + auth fixture + five specs against the isolated 5435 `db-test` container. Unblocks band 4. Lesson: —.
 - **S-01: Kosztorys sections + items (north star)** — EX-395 Done. Archived 2026-07-24 → `2026-07-08-kosztorys-sections-items` (archive deleted 2026-09-29; git history). Absorbed S-04's coefficient/override derivation. Lesson: —.
 - **S-03: Stage progress (etapy)** — EX-398 Done. Archived 2026-07-24 → `2026-07-09-kosztorys-stages` (archive deleted 2026-09-29; git history). The stage **value** axis shipped adjacent as `kosztorys-stage-values` (2026-07-15). Lesson: —.
 - **S-06: Snapshots (point-in-time version history)** — EX-418 Done, archived 2026-07-10 → `2026-07-10-kosztorys-snapshots` (archive deleted 2026-09-29; git history). Deferred E2E → EX-428 (`e2e-backlog`); `CRON_SECRET` deploy gate → EX-429. Lesson: a snapshot is only trustworthy if its payload is complete — EX-432 caught serialize silently truncating at 5000 items, which would have made restore permanently lossy.

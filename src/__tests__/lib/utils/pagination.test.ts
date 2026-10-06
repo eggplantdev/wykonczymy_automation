@@ -22,6 +22,9 @@ describe('parsePagination', () => {
     ['a positive page', { page: '4' }, 4],
     ['zero', { page: '0' }, 1],
     ['a negative page', { page: '-2' }, 1],
+    // Both reach a raw-SQL OFFSET, where Postgres refuses them and the page 500s.
+    ['a fractional page', { page: '1.5' }, 1],
+    ['an overflowing page', { page: '1e999' }, 1],
   ])('reads %s as page %i', (_label, searchParams, expected) => {
     expect(parsePagination(searchParams).page).toBe(expected)
   })

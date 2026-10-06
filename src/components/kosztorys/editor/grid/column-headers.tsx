@@ -28,9 +28,12 @@ function sortableHeader(
   label: string,
   field: string,
   tip: string | undefined,
-  opts: Pick<BuildV2ColumnsOptsT, 'sort' | 'onSetSort' | 'onPersistKosztorysOrder'>,
+  opts: Pick<
+    BuildV2ColumnsOptsT,
+    'sort' | 'onSetSort' | 'onPersistKosztorysOrder' | 'columnColors' | 'onSetColumnColor'
+  >,
 ): ReactNode {
-  const { onSetSort } = opts
+  const { onSetSort, onSetColumnColor } = opts
   if (onSetSort) {
     return (
       <SortHeader
@@ -39,6 +42,8 @@ function sortableHeader(
         tip={tip}
         onSort={(pick) => onSetSort(field, pick)}
         onPersistOrder={opts.onPersistKosztorysOrder}
+        color={opts.columnColors?.[field] ?? null}
+        onSetColor={onSetColumnColor && ((color) => onSetColumnColor(field, color))}
       />
     )
   }
@@ -58,7 +63,14 @@ export function columnTitle(
   field: string,
   opts: Pick<
     BuildV2ColumnsOptsT,
-    'sort' | 'onSetSort' | 'onPersistKosztorysOrder' | 'view' | 'workerSurface' | 'dictionary'
+    | 'sort'
+    | 'onSetSort'
+    | 'onPersistKosztorysOrder'
+    | 'view'
+    | 'workerSurface'
+    | 'dictionary'
+    | 'columnColors'
+    | 'onSetColumnColor'
   >,
 ): ReactNode {
   const dictionary = surfaceDictionary(opts)
@@ -84,7 +96,13 @@ export function stageValueHeader(
   field: string,
   opts: Pick<
     BuildV2ColumnsOptsT,
-    'sort' | 'onSetSort' | 'onPersistKosztorysOrder' | 'workerSurface' | 'dictionary'
+    | 'sort'
+    | 'onSetSort'
+    | 'onPersistKosztorysOrder'
+    | 'workerSurface'
+    | 'dictionary'
+    | 'columnColors'
+    | 'onSetColumnColor'
   >,
 ): ReactNode {
   const dictionary = surfaceDictionary(opts)

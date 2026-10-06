@@ -1,4 +1,4 @@
-import { foldUnit } from '@/lib/kosztorys/sheet-import/columns'
+import { foldUnit } from '@/lib/kosztorys/fold'
 import { foldDescription } from '@/lib/kosztorys/sheet-import/item-key'
 import { compareDescriptions } from '@/lib/kosztorys/work-catalogue/compare-descriptions'
 import type {

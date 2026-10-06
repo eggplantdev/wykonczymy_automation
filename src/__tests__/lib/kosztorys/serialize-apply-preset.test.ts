@@ -41,8 +41,9 @@ function canonicalTree(snap: StoredSnapshotPayloadT) {
     .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
     .map(({ id: _id, ...rest }) => rest)
 
+  // `ref` is an identity like `id`: a szablon mints new ones (item-ref.db.test.ts asserts that).
   const items = snap.items
-    .map(({ id: _id, sectionId, ...rest }) => ({
+    .map(({ id: _id, ref: _ref, sectionId, ...rest }) => ({
       sectionOrder: sectionById.get(sectionId)!.displayOrder ?? 0,
       ...rest,
     }))

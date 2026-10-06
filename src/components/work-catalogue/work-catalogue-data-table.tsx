@@ -18,6 +18,8 @@ import {
 import { CatalogueFiltersMenu } from '@/components/work-catalogue/catalogue-filters-menu'
 import { catalogueFiltersMenuModel } from '@/components/work-catalogue/catalogue-filters-menu-model'
 import { CountUsageButton } from '@/components/work-catalogue/count-usage-button'
+import { countNeedingTranslation } from '@/lib/i18n/description-translations'
+import { FillCatalogueTranslationsButton } from '@/components/work-catalogue/fill-catalogue-translations-button'
 import { UncataloguedUsageList } from '@/components/work-catalogue/uncatalogued-usage-list'
 import { CatalogueProblemsMenu } from '@/components/work-catalogue/catalogue-problems-menu'
 import { catalogueProblemsMenuModel } from '@/components/work-catalogue/catalogue-problems-menu-model'
@@ -270,6 +272,7 @@ export function WorkCatalogueDataTable({ data }: { data: WorkCatalogueItemT[] })
             actions={
               <>
                 <CountUsageButton onCounted={setUsage} />
+                <FillCatalogueTranslationsButton count={countNeedingTranslation(data)} />
                 <AddCatalogueItemDialog categorySuggestions={categorySuggestions} />
               </>
             }

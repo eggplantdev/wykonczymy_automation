@@ -17,6 +17,7 @@ type PropsT<T extends string> = {
   // Kept visible where a toggle applies only in some contexts (e.g. the summary view toggle on the
   // subcontractor plane).
   disabled?: boolean
+  isEqualWidth?: boolean
   'aria-label'?: string
   className?: string
 }
@@ -37,12 +38,13 @@ export function ToggleGroup<T extends string>({
   onChange,
   size = 'default',
   disabled = false,
+  isEqualWidth = false,
   'aria-label': ariaLabel,
   className,
 }: PropsT<T>) {
   const rootRef = useRef<HTMLDivElement>(null)
   const indicatorRef = useRef<HTMLSpanElement>(null)
-  // Columns are content-sized (auto-cols-max), so the indicator can't be derived from an index —
+  // Columns may be content-sized, so the indicator can't be derived from an index —
   // measure the active item and position the pill by direct style writes (state would cascade renders).
   useLayoutEffect(() => {
     const active = rootRef.current?.querySelector<HTMLElement>('[data-state="on"]')
@@ -66,7 +68,8 @@ export function ToggleGroup<T extends string>({
         disabled={disabled}
         aria-label={ariaLabel}
         className={cn(
-          'border-input bg-background relative inline-grid w-max auto-cols-max grid-flow-col items-center rounded-md border p-0.5',
+          'border-input bg-background relative inline-grid w-max grid-flow-col items-center rounded-md border p-0.5',
+          isEqualWidth ? 'auto-cols-fr' : 'auto-cols-max',
           ROOT_SIZE[size],
           disabled && 'pointer-events-none opacity-50',
         )}

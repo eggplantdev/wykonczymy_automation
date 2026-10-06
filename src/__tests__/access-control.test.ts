@@ -8,6 +8,7 @@ import {
   isAdminOrOwner,
   isAdminOrOwnerOrManager,
   isAuthenticated,
+  canUpdateUser,
   rolesOrSelfField,
   isAdminField,
   isAdminOrOwnerField,
@@ -120,6 +121,32 @@ describe('isAuthenticated', () => {
 
   it('returns false when user is undefined', () => {
     expect(isAuthenticated(noUser as never)).toBe(false)
+  })
+})
+
+// ── canUpdateUser ────────────────────────────────────────────────────────
+
+describe('canUpdateUser', () => {
+  const onId = (req: { req: unknown }, id: number) => ({ ...req, id }) as never
+
+  it.each(['ADMIN', 'OWNER'] as RoleT[])('returns true for %s', (role) => {
+    expect(canUpdateUser(onId(makeReq(role), 2))).toBe(true)
+  })
+
+  it('limits MANAGER to EMPLOYEE rows', () => {
+    expect(canUpdateUser(onId(makeReq('MANAGER'), 2))).toEqual({ role: { equals: 'EMPLOYEE' } })
+  })
+
+  it('refuses an EMPLOYEE on his own row', () => {
+    expect(canUpdateUser(onId(makeReq('EMPLOYEE', 7), 7))).toBe(false)
+  })
+
+  it('refuses an EMPLOYEE on another row', () => {
+    expect(canUpdateUser(onId(makeReq('EMPLOYEE', 7), 8))).toBe(false)
+  })
+
+  it('returns false when no user', () => {
+    expect(canUpdateUser(onId(noUser, 7))).toBe(false)
   })
 })
 

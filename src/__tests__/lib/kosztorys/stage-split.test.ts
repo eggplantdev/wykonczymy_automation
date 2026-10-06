@@ -5,6 +5,7 @@ import {
   validateStageSplit,
 } from '@/lib/kosztorys/stage-split'
 import type { StageMemberT, StageSplitT } from '@/lib/kosztorys/types'
+import { roundToCents } from '@/lib/utils/round-to-cents'
 
 const entered = (workerId: number, value: number): StageMemberT => ({
   workerId,
@@ -87,6 +88,28 @@ describe('splitStagePool', () => {
     )
     expect(shares.get(3)).toBe(0)
     expect(scaledDown).toBe(false)
+    for (const share of shares.values()) expect(share).toBeGreaterThanOrEqual(0)
+  })
+
+  // EX-956: each share rounds on its own when displayed, so unrounded shares could add up to a
+  // grosz more than the etap — 1145,69 + 429,68 + 1862,04 = 3437,41 against 3437,40.
+  it('makes the displayed shares add up to the displayed etap value', () => {
+    const pool = 3437.4
+    const { shares } = splitStagePool(pool, percent(entered(1, 33.33), entered(2, 12.5), rest(3)))
+    const displayed = [...shares.values()].map(roundToCents)
+    expect(roundToCents(displayed.reduce((a, b) => a + b, 0))).toBe(roundToCents(pool))
+    expect(sum(shares)).toBeCloseTo(pool, 10)
+  })
+
+  it('keeps shrunk fixed amounts adding up to the pool at the grosz', () => {
+    const pool = 1000
+    const { shares, scaledDown } = splitStagePool(
+      pool,
+      amount(entered(1, 500), entered(2, 500), entered(3, 500), rest(4)),
+    )
+    expect(scaledDown).toBe(true)
+    const displayed = [...shares.values()].map(roundToCents)
+    expect(roundToCents(displayed.reduce((a, b) => a + b, 0))).toBe(pool)
     for (const share of shares.values()) expect(share).toBeGreaterThanOrEqual(0)
   })
 

@@ -6,7 +6,7 @@ import { ViewSettingsFields } from '@/components/kosztorys/editor/dialogs/view-s
 import { DocumentColumnOrderButton } from '@/components/kosztorys/editor/dialogs/view-settings/document-column-order-button'
 import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
 import { CLIENT_DOCUMENT_COLUMNS, CLIENT_VIEW_GROUPS } from '@/lib/kosztorys/client-view/columns'
-import { CLIENT_EMPTY_CONDITION_ID } from '@/lib/kosztorys/row-conditions/queries'
+import { CLIENT_EMPTY_CONDITION_ID } from '@/lib/kosztorys/row-conditions/registry'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view/settings'
 import type { ColumnRanksT } from '@/lib/table/column-order'
 

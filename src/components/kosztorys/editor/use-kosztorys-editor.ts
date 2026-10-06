@@ -22,6 +22,7 @@ import type { UndoCommandT, UndoRedoApiT } from '@/components/kosztorys/editor/h
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view/settings'
 import type { WorkerAudienceT } from '@/lib/kosztorys/worker-view/types'
 import { useColumnWidths } from '@/components/kosztorys/editor/hooks/use-column-widths'
+import { useColumnColors } from '@/components/kosztorys/editor/hooks/use-column-colors'
 import { useRowHeights } from '@/components/kosztorys/editor/hooks/use-row-heights'
 import { useConditionRowLatch } from '@/components/kosztorys/editor/hooks/use-condition-row-latch'
 import { engagedProblemIds, engagedStageProblemIds } from '@/lib/kosztorys/problem-conditions'
@@ -219,6 +220,8 @@ export function useKosztorysEditor({
     engagedConditionIds,
     showAllRows,
     setShowAllRows,
+    reportedOnly,
+    setReportedOnly,
     toggleCondition,
     setConditions,
     toggleConditionExclusive,
@@ -247,6 +250,7 @@ export function useKosztorysEditor({
 
   // Committed on handle release, not per pointermove — that would be a write per pixel.
   const { widths, setWidth, dropWidth } = useColumnWidths()
+  const { colors: columnColors, setColor: setColumnColor, dropColor } = useColumnColors()
   const { heights: rowHeights, setHeight: setRowHeight, dropHeight } = useRowHeights()
   const { isHidden, toggleColumn, setAllColumns } = useHiddenColumns()
   const {
@@ -292,7 +296,12 @@ export function useKosztorysEditor({
     investmentId,
     initialStages: tree.stages,
     patchRows,
-    dropWidth,
+    // Stage column ids come from DB ids Postgres may reissue — a dead etap's colour must not
+    // resurface on a new one, same as its width.
+    dropWidth: (...keys) => {
+      dropWidth(...keys)
+      dropColor(...keys)
+    },
     save,
     reportFailure,
   })
@@ -582,6 +591,8 @@ export function useKosztorysEditor({
     columnRanks,
     onGuide: setGuideX,
     onCommitColumn: setWidth,
+    columnColors: preview ? undefined : columnColors,
+    onSetColumnColor: editorOnly(setColumnColor),
     onRemoveItem: editorOnly(handleRemoveItem),
     onReorderItem: editorOnly(handleReorderItem),
     moveEdges,
@@ -1222,10 +1233,7 @@ export function useKosztorysEditor({
    * untouched: this settles what the praca is CALLED, and what it costs is the next, separate
    * decision — the one the „Inne liczby" block it now lands in is for.
    */
-  async function handleAcceptCatalogueName(
-    itemId: number,
-    name: CatalogueNameT,
-  ): Promise<boolean> {
+  async function handleAcceptCatalogueName(itemId: number, name: CatalogueNameT): Promise<boolean> {
     const before = rowsRef.current.find((r) => r.id === itemId)
     const patch = {
       ...name,
@@ -1411,6 +1419,8 @@ export function useKosztorysEditor({
     engagedStageConditionIds,
     showAllRows,
     setShowAllRows,
+    reportedOnly,
+    setReportedOnly,
     clientEmptyRowIds,
     toggleCondition,
     setConditions,

@@ -720,23 +720,25 @@
 - **Applies to**: any DB/latency measurement taken against a preview or prod deployment; deciding
   whether an index, a denormalized column, or a query rewrite is justified.
 
-## A hand-written `Where` → SQL translator fails OPEN — an operator it doesn't know silently widens the result set
+## A hand-written `Where` → SQL translator must fail CLOSED — an operator it doesn't know once silently widened the result set
 
 - **Context**: `buildTransferFilters` emits a half-open amount range
-  (`{ greater_than_equal: low, less_than: high }`), but `where-to-sql.ts`'s `buildFieldCondition` is a
-  flat chain of `if ('op' in cond)` and had no `less_than` branch.
-- **Problem**: an unmatched operator is not an error — it falls through. The ceiling vanished and the
-  stats query ran `amount >= low` unbounded, so searching „500,00" listed 20 rows totalling 10 000 zł
-  under a tile reading 22 560 189,17 zł. Nothing typed, logged or threw; the list plane (Payload
-  `find`) and the stats plane (raw SQL) simply disagreed. The same file's other trap is upstream:
+  (`{ greater_than_equal: low, less_than: high }`), but `where-to-sql.ts`'s `buildFieldCondition` was
+  a flat chain of `if ('op' in cond)` with no `less_than` branch.
+- **Problem**: an unmatched operator fell through. The ceiling vanished and the stats query ran
+  `amount >= low` unbounded, so searching „500,00" listed 20 rows totalling 10 000 zł under a tile
+  reading 22 560 189,17 zł. Nothing typed, logged or threw; the list plane (Payload `find`) and the
+  stats plane (raw SQL) simply disagreed. The same file's other trap is upstream:
   `stripCancelledFilters` discarded the default `type not_in ['CANCELLATION']` while the SQL re-added
-  only `cancelled IS NOT TRUE` — a comment saying "SQL already excludes cancelled" is exactly what hid
-  the gap, because `cancelled = true` and `type = 'CANCELLATION'` are two different concepts.
-- **Rule**: any operator the filter builder can emit needs a branch in the translator, and the
-  translator should be exhaustive (or throw on an unknown operator) rather than fall through — widening
-  is the dangerous direction. Test the **bridge**: run the real builder through the real strip into the
-  real translator and assert the **emitted SQL**, not the intermediate `Where` object. Asserting the
-  `Where` still holds `not_in` stays green even if the translator drops the operator entirely.
+  only `cancelled IS NOT TRUE` — `cancelled = true` and `type = 'CANCELLATION'` are two different
+  concepts.
+- **Today**: the translator throws on any field, operator or value type it hasn't been taught, and
+  understands both `or` and `and` (EX-985 needs `and`: the worker page's access scope rides as
+  `{ ...urlFilters, and: [scope] }`, so a dropped `and` would show every transfer to an EMPLOYEE).
+- **Rule**: keep it exhaustive — teach a new operator a branch, never a fall-through, because widening
+  is the dangerous direction and on a scoped page it is a data leak. Test the **bridge**: run the real
+  builder through the real strip into the real translator and assert the **emitted SQL**, not the
+  intermediate `Where` object.
 - **Applies to**: `src/lib/db/where-to-sql.ts` and every `src/lib/queries/*-filters.ts` that feeds it;
   any two-plane visibility rule enforced once in the ORM and once in hand-written SQL.
 
@@ -2518,3 +2520,17 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
 - **Problem**: Stamping `source` server-side means reading the opis back from the DB inside the translation save. If the opis save has not landed yet, the translation is stamped against the old text and reads as current when it is stale, or the reverse. The same holds for any marker derived from a field that is saved on a different lane.
 - **Rule**: Stamp such a marker on the **client**, from the row the user is looking at, and send it with the write. Never read the sibling field back from the DB in the action. Stamp only a language whose text actually changed (`translationsFromTexts`), so saving an unrelated field cannot mark a stale translation current. A bulk path that writes raw SQL, such as the fill script, writes the whole stale map and skips cache tags, so its header should name which edits are safe to run beside it.
 - **Applies to**: plan, implement — any field whose meaning is relative to another field saved on its own lane
+
+## A raw table that holds media ids must register in the media reference scan — or its photos are orphans to the reclaim
+
+- **Context**: Worker expense drafts (EX-971). The receipt photos sit in `worker_expense_draft_media`, a raw table Payload does not know. The media reclaim (`findReferencedMedia`) and the delete guard (`preventReferencedMediaDelete`) read only `MEDIA_RELATIONS`, which lists Payload collections.
+- **Problem**: A photo held only by the raw table looks unreferenced. Every reclaim path — orphan cleanup after a failed submit, a replaced upload field, a deleted transaction's invoices, an erased lead — would delete it from Blob, which has no undelete, and the `ON DELETE CASCADE` on the join table would silently drop the page from the draft. Opening orphan cleanup to EMPLOYEE (his failed submit leaves files in Blob) makes it worse: the action trusts ids from the client, so a worker could reclaim anyone's unreferenced file.
+- **Rule**: (1) A raw table with a `media_id` adds its own probe to `findReferencedMedia` **and** a `{ count, label }` probe to the delete guard, for **every** status — a decided row still owns its photos' history. (2) Orphan cleanup for a non-management role narrows the ids to `media.created_by_id = session user` before reclaiming, and only lands after (1); otherwise a send that saved while the client saw an error loses its photos. (3) A registry for raw tables is not worth it at one table; revisit at the second.
+- **Applies to**: plan, implement, impl-review — any new raw table that references media
+
+## A pending request row must block the delete and the trash of what it names — a decided one may CASCADE
+
+- **Context**: Worker expense drafts (EX-971). A draft references its worker, investment and kasa with `ON DELETE CASCADE`, copied from worker reports (EX-947).
+- **Problem**: „Usuń na zawsze" on any of the three erased a pending draft — a receipt the worker is owed money for — before a manager decided it. The trash had the same reach, since it refuses on the hard delete's own predicate. The fix has two side effects that are easy to miss: the kasa blocker also drives the kasa owner lock (`guard-update.ts`), so the lock message must name drafts too; and a rejected draft does not block the trash, so „Przywróć" could reopen a draft whose party sits in `/kosz`, holding back its purge and offering a kasa nobody can book into.
+- **Rule**: (1) A pending row is a probe in every blocker of the parties it names (`pendingDraftsProbe`), and each refusal says what to do („…najpierw przyjmij lub odrzuć"), not just what blocks. (2) A decided row may go with the CASCADE: an accepted one is protected through its expense, a rejected one is accepted loss. (3) A reopen ("restore") path re-checks that none of the parties is trashed (`PARTIES_NOT_TRASHED`), in the same statement that flips the status, and the list that offers it hides such rows.
+- **Applies to**: plan, implement, impl-review — any new pending/accepted/rejected request table

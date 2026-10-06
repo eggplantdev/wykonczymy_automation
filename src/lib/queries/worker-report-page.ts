@@ -1,8 +1,8 @@
 import 'server-only'
 import { getPayload } from 'payload'
 import config from '@payload-config'
-import { getDb } from '@/lib/db/get-db'
-import { listWorkerReports, pendingQtyByItem, type WorkerReportRowT } from '@/lib/db/worker-reports'
+import { getDb, type DbExecutorT } from '@/lib/db/get-db'
+import { listWorkerReports, type WorkerReportRowT } from '@/lib/db/worker-reports'
 import { readReportShare } from '@/lib/db/worker-report-share'
 import { DEFAULT_LANGUAGE, type LanguageT } from '@/lib/i18n/languages'
 import type { SectionTranslationMapT } from '@/lib/i18n/section-translations'
@@ -10,7 +10,10 @@ import type { ReportNoticeKeyT } from '@/lib/kosztorys/worker-report/refusals'
 import { reportShareRefusal } from '@/lib/kosztorys/worker-report/share-refusal'
 import { WORKER_SCOPE_BLOCK_NOTICE_KEYS } from '@/lib/kosztorys/worker-view/labels'
 import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
-import { getWorkerKosztorysByReportShare } from '@/lib/queries/worker-kosztorys'
+import {
+  getWorkerKosztorysByReportShare,
+  getWorkerKosztorysPreview,
+} from '@/lib/queries/worker-kosztorys'
 import { getSectionTranslations } from '@/lib/queries/section-translations'
 
 // The page's opening language, before the worker's own switcher choice is read on the device.
@@ -22,8 +25,6 @@ export type WorkerReportPageT = ReportLocaleT &
     | {
         kind: 'ready'
         document: Extract<WorkerKosztorysT, { kind: 'ready' }>
-        // What he sent and nobody has decided yet, per pozycja — so a repeat report shows before he sends it.
-        pendingQtyByItem: Record<number, number>
         sentReports: WorkerReportRowT[]
         sectionTranslations: SectionTranslationMapT
       }
@@ -54,19 +55,50 @@ export async function getWorkerReportPage(token: string): Promise<WorkerReportPa
   const refusal = await reportShareRefusal(db, share)
   if (refusal) return notice(refusal)
 
-  const [document, pending, sentReports, sectionTranslations] = await Promise.all([
-    getWorkerKosztorysByReportShare(share),
-    pendingQtyByItem(db, share.investmentId, share.workerId),
-    listWorkerReports(db, share.investmentId, share.workerId),
+  return assembleReportPage(db, locale, share.investmentId, getWorkerKosztorysByReportShare(share))
+}
+
+/**
+ * The owner's „Podgląd pracownika": the worker's page by ids, behind the session. It reads no share,
+ * so it previews a worker whose link was never generated, revoked or refused, exactly as he would
+ * see it once the link works.
+ */
+export async function getWorkerReportPreview(
+  investmentId: number,
+  workerId: number,
+): Promise<WorkerReportPageT | null> {
+  // Awaited alone: it is the management guard, and nothing else is read before it passes.
+  const document = await getWorkerKosztorysPreview(investmentId, workerId)
+  const payload = await getPayload({ config })
+  const db = await getDb(payload)
+  return assembleReportPage(db, { language: DEFAULT_LANGUAGE, workerId }, investmentId, document)
+}
+
+async function assembleReportPage(
+  db: DbExecutorT,
+  locale: ReportLocaleT,
+  investmentId: number,
+  documentRead: Promise<WorkerKosztorysT | null> | WorkerKosztorysT | null,
+): Promise<WorkerReportPageT | null> {
+  const [document, sentReports, sectionTranslations] = await Promise.all([
+    documentRead,
+    listWorkerReports(db, investmentId, locale.workerId, { linkOnly: true }),
     getSectionTranslations(),
   ])
   if (!document) return null
-  if (document.kind === 'blocked') return notice(WORKER_SCOPE_BLOCK_NOTICE_KEYS[document.reason])
+  if (document.kind === 'blocked') {
+    return {
+      ...locale,
+      kind: 'notice',
+      investmentName: document.investmentName,
+      workerName: document.workerName,
+      messageKey: WORKER_SCOPE_BLOCK_NOTICE_KEYS[document.reason],
+    }
+  }
   return {
     ...locale,
     kind: 'ready',
     document,
-    pendingQtyByItem: pending,
     sentReports,
     sectionTranslations,
   }

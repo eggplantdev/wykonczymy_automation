@@ -3,6 +3,9 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  // Next 16 blocks dev-only resources (HMR, dev chunks) for non-localhost origins — a phone on the
+  // LAN then gets a half-hydrated page and a bogus "Missing <html> and <body>" overlay.
+  allowedDevOrigins: ['192.168.*.*'],
   // E2E builds into an isolated dir (NEXT_DIST_DIR=.next-e2e) so `pnpm build` for the
   // Playwright webServer never fights the dev server's `.next` lock. Unset in normal runs.
   ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),

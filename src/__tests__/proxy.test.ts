@@ -12,19 +12,21 @@ describe('proxy — a visitor without a session', () => {
   })
 
   // The token is the worker's whole credential; he has no account to log in with.
-  it('reaches the worker’s share link', () => {
-    expect(redirectsToLogin('/p/Nikolajewicz/abc-DEF_123')).toBe(false)
-  })
-
   // A redirect here would also bounce the form's Server Action POST, so a send would silently fail.
   it('reaches the worker’s report link, and its send', () => {
-    expect(redirectsToLogin('/zgloszenie-prac/Nikolajewicz/abc-DEF_123')).toBe(false)
+    expect(redirectsToLogin('/z/Mieszkanie-Mokotow/Nikolajewicz/abc-DEF_123')).toBe(false)
     const send = proxy(
-      new NextRequest('http://localhost:3000/zgloszenie-prac/Nikolajewicz/abc-DEF_123', {
+      new NextRequest('http://localhost:3000/z/Mieszkanie-Mokotow/Nikolajewicz/abc-DEF_123', {
         method: 'POST',
       }),
     )
     expect(send.headers.get('location')).toBeNull()
+  })
+
+  // A link handed out before the move to /z/ is dead, but he has no account: its route says so.
+  it('reaches a worker link from before the move to /z/', () => {
+    expect(redirectsToLogin('/zgloszenie-prac/Nikolajewicz/abc-DEF_123')).toBe(false)
+    expect(redirectsToLogin('/p/Nikolajewicz/abc-DEF_123')).toBe(false)
   })
 
   it('is sent to log in for the kierownik’s report queue', () => {

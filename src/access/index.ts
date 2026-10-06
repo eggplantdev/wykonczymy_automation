@@ -28,6 +28,8 @@ export const isAdminBoolean: BooleanAccess = ({ req: { user } }) => hasRole(user
 export const isAdminOrOwnerOrManagerBoolean: BooleanAccess = ({ req: { user } }) =>
   hasAnyRole(user, 'ADMIN', 'OWNER', 'MANAGER')
 
+export const isAuthenticatedBoolean: BooleanAccess = ({ req: { user } }) => Boolean(user)
+
 export const isManager: BooleanAccess = ({ req: { user } }) => hasRole(user, 'MANAGER')
 
 // --- Collection-level access (can return boolean | Where) ---
@@ -41,11 +43,12 @@ export const isAdminOrOwnerOrManager: Access = ({ req: { user } }) =>
 
 export const isAuthenticated: Access = ({ req: { user } }) => Boolean(user)
 
-// manager can update only employees
-export const canUpdateUser: Access = ({ req: { user }, id }) => {
+// No self branch: over REST it would change email/password without the current one.
+// A user changes their own credentials through `changeOwnCredentialsAction` instead.
+export const canUpdateUser: Access = ({ req: { user } }) => {
   if (hasAnyRole(user, 'ADMIN', 'OWNER')) return true
   if (hasRole(user, 'MANAGER')) return { role: { equals: 'EMPLOYEE' } }
-  return user?.id === id
+  return false
 }
 
 /**

@@ -30,9 +30,9 @@ import { CACHE_TAGS } from '@/lib/cache/tags'
 const TRASH = { purged: 2, skippedKosztorys: 1, blocked: 0, failed: 0 }
 const CASH_REGISTER_TRASH = { purged: 1, blocked: 0, failed: 0 }
 const WORKER_TRASH = { purged: 1, blocked: 1, failed: 0 }
-const VEHICLE_TRASH = { purged: 1, failed: 0 }
-const EQUIPMENT_TRASH = { purged: 2, failed: 0 }
-const LEAD_TRASH = { purged: 3, failed: 0 }
+const VEHICLE_TRASH = { purged: 1, blocked: 0, failed: 0 }
+const EQUIPMENT_TRASH = { purged: 2, blocked: 0, failed: 0 }
+const LEAD_TRASH = { purged: 3, blocked: 0, failed: 0 }
 
 describe('cron cleanup route', () => {
   const previous = process.env.CRON_SECRET

@@ -1,6 +1,10 @@
 import type { Where } from 'payload'
 import type { ResolvedSearchParamsT } from '@/types/page'
-import { TRANSFER_TYPES, PAYMENT_METHODS } from '@/lib/constants/transfers'
+import { isTransferType, PAYMENT_METHODS } from '@/lib/constants/transfers'
+import { parseNumericIds } from '@/lib/utils/parse-numeric-ids'
+import { dayBound } from '@/lib/utils/date-range'
+import { listParam } from '@/lib/utils/list-param'
+import type { RejectedDraftScopeT } from '@/lib/db/worker-expense-drafts'
 
 type UserContextT = {
   id: number
@@ -9,19 +13,6 @@ type UserContextT = {
 
 function getStringParam(value: string | string[] | undefined): string | undefined {
   return typeof value === 'string' ? value : undefined
-}
-
-/**
- * Ids reach raw SQL by interpolation (`where-to-sql.ts`), so anything `Number` accepts but Postgres
- * does not has to die here. `Number.isInteger` rather than a truthiness check: `?worker=1e999`
- * parses to `Infinity`, which is truthy and lands in the statement as a bare `infinity` identifier.
- */
-function parseNumericIds(param: string | undefined): number[] {
-  if (!param) return []
-  return param
-    .split(',')
-    .map(Number)
-    .filter((id) => Number.isInteger(id) && id !== 0)
 }
 
 type AmountSearchT = { mode: 'prefix'; text: string } | { mode: 'range'; low: number; high: number }
@@ -75,9 +66,7 @@ export function buildTransferFilters(
   // `null` = the param is absent, `[]` = it named nothing valid — including the multi-select's
   // „nothing selected" sentinel, which must empty the list rather than fall through to „all".
   const typeParam = getStringParam(searchParams.type)
-  const requestedTypes = typeParam
-    ? typeParam.split(',').filter((t) => (TRANSFER_TYPES as readonly string[]).includes(t))
-    : null
+  const requestedTypes = typeParam ? typeParam.split(',').filter(isTransferType) : null
 
   if (cancelledTransactionAudit) {
     where.type = { in: ['CANCELLATION'] }
@@ -174,6 +163,44 @@ export function buildTransferFilters(
   }
 
   return where
+}
+
+const TRANSFER_ONLY_PARAMS = [
+  'createdBy',
+  'paymentMethod',
+  'expenseCategory',
+  'worker',
+  'otherCategory',
+  'amount',
+  'id',
+] as const
+
+/**
+ * `undefined` = the filters exclude every draft. A draft would become an INVESTMENT_EXPENSE, so a
+ * Typ filter keeps them only when that type is among the picked.
+ */
+export function buildRejectedDraftScope(
+  searchParams: ResolvedSearchParamsT,
+): RejectedDraftScopeT | undefined {
+  if (getStringParam(searchParams.cancelledTransactionAudit) === '1') return undefined
+  if (TRANSFER_ONLY_PARAMS.some((param) => getStringParam(searchParams[param]))) return undefined
+  const typeParam = getStringParam(searchParams.type)
+  if (typeParam && !typeParam.split(',').includes('INVESTMENT_EXPENSE')) return undefined
+
+  return {
+    investmentIds: listParam(searchParams.investment, parseNumericIds),
+    registerIds: listParam(searchParams.sourceRegister, parseNumericIds),
+    sentRange: { from: dayBound(searchParams.from), to: dayBound(searchParams.to) },
+  }
+}
+
+/**
+ * Keep only `transferIds`, on top of whatever `where` already narrows. Under `and` because `id` may
+ * already hold the search by id or a NO_RESULTS short-circuit.
+ */
+export function narrowToTransferIds(where: Where, transferIds: number[]): Where {
+  const ids = transferIds.length > 0 ? { in: transferIds } : { equals: -1 }
+  return { ...where, and: [...(where.and ?? []), { id: ids }] }
 }
 
 // The fields a CANCELLATION row does not carry: cancelTransferAction copies only amount, date,

@@ -1,3 +1,4 @@
+import { fold } from '@/lib/kosztorys/fold'
 import { sectionColorForIndex } from '@/lib/kosztorys/section-colors'
 import type {
   KosztorysItemT,
@@ -5,7 +6,7 @@ import type {
   KosztorysStageT,
   StageProgressT,
 } from '@/lib/kosztorys/types'
-import { fold, HEADER_BLOCK_ROWS, isFooterLabel } from './columns'
+import { HEADER_BLOCK_ROWS, isFooterLabel } from './columns'
 import { referencesAnyColumn } from './formula-refs'
 import { round6 } from '@/lib/utils/round'
 import type { ResolvedLaborColumnsT } from './resolve-columns'

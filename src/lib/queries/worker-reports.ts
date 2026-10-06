@@ -1,31 +1,23 @@
 'use server'
 
-import { getPayload } from 'payload'
-import config from '@payload-config'
-import { requireAuth } from '@/lib/auth/require-auth'
-import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
-import { getDb } from '@/lib/db/get-db'
+import { managementDb } from '@/lib/queries/worker-reports-list'
 import {
-  countPendingForInvestment,
-  listDecidableReports,
   listWorkerReports,
   readWorkerReport,
-  type ReportListRowT,
   type WorkerReportLineRowT,
   type WorkerReportRowT,
 } from '@/lib/db/worker-reports'
+import {
+  listWorkersWithActiveStages,
+  listWorkerStageInvestments,
+  type ScanWorkerT,
+  type WorkerStageInvestmentT,
+} from '@/lib/db/stage-memberships'
 import type {
   ReportLineT,
   WorkerReportSummaryT,
   WorkerReportT,
 } from '@/lib/kosztorys/worker-report/types'
-
-// Uncached: the dialog opens on a report someone may have decided a second ago in another window.
-async function managementDb() {
-  const session = await requireAuth(MANAGEMENT_ROLES)
-  if (!session.success) throw new Error(session.error)
-  return getDb(await getPayload({ config }))
-}
 
 export async function listInvestmentReports(investmentId: number): Promise<WorkerReportSummaryT[]> {
   const db = await managementDb()
@@ -39,15 +31,17 @@ export async function readInvestmentReport(
   const db = await managementDb()
   const found = await readWorkerReport(db, investmentId, reportId)
   if (!found) return undefined
-  return { ...toSummary(found.report), lines: found.lines.map(toLine) }
+  return { ...toSummary(found.report), lines: found.lines.map(toLine), photos: found.media }
 }
 
-export async function listAllReports(): Promise<ReportListRowT[]> {
-  return listDecidableReports(await managementDb())
+export async function readScanWorkers(): Promise<ScanWorkerT[]> {
+  return listWorkersWithActiveStages(await managementDb())
 }
 
-export async function countInvestmentPendingReports(investmentId: number): Promise<number> {
-  return countPendingForInvestment(await managementDb(), investmentId)
+export async function readScanWorkerInvestments(
+  workerId: number,
+): Promise<WorkerStageInvestmentT[]> {
+  return listWorkerStageInvestments(await managementDb(), workerId)
 }
 
 function toSummary(row: WorkerReportRowT): WorkerReportSummaryT {
@@ -56,6 +50,8 @@ function toSummary(row: WorkerReportRowT): WorkerReportSummaryT {
     investmentId: row.investmentId,
     workerId: row.workerId,
     workerName: row.workerName,
+    source: row.source,
+    createdByName: row.createdByName ?? undefined,
     sentAt: row.sentAt,
     status: row.status,
     decidedAt: row.decidedAt ?? undefined,
@@ -85,5 +81,9 @@ function toLine(row: WorkerReportLineRowT): ReportLineT {
     acceptedQty: row.acceptedQty ?? undefined,
     createdItemId: row.createdItemId ?? undefined,
     catalogueItemId: row.catalogueItemId ?? undefined,
+    polishDescription: row.polishDescription ?? undefined,
+    descriptionLanguage: row.descriptionLanguage ?? undefined,
+    isUncertain: row.isUncertain,
+    scannedRef: row.scannedRef ?? undefined,
   }
 }

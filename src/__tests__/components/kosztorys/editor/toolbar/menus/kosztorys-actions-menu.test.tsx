@@ -17,6 +17,7 @@ vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
     investmentId: 1,
     investmentName: 'Testowa',
     tree: { sections: [] },
+    rows: [],
     stages: [],
     workers: [],
     hasSheet: false,

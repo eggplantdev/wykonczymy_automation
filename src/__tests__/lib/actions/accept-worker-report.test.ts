@@ -4,8 +4,10 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { selectKosztorysTreeData } from '@/lib/db/kosztorys-tree'
 import { insertWorkerReport, readWorkerReport } from '@/lib/db/worker-reports'
+import { setLineTranslations } from '@/lib/db/worker-report-line-translations'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 import type { AcceptReportInputT } from '@/lib/kosztorys/worker-report/types'
+import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
@@ -60,7 +62,9 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
     return Number(user.id)
   }
 
-  const sendReport = async (lines: { itemId: number | null; qty: number; opis?: string }[]) => {
+  const sendReport = async (
+    lines: { itemId: number | null; qty: number; opis?: string; unit?: string }[],
+  ) => {
     const reportId = await insertWorkerReport(db, {
       investmentId,
       workerId,
@@ -68,7 +72,7 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
         kind: line.itemId === null ? 'extra' : 'rozpiska',
         itemId: line.itemId,
         description: line.opis ?? 'Malowanie ścian',
-        unit: 'm²',
+        unit: line.unit ?? 'm²',
         sectionName: line.itemId === null ? null : 'Salon',
         reportedQty: line.qty,
       })),
@@ -218,6 +222,104 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
     expect(await qtyDone(created?.id ?? 0, ownStageId)).toBe(3)
     const stored = await readWorkerReport(db, investmentId, reportId)
     expect(stored?.lines[0].createdItemId).toBe(created?.id)
+  })
+
+  it('refuses a scanned extra with no j.m. unless a katalog praca supplies one', async () => {
+    const { reportId, lineIds } = await sendReport([
+      { itemId: null, qty: 4, opis: 'Listwy przypodłogowe', unit: '' },
+    ])
+    const extra = { lineId: lineIds[0], acceptedQty: 4, sectionId }
+    const target = { kind: 'stage' as const, stageId: ownStageId }
+
+    const priced = await accept({
+      reportId,
+      target,
+      lines: [],
+      extras: [{ ...extra, clientPrice: 30 }],
+    })
+    expect(priced).toMatchObject({ success: false, error: expect.stringContaining('brak j.m.') })
+
+    const entry = await payload.create({
+      collection: 'work-catalogue-items',
+      data: {
+        description: 'EX-949 montaż listew',
+        unit: 'mb',
+        clientPrice: 18,
+        matchKey: catalogueKey('EX-949 montaż listew', 'mb'),
+      },
+      overrideAccess: true,
+      context: { skipRevalidation: true },
+    })
+    try {
+      const res = await accept({
+        reportId,
+        target,
+        lines: [],
+        extras: [{ ...extra, catalogueItemId: Number(entry.id) }],
+      })
+      expect(res.success).toBe(true)
+      const tree = await selectKosztorysTreeData(db, investmentId)
+      const created = tree?.items.find((item) => item.description === 'EX-949 montaż listew')
+      expect(created).toMatchObject({ unit: 'mb', clientPrice: 18 })
+    } finally {
+      await payload.delete({
+        collection: 'work-catalogue-items',
+        id: entry.id,
+        overrideAccess: true,
+      })
+    }
+  })
+
+  it("accepts a translated extra in Polish, with the worker's words as its current translation", async () => {
+    const { reportId, lineIds } = await sendReport([
+      { itemId: null, qty: 2, opis: 'Занесення плит' },
+    ])
+    await setLineTranslations(
+      db,
+      [{ id: lineIds[0], polishDescription: 'Wniesienie płyt', descriptionLanguage: 'uk' }],
+      { onlyUntranslated: false },
+    )
+
+    const res = await accept({
+      reportId,
+      target: { kind: 'stage', stageId: ownStageId },
+      lines: [],
+      extras: [{ lineId: lineIds[0], acceptedQty: 2, sectionId, clientPrice: 25 }],
+    })
+
+    expect(res.success).toBe(true)
+    const tree = await selectKosztorysTreeData(db, investmentId)
+    const stored = await readWorkerReport(db, investmentId, reportId)
+    const item = tree?.items.find((row) => row.id === stored?.lines[0].createdItemId)
+    expect(item?.description).toBe('Wniesienie płyt')
+    expect(item?.descriptionTranslations).toEqual({
+      uk: { text: 'Занесення плит', source: 'Wniesienie płyt' },
+    })
+  })
+
+  it('accepts an extra in a language the editor does not carry in Polish, with no translation', async () => {
+    const { reportId, lineIds } = await sendReport([
+      { itemId: null, qty: 2, opis: 'Přenesení desek' },
+    ])
+    await setLineTranslations(
+      db,
+      [{ id: lineIds[0], polishDescription: 'Wniesienie płyt', descriptionLanguage: 'other' }],
+      { onlyUntranslated: false },
+    )
+
+    const res = await accept({
+      reportId,
+      target: { kind: 'stage', stageId: ownStageId },
+      lines: [],
+      extras: [{ lineId: lineIds[0], acceptedQty: 2, sectionId, clientPrice: 25 }],
+    })
+
+    expect(res.success).toBe(true)
+    const tree = await selectKosztorysTreeData(db, investmentId)
+    const stored = await readWorkerReport(db, investmentId, reportId)
+    const item = tree?.items.find((row) => row.id === stored?.lines[0].createdItemId)
+    expect(item?.description).toBe('Wniesienie płyt')
+    expect(item?.descriptionTranslations).toEqual({})
   })
 
   it('refuses the same decision sent again instead of adding it twice', async () => {

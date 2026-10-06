@@ -2,13 +2,12 @@
 
 import { useTransition } from 'react'
 import { openPrintWindow, printThenClose } from '@/lib/utils/print-window'
-import type { Where } from 'payload'
 import type { Table } from '@tanstack/react-table'
 import { Loader2, Printer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
-import { fetchFilteredTransfers } from '@/lib/queries/fetch-transfers-for-invoices'
+import type { TransferRowsFetchT } from '@/components/transfers/transfer-table-config'
 import { columnLabel } from '@/lib/table/column-label'
 import {
   buildTransfersPrintHtml,
@@ -16,14 +15,17 @@ import {
 } from '@/lib/transfers/build-transfers-print-html'
 import { sortingStateToParam } from '@/lib/table/sort-param'
 import type { TransferRowT } from '@/types/transfers'
+import { useTranslation } from '@/hooks/use-translation'
+import { failureMessage } from '@/lib/i18n/failure-message'
 
 type PrintTransfersButtonPropsT = {
-  where: Where
+  fetchRows: TransferRowsFetchT
   table: Table<TransferRowT>
   title: string
 }
 
-export function PrintTransfersButton({ where, table, title }: PrintTransfersButtonPropsT) {
+export function PrintTransfersButton({ fetchRows, table, title }: PrintTransfersButtonPropsT) {
+  const { locale, t } = useTranslation('transfers')
   const [isPending, startTransition] = useTransition()
 
   function handlePrint() {
@@ -34,41 +36,41 @@ export function PrintTransfersButton({ where, table, title }: PrintTransfersButt
       return printValue ? [{ id: column.id, label: columnLabel(column), getValue: printValue }] : []
     })
     if (columns.length === 0) {
-      toastMessage('Brak kolumn do wydruku', 'info')
+      toastMessage(t('printNoColumns'), 'info')
       return
     }
 
     // Opened before the fetch, not after: the helper needs this click's user activation.
     const printWindow = openPrintWindow(title)
     if (!printWindow) {
-      toastMessage('Przeglądarka zablokowała okno wydruku', 'error')
+      toastMessage(t('printBlocked'), 'error')
       return
     }
-    if (printWindow.document.body) printWindow.document.body.textContent = 'Przygotowuję wydruk…'
+    if (printWindow.document.body) printWindow.document.body.textContent = t('printPreparing')
 
     startTransition(async () => {
       // Refetches instead of reusing the table's rows: the table is paginated, the printout isn't.
       // The screen's sort key travels along, so both sets order the same way.
       const result = await settleAction(() =>
-        fetchFilteredTransfers(where, {
+        fetchRows({
           skipMedia: true,
           sort: sortingStateToParam(table.getState().sorting) || undefined,
         }),
       )
       if (!result.success) {
         printWindow.close()
-        toastMessage(result.error ?? 'Nie udało się pobrać danych', 'error')
+        toastMessage(failureMessage(locale, result), 'error')
         return
       }
 
       const rows = result.data
       if (rows.length === 0) {
         printWindow.close()
-        toastMessage('Brak transakcji do wydruku', 'info')
+        toastMessage(t('printEmpty'), 'info')
         return
       }
 
-      printWindow.document.write(buildTransfersPrintHtml(rows, columns, title))
+      printWindow.document.write(buildTransfersPrintHtml(rows, columns, title, locale))
       printWindow.document.close()
       printThenClose(printWindow)
     })
@@ -80,10 +82,10 @@ export function PrintTransfersButton({ where, table, title }: PrintTransfersButt
       size="sm"
       onClick={handlePrint}
       disabled={isPending}
-      aria-label="Drukuj transakcje"
+      aria-label={t('printAria')}
     >
       {isPending ? <Loader2 className="animate-spin" /> : <Printer />}
-      Drukuj
+      {t('print')}
     </Button>
   )
 }

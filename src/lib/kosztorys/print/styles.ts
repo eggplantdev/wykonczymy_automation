@@ -111,9 +111,11 @@ tr.band-total td.rail { border-top: none; background-position: 0 0; }
 // For a document whose columns outgrow the portrait page — a worker's with its etapy, an offer the
 // owner widened with etap columns. Landscape alone runs out at a worker's fourth etap: at
 // the portrait widths the figures took 271mm of the 261mm available and the opis collapsed to one
-// letter per line. Narrower figures, a smaller type and a thinner inset leave the opis ~49mm at six
+// letter per line. Narrower figures, a smaller type and a thinner inset leave the opis ~47mm at six
 // etapy. The headers run bottom-to-top so a label like „3etap parkieciarze netto" no longer sets its
-// column's width, and wrap at 14mm so that label does not set the header row's height either.
+// column's width, and wrap at 22mm so that label does not set the header row's height either. 22mm and
+// the 10mm quantity column are the least that keeps „Выполнено — сумма этапов без инструментов (работник)"
+// inside its column instead of spilling onto the next etap.
 // The rotation sits on the span, not the th: WebKit ignores writing-mode on a table cell but still
 // applies its transform, so Safari printed every header horizontal and upside down.
 // The span sets its own text-align because `.num`'s right-align outranks `th` and, once rotated, pins a
@@ -123,11 +125,11 @@ export const WIDE_PRINT_STYLES = `
 body { padding-left: 10mm; padding-right: 10mm; }
 .brand-title { font-size: 10pt; } .brand-kind { font-size: 5.5pt; }
 td, .unit { font-size: 5.5pt; }
-th { font-size: 4.5pt; letter-spacing: 0; padding: 4px 2px; white-space: normal; height: 14mm;
+th { font-size: 4.5pt; letter-spacing: 0; padding: 4px 2px; white-space: normal; height: 22mm;
      text-align: left; vertical-align: bottom; }
 th > span { display: inline-block; writing-mode: vertical-rl; transform: rotate(180deg);
-            max-height: 14mm; text-align: left; }
-col.c-qty { width: 9mm; } col.c-unit { width: 12mm; } col.c-price { width: 13mm; }
+            max-height: 22mm; text-align: left; }
+col.c-qty { width: 10mm; } col.c-unit { width: 12mm; } col.c-price { width: 13mm; }
 col.c-value { width: 15mm; } col.c-stage-qty { width: 8mm; }
 .num, th.num { padding-left: 2px; padding-right: 2px; }
 .band-name { font-size: 6.5pt; } .band-chip { width: 7px; height: 7px; }

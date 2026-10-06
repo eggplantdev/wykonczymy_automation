@@ -22,7 +22,9 @@ export async function serializeKosztorysAsPreset(
   )
   return {
     ...snapshot,
-    items: snapshot.items.map((item) => ({
+    // `ref` stays behind: every investment a szablon lands in is new work, and the number is unique
+    // across all of them.
+    items: snapshot.items.map(({ ref: _ref, ...item }) => ({
       ...item,
       plannedQty: 0,
       sheetMeasuredQty: null,

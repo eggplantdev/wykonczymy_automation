@@ -2,6 +2,7 @@
 
 import { createContext, use } from 'react'
 import { Checkbox, checkedState } from '@/components/ui/checkbox'
+import { useTranslation } from '@/hooks/use-translation'
 
 export const SelectedIdsContext = createContext<ReadonlySet<number>>(new Set())
 
@@ -30,11 +31,12 @@ export function SelectPageHeader({
   onTogglePage: (ids: number[]) => void
 }) {
   const selected = use(SelectedIdsContext)
+  const { t } = useTranslation('filters')
   return (
     <Checkbox
       checked={checkedState(pageIds.filter((id) => selected.has(id)).length, pageIds.length)}
       onCheckedChange={() => onTogglePage(pageIds)}
-      aria-label="Zaznacz wszystkie na stronie"
+      aria-label={t('selectAllOnPage')}
     />
   )
 }

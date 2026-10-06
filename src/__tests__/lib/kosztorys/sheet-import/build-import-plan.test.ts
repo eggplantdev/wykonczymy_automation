@@ -1,6 +1,6 @@
+import { fold } from '@/lib/kosztorys/fold'
 import { describe, expect, it } from 'vitest'
 import { buildImportPlan } from '@/lib/kosztorys/sheet-import/build-import-plan'
-import { fold } from '@/lib/kosztorys/sheet-import/columns'
 import type { ImportGridsT } from '@/lib/kosztorys/sheet-import/read-sheet'
 import { SNAPSHOT_SCHEMA_VERSION, type SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 import { BIALOSTOCKA_ROWS, ratesTab } from '@/__tests__/fixtures/kosztorys-sheet/rows'
@@ -29,6 +29,7 @@ function currentTree(overrides: Partial<SnapshotPayloadT> = {}): SnapshotPayload
     items: [
       {
         id: 70,
+        ref: 4070,
         sectionId: 7,
         displayOrder: 0,
         description: 'montaż jednostki wewnętrznej',
@@ -312,6 +313,14 @@ describe('buildImportPlan', () => {
     expect(item.note).toBe('ustalone z klientem')
     // Everything the sheet DOES carry still comes from the sheet.
     expect(item).toMatchObject({ plannedQty: 2, clientPrice: 120 })
+  })
+
+  it('carries a matched praca’s number and leaves an unmatched one to draw a fresh one', () => {
+    const { items } = plan().tree
+    const matched = items.find((row) => row.description === 'montaż jednostki wewnętrznej')!
+
+    expect(matched.ref).toBe(4070)
+    expect(items.filter((row) => row !== matched).every((row) => row.ref === undefined)).toBe(true)
   })
 
   describe('translations', () => {

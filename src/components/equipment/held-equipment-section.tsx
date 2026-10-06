@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { OptionalLink } from '@/components/ui/optional-link'
 import {
   SUMMARY_LABEL_COL,
   SUMMARY_VALUE_COL,
@@ -6,9 +6,10 @@ import {
   SummaryLabelCell,
   SummaryTable,
 } from '@/components/ui/summary-grid'
-import { Description } from '@/components/ui/description'
 import { formatPLDate } from '@/lib/utils/format-date'
 import type { EquipmentRowT } from '@/lib/equipment/types'
+import { createTranslator } from '@/lib/i18n/translations'
+import type { LanguageT } from '@/lib/i18n/languages'
 
 const COLS = `${SUMMARY_LABEL_COL} 1fr ${SUMMARY_VALUE_COL}`
 
@@ -17,34 +18,42 @@ const COLS = `${SUMMARY_LABEL_COL} 1fr ${SUMMARY_VALUE_COL}`
  * when somebody leaves. No actions on purpose: handing an item on happens on the item's own page, so
  * that one operation keeps one entry point and one validation path.
  */
-export function HeldEquipmentSection({ equipment }: { equipment: EquipmentRowT[] }) {
+export function HeldEquipmentSection({
+  equipment,
+  linkable,
+  locale,
+}: {
+  equipment: EquipmentRowT[]
+  // `/sprzet/[id]` is management-only, so the worker's own view lists the names as text.
+  linkable: boolean
+  locale: LanguageT
+}) {
+  if (equipment.length === 0) return null
+  const { t } = createTranslator(locale, 'workerPage')
+
   return (
     <div>
-      <h2 className="mb-2 text-sm font-semibold">Na stanie</h2>
+      <h2 className="mb-2 text-sm font-semibold">{t('heldEquipment')}</h2>
 
-      {equipment.length === 0 ? (
-        <Description>Nie ma nic na stanie.</Description>
-      ) : (
-        <SummaryTable cols={COLS}>
-          <SummaryHeaderCell variant="label">Sprzęt</SummaryHeaderCell>
-          <SummaryHeaderCell variant="label">Nr seryjny</SummaryHeaderCell>
-          <SummaryHeaderCell variant="label">Od</SummaryHeaderCell>
+      <SummaryTable cols={COLS}>
+        <SummaryHeaderCell variant="label">{t('equipment')}</SummaryHeaderCell>
+        <SummaryHeaderCell variant="label">{t('serialNumber')}</SummaryHeaderCell>
+        <SummaryHeaderCell variant="label">{t('since')}</SummaryHeaderCell>
 
-          {equipment.map((item) => (
-            <div key={item.id} className="contents">
-              <SummaryLabelCell>
-                <Link href={`/sprzet/${item.id}`} className="hover:underline">
-                  {item.name}
-                </Link>
-              </SummaryLabelCell>
-              <SummaryLabelCell>{item.serialNumber || '—'}</SummaryLabelCell>
-              <SummaryLabelCell>
-                {item.locatedAt ? formatPLDate(item.locatedAt) : '—'}
-              </SummaryLabelCell>
-            </div>
-          ))}
-        </SummaryTable>
-      )}
+        {equipment.map((item) => (
+          <div key={item.id} className="contents">
+            <SummaryLabelCell>
+              <OptionalLink href={linkable ? `/sprzet/${item.id}` : undefined}>
+                {item.name}
+              </OptionalLink>
+            </SummaryLabelCell>
+            <SummaryLabelCell>{item.serialNumber || '—'}</SummaryLabelCell>
+            <SummaryLabelCell>
+              {item.locatedAt ? formatPLDate(item.locatedAt) : '—'}
+            </SummaryLabelCell>
+          </div>
+        ))}
+      </SummaryTable>
     </div>
   )
 }

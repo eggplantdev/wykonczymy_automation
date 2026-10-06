@@ -32,6 +32,3 @@ export type WorkerKosztorysT =
       investmentName: string
       workerName: string
     }
-
-// The two links a worker can hold: his rozpiska to read, and the form he reports his work through.
-export type WorkerLinkKindT = 'rozpiska' | 'report'

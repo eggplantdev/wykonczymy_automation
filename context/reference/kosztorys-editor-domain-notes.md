@@ -373,13 +373,12 @@ or signed URLs, a separate decision.
 
 ## Widok pracownika — link imienny i PDF, tylko odczyt (EX-875, 2026-09-28)
 
-Pracownik / podwykonawca dostaje od ownera **imienny** widok kosztorysu inwestycji: link `/p/⟨nazwisko⟩/[token]`
-albo PDF, oba z menu „Pracownicy" w edytorze. Link i PDF generuje ADMIN / OWNER / MANAGER (jak u
-inwestora); ustawienia widoku pracownika są **jedne na firmę** i zapisuje je tylko ADMIN / OWNER.
-Kliknięcie „Link" / „Link do zgłoszeń" działa jak „Udostępnij" inwestora: oddaje żywy link albo
-wydaje nowy i kopiuje go do schowka — u pracownika zablokowanego tylko pokazuje link do wyłączenia.
-Część 2 (pracownik wpisuje ilości w swoich etapach) to osobna zmiana — link identyfikuje pracownika
-właśnie po to, żeby jej nie przepisywać.
+Pracownik / podwykonawca dostaje od ownera **imienny** widok kosztorysu inwestycji: link
+`/z/⟨inwestycja⟩/⟨nazwisko⟩/[token]` albo PDF, oba z menu „Pracownicy" w edytorze. Link i PDF
+generuje ADMIN / OWNER / MANAGER (jak u inwestora); ustawienia widoku pracownika są **jedne na
+firmę** i zapisuje je tylko ADMIN / OWNER. Kliknięcie „Link do zgłoszeń" działa jak „Udostępnij"
+inwestora: oddaje żywy link albo wydaje nowy i kopiuje go do schowka — u pracownika zablokowanego
+tylko pokazuje link do wyłączenia. „Podgląd" otwiera ten sam widok bez wysyłki zgłoszeń.
 
 - **Zakres = przypisanie etapu.** Pracownik widzi wszystkie pozycje (Przedmiar nie dzieli się na
   etapy), ale tylko kolumny swoich etapów — także etapu, który dzieli z innymi (EX-943). Na takim
@@ -429,10 +428,20 @@ właśnie po to, żeby jej nie przepisywać.
 
 ### Zgłoszenia wykonanych prac — pracownik zgłasza ilości, kierownik przyjmuje (EX-947, 2026-09-30)
 
-- **Dwa osobne linki.** Rozpiska pracownika (`/p/…`) to podsumowanie i rozliczenie; link „Zgłoszenie
-  prac" (`/zgloszenie-prac/…`) tylko zbiera ilości. Oba z menu „Pracownicy", pod tą samą blokadą:
-  kto nie może mieć rozpiski (brak etapu, etap bez rozliczenia, mieszane rozliczenia), ten nie
-  zgłasza. Działa na telefonie — jedyny wyjątek od wąskiego zakresu telefonu.
+- **Jeden link (EX-966).** „Zgłoszenie prac" (`/z/⟨inwestycja⟩/⟨nazwisko⟩/[token]`) jest jedynym
+  widokiem pracownika. Oba człony nazwy to ozdoba — rozwiązuje sam token, a pusta nazwa daje `-`.
+  Osobna rozpiska `/p/…` z EX-875 została usunięta bez przekierowania, a linki
+  `/zgloszenie-prac/…` przestały działać 2026-10-05 (właściciel: bez przekierowania, wysyła linki
+  ponownie z menu „Pracownicy" — token się nie zmienia). Oba stare adresy dają tę samą stronę
+  „link nieaktywny" co nieznany token, nie logowanie — pracownik nie ma konta. Kto nie może mieć
+  rozpiski (brak etapu, etap bez rozliczenia, mieszane rozliczenia), ten nie zgłasza. Działa na
+  telefonie — jedyny wyjątek od wąskiego zakresu telefonu.
+- **Dwa tryby w stopce** (przypięta do dołu ekranu, przyciski równej szerokości): „Zgłaszam pracę"
+  — opis prac, kolumna „Zgłaszam", „Nowa praca" i „Wyślij"; „Inwestycja" — cała rozpiska bez
+  „Zgłaszam" i bez wysyłki, a pod nią rozliczenie w układzie stopki PDF. Wpisane ilości przeżywają
+  przełączenie trybu. Liczniki: „Tylko zgłaszane przeze mnie (N)" liczy pozycje z wpisaną ilością,
+  „Wyślij (N)" — wszystkie linie wysyłki, także kompletne „Nowe prace", a „Wszystkie prace (+N)" —
+  wiersze, które ukrywa reguła pustych pozycji (przy 0 bez licznika). W nagłówku nie ma tytułu.
 - **Pracownik wpisuje ilość w j.m. pozycji** w kolumnie „Zgłaszam" na swojej rozpisce, plus prace
   spoza rozpiski (opis, j.m., ilość). Szkic żyje w przeglądarce; do bazy trafia dopiero wysłane
   zgłoszenie. Wysłane jest ostateczne — poprawka to nowe zgłoszenie, a złe kierownik odrzuca. Na
@@ -478,14 +487,14 @@ w kolejnych częściach EX-946, na tym samym rusztowaniu.
   gdy opis się zmieni, rozpiska pokazuje je w „Problemach" jako „z nieaktualnym tłumaczeniem",
   a powrót do starego opisu sam gasi ostrzeżenie. Ostrzega się tylko kierownika — pracownik widzi
   nieaktualne tłumaczenie takie, jakie jest. Katalog ma w „Problemach" „bez tłumaczenia" i „z
-  nieaktualnym tłumaczeniem", osobno dla każdego języka. Przycisk „przetłumacz ponownie" (AI)
-  przyjdzie z osobną zmianą — ta nie woła AI.
+  nieaktualnym tłumaczeniem", osobno dla każdego języka. Uzupełnianie przez AI doszło z EX-992
+  (niżej).
 - **„Popraw literówki" utrzymuje aktualne tłumaczenie aktualnym** — literówka nie zmienia sensu.
   Tłumaczenie, które już było nieaktualne, zostaje nieaktualne.
 - **„Zapisz do katalogu" nad istniejącym wpisem**: dla każdego języka osobno wygrywa tłumaczenie
   pozycji, jeśli je ma; inaczej katalog zachowuje swoje.
-- **Prace spoza rozpiski wpisane po ukraińsku zostają jak wpisane** — kierownik przegląda je
-  w oryginale.
+- **Prace spoza rozpiski wpisane po ukraińsku** — od EX-992 kierownik widzi je po polsku,
+  z oryginałem obok (niżej).
 - **Uzupełnianie hurtem to skrypt do powtarzania, nie jednorazowa migracja**
   (`src/scripts/fill-description-translations.ts`, opis uruchomienia w nagłówku). Liczy braki sam,
   z aktualnych danych, dopasowuje po polskim tekście opisu, wypełnia **tylko puste** tłumaczenia
@@ -511,6 +520,50 @@ w kolejnych częściach EX-946, na tym samym rusztowaniu.
   i powtarzają się, więc brak widać od razu na linku, a ostrzeżenie w każdej rozpisce byłoby szumem.
   Zakres na razie to link „Zgłoszenie prac"; `/p`, „Podgląd pracownika" i PDF (EX-966) użyją tej
   samej funkcji renderującej (`renderSectionName`).
+
+### Tłumaczenia AI — uzupełnianie UA/RU i prace spoza rozpiski po polsku (EX-992, 2026-10-05)
+
+Odwraca „aplikacja nie woła AI" z EX-948. Tłumaczy aplikacja, przez istniejący OpenRouter
+(`src/lib/ai/translate.ts`). **Bez kroku zatwierdzania** — tłumaczenie AI jest ostateczne, błędy
+właściciel poprawia ręcznie.
+
+- **Hurtem: „Uzupełnij tłumaczenia (AI)"** w „Opcjach" kosztorysu (opisy + nazwy sekcji tej
+  rozpiski) i w Katalogu prac. Wypełnia **tylko brakujące i nieaktualne** — aktualnego, także ręcznie
+  poprawionego, nigdy nie nadpisuje. Licznik przy przycisku liczy prace (nie pary praca × język);
+  przy zerze przycisk znika. „Problemy → Tłumaczenia" w rozpisce pokazuje teraz też „bez
+  tłumaczenia", nie tylko nieaktualne.
+- **Najpierw katalog, potem AI**: aktualne tłumaczenie katalogu dla tego samego opisu (po
+  ujednoliceniu) jest brane za darmo; AI dostaje resztę, każdy odrębny tekst raz.
+- **Przy dodawaniu pracy** („Dodaj pracę" w rozpisce, „Nowa praca w katalogu") — pole „Tłumacz
+  automatycznie przy pomocy AI", domyślnie włączone i zapamiętywane. **Późniejsza edycja opisu nie
+  woła AI**: siatka zapisuje każdą komórkę osobno, więc odpowiedź AI przychodząca po kilku sekundach
+  ścigałaby się z następną edycją, a opis poprawiany po kawałku kosztowałby wywołanie na każdy krok.
+  Tłumaczenie robi się nieaktualne, trafia do „Problemów" i naprawia je przycisk hurtowy.
+- **Nieudane AI nigdy nie blokuje zapisu ani wysyłki** — wiersz zapisuje się bez tłumaczenia i wychodzi
+  jako brakujący. AI działa przed otwarciem transakcji zapisu; żadna transakcja nie czeka na model.
+- **Spóźniona odpowiedź przegrywa.** Zapis tłumaczenia jest warunkowy: trafia tylko wtedy, gdy wiersz
+  ma wciąż ten opis, który AI tłumaczyło, a dany język jest wciąż pusty lub nieaktualny. Edycja
+  w siatce albo ręczne tłumaczenie wpisane w trakcie czekania na AI wygrywa. Dlatego hurt nie używa
+  zwykłego zapisu tekstów pozycji — ten nadpisałby opis.
+- **Nazwy sekcji**: przy utworzeniu / zmianie nazwy tłumaczone w `after()` (autozapis zmiany nazwy
+  ma zostać bez renderu, a czytelnikami są strony pracownika i PDF — inne trasy). Odpowiedź AI musi
+  przejść tę samą kontrolę liczb co okno ręczne; „Łazienka 2" → „Ванна 1" jest odrzucana i nazwa
+  zostaje bez tłumaczenia. Istniejące języki szablonu wygrywają z AI.
+- **Prace spoza rozpiski** wpisane przez pracownika po ukraińsku/rosyjsku są tłumaczone na polski
+  w `after()` wysyłki (wysyłka pracownika ma zostać szybka). Język rozpoznaje AI, nie ustawienie
+  pracownika — przełącznik na stronie może się różnić od zapisanego języka. Kierownik w przeglądzie
+  widzi polski opis i „Zgłoszono (UA): …" z oryginałem; „Przetłumacz" / „Przetłumacz ponownie" idzie
+  od razu do mocniejszego modelu (ponowienie następuje po złej odpowiedzi, a tani model ją powtarza)
+  i działa też, gdy automatyczne tłumaczenie padło. Zapis z `after()` trafia tylko na linię jeszcze
+  nieprzetłumaczoną, więc nie nadpisze ponowienia kierownika, które skończyło się wcześniej. **Strona
+  pracownika nie pokazuje żadnego stanu tłumaczenia ani przycisku** — widzi swój tekst.
+- **Przyjęcie** takiej pracy: polski staje się opisem pozycji, a słowa pracownika — jej aktualnym
+  tłumaczeniem UA/RU (ekipa czyta słowa kolegi).
+- **Poza zakresem świadomie**: nazwy etapów, notatki, jednostki, napisy UI; globalna akcja dla
+  wszystkich nazw sekcji; „Problemy" dla nazw sekcji; limit wywołań na publicznej wysyłce (link
+  z tokenem, grosze).
+- **Skala**: odrębne teksty w paczkach po 40, 4 naraz, 30 s na wywołanie + jeden model zapasowy —
+  rozpiska na 1000 wierszy mieści się w limicie 300 s jednej akcji (szacunek, nie pomiar).
 
 ## Protokół odbioru prac — druk z menu „Inwestor" (2026-09-28)
 
@@ -1013,6 +1066,34 @@ padły wprost od właściciela, nie są domysłem implementacji:
   przemianowania; **inline rename w siatce wciąż potrafi zrobić bliźniaka** — bramki unikalności tam
   nie ma; dopasowanie jest **case-insensitive**, czyli nazwy różniące się wielkością liter to dla
   właściciela jedna sekcja.
+
+### Pozycja ↔ katalog: tożsamość zostaje tekstowa, bez linku po id (2026-10-01)
+
+Link `kosztorys_items` → `work_catalogue_items` (nullable FK) był proponowany **dwa razy** i dwa razy
+odpadł: `katalog-prac-identity` (2026-09-17, „katalog doradczy", powód tylko w `3baa7e09`) oraz
+`kosztorys-item-catalogue-link` (2026-10-01, decyzja przy EX-948). Pomiar na kopii prod (dump
+2026-09-30) mówi, że link naprawiłby niewiele:
+
+- **Parowanie psuje tekst legacy, a id go nie naprawi.** 514 z 529 niesparowanych używanych pozycji
+  siedzi w 20 kosztorysach z importu arkusza — żadna nie powstała z katalogu. Kosztorysy z szablonu
+  „Kosztorys 2026" parują się w ~94,5% (używane) / ~98% (wszystkie) bez żadnego linku. Backfill
+  wymagałby właśnie tego fuzzy-dopasowania, którego link miał unikać (93 ze 195 „zawierających się"
+  kandydatów ma więcej niż jeden wpis).
+- **Tekst myli się bezpiecznie, link niebezpiecznie.** Przez 17 dni snapshotów tylko **10** pozycji
+  przeszło z „sparowana" na „niesparowana" — i część to prawdziwa zmiana zakresu („Montaż WC
+  podwieszanego" → „Montaż WC", „przed gładziami" → „przed tynkami"). Tekst daje „brak w katalogu";
+  zachowany link dałby pewny rozjazd ceny względem złej pracy, a „Aktualizuj kosztorys" wpisałby
+  ceny starej pracy w przemianowany wiersz (dziś `STALE_CATALOGUE_ERROR` to blokuje).
+- **Link to druga reguła na stałe** („link, inaczej tekst"), bo import arkusza odtwarza drzewo bez id.
+  Do tego: snapshot z usuniętym wpisem katalogu nie dałby się przywrócić (FK 23503, jak EX-641 —
+  potrzebny bliźniak `liveWorkerIds`), a `ON DELETE SET NULL` pisałby w zamknięte inwestycje.
+- **Jedyny przypadek, który link wygrywa:** przemianowanie wpisu przez „Edytuj" w katalogu rozparowuje
+  jego pozycje wszędzie naraz. Jeśli zacznie gryźć — poprawka tekstowa, bez drugiej reguły: przy
+  zmianie opisu/j.m. w katalogu zaproponować przepisanie ich na pozycje sparowane starym kluczem.
+- **Kiedy wrócić do tematu:** dopiero po EX-780 i zamknięciu inwestycji z arkusza — wtedy większość
+  wierszy rodzi się z katalogu/szablonu i fallback tekstowy się kurczy.
+
+Tłumaczenia (EX-948) kluczują po polskim tekście i linku nie potrzebują.
 
 ### „Nowa praca" — formularz zamiast pustego wiersza (EX-951, 2026-09-30)
 

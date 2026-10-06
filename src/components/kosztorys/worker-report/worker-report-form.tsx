@@ -18,20 +18,13 @@ import { toWorkerReportFormData } from '@/lib/kosztorys/worker-report/to-form-da
 import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
 
 type PropsT = {
-  token: string
+  token?: string
   document: Extract<WorkerKosztorysT, { kind: 'ready' }>
-  pendingQtyByItem: Record<number, number>
   sentReports: WorkerReportRowT[]
   sectionTranslations: SectionTranslationMapT
 }
 
-export function WorkerReportForm({
-  token,
-  document,
-  pendingQtyByItem,
-  sentReports,
-  sectionTranslations,
-}: PropsT) {
+export function WorkerReportForm({ token, document, sentReports, sectionTranslations }: PropsT) {
   const data = toWorkerReportFormData(document)
   const router = useRouter()
   const { t, tp } = useTranslation('report')
@@ -39,7 +32,11 @@ export function WorkerReportForm({
   const [liveItemIds] = useState(
     () => new Set(data.sections.flatMap((section) => section.items.map((item) => item.id))),
   )
-  const draft = useReportDraft(reportDraftKey(data.investmentId, data.workerId), liveItemIds)
+  // The owner's Podgląd keeps its szkic in memory, or what he typed would greet the worker on a shared device.
+  const draft = useReportDraft(
+    token ? reportDraftKey(data.investmentId, data.workerId) : undefined,
+    liveItemIds,
+  )
 
   if (sent) {
     return (
@@ -64,12 +61,11 @@ export function WorkerReportForm({
       data={data}
       document={document}
       draft={draft}
-      pendingQtyByItem={pendingQtyByItem}
       sentReports={sentReports}
       sectionTranslations={sectionTranslations}
       onSent={(next) => {
         setSent(next)
-        // Re-reads his sent list and „Czeka” for the confirmation screen and the next report.
+        // Re-reads his sent list for the confirmation screen and the next report.
         router.refresh()
       }}
     />

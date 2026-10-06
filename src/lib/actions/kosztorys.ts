@@ -1,5 +1,6 @@
 'use server'
 
+import { after } from 'next/server'
 import { z } from 'zod'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { investmentAction } from '@/lib/actions/investment-action'
@@ -56,6 +57,10 @@ import {
 } from '@/lib/kosztorys/stage-split'
 import { insertStageMembers, replaceStageSplit, selectStagePool } from '@/lib/db/stage-split'
 import { trashedWorkerMessage } from '@/lib/db/worker-gate'
+import { findCatalogueItemByKey } from '@/lib/db/work-catalogue'
+import { translateNewRow } from '@/lib/ai/translate-new-row'
+import { SAVED_UNTRANSLATED_WARNING } from '@/lib/utils/notice'
+import { translateSectionName } from '@/lib/actions/translate-section-name'
 
 // Derived from TOOL_PLANES so a plane added to the pickers can't be silently rejected here.
 const stagePlaneSchema = z.enum(TOOL_PLANES)
@@ -139,6 +144,8 @@ export async function updateSectionFieldAction(sectionId: number, patch: Section
       const parsed = validateAction(sectionPatchSchema, patch)
       if (!parsed.success) return parsed
       await payload.update({ collection: 'kosztorys-sections', id: sectionId, data: parsed.data })
+      const { name } = parsed.data
+      if (name !== undefined) after(() => translateSectionName(payload, name))
       return { success: true }
     },
     ['kosztorysSections'],
@@ -457,9 +464,16 @@ const addItemSchema = z.object({
   catalogue: z
     .object({ mode: z.enum(['new', 'overwrite']), keepCatalogueCategory: z.boolean() })
     .nullable(),
+  // „Tłumacz automatycznie przy pomocy AI" — off unless the dialog asks, so no other caller pays an AI wait.
+  translate: z.boolean().optional(),
 })
 
 export type AddItemInputT = z.infer<typeof addItemSchema>
+
+async function catalogueTranslationsFor(db: DbExecutorT, matchKey: string) {
+  const entry = await findCatalogueItemByKey(db, matchKey)
+  return new Map(entry ? [[matchKey, entry.descriptionTranslations]] : [])
+}
 
 const EMPTY_ITEM_TEXT_ERROR = 'Praca musi mieć opis i jednostkę miary.'
 
@@ -502,12 +516,19 @@ export async function addItemAction(
     async ({ payload, investmentId }) => {
       const parsed = validateAction(addItemSchema, input)
       if (!parsed.success) return parsed
-      const { placement, data, catalogue } = parsed.data
+      const { placement, data, catalogue, translate } = parsed.data
 
-      const row = { ...catalogueRow(data), descriptionTranslations: {} }
-      if (!row.description || !row.unit) {
+      const fields = catalogueRow(data)
+      if (!fields.description || !fields.unit) {
         return { success: false, error: EMPTY_ITEM_TEXT_ERROR }
       }
+      const translated = translate
+        ? await translateNewRow(
+            { description: fields.description, unit: fields.unit, descriptionTranslations: {} },
+            await catalogueTranslationsFor(await getDb(payload), fields.matchKey),
+          )
+        : { translations: {}, failed: false }
+      const row = { ...fields, descriptionTranslations: translated.translations }
 
       return withPayloadTransaction(
         payload,
@@ -535,7 +556,10 @@ export async function addItemAction(
 
           if (catalogueWrite) await applyCatalogueWrite(payload, req, catalogueWrite)
 
-          const warnings = ceilingWarnings([item])
+          const warnings = [
+            ...ceilingWarnings([item]),
+            ...(translated.failed ? [SAVED_UNTRANSLATED_WARNING] : []),
+          ]
           return {
             success: true,
             data: { item: { ...item, id } },

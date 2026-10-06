@@ -2,10 +2,10 @@ import { redirect, notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { isAdminOrOwnerRole, isManagementRole, ROLES } from '@/lib/auth/roles'
+import { canViewRegister, isManagementRole, ROLES } from '@/lib/auth/roles'
 import { parsePagination } from '@/lib/utils/pagination'
 import { parseTransferSort } from '@/lib/queries/transfer-sort'
-import { fetchReferenceData } from '@/lib/queries/reference-data'
+import { fetchReferenceData, findWorkerRef } from '@/lib/queries/reference-data'
 import { fetchRegisterBalances } from '@/lib/queries/balances'
 import { buildTransferFilters } from '@/lib/queries/transfer-filters'
 import { cashRegisterDeleteBlocker } from '@/lib/cash-registers/delete-blocker'
@@ -24,7 +24,7 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
   const session = await requireAuth(ROLES)
   if (!session.success) redirect('/zaloguj')
   const { user } = session
-  const isManager = isManagementRole(user.role)
+  if (!isManagementRole(user.role)) notFound()
 
   const { id } = await params
   const sp = await searchParams
@@ -53,30 +53,20 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
 
   const registerBalance = balanceRecord[String(registerId)] ?? 0
 
-  // only admin or owner can view MAIN registers
-  if (!isAdminOrOwnerRole(user.role) && register.type === 'MAIN') notFound()
+  if (!canViewRegister(user.role, register.type)) notFound()
 
-  // employees can only view their own registers
-  if (!isManager && register.ownerId !== user.id) notFound()
-
-  const ownerName = register.ownerId
-    ? ([...refData.workers, ...refData.trashedWorkers].find((w) => w.id === register.ownerId)
-        ?.name ?? '—')
-    : '—'
+  const ownerName = register.ownerId ? (findWorkerRef(refData, register.ownerId)?.name ?? '—') : '—'
 
   const isOwnerLocked =
-    isManager &&
     (await cashRegisterDeleteBlocker(await getPayload({ config }), registerId)) !== undefined
 
   return (
     <PageWrapper title={register.name}>
-      {isManager && (
-        <EditCashRegisterDialog
-          register={register}
-          workers={refData.workers}
-          isOwnerLocked={isOwnerLocked}
-        />
-      )}
+      <EditCashRegisterDialog
+        register={register}
+        workers={refData.workers}
+        isOwnerLocked={isOwnerLocked}
+      />
       <InfoList items={[{ label: 'Właściciel', value: ownerName }]} />
       <SignedMoneyDisplay amount={registerBalance} />
 

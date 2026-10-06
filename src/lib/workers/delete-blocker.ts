@@ -2,6 +2,7 @@ import type { Where } from 'payload'
 import { excludingCancelled, makeDeleteBlocker, type DeleteProbeT } from '@/lib/db/delete-blocker'
 import { countStageMemberships } from '@/lib/db/stage-memberships'
 import { countReportsByWorker } from '@/lib/db/worker-reports'
+import { pendingDraftsHint, pendingDraftsProbe } from '@/lib/db/worker-expense-drafts'
 
 // Block a hard delete while a FIGURE or its audit trail still names this person: a wypłata whose
 // recipient is unknown, an amount edit with no editor, an etap with no podwykonawca. Deactivation
@@ -42,6 +43,7 @@ const WORKER_USE_PROBES: readonly DeleteProbeT[] = [
     count: countReportsByWorker,
     label: 'zgłoszenia prac',
   },
+  pendingDraftsProbe('worker'),
   // Not authorship: this names who was HOLDING a tool. Deleting the row would erase the only
   // answer to „who had it last" for anything still in that person's hands.
   {
@@ -52,7 +54,8 @@ const WORKER_USE_PROBES: readonly DeleteProbeT[] = [
 ]
 
 const message = (blockers: string[]) =>
-  `Nie można usunąć pracownika — jest powiązany z danymi (${blockers.join(', ')}). Zamiast usuwać, odznacz „Aktywny".`
+  `Nie można usunąć pracownika — jest powiązany z danymi (${blockers.join(', ')}). Zamiast usuwać, odznacz „Aktywny".` +
+  pendingDraftsHint(blockers)
 
 /**
  * „Used" for a worker, spelled once: the trash, its delete forever and the purge all ask it. It leaves

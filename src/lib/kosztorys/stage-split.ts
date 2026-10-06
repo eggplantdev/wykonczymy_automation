@@ -22,8 +22,8 @@ type StageSharesT = {
  * run — the editor's `subcontractorDueByPlane` and the payouts fold over the SQL pools — so a screen
  * cannot credit a worker differently from „Rozlicz wypłaty".
  *
- * No rounding: Σ shares === pool in floating point, and display rounds. A pool of 0 or less credits
- * nobody („nie dzielimy pieniędzy, których nie ma").
+ * Σ shares === pool in floating point, and all shares but one are whole grosze. A pool of 0 or less
+ * credits nobody („nie dzielimy pieniędzy, których nie ma").
  */
 export function splitStagePool(pool: number, split: StageSplitT | null): StageSharesT {
   const shares = new Map<number, number>()
@@ -46,15 +46,23 @@ export function splitStagePool(pool: number, split: StageSplitT | null): StageSh
   const scaledDown = split.mode === 'amount' && roundToCents(wantedTotal) > roundToCents(pool)
   const scale = scaledDown ? pool / wantedTotal : 1
 
+  // Entered shares are whole grosze and the rest holder takes `pool − paid`, so the shares as
+  // displayed add up to the etap as displayed (EX-956: three half-grosz roundings once showed
+  // 3437,41 against a 3437,40 „Razem").
   let paid = 0
+  let largest: { workerId: number; share: number } | undefined
   entered.forEach((member, index) => {
-    const share = wanted[index] * scale
+    const share = roundToCents(wanted[index] * scale)
     shares.set(member.workerId, share)
     paid += share
+    if (!largest || share > largest.share) largest = { workerId: member.workerId, share }
   })
-  if (restHolder) {
-    // `pool − paid` can land at -1e-13 on float residue; a share is never negative.
-    shares.set(restHolder.workerId, Math.max(0, pool - paid))
+  const remainder = pool - paid
+  if (restHolder) shares.set(restHolder.workerId, scaledDown ? 0 : Math.max(0, remainder))
+  // A shrunk split gives the rest holder nothing, and a split the entered members fill can round
+  // past the pool — either way the grosz residue goes where it cannot turn a share negative.
+  if (largest && (scaledDown || remainder < 0)) {
+    shares.set(largest.workerId, largest.share + remainder)
   }
   return { shares, unattributed: 0, scaledDown }
 }

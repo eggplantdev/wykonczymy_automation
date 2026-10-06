@@ -1,5 +1,5 @@
+import { fold } from '@/lib/kosztorys/fold'
 import { CATALOGUE_NAME_FIXES } from '@/lib/kosztorys/catalogue-name-fixes'
-import { fold } from '@/lib/kosztorys/sheet-import/columns'
 import { capitalize } from '@/lib/utils/capitalize'
 
 // Every rule is idempotent, so the owner can press the button as often as they like and the rules can

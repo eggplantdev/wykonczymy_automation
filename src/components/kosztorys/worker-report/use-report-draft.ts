@@ -39,12 +39,17 @@ export function pruneDraft(
 
 // The szkic lives only in this browser: a worker who switches phone or clears its data starts over.
 // Nothing reaches the server until „Wyślij”.
-export function useReportDraft(storageKey: string, liveItemIds: ReadonlySet<number>) {
+// No key: the szkic lives in memory only.
+export function useReportDraft(storageKey: string | undefined, liveItemIds: ReadonlySet<number>) {
   const [draft, setDraft] = useState<ReportDraftT>(EMPTY_DRAFT)
   const [isLoaded, setIsLoaded] = useState(false)
   const [droppedCount, setDroppedCount] = useState(0)
 
   useEffect(() => {
+    if (storageKey === undefined) {
+      setIsLoaded(true)
+      return
+    }
     try {
       const pruned = pruneDraft(parseDraft(localStorage.getItem(storageKey)), liveItemIds)
       setDraft(pruned.draft)
@@ -59,7 +64,7 @@ export function useReportDraft(storageKey: string, liveItemIds: ReadonlySet<numb
 
   useEffect(() => {
     // Before the load lands, `draft` is the empty initial state and would overwrite the stored one.
-    if (!isLoaded) return
+    if (!isLoaded || storageKey === undefined) return
     try {
       localStorage.setItem(storageKey, JSON.stringify(draft))
     } catch {

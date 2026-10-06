@@ -429,8 +429,12 @@
    already the containing block its `::after` anchors to. */
 .kosztorys-grid .dsg-row.kosztorys-clipped-sectionName .dsg-cell.kosztorys-wrap-sectionName::after,
 .kosztorys-grid .dsg-row.kosztorys-clipped-description .dsg-cell.kosztorys-wrap-description::after,
-.kosztorys-grid .dsg-row.kosztorys-clipped-descriptionTranslation__uk .dsg-cell.kosztorys-wrap-descriptionTranslation__uk::after,
-.kosztorys-grid .dsg-row.kosztorys-clipped-descriptionTranslation__ru .dsg-cell.kosztorys-wrap-descriptionTranslation__ru::after,
+.kosztorys-grid
+  .dsg-row.kosztorys-clipped-descriptionTranslation__uk
+  .dsg-cell.kosztorys-wrap-descriptionTranslation__uk::after,
+.kosztorys-grid
+  .dsg-row.kosztorys-clipped-descriptionTranslation__ru
+  .dsg-cell.kosztorys-wrap-descriptionTranslation__ru::after,
 .kosztorys-grid .dsg-row.kosztorys-clipped-note .dsg-cell.kosztorys-wrap-note::after {
   content: '…';
   position: absolute;
@@ -612,26 +616,26 @@
 /* After the stripe rule, which has the same specificity and would otherwise win. dsg's own
    1px grid lines ride the same box-shadow, so they are restated. */
 .kosztorys-grid.kosztorys-grid-preview .dsg-cell.kosztorys-report-column {
-  background: color-mix(in oklab, var(--color-report-accent) 14%, var(--color-background));
+  background: color-mix(in oklab, var(--color-lime-300) 40%, var(--color-background));
   box-shadow:
     inset 2px 0 var(--color-report-accent),
     inset -2px 0 var(--color-report-accent),
     0 1px var(--dsg-border-color);
 }
 
+/* Hints of uneven length would centre each title at a different height. */
+.kosztorys-grid .dsg-cell-header.kosztorys-report-header {
+  align-items: flex-start;
+  padding-top: 0.75rem;
+}
+
 .kosztorys-grid.kosztorys-grid-preview .dsg-cell-header.kosztorys-report-column {
-  background: color-mix(in oklab, var(--color-report-accent) 14%, var(--color-background));
+  background: color-mix(in oklab, var(--color-lime-300) 40%, var(--color-background));
   box-shadow:
     inset 2px 0 var(--color-report-accent),
     inset -2px 0 var(--color-report-accent),
     inset 0 2px var(--color-report-accent),
     inset 0 -1px var(--header-rule-color, var(--dsg-border-color));
-}
-
-/* The `[data-muted]` half outranks the preview's rule above, which darkens a muted figure again. */
-.kosztorys-grid.kosztorys-grid-report .dsg-cell.kosztorys-report-readonly-figure,
-.kosztorys-grid.kosztorys-grid-report .dsg-cell.kosztorys-report-readonly-figure [data-muted] {
-  color: var(--color-muted-foreground);
 }
 
 /* Section identity is carried by two quiet cues instead of a background wash: a colour rail down the
@@ -699,6 +703,17 @@
     inset calc(-1 * var(--section-rail-width)) 0 0 var(--section-rail, transparent),
     inset 0 var(--section-divider-width) 0 var(--section-rail, var(--color-border)),
     1px 0 var(--dsg-border-color);
+}
+
+/* A column the owner tinted (use-column-colors.ts). A background-IMAGE, not a colour: it lays the hue
+   over whatever fill the cell already has — white, the disabled grey, a red warning — instead of
+   replacing it. The section band's `background` shorthand outranks this and resets the image, so the
+   band still reads as one unbroken bar across a tinted column. */
+.kosztorys-grid .dsg-cell.kosztorys-column-tint {
+  background-image: linear-gradient(
+    color-mix(in oklab, var(--column-tint) 20%, transparent),
+    color-mix(in oklab, var(--column-tint) 20%, transparent)
+  );
 }
 
 /* The band closing a section: same construction and wash as the opening one, so the pair reads as one

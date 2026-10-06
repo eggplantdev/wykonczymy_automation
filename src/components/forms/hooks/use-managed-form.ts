@@ -31,6 +31,8 @@ type UseManagedFormArgsT<TValues, TData> = {
   onSaved?: (data: TData) => void
   /** Extra cleanup run alongside clearing the persisted form data (e.g. reset registerBalance). */
   onReset?: () => void
+  /** Fields a „Nie zamykaj" save carries into the next entry instead of clearing them. */
+  keepAfterSave?: (keyof TValues & string)[]
   /**
    * Last say over the restored draft — lets a form fill a field the draft left empty from context
    * the draft can't know (e.g. the investment the URL is scoped to). Not applied to `defaultValues`,
@@ -79,6 +81,7 @@ export function useManagedForm<TValues, TData>({
   action,
   onSaved,
   onReset,
+  keepAfterSave,
   mergeStored,
   confirmBeforeSubmit,
   beforeSubmit,
@@ -145,13 +148,28 @@ export function useManagedForm<TValues, TData>({
         successMessage,
         onSubmitSuccess,
         onSaved: onSaved && (() => onSaved(data)),
-        onReset: reset,
+        onReset: () => {
+          reset()
+          if (keepOpen) carryOver(value as TValues)
+        },
         awaitBeforeClose: !persistDraft,
       })
 
       return false
     },
   })
+
+  // Set after the reset, never folded into it: reset adopts its values as the new defaults, and the
+  // next render's `defaultValues` would differ and be swapped back in over the untouched form.
+  // Meta- and listener-free, so the carried value neither counts as an edit nor re-persists a draft.
+  function carryOver(saved: TValues) {
+    keepAfterSave?.forEach((field) =>
+      form.setFieldValue(field, saved[field] as never, {
+        dontUpdateMeta: true,
+        dontRunListeners: true,
+      }),
+    )
+  }
 
   useCheckFormErrors(form)
 

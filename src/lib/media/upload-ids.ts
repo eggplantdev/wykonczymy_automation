@@ -1,5 +1,6 @@
 import { mapWithConcurrency } from '@/lib/utils/map-with-concurrency'
 import { UploadRefusedError, uploadMediaFromClient } from '@/lib/media/client-upload'
+import { translate } from '@/lib/i18n/translations'
 import type { MediaKindT } from '@/types/media'
 
 // Cap parallel uploads to match the receipt-generation path (GENERATION_CONCURRENCY): batch-add lets a user
@@ -7,7 +8,7 @@ import type { MediaKindT } from '@/types/media'
 // Bounds the Blob PUTs only — `createMediaRow` serializes the row creates itself.
 const UPLOAD_CONCURRENCY = 4
 
-export const UPLOAD_FAILED = 'Nie udało się przesłać plików — spróbuj ponownie.'
+export const UPLOAD_FAILED = translate('pl', 'notices', 'uploadFailed')
 
 /**
  * Thrown when any page of a submit fails to upload. Carries the ids that DID land, because those
@@ -16,10 +17,10 @@ export const UPLOAD_FAILED = 'Nie udało się przesłać plików — spróbuj po
  */
 export class MediaUploadError extends Error {
   constructor(
-    message: string,
+    readonly refusal: UploadRefusedError,
     readonly uploadedIds: number[],
   ) {
-    super(message)
+    super(refusal.message)
     this.name = 'MediaUploadError'
   }
 }
@@ -42,7 +43,7 @@ export async function resolveUploadIdRows(
     (files.get(row) ?? []).map((file) => ({ row, file })),
   ).flat()
 
-  let failure: string | undefined
+  let failure: UploadRefusedError | undefined
   const mediaIds = await mapWithConcurrency(pages, UPLOAD_CONCURRENCY, async ({ file }) => {
     // Once one page is lost the submit is doomed, so don't spend the user's bandwidth (and Blob
     // storage) uploading the rest of a 20-page batch just to delete it again.
@@ -51,7 +52,10 @@ export async function resolveUploadIdRows(
       return await upload(file)
     } catch (err) {
       // A failed request or the Blob SDK speaks English; only a refusal is worded for the user.
-      failure ??= err instanceof UploadRefusedError ? err.message : UPLOAD_FAILED
+      failure ??=
+        err instanceof UploadRefusedError
+          ? err
+          : new UploadRefusedError(UPLOAD_FAILED, 'uploadFailed')
       return undefined
     }
   })

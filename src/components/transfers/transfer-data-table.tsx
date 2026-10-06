@@ -13,11 +13,19 @@ import { getTransferColumns } from '@/components/tables/transfers'
 import type { TransferRowT } from '@/types/transfers'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import type { PaginationMetaT } from '@/lib/utils/pagination'
-import type { TransferTableConfigT } from '@/components/transfers/transfer-table-config'
+import type {
+  TransferRowsFetchT,
+  TransferTableConfigT,
+} from '@/components/transfers/transfer-table-config'
+import {
+  fetchFilteredTransfers,
+  fetchWorkerTransfers,
+} from '@/lib/queries/fetch-transfers-for-invoices'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
 import { sortParamToSortingState, sortingStateToParam } from '@/lib/table/sort-param'
 import { validTransferSort } from '@/lib/queries/transfer-sort'
 import { useUrlFilterParams } from '@/hooks/use-url-filter-params'
+import { useTranslation } from '@/hooks/use-translation'
 
 type TransferDataTablePropsT = {
   data: TransferRowT[]
@@ -34,6 +42,7 @@ export function TransferDataTable({
 }: TransferDataTablePropsT) {
   const { id: currentUserId, role: currentUserRole } = useCurrentUser()
   const searchParams = useSearchParams()
+  const translator = useTranslation('transfers')
   const {
     title,
     baseUrl,
@@ -43,7 +52,13 @@ export function TransferDataTable({
     listsCancelled,
     invoiceDownload,
     print,
+    workerScope,
   } = config
+
+  const fetchRows: TransferRowsFetchT = (opts) =>
+    workerScope === undefined
+      ? fetchFilteredTransfers(config.query.where, opts)
+      : fetchWorkerTransfers(workerScope, Object.fromEntries(searchParams), opts)
 
   // The same whitelist the server used, so a hand-edited `?sort=` the page refused cannot leave the
   // header arrow — or the printout, which reads this state — pointing somewhere else.
@@ -54,6 +69,7 @@ export function TransferDataTable({
     referenceData,
     currentUserId,
     currentUserRole,
+    translator,
   })
 
   return (
@@ -61,7 +77,7 @@ export function TransferDataTable({
       {filters && (
         <CollapsibleSection
           className="w-fit"
-          title="Filtry"
+          title={translator.t('filtersTitle')}
           size="sm"
           defaultOpen={false}
           storageKey="transfers:filters"
@@ -82,7 +98,8 @@ export function TransferDataTable({
         sorting={sorting}
         onSortingChange={(next) => updateParam('sort', sortingStateToParam(next))}
         getRowClassName={(row) => {
-          if (row.cancelled) return '[&_td]:line-through [&_td]:text-muted-foreground'
+          if (row.cancelled || row.rejectedDraftId)
+            return '[&_td]:line-through [&_td]:text-muted-foreground'
           if (row.type === 'CANCELLATION') return '[&_td]:text-muted-foreground'
           return ''
         }}
@@ -93,12 +110,12 @@ export function TransferDataTable({
             columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
             actions={
               <>
-                {invoiceDownload && <InvoiceDownloadButton where={config.query.where} />}
+                {invoiceDownload && <InvoiceDownloadButton fetchRows={fetchRows} />}
                 {print && (
                   <PrintTransfersButton
-                    where={config.query.where}
+                    fetchRows={fetchRows}
                     table={table}
-                    title="Transakcje"
+                    title={translator.t('title')}
                   />
                 )}
               </>

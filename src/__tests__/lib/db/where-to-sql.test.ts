@@ -60,6 +60,31 @@ describe('buildSqlConditions — Where → SQL', () => {
     ).toContain('((amount >= 1 AND amount < 2) OR worker_id = 3)')
   })
 
+  it('renders an and branch as a parenthesised conjunction', () => {
+    expect(
+      buildSqlConditions({ and: [{ worker: { equals: 3 } }, { type: { in: ['PAYOUT'] } }] }),
+    ).toContain("(worker_id = 3 AND type IN ('PAYOUT'))")
+  })
+
+  it('nests an or inside an and, next to a top-level field', () => {
+    const sql = buildSqlConditions({
+      investment: { in: [5] },
+      and: [
+        {
+          or: [
+            { worker: { equals: 3 } },
+            { sourceRegister: { in: [7] } },
+            { targetRegister: { in: [7] } },
+          ],
+        },
+      ],
+    })
+    expect(sql).toContain('AND investment_id IN (5)')
+    expect(sql).toContain(
+      'AND ((worker_id = 3 OR source_register_id IN (7) OR target_register_id IN (7)))',
+    )
+  })
+
   it('escapes a single quote by doubling it', () => {
     expect(buildSqlConditions({ paymentMethod: { equals: "o'brien" } })).toContain(
       "payment_method = 'o''brien'",
@@ -116,6 +141,20 @@ describe('buildSqlConditions — refuses what it cannot translate', () => {
 
   it('refuses an empty or list', () => {
     expect(() => buildSqlConditions({ or: [] })).toThrow(/non-empty array/)
+  })
+
+  it('refuses an empty or non-array and', () => {
+    expect(() => buildSqlConditions({ and: [] })).toThrow(/"and" expects a non-empty array/)
+    expect(() =>
+      buildSqlConditions({ and: { worker: { equals: 3 } } } as unknown as Where),
+    ).toThrow(/"and" expects a non-empty array/)
+  })
+
+  it('refuses an empty branch rather than rendering ()', () => {
+    expect(() => buildSqlConditions({ and: [{}] })).toThrow(/branch carries no field/)
+    expect(() => buildSqlConditions({ or: [{}, { worker: { equals: 3 } }] })).toThrow(
+      /branch carries no field/,
+    )
   })
 })
 

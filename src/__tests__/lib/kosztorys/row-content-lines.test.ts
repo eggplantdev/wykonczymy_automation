@@ -58,7 +58,8 @@ describe('rowContentLines — kolumna Sekcja', () => {
 // else can catch that: both class names still build fine, and the missing selector is invisible until
 // someone notices a truncated opis that never says it was truncated.
 describe('the clip cue’s CSS keeps up with WRAPPING_COLUMN_IDS', () => {
-  const css = readFileSync('src/styles/globals.css', 'utf8')
+  // Collapsed, because the formatter wraps a long selector across lines.
+  const css = readFileSync('src/styles/globals.css', 'utf8').replace(/\s+/g, ' ')
 
   it.each(WRAPPING_COLUMN_IDS)('draws the „…" for %s', (id) => {
     expect(css).toContain(`.${clippedRowClass(id)} .dsg-cell.${wrapColumnClass(id)}::after`)

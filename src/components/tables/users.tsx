@@ -139,6 +139,17 @@ export function getUserColumns({ onToggle, onSettle }: UserColumnOptionsT) {
       header: 'Domyślna kasa',
       cell: (info) => info.getValue() ?? '—',
     }),
+    col.accessor((row) => row.registerNames.length, {
+      id: 'registers',
+      header: 'Kasy',
+      meta: { align: 'right' },
+      cell: (info) =>
+        info.getValue() === 0 ? (
+          '—'
+        ) : (
+          <span title={info.row.original.registerNames.join(', ')}>{info.getValue()}</span>
+        ),
+    }),
     col.display({
       id: 'actions',
       header: 'Akcje',

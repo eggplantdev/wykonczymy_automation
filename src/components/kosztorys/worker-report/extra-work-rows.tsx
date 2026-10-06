@@ -8,6 +8,7 @@ import { blankExtra, extraState } from '@/components/kosztorys/worker-report/ext
 import type { ExtraWorkT } from '@/components/kosztorys/worker-report/types'
 import { parseReportQty } from '@/lib/kosztorys/worker-report/parse-report-qty'
 import { unitOptions } from '@/lib/kosztorys/unit-options'
+import { translateUnit } from '@/lib/kosztorys/worker-view/translate-unit'
 import { useTranslation } from '@/hooks/use-translation'
 
 type PropsT = {
@@ -20,7 +21,7 @@ type PropsT = {
 }
 
 export function ExtraWorkRows({ extras, commonUnits, onSave, onRemove, showsMissing }: PropsT) {
-  const { t } = useTranslation('report')
+  const { t, locale } = useTranslation('report')
   return (
     <div>
       <div className="flex flex-col gap-4 sm:gap-2">
@@ -42,7 +43,7 @@ export function ExtraWorkRows({ extras, commonUnits, onSave, onRemove, showsMiss
                 onValueChange={(unit) => onSave({ ...extra, unit })}
                 options={unitOptions(commonUnits, extra.unit).map((option) => ({
                   value: option,
-                  label: option,
+                  label: translateUnit(option, locale),
                 }))}
                 placeholder={t('unitPlaceholder')}
                 invalid={isMissing && extra.unit === ''}

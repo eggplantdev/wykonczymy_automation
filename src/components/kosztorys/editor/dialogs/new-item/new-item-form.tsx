@@ -6,6 +6,8 @@ import { useManagedForm } from '@/components/forms/hooks/use-managed-form'
 import { useFieldValue } from '@/components/forms/hooks/use-field-value'
 import { FormShell } from '@/components/forms/form-components/form-shell'
 import FormFooter from '@/components/forms/form-components/form-footer'
+import { AiTranslateCheckbox } from '@/components/forms/form-components/ai-translate-checkbox'
+import { useAiTranslate } from '@/components/forms/hooks/use-ai-translate'
 import { RateField } from '@/components/forms/work-catalogue-item/rate-fields'
 import { CreatableComboboxField } from '@/components/forms/work-catalogue-item/creatable-combobox-field'
 import { catalogueFigures } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
@@ -48,6 +50,7 @@ export function NewItemForm({
   // What the collision question decided, read by `toData` on the same submit. Set on every submit
   // before it is read, so a previous praca's answer never leaks into the next one.
   const catalogueWrite = useRef<NewItemPayloadT['catalogue']>(null)
+  const [translate, setTranslate] = useAiTranslate()
   const [collision, setCollision] = useState<{
     existing: WorkCatalogueItemT
     candidate: ReturnType<typeof catalogueFigures> & { category: string }
@@ -103,6 +106,7 @@ export function NewItemForm({
         ...catalogueFigures(value),
       },
       catalogue: catalogueWrite.current,
+      translate,
     }),
   })
 
@@ -118,6 +122,7 @@ export function NewItemForm({
               <field.Textarea label="Opis pracy" rows={2} placeholder="Malowanie ścian" showError />
             )}
           </form.AppField>
+          <AiTranslateCheckbox checked={translate} onCheckedChange={setTranslate} />
 
           <form.AppField name="unit">
             {() => (

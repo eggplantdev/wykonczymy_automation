@@ -1,14 +1,16 @@
 import type { CellProps, Column } from 'react-datasheet-grid'
-import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-text'
+import { computedColumn } from '@/components/kosztorys/editor/grid/cells/computed-cell'
 import { decimalColumn } from '@/components/kosztorys/editor/grid/cells/decimal-column'
 import { pinnedWidth } from '@/components/kosztorys/editor/grid/column-sizing'
-import { withCellClass } from '@/components/kosztorys/editor/grid/kosztorys-synthetic-rows'
+import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-text'
 import { useTranslation } from '@/hooks/use-translation'
 import type { MessageKeyT } from '@/lib/i18n/translations'
 import { numericFieldPolicy } from '@/lib/kosztorys/cell-edit'
 import { formatQty } from '@/lib/kosztorys/format'
-import { STAGE_QTY_PREFIX, stageKey } from '@/lib/kosztorys/stage-keys'
-import type { KosztorysV2RowT, StageKeyT } from '@/lib/kosztorys/types'
+import { rowTotalQtyDone } from '@/lib/kosztorys/settlement-rows'
+import { REPORT_FIELD, REPORT_STAGE_ID } from '@/lib/kosztorys/worker-report/report-field'
+import type { WorkerAudienceT } from '@/lib/kosztorys/worker-view/types'
+import type { KosztorysStageT, KosztorysV2RowT, StageKeyT } from '@/lib/kosztorys/types'
 import type { PreviewSeamsT } from '@/components/kosztorys/editor/use-kosztorys-editor'
 
 // His rozpiska grid as a report form. His etapy stay read-only; he types into one extra „Zgłaszam”
@@ -17,27 +19,41 @@ import type { PreviewSeamsT } from '@/components/kosztorys/editor/use-kosztorys-
 export type ReportModeT = {
   // What the draft already holds, so a reload reopens the column with his unsent work in it.
   initialQtyByItem: Record<number, number>
-  pendingQtyByItem: Record<number, number>
-  // Only Opis prac and „Zgłaszam” — the rest of the sheet is context he can switch back to.
-  isCompact: boolean
+  // „Inwestycja”: his sheet as it stands — every column, no „Zgłaszam”, nothing to type. Otherwise
+  // Opis prac, „Zgłaszam” and whichever of the two figures below he switches on.
+  isSummary: boolean
   onReportQty: (itemId: number, qty: number) => void
+  showDoneSum: boolean
+  showProgress: boolean
 }
 
-// A stage id no etap can hold (serial ids start at 1), so the report rides the stage-qty field
-// plumbing — the diff reports it like an etap edit — while every Σ etapów, which iterates the real
-// etapy, never counts it into Pomiar.
-const REPORT_STAGE_ID = 0
-const REPORT_FIELD = stageKey(REPORT_STAGE_ID)
+// Past the screen's width, the page scrolls sideways — the full sheet always, the compact form once
+// either figure is on (a phone has room for Opis prac and „Zgłaszam” alone).
+export function reportScrollsSideways(
+  report: Pick<ReportModeT, 'isSummary' | 'showDoneSum' | 'showProgress'>,
+): boolean {
+  return report.isSummary || report.showDoneSum || report.showProgress
+}
+
+// His etapy for „Wykonano”, every crew's for „Postęp”: like „Pozostało” on his sheet (design #9), an
+// item another crew finished must not read as still owed.
+export type ReportFiguresT = {
+  stages: KosztorysStageT[]
+  worker: Pick<WorkerAudienceT, 'plane' | 'executedQtyByItem'>
+}
 
 // globals.css frames the column, so the one place he may type stands out of a read-only sheet.
 const REPORT_COLUMN_CLASS = 'kosztorys-report-column'
-// globals.css greys these: every figure he reads but may not type, so „Zgłaszam” is the one dark number.
-const READONLY_FIGURE_CLASS = 'kosztorys-report-readonly-figure'
-const TEXT_COLUMN_IDS: ReadonlySet<string> = new Set(['description', 'note', 'sectionName', 'unit'])
-const REPORT_WIDTH = 140
+const REPORT_HEADER_CLASS = 'kosztorys-report-header'
+const REPORT_WIDTH = 170
 // On a phone the description needs every pixel; the header hint wraps to four lines and still fits.
-const COMPACT_REPORT_WIDTH = 110
+const PHONE_REPORT_WIDTH = 110
+// A phone's narrower columns wrap the headers — „Zgłaszam”'s hint most of all — past the sheet's
+// resting header height.
+export const PHONE_REPORT_HEADER_HEIGHT = 100
 const COMPACT_UNIT_WIDTH = 80
+const FIGURE_WIDTH = 130
+const PHONE_FIGURE_WIDTH = 100
 const COMPACT_DESCRIPTION_MIN_WIDTH = 240
 
 // A component, not inline JSX: the column is a module constant, so only a render can read the language.
@@ -66,32 +82,57 @@ const reportColumn: Column<KosztorysV2RowT> = {
   ),
   ...pinnedWidth(REPORT_WIDTH),
   cellClassName: REPORT_COLUMN_CLASS,
-  headerClassName: REPORT_COLUMN_CLASS,
+  headerClassName: `${REPORT_COLUMN_CLASS} ${REPORT_HEADER_CLASS}`,
 }
 
-const PENDING_WIDTH = 110
+type ProgressDataT = { executedQtyByItem: Record<number, number> }
 
-type PendingCellDataT = { pendingQtyByItem: ReportModeT['pendingQtyByItem'] }
-
-// Stable component, map via columnData: an inline component remounts every cell on each render.
-function PendingQtyCell({ rowData, columnData }: CellProps<KosztorysV2RowT, PendingCellDataT>) {
-  const qty = columnData.pendingQtyByItem[rowData.id]
-  return <ReadOnlyCellText muted>{qty ? formatQty(qty) : ''}</ReadOnlyCellText>
+// Module-level for one component identity across renders, like ComputedCell: it reads the row's
+// „Zgłaszam” live, so the figure moves as he types.
+function ProgressCell({ rowData, columnData }: CellProps<KosztorysV2RowT, ProgressDataT>) {
+  const done = (columnData.executedQtyByItem[rowData.id] ?? 0) + (rowData[REPORT_FIELD] ?? 0)
+  return (
+    <ReadOnlyCellText muted danger={done > rowData.plannedQty}>
+      {formatQty(done)} / {formatQty(rowData.plannedQty)}
+    </ReadOnlyCellText>
+  )
 }
 
-// What he already sent and the kierownik has not decided yet, so a repeat report is visible before
-// he types it twice.
-function pendingColumn(
-  pendingQtyByItem: ReportModeT['pendingQtyByItem'],
-): Column<KosztorysV2RowT, PendingCellDataT> {
-  return {
-    id: 'reportPending',
-    title: <ReportHeader label="pendingColumn" hint="pendingColumnHint" />,
-    columnData: { pendingQtyByItem },
-    component: PendingQtyCell,
+type FigureColumnsT = {
+  doneSum: Column<KosztorysV2RowT> | undefined
+  progress: Column<KosztorysV2RowT> | undefined
+}
+
+function figureColumns(
+  report: ReportModeT,
+  { stages, worker }: ReportFiguresT,
+  isWide: boolean,
+): FigureColumnsT {
+  const sizing = {
+    ...pinnedWidth(isWide ? FIGURE_WIDTH : PHONE_FIGURE_WIDTH),
+    headerClassName: REPORT_HEADER_CLASS,
+  }
+  const doneSum: Column<KosztorysV2RowT> = {
+    ...computedColumn(
+      'reportDoneSum',
+      <ReportHeader label="doneSumColumn" hint="doneSumColumnHint" />,
+      (row) => rowTotalQtyDone(row, stages, worker.plane),
+      {},
+      (value) => formatQty(value ?? 0),
+    ),
+    ...sizing,
+  }
+  const progress: Column<KosztorysV2RowT> = {
+    id: 'reportProgress',
+    title: <ReportHeader label="progressColumn" hint="progressColumnHint" />,
     disabled: true,
-    copyValue: ({ rowData }) => pendingQtyByItem[rowData.id] ?? '',
-    ...pinnedWidth(PENDING_WIDTH),
+    columnData: { executedQtyByItem: worker.executedQtyByItem },
+    component: ProgressCell,
+    ...sizing,
+  }
+  return {
+    doneSum: report.showDoneSum ? doneSum : undefined,
+    progress: report.showProgress ? progress : undefined,
   }
 }
 
@@ -102,9 +143,23 @@ function withReportQty(
   return rows.map((row) => ({ ...row, [REPORT_FIELD]: qtyByItem[row.id] ?? 0 }))
 }
 
-export function reportEditorSeams(report: ReportModeT, isWide: boolean): PreviewSeamsT {
+// `showsUnit` is a wider step than `isWide`: with the figures switched on, j.m. squeezes Opis prac
+// on a tablet.
+export type ReportLayoutT = { isWide: boolean; showsUnit: boolean }
+
+export function reportEditorSeams(
+  report: ReportModeT,
+  figures: ReportFiguresT,
+  { isWide, showsUnit }: ReportLayoutT,
+): PreviewSeamsT {
   return {
-    transformColumns: (columns) => withReportColumn(columns, report, isWide),
+    transformColumns: (columns) =>
+      report.isSummary
+        ? columns
+        : compactReportColumns(columns, figureColumns(report, figures, isWide), {
+            isWide,
+            showsUnit,
+          }),
     initialRowPatch: (rows) => withReportQty(rows, report.initialQtyByItem),
     // Every other column is disabled, so „Zgłaszam” is the only change a batch can carry.
     onPreviewChange: (stageChanges) => {
@@ -115,42 +170,25 @@ export function reportEditorSeams(report: ReportModeT, isWide: boolean): Preview
   }
 }
 
-// „Czeka” rides only the full sheet: on the compact view a third figure would push „Zgłaszam” off a phone, and his sent reports
-// list says the same thing below the grid.
-function withReportColumn(
+function compactReportColumns(
   columns: Column<KosztorysV2RowT>[],
-  { isCompact, pendingQtyByItem }: Pick<ReportModeT, 'isCompact' | 'pendingQtyByItem'>,
-  isWide: boolean,
+  { doneSum, progress }: FigureColumnsT,
+  { isWide, showsUnit }: ReportLayoutT,
 ): Column<KosztorysV2RowT>[] {
-  if (isCompact) {
-    const description = columns.find((column) => column.id === 'description')
-    // By id, like Opis prac: the owner's worker view may have hidden it. A phone has no room for it.
-    const shownUnit = isWide ? columns.find((column) => column.id === 'unit') : undefined
-    // Fixed like „Zgłaszam”, so all the room a wide screen adds goes to Opis prac.
-    const unit = shownUnit && { ...shownUnit, ...pinnedWidth(COMPACT_UNIT_WIDTH) }
-    // Unpinned: a width the owner dragged on the full sheet would leave the compact one half empty.
-    const stretched = description && {
-      ...description,
-      basis: COMPACT_DESCRIPTION_MIN_WIDTH,
-      grow: 1,
-      shrink: 1,
-      minWidth: COMPACT_DESCRIPTION_MIN_WIDTH,
-      maxWidth: undefined,
-    }
-    const narrowed = { ...reportColumn, ...pinnedWidth(COMPACT_REPORT_WIDTH) }
-    return [stretched, narrowed, unit].filter((column) => column !== undefined)
+  const description = columns.find((column) => column.id === 'description')
+  // By id, like Opis prac: the owner's worker view may have hidden it.
+  const shownUnit = showsUnit ? columns.find((column) => column.id === 'unit') : undefined
+  // Fixed like „Zgłaszam”, so all the room a wide screen adds goes to Opis prac.
+  const unit = shownUnit && { ...shownUnit, ...pinnedWidth(COMPACT_UNIT_WIDTH) }
+  // Unpinned: a width the owner dragged on the full sheet would leave the compact one half empty.
+  const stretched = description && {
+    ...description,
+    basis: COMPACT_DESCRIPTION_MIN_WIDTH,
+    grow: 1,
+    shrink: 1,
+    minWidth: COMPACT_DESCRIPTION_MIN_WIDTH,
+    maxWidth: undefined,
   }
-  const lastStage = columns.findLastIndex((column) => column.id?.startsWith(STAGE_QTY_PREFIX))
-  const anchor =
-    lastStage === -1 ? columns.findIndex((column) => column.id === 'description') : lastStage
-  const greyed = columns.map((column) =>
-    column.id && TEXT_COLUMN_IDS.has(column.id)
-      ? column
-      : { ...column, cellClassName: withCellClass(column.cellClassName, READONLY_FIGURE_CLASS) },
-  )
-  const hasPending = Object.keys(pendingQtyByItem).length > 0
-  const inserted = hasPending
-    ? [pendingColumn(pendingQtyByItem) as Column<KosztorysV2RowT>, reportColumn]
-    : [reportColumn]
-  return greyed.toSpliced(anchor + 1, 0, ...inserted)
+  const report = isWide ? reportColumn : { ...reportColumn, ...pinnedWidth(PHONE_REPORT_WIDTH) }
+  return [stretched, doneSum, report, progress, unit].filter((column) => column !== undefined)
 }

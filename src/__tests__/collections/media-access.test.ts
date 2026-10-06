@@ -1,13 +1,14 @@
 import { describe, it, expect } from 'vitest'
 import type { Access, PayloadRequest } from 'payload'
 import { Media } from '@/collections/media'
-import { isAdminOrOwnerOrManagerBoolean } from '@/access'
+import { isAuthenticatedBoolean } from '@/access'
 import { ROLES, type RoleT } from '@/lib/auth/roles'
 
-// Client uploads moved the gate off a Route Handler's `requireAuth(MANAGEMENT_ROLES)` onto two
-// Payload-side checks: the token route that lets the browser write one blob key, and the create
-// access on the row it then asks for. Both have to refuse EMPLOYEE — a token handed out too widely
-// buys write access to the store with no row to show for it, and neither failure is loud.
+// Client uploads gate on two Payload-side checks: the token route that lets the browser write one
+// blob key, and the create access on the row it then asks for. The two must agree — a token handed
+// out wider than the row gate buys write access to the store with no row to show for it, and
+// neither failure is loud. Every role passes both since an EMPLOYEE's expense draft carries receipt
+// photos (EX-971).
 //
 // `update` and `delete` stay on `isAdminOrOwner` even though marking a rzut is a MANAGER's job:
 // `setMediaKindAction` writes with `overrideAccess: true`, so the collection rule buys the feature
@@ -23,15 +24,14 @@ const updateAccess = Media.access?.update as Access
 const deleteAccess = Media.access?.delete as Access
 
 describe.each(ROLES)('media access — %s', (role) => {
-  const isManagement = role !== 'EMPLOYEE'
   const canWriteRow = role === 'ADMIN' || role === 'OWNER'
 
-  it(`row creation is ${isManagement ? 'allowed' : 'refused'}`, () => {
-    expect(createAccess({ req: asRequest(role) })).toBe(isManagement)
+  it('row creation is allowed', () => {
+    expect(createAccess({ req: asRequest(role) })).toBe(true)
   })
 
-  it(`blob write token is ${isManagement ? 'allowed' : 'refused'}`, () => {
-    expect(isAdminOrOwnerOrManagerBoolean({ req: asRequest(role) })).toBe(isManagement)
+  it('blob write token is allowed', () => {
+    expect(isAuthenticatedBoolean({ req: asRequest(role) })).toBe(true)
   })
 
   it(`update is ${canWriteRow ? 'allowed' : 'refused'}`, () => {

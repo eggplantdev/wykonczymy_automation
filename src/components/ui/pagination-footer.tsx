@@ -4,10 +4,11 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { UrlPagination } from './url-pagination'
 import { buildUrlWithParams } from '@/lib/utils/build-url-with-params'
 import { SimpleSelect } from './simple-select'
-import type { PaginationMetaT } from '@/lib/utils/pagination'
+import { ALLOWED_LIMITS, type PaginationMetaT } from '@/lib/utils/pagination'
 import { cn } from '@/lib/utils/cn'
+import { useTranslation } from '@/hooks/use-translation'
 
-const LIMIT_OPTIONS = [20, 50, 100].map((n) => ({ value: String(n), label: n }))
+const LIMIT_OPTIONS = ALLOWED_LIMITS.map((n) => ({ value: String(n), label: n }))
 
 type PaginationFooterPropsT = {
   paginationMeta: PaginationMetaT
@@ -16,6 +17,7 @@ type PaginationFooterPropsT = {
 }
 
 export function PaginationFooter({ paginationMeta, baseUrl, className }: PaginationFooterPropsT) {
+  const { t, tp } = useTranslation('filters')
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -28,14 +30,14 @@ export function PaginationFooter({ paginationMeta, baseUrl, className }: Paginat
   return (
     <div className={cn('mt-4 flex flex-wrap items-center justify-between gap-4', className)}>
       <div className="flex items-center gap-3">
-        <p className="text-muted-foreground text-sm">{paginationMeta.totalDocs} wyników</p>
+        <p className="text-muted-foreground text-sm">{tp('results', paginationMeta.totalDocs)}</p>
         <div className="flex items-center gap-2">
-          <span className="text-muted-foreground text-sm">Pokaż</span>
+          <span className="text-muted-foreground text-sm">{t('show')}</span>
           <SimpleSelect
             value={String(paginationMeta.limit)}
             onValueChange={handleLimitChange}
             options={LIMIT_OPTIONS}
-            className="h-7 w-18"
+            className="h-7 w-20"
           />
         </div>
       </div>

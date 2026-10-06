@@ -106,15 +106,17 @@ export function SettlementSummary({
           }
         />
         {settlementGroups.map((group, index) => (
-          <SummaryTotalsTable
-            key={group.caption ?? index}
-            cols={moneyCols}
-            caption={group.caption}
-            axis={group.axis}
-            rows={group.rows}
-            investmentId={investmentId}
-            preview={preview}
-          />
+          <div key={group.caption ?? index} className="flex flex-col gap-2">
+            <SummaryTotalsTable
+              cols={moneyCols}
+              caption={group.caption}
+              axis={group.axis}
+              rows={group.rows}
+              investmentId={investmentId}
+              preview={preview}
+            />
+            {group.footnote && <p className="text-muted-foreground text-xs">{group.footnote}</p>}
+          </div>
         ))}
       </div>
     </div>

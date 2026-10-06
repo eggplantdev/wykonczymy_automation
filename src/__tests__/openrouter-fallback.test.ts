@@ -15,10 +15,10 @@ vi.mock('@openrouter/ai-sdk-provider', () => ({
 import {
   extractReceipt,
   RECEIPT_MODEL,
-  FALLBACK_MODEL,
   RECEIPT_TIMEOUT_MS,
   RECEIPT_TIMEOUT_PER_PAGE_MS,
 } from '@/lib/ai/openrouter'
+import { FALLBACK_MODEL } from '@/lib/ai/openrouter-client'
 
 const OK = {
   description: 'Castorama 05.03.2026',
@@ -117,9 +117,7 @@ describe('extractReceipt runtime fallback', () => {
       await vi.advanceTimersByTimeAsync(RECEIPT_TIMEOUT_PER_PAGE_MS * 2)
       expect(generateObject).toHaveBeenCalledTimes(2)
 
-      await vi.advanceTimersByTimeAsync(
-        RECEIPT_TIMEOUT_MS + RECEIPT_TIMEOUT_PER_PAGE_MS * 2 + 1,
-      )
+      await vi.advanceTimersByTimeAsync(RECEIPT_TIMEOUT_MS + RECEIPT_TIMEOUT_PER_PAGE_MS * 2 + 1)
       await expect(p).rejects.toThrow()
     } finally {
       vi.useRealTimers()

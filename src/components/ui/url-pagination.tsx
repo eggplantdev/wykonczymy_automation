@@ -13,6 +13,7 @@ import {
 import { getWindowedPages } from './pagination/get-windowed-pages'
 import { buildUrlWithParams } from '@/lib/utils/build-url-with-params'
 import { cn } from '@/lib/utils/cn'
+import { useTranslation } from '@/hooks/use-translation'
 
 type UrlPaginationPropsT = {
   currentPage: number
@@ -31,6 +32,7 @@ export function UrlPagination({
   className,
   jumpSize = 5,
 }: UrlPaginationPropsT) {
+  const { t } = useTranslation('filters')
   const searchParams = useSearchParams()
 
   if (totalPages <= 1) return null
@@ -55,7 +57,7 @@ export function UrlPagination({
   const showLastPage = !visiblePages.includes(totalPages)
 
   return (
-    <Pagination className={className} aria-label="Nawigacja po stronach">
+    <Pagination className={className} aria-label={t('pagination')}>
       <PaginationContent>
         {showFirstPage && (
           <PaginationItem>
@@ -64,7 +66,7 @@ export function UrlPagination({
               scroll={false}
               onClick={(e) => handleClick(e, buildPageUrl(1))}
             >
-              <PaginationLink aria-label="Pierwsza strona">1</PaginationLink>
+              <PaginationLink aria-label={t('firstPage')}>1</PaginationLink>
             </Link>
           </PaginationItem>
         )}
@@ -76,7 +78,10 @@ export function UrlPagination({
             scroll={false}
             onClick={(e) => handleClick(e, buildPageUrl(prevJumpPage))}
           >
-            <PaginationPrevious isDisabled={isFirstPage} label={`Cofnij ${jumpSize} stron`} />
+            <PaginationPrevious
+              isDisabled={isFirstPage}
+              label={t('jumpBack', { count: jumpSize })}
+            />
           </Link>
         </PaginationItem>
 
@@ -92,7 +97,7 @@ export function UrlPagination({
               >
                 <PaginationLink
                   isActive={page === currentPage}
-                  aria-label={`Przejdź do strony ${page}`}
+                  aria-label={t('goToPage', { page })}
                 >
                   {page}
                 </PaginationLink>
@@ -108,7 +113,7 @@ export function UrlPagination({
             scroll={false}
             onClick={(e) => handleClick(e, buildPageUrl(nextJumpPage))}
           >
-            <PaginationNext isDisabled={isLastPage} label={`Przeskocz ${jumpSize} stron`} />
+            <PaginationNext isDisabled={isLastPage} label={t('jumpForward', { count: jumpSize })} />
           </Link>
         </PaginationItem>
 
@@ -119,7 +124,7 @@ export function UrlPagination({
               scroll={false}
               onClick={(e) => handleClick(e, buildPageUrl(totalPages))}
             >
-              <PaginationLink aria-label="Ostatnia strona">{totalPages}</PaginationLink>
+              <PaginationLink aria-label={t('lastPage')}>{totalPages}</PaginationLink>
             </Link>
           </PaginationItem>
         )}

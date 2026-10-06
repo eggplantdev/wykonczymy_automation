@@ -115,6 +115,13 @@ import * as migration_20261002_0_leads_trashed_erased_at from './20261002_0_lead
 import * as migration_20261002_1_investments_review_requested from './20261002_1_investments_review_requested'
 import * as migration_20261002_2_section_translations from './20261002_2_section_translations'
 import * as migration_20261002_3_add_bonus_transfer_type from './20261002_3_add_bonus_transfer_type'
+import * as migration_20261005_0_drop_investments_review from './20261005_0_drop_investments_review'
+import * as migration_20261005_1_drop_kosztorys_stages_worker_id from './20261005_1_drop_kosztorys_stages_worker_id'
+import * as migration_20261005_2_backfill_worker_report_shares from './20261005_2_backfill_worker_report_shares'
+import * as migration_20261005_3_add_worker_expense_drafts from './20261005_3_add_worker_expense_drafts'
+import * as migration_20261005_4_add_worker_report_line_translations from './20261005_4_add_worker_report_line_translations'
+import * as migration_20261005_5_add_kosztorys_item_ref from './20261005_5_add_kosztorys_item_ref'
+import * as migration_20261005_6_add_worker_report_scan from './20261005_6_add_worker_report_scan'
 
 export const migrations = [
   {
@@ -701,5 +708,40 @@ export const migrations = [
     up: migration_20261002_3_add_bonus_transfer_type.up,
     down: migration_20261002_3_add_bonus_transfer_type.down,
     name: '20261002_3_add_bonus_transfer_type',
+  },
+  {
+    up: migration_20261005_0_drop_investments_review.up,
+    down: migration_20261005_0_drop_investments_review.down,
+    name: '20261005_0_drop_investments_review',
+  },
+  {
+    up: migration_20261005_1_drop_kosztorys_stages_worker_id.up,
+    down: migration_20261005_1_drop_kosztorys_stages_worker_id.down,
+    name: '20261005_1_drop_kosztorys_stages_worker_id',
+  },
+  {
+    up: migration_20261005_2_backfill_worker_report_shares.up,
+    down: migration_20261005_2_backfill_worker_report_shares.down,
+    name: '20261005_2_backfill_worker_report_shares',
+  },
+  {
+    up: migration_20261005_3_add_worker_expense_drafts.up,
+    down: migration_20261005_3_add_worker_expense_drafts.down,
+    name: '20261005_3_add_worker_expense_drafts',
+  },
+  {
+    up: migration_20261005_4_add_worker_report_line_translations.up,
+    down: migration_20261005_4_add_worker_report_line_translations.down,
+    name: '20261005_4_add_worker_report_line_translations',
+  },
+  {
+    up: migration_20261005_5_add_kosztorys_item_ref.up,
+    down: migration_20261005_5_add_kosztorys_item_ref.down,
+    name: '20261005_5_add_kosztorys_item_ref',
+  },
+  {
+    up: migration_20261005_6_add_worker_report_scan.up,
+    down: migration_20261005_6_add_worker_report_scan.down,
+    name: '20261005_6_add_worker_report_scan',
   },
 ]

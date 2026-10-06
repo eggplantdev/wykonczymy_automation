@@ -9,6 +9,7 @@ import {
   MediaPreviewTrigger,
   type MediaPreviewTriggerPropsT,
 } from '@/components/dialogs/media-preview-trigger'
+import { usePreviewLabels } from '@/hooks/use-preview-labels'
 import type { PreviewFileT, PreviewLabelsT } from '@/types/media'
 
 type MediaPreviewButtonPropsT = {
@@ -30,7 +31,7 @@ type MediaPreviewButtonPropsT = {
 export function MediaPreviewButton({
   files,
   label,
-  labels,
+  labels: callerLabels,
   onAdd,
   onRemove,
   onRemoveAll,
@@ -40,6 +41,7 @@ export function MediaPreviewButton({
   className,
 }: MediaPreviewButtonPropsT) {
   const [previewOpen, setPreviewOpen] = useState(false)
+  const labels = usePreviewLabels(callerLabels)
   const closePreview = () => setPreviewOpen(false)
   const triggerLabel = label ?? files[0]?.filename ?? labels.fallbackTitle
 

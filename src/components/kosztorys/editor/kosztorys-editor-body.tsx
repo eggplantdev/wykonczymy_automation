@@ -8,20 +8,19 @@ import { SheetIcon } from 'lucide-react'
 // StaticDataSheetGrid, which snapshots `columns` via useState at mount (EX-422).
 import { DynamicDataSheetGrid, type DataSheetGridRef } from 'react-datasheet-grid'
 import { KosztorysTotalsPanel } from '@/components/kosztorys/summary/kosztorys-totals-panel'
-import { TotalsPanelOverlay } from '@/components/kosztorys/summary/totals-panel-overlay'
-import { WorkerSummary } from '@/components/kosztorys/summary/blocks/worker-summary'
-import { SummaryScrollRegion } from '@/components/ui/summary-grid'
 import { KosztorysEditorToolbar } from '@/components/kosztorys/editor/toolbar/kosztorys-editor-toolbar'
 import { BrandLogo } from '@/components/ui/brand-logo'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
 import { useKosztorysEditor } from '@/components/kosztorys/editor/use-kosztorys-editor'
 import {
+  PHONE_REPORT_HEADER_HEIGHT,
   reportEditorSeams,
+  reportScrollsSideways,
   type ReportModeT,
 } from '@/components/kosztorys/editor/grid/report-column'
 import { useMediaQuery } from '@/hooks/use-media-query'
-import { DESKTOP_MEDIA_QUERY } from '@/lib/constants/breakpoints'
+import { DESKTOP_MEDIA_QUERY, TABLET_LARGE_MEDIA_QUERY } from '@/lib/constants/breakpoints'
 import {
   KosztorysEditorProvider,
   type OnTreeReplacedT,
@@ -121,6 +120,9 @@ export type ReportGridControlsT = {
   onSearch: (value: string) => void
   showAllRows: boolean
   onShowAllRows: (value: boolean) => void
+  hiddenRowCount: number
+  reportedOnly: boolean
+  onReportedOnly: (value: boolean) => void
 }
 
 // Seeds the grid from `tree` at mount, so remounting it with a fresh `key` is how a restore re-seeds
@@ -174,8 +176,9 @@ export function KosztorysEditorBody({
     () => new Set(pastVersion?.diff.removed.map(({ id }) => id)),
     [pastVersion],
   )
-  // The compact report keeps Lp and j.m. where a desktop has the room.
+  // The compact report keeps Lp from a desktop up, and j.m. one step wider.
   const isWide = useMediaQuery(DESKTOP_MEDIA_QUERY)
+  const showsUnit = useMediaQuery(TABLET_LARGE_MEDIA_QUERY)
   const editor = useKosztorysEditor({
     investmentId,
     tree: gridTree,
@@ -190,7 +193,10 @@ export function KosztorysEditorBody({
     onStaleTree,
     isTemplate,
     filledStageIds,
-    seams: report && reportEditorSeams(report, isWide),
+    seams:
+      report &&
+      worker &&
+      reportEditorSeams(report, { stages: tree.stages, worker }, { isWide, showsUnit }),
   })
   const {
     gridRef,
@@ -221,6 +227,8 @@ export function KosztorysEditorBody({
     engagedConditionIds,
     showAllRows,
     setShowAllRows,
+    reportedOnly,
+    setReportedOnly,
     clientEmptyRowIds,
     resetFilters,
     ordinalByRowId,
@@ -245,7 +253,7 @@ export function KosztorysEditorBody({
 
   // Off `subtotals`, which counts the whole document rather than the visible rows, so a search
   // narrows the screen without changing what a section says it holds or what it is worth.
-  const isReportCompact = report?.isCompact ?? false
+  const isReportCompact = report !== undefined && !report.isSummary
   // The worker's report scrolls as a page: his header scrolls away and the table header sticks,
   // instead of the grid scrolling under a pinned top.
   const pageScroll = report !== undefined
@@ -425,11 +433,15 @@ export function KosztorysEditorBody({
     () => ordinalGutterColumn({ ordinals: ordinalByRowId, resize: rowResize }),
     [ordinalByRowId, rowResize],
   )
-  // The full report is wider than a phone and the page scrolls sideways, but dsg renders only the
-  // columns inside its own box — so the box gets the columns' width up front. Not `max-content`: dsg
-  // answers a box that fits with `width: 100%`, which collapses it again, and the two loop.
+  // A phone's compact report is Opis + „Zgłaszam” first; Lp would take width he needs.
+  const hidesGutter = isReportCompact && !isWide
+  // A sideways-scrolling report is wider than a phone, but dsg renders only the columns inside its own
+  // box — so the box gets the columns' width up front. Not `max-content`: dsg answers a box that fits
+  // with `width: 100%`, which collapses it again, and the two loop.
   const reportMinWidth =
-    report && !report.isCompact ? gridMinWidth(gridColumns, gutterColumn.basis ?? 40) : undefined
+    report && reportScrollsSideways(report)
+      ? gridMinWidth(gridColumns, hidesGutter ? 0 : (gutterColumn.basis ?? 40))
+      : undefined
 
   // Kosztorys client-view nets against the investment's transaction sums — net to net, since the
   // ledger carries no VAT. Through the same lib fn the investment page calls, so the two can't
@@ -475,12 +487,15 @@ export function KosztorysEditorBody({
           <NewItemHost>
             {/* The client view mounts under the bare (share) layout, which has no TopNav — subtracting
               its height there would leave a dead band, so the preview takes the whole viewport. */}
+            {/* As wide as the full sheet, so the report's header has room to stay pinned left while
+              the page scrolls sideways — a sticky box never leaves its parent. */}
             <div
               className={cn(
                 'flex w-full flex-col',
                 pageScroll ? 'min-h-dvh' : 'overflow-hidden',
                 !pageScroll && (preview ? 'h-dvh' : 'h-below-top-nav'),
               )}
+              style={reportMinWidth ? { minWidth: reportMinWidth } : undefined}
             >
               {report ? (
                 report.header({
@@ -488,6 +503,9 @@ export function KosztorysEditorBody({
                   onSearch: setSearch,
                   showAllRows,
                   onShowAllRows: setShowAllRows,
+                  hiddenRowCount: clientEmptyRowIds.size,
+                  reportedOnly,
+                  onReportedOnly: setReportedOnly,
                 })
               ) : preview ? (
                 <header className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b px-4 py-3 sm:px-5 sm:py-5">
@@ -560,8 +578,7 @@ export function KosztorysEditorBody({
                     // Strip the appended spacer + „Razem" rows before the editor's diff sees them — display-only.
                     onChange={(rows) => onChange(rows.filter((row) => !isSyntheticRow(row.id)))}
                     columns={gridColumns}
-                    // A phone's compact report is Opis + „Zgłaszam” only; Lp would take width he needs.
-                    gutterColumn={isReportCompact && !isWide ? false : gutterColumn}
+                    gutterColumn={hidesGutter ? false : gutterColumn}
                     height={gridHeight}
                     rowHeight={({ rowData }) =>
                       resolveRowHeight({
@@ -579,9 +596,13 @@ export function KosztorysEditorBody({
                     // Tall enough that verbose column labels („Pozostało netto (względem przedmiaru)" etc.)
                     // wrap onto two rows instead of truncating — and draggable from the same handle as a
                     // row, since which labels wrap depends on how wide the owner made their columns.
-                    headerRowHeight={resolveHeaderRowHeight(
-                      preview ? undefined : rowHeights[HEADER_HEIGHT_KEY],
-                    )}
+                    headerRowHeight={
+                      report && !isWide
+                        ? PHONE_REPORT_HEADER_HEIGHT
+                        : resolveHeaderRowHeight(
+                            preview ? undefined : rowHeights[HEADER_HEIGHT_KEY],
+                          )
+                    }
                     lockRows
                     rowKey={({ rowData }) => String(rowData.id)}
                     rowClassName={({ rowData }) =>
@@ -680,15 +701,6 @@ export function KosztorysEditorBody({
               has something to say on an empty kosztorys. The client document keeps the row gate: it
               has no such tab, and its toggle is `disabled` there, so a panel left open would be a
               full-height sheet of zeros nobody could fold away. */}
-                {/* The worker's document swaps the whole panel for his own balance: every tab of the
-              investor's reads the client's money, none of which is his to see. */}
-                {worker && !report && subtotals.length > 0 && (
-                  <TotalsPanelOverlay hasRows>
-                    <SummaryScrollRegion className="px-4 py-4">
-                      <WorkerSummary summary={worker.summary} />
-                    </SummaryScrollRegion>
-                  </TotalsPanelOverlay>
-                )}
                 {!worker && !pastVersion && (!preview || subtotals.length > 0) && (
                   <KosztorysTotalsPanel
                     hasRows={subtotals.length > 0}

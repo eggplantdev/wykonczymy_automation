@@ -1,16 +1,23 @@
 import type { ReactNode } from 'react'
-import { Search } from 'lucide-react'
+import { Search, Settings } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { useTranslation } from '@/hooks/use-translation'
 
 type PropsT = {
   search: string
   onSearch: (value: string) => void
-  chips: ReactNode
+  options: ReactNode
   className?: string
 }
 
-export function ReportBar({ search, onSearch, chips, className }: PropsT) {
+// The gear mirrors the investor's „Opcje” (PreviewHeaderActions).
+export function ReportBar({ search, onSearch, options, className }: PropsT) {
   const { t } = useTranslation('report')
   return (
     <div className={className}>
@@ -23,7 +30,15 @@ export function ReportBar({ search, onSearch, chips, className }: PropsT) {
           className="h-10 pl-9"
         />
       </div>
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">{chips}</div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button size="lg" variant="outline" className="ml-auto shrink-0">
+            <Settings />
+            <span className="max-sm:sr-only">{t('options')}</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">{options}</DropdownMenuContent>
+      </DropdownMenu>
     </div>
   )
 }

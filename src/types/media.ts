@@ -40,14 +40,8 @@ export type MediaFileT = PreviewFileT & {
 export type ArchiveCopyT = {
   // What the archive calls itself: `faktury-…zip` / `pliki-…zip`.
   prefix: string
-  // The opening toast, shown before the file count is known.
-  progress: string
-  // Accusative — the noun only ever appears as the object of „Pobrano".
-  noun: readonly [string, string, string]
-  // Qualifies a row that carried nothing: „3 pozycje <bez faktury>".
-  rowWithoutFile: string
-  empty: string
-  failed: string
+  // Picks the toasts' wording from the `media` dictionary: „faktury" vs „pliki".
+  kind: 'invoice' | 'file'
 }
 
 /**

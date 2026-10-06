@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, use, useState } from 'react'
+import { createContext, use, useState, useTransition } from 'react'
 import { createColumnHelper } from '@tanstack/react-table'
 import { SearchIcon } from 'lucide-react'
 import { Checkbox, checkedState } from '@/components/ui/checkbox'
@@ -20,6 +20,8 @@ import {
   type LineDraftT,
   type LineGroupT,
 } from '@/components/kosztorys/editor/dialogs/worker-reports/line-draft'
+import { reviewedDescription } from '@/lib/kosztorys/worker-report/reviewed-description'
+import { isLanguage, LANGUAGE_SHORT } from '@/lib/i18n/languages'
 import { formatQty, formatQtyWithUnit } from '@/lib/kosztorys/format'
 import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
 import { sectionColorRail, type SectionColorKeyT } from '@/lib/kosztorys/section-colors'
@@ -43,6 +45,11 @@ export type ReviewRowT = Omit<ReportLineT, 'sectionName'> & {
   isAccepted: boolean
   // The etap and the pozycja it went to both still exist, so an untick has a figure to take back.
   isFigureLive: boolean
+  // Scans: the same pozycja read twice — two photos of one page, most likely — so neither is ticked
+  // in bulk.
+  isDuplicateItem: boolean
+  // Scans: a praca spoza rozpiski in a j.m. the kosztorys has not got.
+  isUnitMissing: boolean
 }
 
 type ReviewTablePropsT = {
@@ -56,6 +63,8 @@ type ReviewTablePropsT = {
   onCatalogueSwap: (lineId: number, entry: WorkCatalogueItemT) => void
   hintsByLine: Record<number, CatalogueHintT[]>
   stageTitle: string
+  // Undefined once the report is decided: only a pending report's extras can be retranslated.
+  onRetranslate: ((lineId: number) => Promise<void>) | undefined
 }
 
 type ReviewTableContextT = ReviewTablePropsT & {
@@ -74,13 +83,14 @@ function useReviewTable() {
 
 function TickHeader() {
   const { rows, drafts, onChange } = useReviewTable()
-  const tickedCount = rows.filter((row) => drafts[row.id].isTicked).length
+  const bulkRows = rows.filter((row) => !row.isDuplicateItem)
+  const tickedCount = bulkRows.filter((row) => drafts[row.id].isTicked).length
   return (
     <Checkbox
       aria-label="Zaznacz wszystkie"
-      checked={checkedState(tickedCount, rows.length)}
+      checked={checkedState(tickedCount, bulkRows.length)}
       onCheckedChange={(checked) =>
-        rows.forEach((row) => onChange(row.id, { isTicked: checked === true }))
+        bulkRows.forEach((row) => onChange(row.id, { isTicked: checked === true }))
       }
     />
   )
@@ -119,16 +129,47 @@ function AcceptedQtyCell({ row }: { row: ReviewRowT }) {
   )
 }
 
+const WARNING_NOTE = 'block text-xs text-amber-600 dark:text-amber-400'
+
+function ScanFlags({ row }: { row: ReviewRowT }) {
+  const { drafts } = useReviewTable()
+  return (
+    <>
+      {row.isUncertain && (
+        <span className={WARNING_NOTE}>Niepewny odczyt — sprawdź na zdjęciu</span>
+      )}
+      {row.isDuplicateItem && (
+        <span className={WARNING_NOTE}>Ta pozycja jest w zgłoszeniu więcej niż raz</span>
+      )}
+      {row.isUnitMissing && drafts[row.id].catalogueId === undefined && (
+        <span className="text-destructive block text-xs">
+          Brak j.m. w kosztorysie — wybierz pracę z katalogu
+        </span>
+      )}
+    </>
+  )
+}
+
 function RozpiskaDescriptionCell({ row }: { row: ReviewRowT }) {
   const { drafts, onChange, itemOptions } = useReviewTable()
   const draft = drafts[row.id]
-  if (draft.matchedItemIds.length > 0) return <MatchedDescription row={row} />
+  if (draft.matchedItemIds.length > 0) {
+    return (
+      <>
+        <MatchedDescription row={row} />
+        <ScanFlags row={row} />
+      </>
+    )
+  }
   return (
     <>
       <span className="block leading-snug">{row.description}</span>
+      <ScanFlags row={row} />
       {row.isUnassigned && (
         <span className="text-destructive block text-xs">
-          Pozycja usunięta z rozpiski — do przypisania ręcznie
+          {row.scannedRef === undefined
+            ? 'Pozycja usunięta z rozpiski — do przypisania ręcznie'
+            : `Nr ${row.scannedRef} nie pasuje do rozpiski — do przypisania ręcznie`}
         </span>
       )}
       {row.isUnassigned && !row.isAccepted && (
@@ -186,11 +227,7 @@ function MeasuredCell({ row }: { row: ReviewRowT }) {
       <span className={cn(isOverPlanned && 'text-amber-600 dark:text-amber-400')}>
         <GrowingQty before={measuredQty} added={added} />
       </span>
-      {isOverPlanned && (
-        <span className="block text-xs text-amber-600 dark:text-amber-400">
-          Przekroczono przedmiar
-        </span>
-      )}
+      {isOverPlanned && <span className={WARNING_NOTE}>Przekroczono przedmiar</span>}
     </span>
   )
 }
@@ -203,10 +240,12 @@ function SwapNote({ row, unit }: { row: ReviewRowT; unit: string | undefined }) 
   return (
     <>
       <span className="text-muted-foreground block text-xs">
-        {isSwapped ? 'Z katalogu · zgłoszono' : 'Zgłoszono'} „{row.description}”
+        {isSwapped ? 'Z katalogu · zgłoszono' : 'Zgłoszono'} „{reviewedDescription(row)}”
+        {row.polishDescription !== undefined &&
+          ` (${languageShort(row.descriptionLanguage)}: „${row.description}”)`}
       </span>
       {unit !== undefined && unit !== row.unit && (
-        <span className="block text-xs text-amber-600 dark:text-amber-400">
+        <span className={WARNING_NOTE}>
           j.m. katalogu: {unit}, zgłoszono w {row.unit}
         </span>
       )}
@@ -252,15 +291,56 @@ function MatchedDescription({ row }: { row: ReviewRowT }) {
   )
 }
 
+const languageShort = (language: string | undefined) =>
+  isLanguage(language) ? LANGUAGE_SHORT[language] : 'inny język'
+
+function TranslationNote({ row }: { row: ReviewRowT }) {
+  const { onRetranslate } = useReviewTable()
+  const [isTranslating, startTranslating] = useTransition()
+  const isTranslated = row.polishDescription !== undefined
+  return (
+    <>
+      {isTranslated && (
+        <span className="text-muted-foreground block text-xs">
+          Zgłoszono ({languageShort(row.descriptionLanguage)}): „{row.description}”
+        </span>
+      )}
+      {row.descriptionLanguage === undefined && (
+        <span className="text-muted-foreground block text-xs">Brak tłumaczenia</span>
+      )}
+      {onRetranslate && !row.isAccepted && (
+        <Button
+          variant="link"
+          size="xs"
+          className="h-auto p-0"
+          disabled={isTranslating}
+          onClick={() => startTranslating(() => onRetranslate(row.id))}
+        >
+          {isTranslating ? 'Tłumaczę…' : isTranslated ? 'Przetłumacz ponownie' : 'Przetłumacz'}
+        </Button>
+      )}
+    </>
+  )
+}
+
 function ManualDescriptionCell({ row }: { row: ReviewRowT }) {
   const { drafts, catalogueById } = useReviewTable()
   const { catalogueId } = drafts[row.id]
   const swapped = catalogueId === undefined ? undefined : catalogueById.get(catalogueId)
-  if (!swapped) return <span className="block leading-snug">{row.description}</span>
+  if (!swapped) {
+    return (
+      <>
+        <span className="block leading-snug">{reviewedDescription(row)}</span>
+        <TranslationNote row={row} />
+        <ScanFlags row={row} />
+      </>
+    )
+  }
   return (
     <>
       <span className="block leading-snug">{swapped.description}</span>
       <SwapNote row={row} unit={swapped.unit} />
+      <ScanFlags row={row} />
     </>
   )
 }
@@ -297,7 +377,7 @@ function CatalogueCell({ row }: { row: ReviewRowT }) {
         <CatalogueSwapDialog
           catalogue={catalogue}
           kosztorysItems={kosztorysItems}
-          reported={row}
+          reported={{ description: reviewedDescription(row), unit: row.unit }}
           onPick={(entry) => onCatalogueSwap(row.id, entry)}
           onClose={() => setIsPickerOpen(false)}
         />

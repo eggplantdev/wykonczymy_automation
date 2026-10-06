@@ -15,7 +15,7 @@ import { item, stage, tree } from '@/__tests__/helpers/kosztorys-history'
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
-  usePathname: () => '/zgloszenie-prac/jan/token',
+  usePathname: () => '/z/inwestycja/jan/token',
 }))
 
 // dsg sizes its virtualised rows off the measured grid; jsdom measures everything as 0×0.
@@ -82,9 +82,10 @@ function ReportBody() {
       {...DATA}
       report={{
         initialQtyByItem: {},
-        pendingQtyByItem: {},
-        isCompact: false,
+        isSummary: true,
         onReportQty: vi.fn(),
+        showDoneSum: false,
+        showProgress: false,
         header: (controls) => (
           <input
             aria-label="search"

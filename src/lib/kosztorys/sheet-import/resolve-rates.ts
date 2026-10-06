@@ -1,5 +1,6 @@
+import { fold } from '@/lib/kosztorys/fold'
 import { referencesColumn } from './formula-refs'
-import { fold, HEADER_BLOCK_ROWS } from './columns'
+import { HEADER_BLOCK_ROWS } from './columns'
 import type { RateTabGridT } from './read-sheet'
 import { resolveRates, type ResolvedRatesT } from './resolve-columns'
 

@@ -4,6 +4,8 @@ import { RefreshCw } from 'lucide-react'
 import { useTransition } from 'react'
 
 import { Button } from '@/components/ui/button'
+import { useI18nContext, useTranslation } from '@/hooks/use-translation'
+import { failureMessage } from '@/lib/i18n/failure-message'
 import { refreshDataAction } from '@/lib/actions/refresh'
 import { cn } from '@/lib/utils/cn'
 import { settleAction } from '@/lib/utils/settle-action'
@@ -15,6 +17,8 @@ type RefreshDataButtonPropsT = React.ComponentProps<typeof Button> & {
 
 export function RefreshDataButton({ collapsed = false, ...props }: RefreshDataButtonPropsT) {
   const [isRefreshing, startRefreshTransition] = useTransition()
+  const { locale } = useI18nContext()
+  const { t } = useTranslation('shell')
 
   return (
     <Button
@@ -25,15 +29,15 @@ export function RefreshDataButton({ collapsed = false, ...props }: RefreshDataBu
       onClick={() =>
         startRefreshTransition(async () => {
           const res = await settleAction(refreshDataAction)
-          if (!res.success) return toastMessage(res.error, 'error')
-          toastMessage('Dane odświeżone')
+          if (!res.success) return toastMessage(failureMessage(locale, res), 'error')
+          toastMessage(t('dataRefreshed'))
         })
       }
       disabled={isRefreshing}
-      aria-label="Odśwież dane"
+      aria-label={t('refreshData')}
     >
       <RefreshCw className={isRefreshing ? 'animate-spin' : ''} />
-      {!collapsed && 'Odśwież dane'}
+      {!collapsed && t('refreshData')}
     </Button>
   )
 }

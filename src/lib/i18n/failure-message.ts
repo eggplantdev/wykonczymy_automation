@@ -15,7 +15,7 @@ function commonKeyOf(failure: FailureT): MessageKeyT<'common'> {
 export function failureMessage(locale: LanguageT, failure: FailureT): string {
   if (locale === 'pl') return failure.error
   if (isMessageKey('notices', failure.messageKey)) {
-    return translate(locale, 'notices', failure.messageKey)
+    return translate(locale, 'notices', failure.messageKey, failure.messageParams)
   }
   return translate(locale, 'common', commonKeyOf(failure))
 }

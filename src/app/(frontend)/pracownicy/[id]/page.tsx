@@ -1,44 +1,56 @@
 import { redirect, notFound } from 'next/navigation'
 import { requireAuth } from '@/lib/auth/require-auth'
-import { ADMIN_OR_OWNER_MANAGER_ROLES, ROLE_LABELS } from '@/lib/auth/roles'
+import { canViewWorkerPage, isManagementRole, ROLES } from '@/lib/auth/roles'
 import { LanguageLabel } from '@/components/ui/language-label'
+import { AccountLanguageSelect } from '@/components/users/account-language-select'
 import { DEFAULT_LANGUAGE } from '@/lib/i18n/languages'
+import { createTranslator } from '@/lib/i18n/translations'
+import { ROLE_KEYS } from '@/lib/i18n/role-keys'
+import { fetchUserLanguage } from '@/lib/queries/user-language'
 import { parsePagination } from '@/lib/utils/pagination'
 import { parseTransferSort } from '@/lib/queries/transfer-sort'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
-import { fetchFilteredByType } from '@/lib/queries/transfer-totals'
+import { fetchRegisterBalances } from '@/lib/queries/balances'
 import { fetchEquipmentAtLocation } from '@/lib/queries/equipment'
-import { buildTransferFilters, statsWhereFrom } from '@/lib/queries/transfer-filters'
+import { fetchWorkerStageInvestments } from '@/lib/queries/worker-stage-investments'
+import { fetchWorkerExpenseDrafts } from '@/lib/queries/worker-expense-drafts'
+import { workerPageTransferWhere } from '@/lib/queries/worker-transfers'
 import { buildFilterConfig } from '@/lib/utils/build-filter-config'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { HeldEquipmentSection } from '@/components/equipment/held-equipment-section'
+import { OwnedRegistersSection } from '@/components/users/owned-registers-section'
+import { WorkerInvestmentsSection } from '@/components/users/worker-investments-section'
+import { WorkerExpenseDraftsSection } from '@/components/worker-expenses/worker-expense-drafts-section'
+import { visibleWorkerRegisters } from '@/lib/workers/owned-registers'
 import { EditWorkerDialog } from '@/components/dialogs/edit-worker-dialog'
+import { AccountCredentialsDialog } from '@/components/dialogs/account-credentials-dialog'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
-import { SignedMoneyDisplay } from '@/components/ui/signed-money-display'
 import type { DynamicPagePropsT } from '@/types/page'
 
 export default async function UserDetailPage({ params, searchParams }: DynamicPagePropsT) {
-  const session = await requireAuth(ADMIN_OR_OWNER_MANAGER_ROLES)
-  if (!session.success) redirect('/')
+  const session = await requireAuth(ROLES)
+  if (!session.success) redirect('/zaloguj')
   const { user: currentUser } = session
+  const isManager = isManagementRole(currentUser.role)
 
   const { id } = await params
+  if (!canViewWorkerPage(currentUser, Number(id))) notFound()
   const sp = await searchParams
   const { page, limit } = parsePagination(sp)
   const sort = parseTransferSort(sp)
 
   const userId = Number(id)
-  const urlFilters = buildTransferFilters(sp, { id: currentUser.id })
-  const transferWhere = { ...urlFilters, worker: { equals: userId } }
-
-  const statsWhere = statsWhereFrom(transferWhere)
-
-  const [refData, typeDistribution, heldEquipment] = await Promise.all([
-    fetchReferenceData(),
-    fetchFilteredByType(statsWhere),
-    fetchEquipmentAtLocation({ kind: 'holder', id: userId }),
-  ])
+  const isOwnPage = currentUser.id === userId
+  const [locale, refData, balances, heldEquipment, stageInvestments, expenseDrafts] =
+    await Promise.all([
+      fetchUserLanguage(currentUser.id),
+      fetchReferenceData(),
+      fetchRegisterBalances(),
+      fetchEquipmentAtLocation({ kind: 'holder', id: userId }),
+      fetchWorkerStageInvestments(userId),
+      fetchWorkerExpenseDrafts(userId),
+    ])
 
   const worker = refData.workers.find((w) => w.id === userId)
   if (!worker) notFound()
@@ -48,31 +60,72 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
     ? refData.cashRegisters.find((cr) => cr.id === worker.defaultCashRegisterId)?.name
     : undefined
 
-  const infoFields = [
-    { label: 'Rola', value: ROLE_LABELS[role].pl },
-    { label: 'Email', value: worker.email },
-    { label: 'Status', value: worker.active ? 'Aktywny' : 'Nieaktywny' },
-    { label: 'Domyślny język', value: <LanguageLabel language={worker.language ?? DEFAULT_LANGUAGE} /> },
-    ...(registerName ? [{ label: 'Domyślna kasa', value: registerName }] : []),
-  ]
+  const registers = visibleWorkerRegisters(refData.cashRegisters, userId, currentUser.role)
+  const transferWhere = workerPageTransferWhere(
+    sp,
+    currentUser.id,
+    userId,
+    registers.map((register) => register.id),
+  )
 
-  const payoutsTotal = typeDistribution.find((row) => row.type === 'PAYOUT')?.total ?? 0
+  const { t } = createTranslator(locale, 'workerPage')
+  const infoFields = [
+    { label: t('role'), value: t(ROLE_KEYS[role]) },
+    { label: t('email'), value: worker.email },
+    { label: t('status'), value: t(worker.active ? 'active' : 'inactive') },
+    {
+      label: t('defaultLanguage'),
+      value: isOwnPage ? (
+        <AccountLanguageSelect userId={userId} language={worker.language ?? DEFAULT_LANGUAGE} />
+      ) : (
+        <LanguageLabel language={worker.language ?? DEFAULT_LANGUAGE} />
+      ),
+    },
+    ...(registerName ? [{ label: t('defaultRegister'), value: registerName }] : []),
+  ]
 
   return (
     <PageWrapper title={worker.name}>
-      <EditWorkerDialog worker={worker} cashRegisters={refData.cashRegisters} />
+      {(isManager || isOwnPage) && (
+        <div className="flex flex-wrap gap-2">
+          {isManager && <EditWorkerDialog worker={worker} cashRegisters={refData.cashRegisters} />}
+          {isOwnPage && <AccountCredentialsDialog email={worker.email} />}
+        </div>
+      )}
       <InfoList items={infoFields} />
-      <SignedMoneyDisplay amount={payoutsTotal} label="Wypłaty" />
-      <HeldEquipmentSection equipment={heldEquipment} />
+      <OwnedRegistersSection
+        registers={registers}
+        balances={balances}
+        linkable={isManager}
+        locale={locale}
+      />
+      <HeldEquipmentSection equipment={heldEquipment} linkable={isManager} locale={locale} />
+      <WorkerInvestmentsSection
+        investments={stageInvestments}
+        workerName={worker.name}
+        locale={locale}
+      />
+      <WorkerExpenseDraftsSection
+        drafts={expenseDrafts}
+        investments={stageInvestments}
+        canSend={isOwnPage}
+        registers={registers}
+        defaultRegisterId={worker.defaultCashRegisterId}
+        locale={locale}
+      />
       <TransfersSection
-        title="Transfery"
+        title={t('transfers')}
         config={{
           query: { where: transferWhere, page, limit, sort },
           baseUrl: `/pracownicy/${id}`,
-          excludeColumns: ['worker'],
-          filters: buildFilterConfig(refData, ['users', 'workers', 'expenseCategories', 'type']),
+          excludeColumns: isManager ? ['worker'] : ['worker', 'actions'],
+          filters: {
+            ...buildFilterConfig(refData, ['users', 'workers', 'expenseCategories', 'type']),
+            cashRegisters: registers.map(({ id, name }) => ({ id, name })),
+          },
           invoiceDownload: true,
           print: true,
+          workerScope: userId,
           cancelledTransactionAudit: sp.cancelledTransactionAudit === '1',
         }}
       />

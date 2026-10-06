@@ -232,6 +232,9 @@ export function buildImportPlan(
         // is the sheet's own claim and the app never edits it: whatever the sheet says today is the
         // answer, including „nothing typed here any more".
         note: current?.note ?? null,
+        // Carried on the same key as the note, so a form printed before the import still resolves
+        // the pozycja it numbered; an unmatched row is new work and draws a fresh number.
+        ref: current?.ref,
         // The app's own translation wins per language, unless the sheet renamed the opis under it
         // and the katalog holds one made from the new name; the katalog fills the languages it lacks.
         descriptionTranslations: mergeTranslations(

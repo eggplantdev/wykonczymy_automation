@@ -23,6 +23,8 @@ type ReferencedByT = Partial<Record<CollectionSlug, number[]>>
 function fakePayload(referencedBy: ReferencedByT) {
   const deleted: number[] = []
   const payload = {
+    // The draft-page probe is raw SQL; no fixture here holds a page in a draft.
+    db: { drizzle: { execute: async () => ({ rows: [] }) } },
     // One doc per held id, shaped like the real read: the scan asks each relation once with `in`
     // and reads the ids back off the matched docs' upload field.
     find: vi.fn(async ({ collection, where, pagination }) => {

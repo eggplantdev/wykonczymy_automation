@@ -1,6 +1,6 @@
 import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { fetchRegisterBalances, type RegisterBalanceMapT } from '@/lib/queries/balances'
-import { isAdminOrOwnerRole, MANAGEMENT_ROLES } from '@/lib/auth/roles'
+import { canViewRegister, isAdminOrOwnerRole, MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { requireAuth } from '@/lib/auth/require-auth'
 import type { CashRegisterRefT, WorkerRefT, CashRegisterTypeT } from '@/types/reference-data'
 import type { CashRegisterRowT } from '@/types/table-rows'
@@ -35,7 +35,6 @@ export async function fetchVisibleRegisters(): Promise<{
     [...refData.workers, ...refData.trashedWorkers],
     balances,
   )
-  // admin/owner see all; manager hides MAIN registers (matches prior dashboard behavior)
-  const visible = isAdminOrOwner ? registers : registers.filter((cr) => cr.type !== 'MAIN')
+  const visible = registers.filter((cr) => canViewRegister(user.role, cr.type))
   return { registers: visible, isAdminOrOwner }
 }

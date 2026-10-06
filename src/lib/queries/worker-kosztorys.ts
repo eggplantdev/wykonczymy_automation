@@ -111,7 +111,7 @@ async function buildWorkerKosztorysData(
 // The guard cannot live inside: `requireAuth` reads cookies, which throws inside unstable_cache.
 const cachedWorkerKosztorysData = unstable_cache(
   buildWorkerKosztorysData,
-  ['worker-kosztorys-data-v5'],
+  ['worker-kosztorys-data-v6'],
   { tags: WORKER_KOSZTORYS_TAGS },
 )
 
@@ -125,33 +125,6 @@ async function withWorkerSettings(
   ])
   if (!core || core.kind === 'blocked') return core
   return { ...core, worker: { ...core.worker, settings } }
-}
-
-/**
- * The public worker link: token in, that worker's projection out, no session. An unknown, revoked
- * or empty token is null and the route 404s. The lookup stays uncached so a revoke bites on the next
- * request. It reads `kosztorys-worker-shares` only — an investor token cannot resolve here, and a
- * worker token cannot resolve through `getPreviewKosztorysByToken`, because the tables are separate.
- */
-export async function getWorkerKosztorysByToken(token: string): Promise<WorkerKosztorysT | null> {
-  if (!token) return null
-  const payload = await getPayload({ config })
-  const shares = await payload.find({
-    collection: 'kosztorys-worker-shares',
-    where: { token: { equals: token }, 'investment.trashedAt': { exists: false } },
-    depth: 0,
-    limit: 1,
-    pagination: false,
-    // This read IS the token check, so it runs beneath the management-only collection access.
-    overrideAccess: true,
-  })
-  const share = shares.docs[0]
-  if (!share) return null
-
-  const investmentId =
-    typeof share.investment === 'object' ? share.investment.id : Number(share.investment)
-  const workerId = typeof share.worker === 'object' ? share.worker.id : Number(share.worker)
-  return withWorkerSettings(investmentId, workerId)
 }
 
 /**

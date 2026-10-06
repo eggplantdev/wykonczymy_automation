@@ -14,6 +14,8 @@ const PENDING: WorkerReportSummaryT = {
   investmentId: 12,
   workerId: 10,
   workerName: 'Anna Nowak',
+  source: 'link',
+  createdByName: undefined,
   sentAt: '2026-09-30T08:00:00.000Z',
   status: 'pending',
   decidedAt: undefined,

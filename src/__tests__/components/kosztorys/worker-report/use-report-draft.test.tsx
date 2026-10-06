@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import {
   reportDraftKey,
   useReportDraft,
@@ -44,5 +44,17 @@ describe('useReportDraft', () => {
     await waitFor(() => expect(result.current.isLoaded).toBe(true))
     expect(result.current.draft.qtyByItem).toEqual({ 1: '3', 2: '1,5' })
     expect(result.current.droppedCount).toBe(0)
+  })
+
+  it('without a key, neither reads nor writes the device’s szkic', async () => {
+    storeDraft({ 1: '9' })
+
+    const { result } = renderHook(() => useReportDraft(undefined, new Set([1])))
+
+    await waitFor(() => expect(result.current.isLoaded).toBe(true))
+    expect(result.current.draft.qtyByItem).toEqual({})
+    act(() => result.current.setQty(1, '4'))
+    expect(result.current.draft.qtyByItem).toEqual({ 1: '4' })
+    expect(JSON.parse(localStorage.getItem(KEY) ?? '{}').qtyByItem).toEqual({ 1: '9' })
   })
 })

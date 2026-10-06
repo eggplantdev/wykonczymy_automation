@@ -29,6 +29,9 @@ if (!Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = () => {}
 }
 
+// jsdom's own `scrollTo` exists but logs „Not implemented” on every call.
+window.scrollTo = () => {}
+
 // Radix Select drives its trigger through the Pointer Events capture API, which jsdom does not
 // implement at all. Without these the first click on a select throws before the list ever opens.
 if (!Element.prototype.hasPointerCapture) {

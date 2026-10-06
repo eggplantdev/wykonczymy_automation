@@ -25,6 +25,13 @@ export const isAdminOrOwnerRole = (role: RoleT): boolean =>
 export const canBookTransferType = (role: RoleT, type: string): boolean =>
   type !== 'BONUS' || isAdminOrOwnerRole(role)
 
+// Below OWNER the main kasa is not listed, opened or trashed.
+export const canViewRegister = (role: RoleT, registerType: string | null | undefined): boolean =>
+  registerType !== 'MAIN' || isAdminOrOwnerRole(role)
+
+export const canViewWorkerPage = (viewer: { id: number; role: RoleT }, workerId: number): boolean =>
+  isManagementRole(viewer.role) || (viewer.role === 'EMPLOYEE' && viewer.id === workerId)
+
 export const BONUS_FORBIDDEN_MESSAGE = 'Premię może przyznać tylko właściciel lub administrator.'
 
 /** A MANAGER manages EMPLOYEE accounts only; anyone above answers to him as missing (EX-918). */

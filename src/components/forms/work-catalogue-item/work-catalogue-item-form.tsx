@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { FieldGroup } from '@/components/ui/field'
 import { useManagedForm } from '@/components/forms/hooks/use-managed-form'
 import { FormShell } from '@/components/forms/form-components/form-shell'
@@ -38,6 +39,8 @@ type WorkCatalogueItemFormPropsT = {
   persistDraft?: boolean
   /** The map the translation fields were filled from; a new entry has none. */
   translationBaseline?: DescriptionTranslationsT
+  /** Rendered under the Polish opis — the add dialog's AI checkbox, which the edit dialog has no use for. */
+  children?: ReactNode
 }
 
 // The katalog names its own „auto" — a cennik wpis has no inwestycja yet, so the sentence has to say
@@ -59,6 +62,7 @@ export function WorkCatalogueItemForm({
   keepOpen,
   persistDraft,
   translationBaseline,
+  children,
 }: WorkCatalogueItemFormPropsT) {
   const { form, reset } = useManagedForm<WorkCatalogueItemFormValuesT, WorkCatalogueItemDataT>({
     formId,
@@ -88,10 +92,13 @@ export function WorkCatalogueItemForm({
             <field.Textarea label="Opis pracy" rows={2} placeholder="Malowanie ścian" showError />
           )}
         </form.AppField>
+        {children}
 
         {TRANSLATION_LANGUAGES.map((language) => (
           <form.AppField key={language} name={`translations.${language}`}>
-            {(field) => <field.Textarea label={`Opis pracy (${LANGUAGE_SHORT[language]})`} rows={2} />}
+            {(field) => (
+              <field.Textarea label={`Opis pracy (${LANGUAGE_SHORT[language]})`} rows={2} />
+            )}
           </form.AppField>
         ))}
 

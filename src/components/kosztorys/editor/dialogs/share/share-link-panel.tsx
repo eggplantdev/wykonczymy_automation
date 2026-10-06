@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Description } from '@/components/ui/description'
-import { copyToClipboard } from '@/lib/utils/copy-to-clipboard'
+import { copyToClipboard, copyToClipboardAsync } from '@/lib/utils/copy-to-clipboard'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
 import type { ActionResultT } from '@/types/action'
@@ -14,14 +14,12 @@ import type { ActionResultT } from '@/types/action'
 type PropsT = {
   loaded: boolean
   token: string | null
-  url: string
+  urlFor: (token: string) => string
   generate: () => Promise<ActionResultT<string>>
-  revoke: () => Promise<ActionResultT>
   onTokenChange: (token: string | null) => void
-  revokeTitle: string
-  revokeDescription: string
-  // Set when the audience's view cannot be priced: a live token outlives the block, so only
-  // switching it off is offered — handing out a link whose page shows a notice would be pointless.
+  // Absent for a worker: his link is listed on his own page, so revoking would leave him without one.
+  revoke?: { action: () => Promise<ActionResultT>; title: string; description: string }
+  // Set when the audience's view cannot be priced; the link still works, its page shows the notice.
   blockReason?: string
   children?: ReactNode
 }
@@ -29,29 +27,35 @@ type PropsT = {
 export function ShareLinkPanel({
   loaded,
   token,
-  url,
+  urlFor,
   generate,
-  revoke,
   onTokenChange,
-  revokeTitle,
-  revokeDescription,
+  revoke,
   blockReason,
   children,
 }: PropsT) {
   const [confirmingRevoke, setConfirmingRevoke] = useState(false)
   const [pending, startTransition] = useTransition()
 
-  const runGenerate = () =>
+  const runGenerate = () => {
+    const generated = settleAction(generate)
+    copyToClipboardAsync(
+      generated.then((res) => {
+        if (!res.success) throw new Error(res.error)
+        return urlFor(res.data)
+      }),
+      'Link skopiowany do schowka. Poprzedni (jeśli był) przestał działać.',
+    )
     startTransition(async () => {
-      const res = await settleAction(generate)
+      const res = await generated
       if (!res.success) return toastMessage(res.error, 'error')
       onTokenChange(res.data)
-      toastMessage('Link gotowy. Poprzedni (jeśli był) przestał działać.', 'success')
     })
+  }
 
-  const runRevoke = () =>
+  const runRevoke = (action: () => Promise<ActionResultT>) =>
     startTransition(async () => {
-      const res = await settleAction(revoke)
+      const res = await settleAction(action)
       if (!res.success) return toastMessage(res.error, 'error')
       onTokenChange(null)
       setConfirmingRevoke(false)
@@ -60,25 +64,12 @@ export function ShareLinkPanel({
 
   if (!loaded) return <p className="text-muted-foreground text-sm">Sprawdzanie…</p>
 
-  const revokeButton = (
-    <Button
-      variant="destructive"
-      size="sm"
-      onClick={() => setConfirmingRevoke(true)}
-      disabled={pending}
-    >
-      Wyłącz link
-    </Button>
-  )
+  const url = token ? urlFor(token) : ''
 
   return (
     <>
-      {blockReason !== undefined ? (
-        <div className="flex flex-col items-start gap-3">
-          <p className="text-destructive text-sm">{blockReason}</p>
-          {token ? revokeButton : <Description size="xs">Link nie jest wydany.</Description>}
-        </div>
-      ) : token ? (
+      {blockReason !== undefined && <p className="text-destructive mb-3 text-sm">{blockReason}</p>}
+      {token ? (
         <div className="flex flex-col gap-3">
           <div className="flex gap-2">
             <Input readOnly value={url} onFocus={(event) => event.currentTarget.select()} />
@@ -95,7 +86,16 @@ export function ShareLinkPanel({
             <Button variant="outline" size="sm" onClick={runGenerate} disabled={pending}>
               Wygeneruj nowy
             </Button>
-            {revokeButton}
+            {revoke && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setConfirmingRevoke(true)}
+                disabled={pending}
+              >
+                Wyłącz link
+              </Button>
+            )}
           </div>
           <Description size="xs">
             „Wygeneruj nowy" unieważnia obecny link — stary adres przestaje działać.
@@ -110,14 +110,16 @@ export function ShareLinkPanel({
           {children}
         </div>
       )}
-      <ConfirmDialog
-        open={confirmingRevoke}
-        title={revokeTitle}
-        description={revokeDescription}
-        confirmLabel="Wyłącz link"
-        onConfirm={runRevoke}
-        onCancel={() => setConfirmingRevoke(false)}
-      />
+      {revoke && (
+        <ConfirmDialog
+          open={confirmingRevoke}
+          title={revoke.title}
+          description={revoke.description}
+          confirmLabel="Wyłącz link"
+          onConfirm={() => runRevoke(revoke.action)}
+          onCancel={() => setConfirmingRevoke(false)}
+        />
+      )}
     </>
   )
 }

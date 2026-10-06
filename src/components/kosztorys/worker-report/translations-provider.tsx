@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { I18nContext } from '@/hooks/use-translation'
 import { usePersistedEnum } from '@/hooks/use-persisted-enum'
-import { LANGUAGES, type LanguageT } from '@/lib/i18n/languages'
+import { LANGUAGES, reportLanguageStorageKey, type LanguageT } from '@/lib/i18n/languages'
 
 type PropsT = {
   initialLocale: LanguageT
@@ -12,10 +12,8 @@ type PropsT = {
 }
 
 export function TranslationsProvider({ initialLocale, workerId, children }: PropsT) {
-  // Per worker, not per device: a phone passed between two of the crew must not carry one's choice
-  // into the other's link.
   const [storedLocale, storeLocale] = usePersistedEnum(
-    `worker-report-lang:${workerId}`,
+    reportLanguageStorageKey(workerId),
     LANGUAGES,
     initialLocale,
   )

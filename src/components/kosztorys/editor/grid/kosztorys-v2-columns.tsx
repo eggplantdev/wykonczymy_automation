@@ -239,6 +239,8 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
         onPersistOrder={opts.onPersistKosztorysOrder}
         executedValue={opts.executedValueByStage?.get(st.id) ?? 0}
         scaledDown={scaledDownStageIds.has(st.id)}
+        color={opts.columnColors?.[qtyField] ?? null}
+        onSetColor={opts.onSetColumnColor && ((color) => opts.onSetColumnColor?.(qtyField, color))}
       />
     )
     // Locked until the rozliczenie is picked: qty typed here would be work nobody gets billed for.

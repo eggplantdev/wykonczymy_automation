@@ -3,6 +3,7 @@
 import { useEffect, useState, type ChangeEvent } from 'react'
 
 import { useLatestRequest } from '@/hooks/use-latest-request'
+import { useTranslation } from '@/hooks/use-translation'
 import { reportBlockedFiles } from '@/lib/media/blocked-files-message'
 import { ingestPickedFiles } from '@/lib/media/ingest-picked-files'
 import { toastMessage } from '@/lib/utils/toast'
@@ -26,6 +27,7 @@ import { toastMessage } from '@/lib/utils/toast'
  * disable travel together so neither call site can wire up half the contract.
  */
 export function useFilePickIngest() {
+  const translator = useTranslation('media')
   const [files, setFiles] = useState<File[]>([])
   const [isIngesting, setIsIngesting] = useState(false)
   const [inputKey, setInputKey] = useState(0)
@@ -42,7 +44,7 @@ export function useFilePickIngest() {
     try {
       const { files: ingested, blocked } = await ingestPickedFiles(picked)
       if (!isCurrent()) return
-      reportBlockedFiles(blocked)
+      reportBlockedFiles(blocked, translator)
       setFiles(ingested)
       // Only a TOTAL refusal remounts the picker: after a partial block the remount would blank the
       // label and hide the existing-invoice preview, so the survivors would ride along invisibly.
@@ -51,7 +53,7 @@ export function useFilePickIngest() {
       if (!isCurrent()) return
       // TODO(EX-449) SENTRY-REQUIRED: unexpected ingest failure (not a BlockedFileError) — capture
       // once Sentry is wired; for now the user gets a generic retry toast.
-      toastMessage('Nie udało się przetworzyć pliku — spróbuj ponownie.', 'error', 6000)
+      toastMessage(translator.t('ingestFailed'), 'error', 6000)
       setFiles([])
       setInputKey((key) => key + 1)
     } finally {

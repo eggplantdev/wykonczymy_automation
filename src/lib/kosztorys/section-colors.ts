@@ -23,6 +23,7 @@ export const SECTION_COLORS = [
     fill: 'var(--color-section-blue-soft)',
     swatch: 'bg-section-blue-soft',
     rail: '[--section-rail:var(--color-section-blue-soft)]',
+    columnTint: '[--column-tint:var(--color-section-blue-soft)]',
   },
   {
     key: 'turquoise-soft',
@@ -30,6 +31,7 @@ export const SECTION_COLORS = [
     fill: 'var(--color-section-turquoise-soft)',
     swatch: 'bg-section-turquoise-soft',
     rail: '[--section-rail:var(--color-section-turquoise-soft)]',
+    columnTint: '[--column-tint:var(--color-section-turquoise-soft)]',
   },
   {
     key: 'teal-soft',
@@ -37,6 +39,7 @@ export const SECTION_COLORS = [
     fill: 'var(--color-section-teal-soft)',
     swatch: 'bg-section-teal-soft',
     rail: '[--section-rail:var(--color-section-teal-soft)]',
+    columnTint: '[--column-tint:var(--color-section-teal-soft)]',
   },
   {
     key: 'green-soft',
@@ -44,6 +47,7 @@ export const SECTION_COLORS = [
     fill: 'var(--color-section-green-soft)',
     swatch: 'bg-section-green-soft',
     rail: '[--section-rail:var(--color-section-green-soft)]',
+    columnTint: '[--column-tint:var(--color-section-green-soft)]',
   },
   {
     key: 'yellow-soft',
@@ -51,6 +55,7 @@ export const SECTION_COLORS = [
     fill: 'var(--color-section-yellow-soft)',
     swatch: 'bg-section-yellow-soft',
     rail: '[--section-rail:var(--color-section-yellow-soft)]',
+    columnTint: '[--column-tint:var(--color-section-yellow-soft)]',
   },
   {
     key: 'orange-soft',
@@ -58,6 +63,7 @@ export const SECTION_COLORS = [
     fill: 'var(--color-section-orange-soft)',
     swatch: 'bg-section-orange-soft',
     rail: '[--section-rail:var(--color-section-orange-soft)]',
+    columnTint: '[--column-tint:var(--color-section-orange-soft)]',
   },
   {
     key: 'red-soft',
@@ -65,6 +71,7 @@ export const SECTION_COLORS = [
     fill: 'var(--color-section-red-soft)',
     swatch: 'bg-section-red-soft',
     rail: '[--section-rail:var(--color-section-red-soft)]',
+    columnTint: '[--column-tint:var(--color-section-red-soft)]',
   },
   {
     key: 'pink-soft',
@@ -72,6 +79,7 @@ export const SECTION_COLORS = [
     fill: 'var(--color-section-pink-soft)',
     swatch: 'bg-section-pink-soft',
     rail: '[--section-rail:var(--color-section-pink-soft)]',
+    columnTint: '[--column-tint:var(--color-section-pink-soft)]',
   },
   {
     key: 'purple-soft',
@@ -79,6 +87,7 @@ export const SECTION_COLORS = [
     fill: 'var(--color-section-purple-soft)',
     swatch: 'bg-section-purple-soft',
     rail: '[--section-rail:var(--color-section-purple-soft)]',
+    columnTint: '[--column-tint:var(--color-section-purple-soft)]',
   },
 
   {
@@ -87,6 +96,7 @@ export const SECTION_COLORS = [
     fill: 'var(--color-chart-blue)',
     swatch: 'bg-section-blue',
     rail: '[--section-rail:var(--color-section-blue)]',
+    columnTint: '[--column-tint:var(--color-section-blue)]',
   },
   {
     key: 'turquoise',
@@ -94,6 +104,7 @@ export const SECTION_COLORS = [
     fill: 'var(--color-chart-turquoise)',
     swatch: 'bg-section-turquoise',
     rail: '[--section-rail:var(--color-section-turquoise)]',
+    columnTint: '[--column-tint:var(--color-section-turquoise)]',
   },
   {
     key: 'teal',
@@ -101,6 +112,7 @@ export const SECTION_COLORS = [
     fill: 'var(--color-chart-teal)',
     swatch: 'bg-section-teal',
     rail: '[--section-rail:var(--color-section-teal)]',
+    columnTint: '[--column-tint:var(--color-section-teal)]',
   },
   {
     key: 'green',
@@ -108,6 +120,7 @@ export const SECTION_COLORS = [
     fill: 'var(--color-chart-green)',
     swatch: 'bg-section-green',
     rail: '[--section-rail:var(--color-section-green)]',
+    columnTint: '[--column-tint:var(--color-section-green)]',
   },
   {
     key: 'yellow',
@@ -115,6 +128,7 @@ export const SECTION_COLORS = [
     fill: 'var(--color-chart-yellow)',
     swatch: 'bg-section-yellow',
     rail: '[--section-rail:var(--color-section-yellow)]',
+    columnTint: '[--column-tint:var(--color-section-yellow)]',
   },
   {
     key: 'orange',
@@ -122,6 +136,7 @@ export const SECTION_COLORS = [
     fill: 'var(--color-chart-orange)',
     swatch: 'bg-section-orange',
     rail: '[--section-rail:var(--color-section-orange)]',
+    columnTint: '[--column-tint:var(--color-section-orange)]',
   },
   {
     key: 'red',
@@ -129,6 +144,7 @@ export const SECTION_COLORS = [
     fill: 'var(--color-chart-red)',
     swatch: 'bg-section-red',
     rail: '[--section-rail:var(--color-section-red)]',
+    columnTint: '[--column-tint:var(--color-section-red)]',
   },
   {
     key: 'pink',
@@ -136,6 +152,7 @@ export const SECTION_COLORS = [
     fill: 'var(--color-chart-pink)',
     swatch: 'bg-section-pink',
     rail: '[--section-rail:var(--color-section-pink)]',
+    columnTint: '[--column-tint:var(--color-section-pink)]',
   },
   {
     key: 'purple',
@@ -143,6 +160,7 @@ export const SECTION_COLORS = [
     fill: 'var(--color-chart-purple)',
     swatch: 'bg-section-purple',
     rail: '[--section-rail:var(--color-section-purple)]',
+    columnTint: '[--column-tint:var(--color-section-purple)]',
   },
 
   {
@@ -151,6 +169,7 @@ export const SECTION_COLORS = [
     fill: 'var(--color-section-blue-deep)',
     swatch: 'bg-section-blue-deep',
     rail: '[--section-rail:var(--color-section-blue-deep)]',
+    columnTint: '[--column-tint:var(--color-section-blue-deep)]',
   },
   {
     key: 'turquoise-deep',
@@ -158,6 +177,7 @@ export const SECTION_COLORS = [
     fill: 'var(--color-section-turquoise-deep)',
     swatch: 'bg-section-turquoise-deep',
     rail: '[--section-rail:var(--color-section-turquoise-deep)]',
+    columnTint: '[--column-tint:var(--color-section-turquoise-deep)]',
   },
   {
     key: 'teal-deep',
@@ -165,6 +185,7 @@ export const SECTION_COLORS = [
     fill: 'var(--color-section-teal-deep)',
     swatch: 'bg-section-teal-deep',
     rail: '[--section-rail:var(--color-section-teal-deep)]',
+    columnTint: '[--column-tint:var(--color-section-teal-deep)]',
   },
   {
     key: 'green-deep',
@@ -172,6 +193,7 @@ export const SECTION_COLORS = [
     fill: 'var(--color-section-green-deep)',
     swatch: 'bg-section-green-deep',
     rail: '[--section-rail:var(--color-section-green-deep)]',
+    columnTint: '[--column-tint:var(--color-section-green-deep)]',
   },
   {
     key: 'yellow-deep',
@@ -179,6 +201,7 @@ export const SECTION_COLORS = [
     fill: 'var(--color-section-yellow-deep)',
     swatch: 'bg-section-yellow-deep',
     rail: '[--section-rail:var(--color-section-yellow-deep)]',
+    columnTint: '[--column-tint:var(--color-section-yellow-deep)]',
   },
   {
     key: 'orange-deep',
@@ -186,6 +209,7 @@ export const SECTION_COLORS = [
     fill: 'var(--color-section-orange-deep)',
     swatch: 'bg-section-orange-deep',
     rail: '[--section-rail:var(--color-section-orange-deep)]',
+    columnTint: '[--column-tint:var(--color-section-orange-deep)]',
   },
   {
     key: 'red-deep',
@@ -193,6 +217,7 @@ export const SECTION_COLORS = [
     fill: 'var(--color-section-red-deep)',
     swatch: 'bg-section-red-deep',
     rail: '[--section-rail:var(--color-section-red-deep)]',
+    columnTint: '[--column-tint:var(--color-section-red-deep)]',
   },
   {
     key: 'pink-deep',
@@ -200,6 +225,7 @@ export const SECTION_COLORS = [
     fill: 'var(--color-section-pink-deep)',
     swatch: 'bg-section-pink-deep',
     rail: '[--section-rail:var(--color-section-pink-deep)]',
+    columnTint: '[--column-tint:var(--color-section-pink-deep)]',
   },
   {
     key: 'purple-deep',
@@ -207,6 +233,7 @@ export const SECTION_COLORS = [
     fill: 'var(--color-section-purple-deep)',
     swatch: 'bg-section-purple-deep',
     rail: '[--section-rail:var(--color-section-purple-deep)]',
+    columnTint: '[--column-tint:var(--color-section-purple-deep)]',
   },
 ] as const
 
@@ -248,4 +275,8 @@ export function sectionColorFill(key: string | null | undefined): string | undef
 
 export function sectionColorRail(key: string | null | undefined): string | undefined {
   return key != null ? BY_KEY.get(key)?.rail : undefined
+}
+
+export function sectionColorColumnTint(key: string | null | undefined): string | undefined {
+  return key != null ? BY_KEY.get(key)?.columnTint : undefined
 }

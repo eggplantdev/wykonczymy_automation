@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/command'
 import { type ColumnRanksT } from '@/lib/table/column-order'
 import { cn } from '@/lib/utils/cn'
+import { useTranslation } from '@/hooks/use-translation'
 
 export type ColumnToggleItemT = {
   id: string
@@ -68,6 +69,7 @@ export function ColumnToggleMenu({
   className,
   contentClassName = 'w-72',
 }: PropsT) {
+  const { t } = useTranslation('filters')
   const [orderOpen, setOrderOpen] = useState(false)
 
   if (items.length === 0 && !sections) return null
@@ -81,7 +83,7 @@ export function ColumnToggleMenu({
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className={className}>
             <Settings2 />
-            {badgeCount > 0 ? `Kolumny (${badgeCount})` : 'Kolumny'}
+            {badgeCount > 0 ? t('columnsHidden', { count: badgeCount }) : t('columns')}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align={align} className={contentClassName}>
@@ -90,13 +92,13 @@ export function ColumnToggleMenu({
           {items.length > 0 && (
             <>
               <DropdownMenuLabel className="flex items-center justify-between gap-2">
-                Widoczne kolumny
+                {t('visibleColumns')}
                 {hint}
               </DropdownMenuLabel>
               {order && (
                 <DropdownMenuItem onSelect={() => setOrderOpen(true)}>
                   <ArrowUpDown />
-                  Ustaw kolejność kolumn…
+                  {t('orderColumnsItem')}
                 </DropdownMenuItem>
               )}
               {/* cmdk owns the search + arrow-nav for the column list; stop keydowns from reaching
@@ -109,15 +111,15 @@ export function ColumnToggleMenu({
               >
                 <Command>
                   {items.length > COLUMN_SEARCH_THRESHOLD && (
-                    <CommandInput placeholder="Szukaj kolumny..." className="h-8" />
+                    <CommandInput placeholder={t('searchColumn')} className="h-8" />
                   )}
                   <CommandList>
                     {/* forceMount keeps the show/hide-all action visible under any search. */}
                     <CommandItem forceMount onSelect={() => onToggleAll(!allVisible)}>
                       <CheckCheck />
-                      {allVisible ? 'Ukryj wszystkie' : 'Pokaż wszystkie'}
+                      {allVisible ? t('hideAll') : t('showAll')}
                     </CommandItem>
-                    <CommandEmpty>Brak kolumn</CommandEmpty>
+                    <CommandEmpty>{t('noColumns')}</CommandEmpty>
                     {items.map((item) => (
                       <CommandItem
                         key={item.id}

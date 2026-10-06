@@ -3,10 +3,14 @@
 import { useState } from 'react'
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { format, parse } from 'date-fns'
-import { pl } from 'date-fns/locale'
+import { pl, ru, uk } from 'date-fns/locale'
 import { Calendar } from '@/components/ui/calendar'
 import { FilterTriggerButton } from '@/components/filters/filter-trigger-button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { useI18nContext } from '@/hooks/use-translation'
+import type { LanguageT } from '@/lib/i18n/languages'
+
+const DATE_FNS_LOCALES = { pl, uk, ru } satisfies Record<LanguageT, unknown>
 
 type DateFilterButtonPropsT = {
   label: string
@@ -16,6 +20,7 @@ type DateFilterButtonPropsT = {
 
 export function DateFilterButton({ label, value, onChange }: DateFilterButtonPropsT) {
   const [open, setOpen] = useState(false)
+  const locale = DATE_FNS_LOCALES[useI18nContext().locale]
 
   const selected = value ? parse(value, 'yyyy-MM-dd', new Date()) : undefined
 
@@ -28,7 +33,7 @@ export function DateFilterButton({ label, value, onChange }: DateFilterButtonPro
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <FilterTriggerButton active={!!value} icon={CalendarIcon}>
-          {selected ? format(selected, 'd MMM yyyy', { locale: pl }) : label}
+          {selected ? format(selected, 'd MMM yyyy', { locale }) : label}
         </FilterTriggerButton>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
@@ -37,7 +42,7 @@ export function DateFilterButton({ label, value, onChange }: DateFilterButtonPro
           selected={selected}
           onSelect={handleSelect}
           defaultMonth={selected}
-          locale={pl}
+          locale={locale}
         />
       </PopoverContent>
     </Popover>

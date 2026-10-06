@@ -10,6 +10,8 @@ import { BONUS_FORBIDDEN_MESSAGE, canBookTransferType, canMutateTransfer } from 
 import { canBeSettled } from '@/lib/constants/transfers'
 import { perfStart } from '@/lib/perf'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
+import { decideExpenseDraft } from '@/lib/db/worker-expense-drafts'
+import { DRAFT_ALREADY_DECIDED } from '@/lib/constants/worker-expense-drafts'
 import {
   cancelTransferSchema,
   createTransferSchema,
@@ -81,9 +83,13 @@ export async function createTransferAction(data: CreateTransferFormT, invoiceMed
   )
 }
 
+// Thrown, not returned: a returned refusal would still commit the expenses created before it.
+class DraftAlreadyDecided extends Error {}
+
 export async function createBulkTransferAction(
   data: CreateBulkExpenseFormT,
   invoiceMediaIds?: number[][],
+  opts?: { expenseDraftId?: number },
 ) {
   const lineCount = data.lineItems.length
 
@@ -146,10 +152,23 @@ export async function createBulkTransferAction(
             })
             ids.push(created.id)
           }
+          if (opts?.expenseDraftId !== undefined) {
+            const isDecided = await decideExpenseDraft(await getDb(payload, req), {
+              draftId: opts.expenseDraftId,
+              decidedBy: user.id,
+              status: 'accepted',
+              transferId: ids[0],
+            })
+            if (!isDecided) throw new DraftAlreadyDecided()
+          }
           return ids
         },
         { skipSheetSync: true },
-      )
+      ).catch((error: unknown) => {
+        if (error instanceof DraftAlreadyDecided) return undefined
+        throw error
+      })
+      if (!createdIds) return { success: false, error: DRAFT_ALREADY_DECIDED }
       console.log(`[PERF]   payload.create x${lineCount} ${step()}ms`)
 
       // Post-response sync after commit — never before, else a rolled-back row would

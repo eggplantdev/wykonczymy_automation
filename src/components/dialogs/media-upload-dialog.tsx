@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { CheckboxRow } from '@/components/ui/checkbox-row'
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
 import { FileInput } from '@/components/ui/file-input'
+import { useTranslation } from '@/hooks/use-translation'
 
 type MediaUploadDialogPropsT = {
   title?: string
@@ -24,12 +25,13 @@ type MediaUploadDialogPropsT = {
  * is no moment after the pick at which to ask.
  */
 export function MediaUploadDialog({
-  title = 'Dodaj fakturę',
+  title,
   open,
   onOpenChange,
   onFiles,
   allowPlanMarker = false,
 }: MediaUploadDialogPropsT) {
+  const { t } = useTranslation('media')
   const [asPlan, setAsPlan] = useState(false)
 
   // The dialog stays mounted when Radix unmounts its content, so a tick left behind by a cancelled
@@ -50,10 +52,10 @@ export function MediaUploadDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
-        <DialogHeader title={title} />
+        <DialogHeader title={title ?? t('addInvoice')} />
         {allowPlanMarker && (
           <CheckboxRow checked={asPlan} onCheckedChange={setAsPlan}>
-            To jest rzut lub projekt
+            {t('isPlan')}
           </CheckboxRow>
         )}
         <FileInput multiple onChange={handlePicked} className="h-28 flex-col" />

@@ -10,9 +10,10 @@ import {
   clientShareCeilingLabel,
 } from '@/lib/kosztorys/subcontractor-price-guard'
 import type { KosztorysV2RowT, ToolPlaneT } from '@/lib/kosztorys/types'
-import { isTranslationStale } from '@/lib/i18n/description-translations'
+import { isTranslationStale, translationText } from '@/lib/i18n/description-translations'
 import { LANGUAGE_SHORT, TRANSLATION_LANGUAGES } from '@/lib/i18n/languages'
 import { translationColumnKey } from '@/lib/kosztorys/translation-column-keys'
+import { REPORT_FIELD } from '@/lib/kosztorys/worker-report/report-field'
 
 // The pomiar, from the host's precomputed map when there is one and the long way when there is not.
 // Six entries below ask this question, so reading it through one accessor is also what keeps them
@@ -53,6 +54,10 @@ export const MEASURE_DIVERGED_CONDITION_ID = 'measure-diverged'
 // buttons are the same gesture as picking the row from the „Problemy" menu.
 export const CATALOGUE_DIVERGENCE_CONDITION_ID = 'catalogue-price-divergence'
 export const CATALOGUE_MISSING_CONDITION_ID = 'catalogue-missing'
+
+// Named because the client view and the worker's „Tylko zgłaszane przeze mnie” engage them by id.
+export const CLIENT_EMPTY_CONDITION_ID = 'client-empty'
+export const REPORT_UNREPORTED_CONDITION_ID = 'report-unreported'
 
 /**
  * The overpaid-crew guard (EX-708): on this plane, is the pozycja's executed work being settled at a
@@ -355,7 +360,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     matches: (row) => !row.globalDiscountActive && !hasItemDiscount(row),
   },
   {
-    id: 'client-empty',
+    id: CLIENT_EMPTY_CONDITION_ID,
     label: 'bez przedmiaru i bez wykonanej pracy',
     // Never lifts to sekcje: „Zwiń puste sekcje" is a reading gesture in a menu the client view does
     // not render, so a label here would only buy a per-render pass over the whole dataset for a set
@@ -367,6 +372,15 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     // while the executed total still counts it. A row empty on BOTH axes adds zero to both totals, so
     // hiding it moves no figure and needs no warning.
     matches: isEmptyOnBothAxes,
+  },
+  {
+    id: REPORT_UNREPORTED_CONDITION_ID,
+    label: 'bez zgłoszonej ilości',
+    // The worker's „Tylko zgłaszane przeze mnie” on his report link — his own reading gesture, but
+    // on a document with no „Filtry” menu, so it rides the client kind the preview already engages.
+    kind: 'client',
+    // `!x` rather than `!(x > 0)`: a negative is a typo the send bar refuses, so it must stay in view.
+    matches: (row) => !row[REPORT_FIELD],
   },
   // A missing cena j.m. is two different problems, so it is two entries, split on whether any work has
   // been executed — and split rather than added beside a broad one, so the counts stay disjoint and no
@@ -558,17 +572,26 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     problemLabel: (count) => percentRateProblemLabel('own_tools', count),
     matches: (row, ctx) => settledAtPercentRate(row, ctx, 'own_tools'),
   },
-  // The opis moved on and its translation did not, so the crew reads the old scope. A missing
-  // translation is not listed: most rozpiski never reach a crew that needs one, and the katalog is
-  // where „bez tłumaczenia" is worked through.
-  ...TRANSLATION_LANGUAGES.map(
-    (language): RowConditionT => ({
+  // A pozycja with no translation reads Polish to the crew; one whose opis moved on reads the old
+  // scope. Both are what „Uzupełnij tłumaczenia (AI)" fills, so both are listed.
+  ...TRANSLATION_LANGUAGES.flatMap((language): RowConditionT[] => [
+    {
+      id: `missing-translation-${language}`,
+      label: `bez tłumaczenia (${LANGUAGE_SHORT[language]})`,
+      kind: 'diagnostic',
+      problemGroup: 'translations',
+      revealsColumns: [translationColumnKey(language)],
+      matches: (row) =>
+        (row.description ?? '').trim() !== '' &&
+        translationText(row.descriptionTranslations, language) === '',
+    },
+    {
       id: `stale-translation-${language}`,
       label: `z nieaktualnym tłumaczeniem (${LANGUAGE_SHORT[language]})`,
       kind: 'diagnostic',
       problemGroup: 'translations',
       revealsColumns: [translationColumnKey(language)],
       matches: (row) => isTranslationStale(row.descriptionTranslations, language, row.description),
-    }),
-  ),
+    },
+  ]),
 ]

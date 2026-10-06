@@ -5,6 +5,7 @@ import {
   buildAccept,
   catalogueSwap,
   initialDrafts,
+  isLineReady,
   lineGroup,
   previewQtyChange,
   qtyChange,
@@ -74,6 +75,10 @@ const line = (patch: Partial<ReportLineT>): ReportLineT => ({
   acceptedQty: undefined,
   createdItemId: undefined,
   catalogueItemId: undefined,
+  polishDescription: undefined,
+  descriptionLanguage: undefined,
+  isUncertain: false,
+  scannedRef: undefined,
   ...patch,
 })
 
@@ -145,5 +150,16 @@ describe('decyzja w zgłoszeniu', () => {
       { itemId: 11, stageId: 20 },
       { itemId: 11, stageId: 20 },
     ])
+  })
+})
+
+describe('praca z kartki bez j.m.', () => {
+  it('czeka na pracę z katalogu — cena bez j.m. nie wystarczy', () => {
+    const scanned = line({ kind: 'extra', itemId: undefined, unit: '' })
+    const priced = { ...draft, isExtra: true, sectionId: '5', unitPrice: '30' }
+
+    expect(isLineReady(scanned, priced, undefined)).toBe(false)
+    expect(isLineReady(scanned, { ...priced, catalogueId: 7 }, undefined)).toBe(true)
+    expect(isLineReady(line({ kind: 'extra', itemId: undefined }), priced, undefined)).toBe(true)
   })
 })

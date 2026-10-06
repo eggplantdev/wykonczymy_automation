@@ -13,6 +13,7 @@ import {
 import type { ArchiveCopyT } from '@/types/media'
 import { toastMessage } from '@/lib/utils/toast'
 import { warsawToday } from '@/lib/utils/days'
+import { useTranslation } from '@/hooks/use-translation'
 
 // Browsers cap concurrent connections per origin; larger batches just queue and stall the progress toast.
 const BATCH_SIZE = 6
@@ -29,6 +30,8 @@ const BATCH_SIZE = 6
 export function useFileArchive() {
   const [isPending, startTransition] = useTransition()
   const toastIdRef = useRef<string | number | null>(null)
+  const translator = useTranslation('media')
+  const { t } = translator
 
   /**
    * Rows and files are counted separately because a row may carry several pages or none —
@@ -42,11 +45,14 @@ export function useFileArchive() {
     rowTally: { rows: number; rowsWithFile: number },
   ) {
     startTransition(async () => {
-      toastIdRef.current = toast.info(copy.progress, {
-        autoClose: false,
-        position: 'bottom-center',
-        theme: 'dark',
-      })
+      toastIdRef.current = toast.info(
+        t(copy.kind === 'invoice' ? 'invoiceArchiveProgress' : 'fileArchiveProgress'),
+        {
+          autoClose: false,
+          position: 'bottom-center',
+          theme: 'dark',
+        },
+      )
 
       try {
         // Nothing to fetch is not a failed fetch — packing an empty set would announce the
@@ -57,9 +63,13 @@ export function useFileArchive() {
             : await packAndDeliver(files, buildArchiveName(nameParts, warsawToday(), copy.prefix))
         const tally = { ...rowTally, expectedFiles: files.length, downloadedFiles }
 
-        updateToast(toastIdRef.current, buildArchiveMessage(tally, copy), toneFor(tally))
+        updateToast(
+          toastIdRef.current,
+          buildArchiveMessage(tally, copy, translator),
+          toneFor(tally),
+        )
       } catch {
-        updateToast(toastIdRef.current, 'Wystąpił nieoczekiwany błąd', 'error')
+        updateToast(toastIdRef.current, t('unexpectedError'), 'error')
       }
     })
   }
@@ -81,7 +91,12 @@ export function useFileArchive() {
   }
 
   async function packAndDeliver(files: ArchiveFileT[], archiveName: string): Promise<number> {
-    updateToast(toastIdRef.current, `Pobieranie 0/${files.length} plików...`, 'info', false)
+    updateToast(
+      toastIdRef.current,
+      t('fetchingFiles', { done: 0, total: files.length }),
+      'info',
+      false,
+    )
 
     // Deferred so a client who never clicks doesn't pay for the ZIP machinery — this hook is
     // mounted on the public share page.
@@ -100,7 +115,7 @@ export function useFileArchive() {
             downloaded++
             updateToast(
               toastIdRef.current,
-              `Pobieranie ${downloaded}/${files.length} plików...`,
+              t('fetchingFiles', { done: downloaded, total: files.length }),
               'info',
               false,
             )
@@ -113,7 +128,7 @@ export function useFileArchive() {
 
     if (downloaded === 0) return 0
 
-    updateToast(toastIdRef.current, 'Tworzenie archiwum ZIP...', 'info', false)
+    updateToast(toastIdRef.current, t('zipping'), 'info', false)
     triggerDownload(await zip.generateAsync({ type: 'blob' }), archiveName)
     return downloaded
   }

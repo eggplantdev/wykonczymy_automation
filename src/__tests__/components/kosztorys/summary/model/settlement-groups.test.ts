@@ -63,7 +63,7 @@ describe('buildSettlementGroups', () => {
 describe('the „Pozostało do zapłaty" alarm', () => {
   it('tones each column from its own figure when the planes differ in sign', () => {
     const groups = build({ axis: 'both', amountDue: { net: -100, gross: 130 } })
-    expect(rowNamed(groups, 'Pozostało do zapłaty')?.danger).toEqual({ net: false, gross: true })
+    expect(groups[0]?.rows.at(-1)?.danger).toEqual({ net: false, gross: true })
   })
 
   it('rounds first, so a floating-point residue is not a debt', () => {
@@ -93,21 +93,31 @@ describe('the strata step', () => {
   })
 })
 
-// The row names what the figure IS: once the client has paid past the debt there is nothing left to
-// pay, and „Pozostało do zapłaty: -19 569,05" makes the reader do the sign in their head.
-describe('the nadpłata label', () => {
-  it('names an overpaid settlement „Nadpłata"', () => {
-    expect(build({ amountDue: { net: -100, gross: -123 } })[0]?.rows.at(-1)?.label).toBe('Nadpłata')
+// „Nadpłata -24 407,39" read as a negative overpayment (owner, 2026-10-05): the row keeps the debt's
+// label and its minus, and a footnote says what the minus means.
+describe('a negative balance', () => {
+  const footnote = '*Minusowa kwota oznacza nadpłatę'
+
+  it('keeps the debt label, starred, with the footnote', () => {
+    const groups = build({ amountDue: { net: -100, gross: -123 } })
+    expect(groups[0]?.rows.at(-1)?.label).toBe('Pozostało do zapłaty*')
+    expect(groups[0]?.footnote).toBe(footnote)
   })
 
-  it('stays a debt while any rendered plane still owes', () => {
+  it('explains a minus on any rendered plane, even beside an outstanding one', () => {
     const groups = build({ axis: 'both', amountDue: { net: -100, gross: 130 } })
-    expect(groups[0]?.rows.at(-1)?.label).toBe('Pozostało do zapłaty')
+    expect(groups[0]?.footnote).toBe(footnote)
   })
 
-  it('is not a nadpłata at zero', () => {
-    expect(build({ amountDue: { net: 0, gross: 0 } })[0]?.rows.at(-1)?.label).toBe(
-      'Pozostało do zapłaty',
-    )
+  it('ignores a minus on a plane the tryb does not render', () => {
+    expect(
+      build({ axis: 'gross', amountDue: { net: -100, gross: 130 } })[0]?.footnote,
+    ).toBeUndefined()
+  })
+
+  it('adds nothing at zero', () => {
+    const groups = build({ amountDue: { net: 0, gross: 0 } })
+    expect(groups[0]?.rows.at(-1)?.label).toBe('Pozostało do zapłaty')
+    expect(groups[0]?.footnote).toBeUndefined()
   })
 })

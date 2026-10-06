@@ -1,6 +1,6 @@
-import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { generateObject } from 'ai'
-import { serverEnv } from '@/lib/env/server'
+import { openrouter, timeoutSignal, withModelFallback } from './openrouter-client'
+import { providerErrorDetail } from './provider-error-detail'
 import {
   receiptExtractionSchema,
   UNREADABLE_RECEIPT,
@@ -9,9 +9,7 @@ import {
 import { receiptPdfPlugins } from './receipt-pdf-plugins'
 import { logError } from '@/lib/utils/log-error'
 
-// Importing `serverEnv` (which is `import 'server-only'`) makes this module server-only too:
-// never pull it into the Payload CLI graph (payload.config.ts / collections), or
-// `payload generate:types` throws.
+// Server-only through `./openrouter-client`: never pull it into the Payload CLI graph.
 
 // Reads Polish receipts (images) AND PDFs natively — the latter matters because our real
 // invoices are Stimulsoft/Quartz PDFs with no text layer, which the free pdf-text parser
@@ -19,15 +17,10 @@ import { logError } from '@/lib/utils/log-error'
 // to one constant so swapping cost/quality is a one-line change. On-trial cheaper tier.
 export const RECEIPT_MODEL = 'google/gemini-3.1-flash-lite'
 
-// Known-good fallback: extractReceipt retries once with this when the (cheaper, on-trial)
-// primary throws, so a wrong/unavailable RECEIPT_MODEL id degrades to slower-but-working
-// instead of failing every scan. Confirmed reads the Stimulsoft/Quartz PDFs + images.
-export const FALLBACK_MODEL = 'google/gemini-2.5-flash'
-
 // Per-attempt ceiling on the vision call. Without it a hung upstream request never settles, so
 // the batch fill's Promise.all wedges and isFilling never clears (spinner stuck forever). On
 // timeout the attempt aborts and throws, so the row degrades into failedIndices like any other
-// failure. Built from AbortController + setTimeout (not AbortSignal.timeout) so it's fakeable.
+// failure.
 export const RECEIPT_TIMEOUT_MS = 30_000
 
 // Each extra page is more bytes to upload and more document for the model to read, so a longer
@@ -43,27 +36,6 @@ export const RECEIPT_TIMEOUT_PER_PAGE_MS = 15_000
 export const MAX_RECEIPT_PAGES = 8
 
 export type ReceiptPageT = { bytes: Uint8Array; mediaType: string; filename: string }
-
-function timeoutSignal(ms: number): AbortSignal {
-  const controller = new AbortController()
-  const timer = setTimeout(
-    () => controller.abort(new Error(`receipt extraction timed out after ${ms}ms`)),
-    ms,
-  )
-  timer.unref?.() // don't keep the process alive on the timer alone
-  return controller.signal
-}
-
-const openrouter = createOpenRouter({
-  apiKey: serverEnv.OPENROUTER_API_KEY,
-  // Attribution headers OpenRouter surfaces on its dashboard; omitted when unset.
-  headers: {
-    ...(serverEnv.OPENROUTER_HTTP_REFERER
-      ? { 'HTTP-Referer': serverEnv.OPENROUTER_HTTP_REFERER }
-      : {}),
-    ...(serverEnv.OPENROUTER_APP_NAME ? { 'X-Title': serverEnv.OPENROUTER_APP_NAME } : {}),
-  },
-})
 
 // Send the image BYTES, not a URL: media.url can be relative (local Payload route) or a
 // private/non-passthrough blob URL the provider can't fetch — the AI SDK then mis-encodes
@@ -119,6 +91,7 @@ export async function extractReceipt(
       }),
       abortSignal: timeoutSignal(
         RECEIPT_TIMEOUT_MS + RECEIPT_TIMEOUT_PER_PAGE_MS * (pages.length - 1),
+        'receipt extraction',
       ),
       schema: receiptExtractionSchema,
       messages: [
@@ -143,16 +116,7 @@ export async function extractReceipt(
   }
 
   try {
-    let object: ReceiptExtractionT
-    try {
-      object = await callModel(RECEIPT_MODEL)
-    } catch (primaryError) {
-      // TODO(EX-449) SENTRY-REQUIRED: the primary (on-trial) model failed — retry once with the
-      // known-good FALLBACK_MODEL so a bad/unavailable primary id doesn't kill every scan. Log
-      // the primary failure since a silent fallback hides that the trial tier is broken.
-      logError(`[receipt] primary model ${RECEIPT_MODEL} failed — falling back`, primaryError)
-      object = await callModel(FALLBACK_MODEL)
-    }
+    const object = await withModelFallback('receipt', RECEIPT_MODEL, callModel)
 
     // TODO(EX-449) SENTRY-REQUIRED: an unreadable result is a silent AI failure — generateObject
     // succeeded, so nothing throws and the user just sees the sentinel in the Opis. It must be
@@ -170,33 +134,6 @@ export async function extractReceipt(
   } catch (error) {
     // TODO(EX-449) SENTRY-REQUIRED: receipt extraction failures must be captured once Sentry is
     // wired — they are silent AI/provider errors users can't self-report.
-    throw new Error(receiptErrorDetail(error))
+    throw new Error(providerErrorDetail(error, 'Błąd odczytu paragonu'))
   }
-}
-
-// TEMPORARY (TODO(EX-449)): with no Sentry yet, this flattens the provider's real failure reason
-// into the toast string so it survives protectedAction (which returns only `err.message`) and
-// reaches the client. Once Sentry is wired the raw fields (statusCode/responseBody/text) move into
-// the capture and the toast shrinks to a clean Polish message.
-function receiptErrorDetail(error: unknown): string {
-  const err = error as {
-    message?: string
-    text?: string
-    statusCode?: number
-    responseBody?: string
-    response?: { body?: unknown }
-  }
-  const providerBody = err.responseBody ?? err.response?.body
-  return [
-    err.message ?? 'Błąd odczytu paragonu',
-    err.statusCode ? `HTTP ${err.statusCode}` : undefined,
-    providerBody
-      ? typeof providerBody === 'string'
-        ? providerBody
-        : JSON.stringify(providerBody)
-      : undefined,
-    err.text ? `model: ${err.text}` : undefined,
-  ]
-    .filter(Boolean)
-    .join(' · ')
 }

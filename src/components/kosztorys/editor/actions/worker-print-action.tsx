@@ -1,23 +1,33 @@
 'use client'
 
-import { FileText } from 'lucide-react'
+import { ClipboardPen, FileText } from 'lucide-react'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
-import { buildWorkerPrintHtml } from '@/lib/kosztorys/print/worker'
+import { buildWorkerFormHtml, buildWorkerPrintHtml } from '@/lib/kosztorys/print/worker'
 import { resolveSectionFills } from '@/lib/kosztorys/print/section-fills'
 import { WORKER_SCOPE_BLOCK_MESSAGES } from '@/lib/kosztorys/worker-view/labels'
-import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
-import { getWorkerKosztorysPrintData } from '@/lib/queries/worker-kosztorys-print-endpoint'
+import {
+  getWorkerKosztorysPrintData,
+  type WorkerKosztorysPrintDataT,
+} from '@/lib/queries/worker-kosztorys-print-endpoint'
 import { openPrintWindow, writeAndPrint } from '@/lib/utils/print-window'
 import { toastMessage } from '@/lib/utils/toast'
+
+const VARIANTS = {
+  pdf: { build: buildWorkerPrintHtml, label: 'Drukuj PDF', Icon: FileText },
+  form: { build: buildWorkerFormHtml, label: 'Drukuj do wypełnienia', Icon: ClipboardPen },
+}
 
 export function WorkerPrintMenuItem({
   workerId,
   disabled,
+  variant,
 }: {
   workerId: number
   disabled: boolean
+  variant: keyof typeof VARIANTS
 }) {
+  const { build, label, Icon } = VARIANTS[variant]
   const { investmentId, investmentName } = useKosztorysEditorContext()
 
   function handlePrint() {
@@ -31,40 +41,39 @@ export function WorkerPrintMenuItem({
 
     // The menu disabled a blocked worker off the editor's etapy; the server answers again from its
     // own read, and an etap changed in between is refused here with the same sentence.
-    const render = (data: WorkerKosztorysT | null) => {
-      if (!data || data.kind === 'blocked') {
-        target.close()
-        toastMessage(
-          data ? WORKER_SCOPE_BLOCK_MESSAGES[data.reason] : 'Nie znaleziono pracownika',
-          'error',
-        )
-        return
-      }
+    const refuse = (message: string) => {
+      target.close()
+      toastMessage(message, 'error')
+    }
+    const render = (printData: WorkerKosztorysPrintDataT | null) => {
+      if (!printData) return refuse('Nie znaleziono pracownika')
+      const { data, language, sectionTranslations } = printData
+      if (data.kind === 'blocked') return refuse(WORKER_SCOPE_BLOCK_MESSAGES[data.reason])
       try {
         writeAndPrint(
           target,
-          buildWorkerPrintHtml({
+          build({
             data,
             logoUrl: `${window.location.origin}/logo-wykonczymy.png`,
             fillByColorKey,
+            locale: language,
+            sectionTranslations,
           }),
         )
       } catch {
-        target.close()
-        toastMessage('Nie udało się przygotować wydruku', 'error')
+        refuse('Nie udało się przygotować wydruku')
       }
     }
 
-    void getWorkerKosztorysPrintData(investmentId, workerId).then(render, () => {
-      target.close()
-      toastMessage('Nie udało się odczytać kosztorysu pracownika', 'error')
-    })
+    void getWorkerKosztorysPrintData(investmentId, workerId).then(render, () =>
+      refuse('Nie udało się odczytać kosztorysu pracownika'),
+    )
   }
 
   return (
     <DropdownMenuItem disabled={disabled} onSelect={handlePrint}>
-      <FileText />
-      Drukuj PDF
+      <Icon />
+      {label}
     </DropdownMenuItem>
   )
 }
