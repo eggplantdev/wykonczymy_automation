@@ -4064,7 +4064,8 @@ Odczyt AI kosztuje — na stagingu wysyłaj po kilka zdjęć.
 - [ ] Pracownik → „Edytuj wydatek" przy zgłoszeniu z 2+ zdjęciami: przełącznik startuje z trybu, w jakim zgłoszenie wysłano.
 - [ ] Pracownik wysyła 2 zdjęcia jednego paragonu („Jeden wydatek"); po minucie kierownik → „Zobacz": jedna pozycja z wypełnionym Opisem, kwotą i netto, plik nazwany od Opisu (druga strona z `-2`), bez paska „Odczytywanie paragonów…" przy otwarciu.
 - [ ] Pracownik wysyła 3 osobne paragony („Kilka wydatków") → „Zobacz": trzy pozycje, każda z własnym zdjęciem i kwotami.
-- [ ] Kierownik klika „Zobacz" kilka sekund po wysłaniu: dialog otwiera się od razu z pustymi, zablokowanymi pozycjami i „Zapisz", widać pasek „Odczytywanie paragonów…"; po odczycie pozycje się wypełniają i odblokowują.
+- [ ] Kierownik klika „Zobacz" kilka sekund po wysłaniu: dialog otwiera się od razu z pustymi, zablokowanymi pozycjami i „Zapisz" — data, typ, kasa i inwestycja też zablokowane — widać pasek „Odczytywanie paragonów…"; po odczycie cały formularz się odblokowuje, a pozycje są wypełnione.
+- [ ] W trakcie tego odczytu zamknij dialog i od razu znów „Zobacz" → dialog wraca zablokowany, pasek „Odczytywanie paragonów…" trwa dalej, a po odczycie pozycje się wypełniają (jeden odczyt, nie drugi).
 - [ ] To samo zgłoszenie: zamknij dialog i znów „Zobacz" → pozycje od razu wypełnione, bez paska „Odczytywanie paragonów…".
 - [ ] W dialogu zgłoszenia przy pozycji ze zdjęciem „Odczytaj ponownie" → tylko ta pozycja odczytuje się na nowo i nadpisuje wpisany ręcznie Opis i kwotę; pozostałe pozycje bez zmian.
 - [ ] Pod pozycjami: w pierwszym rzędzie przełącznik „Kilka / Jeden" z lewej i „Dodaj pozycję" przy prawej krawędzi, tuż pod nimi podpowiedź trybu, niżej „Wygeneruj z paragonów" (i „Odczytaj dodane zdjęcia", gdy jest pusta pozycja ze zdjęciem).

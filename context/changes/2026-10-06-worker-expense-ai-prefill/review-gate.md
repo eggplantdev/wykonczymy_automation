@@ -47,6 +47,32 @@ Step 0.5 (browser verification) skipped: no Playwright pass asked this turn, and
 - [x] dismissed · `reuse-scan` · `pending-expense-drafts.tsx:42` `downloadPages` vs `fetchMediaBytes` · client-side, reads the relative `media.url` through the app route; the server read has no such route — two boundaries, not one helper
 - [x] dismissed · `reuse-scan` · catalogue of `lib/media`, `lib/utils`, `lib/ai`, `lib/db`, `lib/env`, `hooks`, `forms/expense-form`, `forms/hooks` — no further reinvention; the array-equality, page-rename, blank-row and label dupes it would have caught are the `simplify` fixes above
 
+## Follow-up — `1899287d..1ee6a802` (read on „Zobacz", „Odczytaj ponownie", unreadable as Opis) · 2026-10-06
+
+Fan-out: `code-review`, `comment-noise-audit` (flag-only), `tailwind-v4-audit`, `feature-first-structure`, `module-cohesion-audit`, `structure-scatter-audit`. No `/10x-impl-review`: the follow-up has no plan.
+
+- [x] 🟡 WARNING · fixed · `code-review` · `src/components/forms/expense-form/expense-form.tsx:314` · only the rows locked during the read; date/type/kasa/inwestycja stayed editable and the remount on landing reset them (and Enter could submit past the disabled „Zapisz") — the `<fieldset disabled>` now wraps the whole `FieldGroup`
+      test: test-driven-debugging · unit (dom) — `expense-form-prefill.test.tsx` asserts „Typ wydatku" disabled while reading; red before the move
+- [x] 🟡 WARNING · fixed · `code-review` · `src/components/worker-expenses/pending-expense-drafts.tsx:113` · closing the dialog mid-read and reopening paid a second read; one shared pill key let draft A's read clear draft B's pill — `readsInFlight` ref skips the second read (the first one's landing finds the dialog by id), pill keyed per draft
+      test: test-driven-debugging · unit (dom) — new `pending-expense-drafts.test.tsx`: reopen mid-read → one action call, filled row after landing; red before the fix
+- [x] 🟡 WARNING · fixed · `code-review` · `src/lib/actions/read-expense-draft-receipts.ts:50` · a stale list (send-time read landed after it loaded) made „Zobacz" pay the model again and overwrite the stored read — `loadExpenseDraftForRead` returns `ai_read`; a stored read is returned as-is (every page/mode change already clears it)
+      test: test-driven-debugging · integration — `read-expense-draft-receipts.db.test.ts` „returns a stored read without asking the AI again"; red before the fix
+- [x] 🟡 WARNING · fixed · `code-review` · tests for the click-time flow — covered by the three regression specs above plus the failure-path spec below; the partial `failedIds` clear is a two-line functional update, not worth a renderHook harness of its own
+- [x] 🔵 OBSERVATION · fixed · `code-review` · `pending-expense-drafts.tsx:118` · a failed action (no rights, offline, stale action id) toasted the generic „Nie odczytano zdjęć zgłoszenia" — toasts `result.error`; the generic line stays for a read that reached no answer
+      test: TDD · unit (dom) — `pending-expense-drafts.test.tsx` „nieudany odczyt mówi, dlaczego…"
+- [x] 🔵 OBSERVATION · dismissed · `code-review` · concurrent send-time `after()` read and click-time read both pay, last write wins — a seconds-long window right after sending; both are reads of the same pages, and the early return closes the common (stale-list) case
+- [x] 🔵 OBSERVATION · skipped · `code-review` · `use-receipt-generation.ts:55` · „Odczytaj ponownie" on a hand-corrected row can replace it with the unreadable sentinel and blanks — the overwrite is the asked-for behaviour (same as the button path), „Zapisz" refuses the sentinel; keeping typed values on an unreadable result changes what the button does → owner's call
+- [x] 🔵 OBSERVATION · fixed · `code-review` · `expense-form.tsx` implicit Enter-submit while reading — moot once the whole form body is disabled (first finding)
+- [x] fixed · `comment-noise-audit` · `use-receipt-generation.ts:43` · second sentence described `indexedRows`, misplaced above `generateFromReceipts` — cut
+- [x] fixed · `comment-noise-audit` · `pending-expense-drafts.tsx:110` · restated `!draft.aiRead` + rejected alternative + duplicated lock note — trimmed to the spend-on-click fact
+- [x] fixed · `comment-noise-audit` · `src/lib/actions/worker-expense-drafts.ts:104` · first sentence restated the caller — cut
+- [x] fixed · `comment-noise-audit` · `line-items-field.tsx:363` · JSX comment duplicated the guard comment at `use-receipt-generation.ts:54` — deleted
+- [x] dropped · `module-cohesion-audit` · `line-items-field.tsx` (469 lines) · extract the row body to `line-item-row.tsx` — still one concern; the follow-up added 24 lines
+- [x] dismissed · `tailwind-v4-audit`, `feature-first-structure`, `structure-scatter-audit` · no findings
+- [x] dismissed · `simplify` + `reuse-scan` · main-thread pass over the ~10-file follow-up diff (all files read in full) — no reinvention; `readsInFlight` is not derivable from `accepting`, which moves to the other draft
+
+Tests: typecheck clean · `forms/expense-form` + `worker-expenses` 11 files / 46 tests green · DB `read-expense-draft-receipts.db` 9/9 and `worker-expense-drafts.db` 13/13 vs 5435 (run one at a time — run together they race on `purgeFixtureUsers`) · full suite not run (not asked).
+
 ## Simplify pass
 
 Ran /simplify — 7 applied, 0 proposed, 8 dismissed/skipped; each finding folded into ## Findings (tagged simplify). Touched specs 50 files / 312 tests + DB 31 files / 190 tests green, typecheck clean.
