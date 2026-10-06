@@ -4170,3 +4170,10 @@ inwestycji, z transakcjami i zgłoszonymi wydatkami; konto kierownika.
 - [ ] Ta sama kartka wydrukowana na papierze: linie tabeli, nagłówki kolumn i jednostki są wyraźnie widoczne; szare tło mają tylko Nr, Wykonano i Postęp — Opis prac i Zgłaszam są białe.
 - [ ] Wydrukuj kosztorys dla klienta i PDF pracownika: linie i szare podpisy też są widoczne na papierze, kolumny dalej w paski jak wcześniej.
 - [ ] Wypełnij kartkę ręcznie (kilka ilości w „Zgłaszam”), wczytaj ją przez „Wczytaj zgłoszenie z kartki (AI)”: w zgłoszeniu są dokładnie wpisane ilości, a nie liczby z kolumn „Wykonano” / „Postęp”.
+
+## 2026-10-06 — tree-rewrite-pending — „Uzupełnij tłumaczenia (AI)” nie da się kliknąć drugi raz w trakcie
+
+- [ ] Szablon z nieprzetłumaczonymi opisami → „Opcje” → „Uzupełnij tłumaczenia (AI)”, zaraz potem otwórz „Opcje” jeszcze raz: pozycja jest wyszarzona do końca tłumaczenia, potem znów aktywna (albo znika, gdy wszystko przetłumaczone).
+- [ ] Po komunikacie „Przetłumaczono opisy: N…” kolumny „Opis prac (UA)” / „(RU)” wypełniają się od razu, bez odświeżania strony.
+- [ ] To samo dla „Popraw literówki w opisie prac i j.m.”: w trakcie poprawiania pozycja w ponownie otwartym menu jest wyszarzona.
+- [ ] W trakcie tłumaczenia „Popraw literówki” też jest wyszarzona — i odwrotnie, w trakcie poprawiania wyszarzone jest „Uzupełnij tłumaczenia (AI)”.
