@@ -4,6 +4,7 @@ export const uk: TranslationsT = {
   common: {
     close: 'Закрити',
     cancel: 'Скасувати',
+    delete: 'Видалити',
     language: 'Мова',
     requestFailed: "Немає з'єднання з сервером — перевірте інтернет або оновіть сторінку.",
     databaseError: 'Не вдалося виконати операцію — оновіть сторінку і спробуйте ще раз.',
@@ -79,6 +80,8 @@ export const uk: TranslationsT = {
     since: 'Від',
     myInvestments: "Мої об'єкти",
     noInvestments: "Немає активних об'єктів.",
+    noInvestmentToReport:
+      "Щоб звітувати про роботи, ви маєте бути призначені на один з етапів активного об'єкта.",
     investment: "Об'єкт",
     reports: 'Звіти',
     reportWork: 'Звітувати про роботи',
@@ -101,6 +104,8 @@ export const uk: TranslationsT = {
   expenseDrafts: {
     title: 'Мої витрати',
     noRegister: 'У вас немає каси — попросіть керівника її створити.',
+    noInvestment:
+      "Щоб додати витрату, ви маєте бути призначені на один з етапів активного об'єкта.",
     empty: 'Немає поданих витрат.',
     investment: "Об'єкт",
     sentAt: 'Надіслано',
@@ -438,6 +443,9 @@ export const uk: TranslationsT = {
     uploadFailedRetry: 'Не вдалося надіслати файл — спробуйте ще раз.',
     ingestFailed: 'Не вдалося обробити файл — спробуйте ще раз.',
     convertFailed: 'Не вдалося конвертувати «{{name}}» — збережіть як JPG і спробуйте ще раз.',
+    zoomOut: 'Зменшити',
+    zoomIn: 'Збільшити',
+    fitToWindow: 'Припасувати до вікна',
   },
   shell: {
     menu: 'Меню',

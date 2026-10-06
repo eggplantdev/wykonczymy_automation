@@ -13,6 +13,7 @@ export const pl = {
   common: {
     close: 'Zamknij',
     cancel: 'Anuluj',
+    delete: 'Usuń',
     language: 'Język',
     requestFailed: 'Brak połączenia z serwerem — sprawdź internet albo odśwież stronę.',
     databaseError: 'Nie udało się wykonać operacji — odśwież stronę i spróbuj ponownie.',
@@ -87,6 +88,8 @@ export const pl = {
     since: 'Od',
     myInvestments: 'Moje inwestycje',
     noInvestments: 'Brak aktywnych inwestycji.',
+    noInvestmentToReport:
+      'Żeby zgłosić pracę, musisz być przypisany do któregoś z etapów aktywnej inwestycji.',
     investment: 'Inwestycja',
     reports: 'Zgłoszenia',
     reportWork: 'Zgłoś prace',
@@ -109,6 +112,8 @@ export const pl = {
   expenseDrafts: {
     title: 'Moje wydatki',
     noRegister: 'Nie masz kasy — poproś kierownika o jej założenie.',
+    noInvestment:
+      'Żeby dodać wydatek, musisz być przypisany do któregoś z etapów aktywnej inwestycji.',
     empty: 'Brak zgłoszonych wydatków.',
     investment: 'Inwestycja',
     sentAt: 'Wysłano',
@@ -452,6 +457,9 @@ export const pl = {
     uploadFailedRetry: 'Nie udało się przesłać pliku — spróbuj ponownie.',
     ingestFailed: 'Nie udało się przetworzyć pliku — spróbuj ponownie.',
     convertFailed: 'Nie udało się przekonwertować „{{name}}” — zapisz jako JPG i spróbuj ponownie.',
+    zoomOut: 'Oddal',
+    zoomIn: 'Przybliż',
+    fitToWindow: 'Dopasuj do okna',
   },
   shell: {
     menu: 'Menu',

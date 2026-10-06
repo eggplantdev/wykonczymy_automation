@@ -101,7 +101,6 @@ export function InvestmentForm({
               description:
                 'Zakończona inwestycja jest tylko do odczytu — nikt nie dopisze transakcji ani nie zmieni kosztorysu. Odblokować może ją wyłącznie właściciel lub administrator, ustawiając status z powrotem na „Aktywna".',
               confirmLabel: 'Zakończ',
-              cancelLabel: 'Anuluj',
             }
           : null,
       toData: (value) => ({

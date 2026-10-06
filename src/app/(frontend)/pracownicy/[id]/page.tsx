@@ -103,6 +103,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
       <WorkerInvestmentsSection
         investments={stageInvestments}
         workerName={worker.name}
+        canReport={isOwnPage}
         locale={locale}
       />
       <WorkerExpenseDraftsSection

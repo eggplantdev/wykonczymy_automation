@@ -26,7 +26,6 @@ export function SendBar({ token, data, draft, onSent }: PropsT) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const { locale, t } = useTranslation('report')
-  const { t: tCommon } = useTranslation('common')
   const itemQtys = data.sections
     .flatMap((section) => section.items)
     .map((item) => ({
@@ -96,7 +95,6 @@ export function SendBar({ token, data, draft, onSent }: PropsT) {
           extras: extraLines.length,
         })}
         confirmLabel={t('send')}
-        cancelLabel={tCommon('cancel')}
         onConfirm={send}
         onCancel={() => setIsConfirmOpen(false)}
       />

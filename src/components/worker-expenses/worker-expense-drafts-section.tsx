@@ -57,6 +57,7 @@ export function WorkerExpenseDraftsSection({
         )}
       </div>
       {canSend && sendableRegisters.length === 0 && <Description>{t('noRegister')}</Description>}
+      {canSend && investments.length === 0 && <Description>{t('noInvestment')}</Description>}
       {drafts.length === 0 ? (
         <Description>{t('empty')}</Description>
       ) : (
