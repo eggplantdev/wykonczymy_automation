@@ -40,21 +40,41 @@ export function useReceiptGeneration({
     total: number
   } | null>(null)
 
-  async function generateFromReceipts() {
-    const rows = form.getFieldValue('lineItems') ?? []
+  // Eligible = has an attached file AND still-blank content, so a manually filled row is never
+  // overwritten (skip-non-empty). Keep both the row's id (marker/file key) and its current index
+  // (the field-path used to write results back).
+  function generateFromReceipts() {
     const files = getFiles()
-    // Eligible = has an attached file AND still-blank content, so a manually filled row is
-    // never overwritten (skip-non-empty). Keep both the row's id (marker/file key) and its
-    // current index (the field-path used to write results back).
-    const eligible = rows
-      .map((row, index) => ({ row, index }))
-      .filter(({ row }) => files.has(row.id) && isBlankRow(row))
+    return runGeneration(
+      files,
+      indexedRows().filter(({ row }) => files.has(row.id) && isBlankRow(row)),
+    )
+  }
 
+  // The one deliberate overwrite: the manager asked for this row again, filled or not.
+  function regenerateRow(id: string) {
+    const files = getFiles()
+    return runGeneration(
+      files,
+      indexedRows().filter(({ row }) => row.id === id && files.has(id)),
+    )
+  }
+
+  function indexedRows() {
+    return (form.getFieldValue('lineItems') ?? []).map((row, index) => ({ row, index }))
+  }
+
+  async function runGeneration(
+    files: Map<string, File[]>,
+    eligible: ReturnType<typeof indexedRows>,
+  ) {
     if (eligible.length === 0) return
 
     setIsGenerating(true)
     usePendingStore.getState().start(SCAN_PENDING_KEY, 'Odczytywanie paragonów…')
-    setFailedIds(new Set())
+    // Only the rows being read lose their marker: a single-row re-read leaves the others' verdicts.
+    const eligibleIds = new Set(eligible.map(({ row }) => row.id))
+    setFailedIds((prev) => new Set([...prev].filter((id) => !eligibleIds.has(id))))
     setGenerationProgress({ done: 0, total: eligible.length })
     const otherCategoryNames = otherCategories.map((c) => c.name)
     const failed = new Set<string>()
@@ -112,7 +132,7 @@ export function useReceiptGeneration({
       return
     } finally {
       usePendingStore.getState().stop(SCAN_PENDING_KEY)
-      setFailedIds(failed)
+      setFailedIds((prev) => new Set([...prev, ...failed]))
       setIsGenerating(false)
       setGenerationProgress(null)
     }
@@ -139,6 +159,7 @@ export function useReceiptGeneration({
 
   return {
     generateFromReceipts,
+    regenerateRow,
     isGenerating,
     generatingIds,
     failedIds,

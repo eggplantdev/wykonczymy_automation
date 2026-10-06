@@ -82,6 +82,8 @@ type TransferFormPropsT = {
   keepOpen?: boolean
   formId?: string
   prefill?: ExpenseFormPrefillT
+  // The prefill's read is still in flight; the rows lock so the refill can't overwrite typing.
+  isPrefillReading?: boolean
   secondaryAction?: React.ReactNode
 }
 
@@ -93,6 +95,7 @@ export function ExpenseForm({
   keepOpen,
   formId = FORM_ID,
   prefill,
+  isPrefillReading = false,
   secondaryAction,
 }: TransferFormPropsT) {
   const { recoveredFiles, submit } = useFormSubmit(formId)
@@ -256,6 +259,7 @@ export function ExpenseForm({
 
   const {
     generateFromReceipts,
+    regenerateRow,
     isGenerating,
     generatingIds,
     failedIds,
@@ -384,25 +388,28 @@ export function ExpenseForm({
         )}
 
         {!isDepositType(currentType) && (
-          <LineItemsField
-            form={form}
-            total={total}
-            hasInvestment={!!currentInvestment}
-            onRemoveItem={handleRemoveLineItem}
-            onFileChange={attachFile}
-            onRemoveFile={removeFileAt}
-            onRegisterFiles={registerFiles}
-            getRowFiles={getRowFiles}
-            onGenerate={handleGenerate}
-            isGenerating={isGenerating}
-            generatingIds={generatingIds}
-            ingestingIds={ingestingIds}
-            failedIds={failedIds}
-            generationProgress={generationProgress}
-            transferType={currentType}
-            referenceData={referenceData}
-            defaultExpenseCategory={defaultExpenseCategory}
-          />
+          <fieldset disabled={isPrefillReading} className="min-w-0">
+            <LineItemsField
+              form={form}
+              total={total}
+              hasInvestment={!!currentInvestment}
+              onRemoveItem={handleRemoveLineItem}
+              onFileChange={attachFile}
+              onRemoveFile={removeFileAt}
+              onRegisterFiles={registerFiles}
+              getRowFiles={getRowFiles}
+              onGenerate={handleGenerate}
+              onGenerateRow={regenerateRow}
+              isGenerating={isGenerating || isPrefillReading}
+              generatingIds={generatingIds}
+              ingestingIds={ingestingIds}
+              failedIds={failedIds}
+              generationProgress={generationProgress}
+              transferType={currentType}
+              referenceData={referenceData}
+              defaultExpenseCategory={defaultExpenseCategory}
+            />
+          </fieldset>
         )}
       </FieldGroup>
 
@@ -413,7 +420,7 @@ export function ExpenseForm({
       <FormFooter
         className="mt-6"
         label="Zapisz"
-        disabled={isIngesting}
+        disabled={isIngesting || isPrefillReading}
         secondaryAction={secondaryAction}
       />
     </FormShell>

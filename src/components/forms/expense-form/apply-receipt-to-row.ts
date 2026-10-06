@@ -27,8 +27,8 @@ export function receiptToLineItemValues(read: ReceiptValuesT) {
 //
 // `netAmount` is written REGARDLESS of the transfer type, which is deliberate and looks like a
 // missing `billsNetAmount` gate if you read it quickly: the type is a form-level field the user
-// often picks AFTER scanning, and a filled row is permanently ineligible for re-scan, so gating
-// here would leave an unrecoverable blank Netto column. `mapLineItem` already drops the value at
+// often picks AFTER scanning, and a filled row is skipped by the bulk re-scan, so gating here would
+// leave a blank Netto column only a per-row re-read could fill. `mapLineItem` already drops the value at
 // submit on any type that doesn't bill netto.
 export function applyReceiptToRow(
   setFieldValue: SetFieldValueT,

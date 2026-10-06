@@ -173,9 +173,9 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
       />,
     )
     await screen.findByRole('button', { name: 'Odczytaj dodane zdjęcia' })
-    // The row holding photos keeps its own „add page" input; the scan one sits beside its button.
+    // The row holding photos keeps its own „add page" input; the scan one sits beside „Dodaj pozycję".
     const scanInput = screen
-      .getByRole('button', { name: 'Wygeneruj z paragonów' })
+      .getByRole('button', { name: 'Dodaj pozycję' })
       .parentElement?.querySelector<HTMLInputElement>(':scope > input[type="file"]')
     if (!scanInput) throw new Error('no scan input')
     fireEvent.change(scanInput, {
@@ -189,6 +189,60 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
     expect(scannedRows).toEqual(
       expect.arrayContaining([['od-pracownika.jpg'], ['nowy-paragon.jpg']]),
     )
+  })
+
+  it('„Odczytaj ponownie" nadpisuje wypełniony wiersz odczytem jego zdjęć', async () => {
+    vi.mocked(scanReceiptClient).mockResolvedValue({
+      description: 'Fuga szara',
+      amount: 45,
+      netAmount: null,
+      invoiceNote: '',
+    } as ReceiptFillResultT)
+    const receipt = new File(['jpg'], 'leroy.jpg', { type: 'image/jpeg' })
+
+    render(
+      <ExpenseForm
+        referenceData={referenceData}
+        onSubmitSuccess={vi.fn()}
+        formId="expense-draft-42"
+        prefill={{
+          expenseDraftId: 42,
+          files: new Map([[0, [receipt]]]),
+          values: valuesWith({
+            investment: '3',
+            sourceRegister: '7',
+            lineItems: [makeLineItem({ description: 'Klej do płytek', amount: '89.9' })],
+          }),
+        }}
+      />,
+    )
+
+    await userEvent.setup().click(await screen.findByRole('button', { name: 'Odczytaj ponownie' }))
+
+    expect(await screen.findByDisplayValue('Fuga szara')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('45')).toBeInTheDocument()
+    expect(screen.queryByDisplayValue('Klej do płytek')).toBeNull()
+    expect(vi.mocked(scanReceiptClient).mock.calls).toEqual([[[receipt], expect.any(Array)]])
+  })
+
+  it('póki zgłoszenie się odczytuje, pozycje i „Zapisz" są zablokowane', async () => {
+    render(
+      <ExpenseForm
+        referenceData={referenceData}
+        onSubmitSuccess={vi.fn()}
+        formId="expense-draft-42"
+        isPrefillReading
+        prefill={{
+          expenseDraftId: 42,
+          files: new Map([[0, [new File(['jpg'], 'leroy.jpg', { type: 'image/jpeg' })]]]),
+          values: valuesWith({ investment: '3', sourceRegister: '7' }),
+        }}
+      />,
+    )
+
+    expect(await screen.findByRole('textbox', { name: 'Opis' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Odczytaj dodane zdjęcia' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Zapisz' })).toBeDisabled()
   })
 
   it('bez zgłoszenia „Nowy wydatek" odtwarza swój szkic', async () => {

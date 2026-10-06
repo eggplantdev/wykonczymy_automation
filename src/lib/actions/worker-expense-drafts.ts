@@ -19,6 +19,7 @@ import {
   restoreRejectedExpenseDraft,
   updatePendingExpenseDraft,
 } from '@/lib/db/worker-expense-drafts'
+import type { ExpenseDraftReadT } from '@/lib/db/expense-draft-read'
 import { reclaimUnreferencedMedia } from '@/lib/media/delete-unreferenced-media'
 import { pl } from '@/lib/i18n/dictionaries/pl'
 import { noticeFailure, noticeKeyOf, type NoticeKeyT } from '@/lib/i18n/notice-failure'
@@ -98,6 +99,17 @@ export async function rejectExpenseDraftAction(draftId: number): Promise<ActionR
     })
     return isDecided ? { success: true } : noticeFailure('draftAlreadyDecided')
   })
+}
+
+// The manager's „Zobacz" on a draft the send-time read didn't fill. The read is saved on the draft,
+// so the next open costs nothing.
+export async function readExpenseDraftAction(
+  draftId: number,
+): Promise<ActionResultT<{ aiRead?: ExpenseDraftReadT }>> {
+  return protectedAction(`readExpenseDraftAction draft=${draftId}`, async ({ payload }) => ({
+    success: true,
+    data: { aiRead: await readExpenseDraftReceipts(await getDb(payload), draftId) },
+  }))
 }
 
 export async function restoreExpenseDraftAction(draftId: number): Promise<ActionResultT> {

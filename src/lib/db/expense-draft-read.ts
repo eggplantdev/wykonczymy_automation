@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
-// A row the AI could not read carries only its pages, so the manager still gets a blank row for that
-// photo.
+// A row whose pages never reached the AI carries only its pages, so the manager still gets a blank
+// row for that photo.
 const expenseDraftReadRowSchema = z.object({
   mediaIds: z.array(z.number().int()),
   description: z.string().optional(),

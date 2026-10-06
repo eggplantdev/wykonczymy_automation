@@ -77,6 +77,7 @@ type LineItemsFieldPropsT = {
   onRegisterFiles: (ids: string[], files: File[], mode?: 'per-row' | 'single-row') => Promise<void>
   getRowFiles: (id: string) => File[] | undefined
   onGenerate?: () => void
+  onGenerateRow?: (id: string) => void
   isGenerating?: boolean
   // Keyed on each row's stable id (EX-448), not its position.
   generatingIds?: Set<string>
@@ -157,6 +158,7 @@ export function LineItemsField({
   onRegisterFiles,
   getRowFiles,
   onGenerate,
+  onGenerateRow,
   isGenerating = false,
   generatingIds,
   ingestingIds,
@@ -254,31 +256,25 @@ export function LineItemsField({
           <div className="space-y-6">
             {lineItemsField.state.value.map((item, index: number) => (
               <Fragment key={item.id}>
-                <div className="space-y-2">
-                  {/* Top-aligned, not bottom: every field here carries a label, so their inputs
+                <div className="flex gap-2">
+                  {lineItemsField.state.value.length > 1 && (
+                    <span className="text-muted-foreground mt-6 flex h-9 shrink-0 items-center text-xs tabular-nums">
+                      {index + 1}.
+                    </span>
+                  )}
+                  <div className="min-w-0 flex-1 space-y-2">
+                    {/* Top-aligned, not bottom: every field here carries a label, so their inputs
                     line up on their own — and a validation error growing under one field can no
                     longer drag its neighbours (and the delete button) down a line. The label-less
                     slots below pay for it with an mt-6 that clears a label + its gap. */}
-                  <div className="flex flex-wrap items-start gap-2 sm:flex-nowrap">
-                    <form.AppField name={`lineItems[${index}].amount`}>
-                      {(field) => (
-                        <field.Input
-                          // Named outright once a Netto column sits next to it — an unqualified
-                          // „Kwota" beside „Netto" reads as the amount that bills the client,
-                          // which is exactly backwards on this type.
-                          label={showsNetAmount ? 'Brutto' : 'Kwota'}
-                          placeholder="0.00 PLN"
-                          type="number"
-                          showError
-                          fieldClassName="w-28"
-                        />
-                      )}
-                    </form.AppField>
-                    {showsNetAmount && (
-                      <form.AppField name={`lineItems[${index}].netAmount`}>
+                    <div className="flex flex-wrap items-start gap-2 sm:flex-nowrap">
+                      <form.AppField name={`lineItems[${index}].amount`}>
                         {(field) => (
                           <field.Input
-                            label="Netto"
+                            // Named outright once a Netto column sits next to it — an unqualified
+                            // „Kwota" beside „Netto" reads as the amount that bills the client,
+                            // which is exactly backwards on this type.
+                            label={showsNetAmount ? 'Brutto' : 'Kwota'}
                             placeholder="0.00 PLN"
                             type="number"
                             showError
@@ -286,85 +282,112 @@ export function LineItemsField({
                           />
                         )}
                       </form.AppField>
-                    )}
-                    <form.AppField name={`lineItems[${index}].description`}>
-                      {(field) => (
-                        <field.Input
-                          label="Opis"
-                          placeholder="Opcjonalnie"
-                          showError
+                      {showsNetAmount && (
+                        <form.AppField name={`lineItems[${index}].netAmount`}>
+                          {(field) => (
+                            <field.Input
+                              label="Netto"
+                              placeholder="0.00 PLN"
+                              type="number"
+                              showError
+                              fieldClassName="w-28"
+                            />
+                          )}
+                        </form.AppField>
+                      )}
+                      <form.AppField name={`lineItems[${index}].description`}>
+                        {(field) => (
+                          <field.Input
+                            label="Opis"
+                            placeholder="Opcjonalnie"
+                            showError
+                            fieldClassName="order-last w-full min-w-0 sm:order-none sm:w-auto sm:flex-1"
+                          />
+                        )}
+                      </form.AppField>
+                      {inlineCategory && (
+                        <CategorySelect
+                          form={form}
+                          index={index}
+                          config={inlineCategory}
                           fieldClassName="order-last w-full min-w-0 sm:order-none sm:w-auto sm:flex-1"
                         />
                       )}
-                    </form.AppField>
-                    {inlineCategory && (
-                      <CategorySelect
-                        form={form}
-                        index={index}
-                        config={inlineCategory}
-                        fieldClassName="order-last w-full min-w-0 sm:order-none sm:w-auto sm:flex-1"
-                      />
-                    )}
-                    {/* No icon: this row is already Kwota + Netto + Opis + kategoria + the delete
+                      {/* No icon: this row is already Kwota + Netto + Opis + kategoria + the delete
                       slot, and a `shrink-0` glyph would take its ~1rem straight off the flex-1
                       inputs. `tone="error"` alone carries the alarm here. */}
-                    {failedIds?.has(item.id) && (
-                      <Description
-                        tone="error"
-                        size="xs"
-                        withIcon={false}
-                        className="mt-8 shrink-0 whitespace-nowrap"
-                      >
-                        nie odczytano
-                      </Description>
-                    )}
-                    {/* Delete lives in row 1, its height matching the inputs; the row being read
+                      {failedIds?.has(item.id) && (
+                        <Description
+                          tone="error"
+                          size="xs"
+                          withIcon={false}
+                          className="mt-8 shrink-0 whitespace-nowrap"
+                        >
+                          nie odczytano
+                        </Description>
+                      )}
+                      {/* Delete lives in row 1, its height matching the inputs; the row being read
                       shows the loader in its slot and queued rows keep it disabled — removing a
                       row mid-generation shifts the array under in-flight extraction tasks (captured
                       index), landing a result on the wrong row. */}
-                    <div className="mt-6 flex size-9 shrink-0 items-center justify-center">
-                      {generatingIds?.has(item.id) || ingestingIds?.has(item.id) ? (
-                        <GradientSpinner />
-                      ) : (
-                        <RemoveButton
-                          icon={Trash2}
-                          onClick={() => onRemoveItem(item.id, index, lineItemsField.removeValue)}
-                          disabled={
-                            isGenerating || isIngesting || lineItemsField.state.value.length === 1
-                          }
+                      <div className="mt-6 flex size-9 shrink-0 items-center justify-center">
+                        {generatingIds?.has(item.id) || ingestingIds?.has(item.id) ? (
+                          <GradientSpinner />
+                        ) : (
+                          <RemoveButton
+                            icon={Trash2}
+                            onClick={() => onRemoveItem(item.id, index, lineItemsField.removeValue)}
+                            disabled={
+                              isGenerating || isIngesting || lineItemsField.state.value.length === 1
+                            }
+                          />
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
+                      {secondRowCategory && (
+                        <CategorySelect
+                          form={form}
+                          index={index}
+                          config={secondRowCategory}
+                          fieldClassName="min-w-0 flex-1"
                         />
                       )}
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
-                    {secondRowCategory && (
-                      <CategorySelect
-                        form={form}
-                        index={index}
-                        config={secondRowCategory}
+                      <LineItemInvoiceField
+                        id={item.id}
+                        files={getRowFiles(item.id)}
                         fieldClassName="min-w-0 flex-1"
+                        onFileChange={onFileChange}
+                        onRemoveFile={onRemoveFile}
                       />
-                    )}
-                    <LineItemInvoiceField
-                      id={item.id}
-                      files={getRowFiles(item.id)}
-                      fieldClassName="min-w-0 flex-1"
-                      onFileChange={onFileChange}
-                      onRemoveFile={onRemoveFile}
-                    />
+                      {/* Overwrites the row, typed values included — unlike the bulk read, which only
+                      reaches blank rows. */}
+                      {onGenerateRow && getRowFiles(item.id) && (
+                        <Button
+                          type="button"
+                          variant="ai"
+                          className="sm:mt-6"
+                          onClick={() => onGenerateRow(item.id)}
+                          disabled={isGenerating || isIngesting}
+                        >
+                          <WandSparkles className="text-neon-cyan" />
+                          <span className="text-neon-cyan font-semibold">Odczytaj ponownie</span>
+                        </Button>
+                      )}
+                    </div>
+                    <form.AppField name={`lineItems[${index}].invoiceNote`}>
+                      {(field) => (
+                        <field.Textarea
+                          label="Notatka"
+                          placeholder="Opcjonalnie"
+                          rows={2}
+                          showError
+                          fieldClassName="w-full"
+                          className="max-h-24 overflow-y-auto"
+                        />
+                      )}
+                    </form.AppField>
                   </div>
-                  <form.AppField name={`lineItems[${index}].invoiceNote`}>
-                    {(field) => (
-                      <field.Textarea
-                        label="Notatka"
-                        placeholder="Opcjonalnie"
-                        rows={2}
-                        showError
-                        fieldClassName="w-full"
-                        className="max-h-24 overflow-y-auto"
-                      />
-                    )}
-                  </form.AppField>
                 </div>
                 {index < lineItemsField.state.value.length - 1 && (
                   <Separator orientation="horizontal" className="bg-foreground" />
@@ -373,14 +396,6 @@ export function LineItemsField({
             ))}
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => lineItemsField.pushValue(newItem())}
-            >
-              Dodaj pozycję
-            </Button>
             <input
               ref={scanInputRef}
               type="file"
@@ -390,53 +405,62 @@ export function LineItemsField({
               onChange={(e) => handleScanReceipts(e, lineItemsField, scanMode)}
             />
             {onGenerate && (
-              <>
-                <ToggleGroup
-                  options={SCAN_MODE_OPTIONS}
-                  value={scanMode}
-                  onChange={setScanMode}
-                  aria-label="Co oznaczają wybrane zdjęcia"
-                />
+              <ToggleGroup
+                options={SCAN_MODE_OPTIONS}
+                value={scanMode}
+                onChange={setScanMode}
+                aria-label="Co oznaczają wybrane zdjęcia"
+              />
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="ml-auto"
+              onClick={() => lineItemsField.pushValue(newItem())}
+            >
+              Dodaj pozycję
+            </Button>
+          </div>
+          {onGenerate && <Description size="xs">{SCAN_MODE_HINT[scanMode]}</Description>}
+          {onGenerate && (
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                variant="ai"
+                size="sm"
+                onClick={() => scanInputRef.current?.click()}
+                disabled={isGenerating || isIngesting}
+                {...dropZoneProps(lineItemsField, scanMode)}
+              >
+                {isGenerating || isIngesting ? (
+                  <GradientSpinner />
+                ) : (
+                  <WandSparkles className="text-neon-cyan" />
+                )}
+                <span className="text-neon-cyan font-semibold">Wygeneruj z paragonów</span>
+              </Button>
+              {/* Photos already on a row — a worker's draft whose read failed or hasn't landed, or
+                an FV attached by hand — are what the scan button can't reach: it only takes new ones. */}
+              {lineItemsField.state.value.some((row) => getRowFiles(row.id) && isBlankRow(row)) && (
                 <Button
                   type="button"
                   variant="ai"
                   size="sm"
-                  onClick={() => scanInputRef.current?.click()}
+                  onClick={() => onGenerate()}
                   disabled={isGenerating || isIngesting}
-                  {...dropZoneProps(lineItemsField, scanMode)}
                 >
-                  {isGenerating || isIngesting ? (
-                    <GradientSpinner />
-                  ) : (
-                    <WandSparkles className="text-neon-cyan" />
-                  )}
-                  <span className="text-neon-cyan font-semibold">Wygeneruj z paragonów</span>
+                  <WandSparkles className="text-neon-cyan" />
+                  <span className="text-neon-cyan font-semibold">Odczytaj dodane zdjęcia</span>
                 </Button>
-                {/* Photos already on a row — a worker's draft whose read failed or hasn't landed, or
-                  an FV attached by hand — are what the scan button can't reach: it only takes new ones. */}
-                {lineItemsField.state.value.some(
-                  (row) => getRowFiles(row.id) && isBlankRow(row),
-                ) && (
-                  <Button
-                    type="button"
-                    variant="ai"
-                    size="sm"
-                    onClick={onGenerate}
-                    disabled={isGenerating || isIngesting}
-                  >
-                    <WandSparkles className="text-neon-cyan" />
-                    <span className="text-neon-cyan font-semibold">Odczytaj dodane zdjęcia</span>
-                  </Button>
-                )}
-              </>
-            )}
-            {generationProgress && (
-              <span className="text-muted-foreground self-center text-sm">
-                Odczytano {generationProgress.done}/{generationProgress.total}
-              </span>
-            )}
-          </div>
-          {onGenerate && <Description size="xs">{SCAN_MODE_HINT[scanMode]}</Description>}
+              )}
+              {generationProgress && (
+                <span className="text-muted-foreground self-center text-sm">
+                  Odczytano {generationProgress.done}/{generationProgress.total}
+                </span>
+              )}
+            </div>
+          )}
           <Label>Suma: {formatPLN(total)}</Label>
         </div>
       )}

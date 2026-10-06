@@ -127,11 +127,16 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
     })
   })
 
-  it('„Kilka wydatków” stores one row per photo; an unreadable or unfetched one stays bare', async () => {
+  it('„Kilka wydatków” stores one row per photo; an unreadable one keeps the sentinel, an unfetched one stays bare', async () => {
     const { draftId, mediaIds } = await createDraft('per-photo', 3, 'one-per-photo')
     extractReceipt.mockImplementation(async (pages: { filename: string }[]) =>
       pages[0].filename.endsWith('-1.jpg')
-        ? reading({ description: UNREADABLE_RECEIPT, amount: null, netAmount: null })
+        ? reading({
+            description: UNREADABLE_RECEIPT,
+            amount: null,
+            netAmount: null,
+            invoiceNote: '',
+          })
         : reading({ description: 'Castorama', netAmount: null, invoiceNote: '' }),
     )
     fetchMediaBytes.mockImplementationOnce(async () => {
@@ -143,7 +148,7 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
     expect(await readOf(draftId)).toEqual({
       rows: [
         { mediaIds: [mediaIds[0]] },
-        { mediaIds: [mediaIds[1]] },
+        { mediaIds: [mediaIds[1]], description: UNREADABLE_RECEIPT },
         {
           mediaIds: [mediaIds[2]],
           description: 'Castorama',
@@ -164,11 +169,26 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
     expect(await readOf(draftId)).toBeNull()
   })
 
-  it('writes nothing when no photo could be read', async () => {
-    const { draftId } = await createDraft('all-failed', 2, 'one-per-photo')
+  // Stored, or every „Zobacz" would pay the model again for the same answer.
+  it('stores a draft the AI could not read at all', async () => {
+    const { draftId, mediaIds } = await createDraft('all-unreadable', 2, 'one-per-photo')
     extractReceipt.mockResolvedValue(
       reading({ description: UNREADABLE_RECEIPT, amount: null, netAmount: null, invoiceNote: '' }),
     )
+
+    await readExpenseDraftReceipts(db, draftId)
+
+    expect(await readOf(draftId)).toEqual({
+      rows: [
+        { mediaIds: [mediaIds[0]], description: UNREADABLE_RECEIPT },
+        { mediaIds: [mediaIds[1]], description: UNREADABLE_RECEIPT },
+      ],
+    })
+  })
+
+  it('writes nothing when no photo reached the AI', async () => {
+    const { draftId } = await createDraft('all-unfetched', 2, 'one-per-photo')
+    fetchMediaBytes.mockRejectedValue(new Error('Blob 404'))
 
     await readExpenseDraftReceipts(db, draftId)
 

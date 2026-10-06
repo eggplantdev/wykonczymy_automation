@@ -1,8 +1,7 @@
 import 'server-only'
-import { UNREADABLE_RECEIPT } from '@/lib/ai/receipt-extraction-schema'
 import { scanReceiptPages, type ReceiptFillResultT } from '@/lib/ai/scan-receipt'
 import { MAX_RECEIPT_PAGES } from '@/lib/constants/receipt-scan'
-import type { ExpenseDraftReadRowT } from '@/lib/db/expense-draft-read'
+import type { ExpenseDraftReadRowT, ExpenseDraftReadT } from '@/lib/db/expense-draft-read'
 import type { DbExecutorT } from '@/lib/db/get-db'
 import {
   loadExpenseDraftForRead,
@@ -16,10 +15,8 @@ import { mapWithConcurrency } from '@/lib/utils/map-with-concurrency'
 
 const PAGE_READ_CONCURRENCY = 4
 
-// An unreadable receipt prefills a blank row (owner, 2026-10-06): the manager reads it by eye.
 function toReadRow(mediaIds: number[], data: ReceiptFillResultT): ExpenseDraftReadRowT {
   const row: ExpenseDraftReadRowT = { mediaIds }
-  if (data.description === UNREADABLE_RECEIPT) return row
   if (data.description) row.description = data.description
   if (data.amount !== null) row.amount = data.amount
   if (data.netAmount !== null) row.netAmount = data.netAmount
@@ -28,7 +25,9 @@ function toReadRow(mediaIds: number[], data: ReceiptFillResultT): ExpenseDraftRe
   return row
 }
 
-const hasReading = (row: ExpenseDraftReadRowT) => Object.keys(row).some((key) => key !== 'mediaIds')
+// The unreadable sentinel is an answer too; only a row that never reached the model is worth
+// asking again.
+const hasAnswer = (row: ExpenseDraftReadRowT) => Object.keys(row).some((key) => key !== 'mediaIds')
 
 async function readPages(storeId: string, pages: ExpenseDraftMediaT[]) {
   const bytes = await Promise.all(pages.map((page) => fetchMediaBytes(storeId, page)))
@@ -36,8 +35,15 @@ async function readPages(storeId: string, pages: ExpenseDraftMediaT[]) {
   return scanReceiptPages(bytes, [])
 }
 
-/** Runs in `after()`: a failed read is only a missing prefill, so it never throws. */
-export async function readExpenseDraftReceipts(db: DbExecutorT, draftId: number): Promise<void> {
+/**
+ * Runs in `after()` and from the manager's „Zobacz": a failed read is only a missing prefill, so it
+ * never throws. Returns the read even when the guarded save lost to a page change — the caller
+ * matches rows by `mediaIds`, so a stale row fills nothing.
+ */
+export async function readExpenseDraftReceipts(
+  db: DbExecutorT,
+  draftId: number,
+): Promise<ExpenseDraftReadT | undefined> {
   try {
     const draft = await loadExpenseDraftForRead(db, draftId)
     if (!draft || draft.pages.length === 0) return
@@ -59,9 +65,11 @@ export async function readExpenseDraftReceipts(db: DbExecutorT, draftId: number)
             }
           })
 
-    if (!rows.some(hasReading)) return
+    if (!rows.some(hasAnswer)) return
     await saveExpenseDraftRead(db, { draftId, scanMode: draft.scanMode, mediaIds, read: { rows } })
+    return { rows }
   } catch (error) {
     logError('readExpenseDraftReceipts', error, { draftId })
+    return undefined
   }
 }
