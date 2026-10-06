@@ -4097,3 +4097,8 @@ inwestycji, z transakcjami i zgłoszonymi wydatkami; konto kierownika.
       Nie ma przycisków „Faktury” ani „Drukuj”.
 - [ ] Kierownik na stronie tego pracownika: „Faktury” i „Drukuj” są i działają — ZIP / wydruk zawiera
       tylko transakcje tego pracownika z bieżącymi filtrami.
+
+## 2026-10-06 — worker-report-ref-column — numer „Nr” w oknie akceptacji zgłoszeń
+
+- [ ] Edytor kosztorysu → „Zgłoszenia wykonanych prac” → otwórz zgłoszenie wczytane z kartki: w tabeli „Z rozpiski” zaraz za checkboxem jest kolumna „Nr”, a numer w wierszu jest taki sam jak przy tej pozycji na zdjęciu kartki (np. `35812-7`).
+- [ ] W tym samym oknie kliknij nagłówek „Nr”: wiersze sortują się po numerze; pozycja przypisana ręcznie (po „do przypisania ręcznie”) pokazuje numer wybranej pozycji, a tabela „Spoza rozpiski” nie ma kolumny „Nr”.
