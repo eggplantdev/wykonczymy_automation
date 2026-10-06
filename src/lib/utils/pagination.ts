@@ -13,7 +13,7 @@ export type PaginationParamsT = {
 }
 
 export const DEFAULT_LIMIT = 100
-export const ALLOWED_LIMITS: number[] = [20, 50, 100]
+export const ALLOWED_LIMITS: number[] = [10, 20, 50, 100]
 
 /**
  * `defaultLimit` is what the list shows before anyone touches the „Pokaż" select, so it has to be one

@@ -5,7 +5,6 @@ import { parseExpenseDraftSort } from '@/lib/queries/expense-draft-sort'
 import { fetchReferenceData } from '@/lib/queries/reference-data'
 import { parsePagination } from '@/lib/utils/pagination'
 import { ExpenseDraftsDataTable } from '@/components/worker-expenses/expense-drafts-data-table'
-import { Description } from '@/components/ui/description'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { PAGE_TITLES } from '@/lib/constants/sections'
 import type { PagePropsT } from '@/types/page'
@@ -24,10 +23,6 @@ export default async function ExpenseDraftsPage({ searchParams }: PagePropsT) {
 
   return (
     <PageWrapper title={PAGE_TITLES.expenseDrafts}>
-      <Description>
-        Bez sortowania na górze zgłoszenia czekające na decyzję, niżej rozpatrzone. Kwota przyjętego
-        zgłoszenia prowadzi do jego transakcji.
-      </Description>
       <ExpenseDraftsDataTable
         data={drafts.rows}
         paginationMeta={drafts.paginationMeta}

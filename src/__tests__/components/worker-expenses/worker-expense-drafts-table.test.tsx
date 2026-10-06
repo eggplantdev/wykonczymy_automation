@@ -86,6 +86,42 @@ describe('WorkerExpenseDraftsTable', () => {
     expect(screen.queryByText(/Edytuj|Usuń/)).not.toBeInTheDocument()
   })
 
+  it('narrows to the ticked status and inwestycja, back on page 1, without touching the URL', async () => {
+    const user = userEvent.setup()
+    renderTable([
+      ...drafts,
+      draft(26, { status: 'rejected', investmentId: 9 }),
+      draft(27, { status: 'rejected', investmentId: 8 }),
+    ])
+    await user.click(screen.getByRole('button', { name: /3$/ }))
+
+    await user.click(screen.getByRole('button', { name: /^Status/ }))
+    await user.click(screen.getByRole('option', { name: 'Odznacz wszystkie' }))
+    await user.click(screen.getByRole('option', { name: 'odrzucony' }))
+    await user.keyboard('{Escape}')
+    expect(shownIds()).toEqual([26, 27])
+
+    await user.click(screen.getByRole('button', { name: /^Inwestycja/ }))
+    await user.click(screen.getByRole('option', { name: 'Odznacz wszystkie' }))
+    await user.click(screen.getByRole('option', { name: 'Inwestycja 27' }))
+    await user.keyboard('{Escape}')
+    expect(shownIds()).toEqual([27])
+    expect(replace).not.toHaveBeenCalled()
+    expect(push).not.toHaveBeenCalled()
+  })
+
+  it('shows as many rows as „Pokaż” says, back on page 1', async () => {
+    const user = userEvent.setup()
+    renderTable(drafts)
+    await user.click(screen.getByRole('button', { name: /3$/ }))
+
+    await user.click(screen.getByRole('combobox'))
+    await user.click(screen.getByRole('option', { name: '20' }))
+
+    expect(shownIds()).toEqual(drafts.slice(0, 20).map((row) => row.id))
+    expect(push).not.toHaveBeenCalled()
+  })
+
   it('shows the amount without a link to the transaction', () => {
     renderTable([draft(1)])
 

@@ -43,7 +43,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
   const { id } = await params
   if (!canViewWorkerPage(currentUser, Number(id))) notFound()
   const sp = await searchParams
-  const { page, limit } = parsePagination(sp, 20)
+  const { page, limit } = parsePagination(sp, 10)
   const sort = parseTransferSort(sp)
 
   const userId = Number(id)

@@ -33,7 +33,6 @@ export function WorkerExpenseDraftsSection({
 
   return (
     <CollapsibleSection
-      className="max-w-4xl"
       title={t('title')}
       hint={t('hint')}
       storageKey="worker:expenseDrafts"
