@@ -101,8 +101,7 @@ export async function rejectExpenseDraftAction(draftId: number): Promise<ActionR
   })
 }
 
-// The manager's „Zobacz" on a draft the send-time read didn't fill. The read is saved on the draft,
-// so the next open costs nothing.
+// The read is saved on the draft, so the next open costs nothing.
 export async function readExpenseDraftAction(
   draftId: number,
 ): Promise<ActionResultT<{ aiRead?: ExpenseDraftReadT }>> {

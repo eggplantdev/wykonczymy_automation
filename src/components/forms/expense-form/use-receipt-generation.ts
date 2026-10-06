@@ -41,8 +41,7 @@ export function useReceiptGeneration({
   } | null>(null)
 
   // Eligible = has an attached file AND still-blank content, so a manually filled row is never
-  // overwritten (skip-non-empty). Keep both the row's id (marker/file key) and its current index
-  // (the field-path used to write results back).
+  // overwritten (skip-non-empty).
   function generateFromReceipts() {
     const files = getFiles()
     return runGeneration(

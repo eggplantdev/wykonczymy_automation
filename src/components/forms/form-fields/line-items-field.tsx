@@ -360,8 +360,6 @@ export function LineItemsField({
                         onFileChange={onFileChange}
                         onRemoveFile={onRemoveFile}
                       />
-                      {/* Overwrites the row, typed values included — unlike the bulk read, which only
-                      reaches blank rows. */}
                       {onGenerateRow && getRowFiles(item.id) && (
                         <Button
                           type="button"
