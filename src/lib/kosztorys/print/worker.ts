@@ -151,6 +151,7 @@ const FORM_EXTRA_ROWS = 10
 const WORKER_FORM_STYLES = `
 td.ref { font-size: 7pt; color: #52525b; white-space: nowrap; }
 td.write, th.write { background-color: transparent; }
+col.c-ref { width: 16mm; }
 col.c-write { width: 40mm; }
 .extras { margin-top: 24px; break-inside: avoid; }
 .extras h2 { font-size: 7pt; font-weight: 600; margin: 0 0 4px; }

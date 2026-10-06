@@ -10,7 +10,7 @@ export function workerFormColumns(locale: LanguageT): PrintColumnT[] {
     {
       key: 'ref',
       label: report.formNumber,
-      colClass: 'c-unit',
+      colClass: 'c-ref',
       cellClass: 'ref',
       headerClass: '',
       cell: (row) => (row.ref === undefined ? '' : escapeHtml(formatFormRef(row.ref))),
