@@ -4522,7 +4522,8 @@ Stan: kosztorys ze wczytanym szkicem AI (kolumna „AI przedmiar" ma wartości) 
 
 ### Widoki „Oferta" i „Przegląd AI"
 
-- [ ] Dowolny kosztorys → „Oferta": tylko Opis, Przedmiar, j.m., Cena j.m., Wartość netto przedmiar (+ Akcje), ceny inwestora, przełącznik widoku cen i menu „Widok" znikają; wyłączenie przywraca poprzednie kolumny i widok cen.
-- [ ] Kosztorys ze szkicem → „Przegląd AI" dokłada cztery kolumny AI do bieżących; wyłączenie je zabiera, a zaznaczenia w wyborze kolumn są takie jak przed włączeniem.
-- [ ] Oba włączone: kolumny oferty + kolumny AI.
-- [ ] Zwykły kosztorys: brak przycisku „Przegląd AI"; szablon: brak obu przycisków.
+- [ ] Dowolny kosztorys → menu „Kolumny" → „Widok" → „Oferta": tylko Opis, Przedmiar, j.m., Cena j.m., Wartość netto przedmiar (+ Akcje); ceny inwestora i przełącznik widoku cen znikają, a menu „Kolumny" pokazuje już tylko „Oferta" i „Przegląd AI". Odznaczenie „Oferta" przywraca poprzednie kolumny, widok cen i resztę menu.
+- [ ] Kosztorys ze szkicem → menu „Kolumny" → „Przegląd AI" dokłada cztery kolumny AI do bieżących, bez błędu „Coś poszło nie tak"; „Komentarz do pracy" pokazuje komentarze z katalogu. Odznaczenie je zabiera, a zaznaczenia w wyborze kolumn są takie jak przed włączeniem.
+- [ ] Oba zaznaczone: kolumny oferty + kolumny AI.
+- [ ] Menu zostaje otwarte po kliknięciu „Oferta" / „Przegląd AI"; na pasku narzędzi nie ma już osobnych przycisków.
+- [ ] Zwykły kosztorys: w menu „Kolumny" brak „Przegląd AI"; szablon: brak menu „Kolumny" (jak wcześniej).

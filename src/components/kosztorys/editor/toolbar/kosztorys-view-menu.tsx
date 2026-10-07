@@ -1,6 +1,7 @@
 'use client'
 
 import { type ReactNode } from 'react'
+import { WandSparkles } from 'lucide-react'
 import {
   DropdownMenuCheckboxRow,
   DropdownMenuLabel,
@@ -76,7 +77,17 @@ export function KosztorysViewMenu() {
     columnBaseRanks,
     setColumnRank,
     resetColumnOrder,
+    offerAvailable,
+    offer,
+    setOffer,
+    aiReviewAvailable,
+    aiReview,
+    setAiReview,
   } = useKosztorysEditorContext()
+
+  // „Oferta" is a closed column list: no tick and no axis would move a column, so only the two lenses
+  // stay — and the menu must stay, or there is no way back out of „Oferta".
+  const items = offer ? [] : columnToggleItems
 
   // Both axis controls belong to „Inwestor" alone, for two different reasons: subcontractors are paid
   // without VAT (EX-558), so netto/brutto is meaningless in their views, and a subcontractor view IS
@@ -87,7 +98,7 @@ export function KosztorysViewMenu() {
   // least shortens it, while a column that is gone looks exactly like a column that never existed.
   // A column an engaged problem reveals is on screen whatever its tick says, so it is not hidden and
   // must not be counted: the number has to answer „czego nie widzę", not „co odznaczyłem".
-  const hiddenCount = columnToggleItems.filter(
+  const hiddenCount = items.filter(
     (item) => !item.visible && !revealedColumnIds.has(item.id),
   ).length
 
@@ -95,7 +106,7 @@ export function KosztorysViewMenu() {
     <ColumnToggleMenu
       align="start"
       contentClassName="w-112"
-      items={columnToggleItems}
+      items={items}
       hiddenCount={hiddenCount}
       onToggle={toggleColumn}
       onToggleAll={(visible) =>
@@ -105,47 +116,72 @@ export function KosztorysViewMenu() {
         )
       }
       hint={<InfoTooltip content={KOLUMNY_HINT} className="shrink-0" />}
-      order={{
-        description:
-          'Przeciągnij pozycję, żeby przestawić kolumny w tabeli. Ustawienie zapamiętuje ta przeglądarka i działa we wszystkich kosztorysach.',
-        ranks: columnRanks,
-        baseRanks: columnBaseRanks,
-        onSetRank: setColumnRank,
-        onReset: resetColumnOrder,
-      }}
+      order={
+        offer
+          ? undefined
+          : {
+              description:
+                'Przeciągnij pozycję, żeby przestawić kolumny w tabeli. Ustawienie zapamiętuje ta przeglądarka i działa we wszystkich kosztorysach.',
+              ranks: columnRanks,
+              baseRanks: columnBaseRanks,
+              onSetRank: setColumnRank,
+              onReset: resetColumnOrder,
+            }
+      }
       sections={
         <>
-          {isClientView && (
+          {(offerAvailable || aiReviewAvailable) && (
             <>
-              <AxisSection
-                label="Kwoty"
-                options={MONEY_AXES}
-                value={moneyAxis}
-                config={MONEY_PAIR_CONFIG}
-                onChange={setMoneyAxis}
-              />
-              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Widok</DropdownMenuLabel>
+              {offerAvailable && (
+                <DropdownMenuCheckboxRow
+                  checked={offer}
+                  onCheckedChange={setOffer}
+                  label="Oferta"
+                />
+              )}
+              {aiReviewAvailable && (
+                <DropdownMenuCheckboxRow
+                  checked={aiReview}
+                  onCheckedChange={setAiReview}
+                  label="Przegląd AI"
+                  trailing={<WandSparkles className="text-neon-cyan" />}
+                />
+              )}
             </>
           )}
-          {isClientView && (
+          {!offer && (
             <>
+              {(offerAvailable || aiReviewAvailable) && <DropdownMenuSeparator />}
+              {isClientView && (
+                <>
+                  <AxisSection
+                    label="Kwoty"
+                    options={MONEY_AXES}
+                    value={moneyAxis}
+                    config={MONEY_PAIR_CONFIG}
+                    onChange={setMoneyAxis}
+                  />
+                  <DropdownMenuSeparator />
+                  <AxisSection
+                    label="Stawki wykonawców"
+                    options={CREWS}
+                    value={crewAxis}
+                    config={CREW_PAIR_CONFIG}
+                    onChange={setCrewAxis}
+                  />
+                  <DropdownMenuSeparator />
+                </>
+              )}
               <AxisSection
-                label="Stawki wykonawców"
-                options={CREWS}
-                value={crewAxis}
-                config={CREW_PAIR_CONFIG}
-                onChange={setCrewAxis}
+                label="Warstwy"
+                options={LAYERS}
+                value={layer}
+                config={LAYER_PAIR_CONFIG}
+                onChange={setLayer}
               />
-              <DropdownMenuSeparator />
             </>
           )}
-          <AxisSection
-            label="Warstwy"
-            options={LAYERS}
-            value={layer}
-            config={LAYER_PAIR_CONFIG}
-            onChange={setLayer}
-          />
         </>
       }
     />
