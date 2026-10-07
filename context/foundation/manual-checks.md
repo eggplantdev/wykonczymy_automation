@@ -4496,14 +4496,22 @@ Baza musi mieć migrację `20261007_0_add_ai_review_columns`.
 
 ### Komentarz do pracy
 
-- [ ] /katalog-prac → „Edytuj pracę" na pracy z komentarzem: pole „Komentarz do pracy" go pokazuje; zmień tylko cenę i zapisz — komentarz zostaje.
-- [ ] /katalog-prac → „Dodaj pracę" z komentarzem: kolumna „Komentarz do pracy" (domyślnie ukryta, włącz ją) pokazuje go przy nowej pracy.
-- [ ] Kosztorys → w wyborze kolumn zaznacz „Komentarz do pracy" → kliknij komórkę pracy z katalogu → wpisz komentarz → zapisz: ta sama praca w innym kosztorysie i w szablonie pokazuje ten komentarz.
-- [ ] Pozycja, której opisu nie ma w katalogu: komórka jest pusta, kliknięcie nic nie otwiera.
-- [ ] W oknie komentarza: Backspace, Delete, strzałki, Ctrl+A i wklejanie działają na tekście komentarza; kosztorys pod oknem się nie zmienia. Escape zamyka okno.
-- [ ] Menu wiersza „Zapisz do katalogu" → „Nadpisz" na pracy z komentarzem: komentarz przeżywa.
-- [ ] „Nowa praca": checkbox katalogu startuje zaznaczony, pole „Komentarz do pracy" stoi pod nim; „Nadpisz w katalogu" z pustym polem zostawia istniejący komentarz; „Tylko do kosztorysu" nie rusza katalogu.
-- [ ] Podgląd inwestora, link udostępniony inwestorowi, PDF z „Generuj ofertę" i link pracownika: brak kolumny „Komentarz do pracy".
+- [x] /katalog-prac → „Edytuj pracę" na pracy z komentarzem: pole „Komentarz do pracy" go pokazuje; zmień tylko cenę i zapisz — komentarz zostaje.
+      Staging 2026-10-07: edycja pracy (id 959) zmieniła tylko cenę 12,50→13,75, `work_note` zostało (psql).
+- [x] /katalog-prac → „Dodaj pracę" z komentarzem: kolumna „Komentarz do pracy" (domyślnie ukryta, włącz ją) pokazuje go przy nowej pracy.
+      Staging 2026-10-07: nowa praca z komentarzem → kolumna „Komentarz do pracy” (ukryta domyślnie, włączona w „Kolumny”) pokazuje go.
+- [x] Kosztorys → w wyborze kolumn zaznacz „Komentarz do pracy" → kliknij komórkę pracy z katalogu → wpisz komentarz → zapisz: ta sama praca w innym kosztorysie i w szablonie pokazuje ten komentarz.
+      Staging 2026-10-07: komentarz wpisany w 173 (pozycja „Rozkucie i zatynkowanie…”) zapisał się w katalogu (`work_note`, psql); ta sama praca w 174 (kolumna włączona) i w szablonie 159 pokazuje go.
+- [x] Pozycja, której opisu nie ma w katalogu: komórka jest pusta, kliknięcie nic nie otwiera.
+      Staging 2026-10-07: „Wynoszenie gruzu…” (173): komórka pusta, klik i dwuklik nie otwierają okna.
+- [x] W oknie komentarza: Backspace, Delete, strzałki, Ctrl+A i wklejanie działają na tekście komentarza; kosztorys pod oknem się nie zmienia. Escape zamyka okno.
+      Staging 2026-10-07: Backspace/Delete/strzałki/Ctrl+A/wklejenie działają w polu (abcdef→abcde→abce→„Zam”→„ZamWKLEJ”), siatka pod oknem bez zmian, Escape zamyka okno bez zapisu.
+- [x] Menu wiersza „Zapisz do katalogu" → „Nadpisz" na pracy z komentarzem: komentarz przeżywa.
+      Staging 2026-10-07: „Zapisz pozycję do katalogu prac” → Nadpisz… → Nadpisz na pracy id 618: `updated_at` się zmienił, `work_note` zostało (psql).
+- [x] „Nowa praca": checkbox katalogu startuje zaznaczony, pole „Komentarz do pracy" stoi pod nim; „Nadpisz w katalogu" z pustym polem zostawia istniejący komentarz; „Tylko do kosztorysu" nie rusza katalogu.
+      Staging 2026-10-07 (173): „Dodaj pracę do katalogu prac” startuje zaznaczony; „Komentarz do pracy” widać przy zaznaczonym i chowa się po odznaczeniu (w formularzu stoi pod checkboxem AI-tłumaczenia, nie bezpośrednio pod checkboxem katalogu — samo brzmienie boksu jest nieścisłe, zachowanie zgodne z kodem). „Nadpisz w katalogu” z pustym polem: work_note zostało; „Tylko do kosztorysu” (inny komentarz, cena 999): katalog bez zmian (updated_at i work_note te same). Dwa dodane wiersze do usunięcia w teardown.
+- [x] Podgląd inwestora, link udostępniony inwestorowi, PDF z „Generuj ofertę" i link pracownika: brak kolumny „Komentarz do pracy".
+      Staging 2026-10-07: kolumna „Komentarz do pracy” włączona w edytorze (173/174), a Podgląd inwestora (/podglad-inwestora/173), PDF oferty z 174 (popup, print stubowany), link inwestora /k/<token> (106) i link pracownika /z/137/… nie mają jej ani jej treści. Zastrzeżenie: katalog ma komentarze tylko od tego przebiegu, a pozycje 106/137 ich nie mają — wyciek treści sprawdzony tylko na 174 (PDF) i 173 (podgląd).
 
 ### Przegląd szkicu AI
 
@@ -4517,16 +4525,20 @@ Stan: kosztorys ze wczytanym szkicem AI (kolumna „AI przedmiar" ma wartości) 
 - [ ] „Nowa praca" z Przedmiarem w kosztorysie ze szkicem: pokazuje „Dodana" i trafia do „zmienione bez powodu".
 - [ ] Zapisz wersję, zmień statusy i powody, przywróć wersję: AI przedmiar, Status i Powód zmiany wracają.
 - [ ] Zapisz kosztorys jako szablon, załóż z niego nowy kosztorys: brak AI przedmiaru, Statusu i Powodu zmiany.
-- [ ] Zwykły kosztorys: brak kolumn AI w wyborze kolumn, brak grupy „Przegląd AI", wpisanie Przedmiaru nie ustawia statusu.
+- [x] Zwykły kosztorys: brak kolumn AI w wyborze kolumn, brak grupy „Przegląd AI", wpisanie Przedmiaru nie ustawia statusu.
+      Staging 2026-10-07 (173): w „Kolumny” brak AI przedmiar/Status/Powód zmiany, w „Problemy” brak grupy „Przegląd AI”; Przedmiar 0→5 zapisał `review_status`=NULL i `ai_planned_qty`=NULL (psql); wartość cofnięta do 0.
 - [ ] Podgląd inwestora, link udostępniony inwestorowi, PDF z „Generuj ofertę" i link pracownika: brak kolumn AI.
 
 ### Widoki „Oferta" i „Przegląd AI"
 
-- [ ] Dowolny kosztorys → menu „Kolumny" → „Widok" → „Oferta": tylko Opis, Przedmiar, j.m., Cena j.m., Wartość netto przedmiar (+ Akcje); ceny inwestora i przełącznik widoku cen znikają, a menu „Kolumny" pokazuje już tylko „Oferta" i „Przegląd AI". Odznaczenie „Oferta" przywraca poprzednie kolumny, widok cen i resztę menu.
+- [x] Dowolny kosztorys → menu „Kolumny" → „Widok" → „Oferta": tylko Opis, Przedmiar, j.m., Cena j.m., Wartość netto przedmiar (+ Akcje); ceny inwestora i przełącznik widoku cen znikają, a menu „Kolumny" pokazuje już tylko „Oferta" i „Przegląd AI". Odznaczenie „Oferta" przywraca poprzednie kolumny, widok cen i resztę menu.
+      Staging 2026-10-07 (inwestycja 173): Oferta → Opis, Przedmiar, j.m., Cena j.m. netto, Wartość przedmiaru netto + Akcje; przełącznik cen znika, menu = tylko „Oferta" (bez AI — brak szkicu); odznaczenie przywraca 8 kolumn, przełącznik i pełne menu.
 - [ ] Kosztorys ze szkicem → menu „Kolumny" → „Przegląd AI" dokłada cztery kolumny AI do bieżących, bez błędu „Coś poszło nie tak"; „Komentarz do pracy" pokazuje komentarze z katalogu. Odznaczenie je zabiera, a zaznaczenia w wyborze kolumn są takie jak przed włączeniem.
 - [ ] Oba zaznaczone: kolumny oferty + kolumny AI.
 - [ ] Menu zostaje otwarte po kliknięciu „Oferta" / „Przegląd AI"; na pasku narzędzi nie ma już osobnych przycisków.
-- [ ] Zwykły kosztorys: w menu „Kolumny" brak „Przegląd AI"; szablon: brak menu „Kolumny" (jak wcześniej).
+      Staging 2026-10-07: „Oferta” — menu zostaje otwarte, brak osobnych przycisków na pasku; „Przegląd AI” niesprawdzone (brak szkicu AI na stagingu — patrz Findings).
+- [x] Zwykły kosztorys: w menu „Kolumny" brak „Przegląd AI"; szablon: brak menu „Kolumny" (jak wcześniej).
+      Staging 2026-10-07: 173 — menu „Kolumny” → „Widok” ma tylko „Oferta”; szablon 159 — brak przycisku „Kolumny”.
 
 ## 2026-10-07 — reorder-dialog-safari — lista „Ustaw kolejność” nie zapada się w Safari
 
