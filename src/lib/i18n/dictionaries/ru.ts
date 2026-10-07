@@ -82,7 +82,6 @@ export const ru: TranslationsT = {
     noInvestments: 'Нет активных объектов.',
     noInvestmentToReport:
       'Чтобы отчитаться о работах, вы должны быть назначены на один из этапов активного объекта.',
-    investment: 'Объект',
     reportWork: 'Отчитаться о работах',
     chooseInvestmentToReport: 'На каком объекте?',
   },

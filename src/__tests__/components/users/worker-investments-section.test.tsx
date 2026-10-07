@@ -1,40 +1,34 @@
 import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { WorkerInvestmentsSection } from '@/components/users/worker-investments-section'
-import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
+import {
+  WorkerInvestmentsSection,
+  type WorkerInvestmentLinkT,
+} from '@/components/users/worker-investments-section'
 
-const INVESTMENTS = [{ investmentId: 1, name: 'Mokotów', token: 'abc' }] as WorkerStageInvestmentT[]
+const REPORT_URL = 'https://app.test/z/Mokotow/Jan/abc'
+const INVESTMENTS: WorkerInvestmentLinkT[] = [
+  { investmentId: 1, name: 'Mokotów', reportUrl: REPORT_URL },
+  { investmentId: 2, name: 'Wola' },
+]
 
 const section = (canReport: boolean) => (
-  <WorkerInvestmentsSection
-    investments={INVESTMENTS}
-    workerName="Jan"
-    canReport={canReport}
-    locale="pl"
-  />
+  <WorkerInvestmentsSection investments={INVESTMENTS} canReport={canReport} locale="pl" />
 )
 
-describe('WorkerInvestmentsSection report link', () => {
-  it('is offered on the worker’s own page', () => {
+describe('WorkerInvestmentsSection investment links', () => {
+  it('opens the report page on „Inwestycja” from the investment name on the worker’s own page', () => {
     render(section(true))
 
-    expect(screen.getByRole('link', { name: 'Zgłoś prace' })).toBeInTheDocument()
-  })
-
-  it('opens the same page on „Inwestycja” from the investment name', () => {
-    render(section(true))
-
-    const report = screen.getByRole('link', { name: 'Zgłoś prace' }).getAttribute('href')
     expect(screen.getByRole('link', { name: 'Mokotów' })).toHaveAttribute(
       'href',
-      `${report}?view=summary`,
+      `${REPORT_URL}?view=summary`,
     )
   })
 
-  it('is withheld from anyone else viewing his page', () => {
-    render(section(false))
+  it('leaves an investment without a report link as plain text', () => {
+    render(section(true))
 
-    expect(screen.getByText('Mokotów')).toBeInTheDocument()
-    expect(screen.queryByRole('link')).not.toBeInTheDocument()
+    expect(screen.getByText('Wola')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Wola' })).not.toBeInTheDocument()
   })
 })

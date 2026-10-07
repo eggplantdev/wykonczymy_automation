@@ -4,7 +4,6 @@ import { WorkerExpenseDraftsTable } from '@/components/worker-expenses/worker-ex
 import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 import type { CashRegisterRefT } from '@/types/reference-data'
-import { isActiveRef } from '@/lib/utils/is-active-ref'
 import { createTranslator } from '@/lib/i18n/translations'
 import type { LanguageT } from '@/lib/i18n/languages'
 
@@ -14,7 +13,7 @@ type PropsT = {
   /** Only the worker himself sends; a manager on his page sees the list. */
   canSend: boolean
   canOpenTransfers: boolean
-  registers: CashRegisterRefT[]
+  sendableRegisters: CashRegisterRefT[]
   locale: LanguageT
 }
 
@@ -23,13 +22,10 @@ export function WorkerExpenseDraftsSection({
   investments,
   canSend,
   canOpenTransfers,
-  registers,
+  sendableRegisters,
   locale,
 }: PropsT) {
   const { t } = createTranslator(locale, 'expenseDrafts')
-  // The server refuses an inactive kasa, so offering one only leads to a refusal.
-  const sendableRegisters = registers.filter(isActiveRef)
-
   return (
     <CollapsibleSection
       title={t('title')}

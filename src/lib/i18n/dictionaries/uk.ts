@@ -83,7 +83,6 @@ export const uk: TranslationsT = {
     noInvestments: "Немає активних об'єктів.",
     noInvestmentToReport:
       "Щоб звітувати про роботи, ви маєте бути призначені на один з етапів активного об'єкта.",
-    investment: "Об'єкт",
     reportWork: 'Звітувати про роботи',
     chooseInvestmentToReport: "На якому об'єкті?",
   },

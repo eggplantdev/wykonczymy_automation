@@ -91,7 +91,6 @@ export const pl = {
     noInvestments: 'Brak aktywnych inwestycji.',
     noInvestmentToReport:
       'Żeby zgłosić pracę, musisz być przypisany do któregoś z etapów aktywnej inwestycji.',
-    investment: 'Inwestycja',
     reportWork: 'Zgłoś pracę',
     chooseInvestmentToReport: 'Na której inwestycji?',
   },

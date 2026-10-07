@@ -35,8 +35,10 @@ import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 import type { CashRegisterRefT } from '@/types/reference-data'
 
+type InvestmentOptionT = Pick<WorkerStageInvestmentT, 'investmentId' | 'name'>
+
 type PropsT = {
-  investments: WorkerStageInvestmentT[]
+  investments: InvestmentOptionT[]
   registers: CashRegisterRefT[]
   defaultRegisterId?: number
   draft?: ExpenseDraftRowT
@@ -50,7 +52,7 @@ function initialRegisterId(registers: CashRegisterRefT[], defaultRegisterId?: nu
     : ''
 }
 
-function initialInvestmentId(investments: WorkerStageInvestmentT[]) {
+function initialInvestmentId(investments: InvestmentOptionT[]) {
   return investments.length === 1 ? String(investments[0]?.investmentId) : ''
 }
 

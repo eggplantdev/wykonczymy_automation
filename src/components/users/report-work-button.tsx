@@ -1,8 +1,9 @@
 import { HardHat } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTrigger } from '@/components/ui/dialog'
+import type { WorkerInvestmentLinkT } from '@/components/users/worker-investments-section'
 
-type ReportTargetT = { investmentId: number; name: string; reportUrl: string }
+export type ReportTargetT = Required<WorkerInvestmentLinkT>
 
 type PropsT = {
   targets: ReportTargetT[]
