@@ -492,6 +492,7 @@ export const uk: TranslationsT = {
   },
   shell: {
     menu: 'Меню',
+    back: 'Назад',
     expandMenu: 'Розгорнути меню',
     collapseMenu: 'Згорнути меню',
     toggleTheme: 'Змінити тему',

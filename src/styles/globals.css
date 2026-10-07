@@ -9,6 +9,9 @@
    token below while the `dark:` utilities keep answering to the OS setting. */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* An installed app has no browser chrome, so no Back — controls standing in for it show only there. */
+@custom-variant standalone (@media (display-mode: standalone));
+
 /* Lucide ships icons at 24px; our app default is 16px, so nearly every call site was restating
    size-4. Flip the default here — every Lucide svg carries the `.lucide` class. In @layer base so
    an explicit size utility (size-3, size-5, …) at an exception site still overrides it. */

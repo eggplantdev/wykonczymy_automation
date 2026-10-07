@@ -493,6 +493,7 @@ export const ru: TranslationsT = {
   },
   shell: {
     menu: 'Меню',
+    back: 'Назад',
     expandMenu: 'Развернуть меню',
     collapseMenu: 'Свернуть меню',
     toggleTheme: 'Сменить тему',

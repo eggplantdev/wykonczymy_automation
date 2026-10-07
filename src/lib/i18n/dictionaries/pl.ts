@@ -508,6 +508,7 @@ export const pl = {
   },
   shell: {
     menu: 'Menu',
+    back: 'Wstecz',
     expandMenu: 'Rozwiń menu',
     collapseMenu: 'Zwiń menu',
     toggleTheme: 'Przełącz motyw',

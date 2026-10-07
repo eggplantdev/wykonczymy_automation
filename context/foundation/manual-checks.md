@@ -4652,6 +4652,8 @@ JPEG-i ~300 KB; „duży plik" = PDF powyżej 4 MB.
 - [ ] Android z już zainstalowaną aplikacją, strona otwarta w karcie Chrome: przycisk jest ukryty albo po 60 s zmienia się w podpowiedź o menu przeglądarki — nigdy nie zostaje w ładowaniu.
 - [ ] Język konta „Українська” / „Русский”: przycisk, podpowiedź i instrukcja dla iPhone’a są przetłumaczone.
 - [ ] Przycisku nie ma na cudzej stronie pracownika ani u kierownika oglądającego stronę pracownika.
+- [ ] iPhone, ikona na ekranie głównym: logo jest wyśrodkowane, z marginesem dookoła, nie dotyka krawędzi kafelka.
+- [ ] Aplikacja zainstalowana (Android i iPhone): obok hamburgera jest strzałka wstecz na każdej stronie; cofa do poprzedniej strony, a przy pierwszej stronie po otwarciu prowadzi na stronę główną. W zwykłej karcie przeglądarki strzałki nie ma.
 
 ## 2026-10-07 — kosztorys-cell-arithmetic — działania w komórkach liczbowych kosztorysu
 
