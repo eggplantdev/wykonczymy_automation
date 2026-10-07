@@ -1,10 +1,10 @@
 ---
 change_id: kosztorys-fit-all-columns
 title: Fit row height measures every text column, with an exclusion list
-status: implemented
+status: archived
 created: 2026-10-07
 updated: 2026-10-07
-archived_at: null
+archived_at: 2026-10-07T15:40:40Z
 branch: null
 worktree: null
 ---
