@@ -44,8 +44,11 @@ export function foldDescription(description: string | null): string {
 
 // Ids can't carry a praca's identity across a re-import — the sheet has none — and the row number
 // can't either, since inserting one praca would re-key every praca below it.
+export const sectionItemKey = (section: string, description: string | null): string =>
+  `${fold(section)}|${foldDescription(description)}`
+
 export const itemKey = (section: string, description: string | null, occurrence: number): string =>
-  `${fold(section)}|${foldDescription(description)}#${occurrence}`
+  `${sectionItemKey(section, description)}#${occurrence}`
 
 export function keyItems<ItemT extends KeyableItemT>(
   items: readonly ItemT[],
@@ -54,7 +57,7 @@ export function keyItems<ItemT extends KeyableItemT>(
   const seen = new Map<string, number>()
   const byKey = new Map<string, ItemT>()
   for (const item of items) {
-    const base = `${fold(sectionName(item))}|${foldDescription(item.description)}`
+    const base = sectionItemKey(sectionName(item), item.description)
     const occurrence = seen.get(base) ?? 0
     seen.set(base, occurrence + 1)
     byKey.set(`${base}#${occurrence}`, item)
