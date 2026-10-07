@@ -433,11 +433,11 @@ Run once, after the final code phase:
 - [ ] 2.1 Route spec passes
 - [ ] 2.2 Client-upload + upload-media specs pass
 - [ ] 2.3 Media DB spec passes
-- [x] 2.4 createMediaRow / rowCreateQueue are gone
+- [x] 2.4 createMediaRow / rowCreateQueue are gone — 8f1f3574
 
 ### Phase 3: Baseline After + Manual Checks
 
 #### Automated
 
 - [ ] 3.1 baseline.md has the after-section and before → after table
-- [ ] 3.2 manual-checks.md has the EX-1014 section
+- [x] 3.2 manual-checks.md has the EX-1014 section
