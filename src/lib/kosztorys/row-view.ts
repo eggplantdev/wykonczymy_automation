@@ -101,6 +101,7 @@ export function buildViewRows(input: {
   catalogueRowIds?: { divergent: ReadonlySet<number>; missing: ReadonlySet<number> }
   latchedRowIds?: ReadonlySet<number>
   hasAiDraft?: boolean
+  aiColumnsShown?: boolean
 }): KosztorysV2RowT[] {
   const {
     rows,
@@ -115,6 +116,7 @@ export function buildViewRows(input: {
     catalogueRowIds,
     latchedRowIds,
     hasAiDraft,
+    aiColumnsShown,
   } = input
   // The latch bypasses the conditions only — a pozycja held open for editing still leaves the grid
   // when the search stops matching it, because a search is a question being asked right now.
@@ -128,6 +130,7 @@ export function buildViewRows(input: {
       qtyDoneByRowId,
       catalogueRowIds,
       hasAiDraft,
+      aiColumnsShown,
     },
     latchedRowIds,
   )

@@ -17,20 +17,22 @@ export function hasAiDraft(rows: readonly Pick<KosztorysItemT, 'aiPlannedQty'>[]
 export const aiOffered = (row: Pick<KosztorysItemT, 'aiPlannedQty'>): boolean =>
   (row.aiPlannedQty ?? 0) > 0
 
-// Asked only on an AI kosztorys: a praca the agent never saw (added later with „Nowa praca") reads as
-// Dodana without anyone picking it, so it is reviewed — and asked for a Powód zmiany — like the rest.
-export function effectiveReviewStatus(row: ReviewFieldsT): ReviewStatusT | null {
-  if (row.reviewStatus) return row.reviewStatus
-  if (row.aiPlannedQty === null && row.plannedQty > 0) return 'added'
-  return null
+// Asked only on an AI kosztorys: what the quantities say with nothing picked. A praca the agent left
+// out (0) or never saw (added later with „Nowa praca") reads as Dodana once it has a Przedmiar, so it
+// is asked for a Powód zmiany like the rest. The agent drafts blind to the Przedmiar already typed, so
+// landing on the same number is a verdict already given: Zaakceptowana, not one more pozycja to check.
+export function derivedReviewStatus(row: ReviewFieldsT): ReviewStatusT | null {
+  if (aiOffered(row)) return row.plannedQty === row.aiPlannedQty ? 'accepted' : null
+  return row.plannedQty > 0 ? 'added' : null
 }
 
+export const effectiveReviewStatus = (row: ReviewFieldsT): ReviewStatusT | null =>
+  row.reviewStatus ?? derivedReviewStatus(row)
+
 function statusForTypedQty(row: ReviewFieldsT): ReviewStatusT | null {
-  if (aiOffered(row)) {
-    if (row.plannedQty === row.aiPlannedQty) return 'accepted'
-    return row.plannedQty === 0 ? 'rejected' : 'edited'
-  }
-  return row.plannedQty > 0 ? 'added' : null
+  const derived = derivedReviewStatus(row)
+  if (derived || !aiOffered(row)) return derived
+  return row.plannedQty === 0 ? 'rejected' : 'edited'
 }
 
 // Status and Przedmiar are one concept in two columns: picking Zaakceptowana/Odrzucona writes the

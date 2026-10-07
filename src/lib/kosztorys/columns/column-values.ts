@@ -66,6 +66,10 @@ export function columnValueResolver({
   const remaining = (row: KosztorysV2RowT) =>
     rowRemainingForExecutedQty(row, resolvedCurrentPlannedQty(row), clientQtyDone(row), 'client')
   const donePercent = (row: KosztorysV2RowT) => rowDoneFraction(row, clientQtyDone(row))
+  // The agent's offer, set beside „Wartość przedmiaru netto": the agent grants no rabat (owner,
+  // 2026-10-07), so the row's own rabat would make the two differ by a decision the agent never saw.
+  const aiPlannedNet = (row: KosztorysV2RowT) =>
+    row.aiPlannedQty === null ? null : row.aiPlannedQty * viewPrice(row, 'client')
   const net = (row: KosztorysV2RowT) => netForQtyForView(row, totalQtyDone(row), view)
   const discount = (row: KosztorysV2RowT) => rowDiscountForView(row, totalQtyDone(row), view)
 
@@ -79,6 +83,7 @@ export function columnValueResolver({
     ['currentPlannedNet', currentPlannedNet],
     ['currentPlannedGross', grossOf(currentPlannedNet)],
     ['plannedNetForPlane', (row) => rowCurrentPlannedNetForView(row, view)],
+    ['aiPlannedNet', aiPlannedNet],
     ['net', net],
     ['gross', grossOf(net)],
     ['donePercent', donePercent],

@@ -112,3 +112,46 @@ describe('useKosztorysViewState — „Pokaż wszystkie pozycje"', () => {
     expect(result.current.engagedConditionIds.has('client-empty')).toBe(false)
   })
 })
+
+describe('useKosztorysViewState — „Przegląd AI"', () => {
+  const render = () =>
+    renderHook(() =>
+      useKosztorysViewState({ investmentId: INVESTMENT_ID, preview: false, aiDraft: true }),
+    )
+
+  it('opens on the work someone priced, again on every switch-on', () => {
+    const { result } = render()
+    expect(result.current.engagedConditionIds.has('no-planned-or-ai-qty')).toBe(false)
+
+    act(() => result.current.setAiReview(true))
+    expect(result.current.engagedConditionIds.has('no-planned-or-ai-qty')).toBe(true)
+
+    act(() => result.current.toggleCondition('no-planned-or-ai-qty'))
+    act(() => result.current.setAiReview(false))
+    act(() => result.current.setAiReview(true))
+    expect(result.current.engagedConditionIds.has('no-planned-or-ai-qty')).toBe(true)
+  })
+})
+
+describe('useKosztorysViewState — „Przegląd AI" filters on the next visit', () => {
+  it('engages none of them until the view is switched on again', () => {
+    localStorage.setItem(
+      `kosztorys-filters:${INVESTMENT_ID}`,
+      JSON.stringify({
+        'no-planned-or-ai-qty': true,
+        'has-planned-or-ai-qty': true,
+        'has-note': true,
+      }),
+    )
+    const { result } = renderHook(() =>
+      useKosztorysViewState({ investmentId: INVESTMENT_ID, preview: false, aiDraft: true }),
+    )
+    expect([...result.current.engagedConditionIds]).toEqual(['has-note'])
+
+    act(() => result.current.setAiReview(true))
+    expect([...result.current.engagedConditionIds].sort()).toEqual([
+      'has-note',
+      'no-planned-or-ai-qty',
+    ])
+  })
+})

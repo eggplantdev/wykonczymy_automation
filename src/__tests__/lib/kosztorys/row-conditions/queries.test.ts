@@ -6,6 +6,7 @@ import {
   clientConditionIds,
   columnsRevealedBy,
   countMatching,
+  editorConditionIds,
   engagedConditionsOfKind,
   engagedPlane,
   isFoldSuppressed,
@@ -285,6 +286,25 @@ describe('isFoldSuppressed', () => {
 
   it('leaves them alone under a problem, which reports its own count instead', () => {
     expect(isFoldSuppressed('', new Set(['no-client-price']))).toBe(false)
+  })
+
+  it('leaves them standing under the hider „Przegląd AI" engages on every switch-on', () => {
+    expect(isFoldSuppressed('', new Set(['no-planned-or-ai-qty']))).toBe(false)
+    expect(isFoldSuppressed('', new Set(['has-planned-or-ai-qty']))).toBe(true)
+  })
+})
+
+describe('editorConditionIds', () => {
+  const stored = new Set(['no-planned-or-ai-qty', 'has-note'])
+
+  it('counts the „Przegląd AI" filters only while the view is on', () => {
+    expect(editorConditionIds(stored, true)).toBe(stored)
+    expect([...editorConditionIds(stored, false)]).toEqual(['has-note'])
+  })
+
+  it('hands the same set back when none is stored', () => {
+    const plain = new Set(['has-note'])
+    expect(editorConditionIds(plain, false)).toBe(plain)
   })
 })
 

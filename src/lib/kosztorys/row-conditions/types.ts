@@ -36,6 +36,9 @@ export type RowConditionCtxT = {
   // as `catalogueRowIds`: absent reads as „no AI draft", so the review counters stay silent on every
   // host that does not review one.
   hasAiDraft?: boolean
+  // „Przegląd AI" is on. The filters that read the draft follow the columns that show it — without
+  // them the manager cannot see why a pozycja was kept or hidden.
+  aiColumnsShown?: boolean
 }
 
 type RowConditionBaseT = {

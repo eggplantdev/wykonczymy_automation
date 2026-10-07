@@ -6,8 +6,9 @@
 //
 //   INV=<id> DRAFT=<path.json> node --env-file=.env --conditions=react-server --import tsx src/scripts/load-ai-draft.ts
 //
-// DRAFT: [{ "section": "Łazienka", "description": "Skucie płytek", "qty": 12.5, "unit": "m2", "clientPrice": 80 }, …]
-// (`unit` and `clientPrice` are read only for an added pozycja)
+// DRAFT: [{ "section": "Łazienka", "description": "Skucie płytek", "qty": 12.5, "unit": "m2", "clientPrice": 80, "note": "pomiar z rzutu" }, …]
+// (`unit` and `clientPrice` are read only for an added pozycja; `note` — the agent's source for the
+// quantity — goes into Komentarz, and a row without one keeps the Komentarz it has)
 import { readFileSync } from 'node:fs'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
@@ -20,6 +21,7 @@ type DraftRowT = {
   qty: number
   unit?: string
   clientPrice?: number
+  note?: string
 }
 
 const INVESTMENT_ID = Number(process.env.INV)
@@ -29,9 +31,7 @@ assertLocalDb('load-ai-draft')
 
 async function run() {
   const draft: DraftRowT[] = JSON.parse(readFileSync(DRAFT as string, 'utf8'))
-  const qtyByKey = new Map(
-    draft.map((row) => [sectionItemKey(row.section, row.description), row.qty]),
-  )
+  const rowByKey = new Map(draft.map((row) => [sectionItemKey(row.section, row.description), row]))
 
   const payload = await getPayload({ config })
   const { docs: items } = await payload.find({
@@ -47,8 +47,8 @@ async function run() {
   for (const item of items) {
     const section = typeof item.section === 'object' ? item.section : undefined
     const key = sectionItemKey(section?.name ?? '', item.description ?? null)
-    const qty = qtyByKey.get(key)
-    if (qty !== undefined) matchedKeys.add(key)
+    const row = rowByKey.get(key)
+    if (row) matchedKeys.add(key)
     if (section) {
       const last = lastOrderBySection.get(section.id) ?? 0
       lastOrderBySection.set(section.id, Math.max(last, item.displayOrder))
@@ -56,7 +56,12 @@ async function run() {
     await payload.update({
       collection: 'kosztorys-items',
       id: item.id,
-      data: { aiPlannedQty: qty ?? 0, reviewStatus: null, changeReason: null },
+      data: {
+        aiPlannedQty: row?.qty ?? 0,
+        reviewStatus: null,
+        changeReason: null,
+        ...(row?.note ? { note: row.note } : {}),
+      },
       context: { skipRevalidation: true },
     })
   }
@@ -94,6 +99,7 @@ async function run() {
         plannedQty: 0,
         discountValue: 0,
         aiPlannedQty: row.qty,
+        note: row.note,
       },
       context: { skipRevalidation: true },
     })

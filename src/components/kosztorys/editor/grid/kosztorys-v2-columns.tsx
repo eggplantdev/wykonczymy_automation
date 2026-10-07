@@ -198,6 +198,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
           ),
           ...AI_REVIEW_COLUMN_CLASS,
         },
+        { ...resolvedColumn('aiPlannedNet'), ...AI_REVIEW_COLUMN_CLASS },
         reviewStatusColumn(columnTitle('reviewStatus', opts)),
         keyCol('changeReason', longTextColumn, {
           id: 'changeReason',
