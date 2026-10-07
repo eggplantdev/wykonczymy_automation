@@ -682,12 +682,12 @@ Run once, after Phase 6.
 
 #### Automated
 
-- [ ] 5.1 Worker PDF and form print the aktualizacja under its label
-- [ ] 5.2 Stored worker hide of plannedQty maps to currentPlannedQty
-- [ ] 5.3 Worker document never contains plannedQty
+- [ ] 5.1 Worker PDF and form print the aktualizacja under its label — 0561d40d (specs unrun)
+- [ ] 5.2 Stored worker hide of plannedQty maps to currentPlannedQty — 0561d40d (specs unrun)
+- [ ] 5.3 Worker document never contains plannedQty — 0561d40d (specs unrun)
 
 ### Phase 6: Docs and archive
 
 #### Automated
 
-- [ ] 6.1 No phase-scoped automated check (prose only)
+- [x] 6.1 No phase-scoped automated check (prose only)

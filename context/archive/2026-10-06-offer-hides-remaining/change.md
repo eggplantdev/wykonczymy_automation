@@ -1,10 +1,10 @@
 ---
 change_id: offer-hides-remaining
 title: Investor document hides „Pozostało" until the first etap entry
-status: new
+status: archived
 created: 2026-10-06
-updated: 2026-10-06
-archived_at: null
+updated: 2026-10-07
+archived_at: 2026-10-07
 branch: null
 worktree: null
 ---
@@ -22,3 +22,5 @@ Pomiar z natury, Wartość netto and % wykonania. This reverses the 2026-09-28 n
 Resulting offer view: Opis, Przedmiar, j.m., Cena j.m., Wartość netto przedmiar.
 
 Folded into `2026-10-07-kosztorys-przedmiar-aktualny` (2026-10-07) — same trigger (first etap entry) adds Przedmiar aktualny to the investor document; implement there, archive this folder with it.
+
+Folded into EX-921 (`kosztorys-przedmiar-aktualny`, Phase 4) and implemented there.
