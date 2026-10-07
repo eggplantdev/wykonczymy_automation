@@ -625,6 +625,19 @@ Run once, after Phase 6.
 - Full unit suite passes: `pnpm test`
 - DB integration specs pass: `pnpm test:integration`
 
+## As built (review gate, 2026-10-07)
+
+Off-plan changes the implementation needed, each forced by the change or in its spirit:
+
+- Sorting „Aktualizacja przedmiaru" sorts the resolved figure (`sort-value.ts`), or every following row sinks as „no figure".
+- The column sits in `LAYER_NEUTRAL_COLUMNS`, not `COLUMN_LAYER` — it shows in both Praca and Postęp.
+- `e2e/investment-lock.spec.ts` header selector follows the rename to „Przedmiar ofertowy".
+- `parse-labor-tab.ts` writes `currentPlannedQty: null`; the „Postęp" counter in `summary-stages-tab.tsx` reads `currentPlannedNet`.
+
+Paths that landed elsewhere than planned: accept-worker-report is `src/lib/actions/accept-worker-report.ts`; the
+migration is `20261007_1_add_current_planned_qty.ts`; the settlement-aggregates case is in
+`kosztorys-v2-rows.test.ts`; the 5.3 "never contains plannedQty" assertion is in `worker-view/settings.test.ts`.
+
 ## References
 
 - Research: `context/changes/2026-10-07-kosztorys-przedmiar-aktualny/research.md`
@@ -644,11 +657,11 @@ Run once, after Phase 6.
 - [x] 1.1 Migration applies to the local DB — 9fb5d40a
 - [x] 1.2 Migration applies to the test DB — 9fb5d40a
 - [x] 1.3 Stored investor hidden sets carry currentPlannedNet; NULL rows stay NULL — 9fb5d40a
-- [ ] 1.4 Insert funnel matches the table
-- [ ] 1.5 Tree SELECT matches the mapper
-- [ ] 1.6 Snapshot round-trip keeps a hand edit and restores an old snapshot as null
+- [x] 1.4 Insert funnel matches the table — green at the review gate, test DB (review-gate.md)
+- [x] 1.5 Tree SELECT matches the mapper — green at the review gate, test DB (review-gate.md)
+- [x] 1.6 Snapshot round-trip keeps a hand edit and restores an old snapshot as null — green at the review gate, test DB (review-gate.md)
 - [x] 1.7 Import plan carries a hand edit on a matched row, null on a new row — 9fb5d40a
-- [ ] 1.8 Worker extra lands with ofertowy 0 and aktualizacja = reported quantity
+- [x] 1.8 Worker extra lands with ofertowy 0 and aktualizacja = reported quantity — green at the review gate, test DB (review-gate.md)
 - [x] 1.9 Patch schema keeps null as null — 9fb5d40a
 
 ### Phase 2: Calculation layer
