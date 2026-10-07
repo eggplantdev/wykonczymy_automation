@@ -44,7 +44,7 @@ describe('uploadMediaBySize', () => {
 })
 
 describe('uploadMediaToServer', () => {
-  it.each([400, 413, 415])('words a %i as the file being refused', async (status) => {
+  it.each([400, 409, 413, 415])('words a %i as the file being refused', async (status) => {
     fetchMock.mockResolvedValue(Response.json({ error: 'x' }, { status }))
 
     const err = await uploadMediaToServer(photo(10)).catch((e: unknown) => e)

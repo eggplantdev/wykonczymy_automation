@@ -15,7 +15,7 @@ type AllowedMimeT = (typeof ALLOWED_UPLOAD_MIMES)[number]
 
 // PDF readers accept the `%PDF-` header anywhere in the first KB, and generated e-faktury do put a
 // BOM or whitespace before it.
-const SNIFF_BYTES = 1024
+export const SNIFF_BYTES = 1024
 
 const AVIF_BRANDS = new Set(['avif', 'avis'])
 const HEIC_BRANDS = new Set(['heic', 'heix', 'hevc', 'hevx', 'heim', 'heis', 'mif1', 'msf1'])

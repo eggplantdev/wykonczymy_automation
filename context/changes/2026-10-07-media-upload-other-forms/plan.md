@@ -424,7 +424,7 @@ Run once, after the final code phase:
 - [ ] 1.1 Upload-ids specs pass
 - [ ] 1.2 Validation spec passes
 - [ ] 1.3 Draft dialog spec passes
-- [x] 1.4 No production file passes an uploader
+- [x] 1.4 No production file passes an uploader — 434b9e45
 
 ### Phase 2: Register Files Above 4 MB from head()
 
@@ -433,7 +433,7 @@ Run once, after the final code phase:
 - [ ] 2.1 Route spec passes
 - [ ] 2.2 Client-upload + upload-media specs pass
 - [ ] 2.3 Media DB spec passes
-- [ ] 2.4 createMediaRow / rowCreateQueue are gone
+- [x] 2.4 createMediaRow / rowCreateQueue are gone
 
 ### Phase 3: Baseline After + Manual Checks
 

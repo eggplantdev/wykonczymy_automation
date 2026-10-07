@@ -1,70 +1,68 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { createMediaRow } from '@/lib/media/client-upload'
+const { blobUpload } = vi.hoisted(() => ({ blobUpload: vi.fn() }))
+vi.mock('@vercel/blob/client', () => ({ upload: blobUpload }))
 
-const tick = () => new Promise((resolve) => setTimeout(resolve, 1))
-const pdf = (name: string) => new File(['%PDF'], name, { type: 'application/pdf' })
+import { uploadMediaFromClient } from '@/lib/media/client-upload'
 
-describe('createMediaRow', () => {
-  afterEach(() => vi.unstubAllGlobals())
+const pdf = (name = 'faktura.pdf') => new File(['%PDF-1.7'], name, { type: 'application/pdf' })
 
-  // On Neon, concurrent `POST /api/media` calls each return an id but only one row commits — the
-  // bulk insert then trips `transactions_rels_media_id_fkey` on the ids that never existed.
-  it('never has two row creates in flight at once', async () => {
-    const rows = { inFlight: 0, maxInFlight: 0, nextId: 1 }
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async () => {
-        rows.inFlight++
-        rows.maxInFlight = Math.max(rows.maxInFlight, rows.inFlight)
-        await tick()
-        rows.inFlight--
-        return new Response(JSON.stringify({ doc: { id: rows.nextId++ } }))
-      }),
+const fetchMock = vi.fn()
+
+beforeEach(() => {
+  vi.clearAllMocks()
+  vi.stubGlobal('fetch', fetchMock)
+  blobUpload.mockResolvedValue({ url: 'https://store.public.blob.vercel-storage.com/x.pdf' })
+  fetchMock.mockResolvedValue(Response.json({ id: 42 }))
+})
+afterEach(() => vi.unstubAllGlobals())
+
+describe('uploadMediaFromClient', () => {
+  // The row has to name exactly the key the browser PUT, or the register route finds no blob.
+  it('registers the blob it just PUT, under the same key', async () => {
+    await expect(uploadMediaFromClient(pdf(), { kind: 'projekt' })).resolves.toBe(42)
+
+    const [key] = blobUpload.mock.calls[0]
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(url).toBe('/api/media-register')
+    expect(JSON.parse(init.body)).toEqual({ filename: key, kind: 'projekt' })
+    expect(blobUpload.mock.invocationCallOrder[0]).toBeLessThan(
+      fetchMock.mock.invocationCallOrder[0],
     )
-
-    const ids = await Promise.all(
-      ['a.pdf', 'b.pdf', 'c.pdf'].map((name) => createMediaRow(name, pdf(name), {})),
-    )
-
-    expect(ids.sort()).toEqual([1, 2, 3])
-    expect(rows.maxInFlight).toBe(1)
   })
 
-  it('keeps creating rows after one create fails', async () => {
-    let call = 0
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async () =>
-        ++call === 1
-          ? new Response('{}', { status: 500 })
-          : new Response(JSON.stringify({ doc: { id: 42 } })),
-      ),
-    )
+  // `POST /api/media` is the serialized Payload pipeline EX-855 had to queue; no app path uses it.
+  it('never asks Payload to create the row', async () => {
+    await uploadMediaFromClient(pdf())
 
-    const results = await Promise.allSettled([
-      createMediaRow('a.pdf', pdf('a.pdf'), {}),
-      createMediaRow('b.pdf', pdf('b.pdf'), {}),
-    ])
-
-    expect(results.map((result) => result.status)).toEqual(['rejected', 'fulfilled'])
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual(['/api/media-register'])
   })
 
-  it('rejects a refused file with a Polish message naming it, not the Payload error text', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(
-        async () =>
-          new Response(
-            JSON.stringify({ errors: [{ message: 'The following field is invalid: file' }] }),
-            { status: 400 },
-          ),
-      ),
-    )
+  it.each([400, 409, 415])('words a %i as the file being refused', async (status) => {
+    fetchMock.mockResolvedValue(Response.json({ error: 'x' }, { status }))
 
-    const rejection = createMediaRow('minted-name.pdf', pdf('faktura.pdf'), {})
+    await expect(uploadMediaFromClient(pdf())).rejects.toMatchObject({
+      messageKey: 'uploadRejected',
+      messageParams: { name: 'faktura.pdf' },
+    })
+  })
 
-    await expect(rejection).rejects.toThrow('„faktura.pdf"')
-    await expect(rejection).rejects.not.toThrow('The following field is invalid')
+  it('words any other failure as a failed save', async () => {
+    fetchMock.mockResolvedValue(Response.json({ error: 'x' }, { status: 500 }))
+
+    await expect(uploadMediaFromClient(pdf())).rejects.toMatchObject({
+      messageKey: 'uploadSaveFailed',
+      messageParams: { name: 'faktura.pdf', status: 500 },
+    })
+  })
+
+  it('refuses an SVG before any bytes move', async () => {
+    const svg = new File(['<svg/>'], 'logo.svg', { type: 'image/svg+xml' })
+
+    await expect(uploadMediaFromClient(svg)).rejects.toMatchObject({
+      messageKey: 'uploadNotImageOrPdf',
+    })
+    expect(blobUpload).not.toHaveBeenCalled()
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 })

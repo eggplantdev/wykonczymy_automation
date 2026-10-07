@@ -2205,9 +2205,10 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
   the concurrency it exists to guard.
 - **Rule**: on this stack, never let two Payload writes overlap — not on the server, and not from
   the browser (`Promise.all` / a concurrency pool over `/api/*` counts). A success response from a
-  Payload write is not proof the row exists. `uploadMediaFromClient` keeps the Blob PUT parallel and
-  chains only the row create through the page-wide queue in `createMediaRow`; that queue covers one
-  tab only. The real fix is the adapter (EX-855) — give Drizzle a pool it recognises, verify with
+  Payload write is not proof the row exists. Since EX-1014 no app upload path creates its row
+  through Payload: both `/api/media-upload` and `/api/media-register` insert it with raw SQL, so the
+  former page-wide `createMediaRow` queue is gone — the admin panel's `POST /api/media` is the one
+  Payload media write left. The real fix is the adapter (EX-855) — give Drizzle a pool it recognises, verify with
   `pnpm why pg` that only one `pg` copy exists, and prove it on **staging under overlap**, never
   locally.
 - **Applies to**: 10x-plan, 10x-implement, impl-review, any code that fans out Payload writes.

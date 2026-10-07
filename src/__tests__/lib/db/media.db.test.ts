@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
-import { deleteMediaRow, insertMediaRow } from '@/lib/db/media'
+import { deleteMediaRow, insertMediaRow, isMediaFilenameReferenced } from '@/lib/db/media'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 
 vi.mock('server-only', () => ({}))
@@ -100,5 +100,27 @@ describe.skipIf(!ENV_READY)('insertMediaRow (DB)', () => {
 
     const { rows } = await db.execute(sql`SELECT id FROM media WHERE id = ${id}`)
     expect(rows).toHaveLength(0)
+  })
+
+  // The register route deletes a refused blob only when no row stores bytes under its key — as an
+  // original or as a Payload-made thumbnail.
+  it('finds a filename held as an original or as a thumbnail, and nothing else', async () => {
+    const id = await insertMediaRow(db, {
+      filename: `${FILENAME_PREFIX}original.jpg`,
+      mimeType: 'image/jpeg',
+      filesize: 1_000,
+      kind: null,
+      createdById: uploaderId,
+    })
+    await db.execute(sql`
+      UPDATE media SET sizes_thumbnail_filename = ${`${FILENAME_PREFIX}original-300x300.jpg`}
+      WHERE id = ${id}
+    `)
+
+    await expect(isMediaFilenameReferenced(db, `${FILENAME_PREFIX}original.jpg`)).resolves.toBe(true)
+    await expect(
+      isMediaFilenameReferenced(db, `${FILENAME_PREFIX}original-300x300.jpg`),
+    ).resolves.toBe(true)
+    await expect(isMediaFilenameReferenced(db, `${FILENAME_PREFIX}nobody.jpg`)).resolves.toBe(false)
   })
 })

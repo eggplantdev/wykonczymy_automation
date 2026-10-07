@@ -1,18 +1,12 @@
 import { ROUTE_BODY_MAX_BYTES } from '@/lib/constants/route-body'
 import { uploadMediaFromClient } from '@/lib/media/client-upload'
+import { mediaIdFrom } from '@/lib/media/media-route-response'
 import { refused } from '@/lib/media/upload-refused'
-import { logError } from '@/lib/utils/log-error'
 import { uploadFileProblem } from '@/lib/utils/validate-upload-file'
 import type { MediaKindT } from '@/types/media'
 
 const FAST_ROUTE = '/api/media-upload'
 
-const REFUSED_STATUSES = new Set([400, 413, 415])
-
-/**
- * Refusals use the keys `uploadMediaFromClient` throws, so the toast reads the same whichever path
- * a file took.
- */
 export async function uploadMediaToServer(
   file: File,
   data: { kind?: MediaKindT } = {},
@@ -25,17 +19,7 @@ export async function uploadMediaToServer(
   if (data.kind) formData.set('kind', data.kind)
 
   const response = await fetch(FAST_ROUTE, { method: 'POST', body: formData })
-  const body = await response.json().catch(() => undefined)
-
-  if (!response.ok) {
-    logError(`[upload-media] POST ${FAST_ROUTE} ${response.status}`, body?.error)
-    throw REFUSED_STATUSES.has(response.status)
-      ? refused('uploadRejected', { name: file.name })
-      : refused('uploadSaveFailed', { name: file.name, status: response.status })
-  }
-  const id = body?.id
-  if (typeof id !== 'number') throw refused('uploadNoFileReturned')
-  return id
+  return mediaIdFrom(response, FAST_ROUTE, file)
 }
 
 /**
