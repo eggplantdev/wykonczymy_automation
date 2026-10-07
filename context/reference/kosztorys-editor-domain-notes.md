@@ -1968,3 +1968,11 @@ Ten sam wzór co blok Podwykonawcy, tylko rozcięty na pary. Pełne zasady liczb
   wierszu, zdanie „X ponad wykonaną pracę — zapisze się jako zaliczka", a opis wypłaty dostaje
   „w tym zaliczka X zł". Słowo zostaje mimo znaczenia „wpłata inwestora" w słowniku — kontekst
   wypłaty dla pracownika je rozstrzyga. Wiersz już nadpłacony startuje odznaczony i pusty.
+
+## Status przeglądu szkicu AI: zapisany ≠ widoczny (EX-1006, 2026-10-07)
+
+Status w kolumnie „Status" to `effectiveReviewStatus`, nie surowe `review_status`. Gdy nikt nic nie
+wybrał, równe Przedmiar i AI przedmiar czytają się jako „Zaakceptowana", a Przedmiar przy AI
+przedmiarze 0 lub pustym jako „Dodana" — w bazie stoi wtedy NULL. Każdy przyszły eksport, zapytanie
+SQL czy snapshot dla pętli wiedzy liczy statusy przez `effectiveReviewStatus`, inaczej policzy te
+pozycje jako niesprawdzone.

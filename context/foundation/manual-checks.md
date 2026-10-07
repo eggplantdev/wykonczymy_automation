@@ -4546,7 +4546,7 @@ Baza musi mieć migrację `20261007_0_add_ai_review_columns`.
 
 Stan: kosztorys ze wczytanym szkicem AI (kolumna „AI przedmiar" ma wartości) oraz zwykły kosztorys bez szkicu.
 
-- [ ] Kosztorys ze szkicem → w wyborze kolumn są „AI przedmiar", „Status", „Powód zmiany"; „Problemy" pokazuje grupę „Przegląd AI", a „do sprawdzenia (szkic AI)" liczy pozycje z AI przedmiarem i bez statusu.
+- [ ] Kosztorys ze szkicem → w wyborze kolumn są „AI przedmiar", „Status", „Powód zmiany"; „Problemy" pokazuje grupę „Przegląd AI", a „do sprawdzenia (szkic AI)" liczy pozycje z AI przedmiarem, bez statusu i z Przedmiarem innym niż AI przedmiar.
 - [ ] Wpisz w „Przedmiar" tę samą liczbę co AI przedmiar → Status „Zaakceptowana"; 0 → „Odrzucona"; inną liczbę → „Edytowana"; liczbę przy AI przedmiarze 0 → „Dodana". Ctrl+Z cofa Przedmiar i Status razem.
 - [ ] Status → „Zaakceptowana" przepisuje AI przedmiar do „Przedmiar"; „Odrzucona" ustawia Przedmiar na 0.
 - [ ] Pozycja z AI przedmiarem 0 i wpisanym Przedmiarem: wybranie dowolnego Statusu nie zmienia Przedmiaru.
@@ -4562,12 +4562,25 @@ Stan: kosztorys ze wczytanym szkicem AI (kolumna „AI przedmiar" ma wartości) 
 
 - [x] Dowolny kosztorys → menu „Kolumny" → „Widok" → „Oferta": tylko Opis, Przedmiar, j.m., Cena j.m., Wartość netto przedmiar (+ Akcje); ceny inwestora i przełącznik widoku cen znikają, a menu „Kolumny" pokazuje już tylko „Oferta" i „Przegląd AI". Odznaczenie „Oferta" przywraca poprzednie kolumny, widok cen i resztę menu.
       Staging 2026-10-07 (inwestycja 173): Oferta → Opis, Przedmiar, j.m., Cena j.m. netto, Wartość przedmiaru netto + Akcje; przełącznik cen znika, menu = tylko „Oferta" (bez AI — brak szkicu); odznaczenie przywraca 8 kolumn, przełącznik i pełne menu.
-- [ ] Kosztorys ze szkicem → menu „Kolumny" → „Przegląd AI" dokłada cztery kolumny AI do bieżących, bez błędu „Coś poszło nie tak"; „Komentarz do pracy" pokazuje komentarze z katalogu. Odznaczenie je zabiera, a zaznaczenia w wyborze kolumn są takie jak przed włączeniem.
+- [ ] Kosztorys ze szkicem → menu „Kolumny" → „Przegląd AI" dokłada pięć kolumn AI do bieżących (z „AI wartość netto przedmiar"), bez błędu „Coś poszło nie tak"; „Komentarz do pracy" pokazuje komentarze z katalogu. Odznaczenie je zabiera, a zaznaczenia w wyborze kolumn są takie jak przed włączeniem.
 - [ ] Oba zaznaczone: kolumny oferty + kolumny AI.
 - [ ] Menu zostaje otwarte po kliknięciu „Oferta" / „Przegląd AI"; na pasku narzędzi nie ma już osobnych przycisków.
       Staging 2026-10-07: „Oferta” — menu zostaje otwarte, brak osobnych przycisków na pasku; „Przegląd AI” niesprawdzone (brak szkicu AI na stagingu — patrz Findings).
 - [x] Zwykły kosztorys: w menu „Kolumny" brak „Przegląd AI"; szablon: brak menu „Kolumny" (jak wcześniej).
       Staging 2026-10-07: 173 — menu „Kolumny” → „Widok” ma tylko „Oferta”; szablon 159 — brak przycisku „Kolumny”.
+
+### Dogfooding na „Oliwa” (lokalnie, #180) — addendum 2026-10-07
+
+Stan: lokalny kosztorys ze wczytanym szkicem (`load-ai-draft.ts`), część pozycji z Przedmiarem równym AI przedmiarowi, część z AI przedmiarem 0 i wpisanym Przedmiarem.
+
+- [ ] Wejście na kosztorys bez klikania „Przegląd AI”: „Filtry” nie ma grupy „Przegląd AI”, brak chipa i wpisu (0), nawet jeśli w ostatnim przeglądzie filtr został odznaczony.
+- [ ] Kliknięcie „Przegląd AI”: „Filtry” ma na górze grupę „Przegląd AI”, „bez przedmiaru i bez AI przedmiaru” jest odznaczone, „z przedmiarem lub AI przedmiarem” zaznaczone; siatka pokazuje tylko wycenione pozycje. Zaznacz z powrotem, wyłącz i włącz widok — znów odznaczone.
+- [ ] Odznacz „z przedmiarem lub AI przedmiarem”, wyłącz i włącz „Przegląd AI”: siatka nie jest pusta (filtr wraca na zaznaczony).
+- [ ] W „Przegląd AI” sekcje dalej się zwijają (strzałka przy sekcji, „Sekcje”).
+- [ ] „Filtry” otwiera się nagłówkiem „Widoczne pozycje” i podpowiedzią „Odznacz, żeby ukryć.”.
+- [ ] Pozycja z Przedmiarem równym AI przedmiarowi: Status „Zaakceptowana” bez wybierania, nie ma jej w „do sprawdzenia”; w menu Statusu brak „Do sprawdzenia”.
+- [ ] Pozycja z AI przedmiarem 0 i Przedmiarem: Status „Dodana” bez wybierania, trafia do „zmienione bez powodu”.
+- [ ] Kolumna „AI wartość netto przedmiar” = AI przedmiar × Cena j.m., bez rabatu; suma w stopce i w „Razem”, brak wiersza w bloku podsumowania.
 
 ### Findings — 2026-10-07
 

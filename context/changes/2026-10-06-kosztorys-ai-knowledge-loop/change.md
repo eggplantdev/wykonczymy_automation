@@ -50,6 +50,8 @@ Design agreed 2026-10-06 — still brainstorming; a spike validates it before `/
 - **Status is the manager's stored decision, a select** (owner, 2026-10-06) — not derived. A derived
   status could not tell "not reached yet" from "removed" (both are Przedmiar 0), and made the manager
   retype every quantity the AI got right.
+  _Narrowed by the addendum below (2026-10-07): with nothing picked, equal quantities read
+  Zaakceptowana and a Przedmiar on a praca the agent left out reads Dodana. A picked status still wins._
 
   | Status        | What it does to Przedmiar                                     | Powód zmiany |
   | ------------- | ------------------------------------------------------------- | ------------ |
@@ -127,3 +129,31 @@ Design agreed 2026-10-06 — still brainstorming; a spike validates it before `/
 Out of scope: rules that belong to no single praca („one section per bathroom"), per-author attribution
 and note history, an agent-facing API (the experiment's scripts write AI przedmiar through the existing
 item save action, which accepts the field; no grid cell sends it), storing a position's katalog origin (the opis-rewrite limit).
+
+**Addendum (2026-10-07) — comparing the draft with the offer, from case 2 („Oliwa”, #180)**
+
+- „Filtry” → a „Przegląd AI” heading at the top: the pair „z przedmiarem lub AI przedmiarem” / „bez przedmiaru i bez AI
+  przedmiaru”. Unticking the second one leaves only the work someone priced. Only while „Przegląd AI”
+  is on (owner: no AI columns, no AI filters); otherwise both match nothing, so the menu doesn't list
+  them and one left unticked hides nothing. Switching „Przegląd AI” on unticks „bez przedmiaru i bez
+  AI przedmiaru” every time (owner, 2026-10-07) — the review opens on the work someone priced — and
+  ticks the other half back, or the pair would hide every row. That auto-untick does not stop the
+  sekcje folding. A pozycja added inside the view with no Przedmiar is hidden by it at once —
+  accepted (owner, 2026-10-07): tick the filter back before adding work.
+  Outside the view neither filter counts as engaged, so a pick remembered from the last pass shows no
+  chip and no (0) entry on a visit that never clicked „Przegląd AI”.
+- Status reads **Zaakceptowana** wherever AI przedmiar equals the Przedmiar and nobody picked one
+  (owner, 2026-10-07): the agent drafts blind to the typed Przedmiar, so the same number is agreement.
+  Derived, like Dodana, not written by the loader — it also holds for a Przedmiar typed after the
+  draft, and a picked status still wins. Such a pozycja leaves „do sprawdzenia”. Where the quantities
+  already derive a status, the Status menu offers no „Do sprawdzenia” — picking it would change nothing.
+- Status reads **Dodana** where the agent left a praca out (AI przedmiar 0) and it has a Przedmiar
+  (owner, 2026-10-07) — what typing that Przedmiar already wrote, now also for one typed before the
+  draft. So „zmienione bez powodu” asks why the owner priced work the agent missed (case 2: grzejniki
+  dekoracyjne, rozkucie podejść).
+- Column „AI wartość netto przedmiar” = AI przedmiar × Cena j.m., **no rabat** (owner: the offer carries
+  none). It sits beside the AI przedmiar column in „Przegląd AI”. It has a column total in the footer and
+  „Razem”, and no line in the summary block. It never reaches the investor (an AI column).
+- Tests: `ai-review-conditions.test.ts`, `column-values.test.ts`, `column-totals.test.ts`, `ai-review-toggles.test.ts`.
+- „Filtry” opens with a bold „Widoczne pozycje” and „Odznacz, żeby ukryć.” — a tick there means
+  shown, and nothing in the menu said so.
