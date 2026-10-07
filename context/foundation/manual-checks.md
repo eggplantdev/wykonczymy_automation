@@ -4607,3 +4607,13 @@ Staging, zalogowany pracownik z własną kasą i etapem na inwestycji. Zdjęcia 
 - [ ] „Moje inwestycje” to zwykła lista nazw ze strzałką (bez tabeli i bez kolumny „Zgłoszenia”); nazwa otwiera podsumowanie inwestycji. Kierownik widzi same nazwy, bez strzałek i linków.
 - [ ] Pracownik z językiem „Українська” lub „Русский”, 390px: etykiety obu dużych przycisków zawijają się w środku przycisku, nic nie wychodzi poza jego krawędź; gdy dostępny jest tylko jeden z nich, zajmuje cały rząd.
 - [ ] Pracownik bez zgłoszonych wydatków, bez zgłoszeń prac i bez transferów → na jego stronie nie ma sekcji „Zgłoszone wydatki”, „Zgłoszenia wykonanych prac” ani „Lista wydatków / zaliczek”; każda pojawia się po pierwszym wpisie. Filtr transferów, który nic nie znajduje, nie chowa sekcji „Lista wydatków / zaliczek”.
+
+## EX-921 — kosztorys-przedmiar-aktualny — „Aktualizacja przedmiaru” obok „Przedmiaru ofertowego” (2026-10-07)
+
+- [ ] Kosztorys z pozycjami → w edytorze kolejno: „Przedmiar ofertowy”, „Wartość netto przedmiar”, „Aktualizacja przedmiaru”, „Wartość netto aktualizacji przedmiaru”. Na nietkniętej pozycji aktualizacja jest szara (kursywa) i równa przedmiarowi ofertowemu.
+- [ ] Wpisz 120 w „Aktualizacja przedmiaru” → komórka robi się czarna, „% wykonania” i „Pozostało” przeliczają się względem 120. Delete → komórka znów szara i pokazuje przedmiar ofertowy. Wpisz 0 → „% wykonania” pokazuje „—”, a wartość wykonana wiersza zostaje.
+- [ ] Zmień „Przedmiar ofertowy” na pozycji z szarą aktualizacją → aktualizacja idzie za nim. Na pozycji z wpisaną ręcznie aktualizacją → zostaje bez zmian.
+- [ ] Wiersz „Razem” i stopki sekcji pokazują obie sumy: „Wartość netto przedmiar” i „Wartość netto aktualizacji przedmiaru”. Po przeładowaniu strony ręczna aktualizacja nadal jest.
+- [ ] Sortowanie po „Aktualizacja przedmiaru” → szare (nietknięte) pozycje układają się według swojej liczby, nie lądują wszystkie na dole.
+- [ ] Tryb „Postęp” → kolumna „Aktualizacja przedmiaru” zostaje widoczna obok „% wykonania” i „Pozostało”.
+- [ ] Historia wersji → zmiana aktualizacji pokazuje się jako „Aktualizacja przedmiaru: — → 120”, a zmiana przedmiaru ofertowego jako „Przedmiar ofertowy”.

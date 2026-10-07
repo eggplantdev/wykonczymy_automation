@@ -1,6 +1,7 @@
 import { escapeHtml } from '@/lib/utils/escape-html'
 import { POLISH_GRID, type TranslatorT } from '@/lib/i18n/translations'
 import type { ColumnValueT, ColumnValuesT } from '@/lib/kosztorys/columns/column-values'
+import { resolvedCurrentPlannedQty } from '@/lib/kosztorys/calc'
 import { formatQty } from '@/lib/kosztorys/format'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
 import { stageKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
@@ -35,11 +36,20 @@ export const DESCRIPTION_COLUMN: PrintColumnT = {
 
 export const PLANNED_QTY_COLUMN: PrintColumnT = {
   key: 'plannedQty',
-  label: 'Przedmiar',
+  label: POLISH_GRID.t('plannedQty'),
   colClass: 'c-qty',
   cellClass: 'num',
   headerClass: 'num',
   cell: (row) => escapeHtml(formatQty(row.plannedQty)),
+}
+
+export const CURRENT_PLANNED_QTY_COLUMN: PrintColumnT = {
+  key: 'currentPlannedQty',
+  label: POLISH_GRID.t('currentPlannedQty'),
+  colClass: 'c-qty',
+  cellClass: 'num',
+  headerClass: 'num',
+  cell: (row) => escapeHtml(formatQty(resolvedCurrentPlannedQty(row))),
 }
 
 export const UNIT_COLUMN: PrintColumnT = {

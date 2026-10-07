@@ -18,6 +18,9 @@ export type ItemRefT = {
 
 export type FieldChangeT =
   | { field: 'plannedQty' | 'price' | 'plannedNet' | 'net'; before: number; after: number }
+  // The STORED value, so „follows the ofertowy" (`null`) → a typed number is a change of its own,
+  // even when the number equals the ofertowy it was following.
+  | { field: 'currentPlannedQty'; before: number | null; after: number | null }
   // `stageId` is the column the past grid renders: the past etap's id, or the current one's for an
   // etap that did not exist yet (`VersionDiffT.addedStages`).
   | { field: 'stageQty'; stageId: number; stageLabel: string; before: number; after: number }

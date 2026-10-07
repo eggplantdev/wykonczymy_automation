@@ -19,7 +19,7 @@ const OWN_RATE = 9.75
 const RATE = 12.5
 
 const RATE_HEADER = 'Cena j.m. netto — z narzędziami (podwykonawca)'
-const PLANNED_NET_HEADER = 'Wartość przedmiaru netto — z narzędziami (podwykonawca)'
+const PLANNED_NET_HEADER = 'Wartość netto aktualizacji przedmiaru — z narzędziami (podwykonawca)'
 const STAGE_QTY_SUM_HEADER = 'Pomiar — suma etapów z narzędziami (podwykonawca)'
 const NET_HEADER = 'Suma etapów z narzędziami (podwykonawca) netto'
 

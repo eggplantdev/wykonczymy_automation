@@ -21,6 +21,7 @@ export const COLUMN_LABELS: Record<string, string> = {
   sectionName: 'Sekcja',
   description: pl.grid.description,
   plannedQty: pl.grid.plannedQty,
+  currentPlannedQty: pl.grid.currentPlannedQty,
   stageQtySum: 'Pomiar (razem etapy)',
   // Names both sides of its subtraction in the header: the column is read at a glance, so needing a
   // tooltip to learn which two figures are being compared would defeat it.
@@ -36,16 +37,18 @@ export const COLUMN_LABELS: Record<string, string> = {
   discountAmountGross: 'Rabat kwota brutto',
   plannedNet: 'Wartość przedmiaru netto',
   plannedGross: 'Wartość przedmiaru brutto',
+  currentPlannedNet: 'Wartość netto aktualizacji przedmiaru',
+  currentPlannedGross: 'Wartość brutto aktualizacji przedmiaru',
   plannedNetForPlane: pl.grid.plannedNetForPlane,
   remainingForPlane: pl.grid.remainingForPlane,
   net: 'Wartość netto (razem etapy)',
   gross: 'Wartość brutto (razem etapy)',
-  remaining: 'Pozostało netto (względem przedmiaru)',
-  remainingGross: 'Pozostało brutto (względem przedmiaru)',
+  remaining: 'Pozostało netto (względem aktualizacji przedmiaru)',
+  remainingGross: 'Pozostało brutto (względem aktualizacji przedmiaru)',
   stages: 'Etapy — ilość',
   stageValueNet: 'Etapy — kwota netto',
   stageValueGross: 'Etapy — kwota brutto',
-  donePercent: '% wykonania (względem przedmiaru)',
+  donePercent: '% wykonania (względem aktualizacji przedmiaru)',
   note: 'Komentarz',
   aiPlannedQty: 'AI przedmiar (na ile AI wyceniło pracę)',
   reviewStatus: 'Status',
@@ -58,6 +61,7 @@ export const COLUMN_LABELS: Record<string, string> = {
 const TRANSLATED_LABEL_KEYS: Partial<Record<string, MessageKeyT<'grid'>>> = {
   description: 'description',
   plannedQty: 'plannedQty',
+  currentPlannedQty: 'currentPlannedQty',
   unit: 'unit',
   price: 'price',
   plannedNetForPlane: 'plannedNetForPlane',
@@ -108,8 +112,8 @@ export function columnLabelForView(
   }
   if (id === 'stageQtySum' && view !== 'client')
     return dictionary.t('stageQtySumForPlane', { plane: planeOf(view) })
-  // Shares its base label with „Wartość przedmiaru netto", which stays at the client price in every
-  // view; the plane suffix is the only thing telling the two apart on one screen.
+  // Shares its base label with „Wartość netto aktualizacji przedmiaru", which stays at the client
+  // price in every view; the plane suffix is the only thing telling the two apart on one screen.
   if (id === 'plannedNetForPlane' && view !== 'client') return `${label} — ${planeOf(view)}`
   return label
 }
@@ -127,13 +131,15 @@ export function columnLabelForView(
  */
 export const PRZEDMIAR_ANCHORED_COLUMNS: ReadonlySet<string> = new Set([
   'plannedGross',
+  'currentPlannedGross',
   'remainingGross',
 ])
 
 /**
- * The mirror of PRZEDMIAR_ANCHORED_COLUMNS: columns that exist only in a crew view. „Wartość
- * przedmiaru netto — <rozliczenie>" is the przedmiar at the crew's stawka (owner, 2026-09-28); in the
- * client view it would be a second copy of „Wartość przedmiaru netto" under a different name.
+ * The mirror of PRZEDMIAR_ANCHORED_COLUMNS: columns that exist only in a crew view. „Wartość netto
+ * aktualizacji przedmiaru — <rozliczenie>" is the aktualizacja at the crew's stawka (owner,
+ * 2026-09-28); in the client view it would be a second copy of „Wartość netto aktualizacji
+ * przedmiaru".
  */
 export const CREW_PLANE_ONLY_COLUMNS: ReadonlySet<string> = new Set(['plannedNetForPlane'])
 
@@ -149,6 +155,8 @@ export const COLUMN_MONEY_AXIS: Record<string, 'net' | 'gross'> = {
   discountAmountGross: 'gross',
   plannedNet: 'net',
   plannedGross: 'gross',
+  currentPlannedNet: 'net',
+  currentPlannedGross: 'gross',
   plannedNetForPlane: 'net',
   net: 'net',
   gross: 'gross',
@@ -181,6 +189,9 @@ export const LAYER_NEUTRAL_COLUMNS: ReadonlySet<string> = new Set([
   'description',
   ...ALL_TRANSLATION_COLUMN_KEYS,
   'stageQtySum',
+  // Aktualizacja przedmiaru: typed in „Praca", and the figure % wykonania and Pozostało divide by in
+  // „Postęp" — dropping it from either mode hides half of what it is for.
+  'currentPlannedQty',
   // A rozjazd is a to-do about the etapy, so it belongs to the progress reading — but it is also the
   // reason to go back and fix the offer's execution record, so dropping it in „Praca" would hide the
   // work list in the mode where the fixing happens.

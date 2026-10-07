@@ -6,6 +6,7 @@ import type { DiscountAtVatT, FieldChangeT, ItemRefT, VersionDiffT } from './typ
 
 const FORMAT_BY_FIELD: Record<FieldChangeT['field'], (value: number) => string> = {
   plannedQty: formatQty,
+  currentPlannedQty: formatQty,
   stageQty: formatQty,
   // The price column's own format — „120" beside a quantity would read as one.
   price: formatPLN,
@@ -13,8 +14,9 @@ const FORMAT_BY_FIELD: Record<FieldChangeT['field'], (value: number) => string> 
   net: formatNet,
 }
 
-export const formatChangeValue = (change: FieldChangeT, value: number) =>
-  FORMAT_BY_FIELD[change.field](value)
+// `null` is an Aktualizacja przedmiaru that follows the ofertowy — no figure of its own.
+export const formatChangeValue = (change: FieldChangeT, value: number | null) =>
+  value === null ? '—' : FORMAT_BY_FIELD[change.field](value)
 
 export type ChangeRowT = {
   sectionName: string | null
@@ -34,7 +36,9 @@ const discountText = (discount: DiscountAtVatT) =>
 function changeLabel(change: FieldChangeT): string {
   switch (change.field) {
     case 'plannedQty':
-      return 'Przedmiar'
+      return 'Przedmiar ofertowy'
+    case 'currentPlannedQty':
+      return 'Aktualizacja przedmiaru'
     case 'price':
       return 'Cena j.m.'
     case 'stageQty':
@@ -61,9 +65,14 @@ export function versionChangeRows(diff: VersionDiffT): ChangeRowT[] {
   const rows: ChangeRowT[] = []
   for (const { item, fields } of diff.changed.values()) {
     for (const change of shownChanges(fields)) {
-      const quantity = change.field === 'plannedQty' || change.field === 'stageQty'
-      const format = (value: number) =>
-        quantity ? formatQtyWithUnit(value, item.unit) : formatChangeValue(change, value)
+      const quantity =
+        change.field === 'plannedQty' ||
+        change.field === 'currentPlannedQty' ||
+        change.field === 'stageQty'
+      const format = (value: number | null) =>
+        quantity && value !== null
+          ? formatQtyWithUnit(value, item.unit)
+          : formatChangeValue(change, value)
       rows.push({
         sectionName: item.sectionName,
         description: describe(item),

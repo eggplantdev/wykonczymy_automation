@@ -655,11 +655,11 @@ Run once, after Phase 6.
 
 #### Automated
 
-- [ ] 2.1 Core calc / rows / column values / totals specs rewritten red-first on split fixtures
-- [ ] 2.2 Overrun and plane specs pass on split fixtures
-- [ ] 2.3 Row-condition filters read aktualizacja; client-empty needs both zero
-- [ ] 2.4 Section completionRatio uses aktualizacja, section offer stays ofertowy
-- [ ] 2.5 Prognoza unchanged when only aktualizacja differs
+- [ ] 2.1 Core calc / rows / column values / totals specs rewritten red-first on split fixtures — cdca77df (specs unrun)
+- [ ] 2.2 Overrun and plane specs pass on split fixtures — cdca77df (specs unrun)
+- [ ] 2.3 Row-condition filters read aktualizacja; client-empty needs both zero — cdca77df (specs unrun)
+- [ ] 2.4 Section completionRatio uses aktualizacja, section offer stays ofertowy — cdca77df (specs unrun)
+- [ ] 2.5 Prognoza unchanged when only aktualizacja differs — cdca77df (specs unrun)
 
 ### Phase 3: Editor columns
 

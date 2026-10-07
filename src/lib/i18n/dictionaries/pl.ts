@@ -257,11 +257,12 @@ export const pl = {
   // editor reads the same Polish through `COLUMN_LABELS` and the tips, which take it from here.
   grid: {
     description: 'Opis prac',
-    plannedQty: 'Przedmiar',
+    plannedQty: 'Przedmiar ofertowy',
+    currentPlannedQty: 'Aktualizacja przedmiaru',
     unit: 'Jednostka miary',
     price: 'Cena j.m. netto',
-    plannedNetForPlane: 'Wartość przedmiaru netto',
-    remainingForPlane: 'Pozostało netto (względem przedmiaru)',
+    plannedNetForPlane: 'Wartość netto aktualizacji przedmiaru',
+    remainingForPlane: 'Pozostało netto (względem aktualizacji przedmiaru)',
     planeWithTools: 'Z narzędziami (podwykonawca)',
     planeOwnTools: 'Bez narzędzi (pracownik)',
     netForPlane: 'Suma etapów {{plane}} netto',
@@ -285,14 +286,17 @@ export const pl = {
     rejectedInvalid: 'Nieprawidłowa wartość',
     rejectedBlocked: 'Wartość odrzucona',
     rejectedRestored: 'przywrócono {{value}}',
-    tipPlannedQty: 'Przedmiar — ilość planowana (prognoza zakresu z oferty).',
+    tipPlannedQty:
+      'Przedmiar ofertowy — ilość z oferty.\nNa nim stoi wartość oferty i prognoza marży.',
+    tipCurrentPlannedQty:
+      'Aktualizacja przedmiaru — zakres po zmianach uzgodnionych w trakcie prac.\nOd niej liczony jest postęp i to, co pozostało.',
     tipStageQtySum: 'Pomiar — ilość faktycznie wykonana.\nSuma ilości prac w widocznych etapach.',
     tipPlannedNetForPlane:
-      'Przedmiar razy Twoja stawka.\nIle zarobisz, jeśli wykonasz cały przedmiar.',
+      'Aktualizacja przedmiaru razy Twoja stawka.\nIle zarobisz, jeśli wykonasz cały uzgodniony zakres.',
     tipNet: 'Pomiar razy Twoja stawka.',
     tipStageValueNet: 'Ilość wykonana w tym etapie razy Twoja stawka.',
     tipRemainingForPlane:
-      'Wartość przedmiaru minus wartość tego, co już wykonano — we wszystkich etapach, także innych ekip.\nObie liczone po Twojej stawce.\nNa minusie (na czerwono) = przekroczono przedmiar; suma w stopce pomija takie wiersze.',
+      'Wartość aktualizacji przedmiaru minus wartość tego, co już wykonano — we wszystkich etapach, także innych ekip.\nObie liczone po Twojej stawce.\nNa minusie (na czerwono) = przekroczono aktualizację przedmiaru; suma w stopce pomija takie wiersze.',
   },
   // The labels come from `lib/constants/transfers.ts` rather than a copy: the sheet sync and the
   // mail write them too, and the Polish screen must keep naming a type the way they do.

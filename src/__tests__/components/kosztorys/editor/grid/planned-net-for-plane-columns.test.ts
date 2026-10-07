@@ -5,8 +5,8 @@ import { columnLabelForView } from '@/lib/kosztorys/columns/column-config'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 
-// „Wartość przedmiaru netto — <rozliczenie>" (owner, 2026-09-28): the przedmiar at the crew's stawka,
-// beside the client-priced „Wartość przedmiaru netto", in both crew views and never in the client one.
+// „Wartość netto aktualizacji przedmiaru — <rozliczenie>" (owner, 2026-09-28; EX-921): the aktualizacja
+// at the crew's stawka, beside the client-priced figures, in both crew views and never in the client one.
 
 const STAGES: KosztorysStageT[] = [
   { id: 7, ordinal: 1, label: 'Etap 1', plane: 'w_tools', split: null },
@@ -41,7 +41,7 @@ describe('plannedNetForPlane column', () => {
       columnLabelForView('plannedNet', 'w_tools'),
     )
     expect(columnLabelForView('plannedNetForPlane', 'w_tools')).toMatch(
-      /^Wartość przedmiaru netto — /,
+      /^Wartość netto aktualizacji przedmiaru — /,
     )
   })
 })
