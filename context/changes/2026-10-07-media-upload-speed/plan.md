@@ -342,9 +342,9 @@ Run once, after the final code phase:
 
 #### Automated
 
-- [x] 2.1 Router spec passes
-- [x] 2.2 Chain specs pass
-- [x] 2.3 Dialog spec passes
+- [x] 2.1 Router spec passes — acf9dff9
+- [x] 2.2 Chain specs pass — acf9dff9
+- [x] 2.3 Dialog spec passes — acf9dff9
 
 ### Phase 3: After-measurement
 
