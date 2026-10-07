@@ -33,6 +33,9 @@ function defaultsFrom(preview: CatalogueSavePreviewT): WorkCatalogueItemFormValu
     clientPrice: String(candidate.clientPrice),
     ...rateFormValues(candidate),
     translations: translationTexts(translationBaselineOf(preview)),
+    // From the stored entry, never the candidate: a rozpiska row has no comment, and an overwrite
+    // seeded blank would clear the one already in the katalog.
+    workNote: existing?.workNote ?? '',
   }
 }
 

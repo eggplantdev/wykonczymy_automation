@@ -18,6 +18,7 @@ const entry = (
   ownToolsRate: null,
   ownToolsRateCoeff: null,
   matchKey: description,
+  workNote: null,
   ...fields,
 })
 

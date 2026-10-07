@@ -30,6 +30,7 @@ const entry = (over: Partial<WorkCatalogueItemT> = {}): WorkCatalogueItemT => {
     ownToolsRate: null,
     ownToolsRateCoeff: null,
     matchKey: catalogueKey(description, unit),
+    workNote: null,
     ...over,
   }
 }

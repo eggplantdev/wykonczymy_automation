@@ -17,5 +17,5 @@ export type NewItemFormValuesT = z.infer<typeof newItemFormSchema>
 export const newItemDefaults = (sectionName: string): NewItemFormValuesT => ({
   ...EMPTY_CATALOGUE_ITEM_VALUES,
   category: stripSectionOrdinal(sectionName),
-  addToCatalogue: false,
+  addToCatalogue: true,
 })

@@ -22,12 +22,17 @@ export type WorkCatalogueItemT = {
   wToolsRateCoeff: number | null
   ownToolsRateCoeff: number | null
   matchKey: string
+  workNote: string | null
 }
 
 // Translations stay out of the seed: every katalog writer builds one, and a seed that required the
 // map would overwrite a stored translation with `{}`. The writers that own translations pass them
-// explicitly (`applyCatalogueWrite`).
-export type CatalogueSeedItemT = Omit<WorkCatalogueItemT, 'id' | 'descriptionTranslations'>
+// explicitly (`applyCatalogueWrite`). The Komentarz do pracy stays out for the same reason: a
+// candidate rebuilt from a rozpiska row has none, and carrying `null` would erase the stored one.
+export type CatalogueSeedItemT = Omit<
+  WorkCatalogueItemT,
+  'id' | 'descriptionTranslations' | 'workNote'
+>
 
 export type CatalogueCandidateT = CatalogueSeedItemT &
   Pick<WorkCatalogueItemT, 'descriptionTranslations'>

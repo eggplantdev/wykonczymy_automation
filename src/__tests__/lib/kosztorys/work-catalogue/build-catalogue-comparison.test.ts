@@ -49,6 +49,7 @@ const entry = (overrides: Partial<WorkCatalogueItemT> = {}): WorkCatalogueItemT 
     ownToolsRate: 50,
     ownToolsRateCoeff: null,
     matchKey: catalogueKey(description, unit),
+    workNote: null,
     ...overrides,
   }
 }

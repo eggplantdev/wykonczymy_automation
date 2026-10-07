@@ -23,6 +23,7 @@ const entry = (fields: Partial<WorkCatalogueItemT> = {}): WorkCatalogueItemT => 
   ownToolsRate: null,
   ownToolsRateCoeff: null,
   matchKey: 'malowanie|m2',
+  workNote: null,
   ...fields,
 })
 

@@ -12,6 +12,7 @@ import { RateField } from '@/components/forms/work-catalogue-item/rate-fields'
 import { CreatableComboboxField } from '@/components/forms/work-catalogue-item/creatable-combobox-field'
 import { catalogueFigures } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
 import type { AddItemInputT } from '@/lib/actions/kosztorys'
+import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
 import { PRICE_SOURCE_LABELS } from '@/lib/kosztorys/labels'
 import type { PriceSourceT } from '@/lib/kosztorys/types'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
@@ -105,7 +106,11 @@ export function NewItemForm({
         unit: value.unit,
         ...catalogueFigures(value),
       },
-      catalogue: catalogueWrite.current,
+      // Only a katalog write carries the comment — „Tylko do kosztorysu" leaves `current` null.
+      catalogue: catalogueWrite.current && {
+        ...catalogueWrite.current,
+        workNote: value.workNote,
+      },
       translate,
     }),
   })
@@ -123,6 +128,11 @@ export function NewItemForm({
             )}
           </form.AppField>
           <AiTranslateCheckbox checked={translate} onCheckedChange={setTranslate} />
+          {addToCatalogue && (
+            <form.AppField name="workNote">
+              {(field) => <field.Textarea label={COLUMN_LABELS.workNote} rows={3} />}
+            </form.AppField>
+          )}
 
           <form.AppField name="unit">
             {() => (

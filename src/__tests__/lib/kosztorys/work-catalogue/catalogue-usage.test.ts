@@ -15,6 +15,7 @@ const entry = (id: number, description: string, unit: string): WorkCatalogueItem
   ownToolsRate: null,
   ownToolsRateCoeff: null,
   matchKey: catalogueKey(description, unit),
+  workNote: null,
 })
 
 const used = (investmentId: number, description: string, unit: string | null = 'm2') => ({

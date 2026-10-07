@@ -28,6 +28,7 @@ const CATALOGUE: WorkCatalogueItemT[] = [
     ownToolsRate: 15,
     ownToolsRateCoeff: null,
     matchKey: 'malowanie scian|m2',
+    workNote: null,
   },
 ]
 
@@ -155,6 +156,7 @@ describe('AddItemsFromCatalogueDialog — lista', () => {
     id: 1000 + i,
     description: `Praca ${i}`,
     matchKey: `praca ${i}|m2`,
+    workNote: null,
   }))
 
   // The cennik is ~560 prace, and drawing all of them is what froze the dialog on every keystroke.

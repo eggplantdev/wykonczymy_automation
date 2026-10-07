@@ -121,6 +121,7 @@ describe('CatalogueCompareDialog — „Pokaż w rozpisce"', () => {
         ownToolsRate: null,
         ownToolsRateCoeff: null,
         matchKey: catalogueKey('Montaż syfonu', 'szt'),
+        workNote: null,
       },
     ]
     render(<CatalogueCompareDialog />)

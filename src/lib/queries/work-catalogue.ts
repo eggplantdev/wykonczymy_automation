@@ -22,7 +22,7 @@ export const getWorkCatalogue = unstable_cache(
     const payload = await getPayload({ config })
     return listCatalogueItems(await getDb(payload))
   },
-  ['work-catalogue-v2'],
+  ['work-catalogue-v3'],
   { tags: [CACHE_TAGS.workCatalogue] },
 )
 

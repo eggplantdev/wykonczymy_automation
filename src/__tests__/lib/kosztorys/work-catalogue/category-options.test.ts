@@ -17,6 +17,7 @@ const item = (category: string | null): WorkCatalogueItemT => ({
   ownToolsRate: null,
   ownToolsRateCoeff: null,
   matchKey: 'malowanie|m2',
+  workNote: null,
 })
 
 describe('catalogueCategoryOptions', () => {

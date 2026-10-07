@@ -112,6 +112,7 @@ import {
 } from '@/lib/actions/kosztorys'
 import { applyCatalogueToKosztorysAction } from '@/lib/actions/catalogue-to-kosztorys'
 import { buildCatalogueComparison } from '@/lib/kosztorys/work-catalogue/build-catalogue-comparison'
+import { catalogueEntryByRowId } from '@/lib/kosztorys/work-catalogue/catalogue-entry-by-row'
 import type {
   ItemPatchT,
   KosztorysItemT,
@@ -469,6 +470,11 @@ export function useKosztorysEditor({
     })
   }, [preview, rows, workCatalogue])
 
+  const catalogueEntryByRow = useMemo(
+    () => (preview || !workCatalogue ? undefined : catalogueEntryByRowId(rows, workCatalogue)),
+    [preview, rows, workCatalogue],
+  )
+
   const catalogueRowIds = useMemo(
     () =>
       catalogueComparison
@@ -621,6 +627,7 @@ export function useKosztorysEditor({
         }
       : undefined,
     workshopVisible: isTemplate,
+    catalogueEntryByRowId: catalogueEntryByRow,
     dictionary: gridDictionary,
   }
   const grid = buildV2Grid(columnOpts)

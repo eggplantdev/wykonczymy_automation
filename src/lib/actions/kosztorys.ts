@@ -468,7 +468,11 @@ const addItemSchema = z.object({
   // negative cena or both columns of one płaszczyzna set.
   data: workCatalogueItemSchema,
   catalogue: z
-    .object({ mode: z.enum(['new', 'overwrite']), keepCatalogueCategory: z.boolean() })
+    .object({
+      mode: z.enum(['new', 'overwrite']),
+      keepCatalogueCategory: z.boolean(),
+      workNote: z.string().optional(),
+    })
     .nullable(),
   // „Tłumacz automatycznie przy pomocy AI" — off unless the dialog asks, so no other caller pays an AI wait.
   translate: z.boolean().optional(),
@@ -551,6 +555,7 @@ export async function addItemAction(
               candidate: row,
               existing: resolved.existing,
               keepCatalogueCategory: catalogue.keepCatalogueCategory,
+              workNote: catalogue.workNote,
             }
           }
 

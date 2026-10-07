@@ -1,12 +1,12 @@
 ---
 change_id: kosztorys-ai-knowledge-loop
 title: Capture house knowledge for the kosztorys agent — katalog notes, AI przedmiar review, filters
-status: planned
+status: implementing
 created: 2026-10-06
 updated: 2026-10-07
 archived_at: null
-branch: null
-worktree: null
+branch: kosztorys-ai-knowledge-loop
+worktree: ../wykonczymy-worktrees/kosztorys-ai-knowledge-loop
 ---
 
 ## Notes

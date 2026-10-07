@@ -74,6 +74,12 @@ describe('workshop columns', () => {
   // `serializeKosztorysAsPreset` still carried it onto every budowa seeded from that szablon. Driven
   // off TOOL_PLANES, not `ALL_PLANE_PRICE_KEYS`, so a key dropped from the constant fails here
   // instead of quietly shrinking the loop.
+  // Szablony are where katalog prace get curated, so the comment the katalog holds on each one is
+  // shown there too.
+  it('shows the Komentarz do pracy', () => {
+    expect(workshopIds()).toContain('workNote')
+  })
+
   it('carries each crew rate beside its source, on every plane', () => {
     for (const plane of TOOL_PLANES) {
       expect(workshopIds()).toContain(planePriceKey('priceMode', plane))

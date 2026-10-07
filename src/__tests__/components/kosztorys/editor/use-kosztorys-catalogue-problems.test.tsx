@@ -73,6 +73,7 @@ const CATALOGUE: WorkCatalogueItemT[] = [
     ownToolsRate: null,
     ownToolsRateCoeff: null,
     matchKey: catalogueKey('Malowanie ścian', 'm2'),
+    workNote: null,
   },
 ]
 

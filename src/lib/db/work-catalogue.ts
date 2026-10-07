@@ -14,7 +14,7 @@ import type {
 import type { DbExecutorT } from './get-db'
 import { numOrNull } from './row-coerce'
 
-const CATALOGUE_COLUMNS = sql`id, description, description_translations, category, unit, client_price, w_tools_rate, w_tools_rate_coeff, own_tools_rate, own_tools_rate_coeff, match_key`
+const CATALOGUE_COLUMNS = sql`id, description, description_translations, category, unit, client_price, w_tools_rate, w_tools_rate_coeff, own_tools_rate, own_tools_rate_coeff, match_key, work_note`
 
 const toRate = (value: unknown): number | null => (value == null ? null : Number(value))
 
@@ -33,6 +33,7 @@ export function toCatalogueItem(row: Record<string, unknown>): WorkCatalogueItem
     ownToolsRate: toRate(row.own_tools_rate),
     ownToolsRateCoeff: toRate(row.own_tools_rate_coeff),
     matchKey: row.match_key as string,
+    workNote: (row.work_note as string | null) ?? null,
   }
 }
 

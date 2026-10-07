@@ -37,6 +37,7 @@ export function EditCatalogueItemDialog({
             clientPrice: String(item.clientPrice),
             ...rateFormValues(item),
             translations: translationTexts(item.descriptionTranslations),
+            workNote: item.workNote ?? '',
           }}
           translationBaseline={item.descriptionTranslations}
           categorySuggestions={categorySuggestions}

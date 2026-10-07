@@ -27,6 +27,7 @@ import {
   discountValueColumn,
   discountTypeColumn,
 } from '@/components/kosztorys/editor/grid/cells/discount-columns'
+import { workNoteColumn } from '@/components/kosztorys/editor/grid/cells/ai-review-columns'
 import { unitColumn } from '@/components/kosztorys/editor/grid/cells/unit-column'
 import { sectionNameColumn } from '@/components/kosztorys/editor/grid/cells/section-name-cell'
 import { translationColumn } from '@/components/kosztorys/editor/grid/cells/translation-column'
@@ -180,6 +181,18 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       minWidth: 150,
     },
   ]
+
+  // House knowledge and the review of an agent's draft, beside the Przedmiar they are about.
+  // Owner-only — the investor's and the worker's closed lists never name these ids.
+  const aiReview: Column<KosztorysV2RowT>[] = isDocument
+    ? []
+    : [
+        workNoteColumn(
+          columnTitle('workNote', opts),
+          opts.catalogueEntryByRowId,
+          opts.canSaveItemToCatalogue === true,
+        ),
+      ]
 
   // The imported sheet's „Pomiar z natury" against Σ etapów. Owner-only: it is scaffolding for
   // entering old sheets, and a client's document must not carry the company's bookkeeping doubts.
@@ -358,6 +371,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     ...identity,
     ...divergence,
     ...przedmiar,
+    ...aiReview,
     ...stageCols,
     stageQtySum,
     unit,

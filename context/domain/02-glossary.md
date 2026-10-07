@@ -158,6 +158,16 @@ Same reasoning closes the subcontractor figures: `remaining` and `dueNet`
 | deposits split         | Rozliczenie wpłat    | —                     | `depositsSplit` / `bucketDepositsByPlane` (`DepositsSplitT`: `paidNet`/`paidGross`/`remainingNet`/`remainingGross`) | B   | — (EX-536)                                                         | `summary-economics.ts:144`   |
 | deposit row            | Wpłata (wiersz)      | —                     | `DepositTransactionRowT`                                                                                            | B   | — (EX-536)                                                         | `types/reference-data.ts:63` |
 | the paying party       | Inwestor             | —                     | `client*` (see note)                                                                                                | B   | `clientView`, `clientPrice`, `view === 'client'` — ruled permanent | `client-view/settings.ts`    |
+| work note (katalog)    | Komentarz do pracy   | —                     | `workNote`                                                                                                          | B   | — (new, EX-1006)                                                   | `work-catalogue-items.ts`    |
+| AI planned qty         | AI przedmiar         | —                     | `aiPlannedQty`                                                                                                      | B   | — (new, EX-1006)                                                   | `kosztorys-items.ts`         |
+| review status          | Status               | —                     | `reviewStatus` (`ReviewStatusT`)                                                                                    | B   | — (new, EX-1006)                                                   | `kosztorys/review-status.ts` |
+| change reason          | Powód zmiany         | —                     | `changeReason`                                                                                                      | B   | — (new, EX-1006)                                                   | `kosztorys-items.ts`         |
+
+**„Komentarz do pracy" is `workNote`, never `note` (EX-1006).** Two comments, two owners: `note`
+(„Komentarz") belongs to one pozycja in one kosztorys and may be shown to the client; `workNote` belongs
+to the katalog entry, shows on every pozycja with the same opis + j.m. across kosztorysy and szablony,
+and is company knowledge the client never sees. A shared bare name would hide which of the two a row
+holds.
 
 **`stage deposit` / `zaliczki` — retired (EX-536).** The deposit→etap tagging bridge is gone:
 `lib/kosztorys/zaliczki.ts` deleted, the `kosztorys_stage_id` column dropped from `transactions`

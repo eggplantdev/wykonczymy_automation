@@ -10,6 +10,7 @@ import {
   type DescriptionTranslationsT,
 } from '@/lib/i18n/description-translations'
 import { LANGUAGE_SHORT, TRANSLATION_LANGUAGES } from '@/lib/i18n/languages'
+import { COLUMN_LABELS } from '@/lib/kosztorys/columns/column-config'
 import { UNIT_SUGGESTIONS } from '@/lib/kosztorys/constants'
 import { PRICE_SOURCE_LABELS } from '@/lib/kosztorys/labels'
 import type { PriceSourceT } from '@/lib/kosztorys/types'
@@ -79,6 +80,7 @@ export function WorkCatalogueItemForm({
       category: value.category,
       unit: value.unit,
       ...catalogueFigures(value),
+      workNote: value.workNote,
       translationEdits: changedTranslationTexts(translationBaseline, value.translations),
       translationSeed: translationBaseline,
     }),
@@ -93,6 +95,9 @@ export function WorkCatalogueItemForm({
           )}
         </form.AppField>
         {children}
+        <form.AppField name="workNote">
+          {(field) => <field.Textarea label={COLUMN_LABELS.workNote} rows={3} />}
+        </form.AppField>
 
         {TRANSLATION_LANGUAGES.map((language) => (
           <form.AppField key={language} name={`translations.${language}`}>

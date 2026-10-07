@@ -13,6 +13,7 @@ vi.mock('@/lib/actions/kosztorys', () => ({ addItemAction: vi.fn() }))
 
 const SECTION = 'Łazienka 1'
 const COMBOBOX = 'Wybierz lub wpisz nową…'
+const WORK_NOTE = /Komentarz do pracy/
 
 const CATALOGUE_ENTRY: WorkCatalogueItemT = {
   id: 7,
@@ -26,6 +27,7 @@ const CATALOGUE_ENTRY: WorkCatalogueItemT = {
   wToolsRateCoeff: null,
   ownToolsRateCoeff: null,
   matchKey: catalogueKey('Malowanie ścian', 'm²'),
+  workNote: null,
 }
 
 const action = vi.mocked(addItemAction)
@@ -63,11 +65,11 @@ function renderDialog(placement: NewItemPlacementT = { kind: 'end', sectionId: 3
     await typeInto(screen.getAllByRole('combobox', { name: COMBOBOX })[0], 'm²')
     await user.type(screen.getByLabelText('Cena j.m. (PLN)'), '50')
   }
-  const tickCatalogue = () =>
+  const toggleCatalogue = () =>
     user.click(screen.getByRole('checkbox', { name: 'Dodaj pracę do katalogu prac' }))
   const save = () => user.click(screen.getByRole('button', { name: 'Dodaj' }))
 
-  return { user, onPlaced, onStaleTree, onClose, typeInto, fill, tickCatalogue, save }
+  return { user, onPlaced, onStaleTree, onClose, typeInto, fill, toggleCatalogue, save }
 }
 
 beforeEach(() => {
@@ -76,22 +78,23 @@ beforeEach(() => {
 })
 
 describe('NewItemDialog — kategoria', () => {
-  it('shows kategoria only once the katalog checkbox is ticked, prefilled from the sekcja', async () => {
-    const { tickCatalogue } = renderDialog()
+  it('opens with the katalog checkbox ticked and kategoria prefilled from the sekcja', async () => {
+    const { toggleCatalogue } = renderDialog()
 
-    expect(screen.queryByText('Kategoria')).not.toBeInTheDocument()
-    await tickCatalogue()
-
+    expect(screen.getByRole('checkbox', { name: 'Dodaj pracę do katalogu prac' })).toBeChecked()
     expect(screen.getByText('Kategoria')).toBeInTheDocument()
     expect(screen.getAllByRole('combobox', { name: COMBOBOX })[1]).toHaveTextContent(/^Łazienka$/)
+
+    await toggleCatalogue()
+    expect(screen.queryByText('Kategoria')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText(WORK_NOTE)).not.toBeInTheDocument()
   })
 
-  it('sends no katalog write and no kategoria once the checkbox is unticked again', async () => {
-    const { fill, tickCatalogue, save } = renderDialog()
+  it('sends no katalog write and no kategoria once the checkbox is unticked', async () => {
+    const { fill, toggleCatalogue, save } = renderDialog()
 
     await fill('Nowa praca testowa')
-    await tickCatalogue()
-    await tickCatalogue()
+    await toggleCatalogue()
     await save()
 
     await waitFor(() => expect(action).toHaveBeenCalledTimes(1))
@@ -116,15 +119,25 @@ describe('NewItemDialog — kategoria', () => {
   })
 
   it('writes a new katalog entry when opis + j.m. is not in the katalog yet', async () => {
-    const { fill, tickCatalogue, save } = renderDialog()
+    const { fill, save } = renderDialog()
 
     await fill('Nowa praca testowa')
-    await tickCatalogue()
     await save()
 
     await waitFor(() => expect(action).toHaveBeenCalledTimes(1))
-    expect(sent(0).catalogue).toEqual({ mode: 'new', keepCatalogueCategory: true })
+    expect(sent(0).catalogue).toEqual({ mode: 'new', keepCatalogueCategory: true, workNote: '' })
     expect(sent(0).data.category).toBe('Łazienka')
+  })
+
+  it('sends the Komentarz do pracy with the katalog write', async () => {
+    const { user, fill, save } = renderDialog()
+
+    await fill('Nowa praca testowa')
+    await user.type(screen.getByLabelText(WORK_NOTE), 'Bez gruntowania')
+    await save()
+
+    await waitFor(() => expect(action).toHaveBeenCalledTimes(1))
+    expect(sent(0).catalogue).toMatchObject({ mode: 'new', workNote: 'Bez gruntowania' })
   })
 })
 
@@ -162,7 +175,6 @@ describe('NewItemDialog — praca already in the katalog', () => {
   const collide = async () => {
     const rendered = renderDialog()
     await rendered.fill()
-    await rendered.tickCatalogue()
     await rendered.save()
     await screen.findByText('„Malowanie ścian" jest już w katalogu')
     return rendered
@@ -213,7 +225,11 @@ describe('NewItemDialog — praca already in the katalog', () => {
     await user.click(screen.getByRole('button', { name: 'Nadpisz w katalogu' }))
 
     await waitFor(() => expect(action).toHaveBeenCalledTimes(1))
-    expect(sent(0).catalogue).toEqual({ mode: 'overwrite', keepCatalogueCategory: true })
+    expect(sent(0).catalogue).toEqual({
+      mode: 'overwrite',
+      keepCatalogueCategory: true,
+      workNote: '',
+    })
   })
 })
 

@@ -475,6 +475,25 @@
   background: transparent;
 }
 
+/* House knowledge and the review of an agent's draft wear the `ai` accent's cyan, so the block reads
+   as apart from the offer. Set through dsg's own vars: its unlayered `background` rules outrank a
+   Tailwind `bg-*` utility. The read-only tint stays a step darker, as grey does elsewhere. */
+.kosztorys-grid .dsg-cell.kosztorys-ai-column {
+  --dsg-border-color: var(--color-neon-cyan);
+  --dsg-cell-background-color: color-mix(in oklch, var(--color-neon-cyan) 6%, var(--color-card));
+  --dsg-cell-disabled-background-color: color-mix(
+    in oklch,
+    var(--color-neon-cyan) 12%,
+    var(--color-card)
+  );
+}
+
+.kosztorys-grid .dsg-cell-header.kosztorys-ai-column {
+  --dsg-header-text-color: var(--color-neon-cyan);
+  --dsg-header-active-text-color: var(--color-neon-cyan);
+  font-weight: 600;
+}
+
 /* dsg virtualizes rows with @tanstack/react-virtual keyed by row id, so a row scrolling into view is
    a fresh DOM node — the keyframe replays on every mount and softens the hard pop-in. The header row
    is excluded — it never unmounts. */

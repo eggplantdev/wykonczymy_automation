@@ -4471,3 +4471,17 @@ Adresy wpisuj ręcznie w pasku przeglądarki.
       _Staging 2026-10-06 (pass 2):_ formularz z inwestycją i pracownikiem, pozycje z rozpiski (8 pozycji z sekcjami). Link zamknięty/po dezaktywacji w osobnym boxie.
 - [x] Link do zamkniętej inwestycji albo po dezaktywacji pracownika → formularz odmawia wysłania.
       Verified on staging 2026-10-06: deactivated worker -> submit refused (400, no report created); closed investment -> link page shows „Цей об'єкт закрито…”, no form. Reopened/reactivated after.
+
+## EX-1006 — kosztorys-ai-knowledge-loop — Komentarz do pracy, przegląd szkicu AI, widoki „Oferta" i „Przegląd AI" (2026-10-07)
+
+Baza musi mieć migrację `20261007_0_add_ai_review_columns`.
+
+### Komentarz do pracy
+
+- [ ] /katalog-prac → „Edytuj pracę" na pracy z komentarzem: pole „Komentarz do pracy" go pokazuje; zmień tylko cenę i zapisz — komentarz zostaje.
+- [ ] /katalog-prac → „Dodaj pracę" z komentarzem: kolumna „Komentarz do pracy" (domyślnie ukryta, włącz ją) pokazuje go przy nowej pracy.
+- [ ] Kosztorys → w wyborze kolumn zaznacz „Komentarz do pracy" → kliknij komórkę pracy z katalogu → wpisz komentarz → zapisz: ta sama praca w innym kosztorysie i w szablonie pokazuje ten komentarz.
+- [ ] Pozycja, której opisu nie ma w katalogu: komórka jest pusta, kliknięcie nic nie otwiera.
+- [ ] Menu wiersza „Zapisz do katalogu" → „Nadpisz" na pracy z komentarzem: komentarz przeżywa.
+- [ ] „Nowa praca": checkbox katalogu startuje zaznaczony, pole „Komentarz do pracy" stoi pod nim; „Nadpisz w katalogu" z pustym polem zostawia istniejący komentarz; „Tylko do kosztorysu" nie rusza katalogu.
+- [ ] Podgląd inwestora, link udostępniony inwestorowi, PDF z „Generuj ofertę" i link pracownika: brak kolumny „Komentarz do pracy".

@@ -46,6 +46,7 @@ export const COLUMN_LABELS: Record<string, string> = {
   stageValueGross: 'Etapy — kwota brutto',
   donePercent: '% wykonania (względem przedmiaru)',
   note: 'Komentarz',
+  workNote: 'Komentarz do pracy (wiedza firmowa — niewidoczna dla klienta)',
 }
 
 // The labels the worker's link renders, keyed into the `grid` dictionary. A map rather than a key
@@ -183,6 +184,7 @@ export const LAYER_NEUTRAL_COLUMNS: ReadonlySet<string> = new Set([
   // Komentarz (sheet col T): annotation that reads the same in Praca and Postęp, so the layer axis
   // must not drop it — same reasoning as `description`.
   'note',
+  'workNote',
 ])
 
 // Columns the picker never offers, and which therefore never answer to a hide tick. „Pozostało do
@@ -233,4 +235,5 @@ export const DEFAULT_HIDDEN_COLUMNS: ReadonlySet<string> = new Set([
   // Only the rozpiska rows a crew that reads it will be sent need a translation, so the column is
   // opened when there is one to type, not carried on every kosztorys.
   ...ALL_TRANSLATION_COLUMN_KEYS,
+  'workNote',
 ])

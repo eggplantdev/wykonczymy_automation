@@ -491,12 +491,12 @@ column touched here.
 
 #### Automated
 
-- [ ] 1.1 Migration applies on the local DB after the spike migration is rolled back
-- [ ] 1.2 Katalog write spec passes
-- [ ] 1.3 Katalog form DOM spec passes
-- [ ] 1.4 „Nowa praca" DOM spec passes with the ticked default
-- [ ] 1.5 Row lookup spec passes
-- [ ] 1.6 Workshop columns spec passes with workNote
+- [x] 1.1 Migration applies on the local DB after the spike migration is rolled back
+- [x] 1.2 Katalog write spec passes
+- [x] 1.3 Katalog form DOM spec passes
+- [x] 1.4 „Nowa praca" DOM spec passes with the ticked default
+- [x] 1.5 Row lookup spec passes
+- [x] 1.6 Workshop columns spec passes with workNote
 
 ### Phase 2: AI draft review
 
