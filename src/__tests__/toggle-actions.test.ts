@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { revalidateCollections } from '@/__tests__/stubs/cache-revalidate'
+import { revalidateCollections, revalidateEntities } from '@/__tests__/stubs/cache-revalidate'
 import type { Payload } from 'payload'
 
 // ── Mocks ────────────────────────────────────────────────────────────────
@@ -44,6 +44,7 @@ beforeEach(() => {
   mockRequireAuth.mockReset().mockResolvedValue({ success: true, user: mockUser })
   mockUpdate.mockReset().mockResolvedValue({ id: 1 })
   revalidateCollections.mockReset()
+  revalidateEntities.mockReset()
 })
 
 // ═════════════════════════════════════════════════════════════════════════
@@ -92,6 +93,13 @@ describe('toggleUserActive', () => {
 
     expect(revalidateCollections).toHaveBeenCalledOnce()
     expect(revalidateCollections).toHaveBeenCalledWith(['users'])
+  })
+
+  // The session check caches its answer under this tag — a stale `true` keeps a locked-out worker in.
+  it.each([false, true])('expires the account’s session check (active=%s)', async (active) => {
+    await toggleUserActive(7, active)
+
+    expect(revalidateEntities).toHaveBeenCalledWith(['user:7'])
   })
 
   it('auth failure → returns { success: false } without update', async () => {
@@ -160,6 +168,7 @@ describe('toggleCashRegisterActive', () => {
 
     expect(revalidateCollections).toHaveBeenCalledOnce()
     expect(revalidateCollections).toHaveBeenCalledWith(['cashRegisters'])
+    expect(revalidateEntities).not.toHaveBeenCalled()
   })
 
   it('auth failure → returns error without update', async () => {

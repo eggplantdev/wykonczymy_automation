@@ -2,8 +2,8 @@
 
 import { getPayload, type Payload } from 'payload'
 import config from '@payload-config'
-import { revalidateCollections } from '@/lib/cache/revalidate'
-import type { CACHE_TAGS } from '@/lib/cache/tags'
+import { revalidateCollections, revalidateEntities } from '@/lib/cache/revalidate'
+import { entityTag, type CACHE_TAGS, type EntityNameT } from '@/lib/cache/tags'
 import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES, canManageAccount } from '@/lib/auth/roles'
 import type { ActionResultT } from '@/types/action'
@@ -19,6 +19,7 @@ import type { SessionUserT } from '@/types/auth'
 type ToggleConfigT = {
   collection: 'users' | 'cash-registers'
   cacheTag: keyof typeof CACHE_TAGS
+  entity?: EntityNameT
   data: (active: boolean) => Record<string, unknown>
   overrideAccess?: boolean
   refusal?: (
@@ -51,6 +52,7 @@ async function toggleActive(
     await cfg.afterUpdate?.(payload, id, active)
 
     revalidateCollections([cfg.cacheTag])
+    if (cfg.entity) revalidateEntities([entityTag(cfg.entity, id)])
     return { success: true }
   } catch (err) {
     logError('[TOGGLE_ACTIVE]', err)
@@ -62,6 +64,7 @@ export async function toggleUserActive(id: number, active: boolean) {
   return toggleActive(id, active, {
     collection: 'users',
     cacheTag: 'users',
+    entity: 'user',
     data: (active) => ({ active }),
     overrideAccess: true,
     // A deactivated account is locked out like a trashed one, so it answers to the same rules.

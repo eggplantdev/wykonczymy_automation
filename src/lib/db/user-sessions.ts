@@ -2,12 +2,36 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import type { DbExecutorT } from '@/lib/db/get-db'
 
 /**
- * Ends every stored session of one account, which is what `/admin` and REST check a token's `sid`
- * against. The app's own reads are JWT-only and ignore it, so an open app session lasts until expiry.
+ * Ends every stored session of one account. Every app request checks its token's `sid` against
+ * these rows (`isSessionAlive`), as do `/admin` and REST, so this is what logs the account out.
  *
  * Call it AFTER any `payload.update` of the same user: Payload writes the whole merged document,
  * sessions array included, so an update that runs later puts the deleted rows back.
  */
 export async function deleteUserSessions(db: DbExecutorT, userId: number): Promise<void> {
   await db.execute(sql`DELETE FROM users_sessions WHERE _parent_id = ${userId}`)
+}
+
+/**
+ * Whether a token's session may still act. The account state is checked alongside the `sid`, not
+ * left to the session rows alone: Payload's `refresh()` rewrites the whole user document, so a
+ * refresh racing a deactivation can put a deleted `sid` back. A NULL `active` predates the column's
+ * default and counts as active, as in `refuseDisabledLogin`.
+ */
+export async function isSessionAlive(
+  db: DbExecutorT,
+  userId: number,
+  sid: string,
+): Promise<boolean> {
+  const { rows } = await db.execute(sql`
+    SELECT 1
+    FROM users_sessions s
+    JOIN users u ON u.id = s._parent_id
+    WHERE s._parent_id = ${userId}
+      AND s.id = ${sid}
+      AND u.active IS NOT FALSE
+      AND u.trashed_at IS NULL
+    LIMIT 1
+  `)
+  return rows.length > 0
 }

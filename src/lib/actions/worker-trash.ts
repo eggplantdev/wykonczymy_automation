@@ -3,7 +3,7 @@
 import type { Payload, PayloadRequest } from 'payload'
 import { protectedAction } from '@/lib/actions/run-action'
 import { canManageAccount } from '@/lib/auth/roles'
-import { WORKER_DELETE_TAGS, WORKER_TRASH_TAGS } from '@/lib/cache/tags'
+import { userEntityOpts, WORKER_DELETE_TAGS, WORKER_TRASH_TAGS } from '@/lib/cache/tags'
 import { isNameConfirmed, NAME_MISMATCH_MESSAGE } from '@/lib/constants/trash'
 import { getDb } from '@/lib/db/get-db'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
@@ -62,6 +62,7 @@ export async function trashWorkerAction(workerId: number): Promise<ActionResultT
         SKIP_HOOK_REVALIDATION,
       ),
     [...WORKER_TRASH_TAGS],
+    userEntityOpts(workerId),
   )
 }
 
@@ -82,6 +83,7 @@ export async function restoreWorkerAction(workerId: number): Promise<ActionResul
         SKIP_HOOK_REVALIDATION,
       ),
     [...WORKER_TRASH_TAGS],
+    userEntityOpts(workerId),
   )
 }
 

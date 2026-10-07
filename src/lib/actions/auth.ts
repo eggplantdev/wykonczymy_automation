@@ -5,6 +5,9 @@ import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import { login, logout } from '@payloadcms/next/auth'
 import config from '@payload-config'
+import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
+import { revalidateEntities } from '@/lib/cache/revalidate'
+import { entityTag } from '@/lib/cache/tags'
 import { loginRefusalMessage } from '@/lib/constants/worker-lock'
 
 type LoginResultT = {
@@ -32,7 +35,10 @@ export async function loginAction(data: {
 }
 
 export async function logoutAction(): Promise<never> {
+  const user = await getCurrentUserJwt()
   await logout({ config })
+  // The session check caches its answer per `sid`; without this a copy of the token outlives logout.
+  if (user) revalidateEntities([entityTag('user', user.id)])
   const cookieStore = await cookies()
   cookieStore.delete('payload-token')
   redirect('/zaloguj')
