@@ -451,7 +451,8 @@
 .kosztorys-grid .dsg-row.kosztorys-clipped-note .dsg-cell.kosztorys-wrap-note::after,
 .kosztorys-grid
   .dsg-row.kosztorys-clipped-changeReason
-  .dsg-cell.kosztorys-wrap-changeReason::after {
+  .dsg-cell.kosztorys-wrap-changeReason::after,
+.kosztorys-grid .dsg-row.kosztorys-clipped-workNote .dsg-cell.kosztorys-wrap-workNote::after {
   content: '…';
   position: absolute;
   right: 0;

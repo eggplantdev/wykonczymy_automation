@@ -52,6 +52,22 @@ describe('rowContentLines — kolumna Sekcja', () => {
   })
 })
 
+// The Komentarz do pracy is the katalog entry's, not the row's, so the row alone can't size it.
+describe('rowContentLines — kolumna Komentarz do pracy', () => {
+  const workNotes = new Map([[1, { id: 9, note: 'aaaa bbbb cccc dddd' }]])
+
+  it('counts the lines the katalog comment wraps onto', () => {
+    const fields = { description: 'aaaa' }
+    expect(
+      rowContentLines(row(fields), { description: 101, workNote: 101 }, tenPxPerChar, workNotes),
+    ).toBe(2)
+  })
+
+  it('gives a praca the katalog doesn’t know one line', () => {
+    expect(rowContentLines(row({ id: 2 }), { workNote: 101 }, tenPxPerChar, workNotes)).toBe(1)
+  })
+})
+
 // The clip cue is the one part of the wrapping contract that lives in hand-written CSS: `globals.css`
 // spells out a `.kosztorys-clipped-<id> .kosztorys-wrap-<id>::after` pair per column, so a fourth
 // wrapping column added to the list above gets measured, clipped — and shows no „…" at all. Nothing

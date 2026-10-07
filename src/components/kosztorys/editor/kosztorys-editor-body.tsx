@@ -364,12 +364,13 @@ export function KosztorysEditorBody({
   // „Dopasuj wysokość do treści" fits a row to.
   const columnIds = useMemo(() => columns.map((column) => column.id), [columns])
   const wrap = useWrapColumnWidths(gridNode, columnIds)
+  const workNotes = editor.catalogueComparison?.entryByItemId
   // Nothing worth caching twice: measureTextWidth caches every width it has measured, and dsg asks
   // for a row's height once per scroll that extends its measured range.
   const contentLinesFor = useMemo(() => {
     const measure = measureTextWidth(wrap.font)
-    return (row: KosztorysV2RowT) => rowContentLines(row, wrap.widths, measure)
-  }, [wrap])
+    return (row: KosztorysV2RowT) => rowContentLines(row, wrap.widths, measure, workNotes)
+  }, [wrap, workNotes])
   // Both readings of „size me from the content" invalidate every cached height at once, not just the
   // rows below an inserted one — the owner's toggle included, since flipping it changes what every
   // row measures to without saying which rows changed.
@@ -421,7 +422,7 @@ export function KosztorysEditorBody({
         return undefined
       const columnLines = WRAPPING_COLUMN_IDS.map((id) => ({
         id,
-        lines: columnContentLines(row, id, wrap.widths, measure),
+        lines: columnContentLines(row, id, wrap.widths, measure, workNotes),
       }))
       const height = resolveRowHeight({
         isSectionBand: false,
@@ -435,7 +436,7 @@ export function KosztorysEditorBody({
         .map((column) => clippedRowClass(column.id))
         .join(' ')
     }
-  }, [preview, wrap, rowHeights, fitRowsToContent])
+  }, [preview, wrap, rowHeights, fitRowsToContent, workNotes])
   const gutterColumn = useMemo(
     () => ordinalGutterColumn({ ordinals: ordinalByRowId, resize: rowResize }),
     [ordinalByRowId, rowResize],

@@ -1,5 +1,6 @@
 import { countWrappedLines, type MeasureTextWidthT } from '@/lib/utils/text-wrap'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
+import type { RowCatalogueEntryT } from '@/lib/kosztorys/work-catalogue/types'
 import { translationText } from '@/lib/i18n/description-translations'
 import {
   ALL_TRANSLATION_COLUMN_KEYS,
@@ -15,11 +16,20 @@ export const WRAPPING_COLUMN_IDS = [
   ...ALL_TRANSLATION_COLUMN_KEYS,
   'note',
   'changeReason',
+  'workNote',
 ] as const
 
 export type WrappingColumnIdT = (typeof WRAPPING_COLUMN_IDS)[number]
 
-function wrappingColumnText(row: KosztorysV2RowT, id: WrappingColumnIdT): string | null {
+// The Komentarz do pracy belongs to the katalog entry, not the row, so it is looked up beside it.
+export type WorkNotesT = ReadonlyMap<number, RowCatalogueEntryT> | undefined
+
+function wrappingColumnText(
+  row: KosztorysV2RowT,
+  id: WrappingColumnIdT,
+  workNotes: WorkNotesT,
+): string | null {
+  if (id === 'workNote') return workNotes?.get(row.id)?.note ?? null
   const language = translationColumnLanguage(id)
   if (language !== null) return translationText(row.descriptionTranslations, language)
   return row[id as 'sectionName' | 'description' | 'note' | 'changeReason']
@@ -46,9 +56,10 @@ export function columnContentLines(
   id: WrappingColumnIdT,
   widths: Partial<Record<WrappingColumnIdT, number>>,
   measure: MeasureTextWidthT,
+  workNotes?: WorkNotesT,
 ): number {
   const width = widths[id]
-  const text = wrappingColumnText(row, id)
+  const text = wrappingColumnText(row, id, workNotes)
   if (!width || !text) return 1
   return countWrappedLines(text, width, measure)
 }
@@ -59,10 +70,11 @@ export function rowContentLines(
   row: KosztorysV2RowT,
   widths: Partial<Record<WrappingColumnIdT, number>>,
   measure: MeasureTextWidthT,
+  workNotes?: WorkNotesT,
 ): number {
   let lines = 1
   for (const id of WRAPPING_COLUMN_IDS) {
-    lines = Math.max(lines, columnContentLines(row, id, widths, measure))
+    lines = Math.max(lines, columnContentLines(row, id, widths, measure, workNotes))
   }
   return lines
 }
