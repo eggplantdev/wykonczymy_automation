@@ -209,7 +209,9 @@ per photo and then the action. There was no token request, no Blob `PUT` from th
 
 - **Uploads run in parallel, at most four at once.** The client caps them at 4, so photos 5–6 start
   when the first slots free up, and the 6-photo send is two waves. On LTE and unthrottled that is
-  ~2.2 s + ~1.4 s.
+  ~2.2 s + ~1.4 s. The cap stays at 4 (review gate, 2026-10-07): the second wave costs ~1.4 s only on
+  fast links, which already send 6 photos in 2.6–4 s, while on Fast 4G — where a send hurts — the
+  uplink is the floor and more parallel uploads would only split it.
 - **Fast 4G is now bound by the uplink.** 6 × ~305 KB is ~1.83 MB, which takes ~10.8 s at
   ≈1.35 Mbps. The 13.6 s median is close to that floor. Before EX-1012, the serialized server chain was
   stacked on top of the upload.

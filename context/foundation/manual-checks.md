@@ -4479,7 +4479,7 @@ Staging, zalogowany pracownik z własną kasą i etapem na inwestycji. Zdjęcia 
 - [ ] „Dodaj wydatek” → 3 zdjęcia → „Wyślij”: okno zamyka się po ok. 2–3 s (było ~7 s na LTE), zgłoszenie ma 3 strony i każda otwiera się w podglądzie.
 - [ ] Zgłoszenie z jedną stroną → dodaj 2 zdjęcia z komórki ze stronami: są 3 strony, wszystkie się otwierają.
 - [ ] Załącz e-fakturę PDF (~100 KB): zgłoszenie wysłane, PDF otwiera się w podglądzie.
-- [ ] Plik powyżej 4 MB, którego kompresja nie zmniejszy (duży PDF): zgłoszenie dalej się wysyła (wolniej) i plik się otwiera.
+- [ ] Plik powyżej 4 MB, którego kompresja nie zmniejszy (duży PDF), razem z 3 zdjęciami w jednym „Wyślij”: zgłoszenie dalej się wysyła (wolniej), ma 4 strony i każda się otwiera.
 - [ ] Kierownik: „Zweryfikuj” na takim zgłoszeniu i zapis transakcji → jej faktura pokazuje te same strony.
 - [ ] Kierownik: usuń takie zgłoszenie → jego zdjęcia przestają się otwierać (stary link do pliku daje 404).
 - [ ] Inne miejsca dodawania plików (faktura przy transakcji, zdjęcia inwestycji) działają jak dotąd.

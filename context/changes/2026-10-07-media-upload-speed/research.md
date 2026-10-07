@@ -51,7 +51,9 @@ together with the draft, batch-minted upload tokens, measurement.
   `blob.upload-completed` callback invocation.
 - **The proposed direction is sound for drafts**: register `media` rows inside the action as an extra
   data-modifying CTE in the existing single-statement `insertWorkerExpenseDraft`. One statement is
-  atomic whichever Neon connection runs it, so it does **not** carry the EX-855 hazard, and the
+  atomic whichever Neon connection runs it, so it cannot be scattered across connections the way a
+  Payload transaction is. It can still be absorbed into another request's open transaction on a
+  shared connection (the EX-855 pool hazard is app-wide for raw statements), so the
   page-wide serialization can go for this path. What the redesign must take over from Payload, and the
   one new hole it opens (blobs with no row on failure), are listed below.
 
