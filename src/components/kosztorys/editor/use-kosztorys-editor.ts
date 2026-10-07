@@ -48,8 +48,6 @@ import {
   catalogueSlicePlacement,
   groupBySection,
   revertField,
-  sectionNeighbor,
-  swapItemInSection,
 } from '@/lib/kosztorys/row-ops'
 import { columnTotalsForRows } from '@/lib/kosztorys/columns/column-totals'
 import { sectionSubtotalsForView, stageAxisForView } from '@/lib/kosztorys/settlement-aggregates'
@@ -60,7 +58,6 @@ import { divergentPriceRowIds } from '@/lib/kosztorys/price-divergence'
 import { qtyDoneByRow } from '@/lib/kosztorys/row-conditions/ctx'
 import type { RowConditionCtxT } from '@/lib/kosztorys/row-conditions/types'
 import { buildViewRows } from '@/lib/kosztorys/row-view'
-import { computeMoveEdges } from '@/lib/kosztorys/move-edges'
 import { orderCommandsEnabled } from '@/lib/kosztorys/order-commands'
 import {
   applyRowConditions,
@@ -91,7 +88,6 @@ import {
   patchSection,
   removeSection,
   restoreSection,
-  swapSection,
   treeToSections,
 } from '@/lib/kosztorys/section-list'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
@@ -105,8 +101,6 @@ import {
   removeSectionAction,
   renumberKosztorysOrderAction,
   setStageProgressAction,
-  swapItemOrderAction,
-  swapSectionOrderAction,
   updateItemFieldAction,
   updateSectionFieldAction,
 } from '@/lib/actions/kosztorys'
@@ -278,7 +272,7 @@ export function useKosztorysEditor({
   // Previous rows keyed by item id — the full dataset, not the view. Doubles as the fresh dataset that
   // structural handlers read, so no separate rows ref is needed.
   const prevById = useRef(new Map(rows.map((r) => [r.id, r])))
-  // Latest-value ref: the fresh `rows` read during an event-time reorder, since firing an action inside
+  // Latest-value ref: the fresh `rows` read during an event-time gesture, since firing an action inside
   // the setRows updater would move the Router during render.
   // EX-422: introduced to dodge a mount-frozen column closure that no longer exists (the grid is on the
   // reactive `DynamicDataSheetGrid` as of `ee497cb`). Kept as the rollback path — whether they still
@@ -576,9 +570,6 @@ export function useKosztorysEditor({
     ])
   }, [preview, worker, clientView, rows, stages, filledStageIds])
 
-  // Which ▲/▼ the two menus may offer at all.
-  const moveEdges = useMemo(() => computeMoveEdges(rows, sections), [rows, sections])
-
   const onAddItem = editorOnly(handleAddItem)
   const gridDictionary = useTranslation('grid')
 
@@ -605,12 +596,9 @@ export function useKosztorysEditor({
     columnColors: preview ? undefined : columnColors,
     onSetColumnColor: editorOnly(setColumnColor),
     onRemoveItem: editorOnly(handleRemoveItem),
-    onReorderItem: editorOnly(handleReorderItem),
-    moveEdges,
     onInsertItem: editorOnly(handleInsertItem),
     onRenameSection: editorOnly(handleRenameSection),
     onRemoveSection: editorOnly(handleRemoveSection),
-    onReorderSection: editorOnly(handleReorderSection),
     onInsertSection: editorOnly(handleInsertSection),
     onSetSectionColor: editorOnly(handleSetSectionColor),
     onPersistKosztorysOrder: editorOnly(handlePersistKosztorysOrder),
@@ -820,27 +808,6 @@ export function useKosztorysEditor({
     )
   }
 
-  // The inverse of „w górę" is „w dół", so undo and redo are one call with the direction flipped. No
-  // prevById touch (display_order isn't diffed).
-  // The neighbour is re-derived rather than replayed from the one captured at push time: the server
-  // exchanges with whatever is rank-adjacent NOW, so a stale id diverges the moment a row lands between
-  // the pair. A refusal must put the pair back, or the grid shows an order no reload can reproduce.
-  // `command` is the entry the gesture pushed — rolling rows back without retracting it would leave the
-  // stack claiming a swap that never happened, and Cmd+Z would then overshoot by one slot (EX-737).
-  // `amendTop` is identity-guarded, so anything the user did since makes this a silent no-op.
-  async function persistItemSwap(itemId: number, dir: 'up' | 'down', command?: UndoCommandT) {
-    const res = await settleAction(() => swapItemOrderAction(itemId, dir))
-    if (res.success) return
-    setRows((rs) => swapItemInSection(rs, itemId, dir === 'up' ? 'down' : 'up'))
-    if (command) amendTop(command, null)
-    reportFailure(res.error, res.code)
-  }
-
-  function runReorderReversal(itemId: number, dir: 'up' | 'down') {
-    setRows((rs) => swapItemInSection(rs, itemId, dir))
-    void persistItemSwap(itemId, dir)
-  }
-
   // Latest-value write alongside the state, so a second section gesture before the next render reads
   // the list the first one produced.
   function commitSections(next: SectionMetaT[]) {
@@ -913,26 +880,6 @@ export function useKosztorysEditor({
     }
   }
 
-  function handleReorderItem(row: KosztorysV2RowT, dir: 'up' | 'down') {
-    const rs = rowsRef.current
-    const neighbor = sectionNeighbor(rs, row.id, dir)
-    if (!neighbor) return // edge of the block → no-op
-    setRows(swapItemInSection(rs, row.id, dir))
-    const back = dir === 'up' ? 'down' : 'up'
-    // Built before the write so a refusal can retract exactly this entry; pushed after it, since the push
-    // is synchronous and the rejection lands a tick later.
-    const command: UndoCommandT = {
-      label: 'Zmiana kolejności',
-      undo: () => runReorderReversal(row.id, back),
-      redo: () => runReorderReversal(row.id, dir),
-      touchedIds: [row.id, neighbor.id],
-    }
-    // The server exchanges just the two display_orders — renumbering the whole section choked at 1000+
-    // rows. Fired from the handler, not the setRows updater, where revalidation would move the Router.
-    void persistItemSwap(row.id, dir, command)
-    pushCommand(command)
-  }
-
   // The active sort is only a view; this is what makes it survive a reload. Computed from `rows`, never
   // `viewRows` — a search would otherwise renumber the visible rows and interleave the hidden ones.
   // One server call for the whole sheet, so a half-applied bake can't renumber some sections only.
@@ -964,50 +911,6 @@ export function useKosztorysEditor({
       redo: () => void runKosztorysRenumber(after, before),
       touchedIds: after,
     })
-  }
-
-  // Section twin of persistItemSwap, down to the rollback and the undo retraction.
-  async function persistSectionSwap(sectionId: number, dir: 'up' | 'down', command?: UndoCommandT) {
-    const res = await settleAction(() => swapSectionOrderAction(sectionId, dir))
-    if (res.success) return
-    const back = swapSection(sectionsRef.current, sectionId, dir === 'up' ? 'down' : 'up')
-    if (back) applySectionOrder(back)
-    if (command) amendTop(command, null)
-    reportFailure(res.error, res.code)
-  }
-
-  function applySectionOrder(next: SectionMetaT[]) {
-    commitSections(next)
-    setRows((rs) => orderRowsBySections(rs, next))
-  }
-
-  // The DB exchanges the two sections' display_order (2 updates, not a renumbering). Returns false at
-  // the edge so no undo command is pushed for a no-op.
-  function applySectionSwap(sectionId: number, dir: 'up' | 'down', command?: UndoCommandT) {
-    const next = swapSection(sectionsRef.current, sectionId, dir)
-    if (!next) return false
-    applySectionOrder(next)
-    void persistSectionSwap(sectionId, dir, command)
-    return true
-  }
-
-  function handleReorderSection(sectionId: number, dir: 'up' | 'down') {
-    // „w górę/w dół" has no meaning against a sorted view (the band's menu also disables it).
-    if (!orderCommandsEnabled(sort)) return
-    // The header id is what lets deleting the section prune this command even when it has no rows.
-    const touchedIds = [
-      sectionHeaderRowId(sectionId),
-      ...rowsRef.current.filter((r) => r.sectionId === sectionId).map((r) => r.id),
-    ]
-    const back = dir === 'up' ? 'down' : 'up'
-    const command: UndoCommandT = {
-      label: 'Zmiana kolejności sekcji',
-      undo: () => void applySectionSwap(sectionId, back),
-      redo: () => void applySectionSwap(sectionId, dir),
-      touchedIds,
-    }
-    if (!applySectionSwap(sectionId, dir, command)) return
-    pushCommand(command)
   }
 
   // The section's fields are still the defaults the action just wrote, so they come from
@@ -1137,7 +1040,7 @@ export function useKosztorysEditor({
       if (r.sectionId === sectionId) prevById.current.delete(id)
     }
     // Drop stack commands touching the section or any of its cascade-deleted rows (EX-526 #2) — see
-    // handleRemoveItem. The header id carries the section's own rename, recolour and reorder.
+    // handleRemoveItem. The header id carries the section's own rename and recolour.
     flushUndoBuffer()
     pruneByIds([sectionHeaderRowId(sectionId), ...removed.map((r) => r.id)])
     // collapsedSectionIds is left alone: an id whose section left the list folds nothing, and it keeps
@@ -1399,7 +1302,6 @@ export function useKosztorysEditor({
     // Reused from columnOpts so no two surfaces can disagree about whether editing is allowed.
     onRenameSection: columnOpts.onRenameSection,
     onInsertSection: columnOpts.onInsertSection,
-    onReorderSection: columnOpts.onReorderSection,
     onSetSectionColor: columnOpts.onSetSectionColor,
     onRemoveSection: columnOpts.onRemoveSection,
     onAddItem,
@@ -1459,7 +1361,6 @@ export function useKosztorysEditor({
     ordinalByRowId,
     sections,
     showItemless,
-    moveEdges,
     // Read by the toolbar and the summary through the editor context: on a locked investment they
     // drop their own write entries, which `editorOnly` (a grid-callback gate) never reaches.
     readOnly,

@@ -15,7 +15,6 @@ const editorOpts: BuildV2ColumnsOptsT = {
   view: 'client',
   stages,
   onRemoveItem: () => {},
-  onReorderItem: () => {},
 }
 
 const ids = (opts: BuildV2ColumnsOptsT) => buildV2Columns(opts).map((c) => c.id)

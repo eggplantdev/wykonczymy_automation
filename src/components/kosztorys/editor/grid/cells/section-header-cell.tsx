@@ -12,7 +12,6 @@ import {
 import { useTranslation } from '@/hooks/use-translation'
 import { formatNet } from '@/lib/kosztorys/format'
 import { cn } from '@/lib/utils/cn'
-import { canMoveSection, type MoveEdgesT } from '@/lib/kosztorys/move-edges'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 // `net` is the section's executed value after rabat, in the active price view — the same figure its
@@ -31,8 +30,6 @@ export type SectionHeaderContextT = {
   actions?: SectionBandActionsT
   // A section-scoped sort keeps bands on screen but freezes section order — see the menu.
   sortActive: boolean
-  // Which sekcja sits at either end, so its ▲/▼ can go dead instead of eating the click.
-  moveEdges?: MoveEdgesT
   // Which column paints the label — resolved per render off the visible order, never a fixed id.
   labelColumnId?: string
   // The worker's compact report: the name alone, cut at the cell, so the band never widens the page.
@@ -103,8 +100,6 @@ export function SectionHeaderCell({
         itemCount={itemCount}
         color={rowData.sectionColor}
         sortActive={context.sortActive}
-        canMoveUp={canMoveSection(context.moveEdges, rowData.sectionId, 'up')}
-        canMoveDown={canMoveSection(context.moveEdges, rowData.sectionId, 'down')}
         actions={actions}
       />
     )

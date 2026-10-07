@@ -4,7 +4,6 @@ import type { ColumnRanksT } from '@/lib/table/column-order'
 import type { LayerT } from '@/lib/kosztorys/layer'
 import type { CrewAxisT } from '@/lib/kosztorys/crew-axis'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
-import type { MoveEdgesT } from '@/lib/kosztorys/move-edges'
 import type { SortPickT, SortStateT } from '@/lib/kosztorys/row-view'
 import type {
   KosztorysStageT,
@@ -50,12 +49,6 @@ export type BuildV2ColumnsOptsT = {
   columnColors?: Record<string, SectionColorKeyT>
   onSetColumnColor?: (id: string, color: SectionColorKeyT | null) => void
   onRemoveItem?: (row: KosztorysV2RowT) => void
-  // Reordering items within a section (Przesuń w górę/dół). Greyed out while a column sort is
-  // active — "up/down" has no meaning against a price-sorted list.
-  onReorderItem?: (row: KosztorysV2RowT, dir: 'up' | 'down') => void
-  // Over the WHOLE rozpiska: the mover works on the document, so a search hiding the row above
-  // must not make ▲ look impossible.
-  moveEdges?: MoveEdgesT
   onInsertItem?: (row: KosztorysV2RowT, dir: 'above' | 'below') => void
   // Renaming the whole section from its (denormalized) name cell. Routes through the same fan-out
   // as the section panel — never a per-row setRowData, which would desync the other rows' copies.
@@ -63,7 +56,6 @@ export type BuildV2ColumnsOptsT = {
   // No column reads them (the caller takes them back out for the band), but they stay gated here so
   // one `editorOnly()` pass decides the whole write surface.
   onRemoveSection?: (sectionId: number) => void
-  onReorderSection?: (sectionId: number, dir: 'up' | 'down') => void
   onInsertSection?: (sectionId: number, dir: 'above' | 'below') => void
   onSetSectionColor?: (sectionId: number, color: SectionColorKeyT | null) => void
   // „Zapisz kolejność": writes the active sort into display_order across every section, so the order

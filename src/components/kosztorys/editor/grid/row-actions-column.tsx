@@ -4,7 +4,6 @@ import { Column, type CellProps } from 'react-datasheet-grid'
 import { HeaderLabel } from '@/components/ui/datasheet-grid/header-label'
 import { KosztorysRowActionsMenu } from '@/components/kosztorys/editor/grid/menus/kosztorys-row-actions-menu'
 import { type BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
-import { canMoveItem } from '@/lib/kosztorys/move-edges'
 import { orderCommandsEnabled } from '@/lib/kosztorys/order-commands'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
@@ -20,13 +19,9 @@ function RowActionsCell({ rowData, columnData }: CellProps<KosztorysV2RowT, RowA
     <KosztorysRowActionsMenu
       row={rowData}
       sortActive={!orderCommandsEnabled(opts.sort)}
-      canMoveUp={canMoveItem(opts.moveEdges, rowData.id, 'up')}
-      canMoveDown={canMoveItem(opts.moveEdges, rowData.id, 'down')}
       item={{
         onInsertAbove: () => opts.onInsertItem?.(rowData, 'above'),
         onInsertBelow: () => opts.onInsertItem?.(rowData, 'below'),
-        onMoveUp: () => opts.onReorderItem?.(rowData, 'up'),
-        onMoveDown: () => opts.onReorderItem?.(rowData, 'down'),
         onRemove: () => opts.onRemoveItem?.(rowData),
         savableItemId: opts.canSaveItemToCatalogue ? rowData.id : undefined,
       }}

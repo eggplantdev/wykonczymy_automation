@@ -13,9 +13,7 @@ import type { KosztorysStageT } from '@/lib/kosztorys/types'
 // the RENDERED ids rather than the constant — the constant can be right while the selection still
 // lets a column through, or drops one.
 
-const STAGES: KosztorysStageT[] = [
-  { id: 7, ordinal: 1, label: 'Etap 1', plane: null, split: null },
-]
+const STAGES: KosztorysStageT[] = [{ id: 7, ordinal: 1, label: 'Etap 1', plane: null, split: null }]
 
 function workshopIds(extra: Partial<BuildV2ColumnsOptsT> = {}): string[] {
   return buildV2Columns({ view: 'client', workshopVisible: true, stages: STAGES, ...extra })
@@ -103,7 +101,7 @@ describe('workshop columns', () => {
   // a pozycja. It is not a data column the szablon carries, so the allowlist — written as a list of
   // what travels to the next budowa — dropped it and left the warsztat a grid nobody could trim.
   it('keeps the row-actions column, the only route to delete or move a pozycja', () => {
-    expect(workshopIds({ onRemoveItem: () => {}, onReorderItem: () => {} })).toContain('actions')
+    expect(workshopIds({ onRemoveItem: () => {} })).toContain('actions')
   })
 
   it('leaves the picker empty, so the toolbar has nothing to offer', () => {

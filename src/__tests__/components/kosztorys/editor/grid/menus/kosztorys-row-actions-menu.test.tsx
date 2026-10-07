@@ -14,8 +14,6 @@ const ROW = { id: 41, sectionId: 3 } as KosztorysV2RowT
 const ITEM = {
   onInsertAbove: vi.fn(),
   onInsertBelow: vi.fn(),
-  onMoveUp: vi.fn(),
-  onMoveDown: vi.fn(),
   onRemove: vi.fn(),
 }
 
@@ -23,13 +21,7 @@ async function openRowMenu(sortActive: boolean) {
   const user = userEvent.setup()
   render(
     <ReorderHost>
-      <KosztorysRowActionsMenu
-        row={ROW}
-        sortActive={sortActive}
-        canMoveUp
-        canMoveDown
-        item={ITEM}
-      />
+      <KosztorysRowActionsMenu row={ROW} sortActive={sortActive} item={ITEM} />
     </ReorderHost>,
   )
   await user.click(screen.getByRole('button', { name: 'Akcje wiersza' }))
@@ -38,12 +30,12 @@ async function openRowMenu(sortActive: boolean) {
 
 beforeEach(() => vi.clearAllMocks())
 
-const POSITIONAL = ['Wstaw powyżej', 'Wstaw poniżej', 'Przesuń w górę', 'Przesuń w dół']
+const POSITIONAL = ['Wstaw powyżej', 'Wstaw poniżej']
 
 // Against a sorted view the array position no longer mirrors display_order, so every positional
 // command goes dead while any sort is on, whatever its scope.
 describe('menu wiersza — komendy pozycyjne przy aktywnym sortowaniu', () => {
-  it('wyszarza wstawianie i przesuwanie', async () => {
+  it('wyszarza wstawianie', async () => {
     await openRowMenu(true)
 
     for (const label of POSITIONAL) {
@@ -57,8 +49,8 @@ describe('menu wiersza — komendy pozycyjne przy aktywnym sortowaniu', () => {
     for (const label of POSITIONAL) {
       expect(screen.getByRole('menuitem', { name: label })).not.toHaveAttribute('aria-disabled')
     }
-    await user.click(screen.getByRole('menuitem', { name: 'Przesuń w górę' }))
-    expect(ITEM.onMoveUp).toHaveBeenCalled()
+    await user.click(screen.getByRole('menuitem', { name: 'Wstaw powyżej' }))
+    expect(ITEM.onInsertAbove).toHaveBeenCalled()
   })
 })
 

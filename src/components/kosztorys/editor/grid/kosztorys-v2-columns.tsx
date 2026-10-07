@@ -416,9 +416,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     ...remainingForPlane,
   ]
   if (opts.readOnly) return dataColumns.map((c) => ({ ...c, disabled: true }))
-  return opts.onRemoveItem || opts.onReorderItem
-    ? [actionColumn(opts), ...dataColumns]
-    : dataColumns
+  return opts.onRemoveItem ? [actionColumn(opts), ...dataColumns] : dataColumns
 }
 
 // Columns-only assemble — the grid path goes through buildV2Grid. Kept for the column-set unit specs,

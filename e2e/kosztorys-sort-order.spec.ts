@@ -67,14 +67,12 @@ async function expectRowCommandsFrozen(
     .filter({ hasText: rowText })
     .getByRole('button', { name: 'Akcje wiersza' })
     .click()
-  for (const command of ['Wstaw powyżej', 'Przesuń w górę']) {
-    const entry = page.getByRole('menuitem', { name: command, exact: true })
-    // `not.toHaveAttribute` is satisfied by an element that isn't there at all, so the live case has
-    // to say the entry exists before it says it is live.
-    await expect(entry).toBeVisible()
-    if (frozen) await expect(entry).toHaveAttribute('aria-disabled', 'true')
-    else await expect(entry).not.toHaveAttribute('aria-disabled', 'true')
-  }
+  const entry = page.getByRole('menuitem', { name: 'Wstaw powyżej', exact: true })
+  // `not.toHaveAttribute` is satisfied by an element that isn't there at all, so the live case has
+  // to say the entry exists before it says it is live.
+  await expect(entry).toBeVisible()
+  if (frozen) await expect(entry).toHaveAttribute('aria-disabled', 'true')
+  else await expect(entry).not.toHaveAttribute('aria-disabled', 'true')
   await page.keyboard.press('Escape')
 }
 

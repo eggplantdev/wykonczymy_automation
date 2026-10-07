@@ -243,8 +243,6 @@ export function KosztorysEditorBody({
     toggleSectionCollapsed,
     onRenameSection,
     onInsertSection,
-    onReorderSection,
-    moveEdges,
     onSetSectionColor,
     onRemoveSection,
     onAddItem,
@@ -283,17 +281,15 @@ export function KosztorysEditorBody({
       // Built here so the bundle's identity is the memo's own — a fresh object per render would land
       // on every column's `columnData` and redraw the whole grid.
       actions:
-        onInsertSection && onReorderSection && onSetSectionColor && onRemoveSection && onAddItem
+        onInsertSection && onSetSectionColor && onRemoveSection && onAddItem
           ? {
               onInsert: onInsertSection,
-              onReorder: onReorderSection,
               onSetColor: onSetSectionColor,
               onRemove: onRemoveSection,
               onAddItem,
             }
           : undefined,
       sortActive: !orderCommandsEnabled(sort),
-      moveEdges,
       labelColumnId: sectionBandLabelColumnId(columns.map((column) => column.id)),
       isBare: isReportCompact,
     }),
@@ -304,12 +300,10 @@ export function KosztorysEditorBody({
       toggleSectionCollapsed,
       onRenameSection,
       onInsertSection,
-      onReorderSection,
       onSetSectionColor,
       onRemoveSection,
       onAddItem,
       sort,
-      moveEdges,
       columns,
     ],
   )

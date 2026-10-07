@@ -4059,14 +4059,32 @@ Szablon z kilkuset pracami w kilku sekcjach (np. szablon 165).
       kolejności. Każda sekcja na liście ma swój kolor jak w siatce.
 - [x] W „Ustaw kolejność…” przeciągnij dwa razy, potem „Cofnij” (albo Ctrl/Cmd+Z) dwa razy — lista
       wraca do stanu z otwarcia, a siatka za dialogiem się nie zmienia; „Ponów” przywraca ruch.
-- [x] Kolumna „Akcje” → „…” przy pracy i „…” przy sekcji: oba mają „Ustaw kolejność…” i otwierają
-      ten sam dialog — także przy włączonym sortowaniu, gdy „Przesuń w górę/w dół” są wyszarzone.
-- [x] W „Ustaw kolejność…” zrób ruch, kliknij „Cofnij” aż się wyszarzy (albo kliknij obok dialogu),
+- [ ] Kolumna „Akcje” → „…” przy pracy i „…” przy sekcji: oba mają „Ustaw kolejność…” i otwierają
+      ten sam dialog — także przy włączonym sortowaniu, gdy „Wstaw powyżej/poniżej” są wyszarzone.
+      Żadne z menu nie ma już „Przesuń w górę/w dół” — kolejność zmienia się tylko w dialogu.
+- [ ] W „Ustaw kolejność…” zrób ruch, kliknij „Cofnij” aż się wyszarzy (albo kliknij obok dialogu),
       potem Ctrl/Cmd+Z — siatka za dialogiem się nie zmienia.
 - [x] Przeciągnij sekcję nad długą sekcją: linia przeskakuje dopiero w połowie całej sekcji, nie przy
       każdym wierszu.
 - [x] Otwórz „Ustaw kolejność…” w dwóch kartach; w jednej dodaj pracę, w drugiej zapisz kolejność —
       komunikat „Układ się zmienił…”, dialog się zamyka, a siatka wczytuje się na nowo z dodaną pracą.
+
+Po usunięciu „Przesuń w górę/w dół” dialog jest jedyną drogą zmiany kolejności — sprawdź, że każdy
+dawny ruch strzałkami da się w nim zrobić i że przeżywa przeładowanie (F5):
+
+- [ ] Praca o jedno miejsce w górę i inna o jedno w dół w tej samej sekcji → „Zapisz kolejność”:
+      siatka ma dokładnie układ z dialogu, a po F5 ten sam układ.
+- [ ] Krawędzie: pierwsza praca sekcji na jej koniec, ostatnia na jej początek, pierwsza sekcja na
+      koniec listy → po zapisie i F5 wszystkie trzy stoją tam, gdzie je upuszczono.
+- [ ] Praca przeniesiona do innej sekcji: po zapisie i F5 jest w nowej sekcji, ma kolor tej sekcji, a
+      sumy obu sekcji i „Wartość netto” w stopce przeliczyły się (suma całości bez zmian).
+- [ ] Sekcja przesunięta o jedno miejsce w górę i w dół: jej prace jadą z nią w tej samej kolejności,
+      prace innych sekcji się nie ruszają.
+- [ ] Po zapisie kolejności „Wstaw powyżej/poniżej” na przesuniętej pracy wstawia nową pracę obok niej
+      w nowym miejscu, a po F5 nowa praca stoi tam, gdzie się pojawiła.
+- [ ] Link inwestora (i jego PDF) po zapisie pokazuje prace i sekcje w nowej kolejności.
+- [ ] Bez sieci (DevTools → Offline) „Zapisz kolejność”: polski komunikat o braku połączenia, siatka
+      bez zmian, a po powrocie sieci i F5 kolejność sprzed próby.
 
 ## kosztorys-summary-resizable
 

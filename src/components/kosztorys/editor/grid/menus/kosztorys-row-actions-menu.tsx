@@ -1,14 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import {
-  ArrowDown,
-  ArrowDownToLine,
-  ArrowUp,
-  ArrowUpToLine,
-  BookmarkPlus,
-  Trash2,
-} from 'lucide-react'
+import { ArrowDownToLine, ArrowUpToLine, BookmarkPlus, Trash2 } from 'lucide-react'
 
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import {
@@ -27,25 +20,20 @@ import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 type PropsT = {
   // „Dopasuj wysokość do treści" measures the row's text, unlike every other command here.
   row: KosztorysV2RowT
-  // Under any sort, array position no longer mirrors display_order, so insert + move go dead.
+  // Under any sort, array position no longer mirrors display_order, so insert goes dead.
   sortActive: boolean
-  // Both false at the ends of a one-praca section; `sortActive` freezes every direction at once.
-  canMoveUp: boolean
-  canMoveDown: boolean
   // The POZYCJA's id, not a catalogue row's — an id, not a callback, because the dialog fetches by
   // it. Absent in the read-only view → no „Zapisz do katalogu…".
   item: {
     onInsertAbove: () => void
     onInsertBelow: () => void
-    onMoveUp: () => void
-    onMoveDown: () => void
     onRemove: () => void
     savableItemId?: number
   }
 }
 
 // Pozycja commands only; sekcja commands hang off the band's own „…", reachable while collapsed.
-export function KosztorysRowActionsMenu({ row, sortActive, canMoveUp, canMoveDown, item }: PropsT) {
+export function KosztorysRowActionsMenu({ row, sortActive, item }: PropsT) {
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [catalogueSaveOpen, setCatalogueSaveOpen] = useState(false)
 
@@ -64,14 +52,6 @@ export function KosztorysRowActionsMenu({ row, sortActive, canMoveUp, canMoveDow
           <DropdownMenuItem disabled={sortActive} onSelect={item.onInsertBelow}>
             <ArrowDownToLine />
             Wstaw poniżej
-          </DropdownMenuItem>
-          <DropdownMenuItem disabled={sortActive || !canMoveUp} onSelect={item.onMoveUp}>
-            <ArrowUp />
-            Przesuń w górę
-          </DropdownMenuItem>
-          <DropdownMenuItem disabled={sortActive || !canMoveDown} onSelect={item.onMoveDown}>
-            <ArrowDown />
-            Przesuń w dół
           </DropdownMenuItem>
           {/* Not gated by the sort: the dialog lays out the stored order, not the sorted view. */}
           <ReorderMenuItem compact />

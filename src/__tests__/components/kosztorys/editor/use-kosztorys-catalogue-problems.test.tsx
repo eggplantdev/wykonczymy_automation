@@ -20,8 +20,6 @@ vi.mock('@/lib/actions/kosztorys', () => ({
   removeSectionAction: vi.fn(),
   renumberKosztorysOrderAction: vi.fn(),
   setStageProgressAction: vi.fn(),
-  swapItemOrderAction: vi.fn(),
-  swapSectionOrderAction: vi.fn(),
   updateItemFieldAction: vi.fn(async () => ({ success: true })),
   updateSectionFieldAction: vi.fn(),
   updateInvestmentCoeffsAction: vi.fn(),

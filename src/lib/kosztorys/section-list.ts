@@ -46,20 +46,6 @@ export function restoreSection(
   return [...sections.slice(0, at), meta, ...sections.slice(at)]
 }
 
-// Null at either edge or for an unknown id — a no-op signal, so no undo command is pushed for it.
-export function swapSection(
-  sections: readonly SectionMetaT[],
-  sectionId: number,
-  dir: 'up' | 'down',
-): SectionMetaT[] | null {
-  const at = sections.findIndex((section) => section.sectionId === sectionId)
-  const target = dir === 'up' ? at - 1 : at + 1
-  if (at < 0 || target < 0 || target >= sections.length) return null
-  const next = [...sections]
-  ;[next[at], next[target]] = [next[target], next[at]]
-  return next
-}
-
 export function patchSection(
   sections: readonly SectionMetaT[],
   sectionId: number,

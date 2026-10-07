@@ -11,7 +11,6 @@ import {
   addSectionAction,
   removeItemAction,
   removeSectionAction,
-  swapSectionOrderAction,
   updateSectionFieldAction,
 } from '@/lib/actions/kosztorys'
 
@@ -22,8 +21,6 @@ vi.mock('@/lib/actions/kosztorys', () => ({
   removeSectionAction: vi.fn(async () => ({ success: true })),
   renumberKosztorysOrderAction: vi.fn(),
   setStageProgressAction: vi.fn(),
-  swapItemOrderAction: vi.fn(),
-  swapSectionOrderAction: vi.fn(async () => ({ success: true })),
   updateItemFieldAction: vi.fn(async () => ({ success: true })),
   updateSectionFieldAction: vi.fn(async () => ({ success: true })),
   updateInvestmentCoeffsAction: vi.fn(),
@@ -210,16 +207,14 @@ describe('sekcja bez pozycji w edytorze', () => {
 
   // With no rows the section's own commands carry no item id, so only the header id can prune them;
   // replaying one after the delete would write against a dead section.
-  it('drops its rename and reorder from the undo stack when the section is removed', async () => {
+  it('drops its rename from the undo stack when the section is removed', async () => {
     const { stack, api } = stackUndoRedo()
     const { result } = renderEditor(api)
 
     act(() => {
       result.current.onRenameSection?.(20, 'Przedpokój')
-      result.current.onReorderSection?.(20, 'down')
     })
-    await waitFor(() => expect(swapSectionOrderAction).toHaveBeenCalled())
-    expect(stack.undoDepth).toBe(2)
+    expect(stack.undoDepth).toBe(1)
 
     await act(async () => {
       await result.current.onRemoveSection?.(20)

@@ -78,32 +78,6 @@ export function applyInsertItem(
   return [...rows.slice(0, insertIdx), newRow, ...rows.slice(insertIdx)]
 }
 
-// Move an item one place within ITS section (▲/▼). Operates on the display sequence
-// of items in the same section (their order in `rows`), NOT on block contiguity —
-// this way a section whose rows are not adjacent still moves the pair the user sees.
-// Returns the same reference on a no-op (block edge / unknown id) — a signal to the editor
-// that there is nothing to save.
-export function swapItemInSection(
-  rows: KosztorysV2RowT[],
-  itemId: number,
-  dir: 'up' | 'down',
-): KosztorysV2RowT[] {
-  const target = rows.find((r) => r.id === itemId)
-  if (!target) return rows
-  // Indices in `rows` of items in the same section, in array order (= display order).
-  const sameSection = rows
-    .map((r, i) => ({ id: r.id, i }))
-    .filter((_, idx) => rows[idx].sectionId === target.sectionId)
-  const pos = sameSection.findIndex((x) => x.id === itemId)
-  const targetPos = dir === 'up' ? pos - 1 : pos + 1
-  if (targetPos < 0 || targetPos >= sameSection.length) return rows // block edge → no-op
-  const a = sameSection[pos].i
-  const b = sameSection[targetPos].i
-  const next = [...rows]
-  ;[next[a], next[b]] = [next[b], next[a]]
-  return next
-}
-
 // Rows grouped by section, in the order the sections first appear.
 export function groupBySection(rows: KosztorysV2RowT[]): Map<number, KosztorysV2RowT[]> {
   return groupInOrder(rows, (row) => row.sectionId)
@@ -130,19 +104,4 @@ export function applyKosztorysOrder(
     )
   }
   return regroupByKeys(blocks, [...blocks.keys()])
-}
-
-// Neighbor of an item within ITS section in the ▲/▼ direction (same sequence as swapItemInSection).
-// `undefined` at the block edge — a no-op signal. Used to swap the display_order of two rows.
-export function sectionNeighbor(
-  rows: KosztorysV2RowT[],
-  itemId: number,
-  dir: 'up' | 'down',
-): KosztorysV2RowT | undefined {
-  const target = rows.find((r) => r.id === itemId)
-  if (!target) return undefined
-  const sameSection = rows.filter((r) => r.sectionId === target.sectionId)
-  const pos = sameSection.findIndex((r) => r.id === itemId)
-  const neighborPos = dir === 'up' ? pos - 1 : pos + 1
-  return sameSection[neighborPos]
 }
