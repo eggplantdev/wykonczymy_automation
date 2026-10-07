@@ -119,7 +119,7 @@ export const ru: TranslationsT = {
     statusPending: 'ожидает',
     statusAccepted: 'принят',
     statusRejected: 'отклонён',
-    add: 'Добавить расход',
+    add: 'Расход',
     edit: 'Изменить расход',
     newTitle: 'Новый расход',
     chooseInvestment: 'Выберите объект',

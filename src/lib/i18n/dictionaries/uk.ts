@@ -120,7 +120,7 @@ export const uk: TranslationsT = {
     statusPending: 'очікує',
     statusAccepted: 'прийнято',
     statusRejected: 'відхилено',
-    add: 'Додати витрату',
+    add: 'Витрата',
     edit: 'Редагувати витрату',
     newTitle: 'Нова витрата',
     chooseInvestment: "Виберіть об'єкт",

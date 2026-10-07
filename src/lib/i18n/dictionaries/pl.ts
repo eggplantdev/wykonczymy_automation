@@ -128,7 +128,7 @@ export const pl = {
     statusPending: 'czeka',
     statusAccepted: 'przyjęty',
     statusRejected: 'odrzucony',
-    add: 'Dodaj wydatek',
+    add: 'Wydatek',
     edit: 'Edytuj wydatek',
     newTitle: 'Nowy wydatek',
     chooseInvestment: 'Wybierz inwestycję',

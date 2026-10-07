@@ -41,7 +41,7 @@ async function openNewAndPick(count: number) {
   const { container } = render(
     <ExpenseDraftDialog investments={INVESTMENTS} registers={REGISTERS} />,
   )
-  await userEvent.click(screen.getByRole('button', { name: 'Dodaj wydatek' }))
+  await userEvent.click(screen.getByRole('button', { name: 'Wydatek' }))
   const input = document.querySelector<HTMLInputElement>('input[type="file"]')
   if (!input) throw new Error(`no file input in ${container.innerHTML}`)
   await userEvent.upload(
