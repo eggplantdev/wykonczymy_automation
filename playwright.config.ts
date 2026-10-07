@@ -65,6 +65,9 @@ export default defineConfig({
     // because a cold prod route here genuinely can take a minute.
     actionTimeout: 45_000,
     navigationTimeout: 90_000,
+    // The suite runs a production build, where `/sw.js` registers — and Playwright's `page.route`
+    // never sees a request a service worker answers.
+    serviceWorkers: 'block',
   },
   projects: [
     {

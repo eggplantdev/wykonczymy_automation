@@ -5,6 +5,10 @@ import { spaceMono } from '@/fonts'
 import { cn } from '@/lib/utils/cn'
 import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
 import { ThemeProvider } from 'next-themes'
+import { PWA_METADATA, PWA_VIEWPORT } from '@/lib/pwa/head'
+
+export const metadata = PWA_METADATA
+export const viewport = PWA_VIEWPORT
 
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUserJwt()

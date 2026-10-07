@@ -9,7 +9,9 @@ import { spaceMono } from '@/fonts'
 import { cn } from '@/lib/utils/cn'
 import { ToastContainer } from 'react-toastify'
 import { ThemeProvider } from 'next-themes'
-import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
+import { getSession } from '@/lib/auth/get-current-user-jwt'
+import { needsSessionRefresh } from '@/lib/auth/session-refresh'
+import { SessionRefresher } from '@/components/auth/session-refresher'
 import { isManagementRole } from '@/lib/auth/roles'
 import { Navigation } from '@/components/nav/navigation'
 import { Sidebar } from '@/components/nav/sidebar'
@@ -23,6 +25,11 @@ import { Loader } from '@/components/ui/loader/loader'
 import { EnvBadge } from '@/components/ui/env-badge'
 import { PendingSubmitIndicator } from '@/components/ui/pending-submit-indicator'
 import { ReviewPromptHost } from '@/components/investments/review-prompt-host'
+import { ServiceWorkerRegistration } from '@/components/pwa/service-worker-registration'
+import { PWA_METADATA, PWA_VIEWPORT } from '@/lib/pwa/head'
+
+export const metadata = PWA_METADATA
+export const viewport = PWA_VIEWPORT
 
 type FrontendLayoutPropsT = {
   children: React.ReactNode
@@ -46,6 +53,7 @@ export default function FrontendLayout({ children, investmentCrumb }: FrontendLa
           <ToastContainer style={{ zIndex: 10001 }} />
           <PendingSubmitIndicator />
           <EnvBadge />
+          <ServiceWorkerRegistration />
         </ThemeProvider>
       </body>
     </html>
@@ -53,8 +61,9 @@ export default function FrontendLayout({ children, investmentCrumb }: FrontendLa
 }
 
 async function AuthenticatedShell({ children, investmentCrumb }: FrontendLayoutPropsT) {
-  const user = await getCurrentUserJwt()
-  if (!user) redirect('/zaloguj')
+  const session = await getSession()
+  if (!session) redirect('/zaloguj')
+  const { user, issuedAt } = session
 
   // Started here but deliberately not awaited: three DB counts in the shell would block first paint
   // of every page, and nothing below could stream. Each bubble unwraps it under its own Suspense
@@ -92,6 +101,7 @@ async function AuthenticatedShell({ children, investmentCrumb }: FrontendLayoutP
             </div>
           </div>
           <ReviewPromptHost />
+          {needsSessionRefresh(issuedAt) && <SessionRefresher />}
         </UnreadCountsProvider>
       </CurrentUserProvider>
     </AppLanguageProvider>

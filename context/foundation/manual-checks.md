@@ -4631,3 +4631,23 @@ JPEG-i ~300 KB; „duży plik" = PDF powyżej 4 MB.
 - [ ] „Moje inwestycje” to zwykła lista nazw ze strzałką (bez tabeli i bez kolumny „Zgłoszenia”); nazwa otwiera podsumowanie inwestycji. Kierownik widzi same nazwy, bez strzałek i linków.
 - [ ] Pracownik z językiem „Українська” lub „Русский”, 390px: etykiety obu dużych przycisków zawijają się w środku przycisku, nic nie wychodzi poza jego krawędź; gdy dostępny jest tylko jeden z nich, zajmuje cały rząd.
 - [ ] Pracownik bez zgłoszonych wydatków, bez zgłoszeń prac i bez transferów → na jego stronie nie ma sekcji „Zgłoszone wydatki”, „Zgłoszenia wykonanych prac” ani „Lista wydatków / zaliczek”; każda pojawia się po pierwszym wpisie. Filtr transferów, który nic nie znajduje, nie chowa sekcji „Lista wydatków / zaliczek”.
+
+## 2026-10-07 — worker-pwa-install-and-long-session — ikona aplikacji na telefonie i logowanie na 90 dni
+
+- [ ] Pracownik zalogowany w jednej przeglądarce, kierownik w drugiej wyłącza mu „Aktywny” → najbliższe przejście pracownika kończy się na `/zaloguj`, a wysłany formularz odpowiada „Nie jesteś zalogowany”.
+- [ ] To samo po przeniesieniu pracownika do `/kosz`; po przywróceniu i włączeniu „Aktywny” pracownik znów się loguje.
+- [ ] To samo przez „Edytuj pracownika” → odznaczenie „Aktywny” i zapis: pracownik wylatuje na `/zaloguj` od razu, nie po godzinie.
+- [ ] Kierownik zalogowany w jednej przeglądarce, właściciel w drugiej zmienia mu rolę na pracownika → najbliższe przejście kierownika kończy się na `/zaloguj`; po ponownym zalogowaniu widzi już tylko to, co pracownik.
+- [ ] Zmiana języka konta, e-maila albo hasła (własnych lub przez „Edytuj pracownika”) nikogo nie wylogowuje.
+- [ ] Wylogowanie, a potem wklejenie starej wartości ciasteczka `payload-token` do przeglądarki → aplikacja nie wpuszcza (sesja skończona, nie tylko ciasteczko skasowane).
+- [ ] Konto zalogowane ponad dobę temu → po otwarciu aplikacji DevTools → Application → Cookies pokazuje nową wartość `payload-token` z wygaśnięciem ok. 90 dni naprzód.
+- [ ] Na stagingu (https) ciasteczko `payload-token` ma zaznaczone `Secure`.
+- [ ] Build produkcyjny, Chrome DevTools → Application → Manifest: nazwa „Wykończymy”, trzy ikony (maskowalna z podglądem strefy bezpiecznej), brak błędów instalowalności.
+- [ ] Ikona w karcie przeglądarki to logo firmy, nie 🚧.
+- [ ] DevTools → Network → Offline: przejście na inną stronę pokazuje „Brak połączenia z internetem…”, a wysłanie formularza nadal pokazuje dotychczasowy komunikat o braku połączenia, nie tę stronę.
+- [ ] Android Chrome, prawdziwy telefon, staging, 390px: na własnej stronie pracownika pod „Zmień e-mail lub hasło” jest przycisk instalacji — najpierw w stanie ładowania, potem aktywny; dotknięcie pokazuje systemowe okno instalacji, a ikona trafia na ekran główny.
+- [ ] Ta ikona otwiera aplikację na pełnym ekranie na stronie pracownika, już zalogowaną, i przycisk instalacji nie jest tam pokazany.
+- [ ] iPhone Safari, prawdziwy telefon, staging, 390px: przycisk otwiera instrukcję w trzech krokach; po jej wykonaniu ikona jest na ekranie głównym i otwiera aplikację na pełnym ekranie na `/zaloguj`; po zalogowaniu przycisku nie ma.
+- [ ] Android z już zainstalowaną aplikacją, strona otwarta w karcie Chrome: przycisk jest ukryty albo po 60 s zmienia się w podpowiedź o menu przeglądarki — nigdy nie zostaje w ładowaniu.
+- [ ] Język konta „Українська” / „Русский”: przycisk, podpowiedź i instrukcja dla iPhone’a są przetłumaczone.
+- [ ] Przycisku nie ma na cudzej stronie pracownika ani u kierownika oglądającego stronę pracownika.

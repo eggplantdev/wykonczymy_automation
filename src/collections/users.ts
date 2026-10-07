@@ -20,7 +20,9 @@ import { LANGUAGES, isLanguage } from '@/lib/i18n/languages'
 export const Users: CollectionConfig = {
   slug: 'users',
   auth: {
-    tokenExpiration: 604800, // 7 days until app logs you out
+    // 90 days, slid forward on app open (`SessionRefresher`): a worker opens the app once a month.
+    tokenExpiration: 7776000,
+    cookies: { secure: process.env.NODE_ENV === 'production' },
     forgotPassword: {
       generateEmailHTML: (args) => {
         return forgotPasswordEmailHTML({

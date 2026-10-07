@@ -37,6 +37,6 @@ export const config = {
      * - /_next (Next.js internals)
      * - Static assets (images, fonts, etc.)
      */
-    '/((?!admin|api|_next|favicon\\.ico|fonts|images|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)).*)',
+    '/((?!admin|api|_next|favicon\\.ico|manifest\\.webmanifest|sw\\.js|fonts|images|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)).*)',
   ],
 }
