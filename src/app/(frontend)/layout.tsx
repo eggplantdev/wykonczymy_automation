@@ -9,7 +9,9 @@ import { spaceMono } from '@/fonts'
 import { cn } from '@/lib/utils/cn'
 import { ToastContainer } from 'react-toastify'
 import { ThemeProvider } from 'next-themes'
-import { getCurrentUserJwt } from '@/lib/auth/get-current-user-jwt'
+import { getCurrentUserJwt, getSessionIssuedAt } from '@/lib/auth/get-current-user-jwt'
+import { needsSessionRefresh } from '@/lib/auth/session-refresh'
+import { SessionRefresher } from '@/components/auth/session-refresher'
 import { isManagementRole } from '@/lib/auth/roles'
 import { Navigation } from '@/components/nav/navigation'
 import { Sidebar } from '@/components/nav/sidebar'
@@ -63,6 +65,7 @@ async function AuthenticatedShell({ children, investmentCrumb }: FrontendLayoutP
   // full load or a revalidation. That staleness is the contract, not a defect.
   const unreadCounts = fetchUnreadCounts()
   const locale = await fetchUserLanguage(user.id)
+  const issuedAt = await getSessionIssuedAt()
 
   return (
     <AppLanguageProvider locale={locale}>
@@ -92,6 +95,9 @@ async function AuthenticatedShell({ children, investmentCrumb }: FrontendLayoutP
             </div>
           </div>
           <ReviewPromptHost />
+          {issuedAt !== undefined && needsSessionRefresh(issuedAt, Date.now()) && (
+            <SessionRefresher />
+          )}
         </UnreadCountsProvider>
       </CurrentUserProvider>
     </AppLanguageProvider>
