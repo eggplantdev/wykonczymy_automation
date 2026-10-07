@@ -63,8 +63,8 @@ export function stageAxisForView(
  * Order = first occurrence of each section in `rows` (treeToRows already yields section→displayOrder).
  *
  * Carries BOTH figures, the way the sheet's footer keeps S456 and T456 side by side: `plannedNet` is
- * what was offered, `net` what has been executed. Nothing has to choose between them, and the
- * progress counter divides one by the other.
+ * what was offered, `net` what has been executed. Progress divides `net` by `currentPlannedNet`, the
+ * Aktualizacja przedmiaru (EX-921), so an agreed extra does not read as past 100%.
  */
 // Overloaded on the literal so a caller that pins 'client' gets the przedmiar figure typed as present
 // and never writes a `?? 0` for a case it already excluded, while a caller passing a `view` variable
@@ -89,12 +89,13 @@ export function sectionSubtotalsForView(
   // regardless of `view`: per-item price overrides shift a section's executed VALUE against the others,
   // so the same physical progress and the same cost split must not read differently per view.
   // Accumulated apart from the money net above, which does follow the view.
-  const clientBySection = new Map<number, { executed: number; offered: number }>()
+  const clientBySection = new Map<number, { executed: number; agreed: number }>()
   const valueOf = computedColumnValues({ stages, view })
   const net = valueOf('net')
   const discount = valueOf('discountAmount')
-  // Read at the client price in every view already (column-values.ts), so it serves both.
+  // Both read at the client price in every view already (column-values.ts), so they serve both.
   const plannedNet = valueOf('plannedNet')
+  const currentPlannedNet = valueOf('currentPlannedNet')
   const clientNet =
     view === 'client' ? net : computedColumnValues({ stages, view: 'client' })('net')
   for (const row of rows) {
@@ -106,27 +107,29 @@ export function sectionSubtotalsForView(
         sectionColor: row.sectionColor,
         net: 0,
         plannedNet: view === 'client' ? 0 : null,
+        currentPlannedNet: view === 'client' ? 0 : null,
         discount: 0,
         share: 0,
         completionRatio: null,
         itemCount: 0,
       }
       bySection.set(row.sectionId, acc)
-      clientBySection.set(row.sectionId, { executed: 0, offered: 0 })
+      clientBySection.set(row.sectionId, { executed: 0, agreed: 0 })
     }
     acc.net += net(row) ?? 0
     if (acc.plannedNet !== null) acc.plannedNet += plannedNet(row) ?? 0
+    if (acc.currentPlannedNet !== null) acc.currentPlannedNet += currentPlannedNet(row) ?? 0
     // 0 under a global discount.
     acc.discount += discount(row) ?? 0
     acc.itemCount += 1
     const client = clientBySection.get(row.sectionId)!
     client.executed += clientNet(row) ?? 0
-    client.offered += plannedNet(row) ?? 0
+    client.agreed += currentPlannedNet(row) ?? 0
   }
   const result = [...bySection.values()]
   for (const s of result) {
     const client = clientBySection.get(s.sectionId)!
-    s.completionRatio = client.offered > 0 ? client.executed / client.offered : null
+    s.completionRatio = client.agreed > 0 ? client.executed / client.agreed : null
   }
   const grandClientNet = [...clientBySection.values()].reduce((sum, c) => sum + c.executed, 0)
   if (grandClientNet > 0)

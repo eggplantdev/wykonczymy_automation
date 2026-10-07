@@ -90,6 +90,28 @@ describe('diffVersions', () => {
     expect(fieldsOf(past, current, 1)).toContain('net')
   })
 
+  describe('Aktualizacja przedmiaru', () => {
+    it('lists a hand edit, „follows" as null on the before side', () => {
+      const past = version([item(1, 'Płytki', 10, 100)])
+      const current = version([item(1, 'Płytki', 10, 100, { currentPlannedQty: 120 })])
+      expect(diffVersions(past, current).changed.get(1)?.fields).toEqual([
+        { field: 'currentPlannedQty', before: null, after: 120 },
+      ])
+    })
+
+    it('lists a typed value equal to the ofertowy — it stopped following', () => {
+      const past = version([item(1, 'Płytki', 10, 100)])
+      const current = version([item(1, 'Płytki', 10, 100, { currentPlannedQty: 10 })])
+      expect(fieldsOf(past, current, 1)).toEqual(['currentPlannedQty'])
+    })
+
+    it('a following row whose ofertowy moved lists only the ofertowy', () => {
+      const past = version([item(1, 'Płytki', 10, 100)])
+      const current = version([item(1, 'Płytki', 12, 100)])
+      expect(fieldsOf(past, current, 1)).not.toContain('currentPlannedQty')
+    })
+  })
+
   it('ignores float noise below a grosz and below half a hundredth of a unit', () => {
     const past = version([item(1, 'Płytki', 0.1 + 0.2, 33.333)])
     const current = version([item(1, 'Płytki', 0.3, 33.3301)])
@@ -110,10 +132,12 @@ describe('diffVersions', () => {
     })
 
     it('each side carries the stawka VAT of its own version', () => {
-      expect(diffVersions(withDiscount(500, 0.08), withDiscount(300, 0.23)).discount).toMatchObject({
-        before: { vatRate: 0.08 },
-        after: { vatRate: 0.23 },
-      })
+      expect(diffVersions(withDiscount(500, 0.08), withDiscount(300, 0.23)).discount).toMatchObject(
+        {
+          before: { vatRate: 0.08 },
+          after: { vatRate: 0.23 },
+        },
+      )
     })
 
     it('known → same is no change', () => {

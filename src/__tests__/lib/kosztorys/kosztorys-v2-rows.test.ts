@@ -544,3 +544,78 @@ describe('applyRestoreItem — reinsert a removed row after a failed delete', ()
     expect(after.map((r) => r.id)).toEqual([3, 4, 2])
   })
 })
+
+// EX-921: Przedmiar ofertowy 10, Aktualizacja przedmiaru 15, wykonane 12 at 100 zł. Every progress
+// figure reads the aktualizacja, the offer figure stays on ofertowy — and the two disagree here, so a
+// reader still on the wrong one fails.
+describe('Aktualizacja przedmiaru — postęp liczony od aktualizacji, oferta od ofertowego', () => {
+  const STAGE = 200
+  const splitTree = (currentPlannedQty: number | null) =>
+    makeTree({
+      sections: [
+        {
+          id: 20,
+          name: 'Sekcja',
+          displayOrder: 0,
+          color: null,
+          items: [
+            {
+              ...sharedBaseItem,
+              id: 7,
+              description: 'A',
+              plannedQty: 10,
+              currentPlannedQty,
+              clientPrice: 100,
+            },
+          ],
+        },
+      ],
+      stages: [{ id: STAGE, ordinal: 1, label: null, plane: null, split: null }],
+      progress: [{ itemId: 7, stageId: STAGE, qtyDone: 12 }],
+      vatRate: 0,
+    })
+  const [row] = treeToRows(splitTree(15))
+  const stages = splitTree(15).stages
+  const values = computedColumnValues({ stages, view: 'client' })
+
+  it('% wykonania dzieli przez aktualizację', () => {
+    expect(rowDoneFraction(row, 12)).toBeCloseTo(0.8, 10)
+    expect(values('donePercent')(row)).toBeCloseTo(0.8, 10)
+  })
+
+  it('wykonanie ponad ofertowy, ale w aktualizacji, nie jest przekroczeniem', () => {
+    expect(hasStagesOverPlanned(row, stages)).toBe(false)
+  })
+
+  it('Pozostało liczy od aktualizacji', () => {
+    expect(values('remaining')(row)).toBeCloseTo(300, 6)
+  })
+
+  it('wartość aktualizacji obok wartości oferty', () => {
+    expect(values('plannedNet')(row)).toBeCloseTo(1000, 6)
+    expect(values('currentPlannedNet')(row)).toBeCloseTo(1500, 6)
+  })
+
+  it('sekcja: oferta zostaje na ofertowym, completionRatio dzieli przez aktualizację', () => {
+    const [section] = sectionSubtotalsForView([row], stages, 'client')
+    expect(section.plannedNet).toBeCloseTo(1000, 6)
+    expect(section.currentPlannedNet).toBeCloseTo(1500, 6)
+    expect(section.completionRatio).toBeCloseTo(0.8, 10)
+  })
+
+  it('bez ręcznej aktualizacji wiersz idzie za ofertowym', () => {
+    const [following] = treeToRows(splitTree(null))
+    expect(rowDoneFraction(following, 12)).toBeCloseTo(1.2, 10)
+    expect(hasStagesOverPlanned(following, stages)).toBe(true)
+    expect(values('currentPlannedNet')(following)).toBeCloseTo(1000, 6)
+  })
+
+  it('diffRow wysyła zmianę aktualizacji, także powrót do „za ofertowym"', () => {
+    expect(diffRow(row, { ...row, currentPlannedQty: 18 })).toEqual({
+      itemPatch: { currentPlannedQty: 18 },
+    })
+    expect(diffRow(row, { ...row, currentPlannedQty: null })).toEqual({
+      itemPatch: { currentPlannedQty: null },
+    })
+  })
+})

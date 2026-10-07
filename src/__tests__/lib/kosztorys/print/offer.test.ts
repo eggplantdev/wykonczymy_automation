@@ -8,7 +8,11 @@ import {
   PREVIEW_VISIBLE_COLUMNS,
 } from '@/lib/kosztorys/client-view/columns'
 import { planePriceKeysFor } from '@/lib/kosztorys/plane-price-keys'
-import { stageKey } from '@/lib/kosztorys/stage-keys'
+import {
+  STAGE_VALUE_NET_COLUMN_GROUP,
+  STAGES_COLUMN_GROUP,
+  stageKey,
+} from '@/lib/kosztorys/stage-keys'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
 import { columnTotalsForRows } from '@/lib/kosztorys/columns/column-totals'
 import { groupBySection } from '@/lib/kosztorys/row-ops'
@@ -49,6 +53,28 @@ const showing = (...keys: string[]) => ({
   settings: {
     ...DEFAULT_SETTINGS,
     hiddenColumns: DEFAULT_SETTINGS.hiddenColumns.filter((key) => !keys.includes(key)),
+  },
+})
+
+// „Pozostało" prints only once an etap has an entry. A case about the money column's neighbours gets
+// that entry with every settlement column hidden, so the table keeps the offer's narrow layout.
+const withEntry = (fields: Partial<KosztorysV2RowT>) =>
+  row({ ...fields, [stageKey(CTX.stages[0]!.id)]: 1 })
+const SETTLEMENT_KEYS = [
+  STAGES_COLUMN_GROUP,
+  STAGE_VALUE_NET_COLUMN_GROUP,
+  'stageQtySum',
+  'net',
+  'donePercent',
+  'currentPlannedQty',
+]
+const showingRemainingOnly = () => ({
+  settings: {
+    ...DEFAULT_SETTINGS,
+    hiddenColumns: [
+      ...DEFAULT_SETTINGS.hiddenColumns.filter((key) => key !== 'remaining'),
+      ...SETTLEMENT_KEYS,
+    ],
   },
 })
 
@@ -164,21 +190,21 @@ describe('buildOfferPrintHtml — sumy przychodzą z edytora', () => {
 
 describe('buildOfferPrintHtml — papier pokazuje to, co ekran', () => {
   it('drukuje „Pozostało", gdy właściciel ją pokazuje', () => {
-    const only = row({ id: 1, plannedQty: 10, clientPrice: 100 })
+    const only = row({ id: 1, plannedQty: 10, clientPrice: 100, [stageKey(CTX.stages[0]!.id)]: 4 })
 
     const out = html([only], showing('remaining'))
 
     expect(out).toMatch(header('Pozostało'))
-    expect(out).toContain(zloty(1000))
+    expect(out).toContain(zloty(600))
   })
 
   it('suma sekcji stoi pod „Wartość netto", nie pod kolumną obok', () => {
     const rows = [
-      row({ id: 1, sectionId: 10, sectionName: 'Podłogi', plannedQty: 3, clientPrice: 100 }),
+      withEntry({ id: 1, sectionId: 10, sectionName: 'Podłogi', plannedQty: 3, clientPrice: 100 }),
     ]
     const { sectionNetById } = editorTotals(rows)
 
-    const out = html(rows, showing('remaining'))
+    const out = html(rows, showingRemainingOnly())
 
     // The label spans everything left of the money column and the cells to its right are empty, so the
     // figure lands under its own heading however many columns the offer grows.
@@ -202,7 +228,7 @@ describe('buildOfferPrintHtml — papier pokazuje to, co ekran', () => {
   })
 })
 
-// The same rule the podgląd applies (`emptySettlementColumnIds`), so paper and screen agree column
+// The same rule the podgląd applies (`investorEmptyColumnIds`), so paper and screen agree column
 // for column.
 describe('buildOfferPrintHtml — kolumny rozliczenia dopiero z wpisami', () => {
   const [stage1, stage2] = CTX.stages
@@ -225,6 +251,57 @@ describe('buildOfferPrintHtml — kolumny rozliczenia dopiero z wpisami', () => 
     expect(out).not.toMatch(header(stageLabel(stage2!)))
     expect(out).not.toMatch(header(`${stageLabel(stage2!)} netto`))
     expect(out).toMatch(header(columnLabelForView('net', 'client')))
+  })
+})
+
+// EX-921: before the first entry the investor gets the pure offer — no Aktualizacja przedmiaru and no
+// „Pozostało", even ticked. After it the Aktualizacja joins, ticked by default; its value stays off.
+describe('buildOfferPrintHtml — oferta przed pierwszym wpisem', () => {
+  const ticked = showing('remaining', 'currentPlannedNet')
+
+  it('bez wpisów drukuje Opis, Przedmiar ofertowy, j.m., Cena j.m. i Wartość netto', () => {
+    const out = html([row({ id: 1, plannedQty: 10, clientPrice: 100 })], ticked)
+    const headers = [...out.matchAll(/<th(?:\s[^>]*)?><span>(.*?)<\/span><\/th>/g)].map((m) => m[1])
+
+    expect(headers).toEqual([
+      'Opis prac',
+      'Przedmiar ofertowy',
+      'Jednostka miary',
+      'Cena j.m.',
+      'Wartość netto',
+    ])
+  })
+
+  it('po pierwszym wpisie dokłada Aktualizację przedmiaru, a jej wartość zostawia odznaczoną', () => {
+    const rows = [
+      row({
+        id: 1,
+        plannedQty: 10,
+        currentPlannedQty: 12,
+        clientPrice: 100,
+        [stageKey(CTX.stages[0]!.id)]: 4,
+      }),
+    ]
+    const out = html(rows)
+
+    expect(out).toMatch(header('Aktualizacja przedmiaru'))
+    expect(out).not.toMatch(header(columnLabelForView('currentPlannedNet', 'client')))
+  })
+
+  it('zaznaczona wartość aktualizacji drukuje się po pierwszym wpisie', () => {
+    const rows = [
+      row({
+        id: 1,
+        plannedQty: 10,
+        currentPlannedQty: 12,
+        clientPrice: 100,
+        [stageKey(CTX.stages[0]!.id)]: 4,
+      }),
+    ]
+    const out = html(rows, ticked)
+
+    expect(out).toMatch(header(columnLabelForView('currentPlannedNet', 'client')))
+    expect(out).toContain(zloty(1200))
   })
 })
 
@@ -254,9 +331,9 @@ describe('buildOfferPrintHtml — struktura tabeli', () => {
     // take one of them. The colspan floor and the filler count were derived from two different figures,
     // so the row carried a third cell into a two-column table and the browser grew a phantom column.
     const rows = [
-      row({ id: 1, sectionId: 10, sectionName: 'Podłogi', plannedQty: 2, clientPrice: 50 }),
+      withEntry({ id: 1, sectionId: 10, sectionName: 'Podłogi', plannedQty: 2, clientPrice: 50 }),
     ]
-    const { settings } = showing('remaining')
+    const { settings } = showingRemainingOnly()
     const out = html(rows, {
       settings: {
         ...settings,

@@ -141,6 +141,7 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
               wToolsOverrideValue: null,
               ownToolsOverrideValue: null,
               note: null,
+              currentPlannedQty: null,
               aiPlannedQty: null,
               changeReason: null,
               reviewStatus: null,
@@ -150,7 +151,10 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
               // Two languages, one of them out of date: `source` must survive verbatim, or a restore
               // silently clears every „nieaktualne tłumaczenie" warning.
               descriptionTranslations: {
-                uk: { text: 'Перегородка — ГК 12,5 „подвійна"', source: 'Ścianka działowa — GK 12,5' },
+                uk: {
+                  text: 'Перегородка — ГК 12,5 „подвійна"',
+                  source: 'Ścianka działowa — GK 12,5',
+                },
                 ru: {
                   text: 'Перегородка — ГК 12,5 „двойная"',
                   source: 'Ścianka działowa — GK 12,5 „podwójna"\ndruga linia opisu',
@@ -172,6 +176,7 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
               ownToolsOverrideValue: 88.5,
               note: 'Uwaga: różnica ±5 cm\nDrugi wiersz — ćwierć „cudzysłów"',
               // Fractional and different from both przedmiary, for the same reason as above.
+              currentPlannedQty: 13.5,
               aiPlannedQty: 9.75,
               changeReason: 'AI pominęło narożniki',
               reviewStatus: 'edited',
@@ -245,6 +250,7 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
     expect(canonical(after)).toEqual(canonical(before))
     // An identity passes vacuously if serialize drops a field on both sides — pin the AI review row.
     expect(after.items.find((item) => item.aiPlannedQty === 9.75)).toMatchObject({
+      currentPlannedQty: 13.5,
       changeReason: 'AI pominęło narożniki',
       reviewStatus: 'edited',
     })
@@ -274,6 +280,26 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
     `)
     expect(live.rows[0]).toMatchObject({ global_discount_type: 'amount' })
     expect(Number(live.rows[0].global_discount_value)).toBe(300)
+  })
+
+  // A snapshot older than EX-921 has no Aktualizacja key: every row followed Przedmiar ofertowy then,
+  // so it must come back following it — not as 0, which would drop the whole rozpiska out of scope.
+  it('restores a pre-EX-921 snapshot (no Aktualizacja) as following Przedmiar ofertowy', async () => {
+    const current = await serializeKosztorys(investmentId)
+    expect(current.items.some((item) => item.currentPlannedQty === 13.5)).toBe(true)
+    const legacy = {
+      ...current,
+      items: current.items.map(({ currentPlannedQty: _dropped, ...rest }) => rest),
+    } as unknown as SnapshotPayloadT
+
+    await withPayloadTransaction(
+      payload,
+      (req) => restoreKosztorys(payload, req, investmentId, legacy),
+      { skipRevalidation: true },
+    )
+
+    const after = await serializeKosztorys(investmentId)
+    expect(after.items.map((item) => item.currentPlannedQty)).toEqual(after.items.map(() => null))
   })
 
   // Snapshots taken before EX-943 carry one `workerId` per etap instead of a split. Restoring one

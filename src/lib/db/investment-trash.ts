@@ -12,7 +12,8 @@ import type { DbExecutorT } from '@/lib/db/get-db'
 const KOSZTORYS_USED = sql`(
   EXISTS (
     SELECT 1 FROM kosztorys_items ki
-    WHERE ki.investment_id = i.id AND ki.planned_qty <> 0
+    WHERE ki.investment_id = i.id
+      AND (ki.planned_qty <> 0 OR COALESCE(ki.current_planned_qty, 0) <> 0)
   )
   OR EXISTS (
     SELECT 1 FROM stage_progress sp

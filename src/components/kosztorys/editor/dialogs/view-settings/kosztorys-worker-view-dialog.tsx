@@ -77,7 +77,7 @@ export function KosztorysWorkerViewDialog() {
                   setDraft({ ...draft, hidePlannedOnceExecuted: checked })
                 }
               >
-                Ukryj przedmiar i wartość przedmiaru, gdy w etapach są już wpisy
+                Ukryj aktualizację przedmiaru i jej wartość, gdy w etapach są już wpisy
               </CheckboxRow>
             </div>
           </div>

@@ -41,6 +41,8 @@ const tree = makeTree({
           description: 'Gładź',
           unit: 'm2',
           plannedQty: 4,
+          // Hand-edited Aktualizacja przedmiaru: the crew's form compares against it (EX-921).
+          currentPlannedQty: 6,
           clientPrice: 23,
         },
         {
@@ -135,7 +137,7 @@ describe('buildWorkerFormHtml', () => {
       'Jednostka miary',
     ])
     expect(out).toMatch(/Tynk[\s\S]*?>2<\/td>[\s\S]*?>2 \/ 5<\/td>/)
-    expect(out).toMatch(/Gładź[\s\S]*?>0<\/td>[\s\S]*?>0 \/ 4<\/td>/)
+    expect(out).toMatch(/Gładź[\s\S]*?>0<\/td>[\s\S]*?>0 \/ 6<\/td>/)
   })
 
   it('ends with blank rows for prace spoza rozpiski', () => {

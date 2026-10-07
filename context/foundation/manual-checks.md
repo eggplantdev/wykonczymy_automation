@@ -4529,6 +4529,7 @@ Baza musi mieć migrację `20261007_0_add_ai_review_columns`.
       Staging 2026-10-07: nowa praca z komentarzem → kolumna „Komentarz do pracy” (ukryta domyślnie, włączona w „Kolumny”) pokazuje go.
 - [x] Kosztorys → w wyborze kolumn zaznacz „Komentarz do pracy" → kliknij komórkę pracy z katalogu → wpisz komentarz → zapisz: ta sama praca w innym kosztorysie i w szablonie pokazuje ten komentarz.
       Staging 2026-10-07: komentarz wpisany w 173 (pozycja „Rozkucie i zatynkowanie…”) zapisał się w katalogu (`work_note`, psql); ta sama praca w 174 (kolumna włączona) i w szablonie 159 pokazuje go.
+- [ ] Kosztorys → kolumna „Komentarz do pracy" ma zwykłe kolory (bez cyjanu); kliknij komórkę pracy, której nie ma w katalogu: okno „Tej pracy nie ma w katalogu prac" → „Dodaj do katalogu…" otwiera „Zapisz do katalogu…"; po zapisie kliknięcie tej komórki otwiera okno komentarza. Szara zostaje tylko komórka pustego wiersza.
 - [x] Pozycja, której opisu nie ma w katalogu: komórka jest pusta, kliknięcie nic nie otwiera.
       Staging 2026-10-07: „Wynoszenie gruzu…” (173): komórka pusta, klik i dwuklik nie otwierają okna.
 - [x] W oknie komentarza: Backspace, Delete, strzałki, Ctrl+A i wklejanie działają na tekście komentarza; kosztorys pod oknem się nie zmienia. Escape zamyka okno.
@@ -4659,3 +4660,21 @@ JPEG-i ~300 KB; „duży plik" = PDF powyżej 4 MB.
 - [ ] Wpisz `2*` w komórkę liczbową i kliknij obok: wraca poprzednia wartość z komunikatem o odrzuconym wpisie.
 - [ ] Skopiuj `(2+3)*1,5` z edytora tekstu i wklej na zaznaczoną komórkę ilości w etapie: ląduje `7,5`.
 - [ ] Zwykła liczba (`12,5`) w dowolnej komórce zachowuje się jak dotąd.
+
+## EX-921 — kosztorys-przedmiar-aktualny — „Aktualizacja przedmiaru” obok „Przedmiaru ofertowego” (2026-10-07)
+
+- [ ] Kosztorys z pozycjami → w edytorze kolejno: „Przedmiar ofertowy”, „Wartość netto przedmiar”, „Aktualizacja przedmiaru”, „Wartość netto aktualizacji przedmiaru”. Na nietkniętej pozycji aktualizacja jest szara (kursywa) i równa przedmiarowi ofertowemu.
+- [ ] Wpisz 120 w „Aktualizacja przedmiaru” → komórka robi się czarna, „% wykonania” i „Pozostało” przeliczają się względem 120. Delete → komórka znów szara i pokazuje przedmiar ofertowy. Wpisz 0 → „% wykonania” pokazuje „—”, a wartość wykonana wiersza zostaje.
+- [ ] Zmień „Przedmiar ofertowy” na pozycji z szarą aktualizacją → aktualizacja idzie za nim. Na pozycji z wpisaną ręcznie aktualizacją → zostaje bez zmian.
+- [ ] Wiersz „Razem” i stopki sekcji pokazują obie sumy: „Wartość netto przedmiar” i „Wartość netto aktualizacji przedmiaru”. Po przeładowaniu strony ręczna aktualizacja nadal jest.
+- [ ] Sortowanie po „Aktualizacja przedmiaru” → szare (nietknięte) pozycje układają się według swojej liczby, nie lądują wszystkie na dole.
+- [ ] Tryb „Postęp” → kolumna „Aktualizacja przedmiaru” zostaje widoczna obok „% wykonania” i „Pozostało”.
+- [ ] Historia wersji → zmiana aktualizacji pokazuje się jako „Aktualizacja przedmiaru: — → 120”, a zmiana przedmiaru ofertowego jako „Przedmiar ofertowy”.
+- [ ] Kosztorys bez żadnego wpisu w etapach → „Podgląd” dla inwestora pokazuje samą ofertę: bez „Aktualizacja przedmiaru”, bez „Pozostało” — nawet gdy obie są zaznaczone w ustawieniach.
+- [ ] Po pierwszym wpisie w etapie → podgląd i link dla inwestora pokazują „Przedmiar ofertowy” i „Aktualizacja przedmiaru”; „Wartość netto aktualizacji przedmiaru” jest w ustawieniach do zaznaczenia i domyślnie odznaczona. „% wykonania” liczy się względem aktualizacji.
+- [ ] „Generuj ofertę” drukuje te same kolumny co podgląd — przed pierwszym wpisem i po nim.
+- [ ] Link pracownika (po polsku i po ukraińsku, na telefonie 390px) → widać „Aktualizacja przedmiaru”, nigdy przedmiaru ofertowego. Po wpisaniu 120 w edytorze link pokazuje 120, a jego wartość i „Pozostało” liczą się od 120.
+- [ ] Pracownik, któremu wcześniej odznaczono „Przedmiar” w ustawieniach widoku pracownika → po zmianie „Aktualizacja przedmiaru” nadal jest u niego ukryta.
+- [ ] „Drukuj do wypełnienia” → kolumna „Postęp” pokazuje „wykonano / 120” dla pozycji z aktualizacją 120.
+- [ ] Zgłoszenie pracownika → w przeglądzie zgłoszenia kolumna nazywa się „Aktualizacja przedmiaru”, a ostrzeżenie o przekroczeniu liczy się względem niej; na stronie zgłoszenia „Postęp” też pokazuje „/ 120”.
+- [ ] Przyjęcie pracy dodatkowej ze zgłoszenia → nowa pozycja ma „Przedmiar ofertowy” 0 i „Aktualizacja przedmiaru” równą zgłoszonej ilości (czarną).

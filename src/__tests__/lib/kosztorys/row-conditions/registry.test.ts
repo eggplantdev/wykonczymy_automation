@@ -132,7 +132,34 @@ describe('the conditions, each on its boundary', () => {
     expect(matches('work-without-planned-qty', row({ plannedQty: 1, [stageKey(2)]: 3 }))).toBe(
       false,
     )
-    expect([...columnsRevealedBy(['work-without-planned-qty'])]).toEqual(['plannedQty'])
+    expect([...columnsRevealedBy(['work-without-planned-qty'])]).toEqual(['currentPlannedQty'])
+  })
+
+  // EX-921: the quantity filters ask the Aktualizacja przedmiaru — a pozycja added after the offer
+  // (ofertowy 0, aktualizacja 3) is in scope, and one dropped from it (ofertowy 5, aktualizacja 0)
+  // is not. The AI filters stay on ofertowy.
+  it('the przedmiar filters read the Aktualizacja przedmiaru, falling back to ofertowy', () => {
+    const added = row({ plannedQty: 0, currentPlannedQty: 3 })
+    const dropped = row({ plannedQty: 5, currentPlannedQty: 0 })
+    const following = row({ plannedQty: 5, currentPlannedQty: null })
+    expect([added, dropped, following].map((r) => matches('no-planned-qty', r))).toEqual([
+      false,
+      true,
+      false,
+    ])
+    expect([added, dropped, following].map((r) => matches('has-planned-qty', r))).toEqual([
+      true,
+      false,
+      true,
+    ])
+    expect(matches('work-without-planned-qty', row({ ...dropped, [stageKey(2)]: 3 }))).toBe(true)
+    expect(matches('work-without-planned-qty', row({ ...added, [stageKey(2)]: 3 }))).toBe(false)
+  })
+
+  it('„client-empty" needs ofertowy AND aktualizacja at zero, and no work', () => {
+    expect(matches('client-empty', row({ plannedQty: 0, currentPlannedQty: 3 }))).toBe(false)
+    expect(matches('client-empty', row({ plannedQty: 5, currentPlannedQty: 0 }))).toBe(false)
+    expect(matches('client-empty', row({ plannedQty: 0, currentPlannedQty: 0 }))).toBe(true)
   })
 
   it('„bez przedmiaru i bez wykonanej pracy" needs BOTH axes empty', () => {
@@ -454,14 +481,20 @@ describe('„z nieaktualnym tłumaczeniem" — per language', () => {
 
   // Missing is not stale: a pozycja nobody translated into ru must not light up the ru diagnostic.
   it('fires once the opis moved on, only for the language that carries the translation', () => {
-    const moved = row({ description: `${OPIS} i sufitów`, descriptionTranslations: { uk: current } })
+    const moved = row({
+      description: `${OPIS} i sufitów`,
+      descriptionTranslations: { uk: current },
+    })
     expect(matches('stale-translation-uk', moved)).toBe(true)
     expect(matches('stale-translation-ru', moved)).toBe(false)
   })
 
   it('stays quiet on a current translation and on none at all', () => {
     expect(
-      matches('stale-translation-uk', row({ description: OPIS, descriptionTranslations: { uk: current } })),
+      matches(
+        'stale-translation-uk',
+        row({ description: OPIS, descriptionTranslations: { uk: current } }),
+      ),
     ).toBe(false)
     expect(
       matches('stale-translation-uk', row({ description: OPIS, descriptionTranslations: {} })),
@@ -476,7 +509,9 @@ describe('„z nieaktualnym tłumaczeniem" — per language', () => {
   })
 
   it('does not list a pozycja with no opis as missing a translation', () => {
-    expect(matches('missing-translation-uk', row({ description: '  ', descriptionTranslations: {} }))).toBe(false)
+    expect(
+      matches('missing-translation-uk', row({ description: '  ', descriptionTranslations: {} })),
+    ).toBe(false)
   })
 
   it('reveals the column of its own language', () => {

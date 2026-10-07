@@ -56,18 +56,27 @@ describe('preview columns', () => {
     }
   })
 
-  // Owner, 2026-09-28: the value of the offered scope reads beside the quantity it prices.
+  // Owner, 2026-09-28: the value of the offered scope reads beside the quantity it prices. Each
+  // Aktualizacja figure follows its ofertowy twin (EX-921).
   it('reads the przedmiar as ilość, j.m., cena, wartość', () => {
     const visible = previewIds()
     const at = visible.indexOf('plannedQty')
 
-    expect(visible.slice(at, at + 4)).toEqual(['plannedQty', 'unit', 'price', 'plannedNet'])
+    expect(visible.slice(at, at + 6)).toEqual([
+      'plannedQty',
+      'currentPlannedQty',
+      'unit',
+      'price',
+      'plannedNet',
+      'currentPlannedNet',
+    ])
   })
 
   // The offer is quoted netto (owner, 2026-09-28): no gross figure reaches the investor's document.
   it('carries no brutto column', () => {
     const grossIds = [
       'plannedGross',
+      'currentPlannedGross',
       'priceGross',
       'discountAmountGross',
       'gross',

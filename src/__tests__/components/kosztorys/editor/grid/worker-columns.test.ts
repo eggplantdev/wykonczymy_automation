@@ -41,10 +41,10 @@ function workerIds(extra: Partial<BuildV2ColumnsOptsT> = {}, hidden: string[] = 
 describe('worker columns', () => {
   it('reads the przedmiar as ilość, j.m., cena, wartość at their stawka', () => {
     const visible = workerIds()
-    const at = visible.indexOf('plannedQty')
+    const at = visible.indexOf('currentPlannedQty')
 
     expect(visible.slice(at, at + 4)).toEqual([
-      'plannedQty',
+      'currentPlannedQty',
       'unit',
       planePriceKey('price', 'w_tools'),
       'plannedNetForPlane',
@@ -55,7 +55,7 @@ describe('worker columns', () => {
     const visible = workerIds()
     for (const id of [
       'description',
-      'plannedQty',
+      'currentPlannedQty',
       'stageQtySum',
       'unit',
       planePriceKey('price', 'w_tools'),
@@ -167,7 +167,7 @@ describe('worker columns the data takes off', () => {
   it('shows the offer shape before any entry', () => {
     const visible = idsFor([stageRow()], true)
 
-    expect(visible).toContain('plannedQty')
+    expect(visible).toContain('currentPlannedQty')
     expect(visible).toContain('plannedNetForPlane')
     for (const id of ['stageQtySum', 'net', 'stage_7', 'stage_9', 'stageValueNet_7']) {
       expect(visible).not.toContain(id)
@@ -177,7 +177,7 @@ describe('worker columns the data takes off', () => {
   it('once an etap has an entry: przedmiar off, that etap on, the empty one still off', () => {
     const visible = idsFor([stageRow({ [stageKey(7)]: 2 })], true)
 
-    expect(visible).not.toContain('plannedQty')
+    expect(visible).not.toContain('currentPlannedQty')
     expect(visible).not.toContain('plannedNetForPlane')
     for (const id of ['stage_7', 'stageValueNet_7', 'stageQtySum', 'net', 'remainingForPlane']) {
       expect(visible).toContain(id)
@@ -189,7 +189,7 @@ describe('worker columns the data takes off', () => {
   it('keeps the przedmiar beside the settlement with the checkbox off', () => {
     const visible = idsFor([stageRow({ [stageKey(7)]: 2 })], false)
 
-    expect(visible).toContain('plannedQty')
+    expect(visible).toContain('currentPlannedQty')
     expect(visible).toContain('plannedNetForPlane')
     expect(visible).toContain('net')
   })

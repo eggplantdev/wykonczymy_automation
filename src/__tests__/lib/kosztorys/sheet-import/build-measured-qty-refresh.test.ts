@@ -41,6 +41,7 @@ const item = (overrides: Partial<KosztorysItemT> & { id: number }): KosztorysIte
   wToolsOverrideCoeff: null,
   ownToolsOverrideCoeff: null,
   note: null,
+  currentPlannedQty: null,
   aiPlannedQty: null,
   changeReason: null,
   reviewStatus: null,

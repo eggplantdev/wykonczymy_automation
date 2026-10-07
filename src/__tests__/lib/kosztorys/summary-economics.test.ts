@@ -299,6 +299,7 @@ const subtotal = (net: number, discount: number): SectionSubtotalT => ({
   sectionColor: null,
   net,
   plannedNet: net,
+  currentPlannedNet: net,
   discount,
   share: 1,
   completionRatio: null,

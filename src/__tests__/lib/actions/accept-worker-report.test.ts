@@ -204,6 +204,7 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
     expect(await qtyDone(itemIds[0], created?.id ?? 0)).toBe(4)
   })
 
+  // Never offered, so Przedmiar ofertowy stays 0; the accepted ilość is the scope it grew by (EX-921).
   it('turns a praca spoza rozpiski into a pozycja bez przedmiaru at the typed cena', async () => {
     const { reportId, lineIds } = await sendReport([
       { itemId: null, qty: 3, opis: 'Wniesienie płyt' },
@@ -218,7 +219,13 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
     expect(res.success).toBe(true)
     const tree = await selectKosztorysTreeData(db, investmentId)
     const created = tree?.items.find((item) => item.description === 'Wniesienie płyt')
-    expect(created).toMatchObject({ sectionId, plannedQty: 0, clientPrice: 25, unit: 'm²' })
+    expect(created).toMatchObject({
+      sectionId,
+      plannedQty: 0,
+      currentPlannedQty: 3,
+      clientPrice: 25,
+      unit: 'm²',
+    })
     expect(await qtyDone(created?.id ?? 0, ownStageId)).toBe(3)
     const stored = await readWorkerReport(db, investmentId, reportId)
     expect(stored?.lines[0].createdItemId).toBe(created?.id)
@@ -260,7 +267,12 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
       expect(res.success).toBe(true)
       const tree = await selectKosztorysTreeData(db, investmentId)
       const created = tree?.items.find((item) => item.description === 'EX-949 montaż listew')
-      expect(created).toMatchObject({ unit: 'mb', clientPrice: 18 })
+      expect(created).toMatchObject({
+        unit: 'mb',
+        clientPrice: 18,
+        plannedQty: 0,
+        currentPlannedQty: 4,
+      })
     } finally {
       await payload.delete({
         collection: 'work-catalogue-items',

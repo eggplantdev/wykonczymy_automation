@@ -1,5 +1,5 @@
 import { AI_REVIEW_COLUMN_IDS } from '@/lib/kosztorys/ai-review-columns'
-import { priceSourceOf, subcontractorPrice } from '@/lib/kosztorys/calc'
+import { priceSourceOf, resolvedCurrentPlannedQty, subcontractorPrice } from '@/lib/kosztorys/calc'
 import { planeDashSuffix, planeViewSuffix } from '@/lib/kosztorys/format'
 import { ALL_PLANE_PRICE_KEYS, planePriceKeysFor } from '@/lib/kosztorys/plane-price-keys'
 import type { RowConditionCtxT, RowConditionT } from '@/lib/kosztorys/row-conditions/types'
@@ -25,8 +25,10 @@ const qtyDone = (row: KosztorysV2RowT, ctx: RowConditionCtxT) =>
 
 // Both axes empty. Named once because three entries ask it — the „Filtry" pair and the client view's
 // own hider — and „nic tu nie ma" has to mean the same thing in the menu and in the client's document.
+// Both przedmiary count (EX-921): a pozycja added after the offer has ofertowy 0 and a priced
+// aktualizacja, and the client's document still shows that figure.
 const isEmptyOnBothAxes = (row: KosztorysV2RowT, ctx: RowConditionCtxT) =>
-  !(row.plannedQty > 0) && !(qtyDone(row, ctx) > 0)
+  !(row.plannedQty > 0) && !(resolvedCurrentPlannedQty(row) > 0) && !(qtyDone(row, ctx) > 0)
 
 // Named once so the pair below cannot be edited apart — „bez rabatu" is „ma rabat" negated, and two
 // hand-written copies of a three-term test are two chances to change only one of them.
@@ -116,7 +118,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     sectionLabel: 'Sekcje bez przedmiaru',
     kind: 'filter',
     filterGroup: 'quantities',
-    matches: (row) => !(row.plannedQty > 0),
+    matches: (row) => !(resolvedCurrentPlannedQty(row) > 0),
   },
   {
     id: 'has-planned-qty',
@@ -124,7 +126,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     sectionLabel: 'Sekcje z przedmiarem',
     kind: 'filter',
     filterGroup: 'quantities',
-    matches: (row) => row.plannedQty > 0,
+    matches: (row) => resolvedCurrentPlannedQty(row) > 0,
   },
   {
     id: 'no-measured-qty',
@@ -473,9 +475,9 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     label: 'z wykonaną pracą bez przedmiaru',
     kind: 'diagnostic',
     problemGroup: 'scope-stages',
-    // The przedmiar alone: it is the missing cell, and it is where the fix is typed.
-    revealsColumns: ['plannedQty'],
-    matches: (row, ctx) => !(row.plannedQty > 0) && qtyDone(row, ctx) > 0,
+    // The Aktualizacja przedmiaru alone: it is the missing cell, and it is where the fix is typed.
+    revealsColumns: ['currentPlannedQty'],
+    matches: (row, ctx) => !(resolvedCurrentPlannedQty(row) > 0) && qtyDone(row, ctx) > 0,
   },
   // The AI draft review. „Do sprawdzenia" = the agent offered work nobody has judged yet; „bez powodu"
   // = the manager overruled the draft without saying why, which is the knowledge the loop exists for.

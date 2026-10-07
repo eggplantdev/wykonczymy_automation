@@ -4,7 +4,7 @@ import { offerPrintColumns, zloty } from '@/lib/kosztorys/print/offer-columns'
 import { WIDE_PRINT_STYLES } from '@/lib/kosztorys/print/styles'
 import { bypassedByGlobalDiscount } from '@/lib/kosztorys/columns/column-config'
 import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view/settings'
-import { emptySettlementColumnIds } from '@/lib/kosztorys/settlement-columns'
+import { investorEmptyColumnIds } from '@/lib/kosztorys/settlement-columns'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 export type OfferPrintArgsT = {
@@ -43,7 +43,7 @@ export function buildOfferPrintHtml({
   sectionNetById,
 }: OfferPrintArgsT): string {
   // Before the portrait/landscape count, so an offer with no entries prints as narrow as it reads.
-  const empty = emptySettlementColumnIds(rows, stages)
+  const empty = investorEmptyColumnIds(rows, stages)
   const globalDiscountActive = rows.some((row) => row.globalDiscountActive)
   const columns = offerPrintColumns(stages, settings.hiddenColumns, settings.columnRanks).filter(
     (column) =>

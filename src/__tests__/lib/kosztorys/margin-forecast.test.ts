@@ -21,6 +21,7 @@ const item: ViewPricingT = {
   wToolsOverrideCoeff: null,
   ownToolsOverrideCoeff: null,
   note: null,
+  currentPlannedQty: null,
   aiPlannedQty: null,
   changeReason: null,
   reviewStatus: null,
@@ -63,6 +64,13 @@ describe('marginForecastByPlane', () => {
     const discounted = { ...item, discountType: 'percent' as const, discountValue: 10 }
     expect(marginForecastByPlane([discounted]).w_tools).toEqual(
       marginForecastByPlane([item]).w_tools,
+    )
+  })
+
+  // EX-921 ruling: the prognoza prices the offer, so an Aktualizacja przedmiaru never moves it.
+  it('Aktualizacja przedmiaru nie rusza prognozy', () => {
+    expect(marginForecastByPlane([{ ...item, currentPlannedQty: 15 }])).toEqual(
+      marginForecastByPlane([item]),
     )
   })
 

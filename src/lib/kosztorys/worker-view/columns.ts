@@ -13,11 +13,13 @@ export const WORKER_RATE_KEY = 'rate'
 // from CLIENT_VIEW_GROUPS, not a subset of it, because the two surfaces disclose opposite prices: a
 // key missing here is a column no setting can put on a worker's screen. The client price, rabat,
 // brutto, the client-priced „Wartość przedmiaru" / „Pozostało" / „% wykonania" and „Komentarz" are
-// absent by construction — the first two alone would give the margin away.
+// absent by construction — the first two alone would give the margin away. So is the Przedmiar
+// ofertowy: the crew works to the current scope, so it gets the Aktualizacja przedmiaru alone (EX-921).
+// Its value and „Pozostało" (`…ForPlane`) already read the aktualizacja.
 export const WORKER_VIEW_GROUPS: readonly ColumnGroupT[] = [
   {
     label: 'Opis i ilości',
-    keys: ['description', 'plannedQty', 'stageQtySum', 'unit'],
+    keys: ['description', 'currentPlannedQty', 'stageQtySum', 'unit'],
   },
   {
     label: 'Stawka i wartości',
@@ -33,7 +35,7 @@ export const WORKER_VIEW_GROUPS: readonly ColumnGroupT[] = [
 // and same contract as CLIENT_DOCUMENT_COLUMNS, over the keys of WORKER_VIEW_GROUPS.
 export const WORKER_DOCUMENT_COLUMNS: readonly string[] = [
   'description',
-  'plannedQty',
+  'currentPlannedQty',
   'unit',
   WORKER_RATE_KEY,
   'plannedNetForPlane',
@@ -55,7 +57,7 @@ export function workerColumnLabel(key: string): string | undefined {
   return WORKER_LABEL_OVERRIDES[key] ?? COLUMN_LABELS[key]
 }
 
-const PLANNED_COLUMNS = ['plannedQty', 'plannedNetForPlane'] as const
+const PLANNED_COLUMNS = ['currentPlannedQty', 'plannedNetForPlane'] as const
 
 // What the data takes off the worker's document — his link, the owner's Podgląd and his PDF read this
 // one answer, so the three cannot disagree. Full column ids, over the projection's rows and etapy,

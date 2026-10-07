@@ -27,6 +27,7 @@ export async function serializeKosztorysAsPreset(
     items: snapshot.items.map(({ ref: _ref, ...item }) => ({
       ...item,
       plannedQty: 0,
+      currentPlannedQty: null,
       sheetMeasuredQty: null,
       discountType: null,
       discountValue: 0,

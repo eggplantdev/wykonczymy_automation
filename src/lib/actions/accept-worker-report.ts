@@ -367,6 +367,8 @@ function resolveTarget(
 // the kierownik typed — its stawki stay „auto". A translated opis lands in Polish, and the worker's
 // own words become its current translation, so his crew reads what he wrote — only in a language
 // the editor carries; any other still lands in Polish, with no translation to show.
+// The work was never offered, so Przedmiar ofertowy stays 0 and the accepted quantity is the scope
+// it grew by (EX-921).
 function extraAsItem(
   extra: z.infer<typeof acceptSchema>['extras'][number],
   line: WorkerReportLineRowT,
@@ -376,7 +378,12 @@ function extraAsItem(
 ): KosztorysItemT {
   const entry =
     extra.catalogueItemId === undefined ? undefined : catalogue.get(extra.catalogueItemId)
-  if (entry) return itemFromFields(entry, section.id, displayOrder)
+  if (entry) {
+    return {
+      ...itemFromFields(entry, section.id, displayOrder),
+      currentPlannedQty: extra.acceptedQty,
+    }
+  }
   const language = line.descriptionLanguage
   const polish = line.polishDescription
   return {
@@ -390,6 +397,7 @@ function extraAsItem(
         : {},
     unit: line.unit,
     plannedQty: 0,
+    currentPlannedQty: extra.acceptedQty,
     sheetMeasuredQty: null,
     discountType: null,
     discountValue: 0,

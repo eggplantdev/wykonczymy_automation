@@ -603,7 +603,7 @@ export function KosztorysEditorBody({
                               : undefined,
                         })
                       }
-                      // Tall enough that verbose column labels („Pozostało netto (względem przedmiaru)" etc.)
+                      // Tall enough that verbose column labels („Pozostało netto (względem aktualizacji przedmiaru)" etc.)
                       // wrap onto two rows instead of truncating — and draggable from the same handle as a
                       // row, since which labels wrap depends on how wide the owner made their columns.
                       headerRowHeight={

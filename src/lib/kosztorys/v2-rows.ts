@@ -8,6 +8,7 @@ const ITEM_FIELDS = [
   'descriptionTranslations',
   'unit',
   'plannedQty',
+  'currentPlannedQty',
   'discountType',
   'discountValue',
   'clientPrice',

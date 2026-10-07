@@ -24,6 +24,7 @@ export function stageIdsFilledNow(diff: VersionDiffT): ReadonlySet<number> {
 // Each column id IS the field it renders.
 const FIELD_COLUMN_IDS: ReadonlySet<string> = new Set<FieldChangeT['field']>([
   'plannedQty',
+  'currentPlannedQty',
   'price',
   'plannedNet',
   'net',

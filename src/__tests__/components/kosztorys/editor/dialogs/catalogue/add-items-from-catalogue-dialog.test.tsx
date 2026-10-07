@@ -51,6 +51,7 @@ const section = (sectionId: number, sectionName: string): SectionSubtotalT => ({
   sectionColor: null,
   net: 0,
   plannedNet: 0,
+  currentPlannedNet: 0,
   discount: 0,
   share: 0,
   completionRatio: null,

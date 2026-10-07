@@ -22,9 +22,11 @@ export type ClientViewSettingsT = {
 // hidden set is its complement against the ceiling and is computed below, never written by hand.
 // The settlement columns are in it from day one: they stay off the investor's screen until there is
 // an entry to show (`settlement-columns.ts`), so an offer and a settlement need no separate sets.
+// The Aktualizacja przedmiaru is ticked, its value is not — an available tick, like Pozostało.
 const DEFAULT_VISIBLE_COLUMNS: ReadonlySet<string> = new Set([
   'description',
   'plannedQty',
+  'currentPlannedQty',
   'unit',
   'price',
   'plannedNet',
