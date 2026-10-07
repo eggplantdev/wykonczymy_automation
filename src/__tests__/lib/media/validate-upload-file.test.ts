@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { uploadFileProblem } from '@/lib/utils/validate-upload-file'
+import { uploadFileProblem } from '@/lib/media/validate-upload-file'
 
 function file(name: string, type: string, size = 4) {
   return new File([new Uint8Array(size)], name, { type })
@@ -16,12 +16,10 @@ describe('uploadFileProblem', () => {
     expect(uploadFileProblem(picked)).toBeUndefined()
   })
 
-  // The bytes now reach Blob before the row is created, so a type the collection refuses would bank
-  // a blob with no `media` row — and orphan cleanup works on rows, so nothing could find it.
   it.each([
     ['dokument Worda', file('oferta.docx', 'application/vnd.openxmlformats-officedocument')],
     ['archiwum', file('paczka.zip', 'application/zip')],
-  ])('refuses %s, which the media collection would reject after the PUT', (_label, picked) => {
+  ])('refuses %s before the upload', (_label, picked) => {
     expect(uploadFileProblem(picked)).toBe('uploadNotImageOrPdf')
   })
 

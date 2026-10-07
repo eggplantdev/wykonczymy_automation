@@ -79,11 +79,9 @@ describe('fetchLandingAsset — what it refuses to fetch', () => {
     expect(fetchSpy).not.toHaveBeenCalled()
   })
 
-  // The gate is anchored, so these two are refused before a byte moves. `application/pdfx` is what
-  // an unanchored prefix test let through — 8 MB of transfer, then a Payload refusal naming the
-  // wrong cause. `image/svg+xml` is the dangerous one: an active, scriptable document on the only
-  // path where an anonymous stranger writes into `media`.
-  it.each([['application/zip'], ['application/pdfx'], ['image/svg+xml']])(
+  // `image/svg+xml` is the dangerous one: an active, scriptable document on the only path where an
+  // anonymous stranger writes into `media`.
+  it.each([['application/zip'], ['application/pdfx'], ['image/svg+xml'], ['image/bmp']])(
     'rejects %s without fetching',
     async (contentType) => {
       await expect(fetchLandingAsset(payload, asset({ contentType }))).rejects.toThrow(/typ pliku/)

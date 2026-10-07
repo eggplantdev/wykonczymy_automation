@@ -1,5 +1,5 @@
-// Also the client's pick-time gate (`uploadFileProblem`), so a type this sniff refuses is refused
-// before its bytes travel — keep the module free of server-only imports.
+// Also the client's pre-upload gate (`uploadFileProblem`) and the `media` collection's `mimeTypes`,
+// so it is read from the browser and the Payload CLI graph — keep it free of server-only imports.
 export const ALLOWED_UPLOAD_MIMES = [
   'image/jpeg',
   'image/png',
@@ -12,6 +12,9 @@ export const ALLOWED_UPLOAD_MIMES = [
 ] as const
 
 type AllowedMimeT = (typeof ALLOWED_UPLOAD_MIMES)[number]
+
+export const isAllowedUploadMime = (type: string): type is AllowedMimeT =>
+  (ALLOWED_UPLOAD_MIMES as readonly string[]).includes(type)
 
 // PDF readers accept the `%PDF-` header anywhere in the first KB, and generated e-faktury do put a
 // BOM or whitespace before it.
@@ -27,8 +30,8 @@ const startsWith = (head: Uint8Array, signature: number[]) =>
   head.length >= signature.length && signature.every((byte, i) => head[i] === byte)
 
 /**
- * The stored type, decided from the file's first bytes rather than the browser's declared type —
- * the fast path writes the row itself, so nothing downstream re-checks it. An allowlist: anything
+ * The stored type, decided from the file's first bytes rather than the browser's declared type,
+ * because nothing downstream re-checks it. An allowlist: anything
  * not recognised (SVG, HTML, a renamed text file) is refused, because a public blob served with an
  * attacker-chosen type is how an upload becomes a script.
  */
