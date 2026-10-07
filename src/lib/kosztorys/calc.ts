@@ -22,8 +22,8 @@ export const MONEY_TOLERANCE = 0.005
 // Structurally stage-blind, on purpose. Which quantity is the truth is a settlement question (the
 // stages answer it), so it is decided one layer up in v2-rows.ts, which knows stages and imports
 // this. Here every figure takes its quantity as a PARAMETER — nothing in this file reads a qty off
-// the row except rowPlannedNetForView, the offer figure, whose quantity is the przedmiar by
-// definition.
+// the row except the przedmiar figures, whose quantity is a przedmiar by definition: the offer reads
+// Przedmiar ofertowy, progress reads the Aktualizacja (EX-921).
 //
 // Discount ("rabat"): discountValue for 'percent' = percentage points (10 => 10%), for
 // 'amount' = an amount in PLN subtracted from the net value.
@@ -242,6 +242,14 @@ export function netForQtyForView(row: ViewPricingT, qty: number, view: PriceView
   return view === 'client' ? applyDiscount(gross, row) : gross
 }
 
+// The Aktualizacja przedmiaru a figure computes with: the hand edit, else Przedmiar ofertowy. The
+// one place a stored NULL turns into a quantity — every reader goes through here.
+export function resolvedCurrentPlannedQty(
+  row: Pick<KosztorysItemT, 'plannedQty' | 'currentPlannedQty'>,
+): number {
+  return row.currentPlannedQty ?? row.plannedQty
+}
+
 /**
  * Row value at the PLANNED qty ("wartość netto przedmiar") — the OFFER figure, the sheet's
  * S = N×Q − N×Q×R. It prices the przedmiar and carries the rabat, exactly like the settlement figure
@@ -253,16 +261,16 @@ export function netForQtyForView(row: ViewPricingT, qty: number, view: PriceView
  * Owner flagged the "rabat in the offer" call as a small open question (2026-07-16, EX-495) — a
  * revert is one commit, so nothing downstream leans on it.
  */
-// The Aktualizacja przedmiaru a figure computes with: the hand edit, else Przedmiar ofertowy. The
-// one place a stored NULL turns into a quantity — every reader goes through here.
-export function resolvedCurrentPlannedQty(
-  row: Pick<KosztorysItemT, 'plannedQty' | 'currentPlannedQty'>,
-): number {
-  return row.currentPlannedQty ?? row.plannedQty
-}
-
 export function rowPlannedNetForView(row: ViewPricingT, view: PriceViewT): number {
   return netForQtyForView(row, row.plannedQty, view)
+}
+
+/**
+ * „Wartość netto aktualizacji przedmiaru" — the same figure as rowPlannedNetForView at the
+ * aktualizacja, so the rabat rule cannot differ between the two.
+ */
+export function rowCurrentPlannedNetForView(row: ViewPricingT, view: PriceViewT): number {
+  return netForQtyForView(row, resolvedCurrentPlannedQty(row), view)
 }
 
 /**
@@ -318,10 +326,11 @@ export function stageValueForView(
 }
 
 /**
- * How much of the OFFER this row has delivered, as a fraction (0.75 = 75%) — `null` when there is
- * no denominator to divide by, so render code never divides and never fakes a 0%.
+ * How much of the agreed scope this row has delivered, as a fraction (0.75 = 75%) — `null` when
+ * there is no denominator to divide by, so render code never divides and never fakes a 0%.
  *
- * The denominator is the przedmiar, not the stage sum: against the stage sum the row would read 100%
+ * The denominator is the Aktualizacja przedmiaru, not the offer (EX-921): an agreed extra would
+ * otherwise read past 100% forever. And not the stage sum: against the stage sum the row would read 100%
  * everywhere, being a number divided by itself.
  *
  * View-independent because it is a ratio of QUANTITIES — nothing here reads a price, so no view and
@@ -336,8 +345,9 @@ export function stageValueForView(
  * negative przedmiar.
  */
 export function rowDoneFraction(row: ViewPricingT, totalQtyDone: number): number | null {
-  if (!(row.plannedQty > 0)) return null
-  return totalQtyDone / row.plannedQty
+  const plannedQty = resolvedCurrentPlannedQty(row)
+  if (!(plannedQty > 0)) return null
+  return totalQtyDone / plannedQty
 }
 
 /**

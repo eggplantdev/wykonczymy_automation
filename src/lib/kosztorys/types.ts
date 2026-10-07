@@ -283,6 +283,9 @@ export type SectionSubtotalT = {
   // it would put one crew's numerator over everyone's denominator. There is no correct subcontractor
   // reading to substitute — 0 would claim nothing was offered — so it is withheld, not guessed.
   plannedNet: number | null
+  // The same at the Aktualizacja przedmiaru (EX-921), withheld outside the client view for the same
+  // reason. The progress denominator — `plannedNet` stays the offer.
+  currentPlannedNet: number | null
 
   // Σ per-item rabat taken on the executed qty, at the active price view — a MONEY figure. 0 when
   // the global discount is active. Lets the totals show „Rabat" without re-deriving it.
@@ -290,12 +293,15 @@ export type SectionSubtotalT = {
   // 0..1, the section's share of all sections' executed value — weighted at the CLIENT price only, so
   // like completionRatio it is a STRUCTURE figure that must not move with the price view.
   share: number
-  // Completion (executed ÷ offered) weighted at the CLIENT price only — a PROGRESS figure, so it
-  // must not move with the price view. `null` when there is no offer to divide by.
+  // Completion (executed ÷ Aktualizacja przedmiaru) weighted at the CLIENT price only — a PROGRESS
+  // figure, so it must not move with the price view. `null` when there is nothing to divide by.
   completionRatio: number | null
   itemCount: number
 }
 
 // Built at the client view, where the przedmiar figure is always present, so consumers pinned to it
 // (progress counter, section pie) never handle a `null` their call site already ruled out.
-export type SectionSubtotalClientT = SectionSubtotalT & { plannedNet: number }
+export type SectionSubtotalClientT = SectionSubtotalT & {
+  plannedNet: number
+  currentPlannedNet: number
+}

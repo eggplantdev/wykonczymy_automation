@@ -6,6 +6,7 @@ import {
   isGlobalDiscountActive,
   netForQtyForView,
   priceSourceOf,
+  rowCurrentPlannedNetForView,
   rowDiscountForView,
   rowDoneFraction,
   rowPlannedNetForView,
@@ -260,6 +261,43 @@ describe('rowDoneFraction', () => {
 
   it('overshooting the planned qty passes through unclamped — it signals bad data', () => {
     expect(rowDoneFraction(item, 15)).toBe(1.5)
+  })
+
+  // EX-921: progress divides by the Aktualizacja przedmiaru; a NULL one follows ofertowy.
+  it('dzieli przez Aktualizację przedmiaru, gdy ją wpisano', () => {
+    expect(rowDoneFraction({ ...item, currentPlannedQty: 15 }, 12)).toBeCloseTo(0.8, 10)
+    expect(rowDoneFraction({ ...item, currentPlannedQty: null }, 12)).toBe(1.2)
+  })
+
+  it('aktualizacja 0 = poza zakresem, nie ma z czego liczyć procentu', () => {
+    expect(rowDoneFraction({ ...item, currentPlannedQty: 0 }, 3)).toBeNull()
+  })
+})
+
+describe('rowCurrentPlannedNetForView', () => {
+  it('wycenia Aktualizację przedmiaru z tym samym rabatem co ofertę', () => {
+    const updated = {
+      ...item,
+      currentPlannedQty: 15,
+      discountType: 'amount' as const,
+      discountValue: 40,
+    }
+    expect(rowPlannedNetForView(updated, 'client')).toBe(160) // 10 × 20 − 40
+    expect(rowCurrentPlannedNetForView(updated, 'client')).toBe(260) // 15 × 20 − 40
+  })
+
+  it('bez ręcznej aktualizacji równa się wartości oferty', () => {
+    expect(rowCurrentPlannedNetForView(item, 'client')).toBe(rowPlannedNetForView(item, 'client'))
+  })
+
+  it('aktualizacja 0 jest warta zero, nie minus rabat', () => {
+    const dropped = {
+      ...item,
+      currentPlannedQty: 0,
+      discountType: 'amount' as const,
+      discountValue: 40,
+    }
+    expect(rowCurrentPlannedNetForView(dropped, 'client')).toBe(0)
   })
 })
 

@@ -1,6 +1,8 @@
 import {
   netForQtyForView,
   rowDiscountForView,
+  resolvedCurrentPlannedQty,
+  rowCurrentPlannedNetForView,
   rowDoneFraction,
   rowPlannedNetForView,
   stageValueForView,
@@ -58,10 +60,12 @@ export function columnValueResolver({
 
   // The przedmiar figures read at the client price over the whole offered scope in EVERY view (owner,
   // 2026-09-23): „how much of the offer" is a question about the offer, whichever crew is looking.
+  // Progress (Pozostało, %) reads the Aktualizacja przedmiaru; the offer figure stays on ofertowy.
   const plannedNet = (row: KosztorysV2RowT) => rowPlannedNetForView(row, 'client')
+  const currentPlannedNet = (row: KosztorysV2RowT) => rowCurrentPlannedNetForView(row, 'client')
   const clientQtyDone = memoisedByRow((row) => rowTotalQtyDone(row, stages, 'client'))
   const remaining = (row: KosztorysV2RowT) =>
-    rowRemainingForExecutedQty(row, clientQtyDone(row), 'client')
+    rowRemainingForExecutedQty(row, resolvedCurrentPlannedQty(row), clientQtyDone(row), 'client')
   const donePercent = (row: KosztorysV2RowT) => rowDoneFraction(row, clientQtyDone(row))
   const net = (row: KosztorysV2RowT) => netForQtyForView(row, totalQtyDone(row), view)
   const discount = (row: KosztorysV2RowT) => rowDiscountForView(row, totalQtyDone(row), view)
@@ -73,7 +77,9 @@ export function columnValueResolver({
     ['discountAmountGross', grossOf(discount)],
     ['plannedNet', plannedNet],
     ['plannedGross', grossOf(plannedNet)],
-    ['plannedNetForPlane', (row) => rowPlannedNetForView(row, view)],
+    ['currentPlannedNet', currentPlannedNet],
+    ['currentPlannedGross', grossOf(currentPlannedNet)],
+    ['plannedNetForPlane', (row) => rowCurrentPlannedNetForView(row, view)],
     ['net', net],
     ['gross', grossOf(net)],
     ['donePercent', donePercent],
@@ -82,7 +88,12 @@ export function columnValueResolver({
   ])
   if (executedQtyByItem) {
     byField.set('remainingForPlane', (row) =>
-      rowRemainingForExecutedQty(row, executedQtyByItem[row.id] ?? 0, view),
+      rowRemainingForExecutedQty(
+        row,
+        resolvedCurrentPlannedQty(row),
+        executedQtyByItem[row.id] ?? 0,
+        view,
+      ),
     )
   }
 

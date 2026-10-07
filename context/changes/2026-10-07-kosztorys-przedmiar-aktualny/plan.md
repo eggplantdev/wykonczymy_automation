@@ -641,9 +641,9 @@ Run once, after Phase 6.
 
 #### Automated
 
-- [x] 1.1 Migration applies to the local DB
-- [x] 1.2 Migration applies to the test DB
-- [x] 1.3 Stored investor hidden sets carry currentPlannedNet; NULL rows stay NULL
+- [x] 1.1 Migration applies to the local DB — 9fb5d40a
+- [x] 1.2 Migration applies to the test DB — 9fb5d40a
+- [x] 1.3 Stored investor hidden sets carry currentPlannedNet; NULL rows stay NULL — 9fb5d40a
 - [ ] 1.4 Insert funnel matches the table
 - [ ] 1.5 Tree SELECT matches the mapper
 - [ ] 1.6 Snapshot round-trip keeps a hand edit and restores an old snapshot as null

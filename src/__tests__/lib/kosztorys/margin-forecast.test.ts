@@ -67,6 +67,13 @@ describe('marginForecastByPlane', () => {
     )
   })
 
+  // EX-921 ruling: the prognoza prices the offer, so an Aktualizacja przedmiaru never moves it.
+  it('Aktualizacja przedmiaru nie rusza prognozy', () => {
+    expect(marginForecastByPlane([{ ...item, currentPlannedQty: 15 }])).toEqual(
+      marginForecastByPlane([item]),
+    )
+  })
+
   it('sumuje pozycje', () => {
     const second = { ...item, id: 2, plannedQty: 5, clientPrice: 40 }
     const both = marginForecastByPlane([item, second]).w_tools

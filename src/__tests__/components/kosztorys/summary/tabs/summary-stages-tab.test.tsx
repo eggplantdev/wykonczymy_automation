@@ -7,7 +7,7 @@ import { row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
 
 const editorContext = vi.hoisted(() => ({ rows: [] as KosztorysV2RowT[] }))
 vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
-  useKosztorysEditorContext: () => ({ doneNet: 0, plannedNet: 0, rows: editorContext.rows }),
+  useKosztorysEditorContext: () => ({ doneNet: 0, currentPlannedNet: 0, rows: editorContext.rows }),
 }))
 
 const STAGES: KosztorysStageT[] = [

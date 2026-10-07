@@ -219,3 +219,42 @@ describe('columnTotalsForRows — the etap axis totals its own cells', () => {
     }
   })
 })
+
+// EX-921: ofertowy 10, aktualizacja 15, wykonane 12 at 100 zł — inside the aktualizacja, past the
+// offer. The row is NOT an overrun any more, so „Pozostało" keeps its +300 zł in the total.
+describe('Aktualizacja przedmiaru w sumach', () => {
+  const splitTree = makeTree({
+    sections: [
+      {
+        id: 30,
+        name: 'Sekcja',
+        displayOrder: 0,
+        color: null,
+        items: [
+          {
+            ...baseItem,
+            sectionId: 30,
+            id: 9,
+            plannedQty: 10,
+            currentPlannedQty: 15,
+            clientPrice: 100,
+          },
+        ],
+      },
+    ],
+    stages: [{ id: 300, ordinal: 1, label: null, plane: null, split: null }],
+    progress: [{ itemId: 9, stageId: 300, qtyDone: 12 }],
+    vatRate: 0.08,
+  })
+  const totals = columnTotalsForRows(treeToRows(splitTree), splitTree.stages, 'client', 0.08)
+
+  it('sumuje wartość oferty i wartość aktualizacji osobno', () => {
+    expect(totals.get('plannedNet')).toBeCloseTo(1000, 6)
+    expect(totals.get('currentPlannedNet')).toBeCloseTo(1500, 6)
+    expect(totals.get('currentPlannedGross')).toBeCloseTo(1620, 6)
+  })
+
+  it('Pozostało liczy od aktualizacji, więc wiersz nie wypada z sumy', () => {
+    expect(totals.get('remaining')).toBeCloseTo(300, 6)
+  })
+})

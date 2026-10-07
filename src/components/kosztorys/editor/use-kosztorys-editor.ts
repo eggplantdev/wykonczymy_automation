@@ -749,8 +749,8 @@ export function useKosztorysEditor({
       () => clientTotalsFromSubtotals(progressSubtotals, globalDiscount),
       [progressSubtotals, globalDiscount],
     )
-  const plannedNet = useMemo(
-    () => progressSubtotals.reduce((s, x) => s + x.plannedNet, 0),
+  const currentPlannedNet = useMemo(
+    () => progressSubtotals.reduce((s, x) => s + x.currentPlannedNet, 0),
     [progressSubtotals],
   )
 
@@ -1318,7 +1318,7 @@ export function useKosztorysEditor({
     doneNet,
     laborCostsNetFromKosztorys,
     discountNetFromKosztorys,
-    plannedNet,
+    currentPlannedNet,
     globalDiscount,
     perItemDiscountTotal,
     itemsWithDiscountCount,
