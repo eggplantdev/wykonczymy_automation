@@ -4059,11 +4059,13 @@ Szablon z kilkuset pracami w kilku sekcjach (np. szablon 165).
       kolejności. Każda sekcja na liście ma swój kolor jak w siatce.
 - [x] W „Ustaw kolejność…” przeciągnij dwa razy, potem „Cofnij” (albo Ctrl/Cmd+Z) dwa razy — lista
       wraca do stanu z otwarcia, a siatka za dialogiem się nie zmienia; „Ponów” przywraca ruch.
-- [ ] Kolumna „Akcje” → „…” przy pracy i „…” przy sekcji: oba mają „Ustaw kolejność…” i otwierają
+- [x] Kolumna „Akcje” → „…” przy pracy i „…” przy sekcji: oba mają „Ustaw kolejność…” i otwierają
       ten sam dialog — także przy włączonym sortowaniu, gdy „Wstaw powyżej/poniżej” są wyszarzone.
       Żadne z menu nie ma już „Przesuń w górę/w dół” — kolejność zmienia się tylko w dialogu.
+      Staging 2026-10-07 (inw. 173): menu pracy i sekcji mają „Ustaw kolejność…” i otwierają ten sam dialog; żadne nie ma „Przesuń w górę/w dół”. Przy sortowaniu malejącym menu pracy: „Wstaw powyżej/poniżej” wyszarzone, „Ustaw kolejność…” aktywne.
 - [ ] W „Ustaw kolejność…” zrób ruch, kliknij „Cofnij” aż się wyszarzy (albo kliknij obok dialogu),
       potem Ctrl/Cmd+Z — siatka za dialogiem się nie zmienia.
+      Staging 2026-10-07 (Chromium/Playwright, inw. 173): Ctrl+Z po wyszarzeniu „Cofnij” — siatka bez zmian (OK). Cmd+Z (Meta+Z) — NIE: cofnęło ostatnią edycję komórki za dialogiem (Przedmiar 0 → 1, zapisane w DB, powtarzalne 2/2). Zob. Findings 2026-10-07 w sekcji EX-999.
 - [x] Przeciągnij sekcję nad długą sekcją: linia przeskakuje dopiero w połowie całej sekcji, nie przy
       każdym wierszu.
 - [x] Otwórz „Ustaw kolejność…” w dwóch kartach; w jednej dodaj pracę, w drugiej zapisz kolejność —
@@ -4072,19 +4074,44 @@ Szablon z kilkuset pracami w kilku sekcjach (np. szablon 165).
 Po usunięciu „Przesuń w górę/w dół” dialog jest jedyną drogą zmiany kolejności — sprawdź, że każdy
 dawny ruch strzałkami da się w nim zrobić i że przeżywa przeładowanie (F5):
 
-- [ ] Praca o jedno miejsce w górę i inna o jedno w dół w tej samej sekcji → „Zapisz kolejność”:
+- [x] Praca o jedno miejsce w górę i inna o jedno w dół w tej samej sekcji → „Zapisz kolejność”:
       siatka ma dokładnie układ z dialogu, a po F5 ten sam układ.
-- [ ] Krawędzie: pierwsza praca sekcji na jej koniec, ostatnia na jej początek, pierwsza sekcja na
+      Staging 2026-10-07 (inw. 173): dwa ruchy (praca 2 w dół, praca 6 w górę) → zapis → siatka i po F5 układ z dialogu.
+- [x] Krawędzie: pierwsza praca sekcji na jej koniec, ostatnia na jej początek, pierwsza sekcja na
       koniec listy → po zapisie i F5 wszystkie trzy stoją tam, gdzie je upuszczono.
-- [ ] Praca przeniesiona do innej sekcji: po zapisie i F5 jest w nowej sekcji, ma kolor tej sekcji, a
+      Staging 2026-10-07 (inw. 173): pierwsza praca sekcji na koniec, ostatnia na początek, pierwsza sekcja na koniec listy (przeciągnięcie przy zwiniętych sekcjach) — po zapisie i F5 (DB: display_order) wszystko stoi tam, gdzie upuszczone.
+- [x] Praca przeniesiona do innej sekcji: po zapisie i F5 jest w nowej sekcji, ma kolor tej sekcji, a
       sumy obu sekcji i „Wartość netto” w stopce przeliczyły się (suma całości bez zmian).
-- [ ] Sekcja przesunięta o jedno miejsce w górę i w dół: jej prace jadą z nią w tej samej kolejności,
+      Staging 2026-10-07 (inw. 173): „Zakup, transport…” (1500) z „Prace dodatkowe” do „Wiatrołap” przyciskiem „Przenieś tutaj”; DB po zapisie: pozycja w nowej sekcji (kolor orange), sumy sekcji 5600 → 4100 + 1765 (suma całości bez zmian). Kolor w siatce i stopkę w UI oceniłem po DB, nie na zrzucie.
+- [x] Sekcja przesunięta o jedno miejsce w górę i w dół: jej prace jadą z nią w tej samej kolejności,
       prace innych sekcji się nie ruszają.
-- [ ] Po zapisie kolejności „Wstaw powyżej/poniżej” na przesuniętej pracy wstawia nową pracę obok niej
+      Staging 2026-10-07 (inw. 173): Klimatyzacja o jedno w dół, Podłogi o jedno w górę; DB: liczby pozycji w sekcjach bez zmian (22/16/10/40/…), prace jadą z sekcją.
+- [x] Po zapisie kolejności „Wstaw powyżej/poniżej” na przesuniętej pracy wstawia nową pracę obok niej
       w nowym miejscu, a po F5 nowa praca stoi tam, gdzie się pojawiła.
+      Staging 2026-10-07 (inw. 173): „Wstaw poniżej” na przeniesionej pracy → nowa praca w DB tuż za nią (display_order 5 w „Wiatrołap”); „Wstaw powyżej” nie klikane. Testowa pozycja usunięta.
 - [ ] Link inwestora (i jego PDF) po zapisie pokazuje prace i sekcje w nowej kolejności.
-- [ ] Bez sieci (DevTools → Offline) „Zapisz kolejność”: polski komunikat o braku połączenia, siatka
+      Staging 2026-10-07: /podglad-inwestora/173 (po wpisaniu Przedmiaru 1 w dwóch pozycjach, potem cofniętym do 0) pokazuje sekcje w nowej kolejności (Wyburzenia pierwsza, Prace dodatkowe ostatnia). Link /k/ i PDF „Generuj ofertę” nie sprawdzane osobno — zostaje otwarte.
+- [x] Bez sieci (DevTools → Offline) „Zapisz kolejność”: polski komunikat o braku połączenia, siatka
       bez zmian, a po powrocie sieci i F5 kolejność sprzed próby.
+      Staging 2026-10-07 (inw. 173): offline → toast „Zapis kolejności przerwany — odświeżam kosztorys”, dialog zamknięty, DB bez zmian, po powrocie sieci i F5 kolejność sprzed próby. Uwaga: komunikat mówi „przerwany”, nie wprost „brak połączenia”.
+
+### Findings — 2026-10-07
+
+- [ ] **Cmd+Z po wyczerpaniu „Cofnij" w „Ustaw kolejność…" cofa edycję komórki za dialogiem** — w Chromium
+      (Playwright, Meta+Z) po ruchu w dialogu i „Cofnij" aż do wyszarzenia kolejny Cmd+Z przywrócił poprzednią
+      wartość komórki „Przedmiar" za dialogiem (0 → 1) i zapisał ją w DB (`kosztorys_items.planned_qty`),
+      powtarzalnie 2/2; Ctrl+Z tego nie robi (0/1). `use-undo-keyboard.ts` blokuje stos edytora przy otwartym
+      dialogu, więc przeciek idzie najpewniej natywnym undo przeglądarki w dsg (komentarz w pliku wspomina to
+      „native character-level undo"). Nie wiadomo, czy zachowanie powtarza się w prawdziwym Chrome/Safari na
+      macOS — Playwright wysyła syntetyczne Meta+Z. **Needs human:** Cmd+Z w prawdziwej przeglądarce na Macu po
+      edycji komórki → dialog → ruch → „Cofnij" → Cmd+Z. **Test disposition:** e2e · spec Playwright w
+      `e2e/` (rozszerzyć `kosztorys-undo-redo.spec.ts`: dialog otwarty, Meta+Z, wartość komórki bez zmian);
+      unit nie widzi natywnego undo przeglądarki.
+      **Poprawka w drzewie (niezacommitowana, czeka na deploy i ponowny check):** gdy fokus spadł na stronę
+      (wyszarzony „Cofnij”), nikt nie przejmował Cmd+Z, więc szło do natywnego undo przeglądarki, które cofa
+      ostatnią edycję komórki. Ctrl+Z na Macu nie jest natywnym undo, stąd 0/1. `use-undo-keyboard.ts` przy
+      otwartym dialogu i fokusie poza nim teraz blokuje domyślną akcję; pole w dialogu zachowuje swoje undo.
+      Test: test-driven-debugging · dom — `use-undo-keyboard.test.tsx` (czerwony przed poprawką, zielony po).
 
 ## kosztorys-summary-resizable
 
@@ -4540,11 +4567,23 @@ Stan: kosztorys ze wczytanym szkicem AI (kolumna „AI przedmiar" ma wartości) 
 - [x] Zwykły kosztorys: w menu „Kolumny" brak „Przegląd AI"; szablon: brak menu „Kolumny" (jak wcześniej).
       Staging 2026-10-07: 173 — menu „Kolumny” → „Widok” ma tylko „Oferta”; szablon 159 — brak przycisku „Kolumny”.
 
+### Findings — 2026-10-07
+
+- [ ] **Szkic AI nie do wytworzenia na stagingu → ok. 11 boxów „Przegląd szkicu AI" i „Przegląd AI" bez weryfikacji** —
+      `src/scripts/load-ai-draft.ts` ładuje szkic wyłącznie do lokalnej bazy (`assertLocalDb`), UI nie ma ścieżki
+      „wczytaj szkic", a na preview DB żaden kosztorys nie ma `ai_planned_qty`. Ręczny zapis SQL
+      `ai_planned_qty` na inw. 173/174 łamie regułę „mutacje tylko przez UI staging". **Needs human:**
+      zgoda na jednorazowy zapis `ai_planned_qty` na inw. 173 (QA) albo wczytanie szkicu inną drogą.
+      **Test disposition:** no automated test dodatkowy · logika statusu i warunków pokryta unit
+      (`review-status.test.ts`, `ai-review-conditions.test.ts`); brakuje tylko przejścia przez deploy.
+
 ## 2026-10-07 — reorder-dialog-safari — lista „Ustaw kolejność” nie zapada się w Safari
 
 - [ ] Safari (desktop) → kosztorys z kilkoma sekcjami → „Akcje sekcji” → „Ustaw kolejność…”: lista sekcji i prac jest widoczna, przewija się w środku okna, „Zapisz kolejność” działa po przeciągnięciu.
-- [ ] Chrome (desktop) → to samo okno: wygląda i działa jak przed zmianą.
-- [ ] Telefon (390px) → to samo okno: lista wypełnia ekran między paskiem narzędzi a przyciskami.
+- [x] Chrome (desktop) → to samo okno: wygląda i działa jak przed zmianą.
+      Staging 2026-10-07: Chrome (Playwright/Chromium), inw. 173 — lista widoczna, przewija się w środku okna, przeciąganie i zapis działają.
+- [x] Telefon (390px) → to samo okno: lista wypełnia ekran między paskiem narzędzi a przyciskami.
+      Staging 2026-10-07: 390px, inw. 173 — okno na pełny ekran, lista wypełnia przestrzeń między nagłówkiem a przyciskami „Zapisz kolejność” / „Anuluj”.
 
 ## EX-1012 — media-upload-speed — szybsze „Wyślij” zgłoszenia wydatku (2026-10-07)
 
