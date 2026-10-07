@@ -259,7 +259,7 @@ describe('buildWorkerPrintHtml', () => {
 
   it('reads „Pozostało” off every crew’s work, not only the worker’s', () => {
     // Item 1: 5 planned, 5 done across the investment (2 by this worker) — nothing owed on it.
-    const out = html(projection({ hiddenColumns: ['description', 'plannedQty', 'unit'] }))
+    const out = html(projection({ hiddenColumns: ['description', 'currentPlannedQty', 'unit'] }))
     const firstRow = out.slice(out.indexOf('<tr><td'), out.indexOf('</tr>', out.indexOf('<tr><td')))
 
     expect(firstRow.endsWith(`${formatPLN(0)}</td>`)).toBe(true)
@@ -279,7 +279,7 @@ describe('buildWorkerPrintHtml', () => {
       for (const hidePlannedOnceExecuted of [true, false]) {
         const headers = headersOf(html(projection({ hidePlannedOnceExecuted }, [], treeWith([]))))
 
-        expect(headers).toContain('Przedmiar')
+        expect(headers).toContain('Aktualizacja przedmiaru')
         expect(headers).toContain(PLANNED_NET_HEADER)
         for (const gone of [STAGE_QTY_SUM_HEADER, NET_HEADER, tynki, second]) {
           expect(headers, gone).not.toContain(gone)
@@ -292,7 +292,7 @@ describe('buildWorkerPrintHtml', () => {
       const out = html(data)
       const headers = headersOf(out)
 
-      expect(headers).not.toContain('Przedmiar')
+      expect(headers).not.toContain('Aktualizacja przedmiaru')
       expect(headers).not.toContain(PLANNED_NET_HEADER)
       expect(headers).toContain(tynki)
       expect(headers).toContain(STAGE_QTY_SUM_HEADER)
@@ -305,7 +305,7 @@ describe('buildWorkerPrintHtml', () => {
     it('keeps the przedmiar pair beside the settlement columns with the checkbox off', () => {
       const headers = headersOf(html(projection({ hidePlannedOnceExecuted: false })))
 
-      expect(headers).toContain('Przedmiar')
+      expect(headers).toContain('Aktualizacja przedmiaru')
       expect(headers).toContain(PLANNED_NET_HEADER)
       expect(headers).toContain(NET_HEADER)
     })

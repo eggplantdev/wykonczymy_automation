@@ -1,4 +1,4 @@
-import { rowPlannedNetForView } from '@/lib/kosztorys/calc'
+import { rowCurrentPlannedNetForView } from '@/lib/kosztorys/calc'
 import { formatPercentPrecise } from '@/lib/kosztorys/format'
 import { splitStagePool } from '@/lib/kosztorys/stage-split'
 import { subcontractorDueByPlane } from '@/lib/kosztorys/subcontractor-due'
@@ -91,7 +91,7 @@ export function computeWorkerSummary({
     }
   })
   return {
-    plannedNet: rows.reduce((sum, row) => sum + rowPlannedNetForView(row, plane), 0),
+    plannedNet: rows.reduce((sum, row) => sum + rowCurrentPlannedNetForView(row, plane), 0),
     executedByStage,
     stagesWholeNet: roundToCents(executedByStage.reduce((sum, stage) => sum + stage.wholeNet, 0)),
     executedNet,

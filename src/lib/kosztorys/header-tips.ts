@@ -47,7 +47,7 @@ const HEADER_TIPS: Record<string, string> = {
 // client's rabat and the editor's price view are not in them, so the tips above would misexplain it.
 // Every tip his link shows is listed, because it is read in his language.
 const WORKER_TIP_KEYS: Partial<Record<string, MessageKeyT<'grid'>>> = {
-  plannedQty: 'tipPlannedQty',
+  currentPlannedQty: 'tipCurrentPlannedQty',
   stageQtySum: 'tipStageQtySum',
   plannedNetForPlane: 'tipPlannedNetForPlane',
   net: 'tipNet',

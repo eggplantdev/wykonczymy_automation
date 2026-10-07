@@ -1,6 +1,7 @@
 import type { LanguageT } from '@/lib/i18n/languages'
 import { getTranslations } from '@/lib/i18n/translations'
 import { DESCRIPTION_COLUMN, UNIT_COLUMN, type PrintColumnT } from '@/lib/kosztorys/print/columns'
+import { resolvedCurrentPlannedQty } from '@/lib/kosztorys/calc'
 import { formatQty } from '@/lib/kosztorys/format'
 import { rowTotalQtyDone } from '@/lib/kosztorys/settlement-rows'
 import type { KosztorysStageT, ToolPlaneT } from '@/lib/kosztorys/types'
@@ -55,7 +56,9 @@ export function workerFormColumns({
       cell: () => '',
     },
     figureColumn('progress', report.formProgress, (row) =>
-      escapeHtml(`${formatQty(executedQtyByItem[row.id] ?? 0)} / ${formatQty(row.plannedQty)}`),
+      escapeHtml(
+        `${formatQty(executedQtyByItem[row.id] ?? 0)} / ${formatQty(resolvedCurrentPlannedQty(row))}`,
+      ),
     ),
     { ...UNIT_COLUMN, label: grid.unit },
   ]

@@ -674,9 +674,9 @@ Run once, after Phase 6.
 
 #### Automated
 
-- [ ] 4.1 Investor set hides remaining and the aktualizacja pair until the first entry; worker set unchanged
-- [ ] 4.2 Offer PDF before / after the first entry
-- [ ] 4.3 Default investor settings tick aktualizacja, leave its value unticked
+- [ ] 4.1 Investor set hides remaining and the aktualizacja pair until the first entry; worker set unchanged — df9aef61 (specs unrun)
+- [ ] 4.2 Offer PDF before / after the first entry — df9aef61 (specs unrun)
+- [ ] 4.3 Default investor settings tick aktualizacja, leave its value unticked — df9aef61 (specs unrun)
 
 ### Phase 5: Worker surfaces
 

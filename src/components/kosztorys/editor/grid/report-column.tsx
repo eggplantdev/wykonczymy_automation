@@ -6,6 +6,7 @@ import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-
 import { useTranslation } from '@/hooks/use-translation'
 import type { MessageKeyT } from '@/lib/i18n/translations'
 import { numericFieldPolicy } from '@/lib/kosztorys/cell-edit'
+import { resolvedCurrentPlannedQty } from '@/lib/kosztorys/calc'
 import { formatQty } from '@/lib/kosztorys/format'
 import { rowTotalQtyDone } from '@/lib/kosztorys/settlement-rows'
 import { REPORT_FIELD, REPORT_STAGE_ID } from '@/lib/kosztorys/worker-report/report-field'
@@ -91,9 +92,10 @@ type ProgressDataT = { executedQtyByItem: Record<number, number> }
 // „Zgłaszam” live, so the figure moves as he types.
 function ProgressCell({ rowData, columnData }: CellProps<KosztorysV2RowT, ProgressDataT>) {
   const done = (columnData.executedQtyByItem[rowData.id] ?? 0) + (rowData[REPORT_FIELD] ?? 0)
+  const plannedQty = resolvedCurrentPlannedQty(rowData)
   return (
-    <ReadOnlyCellText muted danger={done > rowData.plannedQty}>
-      {formatQty(done)} / {formatQty(rowData.plannedQty)}
+    <ReadOnlyCellText muted danger={done > plannedQty}>
+      {formatQty(done)} / {formatQty(plannedQty)}
     </ReadOnlyCellText>
   )
 }

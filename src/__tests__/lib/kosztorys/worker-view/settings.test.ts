@@ -43,6 +43,25 @@ describe('worker view settings', () => {
     })
   })
 
+  // EX-921: the worker's quantity column became the Aktualizacja przedmiaru; an untick saved under
+  // the old key must keep it hidden rather than fall to the ceiling and reappear.
+  it('offers the crew the Aktualizacja przedmiaru, never the Przedmiar ofertowy', () => {
+    const keys = WORKER_VIEW_GROUPS.flatMap((group) => group.keys)
+
+    expect(keys).toContain('currentPlannedQty')
+    expect(keys).not.toContain('plannedQty')
+  })
+
+  it('reads a pre-EX-921 `plannedQty` untick and position as the Aktualizacja przedmiaru', () => {
+    const settings = sanitizeWorkerViewSettings({
+      hiddenColumns: ['plannedQty', 'currentPlannedQty', 'unit'],
+      columnRanks: { plannedQty: 3 },
+    })
+
+    expect(settings.hiddenColumns).toEqual(['currentPlannedQty', 'unit'])
+    expect(settings.columnRanks).toEqual({ currentPlannedQty: 3 })
+  })
+
   it.each([undefined, null, 'x', 42, { hiddenColumns: 'price' }])(
     'falls back to the code default on garbage input (%s)',
     (raw) => {

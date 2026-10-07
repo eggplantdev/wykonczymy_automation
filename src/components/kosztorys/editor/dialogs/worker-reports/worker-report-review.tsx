@@ -33,6 +33,7 @@ import { stageLabel } from '@/lib/kosztorys/stage-label'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
 import type { KosztorysV2RowT, ToolPlaneT } from '@/lib/kosztorys/types'
 import { rowTotalQtyDone } from '@/lib/kosztorys/settlement-rows'
+import { resolvedCurrentPlannedQty } from '@/lib/kosztorys/calc'
 import {
   closestEntries,
   hintCandidates,
@@ -116,7 +117,7 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
     return {
       stageQty: targetStageId === undefined ? 0 : (row[stageKey(targetStageId)] ?? 0),
       measuredQty: rowTotalQtyDone(row, stages, 'client'),
-      plannedQty: row.plannedQty,
+      currentPlannedQty: resolvedCurrentPlannedQty(row),
     }
   }
   const sectionOrder = new Map(sections.map((section, index) => [section.sectionName, index]))

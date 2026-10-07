@@ -31,7 +31,7 @@ export type LineDraftT = {
 export type LineGroupT = 'rozpiska' | 'extra'
 
 // What the rozpiska holds for a reported pozycja right now; `undefined` once it was deleted.
-export type ItemFiguresT = { stageQty: number; measuredQty: number; plannedQty: number }
+export type ItemFiguresT = { stageQty: number; measuredQty: number; currentPlannedQty: number }
 
 // Every digit the figure has: a rounded one would be sent back as a change nobody made.
 export const qtyInputText = (qty: number) => decimalText(round6(qty))
