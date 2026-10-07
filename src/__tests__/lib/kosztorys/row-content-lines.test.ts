@@ -1,11 +1,5 @@
-import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import {
-  clippedRowClass,
-  rowContentLines,
-  wrapColumnClass,
-  WRAPPING_COLUMN_IDS,
-} from '@/lib/kosztorys/row-content-lines'
+import { measuredColumns, rowContentLines } from '@/lib/kosztorys/row-content-lines'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 // Ten pixels a character, so a width of 101 fits exactly ten characters once the 1px edge tolerance
@@ -16,68 +10,66 @@ function row(fields: Partial<KosztorysV2RowT>): KosztorysV2RowT {
   return { id: 1, description: null, note: null, ...fields } as KosztorysV2RowT
 }
 
+function keyColumn(id: 'description' | 'note' | 'sectionName') {
+  return { id, copyValue: ({ rowData }: { rowData: KosztorysV2RowT }) => rowData[id] }
+}
+
+const columns = measuredColumns([keyColumn('description'), keyColumn('note')])
+
 describe('rowContentLines', () => {
   it('gives an empty row one line', () => {
-    expect(rowContentLines(row({}), { description: 101 }, tenPxPerChar)).toBe(1)
+    expect(rowContentLines(row({}), columns, { description: 101 }, tenPxPerChar)).toBe(1)
   })
 
   it('counts the lines the description wraps onto', () => {
     const value = 'aaaa bbbb cccc dddd'
-    expect(rowContentLines(row({ description: value }), { description: 101 }, tenPxPerChar)).toBe(2)
+    expect(
+      rowContentLines(row({ description: value }), columns, { description: 101 }, tenPxPerChar),
+    ).toBe(2)
   })
 
   it('takes the tallest column, not the first', () => {
     const fields = { description: 'aaaa', note: 'aaaa bbbb cccc dddd' }
-    expect(rowContentLines(row(fields), { description: 101, note: 101 }, tenPxPerChar)).toBe(2)
+    expect(
+      rowContentLines(row(fields), columns, { description: 101, note: 101 }, tenPxPerChar),
+    ).toBe(2)
   })
 
   it('ignores a column the client cannot see', () => {
     const fields = { description: 'aaaa', note: 'aaaa bbbb cccc dddd' }
-    expect(rowContentLines(row(fields), { description: 101 }, tenPxPerChar)).toBe(1)
+    expect(rowContentLines(row(fields), columns, { description: 101 }, tenPxPerChar)).toBe(1)
   })
 
   it('falls back to one line before the widths have been measured', () => {
-    expect(rowContentLines(row({ description: 'aaaa bbbb cccc' }), {}, tenPxPerChar)).toBe(1)
-  })
-})
-
-// „Sekcja" is shown far more often than it is long, so the interesting case is the one where a long
-// name lifts a row whose own description is short.
-describe('rowContentLines — kolumna Sekcja', () => {
-  it('counts the lines the section name wraps onto', () => {
-    const fields = { sectionName: 'aaaa bbbb cccc dddd', description: 'aaaa' }
-    expect(rowContentLines(row(fields), { sectionName: 101, description: 101 }, tenPxPerChar)).toBe(
-      2,
+    expect(rowContentLines(row({ description: 'aaaa bbbb cccc' }), columns, {}, tenPxPerChar)).toBe(
+      1,
     )
   })
 })
 
-// The Komentarz do pracy is the katalog entry's, not the row's, so the row alone can't size it.
-describe('rowContentLines — kolumna Komentarz do pracy', () => {
-  const workNotes = new Map([[1, { id: 9, note: 'aaaa bbbb cccc dddd' }]])
-
-  it('counts the lines the katalog comment wraps onto', () => {
-    const fields = { description: 'aaaa' }
+// The point of measuring by default: a column nobody listed still grows its row — „Komentarz do
+// pracy" shipped without ever doing so while the measured columns were an allowlist.
+describe('measuredColumns', () => {
+  it('measures any column that copies its text, listed or not', () => {
+    const comment = {
+      id: 'workNote',
+      copyValue: () => 'aaaa bbbb cccc dddd',
+    }
     expect(
-      rowContentLines(row(fields), { description: 101, workNote: 101 }, tenPxPerChar, workNotes),
+      rowContentLines(row({}), measuredColumns([comment]), { workNote: 101 }, tenPxPerChar),
     ).toBe(2)
   })
 
-  it('gives a praca the katalog doesn’t know one line', () => {
-    expect(rowContentLines(row({ id: 2 }), { workNote: 101 }, tenPxPerChar, workNotes)).toBe(1)
+  it('skips a column whose copied value is a code, not the label it shows', () => {
+    const ids = measuredColumns([
+      { id: 'reviewStatus', copyValue: () => 'accepted' },
+      { id: 'priceMode__w_tools', copyValue: () => 'catalogue' },
+      keyColumn('note'),
+    ]).map((column) => column.id)
+    expect(ids).toEqual(['note'])
   })
-})
 
-// The clip cue is the one part of the wrapping contract that lives in hand-written CSS: `globals.css`
-// spells out a `.kosztorys-clipped-<id> .kosztorys-wrap-<id>::after` pair per column, so a fourth
-// wrapping column added to the list above gets measured, clipped — and shows no „…" at all. Nothing
-// else can catch that: both class names still build fine, and the missing selector is invisible until
-// someone notices a truncated opis that never says it was truncated.
-describe('the clip cue’s CSS keeps up with WRAPPING_COLUMN_IDS', () => {
-  // Collapsed, because the formatter wraps a long selector across lines.
-  const css = readFileSync('src/styles/globals.css', 'utf8').replace(/\s+/g, ' ')
-
-  it.each(WRAPPING_COLUMN_IDS)('draws the „…" for %s', (id) => {
-    expect(css).toContain(`.${clippedRowClass(id)} .dsg-cell.${wrapColumnClass(id)}::after`)
+  it('skips a column that copies nothing', () => {
+    expect(measuredColumns([{ id: 'divergence' }])).toEqual([])
   })
 })

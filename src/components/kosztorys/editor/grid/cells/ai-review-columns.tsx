@@ -6,7 +6,6 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { CellSelectMenu } from '@/components/ui/datasheet-grid/cell-select-menu'
 import { GridEventBoundary } from '@/components/ui/datasheet-grid/grid-event-boundary'
 import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-text'
-import { wrapColumnClass } from '@/lib/kosztorys/row-content-lines'
 import { REVIEW_STATUS_LABELS, REVIEW_STATUS_UNSET_LABEL } from '@/lib/kosztorys/labels'
 import {
   aiOffered,
@@ -131,9 +130,8 @@ export function workNoteColumn(
     disabled: editable ? ({ rowData }) => !rowData.description?.trim() : true,
     minWidth: 220,
     grow: 1,
-    headerClassName: wrapColumnClass('workNote'),
-    cellClassName: wrapColumnClass('workNote'),
     columnData: { byRowId },
     component: WorkNoteCell,
+    copyValue: ({ rowData }) => byRowId?.get(rowData.id)?.note ?? null,
   }
 }

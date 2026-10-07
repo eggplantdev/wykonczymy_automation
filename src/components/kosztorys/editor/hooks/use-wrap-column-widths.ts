@@ -1,8 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState, type RefObject } from 'react'
-import { WRAPPING_COLUMN_IDS, wrapColumnClass } from '@/lib/kosztorys/row-content-lines'
-import type { WrappingColumnIdT } from '@/lib/kosztorys/row-content-lines'
+import { wrapColumnClass, type ColumnWidthsT } from '@/lib/kosztorys/row-content-lines'
 
 // A cell's 1px right border plus ReadOnlyCellText's px-2, i.e. everything between the cell's edge
 // and the first glyph.
@@ -14,14 +13,14 @@ const CELL_FONT_SIZE = '14px'
 const CELL_FONT_WEIGHT = '400'
 
 export type WrapWidthsT = {
-  widths: Partial<Record<WrappingColumnIdT, number>>
+  widths: ColumnWidthsT
   font: string
 }
 
 const EMPTY: WrapWidthsT = { widths: {}, font: `${CELL_FONT_WEIGHT} ${CELL_FONT_SIZE} sans-serif` }
 
 /**
- * Rendered text width of each wrapping column, remeasured whenever the grid's box changes — a
+ * Rendered text width of each measured column, remeasured whenever the grid's box changes — a
  * window resize, the client dragging a column edge, or the webfont finally arriving.
  *
  * A column scrolled out of the horizontal window has no header cell in the DOM at all, so a width
@@ -40,14 +39,14 @@ export function useWrapColumnWidths(
     const family = window.getComputedStyle(container).fontFamily
     const font = `${CELL_FONT_WEIGHT} ${CELL_FONT_SIZE} ${family}`
     setMeasured((prev) => {
-      const widths = { ...prev.widths }
-      for (const id of WRAPPING_COLUMN_IDS) {
-        // A column the current view doesn't render at all keeps no width — that is what stops a
-        // column the client cannot see from making their rows taller.
-        if (!columnIds.includes(id)) {
-          delete widths[id]
-          continue
-        }
+      const widths: Record<string, number> = { ...prev.widths }
+      // A column the current view doesn't render at all keeps no width — that is what stops a
+      // column the client cannot see from making their rows taller.
+      for (const id of Object.keys(widths)) {
+        if (!columnIds.includes(id)) delete widths[id]
+      }
+      for (const id of columnIds) {
+        if (!id) continue
         const cell = container.querySelector(
           `.dsg-row-header .dsg-cell-header.${wrapColumnClass(id)}`,
         )
@@ -83,6 +82,7 @@ export function useWrapColumnWidths(
   return measured
 }
 
-function sameWidths(a: WrapWidthsT['widths'], b: WrapWidthsT['widths']): boolean {
-  return WRAPPING_COLUMN_IDS.every((id) => a[id] === b[id])
+function sameWidths(a: ColumnWidthsT, b: ColumnWidthsT): boolean {
+  const keys = Object.keys(a)
+  return keys.length === Object.keys(b).length && keys.every((id) => a[id] === b[id])
 }

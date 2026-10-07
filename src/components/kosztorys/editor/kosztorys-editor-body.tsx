@@ -62,11 +62,13 @@ import {
   makeTotalsRow,
 } from '@/lib/kosztorys/synthetic-rows'
 import {
-  clippedRowClass,
+  CLIPPED_CELL_CLASS,
   columnContentLines,
+  measuredColumns,
   rowContentLines,
-  WRAPPING_COLUMN_IDS,
+  wrapColumnClass,
 } from '@/lib/kosztorys/row-content-lines'
+import { memoisedByRow } from '@/lib/kosztorys/columns/memoised-by-row'
 import {
   HEADER_HEIGHT_KEY,
   fitRowHeight,
@@ -128,6 +130,8 @@ export type ReportGridControlsT = {
   reportedOnly: boolean
   onReportedOnly: (value: boolean) => void
 }
+
+const NO_CLIPPED_COLUMNS: ReadonlySet<string> = new Set()
 
 // Seeds the grid from `tree` at mount, so remounting it with a fresh `key` is how a restore re-seeds
 // the whole grid (see KosztorysEditorV2).
@@ -320,6 +324,12 @@ export function KosztorysEditorBody({
     () =>
       columns
         .map((column) => (pastVersion ? withHistoryChanges(column, pastVersion.diff) : column))
+        // The header is the node the row-height measurement reads a column's width off.
+        .map((column) =>
+          column.id
+            ? { ...column, headerClassName: cn(column.headerClassName, wrapColumnClass(column.id)) }
+            : column,
+        )
         .map((column, index) =>
           withSyntheticRows(
             // A class per column rather than `:nth-child` in CSS: dsg virtualizes columns, so a
@@ -362,15 +372,15 @@ export function KosztorysEditorBody({
   // truncated description. The owner's stay at 32px until dragged, since an editor with every long
   // description expanded is unscannable. The measurement runs in both — in the editor it is what
   // „Dopasuj wysokość do treści" fits a row to.
-  const columnIds = useMemo(() => columns.map((column) => column.id), [columns])
-  const wrap = useWrapColumnWidths(gridNode, columnIds)
-  const workNotes = editor.catalogueComparison?.entryByItemId
+  const measured = useMemo(() => measuredColumns(columns), [columns])
+  const measuredIds = useMemo(() => measured.map((column) => column.id), [measured])
+  const wrap = useWrapColumnWidths(gridNode, measuredIds)
   // Nothing worth caching twice: measureTextWidth caches every width it has measured, and dsg asks
   // for a row's height once per scroll that extends its measured range.
   const contentLinesFor = useMemo(() => {
     const measure = measureTextWidth(wrap.font)
-    return (row: KosztorysV2RowT) => rowContentLines(row, wrap.widths, measure, workNotes)
-  }, [wrap, workNotes])
+    return (row: KosztorysV2RowT) => rowContentLines(row, measured, wrap.widths, measure)
+  }, [wrap, measured])
   // Both readings of „size me from the content" invalidate every cached height at once, not just the
   // rows below an inserted one — the owner's toggle included, since flipping it changes what every
   // row measures to without saying which rows changed.
@@ -405,38 +415,37 @@ export function KosztorysEditorBody({
             setRowHeight(String(row.id), fitRowHeight(row.id, contentLinesFor(row))),
     [preview, setRowHeight, contentLinesFor],
   )
-  // One class per clipped column, so the „…" lands in the cell that is hiding something rather than
-  // on the whole row. Measured from the same line count „Dopasuj wysokość do treści" uses, so the cue
-  // and the fit can't disagree. No cue in the preview: its rows are sized from this measurement.
-  const clipCueClass = useMemo(() => {
+  // The „…" lands on the cell that is hiding something rather than on the whole row. Measured from the
+  // same line count „Dopasuj wysokość do treści" uses, so the cue and the fit can't disagree. No cue in
+  // the preview: its rows are sized from this measurement. Cached per row because dsg asks once per
+  // cell, and the row's height needs every column's line count.
+  const clippedColumnsFor = useMemo(() => {
     const measure = measureTextWidth(wrap.font)
-    return (row: KosztorysV2RowT) => {
-      // A band's label deliberately overflows its own cell onto the empty ones beside it, so
-      // measuring it against its column's width would flag every band as clipped.
-      if (
-        preview ||
-        isSyntheticRow(row.id) ||
-        isSectionHeaderRow(row.id) ||
-        isSectionFooterRow(row.id)
-      )
-        return undefined
-      const columnLines = WRAPPING_COLUMN_IDS.map((id) => ({
-        id,
-        lines: columnContentLines(row, id, wrap.widths, measure, workNotes),
+    const clippedColumns = memoisedByRow((row): ReadonlySet<string> => {
+      const columnLines = measured.map((column) => ({
+        id: column.id,
+        lines: columnContentLines(row, column, wrap.widths, measure),
       }))
       const height = resolveRowHeight({
         isSectionBand: false,
         override: rowHeights[String(row.id)],
         contentLines: fitRowsToContent
-          ? Math.max(...columnLines.map((column) => column.lines))
+          ? Math.max(1, ...columnLines.map((column) => column.lines))
           : undefined,
       })
-      return columnLines
-        .filter((column) => heightForLines(column.lines) > height)
-        .map((column) => clippedRowClass(column.id))
-        .join(' ')
-    }
-  }, [preview, wrap, rowHeights, fitRowsToContent, workNotes])
+      return new Set(
+        columnLines
+          .filter((column) => heightForLines(column.lines) > height)
+          .map((column) => column.id),
+      )
+    })
+    return (row: KosztorysV2RowT): ReadonlySet<string> =>
+      // A band's label deliberately overflows its own cell onto the empty ones beside it, so
+      // measuring it against its column's width would flag every band as clipped.
+      preview || isSyntheticRow(row.id) || isSectionHeaderRow(row.id) || isSectionFooterRow(row.id)
+        ? NO_CLIPPED_COLUMNS
+        : clippedColumns(row)
+  }, [preview, wrap, rowHeights, fitRowsToContent, measured])
   const gutterColumn = useMemo(
     () => ordinalGutterColumn({ ordinals: ordinalByRowId, resize: rowResize }),
     [ordinalByRowId, rowResize],
@@ -616,12 +625,16 @@ export function KosztorysEditorBody({
                       }
                       lockRows
                       rowKey={({ rowData }) => String(rowData.id)}
+                      cellClassName={({ rowData, columnId }) =>
+                        columnId && clippedColumnsFor(rowData as KosztorysV2RowT).has(columnId)
+                          ? CLIPPED_CELL_CLASS
+                          : undefined
+                      }
                       rowClassName={({ rowData }) =>
                         cn(
                           sectionColorRail(rowData.sectionColor),
                           isSectionHeaderRow(rowData.id) && 'kosztorys-section-header',
                           isSectionFooterRow(rowData.id) && 'kosztorys-section-footer',
-                          clipCueClass(rowData),
                           showAllRows &&
                             clientEmptyRowIds.has(rowData.id) &&
                             'kosztorys-revealed-row',

@@ -1,65 +1,60 @@
 import { countWrappedLines, type MeasureTextWidthT } from '@/lib/utils/text-wrap'
+import { planePriceKeyParts } from '@/lib/kosztorys/plane-price-keys'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
-import type { RowCatalogueEntryT } from '@/lib/kosztorys/work-catalogue/types'
-import { translationText } from '@/lib/i18n/description-translations'
-import {
-  ALL_TRANSLATION_COLUMN_KEYS,
-  translationColumnLanguage,
-} from '@/lib/kosztorys/translation-column-keys'
 
-// The columns whose value is free text, so the only ones that can need more than one line. Every
-// other column wraps too, but a kwota or a jednostka has never yet been wide enough to.
-// „Sekcja" repeats one name down every row of its section, so a long name lifts that whole section.
-export const WRAPPING_COLUMN_IDS = [
-  'sectionName',
-  'description',
-  ...ALL_TRANSLATION_COLUMN_KEYS,
-  'note',
-  'changeReason',
-  'workNote',
-] as const
+// Every column is measured by default — an allowlist is how „Komentarz do pracy" shipped without
+// ever growing a row. Excluded: a column whose copied value is a code rather than the label it
+// shows, which would size the row for a word nobody sees. A plane-qualified id is matched by its base.
+const UNMEASURED_COLUMN_IDS: ReadonlySet<string> = new Set([
+  'reviewStatus',
+  'discountType',
+  'priceMode',
+])
 
-export type WrappingColumnIdT = (typeof WRAPPING_COLUMN_IDS)[number]
+export type MeasuredColumnT = { id: string; text: (row: KosztorysV2RowT) => string }
 
-// The Komentarz do pracy belongs to the katalog entry, not the row, so it is looked up beside it.
-export type WorkNotesT = ReadonlyMap<number, RowCatalogueEntryT> | undefined
+export type ColumnWidthsT = Readonly<Record<string, number>>
 
-function wrappingColumnText(
-  row: KosztorysV2RowT,
-  id: WrappingColumnIdT,
-  workNotes: WorkNotesT,
-): string | null {
-  if (id === 'workNote') return workNotes?.get(row.id)?.note ?? null
-  const language = translationColumnLanguage(id)
-  if (language !== null) return translationText(row.descriptionTranslations, language)
-  return row[id as 'sectionName' | 'description' | 'note' | 'changeReason']
+// Structural rather than dsg's Column, so this layer stays free of the grid library.
+type CopyableColumnT = {
+  id?: string
+  copyValue?: (opt: { rowData: KosztorysV2RowT; rowIndex: number }) => number | string | null
 }
 
-// dsg hands the rendered width back to nobody, so this class is the only handle the measurement and
-// the clip cue have on a column's box. A class rather than a position because the grid virtualizes
-// columns HORIZONTALLY — the cells in the DOM are `[gutter, …the scrolled window]`.
-export function wrapColumnClass(id: WrappingColumnIdT): string {
+// A column's text is what it copies: the one per-column reading of a cell every column already
+// defines. A column that copies nothing has nothing to measure.
+export function measuredColumns(columns: readonly CopyableColumnT[]): MeasuredColumnT[] {
+  return columns.flatMap(({ id, copyValue }) =>
+    id && copyValue && !UNMEASURED_COLUMN_IDS.has(planePriceKeyParts(id)?.base ?? id)
+      ? [
+          {
+            id,
+            text: (row: KosztorysV2RowT) => String(copyValue({ rowData: row, rowIndex: 0 }) ?? ''),
+          },
+        ]
+      : [],
+  )
+}
+
+// dsg hands the rendered width back to nobody, so this class is the only handle the measurement has
+// on a column's header box. A class rather than a position because the grid virtualizes columns
+// HORIZONTALLY — the cells in the DOM are `[gutter, …the scrolled window]`.
+export function wrapColumnClass(id: string): string {
   return `kosztorys-wrap-${id}`
 }
 
-// The row half of the same contract — `globals.css` intersects the two to place the clip cue. Adding
-// a wrapping column still costs a third edit: that selector pair is hand-written per id, and omitting
-// it loses the cue silently.
-export function clippedRowClass(id: WrappingColumnIdT): string {
-  return `kosztorys-clipped-${id}`
-}
+export const CLIPPED_CELL_CLASS = 'kosztorys-clipped'
 
 // A column with no measured width (never rendered, or scrolled past before measuring) answers one
 // line — claiming more would invent a clip nobody can see.
 export function columnContentLines(
   row: KosztorysV2RowT,
-  id: WrappingColumnIdT,
-  widths: Partial<Record<WrappingColumnIdT, number>>,
+  column: MeasuredColumnT,
+  widths: ColumnWidthsT,
   measure: MeasureTextWidthT,
-  workNotes?: WorkNotesT,
 ): number {
-  const width = widths[id]
-  const text = wrappingColumnText(row, id, workNotes)
+  const width = widths[column.id]
+  const text = column.text(row)
   if (!width || !text) return 1
   return countWrappedLines(text, width, measure)
 }
@@ -68,13 +63,13 @@ export function columnContentLines(
 // their rows taller.
 export function rowContentLines(
   row: KosztorysV2RowT,
-  widths: Partial<Record<WrappingColumnIdT, number>>,
+  columns: readonly MeasuredColumnT[],
+  widths: ColumnWidthsT,
   measure: MeasureTextWidthT,
-  workNotes?: WorkNotesT,
 ): number {
   let lines = 1
-  for (const id of WRAPPING_COLUMN_IDS) {
-    lines = Math.max(lines, columnContentLines(row, id, widths, measure, workNotes))
+  for (const column of columns) {
+    lines = Math.max(lines, columnContentLines(row, column, widths, measure))
   }
   return lines
 }

@@ -4,7 +4,6 @@ import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-
 import { EditableCellInput } from '@/components/ui/datasheet-grid/editable-cell-input'
 import type { StopEditingT } from '@/components/ui/datasheet-grid/types'
 import { useInlineRename } from '@/components/kosztorys/editor/hooks/use-inline-rename'
-import { wrapColumnClass } from '@/lib/kosztorys/row-content-lines'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
 // Renames the WHOLE section, so it commits through onRename (the same fan-out the section panel uses)
@@ -97,10 +96,6 @@ export function sectionNameColumn(
     id: 'sectionName',
     title: titleNode,
     keepFocus: true,
-    cellClassName: wrapColumnClass('sectionName'),
-    // The header too: it is the node the width measurement queries, and a column nothing measures
-    // never grows a row.
-    headerClassName: wrapColumnClass('sectionName'),
     columnData: { onRename },
     component: SectionNameGridCell,
     copyValue: ({ rowData }) => rowData.sectionName ?? '',

@@ -38,7 +38,6 @@ import { sectionNameColumn } from '@/components/kosztorys/editor/grid/cells/sect
 import { translationColumn } from '@/components/kosztorys/editor/grid/cells/translation-column'
 import { TRANSLATION_LANGUAGES } from '@/lib/i18n/languages'
 import { translationColumnKey } from '@/lib/kosztorys/translation-column-keys'
-import { wrapColumnClass } from '@/lib/kosztorys/row-content-lines'
 import { longTextColumn } from '@/components/ui/datasheet-grid/long-text-cell'
 import { type ColumnToggleItemT } from '@/components/ui/column-toggle-menu'
 import {
@@ -134,10 +133,6 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       title: columnTitle('description', opts),
       minWidth: 360,
       grow: 2,
-      // Marks the header the row-height measurement reads the width off, and the body cells the
-      // clip cue hangs its „…" on.
-      headerClassName: wrapColumnClass('description'),
-      cellClassName: wrapColumnClass('description'),
     }),
     ...TRANSLATION_LANGUAGES.map((language) =>
       translationColumn(language, columnTitle(translationColumnKey(language), opts)),
@@ -209,8 +204,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
           title: columnTitle('changeReason', opts),
           minWidth: 220,
           grow: 1,
-          headerClassName: `${AI_REVIEW_COLUMN_CLASS.headerClassName} ${wrapColumnClass('changeReason')}`,
-          cellClassName: `${AI_REVIEW_COLUMN_CLASS.cellClassName} ${wrapColumnClass('changeReason')}`,
+          ...AI_REVIEW_COLUMN_CLASS,
         }),
       ]
     : []
@@ -369,8 +363,8 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       title: columnTitle('note', opts),
       minWidth: 200,
       grow: 1,
-      headerClassName: `border-l border-border ${wrapColumnClass('note')}`,
-      cellClassName: `border-l border-border ${wrapColumnClass('note')}`,
+      headerClassName: 'border-l border-border',
+      cellClassName: 'border-l border-border',
     }),
   ]
 

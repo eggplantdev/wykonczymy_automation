@@ -4681,3 +4681,9 @@ JPEG-i ~300 KB; „duży plik" = PDF powyżej 4 MB.
 - [ ] „Drukuj do wypełnienia” → kolumna „Postęp” pokazuje „wykonano / 120” dla pozycji z aktualizacją 120.
 - [ ] Zgłoszenie pracownika → w przeglądzie zgłoszenia kolumna nazywa się „Aktualizacja przedmiaru”, a ostrzeżenie o przekroczeniu liczy się względem niej i brzmi „Przekroczono aktualizację przedmiaru”; na stronie zgłoszenia „Postęp” też pokazuje „/ 120”.
 - [ ] Przyjęcie pracy dodatkowej ze zgłoszenia → nowa pozycja ma „Przedmiar ofertowy” 0 i „Aktualizacja przedmiaru” równą zgłoszonej ilości (czarną).
+
+## 2026-10-07 — kosztorys-fit-all-columns — „Dopasuj wysokość do treści” mierzy każdą kolumnę
+
+- [ ] Kosztorys → wpisz długi tekst w kolumnie tekstowej innej niż „Opis prac” (notatka, nazwa sekcji, tłumaczenie, „Komentarz do pracy”): w komórce widać „…”; menu wiersza → „Dopasuj wysokość do treści” podnosi wiersz tak, że cały tekst jest widoczny.
+- [ ] Wiersz z krótkimi tekstami i statusem przeglądu / rodzajem rabatu / trybem ceny: „Dopasuj wysokość do treści” zostawia wiersz w jednej linii, a w tych komórkach nie ma „…”.
+- [ ] Zwiń szerokość kolumny z długim tekstem: „…” pojawia się tylko w tej komórce, nie w całym wierszu; po poszerzeniu kolumny znika.
