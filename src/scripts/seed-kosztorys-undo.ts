@@ -1,9 +1,9 @@
-// E2E fixture for EX-525 (cofnij/ponów w edytorze). Four investments, one per scenario — the undo
-// stack is per page load, the rows are not. One sekcja, three prace, so ▲▼ has a row with neighbours
-// on both sides; every przedmiar is distinct so a reverted value can't be read off a neighbour.
+// E2E fixture for EX-525 (cofnij/ponów w edytorze). Three investments, one per scenario — the undo
+// stack is per page load, the rows are not. One sekcja, three prace; every przedmiar is distinct so a
+// reverted value can't be read off a neighbour.
 //
 // Run: DB_POSTGRES_URL=$DB_POSTGRES_URL_TEST node --env-file=.env --import tsx src/scripts/seed-kosztorys-undo.ts
-// Emits: UNDO_SEED={"cell":<id>,"burst":<id>,"boundary":<id>,"reorder":<id>}
+// Emits: UNDO_SEED={"cell":<id>,"burst":<id>,"boundary":<id>}
 import { getPayload } from 'payload'
 import config from '../payload.config'
 
@@ -61,7 +61,6 @@ async function main() {
     cell: await seedInvestment(payload, `E2E Cofanie komórka ${stamp}`),
     burst: await seedInvestment(payload, `E2E Cofanie seria ${stamp}`),
     boundary: await seedInvestment(payload, `E2E Cofanie granica ${stamp}`),
-    reorder: await seedInvestment(payload, `E2E Cofanie kolejność ${stamp}`),
   }
 
   console.log(`UNDO_SEED=${JSON.stringify(seed)}`)

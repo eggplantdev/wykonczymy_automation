@@ -34,6 +34,7 @@ vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
 
 const COMPARISON: CatalogueComparisonT = {
   matching: 3,
+  entryByItemId: new Map(),
   diffs: [
     {
       itemId: 11,
@@ -121,6 +122,7 @@ describe('CatalogueCompareDialog — „Pokaż w rozpisce"', () => {
         ownToolsRate: null,
         ownToolsRateCoeff: null,
         matchKey: catalogueKey('Montaż syfonu', 'szt'),
+        workNote: null,
       },
     ]
     render(<CatalogueCompareDialog />)

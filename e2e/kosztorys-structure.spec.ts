@@ -14,8 +14,7 @@ import {
 //
 // The ORDER arithmetic under these commands is already settled below the browser:
 // `kosztorys-create-order.test.ts` proves an append lands at the tail without a display_order
-// collision, `move-edges.ts` has a unit for which direction is live at which position, and
-// `append-preset-sections.test.ts` covers the preset append. Repeating any of that here would only
+// collision, and `append-preset-sections.test.ts` covers the preset append. Repeating any of that here would only
 // prove it slower.
 //
 // What no layer below the browser reaches is that a MENU ENTRY is wired to the arithmetic at all —
@@ -220,7 +219,7 @@ test('inserting and deleting prace through the row menu rewrites the order, and 
   await expect.poll(() => rozpiska(page)).toEqual(afterDelete)
 })
 
-test('the section band menu reorders sekcje, dies at the edges of the rozpiska, and ignores the search box', async ({
+test('the section band menu freezes its insert under a sort, and a global sort drops the bands', async ({
   page,
 }) => {
   const initial = [
@@ -234,58 +233,10 @@ test('the section band menu reorders sekcje, dies at the edges of the rozpiska, 
   await openEditor(page, seed.sections)
   await expect.poll(() => rozpiska(page)).toEqual(initial)
 
-  // Both ends, in one open menu each: at the first sekcja „w górę" has nothing to swap with, at the
-  // last „w dół" hasn't — and the OTHER direction staying live is what makes this a per-direction
-  // predicate rather than a menu that went dead altogether.
-  await openSectionMenu(page, 'Sekcja wiodąca')
-  await expect(menuItem(page, 'Przesuń sekcję w górę')).toBeDisabled()
-  await expect(menuItem(page, 'Przesuń sekcję w dół')).toBeEnabled()
-  await page.keyboard.press('Escape')
-
-  await openSectionMenu(page, 'Sekcja zamykająca')
-  await expect(menuItem(page, 'Przesuń sekcję w dół')).toBeDisabled()
-  await expect(menuItem(page, 'Przesuń sekcję w górę')).toBeEnabled()
-  await page.keyboard.press('Escape')
-
-  // Narrowing the view to ONE sekcja must not move the edges: they are positions in the rozpiska, not
-  // in what is on screen. Unfixed, this is where the predicate reads the filtered rows and greys out
-  // a move that is perfectly legal.
-  await page.getByPlaceholder('Szukaj…').fill('środkowa')
-  await expect.poll(() => rozpiska(page)).toEqual(['# Sekcja środkowa', 'Robota środkowa'])
-  await openSectionMenu(page, 'Sekcja środkowa')
-  await expect(menuItem(page, 'Przesuń sekcję w górę')).toBeEnabled()
-  await expect(menuItem(page, 'Przesuń sekcję w dół')).toBeEnabled()
-  await page.keyboard.press('Escape')
-  // Not cosmetic: dsg rows are positioned by index and recycled, so a band trigger resolved while the
-  // search is still being undone belongs to a different sekcja by the time the click lands — which
-  // reads as „the move went dead" rather than as the race it is.
-  await page.getByPlaceholder('Szukaj…').fill('')
-  await expect.poll(() => rozpiska(page)).toEqual(initial)
-
-  await openSectionMenu(page, 'Sekcja środkowa')
-  await runCommand(page, 'Przesuń sekcję w górę')
-  const afterMove = [
-    '# Sekcja środkowa',
-    'Robota środkowa',
-    '# Sekcja wiodąca',
-    'Robota wiodąca',
-    '# Sekcja zamykająca',
-    'Robota zamykająca',
-  ]
-  await expect.poll(() => rozpiska(page)).toEqual(afterMove)
-
-  // A sekcja carries its prace when it moves — asserting the band alone would pass on a reorder that
-  // left the rows behind under the wrong band.
-  await reloadEditor(page)
-  await expect.poll(() => rozpiska(page)).toEqual(afterMove)
-
-  // Under a sort the array position stops mirroring display_order, so every order command freezes.
-  // „Wstaw sekcję" is in the same freeze as the moves, and „Usuń sekcję" is deliberately NOT: the
-  // gate is about position, not about the sekcja.
+  // Under a sort the array position stops mirroring display_order, so „Wstaw sekcję" freezes, and
+  // „Usuń sekcję" is deliberately NOT: the gate is about position, not about the sekcja.
   await sortBy(page, COLUMN_LABELS.description, 'Sortuj rosnąco zachowując sekcje')
   await openSectionMenu(page, 'Sekcja środkowa')
-  await expect(menuItem(page, 'Przesuń sekcję w górę')).toBeDisabled()
-  await expect(menuItem(page, 'Przesuń sekcję w dół')).toBeDisabled()
   await expect(menuItem(page, 'Wstaw sekcję powyżej')).toBeDisabled()
   await expect(menuItem(page, 'Usuń sekcję')).toBeEnabled()
   await page.keyboard.press('Escape')

@@ -125,6 +125,7 @@ import * as migration_20261005_6_add_worker_report_scan from './20261005_6_add_w
 import * as migration_20261006_1_add_worker_expense_draft_read from './20261006_1_add_worker_expense_draft_read'
 import * as migration_20261006_2_add_worker_expense_draft_transfers from './20261006_2_add_worker_expense_draft_transfers'
 import * as migration_20261006_3_add_worker_expense_draft_receipts from './20261006_3_add_worker_expense_draft_receipts'
+import * as migration_20261007_0_add_ai_review_columns from './20261007_0_add_ai_review_columns'
 
 export const migrations = [
   {
@@ -761,5 +762,10 @@ export const migrations = [
     up: migration_20261006_3_add_worker_expense_draft_receipts.up,
     down: migration_20261006_3_add_worker_expense_draft_receipts.down,
     name: '20261006_3_add_worker_expense_draft_receipts',
+  },
+  {
+    up: migration_20261007_0_add_ai_review_columns.up,
+    down: migration_20261007_0_add_ai_review_columns.down,
+    name: '20261007_0_add_ai_review_columns',
   },
 ]

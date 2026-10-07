@@ -155,7 +155,7 @@ const translationColumns = TRANSLATION_LANGUAGES.map((language) =>
 
 // Translations are worked on, not read while pricing, so the cennik opens without them.
 export const WORK_CATALOGUE_DEFAULT_VISIBILITY = Object.fromEntries(
-  ALL_TRANSLATION_COLUMN_KEYS.map((id) => [id, false]),
+  [...ALL_TRANSLATION_COLUMN_KEYS, 'workNote'].map((id) => [id, false]),
 )
 
 const categoryColumn = col.accessor((row) => row.category ?? '', {
@@ -255,6 +255,13 @@ export const WORK_CATALOGUE_PICKER_COLUMNS = [
   ownToolsRateColumn,
 ]
 
+const workNoteColumn = col.accessor((row) => row.workNote ?? '', {
+  id: 'workNote',
+  header: 'Komentarz do pracy',
+  size: 280,
+  cell: (info) => <span className="text-muted-foreground block text-sm">{info.getValue()}</span>,
+})
+
 // Counts distinct inwestycje, not pozycje: a praca repeated across five łazienki of one mieszkanie is
 // still one kosztorys that would miss it. Absent until „Policz użycia" — a column of zeros before the
 // count would read as „nothing uses anything".
@@ -290,6 +297,7 @@ export function getWorkCatalogueColumns({
     ownToolsSourceColumn,
     ownToolsRateColumn,
     ownToolsShareColumn,
+    workNoteColumn,
     ...(usage ? [usageColumn(usage)] : []),
 
     col.display({

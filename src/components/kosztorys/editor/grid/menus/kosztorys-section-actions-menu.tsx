@@ -1,16 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import {
-  ArrowDown,
-  ArrowDownToLine,
-  ArrowUp,
-  ArrowUpToLine,
-  Languages,
-  ListChecks,
-  Plus,
-  Trash2,
-} from 'lucide-react'
+import { ArrowDownToLine, ArrowUpToLine, Languages, ListChecks, Plus, Trash2 } from 'lucide-react'
 
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import {
@@ -33,13 +24,12 @@ import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 // `columnData` instead of being rebuilt per section.
 export type SectionBandActionsT = {
   onInsert: (sectionId: number, where: 'above' | 'below') => void
-  onReorder: (sectionId: number, direction: 'up' | 'down') => void
   onSetColor: (sectionId: number, color: SectionColorKeyT | null) => void
   onRemove: (sectionId: number) => void
   onAddItem: (sectionId: number) => void
 }
 
-// Under a section-scoped sort the bands stay on screen but insert/reorder refuse to run, so without
+// Under a section-scoped sort the bands stay on screen but insert refuses to run, so without
 // `sortActive` those commands would look live and do nothing.
 export function KosztorysSectionActionsMenu({
   row,
@@ -48,8 +38,6 @@ export function KosztorysSectionActionsMenu({
   itemCount,
   color,
   sortActive,
-  canMoveUp,
-  canMoveDown,
   actions,
 }: {
   // The only entry acting on the ROW, not the sekcja. A band's label is one line, so fitting it
@@ -60,9 +48,6 @@ export function KosztorysSectionActionsMenu({
   itemCount: number
   color: SectionColorKeyT | null
   sortActive: boolean
-  // Off at the first / last sekcja, where `handleReorderSection` has nothing to swap with.
-  canMoveUp: boolean
-  canMoveDown: boolean
   actions: SectionBandActionsT
 }) {
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -91,26 +76,12 @@ export function KosztorysSectionActionsMenu({
             <ArrowDownToLine />
             Wstaw sekcję poniżej
           </DropdownMenuItem>
-          <DropdownMenuItem
-            disabled={sortActive || !canMoveUp}
-            onSelect={() => actions.onReorder(sectionId, 'up')}
-          >
-            <ArrowUp />
-            Przesuń sekcję w górę
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            disabled={sortActive || !canMoveDown}
-            onSelect={() => actions.onReorder(sectionId, 'down')}
-          >
-            <ArrowDown />
-            Przesuń sekcję w dół
-          </DropdownMenuItem>
           <ReorderMenuItem compact />
           <SectionColorPicker
             value={color}
             onChange={(next) => actions.onSetColor(sectionId, next)}
           />
-          {/* Not gated by the sort, unlike the four above: the praca lands at the END of this
+          {/* Not gated by the sort, unlike the two above: the praca lands at the END of this
               section, so array position — the reason those go dead — is irrelevant. */}
           <DropdownMenuItem onSelect={() => actions.onAddItem(sectionId)}>
             <Plus />

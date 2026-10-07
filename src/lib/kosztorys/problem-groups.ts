@@ -25,6 +25,7 @@ export const PROBLEM_GROUPS = [
   { id: 'scope-stages', label: 'Przedmiar i etapy' },
   { id: 'catalogue', label: 'Katalog prac' },
   { id: 'translations', label: 'Tłumaczenia' },
+  { id: 'ai-review', label: 'Przegląd AI' },
 ] as const
 
 export type ProblemGroupIdT = (typeof PROBLEM_GROUPS)[number]['id']

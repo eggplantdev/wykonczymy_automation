@@ -1,4 +1,5 @@
 import type { Payload, PayloadRequest } from 'payload'
+import { UNIQUE_VIOLATION, hasPgCode } from './pg-error'
 
 type TransactionContextT = Record<string, unknown>
 
@@ -43,16 +44,7 @@ export async function withPayloadTransaction<T>(
 // updated after this transaction's snapshot, and 23505 when the same collision arrives as a duplicate
 // key — the concurrent write was an INSERT this transaction's snapshot could not see, so a re-INSERT
 // lands on it. Retrying is only ever sound for a caller that re-reads its input on the next attempt.
-const CONCURRENT_WRITE_CODES = new Set(['40001', '23505'])
-
-function isConcurrentWrite(error: unknown): boolean {
-  // Drizzle wraps the driver error, so the pg code sits somewhere down the `cause` chain.
-  for (let current: unknown = error; current instanceof Error; current = current.cause) {
-    const { code } = current as { code?: unknown }
-    if (typeof code === 'string' && CONCURRENT_WRITE_CODES.has(code)) return true
-  }
-  return false
-}
+const CONCURRENT_WRITE_CODES = ['40001', UNIQUE_VIOLATION]
 
 // A conflict means this attempt read a state that is no longer current, so retrying is not hopeful
 // repetition — the next attempt opens a fresh snapshot and sees the writer that beat it. Bounded
@@ -80,7 +72,7 @@ export async function retryOnConcurrentWrite<T>(
     try {
       return await attempt()
     } catch (error) {
-      if (!isConcurrentWrite(error)) throw error
+      if (!hasPgCode(error, CONCURRENT_WRITE_CODES)) throw error
       if (n >= MAX_ATTEMPTS) {
         // TODO(EX-449) SENTRY-REQUIRED: the pg code and constraint name are the only thing separating
         // a genuine race from a bug that merely looks like one — the toast can't carry them.

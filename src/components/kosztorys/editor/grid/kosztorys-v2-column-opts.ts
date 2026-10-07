@@ -4,7 +4,6 @@ import type { ColumnRanksT } from '@/lib/table/column-order'
 import type { LayerT } from '@/lib/kosztorys/layer'
 import type { CrewAxisT } from '@/lib/kosztorys/crew-axis'
 import type { MoneyAxisT } from '@/lib/kosztorys/money-axis'
-import type { MoveEdgesT } from '@/lib/kosztorys/move-edges'
 import type { SortPickT, SortStateT } from '@/lib/kosztorys/row-view'
 import type {
   KosztorysStageT,
@@ -12,6 +11,7 @@ import type {
   StageSplitT,
   ToolPlaneT,
 } from '@/lib/kosztorys/types'
+import type { RowCatalogueEntryT } from '@/lib/kosztorys/work-catalogue/types'
 import type { WorkerRefT } from '@/types/reference-data'
 import type { TranslatorT } from '@/lib/i18n/translations'
 
@@ -49,12 +49,6 @@ export type BuildV2ColumnsOptsT = {
   columnColors?: Record<string, SectionColorKeyT>
   onSetColumnColor?: (id: string, color: SectionColorKeyT | null) => void
   onRemoveItem?: (row: KosztorysV2RowT) => void
-  // Reordering items within a section (Przesuń w górę/dół). Greyed out while a column sort is
-  // active — "up/down" has no meaning against a price-sorted list.
-  onReorderItem?: (row: KosztorysV2RowT, dir: 'up' | 'down') => void
-  // Over the WHOLE rozpiska: the mover works on the document, so a search hiding the row above
-  // must not make ▲ look impossible.
-  moveEdges?: MoveEdgesT
   onInsertItem?: (row: KosztorysV2RowT, dir: 'above' | 'below') => void
   // Renaming the whole section from its (denormalized) name cell. Routes through the same fan-out
   // as the section panel — never a per-row setRowData, which would desync the other rows' copies.
@@ -62,7 +56,6 @@ export type BuildV2ColumnsOptsT = {
   // No column reads them (the caller takes them back out for the band), but they stay gated here so
   // one `editorOnly()` pass decides the whole write surface.
   onRemoveSection?: (sectionId: number) => void
-  onReorderSection?: (sectionId: number, dir: 'up' | 'down') => void
   onInsertSection?: (sectionId: number, dir: 'above' | 'below') => void
   onSetSectionColor?: (sectionId: number, color: SectionColorKeyT | null) => void
   // „Zapisz kolejność": writes the active sort into display_order across every section, so the order
@@ -117,6 +110,17 @@ export type BuildV2ColumnsOptsT = {
   // not see, this one about what a szablon cannot carry. The allowlist, not the stored tick: the
   // map of hidden columns is one per browser, so a tick would leak across every kosztorys.
   workshopVisible?: boolean
+  // rowId → its katalog entry (id + Komentarz do pracy). Absent in preview and without a katalog.
+  catalogueEntryByRowId?: ReadonlyMap<number, RowCatalogueEntryT>
+  // An agent draft is loaded (`hasAiDraft`). Without it AI przedmiar, Status and Powód zmiany are not
+  // assembled at all — neither in the grid nor in the picker.
+  hasAiDraft?: boolean
+  // „Oferta": a transient closed list (OFFER_VISIBLE_COLUMNS), the owner's view of the offer. The
+  // caller pins `view` to 'client' while it is on.
+  offerVisible?: boolean
+  // „Przegląd AI": joins the AI review columns to the „Oferta" list. Outside it the editor reveals
+  // them through `revealedColumnIds`, like any engaged problem.
+  aiColumnsShown?: boolean
   // The worker's document (EX-875): the third closed surface, and the one that discloses a CREW
   // plane — `view` must equal `plane`, never 'client', and `previewVisible` must be off
   // (`assertDisclosurePair`). `hiddenColumns` holds the firm-wide settings' logical keys, which only

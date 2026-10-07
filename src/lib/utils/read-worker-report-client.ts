@@ -1,5 +1,5 @@
 import { postFormData } from '@/lib/utils/post-form-data'
-import { MAX_SCAN_BYTES } from '@/lib/utils/scan-receipt-client'
+import { ROUTE_BODY_MAX_BYTES } from '@/lib/constants/route-body'
 import type { ScanPageT } from '@/lib/kosztorys/worker-report/types'
 
 export async function readWorkerReportClient(
@@ -7,7 +7,7 @@ export async function readWorkerReportClient(
   investmentId: number,
   workerId: number,
 ): Promise<ScanPageT> {
-  if (file.size > MAX_SCAN_BYTES) throw new Error('Zdjęcie jest za duże do odczytu')
+  if (file.size > ROUTE_BODY_MAX_BYTES) throw new Error('Zdjęcie jest za duże do odczytu')
 
   const formData = new FormData()
   formData.set('file', file)

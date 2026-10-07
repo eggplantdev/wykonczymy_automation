@@ -32,6 +32,10 @@ export type RowConditionCtxT = {
   // has nothing to compare against, and „no katalog" must read as „no counter" rather than as
   // „the cennik is empty", which would report every single praca as missing from it.
   catalogueRowIds?: { divergent: ReadonlySet<number>; missing: ReadonlySet<number> }
+  // Whether an agent draft was loaded into this kosztorys (`hasAiDraft`). Optional on the same footing
+  // as `catalogueRowIds`: absent reads as „no AI draft", so the review counters stay silent on every
+  // host that does not review one.
+  hasAiDraft?: boolean
 }
 
 type RowConditionBaseT = {

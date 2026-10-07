@@ -5,7 +5,7 @@ import { useKosztorysEditor } from '@/components/kosztorys/editor/use-kosztorys-
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
 import { baseItem, makeTree } from '@/__tests__/helpers/kosztorys-tree'
 import { stackUndoRedo } from '@/__tests__/helpers/kosztorys-undo-redo'
-import { removeItemAction, swapItemOrderAction } from '@/lib/actions/kosztorys'
+import { removeItemAction } from '@/lib/actions/kosztorys'
 import { toastMessage } from '@/lib/utils/toast'
 
 vi.mock('@/lib/actions/kosztorys', () => ({
@@ -17,8 +17,6 @@ vi.mock('@/lib/actions/kosztorys', () => ({
   removeSectionAction: vi.fn(),
   renumberKosztorysOrderAction: vi.fn(),
   setStageProgressAction: vi.fn(),
-  swapItemOrderAction: vi.fn(),
-  swapSectionOrderAction: vi.fn(),
   updateItemFieldAction: vi.fn(),
   updateSectionFieldAction: vi.fn(),
   updateInvestmentCoeffsAction: vi.fn(),
@@ -67,9 +65,8 @@ const TREE = makeTree({
 })
 
 function renderEditor() {
-  const { stack, api } = stackUndoRedo()
-  const hook = renderHook(() => useKosztorysEditor({ investmentId: 1, tree: TREE, undoRedo: api }))
-  return { ...hook, stack }
+  const { api } = stackUndoRedo()
+  return renderHook(() => useKosztorysEditor({ investmentId: 1, tree: TREE, undoRedo: api }))
 }
 
 const rowIds = (result: { current: ReturnType<typeof useKosztorysEditor> }) =>
@@ -83,25 +80,6 @@ describe('edytor kosztorysu — żądanie, które nie dotarło (EX-940)', () => 
     vi.spyOn(console, 'error').mockImplementation(() => {})
   })
   afterEach(() => vi.restoreAllMocks())
-
-  it('puts a moved pozycja back and leaves nothing to undo', async () => {
-    vi.mocked(swapItemOrderAction).mockImplementation(offline)
-    const { result, stack } = renderEditor()
-    const second = result.current.rows.find((row) => row.id === 2)
-
-    await act(async () => {
-      if (second) grid.opts?.onReorderItem?.(second, 'up')
-    })
-
-    expect(swapItemOrderAction).toHaveBeenCalledWith(2, 'up')
-    expect(rowIds(result)).toEqual([1, 2])
-    expect(stack.undoDepth).toBe(0)
-    expect(toastMessage).toHaveBeenCalledWith(
-      expect.stringMatching(/Brak połączenia z serwerem/),
-      'error',
-      5000,
-    )
-  })
 
   it('brings a removed pozycja back', async () => {
     vi.mocked(removeItemAction).mockImplementation(offline)

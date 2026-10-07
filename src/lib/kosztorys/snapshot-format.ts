@@ -121,6 +121,9 @@ export type StoredSnapshotPayloadT = {
     | 'wToolsOverrideCoeff'
     | 'ownToolsOverrideCoeff'
     | 'descriptionTranslations'
+    | 'aiPlannedQty'
+    | 'changeReason'
+    | 'reviewStatus'
   >[]
   stages: StoredStageT[]
   progress: TolerantT<StageProgressT, 'qtyDone'>[]
@@ -175,5 +178,9 @@ export function itemWithColumnDefaults(
     ownToolsOverrideCoeff: item.ownToolsOverrideCoeff ?? null,
     // NOT NULL DEFAULT '{}': a snapshot older than the translations reads as „no translation".
     descriptionTranslations: toDescriptionTranslations(item.descriptionTranslations),
+    // A snapshot older than EX-1006 had no agent draft to carry.
+    aiPlannedQty: item.aiPlannedQty ?? null,
+    changeReason: item.changeReason ?? null,
+    reviewStatus: item.reviewStatus ?? null,
   }
 }

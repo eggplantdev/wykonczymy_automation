@@ -399,5 +399,8 @@ function extraAsItem(
     wToolsOverrideCoeff: null,
     ownToolsOverrideCoeff: null,
     note: null,
+    aiPlannedQty: null,
+    changeReason: null,
+    reviewStatus: null,
   }
 }

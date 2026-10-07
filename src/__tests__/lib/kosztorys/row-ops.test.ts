@@ -3,8 +3,6 @@ import {
   applyInsertItem,
   applyKosztorysOrder,
   catalogueSlicePlacement,
-  sectionNeighbor,
-  swapItemInSection,
 } from '@/lib/kosztorys/row-ops'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 
@@ -56,31 +54,6 @@ describe('applyKosztorysOrder', () => {
 
   it('is a no-op for a sequence that matches the current order', () => {
     expect(ids(applyKosztorysOrder(rows, [1, 2, 3, 4, 5]))).toEqual([1, 2, 3, 4, 5])
-  })
-})
-
-describe('swapItemInSection', () => {
-  it('exchanges a row with its section neighbour', () => {
-    expect(ids(swapItemInSection(rows, 2, 'up'))).toEqual([2, 1, 3, 4, 5])
-    expect(ids(swapItemInSection(rows, 2, 'down'))).toEqual([1, 3, 2, 4, 5])
-  })
-
-  it('never crosses a section boundary', () => {
-    expect(swapItemInSection(rows, 3, 'down')).toBe(rows)
-    expect(swapItemInSection(rows, 4, 'up')).toBe(rows)
-  })
-
-  // The reorder-undo regression: the undo used to replay the neighbour id captured when the swap was
-  // pushed, while the server exchanges with whatever is rank-adjacent NOW. Insert a row between the
-  // pair and the two disagree until reload. Re-deriving the reversal with the same primitive the
-  // forward gesture uses makes both halves the same operation by construction.
-  it('reverses against the CURRENT neighbour after a row was inserted between the pair', () => {
-    const swapped = swapItemInSection(rows, 1, 'down') // [2,1,3,...]
-    const between = applyInsertItem(swapped, 1, row(9, 1), 'above') // [2,9,1,3,...]
-
-    // Not row 2 — the id the old undo had captured.
-    expect(sectionNeighbor(between, 1, 'up')?.id).toBe(9)
-    expect(ids(swapItemInSection(between, 1, 'up'))).toEqual([2, 1, 9, 3, 4, 5])
   })
 })
 

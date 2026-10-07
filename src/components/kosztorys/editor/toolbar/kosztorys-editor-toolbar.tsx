@@ -31,7 +31,7 @@ export function KosztorysEditorToolbar({
   protocolSource?: AcceptanceProtocolSourceT
   workerReports?: WorkerReportsSeedT
 }) {
-  const { search, setSearch, view, setView, subtotals, readOnly, isTemplate } =
+  const { search, setSearch, view, setView, subtotals, readOnly, isTemplate, offer } =
     useKosztorysEditorContext()
   // Phone only — both groups below are `sm:contents`, so from 768 up this flag stops mattering.
   const [toolsOpen, setToolsOpen] = useState(false)
@@ -45,7 +45,8 @@ export function KosztorysEditorToolbar({
           {/* The workbench has a closed column list, so both crews' stawki are already on screen and
               this switch would move no column — while still moving the „Cena j.m." sort key and the
               filter list. Its plane is pinned instead (useKosztorysViewState). */}
-          {!isTemplate && (
+          {/* „Oferta" pins the client plane, so the switch would move nothing while it is on. */}
+          {!isTemplate && !offer && (
             <ToolbarToggle
               legend={VIEW_LEGEND}
               options={VIEWS}

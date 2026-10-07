@@ -31,14 +31,11 @@ import {
 import { workCatalogueItemSchema } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
 import {
   insertDirectionSchema,
-  moveOrderSchema,
-  moveRowOneStep,
   renumberDisplayOrder,
   renumberDisplayOrderSchema,
   resolveInsertSlot,
   shiftDisplayOrderFrom,
   type InsertDirectionT,
-  type MoveDirectionT,
 } from '@/lib/kosztorys/display-order'
 import { normalizeOverridePatch } from '@/lib/kosztorys/override-patch'
 import { applyPercentDiscountSchema } from '@/lib/kosztorys/percent-discount'
@@ -420,38 +417,6 @@ export async function insertSectionAction(
   )
 }
 
-// ⋯ → Przesuń sekcję w górę/dół. The neighbour is resolved inside the transaction that writes the
-// swap, so the client never has to carry a copy of anybody's display_order.
-export async function swapSectionOrderAction(
-  sectionId: number,
-  dir: MoveDirectionT,
-): Promise<ActionResultT> {
-  return investmentAction(
-    'swapSectionOrderAction',
-    { kind: 'section', id: sectionId },
-    async ({ payload }) => {
-      const parsed = validateAction(moveOrderSchema, { rowId: sectionId, dir })
-      if (!parsed.success) return parsed
-      await withPayloadTransaction(
-        payload,
-        async (req) => {
-          // An edge row writes nothing and still succeeds — the UI disables the arrow, and a race
-          // that removed the neighbour meanwhile is not an error.
-          await moveRowOneStep(
-            await getDb(payload, req),
-            'kosztorys-sections',
-            parsed.data.rowId,
-            parsed.data.dir,
-          )
-        },
-        { skipRevalidation: true },
-      )
-      return { success: true }
-    },
-    ['kosztorysSections'],
-  )
-}
-
 const newItemPlacementSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('end'), sectionId: z.number().int() }),
   z.object({
@@ -468,7 +433,11 @@ const addItemSchema = z.object({
   // negative cena or both columns of one płaszczyzna set.
   data: workCatalogueItemSchema,
   catalogue: z
-    .object({ mode: z.enum(['new', 'overwrite']), keepCatalogueCategory: z.boolean() })
+    .object({
+      mode: z.enum(['new', 'overwrite']),
+      keepCatalogueCategory: z.boolean(),
+      workNote: z.string().optional(),
+    })
     .nullable(),
   // „Tłumacz automatycznie przy pomocy AI" — off unless the dialog asks, so no other caller pays an AI wait.
   translate: z.boolean().optional(),
@@ -551,6 +520,7 @@ export async function addItemAction(
               candidate: row,
               existing: resolved.existing,
               keepCatalogueCategory: catalogue.keepCatalogueCategory,
+              workNote: catalogue.workNote,
             }
           }
 
@@ -590,35 +560,6 @@ export async function removeItemAction(itemId: number) {
       // by in-session undo (S-07), so capture a snapshot first, every time.
       await captureAutoSnapshot(db, investmentId, user.id)
       await payload.delete({ collection: 'kosztorys-items', id: itemId })
-      return { success: true }
-    },
-    ['kosztorysItems'],
-  )
-}
-
-// ▲▼ move within a section — the item twin of swapSectionOrderAction, neighbour and all.
-export async function swapItemOrderAction(
-  itemId: number,
-  dir: MoveDirectionT,
-): Promise<ActionResultT> {
-  return investmentAction(
-    'swapItemOrderAction',
-    { kind: 'item', id: itemId },
-    async ({ payload }) => {
-      const parsed = validateAction(moveOrderSchema, { rowId: itemId, dir })
-      if (!parsed.success) return parsed
-      await withPayloadTransaction(
-        payload,
-        async (req) => {
-          await moveRowOneStep(
-            await getDb(payload, req),
-            'kosztorys-items',
-            parsed.data.rowId,
-            parsed.data.dir,
-          )
-        },
-        { skipRevalidation: true },
-      )
       return { success: true }
     },
     ['kosztorysItems'],

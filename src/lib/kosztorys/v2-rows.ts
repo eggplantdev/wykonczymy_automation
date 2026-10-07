@@ -16,6 +16,8 @@ const ITEM_FIELDS = [
   'wToolsOverrideCoeff',
   'ownToolsOverrideCoeff',
   'note',
+  'changeReason',
+  'reviewStatus',
 ] as const satisfies readonly (keyof ItemPatchT)[]
 
 export function treeToRows(tree: KosztorysTreeT): KosztorysV2RowT[] {

@@ -36,6 +36,13 @@ export const WorkCatalogueItems: CollectionConfig = {
       defaultValue: {},
     },
     {
+      // House knowledge about this praca, kept beside its cennik row so every kosztorys and szablon
+      // using the praca reads the same text. Never reaches the client.
+      name: 'workNote',
+      type: 'textarea',
+      label: { en: 'Work note', pl: 'Komentarz do pracy' },
+    },
+    {
       name: 'category',
       type: 'text',
       label: { en: 'Category', pl: 'Kategoria' },

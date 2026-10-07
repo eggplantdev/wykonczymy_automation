@@ -1,7 +1,9 @@
+import { AI_REVIEW_COLUMN_IDS } from '@/lib/kosztorys/ai-review-columns'
 import { priceSourceOf, subcontractorPrice } from '@/lib/kosztorys/calc'
 import { planeDashSuffix, planeViewSuffix } from '@/lib/kosztorys/format'
 import { ALL_PLANE_PRICE_KEYS, planePriceKeysFor } from '@/lib/kosztorys/plane-price-keys'
 import type { RowConditionCtxT, RowConditionT } from '@/lib/kosztorys/row-conditions/types'
+import { aiOffered, effectiveReviewStatus } from '@/lib/kosztorys/review-status'
 import { measureDiscrepancy, rowTotalQtyDone } from '@/lib/kosztorys/settlement-rows'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import {
@@ -474,6 +476,28 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     // The przedmiar alone: it is the missing cell, and it is where the fix is typed.
     revealsColumns: ['plannedQty'],
     matches: (row, ctx) => !(row.plannedQty > 0) && qtyDone(row, ctx) > 0,
+  },
+  // The AI draft review. „Do sprawdzenia" = the agent offered work nobody has judged yet; „bez powodu"
+  // = the manager overruled the draft without saying why, which is the knowledge the loop exists for.
+  {
+    id: 'ai-to-review',
+    label: 'do sprawdzenia (szkic AI)',
+    kind: 'diagnostic',
+    problemGroup: 'ai-review',
+    revealsColumns: AI_REVIEW_COLUMN_IDS,
+    matches: (row, ctx) => (ctx.hasAiDraft ?? false) && aiOffered(row) && !row.reviewStatus,
+  },
+  {
+    id: 'ai-without-reason',
+    label: 'zmienione bez powodu',
+    kind: 'diagnostic',
+    problemGroup: 'ai-review',
+    revealsColumns: AI_REVIEW_COLUMN_IDS,
+    matches: (row, ctx) => {
+      if (!ctx.hasAiDraft) return false
+      const status = effectiveReviewStatus(row)
+      return status !== null && status !== 'accepted' && !(row.changeReason ?? '').trim()
+    },
   },
   // One entry per plane rather than one asking about the active view: a price exists on both planes for
   // every row, so a problem on the plane you are not looking at is still a problem, and one entry

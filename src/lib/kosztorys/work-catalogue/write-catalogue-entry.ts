@@ -57,6 +57,9 @@ export async function resolveCatalogueWrite(
 //
 // `keepCatalogueCategory` protects the cennik: the candidate's kategoria comes from one kosztorys'
 // sekcja, local context, while the katalog owns its own.
+//
+// A blank `workNote` leaves the entry's own alone: an overwrite re-prices the praca, it does not
+// erase what someone wrote about it. Clearing a comment is the edit form's job, not this writer's.
 export async function applyCatalogueWrite(
   payload: Payload,
   req: PayloadRequest | undefined,
@@ -64,14 +67,21 @@ export async function applyCatalogueWrite(
     candidate,
     existing,
     keepCatalogueCategory,
+    workNote,
   }: {
     candidate: CatalogueCandidateT
     existing: WorkCatalogueItemT | null
     keepCatalogueCategory: boolean
+    workNote?: string
   },
 ): Promise<void> {
+  const note = workNote?.trim() ? { workNote: workNote.trim() } : {}
   if (!existing) {
-    await payload.create({ collection: 'work-catalogue-items', data: candidate, req })
+    await payload.create({
+      collection: 'work-catalogue-items',
+      data: { ...candidate, ...note },
+      req,
+    })
     return
   }
   await payload.update({
@@ -80,6 +90,7 @@ export async function applyCatalogueWrite(
     data: {
       ...candidate,
       ...(keepCatalogueCategory && { category: existing.category }),
+      ...note,
       descriptionTranslations: mergeTranslations(
         existing.descriptionTranslations,
         candidate.descriptionTranslations,

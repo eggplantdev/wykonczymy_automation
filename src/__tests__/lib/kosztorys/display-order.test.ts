@@ -11,9 +11,6 @@ import { appendAt, insertNextTo } from '@/__tests__/helpers/new-item-input'
 // assertions here:
 //   DO1 — insert-at opens the slot: the tail shifts down one and the new row lands AT the index,
 //         leaving a gap-free, collision-free sequence.
-//   DO2 — the ▲▼ swap exchanges exactly two rows and leaves every display_order distinct (there is
-//         no unique constraint, so a half-applied swap would silently collide).
-//   DO3 — a swap burst racing an insert over the same rows never aborts a transaction.
 //   DO4 — a new section is created bare: no pozycja is seeded into it.
 //
 // Same mock surface as the sibling action specs: requireAuth needs a request/cookie we lack in node,
@@ -35,8 +32,6 @@ const {
   removeItemAction,
   removeSectionAction,
   renumberKosztorysOrderAction,
-  swapItemOrderAction,
-  swapSectionOrderAction,
 } = await import('@/lib/actions/kosztorys')
 
 // Gated like the sibling specs: skips with no DB env, FAILS if env is set but the DB is unreachable.
@@ -207,150 +202,6 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
         before[2],
       ])
     })
-  })
-
-  describe('a new section is created bare (DO4)', () => {
-    it('adding or inserting a section creates no pozycja', async () => {
-      const investmentId = await freshInvestment()
-      const added = await addSectionAction(investmentId)
-      expect(added.success).toBe(true)
-      if (!added.success) return
-      const inserted = await insertSectionAction(added.data.section.id, 'below')
-      expect(inserted.success).toBe(true)
-      if (!inserted.success) return
-
-      expect(await itemOrders(added.data.section.id)).toEqual([])
-      expect(await itemOrders(inserted.data.section.id)).toEqual([])
-    })
-  })
-
-  describe('swap exchanges exactly two rows (DO2)', () => {
-    it('swapping two items leaves every display_order distinct', async () => {
-      const investmentId = await freshInvestment()
-      const section = await addSectionAction(investmentId)
-      expect(section.success).toBe(true)
-      if (!section.success) return
-      const sectionId = section.data.section.id
-      await addItemAction(appendAt(sectionId))
-      const second = await addItemAction(appendAt(sectionId))
-      const third = await addItemAction(appendAt(sectionId))
-      expect([second.success, third.success]).toEqual([true, true])
-      if (!second.success || !third.success) return
-
-      const swapped = await swapItemOrderAction(second.data.item.id, 'down')
-      expect(swapped.success).toBe(true)
-
-      expect(await itemOrderById(second.data.item.id)).toBe(2)
-      expect(await itemOrderById(third.data.item.id)).toBe(1)
-      const orders = await itemOrders(sectionId)
-      expect(new Set(orders).size).toBe(orders.length)
-    })
-
-    // The item twin of the section case: „w górę" is the greatest order strictly below, not
-    // `display_order − 1`, so a delete's gap must not strand the row.
-    it('resolves an item neighbour across a gap left by a delete', async () => {
-      const investmentId = await freshInvestment()
-      const section = await addSectionAction(investmentId)
-      expect(section.success).toBe(true)
-      if (!section.success) return
-      const sectionId = section.data.section.id
-      await addItemAction(appendAt(sectionId))
-      const middle = await addItemAction(appendAt(sectionId))
-      const last = await addItemAction(appendAt(sectionId))
-      expect([middle.success, last.success]).toEqual([true, true])
-      if (!middle.success || !last.success) return
-      const [first] = await itemIdsInOrder(sectionId)
-
-      await removeItemAction(middle.data.item.id)
-      expect(await itemOrders(sectionId)).toEqual([0, 2])
-
-      const swapped = await swapItemOrderAction(last.data.item.id, 'up')
-      expect(swapped.success).toBe(true)
-
-      expect(await itemIdsInOrder(sectionId)).toEqual([last.data.item.id, first])
-    })
-
-    it('is a successful no-op at either end of a section', async () => {
-      const investmentId = await freshInvestment()
-      const section = await addSectionAction(investmentId)
-      expect(section.success).toBe(true)
-      if (!section.success) return
-      const sectionId = section.data.section.id
-      await addItemAction(appendAt(sectionId))
-      const second = await addItemAction(appendAt(sectionId))
-      expect(second.success).toBe(true)
-      if (!second.success) return
-      const before = await itemIdsInOrder(sectionId)
-
-      const up = await swapItemOrderAction(before[0], 'up')
-      const down = await swapItemOrderAction(before[1], 'down')
-      expect([up.success, down.success]).toEqual([true, true])
-
-      expect(await itemIdsInOrder(sectionId)).toEqual(before)
-    })
-
-    // A section's LAST item is not the sheet's last row — resolving the neighbour without scoping to
-    // the owner would hand it a row from the next section and move a pozycja across sections.
-    it('never crosses into a neighbouring section', async () => {
-      const investmentId = await freshInvestment()
-      const first = await addSectionAction(investmentId)
-      const second = await addSectionAction(investmentId)
-      expect([first.success, second.success]).toEqual([true, true])
-      if (!first.success || !second.success) return
-      await addItemAction(appendAt(first.data.section.id))
-      await addItemAction(appendAt(second.data.section.id))
-      const [firstSectionItem] = await itemIdsInOrder(first.data.section.id)
-      const secondSectionBefore = await itemIdsInOrder(second.data.section.id)
-
-      const swapped = await swapItemOrderAction(firstSectionItem, 'down')
-      expect(swapped.success).toBe(true)
-
-      expect(await itemIdsInOrder(first.data.section.id)).toEqual([firstSectionItem])
-      expect(await itemIdsInOrder(second.data.section.id)).toEqual(secondSectionBefore)
-    })
-
-    it('swapping two sections leaves every display_order distinct', async () => {
-      const investmentId = await freshInvestment()
-      const [top, bottom] = await sectionsInDisplayOrder(investmentId, 2)
-
-      const swapped = await swapSectionOrderAction(top, 'down')
-      expect(swapped.success).toBe(true)
-
-      expect(await sectionOrderById(top)).toBe(1)
-      expect(await sectionOrderById(bottom)).toBe(0)
-      const orders = await sectionOrders(investmentId)
-      expect(new Set(orders).size).toBe(orders.length)
-    })
-
-    // The client sends a direction, so the neighbour is whatever the DB currently says it is —
-    // including after a gap-leaving delete, where „w górę" is NOT `display_order − 1`.
-    it('resolves the neighbour across a gap left by a delete', async () => {
-      const investmentId = await freshInvestment()
-      const [top, middle, bottom] = await sectionsInDisplayOrder(investmentId, 3)
-
-      await removeSectionAction(middle)
-      expect(await sectionOrders(investmentId)).toEqual([0, 2])
-
-      const swapped = await swapSectionOrderAction(bottom, 'up')
-      expect(swapped.success).toBe(true)
-
-      expect(await sectionOrderById(bottom)).toBe(0)
-      expect(await sectionOrderById(top)).toBe(2)
-    })
-
-    // Moving the top section up is not an error — the arrow is disabled in the UI, and a race that
-    // removed the neighbour meanwhile must not surface as a failed write.
-    it('is a successful no-op at either edge', async () => {
-      const investmentId = await freshInvestment()
-      const [top, bottom] = await sectionsInDisplayOrder(investmentId, 2)
-
-      const up = await swapSectionOrderAction(top, 'up')
-      const down = await swapSectionOrderAction(bottom, 'down')
-      expect([up.success, down.success]).toEqual([true, true])
-
-      expect(await sectionOrderById(top)).toBe(0)
-      expect(await sectionOrderById(bottom)).toBe(1)
-    })
 
     it('refuses an insert against a section that no longer exists', async () => {
       const investmentId = await freshInvestment()
@@ -366,42 +217,18 @@ describe.skipIf(!ENV_READY)('kosztorys display_order mechanics (DB)', () => {
     })
   })
 
-  // ▲▼ fires WITHOUT await (use-kosztorys-editor.ts), so a user reordering and inserting in quick
-  // succession has both in flight over the same section. The swap and the insert's tail shift touch
-  // an overlapping row set; if they acquire those row locks in different orders, Postgres aborts one
-  // with 40P01 — and because ▲▼ is void-called with no error handling, the loser fails SILENTLY and
-  // the grid keeps an order the DB never stored.
-  describe('concurrent reorder + insert do not deadlock (DO3)', () => {
-    it('a burst of swaps racing an insert on one section all succeed', async () => {
+  describe('a new section is created bare (DO4)', () => {
+    it('adding or inserting a section creates no pozycja', async () => {
       const investmentId = await freshInvestment()
-      const section = await addSectionAction(investmentId)
-      expect(section.success).toBe(true)
-      if (!section.success) return
-      const sectionId = section.data.section.id
-      await addItemAction(appendAt(sectionId))
+      const added = await addSectionAction(investmentId)
+      expect(added.success).toBe(true)
+      if (!added.success) return
+      const inserted = await insertSectionAction(added.data.section.id, 'below')
+      expect(inserted.success).toBe(true)
+      if (!inserted.success) return
 
-      // Ids ascending but display_order descending after the swaps below — the shift's scan order
-      // and the swap's id order then disagree, which is the arrangement that deadlocks.
-      const created = [
-        await addItemAction(appendAt(sectionId)),
-        await addItemAction(appendAt(sectionId)),
-      ]
-      expect(created.map((r) => r.success)).toEqual([true, true])
-      const [a, b] = created
-      if (!a.success || !b.success) return
-
-      // Each round swaps the pair back and forth while an insert shifts the same rows' tail. Only
-      // SUCCESS is asserted: which rows end up where is legitimately racy under this interleaving
-      // (an insert can land between a swap's neighbour read and its write), so distinctness is not a
-      // property it guarantees. A deadlock is — it aborts a transaction outright.
-      const racing = Array.from({ length: 12 }, (_, index) => index).flatMap((round) => [
-        swapItemOrderAction(a.data.item.id, round % 2 === 0 ? 'down' : 'up'),
-        addItemAction(insertNextTo(b.data.item.id, 'above')),
-      ])
-      const results = await Promise.all(racing)
-
-      // A deadlock surfaces as a failed result, not a rejection — protectedAction catches it.
-      expect(results.filter((r) => !r.success)).toEqual([])
+      expect(await itemOrders(added.data.section.id)).toEqual([])
+      expect(await itemOrders(inserted.data.section.id)).toEqual([])
     })
   })
 

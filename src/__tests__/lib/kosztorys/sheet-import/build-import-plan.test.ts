@@ -45,6 +45,9 @@ function currentTree(overrides: Partial<SnapshotPayloadT> = {}): SnapshotPayload
         wToolsOverrideCoeff: null,
         ownToolsOverrideCoeff: null,
         note: 'ustalone z klientem',
+        aiPlannedQty: null,
+        changeReason: null,
+        reviewStatus: null,
       },
     ],
     stages: Array.from({ length: 6 }, (_, index) => ({
@@ -313,6 +316,26 @@ describe('buildImportPlan', () => {
     expect(item.note).toBe('ustalone z klientem')
     // Everything the sheet DOES carry still comes from the sheet.
     expect(item).toMatchObject({ plannedQty: 2, clientPrice: 120 })
+  })
+
+  it('keeps a matched praca’s AI review, and gives a new one none', () => {
+    const current = currentTree()
+    current.items[0] = {
+      ...current.items[0],
+      aiPlannedQty: 3,
+      changeReason: 'AI policzyło za mało',
+      reviewStatus: 'edited',
+    }
+    const { items } = plan(source(), current).tree
+
+    expect(items.find((row) => row.description === 'montaż jednostki wewnętrznej')).toMatchObject({
+      aiPlannedQty: 3,
+      changeReason: 'AI policzyło za mało',
+      reviewStatus: 'edited',
+    })
+    for (const row of items.filter((r) => r.description !== 'montaż jednostki wewnętrznej')) {
+      expect(row).toMatchObject({ aiPlannedQty: null, changeReason: null, reviewStatus: null })
+    }
   })
 
   it('carries a matched praca’s number and leaves an unmatched one to draw a fresh one', () => {

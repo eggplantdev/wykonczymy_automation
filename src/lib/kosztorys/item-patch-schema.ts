@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { descriptionTranslationsSchema } from '@/lib/i18n/description-translations'
+import { REVIEW_STATUSES } from '@/lib/kosztorys/review-status'
 
 /**
  * Wire shape of a single-cell autosave — every field optional, because the grid diffs a row into one
@@ -30,5 +31,7 @@ export const itemPatchSchema = z
     wToolsOverrideCoeff: z.coerce.number().nullable(),
     ownToolsOverrideCoeff: z.coerce.number().nullable(),
     note: z.string().nullable(),
+    changeReason: z.string().nullable(),
+    reviewStatus: z.enum(REVIEW_STATUSES).nullable(),
   })
   .partial()

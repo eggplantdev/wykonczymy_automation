@@ -21,6 +21,7 @@ import type {
   CatalogueHintT,
   CatalogueMissingT,
   CataloguePriceDiffT,
+  RowCatalogueEntryT,
   SeedConflictFieldT,
   WorkCatalogueItemT,
 } from '@/lib/kosztorys/work-catalogue/types'
@@ -172,6 +173,7 @@ export function buildCatalogueComparison(
   }
   const diffs: CataloguePriceDiffT[] = []
   const missing: CatalogueMissingT[] = []
+  const entryByItemId = new Map<number, RowCatalogueEntryT>()
   let matching = 0
 
   for (const item of items) {
@@ -192,6 +194,8 @@ export function buildCatalogueComparison(
       })
       continue
     }
+    // `?? null`: a katalog cached before the column existed has no `workNote` key at all.
+    entryByItemId.set(item.id, { id: entry.id, note: entry.workNote ?? null })
 
     const pricing = asPricing(item, settings)
     const figures = [
@@ -222,7 +226,7 @@ export function buildCatalogueComparison(
 
   diffs.sort((left, right) => right.maxDelta - left.maxDelta)
 
-  return { matching, diffs, missing }
+  return { matching, diffs, missing, entryByItemId }
 }
 
 /**

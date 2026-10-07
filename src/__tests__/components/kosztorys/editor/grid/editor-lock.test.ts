@@ -20,7 +20,6 @@ const editorOpts: BuildV2ColumnsOptsT = {
   view: 'client',
   stages: STAGES,
   onRemoveItem: () => {},
-  onReorderItem: () => {},
 }
 
 const ids = (opts: Partial<BuildV2ColumnsOptsT>): string[] =>

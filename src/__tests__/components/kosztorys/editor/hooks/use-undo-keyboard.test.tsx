@@ -34,6 +34,35 @@ describe('useUndoKeyboard', () => {
     expect(undo).not.toHaveBeenCalled()
   })
 
+  // Cmd+Z unclaimed by anyone is the browser's own undo, which replays the last grid cell edit behind
+  // the modal and saves it.
+  it('keeps the browser from undoing a field behind an open dialog when focus is on the page body', () => {
+    renderHook(() => useUndoKeyboard(vi.fn(), vi.fn()))
+    document.body.insertAdjacentHTML(
+      'beforeend',
+      '<div data-slot="dialog-content" data-state="open"></div>',
+    )
+    document.body.focus()
+
+    const notPrevented = fireEvent.keyDown(window, { key: 'z', metaKey: true })
+
+    expect(notPrevented).toBe(false)
+  })
+
+  it('leaves native undo to a text field inside the open dialog', () => {
+    renderHook(() => useUndoKeyboard(vi.fn(), vi.fn()))
+    document.body.insertAdjacentHTML(
+      'beforeend',
+      '<div data-slot="dialog-content" data-state="open"><textarea></textarea></div>',
+    )
+    const field = document.querySelector('textarea') as HTMLTextAreaElement
+    field.focus()
+
+    const notPrevented = fireEvent.keyDown(field, { key: 'z', metaKey: true })
+
+    expect(notPrevented).toBe(true)
+  })
+
   it('still undoes the grid while a popover is open', () => {
     const undo = vi.fn()
     renderHook(() => useUndoKeyboard(undo, vi.fn()))

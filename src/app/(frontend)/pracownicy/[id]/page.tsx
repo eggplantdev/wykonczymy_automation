@@ -24,9 +24,13 @@ import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { HeldEquipmentSection } from '@/components/equipment/held-equipment-section'
 import { OwnedRegistersSection } from '@/components/users/owned-registers-section'
 import { WorkerInvestmentsSection } from '@/components/users/worker-investments-section'
+import { WorkerQuickActions } from '@/components/users/worker-quick-actions'
 import { WorkerExpenseDraftsSection } from '@/components/worker-expenses/worker-expense-drafts-section'
 import { WorkerReportsSection } from '@/components/worker-reports/worker-reports-section'
 import { visibleWorkerRegisters } from '@/lib/workers/owned-registers'
+import { isActiveRef } from '@/lib/utils/is-active-ref'
+import { FRONTEND_URL } from '@/lib/env'
+import { workerReportShareUrl } from '@/lib/kosztorys/worker-view/worker-links'
 import { EditWorkerDialog } from '@/components/dialogs/edit-worker-dialog'
 import { AccountCredentialsDialog } from '@/components/dialogs/account-credentials-dialog'
 import { PageWrapper } from '@/components/ui/page-wrapper'
@@ -90,6 +94,15 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
 
   const registers = visibleWorkerRegisters(refData.cashRegisters, userId, currentUser.role)
   const registerIds = registers.map((register) => register.id)
+  // The server refuses an inactive kasa, so offering one only leads to a refusal.
+  const sendableRegisters = registers.filter(isActiveRef)
+  // The link reports as the worker, whoever opens it — so only he is given it.
+  const investmentLinks = stageInvestments.map(({ investmentId, name, token }) => ({
+    investmentId,
+    name,
+    reportUrl:
+      isOwnPage && token ? workerReportShareUrl(FRONTEND_URL, name, worker.name, token) : undefined,
+  }))
   const transferWhere = workerPageTransferWhere(sp, currentUser.id, userId, registerIds)
   const transferInvestments = refData.investments.filter(({ id }) =>
     facets.investmentIds.includes(id),
@@ -98,9 +111,9 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
 
   const { t } = createTranslator(locale, 'workerPage')
   const infoFields = [
-    { label: t('role'), value: t(ROLE_KEYS[role]) },
+    ...(isManager ? [{ label: t('role'), value: t(ROLE_KEYS[role]) }] : []),
     { label: t('email'), value: worker.email },
-    { label: t('status'), value: t(worker.active ? 'active' : 'inactive') },
+    ...(isManager ? [{ label: t('status'), value: t(worker.active ? 'active' : 'inactive') }] : []),
     {
       label: t('defaultLanguage'),
       value: isOwnPage ? (
@@ -121,6 +134,14 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
         </div>
       )}
       <InfoList items={infoFields} />
+      {isOwnPage && (
+        <WorkerQuickActions
+          investmentLinks={investmentLinks}
+          sendableRegisters={sendableRegisters}
+          defaultRegisterId={worker.defaultCashRegisterId}
+          locale={locale}
+        />
+      )}
       <OwnedRegistersSection
         registers={registers}
         balances={balances}
@@ -129,8 +150,7 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
       />
       <HeldEquipmentSection equipment={heldEquipment} linkable={isManager} locale={locale} />
       <WorkerInvestmentsSection
-        investments={stageInvestments}
-        workerName={worker.name}
+        investments={investmentLinks}
         canReport={isOwnPage}
         locale={locale}
       />
@@ -139,38 +159,40 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
         investments={stageInvestments}
         canSend={isOwnPage}
         canOpenTransfers={isManager}
-        registers={registers}
-        defaultRegisterId={worker.defaultCashRegisterId}
+        sendableRegisters={sendableRegisters}
         locale={locale}
       />
       <WorkerReportsSection reports={workReports} canOpenInKosztorys={isManager} locale={locale} />
-      <CollapsibleSection
-        title={t('transfers')}
-        storageKey="worker:transfers"
-        defaultOpen={false}
-        withSeparator={false}
-      >
-        <TransfersSection
-          config={{
-            query: { where: transferWhere, page, limit, sort },
-            baseUrl: `/pracownicy/${id}`,
-            excludeColumns: isManager
-              ? ['worker']
-              : ['worker', 'actions', 'vatPlane', 'paymentMethod', 'createdAt'],
-            filters: {
-              cashRegisters: offeredIfChoice(toOptions(registers)),
-              investments: offeredIfChoice(toOptions(transferInvestments)),
-              transferTypes: offeredIfChoice(transferTypes),
-              otherCategories: toOptions(refData.otherCategories),
-              showCancelledFilter: false,
-              showSearchFilters: false,
-            },
-            invoiceDownload: isManager,
-            print: isManager,
-            cancelledTransactionAudit: sp.cancelledTransactionAudit === '1',
-          }}
-        />
-      </CollapsibleSection>
+      {/* Facets read the unfiltered scope, so a filter matching nothing keeps the section — and its filters — on screen. */}
+      {facets.types.length > 0 && (
+        <CollapsibleSection
+          title={t('transfers')}
+          storageKey="worker:transfers"
+          defaultOpen={false}
+          withSeparator={false}
+        >
+          <TransfersSection
+            config={{
+              query: { where: transferWhere, page, limit, sort },
+              baseUrl: `/pracownicy/${id}`,
+              excludeColumns: isManager
+                ? ['worker']
+                : ['worker', 'actions', 'vatPlane', 'paymentMethod', 'createdAt'],
+              filters: {
+                cashRegisters: offeredIfChoice(toOptions(registers)),
+                investments: offeredIfChoice(toOptions(transferInvestments)),
+                transferTypes: offeredIfChoice(transferTypes),
+                otherCategories: toOptions(refData.otherCategories),
+                showCancelledFilter: false,
+                showSearchFilters: false,
+              },
+              invoiceDownload: isManager,
+              print: isManager,
+              cancelledTransactionAudit: sp.cancelledTransactionAudit === '1',
+            }}
+          />
+        </CollapsibleSection>
+      )}
     </PageWrapper>
   )
 }

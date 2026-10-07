@@ -1,12 +1,12 @@
 ---
 change_id: kosztorys-ai-knowledge-loop
 title: Capture house knowledge for the kosztorys agent — katalog notes, AI przedmiar review, filters
-status: preparing
+status: implemented
 created: 2026-10-06
-updated: 2026-10-06
+updated: 2026-10-07
 archived_at: null
-branch: null
-worktree: null
+branch: kosztorys-ai-knowledge-loop
+worktree: ../wykonczymy-worktrees/kosztorys-ai-knowledge-loop
 ---
 
 ## Notes
@@ -86,7 +86,30 @@ Design agreed 2026-10-06 — still brainstorming; a spike validates it before `/
 - „Przegląd AI" = „Oferta" + AI przedmiar, Status, Powód zmiany, Notatka do pracy, Komentarz (the
   agent's source for the quantity).
 
-**Spike (2026-10-06) — built, not yet tried in the browser**
+**Spike results (owner, 2026-10-07, in the browser)**
+
+- Auto-status on a typed Przedmiar: confirmed — „Edytowana” / „Dodana” set themselves; the select is
+  for accept / reject.
+- The note is edited by **clicking its cell**, which opens the dialog. An entry in the row's „Akcje”
+  menu was rejected. The cell is not greyed when it can be edited.
+- „Przegląd AI” as a fixed view works.
+- The note column sits with the other AI columns (AI przedmiar, Status, Powód zmiany), not beside
+  Komentarz.
+- Column names carry a short description, no header tooltips: „AI przedmiar (na ile AI wyceniło
+  pracę)”, „Powód zmiany (co AI zrobiło źle)”, „Komentarz do pracy (wiedza firmowa — niewidoczna dla
+  klienta)”.
+- **Final name: „Komentarz do pracy”** — company knowledge, never shown to the client. It replaces
+  „Notatka do pracy” everywhere (column, dialog, /katalog-prac). Whether the crew sees it is open:
+  EX-1011.
+- „Nowa praca” dialog: „Dodaj pracę do katalogu prac” is **ticked by default**, and while it is ticked a
+  „Komentarz do pracy” field sits right under „Opis pracy”; it is written to the katalog entry in the same
+  save. A blank field never erases an existing comment on „Nadpisz w katalogu”. On „Tylko do kosztorysu”
+  the typed comment is dropped (the katalog stays untouched).
+- AI style = the app's `ai` button accent in cyan only (no fuchsia): cyan cell lines, a light cyan
+  background and cyan header text on the AI columns; the „Przegląd AI” toggle is a `variant="ai"`
+  button.
+
+**Spike (2026-10-06) — built**
 
 - Branch `spike/kosztorys-ai-knowledge-loop`, worktree `../wykonczymy-worktrees/kosztorys-ai-knowledge-loop`.
   Not pushed, not merged; throwaway — the real change goes through `/10x-plan`.

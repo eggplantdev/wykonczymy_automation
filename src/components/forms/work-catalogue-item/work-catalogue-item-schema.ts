@@ -72,6 +72,8 @@ export const workCatalogueItemBaseSchema = z.object({
   // One text per language, blank = untranslated. The catch lets a draft persisted before the field
   // existed still submit, instead of failing on a field nobody can see.
   translations: z.record(z.enum(TRANSLATION_LANGUAGES), z.string()).catch(translationTexts({})),
+  // Same catch, same reason: a draft saved before the field existed.
+  workNote: z.string().catch(''),
 })
 
 export type RatePlaneValuesT = Pick<
@@ -155,6 +157,7 @@ export const EMPTY_CATALOGUE_ITEM_VALUES: WorkCatalogueItemFormValuesT = {
   ownToolsRate: '',
   ownToolsCoeff: '',
   translations: translationTexts({}),
+  workNote: '',
 }
 
 const money = (label: string) =>
@@ -185,6 +188,9 @@ export const workCatalogueItemSchema = workCatalogueItemBaseSchema
     // to the stored row — or, for a new entry, to the seed it was opened with (the praca's map).
     translationEdits: translationTextsSchema.optional(),
     translationSeed: descriptionTranslationsSchema.optional(),
+    // Optional: absent leaves the stored comment alone, which is what every caller that never
+    // rendered the field means.
+    workNote: z.string().optional(),
     clientPrice: money('Cena j.m.'),
     // A blank field is NOT „auto" — the form layer above still refuses it.
     wToolsRate: money(RATE_LABELS.w_tools).nullable(),

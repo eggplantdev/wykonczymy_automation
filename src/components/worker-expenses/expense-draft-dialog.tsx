@@ -25,6 +25,7 @@ import {
   updateExpenseDraftAction,
 } from '@/lib/actions/worker-expense-drafts'
 import { submitWithUploads } from '@/lib/media/submit-with-uploads'
+import { uploadMediaBySize } from '@/lib/media/upload-media'
 import { toastMessage } from '@/lib/utils/toast'
 import { useTranslation } from '@/hooks/use-translation'
 import { failureMessage } from '@/lib/i18n/failure-message'
@@ -34,11 +35,14 @@ import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 import type { CashRegisterRefT } from '@/types/reference-data'
 
+type InvestmentOptionT = Pick<WorkerStageInvestmentT, 'investmentId' | 'name'>
+
 type PropsT = {
-  investments: WorkerStageInvestmentT[]
+  investments: InvestmentOptionT[]
   registers: CashRegisterRefT[]
   defaultRegisterId?: number
   draft?: ExpenseDraftRowT
+  triggerClassName?: string
 }
 
 function initialRegisterId(registers: CashRegisterRefT[], defaultRegisterId?: number) {
@@ -48,11 +52,17 @@ function initialRegisterId(registers: CashRegisterRefT[], defaultRegisterId?: nu
     : ''
 }
 
-function initialInvestmentId(investments: WorkerStageInvestmentT[]) {
+function initialInvestmentId(investments: InvestmentOptionT[]) {
   return investments.length === 1 ? String(investments[0]?.investmentId) : ''
 }
 
-export function ExpenseDraftDialog({ investments, registers, defaultRegisterId, draft }: PropsT) {
+export function ExpenseDraftDialog({
+  investments,
+  registers,
+  defaultRegisterId,
+  draft,
+  triggerClassName,
+}: PropsT) {
   const router = useRouter()
   const { locale, t } = useTranslation('expenseDrafts')
   const [open, setOpen] = useState(false)
@@ -114,6 +124,7 @@ export function ExpenseDraftDialog({ investments, registers, defaultRegisterId, 
       files,
       (mediaIds) => sendExpenseDraftAction({ ...fields, mediaIds }),
       'faktura',
+      uploadMediaBySize,
     )
   }
 
@@ -141,7 +152,7 @@ export function ExpenseDraftDialog({ investments, registers, defaultRegisterId, 
         <EditButton label={t('edit')} onClick={() => handleOpenChange(true)} />
       ) : (
         <DialogTrigger asChild>
-          <Button>
+          <Button className={triggerClassName}>
             <Plus />
             {t('add')}
           </Button>

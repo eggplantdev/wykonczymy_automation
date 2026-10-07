@@ -36,6 +36,9 @@ export const ITEM_INSERT_COLUMNS = [
   'own_tools_override_coeff',
   'note',
   'ref',
+  'ai_planned_qty',
+  'change_reason',
+  'review_status',
 ] as const
 
 // Natural keys, unique within one insert batch ONLY BY CONVENTION: a section by its display_order, an
@@ -124,7 +127,7 @@ export async function insertItems(
   if (rows.length === 0) return []
   const values = rows.map(
     ({ sectionId, item: it }) =>
-      sql`(${investmentId}, ${sectionId}, ${it.displayOrder}, ${it.description ?? null}, ${JSON.stringify(it.descriptionTranslations ?? {})}::jsonb, ${it.unit ?? null}, ${it.plannedQty}, ${it.sheetMeasuredQty ?? null}, ${it.discountType ?? null}, ${it.discountValue}, ${it.clientPrice}, ${it.wToolsOverrideValue}, ${it.ownToolsOverrideValue}, ${it.wToolsOverrideCoeff}, ${it.ownToolsOverrideCoeff}, ${it.note ?? null}, ${it.ref ?? sql`DEFAULT`})`,
+      sql`(${investmentId}, ${sectionId}, ${it.displayOrder}, ${it.description ?? null}, ${JSON.stringify(it.descriptionTranslations ?? {})}::jsonb, ${it.unit ?? null}, ${it.plannedQty}, ${it.sheetMeasuredQty ?? null}, ${it.discountType ?? null}, ${it.discountValue}, ${it.clientPrice}, ${it.wToolsOverrideValue}, ${it.ownToolsOverrideValue}, ${it.wToolsOverrideCoeff}, ${it.ownToolsOverrideCoeff}, ${it.note ?? null}, ${it.ref ?? sql`DEFAULT`}, ${it.aiPlannedQty ?? null}, ${it.changeReason ?? null}, ${it.reviewStatus ?? null})`,
   )
   const res = await db.execute(sql`
     INSERT INTO kosztorys_items (${sql.raw(ITEM_INSERT_COLUMNS.join(', '))})

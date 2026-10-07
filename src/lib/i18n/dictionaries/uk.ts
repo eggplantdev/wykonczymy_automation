@@ -67,7 +67,7 @@ export const uk: TranslationsT = {
     inactive: 'Неактивний',
     defaultLanguage: 'Мова за замовчуванням',
     defaultRegister: 'Каса за замовчуванням',
-    transfers: 'Мої операції',
+    transfers: 'Список витрат / авансів',
     myRegisters: 'Мої каси',
     noRegisters: 'Немає жодної каси.',
     register: 'Каса',
@@ -83,10 +83,8 @@ export const uk: TranslationsT = {
     noInvestments: "Немає активних об'єктів.",
     noInvestmentToReport:
       "Щоб звітувати про роботи, ви маєте бути призначені на один з етапів активного об'єкта.",
-    investment: "Об'єкт",
-    reports: 'Звіти',
     reportWork: 'Звітувати про роботи',
-    noLink: 'немає посилання',
+    chooseInvestmentToReport: "На якому об'єкті?",
   },
   account: {
     title: 'Змінити e-mail або пароль',
@@ -105,10 +103,6 @@ export const uk: TranslationsT = {
   expenseDrafts: {
     title: 'Подані витрати',
     hint: 'Витрати, які я надіслав керівнику на затвердження.',
-    noRegister: 'У вас немає каси — попросіть керівника її створити.',
-    noInvestment:
-      "Щоб додати витрату, ви маєте бути призначені на один з етапів активного об'єкта.",
-    empty: 'Немає поданих витрат.',
     investment: "Об'єкт",
     sentAt: 'Надіслано',
     attachments: 'Вкладення',
@@ -122,7 +116,7 @@ export const uk: TranslationsT = {
     statusPending: 'очікує',
     statusAccepted: 'прийнято',
     statusRejected: 'відхилено',
-    add: 'Додати витрату',
+    add: 'Витрата',
     edit: 'Редагувати витрату',
     newTitle: 'Нова витрата',
     chooseInvestment: "Виберіть об'єкт",
@@ -155,7 +149,6 @@ export const uk: TranslationsT = {
   workerReports: {
     title: 'Звіти про виконані роботи',
     hint: 'Роботи, які я заявив керівнику, і що з них він прийняв.',
-    empty: 'Немає звітів про виконані роботи.',
     statusPending: 'На перевірці',
     statusAccepted: 'Прийнято',
     statusRejected: 'Відхилено',

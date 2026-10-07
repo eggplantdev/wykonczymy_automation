@@ -238,9 +238,11 @@ export function ReorderDialog({ onClose }: { onClose: () => void }) {
           </Button>
         </div>
 
+        {/* Grow only on the phone sheet (h-dvh): inside the desktop dialog's h-fit column Safari 18
+            resolves a 0% flex-basis to zero and the list collapses to its border. */}
         <div
           inert={pending}
-          className="reorder-list min-h-0 flex-1 overflow-y-auto rounded-md border select-none sm:max-h-[60vh]"
+          className="reorder-list min-h-0 overflow-y-auto rounded-md border select-none max-sm:flex-1 sm:max-h-[60vh]"
           onDragOver={handleDragOver}
           onDrop={handleDrop}
           onDragEnd={handleDragEnd}

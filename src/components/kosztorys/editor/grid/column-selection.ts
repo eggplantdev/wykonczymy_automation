@@ -20,6 +20,8 @@ import {
 } from '@/lib/kosztorys/columns/column-config'
 import { PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/client-view/columns'
 import { WORKSHOP_VISIBLE_COLUMNS } from '@/lib/kosztorys/workshop-columns'
+import { AI_REVIEW_COLUMN_IDS } from '@/lib/kosztorys/ai-review-columns'
+import { OFFER_VISIBLE_COLUMNS } from '@/lib/kosztorys/offer-columns'
 import { CREW_AXIS_DEFAULT, crewAxisAllows } from '@/lib/kosztorys/crew-axis'
 import { LAYER_DEFAULT, layerAllows } from '@/lib/kosztorys/layer'
 import { MONEY_AXIS_DEFAULT, axisAllows } from '@/lib/kosztorys/money-axis'
@@ -75,6 +77,11 @@ function closedColumnList(opts: BuildV2ColumnsOptsT): ReadonlySet<string> | null
     return workerVisibleColumns(opts.workerSurface.plane, opts.workerSurface.hiddenColumns)
   }
   if (opts.workshopVisible) return WORKSHOP_VISIBLE_COLUMNS
+  if (opts.offerVisible) {
+    return opts.aiColumnsShown
+      ? new Set([...OFFER_VISIBLE_COLUMNS, ...AI_REVIEW_COLUMN_IDS])
+      : OFFER_VISIBLE_COLUMNS
+  }
   return null
 }
 

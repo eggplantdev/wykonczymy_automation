@@ -1,14 +1,18 @@
 import { mapWithConcurrency } from '@/lib/utils/map-with-concurrency'
-import { UploadRefusedError, uploadMediaFromClient } from '@/lib/media/client-upload'
+import { uploadMediaFromClient } from '@/lib/media/client-upload'
+import { UploadRefusedError } from '@/lib/media/upload-refused'
 import { translate } from '@/lib/i18n/translations'
 import type { MediaKindT } from '@/types/media'
 
 // Cap parallel uploads to match the receipt-generation path (GENERATION_CONCURRENCY): batch-add lets a user
 // attach 10-20+ receipts, and submitting them all at once would fire that many simultaneous upload requests.
-// Bounds the Blob PUTs only — `createMediaRow` serializes the row creates itself.
+// Bounds files in flight on either path: Blob PUTs on the browser-to-Blob one (`createMediaRow`
+// serializes its row creates itself), whole route calls on the fast one.
 const UPLOAD_CONCURRENCY = 4
 
 export const UPLOAD_FAILED = translate('pl', 'notices', 'uploadFailed')
+
+export type MediaUploaderT = (file: File, data?: { kind?: MediaKindT }) => Promise<number>
 
 /**
  * Thrown when any page of a submit fails to upload. Carries the ids that DID land, because those
@@ -28,7 +32,7 @@ export class MediaUploadError extends Error {
 /**
  * Positional mediaId lists for submit. Per row index: upload every attached file in order; a row
  * with no files gets an empty list. The concurrency cap bounds total files in flight rather than
- * rows — one row can carry a whole multi-page invoice on its own. `upload` is injectable for tests.
+ * rows — one row can carry a whole multi-page invoice on its own.
  *
  * A failure throws `MediaUploadError` carrying whatever already landed. Failures are caught per
  * page rather than propagated out of `mapWithConcurrency`, because that call rejects on the first
@@ -79,11 +83,15 @@ export async function resolveUploadIdRows(
  * The same upload, from a surface that has no rows — one set of files, in pick order. Spares
  * every such caller the `(1, new Map([[0, files]]))` incantation and the `[pages]` destructure.
  */
-export async function resolveUploadIds(files: File[], kind?: MediaKindT): Promise<number[]> {
+export async function resolveUploadIds(
+  files: File[],
+  kind?: MediaKindT,
+  upload: MediaUploaderT = uploadMediaFromClient,
+): Promise<number[]> {
   const [pages] = await resolveUploadIdRows(
     1,
     new Map([[0, files]]),
-    kind && ((file) => uploadMediaFromClient(file, { kind })),
+    kind ? (file) => upload(file, { kind }) : upload,
   )
   return pages
 }

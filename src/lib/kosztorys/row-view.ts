@@ -100,6 +100,7 @@ export function buildViewRows(input: {
   // The two katalog verdicts — see `RowConditionCtxT.catalogueRowIds`.
   catalogueRowIds?: { divergent: ReadonlySet<number>; missing: ReadonlySet<number> }
   latchedRowIds?: ReadonlySet<number>
+  hasAiDraft?: boolean
 }): KosztorysV2RowT[] {
   const {
     rows,
@@ -113,13 +114,21 @@ export function buildViewRows(input: {
     qtyDoneByRowId,
     catalogueRowIds,
     latchedRowIds,
+    hasAiDraft,
   } = input
   // The latch bypasses the conditions only — a pozycja held open for editing still leaves the grid
   // when the search stops matching it, because a search is a question being asked right now.
   const filtered = applyRowConditions(
     filterRows(rows, search),
     engagedConditionIds,
-    { stages, hasSettledMaterial, divergentPriceRowIds, qtyDoneByRowId, catalogueRowIds },
+    {
+      stages,
+      hasSettledMaterial,
+      divergentPriceRowIds,
+      qtyDoneByRowId,
+      catalogueRowIds,
+      hasAiDraft,
+    },
     latchedRowIds,
   )
   if (!sort) return filtered

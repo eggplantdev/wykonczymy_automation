@@ -54,6 +54,7 @@ export async function createCatalogueItemAction(data: WorkCatalogueItemDataT, tr
         candidate: { ...row, descriptionTranslations: translated.translations },
         existing: null,
         keepCatalogueCategory: true,
+        workNote: parsed.data.workNote,
       })
 
       return translated.failed
@@ -86,6 +87,11 @@ export async function updateCatalogueItemAction(id: number, data: WorkCatalogueI
         id,
         data: {
           ...row,
+          // The edit form is seeded with the stored comment, so a blank here is a deliberate clear.
+          // Absent means a caller that never showed the field — leave the stored one alone.
+          ...(parsed.data.workNote !== undefined && {
+            workNote: parsed.data.workNote.trim() || null,
+          }),
           descriptionTranslations: translationsFromTexts(
             stored?.descriptionTranslations,
             parsed.data.translationEdits,
@@ -94,6 +100,32 @@ export async function updateCatalogueItemAction(id: number, data: WorkCatalogueI
         },
       })
 
+      return { success: true }
+    },
+    ['workCatalogue'],
+  )
+}
+
+const updateCatalogueNoteSchema = z.object({
+  catalogueItemId: z.number().int().positive(),
+  text: z.string(),
+})
+
+// The Komentarz do pracy cell's own lane: one field, so a dialog opened on a stale katalog row
+// cannot write that row's old prices back.
+export async function updateCatalogueNoteAction(catalogueItemId: number, text: string) {
+  return protectedAction(
+    'updateCatalogueNoteAction',
+    async ({ payload }) => {
+      const parsed = validateAction(updateCatalogueNoteSchema, { catalogueItemId, text })
+      if (!parsed.success) return parsed
+
+      const note = parsed.data.text.trim()
+      await payload.update({
+        collection: 'work-catalogue-items',
+        id: parsed.data.catalogueItemId,
+        data: { workNote: note || null },
+      })
       return { success: true }
     },
     ['workCatalogue'],

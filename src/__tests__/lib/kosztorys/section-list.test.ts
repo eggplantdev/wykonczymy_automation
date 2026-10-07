@@ -6,7 +6,6 @@ import {
   patchSection,
   removeSection,
   restoreSection,
-  swapSection,
   treeToSections,
 } from '@/lib/kosztorys/section-list'
 import type { KosztorysV2RowT, SectionMetaT } from '@/lib/kosztorys/types'
@@ -72,19 +71,6 @@ describe('removeSection / restoreSection', () => {
   it('appends when the index is past the end or unknown', () => {
     expect(ids(restoreSection([meta(1)], meta(2), 5))).toEqual([1, 2])
     expect(ids(restoreSection([meta(1)], meta(2), -1))).toEqual([1, 2])
-  })
-})
-
-describe('swapSection', () => {
-  it('swaps a section with its neighbour, an itemless one included', () => {
-    expect(ids(swapSection(SECTIONS, 1, 'down') ?? [])).toEqual([2, 1, 3])
-    expect(ids(swapSection(SECTIONS, 2, 'down') ?? [])).toEqual([1, 3, 2])
-  })
-
-  it('returns null at either edge and for an unknown section', () => {
-    expect(swapSection(SECTIONS, 1, 'up')).toBeNull()
-    expect(swapSection(SECTIONS, 3, 'down')).toBeNull()
-    expect(swapSection(SECTIONS, 42, 'up')).toBeNull()
   })
 })
 

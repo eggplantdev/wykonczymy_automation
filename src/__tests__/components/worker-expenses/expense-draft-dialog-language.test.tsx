@@ -22,7 +22,7 @@ describe('ExpenseDraftDialog language', () => {
   it('reads Ukrainian under a uk account', async () => {
     render(<AppLanguageProvider locale="uk">{dialog}</AppLanguageProvider>)
 
-    await userEvent.click(screen.getByRole('button', { name: 'Додати витрату' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Витрата' }))
 
     expect(screen.getByRole('dialog', { name: 'Нова витрата' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Надіслати' })).toBeInTheDocument()
@@ -31,7 +31,7 @@ describe('ExpenseDraftDialog language', () => {
   it('reads Polish without a provider', async () => {
     render(dialog)
 
-    await userEvent.click(screen.getByRole('button', { name: 'Dodaj wydatek' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Wydatek' }))
 
     expect(screen.getByRole('dialog', { name: 'Nowy wydatek' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Wyślij' })).toBeInTheDocument()

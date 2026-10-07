@@ -10,6 +10,8 @@ export function splitExtension(name: string): { base: string; ext: string } {
 export function appendShortId(base: string, ext: string): string {
   // Through `randomId`, not `crypto.randomUUID`: nothing says the callers stay server-side, and the
   // first client one hits the non-secure-context gap `random-id.ts` exists to close.
-  const shortId = randomId().slice(0, 6)
+  // 48 bits, the UUID's leading 12 random hex: the blob store runs without a random suffix, so a
+  // repeated name overwrites an existing file's bytes, and phone photos share one base (`image.jpg`).
+  const shortId = randomId().replace(/-/g, '').slice(0, 12)
   return `${base}-${shortId}${ext}`
 }

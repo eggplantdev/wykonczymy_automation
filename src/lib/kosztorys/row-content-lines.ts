@@ -14,6 +14,7 @@ export const WRAPPING_COLUMN_IDS = [
   'description',
   ...ALL_TRANSLATION_COLUMN_KEYS,
   'note',
+  'changeReason',
 ] as const
 
 export type WrappingColumnIdT = (typeof WRAPPING_COLUMN_IDS)[number]
@@ -21,7 +22,7 @@ export type WrappingColumnIdT = (typeof WRAPPING_COLUMN_IDS)[number]
 function wrappingColumnText(row: KosztorysV2RowT, id: WrappingColumnIdT): string | null {
   const language = translationColumnLanguage(id)
   if (language !== null) return translationText(row.descriptionTranslations, language)
-  return row[id as 'sectionName' | 'description' | 'note']
+  return row[id as 'sectionName' | 'description' | 'note' | 'changeReason']
 }
 
 // dsg hands the rendered width back to nobody, so this class is the only handle the measurement and

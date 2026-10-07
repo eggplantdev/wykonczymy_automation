@@ -232,6 +232,10 @@ export function buildImportPlan(
         // is the sheet's own claim and the app never edits it: whatever the sheet says today is the
         // answer, including „nothing typed here any more".
         note: current?.note ?? null,
+        // The sheet knows nothing of the agent's draft or its review, so a matched praca keeps them.
+        aiPlannedQty: current?.aiPlannedQty ?? null,
+        changeReason: current?.changeReason ?? null,
+        reviewStatus: current?.reviewStatus ?? null,
         // Carried on the same key as the note, so a form printed before the import still resolves
         // the pozycja it numbered; an unmatched row is new work and draws a fresh number.
         ref: current?.ref,

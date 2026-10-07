@@ -22,11 +22,13 @@ const ITEM: WorkCatalogueItemFormValuesT = {
   ownToolsRate: '',
   ownToolsCoeff: '',
   translations: { uk: '', ru: '' },
+  workNote: 'Bez gruntowania',
 }
 
 const W_TOOLS_RATE = 'Stawka z narzędziami (podwykonawca) (PLN)'
 const W_TOOLS_COEFF = 'Mnożnik — stawka z narzędziami (podwykonawca)'
 const W_TOOLS_SOURCE = /Stawka z narzędziami \(podwykonawca\) — źródło/
+const WORK_NOTE = /Komentarz do pracy/
 
 function renderForm() {
   const action = vi.fn(async (_values: WorkCatalogueItemDataT) => ({
@@ -127,5 +129,20 @@ describe('WorkCatalogueItemForm — źródło stawki', () => {
       await screen.findByText(/Stawka z narzędziami \(podwykonawca\) jest wymagana/),
     ).toBeInTheDocument()
     expect(action).not.toHaveBeenCalled()
+  })
+})
+
+describe('WorkCatalogueItemForm — Komentarz do pracy', () => {
+  it('opens on the stored comment and saves the edited one', async () => {
+    const { action, user, save } = renderForm()
+
+    const note = screen.getByLabelText(WORK_NOTE)
+    expect(note).toHaveValue('Bez gruntowania')
+    await user.clear(note)
+    await user.type(note, 'Z gruntowaniem')
+    await save()
+
+    await waitFor(() => expect(action).toHaveBeenCalledTimes(1))
+    expect(action.mock.calls[0][0]).toMatchObject({ workNote: 'Z gruntowaniem' })
   })
 })

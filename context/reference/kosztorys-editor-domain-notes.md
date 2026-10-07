@@ -1493,7 +1493,7 @@ nie miałaby czym się rozwinąć). Sortowanie „w sekcjach" zostawia wiersze n
 sumy i zwinięcia zostają.
 
 **„Zapisz kolejność" saves the result (`display_order`), never the sort rule** (EX-688). A stored rule
-stays live and overrides positions, so a ▲/▼ move would vanish on reload — two sources of truth for
+stays live and overrides positions, so a move in „Ustaw kolejność…" would vanish on reload — two sources of truth for
 one order. It lives in the column header, not the section menu, because one section can't be sorted
 in isolation.
 

@@ -22,12 +22,17 @@ export type WorkCatalogueItemT = {
   wToolsRateCoeff: number | null
   ownToolsRateCoeff: number | null
   matchKey: string
+  workNote: string | null
 }
 
 // Translations stay out of the seed: every katalog writer builds one, and a seed that required the
 // map would overwrite a stored translation with `{}`. The writers that own translations pass them
-// explicitly (`applyCatalogueWrite`).
-export type CatalogueSeedItemT = Omit<WorkCatalogueItemT, 'id' | 'descriptionTranslations'>
+// explicitly (`applyCatalogueWrite`). The Komentarz do pracy stays out for the same reason: a
+// candidate rebuilt from a rozpiska row has none, and carrying `null` would erase the stored one.
+export type CatalogueSeedItemT = Omit<
+  WorkCatalogueItemT,
+  'id' | 'descriptionTranslations' | 'workNote'
+>
 
 export type CatalogueCandidateT = CatalogueSeedItemT &
   Pick<WorkCatalogueItemT, 'descriptionTranslations'>
@@ -155,6 +160,8 @@ export type CatalogueComparisonT = {
   matching: number
   diffs: CataloguePriceDiffT[]
   missing: CatalogueMissingT[]
+  // Read live from the katalog, so a comment written in one kosztorys shows in all of them.
+  entryByItemId: Map<number, RowCatalogueEntryT>
 }
 
 // The sekcja rides along for the report only — the cennik is global, so it takes no part in the
@@ -198,3 +205,5 @@ export type NearDuplicateT = {
   entry: WorkCatalogueItemT
   kind: NearDuplicateKindT
 }
+
+export type RowCatalogueEntryT = { id: number; note: string | null }

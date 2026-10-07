@@ -30,6 +30,10 @@ export async function serializeKosztorysAsPreset(
       sheetMeasuredQty: null,
       discountType: null,
       discountValue: 0,
+      // The agent's draft and its review are about one job's przedmiar, which the szablon zeroes.
+      aiPlannedQty: null,
+      changeReason: null,
+      reviewStatus: null,
     })),
     // Etapy (stages + their recorded progress) are per-job execution structure, not reusable scope —
     // a preset carries none, and neither the seed nor the reload installs one: an etap's plane is

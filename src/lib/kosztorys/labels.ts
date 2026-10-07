@@ -1,6 +1,6 @@
 import { pl } from '@/lib/i18n/dictionaries/pl'
 import type { MessageKeyT } from '@/lib/i18n/translations'
-import type { DiscountTypeT, PriceSourceT, ToolPlaneT } from '@/lib/kosztorys/types'
+import type { DiscountTypeT, PriceSourceT, ReviewStatusT, ToolPlaneT } from '@/lib/kosztorys/types'
 
 // The worker's link names his plane in his language, so the key travels beside the Polish label.
 export const PLANE_LABEL_KEYS: Record<ToolPlaneT, MessageKeyT<'grid'>> = {
@@ -37,3 +37,12 @@ export const SUBCONTRACTOR_FIGURE_LABELS = {
   payouts: 'Zaliczki (wypłaty)',
   remaining: 'Pozostało do wypłaty',
 } as const
+
+export const REVIEW_STATUS_LABELS: Record<ReviewStatusT, string> = {
+  accepted: 'Zaakceptowana',
+  rejected: 'Odrzucona',
+  edited: 'Edytowana',
+  added: 'Dodana',
+}
+
+export const REVIEW_STATUS_UNSET_LABEL = 'Do sprawdzenia'

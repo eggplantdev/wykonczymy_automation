@@ -9,7 +9,7 @@ import { commitCellValue, openEditor, rowCell } from './drivers/kosztorys-grid'
 // (`UNDO_COALESCE_MS`), and Cmd+Z belongs to the input while text-editing, our stack only after.
 test.use({ storageState: 'e2e/.auth/user.json' })
 
-type UndoSeedT = { cell: number; burst: number; boundary: number; reorder: number }
+type UndoSeedT = { cell: number; burst: number; boundary: number }
 
 let seed: UndoSeedT
 
@@ -165,39 +165,3 @@ test('Cmd+Z w trakcie edycji komórki należy do inputa, a po jej zakończeniu �
   await settleWrite(page, () => page.keyboard.press('Meta+z'))
   await expectQty(page, 'Praca pierwsza', SEEDED_QTY['Praca pierwsza'])
 })
-
-test('cofnięcie przesunięcia wiersza przywraca display_order po przeładowaniu', async ({
-  page,
-}) => {
-  await openEditor(page, seed.reorder)
-  const seededOrder = ['Praca pierwsza', 'Praca druga', 'Praca trzecia']
-  await expect.poll(() => itemOrder(page)).toEqual(seededOrder)
-
-  await settleWrite(page, async () => {
-    await page
-      .locator('.dsg-row')
-      .filter({ hasText: 'Praca pierwsza' })
-      .getByRole('button', { name: 'Akcje wiersza' })
-      .click()
-    await page.getByRole('menuitem', { name: 'Przesuń w dół', exact: true }).click()
-  })
-  await expect
-    .poll(() => itemOrder(page))
-    .toEqual(['Praca druga', 'Praca pierwsza', 'Praca trzecia'])
-
-  await runStackCommand(page, UNDO)
-  await expect.poll(() => itemOrder(page)).toEqual(seededOrder)
-
-  await page.reload()
-  await expect.poll(() => itemOrder(page)).toEqual(seededOrder)
-})
-
-// „Opis prac" rests as a text node (its textarea mounts only while editing); section/„Razem" rows
-// have no matching name and drop out on their own.
-async function itemOrder(page: Page): Promise<string[]> {
-  const names = Object.keys(SEEDED_QTY)
-  const texts = await page.locator('.dsg-row').allTextContents()
-  return texts
-    .map((text) => names.find((name) => text.includes(name)))
-    .filter((name): name is string => name !== undefined)
-}

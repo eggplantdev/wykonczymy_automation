@@ -25,6 +25,7 @@ const praca = (id: number, description: string): WorkCatalogueItemT => ({
   ownToolsRate: null,
   ownToolsRateCoeff: null,
   matchKey: `${description.toLowerCase()}|szt`,
+  workNote: null,
 })
 
 const syfon = praca(1, 'Montaż syfonu')

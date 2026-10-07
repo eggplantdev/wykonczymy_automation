@@ -75,7 +75,7 @@ export const pl = {
     inactive: 'Nieaktywny',
     defaultLanguage: 'Domyślny język',
     defaultRegister: 'Domyślna kasa',
-    transfers: 'Moje transfery',
+    transfers: 'Lista wydatków / zaliczek',
     myRegisters: 'Moje kasy',
     noRegisters: 'Nie ma żadnej kasy.',
     register: 'Kasa',
@@ -91,10 +91,8 @@ export const pl = {
     noInvestments: 'Brak aktywnych inwestycji.',
     noInvestmentToReport:
       'Żeby zgłosić pracę, musisz być przypisany do któregoś z etapów aktywnej inwestycji.',
-    investment: 'Inwestycja',
-    reports: 'Zgłoszenia',
-    reportWork: 'Zgłoś prace',
-    noLink: 'brak linku',
+    reportWork: 'Zgłoś pracę',
+    chooseInvestmentToReport: 'Na której inwestycji?',
   },
   account: {
     title: 'Zmień e-mail lub hasło',
@@ -113,10 +111,6 @@ export const pl = {
   expenseDrafts: {
     title: 'Zgłoszone wydatki',
     hint: 'Wydatki, które wysłałem kierownikowi do zatwierdzenia.',
-    noRegister: 'Nie masz kasy — poproś kierownika o jej założenie.',
-    noInvestment:
-      'Żeby dodać wydatek, musisz być przypisany do któregoś z etapów aktywnej inwestycji.',
-    empty: 'Brak zgłoszonych wydatków.',
     investment: 'Inwestycja',
     sentAt: 'Wysłano',
     attachments: 'Załączniki',
@@ -130,7 +124,7 @@ export const pl = {
     statusPending: 'czeka',
     statusAccepted: 'przyjęty',
     statusRejected: 'odrzucony',
-    add: 'Dodaj wydatek',
+    add: 'Wydatek',
     edit: 'Edytuj wydatek',
     newTitle: 'Nowy wydatek',
     chooseInvestment: 'Wybierz inwestycję',
@@ -164,7 +158,6 @@ export const pl = {
   workerReports: {
     title: 'Zgłoszenia wykonanych prac',
     hint: 'Prace, które zgłosiłem kierownikowi, i to, co z nich przyjął.',
-    empty: 'Brak zgłoszeń wykonanych prac.',
     statusPending: 'Do sprawdzenia',
     statusAccepted: 'Przyjęte',
     statusRejected: 'Odrzucone',

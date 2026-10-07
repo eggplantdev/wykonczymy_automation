@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 import { isAdminOrOwnerOrManager } from '@/access'
 import { createUnlessInvestmentLocked, unlessInvestmentLocked } from '@/access/investment-lock'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
+import { REVIEW_STATUSES } from '@/lib/kosztorys/review-status'
 
 // A sheet item. Client price = a snapshot. Subcontractor prices are derived from the
 // markup coefficient (investment), with one nullable per-item stawka per tool plane: a number is a
@@ -56,5 +57,20 @@ export const KosztorysItems: CollectionConfig = {
     { name: 'wToolsOverrideCoeff', type: 'number', min: 0 },
     { name: 'ownToolsOverrideCoeff', type: 'number', min: 0 },
     { name: 'note', type: 'text', label: { en: 'Note', pl: 'Komentarz' } },
+    // EX-1006: an agent's draft and the manager's review of it. AI przedmiar is written only by the
+    // draft loader through the Local API — the grid shows it and never edits it.
+    {
+      name: 'aiPlannedQty',
+      type: 'number',
+      access: { create: () => false, update: () => false },
+      label: { en: 'AI planned qty', pl: 'AI przedmiar' },
+    },
+    { name: 'changeReason', type: 'text', label: { en: 'Change reason', pl: 'Powód zmiany' } },
+    {
+      name: 'reviewStatus',
+      type: 'select',
+      options: [...REVIEW_STATUSES],
+      label: { en: 'Review status', pl: 'Status' },
+    },
   ],
 }

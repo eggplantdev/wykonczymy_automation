@@ -21,6 +21,7 @@ const entry = (description: string, unit: string, matchKey: string): WorkCatalog
   ownToolsRate: null,
   ownToolsRateCoeff: null,
   matchKey,
+  workNote: null,
 })
 
 const split = (
