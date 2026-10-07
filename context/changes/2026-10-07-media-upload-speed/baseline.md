@@ -11,6 +11,17 @@ same protocol after the change and compare the medians.
 | Warsaw LTE | 3 729 ms | 7 188 ms | 11 899 ms | 81 % (9.6 s) |
 | Unthrottled | 2 940 ms | 6 277 ms | 10 717 ms | 88 % (9.4 s) |
 
+**After EX-1012** (same protocol, see [After EX-1012](#after-ex-1012)):
+
+| Profile | 1 photo | 3 photos | 6 photos |
+|---|---|---|---|
+| Fast 4G (worst case) | 4 957 → **3 127 ms** (−37 %) | 11 826 → **6 975 ms** (−41 %) | 18 664 → **13 638 ms** (−27 %) |
+| Warsaw LTE | 3 729 → **1 897 ms** (−49 %) | 7 188 → **5 216 ms** (−27 %)² | 11 899 → **3 957 ms** (−67 %) |
+| Unthrottled | 2 940 → **1 525 ms** (−48 %) | 6 277 → **1 573 ms** (−75 %) | 10 717 → **2 634 ms** (−75 %) |
+
+² Two of the three LTE 3-photo runs each had one slow upload of 5.0–5.5 s; the clean run took 2 344 ms.
+With three runs the median does not absorb two outliers.
+
 ¹ The serialized `POST /api/media` chain (first media POST start → action start) plus the
 `sendExpenseDraftAction` POST, over the window, in the median 6-photo run. These requests carry a tiny
 JSON body, so their duration is server time. Token requests (~0.15 s, in parallel) are left out.
@@ -155,3 +166,71 @@ bug is not in EX-1012's scope.
 
 Not checked: whether a deleted draft's media rows and Blob objects are removed. The OWNER-granted etap
 membership on inwestycja 137 was left in place for the after-change run.
+
+## After EX-1012
+
+Measured 2026-10-07 12:08–12:21 (CEST) against the branch preview, not staging: the branch was pushed
+on its own (`media-upload-speed` @ `74272259`) and served at
+`https://wykonczymy-git-media-upload-speed-wykonczymys-projects.vercel.app`. That is the same preview
+DB, preview Blob store, account, fixtures, harness and throttle profiles as the baseline. The only code
+difference from the measured staging is EX-1012.
+
+What changed in the harness:
+
+- Requests to `POST /api/media-upload` are classified as `fast`.
+- The tag is `EX-1012 after …`.
+- It runs as a standalone Playwright script, with one freshly launched Chrome per profile, instead of
+  the shared MCP browser, which another session held. The script is `scratchpad/run-after.mjs`
+  (not kept).
+- Vercel deployment protection is passed with the project's automation bypass cookie, set once on
+  `/login`.
+
+Every send in all 30 runs (warm-ups included) went through the fast path: one `POST /api/media-upload`
+per photo and then the action. There was no token request, no Blob `PUT` from the browser and no
+`POST /api/media`.
+
+| Profile | Photos | Run 1 | Run 2 | Run 3 | **Median** | Warm-up |
+|---|---|---|---|---|---|---|
+| Warsaw LTE | 1 | 1 768 | 1 897 | 2 047 | **1 897 ms** | 1 804 |
+| | 3 | 5 765 | 5 216 | 2 344 | **5 216 ms** | |
+| | 6 | 3 957 | 5 270 | 3 912 | **3 957 ms** | |
+| Unthrottled | 1 | 1 435 | 1 525 | 1 719 | **1 525 ms** | 1 810 |
+| | 3 | 4 375 | 1 560 | 1 573 | **1 573 ms** | |
+| | 6 | 2 579 | 4 517 | 2 634 | **2 634 ms** | |
+| Fast 4G | 1 | 3 127 | 3 100 | 3 371 | **3 127 ms** | 3 423 |
+| | 3 | 6 885 | 7 053 | 6 975 | **6 975 ms** | |
+| | 6 | 13 493 | 13 638 | 17 966 | **13 638 ms** | |
+
+| Step | LTE | Unthrottled | Fast 4G |
+|---|---|---|---|
+| `POST /api/media-upload`, 1 photo | 1.50–1.82 s | 1.25–1.49 s | 2.90–3.16 s |
+| same, 3–4 in parallel | 1.7–2.7 s | 1.0–1.6 s | 6.4–8.9 s (shared ≈1.35 Mbps uplink) |
+| `sendExpenseDraftAction` | 170–393 ms | 167–236 ms | 177–252 ms |
+
+- **Uploads run in parallel, at most four at once.** The client caps them at 4, so photos 5–6 start
+  when the first slots free up, and the 6-photo send is two waves. On LTE and unthrottled that is
+  ~2.2 s + ~1.4 s.
+- **Fast 4G is now bound by the uplink.** 6 × ~305 KB is ~1.83 MB, which takes ~10.8 s at
+  ≈1.35 Mbps. The 13.6 s median is close to that floor. Before EX-1012, the serialized server chain was
+  stacked on top of the upload.
+- **The server side of one upload is mostly the Blob put.** 50 `[PERF] mediaUpload` lines from
+  `vercel logs --branch media-upload-speed`:
+
+  | | min | p50 | p90 | max |
+  |---|---|---|---|---|
+  | total | 572 ms | 928 ms | 1 175 ms | 5 454 ms |
+  | Blob put | 559 ms | 914 ms | 1 140 ms | 5 442 ms |
+  | DB insert | 12 ms | 13 ms | 54 ms | 73 ms |
+
+  The old per-photo `POST /api/media` took ~1.6 s. The fast path's server cost is now ~0.9 s, and it
+  runs in parallel instead of in series.
+- **Outliers.** Six runs had one upload of 4.1–5.5 s. One of them shows in the log as a 5.4 s Blob
+  put. The others have no log line in the window (the log pull returned 50 of the ~95 uploads), so
+  a cold function instance is the likely cause but not confirmed. When it hits, one slow upload sets
+  the whole send's time. The baseline had the same kind of outlier on the token request.
+
+Cleanup: all 30 drafts were deleted through the worker UI. The harness confirmed 21 deletes after a
+reload. The remaining 9 were checked by a second pass, which found 2 still listed, deleted them, and
+then `/pracownicy/85` showed no `EX-1012` row. One of those two had been reported as gone by the
+harness's own reload and then showed up again. This is the stale drafts-list behaviour noted under
+Cleanup above, and it is outside EX-1012's scope.

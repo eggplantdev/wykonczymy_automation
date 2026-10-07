@@ -350,4 +350,4 @@ Run once, after the final code phase:
 
 #### Automated
 
-- [ ] 3.1 None — measurement phase
+- [x] 3.1 None — measurement phase
