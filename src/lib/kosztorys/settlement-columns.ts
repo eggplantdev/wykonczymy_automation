@@ -1,11 +1,20 @@
 import { stageKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 
-// The totals that only mean something once an etap has an entry. „Pozostało" is deliberately not
-// here: it reads the whole przedmiar as outstanding before any work, which is a real figure, and the
-// owner hides it by choice, not by data (owner, 2026-09-28). Kwota rabatu belongs: it is computed off
-// the executed quantity, so before any work it reads 0 zł on every row.
+// The totals that only mean something once an etap has an entry. Kwota rabatu belongs: it is computed
+// off the executed quantity, so before any work it reads 0 zł on every row. „Pozostało" is not here,
+// because the worker's document keeps it from day one — his whole przedmiar IS outstanding work.
 const SETTLEMENT_TOTAL_COLUMNS = ['stageQtySum', 'net', 'donePercent', 'discountAmount'] as const
+
+// The investor's offer phase: before the first etap entry his document is the pure offer (owner,
+// EX-921). This reverses the 2026-09-28 ruling that kept „Pozostało" on it as a real figure — next to
+// an offer it only restates the offer, and the Aktualizacja przedmiaru equals the ofertowy until work
+// starts changing the scope.
+const INVESTOR_OFFER_PHASE_COLUMNS = [
+  'remaining',
+  'currentPlannedQty',
+  'currentPlannedNet',
+] as const
 
 // `!== 0`, not `> 0`: a negative quantity is a correction someone typed, and it is an entry. A row
 // missing the key counts as empty, so an etap nobody can show a number for stays off the document.
@@ -40,5 +49,17 @@ export function emptySettlementColumnIds(
     empty.add(stageValueNetKey(stage.id))
   }
   if (filled.size === 0) for (const id of SETTLEMENT_TOTAL_COLUMNS) empty.add(id)
+  return empty
+}
+
+// The investor's half of the rule; the worker's document reads `emptySettlementColumnIds` alone.
+export function investorEmptyColumnIds(
+  rows: readonly KosztorysV2RowT[],
+  stages: readonly KosztorysStageT[],
+  alsoFilled: ReadonlySet<number> = new Set(),
+): ReadonlySet<string> {
+  const empty = new Set(emptySettlementColumnIds(rows, stages, alsoFilled))
+  // `stageQtySum` is in the set exactly when no etap is filled — one predicate, not a second count.
+  if (empty.has('stageQtySum')) for (const id of INVESTOR_OFFER_PHASE_COLUMNS) empty.add(id)
   return empty
 }

@@ -665,10 +665,10 @@ Run once, after Phase 6.
 
 #### Automated
 
-- [ ] 3.1 Policy: Delete → null, typed 0 → 0, undo restores null
-- [ ] 3.2 Cell renders grey for null, black for a stored value
-- [ ] 3.3 History diff lists an aktualizacja change
-- [ ] 3.4 Column registries accept the new ids
+- [ ] 3.1 Policy: Delete → null, typed 0 → 0, undo restores null — c7290676 (specs unrun)
+- [ ] 3.2 Cell renders grey for null, black for a stored value — c7290676 (specs unrun)
+- [ ] 3.3 History diff lists an aktualizacja change — c7290676 (specs unrun)
+- [ ] 3.4 Column registries accept the new ids — c7290676 (specs unrun)
 
 ### Phase 4: Investor document
 

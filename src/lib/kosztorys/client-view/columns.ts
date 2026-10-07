@@ -16,7 +16,7 @@ import { STAGES_COLUMN_GROUP, STAGE_VALUE_NET_COLUMN_GROUP } from '@/lib/kosztor
 export const CLIENT_VIEW_GROUPS: readonly ColumnGroupT[] = [
   {
     label: 'Opis i ilości',
-    keys: ['description', 'plannedQty', 'stageQtySum', 'unit'],
+    keys: ['description', 'plannedQty', 'currentPlannedQty', 'stageQtySum', 'unit'],
   },
   {
     label: 'Ceny i rabat',
@@ -26,7 +26,7 @@ export const CLIENT_VIEW_GROUPS: readonly ColumnGroupT[] = [
     label: 'Wartości',
     // No `note`: the sheet's „komentarz" is owner-authored internal free text (owner ruling,
     // 2026-07-20) — the client DTO drops it too, so this is the matching half of that decision.
-    keys: ['plannedNet', 'net', 'remaining'],
+    keys: ['plannedNet', 'currentPlannedNet', 'net', 'remaining'],
   },
   {
     label: 'Etapy i postęp',
@@ -45,9 +45,11 @@ export const PREVIEW_VISIBLE_COLUMNS: ReadonlySet<string> = new Set(
 export const CLIENT_DOCUMENT_COLUMNS: readonly string[] = [
   'description',
   'plannedQty',
+  'currentPlannedQty',
   'unit',
   'price',
   'plannedNet',
+  'currentPlannedNet',
   STAGES_COLUMN_GROUP,
   'stageQtySum',
   'discountValue',

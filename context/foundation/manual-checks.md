@@ -4617,3 +4617,6 @@ Staging, zalogowany pracownik z własną kasą i etapem na inwestycji. Zdjęcia 
 - [ ] Sortowanie po „Aktualizacja przedmiaru” → szare (nietknięte) pozycje układają się według swojej liczby, nie lądują wszystkie na dole.
 - [ ] Tryb „Postęp” → kolumna „Aktualizacja przedmiaru” zostaje widoczna obok „% wykonania” i „Pozostało”.
 - [ ] Historia wersji → zmiana aktualizacji pokazuje się jako „Aktualizacja przedmiaru: — → 120”, a zmiana przedmiaru ofertowego jako „Przedmiar ofertowy”.
+- [ ] Kosztorys bez żadnego wpisu w etapach → „Podgląd” dla inwestora pokazuje samą ofertę: bez „Aktualizacja przedmiaru”, bez „Pozostało” — nawet gdy obie są zaznaczone w ustawieniach.
+- [ ] Po pierwszym wpisie w etapie → podgląd i link dla inwestora pokazują „Przedmiar ofertowy” i „Aktualizacja przedmiaru”; „Wartość netto aktualizacji przedmiaru” jest w ustawieniach do zaznaczenia i domyślnie odznaczona. „% wykonania” liczy się względem aktualizacji.
+- [ ] „Generuj ofertę” drukuje te same kolumny co podgląd — przed pierwszym wpisem i po nim.

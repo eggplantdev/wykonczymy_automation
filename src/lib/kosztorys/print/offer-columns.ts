@@ -6,6 +6,7 @@ import { clientDocumentColumns } from '@/lib/kosztorys/client-view/settings'
 import { columnLabelForView } from '@/lib/kosztorys/columns/column-config'
 import { PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/client-view/columns'
 import {
+  CURRENT_PLANNED_QTY_COLUMN,
   DESCRIPTION_COLUMN,
   PLANNED_QTY_COLUMN,
   UNIT_COLUMN,
@@ -45,6 +46,7 @@ function offerColumnsByKey(stages: KosztorysStageT[]): Record<string, PrintColum
   return {
     description: [DESCRIPTION_COLUMN],
     plannedQty: [PLANNED_QTY_COLUMN],
+    currentPlannedQty: [CURRENT_PLANNED_QTY_COLUMN],
     unit: [UNIT_COLUMN],
     price: [
       {
@@ -57,6 +59,7 @@ function offerColumnsByKey(stages: KosztorysStageT[]): Record<string, PrintColum
       },
     ],
     plannedNet: [money('plannedNet', 'Wartość netto')],
+    currentPlannedNet: [money('currentPlannedNet', clientLabel('currentPlannedNet'))],
     [STAGES_COLUMN_GROUP]: stageQtyColumns(stages),
     stageQtySum: [computedQtyColumn(valueOf)('stageQtySum', clientLabel('stageQtySum'))],
     discountValue: [
