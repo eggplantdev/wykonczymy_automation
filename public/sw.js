@@ -1,3 +1,4 @@
+/* global self, fetch, Response */
 // Navigations only, network-first, no cache: Chrome's install path wants a fetch handler, and the
 // app must behave online exactly as it does without one. Non-navigation requests (Server Actions,
 // RSC fetches) are never answered here, so they keep failing into the app's own offline toast.

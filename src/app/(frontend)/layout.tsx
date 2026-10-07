@@ -101,7 +101,7 @@ async function AuthenticatedShell({ children, investmentCrumb }: FrontendLayoutP
             </div>
           </div>
           <ReviewPromptHost />
-          {issuedAt !== undefined && needsSessionRefresh(issuedAt, Date.now()) && (
+          {issuedAt !== undefined && needsSessionRefresh(issuedAt) && (
             <SessionRefresher />
           )}
         </UnreadCountsProvider>
