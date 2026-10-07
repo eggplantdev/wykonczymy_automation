@@ -96,8 +96,15 @@ Design agreed 2026-10-06 — still brainstorming; a spike validates it before `/
 - The note column sits with the other AI columns (AI przedmiar, Status, Powód zmiany), not beside
   Komentarz.
 - Column names carry a short description, no header tooltips: „AI przedmiar (na ile AI wyceniło
-  pracę)”, „Powód zmiany (co AI zrobiło źle)”, „Stała notatka do pracy (zapisze się do wszystkich
-  kosztorysów)”. The note is renamed „Stała notatka do pracy”; it is the comment for the agent.
+  pracę)”, „Powód zmiany (co AI zrobiło źle)”, „Komentarz do pracy (wiedza firmowa — niewidoczna dla
+  klienta)”.
+- **Final name: „Komentarz do pracy”** — company knowledge, never shown to the client. It replaces
+  „Notatka do pracy” everywhere (column, dialog, /katalog-prac). Whether the crew sees it is open:
+  EX-1011.
+- „Nowa praca” dialog: „Dodaj pracę do katalogu prac” is **ticked by default**, and while it is ticked a
+  „Komentarz do pracy” field sits right under „Opis pracy”; it is written to the katalog entry in the same
+  save. A blank field never erases an existing comment on „Nadpisz w katalogu”. On „Tylko do kosztorysu”
+  the typed comment is dropped (the katalog stays untouched).
 - AI style = the app's `ai` button accent in cyan only (no fuchsia): cyan cell lines, a light cyan
   background and cyan header text on the AI columns; the „Przegląd AI” toggle is a `variant="ai"`
   button.
