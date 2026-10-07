@@ -31,7 +31,13 @@ export function useUndoKeyboard(undo: () => void, redo: () => void) {
       // disabled itself, a backdrop click): undoing the grid behind it would write to the server
       // under a modal the owner is still working in. Dialog content only — a popover also wears
       // role="dialog", and an open one must not cost the grid its shortcut.
-      if (document.querySelector('[data-slot="dialog-content"][data-state="open"]')) return
+      const dialog = document.querySelector('[data-slot="dialog-content"][data-state="open"]')
+      if (dialog) {
+        // Unclaimed, Cmd+Z is the browser's native undo, which replays the last grid cell edit
+        // behind the modal and saves it. A field inside the dialog keeps its own native undo.
+        if (!dialog.contains(document.activeElement)) event.preventDefault()
+        return
+      }
       const active = document.activeElement as HTMLElement | null
       if (
         active &&
