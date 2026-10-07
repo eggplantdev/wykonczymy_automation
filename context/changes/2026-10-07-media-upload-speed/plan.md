@@ -334,17 +334,17 @@ Run once, after the final code phase:
 
 #### Automated
 
-- [x] 1.1 Sniff spec passes
-- [x] 1.2 Insert DB spec passes
-- [x] 1.3 Route spec passes
+- [x] 1.1 Sniff spec passes — cb41cdec
+- [x] 1.2 Insert DB spec passes — cb41cdec
+- [x] 1.3 Route spec passes — cb41cdec
 
 ### Phase 2: Size router on the draft surfaces
 
 #### Automated
 
-- [ ] 2.1 Router spec passes
-- [ ] 2.2 Chain specs pass
-- [ ] 2.3 Dialog spec passes
+- [x] 2.1 Router spec passes
+- [x] 2.2 Chain specs pass
+- [x] 2.3 Dialog spec passes
 
 ### Phase 3: After-measurement
 

@@ -25,7 +25,7 @@ export class UploadRefusedError extends Error {
   }
 }
 
-const refused = (key: MessageKeyT<'notices'>, params?: TranslationParamsT) =>
+export const refused = (key: MessageKeyT<'notices'>, params?: TranslationParamsT) =>
   new UploadRefusedError(translate('pl', 'notices', key, params), key, params)
 
 /**

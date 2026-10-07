@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vites
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
+import { insertMediaRow } from '@/lib/db/media'
 import { decideExpenseDraft, insertWorkerExpenseDraft } from '@/lib/db/worker-expense-drafts'
 import {
   DRAFT_ALREADY_DECIDED,
@@ -194,6 +195,27 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
       expect(result).toMatchObject({ success: true })
       if (!result.success) return
       expect(await readDraft(result.data.draftId)).toMatchObject({ status: 'pending' })
+    })
+
+    // The fast upload path writes the row itself — the ownership check must still see it as his.
+    it('accepts a photo stored by the fast upload path', async () => {
+      const mediaId = await insertMediaRow(db, {
+        filename: `${FILENAME_PREFIX}send-fast-path.jpg`,
+        mimeType: 'image/jpeg',
+        filesize: 1024,
+        kind: 'faktura',
+        createdById: workerId,
+      })
+
+      const result = await sendExpenseDraftAction({
+        investmentId,
+        cashRegisterId: registerId,
+        note: '',
+        scanMode: 'one-invoice',
+        mediaIds: [mediaId],
+      })
+
+      expect(result).toMatchObject({ success: true })
     })
 
     it.each([

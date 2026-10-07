@@ -17,6 +17,7 @@ import type { ExpenseDraftMediaT } from '@/lib/db/worker-expense-drafts'
 import { MAX_DRAFT_PAGES } from '@/lib/constants/worker-expense-drafts'
 import { toastMessage } from '@/lib/utils/toast'
 import { INVOICE_PREVIEW_LABELS } from '@/lib/media/wording'
+import { uploadMediaBySize } from '@/lib/media/upload-media'
 import type { ActionResultT } from '@/types/action'
 import { useTranslation } from '@/hooks/use-translation'
 
@@ -42,6 +43,7 @@ export function ExpenseDraftPagesCell({ draftId, media, isEditable, variant = 'c
   const { isUploading, uploadFiles } = useMediaUpload({
     attach: (mediaIds) => refreshOnSuccess(() => addExpenseDraftPagesAction(draftId, mediaIds)),
     successMessage: t('photosAdded'),
+    upload: uploadMediaBySize,
   })
   const { visibleFiles, handleRemove, removalConfirm } = useMediaRemoval({
     files: media,

@@ -4471,3 +4471,15 @@ Adresy wpisuj ręcznie w pasku przeglądarki.
       _Staging 2026-10-06 (pass 2):_ formularz z inwestycją i pracownikiem, pozycje z rozpiski (8 pozycji z sekcjami). Link zamknięty/po dezaktywacji w osobnym boxie.
 - [x] Link do zamkniętej inwestycji albo po dezaktywacji pracownika → formularz odmawia wysłania.
       Verified on staging 2026-10-06: deactivated worker -> submit refused (400, no report created); closed investment -> link page shows „Цей об'єкт закрито…”, no form. Reopened/reactivated after.
+
+## EX-1012 — media-upload-speed — szybsze „Wyślij” zgłoszenia wydatku (2026-10-07)
+
+Staging, zalogowany pracownik z własną kasą i etapem na inwestycji. Zdjęcia z telefonu (albo podobne JPEG-i ~300 KB po kompresji).
+
+- [ ] „Dodaj wydatek” → 3 zdjęcia → „Wyślij”: okno zamyka się po ok. 2–3 s (było ~7 s na LTE), zgłoszenie ma 3 strony i każda otwiera się w podglądzie.
+- [ ] Zgłoszenie z jedną stroną → dodaj 2 zdjęcia z komórki ze stronami: są 3 strony, wszystkie się otwierają.
+- [ ] Załącz e-fakturę PDF (~100 KB): zgłoszenie wysłane, PDF otwiera się w podglądzie.
+- [ ] Plik powyżej 4 MB, którego kompresja nie zmniejszy (duży PDF): zgłoszenie dalej się wysyła (wolniej) i plik się otwiera.
+- [ ] Kierownik: „Zweryfikuj” na takim zgłoszeniu i zapis transakcji → jej faktura pokazuje te same strony.
+- [ ] Kierownik: usuń takie zgłoszenie → jego zdjęcia przestają się otwierać (stary link do pliku daje 404).
+- [ ] Inne miejsca dodawania plików (faktura przy transakcji, zdjęcia inwestycji) działają jak dotąd.

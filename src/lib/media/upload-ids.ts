@@ -10,6 +10,9 @@ const UPLOAD_CONCURRENCY = 4
 
 export const UPLOAD_FAILED = translate('pl', 'notices', 'uploadFailed')
 
+/** The contract both upload paths share — `uploadMediaFromClient` and `uploadMediaBySize`. */
+export type MediaUploaderT = (file: File, data?: { kind?: MediaKindT }) => Promise<number>
+
 /**
  * Thrown when any page of a submit fails to upload. Carries the ids that DID land, because those
  * files are already in Blob with nothing referencing them — the caller has to hand them to the
@@ -79,11 +82,15 @@ export async function resolveUploadIdRows(
  * The same upload, from a surface that has no rows — one set of files, in pick order. Spares
  * every such caller the `(1, new Map([[0, files]]))` incantation and the `[pages]` destructure.
  */
-export async function resolveUploadIds(files: File[], kind?: MediaKindT): Promise<number[]> {
+export async function resolveUploadIds(
+  files: File[],
+  kind?: MediaKindT,
+  upload: MediaUploaderT = uploadMediaFromClient,
+): Promise<number[]> {
   const [pages] = await resolveUploadIdRows(
     1,
     new Map([[0, files]]),
-    kind && ((file) => uploadMediaFromClient(file, { kind })),
+    kind ? (file) => upload(file, { kind }) : upload,
   )
   return pages
 }
