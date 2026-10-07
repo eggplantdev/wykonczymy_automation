@@ -89,6 +89,7 @@ describe.skipIf(!ENV_READY)('listing vs detail RENDERED parity — real assembly
         notes: String(d.notes ?? ''),
         reviewRequested: d.reviewRequested === true,
         hasSheet: false,
+        createdAt: String(d.createdAt),
         materialsNetRate: d.materialsNetRate ?? null,
         settlementMode: (d.settlementMode as SettlementModeT) ?? SETTLEMENT_MODE_DEFAULT,
         vatRate: d.vatRate ?? DEFAULT_VAT,

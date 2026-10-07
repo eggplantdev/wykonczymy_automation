@@ -33,6 +33,7 @@ const INVESTMENT: InvestmentRefT = {
   notes: 'Zakres prac: kuchnia, łazienka, salon — bez elewacji.',
   reviewRequested: false,
   hasSheet: false,
+  createdAt: '2026-01-15T10:00:00.000Z',
   materialsNetRate: null,
   settlementMode: 'NET',
   vatRate: 0.23,

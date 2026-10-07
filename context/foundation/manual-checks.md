@@ -4700,3 +4700,9 @@ Pass 1 on `0f4fce3e6` left all three boxes open (stale-width defect). Pass 2 on 
 Regression sweep (console open): horizontal / vertical scroll leaves row heights unchanged (no flicker); section collapse / expand works and restores heights; switching Inwestor / Z narzędziami / Bez narzędzi keeps heights; row-height drag on row 8 stuck at 62 px and survived view switches; typing without jank.
 
 **Test state left behind:** investment 173 — notes on items 13747 / 13748 / 13749 restored to empty, item 13747 description restored to „Demontaż grzejników", item 13760 unit restored to „szt" (DB-verified); localStorage `kosztorys-v2-row-heights` / `kosztorys-v2-col-widths` cleared (a leftover row-height entry may reappear only if the tab re-saves). QA accounts re-upserted by `pnpm qa:staging-user`.
+
+## 2026-10-07 — investments-created-at-column — kolumna „Data dodania” na liście inwestycji
+
+- [ ] Inwestycje → kolumna „Data dodania” stoi zaraz za „Nazwą” i pokazuje datę w formacie dd.mm.rrrr przy każdej inwestycji (żadnego „Invalid Date”).
+- [ ] Kliknięcie nagłówka „Data dodania” sortuje od najnowszej, drugie kliknięcie od najstarszej; nowo dodana inwestycja ląduje na górze przy pierwszym kliknięciu.
+- [ ] Wybór kolumn → „Data dodania” da się ukryć i pokazać, a wybór przetrwa przeładowanie strony.
