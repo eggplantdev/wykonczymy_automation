@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { ExpenseDraftDialog } from '@/components/worker-expenses/expense-draft-dialog'
 import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
+import { uploadMediaBySize } from '@/lib/media/upload-media'
 
 vi.mock('next/navigation', async (importOriginal) => ({
   ...(await importOriginal<typeof import('next/navigation')>()),
@@ -18,9 +19,12 @@ vi.mock('@/lib/actions/worker-expense-drafts', () => ({
   sendExpenseDraftAction,
   updateExpenseDraftAction,
 }))
-vi.mock('@/lib/media/submit-with-uploads', () => ({
-  submitWithUploads: (_files: File[], action: (mediaIds: number[]) => unknown) => action([11, 12]),
+const { submitWithUploads } = vi.hoisted(() => ({
+  submitWithUploads: vi.fn((_files: File[], action: (mediaIds: number[]) => unknown) =>
+    action([11, 12]),
+  ),
 }))
+vi.mock('@/lib/media/submit-with-uploads', () => ({ submitWithUploads }))
 vi.mock('@/lib/media/ingest-picked-files', () => ({
   ingestPickedFiles: async (files: File[]) => ({ files, blocked: [] }),
 }))
@@ -73,6 +77,7 @@ const page = (id: number) => ({
 })
 
 beforeEach(() => {
+  submitWithUploads.mockClear()
   sendExpenseDraftAction.mockReset().mockResolvedValue({ success: true })
   updateExpenseDraftAction.mockReset().mockResolvedValue({ success: true })
 })
@@ -87,6 +92,21 @@ describe('ExpenseDraftDialog scan mode', () => {
     await waitFor(() =>
       expect(sendExpenseDraftAction).toHaveBeenCalledWith(
         expect.objectContaining({ scanMode: 'one-invoice', mediaIds: [11, 12] }),
+      ),
+    )
+  })
+
+  // The send is what a worker waits on — its photos take the size-routed fast path (EX-1012).
+  it('uploads the photos through the size router', async () => {
+    await openNewAndPick(1)
+    await userEvent.click(screen.getByRole('button', { name: 'Wyślij' }))
+
+    await waitFor(() =>
+      expect(submitWithUploads).toHaveBeenCalledWith(
+        expect.any(Array),
+        expect.any(Function),
+        'faktura',
+        uploadMediaBySize,
       ),
     )
   })

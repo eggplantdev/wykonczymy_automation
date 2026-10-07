@@ -34,4 +34,14 @@ describe('resolveUploadIds — media kind', () => {
 
     expect(uploadMediaFromClient.mock.calls).toEqual([[file('faktura.pdf')]])
   })
+
+  it('hands the kind to an injected uploader instead of the default one', async () => {
+    uploadMediaFromClient.mockClear()
+    const upload = vi.fn(async () => 2)
+
+    await resolveUploadIds([file('paragon.jpg')], 'faktura', upload)
+
+    expect(upload.mock.calls).toEqual([[file('paragon.jpg'), { kind: 'faktura' }]])
+    expect(uploadMediaFromClient).not.toHaveBeenCalled()
+  })
 })

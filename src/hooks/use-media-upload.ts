@@ -6,6 +6,7 @@ import { failureMessage } from '@/lib/i18n/failure-message'
 import { reportBlockedFiles } from '@/lib/media/blocked-files-message'
 import { ingestPickedFiles } from '@/lib/media/ingest-picked-files'
 import { submitWithUploads } from '@/lib/media/submit-with-uploads'
+import type { MediaUploaderT } from '@/lib/media/upload-ids'
 import { toastMessage } from '@/lib/utils/toast'
 import type { ActionResultT } from '@/types/action'
 import type { MediaKindT } from '@/types/media'
@@ -14,6 +15,8 @@ type MediaUploadOptionsT = {
   /** Attaches the uploaded ids to whatever owns them; runs only once the bytes are in Blob. */
   attach: (mediaIds: number[]) => Promise<ActionResultT>
   successMessage: string
+  /** Defaults to the browser-to-Blob path; a surface opts into the fast path by passing its router. */
+  upload?: MediaUploaderT
 }
 
 /**
@@ -30,7 +33,7 @@ type MediaUploadOptionsT = {
  * Only the bytes travel through an API route; the attach never does. A future caller that attaches
  * WITHOUT a revalidating action owes its own refresh rather than a reinstatement here.
  */
-export function useMediaUpload({ attach, successMessage }: MediaUploadOptionsT) {
+export function useMediaUpload({ attach, successMessage, upload }: MediaUploadOptionsT) {
   const { locale } = useI18nContext()
   const translator = useTranslation('media')
   const [isUploading, setIsUploading] = useState(false)
@@ -45,7 +48,7 @@ export function useMediaUpload({ attach, successMessage }: MediaUploadOptionsT) 
     if (ready.length === 0) return false
 
     const kind: MediaKindT | undefined = asPlan ? 'projekt' : undefined
-    const result = await submitWithUploads(ready, attach, kind)
+    const result = await submitWithUploads(ready, attach, kind, upload)
     if (!result.success) {
       toastMessage(failureMessage(locale, result), 'error')
       return false
