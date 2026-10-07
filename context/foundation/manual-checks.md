@@ -4651,3 +4651,11 @@ JPEG-i ~300 KB; „duży plik" = PDF powyżej 4 MB.
 - [ ] Android z już zainstalowaną aplikacją, strona otwarta w karcie Chrome: przycisk jest ukryty albo po 60 s zmienia się w podpowiedź o menu przeglądarki — nigdy nie zostaje w ładowaniu.
 - [ ] Język konta „Українська” / „Русский”: przycisk, podpowiedź i instrukcja dla iPhone’a są przetłumaczone.
 - [ ] Przycisku nie ma na cudzej stronie pracownika ani u kierownika oglądającego stronę pracownika.
+
+## 2026-10-07 — kosztorys-cell-arithmetic — działania w komórkach liczbowych kosztorysu
+
+- [ ] Edytor kosztorysu → wpisz `3,5x2,8` w „Przedmiar” i Enter: w komórce zostaje `9,8`, „Wartość netto przedmiar” wiersza się przelicza.
+- [ ] Wpisz `=10/3` w „Cena j.m.”: zostaje `3,33`.
+- [ ] Wpisz `2*` w komórkę liczbową i kliknij obok: wraca poprzednia wartość z komunikatem o odrzuconym wpisie.
+- [ ] Skopiuj `(2+3)*1,5` z edytora tekstu i wklej na zaznaczoną komórkę ilości w etapie: ląduje `7,5`.
+- [ ] Zwykła liczba (`12,5`) w dowolnej komórce zachowuje się jak dotąd.

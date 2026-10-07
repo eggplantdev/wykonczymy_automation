@@ -50,6 +50,27 @@ describe('parseCellDecimal(decimalText(x)) round trip', () => {
   })
 })
 
+describe('parseCellDecimal — działania', () => {
+  it('liczy działanie i zaokrągla wynik do dwóch miejsc', () => {
+    expect(parseCellDecimal('3,5x2,8')).toEqual({ kind: 'value', value: 9.8 })
+    expect(parseCellDecimal('10/3')).toEqual({ kind: 'value', value: 3.33 })
+    expect(parseCellDecimal('= 2 + 2')).toEqual({ kind: 'value', value: 4 })
+  })
+
+  it('niedokończone działanie → invalid (nie kasuje pola)', () => {
+    expect(parseCellDecimal('2*')).toEqual({ kind: 'invalid' })
+    expect(parseCellDecimal('=')).toEqual({ kind: 'invalid' })
+  })
+
+  it('zwykłej liczby nie zaokrągla', () => {
+    expect(parseCellDecimal('3,333')).toEqual({ kind: 'value', value: 3.333 })
+  })
+
+  it('formularze zostają przy ścisłym parsowaniu', () => {
+    expect(parseDecimalInput('2*3')).toEqual({ kind: 'invalid' })
+  })
+})
+
 describe('toMoney', () => {
   it('reads a comma as the decimal separator', () => {
     expect(toMoney('12,50')).toBe(12.5)
