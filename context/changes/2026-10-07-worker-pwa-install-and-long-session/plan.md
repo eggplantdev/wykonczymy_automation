@@ -514,31 +514,31 @@ Run **once**, after the final phase.
 
 #### Automated
 
-- [ ] 1.1 `pnpm exec vitest run src/__tests__/lib/db/user-sessions.db.test.ts` passes
-- [ ] 1.2 `pnpm exec vitest run src/__tests__/lib/auth/get-current-user-jwt.test.ts` passes
-- [ ] 1.3 `pnpm exec vitest run src/__tests__/toggle-actions.test.ts src/__tests__/lib/actions/worker-trash.db.test.ts` passes
+- [x] 1.1 `pnpm exec vitest run src/__tests__/lib/db/user-sessions.db.test.ts` passes — c53a13ad
+- [x] 1.2 `pnpm exec vitest run src/__tests__/lib/auth/get-current-user-jwt.test.ts` passes — c53a13ad
+- [x] 1.3 `pnpm exec vitest run src/__tests__/toggle-actions.test.ts src/__tests__/lib/actions/worker-trash.db.test.ts` passes — c53a13ad
 
 ### Phase 2: 90-day sliding session and Secure cookie
 
 #### Automated
 
-- [ ] 2.1 `pnpm exec vitest run src/__tests__/lib/auth/session-refresh.test.ts` passes
+- [x] 2.1 `pnpm exec vitest run src/__tests__/lib/auth/session-refresh.test.ts` passes — 296905dc
 
 ### Phase 3: PWA surface — manifest, icons, service worker
 
 #### Automated
 
-- [ ] 3.1 `/manifest.webmanifest` returns 200 without a cookie
-- [ ] 3.2 `/sw.js` returns 200 without a cookie
+- [x] 3.1 `/manifest.webmanifest` returns 200 without a cookie — 40033f2c
+- [x] 3.2 `/sw.js` returns 200 without a cookie — 40033f2c
 
 ### Phase 4: Install button on the user's own page
 
 #### Automated
 
-- [ ] 4.1 `pnpm exec vitest run src/__tests__/lib/pwa/install-state.test.ts` passes
+- [x] 4.1 `pnpm exec vitest run src/__tests__/lib/pwa/install-state.test.ts` passes — 5b3e59c4
 
 ### Phase 5: Living docs
 
 #### Automated
 
-- [ ] 5.1 None — prose-only phase
+- [x] 5.1 None — prose-only phase — 744856d4

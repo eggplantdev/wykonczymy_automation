@@ -1,7 +1,7 @@
 ---
 change_id: worker-pwa-install-and-long-session
 title: Installable app icon for workers and a session that survives monthly use
-status: implementing
+status: implemented
 created: 2026-10-07
 updated: 2026-10-07
 archived_at: null
