@@ -189,8 +189,6 @@ Left behind:
 
 ## After EX-1014
 
-## After EX-1014
-
 Measured 2026-10-07, 14:48–14:55 (CEST), same protocol as the baseline above (same harness with the
 target URL and request matchers changed, same OWNER account, investment 184, transfer #5411, fixtures,
 viewport, profiles, scenario order 3 → 2 → 1, 1 warm-up + 3 runs, t0/t1 definitions). Standalone

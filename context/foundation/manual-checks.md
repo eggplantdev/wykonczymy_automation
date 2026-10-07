@@ -4614,10 +4614,11 @@ JPEG-i ~300 KB; „duży plik" = PDF powyżej 4 MB.
 - [ ] Galeria inwestycji: dodaj plik jako „projekt" (rzut) → ląduje jako projekt, nie jako zwykłe zdjęcie.
 - [ ] Edycja inwestycji → pole plików: dodaj i usuń plik → zapis zgadza się z tym, co widać.
 - [ ] Raport ze skanu: dodaj zdjęcia → raport zapisany, zdjęcia się otwierają.
-- [ ] Plik SVG (i SVG przemianowany na `.jpg`) w dowolnym z tych miejsc → odrzucony z komunikatem „to nie jest zdjęcie ani PDF", nic nie zostaje zapisane.
+- [ ] Plik SVG w dowolnym z tych miejsc → po kliknięciu zapisu odrzucony z komunikatem „Dozwolone są tylko zdjęcia i pliki PDF", nic nie zostaje zapisane. SVG przemianowany na `.jpg` → „Plik „….jpg" został odrzucony — może być uszkodzony.", też bez zapisu.
 - [ ] Usuń transakcję z fakturą (mały plik) i drugą z dużym PDF → stary link do pliku daje 404 w obu przypadkach.
 - [ ] Dwie karty naraz: w każdej dodaj 5 zdjęć do galerii (jedna z nich z dużym plikiem) → wszystkie pliki są w galerii, w logach Vercela brak „Failed to persist upload data".
 - [ ] Okno leada (zgłoszenie z Facebooka) z plikami → miniatury wyglądają jak dotąd.
+- [ ] Zgłoszenie z formularza na stronie (landing) ze zdjęciem z telefonu i PDF-em → oba pliki są przy zgłoszeniu, miniatura zdjęcia się wyświetla.
 - [ ] Konto pracownika: „Dodaj wydatek" z 3 zdjęciami → „Wyślij" działa jak po EX-1012; dodanie stron do oczekującego zgłoszenia działa.
 
 ## 2026-10-07 — worker-page-quick-actions — „Dodaj wydatek” i „Zgłoś pracę” nad „Moimi kasami”
