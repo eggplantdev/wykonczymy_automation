@@ -83,3 +83,49 @@ wypisuje markdown: liczniki, dopasowanie arkusz/aplikacja, rozkład powtórzeń 
 się z podpowiedziami katalogu. Kolumna A?/B?/C? to automatyczny pierwszy podział (ten sam opis inna
 j.m. / podpowiedź ≥ 0,9 / słabsza podpowiedź / brak) — „Montaż zaworów" ląduje w B? przez słabe
 podpowiedzi, więc grupy weryfikować ręcznie. ~5 s.
+
+Ten sam skrypt pisze też `template-usage.html` (otwierać w przeglądarce): użycie każdej pracy
+szablonu (`TEMPLATE=…`, domyślnie „Kosztorys 2026 kolory”), z pracami pod inną nazwą lub j.m.
+doliczonymi do „łącznie”. Kandydatów na duplikaty szuka automat (podobna nazwa, ten sam opis w innej
+j.m.) wśród prac użytych w aplikacji i w starych arkuszach Google, a o tym, czy to ta sama praca,
+decyduje ręczna ocena w `refresh/template-verdicts.tsv`. Para bez oceny wychodzi w raporcie jako
+NIESPRAWDZONE, więc po świeżym dumpie trzeba ocenić tylko nowe pary. Cały przepis — kroki, zasady
+oceniania par, ograniczenia — w `refresh/README.md`.
+
+Drugi raport z tego samego przebiegu, `catalogue-usage.html`, liczy to samo dla całego katalogu prac.
+
+### Źródła użycia: aplikacja + stare arkusze Google
+
+Pierwsza wersja obu raportów liczyła użycie tylko w kosztorysach aplikacji i dawała 200 „nigdy
+nieużytych” wpisów katalogu, z czego 159 „nie stoi w żadnym kosztorysie”. Ten wynik był błędny jako
+podstawa do kasowania (owner, 2026-10-06): wpisy katalogu spisano ze starych szablonów i arkuszy, a
+potem przemianowano, więc ich użycie stoi pod starymi nazwami w arkuszach, których aplikacja nie
+zna. Poprawki:
+
+- drugim źródłem są zrzuty starych arkuszy Google (`refresh/legacy.ts`) — 54 przeczytane: 27
+  inwestycji bez kosztorysu w aplikacji i 27 starszych kopii kosztorysów, które w aplikacji są, a
+  mimo to niosą 515 użytych pozycji, których aplikacja nie ma;
+- liczy się liczba inwestycji, każda raz, niezależnie od tego, w ilu kopiach kosztorysu praca stoi;
+- prace wychodzące jako „nigdy nieużyte” dostają drugie, luźniejsze szukanie podobnych nazw (jedno
+  wspólne charakterystyczne słowo);
+- wszystkie pary ocenione ręcznie: 3 251 (645 „ta sama”, 2 606 „inna”).
+
+### Szablon „Kosztorys 2026 kolory” — użycie prac (dump 2026-10-06)
+
+307 prac: 10 nigdy nieużytych (także pod inną nazwą), 46 używanych tylko pod inną nazwą / j.m., 251
+używanych (przed dołożeniem starych arkuszy: 34 / 37 / 236). Szablon stoi w ~17 kosztorysach
+(Klimatyzacja w 11); praca dodana do szablonu niedawno nie ma historii w starych arkuszach, więc dla
+niej „nieużyta” nadal znaczy „0 na ~17”.
+
+Szablon ma wewnętrzne bliźniaki (ta sama praca dwa razy, często w różnych sekcjach), m.in. syfonu /
+syfonów, gniazdek i włączników / „standard”, punkty oświetleniowe / „czujki, rolety”, LED / taśm LED,
+listwy + taśmy LED mb / kpl, transformatora / transformatorów, naprawy po bruzdach ×2, gładź po
+bruzdach ×2, narożniki / narożniki aluminiowe, ościeżnica z drzwiami / drzwi z ościeżnicą regulowaną.
+
+### Katalog prac — użycie (dump 2026-10-06)
+
+564 wpisy: 22 nigdy nieużyte (także pod inną nazwą), 130 używanych tylko pod inną nazwą / j.m., 412
+używanych (przed dołożeniem starych arkuszy: 200 / 69 / 295). Z 22 nieużytych 9 nie stoi pod swoją
+nazwą w żadnym kosztorysie ani arkuszu, 13 stoi zawsze z zerami; 9 z nich jest też w szablonie
+„Kosztorys 2026 kolory” i tam również wychodzi jako nieużyte. Katalog ma wiele wewnętrznych
+bliźniaków (ta sama praca dwa razy) — raport oznacza je „też w katalogu”.
