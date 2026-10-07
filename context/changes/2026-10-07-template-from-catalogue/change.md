@@ -14,6 +14,8 @@ worktree: null
 Ustalenia wstępne z rozmowy z ownerem 2026-10-07 — kształtowanie, nic nie zaimplementowane.
 Dane z `prod-snap` (dump prod 2026-10-07 08:36 UTC).
 
+Linear: **EX-1017**.
+
 ### Problem
 
 Szablon (inwestycja ze statusem `szablon`) trzyma własną, pełną kopię prac: opisy, ceny, mnożniki,
