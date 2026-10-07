@@ -6,6 +6,11 @@ Only what's true for THIS repo and not inferable from the framework or `@package
 
 Business management dashboard for cash registers, transfers, investments, and employees. Next.js + Payload CMS. **Polish UI, English code.** Code comments are always in English, even when the UI strings they sit next to are Polish. Versions in `@package.json`.
 
+**Scale is growing — never assume „five users".** A handful of management accounts plus every worker
+(EMPLOYEE), who are being given logins to report work and hours from their phones on site (EX-947,
+EX-985) — ~40 accounts on 2026-10-07 and rising. Still small: size risk and mitigations to dozens of
+concurrent phone users, not to enterprise traffic.
+
 ### Naming a financial figure
 
 Canonical identifiers, the App↔Code translation, and the drift still to fix live in the glossary
