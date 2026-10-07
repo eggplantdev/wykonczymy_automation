@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
-import { insertMediaRow } from '@/lib/db/media'
+import { deleteMediaRow, insertMediaRow } from '@/lib/db/media'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 
 vi.mock('server-only', () => ({}))
@@ -85,5 +85,20 @@ describe.skipIf(!ENV_READY)('insertMediaRow (DB)', () => {
 
     const { rows } = await db.execute(sql`SELECT kind FROM media WHERE id = ${id}`)
     expect(rows[0].kind).toBeNull()
+  })
+
+  it('deletes the row a failed Blob put left without bytes', async () => {
+    const id = await insertMediaRow(db, {
+      filename: `${FILENAME_PREFIX}byteless.jpg`,
+      mimeType: 'image/jpeg',
+      filesize: 1_000,
+      kind: null,
+      createdById: uploaderId,
+    })
+
+    await deleteMediaRow(db, id)
+
+    const { rows } = await db.execute(sql`SELECT id FROM media WHERE id = ${id}`)
+    expect(rows).toHaveLength(0)
   })
 })

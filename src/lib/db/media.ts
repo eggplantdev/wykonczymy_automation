@@ -11,7 +11,7 @@ type NewMediaRowT = {
 }
 
 /**
- * A `media` row for bytes already in Blob under `filename`, written without Payload's upload
+ * A `media` row for bytes stored in Blob under `filename`, written without Payload's upload
  * pipeline (the download-thumbnail-reupload round trip is what made the worker's send slow). The
  * `url` is the one Payload derives, so `/api/media/file/<filename>` and every reader treat the row
  * like a Payload-made one; the thumbnail and dimension columns stay NULL — no reader of these
@@ -25,4 +25,8 @@ export async function insertMediaRow(db: DbExecutorT, row: NewMediaRowT): Promis
     RETURNING id
   `)
   return Number(rows[0].id)
+}
+
+export async function deleteMediaRow(db: DbExecutorT, id: number): Promise<void> {
+  await db.execute(sql`DELETE FROM media WHERE id = ${id}`)
 }

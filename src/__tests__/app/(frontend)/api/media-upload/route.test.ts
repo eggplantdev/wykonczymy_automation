@@ -12,23 +12,22 @@ vi.mock('@/lib/auth/get-current-user-jwt', () => ({
 }))
 
 const mockPut = vi.fn()
-const mockDel = vi.fn()
 vi.mock('@vercel/blob', () => ({
   put: (...args: unknown[]) => mockPut(...args),
-  del: (...args: unknown[]) => mockDel(...args),
 }))
 
 const mockInsert = vi.fn()
+const mockDeleteRow = vi.fn()
 vi.mock('@/lib/db/media', () => ({
   insertMediaRow: (...args: unknown[]) => mockInsert(...args),
+  deleteMediaRow: (...args: unknown[]) => mockDeleteRow(...args),
 }))
 
 const { POST } = await import('@/app/(frontend)/api/media-upload/route')
-const { FAST_UPLOAD_MAX_BYTES } = await import('@/lib/media/upload-limits')
+const { ROUTE_BODY_MAX_BYTES } = await import('@/lib/constants/route-body')
 const { CACHE_TAGS, EXPIRE_NOW } = await import('@/lib/cache/tags')
 
 const JPEG_HEAD = [0xff, 0xd8, 0xff, 0xe0]
-const BLOB_URL = 'https://store.public.blob.vercel-storage.com/paragon.jpg'
 
 function jpeg(name = 'paragon.jpg', size = 1024) {
   const body = new Uint8Array(size)
@@ -47,8 +46,8 @@ beforeEach(() => {
   vi.clearAllMocks()
   process.env.BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_test'
   mockGetUser.mockResolvedValue({ id: 7, role: 'EMPLOYEE' })
-  mockPut.mockResolvedValue({ url: BLOB_URL })
-  mockDel.mockResolvedValue(undefined)
+  mockPut.mockResolvedValue({ url: 'https://store.public.blob.vercel-storage.com/paragon.jpg' })
+  mockDeleteRow.mockResolvedValue(undefined)
   mockInsert.mockResolvedValue(42)
 })
 
@@ -101,12 +100,11 @@ describe('POST /api/media-upload', () => {
   })
 
   it('takes a file of exactly the threshold and refuses one byte more', async () => {
-    expect((await POST(request(jpeg('a.jpg', FAST_UPLOAD_MAX_BYTES)))).status).toBe(200)
-    expect((await POST(request(jpeg('b.jpg', FAST_UPLOAD_MAX_BYTES + 1)))).status).toBe(413)
+    expect((await POST(request(jpeg('a.jpg', ROUTE_BODY_MAX_BYTES)))).status).toBe(200)
+    expect((await POST(request(jpeg('b.jpg', ROUTE_BODY_MAX_BYTES + 1)))).status).toBe(413)
     expect(mockPut).toHaveBeenCalledTimes(1)
   })
 
-  // A public blob served under an attacker-chosen type is how an upload becomes a script.
   it('refuses HTML named as a photo', async () => {
     const html = new File(['<html><script>x</script>'], 'paragon.jpg', { type: 'image/jpeg' })
 
@@ -114,21 +112,19 @@ describe('POST /api/media-upload', () => {
     expect(mockPut).not.toHaveBeenCalled()
   })
 
-  // Before the row exists nothing else knows the key — a failed insert must not bank a blob.
-  it('removes the blob when the row insert fails', async () => {
-    mockInsert.mockRejectedValue(new Error('db down'))
+  it('stores no bytes when the row insert fails, a taken filename included', async () => {
+    mockInsert.mockRejectedValue(Object.assign(new Error('duplicate key'), { code: '23505' }))
 
-    const response = await POST(request(jpeg()))
-
-    expect(response.status).toBe(500)
-    expect(mockDel).toHaveBeenCalledWith(BLOB_URL, { token: 'vercel_blob_rw_test' })
+    expect((await POST(request(jpeg()))).status).toBe(500)
+    expect(mockPut).not.toHaveBeenCalled()
     expect(revalidateTag).not.toHaveBeenCalled()
   })
 
-  it('answers 500 without touching the DB when the Blob put fails', async () => {
+  it('removes the row when the Blob put fails', async () => {
     mockPut.mockRejectedValue(new Error('blob down'))
 
     expect((await POST(request(jpeg()))).status).toBe(500)
-    expect(mockInsert).not.toHaveBeenCalled()
+    expect(mockDeleteRow).toHaveBeenCalledWith(expect.anything(), 42)
+    expect(revalidateTag).not.toHaveBeenCalled()
   })
 })
