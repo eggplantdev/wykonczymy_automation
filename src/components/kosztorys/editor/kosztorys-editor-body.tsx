@@ -63,7 +63,7 @@ import {
 } from '@/lib/kosztorys/synthetic-rows'
 import {
   CLIPPED_CELL_CLASS,
-  columnContentLines,
+  columnLines,
   measuredColumns,
   rowContentLines,
   wrapColumnClass,
@@ -130,8 +130,6 @@ export type ReportGridControlsT = {
   reportedOnly: boolean
   onReportedOnly: (value: boolean) => void
 }
-
-const NO_CLIPPED_COLUMNS: ReadonlySet<string> = new Set()
 
 // Seeds the grid from `tree` at mount, so remounting it with a fresh `key` is how a restore re-seeds
 // the whole grid (see KosztorysEditorV2).
@@ -324,7 +322,6 @@ export function KosztorysEditorBody({
     () =>
       columns
         .map((column) => (pastVersion ? withHistoryChanges(column, pastVersion.diff) : column))
-        // The header is the node the row-height measurement reads a column's width off.
         .map((column) =>
           column.id
             ? { ...column, headerClassName: cn(column.headerClassName, wrapColumnClass(column.id)) }
@@ -368,19 +365,25 @@ export function KosztorysEditorBody({
   const datasheetRef = useRef<DataSheetGridRef>(null)
   const gridRowKeys = useMemo(() => gridRows.map((row) => String(row.id)), [gridRows])
 
-  // The client's rows size themselves to their „Opis prac": no drag handle, no way to open a
-  // truncated description. The owner's stay at 32px until dragged, since an editor with every long
+  // The client's rows size themselves to their content: no drag handle, no way to open a truncated
+  // text. The owner's stay at 32px until dragged, since an editor with every long
   // description expanded is unscannable. The measurement runs in both — in the editor it is what
   // „Dopasuj wysokość do treści" fits a row to.
   const measured = useMemo(() => measuredColumns(columns), [columns])
-  const measuredIds = useMemo(() => measured.map((column) => column.id), [measured])
+  // Keyed on the joined ids: `columns` is rebuilt on every edit, and a fresh array would tear down and
+  // redo the width measurement each time.
+  const measuredKey = measured.map((column) => column.id).join('|')
+  const measuredIds = useMemo(() => measuredKey.split('|').filter(Boolean), [measuredKey])
   const wrap = useWrapColumnWidths(gridNode, measuredIds)
-  // Nothing worth caching twice: measureTextWidth caches every width it has measured, and dsg asks
-  // for a row's height once per scroll that extends its measured range.
-  const contentLinesFor = useMemo(() => {
+  // Cached per row because the row's height and every one of its cells' „…" read the same counts.
+  const columnLinesFor = useMemo(() => {
     const measure = measureTextWidth(wrap.font)
-    return (row: KosztorysV2RowT) => rowContentLines(row, measured, wrap.widths, measure)
+    return memoisedByRow((row) => columnLines(row, measured, wrap.widths, measure))
   }, [wrap, measured])
+  const contentLinesFor = useMemo(
+    () => (row: KosztorysV2RowT) => rowContentLines(columnLinesFor(row)),
+    [columnLinesFor],
+  )
   // Both readings of „size me from the content" invalidate every cached height at once, not just the
   // rows below an inserted one — the owner's toggle included, since flipping it changes what every
   // row measures to without saying which rows changed.
@@ -415,37 +418,31 @@ export function KosztorysEditorBody({
             setRowHeight(String(row.id), fitRowHeight(row.id, contentLinesFor(row))),
     [preview, setRowHeight, contentLinesFor],
   )
-  // The „…" lands on the cell that is hiding something rather than on the whole row. Measured from the
-  // same line count „Dopasuj wysokość do treści" uses, so the cue and the fit can't disagree. No cue in
-  // the preview: its rows are sized from this measurement. Cached per row because dsg asks once per
-  // cell, and the row's height needs every column's line count.
-  const clippedColumnsFor = useMemo(() => {
-    const measure = measureTextWidth(wrap.font)
-    const clippedColumns = memoisedByRow((row): ReadonlySet<string> => {
-      const columnLines = measured.map((column) => ({
-        id: column.id,
-        lines: columnContentLines(row, column, wrap.widths, measure),
-      }))
-      const height = resolveRowHeight({
-        isSectionBand: false,
-        override: rowHeights[String(row.id)],
-        contentLines: fitRowsToContent
-          ? Math.max(1, ...columnLines.map((column) => column.lines))
-          : undefined,
-      })
-      return new Set(
-        columnLines
-          .filter((column) => heightForLines(column.lines) > height)
-          .map((column) => column.id),
-      )
-    })
-    return (row: KosztorysV2RowT): ReadonlySet<string> =>
-      // A band's label deliberately overflows its own cell onto the empty ones beside it, so
-      // measuring it against its column's width would flag every band as clipped.
-      preview || isSyntheticRow(row.id) || isSectionHeaderRow(row.id) || isSectionFooterRow(row.id)
-        ? NO_CLIPPED_COLUMNS
-        : clippedColumns(row)
-  }, [preview, wrap, rowHeights, fitRowsToContent, measured])
+  const rowHeightFor = useMemo(
+    () => (row: KosztorysV2RowT) =>
+      resolveRowHeight({
+        isSectionBand: isSectionHeaderRow(row.id),
+        // The client's heights come from the content, full stop — the owner's drags live in the same
+        // localStorage origin, so reading them here would let the owner's flattened editor rows clip
+        // the offer they open to check.
+        override: preview ? undefined : rowHeights[String(row.id)],
+        contentLines: sizeToContent && !isSyntheticRow(row.id) ? contentLinesFor(row) : undefined,
+      }),
+    [preview, rowHeights, sizeToContent, contentLinesFor],
+  )
+  // Measured against the very height the grid gives the row, so the cue and the fit can't disagree.
+  // No cue in the preview: its rows are sized from this measurement.
+  const isClipped = useMemo(
+    () =>
+      (row: KosztorysV2RowT, columnId: string): boolean => {
+        // A band's label deliberately overflows its own cell onto the empty ones beside it, so
+        // measuring it against its column's width would flag every band as clipped.
+        if (preview || isSyntheticRow(row.id)) return false
+        const lines = columnLinesFor(row).get(columnId)
+        return lines !== undefined && heightForLines(lines) > rowHeightFor(row)
+      },
+    [preview, columnLinesFor, rowHeightFor],
+  )
   const gutterColumn = useMemo(
     () => ordinalGutterColumn({ ordinals: ordinalByRowId, resize: rowResize }),
     [ordinalByRowId, rowResize],
@@ -600,19 +597,7 @@ export function KosztorysEditorBody({
                       columns={gridColumns}
                       gutterColumn={hidesGutter ? false : gutterColumn}
                       height={gridHeightBesideTotals}
-                      rowHeight={({ rowData }) =>
-                        resolveRowHeight({
-                          isSectionBand: isSectionHeaderRow(rowData.id),
-                          // The client's heights come from the content, full stop — the owner's drags live
-                          // in the same localStorage origin, so reading them here would let the owner's
-                          // flattened editor rows clip the offer they open to check.
-                          override: preview ? undefined : rowHeights[String(rowData.id)],
-                          contentLines:
-                            sizeToContent && !isSyntheticRow(rowData.id)
-                              ? contentLinesFor(rowData)
-                              : undefined,
-                        })
-                      }
+                      rowHeight={({ rowData }) => rowHeightFor(rowData)}
                       // Tall enough that verbose column labels („Pozostało netto (względem aktualizacji przedmiaru)" etc.)
                       // wrap onto two rows instead of truncating — and draggable from the same handle as a
                       // row, since which labels wrap depends on how wide the owner made their columns.
@@ -626,7 +611,7 @@ export function KosztorysEditorBody({
                       lockRows
                       rowKey={({ rowData }) => String(rowData.id)}
                       cellClassName={({ rowData, columnId }) =>
-                        columnId && clippedColumnsFor(rowData as KosztorysV2RowT).has(columnId)
+                        columnId && isClipped(rowData as KosztorysV2RowT, columnId)
                           ? CLIPPED_CELL_CLASS
                           : undefined
                       }

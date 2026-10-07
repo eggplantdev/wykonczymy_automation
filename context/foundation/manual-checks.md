@@ -4685,5 +4685,5 @@ JPEG-i ~300 KB; „duży plik" = PDF powyżej 4 MB.
 ## 2026-10-07 — kosztorys-fit-all-columns — „Dopasuj wysokość do treści” mierzy każdą kolumnę
 
 - [ ] Kosztorys → wpisz długi tekst w kolumnie tekstowej innej niż „Opis prac” (notatka, nazwa sekcji, tłumaczenie, „Komentarz do pracy”): w komórce widać „…”; menu wiersza → „Dopasuj wysokość do treści” podnosi wiersz tak, że cały tekst jest widoczny.
-- [ ] Wiersz z krótkimi tekstami i statusem przeglądu / rodzajem rabatu / trybem ceny: „Dopasuj wysokość do treści” zostawia wiersz w jednej linii, a w tych komórkach nie ma „…”.
+- [ ] Wiersz z krótkimi tekstami i statusem przeglądu / rodzajem rabatu / trybem ceny / długą jednostką w „j.m.”: „Dopasuj wysokość do treści” zostawia wiersz w jednej linii, a w tych komórkach nie ma „…”.
 - [ ] Zwiń szerokość kolumny z długim tekstem: „…” pojawia się tylko w tej komórce, nie w całym wierszu; po poszerzeniu kolumny znika.

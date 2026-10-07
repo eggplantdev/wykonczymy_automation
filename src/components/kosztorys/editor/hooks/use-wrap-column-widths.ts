@@ -29,7 +29,7 @@ const EMPTY: WrapWidthsT = { widths: {}, font: `${CELL_FONT_WEIGHT} ${CELL_FONT_
  */
 export function useWrapColumnWidths(
   containerRef: RefObject<HTMLElement | null>,
-  columnIds: readonly (string | undefined)[],
+  columnIds: readonly string[],
 ): WrapWidthsT {
   const [measured, setMeasured] = useState<WrapWidthsT>(EMPTY)
 
@@ -46,7 +46,6 @@ export function useWrapColumnWidths(
         if (!columnIds.includes(id)) delete widths[id]
       }
       for (const id of columnIds) {
-        if (!id) continue
         const cell = container.querySelector(
           `.dsg-row-header .dsg-cell-header.${wrapColumnClass(id)}`,
         )
