@@ -50,7 +50,11 @@ beforeEach(() => {
   process.env.BLOB_READ_WRITE_TOKEN = 'vercel_blob_rw_store1_secret'
   vi.stubGlobal('fetch', fetchMock)
   mockGetUser.mockResolvedValue({ id: 7, role: 'EMPLOYEE' })
-  mockHead.mockResolvedValue({ size: 6_000_000, uploadedAt: minutesAgo(1) })
+  mockHead.mockResolvedValue({
+    size: 6_000_000,
+    uploadedAt: minutesAgo(1),
+    contentType: 'application/pdf',
+  })
   fetchMock.mockResolvedValue(new Response(PDF_HEAD, { status: 206 }))
   mockInsert.mockResolvedValue(42)
   mockIsReferenced.mockResolvedValue(false)
@@ -65,7 +69,10 @@ describe('POST /api/media-register', () => {
     expect(response.status).toBe(200)
     await expect(response.json()).resolves.toEqual({ id: 42 })
     expect(mockHead).toHaveBeenCalledWith(BLOB_URL, { token: 'vercel_blob_rw_store1_secret' })
-    expect(fetchMock).toHaveBeenCalledWith(BLOB_URL, { headers: { Range: 'bytes=0-1023' } })
+    expect(fetchMock).toHaveBeenCalledWith(
+      BLOB_URL,
+      expect.objectContaining({ headers: { Range: 'bytes=0-1023' } }),
+    )
     expect(mockInsert).toHaveBeenCalledWith(expect.anything(), {
       filename: FILENAME,
       mimeType: 'application/pdf',
@@ -97,9 +104,12 @@ describe('POST /api/media-register', () => {
     expect(mockInsert).not.toHaveBeenCalled()
   })
 
-  // An old key is someone's stored faktura, not this caller's upload — never read, never deleted.
   it('refuses a stale blob without touching it', async () => {
-    mockHead.mockResolvedValue({ size: 6_000_000, uploadedAt: minutesAgo(61) })
+    mockHead.mockResolvedValue({
+      size: 6_000_000,
+      uploadedAt: minutesAgo(61),
+      contentType: 'application/pdf',
+    })
 
     expect((await POST(request({ filename: FILENAME }))).status).toBe(400)
     expect(fetchMock).not.toHaveBeenCalled()
@@ -117,6 +127,34 @@ describe('POST /api/media-register', () => {
     expect(mockDel).toHaveBeenCalledWith(BLOB_URL, { token: 'vercel_blob_rw_store1_secret' })
   })
 
+  it('refuses PDF bytes the browser declared as markup, since the blob is served as declared', async () => {
+    mockHead.mockResolvedValue({
+      size: 6_000_000,
+      uploadedAt: minutesAgo(1),
+      contentType: 'text/html',
+    })
+
+    expect((await POST(request({ filename: FILENAME }))).status).toBe(415)
+    expect(mockInsert).not.toHaveBeenCalled()
+    expect(mockDel).toHaveBeenCalledWith(BLOB_URL, { token: 'vercel_blob_rw_store1_secret' })
+  })
+
+  it('sniffs only the first KB when the CDN ignores the range and sends the whole file', async () => {
+    const whole = new Uint8Array(6_000)
+    whole.set(PDF_HEAD)
+    fetchMock.mockResolvedValue(new Response(whole, { status: 200 }))
+
+    expect((await POST(request({ filename: FILENAME }))).status).toBe(200)
+  })
+
+  it('answers 500 and keeps the blob when the range read fails', async () => {
+    fetchMock.mockRejectedValue(new Error('timeout'))
+
+    expect((await POST(request({ filename: FILENAME }))).status).toBe(500)
+    expect(mockInsert).not.toHaveBeenCalled()
+    expect(mockDel).not.toHaveBeenCalled()
+  })
+
   it('keeps a refused type whose filename a row holds', async () => {
     fetchMock.mockResolvedValue(new Response(HTML_HEAD, { status: 206 }))
     mockIsReferenced.mockResolvedValue(true)
@@ -125,7 +163,6 @@ describe('POST /api/media-register', () => {
     expect(mockDel).not.toHaveBeenCalled()
   })
 
-  // A taken filename means the blob already belongs to a row.
   it('answers a second registration of the same blob with 409 and keeps the blob', async () => {
     mockInsert.mockRejectedValue(
       new Error('insert failed', { cause: Object.assign(new Error('dup'), { code: '23505' }) }),

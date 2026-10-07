@@ -13,7 +13,7 @@ import { insertMediaRow, isMediaFilenameReferenced } from '@/lib/db/media'
 import { UNIQUE_VIOLATION, hasPgCode } from '@/lib/db/pg-error'
 import { serverEnv } from '@/lib/env/server'
 import { blobPublicUrl, blobStoreIdOf } from '@/lib/media/blob-public-url'
-import { SNIFF_BYTES, sniffMime } from '@/lib/media/sniff-mime'
+import { SNIFF_BYTES, isAllowedUploadMime, sniffMime } from '@/lib/media/sniff-mime'
 import { perfStart } from '@/lib/perf'
 import { logError } from '@/lib/utils/log-error'
 import { MEDIA_KINDS } from '@/types/media'
@@ -21,15 +21,16 @@ import { MEDIA_KINDS } from '@/types/media'
 /**
  * The second hop of a file too big for `/api/media-upload`: the browser has already PUT the bytes
  * to Blob under `filename`, and this turns that blob into a `media` row from its metadata and its
- * first KB — no download of the whole file, no thumbnail, no re-PUT.
+ * first KB.
  *
- * The filename comes from the client, so the route never deletes a blob it cannot prove is the
- * caller's fresh, unreferenced upload: production Blob holds tax-retained faktury and has no undelete.
+ * The filename comes from the client, so the route never deletes a blob it cannot prove is a
+ * fresh, unreferenced upload: production Blob holds tax-retained faktury and has no undelete.
  */
 
 // Long enough for a slow PUT of a big PDF to reach this call; short enough that an old faktura's
 // key can never pass as a fresh upload.
 const FRESH_MS = 60 * 60 * 1000
+const RANGE_TIMEOUT_MS = 10_000
 
 const bodySchema = z.object({
   filename: z
@@ -40,6 +41,22 @@ const bodySchema = z.object({
 })
 
 const failure = (error: string, status: number) => NextResponse.json({ error }, { status })
+
+// A CDN that ignores `Range` answers 200 with the whole file; read no further than the sniff needs.
+async function readHead(response: Response): Promise<Uint8Array> {
+  const reader = response.body?.getReader()
+  const head = new Uint8Array(SNIFF_BYTES)
+  let filled = 0
+  while (reader && filled < SNIFF_BYTES) {
+    const { done, value } = await reader.read()
+    if (done) break
+    const chunk = value.subarray(0, SNIFF_BYTES - filled)
+    head.set(chunk, filled)
+    filled += chunk.length
+  }
+  await reader?.cancel()
+  return head.subarray(0, filled)
+}
 
 async function deleteIfUnreferenced(db: DbExecutorT, url: string, filename: string, token: string) {
   try {
@@ -72,6 +89,7 @@ export async function POST(request: Request) {
     blob = await head(url, { token })
   } catch (err) {
     if (err instanceof BlobNotFoundError) return failure('Nie znaleziono przesłanego pliku', 400)
+    // TODO(EX-449) SENTRY-REQUIRED: a failed head loses a big upload until the user retries.
     logError('[media-register] Blob head failed:', err, filename)
     return failure('Nie udało się zapisać pliku', 500)
   }
@@ -80,18 +98,25 @@ export async function POST(request: Request) {
   }
   const headMs = elapsed()
 
-  const range = await fetch(url, { headers: { Range: `bytes=0-${SNIFF_BYTES - 1}` } }).catch(
-    (err) => {
-      logError('[media-register] Blob range read failed:', err, filename)
-      return undefined
-    },
-  )
-  if (!range?.ok) return failure('Nie udało się zapisać pliku', 500)
-  const mimeType = sniffMime(new Uint8Array(await range.arrayBuffer()).subarray(0, SNIFF_BYTES))
+  let mimeType: ReturnType<typeof sniffMime>
+  try {
+    const range = await fetch(url, {
+      headers: { Range: `bytes=0-${SNIFF_BYTES - 1}` },
+      signal: AbortSignal.timeout(RANGE_TIMEOUT_MS),
+    })
+    if (!range.ok) throw new Error(`Blob ${range.status}`)
+    mimeType = sniffMime(await readHead(range))
+  } catch (err) {
+    // TODO(EX-449) SENTRY-REQUIRED: a failed range read loses a big upload until the user retries.
+    logError('[media-register] Blob range read failed:', err, filename)
+    return failure('Nie udało się zapisać pliku', 500)
+  }
   const rangeMs = elapsed()
 
   const db = await getDb(await getPayload({ config }))
-  if (!mimeType) {
+  // The blob is served with the type the browser declared at PUT, not the sniffed one — both must
+  // be on the allowlist, or a PDF-headed HTML file would go out as `text/html`.
+  if (!mimeType || !isAllowedUploadMime(blob.contentType)) {
     await deleteIfUnreferenced(db, url, filename, token)
     return failure('To nie jest zdjęcie ani PDF', 415)
   }
