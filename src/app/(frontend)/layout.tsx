@@ -25,6 +25,11 @@ import { Loader } from '@/components/ui/loader/loader'
 import { EnvBadge } from '@/components/ui/env-badge'
 import { PendingSubmitIndicator } from '@/components/ui/pending-submit-indicator'
 import { ReviewPromptHost } from '@/components/investments/review-prompt-host'
+import { ServiceWorkerRegistration } from '@/components/pwa/service-worker-registration'
+import { PWA_METADATA, PWA_VIEWPORT } from '@/lib/pwa/head'
+
+export const metadata = PWA_METADATA
+export const viewport = PWA_VIEWPORT
 
 type FrontendLayoutPropsT = {
   children: React.ReactNode
@@ -48,6 +53,7 @@ export default function FrontendLayout({ children, investmentCrumb }: FrontendLa
           <ToastContainer style={{ zIndex: 10001 }} />
           <PendingSubmitIndicator />
           <EnvBadge />
+          <ServiceWorkerRegistration />
         </ThemeProvider>
       </body>
     </html>
