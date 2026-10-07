@@ -66,7 +66,7 @@ export const ru: TranslationsT = {
     inactive: 'Неактивен',
     defaultLanguage: 'Язык по умолчанию',
     defaultRegister: 'Касса по умолчанию',
-    transfers: 'Мои операции',
+    transfers: 'Список расходов / авансов',
     myRegisters: 'Мои кассы',
     noRegisters: 'Нет ни одной кассы.',
     register: 'Касса',
@@ -102,10 +102,6 @@ export const ru: TranslationsT = {
   expenseDrafts: {
     title: 'Поданные расходы',
     hint: 'Расходы, которые я отправил руководителю на утверждение.',
-    noRegister: 'У вас нет кассы — попросите руководителя её создать.',
-    noInvestment:
-      'Чтобы добавить расход, вы должны быть назначены на один из этапов активного объекта.',
-    empty: 'Нет поданных расходов.',
     investment: 'Объект',
     sentAt: 'Отправлено',
     attachments: 'Вложения',
@@ -153,7 +149,6 @@ export const ru: TranslationsT = {
   workerReports: {
     title: 'Отчёты о выполненных работах',
     hint: 'Работы, которые я заявил руководителю, и что из них он принял.',
-    empty: 'Нет отчётов о выполненных работах.',
     statusPending: 'На проверке',
     statusAccepted: 'Принято',
     statusRejected: 'Отклонено',

@@ -1,4 +1,3 @@
-import { Description } from '@/components/ui/description'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { WorkerExpenseDraftsTable } from '@/components/worker-expenses/worker-expense-drafts-table'
 import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
@@ -25,6 +24,7 @@ export function WorkerExpenseDraftsSection({
   sendableRegisters,
   locale,
 }: PropsT) {
+  if (drafts.length === 0) return null
   const { t } = createTranslator(locale, 'expenseDrafts')
   return (
     <CollapsibleSection
@@ -34,19 +34,13 @@ export function WorkerExpenseDraftsSection({
       defaultOpen={false}
       withSeparator={false}
     >
-      {canSend && sendableRegisters.length === 0 && <Description>{t('noRegister')}</Description>}
-      {canSend && investments.length === 0 && <Description>{t('noInvestment')}</Description>}
-      {drafts.length === 0 ? (
-        <Description>{t('empty')}</Description>
-      ) : (
-        <WorkerExpenseDraftsTable
-          drafts={drafts}
-          canSend={canSend}
-          canOpenTransfers={canOpenTransfers}
-          investments={investments}
-          registers={sendableRegisters}
-        />
-      )}
+      <WorkerExpenseDraftsTable
+        drafts={drafts}
+        canSend={canSend}
+        canOpenTransfers={canOpenTransfers}
+        investments={investments}
+        registers={sendableRegisters}
+      />
     </CollapsibleSection>
   )
 }

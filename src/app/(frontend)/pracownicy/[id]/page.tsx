@@ -163,33 +163,36 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
         locale={locale}
       />
       <WorkerReportsSection reports={workReports} canOpenInKosztorys={isManager} locale={locale} />
-      <CollapsibleSection
-        title={t('transfers')}
-        storageKey="worker:transfers"
-        defaultOpen={false}
-        withSeparator={false}
-      >
-        <TransfersSection
-          config={{
-            query: { where: transferWhere, page, limit, sort },
-            baseUrl: `/pracownicy/${id}`,
-            excludeColumns: isManager
-              ? ['worker']
-              : ['worker', 'actions', 'vatPlane', 'paymentMethod', 'createdAt'],
-            filters: {
-              cashRegisters: offeredIfChoice(toOptions(registers)),
-              investments: offeredIfChoice(toOptions(transferInvestments)),
-              transferTypes: offeredIfChoice(transferTypes),
-              otherCategories: toOptions(refData.otherCategories),
-              showCancelledFilter: false,
-              showSearchFilters: false,
-            },
-            invoiceDownload: isManager,
-            print: isManager,
-            cancelledTransactionAudit: sp.cancelledTransactionAudit === '1',
-          }}
-        />
-      </CollapsibleSection>
+      {/* Facets read the unfiltered scope, so a filter matching nothing keeps the section — and its filters — on screen. */}
+      {facets.types.length > 0 && (
+        <CollapsibleSection
+          title={t('transfers')}
+          storageKey="worker:transfers"
+          defaultOpen={false}
+          withSeparator={false}
+        >
+          <TransfersSection
+            config={{
+              query: { where: transferWhere, page, limit, sort },
+              baseUrl: `/pracownicy/${id}`,
+              excludeColumns: isManager
+                ? ['worker']
+                : ['worker', 'actions', 'vatPlane', 'paymentMethod', 'createdAt'],
+              filters: {
+                cashRegisters: offeredIfChoice(toOptions(registers)),
+                investments: offeredIfChoice(toOptions(transferInvestments)),
+                transferTypes: offeredIfChoice(transferTypes),
+                otherCategories: toOptions(refData.otherCategories),
+                showCancelledFilter: false,
+                showSearchFilters: false,
+              },
+              invoiceDownload: isManager,
+              print: isManager,
+              cancelledTransactionAudit: sp.cancelledTransactionAudit === '1',
+            }}
+          />
+        </CollapsibleSection>
+      )}
     </PageWrapper>
   )
 }

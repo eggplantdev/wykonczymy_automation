@@ -5,13 +5,13 @@ Dropped checks: `/10x-impl-review` (no plan.md). Step 0.5 browser pass skipped �
 
 ## Findings
 
-- [ ] 🔵 OBSERVATION · proposed · code-review + simplify · `src/components/users/worker-quick-actions.tsx:29` · with no active kasa (or no stage), „Dodaj wydatek” just disappears — the reason („noRegister” / „noInvestment”) sits only in „Wydatki”, which is now folded by default — held back: moving the reason next to the buttons changes what the worker sees; needs the owner's call
 - [x] 🟡 WARNING · fixed · code-review · `src/__tests__/components/users/worker-investments-section.test.tsx` · spec still asserted the removed table and its „Zgłoszenia” column — rewritten for the plain list; new `report-work-button.test.tsx` pins one-target link vs several-target picker
       test: test-driven-debugging · unit (DOM) — the repointed spec and the new picker spec are the guard
 - [x] 🟡 WARNING · fixed · code-review · `src/components/users/worker-quick-actions.tsx:9` · at 390px the uk/ru labels overflowed half-width buttons — buttons now wrap (`h-auto min-h-14 whitespace-normal`)
       test: no automated test · layout — jsdom has no layout engine; covered by a manual check at 390px
 - [x] 🔵 OBSERVATION · dismissed · code-review · `src/components/worker-expenses/worker-expense-drafts-section.tsx` · a freshly sent expense lands in a folded section — owner asked for both sections folded by default
 - [x] 🔵 OBSERVATION · dismissed · code-review · `src/app/(frontend)/pracownicy/[id]/page.tsx:99` · investment without a report token loses „Zgłoś pracę” — every stage membership gets a token (`stage-split.ts` → `insertMissingWorkerReportShares`, plus the backfill migration)
+- [x] 🔵 OBSERVATION · dismissed · code-review + simplify · `src/components/users/worker-quick-actions.tsx:29` · with no active kasa (or no stage), „Dodaj wydatek” just disappears, the reason sits only in the folded „Wydatki” — owner ruling 2026-10-07: „Wydatek” only for a worker with a kasa, „Zgłoś pracę” only for one on an active investment; no explanation next to either
 - [x] fixed · simplify · `src/app/(frontend)/pracownicy/[id]/page.tsx:98` · active-kasa filter computed twice (quick actions + drafts section) — computed once as `sendableRegisters`
 - [x] fixed · simplify · `src/app/(frontend)/pracownicy/[id]/page.tsx:100` · report URL built in two components — built once into `investmentLinks`
 - [x] fixed · simplify · `src/app/(frontend)/pracownicy/[id]/page.tsx:100` · own-page gate for the report link enforced in two consumers — gated at the source (`isOwnPage && token`); `canReport` now only picks the empty-state text

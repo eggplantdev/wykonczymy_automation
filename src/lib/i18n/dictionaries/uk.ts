@@ -67,7 +67,7 @@ export const uk: TranslationsT = {
     inactive: 'Неактивний',
     defaultLanguage: 'Мова за замовчуванням',
     defaultRegister: 'Каса за замовчуванням',
-    transfers: 'Мої операції',
+    transfers: 'Список витрат / авансів',
     myRegisters: 'Мої каси',
     noRegisters: 'Немає жодної каси.',
     register: 'Каса',
@@ -103,10 +103,6 @@ export const uk: TranslationsT = {
   expenseDrafts: {
     title: 'Подані витрати',
     hint: 'Витрати, які я надіслав керівнику на затвердження.',
-    noRegister: 'У вас немає каси — попросіть керівника її створити.',
-    noInvestment:
-      "Щоб додати витрату, ви маєте бути призначені на один з етапів активного об'єкта.",
-    empty: 'Немає поданих витрат.',
     investment: "Об'єкт",
     sentAt: 'Надіслано',
     attachments: 'Вкладення',
@@ -153,7 +149,6 @@ export const uk: TranslationsT = {
   workerReports: {
     title: 'Звіти про виконані роботи',
     hint: 'Роботи, які я заявив керівнику, і що з них він прийняв.',
-    empty: 'Немає звітів про виконані роботи.',
     statusPending: 'На перевірці',
     statusAccepted: 'Прийнято',
     statusRejected: 'Відхилено',
