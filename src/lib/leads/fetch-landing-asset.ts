@@ -1,5 +1,6 @@
 import type { Payload } from 'payload'
 import { serverEnv } from '@/lib/env/server'
+import { isAllowedUploadMime } from '@/lib/media/sniff-mime'
 import { uniqueFileName } from '@/lib/utils/unique-file-name'
 import type { LandingAssetT } from './landing'
 
@@ -10,22 +11,14 @@ import type { LandingAssetT } from './landing'
 export const FETCH_TIMEOUT_MS = 15_000
 export const MAX_ASSET_BYTES = 8 * 1024 * 1024
 
-/**
- * Anchored, and NARROWER than `media.upload.mimeTypes` in one deliberate place.
- *
- * A prefix test lets `application/pdfx` through, which costs 8 MB of transfer before Payload refuses
- * the create and the operator gets an alert naming the wrong cause. And `image/*` would admit
- * `image/svg+xml` — an active, scriptable document — on the only path where an anonymous stranger
- * writes into `media` and the result is served from the Blob CDN and rendered as an image.
- */
-const ACCEPTED_TYPE = /^(?:image\/(?!svg\+xml)[\w.+-]+|application\/pdf)$/
-
 /** Drop `; charset=…` and case, so a well-formed header is not refused for its spelling. */
 const normalizeType = (contentType: string): string =>
   contentType.split(';')[0]?.trim().toLowerCase() ?? ''
 
+// Checked before the fetch as well as by Payload's create: a type the collection refuses would
+// otherwise cost 8 MB of transfer and an alert naming the wrong cause.
 const isAcceptedType = (contentType: string): boolean =>
-  ACCEPTED_TYPE.test(normalizeType(contentType))
+  isAllowedUploadMime(normalizeType(contentType))
 
 /**
  * Reject anything but an `https:` URL whose **parsed hostname equals** the landing's blob host.

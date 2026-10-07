@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 import { isAdminOrOwner, isAuthenticated } from '@/access'
 import { makeRevalidateAfterChange, makeRevalidateAfterDelete } from '@/hooks/revalidate-collection'
 import { preventReferencedMediaDelete } from '@/hooks/media/prevent-referenced-delete'
+import { ALLOWED_UPLOAD_MIMES } from '@/lib/media/sniff-mime'
 import { sanitizeFileName } from '@/lib/utils/sanitize-filename'
 import { MEDIA_KINDS, type MediaKindT } from '@/types/media'
 
@@ -48,7 +49,7 @@ export const Media: CollectionConfig = {
   },
   upload: {
     staticDir: 'media',
-    mimeTypes: ['image/*', 'application/pdf'],
+    mimeTypes: [...ALLOWED_UPLOAD_MIMES],
     imageSizes: [
       {
         name: 'thumbnail',

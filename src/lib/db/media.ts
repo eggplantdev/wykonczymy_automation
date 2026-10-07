@@ -30,3 +30,20 @@ export async function insertMediaRow(db: DbExecutorT, row: NewMediaRowT): Promis
 export async function deleteMediaRow(db: DbExecutorT, id: number): Promise<void> {
   await db.execute(sql`DELETE FROM media WHERE id = ${id}`)
 }
+
+/**
+ * Whether any row stores bytes under this Blob key — as its original or as its thumbnail. The
+ * register route deletes a refused blob only when this is false: it takes the key from the client,
+ * and Blob has no undelete for a faktura it named by mistake.
+ */
+export async function isMediaFilenameReferenced(
+  db: DbExecutorT,
+  filename: string,
+): Promise<boolean> {
+  const { rows } = await db.execute(sql`
+    SELECT EXISTS (
+      SELECT 1 FROM media WHERE filename = ${filename} OR sizes_thumbnail_filename = ${filename}
+    ) AS referenced
+  `)
+  return Boolean(rows[0].referenced)
+}
