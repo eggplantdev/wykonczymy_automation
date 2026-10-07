@@ -36,8 +36,7 @@ the worker report grid and every other `parseDecimalInput` caller are untouched.
 ### Key Discoveries:
 
 - Single seam: `parseCellDecimal` is the only parser `cell-edit.ts` calls (`cell-edit.ts:63,90,117`).
-- Keystrokes commit as they go (`use-cell-draft.ts:32-42`): `=2*3` commits 2, holds at `2*`, commits
-  6. The draft text stays on screen until the cell is left, so the computed columns update live and
+- Keystrokes commit as they go (`use-cell-draft.ts:32-42`): `=2*3` commits 2, holds at `2*`, commits 6. The draft text stays on screen until the cell is left, so the computed columns update live and
   no preview UI is needed.
 - `roundToCents` (`src/lib/utils/round-to-cents.ts`) already rounds half away from zero with the
   float-residue trim — reuse it, don't write a second rounding.
@@ -73,6 +72,7 @@ Add the evaluator, wire it into `parseCellDecimal`, cover it with unit specs.
 domain knowledge.
 
 **Contract**: `evaluateArithmetic(expression: string): number | null`.
+
 - Grammar: optional single leading `=`; `expr := term (('+'|'-') term)*`; `term := factor (('*'|'x'|'X'|'×'|'/') factor)*`;
   `factor := ('+'|'-') factor | number | '(' expr ')'`; `number := digits ([.,] digits?)? | [.,] digits`.
 - Every comma is a decimal separator (`1,5*2,5`), so the commas are NOT pre-replaced with a single
@@ -99,6 +99,7 @@ rounded.
 `src/__tests__/lib/utils/parse-decimal-input.test.ts`
 
 **Intent**: Pin the grammar and the grid seam.
+
 - Evaluator: precedence (`2+3*4` = 14), parentheses, left associativity (`10-2-3` = 5, `12/2/3` = 2),
   unary minus (`-3*2`, `2*-3`), `x`/`X`/`×`, leading `=`, comma decimals; `null` for `2*`, `*2`,
   `2**3`, `(2+3`, `2+3)`, `=`, `1/0`, `2(3)`, `abc`.
@@ -171,6 +172,6 @@ Run **once**, after the final phase.
 
 #### Automated
 
-- [ ] 1.1 Evaluator spec passes
-- [ ] 1.2 Parse spec passes
-- [ ] 1.3 Cell-edit spec passes
+- [x] 1.1 Evaluator spec passes — 8c31df99
+- [x] 1.2 Parse spec passes — 8c31df99
+- [x] 1.3 Cell-edit spec passes — 8c31df99
