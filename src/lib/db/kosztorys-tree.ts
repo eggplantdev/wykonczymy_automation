@@ -2,6 +2,7 @@ import 'server-only'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { isSectionColorKey } from '@/lib/kosztorys/section-colors'
 import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
+import type { ReviewStatusT } from '@/lib/kosztorys/types'
 import type {
   DiscountTypeT,
   KosztorysItemT,
@@ -72,7 +73,7 @@ export async function selectKosztorysTreeData(
                  discount_type, discount_value, client_price,
                  w_tools_override_value, own_tools_override_value,
                  w_tools_override_coeff, own_tools_override_coeff,
-                 note, ref
+                 note, ref, ai_planned_qty, change_reason, review_status
           FROM kosztorys_items WHERE investment_id = ${investmentId}
         ) i
       ) AS items,
@@ -148,6 +149,9 @@ const mapSection = (row: RowT): KosztorysSectionT => ({
   color: isSectionColorKey(row.color) ? row.color : null,
 })
 
+const toReviewStatus = (v: unknown): ReviewStatusT | null =>
+  v === 'accepted' || v === 'rejected' || v === 'edited' || v === 'added' ? v : null
+
 const mapItem = (row: RowT): KosztorysItemT & { sectionId: number } => ({
   id: Number(row.id),
   ref: Number(row.ref),
@@ -172,6 +176,9 @@ const mapItem = (row: RowT): KosztorysItemT & { sectionId: number } => ({
   wToolsOverrideCoeff: numOrNull(row.w_tools_override_coeff),
   ownToolsOverrideCoeff: numOrNull(row.own_tools_override_coeff),
   note: textOrNull(row.note),
+  aiPlannedQty: numOrNull(row.ai_planned_qty),
+  changeReason: textOrNull(row.change_reason),
+  reviewStatus: toReviewStatus(row.review_status),
 })
 
 const mapStage = (row: RowT, members: RowT[]): KosztorysStageT => ({

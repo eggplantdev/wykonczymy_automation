@@ -33,3 +33,20 @@ describe('itemPatchSchema — null to nie zero', () => {
     expect(parse({ clientPrice: 120 })).toEqual({ clientPrice: 120 })
   })
 })
+
+// AI przedmiar pisze tylko skrypt ładujący szkic — siatka nie może go nadpisać, więc schemat go wycina.
+describe('itemPatchSchema — przegląd AI', () => {
+  it('przepuszcza Status i Powód zmiany, a AI przedmiar wycina', () => {
+    expect(
+      parse({ reviewStatus: 'edited', changeReason: 'za mało', aiPlannedQty: 5 }),
+    ).toEqual({ reviewStatus: 'edited', changeReason: 'za mało' })
+  })
+
+  it('przyjmuje wyczyszczenie obu pól i odrzuca nieznany status', () => {
+    expect(parse({ reviewStatus: null, changeReason: null })).toEqual({
+      reviewStatus: null,
+      changeReason: null,
+    })
+    expect(() => parse({ reviewStatus: 'maybe' })).toThrow()
+  })
+})

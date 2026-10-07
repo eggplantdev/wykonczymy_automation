@@ -192,6 +192,9 @@ export function parseLaborTab(
         readsStages,
       ),
       note: null,
+      aiPlannedQty: null,
+      changeReason: null,
+      reviewStatus: null,
     })
 
     for (let stage = 0; stage < stageColumns.count; stage++) {

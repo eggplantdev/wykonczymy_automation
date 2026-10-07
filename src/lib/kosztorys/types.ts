@@ -32,6 +32,8 @@ export type KosztorysSectionT = {
   color: SectionColorKeyT | null
 }
 
+export type ReviewStatusT = 'accepted' | 'rejected' | 'edited' | 'added'
+
 export type KosztorysItemT = {
   id: number
   // The pozycja's stable number (EX-949), printed on the fill-in form. Every row read from the DB
@@ -63,6 +65,11 @@ export type KosztorysItemT = {
   wToolsOverrideCoeff: number | null
   ownToolsOverrideCoeff: number | null
   note: string | null
+  // An agent's draft of the Przedmiar (EX-1006). null = the agent never saw this row, 0 = it saw the
+  // row and left it out — the two read differently in review, so neither may stand in for the other.
+  aiPlannedQty: number | null
+  changeReason: string | null
+  reviewStatus: ReviewStatusT | null
 }
 
 // Where a plane's subcontractor stawka comes from. One vocabulary for all four surfaces that branch
@@ -90,6 +97,8 @@ export type ItemPatchT = Partial<
     | 'wToolsOverrideCoeff'
     | 'ownToolsOverrideCoeff'
     | 'note'
+    | 'changeReason'
+    | 'reviewStatus'
   >
 >
 

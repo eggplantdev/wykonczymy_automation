@@ -31,6 +31,9 @@ const item = (overrides: Partial<KosztorysItemT> = {}): KosztorysItemT => ({
   wToolsOverrideCoeff: null,
   ownToolsOverrideCoeff: null,
   note: null,
+  aiPlannedQty: null,
+  changeReason: null,
+  reviewStatus: null,
   ...overrides,
 })
 

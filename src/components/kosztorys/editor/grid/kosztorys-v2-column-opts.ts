@@ -120,6 +120,9 @@ export type BuildV2ColumnsOptsT = {
   workshopVisible?: boolean
   // rowId → its katalog entry (id + Komentarz do pracy). Absent in preview and without a katalog.
   catalogueEntryByRowId?: ReadonlyMap<number, RowCatalogueEntryT>
+  // An agent draft is loaded (`hasAiDraft`). Without it AI przedmiar, Status and Powód zmiany are not
+  // assembled at all — neither in the grid nor in the picker.
+  hasAiDraft?: boolean
   // The worker's document (EX-875): the third closed surface, and the one that discloses a CREW
   // plane — `view` must equal `plane`, never 'client', and `previewVisible` must be off
   // (`assertDisclosurePair`). `hiddenColumns` holds the firm-wide settings' logical keys, which only

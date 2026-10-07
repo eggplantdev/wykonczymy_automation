@@ -1,3 +1,4 @@
+import { AI_REVIEW_COLUMN_IDS } from '@/lib/kosztorys/ai-review-columns'
 import type { PriceViewT } from '@/lib/kosztorys/calc'
 import { PLANE_LABEL_KEYS, PLANE_LABELS } from '@/lib/kosztorys/labels'
 import { planePriceKeyParts } from '@/lib/kosztorys/plane-price-keys'
@@ -46,6 +47,9 @@ export const COLUMN_LABELS: Record<string, string> = {
   stageValueGross: 'Etapy — kwota brutto',
   donePercent: '% wykonania (względem przedmiaru)',
   note: 'Komentarz',
+  aiPlannedQty: 'AI przedmiar (na ile AI wyceniło pracę)',
+  reviewStatus: 'Status',
+  changeReason: 'Powód zmiany (co AI zrobiło źle)',
   workNote: 'Komentarz do pracy (wiedza firmowa — niewidoczna dla klienta)',
 }
 
@@ -184,7 +188,7 @@ export const LAYER_NEUTRAL_COLUMNS: ReadonlySet<string> = new Set([
   // Komentarz (sheet col T): annotation that reads the same in Praca and Postęp, so the layer axis
   // must not drop it — same reasoning as `description`.
   'note',
-  'workNote',
+  ...AI_REVIEW_COLUMN_IDS,
 ])
 
 // Columns the picker never offers, and which therefore never answer to a hide tick. „Pozostało do
@@ -235,5 +239,6 @@ export const DEFAULT_HIDDEN_COLUMNS: ReadonlySet<string> = new Set([
   // Only the rozpiska rows a crew that reads it will be sent need a translation, so the column is
   // opened when there is one to type, not carried on every kosztorys.
   ...ALL_TRANSLATION_COLUMN_KEYS,
-  'workNote',
+  // Opened by „Przegląd AI” or by the problem that reveals them.
+  ...AI_REVIEW_COLUMN_IDS,
 ])

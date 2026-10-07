@@ -105,6 +105,9 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
               sheetMeasuredQty: 7,
               clientPrice: 100,
               note: 'uwaga do pozycji',
+              aiPlannedQty: 8,
+              changeReason: 'AI zaniżyło metraż',
+              reviewStatus: 'edited',
             },
             {
               description: 'Gruntowanie',
@@ -180,6 +183,10 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
       expect(item.sheetMeasuredQty).toBeNull()
       expect(item.discountType).toBeNull()
       expect(item.discountValue).toBe(0)
+      // The AI review judges one job's draft, so a szablon must not hand it to the next one.
+      expect(item.aiPlannedQty).toBeNull()
+      expect(item.changeReason).toBeNull()
+      expect(item.reviewStatus).toBeNull()
     }
     // The komentarz describes the WORK („cena zawiera transport"), not the job, so it travels —
     // and only on the pozycja that carried one, never smeared across the rest.

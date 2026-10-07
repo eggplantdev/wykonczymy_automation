@@ -113,6 +113,7 @@ import {
 import { applyCatalogueToKosztorysAction } from '@/lib/actions/catalogue-to-kosztorys'
 import { buildCatalogueComparison } from '@/lib/kosztorys/work-catalogue/build-catalogue-comparison'
 import { catalogueEntryByRowId } from '@/lib/kosztorys/work-catalogue/catalogue-entry-by-row'
+import { applyReviewRules, hasAiDraft } from '@/lib/kosztorys/review-status'
 import type {
   ItemPatchT,
   KosztorysItemT,
@@ -475,6 +476,8 @@ export function useKosztorysEditor({
     [preview, rows, workCatalogue],
   )
 
+  const aiDraft = useMemo(() => hasAiDraft(rows), [rows])
+
   const catalogueRowIds = useMemo(
     () =>
       catalogueComparison
@@ -496,8 +499,9 @@ export function useKosztorysEditor({
       divergentPriceRowIds: divergentPriceIds,
       qtyDoneByRowId,
       catalogueRowIds,
+      hasAiDraft: aiDraft,
     }),
-    [stages, hasSettledMaterial, divergentPriceIds, qtyDoneByRowId, catalogueRowIds],
+    [stages, hasSettledMaterial, divergentPriceIds, qtyDoneByRowId, catalogueRowIds, aiDraft],
   )
 
   // Counted over the whole dataset: once a filter is on, a count of what survives it is a count of
@@ -628,6 +632,7 @@ export function useKosztorysEditor({
       : undefined,
     workshopVisible: isTemplate,
     catalogueEntryByRowId: catalogueEntryByRow,
+    hasAiDraft: aiDraft,
     dictionary: gridDictionary,
   }
   const grid = buildV2Grid(columnOpts)
@@ -1293,13 +1298,15 @@ export function useKosztorysEditor({
     if (changedById.size > 0) setRows((master) => master.map((r) => changedById.get(r.id) ?? r))
   }
 
-  function onChange(next: KosztorysV2RowT[]) {
+  function onChange(gridRows: KosztorysV2RowT[]) {
     // A zakończona inwestycja is already stopped by `disabled: true` on every column, but a preview grid
     // is served to an anonymous visitor — belt as well as braces.
     if (preview) {
-      if (seams) applyPreviewChanges(next, seams.onPreviewChange)
+      if (seams) applyPreviewChanges(gridRows, seams.onPreviewChange)
       return
     }
+    // Before the diff, so the Przedmiar / Status the rules derive save and undo with the edit itself.
+    const next = applyReviewRules(gridRows, prevById.current, aiDraft)
     const { fieldChanges, stageChanges, changedById } = planGridChanges(next, prevById.current)
     for (const c of fieldChanges) {
       const key = c.field as keyof KosztorysV2RowT

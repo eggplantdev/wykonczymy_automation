@@ -40,4 +40,7 @@ export const baseItem: Omit<KosztorysItemT, 'id' | 'description' | 'plannedQty' 
   wToolsOverrideCoeff: null,
   ownToolsOverrideCoeff: null,
   note: null,
+  aiPlannedQty: null,
+  changeReason: null,
+  reviewStatus: null,
 }

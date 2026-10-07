@@ -28,6 +28,9 @@ const asPricing = (source: CatalogueSourceItemT): ViewPricingT => ({
   wToolsOverrideCoeff: source.wToolsOverrideCoeff,
   ownToolsOverrideCoeff: source.ownToolsOverrideCoeff,
   note: null,
+  aiPlannedQty: null,
+  changeReason: null,
+  reviewStatus: null,
   globalDiscountActive: false,
   // Unreachable: only a plane with its own nadpisanie is read here, and neither a kwota stała nor a
   // własny mnożnik consults the global współczynnik.

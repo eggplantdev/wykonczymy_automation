@@ -491,25 +491,25 @@ column touched here.
 
 #### Automated
 
-- [x] 1.1 Migration applies on the local DB after the spike migration is rolled back
-- [x] 1.2 Katalog write spec passes
-- [x] 1.3 Katalog form DOM spec passes
-- [x] 1.4 „Nowa praca" DOM spec passes with the ticked default
-- [x] 1.5 Row lookup spec passes
-- [x] 1.6 Workshop columns spec passes with workNote
+- [x] 1.1 Migration applies on the local DB after the spike migration is rolled back — e2627e65
+- [x] 1.2 Katalog write spec passes — e2627e65
+- [x] 1.3 Katalog form DOM spec passes — e2627e65
+- [x] 1.4 „Nowa praca" DOM spec passes with the ticked default — e2627e65
+- [x] 1.5 Row lookup spec passes — e2627e65
+- [x] 1.6 Workshop columns spec passes with workNote — e2627e65
 
 ### Phase 2: AI draft review
 
 #### Automated
 
-- [ ] 2.1 Status rules spec passes
-- [ ] 2.2 AI diagnostics spec passes
-- [ ] 2.3 Szablon strip spec passes
-- [ ] 2.4 Snapshot round-trip spec carries the three fields
-- [ ] 2.5 Sheet import plan carries the fields for matched rows
-- [ ] 2.6 Patch schema strips AI przedmiar
-- [ ] 2.7 Tree SQL drift spec passes
-- [ ] 2.8 Insert schema drift (DB) passes
+- [x] 2.1 Status rules spec passes
+- [x] 2.2 AI diagnostics spec passes
+- [x] 2.3 Szablon strip spec passes
+- [x] 2.4 Snapshot round-trip spec carries the three fields
+- [x] 2.5 Sheet import plan carries the fields for matched rows
+- [x] 2.6 Patch schema strips AI przedmiar
+- [x] 2.7 Tree SQL drift spec passes
+- [x] 2.8 Insert schema drift (DB) passes
 
 ### Phase 3: „Oferta" and „Przegląd AI" toggles
 

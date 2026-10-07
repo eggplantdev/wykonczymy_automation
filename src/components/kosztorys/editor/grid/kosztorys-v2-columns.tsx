@@ -27,7 +27,11 @@ import {
   discountValueColumn,
   discountTypeColumn,
 } from '@/components/kosztorys/editor/grid/cells/discount-columns'
-import { workNoteColumn } from '@/components/kosztorys/editor/grid/cells/ai-review-columns'
+import {
+  AI_REVIEW_COLUMN_CLASS,
+  reviewStatusColumn,
+  workNoteColumn,
+} from '@/components/kosztorys/editor/grid/cells/ai-review-columns'
 import { unitColumn } from '@/components/kosztorys/editor/grid/cells/unit-column'
 import { sectionNameColumn } from '@/components/kosztorys/editor/grid/cells/section-name-cell'
 import { translationColumn } from '@/components/kosztorys/editor/grid/cells/translation-column'
@@ -183,10 +187,35 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   ]
 
   // House knowledge and the review of an agent's draft, beside the Przedmiar they are about.
-  // Owner-only — the investor's and the worker's closed lists never name these ids.
+  // Owner-only — the investor's and the worker's closed lists never name these ids. The review trio
+  // exists only on an AI kosztorys: on any other it would be three empty columns in the picker.
+  const draftReview: Column<KosztorysV2RowT>[] = opts.hasAiDraft
+    ? [
+        {
+          ...computedColumn(
+            'aiPlannedQty',
+            columnTitle('aiPlannedQty', opts),
+            (r) => r.aiPlannedQty,
+            {},
+            (value) => (value == null ? '' : formatQty(value)),
+          ),
+          ...AI_REVIEW_COLUMN_CLASS,
+        },
+        reviewStatusColumn(columnTitle('reviewStatus', opts)),
+        keyCol('changeReason', longTextColumn, {
+          id: 'changeReason',
+          title: columnTitle('changeReason', opts),
+          minWidth: 220,
+          grow: 1,
+          headerClassName: `${AI_REVIEW_COLUMN_CLASS.headerClassName} ${wrapColumnClass('changeReason')}`,
+          cellClassName: `${AI_REVIEW_COLUMN_CLASS.cellClassName} ${wrapColumnClass('changeReason')}`,
+        }),
+      ]
+    : []
   const aiReview: Column<KosztorysV2RowT>[] = isDocument
     ? []
     : [
+        ...draftReview,
         workNoteColumn(
           columnTitle('workNote', opts),
           opts.catalogueEntryByRowId,

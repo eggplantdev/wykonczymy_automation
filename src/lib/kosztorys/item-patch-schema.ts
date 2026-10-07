@@ -30,5 +30,7 @@ export const itemPatchSchema = z
     wToolsOverrideCoeff: z.coerce.number().nullable(),
     ownToolsOverrideCoeff: z.coerce.number().nullable(),
     note: z.string().nullable(),
+    changeReason: z.string().nullable(),
+    reviewStatus: z.enum(['accepted', 'rejected', 'edited', 'added']).nullable(),
   })
   .partial()

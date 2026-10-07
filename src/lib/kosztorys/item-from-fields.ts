@@ -40,4 +40,7 @@ export const itemFromFields = (
   discountType: null,
   discountValue: 0,
   note: null,
+  aiPlannedQty: null,
+  changeReason: null,
+  reviewStatus: null,
 })

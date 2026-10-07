@@ -141,6 +141,9 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
               wToolsOverrideValue: null,
               ownToolsOverrideValue: null,
               note: null,
+              aiPlannedQty: null,
+              changeReason: null,
+              reviewStatus: null,
             },
             {
               description: 'Ścianka działowa — GK 12,5 „podwójna"\ndruga linia opisu',
@@ -168,6 +171,10 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
               wToolsOverrideValue: null,
               ownToolsOverrideValue: 88.5,
               note: 'Uwaga: różnica ±5 cm\nDrugi wiersz — ćwierć „cudzysłów"',
+              // Fractional and different from both przedmiary, for the same reason as above.
+              aiPlannedQty: 9.75,
+              changeReason: 'AI pominęło narożniki',
+              reviewStatus: 'edited',
             },
             // The mirrored override combo. Per plane both legal states — „kwota stała" and „auto" —
             // must appear somewhere, or a swapped pair of override columns survives the roundtrip
@@ -236,6 +243,11 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
     const ids = (snap: SnapshotPayloadT) => snap.sections.map((s) => s.id).sort((a, b) => a - b)
     expect(ids(after)).not.toEqual(ids(before))
     expect(canonical(after)).toEqual(canonical(before))
+    // An identity passes vacuously if serialize drops a field on both sides — pin the AI review row.
+    expect(after.items.find((item) => item.aiPlannedQty === 9.75)).toMatchObject({
+      changeReason: 'AI pominęło narożniki',
+      reviewStatus: 'edited',
+    })
   })
 
   // The rabat rides in the payload for the investor's history only. A restore that wrote it back
