@@ -4482,6 +4482,7 @@ Baza musi mieć migrację `20261007_0_add_ai_review_columns`.
 - [ ] /katalog-prac → „Dodaj pracę" z komentarzem: kolumna „Komentarz do pracy" (domyślnie ukryta, włącz ją) pokazuje go przy nowej pracy.
 - [ ] Kosztorys → w wyborze kolumn zaznacz „Komentarz do pracy" → kliknij komórkę pracy z katalogu → wpisz komentarz → zapisz: ta sama praca w innym kosztorysie i w szablonie pokazuje ten komentarz.
 - [ ] Pozycja, której opisu nie ma w katalogu: komórka jest pusta, kliknięcie nic nie otwiera.
+- [ ] W oknie komentarza: Backspace, Delete, strzałki, Ctrl+A i wklejanie działają na tekście komentarza; kosztorys pod oknem się nie zmienia. Escape zamyka okno.
 - [ ] Menu wiersza „Zapisz do katalogu" → „Nadpisz" na pracy z komentarzem: komentarz przeżywa.
 - [ ] „Nowa praca": checkbox katalogu startuje zaznaczony, pole „Komentarz do pracy" stoi pod nim; „Nadpisz w katalogu" z pustym polem zostawia istniejący komentarz; „Tylko do kosztorysu" nie rusza katalogu.
 - [ ] Podgląd inwestora, link udostępniony inwestorowi, PDF z „Generuj ofertę" i link pracownika: brak kolumny „Komentarz do pracy".
@@ -4493,6 +4494,7 @@ Stan: kosztorys ze wczytanym szkicem AI (kolumna „AI przedmiar" ma wartości) 
 - [ ] Kosztorys ze szkicem → w wyborze kolumn są „AI przedmiar", „Status", „Powód zmiany"; „Problemy" pokazuje grupę „Przegląd AI", a „do sprawdzenia (szkic AI)" liczy pozycje z AI przedmiarem i bez statusu.
 - [ ] Wpisz w „Przedmiar" tę samą liczbę co AI przedmiar → Status „Zaakceptowana"; 0 → „Odrzucona"; inną liczbę → „Edytowana"; liczbę przy AI przedmiarze 0 → „Dodana". Ctrl+Z cofa Przedmiar i Status razem.
 - [ ] Status → „Zaakceptowana" przepisuje AI przedmiar do „Przedmiar"; „Odrzucona" ustawia Przedmiar na 0.
+- [ ] Pozycja z AI przedmiarem 0 i wpisanym Przedmiarem: wybranie dowolnego Statusu nie zmienia Przedmiaru.
 - [ ] Filtr „zmienione bez powodu": pozycja, w której zaczynasz wpisywać „Powód zmiany", zostaje na liście aż do „Odśwież — ukryj poprawione".
 - [ ] „Nowa praca" z Przedmiarem w kosztorysie ze szkicem: pokazuje „Dodana" i trafia do „zmienione bez powodu".
 - [ ] Zapisz wersję, zmień statusy i powody, przywróć wersję: AI przedmiar, Status i Powód zmiany wracają.
