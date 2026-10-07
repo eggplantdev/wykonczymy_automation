@@ -6,8 +6,6 @@ import type { MediaKindT } from '@/types/media'
 
 // Cap parallel uploads to match the receipt-generation path (GENERATION_CONCURRENCY): batch-add lets a user
 // attach 10-20+ receipts, and submitting them all at once would fire that many simultaneous upload requests.
-// Bounds files in flight on both of the router's paths: whole route calls under 4 MB, Blob PUT +
-// register call above it.
 const UPLOAD_CONCURRENCY = 4
 
 export const UPLOAD_FAILED = translate('pl', 'notices', 'uploadFailed')
@@ -51,7 +49,7 @@ export async function resolveUploadIdRows(
     // storage) uploading the rest of a 20-page batch just to delete it again.
     if (failure) return undefined
     try {
-      return await uploadMediaBySize(file, { kind })
+      return await uploadMediaBySize(file, kind)
     } catch (err) {
       // A failed request or the Blob SDK speaks English; only a refusal is worded for the user.
       failure ??=
@@ -75,13 +73,4 @@ export async function resolveUploadIdRows(
     if (mediaId !== undefined) byRow[row].push(mediaId)
   })
   return byRow
-}
-
-/**
- * The same upload, from a surface that has no rows — one set of files, in pick order. Spares
- * every such caller the `(1, new Map([[0, files]]))` incantation and the `[pages]` destructure.
- */
-export async function resolveUploadIds(files: File[], kind?: MediaKindT): Promise<number[]> {
-  const [pages] = await resolveUploadIdRows(1, new Map([[0, files]]), kind)
-  return pages
 }

@@ -95,7 +95,6 @@ describe('ExpenseDraftDialog scan mode', () => {
     )
   })
 
-  // Every upload goes through the size router now (EX-1014); what the dialog still owns is the kind.
   it('uploads the photos as faktury', async () => {
     await openNewAndPick(1)
     await userEvent.click(screen.getByRole('button', { name: 'Wyślij' }))

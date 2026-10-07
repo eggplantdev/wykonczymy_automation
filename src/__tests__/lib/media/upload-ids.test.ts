@@ -3,11 +3,14 @@ import { beforeEach, describe, it, expect, vi } from 'vitest'
 // compress-image pulls in compressorjs (browser-only) at import time; nothing here calls it.
 vi.mock('@/lib/utils/compress-image', () => ({ compressImage: async (f: File) => f }))
 
-const { upload } = vi.hoisted(() => ({ upload: vi.fn<(file: File) => Promise<number>>() }))
+const { upload } = vi.hoisted(() => ({
+  upload: vi.fn<(file: File, kind?: MediaKindT) => Promise<number>>(),
+}))
 vi.mock('@/lib/media/upload-media', () => ({ uploadMediaBySize: upload }))
 
 import { UploadRefusedError } from '@/lib/media/upload-refused'
 import { MediaUploadError, resolveUploadIdRows } from '@/lib/media/upload-ids'
+import type { MediaKindT } from '@/types/media'
 
 const file = (name: string) => ({ name }) as File
 
@@ -87,5 +90,28 @@ describe('resolveUploadIdRows', () => {
     await expect(resolveUploadIdRows(1, files)).rejects.toMatchObject({
       message: 'Nie udało się przesłać plików — spróbuj ponownie.',
     })
+  })
+})
+
+// A later reader asks for the rysunki without opening every faktura only if `kind` reaches the row,
+// and it crosses every layer between the form and the upload route, so it is easy to drop.
+describe('resolveUploadIdRows — media kind', () => {
+  beforeEach(() => upload.mockReset().mockResolvedValue(1))
+
+  it('stamps the kind on every page of the pick', async () => {
+    const files = new Map([[0, [file('rzut.pdf'), file('przekroj.pdf')]]])
+
+    await resolveUploadIdRows(1, files, 'projekt')
+
+    expect(upload.mock.calls).toEqual([
+      [file('rzut.pdf'), 'projekt'],
+      [file('przekroj.pdf'), 'projekt'],
+    ])
+  })
+
+  it('leaves the kind unset when the pick was not marked', async () => {
+    await resolveUploadIdRows(1, new Map([[0, [file('faktura.pdf')]]]))
+
+    expect(upload.mock.calls).toEqual([[file('faktura.pdf'), undefined]])
   })
 })

@@ -102,8 +102,6 @@ describe.skipIf(!ENV_READY)('insertMediaRow (DB)', () => {
     expect(rows).toHaveLength(0)
   })
 
-  // The register route deletes a refused blob only when no row stores bytes under its key — as an
-  // original or as a Payload-made thumbnail.
   it('finds a filename held as an original or as a thumbnail, and nothing else', async () => {
     const id = await insertMediaRow(db, {
       filename: `${FILENAME_PREFIX}original.jpg`,
