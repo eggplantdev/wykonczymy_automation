@@ -93,6 +93,13 @@ export const pl = {
       'Żeby zgłosić pracę, musisz być przypisany do któregoś z etapów aktywnej inwestycji.',
     reportWork: 'Zgłoś pracę',
     chooseInvestmentToReport: 'Na której inwestycji?',
+    installApp: 'Zainstaluj aplikację',
+    installManual:
+      'Otwórz menu przeglądarki (⋮) i wybierz „Zainstaluj aplikację" lub „Dodaj do ekranu głównego".',
+    installIosTitle: 'Dodaj aplikację do ekranu początkowego',
+    installIosStep1: 'Stuknij „⋯" w Safari.',
+    installIosStep2: 'Stuknij „Udostępnij".',
+    installIosStep3: 'Stuknij „Dodaj do ekranu początkowego", potem „Dodaj".',
   },
   account: {
     title: 'Zmień e-mail lub hasło',
