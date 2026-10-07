@@ -1,7 +1,7 @@
 ---
 change_id: media-upload-speed
 title: Worker invoice draft send — cut the per-photo server work that keeps the dialog open
-status: planned
+status: implementing
 created: 2026-10-07
 updated: 2026-10-07
 archived_at: null

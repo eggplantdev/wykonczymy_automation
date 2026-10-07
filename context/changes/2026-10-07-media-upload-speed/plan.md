@@ -334,9 +334,9 @@ Run once, after the final code phase:
 
 #### Automated
 
-- [ ] 1.1 Sniff spec passes
-- [ ] 1.2 Insert DB spec passes
-- [ ] 1.3 Route spec passes
+- [x] 1.1 Sniff spec passes
+- [x] 1.2 Insert DB spec passes
+- [x] 1.3 Route spec passes
 
 ### Phase 2: Size router on the draft surfaces
 
