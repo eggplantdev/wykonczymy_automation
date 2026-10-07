@@ -4,6 +4,7 @@ import { EditableCellInput } from '@/components/ui/datasheet-grid/editable-cell-
 import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-text'
 import { priceSourceOf, viewPrice } from '@/lib/kosztorys/calc'
 import { checkSubcontractorPrice } from '@/lib/kosztorys/subcontractor-price-guard'
+import { DERIVED_TONE } from '@/components/kosztorys/derived-tone'
 import { FLAGGED_TONE } from '@/components/kosztorys/flagged-tone'
 import { subcontractorPolicy } from '@/lib/kosztorys/subcontractor-price-edit'
 import { useCellDraft } from '@/components/kosztorys/editor/grid/cells/use-cell-draft'
@@ -52,9 +53,7 @@ export function SubcontractorPriceCell({
     ) : (
       <EditableCellInput
         {...edit.inputProps}
-        className={
-          message ? FLAGGED_TONE : source === 'auto' ? 'text-muted-foreground italic' : undefined
-        }
+        className={message ? FLAGGED_TONE : source === 'auto' ? DERIVED_TONE : undefined}
         value={edit.draft ?? moneyText(viewPrice(rowData, view))}
         focus={focus}
       />

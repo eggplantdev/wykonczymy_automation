@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import type { CellProps, Column } from 'react-datasheet-grid'
+import { DERIVED_TONE } from '@/components/kosztorys/derived-tone'
 import { EditableCellInput } from '@/components/ui/datasheet-grid/editable-cell-input'
 import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-text'
 import { useCellDraft } from '@/components/kosztorys/editor/grid/cells/use-cell-draft'
@@ -11,9 +12,6 @@ import { decimalText } from '@/lib/utils/decimal-text'
 
 const policy = currentPlannedQtyPolicy<KosztorysV2RowT>()
 
-// „Aktualizacja przedmiaru". Grey while it follows the Przedmiar ofertowy, black once someone typed
-// it — the same tone as a subcontractor stawka on „auto", so „derived, not typed" reads one way
-// across the grid.
 function CurrentPlannedQtyCell({
   rowData,
   setRowData,
@@ -29,7 +27,7 @@ function CurrentPlannedQtyCell({
   return (
     <EditableCellInput
       {...edit.inputProps}
-      className={rowData.currentPlannedQty == null ? 'text-muted-foreground italic' : undefined}
+      className={rowData.currentPlannedQty == null ? DERIVED_TONE : undefined}
       value={edit.draft ?? text}
       focus={focus}
     />

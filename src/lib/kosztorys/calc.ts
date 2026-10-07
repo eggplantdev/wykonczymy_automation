@@ -242,8 +242,8 @@ export function netForQtyForView(row: ViewPricingT, qty: number, view: PriceView
   return view === 'client' ? applyDiscount(gross, row) : gross
 }
 
-// The Aktualizacja przedmiaru a figure computes with: the hand edit, else Przedmiar ofertowy. The
-// one place a stored NULL turns into a quantity — every reader goes through here.
+// The one place a stored NULL Aktualizacja przedmiaru turns into a quantity — every reader goes
+// through here.
 export function resolvedCurrentPlannedQty(
   row: Pick<KosztorysItemT, 'plannedQty' | 'currentPlannedQty'>,
 ): number {

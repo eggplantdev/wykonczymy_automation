@@ -32,8 +32,8 @@ function withSource<RowT extends ViewPricingT>(
  * źródło with it, so nobody has to visit „Źródło" first — and clearing the cell is the way back to
  * „auto".
  *
- * The only cell family whose `clear` writes `null` rather than 0: everywhere else an emptied field
- * means „nothing", here it means „ask the investment". A `0` would be a stawka of zero złotych.
+ * `clear` writes `null` rather than 0, as the Aktualizacja przedmiaru's does: an emptied field means
+ * „ask the investment" here, and a `0` would be a stawka of zero złotych.
  *
  * The only cell family that carries a `guard`: the ceiling is a rule about what the company may pay
  * a crew, and it has no business on the client's own price.

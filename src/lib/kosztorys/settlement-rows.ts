@@ -48,7 +48,7 @@ export function rowValueForView(
 }
 
 /**
- * How much of the agreed scope is left: the value of `plannedQty` (the Aktualizacja przedmiaru)
+ * How much of the agreed scope is left: the value of `scopeQty` (the Aktualizacja przedmiaru)
  * minus the value of `executedQty`.
  *
  * This is where we knowingly break parity with the sheet. Its AF anchors on T — the executed value —
@@ -69,16 +69,16 @@ export function rowValueForView(
  * sums the view's etapy, the worker view (EX-875 design #9) sums every etap of the investment — a
  * pozycja another crew finished is not work still owed to anyone — while the price stays his stawka.
  *
- * So is the planned one, with no default (EX-921): progress reads the Aktualizacja przedmiaru, and a
+ * So is the scope quantity, with no default (EX-921): progress reads the Aktualizacja przedmiaru, and a
  * default would let a caller fall back to the offer without anyone noticing.
  */
 export function rowRemainingForExecutedQty(
   row: KosztorysV2RowT,
-  plannedQty: number,
+  scopeQty: number,
   executedQty: number,
   view: PriceViewT,
 ): number {
-  return netForQtyForView(row, plannedQty, view) - netForQtyForView(row, executedQty, view)
+  return netForQtyForView(row, scopeQty, view) - netForQtyForView(row, executedQty, view)
 }
 
 /**

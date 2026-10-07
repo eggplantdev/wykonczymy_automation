@@ -8,6 +8,9 @@ const OVERRUN = 1
 const OWED = 2
 // Executed a hair past its przedmiar: −0.003 zł at the client price, −0.0036 zł at the stawka.
 const FLOAT_NOISE = 3
+// Past the ofertowy, inside the Aktualizacja przedmiaru — and the reverse.
+const WITHIN_CURRENT = 4
+const PAST_CURRENT = 5
 
 const tree = makeTree({
   sections: [
@@ -20,6 +23,22 @@ const tree = makeTree({
         { ...baseItem, id: OVERRUN, description: 'extra', plannedQty: 0, clientPrice: 800 },
         { ...baseItem, id: OWED, description: 'owed', plannedQty: 2, clientPrice: 100 },
         { ...baseItem, id: FLOAT_NOISE, description: 'noise', plannedQty: 1, clientPrice: 10 },
+        {
+          ...baseItem,
+          id: WITHIN_CURRENT,
+          description: 'within',
+          plannedQty: 0,
+          currentPlannedQty: 2,
+          clientPrice: 100,
+        },
+        {
+          ...baseItem,
+          id: PAST_CURRENT,
+          description: 'past',
+          plannedQty: 5,
+          currentPlannedQty: 1,
+          clientPrice: 100,
+        },
       ],
     },
   ],
@@ -28,6 +47,8 @@ const tree = makeTree({
     { itemId: OVERRUN, stageId: 100, qtyDone: 1 },
     { itemId: OWED, stageId: 100, qtyDone: 1 },
     { itemId: FLOAT_NOISE, stageId: 100, qtyDone: 1.0003 },
+    { itemId: WITHIN_CURRENT, stageId: 100, qtyDone: 1 },
+    { itemId: PAST_CURRENT, stageId: 100, qtyDone: 2 },
   ],
 })
 const rows = treeToRows(tree)
@@ -54,4 +75,14 @@ describe('„Pozostało" overrun tone', () => {
     expect(tone(row(OWED))).toBe('muted')
     expect(tone(row(FLOAT_NOISE))).toBe('muted')
   })
+
+  it.each(['remaining', 'remainingGross'] as const)(
+    '%s reads the Aktualizacja przedmiaru, not the ofertowy',
+    (columnId) => {
+      const tone = toneOf(ownerColumns, columnId)
+
+      expect(tone(row(WITHIN_CURRENT))).toBe('muted')
+      expect(tone(row(PAST_CURRENT))).toBe('danger')
+    },
+  )
 })

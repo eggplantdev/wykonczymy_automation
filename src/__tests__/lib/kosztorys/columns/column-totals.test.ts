@@ -221,7 +221,7 @@ describe('columnTotalsForRows — the etap axis totals its own cells', () => {
 })
 
 // EX-921: ofertowy 10, aktualizacja 15, wykonane 12 at 100 zł — inside the aktualizacja, past the
-// offer. The row is NOT an overrun any more, so „Pozostało" keeps its +300 zł in the total.
+// offer. The row is not an overrun, so „Pozostało" keeps its +300 zł in the total.
 describe('Aktualizacja przedmiaru w sumach', () => {
   const splitTree = makeTree({
     sections: [

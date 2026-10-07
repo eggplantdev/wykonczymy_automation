@@ -238,7 +238,7 @@ function MeasuredCell({ row }: { row: ReviewRowT }) {
       <span className={cn(isOverPlanned && 'text-amber-600 dark:text-amber-400')}>
         <GrowingQty before={measuredQty} added={added} />
       </span>
-      {isOverPlanned && <span className={WARNING_NOTE}>Przekroczono przedmiar</span>}
+      {isOverPlanned && <span className={WARNING_NOTE}>Przekroczono aktualizację przedmiaru</span>}
     </span>
   )
 }

@@ -374,4 +374,15 @@ describe('pomiar liczony po planie etapu', () => {
     const [overRow] = treeToRows(over)
     expect(hasStagesOverPlanned(overRow, over.stages)).toBe(true)
   })
+
+  // Measured against the Aktualizacja przedmiaru (EX-921): Σ etapów 5 against ofertowy 5.
+  it('przekroczenie liczy się względem aktualizacji przedmiaru, nie ofertowego', () => {
+    const withCurrent = (currentPlannedQty: number) => {
+      const tree = makePlaneTree(mixed)
+      tree.sections[0].items[0].currentPlannedQty = currentPlannedQty
+      return hasStagesOverPlanned(treeToRows(tree)[0], tree.stages)
+    }
+    expect(withCurrent(4)).toBe(true)
+    expect(withCurrent(8)).toBe(false)
+  })
 })

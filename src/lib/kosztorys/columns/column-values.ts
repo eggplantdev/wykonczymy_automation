@@ -60,7 +60,6 @@ export function columnValueResolver({
 
   // The przedmiar figures read at the client price over the whole offered scope in EVERY view (owner,
   // 2026-09-23): „how much of the offer" is a question about the offer, whichever crew is looking.
-  // Progress (Pozostało, %) reads the Aktualizacja przedmiaru; the offer figure stays on ofertowy.
   const plannedNet = (row: KosztorysV2RowT) => rowPlannedNetForView(row, 'client')
   const currentPlannedNet = (row: KosztorysV2RowT) => rowCurrentPlannedNetForView(row, 'client')
   const clientQtyDone = memoisedByRow((row) => rowTotalQtyDone(row, stages, 'client'))

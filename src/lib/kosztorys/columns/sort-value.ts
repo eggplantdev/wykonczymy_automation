@@ -59,13 +59,13 @@ export function sortValueGetter(
     // the client view, so `view` is the plane to read.
     case 'price':
       return (row) => viewPrice(row, view)
-    // By value, not by quantity: sorting a rozjazd list is triage, and „which m² gap is biggest" says
-    // nothing across rows priced at 30 zł and 3000 zł. `null` on the rows that agree sinks them to the
-    // bottom, which is where a work list wants them.
     // A following cell stores null yet shows the ofertowy — sorting the raw field would sink every
     // untouched row under the bottom as „no figure".
     case 'currentPlannedQty':
       return resolvedCurrentPlannedQty
+    // By value, not by quantity: sorting a rozjazd list is triage, and „which m² gap is biggest" says
+    // nothing across rows priced at 30 zł and 3000 zł. `null` on the rows that agree sinks them to the
+    // bottom, which is where a work list wants them.
     case 'divergence':
       return (row) => measureDiscrepancy(row, stages)?.net ?? null
     default:
