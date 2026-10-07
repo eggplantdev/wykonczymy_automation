@@ -45,6 +45,8 @@ export const KosztorysItems: CollectionConfig = {
     { name: 'descriptionTranslations', type: 'json', defaultValue: {} },
     { name: 'unit', type: 'text', label: { en: 'Unit', pl: 'Jednostka' } },
     { name: 'plannedQty', type: 'number', required: true, defaultValue: 0 },
+    // EX-921: Aktualizacja przedmiaru. Only a hand edit is stored — NULL follows plannedQty.
+    { name: 'currentPlannedQty', type: 'number' },
     { name: 'sheetMeasuredQty', type: 'number', admin: { readOnly: true } },
     { name: 'discountType', type: 'text' },
     { name: 'discountValue', type: 'number', required: true, defaultValue: 0 },

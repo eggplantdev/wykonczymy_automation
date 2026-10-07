@@ -20,3 +20,5 @@ Pomiar z natury, Wartość netto and % wykonania. This reverses the 2026-09-28 n
 („Pozostało … is a real figure, and the owner hides it by choice, not by data").
 
 Resulting offer view: Opis, Przedmiar, j.m., Cena j.m., Wartość netto przedmiar.
+
+Folded into `2026-10-07-kosztorys-przedmiar-aktualny` (2026-10-07) — same trigger (first etap entry) adds Przedmiar aktualny to the investor document; implement there, archive this folder with it.

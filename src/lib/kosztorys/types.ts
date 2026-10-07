@@ -47,6 +47,10 @@ export type KosztorysItemT = {
   descriptionTranslations: DescriptionTranslationsT
   unit: string | null
   plannedQty: number
+  // „Aktualizacja przedmiaru" (EX-921) — the scope agreed after the offer, which progress is measured
+  // against. null = never edited by hand, so it follows `plannedQty`; 0 = the pozycja dropped out of
+  // scope. Read it through `resolvedCurrentPlannedQty`, never directly.
+  currentPlannedQty: number | null
   // „Pomiar z natury" as the imported sheet typed it — a reconciliation reference, never an input to
   // any figure. null = the sheet made no claim (no column, empty cell, or a formula that only
   // restates Σ etapów). The app never edits it: a re-import overwrites it wholesale.
@@ -90,6 +94,7 @@ export type ItemPatchT = Partial<
     | 'descriptionTranslations'
     | 'unit'
     | 'plannedQty'
+    | 'currentPlannedQty'
     | 'discountType'
     | 'discountValue'
     | 'clientPrice'

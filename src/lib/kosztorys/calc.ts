@@ -253,6 +253,14 @@ export function netForQtyForView(row: ViewPricingT, qty: number, view: PriceView
  * Owner flagged the "rabat in the offer" call as a small open question (2026-07-16, EX-495) — a
  * revert is one commit, so nothing downstream leans on it.
  */
+// The Aktualizacja przedmiaru a figure computes with: the hand edit, else Przedmiar ofertowy. The
+// one place a stored NULL turns into a quantity — every reader goes through here.
+export function resolvedCurrentPlannedQty(
+  row: Pick<KosztorysItemT, 'plannedQty' | 'currentPlannedQty'>,
+): number {
+  return row.currentPlannedQty ?? row.plannedQty
+}
+
 export function rowPlannedNetForView(row: ViewPricingT, view: PriceViewT): number {
   return netForQtyForView(row, row.plannedQty, view)
 }

@@ -22,6 +22,7 @@ export function pricingRow(overrides: Partial<ViewPricingT> = {}): ViewPricingT 
     wToolsOverrideCoeff: null,
     ownToolsOverrideCoeff: null,
     note: null,
+    currentPlannedQty: null,
     aiPlannedQty: null,
     changeReason: null,
     reviewStatus: null,

@@ -232,6 +232,9 @@ export function buildImportPlan(
         // is the sheet's own claim and the app never edits it: whatever the sheet says today is the
         // answer, including „nothing typed here any more".
         note: current?.note ?? null,
+        // The sheet has one przedmiar, the offer — it refreshes plannedQty above and never the
+        // Aktualizacja, so a hand-edited scope survives a re-import (EX-921).
+        currentPlannedQty: current?.currentPlannedQty ?? null,
         // The sheet knows nothing of the agent's draft or its review, so a matched praca keeps them.
         aiPlannedQty: current?.aiPlannedQty ?? null,
         changeReason: current?.changeReason ?? null,
