@@ -67,6 +67,16 @@ export function useWrapColumnWidths(
   useEffect(() => {
     const frame = requestAnimationFrame(measure)
     window.addEventListener('resize', measure)
+    // A column scrolled into the horizontal window for the first time has had no header cell to
+    // measure, and scrolling rebuilds nothing — so the scroll itself is the cue. Coalesced to one
+    // measure per frame, since scroll fires per frame.
+    const container = containerRef.current
+    let pending = 0
+    const schedule = () => {
+      cancelAnimationFrame(pending)
+      pending = requestAnimationFrame(measure)
+    }
+    container?.addEventListener('scroll', schedule, { capture: true, passive: true })
     let live = true
     void document.fonts?.ready.then(() => {
       if (live) measure()
@@ -74,9 +84,11 @@ export function useWrapColumnWidths(
     return () => {
       live = false
       cancelAnimationFrame(frame)
+      cancelAnimationFrame(pending)
       window.removeEventListener('resize', measure)
+      container?.removeEventListener('scroll', schedule, true)
     }
-  }, [measure])
+  }, [measure, containerRef])
 
   return measured
 }

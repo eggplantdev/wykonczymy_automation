@@ -370,10 +370,9 @@ export function KosztorysEditorBody({
   // description expanded is unscannable. The measurement runs in both — in the editor it is what
   // „Dopasuj wysokość do treści" fits a row to.
   const measured = useMemo(() => measuredColumns(columns), [columns])
-  // Keyed on the joined ids: `columns` is rebuilt on every edit, and a fresh array would tear down and
-  // redo the width measurement each time.
-  const measuredKey = measured.map((column) => column.id).join('|')
-  const measuredIds = useMemo(() => measuredKey.split('|').filter(Boolean), [measuredKey])
+  // Deliberately keyed on `columns` identity, not on the ids: a rebuild is what follows a column drag
+  // and dsg sizing its `grow` columns, and it is the hook's only cue to re-read the header widths.
+  const measuredIds = useMemo(() => measured.map((column) => column.id), [measured])
   const wrap = useWrapColumnWidths(gridNode, measuredIds)
   // Cached per row because the row's height and every one of its cells' „…" read the same counts.
   const columnLinesFor = useMemo(() => {

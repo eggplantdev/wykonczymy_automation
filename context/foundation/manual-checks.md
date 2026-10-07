@@ -4687,3 +4687,15 @@ JPEG-i ~300 KB; „duży plik" = PDF powyżej 4 MB.
 - [ ] Kosztorys → wpisz długi tekst w kolumnie tekstowej innej niż „Opis prac” (notatka, nazwa sekcji, tłumaczenie, „Komentarz do pracy”): w komórce widać „…”; menu wiersza → „Dopasuj wysokość do treści” podnosi wiersz tak, że cały tekst jest widoczny.
 - [ ] Wiersz z krótkimi tekstami i statusem przeglądu / rodzajem rabatu / trybem ceny / długą jednostką w „j.m.”: „Dopasuj wysokość do treści” zostawia wiersz w jednej linii, a w tych komórkach nie ma „…”.
 - [ ] Zwiń szerokość kolumny z długim tekstem: „…” pojawia się tylko w tej komórce, nie w całym wierszu; po poszerzeniu kolumny znika.
+
+### Findings — 2026-10-07
+
+Staging deploy `0f4fce3e6` (Vercel success), investment 173 „QA-offline-1". Three boxes above stay unticked: each fails on the deployed build because of the stale-width defects below, although the behaviour is correct once a window `resize` event forces a remeasure (then: „…" only in the one cell, row fits to full text, short rows stay 32 px, widening removes the cue).
+
+- [ ] **Column widths re-read only at mount — column drag, `grow` settling and horizontal scroll never remeasure** — regression from the review-gate /simplify pass (`393c0123f`): `measuredIds` was keyed on the joined ids, so the `columns` rebuild that follows a column drag and dsg sizing its `grow` columns no longer reached `useWrapColumnWidths`. Symptoms on staging: „Komentarz" (off-screen at mount) gets no width, so no „…" and no fit; dragging a column edge to 100 px shows no „…"; fit on a short „Opis prac" (`Wycinanie nadproży`, `Zdzieranie starej farby z tynkiem`) gives 52 / 72 px instead of 32 px — all correct after a window `resize`. Fix in the tree: `measuredIds` keyed on `columns` identity again, plus a rAF-coalesced remeasure on scroll for columns first scrolled into view. **Awaiting deploy; re-check boxes 1–3 on staging.**
+      **Test disposition:** test-driven-debugging · unit (`renderHook`, `dom` project; pattern `use-kosztorys-settings.test.tsx`) — widths update after a scroll event on the container and after `columnIds` changes identity.
+- [ ] **React error #185 (max update depth) while typing a long note into „Komentarz"** — seen once in the console, from `onChange`, while `keyboard.type` entered ~200 chars into the note cell of row 6 (value saved intact). Not reproduced on a later edit (clearing the cell). **Needs human:** retype a long note in „Komentarz" on staging after the fix deploys and watch the console; if #185 recurs, suspect the width-state ↔ row-height loop.
+      **Test disposition:** test-driven-debugging · unit (`renderHook`) if reproduced; otherwise no automated test.
+
+**Test state left behind:** investment 173 row 13747 „Komentarz" typed and restored to empty (`note` now NULL, as before); browser localStorage keys `kosztorys-v2-row-heights` / `kosztorys-v2-col-widths` cleared. QA accounts re-upserted by `pnpm qa:staging-user`.
+
