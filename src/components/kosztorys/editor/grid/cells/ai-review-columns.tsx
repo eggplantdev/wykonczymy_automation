@@ -61,7 +61,8 @@ export function reviewStatusColumn(titleNode: ReactNode): Column<KosztorysV2RowT
   }
 }
 
-type WorkNoteDataT = ReadonlyMap<number, RowCatalogueEntryT> | undefined
+// An object, never the bare Map: `withSyntheticRows` spreads `columnData`, and a spread Map has no `.get`.
+type WorkNoteDataT = { byRowId: ReadonlyMap<number, RowCatalogueEntryT> | undefined }
 
 // The comment is the katalog entry's, not the row's, so a click opens the dialog that saves it there.
 function WorkNoteCell({
@@ -70,7 +71,7 @@ function WorkNoteCell({
   disabled,
 }: CellProps<KosztorysV2RowT, WorkNoteDataT>) {
   const [open, setOpen] = useState(false)
-  const entry = columnData?.get(rowData.id)
+  const entry = columnData.byRowId?.get(rowData.id)
   const text = <ReadOnlyCellText>{entry?.note ?? ''}</ReadOnlyCellText>
   if (disabled || !entry) return text
   return (
@@ -103,7 +104,7 @@ export function workNoteColumn(
     minWidth: 220,
     grow: 1,
     ...AI_REVIEW_COLUMN_CLASS,
-    columnData: byRowId,
+    columnData: { byRowId },
     component: WorkNoteCell,
   }
 }
