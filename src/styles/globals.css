@@ -478,7 +478,7 @@
   background: transparent;
 }
 
-/* House knowledge and the review of an agent's draft wear the `ai` accent's cyan, so the block reads
+/* The review of an agent's draft wears the `ai` accent's cyan, so the block reads
    as apart from the offer. Set through dsg's own vars: its unlayered `background` rules outrank a
    Tailwind `bg-*` utility. The read-only tint stays a step darker, as grey does elsewhere. */
 .kosztorys-grid .dsg-cell.kosztorys-ai-column {

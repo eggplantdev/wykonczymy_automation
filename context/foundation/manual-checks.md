@@ -4529,6 +4529,7 @@ Baza musi mieć migrację `20261007_0_add_ai_review_columns`.
       Staging 2026-10-07: nowa praca z komentarzem → kolumna „Komentarz do pracy” (ukryta domyślnie, włączona w „Kolumny”) pokazuje go.
 - [x] Kosztorys → w wyborze kolumn zaznacz „Komentarz do pracy" → kliknij komórkę pracy z katalogu → wpisz komentarz → zapisz: ta sama praca w innym kosztorysie i w szablonie pokazuje ten komentarz.
       Staging 2026-10-07: komentarz wpisany w 173 (pozycja „Rozkucie i zatynkowanie…”) zapisał się w katalogu (`work_note`, psql); ta sama praca w 174 (kolumna włączona) i w szablonie 159 pokazuje go.
+- [ ] Kosztorys → kolumna „Komentarz do pracy" ma zwykłe kolory (bez cyjanu); kliknij komórkę pracy, której nie ma w katalogu: okno „Tej pracy nie ma w katalogu prac" → „Dodaj do katalogu…" otwiera „Zapisz do katalogu…"; po zapisie kliknięcie tej komórki otwiera okno komentarza. Szara zostaje tylko komórka pustego wiersza.
 - [x] Pozycja, której opisu nie ma w katalogu: komórka jest pusta, kliknięcie nic nie otwiera.
       Staging 2026-10-07: „Wynoszenie gruzu…” (173): komórka pusta, klik i dwuklik nie otwierają okna.
 - [x] W oknie komentarza: Backspace, Delete, strzałki, Ctrl+A i wklejanie działają na tekście komentarza; kosztorys pod oknem się nie zmienia. Escape zamyka okno.
