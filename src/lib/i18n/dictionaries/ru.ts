@@ -83,9 +83,8 @@ export const ru: TranslationsT = {
     noInvestmentToReport:
       'Чтобы отчитаться о работах, вы должны быть назначены на один из этапов активного объекта.',
     investment: 'Объект',
-    reports: 'Отчёты',
     reportWork: 'Отчитаться о работах',
-    noLink: 'нет ссылки',
+    chooseInvestmentToReport: 'На каком объекте?',
   },
   account: {
     title: 'Изменить e-mail или пароль',

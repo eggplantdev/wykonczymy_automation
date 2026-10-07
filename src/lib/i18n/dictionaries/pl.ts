@@ -92,9 +92,8 @@ export const pl = {
     noInvestmentToReport:
       'Żeby zgłosić pracę, musisz być przypisany do któregoś z etapów aktywnej inwestycji.',
     investment: 'Inwestycja',
-    reports: 'Zgłoszenia',
-    reportWork: 'Zgłoś prace',
-    noLink: 'brak linku',
+    reportWork: 'Zgłoś pracę',
+    chooseInvestmentToReport: 'Na której inwestycji?',
   },
   account: {
     title: 'Zmień e-mail lub hasło',

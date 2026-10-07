@@ -4596,3 +4596,12 @@ Staging, zalogowany pracownik z własną kasą i etapem na inwestycji. Zdjęcia 
 - [ ] Kierownik: „Zweryfikuj” na takim zgłoszeniu i zapis transakcji → jej faktura pokazuje te same strony.
 - [ ] Kierownik: usuń takie zgłoszenie → jego zdjęcia przestają się otwierać (stary link do pliku daje 404).
 - [ ] Inne miejsca dodawania plików (faktura przy transakcji, zdjęcia inwestycji) działają jak dotąd.
+
+## 2026-10-07 — worker-page-quick-actions — „Dodaj wydatek” i „Zgłoś pracę” nad „Moimi kasami”
+
+- [ ] Zalogowany pracownik → własna strona: nie widzi pól „Rola” ani „Status”; kierownik na tej samej stronie widzi oba.
+- [ ] Ta sama strona: „Zgłoszone wydatki” i „Zgłoszenia wykonanych prac” są domyślnie zwinięte (przy pierwszym wejściu, bez zapamiętanego stanu).
+- [ ] Nad „Moimi kasami” są dwa duże przyciski „Dodaj wydatek” i „Zgłoś pracę”, na 390px obok siebie w jednym rzędzie; „Dodaj wydatek” otwiera ten sam dialog co wcześniej.
+- [ ] Pracownik przypisany do etapu w jednej aktywnej inwestycji → „Zgłoś pracę” od razu otwiera stronę zgłoszenia tej inwestycji.
+- [ ] Pracownik przypisany do etapów w kilku aktywnych inwestycjach → „Zgłoś pracę” otwiera okno „Na której inwestycji?” z listą inwestycji; wybór prowadzi do zgłoszenia wybranej.
+- [ ] „Moje inwestycje” to zwykła lista nazw ze strzałką (bez tabeli i bez kolumny „Zgłoszenia”); nazwa otwiera podsumowanie inwestycji. Kierownik widzi same nazwy, bez strzałek i linków.

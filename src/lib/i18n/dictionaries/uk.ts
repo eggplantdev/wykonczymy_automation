@@ -84,9 +84,8 @@ export const uk: TranslationsT = {
     noInvestmentToReport:
       "Щоб звітувати про роботи, ви маєте бути призначені на один з етапів активного об'єкта.",
     investment: "Об'єкт",
-    reports: 'Звіти',
     reportWork: 'Звітувати про роботи',
-    noLink: 'немає посилання',
+    chooseInvestmentToReport: "На якому об'єкті?",
   },
   account: {
     title: 'Змінити e-mail або пароль',

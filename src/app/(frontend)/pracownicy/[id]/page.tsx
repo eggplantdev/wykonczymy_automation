@@ -24,6 +24,7 @@ import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { HeldEquipmentSection } from '@/components/equipment/held-equipment-section'
 import { OwnedRegistersSection } from '@/components/users/owned-registers-section'
 import { WorkerInvestmentsSection } from '@/components/users/worker-investments-section'
+import { WorkerQuickActions } from '@/components/users/worker-quick-actions'
 import { WorkerExpenseDraftsSection } from '@/components/worker-expenses/worker-expense-drafts-section'
 import { WorkerReportsSection } from '@/components/worker-reports/worker-reports-section'
 import { visibleWorkerRegisters } from '@/lib/workers/owned-registers'
@@ -98,9 +99,9 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
 
   const { t } = createTranslator(locale, 'workerPage')
   const infoFields = [
-    { label: t('role'), value: t(ROLE_KEYS[role]) },
+    ...(isManager ? [{ label: t('role'), value: t(ROLE_KEYS[role]) }] : []),
     { label: t('email'), value: worker.email },
-    { label: t('status'), value: t(worker.active ? 'active' : 'inactive') },
+    ...(isManager ? [{ label: t('status'), value: t(worker.active ? 'active' : 'inactive') }] : []),
     {
       label: t('defaultLanguage'),
       value: isOwnPage ? (
@@ -121,6 +122,15 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
         </div>
       )}
       <InfoList items={infoFields} />
+      {isOwnPage && (
+        <WorkerQuickActions
+          investments={stageInvestments}
+          workerName={worker.name}
+          registers={registers}
+          defaultRegisterId={worker.defaultCashRegisterId}
+          locale={locale}
+        />
+      )}
       <OwnedRegistersSection
         registers={registers}
         balances={balances}
@@ -140,7 +150,6 @@ export default async function UserDetailPage({ params, searchParams }: DynamicPa
         canSend={isOwnPage}
         canOpenTransfers={isManager}
         registers={registers}
-        defaultRegisterId={worker.defaultCashRegisterId}
         locale={locale}
       />
       <WorkerReportsSection reports={workReports} canOpenInKosztorys={isManager} locale={locale} />

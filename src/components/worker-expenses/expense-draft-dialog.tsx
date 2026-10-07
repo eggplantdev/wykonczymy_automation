@@ -40,6 +40,7 @@ type PropsT = {
   registers: CashRegisterRefT[]
   defaultRegisterId?: number
   draft?: ExpenseDraftRowT
+  triggerClassName?: string
 }
 
 function initialRegisterId(registers: CashRegisterRefT[], defaultRegisterId?: number) {
@@ -53,7 +54,13 @@ function initialInvestmentId(investments: WorkerStageInvestmentT[]) {
   return investments.length === 1 ? String(investments[0]?.investmentId) : ''
 }
 
-export function ExpenseDraftDialog({ investments, registers, defaultRegisterId, draft }: PropsT) {
+export function ExpenseDraftDialog({
+  investments,
+  registers,
+  defaultRegisterId,
+  draft,
+  triggerClassName,
+}: PropsT) {
   const router = useRouter()
   const { locale, t } = useTranslation('expenseDrafts')
   const [open, setOpen] = useState(false)
@@ -143,7 +150,7 @@ export function ExpenseDraftDialog({ investments, registers, defaultRegisterId, 
         <EditButton label={t('edit')} onClick={() => handleOpenChange(true)} />
       ) : (
         <DialogTrigger asChild>
-          <Button>
+          <Button className={triggerClassName}>
             <Plus />
             {t('add')}
           </Button>

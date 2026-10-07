@@ -1,6 +1,5 @@
 import { Description } from '@/components/ui/description'
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
-import { ExpenseDraftDialog } from '@/components/worker-expenses/expense-draft-dialog'
 import { WorkerExpenseDraftsTable } from '@/components/worker-expenses/worker-expense-drafts-table'
 import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
@@ -16,7 +15,6 @@ type PropsT = {
   canSend: boolean
   canOpenTransfers: boolean
   registers: CashRegisterRefT[]
-  defaultRegisterId?: number
   locale: LanguageT
 }
 
@@ -26,7 +24,6 @@ export function WorkerExpenseDraftsSection({
   canSend,
   canOpenTransfers,
   registers,
-  defaultRegisterId,
   locale,
 }: PropsT) {
   const { t } = createTranslator(locale, 'expenseDrafts')
@@ -38,18 +35,8 @@ export function WorkerExpenseDraftsSection({
       title={t('title')}
       hint={t('hint')}
       storageKey="worker:expenseDrafts"
+      defaultOpen={false}
       withSeparator={false}
-      action={
-        canSend &&
-        sendableRegisters.length > 0 &&
-        investments.length > 0 && (
-          <ExpenseDraftDialog
-            investments={investments}
-            registers={sendableRegisters}
-            defaultRegisterId={defaultRegisterId}
-          />
-        )
-      }
     >
       {canSend && sendableRegisters.length === 0 && <Description>{t('noRegister')}</Description>}
       {canSend && investments.length === 0 && <Description>{t('noInvestment')}</Description>}

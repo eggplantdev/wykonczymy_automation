@@ -19,6 +19,7 @@ export function WorkerReportsSection({ reports, canOpenInKosztorys, locale }: Pr
       title={t('title')}
       hint={t('hint')}
       storageKey="worker:workReports"
+      defaultOpen={false}
       withSeparator={false}
     >
       {reports.length === 0 ? (
