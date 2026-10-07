@@ -415,7 +415,7 @@ Run once, after the final code phase:
 
 #### Automated
 
-- [ ] 0.1 baseline.md has before-medians for 3 scenarios × 2 profiles with per-request breakdown
+- [x] 0.1 baseline.md has before-medians for 3 scenarios × 2 profiles with per-request breakdown
 
 ### Phase 1: Fast Path Everywhere
 
@@ -440,4 +440,4 @@ Run once, after the final code phase:
 #### Automated
 
 - [ ] 3.1 baseline.md has the after-section and before → after table
-- [x] 3.2 manual-checks.md has the EX-1014 section
+- [x] 3.2 manual-checks.md has the EX-1014 section — 81e2a1be
