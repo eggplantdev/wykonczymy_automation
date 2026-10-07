@@ -235,6 +235,7 @@ describe('Aktualizacja przedmiaru w sumach', () => {
             ...baseItem,
             sectionId: 30,
             id: 9,
+            description: 'A',
             plannedQty: 10,
             currentPlannedQty: 15,
             clientPrice: 100,

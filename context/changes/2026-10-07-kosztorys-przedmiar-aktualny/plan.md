@@ -647,44 +647,44 @@ Run once, after Phase 6.
 - [ ] 1.4 Insert funnel matches the table
 - [ ] 1.5 Tree SELECT matches the mapper
 - [ ] 1.6 Snapshot round-trip keeps a hand edit and restores an old snapshot as null
-- [ ] 1.7 Import plan carries a hand edit on a matched row, null on a new row
+- [x] 1.7 Import plan carries a hand edit on a matched row, null on a new row — 9fb5d40a
 - [ ] 1.8 Worker extra lands with ofertowy 0 and aktualizacja = reported quantity
-- [ ] 1.9 Patch schema keeps null as null
+- [x] 1.9 Patch schema keeps null as null — 9fb5d40a
 
 ### Phase 2: Calculation layer
 
 #### Automated
 
-- [ ] 2.1 Core calc / rows / column values / totals specs rewritten red-first on split fixtures — cdca77df (specs unrun)
-- [ ] 2.2 Overrun and plane specs pass on split fixtures — cdca77df (specs unrun)
-- [ ] 2.3 Row-condition filters read aktualizacja; client-empty needs both zero — cdca77df (specs unrun)
-- [ ] 2.4 Section completionRatio uses aktualizacja, section offer stays ofertowy — cdca77df (specs unrun)
-- [ ] 2.5 Prognoza unchanged when only aktualizacja differs — cdca77df (specs unrun)
+- [x] 2.1 Core calc / rows / column values / totals specs rewritten red-first on split fixtures — cdca77df
+- [x] 2.2 Overrun and plane specs pass on split fixtures — cdca77df
+- [x] 2.3 Row-condition filters read aktualizacja; client-empty needs both zero — cdca77df
+- [x] 2.4 Section completionRatio uses aktualizacja, section offer stays ofertowy — cdca77df
+- [x] 2.5 Prognoza unchanged when only aktualizacja differs — cdca77df
 
 ### Phase 3: Editor columns
 
 #### Automated
 
-- [ ] 3.1 Policy: Delete → null, typed 0 → 0, undo restores null — c7290676 (specs unrun)
-- [ ] 3.2 Cell renders grey for null, black for a stored value — c7290676 (specs unrun)
-- [ ] 3.3 History diff lists an aktualizacja change — c7290676 (specs unrun)
-- [ ] 3.4 Column registries accept the new ids — c7290676 (specs unrun)
+- [x] 3.1 Policy: Delete → null, typed 0 → 0, undo restores null — c7290676
+- [x] 3.2 Cell renders grey for null, black for a stored value — c7290676
+- [x] 3.3 History diff lists an aktualizacja change — c7290676
+- [x] 3.4 Column registries accept the new ids — c7290676
 
 ### Phase 4: Investor document
 
 #### Automated
 
-- [ ] 4.1 Investor set hides remaining and the aktualizacja pair until the first entry; worker set unchanged — df9aef61 (specs unrun)
-- [ ] 4.2 Offer PDF before / after the first entry — df9aef61 (specs unrun)
-- [ ] 4.3 Default investor settings tick aktualizacja, leave its value unticked — df9aef61 (specs unrun)
+- [x] 4.1 Investor set hides remaining and the aktualizacja pair until the first entry; worker set unchanged — df9aef61
+- [x] 4.2 Offer PDF before / after the first entry — df9aef61
+- [x] 4.3 Default investor settings tick aktualizacja, leave its value unticked — df9aef61
 
 ### Phase 5: Worker surfaces
 
 #### Automated
 
-- [ ] 5.1 Worker PDF and form print the aktualizacja under its label — 0561d40d (specs unrun)
-- [ ] 5.2 Stored worker hide of plannedQty maps to currentPlannedQty — 0561d40d (specs unrun)
-- [ ] 5.3 Worker document never contains plannedQty — 0561d40d (specs unrun)
+- [x] 5.1 Worker PDF and form print the aktualizacja under its label — 0561d40d
+- [x] 5.2 Stored worker hide of plannedQty maps to currentPlannedQty — 0561d40d
+- [x] 5.3 Worker document never contains plannedQty — 0561d40d
 
 ### Phase 6: Docs and archive
 

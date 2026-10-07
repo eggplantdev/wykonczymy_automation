@@ -559,7 +559,14 @@ describe('Aktualizacja przedmiaru — postęp liczony od aktualizacji, oferta od
           displayOrder: 0,
           color: null,
           items: [
-            { ...sharedBaseItem, id: 7, plannedQty: 10, currentPlannedQty, clientPrice: 100 },
+            {
+              ...sharedBaseItem,
+              id: 7,
+              description: 'A',
+              plannedQty: 10,
+              currentPlannedQty,
+              clientPrice: 100,
+            },
           ],
         },
       ],
