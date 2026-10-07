@@ -4485,3 +4485,24 @@ Baza musi mieć migrację `20261007_0_add_ai_review_columns`.
 - [ ] Menu wiersza „Zapisz do katalogu" → „Nadpisz" na pracy z komentarzem: komentarz przeżywa.
 - [ ] „Nowa praca": checkbox katalogu startuje zaznaczony, pole „Komentarz do pracy" stoi pod nim; „Nadpisz w katalogu" z pustym polem zostawia istniejący komentarz; „Tylko do kosztorysu" nie rusza katalogu.
 - [ ] Podgląd inwestora, link udostępniony inwestorowi, PDF z „Generuj ofertę" i link pracownika: brak kolumny „Komentarz do pracy".
+
+### Przegląd szkicu AI
+
+Stan: kosztorys ze wczytanym szkicem AI (kolumna „AI przedmiar" ma wartości) oraz zwykły kosztorys bez szkicu.
+
+- [ ] Kosztorys ze szkicem → w wyborze kolumn są „AI przedmiar", „Status", „Powód zmiany"; „Problemy" pokazuje grupę „Przegląd AI", a „do sprawdzenia (szkic AI)" liczy pozycje z AI przedmiarem i bez statusu.
+- [ ] Wpisz w „Przedmiar" tę samą liczbę co AI przedmiar → Status „Zaakceptowana"; 0 → „Odrzucona"; inną liczbę → „Edytowana"; liczbę przy AI przedmiarze 0 → „Dodana". Ctrl+Z cofa Przedmiar i Status razem.
+- [ ] Status → „Zaakceptowana" przepisuje AI przedmiar do „Przedmiar"; „Odrzucona" ustawia Przedmiar na 0.
+- [ ] Filtr „zmienione bez powodu": pozycja, w której zaczynasz wpisywać „Powód zmiany", zostaje na liście aż do „Odśwież — ukryj poprawione".
+- [ ] „Nowa praca" z Przedmiarem w kosztorysie ze szkicem: pokazuje „Dodana" i trafia do „zmienione bez powodu".
+- [ ] Zapisz wersję, zmień statusy i powody, przywróć wersję: AI przedmiar, Status i Powód zmiany wracają.
+- [ ] Zapisz kosztorys jako szablon, załóż z niego nowy kosztorys: brak AI przedmiaru, Statusu i Powodu zmiany.
+- [ ] Zwykły kosztorys: brak kolumn AI w wyborze kolumn, brak grupy „Przegląd AI", wpisanie Przedmiaru nie ustawia statusu.
+- [ ] Podgląd inwestora, link udostępniony inwestorowi, PDF z „Generuj ofertę" i link pracownika: brak kolumn AI.
+
+### Widoki „Oferta" i „Przegląd AI"
+
+- [ ] Dowolny kosztorys → „Oferta": tylko Opis, Przedmiar, j.m., Cena j.m., Wartość netto przedmiar (+ Akcje), ceny inwestora, przełącznik widoku cen i menu „Widok" znikają; wyłączenie przywraca poprzednie kolumny i widok cen.
+- [ ] Kosztorys ze szkicem → „Przegląd AI" dokłada cztery kolumny AI do bieżących; wyłączenie je zabiera, a zaznaczenia w wyborze kolumn są takie jak przed włączeniem.
+- [ ] Oba włączone: kolumny oferty + kolumny AI.
+- [ ] Zwykły kosztorys: brak przycisku „Przegląd AI"; szablon: brak obu przycisków.

@@ -515,4 +515,4 @@ column touched here.
 
 #### Automated
 
-- [x] 3.1 Selection spec passes
+- [x] 3.1 Selection spec passes — f9af1e48
