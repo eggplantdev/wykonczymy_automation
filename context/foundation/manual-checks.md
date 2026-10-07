@@ -4527,3 +4527,9 @@ Stan: kosztorys ze wczytanym szkicem AI (kolumna „AI przedmiar" ma wartości) 
 - [ ] Oba zaznaczone: kolumny oferty + kolumny AI.
 - [ ] Menu zostaje otwarte po kliknięciu „Oferta" / „Przegląd AI"; na pasku narzędzi nie ma już osobnych przycisków.
 - [ ] Zwykły kosztorys: w menu „Kolumny" brak „Przegląd AI"; szablon: brak menu „Kolumny" (jak wcześniej).
+
+## 2026-10-07 — reorder-dialog-safari — lista „Ustaw kolejność” nie zapada się w Safari
+
+- [ ] Safari (desktop) → kosztorys z kilkoma sekcjami → „Akcje sekcji” → „Ustaw kolejność…”: lista sekcji i prac jest widoczna, przewija się w środku okna, „Zapisz kolejność” działa po przeciągnięciu.
+- [ ] Chrome (desktop) → to samo okno: wygląda i działa jak przed zmianą.
+- [ ] Telefon (390px) → to samo okno: lista wypełnia ekran między paskiem narzędzi a przyciskami.
