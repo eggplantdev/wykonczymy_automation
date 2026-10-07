@@ -68,9 +68,31 @@ describe('columnValueResolver', () => {
     expect(value('remainingForPlane')?.(row)).toBe(1000) // (10 − 5) × 200
   })
 
+  // EX-921: Aktualizacja przedmiaru 15 against ofertowy 10 — the plane and progress figures follow
+  // the aktualizacja, the offer figure does not.
+  it('reads progress and the crew figures off the Aktualizacja przedmiaru', () => {
+    const updated = { ...row, currentPlannedQty: 15 }
+    const client = columnValueResolver({ stages, view: 'w_tools' })
+    expect(client('plannedNet')?.(updated)).toBe(1000)
+    expect(client('currentPlannedNet')?.(updated)).toBe(1500)
+    expect(client('currentPlannedGross')?.(updated)).toBeCloseTo(1845)
+    expect(client('donePercent')?.(updated)).toBeCloseTo(5 / 15)
+    expect(client('remaining')?.(updated)).toBe(1000)
+    expect(client('plannedNetForPlane')?.(updated)).toBeCloseTo(975)
+    const worker = columnValueResolver({ stages, view: 'own_tools', executedQtyByItem: { 1: 5 } })
+    expect(worker('remainingForPlane')?.(updated)).toBe(2000) // (15 − 5) × 200
+  })
+
   it('leaves editable columns and row fields to the caller', () => {
     const value = columnValueResolver({ stages, view: 'client' })
-    for (const field of ['price', 'plannedQty', 'note', stageKey(100), 'divergence']) {
+    for (const field of [
+      'price',
+      'plannedQty',
+      'currentPlannedQty',
+      'note',
+      stageKey(100),
+      'divergence',
+    ]) {
       expect(value(field), field).toBeUndefined()
     }
   })

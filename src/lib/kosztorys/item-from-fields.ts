@@ -36,6 +36,7 @@ export const itemFromFields = (
   wToolsOverrideCoeff: fields.wToolsRateCoeff,
   ownToolsOverrideCoeff: fields.ownToolsRateCoeff,
   plannedQty: 0,
+  currentPlannedQty: null,
   sheetMeasuredQty: null,
   discountType: null,
   discountValue: 0,

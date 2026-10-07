@@ -138,6 +138,15 @@ export function diffVersions(past: HistoryVersionT, current: HistoryVersionT): V
     if (qtyChanged(pastRow.plannedQty, currentRow.plannedQty)) {
       fields.push({ field: 'plannedQty', before: pastRow.plannedQty, after: currentRow.plannedQty })
     }
+    const currentBefore = pastRow.currentPlannedQty
+    const currentAfter = currentRow.currentPlannedQty
+    if (
+      currentBefore === null || currentAfter === null
+        ? currentBefore !== currentAfter
+        : qtyChanged(currentBefore, currentAfter)
+    ) {
+      fields.push({ field: 'currentPlannedQty', before: currentBefore, after: currentAfter })
+    }
     if (moneyChanged(pastRow.clientPrice, currentRow.clientPrice)) {
       fields.push({ field: 'price', before: pastRow.clientPrice, after: currentRow.clientPrice })
     }

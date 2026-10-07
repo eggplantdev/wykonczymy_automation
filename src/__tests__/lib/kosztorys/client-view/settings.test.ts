@@ -13,7 +13,7 @@ const visibleColumns = (settings: ClientViewSettingsT) => {
 
 describe('sanitizeClientViewSettings', () => {
   // The settlement columns are in the default because they hide themselves until there is an
-  // entry; „Pozostało" is not, because nothing hides it on the owner's behalf (owner, 2026-09-28).
+  // entry; „Pozostało" is not — it hides itself too, but stays an opt-in tick (owner, 2026-09-28).
   it('answers an empty source with the code default', () => {
     const settings = sanitizeClientViewSettings({})
 
@@ -21,6 +21,7 @@ describe('sanitizeClientViewSettings', () => {
       [
         'description',
         'plannedQty',
+        'currentPlannedQty',
         'unit',
         'price',
         'plannedNet',
@@ -32,6 +33,8 @@ describe('sanitizeClientViewSettings', () => {
       ].sort(),
     )
     expect(settings.hiddenColumns).toContain('remaining')
+    // EX-921: the Aktualizacja is ticked, its value an available tick left off.
+    expect(settings.hiddenColumns).toContain('currentPlannedNet')
     expect(settings.hideEmptyRows).toBe(true)
   })
 

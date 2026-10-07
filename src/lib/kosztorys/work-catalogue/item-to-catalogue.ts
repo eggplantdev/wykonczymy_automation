@@ -19,6 +19,7 @@ const asPricing = (source: CatalogueSourceItemT): ViewPricingT => ({
   descriptionTranslations: source.descriptionTranslations,
   unit: source.unit,
   plannedQty: 0,
+  currentPlannedQty: null,
   sheetMeasuredQty: null,
   discountType: null,
   discountValue: 0,

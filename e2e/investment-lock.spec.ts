@@ -115,7 +115,7 @@ test('closing an investment locks the editor and the pickers, and reopening it g
 
   // Clicking a cell opens no editor. The column set stays the owner's own, which is what separates a
   // locked kosztorys from a client's share link: same document, nothing writable.
-  const cell = await editorCell(page, 'Przedmiar')
+  const cell = await editorCell(page, 'Przedmiar ofertowy')
   await cell.click()
   await expect(cell.locator('input')).toHaveCount(0)
 
@@ -161,7 +161,7 @@ test('closing an investment locks the editor and the pickers, and reopening it g
   await openEditor(page)
   await reloadUntilBanner(page, 'gone')
   await expect(page.getByRole('button', { name: 'Dodaj' })).toBeVisible()
-  const reopened = await editorCell(page, 'Przedmiar')
+  const reopened = await editorCell(page, 'Przedmiar ofertowy')
   await reopened.click()
   await expect(reopened.locator('input')).toHaveCount(1)
 })

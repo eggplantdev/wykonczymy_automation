@@ -4,6 +4,7 @@ import { Column, keyColumn } from 'react-datasheet-grid'
 import { StageHeader } from '@/components/kosztorys/editor/grid/stage-header'
 import { STAGE_HEADER_COPY } from '@/components/kosztorys/editor/grid/stage-header-copy'
 import { decimalColumn } from '@/components/kosztorys/editor/grid/cells/decimal-column'
+import { currentPlannedQtyColumn } from '@/components/kosztorys/editor/grid/cells/current-planned-qty-cell'
 import {
   computedColumn,
   type ComputedColumnStyleT,
@@ -174,7 +175,8 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     )
 
   // Przedmiar (sheet N) leads the stage columns so the offered quantity reads before the per-etap
-  // execution it is measured against.
+  // execution it is measured against. Its Aktualizacja follows right behind: progress is measured
+  // against that one.
   const przedmiar: Column<KosztorysV2RowT>[] = [
     {
       ...decimalColumn(
@@ -184,6 +186,7 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       ),
       minWidth: 150,
     },
+    currentPlannedQtyColumn(columnTitle('currentPlannedQty', opts)),
   ]
 
   // Owner-only — the investor's and the worker's closed lists never name these ids. The review trio
@@ -350,6 +353,8 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
   const plannedValue: Column<KosztorysV2RowT>[] = [
     resolvedColumn('plannedNet'),
     resolvedColumn('plannedGross'),
+    resolvedColumn('currentPlannedNet'),
+    resolvedColumn('currentPlannedGross'),
     resolvedColumn('plannedNetForPlane'),
   ]
 

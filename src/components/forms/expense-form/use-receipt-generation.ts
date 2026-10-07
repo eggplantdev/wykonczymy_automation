@@ -108,7 +108,7 @@ export function useReceiptGeneration({
           logError(`[receipt-generation] row ${id} failed`, error)
           // The file stays attached: the scan is an auxiliary read, not a validity gate. Most
           // failures are provider, network or unreadable-photo ones, and file validity is already
-          // enforced by the picker's `accept`, by ingest and by `media.mimeTypes`.
+          // enforced by the picker's `accept`, by ingest and by the upload's byte sniff.
           failed.add(id)
           failedMessages.add(error instanceof Error ? error.message : String(error))
         } finally {

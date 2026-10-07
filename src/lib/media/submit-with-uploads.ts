@@ -1,11 +1,5 @@
 import { discardOrphanedUploads } from '@/lib/media/discard-orphaned-uploads'
-import {
-  MediaUploadError,
-  UPLOAD_FAILED,
-  resolveUploadIdRows,
-  resolveUploadIds,
-  type MediaUploaderT,
-} from '@/lib/media/upload-ids'
+import { MediaUploadError, UPLOAD_FAILED, resolveUploadIdRows } from '@/lib/media/upload-ids'
 import type { ActionResultT, FailureT } from '@/types/action'
 import type { MediaKindT } from '@/types/media'
 
@@ -52,11 +46,10 @@ export function submitWithUploads<TResult extends ActionResultT<unknown> | Actio
   files: File[],
   submit: (uploadedIds: number[]) => Promise<TResult>,
   kind?: MediaKindT,
-  upload?: MediaUploaderT,
 ): Promise<TResult | FailureT> {
   if (files.length === 0) return submit([])
   return withOrphanCleanup(
-    () => resolveUploadIds(files, kind, upload),
+    async () => (await resolveUploadIdRows(1, new Map([[0, files]]), kind))[0],
     (ids) => ids,
     submit,
   )

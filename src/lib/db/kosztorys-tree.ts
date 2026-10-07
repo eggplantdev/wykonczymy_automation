@@ -69,7 +69,7 @@ export async function selectKosztorysTreeData(
         SELECT coalesce(json_agg(i ORDER BY i.display_order, i.id), '[]'::json)
         FROM (
           SELECT id, section_id, display_order, description, description_translations, unit, planned_qty,
-                 sheet_measured_qty,
+                 current_planned_qty, sheet_measured_qty,
                  discount_type, discount_value, client_price,
                  w_tools_override_value, own_tools_override_value,
                  w_tools_override_coeff, own_tools_override_coeff,
@@ -149,7 +149,6 @@ const mapSection = (row: RowT): KosztorysSectionT => ({
   color: isSectionColorKey(row.color) ? row.color : null,
 })
 
-
 const mapItem = (row: RowT): KosztorysItemT & { sectionId: number } => ({
   id: Number(row.id),
   ref: Number(row.ref),
@@ -159,6 +158,8 @@ const mapItem = (row: RowT): KosztorysItemT & { sectionId: number } => ({
   descriptionTranslations: toDescriptionTranslations(row.description_translations),
   unit: textOrNull(row.unit),
   plannedQty: num(row.planned_qty),
+  // `numOrNull`, not `num`: NULL follows Przedmiar ofertowy, while 0 dropped the pozycja from scope.
+  currentPlannedQty: numOrNull(row.current_planned_qty),
   // `numOrNull`, not `num`: NULL means „the sheet made no claim" and must not collapse to a claim
   // of zero, which would flag every unmeasured row as diverged.
   sheetMeasuredQty: numOrNull(row.sheet_measured_qty),

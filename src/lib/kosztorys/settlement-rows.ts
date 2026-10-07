@@ -1,4 +1,9 @@
-import { MONEY_TOLERANCE, netForQtyForView, type PriceViewT } from '@/lib/kosztorys/calc'
+import {
+  MONEY_TOLERANCE,
+  netForQtyForView,
+  resolvedCurrentPlannedQty,
+  type PriceViewT,
+} from '@/lib/kosztorys/calc'
 import { stageAppliesToView } from '@/lib/kosztorys/settlement-view'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
@@ -43,7 +48,8 @@ export function rowValueForView(
 }
 
 /**
- * How much of the OFFER is left: the przedmiar's value minus the value of `executedQty`.
+ * How much of the agreed scope is left: the value of `scopeQty` (the Aktualizacja przedmiaru)
+ * minus the value of `executedQty`.
  *
  * This is where we knowingly break parity with the sheet. Its AF anchors on T — the executed value —
  * and since O IS the stage sum, AF = T − Σ(V:AE) is identically zero: a dead column. Anchored on S
@@ -59,16 +65,20 @@ export function rowValueForView(
  * overruns into the total after inv. 31 read +64 311 zł „left" on a kosztorys 23 602 zł past its
  * offer; the red row is now what says that.
  *
- * The quantity is handed in because the two readers count it differently: the owner's grid sums the
- * view's etapy, the worker view (EX-875 design #9) sums every etap of the investment — a pozycja
- * another crew finished is not work still owed to anyone — while the price stays his stawka.
+ * The executed quantity is handed in because the two readers count it differently: the owner's grid
+ * sums the view's etapy, the worker view (EX-875 design #9) sums every etap of the investment — a
+ * pozycja another crew finished is not work still owed to anyone — while the price stays his stawka.
+ *
+ * So is the scope quantity, with no default (EX-921): progress reads the Aktualizacja przedmiaru, and a
+ * default would let a caller fall back to the offer without anyone noticing.
  */
 export function rowRemainingForExecutedQty(
   row: KosztorysV2RowT,
+  scopeQty: number,
   executedQty: number,
   view: PriceViewT,
 ): number {
-  return netForQtyForView(row, row.plannedQty ?? 0, view) - netForQtyForView(row, executedQty, view)
+  return netForQtyForView(row, scopeQty, view) - netForQtyForView(row, executedQty, view)
 }
 
 /**
@@ -83,7 +93,8 @@ export function isRemainingOverrun(remaining: number): boolean {
 }
 
 /**
- * Was more executed than was offered? Drives the row's red highlight.
+ * Was more executed than agreed? Drives the row's red highlight. Agreed = the Aktualizacja
+ * przedmiaru (EX-921), so an extra the client signed off stops reading as an overrun.
  *
  * Deliberately NOT "przedmiar ≠ Σ etapów": a half-finished row is normal work in progress, and
  * flagging it would paint the whole grid red on a healthy kosztorys.
@@ -99,8 +110,9 @@ export function isRemainingOverrun(remaining: number): boolean {
  * „under-plan" on work the other crew finished.
  */
 export function hasStagesOverPlanned(row: KosztorysV2RowT, stages: KosztorysStageT[]): boolean {
-  if (!(row.plannedQty > 0)) return false
-  return rowTotalQtyDone(row, stages, 'client') > row.plannedQty
+  const plannedQty = resolvedCurrentPlannedQty(row)
+  if (!(plannedQty > 0)) return false
+  return rowTotalQtyDone(row, stages, 'client') > plannedQty
 }
 
 // Quantities are typed in m², mb and kpl, often to two decimals, so an exact `!==` would light up

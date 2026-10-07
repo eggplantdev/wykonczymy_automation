@@ -4529,6 +4529,7 @@ Baza musi mieć migrację `20261007_0_add_ai_review_columns`.
       Staging 2026-10-07: nowa praca z komentarzem → kolumna „Komentarz do pracy” (ukryta domyślnie, włączona w „Kolumny”) pokazuje go.
 - [x] Kosztorys → w wyborze kolumn zaznacz „Komentarz do pracy" → kliknij komórkę pracy z katalogu → wpisz komentarz → zapisz: ta sama praca w innym kosztorysie i w szablonie pokazuje ten komentarz.
       Staging 2026-10-07: komentarz wpisany w 173 (pozycja „Rozkucie i zatynkowanie…”) zapisał się w katalogu (`work_note`, psql); ta sama praca w 174 (kolumna włączona) i w szablonie 159 pokazuje go.
+- [ ] Kosztorys → kolumna „Komentarz do pracy" ma zwykłe kolory (bez cyjanu); kliknij komórkę pracy, której nie ma w katalogu: okno „Tej pracy nie ma w katalogu prac" → „Dodaj do katalogu…" otwiera „Zapisz do katalogu…"; po zapisie kliknięcie tej komórki otwiera okno komentarza. Szara zostaje tylko komórka pustego wiersza.
 - [x] Pozycja, której opisu nie ma w katalogu: komórka jest pusta, kliknięcie nic nie otwiera.
       Staging 2026-10-07: „Wynoszenie gruzu…” (173): komórka pusta, klik i dwuklik nie otwierają okna.
 - [x] W oknie komentarza: Backspace, Delete, strzałki, Ctrl+A i wklejanie działają na tekście komentarza; kosztorys pod oknem się nie zmienia. Escape zamyka okno.
@@ -4597,6 +4598,30 @@ Staging, zalogowany pracownik z własną kasą i etapem na inwestycji. Zdjęcia 
 - [ ] Kierownik: usuń takie zgłoszenie → jego zdjęcia przestają się otwierać (stary link do pliku daje 404).
 - [ ] Inne miejsca dodawania plików (faktura przy transakcji, zdjęcia inwestycji) działają jak dotąd.
 
+## EX-1014 — media-upload-other-forms — każdy formularz z plikami na szybkiej ścieżce (2026-10-07)
+
+Staging (albo preview brancha), konto OWNER, chyba że napisano inaczej. Zdjęcia z telefonu albo
+JPEG-i ~300 KB; „duży plik" = PDF powyżej 4 MB.
+
+- [ ] Wydatek zbiorczy: 4 wiersze, każdy z fakturą → zapis: 4 transakcje, każda faktura otwiera się w podglądzie.
+- [ ] Wydatek zbiorczy: wiersz z fakturą wielostronicową (3 zdjęcia) i wiersz z PDF → zapis: strony w dobrej kolejności, PDF się otwiera.
+- [ ] Wydatek zbiorczy z dużym plikiem w jednym z wierszy → zapis się udaje (wolniej), duży PDF się otwiera.
+- [ ] Edycja transakcji: dodaj stronę faktury i usuń inną → zapis: zostaje właściwy zestaw stron.
+- [ ] Tabela transakcji → komórka faktury: dodaj zdjęcie, potem duży PDF → oba widoczne i otwierają się.
+- [ ] Telmak: dodaj fakturę PDF → zapisana i otwiera się.
+- [ ] Inspekcja: dodaj kilka załączników → po zapisie wszystkie się otwierają.
+- [ ] Nowa inwestycja z plikami w formularzu → po zapisie pliki są w galerii inwestycji.
+- [ ] Galeria inwestycji: dodaj 10 zdjęć naraz → wszystkie 10 w galerii, żadne nie zginęło.
+- [ ] Galeria inwestycji: dodaj plik jako „projekt" (rzut) → ląduje jako projekt, nie jako zwykłe zdjęcie.
+- [ ] Edycja inwestycji → pole plików: dodaj i usuń plik → zapis zgadza się z tym, co widać.
+- [ ] Raport ze skanu: dodaj zdjęcia → raport zapisany, zdjęcia się otwierają.
+- [ ] Plik SVG w dowolnym z tych miejsc → po kliknięciu zapisu odrzucony z komunikatem „Dozwolone są tylko zdjęcia i pliki PDF", nic nie zostaje zapisane. SVG przemianowany na `.jpg` → „Plik „….jpg" został odrzucony — może być uszkodzony.", też bez zapisu.
+- [ ] Usuń transakcję z fakturą (mały plik) i drugą z dużym PDF → stary link do pliku daje 404 w obu przypadkach.
+- [ ] Dwie karty naraz: w każdej dodaj 5 zdjęć do galerii (jedna z nich z dużym plikiem) → wszystkie pliki są w galerii, w logach Vercela brak „Failed to persist upload data".
+- [ ] Okno leada (zgłoszenie z Facebooka) z plikami → miniatury wyglądają jak dotąd.
+- [ ] Zgłoszenie z formularza na stronie (landing) ze zdjęciem z telefonu i PDF-em → oba pliki są przy zgłoszeniu, miniatura zdjęcia się wyświetla.
+- [ ] Konto pracownika: „Dodaj wydatek" z 3 zdjęciami → „Wyślij" działa jak po EX-1012; dodanie stron do oczekującego zgłoszenia działa.
+
 ## 2026-10-07 — worker-page-quick-actions — „Dodaj wydatek” i „Zgłoś pracę” nad „Moimi kasami”
 
 - [ ] Zalogowany pracownik → własna strona: nie widzi pól „Rola” ani „Status”; kierownik na tej samej stronie widzi oba.
@@ -4607,3 +4632,51 @@ Staging, zalogowany pracownik z własną kasą i etapem na inwestycji. Zdjęcia 
 - [ ] „Moje inwestycje” to zwykła lista nazw ze strzałką (bez tabeli i bez kolumny „Zgłoszenia”); nazwa otwiera podsumowanie inwestycji. Kierownik widzi same nazwy, bez strzałek i linków.
 - [ ] Pracownik z językiem „Українська” lub „Русский”, 390px: etykiety obu dużych przycisków zawijają się w środku przycisku, nic nie wychodzi poza jego krawędź; gdy dostępny jest tylko jeden z nich, zajmuje cały rząd.
 - [ ] Pracownik bez zgłoszonych wydatków, bez zgłoszeń prac i bez transferów → na jego stronie nie ma sekcji „Zgłoszone wydatki”, „Zgłoszenia wykonanych prac” ani „Lista wydatków / zaliczek”; każda pojawia się po pierwszym wpisie. Filtr transferów, który nic nie znajduje, nie chowa sekcji „Lista wydatków / zaliczek”.
+
+## 2026-10-07 — worker-pwa-install-and-long-session — ikona aplikacji na telefonie i logowanie na 90 dni
+
+- [ ] Pracownik zalogowany w jednej przeglądarce, kierownik w drugiej wyłącza mu „Aktywny” → najbliższe przejście pracownika kończy się na `/zaloguj`, a wysłany formularz odpowiada „Nie jesteś zalogowany”.
+- [ ] To samo po przeniesieniu pracownika do `/kosz`; po przywróceniu i włączeniu „Aktywny” pracownik znów się loguje.
+- [ ] To samo przez „Edytuj pracownika” → odznaczenie „Aktywny” i zapis: pracownik wylatuje na `/zaloguj` od razu, nie po godzinie.
+- [ ] Kierownik zalogowany w jednej przeglądarce, właściciel w drugiej zmienia mu rolę na pracownika → najbliższe przejście kierownika kończy się na `/zaloguj`; po ponownym zalogowaniu widzi już tylko to, co pracownik.
+- [ ] Zmiana języka konta, e-maila albo hasła (własnych lub przez „Edytuj pracownika”) nikogo nie wylogowuje.
+- [ ] Wylogowanie, a potem wklejenie starej wartości ciasteczka `payload-token` do przeglądarki → aplikacja nie wpuszcza (sesja skończona, nie tylko ciasteczko skasowane).
+- [ ] Konto zalogowane ponad dobę temu → po otwarciu aplikacji DevTools → Application → Cookies pokazuje nową wartość `payload-token` z wygaśnięciem ok. 90 dni naprzód.
+- [ ] Na stagingu (https) ciasteczko `payload-token` ma zaznaczone `Secure`.
+- [ ] Build produkcyjny, Chrome DevTools → Application → Manifest: nazwa „Wykończymy”, trzy ikony (maskowalna z podglądem strefy bezpiecznej), brak błędów instalowalności.
+- [ ] Ikona w karcie przeglądarki to logo firmy, nie 🚧.
+- [ ] DevTools → Network → Offline: przejście na inną stronę pokazuje „Brak połączenia z internetem…”, a wysłanie formularza nadal pokazuje dotychczasowy komunikat o braku połączenia, nie tę stronę.
+- [ ] Android Chrome, prawdziwy telefon, staging, 390px: na własnej stronie pracownika pod „Zmień e-mail lub hasło” jest przycisk instalacji — najpierw w stanie ładowania, potem aktywny; dotknięcie pokazuje systemowe okno instalacji, a ikona trafia na ekran główny.
+- [ ] Ta ikona otwiera aplikację na pełnym ekranie na stronie pracownika, już zalogowaną, i przycisk instalacji nie jest tam pokazany.
+- [ ] iPhone Safari, prawdziwy telefon, staging, 390px: przycisk otwiera instrukcję w trzech krokach; po jej wykonaniu ikona jest na ekranie głównym i otwiera aplikację na pełnym ekranie na `/zaloguj`; po zalogowaniu przycisku nie ma.
+- [ ] Android z już zainstalowaną aplikacją, strona otwarta w karcie Chrome: przycisk jest ukryty albo po 60 s zmienia się w podpowiedź o menu przeglądarki — nigdy nie zostaje w ładowaniu.
+- [ ] Język konta „Українська” / „Русский”: przycisk, podpowiedź i instrukcja dla iPhone’a są przetłumaczone.
+- [ ] Przycisku nie ma na cudzej stronie pracownika ani u kierownika oglądającego stronę pracownika.
+- [ ] iPhone, ikona na ekranie głównym: logo jest wyśrodkowane, z marginesem dookoła, nie dotyka krawędzi kafelka.
+- [ ] Aplikacja zainstalowana (Android i iPhone): obok hamburgera jest strzałka wstecz na każdej stronie; cofa do poprzedniej strony, a przy pierwszej stronie po otwarciu prowadzi na stronę główną. W zwykłej karcie przeglądarki strzałki nie ma.
+
+## 2026-10-07 — kosztorys-cell-arithmetic — działania w komórkach liczbowych kosztorysu
+
+- [ ] Edytor kosztorysu → wpisz `3,5x2,8` w „Przedmiar” i Enter: w komórce zostaje `9,8`, „Wartość netto przedmiar” wiersza się przelicza.
+- [ ] Wpisz `=10/3` w „Cena j.m.”: zostaje `3,33`.
+- [ ] Wpisz `2*` w komórkę liczbową i kliknij obok: wraca poprzednia wartość z komunikatem o odrzuconym wpisie.
+- [ ] Skopiuj `(2+3)*1,5` z edytora tekstu i wklej na zaznaczoną komórkę ilości w etapie: ląduje `7,5`.
+- [ ] Zwykła liczba (`12,5`) w dowolnej komórce zachowuje się jak dotąd.
+
+## EX-921 — kosztorys-przedmiar-aktualny — „Aktualizacja przedmiaru” obok „Przedmiaru ofertowego” (2026-10-07)
+
+- [ ] Kosztorys z pozycjami → w edytorze kolejno: „Przedmiar ofertowy”, „Wartość netto przedmiar”, „Aktualizacja przedmiaru”, „Wartość netto aktualizacji przedmiaru”. Na nietkniętej pozycji aktualizacja jest szara (kursywa) i równa przedmiarowi ofertowemu.
+- [ ] Wpisz 120 w „Aktualizacja przedmiaru” → komórka robi się czarna, „% wykonania” i „Pozostało” przeliczają się względem 120. Delete → komórka znów szara i pokazuje przedmiar ofertowy. Wpisz 0 → „% wykonania” pokazuje „—”, a wartość wykonana wiersza zostaje.
+- [ ] Zmień „Przedmiar ofertowy” na pozycji z szarą aktualizacją → aktualizacja idzie za nim. Na pozycji z wpisaną ręcznie aktualizacją → zostaje bez zmian.
+- [ ] Wiersz „Razem” i stopki sekcji pokazują obie sumy: „Wartość netto przedmiar” i „Wartość netto aktualizacji przedmiaru”. Po przeładowaniu strony ręczna aktualizacja nadal jest.
+- [ ] Sortowanie po „Aktualizacja przedmiaru” → szare (nietknięte) pozycje układają się według swojej liczby, nie lądują wszystkie na dole.
+- [ ] Tryb „Postęp” → kolumna „Aktualizacja przedmiaru” zostaje widoczna obok „% wykonania” i „Pozostało”.
+- [ ] Historia wersji → zmiana aktualizacji pokazuje się jako „Aktualizacja przedmiaru: — → 120”, a zmiana przedmiaru ofertowego jako „Przedmiar ofertowy”.
+- [ ] Kosztorys bez żadnego wpisu w etapach → „Podgląd” dla inwestora pokazuje samą ofertę: bez „Aktualizacja przedmiaru”, bez „Pozostało” — nawet gdy obie są zaznaczone w ustawieniach.
+- [ ] Po pierwszym wpisie w etapie → podgląd i link dla inwestora pokazują „Przedmiar ofertowy” i „Aktualizacja przedmiaru”; „Wartość netto aktualizacji przedmiaru” jest w ustawieniach do zaznaczenia i domyślnie odznaczona. „% wykonania” liczy się względem aktualizacji.
+- [ ] „Generuj ofertę” drukuje te same kolumny co podgląd — przed pierwszym wpisem i po nim.
+- [ ] Link pracownika (po polsku i po ukraińsku, na telefonie 390px) → widać „Aktualizacja przedmiaru”, nigdy przedmiaru ofertowego. Po wpisaniu 120 w edytorze link pokazuje 120, a jego wartość i „Pozostało” liczą się od 120.
+- [ ] Pracownik, któremu wcześniej odznaczono „Przedmiar” w ustawieniach widoku pracownika → po zmianie „Aktualizacja przedmiaru” nadal jest u niego ukryta.
+- [ ] „Drukuj do wypełnienia” → kolumna „Postęp” pokazuje „wykonano / 120” dla pozycji z aktualizacją 120.
+- [ ] Zgłoszenie pracownika → w przeglądzie zgłoszenia kolumna nazywa się „Aktualizacja przedmiaru”, a ostrzeżenie o przekroczeniu liczy się względem niej i brzmi „Przekroczono aktualizację przedmiaru”; na stronie zgłoszenia „Postęp” też pokazuje „/ 120”.
+- [ ] Przyjęcie pracy dodatkowej ze zgłoszenia → nowa pozycja ma „Przedmiar ofertowy” 0 i „Aktualizacja przedmiaru” równą zgłoszonej ilości (czarną).

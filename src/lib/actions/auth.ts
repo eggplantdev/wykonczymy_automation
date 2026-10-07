@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { getPayload } from 'payload'
 import { login, logout } from '@payloadcms/next/auth'
 import config from '@payload-config'
+import { revalidateCollections } from '@/lib/cache/revalidate'
 import { loginRefusalMessage } from '@/lib/constants/worker-lock'
 
 type LoginResultT = {
@@ -33,6 +34,9 @@ export async function loginAction(data: {
 
 export async function logoutAction(): Promise<never> {
   await logout({ config })
+  // Payload's logout runs no collection hook, so the cached session check is expired here — or a
+  // copy of the token outlives the logout.
+  revalidateCollections(['users'])
   const cookieStore = await cookies()
   cookieStore.delete('payload-token')
   redirect('/zaloguj')

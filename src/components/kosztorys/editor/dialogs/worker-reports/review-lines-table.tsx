@@ -231,14 +231,14 @@ function StageCell({ row }: { row: ReviewRowT }) {
 function MeasuredCell({ row }: { row: ReviewRowT }) {
   const added = previewQtyChange(row, useReviewTable().drafts[row.id], row.isFigureLive)
   if (!row.figures) return null
-  const { measuredQty, plannedQty } = row.figures
-  const isOverPlanned = plannedQty > 0 && measuredQty + added > plannedQty
+  const { measuredQty, currentPlannedQty } = row.figures
+  const isOverPlanned = currentPlannedQty > 0 && measuredQty + added > currentPlannedQty
   return (
     <span className="whitespace-nowrap">
       <span className={cn(isOverPlanned && 'text-amber-600 dark:text-amber-400')}>
         <GrowingQty before={measuredQty} added={added} />
       </span>
-      {isOverPlanned && <span className={WARNING_NOTE}>Przekroczono przedmiar</span>}
+      {isOverPlanned && <span className={WARNING_NOTE}>Przekroczono aktualizację przedmiaru</span>}
     </span>
   )
 }
@@ -484,13 +484,13 @@ const stageColumn = col.accessor((row) => row.figures?.stageQty ?? 0, {
   meta: { label: 'Etap' },
   cell: ({ row }) => <StageCell row={row.original} />,
 })
-const plannedColumn = col.accessor((row) => row.figures?.plannedQty ?? 0, {
+const plannedColumn = col.accessor((row) => row.figures?.currentPlannedQty ?? 0, {
   id: 'planned',
-  header: COLUMN_LABELS.plannedQty,
+  header: COLUMN_LABELS.currentPlannedQty,
   cell: ({ row }) =>
     row.original.figures &&
-    (row.original.figures.plannedQty > 0 ? (
-      formatQty(row.original.figures.plannedQty)
+    (row.original.figures.currentPlannedQty > 0 ? (
+      formatQty(row.original.figures.currentPlannedQty)
     ) : (
       <span className="text-muted-foreground">—</span>
     )),

@@ -1,4 +1,10 @@
-import { priceSourceOf, shownCoeff, viewPrice, type PriceViewT } from '@/lib/kosztorys/calc'
+import {
+  priceSourceOf,
+  resolvedCurrentPlannedQty,
+  shownCoeff,
+  viewPrice,
+  type PriceViewT,
+} from '@/lib/kosztorys/calc'
 import { columnValueResolver } from '@/lib/kosztorys/columns/column-values'
 import { measureDiscrepancy } from '@/lib/kosztorys/settlement-rows'
 import { planePriceKeyParts } from '@/lib/kosztorys/plane-price-keys'
@@ -53,6 +59,10 @@ export function sortValueGetter(
     // the client view, so `view` is the plane to read.
     case 'price':
       return (row) => viewPrice(row, view)
+    // A following cell stores null yet shows the ofertowy — sorting the raw field would sink every
+    // untouched row under the bottom as „no figure".
+    case 'currentPlannedQty':
+      return resolvedCurrentPlannedQty
     // By value, not by quantity: sorting a rozjazd list is triage, and „which m² gap is biggest" says
     // nothing across rows priced at 30 zł and 3000 zł. `null` on the rows that agree sinks them to the
     // bottom, which is where a work list wants them.

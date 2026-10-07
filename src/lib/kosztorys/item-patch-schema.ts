@@ -18,6 +18,8 @@ export const itemPatchSchema = z
     descriptionTranslations: descriptionTranslationsSchema,
     unit: z.string().nullable(),
     plannedQty: z.coerce.number(),
+    // Wrapped like the stawki below: null means „follows Przedmiar ofertowy", 0 means out of scope.
+    currentPlannedQty: z.coerce.number().nullable(),
     discountType: z.enum(['percent', 'amount']).nullable(),
     // Floor only: the same slot carries złotówki when the type is 'amount', so the percent ceiling
     // lives in discount-edit.ts.

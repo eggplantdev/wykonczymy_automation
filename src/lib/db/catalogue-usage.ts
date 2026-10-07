@@ -15,7 +15,7 @@ export async function selectUsedKosztorysItems(db: DbExecutorT): Promise<UsedKos
     JOIN investments i ON i.id = ki.investment_id
     WHERE i.status <> ${TEMPLATE_INVESTMENT_STATUS} AND i.trashed_at IS NULL
       AND btrim(coalesce(ki.description, '')) <> ''
-      AND (ki.planned_qty > 0
+      AND (ki.planned_qty > 0 OR COALESCE(ki.current_planned_qty, 0) > 0
            OR EXISTS (SELECT 1 FROM stage_progress sp WHERE sp.item_id = ki.id AND sp.qty_done > 0))
   `)
   return rows.map((row) => ({

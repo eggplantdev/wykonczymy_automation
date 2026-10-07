@@ -43,7 +43,7 @@ export function SummaryStagesTab({
   vatRate,
   preview = false,
 }: PropsT) {
-  const { doneNet, plannedNet, rows } = useKosztorysEditorContext()
+  const { doneNet, currentPlannedNet, rows } = useKosztorysEditorContext()
   const shownStages = preview ? stagesWithEntries(rows, stages) : stages
   if (shownStages.length === 0) return <Description withIcon={false}>Brak etapów.</Description>
   const cols = summaryMoneyCols(STAGES_AXIS)
@@ -52,7 +52,7 @@ export function SummaryStagesTab({
     <div className="flex w-full flex-col gap-4">
       {/* Above the table, like the rozliczenie selects on the other tabs — it reads the same figures
           the table lists, so it belongs at the head of the block rather than as its footnote. */}
-      <KosztorysProgressCounter doneNet={doneNet} plannedNet={plannedNet} />
+      <KosztorysProgressCounter doneNet={doneNet} plannedNet={currentPlannedNet} />
       <div className="flex flex-col items-start gap-8 lg:flex-row">
         <div>
           <SummaryTable cols={cols} className="w-fit">

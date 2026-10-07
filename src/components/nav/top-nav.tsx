@@ -3,6 +3,7 @@ import { DepositDialog } from '@/components/dialogs/deposit-dialog'
 import { InternalTransferDialog } from '@/components/dialogs/internal-transfer-dialog'
 import { ExpenseDialog } from '@/components/dialogs/expense-dialog'
 import { MobileNav } from '@/components/nav/mobile-nav'
+import { StandaloneBackButton } from '@/components/nav/standalone-back-button'
 import type { ReferenceDataT } from '@/types/reference-data'
 
 type TopNavPropsT = {
@@ -18,6 +19,7 @@ export function TopNav({ referenceData, investmentCrumb }: TopNavPropsT) {
   return (
     <header className="border-border bg-background flex h-14 items-center justify-between gap-3 border-b p-4 px-3">
       <MobileNav />
+      <StandaloneBackButton />
       <Suspense fallback={null}>{investmentCrumb}</Suspense>
       <div className="ml-auto flex shrink-0 items-center gap-2">
         {referenceData && (

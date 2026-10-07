@@ -4,7 +4,6 @@ import userEvent from '@testing-library/user-event'
 import { ExpenseDraftDialog } from '@/components/worker-expenses/expense-draft-dialog'
 import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
-import { uploadMediaBySize } from '@/lib/media/upload-media'
 
 vi.mock('next/navigation', async (importOriginal) => ({
   ...(await importOriginal<typeof import('next/navigation')>()),
@@ -96,8 +95,7 @@ describe('ExpenseDraftDialog scan mode', () => {
     )
   })
 
-  // The send is what a worker waits on — its photos take the size-routed fast path (EX-1012).
-  it('uploads the photos through the size router', async () => {
+  it('uploads the photos as faktury', async () => {
     await openNewAndPick(1)
     await userEvent.click(screen.getByRole('button', { name: 'Wyślij' }))
 
@@ -106,7 +104,6 @@ describe('ExpenseDraftDialog scan mode', () => {
         expect.any(Array),
         expect.any(Function),
         'faktura',
-        uploadMediaBySize,
       ),
     )
   })

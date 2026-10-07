@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { emptySettlementColumnIds, stagesWithEntries } from '@/lib/kosztorys/settlement-columns'
+import {
+  emptySettlementColumnIds,
+  investorEmptyColumnIds,
+  stagesWithEntries,
+} from '@/lib/kosztorys/settlement-columns'
 import { stageKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import { CTX, row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
 
@@ -31,8 +35,7 @@ describe('emptySettlementColumnIds', () => {
     expect([...empty].sort()).toEqual(stageColumns(2).sort())
   })
 
-  // „Pozostało" is a real figure before any work (the whole przedmiar is outstanding); only the
-  // owner's own choice hides it.
+  // The worker's half: his whole przedmiar is outstanding work before any entry.
   it('never hides „Pozostało"', () => {
     const empty = emptySettlementColumnIds([row()], CTX.stages)
     expect(empty.has('remaining')).toBe(false)
@@ -40,5 +43,30 @@ describe('emptySettlementColumnIds', () => {
 
   it('hides the totals of a kosztorys with no etapy at all', () => {
     expect([...emptySettlementColumnIds([row()], [])].sort()).toEqual([...TOTALS].sort())
+  })
+})
+
+// EX-921: the investor's document is the pure offer until the first etap entry.
+describe('investorEmptyColumnIds', () => {
+  const OFFER_PHASE = ['remaining', 'currentPlannedQty', 'currentPlannedNet']
+
+  it('hides „Pozostało" and the Aktualizacja pair while nothing is entered', () => {
+    const empty = investorEmptyColumnIds([row()], CTX.stages)
+    for (const id of OFFER_PHASE) expect(empty.has(id)).toBe(true)
+  })
+
+  it('shows them after one entry', () => {
+    const empty = investorEmptyColumnIds([row({ [stageKey(1)]: 4 })], CTX.stages)
+    for (const id of OFFER_PHASE) expect(empty.has(id)).toBe(false)
+  })
+
+  it('counts an etap filled only in a past version as an entry', () => {
+    const empty = investorEmptyColumnIds([row()], CTX.stages, new Set([1]))
+    for (const id of OFFER_PHASE) expect(empty.has(id)).toBe(false)
+  })
+
+  it('leaves the worker set unchanged before an entry', () => {
+    const worker = emptySettlementColumnIds([row()], CTX.stages)
+    for (const id of OFFER_PHASE) expect(worker.has(id)).toBe(false)
   })
 })

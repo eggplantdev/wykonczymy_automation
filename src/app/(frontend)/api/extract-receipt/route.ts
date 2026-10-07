@@ -4,6 +4,7 @@ import { requireAuth } from '@/lib/auth/require-auth'
 import { MANAGEMENT_ROLES } from '@/lib/auth/roles'
 import { scanReceipt } from '@/lib/ai/scan-receipt'
 import { MAX_RECEIPT_PAGES } from '@/lib/constants/receipt-scan'
+import { isAllowedUploadMime } from '@/lib/media/sniff-mime'
 import { logError } from '@/lib/utils/log-error'
 
 /**
@@ -18,11 +19,6 @@ import { logError } from '@/lib/utils/log-error'
 // Must cover the worst-case scan budget in openrouter.ts (primary + fallback attempt), or the
 // platform kills the invocation before the AbortController can report a clean timeout.
 export const maxDuration = 300
-
-// Mirrors `Media.upload.mimeTypes`. The sibling upload route gets this check for free from Payload;
-// this one never touches the collection, so the bytes would otherwise reach the model on nothing
-// but a client-declared type.
-const ACCEPTED_TYPE = /^(image\/|application\/pdf$)/
 
 const categoryNamesSchema = z.array(z.string())
 
@@ -42,7 +38,9 @@ export async function POST(request: Request) {
         { status: 400 },
       )
     }
-    if (files.some((file) => !ACCEPTED_TYPE.test(file.type))) {
+    // The declared type, unsniffed: unlike the upload routes nothing here is stored or served, so
+    // the model is the only reader of the bytes.
+    if (files.some((file) => !isAllowedUploadMime(file.type))) {
       return NextResponse.json({ error: 'Nieobsługiwany typ pliku' }, { status: 400 })
     }
 

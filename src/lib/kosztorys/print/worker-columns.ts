@@ -3,8 +3,8 @@ import { viewPrice } from '@/lib/kosztorys/calc'
 import { columnLabelForView } from '@/lib/kosztorys/columns/column-config'
 import { computedColumnValues } from '@/lib/kosztorys/columns/column-values'
 import {
+  CURRENT_PLANNED_QTY_COLUMN,
   DESCRIPTION_COLUMN,
-  PLANNED_QTY_COLUMN,
   UNIT_COLUMN,
   computedMoneyColumn,
   computedQtyColumn,
@@ -51,7 +51,7 @@ export function workerPrintColumns({
   const labelOf = (key: string) => columnLabelForView(key, plane, dictionary)
   const byKey: Record<string, PrintColumnT[]> = {
     description: [{ ...DESCRIPTION_COLUMN, label: labelOf('description') }],
-    plannedQty: [{ ...PLANNED_QTY_COLUMN, label: labelOf('plannedQty') }],
+    currentPlannedQty: [{ ...CURRENT_PLANNED_QTY_COLUMN, label: labelOf('currentPlannedQty') }],
     unit: [{ ...UNIT_COLUMN, label: labelOf('unit') }],
     [rateKey]: [
       {

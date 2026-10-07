@@ -12,12 +12,15 @@ const DISCOUNT_IS_CLIENT_ONLY = 'Rabat nie obniża stawek robocizny dla ekip.'
 // crew's rate over the crew's etapy.
 const CLIENT_BASE = 'Zawsze po cenie klienta, dla całego zakresu (wszystkie etapy).'
 
-const REMAINING = `Wartość przedmiaru minus wartość pomiaru.\nIle z oferty nie zostało jeszcze wykonane.\nNa minusie (na czerwono) = przekroczono przedmiar; suma w stopce pomija takie wiersze.\n\n${CLIENT_BASE}`
+const REMAINING = `Wartość aktualizacji przedmiaru minus wartość pomiaru.\nIle z uzgodnionego zakresu nie zostało jeszcze wykonane.\nNa minusie (na czerwono) = przekroczono aktualizację przedmiaru; suma w stopce pomija takie wiersze.\n\n${CLIENT_BASE}`
 
-const PLANNED = `Przedmiar razy cena minus rabat.\n\n${CLIENT_BASE}`
+const PLANNED = `Przedmiar ofertowy razy cena minus rabat — wartość oferty.\n\n${CLIENT_BASE}`
+
+const CURRENT_PLANNED = `Aktualizacja przedmiaru razy cena minus rabat.\n\n${CLIENT_BASE}`
 
 const HEADER_TIPS: Record<string, string> = {
   plannedQty: pl.grid.tipPlannedQty,
+  currentPlannedQty: pl.grid.tipCurrentPlannedQty,
   note: 'Naciśnij enter lub kliknij dwukrotnie aby otworzyć.\n\nShift+Enter — nowa linia\nEnter — zapisz i przejdź niżej\nEscape — cofnij zmiany\nTab — zakończ edycję',
   stageQtySum: pl.grid.tipStageQtySum,
   divergence:
@@ -27,13 +30,15 @@ const HEADER_TIPS: Record<string, string> = {
     'Mnożnik liczony od ceny dla inwestora.\nStawka to cena j.m. razy mnożnik, więc podniesienie ceny przesuwa ją od razu — w odróżnieniu od wpisanej kwoty.',
   plannedNet: PLANNED,
   plannedGross: PLANNED,
-  plannedNetForPlane: `Przedmiar razy stawka tego rozliczenia.\nIle ekipa zarobi, jeśli wykona cały przedmiar.\n\n${DISCOUNT_IS_CLIENT_ONLY}`,
+  currentPlannedNet: CURRENT_PLANNED,
+  currentPlannedGross: CURRENT_PLANNED,
+  plannedNetForPlane: `Aktualizacja przedmiaru razy stawka tego rozliczenia.\nIle ekipa zarobi, jeśli wykona cały uzgodniony zakres.\n\n${DISCOUNT_IS_CLIENT_ONLY}`,
   net: `Pomiar razy cena minus rabat.\n\n${DISCOUNT_IS_CLIENT_ONLY}`,
   gross: `Pomiar razy cena minus rabat.\n\n${DISCOUNT_IS_CLIENT_ONLY}`,
   remaining: REMAINING,
   remainingGross: REMAINING,
   remainingForPlane: pl.grid.tipRemainingForPlane,
-  donePercent: `Procent wykonania względem przedmiaru.\nIle procent oferty jest zrobione.\nPowyżej 100% oznacza przekroczenie prognozy\n\n${CLIENT_BASE}`,
+  donePercent: `Procent wykonania względem aktualizacji przedmiaru.\nIle procent uzgodnionego zakresu jest zrobione.\nPowyżej 100% oznacza przekroczenie prognozy\n\n${CLIENT_BASE}`,
   [STAGE_VALUE_NET_COLUMN_GROUP]: `Ilość wykonana w tym etapie razy cena jednostki miary minus udział etapu w rabacie.\nUdział jest proporcjonalny do ilości (rabat zł jest rabatem od całego wiersza, więc etap niesie tylko swoją część).\nZależy od aktywnego widoku cen.\n\n${DISCOUNT_IS_CLIENT_ONLY}`,
   [STAGE_VALUE_GROSS_COLUMN_GROUP]: 'Etap — kwota brutto = Etap — kwota netto razy (1 + VAT).',
 }
@@ -42,7 +47,7 @@ const HEADER_TIPS: Record<string, string> = {
 // client's rabat and the editor's price view are not in them, so the tips above would misexplain it.
 // Every tip his link shows is listed, because it is read in his language.
 const WORKER_TIP_KEYS: Partial<Record<string, MessageKeyT<'grid'>>> = {
-  plannedQty: 'tipPlannedQty',
+  currentPlannedQty: 'tipCurrentPlannedQty',
   stageQtySum: 'tipStageQtySum',
   plannedNetForPlane: 'tipPlannedNetForPlane',
   net: 'tipNet',

@@ -183,6 +183,33 @@ The owner priced the same client in #175 („Wycena bez wizyty”, same document
 - **Counts are not safe either:** the owner counts more points everywhere (c.o. 8 → 16, wod-kan
   14 → 20, electrical 83 → 98). What a „punkt” is, is a house convention.
 
+### 2026-10-07 — case 1, round 5: the AI kosztorys as AI przedmiar in the owner's
+
+To see the case in „Przegląd AI” (EX-1006), #168's Przedmiar went into the owner's #175 as AI
+przedmiar — the shape the review is built for: the agent proposes, the owner's numbers are the
+verdict. **Local DB only**; staging has neither investment (its ids 168/175 are other investments).
+
+- `src/scripts/load-ai-draft.ts` (local DB only, refuses any other host) takes a draft
+  `[{ section, description, qty, unit?, clientPrice? }]`. A row matching a pozycja by sekcja + opis
+  (folded like the sheet import) sets its AI przedmiar; every other pozycja gets 0 (the agent left it
+  out); a row matching no pozycja is a praca the agent added and becomes a new pozycja in its sekcja
+  with Przedmiar 0, carrying the draft's j.m. and Cena j.m. Status and Powód zmiany reset on every run.
+- Draft from the AI kosztorys, then load:
+
+  ```bash
+  source .env && psql "$DB_POSTGRES_URL" -Atc "select json_agg(json_build_object('section', s.name,
+    'description', i.description, 'qty', i.planned_qty, 'unit', i.unit, 'clientPrice', i.client_price))
+    from kosztorys_items i join kosztorys_sections s on s.id = i.section_id
+    where i.investment_id = 168 and i.planned_qty > 0" > /tmp/ai-draft-168.json
+  INV=175 DRAFT=/tmp/ai-draft-168.json node --env-file=.env --conditions=react-server --import tsx src/scripts/load-ai-draft.ts
+  ```
+
+- Result: 116 of 127 AI positions matched; 11 added — 5 works outside the szablon at 0 zł (siedzisko
+  G-K, luksfery, lustro, przedścianka z półką, glif) and 6 the owner holds under another name
+  (limewash vs beton, glazura „mały format”, podejścia „i wód”, sprzątanie, koordynacja, gres
+  cegiełki), which now sit beside their counterpart for the owner to reject or take.
+- The script skips cache revalidation; restart dev if the AI columns show empty.
+
 ## Reliability by quantity class (case 1, after measuring; checked against the owner 2026-10-05)
 
 | Class                          | Example                                | Best source                                           | Observed spread v1 → v2                                                            |

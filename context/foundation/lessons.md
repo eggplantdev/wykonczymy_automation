@@ -2205,9 +2205,12 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
   the concurrency it exists to guard.
 - **Rule**: on this stack, never let two Payload writes overlap — not on the server, and not from
   the browser (`Promise.all` / a concurrency pool over `/api/*` counts). A success response from a
-  Payload write is not proof the row exists. `uploadMediaFromClient` keeps the Blob PUT parallel and
-  chains only the row create through the page-wide queue in `createMediaRow`; that queue covers one
-  tab only. The real fix is the adapter (EX-855) — give Drizzle a pool it recognises, verify with
+  Payload write is not proof the row exists. Since EX-1014 no app upload path creates its row
+  through Payload: both `/api/media-upload` and `/api/media-register` insert it with raw SQL — the
+  admin panel's `POST /api/media` and the landing import's `payload.create` are the Payload media
+  writes left. Raw SQL is not immune: it
+  runs on the same pool, so it can still land on a connection another request's transaction left
+  open, and vanish with that transaction's rollback. The real fix is the adapter (EX-855) — give Drizzle a pool it recognises, verify with
   `pnpm why pg` that only one `pg` copy exists, and prove it on **staging under overlap**, never
   locally.
 - **Applies to**: 10x-plan, 10x-implement, impl-review, any code that fans out Payload writes.
@@ -2488,11 +2491,14 @@ roundToCents(b)`. Its docblock already says so („Round before COMPARING two su
   - Mail failure is the one error no user reports: the client just never hears back. Every failed send must raise an alert that does **not** travel over the same SMTP (EX-958) — until then, `leads.notifyStatus = failed` is the dated record of an outage, and the first place to look.
 - **Applies to**: plan, implement, impl-review, any env or hosting change touching mail
 
-## Close a disabled account at the door, not per request — the gap that stays open fails safe
+## Close a disabled account at the door AND per request — a long token turns the open window into the whole problem
 
 - **Context**: Trashing or deactivating a user (EX-918). The app's `getCurrentUserJwt` verifies the JWT and never reads the DB — a choice made for latency in the M21 perf push (`56591165`), not measured since. Payload's own strategy (`/admin`, REST) does read the user and checks the JWT's `sid` against `users_sessions`.
 - **Problem**: Until EX-918 nothing in auth read `active`, so a deactivated account of any role could log in and act. Four ways to close it were costed: refuse at login; delete the stored sessions; a `trashed_at`/`active` read in `getCurrentUserJwt` (one indexed read, ~20 ms warm on Neon, or an entity-tagged cache); or accept the window. Only the per-request read closes an app session that is already open, and it puts a DB read back into every request the M21 push took it out of.
-- **Rule**: Refuse at the door (`beforeLogin`) and delete the account's `users_sessions` rows on trash and on deactivation — that closes new logins everywhere and `/admin` / REST at once, at zero per-request cost. The open app session (≤ 7 days, the JWT lifetime) is accepted because it fails safe: anything it writes stamps the user's id, which makes the account **used**, and the `beforeDelete` re-count then refuses delete-forever and the purge logs `blocked` — no data is lost. Reach for the per-request check only if that window ever has to close for a reason beyond the trash.
+- **Rule (EX-918, superseded)**: Refuse at the door (`beforeLogin`) and delete the account's `users_sessions` rows on trash and on deactivation, accepting the open app session (≤ 7 days) because it fails safe. Its exit clause was "reach for the per-request check if that window ever has to close".
+- **What fired it (2026-10-07)**: workers open the app every 2–4 weeks, so the token went to 90 days with a daily slide — and an open session that survives a deactivation for three months is no longer a window, it is the lockout not working. The door and the session delete stay; `getCurrentUserJwt` now also checks the token's `sid` per request, cached per `sid` so a request pays a cache read. It is tagged with the `users` **collection**, not a per-user entity tag: the per-user form needed every lockout writer to remember the expiry, and the review gate found one that didn't („Aktywny" in „Edytuj pracownika" waited out the backstop). Every write to `users` already expires the collection tag.
+- **Why the check reads the account too, not only the `sid`**: a session row can outlive its lockout, so joining `active IS NOT FALSE AND trashed_at IS NULL` refuses it anyway (`NULL` `active` predates the column's default and counts as active). The role is matched too: the token carries it for 90 days, so a demotion ends the session instead of riding the old role until a slide re-signs it. It **narrows, but does not close**, Payload's `refresh()` race: `refresh()` writes the whole user document back — `active`, `trashedAt` and the sessions array included — so a refresh whose read lands before a deactivation and whose write lands after it re-enables the account outright. The window is two statements inside one refresh, at most one refresh a day per device; accepted at this scale. Sliding the session ourselves (one `UPDATE users_sessions SET expires_at` + Payload's `jwtSign`), which never writes `users`, closes it — parked on EX-1020.
+- **Rule**: a new way to lock an account out deletes its sessions, or flips `active` / `trashed_at`, through a write that expires `CACHE_TAGS.users` — a raw-SQL write must expire it by hand, as `logoutAction` does for Payload's hook-less logout. The cost of the per-request form is still unmeasured — EX-1020 revisits it.
 - **Applies to**: plan, implement — any new way an account stops being allowed in
 
 ## A row that an external sweep dedupes against is erased in place, not deleted

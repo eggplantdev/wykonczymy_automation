@@ -9,6 +9,9 @@
    token below while the `dark:` utilities keep answering to the OS setting. */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* An installed app has no browser chrome, so no Back — controls standing in for it show only there. */
+@custom-variant standalone (@media (display-mode: standalone));
+
 /* Lucide ships icons at 24px; our app default is 16px, so nearly every call site was restating
    size-4. Flip the default here — every Lucide svg carries the `.lucide` class. In @layer base so
    an explicit size utility (size-3, size-5, …) at an exception site still overrides it. */
@@ -478,7 +481,7 @@
   background: transparent;
 }
 
-/* House knowledge and the review of an agent's draft wear the `ai` accent's cyan, so the block reads
+/* The review of an agent's draft wears the `ai` accent's cyan, so the block reads
    as apart from the offer. Set through dsg's own vars: its unlayered `background` rules outrank a
    Tailwind `bg-*` utility. The read-only tint stays a step darker, as grey does elsewhere. */
 .kosztorys-grid .dsg-cell.kosztorys-ai-column {

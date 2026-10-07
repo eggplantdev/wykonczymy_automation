@@ -45,6 +45,7 @@ function currentTree(overrides: Partial<SnapshotPayloadT> = {}): SnapshotPayload
         wToolsOverrideCoeff: null,
         ownToolsOverrideCoeff: null,
         note: 'ustalone z klientem',
+        currentPlannedQty: null,
         aiPlannedQty: null,
         changeReason: null,
         reviewStatus: null,
@@ -335,6 +336,20 @@ describe('buildImportPlan', () => {
     })
     for (const row of items.filter((r) => r.description !== 'montaż jednostki wewnętrznej')) {
       expect(row).toMatchObject({ aiPlannedQty: null, changeReason: null, reviewStatus: null })
+    }
+  })
+
+  it('refreshes Przedmiar ofertowy from the sheet and keeps a hand-edited Aktualizacja', () => {
+    const current = currentTree()
+    current.items[0] = { ...current.items[0], currentPlannedQty: 120 }
+    const { items } = plan(source(), current).tree
+
+    expect(items.find((row) => row.description === 'montaż jednostki wewnętrznej')).toMatchObject({
+      plannedQty: 2,
+      currentPlannedQty: 120,
+    })
+    for (const row of items.filter((r) => r.description !== 'montaż jednostki wewnętrznej')) {
+      expect(row.currentPlannedQty).toBeNull()
     }
   })
 

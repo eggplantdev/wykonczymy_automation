@@ -19,7 +19,7 @@ const OWN_RATE = 9.75
 const RATE = 12.5
 
 const RATE_HEADER = 'Cena j.m. netto — z narzędziami (podwykonawca)'
-const PLANNED_NET_HEADER = 'Wartość przedmiaru netto — z narzędziami (podwykonawca)'
+const PLANNED_NET_HEADER = 'Wartość netto aktualizacji przedmiaru — z narzędziami (podwykonawca)'
 const STAGE_QTY_SUM_HEADER = 'Pomiar — suma etapów z narzędziami (podwykonawca)'
 const NET_HEADER = 'Suma etapów z narzędziami (podwykonawca) netto'
 
@@ -259,7 +259,7 @@ describe('buildWorkerPrintHtml', () => {
 
   it('reads „Pozostało” off every crew’s work, not only the worker’s', () => {
     // Item 1: 5 planned, 5 done across the investment (2 by this worker) — nothing owed on it.
-    const out = html(projection({ hiddenColumns: ['description', 'plannedQty', 'unit'] }))
+    const out = html(projection({ hiddenColumns: ['description', 'currentPlannedQty', 'unit'] }))
     const firstRow = out.slice(out.indexOf('<tr><td'), out.indexOf('</tr>', out.indexOf('<tr><td')))
 
     expect(firstRow.endsWith(`${formatPLN(0)}</td>`)).toBe(true)
@@ -279,7 +279,7 @@ describe('buildWorkerPrintHtml', () => {
       for (const hidePlannedOnceExecuted of [true, false]) {
         const headers = headersOf(html(projection({ hidePlannedOnceExecuted }, [], treeWith([]))))
 
-        expect(headers).toContain('Przedmiar')
+        expect(headers).toContain('Aktualizacja przedmiaru')
         expect(headers).toContain(PLANNED_NET_HEADER)
         for (const gone of [STAGE_QTY_SUM_HEADER, NET_HEADER, tynki, second]) {
           expect(headers, gone).not.toContain(gone)
@@ -292,7 +292,7 @@ describe('buildWorkerPrintHtml', () => {
       const out = html(data)
       const headers = headersOf(out)
 
-      expect(headers).not.toContain('Przedmiar')
+      expect(headers).not.toContain('Aktualizacja przedmiaru')
       expect(headers).not.toContain(PLANNED_NET_HEADER)
       expect(headers).toContain(tynki)
       expect(headers).toContain(STAGE_QTY_SUM_HEADER)
@@ -305,7 +305,7 @@ describe('buildWorkerPrintHtml', () => {
     it('keeps the przedmiar pair beside the settlement columns with the checkbox off', () => {
       const headers = headersOf(html(projection({ hidePlannedOnceExecuted: false })))
 
-      expect(headers).toContain('Przedmiar')
+      expect(headers).toContain('Aktualizacja przedmiaru')
       expect(headers).toContain(PLANNED_NET_HEADER)
       expect(headers).toContain(NET_HEADER)
     })
@@ -341,17 +341,17 @@ describe('buildWorkerPrintHtml in the worker’s language', () => {
     expect(headers).toEqual(
       expect.arrayContaining([
         'Опис робіт',
-        'Плановий обсяг',
+        'Оновлений плановий обсяг',
         'Одиниця виміру',
         'Ціна за од. нетто — з інструментами (субпідрядник)',
-        'Вартість планового обсягу нетто — з інструментами (субпідрядник)',
+        'Вартість оновленого планового обсягу нетто — з інструментами (субпідрядник)',
         'Tynki',
         'Етап 3',
         'Виконано — сума етапів з інструментами (субпідрядник)',
         'Tynki нетто',
         'Етап 3 нетто',
         'Сума етапів з інструментами (субпідрядник) нетто',
-        'Залишилось нетто (від планового обсягу)',
+        'Залишилось нетто (від оновленого планового обсягу)',
       ]),
     )
   })

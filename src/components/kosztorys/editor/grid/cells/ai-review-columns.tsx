@@ -1,6 +1,8 @@
 import { useState, type ReactNode } from 'react'
 import type { Column, CellProps } from 'react-datasheet-grid'
+import { SaveItemToCatalogueDialog } from '@/components/kosztorys/editor/dialogs/catalogue/save-item-to-catalogue-dialog'
 import { WorkNoteDialog } from '@/components/kosztorys/editor/dialogs/catalogue/work-note-dialog'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { CellSelectMenu } from '@/components/ui/datasheet-grid/cell-select-menu'
 import { GridEventBoundary } from '@/components/ui/datasheet-grid/grid-event-boundary'
 import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-text'
@@ -65,27 +67,51 @@ export function reviewStatusColumn(titleNode: ReactNode): Column<KosztorysV2RowT
 type WorkNoteDataT = { byRowId: ReadonlyMap<number, RowCatalogueEntryT> | undefined }
 
 // The comment is the katalog entry's, not the row's, so a click opens the dialog that saves it there.
+// A praca the katalog doesn't know has nowhere to keep one: the click says so and offers the same
+// „Zapisz do katalogu…" the row menu does, instead of a dead cell.
 function WorkNoteCell({
   rowData,
   columnData,
   disabled,
 }: CellProps<KosztorysV2RowT, WorkNoteDataT>) {
-  const [open, setOpen] = useState(false)
+  const [dialog, setDialog] = useState<'note' | 'explain' | 'save' | null>(null)
   const entry = columnData.byRowId?.get(rowData.id)
   const text = <ReadOnlyCellText>{entry?.note ?? ''}</ReadOnlyCellText>
-  if (disabled || !entry) return text
+  if (disabled) return text
+  const close = () => setDialog(null)
   return (
     <>
       <button
         type="button"
         className="size-full cursor-pointer text-left"
-        onClick={() => setOpen(true)}
+        onClick={() => setDialog(entry ? 'note' : 'explain')}
       >
         {text}
       </button>
-      {open && (
+      {dialog !== null && (
         <GridEventBoundary>
-          <WorkNoteDialog entry={entry} onOpenChange={setOpen} />
+          {entry && dialog === 'note' && (
+            <WorkNoteDialog entry={entry} onOpenChange={(open) => !open && close()} />
+          )}
+          {!entry && (
+            <ConfirmDialog
+              open={dialog === 'explain'}
+              variant="neutral"
+              title="Tej pracy nie ma w katalogu prac"
+              description="Komentarz do pracy zapisuje się w katalogu prac, a katalog nie zna pracy o tym opisie i tej jednostce. Dodać ją do katalogu?"
+              confirmLabel="Dodaj do katalogu…"
+              onConfirm={() => setDialog('save')}
+              // Fires right after `onConfirm` too — keep the save dialog it just opened.
+              onCancel={() => setDialog((current) => (current === 'explain' ? null : current))}
+            />
+          )}
+          {!entry && dialog === 'save' && (
+            <SaveItemToCatalogueDialog
+              itemId={rowData.id}
+              open
+              onOpenChange={(open) => !open && close()}
+            />
+          )}
         </GridEventBoundary>
       )}
     </>
@@ -100,10 +126,10 @@ export function workNoteColumn(
   return {
     id: 'workNote',
     title: titleNode,
-    disabled: editable ? ({ rowData }) => !byRowId?.has(rowData.id) : true,
+    // A blank line has no praca to look up or save yet.
+    disabled: editable ? ({ rowData }) => !rowData.description?.trim() : true,
     minWidth: 220,
     grow: 1,
-    ...AI_REVIEW_COLUMN_CLASS,
     columnData: { byRowId },
     component: WorkNoteCell,
   }

@@ -15,10 +15,22 @@ describe('versionChangeRows', () => {
     expect(rows).toEqual([
       expect.objectContaining({
         description: 'Płytki',
-        what: 'Przedmiar',
+        what: 'Przedmiar ofertowy',
         before: '12 m2',
         after: '14 m2',
       }),
+    ])
+  })
+
+  it('reads „follows the ofertowy" as a dash, a typed aktualizacja with its unit', () => {
+    const rows = versionChangeRows(
+      diffVersions(
+        version([item(1, 'Płytki', 12, 100)]),
+        version([item(1, 'Płytki', 12, 100, { currentPlannedQty: 120 })]),
+      ),
+    )
+    expect(rows).toEqual([
+      expect.objectContaining({ what: 'Aktualizacja przedmiaru', before: '—', after: '120 m2' }),
     ])
   })
 

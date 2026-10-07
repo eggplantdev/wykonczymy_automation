@@ -19,11 +19,11 @@ import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
  * not a sum of its own cells (a share, a ratio) — never a 0, which would claim a reading.
  *
  * The „Pozostało" columns are the one exception that is still rendered: their total sums only rows
- * NOT past the przedmiar, because it answers „ile oferty zostało do zrobienia" and an overrun row
+ * NOT past the Aktualizacja przedmiaru, because it answers „ile zostało do zrobienia" and an overrun row
  * does not make the rest of the offer any less owed (EX-885). The skip is per row, so Σ footers =
  * „Razem" still holds.
  *
- * The quantity columns („Przedmiar", „Pomiar (razem etapy)", each etap's ilość) are absent for that
+ * The quantity columns (both przedmiary, „Pomiar (razem etapy)", each etap's ilość) are absent for that
  * reason: rows in one section carry different jednostki miary, so 40 m² + 12 mb + 3 szt. adds to 55
  * of nothing. Only the zł columns share a unit across rows and may be summed. Per row those columns
  * still total fine — one row is one jednostka — which is why the columns themselves stay.
@@ -58,6 +58,7 @@ export function columnTotalsForRows(
   const notOverrun = (value: number) => !isRemainingOverrun(value)
   const net = sumOf('net')
   const plannedNet = sumOf('plannedNet')
+  const currentPlannedNet = sumOf('currentPlannedNet')
   const discount = sumOf('discountAmount')
   const remaining = sumOf('remaining', notOverrun)
 
@@ -65,6 +66,8 @@ export function columnTotalsForRows(
   totals.set('gross', toGross(net, vatRate))
   totals.set('plannedNet', plannedNet)
   totals.set('plannedGross', toGross(plannedNet, vatRate))
+  totals.set('currentPlannedNet', currentPlannedNet)
+  totals.set('currentPlannedGross', toGross(currentPlannedNet, vatRate))
   if (view !== 'client') totals.set('plannedNetForPlane', sumOf('plannedNetForPlane'))
   totals.set('remaining', remaining)
   totals.set('remainingGross', toGross(remaining, vatRate))

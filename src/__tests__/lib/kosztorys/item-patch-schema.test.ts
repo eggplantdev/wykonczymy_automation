@@ -34,12 +34,22 @@ describe('itemPatchSchema — null to nie zero', () => {
   })
 })
 
+// Aktualizacja przedmiaru: null = „idzie za ofertowym", 0 = pozycja wypadła z zakresu (EX-921).
+describe('itemPatchSchema — Aktualizacja przedmiaru', () => {
+  it('null zostaje nullem, zero zerem, a tekst z inputu liczbą', () => {
+    expect(parse({ currentPlannedQty: null })).toEqual({ currentPlannedQty: null })
+    expect(parse({ currentPlannedQty: 0 })).toEqual({ currentPlannedQty: 0 })
+    expect(parse({ currentPlannedQty: '12' })).toEqual({ currentPlannedQty: 12 })
+  })
+})
+
 // AI przedmiar pisze tylko skrypt ładujący szkic — siatka nie może go nadpisać, więc schemat go wycina.
 describe('itemPatchSchema — przegląd AI', () => {
   it('przepuszcza Status i Powód zmiany, a AI przedmiar wycina', () => {
-    expect(
-      parse({ reviewStatus: 'edited', changeReason: 'za mało', aiPlannedQty: 5 }),
-    ).toEqual({ reviewStatus: 'edited', changeReason: 'za mało' })
+    expect(parse({ reviewStatus: 'edited', changeReason: 'za mało', aiPlannedQty: 5 })).toEqual({
+      reviewStatus: 'edited',
+      changeReason: 'za mało',
+    })
   })
 
   it('przyjmuje wyczyszczenie obu pól i odrzuca nieznany status', () => {

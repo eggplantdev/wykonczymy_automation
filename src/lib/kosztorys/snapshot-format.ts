@@ -114,6 +114,7 @@ export type StoredSnapshotPayloadT = {
     KosztorysItemT,
     | 'displayOrder'
     | 'plannedQty'
+    | 'currentPlannedQty'
     | 'discountValue'
     | 'clientPrice'
     | 'wToolsOverrideValue'
@@ -168,6 +169,8 @@ export function itemWithColumnDefaults(
     ...item,
     displayOrder: item.displayOrder ?? index,
     plannedQty: item.plannedQty ?? 0,
+    // A snapshot older than EX-921 had no Aktualizacja, so every row followed Przedmiar ofertowy.
+    currentPlannedQty: item.currentPlannedQty ?? null,
     discountValue: item.discountValue ?? 0,
     clientPrice: item.clientPrice ?? 0,
     wToolsOverrideValue: item.wToolsOverrideValue ?? null,

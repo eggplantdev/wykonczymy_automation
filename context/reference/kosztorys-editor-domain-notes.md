@@ -105,7 +105,8 @@ AF = T - V - W - X - Y - Z - AA…AE     bilans         = wartość − Σ etap�
 
 Appka jest z tym 1:1 w `V` (`stageValueForView`). **Nie** w `AF`: skoro `O` = Σ etapów, arkuszowe
 `AF` = `T − Σ(V:AE)` jest tożsamościowo zerem, więc „Pozostało" (`rowRemainingForExecutedQty`) celowo
-kotwiczy do `S` (oferty), nie do `T` — patrz „Oferta i wykonanie" niżej. Potwierdza P9.
+kotwiczy do zakresu, nie do `T` — od EX-921 do **Aktualizacji przedmiaru**, nie do `S` (oferty);
+patrz „Oferta i wykonanie" niżej. Potwierdza P9.
 
 ### BRAK sumy per etap — zweryfikowane
 
@@ -466,8 +467,9 @@ tylko pokazuje link do wyłączenia. „Podgląd" otwiera ten sam widok bez wysy
 - **Zgłoszenie przeżywa podmianę rozpiski** (przywrócenie wersji, import, „Wczytaj szablon",
   „Wyczyść kosztorys"): linia, której pozycja zniknęła, przychodzi jako „do przypisania ręcznie".
   Szkic takie linie po prostu gubi, z komunikatem.
-- **Przyjęta praca spoza rozpiski** staje się pozycją bez przedmiaru z wykonaną pracą, więc pojawia
-  się w „Problemach" jako „wykonane bez przedmiaru" — to sygnał, że ofertę trzeba uzupełnić.
+- **Przyjęta praca spoza rozpiski** staje się pozycją z „Przedmiarem ofertowym" 0 i „Aktualizacją
+  przedmiaru" równą przyjętej ilości (EX-921) — praca nie była w ofercie, ale jest w zakresie, więc
+  postęp liczy się względem niej i oferty nie trzeba „uzupełniać".
 
 ### Tłumaczenia dla pracownika — ukraiński i rosyjski (EX-948, 2026-10-01)
 
@@ -619,6 +621,14 @@ protokół jest dokumentem na papier, nie bytem w bazie.
     a stopka sekcji i „Razem" sumują **tylko wiersze nie ponad przedmiar** — suma mówi „ile oferty
     zostało do zrobienia" (EX-885, odwraca EX-686, gdzie nadwyżka pomniejszała sumę). Nie mylić z „Rozjazdem między arkuszem Google a apką" — tamten odejmuje sumę
     etapów od Pomiaru z natury z arkusza, a nie od Przedmiaru.
+  - **Aktualizacja przedmiaru (EX-921, 2026-10-07)** — druga ilość obok Przedmiaru ofertowego: każda
+    zmiana zakresu po ofercie, w górę i w dół. Pusta (`null`) = idzie za ofertowym; ręcznie wpisana
+    przeżywa zmianę ofertowego i ponowny import z arkusza; 0 = pozycja poza zakresem. **Postęp
+    kotwiczy do niej**: „% wykonania", „Pozostało", przekroczenie, ukończenie sekcji, licznik postępu
+    i filtry „bez/z przedmiarem" czytają aktualizację. **Oferta zostaje ofertą**: prognoza marży,
+    wykres sekcji, „Oferta", przegląd AI i porównanie z arkuszem czytają ofertowy. Pracownik widzi
+    tylko aktualizację. Arkusz właściciela tej kolumny nie ma — **bez parytetu z arkuszem**, import
+    wypełnia tylko ofertowy. Poniższe „Przedmiar" w regułach postępu czytaj jako aktualizację.
   - **„% wykonania"** = `Σ etapów / Przedmiar` (nie z sumy etapów — inaczej `Σ/Σ = 100%` wszędzie).
     It stays next to the summary's „Postęp prac" on purpose (EX-703, owner re-confirmed 2026-08-17):
     the summary is value-weighted over the whole kosztorys, the column is quantity-weighted per row,
@@ -1679,6 +1689,7 @@ this section is the original phrasing/context for those questions.
   rozliczeniowa z klientem — wskaźnik „jak idzie robota". Formuła: wartość
   pozycji − Σ wartości wykonanych etapów. W aplikacji: kolumna wyliczana
   (informacyjna, postępowa). Rozważyć nazwę „pozostało do wykonania".
+  Od EX-921 „wartość pozycji" to wartość **Aktualizacji przedmiaru**, nie oferty.
 
 ### Robocizna ↔ rozliczenia
 
@@ -1762,10 +1773,10 @@ this section is the original phrasing/context for those questions.
 - **P12.** ~~Które pozycje mają być **domyślnie ukryte** w eksporcie dla klienta?~~
   Bezprzedmiotowe w tej formie — nie ma eksportu. Wraca tylko wtedy, gdy widok
   klienta dostanie ukrywanie pozycji (EX-549, sparkowane, czeka na decyzję ownera).
-- **P13.** **Nadal otwarte, przeniesione na widok klienta:** klient widzi ilość
-  z **przedmiaru** (oferta wstępna) czy z **pomiaru** (rozliczenie)? Jeden tryb czy
-  przełącznik? To samo pytanie, inna powierzchnia — widok jest żywy, więc „jeden
-  tryb" znaczy teraz „ten sam ekran przez całą inwestycję".
+- **P13. [ROZSTRZYGNIĘTE — EX-921, 2026-10-07]** ~~Klient widzi ilość z przedmiaru czy z pomiaru?~~
+  „Oferta to oferta": przed pierwszym wpisem w etapach dokument inwestora jest czystą ofertą (bez
+  Aktualizacji przedmiaru i bez „Pozostało"); po pierwszym wpisie domyślnie widzi Przedmiar
+  ofertowy **i** Aktualizację przedmiaru, a wartość aktualizacji może zaznaczyć właściciel.
 
 ## Fakty domenowe z weryfikacji manualnej (destylat 2026-09-15)
 

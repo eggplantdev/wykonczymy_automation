@@ -14,7 +14,7 @@ const STAGES: KosztorysStageT[] = [
 const stageRow = (overrides: Parameters<typeof row>[0] = {}) =>
   row({ [stageKey(7)]: 0, [stageKey(9)]: 0, ...overrides })
 
-const PLANNED = ['plannedQty', 'plannedNetForPlane']
+const PLANNED = ['currentPlannedQty', 'plannedNetForPlane']
 
 describe('workerDataHiddenColumns', () => {
   it.each([true, false])(

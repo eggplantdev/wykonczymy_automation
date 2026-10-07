@@ -22,6 +22,7 @@ const item = (id: number, description: string): KosztorysItemT => ({
   wToolsOverrideCoeff: null,
   ownToolsOverrideCoeff: null,
   note: null,
+  currentPlannedQty: null,
   aiPlannedQty: null,
   changeReason: null,
   reviewStatus: null,

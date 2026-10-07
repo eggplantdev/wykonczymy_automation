@@ -125,8 +125,8 @@ export function cellPaste<RowT, EntryT>(
 }
 
 /**
- * The default policy: any lone `number` field, any row shape, no domain. The two that carry domain
- * (the rabat pair, a subcontractor price) live in their own modules.
+ * The default policy: any lone `number` field, any row shape, no domain. The ones that carry domain
+ * (the rabat pair, a subcontractor price, the Aktualizacja przedmiaru) live in their own modules.
  */
 export function numericFieldPolicy<K extends string, RowT extends Record<K, number>>(
   field: K,

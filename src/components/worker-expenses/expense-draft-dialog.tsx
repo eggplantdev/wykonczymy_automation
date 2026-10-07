@@ -25,7 +25,6 @@ import {
   updateExpenseDraftAction,
 } from '@/lib/actions/worker-expense-drafts'
 import { submitWithUploads } from '@/lib/media/submit-with-uploads'
-import { uploadMediaBySize } from '@/lib/media/upload-media'
 import { toastMessage } from '@/lib/utils/toast'
 import { useTranslation } from '@/hooks/use-translation'
 import { failureMessage } from '@/lib/i18n/failure-message'
@@ -124,7 +123,6 @@ export function ExpenseDraftDialog({
       files,
       (mediaIds) => sendExpenseDraftAction({ ...fields, mediaIds }),
       'faktura',
-      uploadMediaBySize,
     )
   }
 
