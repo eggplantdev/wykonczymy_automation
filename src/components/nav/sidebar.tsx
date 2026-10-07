@@ -72,7 +72,14 @@ export function Sidebar({ openRouterBalance }: SidebarPropsT) {
       </div>
       {/* User info + actions */}
       <div className="mt-auto flex flex-col gap-2 pt-4">
-        {!collapsed && <div className="text-foreground text-sm font-medium">{user.name}</div>}
+        {!collapsed && (
+          <Link
+            href={`/pracownicy/${user.id}`}
+            className="text-foreground text-sm font-medium hover:underline"
+          >
+            {user.name}
+          </Link>
+        )}
         <div className="flex flex-col gap-2">
           <CollapsibleTooltip collapsed={collapsed} label={t('toggleTheme')}>
             <ThemeToggle collapsed={collapsed} />

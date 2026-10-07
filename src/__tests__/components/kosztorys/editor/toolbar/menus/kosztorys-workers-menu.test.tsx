@@ -88,7 +88,8 @@ const openMenu = () => userEvent.click(screen.getByRole('button', { name: 'Praco
 
 // Items render in worker order, so the n-th link item belongs to the n-th listed worker.
 const linkItems = () => screen.getAllByRole('menuitem', { name: 'Link do zgłoszeń' })
-const printItems = () => screen.getAllByRole('menuitem', { name: 'Drukuj PDF' })
+const printItems = () =>
+  screen.getAllByRole('menuitem', { name: 'Drukuj kosztorys pracownika (PDF)' })
 
 describe('KosztorysWorkersMenu', () => {
   it('lists every worker who holds an etap, once, in etap order', async () => {
@@ -113,7 +114,7 @@ describe('KosztorysWorkersMenu', () => {
     expect(bogdanPrint).toHaveAttribute('aria-disabled', 'true')
     expect(anna).not.toHaveAttribute('aria-disabled')
     expect(annaPrint).not.toHaveAttribute('aria-disabled')
-    const previews = screen.getAllByRole('menuitem', { name: 'Podgląd' })
+    const previews = screen.getAllByRole('menuitem', { name: 'Podgląd linku pracownika' })
     expect(previews[1]).toHaveAttribute(
       'href',
       `/podglad-pracownika/Bogdan-Kowal-20/${INVESTMENT_ID}`,
@@ -166,7 +167,7 @@ describe('KosztorysWorkersMenu', () => {
     renderMenu('MANAGER')
     await openMenu()
 
-    const [annaPreview] = screen.getAllByRole('menuitem', { name: 'Podgląd' })
+    const [annaPreview] = screen.getAllByRole('menuitem', { name: 'Podgląd linku pracownika' })
     expect(annaPreview).toHaveAttribute(
       'href',
       `/podglad-pracownika/Anna-Nowak-10/${INVESTMENT_ID}`,

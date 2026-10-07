@@ -60,13 +60,19 @@ we don't retreat to local.
   `gh api repos/eggplantdev/wykonczymy_automation/commits/<sha>/status --jq '.statuses[] | .context + " " + .state'`
   for `git rev-parse origin/staging` — the Vercel context must be `success`.
 - **Login:** `pnpm qa:staging-user` first, every pass. It upserts OWNER `STAGING_QA_EMAIL`
-  (`qa-staging@wykonczymy.test`) and MANAGER `STAGING_QA_MANAGER_EMAIL`
-  (`qa-staging-manager@wykonczymy.test`) on the preview DB, both with `STAGING_QA_PASSWORD` from
+  (`qa-staging@wykonczymy.test`), MANAGER `STAGING_QA_MANAGER_EMAIL`
+  (`qa-staging-manager@wykonczymy.test`) and EMPLOYEE `STAGING_QA_WORKER_EMAIL`
+  (`qa-staging-worker@wykonczymy.test`) on the preview DB, all with `STAGING_QA_PASSWORD` from
   `.env`, re-creating them after a restore wiped them, and refuses any DB but the preview one. A Nodemailer
   `getaddrinfo disabled.invalid` on the way out is the mail gate, not a failure. Then from the page:
   `fetch('/api/users/login', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email, password})})`
-  and assert `user.role` (`'OWNER'` / `'MANAGER'`). Never write a throwaway reset script, never mint
-  another account, never flip a role by SQL — a two-role check logs in as the MANAGER above.
+  and assert `user.role` (`'OWNER'` / `'MANAGER'` / `'EMPLOYEE'`). Never write a throwaway reset
+  script, never mint another account, never flip a role by SQL — a two-role check logs in as the
+  MANAGER above, a worker-side check (own `/pracownicy/[id]`, „Nowy wydatek" from a kasa) as the
+  EMPLOYEE. The script creates no kasa: an EMPLOYEE check that needs one gets it from the OWNER
+  through the UI, like any other state. The script writes past the app's cache, so an account it
+  just created is missing from user pickers („Właściciel" in „Nowa kasa", `/pracownicy`) until
+  „Odśwież dane" in the sidebar.
 - **Investor share links point at production by default** (owner, 2026-09-15). `/k/<token>` is built
   from `NEXT_PUBLIC_FRONTEND_URL`, deliberately not derived from the branch URL; the one exception is
   a Preview value scoped to the `staging` branch. `NEXT_PUBLIC_*` is fixed at build time, so a change
@@ -91,6 +97,11 @@ we don't retreat to local.
   gets past both, and even then „Zapisz" returns a Polish error before anything reaches Blob. Verify
   type rejection by drop, not by `setInputFiles`. (If someone at the firm works on Windows, the cheap
   fix is `validateUploadFile` in `ingestFiles` as a second `BlockedFileError` reason.)
+- **One browser, one session:** every tab shares the `payload-token` cookie, so a second tab is not
+  a second role. Logging out (or in) the EMPLOYEE in one tab silently ends the OWNER's session in
+  the other, and the next upload fails as a bare 500 from `/api/vercel-blob-client-upload-route` —
+  the plugin wraps the `Forbidden` into it. Switch roles sequentially with a fresh page-`fetch` login,
+  and read a 500 there in `vercel logs` before calling it a Blob outage.
 - **Test layers:** unit / DOM specs under `src/__tests__/` (mirrored path), e2e under `e2e/` against
   5435 — AGENTS.md → Testing.
 
@@ -100,8 +111,9 @@ we don't retreat to local.
 
 Ręczna weryfikacja slice'a czasem potrzebuje **dwóch ról naraz** — czegoś, czego nie da się zrobić
 jednym kontem, a czego nie chcemy robić kontem prawdziwego pracownika (preview DB to przywrócony
-dump produkcji, więc wszystkie konta w niej to realni ludzie). Tę parę zakłada ten sam
-`pnpm qa:staging-user` (wyżej): OWNER `qa-staging@…` i MANAGER `qa-staging-manager@…`, jedno hasło
+dump produkcji, więc wszystkie konta w niej to realni ludzie). Te konta zakłada ten sam
+`pnpm qa:staging-user` (wyżej): OWNER `qa-staging@…`, MANAGER `qa-staging-manager@…` i EMPLOYEE
+`qa-staging-worker@…`, jedno hasło
 `STAGING_QA_PASSWORD` z `.env` — więc żadne hasło nie trafia do repo, a skrypt odtwarza oba konta po
 każdym nadpisaniu preview DB dumpem. Domena `.test` jest zarezerwowana (RFC 2606), więc żaden mail
 nigdy do nikogo nie wyjdzie.

@@ -119,7 +119,7 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
       draftId,
       decidedBy: otherWorkerId,
       status: 'rejected',
-      transferId: null,
+      transferIds: [],
     })
 
   beforeAll(async () => {

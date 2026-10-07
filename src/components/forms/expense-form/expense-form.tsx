@@ -65,6 +65,7 @@ import { RegisterBalanceSummary } from '../form-components/register-balance-summ
 import { useExpenseFormStore } from '@/stores/form-stores'
 import { isBookableInvestment } from '@/lib/constants/investment-lock'
 import { canBookTransferType } from '@/lib/auth/roles'
+import { receiptDecision } from '@/lib/worker-expenses/receipt-decision'
 
 // Form state uses strings since HTML inputs/selects work with strings.
 // Numeric conversion happens in the server action.
@@ -74,6 +75,7 @@ export type ExpenseFormPrefillT = {
   values: FormValuesT
   files: Map<number, File[]>
   expenseDraftId: number
+  receiptMediaIds: Map<string, number[]>
 }
 
 type TransferFormPropsT = {
@@ -234,7 +236,10 @@ export function ExpenseForm({
             createBulkTransferAction(
               data,
               invoicePageRows,
-              prefill && { expenseDraftId: prefill.expenseDraftId },
+              prefill && {
+                expenseDraftId: prefill.expenseDraftId,
+                ...receiptDecision(prefill.receiptMediaIds, value.lineItems),
+              },
             ),
           ),
         // No stored draft backs this form, so an optimistic close would lose it on a failed save.

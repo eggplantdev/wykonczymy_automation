@@ -11,8 +11,10 @@ import { buildTransferFilters } from '@/lib/queries/transfer-filters'
 import { cashRegisterDeleteBlocker } from '@/lib/cash-registers/delete-blocker'
 import { perfStart } from '@/lib/perf'
 import { buildFilterConfig } from '@/lib/utils/build-filter-config'
+import { TELMAK_REGISTER_ID } from '@/lib/telmak/telmak-register'
 import { TransfersSection } from '@/components/transfers/transfers-section'
 import { EditCashRegisterDialog } from '@/components/dialogs/edit-cash-register-dialog'
+import { TelmakCheckDialog } from '@/components/telmak-check/telmak-check-dialog'
 import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
 import { SignedMoneyDisplay } from '@/components/ui/signed-money-display'
@@ -62,11 +64,16 @@ export default async function CashRegisterDetailPage({ params, searchParams }: D
 
   return (
     <PageWrapper title={register.name}>
-      <EditCashRegisterDialog
-        register={register}
-        workers={refData.workers}
-        isOwnerLocked={isOwnerLocked}
-      />
+      <div className="flex flex-wrap gap-2">
+        <EditCashRegisterDialog
+          register={register}
+          workers={refData.workers}
+          isOwnerLocked={isOwnerLocked}
+        />
+        {registerId === TELMAK_REGISTER_ID && (
+          <TelmakCheckDialog registerId={registerId} referenceData={refData} />
+        )}
+      </div>
       <InfoList items={[{ label: 'Właściciel', value: ownerName }]} />
       <SignedMoneyDisplay amount={registerBalance} />
 

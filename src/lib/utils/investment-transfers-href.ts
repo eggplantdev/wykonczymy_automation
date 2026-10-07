@@ -7,6 +7,8 @@ type TransfersFilterT = {
   types?: readonly TransferTypeT[]
   id?: number
   worker?: number
+  // The list hides cancelled rows by default, so a link to one finds nothing without it.
+  showCancelled?: boolean
 }
 
 // The one place that spells the transfers list's query contract (`buildTransferFilters`). Every
@@ -22,6 +24,7 @@ export function investmentTransfersHref(
   if (filter.types?.length) params.push(`type=${filter.types.join(',')}`)
   if (filter.worker != null) params.push(`worker=${filter.worker}`)
   if (filter.id != null) params.push(`id=${filter.id}`)
+  if (filter.showCancelled) params.push('showCancelled=1')
 
   return params.length
     ? `/inwestycje/${investmentId}?${params.join('&')}`

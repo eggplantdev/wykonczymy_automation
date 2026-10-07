@@ -14,8 +14,12 @@ import { openPrintWindow, writeAndPrint } from '@/lib/utils/print-window'
 import { toastMessage } from '@/lib/utils/toast'
 
 const VARIANTS = {
-  pdf: { build: buildWorkerPrintHtml, label: 'Drukuj PDF', Icon: FileText },
-  form: { build: buildWorkerFormHtml, label: 'Drukuj do wypełnienia', Icon: ClipboardPen },
+  pdf: { build: buildWorkerPrintHtml, label: 'Drukuj kosztorys pracownika (PDF)', Icon: FileText },
+  form: {
+    build: buildWorkerFormHtml,
+    label: 'Drukuj kartkę do zgłoszenia prac',
+    Icon: ClipboardPen,
+  },
 }
 
 export function WorkerPrintMenuItem({

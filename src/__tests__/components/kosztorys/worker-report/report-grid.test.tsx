@@ -13,6 +13,7 @@ import { workerAudience } from '@/__tests__/helpers/worker-audience'
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
   usePathname: () => '/z/inwestycja/jan/token',
+  useSearchParams: () => new URLSearchParams(),
 }))
 
 // dsg sizes its virtualised rows off the measured grid; jsdom measures everything as 0×0.

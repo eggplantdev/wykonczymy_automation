@@ -42,32 +42,34 @@ export function useMediaUpload({ attach, successMessage }: MediaUploadOptionsT) 
     const { files: ready, blocked } = await ingestPickedFiles(picked, asPlan ? 'PLAN' : 'INVOICE')
     reportBlockedFiles(blocked, translator)
 
-    if (ready.length === 0) return
+    if (ready.length === 0) return false
 
     const kind: MediaKindT | undefined = asPlan ? 'projekt' : undefined
     const result = await submitWithUploads(ready, attach, kind)
     if (!result.success) {
       toastMessage(failureMessage(locale, result), 'error')
-      return
+      return false
     }
 
     // Without the toast the click ends with the surface looking untouched until the re-render lands,
     // which reads as a failed upload and invites a second pick of the same photo.
     toastMessage(successMessage, 'success')
+    return true
   }
 
   // The `finally` is load-bearing: an unexpected rejection (e.g. a chunk-load failure on the lazy
   // HEIC import) must still release the trigger, or the picker stays disabled until a reload.
-  async function uploadFiles(picked: File[], asPlan = false) {
-    if (picked.length === 0) return
+  async function uploadFiles(picked: File[], asPlan = false): Promise<boolean> {
+    if (picked.length === 0) return false
 
     setIsUploading(true)
     try {
-      await ingestAndAttach(picked, asPlan)
+      return await ingestAndAttach(picked, asPlan)
     } catch {
       // TODO(EX-449) SENTRY-REQUIRED: unexpected ingest/upload failure — capture once Sentry is
       // wired; for now the user gets a generic retry toast.
       toastMessage(translator.t('uploadFailedRetry'), 'error', 6000)
+      return false
     } finally {
       setIsUploading(false)
     }

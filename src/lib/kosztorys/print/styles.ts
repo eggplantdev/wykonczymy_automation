@@ -4,6 +4,12 @@ export const PRINT_STYLES = `
    section from the next. */
 * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
+/* Paper, not a screen: an office laser printer drops anything lighter than ~zinc-400, so the
+   screen's near-white hairlines and pale captions printed as nothing at all. These are the lightest
+   values that still reach the page. */
+:root { --print-rule: #a1a1aa; --print-rule-strong: #71717a;
+        --print-muted: #52525b; --print-soft: #3f3f46; }
+
 /* Split deliberately between @page and body. The print dialog's own „Marginesy" dropdown OVERRIDES
    @page — set to „Brak" it drops it whole and the value column prints clipped at the sheet edge. The
    horizontal inset therefore lives on the body, where nothing can take it away; @page carries only
@@ -43,15 +49,16 @@ tr { break-inside: avoid; }
 .brand-bar img { height: 42px; width: auto; }
 .brand-text { margin-left: auto; text-align: right; }
 .brand-kind { font-size: 6.5pt; letter-spacing: .18em; text-transform: uppercase;
-              color: #a1a1aa; margin-bottom: 3px; }
+              color: var(--print-muted); margin-bottom: 3px; }
 .brand-title { font-size: 12pt; font-weight: 600; letter-spacing: -.01em; line-height: 1.15; }
 
 th { font-size: 6.5pt; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
-     color: #a1a1aa; text-align: left; padding: 7px 4px; border-bottom: 1px solid #e4e4e7;
-     border-right: 1px solid #f4f4f5; background: #fff; vertical-align: top; }
+     color: var(--print-muted); text-align: left; padding: 7px 4px;
+     border-bottom: 1px solid var(--print-rule-strong); border-right: 1px solid var(--print-rule);
+     background: #fff; vertical-align: top; }
 
-td { padding: 5px 8px; vertical-align: middle; border-bottom: 1px solid #f4f4f5;
-     border-right: 1px solid #f4f4f5; }
+td { padding: 5px 8px; vertical-align: middle; border-bottom: 1px solid var(--print-rule);
+     border-right: 1px solid var(--print-rule); }
 td:first-child { padding-left: 0; }
 /* No rule on the outer edges: a line at the sheet margin reads as a frame, not as a column. */
 td:last-child, th:last-child { padding-right: 0; border-right: none; }
@@ -63,12 +70,12 @@ th.num { padding-left: 4px; padding-right: 4px; white-space: normal; }
    because a bottom border mitres with the left one at 45° and cuts a grey wedge into the colour. */
 td.rail { border-left: 2px solid; padding-left: 11px;
           border-bottom: none; background-clip: padding-box;
-          background-image: linear-gradient(#f4f4f5, #f4f4f5);
+          background-image: linear-gradient(var(--print-rule), var(--print-rule));
           background-repeat: no-repeat; background-position: 0 100%; background-size: 100% 1px; }
 .desc { white-space: pre-line; overflow-wrap: break-word; color: #27272a; }
-.unit { white-space: nowrap; text-align: right; color: #a1a1aa; font-size: 7pt;
+.unit { white-space: nowrap; text-align: right; color: var(--print-muted); font-size: 7pt;
         padding-left: 4px; padding-right: 5px; }
-.price { color: #71717a; }
+.price { color: var(--print-soft); }
 .value { font-weight: 500; }
 /* Stronger than the screen's 2% mix, which vanishes on paper. Section bands and their „Razem" rows
    carry no stripe, so a band still reads as one bar. */
@@ -89,8 +96,8 @@ tr.band + tr td { break-before: avoid; }
 .band-chip { width: 9px; height: 9px; border-radius: 2px; flex: none; }
 .band-name { font-weight: 700; font-size: 9pt; letter-spacing: -.01em; }
 
-tr.band-total td { border-bottom: none; border-right: none; border-top: 1px solid #f4f4f5;
-                   padding-top: 6px; padding-bottom: 5px; color: #3f3f46; font-size: 7.5pt;
+tr.band-total td { border-bottom: none; border-right: none; border-top: 1px solid var(--print-rule);
+                   padding-top: 6px; padding-bottom: 5px; color: var(--print-soft); font-size: 7.5pt;
                    font-weight: 700; }
 tr.band-total td.num { color: #18181b; }
 /* The same painted hairline as every other rail cell, moved to the top edge — as a border it would
@@ -102,7 +109,7 @@ tr.band-total td.rail { border-top: none; background-position: 0 0; }
 .totals { margin-top: 32px; display: flex; flex-direction: column; align-items: flex-end; gap: 6mm; }
 .totals table { width: auto; min-width: 62mm; break-inside: avoid; }
 .totals td { border: none; padding: 6px 0 6px 28px; }
-.totals .label { text-align: left; color: #71717a; }
+.totals .label { text-align: left; color: var(--print-soft); }
 .totals .value { text-align: right; white-space: nowrap; font-weight: 500; }
 .totals tr.grand td { border-top: 1px solid #18181b; padding-top: 9px; font-size: 11pt;
                       font-weight: 600; letter-spacing: -.01em; color: #18181b; }

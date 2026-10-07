@@ -14,3 +14,17 @@ export async function trashedRegisterMessage(
   )
   return res.rows.some((row) => row.trashed_at != null) ? CASH_REGISTER_TRASHED_MESSAGE : undefined
 }
+
+/** A trashed or inactive kasa is no kasa to book into, even the worker's own. */
+export async function isWorkerLiveRegister(
+  db: DbExecutorT,
+  workerId: number,
+  cashRegisterId: number,
+): Promise<boolean> {
+  const res = await db.execute(sql`
+    SELECT 1 FROM cash_registers
+    WHERE id = ${cashRegisterId} AND owner_id = ${workerId}
+      AND trashed_at IS NULL AND active IS NOT FALSE
+  `)
+  return res.rows.length > 0
+}

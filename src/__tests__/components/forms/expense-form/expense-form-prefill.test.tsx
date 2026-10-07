@@ -8,6 +8,7 @@ import type { BulkExpenseFormValuesT } from '@/components/forms/expense-form/bul
 import { useExpenseFormStore } from '@/stores/form-stores'
 import { useOptimisticFormStore } from '@/stores/optimistic-form-store'
 import { referenceDataFor } from '@/__tests__/helpers/reference-data'
+import { createBulkTransferAction } from '@/lib/actions/transfers'
 import { scanReceiptClient } from '@/lib/utils/scan-receipt-client'
 import type { ReceiptFillResultT } from '@/lib/ai/scan-receipt'
 
@@ -69,6 +70,7 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
         formId="expense-draft-42"
         prefill={{
           expenseDraftId: 42,
+          receiptMediaIds: new Map(),
           files: new Map([[0, [receipt]]]),
           values: valuesWith({ investment: '3', sourceRegister: '7' }),
         }}
@@ -99,6 +101,7 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
         formId="expense-draft-42"
         prefill={{
           expenseDraftId: 42,
+          receiptMediaIds: new Map(),
           files: new Map([[0, [receipt]]]),
           values: valuesWith({
             investment: '3',
@@ -134,6 +137,7 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
         formId="expense-draft-42"
         prefill={{
           expenseDraftId: 42,
+          receiptMediaIds: new Map(),
           files: new Map([[0, pages]]),
           values: valuesWith({ investment: '3', sourceRegister: '7' }),
         }}
@@ -167,6 +171,7 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
         formId="expense-draft-42"
         prefill={{
           expenseDraftId: 42,
+          receiptMediaIds: new Map(),
           files: new Map([[0, [new File(['jpg'], 'od-pracownika.jpg', { type: 'image/jpeg' })]]]),
           values: valuesWith({ investment: '3', sourceRegister: '7' }),
         }}
@@ -207,6 +212,7 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
         formId="expense-draft-42"
         prefill={{
           expenseDraftId: 42,
+          receiptMediaIds: new Map(),
           files: new Map([[0, [receipt]]]),
           values: valuesWith({
             investment: '3',
@@ -225,6 +231,44 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
     expect(vi.mocked(scanReceiptClient).mock.calls).toEqual([[[receipt], expect.any(Array)]])
   })
 
+  it('paragon usunięty z przyjęcia idzie jako pominięty, a zostawione niosą swoje zdjęcia', async () => {
+    const kept = makeLineItem({
+      description: 'Klej do płytek',
+      amount: '89.9',
+      expenseCategory: '1',
+    })
+    const removed = makeLineItem({ description: 'Fuga szara', amount: '45', expenseCategory: '1' })
+
+    render(
+      <ExpenseForm
+        referenceData={referenceData}
+        onSubmitSuccess={vi.fn()}
+        formId="expense-draft-42"
+        prefill={{
+          expenseDraftId: 42,
+          receiptMediaIds: new Map([
+            [kept.id, [101]],
+            [removed.id, [102, 103]],
+          ]),
+          files: new Map(),
+          values: valuesWith({ investment: '3', sourceRegister: '7', lineItems: [kept, removed] }),
+        }}
+      />,
+    )
+
+    const user = userEvent.setup()
+    await screen.findByDisplayValue('Fuga szara')
+    await user.click(screen.getAllByRole('button', { name: 'Usuń' })[1])
+    await user.click(screen.getByRole('button', { name: 'Zapisz' }))
+
+    await waitFor(() => expect(createBulkTransferAction).toHaveBeenCalledTimes(1))
+    expect(vi.mocked(createBulkTransferAction).mock.calls[0][2]).toEqual({
+      expenseDraftId: 42,
+      receiptMediaIds: [[101]],
+      skippedReceipts: [[102, 103]],
+    })
+  })
+
   // The landed read remounts the whole form, so anything left editable here would be lost.
   it('póki zgłoszenie się odczytuje, cały formularz i „Zapisz" są zablokowane', async () => {
     render(
@@ -235,6 +279,7 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
         isPrefillReading
         prefill={{
           expenseDraftId: 42,
+          receiptMediaIds: new Map(),
           files: new Map([[0, [new File(['jpg'], 'leroy.jpg', { type: 'image/jpeg' })]]]),
           values: valuesWith({ investment: '3', sourceRegister: '7' }),
         }}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { KosztorysEditorBody } from '@/components/kosztorys/editor/kosztorys-editor-body'
 import { reportScrollsSideways } from '@/components/kosztorys/editor/grid/report-column'
 import { WorkerSummary } from '@/components/kosztorys/worker-report/worker-summary'
@@ -17,6 +18,7 @@ import { SentReports } from '@/components/kosztorys/worker-report/sent-reports'
 import type { useReportDraft } from '@/components/kosztorys/worker-report/use-report-draft'
 import { DropdownMenuCheckboxRow } from '@/components/ui/dropdown-menu'
 import { translateTree } from '@/lib/kosztorys/worker-view/translate-tree'
+import { opensOnSummaryView } from '@/lib/kosztorys/worker-view/worker-links'
 import type { SectionTranslationMapT } from '@/lib/i18n/section-translations'
 import { useTranslation } from '@/hooks/use-translation'
 import { cn } from '@/lib/utils/cn'
@@ -64,12 +66,16 @@ export function ReportGrid({
   sectionTranslations,
   onSent,
 }: PropsT) {
-  const [mode, setMode] = useState<ReportViewModeT>('report')
+  const searchParams = useSearchParams()
+  const hasRows = data.sections.some((section) => section.items.length > 0)
+  // With no rows there is no mode footer to switch back, and the summary has nothing to show.
+  const [mode, setMode] = useState<ReportViewModeT>(() =>
+    hasRows && opensOnSummaryView(searchParams) ? 'summary' : 'report',
+  )
   const [showDoneSum, setShowDoneSum] = useState(false)
   const [showProgress, setShowProgress] = useState(false)
   const isReport = mode === 'report'
   const scrollsSideways = reportScrollsSideways({ isSummary: !isReport, showDoneSum, showProgress })
-  const hasRows = data.sections.some((section) => section.items.length > 0)
   const { locale, t, tp } = useTranslation('report')
   const qtyByItem = draftQtyByItem(draft.draft.qtyByItem)
 

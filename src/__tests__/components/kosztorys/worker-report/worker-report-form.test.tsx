@@ -7,9 +7,11 @@ import type { WorkerKosztorysT } from '@/lib/kosztorys/worker-view/types'
 import { item, stage, tree } from '@/__tests__/helpers/kosztorys-history'
 import { workerAudience } from '@/__tests__/helpers/worker-audience'
 
+const { search } = vi.hoisted(() => ({ search: { current: '' } }))
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
   usePathname: () => '/z/inwestycja/jan/token',
+  useSearchParams: () => new URLSearchParams(search.current),
 }))
 
 // dsg sizes its virtualised rows off the measured grid; jsdom measures everything as 0×0.
@@ -82,6 +84,29 @@ describe('the footer switches „Zgłaszam pracę” and „Inwestycja”', () =
     expect(screen.getByRole('button', { name: 'Wyślij' })).toBeInTheDocument()
     expect(hasReportColumn()).toBe(true)
     expect(screen.queryByText('Twoje rozliczenie')).not.toBeInTheDocument()
+  })
+
+  it('opens on „Inwestycja” when „Moje inwestycje” links him there', async () => {
+    search.current = 'view=summary'
+    try {
+      renderForm('token')
+
+      expect(await screen.findByText('Twoje rozliczenie')).toBeInTheDocument()
+      expect(screen.getByRole('radio', { name: 'Inwestycja' })).toBeChecked()
+    } finally {
+      search.current = ''
+    }
+  })
+
+  it('a link to „Inwestycja” on a kosztorys with no works still opens where he can send', async () => {
+    search.current = 'view=summary'
+    try {
+      renderForm('token', { ...DOCUMENT, tree: tree([], STAGES, []) })
+
+      expect(await screen.findByRole('button', { name: 'Wyślij' })).toBeInTheDocument()
+    } finally {
+      search.current = ''
+    }
   })
 })
 

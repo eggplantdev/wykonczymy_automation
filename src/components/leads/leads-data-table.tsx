@@ -6,7 +6,7 @@ import { DataTable } from '@/components/tables/data-table/data-table'
 import { DataTableToolbar } from '@/components/tables/data-table/data-table-toolbar'
 import { ActiveFilterButton } from '@/components/filters/active-filter-button'
 import { ColumnToggle } from '@/components/filters/column-toggle'
-import { PaginationFooter } from '@/components/ui/pagination-footer'
+import { PaginationFooter } from '@/components/ui/pagination/pagination-footer'
 import { getLeadColumns } from '@/components/tables/leads'
 import { SelectedIdsContext } from '@/components/tables/data-table/select-column'
 import { TrashLeadsButton } from '@/components/leads/trash-leads-button'
@@ -103,9 +103,7 @@ export function LeadsDataTable({ data, paginationMeta, investments }: LeadsDataT
               />
             }
             columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
-            actions={
-              selectedIds.size > 0 && <TrashLeadsButton leadIds={[...selectedIds]} />
-            }
+            actions={selectedIds.size > 0 && <TrashLeadsButton leadIds={[...selectedIds]} />}
           />
         )}
       />

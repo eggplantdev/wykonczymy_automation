@@ -29,10 +29,10 @@ type KosztorysPrintArgsT = {
   // Set by the worker's document, printed in the worker's language; the offer keeps the Polish defaults.
   lang?: LanguageT
   totalLabel?: string
+  // Which column parity gets the stripe — the worker's form flips it so the columns he writes in and
+  // reads from stay white.
+  stripeParity?: 0 | 1
 }
-
-// The on-screen preview's column stripes, carried onto paper so the two read alike.
-const stripe = (index: number) => (index % 2 === 1 ? ' stripe' : '')
 
 export function buildKosztorysPrintHtml({
   rows,
@@ -48,9 +48,12 @@ export function buildKosztorysPrintHtml({
   sectionNetById,
   extraStyles = '',
   footerHtml,
+  stripeParity = 1,
   lang = 'pl',
   totalLabel = 'Razem',
 }: KosztorysPrintArgsT): string {
+  // The on-screen preview's column stripes, carried onto paper so the two read alike.
+  const stripe = (index: number) => (index % 2 === stripeParity ? ' stripe' : '')
   // Every sum in the document is a sum of the money column. With it hidden the owner has decided the
   // reader sees no money, so the totals go with it rather than reappearing in a footer.
   // The index is what the section total is placed by — „Pozostało" sits to its right, so a figure
@@ -87,7 +90,7 @@ export function buildKosztorysPrintHtml({
       closeSection()
       sectionId = row.sectionId
       sectionName = row.sectionName
-      sectionFill = (row.sectionColor && fillByColorKey.get(row.sectionColor)) || '#d4d4d8'
+      sectionFill = (row.sectionColor && fillByColorKey.get(row.sectionColor)) || '#a1a1aa'
       body.push(
         `<tr class="band"><td colspan="${Math.max(1, columns.length)}">` +
           `<div class="band-inner" style="border-color:${escapeHtml(sectionFill)}">` +

@@ -1,15 +1,33 @@
 import { sql } from '@payloadcms/db-vercel-postgres'
 import type { ScanModeT } from '@/lib/constants/receipt-scan'
-import type { ExpenseDraftStatusT } from '@/lib/constants/worker-expense-drafts'
-import type { DateRangeT } from '@/lib/utils/date-range'
+import {
+  EXPENSE_DRAFT_STATUSES,
+  type ExpenseDraftStatusT,
+} from '@/lib/constants/worker-expense-drafts'
+import { sortParamColumnId } from '@/lib/table/sort-param'
+import type { QueueFiltersT } from '@/types/filters'
+import type { PaginationParamsT } from '@/lib/utils/pagination'
+import {
+  isServerSortableDraftColumn,
+  type ServerSortableDraftColumnT,
+} from '@/lib/worker-expenses/sortable-columns'
+import type { ReferenceItemT } from '@/types/reference-data'
 import type { DeleteProbeT } from './delete-blocker'
 import { expenseDraftReadSchema, type ExpenseDraftReadT } from './expense-draft-read'
 import type { DbExecutorT } from './get-db'
 import { isoOrNull, numOrNull, text, textOrNull } from './row-coerce'
+import { queueFiltersWhere } from './queue-filters-where'
 import { inList, sqlList, type SqlT } from './sql-list'
-import { warsawDayWithin } from './sql-warsaw-day'
 
 export type ExpenseDraftMediaT = { id: number; url: string; filename: string; mimeType: string }
+
+// Read off the transaction, not the draft: the manager may book it to another investment.
+export type ExpenseDraftTransferT = {
+  id: number
+  amount: number
+  investmentId: number | null
+  cancelled: boolean
+}
 
 export type ExpenseDraftRowT = {
   id: number
@@ -22,7 +40,10 @@ export type ExpenseDraftRowT = {
   status: ExpenseDraftStatusT
   sentAt: string
   decidedAt: string | null
-  transferId: number | null
+  decidedByName: string | null
+  transfers: ExpenseDraftTransferT[]
+  // Set on a history row standing for one paragon the manager skipped while accepting the rest.
+  skippedReceipt?: { id: number; isRestorable: boolean }
   media: ExpenseDraftMediaT[]
   scanMode: ScanModeT
   aiRead: ExpenseDraftReadT | undefined
@@ -38,13 +59,29 @@ const DRAFT_MEDIA = sql`
   ), '[]'::json)
 `
 
+const TRANSFER_JSON = sql`json_build_object(
+  'id', t.id, 'amount', t.amount, 'investmentId', t.investment_id, 'cancelled', t.cancelled
+)`
+
+const DRAFT_TRANSFERS = sql`
+  COALESCE((
+    SELECT json_agg(${TRANSFER_JSON} ORDER BY t.id)
+    FROM worker_expense_draft_transfers dt JOIN transactions t ON t.id = dt.transfer_id
+    WHERE dt.draft_id = d.id
+  ), '[]'::json)
+`
+
+// The AI read only prefills an acceptance, so a decided draft — most of a history page — leaves it
+// behind instead of shipping it to the browser.
 const DRAFT_SELECT = sql`
   SELECT d.id, d.worker_id, w.name AS worker_name, d.investment_id, i.name AS investment_name,
-    d.cash_register_id, d.note, d.status, d.sent_at, d.decided_at, d.transfer_id, d.scan_mode,
-    d.ai_read, ${DRAFT_MEDIA} AS media
+    d.cash_register_id, d.note, d.status, d.sent_at, d.decided_at, d.scan_mode,
+    CASE WHEN d.status = 'pending' THEN d.ai_read END AS ai_read, ${DRAFT_MEDIA} AS media,
+    ${DRAFT_TRANSFERS} AS transfers, decider.name AS decided_by_name
   FROM worker_expense_drafts d
   JOIN users w ON w.id = d.worker_id
   JOIN investments i ON i.id = d.investment_id
+  LEFT JOIN users decider ON decider.id = d.decided_by
 `
 
 function toDraftMedia(value: unknown): ExpenseDraftMediaT[] {
@@ -53,6 +90,15 @@ function toDraftMedia(value: unknown): ExpenseDraftMediaT[] {
     url: text(m.url),
     filename: text(m.filename),
     mimeType: text(m.mimeType),
+  }))
+}
+
+function toDraftTransfers(value: unknown): ExpenseDraftTransferT[] {
+  return ((value ?? []) as Record<string, unknown>[]).map((t) => ({
+    id: Number(t.id),
+    amount: Number(t.amount),
+    investmentId: numOrNull(t.investmentId),
+    cancelled: t.cancelled === true,
   }))
 }
 
@@ -74,25 +120,15 @@ function toDraftRow(row: Record<string, unknown>): ExpenseDraftRowT {
     status: row.status as ExpenseDraftStatusT,
     sentAt: isoOrNull(row.sent_at) ?? '',
     decidedAt: isoOrNull(row.decided_at),
-    transferId: numOrNull(row.transfer_id),
+    decidedByName: textOrNull(row.decided_by_name),
+    transfers: toDraftTransfers(row.transfers),
+    ...(row.receipt_id != null && {
+      skippedReceipt: { id: Number(row.receipt_id), isRestorable: row.is_restorable === true },
+    }),
     media: toDraftMedia(row.media),
     scanMode: row.scan_mode as ScanModeT,
     aiRead: toDraftRead(row.ai_read),
   }
-}
-
-/** A trashed or inactive kasa is no kasa to book into, even the worker's own. */
-export async function isWorkerLiveRegister(
-  db: DbExecutorT,
-  workerId: number,
-  cashRegisterId: number,
-): Promise<boolean> {
-  const res = await db.execute(sql`
-    SELECT 1 FROM cash_registers
-    WHERE id = ${cashRegisterId} AND owner_id = ${workerId}
-      AND trashed_at IS NULL AND active IS NOT FALSE
-  `)
-  return res.rows.length > 0
 }
 
 /**
@@ -131,33 +167,6 @@ export async function insertWorkerExpenseDraft(
   return numOrNull(res.rows[0]?.id)
 }
 
-export async function listWorkerExpenseDrafts(
-  db: DbExecutorT,
-  workerId: number,
-): Promise<ExpenseDraftRowT[]> {
-  const res = await db.execute(sql`
-    ${DRAFT_SELECT}
-    WHERE d.worker_id = ${workerId}
-    ORDER BY d.sent_at DESC, d.id DESC
-  `)
-  return res.rows.map(toDraftRow)
-}
-
-export async function listPendingExpenseDrafts(db: DbExecutorT): Promise<ExpenseDraftRowT[]> {
-  const res = await db.execute(sql`
-    ${DRAFT_SELECT}
-    WHERE d.status = 'pending' AND i.trashed_at IS NULL
-    ORDER BY d.sent_at, d.id
-  `)
-  return res.rows.map(toDraftRow)
-}
-
-export type RejectedDraftScopeT = {
-  investmentIds: number[] | null
-  registerIds: number[] | null
-  sentRange: DateRangeT
-}
-
 // A pending draft holds back the trash of its pracownik, inwestycja and kasa, but a rejected one does
 // not — so a refusal may outlive any of them in the trash, where re-opening it would hold back their
 // purge and prefill „Przyjmij" with a kasa nobody can book into.
@@ -167,25 +176,155 @@ const PARTIES_NOT_TRASHED = sql`
   AND EXISTS (SELECT 1 FROM cash_registers c WHERE c.id = d.cash_register_id AND c.trashed_at IS NULL)
 `
 
-export async function listRejectedExpenseDrafts(
+// An accepted draft stands behind a booked expense, so it stays listed whatever went to the trash.
+const LISTED_DRAFT = sql`(d.status <> 'rejected' OR (${PARTIES_NOT_TRASHED}))`
+
+// A decided zgłoszenie lists one row per paragon: each booked transakcja, each skipped paragon as
+// „odrzucony”, and a draft-level row when no transakcja is linked (pending, rejected, or its
+// transakcja deleted). The count runs before any filter, so filtering by status never changes which
+// pages a row shows: a lone row shows them all, as does a transakcja booked before paragony kept pages.
+const PARAGON_ROWS = sql`
+  WITH paragons AS (
+    SELECT dt.draft_id, d.status AS row_status, dt.transfer_id, NULL::int AS receipt_id,
+      dt.media_ids, 0 AS kind, dt.transfer_id AS part
+    FROM worker_expense_draft_transfers dt JOIN worker_expense_drafts d ON d.id = dt.draft_id
+    UNION ALL
+    SELECT sr.draft_id, 'rejected', NULL, sr.id, sr.media_ids, 1, sr.id
+    FROM worker_expense_draft_skipped_receipts sr
+    UNION ALL
+    SELECT d.id, d.status, NULL, NULL, '{}'::int[], 0, 0
+    FROM worker_expense_drafts d
+    WHERE NOT EXISTS (SELECT 1 FROM worker_expense_draft_transfers dt WHERE dt.draft_id = d.id)
+  ), pr AS (
+    SELECT p.*, count(*) OVER (PARTITION BY p.draft_id) AS row_count FROM paragons p
+  )
+`
+
+const PARAGON_FROM = sql`FROM pr JOIN worker_expense_drafts d ON d.id = pr.draft_id`
+
+const PARAGON_SELECT = sql`
+  ${PARAGON_ROWS}
+  SELECT d.id, d.worker_id, w.name AS worker_name, d.investment_id, i.name AS investment_name,
+    d.cash_register_id, d.note, pr.row_status AS status, d.sent_at, d.decided_at, d.scan_mode,
+    CASE WHEN d.status = 'pending' THEN d.ai_read END AS ai_read, pr.receipt_id,
+    (pr.receipt_id IS NOT NULL AND ${PARTIES_NOT_TRASHED}) AS is_restorable,
+    COALESCE((
+      SELECT json_agg(json_build_object(
+        'id', m.id, 'url', m.url, 'filename', m.filename, 'mimeType', m.mime_type
+      ) ORDER BY dm.position)
+      FROM worker_expense_draft_media dm JOIN media m ON m.id = dm.media_id
+      WHERE dm.draft_id = d.id
+        AND (pr.row_count = 1 OR cardinality(pr.media_ids) = 0 OR dm.media_id = ANY(pr.media_ids))
+    ), '[]'::json) AS media,
+    COALESCE((
+      SELECT json_agg(${TRANSFER_JSON}) FROM transactions t WHERE t.id = pr.transfer_id
+    ), '[]'::json) AS transfers,
+    decider.name AS decided_by_name
+  ${PARAGON_FROM}
+  JOIN users w ON w.id = d.worker_id
+  JOIN investments i ON i.id = d.investment_id
+  LEFT JOIN users decider ON decider.id = d.decided_by
+`
+
+// Keeps a zgłoszenie's rows together, transakcje before skipped paragony.
+const PARAGON_ORDER = sql`d.id DESC, pr.kind, pr.part`
+
+export async function listWorkerExpenseDrafts(
   db: DbExecutorT,
-  limit: number,
-  scope: RejectedDraftScopeT,
+  workerId: number,
 ): Promise<ExpenseDraftRowT[]> {
-  const conditions = [
-    sql`d.status = 'rejected'`,
-    PARTIES_NOT_TRASHED,
-    inList(sql`d.investment_id`, scope.investmentIds),
-    inList(sql`d.cash_register_id`, scope.registerIds),
-    ...warsawDayWithin(sql`d.sent_at`, scope.sentRange),
-  ].filter((condition) => condition !== undefined)
   const res = await db.execute(sql`
-    ${DRAFT_SELECT}
-    WHERE ${sql.join(conditions, sql.raw(' AND '))}
-    ORDER BY d.decided_at DESC, d.id DESC
-    LIMIT ${limit}
+    ${PARAGON_SELECT}
+    WHERE d.worker_id = ${workerId} AND ${LISTED_DRAFT}
+    ORDER BY d.sent_at DESC, ${PARAGON_ORDER}
   `)
   return res.rows.map(toDraftRow)
+}
+
+const PENDING_DRAFT = sql`d.status = 'pending' AND i.trashed_at IS NULL`
+
+export async function listPendingExpenseDrafts(db: DbExecutorT): Promise<ExpenseDraftRowT[]> {
+  const res = await db.execute(sql`
+    ${DRAFT_SELECT}
+    WHERE ${PENDING_DRAFT}
+    ORDER BY d.sent_at, d.id
+  `)
+  return res.rows.map(toDraftRow)
+}
+
+export async function countPendingExpenseDrafts(db: DbExecutorT): Promise<number> {
+  const res = await db.execute(sql`
+    SELECT count(*)::int AS total
+    FROM worker_expense_drafts d JOIN investments i ON i.id = d.investment_id
+    WHERE ${PENDING_DRAFT}
+  `)
+  return Number(res.rows[0]?.total ?? 0)
+}
+
+export type ExpenseDraftFiltersT = QueueFiltersT<ExpenseDraftStatusT>
+
+const QUEUE_ORDER = sql`d.status <> 'pending', d.sent_at DESC, ${PARAGON_ORDER}`
+
+const SORT_EXPRESSIONS: Record<ServerSortableDraftColumnT, SqlT> = {
+  workerName: sql`w.name`,
+  investmentName: sql`i.name`,
+  sentAt: sql`d.sent_at`,
+  decidedAt: sql`d.decided_at`,
+  // Queue order rather than alphabetical, which would put „Przyjęte" ahead of „Czeka".
+  status: sql`array_position(ARRAY[${sqlList(EXPENSE_DRAFT_STATUSES)}]::text[], pr.row_status)`,
+}
+
+// An unknown column falls back to the queue, since the column picks a SQL fragment, not a bound
+// value. A pending draft has no decision, so it trails a decision sort either way.
+function draftHistoryOrderBy(sort: string | undefined): SqlT {
+  if (!sort) return QUEUE_ORDER
+  const column = sortParamColumnId(sort)
+  if (!isServerSortableDraftColumn(column)) return QUEUE_ORDER
+  const direction = sql.raw(sort.startsWith('-') ? 'DESC' : 'ASC')
+  return sql`${SORT_EXPRESSIONS[column]} ${direction} NULLS LAST, d.sent_at DESC, ${PARAGON_ORDER}`
+}
+
+export async function listExpenseDraftHistory(
+  db: DbExecutorT,
+  filters: ExpenseDraftFiltersT,
+  { page, limit }: PaginationParamsT,
+  sort?: string,
+): Promise<{ rows: ExpenseDraftRowT[]; totalDocs: number }> {
+  // The status filter reads the paragon's own badge; `LISTED_DRAFT` still reads the zgłoszenie's.
+  const where = sql`${queueFiltersWhere('d', LISTED_DRAFT, { ...filters, statuses: null })}
+    AND ${inList(sql`pr.row_status`, filters.statuses) ?? sql`true`}`
+  const [res, countRes] = await Promise.all([
+    db.execute(sql`
+      ${PARAGON_SELECT}
+      WHERE ${where}
+      ORDER BY ${draftHistoryOrderBy(sort)}
+      LIMIT ${limit} OFFSET ${(page - 1) * limit}
+    `),
+    db.execute(sql`${PARAGON_ROWS} SELECT count(*)::int AS total ${PARAGON_FROM} WHERE ${where}`),
+  ])
+  return { rows: res.rows.map(toDraftRow), totalDocs: Number(countRes.rows[0]?.total ?? 0) }
+}
+
+/** Only parties that have a listed draft — any other option could only filter down to nothing. */
+export async function listExpenseDraftFilterOptions(
+  db: DbExecutorT,
+): Promise<{ investments: ReferenceItemT[]; workers: ReferenceItemT[] }> {
+  const [investmentsRes, workersRes] = await Promise.all([
+    db.execute(sql`
+      SELECT DISTINCT i.id, i.name
+      FROM worker_expense_drafts d JOIN investments i ON i.id = d.investment_id
+      WHERE ${LISTED_DRAFT}
+      ORDER BY i.name
+    `),
+    db.execute(sql`
+      SELECT DISTINCT w.id, w.name
+      FROM worker_expense_drafts d JOIN users w ON w.id = d.worker_id
+      WHERE ${LISTED_DRAFT}
+      ORDER BY w.name
+    `),
+  ])
+  const toItem = (row: Record<string, unknown>) => ({ id: Number(row.id), name: text(row.name) })
+  return { investments: investmentsRes.rows.map(toItem), workers: workersRes.rows.map(toItem) }
 }
 
 /**
@@ -198,15 +337,38 @@ export async function decideExpenseDraft(
     draftId: number
     decidedBy: number
     status: Exclude<ExpenseDraftStatusT, 'pending'>
-    transferId: number | null
+    transferIds: number[]
+    // Positional to `transferIds`: the draft's pages each transakcja was booked from.
+    transferMediaIds?: number[][]
+    skippedReceipts?: number[][]
   },
 ): Promise<boolean> {
+  const transfers = decision.transferIds.map((id, i) => ({
+    id,
+    media_ids: decision.transferMediaIds?.[i] ?? [],
+  }))
+  const skipped = (decision.skippedReceipts ?? []).map((mediaIds) => ({ media_ids: mediaIds }))
+  // A page id the client sends lands only if it is one of this draft's pages.
+  const ownPages = sql`ARRAY(
+    SELECT unnest(r.media_ids) INTERSECT
+    SELECT dm.media_id FROM worker_expense_draft_media dm WHERE dm.draft_id = decided.id
+  )`
   const res = await db.execute(sql`
-    UPDATE worker_expense_drafts
-    SET status = ${decision.status}, decided_at = now(), decided_by = ${decision.decidedBy},
-      transfer_id = ${decision.transferId}
-    WHERE id = ${decision.draftId} AND status = 'pending'
-    RETURNING id
+    WITH decided AS (
+      UPDATE worker_expense_drafts
+      SET status = ${decision.status}, decided_at = now(), decided_by = ${decision.decidedBy}
+      WHERE id = ${decision.draftId} AND status = 'pending'
+      RETURNING id
+    ), linked AS (
+      INSERT INTO worker_expense_draft_transfers (transfer_id, draft_id, media_ids)
+      SELECT r.id, decided.id, ${ownPages}
+      FROM decided, jsonb_to_recordset(${JSON.stringify(transfers)}::jsonb) AS r(id int, media_ids int[])
+    ), skipped AS (
+      INSERT INTO worker_expense_draft_skipped_receipts (draft_id, media_ids)
+      SELECT decided.id, ${ownPages}
+      FROM decided, jsonb_to_recordset(${JSON.stringify(skipped)}::jsonb) AS r(media_ids int[])
+    )
+    SELECT id FROM decided
   `)
   return res.rows.length > 0
 }
@@ -218,11 +380,54 @@ export async function restoreRejectedExpenseDraft(
 ): Promise<boolean> {
   const res = await db.execute(sql`
     UPDATE worker_expense_drafts d
-    SET status = 'pending', decided_at = NULL, decided_by = NULL, transfer_id = NULL
+    SET status = 'pending', decided_at = NULL, decided_by = NULL
     WHERE d.id = ${draftId} AND d.status = 'rejected' AND ${PARTIES_NOT_TRASHED}
     RETURNING d.id
   `)
   return res.rows.length > 0
+}
+
+/**
+ * A skipped paragon comes back as a new pending zgłoszenie sharing the accepted parent's pages, at
+ * the parent's send date — re-opening the parent would rebook what it already booked. It carries
+ * the parent's read of that paragon (its pages are exactly one read row, fixed by the mode), so
+ * `hasRead: false` is the caller's cue to read it afresh. The delete is the gate: a trashed party or
+ * a second restore deletes nothing and inserts nothing. `null` = refused.
+ */
+export async function restoreSkippedReceipt(
+  db: DbExecutorT,
+  receiptId: number,
+): Promise<{ draftId: number; hasRead: boolean } | null> {
+  const res = await db.execute(sql`
+    WITH restored AS (
+      DELETE FROM worker_expense_draft_skipped_receipts sr
+      USING worker_expense_drafts d
+      WHERE sr.id = ${receiptId} AND sr.draft_id = d.id AND d.status = 'accepted'
+        AND cardinality(sr.media_ids) > 0 AND ${PARTIES_NOT_TRASHED}
+      RETURNING d.id AS parent_id, d.worker_id, d.investment_id, d.cash_register_id, d.note,
+        d.scan_mode, d.sent_at, d.ai_read, sr.media_ids
+    ), draft AS (
+      INSERT INTO worker_expense_drafts
+        (worker_id, investment_id, cash_register_id, note, scan_mode, sent_at, ai_read)
+      SELECT worker_id, investment_id, cash_register_id, note, scan_mode, sent_at, (
+        SELECT jsonb_build_object('rows', jsonb_build_array(read_row))
+        FROM jsonb_array_elements(restored.ai_read -> 'rows') AS read_row
+        WHERE ARRAY(SELECT jsonb_array_elements_text(read_row -> 'mediaIds')::int ORDER BY 1)
+          = ARRAY(SELECT unnest(restored.media_ids) ORDER BY 1)
+        LIMIT 1
+      )
+      FROM restored
+      RETURNING id, ai_read IS NOT NULL AS has_read
+    ), pages AS (
+      INSERT INTO worker_expense_draft_media (draft_id, media_id, position)
+      SELECT draft.id, dm.media_id, dm.position
+      FROM draft, restored JOIN worker_expense_draft_media dm ON dm.draft_id = restored.parent_id
+      WHERE dm.media_id = ANY(restored.media_ids)
+    )
+    SELECT id, has_read FROM draft
+  `)
+  const row = res.rows[0]
+  return row ? { draftId: Number(row.id), hasRead: row.has_read === true } : null
 }
 
 /**
@@ -378,13 +583,12 @@ export async function deletePendingExpenseDraft(
 
 export async function listDraftTransferIds(
   db: DbExecutorT,
-  transferIds?: number[],
+  transferIds: number[],
 ): Promise<number[]> {
-  if (transferIds?.length === 0) return []
-  const among = transferIds ? sql`AND transfer_id IN (${sqlList(transferIds)})` : sql``
+  if (transferIds.length === 0) return []
   const res = await db.execute(sql`
-    SELECT transfer_id FROM worker_expense_drafts
-    WHERE status = 'accepted' AND transfer_id IS NOT NULL ${among}
+    SELECT transfer_id FROM worker_expense_draft_transfers
+    WHERE transfer_id IN (${sqlList(transferIds)})
   `)
   return res.rows.map((row) => Number(row.transfer_id))
 }

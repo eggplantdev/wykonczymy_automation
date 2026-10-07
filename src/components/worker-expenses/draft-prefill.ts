@@ -11,6 +11,8 @@ type DraftPrefillT = {
   lineItems: BulkExpenseFormValuesT['lineItems']
   // Keyed by row position, the shape `ExpenseFormPrefillT.files` takes.
   files: Map<number, File[]>
+  // Keyed by line item id: the draft pages each row is the paragon of.
+  receiptMediaIds: Map<string, number[]>
 }
 
 /**
@@ -30,6 +32,7 @@ export function buildDraftPrefill(
       : [pageIndexes]
 
   const rowFiles = new Map<number, File[]>()
+  const receiptMediaIds = new Map<string, number[]>()
   const lineItems = groups.map((group, row) => {
     const mediaIds = group.map((index) => draft.media[index].id)
     // The write's compare-and-set can lose a race to a page change under READ COMMITTED, so a read
@@ -38,8 +41,10 @@ export function buildDraftPrefill(
     const downloaded = group.map((index) => files[index])
     const pages = read?.filename ? renamePages(downloaded, read.filename) : downloaded
     if (pages.length > 0) rowFiles.set(row, pages)
-    return makeLineItem({ expenseCategory, ...(read && receiptToLineItemValues(read)) })
+    const lineItem = makeLineItem({ expenseCategory, ...(read && receiptToLineItemValues(read)) })
+    receiptMediaIds.set(lineItem.id, mediaIds)
+    return lineItem
   })
 
-  return { lineItems, files: rowFiles }
+  return { lineItems, files: rowFiles, receiptMediaIds }
 }

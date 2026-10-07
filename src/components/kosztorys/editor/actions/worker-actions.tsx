@@ -151,7 +151,7 @@ export function WorkerPreviewMenuItem({
         target="_blank"
       >
         <Eye />
-        Podgląd
+        Podgląd linku pracownika
       </Link>
     </DropdownMenuItem>
   )

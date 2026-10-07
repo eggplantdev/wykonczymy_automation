@@ -4,23 +4,28 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { restoreExpenseDraftAction } from '@/lib/actions/worker-expense-drafts'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
+import type { ActionResultT } from '@/types/action'
 
-export function RestoreExpenseDraftButton({ draftId }: { draftId: number }) {
+type PropsT = {
+  restore: () => Promise<ActionResultT>
+  successMessage: string
+}
+
+export function RestoreExpenseDraftButton({ restore, successMessage }: PropsT) {
   const router = useRouter()
   const [isRestoring, setIsRestoring] = useState(false)
 
   async function handleRestore() {
     setIsRestoring(true)
     try {
-      const result = await settleAction(() => restoreExpenseDraftAction(draftId))
+      const result = await settleAction(restore)
       if (!result.success) {
         toastMessage(result.error, 'error')
         return
       }
-      toastMessage('Zgłoszenie przywrócone')
+      toastMessage(successMessage)
       router.refresh()
     } finally {
       setIsRestoring(false)

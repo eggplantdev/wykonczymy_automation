@@ -46,9 +46,6 @@ export type TransferRowT = {
   // For a CANCELLATION row: the type of the original transfer it reverses (display-only). null otherwise.
   originalType: TransferTypeT | null
   fromWorkerDraft?: boolean
-  // Not a transfer at all: a worker's rejected expense draft listed beside them so it can be restored.
-  // Every transfer-only cell (id, kwota, edit, cancel) must check this before trusting the row.
-  rejectedDraftId?: number
 }
 
 // PAYOUT-per-worker total for one investment. `workerId` null is the „Bez przypisanego pracownika"

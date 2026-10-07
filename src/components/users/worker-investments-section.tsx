@@ -8,8 +8,9 @@ import {
 import { CollapsibleSection } from '@/components/ui/collapsible-section'
 import { Button } from '@/components/ui/button'
 import { Description } from '@/components/ui/description'
+import { OptionalLink } from '@/components/ui/optional-link'
 import { FRONTEND_URL } from '@/lib/env'
-import { workerReportShareUrl } from '@/lib/kosztorys/worker-view/worker-links'
+import { summaryViewUrl, workerReportShareUrl } from '@/lib/kosztorys/worker-view/worker-links'
 import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 import { createTranslator } from '@/lib/i18n/translations'
 import type { LanguageT } from '@/lib/i18n/languages'
@@ -43,19 +44,29 @@ export function WorkerInvestmentsSection({
         >
           <SummaryHeaderCell variant="label">{t('investment')}</SummaryHeaderCell>
           {canReport && <SummaryHeaderCell variant="label">{t('reports')}</SummaryHeaderCell>}
-          {investments.map((investment) => (
-            <Fragment key={investment.investmentId}>
-              <SummaryLabelCell className="flex items-center">{investment.name}</SummaryLabelCell>
-              {canReport && (
-                <ReportLinkCell
-                  investment={investment}
-                  workerName={workerName}
-                  reportWork={t('reportWork')}
-                  noLink={t('noLink')}
-                />
-              )}
-            </Fragment>
-          ))}
+          {investments.map((investment) => {
+            const reportUrl = investment.token
+              ? workerReportShareUrl(FRONTEND_URL, investment.name, workerName, investment.token)
+              : undefined
+            return (
+              <Fragment key={investment.investmentId}>
+                <SummaryLabelCell className="flex items-center">
+                  <OptionalLink
+                    href={canReport && reportUrl ? summaryViewUrl(reportUrl) : undefined}
+                  >
+                    {investment.name}
+                  </OptionalLink>
+                </SummaryLabelCell>
+                {canReport && (
+                  <ReportLinkCell
+                    reportUrl={reportUrl}
+                    reportWork={t('reportWork')}
+                    noLink={t('noLink')}
+                  />
+                )}
+              </Fragment>
+            )
+          })}
         </SummaryTable>
       )}
     </CollapsibleSection>
@@ -63,25 +74,19 @@ export function WorkerInvestmentsSection({
 }
 
 function ReportLinkCell({
-  investment,
-  workerName,
+  reportUrl,
   reportWork,
   noLink,
 }: {
-  investment: WorkerStageInvestmentT
-  workerName: string
+  reportUrl: string | undefined
   reportWork: string
   noLink: string
 }) {
   return (
     <SummaryLabelCell className="flex items-center">
-      {investment.token ? (
+      {reportUrl ? (
         <Button asChild>
-          <a
-            href={workerReportShareUrl(FRONTEND_URL, investment.name, workerName, investment.token)}
-          >
-            {reportWork}
-          </a>
+          <a href={reportUrl}>{reportWork}</a>
         </Button>
       ) : (
         <span className="text-muted-foreground">{noLink}</span>

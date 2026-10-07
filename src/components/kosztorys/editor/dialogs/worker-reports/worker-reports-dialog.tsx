@@ -18,7 +18,7 @@ export function WorkerReportsDialog({ action }: PropsT) {
   const { investmentId } = useKosztorysEditorContext()
   return (
     <Dialog open={action.open} onOpenChange={action.setOpen}>
-      <DialogContent className="sm:max-w-dialog-xl">
+      <DialogContent className="sm:max-w-dialog-2xl">
         <DialogHeader
           title="Zgłoszenia wykonanych prac"
           description="Pracownicy zgłaszają wykonane ilości ze swojego linku. Zaznacz, co przyjmujesz — trafi do rozpiski."

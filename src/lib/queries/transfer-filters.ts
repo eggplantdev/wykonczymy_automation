@@ -2,9 +2,6 @@ import type { Where } from 'payload'
 import type { ResolvedSearchParamsT } from '@/types/page'
 import { isTransferType, PAYMENT_METHODS } from '@/lib/constants/transfers'
 import { parseNumericIds } from '@/lib/utils/parse-numeric-ids'
-import { dayBound } from '@/lib/utils/date-range'
-import { listParam } from '@/lib/utils/list-param'
-import type { RejectedDraftScopeT } from '@/lib/db/worker-expense-drafts'
 
 type UserContextT = {
   id: number
@@ -163,44 +160,6 @@ export function buildTransferFilters(
   }
 
   return where
-}
-
-const TRANSFER_ONLY_PARAMS = [
-  'createdBy',
-  'paymentMethod',
-  'expenseCategory',
-  'worker',
-  'otherCategory',
-  'amount',
-  'id',
-] as const
-
-/**
- * `undefined` = the filters exclude every draft. A draft would become an INVESTMENT_EXPENSE, so a
- * Typ filter keeps them only when that type is among the picked.
- */
-export function buildRejectedDraftScope(
-  searchParams: ResolvedSearchParamsT,
-): RejectedDraftScopeT | undefined {
-  if (getStringParam(searchParams.cancelledTransactionAudit) === '1') return undefined
-  if (TRANSFER_ONLY_PARAMS.some((param) => getStringParam(searchParams[param]))) return undefined
-  const typeParam = getStringParam(searchParams.type)
-  if (typeParam && !typeParam.split(',').includes('INVESTMENT_EXPENSE')) return undefined
-
-  return {
-    investmentIds: listParam(searchParams.investment, parseNumericIds),
-    registerIds: listParam(searchParams.sourceRegister, parseNumericIds),
-    sentRange: { from: dayBound(searchParams.from), to: dayBound(searchParams.to) },
-  }
-}
-
-/**
- * Keep only `transferIds`, on top of whatever `where` already narrows. Under `and` because `id` may
- * already hold the search by id or a NO_RESULTS short-circuit.
- */
-export function narrowToTransferIds(where: Where, transferIds: number[]): Where {
-  const ids = transferIds.length > 0 ? { in: transferIds } : { equals: -1 }
-  return { ...where, and: [...(where.and ?? []), { id: ids }] }
 }
 
 // The fields a CANCELLATION row does not carry: cancelTransferAction copies only amount, date,

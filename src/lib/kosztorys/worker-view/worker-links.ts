@@ -26,6 +26,18 @@ export function workerIdFromSegment(segment: string): number | undefined {
   return Number.isSafeInteger(workerId) && workerId > 0 ? workerId : undefined
 }
 
+const REPORT_VIEW_PARAM = 'view'
+const SUMMARY_VIEW = 'summary'
+
+// Opens the report page on „Inwestycja”.
+export function summaryViewUrl(reportUrl: string): string {
+  return `${reportUrl}?${REPORT_VIEW_PARAM}=${SUMMARY_VIEW}`
+}
+
+export function opensOnSummaryView(searchParams: URLSearchParams | null): boolean {
+  return searchParams?.get(REPORT_VIEW_PARAM) === SUMMARY_VIEW
+}
+
 export function workerReportShareUrl(
   origin: string,
   investmentName: string,

@@ -1,6 +1,6 @@
 'use server'
 
-import { managementDb } from '@/lib/queries/worker-reports-list'
+import { managementDb } from '@/lib/queries/management-db'
 import {
   listWorkerReports,
   readWorkerReport,
@@ -50,6 +50,7 @@ function toSummary(row: WorkerReportRowT): WorkerReportSummaryT {
     investmentId: row.investmentId,
     workerId: row.workerId,
     workerName: row.workerName,
+    workerLanguage: row.workerLanguage ?? undefined,
     source: row.source,
     createdByName: row.createdByName ?? undefined,
     sentAt: row.sentAt,

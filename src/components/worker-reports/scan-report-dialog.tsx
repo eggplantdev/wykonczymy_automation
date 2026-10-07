@@ -13,7 +13,7 @@ import { useLatestRequest } from '@/hooks/use-latest-request'
 import { useObjectUrls } from '@/hooks/use-object-urls'
 import { createScannedReportAction } from '@/lib/actions/worker-report-scan'
 import type { ScanWorkerT, WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
-import { MAX_SCAN_PHOTOS } from '@/lib/kosztorys/worker-report/constants'
+import { MAX_SCAN_PHOTOS, SCAN_REPORT_LABEL } from '@/lib/kosztorys/worker-report/constants'
 import type { ScanPageT } from '@/lib/kosztorys/worker-report/types'
 import { submitWithUploads } from '@/lib/media/submit-with-uploads'
 import { readScanWorkerInvestments } from '@/lib/queries/worker-reports'
@@ -31,23 +31,14 @@ type PageReadT = ScanPageT | 'failed' | undefined
 type PropsT = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  // Whichever the entry point already knows; the rest is picked here.
+  // The kosztorys knows its investment; the listing leaves it to be picked here.
   investmentId?: number
-  worker?: ScanWorkerT
-  // The choice when `worker` is not given.
-  workers?: ScanWorkerT[]
+  workers: ScanWorkerT[]
   onCreated: (reportId: number, investmentId: number) => void
 }
 
-export function ScanReportDialog({
-  open,
-  onOpenChange,
-  investmentId,
-  worker,
-  workers = [],
-  onCreated,
-}: PropsT) {
-  const [workerId, setWorkerId] = useState(worker ? String(worker.id) : '')
+export function ScanReportDialog({ open, onOpenChange, investmentId, workers, onCreated }: PropsT) {
+  const [workerId, setWorkerId] = useState('')
   const [pickedInvestmentId, setPickedInvestmentId] = useState(
     investmentId === undefined ? '' : String(investmentId),
   )
@@ -59,7 +50,6 @@ export function ScanReportDialog({
   const urls = useObjectUrls(files)
   const investmentsRequest = useLatestRequest()
 
-  const picksWorker = worker === undefined
   const picksInvestment = investmentId === undefined
 
   const isTooMany = files.length > MAX_SCAN_PHOTOS
@@ -75,7 +65,7 @@ export function ScanReportDialog({
     onOpenChange(false)
     reset()
     setReads(new Map())
-    if (picksWorker) setWorkerId('')
+    setWorkerId('')
     if (picksInvestment) setPickedInvestmentId('')
   }
 
@@ -161,21 +151,19 @@ export function ScanReportDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-lg" aria-describedby={undefined}>
-        <DialogHeader title={worker ? `Wczytaj z kartki — ${worker.name}` : 'Wczytaj z kartki'} />
+        <DialogHeader title={SCAN_REPORT_LABEL} />
         <div className="flex flex-col gap-4">
-          {picksWorker && (
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="scan-worker">Pracownik</Label>
-              <SearchSelect
-                id="scan-worker"
-                value={workerId}
-                onChange={pickWorker}
-                items={workers.map((option) => ({ value: String(option.id), label: option.name }))}
-                placeholder="Wybierz pracownika"
-                disabled={isSending}
-              />
-            </div>
-          )}
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="scan-worker">Pracownik</Label>
+            <SearchSelect
+              id="scan-worker"
+              value={workerId}
+              onChange={pickWorker}
+              items={workers.map((option) => ({ value: String(option.id), label: option.name }))}
+              placeholder="Wybierz pracownika"
+              disabled={isSending}
+            />
+          </div>
           {picksInvestment && (
             <div className="flex flex-col gap-2">
               <Label htmlFor="scan-investment">Inwestycja</Label>

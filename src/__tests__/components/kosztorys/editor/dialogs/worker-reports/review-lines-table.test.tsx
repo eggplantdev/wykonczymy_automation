@@ -23,6 +23,7 @@ const extra = (patch: Partial<ReviewRowT> = {}): ReviewRowT => ({
   sectionName: '',
   sectionColor: null,
   sectionOrder: 0,
+  ref: undefined,
   reportedQty: 12,
   acceptedQty: undefined,
   createdItemId: undefined,
@@ -31,6 +32,8 @@ const extra = (patch: Partial<ReviewRowT> = {}): ReviewRowT => ({
   descriptionLanguage: undefined,
   figures: undefined,
   itemDescription: undefined,
+  workerDescription: undefined,
+  workerDescriptionLanguage: undefined,
   isUnassigned: false,
   isAccepted: false,
   isFigureLive: false,
@@ -88,12 +91,18 @@ describe('praca spoza rozpiski — tłumaczenie dla kierownika', () => {
 
   it('a translated line reads in Polish with the worker’s own words beside it', () => {
     renderTable(
-      extra({ polishDescription: 'Montaż listew przypodłogowych', descriptionLanguage: 'uk' }),
+      extra({
+        polishDescription: 'Montaż listew przypodłogowych',
+        descriptionLanguage: 'uk',
+        workerDescription: ORIGINAL,
+        workerDescriptionLanguage: 'uk',
+      }),
       vi.fn(),
     )
 
     expect(screen.getByText('Montaż listew przypodłogowych')).toBeInTheDocument()
-    expect(screen.getByText(`Zgłoszono (UA): „${ORIGINAL}”`)).toBeInTheDocument()
+    expect(screen.getByText(ORIGINAL)).toBeInTheDocument()
+    expect(screen.getByText('UA')).toBeInTheDocument()
     expect(screen.queryByText('Brak tłumaczenia')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Przetłumacz ponownie' })).toBeInTheDocument()
   })

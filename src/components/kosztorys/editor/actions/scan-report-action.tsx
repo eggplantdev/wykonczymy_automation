@@ -1,44 +1,39 @@
 'use client'
 
 import { useState } from 'react'
-import { ScanLine } from 'lucide-react'
+import { WandSparkles } from 'lucide-react'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
+import { SCAN_REPORT_LABEL } from '@/lib/kosztorys/worker-report/constants'
 import type { ScanWorkerT } from '@/lib/db/stage-memberships'
 
 export type ScanReportActionT = {
-  target: ScanWorkerT | undefined
+  workers: ScanWorkerT[]
   open: boolean
   setOpen: (open: boolean) => void
-  requestScan: (target: ScanWorkerT) => void
+  requestScan: (workers: ScanWorkerT[]) => void
 }
 
 export function useScanReportAction(): ScanReportActionT {
-  const [target, setTarget] = useState<ScanWorkerT>()
+  const [workers, setWorkers] = useState<ScanWorkerT[]>([])
   const [open, setOpen] = useState(false)
   return {
-    target,
+    workers,
     open,
     setOpen,
     requestScan: (next) => {
-      setTarget(next)
+      setWorkers(next)
       setOpen(true)
     },
   }
 }
 
-export function ScanReportMenuItem({
-  target,
-  disabled,
-}: {
-  target: ScanWorkerT
-  disabled: boolean
-}) {
+export function ScanReportMenuItem({ workers }: { workers: ScanWorkerT[] }) {
   const { scan } = useKosztorysActions()
   return (
-    <DropdownMenuItem disabled={disabled} onSelect={() => scan.requestScan(target)}>
-      <ScanLine />
-      Wczytaj z kartki
+    <DropdownMenuItem disabled={workers.length === 0} onSelect={() => scan.requestScan(workers)}>
+      <WandSparkles className="text-neon-cyan" />
+      <span className="text-neon-cyan font-semibold">{SCAN_REPORT_LABEL}</span>
     </DropdownMenuItem>
   )
 }

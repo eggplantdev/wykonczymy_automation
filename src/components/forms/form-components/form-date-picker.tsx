@@ -46,7 +46,7 @@ export function FormDatePicker(props: FormControlPropsT) {
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="z-10001 w-auto p-0" align="start">
+        <PopoverContent className="w-auto p-0" align="start">
           <Calendar
             mode="single"
             selected={selected}

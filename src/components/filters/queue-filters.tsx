@@ -7,26 +7,21 @@ import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
 import { ClearButton } from '@/components/filters/clear-button'
 import { DateFilters } from '@/components/filters/date-filters'
 import { useUrlFilterParams } from '@/hooks/use-url-filter-params'
-import { REPORT_STATUSES, REPORT_STATUS_LABELS } from '@/lib/kosztorys/worker-report/report-status'
 import type { ReferenceItemT } from '@/types/reference-data'
 
 const FILTER_KEYS = ['status', 'investment', 'worker'] as const
-
-const STATUS_OPTIONS = REPORT_STATUSES.map((status) => ({
-  value: status,
-  label: REPORT_STATUS_LABELS[status],
-}))
 
 const toOptions = (items: ReferenceItemT[]) =>
   items.map((item) => ({ value: String(item.id), label: item.name }))
 
 type PropsT = {
   baseUrl: string
+  statusOptions: { value: string; label: string }[]
   investments: ReferenceItemT[]
   workers: ReferenceItemT[]
 }
 
-export function WorkerReportFilters({ baseUrl, investments, workers }: PropsT) {
+export function QueueFilters({ baseUrl, statusOptions, investments, workers }: PropsT) {
   const { getMultiParam, updateParam, updateMultipleParams, isPending } =
     useUrlFilterParams(baseUrl)
 
@@ -39,7 +34,7 @@ export function WorkerReportFilters({ baseUrl, investments, workers }: PropsT) {
         <FilterMultiSelect
           values={getMultiParam('status')}
           onValuesChange={(values) => updateParam('status', values.join(','))}
-          options={STATUS_OPTIONS}
+          options={statusOptions}
           label="Status"
           icon={CircleDot}
         />

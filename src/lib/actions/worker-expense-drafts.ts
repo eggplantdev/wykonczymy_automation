@@ -6,6 +6,7 @@ import { readExpenseDraftReceipts } from '@/lib/actions/read-expense-draft-recei
 import { protectedAction, sessionAction, validateAction } from '@/lib/actions/run-action'
 import { RECEIPT_SCAN_MODES } from '@/lib/constants/receipt-scan'
 import { MAX_DRAFT_PAGES } from '@/lib/constants/worker-expense-drafts'
+import { isWorkerLiveRegister } from '@/lib/db/cash-register-gate'
 import { getDb, type DbExecutorT } from '@/lib/db/get-db'
 import { listWorkerStageInvestments } from '@/lib/db/stage-memberships'
 import {
@@ -14,9 +15,9 @@ import {
   decideExpenseDraft,
   deletePendingExpenseDraft,
   insertWorkerExpenseDraft,
-  isWorkerLiveRegister,
   removeExpenseDraftPage,
   restoreRejectedExpenseDraft,
+  restoreSkippedReceipt,
   updatePendingExpenseDraft,
 } from '@/lib/db/worker-expense-drafts'
 import type { ExpenseDraftReadT } from '@/lib/db/expense-draft-read'
@@ -95,7 +96,7 @@ export async function rejectExpenseDraftAction(draftId: number): Promise<ActionR
       draftId,
       decidedBy: user.id,
       status: 'rejected',
-      transferId: null,
+      transferIds: [],
     })
     return isDecided ? { success: true } : noticeFailure('draftAlreadyDecided')
   })
@@ -122,6 +123,25 @@ export async function restoreExpenseDraftAction(draftId: number): Promise<Action
             'Nie można przywrócić — zgłoszenie nie jest już odrzucone albo jego pracownik, inwestycja lub kasa są w koszu.',
         }
   })
+}
+
+export async function restoreSkippedReceiptAction(receiptId: number): Promise<ActionResultT> {
+  return protectedAction(
+    `restoreSkippedReceiptAction receipt=${receiptId}`,
+    async ({ payload }) => {
+      const db = await getDb(payload)
+      const restored = await restoreSkippedReceipt(db, receiptId)
+      if (!restored) {
+        return {
+          success: false,
+          error:
+            'Nie można przywrócić — paragon został już przywrócony albo pracownik, inwestycja lub kasa są w koszu.',
+        }
+      }
+      if (!restored.hasRead) after(() => readExpenseDraftReceipts(db, restored.draftId))
+      return { success: true }
+    },
+  )
 }
 
 export async function deleteExpenseDraftAction(draftId: number): Promise<ActionResultT> {

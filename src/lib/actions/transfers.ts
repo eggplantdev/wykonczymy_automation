@@ -89,7 +89,7 @@ class DraftAlreadyDecided extends Error {}
 export async function createBulkTransferAction(
   data: CreateBulkExpenseFormT,
   invoiceMediaIds?: number[][],
-  opts?: { expenseDraftId?: number },
+  opts?: { expenseDraftId: number; receiptMediaIds: number[][]; skippedReceipts: number[][] },
 ) {
   const lineCount = data.lineItems.length
 
@@ -152,12 +152,14 @@ export async function createBulkTransferAction(
             })
             ids.push(created.id)
           }
-          if (opts?.expenseDraftId !== undefined) {
+          if (opts) {
             const isDecided = await decideExpenseDraft(await getDb(payload, req), {
               draftId: opts.expenseDraftId,
               decidedBy: user.id,
               status: 'accepted',
-              transferId: ids[0],
+              transferIds: ids,
+              transferMediaIds: opts.receiptMediaIds,
+              skippedReceipts: opts.skippedReceipts,
             })
             if (!isDecided) throw new DraftAlreadyDecided()
           }

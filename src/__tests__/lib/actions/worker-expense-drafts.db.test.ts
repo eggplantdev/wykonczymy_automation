@@ -60,16 +60,25 @@ describe.skipIf(!ENV_READY)('expense draft accept / reject (DB)', () => {
   const readDraft = async (draftId: number) =>
     (
       await db.execute(
-        sql`SELECT status, transfer_id FROM worker_expense_drafts WHERE id = ${draftId}`,
+        sql`
+          SELECT d.status, COALESCE(
+            (SELECT array_agg(dt.transfer_id ORDER BY dt.transfer_id)
+             FROM worker_expense_draft_transfers dt WHERE dt.draft_id = d.id),
+            '{}'
+          ) AS transfer_ids
+          FROM worker_expense_drafts d WHERE d.id = ${draftId}
+        `,
       )
     ).rows[0]
 
   const expensesDescribed = async (description: string) =>
     (
-      await db.execute(sql`SELECT id FROM transactions WHERE description = ${description}`)
+      await db.execute(
+        sql`SELECT id FROM transactions WHERE description = ${description} ORDER BY id`,
+      )
     ).rows.map((row) => Number(row.id))
 
-  const accept = (draftId: number, description: string) =>
+  const accept = (draftId: number, description: string, lineCount = 1) =>
     createBulkTransferAction(
       {
         date: new Date().toISOString().slice(0, 10),
@@ -77,10 +86,14 @@ describe.skipIf(!ENV_READY)('expense draft accept / reject (DB)', () => {
         paymentMethod: 'CASH',
         sourceRegister: registerId,
         investment: investmentId,
-        lineItems: [{ description, amount: 42.5, expenseCategory: expenseCategoryId }],
+        lineItems: Array.from({ length: lineCount }, () => ({
+          description,
+          amount: 42.5,
+          expenseCategory: expenseCategoryId,
+        })),
       },
       undefined,
-      { expenseDraftId: draftId },
+      { expenseDraftId: draftId, receiptMediaIds: [], skippedReceipts: [] },
     )
 
   beforeAll(async () => {
@@ -123,17 +136,17 @@ describe.skipIf(!ENV_READY)('expense draft accept / reject (DB)', () => {
     await purgeFixtureUsers(db)
   })
 
-  it('accepting books the expense and marks the draft accepted with that expense', async () => {
+  it('accepting books the expenses and marks the draft accepted with all of them', async () => {
     const draftId = await createDraft('accept')
     const description = `EX-971 accept ${draftId}`
 
-    expect(await accept(draftId, description)).toMatchObject({ success: true })
+    expect(await accept(draftId, description, 2)).toMatchObject({ success: true })
 
     const expenses = await expensesDescribed(description)
-    expect(expenses).toHaveLength(1)
+    expect(expenses).toHaveLength(2)
     expect(await readDraft(draftId)).toMatchObject({
       status: 'accepted',
-      transfer_id: expenses[0],
+      transfer_ids: expenses,
     })
   })
 
@@ -154,7 +167,7 @@ describe.skipIf(!ENV_READY)('expense draft accept / reject (DB)', () => {
   it('rejecting marks the draft rejected; rejecting an accepted one changes nothing', async () => {
     const pending = await createDraft('reject')
     expect(await rejectExpenseDraftAction(pending)).toMatchObject({ success: true })
-    expect(await readDraft(pending)).toMatchObject({ status: 'rejected', transfer_id: null })
+    expect(await readDraft(pending)).toMatchObject({ status: 'rejected', transfer_ids: [] })
 
     const accepted = await createDraft('reject-accepted')
     await accept(accepted, `EX-971 reject-accepted ${accepted}`)

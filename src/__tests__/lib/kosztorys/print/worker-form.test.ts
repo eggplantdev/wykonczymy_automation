@@ -122,6 +122,22 @@ describe('buildWorkerFormHtml', () => {
     expect(out).not.toContain(formatFormRef(40073))
   })
 
+  it('prints the link’s report columns in its order, with his figures beside the blank one', () => {
+    const out = html()
+    const headers = [...out.matchAll(/<th[^>]*><span>([^<]*)<\/span><\/th>/g)].map((m) => m[1])
+
+    expect(headers.slice(0, 6)).toEqual([
+      'Nr',
+      'Opis prac',
+      'Wykonano do tej pory (razem etapy)',
+      'Zgłaszam',
+      'Postęp (wykonano / przedmiar)',
+      'Jednostka miary',
+    ])
+    expect(out).toMatch(/Tynk[\s\S]*?>2<\/td>[\s\S]*?>2 \/ 5<\/td>/)
+    expect(out).toMatch(/Gładź[\s\S]*?>0<\/td>[\s\S]*?>0 \/ 4<\/td>/)
+  })
+
   it('ends with blank rows for prace spoza rozpiski', () => {
     const out = html()
     const extras = out.slice(out.indexOf('Prace spoza rozpiski'))
@@ -134,7 +150,7 @@ describe('buildWorkerFormHtml', () => {
     const { report } = getTranslations('uk')
 
     expect(out).toContain('Для заповнення — Anna Nowak')
-    expect(out).toContain(`<span>${report.formExecuted}</span>`)
+    expect(out).toContain(`<span>${report.reportColumn}</span>`)
     expect(out).toContain(report.extrasTitle)
     expect(out).toContain('<html lang="uk">')
   })

@@ -29,6 +29,9 @@ import {
   useScanReportAction,
   type ScanReportActionT,
 } from '@/components/kosztorys/editor/actions/scan-report-action'
+import { useCleanItemTextsAction } from '@/components/kosztorys/editor/actions/clean-item-texts-action'
+import { useFillTranslationsAction } from '@/components/kosztorys/editor/actions/fill-translations-action'
+import type { TreeRewriteActionT } from '@/components/kosztorys/editor/actions/use-tree-rewrite-action'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import { ScanReportDialog } from '@/components/worker-reports/scan-report-dialog'
 import { WorkerReportsDialog } from '@/components/kosztorys/editor/dialogs/worker-reports/worker-reports-dialog'
@@ -47,13 +50,20 @@ type KosztorysActionsT = {
   // Undefined where the investment has no reports to show (the szablon workbench).
   workerReports: WorkerReportsActionT | undefined
   scan: ScanReportActionT
+  cleanItemTexts: TreeRewriteActionT
+  fillTranslations: TreeRewriteActionT
+  // Either rewrite locks both: they write the same rows, and the second would queue behind the first,
+  // holding back the tree the first one returned until it finished too.
+  treeRewriting: boolean
 }
 
 const KosztorysActionsContext = createContext<KosztorysActionsT | null>(null)
 
 // An „Opcje" action is triggered by a menu item and rendered by a dialog, and those can never share a
 // parent: DropdownMenuContent unmounts its children when the menu closes, and onSelect closes it. The
-// state therefore lives here instead of being threaded from the menu down to both sides.
+// state therefore lives here instead of being threaded from the menu down to both sides. A dialog-less
+// run's `pending` lives here for the same reason: kept in its item, it reset on close and a reopened
+// menu offered a second run of the one still in flight.
 // Deliberately NOT part of KosztorysEditorProvider — only the menu and its dialogs consume this, so a
 // „Udostępnij" fetch landing cannot churn the grid (the EX-496 regression).
 export function KosztorysActionsProvider({
@@ -74,6 +84,8 @@ export function KosztorysActionsProvider({
   const acceptanceProtocol = useDialogToggle()
   const workerReports = useWorkerReportsAction(workerReportsSeed)
   const scan = useScanReportAction()
+  const cleanItemTexts = useCleanItemTextsAction()
+  const fillTranslations = useFillTranslationsAction()
   const { investmentId } = useKosztorysEditorContext()
   const value: KosztorysActionsT = {
     version,
@@ -87,6 +99,9 @@ export function KosztorysActionsProvider({
     acceptanceProtocol,
     workerReports: workerReportsSeed ? workerReports : undefined,
     scan,
+    cleanItemTexts,
+    fillTranslations,
+    treeRewriting: cleanItemTexts.pending || fillTranslations.pending,
   }
 
   return (
@@ -94,13 +109,12 @@ export function KosztorysActionsProvider({
       {children}
       {/* One instance for the toolbar button, „Pracownicy" and the deep link. */}
       {workerReportsSeed && <WorkerReportsDialog action={workerReports} />}
-      {workerReportsSeed && scan.target && (
+      {workerReportsSeed && (
         <ScanReportDialog
-          key={scan.target.id}
           open={scan.open}
           onOpenChange={scan.setOpen}
           investmentId={investmentId}
-          worker={scan.target}
+          workers={scan.workers}
           onCreated={(reportId) => {
             workerReports.setPendingCount(workerReports.pendingCount + 1)
             workerReports.openReport(reportId)

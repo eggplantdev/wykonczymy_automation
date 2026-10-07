@@ -243,7 +243,7 @@ describe.skipIf(!ENV_READY)('readExpenseDraftReceipts (DB)', () => {
         draftId,
         decidedBy: workerId,
         status: 'rejected',
-        transferId: null,
+        transferIds: [],
       })
       return reading()
     })
