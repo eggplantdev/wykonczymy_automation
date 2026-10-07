@@ -136,6 +136,10 @@ describe('cellPaste', () => {
     expect(cellPaste('101', row(5), warned)).toEqual(row(101))
   })
 
+  it('wklejone działanie ląduje jako jego wynik', () => {
+    expect(cellPaste('3,5x2', row(0), qty)).toEqual(row(7))
+  })
+
   it('wklejone śmieci zostawiają wiersz w spokoju', () => {
     expect(cellPaste('-', row(7), qty)).toEqual(row(7))
   })

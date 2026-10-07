@@ -4631,3 +4631,11 @@ JPEG-i ~300 KB; „duży plik" = PDF powyżej 4 MB.
 - [ ] „Moje inwestycje” to zwykła lista nazw ze strzałką (bez tabeli i bez kolumny „Zgłoszenia”); nazwa otwiera podsumowanie inwestycji. Kierownik widzi same nazwy, bez strzałek i linków.
 - [ ] Pracownik z językiem „Українська” lub „Русский”, 390px: etykiety obu dużych przycisków zawijają się w środku przycisku, nic nie wychodzi poza jego krawędź; gdy dostępny jest tylko jeden z nich, zajmuje cały rząd.
 - [ ] Pracownik bez zgłoszonych wydatków, bez zgłoszeń prac i bez transferów → na jego stronie nie ma sekcji „Zgłoszone wydatki”, „Zgłoszenia wykonanych prac” ani „Lista wydatków / zaliczek”; każda pojawia się po pierwszym wpisie. Filtr transferów, który nic nie znajduje, nie chowa sekcji „Lista wydatków / zaliczek”.
+
+## 2026-10-07 — kosztorys-cell-arithmetic — działania w komórkach liczbowych kosztorysu
+
+- [ ] Edytor kosztorysu → wpisz `3,5x2,8` w „Przedmiar” i Enter: w komórce zostaje `9,8`, „Wartość netto przedmiar” wiersza się przelicza.
+- [ ] Wpisz `=10/3` w „Cena j.m.”: zostaje `3,33`.
+- [ ] Wpisz `2*` w komórkę liczbową i kliknij obok: wraca poprzednia wartość z komunikatem o odrzuconym wpisie.
+- [ ] Skopiuj `(2+3)*1,5` z edytora tekstu i wklej na zaznaczoną komórkę ilości w etapie: ląduje `7,5`.
+- [ ] Zwykła liczba (`12,5`) w dowolnej komórce zachowuje się jak dotąd.
