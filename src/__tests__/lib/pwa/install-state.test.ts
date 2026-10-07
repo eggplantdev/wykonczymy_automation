@@ -1,25 +1,25 @@
 import { describe, it, expect } from 'vitest'
 import { isIosDevice, resolveInstallState } from '@/lib/pwa/install-state'
 
-const BROWSER = {
-  isStandalone: false,
-  isInstalled: false,
-  isIos: false,
+const BROWSER: Parameters<typeof resolveInstallState>[0] = {
+  platform: 'browser',
+  installed: false,
   hasPrompt: false,
+  promptUsed: false,
   waitedOut: false,
 }
 
 describe('resolveInstallState', () => {
   it('hides the button inside the installed app, even with a prompt held', () => {
-    expect(resolveInstallState({ ...BROWSER, isStandalone: true, hasPrompt: true })).toBe('hidden')
+    expect(resolveInstallState({ ...BROWSER, platform: 'standalone', hasPrompt: true })).toBe('hidden')
   })
 
   it('hides the button in a tab once the app is installed', () => {
-    expect(resolveInstallState({ ...BROWSER, isInstalled: true, waitedOut: true })).toBe('hidden')
+    expect(resolveInstallState({ ...BROWSER, installed: true, waitedOut: true })).toBe('hidden')
   })
 
   it('sends iOS to the guide, never to the wait', () => {
-    expect(resolveInstallState({ ...BROWSER, isIos: true })).toBe('ios')
+    expect(resolveInstallState({ ...BROWSER, platform: 'ios' })).toBe('ios')
   })
 
   it('waits for the prompt, then falls back to the menu hint', () => {
@@ -30,6 +30,10 @@ describe('resolveInstallState', () => {
   it('offers the install once a prompt arrives, even after the wait ran out', () => {
     expect(resolveInstallState({ ...BROWSER, hasPrompt: true })).toBe('ready')
     expect(resolveInstallState({ ...BROWSER, hasPrompt: true, waitedOut: true })).toBe('ready')
+  })
+
+  it('falls back to the menu hint once the prompt was used, without waiting out the minute', () => {
+    expect(resolveInstallState({ ...BROWSER, promptUsed: true })).toBe('manual')
   })
 })
 

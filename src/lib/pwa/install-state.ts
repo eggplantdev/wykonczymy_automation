@@ -1,30 +1,29 @@
-export type InstallStateT = 'hidden' | 'ready' | 'waiting' | 'ios' | 'manual'
+type InstallStateT = 'hidden' | 'ready' | 'waiting' | 'ios' | 'manual'
+
+export type PlatformT = 'standalone' | 'ios' | 'browser'
 
 type InstallSignalsT = {
-  /** Running as the home-screen app: `display-mode: standalone`, or `navigator.standalone` on iOS. */
-  isStandalone: boolean
-  /** `getInstalledRelatedApps()` found the app on this device. */
-  isInstalled: boolean
-  isIos: boolean
-  /** A `beforeinstallprompt` event is held. */
+  platform: PlatformT
+  installed: boolean
   hasPrompt: boolean
-  /** The wait for that event ran out. */
+  promptUsed: boolean
   waitedOut: boolean
 }
 
 // iOS never fires `beforeinstallprompt`, so it gets the guide rather than a wait; a prompt arriving
-// after the wait ran out still wins over the menu hint.
+// after the wait ran out still wins over the menu hint. A dismissed prompt cannot be shown again on
+// this page load, so after one the menu is the only path left.
 export const resolveInstallState = ({
-  isStandalone,
-  isInstalled,
-  isIos,
+  platform,
+  installed,
   hasPrompt,
+  promptUsed,
   waitedOut,
 }: InstallSignalsT): InstallStateT => {
-  if (isStandalone || isInstalled) return 'hidden'
-  if (isIos) return 'ios'
+  if (platform === 'standalone' || installed) return 'hidden'
+  if (platform === 'ios') return 'ios'
   if (hasPrompt) return 'ready'
-  if (waitedOut) return 'manual'
+  if (waitedOut || promptUsed) return 'manual'
   return 'waiting'
 }
 
