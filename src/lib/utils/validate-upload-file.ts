@@ -1,4 +1,4 @@
-import { isPreviewableMime } from '@/lib/media/mime'
+import { ALLOWED_UPLOAD_MIMES } from '@/lib/media/sniff-mime'
 import type { MessageKeyT } from '@/lib/i18n/translations'
 
 /**
@@ -14,7 +14,8 @@ export function uploadFileProblem(file: File): MessageKeyT<'notices'> | undefine
   if (!name) return 'uploadNoName'
   if (!file.type) return 'uploadNoType'
   if (file.size === 0) return 'uploadEmpty'
-  // `isPreviewableMime` mirrors `media.upload.mimeTypes` — image/* or PDF.
-  if (!isPreviewableMime(file.type)) return 'uploadNotImageOrPdf'
+  // The server sniffs the bytes against the same list on both paths; checking the declared type
+  // here only spares an SVG/BMP the upload it would be refused after.
+  if (!(ALLOWED_UPLOAD_MIMES as readonly string[]).includes(file.type)) return 'uploadNotImageOrPdf'
   return undefined
 }

@@ -1,12 +1,17 @@
-type AllowedMimeT =
-  | 'image/jpeg'
-  | 'image/png'
-  | 'image/webp'
-  | 'image/gif'
-  | 'image/heic'
-  | 'image/avif'
-  | 'image/tiff'
-  | 'application/pdf'
+// Also the client's pick-time gate (`uploadFileProblem`), so a type this sniff refuses is refused
+// before its bytes travel — keep the module free of server-only imports.
+export const ALLOWED_UPLOAD_MIMES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'image/heic',
+  'image/avif',
+  'image/tiff',
+  'application/pdf',
+] as const
+
+type AllowedMimeT = (typeof ALLOWED_UPLOAD_MIMES)[number]
 
 // PDF readers accept the `%PDF-` header anywhere in the first KB, and generated e-faktury do put a
 // BOM or whitespace before it.
