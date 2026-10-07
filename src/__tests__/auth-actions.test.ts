@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 vi.mock('server-only', () => ({}))
 
-// The action under test only needs `login`; `logout` is stubbed to satisfy the import.
 const mockLogin = vi.fn()
 vi.mock('@payloadcms/next/auth', () => ({
   login: (...args: unknown[]) => mockLogin(...args),
@@ -12,7 +11,16 @@ vi.mock('@payloadcms/next/auth', () => ({
 // Avoid loading the real Payload config / env validation in unit tests.
 vi.mock('@payload-config', () => ({ default: {} }))
 
-const { loginAction } = await import('@/lib/actions/auth')
+vi.mock('@/lib/cache/revalidate', () => import('@/__tests__/stubs/cache-revalidate'))
+vi.mock('next/headers', () => ({ cookies: async () => ({ delete: vi.fn() }) }))
+vi.mock('next/navigation', () => ({
+  redirect: vi.fn(() => {
+    throw new Error('NEXT_REDIRECT')
+  }),
+}))
+
+const { loginAction, logoutAction } = await import('@/lib/actions/auth')
+const { revalidateCollections } = await import('@/__tests__/stubs/cache-revalidate')
 const { DISABLED_ACCOUNT_ERROR, DISABLED_ACCOUNT_MESSAGE } =
   await import('@/lib/constants/worker-lock')
 
@@ -59,5 +67,15 @@ describe('loginAction', () => {
     const result = await loginAction({ email: 'a@b.pl', password: 'correct' })
 
     expect(result).toEqual({ success: true })
+  })
+})
+
+describe('logoutAction', () => {
+  // The session check caches its answer for an hour; a logout that left it would let a copied token
+  // keep working after the session row is gone.
+  it('expires the cached session check', async () => {
+    await expect(logoutAction()).rejects.toThrow('NEXT_REDIRECT')
+
+    expect(revalidateCollections).toHaveBeenCalledWith(['users'])
   })
 })

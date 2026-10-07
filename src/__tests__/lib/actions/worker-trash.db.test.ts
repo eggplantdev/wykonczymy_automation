@@ -4,7 +4,6 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { purgeFixtureUsers } from '@/__tests__/helpers/purge-fixture-users'
 import { SELF_REMOVAL_MESSAGE } from '@/lib/constants/worker-lock'
-import { revalidateEntities } from '@/__tests__/stubs/cache-revalidate'
 
 // Every refusal is asserted on the rows, not the result: the pair is one transaction that commits a
 // returned refusal, so a refusal decided after the first write would still leave a kasa trashed.
@@ -92,7 +91,6 @@ describe.skipIf(!ENV_READY)('worker trash actions (DB)', () => {
   beforeEach(() => {
     session.id = 1
     session.role = 'OWNER'
-    revalidateEntities.mockReset()
   })
 
   afterAll(async () => {
@@ -114,8 +112,6 @@ describe.skipIf(!ENV_READY)('worker trash actions (DB)', () => {
       sql`SELECT count(*)::int AS n FROM users_sessions WHERE _parent_id = ${worker.id}`,
     )
     expect(Number(rows[0]?.n)).toBe(0)
-    // The session check caches its answer per account; without this the dropped sessions live on.
-    expect(revalidateEntities).toHaveBeenCalledWith([`user:${worker.id}`], expect.anything())
 
     // Listed as the worker, with his kasa named — never as a kasa of its own.
     const { fetchTrashedWorkers } = await import('@/lib/db/worker-trash')
@@ -182,7 +178,6 @@ describe.skipIf(!ENV_READY)('worker trash actions (DB)', () => {
 
     expect((await actions.trashWorkerAction(worker.id)).success).toBe(true)
     expect(await actions.restoreWorkerAction(worker.id)).toEqual({ success: true })
-    expect(revalidateEntities).toHaveBeenLastCalledWith([`user:${worker.id}`], expect.anything())
 
     expect(await userTrashedAt(worker.id)).toBeNull()
     expect(await registerTrashedAt(withHim)).toBeNull()

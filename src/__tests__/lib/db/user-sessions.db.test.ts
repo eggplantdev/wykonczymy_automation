@@ -36,7 +36,7 @@ describe.skipIf(!ENV_READY)('isSessionAlive (DB)', () => {
 
   beforeEach(async () => {
     await db.execute(
-      sql`UPDATE users SET active = true, trashed_at = NULL WHERE id = ${userId}`,
+      sql`UPDATE users SET active = true, trashed_at = NULL, role = 'EMPLOYEE' WHERE id = ${userId}`,
     )
     await payload.login({ collection: 'users', data: { email: EMAIL, password: PASSWORD } })
     const { rows } = await db.execute(
@@ -50,34 +50,40 @@ describe.skipIf(!ENV_READY)('isSessionAlive (DB)', () => {
   })
 
   it('is alive for a stored session of an active account', async () => {
-    expect(await isSessionAlive(db, userId, sid)).toBe(true)
+    expect(await isSessionAlive(db, userId, sid, 'EMPLOYEE')).toBe(true)
   })
 
   it('is alive when `active` is NULL — a row older than the column’s default', async () => {
     await db.execute(sql`UPDATE users SET active = NULL WHERE id = ${userId}`)
 
-    expect(await isSessionAlive(db, userId, sid)).toBe(true)
+    expect(await isSessionAlive(db, userId, sid, 'EMPLOYEE')).toBe(true)
   })
 
   it('is dead once the session row is gone', async () => {
     await db.execute(sql`DELETE FROM users_sessions WHERE id = ${sid}`)
 
-    expect(await isSessionAlive(db, userId, sid)).toBe(false)
+    expect(await isSessionAlive(db, userId, sid, 'EMPLOYEE')).toBe(false)
   })
 
   it('is dead for a deactivated account even while the row survives', async () => {
     await db.execute(sql`UPDATE users SET active = false WHERE id = ${userId}`)
 
-    expect(await isSessionAlive(db, userId, sid)).toBe(false)
+    expect(await isSessionAlive(db, userId, sid, 'EMPLOYEE')).toBe(false)
   })
 
   it('is dead for a trashed account even while the row survives', async () => {
     await db.execute(sql`UPDATE users SET trashed_at = now() WHERE id = ${userId}`)
 
-    expect(await isSessionAlive(db, userId, sid)).toBe(false)
+    expect(await isSessionAlive(db, userId, sid, 'EMPLOYEE')).toBe(false)
+  })
+
+  it('is dead once the account’s role differs from the token’s', async () => {
+    await db.execute(sql`UPDATE users SET role = 'MANAGER' WHERE id = ${userId}`)
+
+    expect(await isSessionAlive(db, userId, sid, 'EMPLOYEE')).toBe(false)
   })
 
   it('is dead for a `sid` presented under another account’s id', async () => {
-    expect(await isSessionAlive(db, userId + 1_000_000, sid)).toBe(false)
+    expect(await isSessionAlive(db, userId + 1_000_000, sid, 'EMPLOYEE')).toBe(false)
   })
 })

@@ -4612,6 +4612,9 @@ Staging, zalogowany pracownik z własną kasą i etapem na inwestycji. Zdjęcia 
 
 - [ ] Pracownik zalogowany w jednej przeglądarce, kierownik w drugiej wyłącza mu „Aktywny” → najbliższe przejście pracownika kończy się na `/zaloguj`, a wysłany formularz odpowiada „Nie jesteś zalogowany”.
 - [ ] To samo po przeniesieniu pracownika do `/kosz`; po przywróceniu i włączeniu „Aktywny” pracownik znów się loguje.
+- [ ] To samo przez „Edytuj pracownika” → odznaczenie „Aktywny” i zapis: pracownik wylatuje na `/zaloguj` od razu, nie po godzinie.
+- [ ] Kierownik zalogowany w jednej przeglądarce, właściciel w drugiej zmienia mu rolę na pracownika → najbliższe przejście kierownika kończy się na `/zaloguj`; po ponownym zalogowaniu widzi już tylko to, co pracownik.
+- [ ] Zmiana języka konta, e-maila albo hasła (własnych lub przez „Edytuj pracownika”) nikogo nie wylogowuje.
 - [ ] Wylogowanie, a potem wklejenie starej wartości ciasteczka `payload-token` do przeglądarki → aplikacja nie wpuszcza (sesja skończona, nie tylko ciasteczko skasowane).
 - [ ] Konto zalogowane ponad dobę temu → po otwarciu aplikacji DevTools → Application → Cookies pokazuje nową wartość `payload-token` z wygaśnięciem ok. 90 dni naprzód.
 - [ ] Na stagingu (https) ciasteczko `payload-token` ma zaznaczone `Secure`.

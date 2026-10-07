@@ -29,7 +29,7 @@ export const CACHE_TAGS = {
  * `investments:6` and a consumer expiring `investment:6` compile fine and leave a permanently stale
  * read (EX-849).
  */
-export type EntityNameT = 'investment' | 'cash-register' | 'user'
+export type EntityNameT = 'investment' | 'cash-register'
 
 export const entityTag = (entity: EntityNameT, id: number | string) => `${entity}:${id}` as const
 
@@ -42,15 +42,6 @@ export const entityTag = (entity: EntityNameT, id: number | string) => `${entity
  */
 export const investmentEntityOpts = (investmentId: number) => ({
   entityTags: [entityTag('investment', investmentId)],
-})
-
-/**
- * Every writer that locks an account out — or lets it back in — takes these opts: the per-request
- * session check (`getCurrentUserJwt`) caches its answer under this tag, and a writer that forgets it
- * leaves a locked-out worker in for up to the check's backstop.
- */
-export const userEntityOpts = (userId: number) => ({
-  entityTags: [entityTag('user', userId)],
 })
 
 // Its own const rather than a `CACHE_TAGS` entry: that map is keyed by collection slug and
