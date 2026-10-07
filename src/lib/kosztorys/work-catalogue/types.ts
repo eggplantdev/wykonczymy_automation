@@ -160,6 +160,8 @@ export type CatalogueComparisonT = {
   matching: number
   diffs: CataloguePriceDiffT[]
   missing: CatalogueMissingT[]
+  // Read live from the katalog, so a comment written in one kosztorys shows in all of them.
+  entryByItemId: Map<number, RowCatalogueEntryT>
 }
 
 // The sekcja rides along for the report only — the cennik is global, so it takes no part in the
@@ -203,3 +205,5 @@ export type NearDuplicateT = {
   entry: WorkCatalogueItemT
   kind: NearDuplicateKindT
 }
+
+export type RowCatalogueEntryT = { id: number; note: string | null }

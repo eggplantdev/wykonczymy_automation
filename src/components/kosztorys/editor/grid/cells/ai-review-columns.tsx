@@ -2,13 +2,16 @@ import { useState, type ReactNode } from 'react'
 import type { Column, CellProps } from 'react-datasheet-grid'
 import { WorkNoteDialog } from '@/components/kosztorys/editor/dialogs/catalogue/work-note-dialog'
 import { CellSelectMenu } from '@/components/ui/datasheet-grid/cell-select-menu'
+import { GridEventBoundary } from '@/components/ui/datasheet-grid/grid-event-boundary'
 import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-text'
+import { REVIEW_STATUS_LABELS, REVIEW_STATUS_UNSET_LABEL } from '@/lib/kosztorys/labels'
 import {
+  aiOffered,
   effectiveReviewStatus,
-  REVIEW_STATUS_LABELS,
-  REVIEW_STATUS_UNSET_LABEL,
+  isReviewStatus,
+  REVIEW_STATUSES,
 } from '@/lib/kosztorys/review-status'
-import type { RowCatalogueEntryT } from '@/lib/kosztorys/work-catalogue/catalogue-entry-by-row'
+import type { RowCatalogueEntryT } from '@/lib/kosztorys/work-catalogue/types'
 import type { KosztorysV2RowT, ReviewStatusT } from '@/lib/kosztorys/types'
 
 export const AI_REVIEW_COLUMN_CLASS = {
@@ -16,27 +19,24 @@ export const AI_REVIEW_COLUMN_CLASS = {
   cellClassName: 'kosztorys-ai-column',
 } as const
 
-const STATUS_VALUES = Object.keys(REVIEW_STATUS_LABELS) as ReviewStatusT[]
+const toStatus = (value: string): ReviewStatusT | null => (isReviewStatus(value) ? value : null)
 
-const toStatus = (value: string): ReviewStatusT | null =>
-  value in REVIEW_STATUS_LABELS ? (value as ReviewStatusT) : null
-
-// „Do sprawdzenia" only where the agent offered work: a row it left out (0) or never saw has nothing
-// waiting for a verdict, so a blank there must not read as an open task.
+// A blank where the agent offered nothing must not read as an open task.
 function statusOptions(row: KosztorysV2RowT) {
-  const unset = (row.aiPlannedQty ?? 0) > 0 ? REVIEW_STATUS_UNSET_LABEL : ''
+  const unset = aiOffered(row) ? REVIEW_STATUS_UNSET_LABEL : ''
   return [
     { value: '', label: unset },
-    ...STATUS_VALUES.map((value) => ({ value, label: REVIEW_STATUS_LABELS[value] })),
+    ...REVIEW_STATUSES.map((value) => ({ value, label: REVIEW_STATUS_LABELS[value] })),
   ]
 }
 
-// The column is assembled only on an AI kosztorys, so the effective status is asked as one.
 function ReviewStatusCell({ rowData, setRowData, disabled }: CellProps<KosztorysV2RowT, unknown>) {
-  const value = effectiveReviewStatus(rowData, true) ?? ''
+  const value = effectiveReviewStatus(rowData) ?? ''
   const options = statusOptions(rowData)
   if (disabled) {
-    return <ReadOnlyCellText>{options.find((o) => o.value === value)?.label}</ReadOnlyCellText>
+    return (
+      <ReadOnlyCellText>{value ? REVIEW_STATUS_LABELS[value] : options[0].label}</ReadOnlyCellText>
+    )
   }
   return (
     <CellSelectMenu
@@ -55,21 +55,24 @@ export function reviewStatusColumn(titleNode: ReactNode): Column<KosztorysV2RowT
     ...AI_REVIEW_COLUMN_CLASS,
     component: ReviewStatusCell,
     keepFocus: true,
-    copyValue: ({ rowData }) => rowData.reviewStatus ?? '',
+    copyValue: ({ rowData }) => effectiveReviewStatus(rowData) ?? '',
     deleteValue: ({ rowData }) => ({ ...rowData, reviewStatus: null }),
     pasteValue: ({ rowData, value }) => ({ ...rowData, reviewStatus: toStatus(value.trim()) }),
   }
 }
 
-type WorkNoteDataT = { byRowId?: ReadonlyMap<number, RowCatalogueEntryT>; editable: boolean }
+type WorkNoteDataT = ReadonlyMap<number, RowCatalogueEntryT> | undefined
 
-// The comment is the katalog entry's, not the row's, so a click opens the dialog that saves it there
-// instead of editing the cell in place.
-function WorkNoteCell({ rowData, columnData }: CellProps<KosztorysV2RowT, WorkNoteDataT>) {
+// The comment is the katalog entry's, not the row's, so a click opens the dialog that saves it there.
+function WorkNoteCell({
+  rowData,
+  columnData,
+  disabled,
+}: CellProps<KosztorysV2RowT, WorkNoteDataT>) {
   const [open, setOpen] = useState(false)
-  const entry = columnData.byRowId?.get(rowData.id)
+  const entry = columnData?.get(rowData.id)
   const text = <ReadOnlyCellText>{entry?.note ?? ''}</ReadOnlyCellText>
-  if (!columnData.editable || !entry) return text
+  if (disabled || !entry) return text
   return (
     <>
       <button
@@ -79,7 +82,11 @@ function WorkNoteCell({ rowData, columnData }: CellProps<KosztorysV2RowT, WorkNo
       >
         {text}
       </button>
-      {open && <WorkNoteDialog entry={entry} onOpenChange={setOpen} />}
+      {open && (
+        <GridEventBoundary>
+          <WorkNoteDialog entry={entry} onOpenChange={setOpen} />
+        </GridEventBoundary>
+      )}
     </>
   )
 }
@@ -96,7 +103,7 @@ export function workNoteColumn(
     minWidth: 220,
     grow: 1,
     ...AI_REVIEW_COLUMN_CLASS,
-    columnData: { byRowId, editable },
+    columnData: byRowId,
     component: WorkNoteCell,
   }
 }

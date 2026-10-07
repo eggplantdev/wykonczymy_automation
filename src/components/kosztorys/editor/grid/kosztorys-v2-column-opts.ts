@@ -12,7 +12,7 @@ import type {
   StageSplitT,
   ToolPlaneT,
 } from '@/lib/kosztorys/types'
-import type { RowCatalogueEntryT } from '@/lib/kosztorys/work-catalogue/catalogue-entry-by-row'
+import type { RowCatalogueEntryT } from '@/lib/kosztorys/work-catalogue/types'
 import type { WorkerRefT } from '@/types/reference-data'
 import type { TranslatorT } from '@/lib/i18n/translations'
 
@@ -126,8 +126,8 @@ export type BuildV2ColumnsOptsT = {
   // „Oferta": a transient closed list (OFFER_VISIBLE_COLUMNS), the owner's view of the offer. The
   // caller pins `view` to 'client' while it is on.
   offerVisible?: boolean
-  // „Przegląd AI": the AI review columns on top of whatever is visible — part of the „Oferta" list
-  // when that is on, else forced past the stored tick like `revealedColumnIds`. Never written to it.
+  // „Przegląd AI": joins the AI review columns to the „Oferta" list. Outside it the editor reveals
+  // them through `revealedColumnIds`, like any engaged problem.
   aiColumnsShown?: boolean
   // The worker's document (EX-875): the third closed surface, and the one that discloses a CREW
   // plane — `view` must equal `plane`, never 'client', and `previewVisible` must be off

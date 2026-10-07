@@ -1,9 +1,10 @@
 'use client'
 
-import { useRef, type KeyboardEvent, type SyntheticEvent } from 'react'
+import { useRef, type KeyboardEvent } from 'react'
 import { textColumn, type CellProps } from 'react-datasheet-grid'
 import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-text'
 import { ReadOnlyLongText } from '@/components/ui/datasheet-grid/read-only-long-text'
+import { swallowGridEvent } from '@/components/ui/datasheet-grid/swallow-grid-event'
 import { Textarea } from '@/components/ui/textarea'
 import type { StopEditingT } from '@/components/ui/datasheet-grid/types'
 
@@ -56,15 +57,6 @@ export const longTextColumn = {
   disableKeys: true,
 }
 
-// Next's App Router hydrates `document`, so React's delegated listeners and the grid's own document
-// listeners hang off the SAME node — and stopPropagation never stops a co-located listener. Only
-// stopImmediatePropagation does, and it only works because React's listener was registered at
-// hydration, before the grid's effect added its own.
-function swallow(event: SyntheticEvent) {
-  event.stopPropagation()
-  event.nativeEvent.stopImmediatePropagation()
-}
-
 // The same normalization the stock textColumn applies through `parseUserInput` — spreading it does
 // NOT inherit that, since only the component it replaces ever called it. Without this an emptied
 // cell persists '' where the column's own `deleteValue` and `isCellEmpty` still speak in `null`.
@@ -98,7 +90,7 @@ function LongTextOverlay({
     // insert-row shortcut rather than a newline.
     if (event.key === 'Escape') {
       event.preventDefault()
-      swallow(event)
+      swallowGridEvent(event)
       // Only when something was actually typed: an Escape out of an untouched cell must not cost a
       // write, a revalidation and an undo entry.
       if (normalize(event.currentTarget.value) !== valueBeforeEdit.current)
@@ -113,12 +105,12 @@ function LongTextOverlay({
     // unhandled Tab would move DOM focus out of the grid while it still believes it is editing.
     if (event.key === 'Tab') {
       event.preventDefault()
-      swallow(event)
+      swallowGridEvent(event)
       stopEditing({ nextRow: false })
       return
     }
     if (event.key !== 'Enter') return
-    swallow(event)
+    swallowGridEvent(event)
     if (event.shiftKey) return
     event.preventDefault()
     stopEditing({ nextRow: true })
@@ -137,7 +129,7 @@ function LongTextOverlay({
       // The grid resolves a click to a cell from its coordinates, so a click landing on the part of
       // the overlay that hangs over other rows would move the active cell and end the edit. It never
       // needs to see a click on the editor: the caret and drag-select are the browser's own default.
-      onMouseDown={swallow}
+      onMouseDown={swallowGridEvent}
       onChange={(event) => onCommit(normalize(event.target.value))}
       onKeyDown={onKeyDown}
     />

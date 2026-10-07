@@ -34,6 +34,7 @@ vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
 
 const COMPARISON: CatalogueComparisonT = {
   matching: 3,
+  entryByItemId: new Map(),
   diffs: [
     {
       itemId: 11,

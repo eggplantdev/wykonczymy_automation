@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { buildV2Columns } from '@/components/kosztorys/editor/grid/kosztorys-v2-columns'
 import type { BuildV2ColumnsOptsT } from '@/components/kosztorys/editor/grid/kosztorys-v2-column-opts'
-import { AI_REVIEW_COLUMN_IDS, OFFER_VISIBLE_COLUMNS } from '@/lib/kosztorys/ai-review-columns'
+import { AI_REVIEW_COLUMN_IDS } from '@/lib/kosztorys/ai-review-columns'
+import { OFFER_VISIBLE_COLUMNS } from '@/lib/kosztorys/offer-columns'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 
 const STAGES: KosztorysStageT[] = [
@@ -33,18 +34,18 @@ describe('„Oferta" and „Przegląd AI" toggles', () => {
     )
   })
 
-  it('„Przegląd AI" alone shows the AI columns over a stored hide, keeping the rest', () => {
+  it('revealing the AI columns overrides a stored hide, keeping the rest', () => {
     const hidden = new Set<string>(AI_REVIEW_COLUMN_IDS)
     const isHidden = (id: string) => hidden.has(id)
 
     expect(ids({ isHidden })).not.toContain('reviewStatus')
-    const shown = ids({ isHidden, aiColumnsShown: true })
+    const shown = ids({ isHidden, revealedColumnIds: new Set(AI_REVIEW_COLUMN_IDS) })
     for (const id of AI_REVIEW_COLUMN_IDS) expect(shown).toContain(id)
     expect(shown).toContain('net')
   })
 
   it('assembles no AI item columns without an AI draft', () => {
-    const shown = ids({ hasAiDraft: false, aiColumnsShown: true })
+    const shown = ids({ hasAiDraft: false, revealedColumnIds: new Set(AI_REVIEW_COLUMN_IDS) })
     for (const id of ['aiPlannedQty', 'reviewStatus', 'changeReason']) {
       expect(shown).not.toContain(id)
     }

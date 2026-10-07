@@ -21,7 +21,6 @@ const row = (overrides: Partial<RowT> = {}): RowT => ({
   ...overrides,
 })
 
-// One edit through the rules: `before` is what the grid held, `after` what the user typed or picked.
 const apply = (before: RowT, after: Partial<RowT>, aiDraft = true) =>
   applyReviewRules([{ ...before, ...after }], new Map([[before.id, before]]), aiDraft)[0]
 
@@ -53,9 +52,10 @@ describe('applyReviewRules — a picked Status sets the Przedmiar', () => {
     expect(apply(row({ plannedQty: 3 }), { reviewStatus: 'edited' }).plannedQty).toBe(3)
   })
 
-  it('leaves a row the agent never saw alone', () => {
-    const before = row({ aiPlannedQty: null, plannedQty: 3 })
+  it.each([null, 0])('leaves the typed Przedmiar of a row with AI %s alone', (ai) => {
+    const before = row({ aiPlannedQty: ai, plannedQty: 3 })
     expect(apply(before, { reviewStatus: 'accepted' }).plannedQty).toBe(3)
+    expect(apply(before, { reviewStatus: 'rejected' }).plannedQty).toBe(3)
   })
 })
 
@@ -80,17 +80,16 @@ describe('applyReviewRules — scope', () => {
 
 describe('effectiveReviewStatus', () => {
   it('reads a stored status as it is', () => {
-    expect(effectiveReviewStatus(row({ reviewStatus: 'edited' }), true)).toBe('edited')
+    expect(effectiveReviewStatus(row({ reviewStatus: 'edited' }))).toBe('edited')
   })
 
   it('reads a praca the agent never saw, with a Przedmiar, as Dodana', () => {
-    expect(effectiveReviewStatus(row({ aiPlannedQty: null, plannedQty: 2 }), true)).toBe('added')
+    expect(effectiveReviewStatus(row({ aiPlannedQty: null, plannedQty: 2 }))).toBe('added')
   })
 
-  it('stays empty with no Przedmiar, a row the agent priced, or no AI draft', () => {
-    expect(effectiveReviewStatus(row({ aiPlannedQty: null, plannedQty: 0 }), true)).toBeNull()
-    expect(effectiveReviewStatus(row({ aiPlannedQty: 0, plannedQty: 2 }), true)).toBeNull()
-    expect(effectiveReviewStatus(row({ aiPlannedQty: null, plannedQty: 2 }), false)).toBeNull()
+  it('stays empty with no Przedmiar, or a row the agent priced', () => {
+    expect(effectiveReviewStatus(row({ aiPlannedQty: null, plannedQty: 0 }))).toBeNull()
+    expect(effectiveReviewStatus(row({ aiPlannedQty: 0, plannedQty: 2 }))).toBeNull()
   })
 })
 

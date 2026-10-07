@@ -5,6 +5,7 @@
 import type { InvestmentLockT } from '@/lib/constants/investment-lock'
 import type { InsertDirectionT } from '@/lib/kosztorys/display-order'
 import type { STAGE_QTY_PREFIX } from '@/lib/kosztorys/stage-keys'
+import type { REVIEW_STATUSES } from '@/lib/kosztorys/review-status'
 import type { SectionColorKeyT } from '@/lib/kosztorys/section-colors'
 import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
 import type { InvestmentFinancialsT, MaterialsBreakdownRowT } from '@/types/investment-financials'
@@ -32,7 +33,7 @@ export type KosztorysSectionT = {
   color: SectionColorKeyT | null
 }
 
-export type ReviewStatusT = 'accepted' | 'rejected' | 'edited' | 'added'
+export type ReviewStatusT = (typeof REVIEW_STATUSES)[number]
 
 export type KosztorysItemT = {
   id: number

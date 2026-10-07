@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { LongTextCell } from '@/components/ui/datasheet-grid/long-text-cell'
+import { withDocumentListener } from '@/__tests__/helpers/document-listener'
 
 const VALUE = 'Malowanie ścian dwukrotnie, z gruntowaniem i szpachlowaniem drobnych ubytków'
 
@@ -103,17 +104,6 @@ describe('LongTextCell — the overlay and the grid underneath it', () => {
 // would end the edit mid-word. jsdom can't tell `stopPropagation` apart from `stopImmediatePropagation`
 // here, so this only proves the grid never sees the event.
 describe('LongTextCell — what never reaches the grid', () => {
-  // Filtered by key, because pressing Shift+Enter also sends a bare Shift keydown — a key the
-  // overlay has no reason to swallow.
-  function withDocumentListener(type: string, key?: string) {
-    const seen = vi.fn()
-    const listener = (event: Event) => {
-      if (!key || (event as KeyboardEvent).key === key) seen()
-    }
-    document.addEventListener(type, listener)
-    return { seen, stop: () => document.removeEventListener(type, listener) }
-  }
-
   it('keeps a click on the overlay to itself', async () => {
     const { seen, stop } = withDocumentListener('mousedown')
     const { user, textarea, stopEditing } = renderOverlay()

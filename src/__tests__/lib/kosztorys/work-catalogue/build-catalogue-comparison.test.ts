@@ -286,7 +286,7 @@ describe('buildCatalogueComparison', () => {
   it('pomija pozycje bez opisu', () => {
     const result = buildCatalogueComparison([item({ description: '   ' })], [entry()], SETTINGS)
 
-    expect(result).toEqual({ matching: 0, diffs: [], missing: [] })
+    expect(result).toEqual({ matching: 0, diffs: [], missing: [], entryByItemId: new Map() })
   })
 })
 
@@ -362,5 +362,32 @@ describe('attachCatalogueHints', () => {
     const result = attachCatalogueHints(rows, [entry({ description: 'Gładź gipsowa' })])
 
     expect(result.map((row) => row.description)).toEqual(rows.map((row) => row.description))
+  })
+})
+
+describe('buildCatalogueComparison — the katalog entry behind each pozycja', () => {
+  const CATALOGUE = [
+    entry({ id: 4, description: 'Malowanie ścian', workNote: 'Bez gruntowania' }),
+    entry({ id: 5, description: 'Gładź' }),
+  ]
+
+  it('finds it by opis and j.m., carrying its comment', () => {
+    const rows = [item({ description: '  Malowanie ścian ' }), item({ description: 'Gładź' })]
+    const { entryByItemId } = buildCatalogueComparison(rows, CATALOGUE, SETTINGS)
+
+    expect(entryByItemId.get(rows[0].id)).toEqual({ id: 4, note: 'Bez gruntowania' })
+    expect(entryByItemId.get(rows[1].id)).toEqual({ id: 5, note: null })
+  })
+
+  it('leaves out a pozycja whose opis or j.m. is not in the katalog, or whose opis is blank', () => {
+    const rows = [
+      item({ unit: 'szt' }),
+      item({ description: 'Tynkowanie' }),
+      item({ description: '   ' }),
+      item({ description: null }),
+    ]
+    const catalogue = [...CATALOGUE, entry({ id: 6, description: '', workNote: 'pusty' })]
+
+    expect(buildCatalogueComparison(rows, catalogue, SETTINGS).entryByItemId.size).toBe(0)
   })
 })

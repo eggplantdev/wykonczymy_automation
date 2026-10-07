@@ -2,7 +2,7 @@ import 'server-only'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { isSectionColorKey } from '@/lib/kosztorys/section-colors'
 import type { SettlementModeT } from '@/lib/kosztorys/settlement-mode'
-import type { ReviewStatusT } from '@/lib/kosztorys/types'
+import { isReviewStatus } from '@/lib/kosztorys/review-status'
 import type {
   DiscountTypeT,
   KosztorysItemT,
@@ -149,8 +149,6 @@ const mapSection = (row: RowT): KosztorysSectionT => ({
   color: isSectionColorKey(row.color) ? row.color : null,
 })
 
-const toReviewStatus = (v: unknown): ReviewStatusT | null =>
-  v === 'accepted' || v === 'rejected' || v === 'edited' || v === 'added' ? v : null
 
 const mapItem = (row: RowT): KosztorysItemT & { sectionId: number } => ({
   id: Number(row.id),
@@ -178,7 +176,7 @@ const mapItem = (row: RowT): KosztorysItemT & { sectionId: number } => ({
   note: textOrNull(row.note),
   aiPlannedQty: numOrNull(row.ai_planned_qty),
   changeReason: textOrNull(row.change_reason),
-  reviewStatus: toReviewStatus(row.review_status),
+  reviewStatus: isReviewStatus(row.review_status) ? row.review_status : null,
 })
 
 const mapStage = (row: RowT, members: RowT[]): KosztorysStageT => ({

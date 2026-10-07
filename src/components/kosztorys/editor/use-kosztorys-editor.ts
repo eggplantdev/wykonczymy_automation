@@ -112,7 +112,7 @@ import {
 } from '@/lib/actions/kosztorys'
 import { applyCatalogueToKosztorysAction } from '@/lib/actions/catalogue-to-kosztorys'
 import { buildCatalogueComparison } from '@/lib/kosztorys/work-catalogue/build-catalogue-comparison'
-import { catalogueEntryByRowId } from '@/lib/kosztorys/work-catalogue/catalogue-entry-by-row'
+import { AI_REVIEW_COLUMN_IDS } from '@/lib/kosztorys/ai-review-columns'
 import { applyReviewRules, hasAiDraft } from '@/lib/kosztorys/review-status'
 import type {
   ItemPatchT,
@@ -214,9 +214,16 @@ export function useKosztorysEditor({
   // this order.
   const [sections, setSections] = useState<SectionMetaT[]>(() => treeToSections(tree))
   const documentSettings = worker?.settings ?? clientView
+  const aiDraft = useMemo(() => hasAiDraft(rows), [rows])
   const {
-    view: pickedView,
+    view,
     setView,
+    offerAvailable,
+    offer,
+    setOffer,
+    aiReviewAvailable,
+    aiReview,
+    setAiReview,
     search,
     setSearch,
     engagedConditionIds,
@@ -248,17 +255,8 @@ export function useKosztorysEditor({
     clientView: documentSettings,
     workerPlane: worker?.plane,
     isTemplate,
+    aiDraft,
   })
-
-  // „Oferta" and „Przegląd AI" are a glance, not a preference: plain state, never the stored view or
-  // the hidden-columns map, so switching them off restores exactly what was there. Off in preview and
-  // in a szablon, whose closed column lists they would only contradict.
-  const togglesAvailable = !preview && !isTemplate
-  const [offer, setOffer] = useState(false)
-  const [aiReview, setAiReview] = useState(false)
-  const offerActive = offer && togglesAvailable
-  // The offer is the client's price, whatever plane the owner was reading.
-  const view = offerActive ? 'client' : pickedView
 
   // Committed on handle release, not per pointermove — that would be a write per pixel.
   const { widths, setWidth, dropWidth } = useColumnWidths()
@@ -481,14 +479,6 @@ export function useKosztorysEditor({
     })
   }, [preview, rows, workCatalogue])
 
-  const catalogueEntryByRow = useMemo(
-    () => (preview || !workCatalogue ? undefined : catalogueEntryByRowId(rows, workCatalogue)),
-    [preview, rows, workCatalogue],
-  )
-
-  const aiDraft = useMemo(() => hasAiDraft(rows), [rows])
-  const aiReviewActive = aiReview && aiDraft && togglesAvailable
-
   const catalogueRowIds = useMemo(
     () =>
       catalogueComparison
@@ -562,11 +552,11 @@ export function useKosztorysEditor({
   )
 
   // Forced past the column picker for as long as the gesture lasts. Empty under preview: a client's
-  // document answers to its own allowlist.
-  const revealedColumnIds = useMemo(
-    () => columnsRevealedBy(preview ? [] : engagedConditionIds),
-    [preview, engagedConditionIds],
-  )
+  // document answers to its own allowlist. „Przegląd AI" is one more such gesture.
+  const revealedColumnIds = useMemo(() => {
+    const revealed = columnsRevealedBy(preview ? [] : engagedConditionIds)
+    return aiReview ? new Set([...revealed, ...AI_REVIEW_COLUMN_IDS]) : revealed
+  }, [preview, engagedConditionIds, aiReview])
 
   // The column is the answer to the diagnostic beside it, so it rides that button, not the column
   // picker — unfiltered it would read „—" down nearly every row.
@@ -642,10 +632,10 @@ export function useKosztorysEditor({
         }
       : undefined,
     workshopVisible: isTemplate,
-    catalogueEntryByRowId: catalogueEntryByRow,
+    catalogueEntryByRowId: catalogueComparison?.entryByItemId,
     hasAiDraft: aiDraft,
-    offerVisible: offerActive,
-    aiColumnsShown: aiReviewActive,
+    offerVisible: offer,
+    aiColumnsShown: aiReview,
     dictionary: gridDictionary,
   }
   const grid = buildV2Grid(columnOpts)
@@ -1444,11 +1434,11 @@ export function useKosztorysEditor({
     workCatalogue,
     laborCostsNet,
     setView,
-    togglesAvailable,
-    hasAiDraft: aiDraft,
-    offer: offerActive,
+    offerAvailable,
+    aiReviewAvailable,
+    offer,
     setOffer,
-    aiReview: aiReviewActive,
+    aiReview,
     setAiReview,
     search,
     setSearch,

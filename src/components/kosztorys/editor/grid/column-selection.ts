@@ -20,11 +20,8 @@ import {
 } from '@/lib/kosztorys/columns/column-config'
 import { PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/client-view/columns'
 import { WORKSHOP_VISIBLE_COLUMNS } from '@/lib/kosztorys/workshop-columns'
-import {
-  AI_REVIEW_COLUMN_IDS,
-  OFFER_VISIBLE_COLUMNS,
-  isAiReviewColumn,
-} from '@/lib/kosztorys/ai-review-columns'
+import { AI_REVIEW_COLUMN_IDS } from '@/lib/kosztorys/ai-review-columns'
+import { OFFER_VISIBLE_COLUMNS } from '@/lib/kosztorys/offer-columns'
 import { CREW_AXIS_DEFAULT, crewAxisAllows } from '@/lib/kosztorys/crew-axis'
 import { LAYER_DEFAULT, layerAllows } from '@/lib/kosztorys/layer'
 import { MONEY_AXIS_DEFAULT, axisAllows } from '@/lib/kosztorys/money-axis'
@@ -140,9 +137,7 @@ export function selectV2Columns(
     // columns put away the filter hides pozycje and never shows the stawka that explains why
     // (owner, 2026-09-28). The money axis and the layer it still does not touch: those choose which
     // document is on screen, not which of its columns a problem may borrow.
-    // „Przegląd AI" forces its columns on screen the same way, so it never has to write a tick.
-    const revealed =
-      (opts.revealedColumnIds?.has(key) ?? false) || (!!opts.aiColumnsShown && isAiReviewColumn(key))
+    const revealed = opts.revealedColumnIds?.has(key) ?? false
     return (
       (UNPICKABLE_COLUMNS.has(key) || revealed || !opts.isHidden?.(key)) &&
       axisAllows(key, axis) &&

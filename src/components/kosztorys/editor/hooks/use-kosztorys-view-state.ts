@@ -24,6 +24,7 @@ type ArgsT = {
   workerPlane?: ToolPlaneT
   // The szablon workbench, which pins the base plane — see `view` below.
   isTemplate?: boolean
+  aiDraft?: boolean
 }
 
 const EMPTY_COLLAPSED: ReadonlySet<number> = new Set()
@@ -35,6 +36,7 @@ export function useKosztorysViewState({
   clientView,
   workerPlane,
   isTemplate = false,
+  aiDraft = false,
 }: ArgsT) {
   const [persistedView, setView] = usePriceView(investmentId)
   const [search, setSearch] = useState('')
@@ -69,9 +71,21 @@ export function useKosztorysViewState({
   // that switch safe: `pickView` is the only writer of the stored view, so a browser parked on a crew
   // plane would otherwise stay there forever with no control to come back. The problem overlay stays
   // above it, because that is the gesture that walks the reader to a fault.
+  //
+  // „Oferta" and „Przegląd AI" are plain state, never the stored view or the hidden-columns map, so
+  // switching them off restores exactly what was there. Off in preview and in a szablon, whose closed
+  // column lists they would only contradict. The offer is the client's price, whatever plane the owner
+  // was reading — a problem's plane included.
+  const offerAvailable = !preview && !isTemplate
+  const [offerPicked, setOffer] = useState(false)
+  const [aiReviewPicked, setAiReview] = useState(false)
+  const offer = offerPicked && offerAvailable
+  const aiReviewAvailable = offerAvailable && aiDraft
   const view: PriceViewT = preview
     ? (workerPlane ?? 'client')
-    : (problemPlane ?? (isTemplate ? 'client' : persistedView))
+    : offer
+      ? 'client'
+      : (problemPlane ?? (isTemplate ? 'client' : persistedView))
   const [sort, setSort] = useState<SortStateT>(null)
   // Folded sections, driven by a band's chevron and by the „Sekcje" menu (unticking folds rather
   // than filtering, so a hidden section still shows its total). Not persisted: a remembered fold
@@ -145,6 +159,12 @@ export function useKosztorysViewState({
   return {
     view,
     setView: pickView,
+    offerAvailable,
+    offer,
+    setOffer,
+    aiReviewAvailable,
+    aiReview: aiReviewPicked && aiReviewAvailable,
+    setAiReview,
     search,
     setSearch,
     engagedConditionIds,

@@ -186,7 +186,6 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
     },
   ]
 
-  // House knowledge and the review of an agent's draft, beside the Przedmiar they are about.
   // Owner-only — the investor's and the worker's closed lists never name these ids. The review trio
   // exists only on an AI kosztorys: on any other it would be three empty columns in the picker.
   const draftReview: Column<KosztorysV2RowT>[] = opts.hasAiDraft

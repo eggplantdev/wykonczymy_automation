@@ -40,8 +40,8 @@ export function KosztorysEditorToolbar({
     subtotals,
     readOnly,
     isTemplate,
-    togglesAvailable,
-    hasAiDraft,
+    offerAvailable,
+    aiReviewAvailable,
     offer,
     setOffer,
     aiReview,
@@ -125,7 +125,7 @@ export function KosztorysEditorToolbar({
             <KosztorysSectionsMenu />
             {/* The workbench has a closed column list (WORKSHOP_VISIBLE_COLUMNS), so the picker
                 would steer an empty list, and the money/layer axes describe columns it has not. */}
-            {togglesAvailable && (
+            {offerAvailable && (
               <Button
                 size="sm"
                 variant={offer ? 'default' : 'outline'}
@@ -135,7 +135,7 @@ export function KosztorysEditorToolbar({
                 Oferta
               </Button>
             )}
-            {togglesAvailable && hasAiDraft && (
+            {aiReviewAvailable && (
               <Button
                 size="sm"
                 variant="ai"

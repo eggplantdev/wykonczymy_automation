@@ -3,7 +3,7 @@ import { priceSourceOf, subcontractorPrice } from '@/lib/kosztorys/calc'
 import { planeDashSuffix, planeViewSuffix } from '@/lib/kosztorys/format'
 import { ALL_PLANE_PRICE_KEYS, planePriceKeysFor } from '@/lib/kosztorys/plane-price-keys'
 import type { RowConditionCtxT, RowConditionT } from '@/lib/kosztorys/row-conditions/types'
-import { effectiveReviewStatus } from '@/lib/kosztorys/review-status'
+import { aiOffered, effectiveReviewStatus } from '@/lib/kosztorys/review-status'
 import { measureDiscrepancy, rowTotalQtyDone } from '@/lib/kosztorys/settlement-rows'
 import { stageKey } from '@/lib/kosztorys/stage-keys'
 import {
@@ -485,8 +485,7 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     kind: 'diagnostic',
     problemGroup: 'ai-review',
     revealsColumns: AI_REVIEW_COLUMN_IDS,
-    matches: (row, ctx) =>
-      (ctx.hasAiDraft ?? false) && (row.aiPlannedQty ?? 0) > 0 && !row.reviewStatus,
+    matches: (row, ctx) => (ctx.hasAiDraft ?? false) && aiOffered(row) && !row.reviewStatus,
   },
   {
     id: 'ai-without-reason',
@@ -496,11 +495,8 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     revealsColumns: AI_REVIEW_COLUMN_IDS,
     matches: (row, ctx) => {
       if (!ctx.hasAiDraft) return false
-      const status = effectiveReviewStatus(row, true)
-      return (
-        (status === 'rejected' || status === 'edited' || status === 'added') &&
-        !(row.changeReason ?? '').trim()
-      )
+      const status = effectiveReviewStatus(row)
+      return status !== null && status !== 'accepted' && !(row.changeReason ?? '').trim()
     },
   },
   // One entry per plane rather than one asking about the active view: a price exists on both planes for
