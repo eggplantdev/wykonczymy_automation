@@ -92,6 +92,7 @@ async function run() {
         unit: row.unit,
         clientPrice: row.clientPrice ?? 0,
         plannedQty: 0,
+        discountValue: 0,
         aiPlannedQty: row.qty,
       },
       context: { skipRevalidation: true },
