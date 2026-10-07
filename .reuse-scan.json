@@ -4,6 +4,7 @@
     "src/components/filters",
     "src/components/tables",
     "src/hooks",
+    "src/stores",
     "src/lib/**",
     "src/types"
   ],

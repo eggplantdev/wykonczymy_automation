@@ -35,7 +35,7 @@ A longer session is only safe if deactivating or trashing an account cuts access
 | iOS guide | Steps only (⋯ → Udostępnij → „Do ekranu głównego") | Logging in after opening is self-evident | Owner |
 | Icon | Brand icon replaces 🚧 everywhere; padded maskable variant on a white background | The art runs edge to edge and has alpha, which Android crops and iOS blackens | Owner + Plan |
 | Token | 90 days, refreshed when older than 1 day | One write per user per day, and it still slides | Plan |
-| Revocation | One cached `(user, sid)` query: the sid exists AND the account is active and untrashed; tag `user:<id>`; 1 h backstop. **Temporary**, revisited in EX-1020 | Checking the account state closes Payload `refresh()`'s write-back race. The owner accepted the per-request cost for now | Research + Owner |
+| Revocation | One cached `(user, sid)` query: the sid exists AND the account is active and untrashed; tag `collection:users` (every `users` write expires it — changed at review from a per-user tag one writer forgot); 1 h backstop. **Temporary**, revisited in EX-1020 | Checking the account state narrows Payload `refresh()`'s write-back race; it does not close it, because `refresh()` also writes back `active`/`trashedAt`. The owner accepted the per-request cost for now | Research + Owner |
 | Cookie | `Secure` in production | A 90-day cookie should never travel over http | Owner |
 | Service worker | Navigations only, network-first, inline offline line, no caches | Chrome's install path wants a fetch handler. Server Actions and RSC must stay untouched | Plan |
 
@@ -57,7 +57,7 @@ A longer session is only safe if deactivating or trashing an account cuts access
 
 ## Architecture / Approach
 
-1. **Revocation:** `getCurrentUserJwt` verifies the JWT, then calls `unstable_cache(isSessionAlive(userId, sid))`, tagged `user:<id>`. Both layouts and `requireAuth` read it, so revocation is consistent everywhere and nothing loops.
+1. **Revocation:** `getCurrentUserJwt` verifies the JWT, then calls `unstable_cache(isSessionAlive(userId, sid))`, tagged `collection:users`. Both layouts and `requireAuth` read it, so revocation is consistent everywhere and nothing loops.
 2. **Sliding:** the shell checks `iat`. If the token is older than 1 day, a client host fires `refreshSessionAction` once, which wraps Payload's `refresh`.
 3. **PWA:** `app/manifest.ts` plus static icons and `public/sw.js`, with the proxy letting the manifest and SW through.
 4. **Install button:** `InstallAppButton` sends the platform signals to a pure `resolveInstallState`, which returns hidden, ready, waiting, ios or manual.

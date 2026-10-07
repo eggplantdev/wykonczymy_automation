@@ -74,7 +74,7 @@ Workers open the app every 2–4 weeks and are not comfortable with phones. Two 
 
 Revocation is one cached query keyed on `(userId, sid)`:
 
-- The query requires the `sid` row to exist and the account to be `active AND trashed_at IS NULL`. Checking the account state, not only the `sid`, closes the `refresh()` write-back race and makes write order irrelevant.
+- The query requires the `sid` row to exist and the account to be `active AND trashed_at IS NULL`. Checking the account state, not only the `sid`, refuses a session row that outlived its lockout. It narrows the `refresh()` write-back race but does not close it: `refresh()` also writes back `active` and `trashedAt` (review gate, F1).
 - The cache is tagged `entityTag('user', id)` and expired by the actions that revoke access.
 - A 1-hour `revalidate` backstop covers any future writer that forgets the tag.
 - The per-request check is **temporary by owner decision (2026-10-07)**. EX-1020 revisits it for a cheaper form once its cost is measured. Keep it isolated inside `getCurrentUserJwt`, so it can be swapped out without touching callers.
