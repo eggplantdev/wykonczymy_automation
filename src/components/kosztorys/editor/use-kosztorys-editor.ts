@@ -215,7 +215,7 @@ export function useKosztorysEditor({
   const [sections, setSections] = useState<SectionMetaT[]>(() => treeToSections(tree))
   const documentSettings = worker?.settings ?? clientView
   const {
-    view,
+    view: pickedView,
     setView,
     search,
     setSearch,
@@ -249,6 +249,16 @@ export function useKosztorysEditor({
     workerPlane: worker?.plane,
     isTemplate,
   })
+
+  // „Oferta" and „Przegląd AI" are a glance, not a preference: plain state, never the stored view or
+  // the hidden-columns map, so switching them off restores exactly what was there. Off in preview and
+  // in a szablon, whose closed column lists they would only contradict.
+  const togglesAvailable = !preview && !isTemplate
+  const [offer, setOffer] = useState(false)
+  const [aiReview, setAiReview] = useState(false)
+  const offerActive = offer && togglesAvailable
+  // The offer is the client's price, whatever plane the owner was reading.
+  const view = offerActive ? 'client' : pickedView
 
   // Committed on handle release, not per pointermove — that would be a write per pixel.
   const { widths, setWidth, dropWidth } = useColumnWidths()
@@ -477,6 +487,7 @@ export function useKosztorysEditor({
   )
 
   const aiDraft = useMemo(() => hasAiDraft(rows), [rows])
+  const aiReviewActive = aiReview && aiDraft && togglesAvailable
 
   const catalogueRowIds = useMemo(
     () =>
@@ -633,6 +644,8 @@ export function useKosztorysEditor({
     workshopVisible: isTemplate,
     catalogueEntryByRowId: catalogueEntryByRow,
     hasAiDraft: aiDraft,
+    offerVisible: offerActive,
+    aiColumnsShown: aiReviewActive,
     dictionary: gridDictionary,
   }
   const grid = buildV2Grid(columnOpts)
@@ -1431,6 +1444,12 @@ export function useKosztorysEditor({
     workCatalogue,
     laborCostsNet,
     setView,
+    togglesAvailable,
+    hasAiDraft: aiDraft,
+    offer: offerActive,
+    setOffer,
+    aiReview: aiReviewActive,
+    setAiReview,
     search,
     setSearch,
     engagedConditionIds,

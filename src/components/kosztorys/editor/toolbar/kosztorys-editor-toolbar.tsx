@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, WandSparkles } from 'lucide-react'
 import { SearchFilterInput } from '@/components/filters/search-filter-input'
+import { Button } from '@/components/ui/button'
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import { KosztorysActiveFiltersBar } from '@/components/kosztorys/editor/toolbar/kosztorys-active-filters-bar'
 import { KosztorysAddMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-add-menu'
@@ -31,8 +32,21 @@ export function KosztorysEditorToolbar({
   protocolSource?: AcceptanceProtocolSourceT
   workerReports?: WorkerReportsSeedT
 }) {
-  const { search, setSearch, view, setView, subtotals, readOnly, isTemplate } =
-    useKosztorysEditorContext()
+  const {
+    search,
+    setSearch,
+    view,
+    setView,
+    subtotals,
+    readOnly,
+    isTemplate,
+    togglesAvailable,
+    hasAiDraft,
+    offer,
+    setOffer,
+    aiReview,
+    setAiReview,
+  } = useKosztorysEditorContext()
   // Phone only — both groups below are `sm:contents`, so from 768 up this flag stops mattering.
   const [toolsOpen, setToolsOpen] = useState(false)
 
@@ -45,7 +59,8 @@ export function KosztorysEditorToolbar({
           {/* The workbench has a closed column list, so both crews' stawki are already on screen and
               this switch would move no column — while still moving the „Cena j.m." sort key and the
               filter list. Its plane is pinned instead (useKosztorysViewState). */}
-          {!isTemplate && (
+          {/* „Oferta" pins the client plane, so the switch would move nothing while it is on. */}
+          {!isTemplate && !offer && (
             <ToolbarToggle
               legend={VIEW_LEGEND}
               options={VIEWS}
@@ -110,7 +125,30 @@ export function KosztorysEditorToolbar({
             <KosztorysSectionsMenu />
             {/* The workbench has a closed column list (WORKSHOP_VISIBLE_COLUMNS), so the picker
                 would steer an empty list, and the money/layer axes describe columns it has not. */}
-            {!isTemplate && <KosztorysViewMenu />}
+            {togglesAvailable && (
+              <Button
+                size="sm"
+                variant={offer ? 'default' : 'outline'}
+                aria-pressed={offer}
+                onClick={() => setOffer(!offer)}
+              >
+                Oferta
+              </Button>
+            )}
+            {togglesAvailable && hasAiDraft && (
+              <Button
+                size="sm"
+                variant="ai"
+                aria-pressed={aiReview}
+                animations={aiReview ? ['comet', 'breathe'] : undefined}
+                onClick={() => setAiReview(!aiReview)}
+              >
+                <WandSparkles className="text-neon-cyan" />
+                <span className="text-neon-cyan font-semibold">Przegląd AI</span>
+              </Button>
+            )}
+            {/* „Oferta" is a closed list too: no tick and no axis would move a column. */}
+            {!isTemplate && !offer && <KosztorysViewMenu />}
           </div>
         </div>
       </div>

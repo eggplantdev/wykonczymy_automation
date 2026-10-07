@@ -502,17 +502,17 @@ column touched here.
 
 #### Automated
 
-- [x] 2.1 Status rules spec passes
-- [x] 2.2 AI diagnostics spec passes
-- [x] 2.3 Szablon strip spec passes
-- [x] 2.4 Snapshot round-trip spec carries the three fields
-- [x] 2.5 Sheet import plan carries the fields for matched rows
-- [x] 2.6 Patch schema strips AI przedmiar
-- [x] 2.7 Tree SQL drift spec passes
-- [x] 2.8 Insert schema drift (DB) passes
+- [x] 2.1 Status rules spec passes — b6d73462
+- [x] 2.2 AI diagnostics spec passes — b6d73462
+- [x] 2.3 Szablon strip spec passes — b6d73462
+- [x] 2.4 Snapshot round-trip spec carries the three fields — b6d73462
+- [x] 2.5 Sheet import plan carries the fields for matched rows — b6d73462
+- [x] 2.6 Patch schema strips AI przedmiar — b6d73462
+- [x] 2.7 Tree SQL drift spec passes — b6d73462
+- [x] 2.8 Insert schema drift (DB) passes — b6d73462
 
 ### Phase 3: „Oferta" and „Przegląd AI" toggles
 
 #### Automated
 
-- [ ] 3.1 Selection spec passes
+- [x] 3.1 Selection spec passes

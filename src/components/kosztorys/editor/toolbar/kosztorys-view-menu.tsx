@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { ColumnToggleMenu } from '@/components/ui/column-toggle-menu'
 import { InfoTooltip } from '@/components/ui/info-tooltip'
+import { isAiReviewColumn } from '@/lib/kosztorys/ai-review-columns'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 import {
   CREWS,
@@ -70,6 +71,7 @@ export function KosztorysViewMenu() {
     setCrewAxis,
     columnToggleItems,
     revealedColumnIds,
+    aiReview,
     toggleColumn,
     setAllColumns,
     columnRanks,
@@ -88,7 +90,10 @@ export function KosztorysViewMenu() {
   // A column an engaged problem reveals is on screen whatever its tick says, so it is not hidden and
   // must not be counted: the number has to answer „czego nie widzę", not „co odznaczyłem".
   const hiddenCount = columnToggleItems.filter(
-    (item) => !item.visible && !revealedColumnIds.has(item.id),
+    (item) =>
+      !item.visible &&
+      !revealedColumnIds.has(item.id) &&
+      !(aiReview && isAiReviewColumn(item.id)),
   ).length
 
   return (

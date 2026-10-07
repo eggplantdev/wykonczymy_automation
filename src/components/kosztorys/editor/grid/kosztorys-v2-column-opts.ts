@@ -123,6 +123,12 @@ export type BuildV2ColumnsOptsT = {
   // An agent draft is loaded (`hasAiDraft`). Without it AI przedmiar, Status and Powód zmiany are not
   // assembled at all — neither in the grid nor in the picker.
   hasAiDraft?: boolean
+  // „Oferta": a transient closed list (OFFER_VISIBLE_COLUMNS), the owner's view of the offer. The
+  // caller pins `view` to 'client' while it is on.
+  offerVisible?: boolean
+  // „Przegląd AI": the AI review columns on top of whatever is visible — part of the „Oferta" list
+  // when that is on, else forced past the stored tick like `revealedColumnIds`. Never written to it.
+  aiColumnsShown?: boolean
   // The worker's document (EX-875): the third closed surface, and the one that discloses a CREW
   // plane — `view` must equal `plane`, never 'client', and `previewVisible` must be off
   // (`assertDisclosurePair`). `hiddenColumns` holds the firm-wide settings' logical keys, which only
