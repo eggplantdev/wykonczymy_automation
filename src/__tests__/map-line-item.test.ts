@@ -6,6 +6,9 @@ const item = {
   amount: '-1000',
   netAmount: '',
   invoiceNote: '',
+  documentNumber: '',
+  sellerNip: '',
+  documentDate: '',
   category: '',
   expenseCategory: '7',
 }

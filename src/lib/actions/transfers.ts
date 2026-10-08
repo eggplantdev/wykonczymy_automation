@@ -27,6 +27,7 @@ import { syncBulkExpensesToSheet } from './sheets-sync'
 import { validateAction, protectedAction } from './run-action'
 import { validateSourceRegister } from './validate-source-register'
 import { getNetAmountError } from '@/lib/utils/validation'
+import { normalizeNip } from '@/lib/utils/nip'
 import { warsawToday } from '@/lib/utils/days'
 import { logError } from '@/lib/utils/log-error'
 import { resolveId } from '@/lib/utils/resolve-id'
@@ -85,6 +86,19 @@ export async function createTransferAction(data: CreateTransferFormT, invoiceMed
 
 // Thrown, not returned: a returned refusal would still commit the expenses created before it.
 class DraftAlreadyDecided extends Error {}
+
+// Blank is stored as null so the duplicate check never matches two empty values.
+function documentIdentity(item: {
+  documentNumber?: string
+  sellerNip?: string
+  documentDate?: string
+}) {
+  return {
+    documentNumber: item.documentNumber?.trim() || null,
+    sellerNip: (item.sellerNip && normalizeNip(item.sellerNip)) || null,
+    documentDate: item.documentDate || null,
+  }
+}
 
 export async function createBulkTransferAction(
   data: CreateBulkExpenseFormT,
@@ -146,6 +160,7 @@ export async function createBulkTransferAction(
                 otherCategory: item.category,
                 invoice: invoicePages?.length ? invoicePages : undefined,
                 invoiceNote: item.invoiceNote,
+                ...documentIdentity(item),
                 settled: canBeSettled(parsed.data.type) && parsed.data.settled === true,
                 createdBy: user.id,
               },
@@ -289,7 +304,8 @@ export async function updateTransferAction(
       const { original } = result
 
       // Only LABOR_COST transfers can have their amount edited
-      const { amount, vatPlane, netAmount, ...fields } = parsed.data
+      const { amount, vatPlane, netAmount, documentNumber, sellerNip, documentDate, ...fields } =
+        parsed.data
       const newAmount = isLaborCost(original.type) ? amount : undefined
       const amountChanged = newAmount !== undefined && newAmount !== original.amount
 
@@ -310,6 +326,7 @@ export async function updateTransferAction(
         id: transferId,
         data: {
           ...fields,
+          ...documentIdentity({ documentNumber, sellerNip, documentDate }),
           ...(newAmount !== undefined && { amount: newAmount }),
           ...(fillsPlane && { vatPlane, netAmount: netAmount ?? null }),
           // Newly picked files are extra pages of the same invoice, so they append — an edit that

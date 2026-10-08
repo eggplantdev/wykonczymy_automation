@@ -647,7 +647,7 @@ pending drafts. Draft reads are expanded once in a CTE, which avoids the JIT tra
 
 #### Automated
 
-- [x] 1.1 Migration applies on the local DB after the stale spike row is removed
+- [x] 1.1 Migration applies on the local DB after the stale spike row is removed — 7f6dd7455
 - [ ] 1.2 nip.test.ts passes
 - [ ] 1.3 extract-receipt-sanitize.test.ts passes
 - [ ] 1.4 draft-prefill.test.ts passes with new-field and legacy-read cases

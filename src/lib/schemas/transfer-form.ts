@@ -1,5 +1,10 @@
 import { z } from 'zod'
-import { getNetAmountError, refineAmount, refineDate } from '@/lib/utils/validation'
+import {
+  getNetAmountError,
+  refineAmount,
+  refineDate,
+  refineDocumentIdentity,
+} from '@/lib/utils/validation'
 import { canFillVatPlane, planeFor } from '@/lib/constants/transfers'
 import { validateTransferFields } from './transfer-validation'
 
@@ -70,12 +75,16 @@ export const editTransferFormSchema = (row: {
       expenseCategory: z.string(),
       otherCategory: z.string(),
       invoiceNote: z.string(),
+      documentNumber: z.string(),
+      sellerNip: z.string(),
+      documentDate: z.string(),
       // The netto off the faktura, asked for only while filling in a legacy wpłata's missing plane.
       netAmount: z.string().optional(),
     })
     .superRefine((data, ctx) => {
       if (data.amount !== undefined)
         refineAmount({ ...data, amount: data.amount, type: row.type }, ctx)
+      refineDocumentIdentity(data, ctx)
       // The method IS the plane, so „jak zapłacił" is what decides whether a netto is owed.
       if (!canFillVatPlane(row)) return
       const netErr = getNetAmountError(

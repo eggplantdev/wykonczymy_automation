@@ -1,5 +1,7 @@
 import { z } from 'zod'
 import { carriesNetAmount } from '@/lib/constants/transfers'
+import { dayBound } from '@/lib/utils/date-range'
+import { normalizeNip } from '@/lib/utils/nip'
 
 /**
  * Returns an error message if the amount is invalid for the given type, or undefined if valid.
@@ -85,6 +87,30 @@ const DAY_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 /** A day input that may be left blank. */
 export const optionalDay = () =>
   z.string().refine((value) => value === '' || DAY_PATTERN.test(value), 'Nieprawidłowa data')
+
+/** „NIP sprzedawcy" may be left blank — most paragony print none we can read. */
+function getSellerNipError(value: string | undefined): string | undefined {
+  return value && normalizeNip(value) === undefined ? 'NIP musi mieć 10 cyfr' : undefined
+}
+
+/** „Data na paragonie" may be left blank; a value must be a real calendar day. */
+function getDocumentDateError(value: string | undefined): string | undefined {
+  return value && dayBound(value) === undefined ? 'Nieprawidłowa data' : undefined
+}
+
+/** The optional document identity fields; `path` prefixes where the issues hang (a line item's index). */
+export function refineDocumentIdentity(
+  item: { sellerNip?: string; documentDate?: string },
+  ctx: z.RefinementCtx,
+  path: (string | number)[] = [],
+) {
+  const nipError = getSellerNipError(item.sellerNip)
+  if (nipError) ctx.addIssue({ code: 'custom', message: nipError, path: [...path, 'sellerNip'] })
+  const dateError = getDocumentDateError(item.documentDate)
+  if (dateError) {
+    ctx.addIssue({ code: 'custom', message: dateError, path: [...path, 'documentDate'] })
+  }
+}
 
 /** A day input that is required, with its own „missing" message. */
 export const requiredDay = (message: string) =>

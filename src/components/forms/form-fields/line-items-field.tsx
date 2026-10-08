@@ -382,6 +382,21 @@ export function LineItemsField({
                         </Button>
                       )}
                     </div>
+                    <div className="grid gap-2 sm:grid-cols-3">
+                      <form.AppField name={`lineItems[${index}].documentNumber`}>
+                        {(field) => (
+                          <field.Input label="Nr dokumentu" placeholder="Opcjonalnie" showError />
+                        )}
+                      </form.AppField>
+                      <form.AppField name={`lineItems[${index}].sellerNip`}>
+                        {(field) => (
+                          <field.Input label="NIP sprzedawcy" placeholder="Opcjonalnie" showError />
+                        )}
+                      </form.AppField>
+                      <form.AppField name={`lineItems[${index}].documentDate`}>
+                        {(field) => <field.DatePicker label="Data na paragonie" showError />}
+                      </form.AppField>
+                    </div>
                     <form.AppField name={`lineItems[${index}].invoiceNote`}>
                       {(field) => (
                         <field.Textarea
