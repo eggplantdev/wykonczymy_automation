@@ -4880,3 +4880,13 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
 - [ ] „Filtry” w katalogu prac: na górze menu nagłówek „Widoczne prace” z podpowiedzią „Odznacz, żeby ukryć.” — tak jak w „Filtrach” kosztorysu.
 - [ ] Praca stojąca w szablonie: „Edytuj” i „Usuń” od razu (bez ładowania) wymieniają nazwy szablonów, a ich liczba zgadza się z kolumną „Szablony”.
 - [ ] Szablon (warsztat szablonu) → „Filtry”: proponuje tylko filtry stawek, jak dotąd.
+
+## 2026-10-08 — expense-draft-missing-pages — odrzucenie zgłoszenia, którego zdjęć nie da się pobrać
+
+- [ ] Transakcje → „Wydatki zgłoszone przez pracowników” → „Zweryfikuj” na zgłoszeniu, którego
+      zdjęcie nie istnieje w Blobie (lokalnie: zgłoszenie z dumpu proda, przed `blob:refresh:preview`):
+      toast „Nie udało się pobrać zdjęć — zgłoszenie można tylko odrzucić”, dialog „Nowy wydatek”
+      się otwiera, „Zapisz” jest nieaktywny, nie pojawia się „Odczytywanie paragonów…”.
+- [ ] W tym dialogu „Odrzuć” → potwierdź: toast „Zgłoszenie odrzucone”, zgłoszenie znika z kolejki.
+- [ ] Zgłoszenie ze zdjęciami, które się pobierają: „Zweryfikuj” działa jak dotąd — zdjęcia przy
+      pozycjach, „Zapisz” aktywny po odczycie.

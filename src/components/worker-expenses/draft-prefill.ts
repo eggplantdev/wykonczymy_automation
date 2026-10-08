@@ -18,7 +18,7 @@ type DraftPrefillT = {
 /**
  * The rows follow the worker's mode: a read that failed or hasn't landed yet still
  * opens the right rows, blank, for „Odczytaj dodane zdjęcia" to fill. `files` are the downloaded
- * pages in `draft.media` order.
+ * pages in `draft.media` order — empty when the download failed and the dialog opens only to reject.
  */
 export function buildDraftPrefill(
   draft: Pick<ExpenseDraftRowT, 'media' | 'scanMode' | 'aiRead'>,
@@ -38,7 +38,7 @@ export function buildDraftPrefill(
     // The write's compare-and-set can lose a race to a page change under READ COMMITTED, so a read
     // row fills only the row whose pages it was read from.
     const read = draft.aiRead?.rows.find((candidate) => sameItems(candidate.mediaIds, mediaIds))
-    const downloaded = group.map((index) => files[index])
+    const downloaded = group.flatMap((index) => files[index] ?? [])
     const pages = read?.filename ? renamePages(downloaded, read.filename) : downloaded
     if (pages.length > 0) rowFiles.set(row, pages)
     const lineItem = makeLineItem({ expenseCategory, ...(read && receiptToLineItemValues(read)) })

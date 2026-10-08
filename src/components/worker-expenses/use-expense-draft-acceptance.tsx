@@ -33,6 +33,7 @@ type AcceptingT = {
   draft: ExpenseDraftRowT
   prefill: ExpenseFormPrefillT
   duplicates: DuplicateHintsStateT
+  hasPages: boolean
 }
 
 const DRAFT_READ_PENDING_KEY = 'expense-draft-read'
@@ -93,23 +94,26 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
     setLoadingId(draft.id)
     // Needs only the id, so it runs alongside the page download.
     const duplicatesRequest = draft.aiRead ? requestDuplicates(draft.id) : undefined
-    let files: File[]
+    let files: File[] = []
+    let hasPages = true
     try {
       files = await downloadPages(draft.media)
     } catch {
-      toastMessage('Nie udało się pobrać zdjęć zgłoszenia', 'error')
-      return
+      // Still opened: the dialog is the only place a zgłoszenie is rejected.
+      hasPages = false
+      toastMessage('Nie udało się pobrać zdjęć — zgłoszenie można tylko odrzucić', 'warning')
     } finally {
       setLoadingId(undefined)
     }
 
-    const isReading = !draft.aiRead && draft.media.length > 0
+    // The server reads the same pages, so a failed download skips the read too.
+    const isReading = hasPages && !draft.aiRead && draft.media.length > 0
     const duplicates: DuplicateHintsStateT = isReading
       ? { status: 'reading' }
       : draft.aiRead
         ? { status: 'checking' }
         : { status: 'no-read' }
-    setAccepting({ draft, prefill: prefillFor(draft, files), duplicates })
+    setAccepting({ draft, prefill: prefillFor(draft, files), duplicates, hasPages })
     openDialog(formIdOf(draft.id), false)
     // A reopen mid-read stays on „reading"; the read already in flight loads the duplicates.
     if (isReading && !readsInFlight.current.has(draft.id)) await readOnOpen(draft, files)
@@ -201,6 +205,7 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
               formId={formIdOf(accepting.draft.id)}
               prefill={accepting.prefill}
               isPrefillReading={isPrefillReading}
+              isSaveBlocked={!accepting.hasPages}
               onRemoveLastItem={(duplicateOf) =>
                 duplicateOf
                   ? handleReject(accepting.draft.id, duplicateOf)
