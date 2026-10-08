@@ -4904,3 +4904,14 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
 
 - [ ] Kosztorys ze szkicem AI → na pasku narzędzi, obok „Kolumny", jest przycisk „Przegląd AI"; kliknięcie dokłada kolumny AI i ustawia filtr „Przegląd AI" jak wcześniej, ponowne kliknięcie je zabiera. W menu „Kolumny" → „Widok" jest już tylko „Oferta".
 - [ ] Zwykły kosztorys (bez szkicu AI): brak przycisku „Przegląd AI"; szablon: brak przycisku i menu „Kolumny".
+
+## EX-1030 — ai-draft-missing-data — „Komentarz AI” w „Przeglądzie AI”
+
+- [ ] Kosztorys ze szkicem AI → „Przegląd AI”: po „AI wartość netto przedmiar” jest kolumna
+      „Komentarz AI”; każda wypełniona komórka ma dwie linie „Czego nie było wiadomo: …” i
+      „Co / ile założono: …” z odpowiedziami pogrubionymi, a pozycja bez braków mówi „nic — …”.
+- [ ] „Komentarz AI” jest tylko do odczytu (wpisanie / wklejenie / Delete nic nie zmienia), a skopiowana
+      komórka wkleja się jako te same dwie linie tekstu.
+- [ ] W kolumnie „Komentarz” pozycji ze szkicu AI nie ma tekstów „AI: …” — Komentarz zostaje dla
+      ludzi; widok „Oferta” nie pokazuje „Komentarza AI”.
+- [ ] Zwykły kosztorys (bez szkicu AI): brak kolumny „Komentarz AI”.

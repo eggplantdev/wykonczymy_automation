@@ -67,6 +67,44 @@ export function reviewStatusColumn(titleNode: ReactNode): Column<KosztorysV2RowT
   }
 }
 
+const AI_COMMENT_LINES = [
+  ['Czego nie było wiadomo', 'aiMissingData'],
+  ['Co / ile założono', 'aiAssumptions'],
+] as const
+
+const hasAiComment = (row: KosztorysV2RowT) => Boolean(row.aiMissingData || row.aiAssumptions)
+
+function AiCommentCell({ rowData }: CellProps<KosztorysV2RowT, unknown>) {
+  if (!hasAiComment(rowData)) return null
+  return (
+    <ReadOnlyCellText>
+      {AI_COMMENT_LINES.map(([question, field]) => (
+        <span key={field} className="block">
+          {question}: <strong>{rowData[field] ?? '—'}</strong>
+        </span>
+      ))}
+    </ReadOnlyCellText>
+  )
+}
+
+export function aiCommentColumn(titleNode: ReactNode): Column<KosztorysV2RowT> {
+  return {
+    id: 'aiComment',
+    title: titleNode,
+    disabled: true,
+    minWidth: 320,
+    grow: 2,
+    ...AI_REVIEW_COLUMN_CLASS,
+    component: AiCommentCell,
+    copyValue: ({ rowData }) =>
+      hasAiComment(rowData)
+        ? AI_COMMENT_LINES.map(([question, field]) => `${question}: ${rowData[field] ?? '—'}`).join(
+            '\n',
+          )
+        : null,
+  }
+}
+
 // An object, never the bare Map: `withSyntheticRows` spreads `columnData`, and a spread Map has no `.get`.
 type WorkNoteDataT = { byRowId: ReadonlyMap<number, RowCatalogueEntryT> | undefined }
 

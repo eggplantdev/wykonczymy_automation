@@ -74,7 +74,7 @@ export async function selectKosztorysTreeData(
                  ki.discount_type, ki.discount_value, ki.client_price,
                  ki.w_tools_override_value, ki.own_tools_override_value,
                  ki.w_tools_override_coeff, ki.own_tools_override_coeff,
-                 ki.note, ki.ref, ki.catalogue_item_id, ki.ai_planned_qty, ki.change_reason,
+                 ki.note, ki.ref, ki.catalogue_item_id, ki.ai_planned_qty, ki.ai_missing_data, ki.ai_assumptions, ki.change_reason,
                  ki.review_status,
                  w.id AS catalogue_entry_id, w.description AS catalogue_description,
                  w.description_translations AS catalogue_description_translations,
@@ -209,6 +209,8 @@ const mapOwnItem = (row: RowT): KosztorysItemT & { sectionId: number } => ({
   note: textOrNull(row.note),
   catalogueItemId: numOrNull(row.catalogue_item_id),
   aiPlannedQty: numOrNull(row.ai_planned_qty),
+  aiMissingData: textOrNull(row.ai_missing_data),
+  aiAssumptions: textOrNull(row.ai_assumptions),
   changeReason: textOrNull(row.change_reason),
   reviewStatus: isReviewStatus(row.review_status) ? row.review_status : null,
 })
