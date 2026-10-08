@@ -707,4 +707,112 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
       expect(await findDraftHeldMedia(db, [pages[4]])).toEqual([pages[4]])
     })
   })
+
+  // EX-1025: the mark is management's record of why; the worker still reads a plain refusal.
+  describe('a duplicate mark', () => {
+    let duplicateInvestmentId: number
+
+    const duplicatesOnly = () =>
+      listExpenseDraftHistory(
+        db,
+        {
+          statuses: null,
+          investmentIds: [duplicateInvestmentId],
+          workerIds: null,
+          sentRange: {},
+          duplicatesOnly: true,
+        },
+        { page: 1, limit: 50 },
+      )
+
+    beforeAll(async () => {
+      duplicateInvestmentId = await createTestInvestment(payload, 'worker-expense-drafts-db-dup')
+    })
+
+    afterAll(async () => {
+      await db.execute(
+        sql`DELETE FROM worker_expense_drafts WHERE investment_id = ${duplicateInvestmentId}`,
+      )
+      if (duplicateInvestmentId)
+        await deleteTestInvestment(payload, duplicateInvestmentId).catch(() => {})
+    })
+
+    it('an acceptance keeps the mark on the paragon skipped as a duplicate, which the worker sees as refused', async () => {
+      const pages: number[] = []
+      for (let i = 0; i < 3; i++) pages.push(await insertMedia(`dup-accept-${i}`, workerId))
+      const draftId = await draftOf(pages, duplicateInvestmentId)
+      if (draftId === null) throw new Error('draft fixture refused')
+      const [transferId] = await unlinkedTransferIds(1)
+      const duplicateOf = { source: 'transaction' as const, id: 424242 }
+
+      await decideExpenseDraft(db, {
+        draftId,
+        decidedBy: otherWorkerId,
+        status: 'accepted',
+        transferIds: [transferId],
+        transferMediaIds: [[pages[0]]],
+        skippedReceipts: [{ mediaIds: [pages[1]], duplicateOf }, { mediaIds: [pages[2]] }],
+      })
+
+      const { rows: persisted } = await db.execute(sql`
+        SELECT media_ids, duplicate_of FROM worker_expense_draft_skipped_receipts
+        WHERE draft_id = ${draftId} ORDER BY id
+      `)
+      expect(
+        persisted.map((row) => [(row.media_ids as number[]).map(Number), row.duplicate_of]),
+      ).toEqual([
+        [[pages[1]], duplicateOf],
+        [[pages[2]], null],
+      ])
+
+      const marked = (await duplicatesOnly()).rows.filter((row) => row.id === draftId)
+      expect(
+        marked.map((row) => [row.status, row.skippedReceipt !== undefined, row.duplicateOf]),
+      ).toEqual([['rejected', true, duplicateOf]])
+
+      const workerRows = (await listWorkerExpenseDrafts(db, workerId)).filter(
+        (row) => row.id === draftId,
+      )
+      expect(workerRows.map((row) => [row.status, row.media.map((page) => page.id)])).toEqual([
+        ['accepted', [pages[0]]],
+        ['rejected', [pages[1]]],
+        ['rejected', [pages[2]]],
+      ])
+    })
+
+    it('a refusal as a duplicate marks the zgłoszenie, reads „odrzucone” to the worker, and a restore clears it', async () => {
+      const draftId = await draftOf(
+        [await insertMedia('dup-reject', workerId)],
+        duplicateInvestmentId,
+      )
+      if (draftId === null) throw new Error('draft fixture refused')
+      const duplicateOf = { source: 'draft' as const, id: 434343 }
+
+      await decideExpenseDraft(db, {
+        draftId,
+        decidedBy: otherWorkerId,
+        status: 'rejected',
+        transferIds: [],
+        duplicateOf,
+      })
+
+      const persisted = async () =>
+        (
+          await db.execute(
+            sql`SELECT status, duplicate_of FROM worker_expense_drafts WHERE id = ${draftId}`,
+          )
+        ).rows[0]
+      expect(await persisted()).toEqual({ status: 'rejected', duplicate_of: duplicateOf })
+      expect(
+        (await listWorkerExpenseDrafts(db, workerId))
+          .filter((row) => row.id === draftId)
+          .map((row) => row.status),
+      ).toEqual(['rejected'])
+      expect((await duplicatesOnly()).rows.map((row) => row.id)).toContain(draftId)
+
+      expect(await restoreRejectedExpenseDraft(db, draftId)).toBe(true)
+      expect(await persisted()).toEqual({ status: 'pending', duplicate_of: null })
+      expect((await duplicatesOnly()).rows.map((row) => row.id)).not.toContain(draftId)
+    })
+  })
 })
