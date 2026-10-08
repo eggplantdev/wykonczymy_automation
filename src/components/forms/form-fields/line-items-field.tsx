@@ -20,10 +20,12 @@ import { formatPLN } from '@/lib/utils/format-currency'
 import {
   billsNetAmount,
   EXPENSE_CATEGORY_LABEL,
+  hasOptionalWorker,
   needsExpenseCategory,
   showsOtherCategory,
 } from '@/lib/constants/transfers'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
+import { isActiveRef } from '@/lib/utils/is-active-ref'
 import type { ScanModeT } from '@/lib/constants/receipt-scan'
 import { pl } from '@/lib/i18n/dictionaries/pl'
 import {
@@ -41,8 +43,8 @@ type LineItemsArrayFieldT = {
   removeValue: (index: number) => void
 }
 
-type CategoryFieldConfigT = {
-  fieldName: 'category' | 'expenseCategory'
+type RowSelectConfigT = {
+  fieldName: 'category' | 'expenseCategory' | 'worker'
   label: string
   placeholder: string
   options: { id: number; name: string }[]
@@ -86,7 +88,7 @@ type LineItemsFieldPropsT = {
   generationProgress?: { done: number; total: number } | null
 }
 
-const otherCategoryConfig = (refData: ReferenceDataBaseT): CategoryFieldConfigT => ({
+const otherCategoryConfig = (refData: ReferenceDataBaseT): RowSelectConfigT => ({
   fieldName: 'category',
   label: 'Kategoria',
   placeholder: 'Opcjonalnie',
@@ -97,7 +99,7 @@ function getInlineCategory(
   type: string,
   refData: ReferenceDataBaseT,
   hasInvestment?: boolean,
-): CategoryFieldConfigT | undefined {
+): RowSelectConfigT | undefined {
   if (needsExpenseCategory(type, hasInvestment)) {
     return {
       fieldName: 'expenseCategory',
@@ -110,15 +112,22 @@ function getInlineCategory(
   return undefined
 }
 
+const workerConfig = (refData: ReferenceDataBaseT): RowSelectConfigT => ({
+  fieldName: 'worker',
+  label: 'Pracownik',
+  placeholder: 'Opcjonalnie',
+  options: refData.workers.filter(isActiveRef),
+})
+
 function getSecondRowCategory(
   type: string,
   refData: ReferenceDataBaseT,
-): CategoryFieldConfigT | undefined {
+): RowSelectConfigT | undefined {
   if (needsExpenseCategory(type) && showsOtherCategory(type)) return otherCategoryConfig(refData)
   return undefined
 }
 
-function CategorySelect({
+function RowSelect({
   form,
   index,
   config,
@@ -126,7 +135,7 @@ function CategorySelect({
 }: {
   form: BulkExpenseFormApiT
   index: number
-  config: CategoryFieldConfigT
+  config: RowSelectConfigT
   fieldClassName?: string
 }) {
   return (
@@ -168,6 +177,7 @@ export function LineItemsField({
   const inlineCategory = getInlineCategory(transferType, referenceData, hasInvestment)
   const showsNetAmount = billsNetAmount(transferType)
   const secondRowCategory = getSecondRowCategory(transferType, referenceData)
+  const rowWorker = hasOptionalWorker(transferType) ? workerConfig(referenceData) : undefined
   // Fresh per call — each pushed row needs its own `id` (a shared object would collide ids).
   const newItem = () =>
     makeLineItem(defaultExpenseCategory ? { expenseCategory: defaultExpenseCategory } : undefined)
@@ -306,7 +316,7 @@ export function LineItemsField({
                         )}
                       </form.AppField>
                       {inlineCategory && (
-                        <CategorySelect
+                        <RowSelect
                           form={form}
                           index={index}
                           config={inlineCategory}
@@ -346,10 +356,18 @@ export function LineItemsField({
                     </div>
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
                       {secondRowCategory && (
-                        <CategorySelect
+                        <RowSelect
                           form={form}
                           index={index}
                           config={secondRowCategory}
+                          fieldClassName="min-w-0 flex-1"
+                        />
+                      )}
+                      {rowWorker && (
+                        <RowSelect
+                          form={form}
+                          index={index}
+                          config={rowWorker}
                           fieldClassName="min-w-0 flex-1"
                         />
                       )}

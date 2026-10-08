@@ -31,6 +31,8 @@ const lineItemClientSchema = z.object({
   invoiceNote: z.string(),
   category: z.string(),
   expenseCategory: z.string(),
+  // `.catch` for the same reason as netAmount: older recovery snapshots carry no per-row worker.
+  worker: z.string().catch(''),
 })
 
 export const bulkExpenseFormSchema = z

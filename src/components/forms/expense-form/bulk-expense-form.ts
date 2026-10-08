@@ -36,6 +36,7 @@ export function makeLineItem(overrides?: Partial<BulkLineItemT>): BulkLineItemT 
     invoiceNote: '',
     category: '',
     expenseCategory: '',
+    worker: '',
     ...overrides,
   }
 }

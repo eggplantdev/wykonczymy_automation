@@ -302,18 +302,18 @@ cover the browser path. Run touched specs with `pnpm exec vitest run <file>`, no
 
 ### Phase 1: Predicate and server write path
 
-- [x] 1.1 `showsWorker` predicate
-- [x] 1.2 Validate hook clears the worker only when `!showsWorker`
-- [x] 1.3 Collection field condition + update access for `OTHER`
-- [x] 1.4 Bulk server schema per-row `worker` + action precedence
-- [x] 1.5 Specs: constants, validate hook, bulk action
+- [x] 1.1 `showsWorker` predicate — 936d4292c
+- [x] 1.2 Validate hook clears the worker only when `!showsWorker` — 936d4292c
+- [x] 1.3 Collection field condition + update access for `OTHER` — 936d4292c
+- [x] 1.4 Bulk server schema per-row `worker` + action precedence — 936d4292c
+- [x] 1.5 Specs: constants, validate hook, bulk action — 936d4292c
 
 ### Phase 2: Per-row worker in the expense form
 
-- [ ] 2.1 Client line-item schema + `makeLineItem` default
-- [ ] 2.2 `mapLineItem` gate
-- [ ] 2.3 Per-row „Pracownik” field in `LineItemsField`
-- [ ] 2.4 Specs: `mapLineItem`, snapshot parse
+- [x] 2.1 Client line-item schema + `makeLineItem` default
+- [x] 2.2 `mapLineItem` gate
+- [x] 2.3 Per-row „Pracownik” field in `LineItemsField`
+- [x] 2.4 Specs: `mapLineItem`, snapshot parse
 
 ### Phase 3: Edit an `OTHER` transfer's worker
 

@@ -1,5 +1,6 @@
 import {
   billsNetAmount,
+  hasOptionalWorker,
   needsExpenseCategory,
   showsOtherCategory,
   type TransferTypeT,
@@ -12,6 +13,7 @@ type FormLineItemT = {
   invoiceNote: string
   category: string
   expenseCategory: string
+  worker: string
 }
 
 type PayloadLineItemT = {
@@ -21,6 +23,7 @@ type PayloadLineItemT = {
   invoiceNote: string | undefined
   category: number | undefined
   expenseCategory: number | undefined
+  worker: number | undefined
 }
 
 /** expenseCategory ("typ wydatku inwestycyjnego") rides only for types that use it —
@@ -44,5 +47,7 @@ export function mapLineItem(
       needsExpenseCategory(type, hasInvestment) && item.expenseCategory
         ? Number(item.expenseCategory)
         : undefined,
+    // PAYOUT/BONUS name their worker once, at form level — never per row.
+    worker: hasOptionalWorker(type) && item.worker ? Number(item.worker) : undefined,
   }
 }
