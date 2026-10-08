@@ -45,10 +45,19 @@ export function CatalogueRowActions({ item, categorySuggestions }: PropsT) {
         title="Usunąć pozycję z katalogu i szablonów?"
         description={
           <>
-            Kosztorysy, do których tę pracę już wstawiono, zostają bez zmian — mają własną kopię
-            ceny i stawek.
+            <p>
+              Kosztorysy, do których tę pracę już wstawiono, zostają bez zmian — mają własną kopię
+              ceny i stawek.
+            </p>
             {templateNames.length > 0 && (
-              <> Zniknie natomiast z szablonów: {templateNames.join(', ')}.</>
+              <>
+                <p className="mt-2">Zniknie natomiast z szablonów:</p>
+                <ul className="mt-1 list-disc pl-5">
+                  {templateNames.map((name) => (
+                    <li key={name}>{name}</li>
+                  ))}
+                </ul>
+              </>
             )}
           </>
         }
