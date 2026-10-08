@@ -4817,3 +4817,17 @@ Regression sweep (console open): horizontal / vertical scroll leaves row heights
       Staging 2026-10-07: 1. klik od najnowszej (07.10.2026), 2. od najstarszej (20.02.2026).
 - [x] Wybór kolumn → „Data dodania” da się ukryć i pokazać, a wybór przetrwa przeładowanie strony.
       Staging 2026-10-07: ukrycie przetrwało przeładowanie; przywrócone.
+
+## EX-1025 — invoice-duplicate-detection — duplikaty paragonów przy akceptacji zgłoszeń wydatków (2026-10-08)
+
+- [ ] „Zgłoszenia wydatków" → otwórz zgłoszenie, którego paragon jest fakturą: wiersz paragonu pokazuje odczytane „Nr dokumentu", „NIP sprzedawcy" (sprzedawcy, nie nasz) i „Data na paragonie".
+- [ ] „Dodaj wydatek" → między wierszem pliku a „Notatką" stoi wiersz z polami „Nr dokumentu", „NIP sprzedawcy" i „Data na paragonie"; „Skanuj" / „Odczytaj ponownie" wypełnia wszystkie trzy.
+- [ ] Zapisz wydatek → otwórz transakcję w „Edytuj": trzy pola mają zapisane wartości. Zmień NIP i zapisz — zmiana zostaje.
+- [ ] „NIP sprzedawcy" z 9 cyframi: formularz nie zapisuje i pokazuje „NIP musi mieć 10 cyfr". Puste pole zapisuje się bez błędu.
+- [ ] Na szerokości 390px trzy pola stoją jedno pod drugim; od 768px w jednym rzędzie.
+- [ ] Dwa oczekujące zgłoszenia (od różnych pracowników) z tym samym paragonem, odczytanym z różnym numerem: otwarcie jednego pokazuje drugie w „Możliwe duplikaty" jako czerwone dopasowanie.
+- [ ] Zgłoszenie z dwoma paragonami, z których jeden powtarza zaksięgowaną transakcję: zmień coś przy drugim paragonie, potem „Duplikat" przy dopasowaniu — paragon znika z formularza, zmiana zostaje, nic się jeszcze nie zapisało. Zaakceptuj: powstaje jedna transakcja, a w historii zgłoszeń pominięty paragon ma „Odrzucone" i obok „Duplikat #id".
+- [ ] Zgłoszenie z jednym paragonem → „Duplikat": zgłoszenie od razu jest odrzucone, kolejka pokazuje „Duplikat #id", a pracownik na swojej stronie widzi tylko „Odrzucone", bez słowa o duplikacie.
+- [ ] „OK, to nie duplikat" chowa wiersz; zamknij i otwórz okno ponownie — wiersz wraca.
+- [ ] Filtr „Duplikaty" na „Zgłoszeniach wydatków": zostają tylko zgłoszenia oznaczone jako duplikat.
+- [ ] Zgłoszenie, którego odczyt AI się nie udał: w miejscu podpowiedzi stoi komunikat, a nie wieczne „Sprawdzanie duplikatów…".
