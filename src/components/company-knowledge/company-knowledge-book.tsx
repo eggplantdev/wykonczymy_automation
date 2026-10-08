@@ -102,15 +102,15 @@ export function CompanyKnowledgeBook({
       const tempId = -Date.now()
       setEntries([{ id: tempId, ...data, updatedAt }, ...entries])
       const result = await settleAction(() => createCompanyKnowledgeAction(data))
-      if (result.success && result.data) {
-        const { id } = result.data
-        setEntries((current) =>
-          current.map((entry) => (entry.id === tempId ? { ...entry, id } : entry)),
-        )
+      if (!result.success) {
+        setEntries(previous)
+        toastMessage(result.error ?? 'Nie udało się dodać wpisu', 'error', 4000)
         return
       }
-      setEntries(previous)
-      toastMessage(result.error ?? 'Nie udało się dodać wpisu', 'error', 4000)
+      const { id } = result.data
+      setEntries((current) =>
+        current.map((entry) => (entry.id === tempId ? { ...entry, id } : entry)),
+      )
       return
     }
 
