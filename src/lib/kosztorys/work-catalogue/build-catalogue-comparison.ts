@@ -206,6 +206,10 @@ export function buildCatalogueComparison(
     }
     // `?? null`: a katalog cached before the column existed has no `workNote` key at all.
     entryByItemId.set(item.id, { id: entry.id, note: entry.workNote ?? null })
+    if (settings.linkedRowsAreCatalogue && item.catalogueItemId === entry.id) {
+      matching += 1
+      continue
+    }
 
     const pricing = asPricing(item, settings)
     const figures = [
