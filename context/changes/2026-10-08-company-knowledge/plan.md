@@ -485,10 +485,10 @@ The full suite is not run unasked (owner rule); the touched specs are listed per
 
 #### Automated
 
-- [x] 3.1 Button/dialog DOM spec passes
+- [x] 3.1 Button/dialog DOM spec passes — a94a00b00
 
 ### Phase 4: The agent's read path
 
 #### Automated
 
-- [ ] 4.1 No automated check (manual run against production)
+- [x] 4.1 No automated check (manual run against production) — prod run owed in manual-checks

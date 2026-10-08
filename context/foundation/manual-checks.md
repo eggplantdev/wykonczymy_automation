@@ -4945,3 +4945,6 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
 - [ ] Telefon, 390px: menu → „Wiedza firmowa” zamyka menu i otwiera okno na cały ekran; tekst czytelny,
       przyciski osiągalne. Górny pasek nie pokazuje drugiego przycisku.
 - [ ] Jako EMPLOYEE: brak przycisku w górnym pasku i w menu mobilnym.
+- [ ] `dump-knowledge-prod.ts` dla przypadku (sesja produkcyjna): `inputs/wiedza-firmowa.md` ma
+      każdy wpis z okna w tej samej kolejności i każdy Komentarz do pracy z katalogu. Wpis dodany w
+      oknie pojawia się po kolejnym uruchomieniu.
