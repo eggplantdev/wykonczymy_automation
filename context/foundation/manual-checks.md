@@ -4852,3 +4852,11 @@ Regression sweep (console open): horizontal / vertical scroll leaves row heights
 - [ ] Zgłoszenie z paragonem o tej samej kwocie co zaksięgowany wydatek, ale z innego sklepu i dnia: „Możliwe duplikaty" go nie pokazuje.
 - [ ] Zgłoszenie z paragonem o tej samej kwocie co wydatek zaksięgowany w ostatnich 3 miesiącach bez „Opisu" i numeru: „Możliwe duplikaty" pokazuje go jako szare „Ta sama kwota", poniżej czerwonych dopasowań. Ten sam wydatek zaksięgowany ponad 3 miesiące temu się nie pokazuje.
 - [ ] Okno „Nowy wydatek" ze zgłoszenia z duplikatem: tabela „Możliwe duplikaty" stoi w czerwonej ramce nad pozycjami, z wyraźnym odstępem od pól nad i pod nią; „Zapisz jako domyślną kasę" stoi tuż pod polem „Kasa". Gdy wszystkie dopasowania to „Ta sama kwota", ramka i nagłówek są szare.
+
+## 2026-10-08 — transfer-cards (spike) — widok kart transakcji na telefonie
+
+- [ ] Transakcje → przełącznik Tabela/Karty przy wyszukiwarce: obie ikony widoczne także przy 390px; „Karty” pokazuje listę kart, adres dostaje `?view=list`, a strona listy się nie zmienia.
+- [ ] Widok kart przy 390px: jedna obramowana lista z separatorami; od 768px osobne karty z cieniem, nie szersze niż ~48rem.
+- [ ] Karta: numer i data w pierwszej linii, badge typu pod nimi, kwota w kolorze typu; anulowana transakcja przekreślona i wyszarzona.
+- [ ] Kolumna „Typ” w tabeli i badge na karcie: każdy typ ma inny kolor kropki, wszystkie wydatki i wypłata są w odcieniach czerwieni, wpłaty w zieleniach; rozliczony wydatek ma różowy.
+- [ ] Stopka karty: przyciski z tekstem „FV”, „Edytuj”, „Anuluj” (i „Notatka”, gdy jest notatka) otwierają te same okna co ikony w tabeli; w tabeli zostają same ikony.

@@ -266,6 +266,33 @@ export const TRANSFER_TYPE_LABELS: Record<TransferTypeT, string> = mapSpecs((s) 
 
 export const TRANSFER_TYPE_COLORS: Record<TransferTypeT, string> = mapSpecs((s) => s.color)
 
+// One hue per type, so the badge and the amount tell the types apart — `TRANSFER_TYPE_COLORS` shares
+// hues (green in, red out). Every outgoing type still gets a red.
+export const TRANSFER_TYPE_DISPLAY_COLORS: Record<TransferTypeT, string> = {
+  CANCELLATION: 'muted-foreground',
+  INVESTOR_DEPOSIT: 'section-green',
+  OTHER_DEPOSIT: 'section-teal',
+  COMPANY_FUNDING: 'section-green-deep',
+  RABAT: 'section-yellow-deep',
+  INVESTMENT_EXPENSE: 'section-red',
+  INVESTMENT_EXPENSE_NET: 'transfer-red-dark',
+  OTHER: 'transfer-red-warm',
+  PAYOUT: 'section-red-deep',
+  CORRECTION: 'section-orange',
+  LABOR_COST: 'section-orange-deep',
+  BONUS: 'section-yellow',
+  LOSS: 'section-purple',
+  REGISTER_TRANSFER: 'section-turquoise',
+}
+
+export const transferDisplayColor = ({
+  type,
+  settled,
+}: {
+  type: TransferTypeT
+  settled?: boolean
+}) => (settled ? SETTLED_TYPE.color : TRANSFER_TYPE_DISPLAY_COLORS[type])
+
 export const EXPENSE_CATEGORY_LABEL = 'Typ wydatku inwestycyjnego'
 
 // Matched by NAME against the `expense-categories` rows, because the collection carries no

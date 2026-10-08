@@ -23,6 +23,11 @@ import { sortParamToSortingState, sortingStateToParam } from '@/lib/table/sort-p
 import { validTransferSort } from '@/lib/queries/transfer-sort'
 import { useUrlFilterParams } from '@/hooks/use-url-filter-params'
 import { useTranslation } from '@/hooks/use-translation'
+import { TransferCardList } from '@/components/transfers/cards/transfer-card-list'
+import {
+  TransferViewSwitch,
+  parseTransferView,
+} from '@/components/transfers/cards/transfer-view-switch'
 
 type TransferDataTablePropsT = {
   data: TransferRowT[]
@@ -58,6 +63,8 @@ export function TransferDataTable({
   const { updateParam } = useUrlFilterParams(baseUrl)
   const sorting = sortParamToSortingState(validTransferSort(searchParams.get('sort') ?? undefined))
 
+  const view = parseTransferView(searchParams.get('view'))
+
   const columns = getTransferColumns(excludeColumns, {
     referenceData,
     currentUserId,
@@ -91,6 +98,7 @@ export function TransferDataTable({
         sorting={sorting}
         onSortingChange={(next) => updateParam('sort', sortingStateToParam(next))}
         getRowClassName={transferRowClassName}
+        renderRows={view === 'list' ? (rows) => <TransferCardList rows={rows} /> : undefined}
         toolbar={({ table, columnVisibility: cv, ...order }) => (
           <DataTableToolbar
             className="mt-8"
@@ -98,6 +106,7 @@ export function TransferDataTable({
             columns={<ColumnToggle table={table} columnVisibility={cv} {...order} />}
             actions={
               <>
+                <TransferViewSwitch baseUrl={baseUrl} />
                 {invoiceDownload && <InvoiceDownloadButton fetchRows={fetchRows} />}
                 {print && (
                   <PrintTransfersButton

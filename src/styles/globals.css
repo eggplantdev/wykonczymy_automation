@@ -167,6 +167,18 @@
   --animate-collapse-up: collapse-up 200ms ease-out;
 }
 
+:root {
+  /* Two more reds for the transfer types: every outgoing type stays red, and there are four of
+     them — the section's soft red reads as pink. Outside @theme because only inline styles read
+     them, and Tailwind drops a theme variable no utility class uses. */
+  --color-transfer-red-dark: color-mix(in oklch, var(--color-chart-red) 58%, black);
+  --color-transfer-red-warm: color-mix(
+    in oklch,
+    var(--color-chart-red) 65%,
+    var(--color-chart-orange)
+  );
+}
+
 /* The dark palette: overriding the semantic tokens here flips the whole token-driven UI without
    touching a component. Light values stay the source of truth in @theme above.
    Text runs brighter than shadcn's stock scale (foreground 1 instead of 0.985, muted 0.78 instead

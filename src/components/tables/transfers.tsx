@@ -8,14 +8,10 @@ import { formatPLDate, formatPLDateTime } from '@/lib/utils/format-date'
 import { InvoiceCell } from '@/components/transfers/invoice-cell'
 import { NotePopover } from '@/components/transfers/note-popover'
 import { CancelTransferButton } from '@/components/transfers/cancel-transfer-button'
+import { TransferTypeBadge } from '@/components/transfers/transfer-type-badge'
 import { EditTransferDialog } from '@/components/dialogs/edit-transfer-dialog'
 import { canMutateTransfer, isManagementRole, type RoleT } from '@/lib/auth/roles'
-import {
-  TRANSFER_TYPE_COLORS,
-  isCancellationType,
-  SETTLED_TYPE,
-  billsNetAmount,
-} from '@/lib/constants/transfers'
+import { isCancellationType, billsNetAmount, transferDisplayColor } from '@/lib/constants/transfers'
 import { POLISH_TRANSFERS, type TranslatorT } from '@/lib/i18n/translations'
 import { INVESTMENT_LOCKED_MESSAGE, isBookableInvestment } from '@/lib/constants/investment-lock'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
@@ -53,16 +49,19 @@ const buildColumns = (translator: TranslatorT<'transfers'>) => {
       header: t('colAmount'),
       meta: { printValue: (row) => transferAmountText(row, translator) },
       cell: (info) => {
-        const { type, cancelled, settled, netAmount } = info.row.original
+        const { type, cancelled, netAmount } = info.row.original
         const isMuted = cancelled || type === 'CANCELLATION'
-        const color = settled ? SETTLED_TYPE.color : TRANSFER_TYPE_COLORS[type]
         // Brutto stays the primary figure: this column is summed against the kasa balance, and only
         // the amount that left the register reconciles there.
         const showsNet = billsNetAmount(type) && netAmount !== null
         return (
           <span
             className="flex flex-col font-medium"
-            style={isMuted ? undefined : { color: `var(--color-${color})` }}
+            style={
+              isMuted
+                ? undefined
+                : { color: `var(--color-${transferDisplayColor(info.row.original)})` }
+            }
           >
             {formatPLN(info.getValue())}
             {showsNet && (
@@ -103,7 +102,7 @@ const buildColumns = (translator: TranslatorT<'transfers'>) => {
       meta: { minWidth: 'min-w-56', printValue: (row) => transferTypeText(row, translator) },
       cell: (info) => (
         <span className="flex flex-wrap items-center gap-1">
-          {transferTypeText(info.row.original, translator)}
+          <TransferTypeBadge transfer={info.row.original} translator={translator} />
           {info.row.original.fromWorkerDraft && (
             <span className={cn(BADGE_BASE, BADGE_TONE.muted)}>{t('fromWorker')}</span>
           )}

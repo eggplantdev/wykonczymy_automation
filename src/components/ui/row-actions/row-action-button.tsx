@@ -2,6 +2,7 @@ import type { LucideIcon } from 'lucide-react'
 import { Button, type ButtonPropsT } from '@/components/ui/button'
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils/cn'
+import { useRowActionLabels } from './row-action-labels'
 
 export type RowActionButtonPropsT = Omit<ButtonPropsT, 'variant' | 'size' | 'children'> & {
   icon: LucideIcon
@@ -32,6 +33,8 @@ export function RowActionButton({
   disabled,
   ...props
 }: RowActionButtonPropsT) {
+  const isLabelled = useRowActionLabels()
+
   if (showLabel) {
     return (
       <Button
@@ -51,13 +54,22 @@ export function RowActionButton({
   const button = (
     <Button
       size="xs"
-      variant={tone === 'destructive' ? 'ghostDestructive' : 'ghost'}
-      className={cn('px-1.5', className)}
+      variant={
+        tone === 'destructive'
+          ? isLabelled
+            ? 'outlineDestructive'
+            : 'ghostDestructive'
+          : isLabelled
+            ? 'outline'
+            : 'ghost'
+      }
+      className={cn(!isLabelled && 'px-1.5', className)}
       aria-label={label}
       disabled={disabled}
       {...props}
     >
       <Icon />
+      {isLabelled && <span>{text ?? label}</span>}
     </Button>
   )
 

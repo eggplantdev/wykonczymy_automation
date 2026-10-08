@@ -7,8 +7,9 @@ export type MediaPreviewTriggerPropsT = {
   ariaLabel: string
   onClick: () => void
   // `compact` defaults to the ghost icon-button's 36px box but lets `className` override it — the
-  // transfers table and a fixed-height virtualized row have different height budgets.
-  variant?: 'field' | 'compact'
+  // transfers table and a fixed-height virtualized row have different height budgets. `chip` is the
+  // smallest button that still prints `label`.
+  variant?: 'field' | 'compact' | 'chip'
   className?: string
 }
 
@@ -20,6 +21,7 @@ export function MediaPreviewTrigger({
   className,
 }: MediaPreviewTriggerPropsT) {
   const isCompact = variant === 'compact'
+  const isChip = variant === 'chip'
 
   return (
     <button
@@ -28,9 +30,11 @@ export function MediaPreviewTrigger({
       aria-label={ariaLabel}
       className={cn(
         'text-muted-foreground hover:text-foreground cursor-pointer',
-        isCompact
-          ? cn(buttonVariants({ variant: 'ghost', size: 'icon' }), 'mx-auto')
-          : 'border-input hover:border-primary/50 hover:bg-muted/50 flex h-9 w-full min-w-0 items-center gap-2 rounded-md border px-3 text-sm transition-colors',
+        isChip
+          ? buttonVariants({ variant: 'outline', size: 'xs' })
+          : isCompact
+            ? cn(buttonVariants({ variant: 'ghost', size: 'icon' }), 'mx-auto')
+            : 'border-input hover:border-primary/50 hover:bg-muted/50 flex h-9 w-full min-w-0 items-center gap-2 rounded-md border px-3 text-sm transition-colors',
         className,
       )}
     >

@@ -13,6 +13,9 @@ import { useCurrentUser } from '@/hooks/use-current-user'
 import { isManagementRole } from '@/lib/auth/roles'
 import type { PreviewFileT } from '@/types/media'
 import { useTranslation } from '@/hooks/use-translation'
+import { useRowActionLabels } from '@/components/ui/row-actions/row-action-labels'
+
+const INVOICE_CHIP_TEXT = 'FV'
 
 type InvoiceCellPropsT = {
   transactionId: number
@@ -22,6 +25,12 @@ type InvoiceCellPropsT = {
 export function InvoiceCell({ transactionId, invoices }: InvoiceCellPropsT) {
   const { t } = useTranslation('transfers')
   const { role } = useCurrentUser()
+  const isLabelled = useRowActionLabels()
+  const previewVariant = isLabelled ? 'chip' : 'compact'
+  const previewLabel = isLabelled ? INVOICE_CHIP_TEXT : undefined
+  const iconButtonProps = isLabelled
+    ? ({ variant: 'outline', size: 'xs' } as const)
+    : ({ variant: 'ghost', size: 'icon', className: 'text-muted-foreground' } as const)
   const [uploadOpen, setUploadOpen] = useState(false)
   const { isUploading, uploadFiles } = useInvoiceUpload(transactionId)
   const { visibleInvoices, handleRemove, handleRemoveAll, removalConfirm } = useInvoiceRemoval(
@@ -32,27 +41,28 @@ export function InvoiceCell({ transactionId, invoices }: InvoiceCellPropsT) {
   // The worker sees his own transfers' faktury, but the upload and removal actions refuse him.
   if (!isManagementRole(role)) {
     return invoices.length > 0 ? (
-      <MediaPreviewButton labels={INVOICE_PREVIEW_LABELS} files={invoices} variant="compact" />
+      <MediaPreviewButton
+        labels={INVOICE_PREVIEW_LABELS}
+        files={invoices}
+        variant={previewVariant}
+        label={previewLabel}
+      />
     ) : null
   }
 
   return (
     <>
       {isUploading ? (
-        <Button
-          variant="ghost"
-          size="icon"
-          disabled
-          className="text-muted-foreground"
-          aria-label={t('invoiceUploading')}
-        >
+        <Button {...iconButtonProps} disabled aria-label={t('invoiceUploading')}>
           <Loader2 className="animate-spin" />
+          {isLabelled && INVOICE_CHIP_TEXT}
         </Button>
       ) : visibleInvoices.length > 0 ? (
         <MediaPreviewButton
           labels={INVOICE_PREVIEW_LABELS}
           files={visibleInvoices}
-          variant="compact"
+          variant={previewVariant}
+          label={previewLabel}
           // The preview would sit on top of the upload dialog, so it steps aside before it opens.
           onAdd={(closePreview) => {
             closePreview()
@@ -63,13 +73,12 @@ export function InvoiceCell({ transactionId, invoices }: InvoiceCellPropsT) {
         />
       ) : (
         <Button
-          variant="ghost"
-          size="icon"
+          {...iconButtonProps}
           onClick={() => setUploadOpen(true)}
-          className="text-muted-foreground"
           aria-label={t('invoiceAdd')}
         >
           <Plus />
+          {isLabelled && INVOICE_CHIP_TEXT}
         </Button>
       )}
 
