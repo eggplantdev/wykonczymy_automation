@@ -30,6 +30,9 @@ import { ALL_TRANSLATION_COLUMN_KEYS } from '@/lib/kosztorys/translation-column-
 // through the cell's own dialog. Szablony are where katalog-born prace get curated, so that is where
 // the house knowledge about them gets written.
 //
+// No `note` (EX-1017): a szablon is a list of katalog prace, and a per-row Komentarz would be the one
+// thing on it the katalog does not own. `workNote` is the comment that belongs there.
+//
 // `actions` is on the list despite carrying nothing to the next budowa: the grid runs `lockRows`, so
 // the „Akcje" menu is the only route to usuń / przesuń / wstaw a pozycja. This list reads as "what a
 // szablon carries", which is why a column that is pure affordance was missed once already.
@@ -41,6 +44,5 @@ export const WORKSHOP_VISIBLE_COLUMNS: ReadonlySet<string> = new Set([
   'unit',
   'price',
   ...ALL_PLANE_PRICE_KEYS,
-  'note',
   'workNote',
 ])

@@ -23,7 +23,8 @@ type CollectionT = {
 
 const COLLECTIONS: CollectionT[] = [
   { label: 'sections', table: 'kosztorys_sections', mapper: 'mapSection' },
-  { label: 'items', table: 'kosztorys_items', mapper: 'mapItem' },
+  { label: 'items', table: 'kosztorys_items', mapper: 'mapOwnItem' },
+  { label: 'item katalog overlay', table: 'kosztorys_items', mapper: 'mapCatalogueFields' },
   { label: 'stages', table: 'kosztorys_stages', mapper: 'mapStage' },
   { label: 'progress', table: 'stage_progress', mapper: 'mapProgress' },
 ]
@@ -54,8 +55,9 @@ function rowAccesses(block: string): Set<string> {
 }
 
 function mapperBlock(mapper: string): string {
-  // Each mapper is an arrow function whose object literal closes on a line-initial `})`.
-  const match = SOURCE.match(new RegExp(`const\\s+${mapper}\\b[\\s\\S]*?\\n\\}\\)`, 'm'))
+  // A mapper runs to the first blank line: not every one closes on a `})` (`mapCatalogueFields` is a
+  // ternary), and a closing-brace anchor would run on into the next mapper and borrow its reads.
+  const match = SOURCE.match(new RegExp(`const\\s+${mapper}\\b[\\s\\S]*?(?=\\n\\n|$)`))
   return match?.[0] ?? ''
 }
 

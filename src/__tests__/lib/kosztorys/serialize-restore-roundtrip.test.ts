@@ -141,6 +141,7 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
               wToolsOverrideValue: null,
               ownToolsOverrideValue: null,
               note: null,
+              catalogueItemId: null,
               currentPlannedQty: null,
               aiPlannedQty: null,
               changeReason: null,
@@ -175,6 +176,7 @@ describe.skipIf(!ENV_READY)('serialize → restore round-trip (DB)', () => {
               wToolsOverrideValue: null,
               ownToolsOverrideValue: 88.5,
               note: 'Uwaga: różnica ±5 cm\nDrugi wiersz — ćwierć „cudzysłów"',
+              catalogueItemId: null,
               // Fractional and different from both przedmiary, for the same reason as above.
               currentPlannedQty: 13.5,
               aiPlannedQty: 9.75,

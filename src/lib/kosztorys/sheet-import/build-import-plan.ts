@@ -1,7 +1,5 @@
-import {
-  mergeTranslations,
-  type DescriptionTranslationsT,
-} from '@/lib/i18n/description-translations'
+import { mergeTranslations } from '@/lib/i18n/description-translations'
+import type { CatalogueIdentityT } from '@/lib/kosztorys/work-catalogue/types'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { SNAPSHOT_SCHEMA_VERSION, type SnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
 import type {
@@ -94,9 +92,9 @@ export function buildImportPlan(
   // sheet has no column for either, so this is the owner's answer, given once in the import window —
   // picking them per etap afterwards is ten menus over etapy the grid keeps locked until they are set.
   stageDefaults: StageDefaultsT = { plane: null, workerId: null },
-  // By katalog match key. The sheet has no column for translations, so a praca new to the rozpiska
-  // takes the katalog's, as picking it from the katalog would.
-  catalogueTranslations: ReadonlyMap<string, DescriptionTranslationsT> = new Map(),
+  // By katalog match key. The sheet has no column for translations or for the katalog link, so a praca
+  // new to the rozpiska takes both from the katalog, as picking it from the katalog would.
+  catalogue: ReadonlyMap<string, CatalogueIdentityT> = new Map(),
 ): ImportPlanT {
   const resolvedLaborColumns = resolveLaborColumns(grids.laborGrid, mapping)
   const { missingFields, candidates, pointedFields } = resolvedLaborColumns
@@ -214,6 +212,9 @@ export function buildImportPlan(
         tracksClientPrice: rate?.ownToolsTracksPrice ?? false,
         planeCoeff: coeffs.ownTools,
       })
+      const catalogueEntry = catalogue.get(
+        catalogueKey(sheetItem.description ?? '', sheetItem.unit),
+      )
       const itemId = nextItemId++
       items.push({
         ...sheetItem,
@@ -242,10 +243,13 @@ export function buildImportPlan(
         // Carried on the same key as the note, so a form printed before the import still resolves
         // the pozycja it numbered; an unmatched row is new work and draws a fresh number.
         ref: current?.ref,
+        // A matched praca keeps the entry it already names, even one renamed in the katalog since —
+        // the key match is only the fallback for a praca nothing linked yet.
+        catalogueItemId: current?.catalogueItemId ?? catalogueEntry?.id ?? null,
         // The app's own translation wins per language, unless the sheet renamed the opis under it
         // and the katalog holds one made from the new name; the katalog fills the languages it lacks.
         descriptionTranslations: mergeTranslations(
-          catalogueTranslations.get(catalogueKey(sheetItem.description ?? '', sheetItem.unit)),
+          catalogueEntry?.descriptionTranslations,
           current?.descriptionTranslations,
           sheetItem.description ?? '',
         ),

@@ -1081,7 +1081,36 @@ padły wprost od właściciela, nie są domysłem implementacji:
   nie ma; dopasowanie jest **case-insensitive**, czyli nazwy różniące się wielkością liter to dla
   właściciela jedna sekcja.
 
-### Pozycja ↔ katalog: tożsamość zostaje tekstowa, bez linku po id (2026-10-01)
+### Szablon = lista prac z katalogu; pozycja pamięta swój wpis (EX-1017, 2026-10-08)
+
+**Odwraca decyzję z 2026-10-01 niżej** — zostaje ona jako zapis powodów, na które ten model odpowiada.
+Owner: ceny i treść prac w szablonach są 1:1 z katalogu prac; zła cena w szablonie (big bag 450 vs
+600, „Kosztorys 2026 kolory" nadpisany z kosztorysu klienta) była skutkiem dwóch niezależnych kopii.
+
+- **Miękka referencja, bez FK:** `kosztorys_items.catalogue_item_id`. Martwe id znaczy „nic" — snapshot
+  z usuniętym wpisem przywraca się bez 23503, usunięcie z katalogu nie pisze w zamknięte inwestycje.
+  Odczyt: najpierw zapamiętany wpis, potem klucz opis + j.m. (`resolveCatalogueEntry`) — jedna reguła
+  dla porównania, „już w kosztorysie", zamiany w zgłoszeniu, licznika użycia i „Komentarza do pracy".
+- **Szablon czyta katalog na żywo** (nakładka tylko na wiersze szablonu): opis, j.m., Cena j.m.,
+  stawki, tłumaczenia, komentarz do pracy. Edycja tych pól w szablonie zapisuje się w katalogu,
+  a więc we wszystkich szablonach z tą pracą. Przemianowanie, które trafiłoby w cudzy klucz, jest
+  odmawiane przed pierwszym zapisem. Kolumny „Komentarz" szablon nie ma.
+- **Kosztorys zostaje kopią.** Zapis w katalogu nigdy nie płynie do kosztorysu; pamięta on wpis tylko
+  po to, by „Aktualizuj pozycję w katalogu prac" trafiła w tę samą pracę po przemianowaniu w katalogu.
+- **Zmieniony opis w kosztorysie = inna praca** — „Zapisz jako nową pracę", stary wpis zostaje, pozycja
+  przepina się na nowy. Kosztorys nigdy nie przemianowuje wpisu katalogu (zmieniłby pracę we
+  wszystkich szablonach). Okno mówi, które szablony zmieni aktualizacja.
+- **„Zapisz jako szablon" / „Nadpisz" bierze tylko prace z katalogu.** Wpisane ręcznie są pomijane
+  z komunikatem „Pominięto N prac spoza katalogu…" — nie trafiają do katalogu same, bo wciągnęłyby
+  cenę klienta do cennika.
+- **Katalog ostrzega:** edycja i usunięcie wpisu wymieniają szablony, które go mają; usunięcie zabiera
+  pracę także ze szablonów (również w koszu). Kosztorysy zachowują kopię.
+- Tłumaczenia w zgłoszeniu pracy dalej czyta kopia w pozycji kosztorysu — link ich nie dotyczy.
+- Istniejące pozycje dostały link jednorazowo, po opisie + j.m.
+  (`src/scripts/link-kosztorys-items-to-catalogue.ts`); wiersz szablonu tylko przy zgodności we
+  wszystkich polach katalogu.
+
+### Pozycja ↔ katalog: tożsamość zostaje tekstowa, bez linku po id (2026-10-01) — ODWRÓCONE przez EX-1017
 
 Link `kosztorys_items` → `work_catalogue_items` (nullable FK) był proponowany **dwa razy** i dwa razy
 odpadł: `katalog-prac-identity` (2026-09-17, „katalog doradczy", powód tylko w `3baa7e09`) oraz

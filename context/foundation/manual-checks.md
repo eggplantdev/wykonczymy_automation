@@ -4852,3 +4852,17 @@ Regression sweep (console open): horizontal / vertical scroll leaves row heights
 - [ ] Zgłoszenie z paragonem o tej samej kwocie co zaksięgowany wydatek, ale z innego sklepu i dnia: „Możliwe duplikaty" go nie pokazuje.
 - [ ] Zgłoszenie z paragonem o tej samej kwocie co wydatek zaksięgowany w ostatnich 3 miesiącach bez „Opisu" i numeru: „Możliwe duplikaty" pokazuje go jako szare „Ta sama kwota", poniżej czerwonych dopasowań. Ten sam wydatek zaksięgowany ponad 3 miesiące temu się nie pokazuje.
 - [ ] Okno „Nowy wydatek" ze zgłoszenia z duplikatem: tabela „Możliwe duplikaty" stoi w czerwonej ramce nad pozycjami, z wyraźnym odstępem od pól nad i pod nią; „Zapisz jako domyślną kasę" stoi tuż pod polem „Kasa". Gdy wszystkie dopasowania to „Ta sama kwota", ramka i nagłówek są szare.
+
+## EX-1017 — template-from-catalogue — szablon jako lista prac z katalogu (2026-10-08)
+
+Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
+
+- [ ] Szablon → edytor: Cena j.m., stawki i tłumaczenia każdej pracy są takie same jak przy tej pracy w „Katalogu prac”; kolumny „Komentarz” nie ma, „Komentarz do pracy” jest.
+- [ ] Szablon → zmień Cenę j.m. pracy: „Katalog prac” pokazuje nową cenę, a drugi szablon z tą pracą też ją pokazuje po przeładowaniu; żaden kosztorys inwestycji się nie zmienia.
+- [ ] Szablon → zmień opis pracy na opis innej, istniejącej pracy z katalogu: zapis jest odrzucony z komunikatem, w katalogu i szablonie nic się nie zmienia.
+- [ ] Katalog prac → „Edytuj” pracę, która jest w szablonie: okno ostrzega i wymienia nazwy szablonów.
+- [ ] Katalog prac → usuń pracę, która jest w szablonie: potwierdzenie wymienia szablony; po usunięciu praca znika z tych szablonów, a kosztorysy inwestycji ją zachowują.
+- [ ] Kosztorys założony z szablonu → zmień Cenę j.m. → menu wiersza „Aktualizuj pozycję w katalogu prac”: okno mówi „Zmieni cenę w szablonach: …”, po zapisie toast „Zaktualizowano pozycję katalogu”, nowa cena jest w katalogu i szablonie; inne kosztorysy bez zmian.
+- [ ] Kosztorys → zmień opis pracy pochodzącej z katalogu → menu wiersza: okno ma tytuł „Zapisz jako nową pracę” i mówi, że stara praca zostaje w katalogu bez zmian; po zapisie w katalogu są obie prace.
+- [ ] Kosztorys z pracą wpisaną ręcznie (spoza katalogu) → „Zapisz jako nowy szablon…”: opis okna mówi, że szablon zapamiętuje tylko sekcje i prace; po zapisie toast „Pominięto 1 pracę spoza katalogu — najpierw zapisz je do katalogu.”, a nowy szablon nie ma tej pracy; katalog jej nie dostał.
+- [ ] Szablon → przemianuj pracę (tylko opis) → kosztorys założony wcześniej z tą pracą nadal pokazuje jej „Komentarz do pracy”.

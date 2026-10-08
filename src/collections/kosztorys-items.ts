@@ -59,6 +59,9 @@ export const KosztorysItems: CollectionConfig = {
     { name: 'wToolsOverrideCoeff', type: 'number', min: 0 },
     { name: 'ownToolsOverrideCoeff', type: 'number', min: 0 },
     { name: 'note', type: 'text', label: { en: 'Note', pl: 'Komentarz' } },
+    // EX-1017: the katalog prac entry this pozycja was taken from or saved to. A soft reference —
+    // no FK, so it may name an entry deleted since (see the migration).
+    { name: 'catalogueItemId', type: 'number', admin: { readOnly: true } },
     // EX-1006: an agent's draft and the manager's review of it. AI przedmiar is written only by the
     // draft loader through the Local API — the grid shows it and never edits it.
     {

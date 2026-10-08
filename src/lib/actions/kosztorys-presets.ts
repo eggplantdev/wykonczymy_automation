@@ -6,8 +6,9 @@ import { investmentAction } from '@/lib/actions/investment-action'
 import { ownerOnlyAction } from '@/lib/actions/owner-only-action'
 import { protectedAction, validateAction } from '@/lib/actions/run-action'
 import { KOSZTORYS_TREE_TAGS } from '@/lib/cache/tags'
-import { getDb } from '@/lib/db/get-db'
+import { getDb, type DbExecutorT } from '@/lib/db/get-db'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
+import { listCatalogueItemsByIds } from '@/lib/db/work-catalogue'
 import {
   isTemplateInvestment,
   markPresetEdited,
@@ -21,6 +22,7 @@ import {
   type AppendedSliceT,
   type SectionSliceT,
 } from '@/lib/kosztorys/append-preset-sections'
+import { keepCataloguedItems, skippedItemsWarning } from '@/lib/kosztorys/catalogued-preset-items'
 import { createTemplate } from '@/lib/kosztorys/create-template'
 import {
   reloadInvestmentFromPreset,
@@ -59,6 +61,17 @@ const savePresetSchema = z.discriminatedUnion('mode', [
 
 const preOverwriteLabel = (sourceName: string) => `Przed nadpisaniem: ${sourceName}`
 
+async function cataloguedPresetTree(db: DbExecutorT, tree: SnapshotPayloadT) {
+  const ids = tree.items.flatMap((item) =>
+    item.catalogueItemId == null ? [] : [item.catalogueItemId],
+  )
+  const live = await listCatalogueItemsByIds(db, [...new Set(ids)])
+  return keepCataloguedItems(tree, new Set(live.map((entry) => entry.id)))
+}
+
+const savedPreset = (skipped: number): ActionResultT =>
+  skipped > 0 ? { success: true, warning: skippedItemsWarning(skipped) } : { success: true }
+
 // „Zapisz jako szablon" — the source's rozpiska with job fields stripped. `new` founds a szablon;
 // `overwrite` replaces an existing one's tree, leaving a restore point on it, so the overwrite is
 // undoable from that szablon's „Wersje".
@@ -77,17 +90,21 @@ export async function savePresetAction(
       const data = parsed.data
 
       if (data.mode === 'new') {
+        let skipped = 0
         const created = await withPayloadTransaction(
           payload,
-          async (req) =>
-            createTemplate(payload, req, {
-              name: data.name,
-              tree: await serializeKosztorysAsPreset(investmentId, req),
-            }),
+          async (req) => {
+            const kept = await cataloguedPresetTree(
+              await getDb(payload, req),
+              await serializeKosztorysAsPreset(investmentId, req),
+            )
+            skipped = kept.skipped
+            return createTemplate(payload, req, { name: data.name, tree: kept.tree })
+          },
           SKIP_HOOK_REVALIDATION,
         )
         if (typeof created === 'string') return nameHeldError(created)
-        return { success: true }
+        return savedPreset(skipped)
       }
 
       if (data.targetId === investmentId) {
@@ -100,15 +117,16 @@ export async function savePresetAction(
       const sourceName = await db.execute(
         sql`SELECT name FROM investments WHERE id = ${investmentId}`,
       )
+      const kept = await cataloguedPresetTree(db, await serializeKosztorysAsPreset(investmentId))
       await replaceTreeWithSnapshot(payload, {
         investmentId: data.targetId,
         label: preOverwriteLabel(String(sourceName.rows[0]?.name ?? '')),
         takenBy: user.id,
-        tree: await serializeKosztorysAsPreset(investmentId),
+        tree: kept.tree,
         clearGlobalDiscount: true,
       })
       await markPresetEdited(db, data.targetId)
-      return { success: true }
+      return savedPreset(kept.skipped)
     },
     ['presets'],
   )

@@ -1,12 +1,12 @@
 ---
 change_id: template-from-catalogue
 title: Szablon jako lista prac z katalogu — ceny wyłącznie w katalogu prac
-status: new
+status: implemented
 created: 2026-10-07
-updated: 2026-10-07
+updated: 2026-10-08
 archived_at: null
-branch: null
-worktree: null
+branch: ex-1017-template-from-catalogue
+worktree: .claude/worktrees/ex-1017
 ---
 
 ## Notes
@@ -42,8 +42,10 @@ dostaje 450.
 5. **Zmiana lub usunięcie wpisu katalogu, który jest w szablonach → ostrzeżenie.**
 6. **Kosztorys jest niezależny:** kopia w chwili założenia. Zmiany w katalogu nigdy same do niego
    nie płyną.
-7. **Praca w kosztorysie pamięta swój wpis katalogu** (id). Unikalne id już identyfikuje
-   tłumaczenia przy zgłaszaniu pracy.
+7. **Praca w kosztorysie pamięta swój wpis katalogu** (id). Przed EX-1017 żadna go nie pamiętała —
+   wszystko dopasowywało się po opisie + j.m. Link nie dotyczy tłumaczeń w zgłoszeniu pracy:
+   zgłoszenie wskazuje pozycję kosztorysu i czyta tłumaczenia z jej własnej kopii (research:
+   wcześniejsze „id już identyfikuje tłumaczenia przy zgłaszaniu" było nieprawdą) — i tak zostaje.
 8. **3× „Nowa praca" w obu szablonach — do usunięcia.**
 9. **Przedmiar i etapy:** szablon ich nie trzyma i nie trzymał — `serialize-preset.ts` zeruje
    Przedmiar i pomija etapy (na prodzie oba szablony: 0 / 310 z Przedmiarem, 0 wykonanych).
@@ -87,8 +89,15 @@ Cena wynegocjowana z jednym klientem zostaje w jego kosztorysie — do katalogu 
    potwierdził 2026-10-07). Otwarte zostają 2 listwy i „Zabezpieczenia…" w m².
 2. **Istniejące kosztorysy:** czy przy przejściu ich prace dostają zapamiętany wpis katalogu
    (dopasowanie po opisie + j.m.), czy tylko kosztorysy zakładane od teraz?
+   **Rozstrzygnięte (owner 2026-10-08): dostają** — jednorazowo, po opisie + j.m.
 3. **Zmiana / usunięcie wpisu katalogu, który jest w szablonie:** samo ostrzeżenie, czy usunięcie
    zablokowane?
+   **Rozstrzygnięte (owner 2026-10-08): ostrzeżenie z listą szablonów**, a usunięcie z katalogu
+   usuwa tę pracę także ze wszystkich szablonów (również tych w koszu). Kosztorysy zachowują kopię.
+4. **„Komentarz" w szablonie** — **rozstrzygnięte (owner 2026-10-08): usunięty** z szablonu;
+   „Komentarz do pracy" go zastępuje.
+5. **Zła cena wpisana w szablonie** — **rozstrzygnięte (owner 2026-10-08): poprawka ręczna**, bez
+   historii katalogu.
 
 ### Do sprawdzenia z kierownikiem — big bag 450 / 600
 
@@ -188,10 +197,29 @@ prac (EX-1017)"):
 Stan produ po porządkach (2026-10-08): wszystkie 302 prace szablonu mają wpis w katalogu i zgadzają
 się z nim w każdym polu — cena, obie stawki **razem z trybem** (auto / mnożnik / kwota), tłumaczenia.
 
+### Przejście na prodzie — runbook (wykonuje człowiek)
+
+Kolejność ma znaczenie: kolumna jest addytywna, więc migracja idzie **przed** pushem.
+
+1. Świeża kopia produ, ponowne porównanie szablonu z katalogiem (`sync/export.sh` + `sync/diff.ts`,
+   wyżej). Rozjazd od ostatnich porządków rozstrzygnąć tak jak dotąd — szablon wygrywa.
+2. `pnpm db:migrate:prod` — dodaje `kosztorys_items.catalogue_item_id` (stary kod jej nie czyta).
+3. Push brancha / merge, deploy.
+4. Link istniejących pozycji, najpierw na sucho:
+   `DB_POSTGRES_URL="$DB_POSTGRES_URL_PROD" node --env-file=.env --import tsx src/scripts/link-kosztorys-items-to-catalogue.ts`
+   Każdy wypisany wiersz szablonu różniący się od katalogu poprawić (szablon wygrywa), aż lista
+   będzie pusta; potem to samo z `--apply`.
+5. Drugie uruchomienie na sucho musi pokazać 0 do podpięcia.
+6. Skrypt pisze surowym SQL z pominięciem cache — dowolna edycja w katalogu prac odświeża szablony
+   i kosztorysy.
+7. Sprawdzenie: edytor „Kosztorys 2026 kolory" pokazuje te same liczby co przed przejściem (5 prac,
+   w tym kontener ze stawką auto i big bag 450).
+
 ### Widok szablonu: kolumna „Komentarz do pracy"
 
 Prośba ownera 2026-10-08: widok szablonu ma pokazywać kolumnę „Komentarz do pracy" (EX-1006).
-Dziś jest domyślnie ukryta i pojawia się dopiero przy „Przegląd AI".
+Już pokazuje — stoi na zamkniętej liście kolumn szablonu (`WORKSHOP_VISIBLE_COLUMNS`) od
+2026-10-07; owner potwierdził tego samego dnia. Nic do zrobienia.
 
 ### Osobno: jednorazowy skrypt tłumaczeń
 

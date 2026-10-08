@@ -23,6 +23,7 @@ function item(id: number, sectionId: number, overrides: Partial<KosztorysItemT> 
     wToolsOverrideCoeff: null,
     ownToolsOverrideCoeff: null,
     note: null,
+    catalogueItemId: null,
     currentPlannedQty: null,
     aiPlannedQty: null,
     changeReason: null,

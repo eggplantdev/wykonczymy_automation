@@ -105,6 +105,7 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
               sheetMeasuredQty: 7,
               clientPrice: 100,
               note: 'uwaga do pozycji',
+              catalogueItemId: null,
               aiPlannedQty: 8,
               changeReason: 'AI zaniżyło metraż',
               reviewStatus: 'edited',

@@ -3,6 +3,7 @@ import type { Payload, PayloadRequest } from 'payload'
 import { getDb } from '@/lib/db/get-db'
 import { nextSectionDisplayOrder } from '@/lib/kosztorys/display-order'
 import { insertItems, insertSections } from '@/lib/kosztorys/insert-rows'
+import { liveCatalogueIds, withLiveCatalogueId } from '@/lib/kosztorys/insert-kosztorys-tree'
 import {
   itemWithColumnDefaults,
   type StoredSnapshotPayloadT,
@@ -51,7 +52,9 @@ export async function appendPresetSections(
 
   // Items keep the preset's per-section display_order — the offset is a section concern only.
   // itemWithColumnDefaults for the same 23502 reason as a restore: this is a stored payload.
-  const filledSlices = slices.map(({ items }) => items.map(itemWithColumnDefaults))
+  const filled = slices.map(({ items }) => items.map(itemWithColumnDefaults))
+  const live = await liveCatalogueIds(db, filled.flat())
+  const filledSlices = filled.map((items) => items.map((item) => withLiveCatalogueId(item, live)))
   const itemRows = filledSlices.flatMap((items, i) =>
     items.map((item) => ({ sectionId: newSectionIds[i], item })),
   )

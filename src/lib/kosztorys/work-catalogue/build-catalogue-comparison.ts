@@ -13,6 +13,10 @@ import {
   catalogueRateValue,
   catalogueSourceOf,
 } from '@/lib/kosztorys/work-catalogue/catalogue-rate'
+import {
+  indexCatalogue,
+  resolveCatalogueEntry,
+} from '@/lib/kosztorys/work-catalogue/resolve-catalogue-entry'
 import type {
   CatalogueComparisonItemT,
   CatalogueComparisonSettingsT,
@@ -156,7 +160,7 @@ export function buildCatalogueComparison(
   catalogue: readonly WorkCatalogueItemT[],
   settings: CatalogueComparisonSettingsT,
 ): CatalogueComparisonT {
-  const byKey = new Map(catalogue.map((entry) => [entry.matchKey, entry]))
+  const index = indexCatalogue(catalogue)
   // The same praca recurs across sekcje under the same name — a 379-pozycja rozpiska carries only
   // ~198 distinct (opis, j.m.) pairs — so fold each pair once. This runs on every committed
   // keystroke, where `catalogueKey` is the whole cost.
@@ -182,7 +186,9 @@ export function buildCatalogueComparison(
     // A praca with no name is a blank line the owner has not filled in yet, not a rozjazd.
     if (!description) continue
 
-    const entry = byKey.get(keyFor(description, unit))
+    const entry = resolveCatalogueEntry(index, item.catalogueItemId, () =>
+      keyFor(description, unit),
+    )
     if (!entry) {
       // `hints` are filled in by `attachCatalogueHints`, never here — see its docblock.
       missing.push({

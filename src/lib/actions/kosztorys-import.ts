@@ -4,8 +4,8 @@ import { investmentAction } from '@/lib/actions/investment-action'
 import { protectedAction } from '@/lib/actions/run-action'
 import { KOSZTORYS_TREE_TAGS } from '@/lib/cache/tags'
 import { getDb } from '@/lib/db/get-db'
-import { listCatalogueTranslationsByMatchKey } from '@/lib/db/work-catalogue'
-import type { DescriptionTranslationsT } from '@/lib/i18n/description-translations'
+import { listCatalogueIdentitiesByMatchKey } from '@/lib/db/work-catalogue'
+import type { CatalogueIdentityT } from '@/lib/kosztorys/work-catalogue/types'
 import { setSheetMeasuredQty } from '@/lib/db/kosztorys-sheet-measured-qty'
 import { getInvestmentSheet, MISSING_SHEET, type InvestmentSheetT } from '@/lib/google/sheet-lookup'
 import { TOOL_PLANES } from '@/lib/kosztorys/constants'
@@ -80,7 +80,7 @@ async function derivePlan(
   investmentId: number,
   sheet: InvestmentSheetT,
   stageDefaults?: StageDefaultsT,
-  catalogueTranslations?: ReadonlyMap<string, DescriptionTranslationsT>,
+  catalogue?: ReadonlyMap<string, CatalogueIdentityT>,
 ): Promise<ImportPlanT> {
   const grids = await readImportGrids(getReadonlySheetsClient(), sheet.googleSheetId)
   return buildImportPlan(
@@ -88,7 +88,7 @@ async function derivePlan(
     await serializeKosztorys(investmentId),
     sheet.sheetColumnMapping,
     stageDefaults,
-    catalogueTranslations,
+    catalogue,
   )
 }
 
@@ -295,8 +295,8 @@ export async function applyKosztorysImport(
       if (!sheet) return { success: false, error: MISSING_SHEET }
 
       // Outside the try: a database read failing here is not „nie udało się odczytać arkusza".
-      // The preview skips it because translations change nothing it reports.
-      const catalogueTranslations = await listCatalogueTranslationsByMatchKey(await getDb(payload))
+      // The preview skips it because the katalog link and translations change nothing it reports.
+      const catalogue = await listCatalogueIdentitiesByMatchKey(await getDb(payload))
       let plan: ImportPlanT
       try {
         plan = await derivePlan(
@@ -309,7 +309,7 @@ export async function applyKosztorysImport(
                 ? workerId
                 : null,
           },
-          catalogueTranslations,
+          catalogue,
         )
       } catch (error) {
         return { success: false, error: sheetFailureMessage(error) }

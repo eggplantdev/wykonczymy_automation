@@ -39,7 +39,10 @@ export type CatalogueCandidateT = CatalogueSeedItemT &
 
 // What a praca takes over when it accepts a katalog name. The translations come along with the opis:
 // the praca's own were made from the name it is giving up.
-export type CatalogueNameT = Pick<WorkCatalogueItemT, 'description' | 'unit' | 'descriptionTranslations'>
+export type CatalogueNameT = Pick<
+  WorkCatalogueItemT,
+  'description' | 'unit' | 'descriptionTranslations'
+>
 
 // One occurrence of a klucz inside the szablon, kept only so a rozbieżność can be shown with the
 // sekcja it came from — the owner recognises „Łazienka 1 mówi 300 zł" and nothing else.
@@ -83,7 +86,14 @@ export type CatalogueSourceItemT = {
 // already holding its klucz — the presence of the second is the whole nowa/nadpisz question.
 export type CatalogueSavePreviewT = {
   candidate: CatalogueCandidateT
+  // The entry the save writes into — the remembered praca when the opis + j.m. still name it,
+  // otherwise whichever entry holds the candidate's klucz.
   existing: WorkCatalogueItemT | null
+  // The praca the pozycja remembers when the save leaves it for another entry: a changed opis is a
+  // different praca, never a rename of this one.
+  leaving: WorkCatalogueItemT | null
+  // Szablony showing `existing` — the save changes their prices.
+  templateNames: string[]
 }
 
 // A rozjazd is a difference of RODZAJ as much as of kwota: a frozen złotówka against a katalog that
@@ -207,3 +217,7 @@ export type NearDuplicateT = {
 }
 
 export type RowCatalogueEntryT = { id: number; note: string | null }
+
+// What the sheet import needs of a katalog entry, by match key: the id a new pozycja links to and the
+// translations it inherits.
+export type CatalogueIdentityT = Pick<WorkCatalogueItemT, 'id' | 'descriptionTranslations'>

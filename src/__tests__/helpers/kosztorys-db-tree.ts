@@ -102,6 +102,7 @@ export async function createKosztorysTree(
           wToolsOverrideCoeff: item.wToolsOverrideCoeff ?? null,
           ownToolsOverrideCoeff: item.ownToolsOverrideCoeff ?? null,
           note: item.note ?? null,
+          catalogueItemId: item.catalogueItemId ?? null,
           aiPlannedQty: item.aiPlannedQty ?? null,
           changeReason: item.changeReason ?? null,
           reviewStatus: item.reviewStatus ?? null,

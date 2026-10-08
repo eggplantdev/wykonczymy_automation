@@ -1,10 +1,7 @@
 import type { Payload } from 'payload'
 import { describe, expect, it, vi } from 'vitest'
 import { applyCatalogueWrite } from '@/lib/kosztorys/work-catalogue/write-catalogue-entry'
-import type {
-  CatalogueCandidateT,
-  WorkCatalogueItemT,
-} from '@/lib/kosztorys/work-catalogue/types'
+import type { CatalogueCandidateT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
 // The Komentarz do pracy is the katalog's own: a candidate built from a kosztorys row has no comment,
 // so every write from the editor must leave the stored one alone unless a comment was typed.
@@ -30,7 +27,7 @@ const EXISTING: WorkCatalogueItemT = {
 }
 
 function fakePayload() {
-  const create = vi.fn()
+  const create = vi.fn().mockResolvedValue({ id: 99 })
   const update = vi.fn()
   return { payload: { create, update } as unknown as Payload, create, update }
 }
@@ -38,19 +35,22 @@ function fakePayload() {
 const updateData = (update: ReturnType<typeof vi.fn>) => update.mock.calls[0][0].data
 
 describe('applyCatalogueWrite — Komentarz do pracy', () => {
-  it.each([undefined, '', '   '])('leaves the stored comment on an overwrite with %j', async (note) => {
-    const { payload, update } = fakePayload()
+  it.each([undefined, '', '   '])(
+    'leaves the stored comment on an overwrite with %j',
+    async (note) => {
+      const { payload, update } = fakePayload()
 
-    await applyCatalogueWrite(payload, undefined, {
-      candidate: CANDIDATE,
-      existing: EXISTING,
-      keepCatalogueCategory: false,
-      workNote: note,
-    })
+      await applyCatalogueWrite(payload, undefined, {
+        candidate: CANDIDATE,
+        existing: EXISTING,
+        keepCatalogueCategory: false,
+        workNote: note,
+      })
 
-    expect(updateData(update)).not.toHaveProperty('workNote')
-    expect(updateData(update)).toMatchObject({ clientPrice: 30 })
-  })
+      expect(updateData(update)).not.toHaveProperty('workNote')
+      expect(updateData(update)).toMatchObject({ clientPrice: 30 })
+    },
+  )
 
   it('writes a typed comment, trimmed, over the stored one', async () => {
     const { payload, update } = fakePayload()

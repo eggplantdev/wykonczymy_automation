@@ -8,7 +8,8 @@ import { SearchFilterInput } from '@/components/filters/search-filter-input'
 import { CataloguePickerTable } from '@/components/kosztorys/editor/dialogs/catalogue/catalogue-picker-table'
 import { useCatalogueFilters } from '@/components/kosztorys/editor/hooks/use-catalogue-filters'
 import {
-  kosztorysCatalogueKeys,
+  kosztorysCatalogueRefs,
+  takenCatalogueIds,
   type KosztorysItemRefT,
 } from '@/lib/kosztorys/work-catalogue/already-in-kosztorys'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
@@ -36,7 +37,8 @@ export function CatalogueSwapDialog({
     useCatalogueFilters(catalogue)
   const selected = catalogue.find((entry) => entry.id === selectedId)
   const isInRozpiska =
-    selected !== undefined && kosztorysCatalogueKeys(kosztorysItems).has(selected.matchKey)
+    selected !== undefined &&
+    takenCatalogueIds(catalogue, kosztorysCatalogueRefs(kosztorysItems)).has(selected.id)
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
