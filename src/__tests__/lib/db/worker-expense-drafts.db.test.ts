@@ -355,7 +355,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
         status: 'accepted',
         transferIds: [transfers[0].id, transfers[1].id],
         transferMediaIds: [[acceptedPages[0]], [acceptedPages[1]]],
-        skippedReceipts: [[acceptedPages[2]]],
+        skippedReceipts: [{ mediaIds: [acceptedPages[2]] }],
       })
       // Booked from its first page only, but as the zgłoszenie's one row it shows both.
       await decideExpenseDraft(db, {
@@ -371,7 +371,7 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
         decidedBy: otherWorkerId,
         status: 'accepted',
         transferIds: [],
-        skippedReceipts: [[unbookedPages[1]]],
+        skippedReceipts: [{ mediaIds: [unbookedPages[1]] }],
       })
     })
 
@@ -614,7 +614,11 @@ describe.skipIf(!ENV_READY)('worker expense draft media (DB)', () => {
         status: 'accepted',
         transferIds: [transferId],
         transferMediaIds: [[pages[0]]],
-        skippedReceipts: [[pages[1]], [pages[3], pages[2]], [pages[4]]],
+        skippedReceipts: [
+          { mediaIds: [pages[1]] },
+          { mediaIds: [pages[3], pages[2]] },
+          { mediaIds: [pages[4]] },
+        ],
       })
     })
 

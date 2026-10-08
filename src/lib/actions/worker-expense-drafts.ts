@@ -18,7 +18,6 @@ import {
   removeExpenseDraftPage,
   restoreRejectedExpenseDraft,
   restoreSkippedReceipt,
-  skipPendingReceiptAsDuplicate,
   updatePendingExpenseDraft,
 } from '@/lib/db/worker-expense-drafts'
 import { duplicateOfSchema, type DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
@@ -50,12 +49,6 @@ export type UpdateExpenseDraftInputT = z.infer<typeof updateDraftSchema>
 const addPagesSchema = z.object({
   draftId: z.number().int().positive(),
   mediaIds: z.array(z.number().int().positive()).min(1),
-})
-
-const duplicateReceiptSchema = z.object({
-  draftId: z.number().int().positive(),
-  mediaIds: z.array(z.number().int().positive()).min(1),
-  duplicateOf: duplicateOfSchema,
 })
 
 async function findDraftTargetError(
@@ -114,20 +107,6 @@ export async function rejectExpenseDraftAction(
     })
     return isDecided ? { success: true } : noticeFailure('draftAlreadyDecided')
   })
-}
-
-export async function markReceiptDuplicateAction(
-  input: z.infer<typeof duplicateReceiptSchema>,
-): Promise<ActionResultT> {
-  const parsed = validateAction(duplicateReceiptSchema, input)
-  if (!parsed.success) return parsed
-  return protectedAction(
-    `markReceiptDuplicateAction draft=${input.draftId}`,
-    async ({ payload }) => {
-      const isSkipped = await skipPendingReceiptAsDuplicate(await getDb(payload), parsed.data)
-      return isSkipped ? { success: true } : noticeFailure('draftAlreadyDecided')
-    },
-  )
 }
 
 // The read is saved on the draft, so the next open costs nothing.

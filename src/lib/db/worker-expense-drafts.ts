@@ -12,7 +12,11 @@ import {
   type ServerSortableDraftColumnT,
 } from '@/lib/worker-expenses/sortable-columns'
 import type { ReferenceItemT } from '@/types/reference-data'
-import { duplicateOfSchema, type DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
+import {
+  duplicateOfSchema,
+  type DuplicateOfT,
+  type SkippedReceiptT,
+} from '@/lib/expense-duplicates/duplicate-of'
 import type { DeleteProbeT } from './delete-blocker'
 import { expenseDraftReadSchema, type ExpenseDraftReadT } from './expense-draft-read'
 import type { DbExecutorT } from './get-db'
@@ -47,8 +51,6 @@ export type ExpenseDraftRowT = {
   skippedReceipt?: { id: number; isRestorable: boolean }
   // A refusal management marked as a duplicate — shown to management only.
   duplicateOf?: DuplicateOfT
-  // A pending draft's pages already refused as duplicates; the acceptance leaves them out.
-  skippedMediaIds?: number[]
   media: ExpenseDraftMediaT[]
   scanMode: ScanModeT
   aiRead: ExpenseDraftReadT | undefined
@@ -62,13 +64,6 @@ const DRAFT_MEDIA = sql`
     FROM worker_expense_draft_media dm JOIN media m ON m.id = dm.media_id
     WHERE dm.draft_id = d.id
   ), '[]'::json)
-`
-
-const SKIPPED_MEDIA = sql`
-  CASE WHEN d.status = 'pending' THEN COALESCE((
-    SELECT array_agg(media_id) FROM worker_expense_draft_skipped_receipts sr, unnest(sr.media_ids) media_id
-    WHERE sr.draft_id = d.id
-  ), '{}') END
 `
 
 const TRANSFER_JSON = sql`json_build_object(
@@ -89,8 +84,7 @@ const DRAFT_SELECT = sql`
   SELECT d.id, d.worker_id, w.name AS worker_name, d.investment_id, i.name AS investment_name,
     d.cash_register_id, d.note, d.status, d.sent_at, d.decided_at, d.scan_mode,
     CASE WHEN d.status = 'pending' THEN d.ai_read END AS ai_read, ${DRAFT_MEDIA} AS media,
-    ${DRAFT_TRANSFERS} AS transfers, decider.name AS decided_by_name, d.duplicate_of,
-    ${SKIPPED_MEDIA} AS skipped_media_ids
+    ${DRAFT_TRANSFERS} AS transfers, decider.name AS decided_by_name, d.duplicate_of
   FROM worker_expense_drafts d
   JOIN users w ON w.id = d.worker_id
   JOIN investments i ON i.id = d.investment_id
@@ -140,7 +134,6 @@ function toDraftRow(row: Record<string, unknown>): ExpenseDraftRowT {
       skippedReceipt: { id: Number(row.receipt_id), isRestorable: row.is_restorable === true },
     }),
     ...(duplicateOf.success && { duplicateOf: duplicateOf.data }),
-    skippedMediaIds: ((row.skipped_media_ids ?? []) as unknown[]).map(Number),
     media: toDraftMedia(row.media),
     scanMode: row.scan_mode as ScanModeT,
     aiRead: toDraftRead(row.ai_read),
@@ -235,7 +228,7 @@ const PARAGON_SELECT = sql`
     COALESCE((
       SELECT json_agg(${TRANSFER_JSON}) FROM transactions t WHERE t.id = pr.transfer_id
     ), '[]'::json) AS transfers,
-    decider.name AS decided_by_name, pr.duplicate_of, ${SKIPPED_MEDIA} AS skipped_media_ids
+    decider.name AS decided_by_name, pr.duplicate_of
   ${PARAGON_FROM}
   JOIN users w ON w.id = d.worker_id
   JOIN investments i ON i.id = d.investment_id
@@ -357,7 +350,7 @@ export async function decideExpenseDraft(
     transferIds: number[]
     // Positional to `transferIds`: the draft's pages each transakcja was booked from.
     transferMediaIds?: number[][]
-    skippedReceipts?: number[][]
+    skippedReceipts?: SkippedReceiptT[]
     duplicateOf?: DuplicateOfT
   },
 ): Promise<boolean> {
@@ -365,7 +358,10 @@ export async function decideExpenseDraft(
     id,
     media_ids: decision.transferMediaIds?.[i] ?? [],
   }))
-  const skipped = (decision.skippedReceipts ?? []).map((mediaIds) => ({ media_ids: mediaIds }))
+  const skipped = (decision.skippedReceipts ?? []).map((receipt) => ({
+    media_ids: receipt.mediaIds,
+    duplicate_of: receipt.duplicateOf ?? null,
+  }))
   // A page id the client sends lands only if it is one of this draft's pages.
   const ownPages = sql`ARRAY(
     SELECT unnest(r.media_ids) INTERSECT
@@ -383,32 +379,12 @@ export async function decideExpenseDraft(
       SELECT r.id, decided.id, ${ownPages}
       FROM decided, jsonb_to_recordset(${JSON.stringify(transfers)}::jsonb) AS r(id int, media_ids int[])
     ), skipped AS (
-      INSERT INTO worker_expense_draft_skipped_receipts (draft_id, media_ids)
-      SELECT decided.id, ${ownPages}
-      FROM decided, jsonb_to_recordset(${JSON.stringify(skipped)}::jsonb) AS r(media_ids int[])
+      INSERT INTO worker_expense_draft_skipped_receipts (draft_id, media_ids, duplicate_of)
+      SELECT decided.id, ${ownPages}, r.duplicate_of
+      FROM decided,
+        jsonb_to_recordset(${JSON.stringify(skipped)}::jsonb) AS r(media_ids int[], duplicate_of jsonb)
     )
     SELECT id FROM decided
-  `)
-  return res.rows.length > 0
-}
-
-/**
- * One paragon of a still-pending zgłoszenie refused as a duplicate, ahead of the acceptance, which
- * then books the rest. Only the draft's own pages land, and only while it waits.
- */
-export async function skipPendingReceiptAsDuplicate(
-  db: DbExecutorT,
-  receipt: { draftId: number; mediaIds: number[]; duplicateOf: DuplicateOfT },
-): Promise<boolean> {
-  const res = await db.execute(sql`
-    INSERT INTO worker_expense_draft_skipped_receipts (draft_id, media_ids, duplicate_of)
-    SELECT d.id, ARRAY(
-      SELECT unnest(${`{${receipt.mediaIds.join(',')}}`}::int[]) INTERSECT
-      SELECT dm.media_id FROM worker_expense_draft_media dm WHERE dm.draft_id = d.id
-    ), ${JSON.stringify(receipt.duplicateOf)}::jsonb
-    FROM worker_expense_drafts d
-    WHERE d.id = ${receipt.draftId} AND d.status = 'pending'
-    RETURNING id
   `)
   return res.rows.length > 0
 }

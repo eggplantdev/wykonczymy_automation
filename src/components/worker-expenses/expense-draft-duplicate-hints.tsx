@@ -1,6 +1,5 @@
 'use client'
 
-// SPIKE (EX-1025): management-only hint in the accept dialog of a zgłoszenie.
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/tables/data-table/data-table'
@@ -8,31 +7,53 @@ import {
   getExpenseDuplicateColumns,
   type ExpenseDuplicateRowT,
 } from '@/components/tables/expense-duplicates'
+import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
 import type { ParagonDuplicatesT } from '@/lib/queries/expense-draft-duplicates'
 
+export type ItemDuplicatesT = ParagonDuplicatesT & { itemId: string }
+
+export type DuplicateHintsStateT =
+  | { status: 'reading' }
+  | { status: 'checking' }
+  | { status: 'no-read' }
+  | { status: 'error'; message: string }
+  | { status: 'ready'; paragons: ItemDuplicatesT[] }
+
 type PropsT = {
-  paragons: ParagonDuplicatesT[] | undefined
-  onMarkDuplicate: (row: ExpenseDuplicateRowT) => Promise<void>
+  state: DuplicateHintsStateT
+  // The form's current rows: a paragon removed or marked a duplicate takes its hints with it.
+  lineItemIds: string[]
+  onMarkDuplicate: (itemId: string, duplicateOf: DuplicateOfT) => void
 }
 
-const rowKey = (row: ExpenseDuplicateRowT) => `${row.paragonRowIndex}-${row.source}-${row.id}`
+const rowKey = (row: ExpenseDuplicateRowT) => `${row.paragonItemId}-${row.source}-${row.id}`
 
-export function ExpenseDraftDuplicateHints({ paragons, onMarkDuplicate }: PropsT) {
-  // SPIKE: „OK" only hides the row for this dialog; nothing is stored yet.
+const STATUS_MESSAGES = {
+  reading: 'Odczytywanie paragonów — duplikaty sprawdzimy po odczycie.',
+  checking: 'Sprawdzanie duplikatów…',
+  'no-read': 'Bez odczytu paragonów nie da się sprawdzić duplikatów.',
+} as const
+
+export function ExpenseDraftDuplicateHints({ state, lineItemIds, onMarkDuplicate }: PropsT) {
+  // „OK" only hides the row for this dialog; nothing is stored.
   const [dismissed, setDismissed] = useState(() => new Set<string>())
-  const [markingKey, setMarkingKey] = useState<string | undefined>()
 
-  if (!paragons) {
-    return <p className="text-muted-foreground text-sm">Sprawdzanie duplikatów…</p>
+  if (state.status === 'error') {
+    return <p className="text-destructive text-sm">{state.message}</p>
   }
-  const rows = paragons
+  if (state.status !== 'ready') {
+    return <p className="text-muted-foreground text-sm">{STATUS_MESSAGES[state.status]}</p>
+  }
+  const rows = state.paragons
+    .filter((paragon) => lineItemIds.includes(paragon.itemId))
     .flatMap((paragon) =>
       paragon.matches.map(
         (match): ExpenseDuplicateRowT => ({
           ...match,
-          paragon: [paragon.rowIndex + 1, paragon.description].filter(Boolean).join(' · '),
-          paragonRowIndex: paragon.rowIndex,
-          paragonMediaIds: paragon.mediaIds,
+          paragon: [lineItemIds.indexOf(paragon.itemId) + 1, paragon.description]
+            .filter(Boolean)
+            .join(' · '),
+          paragonItemId: paragon.itemId,
         }),
       ),
     )
@@ -41,29 +62,19 @@ export function ExpenseDraftDuplicateHints({ paragons, onMarkDuplicate }: PropsT
     return <p className="text-muted-foreground text-sm">Nie znaleziono podobnych wydatków.</p>
   }
 
-  async function markDuplicate(row: ExpenseDuplicateRowT) {
-    setMarkingKey(rowKey(row))
-    try {
-      await onMarkDuplicate(row)
-    } finally {
-      setMarkingKey(undefined)
-    }
-  }
-
   return (
     <section className="flex flex-col gap-3">
       <h3 className="font-medium">Możliwe duplikaty</h3>
       <DataTable
         data={rows}
         columns={getExpenseDuplicateColumns({
-          showParagon: paragons.length > 1,
+          showParagon: lineItemIds.length > 1,
           actions: (row) => (
             <div className="flex justify-end gap-2">
               <Button
                 type="button"
                 size="xs"
                 variant="outline"
-                disabled={markingKey !== undefined}
                 onClick={() => setDismissed((prev) => new Set(prev).add(rowKey(row)))}
               >
                 OK, to nie duplikat
@@ -72,10 +83,11 @@ export function ExpenseDraftDuplicateHints({ paragons, onMarkDuplicate }: PropsT
                 type="button"
                 size="xs"
                 variant="destructive"
-                disabled={markingKey !== undefined}
-                onClick={() => markDuplicate(row)}
+                onClick={() =>
+                  onMarkDuplicate(row.paragonItemId, { source: row.source, id: row.id })
+                }
               >
-                {markingKey === rowKey(row) ? 'Odrzucanie…' : 'Duplikat'}
+                Duplikat
               </Button>
             </div>
           ),

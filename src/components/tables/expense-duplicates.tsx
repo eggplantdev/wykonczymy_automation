@@ -14,8 +14,8 @@ import { firstNoteLine } from '@/lib/utils/invoice-note'
 
 export type ExpenseDuplicateRowT = DuplicateMatchT & {
   paragon: string
-  paragonRowIndex: number
-  paragonMediaIds: number[]
+  // The acceptance form's line item the paragon was prefilled into.
+  paragonItemId: string
 }
 
 type ColumnsOptionsT = {

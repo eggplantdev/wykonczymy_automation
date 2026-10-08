@@ -111,7 +111,7 @@ export function useExpenseDraftColumns({
             cell: ({ row: { original: draft } }) => (
               <span className="flex flex-wrap items-center gap-2">
                 <DraftStatusBadge status={draft.status} />
-                {/* SPIKE (EX-1025): the worker sees only „Odrzucone". */}
+                {/* The worker sees only „Odrzucone". */}
                 {isManagerView && draft.duplicateOf && (
                   <span className="text-destructive text-xs whitespace-nowrap">
                     {duplicateOfLabel(draft.duplicateOf)}

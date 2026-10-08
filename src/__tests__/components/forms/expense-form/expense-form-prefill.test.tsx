@@ -265,7 +265,7 @@ describe('Wydatek ze zgłoszenia pracownika', () => {
     expect(vi.mocked(createBulkTransferAction).mock.calls[0][2]).toEqual({
       expenseDraftId: 42,
       receiptMediaIds: [[101]],
-      skippedReceipts: [[102, 103]],
+      skippedReceipts: [{ mediaIds: [102, 103] }],
     })
   })
 
