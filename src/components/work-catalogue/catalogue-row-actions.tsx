@@ -42,7 +42,7 @@ export function CatalogueRowActions({ item, categorySuggestions }: PropsT) {
 
       <ConfirmDialog
         open={confirming}
-        title="Usunąć pozycję z katalogu?"
+        title="Usunąć pozycję z katalogu i szablonów?"
         description={
           <>
             Kosztorysy, do których tę pracę już wstawiono, zostają bez zmian — mają własną kopię
