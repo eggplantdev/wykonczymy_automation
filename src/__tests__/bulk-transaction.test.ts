@@ -150,10 +150,21 @@ describe('createBulkTransferAction — worker per row', () => {
     expect(workers).toEqual([5, undefined])
   })
 
-  it('a row without its own worker takes the form-level one', async () => {
+  // A PAYOUT's worker is who gets paid — a row cannot redirect it.
+  it('PAYOUT writes the form-level worker into every row, ignoring a per-row one', async () => {
     mockCreate.mockResolvedValue({ id: 1 })
 
-    await createBulkTransferAction({ ...makeBulkTransferData(2), worker: 9 })
+    await createBulkTransferAction({
+      type: 'PAYOUT' as const,
+      date: '2026-10-08',
+      paymentMethod: 'CASH' as const,
+      sourceRegister: 1,
+      worker: 9,
+      lineItems: [
+        { description: 'Zaliczka', amount: 300, worker: 5 },
+        { description: 'Zaliczka', amount: 200 },
+      ],
+    })
 
     const workers = mockCreate.mock.calls.map((call) => call[0].data.worker)
     expect(workers).toEqual([9, 9])

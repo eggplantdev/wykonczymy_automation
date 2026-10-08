@@ -119,12 +119,12 @@ const workerConfig = (refData: ReferenceDataBaseT): RowSelectConfigT => ({
   options: refData.workers.filter(isActiveRef),
 })
 
-function getSecondRowCategory(
-  type: string,
-  refData: ReferenceDataBaseT,
-): RowSelectConfigT | undefined {
-  if (needsExpenseCategory(type) && showsOtherCategory(type)) return otherCategoryConfig(refData)
-  return undefined
+function getSecondRowSelects(type: string, refData: ReferenceDataBaseT): RowSelectConfigT[] {
+  const selects: RowSelectConfigT[] = []
+  if (needsExpenseCategory(type) && showsOtherCategory(type))
+    selects.push(otherCategoryConfig(refData))
+  if (hasOptionalWorker(type)) selects.push(workerConfig(refData))
+  return selects
 }
 
 function RowSelect({
@@ -176,8 +176,7 @@ export function LineItemsField({
 }: LineItemsFieldPropsT) {
   const inlineCategory = getInlineCategory(transferType, referenceData, hasInvestment)
   const showsNetAmount = billsNetAmount(transferType)
-  const secondRowCategory = getSecondRowCategory(transferType, referenceData)
-  const rowWorker = hasOptionalWorker(transferType) ? workerConfig(referenceData) : undefined
+  const secondRowSelects = getSecondRowSelects(transferType, referenceData)
   // Fresh per call — each pushed row needs its own `id` (a shared object would collide ids).
   const newItem = () =>
     makeLineItem(defaultExpenseCategory ? { expenseCategory: defaultExpenseCategory } : undefined)
@@ -355,22 +354,15 @@ export function LineItemsField({
                       </div>
                     </div>
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
-                      {secondRowCategory && (
+                      {secondRowSelects.map((config) => (
                         <RowSelect
+                          key={config.fieldName}
                           form={form}
                           index={index}
-                          config={secondRowCategory}
+                          config={config}
                           fieldClassName="min-w-0 flex-1"
                         />
-                      )}
-                      {rowWorker && (
-                        <RowSelect
-                          form={form}
-                          index={index}
-                          config={rowWorker}
-                          fieldClassName="min-w-0 flex-1"
-                        />
-                      )}
+                      ))}
                       <LineItemInvoiceField
                         id={item.id}
                         files={getRowFiles(item.id)}

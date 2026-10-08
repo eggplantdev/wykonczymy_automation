@@ -91,8 +91,7 @@ export function EditTransferForm({
         investment: value.investment ? Number(value.investment) : undefined,
         expenseCategory: value.expenseCategory ? Number(value.expenseCategory) : undefined,
         otherCategory: value.otherCategory ? Number(value.otherCategory) : undefined,
-        // An empty pick clears; every other type omits the key, so its worker cannot move.
-        ...(hasOptionalWorker(row.type) && { worker: value.worker ? Number(value.worker) : null }),
+        worker: value.worker ? Number(value.worker) : null,
         invoiceNote: value.invoiceNote || undefined,
       }
 

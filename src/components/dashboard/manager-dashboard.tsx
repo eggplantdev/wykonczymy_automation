@@ -12,6 +12,7 @@ import { PageWrapper } from '@/components/ui/page-wrapper'
 import { PAGE_TITLES, SECTION_IDS } from '@/lib/constants/sections'
 import { TRANSFER_TYPES } from '@/lib/constants/transfers'
 import { perfStart } from '@/lib/perf'
+import { toOptions } from '@/lib/utils/build-filter-config'
 
 type ManagerDashboardPropsT = {
   searchParams: Record<string, string | string[] | undefined>
@@ -76,7 +77,7 @@ export async function ManagerDashboard({ searchParams, user }: ManagerDashboardP
             cashRegisters: visibleRegisters.map((c) => ({ id: c.id, name: c.name })),
             investments: activeInvestments.map((i) => ({ id: i.id, name: i.name })),
             users: managementUsers,
-            workers: referenceDataBase.workers.map((w) => ({ id: w.id, name: w.name })),
+            workers: toOptions(referenceDataBase.workers),
             otherCategories,
             expenseCategories,
             transferTypes: TRANSFER_TYPES,

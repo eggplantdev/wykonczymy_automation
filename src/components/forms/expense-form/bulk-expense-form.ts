@@ -20,6 +20,7 @@ export type BulkExpenseFormValuesT = {
     invoiceNote: string
     category: string
     expenseCategory: string
+    worker: string
   }[]
 }
 

@@ -189,10 +189,6 @@ describe('validateTransfer — auto-clear behavior', () => {
     expect(result.worker).toBe(7)
   })
 
-  it('OTHER without worker → passes', async () => {
-    await expect(validateTransfer(hookArgs(VALID_DATA.OTHER))).resolves.toBeDefined()
-  })
-
   it('INVESTMENT_EXPENSE → worker set to null', async () => {
     const result = await validateTransfer(hookArgs({ ...VALID_DATA.INVESTMENT_EXPENSE, worker: 7 }))
     expect(result.worker).toBeNull()

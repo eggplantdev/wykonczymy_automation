@@ -561,7 +561,7 @@ export const needsTargetRegister = (type: string) =>
 export const needsWorker = (type: string) =>
   isTransferType(type) && (type === 'PAYOUT' || type === 'BONUS')
 
-// An OTHER names who bought it: optional, and the one worker that may change after save.
+// An OTHER names who bought it: the one worker that may change after save.
 export const hasOptionalWorker = (type: string) => isTransferType(type) && type === 'OTHER'
 
 export const showsWorker = (type: string) => needsWorker(type) || hasOptionalWorker(type)

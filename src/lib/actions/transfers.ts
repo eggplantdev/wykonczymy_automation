@@ -141,7 +141,7 @@ export async function createBulkTransferAction(
                 sourceRegister: parsed.data.sourceRegister,
                 targetRegister: parsed.data.targetRegister,
                 investment: parsed.data.investment,
-                worker: item.worker ?? parsed.data.worker,
+                worker: hasOptionalWorker(parsed.data.type) ? item.worker : parsed.data.worker,
                 expenseCategory: item.expenseCategory,
                 otherCategory: item.category,
                 invoice: invoicePages?.length ? invoicePages : undefined,
