@@ -8,6 +8,10 @@ import { useKosztorysFilterMenu } from '@/components/kosztorys/editor/toolbar/me
 export function KosztorysFiltersMenu() {
   const { toggles, togglesBulk, resetAction } = useKosztorysFilterMenu()
 
+  // An engaged filter is always listed, so an empty list strands nothing, and „Sekcje" carries the
+  // same reset.
+  if (toggles.length === 0) return null
+
   const triggerCount = toggles.filter((toggle) => !toggle.active).length
 
   return (
