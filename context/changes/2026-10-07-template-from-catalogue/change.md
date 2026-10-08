@@ -1,12 +1,12 @@
 ---
 change_id: template-from-catalogue
 title: Szablon jako lista prac z katalogu — ceny wyłącznie w katalogu prac
-status: new
+status: implementing
 created: 2026-10-07
-updated: 2026-10-07
+updated: 2026-10-08
 archived_at: null
-branch: null
-worktree: null
+branch: ex-1017-template-from-catalogue
+worktree: .claude/worktrees/ex-1017
 ---
 
 ## Notes
@@ -42,8 +42,9 @@ dostaje 450.
 5. **Zmiana lub usunięcie wpisu katalogu, który jest w szablonach → ostrzeżenie.**
 6. **Kosztorys jest niezależny:** kopia w chwili założenia. Zmiany w katalogu nigdy same do niego
    nie płyną.
-7. **Praca w kosztorysie pamięta swój wpis katalogu** (id). Unikalne id już identyfikuje
-   tłumaczenia przy zgłaszaniu pracy.
+7. **Praca w kosztorysie pamięta swój wpis katalogu** (id). Dziś żadna praca go nie pamięta —
+   wszystko dopasowuje się po opisie + j.m. Zgłoszenie pracy czyta tłumaczenia z kopii w samej
+   pracy kosztorysu i tak zostaje.
 8. **3× „Nowa praca" w obu szablonach — do usunięcia.**
 9. **Przedmiar i etapy:** szablon ich nie trzyma i nie trzymał — `serialize-preset.ts` zeruje
    Przedmiar i pomija etapy (na prodzie oba szablony: 0 / 310 z Przedmiarem, 0 wykonanych).
@@ -87,8 +88,15 @@ Cena wynegocjowana z jednym klientem zostaje w jego kosztorysie — do katalogu 
    potwierdził 2026-10-07). Otwarte zostają 2 listwy i „Zabezpieczenia…" w m².
 2. **Istniejące kosztorysy:** czy przy przejściu ich prace dostają zapamiętany wpis katalogu
    (dopasowanie po opisie + j.m.), czy tylko kosztorysy zakładane od teraz?
+   **Rozstrzygnięte (owner 2026-10-08): dostają** — jednorazowo, po opisie + j.m.
 3. **Zmiana / usunięcie wpisu katalogu, który jest w szablonie:** samo ostrzeżenie, czy usunięcie
    zablokowane?
+   **Rozstrzygnięte (owner 2026-10-08): ostrzeżenie z listą szablonów**, a usunięcie z katalogu
+   usuwa tę pracę także ze wszystkich szablonów (również tych w koszu). Kosztorysy zachowują kopię.
+4. **„Komentarz" w szablonie** — **rozstrzygnięte (owner 2026-10-08): usunięty** z szablonu;
+   „Komentarz do pracy" go zastępuje.
+5. **Zła cena wpisana w szablonie** — **rozstrzygnięte (owner 2026-10-08): poprawka ręczna**, bez
+   historii katalogu.
 
 ### Do sprawdzenia z kierownikiem — big bag 450 / 600
 
@@ -191,7 +199,8 @@ się z nim w każdym polu — cena, obie stawki **razem z trybem** (auto / mnoż
 ### Widok szablonu: kolumna „Komentarz do pracy"
 
 Prośba ownera 2026-10-08: widok szablonu ma pokazywać kolumnę „Komentarz do pracy" (EX-1006).
-Dziś jest domyślnie ukryta i pojawia się dopiero przy „Przegląd AI".
+Już pokazuje — stoi na zamkniętej liście kolumn szablonu (`WORKSHOP_VISIBLE_COLUMNS`) od
+2026-10-07; owner potwierdził tego samego dnia. Nic do zrobienia.
 
 ### Osobno: jednorazowy skrypt tłumaczeń
 
