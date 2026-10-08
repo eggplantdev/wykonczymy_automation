@@ -1,7 +1,7 @@
 ---
 change_id: template-from-catalogue
 title: Szablon jako lista prac z katalogu — ceny wyłącznie w katalogu prac
-status: implementing
+status: implemented
 created: 2026-10-07
 updated: 2026-10-08
 archived_at: null
