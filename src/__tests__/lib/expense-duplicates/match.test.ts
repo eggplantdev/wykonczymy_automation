@@ -21,7 +21,7 @@ describe('matchExpense — same document number', () => {
       doc({ documentNumber: 'FV2026/10/0042' }),
     )
 
-    expect(verdict).toEqual({ tier: 'strong', reasons: ['same-number'] })
+    expect(verdict).toEqual({ reasons: ['same-number'] })
   })
 
   it('does not match on the number when the seller NIPs conflict', () => {
@@ -49,7 +49,6 @@ describe('matchExpense — same document number', () => {
 
     expect(documentNumberOf(legacy)).toBe('FV2026/10/0042')
     expect(matchExpense(doc({ documentNumber: 'FV 2026/10/0042' }), legacy)).toEqual({
-      tier: 'strong',
       reasons: ['same-number'],
     })
   })
@@ -59,7 +58,6 @@ describe('matchExpense — same document number', () => {
 
     expect(matchExpense(doc({ documentNumber: 'FV/0042/2026', amount: 100 }), candidate)).toBeNull()
     expect(matchExpense(doc({ documentNumber: 'FV/0042/2026', amount: null }), candidate)).toEqual({
-      tier: 'strong',
       reasons: ['same-number'],
     })
   })
@@ -72,7 +70,7 @@ describe('matchExpense — same receipt without an agreeing number', () => {
       doc({ documentNumber: 'PAR 778813', sellerNip: NIP_A, documentDate: '2026-10-06' }),
     )
 
-    expect(verdict).toEqual({ tier: 'strong', reasons: ['same-receipt'] })
+    expect(verdict).toEqual({ reasons: ['same-receipt'] })
   })
 
   it('agrees on the seller name prefix and reads an ISO date and a printed date as one day', () => {
@@ -81,27 +79,14 @@ describe('matchExpense — same receipt without an agreeing number', () => {
       doc({ amount: 0.3, description: 'Leroy Merlin 06.10.2026' }),
     )
 
-    expect(verdict).toEqual({ tier: 'strong', reasons: ['same-receipt'] })
+    expect(verdict).toEqual({ reasons: ['same-receipt'] })
   })
 })
 
 describe('matchExpense — same amount only', () => {
-  const probe = doc({ sellerNip: NIP_A, documentDate: '2026-10-06' })
-
-  it('is a weak same-amount match within three printed days', () => {
-    expect(matchExpense(probe, doc({ sellerNip: NIP_B, documentDate: '2026-10-09' }))).toEqual({
-      tier: 'weak',
-      reasons: ['same-amount'],
-    })
-    expect(
-      matchExpense(probe, doc({ sellerNip: NIP_B, description: 'Castorama 03.10.2026' })),
-    ).toEqual({
-      tier: 'weak',
-      reasons: ['same-amount'],
-    })
-  })
-
-  it('is no match four printed days apart', () => {
-    expect(matchExpense(probe, doc({ sellerNip: NIP_B, documentDate: '2026-10-10' }))).toBeNull()
+  it('is no match, however close the printed days', () => {
+    const probe = doc({ sellerNip: NIP_A, documentDate: '2026-10-06' })
+    expect(matchExpense(probe, doc({ sellerNip: NIP_B, documentDate: '2026-10-06' }))).toBeNull()
+    expect(matchExpense(probe, doc({ description: 'Castorama 05.10.2026' }))).toBeNull()
   })
 })

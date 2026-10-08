@@ -25,8 +25,6 @@ export type ParagonDuplicatesT = {
   matches: DuplicateMatchT[]
 }
 
-const TIER_ORDER = { strong: 0, weak: 1 } as const
-
 export async function findExpenseDraftDuplicates(
   draftId: number,
 ): Promise<ActionResultT<ParagonDuplicatesT[]>> {
@@ -56,7 +54,7 @@ export async function findExpenseDraftDuplicates(
             const verdict = matchExpense(probe, candidate)
             return verdict ? [{ ...candidate, ...verdict }] : []
           })
-          .sort((a, b) => TIER_ORDER[a.tier] - TIER_ORDER[b.tier] || b.date.localeCompare(a.date)),
+          .sort((a, b) => b.date.localeCompare(a.date)),
       })),
     }
   })

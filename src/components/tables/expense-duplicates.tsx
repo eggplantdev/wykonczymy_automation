@@ -7,7 +7,6 @@ import { MediaPreviewButton } from '@/components/dialogs/media-preview-button'
 import type { MatchReasonT } from '@/lib/expense-duplicates/match'
 import { INVOICE_PREVIEW_LABELS } from '@/lib/media/wording'
 import type { DuplicateMatchT } from '@/lib/queries/expense-draft-duplicates'
-import { cn } from '@/lib/utils/cn'
 import { formatPLNOrDash } from '@/lib/utils/format-currency'
 import { formatPLDate } from '@/lib/utils/format-date'
 import { firstNoteLine } from '@/lib/utils/invoice-note'
@@ -26,7 +25,6 @@ type ColumnsOptionsT = {
 const REASON_LABELS: Record<MatchReasonT, string> = {
   'same-number': 'Ten sam numer',
   'same-receipt': 'Ta sama kwota, data i sklep',
-  'same-amount': 'Podobna kwota i data',
 }
 
 const col = createColumnHelper<ExpenseDuplicateRowT>()
@@ -37,12 +35,7 @@ export function getExpenseDuplicateColumns({ showParagon, actions }: ColumnsOpti
     col.accessor('reasons', {
       header: 'Status',
       cell: ({ row }) => (
-        <span
-          className={cn(
-            'font-medium',
-            row.original.tier === 'strong' ? 'text-destructive' : 'text-muted-foreground',
-          )}
-        >
+        <span className="text-destructive font-medium">
           {row.original.reasons.map((reason) => REASON_LABELS[reason]).join(', ')}
         </span>
       ),

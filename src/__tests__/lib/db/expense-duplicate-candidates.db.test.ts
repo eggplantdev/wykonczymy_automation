@@ -214,22 +214,19 @@ describe.skipIf(!ENV_READY)('expense duplicate candidates (DB)', () => {
   it('the accept dialog’s check matches each probe paragon to its booked twin and the pending one', async () => {
     const result = await findExpenseDraftDuplicates(probeDraftId)
     if (!result.success) throw new Error(result.error)
-    const ours = (matches: { source: string; id: number; tier: string }[]) =>
+    const ours = (matches: { source: string; id: number }[]) =>
       matches
         .filter((m) =>
           m.source === 'transaction'
             ? Object.values(tx).includes(m.id)
             : [otherDraftId, rejectedDraftId, probeDraftId].includes(m.id),
         )
-        .map((m) => `${m.source}-${m.id}-${m.tier}`)
+        .map((m) => `${m.source}-${m.id}`)
 
     const [byAmount, byNumber, byLegacyNote] = result.data
-    expect(ours(byAmount.matches)).toEqual([
-      `transaction-${tx.byAmount}-strong`,
-      `draft-${otherDraftId}-weak`,
-      `draft-${otherDraftId}-weak`,
-    ])
-    expect(ours(byNumber.matches)).toEqual([`transaction-${tx.byNumber}-strong`])
-    expect(ours(byLegacyNote.matches)).toEqual([`transaction-${tx.legacyNote}-strong`])
+    // The other zgłoszenie's paragons share only the amount — a different shop and day.
+    expect(ours(byAmount.matches)).toEqual([`transaction-${tx.byAmount}`])
+    expect(ours(byNumber.matches)).toEqual([`transaction-${tx.byNumber}`])
+    expect(ours(byLegacyNote.matches)).toEqual([`transaction-${tx.legacyNote}`])
   })
 })

@@ -39,7 +39,6 @@ const referenceData = {
 
 function match(overrides: Partial<DuplicateMatchT>): DuplicateMatchT {
   return {
-    tier: 'strong',
     reasons: ['same-number'],
     key: 'transaction-501',
     source: 'transaction',

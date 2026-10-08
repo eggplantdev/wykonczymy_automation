@@ -74,6 +74,11 @@ Booked `INVESTMENT_EXPENSE`, not cancelled; „number" = line 1 of `invoice_note
 - **Amount alone is noise:** 618 pairs with an equal amount booked within ±3 days. Amount + the
   _receipt_ date (not the booking date) leaves 2 pairs, both with distinct numbers, so they look
   legitimate. The usable weak signal is keyed on the receipt date.
+- **No weak tier (owner, 2026-10-08) — supersedes the line above.** Workers send zgłoszenia every
+  week or two, so a batch routinely holds the same item bought twice a few days apart. A re-sent
+  paragon keeps its own printed date and seller, so it is already caught by „same-receipt"; an
+  amount match across different days or shops only ever flags a second purchase. Only the strong
+  signals remain, and the verdict carries no tier.
 - **The same file reads differently.** Media 2127 (zgłoszenie 3, worker 69) and 2129 (zgłoszenie 4,
   worker 32) are byte-for-byte the same photo (equal size + dimensions), as are 2126/2130: one worker
   forwarded the photos to the other. From the identical 107,40 zł file the AI read `087393/0888` once

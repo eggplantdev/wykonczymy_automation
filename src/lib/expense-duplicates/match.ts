@@ -1,4 +1,4 @@
-import { daysBetween, type DayT } from '@/lib/utils/days'
+import type { DayT } from '@/lib/utils/days'
 import { firstNoteLine } from '@/lib/utils/invoice-note'
 
 export type ExpenseDocT = {
@@ -13,15 +13,12 @@ export type ExpenseDocT = {
   description: string | null
 }
 
-export type MatchReasonT = 'same-number' | 'same-receipt' | 'same-amount'
-type MatchTierT = 'strong' | 'weak'
+export type MatchReasonT = 'same-number' | 'same-receipt'
 
 export type MatchVerdictT = {
-  tier: MatchTierT
   reasons: MatchReasonT[]
 }
 
-const WEAK_WINDOW_DAYS = 3
 const PRINTED_DATE = /(\d{2})\.(\d{2})\.(\d{4})/
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
 
@@ -98,17 +95,7 @@ export function matchExpense(probe: ExpenseDocT, candidate: ExpenseDocT): MatchV
     reasons.push('same-receipt')
   }
 
-  if (reasons.length > 0) return { tier: 'strong', reasons }
-
-  // Keyed on the printed date, not the booking date: equal amounts within ±3 booking days are
-  // hundreds of pairs, within ±3 printed days a handful.
-  if (
-    isSameAmount &&
-    probeDay !== null &&
-    candidateDay !== null &&
-    Math.abs(daysBetween(probeDay, candidateDay)) <= WEAK_WINDOW_DAYS
-  ) {
-    return { tier: 'weak', reasons: ['same-amount'] }
-  }
-  return null
+  // An equal amount on its own is no signal: a paragon re-sent carries its own printed date and
+  // seller, so a twin that differs in either is a second purchase of the same thing.
+  return reasons.length > 0 ? { reasons } : null
 }
