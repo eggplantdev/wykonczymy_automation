@@ -15,7 +15,9 @@ import type { MediaKindT } from '@/types/media'
 const file = (name: string) => ({ name }) as File
 
 describe('resolveUploadIdRows', () => {
-  beforeEach(() => upload.mockReset())
+  beforeEach(() => {
+    upload.mockReset()
+  })
 
   it('uploads the File attached at a row', async () => {
     upload.mockImplementation(async () => 777)
@@ -96,7 +98,9 @@ describe('resolveUploadIdRows', () => {
 // A later reader asks for the rysunki without opening every faktura only if `kind` reaches the row,
 // and it crosses every layer between the form and the upload route, so it is easy to drop.
 describe('resolveUploadIdRows — media kind', () => {
-  beforeEach(() => upload.mockReset().mockResolvedValue(1))
+  beforeEach(() => {
+    upload.mockReset().mockResolvedValue(1)
+  })
 
   it('stamps the kind on every page of the pick', async () => {
     const files = new Map([[0, [file('rzut.pdf'), file('przekroj.pdf')]]])

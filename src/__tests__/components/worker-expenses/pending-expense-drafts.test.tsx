@@ -19,6 +19,9 @@ vi.mock('@/lib/actions/worker-expense-drafts', () => ({
   rejectExpenseDraftAction: vi.fn(),
 }))
 vi.mock('@/lib/actions/transfers', () => ({ createBulkTransferAction: vi.fn() }))
+vi.mock('@/lib/queries/expense-draft-duplicates', () => ({
+  findExpenseDraftDuplicates: vi.fn(async () => ({ success: true, data: [] })),
+}))
 vi.mock('@/lib/utils/toast', () => ({ toastMessage: vi.fn() }))
 
 const draft: ExpenseDraftRowT = {
