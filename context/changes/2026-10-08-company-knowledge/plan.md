@@ -471,15 +471,15 @@ The full suite is not run unasked (owner rule); the touched specs are listed per
 
 #### Automated
 
-- [x] 1.1 Migration applies locally
-- [x] 1.2 Types regenerate
-- [x] 1.3 9 seed rows exist
+- [x] 1.1 Migration applies locally — c15fd7ae2
+- [x] 1.2 Types regenerate — c15fd7ae2
+- [x] 1.3 9 seed rows exist — c15fd7ae2
 
 ### Phase 2: Reads and writes
 
 #### Automated
 
-- [ ] 2.1 Action spec passes
+- [x] 2.1 Action spec passes
 
 ### Phase 3: Dialog and triggers
 
