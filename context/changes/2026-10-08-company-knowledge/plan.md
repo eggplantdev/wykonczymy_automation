@@ -479,13 +479,13 @@ The full suite is not run unasked (owner rule); the touched specs are listed per
 
 #### Automated
 
-- [x] 2.1 Action spec passes
+- [x] 2.1 Action spec passes — 9a2960000
 
 ### Phase 3: Dialog and triggers
 
 #### Automated
 
-- [ ] 3.1 Button/dialog DOM spec passes
+- [x] 3.1 Button/dialog DOM spec passes
 
 ### Phase 4: The agent's read path
 

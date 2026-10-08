@@ -4927,3 +4927,21 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
 - [ ] W kolumnie „Komentarz” pozycji ze szkicu AI nie ma tekstów „AI: …” — Komentarz zostaje dla
       ludzi; widok „Oferta” nie pokazuje „Komentarza AI”.
 - [ ] Zwykły kosztorys (bez szkicu AI): brak kolumny „Komentarz AI”.
+
+## EX-1032 — company-knowledge — „Wiedza firmowa” w górnym pasku
+
+- [ ] Desktop, OWNER lub MANAGER: przycisk „Wiedza firmowa” jest w górnym pasku na każdej stronie
+      (transakcje, katalog prac, edytor kosztorysu). Kliknięcie pokazuje wpisy startowe, pierwszy to
+      „Wysokość pomieszczeń, gdy rysunek jej nie podaje”.
+- [ ] Przeciągnij wpis za uchwyt w inne miejsce: kolejność zostaje po przeładowaniu strony, a
+      „Ostatnio zmienione” nie wynosi przeciągniętych wpisów na górę.
+- [ ] Wpisz „lazienka” w wyszukiwarkę: zostają tylko wpisy z „łazienka”. Gdy coś jest wpisane albo
+      wybrane jest „Alfabetycznie”, uchwytów nie ma, a pod paskiem stoi podpowiedź, gdzie działa
+      przeciąganie.
+- [ ] Edytuj wpis, potem wybierz „Ostatnio zmienione”: ten wpis jest pierwszy.
+- [ ] Dodaj wpis (pojawia się na górze), zmień jego treść, potem usuń go po potwierdzeniu. Każdy krok
+      widać od razu i każdy zostaje po przeładowaniu.
+- [ ] „Zapisz” jest nieaktywne, dopóki temat albo treść są puste (same spacje też).
+- [ ] Telefon, 390px: menu → „Wiedza firmowa” zamyka menu i otwiera okno na cały ekran; tekst czytelny,
+      przyciski osiągalne. Górny pasek nie pokazuje drugiego przycisku.
+- [ ] Jako EMPLOYEE: brak przycisku w górnym pasku i w menu mobilnym.

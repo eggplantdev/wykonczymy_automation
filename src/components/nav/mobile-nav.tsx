@@ -13,6 +13,7 @@ import { LogoutButton } from '@/components/nav/logout-button'
 import { NavLinkItem } from '@/components/nav/nav-link-item'
 import { RefreshDataButton } from '@/components/nav/refresh-data-button'
 import { AdminButton } from '@/components/nav/admin-button'
+import { CompanyKnowledgeButton } from '@/components/company-knowledge/company-knowledge-button'
 import { TrashButton } from '@/components/nav/trash-button'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { useNavLinks } from '@/hooks/use-nav-links'
@@ -138,6 +139,7 @@ export function MobileNav() {
           <ThemeToggle collapsed={false} />
           <RefreshDataButton />
           <AdminButton />
+          <CompanyKnowledgeButton onOpen={() => setOpen(false)} />
           <TrashButton active={isActive(TRASH_HREF)} onClick={() => closeIfSameRoute(TRASH_HREF)} />
           <LogoutButton beforeLogout={() => setScrollLocked(false)} />
         </div>
