@@ -4825,3 +4825,12 @@ Regression sweep (console open): horizontal / vertical scroll leaves row heights
 - [ ] „Edytuj notatkę” → zmień tekst → „Anuluj”: wraca stary tekst, nic się nie zapisuje.
 - [ ] Inwestycja w koszu: karta pokazuje notatkę bez przycisku „Edytuj notatkę”.
 - [ ] Dialog „Edytuj inwestycję”: pod „Prośba o opinię wysłana” widać podpowiedź „Zaznacz jeśli wysłałeś już do inwestora prośbę o opinię w google”.
+
+## 2026-10-08 — other-expense-worker — „Inny wydatek” z opcjonalnym pracownikiem (EX-1027)
+
+- [ ] „Kilka wydatków” → typ „Inny wydatek”, trzy wiersze: pracownik A, bez pracownika, pracownik B → zapisz: w liście transakcji kolumna „Pracownik” pokazuje A / — / B.
+- [ ] W tym samym formularzu zmień typ z „Inny wydatek” na inny: pole „Pracownik” w wierszach znika, a zapisany wydatek nie ma pracownika.
+- [ ] Edycja istniejącego „Innego wydatku” bez pracownika → ustaw pracownika X → zapisz: transakcja widoczna na `/pracownicy/X` i w liście z filtrem „Pracownik” = X; wyczyść pracownika i zapisz — znika z obu miejsc.
+- [ ] Edycja „Wypłaty”: w dialogu nie ma pola „Pracownik” do zmiany.
+- [ ] Strona główna → filtry: Typ „Inny wydatek” + Kategoria „narzędzia” + Pracownik X → lista pokazuje tylko wydatki X, a kafelek „Suma” zgadza się z sumą kwot w wierszach.
+- [ ] Po przypisaniu pracownika do „Innego wydatku” jego „Pozostało do wypłaty” (strona pracownika / inwestycji) się nie zmienia.

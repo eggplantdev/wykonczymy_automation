@@ -324,7 +324,7 @@ cover the browser path. Run touched specs with `pnpm exec vitest run <file>`, no
 
 ### Phase 4: „Pracownik” filter on the dashboard
 
-- [x] 4.1 Pass `workers` to the dashboard filter config
+- [x] 4.1 Pass `workers` to the dashboard filter config — 445211054
 
 ## Whole-tree Gate
 
