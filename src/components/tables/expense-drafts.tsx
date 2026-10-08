@@ -7,7 +7,7 @@ import { DraftStatusBadge } from '@/components/worker-expenses/draft-status-badg
 import { ExpenseDraftPagesCell } from '@/components/worker-expenses/expense-draft-pages-cell'
 import { useTranslation } from '@/hooks/use-translation'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
-import { duplicateOfLabel } from '@/lib/expense-duplicates/duplicate-of'
+import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
 import { cn } from '@/lib/utils/cn'
 import { formatPLN } from '@/lib/utils/format-currency'
 import { formatPLDateTime } from '@/lib/utils/format-date'
@@ -15,6 +15,9 @@ import { investmentTransfersHref } from '@/lib/utils/investment-transfers-href'
 import { isServerSortableDraftColumn } from '@/lib/worker-expenses/sortable-columns'
 
 const col = createColumnHelper<ExpenseDraftRowT>()
+
+const duplicateOfLabel = ({ source, id }: DuplicateOfT) =>
+  source === 'transaction' ? `Duplikat #${id}` : `Duplikat zgłoszenia #${id}`
 
 type OptionsT = {
   isManagerView: boolean

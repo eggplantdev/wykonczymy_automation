@@ -315,8 +315,7 @@ export async function updateTransferAction(
       const { original } = result
 
       // Only LABOR_COST transfers can have their amount edited
-      const { amount, vatPlane, netAmount, documentNumber, sellerNip, documentDate, ...fields } =
-        parsed.data
+      const { amount, vatPlane, netAmount, ...fields } = parsed.data
       const newAmount = isLaborCost(original.type) ? amount : undefined
       const amountChanged = newAmount !== undefined && newAmount !== original.amount
 
@@ -337,7 +336,7 @@ export async function updateTransferAction(
         id: transferId,
         data: {
           ...fields,
-          ...documentIdentity({ documentNumber, sellerNip, documentDate }),
+          ...documentIdentity(parsed.data),
           ...(newAmount !== undefined && { amount: newAmount }),
           ...(fillsPlane && { vatPlane, netAmount: netAmount ?? null }),
           // Newly picked files are extra pages of the same invoice, so they append — an edit that

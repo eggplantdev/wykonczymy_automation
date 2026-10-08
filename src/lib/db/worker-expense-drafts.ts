@@ -20,6 +20,7 @@ import {
 import type { DeleteProbeT } from './delete-blocker'
 import { expenseDraftReadSchema, type ExpenseDraftReadT } from './expense-draft-read'
 import type { DbExecutorT } from './get-db'
+import { MEDIA_JSON } from './media-json'
 import { isoOrNull, numOrNull, text, textOrNull } from './row-coerce'
 import { queueFiltersWhere } from './queue-filters-where'
 import { inList, sqlList, type SqlT } from './sql-list'
@@ -58,9 +59,7 @@ export type ExpenseDraftRowT = {
 
 const DRAFT_MEDIA = sql`
   COALESCE((
-    SELECT json_agg(json_build_object(
-      'id', m.id, 'url', m.url, 'filename', m.filename, 'mimeType', m.mime_type
-    ) ORDER BY dm.position)
+    SELECT json_agg(${MEDIA_JSON} ORDER BY dm.position)
     FROM worker_expense_draft_media dm JOIN media m ON m.id = dm.media_id
     WHERE dm.draft_id = d.id
   ), '[]'::json)
@@ -218,9 +217,7 @@ const PARAGON_SELECT = sql`
     CASE WHEN d.status = 'pending' THEN d.ai_read END AS ai_read, pr.receipt_id,
     (pr.receipt_id IS NOT NULL AND ${PARTIES_NOT_TRASHED}) AS is_restorable,
     COALESCE((
-      SELECT json_agg(json_build_object(
-        'id', m.id, 'url', m.url, 'filename', m.filename, 'mimeType', m.mime_type
-      ) ORDER BY dm.position)
+      SELECT json_agg(${MEDIA_JSON} ORDER BY dm.position)
       FROM worker_expense_draft_media dm JOIN media m ON m.id = dm.media_id
       WHERE dm.draft_id = d.id
         AND (pr.row_count = 1 OR cardinality(pr.media_ids) = 0 OR dm.media_id = ANY(pr.media_ids))

@@ -26,7 +26,7 @@ type PropsT = {
   onMarkDuplicate: (itemId: string, duplicateOf: DuplicateOfT) => void
 }
 
-const rowKey = (row: ExpenseDuplicateRowT) => `${row.paragonItemId}-${row.source}-${row.id}`
+const rowKey = (row: ExpenseDuplicateRowT) => `${row.paragonItemId}-${row.key}`
 
 const STATUS_MESSAGES = {
   reading: 'Odczytywanie paragonów — duplikaty sprawdzimy po odczycie.',

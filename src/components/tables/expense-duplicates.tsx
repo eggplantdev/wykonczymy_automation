@@ -61,7 +61,9 @@ export function getExpenseDuplicateColumns({ showParagon, actions }: ColumnsOpti
       header: 'Dokument',
       cell: (info) => <span className="whitespace-nowrap">{info.getValue()}</span>,
     }),
-    col.accessor('date', {
+    // The printed date is what the manager can check against the photo; the booking date is the fallback.
+    col.accessor((row) => row.documentDate ?? row.date, {
+      id: 'date',
       header: 'Data',
       cell: (info) => formatPLDate(info.getValue()),
     }),

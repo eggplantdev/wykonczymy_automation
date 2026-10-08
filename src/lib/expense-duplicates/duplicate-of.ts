@@ -15,6 +15,3 @@ export const skippedReceiptSchema = z.object({
 })
 
 export type SkippedReceiptT = z.infer<typeof skippedReceiptSchema>
-
-export const duplicateOfLabel = ({ source, id }: DuplicateOfT) =>
-  source === 'transaction' ? `Duplikat #${id}` : `Duplikat zgłoszenia #${id}`

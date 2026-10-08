@@ -31,10 +31,7 @@ import type { ReferenceDataT } from '@/types/reference-data'
 
 type AcceptingT = {
   draft: ExpenseDraftRowT
-  // The downloaded pages, in `draft.media` order.
-  files: File[]
   prefill: ExpenseFormPrefillT
-  isReading: boolean
   duplicates: DuplicateHintsStateT
 }
 
@@ -94,6 +91,8 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
   // regular upload path is what files a page under its row.
   async function open(draft: ExpenseDraftRowT) {
     setLoadingId(draft.id)
+    // Needs only the id, so it runs alongside the page download.
+    const duplicatesRequest = draft.aiRead ? requestDuplicates(draft.id) : undefined
     let files: File[]
     try {
       files = await downloadPages(draft.media)
@@ -110,16 +109,19 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
       : draft.aiRead
         ? { status: 'checking' }
         : { status: 'no-read' }
-    setAccepting({ draft, files, prefill: prefillFor(draft, files), isReading, duplicates })
+    setAccepting({ draft, prefill: prefillFor(draft, files), duplicates })
     openDialog(formIdOf(draft.id), false)
     // A reopen mid-read stays on „reading"; the read already in flight loads the duplicates.
     if (isReading && !readsInFlight.current.has(draft.id)) await readOnOpen(draft, files)
-    else if (draft.aiRead) await loadDuplicates(draft.id)
+    else if (duplicatesRequest) await loadDuplicates(draft.id, duplicatesRequest)
   }
 
-  // The comparison needs the AI read, so it runs once the read is in.
-  async function loadDuplicates(draftId: number) {
-    const result = await settleAction(() => findExpenseDraftDuplicates(draftId))
+  const requestDuplicates = (draftId: number) =>
+    settleAction(() => findExpenseDraftDuplicates(draftId))
+
+  // Awaited only once the dialog state exists — a result landing earlier would find no dialog.
+  async function loadDuplicates(draftId: number, request = requestDuplicates(draftId)) {
+    const result = await request
     setAccepting((prev) => {
       if (prev?.draft.id !== draftId) return prev
       if (!result.success) {
@@ -148,16 +150,16 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
         prev?.draft.id === draft.id
           ? {
               ...prev,
-              draft: aiRead ? { ...prev.draft, aiRead } : prev.draft,
               prefill: aiRead ? prefillFor({ ...draft, aiRead }, files) : prev.prefill,
-              isReading: false,
               duplicates: aiRead ? { status: 'checking' } : { status: 'no-read' },
             }
           : prev,
       )
       // The list's copy of the draft still has no read; without the refresh a reopen pays again.
-      if (aiRead) router.refresh()
-      if (aiRead) await loadDuplicates(draft.id)
+      if (aiRead) {
+        router.refresh()
+        await loadDuplicates(draft.id)
+      }
     } finally {
       readsInFlight.current.delete(draft.id)
       usePendingStore.getState().stop(pendingKey)
@@ -176,6 +178,8 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
     router.refresh()
   }
 
+  const isPrefillReading = accepting?.duplicates.status === 'reading'
+
   const dialogs = (
     <>
       {accepting && (
@@ -186,17 +190,17 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
           showKeepOpen={false}
           title="Nowy wydatek"
           description={accepting.draft.note ?? undefined}
-          className="sm:max-w-[96vw]"
+          className="sm:max-w-dialog-2xl"
         >
           {(onSubmitSuccess) => (
             <ExpenseForm
               // The form seeds from `prefill` once; a landed read needs a fresh mount.
-              key={String(accepting.isReading)}
+              key={String(isPrefillReading)}
               referenceData={referenceData}
               onSubmitSuccess={onSubmitSuccess}
               formId={formIdOf(accepting.draft.id)}
               prefill={accepting.prefill}
-              isPrefillReading={accepting.isReading}
+              isPrefillReading={isPrefillReading}
               onRemoveLastItem={(duplicateOf) =>
                 duplicateOf
                   ? handleReject(accepting.draft.id, duplicateOf)

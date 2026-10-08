@@ -1,5 +1,5 @@
-// Duplicate matching between one paragon of a zgłoszenie and existing expenses (EX-1025).
-// The evidence behind each rule: context/changes/2026-10-07-invoice-duplicate-detection/change.md.
+import { daysBetween, type DayT } from '@/lib/utils/days'
+import { firstNoteLine } from '@/lib/utils/invoice-note'
 
 export type ExpenseDocT = {
   amount: number | null
@@ -14,7 +14,7 @@ export type ExpenseDocT = {
 }
 
 export type MatchReasonT = 'same-number' | 'same-receipt' | 'same-amount'
-export type MatchTierT = 'strong' | 'weak'
+type MatchTierT = 'strong' | 'weak'
 
 export type MatchVerdictT = {
   tier: MatchTierT
@@ -22,11 +22,10 @@ export type MatchVerdictT = {
 }
 
 const WEAK_WINDOW_DAYS = 3
-const DAY_MS = 86_400_000
 const PRINTED_DATE = /(\d{2})\.(\d{2})\.(\d{4})/
-const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
 
-const cents = (amount: number | null) => (amount === null ? null : Math.round(amount * 100))
+export const cents = (amount: number | null) => (amount === null ? null : Math.round(amount * 100))
 
 /**
  * Uppercased, whitespace stripped. A loyalty-card number or a date sits on „Notatka" line 1 now and
@@ -38,22 +37,15 @@ function normalizeDocumentNumber(raw: string | null | undefined): string | null 
   return normalized.length >= 5 && /\d/.test(normalized) ? normalized : null
 }
 
-const firstLine = (note: string | null) =>
-  (note ?? '')
-    .split('\n')
-    .map((line) => line.trim())
-    .find(Boolean) ?? null
-
 /** The column, else „Notatka" line 1 on a row booked before it existed. */
 export const documentNumberOf = (doc: ExpenseDocT) =>
-  normalizeDocumentNumber(doc.documentNumber) ?? normalizeDocumentNumber(firstLine(doc.invoiceNote))
+  normalizeDocumentNumber(doc.documentNumber) ??
+  normalizeDocumentNumber(firstNoteLine(doc.invoiceNote))
 
-function dayOf(doc: ExpenseDocT): number | null {
-  const iso = doc.documentDate?.match(ISO_DATE)
-  if (iso) return Date.UTC(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3])) / DAY_MS
+function dayOf(doc: ExpenseDocT): DayT | null {
+  if (doc.documentDate && ISO_DATE.test(doc.documentDate)) return doc.documentDate
   const printed = doc.description?.match(PRINTED_DATE)
-  if (!printed) return null
-  return Date.UTC(Number(printed[3]), Number(printed[2]) - 1, Number(printed[1])) / DAY_MS
+  return printed ? `${printed[3]}-${printed[2]}-${printed[1]}` : null
 }
 
 // „Leroy Merlin" and „Leroy-Merlin Polska" must agree, so the key is a short alphanumeric prefix.
@@ -114,7 +106,7 @@ export function matchExpense(probe: ExpenseDocT, candidate: ExpenseDocT): MatchV
     isSameAmount &&
     probeDay !== null &&
     candidateDay !== null &&
-    Math.abs(probeDay - candidateDay) <= WEAK_WINDOW_DAYS
+    Math.abs(daysBetween(probeDay, candidateDay)) <= WEAK_WINDOW_DAYS
   ) {
     return { tier: 'weak', reasons: ['same-amount'] }
   }

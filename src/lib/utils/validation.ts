@@ -93,7 +93,6 @@ function getSellerNipError(value: string | undefined): string | undefined {
   return value && normalizeNip(value) === undefined ? 'NIP musi mieć 10 cyfr' : undefined
 }
 
-/** „Data na paragonie" may be left blank; a value must be a real calendar day. */
 function getDocumentDateError(value: string | undefined): string | undefined {
   return value && dayBound(value) === undefined ? 'Nieprawidłowa data' : undefined
 }

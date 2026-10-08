@@ -1,11 +1,13 @@
 import { sql } from '@payloadcms/db-vercel-postgres'
 import type { TelmakAppRowT } from '@/lib/telmak/compare-telmak'
 import type { DbExecutorT } from './get-db'
+import { normalizedNumber, noteLine1 } from './document-number-sql'
+import { transactionInvoicesJson } from './media-json'
 import { inList } from './sql-list'
 
 // Mirrors `normalizeDocNumber(firstNoteLine(note))`, so a number matches in SQL when it would match
 // in the browser.
-const NOTE_NUMBER = sql`upper(regexp_replace(split_part(btrim(t.invoice_note, E' \t\r\n'), E'\n', 1), '\\s', '', 'g'))`
+const NOTE_NUMBER = normalizedNumber(noteLine1(sql`t.invoice_note`))
 
 // The month of slack: a document is booked up to ~4 weeks after it was issued, and the issue date
 // only lives in the description.
@@ -23,13 +25,7 @@ export async function loadTelmakCheckRows(
   const { rows } = await db.execute(sql`
     SELECT t.id, t.amount, t.description, t.invoice_note, t.cancelled,
            t.source_register_id, cr.name AS register_name, i.name AS investment_name,
-           COALESCE((
-             SELECT json_agg(json_build_object(
-               'id', m.id, 'url', m.url, 'filename', m.filename, 'mimeType', m.mime_type
-             ) ORDER BY r."order")
-             FROM transactions_rels r JOIN media m ON m.id = r.media_id
-             WHERE r.parent_id = t.id AND r.path = 'invoice' AND m.url IS NOT NULL
-           ), '[]'::json) AS invoices
+           ${transactionInvoicesJson(sql`t.id`)} AS invoices
     FROM transactions t
     LEFT JOIN cash_registers cr ON cr.id = t.source_register_id
     LEFT JOIN investments i ON i.id = t.investment_id
