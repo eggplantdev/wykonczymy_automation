@@ -415,7 +415,7 @@ with the `down`.
 
 #### Automated
 
-- [x] 1.1 Migration applies locally
+- [x] 1.1 Migration applies locally — 5481bdb84
 - [ ] 1.2 insert-schema-drift spec passes
 - [ ] 1.3 kosztorys-tree-sql-drift spec passes
 - [ ] 1.4 Snapshot-format spec: missing field → null, present round-trips
@@ -426,7 +426,7 @@ with the `down`.
 #### Automated
 
 - [ ] 2.1 Link-planning spec (identical / differing mode / kosztorys cena / no match)
-- [ ] 2.2 Local dry-run prints counts, writes nothing
+- [x] 2.2 Local dry-run prints counts, writes nothing
 
 ### Phase 3: Szablon reads and writes the katalog
 
