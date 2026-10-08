@@ -1,6 +1,7 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
+import { Copy } from 'lucide-react'
 import { QueueFilters } from '@/components/filters/queue-filters'
 import { DataTable } from '@/components/tables/data-table/data-table'
 import { useExpenseDraftColumns } from '@/components/tables/expense-drafts'
@@ -81,6 +82,11 @@ export function ExpenseDraftsDataTable({
         }))}
         investments={investments}
         workers={workers}
+        toggleMenu={{
+          label: 'Duplikaty',
+          icon: Copy,
+          toggles: [{ param: 'duplicates', label: 'Tylko duplikaty' }],
+        }}
       />
       <DataTable
         data={data}

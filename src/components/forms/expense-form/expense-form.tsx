@@ -87,6 +87,7 @@ type TransferFormPropsT = {
   // The prefill's read is still in flight; the form locks so the refill can't overwrite typing.
   isPrefillReading?: boolean
   secondaryAction?: React.ReactNode
+  onRemoveLastItem?: () => void
 }
 
 const FORM_ID = 'expense'
@@ -99,6 +100,7 @@ export function ExpenseForm({
   prefill,
   isPrefillReading = false,
   secondaryAction,
+  onRemoveLastItem,
 }: TransferFormPropsT) {
   const { recoveredFiles, submit } = useFormSubmit(formId)
 
@@ -399,6 +401,7 @@ export function ExpenseForm({
               total={total}
               hasInvestment={!!currentInvestment}
               onRemoveItem={handleRemoveLineItem}
+              onRemoveLastItem={onRemoveLastItem}
               onFileChange={attachFile}
               onRemoveFile={removeFileAt}
               onRegisterFiles={registerFiles}

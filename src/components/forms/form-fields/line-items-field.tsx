@@ -70,6 +70,8 @@ type LineItemsFieldPropsT = {
   total: number
   hasInvestment?: boolean
   onRemoveItem: (id: string, index: number, removeValue: (index: number) => void) => void
+  // Without it the last row's trash is disabled: an expense needs at least one row.
+  onRemoveLastItem?: () => void
   onFileChange: (id: string, e: React.ChangeEvent<HTMLInputElement>) => void
   onRemoveFile: (id: string, index: number) => void
   // 'per-row' registers `files[i]` against row `ids[i]`, 'single-row' hangs all of them on `ids[0]`
@@ -153,6 +155,7 @@ export function LineItemsField({
   total,
   hasInvestment,
   onRemoveItem,
+  onRemoveLastItem,
   onFileChange,
   onRemoveFile,
   onRegisterFiles,
@@ -336,9 +339,15 @@ export function LineItemsField({
                         ) : (
                           <RemoveButton
                             icon={Trash2}
-                            onClick={() => onRemoveItem(item.id, index, lineItemsField.removeValue)}
+                            onClick={() =>
+                              lineItemsField.state.value.length === 1
+                                ? onRemoveLastItem?.()
+                                : onRemoveItem(item.id, index, lineItemsField.removeValue)
+                            }
                             disabled={
-                              isGenerating || isIngesting || lineItemsField.state.value.length === 1
+                              isGenerating ||
+                              isIngesting ||
+                              (lineItemsField.state.value.length === 1 && !onRemoveLastItem)
                             }
                           />
                         )}

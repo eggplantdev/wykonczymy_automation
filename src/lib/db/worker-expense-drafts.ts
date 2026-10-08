@@ -12,6 +12,7 @@ import {
   type ServerSortableDraftColumnT,
 } from '@/lib/worker-expenses/sortable-columns'
 import type { ReferenceItemT } from '@/types/reference-data'
+import { duplicateOfSchema, type DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
 import type { DeleteProbeT } from './delete-blocker'
 import { expenseDraftReadSchema, type ExpenseDraftReadT } from './expense-draft-read'
 import type { DbExecutorT } from './get-db'
@@ -44,6 +45,10 @@ export type ExpenseDraftRowT = {
   transfers: ExpenseDraftTransferT[]
   // Set on a history row standing for one paragon the manager skipped while accepting the rest.
   skippedReceipt?: { id: number; isRestorable: boolean }
+  // A refusal management marked as a duplicate — shown to management only.
+  duplicateOf?: DuplicateOfT
+  // A pending draft's pages already refused as duplicates; the acceptance leaves them out.
+  skippedMediaIds?: number[]
   media: ExpenseDraftMediaT[]
   scanMode: ScanModeT
   aiRead: ExpenseDraftReadT | undefined
@@ -57,6 +62,13 @@ const DRAFT_MEDIA = sql`
     FROM worker_expense_draft_media dm JOIN media m ON m.id = dm.media_id
     WHERE dm.draft_id = d.id
   ), '[]'::json)
+`
+
+const SKIPPED_MEDIA = sql`
+  CASE WHEN d.status = 'pending' THEN COALESCE((
+    SELECT array_agg(media_id) FROM worker_expense_draft_skipped_receipts sr, unnest(sr.media_ids) media_id
+    WHERE sr.draft_id = d.id
+  ), '{}') END
 `
 
 const TRANSFER_JSON = sql`json_build_object(
@@ -77,7 +89,8 @@ const DRAFT_SELECT = sql`
   SELECT d.id, d.worker_id, w.name AS worker_name, d.investment_id, i.name AS investment_name,
     d.cash_register_id, d.note, d.status, d.sent_at, d.decided_at, d.scan_mode,
     CASE WHEN d.status = 'pending' THEN d.ai_read END AS ai_read, ${DRAFT_MEDIA} AS media,
-    ${DRAFT_TRANSFERS} AS transfers, decider.name AS decided_by_name
+    ${DRAFT_TRANSFERS} AS transfers, decider.name AS decided_by_name, d.duplicate_of,
+    ${SKIPPED_MEDIA} AS skipped_media_ids
   FROM worker_expense_drafts d
   JOIN users w ON w.id = d.worker_id
   JOIN investments i ON i.id = d.investment_id
@@ -109,6 +122,7 @@ function toDraftRead(value: unknown): ExpenseDraftReadT | undefined {
 }
 
 function toDraftRow(row: Record<string, unknown>): ExpenseDraftRowT {
+  const duplicateOf = duplicateOfSchema.safeParse(row.duplicate_of)
   return {
     id: Number(row.id),
     workerId: Number(row.worker_id),
@@ -125,6 +139,8 @@ function toDraftRow(row: Record<string, unknown>): ExpenseDraftRowT {
     ...(row.receipt_id != null && {
       skippedReceipt: { id: Number(row.receipt_id), isRestorable: row.is_restorable === true },
     }),
+    ...(duplicateOf.success && { duplicateOf: duplicateOf.data }),
+    skippedMediaIds: ((row.skipped_media_ids ?? []) as unknown[]).map(Number),
     media: toDraftMedia(row.media),
     scanMode: row.scan_mode as ScanModeT,
     aiRead: toDraftRead(row.ai_read),
@@ -186,13 +202,13 @@ const LISTED_DRAFT = sql`(d.status <> 'rejected' OR (${PARTIES_NOT_TRASHED}))`
 const PARAGON_ROWS = sql`
   WITH paragons AS (
     SELECT dt.draft_id, d.status AS row_status, dt.transfer_id, NULL::int AS receipt_id,
-      dt.media_ids, 0 AS kind, dt.transfer_id AS part
+      dt.media_ids, 0 AS kind, dt.transfer_id AS part, NULL::jsonb AS duplicate_of
     FROM worker_expense_draft_transfers dt JOIN worker_expense_drafts d ON d.id = dt.draft_id
     UNION ALL
-    SELECT sr.draft_id, 'rejected', NULL, sr.id, sr.media_ids, 1, sr.id
+    SELECT sr.draft_id, 'rejected', NULL, sr.id, sr.media_ids, 1, sr.id, sr.duplicate_of
     FROM worker_expense_draft_skipped_receipts sr
     UNION ALL
-    SELECT d.id, d.status, NULL, NULL, '{}'::int[], 0, 0
+    SELECT d.id, d.status, NULL, NULL, '{}'::int[], 0, 0, d.duplicate_of
     FROM worker_expense_drafts d
     WHERE NOT EXISTS (SELECT 1 FROM worker_expense_draft_transfers dt WHERE dt.draft_id = d.id)
   ), pr AS (
@@ -219,7 +235,7 @@ const PARAGON_SELECT = sql`
     COALESCE((
       SELECT json_agg(${TRANSFER_JSON}) FROM transactions t WHERE t.id = pr.transfer_id
     ), '[]'::json) AS transfers,
-    decider.name AS decided_by_name
+    decider.name AS decided_by_name, pr.duplicate_of, ${SKIPPED_MEDIA} AS skipped_media_ids
   ${PARAGON_FROM}
   JOIN users w ON w.id = d.worker_id
   JOIN investments i ON i.id = d.investment_id
@@ -261,7 +277,7 @@ export async function countPendingExpenseDrafts(db: DbExecutorT): Promise<number
   return Number(res.rows[0]?.total ?? 0)
 }
 
-export type ExpenseDraftFiltersT = QueueFiltersT<ExpenseDraftStatusT>
+export type ExpenseDraftFiltersT = QueueFiltersT<ExpenseDraftStatusT> & { duplicatesOnly?: boolean }
 
 const QUEUE_ORDER = sql`d.status <> 'pending', d.sent_at DESC, ${PARAGON_ORDER}`
 
@@ -292,7 +308,8 @@ export async function listExpenseDraftHistory(
 ): Promise<{ rows: ExpenseDraftRowT[]; totalDocs: number }> {
   // The status filter reads the paragon's own badge; `LISTED_DRAFT` still reads the zgłoszenie's.
   const where = sql`${queueFiltersWhere('d', LISTED_DRAFT, { ...filters, statuses: null })}
-    AND ${inList(sql`pr.row_status`, filters.statuses) ?? sql`true`}`
+    AND ${inList(sql`pr.row_status`, filters.statuses) ?? sql`true`}
+    AND ${filters.duplicatesOnly ? sql`pr.duplicate_of IS NOT NULL` : sql`true`}`
   const [res, countRes] = await Promise.all([
     db.execute(sql`
       ${PARAGON_SELECT}
@@ -341,6 +358,7 @@ export async function decideExpenseDraft(
     // Positional to `transferIds`: the draft's pages each transakcja was booked from.
     transferMediaIds?: number[][]
     skippedReceipts?: number[][]
+    duplicateOf?: DuplicateOfT
   },
 ): Promise<boolean> {
   const transfers = decision.transferIds.map((id, i) => ({
@@ -356,7 +374,8 @@ export async function decideExpenseDraft(
   const res = await db.execute(sql`
     WITH decided AS (
       UPDATE worker_expense_drafts
-      SET status = ${decision.status}, decided_at = now(), decided_by = ${decision.decidedBy}
+      SET status = ${decision.status}, decided_at = now(), decided_by = ${decision.decidedBy},
+        duplicate_of = ${decision.duplicateOf ? JSON.stringify(decision.duplicateOf) : null}::jsonb
       WHERE id = ${decision.draftId} AND status = 'pending'
       RETURNING id
     ), linked AS (
@@ -373,6 +392,27 @@ export async function decideExpenseDraft(
   return res.rows.length > 0
 }
 
+/**
+ * One paragon of a still-pending zgłoszenie refused as a duplicate, ahead of the acceptance, which
+ * then books the rest. Only the draft's own pages land, and only while it waits.
+ */
+export async function skipPendingReceiptAsDuplicate(
+  db: DbExecutorT,
+  receipt: { draftId: number; mediaIds: number[]; duplicateOf: DuplicateOfT },
+): Promise<boolean> {
+  const res = await db.execute(sql`
+    INSERT INTO worker_expense_draft_skipped_receipts (draft_id, media_ids, duplicate_of)
+    SELECT d.id, ARRAY(
+      SELECT unnest(${`{${receipt.mediaIds.join(',')}}`}::int[]) INTERSECT
+      SELECT dm.media_id FROM worker_expense_draft_media dm WHERE dm.draft_id = d.id
+    ), ${JSON.stringify(receipt.duplicateOf)}::jsonb
+    FROM worker_expense_drafts d
+    WHERE d.id = ${receipt.draftId} AND d.status = 'pending'
+    RETURNING id
+  `)
+  return res.rows.length > 0
+}
+
 /** Only a refusal is undone — an accepted draft already stands behind a booked expense. */
 export async function restoreRejectedExpenseDraft(
   db: DbExecutorT,
@@ -380,7 +420,7 @@ export async function restoreRejectedExpenseDraft(
 ): Promise<boolean> {
   const res = await db.execute(sql`
     UPDATE worker_expense_drafts d
-    SET status = 'pending', decided_at = NULL, decided_by = NULL
+    SET status = 'pending', decided_at = NULL, decided_by = NULL, duplicate_of = NULL
     WHERE d.id = ${draftId} AND d.status = 'rejected' AND ${PARTIES_NOT_TRASHED}
     RETURNING d.id
   `)
