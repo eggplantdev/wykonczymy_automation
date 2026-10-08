@@ -3,12 +3,13 @@ import { isAdminOrOwner } from '@/access'
 import {
   canBeSettled,
   carriesNetAmount,
+  hasOptionalWorker,
   needsExpenseCategory,
   needsOtherCategory,
   needsSourceRegister,
   needsTargetRegister,
-  needsWorker,
   showsInvestment,
+  showsWorker,
   type TransferTypeT,
 } from '@/lib/constants/transfers'
 import { validateTransfer } from '@/hooks/transfers/validate'
@@ -208,9 +209,9 @@ export const Transfers: CollectionConfig = {
       type: 'relationship',
       relationTo: 'users',
       label: { en: 'Worker', pl: 'Pracownik' },
-      access: { update: () => false },
+      access: { update: ({ doc }) => hasOptionalWorker(typeOf(doc ?? {})) },
       admin: {
-        condition: (data) => needsWorker(typeOf(data)),
+        condition: (data) => showsWorker(typeOf(data)),
       },
     },
     {

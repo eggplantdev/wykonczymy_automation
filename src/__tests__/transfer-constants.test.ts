@@ -17,6 +17,8 @@ import {
   requiresInvestment,
   needsTargetRegister,
   needsWorker,
+  hasOptionalWorker,
+  showsWorker,
   needsOtherCategory,
   showsOtherCategory,
   needsExpenseCategory,
@@ -105,6 +107,14 @@ const HELPERS: Record<string, { fn: HelperFn; trueFor: string[] }> = {
   needsWorker: {
     fn: needsWorker,
     trueFor: ['PAYOUT', 'BONUS'],
+  },
+  hasOptionalWorker: {
+    fn: hasOptionalWorker,
+    trueFor: ['OTHER'],
+  },
+  showsWorker: {
+    fn: showsWorker,
+    trueFor: ['PAYOUT', 'BONUS', 'OTHER'],
   },
   needsOtherCategory: {
     fn: needsOtherCategory,

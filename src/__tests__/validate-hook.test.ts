@@ -183,6 +183,21 @@ describe('validateTransfer — auto-clear behavior', () => {
     expect(result.investment).toBeNull()
   })
 
+  // Who bought it — the per-worker tools figure reads this column, so the hook must not drop it.
+  it('OTHER → worker kept', async () => {
+    const result = await validateTransfer(hookArgs({ ...VALID_DATA.OTHER, worker: 7 }))
+    expect(result.worker).toBe(7)
+  })
+
+  it('OTHER without worker → passes', async () => {
+    await expect(validateTransfer(hookArgs(VALID_DATA.OTHER))).resolves.toBeDefined()
+  })
+
+  it('INVESTMENT_EXPENSE → worker set to null', async () => {
+    const result = await validateTransfer(hookArgs({ ...VALID_DATA.INVESTMENT_EXPENSE, worker: 7 }))
+    expect(result.worker).toBeNull()
+  })
+
   it('REGISTER_TRANSFER → investment set to null', async () => {
     const data = { ...VALID_DATA.REGISTER_TRANSFER, investment: 31 }
     const result = await validateTransfer(hookArgs(data))

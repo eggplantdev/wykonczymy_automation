@@ -116,6 +116,8 @@ export const createBulkExpenseSchema = z
           invoiceNote: z.string().optional(),
           category: z.number().positive().optional(),
           expenseCategory: z.number().positive().optional(),
+          // Who bought it, on an OTHER row only — PAYOUT/BONUS name theirs once, at form level.
+          worker: z.number().positive().optional(),
         }),
       )
       .min(1, 'Dodaj co najmniej jedną pozycję'),

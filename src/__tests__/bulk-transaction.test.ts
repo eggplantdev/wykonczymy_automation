@@ -125,3 +125,37 @@ describe('createBulkTransferAction — transaction safety', () => {
     }
   })
 })
+
+// ═════════════════════════════════════════════════════════════════════════
+// Bulk Transfer — worker per row
+// ═════════════════════════════════════════════════════════════════════════
+
+describe('createBulkTransferAction — worker per row', () => {
+  // One receipt batch of „Inny wydatek” can mix buyers, so each row carries its own.
+  it('OTHER writes each row its own worker, or none', async () => {
+    mockCreate.mockResolvedValue({ id: 1 })
+
+    await createBulkTransferAction({
+      type: 'OTHER' as const,
+      date: '2026-10-08',
+      paymentMethod: 'CASH' as const,
+      sourceRegister: 1,
+      lineItems: [
+        { description: 'Wiertarka', amount: 300, category: 9, worker: 5 },
+        { description: 'Wkrętarka', amount: 200, category: 9 },
+      ],
+    })
+
+    const workers = mockCreate.mock.calls.map((call) => call[0].data.worker)
+    expect(workers).toEqual([5, undefined])
+  })
+
+  it('a row without its own worker takes the form-level one', async () => {
+    mockCreate.mockResolvedValue({ id: 1 })
+
+    await createBulkTransferAction({ ...makeBulkTransferData(2), worker: 9 })
+
+    const workers = mockCreate.mock.calls.map((call) => call[0].data.worker)
+    expect(workers).toEqual([9, 9])
+  })
+})
