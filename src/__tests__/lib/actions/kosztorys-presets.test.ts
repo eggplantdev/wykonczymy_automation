@@ -12,6 +12,7 @@ import {
 } from '@/__tests__/helpers/investment'
 import { createKosztorysTree } from '@/__tests__/helpers/kosztorys-db-tree'
 import { createTestTemplate } from '@/__tests__/helpers/template'
+import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 
 // „Wczytaj szablon" replaces a whole rozpiska behind an automatic snapshot, so every assertion is on
 // PERSISTED state: a success result would hide a failed write, and „odwracalne" is real only if the
@@ -408,8 +409,28 @@ describe.skipIf(!ENV_READY)('szablon lifecycle — persisted state (DB)', () => 
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
   const created: number[] = []
+  const createdEntries: number[] = []
   let sourceId: number
   let sourceName: string
+  // A szablon's prace are katalog entries, so the source's praca has to be one to travel at all.
+  const tiles = uniqueName('Płytki')
+  let tilesEntryId: number
+
+  async function createEntry(description: string): Promise<number> {
+    const entry = await payload.create({
+      collection: 'work-catalogue-items',
+      data: {
+        description,
+        unit: 'm2',
+        clientPrice: 120,
+        matchKey: catalogueKey(description, 'm2'),
+      },
+      overrideAccess: true,
+      context: { skipRevalidation: true },
+    })
+    createdEntries.push(Number(entry.id))
+    return Number(entry.id)
+  }
 
   beforeAll(async () => {
     const { getPayload } = await import('payload')
@@ -418,6 +439,7 @@ describe.skipIf(!ENV_READY)('szablon lifecycle — persisted state (DB)', () => 
     db = await getDb(payload)
     authState.userId = await firstUserId(payload)
 
+    tilesEntryId = await createEntry(tiles)
     sourceName = uniqueName('lifecycle-source')
     sourceId = await createTestInvestment(payload, sourceName)
     created.push(sourceId)
@@ -427,12 +449,13 @@ describe.skipIf(!ENV_READY)('szablon lifecycle — persisted state (DB)', () => 
           name: 'Łazienka',
           items: [
             {
-              description: 'Płytki',
+              description: tiles,
               unit: 'm2',
               plannedQty: 14,
               clientPrice: 120,
               discountType: 'amount',
               discountValue: 50,
+              catalogueItemId: tilesEntryId,
             },
           ],
         },
@@ -443,6 +466,11 @@ describe.skipIf(!ENV_READY)('szablon lifecycle — persisted state (DB)', () => 
 
   afterAll(async () => {
     for (const id of created) await deleteIfPresent(payload, db, id)
+    for (const id of createdEntries) {
+      await payload
+        .delete({ collection: 'work-catalogue-items', id, context: { skipRevalidation: true } })
+        .catch(() => undefined)
+    }
   })
 
   async function templateByName(name: string) {
@@ -476,9 +504,52 @@ describe.skipIf(!ENV_READY)('szablon lifecycle — persisted state (DB)', () => 
 
   const STRIPPED_SOURCE_TREE = {
     sections: ['Łazienka'],
-    items: [{ description: 'Płytki', plannedQty: 0, discountType: null, discountValue: 0 }],
+    items: [{ description: tiles, plannedQty: 0, discountType: null, discountValue: 0 }],
     stages: 0,
   }
+
+  // Never written into the katalog on the way: that would put one client's price in the cennik.
+  it.each(['new', 'overwrite'] as const)(
+    '„%s” leaves out a praca typed by hand, says how many, and adds nothing to the katalog',
+    async (mode) => {
+      const typed = uniqueName('Wpisana ręcznie')
+      const linked = uniqueName('Z katalogu')
+      const mixedSource = await createTestInvestment(payload, uniqueName('lifecycle-mixed'))
+      created.push(mixedSource)
+      await createKosztorysTree(payload, mixedSource, {
+        sections: [
+          {
+            name: 'Kuchnia',
+            items: [
+              { description: linked, unit: 'm2', catalogueItemId: await createEntry(linked) },
+              { description: typed, unit: 'm2' },
+            ],
+          },
+        ],
+      })
+      const name = uniqueName('lifecycle-mixed-target')
+      const targetId = mode === 'overwrite' ? await createTestTemplate(payload, name) : undefined
+      if (targetId) created.push(targetId)
+
+      const result = await savePresetAction(
+        mixedSource,
+        targetId ? { mode: 'overwrite', targetId } : { mode: 'new', name },
+      )
+
+      expect(result).toEqual({
+        success: true,
+        warning: 'Pominięto 1 pracę spoza katalogu — najpierw zapisz je do katalogu.',
+      })
+      const presetId = targetId ?? Number((await templateByName(name))[0].id)
+      const tree = await treeOf(presetId)
+      expect(tree.sections).toEqual(['Kuchnia'])
+      expect(tree.items.map((item) => item.description)).toEqual([linked])
+      const typedInCatalogue = await db.execute(sql`
+        SELECT 1 FROM work_catalogue_items WHERE match_key = ${catalogueKey(typed, 'm2')}
+      `)
+      expect(typedInCatalogue.rows).toHaveLength(0)
+    },
+  )
 
   it('an empty szablon is a stamped szablon investment with no tree', async () => {
     const name = uniqueName('lifecycle-empty')

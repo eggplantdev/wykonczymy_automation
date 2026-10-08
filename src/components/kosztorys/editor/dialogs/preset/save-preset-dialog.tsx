@@ -12,6 +12,9 @@ import { toastMessage } from '@/lib/utils/toast'
 import { useKosztorysActions } from '@/components/kosztorys/editor/actions/kosztorys-actions-context'
 import { useKosztorysEditorContext } from '@/components/kosztorys/editor/use-kosztorys-editor-context'
 
+const PRESET_KEEPS_STRUCTURE_ONLY =
+  'Szablon zapamiętuje tylko sekcje i prace w tej kolejności. Ceny, mnożniki i tłumaczenia bierze z katalogu prac. Żeby zmienić cenę, użyj „Aktualizuj pozycję w katalogu prac” przy danej pracy.'
+
 // "Zapisz jako nowy szablon…" — save this rozpiska as a reusable, cross-investment template, itself
 // either a new named template or an overwrite of an existing one.
 export function SavePresetDialog() {
@@ -49,6 +52,7 @@ export function SavePresetDialog() {
       return
     }
     toastMessage('Zapisano szablon', 'success')
+    if (res.warning) toastMessage(res.warning, 'warning', 6000)
     onOpenChange(false)
   }
 
@@ -57,13 +61,13 @@ export function SavePresetDialog() {
       open={open}
       onOpenChange={handleOpenChange}
       title="Zapisz jako nowy szablon…"
-      // A szablon has no „this investment" for a copy to be independent of — the whole sentence is
-      // about something that is not there, so it is rewritten, not word-swapped.
-      description={
+      // A szablon has no „this investment" for a copy to be independent of, so its first sentence is
+      // rewritten, not word-swapped.
+      description={`${
         !isTemplate
-          ? 'Szablon — wzór kosztorysu wielokrotnego użytku, niezależny od tej inwestycji. Posłuży do szybkiego założenia kosztorysu na innych inwestycjach.'
+          ? 'Szablon — wzór kosztorysu wielokrotnego użytku, niezależny od tej inwestycji.'
           : 'Zapisuje kopię bieżącej rozpiski jako osobny szablon. Ten, który edytujesz, się nie zmienia.'
-      }
+      } ${PRESET_KEEPS_STRUCTURE_ONLY}`}
       confirmLabel="Zapisz"
       onConfirm={() => void handleSave()}
       confirmDisabled={!canSave}
