@@ -19,6 +19,25 @@ export type ItemFieldsT = Pick<
 // arrives verbatim, and a mnożnik arrives as a mnożnik and re-prices itself off the cena j.m. it
 // lands on. Copying at most one column per płaszczyzna is what keeps the pair legal: two set columns
 // is the state `normalizeOverridePatch` exists to prevent.
+const itemColumnsFromFields = (fields: ItemFieldsT) => ({
+  description: fields.description,
+  descriptionTranslations: fields.descriptionTranslations,
+  unit: fields.unit,
+  clientPrice: fields.clientPrice,
+  wToolsOverrideValue: fields.wToolsRate,
+  ownToolsOverrideValue: fields.ownToolsRate,
+  wToolsOverrideCoeff: fields.wToolsRateCoeff,
+  ownToolsOverrideCoeff: fields.ownToolsRateCoeff,
+})
+
+// A szablon row linked to a katalog entry shows the entry, not its own copy (EX-1017): the katalog is
+// the one place a szablon praca's content lives. `null` = no entry to show — an unlinked row, a dead
+// id, or a kosztorys row, which keeps its own values whatever it is linked to.
+export const withCatalogueFields = <T extends KosztorysItemT>(
+  item: T,
+  fields: ItemFieldsT | null,
+): T => (fields ? { ...item, ...itemColumnsFromFields(fields) } : item)
+
 export const itemFromFields = (
   fields: ItemFieldsT,
   sectionId: number,
@@ -28,14 +47,7 @@ export const itemFromFields = (
   id: 0,
   sectionId,
   displayOrder,
-  description: fields.description,
-  descriptionTranslations: fields.descriptionTranslations,
-  unit: fields.unit,
-  clientPrice: fields.clientPrice,
-  wToolsOverrideValue: fields.wToolsRate,
-  ownToolsOverrideValue: fields.ownToolsRate,
-  wToolsOverrideCoeff: fields.wToolsRateCoeff,
-  ownToolsOverrideCoeff: fields.ownToolsRateCoeff,
+  ...itemColumnsFromFields(fields),
   plannedQty: 0,
   currentPlannedQty: null,
   sheetMeasuredQty: null,

@@ -59,6 +59,19 @@ export async function listCatalogueItemsByIds(
   })
 }
 
+/** The live katalog entries a kosztorys's rows remember — what a szablon's prace read from. */
+export async function listCatalogueItemsLinkedFrom(
+  db: DbExecutorT,
+  investmentId: number,
+): Promise<WorkCatalogueItemT[]> {
+  const result = await db.execute(sql`
+    SELECT ${CATALOGUE_COLUMNS}
+    FROM work_catalogue_items
+    WHERE id IN (SELECT catalogue_item_id FROM kosztorys_items WHERE investment_id = ${investmentId})
+  `)
+  return result.rows.map(toCatalogueItem)
+}
+
 /** The whole cennik, in the order the katalog screen reads it. */
 export async function listCatalogueItems(db: DbExecutorT): Promise<WorkCatalogueItemT[]> {
   const result = await db.execute(sql`
@@ -210,6 +223,20 @@ export async function findCatalogueItemByKey(
     SELECT ${CATALOGUE_COLUMNS}
     FROM work_catalogue_items
     WHERE match_key = ${matchKey}
+  `)
+  const row = result.rows[0]
+  return row ? toCatalogueItem(row) : undefined
+}
+
+/** The live katalog entry a pozycja remembers — none for an unlinked row or a deleted entry. */
+export async function findLinkedCatalogueItem(
+  db: DbExecutorT,
+  itemId: number,
+): Promise<WorkCatalogueItemT | undefined> {
+  const result = await db.execute(sql`
+    SELECT ${CATALOGUE_COLUMNS}
+    FROM work_catalogue_items
+    WHERE id = (SELECT catalogue_item_id FROM kosztorys_items WHERE id = ${itemId})
   `)
   const row = result.rows[0]
   return row ? toCatalogueItem(row) : undefined

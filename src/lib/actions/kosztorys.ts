@@ -2,6 +2,7 @@
 
 import { after } from 'next/server'
 import { z } from 'zod'
+import type { Payload } from 'payload'
 import { sql } from '@payloadcms/db-vercel-postgres'
 import { investmentAction } from '@/lib/actions/investment-action'
 import { validateAction } from '@/lib/actions/run-action'
@@ -26,8 +27,14 @@ import { ceilingWarnings } from '@/lib/kosztorys/subcontractor-price-guard'
 import {
   applyCatalogueWrite,
   catalogueRow,
+  DUPLICATE_ERROR,
   resolveCatalogueWrite,
 } from '@/lib/kosztorys/work-catalogue/write-catalogue-entry'
+import {
+  catalogueUpdateFor,
+  EMPTY_ITEM_TEXT_ERROR,
+  splitTemplatePatch,
+} from '@/lib/kosztorys/work-catalogue/template-catalogue-patch'
 import { workCatalogueItemSchema } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
 import {
   insertDirectionSchema,
@@ -60,7 +67,7 @@ import {
 } from '@/lib/kosztorys/stage-split'
 import { insertStageMembers, replaceStageSplit, selectStagePool } from '@/lib/db/stage-split'
 import { trashedWorkerMessage } from '@/lib/db/worker-gate'
-import { findCatalogueItemByKey } from '@/lib/db/work-catalogue'
+import { findCatalogueItemByKey, findLinkedCatalogueItem } from '@/lib/db/work-catalogue'
 import { translateNewRow } from '@/lib/ai/translate-new-row'
 import { SAVED_UNTRANSLATED_WARNING } from '@/lib/utils/notice'
 import { translateSectionName } from '@/lib/actions/translate-section-name'
@@ -125,17 +132,58 @@ export async function updateItemFieldAction(itemId: number, patch: ItemPatchT) {
   return investmentAction(
     'updateItemFieldAction',
     { kind: 'item', id: itemId },
-    async ({ payload }) => {
+    async ({ payload, isTemplate }) => {
       const parsed = validateAction(itemPatchSchema, patch)
       if (!parsed.success) return parsed
       // The grid sends ONE field per call, so the pair of columns behind a stawka is made whole
       // here — one write, never two orderings (EX-865).
       const data = normalizeOverridePatch(parsed.data)
+      const templateResult = isTemplate ? await updateLinkedTemplateRow(payload, itemId, data) : null
+      if (templateResult) return templateResult
       await payload.update({ collection: 'kosztorys-items', id: itemId, data })
       return { success: true }
     },
-    ['kosztorysItems'],
+    ['kosztorysItems', 'workCatalogue'],
     { deferRefresh: true },
+  )
+}
+
+// A linked szablon row shows its katalog entry, so its content is edited there (EX-1017) and every
+// szablon holding the praca sees the change. `null` = not a linked row, or no katalog field touched:
+// the patch takes the ordinary path.
+async function updateLinkedTemplateRow(
+  payload: Payload,
+  itemId: number,
+  patch: ItemPatchT,
+): Promise<ActionResultT | null> {
+  const { cataloguePatch, rowPatch } = splitTemplatePatch(patch)
+  if (Object.keys(cataloguePatch).length === 0) return null
+  return withPayloadTransaction(
+    payload,
+    async (req): Promise<ActionResultT | null> => {
+      const txDb = await getDb(payload, req)
+      const entry = await findLinkedCatalogueItem(txDb, itemId)
+      if (!entry) return null
+      const update = catalogueUpdateFor(entry, cataloguePatch)
+      if ('error' in update) return { success: false, error: update.error }
+      // Before the write: a returned refusal still commits the transaction.
+      const { matchKey } = update.data
+      if (matchKey && matchKey !== entry.matchKey) {
+        const holder = await findCatalogueItemByKey(txDb, matchKey)
+        if (holder && holder.id !== entry.id) return { success: false, error: DUPLICATE_ERROR }
+      }
+      await payload.update({
+        collection: 'work-catalogue-items',
+        id: entry.id,
+        data: update.data,
+        req,
+      })
+      if (Object.keys(rowPatch).length > 0) {
+        await payload.update({ collection: 'kosztorys-items', id: itemId, data: rowPatch, req })
+      }
+      return { success: true }
+    },
+    { skipRevalidation: true },
   )
 }
 
@@ -276,13 +324,16 @@ export async function applyPercentDiscountToAllItemsAction(
   )
 }
 
+const TEMPLATE_TEXTS_IN_CATALOGUE = 'Opisy prac szablonu poprawia się w katalogu prac.'
+
 // „Popraw literówki". Bulk overwrite of hand-typed text, irrecoverable by in-session undo, so it
 // snapshots first like applyPercentDiscountToAllItemsAction.
 export async function cleanItemTextsAction(investmentId: number): Promise<ActionResultT<number>> {
   return investmentAction(
     'cleanItemTextsAction',
     { investmentId },
-    async ({ payload, user }) => {
+    async ({ payload, user, isTemplate }) => {
+      if (isTemplate) return { success: false, error: TEMPLATE_TEXTS_IN_CATALOGUE }
       const db = await getDb(payload)
       const changed = cleanItemTexts(await getItemTexts(db, investmentId))
       if (changed.length === 0) return { success: true, data: 0 }
@@ -445,12 +496,14 @@ const addItemSchema = z.object({
 
 export type AddItemInputT = z.infer<typeof addItemSchema>
 
+// A szablon row with no katalog entry would be the only praca in the szablon whose content lives
+// nowhere else (EX-1017).
+const TEMPLATE_ITEM_NEEDS_CATALOGUE = 'Praca w szablonie musi być w katalogu prac.'
+
 async function catalogueTranslationsFor(db: DbExecutorT, matchKey: string) {
   const entry = await findCatalogueItemByKey(db, matchKey)
   return new Map(entry ? [[matchKey, entry.descriptionTranslations]] : [])
 }
-
-const EMPTY_ITEM_TEXT_ERROR = 'Praca musi mieć opis i jednostkę miary.'
 
 // One slot per placement, both under the transaction: an append takes MAX+1, an insert-at locks the
 // anchor's position and moves the tail down by one.
@@ -488,10 +541,11 @@ export async function addItemAction(
   return investmentAction(
     'addItemAction',
     target,
-    async ({ payload, investmentId }) => {
+    async ({ payload, investmentId, isTemplate }) => {
       const parsed = validateAction(addItemSchema, input)
       if (!parsed.success) return parsed
       const { placement, data, catalogue, translate } = parsed.data
+      if (isTemplate && !catalogue) return { success: false, error: TEMPLATE_ITEM_NEEDS_CATALOGUE }
 
       const fields = catalogueRow(data)
       if (!fields.description || !fields.unit) {
