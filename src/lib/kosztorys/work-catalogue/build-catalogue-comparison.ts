@@ -41,7 +41,7 @@ const asPricing = (item: KosztorysItemT, settings: CatalogueComparisonSettingsT)
 
 const HINT_LIMIT = 3
 
-export type HintCandidateT = { entry: WorkCatalogueItemT; pairs: string[] }
+export type HintCandidateT = { entry: WorkCatalogueItemT; pairs: Uint32Array }
 
 // Folded and bigrammed ONCE for the whole cennik: `foldDescription` is ~45 split/join passes, and a
 // 1000-row rozpiska against a few-hundred-row cennik would otherwise run it a million times.
@@ -50,7 +50,7 @@ export const hintCandidates = (catalogue: readonly WorkCatalogueItemT[]): HintCa
 
 // Scores everything and sorts, rather than keeping a running top-3: the loop already touches every
 // wpis (there is no ordering to short-circuit on), and a few hundred kept candidates is nothing
-// beside the scoring itself — which is what the caller's lazy pass exists to pay for.
+// beside the scoring itself.
 export function closestEntries(
   description: string,
   candidates: readonly HintCandidateT[],
@@ -59,16 +59,20 @@ export function closestEntries(
   const pairs = bigrams(foldDescription(description))
   return candidates
     .map(({ entry, pairs: candidatePairs }) => ({
+      entry,
+      score: diceSimilarity(pairs, candidatePairs),
+    }))
+    .filter((scored) => scored.score >= HINT_THRESHOLD)
+    .sort((left, right) => right.score - left.score)
+    .slice(0, limit)
+    .map(({ entry, score }) => ({
       id: entry.id,
       description: entry.description,
       descriptionTranslations: entry.descriptionTranslations,
       unit: entry.unit,
       clientPrice: entry.clientPrice,
-      score: diceSimilarity(pairs, candidatePairs),
+      score,
     }))
-    .filter((hint) => hint.score >= HINT_THRESHOLD)
-    .sort((left, right) => right.score - left.score)
-    .slice(0, limit)
 }
 
 // One side of a rozjazd: the kwota, and how that kwota came to be. The mnożnik rides along because a
