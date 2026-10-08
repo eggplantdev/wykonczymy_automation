@@ -70,6 +70,7 @@ export const editTransferFormSchema = (row: {
       expenseCategory: z.string(),
       otherCategory: z.string(),
       invoiceNote: z.string(),
+      worker: z.string(),
       // The netto off the faktura, asked for only while filling in a legacy wpłata's missing plane.
       netAmount: z.string().optional(),
     })

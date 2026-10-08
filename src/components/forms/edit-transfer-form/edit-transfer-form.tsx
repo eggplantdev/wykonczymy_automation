@@ -11,6 +11,7 @@ import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
 import { useFilePickIngest } from '@/components/forms/hooks/use-file-pick-ingest'
 import {
   showsInvestment,
+  hasOptionalWorker,
   needsExpenseCategory,
   isLaborCost,
   canFillVatPlane,
@@ -74,6 +75,7 @@ export function EditTransferForm({
       investment: row.investmentId ? String(row.investmentId) : '',
       expenseCategory: row.expenseCategoryId ? String(row.expenseCategoryId) : '',
       otherCategory: row.otherCategoryId ? String(row.otherCategoryId ?? '') : '',
+      worker: row.workerId ? String(row.workerId) : '',
       invoiceNote: row.invoiceNote ?? '',
       netAmount: '',
     } as EditTransferFormValuesT,
@@ -89,6 +91,8 @@ export function EditTransferForm({
         investment: value.investment ? Number(value.investment) : undefined,
         expenseCategory: value.expenseCategory ? Number(value.expenseCategory) : undefined,
         otherCategory: value.otherCategory ? Number(value.otherCategory) : undefined,
+        // An empty pick clears; every other type omits the key, so its worker cannot move.
+        ...(hasOptionalWorker(row.type) && { worker: value.worker ? Number(value.worker) : null }),
         invoiceNote: value.invoiceNote || undefined,
       }
 
@@ -170,6 +174,10 @@ export function EditTransferForm({
               </field.Select>
             )}
           </form.AppField>
+
+          {hasOptionalWorker(row.type) && (
+            <EntityComboboxField form={form} variant="worker" items={referenceData.workers} />
+          )}
 
           {/* Retagging a wpłata that HAS a plane stays refused (owner, 2026-08-20) — that goes the
               way that leaves a trail, anuluj i zaksięguj na nowo. Offered here only for a legacy row,

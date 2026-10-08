@@ -310,17 +310,17 @@ cover the browser path. Run touched specs with `pnpm exec vitest run <file>`, no
 
 ### Phase 2: Per-row worker in the expense form
 
-- [x] 2.1 Client line-item schema + `makeLineItem` default
-- [x] 2.2 `mapLineItem` gate
-- [x] 2.3 Per-row „Pracownik” field in `LineItemsField`
-- [x] 2.4 Specs: `mapLineItem`, snapshot parse
+- [x] 2.1 Client line-item schema + `makeLineItem` default — e411ea87a
+- [x] 2.2 `mapLineItem` gate — e411ea87a
+- [x] 2.3 Per-row „Pracownik” field in `LineItemsField` — e411ea87a
+- [x] 2.4 Specs: `mapLineItem`, snapshot parse — e411ea87a
 
 ### Phase 3: Edit an `OTHER` transfer's worker
 
-- [ ] 3.1 `updateTransferSchema` worker
-- [ ] 3.2 `updateTransferAction` writes the worker only for `OTHER`
-- [ ] 3.3 Edit form field + submit
-- [ ] 3.4 Specs: schema, action
+- [x] 3.1 `updateTransferSchema` worker
+- [x] 3.2 `updateTransferAction` writes the worker only for `OTHER`
+- [x] 3.3 Edit form field + submit
+- [x] 3.4 Specs: schema, action
 
 ### Phase 4: „Pracownik” filter on the dashboard
 

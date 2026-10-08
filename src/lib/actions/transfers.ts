@@ -7,7 +7,7 @@ import {
   type CreateBulkExpenseFormT,
 } from '@/components/forms/expense-form/bulk-expense-schema'
 import { BONUS_FORBIDDEN_MESSAGE, canBookTransferType, canMutateTransfer } from '@/lib/auth/roles'
-import { canBeSettled } from '@/lib/constants/transfers'
+import { canBeSettled, hasOptionalWorker } from '@/lib/constants/transfers'
 import { perfStart } from '@/lib/perf'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { decideExpenseDraft } from '@/lib/db/worker-expense-drafts'
@@ -289,7 +289,7 @@ export async function updateTransferAction(
       const { original } = result
 
       // Only LABOR_COST transfers can have their amount edited
-      const { amount, vatPlane, netAmount, ...fields } = parsed.data
+      const { amount, vatPlane, netAmount, worker, ...fields } = parsed.data
       const newAmount = isLaborCost(original.type) ? amount : undefined
       const amountChanged = newAmount !== undefined && newAmount !== original.amount
 
@@ -312,6 +312,8 @@ export async function updateTransferAction(
           ...fields,
           ...(newAmount !== undefined && { amount: newAmount }),
           ...(fillsPlane && { vatPlane, netAmount: netAmount ?? null }),
+          // Only an OTHER names its worker by choice — a PAYOUT/BONUS worker IS the booking.
+          ...(worker !== undefined && hasOptionalWorker(original.type) && { worker }),
           // Newly picked files are extra pages of the same invoice, so they append — an edit that
           // replaced the list would strand the pages the user never touched.
           ...(invoiceMediaIds?.length && {

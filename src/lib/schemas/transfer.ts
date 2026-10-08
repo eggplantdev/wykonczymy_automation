@@ -57,6 +57,8 @@ export const updateTransferSchema = z.object({
   expenseCategory: z.number().optional(),
   otherCategory: z.number().optional(),
   invoiceNote: z.string().optional(),
+  // `null` clears. `updateTransferAction` drops it on every type but OTHER.
+  worker: z.number().positive().nullable().optional(),
   // Only ever a FILL-IN on a legacy wpłata that carries neither. Both rules that govern it need the
   // stored row, which no schema has: `updateTransferAction` decides whether the answer is sent, and
   // `hooks/transfers/validate.ts` refuses to move one already booked.

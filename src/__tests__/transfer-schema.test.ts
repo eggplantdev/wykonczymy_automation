@@ -320,6 +320,12 @@ describe('updateTransferSchema — the plane rides along, gated elsewhere', () =
     expect(result.success).toBe(true)
     expect(result.data?.vatPlane).toBeUndefined()
   })
+
+  it.each([3, null, undefined])('accepts worker: %s', (worker) => {
+    const result = updateTransferSchema.safeParse({ ...VALID_UPDATE, worker })
+    expect(result.success).toBe(true)
+    expect(result.data?.worker).toBe(worker)
+  })
 })
 
 // ── 2b: Server Schema — Amount edge cases ───────────────────────────────
