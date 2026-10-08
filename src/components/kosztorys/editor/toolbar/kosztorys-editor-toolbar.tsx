@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { ChevronDown, WandSparkles } from 'lucide-react'
 import { SearchFilterInput } from '@/components/filters/search-filter-input'
-import { Button } from '@/components/ui/button'
+import { BUTTON_ANIMATION_CLASSES, Button } from '@/components/ui/button'
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import { KosztorysActiveFiltersBar } from '@/components/kosztorys/editor/toolbar/kosztorys-active-filters-bar'
 import { KosztorysAddMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-add-menu'
@@ -126,13 +126,41 @@ export function KosztorysEditorToolbar({
             {aiReviewAvailable && (
               <Button
                 size="sm"
-                variant="ai"
+                variant="outline"
                 aria-pressed={aiReview}
-                animations={aiReview ? ['comet', 'breathe'] : undefined}
                 onClick={() => setAiReview(!aiReview)}
+                className="relative"
               >
-                <WandSparkles className="text-neon-cyan" />
-                <span className="text-neon-cyan font-semibold">Przegląd AI</span>
+                {/* The `ai` look as a layer over the outline button rather than a variant swap: its
+                    border is a background gradient, which snaps instead of interpolating, while the
+                    layer's opacity can fade. */}
+                <span
+                  aria-hidden
+                  className={cn(
+                    'gradient-border neon-glow-duo pointer-events-none absolute -inset-px rounded-[inherit] transition-opacity duration-300',
+                    aiReview
+                      ? [
+                          BUTTON_ANIMATION_CLASSES.comet,
+                          BUTTON_ANIMATION_CLASSES.breathe,
+                          'opacity-100',
+                        ]
+                      : 'opacity-0',
+                  )}
+                />
+                <WandSparkles
+                  className={cn(
+                    'relative transition-colors duration-300',
+                    aiReview && 'text-neon-cyan',
+                  )}
+                />
+                <span
+                  className={cn(
+                    'relative transition-colors duration-300',
+                    aiReview && 'text-neon-cyan',
+                  )}
+                >
+                  Przegląd AI
+                </span>
               </Button>
             )}
             {/* The workbench has a closed column list (WORKSHOP_VISIBLE_COLUMNS), so the picker
