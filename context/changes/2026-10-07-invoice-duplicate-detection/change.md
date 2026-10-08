@@ -122,7 +122,9 @@ The spike is uncommitted in the working tree; the change hardens what it built r
 - **The trash on the only line item works**, opening the reject confirm. It used to be disabled.
 - **Management's queue** shows „Duplikat #id" beside „Odrzucone" and has a „Duplikaty" filter menu
   (the shared `FilterMultiSelect`, like „Anulowane" on transakcje). The worker still sees „Odrzucone".
-- Seed for local testing: `spike-seed.sql` (local 5433 only).
+- Seed for local testing: `spike-seed.sql` (local 5433 only). Case A („the same photo again") is
+  superseded: it seeds the file fingerprint that the „no content hash" ruling below dropped, so under
+  the shipped matcher it only matches if the AI reads the same amount, date and seller.
 
 ### Research outcome (2026-10-08)
 
@@ -218,3 +220,4 @@ Full findings with file:line: `research.md`. What the plan has to carry:
   `documentDate` exist, that parsing is redundant.
 - Backfill script: `documentNumber` from „Notatka" line 1 for existing transakcje, applied to prod by a human.
 - Stale `context/foundation/lessons.md:2127`.
+- Browser E2E deferred: EX-1028 (`e2e-backlog`).
