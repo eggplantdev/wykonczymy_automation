@@ -58,7 +58,13 @@ This is an experiment, not a feature. Nothing here ships. Each test case gets it
 
 3. (Done by step 2.) The rozpiska dump keeps the szablon's ids. The fill matches by section and
    description, so the ids don't need to survive the seeding.
-4. The agent reads the email and all PDFs, maps the scope to rozpiska positions, and writes
+4. **Dump the house knowledge first:** `TOKEN_FILE=… CASE=… node --import tsx
+context/changes/2026-10-01-ai-kosztorys-generation-tests/scripts/dump-knowledge-prod.ts` writes
+   `inputs/wiedza-firmowa.md` (management's „Wiedza firmowa” plus every katalog Komentarz do pracy).
+   The agent reads it in full before choosing a position or a quantity, and names the entry an
+   assumption comes from in „Co / ile założono”.
+
+   The agent then reads the email and all PDFs, maps the scope to rozpiska positions, and writes
    `przedmiar-proposal.md`. That file contains:
    - the quantities;
    - a source or assumption per row;
@@ -287,6 +293,9 @@ an AI draft. Rules the katalog notes don't already state:
 - **Clear height when the drawing doesn't print one** (owner, 2026-10-08): **2,68 m** in stan
   deweloperski, **2,60 m** on the rynek wtórny. A printed Hpom always wins. Komentarz names which of
   the two was used.
+
+**These rules now live in „Wiedza firmowa”** (EX-1032, seeded by migration `20261008_3`), which
+management edits in the app; where the list above and the book differ, the book wins.
 
 These are general rules, not case numbers, so they belong in the procedure (and, per entry, in the
 katalog's Komentarz do pracy). Case 2's draft had #180's note as input (`cases/02-oliwa/inputs/`),
