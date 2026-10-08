@@ -8,6 +8,10 @@ import type {
 import { formatQty } from '@/lib/kosztorys/format'
 import type { KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
+import {
+  indexCatalogue,
+  resolveCatalogueEntry,
+} from '@/lib/kosztorys/work-catalogue/resolve-catalogue-entry'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 import { decimalText, moneyText } from '@/lib/utils/decimal-text'
 import { parseDecimalInput } from '@/lib/utils/parse-decimal-input'
@@ -41,15 +45,23 @@ export function lineGroup(line: Pick<ReportLineT, 'kind'>, draft: LineDraftT): L
   return line.kind === 'extra' || draft.isExtra ? 'extra' : 'rozpiska'
 }
 
-// Matched on the katalog's own key, as „Ukryj już dodane" is. A praca in several sekcje is left for
-// the kierownik to point at one — guessing would add the work to the wrong pokój.
+// Resolved as „Ukryj już dodane" resolves it — the remembered entry first, then the klucz. A praca in
+// several sekcje is left for the kierownik to point at one — guessing would add the work to the
+// wrong pokój.
 export function catalogueSwap(
   entry: Pick<WorkCatalogueItemT, 'id' | 'clientPrice' | 'matchKey'>,
-  rows: Pick<KosztorysV2RowT, 'id' | 'description' | 'unit'>[],
+  rows: Pick<KosztorysV2RowT, 'id' | 'description' | 'unit' | 'catalogueItemId'>[],
+  catalogue: readonly Pick<WorkCatalogueItemT, 'id' | 'matchKey'>[],
 ): Partial<LineDraftT> {
+  const index = indexCatalogue(catalogue)
   const matchedItemIds = rows
     .filter((row) => row.description?.trim())
-    .filter((row) => catalogueKey(row.description ?? '', row.unit) === entry.matchKey)
+    .filter(
+      (row) =>
+        resolveCatalogueEntry(index, row.catalogueItemId, () =>
+          catalogueKey(row.description ?? '', row.unit),
+        )?.id === entry.id,
+    )
     .map((row) => row.id)
   return {
     catalogueId: entry.id,

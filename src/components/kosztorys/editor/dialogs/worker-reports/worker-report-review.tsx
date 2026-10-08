@@ -351,7 +351,9 @@ export function WorkerReportReview({ report, onBack, onDecided }: PropsT) {
                 itemOptions={itemOptions}
                 catalogue={catalogue}
                 kosztorysItems={rows}
-                onCatalogueSwap={(lineId, entry) => updateDraft(lineId, catalogueSwap(entry, rows))}
+                onCatalogueSwap={(lineId, entry) =>
+                  updateDraft(lineId, catalogueSwap(entry, rows, catalogue))
+                }
                 hintsByLine={hintsByLine}
                 stageTitle={stageTitle}
                 onRetranslate={isPending ? retranslate : undefined}

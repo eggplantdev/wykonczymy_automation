@@ -18,12 +18,12 @@ const entry = (id: number, description: string, unit: string): WorkCatalogueItem
   workNote: null,
 })
 
-const used = (investmentId: number, description: string, unit: string | null = 'm2') => ({
-  investmentId,
-  description,
-  descriptionTranslations: {},
-  unit,
-})
+const used = (
+  investmentId: number,
+  description: string,
+  unit: string | null = 'm2',
+  catalogueItemId: number | null = null,
+) => ({ investmentId, description, unit, catalogueItemId })
 
 const PAINT = entry(1, 'Malowanie ścian na biało', 'm2')
 const TILE = entry(2, 'Układanie płytek ściennych', 'm2')
@@ -42,6 +42,17 @@ describe('buildCatalogueUsage', () => {
     const usage = buildCatalogueUsage([used(10, 'Malowanie ścian na bało')], [PAINT])
     expect(usage.byId).toEqual({ [PAINT.id]: 1 })
     expect(usage.uncatalogued).toEqual([])
+  })
+
+  it('counts a pozycja under the praca it remembers, even after the praca was renamed', () => {
+    const usage = buildCatalogueUsage([used(10, 'Malowanie ścian', 'm2', PAINT.id)], [PAINT])
+    expect(usage.byId).toEqual({ [PAINT.id]: 1 })
+    expect(usage.uncatalogued).toEqual([])
+  })
+
+  it('falls back to the klucz when the remembered praca was deleted', () => {
+    const usage = buildCatalogueUsage([used(10, TILE.description, 'm2', 999)], [PAINT, TILE])
+    expect(usage.byId).toEqual({ [TILE.id]: 1 })
   })
 
   it('flags a praca whose opis is used under another j.m.', () => {

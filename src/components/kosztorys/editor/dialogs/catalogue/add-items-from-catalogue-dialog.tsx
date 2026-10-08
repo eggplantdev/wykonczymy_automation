@@ -15,8 +15,9 @@ import {
   insertCatalogueItemsAction,
 } from '@/lib/actions/catalogue-to-kosztorys'
 import {
-  kosztorysCatalogueKeys,
+  kosztorysCatalogueRefs,
   partitionAlreadyInKosztorys,
+  takenCatalogueIds,
   type KosztorysItemRefT,
 } from '@/lib/kosztorys/work-catalogue/already-in-kosztorys'
 import {
@@ -76,10 +77,10 @@ export function AddItemsFromCatalogueDialog({
 
   // Cached on the rozpiska alone, so a keystroke in the szukajka costs Set lookups and not a re-fold
   // of the whole kosztorys.
-  const takenKeys = kosztorysCatalogueKeys(kosztorysItems)
+  const takenIds = takenCatalogueIds(catalogue, kosztorysCatalogueRefs(kosztorysItems))
   // Split AFTER the szukajka, so the „(N)" counts what this phrase is hiding rather than the whole
   // cennik — a number about rows the owner cannot see anyway would read as a defect.
-  const { fresh, alreadyAdded } = partitionAlreadyInKosztorys(inScope, takenKeys)
+  const { fresh, alreadyAdded } = partitionAlreadyInKosztorys(inScope, takenIds)
   // A ticked praca is never hidden, even when it is already in the kosztorys: the owner reached it by
   // unchecking the switch on purpose, and hiding it would leave it counting into „Dodaj (N)" and
   // landing in the rozpiska with no row on screen to untick.
