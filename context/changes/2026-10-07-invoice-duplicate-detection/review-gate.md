@@ -66,3 +66,44 @@ Ran /simplify — 9 applied (+ the scan-by-id root fix and the Telmak dedup abov
   - `lib/db/expense-duplicate-candidates.db.test.ts` 4 ✓ · `lib/db/worker-expense-drafts.db.test.ts` 26 ✓ (2 new) · `lib/actions/worker-expense-drafts.db.test.ts` 5 ✓ (2 new) — on 5435 after `payload migrate` applied `20261008_0_add_document_identity_and_duplicate_of` there
   - `components/worker-expenses/expense-draft-duplicate-mark.test.tsx` 8 ✓
 - full suite / E2E: not run (user's call); browser flow stays in the E2E backlog
+
+---
+
+# Review-gate ledger — follow-ups (4b89fe879 · df1339bcf · 9d68591a2 + uncommitted „Ta sama kwota") · 2026-10-08
+
+Base `504425f29`. Proportional fan-out: `/code-review` + `comment-noise-audit` (no new files, trivial classes → tailwind/structure audits dropped; impl-review dropped — the owner rulings postdate `plan.md`). Step 0.5 browser pass skipped (no Playwright unprompted).
+
+## Findings
+
+- [x] 🟡 WARNING · fixed · code-review · `src/lib/queries/expense-draft-duplicates.ts:57` · matches sorted by date only, so a red match could sink below a run of grey „Ta sama kwota" rows, and tied day-only dates reordered on reopen — weak after strong, then date, then `key`
+      test: no automated test · — ordering is three comparators over a predicate the unit spec pins; the manual check covers „poniżej czerwonych dopasowań"
+- [x] 🟡 WARNING · fixed · code-review · `src/components/worker-expenses/expense-draft-duplicate-hints.tsx:66` · red frame + heading shown even when every row is a grey „Ta sama kwota" — alarm only when a strong match is present; manual check updated
+      test: no automated test · — styling; manual check `manual-checks.md` § EX-1025
+- [x] 🔵 OBSERVATION · fixed · code-review · `src/lib/expense-duplicates/match.ts:89` · `today = warsawToday()` default re-read per probe × candidate, against the `days.ts` „resolve once" contract — `today` required, resolved once in `findExpenseDraftDuplicates`
+      test: no automated test · — the unit specs now pass `TODAY` explicitly; a missing argument is a type error
+- [x] 🔵 OBSERVATION · fixed · code-review · `src/__tests__/lib/expense-duplicates/match.test.ts` · no case for an old strong match ignoring the window; the weak cases fed ISO dates only — added the old `same-number` case; `booked()` now carries the Postgres TIMESTAMPTZ text
+      test: TDD · unit — the two cases above
+- [x] 🔵 OBSERVATION · fixed · code-review · `src/__tests__/lib/db/expense-duplicate-candidates.db.test.ts:214` · stale title („…and the pending one") — renamed to what it asserts
+- [x] 🔵 OBSERVATION · skipped · code-review · `expense-duplicate-candidates.db.test.ts` · no DB-backed positive `same-amount` — a fixture needs a booking date relative to now (fixed `2026-10-06` falls out of the window by January) and a fourth probe row that reshuffles three assertions; the pg-text date format it would guard is now in the unit spec
+- [x] fixed · code-review · `src/components/tables/expense-duplicates.tsx:33` · `isWeakMatch` local to the table while the sort needs it too — moved to `match.ts`, imported by the table, the hints and the query
+- [x] fixed · code-review · `src/components/tables/expense-duplicates.tsx:13` · `cn` import moved off its alphabetical slot — restored
+- [x] fixed · code-review · `context/foundation/manual-checks.md` § EX-1025 · only the negative case was checked — added the grey „Ta sama kwota" within 3 months / gone after
+- [x] dismissed · code-review · `match.ts:74-84` · measured noise (1026 zł → ~16 blank-description rows) — accepted by the owner, EX-1029 measures it
+- [x] dismissed · code-review · `src/lib/db/expense-duplicate-candidates.ts:134` · `''` date — `sent_at` is NOT NULL; a null transaction date is guarded before `toWarsawDay`
+- [x] dismissed · code-review · timezone / window boundary · day-only dates at `00:00+00` keep their day in Warsaw; the window is inclusive and month-end clamped
+- [x] dismissed · code-review · candidate pool performance · SQL unchanged; ≤ 82 rows per amount
+- [x] dismissed · code-review · `src/components/forms/form-fields/source-register-field.tsx:32` · wrapper checked in all three callers — no layout change where the button is absent
+- [x] dismissed · code-review · `expense-duplicates.tsx` `MM` index state · stale staged hunk — commit goes by pathspec from the working tree
+- [x] fixed · comment-noise · `expense-duplicates.tsx:32` · „Nothing on the paragon contradicts it…" — deleted with the move
+- [x] fixed · comment-noise · `match.ts:73` · „Only a field read on BOTH sides…" restates `differ` — deleted
+- [x] dropped · comment-noise · `match.ts:25` · no why for the 3-month window — it's the owner's number, recorded in `change.md`; a comment would only quote it
+- [x] fixed · simplify · `match.ts:126` · the booked day was parsed for every candidate, number-only ones included — early return unless same amount and dated
+- [x] dropped · simplify · `match.ts:74` · `isProvablyDifferent` recomputes the probe's number and day `matchExpense` already holds — reached only on a same-amount twin with no strong reason; threading them through costs more lines than it saves
+
+## Simplify pass
+
+Ran inline (proportional — code-review had already covered reuse on this ~200-line diff): 1 applied, 1 dropped; folded into ## Findings (tagged simplify).
+
+## Tests & suite
+
+- not run yet — awaiting the user's go (touched specs only: `match.test.ts`, `expense-duplicate-candidates.db.test.ts`, `expense-draft-duplicate-mark.test.tsx`)
