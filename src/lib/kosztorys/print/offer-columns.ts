@@ -8,6 +8,7 @@ import { PREVIEW_VISIBLE_COLUMNS } from '@/lib/kosztorys/client-view/columns'
 import {
   CURRENT_PLANNED_QTY_COLUMN,
   DESCRIPTION_COLUMN,
+  NOTE_COLUMN,
   PLANNED_QTY_COLUMN,
   UNIT_COLUMN,
   computedMoneyColumn,
@@ -45,6 +46,7 @@ function offerColumnsByKey(stages: KosztorysStageT[]): Record<string, PrintColum
   const donePercent = valueOf('donePercent')
   return {
     description: [DESCRIPTION_COLUMN],
+    note: [NOTE_COLUMN],
     plannedQty: [PLANNED_QTY_COLUMN],
     currentPlannedQty: [CURRENT_PLANNED_QTY_COLUMN],
     unit: [UNIT_COLUMN],

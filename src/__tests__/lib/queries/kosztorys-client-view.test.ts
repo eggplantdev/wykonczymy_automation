@@ -77,7 +77,7 @@ describe.skipIf(!ENV_READY)('getClientViewSettings (DB)', () => {
     await payload.update({
       collection: 'kosztorys-client-view',
       where: { investment: { equals: investmentWithRow } },
-      data: { hiddenColumns: ['remaining', 'note', 'priceMode'] },
+      data: { hiddenColumns: ['remaining', 'aiPlannedQty', 'priceMode'] },
     })
 
     const settings = await getClientViewSettings(investmentWithRow)

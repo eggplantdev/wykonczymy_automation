@@ -403,7 +403,7 @@ describe('sufit ujawniania', () => {
   })
 
   it.each([
-    ['„komentarz" właściciela', 'note'],
+    ['AI przedmiar', 'aiPlannedQty'],
     ['stawka podwykonawcy', planePriceKeysFor('w_tools')[0]],
   ])('%s nie przechodzi, nawet wpisana wprost do listy', (_label, key) => {
     expect(printableKeys([key], [])).toEqual([])
