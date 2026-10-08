@@ -4899,3 +4899,8 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
       z sumą wykonanej pracy i z postępem są widoczne od razu, w „Opcjach” oba przełączniki są zaznaczone.
 - [ ] Wyłącz w „Opcjach” „Pokaż postęp” i przeładuj stronę: kolumna postępu nadal schowana,
       „Pokaż sumę do tej pory wykonanej pracy” nadal włączona. To samo na innej inwestycji.
+
+## 2026-10-08 — przycisk „Przegląd AI" na pasku narzędzi
+
+- [ ] Kosztorys ze szkicem AI → na pasku narzędzi, obok „Kolumny", jest przycisk „Przegląd AI"; kliknięcie dokłada kolumny AI i ustawia filtr „Przegląd AI" jak wcześniej, ponowne kliknięcie je zabiera. W menu „Kolumny" → „Widok" jest już tylko „Oferta".
+- [ ] Zwykły kosztorys (bez szkicu AI): brak przycisku „Przegląd AI"; szablon: brak przycisku i menu „Kolumny".

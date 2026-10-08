@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, WandSparkles } from 'lucide-react'
 import { SearchFilterInput } from '@/components/filters/search-filter-input'
+import { Button } from '@/components/ui/button'
 import { SimpleTooltip } from '@/components/ui/tooltip'
 import { KosztorysActiveFiltersBar } from '@/components/kosztorys/editor/toolbar/kosztorys-active-filters-bar'
 import { KosztorysAddMenu } from '@/components/kosztorys/editor/toolbar/menus/kosztorys-add-menu'
@@ -31,8 +32,19 @@ export function KosztorysEditorToolbar({
   protocolSource?: AcceptanceProtocolSourceT
   workerReports?: WorkerReportsSeedT
 }) {
-  const { search, setSearch, view, setView, subtotals, readOnly, isTemplate, offer } =
-    useKosztorysEditorContext()
+  const {
+    search,
+    setSearch,
+    view,
+    setView,
+    subtotals,
+    readOnly,
+    isTemplate,
+    offer,
+    aiReviewAvailable,
+    aiReview,
+    setAiReview,
+  } = useKosztorysEditorContext()
   // Phone only — both groups below are `sm:contents`, so from 768 up this flag stops mattering.
   const [toolsOpen, setToolsOpen] = useState(false)
 
@@ -109,6 +121,20 @@ export function KosztorysEditorToolbar({
             </KosztorysActionsProvider>
             <KosztorysFiltersMenu />
             <KosztorysSectionsMenu />
+            {/* On the bar, not in „Kolumny", while the AI drafts are being tested: it is the switch
+                every test kosztorys is opened for. */}
+            {aiReviewAvailable && (
+              <Button
+                size="sm"
+                variant="ai"
+                aria-pressed={aiReview}
+                animations={aiReview ? ['comet', 'breathe'] : undefined}
+                onClick={() => setAiReview(!aiReview)}
+              >
+                <WandSparkles className="text-neon-cyan" />
+                <span className="text-neon-cyan font-semibold">Przegląd AI</span>
+              </Button>
+            )}
             {/* The workbench has a closed column list (WORKSHOP_VISIBLE_COLUMNS), so the picker
                 would steer an empty list, and the money/layer axes describe columns it has not. */}
             {!isTemplate && <KosztorysViewMenu />}
