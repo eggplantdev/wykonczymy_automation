@@ -328,4 +328,4 @@ cover the browser path. Run touched specs with `pnpm exec vitest run <file>`, no
 
 ## Whole-tree Gate
 
-- [ ] G.1 `pnpm typecheck` (needs the user's go — hook-gated)
+- [x] G.1 `pnpm typecheck` (needs the user's go — hook-gated) — clean for this slice; 1 inherited staging error (investment-info-fields `notes`, a64cc4cf5)
