@@ -183,23 +183,24 @@ describe('catalogueDuplicateCondition', () => {
 })
 
 describe('catalogueUsageConditions', () => {
-  it('has no „Użycie" group before a count is taken', () => {
-    expect(catalogueUsageConditions(null)).toEqual([])
-  })
-
-  it('„nieużywane" and „używane" partition the catalogue, a missing id counting as unused', () => {
+  it('each count splits the catalogue in two, a missing id counting as unused', () => {
     const used = entry()
     const zero = entry()
     const absent = entry()
     const rows = [used, zero, absent]
-    const conditions = catalogueUsageConditions({
-      byId: { [used.id]: 2, [zero.id]: 0 },
-      otherUnitIds: [],
-      uncatalogued: [],
-    })
+    const conditions = catalogueUsageConditions(
+      {
+        byId: { [used.id]: 2, [zero.id]: 0 },
+        otherUnitIds: [],
+        uncatalogued: [],
+      },
+      { [absent.id]: 1 },
+    )
     const counts = countCatalogueConditions(rows, conditions)
     expect(counts.get('catalogue-usage-used')).toBe(1)
     expect(counts.get('catalogue-usage-unused')).toBe(2)
+    expect(counts.get('catalogue-template-used')).toBe(1)
+    expect(counts.get('catalogue-template-unused')).toBe(2)
     expect(applyCatalogueConditions(rows, conditions, new Set(['catalogue-usage-unused']))).toEqual(
       [used],
     )

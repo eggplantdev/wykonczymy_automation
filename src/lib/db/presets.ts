@@ -127,6 +127,23 @@ export async function listTemplateNamesUsingCatalogueItem(
   return res.rows.map((row) => String(row.name))
 }
 
+// Cennik id → live szablony holding it, each once however many sekcje repeat the praca — the same
+// unit as „Kosztorysy". An id absent here sits in no szablon.
+export async function countTemplatesByCatalogueItem(
+  db: DbExecutorT,
+): Promise<Record<number, number>> {
+  const res = await db.execute(sql`
+    SELECT ki.catalogue_item_id, count(DISTINCT ki.investment_id) AS templates
+    FROM kosztorys_items ki
+    JOIN investments inv ON inv.id = ki.investment_id
+    WHERE ki.catalogue_item_id IS NOT NULL AND ${liveTemplate('inv')}
+    GROUP BY ki.catalogue_item_id
+  `)
+  return Object.fromEntries(
+    res.rows.map((row) => [Number(row.catalogue_item_id), Number(row.templates)]),
+  )
+}
+
 // Trashed szablony included: one restored later must not bring back a praca whose content is gone.
 // Returns the szablony that lost a row, for the edit stamp.
 export async function deleteTemplateRowsOfCatalogueItem(

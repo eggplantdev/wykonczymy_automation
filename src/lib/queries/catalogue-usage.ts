@@ -1,22 +1,24 @@
-'use server'
-
-import { protectedAction } from '@/lib/actions/run-action'
+import { getPayload } from 'payload'
+import config from '@payload-config'
 import { getDb } from '@/lib/db/get-db'
 import { selectUsedKosztorysItems } from '@/lib/db/catalogue-usage'
-import { listCatalogueItems } from '@/lib/db/work-catalogue'
+import { countTemplatesByCatalogueItem } from '@/lib/db/presets'
 import { buildCatalogueUsage } from '@/lib/kosztorys/work-catalogue/catalogue-usage'
-import type { CatalogueUsageT } from '@/lib/kosztorys/work-catalogue/types'
-import type { ActionResultT } from '@/types/action'
+import type { CatalogueUsageT, WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
-// „Policz użycia" on /katalog-prac. The cennik is read uncached so a praca added a moment ago is
-// counted; the whole read is on a click, and its freshness is the point.
-export async function countCatalogueUsage(): Promise<ActionResultT<CatalogueUsageT>> {
-  return protectedAction('countCatalogueUsage', async ({ payload }) => {
-    const db = await getDb(payload)
-    const [used, catalogue] = await Promise.all([
-      selectUsedKosztorysItems(db),
-      listCatalogueItems(db),
-    ])
-    return { success: true, data: buildCatalogueUsage(used, catalogue) }
-  })
+/**
+ * Read on every open of /katalog-prac, uncached: ~0.1 s over the prod dump (2026-10-08), while a
+ * cached count would have to expire on every kosztorys save anywhere. Matched against the very
+ * cennik the page renders, so a praca added a moment ago is counted, never left at a stale „0".
+ */
+export async function getCatalogueUsage(catalogue: readonly WorkCatalogueItemT[]): Promise<{
+  usage: CatalogueUsageT
+  templateCounts: Record<number, number>
+}> {
+  const db = await getDb(await getPayload({ config }))
+  const [used, templateCounts] = await Promise.all([
+    selectUsedKosztorysItems(db),
+    countTemplatesByCatalogueItem(db),
+  ])
+  return { usage: buildCatalogueUsage(used, catalogue), templateCounts }
 }

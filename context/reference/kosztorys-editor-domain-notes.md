@@ -1559,11 +1559,15 @@ kluczu opis + j.m., tak jak porównanie z katalogiem. Wyceny się liczą. Poza z
 w koszu i o statusie „szablon". Liczba w kolumnie „Kosztorysy" to **liczba różnych inwestycji**, nie
 pozycji: praca powtórzona w pięciu łazienkach jednego mieszkania to dalej jeden kosztorys.
 
-- **Na kliknięcie, nie przy wejściu.** Odczyt przechodzi przez wszystkie kosztorysy, a odpowiedź
-  ma wartość tylko dla kogoś, kto właśnie porządkuje cennik. Ponowne kliknięcie liczy od nowa.
-- **Grupa „Użycie" nie jest zapamiętywana.** Po przeładowaniu nie ma liczby, po której dałoby się
-  filtrować. Zapamiętane „nieużywane" filtrowałoby więc albo po niczym, albo po liczbie, której
-  nikt nie policzył. Dlatego zwykłe filtry siedzą w localStorage, a „Użycie" tylko w stanie strony.
+- **Liczone przy każdym wejściu (od 2026-10-08), nie na kliknięcie.** Przycisk „Policz użycia"
+  zniknął. Odczyt trwa ~0,1 s na całym dumpie produkcji, więc oszczędzał niewiele. Licznik idzie
+  razem z cennikiem, który strona pokazuje, więc praca dodana przed chwilą nigdy nie dostaje
+  przestarzałego „0". Grupy „Kosztorysy" i „Szablony" w „Filtrach" są więc zapamiętywane jak każdy inny filtr.
+- **Tylko kosztorysy w aplikacji.** Stare arkusze Google się nie liczą (zostaną wycofane), więc
+  praca używana tylko tam ma w kolumnie 0. Nagłówek kolumny mówi to w podpowiedzi. Dokładniejszy
+  licznik (stare arkusze, inne nazwy) to EX-1010.
+- **Obok kolumna „Szablony"** pokazuje, w ilu żywych szablonach stoi praca. Liczone po dowiązaniu do
+  katalogu, a każdy szablon raz, niezależnie od liczby sekcji.
 - **Podpowiedzi nigdy się nie liczą.** Lista „Używane, a brak w katalogu" pokazuje przy każdej
   pracy do trzech kandydatów z katalogu („może chodzi o…"). To tylko wskazówka: kolumna „Kosztorysy"
   liczy wyłącznie dokładne dopasowania, bo bliskie trafienie zawyżyłoby wpis, którego nikt nie użył.

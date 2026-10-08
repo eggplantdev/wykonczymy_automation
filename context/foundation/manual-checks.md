@@ -4870,3 +4870,11 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
 - [ ] Szablon (`/szablony/<id>`): nie ma panelu podsumowania ani przycisku „Podsumowanie” w pasku, siatka zajmuje całą wysokość. Kosztorys inwestycji nadal ma panel z „Opcjami rozliczenia” i „Listą wpłat”.
 - [ ] Szablon → „Filtry”: są tylko nagłówki „Źródło stawki wykonawcy” i „Udział wykonawcy w cenie” — brak „Przedmiar i wykonana praca”, „Komentarz”, „Rabat”. „Sekcje” → „Zwijanie”: tylko „Zwiń wszystkie sekcje”, bez „Sekcje bez przedmiaru / wykonanej pracy / rabatu”. Kosztorys inwestycji nadal ma wszystkie te filtry.
 - [ ] Katalog prac → „Usuń z katalogu” na pracy użytej w szablonie: tytuł „Usunąć pozycję z katalogu i szablonów?”, pod opisem od nowej linii „Zniknie natomiast z szablonów:” i nazwy szablonów jako lista punktowana. Na pracy spoza szablonów listy nie ma.
+
+## 2026-10-08 — catalogue-usage-columns — kolumny „Kosztorysy” i „Szablony” w katalogu prac
+
+- [ ] Katalog prac: od razu po wejściu są kolumny „Kosztorysy” i „Szablony” z liczbami, nie ma przycisku „Policz użycia”; pod tabelą stoi lista „Używane, a brak w katalogu”.
+- [ ] Najechanie na ikonę (i) przy „Kosztorysy” mówi, że liczone są tylko kosztorysy w aplikacji, a stare arkusze Google nie.
+- [ ] Praca z szablonu „Kosztorys 2026 kolory” ma w „Szablony” co najmniej 1; praca spoza szablonów ma 0.
+- [ ] „Filtry”: są dwie grupy, „Kosztorysy” (w żadnym kosztorysie / w kosztorysach) i „Szablony” (w żadnym szablonie / w szablonach); liczby w każdej sumują się do liczby prac. Odznacz „w kosztorysach”, przeładuj stronę: filtr nadal działa (chip widoczny).
+- [ ] „Filtry” w katalogu prac: na górze menu nagłówek „Widoczne prace” z podpowiedzią „Odznacz, żeby ukryć.” — tak jak w „Filtrach” kosztorysu.

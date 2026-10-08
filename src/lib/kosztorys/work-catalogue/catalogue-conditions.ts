@@ -128,27 +128,38 @@ export function catalogueDuplicateCondition(
   }
 }
 
-// Built off a count taken on a click, so the group only exists once there is one — and its ids are
-// never persisted: after a reload there is no count to filter by, and a stored „nieużywane" would
-// either narrow by nothing or by a count nobody took.
-export function catalogueUsageConditions(usage: CatalogueUsageT | null): CatalogueConditionT[] {
-  if (!usage) return []
-  const isUsed = (entry: WorkCatalogueItemT) => (usage.byId[entry.id] ?? 0) > 0
+// One pair per count, named after its column: with both on the page, a bare „używane" says
+// nothing about where.
+const usagePair = (
+  key: string,
+  group: string,
+  [none, some]: readonly [string, string],
+  counts: Readonly<Record<number, number>>,
+): CatalogueConditionT[] => {
+  const isUsed = (entry: WorkCatalogueItemT) => (counts[entry.id] ?? 0) > 0
   return [
-    {
-      id: 'catalogue-usage-unused',
-      kind: 'filter',
-      group: 'Użycie',
-      label: 'nieużywane',
-      matches: (entry) => !isUsed(entry),
-    },
-    {
-      id: 'catalogue-usage-used',
-      kind: 'filter',
-      group: 'Użycie',
-      label: 'używane',
-      matches: isUsed,
-    },
+    { id: `${key}-unused`, kind: 'filter', group, label: none, matches: (entry) => !isUsed(entry) },
+    { id: `${key}-used`, kind: 'filter', group, label: some, matches: isUsed },
+  ]
+}
+
+export function catalogueUsageConditions(
+  usage: CatalogueUsageT,
+  templateCounts: Readonly<Record<number, number>>,
+): CatalogueConditionT[] {
+  return [
+    ...usagePair(
+      'catalogue-usage',
+      'Kosztorysy',
+      ['w żadnym kosztorysie', 'w kosztorysach'],
+      usage.byId,
+    ),
+    ...usagePair(
+      'catalogue-template',
+      'Szablony',
+      ['w żadnym szablonie', 'w szablonach'],
+      templateCounts,
+    ),
   ]
 }
 
