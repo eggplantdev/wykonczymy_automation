@@ -306,6 +306,35 @@ describe.skipIf(!ENV_READY)('saveItemToCatalogueAction (DB)', () => {
     expect(await linkedEntryOf(itemId)).toBe(Number(created.id))
   })
 
+  it('po przemianowaniu w katalogu ta sama praca aktualizuje zapamiętany wpis', async () => {
+    const oldDescription = `Przed przemianowaniem ${suffix}`
+    const newDescription = `Po przemianowaniu ${suffix}`
+    const itemId = await createItem(oldDescription)
+    await saveItemToCatalogueAction(itemId, 'new')
+    const [entry] = await catalogueRow(oldDescription)
+    await payload.update({
+      collection: 'work-catalogue-items',
+      id: Number(entry.id),
+      data: { description: newDescription, matchKey: catalogueKey(newDescription, 'm2') },
+      overrideAccess: true,
+      ...ctx,
+    })
+    await payload.update({
+      collection: 'kosztorys-items',
+      id: itemId,
+      data: { description: newDescription, clientPrice: 210 },
+      overrideAccess: true,
+      ...ctx,
+    })
+
+    expect(await saveItemToCatalogueAction(itemId, 'overwrite')).toEqual({ success: true })
+
+    const [updated] = await catalogueRow(newDescription)
+    expect(Number(updated.id)).toBe(Number(entry.id))
+    expect(Number(updated.client_price)).toBe(210)
+    expect(await linkedEntryOf(itemId)).toBe(Number(entry.id))
+  })
+
   it('odmawia zapisu pracy bez opisu', async () => {
     const itemId = await createItem('')
 
