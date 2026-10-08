@@ -42,9 +42,10 @@ dostaje 450.
 5. **Zmiana lub usunięcie wpisu katalogu, który jest w szablonach → ostrzeżenie.**
 6. **Kosztorys jest niezależny:** kopia w chwili założenia. Zmiany w katalogu nigdy same do niego
    nie płyną.
-7. **Praca w kosztorysie pamięta swój wpis katalogu** (id). Dziś żadna praca go nie pamięta —
-   wszystko dopasowuje się po opisie + j.m. Zgłoszenie pracy czyta tłumaczenia z kopii w samej
-   pracy kosztorysu i tak zostaje.
+7. **Praca w kosztorysie pamięta swój wpis katalogu** (id). Przed EX-1017 żadna go nie pamiętała —
+   wszystko dopasowywało się po opisie + j.m. Link nie dotyczy tłumaczeń w zgłoszeniu pracy:
+   zgłoszenie wskazuje pozycję kosztorysu i czyta tłumaczenia z jej własnej kopii (research:
+   wcześniejsze „id już identyfikuje tłumaczenia przy zgłaszaniu" było nieprawdą) — i tak zostaje.
 8. **3× „Nowa praca" w obu szablonach — do usunięcia.**
 9. **Przedmiar i etapy:** szablon ich nie trzyma i nie trzymał — `serialize-preset.ts` zeruje
    Przedmiar i pomija etapy (na prodzie oba szablony: 0 / 310 z Przedmiarem, 0 wykonanych).
@@ -195,6 +196,24 @@ prac (EX-1017)"):
 
 Stan produ po porządkach (2026-10-08): wszystkie 302 prace szablonu mają wpis w katalogu i zgadzają
 się z nim w każdym polu — cena, obie stawki **razem z trybem** (auto / mnożnik / kwota), tłumaczenia.
+
+### Przejście na prodzie — runbook (wykonuje człowiek)
+
+Kolejność ma znaczenie: kolumna jest addytywna, więc migracja idzie **przed** pushem.
+
+1. Świeża kopia produ, ponowne porównanie szablonu z katalogiem (`sync/export.sh` + `sync/diff.ts`,
+   wyżej). Rozjazd od ostatnich porządków rozstrzygnąć tak jak dotąd — szablon wygrywa.
+2. `pnpm db:migrate:prod` — dodaje `kosztorys_items.catalogue_item_id` (stary kod jej nie czyta).
+3. Push brancha / merge, deploy.
+4. Link istniejących pozycji, najpierw na sucho:
+   `DB_POSTGRES_URL="$DB_POSTGRES_URL_PROD" node --env-file=.env --import tsx src/scripts/link-kosztorys-items-to-catalogue.ts`
+   Każdy wypisany wiersz szablonu różniący się od katalogu poprawić (szablon wygrywa), aż lista
+   będzie pusta; potem to samo z `--apply`.
+5. Drugie uruchomienie na sucho musi pokazać 0 do podpięcia.
+6. Skrypt pisze surowym SQL z pominięciem cache — dowolna edycja w katalogu prac odświeża szablony
+   i kosztorysy.
+7. Sprawdzenie: edytor „Kosztorys 2026 kolory" pokazuje te same liczby co przed przejściem (5 prac,
+   w tym kontener ze stawką auto i big bag 450).
 
 ### Widok szablonu: kolumna „Komentarz do pracy"
 
