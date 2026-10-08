@@ -20,6 +20,7 @@ import { DropdownMenuCheckboxRow } from '@/components/ui/dropdown-menu'
 import { translateTree } from '@/lib/kosztorys/worker-view/translate-tree'
 import { opensOnSummaryView } from '@/lib/kosztorys/worker-view/worker-links'
 import type { SectionTranslationMapT } from '@/lib/i18n/section-translations'
+import { usePersistedFlag } from '@/hooks/use-persisted-value'
 import { useTranslation } from '@/hooks/use-translation'
 import { cn } from '@/lib/utils/cn'
 import { decimalText } from '@/lib/utils/decimal-text'
@@ -50,6 +51,8 @@ function draftQtyByItem(qtyByItem: Record<number, string>): Record<number, numbe
   )
 }
 
+const SHOWN = ['shown', 'hidden'] as const
+
 // Several switches in one menu: closing it after each would make him reopen it for the next.
 function keepMenuOpen(event: Event) {
   event.preventDefault()
@@ -72,8 +75,8 @@ export function ReportGrid({
   const [mode, setMode] = useState<ReportViewModeT>(() =>
     hasRows && opensOnSummaryView(searchParams) ? 'summary' : 'report',
   )
-  const [showDoneSum, setShowDoneSum] = useState(false)
-  const [showProgress, setShowProgress] = useState(false)
+  const [showDoneSum, setShowDoneSum] = usePersistedFlag('worker-report:done-sum', SHOWN, true)
+  const [showProgress, setShowProgress] = usePersistedFlag('worker-report:progress', SHOWN, true)
   const isReport = mode === 'report'
   const scrollsSideways = reportScrollsSideways({ isSummary: !isReport, showDoneSum, showProgress })
   const { locale, t, tp } = useTranslation('report')

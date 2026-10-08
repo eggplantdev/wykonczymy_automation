@@ -4890,3 +4890,10 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
 - [ ] W tym dialogu „Odrzuć” → potwierdź: toast „Zgłoszenie odrzucone”, zgłoszenie znika z kolejki.
 - [ ] Zgłoszenie ze zdjęciami, które się pobierają: „Zweryfikuj” działa jak dotąd — zdjęcia przy
       pozycjach, „Zapisz” aktywny po odczycie.
+
+## 2026-10-08 — worker-report-columns-default — „Wykonano” i postęp widoczne domyślnie, wybór zapamiętany
+
+- [ ] Link pracownika (zgłaszanie prac) otwarty w przeglądarce bez zapisanych ustawień: kolumny
+      z sumą wykonanej pracy i z postępem są widoczne od razu, w „Opcjach” oba przełączniki są zaznaczone.
+- [ ] Wyłącz w „Opcjach” „Pokaż postęp” i przeładuj stronę: kolumna postępu nadal schowana,
+      „Pokaż sumę do tej pory wykonanej pracy” nadal włączona. To samo na innej inwestycji.
