@@ -69,3 +69,52 @@ Ran /simplify — 13 applied, 0 proposed, 8 dismissed/dropped/skipped; then prim
 - touched-module specs — 59 files / 527 tests green (3 DB files skipped), plus sheet-import 12 files / 215 tests after the reuse-scan fix
 - full suite (unit + integration) — deferred by user
 - E2E — deferred to EX-1015
+
+---
+
+# Addendum gate — dogfooding on case 2 („Oliwa”, #180) · 2026-10-07
+
+Scope: uncommitted working tree vs `HEAD` (`b07f1f16f`, staging), 22 files — the addendum in
+`change.md` („Addendum (2026-10-07)”). Other sessions' dirty files excluded
+(`2026-10-07-template-from-catalogue`, invoice-duplicate work). Step 0.5 skipped — Playwright is not
+run unprompted; the owner is dogfooding the editor by hand.
+
+## Findings
+
+- [x] 🟡 WARNING · skipped · impl-review + code-review · `registry.ts` (`no-planned-or-ai-qty`) · „Nowa praca” / „Wstaw wiersz” in „Przegląd AI” lands with Przedmiar 0 and AI przedmiar empty, so the auto-unticked hider removes it at once — before a Przedmiar can be typed. Filters do not latch (only problems do). Owner, 2026-10-07: left as is — re-tick the filter before adding work.
+      test: no automated test · — accepted behaviour, nothing to guard
+- [x] 🟡 WARNING · fixed · impl-review + code-review · `use-kosztorys-view-state.ts:118` · switching „Przegląd AI” on engaged „bez przedmiaru i bez AI przedmiaru” but left a remembered „z przedmiarem lub AI przedmiarem” engaged → empty grid; the new spec asserted that state. Now ticks the other half back.
+      test: TDD · dom — `use-kosztorys-view-state.test.tsx` „engages none of them until the view is switched on again” now expects only `has-note` + `no-planned-or-ai-qty`
+- [x] 🟡 WARNING · fixed · impl-review + code-review · `ai-review-columns.tsx:27` · a derived Zaakceptowana / Dodana could not be cleared: „Do sprawdzenia” wrote NULL, which still derives the same status. The menu drops the unset entry wherever the quantities derive a status (Fix A).
+      test: TDD · dom — `ai-review-columns-status.test.tsx`
+- [x] 🟡 WARNING · fixed · impl-review · `context/foundation/manual-checks.md` · no boxes for the addendum; „cztery kolumny AI” and „do sprawdzenia … bez statusu” stale — new subsection „Dogfooding na „Oliwa””, two lines corrected
+- [x] 🔵 OBSERVATION · fixed · impl-review + code-review · `queries.ts` (`isFoldSuppressed`) · the auto-engaged hider stood the sekcje folds down for the whole review pass — exempted like the client's hider
+      test: TDD · unit — `queries.test.ts` „leaves them standing under the hider „Przegląd AI” engages”
+- [x] 🔵 OBSERVATION · fixed · impl-review + code-review · raw `review_status` readers see NULL where the cell shows a derived status — recorded in `kosztorys-editor-domain-notes.md` (no raw reader exists today)
+      test: no automated test · — no consumer to guard yet
+- [x] 🔵 OBSERVATION · fixed · impl-review · `change.md` / `plan.md` · „Status … not derived” unmarked; plan has no addendum entry — note + pointer added
+- [x] 🔵 OBSERVATION · dismissed · impl-review + code-review · `use-kosztorys-view-state.ts:72` · new Set per render while an AI id is stored — compiled client chunk shows the expression in a compiler memo slot keyed on `persistedConditionIds` (`$[3]`)
+      test: no automated test · — verified in `.next/dev/static/chunks/src_components_kosztorys_editor_hooks_*.js`
+- [x] 🔵 OBSERVATION · dismissed · impl-review + code-review · `column-config.ts` · „AI wartość netto przedmiar” hides on the Brutto axis — same as every netto figure; the axis rule is deliberate and the review is read on netto
+      test: no automated test · — by design
+- [x] 🔵 OBSERVATION · dismissed · impl-review · `types.ts` (`aiColumnsShown`) · „misnamed” — same name and meaning as the existing column-opts flag (`kosztorys-v2-column-opts.ts:123`); a second name for one toggle would be worse
+      test: no automated test · — naming
+- [x] 🔵 OBSERVATION · dropped · impl-review + code-review · `use-kosztorys-editor.ts:498` · toggling recounts every condition — one pass per click
+      test: no automated test · — perf, one-off
+- [x] 🔵 OBSERVATION · dismissed · impl-review + code-review · `load-ai-draft.ts:63` · agent note overwrites Komentarz — local-only script, documented in its header, Komentarz is where „Przegląd AI” shows the agent's source
+      test: no automated test · — local script
+- [x] dismissed · code-review · `use-expense-draft-acceptance.tsx` · out of scope — the parallel worker-expenses session's file
+- [x] fixed · structure-scatter + module-cohesion + feature-first · `registry.ts` / `use-kosztorys-view-state.ts` · `AI_REVIEW_FILTER_IDS` + `withoutIds` belonged with the set queries — now `editorConditionIds` in `queries.ts`, unit-tested
+- [x] fixed · comment-noise · `registry.ts:120` · pair comment („is the whole gate … hides nothing”) false after the view-state gate — trimmed
+- [x] fixed · comment-noise · `review-status.test.ts:86`, `column-values.test.ts:86` · comments restating the test name — deleted
+- [x] dismissed · comment-noise · `filter-multi-select.tsx:85` · `intro` comment carries the why (unticking hides)
+- [x] fixed · simplify · `review-status.ts` · derived Dodana (postdates the reviewed diff) duplicated `statusForTypedQty`'s rules — one `derivedReviewStatus` feeds the cell, the menu and typing
+- [x] dismissed · tailwind-v4-audit · — clean
+
+## Simplify pass
+
+Ran inline on the post-fix delta (not the `/simplify` skill — the delta is three functions): 1 applied (`derivedReviewStatus`), 0 proposed, 0 dismissed; folded into ## Findings (tagged `simplify`).
+
+## Tests & suite
+
+Not run — waiting on „odpal testy”. Owed: typecheck + the touched specs (`review-status`, `ai-review-conditions`, `queries`, `column-values`, `column-totals`, `ai-review-toggles`, `use-kosztorys-view-state`, `ai-review-columns-status`).

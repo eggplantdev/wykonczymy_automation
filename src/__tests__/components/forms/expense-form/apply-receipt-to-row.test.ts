@@ -9,6 +9,9 @@ function fill(overrides: Partial<ReceiptFillResultT> = {}): ReceiptFillResultT {
     netAmount: 10.16,
     invoiceNote: 'FV 123/2026',
     otherCategoryName: '',
+    documentNumber: '',
+    sellerNip: '',
+    documentDate: '',
     ...overrides,
   }
 }

@@ -1,0 +1,409 @@
+[
+  {
+    "section": "Prace dodatkowe",
+    "description": "Zakup, transport i wniesienie towaru budowlanego (cały okres remontu) - w zależności od piętra",
+    "qty": 1,
+    "unit": "kpl",
+    "clientPrice": 1500.0,
+    "note": "AI: assumed — standard house overhead: transport/wniesienie materiałów"
+  },
+  {
+    "section": "Prace dodatkowe",
+    "description": "Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych big bag",
+    "qty": 1,
+    "unit": "big bag",
+    "clientPrice": 450.0,
+    "note": "AI: assumed — gruz z 2 nadproży, bruzd, łazienki ≈ 1 big bag"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Bruzdowanie pod kable elektryczne w materiałach miękkich",
+    "qty": 25.0,
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "note": "AI: assumed — owner rule 2,5 mb/pkt × 10 pkt ściennych (6 gniazd + 4 zasilania LED)"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Bruzdowanie pod kable elektryczne w żelbecie",
+    "qty": 7.5,
+    "unit": "mb",
+    "clientPrice": 45.0,
+    "note": "AI: assumed — owner rule 2,5 mb/pkt × 3 pkt sufitowe (lampy wiszące) w stropie żelbetowym"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Demontaż grzejników",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "note": "AI: read — client: demontaż kaloryfera w salonie"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Wykucie nadproża i powiększenie otworu drzwiowego z montażem nadproża na nowej wysokości",
+    "qty": 2,
+    "unit": "kpl",
+    "clientPrice": 550.0,
+    "note": "AI: read — client: usunięcie nadproży pod drzwi wysokie ×2 (łazienka, sypialnia)"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Zabezpieczenia mebli, podłóg, okien, drzwi i elementów niezbędnych do prac. Demontaż gniazd, włączników, lamp, karniszy etc. Zabezpieczenie sprzętów i wszelkich niezbędnych elementów. Oklejanie do malowania etc. Zabezpieczanie elementów już wykonanych, glazura zabudowy etc.",
+    "qty": 40.8,
+    "unit": "m²",
+    "clientPrice": 25.0,
+    "note": "AI: measured — powierzchnia podłóg mieszkania (36,59 + łazienka 4,25)"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Gruntowanie podłóg",
+    "qty": 36.59,
+    "unit": "m²",
+    "clientPrice": 10.0,
+    "note": "AI: measured — podłoga pod panele (hol+kuchnia+salon 25,83 + sypialnia 10,76); client ~36 m²"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Klejenie paneli winylowych układ prosty,",
+    "qty": 36.59,
+    "unit": "m²",
+    "clientPrice": 60.0,
+    "note": "AI: measured — owner: winyl klejony, niski stopień → układ prosty; 36,59 m² ≈ client ~36"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Montaż listew przypodłogowych poliuretan lub MDF",
+    "qty": 24.0,
+    "unit": "mb",
+    "clientPrice": 45.0,
+    "note": "AI: measured — obwody minus zabudowa kuchni, szafy wnękowe, otwory drzwiowe"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Montaż listwy łączeniowej w przejściach - łączenie różnych rodzajów podłóg",
+    "qty": 0.89,
+    "unit": "mb",
+    "clientPrice": 100.0,
+    "note": "AI: measured — próg łazienka/hol, szer. otworu"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Akrylowanie łączeń ścian i sufitów / akrylowanie dylatacji - polecam, bo zdecydowanie poprawia estetykę w narożnikach oraz przykrywa potencjalne pęknięcia",
+    "qty": 71.2,
+    "unit": "mb",
+    "clientPrice": 14.0,
+    "note": "AI: measured — styki sufit-ściana 39,37 mb + 12 narożników wewn. × 2,65"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gładzie na sufitach \"finish\" stan deweloperski (2 warstwy) - standard wykończenia Q3",
+    "qty": 36.59,
+    "unit": "m²",
+    "clientPrice": 59.0,
+    "note": "AI: measured — sufity bez łazienki (hol+kuchnia+salon+sypialnia)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gładzie na ścianach \"finish\" stan deweloperski (2 warstwy) - standard wykończenia Q3",
+    "qty": 75.98,
+    "unit": "m²",
+    "clientPrice": 57.0,
+    "note": "AI: measured — ściany netto 89,18 minus ściany za zabudową kuchenną 13,20 (H=2,65 assumed)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gruntowanie powierzchni ścian i sufitów przed gładziami i po gładziach",
+    "qty": 112.57,
+    "unit": "m²",
+    "clientPrice": 12.0,
+    "note": "AI: measured — = gładź ścian + sufitów"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Malowanie ścian i sufitów farbą silikonową lub akrylową na biało",
+    "qty": 125.77,
+    "unit": "m²",
+    "clientPrice": 22.0,
+    "note": "AI: measured — ściany netto 89,18 + sufity 36,59; kolor biały assumed"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Naprawy ścian i sufitów po kuciu, bruzdowaniu, tynkowanie bruzd (liczone w metrach bieżących)",
+    "qty": 32.5,
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "note": "AI: assumed — = długość bruzd (13 pkt × 2,5 mb)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Wklejanie narożników aluminiowych i wklejanie siatki + szpachlowanie narożniki, glify okienne etc. wszędzie tam gdzie to wymaga",
+    "qty": 20.8,
+    "unit": "mb",
+    "clientPrice": 35.0,
+    "note": "AI: measured — 4 narożniki zewn. × 2,65 + krawędzie glifów 2 okien (wys. 1,5 assumed)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Instalacja wod-kan nowe punkty, przeniesienie lub przedłużenie - każdy punkt",
+    "qty": 1,
+    "unit": "pkt",
+    "clientPrice": 250.0,
+    "note": "AI: assumed — nowy punkt wod-kan pod baterię bidetową przy WC"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Biały montaż baterii podtynkowej bidetka",
+    "qty": 1,
+    "unit": "kpl",
+    "clientPrice": 100.0,
+    "note": "AI: read — client: bidetowa bateria do WC (podtynkowa)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Biały montaż baterii podtynkowej do umywalki",
+    "qty": 1,
+    "unit": "kpl",
+    "clientPrice": 100.0,
+    "note": "AI: read — client: baterie podtynkowe; plan: bateria ścienna przy umywalce"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Biały montaż baterii podtynkowej do wanny/prysznica razem ze słuchawką i deszczownicą",
+    "qty": 1,
+    "unit": "kpl",
+    "clientPrice": 200.0,
+    "note": "AI: read — client: walk-in, baterie podtynkowe; plan: deszczownica + słuchawka"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Dwukrotne gruntowanie ścian, sufitów i podłóg",
+    "qty": 30.5,
+    "unit": "m²",
+    "clientPrice": 10.0,
+    "note": "AI: measured — ściany 21,87 + podłoga 4,25 + sufit 4,43"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Fugowanie ścian i podłóg płytka format standard",
+    "qty": 26.1,
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "note": "AI: measured — = płytki ścian + podłogi"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Malowanie sufitów i ścian bez glazury + gładź na suficie",
+    "qty": 4.43,
+    "unit": "m²",
+    "clientPrice": 100.0,
+    "note": "AI: measured — sufit łazienki 157×296 minus blok pionu"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż baterii prysznicowej/wannowej podtynkowej razem z podłączeniem zasilania wody",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 900.0,
+    "note": "AI: read — client: bateria podtynkowa w prysznicu walk-in (podejście)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż baterii umywalkowej podtynkowej razem z podłączeniem zasilania wody",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 550.0,
+    "note": "AI: read — client: bateria podtynkowa umywalkowa (podejście)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż geberitu",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 450.0,
+    "note": "AI: read — plan: obudowany geberit"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż odpływu liniowego z wypoziomowaniem spadku - odpływ jednospadkowy",
+    "qty": 1,
+    "unit": "kpl",
+    "clientPrice": 1600.0,
+    "note": "AI: read — client: odpływ liniowy; jednospadkowy assumed (płytki 120×60)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż profili i płyt GK w zabudowie geberitu",
+    "qty": 1,
+    "unit": "kpl",
+    "clientPrice": 450.0,
+    "note": "AI: read — plan: obudowany geberit (zabudowa GK)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż syfonów",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 80.0,
+    "note": "AI: assumed — syfon umywalki"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż szyby stałej do odpływu liniowego",
+    "qty": 1,
+    "unit": "kpl",
+    "clientPrice": 550.0,
+    "note": "AI: read — plan: szyba walk-in"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż umywalki nablatowej lub na szafke",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 130.0,
+    "note": "AI: read — plan: umywalka na blacie"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż WC podwieszanego",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 350.0,
+    "note": "AI: read — plan: WC podwieszane na gebericie"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Podłączenie pralki",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "note": "AI: read — plan: zabudowa na pralkę"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Położenie folii w płynie (izolacji)",
+    "qty": 8.0,
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "note": "AI: measured — podłoga 4,25 + 2 ściany prysznica (0,86+1,02) × 2,0 m"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Silikonowanie",
+    "qty": 21.4,
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "note": "AI: measured — styk ściana-podłoga 8,16 + 5 narożników wewn. × 2,65"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Układanie glazury na podłodze format standard od 30x30 do 120x60",
+    "qty": 4.25,
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "note": "AI: measured — podłoga łazienki minus pion i geberit; płytki 120×60 = format standard"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Układanie glazury na ścianie format standard od 30x30 do 120x60",
+    "qty": 21.87,
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "note": "AI: measured — obwód 9,05 × 2,65 (pełna wysokość assumed) minus drzwi"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Układanie płytek w glifach, półeczkach itp. do 20 cm - format standard",
+    "qty": 1.0,
+    "unit": "mb",
+    "clientPrice": 130.0,
+    "note": "AI: assumed — obłożenie półki prysznicowej ~1 mb"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wiercenie otworów w płytkach",
+    "qty": 6,
+    "unit": "szt",
+    "clientPrice": 60.0,
+    "note": "AI: assumed — otwory: prysznic 3, umywalka 2, bidetka 1"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wklejanie taśmy hydroizolacyjnej",
+    "qty": 10.2,
+    "unit": "mb",
+    "clientPrice": 30.0,
+    "note": "AI: measured — styk ściana-podłoga 8,16 + narożnik prysznica 2,0"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wykonanie przedścianki pod prysznicem z 1 półką",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 1200.0,
+    "note": "AI: read — client: półka prysznicowa z LED → przedścianka z 1 półką"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż gniazdek i włączników",
+    "qty": 6,
+    "unit": "szt",
+    "clientPrice": 39.0,
+    "note": "AI: assumed — osprzęt do 6 przesuniętych gniazd"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż listew LED + taśm LED",
+    "qty": 1,
+    "unit": "kpl",
+    "clientPrice": 150.0,
+    "note": "AI: read — client: półka prysznicowa z LED"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż transformatorów",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 120.0,
+    "note": "AI: assumed — zasilacz LED półki"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Punkty elektryczne żelbet dodatek",
+    "qty": 3,
+    "unit": "szt",
+    "clientPrice": 50.0,
+    "note": "AI: assumed — 3 pkt sufitowe w stropie żelbetowym"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Wykonanie punktów oświetleniowych, czujki, rolety",
+    "qty": 7,
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "note": "AI: assumed — client: elektryka pod lampy wiszące (3) i pod LED (4: salon, sypialnia, kuchnia, półka)"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Wykonanie/przesunięcie punktów elektrycznych, gniazdka i włączniki, wiercenie otworu pod puszkę, montaż puszki, doprowadzenie kabla",
+    "qty": 6,
+    "unit": "szt",
+    "clientPrice": 130.0,
+    "note": "AI: assumed — client: niewielkie przesunięcia gniazdek, przyjęto 6"
+  },
+  {
+    "section": "Instalacja wodno-kanalizacyjna + c.o.",
+    "description": "Montaż grzejnika z zaworami",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "note": "AI: read — client: montaż nowego kaloryfera w salonie"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Wykonanie maskownicy karnisza z płyt GK (stelaż, płyta, taśmowanie, narożnik, przygotowanie do malowania) — brak w katalogu, do wyceny",
+    "qty": 6.03,
+    "unit": "mb",
+    "note": "AI: measured — narysowana linia maskownicy przy oknach: sypialnia 2,67 + salon 3,36"
+  }
+]

@@ -7,7 +7,7 @@ import type { InvestmentRefT } from '@/types/reference-data'
 export function buildInvestmentInfoFields(
   investment: Pick<
     InvestmentRefT,
-    'address' | 'phone' | 'email' | 'contactPerson' | 'notes' | 'status' | 'reviewRequested'
+    'address' | 'phone' | 'email' | 'contactPerson' | 'status' | 'reviewRequested'
   >,
 ) {
   return [
@@ -23,11 +23,6 @@ export function buildInvestmentInfoFields(
       value: investment.email && <ContactLink type="email" value={investment.email} />,
     },
     { label: 'Osoba kontaktowa', value: investment.contactPerson },
-    // Free text typed in a textarea: its line breaks are the only structure it has.
-    {
-      label: 'Notatki',
-      value: investment.notes && <span className="whitespace-pre-line">{investment.notes}</span>,
-    },
     { label: 'Status', value: INVESTMENT_STATUS_LABELS[investment.status].pl },
     { label: 'Opinia', value: investment.reviewRequested && 'Wysłano' },
   ].filter((field) => field.value)

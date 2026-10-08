@@ -127,6 +127,8 @@ import * as migration_20261006_2_add_worker_expense_draft_transfers from './2026
 import * as migration_20261006_3_add_worker_expense_draft_receipts from './20261006_3_add_worker_expense_draft_receipts'
 import * as migration_20261007_0_add_ai_review_columns from './20261007_0_add_ai_review_columns'
 import * as migration_20261007_1_add_current_planned_qty from './20261007_1_add_current_planned_qty'
+import * as migration_20261008_0_add_document_identity_and_duplicate_of from './20261008_0_add_document_identity_and_duplicate_of'
+import * as migration_20261008_0_add_kosztorys_item_catalogue_id from './20261008_0_add_kosztorys_item_catalogue_id'
 
 export const migrations = [
   {
@@ -773,5 +775,15 @@ export const migrations = [
     up: migration_20261007_1_add_current_planned_qty.up,
     down: migration_20261007_1_add_current_planned_qty.down,
     name: '20261007_1_add_current_planned_qty',
+  },
+  {
+    up: migration_20261008_0_add_document_identity_and_duplicate_of.up,
+    down: migration_20261008_0_add_document_identity_and_duplicate_of.down,
+    name: '20261008_0_add_document_identity_and_duplicate_of',
+  },
+  {
+    up: migration_20261008_0_add_kosztorys_item_catalogue_id.up,
+    down: migration_20261008_0_add_kosztorys_item_catalogue_id.down,
+    name: '20261008_0_add_kosztorys_item_catalogue_id',
   },
 ]

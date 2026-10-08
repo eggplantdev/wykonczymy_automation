@@ -9,9 +9,14 @@ import type { ClientViewSettingsT } from '@/lib/kosztorys/client-view/settings'
 import type { ToolPlaneT } from '@/lib/kosztorys/types'
 import {
   clientConditionIds,
+  editorConditionIds,
   engagedPlane,
   isFoldSuppressed,
 } from '@/lib/kosztorys/row-conditions/queries'
+import {
+  HAS_PLANNED_OR_AI_QTY_CONDITION_ID,
+  NO_PLANNED_OR_AI_QTY_CONDITION_ID,
+} from '@/lib/kosztorys/row-conditions/registry'
 import type { SortPickT, SortStateT } from '@/lib/kosztorys/row-view'
 import { toggleInSet } from '@/lib/utils/toggle-in-set'
 
@@ -53,9 +58,18 @@ export function useKosztorysViewState({
   // every visit opens on the document the owner curated.
   const [showAllRows, setShowAllRows] = useState(false)
   const [reportedOnly, setReportedOnly] = useState(false)
+  // „Oferta" and „Przegląd AI" are plain state, never the stored view or the hidden-columns map, so
+  // switching them off restores exactly what was there. Off in preview and in a szablon, whose closed
+  // column lists they would only contradict. The offer is the client's price, whatever plane the owner
+  // was reading — a problem's plane included.
+  const offerAvailable = !preview && !isTemplate
+  const [offerPicked, setOffer] = useState(false)
+  const [aiReviewPicked, setAiReview] = useState(false)
+  const aiReviewAvailable = offerAvailable && aiDraft
+  const aiReview = aiReviewPicked && aiReviewAvailable
   const engagedConditionIds = preview
     ? clientConditionIds(clientView?.hideEmptyRows && !showAllRows, reportedOnly)
-    : persistedConditionIds
+    : editorConditionIds(persistedConditionIds, aiReview)
   // Rides the engaged problem on top of the stored plane, never written to it. Derived, not
   // remembered: the problem persists and a plane wouldn't, so a reload would restore the narrowing
   // without the view it is judged on. An explicit switch still overrules it, problem left engaged.
@@ -71,16 +85,7 @@ export function useKosztorysViewState({
   // that switch safe: `pickView` is the only writer of the stored view, so a browser parked on a crew
   // plane would otherwise stay there forever with no control to come back. The problem overlay stays
   // above it, because that is the gesture that walks the reader to a fault.
-  //
-  // „Oferta" and „Przegląd AI" are plain state, never the stored view or the hidden-columns map, so
-  // switching them off restores exactly what was there. Off in preview and in a szablon, whose closed
-  // column lists they would only contradict. The offer is the client's price, whatever plane the owner
-  // was reading — a problem's plane included.
-  const offerAvailable = !preview && !isTemplate
-  const [offerPicked, setOffer] = useState(false)
-  const [aiReviewPicked, setAiReview] = useState(false)
   const offer = offerPicked && offerAvailable
-  const aiReviewAvailable = offerAvailable && aiDraft
   const view: PriceViewT = preview
     ? (workerPlane ?? 'client')
     : offer
@@ -108,6 +113,15 @@ export function useKosztorysViewState({
   // guideY is the row-resize twin.
   const [guideX, setGuideX] = useState<number | null>(null)
   const [guideY, setGuideY] = useState<number | null>(null)
+
+  // On every switch-on, not just the first: the view always opens on what someone priced, whatever
+  // was re-ticked during the last pass — the other half included, or the pair would hide every row.
+  function pickAiReview(next: boolean) {
+    setAiReview(next)
+    if (!next) return
+    setConditions([NO_PLANNED_OR_AI_QTY_CONDITION_ID], true)
+    setConditions([HAS_PLANNED_OR_AI_QTY_CONDITION_ID], false)
+  }
 
   function pickView(next: PriceViewT) {
     setViewPickedManually(true)
@@ -163,8 +177,8 @@ export function useKosztorysViewState({
     offer,
     setOffer,
     aiReviewAvailable,
-    aiReview: aiReviewPicked && aiReviewAvailable,
-    setAiReview,
+    aiReview,
+    setAiReview: pickAiReview,
     search,
     setSearch,
     engagedConditionIds,

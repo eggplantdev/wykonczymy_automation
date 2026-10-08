@@ -3,12 +3,13 @@ import { isAdminOrOwner } from '@/access'
 import {
   canBeSettled,
   carriesNetAmount,
+  hasOptionalWorker,
   needsExpenseCategory,
   needsOtherCategory,
   needsSourceRegister,
   needsTargetRegister,
-  needsWorker,
   showsInvestment,
+  showsWorker,
   type TransferTypeT,
 } from '@/lib/constants/transfers'
 import { validateTransfer } from '@/hooks/transfers/validate'
@@ -208,9 +209,9 @@ export const Transfers: CollectionConfig = {
       type: 'relationship',
       relationTo: 'users',
       label: { en: 'Worker', pl: 'Pracownik' },
-      access: { update: () => false },
+      access: { update: ({ doc }) => hasOptionalWorker(typeOf(doc ?? {})) },
       admin: {
-        condition: (data) => needsWorker(typeOf(data)),
+        condition: (data) => showsWorker(typeOf(data)),
       },
     },
     {
@@ -249,6 +250,23 @@ export const Transfers: CollectionConfig = {
           pl: 'Wymagane jeśli nie załączono faktury',
         },
       },
+    },
+    // Document identity for the duplicate check (EX-1025).
+    {
+      name: 'documentNumber',
+      type: 'text',
+      label: { en: 'Document number', pl: 'Nr dokumentu' },
+    },
+    {
+      name: 'sellerNip',
+      type: 'text',
+      label: { en: 'Seller NIP', pl: 'NIP sprzedawcy' },
+    },
+    {
+      // ISO `YYYY-MM-DD` text: a Payload `date` is a timestamptz, which would shift a date-only value.
+      name: 'documentDate',
+      type: 'text',
+      label: { en: 'Document date', pl: 'Data na paragonie' },
     },
     // --- Cancellation ---
     {

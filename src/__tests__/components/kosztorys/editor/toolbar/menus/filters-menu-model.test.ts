@@ -13,6 +13,7 @@ const model = (
     counts: new Map(Object.entries(counts)),
     perItemDiscountInert,
     crewAxis: 'both',
+    isTemplate: false,
   })
 
 const everyFilterCounted = Object.fromEntries(

@@ -27,6 +27,7 @@ export type InvestmentRefT = ReferenceItemT & {
   notes: string
   reviewRequested: boolean
   hasSheet: boolean
+  createdAt: string
   // The materiały concession is gated on the settlement mode, so a reader that has one without the
   // other cannot compute it (null rate = no concession); VAT rides the prace alone and turns
   // „Bilans netto" into „Bilans brutto". `vatRate` is non-null because the read applies DEFAULT_VAT —

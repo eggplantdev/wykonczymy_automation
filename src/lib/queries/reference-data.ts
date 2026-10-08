@@ -7,6 +7,7 @@ import { CACHE_TAGS } from '@/lib/cache/tags'
 import { TEMPLATE_INVESTMENT_STATUS } from '@/lib/constants/investment-lock'
 import type { RoleT } from '@/lib/auth/roles'
 import { getDb } from '@/lib/db/get-db'
+import { isoOrNull } from '@/lib/db/row-coerce'
 import { toLanguage } from '@/lib/i18n/languages'
 import { DEFAULT_VAT } from '@/lib/kosztorys/constants'
 import { SETTLEMENT_MODE_DEFAULT, type SettlementModeT } from '@/lib/kosztorys/settlement-mode'
@@ -75,7 +76,7 @@ export const fetchReferenceData = cache(
         SELECT i.id, i.name, i.status::text, (i.trashed_at IS NOT NULL) AS trashed,
                i.address, i.phone, i.email, i.contact_person, i.notes, i.review_requested,
                i.materials_net_rate::float8, i.settlement_mode::text, i.vat_rate::float8,
-               (k.google_sheet_id IS NOT NULL) AS has_sheet
+               i.created_at, (k.google_sheet_id IS NOT NULL) AS has_sheet
         FROM investments i
         LEFT JOIN kosztoryses k ON k.investment_id = i.id
         WHERE i.status <> ${TEMPLATE_INVESTMENT_STATUS}
@@ -137,6 +138,7 @@ export const fetchReferenceData = cache(
           settlementMode: (row.settlement_mode as SettlementModeT) ?? SETTLEMENT_MODE_DEFAULT,
           vatRate: row.vat_rate == null ? DEFAULT_VAT : Number(row.vat_rate),
           hasSheet: Boolean(row.has_sheet),
+          createdAt: isoOrNull(row.created_at) ?? '',
         } satisfies InvestmentRefT,
       }))
       const [investments, trashedInvestments] = splitTrashed(investmentRows)
@@ -181,7 +183,7 @@ export const fetchReferenceData = cache(
     // Bumped whenever the returned SHAPE changes. A tag only marks an entry stale — it still SERVES
     // the old payload once, and one missing a field the reader now dereferences crashes the page or
     // renders NaN. The bump makes it unreachable instead.
-    ['reference-data-v6'],
+    ['reference-data-v7'],
     {
       tags: [
         CACHE_TAGS.cashRegisters,

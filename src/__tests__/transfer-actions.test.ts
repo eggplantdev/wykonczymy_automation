@@ -1223,3 +1223,33 @@ describe('deleteOrphanedMediaAction', () => {
     expect(mockDelete).toHaveBeenCalledTimes(2)
   })
 })
+
+// An OTHER names who bought it and may be corrected after save; a PAYOUT/BONUS worker is what the
+// booking pays, so the same key must never reach it.
+describe('updateTransferAction — worker', () => {
+  const writtenData = () => mockUpdate.mock.calls[0][0].data
+
+  it('OTHER: sets the worker', async () => {
+    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ type: 'OTHER', createdBy: adminUser.id }))
+
+    await updateTransferAction(10, makeUpdateData({ worker: 3 }))
+
+    expect(writtenData().worker).toBe(3)
+  })
+
+  it('OTHER: null clears the worker', async () => {
+    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ type: 'OTHER', createdBy: adminUser.id }))
+
+    await updateTransferAction(10, makeUpdateData({ worker: null }))
+
+    expect(writtenData()).toHaveProperty('worker', null)
+  })
+
+  it('PAYOUT: the worker key is dropped', async () => {
+    mockFindByID.mockResolvedValueOnce(makeOriginalTransfer({ type: 'PAYOUT', createdBy: adminUser.id }))
+
+    await updateTransferAction(10, makeUpdateData({ worker: 3 }))
+
+    expect(writtenData()).not.toHaveProperty('worker')
+  })
+})

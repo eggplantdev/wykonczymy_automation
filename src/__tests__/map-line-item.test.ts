@@ -6,8 +6,12 @@ const item = {
   amount: '-1000',
   netAmount: '',
   invoiceNote: '',
+  documentNumber: '',
+  sellerNip: '',
+  documentDate: '',
   category: '',
   expenseCategory: '7',
+  worker: '',
 }
 
 describe('mapLineItem', () => {
@@ -68,6 +72,23 @@ describe('mapLineItem', () => {
       expect(
         mapLineItem({ ...item, netAmount: '' }, 'INVESTMENT_EXPENSE_NET').netAmount,
       ).toBeUndefined()
+    })
+  })
+
+  describe('worker', () => {
+    const bought = { ...item, worker: '5' }
+
+    it('rides along on OTHER', () => {
+      expect(mapLineItem(bought, 'OTHER').worker).toBe(5)
+    })
+
+    // A row picked under „Inny wydatek” and then switched away must not book its worker.
+    it.each(['INVESTMENT_EXPENSE', 'PAYOUT'] as const)('is dropped on %s', (type) => {
+      expect(mapLineItem(bought, type).worker).toBeUndefined()
+    })
+
+    it('an empty pick maps to undefined', () => {
+      expect(mapLineItem(item, 'OTHER').worker).toBeUndefined()
     })
   })
 })

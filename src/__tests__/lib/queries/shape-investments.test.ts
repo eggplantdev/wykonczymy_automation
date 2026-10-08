@@ -40,6 +40,7 @@ const baseInv: InvestmentRefT = {
   notes: '',
   reviewRequested: false,
   hasSheet: false,
+  createdAt: '2026-01-15T10:00:00.000Z',
   materialsNetRate: null,
   settlementMode: 'NET',
   vatRate: DEFAULT_VAT,

@@ -1,16 +1,18 @@
 'use server'
 
 import type { Payload } from 'payload'
+import { z } from 'zod'
 import type { Transaction } from '@/payload-types'
 import {
   createBulkExpenseSchema,
   type CreateBulkExpenseFormT,
 } from '@/components/forms/expense-form/bulk-expense-schema'
 import { BONUS_FORBIDDEN_MESSAGE, canBookTransferType, canMutateTransfer } from '@/lib/auth/roles'
-import { canBeSettled } from '@/lib/constants/transfers'
+import { canBeSettled, hasOptionalWorker } from '@/lib/constants/transfers'
 import { perfStart } from '@/lib/perf'
 import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import { decideExpenseDraft } from '@/lib/db/worker-expense-drafts'
+import { skippedReceiptSchema, type SkippedReceiptT } from '@/lib/expense-duplicates/duplicate-of'
 import { DRAFT_ALREADY_DECIDED } from '@/lib/constants/worker-expense-drafts'
 import {
   cancelTransferSchema,
@@ -27,6 +29,7 @@ import { syncBulkExpensesToSheet } from './sheets-sync'
 import { validateAction, protectedAction } from './run-action'
 import { validateSourceRegister } from './validate-source-register'
 import { getNetAmountError } from '@/lib/utils/validation'
+import { normalizeNip } from '@/lib/utils/nip'
 import { warsawToday } from '@/lib/utils/days'
 import { logError } from '@/lib/utils/log-error'
 import { resolveId } from '@/lib/utils/resolve-id'
@@ -86,10 +89,27 @@ export async function createTransferAction(data: CreateTransferFormT, invoiceMed
 // Thrown, not returned: a returned refusal would still commit the expenses created before it.
 class DraftAlreadyDecided extends Error {}
 
+// Blank is stored as null so the duplicate check never matches two empty values.
+function documentIdentity(item: {
+  documentNumber?: string
+  sellerNip?: string
+  documentDate?: string
+}) {
+  return {
+    documentNumber: item.documentNumber?.trim() || null,
+    sellerNip: (item.sellerNip && normalizeNip(item.sellerNip)) || null,
+    documentDate: item.documentDate || null,
+  }
+}
+
 export async function createBulkTransferAction(
   data: CreateBulkExpenseFormT,
   invoiceMediaIds?: number[][],
-  opts?: { expenseDraftId: number; receiptMediaIds: number[][]; skippedReceipts: number[][] },
+  opts?: {
+    expenseDraftId: number
+    receiptMediaIds: number[][]
+    skippedReceipts: SkippedReceiptT[]
+  },
 ) {
   const lineCount = data.lineItems.length
 
@@ -100,6 +120,11 @@ export async function createBulkTransferAction(
 
       const parsed = validateAction(createBulkExpenseSchema, data)
       if (!parsed.success) return parsed
+      const skippedReceipts = validateAction(
+        z.array(skippedReceiptSchema),
+        opts?.skippedReceipts ?? [],
+      )
+      if (!skippedReceipts.success) return skippedReceipts
       console.log(`[PERF]   validateAction ${step()}ms`)
       if (!canBookTransferType(user.role, parsed.data.type)) {
         return { success: false, error: BONUS_FORBIDDEN_MESSAGE }
@@ -141,11 +166,12 @@ export async function createBulkTransferAction(
                 sourceRegister: parsed.data.sourceRegister,
                 targetRegister: parsed.data.targetRegister,
                 investment: parsed.data.investment,
-                worker: parsed.data.worker,
+                worker: hasOptionalWorker(parsed.data.type) ? item.worker : parsed.data.worker,
                 expenseCategory: item.expenseCategory,
                 otherCategory: item.category,
                 invoice: invoicePages?.length ? invoicePages : undefined,
                 invoiceNote: item.invoiceNote,
+                ...documentIdentity(item),
                 settled: canBeSettled(parsed.data.type) && parsed.data.settled === true,
                 createdBy: user.id,
               },
@@ -159,7 +185,7 @@ export async function createBulkTransferAction(
               status: 'accepted',
               transferIds: ids,
               transferMediaIds: opts.receiptMediaIds,
-              skippedReceipts: opts.skippedReceipts,
+              skippedReceipts: skippedReceipts.data,
             })
             if (!isDecided) throw new DraftAlreadyDecided()
           }
@@ -289,7 +315,7 @@ export async function updateTransferAction(
       const { original } = result
 
       // Only LABOR_COST transfers can have their amount edited
-      const { amount, vatPlane, netAmount, ...fields } = parsed.data
+      const { amount, vatPlane, netAmount, worker, ...fields } = parsed.data
       const newAmount = isLaborCost(original.type) ? amount : undefined
       const amountChanged = newAmount !== undefined && newAmount !== original.amount
 
@@ -310,8 +336,11 @@ export async function updateTransferAction(
         id: transferId,
         data: {
           ...fields,
+          ...documentIdentity(parsed.data),
           ...(newAmount !== undefined && { amount: newAmount }),
           ...(fillsPlane && { vatPlane, netAmount: netAmount ?? null }),
+          // Only an OTHER names its worker by choice — a PAYOUT/BONUS worker IS the booking.
+          ...(worker !== undefined && hasOptionalWorker(original.type) && { worker }),
           // Newly picked files are extra pages of the same invoice, so they append — an edit that
           // replaced the list would strand the pages the user never touched.
           ...(invoiceMediaIds?.length && {

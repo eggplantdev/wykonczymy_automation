@@ -4097,7 +4097,7 @@ dawny ruch strzałkami da się w nim zrobić i że przeżywa przeładowanie (F5)
 
 ### Findings — 2026-10-07
 
-- [ ] **Cmd+Z po wyczerpaniu „Cofnij" w „Ustaw kolejność…" cofa edycję komórki za dialogiem** — w Chromium
+- [x] **Cmd+Z po wyczerpaniu „Cofnij" w „Ustaw kolejność…" cofa edycję komórki za dialogiem** — w Chromium
       (Playwright, Meta+Z) po ruchu w dialogu i „Cofnij" aż do wyszarzenia kolejny Cmd+Z przywrócił poprzednią
       wartość komórki „Przedmiar" za dialogiem (0 → 1) i zapisał ją w DB (`kosztorys_items.planned_qty`),
       powtarzalnie 2/2; Ctrl+Z tego nie robi (0/1). `use-undo-keyboard.ts` blokuje stos edytora przy otwartym
@@ -4107,10 +4107,7 @@ dawny ruch strzałkami da się w nim zrobić i że przeżywa przeładowanie (F5)
       edycji komórki → dialog → ruch → „Cofnij" → Cmd+Z. **Test disposition:** e2e · spec Playwright w
       `e2e/` (rozszerzyć `kosztorys-undo-redo.spec.ts`: dialog otwarty, Meta+Z, wartość komórki bez zmian);
       unit nie widzi natywnego undo przeglądarki.
-      **Poprawka w drzewie (niezacommitowana, czeka na deploy i ponowny check):** gdy fokus spadł na stronę
-      (wyszarzony „Cofnij”), nikt nie przejmował Cmd+Z, więc szło do natywnego undo przeglądarki, które cofa
-      ostatnią edycję komórki. Ctrl+Z na Macu nie jest natywnym undo, stąd 0/1. `use-undo-keyboard.ts` przy
-      otwartym dialogu i fokusie poza nim teraz blokuje domyślną akcję; pole w dialogu zachowuje swoje undo.
+      Naprawione w 6c7a33a48; ponowny check na stagingu 2026-10-07 (a452f4c2b): Meta+Z po wyczerpaniu „Cofnij” nie rusza komórki (Playwright Chromium).
       Test: test-driven-debugging · dom — `use-undo-keyboard.test.tsx` (czerwony przed poprawką, zielony po).
 
 ## kosztorys-summary-resizable
@@ -4530,6 +4527,7 @@ Baza musi mieć migrację `20261007_0_add_ai_review_columns`.
 - [x] Kosztorys → w wyborze kolumn zaznacz „Komentarz do pracy" → kliknij komórkę pracy z katalogu → wpisz komentarz → zapisz: ta sama praca w innym kosztorysie i w szablonie pokazuje ten komentarz.
       Staging 2026-10-07: komentarz wpisany w 173 (pozycja „Rozkucie i zatynkowanie…”) zapisał się w katalogu (`work_note`, psql); ta sama praca w 174 (kolumna włączona) i w szablonie 159 pokazuje go.
 - [ ] Kosztorys → kolumna „Komentarz do pracy" ma zwykłe kolory (bez cyjanu); kliknij komórkę pracy, której nie ma w katalogu: okno „Tej pracy nie ma w katalogu prac" → „Dodaj do katalogu…" otwiera „Zapisz do katalogu…"; po zapisie kliknięcie tej komórki otwiera okno komentarza. Szara zostaje tylko komórka pustego wiersza.
+- [ ] Kosztorys → włącz kolumnę „Komentarz do pracy", wiersz z długim komentarzem z katalogu i krótkim opisem: w komórce widać „…"; menu wiersza → „Dopasuj wysokość do treści" podnosi wiersz tak, że cały komentarz jest widoczny.
 - [x] Pozycja, której opisu nie ma w katalogu: komórka jest pusta, kliknięcie nic nie otwiera.
       Staging 2026-10-07: „Wynoszenie gruzu…” (173): komórka pusta, klik i dwuklik nie otwierają okna.
 - [x] W oknie komentarza: Backspace, Delete, strzałki, Ctrl+A i wklejanie działają na tekście komentarza; kosztorys pod oknem się nie zmienia. Escape zamyka okno.
@@ -4545,38 +4543,75 @@ Baza musi mieć migrację `20261007_0_add_ai_review_columns`.
 
 Stan: kosztorys ze wczytanym szkicem AI (kolumna „AI przedmiar" ma wartości) oraz zwykły kosztorys bez szkicu.
 
-- [ ] Kosztorys ze szkicem → w wyborze kolumn są „AI przedmiar", „Status", „Powód zmiany"; „Problemy" pokazuje grupę „Przegląd AI", a „do sprawdzenia (szkic AI)" liczy pozycje z AI przedmiarem i bez statusu.
-- [ ] Wpisz w „Przedmiar" tę samą liczbę co AI przedmiar → Status „Zaakceptowana"; 0 → „Odrzucona"; inną liczbę → „Edytowana"; liczbę przy AI przedmiarze 0 → „Dodana". Ctrl+Z cofa Przedmiar i Status razem.
-- [ ] Status → „Zaakceptowana" przepisuje AI przedmiar do „Przedmiar"; „Odrzucona" ustawia Przedmiar na 0.
-- [ ] Pozycja z AI przedmiarem 0 i wpisanym Przedmiarem: wybranie dowolnego Statusu nie zmienia Przedmiaru.
-- [ ] Filtr „zmienione bez powodu": pozycja, w której zaczynasz wpisywać „Powód zmiany", zostaje na liście aż do „Odśwież — ukryj poprawione".
-- [ ] „Nowa praca" z Przedmiarem w kosztorysie ze szkicem: pokazuje „Dodana" i trafia do „zmienione bez powodu".
-- [ ] Zapisz wersję, zmień statusy i powody, przywróć wersję: AI przedmiar, Status i Powód zmiany wracają.
+- [x] Kosztorys ze szkicem → w wyborze kolumn są „AI przedmiar", „Status", „Powód zmiany"; „Problemy" pokazuje grupę „Przegląd AI", a „do sprawdzenia (szkic AI)" liczy pozycje z AI przedmiarem, bez statusu i z Przedmiarem innym niż AI przedmiar.
+      Lokalnie #180 2026-10-07: w „Kolumny” są AI przedmiar / AI wartość netto przedmiar / Status / Powód zmiany / Komentarz do pracy; „Problemy” → grupa „Przegląd AI” z „do sprawdzenia (szkic AI)” = 43 i „zmienione bez powodu” = 9 (zgodne z SQL).
+- [x] Wpisz w „Przedmiar" tę samą liczbę co AI przedmiar → Status „Zaakceptowana"; 0 → „Odrzucona"; inną liczbę → „Edytowana"; liczbę przy AI przedmiarze 0 → „Dodana". Ctrl+Z cofa Przedmiar i Status razem.
+      Lokalnie #180 2026-10-07 (id 52967, AI 7,5): 7,5 → Zaakceptowana (psql accepted); 0 → Odrzucona; 3 → Edytowana; poz. 57 (AI 0): 31 → Dodana (psql added). Ctrl+Z po 0→3 cofnął Przedmiar (0) i Status (Odrzucona) razem, potwierdzone psql.
+- [x] Status → „Zaakceptowana" przepisuje AI przedmiar do „Przedmiar"; „Odrzucona" ustawia Przedmiar na 0.
+      Verified locally on #180 (id 52967, 2026-10-07): Zaakceptowana -> planned_qty 7.5 / accepted; Odrzucona -> 0 / rejected (SQL).
+- [x] Pozycja z AI przedmiarem 0 i wpisanym Przedmiarem: wybranie dowolnego Statusu nie zmienia Przedmiaru.
+      Lokalnie #180 2026-10-07 (poz. 57, id 53002, AI 0, Przedmiar 31): Status „Zaakceptowana” i „Odrzucona” → Przedmiar zostaje 31, `review_status` accepted/rejected (psql).
+- [x] Filtr „zmienione bez powodu": pozycja, w której zaczynasz wpisywać „Powód zmiany", zostaje na liście aż do „Odśwież — ukryj poprawione".
+      Lokalnie #180 2026-10-07: poz. 87 (Dodana), wpisano „t” w Powód zmiany -> pozycja zostaje na liście, licznik filtra 10 -> 9; „Odśwież — ukryj poprawione” (menu Problemy) ją ukrywa.
+- [x] „Nowa praca" z Przedmiarem w kosztorysie ze szkicem: pokazuje „Dodana" i trafia do „zmienione bez powodu".
+      Lokalnie #180 2026-10-07: Dodaj -> Praca -> Prace dodatkowe (bez katalogu, bez tłumaczenia), potem Przedmiar 5 w siatce -> Status „Dodana” (SQL: review_status=added, id 53270), licznik „zmienione bez powodu” 9 -> 10, wiersz widoczny po włączeniu filtra. Wiersz testowy do usunięcia przy przywracaniu.
+- [x] Zapisz wersję, zmień statusy i powody, przywróć wersję: AI przedmiar, Status i Powód zmiany wracają.
+      Lokalnie #180 2026-10-07: wersja „ZZ test wersja” zapisana; potem poz. 22 -> Zaakceptowana (Przedmiar 7,5) i powód „z” na poz. 57; „Wczytaj” -> Przywróć: poz. 22 znów Odrzucona, Przedmiar 0, AI przedmiar 7,5, powód „z” zniknął, powód „t” poz. 87 wrócił (SQL). Uwaga: przywrócenie kasuje i wstawia pozycje od nowa, więc id pozycji #180 się zmieniły (np. 52967 -> 53292).
 - [ ] Zapisz kosztorys jako szablon, załóż z niego nowy kosztorys: brak AI przedmiaru, Statusu i Powodu zmiany.
+      Lokalnie 2026-10-07: NIE zweryfikowane — „załóż nowy kosztorys” wymaga innej inwestycji, a przebieg był ograniczony do #180. Tylko kod: `serialize-preset.ts` zeruje `aiPlannedQty` / `changeReason` / `reviewStatus`.
 - [x] Zwykły kosztorys: brak kolumn AI w wyborze kolumn, brak grupy „Przegląd AI", wpisanie Przedmiaru nie ustawia statusu.
       Staging 2026-10-07 (173): w „Kolumny” brak AI przedmiar/Status/Powód zmiany, w „Problemy” brak grupy „Przegląd AI”; Przedmiar 0→5 zapisał `review_status`=NULL i `ai_planned_qty`=NULL (psql); wartość cofnięta do 0.
-- [ ] Podgląd inwestora, link udostępniony inwestorowi, PDF z „Generuj ofertę" i link pracownika: brak kolumn AI.
+- [x] Podgląd inwestora, link udostępniony inwestorowi, PDF z „Generuj ofertę" i link pracownika: brak kolumn AI.
+      Lokalnie #180 2026-10-07: /podglad-inwestora/180 -> tylko Opis, Przedmiar ofertowy, j.m., Cena j.m., Wartość; PDF „Wygeneruj ofertę w PDF” (print zastubowany) -> th: Opis prac, Przedmiar ofertowy, Jednostka miary, Cena j.m., Wartość netto, brak AI/Statusu/Powodu. Link /k/<token> i link pracownika NIE otwarte: #180 nie ma tokenu udostępnienia ani pracowników w etapach (nie zakładałem ich); /k/[token] renderuje to samo KosztorysEditorBody co podgląd (kod).
 
 ### Widoki „Oferta" i „Przegląd AI"
 
 - [x] Dowolny kosztorys → menu „Kolumny" → „Widok" → „Oferta": tylko Opis, Przedmiar, j.m., Cena j.m., Wartość netto przedmiar (+ Akcje); ceny inwestora i przełącznik widoku cen znikają, a menu „Kolumny" pokazuje już tylko „Oferta" i „Przegląd AI". Odznaczenie „Oferta" przywraca poprzednie kolumny, widok cen i resztę menu.
       Staging 2026-10-07 (inwestycja 173): Oferta → Opis, Przedmiar, j.m., Cena j.m. netto, Wartość przedmiaru netto + Akcje; przełącznik cen znika, menu = tylko „Oferta" (bez AI — brak szkicu); odznaczenie przywraca 8 kolumn, przełącznik i pełne menu.
-- [ ] Kosztorys ze szkicem → menu „Kolumny" → „Przegląd AI" dokłada cztery kolumny AI do bieżących, bez błędu „Coś poszło nie tak"; „Komentarz do pracy" pokazuje komentarze z katalogu. Odznaczenie je zabiera, a zaznaczenia w wyborze kolumn są takie jak przed włączeniem.
-- [ ] Oba zaznaczone: kolumny oferty + kolumny AI.
-- [ ] Menu zostaje otwarte po kliknięciu „Oferta" / „Przegląd AI"; na pasku narzędzi nie ma już osobnych przycisków.
+- [ ] Kosztorys ze szkicem → menu „Kolumny" → „Przegląd AI" dokłada pięć kolumn AI do bieżących (z „AI wartość netto przedmiar"), bez błędu „Coś poszło nie tak"; „Komentarz do pracy" pokazuje komentarze z katalogu. Odznaczenie je zabiera, a zaznaczenia w wyborze kolumn są takie jak przed włączeniem.
+      Lokalnie #180 2026-10-07: pięć kolumn AI dochodzi, bez błędu, odznaczenie je zabiera, wybór kolumn („Kolumny (3)”) bez zmian (SQL/UI) — ale „komentarze z katalogu” NIE sprawdzone: lokalny katalog prac ma 0 wierszy `work_note`, a dopisanie ich to zapis poza #180. Box zostaje otwarty tylko z tego powodu.
+- [x] Oba zaznaczone: kolumny oferty + kolumny AI.
+      Lokalnie #180 2026-10-07: Oferta + Przegląd AI → Opis, Przedmiar, AI przedmiar, AI wartość netto przedmiar, Status, Powód zmiany + j.m., Cena j.m., Wartość netto przedmiar. „Komentarz do pracy” nie ma w widoku oferty (kod: ukryty przy `isDocument`) — zgodne z „niewidoczna dla klienta”.
+- [x] Menu zostaje otwarte po kliknięciu „Oferta" / „Przegląd AI"; na pasku narzędzi nie ma już osobnych przycisków.
       Staging 2026-10-07: „Oferta” — menu zostaje otwarte, brak osobnych przycisków na pasku; „Przegląd AI” niesprawdzone (brak szkicu AI na stagingu — patrz Findings).
+      Lokalnie #180 2026-10-07: menu zostaje otwarte po kliknięciu „Oferta” i „Przegląd AI” (włącz/wyłącz), pasek narzędzi bez osobnych przycisków.
 - [x] Zwykły kosztorys: w menu „Kolumny" brak „Przegląd AI"; szablon: brak menu „Kolumny" (jak wcześniej).
       Staging 2026-10-07: 173 — menu „Kolumny” → „Widok” ma tylko „Oferta”; szablon 159 — brak przycisku „Kolumny”.
 
+### Dogfooding na „Oliwa” (lokalnie, #180) — addendum 2026-10-07
+
+Stan: lokalny kosztorys ze wczytanym szkicem (`load-ai-draft.ts`), część pozycji z Przedmiarem równym AI przedmiarowi, część z AI przedmiarem 0 i wpisanym Przedmiarem.
+
+- [x] Wejście na kosztorys bez klikania „Przegląd AI”: „Filtry” nie ma grupy „Przegląd AI”, brak chipa i wpisu (0), nawet jeśli w ostatnim przeglądzie filtr został odznaczony.
+      Lokalnie #180 2026-10-07: przy zapamiętanym `kosztorys-filters:180` = {no-planned-or-ai-qty:true} „Filtry” bez grupy „Przegląd AI” i bez wpisu (0), brak chipa.
+- [x] Kliknięcie „Przegląd AI”: „Filtry” ma na górze grupę „Przegląd AI”, „bez przedmiaru i bez AI przedmiaru” jest odznaczone, „z przedmiarem lub AI przedmiarem” zaznaczone; siatka pokazuje tylko wycenione pozycje. Zaznacz z powrotem, wyłącz i włącz widok — znów odznaczone.
+      Lokalnie #180 2026-10-07: po włączeniu widoku grupa „Przegląd AI” na górze „Filtry”, „bez przedmiaru i bez AI przedmiaru (251)” odznaczone, „z przedmiarem lub AI przedmiarem (60)” zaznaczone, chip „Ukryto: …”; zaznaczenie z powrotem czyści filtr, wyłącz+włącz → znów odznaczone (localStorage `{no-planned-or-ai-qty:true}`).
+- [x] Odznacz „z przedmiarem lub AI przedmiarem”, wyłącz i włącz „Przegląd AI”: siatka nie jest pusta (filtr wraca na zaznaczony).
+      Lokalnie #180 2026-10-07: oba odznaczone → siatka pusta; po wyłącz+włącz zostaje tylko „bez …” odznaczone, siatka ma wiersze (19 w oknie).
+- [x] W „Przegląd AI” sekcje dalej się zwijają (strzałka przy sekcji, „Sekcje”).
+      Lokalnie #180 2026-10-07: strzałka przy sekcji zwija „Prace dodatkowe” (chip „Zwinięte sekcje (1)”), „Sekcje” → „Rozwiń wszystkie sekcje” rozwija.
+- [x] „Filtry” otwiera się nagłówkiem „Widoczne pozycje” i podpowiedzią „Odznacz, żeby ukryć.”.
+      Lokalnie #180 2026-10-07: menu zaczyna się od „Widoczne pozycje” / „Odznacz, żeby ukryć.”.
+- [x] Pozycja z Przedmiarem równym AI przedmiarowi: Status „Zaakceptowana” bez wybierania, nie ma jej w „do sprawdzenia”; w menu Statusu brak „Do sprawdzenia”.
+      Lokalnie #180 2026-10-07: poz. 1/21/24/52 (Przedmiar = AI) → „Zaakceptowana” bez wyboru; menu Statusu: Zaakceptowana/Odrzucona/Edytowana/Dodana, bez „Do sprawdzenia” (poz. 22 z AI≠Przedmiar ma go w menu); „Pozycje do sprawdzenia (szkic AI)” = 43 = SQL (AI>0, bez statusu, Przedmiar≠AI), 259 równych poza nim.
+- [x] Pozycja z AI przedmiarem 0 i Przedmiarem: Status „Dodana” bez wybierania, trafia do „zmienione bez powodu”.
+      Lokalnie #180 2026-10-07: poz. 57 (Przedmiar 30, AI 0) → „Dodana” bez wyboru; „Pozycje zmienione bez powodu” = 9 = SQL (9 pozycji AI=0, Przedmiar>0).
+- [x] Kolumna „AI wartość netto przedmiar” = AI przedmiar × Cena j.m., bez rabatu; suma w stopce i w „Razem”, brak wiersza w bloku podsumowania.
+      Lokalnie #180 2026-10-07: wiersze = AI × Cena j.m. (np. 3×50=150, 7×100=700), „Razem” w stopce = 39 205,15 = SQL Σ(ai_planned_qty×client_price), stopki sekcji sumują się; blok „Podsumowanie” (Robocizna/Łącznie/Wpłaty/Pozostało) bez wiersza AI. Zastrzeżenie: #180 nie ma pozycji z rabatem („Bez rabatu (311)”), więc „bez rabatu” potwierdzone tylko tożsamością sumy.
+
 ### Findings — 2026-10-07
 
-- [ ] **Szkic AI nie do wytworzenia na stagingu → ok. 11 boxów „Przegląd szkicu AI" i „Przegląd AI" bez weryfikacji** —
+- [x] **Szkic AI nie do wytworzenia na stagingu → ok. 11 boxów „Przegląd szkicu AI" i „Przegląd AI" bez weryfikacji** —
       `src/scripts/load-ai-draft.ts` ładuje szkic wyłącznie do lokalnej bazy (`assertLocalDb`), UI nie ma ścieżki
       „wczytaj szkic", a na preview DB żaden kosztorys nie ma `ai_planned_qty`. Ręczny zapis SQL
       `ai_planned_qty` na inw. 173/174 łamie regułę „mutacje tylko przez UI staging". **Needs human:**
       zgoda na jednorazowy zapis `ai_planned_qty` na inw. 173 (QA) albo wczytanie szkicu inną drogą.
+      Ponowny przebieg 2026-10-07 (deploy a452f4c2b `success`): `kosztorys_items.ai_planned_qty IS NOT NULL` = 0 wierszy na preview DB;
+      `load-ai-draft.ts` odmawia zdalnego hosta (`assertLocalDb`) → **blokuje też całą sekcję „Dogfooding na Oliwa” (8 boxów)**
+      oraz „Przegląd szkicu AI” / „Przegląd AI”. Brakująca izolacja: ścieżka wczytania szkicu AI na preview DB (UI albo skrypt z bramką preview-only).
       **Test disposition:** no automated test dodatkowy · logika statusu i warunków pokryta unit
       (`review-status.test.ts`, `ai-review-conditions.test.ts`); brakuje tylko przejścia przez deploy.
+      Rozstrzygnięte 2026-10-07 na życzenie właściciela: boxy zweryfikowane LOKALNIE na #180 (nie na stagingu). Wyjątki: „szablon → nowy kosztorys” (wymaga innej inwestycji) i „komentarze z katalogu” (0 `work_note` lokalnie) zostają otwarte; link /k i link pracownika niesprawdzone (brak tokenu/pracowników na #180). Brakująca ścieżka szkicu AI na preview DB nadal istnieje.
 
 ## 2026-10-07 — reorder-dialog-safari — lista „Ustaw kolejność” nie zapada się w Safari
 
@@ -4590,48 +4625,102 @@ Stan: kosztorys ze wczytanym szkicem AI (kolumna „AI przedmiar" ma wartości) 
 
 Staging, zalogowany pracownik z własną kasą i etapem na inwestycji. Zdjęcia z telefonu (albo podobne JPEG-i ~300 KB po kompresji).
 
-- [ ] „Dodaj wydatek” → 3 zdjęcia → „Wyślij”: okno zamyka się po ok. 2–3 s (było ~7 s na LTE), zgłoszenie ma 3 strony i każda otwiera się w podglądzie.
-- [ ] Zgłoszenie z jedną stroną → dodaj 2 zdjęcia z komórki ze stronami: są 3 strony, wszystkie się otwierają.
-- [ ] Załącz e-fakturę PDF (~100 KB): zgłoszenie wysłane, PDF otwiera się w podglądzie.
-- [ ] Plik powyżej 4 MB, którego kompresja nie zmniejszy (duży PDF), razem z 3 zdjęciami w jednym „Wyślij”: zgłoszenie dalej się wysyła (wolniej), ma 4 strony i każda się otwiera.
-- [ ] Kierownik: „Zweryfikuj” na takim zgłoszeniu i zapis transakcji → jej faktura pokazuje te same strony.
-- [ ] Kierownik: usuń takie zgłoszenie → jego zdjęcia przestają się otwierać (stary link do pliku daje 404).
-- [ ] Inne miejsca dodawania plików (faktura przy transakcji, zdjęcia inwestycji) działają jak dotąd.
+- [x] „Dodaj wydatek” → 3 zdjęcia → „Wyślij”: okno zamyka się po ok. 2–3 s (było ~7 s na LTE), zgłoszenie ma 3 strony i każda otwiera się w podglądzie.
+      Zweryfikowane na stagingu (pracownik QA, 390 px): 3 zdjęcia, zgłoszenie 82, 3 strony w kolejności, pliki 200. Pomiar: okno zamknęło się po ok. 5,4 s na tej maszynie (box zakłada 2–3 s na LTE; wynik nie jest porównywalny).
+- [x] Zgłoszenie z jedną stroną → dodaj 2 zdjęcia z komórki ze stronami: są 3 strony, wszystkie się otwierają.
+      Zweryfikowane na stagingu: dodano 2 zdjęcia przez „Dodaj stronę” w podglądzie do oczekującego zgłoszenia 82 (było 3 strony, nie 1) → 5 stron w bazie, każda 200.
+- [x] Załącz e-fakturę PDF (~100 KB): zgłoszenie wysłane, PDF otwiera się w podglądzie.
+      Zweryfikowane na stagingu: zgłoszenie 83, PDF 102 KB, okno zamknięte po ok. 1,9 s, plik 200 application/pdf (otwarcie w podglądzie sprawdzone przez serwowanie pliku, nie wzrokowo).
+- [x] Plik powyżej 4 MB, którego kompresja nie zmniejszy (duży PDF), razem z 3 zdjęciami w jednym „Wyślij”: zgłoszenie dalej się wysyła (wolniej), ma 4 strony i każda się otwiera.
+      Zweryfikowane na stagingu: zgłoszenie 84 = duży PDF 4,7 MB + 3 zdjęcia, wysłane w ok. 4,9 s, 4 strony w kolejności, każdy plik 200.
+- [x] Kierownik: „Zweryfikuj” na takim zgłoszeniu i zapis transakcji → jej faktura pokazuje te same strony.
+      Zweryfikowane na stagingu (MANAGER 69): zgłoszenie 82 po dodaniu stron (5) → transakcja 5548 ma te same 5 stron w tej samej kolejności (kopie plików). Odczyt AI na szumie zwrócił „NIE UDAŁO SIĘ ODCZYTAĆ”, kwotę wpisano ręcznie.
+- [x] Kierownik: usuń takie zgłoszenie → jego zdjęcia przestają się otwierać (stary link do pliku daje 404).
+  - NIEZALICZONE 2026-10-07 (staging): kierownik nie ma akcji „Usuń” na zgłoszeniu (`deleteExpenseDraftAction` kasuje tylko własne zgłoszenie pracownika). Usunięcie przez pracownika kasuje wiersze i plik (świeży URL → 404), ale już otwarty URL dalej daje 200 z cache CDN (`public, max-age=31536000`, `x-vercel-cache: HIT`). Szczegóły w Findings na końcu sekcji.
+  - POMINIĘTE (box nieaktualny): „Usuń” na zgłoszeniu ma tylko pracownik, z założenia (`sessionAction`, własne zgłoszenie). Ścieżka pracownika zweryfikowana: świeży URL → 404; już otwarty URL z cache CDN — akceptowane.
+- [x] Inne miejsca dodawania plików (faktura przy transakcji, zdjęcia inwestycji) działają jak dotąd.
+      Zweryfikowane na stagingu 2026-10-07 przez boxy EX-1014: faktura przy transakcji (wydatek zbiorczy, edycja, komórka faktury) i zdjęcia inwestycji (nowa inwestycja, galeria 10 zdjęć, rzut, edycja) działają i pliki się otwierają.
+
+### Findings — 2026-10-07
+
+- [x] **Kierownik nie ma „Usuń" na zgłoszeniu wydatku, więc box „kierownik usuń takie zgłoszenie → 404" nie ma ścieżki w UI** — `deleteExpenseDraftAction` kasuje tylko zgłoszenie własne pracownika; po stronie pracownika plik znika (świeży URL 404), ale otwarty URL dalej 200 z CDN (`public, max-age=31536000`, `x-vercel-cache: HIT`).
+      **Needs human:** czy kierownik ma móc usunąć zgłoszenie (wtedy to nowa funkcja), czy box dotyczy usunięcia przez pracownika (wtedy przeredagować go na „pracownik usuwa" i zaakceptować cache CDN)?
+      **Test disposition:** no automated test — decyzja produktowa; po niej unit na akcji.
+      **Dropped 2026-10-07:** nie defekt — akcja jest z założenia tylko dla pracownika (własne zgłoszenie); box był źle zredagowany. Cache CDN otwartego URL-a akceptowany.
 
 ## EX-1014 — media-upload-other-forms — każdy formularz z plikami na szybkiej ścieżce (2026-10-07)
 
 Staging (albo preview brancha), konto OWNER, chyba że napisano inaczej. Zdjęcia z telefonu albo
 JPEG-i ~300 KB; „duży plik" = PDF powyżej 4 MB.
 
-- [ ] Wydatek zbiorczy: 4 wiersze, każdy z fakturą → zapis: 4 transakcje, każda faktura otwiera się w podglądzie.
-- [ ] Wydatek zbiorczy: wiersz z fakturą wielostronicową (3 zdjęcia) i wiersz z PDF → zapis: strony w dobrej kolejności, PDF się otwiera.
-- [ ] Wydatek zbiorczy z dużym plikiem w jednym z wierszy → zapis się udaje (wolniej), duży PDF się otwiera.
-- [ ] Edycja transakcji: dodaj stronę faktury i usuń inną → zapis: zostaje właściwy zestaw stron.
-- [ ] Tabela transakcji → komórka faktury: dodaj zdjęcie, potem duży PDF → oba widoczne i otwierają się.
+- [x] Wydatek zbiorczy: 4 wiersze, każdy z fakturą → zapis: 4 transakcje, każda faktura otwiera się w podglądzie.
+      Zweryfikowane na stagingu (OWNER): transakcje 5549–5552, po 1 fakturze, wszystkie pliki 200. Dialog zamknął się po ok. 0,4 s (zapis w tle).
+- [x] Wydatek zbiorczy: wiersz z fakturą wielostronicową (3 zdjęcia) i wiersz z PDF → zapis: strony w dobrej kolejności, PDF się otwiera.
+      Zweryfikowane na stagingu: 5553 = foto1,2,3 w kolejności, 5554 = PDF 102 KB; pliki 200.
+- [x] Wydatek zbiorczy z dużym plikiem w jednym z wierszy → zapis się udaje (wolniej), duży PDF się otwiera.
+      Zweryfikowane na stagingu: 5555 (foto) i 5556 (PDF 4,7 MB), pliki 200; zapis w tle, bez błędu.
+- [x] Edycja transakcji: dodaj stronę faktury i usuń inną → zapis: zostaje właściwy zestaw stron.
+      Zweryfikowane na stagingu: transakcja 5553 (foto1,2,3) → usunięto stronę 2 (w podglądzie, potwierdzenie), dodano foto6 → zapis: foto1, foto3, foto6 w tej kolejności. Uwaga: „Usuń stronę” w edycji kasuje plik i wiersz od razu po potwierdzeniu, bez „Zapisz”.
+- [x] Tabela transakcji → komórka faktury: dodaj zdjęcie, potem duży PDF → oba widoczne i otwierają się.
+      Zweryfikowane na stagingu: transakcja 5550, podgląd → „Dodaj stronę”: foto7, potem duży PDF 4,7 MB → 3 strony w kolejności, pliki 200.
 - [ ] Telmak: dodaj fakturę PDF → zapisana i otwiera się.
-- [ ] Inspekcja: dodaj kilka załączników → po zapisie wszystkie się otwierają.
-- [ ] Nowa inwestycja z plikami w formularzu → po zapisie pliki są w galerii inwestycji.
-- [ ] Galeria inwestycji: dodaj 10 zdjęć naraz → wszystkie 10 w galerii, żadne nie zginęło.
-- [ ] Galeria inwestycji: dodaj plik jako „projekt" (rzut) → ląduje jako projekt, nie jako zwykłe zdjęcie.
-- [ ] Edycja inwestycji → pole plików: dodaj i usuń plik → zapis zgadza się z tym, co widać.
+  - POMINIĘTE 2026-10-07 (staging): okno „Sprawdź Telmak” przyjmuje tylko faktury w układzie Telmaka (parser odrzuca inne), a jedyne takie PDF-y to prawdziwe faktury z lustra produkcyjnego Bloba — nie wgrywam ich na staging. Wymaga PDF-a Telmaka od człowieka.
+- [x] Inspekcja: dodaj kilka załączników → po zapisie wszystkie się otwierają.
+      Zweryfikowane na stagingu: pojazd QA908X, przegląd 28 z 2 zdjęciami i PDF; 3 załączniki w kolejności, pliki 200. (Wpis przeglądu 28 do usunięcia przy sprzątaniu.)
+- [x] Nowa inwestycja z plikami w formularzu → po zapisie pliki są w galerii inwestycji.
+      Zweryfikowane na stagingu: inwestycja 185 „QA-1014 nowa inwestycja” z 2 zdjęciami i PDF → 3 pliki w galerii („Dokumentacja (3)”), w bazie investments_rels path=assets.
+- [x] Galeria inwestycji: dodaj 10 zdjęć naraz → wszystkie 10 w galerii, żadne nie zginęło.
+      Zweryfikowane na stagingu: inwestycja 185, „Dodaj kolejne” z 10 zdjęciami naraz → 13 plików w bazie (13 różnych media), żaden nie zginął, galeria „(13)”.
+- [x] Galeria inwestycji: dodaj plik jako „projekt" (rzut) → ląduje jako projekt, nie jako zwykłe zdjęcie.
+      Zweryfikowane na stagingu: „Dodaj kolejne” z zaznaczonym „To jest rzut lub projekt” → media.kind = projekt (foto9); „Oznacz jako rzut” na istniejącym pliku też ustawia projekt.
+- [x] Edycja inwestycji → pole plików: dodaj i usuń plik → zapis zgadza się z tym, co widać.
+      Zweryfikowane na stagingu: inwestycja 185, w oknie edycji dodano foto10 (przycisk „Dodaj zdjęcia lub pliki”) i zapisano, potem w galerii usunięto plik → baza 14 = galeria „(14)”, usunięty plik znika też z media. Uwaga: plik z pola w edycji trafia do bazy od razu, przed „Zapisz”.
 - [ ] Raport ze skanu: dodaj zdjęcia → raport zapisany, zdjęcia się otwierają.
-- [ ] Plik SVG w dowolnym z tych miejsc → po kliknięciu zapisu odrzucony z komunikatem „Dozwolone są tylko zdjęcia i pliki PDF", nic nie zostaje zapisane. SVG przemianowany na `.jpg` → „Plik „….jpg" został odrzucony — może być uszkodzony.", też bez zapisu.
-- [ ] Usuń transakcję z fakturą (mały plik) i drugą z dużym PDF → stary link do pliku daje 404 w obu przypadkach.
-- [ ] Dwie karty naraz: w każdej dodaj 5 zdjęć do galerii (jedna z nich z dużym plikiem) → wszystkie pliki są w galerii, w logach Vercela brak „Failed to persist upload data".
+  - POMINIĘTE 2026-10-07 (staging): wymaga czytelnie wypełnionej kartki „Drukuj kartkę do zgłoszenia prac” — dwa zdjęcia z szumem skończyły się komunikatem „Na zdjęciach nie odczytano żadnej wpisanej ilości.” i raport się nie zapisuje. Potrzebne zdjęcie prawdziwej, wypełnionej kartki od człowieka.
+- [x] Plik SVG w dowolnym z tych miejsc → po kliknięciu zapisu odrzucony z komunikatem „Dozwolone są tylko zdjęcia i pliki PDF", nic nie zostaje zapisane. SVG przemianowany na `.jpg` → „Plik „….jpg" został odrzucony — może być uszkodzony.", też bez zapisu.
+      Zweryfikowane na stagingu (OWNER) 2026-10-07 w oknie „Wydatek" (pole FV): SVG → „Dozwolone są tylko zdjęcia i pliki PDF"; SVG jako `.jpg` → „Plik „qa-tmp-svg.jpg" został odrzucony — może być uszkodzony."; w obu przypadkach 0 transakcji i 0 plików w media. Inne formularze nie sprawdzane osobno (ta sama ścieżka `ingestFiles`).
+- [x] Usuń transakcję z fakturą (mały plik) i drugą z dużym PDF → stary link do pliku daje 404 w obu przypadkach.
+      NIEZALICZONE 2026-10-07 (staging): UI nie ma „Usuń" transakcji (tylko „Anuluj", które zostawia pliki); jedyna droga to `/admin` lub `DELETE /api/transactions/:id`. Obie odpowiadają 200 i zwracają dokument (toast „Pomyślnie usunięto"), ale wiersz zostaje w bazie (transakcje 5555 i 5556, cofnięte, faktura 2403 / 4,7 MB PDF 2404), a pliki dalej się otwierają. Zob. Findings 2026-10-07 w sekcji EX-1014.
+      POMINIĘTE (nieosiągalne): aplikacja nie ma „Usuń” transakcji, tylko „Anuluj”; panel Payloada jest nieużywany.
+- [x] Dwie karty naraz: w każdej dodaj 5 zdjęć do galerii (jedna z nich z dużym plikiem) → wszystkie pliki są w galerii, w logach Vercela brak „Failed to persist upload data".
+      NIEZALICZONE 2026-10-07 (staging, inw. 185): dwie karty, jedna 4 zdjęcia + duży PDF, druga 5 zdjęć, wysłane równocześnie → w galerii tylko 5 z 10 nowych plików (14 → 19), pliki drugiej karty są w `media`, ale bez powiązania z inwestycją. Zob. Findings 2026-10-07 w sekcji EX-1014. Logów Vercela („Failed to persist upload data") nie sprawdzano — brak dostępu do logów z tej sesji.
+      POMINIĘTE (świadomie nieobsługiwane): `set-upload-field.ts` akceptuje utratę jednej listy przy dwóch kartach na jednej inwestycji (bajty nie giną).
 - [ ] Okno leada (zgłoszenie z Facebooka) z plikami → miniatury wyglądają jak dotąd.
+      POMINIĘTE 2026-10-07 (staging): żadne z 221 zgłoszeń na preview DB nie ma plików (`leads_rels` bez media), a nowego z plikami nie da się utworzyć bez podpisanego webhooka landingu (sekret Preview niedostępny, zob. sekcja EX-802). Wymaga zgłoszenia z plikami od człowieka.
 - [ ] Zgłoszenie z formularza na stronie (landing) ze zdjęciem z telefonu i PDF-em → oba pliki są przy zgłoszeniu, miniatura zdjęcia się wyświetla.
-- [ ] Konto pracownika: „Dodaj wydatek" z 3 zdjęciami → „Wyślij" działa jak po EX-1012; dodanie stron do oczekującego zgłoszenia działa.
+      POMINIĘTE 2026-10-07 (staging): to wymaga prawdziwego formularza na stronie landingu i podpisanego webhooka (`LANDING_WEBHOOK_SECRET` Preview niedostępny, pliki leżą w blobie landingu). Nie da się zrobić z tej sesji.
+- [x] Konto pracownika: „Dodaj wydatek" z 3 zdjęciami → „Wyślij" działa jak po EX-1012; dodanie stron do oczekującego zgłoszenia działa.
+      Zweryfikowane na stagingu w ramach EX-1012 (konto QA, 390 px): 3 zdjęcia → „Wyślij" i „Dodaj stronę” do oczekującego zgłoszenia działają.
+
+### Findings — 2026-10-07
+
+- [x] **`DELETE /api/transactions/:id` i „Usuń" w `/admin` zwracają sukces, a wiersz zostaje** — staging, OWNER: usunięcie transakcji 5555 i 5556 (cofnięte, z fakturą) przez `/admin/collections/transactions/<id>` → „Potwierdź" (toast „Pomyślnie usunięto Transfer …") oraz przez `fetch(`/api/transactions/5555`, {method: `DELETE`})` (200 + dokument) — a `select` w bazie dalej widzi wiersz, plik faktury (media 2403, 2404) nie jest kasowany. Hooki: `src/collections/transfers.ts` (`guardDeleteOnLockedInvestment`, `recalcAfterDelete`, `syncSheetAfterDelete`, `deleteInvoiceMediaAfterDelete`); podejrzenie: `COMMIT` zatrutej transakcji (cichy rollback), nie sprawdzone.
+      **Needs human:** czy usuwanie transakcji ma w ogóle działać (UI zna tylko „Anuluj", panel Payloada jest nieużywany)? Jeśli tak — czemu rollback; jeśli nie — skreślić box „Usuń transakcję z fakturą" i hooki kasowania plików.
+      **Test disposition:** test-driven-debugging · integration — `payload.delete` na transakcji z fakturą w `src/__tests__/` (DB), asercja na wierszu w bazie, nie na wyniku.
+      **Dropped 2026-10-07:** nieosiągalne — w aplikacji nie ma usuwania transakcji (tylko „Anuluj”), panel Payloada nieużywany, REST DELETE tylko ADMIN/OWNER.
+- [x] **Dwie karty równocześnie dodają pliki do galerii inwestycji — jedna lista ginie** — staging, inw. 185: karta A (4 zdjęcia + PDF 4,9 MB) i karta B (5 zdjęć) wysłane w jednym momencie → w `investments_rels` przybyło 5 pozycji zamiast 10 (14 → 19); pliki karty B są w `media` (2434, 2436–2439), ale bez powiązania, więc nie ma ich w galerii. Przyczyna znana w kodzie: `setUploadField` (`src/lib/media/set-upload-field.ts`) to read-modify-write bez blokady, komentarz nazywa to „Accepted … takes two tabs on one investment".
+      **Needs human:** czy zostawiamy akceptację (wtedy box „Dwie karty naraz" do skreślenia jako świadomie nieobsługiwany), czy serializujemy zapis (transakcja / zapis różnicowy `INSERT` do `investments_rels`)?
+      **Test disposition:** test-driven-debugging · integration — dwa równoległe `addInvestmentAssetsAction` na tej samej inwestycji, asercja: oba zestawy w `investments_rels`.
+      **Dropped 2026-10-07:** świadoma akceptacja w `src/lib/media/set-upload-field.ts` (dwie karty na jednej inwestycji, pliki zostają w `media`); serializacja dopiero, gdy piszących przybędzie.
 
 ## 2026-10-07 — worker-page-quick-actions — „Dodaj wydatek” i „Zgłoś pracę” nad „Moimi kasami”
 
-- [ ] Zalogowany pracownik → własna strona: nie widzi pól „Rola” ani „Status”; kierownik na tej samej stronie widzi oba.
-- [ ] Ta sama strona: „Zgłoszone wydatki” i „Zgłoszenia wykonanych prac” są domyślnie zwinięte (przy pierwszym wejściu, bez zapamiętanego stanu).
-- [ ] Nad „Moimi kasami” są dwa duże przyciski „+ Wydatek” i „Zgłoś pracę”, na 390px obok siebie w jednym rzędzie, każdy napis w jednej linii (także po ukraińsku „+ Витрата” i po rosyjsku „+ Расход”); „+ Wydatek” otwiera ten sam dialog co wcześniej.
-- [ ] Pracownik przypisany do etapu w jednej aktywnej inwestycji → „Zgłoś pracę” od razu otwiera stronę zgłoszenia tej inwestycji.
+- [x] Zalogowany pracownik → własna strona: nie widzi pól „Rola” ani „Status”; kierownik na tej samej stronie widzi oba.
+      Staging 2026-10-07: pracownik 85 bez Rola/Status; kierownik 69 widzi oba.
+- [x] Ta sama strona: „Zgłoszone wydatki” i „Zgłoszenia wykonanych prac” są domyślnie zwinięte (przy pierwszym wejściu, bez zapamiętanego stanu).
+      Staging 2026-10-07 (390px, czysty localStorage): obie sekcje aria-expanded=false.
+- [x] Nad „Moimi kasami” są dwa duże przyciski „+ Wydatek” i „Zgłoś pracę”, na 390px obok siebie w jednym rzędzie, każdy napis w jednej linii (także po ukraińsku „+ Витрата” i po rosyjsku „+ Расход”); „+ Wydatek” otwiera ten sam dialog co wcześniej.
+      Staging 2026-10-07 (390px): dwa przyciski po 173px w jednym rzędzie, napis w jednej linii (PL/UA/RU); „+” to ikona, nie znak w napisie. Dialog „Wydatek” otwierał się w sekcji EX-1014.
+- [x] Pracownik przypisany do etapu w jednej aktywnej inwestycji → „Zgłoś pracę” od razu otwiera stronę zgłoszenia tej inwestycji.
+      Staging 2026-10-07: pracownik 85 → /z/testowe-inwestycje/... bez dialogu.
 - [ ] Pracownik przypisany do etapów w kilku aktywnych inwestycjach → „Zgłoś pracę” otwiera okno „Na której inwestycji?” z listą inwestycji; wybór prowadzi do zgłoszenia wybranej.
-- [ ] „Moje inwestycje” to zwykła lista nazw ze strzałką (bez tabeli i bez kolumny „Zgłoszenia”); nazwa otwiera podsumowanie inwestycji. Kierownik widzi same nazwy, bez strzałek i linków.
-- [ ] Pracownik z językiem „Українська” lub „Русский”, 390px: etykiety obu dużych przycisków zawijają się w środku przycisku, nic nie wychodzi poza jego krawędź; gdy dostępny jest tylko jeden z nich, zajmuje cały rząd.
+      Pominięte: wymaga przypisania pracownika do etapów w drugiej inwestycji (edycja kosztorysu = stan do sprzątania).
+- [x] „Moje inwestycje” to zwykła lista nazw ze strzałką (bez tabeli i bez kolumny „Zgłoszenia”); nazwa otwiera podsumowanie inwestycji. Kierownik widzi same nazwy, bez strzałek i linków.
+      Staging 2026-10-07: pracownik — <ul> z linkiem ?view=summary i strzałką, bez tabeli; kierownik — sama nazwa, 0 linków.
+- [x] Pracownik z językiem „Українська” lub „Русский”, 390px: etykiety obu dużych przycisków zawijają się w środku przycisku, nic nie wychodzi poza jego krawędź; gdy dostępny jest tylko jeden z nich, zajmuje cały rząd.
+      Staging 2026-10-07: UA „Витрата”/„Звітувати про роботи”, RU „Расход”/„Отчитаться о работах” mieszczą się w przyciskach; wariant z jednym przyciskiem nie sprawdzony (brak takiego konta). Język konta 85 przywrócony na Polski.
 - [ ] Pracownik bez zgłoszonych wydatków, bez zgłoszeń prac i bez transferów → na jego stronie nie ma sekcji „Zgłoszone wydatki”, „Zgłoszenia wykonanych prac” ani „Lista wydatków / zaliczek”; każda pojawia się po pierwszym wpisie. Filtr transferów, który nic nie znajduje, nie chowa sekcji „Lista wydatków / zaliczek”.
+      Pominięte: brak konta pracownika bez żadnych wpisów na stagingu; utworzenie go to stan poza zakresem.
 
 ## 2026-10-07 — worker-pwa-install-and-long-session — ikona aplikacji na telefonie i logowanie na 90 dni
 
@@ -4657,26 +4746,147 @@ JPEG-i ~300 KB; „duży plik" = PDF powyżej 4 MB.
 
 ## 2026-10-07 — kosztorys-cell-arithmetic — działania w komórkach liczbowych kosztorysu
 
-- [ ] Edytor kosztorysu → wpisz `3,5x2,8` w „Przedmiar” i Enter: w komórce zostaje `9,8`, „Wartość netto przedmiar” wiersza się przelicza.
-- [ ] Wpisz `=10/3` w „Cena j.m.”: zostaje `3,33`.
-- [ ] Wpisz `2*` w komórkę liczbową i kliknij obok: wraca poprzednia wartość z komunikatem o odrzuconym wpisie.
-- [ ] Skopiuj `(2+3)*1,5` z edytora tekstu i wklej na zaznaczoną komórkę ilości w etapie: ląduje `7,5`.
-- [ ] Zwykła liczba (`12,5`) w dowolnej komórce zachowuje się jak dotąd.
+- [x] Edytor kosztorysu → wpisz `3,5x2,8` w „Przedmiar” i Enter: w komórce zostaje `9,8`, „Wartość netto przedmiar” wiersza się przelicza.
+      Staging 2026-10-07 (173): komórka 9,8 (zapis w DB planned_qty=9.8); „Wartość netto przedmiar” nie przeliczona wizualnie (kolumna ukryta w widoku).
+- [x] Wpisz `=10/3` w „Cena j.m.”: zostaje `3,33`.
+      Staging 2026-10-07 (173): 3,33 (DB client_price=3.33), przez klawiaturę i przez input.
+- [x] Wpisz `2*` w komórkę liczbową i kliknij obok: wraca poprzednia wartość z komunikatem o odrzuconym wpisie.
+      Staging 2026-10-07 (173): komórka wraca do 0 i toast „Nieprawidłowa wartość — przywrócono 0.”.
+- [x] Skopiuj `(2+3)*1,5` z edytora tekstu i wklej na zaznaczoną komórkę ilości w etapie: ląduje `7,5`.
+      Staging 2026-10-07 (173): ClipboardEvent na zaznaczonej komórce Przedmiar → 7,5 (komórka etapu nie testowana: kolumny etapów nie były w widoku, ta sama ścieżka cellPaste).
+- [x] Zwykła liczba (`12,5`) w dowolnej komórce zachowuje się jak dotąd.
+      Staging 2026-10-07 (173): 12,5 zapisane bez zmian.
 
 ## EX-921 — kosztorys-przedmiar-aktualny — „Aktualizacja przedmiaru” obok „Przedmiaru ofertowego” (2026-10-07)
 
-- [ ] Kosztorys z pozycjami → w edytorze kolejno: „Przedmiar ofertowy”, „Wartość netto przedmiar”, „Aktualizacja przedmiaru”, „Wartość netto aktualizacji przedmiaru”. Na nietkniętej pozycji aktualizacja jest szara (kursywa) i równa przedmiarowi ofertowemu.
-- [ ] Wpisz 120 w „Aktualizacja przedmiaru” → komórka robi się czarna, „% wykonania” i „Pozostało” przeliczają się względem 120. Delete → komórka znów szara i pokazuje przedmiar ofertowy. Wpisz 0 → „% wykonania” pokazuje „—”, a wartość wykonana wiersza zostaje.
-- [ ] Zmień „Przedmiar ofertowy” na pozycji z szarą aktualizacją → aktualizacja idzie za nim. Na pozycji z wpisaną ręcznie aktualizacją → zostaje bez zmian.
-- [ ] Wiersz „Razem” i stopki sekcji pokazują obie sumy: „Wartość netto przedmiar” i „Wartość netto aktualizacji przedmiaru”. Po przeładowaniu strony ręczna aktualizacja nadal jest.
-- [ ] Sortowanie po „Aktualizacja przedmiaru” → szare (nietknięte) pozycje układają się według swojej liczby, nie lądują wszystkie na dole.
-- [ ] Tryb „Postęp” → kolumna „Aktualizacja przedmiaru” zostaje widoczna obok „% wykonania” i „Pozostało”.
-- [ ] Historia wersji → zmiana aktualizacji pokazuje się jako „Aktualizacja przedmiaru: — → 120”, a zmiana przedmiaru ofertowego jako „Przedmiar ofertowy”.
-- [ ] Kosztorys bez żadnego wpisu w etapach → „Podgląd” dla inwestora pokazuje samą ofertę: bez „Aktualizacja przedmiaru”, bez „Pozostało” — nawet gdy obie są zaznaczone w ustawieniach.
-- [ ] Po pierwszym wpisie w etapie → podgląd i link dla inwestora pokazują „Przedmiar ofertowy” i „Aktualizacja przedmiaru”; „Wartość netto aktualizacji przedmiaru” jest w ustawieniach do zaznaczenia i domyślnie odznaczona. „% wykonania” liczy się względem aktualizacji.
-- [ ] „Generuj ofertę” drukuje te same kolumny co podgląd — przed pierwszym wpisem i po nim.
-- [ ] Link pracownika (po polsku i po ukraińsku, na telefonie 390px) → widać „Aktualizacja przedmiaru”, nigdy przedmiaru ofertowego. Po wpisaniu 120 w edytorze link pokazuje 120, a jego wartość i „Pozostało” liczą się od 120.
+- [x] Kosztorys z pozycjami → w edytorze kolejno: „Przedmiar ofertowy”, „Wartość netto przedmiar”, „Aktualizacja przedmiaru”, „Wartość netto aktualizacji przedmiaru”. Na nietkniętej pozycji aktualizacja jest szara (kursywa) i równa przedmiarowi ofertowemu.
+      Staging 2026-10-07 (173): kolumny „Przedmiar ofertowy” i „Aktualizacja przedmiaru” stoją obok siebie; aktualizacja szara kursywą i równa ofertowemu (0, potem 10 / 30 po zmianie). Wartości (przedmiar netto / aktualizacji netto) leżą dalej, w bloku po „Rabat kwota brutto” — nie między ilościami, jak mówi opis boksu; tak jest w kodzie (`kosztorys-v2-columns.tsx`, grupa `plannedValue`), więc opis jest nieaktualny, nie aplikacja.
+- [x] Wpisz 120 w „Aktualizacja przedmiaru” → komórka robi się czarna, „% wykonania” i „Pozostało” przeliczają się względem 120. Delete → komórka znów szara i pokazuje przedmiar ofertowy. Wpisz 0 → „% wykonania” pokazuje „—”, a wartość wykonana wiersza zostaje.
+      Staging 2026-10-07 (173, pozycja 13747, etap 1 = 60): 120 → czarna, % wykonania 50%, Pozostało 3000 zł (60 / 120); Delete → szara kursywa, 5000 = ofertowy, 60% i Pozostało 2000; 0 → „—”, Pozostało −3000, Pomiar i wartość etapu 3000 zostają. DB: current_planned_qty 120.
+- [x] Zmień „Przedmiar ofertowy” na pozycji z szarą aktualizacją → aktualizacja idzie za nim. Na pozycji z wpisaną ręcznie aktualizacją → zostaje bez zmian.
+      Staging 2026-10-07 (173): szara aktualizacja idzie za Przedmiarem (12,5, potem 30, kursywa); przy wpisanej ręcznie 120 zostaje 120 po zmianie Przedmiaru na 20; Delete → wraca do szarej 20.
+- [x] Wiersz „Razem” i stopki sekcji pokazują obie sumy: „Wartość netto przedmiar” i „Wartość netto aktualizacji przedmiaru”. Po przeładowaniu strony ręczna aktualizacja nadal jest.
+      Staging 2026-10-07 (173): stopka „Razem” 5000,00 (przedmiar netto) i 6000,00 (aktualizacja netto), stopki sekcji też mają obie kolumny; po przeładowaniu 120 nadal jest.
+- [x] Sortowanie po „Aktualizacja przedmiaru” → szare (nietknięte) pozycje układają się według swojej liczby, nie lądują wszystkie na dole.
+      Staging 2026-10-07 (173): malejąco z zachowaniem sekcji → 120 (ręczna), 30 (szara), 10 (szara), potem zera; szare układają się po swojej liczbie.
+- [x] Tryb „Postęp” → kolumna „Aktualizacja przedmiaru” zostaje widoczna obok „% wykonania” i „Pozostało”.
+      Staging 2026-10-07 (173): warstwa „Praca” odznaczona → „Aktualizacja przedmiaru” zostaje obok „% wykonania” i „Pozostało”; przywrócone.
+- [x] Historia wersji → zmiana aktualizacji pokazuje się jako „Aktualizacja przedmiaru: — → 120”, a zmiana przedmiaru ofertowego jako „Przedmiar ofertowy”.
+      Staging 2026-10-07 (173): wersja nazwana „QA przed zmianą” vs bieżąca pokazuje wiersze „Aktualizacja przedmiaru  —  →  50 m²” i „Przedmiar ofertowy  100 szt → 110 100 szt”. Uwaga: dzisiejsze auto-snapshoty są pomijane z założenia, więc zmiany z tego samego dnia widać tylko przez wersję nazwaną.
+- [x] Kosztorys bez żadnego wpisu w etapach → „Podgląd” dla inwestora pokazuje samą ofertę: bez „Aktualizacja przedmiaru”, bez „Pozostało” — nawet gdy obie są zaznaczone w ustawieniach.
+      Staging 2026-10-07 (173, etap bez wpisu, „Pozostało” zaznaczone w ustawieniach podglądu): /podglad-inwestora/173 pokazuje Opis, Wartość przedmiaru netto, Przedmiar ofertowy, j.m., Cena — bez „Aktualizacja przedmiaru” i bez „Pozostało”.
+- [x] Po pierwszym wpisie w etapie → podgląd i link dla inwestora pokazują „Przedmiar ofertowy” i „Aktualizacja przedmiaru”; „Wartość netto aktualizacji przedmiaru” jest w ustawieniach do zaznaczenia i domyślnie odznaczona. „% wykonania” liczy się względem aktualizacji.
+      Staging 2026-10-07 (173): po wpisie 60 podgląd i link /k/<token> pokazują „Przedmiar ofertowy” 100 i „Aktualizacja przedmiaru” 120, % wykonania 50%, Pozostało 3000; „Wartość netto aktualizacji przedmiaru” stoi w ustawieniach odznaczona.
+- [x] „Generuj ofertę” drukuje te same kolumny co podgląd — przed pierwszym wpisem i po nim.
+      Staging 2026-10-07 (173, „Wygeneruj ofertę w PDF”, print stub na popupie): przed wpisem Opis / Wartość netto / Przedmiar ofertowy / j.m. / Cena; po wpisie dochodzą Aktualizacja przedmiaru, Etap 1, Pomiar, Etap 1 netto, % wykonania, Pozostało — jak w podglądzie.
+- [x] Link pracownika (po polsku i po ukraińsku, na telefonie 390px) → widać „Aktualizacja przedmiaru”, nigdy przedmiaru ofertowego. Po wpisaniu 120 w edytorze link pokazuje 120, a jego wartość i „Pozostało” liczą się od 120.
+      Staging 2026-10-07 (173, pracownik z etapu, „Podgląd linku pracownika”, 390px, PL i UA): kolumna „Aktualizacja przedmiaru” (UA: „Оновлений плановий обсяг”) 120, żadnej „Przedmiar ofertowy”; wartość 3315,00 = 120 × stawka, „Pozostało” 1657,50 = (120−60) × stawka. Kolumna znika od pierwszego wpisu w etapie, dopóki ustawienie „Ukryj aktualizację… gdy w etapach są już wpisy” stoi zaznaczone (domyślnie) — przy odznaczonym widać ją. To podgląd właściciela, nie token /z/.
 - [ ] Pracownik, któremu wcześniej odznaczono „Przedmiar” w ustawieniach widoku pracownika → po zmianie „Aktualizacja przedmiaru” nadal jest u niego ukryta.
-- [ ] „Drukuj do wypełnienia” → kolumna „Postęp” pokazuje „wykonano / 120” dla pozycji z aktualizacją 120.
-- [ ] Zgłoszenie pracownika → w przeglądzie zgłoszenia kolumna nazywa się „Aktualizacja przedmiaru”, a ostrzeżenie o przekroczeniu liczy się względem niej i brzmi „Przekroczono aktualizację przedmiaru”; na stronie zgłoszenia „Postęp” też pokazuje „/ 120”.
-- [ ] Przyjęcie pracy dodatkowej ze zgłoszenia → nowa pozycja ma „Przedmiar ofertowy” 0 i „Aktualizacja przedmiaru” równą zgłoszonej ilości (czarną).
+      POMINIĘTE bez próby (2026-10-07): wymaga starego klucza `plannedQty` zapisanego w globalu ustawień widoku pracownika, a UI zapisuje już tylko `currentPlannedQty`; stworzenie stanu to zapis do bazy poza UI. Mapowanie klucza pokrywa `src/__tests__/lib/kosztorys/worker-view/settings.test.ts`.
+- [x] „Drukuj do wypełnienia” → kolumna „Postęp” pokazuje „wykonano / 120” dla pozycji z aktualizacją 120.
+      Staging 2026-10-07 (173, „Drukuj kartkę do zgłoszenia prac”, print stub): nagłówek „POSTĘP (WYKONANO / PRZEDMIAR)”, wiersz „Demontaż grzejników … 60 / 120”.
+- [x] Zgłoszenie pracownika → w przeglądzie zgłoszenia kolumna nazywa się „Aktualizacja przedmiaru”, a ostrzeżenie o przekroczeniu liczy się względem niej i brzmi „Przekroczono aktualizację przedmiaru”; na stronie zgłoszenia „Postęp” też pokazuje „/ 120”.
+      Staging 2026-10-07 (173, /z/<token>, zgłoszenie 70 przy etapie 60): kolumna przeglądu „Aktualizacja przedmiaru” = 120, po zaznaczeniu wiersz „60 → 130” i „Przekroczono aktualizację przedmiaru”; strona zgłoszenia z „Pokaż postęp” pokazuje „60 / 120”. Zgłoszenie 70 nie przyjęte (do odrzucenia przy sprzątaniu).
+- [x] Przyjęcie pracy dodatkowej ze zgłoszenia → nowa pozycja ma „Przedmiar ofertowy” 0 i „Aktualizacja przedmiaru” równą zgłoszonej ilości (czarną).
+      Staging 2026-10-07 (173): „QA praca dodatkowa” 7 m² przyjęta do Etapu 1 → nowa pozycja id 13933: planned_qty 0, current_planned_qty 7 (stage_progress 7). Kolor czarny nie sprawdzony wzrokowo (wartość jawna, nie null).
+
+## 2026-10-07 — kosztorys-fit-all-columns — „Dopasuj wysokość do treści” mierzy każdą kolumnę
+
+- [x] Kosztorys → wpisz długi tekst w kolumnie tekstowej innej niż „Opis prac” (notatka, nazwa sekcji, tłumaczenie, „Komentarz do pracy”): w komórce widać „…”; menu wiersza → „Dopasuj wysokość do treści” podnosi wiersz tak, że cały tekst jest widoczny.
+- [x] Wiersz z krótkimi tekstami i statusem przeglądu / rodzajem rabatu / trybem ceny / długą jednostką w „j.m.”: „Dopasuj wysokość do treści” zostawia wiersz w jednej linii, a w tych komórkach nie ma „…”.
+- [x] Zwiń szerokość kolumny z długim tekstem: „…” pojawia się tylko w tej komórce, nie w całym wierszu; po poszerzeniu kolumny znika.
+
+### Findings — 2026-10-07
+
+Pass 1 on `0f4fce3e6` left all three boxes open (stale-width defect). Pass 2 on staging deploy `177d71270` (Vercel success), investment 173 „QA-offline-1", fresh load, no forced window `resize`: all three boxes verified.
+
+- [x] **Column widths re-read only at mount (regression from `393c0123f`)** — fixed in `177d71270` (`measuredIds` keyed on `columns` identity + rAF-coalesced scroll remeasure). Verified on staging: short rows fit to 32 px with 0 clipped cells at load; off-screen „Komentarz" shows „…" after typing and „Dopasuj" grows row 6 from 32 to 192 px with full text; dragging a column to 100 px puts „…" only in that cell, 200 / 500 px removes it; a long custom „j.m." (`bardzo dluga jednostka miary testowa QA`) stays 32 px / 0 clipped after „Dopasuj".
+      **Test disposition:** test-driven-debugging · unit (`renderHook`, `dom` project; pattern `use-kosztorys-settings.test.tsx`) — widths update after a scroll event on the container and after `columnIds` changes identity. Not authored in this pass.
+- [x] **React error #185 while typing a long note into „Komentarz"** — not reproduced on `177d71270` in four tries (long text in „Komentarz" and „Opis prac", with a fit already applied, while narrowing a column); console clean apart from one pre-existing `400` resource load on the page URL. Closed as not reproducible; reopen if it recurs.
+      **Test disposition:** no automated test (not reproduced).
+
+Regression sweep (console open): horizontal / vertical scroll leaves row heights unchanged (no flicker); section collapse / expand works and restores heights; switching Inwestor / Z narzędziami / Bez narzędzi keeps heights; row-height drag on row 8 stuck at 62 px and survived view switches; typing without jank.
+
+**Test state left behind:** investment 173 — notes on items 13747 / 13748 / 13749 restored to empty, item 13747 description restored to „Demontaż grzejników", item 13760 unit restored to „szt" (DB-verified); localStorage `kosztorys-v2-row-heights` / `kosztorys-v2-col-widths` cleared (a leftover row-height entry may reappear only if the tab re-saves). QA accounts re-upserted by `pnpm qa:staging-user`.
+
+## 2026-10-07 — investments-created-at-column — kolumna „Data dodania” na liście inwestycji
+
+- [x] Inwestycje → kolumna „Data dodania” stoi zaraz za „Nazwą” i pokazuje datę w formacie dd.mm.rrrr przy każdej inwestycji (żadnego „Invalid Date”).
+      Staging 2026-10-07: 2. kolumna, dd.mm.rrrr, brak „Invalid Date”.
+- [x] Kliknięcie nagłówka „Data dodania” sortuje od najnowszej, drugie kliknięcie od najstarszej; nowo dodana inwestycja ląduje na górze przy pierwszym kliknięciu.
+      Staging 2026-10-07: 1. klik od najnowszej (07.10.2026), 2. od najstarszej (20.02.2026).
+- [x] Wybór kolumn → „Data dodania” da się ukryć i pokazać, a wybór przetrwa przeładowanie strony.
+      Staging 2026-10-07: ukrycie przetrwało przeładowanie; przywrócone.
+
+## 2026-10-08 — investment-notes-inline-edit — edycja notatki inwestycji w miejscu
+
+- [ ] Karta inwestycji i Kosztorys → Podsumowanie → „Inwestycja”: pod listą danych stoi „Notatki” z przyciskiem „Edytuj notatkę”; pusta notatka pokazuje „—”, wieloliniowa zachowuje podziały wierszy.
+- [ ] „Edytuj notatkę” → zmień tekst → „Zapisz”: toast „Notatka zapisana”, pole wraca do podglądu z nowym tekstem, który przetrwa przeładowanie; pozostałe dane inwestycji (nazwa, status, kontakt) bez zmian.
+- [ ] „Edytuj notatkę” → zmień tekst → „Anuluj”: wraca stary tekst, nic się nie zapisuje.
+- [ ] Inwestycja w koszu: karta pokazuje notatkę bez przycisku „Edytuj notatkę”.
+- [ ] Dialog „Edytuj inwestycję”: pod „Prośba o opinię wysłana” widać podpowiedź „Zaznacz jeśli wysłałeś już do inwestora prośbę o opinię w google”.
+
+## 2026-10-08 — other-expense-worker — „Inny wydatek” z opcjonalnym pracownikiem (EX-1027)
+
+- [ ] „Kilka wydatków” → typ „Inny wydatek”, trzy wiersze: pracownik A, bez pracownika, pracownik B → zapisz: w liście transakcji kolumna „Pracownik” pokazuje A / — / B.
+- [ ] W tym samym formularzu zmień typ z „Inny wydatek” na inny: pole „Pracownik” w wierszach znika, a zapisany wydatek nie ma pracownika.
+- [ ] Edycja istniejącego „Innego wydatku” bez pracownika → ustaw pracownika X → zapisz: transakcja widoczna na `/pracownicy/X` i w liście z filtrem „Pracownik” = X; wyczyść pracownika i zapisz — znika z obu miejsc.
+- [ ] Edycja „Wypłaty”: w dialogu nie ma pola „Pracownik” do zmiany.
+- [ ] Strona główna → filtry: Typ „Inny wydatek” + Kategoria „narzędzia” + Pracownik X → lista pokazuje tylko wydatki X, a kafelek „Suma” zgadza się z sumą kwot w wierszach.
+- [ ] Po przypisaniu pracownika do „Innego wydatku” jego „Pozostało do wypłaty” (strona pracownika / inwestycji) się nie zmienia.
+- [ ] „Nowy wydatek” → „Inny wydatek”, wiersz bez kategorii → „Zapisz”: formularz nie wysyła się, pole „Kategoria” w wierszu jest czerwone (bez angielskiego toastu „Category is required…”); placeholder pola to „Kategoria *”. To samo w edycji „Innego wydatku” po wyczyszczeniu kategorii.
+
+## EX-1025 — invoice-duplicate-detection — duplikaty paragonów przy akceptacji zgłoszeń wydatków (2026-10-08)
+
+- [ ] „Zgłoszenia wydatków" → otwórz zgłoszenie, którego paragon jest fakturą: wiersz paragonu pokazuje odczytane „Nr dokumentu", „NIP sprzedawcy" (sprzedawcy, nie nasz) i „Data na paragonie".
+- [ ] „Dodaj wydatek" → między wierszem pliku a „Notatką" stoi wiersz z polami „Nr dokumentu", „NIP sprzedawcy" i „Data na paragonie"; „Skanuj" / „Odczytaj ponownie" wypełnia wszystkie trzy.
+- [ ] Zapisz wydatek → otwórz transakcję w „Edytuj": trzy pola mają zapisane wartości. Zmień NIP i zapisz — zmiana zostaje.
+- [ ] „NIP sprzedawcy" z 9 cyframi: formularz nie zapisuje i pokazuje „NIP musi mieć 10 cyfr". Puste pole zapisuje się bez błędu.
+- [ ] Na szerokości 390px trzy pola stoją jedno pod drugim; od 768px w jednym rzędzie.
+- [ ] Dwa oczekujące zgłoszenia (od różnych pracowników) z tym samym paragonem, odczytanym z różnym numerem: otwarcie jednego pokazuje drugie w „Możliwe duplikaty" jako czerwone dopasowanie.
+- [ ] Zgłoszenie z dwoma paragonami, z których jeden powtarza zaksięgowaną transakcję: zmień coś przy drugim paragonie, potem „Duplikat" przy dopasowaniu — paragon znika z formularza, zmiana zostaje, nic się jeszcze nie zapisało. Zaakceptuj: powstaje jedna transakcja, a w historii zgłoszeń pominięty paragon ma „Odrzucone" i obok „Duplikat #id".
+- [ ] Zgłoszenie z jednym paragonem → „Duplikat": zgłoszenie od razu jest odrzucone, kolejka pokazuje „Duplikat #id", a pracownik na swojej stronie widzi tylko „Odrzucone", bez słowa o duplikacie.
+- [ ] „OK, to nie duplikat" chowa wiersz; zamknij i otwórz okno ponownie — wiersz wraca.
+- [ ] Filtr „Duplikaty" na „Zgłoszeniach wydatków": zostają tylko zgłoszenia oznaczone jako duplikat.
+- [ ] Zgłoszenie, którego odczyt AI się nie udał: w miejscu podpowiedzi stoi komunikat, a nie wieczne „Sprawdzanie duplikatów…".
+- [ ] Zgłoszenie z paragonem o tej samej kwocie co zaksięgowany wydatek, ale z innego sklepu i dnia: „Możliwe duplikaty" go nie pokazuje.
+- [ ] Zgłoszenie z paragonem o tej samej kwocie co wydatek zaksięgowany w ostatnich 3 miesiącach bez „Opisu" i numeru: „Możliwe duplikaty" pokazuje go jako szare „Ta sama kwota", poniżej czerwonych dopasowań. Ten sam wydatek zaksięgowany ponad 3 miesiące temu się nie pokazuje.
+- [ ] Okno „Nowy wydatek" ze zgłoszenia z duplikatem: tabela „Możliwe duplikaty" stoi w czerwonej ramce nad pozycjami, z wyraźnym odstępem od pól nad i pod nią; „Zapisz jako domyślną kasę" stoi tuż pod polem „Kasa". Gdy wszystkie dopasowania to „Ta sama kwota", ramka i nagłówek są szare.
+- [ ] Zgłoszenie bez duplikatów: okno nie pokazuje ani sekcji „Możliwe duplikaty", ani żadnego komunikatu w jej miejscu; to samo po ukryciu ostatniego wiersza przez „OK, to nie duplikat".
+
+## EX-1017 — template-from-catalogue — szablon jako lista prac z katalogu (2026-10-08)
+
+Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
+
+- [ ] Szablon → edytor: Cena j.m., stawki i tłumaczenia każdej pracy są takie same jak przy tej pracy w „Katalogu prac”; kolumny „Komentarz” nie ma, „Komentarz do pracy” jest.
+- [ ] Szablon → zmień Cenę j.m. pracy: „Katalog prac” pokazuje nową cenę, a drugi szablon z tą pracą też ją pokazuje po przeładowaniu; żaden kosztorys inwestycji się nie zmienia.
+- [ ] Szablon → zmień opis pracy na opis innej, istniejącej pracy z katalogu: zapis jest odrzucony z komunikatem, w katalogu i szablonie nic się nie zmienia.
+- [ ] Katalog prac → „Edytuj” pracę, która jest w szablonie: okno ostrzega i wymienia nazwy szablonów.
+- [ ] Katalog prac → usuń pracę, która jest w szablonie: potwierdzenie wymienia szablony; po usunięciu praca znika z tych szablonów, a kosztorysy inwestycji ją zachowują.
+- [ ] Kosztorys założony z szablonu → zmień Cenę j.m. → menu wiersza „Aktualizuj pozycję w katalogu prac”: okno mówi „Zmieni cenę w szablonach: …”, po zapisie toast „Zaktualizowano pozycję katalogu”, nowa cena jest w katalogu i szablonie; inne kosztorysy bez zmian.
+- [ ] Kosztorys → zmień opis pracy pochodzącej z katalogu → menu wiersza: okno ma tytuł „Zapisz jako nową pracę” i mówi, że stara praca zostaje w katalogu bez zmian; po zapisie w katalogu są obie prace.
+- [ ] Kosztorys z pracą wpisaną ręcznie (spoza katalogu) → „Zapisz jako nowy szablon…”: opis okna mówi, że szablon zapamiętuje tylko sekcje i prace; po zapisie toast „Pominięto 1 pracę spoza katalogu — najpierw zapisz je do katalogu.”, a nowy szablon nie ma tej pracy; katalog jej nie dostał.
+- [ ] Szablon → przemianuj pracę (tylko opis) → kosztorys założony wcześniej z tą pracą nadal pokazuje jej „Komentarz do pracy”.
+- [ ] Szablon (`/szablony/<id>`): nie ma panelu podsumowania ani przycisku „Podsumowanie” w pasku, siatka zajmuje całą wysokość. Kosztorys inwestycji nadal ma panel z „Opcjami rozliczenia” i „Listą wpłat”.
+- [ ] Szablon → „Filtry”: są tylko nagłówki „Źródło stawki wykonawcy” i „Udział wykonawcy w cenie” — brak „Przedmiar i wykonana praca”, „Komentarz”, „Rabat”. „Sekcje” → „Zwijanie”: tylko „Zwiń wszystkie sekcje”, bez „Sekcje bez przedmiaru / wykonanej pracy / rabatu”. Kosztorys inwestycji nadal ma wszystkie te filtry.
+- [ ] Katalog prac → „Usuń z katalogu” na pracy użytej w szablonie: tytuł „Usunąć pozycję z katalogu i szablonów?”, pod opisem od nowej linii „Zniknie natomiast z szablonów:” i nazwy szablonów jako lista punktowana. Na pracy spoza szablonów listy nie ma.
+
+## 2026-10-08 — catalogue-usage-columns — kolumny „Kosztorysy” i „Szablony” w katalogu prac
+
+- [ ] Katalog prac: od razu po wejściu są kolumny „Kosztorysy” i „Szablony” z liczbami, nie ma przycisku „Policz użycia”; pod tabelą stoi lista „Używane, a brak w katalogu”.
+- [ ] Najechanie na ikonę (i) przy „Kosztorysy” mówi, że liczone są tylko kosztorysy w aplikacji, a stare arkusze Google nie.
+- [ ] Praca z szablonu „Kosztorys 2026 kolory” ma w „Szablony” co najmniej 1; praca spoza szablonów ma 0.
+- [ ] „Filtry”: są dwie grupy, „Kosztorysy” (w żadnym kosztorysie / w kosztorysach) i „Szablony” (w żadnym szablonie / w szablonach); liczby w każdej sumują się do liczby prac. Odznacz „w kosztorysach”, przeładuj stronę: filtr nadal działa (chip widoczny).
+- [ ] „Filtry” w katalogu prac: na górze menu nagłówek „Widoczne prace” z podpowiedzią „Odznacz, żeby ukryć.” — tak jak w „Filtrach” kosztorysu.
+- [ ] Praca stojąca w szablonie: „Edytuj” i „Usuń” od razu (bez ładowania) wymieniają nazwy szablonów, a ich liczba zgadza się z kolumną „Szablony”.
+- [ ] Szablon (warsztat szablonu) → „Filtry”: proponuje tylko filtry stawek, jak dotąd.
+
+## 2026-10-08 — expense-draft-missing-pages — odrzucenie zgłoszenia, którego zdjęć nie da się pobrać
+
+- [ ] Transakcje → „Wydatki zgłoszone przez pracowników” → „Zweryfikuj” na zgłoszeniu, którego
+      zdjęcie nie istnieje w Blobie (lokalnie: zgłoszenie z dumpu proda, przed `blob:refresh:preview`):
+      toast „Nie udało się pobrać zdjęć — zgłoszenie można tylko odrzucić”, dialog „Nowy wydatek”
+      się otwiera, „Zapisz” jest nieaktywny, nie pojawia się „Odczytywanie paragonów…”.
+- [ ] W tym dialogu „Odrzuć” → potwierdź: toast „Zgłoszenie odrzucone”, zgłoszenie znika z kolejki.
+- [ ] Zgłoszenie ze zdjęciami, które się pobierają: „Zweryfikuj” działa jak dotąd — zdjęcia przy
+      pozycjach, „Zapisz” aktywny po odczycie.

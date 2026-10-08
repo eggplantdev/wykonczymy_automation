@@ -37,6 +37,7 @@ export function NewItemDialog({
   sectionName,
   anchorDescription,
   workCatalogue,
+  isTemplate,
   kosztorysUnits,
   onPlaced,
   onStaleTree,
@@ -46,6 +47,7 @@ export function NewItemDialog({
   sectionName: string
   anchorDescription?: string
   workCatalogue: readonly WorkCatalogueItemT[]
+  isTemplate: boolean
   kosztorysUnits: readonly string[]
   onPlaced: (item: KosztorysItemT, placement: NewItemPlacementT) => void
   onStaleTree: () => void
@@ -72,6 +74,7 @@ export function NewItemDialog({
             formId={FORM_ID}
             sectionName={sectionName}
             workCatalogue={workCatalogue}
+            isTemplate={isTemplate}
             kosztorysUnits={kosztorysUnits}
             keepOpen={keepOpen}
             action={async (payload) => {

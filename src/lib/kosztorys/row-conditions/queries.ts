@@ -1,6 +1,8 @@
 import { crewAxisShows, type CrewAxisT } from '@/lib/kosztorys/crew-axis'
+import { WORKSHOP_VISIBLE_COLUMNS } from '@/lib/kosztorys/workshop-columns'
 import {
   CLIENT_EMPTY_CONDITION_ID,
+  NO_PLANNED_OR_AI_QTY_CONDITION_ID,
   REPORT_UNREPORTED_CONDITION_ID,
   ROW_CONDITIONS,
 } from '@/lib/kosztorys/row-conditions/registry'
@@ -127,17 +129,21 @@ export function engagedHiders(engagedIds: ReadonlySet<string>): RowConditionT[] 
  * Both of the reader's narrowings count, because both fail the same way: a hit inside a folded sekcja
  * is a hit the user is told does not exist.
  *
- * Two hiders are left out on purpose. A diagnostic comes with its own count on its own trigger, so
+ * Three hiders are left out on purpose. A diagnostic comes with its own count on its own trigger, so
  * the reader is checking off a number they were given rather than hunting for a pozycja they believe
- * is in there. And the client's own hider is not a gesture at all — it is the owner's stored setting
+ * is in there. The client's own hider is not a gesture at all — it is the owner's stored setting
  * on the shared document, on for the client's whole visit, so counting it would stand the folds down
- * permanently and leave the client clicking a band that never moves.
+ * permanently and leave the client clicking a band that never moves. „Przegląd AI" engages
+ * „bez przedmiaru i bez AI przedmiaru" itself on every switch-on, so counting it would do the same to
+ * the whole review pass.
  */
 export function isFoldSuppressed(search: string, engagedIds: ReadonlySet<string>): boolean {
   if (search.trim() !== '') return true
   // Walks the engaged ids (0–2 of them), not the registry — the question is about what the reader
   // switched on, and asking it the other way round grows with every condition ever added.
-  for (const id of engagedIds) if (BY_ID.get(id)?.kind === 'filter') return true
+  for (const id of engagedIds) {
+    if (id !== NO_PLANNED_OR_AI_QTY_CONDITION_ID && BY_ID.get(id)?.kind === 'filter') return true
+  }
   return false
 }
 
@@ -213,21 +219,52 @@ export function sectionIdsWhereAllMatch(
  * nobody is reading is the same noise as the column (owner, 2026-09-28). Never a safeguard either
  * way: the engaged set lives in localStorage and goes around this.
  *
+ * The third gate is the szablon workbench, which offers only a filter whose `revealsColumns` all sit
+ * in `WORKSHOP_VISIBLE_COLUMNS` — one that declares none is about a figure the workbench has no
+ * column for. The rest ask about przedmiar, wykonana praca, rabat or komentarz, none of which a
+ * szablon holds — so every pozycja matches the „bez …" half, and the row (and its „Sekcje bez …"
+ * lift) would sit in the menu at the full count forever, hiding the whole szablon on a click.
+ *
  * An ENGAGED condition is listed regardless of the gate: it is hiding pozycje right now, and the menu
  * is where a tick comes back. Gating it out would leave the grid short with no control to restore it —
  * turning the global rabat on would strand a rabat filter.
  */
-export function offeredFilterConditions(
-  engagedIds: ReadonlySet<string>,
-  perItemDiscountInert: boolean,
-  crewAxis: CrewAxisT,
-): FilterConditionT[] {
+export function offeredFilterConditions({
+  engagedIds,
+  perItemDiscountInert,
+  crewAxis,
+  isTemplate,
+}: {
+  engagedIds: ReadonlySet<string>
+  perItemDiscountInert: boolean
+  crewAxis: CrewAxisT
+  isTemplate: boolean
+}): FilterConditionT[] {
   return ROW_CONDITIONS.filter((condition) => condition.kind === 'filter').filter(
     (condition) =>
       engagedIds.has(condition.id) ||
       (!(perItemDiscountInert && condition.inertUnderGlobalDiscount) &&
-        (condition.plane === undefined || crewAxisShows(crewAxis, condition.plane))),
+        (condition.plane === undefined || crewAxisShows(crewAxis, condition.plane)) &&
+        (!isTemplate ||
+          (condition.revealsColumns?.every((id) => WORKSHOP_VISIBLE_COLUMNS.has(id)) ?? false))),
   )
+}
+
+const AI_REVIEW_FILTER_IDS = ROW_CONDITIONS.filter(
+  (condition) => condition.kind === 'filter' && condition.filterGroup === 'ai-review',
+).map((condition) => condition.id)
+
+/**
+ * The owner's engaged set as the editor reads it. The „Przegląd AI" filters count only while the view
+ * is on, so a pick remembered from the last pass shows no chip and no (0) entry on a visit that never
+ * switched it on. Same reference back when none is stored.
+ */
+export function editorConditionIds(
+  persistedIds: ReadonlySet<string>,
+  aiReview: boolean,
+): ReadonlySet<string> {
+  if (aiReview || !AI_REVIEW_FILTER_IDS.some((id) => persistedIds.has(id))) return persistedIds
+  return new Set([...persistedIds].filter((id) => !AI_REVIEW_FILTER_IDS.includes(id)))
 }
 
 // Module-level instances, so the sets below are referentially stable and the editor's memos don't

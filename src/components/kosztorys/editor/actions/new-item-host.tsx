@@ -11,8 +11,15 @@ import type { NewItemPlacementT } from '@/lib/kosztorys/types'
 // the dialog re-renders only this host, never the grid (EX-496). The editor hook reaches it through
 // a ref it owns, which this host fills.
 export function NewItemHost({ children }: { children: ReactNode }) {
-  const { rows, sections, workCatalogue, newItemDialogRef, placeNewItem, recoverStaleTree } =
-    useKosztorysEditorContext()
+  const {
+    rows,
+    sections,
+    workCatalogue,
+    newItemDialogRef,
+    placeNewItem,
+    recoverStaleTree,
+    isTemplate,
+  } = useKosztorysEditorContext()
   const [placement, setPlacement] = useState<NewItemPlacementT | null>(null)
 
   useEffect(() => {
@@ -41,6 +48,7 @@ export function NewItemHost({ children }: { children: ReactNode }) {
           sectionName={sectionName}
           anchorDescription={anchorRow?.description ?? undefined}
           workCatalogue={workCatalogue ?? []}
+          isTemplate={isTemplate}
           kosztorysUnits={rows.flatMap((row) => (row.unit ? [row.unit] : []))}
           onPlaced={placeNewItem}
           onStaleTree={recoverStaleTree}

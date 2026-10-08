@@ -1,6 +1,6 @@
 'use client'
 
-import { CircleDot, HardHat, Landmark } from 'lucide-react'
+import { CircleDot, HardHat, Landmark, type LucideIcon } from 'lucide-react'
 import { ControlGrid } from '@/components/ui/control-grid'
 import { Loader } from '@/components/ui/loader/loader'
 import { FilterMultiSelect } from '@/components/filters/filter-multi-select'
@@ -14,18 +14,24 @@ const FILTER_KEYS = ['status', 'investment', 'worker'] as const
 const toOptions = (items: ReferenceItemT[]) =>
   items.map((item) => ({ value: String(item.id), label: item.name }))
 
+// On/off rows of one menu; each is `?<param>=1` while on.
+type ToggleMenuT = { label: string; icon: LucideIcon; toggles: { param: string; label: string }[] }
+
 type PropsT = {
   baseUrl: string
   statusOptions: { value: string; label: string }[]
   investments: ReferenceItemT[]
   workers: ReferenceItemT[]
+  toggleMenu?: ToggleMenuT
 }
 
-export function QueueFilters({ baseUrl, statusOptions, investments, workers }: PropsT) {
+export function QueueFilters({ baseUrl, statusOptions, investments, workers, toggleMenu }: PropsT) {
   const { getMultiParam, updateParam, updateMultipleParams, isPending } =
     useUrlFilterParams(baseUrl)
 
-  const hasFilters = FILTER_KEYS.some((key) => getMultiParam(key).length > 0)
+  const toggleParams = toggleMenu?.toggles.map((toggle) => toggle.param) ?? []
+  const filterKeys = [...FILTER_KEYS, ...toggleParams]
+  const hasFilters = filterKeys.some((key) => getMultiParam(key).length > 0)
 
   return (
     <div className="flex flex-col gap-3">
@@ -54,9 +60,24 @@ export function QueueFilters({ baseUrl, statusOptions, investments, workers }: P
           icon={HardHat}
           searchable
         />
+        {toggleMenu && (
+          <FilterMultiSelect
+            label={toggleMenu.label}
+            icon={toggleMenu.icon}
+            toggles={toggleMenu.toggles.map((toggle) => {
+              const isActive = getMultiParam(toggle.param).includes('1')
+              return {
+                id: toggle.param,
+                label: toggle.label,
+                active: isActive,
+                onToggle: () => updateParam(toggle.param, isActive ? '' : '1'),
+              }
+            })}
+          />
+        )}
         <ClearButton
           onClick={() =>
-            updateMultipleParams(Object.fromEntries(FILTER_KEYS.map((key) => [key, ''])))
+            updateMultipleParams(Object.fromEntries(filterKeys.map((key) => [key, ''])))
           }
           disabled={!hasFilters}
         >

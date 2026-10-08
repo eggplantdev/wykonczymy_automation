@@ -91,7 +91,7 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
   }
 
   // A source tree with the job figures populated (qty, discount, progress) so serialize-as-preset has
-  // something real to zero out, plus a komentarz, which it must NOT zero.
+  // something real to zero out, plus a komentarz, which stays behind with them.
   async function buildSourceTree(investmentId: number) {
     await createKosztorysTree(payload, investmentId, {
       sections: [
@@ -105,6 +105,7 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
               sheetMeasuredQty: 7,
               clientPrice: 100,
               note: 'uwaga do pozycji',
+              catalogueItemId: null,
               aiPlannedQty: 8,
               changeReason: 'AI zaniżyło metraż',
               reviewStatus: 'edited',
@@ -161,7 +162,7 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
     }
   })
 
-  it('apply(serializeAsPreset()) reproduces the structural tree, zeroes the job figures, keeps the komentarz, leaves target settings', async () => {
+  it('apply(serializeAsPreset()) reproduces the structural tree, zeroes the job figures and the komentarz, leaves target settings', async () => {
     const sourceId = await createInvestment(`${PRESET_PREFIX}source-roundtrip`, 0.23, 0.7, 0.5)
     await buildSourceTree(sourceId)
 
@@ -188,12 +189,8 @@ describe.skipIf(!ENV_READY)('serialize → apply preset (DB)', () => {
       expect(item.changeReason).toBeNull()
       expect(item.reviewStatus).toBeNull()
     }
-    // The komentarz describes the WORK („cena zawiera transport"), not the job, so it travels —
-    // and only on the pozycja that carried one, never smeared across the rest.
-    expect(after.items.find((item) => item.description === 'Malowanie')!.note).toBe(
-      'uwaga do pozycji',
-    )
-    expect(after.items.find((item) => item.description === 'Płytki')!.note).toBeNull()
+    // A remark about the WORK lives on its katalog entry; the pozycja's own one is about this job.
+    expect(after.items.find((item) => item.description === 'Malowanie')!.note).toBeNull()
     expect(after.progress).toEqual([])
 
     // Target's own settings survive the apply untouched (a preset carries no pricing config).

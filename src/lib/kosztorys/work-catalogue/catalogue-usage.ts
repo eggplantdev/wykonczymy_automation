@@ -4,6 +4,10 @@ import {
   hintCandidates,
 } from '@/lib/kosztorys/work-catalogue/build-catalogue-comparison'
 import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
+import {
+  indexCatalogue,
+  resolveCatalogueEntry,
+} from '@/lib/kosztorys/work-catalogue/resolve-catalogue-entry'
 import type {
   CatalogueUsageT,
   UncataloguedUsageT,
@@ -34,17 +38,21 @@ function mostFrequentSpelling(spellings: Map<string, number>): {
 }
 
 /**
- * Exact klucz matches only — the count is a fact about the cennik, and a „może chodzi o…" guess
+ * The remembered praca, else an exact klucz match — the count is a fact about the cennik, and a „może chodzi o…" guess
  * counted into it would make the figure depend on a similarity threshold. The unit is distinct
  * inwestycje: twenty pozycje of one praca in one łazienka are still one kosztorys using it.
  */
 export function buildCatalogueUsage(
   used: readonly UsedKosztorysItemT[],
   catalogue: readonly WorkCatalogueItemT[],
-): CatalogueUsageT {
+): Omit<CatalogueUsageT, 'templateNamesById'> {
+  // A pozycja that remembers its praca counts under that praca's klucz, whatever its own opis now
+  // says — so a praca renamed in the katalog keeps its count instead of reappearing as uncatalogued.
+  const index = indexCatalogue(catalogue)
   const groups = new Map<string, GroupT>()
   for (const item of used) {
-    const key = catalogueKey(item.description, item.unit)
+    const ownKey = () => catalogueKey(item.description, item.unit)
+    const key = resolveCatalogueEntry(index, item.catalogueItemId, ownKey)?.matchKey ?? ownKey()
     let group = groups.get(key)
     if (!group) {
       group = { investments: new Set(), spellings: new Map() }

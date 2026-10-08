@@ -1,17 +1,23 @@
 import {
   billsNetAmount,
+  hasOptionalWorker,
   needsExpenseCategory,
   showsOtherCategory,
   type TransferTypeT,
 } from '@/lib/constants/transfers'
+import { normalizeNip } from '@/lib/utils/nip'
 
 type FormLineItemT = {
   description: string
   amount: string
   netAmount: string
   invoiceNote: string
+  documentNumber: string
+  sellerNip: string
+  documentDate: string
   category: string
   expenseCategory: string
+  worker: string
 }
 
 type PayloadLineItemT = {
@@ -19,8 +25,12 @@ type PayloadLineItemT = {
   amount: number
   netAmount: number | undefined
   invoiceNote: string | undefined
+  documentNumber: string | undefined
+  sellerNip: string | undefined
+  documentDate: string | undefined
   category: number | undefined
   expenseCategory: number | undefined
+  worker: number | undefined
 }
 
 /** expenseCategory ("typ wydatku inwestycyjnego") rides only for types that use it —
@@ -37,6 +47,9 @@ export function mapLineItem(
     // silently start billing it.
     netAmount: billsNetAmount(type) && item.netAmount ? Number(item.netAmount) : undefined,
     invoiceNote: item.invoiceNote || undefined,
+    documentNumber: item.documentNumber.trim() || undefined,
+    sellerNip: normalizeNip(item.sellerNip),
+    documentDate: item.documentDate || undefined,
     // Nothing clears „Kategoria" on a type change, so without this it rides onto a transfer whose
     // form never showed the field.
     category: showsOtherCategory(type) && item.category ? Number(item.category) : undefined,
@@ -44,5 +57,7 @@ export function mapLineItem(
       needsExpenseCategory(type, hasInvestment) && item.expenseCategory
         ? Number(item.expenseCategory)
         : undefined,
+    // PAYOUT/BONUS name their worker once, at form level — never per row.
+    worker: hasOptionalWorker(type) && item.worker ? Number(item.worker) : undefined,
   }
 }

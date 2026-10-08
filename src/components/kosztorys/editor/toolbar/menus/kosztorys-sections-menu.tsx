@@ -20,6 +20,7 @@ export function KosztorysSectionsMenu() {
     engagedConditionIds,
     globalDiscount,
     crewAxis,
+    isTemplate,
   } = useKosztorysEditorContext()
   const resetAction = useFilterResetAction()
 
@@ -45,11 +46,12 @@ export function KosztorysSectionsMenu() {
   // The same offered set the „Filtry" menu lists, read straight from the registry rather than through
   // that menu's hook: this one applies its own threshold („lifts at least one sekcja"), which is a
   // different question from the pozycja counts the rows over there are filtered by.
-  const sectionToggles = offeredFilterConditions(
-    engagedConditionIds,
-    isGlobalDiscountActive(globalDiscount),
+  const sectionToggles = offeredFilterConditions({
+    engagedIds: engagedConditionIds,
+    perItemDiscountInert: isGlobalDiscountActive(globalDiscount),
     crewAxis,
-  )
+    isTemplate,
+  })
     .filter(liftsToSections)
     .map((condition) => ({
       condition,

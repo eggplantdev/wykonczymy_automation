@@ -5,9 +5,7 @@ import { AI_REVIEW_COLUMN_IDS } from '@/lib/kosztorys/ai-review-columns'
 import { OFFER_VISIBLE_COLUMNS } from '@/lib/kosztorys/offer-columns'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 
-const STAGES: KosztorysStageT[] = [
-  { id: 7, ordinal: 1, label: 'Etap 1', plane: null, split: null },
-]
+const STAGES: KosztorysStageT[] = [{ id: 7, ordinal: 1, label: 'Etap 1', plane: null, split: null }]
 
 function ids(extra: Partial<BuildV2ColumnsOptsT> = {}): string[] {
   return buildV2Columns({
@@ -46,7 +44,7 @@ describe('„Oferta" and „Przegląd AI" toggles', () => {
 
   it('assembles no AI item columns without an AI draft', () => {
     const shown = ids({ hasAiDraft: false, revealedColumnIds: new Set(AI_REVIEW_COLUMN_IDS) })
-    for (const id of ['aiPlannedQty', 'reviewStatus', 'changeReason']) {
+    for (const id of ['aiPlannedQty', 'aiPlannedNet', 'reviewStatus', 'changeReason']) {
       expect(shown).not.toContain(id)
     }
     expect(shown).toContain('workNote')

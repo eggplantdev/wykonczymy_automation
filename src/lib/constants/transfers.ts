@@ -561,6 +561,11 @@ export const needsTargetRegister = (type: string) =>
 export const needsWorker = (type: string) =>
   isTransferType(type) && (type === 'PAYOUT' || type === 'BONUS')
 
+// An OTHER names who bought it: the one worker that may change after save.
+export const hasOptionalWorker = (type: string) => isTransferType(type) && type === 'OTHER'
+
+export const showsWorker = (type: string) => needsWorker(type) || hasOptionalWorker(type)
+
 export const needsOtherCategory = (type: string) => isTransferType(type) && type === 'OTHER'
 
 // Brutto and netto investment expense differ only in which amount bills the investor —

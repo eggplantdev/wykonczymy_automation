@@ -82,6 +82,8 @@ type FilterMultiSelectPropsT = {
   triggerCount?: number
   // Widens the panel for a menu whose rows are sentences rather than labels.
   contentClassName?: string
+  // Says what a tick means, for a menu where unticking hides rather than narrows to the ticked rows.
+  intro?: { heading: string; hint?: string }
 }
 
 // URL param encoding: [] = all selected (no filter), ['__none__'] = nothing selected
@@ -136,6 +138,7 @@ export function FilterMultiSelect({
   toggles,
   togglesBulk,
   resetAction,
+  intro,
   actionsHeading,
   optionsHeading,
   triggerCount,
@@ -310,6 +313,12 @@ export function FilterMultiSelect({
         )}
         align="start"
       >
+        {intro && (
+          <div className="border-border border-b px-3 py-2">
+            <p className="text-sm font-semibold">{intro.heading}</p>
+            {intro.hint && <p className="text-muted-foreground text-xs">{intro.hint}</p>}
+          </div>
+        )}
         {resetAction && (
           <div className="border-border border-b p-1">
             <Button

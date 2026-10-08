@@ -12,9 +12,10 @@ import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 type PropsT = {
   item: WorkCatalogueItemT
   categorySuggestions: readonly string[]
+  templateNames: readonly string[]
 }
 
-export function CatalogueRowActions({ item, categorySuggestions }: PropsT) {
+export function CatalogueRowActions({ item, categorySuggestions, templateNames }: PropsT) {
   const [confirming, setConfirming] = useState(false)
 
   const onDelete = () => {
@@ -28,14 +29,32 @@ export function CatalogueRowActions({ item, categorySuggestions }: PropsT) {
 
   return (
     <div className="flex items-center justify-end gap-1">
-      <EditCatalogueItemDialog item={item} categorySuggestions={categorySuggestions} />
+      <EditCatalogueItemDialog
+        item={item}
+        categorySuggestions={categorySuggestions}
+        templateNames={templateNames}
+      />
 
       <DeleteButton label="Usuń z katalogu" onClick={() => setConfirming(true)} />
 
       <ConfirmDialog
         open={confirming}
-        title="Usunąć pozycję z katalogu?"
-        description="Kosztorysy, do których tę pracę już wstawiono, zostają bez zmian — mają własną kopię ceny i stawek."
+        title="Usunąć pozycję z katalogu i szablonów?"
+        description={
+          <>
+            <p>Kosztorysy, do których tę pracę już wstawiono, zostają bez zmian.</p>
+            {templateNames.length > 0 && (
+              <>
+                <p className="mt-2">Zniknie natomiast z szablonów:</p>
+                <ul className="mt-1 list-disc pl-5">
+                  {templateNames.map((name) => (
+                    <li key={name}>{name}</li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </>
+        }
         confirmLabel="Usuń"
         onConfirm={onDelete}
         onCancel={() => setConfirming(false)}

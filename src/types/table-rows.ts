@@ -59,6 +59,7 @@ export type InvestmentRowT = {
   reviewRequested: boolean
   notes: string
   hasSheet: boolean
+  createdAt: string
   /** Whether the investment HAS a kosztorys, which none of the figures above can answer: „pomiar z
    *  natury" is the etap sum (EX-494), so a fully entered rozpiska with no etap progress reads zero
    *  robocizny — identical to no kosztorys at all. „Pozostało do wypłaty" withholds on this, not on

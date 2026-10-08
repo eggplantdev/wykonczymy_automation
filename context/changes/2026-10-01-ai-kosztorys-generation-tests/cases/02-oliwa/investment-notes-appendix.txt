@@ -1,0 +1,57 @@
+KOSZTORYS AI — Oliwa, mieszkanie ok. 41 m² (36,6 m² bez łazienki + łazienka 4,4 m²)
+Źródła: rzut aranżacyjny (zrzut ekranu, skala sprawdzona na 7 wymiarach, zgodność ±0,7%), opis klienta, instrukcja właściciela.
+Wartość netto z cenami z rozpiski: 39 205,15 zł + 1 pozycja bez ceny (maskownica GK).
+
+ZAŁOŻENIA (do weryfikacji)
+1. Wysokość pomieszczeń 2,65 m — brak na rzucie. Każde ±10 cm to ok. ±566 zł (gładzie, malowanie, glazura w łazience, akryl, narożniki).
+2. Okna 1,50 m wysokości (sypialnia 164 cm, salon 253 cm szer.), drzwi „wysokie” 2,40 m, wejściowe 2,05 m. Otwory odjęte od ścian (15,15 m²). Jeżeli liczymy ściany bez odejmowania otworów: +ok. 1 380 zł. Glify okien nie doliczone (ok. 2,5 m², +ok. 230 zł).
+3. Ściany za zabudową kuchenną wyłączone z gładzi na pełną wysokość (13,2 m²), łącznie z pasem między szafkami. Jeżeli fartuch między szafkami ma być malowany, a nie płytki/szkło: +ok. 3 m² gładzi, +ok. 210 zł. Malowanie liczone z tymi ścianami — bez nich −290 zł.
+4. Ściany wewnątrz szaf wnękowych (szafa gosp. 70 cm, szafa na ubrania i pawlacz, zabudowa przy wejściu) policzone w gładziach i malowaniu, ok. 17,2 m². Jeżeli nie robimy ich: −ok. 1 570 zł.
+5. Malowanie na biało (ściany i sufity jedną pozycją). Ściany w kolorze: +ok. 360 zł.
+6. Punkty elektryczne — klient nie podał liczby. Przyjęto 13 punktów:
+   - 6 przesuniętych gniazd;
+   - 3 punkty sufitowe pod lampy wiszące;
+   - 4 zasilania LED: maskownica w salonie, maskownica w sypialni, pod szafkami kuchennymi, półka prysznicowa.
+   Bruzdy wg zasady 2,5 mb/pkt = 32,5 mb: sufit w żelbecie 7,5 mb, ściany w materiale miękkim 25 mb. Każdy dodatkowy punkt: ok. +225–295 zł. Jeżeli ściany są żelbetowe: +ok. 500 zł.
+7. Panele winylowe klejone, układ prosty, 36,6 m² łącznie pod zabudową kuchenną i szafami (zgodne z „ok. 36 m²” klienta). Bez podłogi pod szafkami kuchennymi: −ok. 180 zł.
+8. Łazienka:
+   - płytki 120×60 na pełną wysokość ścian, 21,9 m². Płytki do 2,0 m i malowanie powyżej: −ok. 650 zł;
+   - odpływ liniowy jednospadkowy (pod duży format); koperta: +300 zł;
+   - półka prysznicowa z LED = przedścianka z 1 półką + taśma LED + zasilacz;
+   - umywalka nablatowa (na rysunku stoi na blacie);
+   - bateria bidetowa podtynkowa przy WC = nowy punkt wod-kan + biały montaż.
+9. Transport i wniesienie materiałów (1 kpl) oraz wywóz gruzu (1 big bag) przyjęte jako standard — 1 950 zł.
+10. Zabezpieczenia liczone od powierzchni podłóg całego mieszkania, 40,8 m².
+
+PYTANIA DO KLIENTA / WŁAŚCICIELA (z wpływem na kwotę)
+- Wysokość pomieszczeń i wysokość okien — patrz założenia 1–2.
+- Czy za maskownicami montujemy karnisze/szyny sufitowe? 6,0 mb × 80 zł = +ok. 480 zł.
+- Czy montujemy taśmy LED w maskownicach i pod szafkami kuchennymi, czy tylko wyprowadzamy zasilanie? Ok. 8 mb × 60 zł + zasilacze 3 × 120 zł = +ok. 840 zł.
+- Czy montujemy drzwi wewnętrzne (2 szt., wysokie)? Regulowane +760 zł, ukryte +2 000 zł.
+- Czy podłączamy kuchnię (indukcja, piekarnik, zlew z baterią i syfonem, zmywarka)? +ok. 1 130 zł. Czy zlew jest w miejscu punktu deweloperskiego? Przeróbka wod-kan +250 zł/pkt.
+- Nowy kaloryfer w salonie: czy zmienia się rozstaw/wysokość podejść? Przebudowa punktu c.o. +250 zł/pkt albo rozkucie i zatynkowanie podejść +300 zł.
+- Odpływ liniowy: gdzie jest obecny odpływ (brodzik/wanna)? Zmiana kanalizacji pod odpływ liniowy +800 zł.
+- Czy pod winyl klejony potrzebna jest wylewka samopoziomująca? +ok. 2 010 zł (36,6 m² × 55 zł). Gruntowanie podłóg jest już w kosztorysie.
+- Czy szlifujemy mleczko z tynków deweloperskich przed gładzią? +ok. 790 zł (112,6 m² × 7 zł).
+- Akrylowanie listew przypodłogowych: +ok. 385 zł (24 mb × 16 zł).
+- Łazienka — czego nie ma w opisie:
+  - grzejnik łazienkowy: +250 zł;
+  - wentylator: +120 zł;
+  - lustro: +120/150 zł;
+  - lampy: +100 zł/szt.;
+  - akcesoria: +50 zł/szt.;
+  - szafka nad geberitem i szafka pod umywalkę: +250 zł/szt.;
+  - wyrównanie ścian pod glazurę: +80 zł/m²;
+  - szlifowanie krawędzi płytek 45° na narożniku pionu: +ok. 210 zł.
+- Na ścianie wschodniej (kuchnia i salon) są dwa półokrągłe symbole — kinkiety? Jeżeli tak: 2 punkty + montaż, +ok. 650 zł.
+
+NOWE PRACE BEZ CENY (brak w katalogu — do wyceny)
+- Wykonanie maskownicy karnisza z płyt GK — salon 3,36 mb + sypialnia 2,67 mb = 6,03 mb. Najbliższe pozycje:
+  - „Zabudowy rur z GK” — 350 zł/mb, czyli 2 111 zł;
+  - „Montaż listew sztukateryjnych sufitowych (osłona karnisza)” — 110 zł/mb, czyli 663 zł.
+
+POZYCJE ŚWIADOMIE POMINIĘTE
+- „Wklejanie taśmy w łączenie sufit-ściana” — ten sam styk co akrylowanie; właściciel wskazał akrylowanie.
+- „Gruntowanie farbą podkładową” i „Gruntowanie ścian jednokrotne” — pokrywa je „Gruntowanie przed gładziami i po gładziach”.
+- „Gładzie po bruzdach” — ściany i tak dostają pełną gładź.
+- Bruzdowanie z działu Klimatyzacja; punkty elektryczne i grzejnik z działu Łazienka — wybrano pozycje z działów Wyburzenia, Instalacja elektryczna i c.o., żeby nie liczyć podwójnie.

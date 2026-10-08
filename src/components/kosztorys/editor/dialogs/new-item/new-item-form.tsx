@@ -35,6 +35,7 @@ export function NewItemForm({
   formId,
   sectionName,
   workCatalogue,
+  isTemplate,
   kosztorysUnits,
   keepOpen,
   action,
@@ -43,6 +44,8 @@ export function NewItemForm({
   formId: string
   sectionName: string
   workCatalogue: readonly WorkCatalogueItemT[]
+  // A szablon praca lives in the katalog (EX-1017), so there it is never „only here".
+  isTemplate: boolean
   kosztorysUnits: readonly string[]
   keepOpen: boolean
   action: (payload: NewItemPayloadT) => Promise<ActionResultT>
@@ -149,9 +152,11 @@ export function NewItemForm({
           <RateField form={form} plane="wTools" sourceLabels={SOURCE_OPTION_LABELS} />
           <RateField form={form} plane="ownTools" sourceLabels={SOURCE_OPTION_LABELS} />
 
-          <form.AppField name="addToCatalogue">
-            {(field) => <field.Checkbox label="Dodaj pracę do katalogu prac" />}
-          </form.AppField>
+          {!isTemplate && (
+            <form.AppField name="addToCatalogue">
+              {(field) => <field.Checkbox label="Dodaj pracę do katalogu prac" />}
+            </form.AppField>
+          )}
 
           {addToCatalogue && (
             <form.AppField name="category">
@@ -177,6 +182,7 @@ export function NewItemForm({
         <CatalogueCollisionConfirm
           existing={collision.existing}
           candidate={collision.candidate}
+          allowKosztorysOnly={!isTemplate}
           onChoose={collision.answer}
         />
       )}

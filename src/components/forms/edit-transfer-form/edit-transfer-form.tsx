@@ -11,6 +11,7 @@ import { useFormSubmit } from '@/components/forms/hooks/use-form-submit'
 import { useFilePickIngest } from '@/components/forms/hooks/use-file-pick-ingest'
 import {
   showsInvestment,
+  hasOptionalWorker,
   needsExpenseCategory,
   isLaborCost,
   canFillVatPlane,
@@ -74,7 +75,11 @@ export function EditTransferForm({
       investment: row.investmentId ? String(row.investmentId) : '',
       expenseCategory: row.expenseCategoryId ? String(row.expenseCategoryId) : '',
       otherCategory: row.otherCategoryId ? String(row.otherCategoryId ?? '') : '',
+      worker: row.workerId ? String(row.workerId) : '',
       invoiceNote: row.invoiceNote ?? '',
+      documentNumber: row.documentNumber ?? '',
+      sellerNip: row.sellerNip ?? '',
+      documentDate: row.documentDate ?? '',
       netAmount: '',
     } as EditTransferFormValuesT,
     validators: {
@@ -89,7 +94,11 @@ export function EditTransferForm({
         investment: value.investment ? Number(value.investment) : undefined,
         expenseCategory: value.expenseCategory ? Number(value.expenseCategory) : undefined,
         otherCategory: value.otherCategory ? Number(value.otherCategory) : undefined,
+        worker: value.worker ? Number(value.worker) : null,
         invoiceNote: value.invoiceNote || undefined,
+        documentNumber: value.documentNumber,
+        sellerNip: value.sellerNip,
+        documentDate: value.documentDate,
       }
 
       await submit(!!keepOpen, {
@@ -171,6 +180,10 @@ export function EditTransferForm({
             )}
           </form.AppField>
 
+          {hasOptionalWorker(row.type) && (
+            <EntityComboboxField form={form} variant="worker" items={referenceData.workers} />
+          )}
+
           {/* Retagging a wpłata that HAS a plane stays refused (owner, 2026-08-20) — that goes the
               way that leaves a trail, anuluj i zaksięguj na nowo. Offered here only for a legacy row,
               which rewrites nothing. Asked as the METHOD, because that is what the owner remembers;
@@ -199,6 +212,20 @@ export function EditTransferForm({
               )}
             </>
           )}
+
+          <div className="grid gap-4 sm:grid-cols-3">
+            <form.AppField name="documentNumber">
+              {(field) => <field.Input label="Nr dokumentu" placeholder="Opcjonalnie" showError />}
+            </form.AppField>
+            <form.AppField name="sellerNip">
+              {(field) => (
+                <field.Input label="NIP sprzedawcy" placeholder="Opcjonalnie" showError />
+              )}
+            </form.AppField>
+            <form.AppField name="documentDate">
+              {(field) => <field.DatePicker label="Data na paragonie" showError />}
+            </form.AppField>
+          </div>
 
           <form.AppField name="invoiceNote">
             {(field) => (

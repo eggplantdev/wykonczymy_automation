@@ -18,8 +18,13 @@ export type BulkExpenseFormValuesT = {
     // Netto billed to the investor — only the netto expense type reads it; blank everywhere else.
     netAmount: string
     invoiceNote: string
+    // Document identity for the duplicate check (EX-1025). `documentDate` is ISO `YYYY-MM-DD`.
+    documentNumber: string
+    sellerNip: string
+    documentDate: string
     category: string
     expenseCategory: string
+    worker: string
   }[]
 }
 
@@ -34,8 +39,12 @@ export function makeLineItem(overrides?: Partial<BulkLineItemT>): BulkLineItemT 
     amount: '',
     netAmount: '',
     invoiceNote: '',
+    documentNumber: '',
+    sellerNip: '',
+    documentDate: '',
     category: '',
     expenseCategory: '',
+    worker: '',
     ...overrides,
   }
 }

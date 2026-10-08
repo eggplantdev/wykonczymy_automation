@@ -260,6 +260,81 @@ describe.skipIf(!ENV_READY)('saveItemToCatalogueAction (DB)', () => {
     expect(rows[0].category).toBeNull()
   })
 
+  const linkedEntryOf = async (itemId: number) => {
+    const result = await db.execute(
+      sql`SELECT catalogue_item_id FROM kosztorys_items WHERE id = ${itemId}`,
+    )
+    const id = result.rows[0]?.catalogue_item_id
+    return id === null || id === undefined ? null : Number(id)
+  }
+
+  it('zapis zapamiętuje w pozycji pracę, do której trafił', async () => {
+    const description = `Zapamiętana ${suffix}`
+    const itemId = await createItem(description)
+
+    await saveItemToCatalogueAction(itemId, 'new')
+
+    const [row] = await catalogueRow(description)
+    expect(await linkedEntryOf(itemId)).toBe(Number(row.id))
+  })
+
+  // Renaming a pozycja in one kosztorys must not rename the praca every szablon shows.
+  it('zmieniony opis to nowa praca: stara zostaje, pozycja przepina się na nową', async () => {
+    const oldDescription = `Przed zmianą ${suffix}`
+    const newDescription = `Po zmianie ${suffix}`
+    const itemId = await createItem(oldDescription)
+    await saveItemToCatalogueAction(itemId, 'new')
+    const [before] = await catalogueRow(oldDescription)
+
+    await payload.update({
+      collection: 'kosztorys-items',
+      id: itemId,
+      data: { description: newDescription, clientPrice: 180 },
+      overrideAccess: true,
+      ...ctx,
+    })
+    const result = await saveItemToCatalogueAction(itemId, 'new')
+    expect(result.success).toBe(true)
+
+    const [kept] = await catalogueRow(oldDescription)
+    expect(Number(kept.id)).toBe(Number(before.id))
+    expect(kept.description).toBe(oldDescription)
+    expect(Number(kept.client_price)).toBe(100)
+
+    const [created] = await catalogueRow(newDescription)
+    expect(Number(created.client_price)).toBe(180)
+    expect(await linkedEntryOf(itemId)).toBe(Number(created.id))
+  })
+
+  it('po przemianowaniu w katalogu ta sama praca aktualizuje zapamiętany wpis', async () => {
+    const oldDescription = `Przed przemianowaniem ${suffix}`
+    const newDescription = `Po przemianowaniu ${suffix}`
+    const itemId = await createItem(oldDescription)
+    await saveItemToCatalogueAction(itemId, 'new')
+    const [entry] = await catalogueRow(oldDescription)
+    await payload.update({
+      collection: 'work-catalogue-items',
+      id: Number(entry.id),
+      data: { description: newDescription, matchKey: catalogueKey(newDescription, 'm2') },
+      overrideAccess: true,
+      ...ctx,
+    })
+    await payload.update({
+      collection: 'kosztorys-items',
+      id: itemId,
+      data: { description: newDescription, clientPrice: 210 },
+      overrideAccess: true,
+      ...ctx,
+    })
+
+    expect(await saveItemToCatalogueAction(itemId, 'overwrite')).toEqual({ success: true })
+
+    const [updated] = await catalogueRow(newDescription)
+    expect(Number(updated.id)).toBe(Number(entry.id))
+    expect(Number(updated.client_price)).toBe(210)
+    expect(await linkedEntryOf(itemId)).toBe(Number(entry.id))
+  })
+
   it('odmawia zapisu pracy bez opisu', async () => {
     const itemId = await createItem('')
 

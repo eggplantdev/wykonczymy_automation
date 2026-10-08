@@ -83,6 +83,18 @@ describe('columnValueResolver', () => {
     expect(worker('remainingForPlane')?.(updated)).toBe(2000) // (15 − 5) × 200
   })
 
+  it('reads „AI wartość netto przedmiar" as AI przedmiar × Cena j.m., rabat ignored', () => {
+    const value = columnValueResolver({ stages, view: 'w_tools' })
+    const discounted = {
+      ...row,
+      aiPlannedQty: 7,
+      discountType: 'amount' as const,
+      discountValue: 50,
+    }
+    expect(value('aiPlannedNet')?.(discounted)).toBe(700)
+    expect(value('aiPlannedNet')?.({ ...row, aiPlannedQty: null })).toBeNull()
+  })
+
   it('leaves editable columns and row fields to the caller', () => {
     const value = columnValueResolver({ stages, view: 'client' })
     for (const field of [

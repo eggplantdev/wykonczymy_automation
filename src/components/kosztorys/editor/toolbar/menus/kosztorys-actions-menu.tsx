@@ -97,7 +97,8 @@ export function KosztorysActionsMenu({
                 <MenuItemBody label="Ponów" description="Cmd/Ctrl+Shift+Z" />
               </DropdownMenuItem>
               <ReorderMenuItem />
-              <CleanItemTextsMenuItem />
+              {/* A szablon's opisy are its katalog entries' — cleaned on /katalog-prac. */}
+              {!isTemplate && <CleanItemTextsMenuItem />}
               <FillTranslationsMenuItem />
             </>
           )}

@@ -74,15 +74,15 @@ export async function applyCatalogueWrite(
     keepCatalogueCategory: boolean
     workNote?: string
   },
-): Promise<void> {
+): Promise<number> {
   const note = workNote?.trim() ? { workNote: workNote.trim() } : {}
   if (!existing) {
-    await payload.create({
+    const created = await payload.create({
       collection: 'work-catalogue-items',
       data: { ...candidate, ...note },
       req,
     })
-    return
+    return created.id
   }
   await payload.update({
     collection: 'work-catalogue-items',
@@ -99,4 +99,5 @@ export async function applyCatalogueWrite(
     },
     req,
   })
+  return existing.id
 }

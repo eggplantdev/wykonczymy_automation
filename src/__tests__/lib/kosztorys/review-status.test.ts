@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  applyReviewRules,
-  effectiveReviewStatus,
-  hasAiDraft,
-} from '@/lib/kosztorys/review-status'
+import { applyReviewRules, effectiveReviewStatus, hasAiDraft } from '@/lib/kosztorys/review-status'
 import type { ReviewStatusT } from '@/lib/kosztorys/types'
 
 type RowT = {
@@ -87,9 +83,24 @@ describe('effectiveReviewStatus', () => {
     expect(effectiveReviewStatus(row({ aiPlannedQty: null, plannedQty: 2 }))).toBe('added')
   })
 
-  it('stays empty with no Przedmiar, or a row the agent priced', () => {
+  it('reads AI przedmiar equal to the Przedmiar as Zaakceptowana, a picked status still winning', () => {
+    expect(effectiveReviewStatus(row({ aiPlannedQty: 12, plannedQty: 12 }))).toBe('accepted')
+    expect(effectiveReviewStatus(row({ aiPlannedQty: 12, plannedQty: 10 }))).toBeNull()
+    expect(
+      effectiveReviewStatus(row({ aiPlannedQty: 12, plannedQty: 12, reviewStatus: 'edited' })),
+    ).toBe('edited')
+  })
+
+  it('reads a praca the agent left out, with a Przedmiar, as Dodana — as typing it would', () => {
+    const left = row({ aiPlannedQty: 0, plannedQty: 0 })
+    expect(effectiveReviewStatus(row({ aiPlannedQty: 0, plannedQty: 2 }))).toBe('added')
+    expect(apply(left, { plannedQty: 2 }).reviewStatus).toBe('added')
+  })
+
+  it('stays empty with no Przedmiar, or an offer that differs from it', () => {
     expect(effectiveReviewStatus(row({ aiPlannedQty: null, plannedQty: 0 }))).toBeNull()
-    expect(effectiveReviewStatus(row({ aiPlannedQty: 0, plannedQty: 2 }))).toBeNull()
+    expect(effectiveReviewStatus(row({ aiPlannedQty: 0, plannedQty: 0 }))).toBeNull()
+    expect(effectiveReviewStatus(row({ aiPlannedQty: 12, plannedQty: 2 }))).toBeNull()
   })
 })
 

@@ -45,6 +45,7 @@ function currentTree(overrides: Partial<SnapshotPayloadT> = {}): SnapshotPayload
         wToolsOverrideCoeff: null,
         ownToolsOverrideCoeff: null,
         note: 'ustalone z klientem',
+        catalogueItemId: null,
         currentPlannedQty: null,
         aiPlannedQty: null,
         changeReason: null,
@@ -361,7 +362,7 @@ describe('buildImportPlan', () => {
     expect(items.filter((row) => row !== matched).every((row) => row.ref === undefined)).toBe(true)
   })
 
-  describe('translations', () => {
+  describe('katalog — translations and link', () => {
     const ukrainian = (text: string, source: string) => ({ uk: { text, source } })
     const NEW_PRACA = 'montaż płyt akustycznych dodatek'
     const MATCHED_PRACA = 'montaż jednostki wewnętrznej'
@@ -369,9 +370,15 @@ describe('buildImportPlan', () => {
     function planWithCatalogue(current: SnapshotPayloadT = currentTree()) {
       const sheetItems = plan(source(), current).tree.items
       const catalogue = new Map(
-        sheetItems.map((item) => [
+        sheetItems.map((item, index) => [
           catalogueKey(item.description ?? '', item.unit),
-          ukrainian(`katalog: ${item.description}`, item.description ?? ''),
+          {
+            id: 900 + index,
+            descriptionTranslations: ukrainian(
+              `katalog: ${item.description}`,
+              item.description ?? '',
+            ),
+          },
         ]),
       )
       const built = buildImportPlan(source(), current, undefined, undefined, catalogue)
@@ -417,6 +424,27 @@ describe('buildImportPlan', () => {
       const item = plan().tree.items.find((row) => row.description === NEW_PRACA)!
 
       expect(item.descriptionTranslations).toEqual({})
+    })
+
+    it('links a praca new to the rozpiska to the katalog entry its opis and j.m. name', () => {
+      const item = planWithCatalogue().find((row) => row.description === NEW_PRACA)!
+
+      expect(item.catalogueItemId).toBeGreaterThanOrEqual(900)
+    })
+
+    it('keeps the entry a matched praca already names over the one its key finds', () => {
+      const current = currentTree()
+      current.items[0].catalogueItemId = 42
+
+      const item = planWithCatalogue(current).find((row) => row.description === MATCHED_PRACA)!
+
+      expect(item.catalogueItemId).toBe(42)
+    })
+
+    it('leaves a praca the katalog doesn’t know unlinked', () => {
+      const item = plan().tree.items.find((row) => row.description === NEW_PRACA)!
+
+      expect(item.catalogueItemId).toBeNull()
     })
   })
 

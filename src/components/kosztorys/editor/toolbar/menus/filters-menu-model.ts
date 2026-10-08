@@ -23,6 +23,7 @@ type ArgsT = {
   // Which crew's stawki are on screen — a filter about a plane nobody is reading is offered only
   // while it is already engaged.
   crewAxis: CrewAxisT
+  isTemplate: boolean
 }
 
 /**
@@ -46,8 +47,14 @@ export function filtersMenuModel({
   counts,
   perItemDiscountInert,
   crewAxis,
+  isTemplate,
 }: ArgsT): FilterToggleT[] {
-  const offered = offeredFilterConditions(engagedIds, perItemDiscountInert, crewAxis)
+  const offered = offeredFilterConditions({
+    engagedIds,
+    perItemDiscountInert,
+    crewAxis,
+    isTemplate,
+  })
 
   return FILTER_GROUPS.flatMap((group) =>
     offered

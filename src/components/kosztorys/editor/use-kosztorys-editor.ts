@@ -495,8 +495,17 @@ export function useKosztorysEditor({
       qtyDoneByRowId,
       catalogueRowIds,
       hasAiDraft: aiDraft,
+      aiColumnsShown: aiReview,
     }),
-    [stages, hasSettledMaterial, divergentPriceIds, qtyDoneByRowId, catalogueRowIds, aiDraft],
+    [
+      stages,
+      hasSettledMaterial,
+      divergentPriceIds,
+      qtyDoneByRowId,
+      catalogueRowIds,
+      aiDraft,
+      aiReview,
+    ],
   )
 
   // Counted over the whole dataset: once a filter is on, a count of what survives it is a count of

@@ -1,6 +1,6 @@
 /**
  * The headings the „Filtry" list is read under — one per axis a row asks about, in reading order.
- * Sixteen noun phrases in one column are read as one pile; under five headings the reader picks the
+ * Sixteen noun phrases in one column are read as one pile; under a few headings the reader picks the
  * subject first and the row second, the same arrangement „Problemy" and „Sekcje" already use.
  *
  * Split by WHAT a row asks, never by the price plane it asks it on — the plane is already the tail of
@@ -9,6 +9,8 @@
  * crews, and they are read against each other.
  */
 export const FILTER_GROUPS = [
+  // First: on an AI kosztorys the draft is what is being read. Same heading as in „Problemy”.
+  { id: 'ai-review', label: 'Przegląd AI' },
   // Przedmiar and wykonana praca share one heading rather than getting one each: the pair that asks
   // about BOTH at once („bez przedmiaru i bez wykonanej pracy") belongs to neither axis alone, and a
   // third heading for one pair would file the same question in a place the reader looks at last.

@@ -136,6 +136,7 @@ filename order against other sessions' uncommitted migrations), `src/migrations/
 **Intent**: One hand-written additive migration for both tables, so prod migrates once.
 
 **Contract**:
+
 - `work_catalogue_items.work_note varchar NULL`
 - `kosztorys_items.ai_planned_qty numeric NULL`, `change_reason varchar NULL`,
   `review_status "enum_kosztorys_items_review_status" NULL` with
@@ -152,9 +153,10 @@ filename order against other sessions' uncommitted migrations), `src/migrations/
 katalogu" paths cannot write it.
 
 **Contract**: collection field `workNote` (textarea, label „Komentarz do pracy"); `CATALOGUE_COLUMNS`
-+ `toCatalogueItem` map `work_note`; `WorkCatalogueItemT.workNote: string | null`;
-`CatalogueSeedItemT` / `CatalogueCandidateT` add `workNote` to their `Omit` (same reason as
-`descriptionTranslations`, `types.ts:27-29`); cache key → `work-catalogue-v3`.
+
+- `toCatalogueItem` map `work_note`; `WorkCatalogueItemT.workNote: string | null`;
+  `CatalogueSeedItemT` / `CatalogueCandidateT` add `workNote` to their `Omit` (same reason as
+  `descriptionTranslations`, `types.ts:27-29`); cache key → `work-catalogue-v3`.
 
 #### 3. Katalog writes
 
@@ -164,6 +166,7 @@ katalogu" paths cannot write it.
 **Intent**: Three writers may set the comment; none may clear it by accident.
 
 **Contract**:
+
 - `applyCatalogueWrite(…, { …, workNote?: string })` — a non-blank value is written (trimmed); blank
   or absent leaves the stored comment untouched (spike behaviour, `c57e9a21`).
 - `createCatalogueItemAction` / `updateCatalogueItemAction` take `workNote` from the form schema.
@@ -184,6 +187,7 @@ katalogu" paths cannot write it.
 praca" get it from one schema. Each form is seeded from the stored entry, never from a candidate.
 
 **Contract**:
+
 - `workCatalogueItemSchema` gains `workNote: string` (default `''`); the field renders right under
   „Opis pracy", label „Komentarz do pracy (wiedza firmowa — niewidoczna dla klienta)", 3 rows.
 - Edit dialog seeds `workNote` from the item; `CatalogueItemFromKosztorysDialog.defaultsFrom` seeds it
@@ -206,6 +210,7 @@ only in this phase), `kosztorys-v2-columns.tsx`, `kosztorys-v2-column-opts.ts`,
 opens the dialog. Passed through column opts, never context (EX-496).
 
 **Contract**:
+
 - `catalogueEntryByRowId(rows, catalogue)` → `Map<rowId, { id, note }>`, built in the hook when the
   katalog is present and not in preview.
 - Column `workNote`: `COLUMN_LABELS` (label above), `LAYER_NEUTRAL_COLUMNS`, `DEFAULT_HIDDEN_COLUMNS`;
@@ -267,6 +272,7 @@ status rules, the „AI kosztorys" gate, two diagnostics, and a local script to 
 builder.
 
 **Contract**:
+
 - `aiPlannedQty` number, field `access: { create: () => false, update: () => false }` (only Local API
   scripts write it); `changeReason` text; `reviewStatus` select
   `accepted | rejected | edited | added`.
@@ -287,6 +293,7 @@ builder.
 **Intent**: Every path that reads or rebuilds an item carries or deliberately drops the three fields.
 
 **Contract**:
+
 - Tree SELECT + `mapItem` (`numOrNull` for AI przedmiar).
 - `ITEM_INSERT_COLUMNS` + VALUES tuple with `?? null`.
 - Snapshot tolerant read + `itemWithColumnDefaults` `?? null`; no schema-version bump.
@@ -302,6 +309,7 @@ builder.
 **Intent**: React-free rules, testable in node.
 
 **Contract**:
+
 - `hasAiDraft(rows)` = any row with `aiPlannedQty !== null`.
 - `effectiveReviewStatus(row, hasAiDraft)` = stored status, else `'added'` when `hasAiDraft`,
   `aiPlannedQty === null` and `plannedQty > 0`, else `null`.
@@ -333,6 +341,7 @@ builder.
 **Intent**: The three columns, gated on `hasAiDraft`; the rules wired into `onChange`.
 
 **Contract**:
+
 - `aiPlannedQty`: read-only computed column. `reviewStatus`: `CellSelectMenu` (spike), shows the
   effective status; empty label „Do sprawdzenia" only when AI > 0. `changeReason`: long-text column
   copied from Komentarz, added to `WRAPPING_COLUMN_IDS`.
@@ -516,3 +525,7 @@ column touched here.
 #### Automated
 
 - [x] 3.1 Selection spec passes — f9af1e48
+
+### Addendum 2026-10-07 (dogfooding, case 2 „Oliwa")
+
+Scope and rules: `change.md` § Addendum. Gate: `review-gate.md` § Addendum gate.

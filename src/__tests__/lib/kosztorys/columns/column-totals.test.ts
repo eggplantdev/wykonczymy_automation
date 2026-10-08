@@ -191,6 +191,12 @@ describe('columnTotalsForRows', () => {
     expect(net).toBeGreaterThan(totals().get('net') ?? 0)
   })
 
+  it('totals „AI wartość netto przedmiar", a row the agent never saw adding nothing', () => {
+    const drafted = rows.map((row) => ({ ...row, aiPlannedQty: row.id === 3 ? null : 2 }))
+    // 2 × (20 + 10 + 15); row 2's rabat is not the agent's.
+    expect(totals(drafted).get('aiPlannedNet')).toBe(90)
+  })
+
   it('totals the rabat taken per row, netto and brutto', () => {
     // Row 2's kwota rabatu of 8, taken on its full przedmiar of 4.
     expect(totals().get('discountAmount')).toBe(8)

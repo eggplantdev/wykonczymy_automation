@@ -110,6 +110,7 @@ export function shapeInvestments(
       reviewRequested: inv.reviewRequested,
       notes: inv.notes,
       hasSheet: inv.hasSheet,
+      createdAt: inv.createdAt,
       hasKosztorys: clientTotals !== undefined,
       materialsNetRate: inv.materialsNetRate,
       settlementMode: inv.settlementMode,

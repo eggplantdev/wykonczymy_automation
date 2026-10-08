@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { TRANSFER_TYPES, PAYMENT_METHODS } from '@/lib/constants/transfers'
-import { getAmountError, getNetAmountError } from '@/lib/utils/validation'
+import { getAmountError, getNetAmountError, refineDocumentIdentity } from '@/lib/utils/validation'
 import { validateTransferFields } from './transfer-validation'
 
 // ---------------------------------------------------------------------------
@@ -48,21 +48,28 @@ export type CreateTransferFormT = z.infer<typeof createTransferSchema>
 // Server-side schema for updating transfers (metadata fields only)
 // ---------------------------------------------------------------------------
 
-export const updateTransferSchema = z.object({
-  description: z.string().optional().default(''),
-  amount: z.number().positive('Kwota musi być większa niż 0').optional(),
-  date: z.string().min(1, 'Data jest wymagana'),
-  paymentMethod: z.enum(PAYMENT_METHODS).nullish(),
-  investment: z.number().optional(),
-  expenseCategory: z.number().optional(),
-  otherCategory: z.number().optional(),
-  invoiceNote: z.string().optional(),
-  // Only ever a FILL-IN on a legacy wpłata that carries neither. Both rules that govern it need the
-  // stored row, which no schema has: `updateTransferAction` decides whether the answer is sent, and
-  // `hooks/transfers/validate.ts` refuses to move one already booked.
-  vatPlane: z.enum(['NET', 'GROSS']).optional(),
-  netAmount: z.number().optional(),
-})
+export const updateTransferSchema = z
+  .object({
+    description: z.string().optional().default(''),
+    amount: z.number().positive('Kwota musi być większa niż 0').optional(),
+    date: z.string().min(1, 'Data jest wymagana'),
+    paymentMethod: z.enum(PAYMENT_METHODS).nullish(),
+    investment: z.number().optional(),
+    expenseCategory: z.number().optional(),
+    otherCategory: z.number().optional(),
+    invoiceNote: z.string().optional(),
+    // `null` clears. `updateTransferAction` drops it on every type but OTHER.
+    worker: z.number().positive().nullable().optional(),
+    documentNumber: z.string().optional(),
+    sellerNip: z.string().optional(),
+    documentDate: z.string().optional(),
+    // Only ever a FILL-IN on a legacy wpłata that carries neither. Both rules that govern it need the
+    // stored row, which no schema has: `updateTransferAction` decides whether the answer is sent, and
+    // `hooks/transfers/validate.ts` refuses to move one already booked.
+    vatPlane: z.enum(['NET', 'GROSS']).optional(),
+    netAmount: z.number().optional(),
+  })
+  .superRefine((data, ctx) => refineDocumentIdentity(data, ctx))
 
 export type UpdateTransferFormT = z.infer<typeof updateTransferSchema>
 

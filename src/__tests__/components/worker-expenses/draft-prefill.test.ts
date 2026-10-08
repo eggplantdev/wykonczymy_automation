@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { buildDraftPrefill } from '@/components/worker-expenses/draft-prefill'
-import type { ExpenseDraftReadT } from '@/lib/db/expense-draft-read'
+import type { BulkLineItemT } from '@/components/forms/expense-form/bulk-expense-form'
+import { expenseDraftReadSchema, type ExpenseDraftReadT } from '@/lib/db/expense-draft-read'
 import type { ExpenseDraftMediaT } from '@/lib/db/worker-expense-drafts'
 
 const page = (id: number): ExpenseDraftMediaT => ({
@@ -21,6 +22,11 @@ const fieldsOf = (prefill: ReturnType<typeof buildDraftPrefill>) =>
     invoiceNote,
     expenseCategory,
   }))
+const identityOf = ({ documentNumber, sellerNip, documentDate }: BulkLineItemT) => ({
+  documentNumber,
+  sellerNip,
+  documentDate,
+})
 const namesOf = (prefill: ReturnType<typeof buildDraftPrefill>) =>
   [...prefill.files.entries()].map(([row, files]) => [row, files.map((file) => file.name)])
 
@@ -119,6 +125,55 @@ describe('buildDraftPrefill', () => {
 
     expect(namesOf(prefill)).toEqual([[0, ['leroy.jpg', 'leroy-2.jpg']]])
     expect(prefill.files.get(0)?.[1].type).toBe('image/jpeg')
+  })
+
+  it('a read with the document identity prefills number, NIP and date', () => {
+    const aiRead: ExpenseDraftReadT = {
+      rows: [
+        {
+          mediaIds: [1],
+          description: 'Castorama 05.03.2026',
+          amount: 40,
+          documentNumber: 'FV 123/2026',
+          sellerNip: '5213456789',
+          documentDate: '2026-03-05',
+        },
+      ],
+    }
+
+    const [lineItem] = buildDraftPrefill(
+      { media: MEDIA.slice(0, 1), scanMode: 'one-invoice', aiRead },
+      FILES.slice(0, 1),
+      CATEGORY,
+    ).lineItems
+
+    expect(identityOf(lineItem)).toEqual({
+      documentNumber: 'FV 123/2026',
+      sellerNip: '5213456789',
+      documentDate: '2026-03-05',
+    })
+  })
+
+  // Reads stored before EX-1025 carry no identity fields.
+  it('a stored read without the identity fields still prefills everything else', () => {
+    const aiRead = expenseDraftReadSchema.parse({
+      rows: [{ mediaIds: [1], description: 'Leroy 01.02.2026', amount: 12.5, invoiceNote: 'P/1' }],
+    })
+
+    const prefill = buildDraftPrefill(
+      { media: MEDIA.slice(0, 1), scanMode: 'one-invoice', aiRead },
+      FILES.slice(0, 1),
+      CATEGORY,
+    )
+
+    expect(fieldsOf(prefill)).toEqual([
+      { ...BLANK, description: 'Leroy 01.02.2026', amount: '12.5', invoiceNote: 'P/1' },
+    ])
+    expect(identityOf(prefill.lineItems[0])).toEqual({
+      documentNumber: '',
+      sellerNip: '',
+      documentDate: '',
+    })
   })
 
   // The write guard keeps a stale read out of the DB; this keeps one out of the form all the same.

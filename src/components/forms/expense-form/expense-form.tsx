@@ -66,6 +66,7 @@ import { useExpenseFormStore } from '@/stores/form-stores'
 import { isBookableInvestment } from '@/lib/constants/investment-lock'
 import { canBookTransferType } from '@/lib/auth/roles'
 import { receiptDecision } from '@/lib/worker-expenses/receipt-decision'
+import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
 
 // Form state uses strings since HTML inputs/selects work with strings.
 // Numeric conversion happens in the server action.
@@ -86,7 +87,17 @@ type TransferFormPropsT = {
   prefill?: ExpenseFormPrefillT
   // The prefill's read is still in flight; the form locks so the refill can't overwrite typing.
   isPrefillReading?: boolean
+  // The save uploads the prefill's files as the expense's invoices; without them it would book one
+  // with none.
+  isSaveBlocked?: boolean
   secondaryAction?: React.ReactNode
+  // `duplicateOf` when the last row went as a duplicate — it takes the whole zgłoszenie with it.
+  onRemoveLastItem?: (duplicateOf?: DuplicateOfT) => void
+  // Reads the live rows, so a hint follows the row it is about as rows are removed.
+  renderAboveLineItems?: (api: {
+    lineItemIds: string[]
+    markDuplicate: (itemId: string, duplicateOf: DuplicateOfT) => void
+  }) => React.ReactNode
 }
 
 const FORM_ID = 'expense'
@@ -98,9 +109,16 @@ export function ExpenseForm({
   formId = FORM_ID,
   prefill,
   isPrefillReading = false,
+  isSaveBlocked = false,
   secondaryAction,
+  onRemoveLastItem,
+  renderAboveLineItems,
 }: TransferFormPropsT) {
   const { recoveredFiles, submit } = useFormSubmit(formId)
+  // Rides on the acceptance decision; nothing is stored until the save.
+  const [duplicateOfByItemId, setDuplicateOfByItemId] = useState(
+    () => new Map<string, DuplicateOfT>(),
+  )
 
   // Scoped by formId like every other draft consumer: `'expense'` is the only writer today, but the
   // day an „Edytuj wydatek" dialog shares this slot its draft would otherwise seed the create form.
@@ -154,6 +172,7 @@ export function ExpenseForm({
     resetRegisterBalance()
     resetInvoiceFiles()
     resetGeneration()
+    setDuplicateOfByItemId(new Map())
   }
 
   // Fills the select only when it would otherwise be empty — a draft that already names an
@@ -210,6 +229,7 @@ export function ExpenseForm({
         toastMessage('Poczekaj na przetworzenie plików.', 'warning', 4000)
         return false
       }
+      if (isSaveBlocked) return false
 
       const type = value.type as TransferTypeT
       const data: CreateBulkExpenseFormT = {
@@ -238,7 +258,7 @@ export function ExpenseForm({
               invoicePageRows,
               prefill && {
                 expenseDraftId: prefill.expenseDraftId,
-                ...receiptDecision(prefill.receiptMediaIds, value.lineItems),
+                ...receiptDecision(prefill.receiptMediaIds, value.lineItems, duplicateOfByItemId),
               },
             ),
           ),
@@ -285,6 +305,17 @@ export function ExpenseForm({
   const currentInvestment = useStore(form.store, (s) => s.values.investment)
   const lineItems = useStore(form.store, (s) => s.values.lineItems)
   const total = lineItems.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
+
+  function markDuplicate(itemId: string, duplicateOf: DuplicateOfT) {
+    const index = lineItems.findIndex((item) => item.id === itemId)
+    if (index === -1) return
+    if (lineItems.length === 1) {
+      onRemoveLastItem?.(duplicateOf)
+      return
+    }
+    handleRemoveLineItem(itemId, index, (i) => form.removeFieldValue('lineItems', i))
+    setDuplicateOfByItemId((prev) => new Map(prev).set(itemId, duplicateOf))
+  }
 
   // Blanked, never reset — see clear-fields-for-type. Top-level fields ONLY: the rows, their queued
   // invoice files and the per-row scan markers all survive a type change.
@@ -393,12 +424,18 @@ export function ExpenseForm({
             <EntityComboboxField form={form} variant="worker" items={referenceData.workers} />
           )}
 
+          {renderAboveLineItems?.({
+            lineItemIds: lineItems.map((item) => item.id),
+            markDuplicate,
+          })}
+
           {!isDepositType(currentType) && (
             <LineItemsField
               form={form}
               total={total}
               hasInvestment={!!currentInvestment}
               onRemoveItem={handleRemoveLineItem}
+              onRemoveLastItem={onRemoveLastItem}
               onFileChange={attachFile}
               onRemoveFile={removeFileAt}
               onRegisterFiles={registerFiles}
@@ -425,7 +462,7 @@ export function ExpenseForm({
       <FormFooter
         className="mt-6"
         label="Zapisz"
-        disabled={isIngesting || isPrefillReading}
+        disabled={isIngesting || isPrefillReading || isSaveBlocked}
         secondaryAction={secondaryAction}
       />
     </FormShell>

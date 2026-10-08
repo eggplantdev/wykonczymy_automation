@@ -32,15 +32,20 @@ const entry = (description: string, unit: string) => ({
   matchKey: catalogueKey(description, unit),
 })
 
-const rows = [
-  { id: 1, description: 'Gładź gipsowa', unit: 'm2' },
-  { id: 2, description: 'Malowanie ścian', unit: 'm2' },
-  { id: 3, description: 'Malowanie  ścian', unit: 'm²' },
+type SwapRowT = { id: number; description: string; unit: string; catalogueItemId: number | null }
+
+const rows: SwapRowT[] = [
+  { id: 1, description: 'Gładź gipsowa', unit: 'm2', catalogueItemId: null },
+  { id: 2, description: 'Malowanie ścian', unit: 'm2', catalogueItemId: null },
+  { id: 3, description: 'Malowanie  ścian', unit: 'm²', catalogueItemId: null },
 ]
+
+const swap = (picked: ReturnType<typeof entry>, swapRows: SwapRowT[] = rows) =>
+  catalogueSwap(picked, swapRows, [picked])
 
 describe('podmiana pracy spoza rozpiski na pracę z katalogu', () => {
   it('praca już w rozpisce przechodzi do „Z rozpiski” na tę pozycję, z ilością pracownika', () => {
-    const swapped = { ...draft, ...catalogueSwap(entry('Gładź gipsowa', 'm2'), rows) }
+    const swapped = { ...draft, ...swap(entry('Gładź gipsowa', 'm2')) }
 
     expect(lineGroup({ kind: 'extra' }, swapped)).toBe('rozpiska')
     expect(swapped.itemId).toBe(1)
@@ -48,7 +53,7 @@ describe('podmiana pracy spoza rozpiski na pracę z katalogu', () => {
   })
 
   it('praca w kilku sekcjach czeka na wybór pozycji', () => {
-    const swapped = { ...draft, ...catalogueSwap(entry('Malowanie ścian', 'm2'), rows) }
+    const swapped = { ...draft, ...swap(entry('Malowanie ścian', 'm2')) }
 
     expect(lineGroup({ kind: 'extra' }, swapped)).toBe('rozpiska')
     expect(swapped.matchedItemIds).toEqual([2, 3])
@@ -56,11 +61,21 @@ describe('podmiana pracy spoza rozpiski na pracę z katalogu', () => {
   })
 
   it('praca spoza rozpiski zostaje nową pozycją z ceną z katalogu', () => {
-    const swapped = { ...draft, ...catalogueSwap(entry('Montaż domofonu', 'szt'), rows) }
+    const swapped = { ...draft, ...swap(entry('Montaż domofonu', 'szt')) }
 
     expect(lineGroup({ kind: 'extra' }, swapped)).toBe('extra')
     expect(swapped.catalogueId).toBe(7)
     expect(swapped.unitPrice).toBe('45')
+  })
+
+  it('pozycja pamiętająca przemianowaną pracę katalogu trafia do niej mimo innego opisu', () => {
+    const renamed = { id: 7, clientPrice: 45, matchKey: catalogueKey('Gładź polimerowa', 'm2') }
+    const linkedRows: SwapRowT[] = [
+      { id: 1, description: 'Gładź gipsowa', unit: 'm2', catalogueItemId: 7 },
+    ]
+    const swapped = { ...draft, ...swap(renamed, linkedRows) }
+
+    expect(swapped.itemId).toBe(1)
   })
 })
 

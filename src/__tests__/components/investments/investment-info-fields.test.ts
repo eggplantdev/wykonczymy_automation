@@ -19,7 +19,6 @@ describe('buildInvestmentInfoFields', () => {
       'Telefon',
       'Email',
       'Osoba kontaktowa',
-      'Notatki',
       'Status',
       'Opinia',
     ])
@@ -35,12 +34,7 @@ describe('buildInvestmentInfoFields', () => {
       email: '',
       reviewRequested: false,
     })
-    expect(fields.map((field) => field.label)).toEqual([
-      'Adres',
-      'Osoba kontaktowa',
-      'Notatki',
-      'Status',
-    ])
+    expect(fields.map((field) => field.label)).toEqual(['Adres', 'Osoba kontaktowa', 'Status'])
   })
 
   it('Status zostaje nawet gdy wszystkie pozostałe pola są puste', () => {
@@ -49,7 +43,6 @@ describe('buildInvestmentInfoFields', () => {
       phone: '',
       email: '',
       contactPerson: '',
-      notes: '',
       status: 'planowana',
       reviewRequested: false,
     })

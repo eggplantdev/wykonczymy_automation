@@ -1,7 +1,12 @@
 import { z } from 'zod'
-import { getNetAmountError, refineAmount, refineDate } from '@/lib/utils/validation'
-import { canFillVatPlane, planeFor } from '@/lib/constants/transfers'
-import { validateTransferFields } from './transfer-validation'
+import {
+  getNetAmountError,
+  refineAmount,
+  refineDate,
+  refineDocumentIdentity,
+} from '@/lib/utils/validation'
+import { canFillVatPlane, needsOtherCategory, planeFor } from '@/lib/constants/transfers'
+import { OTHER_CATEGORY_REQUIRED, validateTransferFields } from './transfer-validation'
 
 // The client-side twin of the server schemas in `./transfer.ts`: every transfer-creating and
 // transfer-editing form validates against these, so the fields are typed as the strings HTML inputs
@@ -70,12 +75,19 @@ export const editTransferFormSchema = (row: {
       expenseCategory: z.string(),
       otherCategory: z.string(),
       invoiceNote: z.string(),
+      worker: z.string(),
+      documentNumber: z.string(),
+      sellerNip: z.string(),
+      documentDate: z.string(),
       // The netto off the faktura, asked for only while filling in a legacy wpłata's missing plane.
       netAmount: z.string().optional(),
     })
     .superRefine((data, ctx) => {
       if (data.amount !== undefined)
         refineAmount({ ...data, amount: data.amount, type: row.type }, ctx)
+      if (needsOtherCategory(row.type) && !data.otherCategory)
+        ctx.addIssue({ code: 'custom', message: OTHER_CATEGORY_REQUIRED, path: ['otherCategory'] })
+      refineDocumentIdentity(data, ctx)
       // The method IS the plane, so „jak zapłacił" is what decides whether a netto is owed.
       if (!canFillVatPlane(row)) return
       const netErr = getNetAmountError(

@@ -5,6 +5,7 @@ import {
   requiresInvestment,
   needsTargetRegister,
   needsExpenseCategory,
+  needsOtherCategory,
   needsWorker,
   carriesPaymentMethod,
 } from '@/lib/constants/transfers'
@@ -29,6 +30,8 @@ type FieldRuleT = {
   message: string
   path: string
 }
+
+export const OTHER_CATEGORY_REQUIRED = 'Kategoria jest wymagana'
 
 const transferFieldRules: FieldRuleT[] = [
   {
@@ -68,6 +71,11 @@ const transferFieldRules: FieldRuleT[] = [
     message: `${EXPENSE_CATEGORY_LABEL} jest wymagany`,
     path: 'expenseCategory',
   },
+  {
+    invalid: (d) => needsOtherCategory(d.type) && !('lineItems' in d) && !d.otherCategory,
+    message: OTHER_CATEGORY_REQUIRED,
+    path: 'otherCategory',
+  },
 ]
 
 export function validateTransferFields(data: TransferFieldsT, ctx: z.RefinementCtx) {
@@ -90,6 +98,13 @@ export function validateLineItemCategories(
         code: 'custom',
         message: `${EXPENSE_CATEGORY_LABEL} jest wymagany`,
         path: ['lineItems', index, 'expenseCategory'],
+      })
+    }
+    if (needsOtherCategory(type) && !item.category) {
+      ctx.addIssue({
+        code: 'custom',
+        message: OTHER_CATEGORY_REQUIRED,
+        path: ['lineItems', index, 'category'],
       })
     }
   })

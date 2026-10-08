@@ -100,6 +100,13 @@ describe('KosztorysEditorToolbar — przełącznik panelu', () => {
 
     expect(screen.getByRole('button', { name: /Podsumowanie/ })).not.toBeDisabled()
   })
+
+  // A szablon has no Przedmiar, etapy or investment, so the panel would print only zeros.
+  it('is absent on the szablon workbench', () => {
+    renderToolbar({ isTemplate: true })
+
+    expect(screen.queryByRole('button', { name: /Podsumowanie/ })).not.toBeInTheDocument()
+  })
 })
 
 describe('KosztorysEditorToolbar — „Widok cen"', () => {

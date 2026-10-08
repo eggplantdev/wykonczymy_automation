@@ -32,7 +32,7 @@ export async function placeCatalogueItems(
 ): Promise<AppendedCatalogueSliceT> {
   const sectionId = placement.section.id
   const items = catalogueItems.map((catalogueItem, i) =>
-    itemFromFields(catalogueItem, sectionId, placement.nextDisplayOrder + i),
+    itemFromFields(catalogueItem, sectionId, placement.nextDisplayOrder + i, catalogueItem.id),
   )
   const warnings = ceilingWarnings(items)
 

@@ -20,10 +20,13 @@ import { formatPLN } from '@/lib/utils/format-currency'
 import {
   billsNetAmount,
   EXPENSE_CATEGORY_LABEL,
+  hasOptionalWorker,
   needsExpenseCategory,
+  needsOtherCategory,
   showsOtherCategory,
 } from '@/lib/constants/transfers'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
+import { isActiveRef } from '@/lib/utils/is-active-ref'
 import type { ScanModeT } from '@/lib/constants/receipt-scan'
 import { pl } from '@/lib/i18n/dictionaries/pl'
 import {
@@ -41,8 +44,8 @@ type LineItemsArrayFieldT = {
   removeValue: (index: number) => void
 }
 
-type CategoryFieldConfigT = {
-  fieldName: 'category' | 'expenseCategory'
+type RowSelectConfigT = {
+  fieldName: 'category' | 'expenseCategory' | 'worker'
   label: string
   placeholder: string
   options: { id: number; name: string }[]
@@ -70,6 +73,8 @@ type LineItemsFieldPropsT = {
   total: number
   hasInvestment?: boolean
   onRemoveItem: (id: string, index: number, removeValue: (index: number) => void) => void
+  // Without it the last row's trash is disabled: an expense needs at least one row.
+  onRemoveLastItem?: () => void
   onFileChange: (id: string, e: React.ChangeEvent<HTMLInputElement>) => void
   onRemoveFile: (id: string, index: number) => void
   // 'per-row' registers `files[i]` against row `ids[i]`, 'single-row' hangs all of them on `ids[0]`
@@ -86,10 +91,10 @@ type LineItemsFieldPropsT = {
   generationProgress?: { done: number; total: number } | null
 }
 
-const otherCategoryConfig = (refData: ReferenceDataBaseT): CategoryFieldConfigT => ({
+const otherCategoryConfig = (type: string, refData: ReferenceDataBaseT): RowSelectConfigT => ({
   fieldName: 'category',
   label: 'Kategoria',
-  placeholder: 'Opcjonalnie',
+  placeholder: needsOtherCategory(type) ? 'Kategoria *' : 'Opcjonalnie',
   options: refData.otherCategories,
 })
 
@@ -97,7 +102,7 @@ function getInlineCategory(
   type: string,
   refData: ReferenceDataBaseT,
   hasInvestment?: boolean,
-): CategoryFieldConfigT | undefined {
+): RowSelectConfigT | undefined {
   if (needsExpenseCategory(type, hasInvestment)) {
     return {
       fieldName: 'expenseCategory',
@@ -106,19 +111,26 @@ function getInlineCategory(
       options: refData.expenseCategories,
     }
   }
-  if (showsOtherCategory(type)) return otherCategoryConfig(refData)
+  if (showsOtherCategory(type)) return otherCategoryConfig(type, refData)
   return undefined
 }
 
-function getSecondRowCategory(
-  type: string,
-  refData: ReferenceDataBaseT,
-): CategoryFieldConfigT | undefined {
-  if (needsExpenseCategory(type) && showsOtherCategory(type)) return otherCategoryConfig(refData)
-  return undefined
+const workerConfig = (refData: ReferenceDataBaseT): RowSelectConfigT => ({
+  fieldName: 'worker',
+  label: 'Pracownik',
+  placeholder: 'Opcjonalnie',
+  options: refData.workers.filter(isActiveRef),
+})
+
+function getSecondRowSelects(type: string, refData: ReferenceDataBaseT): RowSelectConfigT[] {
+  const selects: RowSelectConfigT[] = []
+  if (needsExpenseCategory(type) && showsOtherCategory(type))
+    selects.push(otherCategoryConfig(type, refData))
+  if (hasOptionalWorker(type)) selects.push(workerConfig(refData))
+  return selects
 }
 
-function CategorySelect({
+function RowSelect({
   form,
   index,
   config,
@@ -126,7 +138,7 @@ function CategorySelect({
 }: {
   form: BulkExpenseFormApiT
   index: number
-  config: CategoryFieldConfigT
+  config: RowSelectConfigT
   fieldClassName?: string
 }) {
   return (
@@ -153,6 +165,7 @@ export function LineItemsField({
   total,
   hasInvestment,
   onRemoveItem,
+  onRemoveLastItem,
   onFileChange,
   onRemoveFile,
   onRegisterFiles,
@@ -167,7 +180,7 @@ export function LineItemsField({
 }: LineItemsFieldPropsT) {
   const inlineCategory = getInlineCategory(transferType, referenceData, hasInvestment)
   const showsNetAmount = billsNetAmount(transferType)
-  const secondRowCategory = getSecondRowCategory(transferType, referenceData)
+  const secondRowSelects = getSecondRowSelects(transferType, referenceData)
   // Fresh per call — each pushed row needs its own `id` (a shared object would collide ids).
   const newItem = () =>
     makeLineItem(defaultExpenseCategory ? { expenseCategory: defaultExpenseCategory } : undefined)
@@ -306,7 +319,7 @@ export function LineItemsField({
                         )}
                       </form.AppField>
                       {inlineCategory && (
-                        <CategorySelect
+                        <RowSelect
                           form={form}
                           index={index}
                           config={inlineCategory}
@@ -336,23 +349,30 @@ export function LineItemsField({
                         ) : (
                           <RemoveButton
                             icon={Trash2}
-                            onClick={() => onRemoveItem(item.id, index, lineItemsField.removeValue)}
+                            onClick={() =>
+                              lineItemsField.state.value.length === 1
+                                ? onRemoveLastItem?.()
+                                : onRemoveItem(item.id, index, lineItemsField.removeValue)
+                            }
                             disabled={
-                              isGenerating || isIngesting || lineItemsField.state.value.length === 1
+                              isGenerating ||
+                              isIngesting ||
+                              (lineItemsField.state.value.length === 1 && !onRemoveLastItem)
                             }
                           />
                         )}
                       </div>
                     </div>
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
-                      {secondRowCategory && (
-                        <CategorySelect
+                      {secondRowSelects.map((config) => (
+                        <RowSelect
+                          key={config.fieldName}
                           form={form}
                           index={index}
-                          config={secondRowCategory}
+                          config={config}
                           fieldClassName="min-w-0 flex-1"
                         />
-                      )}
+                      ))}
                       <LineItemInvoiceField
                         id={item.id}
                         files={getRowFiles(item.id)}
@@ -372,6 +392,21 @@ export function LineItemsField({
                           <span className="text-neon-cyan font-semibold">Odczytaj ponownie</span>
                         </Button>
                       )}
+                    </div>
+                    <div className="grid gap-2 sm:grid-cols-3">
+                      <form.AppField name={`lineItems[${index}].documentNumber`}>
+                        {(field) => (
+                          <field.Input label="Nr dokumentu" placeholder="Opcjonalnie" showError />
+                        )}
+                      </form.AppField>
+                      <form.AppField name={`lineItems[${index}].sellerNip`}>
+                        {(field) => (
+                          <field.Input label="NIP sprzedawcy" placeholder="Opcjonalnie" showError />
+                        )}
+                      </form.AppField>
+                      <form.AppField name={`lineItems[${index}].documentDate`}>
+                        {(field) => <field.DatePicker label="Data na paragonie" showError />}
+                      </form.AppField>
                     </div>
                     <form.AppField name={`lineItems[${index}].invoiceNote`}>
                       {(field) => (

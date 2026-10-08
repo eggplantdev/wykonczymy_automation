@@ -10,6 +10,7 @@ import {
   type StoredSnapshotPayloadT,
 } from './snapshot-format'
 import { insertItems, insertSections, remapNewIds } from './insert-rows'
+import type { KosztorysItemT } from './types'
 
 export const STAGE_INSERT_COLUMNS = [
   'investment_id',
@@ -49,6 +50,31 @@ async function liveWorkerIds(db: DbExecutorT, ids: number[]): Promise<Set<number
   return new Set(res.rows.map((row) => Number(row.id)))
 }
 
+// A katalog entry deleted since the payload was written is forgotten rather than carried: the id is a
+// soft reference with no FK, so it would insert fine, but a pozycja naming a dead entry would claim a
+// link nothing can follow. No lock, unlike liveWorkerIds — nothing fails if an entry dies mid-restore,
+// the id just goes stale the same way it would a second later.
+export async function liveCatalogueIds(
+  db: DbExecutorT,
+  items: readonly KosztorysItemT[],
+): Promise<Set<number>> {
+  const ids = [
+    ...new Set(
+      items.flatMap((item) => (item.catalogueItemId === null ? [] : [item.catalogueItemId])),
+    ),
+  ]
+  if (ids.length === 0) return new Set()
+  const res = await db.execute(
+    sql`SELECT id FROM work_catalogue_items WHERE id IN (${sqlList(ids)})`,
+  )
+  return new Set(res.rows.map((row) => Number(row.id)))
+}
+
+export const withLiveCatalogueId = (item: KosztorysItemT, live: Set<number>): KosztorysItemT =>
+  item.catalogueItemId === null || live.has(item.catalogueItemId)
+    ? item
+    : { ...item, catalogueItemId: null }
+
 // Bulk-insert a serialized kosztorys tree onto an investment, on a caller-owned transaction handle.
 // Shared by restoreKosztorys (wipe → insert → settings) and applyPreset (insert-only) — each caller
 // owns the transaction and adds its own wipe/settings semantics around this.
@@ -74,10 +100,13 @@ export async function insertKosztorysTree(
   )
   const sectionIdMap = new Map(sections.map((s, i) => [s.id, sectionIds[i]]))
 
+  const filled = (tree.items ?? []).map(itemWithColumnDefaults)
+  const liveCatalogue = await liveCatalogueIds(db, filled)
+  const items = filled.map((item) => withLiveCatalogueId(item, liveCatalogue))
   // Skip an item whose parent section is absent (dangling FK).
-  const itemRows = (tree.items ?? []).flatMap((item, index) => {
+  const itemRows = items.flatMap((item) => {
     const sectionId = sectionIdMap.get(item.sectionId)
-    return sectionId === undefined ? [] : [{ sectionId, item: itemWithColumnDefaults(item, index) }]
+    return sectionId === undefined ? [] : [{ sectionId, item }]
   })
   const itemIds = await insertItems(db, investmentId, itemRows)
   const itemIdMap = new Map(itemRows.map(({ item }, i) => [item.id, itemIds[i]]))

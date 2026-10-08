@@ -38,6 +38,7 @@ export function row(overrides: Partial<KosztorysV2RowT> = {}): KosztorysV2RowT {
     wToolsOverrideCoeff: null,
     ownToolsOverrideCoeff: null,
     note: null,
+    catalogueItemId: null,
     currentPlannedQty: null,
     aiPlannedQty: null,
     changeReason: null,

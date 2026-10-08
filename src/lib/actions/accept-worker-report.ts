@@ -380,7 +380,7 @@ function extraAsItem(
     extra.catalogueItemId === undefined ? undefined : catalogue.get(extra.catalogueItemId)
   if (entry) {
     return {
-      ...itemFromFields(entry, section.id, displayOrder),
+      ...itemFromFields(entry, section.id, displayOrder, entry.id),
       currentPlannedQty: extra.acceptedQty,
     }
   }
@@ -407,6 +407,7 @@ function extraAsItem(
     wToolsOverrideCoeff: null,
     ownToolsOverrideCoeff: null,
     note: null,
+    catalogueItemId: null,
     aiPlannedQty: null,
     changeReason: null,
     reviewStatus: null,

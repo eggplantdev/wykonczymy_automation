@@ -152,7 +152,12 @@ export function InvestmentForm({
           </form.AppField>
 
           <form.AppField name="reviewRequested">
-            {(field) => <field.Checkbox label="Prośba o opinię wysłana" />}
+            {(field) => (
+              <field.Checkbox
+                label="Prośba o opinię wysłana"
+                description="Zaznacz jeśli wysłałeś już do inwestora prośbę o opinię w google"
+              />
+            )}
           </form.AppField>
 
           {/* Container query, not a breakpoint: the two columns follow the dialog's width, and the

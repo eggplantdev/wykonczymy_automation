@@ -39,6 +39,9 @@ export type TransferRowT = {
   // Every page of the invoice, in the order they were attached. Empty when nothing is attached.
   invoices: PreviewFileT[]
   invoiceNote: string | null
+  documentNumber: string | null
+  sellerNip: string | null
+  documentDate: string | null
   cancelled: boolean
   settled: boolean
   // Netto/Brutto plane the amount is stated on; null when unspecified.

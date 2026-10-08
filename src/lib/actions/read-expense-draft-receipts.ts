@@ -21,6 +21,9 @@ function toReadRow(mediaIds: number[], data: ReceiptFillResultT): ExpenseDraftRe
   if (data.amount !== null) row.amount = data.amount
   if (data.netAmount !== null) row.netAmount = data.netAmount
   if (data.invoiceNote) row.invoiceNote = data.invoiceNote
+  if (data.documentNumber) row.documentNumber = data.documentNumber
+  if (data.sellerNip) row.sellerNip = data.sellerNip
+  if (data.documentDate) row.documentDate = data.documentDate
   if (data.filename) row.filename = data.filename
   return row
 }

@@ -7,6 +7,7 @@ import {
   type DescriptionTranslationsT,
 } from '@/lib/i18n/description-translations'
 import type {
+  CatalogueIdentityT,
   CatalogueSeedItemT,
   CatalogueSourceItemT,
   WorkCatalogueItemT,
@@ -58,6 +59,19 @@ export async function listCatalogueItemsByIds(
   })
 }
 
+/** The live katalog entries a kosztorys's rows remember — what a szablon's prace read from. */
+export async function listCatalogueItemsLinkedFrom(
+  db: DbExecutorT,
+  investmentId: number,
+): Promise<WorkCatalogueItemT[]> {
+  const result = await db.execute(sql`
+    SELECT ${CATALOGUE_COLUMNS}
+    FROM work_catalogue_items
+    WHERE id IN (SELECT catalogue_item_id FROM kosztorys_items WHERE investment_id = ${investmentId})
+  `)
+  return result.rows.map(toCatalogueItem)
+}
+
 /** The whole cennik, in the order the katalog screen reads it. */
 export async function listCatalogueItems(db: DbExecutorT): Promise<WorkCatalogueItemT[]> {
   const result = await db.execute(sql`
@@ -83,6 +97,27 @@ export async function listCatalogueItemsByMatchKeys(
     WHERE match_key IN (${sqlList(matchKeys)})
   `)
   return result.rows.map(toCatalogueItem)
+}
+
+/**
+ * Every katalog entry's id and translations, keyed by match key. The sheet import needs it before it
+ * has parsed a row, so it cannot ask for a known set of keys.
+ */
+export async function listCatalogueIdentitiesByMatchKey(
+  db: DbExecutorT,
+): Promise<Map<string, CatalogueIdentityT>> {
+  const result = await db.execute(sql`
+    SELECT id, match_key, description_translations FROM work_catalogue_items
+  `)
+  return new Map(
+    result.rows.map((row) => [
+      String(row.match_key),
+      {
+        id: Number(row.id),
+        descriptionTranslations: toDescriptionTranslations(row.description_translations),
+      },
+    ]),
+  )
 }
 
 /**
@@ -188,6 +223,20 @@ export async function findCatalogueItemByKey(
     SELECT ${CATALOGUE_COLUMNS}
     FROM work_catalogue_items
     WHERE match_key = ${matchKey}
+  `)
+  const row = result.rows[0]
+  return row ? toCatalogueItem(row) : undefined
+}
+
+/** The live katalog entry a pozycja remembers — none for an unlinked row or a deleted entry. */
+export async function findLinkedCatalogueItem(
+  db: DbExecutorT,
+  itemId: number,
+): Promise<WorkCatalogueItemT | undefined> {
+  const result = await db.execute(sql`
+    SELECT ${CATALOGUE_COLUMNS}
+    FROM work_catalogue_items
+    WHERE id = (SELECT catalogue_item_id FROM kosztorys_items WHERE id = ${itemId})
   `)
   const row = result.rows[0]
   return row ? toCatalogueItem(row) : undefined

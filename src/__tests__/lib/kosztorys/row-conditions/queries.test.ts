@@ -6,6 +6,7 @@ import {
   clientConditionIds,
   columnsRevealedBy,
   countMatching,
+  editorConditionIds,
   engagedConditionsOfKind,
   engagedPlane,
   isFoldSuppressed,
@@ -286,6 +287,25 @@ describe('isFoldSuppressed', () => {
   it('leaves them alone under a problem, which reports its own count instead', () => {
     expect(isFoldSuppressed('', new Set(['no-client-price']))).toBe(false)
   })
+
+  it('leaves them standing under the hider „Przegląd AI" engages on every switch-on', () => {
+    expect(isFoldSuppressed('', new Set(['no-planned-or-ai-qty']))).toBe(false)
+    expect(isFoldSuppressed('', new Set(['has-planned-or-ai-qty']))).toBe(true)
+  })
+})
+
+describe('editorConditionIds', () => {
+  const stored = new Set(['no-planned-or-ai-qty', 'has-note'])
+
+  it('counts the „Przegląd AI" filters only while the view is on', () => {
+    expect(editorConditionIds(stored, true)).toBe(stored)
+    expect([...editorConditionIds(stored, false)]).toEqual(['has-note'])
+  })
+
+  it('hands the same set back when none is stored', () => {
+    const plain = new Set(['has-note'])
+    expect(editorConditionIds(plain, false)).toBe(plain)
+  })
 })
 
 // The owner's „Ukryj pozycje bez przedmiaru i bez wykonanej pracy" reaching the client's document is
@@ -314,10 +334,14 @@ describe('offeredFilterConditions', () => {
     engaged: string[] = [],
     perItemDiscountInert = false,
     crewAxis: CrewAxisT = 'both',
+    isTemplate = false,
   ) =>
-    offeredFilterConditions(new Set(engaged), perItemDiscountInert, crewAxis).map(
-      (condition) => condition.id,
-    )
+    offeredFilterConditions({
+      engagedIds: new Set(engaged),
+      perItemDiscountInert,
+      crewAxis,
+      isTemplate,
+    }).map((condition) => condition.id)
 
   it('offers only the filters — problems and the client rule have their own homes', () => {
     expect(offeredIds()).not.toContain('no-client-price')
@@ -342,5 +366,21 @@ describe('offeredFilterConditions', () => {
   it('keeps an engaged rabat filter offered, so it can be untangled', () => {
     expect(offeredIds(['has-discount'], true)).toContain('has-discount')
     expect(offeredIds(['has-discount'], true)).not.toContain('no-discount')
+  })
+
+  // A szablon holds no przedmiar, wykonana praca, rabat or komentarz, so every pozycja matches the
+  // „bez …" half of those axes — only the stawka axes ask it anything.
+  it('offers the szablon workbench its stawka axes only', () => {
+    const offered = offeredIds([], false, 'both', true)
+    expect(offered).toEqual(
+      expect.arrayContaining(['manual-rate-w-tools', 'own-rate-over-ceiling-own-tools']),
+    )
+    for (const id of ['no-planned-qty', 'no-measured-qty', 'no-discount', 'no-note']) {
+      expect(offered).not.toContain(id)
+    }
+  })
+
+  it('keeps an engaged filter offered on the szablon workbench, so it can be untangled', () => {
+    expect(offeredIds(['no-planned-qty'], false, 'both', true)).toContain('no-planned-qty')
   })
 })

@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
-  kosztorysCatalogueKeys,
+  kosztorysCatalogueRefs,
   partitionAlreadyInKosztorys,
+  takenCatalogueIds,
+  type KosztorysItemRefT,
 } from '@/lib/kosztorys/work-catalogue/already-in-kosztorys'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 
@@ -24,24 +26,27 @@ const entry = (description: string, unit: string, matchKey: string): WorkCatalog
   workNote: null,
 })
 
-const split = (
-  catalogue: readonly WorkCatalogueItemT[],
-  items: readonly { description: string | null; unit: string | null }[],
-) => partitionAlreadyInKosztorys(catalogue, kosztorysCatalogueKeys(items))
+type ItemT = Omit<KosztorysItemRefT, 'catalogueItemId'> & { catalogueItemId?: number | null }
 
-describe('kosztorysCatalogueKeys', () => {
+const refs = (items: readonly ItemT[]) =>
+  kosztorysCatalogueRefs(items.map((item) => ({ catalogueItemId: null, ...item })))
+
+const split = (catalogue: readonly WorkCatalogueItemT[], items: readonly ItemT[]) =>
+  partitionAlreadyInKosztorys(catalogue, takenCatalogueIds(catalogue, refs(items)))
+
+const keysOf = (items: readonly ItemT[]) => refs(items).map((ref) => ref.matchKey)
+
+describe('kosztorysCatalogueRefs', () => {
   it('składa klucz z opisu i j.m., a brak j.m. zapisuje sentinelem', () => {
-    expect([
-      ...kosztorysCatalogueKeys([{ description: '  MALOWANIE   ŚCIAN ', unit: 'm2' }]),
-    ]).toEqual(['malowanie scian|m2'])
-    expect([...kosztorysCatalogueKeys([{ description: 'Gruntowanie', unit: null }])]).toEqual([
-      'gruntowanie|~',
+    expect(keysOf([{ description: '  MALOWANIE   ŚCIAN ', unit: 'm2' }])).toEqual([
+      'malowanie scian|m2',
     ])
+    expect(keysOf([{ description: 'Gruntowanie', unit: null }])).toEqual(['gruntowanie|~'])
   })
 
   it('pomija pozycję bez nazwy — katalog takiej nie ma, więc trafiłaby tylko przypadkiem', () => {
-    expect(kosztorysCatalogueKeys([{ description: null, unit: 'm2' }]).size).toBe(0)
-    expect(kosztorysCatalogueKeys([{ description: '   ', unit: 'm2' }]).size).toBe(0)
+    expect(keysOf([{ description: null, unit: 'm2' }])).toEqual([])
+    expect(keysOf([{ description: '   ', unit: 'm2' }])).toEqual([])
   })
 })
 
@@ -87,6 +92,18 @@ describe('partitionAlreadyInKosztorys', () => {
 
     expect(result.fresh).toHaveLength(1)
     expect(result.alreadyAdded).toEqual([])
+  })
+
+  it('pozycja pamiętająca przemianowaną pracę odkłada tę pracę, nie wpis o swoim starym opisie', () => {
+    const renamed = entry('Gładź polimerowa', 'm2', 'gladz polimerowa|m2')
+    const namesake = entry('Gładź gipsowa', 'm2', 'gladz gipsowa|m2')
+    const result = split(
+      [renamed, namesake],
+      [{ description: 'Gładź gipsowa', unit: 'm2', catalogueItemId: renamed.id }],
+    )
+
+    expect(result.alreadyAdded).toEqual([renamed])
+    expect(result.fresh).toEqual([namesake])
   })
 
   it('pusta rozpiska nie odkłada niczego', () => {

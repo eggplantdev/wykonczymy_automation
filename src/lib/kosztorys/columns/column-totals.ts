@@ -69,6 +69,7 @@ export function columnTotalsForRows(
   totals.set('currentPlannedNet', currentPlannedNet)
   totals.set('currentPlannedGross', toGross(currentPlannedNet, vatRate))
   if (view !== 'client') totals.set('plannedNetForPlane', sumOf('plannedNetForPlane'))
+  totals.set('aiPlannedNet', sumOf('aiPlannedNet'))
   totals.set('remaining', remaining)
   totals.set('remainingGross', toGross(remaining, vatRate))
   if (executedQtyByItem) totals.set('remainingForPlane', sumOf('remainingForPlane', notOverrun))

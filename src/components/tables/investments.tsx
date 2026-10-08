@@ -3,6 +3,7 @@
 import { createColumnHelper, type CellContext } from '@tanstack/react-table'
 import { pluralize } from '@/lib/utils/polish-plural'
 import { formatPLN } from '@/lib/utils/format-currency'
+import { formatPLDate } from '@/lib/utils/format-date'
 import { roundToCents } from '@/lib/utils/round-to-cents'
 import { isAdminOrOwnerRole, type RoleT } from '@/lib/auth/roles'
 import { axisShows } from '@/lib/kosztorys/money-axis'
@@ -96,6 +97,12 @@ export function getInvestmentColumns({ userRole, onSettle }: InvestmentColumnOpt
       id: 'name',
       header: 'Nazwa',
       meta: { minWidth: 'min-w-56' },
+    }),
+    col.accessor('createdAt', {
+      id: 'createdAt',
+      header: 'Data dodania',
+      sortDescFirst: true,
+      cell: (info) => formatPLDate(info.getValue()),
     }),
 
     col.accessor('hasSheet', {

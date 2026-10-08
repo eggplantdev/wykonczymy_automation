@@ -7,6 +7,7 @@ import {
   needsTargetRegister,
   needsOtherCategory,
   needsWorker,
+  showsWorker,
   needsExpenseCategory,
   canBeSettled,
   carriesNetAmount,
@@ -172,7 +173,7 @@ export const validateTransfer: CollectionBeforeValidateHook = async ({
     errors.push('Worker is required for this transfer type.')
   }
 
-  if (!needsWorker(type)) {
+  if (!showsWorker(type)) {
     d.worker = null
   }
 

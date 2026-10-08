@@ -30,6 +30,9 @@ const qtyDone = (row: KosztorysV2RowT, ctx: RowConditionCtxT) =>
 const isEmptyOnBothAxes = (row: KosztorysV2RowT, ctx: RowConditionCtxT) =>
   !(row.plannedQty > 0) && !(resolvedCurrentPlannedQty(row) > 0) && !(qtyDone(row, ctx) > 0)
 
+const hasPlannedOrAiQty = (row: KosztorysV2RowT) =>
+  resolvedCurrentPlannedQty(row) > 0 || aiOffered(row)
+
 // Named once so the pair below cannot be edited apart — „bez rabatu" is „ma rabat" negated, and two
 // hand-written copies of a three-term test are two chances to change only one of them.
 const hasItemDiscount = (row: KosztorysV2RowT) => row.discountType !== null && row.discountValue > 0
@@ -53,6 +56,10 @@ const ALL_PRICE_COLUMNS: readonly string[] = ['price', ...ALL_PLANE_PRICE_KEYS]
 // Named because the grid reads it too: the „Rozjazd między arkuszem Google a apką" column exists only while this
 // diagnostic is pressed, so the id is shared between the registry and the column assembly.
 export const MEASURE_DIVERGED_CONDITION_ID = 'measure-diverged'
+
+// Named because „Przegląd AI" sets the pair on the way in — the view reads what someone priced.
+export const NO_PLANNED_OR_AI_QTY_CONDITION_ID = 'no-planned-or-ai-qty'
+export const HAS_PLANNED_OR_AI_QTY_CONDITION_ID = 'has-planned-or-ai-qty'
 
 // Named because the „Porównaj z katalogiem prac" window engages them by id — its „Pokaż w rozpisce"
 // buttons are the same gesture as picking the row from the „Problemy" menu.
@@ -112,6 +119,24 @@ const percentRateProblemLabel = (plane: ToolPlaneT, count: number) =>
  * all read as „nie ma" — the grid writes null into a cleared cell.
  */
 export const ROW_CONDITIONS: RowConditionT[] = [
+  // „Pokaż tylko to, co ktoś wycenił" while reviewing a draft — an OR the AND-stacked przedmiar pairs
+  // cannot express. Matching nothing outside „Przegląd AI" keeps the pair out of the menu there.
+  {
+    id: NO_PLANNED_OR_AI_QTY_CONDITION_ID,
+    label: 'bez przedmiaru i bez AI przedmiaru',
+    sectionLabel: null,
+    kind: 'filter',
+    filterGroup: 'ai-review',
+    matches: (row, ctx) => (ctx.aiColumnsShown ?? false) && !hasPlannedOrAiQty(row),
+  },
+  {
+    id: HAS_PLANNED_OR_AI_QTY_CONDITION_ID,
+    label: 'z przedmiarem lub AI przedmiarem',
+    sectionLabel: null,
+    kind: 'filter',
+    filterGroup: 'ai-review',
+    matches: (row, ctx) => (ctx.aiColumnsShown ?? false) && hasPlannedOrAiQty(row),
+  },
   {
     id: 'no-planned-qty',
     label: 'bez przedmiaru',
@@ -487,7 +512,8 @@ export const ROW_CONDITIONS: RowConditionT[] = [
     kind: 'diagnostic',
     problemGroup: 'ai-review',
     revealsColumns: AI_REVIEW_COLUMN_IDS,
-    matches: (row, ctx) => (ctx.hasAiDraft ?? false) && aiOffered(row) && !row.reviewStatus,
+    matches: (row, ctx) =>
+      (ctx.hasAiDraft ?? false) && aiOffered(row) && !effectiveReviewStatus(row),
   },
   {
     id: 'ai-without-reason',

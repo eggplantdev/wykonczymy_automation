@@ -44,7 +44,12 @@ export function ConfirmDialog({
       <AlertDialogContent>
         <div className="flex flex-col gap-2">
           <AlertDialogTitle>{title}</AlertDialogTitle>
-          {description != null && <AlertDialogDescription>{description}</AlertDialogDescription>}
+          {/* A div, not Radix's <p>: a description may carry a list. */}
+          {description != null && (
+            <AlertDialogDescription asChild>
+              <div>{description}</div>
+            </AlertDialogDescription>
+          )}
         </div>
         <div className="mt-4 flex justify-end gap-2">
           <AlertDialogCancel>{cancelLabel ?? t('cancel')}</AlertDialogCancel>

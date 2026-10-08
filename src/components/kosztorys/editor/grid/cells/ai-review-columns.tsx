@@ -9,6 +9,7 @@ import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-
 import { REVIEW_STATUS_LABELS, REVIEW_STATUS_UNSET_LABEL } from '@/lib/kosztorys/labels'
 import {
   aiOffered,
+  derivedReviewStatus,
   effectiveReviewStatus,
   isReviewStatus,
   REVIEW_STATUSES,
@@ -24,22 +25,25 @@ export const AI_REVIEW_COLUMN_CLASS = {
 const toStatus = (value: string): ReviewStatusT | null => (isReviewStatus(value) ? value : null)
 
 // A blank where the agent offered nothing must not read as an open task.
+const unsetLabel = (row: KosztorysV2RowT) => (aiOffered(row) ? REVIEW_STATUS_UNSET_LABEL : '')
+
+// No unset entry where the quantities already derive a status: picking it would write nothing visible.
 function statusOptions(row: KosztorysV2RowT) {
-  const unset = aiOffered(row) ? REVIEW_STATUS_UNSET_LABEL : ''
-  return [
-    { value: '', label: unset },
-    ...REVIEW_STATUSES.map((value) => ({ value, label: REVIEW_STATUS_LABELS[value] })),
-  ]
+  const picked = REVIEW_STATUSES.map((value) => ({ value, label: REVIEW_STATUS_LABELS[value] }))
+  if (derivedReviewStatus(row)) return picked
+  return [{ value: '', label: unsetLabel(row) }, ...picked]
 }
 
 function ReviewStatusCell({ rowData, setRowData, disabled }: CellProps<KosztorysV2RowT, unknown>) {
   const value = effectiveReviewStatus(rowData) ?? ''
-  const options = statusOptions(rowData)
   if (disabled) {
     return (
-      <ReadOnlyCellText>{value ? REVIEW_STATUS_LABELS[value] : options[0].label}</ReadOnlyCellText>
+      <ReadOnlyCellText>
+        {value ? REVIEW_STATUS_LABELS[value] : unsetLabel(rowData)}
+      </ReadOnlyCellText>
     )
   }
+  const options = statusOptions(rowData)
   return (
     <CellSelectMenu
       value={value}
@@ -132,5 +136,6 @@ export function workNoteColumn(
     grow: 1,
     columnData: { byRowId },
     component: WorkNoteCell,
+    copyValue: ({ rowData }) => byRowId?.get(rowData.id)?.note ?? null,
   }
 }

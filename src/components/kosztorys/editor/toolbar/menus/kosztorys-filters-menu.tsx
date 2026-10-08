@@ -16,6 +16,7 @@ export function KosztorysFiltersMenu() {
       triggerCount={triggerCount}
       icon={ListFilter}
       title="Co widać: pozycje"
+      intro={{ heading: 'Widoczne pozycje', hint: 'Odznacz, żeby ukryć.' }}
       triggerClassName={TOOLBAR_FILTER_TRIGGER_CLASS}
       // „Problemy"'s width, not the rest of the toolbar's menus: a plane row carries the crew's name in
       // brackets, so at 20rem it wrapped onto two lines and the list stopped reading as a list.
