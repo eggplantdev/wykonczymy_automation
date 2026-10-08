@@ -263,7 +263,9 @@ export function KosztorysEditorBody({
   const pageScroll = report !== undefined
   // The client document keeps the row gate: it has no „Inwestycja" tab, and its toggle is `disabled`
   // on an empty kosztorys, so a panel left open would be a sheet of zeros nobody could fold away.
-  const hasTotalsPanel = !worker && !pastVersion && (!preview || subtotals.length > 0)
+  // A szablon holds no Przedmiar, etapy or investment, so every figure the panel prints is zero.
+  const hasTotalsPanel =
+    !worker && !pastVersion && !isTemplate && (!preview || subtotals.length > 0)
   const [totalsOpen] = useTotalsPanelOpen(subtotals.length > 0)
   const [totalsFraction] = useTotalsPanelHeight()
   const gridHeightBesideTotals = hasTotalsPanel

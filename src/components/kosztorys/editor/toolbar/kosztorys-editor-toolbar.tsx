@@ -41,7 +41,7 @@ export function KosztorysEditorToolbar({
       <div className="flex flex-wrap items-center gap-x-1 gap-y-2 px-4 py-2">
         {/* Stays on screen when the rest is folded: these two change what the rozpiska shows. */}
         <div className="flex w-full items-center gap-x-1 sm:contents">
-          <KosztorysTotalsPanelToggle hasRows={subtotals.length > 0} />
+          {!isTemplate && <KosztorysTotalsPanelToggle hasRows={subtotals.length > 0} />}
           {/* The workbench has a closed column list, so both crews' stawki are already on screen and
               this switch would move no column — while still moving the „Cena j.m." sort key and the
               filter list. Its plane is pinned instead (useKosztorysViewState). */}

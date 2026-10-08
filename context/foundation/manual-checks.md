@@ -4866,3 +4866,4 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
 - [ ] Kosztorys → zmień opis pracy pochodzącej z katalogu → menu wiersza: okno ma tytuł „Zapisz jako nową pracę” i mówi, że stara praca zostaje w katalogu bez zmian; po zapisie w katalogu są obie prace.
 - [ ] Kosztorys z pracą wpisaną ręcznie (spoza katalogu) → „Zapisz jako nowy szablon…”: opis okna mówi, że szablon zapamiętuje tylko sekcje i prace; po zapisie toast „Pominięto 1 pracę spoza katalogu — najpierw zapisz je do katalogu.”, a nowy szablon nie ma tej pracy; katalog jej nie dostał.
 - [ ] Szablon → przemianuj pracę (tylko opis) → kosztorys założony wcześniej z tą pracą nadal pokazuje jej „Komentarz do pracy”.
+- [ ] Szablon (`/szablony/<id>`): nie ma panelu podsumowania ani przycisku „Podsumowanie” w pasku, siatka zajmuje całą wysokość. Kosztorys inwestycji nadal ma panel z „Opcjami rozliczenia” i „Listą wpłat”.
