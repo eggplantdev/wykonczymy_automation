@@ -4834,3 +4834,4 @@ Regression sweep (console open): horizontal / vertical scroll leaves row heights
 - [ ] Edycja „Wypłaty”: w dialogu nie ma pola „Pracownik” do zmiany.
 - [ ] Strona główna → filtry: Typ „Inny wydatek” + Kategoria „narzędzia” + Pracownik X → lista pokazuje tylko wydatki X, a kafelek „Suma” zgadza się z sumą kwot w wierszach.
 - [ ] Po przypisaniu pracownika do „Innego wydatku” jego „Pozostało do wypłaty” (strona pracownika / inwestycji) się nie zmienia.
+- [ ] „Nowy wydatek” → „Inny wydatek”, wiersz bez kategorii → „Zapisz”: formularz nie wysyła się, pole „Kategoria” w wierszu jest czerwone (bez angielskiego toastu „Category is required…”); placeholder pola to „Kategoria *”. To samo w edycji „Innego wydatku” po wyczyszczeniu kategorii.

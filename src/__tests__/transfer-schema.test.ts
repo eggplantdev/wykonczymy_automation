@@ -3,7 +3,7 @@ import {
   createBulkExpenseSchema,
   bulkExpenseFormSchema,
 } from '@/components/forms/expense-form/bulk-expense-schema'
-import { transferFormSchema } from '@/lib/schemas/transfer-form'
+import { editTransferFormSchema, transferFormSchema } from '@/lib/schemas/transfer-form'
 import { createTransferSchema, updateTransferSchema } from '@/lib/schemas/transfer'
 import { validateLineItemCategories } from '@/lib/schemas/transfer-validation'
 import { UNREADABLE_RECEIPT } from '@/lib/ai/receipt-extraction-schema'
@@ -157,6 +157,14 @@ describe('createTransferSchema — missing required fields', () => {
     expect(errorPaths(result)).toContain('worker')
   })
 
+  it('OTHER without category → error on otherCategory', () => {
+    const { otherCategory, ...rest } = VALID_SERVER_PAYLOADS.OTHER
+    void otherCategory
+    const result = createTransferSchema.safeParse(rest)
+    expect(result.success).toBe(false)
+    expect(errorPaths(result)).toContain('otherCategory')
+  })
+
   it('BONUS needs no kasa', () => {
     expect(createTransferSchema.safeParse(VALID_SERVER_PAYLOADS.BONUS).success).toBe(true)
   })
@@ -232,12 +240,6 @@ describe('createTransferSchema — missing required fields', () => {
     const result = createTransferSchema.safeParse(rest)
     expect(result.success).toBe(false)
     expect(errorPaths(result)).toContain('sourceRegister')
-  })
-
-  it('OTHER without otherCategory → passes (optional)', () => {
-    const { otherCategory, ...rest } = VALID_SERVER_PAYLOADS.OTHER
-    const result = createTransferSchema.safeParse(rest)
-    expect(result.success).toBe(true)
   })
 
   it('OTHER without sourceRegister → error on sourceRegister', () => {
@@ -374,12 +376,45 @@ describe('createBulkExpenseSchema — per-line-item category', () => {
     expect(result.success).toBe(true)
   })
 
-  it('OTHER without per-line category → passes (optional)', () => {
+  // The validate hook has always refused an OTHER without a category — the schema has to refuse it
+  // first, or the form submits and the user gets the hook's English error as a toast.
+  it('OTHER without per-line category → error on that row', () => {
     const result = createBulkExpenseSchema.safeParse({
       ...bulkBase,
-      lineItems: [{ description: 'Item', amount: 100 }],
+      lineItems: [
+        { description: 'Item', amount: 100, category: 5 },
+        { description: 'Item', amount: 100 },
+      ],
     })
-    expect(result.success).toBe(true)
+    expect(result.success).toBe(false)
+    expect(errorPaths(result)).toEqual(['lineItems.1.category'])
+  })
+
+  it('OTHER without per-line category → the form schema refuses it too', () => {
+    const result = bulkExpenseFormSchema.safeParse({
+      date: '2026-10-08',
+      type: 'OTHER',
+      paymentMethod: 'CASH',
+      sourceRegister: '1',
+      targetRegister: '',
+      investment: '',
+      worker: '',
+      settled: false,
+      lineItems: [
+        {
+          id: 'a',
+          description: '',
+          amount: '20',
+          netAmount: '',
+          invoiceNote: '',
+          category: '',
+          expenseCategory: '',
+          worker: '3',
+        },
+      ],
+    })
+    expect(result.success).toBe(false)
+    expect(errorPaths(result)).toContain('lineItems.0.category')
   })
 
   it('INVESTMENT_EXPENSE with optional per-line category → passes', () => {
@@ -538,11 +573,12 @@ describe('transferFormSchema — missing required fields', () => {
     expect(errorPaths(result)).toContain('sourceRegister')
   })
 
-  it('OTHER without otherCategory → passes (optional)', () => {
+  it('OTHER without otherCategory → error on otherCategory', () => {
     const payload = toClientPayload(VALID_SERVER_PAYLOADS.OTHER)
     payload.otherCategory = ''
     const result = transferFormSchema.safeParse(payload)
-    expect(result.success).toBe(true)
+    expect(result.success).toBe(false)
+    expect(errorPaths(result)).toContain('otherCategory')
   })
 
   it('amount empty → error on amount', () => {
@@ -596,7 +632,7 @@ describe('bulk expense — UNREADABLE_RECEIPT sentinel row is blocked', () => {
         description: 'Normalny opis',
         amount: '100',
         invoiceNote: '',
-        category: '',
+        category: '1',
         expenseCategory: '',
       },
     ],
@@ -606,7 +642,7 @@ describe('bulk expense — UNREADABLE_RECEIPT sentinel row is blocked', () => {
     type: 'OTHER' as const,
     paymentMethod: 'CASH' as const,
     sourceRegister: 1,
-    lineItems: [{ description: 'Item', amount: 100 }],
+    lineItems: [{ description: 'Item', amount: 100, category: 1 }],
   }
 
   it('client: a normal description passes (control)', () => {
@@ -680,4 +716,34 @@ describe('createTransferSchema — paymentMethod', () => {
       expect(result.success).toBe(true)
     },
   )
+})
+
+describe('editTransferFormSchema — category on an Inny wydatek', () => {
+  const editValues = {
+    description: '',
+    date: '2026-10-08',
+    paymentMethod: 'CASH',
+    investment: '',
+    expenseCategory: '',
+    otherCategory: '',
+    invoiceNote: '',
+    worker: '',
+  }
+  const otherRow = { type: 'OTHER', amount: 20, vatPlane: null }
+
+  it('OTHER with its category cleared → error on otherCategory', () => {
+    const result = editTransferFormSchema(otherRow).safeParse(editValues)
+    expect(result.success).toBe(false)
+    expect(errorPaths(result)).toContain('otherCategory')
+  })
+
+  it('OTHER with a category → passes', () => {
+    const result = editTransferFormSchema(otherRow).safeParse({ ...editValues, otherCategory: '4' })
+    expect(result.success).toBe(true)
+  })
+
+  it('PAYOUT without a category → passes (optional there)', () => {
+    const result = editTransferFormSchema({ ...otherRow, type: 'PAYOUT' }).safeParse(editValues)
+    expect(result.success).toBe(true)
+  })
 })

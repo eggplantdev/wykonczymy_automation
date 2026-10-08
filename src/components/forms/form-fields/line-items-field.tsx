@@ -22,6 +22,7 @@ import {
   EXPENSE_CATEGORY_LABEL,
   hasOptionalWorker,
   needsExpenseCategory,
+  needsOtherCategory,
   showsOtherCategory,
 } from '@/lib/constants/transfers'
 import type { ReferenceDataBaseT } from '@/types/reference-data'
@@ -88,10 +89,10 @@ type LineItemsFieldPropsT = {
   generationProgress?: { done: number; total: number } | null
 }
 
-const otherCategoryConfig = (refData: ReferenceDataBaseT): RowSelectConfigT => ({
+const otherCategoryConfig = (type: string, refData: ReferenceDataBaseT): RowSelectConfigT => ({
   fieldName: 'category',
   label: 'Kategoria',
-  placeholder: 'Opcjonalnie',
+  placeholder: needsOtherCategory(type) ? 'Kategoria *' : 'Opcjonalnie',
   options: refData.otherCategories,
 })
 
@@ -108,7 +109,7 @@ function getInlineCategory(
       options: refData.expenseCategories,
     }
   }
-  if (showsOtherCategory(type)) return otherCategoryConfig(refData)
+  if (showsOtherCategory(type)) return otherCategoryConfig(type, refData)
   return undefined
 }
 
@@ -122,7 +123,7 @@ const workerConfig = (refData: ReferenceDataBaseT): RowSelectConfigT => ({
 function getSecondRowSelects(type: string, refData: ReferenceDataBaseT): RowSelectConfigT[] {
   const selects: RowSelectConfigT[] = []
   if (needsExpenseCategory(type) && showsOtherCategory(type))
-    selects.push(otherCategoryConfig(refData))
+    selects.push(otherCategoryConfig(type, refData))
   if (hasOptionalWorker(type)) selects.push(workerConfig(refData))
   return selects
 }
