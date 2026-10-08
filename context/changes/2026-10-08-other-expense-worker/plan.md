@@ -317,14 +317,14 @@ cover the browser path. Run touched specs with `pnpm exec vitest run <file>`, no
 
 ### Phase 3: Edit an `OTHER` transfer's worker
 
-- [x] 3.1 `updateTransferSchema` worker
-- [x] 3.2 `updateTransferAction` writes the worker only for `OTHER`
-- [x] 3.3 Edit form field + submit
-- [x] 3.4 Specs: schema, action
+- [x] 3.1 `updateTransferSchema` worker — 5e59f54d5
+- [x] 3.2 `updateTransferAction` writes the worker only for `OTHER` — 5e59f54d5
+- [x] 3.3 Edit form field + submit — 5e59f54d5
+- [x] 3.4 Specs: schema, action — 5e59f54d5
 
 ### Phase 4: „Pracownik” filter on the dashboard
 
-- [ ] 4.1 Pass `workers` to the dashboard filter config
+- [x] 4.1 Pass `workers` to the dashboard filter config
 
 ## Whole-tree Gate
 

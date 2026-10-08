@@ -76,6 +76,7 @@ export async function ManagerDashboard({ searchParams, user }: ManagerDashboardP
             cashRegisters: visibleRegisters.map((c) => ({ id: c.id, name: c.name })),
             investments: activeInvestments.map((i) => ({ id: i.id, name: i.name })),
             users: managementUsers,
+            workers: referenceDataBase.workers.map((w) => ({ id: w.id, name: w.name })),
             otherCategories,
             expenseCategories,
             transferTypes: TRANSFER_TYPES,
