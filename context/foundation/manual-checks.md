@@ -4904,6 +4904,18 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
 
 - [ ] Kosztorys ze szkicem AI → na pasku narzędzi, obok „Kolumny", jest przycisk „Przegląd AI"; kliknięcie dokłada kolumny AI i ustawia filtr „Przegląd AI" jak wcześniej, ponowne kliknięcie je zabiera. W menu „Kolumny" → „Widok" jest już tylko „Oferta".
 - [ ] Zwykły kosztorys (bez szkicu AI): brak przycisku „Przegląd AI"; szablon: brak przycisku i menu „Kolumny".
+- [ ] Wyłączony „Przegląd AI" wygląda jak sąsiednie przyciski (np. „Akcje"), tekst nie jest wyszarzony;
+      włączenie płynnie wprowadza gradientową ramkę z poświatą i cyjanowy napis, wyłączenie płynnie je
+      wygasza, a przycisk nie zmienia przy tym szerokości.
+
+## 2026-10-08 — „Komentarz" na widoku inwestora
+
+- [ ] „Ustawienia widoku inwestora" → „Opis i ilości": jest pole „Komentarz", domyślnie odznaczone —
+      także na inwestycji, której widok był już wcześniej zapisany.
+- [ ] Zaznacz „Komentarz" → podgląd inwestora i link dla inwestora pokazują kolumnę „Komentarz" zaraz
+      po „Opisie", z treścią komentarzy pozycji; odznaczenie ją zabiera.
+- [ ] Z zaznaczonym „Komentarzem" → „Generuj ofertę": wydruk ma kolumnę „Komentarz" (mniejszy, szary
+      tekst) w pionie i w poziomie; bez zaznaczenia jej nie ma.
 
 ## EX-1030 — ai-draft-missing-data — „Komentarz AI” w „Przeglądzie AI”
 
