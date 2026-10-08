@@ -203,15 +203,29 @@ export async function saveItemToCatalogueAction(
       const refusal = duplicateRefusal(existing, parsed.data.mode)
       if (refusal) return { success: false, error: refusal }
 
-      await applyCatalogueWrite(payload, undefined, {
-        candidate,
-        existing,
-        keepCatalogueCategory: parsed.data.keepCatalogueCategory,
-      })
+      // The pozycja remembers what it was saved as, so the next „Aktualizuj" finds this entry even
+      // after a rename in the katalog — and a changed opis moves it to the new praca it now is.
+      await withPayloadTransaction(
+        payload,
+        async (req) => {
+          const catalogueItemId = await applyCatalogueWrite(payload, req, {
+            candidate,
+            existing,
+            keepCatalogueCategory: parsed.data.keepCatalogueCategory,
+          })
+          await payload.update({
+            collection: 'kosztorys-items',
+            id: parsed.data.itemId,
+            data: { catalogueItemId },
+            req,
+          })
+        },
+        { skipRevalidation: true },
+      )
 
       return { success: true }
     },
-    ['workCatalogue'],
+    ['workCatalogue', 'kosztorysItems'],
   )
 }
 

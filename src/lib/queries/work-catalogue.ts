@@ -3,8 +3,10 @@ import { getPayload, type Payload } from 'payload'
 import config from '@payload-config'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 import { getDb } from '@/lib/db/get-db'
+import { listTemplateNamesUsingCatalogueItem } from '@/lib/db/presets'
 import {
   findCatalogueItemByKey,
+  findLinkedCatalogueItem,
   getCatalogueSourceItem,
   listCatalogueItems,
 } from '@/lib/db/work-catalogue'
@@ -37,6 +39,14 @@ export async function catalogueSaveState(
   if (!source) return { error: 'Nie znaleziono pozycji' }
 
   const candidate = toCatalogueCandidate(source)
-  const existing = await findCatalogueItemByKey(db, candidate.matchKey)
-  return { candidate, existing: existing ?? null }
+  const linked = await findLinkedCatalogueItem(db, itemId)
+  // Matched by the remembered entry first, so a praca renamed in the katalog is still updated in
+  // place; the klucz decides only for a pozycja that remembers none, or whose opis has moved on.
+  const existing =
+    linked?.matchKey === candidate.matchKey
+      ? linked
+      : ((await findCatalogueItemByKey(db, candidate.matchKey)) ?? null)
+  const leaving = linked && linked.id !== existing?.id ? linked : null
+  const templateNames = existing ? await listTemplateNamesUsingCatalogueItem(db, existing.id) : []
+  return { candidate, existing, leaving, templateNames }
 }

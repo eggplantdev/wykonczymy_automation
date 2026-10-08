@@ -58,7 +58,9 @@ export function KosztorysRowActionsMenu({ row, sortActive, item }: PropsT) {
           {item.savableItemId !== undefined && (
             <DropdownMenuItem onSelect={() => setCatalogueSaveOpen(true)}>
               <BookmarkPlus />
-              Zapisz pozycję do katalogu prac
+              {row.catalogueItemId === null
+                ? 'Zapisz pozycję do katalogu prac'
+                : 'Aktualizuj pozycję w katalogu prac'}
             </DropdownMenuItem>
           )}
           <RowHeightMenuItems row={row} />

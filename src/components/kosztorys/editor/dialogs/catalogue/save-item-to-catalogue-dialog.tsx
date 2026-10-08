@@ -33,11 +33,20 @@ export function SaveItemToCatalogueDialog({
   // protecting it is the answer until the owner says otherwise.
   const [keepCategory, setKeepCategory] = useState(true)
 
-  // The klucz (opis + j.m.) decides it — there is no mode to pick: an occupied klucz can only be
-  // overwritten, and a free one can only be created. „Nadpisz" replaces the figures of a row every
-  // future kosztorys copies from, and the katalog keeps no history, so that branch asks first.
+  // The server decides it — there is no mode to pick: the remembered praca, or the klucz's holder, can
+  // only be updated, and anything else can only be created. An update replaces the figures every
+  // szablon and future kosztorys reads, and the katalog keeps no history, so that branch asks first.
   const existing = preview?.existing ?? null
+  const leaving = preview?.leaving ?? null
+  const templateNames = preview?.templateNames ?? []
   const overwrites = existing != null
+  // Updating the praca this pozycja already IS, as opposed to landing on another one by its klucz.
+  const updatesOwn = overwrites && leaving == null
+  const title = updatesOwn
+    ? 'Aktualizuj pozycję w katalogu prac'
+    : leaving
+      ? 'Zapisz jako nową pracę'
+      : 'Zapisz do katalogu…'
   const categoryDiffers =
     existing != null && preview != null && categoriesDiffer(existing, preview.candidate)
   const savedCategory = keepCategory ? existing?.category : preview?.candidate.category
@@ -60,7 +69,7 @@ export function SaveItemToCatalogueDialog({
       toastMessage(res.error ?? 'Nie udało się zapisać pracy do katalogu', 'error', 4000)
       return
     }
-    toastMessage(overwrites ? 'Nadpisano pozycję katalogu' : 'Dodano do katalogu', 'success')
+    toastMessage(overwrites ? 'Zaktualizowano pozycję katalogu' : 'Dodano do katalogu', 'success')
     onOpenChange(false)
   }
 
@@ -68,11 +77,11 @@ export function SaveItemToCatalogueDialog({
     <FormDialogShell
       open={open}
       onOpenChange={onOpenChange}
-      title="Zapisz do katalogu…"
+      title={title}
       description={
         'Katalog prac to wspólny cennik. Stawka, którą ta pozycja nadpisuje sama, zapisuje się tym samym źródłem — kwotą albo mnożnikiem; stawka bez nadpisania idzie jako „auto” i policzy się ze współczynnika inwestycji, do której praca trafi.'
       }
-      confirmLabel={overwrites ? 'Nadpisz…' : 'Zapisz'}
+      confirmLabel={overwrites ? 'Aktualizuj…' : 'Zapisz'}
       onConfirm={requestSave}
       confirmDisabled={!preview || saving}
     >
@@ -109,10 +118,23 @@ export function SaveItemToCatalogueDialog({
             </CheckboxRow>
           )}
 
-          {existing && (
+          {leaving && (
             <Description size="xs">
-              Ta praca jest już w katalogu pod tą samą nazwą i jednostką — zapis ją nadpisze. Chcesz
-              osobną pozycję? Zmień nazwę pracy w rozpisce i zapisz jeszcze raz.
+              Opis albo jednostka różni się od „{leaving.description}” w katalogu, więc to inna
+              praca —{' '}
+              {existing ? `zapis zaktualizuje „${existing.description}”` : 'zapis doda ją osobno'}.
+              „{leaving.description}” zostaje w katalogu bez zmian.
+            </Description>
+          )}
+          {existing && !leaving && (
+            <Description size="xs">
+              Ta praca jest już w katalogu — zapis zmieni jej liczby. Chcesz osobną pozycję? Zmień
+              nazwę pracy w rozpisce i zapisz jeszcze raz.
+            </Description>
+          )}
+          {templateNames.length > 0 && (
+            <Description size="xs">
+              Zmieni cenę w szablonach: {templateNames.join(', ')}.
             </Description>
           )}
         </>
@@ -121,9 +143,9 @@ export function SaveItemToCatalogueDialog({
       {existing && preview && (
         <ConfirmDialog
           open={confirming}
-          title={`Nadpisać „${existing.description}" w katalogu?`}
-          description={`${overwriteSentence(existing, preview.candidate, categoryDiffers && !keepCategory)} Jeśli chcesz dodać osobną pozycję zamiast nadpisać tę — anuluj i zmień nazwę pracy w rozpisce.`}
-          confirmLabel="Nadpisz"
+          title={`Zaktualizować „${existing.description}" w katalogu?`}
+          description={`${overwriteSentence(existing, preview.candidate, categoryDiffers && !keepCategory)} Jeśli chcesz dodać osobną pozycję zamiast zmieniać tę — anuluj i zmień nazwę pracy w rozpisce.`}
+          confirmLabel="Aktualizuj"
           onConfirm={() => void handleSave()}
           onCancel={() => setConfirming(false)}
         />
