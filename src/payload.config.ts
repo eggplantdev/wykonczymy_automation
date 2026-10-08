@@ -34,6 +34,7 @@ import { Users } from '@/collections/users'
 import { VehicleInspections } from '@/collections/vehicle-inspections'
 import { Vehicles } from '@/collections/vehicles'
 import { WorkCatalogueItems } from '@/collections/work-catalogue-items'
+import { CompanyKnowledge } from '@/collections/company-knowledge'
 import { Equipment } from '@/collections/equipment'
 import { EquipmentEvents } from '@/collections/equipment-events'
 import { Warehouses } from '@/collections/warehouses'
@@ -107,6 +108,7 @@ export default buildConfig({
     Vehicles,
     VehicleInspections,
     WorkCatalogueItems,
+    CompanyKnowledge,
     Equipment,
     EquipmentEvents,
     Warehouses,

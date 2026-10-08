@@ -18,6 +18,7 @@ export const CACHE_TAGS = {
   vehicles: 'collection:vehicles',
   vehicleInspections: 'collection:vehicle-inspections',
   workCatalogue: 'collection:work-catalogue-items',
+  companyKnowledge: 'collection:company-knowledge',
   equipment: 'collection:equipment',
   equipmentEvents: 'collection:equipment-events',
   warehouses: 'collection:warehouses',
