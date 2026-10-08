@@ -4849,3 +4849,5 @@ Regression sweep (console open): horizontal / vertical scroll leaves row heights
 - [ ] „OK, to nie duplikat" chowa wiersz; zamknij i otwórz okno ponownie — wiersz wraca.
 - [ ] Filtr „Duplikaty" na „Zgłoszeniach wydatków": zostają tylko zgłoszenia oznaczone jako duplikat.
 - [ ] Zgłoszenie, którego odczyt AI się nie udał: w miejscu podpowiedzi stoi komunikat, a nie wieczne „Sprawdzanie duplikatów…".
+- [ ] Zgłoszenie z paragonem o tej samej kwocie co zaksięgowany wydatek, ale z innego sklepu i dnia: „Możliwe duplikaty" go nie pokazuje.
+- [ ] Okno „Nowy wydatek" ze zgłoszenia z duplikatem: tabela „Możliwe duplikaty" stoi w czerwonej ramce nad pozycjami, z wyraźnym odstępem od pól nad i pod nią; „Zapisz jako domyślną kasę" stoi tuż pod polem „Kasa".
