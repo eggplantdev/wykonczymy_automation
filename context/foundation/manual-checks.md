@@ -4850,4 +4850,5 @@ Regression sweep (console open): horizontal / vertical scroll leaves row heights
 - [ ] Filtr „Duplikaty" na „Zgłoszeniach wydatków": zostają tylko zgłoszenia oznaczone jako duplikat.
 - [ ] Zgłoszenie, którego odczyt AI się nie udał: w miejscu podpowiedzi stoi komunikat, a nie wieczne „Sprawdzanie duplikatów…".
 - [ ] Zgłoszenie z paragonem o tej samej kwocie co zaksięgowany wydatek, ale z innego sklepu i dnia: „Możliwe duplikaty" go nie pokazuje.
-- [ ] Okno „Nowy wydatek" ze zgłoszenia z duplikatem: tabela „Możliwe duplikaty" stoi w czerwonej ramce nad pozycjami, z wyraźnym odstępem od pól nad i pod nią; „Zapisz jako domyślną kasę" stoi tuż pod polem „Kasa".
+- [ ] Zgłoszenie z paragonem o tej samej kwocie co wydatek zaksięgowany w ostatnich 3 miesiącach bez „Opisu" i numeru: „Możliwe duplikaty" pokazuje go jako szare „Ta sama kwota", poniżej czerwonych dopasowań. Ten sam wydatek zaksięgowany ponad 3 miesiące temu się nie pokazuje.
+- [ ] Okno „Nowy wydatek" ze zgłoszenia z duplikatem: tabela „Możliwe duplikaty" stoi w czerwonej ramce nad pozycjami, z wyraźnym odstępem od pól nad i pod nią; „Zapisz jako domyślną kasę" stoi tuż pod polem „Kasa". Gdy wszystkie dopasowania to „Ta sama kwota", ramka i nagłówek są szare.

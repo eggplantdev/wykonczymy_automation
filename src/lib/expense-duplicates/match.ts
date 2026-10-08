@@ -1,4 +1,4 @@
-import type { DayT } from '@/lib/utils/days'
+import { addMonthsToDay, toWarsawDay, type DayT } from '@/lib/utils/days'
 import { firstNoteLine } from '@/lib/utils/invoice-note'
 
 export type ExpenseDocT = {
@@ -13,11 +13,19 @@ export type ExpenseDocT = {
   description: string | null
 }
 
-export type MatchReasonT = 'same-number' | 'same-receipt'
+export type MatchReasonT = 'same-number' | 'same-receipt' | 'same-amount'
 
 export type MatchVerdictT = {
   reasons: MatchReasonT[]
 }
+
+export const isWeakMatch = (reasons: MatchReasonT[]) =>
+  reasons.every((reason) => reason === 'same-amount')
+
+// The booking (or sending) moment, needed only for the same-amount window.
+type DatedDocT = ExpenseDocT & { date?: string }
+
+const SAME_AMOUNT_WINDOW_MONTHS = 3
 
 const PRINTED_DATE = /(\d{2})\.(\d{2})\.(\d{4})/
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
@@ -63,7 +71,25 @@ function isSameSeller(probe: ExpenseDocT, candidate: ExpenseDocT): boolean {
 const hasConflictingNips = (probe: ExpenseDocT, candidate: ExpenseDocT) =>
   !!probe.sellerNip && !!candidate.sellerNip && probe.sellerNip !== candidate.sellerNip
 
-export function matchExpense(probe: ExpenseDocT, candidate: ExpenseDocT): MatchVerdictT | null {
+const differ = <T>(a: T | null, b: T | null) => a !== null && b !== null && a !== b
+
+function isProvablyDifferent(probe: ExpenseDocT, candidate: ExpenseDocT): boolean {
+  const isOtherSeller =
+    probe.sellerNip && candidate.sellerNip
+      ? probe.sellerNip !== candidate.sellerNip
+      : differ(namePrefix(probe.description), namePrefix(candidate.description))
+  return (
+    isOtherSeller ||
+    differ(documentNumberOf(probe), documentNumberOf(candidate)) ||
+    differ(dayOf(probe), dayOf(candidate))
+  )
+}
+
+export function matchExpense(
+  probe: ExpenseDocT,
+  candidate: DatedDocT,
+  today: DayT,
+): MatchVerdictT | null {
   const probeCents = cents(probe.amount)
   const isSameAmount = probeCents !== null && probeCents === cents(candidate.amount)
   // Without a read amount the number has nothing to be checked against, so it counts alone.
@@ -95,7 +121,11 @@ export function matchExpense(probe: ExpenseDocT, candidate: ExpenseDocT): MatchV
     reasons.push('same-receipt')
   }
 
-  // An equal amount on its own is no signal: a paragon re-sent carries its own printed date and
-  // seller, so a twin that differs in either is a second purchase of the same thing.
-  return reasons.length > 0 ? { reasons } : null
+  if (reasons.length > 0) return { reasons }
+  if (!isSameAmount || !candidate.date) return null
+
+  // Mostly a row booked before the identity columns, with nothing read that could clear it. A
+  // different printed day, seller or number is a second purchase of the same thing.
+  const isRecent = toWarsawDay(candidate.date) >= addMonthsToDay(today, -SAME_AMOUNT_WINDOW_MONTHS)
+  return isRecent && !isProvablyDifferent(probe, candidate) ? { reasons: ['same-amount'] } : null
 }

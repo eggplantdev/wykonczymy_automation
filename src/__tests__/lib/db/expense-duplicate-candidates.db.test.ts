@@ -211,7 +211,7 @@ describe.skipIf(!ENV_READY)('expense duplicate candidates (DB)', () => {
     expect(fromOther.every((c) => c.pages.length === 1)).toBe(true)
   })
 
-  it('the accept dialog’s check matches each probe paragon to its booked twin and the pending one', async () => {
+  it('the accept dialog’s check matches each probe paragon to its booked twin, never to a different purchase', async () => {
     const result = await findExpenseDraftDuplicates(probeDraftId)
     if (!result.success) throw new Error(result.error)
     const ours = (matches: { source: string; id: number }[]) =>

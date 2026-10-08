@@ -11,9 +11,11 @@ import {
 import {
   cents,
   documentNumberOf,
+  isWeakMatch,
   matchExpense,
   type MatchVerdictT,
 } from '@/lib/expense-duplicates/match'
+import { warsawToday } from '@/lib/utils/days'
 import type { ActionResultT } from '@/types/action'
 
 export type DuplicateMatchT = MatchVerdictT & CandidateT
@@ -42,6 +44,7 @@ export async function findExpenseDraftDuplicates(
       loadDraftCandidates(db, { ...filter, excludeDraftId: draftId }),
     ])
     const candidates = [...transactions, ...drafts]
+    const today = warsawToday()
 
     return {
       success: true,
@@ -51,10 +54,15 @@ export async function findExpenseDraftDuplicates(
         amount: probe.amount,
         matches: candidates
           .flatMap((candidate) => {
-            const verdict = matchExpense(probe, candidate)
+            const verdict = matchExpense(probe, candidate, today)
             return verdict ? [{ ...candidate, ...verdict }] : []
           })
-          .sort((a, b) => b.date.localeCompare(a.date)),
+          .sort(
+            (a, b) =>
+              Number(isWeakMatch(a.reasons)) - Number(isWeakMatch(b.reasons)) ||
+              b.date.localeCompare(a.date) ||
+              a.key.localeCompare(b.key),
+          ),
       })),
     }
   })

@@ -79,6 +79,11 @@ Booked `INVESTMENT_EXPENSE`, not cancelled; „number" = line 1 of `invoice_note
   paragon keeps its own printed date and seller, so it is already caught by „same-receipt"; an
   amount match across different days or shops only ever flags a second purchase. Only the strong
   signals remain, and the verdict carries no tier.
+- **„Ta sama kwota" only where the data is silent (owner, 2026-10-08) — refines the line above.**
+  An equal amount booked in the last 3 months is shown, as a muted „Ta sama kwota", unless a field
+  read on _both_ sides tells the two apart: seller (NIP, else the name prefix), document number, or
+  printed day — a different day is a different purchase. It mostly surfaces legacy rows that carry
+  none of those. Round amounts will trip it; EX-1029 measures how often before anyone tunes it.
 - **The same file reads differently.** Media 2127 (zgłoszenie 3, worker 69) and 2129 (zgłoszenie 4,
   worker 32) are byte-for-byte the same photo (equal size + dimensions), as are 2126/2130: one worker
   forwarded the photos to the other. From the identical 107,40 zł file the AI read `087393/0888` once

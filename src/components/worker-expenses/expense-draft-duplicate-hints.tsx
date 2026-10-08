@@ -8,7 +8,9 @@ import {
   type ExpenseDuplicateRowT,
 } from '@/components/tables/expense-duplicates'
 import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
+import { isWeakMatch } from '@/lib/expense-duplicates/match'
 import type { ParagonDuplicatesT } from '@/lib/queries/expense-draft-duplicates'
+import { cn } from '@/lib/utils/cn'
 
 export type ItemDuplicatesT = ParagonDuplicatesT & { itemId: string }
 
@@ -62,9 +64,17 @@ export function ExpenseDraftDuplicateHints({ state, lineItemIds, onMarkDuplicate
     return <p className="text-muted-foreground text-sm">Nie znaleziono podobnych wydatków.</p>
   }
 
+  // Only a confirmed match earns the alarm; „Ta sama kwota" alone stays as quiet as its row.
+  const isAlarm = rows.some((row) => !isWeakMatch(row.reasons))
+
   return (
-    <section className="border-destructive my-4 flex flex-col gap-3 rounded-lg border-2 p-4">
-      <h3 className="text-destructive font-medium">Możliwe duplikaty</h3>
+    <section
+      className={cn(
+        'my-4 flex flex-col gap-3 rounded-lg border-2 p-4',
+        isAlarm ? 'border-destructive' : 'border-border',
+      )}
+    >
+      <h3 className={cn('font-medium', isAlarm && 'text-destructive')}>Możliwe duplikaty</h3>
       <DataTable
         data={rows}
         columns={getExpenseDuplicateColumns({
