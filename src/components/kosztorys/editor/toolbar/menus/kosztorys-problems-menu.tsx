@@ -36,8 +36,13 @@ import { PROBLEM_IDS } from '@/lib/kosztorys/problem-conditions'
  * „wszystkie problemy" row, because the union is exactly what makes no sense here.
  */
 export function KosztorysProblemsMenu() {
-  const { engagedConditionIds, toggleConditionExclusive, conditionCounts, refreshProblemRows } =
-    useKosztorysEditorContext()
+  const {
+    engagedConditionIds,
+    toggleConditionExclusive,
+    conditionCounts,
+    refreshProblemRows,
+    isTemplate,
+  } = useKosztorysEditorContext()
 
   const problemToggles = problemsMenuModel({
     engagedIds: engagedConditionIds,
@@ -102,8 +107,13 @@ export function KosztorysProblemsMenu() {
             report they are counted from, praca by praca, with the „Dodaj / Edytuj w katalogu" writes
             the grid has no room for. It reads as the last step of the same question, which is why it
             left „Opcje" — there it sat under a heading of its own, next to szablony and arkusz. */}
-        <DropdownMenuSeparator />
-        <CatalogueCompareMenuItem />
+        {/* A szablon's prace ARE their katalog entries (EX-1017), so there is nothing to compare. */}
+        {!isTemplate && (
+          <>
+            <DropdownMenuSeparator />
+            <CatalogueCompareMenuItem />
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )

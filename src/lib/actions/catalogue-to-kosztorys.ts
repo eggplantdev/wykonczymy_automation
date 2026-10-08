@@ -157,6 +157,8 @@ const RATE_COLUMNS = [
   ],
 ] as const
 
+const TEMPLATE_READS_CATALOGUE = 'Szablon pokazuje ceny prosto z katalogu prac.'
+
 /**
  * The other direction: the katalog's liczby taken INTO the rozpiska, for every pozycja and every
  * liczba the owner ticked in „Porównaj z katalogiem prac".
@@ -177,7 +179,9 @@ export async function applyCatalogueToKosztorysAction(
   return investmentAction(
     'applyCatalogueToKosztorysAction',
     { investmentId },
-    async ({ payload, user }) => {
+    async ({ payload, user, isTemplate }) => {
+      // A szablon already reads the katalog's liczby (EX-1017) — there is nothing to take over.
+      if (isTemplate) return { success: false, error: TEMPLATE_READS_CATALOGUE }
       const parsed = validateAction(applyCatalogueSchema, { investmentId, selections })
       if (!parsed.success) return parsed
 

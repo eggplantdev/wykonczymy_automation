@@ -426,7 +426,7 @@ with the `down`.
 #### Automated
 
 - [ ] 2.1 Link-planning spec (identical / differing mode / kosztorys cena / no match)
-- [x] 2.2 Local dry-run prints counts, writes nothing
+- [x] 2.2 Local dry-run prints counts, writes nothing — 2b51d9f04
 
 ### Phase 3: Szablon reads and writes the katalog
 
