@@ -1,6 +1,11 @@
 import { z } from 'zod'
 import { TRANSFER_TYPES, PAYMENT_METHODS } from '@/lib/constants/transfers'
-import { getAmountError, getNetAmountError, refineDate } from '@/lib/utils/validation'
+import {
+  getAmountError,
+  getNetAmountError,
+  refineDate,
+  refineDocumentIdentity,
+} from '@/lib/utils/validation'
 import { UNREADABLE_RECEIPT } from '@/lib/ai/receipt-extraction-schema'
 import {
   validateTransferFields,
@@ -29,6 +34,10 @@ const lineItemClientSchema = z.object({
   // makes it required on the type that bills at it.
   netAmount: z.string().catch(''),
   invoiceNote: z.string(),
+  // `.catch` for the same recovery-snapshot reason as `netAmount`.
+  documentNumber: z.string().catch(''),
+  sellerNip: z.string().catch(''),
+  documentDate: z.string().catch(''),
   category: z.string(),
   expenseCategory: z.string(),
   // `.catch` for the same reason as netAmount: older recovery snapshots carry no per-row worker.
@@ -60,6 +69,7 @@ export const bulkExpenseFormSchema = z
     }
 
     data.lineItems.forEach((item, index) => {
+      refineDocumentIdentity(item, ctx, ['lineItems', index])
       if (item.description === UNREADABLE_RECEIPT) {
         ctx.addIssue({
           code: 'custom',
@@ -116,6 +126,9 @@ export const createBulkExpenseSchema = z
           amount: z.number(),
           netAmount: z.number().optional(),
           invoiceNote: z.string().optional(),
+          documentNumber: z.string().optional(),
+          sellerNip: z.string().optional(),
+          documentDate: z.string().optional(),
           category: z.number().positive().optional(),
           expenseCategory: z.number().positive().optional(),
           worker: z.number().positive().optional(),
@@ -127,6 +140,7 @@ export const createBulkExpenseSchema = z
     validateTransferFields(data, ctx)
 
     data.lineItems.forEach((item, index) => {
+      refineDocumentIdentity(item, ctx, ['lineItems', index])
       if (item.description === UNREADABLE_RECEIPT) {
         ctx.addIssue({
           code: 'custom',

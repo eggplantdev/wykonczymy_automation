@@ -20,6 +20,7 @@ import {
   restoreSkippedReceipt,
   updatePendingExpenseDraft,
 } from '@/lib/db/worker-expense-drafts'
+import { duplicateOfSchema, type DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
 import type { ExpenseDraftReadT } from '@/lib/db/expense-draft-read'
 import { reclaimUnreferencedMedia } from '@/lib/media/delete-unreferenced-media'
 import { pl } from '@/lib/i18n/dictionaries/pl'
@@ -90,13 +91,19 @@ export async function sendExpenseDraftAction(
   })
 }
 
-export async function rejectExpenseDraftAction(draftId: number): Promise<ActionResultT> {
+export async function rejectExpenseDraftAction(
+  draftId: number,
+  duplicateOf?: DuplicateOfT,
+): Promise<ActionResultT> {
+  const parsedDuplicateOf = validateAction(duplicateOfSchema.optional(), duplicateOf)
+  if (!parsedDuplicateOf.success) return parsedDuplicateOf
   return protectedAction(`rejectExpenseDraftAction draft=${draftId}`, async ({ payload, user }) => {
     const isDecided = await decideExpenseDraft(await getDb(payload), {
       draftId,
       decidedBy: user.id,
       status: 'rejected',
       transferIds: [],
+      duplicateOf: parsedDuplicateOf.data,
     })
     return isDecided ? { success: true } : noticeFailure('draftAlreadyDecided')
   })

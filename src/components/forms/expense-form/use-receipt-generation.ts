@@ -46,7 +46,7 @@ export function useReceiptGeneration({
     const files = getFiles()
     return runGeneration(
       files,
-      indexedRows().filter(({ row }) => files.has(row.id) && isBlankRow(row)),
+      currentRows().filter((row) => files.has(row.id) && isBlankRow(row)),
     )
   }
 
@@ -55,24 +55,24 @@ export function useReceiptGeneration({
     const files = getFiles()
     return runGeneration(
       files,
-      indexedRows().filter(({ row }) => row.id === id && files.has(id)),
+      currentRows().filter((row) => row.id === id && files.has(id)),
     )
   }
 
-  function indexedRows() {
-    return (form.getFieldValue('lineItems') ?? []).map((row, index) => ({ row, index }))
+  function currentRows() {
+    return form.getFieldValue('lineItems') ?? []
   }
 
   async function runGeneration(
     files: Map<string, File[]>,
-    eligible: ReturnType<typeof indexedRows>,
+    eligible: ReturnType<typeof currentRows>,
   ) {
     if (eligible.length === 0) return
 
     setIsGenerating(true)
     usePendingStore.getState().start(SCAN_PENDING_KEY, 'Odczytywanie paragonów…')
     // Only the rows being read lose their marker: a single-row re-read leaves the others' verdicts.
-    const eligibleIds = new Set(eligible.map(({ row }) => row.id))
+    const eligibleIds = new Set(eligible.map((row) => row.id))
     setFailedIds((prev) => new Set([...prev].filter((id) => !eligibleIds.has(id))))
     setGenerationProgress({ done: 0, total: eligible.length })
     const otherCategoryNames = otherCategories.map((c) => c.name)
@@ -90,15 +90,16 @@ export function useReceiptGeneration({
     // control until unmount. The pill matters most (it is portalled to document.body, so it
     // would sit over every page, not just this form), but it is not the only thing to clear.
     try {
-      await mapWithConcurrency(eligible, GENERATION_CONCURRENCY, async ({ row, index }) => {
-        const id = row.id
+      await mapWithConcurrency(eligible, GENERATION_CONCURRENCY, async ({ id }) => {
         setGeneratingIds((prev) => new Set(prev).add(id))
         try {
           // The map already holds the files processed at ingest (compressed / HEIC-converted), and
           // every page of this row goes into ONE scan — the total may sit on any of them.
           const data = await scanReceiptClient(files.get(id)!, otherCategoryNames)
           if (data.description === UNREADABLE_RECEIPT) unreadable += 1
-          applyReceiptToRow(form.setFieldValue, index, data)
+          // Resolved after the await: a row removed meanwhile („Duplikat") shifts the ones below it.
+          const index = currentRows().findIndex((row) => row.id === id)
+          if (index !== -1) applyReceiptToRow(form.setFieldValue, index, data)
           // Apply the Opis-based name to the file now so it uploads under that name at submit; the
           // reactive file store re-renders the FV label to match.
           if (data.filename) renameFile(id, data.filename)

@@ -25,6 +25,9 @@ const OK = {
   amount: 42,
   invoiceNote: '',
   otherCategoryName: '',
+  documentNumber: '',
+  sellerNip: '',
+  documentDate: '',
 }
 const PAGES = [{ bytes: new Uint8Array([1, 2, 3]), mediaType: 'image/png', filename: 'r.png' }]
 

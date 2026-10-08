@@ -1,12 +1,12 @@
 ---
 change_id: invoice-duplicate-detection
 title: Wykrywanie duplikatów faktur/paragonów przy akceptacji zgłoszeń wydatków
-status: preparing
+status: implemented
 created: 2026-10-07
 updated: 2026-10-08
 archived_at: null
-branch: null
-worktree: null
+branch: feat/invoice-duplicate-detection
+worktree: /Users/konradantonik/workspace/yolo/wykonczymy-invoice-duplicates
 ---
 
 ## Notes
@@ -122,7 +122,9 @@ The spike is uncommitted in the working tree; the change hardens what it built r
 - **The trash on the only line item works**, opening the reject confirm. It used to be disabled.
 - **Management's queue** shows „Duplikat #id" beside „Odrzucone" and has a „Duplikaty" filter menu
   (the shared `FilterMultiSelect`, like „Anulowane" on transakcje). The worker still sees „Odrzucone".
-- Seed for local testing: `spike-seed.sql` (local 5433 only).
+- Seed for local testing: `spike-seed.sql` (local 5433 only). Case A („the same photo again") is
+  superseded: it seeds the file fingerprint that the „no content hash" ruling below dropped, so under
+  the shipped matcher it only matches if the AI reads the same amount, date and seller.
 
 ### Research outcome (2026-10-08)
 
@@ -169,17 +171,53 @@ Full findings with file:line: `research.md`. What the plan has to carry:
   re-read by the AI (paid again), deleting the pending zgłoszenie cascades the mark away, and the
   worker sees „Odrzucone" on a zgłoszenie that is still pending. Management's screen behaves the same.
 
-### Open questions
+### Rulings on the open questions (2026-10-08)
 
-1. Should „OK, to nie duplikat" persist, so a reopen and the EX-1026 audit don't re-flag the same
-   pair — and where is it stored?
-2. Hash for uploads > 4 MB (browser → Blob, server only `head()`s): full GET on register, a client-sent
-   `crypto.subtle` hash, or skip (mostly large PDFs)?
-3. Backfill for existing transakcje: hashes from `dumps/blob-mirror/` are cheap (applied to prod by a
-   human); `documentNumber` can be seeded from `invoiceNote` line 1; NIP has no source short of
-   re-reading every photo — do we backfill, and which fields?
-4. `CORRECTION` carries invoices too, but its amount is negative so the amount-gated match never fires —
-   in scope or not?
-5. Must a duplicate mark outlive its zgłoszenie for EX-1026? The skipped-receipt FK cascades on delete.
-   Under the ruling above a pending zgłoszenie holds no marks yet; check whether a decided one can still
-   be deleted before deciding.
+- **„OK, to nie duplikat" is not stored.** It hides the row for the open dialog only; reopening a pending
+  zgłoszenie shows the pair again. Persisting dismissed pairs belongs to EX-1026, where the pair is two
+  transakcje and would otherwise come back on every audit.
+- **No hash for uploads > 4 MB.** Photos are compressed to ≤ 1920 px at q 0.6, so what exceeds 4 MB is in
+  practice a long PDF, and PDFs carry a number and NIP.
+- **No backfill in this change.** Hashes and `documentNumber` for existing transakcje are a one-off
+  script, not a migration — follow-up. Until it runs, transakcje booked before the deploy don't match.
+- **`CORRECTION` is not compared.** A worker's paragon always becomes a wydatek with a positive amount; a
+  korekta is negative with its own number, so it can never pair with one. The new fields still fill for
+  any type booked through the form. Note for EX-1026: korekta vs korekta — 48 active korekty, 0 pairs
+  with an equal amount in the dump of 2026-10-08; a faktura korygująca also prints the number it
+  corrects, which the AI may read as its own, but the opposite sign keeps that from matching.
+- **A duplicate mark never outlives its zgłoszenie unexpectedly.** Only a pending zgłoszenie can be
+  deleted (`worker-expense-drafts.ts:615`, `status = 'pending'`), and under the ruling above a pending
+  one holds no marks yet.
+- **No content hash at all** (supersedes „no hash for uploads > 4 MB"). The one case it alone caught
+  with certainty — the same file sent again, where the AI read two different numbers (media 2127/2129) —
+  is caught by amount + printed date + seller, since the AI reads the amount stably; a re-photographed or
+  re-encoded receipt has different bytes, so the hash never caught that. Dropped with it: `media.sha256`,
+  the change to `/api/media-upload`, the hash half of the backfill, the spike's file fingerprint and the
+  „To samo zdjęcie" reason. Consequence: „same amount + printed date + seller" becomes the second strong
+  signal next to NIP + number + amount, so a structured `documentDate` matters — the spike parses the
+  date out of `description`.
+- **Three visible, editable, optional fields per wydatek row: „Nr dokumentu", „NIP sprzedawcy", „Data na
+  paragonie"** — a new row between the file and „Notatka", filled by the AI read; the same row in the
+  edit-transakcja form, so a misread can be fixed after booking. On a phone the three fields stack in a
+  column, always visible (no collapsible). Not shown as table columns. Labelled
+  „Data na paragonie", not „Data", because the form already has the booking date. Visible rather than
+  silent, because a hidden field can't be corrected and a hand-entered wydatek would fall out of the
+  comparison; the plumbing costs the same either way.
+- **The number appears twice, and stays that way.** The AI keeps writing it on „Notatka" line 1 and the
+  seller + date into „Opis": the sheet sync writes the whole note to the owner's sheet and the investor
+  view shows its line 1 as the number. Moving them onto the new columns would only remove a cosmetic
+  repetition, at the cost of a different note layout in the sheet and a backfill so the investor view
+  keeps its numbers — not worth it (2026-10-08).
+- **What the AI reads today:** the number (on „Notatka" line 1) and the printed date (inside „Opis") —
+  only reshaped into fields. **NIP is new to the prompt** (`openrouter.ts` never asks for it). A faktura
+  prints two NIPs, the seller's and the buyer's — the buyer is our own company — so the prompt asks for
+  the seller's explicitly, and a read equal to the company's own NIP is discarded.
+
+### Follow-ups
+
+- **Telmak reads the structured columns.** It parses the number from „Notatka" line 1 and the date out of
+  „Opis" (`db/telmak-check.ts:8`, `telmak/compare-telmak.ts:50-54`); once `documentNumber` /
+  `documentDate` exist, that parsing is redundant.
+- Backfill script: `documentNumber` from „Notatka" line 1 for existing transakcje, applied to prod by a human.
+- Stale `context/foundation/lessons.md:2127`.
+- Browser E2E deferred: EX-1028 (`e2e-backlog`).

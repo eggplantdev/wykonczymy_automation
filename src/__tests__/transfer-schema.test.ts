@@ -728,6 +728,9 @@ describe('editTransferFormSchema — category on an Inny wydatek', () => {
     otherCategory: '',
     invoiceNote: '',
     worker: '',
+    documentNumber: '',
+    sellerNip: '',
+    documentDate: '',
   }
   const otherRow = { type: 'OTHER', amount: 20, vatPlane: null }
 

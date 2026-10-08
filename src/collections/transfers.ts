@@ -251,6 +251,23 @@ export const Transfers: CollectionConfig = {
         },
       },
     },
+    // Document identity for the duplicate check (EX-1025).
+    {
+      name: 'documentNumber',
+      type: 'text',
+      label: { en: 'Document number', pl: 'Nr dokumentu' },
+    },
+    {
+      name: 'sellerNip',
+      type: 'text',
+      label: { en: 'Seller NIP', pl: 'NIP sprzedawcy' },
+    },
+    {
+      // ISO `YYYY-MM-DD` text: a Payload `date` is a timestamptz, which would shift a date-only value.
+      name: 'documentDate',
+      type: 'text',
+      label: { en: 'Document date', pl: 'Data na paragonie' },
+    },
     // --- Cancellation ---
     {
       name: 'cancelled',

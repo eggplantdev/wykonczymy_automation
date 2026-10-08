@@ -1,4 +1,5 @@
 import { generateObject } from 'ai'
+import { sanitizeReceiptExtraction } from './extract-receipt-sanitize'
 import { openrouter, timeoutSignal, withModelFallback } from './openrouter-client'
 import { providerErrorDetail } from './provider-error-detail'
 import {
@@ -67,6 +68,13 @@ export async function extractReceipt(
     '  line item (product/service name) on its OWN line below it — separate every',
     '  line with a newline ("\\n"), e.g. "FV 123/2026\\nCement 25kg\\nGrunt 5l".',
     '  Include whichever part is legible; "" if neither is.',
+    '- documentNumber: the receipt/invoice number alone — the same value as the first',
+    '  line of invoiceNote; "" if unreadable.',
+    '- sellerNip: the NIP of the SELLER (the shop or company that issued the document),',
+    '  digits only. An invoice also prints the BUYER\'s NIP ("Nabywca") — NEVER return',
+    '  that one. "" if the seller\'s NIP is not printed or not legible.',
+    '- documentDate: the document date printed on it as YYYY-MM-DD (the same date as in',
+    '  description); "" if unreadable.',
     '- otherCategoryName: pick EXACTLY one of the categories below, copied',
     '  verbatim, or "" if none fit. Do not invent a new value.',
     '',
@@ -123,7 +131,7 @@ export async function extractReceipt(
       )
     }
 
-    return object
+    return sanitizeReceiptExtraction(object)
   } catch (error) {
     // TODO(EX-449) SENTRY-REQUIRED: receipt extraction failures must be captured once Sentry is
     // wired — they are silent AI/provider errors users can't self-report.

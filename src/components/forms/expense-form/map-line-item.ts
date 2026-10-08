@@ -5,12 +5,16 @@ import {
   showsOtherCategory,
   type TransferTypeT,
 } from '@/lib/constants/transfers'
+import { normalizeNip } from '@/lib/utils/nip'
 
 type FormLineItemT = {
   description: string
   amount: string
   netAmount: string
   invoiceNote: string
+  documentNumber: string
+  sellerNip: string
+  documentDate: string
   category: string
   expenseCategory: string
   worker: string
@@ -21,6 +25,9 @@ type PayloadLineItemT = {
   amount: number
   netAmount: number | undefined
   invoiceNote: string | undefined
+  documentNumber: string | undefined
+  sellerNip: string | undefined
+  documentDate: string | undefined
   category: number | undefined
   expenseCategory: number | undefined
   worker: number | undefined
@@ -40,6 +47,9 @@ export function mapLineItem(
     // silently start billing it.
     netAmount: billsNetAmount(type) && item.netAmount ? Number(item.netAmount) : undefined,
     invoiceNote: item.invoiceNote || undefined,
+    documentNumber: item.documentNumber.trim() || undefined,
+    sellerNip: normalizeNip(item.sellerNip),
+    documentDate: item.documentDate || undefined,
     // Nothing clears „Kategoria" on a type change, so without this it rides onto a transfer whose
     // form never showed the field.
     category: showsOtherCategory(type) && item.category ? Number(item.category) : undefined,

@@ -34,6 +34,9 @@ const reading = (overrides: Partial<ReceiptExtractionT> = {}): ReceiptExtraction
   netAmount: 100,
   invoiceNote: 'FV 1/2026',
   otherCategoryName: '',
+  documentNumber: '',
+  sellerNip: '',
+  documentDate: '',
   ...overrides,
 })
 

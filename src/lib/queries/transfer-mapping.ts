@@ -63,6 +63,9 @@ export type TransferDocT = {
   createdAt: string
   invoice?: UploadFieldT
   invoiceNote?: string | null
+  documentNumber?: string | null
+  sellerNip?: string | null
+  documentDate?: string | null
   cancelled?: boolean | null
   settled?: boolean | null
   vatPlane?: VatPlaneT | null
@@ -88,6 +91,9 @@ export function mapTransferRow(doc: TransferDocT, lookups: TransferLookupsT): Tr
     createdById: toNullableId(doc.createdBy),
     createdAt: doc.createdAt,
     invoiceNote: doc.invoiceNote ?? null,
+    documentNumber: doc.documentNumber ?? null,
+    sellerNip: doc.sellerNip ?? null,
+    documentDate: doc.documentDate ?? null,
     cancelled: doc.cancelled ?? false,
     settled: doc.settled ?? false,
     vatPlane: doc.vatPlane ?? null,

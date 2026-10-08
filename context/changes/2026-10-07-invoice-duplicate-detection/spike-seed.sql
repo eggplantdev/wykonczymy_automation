@@ -13,6 +13,7 @@ CREATE TEMP TABLE spike_draft (
 ) ON COMMIT DROP;
 
 INSERT INTO spike_draft VALUES
+-- A: SUPERSEDED — seeds the file fingerprint the shipped matcher no longer has (see change.md).
 -- A: the same photo again (worker 32 re-sends what became transakcja 5746).
 ('A · to samo zdjęcie drugi raz', 32, 144, 21, 'one-invoice', $${"rows":[
   {"mediaIds":[2130],"amount":117.4,"description":"Castorama 07.10.2026","filename":"castorama-07-10-2026.jpeg",

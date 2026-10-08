@@ -180,4 +180,60 @@ describe.skipIf(!ENV_READY)('expense draft accept / reject (DB)', () => {
     })
     expect(await readDraft(accepted)).toEqual(before)
   })
+
+  const duplicateMarkOf = async (draftId: number) =>
+    (await db.execute(sql`SELECT duplicate_of FROM worker_expense_drafts WHERE id = ${draftId}`))
+      .rows[0].duplicate_of
+
+  it('rejecting as a duplicate stores the mark on a draft that still reads rejected', async () => {
+    const draftId = await createDraft('reject-duplicate')
+    const duplicateOf = { source: 'transaction' as const, id: 515151 }
+
+    expect(await rejectExpenseDraftAction(draftId, duplicateOf)).toMatchObject({ success: true })
+    expect(await readDraft(draftId)).toMatchObject({ status: 'rejected', transfer_ids: [] })
+    expect(await duplicateMarkOf(draftId)).toEqual(duplicateOf)
+  })
+
+  it('accepting with a paragon left out as a duplicate stores the mark on that paragon', async () => {
+    const draftId = await createDraft('accept-duplicate')
+    const {
+      rows: [{ media_id: pageId }],
+    } = await db.execute(
+      sql`SELECT media_id FROM worker_expense_draft_media WHERE draft_id = ${draftId}`,
+    )
+    const duplicateOf = { source: 'draft' as const, id: 525252 }
+
+    const result = await createBulkTransferAction(
+      {
+        date: new Date().toISOString().slice(0, 10),
+        type: 'INVESTMENT_EXPENSE',
+        paymentMethod: 'CASH',
+        sourceRegister: registerId,
+        investment: investmentId,
+        lineItems: [
+          {
+            description: `EX-1025 accept-dup ${draftId}`,
+            amount: 42.5,
+            expenseCategory: expenseCategoryId,
+          },
+        ],
+      },
+      undefined,
+      {
+        expenseDraftId: draftId,
+        receiptMediaIds: [],
+        skippedReceipts: [{ mediaIds: [Number(pageId)], duplicateOf }],
+      },
+    )
+
+    expect(result).toMatchObject({ success: true })
+    expect(await readDraft(draftId)).toMatchObject({ status: 'accepted' })
+    const { rows: skipped } = await db.execute(sql`
+      SELECT media_ids, duplicate_of FROM worker_expense_draft_skipped_receipts
+      WHERE draft_id = ${draftId}
+    `)
+    expect(
+      skipped.map((row) => [(row.media_ids as number[]).map(Number), row.duplicate_of]),
+    ).toEqual([[[Number(pageId)], duplicateOf]])
+  })
 })

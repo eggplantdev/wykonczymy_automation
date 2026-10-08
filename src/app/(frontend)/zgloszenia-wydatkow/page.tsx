@@ -15,7 +15,7 @@ export default async function ExpenseDraftsPage({ searchParams }: PagePropsT) {
   const sp = await searchParams
   const [drafts, referenceDataBase] = await Promise.all([
     fetchExpenseDraftsPage(
-      parseQueueFilters(sp, isExpenseDraftStatus),
+      { ...parseQueueFilters(sp, isExpenseDraftStatus), duplicatesOnly: sp.duplicates === '1' },
       parsePagination(sp),
       parseExpenseDraftSort(sp),
     ),
