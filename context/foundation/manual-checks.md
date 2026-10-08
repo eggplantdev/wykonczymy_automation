@@ -4817,3 +4817,11 @@ Regression sweep (console open): horizontal / vertical scroll leaves row heights
       Staging 2026-10-07: 1. klik od najnowszej (07.10.2026), 2. od najstarszej (20.02.2026).
 - [x] Wybór kolumn → „Data dodania” da się ukryć i pokazać, a wybór przetrwa przeładowanie strony.
       Staging 2026-10-07: ukrycie przetrwało przeładowanie; przywrócone.
+
+## 2026-10-08 — investment-notes-inline-edit — edycja notatki inwestycji w miejscu
+
+- [ ] Karta inwestycji i Kosztorys → Podsumowanie → „Inwestycja”: pod listą danych stoi „Notatki” z przyciskiem „Edytuj notatkę”; pusta notatka pokazuje „—”, wieloliniowa zachowuje podziały wierszy.
+- [ ] „Edytuj notatkę” → zmień tekst → „Zapisz”: toast „Notatka zapisana”, pole wraca do podglądu z nowym tekstem, który przetrwa przeładowanie; pozostałe dane inwestycji (nazwa, status, kontakt) bez zmian.
+- [ ] „Edytuj notatkę” → zmień tekst → „Anuluj”: wraca stary tekst, nic się nie zapisuje.
+- [ ] Inwestycja w koszu: karta pokazuje notatkę bez przycisku „Edytuj notatkę”.
+- [ ] Dialog „Edytuj inwestycję”: pod „Prośba o opinię wysłana” widać podpowiedź „Zaznacz jeśli wysłałeś już do inwestora prośbę o opinię w google”.

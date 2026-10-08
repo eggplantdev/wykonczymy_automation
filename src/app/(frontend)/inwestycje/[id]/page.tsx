@@ -23,6 +23,7 @@ import { PageWrapper } from '@/components/ui/page-wrapper'
 import { InfoList } from '@/components/ui/info-list'
 import { FinancialStats } from '@/components/investments/financial-stats'
 import { buildInvestmentInfoFields } from '@/components/investments/investment-info-fields'
+import { InvestmentNotes } from '@/components/investments/investment-notes'
 import { EditInvestmentDialog } from '@/components/dialogs/edit-investment-dialog'
 import { investmentLockOf } from '@/lib/constants/investment-lock'
 import { RequestReviewButton } from '@/components/investments/request-review-button'
@@ -94,6 +95,7 @@ export default async function InvestmentDetailPage({ params, searchParams }: Dyn
         <OpenKosztorysV2Button investmentId={investmentId} />
       </div>
       <InfoList items={buildInvestmentInfoFields(investment)} />
+      <InvestmentNotes investment={investment} readOnly={trashed} />
 
       {/* Its own boundary: the gallery's read is independent of everything above it, so it must not
           hold back the page the way an awaited fetch here would. */}
