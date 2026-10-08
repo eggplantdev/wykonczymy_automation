@@ -1,12 +1,12 @@
 ---
 change_id: invoice-duplicate-detection
 title: Wykrywanie duplikatów faktur/paragonów przy akceptacji zgłoszeń wydatków
-status: planned
+status: implementing
 created: 2026-10-07
 updated: 2026-10-08
 archived_at: null
-branch: null
-worktree: null
+branch: feat/invoice-duplicate-detection
+worktree: /Users/konradantonik/workspace/yolo/wykonczymy-invoice-duplicates
 ---
 
 ## Notes

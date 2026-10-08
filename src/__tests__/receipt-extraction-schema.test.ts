@@ -9,6 +9,9 @@ describe('receiptExtractionSchema', () => {
       netAmount: 105.68,
       invoiceNote: 'FV/2026/07/11',
       otherCategoryName: 'Remont',
+      documentNumber: '',
+      sellerNip: '',
+      documentDate: '',
     })
     expect(parsed.amount).toBe(129.99)
     expect(parsed.netAmount).toBe(105.68)
@@ -22,6 +25,9 @@ describe('receiptExtractionSchema', () => {
       netAmount: null,
       invoiceNote: '',
       otherCategoryName: '',
+      documentNumber: '',
+      sellerNip: '',
+      documentDate: '',
     })
     expect(parsed.amount).toBeNull()
   })
@@ -33,6 +39,9 @@ describe('receiptExtractionSchema', () => {
       netAmount: null,
       invoiceNote: '',
       otherCategoryName: '',
+      documentNumber: '',
+      sellerNip: '',
+      documentDate: '',
     })
     expect(parsed.netAmount).toBeNull()
   })
@@ -43,6 +52,9 @@ describe('receiptExtractionSchema', () => {
       netAmount: null,
       invoiceNote: '',
       otherCategoryName: '',
+      documentNumber: '',
+      sellerNip: '',
+      documentDate: '',
     })
     expect(result.success).toBe(false)
   })
@@ -53,6 +65,9 @@ describe('receiptExtractionSchema', () => {
       amount: 1,
       invoiceNote: '',
       otherCategoryName: '',
+      documentNumber: '',
+      sellerNip: '',
+      documentDate: '',
     })
     expect(result.success).toBe(false)
   })
@@ -64,6 +79,9 @@ describe('receiptExtractionSchema', () => {
       netAmount: null,
       invoiceNote: '',
       otherCategoryName: '',
+      documentNumber: '',
+      sellerNip: '',
+      documentDate: '',
     })
     expect(result.success).toBe(false)
   })
@@ -75,6 +93,9 @@ describe('receiptExtractionSchema', () => {
       netAmount: '105.68',
       invoiceNote: '',
       otherCategoryName: '',
+      documentNumber: '',
+      sellerNip: '',
+      documentDate: '',
     })
     expect(result.success).toBe(false)
   })

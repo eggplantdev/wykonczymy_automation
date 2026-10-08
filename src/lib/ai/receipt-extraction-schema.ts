@@ -14,6 +14,9 @@ export const receiptExtractionSchema = z.object({
   netAmount: z.number().nullable(),
   invoiceNote: z.string(),
   otherCategoryName: z.string(),
+  documentNumber: z.string(),
+  sellerNip: z.string(),
+  documentDate: z.string(),
 })
 
 export type ReceiptExtractionT = z.infer<typeof receiptExtractionSchema>

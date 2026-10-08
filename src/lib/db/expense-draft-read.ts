@@ -8,6 +8,9 @@ const expenseDraftReadRowSchema = z.object({
   amount: z.number().optional(),
   netAmount: z.number().optional(),
   invoiceNote: z.string().optional(),
+  documentNumber: z.string().optional(),
+  sellerNip: z.string().optional(),
+  documentDate: z.string().optional(),
   filename: z.string().optional(),
 })
 

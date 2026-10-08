@@ -11,6 +11,9 @@ type ReceiptValuesT = {
   amount?: number | null
   netAmount?: number | null
   invoiceNote?: string
+  documentNumber?: string
+  sellerNip?: string
+  documentDate?: string
 }
 
 export function receiptToLineItemValues(read: ReceiptValuesT) {
@@ -19,6 +22,9 @@ export function receiptToLineItemValues(read: ReceiptValuesT) {
     amount: read.amount == null ? '' : String(read.amount),
     netAmount: read.netAmount == null ? '' : String(read.netAmount),
     invoiceNote: read.invoiceNote ?? '',
+    documentNumber: read.documentNumber ?? '',
+    sellerNip: read.sellerNip ?? '',
+    documentDate: read.documentDate ?? '',
   }
 }
 
@@ -40,4 +46,7 @@ export function applyReceiptToRow(
   setFieldValue(`lineItems[${index}].amount`, values.amount)
   setFieldValue(`lineItems[${index}].netAmount`, values.netAmount)
   setFieldValue(`lineItems[${index}].invoiceNote`, values.invoiceNote)
+  setFieldValue(`lineItems[${index}].documentNumber`, values.documentNumber)
+  setFieldValue(`lineItems[${index}].sellerNip`, values.sellerNip)
+  setFieldValue(`lineItems[${index}].documentDate`, values.documentDate)
 }

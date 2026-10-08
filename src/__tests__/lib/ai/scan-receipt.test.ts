@@ -34,6 +34,9 @@ beforeEach(() => {
     netAmount: 10.16,
     invoiceNote: '',
     otherCategoryName: '',
+    documentNumber: '',
+    sellerNip: '',
+    documentDate: '',
   })
 })
 
@@ -44,6 +47,9 @@ async function scanWith(overrides: Record<string, unknown>) {
     netAmount: null,
     invoiceNote: '',
     otherCategoryName: '',
+    documentNumber: '',
+    sellerNip: '',
+    documentDate: '',
     ...overrides,
   })
   const result = await scanReceipt([receiptFile()], [])
@@ -97,6 +103,9 @@ describe('scanReceipt', () => {
       netAmount: null,
       invoiceNote: '',
       otherCategoryName: '',
+      documentNumber: '',
+      sellerNip: '',
+      documentDate: '',
     })
 
     const result = await scanReceipt([receiptFile()], [])
@@ -144,6 +153,9 @@ describe('scanReceiptPages', () => {
       netAmount: 20,
       invoiceNote: '',
       otherCategoryName: '',
+      documentNumber: '',
+      sellerNip: '',
+      documentDate: '',
     })
     const pages = [{ bytes: PNG_BYTES, mediaType: 'image/png', filename: 'photo-1.png' }]
 

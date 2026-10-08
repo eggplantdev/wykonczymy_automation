@@ -170,6 +170,7 @@ Add the columns, add the Payload fields, and teach the extractor and the draft r
 **Intent**: One additive migration for the whole change, replacing the spike's migration.
 
 **Contract**:
+
 - `up`:
   - `worker_expense_drafts.duplicate_of jsonb` and
     `worker_expense_draft_skipped_receipts.duplicate_of jsonb`, both `IF NOT EXISTS`;
@@ -194,6 +195,7 @@ the generated types carry them.
 **Intent**: One normaliser shared by the AI read, the form validation and the matcher.
 
 **Contract**:
+
 - `COMPANY_NIP: string` (10 digits).
 - `normalizeNip(raw: string): string | undefined`:
   - strips a `PL` prefix, spaces and dashes;
@@ -207,6 +209,7 @@ the generated types carry them.
 unchanged `invoiceNote` and `description`.
 
 **Contract**:
+
 - Schema: add `documentNumber`, `sellerNip` and `documentDate`. All three are `z.string()`, with an
   empty string meaning "not read".
 - Prompt:
@@ -225,6 +228,7 @@ unchanged `invoiceNote` and `description`.
 lack them.
 
 **Contract**:
+
 - `expenseDraftReadRowSchema` gains three `z.string().optional()` fields.
 - `toReadRow` copies them when they are non-empty.
 - `ReceiptValuesT` and `receiptToLineItemValues` map them, defaulting to `''`.
@@ -242,6 +246,7 @@ lack them.
   - an invalid date is dropped.
 
   The spec targets the post-process function, not the model call.
+
 - `src/__tests__/components/worker-expenses/draft-prefill.test.ts` passes, extended with two cases:
   - a read with the new fields prefills them;
   - a stored read without them still prefills everything else.
@@ -272,6 +277,7 @@ The three visible fields in the expense form and the edit-transakcja form, valid
 payload.
 
 **Contract**:
+
 - Line item gains `documentNumber`, `sellerNip` and `documentDate` (strings, default `''`).
 - Validation, client and server:
   - NIP: empty, or `normalizeNip` succeeds (message „NIP musi mieć 10 cyfr");
@@ -286,6 +292,7 @@ payload.
 „Data na paragonie".
 
 **Contract**:
+
 - Below `sm` the three fields stack in a column, always visible. From `sm` up they sit three across.
 - The date uses the date-input control the form already uses for the booking date.
 
@@ -305,6 +312,7 @@ becomes `null`.
 **Intent**: The same row in the edit form, so a misread can be fixed after booking.
 
 **Contract**:
+
 - The row renders wherever the edit form renders the invoice/„Notatka" block.
 - The values are read back through `transfer-mapping.ts` for the defaults.
 - Validation matches the line-item schema.
@@ -352,6 +360,7 @@ fingerprint. One statement per `lib/db` function, with orchestration in `lib/que
 **Intent**: Implement the matching rules above. Remove the fingerprint and the `same-file` reason.
 
 **Contract**:
+
 - `ExpenseDocT { amount, documentNumber, sellerNip, documentDate, invoiceNote, description }`.
 - `MatchReasonT = 'same-number' | 'same-receipt' | 'same-amount'`.
 - The tier mapping is unchanged.
@@ -365,6 +374,7 @@ fingerprint. One statement per `lib/db` function, with orchestration in `lib/que
 **Intent**: Three single-statement reads that filter in SQL, with no correlated JSON expansion.
 
 **Contract**:
+
 - `loadDraftProbes(draftId)`:
   - reads the pending draft's `ai_read` rows, expanded once `WITH ORDINALITY`;
   - returns `ExpenseDocT & { rowIndex, mediaIds }`.
@@ -388,6 +398,7 @@ fingerprint. One statement per `lib/db` function, with orchestration in `lib/que
 **Intent**: The client-invoked read, shaped like `queries/investment-asset-ids.ts`.
 
 **Contract**:
+
 - `'use server'`.
 - `findExpenseDraftDuplicates(draftId): Promise<ActionResultT<ParagonDuplicatesT[]>>`.
 - Management only. An auth failure returns an error result and does not throw.
@@ -437,6 +448,7 @@ path, and fix the dialog's state bugs.
 **Intent**: A skipped receipt can carry the transakcja or zgłoszenie it repeats.
 
 **Contract**:
+
 - `receiptDecision(receiptMediaIds, lineItems, duplicateOfByItemId: Map<string, DuplicateOfT>)` returns
   `skippedReceipts: { mediaIds: number[]; duplicateOf?: DuplicateOfT }[]`.
 - `createBulkTransferAction` opts and `decideExpenseDraft` take the same shape.
@@ -449,6 +461,7 @@ path, and fix the dialog's state bugs.
 **Intent**: Nothing writes a skipped receipt under a pending zgłoszenie.
 
 **Contract**:
+
 - Delete `markReceiptDuplicateAction` and `skipPendingReceiptAsDuplicate`.
 - Delete `SKIPPED_MEDIA` / `skippedMediaIds` if nothing else reads them (gate on typecheck).
 - `rejectExpenseDraftAction(draftId, duplicateOf?)` stays.
@@ -461,6 +474,7 @@ path, and fix the dialog's state bugs.
 last-paragon rule reads the live line-item count.
 
 **Contract**:
+
 - `ExpenseForm` takes
   `renderAboveLineItems?: (api: { lineItemIds: string[]; markDuplicate(itemId: string, duplicateOf: DuplicateOfT): void }) => ReactNode`.
 - The form owns `duplicateOfByItemId`:
@@ -483,6 +497,7 @@ last-paragon rule reads the live line-item count.
 The worker's table keeps „Odrzucone".
 
 **Contract**:
+
 - The behaviour stays as in the spike.
 - Strip the `SPIKE` comments.
 
@@ -516,6 +531,7 @@ The worker's table keeps „Odrzucone".
 
   Expected: the paragon leaves the form, the change stays, and nothing is saved yet. Accept: the
   queue shows the zgłoszenie as accepted, and the skipped paragon reads „Duplikat #id".
+
 - Zgłoszenie with one paragon → „Duplikat": the zgłoszenie is rejected at once. The queue shows
   „Duplikat #id", and the worker's `/pracownicy/[id]` shows „Odrzucone".
 - „OK, to nie duplikat" hides the row. Close and reopen the dialog: the row is back.
@@ -552,6 +568,7 @@ Record the risk, defer the E2E, and update the living docs.
 seeing „Odrzucone".
 
 **Contract**:
+
 - One issue, with its id recorded in `change.md`.
 - Reality-check the Linear MCP first.
 
@@ -630,7 +647,7 @@ pending drafts. Draft reads are expanded once in a CTE, which avoids the JIT tra
 
 #### Automated
 
-- [ ] 1.1 Migration applies on the local DB after the stale spike row is removed
+- [x] 1.1 Migration applies on the local DB after the stale spike row is removed
 - [ ] 1.2 nip.test.ts passes
 - [ ] 1.3 extract-receipt-sanitize.test.ts passes
 - [ ] 1.4 draft-prefill.test.ts passes with new-field and legacy-read cases
