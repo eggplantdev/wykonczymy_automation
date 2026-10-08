@@ -12,6 +12,8 @@ worktree: null
 ## Notes
 
 Ustalenia wstępne z rozmowy z ownerem 2026-10-07 — kształtowanie, nic nie zaimplementowane.
+**Decyzja ownera (2026-10-07): ceny i treść prac w szablonach są 1:1 z katalogu prac** — model
+poniżej (pkt 2–4) jest potwierdzony, nie wstępny.
 Dane z `prod-snap` (dump prod 2026-10-07 08:36 UTC).
 
 Linear: **EX-1017**.
@@ -81,7 +83,8 @@ Cena wynegocjowana z jednym klientem zostaje w jego kosztorysie — do katalogu 
 1. **Przejście obecnych szablonów.** W „kolory" 6 / 310 prac nie ma dokładnego odpowiednika
    w katalogu: 3× „Nowa praca" (do usunięcia), 2 listwy ze zmienionym opisem (poprawki kierownika
    2026-10-07), „Zabezpieczenia mebli, podłóg…" w m² (w katalogu i w „Kosztorys 2026": kpl).
-   „Kosztorys 2026": 307 / 310 dopasowanych, 0 różnic cen. Co z niedopasowanymi przy przejściu?
+   „Kosztorys 2026": 307 / 310 dopasowanych, 0 różnic cen. 3× „Nowa praca" — usunąć (owner
+   potwierdził 2026-10-07). Otwarte zostają 2 listwy i „Zabezpieczenia…" w m².
 2. **Istniejące kosztorysy:** czy przy przejściu ich prace dostają zapamiętany wpis katalogu
    (dopasowanie po opisie + j.m.), czy tylko kosztorysy zakładane od teraz?
 3. **Zmiana / usunięcie wpisu katalogu, który jest w szablonie:** samo ostrzeżenie, czy usunięcie
@@ -101,8 +104,10 @@ Inwestycje z szablonu z ceną 450 (wszystkie: 0 wykonanych na tej pracy):
 | Konrad Testy       | aktywna | 0         |
 
 Pozostałe inwestycje z ery szablonów (od 2026-09-22) mają 600. Pytanie: 450 u Wądołowskiego to cena
-wynegocjowana czy nowa stawka? Jeśli wynegocjowana — oferta Dębowskiej jest zaniżona o 150 zł,
-a „kolory" trzeba wyrównać do katalogu.
+wynegocjowana czy nowa stawka? Jeśli wynegocjowana — oferta Dębowskiej jest zaniżona o 150 zł.
+
+Po decyzji 1:1 „kolory" bierze cenę z katalogu bez względu na odpowiedź. Odpowiedź rozstrzyga tylko,
+czy w katalogu zostaje 600, czy przez „Aktualizuj" wchodzi tam 450.
 
 ### Osobno: jednorazowy skrypt tłumaczeń
 
