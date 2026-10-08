@@ -5,6 +5,8 @@ import { translateNewRow, translateRows } from '@/lib/ai/translate-new-row'
 import { SAVED_UNTRANSLATED_WARNING } from '@/lib/utils/notice'
 import { fillDescriptionTranslations } from '@/lib/db/fill-description-translations'
 import { getDb } from '@/lib/db/get-db'
+import { deleteTemplateRowsOfCatalogueItem, markPresetEdited } from '@/lib/db/presets'
+import { withPayloadTransaction } from '@/lib/db/with-payload-transaction'
 import {
   findCatalogueItemByKey,
   listCatalogueItems,
@@ -136,12 +138,22 @@ export async function deleteCatalogueItemAction(id: number) {
   return protectedAction(
     'deleteCatalogueItemAction',
     async ({ payload }) => {
-      // Prace copy the numbers at insert time and freeze them, so a delete can't orphan a kosztorys.
-      await payload.delete({ collection: 'work-catalogue-items', id })
+      // A kosztorys keeps its own copy (and the now dead id); a szablon's prace ARE their katalog
+      // entries (EX-1017), so the praca leaves every szablon with it.
+      await withPayloadTransaction(
+        payload,
+        async (req) => {
+          const db = await getDb(payload, req)
+          const templateIds = await deleteTemplateRowsOfCatalogueItem(db, id)
+          for (const templateId of templateIds) await markPresetEdited(db, templateId)
+          await payload.delete({ collection: 'work-catalogue-items', id, req })
+        },
+        { skipRevalidation: true },
+      )
 
       return { success: true }
     },
-    ['workCatalogue'],
+    ['workCatalogue', 'kosztorysItems', 'presets'],
   )
 }
 
