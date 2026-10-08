@@ -199,10 +199,13 @@ export type UncataloguedUsageT = {
   hints: CatalogueHintT[]
 }
 
-// Plain records and arrays only: it crosses the server-action boundary.
+// Plain records and arrays only: it crosses the server → client props boundary.
 export type CatalogueUsageT = {
   // Cennik id → distinct inwestycje using it. An id absent here is unused.
   byId: Record<number, number>
+  // Cennik id → the live szablony holding it, matched by the remembered link only. Names, not a count:
+  // the edit and delete dialogs list them, and szablon names are unique, so the length is the count.
+  templateNamesById: Record<number, string[]>
   otherUnitIds: number[]
   uncatalogued: UncataloguedUsageT[]
 }

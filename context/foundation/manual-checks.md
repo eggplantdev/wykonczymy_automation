@@ -4878,3 +4878,5 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
 - [ ] Praca z szablonu „Kosztorys 2026 kolory” ma w „Szablony” co najmniej 1; praca spoza szablonów ma 0.
 - [ ] „Filtry”: są dwie grupy, „Kosztorysy” (w żadnym kosztorysie / w kosztorysach) i „Szablony” (w żadnym szablonie / w szablonach); liczby w każdej sumują się do liczby prac. Odznacz „w kosztorysach”, przeładuj stronę: filtr nadal działa (chip widoczny).
 - [ ] „Filtry” w katalogu prac: na górze menu nagłówek „Widoczne prace” z podpowiedzią „Odznacz, żeby ukryć.” — tak jak w „Filtrach” kosztorysu.
+- [ ] Praca stojąca w szablonie: „Edytuj” i „Usuń” od razu (bez ładowania) wymieniają nazwy szablonów, a ich liczba zgadza się z kolumną „Szablony”.
+- [ ] Szablon (warsztat szablonu) → „Filtry”: proponuje tylko filtry stawek, jak dotąd.

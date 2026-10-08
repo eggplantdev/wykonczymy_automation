@@ -1536,7 +1536,7 @@ stays live and overrides positions, so a move in „Ustaw kolejność…" would 
 one order. It lives in the column header, not the section menu, because one section can't be sorted
 in isolation.
 
-## Katalog prac: Filtry, Problemy i „Policz użycia" (2026-09-29, EX-863 / EX-873)
+## Katalog prac: Filtry, Problemy i kolumny użycia (2026-09-29, EX-863 / EX-873)
 
 `/katalog-prac` dostał te same dwa menu co edytor i tę samą semantykę: w „Filtrach" zaznaczone =
 widoczne, a włączony filtr chowa swoje trafienia; „Problemy" są wyłączne i włączony problem
@@ -1553,7 +1553,7 @@ szukanie czy „Kategoria". Obok „Kategorii" stoi filtr „j.m.", a pusta j.m.
 - **Problemy to „bez ceny j.m." i „stawka 0 zł" na każdej płaszczyźnie.** Stawka 0 liczy się tylko
   przy kwocie albo mnożniku, bo przy „auto" zera nikt nie wpisał.
 
-**„Policz użycia" — co znaczy „używana".** Praca z katalogu jest używana w inwestycji, gdy któraś
+**Kolumna „Kosztorysy" — co znaczy „używana".** Praca z katalogu jest używana w inwestycji, gdy któraś
 pozycja jej kosztorysu ma przedmiar > 0 albo postęp na którymkolwiek etapie. Dopasowanie idzie po
 kluczu opis + j.m., tak jak porównanie z katalogiem. Wyceny się liczą. Poza zakresem są inwestycje
 w koszu i o statusie „szablon". Liczba w kolumnie „Kosztorysy" to **liczba różnych inwestycji**, nie

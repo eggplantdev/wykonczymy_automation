@@ -12,11 +12,11 @@ export default async function WorkCataloguePage() {
   if (!session.success) redirect('/')
 
   const items = await getWorkCatalogue()
-  const { usage, templateCounts } = await getCatalogueUsage(items)
+  const usage = await getCatalogueUsage(items)
 
   return (
     <PageWrapper title={PAGE_TITLES.workCatalog}>
-      <WorkCatalogueDataTable data={items} usage={usage} templateCounts={templateCounts} />
+      <WorkCatalogueDataTable data={items} usage={usage} />
     </PageWrapper>
   )
 }

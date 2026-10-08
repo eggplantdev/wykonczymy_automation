@@ -45,7 +45,7 @@ function mostFrequentSpelling(spellings: Map<string, number>): {
 export function buildCatalogueUsage(
   used: readonly UsedKosztorysItemT[],
   catalogue: readonly WorkCatalogueItemT[],
-): CatalogueUsageT {
+): Omit<CatalogueUsageT, 'templateNamesById'> {
   // A pozycja that remembers its praca counts under that praca's klucz, whatever its own opis now
   // says — so a praca renamed in the katalog keeps its count instead of reappearing as uncatalogued.
   const index = indexCatalogue(catalogue)

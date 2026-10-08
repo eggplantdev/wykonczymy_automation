@@ -1,5 +1,5 @@
 import { crewAxisShows, type CrewAxisT } from '@/lib/kosztorys/crew-axis'
-import { TEMPLATE_FILTER_GROUPS } from '@/lib/kosztorys/filter-groups'
+import { WORKSHOP_VISIBLE_COLUMNS } from '@/lib/kosztorys/workshop-columns'
 import {
   CLIENT_EMPTY_CONDITION_ID,
   NO_PLANNED_OR_AI_QTY_CONDITION_ID,
@@ -219,10 +219,11 @@ export function sectionIdsWhereAllMatch(
  * nobody is reading is the same noise as the column (owner, 2026-09-28). Never a safeguard either
  * way: the engaged set lives in localStorage and goes around this.
  *
- * The third gate is the szablon workbench, which offers only the axes it has columns for
- * (`TEMPLATE_FILTER_GROUPS`). The rest ask about przedmiar, wykonana praca, rabat or komentarz, none
- * of which a szablon holds — so every pozycja matches the „bez …" half, and the row (and its „Sekcje
- * bez …" lift) would sit in the menu at the full count forever, hiding the whole szablon on a click.
+ * The third gate is the szablon workbench, which offers only a filter whose `revealsColumns` all sit
+ * in `WORKSHOP_VISIBLE_COLUMNS` — one that declares none is about a figure the workbench has no
+ * column for. The rest ask about przedmiar, wykonana praca, rabat or komentarz, none of which a
+ * szablon holds — so every pozycja matches the „bez …" half, and the row (and its „Sekcje bez …"
+ * lift) would sit in the menu at the full count forever, hiding the whole szablon on a click.
  *
  * An ENGAGED condition is listed regardless of the gate: it is hiding pozycje right now, and the menu
  * is where a tick comes back. Gating it out would leave the grid short with no control to restore it —
@@ -244,7 +245,8 @@ export function offeredFilterConditions({
       engagedIds.has(condition.id) ||
       (!(perItemDiscountInert && condition.inertUnderGlobalDiscount) &&
         (condition.plane === undefined || crewAxisShows(crewAxis, condition.plane)) &&
-        (!isTemplate || TEMPLATE_FILTER_GROUPS.has(condition.filterGroup))),
+        (!isTemplate ||
+          (condition.revealsColumns?.every((id) => WORKSHOP_VISIBLE_COLUMNS.has(id)) ?? false))),
   )
 }
 

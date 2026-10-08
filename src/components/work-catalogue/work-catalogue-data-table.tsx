@@ -58,10 +58,9 @@ const getUnit = (row: WorkCatalogueItemT) => row.unit
 type PropsT = {
   data: WorkCatalogueItemT[]
   usage: CatalogueUsageT
-  templateCounts: Readonly<Record<number, number>>
 }
 
-export function WorkCatalogueDataTable({ data, usage, templateCounts }: PropsT) {
+export function WorkCatalogueDataTable({ data, usage }: PropsT) {
   const {
     engagedIds,
     toggle: toggleCondition,
@@ -76,7 +75,7 @@ export function WorkCatalogueDataTable({ data, usage, templateCounts }: PropsT) 
   const conditions = [
     ...CATALOGUE_CONDITIONS,
     catalogueDuplicateCondition(nearDuplicates),
-    ...catalogueUsageConditions(usage, templateCounts),
+    ...catalogueUsageConditions(usage),
   ]
 
   // Every control ANDs, so the order only decides what gets recomputed: search runs first because it
@@ -167,10 +166,9 @@ export function WorkCatalogueDataTable({ data, usage, templateCounts }: PropsT) 
         categorySuggestions,
         ordinals,
         usage,
-        templateCounts,
         nearDuplicates,
       }),
-    [categorySuggestions, ordinals, usage, templateCounts, nearDuplicates],
+    [categorySuggestions, ordinals, usage, nearDuplicates],
   )
 
   return (

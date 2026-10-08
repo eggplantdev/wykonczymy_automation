@@ -265,42 +265,29 @@ const workNoteColumn = col.accessor((row) => row.workNote ?? '', {
   cell: (info) => <span className="text-muted-foreground block text-sm">{info.getValue()}</span>,
 })
 
-const countCell = (value: number) => <span className="tabular-nums">{value}</span>
-
-// Counts distinct inwestycje, not pozycje: a praca repeated across five łazienki of one mieszkanie is
-// still one kosztorys that would miss it.
-const usageColumn = (usage: CatalogueUsageT) =>
-  col.accessor((row) => usage.byId[row.id] ?? 0, {
-    id: 'kosztorysCount',
-    header: 'Kosztorysy',
-    meta: {
-      align: 'right',
-      tooltip:
-        'W ilu inwestycjach praca ma Przedmiar albo ilość w etapach. Liczone tylko z kosztorysów ' +
-        'w aplikacji — stare arkusze Google się nie liczą, więc praca używana tylko tam ma tu 0.',
-    },
-    cell: (info) => countCell(info.getValue()),
+// Both count distinct inwestycje, not pozycje: a praca repeated across five łazienki of one
+// mieszkanie is still one kosztorys that would miss it.
+const countColumn = (id: string, header: string, tooltip: string, count: (id: number) => number) =>
+  col.accessor((row) => count(row.id), {
+    id,
+    header,
+    meta: { align: 'right', tooltip },
+    cell: (info) => <span className="tabular-nums">{info.getValue()}</span>,
   })
 
-const templateColumn = (templateCounts: Readonly<Record<number, number>>) =>
-  col.accessor((row) => templateCounts[row.id] ?? 0, {
-    id: 'templateCount',
-    header: 'Szablony',
-    meta: { align: 'right', tooltip: 'W ilu szablonach stoi ta praca.' },
-    cell: (info) => countCell(info.getValue()),
-  })
+const KOSZTORYS_COUNT_TOOLTIP =
+  'W ilu inwestycjach praca ma Przedmiar albo ilość w etapach. Liczone tylko z kosztorysów ' +
+  'w aplikacji — stare arkusze Google się nie liczą, więc praca używana tylko tam ma tu 0.'
 
 export function getWorkCatalogueColumns({
   categorySuggestions,
   ordinals,
   usage,
-  templateCounts,
   nearDuplicates,
 }: {
   categorySuggestions: readonly string[]
   ordinals: ReadonlyMap<number, number>
   usage: CatalogueUsageT
-  templateCounts: Readonly<Record<number, number>>
   nearDuplicates: DescriptionMarksT['nearDuplicates']
 }) {
   return [
@@ -317,15 +304,29 @@ export function getWorkCatalogueColumns({
     ownToolsRateColumn,
     ownToolsShareColumn,
     workNoteColumn,
-    usageColumn(usage),
-    templateColumn(templateCounts),
+    countColumn(
+      'kosztorysCount',
+      'Kosztorysy',
+      KOSZTORYS_COUNT_TOOLTIP,
+      (id) => usage.byId[id] ?? 0,
+    ),
+    countColumn(
+      'templateCount',
+      'Szablony',
+      'W ilu szablonach stoi ta praca.',
+      (id) => usage.templateNamesById[id]?.length ?? 0,
+    ),
 
     col.display({
       id: 'actions',
       header: 'Akcje',
       meta: { align: 'right' },
       cell: (info) => (
-        <CatalogueRowActions item={info.row.original} categorySuggestions={categorySuggestions} />
+        <CatalogueRowActions
+          item={info.row.original}
+          categorySuggestions={categorySuggestions}
+          templateNames={usage.templateNamesById[info.row.original.id] ?? []}
+        />
       ),
     }),
   ]

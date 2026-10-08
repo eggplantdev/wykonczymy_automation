@@ -188,14 +188,12 @@ describe('catalogueUsageConditions', () => {
     const zero = entry()
     const absent = entry()
     const rows = [used, zero, absent]
-    const conditions = catalogueUsageConditions(
-      {
-        byId: { [used.id]: 2, [zero.id]: 0 },
-        otherUnitIds: [],
-        uncatalogued: [],
-      },
-      { [absent.id]: 1 },
-    )
+    const conditions = catalogueUsageConditions({
+      byId: { [used.id]: 2, [zero.id]: 0 },
+      templateNamesById: { [absent.id]: ['Łazienka'] },
+      otherUnitIds: [],
+      uncatalogued: [],
+    })
     const counts = countCatalogueConditions(rows, conditions)
     expect(counts.get('catalogue-usage-used')).toBe(1)
     expect(counts.get('catalogue-usage-unused')).toBe(2)

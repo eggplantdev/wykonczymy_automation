@@ -127,20 +127,18 @@ export async function listTemplateNamesUsingCatalogueItem(
   return res.rows.map((row) => String(row.name))
 }
 
-// Cennik id → live szablony holding it, each once however many sekcje repeat the praca — the same
-// unit as „Kosztorysy". An id absent here sits in no szablon.
-export async function countTemplatesByCatalogueItem(
+export async function listTemplateNamesByCatalogueItem(
   db: DbExecutorT,
-): Promise<Record<number, number>> {
+): Promise<Record<number, string[]>> {
   const res = await db.execute(sql`
-    SELECT ki.catalogue_item_id, count(DISTINCT ki.investment_id) AS templates
+    SELECT ki.catalogue_item_id, array_agg(DISTINCT inv.name ORDER BY inv.name) AS names
     FROM kosztorys_items ki
     JOIN investments inv ON inv.id = ki.investment_id
     WHERE ki.catalogue_item_id IS NOT NULL AND ${liveTemplate('inv')}
     GROUP BY ki.catalogue_item_id
   `)
   return Object.fromEntries(
-    res.rows.map((row) => [Number(row.catalogue_item_id), Number(row.templates)]),
+    res.rows.map((row) => [Number(row.catalogue_item_id), (row.names as unknown[]).map(String)]),
   )
 }
 

@@ -4,7 +4,6 @@ import { useState, startTransition } from 'react'
 import { DeleteButton } from '@/components/ui/row-actions/delete-button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { EditCatalogueItemDialog } from '@/components/dialogs/edit-catalogue-item-dialog'
-import { useCatalogueItemTemplates } from '@/hooks/use-catalogue-item-templates'
 import { deleteCatalogueItemAction } from '@/lib/actions/work-catalogue'
 import { settleAction } from '@/lib/utils/settle-action'
 import { toastMessage } from '@/lib/utils/toast'
@@ -13,11 +12,11 @@ import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 type PropsT = {
   item: WorkCatalogueItemT
   categorySuggestions: readonly string[]
+  templateNames: readonly string[]
 }
 
-export function CatalogueRowActions({ item, categorySuggestions }: PropsT) {
+export function CatalogueRowActions({ item, categorySuggestions, templateNames }: PropsT) {
   const [confirming, setConfirming] = useState(false)
-  const { templateNames, loadTemplateNames } = useCatalogueItemTemplates(item.id)
 
   const onDelete = () => {
     startTransition(async () => {
@@ -30,15 +29,13 @@ export function CatalogueRowActions({ item, categorySuggestions }: PropsT) {
 
   return (
     <div className="flex items-center justify-end gap-1">
-      <EditCatalogueItemDialog item={item} categorySuggestions={categorySuggestions} />
-
-      <DeleteButton
-        label="Usuń z katalogu"
-        onClick={() => {
-          loadTemplateNames()
-          setConfirming(true)
-        }}
+      <EditCatalogueItemDialog
+        item={item}
+        categorySuggestions={categorySuggestions}
+        templateNames={templateNames}
       />
+
+      <DeleteButton label="Usuń z katalogu" onClick={() => setConfirming(true)} />
 
       <ConfirmDialog
         open={confirming}

@@ -4,7 +4,6 @@ import { EditButton } from '@/components/ui/row-actions/edit-button'
 import { FormDialog } from '@/components/ui/form-dialog'
 import { WorkCatalogueItemForm } from '@/components/forms/work-catalogue-item/work-catalogue-item-form'
 import { rateFormValues } from '@/components/forms/work-catalogue-item/work-catalogue-item-schema'
-import { useCatalogueItemTemplates } from '@/hooks/use-catalogue-item-templates'
 import { updateCatalogueItemAction } from '@/lib/actions/work-catalogue'
 import { translationTexts } from '@/lib/i18n/description-translations'
 import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
@@ -12,24 +11,21 @@ import type { WorkCatalogueItemT } from '@/lib/kosztorys/work-catalogue/types'
 type EditCatalogueItemDialogPropsT = {
   item: WorkCatalogueItemT
   categorySuggestions: readonly string[]
+  templateNames: readonly string[]
 }
 
 export function EditCatalogueItemDialog({
   item,
   categorySuggestions,
+  templateNames,
 }: EditCatalogueItemDialogPropsT) {
   const formId = `edit-catalogue-item-${item.id}`
-  const { templateNames, loadTemplateNames } = useCatalogueItemTemplates(item.id)
 
   return (
     <FormDialog
       formId={formId}
       showKeepOpen={false}
-      trigger={
-        <span className="contents" onClick={loadTemplateNames}>
-          <EditButton label="Edytuj pozycję katalogu" />
-        </span>
-      }
+      trigger={<EditButton label="Edytuj pozycję katalogu" />}
       title="Edytuj pozycję katalogu"
       description={item.description}
     >
