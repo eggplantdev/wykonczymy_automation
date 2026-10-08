@@ -21,6 +21,7 @@ export function useKosztorysFilterMenu(): {
     setConditions,
     globalDiscount,
     crewAxis,
+    isTemplate,
   } = useKosztorysEditorContext()
   const resetAction = useFilterResetAction()
 
@@ -29,6 +30,7 @@ export function useKosztorysFilterMenu(): {
     counts: conditionCounts,
     perItemDiscountInert: isGlobalDiscountActive(globalDiscount),
     crewAxis,
+    isTemplate,
   }).map((toggle) => ({ ...toggle, onToggle: () => toggleCondition(toggle.id) }))
 
   return {

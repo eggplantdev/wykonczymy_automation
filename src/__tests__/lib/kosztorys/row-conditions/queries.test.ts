@@ -334,10 +334,14 @@ describe('offeredFilterConditions', () => {
     engaged: string[] = [],
     perItemDiscountInert = false,
     crewAxis: CrewAxisT = 'both',
+    isTemplate = false,
   ) =>
-    offeredFilterConditions(new Set(engaged), perItemDiscountInert, crewAxis).map(
-      (condition) => condition.id,
-    )
+    offeredFilterConditions({
+      engagedIds: new Set(engaged),
+      perItemDiscountInert,
+      crewAxis,
+      isTemplate,
+    }).map((condition) => condition.id)
 
   it('offers only the filters — problems and the client rule have their own homes', () => {
     expect(offeredIds()).not.toContain('no-client-price')
@@ -362,5 +366,21 @@ describe('offeredFilterConditions', () => {
   it('keeps an engaged rabat filter offered, so it can be untangled', () => {
     expect(offeredIds(['has-discount'], true)).toContain('has-discount')
     expect(offeredIds(['has-discount'], true)).not.toContain('no-discount')
+  })
+
+  // A szablon holds no przedmiar, wykonana praca, rabat or komentarz, so every pozycja matches the
+  // „bez …" half of those axes — only the stawka axes ask it anything.
+  it('offers the szablon workbench its stawka axes only', () => {
+    const offered = offeredIds([], false, 'both', true)
+    expect(offered).toEqual(
+      expect.arrayContaining(['manual-rate-w-tools', 'own-rate-over-ceiling-own-tools']),
+    )
+    for (const id of ['no-planned-qty', 'no-measured-qty', 'no-discount', 'no-note']) {
+      expect(offered).not.toContain(id)
+    }
+  })
+
+  it('keeps an engaged filter offered on the szablon workbench, so it can be untangled', () => {
+    expect(offeredIds(['no-planned-qty'], false, 'both', true)).toContain('no-planned-qty')
   })
 })

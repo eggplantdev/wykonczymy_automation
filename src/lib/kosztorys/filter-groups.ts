@@ -25,3 +25,10 @@ export const FILTER_GROUPS = [
 ] as const
 
 export type FilterGroupIdT = (typeof FILTER_GROUPS)[number]['id']
+
+// The axes the szablon workbench has columns for (`WORKSHOP_VISIBLE_COLUMNS`) — see
+// `offeredFilterConditions`.
+export const TEMPLATE_FILTER_GROUPS: ReadonlySet<FilterGroupIdT> = new Set([
+  'rate-source',
+  'rate-ceiling',
+])
