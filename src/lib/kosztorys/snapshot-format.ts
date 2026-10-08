@@ -123,6 +123,7 @@ export type StoredSnapshotPayloadT = {
     | 'ownToolsOverrideCoeff'
     | 'descriptionTranslations'
     | 'aiPlannedQty'
+    | 'catalogueItemId'
     | 'changeReason'
     | 'reviewStatus'
   >[]
@@ -183,6 +184,8 @@ export function itemWithColumnDefaults(
     descriptionTranslations: toDescriptionTranslations(item.descriptionTranslations),
     // A snapshot older than EX-1006 had no agent draft to carry.
     aiPlannedQty: item.aiPlannedQty ?? null,
+    // A snapshot older than EX-1017 knew no katalog entry.
+    catalogueItemId: item.catalogueItemId ?? null,
     changeReason: item.changeReason ?? null,
     reviewStatus: item.reviewStatus ?? null,
   }

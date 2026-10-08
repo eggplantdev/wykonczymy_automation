@@ -23,6 +23,7 @@ export const itemFromFields = (
   fields: ItemFieldsT,
   sectionId: number,
   displayOrder: number,
+  catalogueItemId: number | null,
 ): KosztorysItemT => ({
   id: 0,
   sectionId,
@@ -41,6 +42,7 @@ export const itemFromFields = (
   discountType: null,
   discountValue: 0,
   note: null,
+  catalogueItemId,
   aiPlannedQty: null,
   changeReason: null,
   reviewStatus: null,

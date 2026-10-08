@@ -527,10 +527,13 @@ export async function addItemAction(
           const slot = await resolveNewItemSlot(txDb, placement)
           if ('error' in slot) return { success: false, error: slot.error }
 
-          const item = itemFromFields(row, slot.sectionId, slot.displayOrder)
+          // The katalog is written first so the praca can name the entry it was saved to; both ride
+          // one transaction, so a failed insert still takes the katalog write down with it.
+          const catalogueItemId = catalogueWrite
+            ? await applyCatalogueWrite(payload, req, catalogueWrite)
+            : null
+          const item = itemFromFields(row, slot.sectionId, slot.displayOrder, catalogueItemId)
           const [id] = await insertItems(txDb, investmentId, [{ sectionId: slot.sectionId, item }])
-
-          if (catalogueWrite) await applyCatalogueWrite(payload, req, catalogueWrite)
 
           const warnings = [
             ...ceilingWarnings([item]),

@@ -4,6 +4,7 @@ import { sql } from '@payloadcms/db-vercel-postgres'
 import { getDb } from '@/lib/db/get-db'
 import { insertKosztorysTree } from '@/lib/kosztorys/insert-kosztorys-tree'
 import type { StoredSnapshotPayloadT } from '@/lib/kosztorys/snapshot-format'
+import { catalogueKey } from '@/lib/kosztorys/work-catalogue/catalogue-key'
 import { createTestInvestment, deleteTestInvestment } from '@/__tests__/helpers/investment'
 
 const ENV_READY = Boolean(process.env.DB_POSTGRES_URL && process.env.PAYLOAD_SECRET)
@@ -120,6 +121,47 @@ describe.skipIf(!ENV_READY)('insertKosztorysTree tolerates an older payload (DB)
       expect(items.rows.map((row) => Number(row.display_order))).toEqual([0, 1, 2])
     } finally {
       await deleteTestInvestment(payload, otherInvestmentId)
+    }
+  })
+
+  // A szablon or snapshot outlives katalog entries. Restoring one must not link a pozycja to an id
+  // that no longer exists — with no FK nothing else would stop it, and a later katalog entry can
+  // never reuse the id, so the link would simply point at nothing forever.
+  it('keeps a live katalog id and drops a deleted one', async () => {
+    const ctx = { overrideAccess: true, context: { skipRevalidation: true } }
+    const createEntry = async (description: string) => {
+      const created = await payload.create({
+        collection: 'work-catalogue-items',
+        data: { description, unit: 'm2', clientPrice: 10, matchKey: catalogueKey(description, 'm2') },
+        ...ctx,
+      })
+      return Number(created.id)
+    }
+    const liveId = await createEntry('insert-tree-live-entry')
+    const deadId = await createEntry('insert-tree-dead-entry')
+    await payload.delete({ collection: 'work-catalogue-items', id: deadId, ...ctx })
+    const otherInvestmentId = await createTestInvestment(payload, 'insert-tree-catalogue-test')
+    try {
+      await insertKosztorysTree(
+        db,
+        otherInvestmentId,
+        payloadWithout(
+          [{ id: 1, name: 'Kuchnia', displayOrder: 0, color: null }],
+          [
+            { id: 10, sectionId: 1, displayOrder: 0, description: 'Żywa', catalogueItemId: liveId },
+            { id: 11, sectionId: 1, displayOrder: 1, description: 'Martwa', catalogueItemId: deadId },
+          ],
+        ),
+      )
+
+      const res = await db.execute(sql`
+        SELECT catalogue_item_id FROM kosztorys_items
+        WHERE investment_id = ${otherInvestmentId} ORDER BY display_order
+      `)
+      expect(res.rows.map((row) => row.catalogue_item_id)).toEqual([liveId, null])
+    } finally {
+      await deleteTestInvestment(payload, otherInvestmentId)
+      await payload.delete({ collection: 'work-catalogue-items', id: liveId, ...ctx })
     }
   })
 })

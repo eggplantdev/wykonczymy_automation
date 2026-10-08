@@ -30,7 +30,7 @@ const EXISTING: WorkCatalogueItemT = {
 }
 
 function fakePayload() {
-  const create = vi.fn()
+  const create = vi.fn().mockResolvedValue({ id: 99 })
   const update = vi.fn()
   return { payload: { create, update } as unknown as Payload, create, update }
 }

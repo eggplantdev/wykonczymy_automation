@@ -20,6 +20,7 @@ describe('itemFromFields', () => {
       },
       7,
       3,
+      null,
     )
     expect(item).toMatchObject({
       sectionId: 7,

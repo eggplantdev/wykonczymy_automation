@@ -70,6 +70,9 @@ export type KosztorysItemT = {
   wToolsOverrideCoeff: number | null
   ownToolsOverrideCoeff: number | null
   note: string | null
+  // The katalog prac entry this pozycja came from or was saved to (EX-1017); null = never linked.
+  // A soft reference: it may name an entry deleted since, so a reader resolves it, never trusts it.
+  catalogueItemId: number | null
   // An agent's draft of the Przedmiar (EX-1006). null = the agent never saw this row, 0 = it saw the
   // row and left it out — the two read differently in review, so neither may stand in for the other.
   aiPlannedQty: number | null

@@ -7,6 +7,7 @@ import {
   type DescriptionTranslationsT,
 } from '@/lib/i18n/description-translations'
 import type {
+  CatalogueIdentityT,
   CatalogueSeedItemT,
   CatalogueSourceItemT,
   WorkCatalogueItemT,
@@ -83,6 +84,27 @@ export async function listCatalogueItemsByMatchKeys(
     WHERE match_key IN (${sqlList(matchKeys)})
   `)
   return result.rows.map(toCatalogueItem)
+}
+
+/**
+ * Every katalog entry's id and translations, keyed by match key. The sheet import needs it before it
+ * has parsed a row, so it cannot ask for a known set of keys.
+ */
+export async function listCatalogueIdentitiesByMatchKey(
+  db: DbExecutorT,
+): Promise<Map<string, CatalogueIdentityT>> {
+  const result = await db.execute(sql`
+    SELECT id, match_key, description_translations FROM work_catalogue_items
+  `)
+  return new Map(
+    result.rows.map((row) => [
+      String(row.match_key),
+      {
+        id: Number(row.id),
+        descriptionTranslations: toDescriptionTranslations(row.description_translations),
+      },
+    ]),
+  )
 }
 
 /**

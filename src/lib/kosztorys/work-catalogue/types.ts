@@ -207,3 +207,7 @@ export type NearDuplicateT = {
 }
 
 export type RowCatalogueEntryT = { id: number; note: string | null }
+
+// What the sheet import needs of a katalog entry, by match key: the id a new pozycja links to and the
+// translations it inherits.
+export type CatalogueIdentityT = Pick<WorkCatalogueItemT, 'id' | 'descriptionTranslations'>

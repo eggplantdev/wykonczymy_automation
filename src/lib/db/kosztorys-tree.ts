@@ -73,7 +73,7 @@ export async function selectKosztorysTreeData(
                  discount_type, discount_value, client_price,
                  w_tools_override_value, own_tools_override_value,
                  w_tools_override_coeff, own_tools_override_coeff,
-                 note, ref, ai_planned_qty, change_reason, review_status
+                 note, ref, catalogue_item_id, ai_planned_qty, change_reason, review_status
           FROM kosztorys_items WHERE investment_id = ${investmentId}
         ) i
       ) AS items,
@@ -175,6 +175,7 @@ const mapItem = (row: RowT): KosztorysItemT & { sectionId: number } => ({
   wToolsOverrideCoeff: numOrNull(row.w_tools_override_coeff),
   ownToolsOverrideCoeff: numOrNull(row.own_tools_override_coeff),
   note: textOrNull(row.note),
+  catalogueItemId: numOrNull(row.catalogue_item_id),
   aiPlannedQty: numOrNull(row.ai_planned_qty),
   changeReason: textOrNull(row.change_reason),
   reviewStatus: isReviewStatus(row.review_status) ? row.review_status : null,
