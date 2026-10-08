@@ -1,0 +1,66 @@
+{
+  "investmentId": 183,
+  "presetId": 166,
+  "files": [
+    {
+      "name": "garderoba-w-sypialni.jpg",
+      "kind": "zdjecie"
+    },
+    {
+      "name": "kuchnia-z-wyspa.jpg",
+      "kind": "zdjecie"
+    },
+    {
+      "name": "mniejszy-pokoj-z-biurkiem.jpg",
+      "kind": "zdjecie"
+    },
+    {
+      "name": "poddasze-1.jpg",
+      "kind": "zdjecie"
+    },
+    {
+      "name": "poddasze-2.jpg",
+      "kind": "zdjecie"
+    },
+    {
+      "name": "pokoj-goscinny-z-duzym-lozkiem.jpg",
+      "kind": "zdjecie"
+    },
+    {
+      "name": "rzut.png",
+      "kind": "projekt"
+    },
+    {
+      "name": "salon-z-kominkiem.jpg",
+      "kind": "zdjecie"
+    },
+    {
+      "name": "schemat-lazienki-dol.jpg",
+      "kind": "zdjecie"
+    },
+    {
+      "name": "schemat-lazienki-pietro.jpg",
+      "kind": "zdjecie"
+    },
+    {
+      "name": "schody-na-poddasze-i-pietro.jpg",
+      "kind": "zdjecie"
+    },
+    {
+      "name": "sypielnia-duza-z-garderoba.jpg",
+      "kind": "zdjecie"
+    },
+    {
+      "name": "wizualizacja-lazienki-dol.jpg",
+      "kind": "zdjecie"
+    },
+    {
+      "name": "wizualizacja-lazienki-pietro.jpg",
+      "kind": "zdjecie"
+    }
+  ],
+  "przedmiar": "measure/przedmiar.json",
+  "newWorks": "measure/new-works.json",
+  "draft": "measure/ai-draft-load.json",
+  "notesAppendix": "investment-notes-appendix.txt"
+}

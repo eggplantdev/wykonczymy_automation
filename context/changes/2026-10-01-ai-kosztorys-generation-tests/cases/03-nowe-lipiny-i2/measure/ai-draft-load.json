@@ -1,0 +1,754 @@
+[
+  {
+    "section": "Prace dodatkowe",
+    "description": "Zakup, transport i wniesienie towaru budowlanego (cały okres remontu) - w zależności od piętra",
+    "qty": 1,
+    "unit": "kpl",
+    "clientPrice": 1500.0,
+    "note": "AI: assumed — transport i wniesienie, dom ~100 m² + poddasze (próg katalogu 2 000, rozpiska 1 500)"
+  },
+  {
+    "section": "Prace dodatkowe",
+    "description": "Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych big bag",
+    "qty": 2,
+    "unit": "big bag",
+    "clientPrice": 600.0,
+    "note": "AI: assumed — stan deweloperski bez wyburzeń: odpady, opakowania, docinki ≈ 2 big bagi"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Bruzdowanie pod instalacje wod-kan w materiałach miękkich",
+    "qty": 4,
+    "unit": "mb",
+    "clientPrice": 80.0,
+    "note": "AI: assumed — zasada 2 mb wod-kan na łazienkę × 2 (WC, łazienka)"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Bruzdowanie pod kable elektryczne w materiałach miękkich",
+    "qty": 32.5,
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "note": "AI: assumed — zasada 2,5 mb/pkt × 13 pkt ściennych: schody_led 8, kuchnia_led 1, garderoba_led 1, wnęka_wc 1, wnęka_łazienka 1, wyspa 1"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Bruzdowanie pod kable elektryczne w żelbecie",
+    "qty": 2.5,
+    "unit": "mb",
+    "clientPrice": 45.0,
+    "note": "AI: assumed — 1 pkt sufitowy nad wyspą w stropie żelbetowym"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Zabezpieczenia mebli, podłóg, okien, drzwi i elementów niezbędnych do prac. Demontaż gniazd, włączników, lamp, karniszy etc. Zabezpieczenie sprzętów i wszelkich niezbędnych elementów. Oklejanie do malowania etc. Zabezpieczanie elementów już wykonanych, glazura zabudowy etc.",
+    "qty": 101.21,
+    "unit": "kpl",
+    "clientPrice": 25.0,
+    "note": "AI: read — zasada: zabezpieczenia = m² podłóg, Pu1 52,19 + Pu2 49,02"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Montaż listew przypodłogowych poliuretan lub MDF",
+    "qty": 64.8,
+    "unit": "mb",
+    "clientPrice": 45.0,
+    "note": "AI: measured — obwody pokoi minus zabudowa kuchni 4,0, garderoba (zabudowa), otwory drzwiowe"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Akrylowanie łączeń ścian i sufitów / akrylowanie dylatacji - polecam, bo zdecydowanie poprawia estetykę w narożnikach oraz przykrywa potencjalne pęknięcia",
+    "qty": 156.8,
+    "unit": "mb",
+    "clientPrice": 14.0,
+    "note": "AI: measured — styk sufit-ściana 90.8 mb + 24 narożniki × 2.75"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gładzie klatka schodowa dodatek do m2 jeżeli dostęp utrudniony",
+    "qty": 15.0,
+    "unit": "m²",
+    "clientPrice": 35.0,
+    "note": "AI: assumed — ściany klatki schodowej powyżej stropu parteru ≈ 15 m² (dostęp z rusztowania)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gładzie na sufitach \"finish\" stan deweloperski (2 warstwy) - standard wykończenia Q3",
+    "qty": 93.82,
+    "unit": "m²",
+    "clientPrice": 59.0,
+    "note": "AI: read — sufity bez łazienek = m² z rzutu: salon z kuchnią, sień, pokój, garderoba, hobby, hall"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gładzie na ścianach \"finish\" stan deweloperski (2 warstwy) - standard wykończenia Q3",
+    "qty": 223.11,
+    "unit": "m²",
+    "clientPrice": 57.0,
+    "note": "AI: measured — ściany netto 211.3 + klatka 15 − za zabudową kuchni 11.0 + WC pod tapetę 7.8 (H 2.75 assumed)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gruntowanie powierzchni ścian i sufitów przed gładziami i po gładziach",
+    "qty": 316.93,
+    "unit": "m²",
+    "clientPrice": 12.0,
+    "note": "AI: measured — = gładź ścian + sufitów"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Malowanie ścian i sufitów farbą silikonową lub akrylową na biało",
+    "qty": 320.15,
+    "unit": "m²",
+    "clientPrice": 22.0,
+    "note": "AI: measured — ściany netto + klatka + sufity; biało (klient: głównie na biało)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Naprawy ścian i sufitów po kuciu, bruzdowaniu, tynkowanie bruzd (liczone w metrach bieżących)",
+    "qty": 35.0,
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "note": "AI: assumed — = długość bruzd elektrycznych"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Tapetowanie",
+    "qty": 7.78,
+    "unit": "m²",
+    "clientPrice": 100.0,
+    "note": "AI: read — wizualizacja WC: tapeta w liście na 2 ścianach (1,80 + 1,03 assumed) × H"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Wklejanie narożników aluminiowych i wklejanie siatki + szpachlowanie narożniki, glify okienne etc. wszędzie tam gdzie to wymaga",
+    "qty": 49.0,
+    "unit": "mb",
+    "clientPrice": 35.0,
+    "note": "AI: measured — glify okien i drzwi balkonowych (wysokości assumed) + 6 narożników zewn."
+  },
+  {
+    "section": "Łazienka",
+    "description": "Akrylowanie",
+    "qty": 15.3,
+    "unit": "mb",
+    "clientPrice": 14.0,
+    "note": "AI: measured — styk sufit-ściana: WC 5,66 + łazienka 9,62"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Biały montaż baterii podtynkowej do wanny/prysznica razem ze słuchawką i deszczownicą",
+    "qty": 1,
+    "unit": "kpl",
+    "clientPrice": 200.0,
+    "note": "AI: read — wizualizacja łazienki: deszczownica + słuchawka, bateria podtynkowa"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Dwukrotne gruntowanie ścian, sufitów i podłóg",
+    "qty": 37.5,
+    "unit": "m²",
+    "clientPrice": 10.0,
+    "note": "AI: measured — łazienka podłoga + sufit + ściany (pod mikrocement) + podłoga WC"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Malowanie sufitów i ścian bez glazury + gładź na suficie",
+    "qty": 13.3,
+    "unit": "m²",
+    "clientPrice": 100.0,
+    "note": "AI: measured — sufity łazienki i WC + ściany WC bez tapety 5.9"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż akcesoriów łazienkowych",
+    "qty": 6,
+    "unit": "szt",
+    "clientPrice": 50.0,
+    "note": "AI: assumed — po 3 akcesoria w WC i łazience"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż baterii do umywalki",
+    "qty": 2,
+    "unit": "szt",
+    "clientPrice": 150.0,
+    "note": "AI: assumed — baterie umywalkowe stojące (wizualizacje: umywalki na szafkach)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż baterii prysznicowej/wannowej podtynkowej razem z podłączeniem zasilania wody",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 900.0,
+    "note": "AI: read — wizualizacja: bateria podtynkowa w prysznicu"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż geberitu",
+    "qty": 2,
+    "unit": "szt",
+    "clientPrice": 450.0,
+    "note": "AI: read — wizualizacje: WC podwieszane w WC i łazience"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż i podłączenie listw led + taśm",
+    "qty": 2,
+    "unit": "mb",
+    "clientPrice": 150.0,
+    "note": "AI: read — wizualizacje: wnęka LED w WC (nad stelażem) i w prysznicu, ~1 mb każda"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż lamp",
+    "qty": 5,
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "note": "AI: assumed — wpusty: WC 2, łazienka 3"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż lustra z LED",
+    "qty": 2,
+    "unit": "szt",
+    "clientPrice": 150.0,
+    "note": "AI: read — wizualizacje: okrągłe lustro LED w WC, lustro LED w łazience"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż odpływu liniowego z wypoziomowaniem spadku - odpływ jednospadkowy",
+    "qty": 1,
+    "unit": "kpl",
+    "clientPrice": 1600.0,
+    "note": "AI: read — wizualizacja: walk-in z odpływem liniowym; jednospadkowy assumed (mikrocement)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż profili i płyt GK w zabudowie geberitu",
+    "qty": 2,
+    "unit": "kpl",
+    "clientPrice": 450.0,
+    "note": "AI: read — wizualizacje: zabudowa stelaży WC"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż syfonów",
+    "qty": 2,
+    "unit": "szt",
+    "clientPrice": 80.0,
+    "note": "AI: assumed — syfony umywalek"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż szyby stałej do odpływu liniowego",
+    "qty": 1,
+    "unit": "kpl",
+    "clientPrice": 550.0,
+    "note": "AI: read — wizualizacja: stała szyba walk-in"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż umywalki nablatowej lub na szafke",
+    "qty": 2,
+    "unit": "szt",
+    "clientPrice": 130.0,
+    "note": "AI: read — wizualizacje: umywalki na szafkach"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż WC podwieszanego",
+    "qty": 2,
+    "unit": "szt",
+    "clientPrice": 350.0,
+    "note": "AI: read — wizualizacje: WC podwieszane"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Położenie folii w płynie (izolacji)",
+    "qty": 11.2,
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "note": "AI: measured — podłoga łazienki 5,54 + ściany strefy prysznica 5.7 (do 2,0 m)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Silikonowanie",
+    "qty": 25,
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "note": "AI: assumed — zasada 20–30 mb na łazienkę: łazienka 20 + WC 5"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wklejanie taśmy hydroizolacyjnej",
+    "qty": 20.8,
+    "unit": "mb",
+    "clientPrice": 30.0,
+    "note": "AI: assumed — zasada ≈ 15 mb na 4 m² łazienki"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wykonanie przedścianki pod prysznicem z 1 półką",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 1200.0,
+    "note": "AI: read — wizualizacja: wnęka LED w prysznicu → przedścianka z 1 półką"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wykonanie punktów oświetleniowych",
+    "qty": 2,
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "note": "AI: assumed — zasilanie wnęk LED (WC, łazienka)"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż gniazdek i włączników standard",
+    "qty": 5,
+    "unit": "szt",
+    "clientPrice": 39.0,
+    "note": "AI: assumed — osprzęt: WC 2, łazienka 3"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Złożenie i montaż szafki podumywalkowej",
+    "qty": 2,
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "note": "AI: read — wizualizacje: szafki pod umywalkami (jeżeli nie robi ich stolarz)"
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Montaż AGD: lodówka, zmywarka, płyta, piekarnik",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "note": "AI: assumed — zabudowa lodówki; klient: bez sprzętu AGD, montaż po naszej stronie assumed"
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Montaż baterii zlewozmywakowej",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "note": "AI: assumed — bateria zlewozmywakowa"
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Montaż LED",
+    "qty": 3.5,
+    "unit": "mb",
+    "clientPrice": 90.0,
+    "note": "AI: read — wizualizacja: LED pod szafkami, długość 3,5 mb assumed"
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Montaż syfonu",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 80.0,
+    "note": "AI: assumed — syfon zlewu"
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Montaż zlewu",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "note": "AI: assumed — zlew w ciągu przyściennym"
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Podłączenie indukcji",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 150.0,
+    "note": "AI: assumed — płyta indukcyjna"
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Podłączenie piekarnika",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 150.0,
+    "note": "AI: assumed — piekarnik w zabudowie"
+  },
+  {
+    "section": "Kuchnia",
+    "description": "Podłączenie zmywarki",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "note": "AI: assumed — zmywarka"
+  },
+  {
+    "section": "Montaż stolarki i ślusarski",
+    "description": "Montaż drzwi, ościeżnic regulowanych, klamek, zamków",
+    "qty": 6,
+    "unit": "szt",
+    "clientPrice": 380.0,
+    "note": "AI: read — rzut: drzwi WC, sień, pokój, garderoba, hobby, łazienka"
+  },
+  {
+    "section": "Montaż stolarki i ślusarski",
+    "description": "Montaż parapetów",
+    "qty": 5.1,
+    "unit": "mb",
+    "clientPrice": 200.0,
+    "note": "AI: read — szerokości okien z rzutu O1 180 + 2× O2 150 (+10 cm na okno); drzwi balkonowe bez parapetu"
+  },
+  {
+    "section": "Montaż stolarki i ślusarski",
+    "description": "Silikonowanie parapetu",
+    "qty": 5.1,
+    "unit": "mb",
+    "clientPrice": 30.0,
+    "note": "AI: measured — = długość parapetów"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż gniazdek i włączników",
+    "qty": 46,
+    "unit": "szt",
+    "clientPrice": 39.0,
+    "note": "AI: assumed — osprzęt stanu deweloperskiego ok. 45 pkt (salon z kuchnią 20, pokój 8, hobby 6, sień 4, hall 4, garderoba 3) + wyspa"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż kinkietów",
+    "qty": 8,
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "note": "AI: read — wizualizacja schodów: oprawy LED w ścianie przy stopniach, co drugi stopień assumed"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż okapu i podłączenie do wentylacji",
+    "qty": 1,
+    "unit": "kpl",
+    "clientPrice": 350.0,
+    "note": "AI: assumed — okap (pochłaniacz, bo dom ma rekuperację)"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż prostych lamp (bez składania)",
+    "qty": 10,
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "note": "AI: assumed — lampy: salon 2, nad wyspą 3, sień, pokój, garderoba, hobby, hall po 1"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż transformatorów",
+    "qty": 4,
+    "unit": "szt",
+    "clientPrice": 120.0,
+    "note": "AI: assumed — zasilacze LED: kuchnia, schody, wnęka WC, wnęka łazienki"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż włączników schodowych/krzyżowych",
+    "qty": 2,
+    "unit": "szt",
+    "clientPrice": 70.0,
+    "note": "AI: assumed — włączniki schodowe parter/piętro"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Wykonanie punktów oświetleniowych, czujki, rolety",
+    "qty": 11,
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "note": "AI: assumed — nowe punkty: oprawy schodowe 8, nad wyspą 1, LED kuchnia 1, LED garderoba 1"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Wykonanie/przesunięcie punktów elektrycznych, gniazdka i włączniki, wiercenie otworu pod puszkę, montaż puszki, doprowadzenie kabla",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 130.0,
+    "note": "AI: assumed — gniazdo w wyspie"
+  },
+  {
+    "section": "Instalacja wodno-kanalizacyjna + c.o.",
+    "description": "Przebudowa/doprowadzenie/wymiana instalacji wod-kan w kuchni",
+    "qty": 1,
+    "unit": "pkt",
+    "clientPrice": 250.0,
+    "note": "AI: assumed — dopasowanie podejścia zlewu do projektu kuchni"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Posadzki z mikrocementu sama robocizna",
+    "qty": 101.21,
+    "unit": "m²",
+    "clientPrice": 500.0,
+    "note": "AI: read — klient: preferowany mikrocement; = Pu1 52,19 + Pu2 49,02 (wszystkie pomieszczenia, łącznie z WC i łazienką); cena: katalog prac"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Mikrocement na ścianach łazienki — brak w katalogu — do wyceny",
+    "qty": 24.61,
+    "unit": "m²",
+    "clientPrice": 0.0,
+    "note": "AI: measured — wizualizacja: ściany łazienki z mikrocementu; obwód 9,62 × H − drzwi; najbliżej: Posadzki z mikrocementu 500 zł/m², Mikrocement gabinet 650 zł/m²"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wykuwanie wnęki pod półeczkę + GK",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 500.0,
+    "note": "AI: read — wizualizacja WC: podświetlona wnęka nad stelażem; cena: katalog prac"
+  },
+  {
+    "section": "Montaż stolarki i ślusarski",
+    "description": "Montaż okładzin drewnianych stopni i podstopni na schodach betonowych — brak w katalogu — do wyceny",
+    "qty": 17,
+    "unit": "stopień",
+    "clientPrice": 0.0,
+    "note": "AI: read — rzut: schody żelbetowe 17 stopni parter → piętro; klient: wykończenie drewnem; najbliżej: Cyklinowanie schodów stopień+podstopień 380 zł/szt, Ułożenie gresu na stopniach 220 zł/szt"
+  },
+  {
+    "section": "Montaż stolarki i ślusarski",
+    "description": "Montaż balustrady i poręczy drewnianej — brak w katalogu — do wyceny",
+    "qty": 1,
+    "unit": "kpl",
+    "clientPrice": 0.0,
+    "note": "AI: read — wizualizacja schodów: drewniana poręcz i balustrada wzdłuż biegu i otworu na piętrze"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Ocieplenie skosów — układanie wełny między krokwiami",
+    "qty": 72.0,
+    "unit": "m²",
+    "clientPrice": 45.0,
+    "note": "AI: assumed — skosy ≈ 72 m² (obrys 5,70 × 11,37, kąt dachu 35° assumed); cena: katalog prac „Układanie wełny w ścianach”"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Folia paroizolacyjna ściany i sufity",
+    "qty": 72.0,
+    "unit": "m²",
+    "clientPrice": 20.0,
+    "note": "AI: assumed — = powierzchnia skosów; cena: katalog prac"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Zabudowa skosów płytą GK na stelażu — brak w katalogu — do wyceny",
+    "qty": 72.0,
+    "unit": "m²",
+    "clientPrice": 0.0,
+    "note": "AI: assumed — = powierzchnia skosów; najbliżej: Przedścianka z GK + folia 150 zł/m², Zabudowa ścian z GK na stelażu 250 zł/m², Sufit podwieszany niski stopień 160 zł/m²"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Gładzie na sufitach \"finish\" stan deweloperski (2 warstwy) - standard wykończenia Q3",
+    "qty": 72.0,
+    "unit": "m²",
+    "clientPrice": 59.0,
+    "note": "AI: assumed — gładź na skosach z GK"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Tynkowanie ręczne ścian lub sufitów do 1 cm",
+    "qty": 32.0,
+    "unit": "m²",
+    "clientPrice": 60.0,
+    "note": "AI: assumed — 2 ściany szczytowe ≈ 32 m², mur ceramiczny bez tynku assumed"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Gruntowanie powierzchni ścian i sufitów przed gładziami i po gładziach",
+    "qty": 104.0,
+    "unit": "m²",
+    "clientPrice": 12.0,
+    "note": "AI: assumed — skosy + szczyty"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Malowanie ścian i sufitów farbą silikonową lub akrylową na biało",
+    "qty": 104.0,
+    "unit": "m²",
+    "clientPrice": 22.0,
+    "note": "AI: assumed — skosy + szczyty na biało"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Akrylowanie łączeń ścian i sufitów / akrylowanie dylatacji - polecam, bo zdecydowanie poprawia estetykę w narożnikach oraz przykrywa potencjalne pęknięcia",
+    "qty": 36.7,
+    "unit": "mb",
+    "clientPrice": 14.0,
+    "note": "AI: assumed — styki skosów ze ścianami kolankowymi i szczytami"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Układanie paneli winylowych pływających niski stopień skomplikowania prac",
+    "qty": 59.0,
+    "unit": "m²",
+    "clientPrice": 60.0,
+    "note": "AI: assumed — podłoga na istniejącej płycie OSB (rzut: „płyta OSB”), obrys ≈ 59 m² minus otwór schodów; panele jak na wizualizacji poddasza"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Montaż listew przypodłogowych poliuretan lub MDF",
+    "qty": 34.0,
+    "unit": "mb",
+    "clientPrice": 45.0,
+    "note": "AI: assumed — obwód poddasza"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Montaż drzwi, ościeżnic regulowanych, klamek, zamków",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 380.0,
+    "note": "AI: read — rzut: drzwi D3 na strych"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Montaż okładzin drewnianych stopni i podstopni na schodach betonowych — brak w katalogu — do wyceny",
+    "qty": 17,
+    "unit": "stopień",
+    "clientPrice": 0.0,
+    "note": "AI: read — rzut: schody 17 stopni piętro → strych; najbliżej: Cyklinowanie schodów stopień+podstopień 380 zł/szt"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Montaż balustrady i poręczy drewnianej — brak w katalogu — do wyceny",
+    "qty": 1,
+    "unit": "kpl",
+    "clientPrice": 0.0,
+    "note": "AI: assumed — bieg na strych + otwór w podłodze strychu"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Wykonanie/przesunięcie punktów elektrycznych, gniazdka i włączniki, wiercenie otworu pod puszkę, montaż puszki, doprowadzenie kabla",
+    "qty": 10,
+    "unit": "szt",
+    "clientPrice": 130.0,
+    "note": "AI: assumed — pracownia/magazyn: 10 gniazd"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Wykonanie punktów oświetleniowych, czujki, rolety",
+    "qty": 5,
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "note": "AI: assumed — 4 punkty oświetlenia + zasilanie taśmy LED"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Układanie przewodów w peszlu",
+    "qty": 60,
+    "unit": "mb",
+    "clientPrice": 40.0,
+    "note": "AI: assumed — przewody za GK, ok. 4 mb na punkt × 15"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Montaż gniazdek i włączników",
+    "qty": 13,
+    "unit": "szt",
+    "clientPrice": 39.0,
+    "note": "AI: assumed — 10 gniazd + 3 włączniki"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Montaż prostych lamp (bez składania)",
+    "qty": 4,
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "note": "AI: assumed — 4 oprawy"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Montaż taśm LED",
+    "qty": 20,
+    "unit": "mb",
+    "clientPrice": 60.0,
+    "note": "AI: read — wizualizacja poddasza: taśma LED pod skosami, 2 × 10 mb assumed"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Montaż transformatorów",
+    "qty": 2,
+    "unit": "szt",
+    "clientPrice": 120.0,
+    "note": "AI: assumed — 2 zasilacze LED"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Montaż/Przebudowa rozdzielni elektrycznej, dołożenie 1 bezpiecznika",
+    "qty": 3,
+    "unit": "szt",
+    "clientPrice": 200.0,
+    "note": "AI: assumed — osobne obwody: gniazda, oświetlenie, LED"
+  },
+  {
+    "section": "Poddasze (osobna wycena)",
+    "description": "Montaż włączników schodowych/krzyżowych",
+    "qty": 2,
+    "unit": "szt",
+    "clientPrice": 70.0,
+    "note": "AI: assumed — oświetlenie biegu na strych"
+  },
+  {
+    "section": "Rekuperacja (osobna wycena)",
+    "description": "Rozprowadzenie kanałów rekuperacji",
+    "qty": 100,
+    "unit": "mb",
+    "clientPrice": 120.0,
+    "note": "AI: assumed — 10 anemostatów × ~8 mb + czerpnia/wyrzutnia ~20 mb; cena: katalog prac „Montaż wentylacji”"
+  },
+  {
+    "section": "Rekuperacja (osobna wycena)",
+    "description": "Montaż i uruchomienie centrali rekuperacyjnej — brak w katalogu — do wyceny",
+    "qty": 1,
+    "unit": "kpl",
+    "clientPrice": 0.0,
+    "note": "AI: assumed — centrala na strychu; najbliżej: Montaż klimatyzacji + uruchomienie 600 zł"
+  },
+  {
+    "section": "Rekuperacja (osobna wycena)",
+    "description": "Montaż kratki wentylacyjnej",
+    "qty": 10,
+    "unit": "kpl",
+    "clientPrice": 100.0,
+    "note": "AI: assumed — nawiew: salon 2, pokój, hobby, garderoba, poddasze 2; wywiew: kuchnia, WC, łazienka"
+  },
+  {
+    "section": "Rekuperacja (osobna wycena)",
+    "description": "Przebicie się na zewnątrz",
+    "qty": 2,
+    "unit": "kpl",
+    "clientPrice": 350.0,
+    "note": "AI: assumed — czerpnia i wyrzutnia"
+  },
+  {
+    "section": "Rekuperacja (osobna wycena)",
+    "description": "Montaż syfonu klimatyzacji natynkowo",
+    "qty": 1,
+    "unit": "kpl",
+    "clientPrice": 150.0,
+    "note": "AI: assumed — odprowadzenie skroplin z centrali"
+  },
+  {
+    "section": "Rekuperacja (osobna wycena)",
+    "description": "Wykonanie/przesunięcie punktów elektrycznych, gniazdka i włączniki, wiercenie otworu pod puszkę, montaż puszki, doprowadzenie kabla",
+    "qty": 1,
+    "unit": "szt",
+    "clientPrice": 130.0,
+    "note": "AI: assumed — zasilanie centrali"
+  },
+  {
+    "section": "Rekuperacja (osobna wycena)",
+    "description": "Zabudowy rur z GK (piony wodne, rury gazowe etc.) - po obejrzeniu",
+    "qty": 6,
+    "unit": "mb",
+    "clientPrice": 350.0,
+    "note": "AI: assumed — pion kanałów z poddasza na parter w zabudowie GK; zależy od przygotowania dewelopera"
+  }
+]

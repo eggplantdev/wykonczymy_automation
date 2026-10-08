@@ -16,11 +16,12 @@ import {
   type MediaKindT,
 } from './prod-client'
 
-const PRESET_ID = Number(process.env.PRESET_ID ?? 165)
+const PRESET_ID = Number(process.env.PRESET_ID ?? 166)
 const DRY = process.env.DRY === '1'
 const SOURCE = JSON.parse(readFileSync(process.env.SOURCE_JSON ?? '', 'utf8'))
 const FILES_DIR = process.env.FILES_DIR ?? ''
 const CASE_DIR = path.join(import.meta.dirname, '../cases', process.env.CASE ?? '')
+const DRAFT = 'measure/ai-draft-load.json'
 
 const MIME: Record<string, string> = {
   '.pdf': 'application/pdf',
@@ -31,9 +32,10 @@ const MIME: Record<string, string> = {
   '.heic': 'image/heic',
 }
 
-// A shopping list or an offer is not a drawing, and only the name tells them apart; a wrong guess is
-// one click to fix in „Pliki".
+// A shopping list or an offer is not a drawing, and a plan scanned to an image is not a photo; only
+// the name tells them apart, and a wrong guess is one click to fix in „Pliki".
 function kindOf(name: string, mimeType: string): MediaKindT {
+  if (/rzut|projekt/i.test(name)) return 'projekt'
   if (mimeType.startsWith('image/')) return 'zdjecie'
   return /zakup|lista|oferta|wycena|faktura/i.test(name) ? 'inne' : 'projekt'
 }
@@ -57,6 +59,11 @@ async function run() {
     `/investments?where[name][equals]=${encodeURIComponent(SOURCE.name)}&limit=1&depth=0`,
   )
   if (taken.totalDocs) throw new Error(`an investment named „${SOURCE.name}" already exists`)
+  // REST still returns a trashed szablon's items, but the create's seed refuses it — and only warns.
+  const preset = await api<{ trashedAt: string | null }>(
+    `/investments/${PRESET_ID}?depth=0&trash=true`,
+  )
+  if (preset.trashedAt) throw new Error(`szablon #${PRESET_ID} is in the kosz`)
   const template = await itemsOf(PRESET_ID)
   if (!template.length) throw new Error(`szablon #${PRESET_ID} has no items`)
   await resolveActions('/inwestycje', ['createInvestmentAction'])
@@ -74,9 +81,10 @@ async function run() {
     console.log(`media #${id} ${f.name}`)
   }
 
-  await callAction('createInvestmentAction', '/inwestycje', [
-    { status: 'planowana', ...SOURCE, review: '', presetId: String(PRESET_ID), assets },
+  const result = await callAction<{ warning?: string }>('createInvestmentAction', '/inwestycje', [
+    { status: 'quote', ...SOURCE, review: '', presetId: String(PRESET_ID), assets },
   ])
+  if (result.warning && result.warning !== '$undefined') console.warn(`WARNING: ${result.warning}`)
   const created = await api<{ docs: { id: number }[] }>(
     `/investments?where[name][equals]=${encodeURIComponent(SOURCE.name)}&sort=-id&limit=1&depth=0`,
   )
@@ -105,6 +113,8 @@ async function run() {
         files: uploads.map((f) => ({ name: f.name, kind: f.kind })),
         przedmiar: 'measure/przedmiar.json',
         newWorks: 'measure/new-works.json',
+        // A case whose agent wrote the `load-ai-draft.ts` shape keeps it; `fill-case-prod.ts` reads it.
+        ...(existsSync(path.join(CASE_DIR, DRAFT)) && { draft: DRAFT }),
         notesAppendix: 'investment-notes-appendix.txt',
       },
       null,

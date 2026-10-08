@@ -33,15 +33,18 @@ This is an experiment, not a feature. Nothing here ships. Each test case gets it
 2. **Create the investment on production and scaffold the case** with one command,
    `scripts/new-case-prod.ts`. It needs three things, all of which stay outside the repo:
    - `TOKEN_FILE`: a file holding a user's `payload-token`;
-   - `SOURCE_JSON`: the client fields `{ name, address, phone, email, contactPerson, notes }`, with the
-     email text in `notes`;
+   - `SOURCE_JSON`: the client fields `{ name, address, phone, email, contactPerson, notes }`. `notes` is
+     the agent's doubts, the `NOTES_SEPARATOR` line (`prod-client.ts`), then the email text, so the
+     doubts sit above the mail from the start;
    - `FILES_DIR`: the folder of files the client sent.
 
    It uploads every PDF and image in the folder. The kind is guessed from the name: an image is a
    `zdjecie`, a shopping list or offer is `inne`, and everything else is `projekt`. It then creates the
-   investment (`planowana`, kosztorys seeded from szablon `PRESET_ID`, default 165) and writes
-   `cases/<CASE>/case.json` and `inputs/rozpiska-szablon-<id>.txt`. Run `DRY=1` first: it checks the
-   name is free, the szablon, and the action ids, and prints the kind it picked for each file.
+   investment (`quote` — „Wycena”, the stage before „Planowana” — kosztorys seeded from szablon `PRESET_ID`, default 166 — #165 went to the
+   kosz on 2026-10-08) and writes `cases/<CASE>/case.json` and `inputs/rozpiska-szablon-<id>.txt`.
+   Run `DRY=1` first: it checks the name is free, that the szablon is live, and the action ids, and it
+   prints the kind it picked for each file. The app only warns when the seed fails, so the script
+   prints that warning instead of swallowing it.
 
    ```bash
    TOKEN_FILE=… SOURCE_JSON=… FILES_DIR=… CASE=02-<slug> [DRY=1] \
@@ -77,19 +80,31 @@ This is an experiment, not a feature. Nothing here ships. Each test case gets it
    - `measure/przedmiar.json`, `[{ id, qty, note }]` by rozpiska id: Przedmiar and Komentarz on the
      szablon positions;
    - `measure/new-works.json`: new positions appended to their section;
-   - `investment-notes-appendix.txt`: appended to the investment notes.
+   - `investment-notes-appendix.txt`: the doubts, put **above** the mail in the investment notes behind
+     `NOTES_SEPARATOR`. A rerun replaces whatever sits above the separator.
 
    It matches every row before writing anything. It refuses a kosztorys that already has any
    Przedmiar ≠ 0; `SKIP_ROWS=1` adds only the new works and the notes.
+
+   **AI przedmiar instead of Przedmiar** (`draft` in `case.json`, the `load-ai-draft.ts` shape): no app
+   action writes AI przedmiar, so `fill-case-prod.ts` only creates the sekcje the draft lacks and adds
+   the notes. `src/scripts/load-ai-draft.ts` then writes the rows straight into the production DB. It
+   must run from a worktree of `origin/main`, because the staging code reads columns that production
+   doesn't have yet. Copy in the loader without its `assertLocalDb`, symlink `node_modules`, and run
+   with `DB_POSTGRES_URL` exported to the production URL. Afterwards, one harmless app action on the
+   kosztorys expires the cache. Case 3 is the worked example.
 
 8. **Evaluation (not done yet for any case):** compare v1 and v2 against the owner's real offer for
    the same client, position by position.
 
 ## Cases
 
-| #   | Folder                  | Input                                                                  | Investment (local) | Result                                                                                                                                                                                                      | Evaluated                                                                                                                    |
-| --- | ----------------------- | ---------------------------------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `cases/01-bemowo-125m2` | 125,6 m² flat, stan deweloperski, 2 bathrooms, 5 PDFs (vector projekt) | #167, szablon #165 | v1 blind: 217 456 zł; v2 measured: 203 400 zł. **Written into the app: 203 764 zł** (v2 + 6 new positions: 1 from the katalog, 5 at 0 zł awaiting the owner's price) — locally #167, on **production #168** | **Yes, vs the owner's #175** (`owner-comparison.md`): 212 667 zł, −4,2%, but 35,8 tys. zł absolute error on shared positions |
+| #   | Folder                    | Input                                                                                                                          | Investment (local)                                            | Result                                                                                                                                                                                                                                         | Evaluated                                                                                                                    |
+| --- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `cases/01-bemowo-125m2`   | 125,6 m² flat, stan deweloperski, 2 bathrooms, 5 PDFs (vector projekt)                                                         | #167, szablon #165                                            | v1 blind: 217 456 zł; v2 measured: 203 400 zł. **Written into the app: 203 764 zł** (v2 + 6 new positions: 1 from the katalog, 5 at 0 zł awaiting the owner's price) — locally #167, on **production #168**                                    | **Yes, vs the owner's #175** (`owner-comparison.md`): 212 667 zł, −4,2%, but 35,8 tys. zł absolute error on shared positions |
+| 2   | `cases/02-oliwa`          | ~41 m² flat, raster plan screenshot with 7 dimensions, 1 łazienka                                                              | #180 (prod)                                                   | 39 205 zł + 1 position at 0 zł (maskownica GK)                                                                                                                                                                                                 | No                                                                                                                           |
+| 3   | `cases/03-nowe-lipiny-i2` | Segment, Pu 101,21 m² + strych 32,38 m², stan deweloperski; scan with printed m², visualisations                               | #183 local (szablon #165), **#183 production** (szablon #166) | AI przedmiar **163 760 zł** on production: house 120 045 + poddasze 27 635 + rekuperacja 16 080 (two own sekcje), 7 positions at 0 zł. Locally 164 060 zł (big bag 600 zł in #165 vs 450 zł in #166). Winyl instead of mikrocement: −43 646 zł | No                                                                                                                           |
+| 4   | `cases/04-remont-63`      | 63 m² flat, rynek wtórny, full remodel incl. łazienka + WC; old scan with printed m², 8 photos, scope list cut at „Montaż […]” | **#185 production** (szablon #166)                            | AI przedmiar **70 775 zł**, 45 rows, 1 at 0 zł. Under „agent nie zakłada”: 103 138 zł with assumptions → 37 203 without → 70 775 with the house height 2,60; 13 questions in the notes                                                         | No                                                                                                                           |
 
 ## Research log
 
@@ -210,6 +225,184 @@ verdict. **Local DB only**; staging has neither investment (its ids 168/175 are 
   cegiełki), which now sit beside their counterpart for the owner to reject or take.
 - The script skips cache revalidation; restart dev if the AI columns show empty.
 
+### 2026-10-08 — first house knowledge in the katalog prac
+
+Prod dump `wykonczymy-backup-20261008-110841`: **18 of 568 katalog entries carry a Komentarz do
+pracy**, all written 2026-10-08 (EX-1006's loop). Nothing else in the dump teaches the agent: no
+Powód zmiany anywhere, and outside case 1's own #168 the only Komentarz on a pozycja longer than a
+„+" is one „cena do ustalenia" in #175. The local DB carries them too since it was restored from
+that dump (2026-10-08).
+
+Several close gaps this experiment logged as the agent's largest misses:
+
+- **What a „punkt" is** (#178 wod-kan): every end point counts zimna + ciepła + kanalizacja, so a
+  umywalka is 3. That is the house convention behind the owner's higher point counts in case 1
+  (wod-kan 14 → 20).
+- **Bruzdy no longer a guess** (#840): ≈ 2,5 mb per electrical or lighting point; #837 wod-kan
+  bruzda is a per-bathroom estimate.
+- **Derived quantities:** fugowanie = the m² of płytki (#172); dwukrotne gruntowanie in a łazienka =
+  floor + ceiling + walls (#169); skuwanie glazury = mb of wall × tile height (#890), and it always
+  brings szlifowanie po kleju with it (#905, #944).
+- **Lump sums by job size:** transport and wniesienie (#689) 700 zł (łazienka, rynek pierwotny) →
+  1 000 (łazienka, wtórny) → 1 500 (small flat) → 2 000 (wtórny or large deweloperskie with
+  changes) → 2 500 (high floor, no lift); demontaże (#947) 800–1 500 zł; gruz ≈ 2 big bagi per
+  łazienka (#677).
+- **Scope rules:** zabezpieczenia are floor m², and a łazienka in a lived-in flat still protects the
+  whole path to it (#930); akrylowanie is the tile-to-ceiling/wall joint (#158).
+
+The agent's procedure must read these notes (they are per katalog entry, matched to a pozycja by
+opis + j.m.) before choosing a position or a quantity.
+
+**The investment notes carry more, written to the agent directly.** Of the last seven investments
+created on prod (#176–#182), two have notes; the rest are empty. #180 (Oliwa, case 2) holds a
+„notatka dla agentka”, and #181 (Jakubczak, a bathroom on the rynek wtórny) the owner's verdict on
+an AI draft. Rules the katalog notes don't already state:
+
+- **Otwory w glazurze, counted per fixture:**
+  - wc: 5 (przycisk + 2 śruby + kanalizacja + dopływ);
+  - prysznic: 2–3 for a podtynkowa bateria (depends on the model), 2 for a natynkowa;
+  - umywalka with a podtynkowa bateria: 3 (2 + odpływ);
+  - grzejnik: 2 (zasilanie + powrót);
+  - one per electrical box, typically 2 by the lustro (włącznik + gniazdko), plus 1 for the pralka
+    if the project has one in the łazienka;
+  - kratka wentylacyjna: 1.
+
+  The case 2 łazienka came to 17.
+
+- **Glazura:** wall m² = wall tiles, floor m² = floor tiles. Fugowanie and folia w płynie are the sum
+  of all tiles, always. Taśma hydroizolacyjna runs round the floor plus the wet-zone corners,
+  ≈ 15 mb for a 4 m² łazienka. Silikonowanie ≈ 20–30 mb per łazienka.
+- **Malowanie in a łazienka** is only the walls without tiles: check per wall, then count malowanie
+  z gładzią.
+- **Szlifowanie płytek na 45°** comes from the project: every outside corner (e.g. a pion) is its
+  height × 2, plus zabudowy (the box for a podtynkowa bateria, a półka z LED). In case 2 this added
+  ≈ 10 mb. When unsure, don't overshoot; mark it for verification instead.
+- **Gładź** excludes the walls behind the kitchen units.
+- **Bruzdy wod-kan** for one łazienka: ≈ 2 mb (#181).
+- **Demontaże** are judged by the amount of work: 700 zł for wc + prysznic + umywalka + drzwi was right
+  in #181.
+- **A painted wall above old tiles** has to be stripped before new tiles go on, which is a separate
+  pozycja.
+- **Moving a door opening with its nadproże** is expensive, and the price has to reflect it.
+- **Clear height when the drawing doesn't print one** (owner, 2026-10-08): **2,68 m** in stan
+  deweloperski, **2,60 m** on the rynek wtórny. A printed Hpom always wins. Komentarz names which of
+  the two was used.
+
+These are general rules, not case numbers, so they belong in the procedure (and, per entry, in the
+katalog's Komentarz do pracy). Case 2's draft had #180's note as input (`cases/02-oliwa/inputs/`),
+so it is not a blind run on these rules.
+
+### 2026-10-08 — case 3: a new-build segment with two separately priced blocks
+
+`cases/03-nowe-lipiny-i2`, local #183. The case took **23 min** (15:25 → 15:48) from the request to the loaded
+kosztorys with notes. That includes rebuilding #183–#186: someone restored the local DB from the
+11:08 dump mid-session and wiped the earlier #182–#185. Detail: `measurement.md` and
+`investment-notes-appendix.txt`.
+
+What was new compared with cases 1–2:
+
+- **The plan prints room m²**, so the floors and ceilings are read, not measured, and they add up to
+  Pu exactly. Perimeters are the weak point: they come from area ÷ a printed side. The open-plan L
+  (salon z kuchnią) is a guess at 31 mb.
+- **The client wants blocks priced separately** (poddasze, rekuperacja). `load-ai-draft.ts` skips a
+  row whose sekcja is missing, so `scripts/prepare-case-local.ts` adds the sekcje first. Two own
+  sekcje keep both subtotals readable in the editor and out of the house total. This is the shape
+  to reuse whenever an inquiry says „proszę wycenić osobno".
+- **Visualisations are for counting elements only** (wnęki LED, lustra, wpusty, oprawy schodowe,
+  tapeta). They are inspiration, and the client says so.
+- **The katalog runs out on new-build finishing:**
+  - mikrocement on walls;
+  - wooden cladding of concrete stairs;
+  - balustrada;
+  - GK on skosy;
+  - centrala rekuperacji.
+
+  Each is a 0 zł row with the nearest katalog entry in Komentarz.
+
+  Where the katalog names the same operation under another heading, its price was used:
+  - wełna between rafters = „Układanie wełny w ścianach”;
+  - kanały = „Montaż wentylacji”;
+  - the WC niche = „Wykuwanie wnęki pod półeczkę + GK”.
+
+  That is a judgement call the owner should confirm.
+
+- **One unknown dominates:** the developer's tynki. Gipsowe would drop the gładź, about −18 300 zł.
+- **The client's mikrocement vs winyl question is a 43 646 zł swing**, more than a third of the house
+  total. The notes put it first.
+- **The strych's printed 32,38 m² is not its floor.** It is most likely the height-weighted usable
+  area, while the outline gives ≈ 59 m². Without a section drawing, the poddasze block is an order of
+  magnitude only.
+
+Not evaluated: there is no owner kosztorys for this client yet.
+
+**On production as #183** (the id matches local #183 by chance):
+
+- 336 positions: 302 from szablon #166 plus 34 added;
+- AI przedmiar on 94 rows, Przedmiar empty;
+- 14 files and notes;
+- AI przedmiar total 163 759,56 zł.
+
+Szablon #165 had gone to the kosz that morning, so the create's seed only warned and the kosztorys
+was empty. It was then reloaded from #166, where the 60 matched rows are the same and the only price
+change is big bag 600 → 450 zł. The notes carry the production figures.
+
+### 2026-10-08 — case 4: the first case under „agent nie zakłada”
+
+`cases/04-remont-63`, **production #185**. The case took **18 min** (16:44 → 17:02) from „no to dawaj” to
+the verified kosztorys. The 18 min break down as:
+
+- ≈ 9 min reading the plan and photos and building the first draft;
+- ≈ 3 min loading it;
+- ≈ 6 min applying the new rule mid-case: rebuilding the draft, rewriting the notes and reloading.
+
+The inquiry was pasted twice, and was cut at „Montaż […]” both times.
+
+**The rule change halved the offer.** The draft with assumptions was 103 138 zł. Without them it is
+37 203 zł: −66 %. Almost everything that left needs one figure the scan does not print, the **wall
+height**:
+
+- gładź z siatką;
+- malowanie ścian;
+- ściany GK;
+- glazura;
+- skuwanie;
+- wyburzenia.
+
+So for a rynek wtórny scan without H, the agent's honest output is the installations, the armatura,
+the floors and the ceilings, plus a question list. The figure that unlocks the rest is the first
+question to the client.
+
+**Reanalysis with the house height** (17:12 → 17:17, 5 min). Right after the case, the owner set the
+house clear heights (2,68 / 2,60). With H = 2,60, the draft takes:
+
+- the dry-room walls brutto: the perimeters come from the printed sides, or from m² ÷ the printed side;
+- gładź z siatką, malowanie ścian and akryle on those walls;
+- wyburzenia;
+- the old łazienka's skuwanie, since the photo shows tiles to the ceiling.
+
+It now stands at **70 775 zł / 45 rows**. Three things still block, and they are layout facts, not
+heights:
+
+- the przedpokój prints no sides;
+- the window and door heights are not printed;
+- the new łazienka wall and the new tile heights are not given.
+
+Together they keep the whole łazienka/WC tiling block and both GK walls out.
+
+Re-reading the scan at 2× corrected two first-pass readings:
+
+- the łazienka is 1,70 × 1,79, not 1,40 × 2,14;
+- the kuchnia is 4,5 m², not 4,6.
+
+The pokój 11,8 keeps its perimeter whichever way the łazienka grows into it, because the extension
+is a corner notch.
+
+The two-pass load showed that `load-ai-draft.ts` resets AI przedmiar to 0 on every row the draft drops,
+so tightening a draft is a plain reload. The row it added on the first pass (sprzątanie) matches on the
+second.
+
+Not evaluated: there is no owner kosztorys for this client yet.
+
 ## Reliability by quantity class (case 1, after measuring; checked against the owner 2026-10-05)
 
 | Class                          | Example                                | Best source                                           | Observed spread v1 → v2                                                            |
@@ -232,9 +425,25 @@ amend it.
    - raster/scan: read only printed numbers;
    - photo: counts and surface condition only, never m² or mb;
    - shopping list: product identity, never laid area.
-2. **Read before deriving.** Use a number printed on the drawing (room m², Hpom, hp/ho, dimension)
-   whenever one exists. Derive only what is not printed, and label every row read / measured /
-   assumed.
+2. **Read before deriving. The agent does not assume** (owner, 2026-10-08). Use a number printed on
+   the drawing (room m², Hpom, hp/ho, dimension) whenever one exists, and derive only what is not
+   printed.
+
+   A quantity that can be neither read nor measured is **not written**. The notes say what is missing
+   to count it. The one exception is a strong hint in house knowledge:
+   - a Komentarz do pracy in the katalog;
+   - the owner's notes;
+   - an earlier test.
+
+   For example, ≈ 2,5 mb of bruzda per electrical point, when the number of points is given, or the
+   house clear height (2,68 deweloperka / 2,60 rynek wtórny) when the drawing prints none. The agent
+   then derives the quantity and names that source in the position's Komentarz. A quantity measurable
+   for only part of its scope is written for that part. Komentarz names what was left out, and the notes
+   ask for it. For example, gładź without the przedpokój, whose sides the scan doesn't print. An opening
+   whose size isn't printed is not deducted: the wall is written brutto, Komentarz says so, and the
+   notes ask for the sizes.
+   Cases 1–3 predate this rule and still carry many „assumed” rows.
+
 3. **Validate the instrument on a known value before trusting it.** Measure the room areas, compare
    them with the printed m², and only then use the perimeters from the same method. Above ~5%
    off, stop and fix the method.
@@ -265,11 +474,12 @@ amend it.
 
 10. **Write into the kosztorys, not into a reply.**
     - Przedmiar goes on the position.
-    - The source of the quantity (read / measured / assumed + where) goes in Komentarz.
+    - The source of the quantity (read / measured / house rule + which, and where) goes in Komentarz.
     - A new position goes at the end of its section.
-    - Assumptions and questions go to the investment notes.
+    - Doubts and the data still missing go to the **top** of the investment notes, above the mail.
 
-    A position the agent deliberately leaves at 0 is listed in the notes with the reason.
+    A position the agent deliberately leaves at 0 is listed in the notes, together with what would let
+    it be counted.
 
 ## Rozpiska quirks found (affect any agent)
 

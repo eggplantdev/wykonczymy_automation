@@ -22,6 +22,9 @@ export type MediaKindT = 'projekt' | 'zdjecie' | 'inne'
 
 export const norm = (s: string) => s.replace(/\s+/g, ' ').trim()
 
+// Investment notes = the agent's doubts, this line, then the client's mail.
+export const NOTES_SEPARATOR = '———— mail klienta ————'
+
 // Every request to the app carries the session.
 const plainFetch = globalThis.fetch
 globalThis.fetch = (input, init) => {

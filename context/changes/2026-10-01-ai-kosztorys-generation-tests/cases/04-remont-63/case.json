@@ -1,0 +1,46 @@
+{
+  "investmentId": 185,
+  "presetId": 166,
+  "files": [
+    {
+      "name": "rzut.jpg",
+      "kind": "projekt"
+    },
+    {
+      "name": "zdjecie-01.jpg",
+      "kind": "zdjecie"
+    },
+    {
+      "name": "zdjecie-02.jpg",
+      "kind": "zdjecie"
+    },
+    {
+      "name": "zdjecie-03.jpg",
+      "kind": "zdjecie"
+    },
+    {
+      "name": "zdjecie-04.jpg",
+      "kind": "zdjecie"
+    },
+    {
+      "name": "zdjecie-05.jpg",
+      "kind": "zdjecie"
+    },
+    {
+      "name": "zdjecie-06.jpg",
+      "kind": "zdjecie"
+    },
+    {
+      "name": "zdjecie-07.jpg",
+      "kind": "zdjecie"
+    },
+    {
+      "name": "zdjecie-08.jpg",
+      "kind": "zdjecie"
+    }
+  ],
+  "przedmiar": "measure/przedmiar.json",
+  "newWorks": "measure/new-works.json",
+  "notesAppendix": "investment-notes-appendix.txt",
+  "draft": "measure/ai-draft-load.json"
+}

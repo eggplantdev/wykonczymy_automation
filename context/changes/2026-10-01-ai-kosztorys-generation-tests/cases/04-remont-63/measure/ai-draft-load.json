@@ -1,0 +1,362 @@
+[
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Zabezpieczenia mebli, podłóg, okien, drzwi i elementów niezbędnych do prac. Demontaż gniazd, włączników, lamp, karniszy etc. Zabezpieczenie sprzętów i wszelkich niezbędnych elementów. Oklejanie do malowania etc. Zabezpieczanie elementów już wykonanych, glazura zabudowy etc.",
+    "qty": 63.0,
+    "unit": "m²",
+    "clientPrice": 25.0,
+    "note": "AI: metraż z maila; zabezpieczenia = m² podłogi (katalog: Komentarz do pracy)"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Demontaże: wszelkie niezbędne demontaże szaf, zabudowy, armatura etc. - finalnie dopiero po obejrzeniu zastanego stanu będzie można to ocenić",
+    "qty": 1.0,
+    "unit": "kpl",
+    "clientPrice": 1000.0,
+    "note": "AI: armatura łazienki i WC, zabudowa kuchni — kpl wg ilości pracy (notatki ownera #181)"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Wyburzanie ścian do 12 cm grubości - materiał miękki",
+    "qty": 8.4,
+    "unit": "m²",
+    "clientPrice": 110.0,
+    "note": "AI: łazienka–sypialnia 1,79 + kuchnia–przedpokój 1.44 (szerokość kuchni) z rzutu × H 2,60 — rynek wtórny, reguła domowa; brutto, z otworem drzwi"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Skuwanie glazury z klejem ściany i podłogi",
+    "qty": 27.05,
+    "unit": "m²",
+    "clientPrice": 70.0,
+    "note": "AI: ściany starej łazienki 1,70 × 1,79 (płytki do sufitu na zdjęciu) × H 2,60 — rynek wtórny, reguła domowa, brutto + podłogi łazienki 3,0, WC 1,4, kuchni 4,5; bez ścian WC i kuchni (wysokość płytek nieznana)"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Szlifowanie ścian po kleju, przygotowanie do dalszych prac",
+    "qty": 18.15,
+    "unit": "m²",
+    "clientPrice": 12.0,
+    "note": "AI: ściany starej łazienki po skuciu"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Demontaż metalowych futryn",
+    "qty": 6.0,
+    "unit": "kpl",
+    "clientPrice": 200.0,
+    "note": "AI: 6 skrzydeł na rzucie: salon, kuchnia, łazienka, WC, pokoje 11,8 i 9,1"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Demontaż podłogi drewnianej klejonej - trudny demontaż, mocny klej, małe kawałki",
+    "qty": 8.0,
+    "unit": "m²",
+    "clientPrice": 75.0,
+    "note": "AI: mail: parkiet w przedpokoju; 8,0 m² z rzutu"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Wybicie otworu drzwiowego w ścianie działowej z montażem nadproża",
+    "qty": 1.0,
+    "unit": "szt",
+    "clientPrice": 850.0,
+    "note": "AI: mail: otwór do pomieszczenia przy WC"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Bruzdowanie pod kable elektryczne w materiałach miękkich",
+    "qty": 122.5,
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "note": "AI: 49 punktów z maila × ≈ 2,5 mb (katalog: Komentarz do pracy)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Naprawy ścian i sufitów po kuciu, bruzdowaniu, tynkowanie bruzd (liczone w metrach bieżących)",
+    "qty": 122.5,
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "note": "AI: mail: obrobienie miejsc po bruzdowaniu; = bruzdy"
+  },
+  {
+    "section": "Wyburzenia, demontaże, zabezpieczenia",
+    "description": "Bruzdowanie pod instalacje wod-kan w materiałach miękkich",
+    "qty": 4.0,
+    "unit": "mb",
+    "clientPrice": 80.0,
+    "note": "AI: ≈ 2 mb na łazienkę (notatki ownera #181) × łazienka + WC"
+  },
+  {
+    "section": "Prace dodatkowe",
+    "description": "Wynoszenie gruzu, mebli, armatury, śmieci, odpadów budowlanych etc.",
+    "qty": 1.0,
+    "unit": "kontener",
+    "clientPrice": 1500.0,
+    "note": "AI: mail: wyniesienie gruzu do kontenera"
+  },
+  {
+    "section": "Prace dodatkowe",
+    "description": "Zakup, transport i wniesienie towaru budowlanego (cały okres remontu) - w zależności od piętra",
+    "qty": 1.0,
+    "unit": "kpl",
+    "clientPrice": 1500.0,
+    "note": "AI: ryczałt dla małego mieszkania (katalog: Komentarz do pracy)"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Położenie gresu na podłodze format standard od 30x30 do 60x120",
+    "qty": 12.5,
+    "unit": "m²",
+    "clientPrice": 180.0,
+    "note": "AI: mail: wejście, przedpokój, kuchnia; przedpokój 8,0 + kuchnia 4,6 z rzutu"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Fugowanie",
+    "qty": 12.5,
+    "unit": "m²",
+    "clientPrice": 30.0,
+    "note": "AI: fugowanie = m² płytek (katalog: Komentarz do pracy)"
+  },
+  {
+    "section": "Podłogi",
+    "description": "Gruntowanie podłóg",
+    "qty": 12.5,
+    "unit": "m²",
+    "clientPrice": 10.0,
+    "note": "AI: mail: gruntowanie podłoża; = m² płytek"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gładzie na ścianach i sufitach rynek wtórny (3-4 warstwy) + podkład z tynku jeżeli będzie potrzebny, jak nie to cena nieco niższa",
+    "qty": 211.19,
+    "unit": "m²",
+    "clientPrice": 85.0,
+    "note": "AI: mail: siatka + tynk + gładź; ściany 152.81 m² = obwody salonu, pokoi 9,5 / 11,8 / 9,1 i pom. 0,98 z rzutu × H 2,60 — rynek wtórny, reguła domowa; brutto — wymiary okien i drzwi niepodane; bez przedpokoju (obwód niepodany) i kuchni (zabudowa); + sufity 58.38 z rzutu"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Dodatek za wklejanie siatki tynkarskiej",
+    "qty": 211.19,
+    "unit": "m²",
+    "clientPrice": 13.0,
+    "note": "AI: mail: położenie siatki; jak gładź"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gruntowanie powierzchni ścian i sufitów przed gładziami i po gładziach",
+    "qty": 211.19,
+    "unit": "m²",
+    "clientPrice": 12.0,
+    "note": "AI: mail: gruntowanie; jak gładź"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Gruntowanie farbą podkładową - bardzo zalecane na świeże gładzie. Dzięki temu zmniejszamy chłonność powierzchni oraz unikamy na ścianach pasów i wrażenia nierównego malowania. Również przy malowaniu tynków bez gładzi warto zrobić taką warstwę podkładową.",
+    "qty": 211.19,
+    "unit": "m²",
+    "clientPrice": 12.0,
+    "note": "AI: jak gładź"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Malowanie ścian w kolorze",
+    "qty": 152.81,
+    "unit": "m²",
+    "clientPrice": 26.0,
+    "note": "AI: mail: ściany w kolory; ściany 152.81 m² = obwody salonu, pokoi 9,5 / 11,8 / 9,1 i pom. 0,98 z rzutu × H 2,60 — rynek wtórny, reguła domowa; brutto — wymiary okien i drzwi niepodane; bez przedpokoju (obwód niepodany) i kuchni (zabudowa)"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Akrylowanie łączeń ścian i sufitów / akrylowanie dylatacji - polecam, bo zdecydowanie poprawia estetykę w narożnikach oraz przykrywa potencjalne pęknięcia",
+    "qty": 58.77,
+    "unit": "mb",
+    "clientPrice": 14.0,
+    "note": "AI: mail: akryle; styk ściana/sufit = obwody jak przy gładzi, bez przedpokoju"
+  },
+  {
+    "section": "Ściany i sufity bez łazienek ",
+    "description": "Malowanie sufitów farbą silikonową lub akrylową na biało",
+    "qty": 58.38,
+    "unit": "m²",
+    "clientPrice": 23.0,
+    "note": "AI: suma m² pokoi, kuchni, przedpokoju i pom. 0,98 z rzutu — poszerzenie łazienki przeniesie część do łazienki"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Instalacja wod-kan nowe punkty, przeniesienie lub przedłużenie - każdy punkt",
+    "qty": 10.0,
+    "unit": "pkt",
+    "clientPrice": 250.0,
+    "note": "AI: punkt = zimna + ciepła + kanalizacja (katalog): umywalka 3, prysznic 3, pralka 2 (zdjęcie), geberit 2"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Silikonowanie",
+    "qty": 45.0,
+    "unit": "mb",
+    "clientPrice": 25.0,
+    "note": "AI: 20–30 mb na łazienkę (notatki ownera): łazienka 25, WC 20"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wklejanie taśmy hydroizolacyjnej",
+    "qty": 19.87,
+    "unit": "mb",
+    "clientPrice": 30.0,
+    "note": "AI: ≈ 15 mb na łazienkę ~4 m² (notatki ownera) + obwód WC 0,93 × 1,50 z rzutu"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Wiercenie otworów w płytkach",
+    "qty": 15.0,
+    "unit": "szt",
+    "clientPrice": 60.0,
+    "note": "AI: otwory wg armatury (notatki ownera): prysznic natynkowy 2, umywalka 3, grzejnik 2, pralka 1, lustro 2; WC geberit 5"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż geberitu",
+    "qty": 1.0,
+    "unit": "szt",
+    "clientPrice": 450.0,
+    "note": "AI: mail: WC — geberit"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż profili i płyt GK w zabudowie geberitu",
+    "qty": 1.0,
+    "unit": "kpl",
+    "clientPrice": 450.0,
+    "note": "AI: mail: WC — geberit"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż WC podwieszanego",
+    "qty": 1.0,
+    "unit": "szt",
+    "clientPrice": 350.0,
+    "note": "AI: mail: WC — biały montaż"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż brodzika z kabiną prysznicową",
+    "qty": 1.0,
+    "unit": "kpl",
+    "clientPrice": 1500.0,
+    "note": "AI: mail: łazienka — brodzik, kabina"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż baterii prysznicowo-wannowej natynkowej",
+    "qty": 1.0,
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "note": "AI: mail: łazienka — zestaw natynkowy"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż umywalki wiszącej",
+    "qty": 1.0,
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "note": "AI: mail: łazienka — biały montaż"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż baterii do umywalki",
+    "qty": 1.0,
+    "unit": "szt",
+    "clientPrice": 150.0,
+    "note": "AI: mail: łazienka — biały montaż"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż syfonów",
+    "qty": 1.0,
+    "unit": "szt",
+    "clientPrice": 80.0,
+    "note": "AI: mail: łazienka — biały montaż"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Montaż grzejnika z zaworami",
+    "qty": 1.0,
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "note": "AI: mail: łazienka — grzejnik"
+  },
+  {
+    "section": "Łazienka",
+    "description": "Podłączenie pralki",
+    "qty": 1.0,
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "note": "AI: pralka na zdjęciu łazienki"
+  },
+  {
+    "section": "Instalacja wodno-kanalizacyjna + c.o.",
+    "description": "Montaż grzejnika z zaworami",
+    "qty": 1.0,
+    "unit": "szt",
+    "clientPrice": 250.0,
+    "note": "AI: mail: nowy grzejnik na powstałej ścianie"
+  },
+  {
+    "section": "Instalacja wodno-kanalizacyjna + c.o.",
+    "description": "Przebudowa punktów centralnego ogrzewania",
+    "qty": 2.0,
+    "unit": "pkt",
+    "clientPrice": 250.0,
+    "note": "AI: nowy grzejnik: zasilanie + powrót"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Wykonanie/przesunięcie punktów elektrycznych, gniazdka i włączniki, wiercenie otworu pod puszkę, montaż puszki, doprowadzenie kabla",
+    "qty": 37.0,
+    "unit": "szt",
+    "clientPrice": 130.0,
+    "note": "AI: mail: 26 gniazdek + 9 włączników + 2 schodowe; z puszką"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Wykonanie punktów oświetleniowych, czujki, rolety",
+    "qty": 12.0,
+    "unit": "szt",
+    "clientPrice": 100.0,
+    "note": "AI: mail: 12 punktów oświetlenia"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż gniazdek i włączników",
+    "qty": 35.0,
+    "unit": "szt",
+    "clientPrice": 39.0,
+    "note": "AI: mail: osprzęt gniazdek i włączników"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż włączników schodowych/krzyżowych",
+    "qty": 2.0,
+    "unit": "szt",
+    "clientPrice": 70.0,
+    "note": "AI: mail: 2 schodowe w przedpokoju"
+  },
+  {
+    "section": "Instalacja elektryczna i oświetleniowa",
+    "description": "Montaż/Przebudowa rozdzielni elektrycznej wraz z bezpiecznikami - do 12 modułów",
+    "qty": 1.0,
+    "unit": "kpl",
+    "clientPrice": 1200.0,
+    "note": "AI: mail: 6 bezpieczników + różnicowy + główny (≤ 12 modułów)"
+  },
+  {
+    "section": "Prace dodatkowe",
+    "description": "Sprzątanie pomieszczeń po remoncie, rozklejanie zabezpieczeń",
+    "qty": 1.0,
+    "unit": "kpl",
+    "clientPrice": 0.0,
+    "note": "AI: mail: sprzątanie, rozklejanie — brak w katalogu, do wyceny"
+  }
+]
