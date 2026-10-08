@@ -29,16 +29,18 @@ export function SourceRegisterField({
 }: SourceRegisterFieldPropsT) {
   return (
     <>
-      <CashRegisterField
-        form={form}
-        name="sourceRegister"
-        cashRegisters={cashRegisters}
-        label={label}
-        listeners={{ onChange: ({ value }: { value: string }) => fetchRegisterBalance(value) }}
-      />
-      {showSaveAsDefault && (
-        <SaveDefaultRegisterButton form={form} defaultCashRegisterId={defaultCashRegisterId} />
-      )}
+      <div className="flex flex-col gap-1">
+        <CashRegisterField
+          form={form}
+          name="sourceRegister"
+          cashRegisters={cashRegisters}
+          label={label}
+          listeners={{ onChange: ({ value }: { value: string }) => fetchRegisterBalance(value) }}
+        />
+        {showSaveAsDefault && (
+          <SaveDefaultRegisterButton form={form} defaultCashRegisterId={defaultCashRegisterId} />
+        )}
+      </div>
       {isRegisterBalanceLoading && (
         <p className="text-muted-foreground text-sm">Ładowanie salda...</p>
       )}

@@ -63,8 +63,8 @@ export function ExpenseDraftDuplicateHints({ state, lineItemIds, onMarkDuplicate
   }
 
   return (
-    <section className="flex flex-col gap-3">
-      <h3 className="font-medium">Możliwe duplikaty</h3>
+    <section className="border-destructive my-4 flex flex-col gap-3 rounded-lg border-2 p-4">
+      <h3 className="text-destructive font-medium">Możliwe duplikaty</h3>
       <DataTable
         data={rows}
         columns={getExpenseDuplicateColumns({
