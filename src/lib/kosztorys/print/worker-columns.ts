@@ -5,8 +5,10 @@ import { computedColumnValues } from '@/lib/kosztorys/columns/column-values'
 import {
   CURRENT_PLANNED_QTY_COLUMN,
   DESCRIPTION_COLUMN,
+  PLANNED_QTY_COLUMN,
   UNIT_COLUMN,
   computedMoneyColumn,
+  computedPercentColumn,
   computedQtyColumn,
   moneyColumn,
   stageNetColumns,
@@ -51,6 +53,7 @@ export function workerPrintColumns({
   const labelOf = (key: string) => columnLabelForView(key, plane, dictionary)
   const byKey: Record<string, PrintColumnT[]> = {
     description: [{ ...DESCRIPTION_COLUMN, label: labelOf('description') }],
+    plannedQty: [{ ...PLANNED_QTY_COLUMN, label: labelOf('plannedQty') }],
     currentPlannedQty: [{ ...CURRENT_PLANNED_QTY_COLUMN, label: labelOf('currentPlannedQty') }],
     unit: [{ ...UNIT_COLUMN, label: labelOf('unit') }],
     [rateKey]: [
@@ -64,6 +67,9 @@ export function workerPrintColumns({
     stageQtySum: [computedQtyColumn(valueOf)('stageQtySum', labelOf('stageQtySum'))],
     [STAGE_VALUE_NET_COLUMN_GROUP]: stageNetColumns(stages, valueOf, formatPLN, dictionary),
     net: [money('net', labelOf('net'))],
+    plannedDonePercent: [
+      computedPercentColumn(valueOf)('plannedDonePercent', labelOf('plannedDonePercent')),
+    ],
     remainingForPlane: [money('remainingForPlane', labelOf('remainingForPlane'))],
   }
   return workerDocumentColumns(plane, columnRanks)

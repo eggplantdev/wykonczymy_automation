@@ -2,7 +2,7 @@ import { escapeHtml } from '@/lib/utils/escape-html'
 import { POLISH_GRID, type TranslatorT } from '@/lib/i18n/translations'
 import type { ColumnValueT, ColumnValuesT } from '@/lib/kosztorys/columns/column-values'
 import { resolvedCurrentPlannedQty } from '@/lib/kosztorys/calc'
-import { formatQty } from '@/lib/kosztorys/format'
+import { formatPercent, formatQty } from '@/lib/kosztorys/format'
 import { stageLabel } from '@/lib/kosztorys/stage-label'
 import { stageKey, stageValueNetKey } from '@/lib/kosztorys/stage-keys'
 import type { KosztorysStageT, KosztorysV2RowT, StageKeyT } from '@/lib/kosztorys/types'
@@ -105,6 +105,14 @@ export const computedQtyColumn =
   (valueOf: ColumnValuesT) =>
   (key: string, label: string): PrintColumnT =>
     qtyColumn(key, label, formattedValue(valueOf(key), formatQty))
+
+// Not through `formattedValue`: a percentage with no denominator prints the grid's dash, not a blank.
+export const computedPercentColumn =
+  (valueOf: ColumnValuesT) =>
+  (key: string, label: string): PrintColumnT => {
+    const value = valueOf(key)
+    return qtyColumn(key, label, (row) => formatPercent(value(row)))
+  }
 
 const perStage = (
   stages: KosztorysStageT[],

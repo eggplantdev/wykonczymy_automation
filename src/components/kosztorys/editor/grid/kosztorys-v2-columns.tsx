@@ -345,6 +345,9 @@ function assembleV2Columns(opts: BuildV2ColumnsOptsT): Column<KosztorysV2RowT>[]
       },
       formatPercent,
     ),
+    // No red past 100%: past the offer is normal once the scope was updated, and red stays the
+    // signal for past the AGREED scope, on the column above.
+    resolvedColumn('plannedDonePercent', undefined, formatPercent),
   ]
 
   const plannedValue: Column<KosztorysV2RowT>[] = [

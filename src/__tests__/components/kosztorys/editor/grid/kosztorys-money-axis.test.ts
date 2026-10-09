@@ -25,9 +25,17 @@ function ids(axis: MoneyAxisT, isHidden?: (id: string) => boolean): string[] {
 
 const GROSS_IDS = ['priceGross', 'discountAmountGross', 'plannedGross', 'gross', 'remainingGross']
 const NET_IDS = ['discountAmount', 'plannedNet', 'net', 'remaining']
-// `donePercent` among them: a percentage is the same number on either side of the pair, so tagging it
-// would drop the column from a mode it has no business being filtered by.
-const NEUTRAL_IDS = ['plannedQty', 'unit', 'discountType', 'stage_7', 'stage_9', 'donePercent']
+// Both percentages among them: a percentage is the same number on either side of the pair, so tagging
+// it would drop the column from a mode it has no business being filtered by.
+const NEUTRAL_IDS = [
+  'plannedQty',
+  'unit',
+  'discountType',
+  'stage_7',
+  'stage_9',
+  'donePercent',
+  'plannedDonePercent',
+]
 
 describe('buildV2Columns — oś netto/brutto', () => {
   it('„oba" renderuje dokładnie to co grid bez trybu — tryb jest opt-out', () => {

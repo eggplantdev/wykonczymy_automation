@@ -13,21 +13,21 @@ export const WORKER_RATE_KEY = 'rate'
 // from CLIENT_VIEW_GROUPS, not a subset of it, because the two surfaces disclose opposite prices: a
 // key missing here is a column no setting can put on a worker's screen. The client price, rabat,
 // brutto, the client-priced „Wartość przedmiaru" / „Pozostało" / „% wykonania" and „Komentarz" are
-// absent by construction — the first two alone would give the margin away. So is the Przedmiar
-// ofertowy: the crew works to the current scope, so it gets the Aktualizacja przedmiaru alone (EX-921).
-// Its value and „Pozostało" (`…ForPlane`) already read the aktualizacja.
+// absent by construction — the first two alone would give the margin away. The Przedmiar ofertowy and
+// the percentage against it are quantities, so they disclose no price: whether the crew sees the offer
+// beside the Aktualizacja przedmiaru is the managers' call, unticked by default (2026-10-09).
 export const WORKER_VIEW_GROUPS: readonly ColumnGroupT[] = [
   {
     label: 'Opis i ilości',
-    keys: ['description', 'currentPlannedQty', 'stageQtySum', 'unit'],
+    keys: ['description', 'plannedQty', 'currentPlannedQty', 'stageQtySum', 'unit'],
   },
   {
     label: 'Stawka i wartości',
     keys: [WORKER_RATE_KEY, 'plannedNetForPlane', 'net', 'remainingForPlane'],
   },
   {
-    label: 'Etapy',
-    keys: [STAGES_COLUMN_GROUP, STAGE_VALUE_NET_COLUMN_GROUP],
+    label: 'Etapy i postęp',
+    keys: [STAGES_COLUMN_GROUP, STAGE_VALUE_NET_COLUMN_GROUP, 'plannedDonePercent'],
   },
 ]
 
@@ -35,6 +35,7 @@ export const WORKER_VIEW_GROUPS: readonly ColumnGroupT[] = [
 // and same contract as CLIENT_DOCUMENT_COLUMNS, over the keys of WORKER_VIEW_GROUPS.
 export const WORKER_DOCUMENT_COLUMNS: readonly string[] = [
   'description',
+  'plannedQty',
   'currentPlannedQty',
   'unit',
   WORKER_RATE_KEY,
@@ -43,6 +44,7 @@ export const WORKER_DOCUMENT_COLUMNS: readonly string[] = [
   'stageQtySum',
   STAGE_VALUE_NET_COLUMN_GROUP,
   'net',
+  'plannedDonePercent',
   'remainingForPlane',
 ]
 

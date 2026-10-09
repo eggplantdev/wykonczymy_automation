@@ -4,7 +4,13 @@ import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 // The totals that only mean something once an etap has an entry. Kwota rabatu belongs: it is computed
 // off the executed quantity, so before any work it reads 0 zł on every row. „Pozostało" is not here,
 // because the worker's document keeps it from day one — his whole przedmiar IS outstanding work.
-const SETTLEMENT_TOTAL_COLUMNS = ['stageQtySum', 'net', 'donePercent', 'discountAmount'] as const
+const SETTLEMENT_TOTAL_COLUMNS = [
+  'stageQtySum',
+  'net',
+  'donePercent',
+  'plannedDonePercent',
+  'discountAmount',
+] as const
 
 // The investor's offer phase: before the first etap entry his document is the pure offer (owner,
 // EX-921). This reverses the 2026-09-28 ruling that kept „Pozostało" on it as a real figure — next to

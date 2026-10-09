@@ -9,7 +9,7 @@ import { CTX, row } from '@/__tests__/lib/kosztorys/row-conditions/fixtures'
 
 // Kwota rabatu included: it is computed off the executed quantity, so before any work it is 0 zł on
 // every row (owner, 2026-09-28).
-const TOTALS = ['stageQtySum', 'net', 'donePercent', 'discountAmount']
+const TOTALS = ['stageQtySum', 'net', 'donePercent', 'plannedDonePercent', 'discountAmount']
 const stageColumns = (id: number) => [stageKey(id), stageValueNetKey(id)]
 
 describe('stagesWithEntries', () => {

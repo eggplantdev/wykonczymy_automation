@@ -19,7 +19,7 @@ const PLANNED = `Przedmiar ofertowy razy cena minus rabat — wartość oferty.\
 const CURRENT_PLANNED = `Aktualizacja przedmiaru razy cena minus rabat.\n\n${CLIENT_BASE}`
 
 const HEADER_TIPS: Record<string, string> = {
-  plannedQty: pl.grid.tipPlannedQty,
+  plannedQty: 'Przedmiar ofertowy — ilość z oferty.\nNa nim stoi wartość oferty i prognoza marży.',
   currentPlannedQty: pl.grid.tipCurrentPlannedQty,
   note: 'Naciśnij enter lub kliknij dwukrotnie aby otworzyć.\n\nShift+Enter — nowa linia\nEnter — zapisz i przejdź niżej\nEscape — cofnij zmiany\nTab — zakończ edycję',
   stageQtySum: pl.grid.tipStageQtySum,
@@ -38,6 +38,7 @@ const HEADER_TIPS: Record<string, string> = {
   remaining: REMAINING,
   remainingGross: REMAINING,
   remainingForPlane: pl.grid.tipRemainingForPlane,
+  plannedDonePercent: `Procent wykonania względem przedmiaru ofertowego.\nIle procent oferty jest zrobione.\nPowyżej 100% — wykonano więcej, niż zakładała oferta (np. po aktualizacji przedmiaru).\nKreska dla pozycji spoza oferty.\n\n${CLIENT_BASE}`,
   donePercent: `Procent wykonania względem aktualizacji przedmiaru.\nIle procent uzgodnionego zakresu jest zrobione.\nPowyżej 100% oznacza przekroczenie prognozy\n\n${CLIENT_BASE}`,
   [STAGE_VALUE_NET_COLUMN_GROUP]: `Ilość wykonana w tym etapie razy cena jednostki miary minus udział etapu w rabacie.\nUdział jest proporcjonalny do ilości (rabat zł jest rabatem od całego wiersza, więc etap niesie tylko swoją część).\nZależy od aktywnego widoku cen.\n\n${DISCOUNT_IS_CLIENT_ONLY}`,
   [STAGE_VALUE_GROSS_COLUMN_GROUP]: 'Etap — kwota brutto = Etap — kwota netto razy (1 + VAT).',
@@ -47,12 +48,14 @@ const HEADER_TIPS: Record<string, string> = {
 // client's rabat and the editor's price view are not in them, so the tips above would misexplain it.
 // Every tip his link shows is listed, because it is read in his language.
 const WORKER_TIP_KEYS: Partial<Record<string, MessageKeyT<'grid'>>> = {
+  plannedQty: 'tipPlannedQty',
   currentPlannedQty: 'tipCurrentPlannedQty',
   stageQtySum: 'tipStageQtySum',
   plannedNetForPlane: 'tipPlannedNetForPlane',
   net: 'tipNet',
   [STAGE_VALUE_NET_COLUMN_GROUP]: 'tipStageValueNet',
   remainingForPlane: 'tipRemainingForPlane',
+  plannedDonePercent: 'tipPlannedDonePercent',
 }
 
 /**

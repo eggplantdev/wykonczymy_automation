@@ -37,6 +37,7 @@ describe('sanitizeClientViewSettings', () => {
     expect(settings.hiddenColumns).toContain('currentPlannedNet')
     // An AI draft writes its sources into the komentarz, so no kosztorys shows it unasked.
     expect(settings.hiddenColumns).toContain('note')
+    expect(settings.hiddenColumns).toContain('plannedDonePercent')
     expect(settings.hideEmptyRows).toBe(true)
   })
 
