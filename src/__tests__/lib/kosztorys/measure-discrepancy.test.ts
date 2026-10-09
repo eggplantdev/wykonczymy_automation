@@ -6,8 +6,8 @@ import type { KosztorysStageT, KosztorysV2RowT } from '@/lib/kosztorys/types'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 
 const STAGES: KosztorysStageT[] = [
-  { id: 1, ordinal: 1, label: null, plane: null, split: null },
-  { id: 2, ordinal: 2, label: null, plane: 'w_tools', split: oneWorkerSplit(5) },
+  { id: 1, ordinal: 1, label: null, plane: null, split: null, completed: false },
+  { id: 2, ordinal: 2, label: null, plane: 'w_tools', split: oneWorkerSplit(5), completed: false },
 ]
 
 // Client price 100 with no rabat, so a difference of 1 unit is worth exactly 100 zł.

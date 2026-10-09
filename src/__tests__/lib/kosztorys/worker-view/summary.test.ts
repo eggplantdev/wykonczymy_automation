@@ -13,9 +13,30 @@ const OTHER = 9
 // Worker 5 holds etapy 100 and 102 (z narzędziami, stawka 12); worker 9 holds etap 101 on the same
 // plane. Row 2 carries a client rabat, which must never reach the crew's figures.
 const stages: KosztorysStageT[] = [
-  { id: 100, ordinal: 1, label: 'Tynki', plane: 'w_tools', split: oneWorkerSplit(WORKER) },
-  { id: 101, ordinal: 2, label: null, plane: 'w_tools', split: oneWorkerSplit(OTHER) },
-  { id: 102, ordinal: 3, label: null, plane: 'w_tools', split: oneWorkerSplit(WORKER) },
+  {
+    id: 100,
+    ordinal: 1,
+    label: 'Tynki',
+    plane: 'w_tools',
+    split: oneWorkerSplit(WORKER),
+    completed: false,
+  },
+  {
+    id: 101,
+    ordinal: 2,
+    label: null,
+    plane: 'w_tools',
+    split: oneWorkerSplit(OTHER),
+    completed: false,
+  },
+  {
+    id: 102,
+    ordinal: 3,
+    label: null,
+    plane: 'w_tools',
+    split: oneWorkerSplit(WORKER),
+    completed: false,
+  },
 ]
 const tree: KosztorysTreeT = makeTree({
   sections: [

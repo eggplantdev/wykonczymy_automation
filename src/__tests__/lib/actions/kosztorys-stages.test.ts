@@ -291,6 +291,24 @@ describe.skipIf(!ENV_READY)('kosztorys stage actions — persisted state (DB)', 
     })
   })
 
+  describe('updateStageAction — etap zakończony (EX-1034)', () => {
+    async function completedOf(stageId: number): Promise<unknown> {
+      const res = await db.execute(sql`SELECT completed FROM kosztorys_stages WHERE id = ${stageId}`)
+      return res.rows[0]?.completed
+    }
+
+    it('starts open, persists the flag and clears it again', async () => {
+      const stageId = await createStage('w_tools')
+      expect(await completedOf(stageId)).toBe(false)
+
+      expect((await updateStageAction(stageId, { completed: true })).success).toBe(true)
+      expect(await completedOf(stageId)).toBe(true)
+
+      expect((await updateStageAction(stageId, { completed: false })).success).toBe(true)
+      expect(await completedOf(stageId)).toBe(false)
+    })
+  })
+
   describe('a worker in the kosz (EX-918)', () => {
     // A prod-dump user borrowed for the test, so it goes back to live whatever the assertion does.
     async function withTrashedOther(run: () => Promise<void>) {

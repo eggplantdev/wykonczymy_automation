@@ -18,10 +18,10 @@ describe.skipIf(!ENV_READY)('listWorkersWithActiveStages (DB)', () => {
   const investmentIds: number[] = []
   const workers: Record<string, number> = {}
 
-  async function investmentWithStage(status: InvestmentStatusT, workerId: number) {
+  async function investmentWithStage(status: InvestmentStatusT, workerId: number, completed = false) {
     const id = await createTestInvestment(payload, `EX-949 scan workers ${status}`, { status })
     investmentIds.push(id)
-    await createKosztorysTree(payload, id, { sections: [], stages: [{ worker: workerId }] })
+    await createKosztorysTree(payload, id, { sections: [], stages: [{ worker: workerId, completed }] })
   }
 
   beforeAll(async () => {
@@ -31,7 +31,7 @@ describe.skipIf(!ENV_READY)('listWorkersWithActiveStages (DB)', () => {
     db = await getDb(payload)
     await purgeFixtureUsers(db)
 
-    for (const name of ['active', 'inactive', 'szablon', 'completed']) {
+    for (const name of ['active', 'inactive', 'szablon', 'completed', 'stage-closed']) {
       const created = await payload.create({
         collection: 'users',
         data: {
@@ -50,6 +50,7 @@ describe.skipIf(!ENV_READY)('listWorkersWithActiveStages (DB)', () => {
     await investmentWithStage('active', workers.inactive)
     await investmentWithStage('szablon', workers.szablon)
     await investmentWithStage('completed', workers.completed)
+    await investmentWithStage('active', workers['stage-closed'], true)
   })
 
   afterAll(async () => {
@@ -57,7 +58,7 @@ describe.skipIf(!ENV_READY)('listWorkersWithActiveStages (DB)', () => {
     await purgeFixtureUsers(db)
   })
 
-  it('offers only a live worker on an etap of a running investment', async () => {
+  it('offers only a live worker on an open etap of a running investment', async () => {
     const fixtureIds = new Set(Object.values(workers))
     const listed = (await listWorkersWithActiveStages(db)).filter(({ id }) => fixtureIds.has(id))
 

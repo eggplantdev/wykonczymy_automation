@@ -47,16 +47,16 @@ const makePlaneTree = (
   })
 
 const allWTools: KosztorysStageT[] = [
-  { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null },
-  { id: 101, ordinal: 2, label: null, plane: 'w_tools', split: null },
+  { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null, completed: false },
+  { id: 101, ordinal: 2, label: null, plane: 'w_tools', split: null, completed: false },
 ]
 const mixed: KosztorysStageT[] = [
-  { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null },
-  { id: 101, ordinal: 2, label: null, plane: 'own_tools', split: null },
+  { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null, completed: false },
+  { id: 101, ordinal: 2, label: null, plane: 'own_tools', split: null, completed: false },
 ]
 const allNull: KosztorysStageT[] = [
-  { id: 100, ordinal: 1, label: null, plane: null, split: null },
-  { id: 101, ordinal: 2, label: null, plane: null, split: null },
+  { id: 100, ordinal: 1, label: null, plane: null, split: null, completed: false },
+  { id: 101, ordinal: 2, label: null, plane: null, split: null, completed: false },
 ]
 
 describe('subcontractorDueByPlane', () => {
@@ -96,8 +96,8 @@ describe('subcontractorDueByPlane', () => {
 
   it('flags unconfirmed when any single stage is null', () => {
     const tree = makePlaneTree([
-      { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null },
-      { id: 101, ordinal: 2, label: null, plane: null, split: null },
+      { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null, completed: false },
+      { id: 101, ordinal: 2, label: null, plane: null, split: null, completed: false },
     ])
     const due = subcontractorDueByPlane(treeToRows(tree), tree.stages)
     expect(due.hasUnconfirmedPlane).toBe(true)
@@ -198,8 +198,8 @@ describe('subcontractorDueByPlane — byWorker', () => {
     const tree = makePlaneTree(
       assigned(
         [
-          { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null },
-          { id: 101, ordinal: 2, label: null, plane: null, split: null },
+          { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null, completed: false },
+          { id: 101, ordinal: 2, label: null, plane: null, split: null, completed: false },
         ],
         [7, 8],
       ),
@@ -262,7 +262,9 @@ describe('subcontractorDueByPlane — shared etapy', () => {
         { workerId: 8, value: 0, takesRest: true },
       ],
     }
-    const tree = makePlaneTree([{ id: 100, ordinal: 1, label: null, plane: null, split }])
+    const tree = makePlaneTree([
+      { id: 100, ordinal: 1, label: null, plane: null, split, completed: false },
+    ])
     const due = subcontractorDueByPlane(treeToRows(tree), tree.stages)
     expect([...due.unconfirmedWorkers]).toEqual([7, 8])
     expect(due.byWorker.size).toBe(0)
@@ -298,7 +300,7 @@ describe('subcontractorDueByPlane — shared etapy', () => {
           ],
         },
       ],
-      stages: [{ id: 100, ordinal: 1, label: null, plane: 'w_tools', split }],
+      stages: [{ id: 100, ordinal: 1, label: null, plane: 'w_tools', split, completed: false }],
       progress: [{ itemId: 1, stageId: 100, qtyDone: 1 }],
     })
     const due = subcontractorDueByPlane(treeToRows(tree), tree.stages)
@@ -346,8 +348,8 @@ describe('pomiar liczony po planie etapu', () => {
   // is the only thing that says so. Pinned so nobody "fixes" the shortfall by defaulting a plane.
   it('nieprzypisany etap wypada z obu rachunków — suma jest krótsza, flaga podniesiona', () => {
     const tree = makePlaneTree([
-      { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null },
-      { id: 101, ordinal: 2, label: null, plane: null, split: null },
+      { id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null, completed: false },
+      { id: 101, ordinal: 2, label: null, plane: null, split: null, completed: false },
     ])
     const rows = treeToRows(tree)
     const due = subcontractorDueByPlane(rows, tree.stages)

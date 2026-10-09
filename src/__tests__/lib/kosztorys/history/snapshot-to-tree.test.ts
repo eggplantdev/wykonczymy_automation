@@ -46,4 +46,13 @@ describe('snapshotToTree', () => {
     expect(rebuilt.sections[0].displayOrder).toBe(0)
     expect(rebuilt.sections[0].items[0]).toMatchObject({ plannedQty: 0, clientPrice: 0 })
   })
+
+  it('carries a zakończony etap through a snapshot, and reads one stored before EX-1034 as open', () => {
+    const stored = tree([item(1, 'Płytki', 10, 100)], [{ ...stage(7, 1, 'Płytki'), completed: true }])
+    expect(snapshotToTree(serializeTree(stored), live).tree.stages[0].completed).toBe(true)
+
+    const { completed: _dropped, ...oldStage } = stage(7, 1, 'Płytki')
+    const old = { ...serializeTree(stored), stages: [oldStage] } as StoredSnapshotPayloadT
+    expect(snapshotToTree(old, live).tree.stages[0].completed).toBe(false)
+  })
 })

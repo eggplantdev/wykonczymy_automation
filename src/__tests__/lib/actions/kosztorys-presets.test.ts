@@ -72,8 +72,8 @@ function brokenPresetPayload(): SnapshotPayloadT {
     sections: [{ id: 1, name: 'Z szablonu', displayOrder: 0, color: null }],
     items: [],
     stages: [
-      { id: 1, ordinal: 1, label: 'Etap 1', plane: null, split: null },
-      { id: 2, ordinal: 1, label: 'Etap 1 znowu', plane: null, split: null },
+      { id: 1, ordinal: 1, label: 'Etap 1', plane: null, split: null, completed: false },
+      { id: 2, ordinal: 1, label: 'Etap 1 znowu', plane: null, split: null, completed: false },
     ],
     progress: [],
     settings: TEMPLATE_SETTINGS,

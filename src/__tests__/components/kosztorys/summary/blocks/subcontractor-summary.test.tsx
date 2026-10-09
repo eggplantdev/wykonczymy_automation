@@ -33,6 +33,7 @@ const stage = (id: number, workerId: number | null): KosztorysStageT => ({
   label: null,
   plane: 'w_tools',
   split: workerId == null ? null : oneWorkerSplit(workerId),
+  completed: false,
 })
 
 // Bartek ma przypisany etap, na którym nic jeszcze nie wykonano — to jego zaliczka, nie nadpłata.

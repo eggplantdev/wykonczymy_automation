@@ -10,13 +10,21 @@ import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 // survive it identically (they are three renderings of one etap, so one drifting would show an etap's
 // wartość beside no ilość to explain it).
 
-const BARE: KosztorysStageT = { id: 7, ordinal: 1, label: 'Etap 1', plane: null, split: null }
+const BARE: KosztorysStageT = {
+  id: 7,
+  ordinal: 1,
+  label: 'Etap 1',
+  plane: null,
+  split: null,
+  completed: false,
+}
 const NO_WORKER: KosztorysStageT = {
   id: 9,
   ordinal: 2,
   label: 'Etap 2',
   plane: 'w_tools',
   split: null,
+  completed: false,
 }
 const FINE: KosztorysStageT = {
   id: 11,
@@ -24,6 +32,7 @@ const FINE: KosztorysStageT = {
   label: 'Etap 3',
   plane: 'w_tools',
   split: oneWorkerSplit(5),
+  completed: false,
 }
 const STAGES = [BARE, NO_WORKER, FINE]
 

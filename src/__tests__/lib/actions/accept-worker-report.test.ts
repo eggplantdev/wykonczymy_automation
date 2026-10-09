@@ -420,6 +420,20 @@ describe.skipIf(!ENV_READY)('acceptWorkerReportAction (DB)', () => {
     expect((await readWorkerReport(db, investmentId, reportId))?.lines[1].acceptedQty).toBeNull()
   })
 
+  // EX-1034 locks nothing: a report sent before the etap was zakończony still lands in it.
+  it('accepts into a zakończony etap', async () => {
+    const { reportId, lineIds } = await sendReport([{ itemId: itemIds[0], qty: 3 }])
+    await db.execute(sql`UPDATE kosztorys_stages SET completed = true WHERE id = ${ownStageId}`)
+    const res = await accept({
+      reportId,
+      target: { kind: 'stage', stageId: ownStageId },
+      lines: [{ lineId: lineIds[0], acceptedQty: 3 }],
+    })
+
+    expect(res.success).toBe(true)
+    expect(await qtyDone(itemIds[0], ownStageId)).toBe(8)
+  })
+
   it('refuses an etap the reporting worker is not on', async () => {
     const { reportId, lineIds } = await sendReport([{ itemId: itemIds[0], qty: 2 }])
     const res = await accept({

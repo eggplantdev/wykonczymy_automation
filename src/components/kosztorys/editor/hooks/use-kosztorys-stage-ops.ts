@@ -56,7 +56,7 @@ export function useKosztorysStageOps({
     const res = await settleAction(() => addStageAction(investmentId, plane, split))
     if (!res.success) return reportFailure(res.error, res.code)
     const { id, ordinal } = res.data
-    adoptStage({ id, ordinal, label: null, plane, split })
+    adoptStage({ id, ordinal, label: null, plane, split, completed: false })
   }
 
   // An etap the server already created — an accepted report's „Nowy etap".
@@ -127,6 +127,10 @@ export function useKosztorysStageOps({
     patchStageField(stageId, 'plane', plane, 'stage-plane')
   }
 
+  function handleSetStageCompleted(stageId: number, completed: boolean) {
+    patchStageField(stageId, 'completed', completed, 'stage-completed')
+  }
+
   // The whole split in one write, never field by field (see updateStageSplitAction). `null` is „Bez
   // przypisania". No undo push, matching plane.
   function handleSetStageSplit(stageId: number, split: StageSplitT | null) {
@@ -142,6 +146,7 @@ export function useKosztorysStageOps({
     handleRemoveStage,
     handleRenameStage,
     handleSetStagePlane,
+    handleSetStageCompleted,
     handleSetStageSplit,
   }
 }

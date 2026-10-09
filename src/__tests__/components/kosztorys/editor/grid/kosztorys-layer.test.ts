@@ -15,8 +15,8 @@ import { translationColumnLanguage } from '@/lib/kosztorys/translation-column-ke
 // derivation — work = untagged-and-not-neutral, progress = tagged, neutral = always visible.
 
 const STAGES: KosztorysStageT[] = [
-  { id: 7, ordinal: 1, label: 'Etap 1', plane: null, split: null },
-  { id: 9, ordinal: 2, label: 'Etap 2', plane: null, split: null },
+  { id: 7, ordinal: 1, label: 'Etap 1', plane: null, split: null, completed: false },
+  { id: 9, ordinal: 2, label: 'Etap 2', plane: null, split: null, completed: false },
 ]
 
 function ids(layer: LayerT, isHidden?: (id: string) => boolean): string[] {

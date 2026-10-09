@@ -21,7 +21,7 @@ export function item(
 }
 
 export function stage(id: number, ordinal: number, label: string | null = null): KosztorysStageT {
-  return { id, ordinal, label, plane: null, split: null }
+  return { id, ordinal, label, plane: null, split: null, completed: false }
 }
 
 export function tree(

@@ -155,6 +155,7 @@ export type KosztorysStageT = {
   plane: ToolPlaneT | null
   // null = nobody assigned. Never a split without members — the reader normalises that to null.
   split: StageSplitT | null
+  completed: boolean
 }
 
 // Mirrors ItemPatchT; the action's zod validation is derived from this shape. plane is never patched
@@ -163,6 +164,7 @@ export type KosztorysStageT = {
 export type StagePatchT = Partial<{
   label: string | null
   plane: ToolPlaneT
+  completed: boolean
 }>
 
 export type StageProgressT = {

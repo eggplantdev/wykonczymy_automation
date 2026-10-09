@@ -134,11 +134,13 @@ export type StoredSnapshotPayloadT = {
   globalDiscount?: GlobalDiscountT
 }
 
-// A row captured before EX-943 holds one `workerId` and no `split`; the schema version was not
-// bumped for it (lessons.md), so the stage type says both shapes can arrive.
-export type StoredStageT = Omit<KosztorysStageT, 'split'> & {
+// A row captured before EX-943 holds one `workerId` and no `split`, and one captured before EX-1034
+// no `completed`; the schema version was not bumped for either (lessons.md), so the stage type says
+// both shapes can arrive.
+export type StoredStageT = Omit<KosztorysStageT, 'split' | 'completed'> & {
   split?: StageSplitT | null
   workerId?: number | null
+  completed?: boolean
 }
 
 /** A stored etap's split, reading a pre-EX-943 `workerId` as that one person taking the whole etap. */

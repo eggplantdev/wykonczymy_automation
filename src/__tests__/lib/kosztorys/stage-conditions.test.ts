@@ -15,6 +15,7 @@ function stage(overrides: Partial<KosztorysStageT> = {}): KosztorysStageT {
     label: null,
     plane: 'w_tools',
     split: oneWorkerSplit(5),
+    completed: false,
     ...overrides,
   }
 }

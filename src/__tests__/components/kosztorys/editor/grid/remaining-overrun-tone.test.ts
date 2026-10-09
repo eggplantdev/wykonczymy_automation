@@ -42,7 +42,7 @@ const tree = makeTree({
       ],
     },
   ],
-  stages: [{ id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null }],
+  stages: [{ id: 100, ordinal: 1, label: null, plane: 'w_tools', split: null, completed: false }],
   progress: [
     { itemId: OVERRUN, stageId: 100, qtyDone: 1 },
     { itemId: OWED, stageId: 100, qtyDone: 1 },

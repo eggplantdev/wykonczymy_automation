@@ -9,6 +9,7 @@ import { CurrentUserProvider } from '@/hooks/use-current-user'
 import type { RoleT } from '@/lib/auth/roles'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { WORKER_DOCUMENT_COLUMNS, workerColumnLabel } from '@/lib/kosztorys/worker-view/columns'
+import { WORKER_STAGES_COMPLETED_MESSAGE } from '@/lib/kosztorys/worker-view/labels'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 
 const INVESTMENT_ID = 12
@@ -16,11 +17,26 @@ const INVESTMENT_ID = 12
 // Anna holds two etapy (listed once), Bogdan one with no rozliczenie yet (blocked), Celina none.
 // Bogdan is inactive: a person deactivated mid-investment still owns their etapy.
 const STAGES: KosztorysStageT[] = [
-  { id: 1, ordinal: 1, label: 'Etap 1', plane: 'w_tools', split: oneWorkerSplit(10) },
-  { id: 2, ordinal: 2, label: 'Etap 2', plane: null, split: oneWorkerSplit(20) },
-  { id: 3, ordinal: 3, label: 'Etap 3', plane: 'w_tools', split: oneWorkerSplit(10) },
-  { id: 4, ordinal: 4, label: 'Etap 4', plane: 'own_tools', split: null },
+  {
+    id: 1,
+    ordinal: 1,
+    label: 'Etap 1',
+    plane: 'w_tools',
+    split: oneWorkerSplit(10),
+    completed: false,
+  },
+  { id: 2, ordinal: 2, label: 'Etap 2', plane: null, split: oneWorkerSplit(20), completed: false },
+  {
+    id: 3,
+    ordinal: 3,
+    label: 'Etap 3',
+    plane: 'w_tools',
+    split: oneWorkerSplit(10),
+    completed: false,
+  },
+  { id: 4, ordinal: 4, label: 'Etap 4', plane: 'own_tools', split: null, completed: false },
 ]
+let stages = STAGES
 const ROSTER = [
   { id: 10, name: 'Anna Nowak', active: true },
   { id: 20, name: 'Bogdan Kowal', active: false },
@@ -31,7 +47,7 @@ vi.mock('@/components/kosztorys/editor/use-kosztorys-editor-context', () => ({
   useKosztorysEditorContext: () => ({
     investmentId: INVESTMENT_ID,
     investmentName: 'Mieszkanie Mokotów',
-    stages: STAGES,
+    stages,
     workers: ROSTER,
   }),
 }))
@@ -70,7 +86,10 @@ beforeEach(() => {
   getWorkerKosztorysPrintData.mockResolvedValue(null)
 })
 
-afterEach(() => vi.clearAllMocks())
+afterEach(() => {
+  vi.clearAllMocks()
+  stages = STAGES
+})
 
 function renderMenu(role: RoleT = 'MANAGER') {
   render(
@@ -90,6 +109,8 @@ const openMenu = () => userEvent.click(screen.getByRole('button', { name: 'Praco
 const linkItems = () => screen.getAllByRole('menuitem', { name: 'Link do zgłoszeń' })
 const printItems = () =>
   screen.getAllByRole('menuitem', { name: 'Drukuj kosztorys pracownika (PDF)' })
+const formItems = () =>
+  screen.getAllByRole('menuitem', { name: 'Drukuj kartkę do zgłoszenia prac' })
 
 describe('KosztorysWorkersMenu', () => {
   it('lists every worker who holds an etap, once, in etap order', async () => {
@@ -119,6 +140,30 @@ describe('KosztorysWorkersMenu', () => {
       'href',
       `/podglad-pracownika/Bogdan-Kowal-20/${INVESTMENT_ID}`,
     )
+  })
+
+  it('says when all of a worker’s etapy are zakończone and withholds only the form (EX-1034)', async () => {
+    stages = STAGES.map((stage) =>
+      stage.id === 1 || stage.id === 3 ? { ...stage, completed: true } : stage,
+    )
+    renderMenu()
+    await openMenu()
+
+    expect(screen.getByText(WORKER_STAGES_COMPLETED_MESSAGE)).toBeInTheDocument()
+    const [annaForm] = formItems()
+    const [annaPrint] = printItems()
+    expect(annaForm).toHaveAttribute('aria-disabled', 'true')
+    expect(annaPrint).not.toHaveAttribute('aria-disabled')
+    expect(linkItems()[0]).not.toHaveAttribute('aria-disabled')
+  })
+
+  it('keeps the form for a worker with one etap still open', async () => {
+    stages = STAGES.map((stage) => (stage.id === 1 ? { ...stage, completed: true } : stage))
+    renderMenu()
+    await openMenu()
+
+    expect(screen.queryByText(WORKER_STAGES_COMPLETED_MESSAGE)).not.toBeInTheDocument()
+    expect(formItems()[0]).not.toHaveAttribute('aria-disabled')
   })
 
   it('hands a blocked worker his link with the reason above it, and no „Wyłącz link"', async () => {

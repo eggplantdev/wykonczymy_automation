@@ -68,8 +68,14 @@ export function ExpenseDraftDialog({
   const { locale, t } = useTranslation('expenseDrafts')
   // Unflagged since he sent it: the draft keeps its „Bez inwestycji", which the server allows too.
   const isNoInvestmentOffered = canSkipInvestment || draft?.investmentId === null
+  // Likewise an investment his zakończone etapy took off his list (EX-1034).
+  const investmentOptions =
+    draft?.investmentId != null &&
+    !investments.some((investment) => investment.investmentId === draft.investmentId)
+      ? [...investments, { investmentId: draft.investmentId, name: draft.investmentName ?? '' }]
+      : investments
   const offeredIds = [
-    ...investments.map((investment) => String(investment.investmentId)),
+    ...investmentOptions.map((investment) => String(investment.investmentId)),
     ...(isNoInvestmentOffered ? [NO_INVESTMENT] : []),
   ]
   const onlyOfferedId = offeredIds.length === 1 ? (offeredIds[0] ?? '') : ''
@@ -182,7 +188,7 @@ export function ExpenseDraftDialog({
                 <SelectValue placeholder={t('chooseInvestment')} />
               </SelectTrigger>
               <SelectContent>
-                {investments.map((investment) => (
+                {investmentOptions.map((investment) => (
                   <SelectItem key={investment.investmentId} value={String(investment.investmentId)}>
                     {investment.name}
                   </SelectItem>

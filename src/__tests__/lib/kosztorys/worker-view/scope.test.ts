@@ -1,14 +1,20 @@
 import { describe, expect, it } from 'vitest'
-import { resolveWorkerScope } from '@/lib/kosztorys/worker-view/scope'
+import { reportScopeRefusal, resolveWorkerScope } from '@/lib/kosztorys/worker-view/scope'
 import type { KosztorysStageT } from '@/lib/kosztorys/types'
 import { oneWorkerSplit } from '@/lib/kosztorys/stage-split'
 
-const stage = (id: number, plane: KosztorysStageT['plane'], workerId: number | null) => ({
+const stage = (
+  id: number,
+  plane: KosztorysStageT['plane'],
+  workerId: number | null,
+  completed = false,
+): KosztorysStageT => ({
   id,
   ordinal: id,
   label: null,
   plane,
   split: workerId == null ? null : oneWorkerSplit(workerId),
+  completed,
 })
 
 describe('resolveWorkerScope', () => {
@@ -46,5 +52,32 @@ describe('resolveWorkerScope', () => {
 
   it("ignores another worker's etapy entirely", () => {
     expect(resolveWorkerScope([stage(1, 'w_tools', 5), stage(2, null, 9)], 5).kind).toBe('ready')
+  })
+})
+
+describe('reportScopeRefusal (EX-1034)', () => {
+  const refusalFor = (stages: KosztorysStageT[]) =>
+    reportScopeRefusal(resolveWorkerScope(stages, 5))
+
+  it('lets him report while one of his etapy is still open', () => {
+    expect(refusalFor([stage(1, 'w_tools', 5, true), stage(2, 'w_tools', 5)])).toBeNull()
+  })
+
+  it('refuses once all his etapy are zakończone', () => {
+    expect(refusalFor([stage(1, 'w_tools', 5, true), stage(2, 'w_tools', 5, true)])).toBe(
+      'stages-completed',
+    )
+  })
+
+  it('ignores someone else’s open etap on the same investment', () => {
+    expect(refusalFor([stage(1, 'w_tools', 5, true), stage(2, 'w_tools', 9)])).toBe(
+      'stages-completed',
+    )
+  })
+
+  it('names the blocked scope first, before asking about zakończone etapy', () => {
+    expect(refusalFor([stage(1, 'w_tools', 5, true), stage(2, null, 5, true)])).toBe(
+      'unconfirmed-plane',
+    )
   })
 })

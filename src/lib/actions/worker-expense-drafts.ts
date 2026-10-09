@@ -8,7 +8,7 @@ import { RECEIPT_SCAN_MODES } from '@/lib/constants/receipt-scan'
 import { MAX_DRAFT_PAGES } from '@/lib/constants/worker-expense-drafts'
 import { isWorkerLiveRegister } from '@/lib/db/cash-register-gate'
 import { getDb, type DbExecutorT } from '@/lib/db/get-db'
-import { listWorkerStageInvestments } from '@/lib/db/stage-memberships'
+import { hasStageOnRunningInvestment, listWorkerStageInvestments } from '@/lib/db/stage-memberships'
 import { canAddExpensesWithoutInvestment } from '@/lib/db/worker-gate'
 import {
   appendExpenseDraftPages,
@@ -16,7 +16,7 @@ import {
   decideExpenseDraft,
   deletePendingExpenseDraft,
   insertWorkerExpenseDraft,
-  isPendingDraftWithoutInvestment,
+  isPendingDraftOn,
   removeExpenseDraftPage,
   restoreRejectedExpenseDraft,
   restoreSkippedReceipt,
@@ -62,21 +62,22 @@ async function findDraftTargetError(
     draftId?: number
   },
 ): Promise<NoticeKeyT | undefined> {
-  if (target.investmentId === null) {
-    // A cleared flag leaves the drafts already sent without an investment editable as they are.
-    const isAllowed =
-      (await canAddExpensesWithoutInvestment(db, target.workerId)) ||
-      (target.draftId !== undefined &&
-        (await isPendingDraftWithoutInvestment(db, {
-          draftId: target.draftId,
-          workerId: target.workerId,
-        })))
-    if (!isAllowed) return 'chooseInvestment'
-  } else {
-    const investments = await listWorkerStageInvestments(db, target.workerId)
-    if (!investments.some((investment) => investment.investmentId === target.investmentId)) {
-      return 'notOnInvestment'
+  const { workerId, investmentId, draftId } = target
+  // An edit keeps the investment the draft already sits on — none included — once he could no
+  // longer send a new one there: the flag cleared, or his etapy zakończone (EX-1034). Only that: a
+  // trashed or closed investment, or one he has no etap on any more, is refused as for a new draft.
+  const isKept = async () =>
+    draftId !== undefined &&
+    (await isPendingDraftOn(db, { draftId, workerId, investmentId })) &&
+    (investmentId === null || (await hasStageOnRunningInvestment(db, workerId, investmentId)))
+  if (investmentId === null) {
+    if (!(await canAddExpensesWithoutInvestment(db, workerId)) && !(await isKept())) {
+      return 'chooseInvestment'
     }
+  } else {
+    const investments = await listWorkerStageInvestments(db, workerId)
+    const isListed = investments.some((investment) => investment.investmentId === investmentId)
+    if (!isListed && !(await isKept())) return 'notOnInvestment'
   }
   if (!(await isWorkerLiveRegister(db, target.workerId, target.cashRegisterId))) {
     return 'notYourRegister'

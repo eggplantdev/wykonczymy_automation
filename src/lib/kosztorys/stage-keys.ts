@@ -62,3 +62,11 @@ export function stageGroupOfKey(columnId: string): string | null {
   if (stageIdFromValueGrossKey(columnId) !== null) return STAGE_VALUE_GROSS_COLUMN_GROUP
   return stageIdFromQtyKey(columnId) !== null ? STAGES_COLUMN_GROUP : null
 }
+
+export function stageIdOfKey(columnId: string): number | null {
+  return (
+    stageIdFromQtyKey(columnId) ??
+    stageIdFromValueNetKey(columnId) ??
+    stageIdFromValueGrossKey(columnId)
+  )
+}

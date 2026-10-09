@@ -29,6 +29,7 @@ const stage = (plane: ToolPlaneT | null): KosztorysStageT => ({
   label: 'Łazienka',
   plane,
   split: null,
+  completed: false,
 })
 
 const onSetPlane = vi.fn()

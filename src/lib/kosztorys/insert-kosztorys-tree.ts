@@ -18,6 +18,7 @@ export const STAGE_INSERT_COLUMNS = [
   'label',
   'plane',
   'split_mode',
+  'completed',
 ] as const
 export const PROGRESS_INSERT_COLUMNS = ['item_id', 'stage_id', 'qty_done'] as const
 
@@ -128,7 +129,7 @@ export async function insertKosztorysTree(
   if (stages.length > 0) {
     const rows = stages.map(
       (s, i) =>
-        sql`(${investmentId}, ${s.ordinal}, ${s.label ?? null}, ${s.plane ?? null}, ${splits[i]?.mode ?? 'percent'})`,
+        sql`(${investmentId}, ${s.ordinal}, ${s.label ?? null}, ${s.plane ?? null}, ${splits[i]?.mode ?? 'percent'}, ${s.completed ?? false})`,
     )
     const res = await db.execute(sql`
       INSERT INTO kosztorys_stages (${sql.raw(STAGE_INSERT_COLUMNS.join(', '))})
