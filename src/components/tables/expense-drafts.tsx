@@ -82,6 +82,7 @@ export function useExpenseDraftColumns({
     col.accessor('investmentName', {
       header: t('investment'),
       enableSorting: sortable('investmentName'),
+      cell: (info) => info.getValue() ?? t('noInvestment'),
     }),
     col.accessor('sentAt', {
       header: t('sentAt'),

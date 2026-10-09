@@ -65,6 +65,7 @@ function renderTable(rows: ExpenseDraftRowT[], canSend = true, canOpenTransfers 
       canOpenTransfers={canOpenTransfers}
       investments={[]}
       registers={[]}
+      canSkipInvestment={false}
     />,
   )
 }
@@ -162,6 +163,7 @@ describe('WorkerExpenseDraftsTable', () => {
         canOpenTransfers={false}
         investments={[]}
         registers={[]}
+        canSkipInvestment={false}
       />,
     )
 
@@ -190,5 +192,19 @@ describe('WorkerExpenseDraftsTable', () => {
     await tickStatuses(userEvent.setup(), ['przyjęty'])
 
     expect(screen.getByRole('link')).toHaveAttribute('href', '/inwestycje/3?id=101')
+  })
+
+  it('lists a draft without an investment as „Bez inwestycji” and filters on it', async () => {
+    const user = userEvent.setup()
+    renderTable([draft(1), draft(2, { investmentId: null, investmentName: null })])
+    expect(screen.getByRole('cell', { name: 'Bez inwestycji' })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /^Inwestycja/ }))
+    await user.click(screen.getByRole('option', { name: 'Odznacz wszystkie' }))
+    await user.click(screen.getByRole('option', { name: 'Bez inwestycji' }))
+    await user.keyboard('{Escape}')
+
+    expect(shownIds()).toEqual([])
+    expect(screen.getByRole('cell', { name: 'Bez inwestycji' })).toBeInTheDocument()
   })
 })

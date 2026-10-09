@@ -122,6 +122,7 @@ export const pl = {
     title: 'Zgłoszone wydatki',
     hint: 'Wydatki, które wysłałem kierownikowi do zatwierdzenia.',
     investment: 'Inwestycja',
+    noInvestment: 'Bez inwestycji',
     sentAt: 'Wysłano',
     attachments: 'Załączniki',
     note: 'Notatka',

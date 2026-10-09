@@ -29,7 +29,7 @@ import { toastMessage } from '@/lib/utils/toast'
 import { useTranslation } from '@/hooks/use-translation'
 import { failureMessage } from '@/lib/i18n/failure-message'
 import type { ScanModeT } from '@/lib/constants/receipt-scan'
-import { MAX_DRAFT_PAGES } from '@/lib/constants/worker-expense-drafts'
+import { MAX_DRAFT_PAGES, NO_INVESTMENT } from '@/lib/constants/worker-expense-drafts'
 import type { WorkerStageInvestmentT } from '@/lib/db/stage-memberships'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 import type { CashRegisterRefT } from '@/types/reference-data'
@@ -40,6 +40,8 @@ type PropsT = {
   investments: InvestmentOptionT[]
   registers: CashRegisterRefT[]
   defaultRegisterId?: number
+  /** The worker's flag: he may send a wydatek that belongs to no investment. */
+  canSkipInvestment: boolean
   draft?: ExpenseDraftRowT
   triggerClassName?: string
 }
@@ -51,14 +53,23 @@ function initialRegisterId(registers: CashRegisterRefT[], defaultRegisterId?: nu
     : ''
 }
 
-function initialInvestmentId(investments: InvestmentOptionT[]) {
-  return investments.length === 1 ? String(investments[0]?.investmentId) : ''
+function draftInvestmentId(draft: ExpenseDraftRowT) {
+  return draft.investmentId === null ? NO_INVESTMENT : String(draft.investmentId)
+}
+
+function initialInvestmentId(investments: InvestmentOptionT[], canSkipInvestment: boolean) {
+  const options = [
+    ...investments.map((investment) => String(investment.investmentId)),
+    ...(canSkipInvestment ? [NO_INVESTMENT] : []),
+  ]
+  return options.length === 1 ? (options[0] ?? '') : ''
 }
 
 export function ExpenseDraftDialog({
   investments,
   registers,
   defaultRegisterId,
+  canSkipInvestment,
   draft,
   triggerClassName,
 }: PropsT) {
@@ -66,7 +77,7 @@ export function ExpenseDraftDialog({
   const { locale, t } = useTranslation('expenseDrafts')
   const [open, setOpen] = useState(false)
   const [investmentId, setInvestmentId] = useState(() =>
-    draft ? String(draft.investmentId) : initialInvestmentId(investments),
+    draft ? draftInvestmentId(draft) : initialInvestmentId(investments, canSkipInvestment),
   )
   const [cashRegisterId, setCashRegisterId] = useState(() =>
     draft ? String(draft.cashRegisterId) : initialRegisterId(registers, defaultRegisterId),
@@ -77,6 +88,8 @@ export function ExpenseDraftDialog({
   const [isSending, setIsSending] = useState(false)
   const { files, isIngesting, inputKey, reset, fileInputProps } = useFilePickIngest()
 
+  // Unflagged since he sent it: the draft keeps its „Bez inwestycji", which the server allows too.
+  const isNoInvestmentOffered = canSkipInvestment || draft?.investmentId === null
   const photoCount = draft ? draft.media.length : files.length
   const isScanModeShown = photoCount >= 2
   // The server refuses the same count, but only after every photo went up over the phone's data.
@@ -101,7 +114,7 @@ export function ExpenseDraftDialog({
     if (!next) return close()
     // Reopening starts from the saved draft, not from an edit that was cancelled.
     if (draft) {
-      setInvestmentId(String(draft.investmentId))
+      setInvestmentId(draftInvestmentId(draft))
       setCashRegisterId(String(draft.cashRegisterId))
       setNote(draft.note ?? '')
       setScanMode(savedScanMode)
@@ -111,7 +124,7 @@ export function ExpenseDraftDialog({
 
   function submit() {
     const fields = {
-      investmentId: Number(investmentId),
+      investmentId: investmentId === NO_INVESTMENT ? null : Number(investmentId),
       cashRegisterId: Number(cashRegisterId),
       note,
       // Hidden under 2 photos, where both modes read the same; an edit keeps the draft's own so a
@@ -171,6 +184,9 @@ export function ExpenseDraftDialog({
                     {investment.name}
                   </SelectItem>
                 ))}
+                {isNoInvestmentOffered && (
+                  <SelectItem value={NO_INVESTMENT}>{t('noInvestment')}</SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>

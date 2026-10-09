@@ -12,6 +12,7 @@ type PropsT = {
   investmentLinks: WorkerInvestmentLinkT[]
   sendableRegisters: CashRegisterRefT[]
   defaultRegisterId?: number
+  canSkipInvestment: boolean
   locale: LanguageT
 }
 
@@ -19,13 +20,15 @@ export function WorkerQuickActions({
   investmentLinks,
   sendableRegisters,
   defaultRegisterId,
+  canSkipInvestment,
   locale,
 }: PropsT) {
   const { t } = createTranslator(locale, 'workerPage')
   const reportTargets = investmentLinks.filter(
     (link): link is ReportTargetT => link.reportUrl !== undefined,
   )
-  const canAddExpense = sendableRegisters.length > 0 && investmentLinks.length > 0
+  const canAddExpense =
+    sendableRegisters.length > 0 && (investmentLinks.length > 0 || canSkipInvestment)
   if (!canAddExpense && reportTargets.length === 0) return null
 
   return (
@@ -35,6 +38,7 @@ export function WorkerQuickActions({
           investments={investmentLinks}
           registers={sendableRegisters}
           defaultRegisterId={defaultRegisterId}
+          canSkipInvestment={canSkipInvestment}
           triggerClassName={ACTION_CLASS}
         />
       )}

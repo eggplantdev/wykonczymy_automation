@@ -113,6 +113,7 @@ export const ru: TranslationsT = {
     title: 'Поданные расходы',
     hint: 'Расходы, которые я отправил руководителю на утверждение.',
     investment: 'Объект',
+    noInvestment: 'Без объекта',
     sentAt: 'Отправлено',
     attachments: 'Вложения',
     note: 'Примечание',

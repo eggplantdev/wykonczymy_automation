@@ -114,6 +114,7 @@ export const uk: TranslationsT = {
     title: 'Подані витрати',
     hint: 'Витрати, які я надіслав керівнику на затвердження.',
     investment: "Об'єкт",
+    noInvestment: "Без об'єкта",
     sentAt: 'Надіслано',
     attachments: 'Вкладення',
     note: 'Примітка',
