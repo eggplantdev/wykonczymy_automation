@@ -155,3 +155,16 @@ właściciela zostały wyzerowane.
 `scripts/measure/` — jak uruchomić: `scripts/measure/README.md`. Wyniki pośrednie (pola, obwody,
 pasy wykończeń, Przedmiar v2) leżą w `measure/`; `measure/rooms-validation.png` pokazuje zalane
 pomieszczenia.
+
+## Reanalysis under „the agent may assume, and writes every assumption” (2026-10-09)
+
+Case 1 already assumed freely, so no quantity changed: `scripts/build_draft.py` only converts
+`measure/przedmiar-v2.json` + `measure/new-works.json` into the `load-ai-draft` shape and splits each old
+`note`. A note that only named where a number was read is dropped; an estimate („≈”, „założenie”, a length
+the drawing doesn't print) goes to `assumptions`; a conflict between sources or an open question from the
+notes goes to `missingData`, and so does „brak w katalogu — do wyceny”. The question list in the notes is
+now on the rows it moves.
+
+**127 rows, 203 763,65 zł** (unchanged): 38 with an assumption, 17 with an unknown, 5 unpriced.
+`case.json` points at the draft. Not loaded yet: #168 is recreated on production after the migrations
+and the push.

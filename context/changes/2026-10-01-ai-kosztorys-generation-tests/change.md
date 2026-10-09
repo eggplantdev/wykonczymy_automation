@@ -450,7 +450,7 @@ amend it.
    prints none, or a przedpokój perimeter when the scan prints only its m². What the inputs leave
    unknown goes in „Czego nie było wiadomo” (`missingData`). Where a quantity came from is not an
    assumption — a number read off the rzut or counted from the mail carries neither field.
-   Case 4 was rebuilt under this rule (2026-10-09); cases 1–3 still carry the old `note` sources.
+   Cases 1, 3 and 4 were rebuilt under this rule (2026-10-09); case 2 still carries the old `note` sources.
 
 3. **Validate the instrument on a known value before trusting it.** Measure the room areas, compare
    them with the printed m², and only then use the perimeters from the same method. Above ~5%
