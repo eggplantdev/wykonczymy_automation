@@ -5,7 +5,7 @@
     "qty": 1,
     "unit": "kpl",
     "clientPrice": 1500.0,
-    "note": "AI: assumed — transport i wniesienie, dom ~100 m² + poddasze (próg katalogu 2 000, rozpiska 1 500)"
+    "assumptions": "1 kpl dla domu ~100 m² + poddasze (rozpiska 1 500 zł; próg katalogu dla tej wielkości 2 000 zł)"
   },
   {
     "section": "Prace dodatkowe",
@@ -13,7 +13,7 @@
     "qty": 2,
     "unit": "big bag",
     "clientPrice": 600.0,
-    "note": "AI: assumed — stan deweloperski bez wyburzeń: odpady, opakowania, docinki ≈ 2 big bagi"
+    "assumptions": "≈ 2 big bagi — stan deweloperski bez wyburzeń: opakowania, docinki"
   },
   {
     "section": "Wyburzenia, demontaże, zabezpieczenia",
@@ -21,7 +21,7 @@
     "qty": 4,
     "unit": "mb",
     "clientPrice": 80.0,
-    "note": "AI: assumed — zasada 2 mb wod-kan na łazienkę × 2 (WC, łazienka)"
+    "assumptions": "≈ 2 mb na łazienkę (Wiedza firmowa) × WC i łazienka"
   },
   {
     "section": "Wyburzenia, demontaże, zabezpieczenia",
@@ -29,7 +29,7 @@
     "qty": 32.5,
     "unit": "mb",
     "clientPrice": 25.0,
-    "note": "AI: assumed — zasada 2,5 mb/pkt × 13 pkt ściennych: schody_led 8, kuchnia_led 1, garderoba_led 1, wnęka_wc 1, wnęka_łazienka 1, wyspa 1"
+    "assumptions": "≈ 2,5 mb bruzdy na punkt (katalog)\n13 nowych punktów ściennych: schody_led 8, kuchnia_led 1, garderoba_led 1, wnęka_wc 1, wnęka_łazienka 1, wyspa 1"
   },
   {
     "section": "Wyburzenia, demontaże, zabezpieczenia",
@@ -37,7 +37,7 @@
     "qty": 2.5,
     "unit": "mb",
     "clientPrice": 45.0,
-    "note": "AI: assumed — 1 pkt sufitowy nad wyspą w stropie żelbetowym"
+    "assumptions": "1 punkt sufitowy nad wyspą w stropie żelbetowym, ≈ 2,5 mb (katalog)"
   },
   {
     "section": "Wyburzenia, demontaże, zabezpieczenia",
@@ -45,7 +45,7 @@
     "qty": 101.21,
     "unit": "kpl",
     "clientPrice": 25.0,
-    "note": "AI: read — zasada: zabezpieczenia = m² podłóg, Pu1 52,19 + Pu2 49,02"
+    "assumptions": "zabezpieczenia = m² podłóg (katalog)"
   },
   {
     "section": "Podłogi",
@@ -53,15 +53,15 @@
     "qty": 64.8,
     "unit": "mb",
     "clientPrice": 45.0,
-    "note": "AI: measured — obwody pokoi minus zabudowa kuchni 4,0, garderoba (zabudowa), otwory drzwiowe"
+    "assumptions": "obwód salonu z kuchnią 31 mb — kształt L ok. 5,70 × 8,9 z krawędzią schodów\nbez listew wzdłuż zabudowy kuchni (4,0 mb) i w garderobie (zabudowa)\ndrzwi 0,90 m odliczone"
   },
   {
     "section": "Ściany i sufity bez łazienek ",
     "description": "Akrylowanie łączeń ścian i sufitów / akrylowanie dylatacji - polecam, bo zdecydowanie poprawia estetykę w narożnikach oraz przykrywa potencjalne pęknięcia",
-    "qty": 156.8,
+    "qty": 155.1,
     "unit": "mb",
     "clientPrice": 14.0,
-    "note": "AI: measured — styk sufit-ściana 90.8 mb + 24 narożniki × 2.75"
+    "assumptions": "obwód salonu z kuchnią 31 mb — kształt L ok. 5,70 × 8,9 z krawędzią schodów\n24 narożniki pionowe × wysokość\nwysokość 2,68 m (stan deweloperski, Wiedza firmowa) — rzut podaje tylko rzędne ±0,00 / +3,15 / +6,20"
   },
   {
     "section": "Ściany i sufity bez łazienek ",
@@ -69,7 +69,7 @@
     "qty": 15.0,
     "unit": "m²",
     "clientPrice": 35.0,
-    "note": "AI: assumed — ściany klatki schodowej powyżej stropu parteru ≈ 15 m² (dostęp z rusztowania)"
+    "assumptions": "ściany klatki schodowej nad stropem parteru ≈ 15 m² — dostęp z rusztowania"
   },
   {
     "section": "Ściany i sufity bez łazienek ",
@@ -77,31 +77,34 @@
     "qty": 93.82,
     "unit": "m²",
     "clientPrice": 59.0,
-    "note": "AI: read — sufity bez łazienek = m² z rzutu: salon z kuchnią, sień, pokój, garderoba, hobby, hall"
+    "missingData": "jakie tynki daje deweloper — przy gipsowych maszynowych gładź może odpaść"
   },
   {
     "section": "Ściany i sufity bez łazienek ",
     "description": "Gładzie na ścianach \"finish\" stan deweloperski (2 warstwy) - standard wykończenia Q3",
-    "qty": 223.11,
+    "qty": 216.84,
     "unit": "m²",
     "clientPrice": 57.0,
-    "note": "AI: measured — ściany netto 211.3 + klatka 15 − za zabudową kuchni 11.0 + WC pod tapetę 7.8 (H 2.75 assumed)"
+    "missingData": "jakie tynki daje deweloper — przy gipsowych maszynowych gładź może odpaść",
+    "assumptions": "wysokość 2,68 m (stan deweloperski, Wiedza firmowa) — rzut podaje tylko rzędne ±0,00 / +3,15 / +6,20\nobwód salonu z kuchnią 31 mb — kształt L ok. 5,70 × 8,9 z krawędzią schodów\nwysokości okien: O1 180×150, OB-1P 270×230, 2× O2 150×160, 2× OB4 90×230 (rzut podaje szerokości)\ndrzwi wewnętrzne 0,90 × 2,05, wejściowe 1,00 × 2,10 — odliczone\nściany klatki schodowej nad stropem parteru ≈ 15 m²\nzabudowa kuchni 4,0 mb wzdłuż ściany — ściana za nią bez gładzi (Wiedza firmowa)\nściany WC pod tapetę też z gładzią — tapeta w WC na 2 ścianach 1,80 + 1,03 (wizualizacja, długości z rzutu WC)"
   },
   {
     "section": "Ściany i sufity bez łazienek ",
     "description": "Gruntowanie powierzchni ścian i sufitów przed gładziami i po gładziach",
-    "qty": 316.93,
+    "qty": 310.66,
     "unit": "m²",
     "clientPrice": 12.0,
-    "note": "AI: measured — = gładź ścian + sufitów"
+    "missingData": "jakie tynki daje deweloper — przy gipsowych maszynowych gładź może odpaść",
+    "assumptions": "= gładź ścian + sufitów\nwysokość 2,68 m (stan deweloperski, Wiedza firmowa) — rzut podaje tylko rzędne ±0,00 / +3,15 / +6,20\nobwód salonu z kuchnią 31 mb — kształt L ok. 5,70 × 8,9 z krawędzią schodów\nwysokości okien: O1 180×150, OB-1P 270×230, 2× O2 150×160, 2× OB4 90×230 (rzut podaje szerokości)\ndrzwi wewnętrzne 0,90 × 2,05, wejściowe 1,00 × 2,10 — odliczone\nściany klatki schodowej nad stropem parteru ≈ 15 m²\nzabudowa kuchni 4,0 mb wzdłuż ściany — ściana za nią bez gładzi (Wiedza firmowa)"
   },
   {
     "section": "Ściany i sufity bez łazienek ",
     "description": "Malowanie ścian i sufitów farbą silikonową lub akrylową na biało",
-    "qty": 320.15,
+    "qty": 313.79,
     "unit": "m²",
     "clientPrice": 22.0,
-    "note": "AI: measured — ściany netto + klatka + sufity; biało (klient: głównie na biało)"
+    "missingData": "kolory ścian",
+    "assumptions": "wszystko na biało (klient: „głównie na biało”)\nściana za zabudową kuchni też malowana\nwysokość 2,68 m (stan deweloperski, Wiedza firmowa) — rzut podaje tylko rzędne ±0,00 / +3,15 / +6,20\nobwód salonu z kuchnią 31 mb — kształt L ok. 5,70 × 8,9 z krawędzią schodów\nwysokości okien: O1 180×150, OB-1P 270×230, 2× O2 150×160, 2× OB4 90×230 (rzut podaje szerokości)\ndrzwi wewnętrzne 0,90 × 2,05, wejściowe 1,00 × 2,10 — odliczone\nściany klatki schodowej nad stropem parteru ≈ 15 m²"
   },
   {
     "section": "Ściany i sufity bez łazienek ",
@@ -109,55 +112,53 @@
     "qty": 35.0,
     "unit": "mb",
     "clientPrice": 25.0,
-    "note": "AI: assumed — = długość bruzd elektrycznych"
+    "assumptions": "= długość bruzd elektrycznych"
   },
   {
     "section": "Ściany i sufity bez łazienek ",
     "description": "Tapetowanie",
-    "qty": 7.78,
+    "qty": 7.58,
     "unit": "m²",
     "clientPrice": 100.0,
-    "note": "AI: read — wizualizacja WC: tapeta w liście na 2 ścianach (1,80 + 1,03 assumed) × H"
+    "assumptions": "tapeta w WC na 2 ścianach 1,80 + 1,03 (wizualizacja, długości z rzutu WC)\nwysokość 2,68 m (stan deweloperski, Wiedza firmowa) — rzut podaje tylko rzędne ±0,00 / +3,15 / +6,20"
   },
   {
     "section": "Ściany i sufity bez łazienek ",
     "description": "Wklejanie narożników aluminiowych i wklejanie siatki + szpachlowanie narożniki, glify okienne etc. wszędzie tam gdzie to wymaga",
-    "qty": 49.0,
+    "qty": 48.6,
     "unit": "mb",
     "clientPrice": 35.0,
-    "note": "AI: measured — glify okien i drzwi balkonowych (wysokości assumed) + 6 narożników zewn."
+    "assumptions": "wysokości okien: O1 180×150, OB-1P 270×230, 2× O2 150×160, 2× OB4 90×230 (rzut podaje szerokości)\n6 narożników zewnętrznych na pełną wysokość\nwysokość 2,68 m (stan deweloperski, Wiedza firmowa) — rzut podaje tylko rzędne ±0,00 / +3,15 / +6,20"
   },
   {
     "section": "Łazienka",
     "description": "Akrylowanie",
     "qty": 15.3,
     "unit": "mb",
-    "clientPrice": 14.0,
-    "note": "AI: measured — styk sufit-ściana: WC 5,66 + łazienka 9,62"
+    "clientPrice": 14.0
   },
   {
     "section": "Łazienka",
     "description": "Biały montaż baterii podtynkowej do wanny/prysznica razem ze słuchawką i deszczownicą",
     "qty": 1,
     "unit": "kpl",
-    "clientPrice": 200.0,
-    "note": "AI: read — wizualizacja łazienki: deszczownica + słuchawka, bateria podtynkowa"
+    "clientPrice": 200.0
   },
   {
     "section": "Łazienka",
     "description": "Dwukrotne gruntowanie ścian, sufitów i podłóg",
-    "qty": 37.5,
+    "qty": 36.9,
     "unit": "m²",
     "clientPrice": 10.0,
-    "note": "AI: measured — łazienka podłoga + sufit + ściany (pod mikrocement) + podłoga WC"
+    "assumptions": "łazienka: podłoga + sufit + ściany pod mikrocement; WC: tylko podłoga\nściany łazienki w mikrocemencie na pełną wysokość (wizualizacja)\nwysokość 2,68 m (stan deweloperski, Wiedza firmowa) — rzut podaje tylko rzędne ±0,00 / +3,15 / +6,20"
   },
   {
     "section": "Łazienka",
     "description": "Malowanie sufitów i ścian bez glazury + gładź na suficie",
-    "qty": 13.3,
+    "qty": 13.1,
     "unit": "m²",
     "clientPrice": 100.0,
-    "note": "AI: measured — sufity łazienki i WC + ściany WC bez tapety 5.9"
+    "assumptions": "sufity łazienki i WC + ściany WC bez tapety\ntapeta w WC na 2 ścianach 1,80 + 1,03 (wizualizacja, długości z rzutu WC)\nwysokość 2,68 m (stan deweloperski, Wiedza firmowa) — rzut podaje tylko rzędne ±0,00 / +3,15 / +6,20"
   },
   {
     "section": "Łazienka",
@@ -165,7 +166,8 @@
     "qty": 6,
     "unit": "szt",
     "clientPrice": 50.0,
-    "note": "AI: assumed — po 3 akcesoria w WC i łazience"
+    "missingData": "ile akcesoriów",
+    "assumptions": "po 3 akcesoria w WC i łazience"
   },
   {
     "section": "Łazienka",
@@ -173,23 +175,21 @@
     "qty": 2,
     "unit": "szt",
     "clientPrice": 150.0,
-    "note": "AI: assumed — baterie umywalkowe stojące (wizualizacje: umywalki na szafkach)"
+    "assumptions": "baterie umywalkowe stojące — na wizualizacjach umywalki na szafkach"
   },
   {
     "section": "Łazienka",
     "description": "Montaż baterii prysznicowej/wannowej podtynkowej razem z podłączeniem zasilania wody",
     "qty": 1,
     "unit": "szt",
-    "clientPrice": 900.0,
-    "note": "AI: read — wizualizacja: bateria podtynkowa w prysznicu"
+    "clientPrice": 900.0
   },
   {
     "section": "Łazienka",
     "description": "Montaż geberitu",
     "qty": 2,
     "unit": "szt",
-    "clientPrice": 450.0,
-    "note": "AI: read — wizualizacje: WC podwieszane w WC i łazience"
+    "clientPrice": 450.0
   },
   {
     "section": "Łazienka",
@@ -197,7 +197,7 @@
     "qty": 2,
     "unit": "mb",
     "clientPrice": 150.0,
-    "note": "AI: read — wizualizacje: wnęka LED w WC (nad stelażem) i w prysznicu, ~1 mb każda"
+    "assumptions": "wnęki LED w WC i w prysznicu po ~1 mb (wizualizacje, bez wymiaru)"
   },
   {
     "section": "Łazienka",
@@ -205,15 +205,15 @@
     "qty": 5,
     "unit": "szt",
     "clientPrice": 100.0,
-    "note": "AI: assumed — wpusty: WC 2, łazienka 3"
+    "missingData": "wpusty w łazience i WC wymagają sufitu podwieszanego — czy go robimy",
+    "assumptions": "wpusty: WC 2, łazienka 3"
   },
   {
     "section": "Łazienka",
     "description": "Montaż lustra z LED",
     "qty": 2,
     "unit": "szt",
-    "clientPrice": 150.0,
-    "note": "AI: read — wizualizacje: okrągłe lustro LED w WC, lustro LED w łazience"
+    "clientPrice": 150.0
   },
   {
     "section": "Łazienka",
@@ -221,15 +221,14 @@
     "qty": 1,
     "unit": "kpl",
     "clientPrice": 1600.0,
-    "note": "AI: read — wizualizacja: walk-in z odpływem liniowym; jednospadkowy assumed (mikrocement)"
+    "assumptions": "odpływ jednospadkowy (pod mikrocement)"
   },
   {
     "section": "Łazienka",
     "description": "Montaż profili i płyt GK w zabudowie geberitu",
     "qty": 2,
     "unit": "kpl",
-    "clientPrice": 450.0,
-    "note": "AI: read — wizualizacje: zabudowa stelaży WC"
+    "clientPrice": 450.0
   },
   {
     "section": "Łazienka",
@@ -237,31 +236,28 @@
     "qty": 2,
     "unit": "szt",
     "clientPrice": 80.0,
-    "note": "AI: assumed — syfony umywalek"
+    "assumptions": "syfony obu umywalek"
   },
   {
     "section": "Łazienka",
     "description": "Montaż szyby stałej do odpływu liniowego",
     "qty": 1,
     "unit": "kpl",
-    "clientPrice": 550.0,
-    "note": "AI: read — wizualizacja: stała szyba walk-in"
+    "clientPrice": 550.0
   },
   {
     "section": "Łazienka",
     "description": "Montaż umywalki nablatowej lub na szafke",
     "qty": 2,
     "unit": "szt",
-    "clientPrice": 130.0,
-    "note": "AI: read — wizualizacje: umywalki na szafkach"
+    "clientPrice": 130.0
   },
   {
     "section": "Łazienka",
     "description": "Montaż WC podwieszanego",
     "qty": 2,
     "unit": "szt",
-    "clientPrice": 350.0,
-    "note": "AI: read — wizualizacje: WC podwieszane"
+    "clientPrice": 350.0
   },
   {
     "section": "Łazienka",
@@ -269,7 +265,7 @@
     "qty": 11.2,
     "unit": "m²",
     "clientPrice": 30.0,
-    "note": "AI: measured — podłoga łazienki 5,54 + ściany strefy prysznica 5.7 (do 2,0 m)"
+    "assumptions": "podłoga łazienki + ściany strefy prysznica\nwalk-in na szerokość 1,85 m, 1,0 m w głąb, hydroizolacja ścian do 2,0 m"
   },
   {
     "section": "Łazienka",
@@ -277,7 +273,7 @@
     "qty": 25,
     "unit": "mb",
     "clientPrice": 25.0,
-    "note": "AI: assumed — zasada 20–30 mb na łazienkę: łazienka 20 + WC 5"
+    "assumptions": "20–30 mb na łazienkę (Wiedza firmowa): łazienka 20, WC 5 (bez prysznica)"
   },
   {
     "section": "Łazienka",
@@ -285,7 +281,7 @@
     "qty": 20.8,
     "unit": "mb",
     "clientPrice": 30.0,
-    "note": "AI: assumed — zasada ≈ 15 mb na 4 m² łazienki"
+    "assumptions": "≈ 15 mb na łazienkę 4 m² (Wiedza firmowa), przeskalowane do 5,54 m²"
   },
   {
     "section": "Łazienka",
@@ -293,7 +289,7 @@
     "qty": 1,
     "unit": "szt",
     "clientPrice": 1200.0,
-    "note": "AI: read — wizualizacja: wnęka LED w prysznicu → przedścianka z 1 półką"
+    "assumptions": "wnęka LED w prysznicu = przedścianka z 1 półką (wizualizacja)"
   },
   {
     "section": "Łazienka",
@@ -301,7 +297,7 @@
     "qty": 2,
     "unit": "szt",
     "clientPrice": 100.0,
-    "note": "AI: assumed — zasilanie wnęk LED (WC, łazienka)"
+    "assumptions": "zasilanie wnęk LED w WC i łazience"
   },
   {
     "section": "Łazienka",
@@ -309,7 +305,7 @@
     "qty": 5,
     "unit": "szt",
     "clientPrice": 39.0,
-    "note": "AI: assumed — osprzęt: WC 2, łazienka 3"
+    "assumptions": "osprzęt: WC 2, łazienka 3"
   },
   {
     "section": "Łazienka",
@@ -317,7 +313,8 @@
     "qty": 2,
     "unit": "szt",
     "clientPrice": 250.0,
-    "note": "AI: read — wizualizacje: szafki pod umywalkami (jeżeli nie robi ich stolarz)"
+    "missingData": "szafki robi stolarz z zabudowami czy kupne",
+    "assumptions": "szafki pod umywalkami kupne — montujemy my"
   },
   {
     "section": "Kuchnia",
@@ -325,7 +322,8 @@
     "qty": 1,
     "unit": "szt",
     "clientPrice": 250.0,
-    "note": "AI: assumed — zabudowa lodówki; klient: bez sprzętu AGD, montaż po naszej stronie assumed"
+    "missingData": "kto montuje AGD — klient: bez sprzętu AGD",
+    "assumptions": "zabudowa lodówki; montaż AGD klienta po naszej stronie"
   },
   {
     "section": "Kuchnia",
@@ -333,7 +331,8 @@
     "qty": 1,
     "unit": "szt",
     "clientPrice": 250.0,
-    "note": "AI: assumed — bateria zlewozmywakowa"
+    "missingData": "czy w wyspie ma być zlew lub płyta",
+    "assumptions": "zlew w ciągu przyściennym, wyspa bez wody"
   },
   {
     "section": "Kuchnia",
@@ -341,7 +340,7 @@
     "qty": 3.5,
     "unit": "mb",
     "clientPrice": 90.0,
-    "note": "AI: read — wizualizacja: LED pod szafkami, długość 3,5 mb assumed"
+    "assumptions": "LED pod szafkami 3,5 mb (wizualizacja, bez wymiaru)"
   },
   {
     "section": "Kuchnia",
@@ -349,7 +348,7 @@
     "qty": 1,
     "unit": "szt",
     "clientPrice": 80.0,
-    "note": "AI: assumed — syfon zlewu"
+    "assumptions": "syfon zlewu w ciągu przyściennym"
   },
   {
     "section": "Kuchnia",
@@ -357,7 +356,7 @@
     "qty": 1,
     "unit": "szt",
     "clientPrice": 250.0,
-    "note": "AI: assumed — zlew w ciągu przyściennym"
+    "assumptions": "zlew w ciągu przyściennym"
   },
   {
     "section": "Kuchnia",
@@ -365,7 +364,7 @@
     "qty": 1,
     "unit": "szt",
     "clientPrice": 150.0,
-    "note": "AI: assumed — płyta indukcyjna"
+    "assumptions": "płyta indukcyjna w ciągu przyściennym"
   },
   {
     "section": "Kuchnia",
@@ -373,7 +372,7 @@
     "qty": 1,
     "unit": "szt",
     "clientPrice": 150.0,
-    "note": "AI: assumed — piekarnik w zabudowie"
+    "assumptions": "piekarnik w zabudowie"
   },
   {
     "section": "Kuchnia",
@@ -381,7 +380,7 @@
     "qty": 1,
     "unit": "szt",
     "clientPrice": 250.0,
-    "note": "AI: assumed — zmywarka"
+    "assumptions": "zmywarka w zabudowie"
   },
   {
     "section": "Montaż stolarki i ślusarski",
@@ -389,7 +388,8 @@
     "qty": 6,
     "unit": "szt",
     "clientPrice": 380.0,
-    "note": "AI: read — rzut: drzwi WC, sień, pokój, garderoba, hobby, łazienka"
+    "missingData": "drzwi zwykłe czy ukryte",
+    "assumptions": "ościeżnice regulowane"
   },
   {
     "section": "Montaż stolarki i ślusarski",
@@ -397,7 +397,8 @@
     "qty": 5.1,
     "unit": "mb",
     "clientPrice": 200.0,
-    "note": "AI: read — szerokości okien z rzutu O1 180 + 2× O2 150 (+10 cm na okno); drzwi balkonowe bez parapetu"
+    "missingData": "czy parapety są w standardzie dewelopera",
+    "assumptions": "parapety wewnętrzne O1 + 2× O2, +10 cm na okno; drzwi balkonowe bez parapetu"
   },
   {
     "section": "Montaż stolarki i ślusarski",
@@ -405,7 +406,7 @@
     "qty": 5.1,
     "unit": "mb",
     "clientPrice": 30.0,
-    "note": "AI: measured — = długość parapetów"
+    "assumptions": "= długość parapetów"
   },
   {
     "section": "Instalacja elektryczna i oświetleniowa",
@@ -413,7 +414,8 @@
     "qty": 46,
     "unit": "szt",
     "clientPrice": 39.0,
-    "note": "AI: assumed — osprzęt stanu deweloperskiego ok. 45 pkt (salon z kuchnią 20, pokój 8, hobby 6, sień 4, hall 4, garderoba 3) + wyspa"
+    "missingData": "liczba punktów dewelopera",
+    "assumptions": "osprzęt stanu deweloperskiego ok. 45 pkt (salon z kuchnią 20, pokój 8, hobby 6, sień 4, hall 4, garderoba 3) + wyspa"
   },
   {
     "section": "Instalacja elektryczna i oświetleniowa",
@@ -421,7 +423,7 @@
     "qty": 8,
     "unit": "szt",
     "clientPrice": 100.0,
-    "note": "AI: read — wizualizacja schodów: oprawy LED w ścianie przy stopniach, co drugi stopień assumed"
+    "assumptions": "oprawy LED przy schodach co drugi stopień (wizualizacja)"
   },
   {
     "section": "Instalacja elektryczna i oświetleniowa",
@@ -429,7 +431,7 @@
     "qty": 1,
     "unit": "kpl",
     "clientPrice": 350.0,
-    "note": "AI: assumed — okap (pochłaniacz, bo dom ma rekuperację)"
+    "assumptions": "okap jako pochłaniacz — dom ma rekuperację"
   },
   {
     "section": "Instalacja elektryczna i oświetleniowa",
@@ -437,7 +439,7 @@
     "qty": 10,
     "unit": "szt",
     "clientPrice": 100.0,
-    "note": "AI: assumed — lampy: salon 2, nad wyspą 3, sień, pokój, garderoba, hobby, hall po 1"
+    "assumptions": "lampy: salon 2, nad wyspą 3, sień, pokój, garderoba, hobby, hall po 1"
   },
   {
     "section": "Instalacja elektryczna i oświetleniowa",
@@ -445,7 +447,7 @@
     "qty": 4,
     "unit": "szt",
     "clientPrice": 120.0,
-    "note": "AI: assumed — zasilacze LED: kuchnia, schody, wnęka WC, wnęka łazienki"
+    "assumptions": "zasilacze LED: kuchnia, schody, wnęka WC, wnęka łazienki"
   },
   {
     "section": "Instalacja elektryczna i oświetleniowa",
@@ -453,7 +455,7 @@
     "qty": 2,
     "unit": "szt",
     "clientPrice": 70.0,
-    "note": "AI: assumed — włączniki schodowe parter/piętro"
+    "assumptions": "włączniki schodowe parter/piętro"
   },
   {
     "section": "Instalacja elektryczna i oświetleniowa",
@@ -461,7 +463,7 @@
     "qty": 11,
     "unit": "szt",
     "clientPrice": 100.0,
-    "note": "AI: assumed — nowe punkty: oprawy schodowe 8, nad wyspą 1, LED kuchnia 1, LED garderoba 1"
+    "assumptions": "nowe punkty: oprawy schodowe 8, nad wyspą 1, LED kuchnia 1, LED garderoba 1"
   },
   {
     "section": "Instalacja elektryczna i oświetleniowa",
@@ -469,7 +471,7 @@
     "qty": 1,
     "unit": "szt",
     "clientPrice": 130.0,
-    "note": "AI: assumed — gniazdo w wyspie"
+    "assumptions": "gniazdo w wyspie"
   },
   {
     "section": "Instalacja wodno-kanalizacyjna + c.o.",
@@ -477,7 +479,7 @@
     "qty": 1,
     "unit": "pkt",
     "clientPrice": 250.0,
-    "note": "AI: assumed — dopasowanie podejścia zlewu do projektu kuchni"
+    "assumptions": "dopasowanie podejścia zlewu do projektu kuchni"
   },
   {
     "section": "Podłogi",
@@ -485,15 +487,17 @@
     "qty": 101.21,
     "unit": "m²",
     "clientPrice": 500.0,
-    "note": "AI: read — klient: preferowany mikrocement; = Pu1 52,19 + Pu2 49,02 (wszystkie pomieszczenia, łącznie z WC i łazienką); cena: katalog prac"
+    "missingData": "mikrocement czy winyl — klient prosi o porównanie\nczy pod mikrocement trzeba wyrównać wylewkę dewelopera",
+    "assumptions": "mikrocement na wszystkich podłogach, łącznie z WC i łazienką (klient: preferowany)"
   },
   {
     "section": "Łazienka",
-    "description": "Mikrocement na ścianach łazienki — brak w katalogu — do wyceny",
-    "qty": 24.61,
+    "description": "Mikrocement na ścianach łazienki",
+    "qty": 23.94,
     "unit": "m²",
     "clientPrice": 0.0,
-    "note": "AI: measured — wizualizacja: ściany łazienki z mikrocementu; obwód 9,62 × H − drzwi; najbliżej: Posadzki z mikrocementu 500 zł/m², Mikrocement gabinet 650 zł/m²"
+    "missingData": "brak w katalogu — do wyceny — najbliżej: Posadzki z mikrocementu 500 zł/m², Mikrocement gabinet 650 zł/m²",
+    "assumptions": "ściany łazienki w mikrocemencie na pełną wysokość (wizualizacja)\nwysokość 2,68 m (stan deweloperski, Wiedza firmowa) — rzut podaje tylko rzędne ±0,00 / +3,15 / +6,20\ndrzwi 0,90 × 2,05 odliczone"
   },
   {
     "section": "Łazienka",
@@ -501,23 +505,25 @@
     "qty": 1,
     "unit": "szt",
     "clientPrice": 500.0,
-    "note": "AI: read — wizualizacja WC: podświetlona wnęka nad stelażem; cena: katalog prac"
+    "assumptions": "podświetlona wnęka nad stelażem WC (wizualizacja)"
   },
   {
     "section": "Montaż stolarki i ślusarski",
-    "description": "Montaż okładzin drewnianych stopni i podstopni na schodach betonowych — brak w katalogu — do wyceny",
+    "description": "Montaż okładzin drewnianych stopni i podstopni na schodach betonowych",
     "qty": 17,
     "unit": "stopień",
     "clientPrice": 0.0,
-    "note": "AI: read — rzut: schody żelbetowe 17 stopni parter → piętro; klient: wykończenie drewnem; najbliżej: Cyklinowanie schodów stopień+podstopień 380 zł/szt, Ułożenie gresu na stopniach 220 zł/szt"
+    "missingData": "brak w katalogu — do wyceny — najbliżej: Cyklinowanie schodów stopień+podstopień 380 zł/szt, Ułożenie gresu na stopniach 220 zł/szt\njakie drewno, nakładki czy pełne stopnie, podstopnice, spód biegu",
+    "assumptions": "okładziny drewniane na 17 stopniach parter → piętro (rzut, klient: drewno)"
   },
   {
     "section": "Montaż stolarki i ślusarski",
-    "description": "Montaż balustrady i poręczy drewnianej — brak w katalogu — do wyceny",
+    "description": "Montaż balustrady i poręczy drewnianej",
     "qty": 1,
     "unit": "kpl",
     "clientPrice": 0.0,
-    "note": "AI: read — wizualizacja schodów: drewniana poręcz i balustrada wzdłuż biegu i otworu na piętrze"
+    "missingData": "brak w katalogu — do wyceny\nkto dostarcza balustradę",
+    "assumptions": "drewniana poręcz i balustrada wzdłuż biegu i otworu na piętrze (wizualizacja)"
   },
   {
     "section": "Poddasze (osobna wycena)",
@@ -525,7 +531,8 @@
     "qty": 72.0,
     "unit": "m²",
     "clientPrice": 45.0,
-    "note": "AI: assumed — skosy ≈ 72 m² (obrys 5,70 × 11,37, kąt dachu 35° assumed); cena: katalog prac „Układanie wełny w ścianach”"
+    "missingData": "przekrój dachu: wysokość ścianki kolankowej, kąt, membrana, istniejące ocieplenie",
+    "assumptions": "poddasze bez przekroju: obrys 5,70 × 11,37, kąt dachu 35° → podłoga ≈ 59 m², skosy ≈ 72 m², szczyty ≈ 32 m²\njedna warstwa wełny"
   },
   {
     "section": "Poddasze (osobna wycena)",
@@ -533,15 +540,17 @@
     "qty": 72.0,
     "unit": "m²",
     "clientPrice": 20.0,
-    "note": "AI: assumed — = powierzchnia skosów; cena: katalog prac"
+    "missingData": "przekrój dachu: wysokość ścianki kolankowej, kąt, membrana, istniejące ocieplenie",
+    "assumptions": "= powierzchnia skosów\npoddasze bez przekroju: obrys 5,70 × 11,37, kąt dachu 35° → podłoga ≈ 59 m², skosy ≈ 72 m², szczyty ≈ 32 m²"
   },
   {
     "section": "Poddasze (osobna wycena)",
-    "description": "Zabudowa skosów płytą GK na stelażu — brak w katalogu — do wyceny",
+    "description": "Zabudowa skosów płytą GK na stelażu",
     "qty": 72.0,
     "unit": "m²",
     "clientPrice": 0.0,
-    "note": "AI: assumed — = powierzchnia skosów; najbliżej: Przedścianka z GK + folia 150 zł/m², Zabudowa ścian z GK na stelażu 250 zł/m², Sufit podwieszany niski stopień 160 zł/m²"
+    "missingData": "brak w katalogu — do wyceny — najbliżej: Przedścianka z GK + folia 150 zł/m², Zabudowa ścian z GK na stelażu 250 zł/m², Sufit podwieszany niski stopień 160 zł/m²\nprzekrój dachu: wysokość ścianki kolankowej, kąt, membrana, istniejące ocieplenie",
+    "assumptions": "= powierzchnia skosów\npoddasze bez przekroju: obrys 5,70 × 11,37, kąt dachu 35° → podłoga ≈ 59 m², skosy ≈ 72 m², szczyty ≈ 32 m²"
   },
   {
     "section": "Poddasze (osobna wycena)",
@@ -549,7 +558,8 @@
     "qty": 72.0,
     "unit": "m²",
     "clientPrice": 59.0,
-    "note": "AI: assumed — gładź na skosach z GK"
+    "missingData": "przekrój dachu: wysokość ścianki kolankowej, kąt, membrana, istniejące ocieplenie",
+    "assumptions": "gładź na skosach z GK\npoddasze bez przekroju: obrys 5,70 × 11,37, kąt dachu 35° → podłoga ≈ 59 m², skosy ≈ 72 m², szczyty ≈ 32 m²"
   },
   {
     "section": "Poddasze (osobna wycena)",
@@ -557,7 +567,8 @@
     "qty": 32.0,
     "unit": "m²",
     "clientPrice": 60.0,
-    "note": "AI: assumed — 2 ściany szczytowe ≈ 32 m², mur ceramiczny bez tynku assumed"
+    "missingData": "szczyty: tynk czy płytki cegłopodobne",
+    "assumptions": "2 ściany szczytowe, mur ceramiczny bez tynku\npoddasze bez przekroju: obrys 5,70 × 11,37, kąt dachu 35° → podłoga ≈ 59 m², skosy ≈ 72 m², szczyty ≈ 32 m²"
   },
   {
     "section": "Poddasze (osobna wycena)",
@@ -565,7 +576,8 @@
     "qty": 104.0,
     "unit": "m²",
     "clientPrice": 12.0,
-    "note": "AI: assumed — skosy + szczyty"
+    "missingData": "przekrój dachu: wysokość ścianki kolankowej, kąt, membrana, istniejące ocieplenie",
+    "assumptions": "skosy + szczyty\npoddasze bez przekroju: obrys 5,70 × 11,37, kąt dachu 35° → podłoga ≈ 59 m², skosy ≈ 72 m², szczyty ≈ 32 m²"
   },
   {
     "section": "Poddasze (osobna wycena)",
@@ -573,7 +585,8 @@
     "qty": 104.0,
     "unit": "m²",
     "clientPrice": 22.0,
-    "note": "AI: assumed — skosy + szczyty na biało"
+    "missingData": "przekrój dachu: wysokość ścianki kolankowej, kąt, membrana, istniejące ocieplenie",
+    "assumptions": "skosy + szczyty na biało\npoddasze bez przekroju: obrys 5,70 × 11,37, kąt dachu 35° → podłoga ≈ 59 m², skosy ≈ 72 m², szczyty ≈ 32 m²"
   },
   {
     "section": "Poddasze (osobna wycena)",
@@ -581,7 +594,8 @@
     "qty": 36.7,
     "unit": "mb",
     "clientPrice": 14.0,
-    "note": "AI: assumed — styki skosów ze ścianami kolankowymi i szczytami"
+    "missingData": "przekrój dachu: wysokość ścianki kolankowej, kąt, membrana, istniejące ocieplenie",
+    "assumptions": "styki skosów ze ścianami kolankowymi i szczytami ≈ 36,7 mb\npoddasze bez przekroju: obrys 5,70 × 11,37, kąt dachu 35° → podłoga ≈ 59 m², skosy ≈ 72 m², szczyty ≈ 32 m²"
   },
   {
     "section": "Poddasze (osobna wycena)",
@@ -589,7 +603,7 @@
     "qty": 59.0,
     "unit": "m²",
     "clientPrice": 60.0,
-    "note": "AI: assumed — podłoga na istniejącej płycie OSB (rzut: „płyta OSB”), obrys ≈ 59 m² minus otwór schodów; panele jak na wizualizacji poddasza"
+    "assumptions": "panele na istniejącej płycie OSB (rzut: „płyta OSB”, wizualizacja poddasza)\npodłoga = obrys minus otwór schodów; wydrukowane 32,38 m² to powierzchnia ważona wysokością\npoddasze bez przekroju: obrys 5,70 × 11,37, kąt dachu 35° → podłoga ≈ 59 m², skosy ≈ 72 m², szczyty ≈ 32 m²"
   },
   {
     "section": "Poddasze (osobna wycena)",
@@ -597,31 +611,32 @@
     "qty": 34.0,
     "unit": "mb",
     "clientPrice": 45.0,
-    "note": "AI: assumed — obwód poddasza"
+    "assumptions": "obwód poddasza ≈ 34 mb\npoddasze bez przekroju: obrys 5,70 × 11,37, kąt dachu 35° → podłoga ≈ 59 m², skosy ≈ 72 m², szczyty ≈ 32 m²"
   },
   {
     "section": "Poddasze (osobna wycena)",
     "description": "Montaż drzwi, ościeżnic regulowanych, klamek, zamków",
     "qty": 1,
     "unit": "szt",
-    "clientPrice": 380.0,
-    "note": "AI: read — rzut: drzwi D3 na strych"
+    "clientPrice": 380.0
   },
   {
     "section": "Poddasze (osobna wycena)",
-    "description": "Montaż okładzin drewnianych stopni i podstopni na schodach betonowych — brak w katalogu — do wyceny",
+    "description": "Montaż okładzin drewnianych stopni i podstopni na schodach betonowych",
     "qty": 17,
     "unit": "stopień",
     "clientPrice": 0.0,
-    "note": "AI: read — rzut: schody 17 stopni piętro → strych; najbliżej: Cyklinowanie schodów stopień+podstopień 380 zł/szt"
+    "missingData": "brak w katalogu — do wyceny — najbliżej: Cyklinowanie schodów stopień+podstopień 380 zł/szt",
+    "assumptions": "okładziny drewniane na 17 stopniach piętro → strych (rzut)"
   },
   {
     "section": "Poddasze (osobna wycena)",
-    "description": "Montaż balustrady i poręczy drewnianej — brak w katalogu — do wyceny",
+    "description": "Montaż balustrady i poręczy drewnianej",
     "qty": 1,
     "unit": "kpl",
     "clientPrice": 0.0,
-    "note": "AI: assumed — bieg na strych + otwór w podłodze strychu"
+    "missingData": "brak w katalogu — do wyceny",
+    "assumptions": "bieg na strych + otwór w podłodze strychu"
   },
   {
     "section": "Poddasze (osobna wycena)",
@@ -629,7 +644,8 @@
     "qty": 10,
     "unit": "szt",
     "clientPrice": 130.0,
-    "note": "AI: assumed — pracownia/magazyn: 10 gniazd"
+    "missingData": "układ pomieszczenia na poddaszu",
+    "assumptions": "pracownia/magazyn: 10 gniazd"
   },
   {
     "section": "Poddasze (osobna wycena)",
@@ -637,7 +653,7 @@
     "qty": 5,
     "unit": "szt",
     "clientPrice": 100.0,
-    "note": "AI: assumed — 4 punkty oświetlenia + zasilanie taśmy LED"
+    "assumptions": "4 punkty oświetlenia + zasilanie taśmy LED"
   },
   {
     "section": "Poddasze (osobna wycena)",
@@ -645,7 +661,7 @@
     "qty": 60,
     "unit": "mb",
     "clientPrice": 40.0,
-    "note": "AI: assumed — przewody za GK, ok. 4 mb na punkt × 15"
+    "assumptions": "przewody za GK, ok. 4 mb na punkt × 15"
   },
   {
     "section": "Poddasze (osobna wycena)",
@@ -653,7 +669,7 @@
     "qty": 13,
     "unit": "szt",
     "clientPrice": 39.0,
-    "note": "AI: assumed — 10 gniazd + 3 włączniki"
+    "assumptions": "10 gniazd + 3 włączniki"
   },
   {
     "section": "Poddasze (osobna wycena)",
@@ -661,7 +677,7 @@
     "qty": 4,
     "unit": "szt",
     "clientPrice": 100.0,
-    "note": "AI: assumed — 4 oprawy"
+    "assumptions": "4 oprawy"
   },
   {
     "section": "Poddasze (osobna wycena)",
@@ -669,7 +685,7 @@
     "qty": 20,
     "unit": "mb",
     "clientPrice": 60.0,
-    "note": "AI: read — wizualizacja poddasza: taśma LED pod skosami, 2 × 10 mb assumed"
+    "assumptions": "taśma LED pod skosami 2 × 10 mb (wizualizacja, bez wymiaru)"
   },
   {
     "section": "Poddasze (osobna wycena)",
@@ -677,7 +693,7 @@
     "qty": 2,
     "unit": "szt",
     "clientPrice": 120.0,
-    "note": "AI: assumed — 2 zasilacze LED"
+    "assumptions": "2 zasilacze LED"
   },
   {
     "section": "Poddasze (osobna wycena)",
@@ -685,7 +701,7 @@
     "qty": 3,
     "unit": "szt",
     "clientPrice": 200.0,
-    "note": "AI: assumed — osobne obwody: gniazda, oświetlenie, LED"
+    "assumptions": "osobne obwody: gniazda, oświetlenie, LED"
   },
   {
     "section": "Poddasze (osobna wycena)",
@@ -693,7 +709,7 @@
     "qty": 2,
     "unit": "szt",
     "clientPrice": 70.0,
-    "note": "AI: assumed — oświetlenie biegu na strych"
+    "assumptions": "oświetlenie biegu na strych z dwóch miejsc"
   },
   {
     "section": "Rekuperacja (osobna wycena)",
@@ -701,15 +717,17 @@
     "qty": 100,
     "unit": "mb",
     "clientPrice": 120.0,
-    "note": "AI: assumed — 10 anemostatów × ~8 mb + czerpnia/wyrzutnia ~20 mb; cena: katalog prac „Montaż wentylacji”"
+    "missingData": "co przygotował deweloper pod rekuperację (kanały w stropach, szacht, miejsce na centralę)",
+    "assumptions": "10 anemostatów × ~8 mb + czerpnia/wyrzutnia ~20 mb\ncena z katalogu: „Montaż wentylacji” 120 zł/mb"
   },
   {
     "section": "Rekuperacja (osobna wycena)",
-    "description": "Montaż i uruchomienie centrali rekuperacyjnej — brak w katalogu — do wyceny",
+    "description": "Montaż i uruchomienie centrali rekuperacyjnej",
     "qty": 1,
     "unit": "kpl",
     "clientPrice": 0.0,
-    "note": "AI: assumed — centrala na strychu; najbliżej: Montaż klimatyzacji + uruchomienie 600 zł"
+    "missingData": "brak w katalogu — do wyceny — najbliżej: Montaż klimatyzacji + uruchomienie 600 zł\njaką centralę wybiera klient",
+    "assumptions": "centrala na strychu"
   },
   {
     "section": "Rekuperacja (osobna wycena)",
@@ -717,7 +735,8 @@
     "qty": 10,
     "unit": "kpl",
     "clientPrice": 100.0,
-    "note": "AI: assumed — nawiew: salon 2, pokój, hobby, garderoba, poddasze 2; wywiew: kuchnia, WC, łazienka"
+    "missingData": "co przygotował deweloper pod rekuperację (kanały w stropach, szacht, miejsce na centralę)",
+    "assumptions": "nawiew: salon 2, pokój, hobby, garderoba, poddasze 2; wywiew: kuchnia, WC, łazienka"
   },
   {
     "section": "Rekuperacja (osobna wycena)",
@@ -725,7 +744,8 @@
     "qty": 2,
     "unit": "kpl",
     "clientPrice": 350.0,
-    "note": "AI: assumed — czerpnia i wyrzutnia"
+    "missingData": "co przygotował deweloper pod rekuperację (kanały w stropach, szacht, miejsce na centralę)",
+    "assumptions": "czerpnia i wyrzutnia"
   },
   {
     "section": "Rekuperacja (osobna wycena)",
@@ -733,7 +753,7 @@
     "qty": 1,
     "unit": "kpl",
     "clientPrice": 150.0,
-    "note": "AI: assumed — odprowadzenie skroplin z centrali"
+    "assumptions": "odprowadzenie skroplin z centrali"
   },
   {
     "section": "Rekuperacja (osobna wycena)",
@@ -741,7 +761,7 @@
     "qty": 1,
     "unit": "szt",
     "clientPrice": 130.0,
-    "note": "AI: assumed — zasilanie centrali"
+    "assumptions": "zasilanie centrali"
   },
   {
     "section": "Rekuperacja (osobna wycena)",
@@ -749,6 +769,7 @@
     "qty": 6,
     "unit": "mb",
     "clientPrice": 350.0,
-    "note": "AI: assumed — pion kanałów z poddasza na parter w zabudowie GK; zależy od przygotowania dewelopera"
+    "missingData": "co przygotował deweloper pod rekuperację (kanały w stropach, szacht, miejsce na centralę)",
+    "assumptions": "pion kanałów z poddasza na parter w zabudowie GK, 6 mb"
   }
 ]

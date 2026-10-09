@@ -1,10 +1,11 @@
 KOSZTORYS AI — segment I2 Nowe Lipiny, Pu 101,21 m² (parter 52,19 + piętro 49,02) + strych 32,38 m²
 Źródła: rzut dewelopera (skan, metraże pomieszczeń wydrukowane na rzucie), standard deweloperski, wizualizacje i zdjęcia inspiracji (tylko do liczenia elementów), mail klienta.
 Wartość netto z cenami z rozpiski (robocizna):
-- dom (parter + piętro): 120 044,76 zł + 3 pozycje bez ceny;
+- dom (parter + piętro): 119 688,41 zł + 3 pozycje bez ceny;
 - PODDASZE (osobna sekcja): 27 634,80 zł + 3 pozycje bez ceny;
 - REKUPERACJA (osobna sekcja): 16 080,00 zł + 1 pozycja bez ceny;
-- razem: 163 759,56 zł.
+- razem: 163 403,21 zł.
+Każde założenie jest zapisane przy pozycji w Komentarzu AI („Co / ile założono”), a czego nie było wiadomo — w „Czego nie było wiadomo”.
 Materiały, zabudowy meblowe, AGD i centrala rekuperacji NIE są w kwocie (klient prosi o ich rozdzielenie — patrz pytania).
 
 WARIANT PODŁÓG (klient prosi o porównanie)
@@ -12,7 +13,7 @@ WARIANT PODŁÓG (klient prosi o porównanie)
 - Panele winylowe klejone, układ prosty, 93,82 m² × 60 zł = 5 629 zł, plus gres w WC i łazience, 7,39 m² × 180 zł = 1 330 zł. Razem 6 959 zł, czyli −43 646 zł robocizny. Do tego gruntowanie podłóg +10 zł/m².
 
 ZAŁOŻENIA (do weryfikacji)
-1. Wysokość pomieszczeń 2,75 m — rzut podaje tylko rzędne ±0,00 / +3,15 / +6,20. Każde ±10 cm to ok. ±860 zł (gładzie, grunt, malowanie, akryl).
+1. Wysokość pomieszczeń 2,68 m (stan deweloperski, Wiedza firmowa) — rzut podaje tylko rzędne ±0,00 / +3,15 / +6,20. Każde ±10 cm to ok. ±860 zł (gładzie, grunt, malowanie, akryl).
 2. Obwody pokoi wyliczone z metrażu i wydrukowanych długości ścian. Salon z kuchnią (kształt L ze schodami) ma obwód ok. 31 mb — do sprawdzenia na miejscu.
 3. Okna: szerokości z rzutu, wysokości przyjęte:
    - O1 180×150;
@@ -20,9 +21,9 @@ ZAŁOŻENIA (do weryfikacji)
    - 2 × O2 150×160;
    - 2 × drzwi balkonowe 90×230.
    Otwory odjęte od ścian, razem 38,4 m².
-4. Gładź Q3 na wszystkich ścianach i sufitach poza łazienką, 223 m² ścian + 94 m² sufitów. Bez ścian za zabudową kuchni (4 mb × 2,75 = 11 m², −627 zł gładzi). Z doliczoną klatką schodową ok. 15 m² (z dodatkiem za utrudniony dostęp).
+4. Gładź Q3 na wszystkich ścianach i sufitach poza łazienką, 223 m² ścian + 94 m² sufitów. Bez ścian za zabudową kuchni (4 mb × 2,68 = 10,7 m², −611 zł gładzi). Z doliczoną klatką schodową ok. 15 m² (z dodatkiem za utrudniony dostęp).
 5. Malowanie wszystkiego na biało. Ściany w kolorze: +4 zł/m², ok. +900 zł.
-6. Łazienka na piętrze: mikrocement na podłodze i na ścianach na pełną wysokość, 24,6 m² — nowa pozycja bez ceny. Pozostałe elementy:
+6. Łazienka na piętrze: mikrocement na podłodze i na ścianach na pełną wysokość, 23,9 m² — nowa pozycja bez ceny. Pozostałe elementy:
    - hydroizolacja: podłoga + strefa prysznica do 2,0 m;
    - walk-in z odpływem liniowym jednospadkowym i szybą stałą;
    - bateria podtynkowa z deszczownicą;
@@ -33,7 +34,7 @@ ZAŁOŻENIA (do weryfikacji)
    - 3 wpusty.
 7. WC na parterze:
    - mikrocement na podłodze;
-   - tapeta na 2 ścianach, 7,8 m² (po gładzi);
+   - tapeta na 2 ścianach, 7,6 m² (po gładzi);
    - reszta ścian i sufit — pozycja „malowanie bez glazury + gładź na suficie”;
    - wnęka LED nad stelażem;
    - WC podwieszane;
@@ -105,7 +106,7 @@ PYTANIA DO KLIENTA / WŁAŚCICIELA (z wpływem na kwotę)
   - rozdzielenie materiałów budowlanych, wykończeniowych i zabudów.
 
 NOWE PRACE BEZ CENY (brak w katalogu — do wyceny)
-- Mikrocement na ścianach łazienki — 24,6 m². Najbliżej: posadzki z mikrocementu 500 zł/m², czyli 12 305 zł; mikrocement gabinet 650 zł/m², czyli 15 997 zł.
+- Mikrocement na ścianach łazienki — 23,9 m². Najbliżej: posadzki z mikrocementu 500 zł/m², czyli 11 970 zł; mikrocement gabinet 650 zł/m², czyli 15 561 zł.
 - Montaż okładzin drewnianych stopni i podstopni — 17 stopni w domu + 17 na strych. Najbliżej: cyklinowanie stopnia z podstopniem 380 zł/szt, czyli 6 460 zł za bieg.
 - Montaż balustrady i poręczy drewnianej — 1 kpl w domu + 1 kpl na strych.
 - Zabudowa skosów płytą GK na stelażu — 72 m². Najbliżej:

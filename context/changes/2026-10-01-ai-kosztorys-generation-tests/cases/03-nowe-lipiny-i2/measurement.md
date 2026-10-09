@@ -119,3 +119,14 @@ figure in the offer and the first thing the owner should discuss with the client
 
 DB check: per-sekcja sums of AI przedmiar × Cena j.m. on #183 equal the script's totals to the grosz.
 The loader matched 60 rows and added 34; no row was skipped for a missing sekcja.
+
+## Reanalysis under „the agent may assume, and writes every assumption” (2026-10-09)
+
+Every `note` was split: a source alone (read off the rzut, counted on a visualisation) carries nothing, every
+„assumed” went to `assumptions`, and the open questions moved from the notes onto the rows they price, in
+`missingData` — 83 rows with an assumption, 32 with an unknown. „brak w katalogu — do wyceny” left the
+descriptions for `missingData`. The clear height follows the house rule now: **2,68 m** for a stan deweloperski
+(the rzut prints only rzędne), not the 2,75 derived from them before.
+
+Result: **94 rows, 163 403,21 zł** — dom 119 688,41, poddasze 27 634,80, rekuperacja 16 080,00; 7 rows without
+a price. Not loaded yet: #183 is recreated on production after the migrations and the push.

@@ -439,24 +439,18 @@ amend it.
    - raster/scan: read only printed numbers;
    - photo: counts and surface condition only, never m² or mb;
    - shopping list: product identity, never laid area.
-2. **Read before deriving. The agent does not assume** (owner, 2026-10-08). Use a number printed on
-   the drawing (room m², Hpom, hp/ho, dimension) whenever one exists, and derive only what is not
-   printed.
+2. **Read before deriving; assume the rest, and write every assumption down** (owner, 2026-10-09,
+   reversing 2026-10-08's „the agent does not assume”). Use a number printed on the drawing (room m²,
+   Hpom, hp/ho, dimension) whenever one exists, and derive only what is not printed.
 
-   A quantity that can be neither read nor measured is **not written**. The notes say what is missing
-   to count it. The one exception is a strong hint in house knowledge:
-   - a Komentarz do pracy in the katalog;
-   - the owner's notes;
-   - an earlier test.
-
-   For example, ≈ 2,5 mb of bruzda per electrical point, when the number of points is given, or the
-   house clear height (2,68 deweloperka / 2,60 rynek wtórny) when the drawing prints none. The agent
-   then derives the quantity and names that source in the position's Komentarz. A quantity measurable
-   for only part of its scope is written for that part. Komentarz names what was left out, and the notes
-   ask for it. For example, gładź without the przedpokój, whose sides the scan doesn't print. An opening
-   whose size isn't printed is not deducted: the wall is written brutto, Komentarz says so, and the
-   notes ask for the sizes.
-   Cases 1–3 predate this rule and still carry many „assumed” rows.
+   A quantity that can be neither read nor measured is **assumed**, and the assumption goes on the
+   position's „Co / ile założono” (`assumptions`): what was taken, how much, and on what basis — a
+   „Wiedza firmowa” entry, a katalog Komentarz do pracy, a photo, or the agent's own estimate, named as
+   such. For example, the house clear height (2,68 deweloperka / 2,60 rynek wtórny) when the drawing
+   prints none, or a przedpokój perimeter when the scan prints only its m². What the inputs leave
+   unknown goes in „Czego nie było wiadomo” (`missingData`). Where a quantity came from is not an
+   assumption — a number read off the rzut or counted from the mail carries neither field.
+   Case 4 was rebuilt under this rule (2026-10-09); cases 1–3 still carry the old `note` sources.
 
 3. **Validate the instrument on a known value before trusting it.** Measure the room areas, compare
    them with the printed m², and only then use the perimeters from the same method. Above ~5%
@@ -475,8 +469,8 @@ amend it.
 9. **The agent never invents a price** (owner ruling, 2026-10-01). Every Cena j.m. comes from the
    szablon or the katalog prac. A work missing from the szablon is looked up in the katalog first.
    When nothing fits, the agent adds the position with its own description and the Przedmiar, and
-   **leaves Cena j.m. empty**. In Komentarz it writes „brak w katalogu — do wyceny” and names the
-   nearest katalog praca, if there is one. The owner prices it, so the total is understated by
+   **leaves Cena j.m. empty**. In „Czego nie było wiadomo” it writes „brak w katalogu — do wyceny”
+   and names the nearest katalog praca, if there is one. The owner prices it, so the total is understated by
    exactly the unpriced positions, and the notes list them.
 
    App gap: `kosztorys_items.client_price` is `NOT NULL DEFAULT 0`, so today „empty” can only be
@@ -488,12 +482,13 @@ amend it.
 
 10. **Write into the kosztorys, not into a reply.**
     - Przedmiar goes on the position.
-    - The source of the quantity (read / measured / house rule + which, and where) goes in Komentarz.
+    - Every assumption goes in „Co / ile założono” and every unknown in „Czego nie było wiadomo” — the
+      Komentarz AI column, never the people's Komentarz, which the investor may see.
     - A new position goes at the end of its section.
     - Doubts and the data still missing go to the **top** of the investment notes, above the mail.
 
-    A position the agent deliberately leaves at 0 is listed in the notes, together with what would let
-    it be counted.
+    The notes carry the assumptions that move many positions at once (height, layout changes), so the
+    manager checks those first.
 
 ## Rozpiska quirks found (affect any agent)
 

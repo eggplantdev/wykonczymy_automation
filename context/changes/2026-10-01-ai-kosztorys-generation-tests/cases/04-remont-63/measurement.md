@@ -93,3 +93,29 @@ Corrected readings: łazienka 1,70 × 1,79 (was read as 1,40 × 2,14), kuchnia 4
 | **Razem**                              | **70 775,16** |
 
 DB check: Σ AI przedmiar × Cena j.m. on #185 = 70 775,16, 45 rows ≠ 0.
+
+## Reanalysis under „the agent may assume, and writes every assumption” (2026-10-09)
+
+The rule changed again: the agent now assumes what the inputs leave open, and records every assumption on the row
+(`assumptions`), with what stayed unknown in `missingData`. The old `note` key is gone. Rebuilt to **67 rows,
+102 354,06 zł**, 48 of them carrying an assumption. The quantities that came back:
+
+- the przedpokój walls (obwód 12 mb);
+- the WC and kuchnia wall tiles for skuwanie (1,50 m and 1,60 m, read off the photos);
+- the whole łazienka/WC tiling block (łazienka 5,0 m², tiles to the ceiling, the WC umywalka kept);
+- both GK walls, the nadproża, the rura zabudowa, narożniki, glify;
+- doors for „Montaż […]”, wylewka, listwy łączeniowe and uzupełnianie posadzki.
+
+| Sekcja                                 | Amount         |
+| -------------------------------------- | -------------- |
+| Ściany i sufity bez łazienek           | 45 453,96      |
+| Łazienka                               | 24 049,10      |
+| Wyburzenia, demontaże, zabezpieczenia  | 14 114,70      |
+| Instalacja elektryczna i oświetleniowa | 8 715,00       |
+| Podłogi                                | 3 991,30       |
+| Prace dodatkowe                        | 3 000,00       |
+| Montaż stolarki i ślusarski            | 2 280,00       |
+| Instalacja wodno-kanalizacyjna + c.o.  | 750,00         |
+| **Razem**                              | **102 354,06** |
+
+Not loaded yet: #185 is recreated on production after the migrations and the push.
