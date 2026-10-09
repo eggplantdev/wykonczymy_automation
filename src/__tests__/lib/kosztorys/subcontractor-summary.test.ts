@@ -29,6 +29,7 @@ const worker = (id: number, name: string): WorkerRefT => ({
   role: 'EMPLOYEE',
   email: `${name.toLowerCase()}@t.com`,
   language: null,
+  canAddExpensesWithoutInvestment: false,
 })
 
 describe('computeSubcontractorSummary', () => {

@@ -63,7 +63,15 @@ const mockRefData: ReferenceDataBaseT = {
     },
   ],
   workers: [
-    { id: 1, name: 'Admin', role: 'ADMIN', active: true, email: 'admin@test.com', language: null },
+    {
+      id: 1,
+      name: 'Admin',
+      role: 'ADMIN',
+      active: true,
+      email: 'admin@test.com',
+      language: null,
+      canAddExpensesWithoutInvestment: false,
+    },
     {
       id: 2,
       name: 'Manager',
@@ -71,6 +79,7 @@ const mockRefData: ReferenceDataBaseT = {
       active: true,
       email: 'mgr@test.com',
       language: null,
+      canAddExpensesWithoutInvestment: false,
     },
     {
       id: 3,
@@ -79,6 +88,7 @@ const mockRefData: ReferenceDataBaseT = {
       active: true,
       email: 'emp1@test.com',
       language: null,
+      canAddExpensesWithoutInvestment: false,
     },
     {
       id: 4,
@@ -87,6 +97,7 @@ const mockRefData: ReferenceDataBaseT = {
       active: true,
       email: 'emp2@test.com',
       language: null,
+      canAddExpensesWithoutInvestment: false,
     },
   ],
   otherCategories: [],
