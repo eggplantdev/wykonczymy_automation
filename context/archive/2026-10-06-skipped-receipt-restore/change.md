@@ -1,10 +1,10 @@
 ---
 change_id: skipped-receipt-restore
 title: Pominięty paragon — „Przywróć” i filtr statusu na „Zgłoszenia wydatków”
-status: implemented
+status: archived
 created: 2026-10-06
-updated: 2026-10-06
-archived_at: null
+updated: 2026-10-09
+archived_at: 2026-10-09T05:43:52Z
 branch: staging
 worktree: null
 ---

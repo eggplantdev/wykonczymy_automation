@@ -4348,27 +4348,6 @@ Potrzebna paczka PDF-ów Telmaka za jeden miesiąc (WV / KWV / WZ / FP) i kasa T
 - [x] Jako pracownik: klik w imię otwiera jego własną stronę, bez „brak dostępu”.
       _Staging 2026-10-06 (pass 3, EMPLOYEE 85): link imienia w pasku bocznym i w menu mobilnym (390px) → /pracownicy/85, bez „brak dostępu”; w menu mobilnym na własnej stronie klik zamyka menu._
 
-## EX-1009 — skipped-receipt-restore — pominięty paragon: filtr statusu i „Przywróć” (2026-10-06)
-
-Potrzebne przyjęte zgłoszenie „Kilka wydatków”, z którego przy przyjmowaniu wyrzucono jeden paragon.
-
-- [x] „Zgłoszenia wydatków” → „Status” tylko „odrzucony”: obok całych odrzuconych zgłoszeń są pominięte paragony przyjętych zgłoszeń, każdy ze swoim zdjęciem. Tylko „przyjęty”: żadnego wiersza z plakietką „odrzucony”.
-      _Staging 2026-10-06 (pass 2):_ rejected: 8 wierszy tylko „odrzucony”, w tym pominięty paragon z QA-3; accepted: 6 wierszy, bez „odrzucony”.
-- [x] „Pokaż 10” przy zgłoszeniu z kilkoma paragonami: na stronie dokładnie 10 wierszy, a „N wyników” to liczba wszystkich wierszy na wszystkich stronach.
-      _Staging 2026-10-06 (pass 2):_ limit=10: 10 wierszy, „15 wyników” (wszystkie wiersze).
-- [x] Sortowanie po „Status”: wszystkie wiersze „odrzucony” (z pominiętymi paragonami) stoją w jednym bloku.
-      _Staging 2026-10-06 (pass 2):_ sort=status: odrzucone w jednym bloku, w tym pominięty paragon.
-- [x] Strona pracownika → „Zgłoszone wydatki”: to zgłoszenie rozbite na te same wiersze co na „Zgłoszenia wydatków”; filtr statusu działa tak samo.
-      _Staging 2026-10-06 (pass 2):_ te same wiersze co u kierownika, filtr statusu działa; „odrzucony” po przywróceniu paragonu nie sprawdzany osobno.
-- [x] Pominięty paragon → „Przywróć”: wiersz znika, w bloku „Czeka” pojawia się nowe zgłoszenie z tym jednym zdjęciem i datą wysłania pierwotnego zgłoszenia; licznik w menu rośnie o 1. Przyjęte zgłoszenie dalej ma swoje transakcje i zdjęcia.
-      _Staging 2026-10-06 (pass 2):_ wiersz zniknął, nowe „czeka” z tym zdjęciem (wysłano 20:03 jak pierwotne), licznik 1 → 2, przyjęte wiersze 21/22 zł zostały.
-- [x] „Zweryfikuj” na przywróconym: formularz od razu wypełniony odczytem tego paragonu (opis, kwota), bez czekania na odczyt.
-      _Staging 2026-10-06 (pass 2):_ po 0,7 s opis z zapisanego odczytu już w formularzu.
-- [x] U pracownika przywrócone zgłoszenie stoi jako „Czeka” i da się je edytować i usunąć. Po usunięciu przyjęte zgłoszenie dalej pokazuje to zdjęcie.
-      _Staging 2026-10-06 (pass 2):_ przywrócone: czeka + Edytuj + Usuń (usunięto); po usunięciu przyjęte wiersze QA-3 dalej ze swoimi zdjęciami.
-- [x] Pominięty paragon, którego kasa (albo pracownik, inwestycja) jest w koszu: wiersz bez „Przywróć”. Po przywróceniu kasy z kosza „Przywróć” wraca.
-      _Staging 2026-10-06 (pass 4):_ draft kasa X (id 55) trashed via /kasy: skipped-receipt row of that draft had no „Przywróć" (the live-kasa row beside it kept it); restored from /kosz: „Przywróć" returned. Kasa clause only; worker/investment clauses covered by SQL + investment trash earlier.
-
 ## 2026-10-06 — worker-reports-on-worker-page — zgłoszenia wykonanych prac na stronie pracownika, z podglądem
 
 - [x] „Zgłoszenia wykonanych prac” (lista kierownika): klik w wiersz nic nie robi. „Podgląd” otwiera okno nad listą, adres się nie zmienia. „Otwórz w kosztorysie” otwiera rozpiskę z tym zgłoszeniem (adres ma `?zgloszenie=`).
