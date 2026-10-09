@@ -1,10 +1,10 @@
 ---
 change_id: worker-pwa-install-and-long-session
 title: Installable app icon for workers and a session that survives monthly use
-status: implemented
+status: archived
 created: 2026-10-07
-updated: 2026-10-07
-archived_at: null
+updated: 2026-10-09
+archived_at: 2026-10-09T05:45:14Z
 branch: worker-pwa-install-and-long-session
 worktree: /Users/konradantonik/workspace/yolo/wykonczymy-worktrees/worker-pwa-install-and-long-session
 ---
