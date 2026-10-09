@@ -4218,47 +4218,6 @@ inwestycji, z transakcjami i zgłoszonymi wydatkami; konto kierownika.
 - [x] W trakcie tłumaczenia „Popraw literówki” też jest wyszarzona — i odwrotnie, w trakcie poprawiania wyszarzone jest „Uzupełnij tłumaczenia (AI)”.
       _Staging 2026-10-06 (pass 4):_ Both items aria-disabled during Popraw (238 ms sample); translate-side both disabled too.
 
-## EX-1005 — worker-expense-drafts-history — strona „Zgłoszenia wydatków” i tabela zgłoszeń u pracownika (2026-10-06)
-
-- [x] Menu boczne i mobilne: „Zgłoszenia wydatków” stoi zaraz po „Zgłoszenia wykonanych prac”; licznik przy niej = liczba czekających zgłoszeń i zostaje, gdy strona jest otwarta.
-      _Staging 2026-10-06 (pass 2):_ desktop: kolejność OK, licznik 3 = czekające i zostaje na stronie. Mobilne menu nie sprawdzane.
-- [x] „Zgłoszenia wydatków” bez sortowania: czekające na górze, reszta od najnowszych. Sortowanie po „Status”, potem po „Pracownik” przestawia wiersze na wszystkich stronach.
-      _Staging 2026-10-06 (pass 2):_ domyślnie czekające na górze; sort Status i Pracownik grupuje wszystkie wiersze.
-- [x] Każdy filtr (status, pracownik, inwestycja, data wysłania od/do) zawęża listę; „Wyczyść” wraca do pełnej.
-      _Staging 2026-10-06 (pass 2):_ status i pracownik zawężają (13 → 6 / 11), „Wyczyść filtry” wraca do 13; filtr inwestycji oferuje opcje, daty nie testowane.
-- [x] Czekające zgłoszenie → „Zweryfikuj”: otwiera się wypełniony „Nowy wydatek”. „Zapisz” → wiersz „Przyjęte”, w „Decyzja” teraz · ja, w „Transakcje” kwota. Drugie zgłoszenie → „Odrzuć” → wiersz „Odrzucone”.
-      _Staging 2026-10-06 (pass 2):_ Zweryfikuj → Zapisz: przyjęty, Decyzja 20:05 · QA Staging, Transakcje 11,00 zł; Odrzuć → odrzucony.
-- [x] Odrzucone zgłoszenie → „Przywróć”: wraca jako „Czeka” na górę listy, licznik w menu rośnie o 1.
-      _Staging 2026-10-06 (pass 2):_ wróciło jako czeka na górę, licznik 1 → 2.
-- [x] Kwota przyjętego zgłoszenia otwiera transakcje inwestycji z tylko tą jedną transakcją i wypełnionym polem ID — także gdy inwestycję zmieniono w dialogu przyjęcia (link prowadzi do inwestycji z transakcji).
-      _Staging 2026-10-06 (pass 2):_ link → /inwestycje/137?id=5397, 1 wynik; zmiany inwestycji w dialogu nie testowano.
-- [x] Czekające zgłoszenie z 3 paragonami („jedno zdjęcie = jeden paragon”) → „Zweryfikuj”: wszystkie trzy w jednym formularzu. Jeden wiersz wyrzuć koszem, zapisz → na liście „Zgłoszenia wydatków” to zgłoszenie ma 3 wiersze: dwa „przyjęty”, każdy z kwotą swojej transakcji i tylko swoim zdjęciem, i jeden „odrzucony” bez transakcji, ze zdjęciem pominiętego paragonu i z „Przywróć” (EX-1009). Kwota przyjętego wiersza otwiera transakcje inwestycji z tą jedną transakcją.
-      _Staging 2026-10-06 (pass 2):_ tryb „Kilka wydatków”: 3 pozycje w formularzu; po usunięciu jednej: 2 przyjęte (21 i 22 zł, każdy ze swoim zdjęciem) i 1 odrzucony ze zdjęciem paragon-c i „Przywróć”. Link kwoty nie klikany.
-- [x] Pracownik na swojej stronie: te same 3 wiersze; filtr „Status” startuje na „czeka”, zaznaczenie „przyjęty”/„odrzucony” pokazuje rozpatrzone.
-      _Staging 2026-10-06 (pass 2):_ domyślnie tylko „czeka”, po dodaniu „przyjęty” 3 wiersze (B, 2x QA-3) jak u kierownika (390px).
-- [x] Pulpit → „Wydatki zgłoszone przez pracowników”: tabela jak pozostałe listy, „Zweryfikuj” w pierwszej kolumnie „Podgląd”, bez kolumn „Status”, „Decyzja”, „Transakcje”; „Zweryfikuj” otwiera wypełniony „Nowy wydatek”.
-      _Staging 2026-10-06 (pass 2):_ kolumny Podgląd/Pracownik/Inwestycja/Wysłano/Załączniki/Notatka, bez Status/Decyzja/Transakcje; Zweryfikuj otwiera „Nowy wydatek” z notatką.
-- [x] Odrzucone zgłoszenie pracownika, który jest w koszu, nie jest na liście; przyjęte zgłoszenie inwestycji z kosza jest.
-      _Staging 2026-10-06 (pass 4):_ Rejected draft hidden once a party is in the kosz (kasa 53 trashed -> hidden, restored -> listed; investment QA-blokady B trashed via UI -> rejected hidden, accepted still listed; restored). Worker trash itself not exercised: every QA worker with a draft is refused (“powiązany z danymi”), so the worker clause is covered by the SQL (PARTIES_NOT_TRASHED) only.
-- [x] Pracownik na swojej stronie przy 390px: „Zgłoszone wydatki” pokazuje 10 wierszy i przełącznik stron, tabela przewija się w poziomie wewnątrz ramki; zmiana strony zgłoszeń nie zmienia adresu i nie przesuwa sekcji transakcji.
-      _Staging 2026-10-06 (pass 3, EMPLOYEE 85, 390px): filtr Status → wszystkie: 11 wyników, 10 wierszy + przełącznik stron 1/2; tabela przewija się wewnątrz ramki (scrollWidth 746 > 356, overflow auto), strona bez przewijania w bok (390/390); strona 2 → 1 wiersz, adres bez zmian, scrollY 0._
-- [x] U pracownika widać kolumny „Decyzja” i „Transakcje”, kwota nie jest linkiem; nie ma kolumny „Pracownik”. Kierownik na stronie pracownika widzi tę kwotę jako link do transakcji w inwestycji.
-      _Staging 2026-10-06 (pass 2):_ pracownik: kolumny Decyzja/Transakcje, brak Pracownik, kwota bez linku; kierownik: kwota to link /inwestycje/137?id=….
-- [x] Przy czekającym zgłoszeniu działają edycja, usunięcie i zmiana zdjęć; rozpatrzone zgłoszenie nie ma tych akcji. Kierownik na stronie pracownika widzi tę samą tabelę bez edycji i usuwania.
-      _Staging 2026-10-06 (pass 2):_ pracownik: czekające mają Edytuj+Usuń, rozpatrzone tylko podgląd; kierownik: bez edycji/usuwania. Zmiana zdjęć nie testowana.
-- [x] Pracownik z językiem Українська: nagłówki nowej tabeli są po ukraińsku (kolumna kwoty: „Транзакції”).
-      _Staging 2026-10-06 (pass 3, EMPLOYEE 85 na Українська): nagłówki „Об'єкт|Надіслано|Вкладення|Примітка|Статус|Рішення|Транзакції”; kolumna kwoty = „Транзакції”._
-- [x] Transakcje na stronie pracownika pokazują domyślnie 10 wierszy; „50” na dole przełącza na 50. Na każdej liście z „Pokaż” jest teraz opcja „10”.
-      _Staging 2026-10-06 (pass 3, EMPLOYEE 85): „Pokaż” transakcji domyślnie 10, opcje 10/20/50/100, wybór 50 → ?limit=50. Pracownik ma tylko 3 transakcje, więc różnicy w liczbie wierszy nie dało się zobaczyć._
-- [x] Pracownik na swojej stronie → „Moje inwestycje” → klik w nazwę inwestycji: otwiera się jego strona zgłoszenia prac od razu na „Inwestycja” (jego rozliczenie); „Zgłoś prace” dalej otwiera „Zgłaszam pracę”. Kierownik na stronie pracownika widzi nazwę bez linku.
-      _Staging 2026-10-06 (pass 2):_ nazwa linkuje do /z/…?view=summary (rozliczenie); kierownik widzi nazwę bez linku; „Zgłoś prace” nie klikane w tym przebiegu.
-- [x] „Zgłoszone wydatki” u pracownika: filtry „Status” i „Inwestycja” (tylko inwestycje z jego zgłoszeń) zawężają tabelę i licznik wyników, „Pokaż” zmienia liczbę wierszy (domyślnie 10); każda z tych zmian wraca na stronę 1 i nie zmienia adresu. Przy 390px oba filtry stoją obok siebie.
-      _Staging 2026-10-06 (pass 2):_ Status i Inwestycja obok siebie na 390px; filtr Status zawęża (czeka domyślnie → +przyjęty); Pokaż 10 domyślnie.
-- [x] Transakcje (kierownik): czekające zgłoszenia dalej przypięte na górze z „Zweryfikuj”, przyjęty wydatek ma plakietkę „od pracownika”; w tabeli nie ma odrzuconych zgłoszeń, w filtrach nie ma przełącznika „Zgłoszone wydatki”, a stary adres `/?workerDrafts=1` pokazuje zwykłą listę.
-      _Staging 2026-10-06 (pass 2):_ czekające na górze, 3 plakietki „od pracownika”, brak odrzuconych i przełącznika; /?workerDrafts=1 pokazuje zwykłą listę.
-- [x] Pulpit i „Zgłoszenia wydatków” → „Zweryfikuj” przy zgłoszeniu ze zdjęciami: na czas pobierania ikona zmienia się w kręcący się wskaźnik, a przycisk i kolumna nie zmieniają szerokości; pozostałe „Zweryfikuj” są w tym czasie wyłączone.
-      _Staging 2026-10-06 (pass 4):_ spinner lucide-loader-circle animate-spin, button disabled, widths unchanged (106.66/130.68). Other-Zweryfikuj-disabled not testable (single pending draft).
-
 ## 2026-10-06 — cash-register-edit-button
 
 - [x] Kasa → strona kasy: przycisk „Edytuj” ma szerokość swojej treści, tak jak na stronie pracownika i sprzętu, i dalej otwiera „Edytuj kasę”.

@@ -1,10 +1,10 @@
 ---
 change_id: worker-expense-drafts-history
 title: Historia zgłoszeń wydatków — strona menedżera i tabela na stronie pracownika
-status: implemented
+status: archived
 created: 2026-10-06
-updated: 2026-10-06
-archived_at: null
+updated: 2026-10-09
+archived_at: 2026-10-09T05:44:05Z
 branch: staging
 worktree: null
 ---
