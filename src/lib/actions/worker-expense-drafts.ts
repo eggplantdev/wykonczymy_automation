@@ -9,12 +9,14 @@ import { MAX_DRAFT_PAGES } from '@/lib/constants/worker-expense-drafts'
 import { isWorkerLiveRegister } from '@/lib/db/cash-register-gate'
 import { getDb, type DbExecutorT } from '@/lib/db/get-db'
 import { listWorkerStageInvestments } from '@/lib/db/stage-memberships'
+import { canAddExpensesWithoutInvestment } from '@/lib/db/worker-gate'
 import {
   appendExpenseDraftPages,
   countPendingDraftPages,
   decideExpenseDraft,
   deletePendingExpenseDraft,
   insertWorkerExpenseDraft,
+  isPendingDraftWithoutInvestment,
   removeExpenseDraftPage,
   restoreRejectedExpenseDraft,
   restoreSkippedReceipt,
@@ -28,7 +30,8 @@ import { noticeFailure, noticeKeyOf, type NoticeKeyT } from '@/lib/i18n/notice-f
 import type { ActionResultT } from '@/types/action'
 
 const sendDraftSchema = z.object({
-  investmentId: z.number().int().positive(pl.notices.chooseInvestment),
+  // `null` = „Bez inwestycji", gated by the worker's flag in the action.
+  investmentId: z.number().int().positive(pl.notices.chooseInvestment).nullable(),
   cashRegisterId: z.number().int().positive(pl.notices.chooseRegister),
   note: z.string().trim().max(2000, pl.notices.noteTooLong),
   scanMode: z.enum(RECEIPT_SCAN_MODES),
@@ -53,11 +56,13 @@ const addPagesSchema = z.object({
 
 async function findDraftTargetError(
   db: DbExecutorT,
-  target: { workerId: number; investmentId: number; cashRegisterId: number },
+  target: { workerId: number; investmentId: number | null; cashRegisterId: number },
 ): Promise<NoticeKeyT | undefined> {
-  const investments = await listWorkerStageInvestments(db, target.workerId)
-  if (!investments.some((investment) => investment.investmentId === target.investmentId)) {
-    return 'notOnInvestment'
+  if (target.investmentId !== null) {
+    const investments = await listWorkerStageInvestments(db, target.workerId)
+    if (!investments.some((investment) => investment.investmentId === target.investmentId)) {
+      return 'notOnInvestment'
+    }
   }
   if (!(await isWorkerLiveRegister(db, target.workerId, target.cashRegisterId))) {
     return 'notYourRegister'
@@ -74,6 +79,9 @@ export async function sendExpenseDraftAction(
   return sessionAction('sendExpenseDraftAction', async ({ payload, user: { id: workerId } }) => {
     const db = await getDb(payload)
     const { investmentId, cashRegisterId } = parsed.data
+    if (investmentId === null && !(await canAddExpensesWithoutInvestment(db, workerId))) {
+      return noticeFailure('chooseInvestment')
+    }
     const targetError = await findDraftTargetError(db, { workerId, investmentId, cashRegisterId })
     if (targetError) return noticeFailure(targetError)
 
@@ -216,6 +224,14 @@ export async function updateExpenseDraftAction(
     `updateExpenseDraftAction draft=${draftId}`,
     async ({ payload, user: { id: workerId } }) => {
       const db = await getDb(payload)
+      // A cleared flag leaves the drafts already sent without an investment editable as they are.
+      if (
+        investmentId === null &&
+        !(await canAddExpensesWithoutInvestment(db, workerId)) &&
+        !(await isPendingDraftWithoutInvestment(db, { draftId, workerId }))
+      ) {
+        return noticeFailure('chooseInvestment')
+      }
       const targetError = await findDraftTargetError(db, { workerId, investmentId, cashRegisterId })
       if (targetError) return noticeFailure(targetError)
 

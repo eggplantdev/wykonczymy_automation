@@ -87,7 +87,7 @@ export function WorkerExpenseDraftsTable({
   const investmentOptions = [
     ...new Map(drafts.map((draft) => [draft.investmentId, draft.investmentName])),
   ]
-    .map(([id, name]) => ({ value: String(id), label: name }))
+    .map(([id, name]) => ({ value: String(id), label: name ?? '' }))
     .sort((a, b) => a.label.localeCompare(b.label, 'pl'))
 
   const totalPages = Math.ceil(filtered.length / pageSize)

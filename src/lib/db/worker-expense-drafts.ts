@@ -39,8 +39,8 @@ export type ExpenseDraftRowT = {
   id: number
   workerId: number
   workerName: string
-  investmentId: number
-  investmentName: string
+  investmentId: number | null
+  investmentName: string | null
   cashRegisterId: number
   note: string | null
   status: ExpenseDraftStatusT
@@ -86,7 +86,7 @@ const DRAFT_SELECT = sql`
     ${DRAFT_TRANSFERS} AS transfers, decider.name AS decided_by_name, d.duplicate_of
   FROM worker_expense_drafts d
   JOIN users w ON w.id = d.worker_id
-  JOIN investments i ON i.id = d.investment_id
+  LEFT JOIN investments i ON i.id = d.investment_id
   LEFT JOIN users decider ON decider.id = d.decided_by
 `
 
@@ -120,8 +120,8 @@ function toDraftRow(row: Record<string, unknown>): ExpenseDraftRowT {
     id: Number(row.id),
     workerId: Number(row.worker_id),
     workerName: text(row.worker_name),
-    investmentId: Number(row.investment_id),
-    investmentName: text(row.investment_name),
+    investmentId: numOrNull(row.investment_id),
+    investmentName: textOrNull(row.investment_name),
     cashRegisterId: Number(row.cash_register_id),
     note: textOrNull(row.note),
     status: row.status as ExpenseDraftStatusT,
@@ -147,7 +147,7 @@ export async function insertWorkerExpenseDraft(
   db: DbExecutorT,
   draft: {
     workerId: number
-    investmentId: number
+    investmentId: number | null
     cashRegisterId: number
     note: string | null
     scanMode: ScanModeT
@@ -180,7 +180,8 @@ export async function insertWorkerExpenseDraft(
 // purge and prefill „Przyjmij" with a kasa nobody can book into.
 const PARTIES_NOT_TRASHED = sql`
   EXISTS (SELECT 1 FROM users u WHERE u.id = d.worker_id AND u.trashed_at IS NULL)
-  AND EXISTS (SELECT 1 FROM investments iv WHERE iv.id = d.investment_id AND iv.trashed_at IS NULL)
+  AND (d.investment_id IS NULL
+    OR EXISTS (SELECT 1 FROM investments iv WHERE iv.id = d.investment_id AND iv.trashed_at IS NULL))
   AND EXISTS (SELECT 1 FROM cash_registers c WHERE c.id = d.cash_register_id AND c.trashed_at IS NULL)
 `
 
@@ -228,7 +229,7 @@ const PARAGON_SELECT = sql`
     decider.name AS decided_by_name, pr.duplicate_of
   ${PARAGON_FROM}
   JOIN users w ON w.id = d.worker_id
-  JOIN investments i ON i.id = d.investment_id
+  LEFT JOIN investments i ON i.id = d.investment_id
   LEFT JOIN users decider ON decider.id = d.decided_by
 `
 
@@ -247,7 +248,7 @@ export async function listWorkerExpenseDrafts(
   return res.rows.map(toDraftRow)
 }
 
-const PENDING_DRAFT = sql`d.status = 'pending' AND i.trashed_at IS NULL`
+const PENDING_DRAFT = sql`d.status = 'pending' AND (d.investment_id IS NULL OR i.trashed_at IS NULL)`
 
 export async function listPendingExpenseDrafts(db: DbExecutorT): Promise<ExpenseDraftRowT[]> {
   const res = await db.execute(sql`
@@ -261,7 +262,7 @@ export async function listPendingExpenseDrafts(db: DbExecutorT): Promise<Expense
 export async function countPendingExpenseDrafts(db: DbExecutorT): Promise<number> {
   const res = await db.execute(sql`
     SELECT count(*)::int AS total
-    FROM worker_expense_drafts d JOIN investments i ON i.id = d.investment_id
+    FROM worker_expense_drafts d LEFT JOIN investments i ON i.id = d.investment_id
     WHERE ${PENDING_DRAFT}
   `)
   return Number(res.rows[0]?.total ?? 0)
@@ -453,7 +454,7 @@ export async function updatePendingExpenseDraft(
   draft: {
     draftId: number
     workerId: number
-    investmentId: number
+    investmentId: number | null
     cashRegisterId: number
     note: string | null
     scanMode: ScanModeT
@@ -617,6 +618,19 @@ export async function findDraftHeldMedia(db: DbExecutorT, mediaIds: number[]): P
     WHERE media_id IN (${sqlList(mediaIds)})
   `)
   return res.rows.map((row) => Number(row.media_id))
+}
+
+/** Whether the worker's own pending draft was sent without an investment — he may keep it so. */
+export async function isPendingDraftWithoutInvestment(
+  db: DbExecutorT,
+  draft: { draftId: number; workerId: number },
+): Promise<boolean> {
+  const res = await db.execute(sql`
+    SELECT 1 FROM worker_expense_drafts
+    WHERE id = ${draft.draftId} AND worker_id = ${draft.workerId} AND status = 'pending'
+      AND investment_id IS NULL
+  `)
+  return res.rows.length > 0
 }
 
 /** `null` when the draft is not the worker's own pending one. */

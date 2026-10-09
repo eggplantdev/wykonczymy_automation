@@ -541,8 +541,8 @@ Run **once**, after the final phase:
 
 #### Automated
 
-- [x] 1.1 Migration applies to the local dev DB
-- [x] 1.2 Types regenerate
+- [x] 1.1 Migration applies to the local dev DB — 5ee26ef07
+- [x] 1.2 Types regenerate — 5ee26ef07
 - [ ] 1.3 Worker form spec passes
 
 ### Phase 2: Draft DAL null-safety + server enforcement
