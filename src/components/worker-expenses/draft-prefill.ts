@@ -51,8 +51,8 @@ export function buildDraftPrefill(
 }
 
 /**
- * A draft without an investment is booked as „Inny wydatek", whose buyer is per row; the category
- * stays a manual pick, since nothing on the draft says what kind of cost it was.
+ * The category stays a manual pick: nothing on a draft without an investment says what kind of cost
+ * it was.
  */
 export function withDraftTarget(
   draft: Pick<ExpenseDraftRowT, 'investmentId' | 'workerId'>,

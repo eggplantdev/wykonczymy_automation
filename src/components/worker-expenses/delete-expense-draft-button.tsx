@@ -12,7 +12,7 @@ import { failureMessage } from '@/lib/i18n/failure-message'
 
 type PropsT = {
   draftId: number
-  investmentName: string | null
+  investmentName: string
 }
 
 export function DeleteExpenseDraftButton({ draftId, investmentName }: PropsT) {

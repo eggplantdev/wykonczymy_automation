@@ -4596,6 +4596,7 @@ Pracownik — wysyłka (telefon, 390px):
 - [ ] Pracownik z flagą i z inwestycjami: lista w dialogu ma jego inwestycje oraz „Bez inwestycji”, nic nie jest wybrane z góry.
 - [ ] Pracownik bez flagi: „Bez inwestycji” nie ma na liście; bez żadnej inwestycji przycisku „Wydatek” nie ma wcale.
 - [ ] Po odznaczeniu flagi przez kierownika: istniejące zgłoszenie „Bez inwestycji” nadal da się edytować i zapisać z tą opcją, a nowe zgłoszenie już jej nie oferuje.
+- [ ] Pracownik wysłał zgłoszenie z „Bez inwestycji” (albo z drugiej kasy), potem kierownik zdjął flagę (albo kasę) i pracownik odświeżył stronę: ponowne „Wydatek” nie pamięta znikniętego wyboru — „Wyślij” jest nieaktywne do wyboru inwestycji, a z jedną kasą zgłoszenie idzie na nią bez komunikatu „To nie jest Twoja kasa”.
 - [ ] Lista „Zgłoszone wydatki” pracownika: filtr „Inwestycja” ma pozycję „Bez inwestycji” i zawęża do takich zgłoszeń; „Usuń” takiego zgłoszenia pyta o „Bez inwestycji”.
 - [ ] Pracownik z językiem Українська: opcja i kolumna brzmią „Без об'єкта”.
 

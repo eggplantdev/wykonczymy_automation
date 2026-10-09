@@ -20,6 +20,7 @@ import {
 import type { DuplicateOfT } from '@/lib/expense-duplicates/duplicate-of'
 import { findExpenseDraftDuplicates } from '@/lib/queries/expense-draft-duplicates'
 import { DEFAULT_EXPENSE_CATEGORY_NAME } from '@/lib/constants/transfers'
+import { pl } from '@/lib/i18n/dictionaries/pl'
 import type { ExpenseDraftMediaT, ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 import { sameItems } from '@/lib/utils/same-items'
 import { settleAction } from '@/lib/utils/settle-action'
@@ -235,7 +236,8 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
         open={rejecting !== undefined}
         title="Odrzucić zgłoszenie?"
         description={
-          rejecting && `${rejecting.workerName} · ${rejecting.investmentName ?? 'Bez inwestycji'}`
+          rejecting &&
+          `${rejecting.workerName} · ${rejecting.investmentName ?? pl.expenseDrafts.noInvestment}`
         }
         confirmLabel="Odrzuć"
         onConfirm={() => rejecting && handleReject(rejecting.id)}

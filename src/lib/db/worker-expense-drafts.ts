@@ -248,7 +248,7 @@ export async function listWorkerExpenseDrafts(
   return res.rows.map(toDraftRow)
 }
 
-const PENDING_DRAFT = sql`d.status = 'pending' AND (d.investment_id IS NULL OR i.trashed_at IS NULL)`
+const PENDING_DRAFT = sql`d.status = 'pending' AND i.trashed_at IS NULL`
 
 export async function listPendingExpenseDrafts(db: DbExecutorT): Promise<ExpenseDraftRowT[]> {
   const res = await db.execute(sql`
@@ -620,7 +620,6 @@ export async function findDraftHeldMedia(db: DbExecutorT, mediaIds: number[]): P
   return res.rows.map((row) => Number(row.media_id))
 }
 
-/** Whether the worker's own pending draft was sent without an investment — he may keep it so. */
 export async function isPendingDraftWithoutInvestment(
   db: DbExecutorT,
   draft: { draftId: number; workerId: number },

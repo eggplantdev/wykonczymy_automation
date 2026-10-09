@@ -40,7 +40,6 @@ type PropsT = {
   investments: InvestmentOptionT[]
   registers: CashRegisterRefT[]
   defaultRegisterId?: number
-  /** The worker's flag: he may send a wydatek that belongs to no investment. */
   canSkipInvestment: boolean
   draft?: ExpenseDraftRowT
   triggerClassName?: string
@@ -57,14 +56,6 @@ function draftInvestmentId(draft: ExpenseDraftRowT) {
   return draft.investmentId === null ? NO_INVESTMENT : String(draft.investmentId)
 }
 
-function initialInvestmentId(investments: InvestmentOptionT[], canSkipInvestment: boolean) {
-  const options = [
-    ...investments.map((investment) => String(investment.investmentId)),
-    ...(canSkipInvestment ? [NO_INVESTMENT] : []),
-  ]
-  return options.length === 1 ? (options[0] ?? '') : ''
-}
-
 export function ExpenseDraftDialog({
   investments,
   registers,
@@ -75,9 +66,16 @@ export function ExpenseDraftDialog({
 }: PropsT) {
   const router = useRouter()
   const { locale, t } = useTranslation('expenseDrafts')
+  // Unflagged since he sent it: the draft keeps its „Bez inwestycji", which the server allows too.
+  const isNoInvestmentOffered = canSkipInvestment || draft?.investmentId === null
+  const offeredIds = [
+    ...investments.map((investment) => String(investment.investmentId)),
+    ...(isNoInvestmentOffered ? [NO_INVESTMENT] : []),
+  ]
+  const onlyOfferedId = offeredIds.length === 1 ? (offeredIds[0] ?? '') : ''
   const [open, setOpen] = useState(false)
   const [investmentId, setInvestmentId] = useState(() =>
-    draft ? draftInvestmentId(draft) : initialInvestmentId(investments, canSkipInvestment),
+    draft ? draftInvestmentId(draft) : onlyOfferedId,
   )
   const [cashRegisterId, setCashRegisterId] = useState(() =>
     draft ? String(draft.cashRegisterId) : initialRegisterId(registers, defaultRegisterId),
@@ -88,8 +86,6 @@ export function ExpenseDraftDialog({
   const [isSending, setIsSending] = useState(false)
   const { files, isIngesting, inputKey, reset, fileInputProps } = useFilePickIngest()
 
-  // Unflagged since he sent it: the draft keeps its „Bez inwestycji", which the server allows too.
-  const isNoInvestmentOffered = canSkipInvestment || draft?.investmentId === null
   const photoCount = draft ? draft.media.length : files.length
   const isScanModeShown = photoCount >= 2
   // The server refuses the same count, but only after every photo went up over the phone's data.
@@ -118,6 +114,13 @@ export function ExpenseDraftDialog({
       setCashRegisterId(String(draft.cashRegisterId))
       setNote(draft.note ?? '')
       setScanMode(savedScanMode)
+    } else {
+      // A pick kept from the last send can vanish under a refresh (flag cleared, investment or kasa
+      // gone) while „Wyślij" still counts it as chosen — and a lone kasa has no select to fix it in.
+      if (!offeredIds.includes(investmentId)) setInvestmentId(onlyOfferedId)
+      if (!registers.some((register) => String(register.id) === cashRegisterId)) {
+        setCashRegisterId(initialRegisterId(registers, defaultRegisterId))
+      }
     }
     setOpen(true)
   }

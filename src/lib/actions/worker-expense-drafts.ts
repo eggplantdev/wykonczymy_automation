@@ -30,7 +30,6 @@ import { noticeFailure, noticeKeyOf, type NoticeKeyT } from '@/lib/i18n/notice-f
 import type { ActionResultT } from '@/types/action'
 
 const sendDraftSchema = z.object({
-  // `null` = „Bez inwestycji", gated by the worker's flag in the action.
   investmentId: z.number().int().positive(pl.notices.chooseInvestment).nullable(),
   cashRegisterId: z.number().int().positive(pl.notices.chooseRegister),
   note: z.string().trim().max(2000, pl.notices.noteTooLong),
@@ -56,9 +55,24 @@ const addPagesSchema = z.object({
 
 async function findDraftTargetError(
   db: DbExecutorT,
-  target: { workerId: number; investmentId: number | null; cashRegisterId: number },
+  target: {
+    workerId: number
+    investmentId: number | null
+    cashRegisterId: number
+    draftId?: number
+  },
 ): Promise<NoticeKeyT | undefined> {
-  if (target.investmentId !== null) {
+  if (target.investmentId === null) {
+    // A cleared flag leaves the drafts already sent without an investment editable as they are.
+    const isAllowed =
+      (await canAddExpensesWithoutInvestment(db, target.workerId)) ||
+      (target.draftId !== undefined &&
+        (await isPendingDraftWithoutInvestment(db, {
+          draftId: target.draftId,
+          workerId: target.workerId,
+        })))
+    if (!isAllowed) return 'chooseInvestment'
+  } else {
     const investments = await listWorkerStageInvestments(db, target.workerId)
     if (!investments.some((investment) => investment.investmentId === target.investmentId)) {
       return 'notOnInvestment'
@@ -79,9 +93,6 @@ export async function sendExpenseDraftAction(
   return sessionAction('sendExpenseDraftAction', async ({ payload, user: { id: workerId } }) => {
     const db = await getDb(payload)
     const { investmentId, cashRegisterId } = parsed.data
-    if (investmentId === null && !(await canAddExpensesWithoutInvestment(db, workerId))) {
-      return noticeFailure('chooseInvestment')
-    }
     const targetError = await findDraftTargetError(db, { workerId, investmentId, cashRegisterId })
     if (targetError) return noticeFailure(targetError)
 
@@ -224,15 +235,12 @@ export async function updateExpenseDraftAction(
     `updateExpenseDraftAction draft=${draftId}`,
     async ({ payload, user: { id: workerId } }) => {
       const db = await getDb(payload)
-      // A cleared flag leaves the drafts already sent without an investment editable as they are.
-      if (
-        investmentId === null &&
-        !(await canAddExpensesWithoutInvestment(db, workerId)) &&
-        !(await isPendingDraftWithoutInvestment(db, { draftId, workerId }))
-      ) {
-        return noticeFailure('chooseInvestment')
-      }
-      const targetError = await findDraftTargetError(db, { workerId, investmentId, cashRegisterId })
+      const targetError = await findDraftTargetError(db, {
+        workerId,
+        investmentId,
+        cashRegisterId,
+        draftId,
+      })
       if (targetError) return noticeFailure(targetError)
 
       const { isUpdated, isScanModeChanged } = await updatePendingExpenseDraft(db, {

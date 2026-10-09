@@ -1,8 +1,6 @@
 import { type MigrateUpArgs, type MigrateDownArgs, sql } from '@payloadcms/db-vercel-postgres'
 
 // Hand-written (migrate:create's snapshot baseline is stale — see AGENTS.md).
-// A flagged worker sends a wydatek with no investment, booked as „Inny wydatek" on acceptance.
-//
 // Additive — every existing account gets `false` and every existing draft keeps its investment, so
 // this goes to production BEFORE the code that sends a draft without one.
 export async function up({ db }: MigrateUpArgs): Promise<void> {
@@ -13,7 +11,8 @@ export async function up({ db }: MigrateUpArgs): Promise<void> {
   `)
 }
 
-// Lossy: a draft without an investment cannot survive NOT NULL, so it is deleted with its pages.
+// Lossy: a draft without an investment cannot survive NOT NULL, so it is deleted with its pages —
+// an accepted one loses its link to the booked transfer, and its receipts stay unreferenced.
 export async function down({ db }: MigrateDownArgs): Promise<void> {
   await db.execute(sql`
     DELETE FROM "worker_expense_drafts" WHERE "investment_id" IS NULL;

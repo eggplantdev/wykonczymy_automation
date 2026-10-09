@@ -71,6 +71,7 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
     name: string,
     owner: { workerId: number; registerId: number },
     pageCount = 1,
+    onInvestment: number | null = investmentId,
   ): Promise<{ draftId: number; mediaIds: number[] }> {
     const mediaIds: number[] = []
     for (let page = 0; page < pageCount; page++) {
@@ -78,7 +79,7 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
     }
     const draftId = await insertWorkerExpenseDraft(db, {
       workerId: owner.workerId,
-      investmentId,
+      investmentId: onInvestment,
       cashRegisterId: owner.registerId,
       note: 'przed',
       scanMode: 'one-invoice',
@@ -88,8 +89,19 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
     return { draftId, mediaIds }
   }
 
-  const ownDraft = (name: string, pageCount?: number) =>
-    createDraft(name, { workerId, registerId }, pageCount)
+  const ownDraft = (name: string, pageCount?: number, onInvestment?: number | null) =>
+    createDraft(name, { workerId, registerId }, pageCount, onInvestment)
+
+  const send = async (
+    name: string,
+    target: { investmentId: number | null; cashRegisterId: number },
+  ) =>
+    sendExpenseDraftAction({
+      ...target,
+      note: '',
+      scanMode: 'one-invoice',
+      mediaIds: [await insertMedia(name, workerId)],
+    })
 
   const readDraft = async (draftId: number) =>
     (
@@ -181,14 +193,6 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
   })
 
   describe('the target a draft is sent to', () => {
-    const send = async (name: string, target: { investmentId: number; cashRegisterId: number }) =>
-      sendExpenseDraftAction({
-        ...target,
-        note: '',
-        scanMode: 'one-invoice',
-        mediaIds: [await insertMedia(name, workerId)],
-      })
-
     it('sends to his own live kasa on an investment he works on', async () => {
       const result = await send('send-ok', { investmentId, cashRegisterId: registerId })
 
@@ -269,22 +273,14 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
     })
   })
 
-  // „Bez inwestycji": the flag is read live, and it gates only a new choice — never a draft already
-  // sent without one.
   describe('a draft without an investment', () => {
     const setFlag = (isFlagged: boolean) =>
       db.execute(sql`
         UPDATE users SET can_add_expenses_without_investment = ${isFlagged} WHERE id = ${workerId}
       `)
 
-    const sendWithout = async (name: string, cashRegisterId = registerId) =>
-      sendExpenseDraftAction({
-        investmentId: null,
-        cashRegisterId,
-        note: '',
-        scanMode: 'one-invoice',
-        mediaIds: [await insertMedia(name, workerId)],
-      })
+    const sendWithout = (name: string, cashRegisterId = registerId) =>
+      send(name, { investmentId: null, cashRegisterId })
 
     const editTo = (draftId: number, investmentId: number | null) =>
       updateExpenseDraftAction({
@@ -294,19 +290,6 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
         note: 'po',
         scanMode: 'one-invoice',
       })
-
-    async function noInvestmentDraft(name: string): Promise<number> {
-      const draftId = await insertWorkerExpenseDraft(db, {
-        workerId,
-        investmentId: null,
-        cashRegisterId: registerId,
-        note: 'przed',
-        scanMode: 'one-invoice',
-        mediaIds: [await insertMedia(name, workerId)],
-      })
-      if (draftId === null) throw new Error('draft fixture refused')
-      return draftId
-    }
 
     beforeEach(() => setFlag(false))
     afterAll(() => setFlag(false))
@@ -346,7 +329,7 @@ describe.skipIf(!ENV_READY)('worker expense draft writes (DB)', () => {
     })
 
     it('an unflagged worker may keep a draft he sent without an investment as it is', async () => {
-      const draftId = await noInvestmentDraft('none-keep')
+      const { draftId } = await ownDraft('none-keep', 1, null)
 
       expect(await editTo(draftId, null)).toEqual({ success: true })
       expect(await readDraft(draftId)).toMatchObject({ note: 'po', investment_id: null })

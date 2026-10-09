@@ -29,6 +29,10 @@ vi.mock('@/components/worker-expenses/expense-draft-pages-cell', () => ({
 }))
 
 const INVESTMENTS = [{ investmentId: 1, name: 'Mokotów' }] as WorkerStageInvestmentT[]
+const TWO_INVESTMENTS = [
+  ...INVESTMENTS,
+  { investmentId: 2, name: 'Wola' },
+] as WorkerStageInvestmentT[]
 const REGISTERS = [{ id: 3, name: 'Kasa Jana', active: true }] as never
 
 const noInvestmentDraft: ExpenseDraftRowT = {
@@ -60,11 +64,9 @@ beforeEach(() => {
 
 describe('ExpenseDraftDialog „Bez inwestycji”', () => {
   it('offers it beside the investments to a flagged worker, picking neither', async () => {
-    const investments = [
-      ...INVESTMENTS,
-      { investmentId: 2, name: 'Wola' },
-    ] as WorkerStageInvestmentT[]
-    render(<ExpenseDraftDialog investments={investments} registers={REGISTERS} canSkipInvestment />)
+    render(
+      <ExpenseDraftDialog investments={TWO_INVESTMENTS} registers={REGISTERS} canSkipInvestment />,
+    )
     await userEvent.click(screen.getByRole('button', { name: 'Wydatek' }))
 
     expect(screen.getByRole('combobox')).toHaveTextContent('Wybierz inwestycję')
@@ -76,9 +78,7 @@ describe('ExpenseDraftDialog „Bez inwestycji”', () => {
   it('does not offer it to an unflagged worker', async () => {
     render(
       <ExpenseDraftDialog
-        investments={
-          [...INVESTMENTS, { investmentId: 2, name: 'Wola' }] as WorkerStageInvestmentT[]
-        }
+        investments={TWO_INVESTMENTS}
         registers={REGISTERS}
         canSkipInvestment={false}
       />,
@@ -105,7 +105,66 @@ describe('ExpenseDraftDialog „Bez inwestycji”', () => {
     )
   })
 
-  // Unflagged after he sent it: the draft keeps the option it was sent with.
+  it('drops the pick kept from the last send once the flag is cleared', async () => {
+    const { rerender } = render(
+      <ExpenseDraftDialog investments={TWO_INVESTMENTS} registers={REGISTERS} canSkipInvestment />,
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Wydatek' }))
+    await openInvestmentSelect()
+    await userEvent.click(screen.getByRole('option', { name: 'Bez inwestycji' }))
+    await userEvent.keyboard('{Escape}')
+
+    rerender(
+      <ExpenseDraftDialog
+        investments={TWO_INVESTMENTS}
+        registers={REGISTERS}
+        canSkipInvestment={false}
+      />,
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Wydatek' }))
+    const input = document.querySelector<HTMLInputElement>('input[type="file"]')!
+    await userEvent.upload(input, new File(['x'], 'p.jpg', { type: 'image/jpeg' }))
+
+    expect(screen.getByRole('combobox')).toHaveTextContent('Wybierz inwestycję')
+    expect(screen.getByRole('button', { name: 'Wyślij' })).toBeDisabled()
+  })
+
+  it('drops a kasa kept from the last send once it is gone', async () => {
+    const twoRegisters = [
+      { id: 3, name: 'Kasa Jana', active: true },
+      { id: 4, name: 'Kasa druga', active: true },
+    ] as never
+    const { rerender } = render(
+      <ExpenseDraftDialog
+        investments={INVESTMENTS}
+        registers={twoRegisters}
+        canSkipInvestment={false}
+      />,
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Wydatek' }))
+    await userEvent.click(screen.getAllByRole('combobox')[1]!)
+    await userEvent.click(screen.getByRole('option', { name: 'Kasa druga' }))
+    await userEvent.keyboard('{Escape}')
+
+    rerender(
+      <ExpenseDraftDialog
+        investments={INVESTMENTS}
+        registers={REGISTERS}
+        canSkipInvestment={false}
+      />,
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Wydatek' }))
+    const input = document.querySelector<HTMLInputElement>('input[type="file"]')!
+    await userEvent.upload(input, new File(['x'], 'p.jpg', { type: 'image/jpeg' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Wyślij' }))
+
+    await waitFor(() =>
+      expect(sendExpenseDraftAction).toHaveBeenCalledWith(
+        expect.objectContaining({ cashRegisterId: 3 }),
+      ),
+    )
+  })
+
   it('keeps it selected when an unflagged worker edits a draft without an investment', async () => {
     render(
       <ExpenseDraftDialog
