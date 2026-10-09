@@ -4928,6 +4928,8 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
 - [ ] W kolumnie „Komentarz” pozycji ze szkicu AI nie ma tekstów „AI: …” — Komentarz zostaje dla
       ludzi; widok „Oferta” nie pokazuje „Komentarza AI”.
 - [ ] Zwykły kosztorys (bez szkicu AI): brak kolumny „Komentarz AI”.
+- [ ] Kosztorys ze szkicem AI → przywróć wcześniejszą wersję z historii: „Komentarz AI” pozycji
+      wraca razem z nią, nie znika.
 
 ## EX-1032 — company-knowledge — „Manual Wykończymy” w górnym pasku
 
