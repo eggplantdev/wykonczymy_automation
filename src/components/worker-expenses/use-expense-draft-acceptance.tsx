@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { FormDialog } from '@/components/ui/form-dialog'
-import { buildDraftPrefill } from '@/components/worker-expenses/draft-prefill'
+import { buildDraftPrefill, withDraftTarget } from '@/components/worker-expenses/draft-prefill'
 import { OpenExpenseDraftButton } from '@/components/worker-expenses/open-expense-draft-button'
 import {
   ExpenseDraftDuplicateHints,
@@ -76,14 +76,12 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
       files: rowFiles,
       values: {
         date: warsawToday(),
-        type: 'INVESTMENT_EXPENSE',
         paymentMethod: 'CASH',
         sourceRegister: String(draft.cashRegisterId),
         targetRegister: '',
-        investment: String(draft.investmentId),
         worker: '',
         settled: false,
-        lineItems,
+        ...withDraftTarget(draft, lineItems),
       },
     }
   }
@@ -236,7 +234,9 @@ export function useExpenseDraftAcceptance(referenceData: ReferenceDataT) {
       <ConfirmDialog
         open={rejecting !== undefined}
         title="Odrzucić zgłoszenie?"
-        description={rejecting && `${rejecting.workerName} · ${rejecting.investmentName}`}
+        description={
+          rejecting && `${rejecting.workerName} · ${rejecting.investmentName ?? 'Bez inwestycji'}`
+        }
         confirmLabel="Odrzuć"
         onConfirm={() => rejecting && handleReject(rejecting.id)}
         onCancel={() => setRejecting(undefined)}

@@ -2,6 +2,7 @@ import { receiptToLineItemValues } from '@/components/forms/expense-form/apply-r
 import {
   makeLineItem,
   type BulkExpenseFormValuesT,
+  type BulkLineItemT,
 } from '@/components/forms/expense-form/bulk-expense-form'
 import type { ExpenseDraftRowT } from '@/lib/db/worker-expense-drafts'
 import { renamePages } from '@/lib/utils/receipt-filename'
@@ -47,4 +48,23 @@ export function buildDraftPrefill(
   })
 
   return { lineItems, files: rowFiles, receiptMediaIds }
+}
+
+/**
+ * A draft without an investment is booked as „Inny wydatek", whose buyer is per row; the category
+ * stays a manual pick, since nothing on the draft says what kind of cost it was.
+ */
+export function withDraftTarget(
+  draft: Pick<ExpenseDraftRowT, 'investmentId' | 'workerId'>,
+  lineItems: BulkLineItemT[],
+): Pick<BulkExpenseFormValuesT, 'type' | 'investment' | 'lineItems'> {
+  if (draft.investmentId !== null) {
+    return { type: 'INVESTMENT_EXPENSE', investment: String(draft.investmentId), lineItems }
+  }
+  const worker = String(draft.workerId)
+  return {
+    type: 'OTHER',
+    investment: '',
+    lineItems: lineItems.map((lineItem) => ({ ...lineItem, worker })),
+  }
 }
