@@ -43,7 +43,7 @@ export function CompanyKnowledgeButton({
     <>
       <Button variant="outline" size="sm" className={className} onClick={openBook}>
         <BookOpen />
-        Wiedza firmowa
+        Manual Wykończymy
       </Button>
       <CompanyKnowledgeDialog open={open} onOpenChange={setOpen} entries={entries} />
     </>

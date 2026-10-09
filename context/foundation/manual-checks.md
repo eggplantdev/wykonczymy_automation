@@ -4929,9 +4929,9 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
       ludzi; widok „Oferta” nie pokazuje „Komentarza AI”.
 - [ ] Zwykły kosztorys (bez szkicu AI): brak kolumny „Komentarz AI”.
 
-## EX-1032 — company-knowledge — „Wiedza firmowa” w górnym pasku
+## EX-1032 — company-knowledge — „Manual Wykończymy” w górnym pasku
 
-- [ ] Desktop, OWNER lub MANAGER: przycisk „Wiedza firmowa” jest w górnym pasku na każdej stronie
+- [ ] Desktop, OWNER lub MANAGER: przycisk „Manual Wykończymy” jest w górnym pasku na każdej stronie
       (transakcje, katalog prac, edytor kosztorysu). Kliknięcie pokazuje wpisy startowe, pierwszy to
       „Wysokość pomieszczeń, gdy rysunek jej nie podaje”.
 - [ ] Przeciągnij wpis za uchwyt w inne miejsce: kolejność zostaje po przeładowaniu strony, a
@@ -4943,12 +4943,18 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
 - [ ] Dodaj wpis: „Zapisz” czeka na odpowiedź serwera, potem wpis pojawia się na górze. Zmień jego
       treść, potem usuń go po potwierdzeniu — te dwa kroki widać od razu. Każdy zostaje po przeładowaniu.
 - [ ] „Zapisz” jest nieaktywne, dopóki temat albo treść są puste (same spacje też).
-- [ ] Telefon, 390px: menu → „Wiedza firmowa” zamyka menu i otwiera okno na cały ekran; tekst czytelny,
+- [ ] Telefon, 390px: menu → „Manual Wykończymy” zamyka menu i otwiera okno na cały ekran; tekst czytelny,
       przyciski osiągalne. Górny pasek nie pokazuje drugiego przycisku.
 - [ ] Jako EMPLOYEE: brak przycisku w górnym pasku i w menu mobilnym.
 - [ ] `dump-knowledge-prod.ts` dla przypadku (sesja produkcyjna): `inputs/wiedza-firmowa.md` ma
       każdy wpis z okna w tej samej kolejności i każdy Komentarz do pracy z katalogu. Wpis dodany w
       oknie pojawia się po kolejnym uruchomieniu.
+- [ ] Okno „Manual Wykończymy”: pod tytułem opis „Zasady firmy — wszystko, co AI musi wiedzieć…,
+      np.:”, a pod nim w osobnych liniach przykład z wysokością pomieszczeń (stan deweloperski
+      i rynek wtórny jako dwa punkty z myślnikiem).
+- [ ] Po migracji na świeżej bazie (produkcja): wpisy „Wysokość pomieszczeń…”, „Otwory w glazurze…”,
+      „Glazura…”, „Malowanie i gładź” i „Szlifowanie płytek na 45°” wyświetlają się w punktach,
+      każdy punkt w osobnej linii.
 
 ## 2026-10-09 — investments-listing-ai-draft-column — „Analiza AI” na liście inwestycji
 

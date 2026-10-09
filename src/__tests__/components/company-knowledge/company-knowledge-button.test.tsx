@@ -46,7 +46,7 @@ const grips = () => document.querySelectorAll('.lucide-grip-vertical')
 async function openBook() {
   const user = userEvent.setup()
   render(<CompanyKnowledgeButton />)
-  await user.click(screen.getByRole('button', { name: 'Wiedza firmowa' }))
+  await user.click(screen.getByRole('button', { name: 'Manual Wykończymy' }))
   await screen.findByRole('dialog')
   return user
 }

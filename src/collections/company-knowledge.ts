@@ -8,7 +8,7 @@ export const CompanyKnowledge: CollectionConfig = {
   slug: 'company-knowledge',
   labels: {
     singular: { en: 'Company knowledge entry', pl: 'Wpis wiedzy firmowej' },
-    plural: { en: 'Company knowledge', pl: 'Wiedza firmowa' },
+    plural: { en: 'Company knowledge', pl: 'Manual Wykończymy' },
   },
   admin: {
     useAsTitle: 'topic',
