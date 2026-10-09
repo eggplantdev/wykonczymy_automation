@@ -24,7 +24,10 @@ import type { DbExecutorT } from './get-db'
 // `clientTotalsFromSubtotals` reads only `net` and `discount` — the rounded fields of
 // `sectionSubtotalsForView` (share, completionRatio) belong to other consumers.
 
-export type KosztorysClientTotalsRowT = KosztorysClientTotalsT & { investmentId: number }
+export type KosztorysClientTotalsRowT = KosztorysClientTotalsT & {
+  investmentId: number
+  hasAiDraft: boolean
+}
 
 const num = (v: unknown): number => Number(v ?? 0)
 
@@ -42,6 +45,7 @@ export async function selectKosztorysClientTotals(
         ki.client_price,
         ki.discount_type,
         ki.discount_value,
+        ki.ai_planned_qty,
         -- „Pomiar z natury" IS the etap sum (EX-494).
         coalesce(q.qty, 0) AS qty
       FROM kosztorys_items ki
@@ -54,6 +58,7 @@ export async function selectKosztorysClientTotals(
     priced AS (
       SELECT
         iq.investment_id,
+        iq.ai_planned_qty,
         iq.qty * iq.client_price AS gross,
         CASE
           -- netForQtyForView: zero quantity is worth zero. Without this an 'amount' rabat turns an
@@ -83,7 +88,10 @@ export async function selectKosztorysClientTotals(
       -- to, because the identity has to hold in both languages.
       sum(gross) AS labor_costs_net_from_kosztorys,
       sum(gross - net) + global_discount AS discount_net_from_kosztorys,
-      global_discount AS global_discount_net
+      global_discount AS global_discount_net,
+      -- The SQL twin of hasAiDraft (review-status.ts): NULL on every row means no draft was loaded.
+      -- An AI przedmiar of 0 still counts — the agent saw that praca and left it out.
+      bool_or(ai_planned_qty IS NOT NULL) AS has_ai_draft
     FROM priced
     -- global_discount is per investment, so grouping by it adds no groups — it just makes the column
     -- selectable without wrapping a constant in an aggregate.
@@ -96,5 +104,6 @@ export async function selectKosztorysClientTotals(
     laborCostsNetFromKosztorys: num(row.labor_costs_net_from_kosztorys),
     discountNetFromKosztorys: num(row.discount_net_from_kosztorys),
     globalDiscountNet: num(row.global_discount_net),
+    hasAiDraft: row.has_ai_draft === true,
   }))
 }

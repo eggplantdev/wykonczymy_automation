@@ -66,6 +66,8 @@ export type InvestmentRowT = {
    *  the figure, or a zero-progress kosztorys would hide its real −wypłaty; the trash button reads
    *  it too. */
   hasKosztorys: boolean
+  /** An agent draft was loaded into the kosztorys — the listing's twin of the editor's `hasAiDraft`. */
+  hasAiDraft: boolean
   // No column renders these — the whole row is handed to EditInvestmentDialog, whose form needs
   // them. `vatRate` is the exception that also prices `balanceGross`.
   materialsNetRate: number | null

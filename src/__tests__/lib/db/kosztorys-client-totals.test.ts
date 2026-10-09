@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Payload } from 'payload'
 import { getDb } from '@/lib/db/get-db'
 import { selectKosztorysClientTotals } from '@/lib/db/kosztorys-client-totals'
+import { hasAiDraft } from '@/lib/kosztorys/review-status'
 import { kosztorysClientTotals } from '@/lib/kosztorys/settlement-client-totals'
 import { treeToRows } from '@/lib/kosztorys/v2-rows'
 import { buildKosztorysTree } from '@/lib/queries/kosztorys'
@@ -26,13 +27,18 @@ async function tsTotals(investmentId: number) {
   return kosztorysClientTotals(treeToRows(tree), tree.stages, tree.globalDiscount)
 }
 
+async function tsHasAiDraft(investmentId: number) {
+  return hasAiDraft(treeToRows(await buildKosztorysTree(investmentId)))
+}
+
 describe.skipIf(!ENV_READY)('selectKosztorysClientTotals (DB)', () => {
   let payload: Payload
   let db: Awaited<ReturnType<typeof getDb>>
 
   // perItem: every discount branch at once. global: the same rows under an active global rabat, which
-  // must suppress all of them. bare: no items at all.
-  const created = { perItem: 0, global: 0, bare: 0 }
+  // must suppress all of them. bare: no items at all. aiDraft: an agent draft whose only AI przedmiar
+  // is 0 — the edge where `IS NOT NULL` and a truthiness check disagree.
+  const created = { perItem: 0, global: 0, bare: 0, aiDraft: 0 }
 
   async function seedItems(investmentId: number) {
     await createKosztorysTree(payload, investmentId, {
@@ -90,7 +96,7 @@ describe.skipIf(!ENV_READY)('selectKosztorysClientTotals (DB)', () => {
     payload = await getPayload({ config })
     db = await getDb(payload)
 
-    for (const key of ['perItem', 'global', 'bare'] as const) {
+    for (const key of ['perItem', 'global', 'bare', 'aiDraft'] as const) {
       created[key] = await createTestInvestment(payload, `totals-${key}-${Date.now()}`)
     }
 
@@ -101,6 +107,17 @@ describe.skipIf(!ENV_READY)('selectKosztorysClientTotals (DB)', () => {
       id: created.global,
       data: { globalDiscountType: 'amount', globalDiscountValue: 900 },
       context: { skipRevalidation: true },
+    })
+    await createKosztorysTree(payload, created.aiDraft, {
+      sections: [
+        {
+          name: 'Sekcja AI',
+          items: [
+            { description: 'pominięta przez AI', plannedQty: 0, clientPrice: 100, aiPlannedQty: 0 },
+            { description: 'dopisana ręcznie', plannedQty: 3, clientPrice: 50 },
+          ],
+        },
+      ],
     })
   })
 
@@ -158,5 +175,17 @@ describe.skipIf(!ENV_READY)('selectKosztorysClientTotals (DB)', () => {
     // Absence is what the read-switch's fallback keys on: a zero row would claim the kosztorys says
     // the robocizna is 0 zł, and the listing would show that instead of the transactions figure.
     expect(await sqlTotalsFor(created.bare)).toBeUndefined()
+  })
+
+  it('flags an AI draft exactly where the editor does', async () => {
+    const [draftRow, plainRow] = await Promise.all([
+      sqlTotalsFor(created.aiDraft),
+      sqlTotalsFor(created.perItem),
+    ])
+
+    expect(draftRow!.hasAiDraft).toBe(await tsHasAiDraft(created.aiDraft))
+    expect(plainRow!.hasAiDraft).toBe(await tsHasAiDraft(created.perItem))
+    expect(draftRow!.hasAiDraft).toBe(true)
+    expect(plainRow!.hasAiDraft).toBe(false)
   })
 })

@@ -26,6 +26,7 @@ const kosztorysTotals: KosztorysClientTotalsMapT = {
     laborCostsNetFromKosztorys: 5000,
     discountNetFromKosztorys: 500,
     globalDiscountNet: 0,
+    hasAiDraft: false,
   },
 }
 
@@ -76,6 +77,7 @@ describe('shapeInvestments', () => {
           laborCostsNetFromKosztorys: 3900,
           discountNetFromKosztorys: 0,
           globalDiscountNet: 0,
+          hasAiDraft: false,
         },
       },
       NO_MAP,
@@ -217,6 +219,7 @@ describe('shapeInvestments', () => {
           laborCostsNetFromKosztorys: 3900,
           discountNetFromKosztorys: 0,
           globalDiscountNet: 0,
+          hasAiDraft: false,
         },
       },
       NO_MAP,
@@ -255,6 +258,7 @@ describe('shapeInvestments', () => {
           laborCostsNetFromKosztorys: 270951,
           discountNetFromKosztorys: 100000,
           globalDiscountNet: 100000,
+          hasAiDraft: false,
         },
       },
       NO_MAP,
@@ -292,6 +296,7 @@ describe('shapeInvestments', () => {
           laborCostsNetFromKosztorys: 1000,
           discountNetFromKosztorys: 0,
           globalDiscountNet: 0,
+          hasAiDraft: false,
         },
       },
       NO_MAP,
@@ -443,6 +448,7 @@ describe('shapeInvestments robocizna source', () => {
           laborCostsNetFromKosztorys: 0,
           discountNetFromKosztorys: 0,
           globalDiscountNet: 0,
+          hasAiDraft: false,
         },
       },
       NO_MAP,
@@ -473,6 +479,24 @@ describe('shapeInvestments robocizna source', () => {
     expect(
       shapeInvestments([{ ...baseInv, id: 6 }], {}, kosztorysTotals, NO_MAP, NO_DEPOSITS)[0]
         .hasKosztorys,
+    ).toBe(false)
+  })
+
+  it('carries the AI-draft flag from the entry, and reads no entry as no draft', () => {
+    const withDraft: KosztorysClientTotalsMapT = {
+      '5': { ...kosztorysTotals['5'], hasAiDraft: true },
+    }
+
+    expect(
+      shapeInvestments([baseInv], transactionFinancials, withDraft, NO_MAP, NO_DEPOSITS)[0]
+        .hasAiDraft,
+    ).toBe(true)
+    expect(
+      shapeInvestments([baseInv], transactionFinancials, kosztorysTotals, NO_MAP, NO_DEPOSITS)[0]
+        .hasAiDraft,
+    ).toBe(false)
+    expect(
+      shapeInvestments([{ ...baseInv, id: 6 }], {}, withDraft, NO_MAP, NO_DEPOSITS)[0].hasAiDraft,
     ).toBe(false)
   })
 })
@@ -622,6 +646,7 @@ describe('shapeInvestments wpłaty', () => {
       laborCostsNetFromKosztorys: 10_000,
       discountNetFromKosztorys: 0,
       globalDiscountNet: 0,
+      hasAiDraft: false,
     },
   }
 

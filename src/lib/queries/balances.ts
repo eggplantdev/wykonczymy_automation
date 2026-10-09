@@ -4,14 +4,16 @@ import config from '@payload-config'
 import { CACHE_TAGS } from '@/lib/cache/tags'
 import { getDb, type DbExecutorT } from '@/lib/db/get-db'
 import { selectDepositPlaneSums } from '@/lib/db/deposit-plane-sums'
-import { selectKosztorysClientTotals } from '@/lib/db/kosztorys-client-totals'
+import {
+  selectKosztorysClientTotals,
+  type KosztorysClientTotalsRowT,
+} from '@/lib/db/kosztorys-client-totals'
 import { selectKosztorysSubcontractorDue } from '@/lib/db/kosztorys-subcontractor-due'
 import { selectWorkerPayoutPairs } from '@/lib/db/worker-payout-pairs'
 import type { WorkerPayoutPairRowT } from '@/lib/kosztorys/worker-payout-pairs'
 import type { SubcontractorSettlementT } from '@/lib/kosztorys/subcontractor-due'
 import type { DepositPlaneSumsT } from '@/lib/kosztorys/deposit-planes'
 import { sumAllRegisterBalances, sumAllInvestmentFinancials } from '@/lib/db/sum-transfers'
-import type { KosztorysClientTotalsT } from '@/lib/kosztorys/settlement-client-totals'
 import type { InvestmentFinancialsT } from '@/types/investment-financials'
 import { perfStart } from '@/lib/perf'
 
@@ -56,7 +58,10 @@ export const fetchInvestmentFinancials = unstable_cache(
   { tags: [CACHE_TAGS.transfers, CACHE_TAGS.investments] },
 )
 
-export type KosztorysClientTotalsMapT = Record<string, KosztorysClientTotalsT>
+export type KosztorysClientTotalsMapT = Record<
+  string,
+  Omit<KosztorysClientTotalsRowT, 'investmentId'>
+>
 
 // Every tag whose collection can move these figures. `investments` is load-bearing, not padding: the
 // global rabat is a column there, so a rabat change moves the pair without touching a single
@@ -102,7 +107,7 @@ function cachedInvestmentMap<RowT extends { investmentId: number }>(
 }
 
 export const fetchKosztorysClientTotals = cachedInvestmentMap(
-  'kosztorys-client-totals-v1',
+  'kosztorys-client-totals-v2',
   'fetchKosztorysClientTotals',
   selectKosztorysClientTotals,
   KOSZTORYS_CLIENT_TOTALS_TAGS,

@@ -45,6 +45,7 @@ const investment = (overrides: Partial<InvestmentRowT> = {}): InvestmentRowT => 
   hasSheet: false,
   createdAt: '2026-01-15T10:00:00.000Z',
   hasKosztorys: false,
+  hasAiDraft: false,
   materialsNetRate: null,
   settlementMode: 'NET',
   vatRate: 8,

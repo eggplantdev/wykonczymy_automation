@@ -4949,3 +4949,11 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
 - [ ] `dump-knowledge-prod.ts` dla przypadku (sesja produkcyjna): `inputs/wiedza-firmowa.md` ma
       każdy wpis z okna w tej samej kolejności i każdy Komentarz do pracy z katalogu. Wpis dodany w
       oknie pojawia się po kolejnym uruchomieniu.
+
+## 2026-10-09 — investments-listing-ai-draft-column — „Analiza AI” na liście inwestycji
+
+- [ ] `/inwestycje` (staging): inwestycja, do której wgrano szkic AI, ma w kolumnie „Analiza AI” „Tak”,
+      a jej kosztorys pokazuje w „Przeglądzie AI” kolumnę „AI przedmiar”.
+- [ ] Zwykła inwestycja z kosztorysem i inwestycja bez kosztorysu mają „—”.
+- [ ] Sortowanie po „Analiza AI” zbiera wiersze „Tak” razem.
+- [ ] Wybór kolumn ukrywa „Analiza AI”; przełącznik „Pokaż kolumny v2” jej nie ukrywa.
