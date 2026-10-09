@@ -4349,98 +4349,24 @@ Baza musi mieć migrację `20261007_0_add_ai_review_columns`.
 
 ### Komentarz do pracy
 
-- [x] /katalog-prac → „Edytuj pracę" na pracy z komentarzem: pole „Komentarz do pracy" go pokazuje; zmień tylko cenę i zapisz — komentarz zostaje.
-      Staging 2026-10-07: edycja pracy (id 959) zmieniła tylko cenę 12,50→13,75, `work_note` zostało (psql).
-- [x] /katalog-prac → „Dodaj pracę" z komentarzem: kolumna „Komentarz do pracy" (domyślnie ukryta, włącz ją) pokazuje go przy nowej pracy.
-      Staging 2026-10-07: nowa praca z komentarzem → kolumna „Komentarz do pracy” (ukryta domyślnie, włączona w „Kolumny”) pokazuje go.
-- [x] Kosztorys → w wyborze kolumn zaznacz „Komentarz do pracy" → kliknij komórkę pracy z katalogu → wpisz komentarz → zapisz: ta sama praca w innym kosztorysie i w szablonie pokazuje ten komentarz.
-      Staging 2026-10-07: komentarz wpisany w 173 (pozycja „Rozkucie i zatynkowanie…”) zapisał się w katalogu (`work_note`, psql); ta sama praca w 174 (kolumna włączona) i w szablonie 159 pokazuje go.
 - [ ] Kosztorys → kolumna „Komentarz do pracy" ma zwykłe kolory (bez cyjanu); kliknij komórkę pracy, której nie ma w katalogu: okno „Tej pracy nie ma w katalogu prac" → „Dodaj do katalogu…" otwiera „Zapisz do katalogu…"; po zapisie kliknięcie tej komórki otwiera okno komentarza. Szara zostaje tylko komórka pustego wiersza.
 - [ ] Kosztorys → włącz kolumnę „Komentarz do pracy", wiersz z długim komentarzem z katalogu i krótkim opisem: w komórce widać „…"; menu wiersza → „Dopasuj wysokość do treści" podnosi wiersz tak, że cały komentarz jest widoczny.
-- [x] Pozycja, której opisu nie ma w katalogu: komórka jest pusta, kliknięcie nic nie otwiera.
-      Staging 2026-10-07: „Wynoszenie gruzu…” (173): komórka pusta, klik i dwuklik nie otwierają okna.
-- [x] W oknie komentarza: Backspace, Delete, strzałki, Ctrl+A i wklejanie działają na tekście komentarza; kosztorys pod oknem się nie zmienia. Escape zamyka okno.
-      Staging 2026-10-07: Backspace/Delete/strzałki/Ctrl+A/wklejenie działają w polu (abcdef→abcde→abce→„Zam”→„ZamWKLEJ”), siatka pod oknem bez zmian, Escape zamyka okno bez zapisu.
-- [x] Menu wiersza „Zapisz do katalogu" → „Nadpisz" na pracy z komentarzem: komentarz przeżywa.
-      Staging 2026-10-07: „Zapisz pozycję do katalogu prac” → Nadpisz… → Nadpisz na pracy id 618: `updated_at` się zmienił, `work_note` zostało (psql).
-- [x] „Nowa praca": checkbox katalogu startuje zaznaczony, pole „Komentarz do pracy" stoi pod nim; „Nadpisz w katalogu" z pustym polem zostawia istniejący komentarz; „Tylko do kosztorysu" nie rusza katalogu.
-      Staging 2026-10-07 (173): „Dodaj pracę do katalogu prac” startuje zaznaczony; „Komentarz do pracy” widać przy zaznaczonym i chowa się po odznaczeniu (w formularzu stoi pod checkboxem AI-tłumaczenia, nie bezpośrednio pod checkboxem katalogu — samo brzmienie boksu jest nieścisłe, zachowanie zgodne z kodem). „Nadpisz w katalogu” z pustym polem: work_note zostało; „Tylko do kosztorysu” (inny komentarz, cena 999): katalog bez zmian (updated_at i work_note te same). Dwa dodane wiersze do usunięcia w teardown.
-- [x] Podgląd inwestora, link udostępniony inwestorowi, PDF z „Generuj ofertę" i link pracownika: brak kolumny „Komentarz do pracy".
-      Staging 2026-10-07: kolumna „Komentarz do pracy” włączona w edytorze (173/174), a Podgląd inwestora (/podglad-inwestora/173), PDF oferty z 174 (popup, print stubowany), link inwestora /k/<token> (106) i link pracownika /z/137/… nie mają jej ani jej treści. Zastrzeżenie: katalog ma komentarze tylko od tego przebiegu, a pozycje 106/137 ich nie mają — wyciek treści sprawdzony tylko na 174 (PDF) i 173 (podgląd).
 
 ### Przegląd szkicu AI
 
 Stan: kosztorys ze wczytanym szkicem AI (kolumna „AI przedmiar" ma wartości) oraz zwykły kosztorys bez szkicu.
 
-- [x] Kosztorys ze szkicem → w wyborze kolumn są „AI przedmiar", „Status", „Powód zmiany"; „Problemy" pokazuje grupę „Przegląd AI", a „do sprawdzenia (szkic AI)" liczy pozycje z AI przedmiarem, bez statusu i z Przedmiarem innym niż AI przedmiar.
-      Lokalnie #180 2026-10-07: w „Kolumny” są AI przedmiar / AI wartość netto przedmiar / Status / Powód zmiany / Komentarz do pracy; „Problemy” → grupa „Przegląd AI” z „do sprawdzenia (szkic AI)” = 43 i „zmienione bez powodu” = 9 (zgodne z SQL).
-- [x] Wpisz w „Przedmiar" tę samą liczbę co AI przedmiar → Status „Zaakceptowana"; 0 → „Odrzucona"; inną liczbę → „Edytowana"; liczbę przy AI przedmiarze 0 → „Dodana". Ctrl+Z cofa Przedmiar i Status razem.
-      Lokalnie #180 2026-10-07 (id 52967, AI 7,5): 7,5 → Zaakceptowana (psql accepted); 0 → Odrzucona; 3 → Edytowana; poz. 57 (AI 0): 31 → Dodana (psql added). Ctrl+Z po 0→3 cofnął Przedmiar (0) i Status (Odrzucona) razem, potwierdzone psql.
-- [x] Status → „Zaakceptowana" przepisuje AI przedmiar do „Przedmiar"; „Odrzucona" ustawia Przedmiar na 0.
-      Verified locally on #180 (id 52967, 2026-10-07): Zaakceptowana -> planned_qty 7.5 / accepted; Odrzucona -> 0 / rejected (SQL).
-- [x] Pozycja z AI przedmiarem 0 i wpisanym Przedmiarem: wybranie dowolnego Statusu nie zmienia Przedmiaru.
-      Lokalnie #180 2026-10-07 (poz. 57, id 53002, AI 0, Przedmiar 31): Status „Zaakceptowana” i „Odrzucona” → Przedmiar zostaje 31, `review_status` accepted/rejected (psql).
-- [x] Filtr „zmienione bez powodu": pozycja, w której zaczynasz wpisywać „Powód zmiany", zostaje na liście aż do „Odśwież — ukryj poprawione".
-      Lokalnie #180 2026-10-07: poz. 87 (Dodana), wpisano „t” w Powód zmiany -> pozycja zostaje na liście, licznik filtra 10 -> 9; „Odśwież — ukryj poprawione” (menu Problemy) ją ukrywa.
-- [x] „Nowa praca" z Przedmiarem w kosztorysie ze szkicem: pokazuje „Dodana" i trafia do „zmienione bez powodu".
-      Lokalnie #180 2026-10-07: Dodaj -> Praca -> Prace dodatkowe (bez katalogu, bez tłumaczenia), potem Przedmiar 5 w siatce -> Status „Dodana” (SQL: review_status=added, id 53270), licznik „zmienione bez powodu” 9 -> 10, wiersz widoczny po włączeniu filtra. Wiersz testowy do usunięcia przy przywracaniu.
-- [x] Zapisz wersję, zmień statusy i powody, przywróć wersję: AI przedmiar, Status i Powód zmiany wracają.
-      Lokalnie #180 2026-10-07: wersja „ZZ test wersja” zapisana; potem poz. 22 -> Zaakceptowana (Przedmiar 7,5) i powód „z” na poz. 57; „Wczytaj” -> Przywróć: poz. 22 znów Odrzucona, Przedmiar 0, AI przedmiar 7,5, powód „z” zniknął, powód „t” poz. 87 wrócił (SQL). Uwaga: przywrócenie kasuje i wstawia pozycje od nowa, więc id pozycji #180 się zmieniły (np. 52967 -> 53292).
 - [ ] Zapisz kosztorys jako szablon, załóż z niego nowy kosztorys: brak AI przedmiaru, Statusu i Powodu zmiany.
       Lokalnie 2026-10-07: NIE zweryfikowane — „załóż nowy kosztorys” wymaga innej inwestycji, a przebieg był ograniczony do #180. Tylko kod: `serialize-preset.ts` zeruje `aiPlannedQty` / `changeReason` / `reviewStatus`.
-- [x] Zwykły kosztorys: brak kolumn AI w wyborze kolumn, brak grupy „Przegląd AI", wpisanie Przedmiaru nie ustawia statusu.
-      Staging 2026-10-07 (173): w „Kolumny” brak AI przedmiar/Status/Powód zmiany, w „Problemy” brak grupy „Przegląd AI”; Przedmiar 0→5 zapisał `review_status`=NULL i `ai_planned_qty`=NULL (psql); wartość cofnięta do 0.
-- [x] Podgląd inwestora, link udostępniony inwestorowi, PDF z „Generuj ofertę" i link pracownika: brak kolumn AI.
-      Lokalnie #180 2026-10-07: /podglad-inwestora/180 -> tylko Opis, Przedmiar ofertowy, j.m., Cena j.m., Wartość; PDF „Wygeneruj ofertę w PDF” (print zastubowany) -> th: Opis prac, Przedmiar ofertowy, Jednostka miary, Cena j.m., Wartość netto, brak AI/Statusu/Powodu. Link /k/<token> i link pracownika NIE otwarte: #180 nie ma tokenu udostępnienia ani pracowników w etapach (nie zakładałem ich); /k/[token] renderuje to samo KosztorysEditorBody co podgląd (kod).
 
 ### Widoki „Oferta" i „Przegląd AI"
 
-- [x] Dowolny kosztorys → menu „Kolumny" → „Widok" → „Oferta": tylko Opis, Przedmiar, j.m., Cena j.m., Wartość netto przedmiar (+ Akcje); ceny inwestora i przełącznik widoku cen znikają, a menu „Kolumny" pokazuje już tylko „Oferta" i „Przegląd AI". Odznaczenie „Oferta" przywraca poprzednie kolumny, widok cen i resztę menu.
-      Staging 2026-10-07 (inwestycja 173): Oferta → Opis, Przedmiar, j.m., Cena j.m. netto, Wartość przedmiaru netto + Akcje; przełącznik cen znika, menu = tylko „Oferta" (bez AI — brak szkicu); odznaczenie przywraca 8 kolumn, przełącznik i pełne menu.
 - [ ] Kosztorys ze szkicem → menu „Kolumny" → „Przegląd AI" dokłada pięć kolumn AI do bieżących (z „AI wartość netto przedmiar"), bez błędu „Coś poszło nie tak"; „Komentarz do pracy" pokazuje komentarze z katalogu. Odznaczenie je zabiera, a zaznaczenia w wyborze kolumn są takie jak przed włączeniem.
       Lokalnie #180 2026-10-07: pięć kolumn AI dochodzi, bez błędu, odznaczenie je zabiera, wybór kolumn („Kolumny (3)”) bez zmian (SQL/UI) — ale „komentarze z katalogu” NIE sprawdzone: lokalny katalog prac ma 0 wierszy `work_note`, a dopisanie ich to zapis poza #180. Box zostaje otwarty tylko z tego powodu.
-- [x] Oba zaznaczone: kolumny oferty + kolumny AI.
-      Lokalnie #180 2026-10-07: Oferta + Przegląd AI → Opis, Przedmiar, AI przedmiar, AI wartość netto przedmiar, Status, Powód zmiany + j.m., Cena j.m., Wartość netto przedmiar. „Komentarz do pracy” nie ma w widoku oferty (kod: ukryty przy `isDocument`) — zgodne z „niewidoczna dla klienta”.
-- [x] Menu zostaje otwarte po kliknięciu „Oferta" / „Przegląd AI"; na pasku narzędzi nie ma już osobnych przycisków.
-      Staging 2026-10-07: „Oferta” — menu zostaje otwarte, brak osobnych przycisków na pasku; „Przegląd AI” niesprawdzone (brak szkicu AI na stagingu — patrz Findings).
-      Lokalnie #180 2026-10-07: menu zostaje otwarte po kliknięciu „Oferta” i „Przegląd AI” (włącz/wyłącz), pasek narzędzi bez osobnych przycisków.
-- [x] Zwykły kosztorys: w menu „Kolumny" brak „Przegląd AI"; szablon: brak menu „Kolumny" (jak wcześniej).
-      Staging 2026-10-07: 173 — menu „Kolumny” → „Widok” ma tylko „Oferta”; szablon 159 — brak przycisku „Kolumny”.
 
 ### Dogfooding na „Oliwa” (lokalnie, #180) — addendum 2026-10-07
 
 Stan: lokalny kosztorys ze wczytanym szkicem (`load-ai-draft.ts`), część pozycji z Przedmiarem równym AI przedmiarowi, część z AI przedmiarem 0 i wpisanym Przedmiarem.
-
-- [x] Wejście na kosztorys bez klikania „Przegląd AI”: „Filtry” nie ma grupy „Przegląd AI”, brak chipa i wpisu (0), nawet jeśli w ostatnim przeglądzie filtr został odznaczony.
-      Lokalnie #180 2026-10-07: przy zapamiętanym `kosztorys-filters:180` = {no-planned-or-ai-qty:true} „Filtry” bez grupy „Przegląd AI” i bez wpisu (0), brak chipa.
-- [x] Kliknięcie „Przegląd AI”: „Filtry” ma na górze grupę „Przegląd AI”, „bez przedmiaru i bez AI przedmiaru” jest odznaczone, „z przedmiarem lub AI przedmiarem” zaznaczone; siatka pokazuje tylko wycenione pozycje. Zaznacz z powrotem, wyłącz i włącz widok — znów odznaczone.
-      Lokalnie #180 2026-10-07: po włączeniu widoku grupa „Przegląd AI” na górze „Filtry”, „bez przedmiaru i bez AI przedmiaru (251)” odznaczone, „z przedmiarem lub AI przedmiarem (60)” zaznaczone, chip „Ukryto: …”; zaznaczenie z powrotem czyści filtr, wyłącz+włącz → znów odznaczone (localStorage `{no-planned-or-ai-qty:true}`).
-- [x] Odznacz „z przedmiarem lub AI przedmiarem”, wyłącz i włącz „Przegląd AI”: siatka nie jest pusta (filtr wraca na zaznaczony).
-      Lokalnie #180 2026-10-07: oba odznaczone → siatka pusta; po wyłącz+włącz zostaje tylko „bez …” odznaczone, siatka ma wiersze (19 w oknie).
-- [x] W „Przegląd AI” sekcje dalej się zwijają (strzałka przy sekcji, „Sekcje”).
-      Lokalnie #180 2026-10-07: strzałka przy sekcji zwija „Prace dodatkowe” (chip „Zwinięte sekcje (1)”), „Sekcje” → „Rozwiń wszystkie sekcje” rozwija.
-- [x] „Filtry” otwiera się nagłówkiem „Widoczne pozycje” i podpowiedzią „Odznacz, żeby ukryć.”.
-      Lokalnie #180 2026-10-07: menu zaczyna się od „Widoczne pozycje” / „Odznacz, żeby ukryć.”.
-- [x] Pozycja z Przedmiarem równym AI przedmiarowi: Status „Zaakceptowana” bez wybierania, nie ma jej w „do sprawdzenia”; w menu Statusu brak „Do sprawdzenia”.
-      Lokalnie #180 2026-10-07: poz. 1/21/24/52 (Przedmiar = AI) → „Zaakceptowana” bez wyboru; menu Statusu: Zaakceptowana/Odrzucona/Edytowana/Dodana, bez „Do sprawdzenia” (poz. 22 z AI≠Przedmiar ma go w menu); „Pozycje do sprawdzenia (szkic AI)” = 43 = SQL (AI>0, bez statusu, Przedmiar≠AI), 259 równych poza nim.
-- [x] Pozycja z AI przedmiarem 0 i Przedmiarem: Status „Dodana” bez wybierania, trafia do „zmienione bez powodu”.
-      Lokalnie #180 2026-10-07: poz. 57 (Przedmiar 30, AI 0) → „Dodana” bez wyboru; „Pozycje zmienione bez powodu” = 9 = SQL (9 pozycji AI=0, Przedmiar>0).
-- [x] Kolumna „AI wartość netto przedmiar” = AI przedmiar × Cena j.m., bez rabatu; suma w stopce i w „Razem”, brak wiersza w bloku podsumowania.
-      Lokalnie #180 2026-10-07: wiersze = AI × Cena j.m. (np. 3×50=150, 7×100=700), „Razem” w stopce = 39 205,15 = SQL Σ(ai_planned_qty×client_price), stopki sekcji sumują się; blok „Podsumowanie” (Robocizna/Łącznie/Wpłaty/Pozostało) bez wiersza AI. Zastrzeżenie: #180 nie ma pozycji z rabatem („Bez rabatu (311)”), więc „bez rabatu” potwierdzone tylko tożsamością sumy.
-
-### Findings — 2026-10-07
-
-- [x] **Szkic AI nie do wytworzenia na stagingu → ok. 11 boxów „Przegląd szkicu AI" i „Przegląd AI" bez weryfikacji** —
-      `src/scripts/load-ai-draft.ts` ładuje szkic wyłącznie do lokalnej bazy (`assertLocalDb`), UI nie ma ścieżki
-      „wczytaj szkic", a na preview DB żaden kosztorys nie ma `ai_planned_qty`. Ręczny zapis SQL
-      `ai_planned_qty` na inw. 173/174 łamie regułę „mutacje tylko przez UI staging". **Needs human:**
-      zgoda na jednorazowy zapis `ai_planned_qty` na inw. 173 (QA) albo wczytanie szkicu inną drogą.
-      Ponowny przebieg 2026-10-07 (deploy a452f4c2b `success`): `kosztorys_items.ai_planned_qty IS NOT NULL` = 0 wierszy na preview DB;
-      `load-ai-draft.ts` odmawia zdalnego hosta (`assertLocalDb`) → **blokuje też całą sekcję „Dogfooding na Oliwa” (8 boxów)**
-      oraz „Przegląd szkicu AI” / „Przegląd AI”. Brakująca izolacja: ścieżka wczytania szkicu AI na preview DB (UI albo skrypt z bramką preview-only).
-      **Test disposition:** no automated test dodatkowy · logika statusu i warunków pokryta unit
-      (`review-status.test.ts`, `ai-review-conditions.test.ts`); brakuje tylko przejścia przez deploy.
-      Rozstrzygnięte 2026-10-07 na życzenie właściciela: boxy zweryfikowane LOKALNIE na #180 (nie na stagingu). Wyjątki: „szablon → nowy kosztorys” (wymaga innej inwestycji) i „komentarze z katalogu” (0 `work_note` lokalnie) zostają otwarte; link /k i link pracownika niesprawdzone (brak tokenu/pracowników na #180). Brakująca ścieżka szkicu AI na preview DB nadal istnieje.
 
 ## 2026-10-07 — reorder-dialog-safari — lista „Ustaw kolejność” nie zapada się w Safari
 
