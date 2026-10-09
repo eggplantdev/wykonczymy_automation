@@ -4544,3 +4544,27 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
 - [ ] Przy 70% na iPhonie: dotknięcie pola (np. kwota w „Dodaj transakcję”) nie przybliża strony, a wpisywany tekst mieści się w polu.
 - [ ] Przy 70% → Transakcje → „Karty”: na ekranie mieści się więcej kart niż przy 100%, nic nie nachodzi na siebie.
 - [ ] Powrót do 100% przywraca dotychczasowy wygląd.
+
+## 2026-10-09 — done-percent-vs-offer — „% wykonania (względem przedmiaru ofertowego)”
+
+Kosztorys:
+
+- [ ] Inwestycja, w której Aktualizacja przedmiaru różni się od Przedmiaru ofertowego, z wpisanymi etapami → kosztorys: obok „% wykonania” stoi „% wykonania (względem przedmiaru ofertowego)”. Dla pozycji z Przedmiarem ofertowym 10, Aktualizacją 12 i 4 w etapach pokazuje 40%, a „% wykonania” 33%.
+- [ ] Pozycja dodana po ofercie (Przedmiar ofertowy pusty lub 0): nowa kolumna pokazuje kreskę „—”, nie 0% ani „∞”. Pozycja wykonana ponad ofertę pokazuje ponad 100% i nie świeci się na czerwono.
+- [ ] Nagłówek nowej kolumny ma podpowiedź (ikonka „i”), która mówi, że to procent oferty, a powyżej 100% oznacza więcej, niż zakładała oferta.
+- [ ] Sortowanie po nowej kolumnie układa wiersze rosnąco i malejąco. Przełączanie warstw kosztorysu ukrywa ją i pokazuje razem z „% wykonania”.
+- [ ] Kosztorys bez żadnego wpisu w etapach: nowej kolumny nie widać, tak samo jak „% wykonania”.
+
+Widok inwestora:
+
+- [ ] „Widok inwestora” → ustawienia: w grupie z „% wykonania” jest nowy checkbox „% wykonania (względem przedmiaru ofertowego)”, domyślnie odznaczony — także w kosztorysach z zapisanymi wcześniej ustawieniami.
+- [ ] Po zaznaczeniu: podgląd i „Generuj ofertę” pokazują kolumnę obok „% wykonania”, z tymi samymi wartościami co w kosztorysie. Po odznaczeniu znika z obu.
+
+Widok pracownika:
+
+- [ ] „Widok pracownika” → ustawienia: w „Opis i ilości” jest „Przedmiar ofertowy” przed „Aktualizacja przedmiaru”, a w „Etapy i postęp” jest „% wykonania (względem przedmiaru ofertowego)”. Oba są domyślnie odznaczone; pozostałe checkboxy mają ten sam stan co przed zmianą (w tym odznaczone wcześniej „Pozostało”).
+- [ ] Zaznacz oba i zapisz: link pracownika, „Podgląd” i PDF pokazują Przedmiar ofertowy oraz nowy procent. Po odznaczeniu znikają ze wszystkich trzech.
+- [ ] Pozycja, w której etapy ma także inna ekipa: procent na linku pracownika jest taki sam jak w kosztorysie (liczy wszystkie etapy, nie tylko jego).
+- [ ] „Ukryj aktualizację przedmiaru i jej wartość, gdy w etapach są już wpisy” zaznaczone, a w etapach jest wpis: Aktualizacja przedmiaru znika, a zaznaczony Przedmiar ofertowy zostaje.
+- [ ] Link pracownika na telefonie (390px), z oboma kolumnami zaznaczonymi: tabela przewija się w poziomie, nagłówki są czytelne.
+- [ ] Pracownik z językiem Українська: nagłówki „Плановий обсяг” / „% виконання (від планового обсягу)” i ich podpowiedzi są po ukraińsku.
