@@ -61,8 +61,13 @@ This is an experiment, not a feature. Nothing here ships. Each test case gets it
 4. **Dump the house knowledge first:** `TOKEN_FILE=… CASE=… node --import tsx
 context/changes/2026-10-01-ai-kosztorys-generation-tests/scripts/dump-knowledge-prod.ts` writes
    `inputs/wiedza-firmowa.md` (management's „Wiedza firmowa” plus every katalog Komentarz do pracy).
-   The agent reads it in full before choosing a position or a quantity, and names the entry an
-   assumption comes from in „Co / ile założono”.
+   The agent reads it in full before choosing a position or a quantity.
+
+   **The agent may assume, and writes down every assumption — no exceptions** (owner, 2026-10-09).
+   Every quantity not read from the rzut, the email or the photos has an entry in „Co / ile
+   założono” on its own pozycja: what was taken, how much, and on what basis — a „Wiedza firmowa”
+   entry, a katalog rule, or the agent's own estimate, named as such. An unwritten assumption is a
+   defect of the draft, not a shortcut.
 
    The agent then reads the email and all PDFs, maps the scope to rozpiska positions, and writes
    `przedmiar-proposal.md`. That file contains:
