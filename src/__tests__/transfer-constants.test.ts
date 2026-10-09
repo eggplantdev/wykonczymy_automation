@@ -171,7 +171,9 @@ const HELPERS: Record<string, { fn: HelperFn; trueFor: string[] }> = {
 // instead (transfer-spec-table.test.ts). `isVatPlane` is boolean but narrows a VAT plane,
 // not a transfer type, so it gets its own suite below; `carriesNetAmount` and `planeFor` are
 // keyed on a PAIR the truth table above has no column for, so they too get their own.
+// `transferColorVar` returns a CSS colour, not a boolean.
 const NOT_A_TRANSFER_TYPE_PREDICATE = [
+  'transferColorVar',
   'financialBucketOf',
   'billedAmountOf',
   'billedAmountFor',
