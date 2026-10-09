@@ -1,8 +1,8 @@
 === Wycena AI (test, 2026-10-09) — AI przedmiar z pomiaru rysunków ===
-Kosztorys wypełnił agent: 127 pozycji, AI przedmiar razem 203 763,65 zł netto. Ceny j.m. są z szablonu „Kosztorys 2026”, bez rabatu.
+Kosztorys wypełnił agent: 127 pozycji, AI przedmiar razem 205 053,65 zł netto, bez rabatu. Ceny j.m. są z tej wyceny — agent liczył na szablonie „Kosztorys 2026”, który w 3 pozycjach ma inną cenę (transport, big bag, malowanie w łazience; razem −1 290 zł).
 Przy każdej pozycji kolumna „Komentarz AI” mówi, co agent założył („Co / ile założono”) i czego nie było wiadomo („Czego nie było wiadomo”). Pozycja z ilością odczytaną z rysunku nie ma tam nic.
 
-Pozycje spoza szablonu są dopisane na końcu sekcji. „Skucie glifu przy oknie” jest z katalogu prac. Luksferów, siedzisk G-K, klejenia dużych luster, koordynacji i sprzątania w katalogu nie ma: te 5 pozycji ma Cenę j.m. 0 zł i czeka na wycenę, więc razem jest zaniżone dokładnie o nie.
+Pozycje, których w tej wycenie nie ma (11), są dopisane na końcu sekcji. „Skucie glifu przy oknie” jest z katalogu prac. Luksferów, siedzisk G-K, klejenia dużych luster, koordynacji i sprzątania w katalogu nie ma: te 5 pozycji ma Cenę j.m. 0 zł i czeka na wycenę, więc razem jest zaniżone dokładnie o nie.
 
 Przedmiar 0 świadomie:
 - klimatyzacja, drzwi / drzwi ukryte / kaseta Eclisse, podłoga drewniana — firmy zewnętrzne;

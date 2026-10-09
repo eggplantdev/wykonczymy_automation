@@ -55,8 +55,9 @@ async function run() {
   const skipped = files.filter((f) => !f.mimeType)
   const uploads = files.filter((f) => f.mimeType)
 
+  // REST lists trashed investments too; a rerun after trashing the old case must not trip on it.
   const taken = await api<{ totalDocs: number }>(
-    `/investments?where[name][equals]=${encodeURIComponent(SOURCE.name)}&limit=1&depth=0`,
+    `/investments?where[name][equals]=${encodeURIComponent(SOURCE.name)}&where[trashedAt][exists]=false&limit=1&depth=0`,
   )
   if (taken.totalDocs) throw new Error(`an investment named „${SOURCE.name}" already exists`)
   // REST still returns a trashed szablon's items, but the create's seed refuses it — and only warns.

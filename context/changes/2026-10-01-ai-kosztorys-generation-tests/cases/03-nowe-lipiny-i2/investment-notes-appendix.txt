@@ -1,10 +1,10 @@
 KOSZTORYS AI — segment I2 Nowe Lipiny, Pu 101,21 m² (parter 52,19 + piętro 49,02) + strych 32,38 m²
 Źródła: rzut dewelopera (skan, metraże pomieszczeń wydrukowane na rzucie), standard deweloperski, wizualizacje i zdjęcia inspiracji (tylko do liczenia elementów), mail klienta.
 Wartość netto z cenami z rozpiski (robocizna):
-- dom (parter + piętro): 119 688,41 zł + 3 pozycje bez ceny;
+- dom (parter + piętro): 119 388,41 zł + 3 pozycje bez ceny;
 - PODDASZE (osobna sekcja): 27 634,80 zł + 3 pozycje bez ceny;
 - REKUPERACJA (osobna sekcja): 16 080,00 zł + 1 pozycja bez ceny;
-- razem: 163 403,21 zł.
+- razem: 163 103,21 zł.
 Każde założenie jest zapisane przy pozycji w Komentarzu AI („Co / ile założono”), a czego nie było wiadomo — w „Czego nie było wiadomo”.
 Materiały, zabudowy meblowe, AGD i centrala rekuperacji NIE są w kwocie (klient prosi o ich rozdzielenie — patrz pytania).
 
