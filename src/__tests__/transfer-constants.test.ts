@@ -360,19 +360,19 @@ describe('membership arrays — exact contents and order', () => {
 describe('TRANSFER_TYPE_LABELS / TRANSFER_TYPE_COLORS', () => {
   it.each([
     ['CANCELLATION', 'Anulowanie', 'muted-foreground'],
-    ['OTHER_DEPOSIT', 'Inna wpłata', 'chart-green'],
-    ['OTHER', 'Inny wydatek', 'chart-red'],
-    ['CORRECTION', 'Korekta', 'chart-orange'],
-    ['LABOR_COST', 'Koszty robocizny', 'chart-orange'],
-    ['BONUS', 'Premia', 'chart-yellow'],
-    ['RABAT', 'Rabat', 'chart-green'],
-    ['LOSS', 'Strata', 'chart-purple'],
-    ['REGISTER_TRANSFER', 'Transfer między kasami', 'chart-turquoise'],
-    ['INVESTOR_DEPOSIT', 'Wpłata od inwestora', 'chart-green'],
-    ['INVESTMENT_EXPENSE', 'Wydatek inwestycyjny', 'chart-red'],
-    ['INVESTMENT_EXPENSE_NET', 'Wydatek inwestycyjny netto', 'chart-blue'],
-    ['PAYOUT', 'Wypłata', 'chart-red'],
-    ['COMPANY_FUNDING', 'Zasilenie z konta firmowego', 'chart-green'],
+    ['OTHER_DEPOSIT', 'Inna wpłata', 'section-teal'],
+    ['OTHER', 'Inny wydatek', 'transfer-red-warm'],
+    ['CORRECTION', 'Korekta', 'section-orange'],
+    ['LABOR_COST', 'Koszty robocizny', 'section-orange-deep'],
+    ['BONUS', 'Premia', 'section-yellow'],
+    ['RABAT', 'Rabat', 'section-yellow-deep'],
+    ['LOSS', 'Strata', 'section-purple'],
+    ['REGISTER_TRANSFER', 'Transfer między kasami', 'section-turquoise'],
+    ['INVESTOR_DEPOSIT', 'Wpłata od inwestora', 'section-green'],
+    ['INVESTMENT_EXPENSE', 'Wydatek inwestycyjny', 'section-red'],
+    ['INVESTMENT_EXPENSE_NET', 'Wydatek inwestycyjny netto', 'transfer-red-dark'],
+    ['PAYOUT', 'Wypłata', 'section-red-deep'],
+    ['COMPANY_FUNDING', 'Zasilenie z konta firmowego', 'section-green-deep'],
   ] as const)('%s → %s / %s', (type, label, color) => {
     expect(TRANSFER_TYPE_LABELS[type]).toBe(label)
     expect(TRANSFER_TYPE_COLORS[type]).toBe(color)

@@ -49,6 +49,7 @@ export const COLUMN_LABELS: Record<string, string> = {
   stageValueNet: 'Etapy — kwota netto',
   stageValueGross: 'Etapy — kwota brutto',
   donePercent: '% wykonania (względem aktualizacji przedmiaru)',
+  plannedDonePercent: pl.grid.plannedDonePercent,
   note: 'Komentarz',
   aiPlannedQty: 'AI przedmiar (na ile AI wyceniło pracę)',
   aiPlannedNet: 'AI wartość netto przedmiar',
@@ -68,6 +69,7 @@ const TRANSLATED_LABEL_KEYS: Partial<Record<string, MessageKeyT<'grid'>>> = {
   price: 'price',
   plannedNetForPlane: 'plannedNetForPlane',
   remainingForPlane: 'remainingForPlane',
+  plannedDonePercent: 'plannedDonePercent',
 }
 
 /**
@@ -149,7 +151,8 @@ export const CREW_PLANE_ONLY_COLUMNS: ReadonlySet<string> = new Set(['plannedNet
 // (`stageValueNet`, never `stageValueNet_7`) so the per-stage namespace collapses to one entry and no
 // stage id enters the map — the same ghost-id reasoning as the picker groups (stage-keys.ts). A column
 // absent from this map is neutral: axisAllows fails open, so a forgotten tag shows a column, never hides one.
-// The per-row `donePercent` is untagged on purpose: a percentage is the same number netto or brutto.
+// The per-row `donePercent` and `plannedDonePercent` are untagged on purpose: a percentage is the same
+// number netto or brutto.
 export const COLUMN_MONEY_AXIS: Record<string, 'net' | 'gross'> = {
   price: 'net',
   priceGross: 'gross',
@@ -178,6 +181,7 @@ export const COLUMN_LAYER: Record<string, 'work' | 'progress'> = {
   [STAGE_VALUE_NET_COLUMN_GROUP]: 'progress',
   [STAGE_VALUE_GROSS_COLUMN_GROUP]: 'progress',
   donePercent: 'progress',
+  plannedDonePercent: 'progress',
   remaining: 'progress',
   remainingGross: 'progress',
 }

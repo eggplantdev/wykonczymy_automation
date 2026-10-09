@@ -31,6 +31,7 @@ const PROGRESS_IDS = [
   'stageValueGross_7',
   'stageValueGross_9',
   'donePercent',
+  'plannedDonePercent',
   'remaining',
   'remainingGross',
 ]

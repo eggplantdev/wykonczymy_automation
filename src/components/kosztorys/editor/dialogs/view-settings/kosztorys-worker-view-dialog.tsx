@@ -49,9 +49,9 @@ export function KosztorysWorkerViewDialog() {
         {draft ? (
           <div className="flex min-h-0 flex-col gap-4 overflow-y-auto">
             <Description size="xs">
-              Kolumny rozliczenia — pomiar razem etapy, etapy i ich wartości, wartość wykonana —
-              pojawią się u pracownika dopiero po pierwszym wpisie w którymkolwiek z jego etapów.
-              Etap bez wpisów pozostaje ukryty.
+              Kolumny rozliczenia — pomiar razem etapy, etapy i ich wartości, wartość wykonana, %
+              wykonania względem przedmiaru ofertowego — pojawią się u pracownika dopiero po
+              pierwszym wpisie w którymkolwiek z jego etapów. Etap bez wpisów pozostaje ukryty.
             </Description>
             <DocumentColumnOrderButton
               keys={WORKER_DOCUMENT_COLUMNS}

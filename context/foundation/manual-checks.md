@@ -4516,3 +4516,55 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
 - [ ] Zwykła inwestycja z kosztorysem i inwestycja bez kosztorysu mają „—”.
 - [ ] Sortowanie po „Analiza AI” zbiera wiersze „Tak” razem.
 - [ ] Wybór kolumn ukrywa „Analiza AI”; przełącznik „Pokaż kolumny v2” jej nie ukrywa.
+
+## 2026-10-08 — transfer-cards (spike) — widok kart transakcji na telefonie
+
+- [ ] Transakcje → przełącznik Tabela/Karty przy wyszukiwarce: obie ikony widoczne także przy 390px; „Karty” pokazuje listę kart bez zmiany adresu i strony listy; wybór zostaje po odświeżeniu i obowiązuje też na liście transakcji pracownika, kasy i inwestycji.
+- [ ] Widok kart przy 390px: jedna obramowana lista z separatorami; od 768px osobne karty z cieniem, nie szersze niż ~48rem.
+- [ ] Karta: numer po lewej i data po prawej w pierwszej linii, badge typu pod nimi, kwota w kolorze typu; anulowana transakcja przekreślona i wyszarzona.
+- [ ] Etykiety pod opisem karty mówią, czym są: „Kasa źródłowa: …”, „Kasa docelowa: …”, „Pracownik: …”, „Dodane przez: …” — każdy rodzaj ma własny kolor ramki, kasy niebieską, pracownik żółtą.
+- [ ] Kolumna „Typ” w tabeli i badge na karcie: każdy typ ma inny kolor kropki, wszystkie wydatki i wypłata są w odcieniach czerwieni, wpłaty w zieleniach; „Materiały wliczone w robociznę” mają fuksję — czerwonawą, ale inną niż cztery czerwienie wydatków.
+- [ ] Stopka karty: przyciski z tekstem „FV”, „Edytuj”, „Anuluj” (i „Notatka”, gdy jest notatka) otwierają te same okna co ikony w tabeli; w tabeli zostają same ikony.
+- [ ] Karta → „FV” przy transakcji z fakturą: w podglądzie przyciski powiększania nad obrazem to same ikony, bez tekstu.
+- [ ] Widok kart → „Kolumny” → odznacz np. „Kasa źródłowa”: etykieta znika z kart; po ponownym zaznaczeniu wraca.
+- [ ] Pracownik zalogowany na telefonie → własna strona → Transakcje → „Karty”: brak etykiety „Metoda”, tak jak w tabeli.
+- [ ] Konto w języku ukraińskim → widok kart: przełącznik, przyciski „FV”/„Notatka” i pusta lista są po ukraińsku.
+- [ ] Inwestycja z wydatkiem „Materiały wliczone w robociznę” → panel statystyk: kafelek tej pozycji ma kolor fuksji (ten sam co badge na liście transakcji).
+
+## 2026-10-09 — worker-report-default-new-stage — zgłoszenie pracy domyślnie do nowego etapu
+
+- [ ] Kosztorys → „Zgłoszenia wykonanych prac” → nowe, nieprzyjęte zgłoszenie pracownika, który ma już etapy: „Dodaj do” pokazuje domyślnie „Nowy etap”, a lista nadal oferuje jego etapy (ostatni z dopiskiem „(ostatni)”).
+- [ ] Przyjęcie z domyślnym wyborem tworzy nowy etap pracownika z przyjętymi ilościami; poprzednie etapy się nie zmieniają.
+- [ ] Zgłoszenie już przyjęte pokazuje „Dodano do: Etap N” — ten sam etap co przed zmianą.
+
+## 2026-10-09 — ui-scale — rozmiar interfejsu na telefonie
+
+- [ ] Telefon → menu: wiersz „Rozmiar” z przyciskami 100% / 90% / 80% / 70%; dotknięcie 80% od razu pomniejsza całą aplikację (tekst i odstępy), bez przeładowania.
+- [ ] Po wyborze 70% zamknij i otwórz aplikację ponownie: od pierwszego ekranu jest pomniejszona, bez mignięcia w pełnym rozmiarze, a w menu podświetlone jest 70%.
+- [ ] Przy 70% na iPhonie: dotknięcie pola (np. kwota w „Dodaj transakcję”) nie przybliża strony, a wpisywany tekst mieści się w polu.
+- [ ] Przy 70% → Transakcje → „Karty”: na ekranie mieści się więcej kart niż przy 100%, nic nie nachodzi na siebie.
+- [ ] Powrót do 100% przywraca dotychczasowy wygląd.
+
+## 2026-10-09 — done-percent-vs-offer — „% wykonania (względem przedmiaru ofertowego)”
+
+Kosztorys:
+
+- [ ] Inwestycja, w której Aktualizacja przedmiaru różni się od Przedmiaru ofertowego, z wpisanymi etapami → kosztorys: obok „% wykonania” stoi „% wykonania (względem przedmiaru ofertowego)”. Dla pozycji z Przedmiarem ofertowym 10, Aktualizacją 12 i 4 w etapach pokazuje 40%, a „% wykonania” 33%.
+- [ ] Pozycja dodana po ofercie (Przedmiar ofertowy pusty lub 0): nowa kolumna pokazuje kreskę „—”, nie 0% ani „∞”. Pozycja wykonana ponad ofertę pokazuje ponad 100% i nie świeci się na czerwono.
+- [ ] Nagłówek nowej kolumny ma podpowiedź (ikonka „i”), która mówi, że to procent oferty, a powyżej 100% oznacza więcej, niż zakładała oferta.
+- [ ] Sortowanie po nowej kolumnie układa wiersze rosnąco i malejąco. Przełączanie warstw kosztorysu ukrywa ją i pokazuje razem z „% wykonania”.
+- [ ] Kosztorys bez żadnego wpisu w etapach: nowej kolumny nie widać, tak samo jak „% wykonania”.
+
+Widok inwestora:
+
+- [ ] „Widok inwestora” → ustawienia: w grupie z „% wykonania” jest nowy checkbox „% wykonania (względem przedmiaru ofertowego)”, domyślnie odznaczony — także w kosztorysach z zapisanymi wcześniej ustawieniami.
+- [ ] Po zaznaczeniu: podgląd i „Generuj ofertę” pokazują kolumnę obok „% wykonania”, z tymi samymi wartościami co w kosztorysie. Po odznaczeniu znika z obu.
+
+Widok pracownika:
+
+- [ ] „Widok pracownika” → ustawienia: w „Opis i ilości” jest „Przedmiar ofertowy” przed „Aktualizacja przedmiaru”, a w „Etapy i postęp” jest „% wykonania (względem przedmiaru ofertowego)”. Oba są domyślnie odznaczone; pozostałe checkboxy mają ten sam stan co przed zmianą (w tym odznaczone wcześniej „Pozostało”).
+- [ ] Zaznacz oba i zapisz: link pracownika, „Podgląd” i PDF pokazują Przedmiar ofertowy oraz nowy procent. Po odznaczeniu znikają ze wszystkich trzech.
+- [ ] Pozycja, w której etapy ma także inna ekipa: procent na linku pracownika jest taki sam jak w kosztorysie (liczy wszystkie etapy, nie tylko jego).
+- [ ] „Ukryj aktualizację przedmiaru i jej wartość, gdy w etapach są już wpisy” zaznaczone, a w etapach jest wpis: Aktualizacja przedmiaru znika, a zaznaczony Przedmiar ofertowy zostaje.
+- [ ] Link pracownika na telefonie (390px), z oboma kolumnami zaznaczonymi: tabela przewija się w poziomie, nagłówki są czytelne.
+- [ ] Pracownik z językiem Українська: nagłówki „Плановий обсяг” / „% виконання (від планового обсягу)” i ich podpowiedzi są po ukraińsku.

@@ -22,7 +22,13 @@ describe('workerDataHiddenColumns', () => {
     (hidePlannedOnceExecuted) => {
       const hidden = workerDataHiddenColumns([stageRow()], STAGES, hidePlannedOnceExecuted)
 
-      for (const id of ['stageQtySum', 'net', stageKey(7), stageValueNetKey(9)]) {
+      for (const id of [
+        'stageQtySum',
+        'net',
+        'plannedDonePercent',
+        stageKey(7),
+        stageValueNetKey(9),
+      ]) {
         expect(hidden.has(id), id).toBe(true)
       }
       for (const id of PLANNED) expect(hidden.has(id), id).toBe(false)
@@ -33,7 +39,15 @@ describe('workerDataHiddenColumns', () => {
     const hidden = workerDataHiddenColumns([stageRow({ [stageKey(7)]: 2 })], STAGES, true)
 
     for (const id of PLANNED) expect(hidden.has(id), id).toBe(true)
-    for (const id of ['stageQtySum', 'net', stageKey(7), stageValueNetKey(7)]) {
+    // The checkbox names the Aktualizacja; a ticked ofertowy is the managers' deliberate choice.
+    expect(hidden.has('plannedQty')).toBe(false)
+    for (const id of [
+      'stageQtySum',
+      'net',
+      'plannedDonePercent',
+      stageKey(7),
+      stageValueNetKey(7),
+    ]) {
       expect(hidden.has(id), id).toBe(false)
     }
     expect(hidden.has(stageKey(9))).toBe(true)

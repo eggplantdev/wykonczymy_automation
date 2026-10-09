@@ -4,6 +4,7 @@ import {
   resolvedCurrentPlannedQty,
   rowCurrentPlannedNetForView,
   rowDoneFraction,
+  rowOfferDoneFraction,
   rowPlannedNetForView,
   stageValueForView,
   toGross,
@@ -62,10 +63,15 @@ export function columnValueResolver({
   // 2026-09-23): „how much of the offer" is a question about the offer, whichever crew is looking.
   const plannedNet = (row: KosztorysV2RowT) => rowPlannedNetForView(row, 'client')
   const currentPlannedNet = (row: KosztorysV2RowT) => rowCurrentPlannedNetForView(row, 'client')
-  const clientQtyDone = memoisedByRow((row) => rowTotalQtyDone(row, stages, 'client'))
+  // The worker surface's `stages` are only his, so Σ over them would be his share of the pozycja,
+  // not the figure the editor shows for it — that surface hands the all-etapy quantity in instead.
+  const qtyDone: ColumnValueT = executedQtyByItem
+    ? (row) => executedQtyByItem[row.id] ?? 0
+    : memoisedByRow((row) => rowTotalQtyDone(row, stages, 'client'))
   const remaining = (row: KosztorysV2RowT) =>
-    rowRemainingForExecutedQty(row, resolvedCurrentPlannedQty(row), clientQtyDone(row), 'client')
-  const donePercent = (row: KosztorysV2RowT) => rowDoneFraction(row, clientQtyDone(row))
+    rowRemainingForExecutedQty(row, resolvedCurrentPlannedQty(row), qtyDone(row), 'client')
+  const donePercent = (row: KosztorysV2RowT) => rowDoneFraction(row, qtyDone(row))
+  const plannedDonePercent = (row: KosztorysV2RowT) => rowOfferDoneFraction(row, qtyDone(row))
   // The agent's offer, set beside „Wartość przedmiaru netto": the agent grants no rabat (owner,
   // 2026-10-07), so the row's own rabat would make the two differ by a decision the agent never saw.
   const aiPlannedNet = (row: KosztorysV2RowT) =>
@@ -87,17 +93,13 @@ export function columnValueResolver({
     ['net', net],
     ['gross', grossOf(net)],
     ['donePercent', donePercent],
+    ['plannedDonePercent', plannedDonePercent],
     ['remaining', remaining],
     ['remainingGross', grossOf(remaining)],
   ])
   if (executedQtyByItem) {
     byField.set('remainingForPlane', (row) =>
-      rowRemainingForExecutedQty(
-        row,
-        resolvedCurrentPlannedQty(row),
-        executedQtyByItem[row.id] ?? 0,
-        view,
-      ),
+      rowRemainingForExecutedQty(row, resolvedCurrentPlannedQty(row), qtyDone(row), view),
     )
   }
 

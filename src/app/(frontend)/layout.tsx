@@ -5,6 +5,7 @@ import '@/lib/env'
 import '@/lib/env/server'
 import React, { Suspense } from 'react'
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { spaceMono } from '@/fonts'
 import { cn } from '@/lib/utils/cn'
 import { ToastContainer } from 'react-toastify'
@@ -27,6 +28,7 @@ import { PendingSubmitIndicator } from '@/components/ui/pending-submit-indicator
 import { ReviewPromptHost } from '@/components/investments/review-prompt-host'
 import { ServiceWorkerRegistration } from '@/components/pwa/service-worker-registration'
 import { PWA_METADATA, PWA_VIEWPORT } from '@/lib/pwa/head'
+import { DEFAULT_UI_SCALE, UI_SCALE_COOKIE, parseUiScale } from '@/lib/constants/ui-scale'
 
 export const metadata = PWA_METADATA
 export const viewport = PWA_VIEWPORT
@@ -38,11 +40,14 @@ type FrontendLayoutPropsT = {
   investmentCrumb: React.ReactNode
 }
 
-export default function FrontendLayout({ children, investmentCrumb }: FrontendLayoutPropsT) {
+export default async function FrontendLayout({ children, investmentCrumb }: FrontendLayoutPropsT) {
+  const uiScale = parseUiScale((await cookies()).get(UI_SCALE_COOKIE)?.value)
+
   return (
     <html
       lang="pl"
       className={cn(spaceMono.variable, 'overscroll-none antialiased')}
+      style={uiScale === DEFAULT_UI_SCALE ? undefined : { fontSize: `${uiScale}%` }}
       suppressHydrationWarning
     >
       <body className="bg-background text-foreground relative min-h-screen scroll-smooth">

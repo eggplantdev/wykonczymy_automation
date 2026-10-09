@@ -345,7 +345,21 @@ export function stageValueForView(
  * negative przedmiar.
  */
 export function rowDoneFraction(row: ViewPricingT, totalQtyDone: number): number | null {
-  const plannedQty = resolvedCurrentPlannedQty(row)
+  return doneFraction(totalQtyDone, resolvedCurrentPlannedQty(row))
+}
+
+/**
+ * Past 100% is normal against the offer once the scope was updated, and a pozycja added outside the
+ * offer (ofertowy 0) has no answer.
+ */
+export function rowOfferDoneFraction(
+  row: Pick<KosztorysItemT, 'plannedQty'>,
+  totalQtyDone: number,
+): number | null {
+  return doneFraction(totalQtyDone, row.plannedQty)
+}
+
+function doneFraction(totalQtyDone: number, plannedQty: number): number | null {
   if (!(plannedQty > 0)) return null
   return totalQtyDone / plannedQty
 }

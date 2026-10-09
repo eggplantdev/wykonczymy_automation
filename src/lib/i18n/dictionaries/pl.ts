@@ -270,6 +270,7 @@ export const pl = {
     price: 'Cena j.m. netto',
     plannedNetForPlane: 'Wartość netto aktualizacji przedmiaru',
     remainingForPlane: 'Pozostało netto (względem aktualizacji przedmiaru)',
+    plannedDonePercent: '% wykonania (względem przedmiaru ofertowego)',
     planeWithTools: 'Z narzędziami (podwykonawca)',
     planeOwnTools: 'Bez narzędzi (pracownik)',
     netForPlane: 'Suma etapów {{plane}} netto',
@@ -294,7 +295,7 @@ export const pl = {
     rejectedBlocked: 'Wartość odrzucona',
     rejectedRestored: 'przywrócono {{value}}',
     tipPlannedQty:
-      'Przedmiar ofertowy — ilość z oferty.\nNa nim stoi wartość oferty i prognoza marży.',
+      'Przedmiar ofertowy — ilość z oferty, sprzed zmian zakresu uzgodnionych w trakcie prac.',
     tipCurrentPlannedQty:
       'Aktualizacja przedmiaru — zakres po zmianach uzgodnionych w trakcie prac.\nOd niej liczony jest postęp i to, co pozostało.',
     tipStageQtySum: 'Pomiar — ilość faktycznie wykonana.\nSuma ilości prac w widocznych etapach.',
@@ -304,6 +305,8 @@ export const pl = {
     tipStageValueNet: 'Ilość wykonana w tym etapie razy Twoja stawka.',
     tipRemainingForPlane:
       'Wartość aktualizacji przedmiaru minus wartość tego, co już wykonano — we wszystkich etapach, także innych ekip.\nObie liczone po Twojej stawce.\nNa minusie (na czerwono) = przekroczono aktualizację przedmiaru; suma w stopce pomija takie wiersze.',
+    tipPlannedDonePercent:
+      'Ile procent przedmiaru ofertowego jest wykonane — we wszystkich etapach, także innych ekip.\nPowyżej 100% = wykonano więcej, niż zakładała oferta (np. po aktualizacji przedmiaru).\nKreska dla pozycji spoza oferty.',
   },
   // The labels come from `lib/constants/transfers.ts` rather than a copy: the sheet sync and the
   // mail write them too, and the Polish screen must keep naming a type the way they do.
@@ -379,6 +382,10 @@ export const pl = {
     invoiceUploading: 'Przesyłanie faktury',
     invoiceAdd: 'Dodaj fakturę',
     showNote: 'Pokaż notatkę',
+    noteShort: 'Notatka',
+    invoiceShort: 'FV',
+    viewTable: 'Tabela',
+    viewCards: 'Karty',
   },
   // The list primitives every table and filter bar shares.
   filters: {
@@ -514,6 +521,7 @@ export const pl = {
     toggleTheme: 'Przełącz motyw',
     lightTheme: 'Jasny motyw',
     darkTheme: 'Ciemny motyw',
+    uiScale: 'Rozmiar',
     refreshData: 'Odśwież dane',
     dataRefreshed: 'Dane odświeżone',
     logout: 'Wyloguj',

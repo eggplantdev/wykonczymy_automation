@@ -1,0 +1,12 @@
+{
+  "investmentId": 190,
+  "presetId": 166,
+  "files": [
+    {
+      "name": "brief-do-wstepnej-wyceny.pdf",
+      "kind": "projekt"
+    }
+  ],
+  "notesAppendix": "investment-notes-appendix.txt",
+  "draft": "measure/ai-draft-load.json"
+}
