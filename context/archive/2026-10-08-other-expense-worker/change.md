@@ -1,10 +1,10 @@
 ---
 change_id: other-expense-worker
 title: „Inny wydatek” — opcjonalny pracownik (kto kupił)
-status: implemented
+status: archived
 created: 2026-10-08
-updated: 2026-10-08
-archived_at: null
+updated: 2026-10-09
+archived_at: 2026-10-09T05:45:20Z
 branch: other-expense-worker
 worktree: ../wykonczymy-worktrees/other-expense-worker
 ---

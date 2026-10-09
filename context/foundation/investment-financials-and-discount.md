@@ -224,6 +224,15 @@ for every line. A per-worker roster on the wypłata form was built and dropped b
 2026-07-29): it put a second, staler copy of the figures beside the amount being typed. That is why
 the dialog reads fresh on open and refuses a figure that moved.
 
+**A worker named on an Inny wydatek is the buyer, not a payee (EX-1027, 2026-10-08).** `OTHER` may
+carry an optional `worker_id`, so „Inny wydatek" + „narzędzia" + „Pracownik" filtered on the list
+reads a person's tool purchases off the „Suma" tile. It moves none of the figures above only because
+every money reader of `worker_id` (`get-payout-transactions.ts`, `worker-payout-pairs.ts`) filters
+`type IN ('PAYOUT','BONUS')` — a new reader that groups by `worker_id` without that filter counts
+tools as wypłaty. The kasa owner can't answer „who bought it": `873bfe43` (2026-03) dropped the field
+as redundant with WORKER kasy, but most of the 104 „narzędzia" rows were paid from management kasy.
+It is also the one worker editable after save; on PAYOUT / BONUS it is a settlement figure and stays locked.
+
 ---
 
 ## The five modifiers — how each bends the two formulas
