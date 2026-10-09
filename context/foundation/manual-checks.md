@@ -4392,20 +4392,8 @@ JPEG-i ~300 KB; „duży plik" = PDF powyżej 4 MB.
 
 ## 2026-10-07 — worker-page-quick-actions — „Dodaj wydatek” i „Zgłoś pracę” nad „Moimi kasami”
 
-- [x] Zalogowany pracownik → własna strona: nie widzi pól „Rola” ani „Status”; kierownik na tej samej stronie widzi oba.
-      Staging 2026-10-07: pracownik 85 bez Rola/Status; kierownik 69 widzi oba.
-- [x] Ta sama strona: „Zgłoszone wydatki” i „Zgłoszenia wykonanych prac” są domyślnie zwinięte (przy pierwszym wejściu, bez zapamiętanego stanu).
-      Staging 2026-10-07 (390px, czysty localStorage): obie sekcje aria-expanded=false.
-- [x] Nad „Moimi kasami” są dwa duże przyciski „+ Wydatek” i „Zgłoś pracę”, na 390px obok siebie w jednym rzędzie, każdy napis w jednej linii (także po ukraińsku „+ Витрата” i po rosyjsku „+ Расход”); „+ Wydatek” otwiera ten sam dialog co wcześniej.
-      Staging 2026-10-07 (390px): dwa przyciski po 173px w jednym rzędzie, napis w jednej linii (PL/UA/RU); „+” to ikona, nie znak w napisie. Dialog „Wydatek” otwierał się w sekcji EX-1014.
-- [x] Pracownik przypisany do etapu w jednej aktywnej inwestycji → „Zgłoś pracę” od razu otwiera stronę zgłoszenia tej inwestycji.
-      Staging 2026-10-07: pracownik 85 → /z/testowe-inwestycje/... bez dialogu.
 - [ ] Pracownik przypisany do etapów w kilku aktywnych inwestycjach → „Zgłoś pracę” otwiera okno „Na której inwestycji?” z listą inwestycji; wybór prowadzi do zgłoszenia wybranej.
       Pominięte: wymaga przypisania pracownika do etapów w drugiej inwestycji (edycja kosztorysu = stan do sprzątania).
-- [x] „Moje inwestycje” to zwykła lista nazw ze strzałką (bez tabeli i bez kolumny „Zgłoszenia”); nazwa otwiera podsumowanie inwestycji. Kierownik widzi same nazwy, bez strzałek i linków.
-      Staging 2026-10-07: pracownik — <ul> z linkiem ?view=summary i strzałką, bez tabeli; kierownik — sama nazwa, 0 linków.
-- [x] Pracownik z językiem „Українська” lub „Русский”, 390px: etykiety obu dużych przycisków zawijają się w środku przycisku, nic nie wychodzi poza jego krawędź; gdy dostępny jest tylko jeden z nich, zajmuje cały rząd.
-      Staging 2026-10-07: UA „Витрата”/„Звітувати про роботи”, RU „Расход”/„Отчитаться о работах” mieszczą się w przyciskach; wariant z jednym przyciskiem nie sprawdzony (brak takiego konta). Język konta 85 przywrócony na Polski.
 - [ ] Pracownik bez zgłoszonych wydatków, bez zgłoszeń prac i bez transferów → na jego stronie nie ma sekcji „Zgłoszone wydatki”, „Zgłoszenia wykonanych prac” ani „Lista wydatków / zaliczek”; każda pojawia się po pierwszym wpisie. Filtr transferów, który nic nie znajduje, nie chowa sekcji „Lista wydatków / zaliczek”.
       Pominięte: brak konta pracownika bez żadnych wpisów na stagingu; utworzenie go to stan poza zakresem.
 

@@ -1,10 +1,10 @@
 ---
 change_id: worker-page-quick-actions
 title: Szybkie akcje „Dodaj wydatek” i „Zgłoś pracę” na stronie pracownika
-status: implemented
+status: archived
 created: 2026-10-07
-updated: 2026-10-07
-archived_at: null
+updated: 2026-10-09
+archived_at: 2026-10-09T05:45:09Z
 branch: staging
 worktree: null
 ---
