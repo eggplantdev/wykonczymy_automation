@@ -4920,10 +4920,11 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
 ## EX-1030 — ai-draft-missing-data — „Komentarz AI” w „Przeglądzie AI”
 
 - [ ] Kosztorys ze szkicem AI → „Przegląd AI”: po „AI wartość netto przedmiar” jest kolumna
-      „Komentarz AI”; każda wypełniona komórka ma dwie linie „Czego nie było wiadomo: …” i
-      „Co / ile założono: …” z odpowiedziami pogrubionymi, a pozycja bez braków mówi „nic — …”.
+      „Komentarz AI”; komórka pokazuje „Czego nie było wiadomo: …” i/lub „Co / ile założono: …”
+      z odpowiedziami pogrubionymi — tylko te linie, w których jest coś do powiedzenia. Pozycja bez
+      braków i bez założeń ma pustą komórkę (żadnego „nic”).
 - [ ] „Komentarz AI” jest tylko do odczytu (wpisanie / wklejenie / Delete nic nie zmienia), a skopiowana
-      komórka wkleja się jako te same dwie linie tekstu.
+      komórka wkleja się jako te same linie tekstu.
 - [ ] W kolumnie „Komentarz” pozycji ze szkicu AI nie ma tekstów „AI: …” — Komentarz zostaje dla
       ludzi; widok „Oferta” nie pokazuje „Komentarza AI”.
 - [ ] Zwykły kosztorys (bez szkicu AI): brak kolumny „Komentarz AI”.
@@ -4939,8 +4940,8 @@ Wymaga bazy po migracji i po skrypcie linkującym pozycje z katalogiem prac.
       wybrane jest „Alfabetycznie”, uchwytów nie ma, a pod paskiem stoi podpowiedź, gdzie działa
       przeciąganie.
 - [ ] Edytuj wpis, potem wybierz „Ostatnio zmienione”: ten wpis jest pierwszy.
-- [ ] Dodaj wpis (pojawia się na górze), zmień jego treść, potem usuń go po potwierdzeniu. Każdy krok
-      widać od razu i każdy zostaje po przeładowaniu.
+- [ ] Dodaj wpis: „Zapisz” czeka na odpowiedź serwera, potem wpis pojawia się na górze. Zmień jego
+      treść, potem usuń go po potwierdzeniu — te dwa kroki widać od razu. Każdy zostaje po przeładowaniu.
 - [ ] „Zapisz” jest nieaktywne, dopóki temat albo treść są puste (same spacje też).
 - [ ] Telefon, 390px: menu → „Wiedza firmowa” zamyka menu i otwiera okno na cały ekran; tekst czytelny,
       przyciski osiągalne. Górny pasek nie pokazuje drugiego przycisku.

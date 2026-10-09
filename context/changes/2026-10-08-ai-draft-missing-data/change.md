@@ -21,8 +21,11 @@ EX-1030 — Kosztorys AI „Brak danych”: an agent-owned field next to AI prze
 - **Komentarz AI** is its own column in „Przegląd AI”, separate from the people's Komentarz — the
   investor may be shown Komentarz, so the loader never writes there any more. Every cell keeps the
   fixed structure, questions included, answers in bold:
-  `Czego nie było wiadomo: …` / `Co / ile założono: …`. A row with nothing unknown says so
-  („nic — <źródło ilości>”) rather than staying blank.
+  `Czego nie było wiadomo: …` / `Co / ile założono: …`. **A question with nothing to report is not
+  written** (owner, 2026-10-09: „jak nic, to nie ma sensu tego pisać”) — the field stays empty, its
+  line is not shown, and a row with neither stays blank. Where a quantity came from is not an
+  assumption, so it is not a reason to fill „Co / ile założono”. Several items go one per line in
+  the draft; the cell shows them as one answer separated by commas.
 - Stored as two fields (`ai_missing_data`, `ai_assumptions` — migration
   `20261008_2_add_kosztorys_item_ai_comment`); the draft JSON carries them as `missingData` /
   `assumptions`. A draft's old `note` key is no longer read.

@@ -6,6 +6,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { CellSelectMenu } from '@/components/ui/datasheet-grid/cell-select-menu'
 import { GridEventBoundary } from '@/components/ui/datasheet-grid/grid-event-boundary'
 import { ReadOnlyCellText } from '@/components/ui/datasheet-grid/read-only-cell-text'
+import { aiCommentLines } from '@/lib/kosztorys/ai-review-columns'
 import { REVIEW_STATUS_LABELS, REVIEW_STATUS_UNSET_LABEL } from '@/lib/kosztorys/labels'
 import {
   aiOffered,
@@ -67,20 +68,14 @@ export function reviewStatusColumn(titleNode: ReactNode): Column<KosztorysV2RowT
   }
 }
 
-const AI_COMMENT_LINES = [
-  ['Czego nie było wiadomo', 'aiMissingData'],
-  ['Co / ile założono', 'aiAssumptions'],
-] as const
-
-const hasAiComment = (row: KosztorysV2RowT) => Boolean(row.aiMissingData || row.aiAssumptions)
-
 function AiCommentCell({ rowData }: CellProps<KosztorysV2RowT, unknown>) {
-  if (!hasAiComment(rowData)) return null
+  const lines = aiCommentLines(rowData)
+  if (lines.length === 0) return null
   return (
     <ReadOnlyCellText>
-      {AI_COMMENT_LINES.map(([question, field]) => (
+      {lines.map(({ field, question, answer }) => (
         <span key={field} className="block">
-          {question}: <strong>{rowData[field] ?? '—'}</strong>
+          {question}: <strong>{answer}</strong>
         </span>
       ))}
     </ReadOnlyCellText>
@@ -97,11 +92,9 @@ export function aiCommentColumn(titleNode: ReactNode): Column<KosztorysV2RowT> {
     ...AI_REVIEW_COLUMN_CLASS,
     component: AiCommentCell,
     copyValue: ({ rowData }) =>
-      hasAiComment(rowData)
-        ? AI_COMMENT_LINES.map(([question, field]) => `${question}: ${rowData[field] ?? '—'}`).join(
-            '\n',
-          )
-        : null,
+      aiCommentLines(rowData)
+        .map(({ question, answer }) => `${question}: ${answer}`)
+        .join('\n') || null,
   }
 }
 
