@@ -334,6 +334,14 @@ Reguły, które trzymają to razem:
 - **Brak zapisanego zestawu ukrywa zestaw domyślny, nie „nic"** (fail-closed). Przechowywany jest
   zestaw UKRYTY, więc NULL albo nie-tablica czytane jako „nic nie ukryte" serwowałyby całą
   allowlistę, z rabatem włącznie.
+- **Nowa kolumna w allowliście pojawia się zaznaczona wszędzie, gdzie zestaw jest zapisany.**
+  Przechowywany jest zestaw UKRYTY, więc każda inwestycja z zapisaną tablicą `hidden_columns` —
+  i domyślny zestaw firmy w `kosztorys_client_view_defaults` — pokaże ją od razu. Kolumna, która ma
+  być domyślnie odznaczona, potrzebuje migracji danych dopisującej jej id do każdej tablicy
+  `hidden_columns` w obu tabelach; NULL już czyta domyślny zestaw z kodu. Tak weszły
+  `currentPlannedNet` (`20261007_1_add_current_planned_qty`) i `note`
+  (`20261008_1_client_view_note_hidden`). Stary kod jest na nią obojętny — `sanitizeClientViewSettings`
+  odrzuca klucz spoza allowlisty — więc migracja może iść przed wdrożeniem albo po nim.
 - **Ukrywanie pustych pozycji to jedna reguła, nie dwie** (`client-empty`, `kind: 'client'`):
   pozycja bez przedmiaru **i** bez wykonanej pracy nie wnosi nic do żadnej z dwóch kwot, które
   klient czyta, więc jej ukrycie nie rusza podsumowania. Każdy z dwóch filtrów osobno byłby

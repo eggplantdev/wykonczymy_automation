@@ -4433,36 +4433,8 @@ JPEG-i ~300 KB; „duży plik" = PDF powyżej 4 MB.
 
 ## EX-921 — kosztorys-przedmiar-aktualny — „Aktualizacja przedmiaru” obok „Przedmiaru ofertowego” (2026-10-07)
 
-- [x] Kosztorys z pozycjami → w edytorze kolejno: „Przedmiar ofertowy”, „Wartość netto przedmiar”, „Aktualizacja przedmiaru”, „Wartość netto aktualizacji przedmiaru”. Na nietkniętej pozycji aktualizacja jest szara (kursywa) i równa przedmiarowi ofertowemu.
-      Staging 2026-10-07 (173): kolumny „Przedmiar ofertowy” i „Aktualizacja przedmiaru” stoją obok siebie; aktualizacja szara kursywą i równa ofertowemu (0, potem 10 / 30 po zmianie). Wartości (przedmiar netto / aktualizacji netto) leżą dalej, w bloku po „Rabat kwota brutto” — nie między ilościami, jak mówi opis boksu; tak jest w kodzie (`kosztorys-v2-columns.tsx`, grupa `plannedValue`), więc opis jest nieaktualny, nie aplikacja.
-- [x] Wpisz 120 w „Aktualizacja przedmiaru” → komórka robi się czarna, „% wykonania” i „Pozostało” przeliczają się względem 120. Delete → komórka znów szara i pokazuje przedmiar ofertowy. Wpisz 0 → „% wykonania” pokazuje „—”, a wartość wykonana wiersza zostaje.
-      Staging 2026-10-07 (173, pozycja 13747, etap 1 = 60): 120 → czarna, % wykonania 50%, Pozostało 3000 zł (60 / 120); Delete → szara kursywa, 5000 = ofertowy, 60% i Pozostało 2000; 0 → „—”, Pozostało −3000, Pomiar i wartość etapu 3000 zostają. DB: current_planned_qty 120.
-- [x] Zmień „Przedmiar ofertowy” na pozycji z szarą aktualizacją → aktualizacja idzie za nim. Na pozycji z wpisaną ręcznie aktualizacją → zostaje bez zmian.
-      Staging 2026-10-07 (173): szara aktualizacja idzie za Przedmiarem (12,5, potem 30, kursywa); przy wpisanej ręcznie 120 zostaje 120 po zmianie Przedmiaru na 20; Delete → wraca do szarej 20.
-- [x] Wiersz „Razem” i stopki sekcji pokazują obie sumy: „Wartość netto przedmiar” i „Wartość netto aktualizacji przedmiaru”. Po przeładowaniu strony ręczna aktualizacja nadal jest.
-      Staging 2026-10-07 (173): stopka „Razem” 5000,00 (przedmiar netto) i 6000,00 (aktualizacja netto), stopki sekcji też mają obie kolumny; po przeładowaniu 120 nadal jest.
-- [x] Sortowanie po „Aktualizacja przedmiaru” → szare (nietknięte) pozycje układają się według swojej liczby, nie lądują wszystkie na dole.
-      Staging 2026-10-07 (173): malejąco z zachowaniem sekcji → 120 (ręczna), 30 (szara), 10 (szara), potem zera; szare układają się po swojej liczbie.
-- [x] Tryb „Postęp” → kolumna „Aktualizacja przedmiaru” zostaje widoczna obok „% wykonania” i „Pozostało”.
-      Staging 2026-10-07 (173): warstwa „Praca” odznaczona → „Aktualizacja przedmiaru” zostaje obok „% wykonania” i „Pozostało”; przywrócone.
-- [x] Historia wersji → zmiana aktualizacji pokazuje się jako „Aktualizacja przedmiaru: — → 120”, a zmiana przedmiaru ofertowego jako „Przedmiar ofertowy”.
-      Staging 2026-10-07 (173): wersja nazwana „QA przed zmianą” vs bieżąca pokazuje wiersze „Aktualizacja przedmiaru  —  →  50 m²” i „Przedmiar ofertowy  100 szt → 110 100 szt”. Uwaga: dzisiejsze auto-snapshoty są pomijane z założenia, więc zmiany z tego samego dnia widać tylko przez wersję nazwaną.
-- [x] Kosztorys bez żadnego wpisu w etapach → „Podgląd” dla inwestora pokazuje samą ofertę: bez „Aktualizacja przedmiaru”, bez „Pozostało” — nawet gdy obie są zaznaczone w ustawieniach.
-      Staging 2026-10-07 (173, etap bez wpisu, „Pozostało” zaznaczone w ustawieniach podglądu): /podglad-inwestora/173 pokazuje Opis, Wartość przedmiaru netto, Przedmiar ofertowy, j.m., Cena — bez „Aktualizacja przedmiaru” i bez „Pozostało”.
-- [x] Po pierwszym wpisie w etapie → podgląd i link dla inwestora pokazują „Przedmiar ofertowy” i „Aktualizacja przedmiaru”; „Wartość netto aktualizacji przedmiaru” jest w ustawieniach do zaznaczenia i domyślnie odznaczona. „% wykonania” liczy się względem aktualizacji.
-      Staging 2026-10-07 (173): po wpisie 60 podgląd i link /k/<token> pokazują „Przedmiar ofertowy” 100 i „Aktualizacja przedmiaru” 120, % wykonania 50%, Pozostało 3000; „Wartość netto aktualizacji przedmiaru” stoi w ustawieniach odznaczona.
-- [x] „Generuj ofertę” drukuje te same kolumny co podgląd — przed pierwszym wpisem i po nim.
-      Staging 2026-10-07 (173, „Wygeneruj ofertę w PDF”, print stub na popupie): przed wpisem Opis / Wartość netto / Przedmiar ofertowy / j.m. / Cena; po wpisie dochodzą Aktualizacja przedmiaru, Etap 1, Pomiar, Etap 1 netto, % wykonania, Pozostało — jak w podglądzie.
-- [x] Link pracownika (po polsku i po ukraińsku, na telefonie 390px) → widać „Aktualizacja przedmiaru”, nigdy przedmiaru ofertowego. Po wpisaniu 120 w edytorze link pokazuje 120, a jego wartość i „Pozostało” liczą się od 120.
-      Staging 2026-10-07 (173, pracownik z etapu, „Podgląd linku pracownika”, 390px, PL i UA): kolumna „Aktualizacja przedmiaru” (UA: „Оновлений плановий обсяг”) 120, żadnej „Przedmiar ofertowy”; wartość 3315,00 = 120 × stawka, „Pozostało” 1657,50 = (120−60) × stawka. Kolumna znika od pierwszego wpisu w etapie, dopóki ustawienie „Ukryj aktualizację… gdy w etapach są już wpisy” stoi zaznaczone (domyślnie) — przy odznaczonym widać ją. To podgląd właściciela, nie token /z/.
 - [ ] Pracownik, któremu wcześniej odznaczono „Przedmiar” w ustawieniach widoku pracownika → po zmianie „Aktualizacja przedmiaru” nadal jest u niego ukryta.
       POMINIĘTE bez próby (2026-10-07): wymaga starego klucza `plannedQty` zapisanego w globalu ustawień widoku pracownika, a UI zapisuje już tylko `currentPlannedQty`; stworzenie stanu to zapis do bazy poza UI. Mapowanie klucza pokrywa `src/__tests__/lib/kosztorys/worker-view/settings.test.ts`.
-- [x] „Drukuj do wypełnienia” → kolumna „Postęp” pokazuje „wykonano / 120” dla pozycji z aktualizacją 120.
-      Staging 2026-10-07 (173, „Drukuj kartkę do zgłoszenia prac”, print stub): nagłówek „POSTĘP (WYKONANO / PRZEDMIAR)”, wiersz „Demontaż grzejników … 60 / 120”.
-- [x] Zgłoszenie pracownika → w przeglądzie zgłoszenia kolumna nazywa się „Aktualizacja przedmiaru”, a ostrzeżenie o przekroczeniu liczy się względem niej i brzmi „Przekroczono aktualizację przedmiaru”; na stronie zgłoszenia „Postęp” też pokazuje „/ 120”.
-      Staging 2026-10-07 (173, /z/<token>, zgłoszenie 70 przy etapie 60): kolumna przeglądu „Aktualizacja przedmiaru” = 120, po zaznaczeniu wiersz „60 → 130” i „Przekroczono aktualizację przedmiaru”; strona zgłoszenia z „Pokaż postęp” pokazuje „60 / 120”. Zgłoszenie 70 nie przyjęte (do odrzucenia przy sprzątaniu).
-- [x] Przyjęcie pracy dodatkowej ze zgłoszenia → nowa pozycja ma „Przedmiar ofertowy” 0 i „Aktualizacja przedmiaru” równą zgłoszonej ilości (czarną).
-      Staging 2026-10-07 (173): „QA praca dodatkowa” 7 m² przyjęta do Etapu 1 → nowa pozycja id 13933: planned_qty 0, current_planned_qty 7 (stage_progress 7). Kolor czarny nie sprawdzony wzrokowo (wartość jawna, nie null).
 
 ## 2026-10-07 — kosztorys-fit-all-columns — „Dopasuj wysokość do treści” mierzy każdą kolumnę
 
