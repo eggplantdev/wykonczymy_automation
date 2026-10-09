@@ -1,10 +1,10 @@
 ---
 change_id: worker-reports-on-worker-page
 title: Zgłoszenia wykonanych prac na stronie pracownika, z podglądem zgłoszenia
-status: implemented
+status: archived
 created: 2026-10-06
-updated: 2026-10-06
-archived_at: null
+updated: 2026-10-09
+archived_at: 2026-10-09T05:44:19Z
 branch: feature/worker-reports-on-worker-page
 worktree: ../wykonczymy-worktrees/worker-reports-on-worker-page
 ---

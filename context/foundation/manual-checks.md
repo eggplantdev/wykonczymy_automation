@@ -4260,35 +4260,6 @@ Potrzebna paczka PDF-ów Telmaka za jeden miesiąc (WV / KWV / WZ / FP) i kasa T
 - [x] Jako pracownik: klik w imię otwiera jego własną stronę, bez „brak dostępu”.
       _Staging 2026-10-06 (pass 3, EMPLOYEE 85): link imienia w pasku bocznym i w menu mobilnym (390px) → /pracownicy/85, bez „brak dostępu”; w menu mobilnym na własnej stronie klik zamyka menu._
 
-## 2026-10-06 — worker-reports-on-worker-page — zgłoszenia wykonanych prac na stronie pracownika, z podglądem
-
-- [x] „Zgłoszenia wykonanych prac” (lista kierownika): klik w wiersz nic nie robi. „Podgląd” otwiera okno nad listą, adres się nie zmienia. „Otwórz w kosztorysie” otwiera rozpiskę z tym zgłoszeniem (adres ma `?zgloszenie=`).
-      _Staging 2026-10-06 (pass 2):_ klik w wiersz nic; Podgląd nad listą bez zmiany adresu; „Otwórz w kosztorysie” → ?zgloszenie=40.
-- [x] Ta sama lista ma kolumny „Źródło” („z linku” / „skan”) i „Weryfikował” (data · kto) przy rozpatrzonych, „—” przy czekających; czekające mają plakietkę „Do sprawdzenia”. Kolumna z przyciskami ma nagłówek „Podgląd”, a w oknie podglądu jest ten sam napis „Weryfikował: data · kto”.
-      _Staging 2026-10-06 (pass 2):_ nagłówki: Inwestycja Pracownik Wysłano Źródło Prace Status Weryfikował Podgląd (nowe nazwy); z linku/skan; „—” przy czekających; „Do sprawdzenia”.
-- [x] Podgląd zgłoszenia przyjętego częściowo: przyjęte prace mają w „Przyjęto” ilość, pozostałe „odrzucona”; przyjęta praca spoza rozpiski ma „Nr” pozycji, którą się stała. Podgląd czekającego zgłoszenia: „czeka” przy każdej pracy.
-      _Staging 2026-10-06 (pass 2):_ przyjęta praca: ilość 1 m², druga „odrzucona”; „Weryfikował: data · kto”; czekające „czeka”. Praca spoza rozpiski (Nr) nie testowana.
-- [x] Podgląd skanu pokazuje „Wprowadził: …” i przycisk „Zdjęcia”, który otwiera zdjęcia kartki.
-      _Staging 2026-10-06 (pass 4):_ worker 80, scan #7 preview: „skan · Wprowadził: QA Staging”, „Weryfikował”, „Zdjęcia” opens the viewer with scan-clean-6b76fc.jpg + Drukuj/Pobierz (image bytes not loaded in preview blob store).
-- [x] Jako kierownik, zgłoszenie pracownika z językiem Українська: obok polskiego „Opis prac” jest „Opis w języku pracownika”.
-      _Staging 2026-10-06 (pass 4):_ worker 80 (uk), report 05.10 21:10: Opis prac PL + „Opis w języku pracownika” with UA tag „Фарбування стін QA тест”.
-- [x] Jako pracownik na swojej stronie, telefon 390px: sekcja „Zgłoszenia wykonanych prac” wymienia jego zgłoszenia — z linku i skany. Stronicowanie, „Status”, „Inwestycja” i „Pokaż” nie zmieniają adresu.
-      _Staging 2026-10-06 (pass 2):_ 390px: sekcja z raportem „z linku”, kolumny Status/Inwestycja/Wysłano/Źródło/Prace/Status/Weryfikował/Podgląd, bez poziomego przewijania strony. Skanów nie testowano.
-- [x] Tamże „Podgląd”: okno na pełną wysokość, tabela przewija się w bok wewnątrz okna, strona nie przewija się w poziomie. Pracownik ma tylko „Podgląd”, bez „Otwórz w kosztorysie”.
-      _Staging 2026-10-06 (pass 2):_ okno 390x844, strona bez poziomego scrolla, tylko „Podgląd”, brak „Otwórz w kosztorysie”; przewijanie tabeli wewnątrz okna nie sprawdzane (2 wiersze).
-- [x] Pracownik z Українська na koncie: tytuł sekcji, kolumny, statusy, źródło, sekcje i opisy prac po ukraińsku; praca bez ukraińskiego tłumaczenia po polsku.
-      _Staging 2026-10-06 (pass 3, EMPLOYEE 85 na Українська): tytuł „Звіти про виконані роботи”, kolumny, status „Прийнято 1 з 2”, źródło „з посилання”, sekcja „Додаткові роботи”; opisy prac bez UA tłumaczenia po polsku („Mikrocement”, „Montaż płyt osb”)._
-- [x] Jako kierownik na stronie tego pracownika: w każdym wierszu „Podgląd” i „Otwórz w kosztorysie”; w podglądzie polski opis plus „Opis w języku pracownika”.
-      _Staging 2026-10-06 (pass 4):_ worker 80: all 8 rows have Podgląd + „Otwórz w kosztorysie”; preview shows PL description plus „Opis w języku pracownika”.
-- [x] Zgłoszenie na zakończonej inwestycji jest na liście pracownika i otwiera się w podglądzie.
-      _Staging 2026-10-06 (batch B): inwestycja 137 ustawiona w UI na „Zakończona” (DB status=completed); /pracownicy/80 nadal wymienia wszystkie 9 zgłoszeń, w tym 4 na 137, „Podgląd” zgłoszenia 21:22 otwiera okno z pracami. Status przywrócony na „Aktywna” (DB: active)._
-- [x] „Wysłane zgłoszenia” na stronie z linkiem do zgłaszania prac bez zmian: tylko czekające, bez skanów, nieklikalne.
-      _Staging 2026-10-06 (pass 4):_ link page of worker 80 (UA) after submitting a new report (1 rozpiska + 1 extra): the section lists only the new pending report „Очікують на перевірку 21:22 · 2 роботи”; the 8 earlier accepted/rejected/scan reports absent; item not a link or button.
-
-### Findings — 2026-10-06
-
-- [x] 🔵 OBSERVATION · dismissed · zgłoszenie z poprzedniego przebiegu „ustawienie inwestycji na Zakończona nic nie zapisuje" nie powtarza się: na inwestycji 137 jako OWNER „Edytuj" → status „Zakończona" → „Zapisz" → „Zakończyć inwestycję?" → „Zakończ" zapisuje (DB `status=completed`), po zapisie wyskakuje okno „Poproś o opinię"; żaden zawieszony klik. Prawdopodobne mylące wrażenie: okno opinii zasłania toast. Bez poprawki w kodzie, commit 8dcf77c6 nie wskazany jako przyczyna.
-
 ## 2026-10-06 — employee-access-audit — zalogowany pracownik nie widzi i nie zrobi niczego poza swoją stroną
 
 Potrzebne: konto z rolą „Pracownik” z co najmniej jedną własną kasą, przypisaną inwestycją z
