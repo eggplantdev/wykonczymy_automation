@@ -141,8 +141,8 @@ through collection → worker form → reference data, and shown to management o
 
 - `src/components/forms/worker-form/worker-schema.ts`
 - `src/components/forms/worker-form/worker-form.tsx`
-- `src/components/forms/worker-form/edit-worker-dialog.tsx`
-- `src/components/forms/worker-form/add-worker-dialog.tsx`
+- `src/components/dialogs/edit-worker-dialog.tsx`
+- `src/components/dialogs/add-worker-dialog.tsx`
 
 **Intent**: A checkbox „Może dodawać wydatki bez inwestycji" in both dialogs.
 
@@ -185,8 +185,8 @@ through collection → worker form → reference data, and shown to management o
 - `...(isManager ? [{ label: t('expensesWithoutInvestment'), value: t(worker.canAddExpensesWithoutInvestment ? 'yes' : 'no') }] : [])`.
 - New keys in all three languages:
   - pl: `expensesWithoutInvestment` „Wydatki bez inwestycji", `yes` „Tak", `no` „Nie"
-  - uk: „Витрати без інвестиції" / „Так" / „Ні"
-  - ru: „Расходы без инвестиции" / „Да" / „Нет"
+  - uk: „Витрати без об'єкта" / „Так" / „Ні"
+  - ru: „Расходы без объекта" / „Да" / „Нет"
 
 ### Success Criteria
 
@@ -282,7 +282,7 @@ the flag.
 **Files**:
 
 - `src/__tests__/lib/db/worker-expense-drafts.db.test.ts`
-- `src/__tests__/lib/actions/worker-expense-drafts.db.test.ts`
+- `src/__tests__/lib/actions/worker-expense-drafts-worker.db.test.ts`
 
 **Intent**: Prove the risk end to end against the DB. Assert persisted state, not just the returned
 result.
@@ -305,7 +305,7 @@ result.
 #### Automated Verification
 
 - DAL spec passes: `pnpm exec vitest run src/__tests__/lib/db/worker-expense-drafts.db.test.ts`
-- Action spec passes: `pnpm exec vitest run src/__tests__/lib/actions/worker-expense-drafts.db.test.ts`
+- Action spec passes: `pnpm exec vitest run src/__tests__/lib/actions/worker-expense-drafts-worker.db.test.ts`
 
 #### Manual Verification
 
@@ -387,7 +387,7 @@ null.
 
 **Contract**:
 
-- `noInvestment` — pl „Bez inwestycji", uk „Без інвестиції", ru „Без инвестиции".
+- `noInvestment` — pl „Bez inwestycji", uk „Без об'єкта", ru „Без объекта" — the uk/ru dictionaries say „об'єкт/объект" for an investment everywhere.
 
 #### 6. DOM specs
 
@@ -426,7 +426,7 @@ null.
   nothing is pre-selected.
 - After a manager unticks the flag: the worker's existing „Bez inwestycji" draft still edits and saves
   with that option; a new send no longer offers it; and with 0 investments the button disappears.
-- The same flow in Ukrainian shows „Без інвестиції".
+- The same flow in Ukrainian shows „Без об'єкта".
 
 **Implementation Note**: When this phase's automated verification passes, commit and continue.
 
@@ -543,26 +543,26 @@ Run **once**, after the final phase:
 
 - [x] 1.1 Migration applies to the local dev DB — 5ee26ef07
 - [x] 1.2 Types regenerate — 5ee26ef07
-- [ ] 1.3 Worker form spec passes
+- [x] 1.3 Worker form spec passes
 
 ### Phase 2: Draft DAL null-safety + server enforcement
 
 #### Automated
 
-- [ ] 2.1 DAL spec passes
-- [ ] 2.2 Action spec passes
+- [x] 2.1 DAL spec passes
+- [x] 2.2 Action spec passes
 
 ### Phase 3: Worker UI
 
 #### Automated
 
-- [ ] 3.1 Dialog spec(s) pass
-- [ ] 3.2 Worker table spec passes
-- [ ] 3.3 Quick-actions spec passes
+- [x] 3.1 Dialog spec(s) pass
+- [x] 3.2 Worker table spec passes
+- [x] 3.3 Quick-actions spec passes
 
 ### Phase 4: Management acceptance
 
 #### Automated
 
-- [ ] 4.1 Prefill spec passes
-- [ ] 4.2 Queue specs pass
+- [x] 4.1 Prefill spec passes
+- [x] 4.2 Queue specs pass
